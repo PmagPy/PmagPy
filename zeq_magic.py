@@ -716,7 +716,7 @@ def main():
                   pmagplotlib.saveP(ZED,files)
             if len(CurrRecs)>0:
                 for rec in CurrRecs: PriorRecs.append(rec)
-            if changeS==1:save_redo(PriorRecs,inspec)
+            if changeS==1 and len(PriorRecs)>0:save_redo(PriorRecs,inspec)
             CurrRecs,beg_pca,end_pca=[],"","" # next up
             changeS=0
     if changeM==1:
