@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-import sys,pmagplotlib,pmag,exceptions,string
+import sys,pmagplotlib,pmag,exceptions,string,os
 def save_redo(SpecRecs,inspec):
     print "Saving changes to specimen file"
     pmag.magic_write(inspec,SpecRecs,'pmag_specimens')
@@ -716,7 +716,11 @@ def main():
                   pmagplotlib.saveP(ZED,files)
             if len(CurrRecs)>0:
                 for rec in CurrRecs: PriorRecs.append(rec)
-            if changeS==1 and len(PriorRecs)>0:save_redo(PriorRecs,inspec)
+            if changeS==1:
+                if len(PriorRecs)>0:
+                    save_redo(PriorRecs,inspec)
+                else:
+                    os.system('rm '+inspec)
             CurrRecs,beg_pca,end_pca=[],"","" # next up
             changeS=0
     if changeM==1:
