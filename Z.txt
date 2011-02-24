@@ -1,0 +1,7 @@
+        if "7" in samp_con:
+            if "-" not in samp_con:
+                print "option [7] must be in form 7-Z where Z is an integer"
+                sys.exit()
+            else:
+                Z=samp_con.split("-")[1]
+                samp_con="7"

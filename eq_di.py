@@ -1,0 +1,50 @@
+#!/usr/bin/env python
+import sys,math
+def main():
+    """
+    NAME
+        eq_di.py
+    
+    DESCRIPTION
+      converts x,y pairs digitized from equal area projection to dec inc data
+    
+    SYNTAX
+        eq_di.py [command line options] [< filename]
+    
+    OPTIONS
+        -f FILE, input file
+        -up if data are upper hemisphere
+    """
+    out=""
+    UP=0
+    if '-h' in sys.argv:
+        print main.__doc__
+        sys.exit()
+    if '-f' in sys.argv:
+        dat=[]
+        ind=sys.argv.index('-f')
+        file=sys.argv[ind+1]  
+        f=open(file,'rU')
+        input=f.readlines()
+    else:
+        input = sys.stdin.readlines()  # read from standard input
+    if '-up' in sys.argv: UP=1
+    for line in input:
+        rec=line.split()
+        x,y=float(rec[1]),float(rec[0])  # swap x,y cartesian for x,y geographic
+        r=math.sqrt(x**2+y**2)
+        z=1.-r**2
+        t=math.asin(z)
+        if UP==1:t=-t
+        if x==0.:
+            if y<0:
+                p=3.*math.pi/2.
+            else:
+                p=math.pi/2.
+        else:
+            p=math.atan2(y,x)
+        d,i=p*180./math.pi,t*180./math.pi
+        if d<0:d+=360.
+        print '%7.1f %7.1f'%(d,i)
+
+main() 
