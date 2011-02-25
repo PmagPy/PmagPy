@@ -1215,6 +1215,7 @@ def add_mag():
         if d.result['noave']=="n":outstring=outstring + ' -A '
         outstring=outstring+' -ncn '+NCN_types[ncn_rv].split(":")[0]
         if ncn_rv==3:outstring=outstring+'-'+d.result['Z']+" "
+        if ncn_rv==6:outstring=outstring+'-'+d.result['Z']+" "
         if outstring[-1]=='6':outstring=outstring+' -fsa '+opath+'/er_samples.txt'
         print outstring
         os.system(outstring)

@@ -211,7 +211,7 @@ def main():
                 samp_con="4"
         if "7" in samp_con:
             if "-" not in samp_con:
-                print "option [4] must be in form 7-Z where Z is an integer"
+                print "option [7] must be in form 7-Z where Z is an integer"
                 sys.exit()
             else:
                 Z=samp_con.split("-")[1]
