@@ -76,7 +76,7 @@ def main():
 # default acceptance criteria
 #
     accept_keys=['specimen_int_ptrm_n','specimen_md','specimen_fvds','specimen_b_beta','specimen_dang','specimen_drats','specimen_Z']
-    accept=pmag.default_crit():
+    accept=pmag.default_criteria(0)
 #
 # parse command line options
 #
