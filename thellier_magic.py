@@ -76,7 +76,11 @@ def main():
 # default acceptance criteria
 #
     accept_keys=['specimen_int_ptrm_n','specimen_md','specimen_fvds','specimen_b_beta','specimen_dang','specimen_drats','specimen_Z']
-    accept=pmag.default_criteria(0)
+    CritRecs=pmag.default_criteria(0)
+    accept={}
+    for rec in CritRecs:
+        for key in accept_keys:
+            if key in rec.keys():accept[key]=rec[key]
 #
 # parse command line options
 #
@@ -457,6 +461,7 @@ def main():
                            pars["specimen_lab_field_dc"]=field
                            pars["specimen_int"]=-1*field*pars["specimen_b"]
                            pars["er_specimen_name"]=s
+                           print accept
                            pars=pmag.scoreit(pars,PmagSpecRec,accept,'',0)
                            PmagSpecRec["measurement_step_min"]='%8.3e' % (pars["measurement_step_min"])
                            PmagSpecRec["measurement_step_max"]='%8.3e' % (pars["measurement_step_max"])
