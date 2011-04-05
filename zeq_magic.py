@@ -246,12 +246,15 @@ def main():
                     if 'DE-FM' in method_codes: calculation_type='DE-FM'
                     if 'DE-BFP' in method_codes: calculation_type='DE-BFP'
                     if 'DE-BFL-A' in method_codes: calculation_type='DE-BFL-A'
+                    if 'specimen_dang' not in CurrRec.keys():
+                        print 'Run mk_redo.py and zeq_magic_redo.py to get the specimen_dang values'
+                        CurrRec['specimen_dang']=-1
                     if calculation_type!='DE-FM':
-                        print "Specimen  N MAD   start     end      dec     inc  type  component"
+                        print "Specimen  N MAD DANG  start     end      dec     inc  type  component"
                         if units=='K':
-                            print '%s %i %7.1f %7.1f %7.1f %7.1f %7.1f  %s  %s \n' % (CurrRec["er_specimen_name"],int(CurrRec["specimen_n"]),float(CurrRec["specimen_mad"]),float(CurrRec["measurement_step_min"])-273,float(CurrRec["measurement_step_max"])-273,float(CurrRec["specimen_dec"]),float(CurrRec["specimen_inc"]),calculation_type,CurrRec['specimen_comp_name'])
+                            print '%s %i %7.1f %7.1f %7.1f %7.1f %7.1f %7.1f  %s  %s \n' % (CurrRec["er_specimen_name"],int(CurrRec["specimen_n"]),float(CurrRec["specimen_mad"]),float(CurrRec["specimen_dang"]),float(CurrRec["measurement_step_min"])-273,float(CurrRec["measurement_step_max"])-273,float(CurrRec["specimen_dec"]),float(CurrRec["specimen_inc"]),calculation_type,CurrRec['specimen_comp_name'])
                         elif units=='T':
-                           print '%s %i %7.1f %7.1f %7.1f %7.1f %7.1f  %s  %s \n' % (CurrRec["er_specimen_name"],int(CurrRec["specimen_n"]),float(CurrRec["specimen_mad"]),float(CurrRec["measurement_step_min"])*1e3,float(CurrRec["measurement_step_max"])*1e3,float(CurrRec["specimen_dec"]),float(CurrRec["specimen_inc"]),calculation_type,CurrRec['specimen_comp_name'])
+                           print '%s %i %7.1f %7.1f %7.1f %7.1f %7.1f %7.1f  %s  %s \n' % (CurrRec["er_specimen_name"],int(CurrRec["specimen_n"]),float(CurrRec["specimen_mad"]),float(CurrRec["specimen_dang"]),float(CurrRec["measurement_step_min"])*1e3,float(CurrRec["measurement_step_max"])*1e3,float(CurrRec["specimen_dec"]),float(CurrRec["specimen_inc"]),calculation_type,CurrRec['specimen_comp_name'])
                         elif 'T' in units and 'K' in units:
                                 if float(CurrRec['measurement_step_min'])<1.0 :
                                     min=float(CurrRec['measurement_step_min'])*1e3
@@ -261,11 +264,11 @@ def main():
                                     max=float(CurrRec['measurement_step_max'])*1e3
                                 else:
                                     max=float(CurrRec['measurement_step_max'])-273
-                                print '%s %i %7.1f %i %i %7.1f %7.1f, %s \n' % (CurrRec["er_specimen_name"],int(CurrRec["specimen_n"]),float(CurrRec["specimen_mad"]),min,max,float(CurrRec["specimen_dec"]),float(CurrRec["specimen_inc"]),calculation_type)
+                                print '%s %i %7.1f %i %i %7.1f %7.1f %7.1f, %s \n' % (CurrRec["er_specimen_name"],int(CurrRec["specimen_n"]),float(CurrRec["specimen_mad"]),float(CurrRec['specimen_dang']),min,max,float(CurrRec["specimen_dec"]),float(CurrRec["specimen_inc"]),calculation_type)
                         elif 'J' in units:
-                           print '%s %i %7.1f %7.1f %7.1f %7.1f %7.1f  %s  %s \n' % (CurrRec["er_specimen_name"],int(CurrRec["specimen_n"]),float(CurrRec["specimen_mad"]),float(CurrRec["measurement_step_min"]),float(CurrRec["measurement_step_max"]),float(CurrRec["specimen_dec"]),float(CurrRec["specimen_inc"]),calculation_type,CurrRec['specimen_comp_name'])
+                           print '%s %i %7.1f %7.1f %7.1f %7.1f %7.1f %7.1f  %s  %s \n' % (CurrRec["er_specimen_name"],int(CurrRec["specimen_n"]),float(CurrRec["specimen_mad"]),float(CurrRec['specimen_dang']),float(CurrRec["measurement_step_min"]),float(CurrRec["measurement_step_max"]),float(CurrRec["specimen_dec"]),float(CurrRec["specimen_inc"]),calculation_type,CurrRec['specimen_comp_name'])
                     else:
-                        print "Specimen  a95   start     end      dec     inc  type  component"
+                        print "Specimen  a95 DANG   start     end      dec     inc  type  component"
                         if units=='K':
                              print '%s %i %7.1f %7.1f %7.1f %7.1f %7.1f  %s  %s \n' % (CurrRec["er_specimen_name"],int(CurrRec["specimen_n"]),float(CurrRec["specimen_alpha95"]),float(CurrRec["measurement_step_min"])-273,float(CurrRec["measurement_step_max"])-273,float(CurrRec["specimen_dec"]),float(CurrRec["specimen_inc"]),calculation_type,CurrRec['specimen_comp_name'])
                         elif units=='T':
@@ -621,6 +624,8 @@ def main():
                         PmagSpecRec["measurement_step_min"]='%8.3e ' %(mpars["measurement_step_min"])
                         PmagSpecRec["measurement_step_max"]='%8.3e ' %(mpars["measurement_step_max"])
                         PmagSpecRec["specimen_correction"]='u'
+                        PmagSpecRec["specimen_dang"]='%7.1f ' %(mpars['specimen_dang'])
+                        print 'OK YOU IDIOT: ',PmagSpecRec["specimen_dang"]
                         if calculation_type!='DE-FM':
                             PmagSpecRec["specimen_mad"]='%7.1f ' %(mpars["specimen_mad"])
                             PmagSpecRec["specimen_alpha95"]=""
@@ -641,9 +646,9 @@ def main():
                         print PmagSpecRec['magic_method_codes']
                         if calculation_type!='DE-FM':
                             if units=='K': 
-                                print '%s %i %7.1f %7.1f %7.1f %7.1f %7.1f, %s \n' % (PmagSpecRec["er_specimen_name"],int(PmagSpecRec["specimen_n"]),float(PmagSpecRec["specimen_mad"]),float(PmagSpecRec["measurement_step_min"])-273,float(PmagSpecRec["measurement_step_max"])-273,float(PmagSpecRec["specimen_dec"]),float(PmagSpecRec["specimen_inc"]),calculation_type)
+                                print '%s %i %7.1f %7.1f %7.1f %7.1f %7.1f %7.1f, %s \n' % (PmagSpecRec["er_specimen_name"],int(PmagSpecRec["specimen_n"]),float(PmagSpecRec["specimen_mad"]),float(PmagSpecRec["specimen_dang"]),float(PmagSpecRec["measurement_step_min"])-273,float(PmagSpecRec["measurement_step_max"])-273,float(PmagSpecRec["specimen_dec"]),float(PmagSpecRec["specimen_inc"]),calculation_type)
                             elif units== 'T':
-                                print '%s %i %7.1f %7.1f %7.1f %7.1f %7.1f, %s \n' % (PmagSpecRec["er_specimen_name"],int(PmagSpecRec["specimen_n"]),float(PmagSpecRec["specimen_mad"]),float(PmagSpecRec["measurement_step_min"])*1e3,float(PmagSpecRec["measurement_step_max"])*1e3,float(PmagSpecRec["specimen_dec"]),float(PmagSpecRec["specimen_inc"]),calculation_type)
+                                print '%s %i %7.1f %7.1f %7.1f %7.1f %7.1f %7.1f, %s \n' % (PmagSpecRec["er_specimen_name"],int(PmagSpecRec["specimen_n"]),float(PmagSpecRec["specimen_mad"]),float(PmagSpecRec["specimen_dang"]),float(PmagSpecRec["measurement_step_min"])*1e3,float(PmagSpecRec["measurement_step_max"])*1e3,float(PmagSpecRec["specimen_dec"]),float(PmagSpecRec["specimen_inc"]),calculation_type)
                             elif 'T' in units and 'K' in units:
                                 if float(PmagSpecRec['measurement_step_min'])<1.0 :
                                     min=float(PmagSpecRec['measurement_step_min'])*1e3
@@ -653,14 +658,14 @@ def main():
                                     max=float(PmagSpecRec['measurement_step_max'])*1e3
                                 else:
                                     max=float(PmagSpecRec['measurement_step_max'])-273
-                                print '%s %i %7.1f %i %i %7.1f %7.1f, %s \n' % (PmagSpecRec["er_specimen_name"],int(PmagSpecRec["specimen_n"]),float(PmagSpecRec["specimen_mad"]),min,max,float(PmagSpecRec["specimen_dec"]),float(PmagSpecRec["specimen_inc"]),calculation_type)
+                                print '%s %i %7.1f %i %i %7.1f %7.1f %7.1f, %s \n' % (PmagSpecRec["er_specimen_name"],int(PmagSpecRec["specimen_n"]),float(PmagSpecRec["specimen_mad"]),float(PmagSpecRec["specimen_dang"]),min,max,float(PmagSpecRec["specimen_dec"]),float(PmagSpecRec["specimen_inc"]),calculation_type)
                             else:
-                                print '%s %i %7.1f %7.1f %7.1f %7.1f %7.1f, %s \n' % (PmagSpecRec["er_specimen_name"],int(PmagSpecRec["specimen_n"]),float(PmagSpecRec["specimen_mad"]),float(PmagSpecRec["measurement_step_min"]),float(PmagSpecRec["measurement_step_max"]),float(PmagSpecRec["specimen_dec"]),float(PmagSpecRec["specimen_inc"]),calculation_type)
+                                print '%s %i %7.1f %7.1f %7.1f %7.1f %7.1f %7.1f, %s \n' % (PmagSpecRec["er_specimen_name"],int(PmagSpecRec["specimen_n"]),float(PmagSpecRec["specimen_mad"]),float(PmagSpecRec["specimen_dang"]),float(PmagSpecRec["measurement_step_min"]),float(PmagSpecRec["measurement_step_max"]),float(PmagSpecRec["specimen_dec"]),float(PmagSpecRec["specimen_inc"]),calculation_type)
                         else:
                             if 'K' in units:
-                                print '%s %i %7.1f %7.1f %7.1f %7.1f %7.1f, %s \n' % (PmagSpecRec["er_specimen_name"],int(PmagSpecRec["specimen_n"]),float(PmagSpecRec["specimen_alpha95"]),float(PmagSpecRec["measurement_step_min"])-273,float(PmagSpecRec["measurement_step_max"])-273,float(PmagSpecRec["specimen_dec"]),float(PmagSpecRec["specimen_inc"]),calculation_type)
+                                print '%s %i %7.1f %7.1f %7.1f %7.1f %7.1f %7.1f, %s \n' % (PmagSpecRec["er_specimen_name"],int(PmagSpecRec["specimen_n"]),float(PmagSpecRec["specimen_alpha95"]),float(PmagSpecRec["specimen_dang"]),float(PmagSpecRec["measurement_step_min"])-273,float(PmagSpecRec["measurement_step_max"])-273,float(PmagSpecRec["specimen_dec"]),float(PmagSpecRec["specimen_inc"]),calculation_type)
                             elif 'T' in units:
-                                print '%s %i %7.1f %7.1f %7.1f %7.1f %7.1f, %s \n' % (PmagSpecRec["er_specimen_name"],int(PmagSpecRec["specimen_n"]),float(PmagSpecRec["specimen_alpha95"]),float(PmagSpecRec["measurement_step_min"])*1e3,float(PmagSpecRec["measurement_step_max"])*1e3,float(PmagSpecRec["specimen_dec"]),float(PmagSpecRec["specimen_inc"]),calculation_type)
+                                print '%s %i %7.1f %7.1f %7.1f %7.1f %7.1f %7.1f, %s \n' % (PmagSpecRec["er_specimen_name"],int(PmagSpecRec["specimen_n"]),float(PmagSpecRec["specimen_alpha95"]),float(PmagSpecRec["specimen_dang"]),float(PmagSpecRec["measurement_step_min"])*1e3,float(PmagSpecRec["measurement_step_max"])*1e3,float(PmagSpecRec["specimen_dec"]),float(PmagSpecRec["specimen_inc"]),calculation_type)
                             elif 'T' in units and 'K' in units:
                                 if float(PmagSpecRec['measurement_step_min'])<1.0 :
                                     min=float(PmagSpecRec['measurement_step_min'])*1e3

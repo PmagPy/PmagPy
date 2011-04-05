@@ -273,6 +273,7 @@ def main():
                                 CompRec["specimen_mad"]=""
                                 CompRec["specimen_alpha95"]='%7.1f '%(mpars["specimen_alpha95"])
                             CompRec["specimen_n"]='%i '%(mpars["specimen_n"])
+                            CompRec["specimen_dang"]='%7.1f '%(mpars["specimen_dang"])
                             CompMeths=[]
                             for meth in method_codes:
                                 if meth not in CompMeths:CompMeths.append(meth)

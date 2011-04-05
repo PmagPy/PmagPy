@@ -166,6 +166,7 @@ def main():
     if spc!="": specimen =sids.index(spc)
     while specimen < len(sids):
         methcodes=[]
+       
         if pmagplotlib.verbose:
             print sids[specimen],specimen+1, 'of ', len(sids)
         MeasRecs=[]

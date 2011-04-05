@@ -261,13 +261,8 @@ def main():
         print 'available treatment types: ',methods
         print 'available treatment steps: ',steps
 #        sys.exit()
-    if dmin==-1:
-        if len(Depths)>0: dmin,dmax=Depths[0],Depths[-1]
-        if pltS==1 and len(SDepths)>0:
-            if SDepths[0]<dmin:dmin=SDepths[0]
-            if SDepths[-1]>dmax:dmax=SDepths[-1]
     SpecDepths,SpecDecs,SpecIncs=[],[],[]
-    if spc_file!="" and pltS==1: # add depths to spec data
+    if spc_file!="": # add depths to spec data
         for spec in Specs:
             for samp in Samps:
                 if samp['er_sample_name']== spec['er_sample_name'] and 'sample_core_depth' in samp.keys() and samp['sample_core_depth']!="":
@@ -277,6 +272,14 @@ def main():
                         SpecDecs.append(float(spec['specimen_dec'])) # fish out data with core_depth
                         SpecIncs.append(float(spec['specimen_inc'])) # fish out data with core_depth
     Susc,Sus_depths=[],[]
+    if dmin==-1:
+        if len(Depths)>0: dmin,dmax=Depths[0],Depths[-1]
+        if pltS==1 and len(SDepths)>0:
+            if SDepths[0]<dmin:dmin=SDepths[0]
+            if SDepths[-1]>dmax:dmax=SDepths[-1]
+        if len(SpecDepths)>0:
+            if min(SpecDepths)<dmin:dmin=min(SpecDepths)
+            if max(SpecDepths)>dmax:dmax=max(SpecDepths)
     if suc_file!="":
         sucdat=open(suc_file,'rU').readlines()
         keys=sucdat[0].replace('\n','').split(',') # splits on underscores
