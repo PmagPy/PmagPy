@@ -2,10 +2,8 @@
 import pmag,sys
 def spitout(line):
     dat=[]  # initialize list for  dec,inc,slat,slon
-    if '\t' in line:
-        rec=line.split('\t') # split each line on space to get records
-    else:
-        rec=line.split() # split each line on space to get records
+    line.replace('\t',' ')
+    rec=line.split() # split each line on space to get records
     for element in rec : # step through dec,inc, int
         dat.append(float(element)) # append floating point variable to dat list
     dec,inc=pmag.vgp_di(dat[0],dat[1],dat[2],dat[3])  # call vgp_di function from pmag module
