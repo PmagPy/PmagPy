@@ -2,6 +2,7 @@
 import pmag,sys
 def spitout(line):
     dat=[]  # initialize list for  dec,inc,slat,slon
+    line.replace('\t',' ')
     rec =line.split() # split the data on a space into columns
     for element in rec : # step through dec,inc, int
         dat.append(float(element)) # append floating point variable to dat list
