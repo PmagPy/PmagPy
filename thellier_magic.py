@@ -462,7 +462,6 @@ def main():
                            pars["specimen_lab_field_dc"]=field
                            pars["specimen_int"]=-1*field*pars["specimen_b"]
                            pars["er_specimen_name"]=s
-                           print accept
                            pars=pmag.scoreit(pars,PmagSpecRec,accept,'',0)
                            PmagSpecRec["measurement_step_min"]='%8.3e' % (pars["measurement_step_min"])
                            PmagSpecRec["measurement_step_max"]='%8.3e' % (pars["measurement_step_max"])
