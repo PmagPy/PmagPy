@@ -869,6 +869,7 @@ def domean(indata,start,end,calculation_type):
         mpars["measurement_step_min"]=datablock[start][0]
         mpars["measurement_step_max"]=datablock[end][0]
         mpars["center_of_mass"]=cm
+        mpars["specimen_dang"]=-1
         return mpars
 #
 #	get center of mass for principal components (DE-BFL or DE-BFP)

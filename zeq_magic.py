@@ -250,7 +250,7 @@ def main():
                         print 'Run mk_redo.py and zeq_magic_redo.py to get the specimen_dang values'
                         CurrRec['specimen_dang']=-1
                     if calculation_type!='DE-FM':
-                        print "Specimen  N MAD DANG  start     end      dec     inc  type  component"
+                        print "Specimen  N    MAD    DANG  start     end      dec     inc  type  component"
                         if units=='K':
                             print '%s %i %7.1f %7.1f %7.1f %7.1f %7.1f %7.1f  %s  %s \n' % (CurrRec["er_specimen_name"],int(CurrRec["specimen_n"]),float(CurrRec["specimen_mad"]),float(CurrRec["specimen_dang"]),float(CurrRec["measurement_step_min"])-273,float(CurrRec["measurement_step_max"])-273,float(CurrRec["specimen_dec"]),float(CurrRec["specimen_inc"]),calculation_type,CurrRec['specimen_comp_name'])
                         elif units=='T':

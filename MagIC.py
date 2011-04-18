@@ -756,6 +756,12 @@ def spec_combine():
     try:
         open(opath+'/zeq_specimens.txt','r')
         print 'zeq_specimens.txt exists'
+        outstring="mk_redo.py -f zeq_specimens.txt -F zeq_redo -WD "+'"'+opath+'"'
+        print outstring
+        os.system(outstring)
+        basestring='zeq_magic_redo.py   -WD '+'"'+opath+'"'
+        print basestring
+        os.system(basestring)
         try:
             f=open(opath+'/coordinates.log','r')
             lines=f.readlines()
