@@ -383,7 +383,7 @@ def plotC(fignum,pole,ang,col):
 
 
 
-def plotZ(fignum,datablock,angle,s):
+def plotZ(fignum,datablock,angle,s,norm):
     global globals
     """
     function to make Zijderveld diagrams
@@ -394,6 +394,7 @@ def plotZ(fignum,datablock,angle,s):
         pylab.figtext(.02,.01,version_num)
     amin,amax=0.,-100.
     fact=1./datablock[0][3]   # normalize to NRM=1
+    if norm==0:fact=1.
     x,y,z=[],[],[]
     xb,yb,zb=[],[],[]
     forVDS=[]
@@ -480,6 +481,10 @@ def plotMT(fignum,datablock,s,num,units,norm):
             T.append(rec[0]*1e3)
             Tv.append(rec[0]*1e3)
             if recnum>0:Tv.append(rec[0]*1e3)
+        elif units=="U":
+            T.append(rec[0])
+            Tv.append(rec[0])
+            if recnum>0:Tv.append(rec[0])
         elif units=="K":
             T.append(rec[0]-273)
             Tv.append(rec[0]-273)
@@ -581,8 +586,10 @@ def plotZED(ZED,datablock,angle,s,units):
     pylab.plot(AngleX,AngleY,'r-') # Draw a line for Zijderveld horizontal axis 
     if AngleX[-1]==0:AngleX[-1]=0.01
     pylab.text(AngleX[-1]+(AngleX[-1]/abs(AngleX[-1]))*.1,AngleY[-1]+(AngleY[-1]/abs(AngleY[-1]))*.1,'X')
-    plotZ(ZED['zijd'],datablock,angle,s)
-    plotMT(ZED['demag'],datablock,s,1,units,1)
+    norm=1
+    if units=="U": norm=0
+    plotMT(ZED['demag'],datablock,s,1,units,norm)
+    plotZ(ZED['zijd'],datablock,angle,s,norm)
     drawFIGS(ZED)
     
 
@@ -855,7 +862,9 @@ def plotNP(fignum,indata,s,units):
 def plotAZ(ZED,araiblock,zijdblock,s,units):
     plotNP(ZED['deremag'],araiblock,s,units)
     angle=zijdblock[0][1]
-    plotZ(ZED['zijd'],zijdblock,angle,s)
+    norm=1
+    if units=="U":norm=0
+    plotZ(ZED['zijd'],zijdblock,angle,s,norm)
     plotA(ZED['arai'],araiblock,s,units)
     plotTEQ(ZED['eqarea'],araiblock,s,"")
     drawFIGS(ZED)

@@ -17,7 +17,7 @@ def main():
 
     OPTIONS
         -f FILE for reading from command line
-        -u [mT,C] specify units of mT OR C, MUST BE SPECIFIED
+        -u [mT,C] specify units of mT OR C, default is unscaled
     """
     if '-h' in sys.argv: # check if help is needed
         print main.__doc__
@@ -35,8 +35,8 @@ def main():
             if units=="C":SIunits="K"
             if units=="mT":SIunits="T"
         else:
-            print main.__doc__
-            sys.exit()
+            units="U"
+            SIunits="U"
     f=open(file,'rU')
     data=f.readlines()
 #
@@ -50,6 +50,7 @@ def main():
         if s=="":s=rec[0]
         if units=='mT':datablock.append([float(rec[1])*1e-3,float(rec[3]),float(rec[4]),1e-3*float(rec[2]),'','g']) # treatment, dec, inc, int # convert to T and Am^2 (assume emu)
         if units=='C':datablock.append([float(rec[1])+273.,float(rec[3]),float(rec[4]),1e-3*float(rec[2]),'','g']) # treatment, dec, inc, int, convert to K and Am^2, assume emu
+        if units=='U':datablock.append([float(rec[1]),float(rec[3]),float(rec[4]),float(rec[2]),'','g']) # treatment, dec, inc, int, using unscaled units 
 # define figure numbers in a dictionary for equal area, zijderveld,  
 #  and intensity vs. demagnetiztion step respectively
     ZED={}
@@ -69,6 +70,7 @@ def main():
         for plotrec in datablock:
             if units=='mT':print '%i  %7.1f %8.3e %7.1f %7.1f ' % (recnum,plotrec[0]*1e3,plotrec[3],plotrec[1],plotrec[2])
             if units=='C':print '%i  %7.1f %8.3e %7.1f %7.1f ' % (recnum,plotrec[0]-273.,plotrec[3],plotrec[1],plotrec[2])
+            if units=='U':print '%i  %7.1f %8.3e %7.1f %7.1f ' % (recnum,plotrec[0],plotrec[3],plotrec[1],plotrec[2])
             recnum += 1
         end_pca=len(datablock)-1 # initialize end_pca, beg_pca to first and last measurement
         beg_pca=0
@@ -119,4 +121,5 @@ def main():
             print 'Specimen, calc_type, N, min, max, MAD, dec, inc'
             if units=='mT':print '%s %s %i  %6.2f %6.2f %6.1f %7.1f %7.1f' % (s,calculation_type,mpars["specimen_n"],mpars["measurement_step_min"]*1e3,mpars["measurement_step_max"]*1e3,mpars["specimen_mad"],mpars["specimen_dec"],mpars["specimen_inc"])
             if units=='C':print '%s %s %i  %6.2f %6.2f %6.1f %7.1f %7.1f' % (s,calculation_type,mpars["specimen_n"],mpars["measurement_step_min"]-273,mpars["measurement_step_max"]-273,mpars["specimen_mad"],mpars["specimen_dec"],mpars["specimen_inc"])
+            if units=='U':print '%s %s %i  %6.2f %6.2f %6.1f %7.1f %7.1f' % (s,calculation_type,mpars["specimen_n"],mpars["measurement_step_min"],mpars["measurement_step_max"],mpars["specimen_mad"],mpars["specimen_dec"],mpars["specimen_inc"])
 main() # run the main program
