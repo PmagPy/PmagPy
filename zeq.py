@@ -43,7 +43,7 @@ def main():
     datablock= [] # set up list for data
     fmt='svg' # default image format
     s="" # initialize specimen name
-    angle=""
+    angle=0.
     for line in data:   # read in the data from standard input
         rec=line.split() # split each line on space to get records
         if angle=="":angle=float(rec[3])
