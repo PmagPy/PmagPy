@@ -440,7 +440,7 @@ def find_dmag_rec(s,data):
             if datablock[k][0]==0.: datablock[k][0]=273.
     if af_flag==1:
         for k in range(len(datablock)):
-            if datablock[k][0]==273: datablock[k][0]=0.
+            if datablock[k][0]>=273 and datablock[k][0]<=323: datablock[k][0]=0.
     meas_units=""
     if len(units)>0:
         for u in units:meas_units=meas_units+u+":"
