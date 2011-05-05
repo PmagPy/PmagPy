@@ -2,7 +2,7 @@ import  numpy,string,sys,random
 import numpy.linalg
 import exceptions
 def get_version(): 
-    return "pmagpy-2.66"
+    return "pmagpy-2.68"
 def sort_diclist(undecorated,sort_on):
     decorated=[(dict_[sort_on],dict_) for dict_ in undecorated]
     decorated.sort()
@@ -127,7 +127,7 @@ def default_criteria(nocrit):
         NpoleCrit['criteria_definition']='inclusion in normal pole'
         RpoleCrit={'pmag_criteria_code':'RPOLE', 'site_polarity':"r"}
         RpoleCrit['criteria_definition']='inclusion in reverse pole'
-    Critrecs=[SpecCrit,SpecIntCrit,SampCrit,SiteIntCrit,SiteCrit,NpoleCrit,RpoleCrit]
+    Critrecs=[SpecCrit,SpecIntCrit,SampCrit,SampIntCrit,SiteIntCrit,SiteCrit,NpoleCrit,RpoleCrit]
     return Critrecs
 
 def grade(PmagSpecRec,accept): 
