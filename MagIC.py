@@ -48,33 +48,18 @@ def ask_check(parent,choices,title): # returns the values of the check box to ca
 
 def custom():
     cust=['Use default criteria', 'Change default criteria','Change existing criteria ','Use no selection criteria']
-    cust_rv=ask_radio(root,cust,'Customize selection criteria?') # 
-    if cust_rv!=0: customize_criteria(cust_rv)
-
-def customize_criteria(option):
+    option=ask_radio(root,cust,'Customize selection criteria?') # 
     global Edict
-    if option==3:
-        nocrit=1
-    elif option==1:
-        nocrit=0
-    elif option==2:
-        nocrit=-1
-    if nocrit!=-1:
-        crit_data=pmag.default_criteria(nocrit)
-        for critrec in crit_data:
-            if critrec["pmag_criteria_code"]=="DE-SPEC": SpecCrit=critrec
-            if critrec["pmag_criteria_code"]=="DE-SAMP": SampCrit=critrec
-            if critrec["pmag_criteria_code"]=="IE-SAMP": SampIntCrit=critrec
-            if critrec["pmag_criteria_code"]=="IE-SITE": SiteIntCrit=critrec
-            if critrec["pmag_criteria_code"]=="DE-SITE": SiteCrit=critrec
-            if critrec["pmag_criteria_code"]=="NPOLE": NpoleCrit=critrec
-            if critrec["pmag_criteria_code"]=="RPOLE": RpoleCrit=critrec
-            if critrec["pmag_criteria_code"]=="IE-SPEC": SpecIntCrit=critrec
-            critrec['er_citation_names']="This study"
-            critrec['criteria_definition']="Criteria for selection of specimen direction"
-  
-    else:
-# change existing
+    critout=opath+'/pmag_criteria.txt'
+    if option==0: # use default
+        crit_data=pmag.default_criteria(0)
+        PmagCrits,critkeys=pmag.fillkeys(crit_data)
+        pmag.magic_write(critout,PmagCrits,'pmag_criteria')
+        print "Default criteria saved in pmag_criteria.txt"
+        return
+    elif option==1: # change default
+        crit_data=pmag.default_criteria(0)
+    elif option==2: # change existing
         infile=opath+'/pmag_criteria.txt'
         try:
             crit_data,file_type=pmag.magic_read(infile)
@@ -85,54 +70,28 @@ def customize_criteria(option):
         except:
             print 'bad pmag_criteria.txt  file'
             return
-        print "Acceptance criteria read in from ", infile
-        for critrec in crit_data:
-            if critrec["pmag_criteria_code"]=="DE-SPEC": 
-                for key in SpecCrit.keys(): 
-                    if key in critrec.keys():SpecCrit[key]=critrec[key]
-                SpecCrit['criteria_definition']='specimen direction'
-            if critrec["pmag_criteria_code"]=="IE-SPEC": 
-                for key in SpecIntCrit.keys(): 
-                    if key in critrec.keys():SpecIntCrit[key]=critrec[key]
-                SpecIntCrit['criteria_definition']='specimen intensity'
-            if critrec["pmag_criteria_code"]=="DE-SAMP": 
-                for key in SampCrit.keys(): 
-                    if key in critrec.keys():SampCrit[key]=critrec[key]
-                SampCrit['criteria_definition']='sample direction'
-            if critrec["pmag_criteria_code"]=="IE-SAMP": 
-                for key in SampIntCrit.keys(): 
-                    if key in critrec.keys():SampIntCrit[key]=critrec[key]
-                SampIntCrit['criteria_definition']='sample intensity'
-            if critrec["pmag_criteria_code"]=="IE-SITE": 
-                for key in SiteIntCrit.keys(): 
-                    if key in critrec.keys():SiteIntCrit[key]=critrec[key]
-                SiteIntCrit['criteria_definition']='site intensity'
-            if critrec["pmag_criteria_code"]=="DE-SITE": 
-                for key in SiteCrit.keys(): 
-                    if key in critrec.keys():SiteCrit[key]=critrec[key]
-                SiteCrit['criteria_definition']='site direction'
-            if critrec["pmag_criteria_code"]=="NPOLE": 
-                for key in NpoleCrit.keys(): 
-                    if key in critrec.keys():NpoleCrit[key]=critrec[key]
-                NpoleCrit['criteria_definition']='inclusion in normal pole'
-            if critrec["pmag_criteria_code"]=="RPOLE": 
-                for key in RpoleCrit.keys(): 
-                    if key in critrec.keys():RpoleCrit[key]=critrec[key]
-                RpoleCrit['criteria_definition']='inclusion in reverse pole'
-    Crits=[SpecCrit,SpecIntCrit,SampCrit,SampIntCrit,SiteIntCrit,SiteCrit]
+    elif option==3: # no criteria
+        crit_data=pmag.default_criteria(1)
+        PmagCrits,critkeys=pmag.fillkeys(crit_data)
+        pmag.magic_write(critout,PmagCrits,'pmag_criteria')
+        print "Extremely loose criteria saved in pmag_criteria.txt"
+        return
     TmpCrits=[]
-    for crit in Crits:
+    for crit in crit_data:
         Edict={}
-        for key in crit.keys():Edict[key]=crit[key]
+        for key in crit.keys():
+            if crit[key]=='\n':crit[key]=""
+            if crit[key]!="":Edict[key]=crit[key]
         c=make_entry(root) 
-        for key in crit.keys():crit[key]=Edict[key]
-        crit['er_citation_names']='This study'
+        for key in Edict.keys():crit[key]=Edict[key]
+        crit['er_citation_names']="This study"
+        crit['criteria_definition']="Criteria for selection"
         TmpCrits.append(crit)
     PmagCrits,critkeys=pmag.fillkeys(TmpCrits)
     critout=opath+'/pmag_criteria.txt'
     pmag.magic_write(critout,PmagCrits,'pmag_criteria')
 #    tkMessageBox.showinfo("Info",'Selection criteria saved in pmag_criteria.txt\n check command window for errors')
-    print "Criteria saved in pmag_criteria.txt"
+    print "New Criteria saved in pmag_criteria.txt"
 
 
 def add_agm():

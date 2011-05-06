@@ -84,6 +84,7 @@ def default_criteria(nocrit):
         SpecIntCrit['specimen_q']='1.0'
         SpecIntCrit['specimen_dang']='10.5'
         SpecIntCrit['specimen_int_mad']='10.5'
+#        SpecIntCrit['specimen_Z']='4'
         #SpecIntCrit['measurement_step_min']='373'
         #SpecIntCrit['measurement_step_max']='623'
         SampCrit={}
@@ -114,7 +115,7 @@ def default_criteria(nocrit):
     else:
         SpecCrit={'pmag_criteria_code':'DE-SPEC','specimen_mad':'180.', 'specimen_alpha95':'180.','specimen_n':'0'}
         SpecCrit['criteria_definition']='specimen direction'
-        SpecIntCrit={'pmag_criteria_code':'IE-SPEC', 'specimen_int_ptrm_n':'0','specimen_drats':'100','specimen_b_beta':'10', 'specimen_md':'100', 'specimen_fvds':'0', 'specimen_q':'0', 'specimen_dang':'180', 'specimen_int_mad':'180', 'specimen_Z':'100'}
+        SpecIntCrit={'pmag_criteria_code':'IE-SPEC', 'specimen_int_ptrm_n':'0','specimen_drats':'100','specimen_b_beta':'10', 'specimen_md':'100', 'specimen_fvds':'0', 'specimen_q':'0', 'specimen_dang':'180', 'specimen_int_mad':'180'}
         SpecIntCrit['criteria_definition']='specimen intensity'
         SampCrit={'pmag_criteria_code':'DE-SAMP', 'sample_alpha95':'180'}
         SampCrit['criteria_definition']='sample direction'
@@ -476,10 +477,12 @@ def magic_read(infile):
         magic_keys.append(key)
     lines=f.readlines()
     for line in lines[:-1]:
+        line.strip('\n')
         if delim=='space':rec=line[:-1].split()
         if delim=='tab':rec=line[:-1].split('\t')
         hold.append(rec)
     line = lines[-1]
+    line.strip('\n')
     if delim=='space':rec=line[:-1].split()
     if delim=='tab':rec=line.split('\t')
     hold.append(rec)
@@ -1977,7 +1980,7 @@ def scoreit(pars,PmagSpecRec,accept,text,noprint):
     PmagSpecRec["specimen_rsc"]='%6.4f '%(pars["specimen_rsc"])
     PmagSpecRec["specimen_md"]='%i '%(int(pars["specimen_md"]))
     PmagSpecRec["specimen_b_sigma"]='%5.3f '%(pars["specimen_b_sigma"])
-    PmagSpecRec["specimen_Z"]='%7.1f'%(pars["specimen_Z"])
+    #PmagSpecRec["specimen_Z"]='%7.1f'%(pars["specimen_Z"])
   # check score
    #
     score,kill=grade(PmagSpecRec,accept)
@@ -1992,9 +1995,9 @@ def scoreit(pars,PmagSpecRec,accept,text,noprint):
         return pars
     diffcum=0
     if pars['measurement_step_unit']=='K':
-        outstr= "specimen     Tmin  Tmax  N  lab_field  B_anc  b  q  f(coe)  Fvds  beta  MAD  Dang  Drats  Nptrm  Grade  R  MD%  sigma  Z Gmax \n"
-        pars_out= (s,(pars["measurement_step_min"]-273),(pars["measurement_step_max"]-273),(pars["specimen_int_n"]),1e6*(pars["specimen_lab_field_dc"]),1e6*(pars["specimen_int"]),pars["specimen_b"],pars["specimen_q"],pars["specimen_f"],pars["specimen_fvds"],pars["specimen_b_beta"],pars["specimen_int_mad"],pars["specimen_dang"],pars["specimen_drats"],pars["specimen_int_ptrm_n"],pars["specimen_grade"],numpy.sqrt(pars["specimen_rsc"]),int(pars["specimen_md"]), pars["specimen_b_sigma"],pars["specimen_Z"],pars['specimen_gamma'])
-        outstring= '%s %4.0f %4.0f %i %4.1f %4.1f %5.3f %5.1f %5.3f %5.3f %5.3f  %7.1f %7.1f %7.1f %s %s %6.3f %i %5.3f %7.1f %7.1f' % pars_out +'\n'
+        outstr= "specimen     Tmin  Tmax  N  lab_field  B_anc  b  q  f(coe)  Fvds  beta  MAD  Dang  Drats  Nptrm  Grade  R  MD%  sigma  Gmax \n"
+        pars_out= (s,(pars["measurement_step_min"]-273),(pars["measurement_step_max"]-273),(pars["specimen_int_n"]),1e6*(pars["specimen_lab_field_dc"]),1e6*(pars["specimen_int"]),pars["specimen_b"],pars["specimen_q"],pars["specimen_f"],pars["specimen_fvds"],pars["specimen_b_beta"],pars["specimen_int_mad"],pars["specimen_dang"],pars["specimen_drats"],pars["specimen_int_ptrm_n"],pars["specimen_grade"],numpy.sqrt(pars["specimen_rsc"]),int(pars["specimen_md"]), pars["specimen_b_sigma"],pars['specimen_gamma'])
+        outstring= '%s %4.0f %4.0f %i %4.1f %4.1f %5.3f %5.1f %5.3f %5.3f %5.3f  %7.1f %7.1f %7.1f %s %s %6.3f %i %5.3f %7.1f' % pars_out +'\n'
     elif pars['measurement_step_unit']=='J':
         outstr= "specimen     Wmin  Wmax  N  lab_field  B_anc  b  q  f(coe)  Fvds  beta  MAD  Dang  Drats  Nptrm  Grade  R  MD%  sigma  ThetaMax DeltaMax GammaMax\n"
         pars_out= (s,(pars["measurement_step_min"]),(pars["measurement_step_max"]),(pars["specimen_int_n"]),1e6*(pars["specimen_lab_field_dc"]),1e6*(pars["specimen_int"]),pars["specimen_b"],pars["specimen_q"],pars["specimen_f"],pars["specimen_fvds"],pars["specimen_b_beta"],pars["specimen_int_mad"],pars["specimen_dang"],pars["specimen_drats"],pars["specimen_int_ptrm_n"],pars["specimen_grade"],numpy.sqrt(pars["specimen_rsc"]),int(pars["specimen_md"]), pars["specimen_b_sigma"],pars["specimen_theta"],pars["specimen_delta"],pars["specimen_gamma"])

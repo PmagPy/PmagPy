@@ -66,7 +66,6 @@ def main():
             print rec['er_sample_name'],' missing from er_samples.txt file - \n measurment not updated and sample added to er_samples.txt file => you should convert this to orient.txt, edit and re-import'
     pmag.magic_write(out_file,MeasRecs,'magic_measurements')
     print "updated measurements file stored in ", out_file
-    print sflag 
     if sflag==1:
          pmag.magic_write(samp_file,samps,'er_samples')
          print "updated sample file stored in ", samp_file
