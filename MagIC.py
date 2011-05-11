@@ -2426,7 +2426,7 @@ def sitemeans():
     OPT_list=map((lambda var:var.get()),opt_checks) # returns method code  radio button list
     for opt in range(len(OPT_list)):
         if OPT_list[opt]==1:clist=clist+' '+OPT_types[opt].split(":")[0]+' '
-    if OPT_list[6]==1:
+    if OPT_list[7]==1:
         try:
             open(opath+"/model_lat.txt",'r')
         except IOError:

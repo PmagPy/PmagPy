@@ -834,7 +834,7 @@ def main():
             PmagResRec["vgp_lon"]='%7.1f ' % (plong)
             PmagResRec["vgp_dp"]='%7.1f ' % (dp)
             PmagResRec["vgp_dm"]='%7.1f ' % (dm)
-            PmagResRec["magic_method_codes"]= PmagSiteRec["magic_method_codes"]+":"+ "DE-DI"
+            PmagResRec["magic_method_codes"]= PmagSiteRec["magic_method_codes"]
             if coord=='0':PmagSiteRec['magic_method_codes']=PmagSiteRec['magic_method_codes']+":DA-DIR-GEO"
             if coord=='100':PmagSiteRec['magic_method_codes']=PmagSiteRec['magic_method_codes']+":DA-DIR-TILT"
             PmagResRec["pmag_criteria_codes"]= "DE-SITE"
@@ -1441,7 +1441,7 @@ def main():
                     PmagResRec["average_n"]="1"
                     PmagResRec["vgp_n"]="1"
                     plong,plat,dp,dm=pmag.dia_vgp(dec,inc,a95,lat,lon)
-                    PmagResRec["magic_method_codes"]= PmagSampRec["magic_method_codes"]+":"+ "DE-DI"
+                    PmagResRec["magic_method_codes"]= PmagSampRec["magic_method_codes"].strip(':')
                     PmagResRec["vgp_lat"]='%7.1f ' % (plat)
                     PmagResRec["vgp_lon"]='%7.1f ' % (plong)
                     PmagResRec['pmag_criteria_codes']='DE-SAMP'
@@ -1457,7 +1457,7 @@ def main():
                     if float(PmagSampRec["sample_int_sigma"]) > float(SampIntCrit['sample_int_sigma']) and float(PmagSampRec['sample_int_sigma_perc']) > float(SampIntCrit['sample_int_sigma_perc']): skip =1
                 if skip==0:
                     PmagResRec["pmag_result_name"]="V[A]DM: Sample "+PmagSampRec["er_sample_name"]
-                    PmagResRec["magic_method_codes"]= PmagSampRec["magic_method_codes"]
+                    PmagResRec["magic_method_codes"]= PmagSampRec["magic_method_codes"].strip(':')
                     PmagResRec["result_description"]="V[A]DM of sample"
                     PmagResRec["pmag_criteria_codes"]="IE-SAMP"
                     b=float(PmagSampRec["sample_int"])
