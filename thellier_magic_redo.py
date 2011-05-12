@@ -197,7 +197,7 @@ def main():
                 rec["magic_experiment_name"]=""
             else:
                 PmagSpecRec["magic_experiment_names"]=rec["magic_experiment_name"]
-            meths=rec["magic_experiment_name"].split(":")
+            meths=rec["magic_method_codes"].split(":")
             for meth in meths:
                 if meth.strip() not in methcodes and "LP-" in meth:methcodes.append(meth.strip())
     #

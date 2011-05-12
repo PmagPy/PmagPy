@@ -695,6 +695,7 @@ def main():
     # collect all directional data  for this site 
     #
         data,instlist=[],[]
+        DCs=[]
         for rec in SampDirs:
     #
     #
@@ -718,6 +719,9 @@ def main():
                         LnpRec["tilt_correction"]=coord
                         LnpRec["comp_name"]=comp
                         if comp not in complist:complist.append(comp)
+                        smeths=rec["magic_method_codes"].strip().split(":")
+                        if "LP-DIR-AF" in smeths and "LP-DIR-AF" not in DCs:DCs.append("LP-DIR-AF")
+                        if "LP-DIR-T" in smeths and "LP-DIR-T" not in DCs:DCs.append("LP-DIR-T")
                         data.append(LnpRec)
         for rec in SampPlanes:
     #
@@ -740,6 +744,9 @@ def main():
                         LnpRec["tilt_correction"]=coord
                         LnpRec["comp_name"]=comp
                         if comp not in complist:complist.append(comp)
+                        smeths=rec["magic_method_codes"].strip().split(":")
+                        if "LP-DIR-AF" in smeths and "LP-DIR-AF" not in DCs:DCs.append("LP-DIR-AF")
+                        if "LP-DIR-T" in smeths and "LP-DIR-T" not in DCs:DCs.append("LP-DIR-T")
                         data.append(LnpRec)
     #
     #
@@ -778,6 +785,11 @@ def main():
                 PmagSiteRec["magic_method_codes"]="DE-FM-LP"
             elif int(PmagSiteRec["site_n_lines"])>2:
                 PmagSiteRec["magic_method_codes"]="DE-FM"
+            if len(DCs)>0:
+                for m in DCs: PmagSiteRec["magic_method_codes"]= PmagSiteRec["magic_method_codes"]+":"+m
+                dc=3+len(DCs)
+                PmagSiteRec["magic_method_codes"]= PmagSiteRec["magic_method_codes"]+":LP-DC"+str(dc)
+                 
     #
     #  calculate the  site VGPs
     #
