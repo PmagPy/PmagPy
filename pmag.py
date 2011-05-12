@@ -2,7 +2,7 @@ import  numpy,string,sys,random
 import numpy.linalg
 import exceptions
 def get_version(): 
-    return "pmagpy-2.69"
+    return "pmagpy-2.70"
 def sort_diclist(undecorated,sort_on):
     decorated=[(dict_[sort_on],dict_) for dict_ in undecorated]
     decorated.sort()
@@ -3385,6 +3385,51 @@ def designAARM(npos):
         sys.exit()
     return B,H,tmpH
 #
+def designATRM(npos):
+#
+    """
+    calculates B matrix for ATRM calculations.
+    """
+    #if npos!=6:
+    #    print 'Sorry - only 6 positions available'
+    #    sys.exit()
+    Dec=[0,90,0,180,270,0,0,90,0]
+    Dip=[0,0,90,0,0,-90,0,0,90]
+    H=[]
+    for ind in range(6):
+        Dir=[Dec[ind],Dip[ind],1.]
+        H.append(dir2cart(Dir))  # 6 field directionss
+#
+# make design matrix A
+#
+    A=numpy.zeros((npos*3,6),'f')
+    tmpH=numpy.zeros((npos,3),'f') # define tmpH
+    #if npos == 6:
+    #    for i in range(6):
+    for i in range(6):
+            ind=i*3
+            A[ind][0]=H[i][0]
+            A[ind][3]=H[i][1]
+            A[ind][5]=H[i][2]
+            ind=i*3+1
+            A[ind][3]=H[i][0]
+            A[ind][1]=H[i][1]
+            A[ind][4]=H[i][2]
+            ind=i*3+2
+            A[ind][5]=H[i][0]
+            A[ind][4]=H[i][1]
+            A[ind][2]=H[i][2]
+            for j in range(3):
+                tmpH[i][j]=H[i][j]
+    At=numpy.transpose(A)
+    ATA=numpy.dot(At,A)
+    ATAI=numpy.linalg.inv(ATA)
+    B=numpy.dot(ATAI,At)
+    #else:
+    #    print "B matrix not yet supported"
+    #    sys.exit()
+    return B,H,tmpH
+
 #
 def domagicmag(file,Recs):
     """

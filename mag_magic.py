@@ -114,6 +114,8 @@ def main():
     pTRM,MD,samp_con,Z=0,0,'1',1
     dec=[315,225,180,135,45,90,270,270,270,90,180,180,0,0,0]
     inc=[0,0,0,0,0,-45,-45,0,45,45,45,-45,-90,-45,45]
+    tdec=[0,90,0,180,270,0,0,90,0]
+    tinc=[0,0,90,0,0,-90,0,0,90]
     missing=1
     demag="N"
     er_location_name=""
@@ -429,6 +431,17 @@ def main():
                             MagRec["treatment_dc_field_theta"]='%7.1f'% (inc[ipos])
                             MagRec["treatment_dc_field"]='%8.3e'%(labfield)
                             MagRec["treatment_ac_field"]='%8.3e' %(peakfield) # peak field in tesla
+                elif demag=="T" and methcode == "LP-AN-TRM":
+                    if treat[1][0]=='0':
+                            meas_type="LT-T-Z"
+                            MagRec["treatment_dc_field"]='%8.3e'%(0)
+                    else:
+                            meas_type="LT-I-I"
+                            ipos=int(treat[1][0])-1
+                            MagRec["treatment_dc_field_phi"]='%7.1f' %(tdec[ipos])
+                            MagRec["treatment_dc_field_theta"]='%7.1f'% (tinc[ipos])
+                            MagRec["treatment_temp"]='%8.3e' % (float(treat[0])+273.) # temp in kelvin
+                            MagRec["treatment_dc_field"]='%8.3e'%(labfield)
                 elif demag=="S": # Shaw experiment
                     if treat[1][1]=='0':
                         if  int(treat[0])!=0:

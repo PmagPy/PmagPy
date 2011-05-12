@@ -705,17 +705,35 @@ def site_edit():
     
 def spec_combine():
     filestring=" -f "
-    try: # check for anisotropy stuff first
+    rmag_anisotropy_instring=""
+    rmag_results_instring=""
+    try: # check for aarm anisotropy stuff first
         aarmfile=open(opath+"/aarm_measurements.txt",'r')
         outstring='aarm_magic.py -WD '+'"'+opath+'"'
         print outstring
         os.system(outstring)
+        rmag_anisotropy_instring=rmag_anisotropy_instring+' arm_anistropy.txt '
+        rmag_results_instring=rmag_results_instring+' aarm_results.txt '
     except IOError:
         pass
+    try: # check for atrm anisotropy stuff first
+        aarmfile=open(opath+"/atrm_measurements.txt",'r')
+        outstring='atrm_magic.py -WD '+'"'+opath+'"'
+        print outstring
+        os.system(outstring)
+        rmag_anisotropy_instring=rmag_anisotropy_instring+' trm_anistropy.txt '
+        rmag_results_instring=rmag_results_instring+' atrm_results.txt '
+    except IOError:
+        pass
+    if rmag_anistropy_instring!="":
+        rmag_outstring='combine_magic.py -WD '+'"'+opath+'"' + ' -F rmag_anisotropy.txt -f '+rmag_anisotropy_instring
+        print rmag_outstring
+        os.system(rmag_outstring)
+        rmag_outstring='combine_magic.py -WD '+'"'+opath+'"' + ' -F rmag_results.txt -f '+rmag_results_instring
+        print rmag_outstring
+        os.system(rmag_outstring)
     try:
         open(opath+'/zeq_specimens.txt','r')
-        print 'zeq_specimens.txt exists'
-        outstring="mk_redo.py -f zeq_specimens.txt -F zeq_redo -WD "+'"'+opath+'"'
         print outstring
         os.system(outstring)
         basestring='zeq_magic_redo.py   -WD '+'"'+opath+'"'

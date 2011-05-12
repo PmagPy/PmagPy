@@ -20,8 +20,8 @@ def main():
         -h prints help message and quits
         -usr USER:   identify user, default is ""
         -f FILE: specify input file, default is aarm_measurements.txt
-        -Fa FILE: specify anisotropy output file, default is rmag_anisotropy.txt
-        -Fr FILE: specify results output file, default is rmag_results.txt
+        -Fa FILE: specify anisotropy output file, default is arm_anisotropy.txt
+        -Fr FILE: specify results output file, default is aarm_results.txt
 
     INPUT  
         Input for the present program is a series of baseline, ARM pairs.
@@ -37,8 +37,8 @@ def main():
     args=sys.argv
     user=""
     meas_file="aarm_measurements.txt"
-    rmag_anis="rmag_anisotropy.txt"
-    rmag_res="rmag_results.txt"
+    rmag_anis="arm_anisotropy.txt"
+    rmag_res="aarm_results.txt"
     dir_path='.'
     #
     # get name of file from command line
