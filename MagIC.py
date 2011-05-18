@@ -712,7 +712,7 @@ def spec_combine():
         outstring='aarm_magic.py -WD '+'"'+opath+'"'
         print outstring
         os.system(outstring)
-        rmag_anisotropy_instring=rmag_anisotropy_instring+' arm_anistropy.txt '
+        rmag_anisotropy_instring=rmag_anisotropy_instring+' arm_anisotropy.txt '
         rmag_results_instring=rmag_results_instring+' aarm_results.txt '
     except IOError:
         pass
@@ -721,11 +721,11 @@ def spec_combine():
         outstring='atrm_magic.py -WD '+'"'+opath+'"'
         print outstring
         os.system(outstring)
-        rmag_anisotropy_instring=rmag_anisotropy_instring+' trm_anistropy.txt '
+        rmag_anisotropy_instring=rmag_anisotropy_instring+' trm_anisotropy.txt '
         rmag_results_instring=rmag_results_instring+' atrm_results.txt '
     except IOError:
         pass
-    if rmag_anistropy_instring!="":
+    if rmag_anisotropy_instring!="":
         rmag_outstring='combine_magic.py -WD '+'"'+opath+'"' + ' -F rmag_anisotropy.txt -f '+rmag_anisotropy_instring
         print rmag_outstring
         os.system(rmag_outstring)
@@ -884,16 +884,38 @@ def meas_combine():
         pass
     try:
         logfile=open(opath+"/ani.log",'r')
-        filestring="-f "
+        ani_types=[]
         files=[]
         for line in logfile.readlines():
-            file=line.split("|")[0][:-1]
-            if file not in files:files.append(file)
-        for file in files:
-            filestring=filestring + file + ' '
-        outstring='combine_magic.py -WD '+'"'+opath+'"'+' -F aarm_measurements.txt '+filestring
-        print outstring
-        os.system(outstring)
+            ani_type='aarm'
+            description=line.split("|")
+            file=description[0][:-1]
+            if len(description)>1:
+               LP=description[1].split(":")
+               print LP
+               if LP[0].strip()=='T':
+                   ani_type='atrm'
+               else:
+                  ani_type='aarm'
+            if file not in files:
+                files.append(file)
+                ani_types.append(ani_type)
+        filestring="-f "
+        if 'aarm' in ani_types:
+            for k in range(len(files)):
+                if ani_types[k]=='aarm':
+                    filestring=filestring + files[k] + ' '
+            outstring='combine_magic.py -WD '+'"'+opath+'"'+' -F aarm_measurements.txt '+filestring
+            print outstring
+            os.system(outstring)
+        filestring="-f "
+        if 'atrm' in ani_types:
+            for k in range(len(files)):
+                if ani_types[k]=='atrm':
+                    filestring=filestring + files[k] + ' '
+            outstring='combine_magic.py -WD '+'"'+opath+'"'+' -F atrm_measurements.txt '+filestring
+            print outstring
+            os.system(outstring)
 #        tkMessageBox.showinfo("Info",'all ARM anisotropy files combined into aarm_measurements.txt \n Check command window for errors.')
         log=1
     except IOError:
@@ -1181,8 +1203,10 @@ def add_mag():
                      except IOError:
                          filelist=[basename+'.magic']
                      logfile=open(opath+"/ani.log",'w')
+                     d.result['LP']=LP[:-1]
+                     print d.result['LP']
                      for f in filelist:
-                         logfile.write(f+'\n') 
+                         logfile.write(f+' | '+ d.result['LP']+'\n') 
                      logfile.close()
         d.result['LP']=LP[:-1]
         d.result['fpath']=fpath
