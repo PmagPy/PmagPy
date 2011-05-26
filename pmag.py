@@ -2,11 +2,80 @@ import  numpy,string,sys,random
 import numpy.linalg
 import exceptions
 def get_version(): 
-    return "pmagpy-2.71"
+    return "pmagpy-2.72"
 def sort_diclist(undecorated,sort_on):
     decorated=[(dict_[sort_on],dict_) for dict_ in undecorated]
     decorated.sort()
     return[dict_ for (key, dict_) in decorated]
+
+def get_dictitem(In,k,v,flag):
+    # returns a list of dictionaries from list In with key,k  = value, v
+    try:
+        if flag=="T":return [dict for dict in In if dict[k]==v] # return that which is
+        if flag=="F":return [dict for dict in In if dict[k]!=v] # return that which is not
+        if flag=="has":return [dict for dict in In if v in dict[k]] # return that which is contained
+        if flag=="not":return [dict for dict in In if v not in dict[k]] # return that which is not contained
+    except:
+        return []
+
+def getsampVGP(SampRec,SiteNFO):
+    site=get_dictitm(SiteNFO,'er_site_name',SampRec['er_site_name'])
+    try:
+        lat=float(site['site_lat'])    
+        lon=float(site['site_lon'])
+        dec = float(SampRec['sample_dec'])
+        inc = float(SampRec['sample_inc'])
+        if SampRec['sample_alpha95']!="":
+            a95=float(SampRec['sample_alpha95'])
+        else:
+            a95=0
+        plong,plat,dp,dm=dia_vgp(dec,inc,a95,lat,lon)         
+        ResRec={}
+        ResRec['pmag_result_name']='VGP Sample: '+SampRec['er_sample_name']
+        ResRec['er_location_names']=SampRec['er_location_name']
+        ResRec['er_citation_names']="This study"
+        ResRec['er_site_name']=SampRec['er_site_name']
+        ResRec['average_dec']=SampRec['sample_dec']
+        ResRec['average_inc']=SampRec['sample_inc']
+        ResRec['average_alpha95']=SampRec['sample_alpha95']
+        ResRec['tilt_correction']=SampRec['sample_tilt_correction']
+        ResRec['pole_comp_name']=SampleRec['sample_comp_name']
+        ResRec['vgp_lat']='%7.1f'%(plat)
+        ResRec['vgp_lon']='%7.1f'%(plon)
+        ResRec['vgp_dp']='%7.1f'%(dp)
+        ResRec['vgp_dm']='%7.1f'%(dm)
+        ResRec['magic_method_codes']=SampRec['magic_method_codes']+":DE-DI"
+        return ResRec
+    except:
+        return ""
+
+def getsampVDM(SampRec,SiteNFO,key):
+    site=get_dictitm(SiteNFO,'er_site_name',SampRec['er_site_name'])
+    try:
+        lat=float(site['site_lat'])    
+        int = float(SampRec['sample_int'])
+        vdm=b_vdm(int,lat)         
+        if SampRec['sample_sigma']!="":
+            sig=b_vdm(float(SampRec['sample_sigma']),lat)
+            sig='%8.3e'%(sig)
+        else:
+            sig=""
+        ResRec={}
+        ResRec['pmag_result_name']='VADM Sample: '+SampRec['er_sample_name']
+        ResRec['er_location_names']=SampRec['er_location_name']
+        ResRec['er_citation_names']="This study"
+        ResRec['er_site_name']=SampRec['er_site_name']
+        ResRec['average_dec']=SampRec['sample_dec']
+        ResRec['average_inc']=SampRec['sample_inc']
+        ResRec['average_int']=SampRec['sample_int']
+        ResRec[key]='%8.3e'%(vdm)
+        ResRec[key+'_sigma']=sig
+        ResRec['magic_method_codes']=SampRec['magic_method_codes']
+        if key=='vadm': ResRec['model_lat']=site['site_lat']
+        return ResRec
+    except:
+        return ""
+
 
 def sortbykeys(input,sort_list):
     Output = []
@@ -21,6 +90,110 @@ def sortbykeys(input,sort_list):
         for rec in Current_sorted:
             Output.append(rec)
     return Output
+
+def getlist(data,key): # return a colon delimited list of unique key values
+    keylist=[]
+    for rec in data:
+        keys=rec[key].split(':')
+        for k in keys: 
+            if k not in keylist:keylist.append(k)
+    keystring=""
+    if len(keylist)==0:return keystring
+    for k in keylist:keystring=keystring+':'+k
+    return keystring[1:]
+
+
+def ParseMeasFile(measfile,sitefile,instout,specout): # fix up some stuff for uploading
+    #
+    # read in magic_measurements file to get specimen, and instrument names
+    #
+    master_instlist=[]
+    InstRecs=[]
+    meas_data,file_type=magic_read(measfile)
+    if file_type != 'magic_measurements':
+        print file_type
+        print file_type,"This is not a valid magic_measurements file "
+        sys.exit()
+    # read in site data
+    SiteNFO,file_type=magic_read(sitefile)
+    if file_type=="bad_file":
+        print "Bad  or no er_sites file - lithology, etc will not be imported"
+    # define the Er_specimen records to create a new er_specimens.txt file
+    #
+    suniq,ErSpecs=[],[]
+    for rec in meas_data:
+# fill in some potentially missing fields
+        if "magic_instrument_codes" in rec.keys():
+            list=(rec["magic_instrument_codes"])
+            list.strip()
+            tmplist=list.split(":")
+            for inst in tmplist:
+                if inst not in master_instlist:
+                    master_instlist.append(inst)
+                    InstRec={}
+                    InstRec["magic_instrument_code"]=inst
+                    InstRecs.append(InstRec)
+        if "measurement_standard" not in rec.keys():rec['measurement_standard']='u' # make this an unknown if not specified
+        if rec["er_specimen_name"] not in suniq and rec["measurement_standard"]!='s': # exclude standards
+            suniq.append(rec["er_specimen_name"])
+            ErSpecRec={}
+            ErSpecRec["er_citation_names"]="This study"
+            ErSpecRec["er_specimen_name"]=rec["er_specimen_name"]
+            ErSpecRec["er_sample_name"]=rec["er_sample_name"]
+            ErSpecRec["er_site_name"]=rec["er_site_name"]
+            ErSpecRec["er_location_name"]=rec["er_location_name"]
+    #
+    # attach site litho, etc. to specimen if not already there
+            sites=get_dictitem(SiteNFO,'er_site_name',rec['er_site_name'],'T')
+            if len(sites)==0:
+                site={}
+                print 'site record in er_sites table not found for: ',rec['er_site_name']
+            else:
+                site=sites[0]
+            if 'site_class' not in site.keys() or 'site_lithology' not in site.keys() or 'site_type' not in site.keys():
+                site['site_class']='Not Specified'
+                site['site_lithology']='Not Specified'
+                site['site_type']='Not Specified'
+            if 'specimen_class' not in ErSpecRec.keys():ErSpecRec["specimen_class"]=site['site_class'] 
+            if 'specimen_lithology' not in ErSpecRec.keys():ErSpecRec["specimen_lithology"]=site['site_lithology'] 
+            if 'specimen_type' not in ErSpecRec.keys():ErSpecRec["specimen_type"]=site['site_type'] 
+            ErSpecs.append(ErSpecRec)
+    #
+    #
+    # save the data
+    #
+    magic_write(specout,ErSpecs,"er_specimens")
+    print " Er_Specimen data (with updated info from site if necessary)  saved in ",specout
+    #
+    # write out the instrument list
+    if len(InstRecs) >0:
+        magic_write(instout,InstRecs,"magic_instruments")
+        print " Instruments data saved in ",instout
+    else: 
+        print "No instruments found"
+
+def ReorderSamples(specfile,sampfile,outfile): # take care of re-ordering sample table, putting used orientations first
+    UsedSamps,RestSamps=[],[]
+    Specs,filetype=magic_read(specfile) # read in specimen file
+    Samps,filetype=magic_read(sampfile) # read in sample file
+    for rec in Specs: # hunt through specimen by specimen
+        meths=rec['magic_method_codes'].strip().strip('\n').split(':')
+        for meth in meths:
+            methtype=meth.strip().strip('\n').split('-')
+            if 'SO' in methtype:
+                SO_meth=meth # find the orientation method code
+        samprecs=get_dictitem(Samps,'er_sample_name',rec['er_sample_name'],'T')
+        used=get_dictitem(samprecs,'magic_method_codes',SO_meth,'has') 
+        if len(used)>0:
+            UsedSamps.append(used[0])
+        else:
+            print 'orientation not found for: ',rec['er_specimen_name']
+        rest=get_dictitem(samprecs,'magic_method_codes',SO_meth,'not') 
+        for rec in rest:
+            RestSamps.append(rec)
+    for rec in RestSamps:
+        UsedSamps.append(rec) # append the unused ones to the end of the file
+    magic_write(outfile,UsedSamps,'er_samples')
 
 def orient(mag_azimuth,field_dip,or_con):
     """
@@ -397,8 +570,8 @@ def find_dmag_rec(s,data):
     datablock,tr=[],""
     therm_flag,af_flag,mw_flag=0,0,0
     units=[]
-    for rec in data:
-       if rec["er_specimen_name"].lower()==s.lower():
+    spec_meas=get_dictitem(data,'er_specimen_name',s,'T')
+    for rec in spec_meas:
            if 'measurement_flag' not in rec.keys():rec['measurement_flag']='g'
            skip=0
            tr=""
@@ -584,8 +757,10 @@ def magic_write(ofile,Recs,file_type):
     keystring=""
     keylist=[]
     for key in Recs[0].keys():
-        keystring=keystring+'\t'+key.strip()
         keylist.append(key)
+    keylist.sort()
+    for key in keylist:
+        keystring=keystring+'\t'+key.strip()
     keystring=keystring + '\n'
     pmag_out.write(keystring[1:])
     for Rec in Recs:
@@ -1845,6 +2020,43 @@ def weighted_mean(data):
     stdev=numpy.sqrt(d*(1./(float(N-1))))
     return mean,stdev
 
+
+def lnpbykey(data,key0,key1): # calculate a fisher mean of key1 data for a group of key0 
+    PmagRec={}
+    if len(data)>1:
+        for rec in data:
+            rec['dec']=float(rec[key1+'_dec'])
+            rec['inc']=float(rec[key1+'_inc'])
+        fpars=dolnp(data,key1+'_direction_type')
+        PmagRec[key0+"_dec"]=fpars["dec"]
+        PmagRec[key0+"_inc"]=(fpars["inc"])
+        PmagRec[key0+"_n"]=(fpars["n_total"])
+        PmagRec[key0+"_n_lines"]=fpars["n_lines"]
+        PmagRec[key0+"_n_planes"]=fpars["n_planes"]
+        PmagRec[key0+"_r"]=fpars["R"]
+        PmagRec[key0+"_k"]=fpars["K"]
+        PmagRec[key0+"_alpha95"]=fpars["alpha95"]
+        if int(PmagRec[key0+"_n_planes"])>0:
+            PmagRec["magic_method_codes"]="DE-FM-LP"
+        elif int(PmagRec[key0+"_n_lines"])>2:
+            PmagRec["magic_method_codes"]="DE-FM"
+    elif len(data)==1:
+        PmagRec[key0+"_dec"]=data[0][key1+'_dec']
+        PmagRec[key0+"_inc"]=data[0][key1+'_inc']
+        PmagRec[key0+"_n_total"]='1'
+        if data[0][key1+'_direction_type']=='l': 
+            PmagRec[key0+"_n_lines"]='1'
+            PmagRec[key0+"_n_planes"]='0'
+        if data[0][key1+'_direction_type']=='p': 
+            PmagRec[key0+"_n_planes"]='1'
+            PmagRec[key0+"_n_lines"]='0'
+        PmagRec[key0+"_alpha95"]=""
+        PmagRec[key0+"_r"]=""
+        PmagRec[key0+"_k"]=""
+        PmagRec[key0+"_direction_type"]="l"
+    return PmagRec
+
+
 def dolnp(data,direction_type_key):
     """
     returns fisher mean, a95 for data  using method of mcfadden and mcelhinny '88 for lines and planes
@@ -1926,7 +2138,7 @@ def dolnp(data,direction_type_key):
             a95=numpy.arccos(a95)*180./numpy.pi
         else: 
             a95=0.
-            K=nan
+            K='inf'
     else:
         dir=fisher_mean(fdata)
         n_total,R,K,a95=dir["n"],dir["r"],dir["k"],dir["alpha95"]
@@ -1936,7 +2148,10 @@ def dolnp(data,direction_type_key):
     fpars["n_lines"]='%i '% (n_lines)
     fpars["n_planes"]='%i '% (n_planes)
     fpars["R"]='%5.4f '% (R)
-    fpars["K"]='%7.1f '% (K)
+    if K!='inf':
+        fpars["K"]='%6.0f '% (K)
+    else:
+        fpars["K"]=K
     fpars["alpha95"]='%7.1f '% (a95)
     fpars["dec"]='%7.1f '% (dirV[0])
     fpars["inc"]='%7.1f '% (dirV[1])
@@ -2656,6 +2871,22 @@ def first_up(ofile,Rec,file_type):
     pmag_out.close()
     return keylist
 
+def average_int(data,keybase,outkey): # returns dictionary with average intensities from list of arbitrary dictinaries.
+    Ints,DataRec=[],{}
+    for r in data:Ints.append(float(r[keybase+'_int']))
+    if len(Ints)>1:
+        b,sig=gausspars(Ints)
+        sigperc=100.*sig/b
+        DataRec[outkey+"_int_sigma"]='%8.3e '% (sig)
+        DataRec[outkey+"_int_sigma_perc"]='%5.1f '%(sigperc)
+    else: # if only one, just copy over specimen data
+        b=Ints[0]
+        DataRec[outkey+"_int_sigma"]=''
+        DataRec[outkey+"_int_sigma_perc"]=''
+    DataRec[outkey+"_int"]='%8.3e '%(b)
+    DataRec[outkey+"_int_n"]='%i '% (len(data))
+    return DataRec
+ 
 def get_age(Rec,sitekey,keybase,Ages,DefaultAge):
     """
     finds the age record for a given site

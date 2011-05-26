@@ -596,9 +596,30 @@ def start_over():
         tkMessageBox.showinfo("Info","Clear was aborted - your files are safe")
  
 def upload():
-    outstring="upload_magic.py -WD "+'"'+opath+'"'
+    # create a specimen table from the magic_measurements table
+    try:
+        measfile=opath+"/magic_measurements.txt"
+        open(measfile,'rU') # test if there are measurements
+        instfile=opath+"/magic_instruments.txt"
+        sitefile=opath+"/er_sites.txt"
+        specout=opath+"/er_specimens.txt"
+        print "creating specimen and instrument files from magic_measurements.txt"
+        pmag.ParseMeasFile(measfile,sitefile,instfile,specout)
+    except:
+        pass
+    # now re-order er_samples.txt file to put sample orientations in proper order (used ones on top)
+    try:
+        specfile=opath+"/zeq_specimens_g.txt"
+        open(specfile,'rU') # test if there are oriented specimens   
+        sampfile=opath+"/er_samples.txt"
+        open(sampfile,'rU') # test if there is er_samples file with orientations
+        print "re-ordering er_samples table with used orientations on top"
+        pmag.ReorderSamples(specfile,sampfile,sampfile) # re-order sampfile with selected orientation on top 
+    except:
+        pass
+    outstring="upload_magic.py -WD "+'"'+opath+'"' 
     print outstring
-    os.system(outstring)
+    os.system(outstring) # call upload magic
 #    tkMessageBox.showinfo("Info","Import upload_dos.txt into Excel program 'MagIC Console'\n check command window for errors")
 
 def download():
@@ -734,8 +755,6 @@ def spec_combine():
         os.system(rmag_outstring)
     try:
         open(opath+'/zeq_specimens.txt','r')
-        print outstring
-        os.system(outstring)
         basestring='zeq_magic_redo.py   -WD '+'"'+opath+'"'
         print basestring
         os.system(basestring)
@@ -2452,11 +2471,14 @@ def sitemeans():
             file=fpath.split('/')[-1] 
     else: 
         try:
-            open(opath+"/pmag_specimens.txt",'r')
+            specfile=opath+"/pmag_specimens.txt"
+            open(specfile,'r')
             file="pmag_specimens.txt"
-        except IOError:
-            tkMessageBox.showinfo("Info","Assemble specimens first")
-            return
+            # re-order 
+            #tkMessageBox.showinfo("Info","Assemble specimens first")
+            #return
+        except:
+            pass
     clist=clist+' -fsp '+file
     try:
         open(opath+"/er_sites.txt",'r')
@@ -2487,6 +2509,7 @@ def sitemeans():
     outstring="specimens_results_magic.py  -WD "+'"'+opath+'"'+" "+clist
     print outstring
     os.system(outstring)
+        
         
     
 class SMDialog(tkSimpleDialog.Dialog): # makes an entry table for basic data from a .mag file

@@ -119,6 +119,23 @@ def plotXY(fignum,X,Y,sym,xlab,ylab,title):
     pylab.title(title)
     pylab.draw()
 
+def plotSITE(fignum,SiteRec,data,key):
+    print 'Site mean data: '
+    print '   dec    inc n_lines n_planes kappa R alpha_95 comp coord'
+    print SiteRec['site_dec'],SiteRec['site_inc'],SiteRec['site_n_lines'],SiteRec['site_n_planes'],SiteRec['site_k'],SiteRec['site_r'],SiteRec['site_alpha95'],SiteRec['site_comp_name'],SiteRec['site_tilt_correction']
+    print 'sample/specimen, dec, inc, n_specs/a95,| method codes '
+    for i  in range(len(data)):
+        print '%s: %s %s %s / %s | %s' % (data[i]['er_'+key+'_name'], data[i][key+'_dec'], data[i][key+'_inc'], data[i][key+'_n'], data[i][key+'_alpha95'], data[i]['magic_method_codes'])
+    plotSLNP(fignum,SiteRec,data,key)
+    plot=raw_input("s[a]ve plot, [q]uit or <return> to continue:   ")
+    if plot=='q':
+         print "CUL8R"
+         sys.exit()
+    if plot=='a':
+        files={}
+        for key in EQ.keys():
+            files[key]=site+'_'+key+'.'+fmt
+        saveP(EQ,files)
 
 def plotQQnorm(fignum,Y,title):
     pylab.figure(num=fignum) 
@@ -995,6 +1012,55 @@ def  plotB(Figs,araiblock,zijdblock,pars):
     drawFIGS(Figs)
 
 
+def plotSLNP(fignum,SiteRec,datablock,key):
+    """
+    plots lines and planes on a great  circle with alpha 95 and mean
+    """
+# make the stereonet
+    plotNET(fignum)
+    s=SiteRec['er_site_name']
+#
+#   plot on the data
+#
+    coord=SiteRec['site_tilt_correction']
+    title=''
+    if coord=='-1':title=s+": specimen coordinates"
+    if coord=='0':title=s+": geographic coordinates"
+    if coord=='100':title=s+": tilt corrected coordinates"
+    DIblock,GCblock=[],[]
+    for plotrec in datablock:
+        if plotrec[key+'_direction_type']=='p': # direction is pole to plane
+            GCblock.append((float(plotrec[key+"_dec"]),float(plotrec[key+"_inc"])))
+        else:  # assume direction is a directed line
+            DIblock.append((float(plotrec[key+"_dec"]),float(plotrec[key+"_inc"])))
+    if len(DIblock)>0:plotDI(fignum,DIblock)  # plot directed lines
+    if len(GCblock)>0:
+        for pole in GCblock:
+            plotC(fignum,pole,90.,'g')  # plot directed lines
+#
+# put on the mean direction
+#
+    x,y=[],[]
+    XY=pmag.dimap(float(SiteRec["site_dec"]),float(SiteRec["site_inc"]))
+    x.append(XY[0])
+    y.append(XY[1])
+    pylab.figure(num=fignum)
+    pylab.scatter(x,y,marker='d',s=80,c='g')
+    pylab.title(title)
+#
+# get the alpha95
+#
+    Xcirc,Ycirc=[],[]
+    Da95,Ia95=pmag.circ(float(SiteRec["site_dec"]),float(SiteRec["site_inc"]),float(SiteRec["site_alpha95"]))
+    for k in  range(len(Da95)):
+        XY=pmag.dimap(Da95[k],Ia95[k])
+        Xcirc.append(XY[0])
+        Ycirc.append(XY[1])
+    pylab.plot(Xcirc,Ycirc,'g')
+    pylab.ion()
+    pylab.draw()
+    pylab.ioff()
+   
 def plotLNP(fignum,s,datablock,fpars,direction_type_key):
     """
     plots lines and planes on a great  circle with alpha 95 and mean
@@ -1043,6 +1109,7 @@ def plotLNP(fignum,s,datablock,fpars,direction_type_key):
     pylab.draw()
     pylab.ioff()
    
+
 
 def plotEQ(fignum,DIblock,s):
     """

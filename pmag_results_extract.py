@@ -65,7 +65,7 @@ def main():
     sf=open(Soutfile,'w')
     if latex==0:
         Soutstring='%s \t %s \t %s \t %s \t %s \t %s \t %s \t %s\n'%("Site","Location","Lat. (N)","Long. (E)","Age ","Units","Dip Dir","Dip")
-        outstring='%s \t %s \t %s \t %s \t %s \t %s \t %s \t %s \t %s \t %s \t %s \t %s\n'%("Site",'Comp.',"%TC","Dec.","Inc.","Nl","Np","k","R","a95","PLat","PLong")
+        outstring='%s \t %s \t %s \t %s \t %s \t %s \t %s \t %s \t %s \t %s \t %s \t %s\n'%("Site",'Comp.',"%TC","Dec.","Inc.","Nl","Np","k    ","R","a95","PLat","PLong")
         f.write(outstring)
         sf.write(Soutstring)
     else:
@@ -114,6 +114,7 @@ def main():
         if site["pmag_result_name"][0:6]=="V[A]DM":
             if site["average_int_sigma"]=="":site["average_int_sigma"]="0"        
             if site["average_int_sigma_perc"]=="":site["average_int_sigma_perc"]="0"        
+            if site["vadm"]=="":site["vadm"]="0"        
             if site["vadm_sigma"]=="":site["vadm_sigma"]="0"        
             if latex==0:
                 outstring='%s\t%s\t%6.2f\t%5.2f\t%5.1f\t%6.2f\t%5.2f \n'%(site["er_site_names"],site["average_int_n"],1e6*float(site["average_int"]),1e6*float(site["average_int_sigma"]),float(site['average_int_sigma_perc']),1e-21*float(site["vadm"]),1e-21*float(site["vadm_sigma"]))
