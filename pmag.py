@@ -650,12 +650,12 @@ def magic_read(infile):
         magic_keys.append(key)
     lines=f.readlines()
     for line in lines[:-1]:
-        line.strip('\n')
+        line.replace('\n','')
         if delim=='space':rec=line[:-1].split()
         if delim=='tab':rec=line[:-1].split('\t')
         hold.append(rec)
     line = lines[-1]
-    line.strip('\n')
+    line.replace('\n','')
     if delim=='space':rec=line[:-1].split()
     if delim=='tab':rec=line.split('\t')
     hold.append(rec)
@@ -664,7 +664,7 @@ def magic_read(infile):
         if len(magic_keys) != len(rec):
             print "Warning: Uneven record lengths detected: ",rec
         for k in range(len(rec)):
-           magic_record[magic_keys[k]]=rec[k]
+           magic_record[magic_keys[k]]=rec[k].strip('\n')
         magic_data.append(magic_record)
     magictype=file_type.lower().split("_")
     Types=['er','magic','pmag','rmag']
@@ -2029,7 +2029,7 @@ def lnpbykey(data,key0,key1): # calculate a fisher mean of key1 data for a group
             rec['inc']=float(rec[key1+'_inc'])
         fpars=dolnp(data,key1+'_direction_type')
         PmagRec[key0+"_dec"]=fpars["dec"]
-        PmagRec[key0+"_inc"]=(fpars["inc"])
+        PmagRec[key0+"_inc"]=fpars["inc"]
         PmagRec[key0+"_n"]=(fpars["n_total"])
         PmagRec[key0+"_n_lines"]=fpars["n_lines"]
         PmagRec[key0+"_n_planes"]=fpars["n_planes"]

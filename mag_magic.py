@@ -21,8 +21,9 @@ def main():
         -Fsa: specify output er_samples file, default is NONE (only for LDGO formatted files)
         -LP [colon delimited list of protocols, include all that apply]
             AF:  af demag
-            S: Shaw method
             T: thermal including thellier but not trm acquisition
+            S: Shaw method
+            I: IRM (acquisition)
             N: NRM only
             TRM: trm acquisition
             ANI: anisotropy experiment
@@ -312,7 +313,7 @@ def main():
                         instcode=''
                     MagRec["measurement_positions"]=code3[1][2]
                   elif len(code1)>2: # newest format (cryo7 or later)
-                    labfield=0
+                    #labfield=0
                     fmt='new'
                     date=code1[0].split('/') # break date into mon/day/year
                     yy=int(date[2])
@@ -362,8 +363,7 @@ def main():
                             MagRec["treatment_dc_field_theta"]='%7.1f'%(theta)
                         else:  
                             demag="AF"
-                    labfield=float(code1[3])*1e-6
-                    if code1[4]=='microT' and labfield!=0.:
+                    if code1[4]=='microT' and labfield!=0. and meas_type!="LT-IRM":
                         phi,theta=0.,90.
                         if demag=="T": meas_type="LT-T-I"
                         if demag=="AF": meas_type="LT-AF-I"
@@ -416,8 +416,7 @@ def main():
                 elif demag=="AF":
                     if methcode != "LP-AN-ARM":
                         MagRec["treatment_ac_field"]='%8.3e' %(float(rec[1])*1e-3) # peak field in tesla
-                        meas_type="LT-AF-Z"
-                        MagRec["treatment_dc_field"]='0'
+                        if meas_type=="LT-AF-Z": MagRec["treatment_dc_field"]='0'
                     else: # AARM experiment
                         if treat[1][0]=='0':
                             meas_type="LT-AF-Z"
@@ -486,7 +485,7 @@ def main():
                             MagRec["treatment_ac_field"]='%8.3e' % ( float(treat[0])*1e-3) # AF field in tesla
                             MagRec["treatment_dc_field"]='0'
                             meas_type="LT-AF-Z"
-                else: 
+                elif demag!='N':  
                   if len(treat)==1:treat.append('0')
                   MagRec["treatment_temp"]='%8.3e' % (float(treat[0])+273.) # temp in kelvin
                   if trm==0:  # demag=T and not trmaq
@@ -503,8 +502,8 @@ def main():
                         if treat[1][0]=='3':
                             MagRec["treatment_dc_field"]='0'  # this is a zero field step
                             meas_type="LT-PTRM-MD" # pTRM tail check
-                  else: 
-                    labfield=float(treat[1])*1e-6
+                else: 
+                    labfield=float(treat[0])*1e-6
                     MagRec["treatment_dc_field"]='%8.3e' % (labfield) # labfield in tesla (convert from microT)
                     MagRec["treatment_dc_field_phi"]='%7.1f' % (phi) # labfield phi
                     MagRec["treatment_dc_field_theta"]='%7.1f' % (theta) # labfield theta

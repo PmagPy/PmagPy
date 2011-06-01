@@ -24,10 +24,11 @@ def main():
     """
     FIG={} # plot dictionary
     FIG['exp']=1 # exp is figure 1
-    in_file,plot_key,LP='magic_measurements.txt','er_location_name',"LP-IRM"
+    dir_path='./'
     units,dmag_key='T','treatment_dc_field'
     XLP=[]
     norm=1
+    in_file,plot_key,LP='magic_measurements.txt','er_location_name',"LP-IRM"
     if len(sys.argv)>1:
         if '-h' in sys.argv:
             print main.__doc__
@@ -36,6 +37,10 @@ def main():
         if '-f' in sys.argv:
             ind=sys.argv.index("-f")
             in_file=sys.argv[ind+1]
+        if '-WD' in sys.argv:
+            ind=sys.argv.index('-WD')
+            dir_path=sys.argv[ind+1]
+            in_file=dir_path+'/'+in_file
         if '-obj' in sys.argv:
             ind=sys.argv.index('-obj')
             plot_by=sys.argv[ind+1]
@@ -73,7 +78,7 @@ def main():
     for plot in plotlist:
         print plot
         for spec in sids:
-            INTblock=[]
+            title,INTblock="",[]
             for rec in data:
                 if 'measurement_flag' not in rec.keys():rec['measurement_flag']='g'
                 if rec[plot_key]==plot and int_key in rec.keys() and rec[int_key]!="" and rec['er_specimen_name']==spec:
@@ -86,7 +91,9 @@ def main():
                         title=rec[plot_key]
                         INTblock.append([float(rec[dmag_key]),0,0,float(rec[int_key]),1,rec['measurement_flag']])
             Sdata=INTblock.sort()
-            if len(INTblock)>2: pmagplotlib.plotMT(FIG['exp'],INTblock,title,0,units,norm)
+            if len(INTblock)>2: 
+                pmagplotlib.plotMT(FIG['exp'],INTblock,title,0,units,norm)
+                pmagplotlib.drawFIGS(FIG)
         ans=raw_input(" S[a]ve to save plot, [q]uit,  Return to continue:  ")
         if ans=='q':sys.exit()
         if ans=="a": 

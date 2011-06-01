@@ -216,6 +216,7 @@ def main():
 	if 'specimen_int' not in rec.keys():rec['specimen_int']=''
 	if 'specimen_comp_name' not in rec.keys():rec['specimen_comp_name']='A'
 	if rec['specimen_comp_name'] not in Comps:Comps.append(rec['specimen_comp_name'])
+        rec['specimen_tilt_correction']=rec['specimen_tilt_correction'].strip('\n')
 	if "specimen_tilt_correction" not in rec.keys(): rec["specimen_tilt_correction"]="-1" # assume sample coordinates
 	if rec["specimen_tilt_correction"] not in orient: orient.append(rec["specimen_tilt_correction"])  # collect available coordinate systems
 	if "specimen_direction_type" not in rec.keys(): rec["specimen_direction_type"]='l'  # assume direction is line - not plane

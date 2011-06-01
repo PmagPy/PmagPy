@@ -75,7 +75,7 @@ def main():
     else:
         print main.__doc__
         sys.exit()
-    rseed,nb,data=10,5000,[]
+    rseed,nb,data=10,100,[]
     upper,lower=int(round(.975*nb)),int(round(.025*nb))
     E,I=[],[]
     PLTS={'eq':1,'ei':2,'cdf':3,'v2':4}
@@ -126,6 +126,7 @@ def main():
     pmagplotlib.plotVs(PLTS['cdf'],[I[lower],I[upper]],'b','--')
     pmagplotlib.plotVs(PLTS['cdf'],[Inc],'g','-')
     pmagplotlib.plotVs(PLTS['cdf'],[Io],'k','-')
+    pmagplotlib.drawFIGS(PLTS)
     print "Io Inc  I_lower, I_upper, Elon, E_lower, E_upper"
     print '%7.1f %s %7.1f _ %7.1f ^ %7.1f:  %6.4f _ %6.4f ^ %6.4f' %(Io, " => ", Inc, I[lower],I[upper], Elong, E[lower],E[upper])
     try:
