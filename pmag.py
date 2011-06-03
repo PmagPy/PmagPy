@@ -2,7 +2,7 @@ import  numpy,string,sys,random
 import numpy.linalg
 import exceptions
 def get_version(): 
-    return "pmagpy-2.72"
+    return "pmagpy-2.73"
 def sort_diclist(undecorated,sort_on):
     decorated=[(dict_[sort_on],dict_) for dict_ in undecorated]
     decorated.sort()
@@ -76,6 +76,13 @@ def getsampVDM(SampRec,SiteNFO,key):
     except:
         return ""
 
+def getfield(irmunits,coil,treat):
+# calibration of ASC Impulse magnetizer
+    if coil=="3": m,b=0.0071,-0.04 # B=mh+b where B is in T, h is in KGauss
+    if coil=="2": m,b=0.00329,-0.02455 # B=mh+b where B is in T, h is in KGauss
+    if coil=="1": m,b=0.0002,-0.002 # B=mh+b where B is in T, h is in KGauss
+    return float(treat)*m+b 
+     
 
 def sortbykeys(input,sort_list):
     Output = []

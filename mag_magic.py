@@ -29,6 +29,7 @@ def main():
             ANI: anisotropy experiment
             D: double AF demag
             G: triple AF demag (GRM protocol)
+        -V [1,2,3] units of IRM field in volts using ASC coil #1,2 or 3
         -spc NUM : specify number of characters to designate a  specimen, default = 0
         -loc LOCNAME : specify location/study name, must have either LOCNAME or SAMPFILE or be a synthetic
         -syn INST TYPE:  sets these specimens as synthetics created at institution INST and of type TYPE
@@ -130,6 +131,7 @@ def main():
     trm=0
     irm=0
     specnum=0
+    coil=""
 #
 # get command line arguments
 #
@@ -233,6 +235,7 @@ def main():
             if '-dc' in args: methcode="LT-T-I"
         if "I" in codes:
             methcode="LP-IRM"
+            irmunits="mT"
         if "S" in codes: 
             demag="S"
             methcode="LP-PI-TRM:LP-PI-ALT-AFARM"
@@ -252,6 +255,15 @@ def main():
         if "TRM" in codes: 
             demag="T"
             trm=1
+    if "-V" in args:
+        methcode="LP-IRM"
+        ind=args.index("-V")
+        irmunits="V"
+        coil=args[ind+1]
+        if coil not in ["1","2","3"]:
+            print main.__doc__
+            print 'not a valid coil specification'
+            sys.exit()
     if demag=="T" and "ANI" in codes:
         methcode="LP-AN-TRM"
     if demag=="AF" and "ANI" in codes:
@@ -276,6 +288,21 @@ def main():
                 MagRec["treatment_dc_field_theta"]='0'
                 meas_type="LT-NO"
                 rec=line.split()
+                if rec[1]==".00":rec[1]="0.00"
+                treat=rec[1].split('.')
+                if methcode=="LP-IRM":
+                    if irmunits=='mT':
+                        labfield=float(treat[0])*1e-3
+                    else:
+                        labfield=pmag.getfield(irmunits,coil,treat[0])
+                    if rec[1][0]!="-":
+                        phi,theta=0.,90.
+                    else:
+                        phi,theta=0.,-90.
+                    meas_type="LT-IRM"
+                    MagRec["treatment_dc_field"]='%8.3e'%(labfield)
+                    MagRec["treatment_dc_field_phi"]='%7.1f'%(phi)
+                    MagRec["treatment_dc_field_theta"]='%7.1f'%(theta)
                 if len(rec)>6:
                   code1=rec[6].split(';') # break e.g., 10/15/02;7:45 indo date and time
                   if len(code1)==2: # old format with AM/PM
@@ -350,19 +377,7 @@ def main():
                         MagRec["measurement_positions"]=code1[7]   # takes care of awkward format with bubba and flo being different
                     if user=="":user=code1[5]
                     if code1[2][-1]=='C': demag="T"
-                    if code1[2]=='mT':
-                        if methcode=="LP-IRM":
-                            labfield=float(code1[3])*1e-3
-                            if rec[1][0]!="-":
-                                phi,theta=0.,90.
-                            else:
-                                phi,theta=0.,-90.
-                            meas_type="LT-IRM"
-                            MagRec["treatment_dc_field"]='%8.3e'%(labfield)
-                            MagRec["treatment_dc_field_phi"]='%7.1f'%(phi)
-                            MagRec["treatment_dc_field_theta"]='%7.1f'%(theta)
-                        else:  
-                            demag="AF"
+                    if code1[2]=='mT' and methcode!="LP-IRM": demag="AF"
                     if code1[4]=='microT' and labfield!=0. and meas_type!="LT-IRM":
                         phi,theta=0.,90.
                         if demag=="T": meas_type="LT-T-I"
@@ -409,8 +424,6 @@ def main():
                     SynRec["synthetic_institution"]=institution
                     SynRec["synthetic_type"]=syntype
                     SynRecs.append(SynRec)
-                if rec[1]==".00":rec[1]="0.00"
-                treat=rec[1].split('.')
                 if float(rec[1])==0:
                     pass 
                 elif demag=="AF":
@@ -502,7 +515,7 @@ def main():
                         if treat[1][0]=='3':
                             MagRec["treatment_dc_field"]='0'  # this is a zero field step
                             meas_type="LT-PTRM-MD" # pTRM tail check
-                else: 
+                  else: 
                     labfield=float(treat[0])*1e-6
                     MagRec["treatment_dc_field"]='%8.3e' % (labfield) # labfield in tesla (convert from microT)
                     MagRec["treatment_dc_field_phi"]='%7.1f' % (phi) # labfield phi

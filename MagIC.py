@@ -260,6 +260,7 @@ class MagDialog(tkSimpleDialog.Dialog): # makes an entry table for basic data fr
         Label(master, text="Measurer: ").grid(row=7)
         Label(master, text="Average replicates [y/n]: [default is y] ").grid(row=8)
         Label(master, text="Z: only for naming convention #4").grid(row=9)
+        Label(master, text="coil: Coil number for ASC impulse coil ").grid(row=10)
         self.loc = Entry(master)
         self.spc=Entry(master,textvariable='1')
         self.B = Entry(master)
@@ -269,6 +270,7 @@ class MagDialog(tkSimpleDialog.Dialog): # makes an entry table for basic data fr
         self.usr = Entry(master)
         self.noave = Entry(master)
         self.Z = Entry(master)
+        self.coil = Entry(master)
         self.loc.grid(row=0, column=1)
         self.spc.grid(row=1, column=1)
         self.B.grid(row=3, column=1)
@@ -278,6 +280,7 @@ class MagDialog(tkSimpleDialog.Dialog): # makes an entry table for basic data fr
         self.usr.grid(row=7, column=1)
         self.noave.grid(row=8, column=1)
         self.Z.grid(row=9, column=1)
+        self.coil.grid(row=10, column=1)
         return self.loc # initial focus
     def apply(self):
         Result['out']=opath+"/"+basename+".magic"
@@ -298,6 +301,8 @@ class MagDialog(tkSimpleDialog.Dialog): # makes an entry table for basic data fr
             Result['spc']=self.spc.get()
         if self.Z.get()!="":
             Result['Z']=self.Z.get()
+        if self.coil.get()!="":
+            Result['coil']=self.coil.get()
         self.result=Result
 
 radio_value = 99
@@ -1191,7 +1196,7 @@ def add_PMM():
 
 def add_mag():
         global fpath,basename, Result
-        Result={'usr':'','out':'','dc':'0','ac':'0','phi':'0','theta':'-90','spc':'1'}
+        Result={'usr':'','out':'','dc':'0','ac':'0','phi':'0','theta':'-90','spc':'1','coil':''}
         if opath=="":
             print "Must set output directory first!"
             return
@@ -1237,6 +1242,7 @@ def add_mag():
         outstring='mag_magic.py -F '+d.result['out']+' -f '+ ofile+ ' -LP ' + d.result['LP'] + ' -spc ' + d.result['spc'] 
         if d.result['loc']!="":outstring=outstring + ' -loc "'+ d.result['loc']+'"'
         if d.result['dc']!="0":outstring=outstring + ' -dc '+ d.result['dc'] + ' ' + d.result['phi'] + ' ' + d.result['theta']
+        if d.result['coil']!="":outstring=outstring + ' -V '+ d.result['coil'] 
         if d.result['usr']!="":outstring=outstring + ' -usr '+ d.result['usr'] 
         if d.result['noave']=="n":outstring=outstring + ' -A '
         outstring=outstring+' -ncn '+NCN_types[ncn_rv].split(":")[0]
