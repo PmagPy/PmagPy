@@ -1,14 +1,24 @@
 #!/usr/bin/env python
 import pmag,sys
-def spitout(line):
-    dat=[]  # initialize list for  dec,inc,slat,slon
-    line.replace('\t',' ')
-    rec=line.split() # split each line on space to get records 
-    for element in rec : # step through dec,inc, int
-        dat.append(float(element)) # append floating point variable to dat list
-    plong,plat,dp,dm=pmag.dia_vgp(dat[0],dat[1],0.,dat[2],dat[3])  # call dia_vgp function from pmag module
-    print '%7.1f %7.1f'%(plong,plat) # print out returned stuff
-    return plong,plat,dp,dm
+
+def spitout(*input):
+    output = []
+    if len(input) > 1:
+        (dec,inc,a95,slat,slon) = (input)
+        output = pmag.dia_vgp(dec,inc,a95,slat,slon)
+    else:
+        input = input[0]
+        output = pmag.dia_vgp(input)
+    return printout(output)
+
+def printout(output): # print out returned stuff
+    if len(output) > 1:
+        if isinstance(output[0],list):        
+            for i in range(len(output[0])):
+                print '%7.1f %7.1f'%(output[0][i],output[1][i])
+        else:
+            print '%7.1f %7.1f'%(output[0],output[1]) 
+
 def main():
     """
     NAME
@@ -45,16 +55,16 @@ def main():
     if '-i' in sys.argv: # if one is -i
         while 1:
             try:
-                ans=raw_input("Input Declination: <cntrl-D to quit>  ")
-                Dec=float(ans)  # assign input to Dec, after conversion to floating point
-                ans=raw_input("Input Inclination:  ")
-                Inc =float(ans)
-                ans=raw_input("Input Site Latitude:  ")
-                slat =float(ans)
-                ans=raw_input("Input Site Longitude:  ")
-                slong =float(ans)
-                plong,plat,dp,dm=pmag.dia_vgp(Dec,Inc,0.,slat,slong)  # call dia_vgp function from pmag module
-                print '%7.1f %7.1f'%(plong,plat) # print out returned stuff
+                ans   = raw_input("Input Declination: <cntrl-D to quit>  ")
+                Dec   = float(ans)  # assign input to Dec, after conversion to floating point
+                ans   = raw_input("Input Inclination:  ")
+                Inc   = float(ans)
+                ans   = raw_input("Input Site Latitude:  ")
+                slat  = float(ans)
+                ans   = raw_input("Input Site Longitude:  ")
+                slong = float(ans)                
+
+                spitout(Dec,Inc,0.,slat,slong)
             except:
                 print "\n Good-bye\n"
                 sys.exit()
@@ -63,11 +73,28 @@ def main():
         ind=sys.argv.index('-f')
         file=sys.argv[ind+1]
         f=open(file,'rU')
-        input = f.readlines()  # read from standard input
-        for line in input:   # read in the data (as string variable), line by line
-            plong,plat,dp,dm= spitout(line)
+        inlist  = []
+        for line in f.readlines():
+            inlist.append([])
+            i = 0
+            # loop over the elements, split by whitespace
+            for el in line.split():
+                i = i+1
+                if i%3 == 0: # append '0' for a95
+                    inlist[-1].append(float(0))
+                inlist[-1].append(float(el))
+        spitout(inlist)
     else:
         input = sys.stdin.readlines()  # read from standard input
+        inlist  = []
         for line in input:   # read in the data (as string variable), line by line
-            spitout(line)
+            inlist.append([])
+            i = 0
+            # loop over the elements, split by whitespace
+            for el in line.split():
+                i = i+1
+                if i%3 == 0: # append '0' for a95
+                    inlist[-1].append(float(0))
+                inlist[-1].append(float(el))
+        spitout(inlist)
 main()

@@ -1,19 +1,30 @@
 #!/usr/bin/env python
 import pmag,sys
-def spitout(line):
-    dat=[]  # initialize list for  dec,inc,slat,slon
-    line.replace('\t',' ')
-    rec =line.split() # split the data on a space into columns
-    for element in rec : # step through dec,inc, int
-        dat.append(float(element)) # append floating point variable to dat list
-    plong,plat,dp,dm=pmag.dia_vgp(dat[0],dat[1],dat[2],dat[3],dat[4])  # call dia_vgp function from pmag module
-    print '%7.1f %7.1f %7.1f %7.1f'%(plong,plat,dp,dm) # print out returned stuff
+
+def spitout(*input):
+    output = []
+    if len(input) > 1:
+        (dec,inc,a95,slat,slon) = (input)
+        output = pmag.dia_vgp(dec,inc,a95,slat,slon)
+    else:
+        input = input[0]
+        output = pmag.dia_vgp(input)
+    return printout(output)
+
+def printout(output): # print out returned stuff
+    if len(output) > 1:
+        if isinstance(output[0],list):        
+            for i in range(len(output[0])):
+                print '%7.1f %7.1f %7.1f %7.1f'%(output[0][i],output[1][i],output[2][i],output[3][i])
+        else:
+            print '%7.1f %7.1f %7.1f %7.1f'%(output[0],output[1],output[2],output[3])     
+
 def main():
     """
     NAME
         dia_vgp.py
     DESCRIPTION
-      converts declinationi inclination alpha95 to virtual geomagnetic pole, dp and dm
+      converts declination inclination alpha95 to virtual geomagnetic pole, dp and dm
     
     SYNTAX
         dia_vgp.py [-h] [-i] [-f FILE] [< filename]
@@ -38,8 +49,8 @@ def main():
         where:
              PLAT: pole latitude 
              PLON: pole longitude (positive east)
-             DP: 95% confindence angle in parallel 
-             DM: 95% confindence angle in meridian 
+             DP: 95% confidence angle in parallel 
+             DM: 95% confidence angle in meridian 
     """
     if '-h' in sys.argv:
         print main.__doc__
@@ -57,7 +68,7 @@ def main():
                 slat =float(ans)
                 ans=raw_input("Input Site Longitude:  ")
                 slong =float(ans)
-                plong,plat,dp,dm=pmag.dia_vgp(Dec,Inc,a95,slat,slong)  # call dia_vgp function from pmag module
+                spitout(Dec,Inc,a95,slat,slong)  # call dia_vgp function from pmag module
                 print '%7.1f %7.1f %7.1f %7.1f'%(plong,plat,dp,dm) # print out returned stuff
             except:
                 print "\n Good-bye\n"
@@ -67,11 +78,21 @@ def main():
         ind=sys.argv.index('-f')
         file=sys.argv[ind+1]
         f=open(file,'rU')
-        input = f.readlines()  # read from standard input
-        for line in input:   # read in the data (as string variable), line by line
-            spitout(line)
+        inlist  = []
+        for line in f.readlines():
+            inlist.append([])
+            # loop over the elements, split by whitespace
+            for el in line.split():
+                inlist[-1].append(float(el))
+        spitout(inlist)
+
     else:
         input = sys.stdin.readlines()  # read from standard input
+        inlist  = []
         for line in input:   # read in the data (as string variable), line by line
-            spitout(line)
+            inlist.append([])
+            # loop over the elements, split by whitespace
+            for el in line.split():
+                inlist[-1].append(float(el))
+        spitout(inlist)
 main()

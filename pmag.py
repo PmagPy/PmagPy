@@ -78,9 +78,9 @@ def getsampVDM(SampRec,SiteNFO,key):
 
 def getfield(irmunits,coil,treat):
 # calibration of ASC Impulse magnetizer
-    if coil=="3": m,b=0.0071,-0.04 # B=mh+b where B is in T, h is in KGauss
-    if coil=="2": m,b=0.00329,-0.02455 # B=mh+b where B is in T, h is in KGauss
-    if coil=="1": m,b=0.0002,-0.002 # B=mh+b where B is in T, h is in KGauss
+    if coil=="3": m,b=0.0071,-0.004 # B=mh+b where B is in T, treat is in Volts
+    if coil=="2": m,b=0.00329,-0.002455 # B=mh+b where B is in T, treat is in Volts
+    if coil=="1": m,b=0.0002,-0.0002 # B=mh+b where B is in T, treat is in Volts
     return float(treat)*m+b 
      
 
@@ -347,28 +347,78 @@ def flip(D):
             D1.append([rec[0],rec[1],1.])
     return D1,D2
 #
-def dia_vgp(dec,dip,a95,slat,slong):
+def dia_vgp(*args): # new function interface by J.Holmes, SIO, 6/1/2011
     """
     converts declination, inclination, alpha95 to VGP, dp, dm
     """
-    rad=numpy.pi/180.
+    # test whether arguments are one 2-D list or 5 floats 
+    if len(args) == 1: # args comes in as a tuple of multi-dim lists.
+        largs=list(args).pop() # scrap the tuple.
+        (decs, dips, a95s, slats, slongs) = zip(*largs) # reorganize the lists so that we get columns of data in each var.       
+    else:
+        # When args > 1, we are receiving five floats. This usually happens when the invoking script is 
+        # executed in interactive mode.
+        (decs, dips, a95s, slats, slongs) = (args)
+       
+    # We send all incoming data to numpy in an array form. Even if it means a 1x1 matrix. That's OKAY. Really.
+    (dec, dip, a95, slat, slong) = (numpy.array(decs), numpy.array(dips), numpy.array(a95s), \
+                                    numpy.array(slats), numpy.array(slongs)) # package columns into arrays
+    rad=numpy.pi/180. # convert to radians
     dec,dip,a95,slat,slong=dec*rad,dip*rad,a95*rad,slat*rad,slong*rad
     p=numpy.arctan2(2.0,numpy.tan(dip))
     plat=numpy.arcsin(numpy.sin(slat)*numpy.cos(p)+numpy.cos(slat)*numpy.sin(p)*numpy.cos(dec))
     beta=(numpy.sin(p)*numpy.sin(dec))/numpy.cos(plat)
-    if beta > 1.:beta=1.
-    if beta < -1.:beta=-1.
+    
+    #------------------------------------------------------------------------------------------------------------
+    # The deal with "boolmask":
+    # We needed a quick way to assign matrix values based on a logic decision, in this case setting boundaries
+    # on out-of-bounds conditions. Creating a matrix of boolean values the size of the original matrix and using 
+    # it to "mask" the assignment solves this problem nicely. The downside to this is that Numpy complains if you 
+    # attempt to mask a non-matrix, so we have to check for array type and do a normal assignment if the type is 
+    # scalar. These checks are made before calculating for the rest of the function.
+    #------------------------------------------------------------------------------------------------------------
+
+    boolmask = beta > 1. # create a mask of boolean values
+    if isinstance(beta,numpy.ndarray):
+        beta[boolmask] = 1. # assigns 1 only to elements that mask TRUE.
+    else: # Numpy gets upset if you try our masking trick with a scalar or a 0-D matrix.
+        if boolmask:
+            beta = 1.
+    boolmask = beta < -1.
+    if isinstance(beta,numpy.ndarray):
+        beta[boolmask] = -1. # assigns -1 only to elements that mask TRUE.
+    else:
+        if boolmask:
+            beta = -1.
+
     beta=numpy.arcsin(beta)
-    if numpy.cos(p) > numpy.sin(slat)*numpy.sin(plat): 
-        plong=slong+beta
-    else: 
-        plong=slong+numpy.pi-beta
-    if plong < 0: plong=plong+2*numpy.pi
-    if plong > 2*numpy.pi:plong=plong-2*numpy.pi
+    plong = slong+numpy.pi-beta
+    if (numpy.cos(p) > numpy.sin(slat)*numpy.sin(plat)).any():
+        boolmask = (numpy.cos(p) > (numpy.sin(slat)*numpy.sin(plat)))
+        if isinstance(plong,numpy.ndarray):
+            plong[boolmask] = (slong+beta)[boolmask]
+        else:
+            if boolmask:
+                plong = slong+beta
+        
+    boolmask = (plong < 0)
+    if isinstance(plong,numpy.ndarray):
+        plong[boolmask] = plong[boolmask]+2*numpy.pi
+    else:
+        if boolmask:
+            plong = plong+2*numpy.pi
+
+    boolmask = (plong > 2*numpy.pi)
+    if isinstance(plong,numpy.ndarray):
+        plong[boolmask] = plong[boolmask]-2*numpy.pi
+    else:
+        if boolmask:
+            plong = plong-2*numpy.pi
+
     dm=a95* (numpy.cos(slat)/numpy.cos(dip))/rad
     dp=a95*(1+3*(numpy.sin(slat)**2))/(2*rad)
     plat,plong=plat/rad,plong/rad
-    return plong,plat,dp,dm
+    return plong.tolist(),plat.tolist(),dp.tolist(),dm.tolist()
 
 def int_pars(x,y,vds):
     """

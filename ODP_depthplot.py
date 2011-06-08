@@ -21,6 +21,7 @@ def main():
         -fwig FILE: specify input depth,wiggle to plot, in magic format with sample_core_depth key for depth
         -fsa FILE: specify input er_samples format file from magic
         -fsp FILE sym size: specify input zeq_specimen format file from magic, sym and size
+        -fres FILE specify input pmag_results file from magic, sym and size
         -LP [AF,T,ARM,IRM, X] step [in mT,C,mT,mT, mass/vol] to plot 
         -sym SYM SIZE, symbol, size for data points (e.g., ro 5, bs 10, g^ 10 for red dot, blue square, green triangle), default is blue dot at 5 pt
         -D do not plot declination
@@ -34,6 +35,7 @@ def main():
         -Iex: plot the expected inc at lat - only available for results with lat info in file
         -ts TS amin amax: plot the GPTS for the time interval between amin and amax (numbers in Ma)
            TS: [ck95, gts04] 
+        
 
      DEFAULTS:
          Measurements file: magic_measurements.txt
@@ -62,6 +64,7 @@ def main():
     sum_file=""
     suc_file=""
     spc_file=""
+    res_file=""
     ngr_file=""
     wig_file=""
     title=""
@@ -107,6 +110,12 @@ def main():
         spc_file=dir_path+'/'+sys.argv[ind+1]
         spc_sym=sys.argv[ind+2]
         spc_size=float(sys.argv[ind+3])
+    if '-fres' in sys.argv:
+        ind=sys.argv.index('-fres')
+        res_file=dir_path+'/'+sys.argv[ind+1]
+        print res_file #DEBUG
+        res_sym=sys.argv[ind+2]
+        res_size=float(sys.argv[ind+3])
     if '-fwig' in sys.argv:
         ind=sys.argv.index('-fwig')
         wig_file=dir_path+'/'+sys.argv[ind+1]
@@ -172,7 +181,8 @@ def main():
     Meas,file_type=pmag.magic_read(meas_file) 
     print len(Meas), ' measurements read in from ',meas_file
     Samps,file_type=pmag.magic_read(samp_file) 
-    if spc_file!="":Specs,file_type=pmag.magic_read(spc_file) 
+    if spc_file!="":Specs,file_type=pmag.magic_read(spc_file)
+    if res_file!="":Results,file_type=pmag.magic_read(res_file)
     if norm==1:
         ErSpecs,file_type=pmag.magic_read(wt_file) 
         print len(ErSpecs), ' specimens read in from ',wt_file
@@ -253,6 +263,7 @@ def main():
                                 if thisstep not in steps:steps.append(thisstep)
                                 if 'ARM' not in methods:methods.append('ARM')
                             if 'LT-IRM' in meth:
+                                print 'got one'
                                 thisstep='%7.1f'%(float(rec['treatment_dc_field'])*1e3)
                                 if thisstep not in steps:steps.append(thisstep)
                                 if 'IRM' not in methods:methods.append('IRM')
@@ -263,6 +274,7 @@ def main():
 #        sys.exit()
     SpecDepths,SpecDecs,SpecIncs=[],[],[]
     if spc_file!="": # add depths to spec data
+        print 'spec file found'
         for spec in Specs:
             for samp in Samps:
                 if samp['er_sample_name']== spec['er_sample_name'] and 'sample_core_depth' in samp.keys() and samp['sample_core_depth']!="":
@@ -271,7 +283,19 @@ def main():
                         SpecDepths.append(float(samp['sample_core_depth'])) # fish out data with core_depth
                         SpecDecs.append(float(spec['specimen_dec'])) # fish out data with core_depth
                         SpecIncs.append(float(spec['specimen_inc'])) # fish out data with core_depth
-    Susc,Sus_depths=[],[]
+    ResDepths,ResDecs,ResIncs=[],[],[]
+    if res_file!="": #creates lists of Result Data
+        print 'res file found' #DEBUG
+        for res in Results:
+            print res['result_name'] #DEBUG
+            meths=res['magic_method_codes'].split(":")
+            print meths #MORE DEBUG
+            if 'DE-FM' in meths:
+                ResDepths.append(float(res['average_height'])) # fish out data with core_depth
+                ResDecs.append(float(res['average_dec'])) # fish out data with core_depth
+                ResIncs.append(float(res['average_inc'])) # fish out data with core_depth
+                print res['average_height'], '    ', res['average_dec'], '    ', res['average_inc'] #DEBUG
+                Susc,Sus_depths=[],[]
     if dmin==-1:
         if len(Depths)>0: dmin,dmax=Depths[0],Depths[-1]
         if pltS==1 and len(SDepths)>0:
@@ -280,6 +304,9 @@ def main():
         if len(SpecDepths)>0:
             if min(SpecDepths)<dmin:dmin=min(SpecDepths)
             if max(SpecDepths)>dmax:dmax=max(SpecDepths)
+        if len(ResDepths)>0:
+            if min(ResDepths)<dmin:dmin=min(ResDepths)
+            if max(ResDepths)>dmax:dmax=max(ResDepths)
     if suc_file!="":
         sucdat=open(suc_file,'rU').readlines()
         keys=sucdat[0].replace('\n','').split(',') # splits on underscores
@@ -306,7 +333,7 @@ def main():
                 WIG_depths.append(float(wig['sample_core_depth']))
     tint=4.5
     plt=1
-    if len(Decs)>0 and len(Depths)>0 or (len(SpecDecs)>0 and len(SpecDepths)>0) or (len(SDecs)>0 and len(SDepths)>0) or (len(SInts)>0 and len(SDepths)>0) or (len(SIncs)>0 and len(SDepths)>0):
+    if len(Decs)>0 and len(Depths)>0 or (len(SpecDecs)>0 and len(SpecDepths)>0) or (len(ResDecs)>0 and len(ResDepths)>0) or (len(SDecs)>0 and len(SDepths)>0) or (len(SInts)>0 and len(SDepths)>0) or (len(SIncs)>0 and len(SDepths)>0):
         for pow in range(-10,10):
             if maxInt*10**pow>1:break
         if logit==0:
@@ -324,6 +351,7 @@ def main():
             if len(Decs)==0 and pltL==1 and len(SDecs)>0:pylab.plot(SDecs,SDepths,'k')
             if len(SDecs)>0:pylab.plot(SDecs,SDepths,Ssym,markersize=Ssize) 
             if spc_file!="":pylab.plot(SpecDecs,SpecDepths,spc_sym,markersize=spc_size) 
+            if res_file!="":pylab.plot(ResDecs,ResDepths,res_sym,markersize=res_size) 
             if sum_file!="":
                 for core in Cores:
                      depth=float(core['Core Top (m)']) 
@@ -346,6 +374,7 @@ def main():
             if len(Incs)==0 and pltL==1 and len(SIncs)>0:pylab.plot(SIncs,SDepths,'k')
             if len(SIncs)>0:pylab.plot(SIncs,SDepths,Ssym,markersize=Ssize) 
             if spc_file!="":pylab.plot(SpecIncs,SpecDepths,spc_sym,markersize=spc_size) 
+            if res_file!="":pylab.plot(ResIncs,ResDepths,res_sym,markersize=res_size) 
             if sum_file!="":
                 for core in Cores:
                      depth=float(core['Core Top (m)']) 
