@@ -111,7 +111,7 @@ def main():
 # initialize some stuff
     infile_type="mag"
     noave=0
-    methcode,inst="",""
+    methcode,inst="LP-NO",""
     phi,theta,peakfield,labfield=0,0,0,0
     pTRM,MD,samp_con,Z=0,0,'1',1
     dec=[315,225,180,135,45,90,270,270,270,90,180,180,0,0,0]
@@ -123,7 +123,6 @@ def main():
     er_location_name=""
     citation='This study'
     args=sys.argv
-    methcode="LP-NO"
     fmt='old'
     syn=0
     synfile='er_synthetics.txt'
@@ -340,7 +339,7 @@ def main():
                         instcode=''
                     MagRec["measurement_positions"]=code3[1][2]
                   elif len(code1)>2: # newest format (cryo7 or later)
-                    #labfield=0
+                    labfield=0
                     fmt='new'
                     date=code1[0].split('/') # break date into mon/day/year
                     yy=int(date[2])
@@ -376,7 +375,9 @@ def main():
                     else:
                         MagRec["measurement_positions"]=code1[7]   # takes care of awkward format with bubba and flo being different
                     if user=="":user=code1[5]
-                    if code1[2][-1]=='C': demag="T"
+                    if code1[2][-1]=='C': 
+                        demag="T"
+                        if code1[4]=='microT' and float(code1[3])!=0.: labfield=float(code1[3])
                     if code1[2]=='mT' and methcode!="LP-IRM": demag="AF"
                     if code1[4]=='microT' and labfield!=0. and meas_type!="LT-IRM":
                         phi,theta=0.,90.
@@ -385,7 +386,7 @@ def main():
                         MagRec["treatment_dc_field"]='%8.3e'%(labfield)
                         MagRec["treatment_dc_field_phi"]='%7.1f'%(phi)
                         MagRec["treatment_dc_field_theta"]='%7.1f'%(theta)
-                    if code1[4]=='' or labfield==0.:
+                    if code1[4]=='' or labfield==0. and meas_type!="LT-IRM":
                         if demag=='T':meas_type="LT-T-Z"
                         if demag=="AF":meas_type="LT-AF-Z"
                         MagRec["treatment_dc_field"]='0'
@@ -536,7 +537,6 @@ def main():
                 else:
                     MagRec["measurement_standard"]='u'
                 MagRec["measurement_number"]='1'
-                MagRec["er_specimen_name"],meas_type
                 MagRecs.append(MagRec) 
     elif infile_type=="ldgo":
 #

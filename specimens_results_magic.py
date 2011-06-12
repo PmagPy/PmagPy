@@ -174,7 +174,7 @@ def main():
 	if critrec["pmag_criteria_code"]=="RPOLE": RpoleCrit=critrec
 	if critrec["pmag_criteria_code"]=="IE-SPEC":
 	    SpecIntCrit=critrec
-	    accept_keys=['specimen_int_ptrm_n','specimen_md','specimen_fvds','specimen_b_beta','specimen_dang','specimen_drats','specimen_Z']
+	    accept_keys=['specimen_int_ptrm_n','specimen_md','specimen_fvds','specimen_b_beta','specimen_dang','specimen_drats']
 	    accept={}
 	    accept['specimen_int_ptrm_n']=2.0
 	    for critrec in crit_data:
@@ -363,7 +363,12 @@ def main():
 	if Daverage==1: key,dirlist,crit='sample',SampDirs,'DE-SAMP' # if sample averages at site level desired
 	tmp=pmag.get_dictitem(dirlist,'er_site_name',site,'T') # get all the sites with  directions
 	tmp1=pmag.get_dictitem(tmp,key+'_tilt_correction',coords[-1],'T') # use only the last coordinate if Caverage==0
-	sitedat=pmag.get_dictitem(SiteNFO,'er_site_name',site,'T')[0] # fish out site information (lat/lon, etc.)
+	sd=pmag.get_dictitem(SiteNFO,'er_site_name',site,'T') # fish out site information (lat/lon, etc.)
+	if len(sd)>0:
+            sitedat=sd[0]
+        else:
+            print 'site information not found in er_sites for site, ',site
+            sys.exit()
 	if Caverage==0: # do component wise averaging
 		for comp in Comps:
 		    siteD=pmag.get_dictitem(tmp1,key+'_comp_name',comp,'T') # get all components comp
@@ -383,7 +388,9 @@ def main():
 			if Tnum>0:DC+=1
 			PmagSiteRec['magic_method_codes']= pmag.getlist(siteD,'magic_method_codes')+':'+ 'LP-DC'+str(DC)
 			PmagSiteRec['magic_method_codes'].strip(":")
-			if plotsites==1:pmagplotlib.plotSITE(EQ['eqarea'],PmagSiteRec,siteD,key) # plot and list the data
+			if plotsites==1:
+                            print PmagSiteRec['er_site_name']
+                            pmagplotlib.plotSITE(EQ['eqarea'],PmagSiteRec,siteD,key) # plot and list the data
 			PmagSites.append(PmagSiteRec) 
 	else: # last component only
 	    siteD=tmp1[:] # get the last orientation system specified
@@ -473,8 +480,9 @@ def main():
             PmagResults.append(PmagResRec)
     if noInt!=1:
       for site in sites: # now do intensities for each site
+        if plotsites==1:print site
         if Iaverage==0: key,intlist,crit='specimen',SpecInts,'IE-SPEC' # if using specimen level data
-        if Iaverage==1: key,dirlist,intlist,crit='sample',SampInts,'IE-SPEC' # if using sample level data
+        if Iaverage==1: key,intlist,crit='sample',SampInts,'IE-SPEC' # if using sample level data
         Ints=pmag.get_dictitem(intlist,'er_site_name',site,'T') # get all the intensities  for this site
         if len(Ints)>0: # there are some
             PmagSiteRec=pmag.average_int(Ints,key,'site') # get average intensity stuff for site table

@@ -2,7 +2,7 @@ import  numpy,string,sys,random
 import numpy.linalg
 import exceptions
 def get_version(): 
-    return "pmagpy-2.73"
+    return "pmagpy-2.74"
 def sort_diclist(undecorated,sort_on):
     decorated=[(dict_[sort_on],dict_) for dict_ in undecorated]
     decorated.sort()
@@ -4372,11 +4372,13 @@ def measurements_methods(meas_data,noave):
 #
     SpecTmps,SpecOuts=[],[]
     for spec in sids:
-        SpecRecs,TRM=[],0 # list  of measurement records for this specimen
+        TRM=0 # list  of measurement records for this specimen
         expcodes=""
 # first collect all data for this specimen and do lab treatments
-        for rec in meas_data:
-            if rec["er_specimen_name"]==spec:SpecRecs.append(rec)
+        SpecRecs=get_dictitem(meas_data,'er_specimen_name',spec,'T')
+#        SpecRecs=[]
+#        for rec in meas_data:
+#            if rec['er_specimen_name']==spec:SpecRecs.append(rec)
 #
 # try to assign lab treatment codes from data - but look for TRM acquisistion flag
 #
@@ -4399,7 +4401,8 @@ def measurements_methods(meas_data,noave):
 # no AF
                             if "treatment_dc_field" not in rec.keys() or rec["treatment_dc_field"]=="" or float(rec["treatment_dc_field"])==0:# no IRM!
                                 if "LT-NO" not in meths:meths.append("LT-NO")
-                            elif "LT-IRM" not in meths:meths.append("LT-IRM") # it's an IRM
+                            elif "LT-IRM" not in meths:
+                                meths.append("LT-IRM") # it's an IRM
 #
 # find AF/infield/zerofield
 #
@@ -4427,7 +4430,7 @@ def measurements_methods(meas_data,noave):
                             if "LT-LT-I" not in meths:meths.append("LT-LT-I")
                 if "measurement_chi_volume" in rec.keys() or "measurement_chi_mass" in rec.keys():
                     if  "LP-X" not in meths:meths.append("LP-X")
-                if "measurement_lab_dc_field" in rec.keys() and rec["measurement_lab_dc_field"]!=0: # measurement in presence of dc field and not susceptibility; hysteresis!
+                elif "measurement_lab_dc_field" in rec.keys() and rec["measurement_lab_dc_field"]!=0: # measurement in presence of dc field and not susceptibility; hysteresis!
                     if  "LP-HYS" not in meths:
                         hysq=raw_input("Is this a hysteresis experiment? [1]/0")
                         if hysq=="" or hysq=="1":
@@ -4437,7 +4440,7 @@ def measurements_methods(meas_data,noave):
                             meths.append(metha)
 #
 # done with first pass, collect and assign provisional method codes
-#
+
             rec["er_citation_names"]="This study"
             if "measurement_description" not in rec.keys():rec["measurement_description"]=""
             methcode=""
@@ -4455,9 +4458,10 @@ def measurements_methods(meas_data,noave):
 #
 # collect all the experimental data for this specimen
 #
-        for rec in SpecTmps: # from all the records
-            if rec["er_specimen_name"]==spec:
-                NewSpecs.append(rec) # pick out those from this specimen
+#        for rec in SpecTmps: # from all the records
+#            if rec["er_specimen_name"]==spec:
+#                NewSpecs.append(rec) # pick out those from this specimen
+        NewSpecs=get_dictitem(SpecTmps,'er_specimen_name',spec,'T')
 #
 # first look for replicate measurements
 #
@@ -4472,20 +4476,14 @@ def measurements_methods(meas_data,noave):
 # now look through this specimen's records - try to figure out what experiment it is
 #
         if len(NewSpecs)>1: # more than one meas for this spec - part of experiment
-            for rec in NewSpecs:
-                meths=rec["magic_method_codes"].split(":")
-                for meth in meths:
-                    if meth not in SpecMeths:SpecMeths.append(meth)  # collect all the methods for this experiment
+            SpecMeths=getlist(NewSpecs,'magic_method_codes').split(":")
             if "LT-T-I" in  SpecMeths: # TRM steps - could be anisotropy, TRM acquisition, Shaw or a Thellier experiment or TDS experiment
     #
     # collect all the infield steps and look for changes in dc field vector
     #
                 Steps=[]
                 for rec in  NewSpecs: 
-                    tmp=rec["magic_method_codes"].split(":")
-                    methods=[]
-                    for meth in tmp:
-                        methods.append(meth.strip())
+                    methods=getlist(NewSpecs,'magic_method_codes').split(":")
                     if "LT-T-I" in methods:Steps.append(rec)  # get all infield steps together
                 rec_bak=Steps[0]
                 if "treatment_dc_field_phi" in rec_bak.keys() and "treatment_dc_field_theta" in rec_bak.keys():   
@@ -4513,6 +4511,7 @@ def measurements_methods(meas_data,noave):
                         TRM=1
                         experiment_name="LP-TRM"
                 TI=1
+          
             else: TI= 0 # no infield steps at all
             if "LT-T-Z" in  SpecMeths: # thermal demag steps
                 if TI==0: 
