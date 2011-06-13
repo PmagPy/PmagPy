@@ -113,7 +113,6 @@ def main():
     if '-fres' in sys.argv:
         ind=sys.argv.index('-fres')
         res_file=dir_path+'/'+sys.argv[ind+1]
-        print res_file #DEBUG
         res_sym=sys.argv[ind+2]
         res_size=float(sys.argv[ind+3])
     if '-fwig' in sys.argv:
@@ -132,17 +131,17 @@ def main():
         ind=sys.argv.index('-LP')
         meth=sys.argv[ind+1]
         if meth=="AF":
-            step=float(sys.argv[ind+2])*1e-3
+            step=round(float(sys.argv[ind+2])*1e-3,6)
             method='LT-AF-Z'
         elif meth== 'T':
-            step=float(sys.argv[ind+2])+273
+            step=round(float(sys.argv[ind+2])+273,6)
             method='LT-T-Z'
         elif meth== 'ARM':
             method='LT-AF-I'
-            step=float(sys.argv[ind+2])*1e-3
+            step=round(float(sys.argv[ind+2])*1e-3,6)
         elif meth== 'IRM':
             method='LT-IRM'
-            step=float(sys.argv[ind+2])*1e-3
+            step=round(float(sys.argv[ind+2])*1e-3,6)
         elif meth== 'X':
             method='LP-X'
             pcol+=1
@@ -199,22 +198,6 @@ def main():
             print 'no Core depth information available: import core summary file'
             sum_file=""
     Data=[]
-    for rec in Meas:
-        for samp in Samps:
-            if samp['er_sample_name']== rec['er_sample_name'] and 'sample_core_depth' in samp.keys() and samp['sample_core_depth']!="":
-                rec['core_depth'] = float(samp['sample_core_depth'])
-                rec['magic_method_codes'] = rec['magic_method_codes']+':'+samp['magic_method_codes']
-                if norm==1:
-                    for spec in ErSpecs:
-                        if spec['er_sample_name']== rec['er_sample_name'] and 'specimen_weight' in spec.keys() and spec['specimen_weight']!="":
-                            rec['specimen_weight'] = spec['specimen_weight']
-                            Data.append(rec) # fish out data with core_depth and (if needed) weights
-                else:
-                    Data.append(rec) # fish out data with core_depth and (if needed) weights
-                if title=="":
-                   pieces=samp['er_sample_name'].split('-')
-                   title=pieces[0]+'-'+pieces[1]
-    SData=pmag.sort_diclist(Data,'core_depth')
     xlab="Depth (mbsf)"
     # collect the data for plotting declination
     Depths,Decs,Incs,Ints=[],[],[],[]
@@ -222,56 +205,62 @@ def main():
     SSucs=[]
     samples=[]
     methods,steps=[],[]
-    for rec in SData:
-        if "magic_method_codes" in rec.keys():
-            meths=rec["magic_method_codes"].split(":")
-            if method in meths:
-                if step==0 or ('LT-AF-Z' in method and float(rec['treatment_ac_field'])==step) or ('LT-T-Z' in method and float(rec['treatment_temp'])==step) or ('LT-AF-I' in method and float(rec['treatment_ac_field'])==step) or ('LT-IRM' in method and float(rec['treatment_dc_field'])==step) or ('LP-X' in method and rec[suc_key] in rec.keys() and rec[suc_key]!=""):
-                    if dmax==-1 or float(rec['core_depth'])<dmax and float(rec['core_depth'])>dmin:
-                        if  'FS-SS-C' not in meths: # make sure it is desired lab treatment step 
-                            Depths.append((rec['core_depth']))
-                            if pltD==1:Decs.append(float(rec['measurement_dec']))
-                            if pltI==1:Incs.append(float(rec['measurement_inc']))
-                            if norm==0 and pltM==1:Ints.append(float(rec['measurement_magn_moment']))
-                            if norm==1 and pltM==1:Ints.append(float(rec['measurement_magn_moment'])/float(rec['specimen_weight']))
-                            if len(Ints)>1 and Ints[-1]>maxInt:maxInt=Ints[-1]
-                            if len(Ints)>1 and Ints[-1]<minInt:minInt=Ints[-1]
-                        elif  pltS==1: # make sure it is desired lab treatment step 
-                            SDepths.append((rec['core_depth']))
-                            if pltD==1:SDecs.append(float(rec['measurement_dec']))
-                            if pltI==1:SIncs.append(float(rec['measurement_inc']))
-                            if norm==0 and pltM==1:SInts.append(float(rec['measurement_magn_moment']))
-                            if norm==1 and pltM==1:SInts.append(float(rec['measurement_magn_moment'])/float(rec['specimen_weight']))
-                            if len(SInts)>1 and SInts[-1]>maxInt:maxInt=SInts[-1]
-                            if len(SInts)>1 and SInts[-1]<minInt:minInt=SInts[-1]
-                            if method=="LP-X": 
-                                SSucs.append(float(rec[suc_key]))
-                                if SSucs[-1]>maxSuc:maxSuc=SSucs[-1]
-                                if SSucs[-1]<minSuc:minSuc=SSucs[-1]
-                    elif len(Depths) and len(SDepths)==0:
-                        for meth in meths:
-                            if 'LT-AF-Z' in meth:
-                                thisstep='%7.1f'%(float(rec['treatment_ac_field'])*1e3)
-                                if thisstep not in steps:steps.append(thisstep)
-                                if 'AF' not in methods:methods.append('AF')
-                            if 'LT-T-Z' in meth:
-                                thisstep='%7.1f'%(float(rec['treatment_ac_field'])-273.)
-                                if thisstep not in steps:steps.append(thisstep)
-                                if 'T' not in methods:methods.append('T')
-                            if 'LT-T-I' in meth:
-                                thisstep='%7.1f'%(float(rec['treatment_ac_field'])*1e3)
-                                if thisstep not in steps:steps.append(thisstep)
-                                if 'ARM' not in methods:methods.append('ARM')
-                            if 'LT-IRM' in meth:
-                                print 'got one'
-                                thisstep='%7.1f'%(float(rec['treatment_dc_field'])*1e3)
-                                if thisstep not in steps:steps.append(thisstep)
-                                if 'IRM' not in methods:methods.append('IRM')
+    m1=pmag.get_dictitem(Meas,'magic_method_codes',method,'has') # fish out the desired method code
+    if method=='LT-T-Z': 
+        m2=pmag.get_dictitem(m1,'treatment_temp',step,'eval') # fish out the desired step
+    elif 'LT-AF' in method:
+        m2=pmag.get_dictitem(m1,'treatment_ac_field',step,'eval')    
+    elif 'LT-IRM' in method:
+        m2=pmag.get_dictitem(m1,'treatment_dc_field',step,'eval')    
+    elif 'LT-X' in method:
+        m2=pmag.get_dictitem(m1,suc_key,'','F')    
+    for rec in m2: # fish out depths and weights
+        D=pmag.get_dictitem(Samps,'er_sample_name',rec['er_sample_name'],'T')
+        depth=pmag.get_dictitem(D,'sample_core_depth','','F')
+        if len(depth)>0:
+            rec['core_depth'] = float(depth[0]['sample_core_depth'])
+            rec['magic_method_codes'] = rec['magic_method_codes']+':'+depth[0]['magic_method_codes']
+            if norm==1:
+                specrecs=pmag.get_dictitem(ErSpecs,'er_specimen_name',rec['er_specimen_name'],'T')
+                specwts=pmag.get_dictitem(specrecs,'specimen_weight',"",'F')
+                if len(specwts)>0: 
+                    rec['specimen_weight'] = specwts[0]['specimen_weight']
+                    Data.append(rec) # fish out data with core_depth and (if needed) weights
+            else:
+                Data.append(rec) # fish out data with core_depth and (if needed) weights
+            if title=="":
+               pieces=rec['er_sample_name'].split('-')
+               title=pieces[0]+'-'+pieces[1]
+    SData=pmag.sort_diclist(Data,'core_depth')
+    Whole=pmag.get_dictitem(SData,'magic_method_codes','FS-SS-C','not')  # get all the whole core data
+    if len(Whole)>0: # fish out whole core data from desired depths
+        for rec in Whole:
+            if dmax==-1 or float(rec['core_depth'])<dmax and float(rec['core_depth'])>dmin:
+                Depths.append((rec['core_depth']))
+                if pltD==1:Decs.append(float(rec['measurement_dec']))
+                if pltI==1:Incs.append(float(rec['measurement_inc']))
+                if norm==0 and pltM==1:Ints.append(float(rec['measurement_magn_moment']))
+                if norm==1 and pltM==1:Ints.append(float(rec['measurement_magn_moment'])/float(rec['specimen_weight']))
+                if len(Ints)>1 and Ints[-1]>maxInt:maxInt=Ints[-1]
+                if len(Ints)>1 and Ints[-1]<minInt:minInt=Ints[-1]
+    if  pltS==1: # make sure it is desired lab treatment step 
+        Discrete=pmag.get_dictitem(SData,'magic_method_codes','FS-SS-C','has')  # get all the discrete data
+        for rec in Discrete:
+            if dmax==-1 or float(rec['core_depth'])<dmax and float(rec['core_depth'])>dmin: # filter for depth
+                SDepths.append((rec['core_depth']))
+                if pltD==1:SDecs.append(float(rec['measurement_dec']))
+                if pltI==1:SIncs.append(float(rec['measurement_inc']))
+                if norm==0 and pltM==1:SInts.append(float(rec['measurement_magn_moment']))
+                if norm==1 and pltM==1:SInts.append(float(rec['measurement_magn_moment'])/float(rec['specimen_weight']))
+                if len(SInts)>1 and SInts[-1]>maxInt:maxInt=SInts[-1]
+                if len(SInts)>1 and SInts[-1]<minInt:minInt=SInts[-1]
+                if method=="LP-X": 
+                    SSucs.append(float(rec[suc_key]))
+                    if SSucs[-1]>maxSuc:maxSuc=SSucs[-1]
+                    if SSucs[-1]<minSuc:minSuc=SSucs[-1]
     if len(Depths)==0 and len(SDepths)==0:
         print 'no data matched your request, try a different lab treatment '
-        print 'available treatment types: ',methods
-        print 'available treatment steps: ',steps
-#        sys.exit()
+        sys.exit()
     SpecDepths,SpecDecs,SpecIncs=[],[],[]
     if spc_file!="": # add depths to spec data
         print 'spec file found'

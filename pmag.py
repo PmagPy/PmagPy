@@ -2,7 +2,7 @@ import  numpy,string,sys,random
 import numpy.linalg
 import exceptions
 def get_version(): 
-    return "pmagpy-2.74"
+    return "pmagpy-2.75"
 def sort_diclist(undecorated,sort_on):
     decorated=[(dict_[sort_on],dict_) for dict_ in undecorated]
     decorated.sort()
@@ -15,7 +15,9 @@ def get_dictitem(In,k,v,flag):
         if flag=="F":return [dict for dict in In if dict[k]!=v] # return that which is not
         if flag=="has":return [dict for dict in In if v in dict[k]] # return that which is contained
         if flag=="not":return [dict for dict in In if v not in dict[k]] # return that which is not contained
-    except:
+        if flag=="eval":return [dict for dict in In if eval(dict[k])==v] # return that which is
+    except Exception, err:
+        print  str(err)
         return []
 
 def getsampVGP(SampRec,SiteNFO):

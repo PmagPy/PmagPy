@@ -2856,7 +2856,7 @@ def ODP_depthplot():
     ts=''
     if Edict['Time Scale (ck95,gts04)']!='' and Edict['Time Scale Age Max']!='' and Edict['Time Scale Age Min']!='':
         outstring=outstring+' -ts '+Edict['Time Scale (ck95,gts04)']+' '+Edict['Time Scale Age Min']+' '+Edict['Time Scale Age Max']
-    PLT_types=["Don't plot declinations","Don't plot inclinations","Don't plot intensities","Don't connect the dots","Don't plot the core boundaries","Don't plot the specimen directions","Don't use log scale for intensities","Customize long core symbols","Customize best-fit specimen symbols","Normalize intensity by weight"]
+    PLT_types=["Don't plot declinations","Don't plot inclinations","Don't plot intensities","Don't connect the dots","Don't plot the core boundaries","Don't plot the specimen directions","Don't use log scale for intensities","Customize long core symbols","Customize best-fit specimen symbols","Normalize intensity by weight","Plot Directions from Results"]
     plt_checks=ask_check(root,PLT_types,'choose plotting options:') #
     PLT_list=map((lambda var:var.get()),plt_checks) # returns method code  radio button list
     if PLT_list[7]!=0:
@@ -2869,6 +2869,7 @@ def ODP_depthplot():
     if PLT_list[1]==1:outstring=outstring+' -I '
     if PLT_list[2]==1:outstring=outstring+' -M '
     if PLT_list[3]==1:outstring=outstring+' -L '
+    if PLT_list[10]==1:outstring=outstring+' -fres pmag_results.txt ro 5 '
     if PLT_list[4]==0:
         try:
             logfile=open(opath+"/ODPsummary.log",'r')
