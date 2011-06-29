@@ -262,16 +262,23 @@ def main():
         print 'no data matched your request, try a different lab treatment '
         sys.exit()
     SpecDepths,SpecDecs,SpecIncs=[],[],[]
+    FDepths,FDecs,FIncs=[],[],[]
     if spc_file!="": # add depths to spec data
         print 'spec file found'
-        for spec in Specs:
-            for samp in Samps:
-                if samp['er_sample_name']== spec['er_sample_name'] and 'sample_core_depth' in samp.keys() and samp['sample_core_depth']!="":
-                    meths=samp['magic_method_codes'].split(":")
-                    if 'DE-BFP' not in meths:
-                        SpecDepths.append(float(samp['sample_core_depth'])) # fish out data with core_depth
-                        SpecDecs.append(float(spec['specimen_dec'])) # fish out data with core_depth
-                        SpecIncs.append(float(spec['specimen_inc'])) # fish out data with core_depth
+        BFLs=pmag.get_dictitem(Specs,'magic_method_codes','DE-BFL','has')  # get all the discrete data with best fit lines
+        for spec in BFLs:
+            samp=pmag.get_dictitem(Samps,'er_sample_name',spec['er_sample_name'],'T')
+            if len(samp)>0 and 'sample_core_depth' in samp[0].keys() and samp[0]['sample_core_depth']!="":
+                SpecDepths.append(float(samp[0]['sample_core_depth'])) # fish out data with core_depth
+                SpecDecs.append(float(spec['specimen_dec'])) # fish out data with core_depth
+                SpecIncs.append(float(spec['specimen_inc'])) # fish out data with core_depth
+        FMs=pmag.get_dictitem(Specs,'magic_method_codes','DE-FM','has')  # get all the discrete data with best fit lines
+        for spec in FMs:
+            samp=pmag.get_dictitem(Samps,'er_sample_name',spec['er_sample_name'],'T')
+            if len(samp)>0 and 'sample_core_depth' in samp[0].keys() and samp[0]['sample_core_depth']!="":
+                FDepths.append(float(samp[0]['sample_core_depth'])) # fish out data with core_depth
+                FDecs.append(float(spec['specimen_dec'])) # fish out data with core_depth
+                FIncs.append(float(spec['specimen_inc'])) # fish out data with core_depth
     ResDepths,ResDecs,ResIncs=[],[],[]
     if res_file!="": #creates lists of Result Data
         print 'res file found' #DEBUG
@@ -340,6 +347,7 @@ def main():
             if len(Decs)==0 and pltL==1 and len(SDecs)>0:pylab.plot(SDecs,SDepths,'k')
             if len(SDecs)>0:pylab.plot(SDecs,SDepths,Ssym,markersize=Ssize) 
             if spc_file!="":pylab.plot(SpecDecs,SpecDepths,spc_sym,markersize=spc_size) 
+            if spc_file!="" and len(FDepths)>0:pylab.plot(FDecs,FDepths,'gv',markersize=spc_size) 
             if res_file!="":pylab.plot(ResDecs,ResDepths,res_sym,markersize=res_size) 
             if sum_file!="":
                 for core in Cores:
@@ -362,7 +370,8 @@ def main():
             if len(Incs)>0:pylab.plot(Incs,Depths,sym,markersize=size) 
             if len(Incs)==0 and pltL==1 and len(SIncs)>0:pylab.plot(SIncs,SDepths,'k')
             if len(SIncs)>0:pylab.plot(SIncs,SDepths,Ssym,markersize=Ssize) 
-            if spc_file!="":pylab.plot(SpecIncs,SpecDepths,spc_sym,markersize=spc_size) 
+            if spc_file!="" and len(SpecDepths)>0:pylab.plot(SpecIncs,SpecDepths,spc_sym,markersize=spc_size) 
+            if spc_file!="" and len(FDepths)>0:pylab.plot(FIncs,FDepths,'gv',markersize=spc_size) 
             if res_file!="":pylab.plot(ResIncs,ResDepths,res_sym,markersize=res_size) 
             if sum_file!="":
                 for core in Cores:

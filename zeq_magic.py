@@ -198,12 +198,14 @@ def main():
         PmagSpecRec["er_analyst_mail_names"]=user
         PmagSpecRec['magic_software_packages']=version_num
         PmagSpecRec['specimen_description']=""
+        PmagSpecRec['magic_method_codes']=""
         if pmagplotlib.verbose and  s!="":print s, k , 'out of ',len(sids)
     #
     #  collect info for the PmagSpecRec dictionary
     #
-        for rec in  meas_data:
-           if rec["er_specimen_name"]==s: 
+        s_meas=pmag.get_dictitem(meas_data,'er_specimen_name',s,'T')
+        s_meas=pmag.get_dictitem(s_meas,'magic_method_codes','DIR','has')
+        for rec in  s_meas:
                PmagSpecRec["magic_instrument_codes"]=rec["magic_instrument_codes"]  # copy over instruments
                PmagSpecRec["er_citation_names"]="This study"
                PmagSpecRec["er_specimen_name"]=s

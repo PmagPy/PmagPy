@@ -2,7 +2,7 @@ import  numpy,string,sys,random
 import numpy.linalg
 import exceptions
 def get_version(): 
-    return "pmagpy-2.75"
+    return "pmagpy-2.76"
 def sort_diclist(undecorated,sort_on):
     decorated=[(dict_[sort_on],dict_) for dict_ in undecorated]
     decorated.sort()
@@ -1348,7 +1348,7 @@ def PintPars(araiblock,zijdblock,start,end):
     pars["method_codes"]=methcode
 # do drats
     if len(ptrm_check) != 0:
-        diffcum=0
+        diffcum,drat_max=0,0
         for prec in ptrm_check:
             step=prec[0]
             endbak=end
@@ -1360,7 +1360,9 @@ def PintPars(araiblock,zijdblock,start,end):
                 for irec in first_I:
                     if irec[0]==step:break
                 diffcum+=prec[3]-irec[3]
+                if abs(prec[3]-irec[3])>drat_max:drat_max=abs(prec[3]-irec[3])
         pars["specimen_drats"]=(100*abs(diffcum)/first_I[zend][3])
+        pars["specimen_drat"]=(100*abs(drat_max)/first_I[zend][3])
     elif len(zptrm_check) != 0:
         diffcum=0
         for prec in zptrm_check:
@@ -1375,7 +1377,9 @@ def PintPars(araiblock,zijdblock,start,end):
                     if irec[0]==step:break
                 diffcum+=prec[3]-irec[3]
         pars["specimen_drats"]=(100*abs(diffcum)/first_I[zend][3])
-    else: pars["specimen_drats"]=-1
+    else: 
+        pars["specimen_drats"]=-1
+        pars["specimen_drat"]=-1
 # and the pTRM tails
     if len(ptrm_tail) != 0:
         for trec in ptrm_tail:

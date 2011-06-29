@@ -251,6 +251,7 @@ def main():
                     PmagSpecRec["direction_type"]='l' # this is redudant, but helpful - won't be imported
                     PmagSpecRec["specimen_dang"]='%7.1f '%(pars["specimen_dang"])
                     PmagSpecRec["specimen_drats"]='%7.1f '%(pars["specimen_drats"])
+                    PmagSpecRec["specimen_drat"]='%7.1f '%(pars["specimen_drat"])
                     PmagSpecRec["specimen_int_ptrm_n"]='%i '%(pars["specimen_int_ptrm_n"])
                     PmagSpecRec["specimen_rsc"]='%6.4f '%(pars["specimen_rsc"])
                     PmagSpecRec["specimen_md"]='%i '%(int(pars["specimen_md"]))

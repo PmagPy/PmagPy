@@ -475,7 +475,7 @@ def plotZ(fignum,datablock,angle,s,norm):
     if angle!=0:xlab="X: rotated to Dec = "+'%7.1f'%(angle)
     if angle==0:xlab="X: rotated to Dec = "+'%7.1f'%(angle)
     pylab.xlabel(xlab)
-    pylab.ylabel("Circles: Y; Squares: -Z")
+    pylab.ylabel("Circles: Y; Squares: Z")
     tstring=s+': NRM = '+'%9.2e'%(datablock[0][3])
     pylab.axis([amin,amax,amax,amin])
     pylab.axis("equal")
