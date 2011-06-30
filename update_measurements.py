@@ -63,7 +63,7 @@ def main():
             SampRec['er_citation_names']="This study"
             SampRec['sample_desription']='recorded added by update_measurements - edit as needed'
             samps.append(SampRec)
-            print rec['er_sample_name'],' missing from er_samples.txt file - \n measurment not updated and sample added to er_samples.txt file => you should convert this to orient.txt, edit and re-import'
+            print rec['er_sample_name'],' missing from er_samples.txt file - \n measurement not updated and sample added to er_samples.txt file => you should convert this to orient.txt, edit and re-import'
     pmag.magic_write(out_file,MeasRecs,'magic_measurements')
     print "updated measurements file stored in ", out_file
     if sflag==1:
