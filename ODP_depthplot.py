@@ -330,13 +330,6 @@ def main():
     tint=4.5
     plt=1
     if len(Decs)>0 and len(Depths)>0 or (len(SpecDecs)>0 and len(SpecDepths)>0) or (len(ResDecs)>0 and len(ResDepths)>0) or (len(SDecs)>0 and len(SDepths)>0) or (len(SInts)>0 and len(SDepths)>0) or (len(SIncs)>0 and len(SDepths)>0):
-        for pow in range(-10,10):
-            if maxInt*10**pow>1:break
-        if logit==0:
-            for k in range(len(Ints)):
-                Ints[k]=Ints[k]*10**pow
-            for k in range(len(SInts)):
-                SInts[k]=SInts[k]*10**pow
         pylab.figure(1,figsize=(width,8))
         version_num=pmag.get_version()
         pylab.figtext(.02,.01,version_num)
@@ -391,7 +384,13 @@ def main():
             plt+=1
     if pltM==1 and len(Ints)>0 or len(SInts)>0:
             pylab.subplot(1,pcol,plt)
+            for pow in range(-10,10):
+                if maxInt*10**pow>1:break
             if logit==0:
+                for k in range(len(Ints)):
+                    Ints[k]=Ints[k]*10**pow
+                for k in range(len(SInts)):
+                    SInts[k]=SInts[k]*10**pow
                 if pltL==1 and len(Ints)>0: pylab.plot(Ints,Depths,'k') 
                 if len(Ints)>0:pylab.plot(Ints,Depths,sym,markersize=size) 
                 if len(Ints)==0 and pltL==1 and len(SInts)>0:pylab.plot(SInts,SDepths,'k-')
