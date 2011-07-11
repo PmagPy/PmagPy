@@ -272,6 +272,8 @@ def main():
                 SpecDepths.append(float(samp[0]['sample_core_depth'])) # fish out data with core_depth
                 SpecDecs.append(float(spec['specimen_dec'])) # fish out data with core_depth
                 SpecIncs.append(float(spec['specimen_inc'])) # fish out data with core_depth
+            else:
+                print 'no core_depth found for: ',spec['er_specimen_name']
         FMs=pmag.get_dictitem(Specs,'magic_method_codes','DE-FM','has')  # get all the discrete data with best fit lines
         for spec in FMs:
             samp=pmag.get_dictitem(Samps,'er_sample_name',spec['er_sample_name'],'T')
@@ -279,6 +281,8 @@ def main():
                 FDepths.append(float(samp[0]['sample_core_depth'])) # fish out data with core_depth
                 FDecs.append(float(spec['specimen_dec'])) # fish out data with core_depth
                 FIncs.append(float(spec['specimen_inc'])) # fish out data with core_depth
+            else:
+                print 'no core_depth found for: ',spec['er_specimen_name']
     ResDepths,ResDecs,ResIncs=[],[],[]
     if res_file!="": #creates lists of Result Data
         print 'res file found' #DEBUG

@@ -20,6 +20,7 @@ def main():
         -fb FILE: specify input magic_measurements format file from magic
         -fsa FILE: specify input er_samples format file from magic 
         -d min max [in m] depth range to plot
+        -o plot only oblate specimens with ~vertical minima
      DEFAULTS:
          Anisotropy file: rmag_anisotropy.txt
          Bulk susceptibility file: magic_measurements.txt
@@ -54,6 +55,8 @@ def main():
         ind=sys.argv.index('-d')
         dmin=float(sys.argv[ind+1])
         dmax=float(sys.argv[ind+2])
+    oblate=0
+    if '-o' in sys.argv: oblate=1
     #
     # get data read in
     isbulk=0
@@ -91,7 +94,6 @@ def main():
     if len(Bulks)>0: pcol+=1
     for rec in Data:
         s=[]
-        Depths.append(float(rec['core_depth']))
         s.append(float(rec['anisotropy_s1']))
         s.append(float(rec['anisotropy_s2']))
         s.append(float(rec['anisotropy_s3']))
@@ -99,12 +101,14 @@ def main():
         s.append(float(rec['anisotropy_s5']))
         s.append(float(rec['anisotropy_s6']))
         tau,Vdirs=pmag.doseigs(s)
-        Tau1.append(tau[0])
-        Tau2.append(tau[1])
-        Tau3.append(tau[2])
-        if tau[0]>tau_max:tau_max=tau[0]
-        if tau[2]<tau_min:tau_min=tau[2]
-        V3Incs.append(Vdirs[2][1])
+        if Vdirs[2][1]>60 or oblate==0:
+            Depths.append(float(rec['core_depth']))
+            V3Incs.append(Vdirs[2][1])
+            Tau1.append(tau[0])
+            Tau2.append(tau[1])
+            Tau3.append(tau[2])
+            if tau[0]>tau_max:tau_max=tau[0]
+            if tau[2]<tau_min:tau_min=tau[2]
     if len(Depths)>0:
         if dmax==-1:
             dmax=max(Depths)

@@ -2116,6 +2116,8 @@ def add_s_file(spath):
     if Edict['sig']==1:outstring=outstring+' -sig '
     print outstring
     os.system(outstring)
+#    outstring='aniso_magic.py -WD '+opath+ ' -f '+basename+'_anisotropy.txt -F '+ base_name+'_results.txt -B -P' 
+#    os.system(outstring)
     try:
         filelist=[]
         logfile=open(opath+"/ams.log",'r')

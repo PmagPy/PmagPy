@@ -279,7 +279,7 @@ def main():
               ResRecs.append(BootRec)
           k+=1
           goon=1
-          while goon==1: 
+          while goon==1 and iplot==1: 
               if iboot==1: print "compare with [d]irection "
               print " plot [g]reat circle,  change [c]oord. system, change [e]llipse calculation,  s[a]ve plots, [q]uit "
               if isite==1: print "  [p]revious, [s]ite, [q]uit, <return> for next "

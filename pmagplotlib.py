@@ -1994,7 +1994,7 @@ def plotANIS(ANIS,Ss,iboot,ihext,ivec,ipar,title,plt,comp,vec,Dir):
         ellpars=[hpars["v3_dec"],hpars["v3_inc"],hpars["e13"],hpars["v1_dec"],hpars["v1_inc"],hpars["e23"],hpars["v2_dec"],hpars["v2_inc"]]
         plotELL(ANIS['conf'],ellpars,'k,',1,1) 
 
-    drawFIGS(ANIS)
+    if plt==1:drawFIGS(ANIS)
     return bpars,hpars
 ####
 def plotPIE(fig,fracs,labels,title):
