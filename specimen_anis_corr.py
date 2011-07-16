@@ -3,7 +3,7 @@ import sys,pmag,exceptions,string
 def main():
     """
     NAME
-        zeq_anis_corr.py
+        specimen_anis_corr.py
    
     DESCRIPTION
         Calculate principal components through demagnetization data using bounds and calculation type stored in "redo" file
