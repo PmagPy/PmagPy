@@ -271,7 +271,8 @@ def main():
         if peakfield==0: peakfield=.180
     SynRecs,MagRecs=[],[]
     version_num=pmag.get_version()
-    if infile_type=="mag":
+    if 1:
+    #if infile_type=="mag":
         for line in input.readlines():
             instcode=""
             if len(line)>2:
@@ -378,7 +379,9 @@ def main():
                     if code1[2][-1]=='C': 
                         demag="T"
                         if code1[4]=='microT' and float(code1[3])!=0.: labfield=float(code1[3])
-                    if code1[2]=='mT' and methcode!="LP-IRM": demag="AF"
+                    if code1[2]=='mT' and methcode!="LP-IRM": 
+                        demag="AF"
+                        if code1[4]=='microT' and float(code1[3])!=0.: labfield=float(code1[3])
                     if code1[4]=='microT' and labfield!=0. and meas_type!="LT-IRM":
                         phi,theta=0.,90.
                         if demag=="T": meas_type="LT-T-I"
@@ -432,7 +435,6 @@ def main():
                         MagRec["treatment_ac_field"]='%8.3e' %(float(rec[1])*1e-3) # peak field in tesla
                         if meas_type=="LT-AF-Z": MagRec["treatment_dc_field"]='0'
                     else: # AARM experiment
-                        print treat
                         if treat[1][0]=='0':
                             meas_type="LT-AF-Z"
                             MagRec["treatment_ac_field"]='%8.3e' %(peakfield) # peak field in tesla
@@ -538,114 +540,7 @@ def main():
                 else:
                     MagRec["measurement_standard"]='u'
                 MagRec["measurement_number"]='1'
-                print MagRec['magic_method_codes']
                 MagRecs.append(MagRec) 
-    elif infile_type=="ldgo":
-#
-# find start of data:
-#
-        Samps=[] # keeps track of sample orientations
-        DIspec=[]
-        Data,k=input.readlines(),0
-        for k in range(len(Data)):
-            rec=Data[k].split()
-            if rec[0][0]=="_" or rec[0][0:2]=="!_":
-                break
-        start=k+1
-        for k in range(start,len(Data)):
-          rec=Data[k].split()
-          if len(rec)>0:
-            MagRec={}
-            MagRec["treatment_temp"]='%8.3e' % (273) # room temp in kelvin
-            MagRec["measurement_temp"]='%8.3e' % (273) # room temp in kelvin
-            MagRec["treatment_ac_field"]='0'
-            MagRec["treatment_dc_field"]='0'
-            MagRec["treatment_dc_field_phi"]='0'
-            MagRec["treatment_dc_field_theta"]='0'
-            meas_type="LT-NO"
-            MagRec["measurement_flag"]='g'
-            MagRec["measurement_standard"]='u'
-            MagRec["measurement_number"]='1'
-            MagRec["er_specimen_name"]=rec[0]
-            if specnum!=0:
-                MagRec["er_sample_name"]=rec[0][:specnum]
-            else:
-                MagRec["er_sample_name"]=rec[0]
-            site=pmag.parse_site(MagRec['er_sample_name'],samp_con,Z)
-            MagRec["er_site_name"]=site
-            MagRec["er_site_name"]=MagRec['er_sample_name'][0:-2]
-            MagRec["er_location_name"]=er_location_name
-            MagRec["measurement_csd"]=rec[3]
-            MagRec["measurement_magn_moment"]='%10.3e'% (float(rec[4])*1e-7) # moment in Am^2 (from 10^-4 emu)
-#
-            if samp_file!="" and MagRec["er_sample_name"] not in Samps:        # create er_samples.txt file with these data 
-                cdec,cinc=float(rec[5]),float(rec[6])
-                gdec,ginc=float(rec[7]),float(rec[8])
-                az,pl=pmag.get_azpl(cdec,cinc,gdec,ginc)
-                bdec,binc=float(rec[9]),float(rec[10])
-                if rec[7]!=rec[9] and rec[6]!=rec[8]:
-                    dipdir,dip=pmag.get_tilt(gdec,ginc,bdec,binc)
-                else:
-                    dipdir,dip=0,0
-                ErSampRec={}
-                ErSampRec['er_location_name']=MagRec['er_location_name']
-                ErSampRec['er_sample_name']=MagRec['er_sample_name']
-                ErSampRec['er_site_name']=MagRec['er_site_name']
-                ErSampRec['sample_azimuth']='%7.1f'%(az)
-                ErSampRec['sample_dip']='%7.1f'%(pl)
-                ErSampRec['sample_bed_dip_direction']='%7.1f'%(dipdir)
-                ErSampRec['sample_bed_dip']='%7.1f'%(dip)
-                ErSampRec['sample_description']='az,pl,dip_dir and dip recalculated from [c,g,b][dec,inc] in ldeo file'
-                ErSampRec['magic_method_codes']='SO-REC'
-                ErSamps.append(ErSampRec)
-                Samps.append(ErSampRec['er_sample_name'])
-            MagRec["measurement_dec"]=rec[5]
-            MagRec["measurement_inc"]=rec[6]
-            MagRec["magic_instrument_codes"]=rec[2]
-            MagRec["er_analyst_mail_names"]=""
-            MagRec["er_citation_names"]="This study"
-            MagRec["magic_method_codes"]=meas_type
-            if demag=="AF":
-                if methcode != "LP-AN-ARM":
-                    MagRec["treatment_ac_field"]='%8.3e' %(float(rec[1])*1e-3) # peak field in tesla
-                    meas_type="LT-AF-Z"
-                    MagRec["treatment_dc_field"]='0'
-                else: # AARM experiment
-                    if treat[1][0]=='0':
-                        meas_type="LT-AF-Z"
-                        MagRec["treatment_ac_field"]='%8.3e' %(peakfield) # peak field in tesla
-                    else:
-                        meas_type="LT-AF-I"
-                        ipos=int(treat[0])-1
-                        MagRec["treatment_dc_field_phi"]='%7.1f' %(dec[ipos])
-                        MagRec["treatment_dc_field_theta"]='%7.1f'% (inc[ipos])
-                        MagRec["treatment_dc_field"]='%8.3e'%(labfield)
-                        MagRec["treatment_ac_field"]='%8.3e' %(peakfield) # peak field in tesla
-            elif demag=="T":
-                if rec[1][0]==".":rec[1]="0"+rec[1]
-                treat=rec[1].split('.')
-                if len(treat)==1:treat.append('0')
-                MagRec["treatment_temp"]='%8.3e' % (float(rec[1])+273.) # temp in kelvin
-                meas_type="LT-T-Z"
-                MagRec["treatment_temp"]='%8.3e' % (float(treat[0])+273.) # temp in kelvin
-                if trm==0:  # demag=T and not trmaq
-                    if treat[1][0]=='0':
-                        meas_type="LT-T-Z"
-                    else: 
-                        MagRec["treatment_dc_field"]='%8.3e' % (labfield) # labfield in tesla (convert from microT)
-                        MagRec["treatment_dc_field_phi"]='%7.1f' % (phi) # labfield phi
-                        MagRec["treatment_dc_field_theta"]='%7.1f' % (theta) # labfield theta
-                        if treat[1][0]=='1':meas_type="LT-T-I" # in-field thermal step
-                        if treat[1][0]=='2':
-                            meas_type="LT-PTRM-I" # pTRM check
-                            pTRM=1
-                        if treat[1][0]=='3':
-                            MagRec["treatment_dc_field"]='0'  # this is a zero field step
-                            meas_type="LT-PTRM-MD" # pTRM tail check
-                else: 
-                    meas_type="LT-T-I" # trm acquisition experiment
-            MagRec['magic_method_codes']=meas_type
-            MagRecs.append(MagRec) 
     MagOuts=pmag.measurements_methods(MagRecs,noave)
     pmag.magic_write(meas_file,MagOuts,'magic_measurements')
     print "results put in ",meas_file

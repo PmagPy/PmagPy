@@ -56,6 +56,8 @@ def main():
     if "-fsa" in args:
         ind=args.index("-fsa")
         samp_file=sys.argv[ind+1]
+    else:
+        samp_file=""
     if "-crd" in args:
         ind=args.index("-crd")
         coord=sys.argv[ind+1]
@@ -66,12 +68,16 @@ def main():
             geo=1
 #
 # read in data
-    samp_data,file_type=pmag.magic_read(samp_file)
-    if file_type != 'er_samples':
-       print file_type
-       print "This is not a valid er_samples file " 
-       sys.exit()
-    else: print samp_file,' read in with ',len(samp_data),' records'
+    if samp_file!="":
+        samp_data,file_type=pmag.magic_read(samp_file)
+        if file_type != 'er_samples':
+           print file_type
+           print "This is not a valid er_samples file " 
+           sys.exit()
+        else: print samp_file,' read in with ',len(samp_data),' records'
+    else:
+        print 'no orientations - will create file in specimen coordinates'
+        geo,tilt,orient=0,0,0
     #
     #
     meas_data,file_type=pmag.magic_read(meas_file)
@@ -80,15 +86,16 @@ def main():
         print file_type,"This is not a valid magic_measurements file " 
         sys.exit()
     #
+    if orient==1:
     # set orientation priorities
-    SO_methods=[]
-    orientation_priorities={'0':'SO-SUN','1':'SO-GPS-DIFF','2':'SO-SIGHT-BACK','3':'SO-CMD-NORTH','4':'SO-MAG'}
-    for rec in samp_data:
-       if "magic_method_codes" in rec:
-           methlist=rec["magic_method_codes"]
-           for meth in methlist.split(":"):
-               if "SO" in meth and "SO-POM" not in meth.strip():
-                   if meth.strip() not in SO_methods: SO_methods.append(meth.strip())
+        SO_methods=[]
+        orientation_priorities={'0':'SO-SUN','1':'SO-GPS-DIFF','2':'SO-SIGHT-BACK','3':'SO-CMD-NORTH','4':'SO-MAG'}
+        for rec in samp_data:
+           if "magic_method_codes" in rec:
+               methlist=rec["magic_method_codes"]
+               for meth in methlist.split(":"):
+                   if "SO" in meth and "SO-POM" not in meth.strip():
+                       if meth.strip() not in SO_methods: SO_methods.append(meth.strip())
     #
     # sort the sample names
     #

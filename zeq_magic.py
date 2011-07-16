@@ -627,7 +627,7 @@ def main():
                         PmagSpecRec["measurement_step_max"]='%8.3e ' %(mpars["measurement_step_max"])
                         PmagSpecRec["specimen_correction"]='u'
                         PmagSpecRec["specimen_dang"]='%7.1f ' %(mpars['specimen_dang'])
-                        print 'OK YOU IDIOT: ',PmagSpecRec["specimen_dang"]
+                        print 'DANG: ',PmagSpecRec["specimen_dang"]
                         if calculation_type!='DE-FM':
                             PmagSpecRec["specimen_mad"]='%7.1f ' %(mpars["specimen_mad"])
                             PmagSpecRec["specimen_alpha95"]=""
@@ -645,7 +645,7 @@ def main():
                                 if 'DE' not in ctype:methstring=methstring+ ":" +meth # don't include old direction estimation methods
                         methstring=methstring+':'+calculation_type
                         PmagSpecRec["magic_method_codes"]= methstring.strip(':')
-                        print PmagSpecRec['magic_method_codes']
+                        print 'Method codes: ',PmagSpecRec['magic_method_codes']
                         if calculation_type!='DE-FM':
                             if units=='K': 
                                 print '%s %i %7.1f %7.1f %7.1f %7.1f %7.1f %7.1f, %s \n' % (PmagSpecRec["er_specimen_name"],int(PmagSpecRec["specimen_n"]),float(PmagSpecRec["specimen_mad"]),float(PmagSpecRec["specimen_dang"]),float(PmagSpecRec["measurement_step_min"])-273,float(PmagSpecRec["measurement_step_max"])-273,float(PmagSpecRec["specimen_dec"]),float(PmagSpecRec["specimen_inc"]),calculation_type)

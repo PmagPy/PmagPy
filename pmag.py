@@ -2,7 +2,7 @@ import  numpy,string,sys,random
 import numpy.linalg
 import exceptions
 def get_version(): 
-    return "pmagpy-2.79"
+    return "pmagpy-2.80"
 def sort_diclist(undecorated,sort_on):
     decorated=[(dict_[sort_on],dict_) for dict_ in undecorated]
     decorated.sort()
@@ -2715,7 +2715,7 @@ def Dir_anis_corr(InDir,AniSpec):
     H=numpy.dot(M,chi_inv)
     return cart2dir(H)
 
-def thellier_anis_corr(PmagSpecRec,AniSpec):
+def doaniscorr(PmagSpecRec,AniSpec):
     """
     takes the 6 element 's' vector and the Dec,Inc, Int 'Dir' data,
     performs simple anisotropy correction. returns corrected Dec, Inc, Int
@@ -2756,6 +2756,7 @@ def thellier_anis_corr(PmagSpecRec,AniSpec):
     AniSpecRec["specimen_dec"]='%7.1f'%(cDir[0])
     AniSpecRec["specimen_inc"]='%7.1f'%(cDir[1])
     AniSpecRec["specimen_int"]='%9.4e'%(newint)
+    AniSpecRec["specimen_correction"]='c'
     if 'magic_method_codes' in AniSpecRec.keys():
         methcodes=AniSpecRec["magic_method_codes"]
     else:
@@ -4795,6 +4796,7 @@ def measurements_methods(meas_data,noave):
             NewSpecs[0]["magic_experiment_name"]=spec+":"+NewSpecs[0]['magic_method_codes'].split(':')[0]
             NewSpecs[0]["magic_software_packages"]=version_num
             SpecOuts.append(NewSpecs[0]) # just copy over the single record as is
+        print SpecOuts[-1]['er_specimen_name'],SpecOuts[-1]['magic_method_codes']
     return SpecOuts
 
 def mw_measurements_methods(MagRecs):

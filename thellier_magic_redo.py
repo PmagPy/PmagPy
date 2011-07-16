@@ -332,7 +332,7 @@ def main():
                                 Spc=PmagSpecRec
                             for AniSpec in anis_data:
                                 if AniSpec["er_specimen_name"]==PmagSpecRec["er_specimen_name"]:
-                                    AniSpecRec=pmag.thellier_anis_corr(Spc,AniSpec)
+                                    AniSpecRec=pmag.doaniscorr(Spc,AniSpec)
                                     AniSpecRec['specimen_grade']=PmagSpecRec['specimen_grade']
                                     inst_codes=Spc["magic_instrument_codes"]
                                     if "magic_instrument_codes" in AniSpec.keys():
@@ -355,7 +355,7 @@ def main():
                     elif anis==1:
                         for AniSpec in anis_data:
                             if AniSpec["er_specimen_name"]==PmagSpecRec["er_specimen_name"]:
-                                AniSpecRec=pmag.thellier_anis_corr(PmagSpecRec,AniSpec)
+                                AniSpecRec=pmag.doaniscorr(PmagSpecRec,AniSpec)
                                 AniSpecRec['specimen_grade']=PmagSpecRec['specimen_grade']
                                 inst_codes=PmagSpecRec["magic_instrument_codes"]
                                 if "magic_instrument_codes" in AniSpec.keys():

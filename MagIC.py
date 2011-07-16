@@ -763,16 +763,18 @@ def spec_combine():
         basestring='zeq_magic_redo.py   -WD '+'"'+opath+'"'
         print basestring
         os.system(basestring)
+        outstring="mk_redo.py -f zeq_specimens.txt -F zeq_redo -WD "+'"'+opath+'"'
+        print outstring
+        os.system(outstring)
+        basestring='zeq_magic_redo.py   -WD '+'"'+opath+'"'
+        print outstring
+        os.system(outstring)
         try:
             f=open(opath+'/coordinates.log','r')
             lines=f.readlines()
             coords=[]
             for line in lines:
                 coords.append(line.replace('\n',''))
-            outstring="mk_redo.py -f zeq_specimens.txt -F zeq_redo -WD "+'"'+opath+'"'
-            print outstring
-            os.system(outstring)
-            basestring='zeq_magic_redo.py   -WD '+'"'+opath+'"'
             redstring=basestring+' -crd s -F zeq_specimens_s.txt '
             print redstring
             os.system(redstring)
@@ -1239,7 +1241,7 @@ def add_mag():
         for line in infile:
             out.write(line)
         out.close()
-        outstring='mag_magic.py -F '+d.result['out']+' -f '+ ofile+ ' -LP ' + d.result['LP'] + ' -spc ' + d.result['spc'] 
+        outstring='sio_magic.py -F '+d.result['out']+' -f '+ ofile+ ' -LP ' + d.result['LP'] + ' -spc ' + d.result['spc'] 
         if d.result['loc']!="":outstring=outstring + ' -loc "'+ d.result['loc']+'"'
         if d.result['dc']!="0":outstring=outstring + ' -dc '+ d.result['dc'] + ' ' + d.result['phi'] + ' ' + d.result['theta']
         if d.result['coil']!="":outstring=outstring + ' -V '+ d.result['coil'] 
