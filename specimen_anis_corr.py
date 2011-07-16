@@ -3,13 +3,13 @@ import sys,pmag,exceptions,string
 def main():
     """
     NAME
-        zeq_anis_corr.py
+        specimen_anis_corr.py
    
     DESCRIPTION
         Calculate principal components through demagnetization data using bounds and calculation type stored in "redo" file
   
     SYNTAX
-        specimen_ani_corr.py [command line options]
+        specimen_anis_corr.py [command line options]
 
     OPTIONS
         -h prints help message
@@ -49,15 +49,17 @@ def main():
     for Spc in Specs:
         anirecs=pmag.get_dictitem(AniSpecs,'er_specimen_name',Spc['er_specimen_name'],'T')
         if len(anirecs)>0:
+            AniSpec=anirecs[0] # take first one
             if 'specimen_int' not in Spc.keys():
                 Spc['specimen_int']='1'
-                rmkey=1
-            else:rmkey=0
-            AniSpec=anirecs[0] # take first one
-            ACRec=pmag.doaniscorr(Spc,AniSpec)
-            if rmkey==1:
-               del ACRec['specimen_int']
+                print Spc['specimen_dec'],Spc['specimen_inc']
+                ACRec=pmag.doaniscorr(Spc,AniSpec)
+                print ACRec['specimen_dec'],ACRec['specimen_inc']
+                del ACRec['specimen_int']
+            else:
+                ACRec=pmag.doaniscorr(Spc,AniSpec)
             SpecOut.append(ACRec)
-    pmag.magic_write(spc_out,SpecOut,'pmag_specimens')
+    NewSpecs,keys=pmag.fillkeys(SpecOut)
+    pmag.magic_write(spc_out,NewSpecs,'pmag_specimens')
     print "Anisotropy corrected specimen data stored in, ",spc_out
 main()
