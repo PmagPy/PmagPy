@@ -1,3 +1,6 @@
 specimens_results_magic.py - fix average intensity
    problem is when doing averages by polarity - does average VADM by polarity too!  shouldn't.
 foldtest  add in parametric bootstrap
+
+simplify thellier_magic_redo.py to not do specimen anisotropy correction - use specimens_anis_corr.py instead
+
