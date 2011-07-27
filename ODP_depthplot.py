@@ -207,14 +207,15 @@ def main():
     methods,steps=[],[]
     m1=pmag.get_dictitem(Meas,'magic_method_codes',method,'has') # fish out the desired method code
     if method=='LT-T-Z': 
-        m2=pmag.get_dictitem(m1,'treatment_temp',step,'eval') # fish out the desired step
+        m2=pmag.get_dictitem(m1,'treatment_temp',str(step),'eval') # fish out the desired step
     elif 'LT-AF' in method:
-        m2=pmag.get_dictitem(m1,'treatment_ac_field',step,'eval')    
+        m2=pmag.get_dictitem(m1,'treatment_ac_field',str(step),'eval')    
     elif 'LT-IRM' in method:
-        m2=pmag.get_dictitem(m1,'treatment_dc_field',step,'eval')    
+        m2=pmag.get_dictitem(m1,'treatment_dc_field',str(step),'eval')    
     elif 'LT-X' in method:
         m2=pmag.get_dictitem(m1,suc_key,'','F')    
-    for rec in m2: # fish out depths and weights
+    if len(m2)>0:
+      for rec in m2: # fish out depths and weights
         D=pmag.get_dictitem(Samps,'er_sample_name',rec['er_sample_name'],'T')
         depth=pmag.get_dictitem(D,'sample_core_depth','','F')
         if len(depth)>0:
@@ -232,7 +233,7 @@ def main():
                pieces=rec['er_sample_name'].split('-')
                title=pieces[0]+'-'+pieces[1]
     SData=pmag.sort_diclist(Data,'core_depth')
-    Whole=pmag.get_dictitem(SData,'magic_method_codes','FS-SS-C','not')  # get all the whole core data
+    Whole=pmag.get_dictitem(SData,'magic_method_codes','SP-SS-C','not')  # get all the whole core data
     if len(Whole)>0: # fish out whole core data from desired depths
         for rec in Whole:
             if dmax==-1 or float(rec['core_depth'])<dmax and float(rec['core_depth'])>dmin:
@@ -244,7 +245,7 @@ def main():
                 if len(Ints)>1 and Ints[-1]>maxInt:maxInt=Ints[-1]
                 if len(Ints)>1 and Ints[-1]<minInt:minInt=Ints[-1]
     if  pltS==1: # make sure it is desired lab treatment step 
-        Discrete=pmag.get_dictitem(SData,'magic_method_codes','FS-SS-C','has')  # get all the discrete data
+        Discrete=pmag.get_dictitem(SData,'magic_method_codes','SP-SS-C','has')  # get all the discrete data
         for rec in Discrete:
             if dmax==-1 or float(rec['core_depth'])<dmax and float(rec['core_depth'])>dmin: # filter for depth
                 SDepths.append((rec['core_depth']))
@@ -269,6 +270,7 @@ def main():
         for spec in BFLs:
             samp=pmag.get_dictitem(Samps,'er_sample_name',spec['er_sample_name'],'T')
             if len(samp)>0 and 'sample_core_depth' in samp[0].keys() and samp[0]['sample_core_depth']!="":
+              if dmax==-1 or float(samp[0]['sample_core_depth'])<dmax and float(samp[0]['sample_core_depth'])>dmin: # filter for depth
                 SpecDepths.append(float(samp[0]['sample_core_depth'])) # fish out data with core_depth
                 SpecDecs.append(float(spec['specimen_dec'])) # fish out data with core_depth
                 SpecIncs.append(float(spec['specimen_inc'])) # fish out data with core_depth
@@ -278,6 +280,7 @@ def main():
         for spec in FMs:
             samp=pmag.get_dictitem(Samps,'er_sample_name',spec['er_sample_name'],'T')
             if len(samp)>0 and 'sample_core_depth' in samp[0].keys() and samp[0]['sample_core_depth']!="":
+              if dmax==-1 or float(samp[0]['sample_core_depth'])<dmax and float(samp[0]['sample_core_depth'])>dmin: # filter for depth
                 FDepths.append(float(samp[0]['sample_core_depth'])) # fish out data with core_depth
                 FDecs.append(float(spec['specimen_dec'])) # fish out data with core_depth
                 FIncs.append(float(spec['specimen_inc'])) # fish out data with core_depth
@@ -291,6 +294,7 @@ def main():
             meths=res['magic_method_codes'].split(":")
             print meths #MORE DEBUG
             if 'DE-FM' in meths:
+              if dmax==-1 or float(res['average_height'])<dmax and float(rec['average_height'])>dmin: # filter for depth
                 ResDepths.append(float(res['average_height'])) # fish out data with core_depth
                 ResDecs.append(float(res['average_dec'])) # fish out data with core_depth
                 ResIncs.append(float(res['average_inc'])) # fish out data with core_depth

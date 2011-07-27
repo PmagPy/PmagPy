@@ -42,7 +42,7 @@ def main():
             pieces=label[0].split('-')
             core=pieces[2]
             while len(core)<4:core='0'+core
-            SampRec['magic_method_codes']='FS-C-DRILL-IODP:FS-SS-C:SO-V'
+            SampRec['magic_method_codes']='FS-C-DRILL-IODP:SP-SS-C:SO-V'
             SampRec['er_sample_name']=pieces[0]+'-'+pieces[1]+'-'+core+'-'+pieces[3]+'-'+pieces[4]+'-'+interval
             SampRec['er_site_name']=SampRec['er_sample_name']
             pieces=SampRec['er_sample_name'].split('-')

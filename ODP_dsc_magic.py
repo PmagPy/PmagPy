@@ -135,7 +135,7 @@ def main():
             for key in SpecRec.keys():SampRec[key]=SpecRec[key]
             SampRec['sample_azimuth']='0'
             SampRec['sample_dip']='0'
-            SampRec['magic_method_codes']='FS-C-DRILL-IODP:FS-SS-C:SO-V'
+            SampRec['magic_method_codes']='FS-C-DRILL-IODP:SP-SS-C:SO-V'
             SpecRec['er_specimen_name']=specimen
             for key in SpecRec.keys():MagRec[key]=SpecRec[key]
 # set up measurement record - default is NRM 

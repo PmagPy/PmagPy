@@ -108,7 +108,7 @@ def main():
                 SampRec['sample_dip']='0'
                 SampRec['sample_core_depth']=InRec['Top Depth (m)']
                 if "Discrete" in InRec['Last Tray Measurement']: 
-                    SampRec['magic_method_codes']='FS-C-DRILL-IODP:FS-SS-C:SO-V'
+                    SampRec['magic_method_codes']='FS-C-DRILL-IODP:SP-SS-C:SO-V'
                 else:
                     SampRec['magic_method_codes']='FS-C-DRILL-IODP:SO-V'
                 SpecRec['er_specimen_name']=specimen

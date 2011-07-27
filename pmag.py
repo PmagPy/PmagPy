@@ -2,23 +2,83 @@ import  numpy,string,sys,random
 import numpy.linalg
 import exceptions
 def get_version(): 
-    return "pmagpy-2.80"
+    return "pmagpy-2.81"
 def sort_diclist(undecorated,sort_on):
     decorated=[(dict_[sort_on],dict_) for dict_ in undecorated]
     decorated.sort()
     return[dict_ for (key, dict_) in decorated]
 
-def get_dictitem(In,k,v,flag):
+def get_dictitem(In,k,v,flag):  
     # returns a list of dictionaries from list In with key,k  = value, v
+# allowed keywords:
     try:
         if flag=="T":return [dict for dict in In if dict[k]==v] # return that which is
         if flag=="F":return [dict for dict in In if dict[k]!=v] # return that which is not
         if flag=="has":return [dict for dict in In if v in dict[k]] # return that which is contained
         if flag=="not":return [dict for dict in In if v not in dict[k]] # return that which is not contained
-        if flag=="eval":return [dict for dict in In if eval(dict[k])==v] # return that which is
+        if flag=="eval":
+            A=[dict for dict in In if dict[k]!=''] # find records with no blank values for key
+            return [dict for dict in A if eval(dict[k])==eval(v)] # return that which is
+        if flag=="min":
+            A=[dict for dict in In if dict[k]!=''] # find records with no blank values for key
+            return [dict for dict in A if eval(dict[k])>=eval(v)] # return that which is greater than
+        if flag=="max":
+            A=[dict for dict in In if dict[k]!=''] # find records with no blank values for key
+            return [dict for dict in A if eval(dict[k])<=eval(v)] # return that which is less than
     except Exception, err:
         print  str(err)
         return []
+
+def find(f,seq):
+    for item in seq:
+       if f in item: return item
+    return ""
+
+def convert_lat(Recs):
+    """
+    uses lat, for age<5Ma, model_lat if present, else tries to use average_inc to estimate plat.
+    """
+    New=[]
+    for rec in Recs:
+        if 'model_lat' in rec.keys() and rec['model_lat']!="":
+             New.append(rec)
+        elif 'average_age'  in rec.keys() and rec['average_age']!="" and  float(rec['average_age'])<=5.: 
+            if 'site_lat' in rec.keys() and rec['site_lat']!="":
+                 rec['model_lat']=rec['site_lat']
+                 New.append(rec)
+        elif 'average_inc' in rec.keys() and rec['average_inc']!="":
+            rec['model_lat']='%7.1f'%(plat(float(rec['average_inc']))) 
+            New.append(rec)
+    return New
+
+def convert_ages(Recs):
+    """
+    converts ages to Ma
+    """
+    New=[]
+    for rec in Recs:
+        age=''
+        agekey=find('age',rec.keys())
+        if agekey!="":
+            keybase=agekey.split('_')[0]+'_'
+            if rec[keybase+'age']!="": 
+                age=float(rec[keybase+"age"])
+            elif rec[keybase+'age_low']!="" and rec[keybase+'age_high']!='':
+                age=float(rec[keybase+'age_low'])  +(float(rec[keybase+'age_high'])-float(rec[keybase+'age_low']))/2.
+            if age!='':
+                if rec[keybase+'age_unit']=='Ma':
+                    rec[keybase+'age']='%10.4e'%(age)
+                elif rec[keybase+'age_unit']=='ka' or rec[keybase+'age_unit']=='Ka':
+                    rec[keybase+'age']='%10.4e'%(age*.001)
+                elif rec[keybase+'age_unit']=='Years AD (+/-)':
+                    rec[keybase+'age']='%10.4e'%((2011-age)*1e-6)
+                rec[keybase+'age_unit']='Ma'
+                New.append(rec)
+            else:
+                print 'problem in convert_ages:', rec['er_site_id']
+        else:
+            print 'no age key:', rec
+    return New
 
 def getsampVGP(SampRec,SiteNFO):
     site=get_dictitm(SiteNFO,'er_site_name',SampRec['er_site_name'])

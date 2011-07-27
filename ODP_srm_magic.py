@@ -102,7 +102,7 @@ def main():
             inst="ODP-SRM"
             SampRec['sample_azimuth']='0'
             SampRec['sample_dip']='0'
-            SampRec['magic_method_code']='FS-C-DRILL-IODP:FS-SS-C'
+            SampRec['magic_method_code']='FS-C-DRILL-IODP:SP-SS-C'
             MagRec['er_analyst_mail_names']=user
             MagRec['magic_method_codes']='LT-NO'
             MagRec['magic_software_packages']=version_num

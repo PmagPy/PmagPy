@@ -1,7 +1,0 @@
-tab 	er_images
-er_citation_names	image_type	er_site_name	er_location_name	er_image_name	er_image_description	er_photographer_mail_names	image_date
-This study	outcrop	ns002	North Shore Volcanics	DSC01352.JPG	Look direction: N	Lisa Tauxe	2006:7:9
-This study	outcrop	ns002	North Shore Volcanics	DSC01353.JPG	Look direction: NW	Lisa Tauxe	2006:7:9
-This study	outcrop	ns002	North Shore Volcanics	DSC01354.JPG	Look direction: NW	Lisa Tauxe	2006:7:9
-This study	outcrop	ns002	North Shore Volcanics	DSC01355.JPG	Look direction: NW	Lisa Tauxe	2006:7:9
-This study	outcrop	ns002	North Shore Volcanics		Look direction:		2006:7:9

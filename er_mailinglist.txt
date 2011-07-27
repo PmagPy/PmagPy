@@ -1,4 +1,0 @@
-tab 	er_mailinglist
-organization	er_mail_name	country
-SIO	jason	U.S.A.
-SIO	kristin	U.S.A.

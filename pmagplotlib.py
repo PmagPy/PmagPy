@@ -111,12 +111,13 @@ def qsnorm(p):
         if p<0.5:x=-x
     return x 
 
-def plotXY(fignum,X,Y,sym,xlab,ylab,title):
+def plotXY(fignum,X,Y,sym,xlab,ylab,title,**kwargs):
     pylab.figure(num=fignum)
     pylab.plot(X,Y,sym)
     pylab.xlabel(xlab)
     pylab.ylabel(ylab)
     pylab.title(title)
+    if len(kwargs)>0: pylab.axis([kwargs['xmin'],kwargs['xmax'],kwargs['ymin'],kwargs['ymax']])
     pylab.draw()
 
 def plotSITE(fignum,SiteRec,data,key):
@@ -193,12 +194,15 @@ def plotQQunf(fignum,D,title):
     notestr='N: '+'%i'%(n)
     pylab.text(.1*bounds[1],.9*bounds[3],notestr)
     notestr='Mu: '+'%7.3f'%(Mu)
+    pylab.text(.1*bounds[1],.85*bounds[3],notestr)
+    if Mu > 1.347:
+        notestr="Non-uniform (99%)"
+    elif Mu < 1.207:
+        notestr="Uniform (95%)"
+    elif Mu > 1.207:
+        notestr="Uniform (99%)"
     pylab.text(.1*bounds[1],.8*bounds[3],notestr)
-    if Mu > 1.207:
-        notestr="Non-fisherian"
-    else:
-        notestr="Fisherian"
-    pylab.text(.1*bounds[1],.7*bounds[3],notestr)
+    pylab.text(.1*bounds[1],.8*bounds[3],notestr)
     pylab.title(title)
     pylab.xlabel('Uniform Quantile')
     pylab.ylabel('Data Quantile')
