@@ -40,11 +40,12 @@ tab  location_name
             "locations" should be put in separate files.  The definition of a "location" is rather loose.
              Also this is the word 'tab' not a tab, which will be indicated by '\t'.
         The second line has the names of the columns (tab delimited), e.g.:
-sample_name mag_azimuth field_dip date lat long sample_lithology sample_type sample_class shadow_angle hhmm stratigraphic_height bedding_dip_direction bedding_dip GPS_baseline image_name image_look image_photographer participants method_codes site_name site_description sample_description GPS_Az, sample_igsn, sample_texture
+site_name sample_name mag_azimuth field_dip date lat long sample_lithology sample_type sample_class shadow_angle hhmm stratigraphic_height bedding_dip_direction bedding_dip GPS_baseline image_name image_look image_photographer participants method_codes site_name site_description sample_description GPS_Az, sample_igsn, sample_texture
+
     
       Notes: 
         1) column order doesn't matter but the NAMES do.   
-        2) sample_name, mag_azimuth, field_dip, sample_lithology, sample_type, sample_class, lat and long are required.  all others are optional.
+        2) sample_name, sample_lithology, sample_type, sample_class, lat and long are required.  all others are optional.
         3) If subsequent data are the same (e.g., date, bedding orientation, participants, stratigraphic_height), 
             you can leave the field blank and the program will fill in the last recorded information. BUT if you really want a blank stratigraphic_height, enter a '-1'.    These will not be inherited and must be specified for each entry: image_name, look, photographer or method_codes
         4) hhmm must be in the format:  hh:mm and the hh must be in 24 hour time.
@@ -67,7 +68,7 @@ sample_name mag_azimuth field_dip date lat long sample_lithology sample_type sam
             [3] Lab arrow is the same as the drill direction; 
                  hade was measured in the field.  
                  Lab arrow azimuth = mag_azimuth; Lab arrow dip = 90-field_dip
-            [4] lab azimuth and dip are same as mag_azimuth, field_dip
+            [4] lab azimuth and dip are same as mag_azimuth, field_dip : use this for unoriented samples too
             [5] Same as AZDIP convention explained below - 
                 azimuth and inclination of the drill direction are mag_azimuth and field_dip; 
                 lab arrow is as in [1] above. 
@@ -332,8 +333,8 @@ sample_name mag_azimuth field_dip date lat long sample_lithology sample_type sam
                 MagRec["sample_bed_dip_direction"]=OrRec['bedding_dip_direction']
         else: MagRec["sample_bed_dip_direction"]='0'
         if average_bedding!="0": BPs.append([float(MagRec["sample_bed_dip_direction"]),float(MagRec["sample_bed_dip"])-90.,1.])
-        if MagRec['sample_azimuth']=="":
-            MagRec["sample_declination_correction"]='0'
+        if MagRec['sample_azimuth']=="" and MagRec['sample_dip']=="":
+            MagRec["sample_declination_correction"]=''
             methcodes=methcodes+':SO-NO'
         MagRec["magic_method_codes"]=methcodes
     #
