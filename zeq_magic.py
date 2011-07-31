@@ -562,15 +562,19 @@ def main():
                                 beg_pca=int(answer)
                             print 'Enter index  of last point for pca: ','[',end_pca,']'
                             answer=raw_input('return to keep default  ')
-                            if answer != "":
+                            try:
                                 end_pca=int(answer) 
-                            if plotblock[beg_pca][5]=='b' or plotblock[end_pca][5]=='b': 
-                                print "Can't select 'bad' measurement for PCA bounds -try again"
-                                end_pca=len(plotblock)-1
-                                beg_pca=0
-                            elif beg_pca >=0 and beg_pca<=len(plotblock)-2 and end_pca>0 and end_pca<len(plotblock): 
-                                GoOn=1
-                            else:
+                                if plotblock[beg_pca][5]=='b' or plotblock[end_pca][5]=='b': 
+                                    print "Can't select 'bad' measurement for PCA bounds -try again"
+                                    end_pca=len(plotblock)-1
+                                    beg_pca=0
+                                elif beg_pca >=0 and beg_pca<=len(plotblock)-2 and end_pca>0 and end_pca<len(plotblock): 
+                                    GoOn=1
+                                else:
+                                    print beg_pca,end_pca, " are bad entry of indices - try again"
+                                    end_pca=len(plotblock)-1
+                                    beg_pca=0
+                            except:
                                 print beg_pca,end_pca, " are bad entry of indices - try again"
                                 end_pca=len(plotblock)-1
                                 beg_pca=0
