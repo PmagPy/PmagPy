@@ -356,9 +356,8 @@ def main():
                                        print 'pTRM direction= ','%7.1f'%(mpars['specimen_dec']),' %7.1f'%(mpars['specimen_inc']),' MAD:','%7.1f'%(mpars['specimen_mad'])
                                if AniSpec!="":
                                    CpTRM=pmag.Dir_anis_corr([mpars['specimen_dec'],mpars['specimen_inc']],AniSpec)
-                                   if pmagplotlib.verbose:
-                                       print 'Anisotropy corrected TRM direction= ','%7.1f'%(CpTRM[0]),' %7.1f'%(CpTRM[1])
-                                   AniSpecRec=pmag.thellier_anis_corr(PmagSpecRec,AniSpec)
+                                   AniSpecRec=pmag.doaniscorr(PmagSpecRec,AniSpec)
+                                   print 'Anisotropy corrected TRM direction= ','%7.1f'%(CpTRM[0]),' %7.1f'%(CpTRM[1])
                                    print 'Anisotropy corrected intensity= ',float(AniSpecRec['specimen_int'])*1e6
                            else:
                                print 'error on specimen ',s
