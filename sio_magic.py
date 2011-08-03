@@ -3,13 +3,13 @@ import string,sys,pmag
 def main():
     """
     NAME
-        mag_magic.py
+        sio_magic.py
  
     DESCRIPTION
         converts SIO .mag format files to magic_measurements format files
 
     SYNTAX
-        mag_magic.py [command line options]
+        sio_magic.py [command line options]
 
     OPTIONS
         -h: prints the help message and quits.
@@ -340,7 +340,7 @@ def main():
                         instcode=''
                     MagRec["measurement_positions"]=code3[1][2]
                   elif len(code1)>2: # newest format (cryo7 or later)
-                    labfield=0
+                    if methcode!="LP-AN-ARM":labfield=0
                     fmt='new'
                     date=code1[0].split('/') # break date into mon/day/year
                     yy=int(date[2])
@@ -378,7 +378,7 @@ def main():
                     if user=="":user=code1[5]
                     if code1[2][-1]=='C': 
                         demag="T"
-                        if code1[4]=='microT' and float(code1[3])!=0.: labfield=float(code1[3])*1e-6
+                        if code1[4]=='microT' and float(code1[3])!=0. and methcode!="LP-AN-ARM": labfield=float(code1[3])*1e-6
                     if code1[2]=='mT' and methcode!="LP-IRM": 
                         demag="AF"
                         if code1[4]=='microT' and float(code1[3])!=0.: labfield=float(code1[3]*1e-6)
@@ -439,7 +439,7 @@ def main():
                             meas_type="LT-AF-Z"
                             MagRec["treatment_ac_field"]='%8.3e' %(peakfield) # peak field in tesla
                             MagRec["treatment_dc_field"]='%8.3e'%(0)
-                            if labfield!=0: print "Warning - inconsistency in mag file with lab field - overriding file with 0"
+                            if labfield!=0 and methcode!="LP-AN-ARM": print "Warning - inconsistency in mag file with lab field - overriding file with 0"
                         else:
                             meas_type="LT-AF-I"
                             ipos=int(treat[0])-1

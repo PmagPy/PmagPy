@@ -2,7 +2,7 @@ import  numpy,string,sys,random
 import numpy.linalg
 import exceptions
 def get_version(): 
-    return "pmagpy-2.83"
+    return "pmagpy-2.84"
 def sort_diclist(undecorated,sort_on):
     decorated=[(dict_[sort_on],dict_) for dict_ in undecorated]
     decorated.sort()
@@ -4856,7 +4856,6 @@ def measurements_methods(meas_data,noave):
             NewSpecs[0]["magic_experiment_name"]=spec+":"+NewSpecs[0]['magic_method_codes'].split(':')[0]
             NewSpecs[0]["magic_software_packages"]=version_num
             SpecOuts.append(NewSpecs[0]) # just copy over the single record as is
-        print SpecOuts[-1]['er_specimen_name'],SpecOuts[-1]['magic_method_codes']
     return SpecOuts
 
 def mw_measurements_methods(MagRecs):

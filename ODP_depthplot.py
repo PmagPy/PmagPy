@@ -204,7 +204,7 @@ def main():
     SDepths,SDecs,SIncs,SInts=[],[],[],[]
     SSucs=[]
     samples=[]
-    methods,steps=[],[]
+    methods,steps,m2=[],[],[]
     m1=pmag.get_dictitem(Meas,'magic_method_codes',method,'has') # fish out the desired method code
     if method=='LT-T-Z': 
         m2=pmag.get_dictitem(m1,'treatment_temp',str(step),'eval') # fish out the desired step
@@ -260,8 +260,7 @@ def main():
                     if SSucs[-1]>maxSuc:maxSuc=SSucs[-1]
                     if SSucs[-1]<minSuc:minSuc=SSucs[-1]
     if len(Depths)==0 and len(SDepths)==0:
-        print 'no data matched your request, try a different lab treatment '
-        sys.exit()
+        print 'no bulk measurement data matched your request'
     SpecDepths,SpecDecs,SpecIncs=[],[],[]
     FDepths,FDecs,FIncs=[],[],[]
     if spc_file!="": # add depths to spec data
