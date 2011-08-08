@@ -122,7 +122,6 @@ def main():
         width+=2
     if '-fsum' in sys.argv:
         ind=sys.argv.index('-fsum')
-        sum_file=sys.argv[ind+1]
         sum_file=dir_path+'/'+sys.argv[ind+1]
     if '-fmt' in sys.argv:
         ind=sys.argv.index('-fmt')
@@ -354,7 +353,7 @@ def main():
                      depth=float(core['Core Top (m)']) 
                      if depth>dmin and depth<dmax:
                         pylab.plot([0,360.],[depth,depth],'b--')
-                        if pel==plt:pylab.text(360,depth+tint,core['Core #']+core['Core Type'])
+                        if pel==plt:pylab.text(360,depth+tint,core['Core Label'])
             if pel==plt:
                 pylab.axis([0,400,dmax,dmin])
             else:
@@ -377,7 +376,7 @@ def main():
                 for core in Cores:
                      depth=float(core['Core Top (m)']) 
                      if depth>dmin and depth<dmax:
-                         if pel==plt:pylab.text(90,depth+tint,core['Core #']+core['Core Type'])
+                         if pel==plt:pylab.text(90,depth+tint,core['Core Label'])
                          pylab.plot([-90,90],[depth,depth],'b--')
             pylab.plot([0,0],[dmax,dmin],'k-') 
             if pel==plt:
@@ -406,7 +405,7 @@ def main():
                     for core in Cores:
                          depth=float(core['Core Top (m)']) 
                          pylab.plot([0,maxInt*10**pow+.1],[depth,depth],'b--')
-                         if depth>dmin and depth<dmax:pylab.text(maxInt*10**pow-.2*maxInt*10**pow,depth+tint,core['Core #']+core['Core Type'])
+                         if depth>dmin and depth<dmax:pylab.text(maxInt*10**pow-.2*maxInt*10**pow,depth+tint,core['Core Label'])
                 pylab.axis([0,maxInt*10**pow+.1,dmax,dmin])
                 if norm==0:
                     pylab.xlabel('%s %i %s'%('Intensity (10^-',pow,' Am^2)'))
@@ -422,7 +421,7 @@ def main():
                     for core in Cores:
                          depth=float(core['Core Top (m)']) 
                          pylab.semilogx([minInt,maxInt],[depth,depth],'b--')
-                         if depth>dmin and depth<dmax:pylab.text(maxInt-.2*maxInt,depth+tint,core['Core #']+core['Core Type'])
+                         if depth>dmin and depth<dmax:pylab.text(maxInt-.2*maxInt,depth+tint,core['Core Label'])
                 pylab.axis([0,maxInt,dmax,dmin])
                 if norm==0:
                     pylab.xlabel('Intensity (Am^2)')

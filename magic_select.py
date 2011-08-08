@@ -58,9 +58,12 @@ def main():
     #
     # get data read in
     Data,file_type=pmag.magic_read(magic_file) 
-    Data=pmag.convert_ages(Data)
-    if grab_key =='age': grab_key='average_age'
-    if grab_key =='model_lat': Data=pmag.convert_lat(Data)
+    if grab_key =='age': 
+        grab_key='average_age'
+        Data=pmag.convert_ages(Data)
+    if grab_key =='model_lat': 
+        Data=pmag.convert_lat(Data)
+        Data=pmag.convert_ages(Data)
     Selection=pmag.get_dictitem(Data,grab_key,v,flag)
     if len(Selection)>0:
         pmag.magic_write(outfile,Selection,file_type)

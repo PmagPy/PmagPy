@@ -58,7 +58,7 @@ def main():
         ind=sys.argv.index('-n')
         n=int(sys.argv[ind+1])
     if '-a' in sys.argv: anti=1
-    if '-C' in sys.argv: cutoff=181. # no cutoff
+    if '-C' in sys.argv: cutoff=180. # no cutoff
     if '-b' in sys.argv: boot=1
     if '-v' in sys.argv: v=1
     if '-p' in sys.argv: spin=0

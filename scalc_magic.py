@@ -24,6 +24,7 @@ def main():
         -crd [s,g,t]: specify coordinate system, default is geographic
         -v : use the VanDammme criterion 
         -a: use antipodes of reverse data: default is to use only normal
+        -C: use all data without regard to polarity
         -r:  use reverse data only
         -p: do relative to principle axis
         -b: do bootstrap confidence bounds
@@ -56,6 +57,7 @@ def main():
         if coord=='g':coord="0"
         if coord=='t':coord="100"
     if '-a' in sys.argv: anti=1
+    if '-C' in sys.argv: cutoff=180. # no cutoff
     if '-r' in sys.argv: rev=1
     if '-p' in sys.argv: spin=0
     if '-v' in sys.argv: v=1

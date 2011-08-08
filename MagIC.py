@@ -2880,9 +2880,8 @@ def ODP_depthplot():
             logfile=open(opath+"/ODPsummary.log",'r')
             files=logfile.readlines()
             for file in files[-1:]: # fine most recently added
-                if "summary" in file:
-                    outstring=outstring + ' -fsum '+file.replace('\n','')
-                    break
+                outstring=outstring + ' -fsum '+file.replace('\n','')
+                break
         except IOError:
             pass
     if PLT_list[5]==0:
