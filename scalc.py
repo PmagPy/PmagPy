@@ -69,9 +69,9 @@ def main():
     A,Vgps,slats,Pvgps=180.,[],[],[]
     for line in lines:
         if '\t' in line:
-            rec=line.split('\t') # split each line on space to get records
+            rec=line.replace('\n','').split('\t') # split each line on space to get records
         else:
-            rec=line.split() # split each line on space to get records
+            rec=line.replace('\n','').split() # split each line on space to get records
         vgp={}
         vgp['vgp_lon'],vgp['vgp_lat']=rec[0],rec[1]
         Pvgps.append([float(rec[0]),float(rec[1])])
