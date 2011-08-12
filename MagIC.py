@@ -1253,7 +1253,7 @@ def add_mag():
         if outstring[-1]=='6':outstring=outstring+' -fsa '+opath+'/er_samples.txt'
         print outstring
         os.system(outstring)
-        if "ANI" in LP.split(':'): spec_combine() # if anisotropy data imported, then do spec_combine to finish file prep
+        #if "ANI" in LP.split(':'): spec_combine() # if anisotropy data imported, then do spec_combine to finish file prep
         try:
             logfile=open(opath+"/measurements.log",'a')
             logfile.write(basename+".magic" +" | " + outstring+"\n")
