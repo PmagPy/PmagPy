@@ -798,7 +798,7 @@ def spec_combine():
     try:
         open(opath+'/thellier_specimens.txt') # check anisotropy correction
         types=["Non-linear TRM", "Anisotropy","Cooling Rate"]
-        checks=ask_check(root,types,'choose corrections desired')
+        checks=ask_check(root,types,'choose corrections desired for paleointensity estimates')
         check_list=map((lambda var:var.get()),checks) # returns file type choices
         filestring=filestring+' thellier_specimens.txt '
         outstring="mk_redo.py -f thellier_specimens.txt -F thellier_redo  -WD "+'"'+opath+'"'
@@ -917,8 +917,7 @@ def meas_combine():
             description=line.split("|")
             file=description[0][:-1]
             if len(description)>1:
-               LP=description[1].split(":")
-               print LP
+               LP=description[1].replace('\n',"").split(":")
                if LP[0].strip()=='T':
                    ani_type='atrm'
                else:

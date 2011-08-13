@@ -2,7 +2,7 @@ import  numpy,string,sys,random
 import numpy.linalg
 import exceptions
 def get_version(): 
-    return "pmagpy-2.87"
+    return "pmagpy-2.88"
 def sort_diclist(undecorated,sort_on):
     decorated=[(dict_[sort_on],dict_) for dict_ in undecorated]
     decorated.sort()
@@ -3978,7 +3978,7 @@ def sortarai(datablock,s,Zdiff):
 #        ptrm_tail.append([temp,d[0],d[1],d[2]])
             ptrm_tail.append([temp,0,0,str-pint])  # difference - if negative, negative tail!
         else:
-            print s, '  has a tail check with no first zero field step - check input file! '
+            print s, '  has a tail check with no first zero field step - check input file! for step',temp-273.
 #
 # final check
 #
@@ -4450,6 +4450,7 @@ def measurements_methods(meas_data,noave):
 # try to assign lab treatment codes from data - but look for TRM acquisistion flag
 #
         for rec in SpecRecs:
+            print 'initial: ',rec['er_specimen_name'],rec['magic_method_codes']
             tmpmeths=rec['magic_method_codes'].split(":")
             meths=[]
             if "LP-TRM" in tmpmeths:TRM=1 # catch these suckers here!
@@ -4777,6 +4778,7 @@ def measurements_methods(meas_data,noave):
                             for meth in meths:
                                 if meth!="LT-T-Z":methcode=methcode+meth+":"
                             methcodes=methcodes+"LT-PTRM-MD"
+                            print '    new: ',methcodes
                             meths=methcodes.split(":")
                             MD=1
     # fix method codes

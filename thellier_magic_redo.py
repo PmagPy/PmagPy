@@ -381,10 +381,10 @@ def main():
             spec+=1
     pmag_file=dir_path+'/'+pmag_file
     pmag.magic_write(pmag_file,PmagSpecs,'pmag_specimens')
-    if anis==1:
+    if anis==1 and len(AniSpecRecs)>0:
         anisout=dir_path+'/'+anisout
         pmag.magic_write(anisout,AniSpecRecs,'pmag_specimens')
-    if nltrm==1:
+    if nltrm==1 and len(NltSpecRecs)>0:
         nltout=dir_path+'/'+nltout
         pmag.magic_write(nltout,NltSpecRecs,'pmag_specimens')
     if frac!=0:

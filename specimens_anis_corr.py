@@ -35,7 +35,7 @@ def main():
         spc_file=dir_path+'/'+sys.argv[ind+1]
     if "-F" in args:
         ind=args.index("-F")
-        spc_file=dir_path+'/'+sys.argv[ind+1]
+        spc_out=dir_path+'/'+sys.argv[ind+1]
     if "-fan" in args:
         ind=args.index("-fan")
         ani_file=dir_path+"/"+args[ind+1]

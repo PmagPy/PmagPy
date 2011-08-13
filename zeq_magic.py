@@ -203,8 +203,8 @@ def main():
     #
     #  collect info for the PmagSpecRec dictionary
     #
-        s_meas=pmag.get_dictitem(meas_data,'er_specimen_name',s,'T')
-        s_meas=pmag.get_dictitem(s_meas,'magic_method_codes','DIR','has')
+        s_meas=pmag.get_dictitem(meas_data,'er_specimen_name',s,'T') # fish out this specimen
+        s_meas=pmag.get_dictitem(s_meas,'magic_method_codes','Z','has') # fish out zero field steps
         for rec in  s_meas:
                PmagSpecRec["magic_instrument_codes"]=rec["magic_instrument_codes"]  # copy over instruments
                PmagSpecRec["er_citation_names"]="This study"
