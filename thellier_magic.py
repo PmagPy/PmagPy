@@ -53,8 +53,12 @@ def main():
             3) (De/Re)Magnetization diagram:
                            circles are NRM remaining
                            squares are pTRM gained
-            4) Optional:  TRM acquisition
-            5) Optional: TDS normalization
+            4) equal area projections:
+ 			   green triangles are pTRM gained direction
+                           red circles are ZI step directions 
+                           blue squares are IZ step directions 
+            5) Optional:  TRM acquisition
+            6) Optional: TDS normalization
         command line window:
             list is: temperature step numbers, temperatures (C), Dec, Inc, Int (units of magic_measuements)
                      list of possible commands: type letter followed by return to select option
@@ -397,7 +401,7 @@ def main():
                    ans='b'
                    while ans != "":
                        print """
-               s[a]ve plot, [t]otal TRM, set [b]ounds for calculation, [d]elete current interpretation, [p]revious, [s]ample, [q]uit:
+               s[a]ve plot, set [b]ounds for calculation, [d]elete current interpretation, [p]revious, [s]ample, [q]uit:
                """
 #START HERE
                        ans=raw_input('Return for next specimen \n')

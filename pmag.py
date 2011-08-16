@@ -4450,7 +4450,6 @@ def measurements_methods(meas_data,noave):
 # try to assign lab treatment codes from data - but look for TRM acquisistion flag
 #
         for rec in SpecRecs:
-            print 'initial: ',rec['er_specimen_name'],rec['magic_method_codes']
             tmpmeths=rec['magic_method_codes'].split(":")
             meths=[]
             if "LP-TRM" in tmpmeths:TRM=1 # catch these suckers here!
