@@ -56,14 +56,18 @@ def main():
         if rec['er_sample_name'].lower() not in sampnames:
             sampnames.append(rec['er_sample_name'].lower())
             sflag=1
-            MeasRecs.append(rec) # include  measurement data not in sample data and add missing sample to er_samples.txt table
             SampRec={}
             for key in samps[0].keys():SampRec[key]=""
             SampRec['er_sample_name']=rec['er_sample_name']
             SampRec['er_citation_names']="This study"
+            SampRec['er_site_name']='MISSING'
+            SampRec['er_location_name']='MISSING'
             SampRec['sample_desription']='recorded added by update_measurements - edit as needed'
             samps.append(SampRec)
-            print rec['er_sample_name'],' missing from er_samples.txt file - \n measurement not updated and sample added to er_samples.txt file => you should convert this to orient.txt, edit and re-import'
+            print rec['er_sample_name'],' missing from er_samples.txt file - edit orient.txt file and re-import'
+            rec['er_site_name']='MISSING'
+            rec['er_location_name']='MISSING'
+            MeasRecs.append(rec)
     pmag.magic_write(out_file,MeasRecs,'magic_measurements')
     print "updated measurements file stored in ", out_file
     if sflag==1:

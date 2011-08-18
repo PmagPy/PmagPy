@@ -366,10 +366,7 @@ def main():
 	sd=pmag.get_dictitem(SiteNFO,'er_site_name',site,'T') # fish out site information (lat/lon, etc.)
 	if len(sd)>0:
             sitedat=sd[0]
-        else:
-            print 'site information not found in er_sites for site, ',site
-            sys.exit()
-	if Caverage==0: # do component wise averaging
+	    if Caverage==0: # do component wise averaging
 		for comp in Comps:
 		    siteD=pmag.get_dictitem(tmp1,key+'_comp_name',comp,'T') # get all components comp
 		    if len(siteD)>0: # there are some for this site and component name
@@ -392,26 +389,28 @@ def main():
                             print PmagSiteRec['er_site_name']
                             pmagplotlib.plotSITE(EQ['eqarea'],PmagSiteRec,siteD,key) # plot and list the data
 			PmagSites.append(PmagSiteRec) 
-	else: # last component only
-	    siteD=tmp1[:] # get the last orientation system specified
-	    if len(siteD)>0: # there are some
-		PmagSiteRec=pmag.lnpbykey(siteD,'site',key) # get the average for this site 
-		PmagSiteRec["er_location_name"]=siteD[0]['er_location_name'] # decorate the record
-		PmagSiteRec["er_site_name"]=siteD[0]['er_site_name']
-		PmagSiteRec['site_comp_name']=comp
-		PmagSiteRec['site_tilt_correction']=coords[-1]
-		PmagSiteRec['site_comp_name']= pmag.getlist(siteD,key+'_comp_name')
-		PmagSiteRec['er_'+key+'_names']= pmag.getlist(siteD,'er_'+key+'_name')
-		AFnum=len(pmag.get_dictitem(siteD,'magic_method_codes','LP-DIR-AF','has'))
-		Tnum=len(pmag.get_dictitem(siteD,'magic_method_codes','LP-DIR-T','has'))
-		DC=3
-		if AFnum>0:DC+=1
-		if Tnum>0:DC+=1
-		PmagSiteRec['magic_method_codes']= pmag.getlist(siteD,'magic_method_codes')+':'+ 'LP-DC'+str(DC)
-		PmagSiteRec['magic_method_codes'].strip(":")
-		if Daverage==0:PmagSiteRec['site_comp_name']= pmag.getlist(siteD,key+'_comp_name')
-		if plotsites==1:pmagplotlib.plotSITE(EQ['eqarea'],PmagSiteRec,siteD,key)
-		PmagSites.append(PmagSiteRec)
+	    else: # last component only
+	        siteD=tmp1[:] # get the last orientation system specified
+	        if len(siteD)>0: # there are some
+	            PmagSiteRec=pmag.lnpbykey(siteD,'site',key) # get the average for this site 
+	            PmagSiteRec["er_location_name"]=siteD[0]['er_location_name'] # decorate the record
+    		    PmagSiteRec["er_site_name"]=siteD[0]['er_site_name']
+		    PmagSiteRec['site_comp_name']=comp
+		    PmagSiteRec['site_tilt_correction']=coords[-1]
+		    PmagSiteRec['site_comp_name']= pmag.getlist(siteD,key+'_comp_name')
+		    PmagSiteRec['er_'+key+'_names']= pmag.getlist(siteD,'er_'+key+'_name')
+    		    AFnum=len(pmag.get_dictitem(siteD,'magic_method_codes','LP-DIR-AF','has'))
+    	    	    Tnum=len(pmag.get_dictitem(siteD,'magic_method_codes','LP-DIR-T','has'))
+	    	    DC=3
+		    if AFnum>0:DC+=1
+		    if Tnum>0:DC+=1
+		    PmagSiteRec['magic_method_codes']= pmag.getlist(siteD,'magic_method_codes')+':'+ 'LP-DC'+str(DC)
+		    PmagSiteRec['magic_method_codes'].strip(":")
+		    if Daverage==0:PmagSiteRec['site_comp_name']= pmag.getlist(siteD,key+'_comp_name')
+	    	    if plotsites==1:pmagplotlib.plotSITE(EQ['eqarea'],PmagSiteRec,siteD,key)
+		    PmagSites.append(PmagSiteRec)
+        else:
+            print 'site information not found in er_sites for site, ',site,' site will be skipped'
     for PmagSiteRec in PmagSites: # now decorate each dictionary some more, and calculate VGPs etc. for results table
 	PmagSiteRec["er_citation_names"]="This study"
 	PmagSiteRec["er_analyst_mail_names"]=user
@@ -529,9 +528,11 @@ def main():
                             PmagResRec["vdm_sigma"]=""
                   mlat="" # define a model latitude
                   if get_model_lat==1: # use present site latitude
-                    mlat=(pmag.get_dictitem(SiteNFO,'er_site_name',site,'T')[0]['site_lat'])
+                    mlats=pmag.get_dictitem(SiteNFO,'er_site_name',site,'T')
+                    if len(mlats)>0: mlat=mlats[0]['site_lat']
                   elif get_model_lat==2: # use a model latitude from some plate reconstruction model (or something)
-                    PmagResRec['model_lat']=pmag.get_dictitem(ModelLats,'er_site_name',site,'T')[0]['site_model_lat']
+                    mlats=pmag.get_dictitem(ModelLats,'er_site_name',site,'T')
+                    if len(mlats)>0: PmagResRec['model_lat']=mlats[0]['site_model_lat']
                     mlat=PmagResRec['model_lat']
                   if mlat!="":
                     PmagResRec["vadm"]='%8.3e '% (pmag.b_vdm(b,float(mlat))) # get the VADM using the desired latitude
