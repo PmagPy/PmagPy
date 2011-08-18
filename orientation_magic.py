@@ -40,7 +40,7 @@ tab  location_name
             "locations" should be put in separate files.  The definition of a "location" is rather loose.
              Also this is the word 'tab' not a tab, which will be indicated by '\t'.
         The second line has the names of the columns (tab delimited), e.g.:
-site_name sample_name mag_azimuth field_dip date lat long sample_lithology sample_type sample_class shadow_angle hhmm stratigraphic_height bedding_dip_direction bedding_dip GPS_baseline image_name image_look image_photographer participants method_codes site_name site_description sample_description GPS_Az, sample_igsn, sample_texture, sample_cooling_rate
+site_name sample_name mag_azimuth field_dip date lat long sample_lithology sample_type sample_class shadow_angle hhmm stratigraphic_height bedding_dip_direction bedding_dip GPS_baseline image_name image_look image_photographer participants method_codes site_name site_description sample_description GPS_Az, sample_igsn, sample_texture, sample_cooling_rate, cooling_rate_corr, cooling_rate_mcd
 
     
       Notes: 
@@ -55,7 +55,10 @@ site_name sample_name mag_azimuth field_dip date lat long sample_lithology sampl
         7) method_codes:  Special method codes on a sample level, e.g., SO-GT5 which means the orientation is has an uncertainty of >5 degrees
              for example if it broke off before orienting....
         8) GPS_Az is the place to put directly determined GPS Azimuths, using, e.g., points along the drill direction.
-        9) sample_cooling_rate is in K per Ma
+        9) sample_cooling_rate is the cooling rate in K per Ma 
+        10) int_corr_cooling_rate
+        11) cooling_rate_mcd:  data adjustment method code for cooling rate correction;  DA-CR-EG is educated guess; DA-CR-PS is percent estimated from pilot samples; DA-CR-TRM is comparison between 2 TRMs acquired with slow and rapid cooling rates.
+is the percent cooling rate factor to apply to specimens from this sample, DA-CR-XX is the method code
     
         Orientation convention:
             Samples are oriented in the field with a "field arrow" and measured in the laboratory with a "lab arrow". The lab arrow is the positive X direction of the right handed coordinate system of the specimen measurements. The lab and field arrows may  not be the same. In the MagIC database, we require the orientation (azimuth and plunge) of the X direction of the measurements (lab arrow). Here are some popular conventions that convert the field arrow azimuth (mag_azimuth in the orient.txt file) and dip (field_dip in orient.txt) to the azimuth and plunge  of the laboratory arrow (sample_azimuth and sample_dip in er_samples.txt). The two angles, mag_azimuth and field_dip are explained below. 
@@ -223,6 +226,15 @@ site_name sample_name mag_azimuth field_dip date lat long sample_lithology sampl
             sample_cooling_rate=OrRec['sample_cooling_rate']
         else:
             sample_cooling_rate=""
+        if 'cooling_rate_corr' in OrRec.keys():
+            cooling_rate_corr=OrRec['cooling_rate_corr']
+            if 'cooling_rate_mcd' in OrRec.keys():
+                cooling_rate_mcd=OrRec['cooling_rate_mcd']
+            else:
+                cooling_rate_mcd='DA-CR'
+        else:
+            cooling_rate_corr=""
+            cooling_rate_mcd=""
         sample_orientation_flag='g'
         if 'sample_orientation_flag' in OrRec.keys():
             if OrRec['sample_orientation_flag']=='b' or OrRec["mag_azimuth"]=="": 
@@ -242,6 +254,8 @@ site_name sample_name mag_azimuth field_dip date lat long sample_lithology sampl
         MagRec['sample_igsn']=sample_igsn
         MagRec['sample_texture']=sample_texture
         MagRec['sample_cooling_rate']=sample_cooling_rate
+        MagRec['cooling_rate_corr']=cooling_rate_corr
+        MagRec['cooling_rate_mcd']=cooling_rate_mcd
     #
     # parse information common to all orientation methods
     #
