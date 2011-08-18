@@ -34,6 +34,28 @@ def find(f,seq):
        if f in item: return item
     return ""
 
+def cooling_rate(SpecRec,SampRecs,crfrac,crtype):
+    CrSpecRec,frac,crmcd={},0,'DA-CR'
+    for key in SpecRec.keys():CrSpecRec[key]=SpecRec[key]
+    if len(SampRecs)>0:
+        frac=.01*float(SampRecs[0]['cooling_rate_corr'])
+        if 'DA-CR' in SampRecs[0]['cooling_rate_mcd']:
+            crmcd=SampRecs[0]['cooling_rate_mcd']
+        else:
+            crmcd='DA-CR'
+    elif crfrac!=0:
+        frac=crfrac
+        crmcd=crtype
+    if frac!=0:
+        inten=frac*float(CrSpecRec['specimen_int'])
+        CrSpecRec["specimen_int"]='%9.4e '%(inten) # adjust specimen intensity by cooling rate correction
+        CrSpecRec['magic_method_codes'] = CrSpecRec['magic_method_codes']+':crmcd
+        CrSpecRec["specimen_correction"]='c'
+        return CrSpecRec
+   else:
+        return []
+
+
 def convert_lat(Recs):
     """
     uses lat, for age<5Ma, model_lat if present, else tries to use average_inc to estimate plat.
