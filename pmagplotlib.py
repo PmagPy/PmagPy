@@ -59,6 +59,11 @@ def plot_init(fignum,w,h):
 ##    pylab.connect('button_press_event',click)
 #
     pylab.ioff()
+
+def plot_square(fignum):
+    pylab.figure(num=fignum) 
+    pylab.axis('equal')
+
 def gaussfunc(y,ybar,sigma):
     """
     cumulative normal distribution function of the variable y
@@ -111,6 +116,23 @@ def qsnorm(p):
         if p<0.5:x=-x
     return x 
 
+def plotNOTES(fignum,Notes):
+    for note in Notes:
+        pylab.text(note['X'],note['Y'],note['text'])
+    pylab.draw()
+
+def plotPTS(fignum,PTs):
+    for pt in PTs:
+        pylab.scatter(pt['X'],pt['Y'],marker=pt['marker'],c=pt['color'],s=pt['size'])
+    pylab.draw()
+
+def plotLINES(fignum,line,sym): 
+    X,Y=[],[]
+    for l in line:
+        X.append(l['X'])
+        Y.append(l['Y'])
+    pylab.plot(X,Y,sym)
+    pylab.draw()
 def plotXY(fignum,X,Y,sym,xlab,ylab,title,**kwargs):
     pylab.figure(num=fignum)
     pylab.plot(X,Y,sym)

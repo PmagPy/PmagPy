@@ -2,7 +2,7 @@ import  numpy,string,sys,random
 import numpy.linalg
 import exceptions
 def get_version(): 
-    return "pmagpy-2.89"
+    return "pmagpy-2.90"
 def sort_diclist(undecorated,sort_on):
     decorated=[(dict_[sort_on],dict_) for dict_ in undecorated]
     decorated.sort()
@@ -49,7 +49,7 @@ def cooling_rate(SpecRec,SampRecs,crfrac,crtype):
     if frac!=0:
         inten=frac*float(CrSpecRec['specimen_int'])
         CrSpecRec["specimen_int"]='%9.4e '%(inten) # adjust specimen intensity by cooling rate correction
-        CrSpecRec['magic_method_codes'] = CrSpecRec['magic_method_codes']+':crmcd
+        CrSpecRec['magic_method_codes'] = CrSpecRec['magic_method_codes']+':crmcd'
         CrSpecRec["specimen_correction"]='c'
         return CrSpecRec
    else:
