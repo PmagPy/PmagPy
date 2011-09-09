@@ -20,7 +20,9 @@ def main():
         -h prints help message and quits
         -usr USER:   identify user, default is ""
         -f FILE: specify input file, default is aarm_measurements.txt
-        -Fa FILE: specify anisotropy output file, default is arm_anisotropy.txt
+        -crd [s,g,t] specify coordinate system, requires er_samples.txt file
+        -fsa  FILE: specify er_samples.txt file, default is er_samples.txt
+        -Fa FILE: specify anisotropy output file, default is aarm_anisotropy.txt
         -Fr FILE: specify results output file, default is aarm_results.txt
 
     INPUT  
@@ -37,7 +39,8 @@ def main():
     args=sys.argv
     user=""
     meas_file="aarm_measurements.txt"
-    rmag_anis="arm_anisotropy.txt"
+    samp_file="er_samples.txt"
+    rmag_anis="aarm_anisotropy.txt"
     rmag_res="aarm_results.txt"
     dir_path='.'
     #
@@ -55,6 +58,16 @@ def main():
     if "-f" in args:
         ind=args.index("-f")
         meas_file=sys.argv[ind+1]
+    coord='-1'
+    if "-crd" in sys.argv:
+        ind=sys.argv.index("-crd")
+        coord=sys.argv[ind+1]
+        if coord=='s':coord='-1'
+        if coord=='g':coord='0'
+        if coord=='t':coord='100'
+        if "-fsa" in args:
+            ind=args.index("-fsa")
+            samp_file=sys.argv[ind+1]
     if "-Fa" in args:
         ind=args.index("-Fa")
         rmag_anis=args[ind+1]
@@ -62,6 +75,7 @@ def main():
         ind=args.index("-Fr")
         rmag_res=args[ind+1]
     meas_file=dir_path+'/'+meas_file
+    samp_file=dir_path+'/'+samp_file
     rmag_anis=dir_path+'/'+rmag_anis
     rmag_res=dir_path+'/'+rmag_res
     # read in data
@@ -70,23 +84,26 @@ def main():
         print file_type
         print file_type,"This is not a valid magic_measurements file " 
         sys.exit()
+    if coord!='-1': # need to read in sample data
+        samp_data,file_type=pmag.magic_read(samp_file)
+        if file_type != 'er_samples':
+            print file_type
+            print file_type,"This is not a valid er_samples file " 
+            print "Only specimen coordinates will be calculated"
+            coord='-1'
     #
     # sort the specimen names
     #
     ssort=[]
     for rec in meas_data:
       spec=rec["er_specimen_name"]
-      ssort.append(spec)
-    ssort.sort()
-    bak=ssort[0]
-    #
-    # get list of unique specimen names
-    #
-    sids=[bak]
-    for s in ssort:
-       if s !=  bak: 
-          sids.append(s)
-          bak=s
+      if spec not in ssort: ssort.append(spec)
+    print ssort
+    if len(ssort)>1:
+        sids=ssort.sort()
+    else:
+        sids=ssort
+    print sids
     #
     # work on each specimen
     #
@@ -101,9 +118,7 @@ def main():
     #
     # find the data from the meas_data file for this sample
     #
-        for rec in meas_data:
-            if rec["er_specimen_name"]==s: 
-                data.append(rec)
+        data=pmag.get_dictitem(meas_data,'er_specimen_name',s,'T')
     #
     # find out the number of measurements (9, 12 or 15)
     #
@@ -166,10 +181,6 @@ def main():
             if S >0: 
                 sigma=math.sqrt(S/nf)
             else: sigma=0
-            hpars=pmag.dohext(nf,sigma,s)
-        #
-        # prepare for output
-        #
             RmagSpecRec["rmag_anisotropy_name"]=data[0]["er_specimen_name"]
             RmagSpecRec["er_location_name"]=data[0]["er_location_name"]
             RmagSpecRec["er_specimen_name"]=data[0]["er_specimen_name"]
@@ -190,6 +201,48 @@ def main():
                 RmagSpecRec["magic_instrument_codes"]=""
             RmagSpecRec["anisotropy_type"]="AARM"
             RmagSpecRec["anisotropy_description"]="Hext statistics adapted to AARM"
+            if coord!='-1': # need to rotate s
+    # set orientation priorities
+                SO_methods=[]
+                for rec in samp_data:
+                   if "magic_method_codes" not in rec:
+                       rec['magic_method_codes']='SO-NO'
+                   if "magic_method_codes" in rec:
+                       methlist=rec["magic_method_codes"]
+                       for meth in methlist.split(":"):
+                           if "SO" in meth and "SO-POM" not in meth.strip():
+                               if meth.strip() not in SO_methods: SO_methods.append(meth.strip())
+                SO_priorities=pmag.set_priorities(SO_methods,0)
+# continue here
+                redo,p=1,0
+                if len(SO_methods)<=1:
+                    az_type=SO_methods[0]
+                    orient=pmag.find_samp_rec(RmagSpecRec["er_sample_name"],samp_data,az_type)
+                    if orient["sample_azimuth"]  !="": method_codes.append(az_type)
+                    redo=0
+                while redo==1:
+                    if p>=len(SO_priorities):
+                        print "no orientation data for ",s
+                        orient["sample_azimuth"]=""
+                        orient["sample_dip"]=""
+                        method_codes.append("SO-NO")
+                        redo=0
+                    else:
+                        az_type=SO_methods[SO_methods.index(SO_priorities[p])]
+                        orient=pmag.find_samp_rec(PmagSpecRec["er_sample_name"],samp_data,az_type)
+                        if orient["sample_azimuth"]  !="":
+                            method_codes.append(az_type)
+                            redo=0
+                    p+=1
+                az,pl=orient['sample_azimuth'],orient['sample_dip']
+                s=pmag.dosgeo(s,az,pl) # rotate to geographic coordinates
+                if coord=='100': 
+                    sampe_bed_dir,sample_bed_dip=orient['sample_bed_dip_direction'],orient['sample_bed_dip']
+                    s=pmag.dostilt(s,bed_dir,bed_dip) # rotate to geographic coordinates
+            hpars=pmag.dohext(nf,sigma,s)
+        #
+        # prepare for output
+        #
             RmagSpecRec["anisotropy_s1"]='%8.6f'%(s[0])
             RmagSpecRec["anisotropy_s2"]='%8.6f'%(s[1])
             RmagSpecRec["anisotropy_s3"]='%8.6f'%(s[2])
@@ -200,7 +253,7 @@ def main():
             RmagSpecRec["anisotropy_sigma"]='%8.6f'%(sigma)
             RmagSpecRec["anisotropy_unit"]="Am^2"
             RmagSpecRec["anisotropy_n"]='%i'%(npos)
-            RmagSpecRec["anisotropy_tilt_correction"]='-1'
+            RmagSpecRec["anisotropy_tilt_correction"]=coord
             RmagResRec["anisotropy_t1"]='%8.6f '%(hpars["t1"])
             RmagResRec["anisotropy_t2"]='%8.6f '%(hpars["t2"])
             RmagResRec["anisotropy_t3"]='%8.6f '%(hpars["t3"])

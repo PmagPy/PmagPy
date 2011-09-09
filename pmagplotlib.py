@@ -14,6 +14,10 @@ version_num=pmag.get_version()
 def poly(X,Y,deg):
     return pylab.polyfit(X,Y,deg)
 
+def showFIG(fig):
+    pylab.figure(fig)
+    pylab.show()
+
 def drawFIGS(FIGS):
 	pylab.ion()
 	for fig in FIGS.keys():
@@ -59,6 +63,13 @@ def plot_init(fignum,w,h):
 ##    pylab.connect('button_press_event',click)
 #
     pylab.ioff()
+
+def plot3d_init(fignum):
+    from mpl_toolkits.mplot3d import Axes3D
+    fig=pylab.figure(fignum) 
+    ax=fig.add_subplot(111,projection='3d') 
+    return ax
+
 
 def plot_square(fignum):
     pylab.figure(num=fignum) 
@@ -121,18 +132,39 @@ def plotNOTES(fignum,Notes):
         pylab.text(note['X'],note['Y'],note['text'])
     pylab.draw()
 
-def plotPTS(fignum,PTs):
+def plotPTS(fignum,PTs,x,y):
     for pt in PTs:
-        pylab.scatter(pt['X'],pt['Y'],marker=pt['marker'],c=pt['color'],s=pt['size'])
+        pylab.scatter(pt[x],pt[y],marker=pt['marker'],c=pt['color'],s=pt['size'])
     pylab.draw()
 
-def plotLINES(fignum,line,sym): 
+def show(fig):
+    pylab.figure(fig)
+    pylab.show()
+
+def plot3dPTS(ax,PTs):
+    Xs,Ys,Zs=[],[],[]
+    for pt in PTs:
+        Xs.append(pt['X'])
+        Ys.append(pt['Y'])
+        Zs.append(pt['Z'])
+    ax.scatter(Xs,Ys,Zs,marker=pt['marker'],c=pt['color'],s=pt['size'])
+
+def plot3dLINES(ax,line,sym): 
+    Xs,Ys,Zs=[],[],[]
+    for l in line:
+        Xs.append(l['X'])
+        Ys.append(l['Y'])
+        Zs.append(l['Z'])
+    ax.plot(Xs,Ys,Zs,sym)
+
+def plotLINES(fignum,line,sym,x,y): 
     X,Y=[],[]
     for l in line:
-        X.append(l['X'])
-        Y.append(l['Y'])
+        X.append(l[x])
+        Y.append(l[y])
     pylab.plot(X,Y,sym)
     pylab.draw()
+
 def plotXY(fignum,X,Y,sym,xlab,ylab,title,**kwargs):
     pylab.figure(num=fignum)
     pylab.plot(X,Y,sym)

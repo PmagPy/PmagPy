@@ -52,7 +52,7 @@ def cooling_rate(SpecRec,SampRecs,crfrac,crtype):
         CrSpecRec['magic_method_codes'] = CrSpecRec['magic_method_codes']+':crmcd'
         CrSpecRec["specimen_correction"]='c'
         return CrSpecRec
-   else:
+    else:
         return []
 
 
