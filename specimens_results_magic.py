@@ -174,7 +174,7 @@ def main():
 	if critrec["pmag_criteria_code"]=="RPOLE": RpoleCrit=critrec
 	if critrec["pmag_criteria_code"]=="IE-SPEC":
 	    SpecIntCrit=critrec
-	    accept_keys=['specimen_int_ptrm_n','specimen_md','specimen_fvds','specimen_b_beta','specimen_dang','specimen_drats']
+	    accept_keys=['specimen_int_ptrm_n','specimen_md','specimen_fvds','specimen_b_beta','specimen_dang','specimen_drats','specimen_int_mad']
 	    accept={}
 	    accept['specimen_int_ptrm_n']=2.0
 	    for critrec in crit_data:

@@ -79,7 +79,7 @@ def main():
 #
 # default acceptance criteria
 #
-    accept_keys=['specimen_int_ptrm_n','specimen_md','specimen_fvds','specimen_b_beta','specimen_dang','specimen_drats']
+    accept_keys=['specimen_int_ptrm_n','specimen_md','specimen_fvds','specimen_b_beta','specimen_dang','specimen_drats','specimen_int_mad']
     CritRecs=pmag.default_criteria(0)
     accept={}
     for rec in CritRecs:

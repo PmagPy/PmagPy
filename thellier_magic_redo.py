@@ -122,7 +122,7 @@ def main():
     critout=dir_path+"/"+critout
     try:
         open(critout,'rU')
-        accept_keys=['specimen_int_ptrm_n','specimen_md','specimen_fvds','specimen_b_beta','specimen_dang','specimen_drats','specimen_Z']
+        accept_keys=['specimen_int_ptrm_n','specimen_md','specimen_fvds','specimen_b_beta','specimen_dang','specimen_drats','specimen_int_mad']
         crit_data,file_type=pmag.magic_read(critout)
         print "Acceptance criteria read in from ", critout
         accept={}
