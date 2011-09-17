@@ -83,4 +83,20 @@ def main():
                      Rec[keys[k]]=rec[k]
                 Recs.append(Rec)
                 LN+=1
+    if len(Recs)>0:
+        if filenum==0:
+            outfile=dir_path+"/"+file_type.strip()+'.txt'
+        else:
+            outfile=dir_path+"/"+file_type.strip()+'_'+str(filenum)+'.txt' 
+        NewRecs=[]
+        for rec in Recs:
+            if 'magic_method_codes' in rec.keys():
+                meths=rec['magic_method_codes'].split(":")
+                if len(meths)>0:
+                    methods=""
+                    for meth in meths: methods=methods+meth.strip()+":" # get rid of nasty spaces!!!!!!
+                    rec['magic_method_codes']=methods[:-1]
+            NewRecs.append(rec)
+        pmag.magic_write(outfile,Recs,file_type)
+        print file_type," data put in ",outfile
 main()
