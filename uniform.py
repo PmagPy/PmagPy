@@ -28,8 +28,8 @@ def main():
         ind=sys.argv.index('-F')
         outf=sys.argv[ind+1]
     if outf!="": out=open(outf,'w')
-    if '-N' in sys.argv:
-        ind=sys.argv.index('-N')
+    if '-n' in sys.argv:
+        ind=sys.argv.index('-n')
         N=int(sys.argv[ind+1])
     dirs=pmag.get_unf(N)
     for dir in dirs:

@@ -6,7 +6,7 @@ pylab.ion()
 def main():
     """
     NAME
-       plotxy.py
+       plotXY.py
 
     DESCRIPTION
        Makes simple X,Y plots

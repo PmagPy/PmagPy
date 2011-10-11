@@ -2,7 +2,7 @@ import  numpy,string,sys,random
 import numpy.linalg
 import exceptions
 def get_version(): 
-    return "pmagpy-2.91"
+    return "pmagpy-2.92"
 def sort_diclist(undecorated,sort_on):
     decorated=[(dict_[sort_on],dict_) for dict_ in undecorated]
     decorated.sort()
@@ -88,16 +88,24 @@ def convert_ages(Recs):
             elif rec[keybase+'age_low']!="" and rec[keybase+'age_high']!='':
                 age=float(rec[keybase+'age_low'])  +(float(rec[keybase+'age_high'])-float(rec[keybase+'age_low']))/2.
             if age!='':
+                rec[keybase+'age_unit']
                 if rec[keybase+'age_unit']=='Ma':
                     rec[keybase+'age']='%10.4e'%(age)
                 elif rec[keybase+'age_unit']=='ka' or rec[keybase+'age_unit']=='Ka':
                     rec[keybase+'age']='%10.4e'%(age*.001)
                 elif rec[keybase+'age_unit']=='Years AD (+/-)':
                     rec[keybase+'age']='%10.4e'%((2011-age)*1e-6)
+                elif rec[keybase+'age_unit']=='Years BP':
+                    rec[keybase+'age']='%10.4e'%((age)*1e-6)
                 rec[keybase+'age_unit']='Ma'
                 New.append(rec)
             else:
-                print 'problem in convert_ages:', rec['er_site_id']
+                if 'er_site_names' in rec.keys():
+                    print 'problem in convert_ages:', rec['er_site_names']
+                elif 'er_site_name' in rec.keys():
+                    print 'problem in convert_ages:', rec['er_site_name']
+                else:
+                    print 'problem in convert_ages:', rec
         else:
             print 'no age key:', rec
     return New
@@ -320,7 +328,7 @@ def get_Sb(data):
                 if rec['average_k']!="0":
                     k=float(rec['average_k'])
                     L=float(rec['average_lat'])*numpy.pi/180. # latitude in radians
-                    Nsi=float(rec['average_n'])
+                    Nsi=float(rec['average_nn'])
                     K=k/(2.*(1.+3.*numpy.sin(L)**2)/(5.-3.*numpy.sin(L)**2))
                     Sw=81./numpy.sqrt(K)
                 else:
@@ -908,7 +916,7 @@ def magic_write(ofile,Recs,file_type):
         outstring=""
         for key in keylist:
            try:
-              outstring=outstring+'\t'+Rec[key].strip()
+              outstring=outstring+'\t'+str(Rec[key].strip())
            except:
               if 'er_specimen_name' in Rec.keys():
                   print Rec['er_specimen_name'] 
