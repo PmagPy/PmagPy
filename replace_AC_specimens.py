@@ -88,6 +88,7 @@ def main():
             for spec in UC: 
                 SpecOuts.append(spec)
 #                print 'using UC: ',spec['er_specimen_name'],'%7.1f'%(1e6*float(spec['specimen_int']))
+    SpecOuts,keys=pmag.fillkeys(SpecOuts)
     pmag.magic_write(ofile,SpecOuts,'pmag_specimens')
     print 'thellier data assessed for AC correction put in ', ofile 
 main()

@@ -337,16 +337,16 @@ def main():
 	       PmagSampRec["er_citation_names"]="This study"
 	       PmagSampRec["er_analyst_mail_names"]=user
 	       if agefile != "":   PmagSampRec=pmag.get_age(PmagSampRec,"er_site_name","sample_inferred_", AgeNFO,DefaultAge)
-	       site_height=pmag.get_dictitem(height_nfo,'er_site_name',site,'T')
+	       site_height=pmag.get_dictitem(height_nfo,'er_site_name',PmagSampRec['er_site_name'],'T')
 	       if len(site_height)>0:PmagSampRec["sample_height"]=site_height[0]['site_height'] # add in height if available
 	       if nocrit!=1: PmagSampRec['pmag_criteria_codes']="IE-SPEC"
 	       PmagSampRec['er_specimen_names']= pmag.getlist(SampInts,'er_specimen_name')
 	       PmagSampRec['magic_method_codes']= pmag.getlist(SampInts,'magic_method_codes')
 	       if vgps==1 and get_model_lat!=0: #
 		  if get_model_lat==1:
-		      PmagResRec=pmag.getsampVGP(PmagSampRec,SiteNFO,'vadm')
+		      PmagResRec=pmag.getsampVGP(PmagSampRec,SiteNFO)
 		  elif get_model_lat==2:
-		      PmagResRec=pmag.getsampVGP(PmagSampRec,ModelLats,'vadm')
+		      PmagResRec=pmag.getsampVGP(PmagSampRec,ModelLats)
 		      if PmagResRec!="":PmagResRec['magic_method_codes']=PmagResRec['magic_method_codes']+":IE-MLAT"
 		  if PmagResRec!="":PmagResults.append(PmagResRec)
 	       PmagSamps.append(PmagSampRec)

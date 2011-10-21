@@ -2,7 +2,7 @@ import  numpy,string,sys,random
 import numpy.linalg
 import exceptions
 def get_version(): 
-    return "pmagpy-2.92"
+    return "pmagpy-2.93"
 def sort_diclist(undecorated,sort_on):
     decorated=[(dict_[sort_on],dict_) for dict_ in undecorated]
     decorated.sort()
@@ -111,7 +111,7 @@ def convert_ages(Recs):
     return New
 
 def getsampVGP(SampRec,SiteNFO):
-    site=get_dictitm(SiteNFO,'er_site_name',SampRec['er_site_name'])
+    site=get_dictitem(SiteNFO,'er_site_name',SampRec['er_site_name'],'T')
     try:
         lat=float(site['site_lat'])    
         lon=float(site['site_lon'])
@@ -898,7 +898,7 @@ def first_rec(ofile,Rec,file_type):
 
 def magic_write(ofile,Recs,file_type):
     """
-    writes out a magic format list of records to ofile
+    writes out a magic format list of dictionaries to ofile
     """
     pmag_out=open(ofile,'w')
     outstring="tab \t"+file_type+"\n"
@@ -4807,7 +4807,6 @@ def measurements_methods(meas_data,noave):
                             for meth in meths:
                                 if meth!="LT-T-Z":methcode=methcode+meth+":"
                             methcodes=methcodes+"LT-PTRM-MD"
-                            print '    new: ',methcodes
                             meths=methcodes.split(":")
                             MD=1
     # fix method codes

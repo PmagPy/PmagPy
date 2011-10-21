@@ -742,7 +742,7 @@ def spec_combine():
         rmag_results_instring=rmag_results_instring+' aarm_results.txt '
     except IOError:
         pass
-    try: # check for atrm anisotropy stuff first
+    try: # check for atrm anisotropy stuff next
         aarmfile=open(opath+"/atrm_measurements.txt",'r')
         outstring='atrm_magic.py -WD '+'"'+opath+'"'
         print outstring
@@ -911,33 +911,32 @@ def meas_combine():
     try:
         logfile=open(opath+"/ani.log",'r')
         ani_types=[]
-        files=[]
+        aarm_files=[]
+        atrm_files=[]
         for line in logfile.readlines():
-            ani_type='aarm'
             description=line.split("|")
             file=description[0][:-1]
             if len(description)>1:
                LP=description[1].replace('\n',"").split(":")
                if LP[0].strip()=='T':
-                   ani_type='atrm'
+                   if file not in atrm_files:
+                       atrm_files.append(file)
+                       ani_types.append(description[1].replace('\n',""))
                else:
-                  ani_type='aarm'
-            if file not in files:
-                files.append(file)
-                ani_types.append(ani_type)
-        filestring="-f "
-        if 'aarm' in ani_types:
-            for k in range(len(files)):
-                if ani_types[k]=='aarm':
-                    filestring=filestring + files[k] + ' '
+                   if file not in aarm_files:
+                       aarm_files.append(file)
+                       ani_types.append(description[1].replace('\n',""))
+        if len(aarm_files)>0:
+            filestring="-f "
+            for k in range(len(aarm_files)):
+                    filestring=filestring + aarm_files[k] + ' '
             outstring='combine_magic.py -WD '+'"'+opath+'"'+' -F aarm_measurements.txt '+filestring
             print outstring
             os.system(outstring)
-        filestring="-f "
-        if 'atrm' in ani_types:
-            for k in range(len(files)):
-                if ani_types[k]=='atrm':
-                    filestring=filestring + files[k] + ' '
+        if len(atrm_files)>0:
+            filestring="-f "
+            for k in range(len(atrm_files)):
+                    filestring=filestring + atrm_files[k] + ' '
             outstring='combine_magic.py -WD '+'"'+opath+'"'+' -F atrm_measurements.txt '+filestring
             print outstring
             os.system(outstring)
@@ -1221,17 +1220,21 @@ def add_mag():
                  if "ANI" in LP.split(':'): 
                      try:
                          filelist=[]
+                         lp_types=[]
                          logfile=open(opath+"/ani.log",'r')
                          for line in logfile.readlines():
-                             if line.split()[0] not in filelist:filelist.append(line.split()[0])
-                         if basename+'.magic' not in filelist:filelist.append(basename+'.magic')
+                             if line.split()[0] not in filelist:
+                                 filelist.append(line.split()[0])
+                                 lp_types.append(line.split()[2])
+                         if basename+'.magic' not in filelist:
+                             filelist.append(basename+'.magic')
+                             lp_types.append(LP[:-1])
                      except IOError:
                          filelist=[basename+'.magic']
+                         lp_types.append(LP[:-1])
                      logfile=open(opath+"/ani.log",'w')
-                     d.result['LP']=LP[:-1]
-                     print d.result['LP']
-                     for f in filelist:
-                         logfile.write(f+' | '+ d.result['LP']+'\n') 
+                     for i in range(len(filelist)):
+                         logfile.write(filelist[i]+' | '+ lp_types[i]+'\n') 
                      logfile.close()
         d.result['LP']=LP[:-1]
         d.result['fpath']=fpath
@@ -1252,7 +1255,6 @@ def add_mag():
         if outstring[-1]=='6':outstring=outstring+' -fsa '+opath+'/er_samples.txt'
         print outstring
         os.system(outstring)
-        #if "ANI" in LP.split(':'): spec_combine() # if anisotropy data imported, then do spec_combine to finish file prep
         try:
             logfile=open(opath+"/measurements.log",'a')
             logfile.write(basename+".magic" +" | " + outstring+"\n")

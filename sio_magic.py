@@ -381,7 +381,7 @@ def main():
                         if code1[4]=='microT' and float(code1[3])!=0. and methcode!="LP-AN-ARM": labfield=float(code1[3])*1e-6
                     if code1[2]=='mT' and methcode!="LP-IRM": 
                         demag="AF"
-                        if code1[4]=='microT' and float(code1[3])!=0.: labfield=float(code1[3]*1e-6)
+                        if code1[4]=='microT' and float(code1[3])!=0.: labfield=float(code1[3])*1e-6
                     if code1[4]=='microT' and labfield!=0. and meas_type!="LT-IRM":
                         phi,theta=0.,90.
                         if demag=="T": meas_type="LT-T-I"

@@ -69,22 +69,14 @@ def main():
         print file_type,"This is not a valid magic_measurements file " 
         sys.exit()
     #
-    # sort the specimen names
     #
+    # get sorted list of unique specimen names
     ssort=[]
     for rec in meas_data:
       spec=rec["er_specimen_name"]
-      ssort.append(spec)
-    ssort.sort()
-    bak=ssort[0]
+      if spec not in ssort:ssort.append(spec)
+    sids=sorted(ssort)
     #
-    # get list of unique specimen names
-    #
-    sids=[bak]
-    for s in ssort:
-       if s !=  bak: 
-          sids.append(s)
-          bak=s
     #
     # work on each specimen
     #
@@ -92,7 +84,6 @@ def main():
     RmagSpecRecs,RmagResRecs=[],[]
     while specimen < len(sids):
         s=sids[specimen]
-        print 'Processing: ',s 
         RmagSpecRec={}
         RmagResRec={}
         BX,X=[],[]
@@ -103,35 +94,36 @@ def main():
     # find the data from the meas_data file for this sample
         # and get dec, inc, int and convert to x,y,z
         #
-        for rec in meas_data:
-            if rec["er_specimen_name"]==s: 
-                if RmagSpecRec=={}: # initialize records for output
-                    RmagSpecRec["rmag_anisotropy_name"]=rec["er_specimen_name"]
-                    RmagSpecRec["er_location_name"]=rec["er_location_name"]
-                    RmagSpecRec["er_specimen_name"]=rec["er_specimen_name"]
-                    RmagSpecRec["er_sample_name"]=rec["er_sample_name"]
-                    RmagSpecRec["er_site_name"]=rec["er_site_name"]
-                    RmagSpecRec["magic_experiment_names"]=RmagSpecRec["rmag_anisotropy_name"]+":ATRM"
-                    RmagSpecRec["er_citation_names"]="This study"
-                    RmagResRec["rmag_result_name"]=rec["er_specimen_name"]
-                    RmagResRec["er_location_names"]=rec["er_location_name"]
-                    RmagResRec["er_specimen_names"]=rec["er_specimen_name"]
-                    RmagResRec["er_sample_names"]=rec["er_sample_name"]
-                    RmagResRec["er_site_names"]=rec["er_site_name"]
-                    RmagResRec["magic_experiment_names"]=RmagSpecRec["rmag_anisotropy_name"]+":ATRM"
-                    RmagResRec["er_citation_names"]="This study"
-                    if "magic_instrument_codes" in rec.keys():
-                        RmagSpecRec["magic_instrument_codes"]=rec["magic_instrument_codes"]
-                    else:  
-                        RmagSpecRec["magic_instrument_codes"]=""
-                    RmagSpecRec["anisotropy_type"]="ATRM"
-                    RmagSpecRec["anisotropy_description"]="Hext statistics adapted to ATRM"
+        data=pmag.get_dictitem(meas_data,'er_specimen_name',s,'T') # fish out data for this specimen name
+        if len(data)>5:
+            print 'Processing: ',s 
+            RmagSpecRec["rmag_anisotropy_name"]=data[0]["er_specimen_name"]
+            RmagSpecRec["er_location_name"]=data[0]["er_location_name"]
+            RmagSpecRec["er_specimen_name"]=data[0]["er_specimen_name"]
+            RmagSpecRec["er_sample_name"]=data[0]["er_sample_name"]
+            RmagSpecRec["er_site_name"]=data[0]["er_site_name"]
+            RmagSpecRec["magic_experiment_names"]=RmagSpecRec["rmag_anisotropy_name"]+":ATRM"
+            RmagSpecRec["er_citation_names"]="This study"
+            RmagResRec["rmag_result_name"]=data[0]["er_specimen_name"]
+            RmagResRec["er_location_names"]=data[0]["er_location_name"]
+            RmagResRec["er_specimen_names"]=data[0]["er_specimen_name"]
+            RmagResRec["er_sample_names"]=data[0]["er_sample_name"]
+            RmagResRec["er_site_names"]=data[0]["er_site_name"]
+            RmagResRec["magic_experiment_names"]=RmagSpecRec["rmag_anisotropy_name"]+":ATRM"
+            RmagResRec["er_citation_names"]="This study"
+            RmagSpecRec["anisotropy_type"]="ATRM"
+            if "magic_instrument_codes" in data[0].keys():
+                RmagSpecRec["magic_instrument_codes"]=data[0]["magic_instrument_codes"]
+            else:  
+                RmagSpecRec["magic_instrument_codes"]=""
+                RmagSpecRec["anisotropy_description"]="Hext statistics adapted to ATRM"
+            for rec in data:
                 meths=rec['magic_method_codes'].strip().split(':')
                 Dir=[]
                 Dir.append(float(rec["measurement_dec"]))
                 Dir.append(float(rec["measurement_inc"]))
                 Dir.append(float(rec["measurement_magn_moment"]))
-                if "LT-T-Z" in meths:
+                if "LT-NO" in meths:
                     BX.append(pmag.dir2cart(Dir)) # append baseline steps
                 elif "LT-T-I" in meths: 
                     npos+=1
@@ -139,25 +131,27 @@ def main():
     #
         if len(BX)==1:
             for i in range(len(X)-1):BX.append(BX[0]) # assume first 0 field step as baseline
-        if len(BX)== 0: # assume baseline is zero
+        elif len(BX)== 0: # assume baseline is zero
             for i in range(len(X)):BX.append([0.,0.,0.]) # assume baseline of 0
         elif len(BX)!= len(X): # if BX isn't just one measurement or one in between every infield step, just assume it is zero
             print 'something odd about the baselines - just assuming zero'
             for i in range(len(X)):BX.append([0.,0.,0.]) # assume baseline of 0
-        print npos
-        B,H,tmpH=pmag.designATRM(npos)  # B matrix made from design matrix for positions
+        if npos<3: # can only do at least 3 positions
+            print 'skipping specimen ',s,' too few measurements'
+            specimen+=1
+        else:
+            B,H,tmpH=pmag.designATRM(npos)  # B matrix made from design matrix for positions
         #
         # subtract optional baseline and put in a work array
         #
-        work=numpy.zeros((npos,3),'f')
-        for i in range(npos):
+            work=numpy.zeros((npos,3),'f')
+            for i in range(npos):
                 for j in range(3):
                     work[i][j]=X[i][j]-BX[i][j] # subtract baseline, if available
         #
         # calculate tensor elements
         # first put ARM components in w vector
         #
-        if 1: # don't ask
             w=numpy.zeros((npos*3),'f')
             index=0
             for i in range(npos):
@@ -277,12 +271,8 @@ def main():
             RmagSpecRec["magic_method_codes"]='LP-AN-TRM:AE-H'
             RmagResRec["magic_software_packages"]=pmag.get_version()
             RmagSpecRec["magic_software_packages"]=pmag.get_version()
-            specimen+=1
             RmagSpecRecs.append(RmagSpecRec)
             RmagResRecs.append(RmagResRec)
-        else:
-            print npos
-            print 'skipping specimen ',s,' only 6 positions supported'
             specimen+=1
     pmag.magic_write(rmag_anis,RmagSpecRecs,'rmag_anisotropy')
     print "specimen tensor elements stored in ",rmag_anis

@@ -22,7 +22,7 @@ def main():
         -f FILE: specify input file, default is aarm_measurements.txt
         -crd [s,g,t] specify coordinate system, requires er_samples.txt file
         -fsa  FILE: specify er_samples.txt file, default is er_samples.txt
-        -Fa FILE: specify anisotropy output file, default is aarm_anisotropy.txt
+        -Fa FILE: specify anisotropy output file, default is arm_anisotropy.txt
         -Fr FILE: specify results output file, default is aarm_results.txt
 
     INPUT  
@@ -40,7 +40,7 @@ def main():
     user=""
     meas_file="aarm_measurements.txt"
     samp_file="er_samples.txt"
-    rmag_anis="aarm_anisotropy.txt"
+    rmag_anis="arm_anisotropy.txt"
     rmag_res="aarm_results.txt"
     dir_path='.'
     #
@@ -98,12 +98,10 @@ def main():
     for rec in meas_data:
       spec=rec["er_specimen_name"]
       if spec not in ssort: ssort.append(spec)
-    print ssort
     if len(ssort)>1:
-        sids=ssort.sort()
+        sids=sorted(ssort)
     else:
         sids=ssort
-    print sids
     #
     # work on each specimen
     #

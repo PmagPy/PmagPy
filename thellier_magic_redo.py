@@ -367,7 +367,7 @@ def main():
                                 AniSpecRec["magic_instrument_codes"]=inst_codes
                                 AniSpecRec["specimen_correction"]='c'
                                 AniSpecRec["magic_software_packages"]=version_num
-                                if frac!=0:
+                                if crfrac!=0:
                                     CrSpecRec={}
                                     for key in AniSpecRec.keys():CrSpecRec[key]=AniSpecRec[key]
                                     inten=frac*float(CrSpecRec['specimen_int'])
@@ -388,7 +388,7 @@ def main():
     if nltrm==1 and len(NltSpecRecs)>0:
         nltout=dir_path+'/'+nltout
         pmag.magic_write(nltout,NltSpecRecs,'pmag_specimens')
-    if frac!=0:
+    if crfrac!=0:
         crout=dir_path+'/'+crout
         pmag.magic_write(crout,CRSpecs,'pmag_specimens')
 main()
