@@ -1893,14 +1893,15 @@ def add_tdt():
     global Edict
     dpath=tkFileDialog.askdirectory(title="Select Directory of .tdt files for import ")
     ncn_rv=ask_radio(root,NCN_types,'select naming convention\n NB: all file names must have same naming convention relating specimen to sample and site:') # sets naming convention
-    Edict={'usr':"",'spc':'0'}
+    Edict={'usr':"",'spc':'0','fmt':'tdt'}
     if ncn_rv==3: Edict['Z']=""
     if ncn_rv==6: Edict['Z']=""
     if ncn_rv!=5: Edict['loc']=""
     make_entry(root) 
     filelist=os.listdir(dpath) # get directory listing
     for file in filelist: 
-      if file.split('.')[1].lower()=='tdt':
+      print 'processing: ',file
+      if len(file.split('.'))>1 and file.split('.')[1].lower()==Edict['fmt'].lower():
         basename=file
         ofile=opath+"/"+file
         infile=open(dpath+'/'+file,'rU').readlines()

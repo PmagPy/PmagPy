@@ -74,9 +74,9 @@ def main():
     data=f.readlines()
     for line in data:
         if "\t" in line:
-            rec=line.split('\t')
+            rec=line.replace('\n','').split('\t')
         else:
-            rec=line.split()
+            rec=line.replace('\n','').split()
         X.append(float(rec[col1]))
         Y.append(float(rec[col2]))
         if '-xsig' in sys.argv:Xerrs.append(float(rec[col3]))

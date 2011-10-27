@@ -35,6 +35,9 @@ def main():
         -Fnl NLTout: specify pmag_specimen format file for non-linear trm corrected data
                  default is NLT_specimens.txt
         -z use z component differenences for pTRM calculation
+
+    INPUT
+        a thellier_redo file is Specimen_name Tmin Tmax (where Tmin and Tmax are in Centigrade)
     """
     dir_path='.'
     critout=""
