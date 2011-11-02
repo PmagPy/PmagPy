@@ -101,10 +101,8 @@ def main():
     dates,rlats,rlons=[],[],[]
     Results=[]
     for rec in data:
-        if 'pmag_result_name' in rec.keys():
-            name=rec['pmag_result_name'].split()
-            if 'Site' in name:
-                if coord=="" or rec['tilt_correction']==coord:Results.append(rec)
+        if 'pmag_result_name' in rec.keys() and 'Site' in rec['pmag_result_name']:
+            if coord=="" or rec['tilt_correction']==coord:Results.append(rec)
         elif coord=="" or rec['tilt_correction']==coord:Results.append(rec)
     for rec in Results:
         if 'vgp_lat' in rec.keys() and rec['vgp_lat']!="" and  'vgp_lon' in rec.keys() and rec['vgp_lon']!="":
