@@ -780,7 +780,7 @@ def magic_read(infile):
         f=open(infile,"rU")
     except:
         return [],'bad_file'
-    d = f.readline()[:-1]
+    d = f.readline()[:-1].strip('\n')
     if d[0]=="s" or d[1]=="s":
         delim='space'
     elif d[0]=="t" or d[1]=="t":
@@ -803,8 +803,7 @@ def magic_read(infile):
         if delim=='space':rec=line[:-1].split()
         if delim=='tab':rec=line[:-1].split('\t')
         hold.append(rec)
-    line = lines[-1]
-    line.replace('\n','')
+    line = lines[-1].replace('\n','')
     if delim=='space':rec=line[:-1].split()
     if delim=='tab':rec=line.split('\t')
     hold.append(rec)
