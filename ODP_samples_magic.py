@@ -51,7 +51,10 @@ def main():
             SampRec['er_citation_names']="This study"
             SampRec['sample_dip']="0"
             SampRec['sample_azimuth']="0"
-            SampRec['sample_core_depth']=ODPRec['Top Depth (m)']
+            if 'Top Depth (m)' in ODPRec.keys():
+                SampRec['sample_core_depth']=ODPRec['Top Depth (m)']
+            elif 'CSF-A Top (m)' in ODPRec.keys():
+                SampRec['sample_core_depth']=ODPRec['CSF-A Top (m)']
             dates=ODPRec['Sample Date Logged'].split()
             mmddyy=dates[0].split('/')
             yyyy='20'+mmddyy[2] 
