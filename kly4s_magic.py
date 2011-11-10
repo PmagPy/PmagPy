@@ -164,7 +164,8 @@ def main():
     #
         SO_priorities=pmag.set_priorities(SO_methods,ask)
     for line in Data:
-        rec=line.split()
+      rec=line.split()
+      if len(rec)>0:
         AniRec,SpecRec,SampRec,SiteRec,MeasRec={},{},{},{},{}
         specname=rec[0].upper()
         if specnum!=0:
