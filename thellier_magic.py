@@ -55,8 +55,8 @@ def main():
                            squares are pTRM gained
             4) equal area projections:
  			   green triangles are pTRM gained direction
-                           red circles are ZI step directions 
-                           blue squares are IZ step directions 
+                           red (purple) circles are lower(upper) hemisphere of ZI step directions 
+                           blue (cyan) squares are lower(upper) hemisphere IZ step directions 
             5) Optional:  TRM acquisition
             6) Optional: TDS normalization
         command line window:
