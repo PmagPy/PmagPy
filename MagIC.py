@@ -2881,9 +2881,10 @@ def ODP_depthplot():
         try:
             logfile=open(opath+"/ODPsummary.log",'r')
             files=logfile.readlines()
-            for file in files[-1:]: # fine most recently added
-                outstring=outstring + ' -fsum '+file.replace('\n','')
-                break
+            for file in files[-1:]: # find most recently added core summary file
+                if 'coresummary' in file:
+                    outstring=outstring + ' -fsum '+file.replace('\n','')
+                    break
         except IOError:
             pass
     if PLT_list[5]==0:
