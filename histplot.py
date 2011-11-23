@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 import sys,pmag,matplotlib
 matplotlib.use("TkAgg")
-from pylab import *
-ion()
+import pylab,numpy
+pylab.ion()
 def main():
     """
     NAME
@@ -47,14 +47,17 @@ def main():
         rec=line.split()
         Dat.append(float(rec[0]))
     Nbins=len(Dat)/binsize
-    hist(Dat,bins=Nbins,facecolor='white',histtype='step',color='black',normed=True)
-    xlabel('x')
-    ylabel('Frequency')
+    D=numpy.array(Dat)
+    n,bins,patches=pylab.hist(D,bins=Nbins,facecolor='white',histtype='step',color='black',normed=1)
+    D=numpy.array(D)
+    pylab.axis([D.min(),D.max(),0,n.max()+.1*n.max()]) 
+    pylab.xlabel('x')
+    pylab.ylabel('Frequency')
     name='N = '+str(len(Dat))
-    title(name)
-    draw()
+    pylab.title(name)
+    pylab.draw()
     p=raw_input('s[a]ve to save plot, [q]uit to exit without saving  ')
     if p=='a': 
-        savefig('hist.svg')
+        pylab.savefig('hist.svg')
         print 'plot saved in hist.svg'
 main()

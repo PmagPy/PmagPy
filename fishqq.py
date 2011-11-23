@@ -59,8 +59,8 @@ def main():
                 if drot<0:drot=drot+360.
                 D1.append(drot)           
                 I1.append(irot) 
-                Dtit='Reverse Declinations'
-                Itit='Reverse Inclinations'
+                Dtit='Mode 2 Declinations'
+                Itit='Mode 2 Inclinations'
         else:          
             ppars=pmag.doprinc(nDIs) # get principal directions
             Dbar,Ibar=ppars['dec'],ppars['inc']
@@ -70,9 +70,8 @@ def main():
                 if drot<0:drot=drot+360.
                 D1.append(drot)
                 I1.append(irot)
-                Dtit='Declinations'
-                Itit='Inclinations'
-                print drot,irot 
+                Dtit='Mode 1 Declinations'
+                Itit='Mode 1 Inclinations'
         pmagplotlib.plotQQunf(QQ['unf1'],D1,Dtit) # make plot
         pmagplotlib.plotQQexp(QQ['exp1'],I1,Itit) # make plot
     else:
@@ -80,7 +79,8 @@ def main():
         sys.exit()
     if len(rDIs)>10 and len(nDIs)>10:
         D2,I2=[],[]
-        QQ={'unf2':3,'exp2':4}
+        QQ['unf2']=3
+        QQ['exp2']=4
         pmagplotlib.plot_init(QQ['unf2'],5,5)
         pmagplotlib.plot_init(QQ['exp2'],5,5)
         ppars=pmag.doprinc(rDIs) # get principal directions
@@ -91,8 +91,8 @@ def main():
             if drot<0:drot=drot+360.
             D2.append(drot)           
             I2.append(irot) 
-            Dtit='Reverse Declinations'
-            Itit='Reverse Inclinations'
+            Dtit='Mode 2 Declinations'
+            Itit='Mode 2 Inclinations'
         pmagplotlib.plotQQunf(QQ['unf2'],D2,Dtit) # make plot
         pmagplotlib.plotQQexp(QQ['exp2'],I2,Itit) # make plot
     pmagplotlib.drawFIGS(QQ) 
