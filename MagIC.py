@@ -2896,10 +2896,8 @@ def ODP_depthplot():
     else:
         outstring=outstring+' -S '
     if PLT_list[6]==0: outstring = outstring + ' -log'
-        
     print outstring
     os.system(outstring)
-    
   
 
 def apwp():

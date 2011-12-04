@@ -370,7 +370,7 @@ def main():
             if len(Incs)==0 and pltL==1 and len(SIncs)>0:pylab.plot(SIncs,SDepths,'k')
             if len(SIncs)>0:pylab.plot(SIncs,SDepths,Ssym,markersize=Ssize) 
             if spc_file!="" and len(SpecDepths)>0:pylab.plot(SpecIncs,SpecDepths,spc_sym,markersize=spc_size) 
-            if spc_file!="" and len(FDepths)>0:pylab.plot(FIncs,FDepths,'gv',markersize=spc_size) 
+            if spc_file!="" and len(FDepths)>0:pylab.plot(FIncs,FDepths,'cd',markersize=spc_size) 
             if res_file!="":pylab.plot(ResIncs,ResDepths,res_sym,markersize=res_size) 
             if sum_file!="":
                 for core in Cores:

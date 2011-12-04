@@ -1,7 +1,10 @@
 #!/usr/bin/env python
 import pmag,sys,exceptions
 def spitout(line):
-    dat=line.split() # split the data on a space into columns
+    if '\t' in line:
+        dat=line.split('\t') # split the data on a space into columns
+    else:
+        dat=line.split() # split the data on a space into columns
     b,lat=float(dat[0])*1e-6,float(dat[1])
     vdm= pmag.b_vdm(b,lat)  # 
     return vdm
