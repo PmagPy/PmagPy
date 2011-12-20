@@ -129,7 +129,7 @@ def main():
     if '-spc' in sys.argv:
         ind=sys.argv.index('-spc')
         specnum=-(int(sys.argv[ind+1]))
-        if specnum!=0:specnum=-specnum
+        #if specnum!=0:specnum=-specnum
     specfile=dir_path+'/'+specfile
     sampfile=dir_path+'/'+sampfile
     measfile=dir_path+'/'+measfile
@@ -167,12 +167,12 @@ def main():
       rec=line.split()
       if len(rec)>0:
         AniRec,SpecRec,SampRec,SiteRec,MeasRec={},{},{},{},{}
-        specname=rec[0].upper()
+        specname=rec[0]
         if specnum!=0:
             sampname=specname[:specnum]
         else:
             sampname=specname
-        site=pmag.parse_site(sampname,samp_con,Z) 
+        site=pmag.parse_site(sampname,samp_con,Z)
         AniRec['er_location_name']=locname
         AniRec['er_citation_names']="This study"
         AniRec['magic_instrument_codes']=inst
@@ -267,7 +267,7 @@ def main():
         MeasRec['measurement_flag']='g' # good
         MeasRec['measurement_standard']='u' # unknown
         date=rec[14].split('/')
-        if eval(date[2])>80:
+        if int(date[2])>80:
            date[2]='19'+date[2]
         else: 
            date[2]='20'+date[2]
