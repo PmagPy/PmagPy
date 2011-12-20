@@ -573,36 +573,36 @@ def main():
                 MagRec["er_sample_name"]=rec[0]
             site=pmag.parse_site(MagRec['er_sample_name'],samp_con,Z)
             MagRec["er_site_name"]=site
-            MagRec["er_site_name"]=MagRec['er_sample_name'][0:-2]
             MagRec["er_location_name"]=er_location_name
             MagRec["measurement_csd"]=rec[3]
             MagRec["measurement_magn_moment"]='%10.3e'% (float(rec[4])*1e-7) # moment in Am^2 (from 10^-4 emu)
 #
-            if samp_file!="" and MagRec["er_sample_name"] not in Samps:        # create er_samples.txt file with these data 
-                cdec,cinc=float(rec[5]),float(rec[6])
-                gdec,ginc=float(rec[7]),float(rec[8])
-                az,pl=pmag.get_azpl(cdec,cinc,gdec,ginc)
-                bdec,binc=float(rec[9]),float(rec[10])
-                if rec[7]!=rec[9] and rec[6]!=rec[8]:
-                    dipdir,dip=pmag.get_tilt(gdec,ginc,bdec,binc)
-                else:
-                    dipdir,dip=0,0
-                ErSampRec={}
-                ErSampRec['er_location_name']=MagRec['er_location_name']
-                ErSampRec['er_sample_name']=MagRec['er_sample_name']
-                ErSampRec['er_site_name']=MagRec['er_site_name']
-                ErSampRec['sample_azimuth']='%7.1f'%(az)
-                ErSampRec['sample_dip']='%7.1f'%(pl)
-                ErSampRec['sample_bed_dip_direction']='%7.1f'%(dipdir)
-                ErSampRec['sample_bed_dip']='%7.1f'%(dip)
-                ErSampRec['sample_description']='az,pl,dip_dir and dip recalculated from [c,g,b][dec,inc] in ldeo file'
-                ErSampRec['magic_method_codes']='SO-REC'
-                ErSamps.append(ErSampRec)
-                Samps.append(ErSampRec['er_sample_name'])
+            #if samp_file!="" and MagRec["er_sample_name"] not in Samps:        # create er_samples.txt file with these data 
+            #    cdec,cinc=float(rec[5]),float(rec[6])
+            #    gdec,ginc=float(rec[7]),float(rec[8])
+            #    az,pl=pmag.get_azpl(cdec,cinc,gdec,ginc)
+            #    bdec,binc=float(rec[9]),float(rec[10])
+            #    if rec[7]!=rec[9] and rec[6]!=rec[8]:
+            #        dipdir,dip=pmag.get_tilt(gdec,ginc,bdec,binc)
+            #    else:
+            #        dipdir,dip=0,0
+            #    ErSampRec={}
+            #    ErSampRec['er_location_name']=MagRec['er_location_name']
+            #    ErSampRec['er_sample_name']=MagRec['er_sample_name']
+            #    ErSampRec['er_site_name']=MagRec['er_site_name']
+            #    ErSampRec['sample_azimuth']='%7.1f'%(az)
+            #    ErSampRec['sample_dip']='%7.1f'%(pl)
+            #    ErSampRec['sample_bed_dip_direction']='%7.1f'%(dipdir)
+            #    ErSampRec['sample_bed_dip']='%7.1f'%(dip)
+            #    ErSampRec['sample_description']='az,pl,dip_dir and dip recalculated from [c,g,b][dec,inc] in ldeo file'
+            #    ErSampRec['magic_method_codes']='SO-REC'
+            #    ErSamps.append(ErSampRec)
+            #    Samps.append(ErSampRec['er_sample_name'])
             MagRec["measurement_dec"]=rec[5]
             MagRec["measurement_inc"]=rec[6]
-            MagRec["magic_instrument_codes"]=rec[2]
-            MagRec["er_analyst_mail_names"]=""
+            MagRec["measurement_chi"]='%10.3e'%(float(rec[11])*1e-5)#convert to SI (assume Bartington, 10-5 SI)
+            #MagRec["magic_instrument_codes"]=rec[2]
+            #MagRec["er_analyst_mail_names"]=""
             MagRec["er_citation_names"]="This study"
             MagRec["magic_method_codes"]=meas_type
             if demag=="AF":
