@@ -175,23 +175,6 @@ def main():
         Opts['symsize']=symsize
         pmagplotlib.plotMAP(FIG['map'],[pt_lat],[pt_lon],Opts)
         pmagplotlib.drawFIGS(FIG)
-    for pt in PTS:
-        pt_lat=pt[0]
-        pt_lon=pt[1]
-        Opts['sym']=sym
-        Opts['symsize']=symsize
-        pmagplotlib.plotMAP(FIG['map'],[pt[0]],[pt[1]],Opts)
-        pmagplotlib.drawFIGS(FIG)
-        Opts['pltgrid']=-1 # turns off replotting of meridians and parallels
-        for pole in Poles:
-            Opts['sym']=sym
-            Opts['symsize']=symsize
-            Rlats,Rlons=pmag.PTrot(pole,[pt_lat],[pt_lon])
-            pmagplotlib.plotMAP(FIG['map'],Rlats,Rlons,Opts)
-            pmagplotlib.drawFIGS(FIG)
-        Opts['sym']='g^'
-        Opts['symsize']=5
-        pmagplotlib.plotMAP(FIG['map'],[pole[0]],[pole[1]],Opts)
     for cont in Conts: 
         Opts['sym']=sym
         lats,lons=[],[]
@@ -247,6 +230,25 @@ def main():
                  newlats,newlons=[],[]
                  for lat in Rlats:newlats.append(lat)
                  for lon in Rlons:newlons.append(lon)
+    for pt in PTS:
+        pt_lat=pt[0]
+        pt_lon=pt[1]
+        Opts['sym']='r*'
+        Opts['symsize']=5
+        pmagplotlib.plotMAP(FIG['map'],[pt[0]],[pt[1]],Opts)
+        pmagplotlib.drawFIGS(FIG)
+        Opts['pltgrid']=-1 # turns off replotting of meridians and parallels
+        for pole in Poles:
+            Opts['sym']=sym
+            Opts['symsize']=symsize
+            Rlats,Rlons=pmag.PTrot(pole,[pt_lat],[pt_lon])
+            print Rlats,Rlons
+            pmagplotlib.plotMAP(FIG['map'],Rlats,Rlons,Opts)
+            pmagplotlib.drawFIGS(FIG)
+        Opts['sym']='g^'
+        Opts['symsize']=5
+        pmagplotlib.plotMAP(FIG['map'],[pole[0]],[pole[1]],Opts)
+        pmagplotlib.drawFIGS(FIG)
     files={}
     for key in FIG.keys():
         files[key]='Cont_rot'+'.'+fmt

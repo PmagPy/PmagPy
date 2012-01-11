@@ -2,7 +2,7 @@ import  numpy,string,sys,random
 import numpy.linalg
 import exceptions
 def get_version(): 
-    return "pmagpy-2.98"
+    return "pmagpy-2.99"
 def sort_diclist(undecorated,sort_on):
     decorated=[(dict_[sort_on],dict_) for dict_ in undecorated]
     decorated.sort()
@@ -3777,6 +3777,8 @@ def designATRM(npos):
     #if npos!=6:
     #    print 'Sorry - only 6 positions available'
     #    sys.exit()
+    Dec=[0,0,  0,90,180,270,0] # for shuhui only
+    Dip=[90,-90,0,0,0,0,90]
     Dec=[0,90,0,180,270,0,0,90,0]
     Dip=[0,0,90,0,0,-90,0,0,90]
     H=[]

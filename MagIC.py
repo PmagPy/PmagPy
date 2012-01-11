@@ -2305,7 +2305,7 @@ def add_kly4s():
         os.system(outstring)
     try:
         filelist=[]
-        logfile=open(opath+"/ams.log",'r')
+        logfile=open(opath+"/ams.log",'rU')
         for line in logfile.readlines():
             if line.split()[0] not in filelist:filelist.append(line.split()[0])
         if file+'_anisotropy.txt' not in filelist:filelist.append(file+'_anisotropy.txt')
