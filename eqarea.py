@@ -20,7 +20,6 @@ def main():
         -p save figure and quit
         -fmt [svg,jpg] set figure format [default is svg]
         -s  SIZE specify symbol size - default is 20
-        -a use antipodes of reversed data [default is use data as is]
         -Lsym  SHAPE  COLOR specify shape and color for lower hemisphere
         -Usym  SHAPE  COLOR specify shape and color for upper hemisphere
           shapes:  's': square,'o': circle,'^,>,v,<': [up,right,down,left] triangle, 'd': diamond, 
@@ -32,12 +31,10 @@ def main():
     files,fmt={},'svg'
     sym={'lower':['o','r'],'upper':['o','w']}
     plot=0
-    anti=0
     if '-h' in sys.argv: # check if help is needed
         print main.__doc__
         sys.exit() # graceful quit
     if '-p' in sys.argv: plot=1
-    if '-a' in sys.argv: anti=1
     if '-fmt'  in sys.argv:
         ind=sys.argv.index('-fmt')
         fmt=sys.argv[ind+1] 
@@ -65,23 +62,12 @@ def main():
         data=f.readlines()
     DI= [] # set up list for dec inc data
     for line in data:   # read in the data from standard input
-        if anti==1:
-        	if '\t' in line:
-            		rec=line.split('\t') # split each line on space to get records
-        	else:
-            		rec=line.split() # split each line on space to get records
-        	if len(rec)>1:
-        		if float(rec[1])<0:
-        			rec[1]=-1*float(rec[1])
-        			rec[0]=float(rec[0])-180.
-            	DI.append([float(rec[0]),float(rec[1])]) # append first two columns as DI pair
+        if '\t' in line:
+            rec=line.split('\t') # split each line on space to get records
         else:
-        	if '\t' in line:
-            		rec=line.split('\t') # split each line on space to get records
-        	else:
-            		rec=line.split() # split each line on space to get records
-        	if len(rec)>1:
-        			DI.append([float(rec[0]),float(rec[1])]) # append first two columns as DI pair
+            rec=line.split() # split each line on space to get records
+        if len(rec)>1:
+            DI.append([float(rec[0]),float(rec[1])]) # append first two columns as DI pair
 #
     EQ={'eq':1}
     pmagplotlib.plot_init(EQ['eq'],5,5)
