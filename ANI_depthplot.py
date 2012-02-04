@@ -28,7 +28,7 @@ def main():
     """
     fmt='.svg'
     dir_path="./"
-    pcol=2
+    pcol=3
     if '-WD' in sys.argv: 
         ind=sys.argv.index('-WD')
         dir_path=sys.argv[ind+1]
@@ -89,8 +89,9 @@ def main():
         print 'no data to plot'
         sys.exit()
     # collect the data for plotting tau and V3_inc
-    Depths,Tau1,Tau2,Tau3,V3Incs=[],[],[],[],[]
+    Depths,Tau1,Tau2,Tau3,V3Incs,P=[],[],[],[],[],[]
     tau_min,tau_max=1,0
+    P_min,P_max=10,-1
     if len(Bulks)>0: pcol+=1
     for rec in Data:
         s=[]
@@ -107,8 +108,11 @@ def main():
             Tau1.append(tau[0])
             Tau2.append(tau[1])
             Tau3.append(tau[2])
+            P.append(tau[0]/tau[2])
             if tau[0]>tau_max:tau_max=tau[0]
             if tau[2]<tau_min:tau_min=tau[2]
+            if P[-1]>P_max:P_max=P[-1]
+            if P[-1]<P_min:P_min=P[-1]
     if len(Depths)>0:
         if dmax==-1:
             dmax=max(Depths)
@@ -126,12 +130,16 @@ def main():
         pylab.xlabel('Eigenvalues')
         pylab.ylabel('Depth (m)')
         pylab.subplot(1,pcol,2)
+        pylab.plot(P,Depths,'rs') 
+        pylab.axis([P_min,P_max,dmax,dmin])
+        pylab.xlabel('P')
+        pylab.subplot(1,pcol,3)
         pylab.plot(V3Incs,Depths,'ko') 
         pylab.axis([0,90,dmax,dmin])
         pylab.xlabel('V3 Inclination')
         pylab.title(location)
-        if pcol==3:
-            pylab.subplot(1,pcol,3)
+        if pcol==4:
+            pylab.subplot(1,pcol,4)
             pylab.plot(Bulks,BulkDepths,'bo') 
             pylab.axis([bmin-1,bmax+1,dmax,dmin])
             pylab.xlabel('Bulk Susc. (uSI)')
