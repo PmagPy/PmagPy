@@ -62,6 +62,7 @@ def main():
     isbulk=0
     AniData,file_type=pmag.magic_read(ani_file) 
     Samps,file_type=pmag.magic_read(samp_file) 
+    for s in Samps:s['er_sample_name']=s['er_sample_name'].upper()
     Meas,file_type=pmag.magic_read(meas_file) 
     if file_type=='magic_measurements':isbulk=1
     Data=[]
@@ -69,19 +70,22 @@ def main():
     BulkDepths=[]
     bmin,bmax=1e6,-1e6 
     for rec in AniData:
-        for samp in Samps:
-            if samp['er_sample_name'].upper()== rec['er_sample_name'].upper() and 'sample_core_depth' in samp.keys() and samp['sample_core_depth']!="":
-                rec['core_depth'] = samp['sample_core_depth']
-                if dmax==-1 or float(rec['core_depth'])<dmax and float(rec['core_depth'])>dmin: 
-                    Data.append(rec) # fish out data with core_depth
-                    if isbulk: 
-                        thisbulk=[]
-                        for meas in Meas:
-                            if meas['er_specimen_name']== rec['er_specimen_name'] and 'measurement_chi_volume' in meas.keys() and meas['measurement_chi_volume'].strip()!="" :
-                               Bulks.append(1e6*float(meas['measurement_chi_volume']))
-                               if Bulks[-1]<bmin:bmin=Bulks[-1]
-                               if Bulks[-1]>bmax:bmax=Bulks[-1]
-                               BulkDepths.append(float(samp['sample_core_depth']))
+        samprecsU=pmag.get_dictitem(Samps,'er_sample_name',rec['er_sample_name'].upper(),'T')
+        sampdepths=pmag.get_dictitem(samprecsU,'sample_core_depth','','F')
+        if dmax!=-1:
+            sampdepths=pmag.get_dictitem(sampdepths,'sample_core_depth',dmax,'max')
+            sampdepths=pmag.get_dictitem(sampdepths,'sample_core_depth',dmin,'min')
+        if len(sampdepths)>0:
+            rec['core_depth'] = sampdepths[0]['sample_core_depth']
+            Data.append(rec) # fish out data with core_depth
+            if isbulk: 
+                chis=pmag.get_dictitem(Meas,'er_specimen_name',rec['er_specimen_name'],'T')
+                chis=pmag.get_dictitem(chis,'measurement_chi_volume','','F')
+                if len(chis)>0:
+                    Bulks.append(1e6*float(chis[0]['measurement_chi_volume']))
+                    if Bulks[-1]<bmin:bmin=Bulks[-1]
+                    if Bulks[-1]>bmax:bmax=Bulks[-1]
+                    BulkDepths.append(float(sampdepths[0]['sample_core_depth']))
     xlab="Depth (m)"
     if len(Data)>0:
         location=Data[0]['er_location_name']
