@@ -3,7 +3,7 @@ import sys,os
 sys.path.insert(0,os.getcwd())
 import numpy
 from pmagpyrc import *
-#mpl_version=matplotlib.__version__
+#wmpl_version=matplotlib.__version__
 import pmag,pylab,exceptions,sys
 globals = 0
 graphmenu = 0
@@ -1402,7 +1402,7 @@ def plotVs(fignum,Xs,c,ls):
     fig=pylab.figure(num=fignum) 
     for xv in  Xs:
         bounds=pylab.axis()
-        pylab.axvline(x=xv,ymin=0,ymax=1,linewidth=1,color=c,linestyle=ls)
+        pylab.axvline(x=xv,ymin=bounds[2],ymax=bounds[3],linewidth=1,color=c,linestyle=ls)
    
 def plotTS(fignum,dates,ts):
     Vplot_init(fignum,10,3)
@@ -1972,7 +1972,9 @@ def plotANIS(ANIS,Ss,iboot,ihext,ivec,ipar,title,plt,comp,vec,Dir):
             tbounds=[]
             tbounds.append(ts[tminind])
             tbounds.append(ts[tmaxind])
-            plotVs(ANIS['tcdf'],tbounds,'r','-')
+            pylab.axvline(x=tbounds[0],linewidth=1,color='r',linestyle='--')
+            pylab.axvline(x=tbounds[1],linewidth=1,color='r',linestyle='--')
+            #plotVs(ANIS['tcdf'],tbounds,'r','-') # there is some bug in here - can't figure it out
             ts=[]
             for t in Taus:
                 ts.append(t[1])
@@ -1983,7 +1985,9 @@ def plotANIS(ANIS,Ss,iboot,ihext,ivec,ipar,title,plt,comp,vec,Dir):
             tbounds=[]
             tbounds.append(ts[tminind])
             tbounds.append(ts[tmaxind])
-            plotVs(ANIS['tcdf'],tbounds,'b','-.')
+            #plotVs(ANIS['tcdf'],tbounds,'b','-')
+            pylab.axvline(x=tbounds[0],linewidth=1,color='b',linestyle='-.')
+            pylab.axvline(x=tbounds[1],linewidth=1,color='b',linestyle='-.')
             ts=[]
             for t in Taus:
                 ts.append(t[2])
@@ -1994,7 +1998,9 @@ def plotANIS(ANIS,Ss,iboot,ihext,ivec,ipar,title,plt,comp,vec,Dir):
             tbounds=[]
             tbounds.append(ts[tminind])
             tbounds.append(ts[tmaxind])
-            plotVs(ANIS['tcdf'],tbounds,'k','--')
+            #plotVs(ANIS['tcdf'],tbounds,'k','-')
+            pylab.axvline(x=tbounds[0],linewidth=1,color='k',linestyle='-')
+            pylab.axvline(x=tbounds[1],linewidth=1,color='k',linestyle='-')
             if comp==1: # do eigenvector of choice
                 pylab.figure(num=ANIS['conf'])
                 XY=pmag.dimap(Dir[0],Dir[1])

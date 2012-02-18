@@ -2,7 +2,7 @@ import  numpy,string,sys,random
 import numpy.linalg
 import exceptions
 def get_version(): 
-    return "pmagpy-2.103"
+    return "pmagpy-2.104"
 def sort_diclist(undecorated,sort_on):
     decorated=[(dict_[sort_on],dict_) for dict_ in undecorated]
     decorated.sort()
@@ -18,13 +18,13 @@ def get_dictitem(In,k,v,flag):
         if flag=="not":return [dict for dict in In if v not in dict[k]] # return that which is not contained
         if flag=="eval":
             A=[dict for dict in In if dict[k]!=''] # find records with no blank values for key
-            return [dict for dict in A if eval(dict[k])==eval(v)] # return that which is
+            return [dict for dict in A if float(dict[k])==float(v)] # return that which is
         if flag=="min":
             A=[dict for dict in In if dict[k]!=''] # find records with no blank values for key
-            return [dict for dict in A if eval(dict[k])>=eval(v)] # return that which is greater than
+            return [dict for dict in A if float(dict[k])>=float(v)] # return that which is greater than
         if flag=="max":
             A=[dict for dict in In if dict[k]!=''] # find records with no blank values for key
-            return [dict for dict in A if eval(dict[k])<=eval(v)] # return that which is less than
+            return [dict for dict in A if float(dict[k])<=float(v)] # return that which is less than
     except Exception, err:
         print  str(err)
         return []
@@ -3635,7 +3635,7 @@ def apseudo(Ss,ipar,sigma):
     for k in range(len(Ss)):
         ind=random.randint(0,len(Ss)-1)
         random.jumpahead(int(ind*1000))
-        if ipar==0: 
+        if ipar==0:
             BSs.append(Ss[ind])
         else:
             ps=Ss[ind][:]
@@ -3644,7 +3644,21 @@ def apseudo(Ss,ipar,sigma):
                 bs.append(random.gauss(s,sigma))
                 random.jumpahead(10)
             BSs.append(bs)
-    return BSs 
+    return BSs
+
+def apseudo_new(Ss,ipar,sigma):
+    """
+     draw a bootstrap sample of Ss
+    """
+#
+    BSs=[]
+    Inds=numpy.random.randint(len(Ss),size=len(Ss)) # get list of random indices
+    S=numpy.array(Ss)
+    if ipar==0: 
+        BSs=Ss[Inds] # return pseudosample of Ss
+    else:
+        BSs=numpy.random.normal(Ss[Inds],sigma) # return pseudosample of Ss
+    return BSs.tolist()
 #
 #
 #
@@ -3713,7 +3727,7 @@ def s_boot(Ss,ipar):
 #
     nb,Taus,Vs=1000,[],[]  # number of bootstraps, list of bootstrap taus and eigenvectors
 #
-    
+
     for k in range(nb): # repeat nb times
 #        if k%50==0:print k,' out of ',nb
         BSs=apseudo(Ss,ipar,Sigma) # get a pseudosample - if ipar=1, do a parametric bootstrap
@@ -3722,6 +3736,7 @@ def s_boot(Ss,ipar):
         Taus.append(tau)
         Vs.append(Vdirs)
     return Tmean,Vmean,Taus,Vs
+
 #
 def designAARM(npos):
 #

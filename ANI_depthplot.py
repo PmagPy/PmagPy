@@ -70,8 +70,8 @@ def main():
     BulkDepths=[]
     bmin,bmax=1e6,-1e6 
     for rec in AniData:
-        samprecsU=pmag.get_dictitem(Samps,'er_sample_name',rec['er_sample_name'].upper(),'T')
-        sampdepths=pmag.get_dictitem(samprecsU,'sample_core_depth','','F')
+        samprecs=pmag.get_dictitem(Samps,'er_sample_name',rec['er_sample_name'].upper(),'T')
+        sampdepths=pmag.get_dictitem(samprecs,'sample_core_depth','','F')
         if dmax!=-1:
             sampdepths=pmag.get_dictitem(sampdepths,'sample_core_depth',dmax,'max')
             sampdepths=pmag.get_dictitem(sampdepths,'sample_core_depth',dmin,'min')
