@@ -260,7 +260,10 @@ is the percent cooling rate factor to apply to specimens from this sample, DA-CR
     # parse information common to all orientation methods
     #
         MagRec["er_sample_name"]=OrRec["sample_name"]
-        MagRec["sample_igsn"]=OrRec["IGSN"]
+        if "IGSN" in OrRec.keys():
+            MagRec["sample_igsn"]=OrRec["IGSN"]
+        else:
+            MagRec["sample_igsn"]=""
         MagRec["sample_height"],MagRec["sample_bed_dip_direction"],MagRec["sample_bed_dip"]="","",""
         if "er_sample_alternatives" in OrRec.keys():MagRec["er_sample_alternatives"]=OrRec["sample_alternatives"]
         sample=OrRec["sample_name"]
