@@ -18,7 +18,7 @@ def main():
         -i for interactive filename entry
         -f FILE, specify file on command line
         -p save figure and quit
-        -fmt [svg,jpg] set figure format [default is svg]
+        -fmt [svg,jpg,png,pdf] set figure format [default is svg]
         -s  SIZE specify symbol size - default is 20
         -Lsym  SHAPE  COLOR specify shape and color for lower hemisphere
         -Usym  SHAPE  COLOR specify shape and color for upper hemisphere
@@ -72,7 +72,7 @@ def main():
     EQ={'eq':1}
     pmagplotlib.plot_init(EQ['eq'],5,5)
     pmagplotlib.plotEQsym(EQ['eq'],DI,'Equal Area Plot',sym) # make plot
-    pmagplotlib.drawFIGS(EQ) # make it visible
+    if plot==0:pmagplotlib.drawFIGS(EQ) # make it visible
     for key in EQ.keys():
         files[key]=key+'.'+fmt 
     if pmagplotlib.isServer:

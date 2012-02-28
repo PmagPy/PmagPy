@@ -52,7 +52,7 @@ def main():
             filenum+=1 
         LN+=1
         line=File[LN]
-        keys=line.split('\t')
+        keys=line.replace('\n','').split('\t')
         LN+=1
         Recs=[]
         while LN<len(File):
@@ -81,6 +81,7 @@ def main():
                 Rec={}
                 for k in range(len(keys)):
                      Rec[keys[k]]=rec[k]
+                if file_type=="pmag_results":print Rec
                 Recs.append(Rec)
                 LN+=1
     if len(Recs)>0:

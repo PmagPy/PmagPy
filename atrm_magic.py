@@ -182,9 +182,9 @@ def main():
             for i in range(npos*3):
                 d=w[i]/trace - comp[i] # del values
                 S+=d*d
-            nf=float(npos*3-6) # number of degrees of freedom
+            nf=float(npos*3.-6.) # number of degrees of freedom
             if S >0: 
-                sigma=math.sqrt(S/nf)
+                sigma=numpy.sqrt(S/nf)
             else: sigma=0
             hpars=pmag.dohext(nf,sigma,s)
         #

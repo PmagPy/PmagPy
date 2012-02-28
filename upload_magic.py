@@ -16,18 +16,23 @@ def main():
     INPUT
         MagIC txt files
 
+    OPTIONS
+        -h prints help message and quits
+        -all include all the measurement data, default is only those used in interpretations
+
     OUTPUT
         upload.txt:  Unix formatted file (on Macs, Dos on PCs)
         upload_dos.txt: Dos formated file ready for importing to MagIC Console (v2.2) for checking. 
     
     """
 #   set up filenames to upload
-    concat=0
+    concat,All=0,0
     dir_path='.'
     if '-h' in sys.argv:
         print main.__doc__
         sys.exit()
     if '-cat' in sys.argv: concat=1
+    if '-all' in sys.argv: All=1
     if '-WD' in sys.argv:
         ind=sys.argv.index('-WD')
         dir_path=sys.argv[ind+1]
@@ -76,7 +81,8 @@ def main():
                         Done.append(rec['er_sample_name'])
                 Data=NewData           
                 print 'only first orientation record from er_samples.txt read in '
-            if file_type=='magic_measurements': # check to only upload first orientation record!
+            if All==0:
+              if file_type=='magic_measurements': # check to only upload first orientation record!
                 NewData=[]
                 for rec in Data:
                     if rec['er_sample_name'] in Done:
@@ -86,10 +92,11 @@ def main():
                         print rec
                 Data=NewData           
                 print 'only measurements that are used for interpretations '
-            if file_type=='er_specimens': # check to only upload first orientation record!
+            if file_type=='er_specimens': # 
                 NewData=[]
                 for rec in Data:
                     if rec['er_sample_name'] in Done:
+
                         NewData.append(rec)
                     else: 
                         print 'excluded: ' 
