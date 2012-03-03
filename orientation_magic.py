@@ -64,8 +64,8 @@ is the percent cooling rate factor to apply to specimens from this sample, DA-CR
             Samples are oriented in the field with a "field arrow" and measured in the laboratory with a "lab arrow". The lab arrow is the positive X direction of the right handed coordinate system of the specimen measurements. The lab and field arrows may  not be the same. In the MagIC database, we require the orientation (azimuth and plunge) of the X direction of the measurements (lab arrow). Here are some popular conventions that convert the field arrow azimuth (mag_azimuth in the orient.txt file) and dip (field_dip in orient.txt) to the azimuth and plunge  of the laboratory arrow (sample_azimuth and sample_dip in er_samples.txt). The two angles, mag_azimuth and field_dip are explained below. 
 
             [1] Standard Pomeroy convention of azimuth and hade (degrees from vertical down) 
-                 of the drill direction (field arrow).  sample_azimuth = mag_azimuth; 
-                 sample_dip =-field_dip.
+                 of the drill direction (field arrow).  lab arrow azimuth= sample_azimuth = mag_azimuth; 
+                 lab arrow dip = sample_dip =-field_dip. i.e. the lab arrow dip is minus the hade.
             [2] Field arrow is the strike  of the plane orthogonal to the drill direction,
                  Field dip is the hade of the drill direction.  Lab arrow azimuth = mag_azimuth-90 
                  Lab arrow dip = -field_dip 

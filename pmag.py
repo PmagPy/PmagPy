@@ -2,7 +2,7 @@ import  numpy,string,sys,random
 import numpy.linalg
 import exceptions
 def get_version(): 
-    return "pmagpy-2.104"
+    return "pmagpy-2.105"
 def sort_diclist(undecorated,sort_on):
     decorated=[(dict_[sort_on],dict_) for dict_ in undecorated]
     decorated.sort()
@@ -3655,10 +3655,10 @@ def apseudo_new(Ss,ipar,sigma):
     Inds=numpy.random.randint(len(Ss),size=len(Ss)) # get list of random indices
     S=numpy.array(Ss)
     if ipar==0: 
-        BSs=Ss[Inds] # return pseudosample of Ss
+        BSs=S[Inds] # return pseudosample of Ss
     else:
-        BSs=numpy.random.normal(Ss[Inds],sigma) # return pseudosample of Ss
-    return BSs.tolist()
+        BSs=numpy.random.normal(S[Inds],sigma) # return pseudosample of Ss
+    return BSs
 #
 #
 #
@@ -5386,12 +5386,14 @@ def pseudo(DIs):
      draw a bootstrap sample of Directions
     """
 #
-    BDIs=[]
-    for k in range(len(DIs)):
-        ind=random.randint(0,len(DIs)-1)
-        random.jumpahead(int(ind*1000))
-        BDIs.append(DIs[ind])
-    return BDIs 
+    Inds=numpy.random.randint(len(DIs),size=len(DIs))
+    D=numpy.array(DIs)
+    return D[Inds]
+    #for k in range(len(DIs)):
+    #    ind=random.randint(0,len(DIs)-1)
+    #    random.jumpahead(int(ind*1000))
+    #    BDIs.append(DIs[ind])
+    #return BDIs 
 #
 def di_boot(DIs):
     """

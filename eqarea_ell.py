@@ -154,6 +154,7 @@ def main():
                 print 'too few data points for bootstrap'
                 sys.exit()
             if dist=='BE':
+                print 'Be patient for bootstrap...'
                 if len(nDIs)>=10:
                     BnDIs=pmag.di_boot(nDIs)
                     Bkpars=pmag.dokent(BnDIs,1.)
@@ -188,6 +189,7 @@ def main():
                     rpars.append(Bkpars['Einc'])
                 etitle="Bootstrapped confidence ellipse"
             elif dist=='BV':
+                print 'Be patient for bootstrap...'
                 vsym={'lower':['+','k'],'upper':['x','k'],'size':5}
                 if len(nDIs)>5:
                     BnDIs=pmag.di_boot(nDIs)
