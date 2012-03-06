@@ -36,7 +36,7 @@ def main():
     beg,end,pole,geo,tilt,askave,save=0,0,[],0,0,0,0
     samp_file=1
     args=sys.argv
-    geo,tilt=0,0
+    geo,tilt,orient=0,0,0
     doave=1
     user,comment,doave,coord="","",1,""
     meas_file="magic_measurements.txt"
@@ -62,10 +62,9 @@ def main():
         ind=args.index("-crd")
         coord=sys.argv[ind+1]
         if coord=="g":
-            geo=1
+            geo,orient=1,1
         if coord=="t":
-            tilt=1
-            geo=1
+            tilt,orient,geo=1,1,1
 #
 # read in data
     if samp_file!="":
@@ -109,7 +108,6 @@ def main():
         PmagSpecRec={}
         PmagSpecRec["er_analyst_mail_names"]=user
         method_codes,inst_code=[],""
-        print '\n Processing specimen: ',s, '\n'
     # find the data from the meas_data file for this sample
     #
     #  collect info for the PmagSpecRec dictionary
@@ -145,7 +143,6 @@ def main():
                 if "LT-NO" in meas_meth:nrm_data.append(meas_rec)
     #
         data,units=pmag.find_dmag_rec(s,nrm_data)
-        print 'found ',len(data),' records'
     #
         datablock=data
         #

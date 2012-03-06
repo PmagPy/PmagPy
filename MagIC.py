@@ -2649,6 +2649,7 @@ def eqarea():
         pass
     print outstring
     os.system(outstring)
+    print 'HERE!'
 
 def quick_look():
     try:
