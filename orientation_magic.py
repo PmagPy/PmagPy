@@ -468,9 +468,6 @@ is the percent cooling rate factor to apply to specimens from this sample, DA-CR
                 SunRec["sample_azimuth"]='%7.1f'%(sundec) 
                 SunRec["sample_declination_correction"]='0'
                 SunRec["magic_method_codes"]=methcodes+':SO-SUN'
-                print sundata
-                print SunRec['er_sample_name'],sundec
-                raw_input()
                 SampOuts.append(SunRec)
     #
     # check for differential GPS data
