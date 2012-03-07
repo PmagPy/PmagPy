@@ -167,6 +167,7 @@ def main():
             ResRec['rmag_result_name']=rec['er_specimen_name']+":"+rec['anisotropy_type']
             ResRec["er_analyst_mail_names"]=user
             ResRec["tilt_correction"]=CS
+            ResRec["anisotropy_type"]=rec['anisotropy_type']
             ResRec["anisotropy_v1_dec"]='%7.1f'%(Vdirs[0][0])
             ResRec["anisotropy_v2_dec"]='%7.1f'%(Vdirs[1][0])
             ResRec["anisotropy_v3_dec"]='%7.1f'%(Vdirs[2][0])

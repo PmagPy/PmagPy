@@ -176,7 +176,7 @@ def main():
         AniRec['er_location_name']=locname
         AniRec['er_citation_names']="This study"
         AniRec['magic_instrument_codes']=inst
-        method_codes=['LP-KLY4S','AE-G','LP-AN-MS']
+        method_codes=['LP-X','AE-H','LP-AN-MS']
         AniRec['magic_experiment_name']=specname+":"+"LP-AN-MS"
         AniRec['er_analyst_mail_names']=user
         AniRec['er_site_name']=site
