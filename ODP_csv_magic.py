@@ -100,7 +100,6 @@ def main():
                 SpecRec['er_expedition_name']=expedition
                 SpecRec['er_location_name']=location
                 SpecRec['er_site_name']=specimen
-                SpecRec['er_sample_name']=specimen
                 SpecRec['er_citation_names']=citation
                 for key in SpecRec.keys():SampRec[key]=SpecRec[key]
                 for key in SpecRec.keys():SiteRec[key]=SpecRec[key]
@@ -112,6 +111,11 @@ def main():
                 else:
                     SampRec['magic_method_codes']='FS-C-DRILL-IODP:SO-V'
                 SpecRec['er_specimen_name']=specimen
+                SpecRec['er_sample_name']=specimen
+                SampRec['er_sample_name']=specimen
+                SampRec['er_specimen_names']=specimen
+                SiteRec['er_specimen_names']=specimen
+
                 for key in SpecRec.keys():MagRec[key]=SpecRec[key]
 # set up measurement record - default is NRM 
                 MagRec['er_analyst_mail_names']=InRec['Test Entered By']

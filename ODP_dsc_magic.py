@@ -137,6 +137,7 @@ def main():
             SampRec['sample_dip']='0'
             SampRec['magic_method_codes']='FS-C-DRILL-IODP:SP-SS-C:SO-V'
             SpecRec['er_specimen_name']=specimen
+            SampRec['er_specimen_names']=specimen
             for key in SpecRec.keys():MagRec[key]=SpecRec[key]
 # set up measurement record - default is NRM 
             MagRec['er_analyst_mail_names']=user
@@ -212,7 +213,7 @@ def main():
                         if items[0].strip()=='intensity_w_tray_w_bkgrd': MagRec['measurement_magn_moment']='%8.3e'%(float(items[1])*vol) # convert intensity from A/m to Am^2 using vol
                         if items[0].strip()=='x_stdev':MagRec['measurement_x_sd']=items[1]
                         if items[0].strip()=='y_stdev':MagRec['measurement_y_sd']=items[1]
-                        if items[0].strip()=='z_stdev':MagRec['measurement_z_sd']=items[1]
+                        if items[0].strip()=='z_stdev':MagRec['measurement_sd_z']=items[1]
                         MagRec['magic_instrument_codes']=inst
                         MagRec['measurement_number']='1'
             MagRecs.append(MagRec)
