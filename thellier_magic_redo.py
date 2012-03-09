@@ -67,6 +67,7 @@ def main():
         ind=args.index("-usr")
         user=sys.argv[ind+1]
     if "-leg" in args: comment="Recalculated from original measurements; supercedes published results. "
+    cool=0
     if "-CR" in args:
         cool=1
         ind=args.index("-CR")
@@ -185,17 +186,13 @@ def main():
     #
     # find the data from the meas_data file for this specimen
     #
-        for rec in meas_data:
-            if rec["er_specimen_name"].lower()==s.lower(): 
-                if "magic_instrument_codes" not in rec.keys():
-                    rec["magic_instrument_codes"]="unknown"
-                meths=rec["magic_method_codes"]
-                for meth in meths:meth.strip()   # get rid of annoying spaces in method codes
-                if "LP-PI-TRM" in meths: datablock.append(rec)
+        datablock=pmag.get_dictitem(meas_data,'er_specimen_name',s,'T') 
+        if len(datablock)>0:
+            for rec in datablock:
+                if "magic_instrument_codes" not in rec.keys(): rec["magic_instrument_codes"]="unknown"
     #
     #  collect info for the PmagSpecRec dictionary
     #
-        if len(datablock)>0:
             rec=datablock[0]
             PmagSpecRec["er_specimen_name"]=s
             PmagSpecRec["er_sample_name"]=rec["er_sample_name"]
