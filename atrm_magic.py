@@ -88,7 +88,6 @@ def main():
         RmagResRec={}
         BX,X=[],[]
         method_codes=[]
-        npos=0
         Spec0=""
     #
     # find the data from the meas_data file for this sample
@@ -126,7 +125,6 @@ def main():
                 if "LT-NO" in meths:
                     BX.append(pmag.dir2cart(Dir)) # append baseline steps
                 elif "LT-T-I" in meths: 
-                    npos+=1
                     X.append(pmag.dir2cart(Dir))
     #
         if len(BX)==1:
