@@ -45,7 +45,7 @@ def main():
         file_type=file_type.lower()
         if file_type=='delimited':file_type=Input[skip].split('\t')[2]
         if file_type[-1]=="\n":file_type=file_type[:-1]
-        print 'working on: ',file_type
+        print 'working on: ',repr(file_type)
         if file_type not in type_list:
             type_list.append(file_type)
         else:
@@ -73,6 +73,15 @@ def main():
                     NewRecs.append(rec)
                 pmag.magic_write(outfile,Recs,file_type)
                 print file_type," data put in ",outfile
+                if file_type =='pmag_specimens': # sort out zeq_specimens and thellier_specimens
+                    tspecs=pmag.get_dictitem(Recs,'magic_method_codes','PI-TRM','has')
+                    if len(tspecs)>0:
+                        pmag.magic_write('thellier_specimens.txt',tspecs,file_type)
+                        print len(tspecs), ' specimen interpretations stored in thellier_specimens.txt'
+                    zspecs=pmag.get_dictitem(Recs,'magic_method_codes','DIR','has')
+                    if len(zspecs)>0:
+                        pmag.magic_write('zeq_specimens.txt',zspecs,file_type)
+                        print len(zspecs), ' specimen interpretations stored in zeq_specimens.txt'
                 Recs=[]
                 LN+=1
                 break
@@ -81,7 +90,6 @@ def main():
                 Rec={}
                 for k in range(len(keys)):
                      Rec[keys[k]]=rec[k]
-                if file_type=="pmag_results":print Rec
                 Recs.append(Rec)
                 LN+=1
     if len(Recs)>0:
