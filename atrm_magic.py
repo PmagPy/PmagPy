@@ -83,6 +83,7 @@ def main():
     specimen,npos=0,6
     RmagSpecRecs,RmagResRecs=[],[]
     while specimen < len(sids):
+        nmeas=0 
         s=sids[specimen]
         RmagSpecRec={}
         RmagResRec={}
@@ -126,6 +127,7 @@ def main():
                     BX.append(pmag.dir2cart(Dir)) # append baseline steps
                 elif "LT-T-I" in meths: 
                     X.append(pmag.dir2cart(Dir))
+                    nmeas+=1
     #
         if len(BX)==1:
             for i in range(len(X)-1):BX.append(BX[0]) # assume first 0 field step as baseline
@@ -134,7 +136,7 @@ def main():
         elif len(BX)!= len(X): # if BX isn't just one measurement or one in between every infield step, just assume it is zero
             print 'something odd about the baselines - just assuming zero'
             for i in range(len(X)):BX.append([0.,0.,0.]) # assume baseline of 0
-        if npos<3: # can only do at least 3 positions
+        if nmeas<3: # can only do at least 3 positions
             print 'skipping specimen ',s,' too few measurements'
             specimen+=1
         else:
@@ -142,8 +144,8 @@ def main():
         #
         # subtract optional baseline and put in a work array
         #
-            work=numpy.zeros((npos,3),'f')
-            for i in range(npos):
+            work=numpy.zeros((nmeas,3),'f')
+            for i in range(nmeas):
                 for j in range(3):
                     work[i][j]=X[i][j]-BX[i][j] # subtract baseline, if available
         #
