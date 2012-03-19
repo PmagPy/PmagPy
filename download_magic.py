@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-import pmag,sys
+import pmag,sys,os,exceptions
 def main():
     """
     NAME
@@ -108,4 +108,30 @@ def main():
             NewRecs.append(rec)
         pmag.magic_write(outfile,Recs,file_type)
         print file_type," data put in ",outfile
+# look through locations table and create separate directories for each location
+    if 'er_locations' in type_list:
+        locs,file_type=pmag.magic_read('er_locations.txt')
+    if len(locs)>1: # more than one location
+        for loc in locs:
+            print 'location: ',loc['er_location_name']
+            lpath=dir_path+'/'+loc['er_location_name']
+            try:
+                os.mkdir(lpath)
+            except:
+                print 'directory ',lpath,' already exists - overwrite everything [y/n]?'
+                ans=raw_input()
+                if ans=='n':sys.exit()
+            for f in type_list:
+                print 'unpacking: ',dir_path+'/'+f+'.txt'
+                recs,file_type=pmag.magic_read(dir_path+'/'+f+'.txt')
+                if 'results' not in f:
+                    lrecs=pmag.get_dictitem(recs,'er_location_name',loc['er_location_name'],'T')
+                    if len(lrecs)>0:
+                        pmag.magic_write(lpath+'/'+f+'.txt',lrecs,file_type)
+                        print len(lrecs),' stored in ',lpath+'/'+f+'.txt'
+                else:
+                    lrecs=pmag.get_dictitem(recs,'er_location_names',loc['er_location_name'],'has')
+                    if len(lrecs)>0:
+                        pmag.magic_write(lpath+'/'+f+'.txt',lrecs,file_type)
+                        print len(lrecs),' stored in ',lpath+'/'+f+'.txt'
 main()

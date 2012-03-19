@@ -133,7 +133,10 @@ def main():
                 if InRec['Run Number']!= "": run_number=InRec['Run Number']
                 datestamp=InRec['Test Changed On'].split() # date time is second line of file
                 mmddyy=datestamp[0].split('/') # break into month day year
-                date='20'+mmddyy[2]+':'+mmddyy[0]+":"+mmddyy[1] +':' +datestamp[1]
+                if len(mmddyy[0])==1: mmddyy[0]='0'+mmddyy[0] # make 2 characters
+                if len(mmddyy[1])==1: mmddyy[1]='0'+mmddyy[1] # make 2 characters
+                if len(datestamp[1])==1: datestamp[1]='0'+datestamp[1] # make 2 characters
+                date='20'+mmddyy[2]+':'+mmddyy[0]+":"+mmddyy[1] +':' +datestamp[1]+":00.00"
                 MagRec["measurement_date"]=date
                 MagRec["magic_method_codes"]='LT-NO'
                 if InRec['Demag Level (mT)']!="0":

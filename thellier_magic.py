@@ -235,6 +235,7 @@ def main():
            PmagSpecRec["er_sample_name"]=rec["er_sample_name"]
            PmagSpecRec["er_site_name"]=rec["er_site_name"]
            PmagSpecRec["er_location_name"]=rec["er_location_name"]
+           if "er_expedition_name" in rec.keys():PmagSpecRec["er_expedition_name"]=rec["er_expedition_name"]
            if "magic_instrument_codes" not in rec.keys():rec["magic_instrument_codes"]=""
            PmagSpecRec["magic_instrument_codes"]=rec["magic_instrument_codes"]
            PmagSpecRec["measurement_step_unit"]="K"

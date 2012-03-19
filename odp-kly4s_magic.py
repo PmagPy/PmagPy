@@ -182,7 +182,7 @@ def main():
             MeasRec['measurement_standard']='u'
             MeasRec['measurement_description']='Bulk sucsecptibility measurement'
             AniRec['anisotropy_type']="AMS"
-            AniRec['anisotropy_unit']="Normalized by trace - bulk in measurements table"
+            AniRec['anisotropy_unit']="Normalized by trace"
             AniRec['anisotropy_unit']='SI'
             if spin==1:
                 AniRec['anisotropy_n']="192"

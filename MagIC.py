@@ -2802,6 +2802,11 @@ def ANI_depthplot():
     if Edict['Depth Max']!='':
         dmax=Edict['Depth Max']
         outstring=outstring+' -d '+dmin+' '+dmax
+    PLT_types=["Use composite depth - not for core boundaries!"]
+    plt_checks=ask_check(root,PLT_types,'choose plotting options:') #
+    PLT_list=map((lambda var:var.get()),plt_checks) # returns method code  radio button list
+    if PLT_list[0]!=0:
+        outstring=outstring+' -ds mcd '
     print outstring
     os.system(outstring)
 
@@ -2869,7 +2874,7 @@ def ODP_depthplot():
     ts=''
     if Edict['Time Scale (ck95,gts04)']!='' and Edict['Time Scale Age Max']!='' and Edict['Time Scale Age Min']!='':
         outstring=outstring+' -ts '+Edict['Time Scale (ck95,gts04)']+' '+Edict['Time Scale Age Min']+' '+Edict['Time Scale Age Max']
-    PLT_types=["Don't plot declinations","Don't plot inclinations","Don't plot intensities","Don't connect the dots","Don't plot the core boundaries","Don't plot the specimen directions","Don't use log scale for intensities","Customize long core symbols","Customize best-fit specimen symbols","Normalize intensity by weight","Plot Directions from Results"]
+    PLT_types=["Don't plot declinations","Don't plot inclinations","Don't plot intensities","Don't connect the dots","Don't plot the core boundaries","Don't plot the specimen directions","Don't use log scale for intensities","Customize long core symbols","Customize best-fit specimen symbols","Normalize intensity by weight","Plot Directions from Results","Use composite depth - not for core boundaries!"]
     plt_checks=ask_check(root,PLT_types,'choose plotting options:') #
     PLT_list=map((lambda var:var.get()),plt_checks) # returns method code  radio button list
     if PLT_list[7]!=0:
@@ -2883,6 +2888,7 @@ def ODP_depthplot():
     if PLT_list[2]==1:outstring=outstring+' -M '
     if PLT_list[3]==1:outstring=outstring+' -L '
     if PLT_list[10]==1:outstring=outstring+' -fres pmag_results.txt ro 5 '
+    if PLT_list[11]==1:outstring=outstring+' -ds mcd '
     if PLT_list[4]==0:
         try:
             logfile=open(opath+"/ODPsummary.log",'r')

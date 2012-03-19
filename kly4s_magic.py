@@ -262,7 +262,7 @@ def main():
         AniRec['anisotropy_s6']=rec[6]
         AniRec['anisotropy_sigma']=rec[7]
         AniRec['anisotropy_tilt_correction']='-1'
-        AniRec['anisotropy_unit']='Normalized by trace - bulk in measurements table'
+        AniRec['anisotropy_unit']='Normalized by trace'
         SpecRec['specimen_volume']='%8.3e'%(1e-6*float(rec[12])) # volume from cc to m^3
         MeasRec['measurement_flag']='g' # good
         MeasRec['measurement_standard']='u' # unknown
@@ -273,6 +273,7 @@ def main():
            date[2]='20'+date[2]
         datetime=date[2]+':'+date[0]+':'+date[1]+":"
         datetime=datetime+rec[15]
+        MeasRec['measurement_number']='1'
         MeasRec['measurement_date']=datetime 
         MeasRec['measurement_lab_field_ac']='%8.3e'%(4*math.pi*1e-7*float(rec[11])) # convert from A/m to T
         MeasRec['measurement_temp']="300" # assumed room T in kelvin

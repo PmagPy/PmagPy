@@ -35,7 +35,7 @@ def main():
         -Iex: plot the expected inc at lat - only available for results with lat info in file
         -ts TS amin amax: plot the GPTS for the time interval between amin and amax (numbers in Ma)
            TS: [ck95, gts04] 
-        
+        -ds [mbsf,mcd] specify depth scale, mbsf default 
 
      DEFAULTS:
          Measurements file: magic_measurements.txt
@@ -45,6 +45,7 @@ def main():
     """
     meas_file='magic_measurements.txt'
     samp_file='er_samples.txt'
+    depth_scale='sample_core_depth'
     wt_file=''
     width=10
     sym,size='bo',5
@@ -95,6 +96,7 @@ def main():
         pel-=1
         width-=2
     if '-log' in sys.argv:logit=1
+    if '-ds' in sys.argv and 'mcd' in sys.argv:depth_scale='sample_composite_depth'
     if '-sym' in sys.argv:
         ind=sys.argv.index('-sym')
         sym=sys.argv[ind+1]
@@ -197,7 +199,11 @@ def main():
             print 'no Core depth information available: import core summary file'
             sum_file=""
     Data=[]
-    xlab="Depth (mbsf)"
+    print depth_scale
+    if depth_scale=='sample_core_depth':
+        ylab="Depth (mbsf)"
+    else:
+        ylab="Depth (mcd)"
     # collect the data for plotting declination
     Depths,Decs,Incs,Ints=[],[],[],[]
     SDepths,SDecs,SIncs,SInts=[],[],[],[]
@@ -216,9 +222,9 @@ def main():
     if len(m2)>0:
       for rec in m2: # fish out depths and weights
         D=pmag.get_dictitem(Samps,'er_sample_name',rec['er_sample_name'],'T')
-        depth=pmag.get_dictitem(D,'sample_core_depth','','F')
+        depth=pmag.get_dictitem(D,depth_scale,'','F')
         if len(depth)>0:
-            rec['core_depth'] = float(depth[0]['sample_core_depth'])
+            rec['core_depth'] = float(depth[0][depth_scale])
             rec['magic_method_codes'] = rec['magic_method_codes']+':'+depth[0]['magic_method_codes']
             if norm==1:
                 specrecs=pmag.get_dictitem(ErSpecs,'er_specimen_name',rec['er_specimen_name'],'T')
@@ -267,9 +273,9 @@ def main():
         BFLs=pmag.get_dictitem(Specs,'magic_method_codes','DE-BFL','has')  # get all the discrete data with best fit lines
         for spec in BFLs:
             samp=pmag.get_dictitem(Samps,'er_sample_name',spec['er_sample_name'],'T')
-            if len(samp)>0 and 'sample_core_depth' in samp[0].keys() and samp[0]['sample_core_depth']!="":
-              if dmax==-1 or float(samp[0]['sample_core_depth'])<dmax and float(samp[0]['sample_core_depth'])>dmin: # filter for depth
-                SpecDepths.append(float(samp[0]['sample_core_depth'])) # fish out data with core_depth
+            if len(samp)>0 and depth_scale in samp[0].keys() and samp[0][depth_scale]!="":
+              if dmax==-1 or float(samp[0][depth_scale])<dmax and float(samp[0][depth_scale])>dmin: # filter for depth
+                SpecDepths.append(float(samp[0][depth_scale])) # fish out data with core_depth
                 SpecDecs.append(float(spec['specimen_dec'])) # fish out data with core_depth
                 SpecIncs.append(float(spec['specimen_inc'])) # fish out data with core_depth
             else:
@@ -277,9 +283,9 @@ def main():
         FMs=pmag.get_dictitem(Specs,'magic_method_codes','DE-FM','has')  # get all the discrete data with best fit lines
         for spec in FMs:
             samp=pmag.get_dictitem(Samps,'er_sample_name',spec['er_sample_name'],'T')
-            if len(samp)>0 and 'sample_core_depth' in samp[0].keys() and samp[0]['sample_core_depth']!="":
-              if dmax==-1 or float(samp[0]['sample_core_depth'])<dmax and float(samp[0]['sample_core_depth'])>dmin: # filter for depth
-                FDepths.append(float(samp[0]['sample_core_depth'])) # fish out data with core_depth
+	    if len(samp)>0 and depth_scale in samp[0].keys() and samp[0][depth_scale]!="":
+              if dmax==-1 or float(samp[0][depth_scale])<dmax and float(samp[0][depth_scale])>dmin: # filter for depth
+                FDepths.append(float(samp[0][depth_scale]))# fish out data with core_depth
                 FDecs.append(float(spec['specimen_dec'])) # fish out data with core_depth
                 FIncs.append(float(spec['specimen_inc'])) # fish out data with core_depth
             else:
@@ -323,16 +329,16 @@ def main():
     WIG,WIG_depths=[],[]
     if wig_file!="":
         wigdat,file_type=pmag.magic_read(wig_file)
-        swigdat=pmag.sort_diclist(wigdat,'sample_core_depth')
+        swigdat=pmag.sort_diclist(wigdat,depth_scale)
         keys=wigdat[0].keys()
         for key in keys:
-            if key!="sample_core_depth":
+            if key!=depth_scale:
                 plt_key=key
                 break
         for wig in swigdat:
-            if float(wig['sample_core_depth'])<dmax and float(wig['sample_core_depth'])>dmin:
+            if float(wig[depth_scale])<dmax and float(wig[depth_scale])>dmin:
                 WIG.append(float(wig[plt_key]))
-                WIG_depths.append(float(wig['sample_core_depth']))
+                WIG_depths.append(float(wig[depth_scale]))
     tint=4.5
     plt=1
     if len(Decs)>0 and len(Depths)>0 or (len(SpecDecs)>0 and len(SpecDepths)>0) or (len(ResDecs)>0 and len(ResDepths)>0) or (len(SDecs)>0 and len(SDepths)>0) or (len(SInts)>0 and len(SDepths)>0) or (len(SIncs)>0 and len(SDepths)>0):
@@ -359,7 +365,7 @@ def main():
             else:
                 pylab.axis([0,360.,dmax,dmin])
             pylab.xlabel('Declination')
-            pylab.ylabel('Depth (mbsf)')
+            pylab.ylabel(ylab)
             if title!="":pylab.title(title)
             title=""
             plt+=1 

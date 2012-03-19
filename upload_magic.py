@@ -88,8 +88,7 @@ def main():
                     if rec['er_sample_name'] in Done:
                         NewData.append(rec)
                     else: 
-                        print 'excluded: ' 
-                        print rec
+                        print 'excluded from ',file_type,' : ', rec['er_specimen_name']
                 Data=NewData           
                 print 'only measurements that are used for interpretations '
             if file_type=='er_specimens': # 

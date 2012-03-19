@@ -129,6 +129,7 @@ def main():
                    PmagSpecRec["er_sample_name"]=rec["er_sample_name"]
                    PmagSpecRec["er_site_name"]=rec["er_site_name"]
                    PmagSpecRec["er_location_name"]=rec["er_location_name"]
+                   if "er_expedition_name" in rec.keys():PmagSpecRec["er_expedition_name"]=rec["er_expedition_name"]
                    PmagSpecRec["er_citation_names"]="This study"
                    if "magic_experiment_name" not in rec.keys(): rec["magic_experiment_name"]=""
                    PmagSpecRec["magic_experiment_names"]=rec["magic_experiment_name"]

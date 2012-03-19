@@ -212,6 +212,7 @@ def main():
                PmagSpecRec["er_sample_name"]=rec["er_sample_name"]
                PmagSpecRec["er_site_name"]=rec["er_site_name"]
                PmagSpecRec["er_location_name"]=rec["er_location_name"]
+               if 'er_expedition_name' in rec.keys(): PmagSpecRec["er_expedition_name"]=rec["er_expedition_name"]
                PmagSpecRec["magic_method_codes"]=rec["magic_method_codes"]
                if "magic_experiment_name" not in rec.keys():
                    PmagSpecRec["magic_experiment_names"]=""

@@ -21,6 +21,7 @@ def main():
         -fsa FILE: specify input er_samples format file from magic 
         -d min max [in m] depth range to plot
         -o plot only oblate specimens with ~vertical minima
+        -ds [mcd,mbsf], specify depth scale, default is mbsf
      DEFAULTS:
          Anisotropy file: rmag_anisotropy.txt
          Bulk susceptibility file: magic_measurements.txt
@@ -57,6 +58,10 @@ def main():
         dmax=float(sys.argv[ind+2])
     oblate=0
     if '-o' in sys.argv: oblate=1
+    if '-ds' in sys.argv and 'mcd' in sys.argv:
+        depth_scale='sample_composite_depth'
+    else:
+        depth_scale='sample_core_depth'
     #
     # get data read in
     isbulk=0
@@ -71,12 +76,12 @@ def main():
     bmin,bmax=1e6,-1e6 
     for rec in AniData:
         samprecs=pmag.get_dictitem(Samps,'er_sample_name',rec['er_sample_name'].upper(),'T')
-        sampdepths=pmag.get_dictitem(samprecs,'sample_core_depth','','F')
+        sampdepths=pmag.get_dictitem(samprecs,depth_scale,'','F')
         if dmax!=-1:
-            sampdepths=pmag.get_dictitem(sampdepths,'sample_core_depth',dmax,'max')
-            sampdepths=pmag.get_dictitem(sampdepths,'sample_core_depth',dmin,'min')
+            sampdepths=pmag.get_dictitem(sampdepths,depth_scale,dmax,'max')
+            sampdepths=pmag.get_dictitem(sampdepths,depth_scale,dmin,'min')
         if len(sampdepths)>0:
-            rec['core_depth'] = sampdepths[0]['sample_core_depth']
+            rec['core_depth'] = sampdepths[0][depth_scale]
             Data.append(rec) # fish out data with core_depth
             if isbulk: 
                 chis=pmag.get_dictitem(Meas,'er_specimen_name',rec['er_specimen_name'],'T')
@@ -85,7 +90,7 @@ def main():
                     Bulks.append(1e6*float(chis[0]['measurement_chi_volume']))
                     if Bulks[-1]<bmin:bmin=Bulks[-1]
                     if Bulks[-1]>bmax:bmax=Bulks[-1]
-                    BulkDepths.append(float(sampdepths[0]['sample_core_depth']))
+                    BulkDepths.append(float(sampdepths[0][depth_scale]))
     xlab="Depth (m)"
     if len(Data)>0:
         location=Data[0]['er_location_name']
@@ -132,7 +137,10 @@ def main():
         pylab.plot(Tau3,Depths,'ko') 
         pylab.axis([tau_min,tau_max,dmax,dmin])
         pylab.xlabel('Eigenvalues')
-        pylab.ylabel('Depth (m)')
+        if depth_scale=='sample_core_depth':
+            pylab.ylabel('Depth (mbsf)')
+        else:
+            pylab.ylabel('Depth (mcd)')
         pylab.subplot(1,pcol,2)
         pylab.plot(P,Depths,'rs') 
         pylab.axis([P_min,P_max,dmax,dmin])
