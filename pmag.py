@@ -2,7 +2,7 @@ import  numpy,string,sys,random
 import numpy.linalg
 import exceptions
 def get_version(): 
-    return "pmagpy-2.108"
+    return "pmagpy-2.109"
 def sort_diclist(undecorated,sort_on):
     decorated=[(dict_[sort_on],dict_) for dict_ in undecorated]
     decorated.sort()
@@ -2322,7 +2322,7 @@ def vclose(L,V):
     return X
 
    
-def scoreit(pars,PmagSpecRec,accept,text,noprint):
+def scoreit(pars,PmagSpecRec,accept,text,verbose):
     """
     gets a grade for a given set of data, spits out stuff
     """
@@ -2358,7 +2358,7 @@ def scoreit(pars,PmagSpecRec,accept,text,noprint):
     if score==len(accept.keys())-3:Grade='D'
     if score<=len(accept.keys())-4:Grade='F'
     pars["specimen_grade"]=Grade
-    if noprint==1:
+    if verbose==0:
         return pars
     diffcum=0
     if pars['measurement_step_unit']=='K':
@@ -4508,7 +4508,7 @@ def measurements_methods(meas_data,noave):
 # between 0 and 50C is room T measurement
                 if ("measurement_dc_field" not in rec.keys() or float(rec["measurement_dc_field"])==0 or rec["measurement_dc_field"]=="") and ("measurement_ac_field" not in rec.keys() or float(rec["measurement_ac_field"])==0 or rec["measurement_ac_field"]==""): 
 # measurement done in zero field!
-                    if  "treatment_temp" not in rec.keys() or (float(rec["treatment_temp"])>=273. and float(rec["treatment_temp"]) < 298.):   
+                    if  "treatment_temp" not in rec.keys() or rec["treatment_temp"].strip()=="" or (float(rec["treatment_temp"])>=273. and float(rec["treatment_temp"]) < 298.):   
 # between 0 and 50C is room T treatment
                         if "treatment_ac_field" not in rec.keys() or rec["treatment_ac_field"] =="" or float(rec["treatment_ac_field"])==0: 
 # no AF
@@ -4706,23 +4706,18 @@ def measurements_methods(meas_data,noave):
                 IRM=1
             else: IRM=0 # no IRM at all
             if "LP-X" in SpecMeths: # susceptibility run
-                Steps=[]
-                for rec in  NewSpecs: 
-                    tmp=rec["magic_method_codes"].split(":")
-                    methods=[]
-                    for meth in tmp:
-                        methods.append(meth.strip())
-                    if "LT-X" in methods:Steps.append(rec)  # get all infield steps together
-                rec_bak=Steps[0]
-                if "treatment_dc_field_phi" in rec_bak.keys() and "treatment_dc_field_theta" in rec_bak.keys():   
-                    if rec_bak["treatment_dc_field_phi"] !="" and rec_bak["treatment_dc_field_theta"]!="":   # at least there is field orientation info
-                        phi0,theta0=rec_bak["treatment_dc_field_phi"],rec_bak["treatment_dc_field_theta"]
-                        ANIS=0
-                        for k in range(1,len(Steps)):
-                            rec=Steps[k]
-                            phi,theta=rec["treatment_dc_field_phi"],rec["treatment_dc_field_theta"]
-                            if phi!=phi0 or theta!=theta0: ANIS=1   # if direction changes, is some sort of anisotropy experiment
-                        if ANIS==1:experiment_name="LP-AN-MS"
+                Steps=get_dictitem(NewSpecs,'magic_method_codes','LT-X','has')
+                if len(Steps)>0:
+                    rec_bak=Steps[0]
+                    if "treatment_dc_field_phi" in rec_bak.keys() and "treatment_dc_field_theta" in rec_bak.keys():   
+                        if rec_bak["treatment_dc_field_phi"] !="" and rec_bak["treatment_dc_field_theta"]!="":   # at least there is field orientation info
+                            phi0,theta0=rec_bak["treatment_dc_field_phi"],rec_bak["treatment_dc_field_theta"]
+                            ANIS=0
+                            for k in range(1,len(Steps)):
+                                rec=Steps[k]
+                                phi,theta=rec["treatment_dc_field_phi"],rec["treatment_dc_field_theta"]
+                                if phi!=phi0 or theta!=theta0: ANIS=1   # if direction changes, is some sort of anisotropy experiment
+                            if ANIS==1:experiment_name="LP-AN-MS"
             else: CHI=0 # no susceptibility at all
     #
     # now need to deal with special thellier experiment problems - first clear up pTRM checks and  tail checks

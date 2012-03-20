@@ -49,7 +49,7 @@ def plot_init(fignum,w,h):
     """
     global fig_x_pos,fig_y_pos,plt_num
     dpi=80
-    pylab.ion()
+    #pylab.ion()
     plt_num+=1
     pylab.figure(num=fignum,figsize=(w,h),dpi=dpi)
     if not isServer:
@@ -62,7 +62,7 @@ def plot_init(fignum,w,h):
         pylab.figtext(.02,.01,version_num)
 ##    pylab.connect('button_press_event',click)
 #
-    pylab.ioff()
+    #pylab.ioff()
 
 def plot3d_init(fignum):
     from mpl_toolkits.mplot3d import Axes3D
@@ -665,7 +665,7 @@ def plotZED(ZED,datablock,angle,s,units):
     if units=="U": norm=0
     plotMT(ZED['demag'],datablock,s,1,units,norm)
     plotZ(ZED['zijd'],datablock,angle,s,norm)
-    drawFIGS(ZED)
+    #drawFIGS(ZED)
     
 
 def plotDir(ZED,pars,datablock,angle):
@@ -683,7 +683,6 @@ def plotDir(ZED,pars,datablock,angle):
        x.append(XY[0])
        y.append(XY[1])
        pylab.scatter(x,y,marker='^',s=80,c='r')
-       drawFIGS(ZED)
        return
     StartDir,EndDir=[0,0,1.],[0,0,1.]
     for rec in datablock:
@@ -790,7 +789,6 @@ def plotDir(ZED,pars,datablock,angle):
        pylab.xlim( (-1.,1.))
        pylab.ylim( (-1.,1.))
        pylab.axis("equal")
-    drawFIGS(ZED)
 
 def plotA(fignum,indata,s,units):
     global globals
@@ -942,7 +940,6 @@ def plotAZ(ZED,araiblock,zijdblock,s,units):
     plotZ(ZED['zijd'],zijdblock,angle,s,norm)
     plotA(ZED['arai'],araiblock,s,units)
     plotTEQ(ZED['eqarea'],araiblock,s,"")
-    drawFIGS(ZED)
 
 def plotSHAW(SHAW,shawblock,zijdblock,field,s):
     angle=zijdblock[0][1]
@@ -1010,7 +1007,6 @@ def plotSHAW(SHAW,shawblock,zijdblock,field,s):
     print 'Banc= ',Banc*1e6,' uT'  
     notestr='Banc = '+ '%5.1f'%(Banc*1e6)+' uT'
     pylab.text(.5*TRM[-1][1]+.2,.9,notestr)
-    drawFIGS(SHAW)
 
 
 def  plotB(Figs,araiblock,zijdblock,pars):
@@ -1067,7 +1063,6 @@ def  plotB(Figs,araiblock,zijdblock,pars):
         pylab.text(.7*bounds[1],.9*bounds[3],notestr)
     notestr='B: '+ '%6.2f'%(pars["specimen_int"]*1e6)+' uT'
     pylab.text(.7*bounds[1],.8*bounds[3],notestr)
-    drawFIGS(Figs)
 
 
 def plotSLNP(fignum,SiteRec,datablock,key):
@@ -2113,7 +2108,6 @@ def plotTDS(fig,tdsblock,title):
         pylab.text(X[-1],Y[-1],' %3.1f'%(float(rec[0])-273))
     pylab.plot(X,Y,'ro')
     pylab.plot(X,Y)
-    pylab.draw()
 
 
 

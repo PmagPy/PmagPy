@@ -2901,10 +2901,10 @@ def ODP_depthplot():
             pass
     if PLT_list[5]==0:
         try:
-            open(opath+"/zeq_specimens.txt",'r')
-            outstring=outstring + ' -fsp zeq_specimens.txt ' + syms['dsym']+ ' ' +syms['dsize'] 
+            open(opath+"/pmag_specimens.txt",'r')
+            outstring=outstring + ' -fsp pmag_specimens.txt ' + syms['dsym']+ ' ' +syms['dsize'] 
         except IOError:
-            pass       
+            tkMessageBox.showinfo("Info","Assemble specimens first")
     else:
         outstring=outstring+' -S '
     if PLT_list[6]==0: outstring = outstring + ' -log'

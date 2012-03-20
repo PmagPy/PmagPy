@@ -24,6 +24,7 @@ def main():
         -fmt [svg,png,jpg] format for output plots
         -ell [F,K,B,Be,Bv] plot Fisher, Kent, Bingham, Bootstrap ellipses or Boostrap eigenvectors
         -c plot as colour contour 
+        -sav save plot and quit quietly
     NOTE
         all: entire file; sit: site; sam: sample; spc: specimen
     """
@@ -33,6 +34,7 @@ def main():
     fmt,dist,mode='svg','F',1
     plotE,contour=0,0
     dir_path='.'
+    verbose=pmagplotlib.verbose
     if '-h' in sys.argv:
         print main.__doc__
         sys.exit()
@@ -51,6 +53,9 @@ def main():
         if plot_by=='sam':plot_key='er_sample_name'
         if plot_by=='spc':plot_key='er_specimen_name'
     if '-c' in sys.argv: contour=1
+    if '-sav' in sys.argv: 
+        plots=1
+        verbose=0
     if '-ell' in sys.argv:
         plotE=1
         ind=sys.argv.index('-ell')
@@ -78,7 +83,7 @@ def main():
     Name_keys=['er_specimen_name','er_sample_name','er_site_name','pmag_result_name']
     data,file_type=pmag.magic_read(in_file)
     if file_type=='pmag_results' and plot_key!="all":plot_key=plot_key+'s' # need plural for results table
-    if pmagplotlib.verbose:    
+    if verbose:    
         print len(data),' records read from ',in_file
     #
     #
@@ -146,9 +151,9 @@ def main():
                     GCblock.append([float(rec[dec_key]),float(rec[inc_key])])
                     SPblock.append([rec[name_key],rec['magic_method_codes']])
         if len(DIblock)==0 and len(GCblock)==0:
-            if pmagplotlib.verbose: print "no records for plotting"
+            if verbose: print "no records for plotting"
             sys.exit()
-        if pmagplotlib.verbose:
+        if verbose:
           for k in range(len(SLblock)):
             print '%s %s %7.1f %7.1f'%(SLblock[k][0],SLblock[k][1],DIblock[k][0],DIblock[k][1])
           for k in range(len(SPblock)):
@@ -174,8 +179,8 @@ def main():
                 etitle="Bingham confidence ellipse"
                 bpars=pmag.dobingham(DIblock)
                 for key in bpars.keys():
-                    if key!='n' and pmagplotlib.verbose:print "    ",key, '%7.1f'%(bpars[key])
-                    if key=='n' and pmagplotlib.verbose:print "    ",key, '       %i'%(bpars[key])
+                    if key!='n' and verbose:print "    ",key, '%7.1f'%(bpars[key])
+                    if key=='n' and verbose:print "    ",key, '       %i'%(bpars[key])
                 npars.append(bpars['dec']) 
                 npars.append(bpars['inc'])
                 npars.append(bpars['Zeta']) 
@@ -189,8 +194,8 @@ def main():
                 if len(nDIs)>2:
                     fpars=pmag.fisher_mean(nDIs)
                     for key in fpars.keys():
-                        if key!='n' and pmagplotlib.verbose:print "    ",key, '%7.1f'%(fpars[key])
-                        if key=='n' and pmagplotlib.verbose:print "    ",key, '       %i'%(fpars[key])
+                        if key!='n' and verbose:print "    ",key, '%7.1f'%(fpars[key])
+                        if key=='n' and verbose:print "    ",key, '       %i'%(fpars[key])
                     mode+=1
                     npars.append(fpars['dec']) 
                     npars.append(fpars['inc'])
@@ -203,10 +208,10 @@ def main():
                     npars.append(0.) #Beta inc
                 if len(rDIs)>2:
                     fpars=pmag.fisher_mean(rDIs)
-                    if pmagplotlib.verbose:print "mode ",mode
+                    if verbose:print "mode ",mode
                     for key in fpars.keys():
-                        if key!='n' and pmagplotlib.verbose:print "    ",key, '%7.1f'%(fpars[key])
-                        if key=='n' and pmagplotlib.verbose:print "    ",key, '       %i'%(fpars[key])
+                        if key!='n' and verbose:print "    ",key, '%7.1f'%(fpars[key])
+                        if key=='n' and verbose:print "    ",key, '       %i'%(fpars[key])
                     mode+=1
                     rpars.append(fpars['dec']) 
                     rpars.append(fpars['inc'])
@@ -221,10 +226,10 @@ def main():
                 etitle="Kent confidence ellipse"
                 if len(nDIs)>3:
                     kpars=pmag.dokent(nDIs,len(nDIs))
-                    if pmagplotlib.verbose:print "mode ",mode
+                    if verbose:print "mode ",mode
                     for key in kpars.keys():
-                        if key!='n' and pmagplotlib.verbose:print "    ",key, '%7.1f'%(kpars[key])
-                        if key=='n' and pmagplotlib.verbose:print "    ",key, '       %i'%(kpars[key])
+                        if key!='n' and verbose:print "    ",key, '%7.1f'%(kpars[key])
+                        if key=='n' and verbose:print "    ",key, '       %i'%(kpars[key])
                     mode+=1
                     npars.append(kpars['dec']) 
                     npars.append(kpars['inc'])
@@ -236,10 +241,10 @@ def main():
                     npars.append(kpars['Einc'])
                 if len(rDIs)>3:
                     kpars=pmag.dokent(rDIs,len(rDIs))
-                    if pmagplotlib.verbose:print "mode ",mode
+                    if verbose:print "mode ",mode
                     for key in kpars.keys():
-                        if key!='n' and pmagplotlib.verbose:print "    ",key, '%7.1f'%(kpars[key])
-                        if key=='n' and pmagplotlib.verbose:print "    ",key, '       %i'%(kpars[key])
+                        if key!='n' and verbose:print "    ",key, '%7.1f'%(kpars[key])
+                        if key=='n' and verbose:print "    ",key, '       %i'%(kpars[key])
                     mode+=1
                     rpars.append(kpars['dec']) 
                     rpars.append(kpars['inc'])
@@ -254,10 +259,10 @@ def main():
                     if len(nDIs)>5:
                         BnDIs=pmag.di_boot(nDIs)
                         Bkpars=pmag.dokent(BnDIs,1.)
-                        if pmagplotlib.verbose:print "mode ",mode
+                        if verbose:print "mode ",mode
                         for key in Bkpars.keys():
-                            if key!='n' and pmagplotlib.verbose:print "    ",key, '%7.1f'%(Bkpars[key])
-                            if key=='n' and pmagplotlib.verbose:print "    ",key, '       %i'%(Bkpars[key])
+                            if key!='n' and verbose:print "    ",key, '%7.1f'%(Bkpars[key])
+                            if key=='n' and verbose:print "    ",key, '       %i'%(Bkpars[key])
                         mode+=1
                         npars.append(Bkpars['dec']) 
                         npars.append(Bkpars['inc'])
@@ -270,10 +275,10 @@ def main():
                     if len(rDIs)>5:
                         BrDIs=pmag.di_boot(rDIs)
                         Bkpars=pmag.dokent(BrDIs,1.)
-                        if pmagplotlib.verbose:print "mode ",mode
+                        if verbose:print "mode ",mode
                         for key in Bkpars.keys():
-                            if key!='n' and pmagplotlib.verbose:print "    ",key, '%7.1f'%(Bkpars[key])
-                            if key=='n' and pmagplotlib.verbose:print "    ",key, '       %i'%(Bkpars[key])
+                            if key!='n' and verbose:print "    ",key, '%7.1f'%(Bkpars[key])
+                            if key=='n' and verbose:print "    ",key, '       %i'%(Bkpars[key])
                         mode+=1
                         rpars.append(Bkpars['dec']) 
                         rpars.append(Bkpars['inc'])
@@ -302,7 +307,7 @@ def main():
                     pmagplotlib.plotCONF(FIG['eq'],etitle,[],rpars,0)
             elif len(rDIs)>3 and dist!='BV':
                 pmagplotlib.plotCONF(FIG['eq'],etitle,[],rpars,0)
-        pmagplotlib.drawFIGS(FIG)
+        if verbose:pmagplotlib.drawFIGS(FIG)
             #
         files={}
         for key in FIG.keys():
@@ -314,10 +319,12 @@ def main():
             titles['eq']='Equal Area Plot'
             FIG = pmagplotlib.addBorders(FIG,titles,black,purple)
             pmagplotlib.saveP(FIG,files)
-        else:
+        elif verbose:
             ans=raw_input(" S[a]ve to save plot, [q]uit, Return to continue:  ")
             if ans=="q": sys.exit()
             if ans=="a": 
                 pmagplotlib.saveP(FIG,files) 
+        if plots:
+           pmagplotlib.saveP(FIG,files) 
 
 main() 
