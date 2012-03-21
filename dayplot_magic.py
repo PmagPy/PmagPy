@@ -17,10 +17,12 @@ def main():
         -f: specify input hysteresis file, default is rmag_hysteresis.txt
         -fr: specify input remanence file, default is rmag_remanence.txt
         -fmt [svg,png,jpg] format for output plots
+        -sav saves plots and quits quietly
     """
     args=sys.argv
     hyst_file,rem_file="rmag_hysteresis.txt","rmag_remanence.txt"
     dir_path='.'
+    verbose=pmagplotlib.verbose
     fmt='svg' # default file format
     if '-WD' in args:
        ind=args.index('-WD')
@@ -37,6 +39,9 @@ def main():
     if '-fmt' in sys.argv:
         ind=sys.argv.index("-fmt")
         fmt=sys.argv[ind+1]
+    if '-sav' in sys.argv:
+        plots=1
+        verbose=0
     hyst_file=dir_path+'/'+hyst_file
     rem_file=dir_path+'/'+rem_file
     #
@@ -74,7 +79,7 @@ def main():
                     S1.append(S[ind])
                     Bcr2.append(Bcr[ind])
                 except ValueError:
-                    print 'hysteresis data for ',rec['er_specimen_name'],' not found'
+                    if verbose:print 'hysteresis data for ',rec['er_specimen_name'],' not found'
     #
     # now plot the day and S-Bc, S-Bcr plots
     #
@@ -84,16 +89,20 @@ def main():
         pmagplotlib.plotSBcr(DSC['S-Bcr'],Bcr1,S1,'ro') 
         pmagplotlib.plot_init(DSC['bcr1-bcr2'],5,5)
         pmagplotlib.plotBcr(DSC['bcr1-bcr2'],Bcr1,Bcr2)
+    else:
+        del DSC['bcr1-bcr2']
     pmagplotlib.plotDay(DSC['day'],BcrBc,S,'bs') 
     pmagplotlib.plotSBcr(DSC['S-Bcr'],Bcr,S,'bs') 
     pmagplotlib.plotSBc(DSC['S-Bc'],Bc,S,'bs') 
-    pmagplotlib.drawFIGS(DSC)
     files={}
     for key in DSC.keys():
         files[key]=hyst_file+'_'+key+'.'+fmt
-    ans=raw_input(" S[a]ve to save plots, return to quit:  ")
-    if ans=="a":
-        pmagplotlib.saveP(DSC,files)
-    else: sys.exit()
+    if verbose:
+        pmagplotlib.drawFIGS(DSC)
+        ans=raw_input(" S[a]ve to save plots, return to quit:  ")
+        if ans=="a":
+            pmagplotlib.saveP(DSC,files)
+        else: sys.exit()
+    if plots:  pmagplotlib.saveP(DSC,files)
     #
 main()

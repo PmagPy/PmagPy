@@ -18,7 +18,7 @@ def main():
         -h prints help message and quits
         -f FILE specifies input file name
         -p make the plots, default is to just list available plots
-        -fmt [png,eps,svg,jpg] specify format, default is png
+        -fmt [png,eps,svg,jpg,pdf] specify format, default is png
     """
     dir_path='.'
     if '-WD' in sys.argv:
@@ -50,12 +50,15 @@ def main():
             Mrecs=pmag.get_dictitem(data,key,'','F') # get intensity data
             if len(Mrecs)>0:break
         if len(AFZrecs)>0 or len(TZrecs)>0 or len(MZrecs)>0 and len(Drecs)>0 and len(Irecs)>0 and len(Mrecs)>0: # potential for stepwise demag curves 
-            os.system('zeq_magic.py -sav -fmt png')
+            os.system('zeq_magic.py -sav -fmt '+fmt)
         # looking for  thellier_magic possibilities
         if len(pmag.get_dictitem(data,'magic_method_codes','LP-PI-TRM','has'))>0:
-            os.system('thellier_magic.py -sav -fmt png')
+            os.system('thellier_magic.py -sav -fmt '+fmt)
+        # looking for hysteresis possibilities
+        if len(pmag.get_dictitem(data,'magic_method_codes','LP-HYS','has'))>0: # find hyst experiments
+            os.system('hysteresis_magic.py -sav -fmt '+fmt)
     if 'pmag_results.txt' in filelist: # start with measurement data
-        print 'working on results'
+        print 'working on pmag_results'
         data,file_type=pmag.magic_read('pmag_results.txt') # read in data
         SiteDIs=pmag.get_dictitem(data,'average_dec','','F') # find decs
         SiteDIs=pmag.get_dictitem(SiteDIs,'average_inc','','F') # find decs and incs
@@ -63,13 +66,23 @@ def main():
         coords=pmag.get_dictitem(SiteDIs,'tilt_correction','','F')
         if len(coords)>0: # there are coordinate systems specified
             SiteDIs_s=pmag.get_dictitem(SiteDIs,'tilt_correction','-1','T')# sample coordinates
-            os.system('eqarea_magic.py -sav -crd s -fmt png')
+            os.system('eqarea_magic.py -sav -crd s -fmt '+fmt)
             SiteDIs_g=pmag.get_dictitem(SiteDIs,'tilt_correction','0','T')# geographic coordinates
-            os.system('eqarea_magic.py -sav -crd 0 -fmt png')
+            os.system('eqarea_magic.py -sav -crd 0 -fmt '+fmt)
             SiteDIs_t=pmag.get_dictitem(SiteDIs,'tilt_correction','100','T')# tilt corrected coordinates
-            os.system('eqarea_magic.py -sav -crd 100 -fmt png')
-            
-            
+            os.system('eqarea_magic.py -sav -crd 100 -fmt '+fmt)
+    if 'rmag_hysteresis.txt' in filelist: # start with measurement data
+        print 'working on rmag_hysteresis'
+        data,file_type=pmag.magic_read('rmag_hysteresis.txt') # read in data
+        hdata=pmag.get_dictitem(data,'hysteresis_bcr','','F')
+        hdata=pmag.get_dictitem(hdata,'hysteresis_mr_moment','','F')
+        hdata=pmag.get_dictitem(hdata,'hysteresis_bcr','','F')
+        hdata=pmag.get_dictitem(hdata,'hysteresis_bc','','F') # there are data for a dayplot
+        if len(hdata)>0:
+            os.system('dayplot_magic.py -sav -fmt '+fmt) 
+    if 'er_sites.txt' in filelist: # start with measurement data
+        print 'working on er_sites'
+        os.system('basemap_magic.py -sav -fmt '+fmt)
         
         
 main()

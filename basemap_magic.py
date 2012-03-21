@@ -27,7 +27,8 @@ def main():
         -l print location names (default is not)
         -o color ocean blue/land green (default is not)
         -D don't plot details of rivers, boundaries, etc.
-    
+        -sav save plot and quit quietly
+        -fmt [png,svg,eps,jpg,pdf] specify format for output, default is pdf     
     DEFAULTS
         SFILE: 'er_sites.txt'
         resolution: intermediate
@@ -58,6 +59,12 @@ def main():
     if '-prj' in sys.argv:
         ind = sys.argv.index('-prj')
         proj=sys.argv[ind+1]
+    if '-fmt' in sys.argv:
+        ind = sys.argv.index('-fmt')
+        fmt=sys.argv[ind+1]
+    verbose=pmagplotlib.verbose
+    if '-sav' in sys.argv: 
+        verbose=0
     if '-pad' in sys.argv:
         ind = sys.argv.index('-pad')
         padlat=float(sys.argv[ind+1])
@@ -97,7 +104,7 @@ def main():
     else: 
         Opts['details']={'coasts':1,'rivers':0,'states':0,'countries':0,'ocean':1} 
     pmagplotlib.plotMAP(FIG['map'],lats,lons,Opts)
-    pmagplotlib.drawFIGS(FIG)
+    if verbose:pmagplotlib.drawFIGS(FIG)
     files={}
     for key in FIG.keys():
         files[key]='Site_map'+'.'+fmt
@@ -105,11 +112,13 @@ def main():
         black     = '#000000'
         purple    = '#800080'
         titles={}
-        titles['eq']='Site Map'
+        titles['map']='Site Map'
         FIG = pmagplotlib.addBorders(FIG,titles,black,purple)
         pmagplotlib.saveP(FIG,files)
-    else:
+    elif verbose:
         ans=raw_input(" S[a]ve to save plot, Return to quit:  ")
         if ans=="a":
             pmagplotlib.saveP(FIG,files)
+    else:
+        pmagplotlib.saveP(FIG,files)
 main()

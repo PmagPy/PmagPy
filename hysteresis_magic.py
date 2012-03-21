@@ -20,12 +20,17 @@ def main():
         -F: specify output file, default is rmag_hysteresis.txt
         -P: do not make the plots
         -spc SPEC: specify specimen name to plot and quit
+        -sav save all plots and quit
+        -fmt [png,svg,eps,jpg]
     """
     args=sys.argv
     PLT=1
+    plots=0
     user,meas_file,rmag_out,rmag_file="","agm_measurements.txt","rmag_hysteresis.txt",""
     pltspec=""
     dir_path='.'
+    fmt='png'
+    verbose=pmagplotlib.verbose
     version_num=pmag.get_version()
     if '-WD' in args:
         ind=args.index('-WD')
@@ -48,10 +53,17 @@ def main():
         rmag_file=dir_path+'/'+rmag_file
     if '-P' in args:
         PLT=0
+    if '-sav' in args:
+        verbose=0
+        plots=1
     if '-spc' in args:
         ind=args.index("-spc")
         pltspec= args[ind+1]
-        PLT=1
+        verbose=0
+        plots=1
+    if '-fmt' in args:
+        ind=args.index("-fmt")
+        fmt=args[ind+1]
     rmag_out=dir_path+'/'+rmag_out
     meas_file=dir_path+'/'+meas_file
     rmag_rem=dir_path+"/rmag_remanence.txt"
@@ -67,8 +79,9 @@ def main():
     # define figure numbers for hyst,deltaM,DdeltaM curves
     HystRecs,RemRecs=[],[]
     HDD={}
-    if PLT==1:
-        print "Plots may be on top of each other - use mouse to place "
+    if verbose:
+        if verbose:print "Plots may be on top of each other - use mouse to place "
+    if PLT:
         HDD['hyst'],HDD['deltaM'],HDD['DdeltaM'],HDD['irm'],HDD['imag']=1,2,3,4,5
         pmagplotlib.plot_init(HDD['imag'],5,5)
         pmagplotlib.plot_init(HDD['irm'],5,5)
@@ -100,7 +113,7 @@ def main():
         print sids[k]
     while k < len(sids):
         s=sids[k]
-        if pltspec=="":print s, k+1 , 'out of ',len(sids)
+        if verbose:print s, k+1 , 'out of ',len(sids)
     #
     #
         B,M,Bdcd,Mdcd=[],[],[],[] #B,M for hysteresis, Bdcd,Mdcd for irm-dcd data
@@ -152,7 +165,7 @@ def main():
             hmeths=[]
             for meth in meths: hmeths.append(meth)
             hpars=pmagplotlib.plotHDD(HDD,B,M,e) 
-            if PLT==1:pmagplotlib.drawFIGS(HDD)
+            if verbose:pmagplotlib.drawFIGS(HDD)
     #
     # get prior interpretations from hyst_data
             if rmag_file!="":
@@ -165,9 +178,9 @@ def main():
                             hpars_prior['hysteresis_bc']=rec['hysteresis_bc']
                             hpars_prior['hysteresis_bcr']=rec['hysteresis_bcr']
                             break
-                if PLT==1:pmagplotlib.plotHPARS(HDD,hpars_prior,'ro')
+                if verbose:pmagplotlib.plotHPARS(HDD,hpars_prior,'ro')
             else:
-                if PLT==1:pmagplotlib.plotHPARS(HDD,hpars,'bs')
+                if verbose:pmagplotlib.plotHPARS(HDD,hpars,'bs')
                 HystRec['hysteresis_mr_moment']=hpars['hysteresis_mr_moment']
                 HystRec['hysteresis_ms_moment']=hpars['hysteresis_ms_moment']
                 HystRec['hysteresis_bc']=hpars['hysteresis_bc']
@@ -185,7 +198,7 @@ def main():
         if len(Bdcd)>0: 
             rmeths=[]
             for meth in meths: rmeths.append(meth)
-            print 'plotting IRM'
+            if verbose:print 'plotting IRM'
             rpars=pmagplotlib.plotIRM(HDD['irm'],Bdcd,Mdcd,irm_exp) 
             RemRec['remanence_mr_moment']=rpars['remanence_mr_moment']
             RemRec['remanence_bcr']=rpars['remanence_bcr']
@@ -200,7 +213,7 @@ def main():
         else: 
             pmagplotlib.clearFIG(HDD['irm'])
         if len(Bimag)>0: 
-            print 'plotting initial magnetization curve'
+            if verbose:print 'plotting initial magnetization curve'
 # first normalize by Ms
             Mnorm=[]
             for m in Mimag: Mnorm.append(m/float(hpars['hysteresis_ms_moment']))
@@ -209,21 +222,20 @@ def main():
             pmagplotlib.clearFIG(HDD['imag'])
     #
         files={}
-        if pltspec!="":
-            pmagplotlib.drawFIGS(HDD)
-            ans=raw_input("Save figures? [1]/0 ")
-            if ans!="0":
-                for key in HDD.keys():
-                    files[key]=pltspec+'_'+key+'.svg'
-                pmagplotlib.saveP(HDD,files)
-            sys.exit()
-        if PLT==1:
+        if plots:
+            if pltspec!="":s=pltspec
+            files={}
+            for key in HDD.keys():
+                files[key]=s+'_'+key+'.'+fmt
+            pmagplotlib.saveP(HDD,files)
+            if pltspec!="":sys.exit()
+        if verbose:
             pmagplotlib.drawFIGS(HDD)
             ans=raw_input("S[a]ve plots, [s]pecimen name, [q]uit, <return> to continue\n ")
             if ans=="a":
                 files={}
                 for key in HDD.keys():
-                    files[key]=s+'_'+key+'.svg'
+                    files[key]=s+'_'+key+'.'+fmt
                 pmagplotlib.saveP(HDD,files)
             if ans=='':k+=1
             if ans=="p":
@@ -250,18 +262,18 @@ def main():
         else:
             k+=1
         if len(B)==0 and len(Bdcd)==0:
-    	    print 'skipping this one - no hysteresis data'
+    	    if verbose:print 'skipping this one - no hysteresis data'
        	    k+=1
-    if rmag_out=="" and ans=='s':
+    if rmag_out=="" and ans=='s' and verbose:
         really=raw_input(" Do you want to overwrite the existing rmag_hystersis.txt file? 1/[0] ")
         if really=="":
     	    print 'i thought not - goodbye'
     	    sys.exit()
         rmag_out="rmag_hysteresis.txt"
-    if len(HystRecs)>0:
+    if len(HystRecs)>0 and verbose:
         pmag.magic_write(rmag_out,HystRecs,"rmag_hysteresis")
         print "hysteresis parameters saved in ",rmag_out
-    if len(RemRecs)>0:
+    if len(RemRecs)>0 and verbose:
         pmag.magic_write(rmag_rem,RemRecs,"rmag_remanence")
         print "remanence parameters saved in ",rmag_rem
 main()
