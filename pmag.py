@@ -2,20 +2,19 @@ import  numpy,string,sys,random
 import numpy.linalg
 import exceptions
 def get_version(): 
-    return "pmagpy-2.109"
+    return "pmagpy-2.110"
 def sort_diclist(undecorated,sort_on):
     decorated=[(dict_[sort_on],dict_) for dict_ in undecorated]
     decorated.sort()
     return[dict_ for (key, dict_) in decorated]
 
 def get_dictitem(In,k,v,flag):  
-    # returns a list of dictionaries from list In with key,k  = value, v
-# allowed keywords:
+    # returns a list of dictionaries from list In with key,k  = value, v . CASE INSENSITIVE # allowed keywords:
     try:
-        if flag=="T":return [dict for dict in In if dict[k]==v] # return that which is
-        if flag=="F":return [dict for dict in In if dict[k]!=v] # return that which is not
-        if flag=="has":return [dict for dict in In if v in dict[k]] # return that which is contained
-        if flag=="not":return [dict for dict in In if v not in dict[k]] # return that which is not contained
+        if flag=="T":return [dict for dict in In if dict[k].lower()==v.lower()] # return that which is
+        if flag=="F":return [dict for dict in In if dict[k].lower()!=v.lower()] # return that which is not
+        if flag=="has":return [dict for dict in In if v.lower() in dict[k].lower()] # return that which is contained
+        if flag=="not":return [dict for dict in In if v.lower() not in dict[k].lower()] # return that which is not contained
         if flag=="eval":
             A=[dict for dict in In if dict[k]!=''] # find records with no blank values for key
             return [dict for dict in A if float(dict[k])==float(v)] # return that which is
