@@ -1,5 +1,12 @@
 #!/usr/bin/env python
 #
+def save(ANIS,fmt,title):
+  files={}
+  for key in ANIS.keys():
+      savetitle=title.replace(" ","")
+      files[key]=savetitle+'_'+key+'.'+fmt 
+  pmagplotlib.saveP(ANIS,files)
+
 import sys,pmag,math,pmagplotlib
 def main():
     """
@@ -23,6 +30,7 @@ def main():
         -sit plot by site instead of entire file
         -crd [s,g,t] coordinate system, default is specimen (g=geographic, t=tilt corrected)
         -P don't make any plots - just make rmag_results table
+        -sav don't make the rmag_results table - just save all the plots
         -fmt [svg, png, jpg] format for output images
      
     DEFAULTS  
@@ -39,6 +47,7 @@ def main():
 #
     dir_path="."
     version_num=pmag.get_version()
+    verbose=pmagplotlib.verbose
     args=sys.argv
     ipar,ihext,ivec,iboot,imeas,isite,iplot,vec=0,0,0,1,1,0,1,0
     hpars,bpars=[],[]
@@ -79,6 +88,11 @@ def main():
     if '-fmt' in args:
         ind=args.index('-fmt')
         fmt=args[ind+1]
+    if '-sav' in args:
+        plots=1
+        verbose=0
+    else:
+        plots=0
 #
 # set up plots
 #
@@ -116,7 +130,7 @@ def main():
         if CS=='-1':crd='specimen'
         if CS=='0':crd='geographic'
         if CS=='100':crd='tilt corrected'
-        print "desired coordinate system not available, using available: ",crd
+        if verbose:print "desired coordinate system not available, using available: ",crd
     if isite==1:
         sitelist=[]
         for rec in data:
@@ -180,10 +194,14 @@ def main():
             ResRecs.append(ResRec) 
       if len(Ss)>1:
           bpars,hpars=pmagplotlib.plotANIS(ANIS,Ss,iboot,ihext,ivec,ipar,title,iplot,comp,vec,Dir)
+          if verbose:pmagplotlib.drawFIGS(ANIS)
           if len(PDir)>0:
               pmagplotlib.plotC(ANIS['data'],PDir,90.,'g')
 
               pmagplotlib.plotC(ANIS['conf'],PDir,90.,'g')
+          if plots==1:
+              save(ANIS,fmt,title)
+              sys.exit()
           ResRec={}
           ResRec['er_location_names']=pmag.makelist(Locs)
           ResRec['er_citation_names']=pmag.makelist(Cits)
@@ -229,11 +247,12 @@ def main():
               HextRec["anisotropy_v3_zeta_dec"]='%7.1f '%(hpars["v2_dec"])
               HextRec["anisotropy_v3_zeta_inc"]='%7.1f '%(hpars["v2_inc"])
               HextRec["magic_method_codes"]='LP-AN:AE-H'
-              print "Hext Statistics: "
-              print " tau_i, V_i_D, V_i_I, V_i_zeta, V_i_zeta_D, V_i_zeta_I, V_i_eta, V_i_eta_D, V_i_eta_I"
-              print HextRec["anisotropy_t1"], HextRec["anisotropy_v1_dec"], HextRec["anisotropy_v1_inc"], HextRec["anisotropy_v1_eta_semi_angle"], HextRec["anisotropy_v1_eta_dec"], HextRec["anisotropy_v1_eta_inc"], HextRec["anisotropy_v1_zeta_semi_angle"], HextRec["anisotropy_v1_zeta_dec"], HextRec["anisotropy_v1_zeta_inc"]
-              print HextRec["anisotropy_t2"],HextRec["anisotropy_v2_dec"], HextRec["anisotropy_v2_inc"], HextRec["anisotropy_v2_eta_semi_angle"], HextRec["anisotropy_v2_eta_dec"], HextRec["anisotropy_v2_eta_inc"], HextRec["anisotropy_v2_zeta_semi_angle"], HextRec["anisotropy_v2_zeta_dec"], HextRec["anisotropy_v2_zeta_inc"]
-              print HextRec["anisotropy_t3"], HextRec["anisotropy_v3_dec"], HextRec["anisotropy_v3_inc"], HextRec["anisotropy_v3_eta_semi_angle"], HextRec["anisotropy_v3_eta_dec"], HextRec["anisotropy_v3_eta_inc"], HextRec["anisotropy_v3_zeta_semi_angle"], HextRec["anisotropy_v3_zeta_dec"], HextRec["anisotropy_v3_zeta_inc"]
+              if verbose:
+                  print "Hext Statistics: "
+                  print " tau_i, V_i_D, V_i_I, V_i_zeta, V_i_zeta_D, V_i_zeta_I, V_i_eta, V_i_eta_D, V_i_eta_I"
+                  print HextRec["anisotropy_t1"], HextRec["anisotropy_v1_dec"], HextRec["anisotropy_v1_inc"], HextRec["anisotropy_v1_eta_semi_angle"], HextRec["anisotropy_v1_eta_dec"], HextRec["anisotropy_v1_eta_inc"], HextRec["anisotropy_v1_zeta_semi_angle"], HextRec["anisotropy_v1_zeta_dec"], HextRec["anisotropy_v1_zeta_inc"]
+                  print HextRec["anisotropy_t2"],HextRec["anisotropy_v2_dec"], HextRec["anisotropy_v2_inc"], HextRec["anisotropy_v2_eta_semi_angle"], HextRec["anisotropy_v2_eta_dec"], HextRec["anisotropy_v2_eta_inc"], HextRec["anisotropy_v2_zeta_semi_angle"], HextRec["anisotropy_v2_zeta_dec"], HextRec["anisotropy_v2_zeta_inc"]
+                  print HextRec["anisotropy_t3"], HextRec["anisotropy_v3_dec"], HextRec["anisotropy_v3_inc"], HextRec["anisotropy_v3_eta_semi_angle"], HextRec["anisotropy_v3_eta_dec"], HextRec["anisotropy_v3_eta_inc"], HextRec["anisotropy_v3_zeta_semi_angle"], HextRec["anisotropy_v3_zeta_dec"], HextRec["anisotropy_v3_zeta_inc"]
               HextRec['magic_software_packages']=version_num
               ResRecs.append(HextRec)
           if bpars!=[]:
@@ -271,16 +290,17 @@ def main():
               BootRec["anisotropy_hext_F23"]=''
               BootRec["magic_method_codes"]='LP-AN:AE-H:AE-BS' # regular bootstrap
               if ipar==1:BootRec["magic_method_codes"]='LP-AN:AE-H:AE-BS-P' # parametric bootstrap
-              print "Boostrap Statistics: "
-              print " tau_i, V_i_D, V_i_I, V_i_zeta, V_i_zeta_D, V_i_zeta_I, V_i_eta, V_i_eta_D, V_i_eta_I"
-              print BootRec["anisotropy_t1"], BootRec["anisotropy_v1_dec"], BootRec["anisotropy_v1_inc"], BootRec["anisotropy_v1_eta_semi_angle"], BootRec["anisotropy_v1_eta_dec"], BootRec["anisotropy_v1_eta_inc"], BootRec["anisotropy_v1_zeta_semi_angle"], BootRec["anisotropy_v1_zeta_dec"], BootRec["anisotropy_v1_zeta_inc"]
-              print BootRec["anisotropy_t2"],BootRec["anisotropy_v2_dec"], BootRec["anisotropy_v2_inc"], BootRec["anisotropy_v2_eta_semi_angle"], BootRec["anisotropy_v2_eta_dec"], BootRec["anisotropy_v2_eta_inc"], BootRec["anisotropy_v2_zeta_semi_angle"], BootRec["anisotropy_v2_zeta_dec"], BootRec["anisotropy_v2_zeta_inc"]
-              print BootRec["anisotropy_t3"], BootRec["anisotropy_v3_dec"], BootRec["anisotropy_v3_inc"], BootRec["anisotropy_v3_eta_semi_angle"], BootRec["anisotropy_v3_eta_dec"], BootRec["anisotropy_v3_eta_inc"], BootRec["anisotropy_v3_zeta_semi_angle"], BootRec["anisotropy_v3_zeta_dec"], BootRec["anisotropy_v3_zeta_inc"]
+              if verbose:
+                  print "Boostrap Statistics: "
+                  print " tau_i, V_i_D, V_i_I, V_i_zeta, V_i_zeta_D, V_i_zeta_I, V_i_eta, V_i_eta_D, V_i_eta_I"
+                  print BootRec["anisotropy_t1"], BootRec["anisotropy_v1_dec"], BootRec["anisotropy_v1_inc"], BootRec["anisotropy_v1_eta_semi_angle"], BootRec["anisotropy_v1_eta_dec"], BootRec["anisotropy_v1_eta_inc"], BootRec["anisotropy_v1_zeta_semi_angle"], BootRec["anisotropy_v1_zeta_dec"], BootRec["anisotropy_v1_zeta_inc"]
+                  print BootRec["anisotropy_t2"],BootRec["anisotropy_v2_dec"], BootRec["anisotropy_v2_inc"], BootRec["anisotropy_v2_eta_semi_angle"], BootRec["anisotropy_v2_eta_dec"], BootRec["anisotropy_v2_eta_inc"], BootRec["anisotropy_v2_zeta_semi_angle"], BootRec["anisotropy_v2_zeta_dec"], BootRec["anisotropy_v2_zeta_inc"]
+                  print BootRec["anisotropy_t3"], BootRec["anisotropy_v3_dec"], BootRec["anisotropy_v3_inc"], BootRec["anisotropy_v3_eta_semi_angle"], BootRec["anisotropy_v3_eta_dec"], BootRec["anisotropy_v3_eta_inc"], BootRec["anisotropy_v3_zeta_semi_angle"], BootRec["anisotropy_v3_zeta_dec"], BootRec["anisotropy_v3_zeta_inc"]
               BootRec['magic_software_packages']=version_num
               ResRecs.append(BootRec)
           k+=1
           goon=1
-          while goon==1 and iplot==1: 
+          while goon==1 and iplot==1 and verbose: 
               if iboot==1: print "compare with [d]irection "
               print " plot [g]reat circle,  change [c]oord. system, change [e]llipse calculation,  s[a]ve plots, [q]uit "
               if isite==1: print "  [p]revious, [s]ite, [q]uit, <return> for next "
@@ -401,19 +421,17 @@ def main():
                           k=sitelist.index(site)
                   goon,ans=0,""
               if ans=="a":
-                  files={}
-                  for key in ANIS.keys():
-                      savetitle=title.replace(" ","")
-                      files[key]=savetitle+'_'+key+'.'+fmt 
-                  pmagplotlib.saveP(ANIS,files)
+                  save(ANIS,fmt)
                   goon=0
       else:
-          print 'skipping plot - not enough data points'
+          if verbose:print 'skipping plot - not enough data points'
           k+=1 
 #   put rmag_results stuff here
-    if len(ResRecs)>0:
-        pmag.magic_write(outfile,ResRecs,'rmag_results')
-    print "Anisotropy results saved in ",outfile
-    print " Good bye "
+    if plots==0:
+        if len(ResRecs)>0:
+            pmag.magic_write(outfile,ResRecs,'rmag_results')
+        if verbose:print "Anisotropy results saved in ",outfile
+    if verbose:
+        print " Good bye "
 #
 main()

@@ -17,7 +17,6 @@ def main():
     OPTIONS
         -h prints help message and quits
         -f FILE specifies input file name
-        -p make the plots, default is to just list available plots
         -fmt [png,eps,svg,jpg,pdf] specify format, default is png
     """
     dir_path='.'
@@ -83,6 +82,17 @@ def main():
     if 'er_sites.txt' in filelist: # start with measurement data
         print 'working on er_sites'
         os.system('basemap_magic.py -sav -fmt '+fmt)
-        
+    if 'rmag_anisotropy.txt' in filelist: # do anisotropy plots if possible
+        print 'working on rmag_anisotropy'
+        data,file_type=pmag.magic_read('rmag_anisotropy.txt') # read in data
+        sdata=pmag.get_dictitem(data,'anisotropy_tilt_correction','-1','T') # get specimen coordinates
+        gdata=pmag.get_dictitem(data,'anisotropy_tilt_correction','0','T') # get specimen coordinates
+        tdata=pmag.get_dictitem(data,'anisotropy_tilt_correction','100','T') # get specimen coordinates
+        if len(sdata)>3:
+            os.system('aniso_magic.py -x -B -crd s -sav -fmt '+fmt)
+        if len(gdata)>3:
+            os.system('aniso_magic.py -x -B -crd g -sav -fmt '+fmt)
+        if len(tdata)>3:
+            os.system('aniso_magic.py -x -B -crd t -sav -fmt '+fmt)
         
 main()

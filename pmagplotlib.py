@@ -13,7 +13,6 @@ version_num=pmag.get_version()
 #matplotlib.ticker_Formatter.yaxis.set_powerlimits((-3,4))
 def poly(X,Y,deg):
     return pylab.polyfit(X,Y,deg)
-
 def showFIG(fig):
     pylab.figure(fig)
     pylab.show()
@@ -166,6 +165,7 @@ def plotLINES(fignum,line,sym,x,y):
     pylab.draw()
 
 def plotXY(fignum,X,Y,sym,xlab,ylab,title,**kwargs):
+    pylab.ion()
     pylab.figure(num=fignum)
     pylab.plot(X,Y,sym)
     pylab.xlabel(xlab)
@@ -173,6 +173,8 @@ def plotXY(fignum,X,Y,sym,xlab,ylab,title,**kwargs):
     pylab.title(title)
     if len(kwargs)>0: pylab.axis([kwargs['xmin'],kwargs['xmax'],kwargs['ymin'],kwargs['ymax']])
     pylab.draw()
+    raw_input("Press return to quit")
+    pylab.ioff()
 
 def plotSITE(fignum,SiteRec,data,key):
     print 'Site mean data: '
@@ -1913,7 +1915,6 @@ def plotANIS(ANIS,Ss,iboot,ihext,ivec,ipar,title,plt,comp,vec,Dir):
             pylab.clf()
             if not isServer:
                 pylab.figtext(.02,.01,version_num)
-        print 'plotting ',npts,' points'
         plotNET(ANIS['data']) # draw the net
         plotEVEC(ANIS['data'],Vs,40,title) # put on the data eigenvectors
 #
@@ -1943,10 +1944,8 @@ def plotANIS(ANIS,Ss,iboot,ihext,ivec,ipar,title,plt,comp,vec,Dir):
         bpars['t3']=hpars['t3'] 
         if plt==1:
             if ivec==1:
-                print 'plotting bootstrapped eigenvectors'
                 plotEVEC(ANIS['conf'],BVs,5,'') # put on the data eigenvectors
             else:
-                print 'plotting bootstrapped ellipses'
                 ellpars=[bpars["v1_dec"],bpars["v1_inc"],bpars["v1_zeta"],bpars["v1_zeta_dec"],bpars["v1_zeta_inc"],bpars["v1_eta"],bpars["v1_eta_dec"],bpars["v1_eta_inc"]]
                 plotELL(ANIS['conf'],ellpars,'r,',1,1)
                 ellpars=[bpars["v2_dec"],bpars["v2_inc"],bpars["v2_zeta"],bpars["v2_zeta_dec"],bpars["v2_zeta_inc"],bpars["v2_eta"],bpars["v2_eta_dec"],bpars["v2_eta_inc"]]
@@ -2045,7 +2044,6 @@ def plotANIS(ANIS,Ss,iboot,ihext,ivec,ipar,title,plt,comp,vec,Dir):
         bpars['v2_inc']=hpars['v2_inc'] 
         bpars['v3_inc']=hpars['v3_inc'] 
     if ihext==1 and plt==1:
-        print 'plotting Hext ellipses'
         ellpars=[hpars["v1_dec"],hpars["v1_inc"],hpars["e12"],hpars["v2_dec"],hpars["v2_inc"],hpars["e13"],hpars["v3_dec"],hpars["v3_inc"]]
         plotELL(ANIS['conf'],ellpars,'r,',1,1)
         ellpars=[hpars["v2_dec"],hpars["v2_inc"],hpars["e23"],hpars["v3_dec"],hpars["v3_inc"],hpars["e12"],hpars["v1_dec"],hpars["v1_inc"]]
@@ -2053,7 +2051,6 @@ def plotANIS(ANIS,Ss,iboot,ihext,ivec,ipar,title,plt,comp,vec,Dir):
         ellpars=[hpars["v3_dec"],hpars["v3_inc"],hpars["e13"],hpars["v1_dec"],hpars["v1_inc"],hpars["e23"],hpars["v2_dec"],hpars["v2_inc"]]
         plotELL(ANIS['conf'],ellpars,'k,',1,1) 
 
-    if plt==1:drawFIGS(ANIS)
     return bpars,hpars
 ####
 def plotPIE(fig,fracs,labels,title):

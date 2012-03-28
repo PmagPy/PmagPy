@@ -65,7 +65,6 @@ def main():
             pmagplotlib.plotXY(1,X,Y,'ro',xkey,ykey,'',xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax )
         else:
             pmagplotlib.plotXY(1,X,Y,'ro',xkey,ykey,'')
-        ans=raw_input("Press return to quit  ")
         sys.exit()
     else:
         print 'no data to plot'
