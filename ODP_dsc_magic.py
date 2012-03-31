@@ -216,6 +216,7 @@ def main():
                         if items[0].strip()=='z_stdev':MagRec['measurement_sd_z']=items[1]
                         MagRec['magic_instrument_codes']=inst
                         MagRec['measurement_number']='1'
+                        MagRec['measurement_positions']=''
             MagRecs.append(MagRec)
             if specimen not in specimens:
                 specimens.append(specimen)
@@ -233,6 +234,7 @@ def main():
         print 'samples stored in ',samp_file
     pmag.magic_write(samp_file,SampRecs,'er_samples')
     print 'specimens stored in ',spec_file
+    
     Fixed=pmag.measurements_methods(MagOuts,noave)
     pmag.magic_write(meas_file,Fixed,'magic_measurements')
     print 'data stored in ',meas_file

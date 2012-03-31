@@ -760,9 +760,6 @@ def spec_combine():
         os.system(rmag_outstring)
     try:
         open(opath+'/zeq_specimens.txt','r')
-        basestring='zeq_magic_redo.py   -WD '+'"'+opath+'"'
-        print basestring
-        os.system(basestring)
         outstring="mk_redo.py -f zeq_specimens.txt -F zeq_redo -WD "+'"'+opath+'"'
         print outstring
         os.system(outstring)
