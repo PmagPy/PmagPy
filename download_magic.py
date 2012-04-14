@@ -109,6 +109,7 @@ def main():
         pmag.magic_write(outfile,Recs,file_type)
         print file_type," data put in ",outfile
 # look through locations table and create separate directories for each location
+    locs=[]
     if 'er_locations' in type_list:
         locs,file_type=pmag.magic_read('er_locations.txt')
     if len(locs)>1: # more than one location

@@ -15,7 +15,7 @@ def main():
         dir_cart.py
     
     DESCRIPTION
-      converts geomangetic elements to cartesian coordinates
+      converts geomagnetic elements to cartesian coordinates
     
     INPUT (COMMAND LINE ENTRY) 
            declination inclination [magnitude]
@@ -29,6 +29,7 @@ def main():
         dir_cart.py [command line options] [< filename]
     
     OPTIONS
+        -h print help and quit
         -i for interactive data entry
         -f FILE, input file
         -F FILE, output file
