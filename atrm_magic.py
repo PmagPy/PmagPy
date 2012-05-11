@@ -123,7 +123,7 @@ def main():
                 Dir.append(float(rec["measurement_dec"]))
                 Dir.append(float(rec["measurement_inc"]))
                 Dir.append(float(rec["measurement_magn_moment"]))
-                if "LT-NO" in meths:
+                if "LT-T-Z" in meths:
                     BX.append(pmag.dir2cart(Dir)) # append baseline steps
                 elif "LT-T-I" in meths: 
                     X.append(pmag.dir2cart(Dir))

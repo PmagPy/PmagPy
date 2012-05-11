@@ -451,8 +451,9 @@ def main():
                     if treat[1][0]=='0':
                             meas_type="LT-T-Z"
                             MagRec["treatment_dc_field"]='%8.3e'%(0)
+                            MagRec["treatment_temp"]='%8.3e' % (float(treat[0])+273.) # temp in kelvin
                     else:
-                            meas_type="LT-I-I"
+                            meas_type="LT-T-I"
                             ipos=int(treat[1][0])-1
                             MagRec["treatment_dc_field_phi"]='%7.1f' %(tdec[ipos])
                             MagRec["treatment_dc_field_theta"]='%7.1f'% (tinc[ipos])

@@ -743,7 +743,7 @@ def spec_combine():
     except IOError:
         pass
     try: # check for atrm anisotropy stuff next
-        aarmfile=open(opath+"/atrm_measurements.txt",'r')
+        atrmfile=open(opath+"/atrm_measurements.txt",'r')
         outstring='atrm_magic.py -WD '+'"'+opath+'"'
         print outstring
         os.system(outstring)
