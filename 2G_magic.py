@@ -357,7 +357,8 @@ def main():
     MagOuts=pmag.measurements_methods(MagRecs,noave)
     pmag.magic_write(meas_file,MagOuts,'magic_measurements')
     print "Measurements put in ",meas_file
-    pmag.magic_write(samp_file,Samps,"er_samples")
+    SampsOut=pmag.fillkeys(Samps)
+    pmag.magic_write(samp_file,SampsOut,"er_samples")
     Sites=[]
     for samp in Samps:
         SiteRec={}
