@@ -29,6 +29,7 @@ def main():
         -fsa SAMPFILE: sets er_samples format file with orientation information, default: er_samples.txt
         -spc SPEC  plots single specimen SPEC, saves plot with specified format 
               with optional -dir settings and quits
+        -loc location_name: sets location name for plot file - default is blank
         -dir [L,P,F][beg][end]: sets calculation type for principal component analysis, default is none
              beg: starting step for PCA calculation
              end: ending step for PCA calculation
@@ -49,7 +50,7 @@ def main():
     verbose=pmagplotlib.verbose
     beg_pca,end_pca,direction_type="","",'l'
     calculation_type,inspec,fmt="","zeq_specimens.txt","svg"
-    user,spec_keys="",[]
+    user,spec_keys,locname="",[],''
     plot_file=""
     sfile,som="",""
     meas_file,geo,tilt,ask,samp_file='magic_measurements.txt',0,0,0,'er_samples.txt'
@@ -66,6 +67,9 @@ def main():
     if '-fsp' in sys.argv:
         ind=sys.argv.index('-fsp')
         inspec=sys.argv[ind+1]
+    if '-loc' in sys.argv:
+        ind=sys.argv.index('-loc')
+        locname=sys.argv[ind+1]
     if '-fsa' in sys.argv:
         ind=sys.argv.index('-fsa')
         samp_file=sys.argv[ind+1]
@@ -472,7 +476,7 @@ def main():
                         sys.exit()
                     if  ans=='a':
                         if plot_file=="":
-                            basename=s
+                            basename=locname+'_'+s+'_'
                         else:
                             basename=plot_file
                         files={}
@@ -730,7 +734,7 @@ def main():
                   k+=1
                   files={}
                   for key in ZED.keys():
-                      files[key]=s+'_'+coord+'_'+key+'.'+fmt
+                      files[key]=locname+'_'+s+'_'+coord+'_'+key+'.'+fmt
                   if pmagplotlib.isServer:
                       black     = '#000000'
                       purple    = '#800080'

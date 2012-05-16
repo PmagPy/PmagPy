@@ -109,13 +109,14 @@ def main():
         pmag.magic_write(outfile,Recs,file_type)
         print file_type," data put in ",outfile
 # look through locations table and create separate directories for each location
-    locs=[]
+    locs,locnum=[],1
     if 'er_locations' in type_list:
         locs,file_type=pmag.magic_read('er_locations.txt')
-    if len(locs)>1: # more than one location
+    if len(locs)>0: # more than one location
         for loc in locs:
-            print 'location: ',loc['er_location_name']
-            lpath=dir_path+'/'+loc['er_location_name']
+            print 'location_'+str(locnum)+": ",loc['er_location_name']
+            lpath=dir_path+'/Location_'+str(locnum)
+            locnum+=1
             try:
                 os.mkdir(lpath)
             except:

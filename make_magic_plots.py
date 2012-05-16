@@ -23,6 +23,9 @@ def main():
     if '-WD' in sys.argv:
         ind=sys.argv.index('-WD')
         dir_path=sys.argv[ind+1]
+        locname=dir_path.split('/')[-1]
+    else:
+        locname=os.getcwd().split("/")[-1]
     if '-fmt' in sys.argv:
         ind=sys.argv.index("-fmt")
         fmt=sys.argv[ind+1]
@@ -35,6 +38,12 @@ def main():
     if '-h' in sys.argv:
         print main.__doc__
         sys.exit()
+    crd='s'
+    if 'er_samples.txt' in filelist: # find coordinate systems
+        samps,file_type=pmag.magic_read('er_samples.txt') # read in data
+        Srecs=pmag.get_dictitem(samps,'sample_azimuth','','F')# get all none blank sample orientations
+        if len(Srecs)>0: 
+            crd='g'
     if 'magic_measurements.txt' in filelist: # start with measurement data
         print 'working on measurements data'
         data,file_type=pmag.magic_read('magic_measurements.txt') # read in data
@@ -49,7 +58,8 @@ def main():
             Mrecs=pmag.get_dictitem(data,key,'','F') # get intensity data
             if len(Mrecs)>0:break
         if len(AFZrecs)>0 or len(TZrecs)>0 or len(MZrecs)>0 and len(Drecs)>0 and len(Irecs)>0 and len(Mrecs)>0: # potential for stepwise demag curves 
-            os.system('zeq_magic.py -sav -fmt '+fmt)
+            print 'zeq_magic.py -sav -fmt '+fmt+' -crd '+crd+' -loc '+locname
+            os.system('zeq_magic.py -sav -fmt '+fmt+' -crd '+crd+' -loc '+locname)
         # looking for  thellier_magic possibilities
         if len(pmag.get_dictitem(data,'magic_method_codes','LP-PI-TRM','has'))>0:
             os.system('thellier_magic.py -sav -fmt '+fmt)
@@ -79,9 +89,9 @@ def main():
         hdata=pmag.get_dictitem(hdata,'hysteresis_bc','','F') # there are data for a dayplot
         if len(hdata)>0:
             os.system('dayplot_magic.py -sav -fmt '+fmt) 
-    if 'er_sites.txt' in filelist: # start with measurement data
-        print 'working on er_sites'
-        os.system('basemap_magic.py -sav -fmt '+fmt)
+    #if 'er_sites.txt' in filelist: # start with measurement data
+    #    print 'working on er_sites'
+        #os.system('basemap_magic.py -sav -fmt '+fmt)
     if 'rmag_anisotropy.txt' in filelist: # do anisotropy plots if possible
         print 'working on rmag_anisotropy'
         data,file_type=pmag.magic_read('rmag_anisotropy.txt') # read in data
