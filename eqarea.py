@@ -89,4 +89,3 @@ def main():
         ans=raw_input(" S[a]ve to save plot, [q]uit without saving:  ")
         if ans=="a": pmagplotlib.saveP(EQ,files) 
 main()
-

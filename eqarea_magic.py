@@ -33,6 +33,7 @@ def main():
     in_file,plot_key,coord,crd='pmag_results.txt','all',"-1",'g'
     plotE,contour=0,0
     dir_path='.'
+    fmt='svg'
     verbose=pmagplotlib.verbose
     if '-h' in sys.argv:
         print main.__doc__
