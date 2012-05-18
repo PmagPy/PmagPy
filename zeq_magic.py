@@ -29,7 +29,6 @@ def main():
         -fsa SAMPFILE: sets er_samples format file with orientation information, default: er_samples.txt
         -spc SPEC  plots single specimen SPEC, saves plot with specified format 
               with optional -dir settings and quits
-        -loc location_name: sets location name for plot file - default is blank
         -dir [L,P,F][beg][end]: sets calculation type for principal component analysis, default is none
              beg: starting step for PCA calculation
              end: ending step for PCA calculation
@@ -67,9 +66,6 @@ def main():
     if '-fsp' in sys.argv:
         ind=sys.argv.index('-fsp')
         inspec=sys.argv[ind+1]
-    if '-loc' in sys.argv:
-        ind=sys.argv.index('-loc')
-        locname=sys.argv[ind+1]
     if '-fsa' in sys.argv:
         ind=sys.argv.index('-fsa')
         samp_file=sys.argv[ind+1]
@@ -219,6 +215,7 @@ def main():
                PmagSpecRec["er_sample_name"]=rec["er_sample_name"]
                PmagSpecRec["er_site_name"]=rec["er_site_name"]
                PmagSpecRec["er_location_name"]=rec["er_location_name"]
+               locname=rec['er_location_name']
                if 'er_expedition_name' in rec.keys(): PmagSpecRec["er_expedition_name"]=rec["er_expedition_name"]
                PmagSpecRec["magic_method_codes"]=rec["magic_method_codes"]
                if "magic_experiment_name" not in rec.keys():
@@ -430,7 +427,7 @@ def main():
                 recnum += 1
             if specimen!="":
                 if plot_file=="":
-                    basename=s
+                    basename=locname+'_'+s
                 else:
                     basename=plot_file
                 files={}
@@ -733,6 +730,7 @@ def main():
               else:  # plots=1
                   k+=1
                   files={}
+                  locname.replace('/','-')
                   for key in ZED.keys():
                       files[key]=locname+'_'+s+'_'+coord+'_'+key+'.'+fmt
                   if pmagplotlib.isServer:

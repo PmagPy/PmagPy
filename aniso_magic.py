@@ -3,8 +3,7 @@
 def save(ANIS,fmt,title):
   files={}
   for key in ANIS.keys():
-      savetitle=title.replace(" ","")
-      files[key]=savetitle+'_'+key+'.'+fmt 
+      files[key]=title+'_'+'aniso'+'_'+key+'.'+fmt 
   pmagplotlib.saveP(ANIS,files)
 
 import sys,pmag,math,pmagplotlib
@@ -51,7 +50,7 @@ def main():
     args=sys.argv
     ipar,ihext,ivec,iboot,imeas,isite,iplot,vec=0,0,0,1,1,0,1,0
     hpars,bpars=[],[]
-    CS='-1'
+    CS,crd='-1','s'
     fmt='svg'
     ResRecs=[]
     orlist=[]
@@ -82,9 +81,9 @@ def main():
         outfile=args[ind+1]
     if '-crd' in sys.argv:
         ind=sys.argv.index('-crd')
-        key=sys.argv[ind+1]
-        if key=='g':CS='0'
-        if key=='t': CS='100'
+        crd=sys.argv[ind+1]
+        if crd=='g':CS='0'
+        if crd=='t': CS='100'
     if '-fmt' in args:
         ind=args.index('-fmt')
         fmt=args[ind+1]
@@ -127,9 +126,9 @@ def main():
             CS=orlist[0]
         else:
             CS='-1'   
-        if CS=='-1':crd='specimen'
-        if CS=='0':crd='geographic'
-        if CS=='100':crd='tilt corrected'
+        if CS=='-1':crd='s'
+        if CS=='0':crd='g'
+        if CS=='100':crd='t'
         if verbose:print "desired coordinate system not available, using available: ",crd
     if isite==1:
         sitelist=[]
@@ -145,15 +144,15 @@ def main():
       PDir,Dir=[],[]
       if isite==0:
           sdata=data
-          title='Data'
+          title='All'
       else:
           site=sitelist[k]
           title=site
           for rec in data:
               if rec['er_site_name']==site:sdata.append(rec) 
-      if CS=="-1":title=title+': Specimen coordinates'
-      if CS=="0":title=title+': Geographic coordinates'
-      if CS=="100":title=title+': Tilt Corrected coordinates'
+      if CS=="-1":title=title+'_'+crd 
+      if CS=="0":title=title+'_'+crd 
+      if CS=="100":title=title+'_'+crd 
       anitypes=[]
       for rec in sdata:
         if rec["anisotropy_tilt_correction"]==CS:
@@ -199,11 +198,13 @@ def main():
               pmagplotlib.plotC(ANIS['data'],PDir,90.,'g')
 
               pmagplotlib.plotC(ANIS['conf'],PDir,90.,'g')
+          ResRec['er_location_names']=pmag.makelist(Locs)
           if plots==1:
+              if ResRec['er_location_names']!="":
+                  title=ResRec['er_location_names']+'_'+title
               save(ANIS,fmt,title)
               sys.exit()
           ResRec={}
-          ResRec['er_location_names']=pmag.makelist(Locs)
           ResRec['er_citation_names']=pmag.makelist(Cits)
           ResRec['er_site_names']=pmag.makelist(Sites)
           ResRec['er_sample_names']=pmag.makelist(Samples)
@@ -339,9 +340,9 @@ def main():
                           CS=orlist[0]
                       else:
                           CS='-1'   
-                      if CS=='-1':crd='specimen'
-                      if CS=='0':crd='geographic'
-                      if CS=='100':crd='tilt corrected'
+                      if CS=='-1':crd='s'
+                      if CS=='0':crd='g'
+                      if CS=='100':crd='t'
                       print "desired coordinate system not available, using available: ",crd
                   k-=1
                   goon=0

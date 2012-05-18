@@ -166,6 +166,7 @@ def main():
             for i in range(6):
                 s[i]=s[i]/trace
             a=pmag.s2a(s)
+            
         #------------------------------------------------------------
         #  Calculating dels is different than in the Kappabridge
         #  routine. Use trace normalized tensor (a) and the applied

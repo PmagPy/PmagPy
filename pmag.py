@@ -2,7 +2,7 @@ import  numpy,string,sys,random
 import numpy.linalg
 import exceptions
 def get_version(): 
-    return "pmagpy-2.114"
+    return "pmagpy-2.113"
 def sort_diclist(undecorated,sort_on):
     decorated=[(dict_[sort_on],dict_) for dict_ in undecorated]
     decorated.sort()
@@ -2831,7 +2831,7 @@ def doaniscorr(PmagSpecRec,AniSpec):
     H=numpy.dot(M,chi_inv)
     cDir= cart2dir(H)
     Hunit=[H[0]/cDir[2],H[1]/cDir[2],H[2]/cDir[2]] # unit vector parallel to Banc
-    Zunit=[0,0,1.] # unit vector parallel to lab field
+    Zunit=[0,0,-1.] # unit vector parallel to lab field
     Hpar=numpy.dot(chi,Hunit) # unit vector applied along ancient field
     Zpar=numpy.dot(chi,Zunit) # unit vector applied along lab field
     HparInt=cart2dir(Hpar)[2] # intensity of resultant vector from ancient field

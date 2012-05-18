@@ -72,7 +72,7 @@ def main():
     inlt=0
     version_num=pmag.get_version()
     TDinit,Tinit,field,first_save=0,0,-1,1
-    user,comment,AniSpec="",'',""
+    user,comment,AniSpec,locname="",'',"",""
     ans,specimen,recnum,start,end=0,0,0,0,0
     plots,pmag_out,samp_file,style=0,"","","svg"
     verbose=pmagplotlib.verbose 
@@ -237,6 +237,7 @@ def main():
            PmagSpecRec["er_sample_name"]=rec["er_sample_name"]
            PmagSpecRec["er_site_name"]=rec["er_site_name"]
            PmagSpecRec["er_location_name"]=rec["er_location_name"]
+           locname=rec['er_location_name'].replace('/','-')
            if "er_expedition_name" in rec.keys():PmagSpecRec["er_expedition_name"]=rec["er_expedition_name"]
            if "magic_instrument_codes" not in rec.keys():rec["magic_instrument_codes"]=""
            PmagSpecRec["magic_instrument_codes"]=rec["magic_instrument_codes"]
@@ -423,7 +424,7 @@ def main():
                        if ans=='a':
                            files={}
                            for key in AZD.keys():
-                               files[key]=s+'_'+key+fmt 
+                               files[key]=locname+'_'+s+'_'+key+fmt 
                            pmagplotlib.saveP(AZD,files)
                            ans=""
                        if ans=='q':
@@ -547,10 +548,9 @@ def main():
                elif plots==1:
                    specimen+=1
                    if fmt != ".pmag":
-                       basename=s+'_thellier'+fmt
                        files={}
                        for key in AZD.keys():
-                           files[key]=s+'_'+key+fmt 
+                           files[key]=locname+'_'+s+'_'+key+fmt 
                        if pmagplotlib.isServer:
                            black     = '#000000'
                            purple    = '#800080'

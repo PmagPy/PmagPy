@@ -60,7 +60,9 @@ def main():
     #
     S,BcrBc,Bcr2,Bc,hsids,Bcr=[],[],[],[],[],[]
     Ms,Bcr1,Bcr1Bc,S1=[],[],[],[]
+    locations=''
     for rec in  hyst_data:
+        if 'er_location_name' in rec.keys() and rec['er_location_name'] not in locations: locations=locations+rec['er_location_name']+'_'
         if rec['hysteresis_bcr'] !="" and rec['hysteresis_mr_moment']!="": 
             S.append(float(rec['hysteresis_mr_moment'])/float(rec['hysteresis_ms_moment']))
             Bcr.append(float(rec['hysteresis_bcr']))
@@ -95,8 +97,9 @@ def main():
     pmagplotlib.plotSBcr(DSC['S-Bcr'],Bcr,S,'bs') 
     pmagplotlib.plotSBc(DSC['S-Bc'],Bc,S,'bs') 
     files={}
+    if len(locations)>0:locations=locations[:-1]
     for key in DSC.keys():
-        files[key]=hyst_file+'_'+key+'.'+fmt
+        files[key]=locations+'_'+key+'.'+fmt
     if verbose:
         pmagplotlib.drawFIGS(DSC)
         ans=raw_input(" S[a]ve to save plots, return to quit:  ")

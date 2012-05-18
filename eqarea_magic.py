@@ -31,7 +31,6 @@ def main():
     FIG={} # plot dictionary
     FIG['eq']=1 # eqarea is figure 1
     in_file,plot_key,coord,crd='pmag_results.txt','all',"-1",'g'
-    fmt,dist,mode='svg','F',1
     plotE,contour=0,0
     dir_path='.'
     verbose=pmagplotlib.verbose
@@ -53,6 +52,7 @@ def main():
         if plot_by=='sam':plot_key='er_sample_name'
         if plot_by=='spc':plot_key='er_specimen_name'
     if '-c' in sys.argv: contour=1
+    plots=0
     if '-sav' in sys.argv: 
         plots=1
         verbose=0
@@ -70,9 +70,10 @@ def main():
             pmagplotlib.plot_init(FIG['bdirs'],5,5)
     if '-crd' in sys.argv:
         ind=sys.argv.index("-crd")
-        coord=sys.argv[ind+1]
-        if coord=='g':coord="0"
-        if coord=='t':coord="100"
+        crd=sys.argv[ind+1]
+        if crd=='s':coord="-1"
+        if crd=='g':coord="0"
+        if crd=='t':coord="100"
     if '-fmt' in sys.argv:
         ind=sys.argv.index("-fmt")
         fmt=sys.argv[ind+1]
@@ -100,7 +101,7 @@ def main():
                 plotlist.append(rec[plot_key])
         plotlist.sort()
     else:
-        plotlist.append('Whole file')
+        plotlist.append('All')
     for plot in plotlist:
         DIblock=[]
         GCblock=[]
@@ -113,9 +114,6 @@ def main():
                     title=rec[plot_key]
                 else:
                     title=plot
-                if coord=='-1':title=title+' Specimen Coordinates'
-                if coord=='0':title=title+' Geographic Coordinates'
-                if coord=='100':title=title+' Tilt corrected Coordinates'
                 dec_key,inc_key,tilt_key,name_key,k="","","","",0
                 while dec_key==""  and k<len(Dec_keys):
                     if Dec_keys[k]  in rec.keys() and rec[Dec_keys[k]]!="" and Inc_keys[k] in rec.keys() and rec[Inc_keys[k]]!="": 
@@ -136,8 +134,14 @@ def main():
                 if  dec_key!="":break 
         if tilt_key=="":tilt_key='-1'
         if dir_type_key=="":dir_type_key='direction_type'
+        locations=""
         for rec in data: # pick out the data
           if (plot_key=='all' or rec[plot_key]==plot)  and rec[dec_key].strip()!="" and rec[inc_key].strip()!="":
+            if 'er_location_name' in rec.keys() and rec['er_location_name']!="" and rec['er_location_name'] not in locations:locations=locations+rec['er_location_name']+"_"
+            if 'er_location_names' in rec.keys() and rec['er_location_names']!="":
+               locs=rec['er_location_names'].split(':')
+               for loc in locs:
+                   if loc not in locations:locations=locations+loc+':'
             if dir_type_key not in rec.keys() or rec[dir_type_key]=="":rec[dir_type_key]='l'
             if tilt_key not in rec.keys():rec[tilt_key]='-1' # assume specimen coordinates unless otherwise specified
             if coord=='-1':
@@ -310,8 +314,9 @@ def main():
         if verbose:pmagplotlib.drawFIGS(FIG)
             #
         files={}
+        locations=locations[:-1]
         for key in FIG.keys():
-            files[key]=title.replace(" ","_")+'_'+'eqarea'+'.'+fmt 
+            files[key]=locations+'_'+plot+'_'+crd+'_'+'eqarea'+'.'+fmt 
         if pmagplotlib.isServer:
             black     = '#000000'
             purple    = '#800080'

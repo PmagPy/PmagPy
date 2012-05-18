@@ -1244,9 +1244,9 @@ def saveP(Figs,filenames):
     for key in Figs.keys():
         try:
             pylab.figure(num=Figs[key])
-            pylab.savefig(filenames[key])
+            pylab.savefig(filenames[key].replace('/','-'))
             if verbose:
-                print Figs[key]," saved in ",filenames[key]
+                print Figs[key]," saved in ",filenames[key].replace('/','-')
         except:
             print 'could not save: ',Figs[key],filenames[key]
             print "output file format not supported "

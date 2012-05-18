@@ -108,6 +108,7 @@ def main():
         if rec['er_specimen_name'] not in sids:sids.append(rec['er_specimen_name'])
     #
     k=0
+    locname=''
     if pltspec!="":
         k=sids.index(pltspec)
         print sids[k]
@@ -131,7 +132,9 @@ def main():
                     e=rec['magic_experiment_name']
                     HystRec={}
                     first_rec=0
-                    if "er_location_name" in rec.keys():HystRec["er_location_name"]=rec["er_location_name"]
+                    if "er_location_name" in rec.keys():
+                        HystRec["er_location_name"]=rec["er_location_name"]
+                        locname=rec['er_location_name'].replace('/','-')
                     if "er_sample_name" in rec.keys():HystRec["er_sample_name"]=rec["er_sample_name"]
                     if "er_site_name" in rec.keys():HystRec["er_site_name"]=rec["er_site_name"]
                     if "er_synthetic_name" in rec.keys() and rec['er_synthetic_name']!="":
@@ -226,7 +229,7 @@ def main():
             if pltspec!="":s=pltspec
             files={}
             for key in HDD.keys():
-                files[key]=s+'_'+key+'.'+fmt
+                files[key]=locname+'_'+s+'_'+key+'.'+fmt
             pmagplotlib.saveP(HDD,files)
             if pltspec!="":sys.exit()
         if verbose:
@@ -235,7 +238,7 @@ def main():
             if ans=="a":
                 files={}
                 for key in HDD.keys():
-                    files[key]=s+'_'+key+'.'+fmt
+                    files[key]=locname+'_'+s+'_'+key+'.'+fmt
                 pmagplotlib.saveP(HDD,files)
             if ans=='':k+=1
             if ans=="p":
