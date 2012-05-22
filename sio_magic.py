@@ -521,7 +521,7 @@ def main():
                             MagRec["treatment_dc_field"]='0'  # this is a zero field step
                             meas_type="LT-PTRM-MD" # pTRM tail check
                   else: 
-                    labfield=float(treat[0])*1e-6
+                    labfield=float(treat[1])*1e-6
                     MagRec["treatment_dc_field"]='%8.3e' % (labfield) # labfield in tesla (convert from microT)
                     MagRec["treatment_dc_field_phi"]='%7.1f' % (phi) # labfield phi
                     MagRec["treatment_dc_field_theta"]='%7.1f' % (theta) # labfield theta
