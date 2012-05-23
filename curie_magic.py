@@ -224,6 +224,7 @@ def main():
         pmagplotlib.plot_init(PLT['M_T'],5,5)
         string='M-T (sliding window=%i)'%int(window_len)
         pmagplotlib.plotXY(PLT['M_T'],T,M,'--','Temperature C','Magnetization',string)
+        pmagplot.lib.drawFIGS(PLT)
         plot(T,M_smooth,'-')
     
         #calculate first derivative

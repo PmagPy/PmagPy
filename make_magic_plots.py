@@ -67,7 +67,7 @@ def main():
                 os.system('thellier_magic.py -sav -fmt '+fmt)
             # looking for hysteresis possibilities
             if len(pmag.get_dictitem(data,'magic_method_codes','LP-HYS','has'))>0: # find hyst experiments
-                os.system('hysteresis_magic.py -f magic_measurements.txt -sav -fmt '+fmt)
+                os.system('quick_hyst.py -sav -fmt '+fmt)
         if 'pmag_results.txt' in filelist: # start with measurement data
             print 'working on pmag_results'
             data,file_type=pmag.magic_read('pmag_results.txt') # read in data

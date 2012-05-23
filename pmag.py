@@ -2,7 +2,7 @@ import  numpy,string,sys,random
 import numpy.linalg
 import exceptions
 def get_version(): 
-    return "pmagpy-2.114"
+    return "pmagpy-2.115"
 def sort_diclist(undecorated,sort_on):
     decorated=[(dict_[sort_on],dict_) for dict_ in undecorated]
     decorated.sort()
@@ -25,7 +25,6 @@ def get_dictitem(In,k,v,flag):
             A=[dict for dict in In if dict[k]!=''] # find records with no blank values for key
             return [dict for dict in A if float(dict[k])<=float(v)] # return that which is less than
     except Exception, err:
-        print  str(err)
         return []
 
 def find(f,seq):

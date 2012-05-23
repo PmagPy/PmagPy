@@ -176,6 +176,7 @@ def main():
             pmagplotlib.clearFIG(FIG['fig'])
             pmagplotlib.plotXY(FIG['fig'],X,Y,'ro',methx,methy,plot+':Biplot')
             if not pmagplotlib.isServer:
+                pmagplotlib.drawFIGS(FIG)
                 ans=raw_input('S[a]ve plots, [q]uit,  Return for next plot ' )
                 if ans=='a':
                     files={}

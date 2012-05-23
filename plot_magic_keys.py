@@ -60,11 +60,14 @@ def main():
                     Y.append(float(rec[ykey]))
                 except:
                     pass
-        pmagplotlib.plot_init(1,5,5)
+        FIG={'fig':1}
+        pmagplotlib.plot_init(FIG['fig'],5,5)
         if '-b' in sys.argv:
-            pmagplotlib.plotXY(1,X,Y,'ro',xkey,ykey,'',xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax )
+            pmagplotlib.plotXY(FIG['fig'],X,Y,'ro',xkey,ykey,'',xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax )
         else:
-            pmagplotlib.plotXY(1,X,Y,'ro',xkey,ykey,'')
+            pmagplotlib.plotXY(FIG['fig'],X,Y,'ro',xkey,ykey,'')
+        pmagplotlib.drawFIGS(FIG)
+        raw_input()
         sys.exit()
     else:
         print 'no data to plot'

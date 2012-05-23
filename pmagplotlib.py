@@ -171,10 +171,7 @@ def plotXY(fignum,X,Y,sym,xlab,ylab,title,**kwargs):
     pylab.xlabel(xlab)
     pylab.ylabel(ylab)
     pylab.title(title)
-    if len(kwargs)>0: pylab.axis([kwargs['xmin'],kwargs['xmax'],kwargs['ymin'],kwargs['ymax']])
-    pylab.draw()
-    raw_input("Press return to quit")
-    pylab.ioff()
+    if len(kwargs)>0: pylab.axis([kwargs['xmin'],kwargs['xmax'],kwargs['ymin'],kwargs['ymax']]) 
 
 def plotSITE(fignum,SiteRec,data,key):
     print 'Site mean data: '
