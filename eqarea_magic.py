@@ -135,14 +135,26 @@ def main():
                 if  dec_key!="":break 
         if tilt_key=="":tilt_key='-1'
         if dir_type_key=="":dir_type_key='direction_type'
-        locations=""
+        locations,site,sample,specimen="","","",""
         for rec in data: # pick out the data
           if (plot_key=='all' or rec[plot_key]==plot)  and rec[dec_key].strip()!="" and rec[inc_key].strip()!="":
-            if 'er_location_name' in rec.keys() and rec['er_location_name']!="" and rec['er_location_name'] not in locations:locations=locations+rec['er_location_name']+"_"
+            if 'er_location_name' in rec.keys() and rec['er_location_name']!="" and rec['er_location_name'] not in locations:locations=locations+rec['er_location_name'].replace("/","")+"_"
             if 'er_location_names' in rec.keys() and rec['er_location_names']!="":
                locs=rec['er_location_names'].split(':')
                for loc in locs:
-                   if loc not in locations:locations=locations+loc+':'
+                   if loc not in locations:locations=locations+loc.replace("/","")+'_'
+            if plot_key=='er_site_name' or plot_key=='er_sample_name' or plot_key=='er_specimen_name':
+                site=rec['er_site_name']
+            if plot_key=='er_sample_name' or plot_key=='er_specimen_name':
+                sample=rec['er_sample_name']
+            if plot_key=='er_specimen_name':
+                specimen=rec['er_specimen_name']
+            if plot_key=='er_site_names' or plot_key=='er_sample_names' or plot_key=='er_specimen_names':
+                site=rec['er_site_names']
+            if plot_key=='er_sample_names' or plot_key=='er_specimen_names':
+                sample=rec['er_sample_names']
+            if plot_key=='er_specimen_names':
+                specimen=rec['er_specimen_names']
             if dir_type_key not in rec.keys() or rec[dir_type_key]=="":rec[dir_type_key]='l'
             if tilt_key not in rec.keys():rec[tilt_key]='-1' # assume specimen coordinates unless otherwise specified
             if coord=='-1':
@@ -317,7 +329,8 @@ def main():
         files={}
         locations=locations[:-1]
         for key in FIG.keys():
-            files[key]=locations+'_'+plot+'_'+crd+'_'+'eqarea'+'.'+fmt 
+            filename='LO:_'+locations+'_SI:_'+site+'_SA:_'+sample+'_SP:_'+specimen+'_CO:_'+crd+'_TY:_'+key+'.'+fmt
+            files[key]=filename 
         if pmagplotlib.isServer:
             black     = '#000000'
             purple    = '#800080'

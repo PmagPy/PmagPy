@@ -3,7 +3,7 @@
 def save(ANIS,fmt,title):
   files={}
   for key in ANIS.keys():
-      files[key]=title+'_'+'aniso'+'_'+key+'.'+fmt 
+      files[key]=title+'_TY:_aniso-'+key+'.'+fmt 
   pmagplotlib.saveP(ANIS,files)
 
 import sys,pmag,math,pmagplotlib
@@ -139,20 +139,16 @@ def main():
     else:plt=1
     k=0
     while k<plt:
+      site=""
       sdata,Ss=[],[] # list of S format data
       Locs,Sites,Samples,Specimens,Cits=[],[],[],[],[]
       PDir,Dir=[],[]
       if isite==0:
           sdata=data
-          title='All'
       else:
           site=sitelist[k]
-          title=site
           for rec in data:
               if rec['er_site_name']==site:sdata.append(rec) 
-      if CS=="-1":title=title+'_'+crd 
-      if CS=="0":title=title+'_'+crd 
-      if CS=="100":title=title+'_'+crd 
       anitypes=[]
       for rec in sdata:
         if rec["anisotropy_tilt_correction"]==CS:
@@ -192,6 +188,7 @@ def main():
             ResRec["anisotropy_t3"]='%10.8f'%(tau[2])
             ResRecs.append(ResRec) 
       if len(Ss)>1:
+          title="LO:_"+ResRec['er_location_names']+'_SI:_'+site+'_SA:__SP:__CO:_'+crd
           bpars,hpars=pmagplotlib.plotANIS(ANIS,Ss,iboot,ihext,ivec,ipar,title,iplot,comp,vec,Dir)
           if verbose:pmagplotlib.drawFIGS(ANIS)
           if len(PDir)>0:
@@ -200,8 +197,6 @@ def main():
               pmagplotlib.plotC(ANIS['conf'],PDir,90.,'g')
           ResRec['er_location_names']=pmag.makelist(Locs)
           if plots==1:
-              if ResRec['er_location_names']!="":
-                  title=ResRec['er_location_names']+'_'+title
               save(ANIS,fmt,title)
               sys.exit()
           ResRec={}

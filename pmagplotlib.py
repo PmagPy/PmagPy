@@ -165,7 +165,6 @@ def plotLINES(fignum,line,sym,x,y):
     pylab.draw()
 
 def plotXY(fignum,X,Y,sym,xlab,ylab,title,**kwargs):
-    pylab.ion()
     pylab.figure(num=fignum)
     pylab.plot(X,Y,sym)
     pylab.xlabel(xlab)

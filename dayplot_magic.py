@@ -99,7 +99,7 @@ def main():
     files={}
     if len(locations)>0:locations=locations[:-1]
     for key in DSC.keys():
-        files[key]=locations+'_'+key+'.'+fmt
+        files[key]='LO:_'+locations+'_'+'SI:__SA:__SP:__TY:_'+key+'_.'+fmt
     if verbose:
         pmagplotlib.drawFIGS(DSC)
         ans=raw_input(" S[a]ve to save plots, return to quit:  ")

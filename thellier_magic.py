@@ -424,7 +424,7 @@ def main():
                        if ans=='a':
                            files={}
                            for key in AZD.keys():
-                               files[key]=locname+'_'+s+'_'+key+fmt 
+                               files[key]="LO:_"+locname+'_SI:_'+PmagSpecRec['er_site_name']+'_SA:_'+PmagSpecRec['er_sample_name']+'_SP:_'+s+'_CO:_s_TY:_'+key+fmt
                            pmagplotlib.saveP(AZD,files)
                            ans=""
                        if ans=='q':
@@ -550,7 +550,7 @@ def main():
                    if fmt != ".pmag":
                        files={}
                        for key in AZD.keys():
-                           files[key]=locname+'_'+s+'_'+key+fmt 
+                           files[key]="LO:_"+locname+'_SI:_'+PmagSpecRec['er_site_name']+'_SA:_'+PmagSpecRec['er_sample_name']+'_SP:_'+s+'_CO:_s_TY:_'+key+'_'+fmt
                        if pmagplotlib.isServer:
                            black     = '#000000'
                            purple    = '#800080'

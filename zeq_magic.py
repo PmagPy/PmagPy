@@ -732,7 +732,7 @@ def main():
                   files={}
                   locname.replace('/','-')
                   for key in ZED.keys():
-                      files[key]=locname+'_'+s+'_'+coord+'_'+key+'.'+fmt
+                      files[key]="LO:_"+locname+'_SI:_'+PmagSpecRec['er_site_name']+'_SA:_'+PmagSpecRec['er_sample_name']+'_SP:_'+s+'_CO:_'+coord+'_TY:_'+key+'_.'+fmt
                   if pmagplotlib.isServer:
                       black     = '#000000'
                       purple    = '#800080'

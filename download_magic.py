@@ -112,7 +112,7 @@ def main():
     locs,locnum=[],1
     if 'er_locations' in type_list:
         locs,file_type=pmag.magic_read('er_locations.txt')
-    if len(locs)>0: # more than one location
+    if len(locs)>0: # at least one location
         for loc in locs:
             print 'location_'+str(locnum)+": ",loc['er_location_name']
             lpath=dir_path+'/Location_'+str(locnum)
@@ -126,6 +126,7 @@ def main():
             for f in type_list:
                 print 'unpacking: ',dir_path+'/'+f+'.txt'
                 recs,file_type=pmag.magic_read(dir_path+'/'+f+'.txt')
+                print len(recs),' read in'
                 if 'results' not in f:
                     lrecs=pmag.get_dictitem(recs,'er_location_name',loc['er_location_name'],'T')
                     if len(lrecs)>0:

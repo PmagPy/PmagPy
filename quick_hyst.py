@@ -64,7 +64,6 @@ def main():
     # define figure numbers for hyst,deltaM,DdeltaM curves
     HystRecs,RemRecs=[],[]
     HDD={}
-    if verbose: print "Plots may be on top of each other - use mouse to place "
     HDD['hyst']=1
     pmagplotlib.plot_init(HDD['hyst'],5,5)
     #
@@ -80,12 +79,11 @@ def main():
         if 'measurement_temp' not in rec.keys(): rec['measurement_temp']='300' # assume room T measurement unless otherwise specified
     #
     k=0
-    locname=''
     if pltspec!="":
         k=sids.index(pltspec)
-        if verbose:print sids[k]
     intlist=['measurement_magnitude','measurement_magn_moment','measurement_magn_volume','measurement_magn_mass']
     while k < len(sids):
+        locname,site,sample='','',''
         s=sids[k]
         hmeths=[]
         if verbose:print s, k+1 , 'out of ',len(sids)
@@ -93,12 +91,15 @@ def main():
     #
         B,M=[],[] #B,M for hysteresis, Bdcd,Mdcd for irm-dcd data
         spec=pmag.get_dictitem(hyst_data,'er_specimen_name',s,'T') # get all measurements for this specimen
+        if 'er_location_name' in spec[0].keys():
+            locname=spec[0]['er_location_name']
+        if 'er_site_name' in spec[0].keys():
+            site=spec[0]['er_site_name']
+        if 'er_sample_name' in spec[0].keys():
+            sample=spec[0]['er_sample_name']
         for m in intlist:
-            if verbose:print 'checking for ',m
             meas_data=pmag.get_dictitem(spec,m,'','F') # get all non-blank data for this specimen
-            if verbose:print 'meas for  ',m, len(meas_data)
-            if len(meas_data)>0 and verbose:
-                print 'using ',m
+            if len(meas_data)>0: break
         c=['k-','b-','c-','g-','m-','r-','y-']
         cnum=0
         if len(meas_data)>0:
@@ -107,6 +108,7 @@ def main():
             for rec in meas_data: 
                 if rec['measurement_temp'] not  in Temps:Temps.append(rec['measurement_temp'])
             for t in Temps:
+              print 'working on t: ',t
               t_data=pmag.get_dictitem(meas_data,'measurement_temp',t,'T')
               B,M=[],[]
               for rec in t_data: 
@@ -118,7 +120,9 @@ def main():
                     if t==Temps[-1]:
                         xlab='Field (T)'
                         ylab=m
-                        title='Hysteresis'
+                        title='Hysteresis: '+s
+                    if t==Temps[0]:
+                        pmagplotlib.clearFIG(HDD['hyst'])
                     pmagplotlib.plotXY(HDD['hyst'],B,M,c[cnum],xlab,ylab,title) 
                     if verbose:pmagplotlib.drawFIGS(HDD)
                     cnum+=1
@@ -129,7 +133,7 @@ def main():
             if pltspec!="":s=pltspec
             files={}
             for key in HDD.keys():
-                files[key]=locname+'_'+s+'_'+key+'.'+fmt
+                files[key]="LO:_"+locname+'_SI:_'+site+'_SA:_'+sample+'_SP:_'+s+'_TY:_'+key+'_.'+fmt
             pmagplotlib.saveP(HDD,files)
             if pltspec!="":sys.exit()
         if verbose:
@@ -138,7 +142,7 @@ def main():
             if ans=="a":
                 files={}
                 for key in HDD.keys():
-                    files[key]=locname+'_'+s+'_'+key+'.'+fmt
+                    files[key]="LO:_"+locname+'_SI:_'+site+'_SA:_'+sample+'_SP:_'+s+'_TY:_'+key+'_.'+fmt
                 pmagplotlib.saveP(HDD,files)
             if ans=='':k+=1
             if ans=="p":
@@ -164,7 +168,7 @@ def main():
                         k =sids.index(specimen)
         else:
             k+=1
-        if len(B)==0 and len(Bdcd)==0:
+        if len(B)==0:
     	    if verbose:print 'skipping this one - no hysteresis data'
        	    k+=1
 main()
