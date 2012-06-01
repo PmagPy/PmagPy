@@ -31,7 +31,7 @@ def main():
         -P don't make any plots - just make rmag_results table
         -sav don't make the rmag_results table - just save all the plots
         -fmt [svg, png, jpg] format for output images
-     
+        -gtc DEC INC  dec,inc of pole to great circle 
     DEFAULTS  
        AFILE:  rmag_anisotropy.txt
        RFILE:  rmag_results.txt
@@ -49,7 +49,7 @@ def main():
     verbose=pmagplotlib.verbose
     args=sys.argv
     ipar,ihext,ivec,iboot,imeas,isite,iplot,vec=0,0,0,1,1,0,1,0
-    hpars,bpars=[],[]
+    hpars,bpars,PDir=[],[],[]
     CS,crd='-1','s'
     fmt='svg'
     ResRecs=[]
@@ -92,6 +92,11 @@ def main():
         verbose=0
     else:
         plots=0
+    if '-gtc' in args:
+        ind=args.index('-gtc')
+        d,i=float(args[ind+1]),float(args[ind+2])
+        PDir.append(d)
+        PDir.append(i)
 #
 # set up plots
 #
@@ -142,7 +147,7 @@ def main():
       site=""
       sdata,Ss=[],[] # list of S format data
       Locs,Sites,Samples,Specimens,Cits=[],[],[],[],[]
-      PDir,Dir=[],[]
+      Dir=[],[]
       if isite==0:
           sdata=data
       else:
@@ -190,11 +195,10 @@ def main():
       if len(Ss)>1:
           title="LO:_"+ResRec['er_location_names']+'_SI:_'+site+'_SA:__SP:__CO:_'+crd
           bpars,hpars=pmagplotlib.plotANIS(ANIS,Ss,iboot,ihext,ivec,ipar,title,iplot,comp,vec,Dir)
-          if verbose:pmagplotlib.drawFIGS(ANIS)
           if len(PDir)>0:
               pmagplotlib.plotC(ANIS['data'],PDir,90.,'g')
-
               pmagplotlib.plotC(ANIS['conf'],PDir,90.,'g')
+          if verbose:pmagplotlib.drawFIGS(ANIS)
           ResRec['er_location_names']=pmag.makelist(Locs)
           if plots==1:
               save(ANIS,fmt,title)
@@ -381,7 +385,6 @@ def main():
                       try:
                           print " Input:  input pole to great circle ( D I) to  plot a great circle:   "
                           di=raw_input(" D I: ").split()
-                          PDir=[]
                           PDir.append(float(di[0]))
                           PDir.append(float(di[1]))
                           con=0
@@ -394,6 +397,7 @@ def main():
                               sys.exit()
                   pmagplotlib.plotC(ANIS['data'],PDir,90.,'g')
                   pmagplotlib.plotC(ANIS['conf'],PDir,90.,'g')
+                  if verbose:pmagplotlib.drawFIGS(ANIS)
               if ans=="p": 
                   k-=2
                   goon=0
