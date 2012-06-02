@@ -112,8 +112,12 @@ def main():
         title=plot
         mode=1
         dec_key,inc_key,tilt_key,name_key,k="","","","",0
+        if plot!="All": 
+            odata=pmag.get_dictitem(data,plot_key,plot,'T')
+        else: odata=data # data for this obj
+        print plot,plot_key,len(data)
         for dec_key in Dec_keys:
-            Decs=pmag.get_dictitem(data,dec_key,'','F') # get all records with this dec_key not blank 
+            Decs=pmag.get_dictitem(odata,dec_key,'','F') # get all records with this dec_key not blank 
             if len(Decs)>0: break
         for inc_key in Inc_keys:
             Incs=pmag.get_dictitem(Decs,inc_key,'','F') # get all records with this inc_key not blank 
