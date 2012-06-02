@@ -81,15 +81,25 @@ def main():
             SiteDIs=pmag.get_dictitem(data,'average_dec','','F') # find decs
             SiteDIs=pmag.get_dictitem(SiteDIs,'average_inc','','F') # find decs and incs
             SiteDIs=pmag.get_dictitem(SiteDIs,'data_type','i','T') # only individual results - not poles
-            coords=pmag.get_dictitem(SiteDIs,'tilt_correction','','F')
-            if len(coords)>0: # there are coordinate systems specified
-                SiteDIs_s=pmag.get_dictitem(SiteDIs,'tilt_correction','-1','T')# sample coordinates
-                print 'eqarea_magic.py -sav -crd s -fmt '+fmt
-                os.system('eqarea_magic.py -sav -crd s -fmt '+fmt)
-                SiteDIs_g=pmag.get_dictitem(SiteDIs,'tilt_correction','0','T')# geographic coordinates
-                os.system('eqarea_magic.py -sav -crd g -fmt '+fmt)
-                SiteDIs_t=pmag.get_dictitem(SiteDIs,'tilt_correction','100','T')# tilt corrected coordinates
+            SiteDIs_t=pmag.get_dictitem(SiteDIs,'tilt_correction','100','T')# tilt corrected coordinates
+            if len(SiteDIs_t)>0:
+                print 'eqarea_magic.py -sav -crd t -fmt '+fmt
                 os.system('eqarea_magic.py -sav -crd t -fmt '+fmt)
+            else:
+                SiteDIs_g=pmag.get_dictitem(SiteDIs,'tilt_correction','0','T')# geographic coordinates
+                if len(SiteDIs_g)>0:
+                    print 'eqarea_magic.py -sav -crd g -fmt '+fmt
+                    os.system('eqarea_magic.py -sav -crd g -fmt '+fmt)
+                else:
+                    SiteDIs_s=pmag.get_dictitem(SiteDIs,'tilt_correction','-1','T')# sample coordinates
+                    if len(SiteDIs_s)>0:
+                        print 'eqarea_magic.py -sav -crd s -fmt '+fmt
+                        os.system('eqarea_magic.py -sav -crd s -fmt '+fmt)
+                    else:
+                        SiteDIs_x=pmag.get_dictitem(SiteDIs,'tilt_correction','','T')# no coordinates
+                        if len(SiteDIs_x)>0:
+                            print 'eqarea_magic.py -sav -fmt '+fmt
+                            os.system('eqarea_magic.py -sav -fmt '+fmt)
         if 'rmag_hysteresis.txt' in filelist: # start with measurement data
             print 'working on rmag_hysteresis'
             data,file_type=pmag.magic_read('rmag_hysteresis.txt') # read in data

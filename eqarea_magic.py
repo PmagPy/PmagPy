@@ -20,7 +20,7 @@ def main():
          supported types=[magic_measurements,pmag_specimens, pmag_samples, pmag_sites, pmag_results, magic_web]
         -obj OBJ: specify  level of plot  [all, sit, sam, spc], default is all
         -crd [s,g,t]: specify coordinate system, [s]pecimen, [g]eographic, [t]ilt adjusted
-                default is geographic
+                default is geographic, unspecified assumed geographic
         -fmt [svg,png,jpg] format for output plots
         -ell [F,K,B,Be,Bv] plot Fisher, Kent, Bingham, Bootstrap ellipses or Boostrap eigenvectors
         -c plot as colour contour 
@@ -29,8 +29,8 @@ def main():
         all: entire file; sit: site; sam: sample; spc: specimen
     """
     FIG={} # plot dictionary
-    FIG['eq']=1 # eqarea is figure 1
-    in_file,plot_key,coord,crd='pmag_results.txt','all',"-1",'g'
+    FIG['eqarea']=1 # eqarea is figure 1
+    in_file,plot_key,coord,crd='pmag_results.txt','all',"0",'g'
     plotE,contour=0,0
     dir_path='.'
     fmt='svg'
@@ -41,7 +41,7 @@ def main():
     if '-WD' in sys.argv:
         ind=sys.argv.index('-WD')
         dir_path=sys.argv[ind+1]
-    pmagplotlib.plot_init(FIG['eq'],5,5)
+    pmagplotlib.plot_init(FIG['eqarea'],5,5)
     if '-f' in sys.argv:
         ind=sys.argv.index("-f")
         in_file=dir_path+"/"+sys.argv[ind+1]
@@ -97,47 +97,42 @@ def main():
     #
     plotlist=[]
     if plot_key!="all":
-        for  rec in data:
+        plots=pmag.get_dictitem(data,plot_key,'','F')
+        for  rec in plots:
             if rec[plot_key] not in plotlist:
                 plotlist.append(rec[plot_key])
         plotlist.sort()
     else:
         plotlist.append('All')
     for plot in plotlist:
+        if verbose: print plot
         DIblock=[]
         GCblock=[]
         SLblock,SPblock=[],[]
-        tilt_key=""
+        title=plot
         mode=1
-        for rec in data: # find what data are available
-            if plot_key=='all' or rec[plot_key]==plot:
-                if plot_key!="all":
-                    title=rec[plot_key]
-                else:
-                    title=plot
-                dec_key,inc_key,tilt_key,name_key,k="","","","",0
-                while dec_key==""  and k<len(Dec_keys):
-                    if Dec_keys[k]  in rec.keys() and rec[Dec_keys[k]]!="" and Inc_keys[k] in rec.keys() and rec[Inc_keys[k]]!="": 
-                        dec_key,inc_key =Dec_keys[k],Inc_keys[k]
-                    k+=1
-                k=0
-                while tilt_key==""  and k<len(Tilt_keys):
-                    if Tilt_keys[k]  in rec.keys():tilt_key=Tilt_keys[k]
-                    k+=1
-                k=0
-                while name_key==""  and k<len(Name_keys):
-                    if Name_keys[k]  in rec.keys():name_key=Name_keys[k]
-                    k+=1
-                k=1
-                while dir_type_key==""  and k<len(Dir_type_keys):
-                    if Dir_type_keys[k]  in rec.keys():dir_type_key=Dir_type_keys[k]
-                    k+=1
-                if  dec_key!="":break 
-        if tilt_key=="":tilt_key='-1'
+        dec_key,inc_key,tilt_key,name_key,k="","","","",0
+        for dec_key in Dec_keys:
+            Decs=pmag.get_dictitem(data,dec_key,'','F') # get all records with this dec_key not blank 
+            if len(Decs)>0: break
+        for inc_key in Inc_keys:
+            Incs=pmag.get_dictitem(Decs,inc_key,'','F') # get all records with this inc_key not blank 
+            if len(Incs)>0: break
+        for tilt_key in Tilt_keys:
+            if tilt_key in Incs[0].keys(): break # find the tilt_key for these records
+        cdata=pmag.get_dictitem(Incs,tilt_key,coord,'T') # get all records matching specified coordinate system
+        if coord=='0': # geographic
+            udata=pmag.get_dictitem(Incs,tilt_key,'','T') # get all the blank records - assume geographic
+            for d in udata:cdata.append(d)  
+        for name_key in Name_keys:
+            Names=pmag.get_dictitem(cdata,name_key,'','F') # get all records with this name_key not blank 
+            if len(Names)>0: break
+        for dir_type_key in Dir_type_keys:
+            Dirs=pmag.get_dictitem(cdata,dir_type_key,'','F') # get all records with this direction type
+            if len(Dirs)>0: break
         if dir_type_key=="":dir_type_key='direction_type'
         locations,site,sample,specimen="","","",""
-        for rec in data: # pick out the data
-          if (plot_key=='all' or rec[plot_key]==plot)  and rec[dec_key].strip()!="" and rec[inc_key].strip()!="":
+        for rec in cdata: # pick out the data
             if 'er_location_name' in rec.keys() and rec['er_location_name']!="" and rec['er_location_name'] not in locations:locations=locations+rec['er_location_name'].replace("/","")+"_"
             if 'er_location_names' in rec.keys() and rec['er_location_names']!="":
                locs=rec['er_location_names'].split(':')
@@ -156,17 +151,11 @@ def main():
             if plot_key=='er_specimen_names':
                 specimen=rec['er_specimen_names']
             if dir_type_key not in rec.keys() or rec[dir_type_key]=="":rec[dir_type_key]='l'
-            if tilt_key not in rec.keys():rec[tilt_key]='-1' # assume specimen coordinates unless otherwise specified
-            if coord=='-1':
-                    DIblock.append([float(rec[dec_key]),float(rec[inc_key])])
-                    SLblock.append([rec[name_key],rec['magic_method_codes']])
-            elif rec[tilt_key]==coord and rec[dir_type_key]=='l' and rec[dec_key]!="" and rec[inc_key]!="":
-                if rec[tilt_key]==coord and rec[dir_type_key]=='l' and rec[dec_key]!="" and rec[inc_key]!="":
-                    DIblock.append([float(rec[dec_key]),float(rec[inc_key])])
-                    SLblock.append([rec[name_key],rec['magic_method_codes']])
-            elif rec[tilt_key]==coord and rec[dir_type_key]!='l' and rec[dec_key]!="" and rec[inc_key]!="":
-                    GCblock.append([float(rec[dec_key]),float(rec[inc_key])])
-                    SPblock.append([rec[name_key],rec['magic_method_codes']])
+            DIblock.append([float(rec[dec_key]),float(rec[inc_key])])
+            SLblock.append([rec[name_key],rec['magic_method_codes']])
+            if rec[tilt_key]==coord and rec[dir_type_key]!='l' and rec[dec_key]!="" and rec[inc_key]!="":
+                GCblock.append([float(rec[dec_key]),float(rec[inc_key])])
+                SPblock.append([rec[name_key],rec['magic_method_codes']])
         if len(DIblock)==0 and len(GCblock)==0:
             if verbose: print "no records for plotting"
             sys.exit()
@@ -177,12 +166,12 @@ def main():
             print '%s %s %7.1f %7.1f'%(SPblock[k][0],SPblock[k][1],GCblock[k][0],GCblock[k][1])
         if len(DIblock)>0: 
             if contour==0:
-                pmagplotlib.plotEQ(FIG['eq'],DIblock,title)
+                pmagplotlib.plotEQ(FIG['eqarea'],DIblock,title)
             else:
-                pmagplotlib.plotEQcont(FIG['eq'],DIblock)
-        else:   pmagplotlib.plotNET(FIG['eq'])
+                pmagplotlib.plotEQcont(FIG['eqarea'],DIblock)
+        else:   pmagplotlib.plotNET(FIG['eqarea'])
         if len(GCblock)>0:
-            for rec in GCblock: pmagplotlib.plotC(FIG['eq'],rec,90.,'g')
+            for rec in GCblock: pmagplotlib.plotC(FIG['eqarea'],rec,90.,'g')
         if plotE==1:
             ppars=pmag.doprinc(DIblock) # get principal directions
             nDIs,rDIs,npars,rpars=[],[],[],[]
@@ -317,19 +306,19 @@ def main():
                         else:
                             pmagplotlib.plotEQ(FIG['bdirs'],BrDIs,'Bootstrapped Eigenvectors')
             if dist=='B':
-                if len(nDIs)> 3 or len(rDIs)>3: pmagplotlib.plotCONF(FIG['eq'],etitle,[],npars,0)
+                if len(nDIs)> 3 or len(rDIs)>3: pmagplotlib.plotCONF(FIG['eqarea'],etitle,[],npars,0)
             elif len(nDIs)>3 and dist!='BV':
-                pmagplotlib.plotCONF(FIG['eq'],etitle,[],npars,0)
+                pmagplotlib.plotCONF(FIG['eqarea'],etitle,[],npars,0)
                 if len(rDIs)>3:
-                    pmagplotlib.plotCONF(FIG['eq'],etitle,[],rpars,0)
+                    pmagplotlib.plotCONF(FIG['eqarea'],etitle,[],rpars,0)
             elif len(rDIs)>3 and dist!='BV':
-                pmagplotlib.plotCONF(FIG['eq'],etitle,[],rpars,0)
+                pmagplotlib.plotCONF(FIG['eqarea'],etitle,[],rpars,0)
         if verbose:pmagplotlib.drawFIGS(FIG)
             #
         files={}
         locations=locations[:-1]
         for key in FIG.keys():
-            filename='LO:_'+locations+'_SI:_'+site+'_SA:_'+sample+'_SP:_'+specimen+'_CO:_'+crd+'_TY:_'+key+'.'+fmt
+            filename='LO:_'+locations+'_SI:_'+site+'_SA:_'+sample+'_SP:_'+specimen+'_CO:_'+crd+'_TY:_'+key+'_.'+fmt
             files[key]=filename 
         if pmagplotlib.isServer:
             black     = '#000000'

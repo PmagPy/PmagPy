@@ -83,7 +83,7 @@ def main():
         k=sids.index(pltspec)
     intlist=['measurement_magnitude','measurement_magn_moment','measurement_magn_volume','measurement_magn_mass']
     while k < len(sids):
-        locname,site,sample='','',''
+        locname,site,sample,synth='','','',''
         s=sids[k]
         hmeths=[]
         if verbose:print s, k+1 , 'out of ',len(sids)
@@ -97,6 +97,8 @@ def main():
             site=spec[0]['er_site_name']
         if 'er_sample_name' in spec[0].keys():
             sample=spec[0]['er_sample_name']
+        if 'er_synthetic_name' in spec[0].keys():
+            synth=spec[0]['er_synthetic_name']
         for m in intlist:
             meas_data=pmag.get_dictitem(spec,m,'','F') # get all non-blank data for this specimen
             if len(meas_data)>0: break
@@ -133,7 +135,10 @@ def main():
             if pltspec!="":s=pltspec
             files={}
             for key in HDD.keys():
-                files[key]="LO:_"+locname+'_SI:_'+site+'_SA:_'+sample+'_SP:_'+s+'_TY:_'+key+'_.'+fmt
+                if synth=='':
+                    files[key]="LO:_"+locname+'_SI:_'+site+'_SA:_'+sample+'_SP:_'+s+'_TY:_'+key+'_.'+fmt
+                else:
+                    files[key]='SY:_'+synth+'_TY:_'+key+'_.'+fmt
             pmagplotlib.saveP(HDD,files)
             if pltspec!="":sys.exit()
         if verbose:
