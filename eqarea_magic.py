@@ -127,7 +127,10 @@ def main():
         cdata=pmag.get_dictitem(Incs,tilt_key,coord,'T') # get all records matching specified coordinate system
         if coord=='0': # geographic
             udata=pmag.get_dictitem(Incs,tilt_key,'','T') # get all the blank records - assume geographic
-            for d in udata:cdata.append(d)  
+            if len(cdata)==0: crd='' 
+            if len(udata)>0:
+                for d in udata:cdata.append(d)  
+                crd=crd+'u'
         for name_key in Name_keys:
             Names=pmag.get_dictitem(cdata,name_key,'','F') # get all records with this name_key not blank 
             if len(Names)>0: break
