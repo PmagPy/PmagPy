@@ -77,7 +77,7 @@ def main():
         if 'pmag_results.txt' in filelist: # start with measurement data
             print 'working on pmag_results'
             data,file_type=pmag.magic_read('pmag_results.txt') # read in data
-            if loc == './': data=pmag.get_dictitem(data,'er_location_name','','T') # get all the blank location names from data file
+            if loc == './': data=pmag.get_dictitem(data,'er_location_names',':','has') # get all the concatenated location names from data file
             SiteDIs=pmag.get_dictitem(data,'average_dec','','F') # find decs
             SiteDIs=pmag.get_dictitem(SiteDIs,'average_inc','','F') # find decs and incs
             SiteDIs=pmag.get_dictitem(SiteDIs,'data_type','i','T') # only individual results - not poles

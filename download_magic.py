@@ -133,7 +133,7 @@ def main():
                         pmag.magic_write(lpath+'/'+f+'.txt',lrecs,file_type)
                         print len(lrecs),' stored in ',lpath+'/'+f+'.txt'
                 else:
-                    lrecs=pmag.get_dictitem(recs,'er_location_names',loc['er_location_name'],'has')
+                    lrecs=pmag.get_dictitem(recs,'er_location_names',loc['er_location_name'],'T')
                     if len(lrecs)>0:
                         pmag.magic_write(lpath+'/'+f+'.txt',lrecs,file_type)
                         print len(lrecs),' stored in ',lpath+'/'+f+'.txt'
