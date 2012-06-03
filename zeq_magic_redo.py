@@ -118,11 +118,11 @@ def main():
     #  collect info for the PmagSpecRec dictionary
     #
         meas_meth=[]
-        for rec in  meas_data: # copy of vital stats to PmagSpecRec from first spec record in demag block
+        spec=pmag.get_dictitem(meas_data,'er_specimen_name',s,'T')   
+        for rec in  spec: # copy of vital stats to PmagSpecRec from first spec record in demag block
            skip=1
-           if rec["er_specimen_name"]==s: 
-               methods=rec["magic_method_codes"].split(":")
-               if len(set(methods) & set(INCL))>0:
+           methods=rec["magic_method_codes"].split(":")
+           if len(set(methods) & set(INCL))>0:
                    PmagSpecRec["er_analyst_mail_names"]=user
                    PmagSpecRec["magic_software_packages"]=version_num
                    PmagSpecRec["er_specimen_name"]=s

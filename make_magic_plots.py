@@ -61,12 +61,12 @@ def main():
                 Mrecs=pmag.get_dictitem(data,key,'','F') # get intensity data
                 if len(Mrecs)>0:break
             if len(AFZrecs)>0 or len(TZrecs)>0 or len(MZrecs)>0 and len(Drecs)>0 and len(Irecs)>0 and len(Mrecs)>0: # potential for stepwise demag curves 
-                print 'zeq_magic.py -sav -fmt '+fmt+' -crd '+crd
+                print 'zeq_magic.py -fsp pmag_specimens.txt -sav -fmt '+fmt+' -crd '+crd
                 os.system('zeq_magic.py -sav -fmt '+fmt+' -crd '+crd )
                 #pass
             # looking for  thellier_magic possibilities
             if len(pmag.get_dictitem(data,'magic_method_codes','LP-PI-TRM','has'))>0:
-                print 'thellier_magic.py -sav -fmt '+fmt
+                print 'thellier_magic.py -fsp pmag_specimens.txt -sav -fmt '+fmt
                 os.system('thellier_magic.py -sav -fmt '+fmt)
                 #pass
             # looking for hysteresis possibilities

@@ -74,14 +74,11 @@ def main():
                 pmag.magic_write(outfile,Recs,file_type)
                 print file_type," data put in ",outfile
                 if file_type =='pmag_specimens': # sort out zeq_specimens and thellier_specimens
-                    tspecs=pmag.get_dictitem(Recs,'magic_method_codes','PI-TRM','has')
-                    if len(tspecs)>0:
-                        pmag.magic_write('thellier_specimens.txt',tspecs,file_type)
-                        print len(tspecs), ' specimen interpretations stored in thellier_specimens.txt'
-                    zspecs=pmag.get_dictitem(Recs,'magic_method_codes','DIR','has')
-                    if len(zspecs)>0:
-                        pmag.magic_write('zeq_specimens.txt',zspecs,file_type)
-                        print len(zspecs), ' specimen interpretations stored in zeq_specimens.txt'
+                    os.system('mk_redo.py')
+                    os.system('zeq_magic_redo.py')
+                    os.system('thellier_magic_redo.py')
+                    type_list.append('zeq_specimens')
+                    type_list.append('thellier_specimens')
                 Recs=[]
                 LN+=1
                 break

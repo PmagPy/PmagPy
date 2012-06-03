@@ -374,9 +374,9 @@ def main():
     # set the end pca point to last point  if not set
             if e==0 or e>len(plotblock)-1: e=len(plotblock)-1
             if angle=="": angle=plotblock[0][1] # rotate to NRM declination
-            title=s+': specimen coordinates'
-            if geo==1 and tilt==0 and noorient!=1:title=s+': geographic coordinates'
-            if tilt==1 and noorient!=1:title=s+': tilt corrected coordinates'
+            title=s+'_s_'
+            if geo==1 and tilt==0 and noorient!=1:title=s+'_g_'
+            if tilt==1 and noorient!=1:title=s+'_t_'
             pmagplotlib.plotZED(ZED,plotblock,angle,title,units)
             if verbose:pmagplotlib.drawFIGS(ZED)
             if len(CurrRecs)!=0:
