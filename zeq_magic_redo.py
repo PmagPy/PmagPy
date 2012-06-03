@@ -156,15 +156,12 @@ def main():
             sys.exit()
     #
     #
-        data,units=pmag.find_dmag_rec(s,meas_data)
+        datablock,units=pmag.find_dmag_rec(s,spec) # fish out the demag data for this specimen
     #
-        datablock=data
-        noskip=1
         if len(datablock) <2 or s not in speclist : 
-            noskip=0
             k+=1
 #            print 'skipping ', s,len(datablock)
-        if noskip:
+        else:
         #
         # find replicate measurements at given treatment step and average them
         #
