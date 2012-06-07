@@ -170,8 +170,11 @@ def plotXY(fignum,X,Y,sym,xlab,ylab,title,**kwargs):
     pylab.xlabel(xlab)
     pylab.ylabel(ylab)
     pylab.title(title)
-    if len(kwargs)>0: pylab.axis([kwargs['xmin'],kwargs['xmax'],kwargs['ymin'],kwargs['ymax']]) 
-
+    if 'min' in kwargs.keys(): pylab.axis([kwargs['xmin'],kwargs['xmax'],kwargs['ymin'],kwargs['ymax']]) 
+    if 'notes' in kwargs.keys(): 
+       for note in kwargs['notes']:
+           pylab.text(note[0],note[1],note[2])
+    
 def plotSITE(fignum,SiteRec,data,key):
     print 'Site mean data: '
     print '   dec    inc n_lines n_planes kappa R alpha_95 comp coord'
@@ -1368,10 +1371,10 @@ def plotSTRAT(fignum,data,labels):
     
 #
 #
-def plotCDF(fignum,data,xlab,sym,title):
+def plotCDF(fignum,data,xlab,sym,title,**kwargs):
 #
 # plots a CDF of data
-    if len(sym)==1:sym=sym+'-'
+    #if len(sym)==1:sym=sym+'-'
     fig=pylab.figure(num=fignum) 
     sdata=[]
     for d in data:sdata.append(d) # have to copy the data to avoid overwriting it!
@@ -1380,10 +1383,17 @@ def plotCDF(fignum,data,xlab,sym,title):
     for j in range(len(sdata)):
         Y.append(float(j)/float(len(sdata)))
         X.append(sdata[j]) 
-    pylab.plot(X,Y,sym,linewidth=2)
+    if 'color' in kwargs.keys():
+        sym=kwargs['color']
+    if 'linewidth' in kwargs.keys():
+        lw=kwargs['linewidth']
+    else:
+        lw=1
+    pylab.plot(X,Y,color=sym,linewidth=lw)
     pylab.xlabel(xlab)
     pylab.ylabel('Cumulative Distribution')
     pylab.title(title)
+    return X,Y
 #
 def plotHs(fignum,Ys,c,ls):
     fig=pylab.figure(num=fignum) 
