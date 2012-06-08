@@ -714,18 +714,19 @@ def find_dmag_rec(s,data):
     returns demagnetization data for specimen s from the data - excludes other kinds of experiments and "bad" measurements
     """
     EX=["LP-AN-ARM","LP-AN-TRM","LP-ARM-AFD","LP-ARM2-AFD","LP-TRM-AFD","LP-TRM","LP-TRM-TD","LP-X"] # list of excluded lab protocols
+    INC=["LT-NO","LT-AF-Z","LT-T-Z", "LT-M-Z", "LP-PI-TRM-IZ", "LP-PI-M-IZ"]
     datablock,tr=[],""
     therm_flag,af_flag,mw_flag=0,0,0
     units=[]
     spec_meas=get_dictitem(data,'er_specimen_name',s,'T')
     for rec in spec_meas:
            if 'measurement_flag' not in rec.keys():rec['measurement_flag']='g'
-           skip=0
+           skip=1
            tr=""
            methods=rec["magic_method_codes"].split(":")
            for meth in methods:
-               if meth.strip() in EX:
-                   skip=1
+               if meth.strip() in INC:
+                   skip=0
            if skip==0:
                if "LT-NO" in methods: 
                    tr = float(rec["treatment_temp"])
