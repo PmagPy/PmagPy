@@ -82,9 +82,13 @@ def main():
             SiteDIs=pmag.get_dictitem(SiteDIs,'average_inc','','F') # find decs and incs
             SiteDIs=pmag.get_dictitem(SiteDIs,'data_type','i','T') # only individual results - not poles
             SiteDIs_t=pmag.get_dictitem(SiteDIs,'tilt_correction','100','T')# tilt corrected coordinates
+            
             if len(SiteDIs_t)>0:
                 print 'eqarea_magic.py -sav -crd t -fmt '+fmt
                 os.system('eqarea_magic.py -sav -crd t -fmt '+fmt)
+            elif len(SiteDIs)>0 and 'tilt_correction' not in SiteDIs[0].keys():
+                print 'eqarea_magic.py -sav -fmt '+fmt
+                os.system('eqarea_magic.py -sav -fmt '+fmt)
             else:
                 SiteDIs_g=pmag.get_dictitem(SiteDIs,'tilt_correction','0','T')# geographic coordinates
                 if len(SiteDIs_g)>0:
