@@ -78,9 +78,9 @@ def main():
     if '-fmt' in sys.argv:
         ind=sys.argv.index("-fmt")
         fmt=sys.argv[ind+1]
-    Dec_keys=['site_dec','sample_dec','specimen_dec','measurement_dec','average_dec']
-    Inc_keys=['site_inc','sample_inc','specimen_inc','measurement_inc','average_inc']
-    Tilt_keys=['tilt_correction','site_tilt_correction','sample_tilt_correction','specimen_tilt_correction']
+    Dec_keys=['site_dec','sample_dec','specimen_dec','measurement_dec','average_dec','none']
+    Inc_keys=['site_inc','sample_inc','specimen_inc','measurement_inc','average_inc','none']
+    Tilt_keys=['tilt_correction','site_tilt_correction','sample_tilt_correction','specimen_tilt_correction','none']
     Dir_type_keys=['','site_direction_type','sample_direction_type','specimen_direction_type']
     Name_keys=['er_specimen_name','er_sample_name','er_site_name','pmag_result_name']
     data,file_type=pmag.magic_read(in_file)
@@ -115,7 +115,6 @@ def main():
         if plot!="All": 
             odata=pmag.get_dictitem(data,plot_key,plot,'T')
         else: odata=data # data for this obj
-        print plot,plot_key,len(data)
         for dec_key in Dec_keys:
             Decs=pmag.get_dictitem(odata,dec_key,'','F') # get all records with this dec_key not blank 
             if len(Decs)>0: break
@@ -124,6 +123,9 @@ def main():
             if len(Incs)>0: break
         for tilt_key in Tilt_keys:
             if tilt_key in Incs[0].keys(): break # find the tilt_key for these records
+        if tilt_key=='none': # no tilt key in data, need to fix this with fake data which will be unknown tilt
+            tilt_key='tilt_correction'
+            for rec in Incs:rec[tilt_key]=''
         cdata=pmag.get_dictitem(Incs,tilt_key,coord,'T') # get all records matching specified coordinate system
         if coord=='0': # geographic
             udata=pmag.get_dictitem(Incs,tilt_key,'','T') # get all the blank records - assume geographic
