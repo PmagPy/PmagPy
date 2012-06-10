@@ -125,7 +125,7 @@ def main():
                         title='Hysteresis: '+s
                     if t==Temps[0]:
                         pmagplotlib.clearFIG(HDD['hyst'])
-                    pmagplotlib.plotXY(HDD['hyst'],B,M,c[cnum],xlab,ylab,title) 
+                    pmagplotlib.plotXY(HDD['hyst'],B,M,sym=c[cnum],xlab=xlab,ylab=ylab,title=title) 
                     if verbose:pmagplotlib.drawFIGS(HDD)
                     cnum+=1
                     if cnum==len(c):cnum=0

@@ -164,16 +164,24 @@ def plotLINES(fignum,line,sym,x,y):
     pylab.plot(X,Y,sym)
     pylab.draw()
 
-def plotXY(fignum,X,Y,sym,xlab,ylab,title,**kwargs):
+def plotXY(fignum,X,Y,**kwargs):
     pylab.figure(num=fignum)
+    if 'sym' in kwargs.keys():
+        sym=kwargs['sym']
+    else: sym='ro'
+    if 'xerr' in kwargs.keys():
+       pylab.errorbar(X,Y,fmt=sym,xerr=kwargs['xerr'])
+    if 'yerr' in kwargs.keys():
+       pylab.errorbar(X,Y,fmt=sym,yerr=kwargs['yerr'])
     pylab.plot(X,Y,sym)
-    pylab.xlabel(xlab)
-    pylab.ylabel(ylab)
-    pylab.title(title)
-    if 'min' in kwargs.keys(): pylab.axis([kwargs['xmin'],kwargs['xmax'],kwargs['ymin'],kwargs['ymax']]) 
+    if 'xlab' in kwargs.keys():pylab.xlabel(kwargs['xlab'])
+    if 'ylab' in kwargs.keys():pylab.ylabel(kwargs['ylab'])
+    if 'title' in kwargs.keys():pylab.title(kwargs['title'])
+    if 'xmin' in kwargs.keys(): pylab.axis([kwargs['xmin'],kwargs['xmax'],kwargs['ymin'],kwargs['ymax']]) 
     if 'notes' in kwargs.keys(): 
        for note in kwargs['notes']:
            pylab.text(note[0],note[1],note[2])
+     
     
 def plotSITE(fignum,SiteRec,data,key):
     print 'Site mean data: '

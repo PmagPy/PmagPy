@@ -186,7 +186,7 @@ def main():
     PLT={'M_T':1,'der1':2,'der2':3,'Curie':4} 
     pmagplotlib.plot_init(PLT['M_T'],5,5)
     string='M-T (sliding window=%i)'%int(window_len)
-    pmagplotlib.plotXY(PLT['M_T'],T,M,'--','Temperature C','Magnetization',string)
+    pmagplotlib.plotXY(PLT['M_T'],T,M,sym='--',xlab='Temperature C',ylab='Magnetization',title=string)
     pmagplotlib.drawFIGS(PLT)
     plot(T,M_smooth,'-')
 
@@ -203,7 +203,7 @@ def main():
     #plot the first derivative
     pmagplotlib.plot_init(PLT['der1'],5,5)
     string='1st dervative (sliding window=%i)'%int(window_len)
-    pmagplotlib.plotXY(PLT['der1'],T_d1,d1_smooth,'-','temperatue C','',string)
+    pmagplotlib.plotXY(PLT['der1'],T_d1,d1_smooth,sym='-',xlab='Temperature C',title=string)
     plot(T_d1,d1,'--b')
 
     #calculate second derivative
@@ -220,7 +220,7 @@ def main():
     #plot the second derivative
     pmagplotlib.plot_init(PLT['der2'],5,5)
     string='2nd dervative (sliding window=%i)'%int(window_len)
-    pmagplotlib.plotXY(PLT['der2'],T_d2,d2,'-','temperatue C','',string)
+    pmagplotlib.plotXY(PLT['der2'],T_d2,d2,sym='-',xlab='Temperature C',title=string)
     d2=list(d2)
     print 'second deriative maximum is at T=%i'%int(T_d2[d2.index(max(d2))])
 
@@ -256,7 +256,7 @@ def main():
 
     #plot Curie temp for different sliding window length
     pmagplotlib.plot_init(PLT['Curie'],5,5)
-    pmagplotlib.plotXY(PLT['Curie'],wn,curie,'.','sliding window width (degrees)','curie temp','curie statistics')    
+    pmagplotlib.plotXY(PLT['Curie'],wn,curie,sym='.',xlab='Sliding Window Width (degrees)',ylab='Curie Temp',title='Curie Statistics')    
     raw_input()
 
 main()

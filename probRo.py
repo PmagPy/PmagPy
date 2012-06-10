@@ -44,8 +44,8 @@ def main():
         Rs.sort()
         crit=int(.95*Nm)
         Ro.append(Rs[crit])
-    pmagplotlib.plotXY(PLT['plt'],Ns,Ro,'-','N','Ro','')
-    pmagplotlib.plotXY(PLT['plt'],Ns,Ro,'ro','N','Ro','')
+    pmagplotlib.plotXY(PLT['plt'],Ns,Ro,sym='-',xlab='N',ylab='Ro')
+    pmagplotlib.plotXY(PLT['plt'],Ns,Ro,sym='ro',xlab='N',ylab='Ro')
     pmagplotlib.drawFIGS(PLT)
     for key in PLT.keys():
         files[key]=key+'.'+fmt

@@ -91,12 +91,25 @@ def main():
                 for k in range(len(keys)):InRec[keys[k]]=line.split(',')[k]
                 expedition=InRec['Exp']
                 location=InRec['Site']+InRec['Hole']
+# Maintain backward compatibility for the ever-changing LIMS format (Argh!)
+                if "Interval Top (cm) on SHLF" in InRec.keys():interval_key="Interval Top (cm) on SHLF"
+                if "Interval Top (cm) on SECT" in InRec.keys():interval_key="Interval Top (cm) on SECT"
+                if "Top Depth (m)" in InRec.keys():depth_key="Top Depth (m)"
+                if "CSF-A Top (m)" in InRec.keys():depth_key="CSF-A Top (m)" 
+                if "Demag level (mT)" in InRec.keys():demag_key="Demag level (mT)"
+                if "Demag Level (mT)" in InRec.keys(): demag_key="Demag Level (mT)"
+                if "Inclination (Tray- and Bkgrd-Corrected) (deg)" in InRec.keys():inc_key="Inclination (Tray- and Bkgrd-Corrected) (deg)"
+                if "Inclination background + tray corrected  (deg)" in InRec.keys():inc_key="Inclination background + tray corrected  (deg)"
+                if "Declination (Tray- and Bkgrd-Corrected) (deg)" in InRec.keys():dec_key="Declination (Tray- and Bkgrd-Corrected) (deg)"
+                if "Declination background + tray corrected (deg)" in InRec.keys():dec_key="Declination background + tray corrected (deg)"
+                if "Intensity (Tray- and Bkgrd-Corrected) (A/m)" in InRec.keys():int_key="Intensity (Tray- and Bkgrd-Corrected) (A/m)"
+                if "Intensity background + tray corrected  (A/m)" in InRec.keys():int_key="Intensity background + tray corrected  (A/m)"
                 while len(InRec['Core'])<3:
                     InRec['Core']='0'+InRec['Core']
                 if "Discrete" in InRec['Last Tray Measurement']: 
-                    specimen=expedition+'-'+location+'-'+InRec['Core']+InRec['Core Type']+"-"+InRec['Section']+'-'+InRec['Section Half']+'-'+InRec['Interval Top (cm) on SHLF']
+                    specimen=expedition+'-'+location+'-'+InRec['Core']+InRec['Core Type']+"-"+InRec['Section']+'-'+InRec['Section Half']+'-'+InRec[interval_key]
                 else:
-                    specimen=expedition+'-'+location+'-'+InRec['Core']+InRec['Core Type']+"_"+InRec['Section']+InRec['Section Half']+'-'+InRec['Interval Top (cm) on SHLF']
+                    specimen=expedition+'-'+location+'-'+InRec['Core']+InRec['Core Type']+"_"+InRec['Section']+InRec['Section Half']+'-'+InRec[interval_key]
                 SpecRec['er_expedition_name']=expedition
                 SpecRec['er_location_name']=location
                 SpecRec['er_site_name']=specimen
@@ -105,7 +118,7 @@ def main():
                 for key in SpecRec.keys():SiteRec[key]=SpecRec[key]
                 SampRec['sample_azimuth']='0'
                 SampRec['sample_dip']='0'
-                SampRec['sample_core_depth']=InRec['Top Depth (m)']
+                SampRec['sample_core_depth']=InRec[depth_key]
                 if "Discrete" in InRec['Last Tray Measurement']: 
                     SampRec['magic_method_codes']='FS-C-DRILL-IODP:SP-SS-C:SO-V'
                 else:
@@ -139,10 +152,10 @@ def main():
                 date='20'+mmddyy[2]+':'+mmddyy[0]+":"+mmddyy[1] +':' +datestamp[1]+":00.00"
                 MagRec["measurement_date"]=date
                 MagRec["magic_method_codes"]='LT-NO'
-                if InRec['Demag Level (mT)']!="0":
+                if InRec[demag_key]!="0":
                     MagRec['magic_method_codes'] = 'LT-AF-Z'
                     inst=inst+':ODP-SRM-AF' # measured on shipboard in-line 2G AF
-                    treatment_value=float(InRec['Demag Level (mT)'])*1e-3 # convert mT => T
+                    treatment_value=float(InRec[demag_key].strip('"'))*1e-3 # convert mT => T
                     MagRec["treatment_ac_field"]=treatment_value # AF demag in treat mT => T
                 if InRec['Treatment Type']!="":
                     if 'Alternating Frequency' in InRec['Treatment Type']:
@@ -163,9 +176,9 @@ def main():
                 else:
                     MagRec['external_database_ids']=""
                     MagRec['external_database_names']=''
-                MagRec['measurement_inc']=InRec['Inclination (Tray- and Bkgrd-Corrected) (deg)']
-                MagRec['measurement_dec']=InRec['Declination (Tray- and Bkgrd-Corrected) (deg)']
-                intens= InRec['Intensity (Tray- and Bkgrd-Corrected) (A/m)']
+                MagRec['measurement_inc']=InRec[inc_key].strip('"')
+                MagRec['measurement_dec']=InRec[dec_key].strip('"')
+                intens= InRec[int_key].strip('"')
                 MagRec['measurement_magn_moment']='%8.3e'%(float(intens)*vol) # convert intensity from A/m to Am^2 using vol
                 MagRec['magic_instrument_codes']=inst
                 MagRec['measurement_number']='1'

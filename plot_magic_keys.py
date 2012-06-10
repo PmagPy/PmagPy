@@ -63,9 +63,9 @@ def main():
         FIG={'fig':1}
         pmagplotlib.plot_init(FIG['fig'],5,5)
         if '-b' in sys.argv:
-            pmagplotlib.plotXY(FIG['fig'],X,Y,'ro',xkey,ykey,'',xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax )
+            pmagplotlib.plotXY(FIG['fig'],X,Y,sym='ro',xlab=xkey,ylab=ykey,xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax )
         else:
-            pmagplotlib.plotXY(FIG['fig'],X,Y,'ro',xkey,ykey,'')
+            pmagplotlib.plotXY(FIG['fig'],X,Y,sym='ro',xlab=xkey,ylab=ykey)
         pmagplotlib.drawFIGS(FIG)
         raw_input()
         sys.exit()

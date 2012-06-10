@@ -171,11 +171,11 @@ def main():
 # first test wrong direction of drill arrows (flip drill direction in opposite direction and re-calculate d,i
                         d,i=pmag.dogeo(float(spec['specimen_dec']),float(spec['specimen_inc']),float(spec['sample_azimuth'])-180.,-float(spec['sample_dip']))
                         XY=pmag.dimap(d,i)
-                        pmagplotlib.plotXY(EQ['eqarea'],[XY[0]],[XY[1]],'g^','','','')
+                        pmagplotlib.plotXY(EQ['eqarea'],[XY[0]],[XY[1]],sym='g^')
 # first test wrong end of compass (take az-180.)
                         d,i=pmag.dogeo(float(spec['specimen_dec']),float(spec['specimen_inc']),float(spec['sample_azimuth'])-180.,float(spec['sample_dip']))
                         XY=pmag.dimap(d,i)
-                        pmagplotlib.plotXY(EQ['eqarea'],[XY[0]],[XY[1]],'kv','','','')
+                        pmagplotlib.plotXY(EQ['eqarea'],[XY[0]],[XY[1]],sym='kv')
 # did the sample spin in the hole?  
 # now spin around specimen's z
                         X_up,Y_up,X_d,Y_d=[],[],[],[]
@@ -188,8 +188,8 @@ def main():
                             else:
                                 X_up.append(XY[0])
                                 Y_up.append(XY[1])
-                        pmagplotlib.plotXY(EQ['eqarea'],X_d,Y_d,'b.','','','')
-                        pmagplotlib.plotXY(EQ['eqarea'],X_up,Y_up,'c.','','','')
+                        pmagplotlib.plotXY(EQ['eqarea'],X_d,Y_d,sym='b.')
+                        pmagplotlib.plotXY(EQ['eqarea'],X_up,Y_up,sym='c.')
                         pmagplotlib.drawFIGS(EQ)
                         break
                 print "Triangle: wrong arrow for drill direction."
