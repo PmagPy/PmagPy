@@ -169,11 +169,23 @@ def plotXY(fignum,X,Y,**kwargs):
     if 'sym' in kwargs.keys():
         sym=kwargs['sym']
     else: sym='ro'
+    if 'lw' in kwargs.keys():
+        lw=kwargs['lw']
+    else:
+        lw=1
     if 'xerr' in kwargs.keys():
        pylab.errorbar(X,Y,fmt=sym,xerr=kwargs['xerr'])
     if 'yerr' in kwargs.keys():
        pylab.errorbar(X,Y,fmt=sym,yerr=kwargs['yerr'])
-    pylab.plot(X,Y,sym)
+    if 'axis' in kwargs.keys():
+       if kwargs['axis']=='semilogx': 
+           pylab.semilogx(X,Y,marker=sym[1],markerfacecolor=sym[0])
+       if kwargs['axis']=='semilogy': 
+           pylab.semilogy(X,Y,marker=sym[1],markerfacecolor=sym[0])
+       if kwargs['axis']=='loglog': 
+           pylab.loglog(X,Y,marker=sym[1],markerfacecolor=sym[0])
+    else:
+        pylab.plot(X,Y,sym,linewidth=lw)
     if 'xlab' in kwargs.keys():pylab.xlabel(kwargs['xlab'])
     if 'ylab' in kwargs.keys():pylab.ylabel(kwargs['ylab'])
     if 'title' in kwargs.keys():pylab.title(kwargs['title'])
