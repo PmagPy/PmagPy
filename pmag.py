@@ -4211,12 +4211,12 @@ def sortmwarai(datablock,exp_type):
     #
 def doigrf(long,lat,alt,date):
     """
-#       calculates the interpolated (<1995) or extrapolated (>2005) main field and
+#       calculates the interpolated (<2010) or extrapolated (>2010) main field and
 #       secular variation coefficients and passes these to the Malin and Barraclough
-#       routine to calculate the IGRF field. dgrf coefficients for 1945 to 1990, dgrf
-#       for 1995 and igrf for 2005 from  http://nssdcftp.gsfc.nasa.gov/models/geomagnetic/igrf/fortran_code/
+#       routine to calculate the IGRF field. dgrf coefficients for 1945 to 2005, igrf for pre 1945 and post 2010 
+#       from http://www.ngdc.noaa.gov/IAGA/vmod/igrf.html 
 #
-#      for dates prior to 1945, this program uses coefficients from the GUFM1 model of Jackson et al. 2000
+#      for dates prior to 1900, this program uses coefficients from the GUFM1 model of Jackson et al. 2000
 #    
 #
 #       input:
