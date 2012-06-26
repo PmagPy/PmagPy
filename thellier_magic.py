@@ -279,7 +279,6 @@ def main():
                        else:
                            print '%i     %i %7.1f %7.1f %8.3e ' % (recnum,plotrec[0]-273,plotrec[1],plotrec[2],plotrec[3])
                        recnum += 1
-               print s, units[0]
                pmagplotlib.plotAZ(AZD,araiblock,zijdblock,s,units[0])
                if verbose:pmagplotlib.drawFIGS(AZD)
                if len(tdsrecs)>2: # a TDS experiment
@@ -592,3 +591,4 @@ def main():
     if verbose:
         print "Good bye"
 main()
+            

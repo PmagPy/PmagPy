@@ -198,9 +198,9 @@ def main():
             PmagSpecRec["er_sample_name"]=rec["er_sample_name"]
             PmagSpecRec["er_site_name"]=rec["er_site_name"]
             PmagSpecRec["er_location_name"]=rec["er_location_name"]
-            if "er_expedition_name" in rec.keys():PmagSpecRec["er_expedition_name"]=rec["er_expedition_name"]
             PmagSpecRec["measurement_step_unit"]="K"
             PmagSpecRec["specimen_correction"]='u'
+            if "er_expedition_name" in rec.keys():PmagSpecRec["er_expedition_name"]=rec["er_expedition_name"]
             if "magic_instrument_codes" not in rec.keys():
                 PmagSpecRec["magic_instrument_codes"]="unknown"
             else:
@@ -336,7 +336,7 @@ def main():
                             else: # find uncorrected data
                                 Spc=PmagSpecRec
                             for AniSpec in anis_data:
-                                if AniSpec["er_specimen_name"]==PmagSpecRec["er_specimen_name"]:
+                                if AniSpec["er_specimen_name"].lower()==PmagSpecRec["er_specimen_name"].lower():
                                     AniSpecRec=pmag.doaniscorr(Spc,AniSpec)
                                     AniSpecRec['specimen_grade']=PmagSpecRec['specimen_grade']
                                     inst_codes=Spc["magic_instrument_codes"]
@@ -356,7 +356,7 @@ def main():
                                     break
                     elif anis==1:
                         for AniSpec in anis_data:
-                            if AniSpec["er_specimen_name"]==PmagSpecRec["er_specimen_name"]:
+                            if AniSpec["er_specimen_name"].lower()==PmagSpecRec["er_specimen_name"].lower():
                                 AniSpecRec=pmag.doaniscorr(PmagSpecRec,AniSpec)
                                 AniSpecRec['specimen_grade']=PmagSpecRec['specimen_grade']
                                 inst_codes=PmagSpecRec["magic_instrument_codes"]

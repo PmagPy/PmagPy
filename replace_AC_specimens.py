@@ -3,7 +3,7 @@ import pmag,exceptions,sys
 def main():
     """
     NAME
-        pick_AC_specimens.py
+        replace_AC_specimens.py
     
     DESCRIPTION
         finds  anisotropy corrected data and 
@@ -68,11 +68,11 @@ def main():
     for samp in Samplist:
         useAC,Ints,ACInts,GoodSpecs,AC,UC=0,[],[],[],[],[]
         for spec in Specs:
-            if spec["er_sample_name"]==samp:
+            if spec["er_sample_name"].lower()==samp.lower():
                     UC.append(spec)
         if samp in ACSamplist:
             for spec in ACSpecs:
-                if spec["er_sample_name"]==samp:
+                if spec["er_sample_name"].lower()==samp.lower():
                         AC.append(spec)
         if len(AC)>0:
             AClist=[]

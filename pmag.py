@@ -27,6 +27,16 @@ def get_dictitem(In,k,v,flag):
     except Exception, err:
         return []
 
+def get_dictkey(In,k,dtype): 
+    # returns list of given key from input list of dictionaries
+    Out=[]
+    for d in In: 
+        if dtype=='': Out.append(d[k]) 
+        if dtype=='f':Out.append(float(d[k]))
+        if dtype=='int':Out.append(int(d[k]))
+    return Out 
+        
+
 def find(f,seq):
     for item in seq:
        if f in item: return item
@@ -727,6 +737,8 @@ def find_dmag_rec(s,data):
            for meth in methods:
                if meth.strip() in INC:
                    skip=0
+           for meth in EX:
+               if meth in methods:skip=1
            if skip==0:
                if "LT-NO" in methods: 
                    tr = float(rec["treatment_temp"])
@@ -4231,7 +4243,7 @@ def doigrf(long,lat,alt,date):
 #       f     = total magnetic force in nT
 #
 #       To check the results you can run the interactive program at the NGDC
-#        http://ftp.ngdc.noaa.gov/seg/geomag/jsp/struts/calcIGRFWMM
+#        http://www.ngdc.noaa.gov/geomagmodels/IGRFWMM.jsp
     """
 
 #
@@ -4267,66 +4279,79 @@ def doigrf(long,lat,alt,date):
 # ensure all positive east longitudes
     itype = 1                                                       
 # use geodetic coordinates
-    reclen=195
-    if date<1900:
-        import gufm
-        date0=date-date%5
-        field1=gufm.coeffs(date0)
-        field2=gufm.coeffs(date0+5)
-        for i in range(reclen):
-            gh.append(field1[i])
-            sv.append(field2[i]-field1[i]/5.)
+    if date<-10000:
+        print 'too old'
+        sys.exit()
+    if date<-2000:
+        print "Using CALS10k.1b field coefficients"
+        import cals10k # goes back to 8000 BC now
+        date0=date-date%10
+        field1=numpy.array(cals10k.coeffs(date0))
+        field2=numpy.array(cals10k.coeffs(date0+10))
+        gh=field1
+        sv=(field2-field1)/10.
         x,y,z,f=magsyn(gh,sv,date0,date,itype,alt,colat,long)
-        print "Using GUFM field coefficients"
+    elif date<1900:
+        print "Using CALS3k.4b field coefficients"
+        import cals3k # goes back to 2000 BC now
+        date0=date-date%10
+        field1=numpy.array(cals3k.coeffs(date0))
+        if date0+10==1900:
+            field2=[-31543, -2298, 5922, -677, 2905, -1061, 924, 1121, 1022, -1469, -330, 1256, 3, 572, 523, 876, 628, 195, 660, -69, -361, -210, 134, -75, -184, 328, -210, 264, 53, 5, -33, -86, -124, -16, 3, 63, 61, -9, -11, 83, -217, 2, -58, -35, 59, 36, -90, -69, 70, -55, -45, 0, -13, 34, -10, -41, -1, -21, 28, 18, -12, 6, -22, 11, 8, 8, -4, -14, -9, 7, 1, -13, 2, 5, -9, 16, 5, -5, 8, -18, 8, 10, -20, 1, 14, -11, 5, 12, -3, 1, -2, -2, 8, 2, 10, -1, -2, -1, 2, -3, -4, 2, 2, 1, -5, 2, -2, 6, 6, -4, 4, 0, 0, -2, 2, 4, 2, 0, 0, -6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        else:
+            field2=numpy.array(cals3k.coeffs(date0+10.))
+        gh=field1
+        sv=(field2-field1)/10.
+        x,y,z,f=magsyn(gh,sv,date0,date,itype,alt,colat,long)
     elif date<1905:
         for i in range(reclen):
             gh.append(igrf1900[i])
-            sv.append(igrf1905[i]-igrf1900[i]/5.)
+            sv.append((igrf1905[i]-igrf1900[i])/5.)
         x,y,z,f=magsyn(gh,sv,1900.,date,itype,alt,colat,long)
     elif date<1910:
         for i in range(reclen):
             gh.append(igrf1905[i])
-            sv.append(igrf1910[i]-igrf1905[i]/5.)
+            sv.append((igrf1910[i]-igrf1905[i])/5.)
         x,y,z,f=magsyn(gh,sv,1905.,date,itype,alt,colat,long)
     elif date<1915:
         for i in range(reclen):
             gh.append(igrf1910[i])
-            sv.append(igrf1915[i]-igrf1910[i]/5.)
+            sv.append((igrf1915[i]-igrf1910[i])/5.)
         x,y,z,f=magsyn(gh,sv,1910.,date,itype,alt,colat,long)
     elif date<1920:
         for i in range(reclen):
             gh.append(igrf1915[i])
-            sv.append(igrf1920[i]-igrf1915[i]/5.)
+            sv.append((igrf1920[i]-igrf1915[i])/5.)
         x,y,z,f=magsyn(gh,sv,1915.,date,itype,alt,colat,long)
     elif date<1925:
         for i in range(reclen):
             gh.append(igrf1920[i])
-            sv.append(igrf1925[i]-igrf1920[i]/5.)
+            sv.append((igrf1925[i]-igrf1920[i])/5.)
         x,y,z,f=magsyn(gh,sv,1915.,date,itype,alt,colat,long)
     elif date<1930:
         for i in range(reclen):
             gh.append(igrf1925[i])
-            sv.append(igrf1930[i]-igrf1925[i]/5.)
+            sv.append((igrf1930[i]-igrf1925[i])/5.)
         x,y,z,f=magsyn(gh,sv,1925.,date,itype,alt,colat,long)
     elif date<1935:
         for i in range(reclen):
             gh.append(igrf1930[i])
-            sv.append(igrf1935[i]-igrf1930[i]/5.)
+            sv.append((igrf1935[i]-igrf1930[i])/5.)
         x,y,z,f=magsyn(gh,sv,1930.,date,itype,alt,colat,long)
     elif date<1940:
         for i in range(reclen):
             gh.append(igrf1935[i])
-            sv.append(igrf1940[i]-igrf1935[i]/5.)
+            sv.append((igrf1940[i]-igrf1935[i])/5.)
         x,y,z,f=magsyn(gh,sv,1935.,date,itype,alt,colat,long)
     elif date<1945:
         for i in range(reclen):
             gh.append(igrf1940[i])
-            sv.append(dgrf1945[i]-igrf1940[i]/5.)
+            sv.append((dgrf1945[i]-igrf1940[i])/5.)
         x,y,z,f=magsyn(gh,sv,1940.,date,itype,alt,colat,long)
     elif date<1950:
         for i in range(reclen):
             gh.append(dgrf1945[i])
-            sv.append(dgrf1950[i]-dgrf1945[i]/5.)
+            sv.append((dgrf1950[i]-dgrf1945[i])/5.)
         x,y,z,f=magsyn(gh,sv,1940.,date,itype,alt,colat,long)
     elif date<1955:
         for i in range(reclen):
@@ -7187,6 +7212,14 @@ def dimap(D,I):
 
     ### RETURN XY[X,Y]
     return XY
+
+def squish(incs,f):
+    """
+    returns 'flattened' inclination, assuming factor, f and King (1955) formula
+    """
+    incs=incs*numpy.pi/180. # convert to radians
+    tincnew=f*numpy.tan(incs) # multiply tangent by flattening factor
+    return numpy.arctan(tincnew)*180./numpy.pi
 
 
 def get_TS(ts):
