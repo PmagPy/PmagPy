@@ -104,12 +104,15 @@ def main():
                 if "Declination background + tray corrected (deg)" in InRec.keys():dec_key="Declination background + tray corrected (deg)"
                 if "Intensity (Tray- and Bkgrd-Corrected) (A/m)" in InRec.keys():int_key="Intensity (Tray- and Bkgrd-Corrected) (A/m)"
                 if "Intensity background + tray corrected  (A/m)" in InRec.keys():int_key="Intensity background + tray corrected  (A/m)"
+                if "Core Type" in InRec.keys():
+                    type="Core Type"
+                else: type="Type" 
                 while len(InRec['Core'])<3:
                     InRec['Core']='0'+InRec['Core']
-                if "Discrete" in InRec['Last Tray Measurement']: 
-                    specimen=expedition+'-'+location+'-'+InRec['Core']+InRec['Core Type']+"-"+InRec['Section']+'-'+InRec['Section Half']+'-'+InRec[interval_key]
-                else:
-                    specimen=expedition+'-'+location+'-'+InRec['Core']+InRec['Core Type']+"_"+InRec['Section']+InRec['Section Half']+'-'+InRec[interval_key]
+                if "Last Tray Measurment" in InRec.keys() and "Discrete" in InRec['Last Tray Measurement'] or 'dscr' in csv_file :  # assume discrete sample
+                    specimen=expedition+'-'+location+'-'+InRec['Core']+InRec[type]+"-"+InRec['Section']+'-'+InRec['Section Half']+'-'+InRec[interval_key]
+                else: # mark as continuous measurements
+                    specimen=expedition+'-'+location+'-'+InRec['Core']+InRec[type]+"_"+InRec['Section']+InRec['Section Half']+'-'+InRec[interval_key]
                 SpecRec['er_expedition_name']=expedition
                 SpecRec['er_location_name']=location
                 SpecRec['er_site_name']=specimen
