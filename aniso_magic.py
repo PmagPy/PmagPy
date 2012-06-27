@@ -22,15 +22,15 @@ def main():
         -usr USER: set the user name
         -f AFILE, specify rmag_anisotropy formatted file for input
         -F RFILE, specify rmag_results formatted file for output
-        -x Hext [1963]
-        -B DON'T do bootstrap
+        -x Hext [1963] and bootstrap
+        -B DON'T do bootstrap, do Hext
         -par Tauxe [1998] parametric bootstrap
         -v plot bootstrap eigenvectors instead of ellipses
         -sit plot by site instead of entire file
         -crd [s,g,t] coordinate system, default is specimen (g=geographic, t=tilt corrected)
         -P don't make any plots - just make rmag_results table
         -sav don't make the rmag_results table - just save all the plots
-        -fmt [svg, png, jpg] format for output images
+        -fmt [svg, png, jpg] format for output images, pdf default
         -gtc DEC INC  dec,inc of pole to great circle 
     DEFAULTS  
        AFILE:  rmag_anisotropy.txt
@@ -51,7 +51,7 @@ def main():
     ipar,ihext,ivec,iboot,imeas,isite,iplot,vec=0,0,0,1,1,0,1,0
     hpars,bpars,PDir=[],[],[]
     CS,crd='-1','s'
-    fmt='svg'
+    fmt='pdf'
     ResRecs=[]
     orlist=[]
     outfile,comp,Dir,gtcirc,PDir='rmag_results.txt',0,[],0,[]
@@ -67,7 +67,7 @@ def main():
         user=args[ind+1]
     else:
         user=""
-    if '-B' in args:iboot=0
+    if '-B' in args:iboot,ihext=0,1
     if '-par' in args:ipar=1
     if '-x' in args:ihext=1
     if '-v' in args:ivec=1
@@ -191,9 +191,11 @@ def main():
             ResRec["anisotropy_t1"]='%10.8f'%(tau[0])
             ResRec["anisotropy_t2"]='%10.8f'%(tau[1])
             ResRec["anisotropy_t3"]='%10.8f'%(tau[2])
+            ResRec['anisotropy_type']=pmag.makelist(anitypes)
             ResRecs.append(ResRec) 
       if len(Ss)>1:
           title="LO:_"+ResRec['er_location_names']+'_SI:_'+site+'_SA:__SP:__CO:_'+crd
+          ResRec['er_location_names']=pmag.makelist(Locs)
           bpars,hpars=pmagplotlib.plotANIS(ANIS,Ss,iboot,ihext,ivec,ipar,title,iplot,comp,vec,Dir)
           if len(PDir)>0:
               pmagplotlib.plotC(ANIS['data'],PDir,90.,'g')
@@ -205,10 +207,12 @@ def main():
               sys.exit()
           ResRec={}
           ResRec['er_citation_names']=pmag.makelist(Cits)
+          ResRec['er_location_names']=pmag.makelist(Locs)
           ResRec['er_site_names']=pmag.makelist(Sites)
           ResRec['er_sample_names']=pmag.makelist(Samples)
           ResRec['er_specimen_names']=pmag.makelist(Specimens)
           ResRec['rmag_result_name']=pmag.makelist(Sites)+":"+pmag.makelist(anitypes)
+          ResRec['anisotropy_type']=pmag.makelist(anitypes)
           ResRec["er_analyst_mail_names"]=user
           ResRec["tilt_correction"]=CS
           if isite=="0":ResRec['result_description']="Study average using coordinate system: "+ CS
@@ -421,7 +425,9 @@ def main():
                           k=sitelist.index(site)
                   goon,ans=0,""
               if ans=="a":
-                  save(ANIS,fmt)
+                  locs=pmag.makelist(Locs)
+                  title="LO:_"+locs+'_SI:__'+'_SA:__SP:__CO:_'+crd
+                  save(ANIS,fmt,title)
                   goon=0
       else:
           if verbose:print 'skipping plot - not enough data points'
