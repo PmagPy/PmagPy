@@ -170,6 +170,11 @@ def main():
                    print key, SpecIntCrit[key]
                    new=raw_input("Enter new criterion (return to keep default) ")
                    if new != "": SpecIntCrit[key]=(new)
+            for key in SampIntCrit.keys():
+                if key!='pmag_criteria_code' and key!='er_citation_names' and key!='criteria_definition' and SampIntCrit[key]!="":
+                   print key, SampIntCrit[key]
+                   new=raw_input("Enter new criterion (return to keep default) ")
+                   if new != "": SampIntCrit[key]=(new)
             for key in SiteIntCrit.keys():
                 if key!='pmag_criteria_code' and key!='er_citation_names' and key!='criteria_definition' and SiteIntCrit[key]!="":
                    print key, SiteIntCrit[key]
@@ -187,6 +192,7 @@ def main():
     SpecCrit['criteria_definition']="Criteria for selection of specimen direction"
     SpecIntCrit['criteria_definition']="Criteria for selection of specimen intensity"
     SampCrit['criteria_definition']="Criteria for selection of sample direction"
+    SampIntCrit['criteria_definition']="Criteria for selection of sample intensity"
     SiteIntCrit['criteria_definition']="Criteria for selection of site intensity"
     SiteCrit['criteria_definition']="Criteria for selection of site direction"
     NpoleCrit['criteria_definition']="Criteria for inclusion in normal mean"

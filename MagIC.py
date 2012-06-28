@@ -2735,7 +2735,7 @@ def revtest():
     cust_rv=ask_radio(root,cust,'Customize selection criteria?') # 
     if cust_rv!=0:
         outstring=outstring+' -exc '
-        if cust_rv!=3:customize_criteria(cust_rv)
+        if cust_rv!=3:custom()
     print outstring
     os.system(outstring)
 
@@ -2751,7 +2751,7 @@ def fold():
     cust_rv=ask_radio(root,cust,'Customize selection criteria?') # 
     if cust_rv!=0:
         outstring=outstring+' -exc '
-        if cust_rv!=3:customize_criteria(cust_rv)
+        if cust_rv!=3:custom()
     print outstring
     os.system(outstring)
 
