@@ -510,7 +510,6 @@ def main():
             PmagResRec['er_site_names']= site
             PmagSiteRec['magic_method_codes']= pmag.getlist(Ints,'magic_method_codes')
             PmagResRec['magic_method_codes']= pmag.getlist(Ints,'magic_method_codes')
-            print PmagResRec['average_int_n'],SiteIntCrit['site_int_n'],nocrit
             if int(PmagResRec["average_int_n"]) >= int(SiteIntCrit['site_int_n']) or nocrit==1: # apply criteria or NOT
                 if nocrit==1 or (float(PmagResRec["average_int_sigma"]) <=float(SiteIntCrit['site_int_sigma']) or float(PmagResRec['average_int_sigma_perc']) <= float(SiteIntCrit['site_int_sigma_perc'])): 
                   b,sig=float(PmagResRec['average_int']),""
@@ -529,8 +528,6 @@ def main():
                   mlat="" # define a model latitude
                   if get_model_lat==1: # use present site latitude
                     mlats=pmag.get_dictitem(SiteNFO,'er_site_name',site,'T')
-                    print mlats
-                    raw_input('site lats')
                     if len(mlats)>0: mlat=mlats[0]['site_lat']
                   elif get_model_lat==2: # use a model latitude from some plate reconstruction model (or something)
                     mlats=pmag.get_dictitem(ModelLats,'er_site_name',site,'T')
