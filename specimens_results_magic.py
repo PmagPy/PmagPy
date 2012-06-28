@@ -101,8 +101,8 @@ def main():
 	DefaultAge.append(args[ind+2])
 	DefaultAge.append(args[ind+3])
     Daverage,Iaverage,Caverage=0,0,0
-    if "-aD" in args: Daverage=1 # average by sample specimen directions
-    if "-aI" in args: Iaverage=1 # average by sample specimen intensities
+    if "-aD" in args: Daverage=1 # average by sample directions
+    if "-aI" in args: Iaverage=1 # average by sample intensities
     if "-aC" in args: Caverage=1 # average all components together ???  why???
     if "-pol" in args: polarity=1 # calculate averages by polarity
     if '-xD' in args:noDir=1
@@ -164,6 +164,7 @@ def main():
 	    print "Acceptance criteria are defaults"
 	else:
 	    print "No acceptance criteria used "
+    SpecCrit,SpecIntCrit,SampCrit,SampIntCrit,SiteIntCrit,SiteCrit,NpoleCrit,RpoleCrit={},{},{},{},{},{},{},{}
     for critrec in crit_data: # get the selection criteria sorted out into dictionaries
 	if critrec["pmag_criteria_code"]=="DE-SPEC": SpecCrit=critrec
 	if critrec["pmag_criteria_code"]=="DE-SAMP": SampCrit=critrec
@@ -172,21 +173,17 @@ def main():
 	if critrec["pmag_criteria_code"]=="DE-SITE": SiteCrit=critrec
 	if critrec["pmag_criteria_code"]=="NPOLE": NpoleCrit=critrec
 	if critrec["pmag_criteria_code"]=="RPOLE": RpoleCrit=critrec
-	if critrec["pmag_criteria_code"]=="IE-SPEC":
-	    SpecIntCrit=critrec
+	if critrec["pmag_criteria_code"]=="IE-SPEC": 
+            SpecIntCrit=critrec
 	    accept_keys=['specimen_int_ptrm_n','specimen_md','specimen_fvds','specimen_b_beta','specimen_dang','specimen_drats','specimen_int_mad']
 	    accept={}
 	    accept['specimen_int_ptrm_n']=2.0
-	    for critrec in crit_data:
-		critrec['er_citation_names']="This study"
-		critrec['criteria_definition']="Criteria for selection of specimen direction"
-		if critrec["pmag_criteria_code"]=="IE-SPEC":
-		    for key in accept_keys:
-			if key not in critrec.keys():
-			    accept[key]=-1
-			else:
-			    accept[key]=float(critrec[key])
-    TmpCrits=[SpecCrit,SpecIntCrit,SampCrit,SiteIntCrit,SiteCrit,NpoleCrit,RpoleCrit]
+            for key in accept_keys:
+	        if key not in critrec.keys():
+	            accept[key]=-1
+                else:
+                    accept[key]=float(critrec[key])
+    TmpCrits=[SpecCrit,SpecIntCrit,SampCrit,SampIntCrit,SiteIntCrit,SiteCrit,NpoleCrit,RpoleCrit]
     #
     # assemble criteria keys and store in file
     #
@@ -253,6 +250,7 @@ def main():
 #
     PmagSamps,SampDirs=[],[] # list of all sample data and list of those that pass the DE-SAMP criteria
     PmagSites,PmagResults=[],[] # list of all site data and selected results
+    SampInts=[]
     for samp in samples: # run through the sample names
 	if Daverage==1: #  average by sample if desired
 	   SampDir=pmag.get_dictitem(SpecDirs,'er_sample_name',samp,'T') # get all the directional data for this sample
@@ -325,7 +323,6 @@ def main():
 				   if PmagResRec!="":PmagResults.append(PmagResRec)
 			   PmagSamps.append(PmagSampRec)
 	if Iaverage==1: #  average by sample if desired
-	   SampInts=[] # list of pmag sample records with intensity data
 	   SampI=pmag.get_dictitem(SpecInts,'er_sample_name',samp,'T') # get all the intensity data for this sample
 	   if len(SampI)>0: # there are some
 	       PmagSampRec=pmag.average_int(SampI,'specimen','sample') # get average intensity stuff
@@ -340,8 +337,8 @@ def main():
 	       site_height=pmag.get_dictitem(height_nfo,'er_site_name',PmagSampRec['er_site_name'],'T')
 	       if len(site_height)>0:PmagSampRec["sample_height"]=site_height[0]['site_height'] # add in height if available
 	       if nocrit!=1: PmagSampRec['pmag_criteria_codes']="IE-SPEC"
-	       PmagSampRec['er_specimen_names']= pmag.getlist(SampInts,'er_specimen_name')
-	       PmagSampRec['magic_method_codes']= pmag.getlist(SampInts,'magic_method_codes')
+	       PmagSampRec['er_specimen_names']= pmag.getlist(SampI,'er_specimen_name')
+	       PmagSampRec['magic_method_codes']= pmag.getlist(SampI,'magic_method_codes')
 	       if vgps==1 and get_model_lat!=0: #
 		  if get_model_lat==1:
 		      PmagResRec=pmag.getsampVGP(PmagSampRec,SiteNFO)
@@ -349,6 +346,7 @@ def main():
 		      PmagResRec=pmag.getsampVGP(PmagSampRec,ModelLats)
 		      if PmagResRec!="":PmagResRec['magic_method_codes']=PmagResRec['magic_method_codes']+":IE-MLAT"
 		  if PmagResRec!="":PmagResults.append(PmagResRec)
+	       SampInts.append(PmagSampRec)
 	       PmagSamps.append(PmagSampRec)
     if len(PmagSamps)>0:
 	TmpSamps,keylist=pmag.fillkeys(PmagSamps) # fill in missing keys from different types of records       
@@ -481,7 +479,7 @@ def main():
       for site in sites: # now do intensities for each site
         if plotsites==1:print site
         if Iaverage==0: key,intlist,crit='specimen',SpecInts,'IE-SPEC' # if using specimen level data
-        if Iaverage==1: key,intlist,crit='sample',SampInts,'IE-SPEC' # if using sample level data
+        if Iaverage==1: key,intlist,crit='sample',PmagSamps,'IE-SAMP' # if using sample level data
         Ints=pmag.get_dictitem(intlist,'er_site_name',site,'T') # get all the intensities  for this site
         if len(Ints)>0: # there are some
             PmagSiteRec=pmag.average_int(Ints,key,'site') # get average intensity stuff for site table
@@ -541,15 +539,15 @@ def main():
                         PmagResRec["vadm_n"]=PmagResRec['average_int_n']
                     else:
                         PmagResRec["vadm_sigma"]=""
-            PmagResRec['magic_software_packages']=version_num
-            PmagResRec["pmag_result_name"]="V[A]DM: Site "+site
-            PmagResRec["result_description"]="V[A]DM of site"
-            PmagResRec["pmag_criteria_codes"]="IE-SITE"
-            if agefile != "": PmagResRec= pmag.get_age(PmagResRec,"er_site_names","average_",AgeNFO,DefaultAge)
-            site_height=pmag.get_dictitem(height_nfo,'er_site_name',site,'T')
-            if len(site_height)>0:PmagResRec["average_height"]=site_height[0]['site_height']
-            PmagSites.append(PmagSiteRec)
-            PmagResults.append(PmagResRec)
+                PmagResRec['magic_software_packages']=version_num
+                PmagResRec["pmag_result_name"]="V[A]DM: Site "+site
+                PmagResRec["result_description"]="V[A]DM of site"
+                PmagResRec["pmag_criteria_codes"]="IE-SITE"
+                if agefile != "": PmagResRec= pmag.get_age(PmagResRec,"er_site_names","average_",AgeNFO,DefaultAge)
+                site_height=pmag.get_dictitem(height_nfo,'er_site_name',site,'T')
+                if len(site_height)>0:PmagResRec["average_height"]=site_height[0]['site_height']
+                PmagSites.append(PmagSiteRec)
+                PmagResults.append(PmagResRec)
     if len(PmagSites)>0:
         Tmp,keylist=pmag.fillkeys(PmagSites)         
         pmag.magic_write(siteout,Tmp,'pmag_sites')

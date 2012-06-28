@@ -78,15 +78,16 @@ def custom():
         return
     TmpCrits=[]
     for crit in crit_data:
-        Edict={}
-        for key in crit.keys():
-            if crit[key]=='\n':crit[key]=""
-            if crit[key]!="":Edict[key]=crit[key]
-        c=make_entry(root) 
-        for key in Edict.keys():crit[key]=Edict[key]
-        crit['er_citation_names']="This study"
-        crit['criteria_definition']="Criteria for selection"
-        TmpCrits.append(crit)
+        if len(crit.keys())>0:
+            Edict={}
+            for key in crit.keys():
+                if crit[key]=='\n':crit[key]=""
+                if crit[key]!="":Edict[key]=crit[key]
+            c=make_entry(root) 
+            for key in Edict.keys():crit[key]=Edict[key]
+            crit['er_citation_names']="This study"
+            crit['criteria_definition']="Criteria for selection"
+            TmpCrits.append(crit)
     PmagCrits,critkeys=pmag.fillkeys(TmpCrits)
     critout=opath+'/pmag_criteria.txt'
     pmag.magic_write(critout,PmagCrits,'pmag_criteria')
