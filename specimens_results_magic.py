@@ -30,10 +30,11 @@ def main():
 	-exc:  use exiting selection criteria (in pmag_criteria.txt file), default is default criteria
 	-C: no acceptance criteria
 	-aD:  average directions per sample, default is NOT
-	-aI:  average multiple specimen intensities per sample, default is NOT
+	-aI:  average multiple specimen intensities per sample, default is by site 
 	-aC:  average all components together, default is NOT
 	-pol:  calculate polarity averages
-	-sam:  save sample level vgps and v[a]dms, default is NOT
+	-sam:  save sample level vgps and v[a]dms, default is by site
+	-xSi:  skip the site level intensity calculation
 	-p: plot directions and look at intensities by site, default is NOT
 	    -fmt: specify output for saved images, default is svg (only if -p set)
 	-lat: use present latitude for calculating VADMs, default is not to calculate VADMs
@@ -95,6 +96,10 @@ def main():
     else: user=""
     if "-C" in args: Dcrit,Icrit,nocrit=1,1,1 # no selection criteria
     if "-sam" in args: vgps=1 # save sample level VGPS/VADMs
+    if "-xSi" in args: 
+        nositeints=1 # skip site level intensity
+    else:
+        nositeints=0
     if "-age" in args:
 	ind=args.index("-age")
 	DefaultAge[0]=args[ind+1]
@@ -194,6 +199,7 @@ def main():
 # now we're done slow dancing
 #
     SiteNFO,file_type=pmag.magic_read(sitefile) # read in site data - has the lats and lons
+    SampNFO,file_type=pmag.magic_read(sampfile) # read in site data - has the lats and lons
     height_nfo=pmag.get_dictitem(SiteNFO,'site_height','','F') # find all the sites with height info.  
     if agefile !="":AgeNFO,file_type=pmag.magic_read(agefile) # read in the age information
     Data,file_type=pmag.magic_read(infile) # read in specimen interpretations
@@ -336,18 +342,39 @@ def main():
 	       if agefile != "":   PmagSampRec=pmag.get_age(PmagSampRec,"er_site_name","sample_inferred_", AgeNFO,DefaultAge)
 	       site_height=pmag.get_dictitem(height_nfo,'er_site_name',PmagSampRec['er_site_name'],'T')
 	       if len(site_height)>0:PmagSampRec["sample_height"]=site_height[0]['site_height'] # add in height if available
-	       if nocrit!=1: PmagSampRec['pmag_criteria_codes']="IE-SPEC"
 	       PmagSampRec['er_specimen_names']= pmag.getlist(SampI,'er_specimen_name')
 	       PmagSampRec['magic_method_codes']= pmag.getlist(SampI,'magic_method_codes')
-	       if vgps==1 and get_model_lat!=0: #
-		  if get_model_lat==1:
-		      PmagResRec=pmag.getsampVGP(PmagSampRec,SiteNFO)
-		  elif get_model_lat==2:
-		      PmagResRec=pmag.getsampVGP(PmagSampRec,ModelLats)
+	       if nocrit!=1:  # apply criteria!
+                   if int(PmagSampRec['sample_int_n'])>=int(SampIntCrit['sample_int_n']):
+                       if SampIntCrit['sample_int_sigma']=='':
+                           PmagSampRec['pmag_criteria_codes']="IE-SPEC"
+	                   SampInts.append(PmagSampRec)
+	                   PmagSamps.append(PmagSampRec)
+                       elif PmagSampRec['sample_int_sigma']!="" and float(PmagSampRec['sample_int_sigma_perc'])<=float(SampIntCrit['sample_int_sigma_perc']) or float(PmagSampRec['sample_int_sigma'])<=float(SampIntCrit['sample_int_sigma']):
+                           PmagSampRec['pmag_criteria_codes']="IE-SPEC"
+	                   SampInts.append(PmagSampRec)
+	                   PmagSamps.append(PmagSampRec)
+                   else:PmagSampRec={} # sample rejected
+               else: # no criteria
+	           SampInts.append(PmagSampRec)
+	           PmagSamps.append(PmagSampRec)
+                   PmagSampRec['pmag_criteria_codes']=""
+	       if vgps==1 and get_model_lat!=0 and PmagSampRec!={}: #
+		  if get_model_lat==1: # use sample latitude
+		      PmagResRec=pmag.getsampVDM(PmagSampRec,SampNFO)
+                      del(PmagResRec['model_lat']) # get rid of the model lat key
+		  elif get_model_lat==2: # use model latitude
+		      PmagResRec=pmag.getsampVDM(PmagSampRec,ModelLats)
 		      if PmagResRec!="":PmagResRec['magic_method_codes']=PmagResRec['magic_method_codes']+":IE-MLAT"
-		  if PmagResRec!="":PmagResults.append(PmagResRec)
-	       SampInts.append(PmagSampRec)
-	       PmagSamps.append(PmagSampRec)
+		  if PmagResRec!={}:
+                      PmagResRec['er_specimen_names']=PmagSampRec['er_specimen_names']
+                      PmagResRec['pmag_criteria_codes']='IE-SAMP'
+                      PmagResRec['average_int_sigma_perc']=PmagSampRec['sample_int_sigma_perc']
+                      PmagResRec['average_int_sigma']=PmagSampRec['sample_int_sigma']
+                      PmagResRec['average_int_n']=PmagSampRec['sample_int_n']
+                      PmagResRec['vadm_n']=PmagSampRec['sample_int_n']
+                      PmagResRec['data_type']='i'
+                      PmagResults.append(PmagResRec)
     if len(PmagSamps)>0:
 	TmpSamps,keylist=pmag.fillkeys(PmagSamps) # fill in missing keys from different types of records       
 	pmag.magic_write(sampout,TmpSamps,'pmag_samples') # save in sample output file
@@ -475,7 +502,7 @@ def main():
                       if angle > 55. and angle < 125.: PmagSiteRec["site_polarity"]='t'
                       if angle >= 125.: PmagSiteRec["site_polarity"]='r'
             PmagResults.append(PmagResRec)
-    if noInt!=1:
+    if noInt!=1 and nositeints!=1:
       for site in sites: # now do intensities for each site
         if plotsites==1:print site
         if Iaverage==0: key,intlist,crit='specimen',SpecInts,'IE-SPEC' # if using specimen level data

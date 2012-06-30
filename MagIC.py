@@ -2501,12 +2501,12 @@ def sitemeans():
     except IOError:
         tkMessageBox.showinfo("Info","Make an er_sites.txt file, e.g. with orient.txt file")
         return
-    OPT_types=["-D: Use default selection criteria","-C: Use no selection criteria", "-exc: Use customized selection criteria","-aD: Average multiple specimen lines per sample, default is by site","-aI: Average multiple specimen intensities per sample, default is by site","-sam: Calculate sample level VGPs/V[A]DMs, default is by site","-p: look at data by site","-lat: Use present latitude for VADM calculation","-fla model_lat.txt: use site paleolatitude data in model_lat.txt file","-xD: skip directions", "-xI: skip intensities","-pol: calculate averages by polarity"]
+    OPT_types=["-D: Use default selection criteria","-C: Use no selection criteria", "-exc: Use customized selection criteria","-aD: Average multiple specimen lines per sample, default is by site","-aI: Average multiple specimen intensities per sample, default is by site","-sam: Calculate sample level VGPs/V[A]DMs, default is by site","-xSi: skip site level intensity data","-p: look at data by site","-lat: Use present latitude for VADM calculation","-fla model_lat.txt: use site paleolatitude data in model_lat.txt file","-xD: skip directions", "-xI: skip intensities","-pol: calculate averages by polarity"]
     opt_checks=ask_check(root,OPT_types,'select desired options:') #
     OPT_list=map((lambda var:var.get()),opt_checks) # returns method code  radio button list
     for opt in range(len(OPT_list)):
         if OPT_list[opt]==1:clist=clist+' '+OPT_types[opt].split(":")[0]+' '
-    if OPT_list[8]==1:
+    if OPT_list[9]==1:
         try:
             open(opath+"/model_lat.txt",'r')
         except IOError:

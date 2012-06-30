@@ -64,8 +64,8 @@ def main():
     f=open(outfile,'w')
     sf=open(Soutfile,'w')
     if latex==0:
-        Soutstring='%s \t %s \t %s \t %s \t %s \t %s \t %s \t %s\n'%("Site","Location","Lat. (N)","Long. (E)","Age ","Units","Dip Dir","Dip")
-        outstring='%s \t %s \t %s \t %s \t %s \t %s \t %s \t %s \t %s \t %s \t %s \t %s\n'%("Site",'Comp.',"%TC","Dec.","Inc.","Nl","Np","k    ","R","a95","PLat","PLong")
+        Soutstring='%s \t %s \t %s \t %s \t %s \t %s \t %s \t %s \t %s\n'%("Site","Samples","Location","Lat. (N)","Long. (E)","Age ","Units","Dip Dir","Dip")
+        outstring='%s \t %s \t %s \t %s \t %s \t %s \t %s \t %s \t %s \t %s \t %s \t %s \t %s\n'%("Site","Samples",'Comp.',"%TC","Dec.","Inc.","Nl","Np","k    ","R","a95","PLat","PLong")
         f.write(outstring)
         sf.write(Soutstring)
     else:
@@ -75,8 +75,8 @@ def main():
         sf.write('\\begin{tabular}{rrrrrrrr}\n')
         f.write('\hline\n')
         sf.write('\hline\n')
-        Soutstring='%s & %s & %s & %s & %s & %s & %s & %s %s\n'%("Site","Location","Lat. (N)","Long. (E)","Age ","Units","Dip Dir","Dip",'\\\\')
-        outstring='%s & %s & %s & %s & %s & %s & %s & %s & %s & %s & %s & %s %s\n'%("Site","Comp.","\%TC","Dec.","Inc.","Nl","Np","k","R","a95","PLat","PLong",'\\\\')
+        Soutstring='%s & %s & %s & %s & %s & %s & %s & %s & %s %s\n'%("Site", "Samples","Location","Lat. (N)","Long. (E)","Age ","Units","Dip Dir","Dip",'\\\\')
+        outstring='%s & %s & %s & %s & %s & %s & %s & %s & %s & %s & %s & %s & %s %s\n'%("Site", "Samples","Comp.","\%TC","Dec.","Inc.","Nl","Np","k","R","a95","PLat","PLong",'\\\\')
         f.write(outstring)
         sf.write(Soutstring)
         f.write('\hline\n')
@@ -91,24 +91,24 @@ def main():
             if 'average_n_lines' not in site.keys():site['average_n_lines']=site['average_nn']
             if 'average_n_planes' not in site.keys():site['average_n_planes']=""
             if latex==0:
-                outstring='%s \t %s \t %s \t %s \t %s\n'%(site["er_site_names"],site["average_lat"],site["average_lon"],site["average_age"],site["average_age_unit"])
+                outstring='%s \t %s \t %s \t %s \t %s \t %s\n'%(site["er_site_names"],site["er_sample_names"],site["average_lat"],site["average_lon"],site["average_age"],site["average_age_unit"])
                 sf.write(outstring)
-                outstring='%s \t %s \t  %s \t %s \t %s \t %s \t %s \t %s \t %s \t %s \t %s \t %s\n'%(site["er_site_names"],comp,site["tilt_correction"],site["average_dec"],site["average_inc"],site["average_n_lines"],site["average_n_planes"],site["average_k"],site["average_r"],site["average_alpha95"],site["vgp_lat"],site["vgp_lon"])
+                outstring='%s \t %s \t %s \t  %s \t %s \t %s \t %s \t %s \t %s \t %s \t %s \t %s \t %s\n'%(site["er_site_names"],site["er_sample_names"],comp,site["tilt_correction"],site["average_dec"],site["average_inc"],site["average_n_lines"],site["average_n_planes"],site["average_k"],site["average_r"],site["average_alpha95"],site["vgp_lat"],site["vgp_lon"])
                 f.write(outstring)
             else:
-                outstring='%s & %s & %s & %s & %s%s\n'%(site["er_site_names"],site["average_lat"],site["average_lon"],site["average_age"],site["average_age_unit"],'\\\\')
+                outstring='%s & %s & %s & %s & %s & %s%s\n'%(site["er_site_names"],site["er_sample_names"],site["average_lat"],site["average_lon"],site["average_age"],site["average_age_unit"],'\\\\')
                 sf.write(outstring)
-                outstring='%s & %s & %s & %s & %s & %s & %s& %s & %s & %s & %s & %s%s\n'%(site["er_site_names"],comp,site["tilt_correction"],site["average_dec"],site["average_inc"],site["average_n_lines"],site["average_n_planes"],site["average_k"],site["average_r"],site["average_alpha95"],site["vgp_lat"],site["vgp_lon"],'\\\\')
+                outstring='%s & %s & %s & %s & %s & %s & %s & %s& %s & %s & %s & %s & %s%s\n'%(site["er_site_names"],site["er_sample_names"],comp,site["tilt_correction"],site["average_dec"],site["average_inc"],site["average_n_lines"],site["average_n_planes"],site["average_k"],site["average_r"],site["average_alpha95"],site["vgp_lat"],site["vgp_lon"],'\\\\')
                 f.write(outstring)
     f1=open(Ioutfile,'w')
     if latex==0:
-        outstring='%s\t%s\t%s\t%s\t%s\t%s\t%s\n'%("Site","N_B","B (uT)","s_b","s_b\%","VADM","s_vadm")
+        outstring='%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n'%("Site","Samples","N_B","B (uT)","s_b","s_b\%","VADM","s_vadm")
         f1.write(outstring)
     else:
         f1.write('\\begin{table}\n')
         f1.write('\\begin{tabular}{rrrrrrr}\n')
         f1.write('\hline\n')
-        outstring='%s & %s & %s & %s & %s & %s & %s%s\n'%("Site","N_B","B (uT)","s_b","s_b\%","VADM","s_vadm","\\\\")
+        outstring='%s & %s & %s & %s & %s & %s & %s & %s%s\n'%("Site","Samples","N_B","B (uT)","s_b","s_b\%","VADM","s_vadm","\\\\")
         f1.write(outstring)
     for site in Sites:
         if site["pmag_result_name"][0:6]=="V[A]DM":
@@ -117,10 +117,10 @@ def main():
             if site["vadm"]=="":site["vadm"]="0"        
             if site["vadm_sigma"]=="":site["vadm_sigma"]="0"        
             if latex==0:
-                outstring='%s\t%s\t%6.2f\t%5.2f\t%5.1f\t%6.2f\t%5.2f \n'%(site["er_site_names"],site["average_int_n"],1e6*float(site["average_int"]),1e6*float(site["average_int_sigma"]),float(site['average_int_sigma_perc']),1e-21*float(site["vadm"]),1e-21*float(site["vadm_sigma"]))
+                outstring='%s\t%s\t%s\t%6.2f\t%5.2f\t%5.1f\t%6.2f\t%5.2f \n'%(site["er_site_names"],site["er_sample_names"],site["average_int_n"],1e6*float(site["average_int"]),1e6*float(site["average_int_sigma"]),float(site['average_int_sigma_perc']),1e-21*float(site["vadm"]),1e-21*float(site["vadm_sigma"]))
                 f1.write(outstring)
             else:
-                outstring='%s & %s & %6.2f\t%5.2f & %5.1f & %6.2f & %5.2f %s\n'%(site["er_site_names"],site["average_int_n"],1e6*float(site["average_int"]),1e6*float(site["average_int_sigma"]),float(site['average_int_sigma_perc']),1e-21*float(site["vadm"]),1e-21*float(site["vadm_sigma"]),'\\\\')
+                outstring='%s & %s & %s & %6.2f\t%5.2f & %5.1f & %6.2f & %5.2f %s\n'%(site["er_site_names"],site["er_sample_names"],site["average_int_n"],1e6*float(site["average_int"]),1e6*float(site["average_int_sigma"]),float(site['average_int_sigma_perc']),1e-21*float(site["vadm"]),1e-21*float(site["vadm_sigma"]),'\\\\')
                 f1.write(outstring)
     if latex==1:
         f.write('\hline\n')

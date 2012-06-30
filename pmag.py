@@ -149,32 +149,36 @@ def getsampVGP(SampRec,SiteNFO):
     except:
         return ""
 
-def getsampVDM(SampRec,SiteNFO,key):
-    site=get_dictitm(SiteNFO,'er_site_name',SampRec['er_site_name'])
-    try:
-        lat=float(site['site_lat'])    
-        int = float(SampRec['sample_int'])
-        vdm=b_vdm(int,lat)         
-        if SampRec['sample_sigma']!="":
-            sig=b_vdm(float(SampRec['sample_sigma']),lat)
-            sig='%8.3e'%(sig)
-        else:
-            sig=""
-        ResRec={}
-        ResRec['pmag_result_name']='VADM Sample: '+SampRec['er_sample_name']
-        ResRec['er_location_names']=SampRec['er_location_name']
-        ResRec['er_citation_names']="This study"
-        ResRec['er_site_name']=SampRec['er_site_name']
+def getsampVDM(SampRec,SampNFO):
+    samp=get_dictitem(SampNFO,'er_sample_name',SampRec['er_sample_name'],'T')[0]
+    lat=float(samp['sample_lat'])    
+    int = float(SampRec['sample_int'])
+    vdm=b_vdm(int,lat)     
+    if 'sample_int_sigma' in SampRec.keys() and  SampRec['sample_int_sigma']!="":
+        sig=b_vdm(float(SampRec['sample_int_sigma']),lat)
+        sig='%8.3e'%(sig)
+    else:
+        sig=""
+    ResRec={}
+    ResRec['pmag_result_name']='V[A]DM Sample: '+SampRec['er_sample_name']
+    ResRec['er_location_names']=SampRec['er_location_name']
+    ResRec['er_citation_names']="This study"
+    ResRec['er_site_names']=SampRec['er_site_name']
+    ResRec['er_sample_names']=SampRec['er_sample_name']
+    if 'sample_dec' in SampRec.keys():
         ResRec['average_dec']=SampRec['sample_dec']
+    else:
+        ResRec['average_dec']=""
+    if 'sample_inc' in SampRec.keys():
         ResRec['average_inc']=SampRec['sample_inc']
-        ResRec['average_int']=SampRec['sample_int']
-        ResRec[key]='%8.3e'%(vdm)
-        ResRec[key+'_sigma']=sig
-        ResRec['magic_method_codes']=SampRec['magic_method_codes']
-        if key=='vadm': ResRec['model_lat']=site['site_lat']
-        return ResRec
-    except:
-        return ""
+    else:
+        ResRec['average_inc']=""
+    ResRec['average_int']=SampRec['sample_int']
+    ResRec['vadm']='%8.3e'%(vdm)
+    ResRec['vadm_sigma']=sig
+    ResRec['magic_method_codes']=SampRec['magic_method_codes']
+    ResRec['model_lat']=samp['sample_lat']
+    return ResRec
 
 def getfield(irmunits,coil,treat):
 # calibration of ASC Impulse magnetizer
