@@ -2931,7 +2931,10 @@ def extract():
     outstring='pmag_results_extract.py -WD '+opath
     exfmt=['Tab delimited text file output','Latex format output'] 
     exfmt_rv=ask_radio(root,exfmt,'Format choice?') #
-    if exfmt_rv==1: outstring = outstring+' -tex' 
+    if exfmt_rv: outstring = outstring+' -tex' 
+    exfmt=['Export specimen intensities?','Skip specimen level intensities'] 
+    exfmt_rv=ask_radio(root,exfmt,'Export Specimens?') #
+    if exfmt_rv==0: outstring = outstring+' -fsp pmag_specimens.txt -g' 
     print outstring
     os.system(outstring)
 

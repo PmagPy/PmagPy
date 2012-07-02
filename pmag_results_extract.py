@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# define some variables
 import pmag,math,sys
 def main():
     """
@@ -16,15 +15,16 @@ def main():
         -h prints help message and quits
         -f RFILE, specify pmag_results table; default is pmag_results.txt
         -fa AFILE, specify er_ages table; default is NONE
-        -Fi IFILE, specify output file; default is Intensities.txt
-        -Fd DFILE, specify output file; default is Directions.txt
-        -Fs AFILE, specify output file; default is SiteNfo.txt 
+        -fsp SFILE, specify pmag_specimens table, default is NONE
+        -g include specimen_grade in table - only works for PmagPy generated pmag_specimen formatted files.
         -tex,  output in LaTeX format
     """
     dir_path='.'
     res_file='pmag_results.txt'
+    spec_file=''
     age_file=""
     latex=0
+    grade=0
     if '-h' in sys.argv:
         print main.__doc__
         sys.exit()
@@ -34,23 +34,19 @@ def main():
     if '-f' in sys.argv:
         ind = sys.argv.index('-f')
         res_file=sys.argv[ind+1]
+    if '-fsp' in sys.argv:
+        ind = sys.argv.index('-fsp')
+        spec_file=sys.argv[ind+1]
     if '-fa' in sys.argv:
         ind = sys.argv.index('-fa')
         age_file=sys.argv[ind+1]
-    if '-Fi' in sys.argv:
-        ind = sys.argv.index('-Fi')
-        Ioutfile=sys.argv[ind+1]
-    if '-Fd' in sys.argv:
-        ind = sys.argv.index('-Fd')
-        outfile=sys.argv[ind+1]
-    if '-Fs' in sys.argv:
-        ind = sys.argv.index('-Fs')
-        Soutfile=sys.argv[ind+1]
+    if '-g' in sys.argv:grade=1
     if '-tex' in sys.argv: 
         latex=1
         outfile='Directions.tex'
         Ioutfile='Intensities.tex'
         Soutfile='SiteNfo.tex'
+        Specout='Specimens.tex'
     else:
         latex=0
         outfile='Directions.txt'
@@ -61,8 +57,10 @@ def main():
     outfile=dir_path+'/'+outfile
     Ioutfile=dir_path+'/'+Ioutfile
     Soutfile=dir_path+'/'+Soutfile
+    Specout=dir_path+'/Specimens.txt'
     f=open(outfile,'w')
     sf=open(Soutfile,'w')
+ # do directions first
     if latex==0:
         Soutstring='%s \t %s \t %s \t %s \t %s \t %s \t %s \t %s \t %s\n'%("Site","Samples","Location","Lat. (N)","Long. (E)","Age ","Units","Dip Dir","Dip")
         outstring='%s \t %s \t %s \t %s \t %s \t %s \t %s \t %s \t %s \t %s \t %s \t %s \t %s\n'%("Site","Samples",'Comp.',"%TC","Dec.","Inc.","Nl","Np","k    ","R","a95","PLat","PLong")
@@ -100,17 +98,37 @@ def main():
                 sf.write(outstring)
                 outstring='%s & %s & %s & %s & %s & %s & %s & %s& %s & %s & %s & %s & %s%s\n'%(site["er_site_names"],site["er_sample_names"],comp,site["tilt_correction"],site["average_dec"],site["average_inc"],site["average_n_lines"],site["average_n_planes"],site["average_k"],site["average_r"],site["average_alpha95"],site["vgp_lat"],site["vgp_lon"],'\\\\')
                 f.write(outstring)
-    f1=open(Ioutfile,'w')
+    f1=open(Ioutfile,'w') # now do intensities
+    if spec_file!="": fsp=open(Specout,'w')
     if latex==0:
         outstring='%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n'%("Site","Samples","N_B","B (uT)","s_b","s_b\%","VADM","s_vadm")
         f1.write(outstring)
+        if spec_file!="":
+            if grade:
+                outstring='%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t %s\t%s\n'%("Specimen","MAD","Beta","N","Q","DANG","f\_vds","DRATS","T (C)",'Corrections','Grade')
+            else:
+                outstring='%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s \t%s\n'%("Specimen","MAD","Beta","N","Q","DANG","f\_vds","DRATS","T (C)",'Corrections')
+            fsp.write(outstring)
     else:
         f1.write('\\begin{table}\n')
         f1.write('\\begin{tabular}{rrrrrrr}\n')
         f1.write('\hline\n')
         outstring='%s & %s & %s & %s & %s & %s & %s & %s%s\n'%("Site","Samples","N_B","B (uT)","s_b","s_b\%","VADM","s_vadm","\\\\")
         f1.write(outstring)
-    for site in Sites:
+        if spec_file!="":
+            fsp.write('\\begin{table}\n')
+            if grade:
+                fsp.write('\\begin{tabular}{rrrrrrrrrrr}\n')
+            else:
+                fsp.write('\\begin{tabular}{rrrrrrrrrr}\n')
+            fsp.write('\hline\n')
+            if grade:
+                outstring='%s & %s & %s & %s & %s & %s & %s & %s & %s & %s & %s\n'%("Specimen","MAD","Beta","N","Q","DANG","f\_vds","DRATS","T (C)",'Corrections',"Grade\\\\")
+            else:
+                outstring='%s & %s & %s & %s & %s & %s & %s & %s  & %s & %s\n'%("Specimen","MAD","Beta","N","Q","DANG","f\_vds","DRATS","T (C)",'Corrections\\\\')
+            fsp.write(outstring)
+            fsp.write('\hline\n')
+    for site in Sites: # do results level stuff
         if site["pmag_result_name"][0:6]=="V[A]DM":
             if site["average_int_sigma"]=="":site["average_int_sigma"]="0"        
             if site["average_int_sigma_perc"]=="":site["average_int_sigma_perc"]="0"        
@@ -122,6 +140,29 @@ def main():
             else:
                 outstring='%s & %s & %s & %6.2f\t%5.2f & %5.1f & %6.2f & %5.2f %s\n'%(site["er_site_names"],site["er_sample_names"],site["average_int_n"],1e6*float(site["average_int"]),1e6*float(site["average_int_sigma"]),float(site['average_int_sigma_perc']),1e-21*float(site["vadm"]),1e-21*float(site["vadm_sigma"]),'\\\\')
                 f1.write(outstring)
+    # put specimen level data here!  
+    if spec_file!="": 
+        Specs,file_type=pmag.magic_read(spec_file)
+        for spec in Specs:
+            trange= '%i'%(int(float(spec['measurement_step_min'])-273))+'-'+'%i'%(int(float(spec['measurement_step_max'])-273))
+            meths=spec['magic_method_codes'].split(':')
+            corrections=''
+            for meth in meths:
+                if 'DA' in meth:corrections=corrections+meth[3:]+':'
+            corrections=corrections.strip(':') 
+            if corrections.strip()=="":corrections="None"
+            if latex==0:
+                if grade:
+                    outstring='%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n'%(spec['er_specimen_name'],spec['specimen_int_mad'],spec['specimen_b_beta'],spec['specimen_int_n'],spec['specimen_q'],spec['specimen_dang'],spec['specimen_fvds'],spec['specimen_drats'],trange,corrections,spec['specimen_grade'])
+                else:
+                    outstring='%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n'%(spec['er_specimen_name'],spec['specimen_int_mad'],spec['specimen_b_beta'],spec['specimen_int_n'],spec['specimen_q'],spec['specimen_dang'],spec['specimen_fvds'],spec['specimen_drats'],trange,corrections)
+            else: 
+                if grade:
+                    outstring='%s & %s & %s & %s & %s & %s & %s & %s & %s & %s & %s \n'%(spec['er_specimen_name'],spec['specimen_int_mad'],spec['specimen_b_beta'],spec['specimen_int_n'],spec['specimen_q'],spec['specimen_dang'],spec['specimen_fvds'],spec['specimen_drats'],trange,corrections,spec['specimen_grade']+'\\\\')
+                else:
+                    outstring='%s & %s & %s & %s & %s & %s & %s & %s & %s & %s \n'%(spec['er_specimen_name'],spec['specimen_int_mad'],spec['specimen_b_beta'],spec['specimen_int_n'],spec['specimen_q'],spec['specimen_dang'],spec['specimen_fvds'],spec['specimen_drats'],trange,corrections+'\\\\')
+            fsp.write(outstring)
+    # 
     if latex==1:
         f.write('\hline\n')
         sf.write('\hline\n')
@@ -130,8 +171,15 @@ def main():
         sf.write('\end{tabular}\n')
         f.write('\end{table}\n')
         f1.write('\end{table}\n')
+        if spec_file!="":
+            fsp.write('\hline\n')
+            fsp.write('\end{tabular}\n')
+            fsp.write('\end{table}\n')
     f.close()
     sf.close()
     f1.close()
     print 'data saved in: ',outfile,Ioutfile,Soutfile
+    if spec_file!="":
+        fsp.close()
+        print 'specimen data saved in: ',Specout
 main()
