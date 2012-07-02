@@ -345,7 +345,7 @@ def main():
 	       PmagSampRec['er_specimen_names']= pmag.getlist(SampI,'er_specimen_name')
 	       PmagSampRec['magic_method_codes']= pmag.getlist(SampI,'magic_method_codes')
 	       if nocrit!=1:  # apply criteria!
-                   if int(PmagSampRec['sample_int_n'])>=int(SampIntCrit['sample_int_n']):
+                   if PmagSampRec['sample_int_n']!="" and int(PmagSampRec['sample_int_n'])>=int(SampIntCrit['sample_int_n']):
                        if SampIntCrit['sample_int_sigma']=='':
                            PmagSampRec['pmag_criteria_codes']="IE-SPEC"
 	                   SampInts.append(PmagSampRec)

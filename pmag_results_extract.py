@@ -52,12 +52,14 @@ def main():
         outfile='Directions.txt'
         Ioutfile='Intensities.txt'
         Soutfile='SiteNfo.txt'
+        Specout='Specimens.txt'
     # read in pmag_results file
     res_file=dir_path+'/'+res_file
+    spec_file=dir_path+'/'+spec_file
     outfile=dir_path+'/'+outfile
     Ioutfile=dir_path+'/'+Ioutfile
     Soutfile=dir_path+'/'+Soutfile
-    Specout=dir_path+'/Specimens.txt'
+    Specout=dir_path+'/'+Specout
     f=open(outfile,'w')
     sf=open(Soutfile,'w')
  # do directions first
@@ -156,12 +158,13 @@ def main():
                     outstring='%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n'%(spec['er_specimen_name'],spec['specimen_int_mad'],spec['specimen_b_beta'],spec['specimen_int_n'],spec['specimen_q'],spec['specimen_dang'],spec['specimen_fvds'],spec['specimen_drats'],trange,corrections,spec['specimen_grade'])
                 else:
                     outstring='%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n'%(spec['er_specimen_name'],spec['specimen_int_mad'],spec['specimen_b_beta'],spec['specimen_int_n'],spec['specimen_q'],spec['specimen_dang'],spec['specimen_fvds'],spec['specimen_drats'],trange,corrections)
+                fsp.write(outstring)
             else: 
                 if grade:
                     outstring='%s & %s & %s & %s & %s & %s & %s & %s & %s & %s & %s \n'%(spec['er_specimen_name'],spec['specimen_int_mad'],spec['specimen_b_beta'],spec['specimen_int_n'],spec['specimen_q'],spec['specimen_dang'],spec['specimen_fvds'],spec['specimen_drats'],trange,corrections,spec['specimen_grade']+'\\\\')
                 else:
                     outstring='%s & %s & %s & %s & %s & %s & %s & %s & %s & %s \n'%(spec['er_specimen_name'],spec['specimen_int_mad'],spec['specimen_b_beta'],spec['specimen_int_n'],spec['specimen_q'],spec['specimen_dang'],spec['specimen_fvds'],spec['specimen_drats'],trange,corrections+'\\\\')
-            fsp.write(outstring)
+                fsp.write(outstring)
     # 
     if latex==1:
         f.write('\hline\n')
