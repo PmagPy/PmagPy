@@ -186,7 +186,7 @@ def main():
     samp_file=dir_path+'/'+samp_file
     Meas,file_type=pmag.magic_read(meas_file) 
     print len(Meas), ' measurements read in from ',meas_file
-    meas_key='measurment_magn_moment'
+    meas_key='measurement_magn_moment'
     for m in intlist: # find the intensity key with data
         meas_data=pmag.get_dictitem(Meas,m,'','F') # get all non-blank data for this specimen
         if len(meas_data)>0: 
@@ -257,8 +257,8 @@ def main():
                 Depths.append((rec['core_depth']))
                 if pltD==1:Decs.append(float(rec['measurement_dec']))
                 if pltI==1:Incs.append(float(rec['measurement_inc']))
-                if norm==0 and pltM==1:Ints.append(float(rec['meas_key']))
-                if norm==1 and pltM==1:Ints.append(float(rec['meas_key'])/float(rec['specimen_weight']))
+                if norm==0 and pltM==1:Ints.append(float(rec[meas_key]))
+                if norm==1 and pltM==1:Ints.append(float(rec[meas_key])/float(rec['specimen_weight']))
                 if len(Ints)>1 and Ints[-1]>maxInt:maxInt=Ints[-1]
                 if len(Ints)>1 and Ints[-1]<minInt:minInt=Ints[-1]
     if  pltS==1: # make sure it is desired lab treatment step 
