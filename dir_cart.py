@@ -1,14 +1,5 @@
 #!/usr/bin/env python
-import pmag,sys
-def spitout(line):
-    dir=[]  # initialize list for  dec,inc,intensity
-    dat=line.split() # split the data on a space into columns
-    for element in dat: # step through dec,inc, int
-        dir.append(float(element)) # append floating point variable to "dir"
-    if len(dir)==2:dir.append(1.)
-    cart= pmag.dir2cart(dir)  # send dir to dir2cart and spit out result
-    print '%8.4e %8.4e %8.4e'%(cart[0],cart[1],cart[2])
-    return cart
+import pmag,sys,numpy
 def main():
     """
     NAME
@@ -61,14 +52,13 @@ def main():
                 print '\n Good-bye \n'
                 sys.exit()
     elif '-f' in sys.argv:
-        dat=[]
         ind=sys.argv.index('-f')
         file=sys.argv[ind+1]  
-        f=open(file,'rU')
-        input=f.readlines()
+        input=numpy.loadtxt(file)
     else:
-        input = sys.stdin.readlines()  # read from standard input
-    for line in input:
-        cart=spitout(line)
-        if out!="":out.write('%8.4e %8.4e %8.4e\n'%(cart[0],cart[1],cart[2]))
+        input=numpy.loadtxt(sys.stdin,dtype=numpy.float)
+    cart= pmag.dir2cart(input)
+    for line in cart:
+        print '%8.4e %8.4e %8.4e'%(line[0],line[1],line[2])
+        if out!="":out.write('%8.4e %8.4e %8.4e\n'%(line[0],line[1],line[2]))
 main() 

@@ -2784,7 +2784,7 @@ def chart():
     print outstring
     os.system(outstring)
 
-def ANI_depthplot():
+def ani_depthplot():
     global Edict
     try:
         open(opath+"/rmag_anisotropy.txt",'r')
@@ -2792,7 +2792,7 @@ def ANI_depthplot():
     except IOError:
         tkMessageBox.showinfo("Info",'select Assemble measurements first.   ')
         return
-    outstring='ANI_depthplot.py -WD '+'"'+opath+'"' +' -fb magic_measurements.txt '
+    outstring='ani_depthplot.py -WD '+'"'+opath+'"' +' -fb magic_measurements.txt '
     Edict={'Depth Max':'','Depth Min':''}
     make_entry(root)
     dmin,dmax=-1,-1
@@ -2844,12 +2844,12 @@ def get_symbols():
     if SYM_rv==3: size='10'
     return sym,size
     
-def ODP_depthplot():
+def core_depthplot():
     global Edict
     syms={'sym':'bo','size':'5','dsym':'r^','dsize':'10'}
     try:
         open(opath+'/magic_measurements.txt') # check if pmag_results file exists
-        outstring="ODP_depthplot.py -WD "+opath # get list of available plots
+        outstring="core_depthplot.py -WD "+opath # get list of available plots
     except IOError:
         tkMessageBox.showinfo("Info",'Must assemble measurements first')
         return
@@ -3017,8 +3017,8 @@ def create_menus():
     plotmenu.add_command(label="Curie Temperatures data",command=curie)
     plotmenu.add_command(label="Hysteresis parameters",command=dayplot)
     plotmenu.add_command(label="Plot IRM acquisition",command=irm_magic)
-    plotmenu.add_command(label="Plot measurement data versus depth",command=ODP_depthplot)
-    plotmenu.add_command(label="Plot AMS data versus depth",command=ANI_depthplot)
+    plotmenu.add_command(label="Plot measurement data versus depth",command=core_depthplot)
+    plotmenu.add_command(label="Plot AMS data versus depth",command=ani_depthplot)
     plotmenu.add_separator()
     plotmenu.add_command(label="Assemble specimens",command=spec_combine)
     plotmenu.add_separator()

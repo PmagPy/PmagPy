@@ -48,7 +48,7 @@ def main():
         find_EI.py
  
     DESCRIPTION
-        Applies assumed flattening factor and "unsquishes" inclinations assuming tangent function.
+        Applies series of assumed flattening factor and "unsquishes" inclinations assuming tangent function.
         Finds flattening factor that gives elongation/inclination pair consistent with TK03.  
         Finds bootstrap confidence bounds
 

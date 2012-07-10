@@ -39,6 +39,11 @@ def click(event):
     print 'you clicked', event.xdata,event.ydata
 #	
 #
+def delticks(fig):
+    locs= fig.xaxis.get_ticklocs()
+    nlocs=numpy.delete(locs,range(0,len(locs),2))
+    fig.set_xticks(nlocs)
+
 fig_x_pos=25
 fig_y_pos=25
 plt_num=0
