@@ -8,7 +8,7 @@ def main():
         core_depthplot.py
 
     DESCRIPTION
-        plots various measurements versus core_depth.  plots data flagged as 'FS-SS-C' as discrete samples.  
+        plots various measurements versus core_depth or age.  plots data flagged as 'FS-SS-C' as discrete samples.  
 
     SYNTAX
         core_depthplot.py [command line optins]
@@ -18,17 +18,19 @@ def main():
         -f FILE: specify input magic_measurments format file from magi
         -fsum FILE: specify input LIMS database (IODP) core summary csv file
         -fwig FILE: specify input depth,wiggle to plot, in magic format with sample_core_depth key for depth
-        -fsa FILE: specify input er_samples format file from magic
+        -fsa FILE: specify input er_samples format file from magic for depth
+        -fa FILE: specify input er_ages format file from magic for age
+              NB: must have either -fsa OR -fa (not both)
         -fsp FILE sym size: specify input zeq_specimen format file from magic, sym and size 
         -fres FILE specify input pmag_results file from magic, sym and size
         -LP [AF,T,ARM,IRM, X] step [in mT,C,mT,mT, mass/vol] to plot 
+        -S do not plot blanket treatment data (if this is set, you don't need the -LP)
         -sym SYM SIZE, symbol, size for continuous points (e.g., ro 5, bs 10, g^ 10 for red dot, blue square, green triangle), default is blue dot at 5 pt
         -D do not plot declination
         -M do not plot magnetization
         -log  plot magnetization  on a log scale
         -L do not connect dots with a line
         -I do not plot inclination
-        -S do not plot subsample blanket treatment data
         -d min max [in m] depth range to plot
         -n normalize by weight in er_specimen table
         -Iex: plot the expected inc at lat - only available for results with lat info in file
@@ -67,6 +69,7 @@ def main():
     dir_path="."
     sum_file=""
     suc_file=""
+    age_file=""
     spc_file=""
     res_file=""
     ngr_file=""
@@ -81,8 +84,7 @@ def main():
         sys.exit()
     if '-L' in sys.argv:
         pltL=0
-    if '-S' in sys.argv:
-        pltS=0
+    if '-S' in sys.argv: pltS=0 # don't plot the bulk measurements at all
     if '-D' in sys.argv:
         pltD=0
         pcol-=1
@@ -110,6 +112,13 @@ def main():
     if '-fsa' in sys.argv:
         ind=sys.argv.index('-fsa')
         samp_file=sys.argv[ind+1]
+        if '-fa' in sys.argv:
+            print main.__doc__
+            print 'only -fsa OR -fa - not both'
+            sys.exit()
+    elif '-fa' in sys.argv:
+        ind=sys.argv.index('-fa')
+        age_file=sys.argv[ind+1]
     if '-fsp' in sys.argv:
         ind=sys.argv.index('-fsp')
         spc_file=dir_path+'/'+sys.argv[ind+1]
@@ -183,7 +192,14 @@ def main():
     #
     # get data read in
     meas_file=dir_path+'/'+meas_file
-    samp_file=dir_path+'/'+samp_file
+    if age_file=="":
+        samp_file=dir_path+'/'+samp_file
+        Samps,file_type=pmag.magic_read(samp_file) 
+    else:
+        depth_scale='age'
+        age_file=dir_path+'/'+age_file
+        Samps,file_type=pmag.magic_read(age_file) 
+        age_unit=""
     Meas,file_type=pmag.magic_read(meas_file) 
     print len(Meas), ' measurements read in from ',meas_file
     meas_key='measurement_magn_moment'
@@ -192,7 +208,6 @@ def main():
         if len(meas_data)>0: 
             meas_key=m
             break
-    Samps,file_type=pmag.magic_read(samp_file) 
     if spc_file!="":Specs,file_type=pmag.magic_read(spc_file)
     if res_file!="":Results,file_type=pmag.magic_read(res_file)
     if norm==1:
@@ -213,6 +228,8 @@ def main():
     Data=[]
     if depth_scale=='sample_core_depth':
         ylab="Depth (mbsf)"
+    elif depth_scale=='age':
+        ylab="Age"
     else:
         ylab="Depth (mcd)"
     # collect the data for plotting declination
@@ -221,63 +238,56 @@ def main():
     SSucs=[]
     samples=[]
     methods,steps,m2=[],[],[]
-    m1=pmag.get_dictitem(Meas,'magic_method_codes',method,'has') # fish out the desired method code
-    if method=='LT-T-Z': 
-        m2=pmag.get_dictitem(m1,'treatment_temp',str(step),'eval') # fish out the desired step
-    elif 'LT-AF' in method:
-        m2=pmag.get_dictitem(m1,'treatment_ac_field',str(step),'eval')    
-    elif 'LT-IRM' in method:
-        m2=pmag.get_dictitem(m1,'treatment_dc_field',str(step),'eval')    
-    elif 'LT-X' in method:
-        m2=pmag.get_dictitem(m1,suc_key,'','F')    
-    if len(m2)>0:
-      for rec in m2: # fish out depths and weights
-        D=pmag.get_dictitem(Samps,'er_sample_name',rec['er_sample_name'],'T')
-        depth=pmag.get_dictitem(D,depth_scale,'','F')
-        if len(depth)>0:
-            rec['core_depth'] = float(depth[0][depth_scale])
-            rec['magic_method_codes'] = rec['magic_method_codes']+':'+depth[0]['magic_method_codes']
-            if norm==1:
-                specrecs=pmag.get_dictitem(ErSpecs,'er_specimen_name',rec['er_specimen_name'],'T')
-                specwts=pmag.get_dictitem(specrecs,'specimen_weight',"",'F')
-                if len(specwts)>0: 
-                    rec['specimen_weight'] = specwts[0]['specimen_weight']
+    if pltS: # plot the bulk measurement data
+        m1=pmag.get_dictitem(Meas,'magic_method_codes',method,'has') # fish out the desired method code
+        if method=='LT-T-Z': 
+            m2=pmag.get_dictitem(m1,'treatment_temp',str(step),'eval') # fish out the desired step
+        elif 'LT-AF' in method:
+            m2=pmag.get_dictitem(m1,'treatment_ac_field',str(step),'eval')    
+        elif 'LT-IRM' in method:
+            m2=pmag.get_dictitem(m1,'treatment_dc_field',str(step),'eval')    
+        elif 'LT-X' in method:
+            m2=pmag.get_dictitem(m1,suc_key,'','F')    
+        if len(m2)>0:
+          for rec in m2: # fish out depths and weights
+            D=pmag.get_dictitem(Samps,'er_sample_name',rec['er_sample_name'],'T')
+            depth=pmag.get_dictitem(D,depth_scale,'','F')
+            if len(depth)>0:
+                if ylab=='Age': ylab=ylab+' ('+depth[0]['age_unit']+')' # get units of ages - assume they are all the same!
+             
+                rec['core_depth'] = float(depth[0][depth_scale])
+                rec['magic_method_codes'] = rec['magic_method_codes']+':'+depth[0]['magic_method_codes']
+                if norm==1:
+                    specrecs=pmag.get_dictitem(ErSpecs,'er_specimen_name',rec['er_specimen_name'],'T')
+                    specwts=pmag.get_dictitem(specrecs,'specimen_weight',"",'F')
+                    if len(specwts)>0: 
+                        rec['specimen_weight'] = specwts[0]['specimen_weight']
+                        Data.append(rec) # fish out data with core_depth and (if needed) weights
+                else:
                     Data.append(rec) # fish out data with core_depth and (if needed) weights
-            else:
-                Data.append(rec) # fish out data with core_depth and (if needed) weights
-            if title=="":
-               pieces=rec['er_sample_name'].split('-')
-               location=rec['er_location_name']
-               title=location
-    SData=pmag.sort_diclist(Data,'core_depth')
-    Whole=pmag.get_dictitem(SData,'magic_method_codes','SP-SS-C','not')  # get all the whole core data
-    if len(Whole)>0: # fish out whole core data from desired depths
-        for rec in Whole:
+                if title=="":
+                   pieces=rec['er_sample_name'].split('-')
+                   location=rec['er_location_name']
+                   title=location
+        SData=pmag.sort_diclist(Data,'core_depth')
+        for rec in SData: # fish out bulk measurement data from desired depths
             if dmax==-1 or float(rec['core_depth'])<dmax and float(rec['core_depth'])>dmin:
                 Depths.append((rec['core_depth']))
-                if pltD==1:Decs.append(float(rec['measurement_dec']))
-                if pltI==1:Incs.append(float(rec['measurement_inc']))
-                if norm==0 and pltM==1:Ints.append(float(rec[meas_key]))
-                if norm==1 and pltM==1:Ints.append(float(rec[meas_key])/float(rec['specimen_weight']))
-                if len(Ints)>1 and Ints[-1]>maxInt:maxInt=Ints[-1]
-                if len(Ints)>1 and Ints[-1]<minInt:minInt=Ints[-1]
-    if  pltS==1: # make sure it is desired lab treatment step 
-        Discrete=pmag.get_dictitem(SData,'magic_method_codes','SP-SS-C','has')  # get all the discrete data flagged as subsampled from a core
-        for rec in Discrete:
-            if dmax==-1 or float(rec['core_depth'])<dmax and float(rec['core_depth'])>dmin: # filter for depth
-                SDepths.append((rec['core_depth']))
-                if pltD==1:SDecs.append(float(rec['measurement_dec']))
-                if pltI==1:SIncs.append(float(rec['measurement_inc']))
-                if norm==0 and pltM==1:SInts.append(float(rec[meas_key]))
-                if norm==1 and pltM==1:SInts.append(float(rec[meas_key])/float(rec['specimen_weight']))
-                if len(SInts)>1 and SInts[-1]>maxInt:maxInt=SInts[-1]
-                if len(SInts)>1 and SInts[-1]<minInt:minInt=SInts[-1]
                 if method=="LP-X": 
                     SSucs.append(float(rec[suc_key]))
-                    if SSucs[-1]>maxSuc:maxSuc=SSucs[-1]
-                    if SSucs[-1]<minSuc:minSuc=SSucs[-1]
-    if len(Depths)==0 and len(SDepths)==0:
-        print 'no bulk measurement data matched your request'
+                else:
+                   if pltD==1:Decs.append(float(rec['measurement_dec']))
+                   if pltI==1:Incs.append(float(rec['measurement_inc']))
+                   if norm==0 and pltM==1:Ints.append(float(rec[meas_key]))
+                   if norm==1 and pltM==1:Ints.append(float(rec[meas_key])/float(rec['specimen_weight']))
+            if len(SSucs)>0:  
+                maxSuc=max(SSucs)
+                minSuc=min(SSucs)
+            if len(Ints)>1:
+                maxInt=max(Ints)
+                minInt=min(Ints)
+        if len(Depths)==0:
+            print 'no bulk measurement data matched your request'
     SpecDepths,SpecDecs,SpecIncs=[],[],[]
     FDepths,FDecs,FIncs=[],[],[]
     if spc_file!="": # add depths to spec data
@@ -286,6 +296,7 @@ def main():
         for spec in BFLs:
             samp=pmag.get_dictitem(Samps,'er_sample_name',spec['er_sample_name'],'T')
             if len(samp)>0 and depth_scale in samp[0].keys() and samp[0][depth_scale]!="":
+              if ylab=='Age': ylab=ylab+' ('+samp[0]['age_unit']+')' # get units of ages - assume they are all the same!
               if dmax==-1 or float(samp[0][depth_scale])<dmax and float(samp[0][depth_scale])>dmin: # filter for depth
                 SpecDepths.append(float(samp[0][depth_scale])) # fish out data with core_depth
                 SpecDecs.append(float(spec['specimen_dec'])) # fish out data with core_depth
@@ -296,6 +307,7 @@ def main():
         for spec in FMs:
             samp=pmag.get_dictitem(Samps,'er_sample_name',spec['er_sample_name'],'T')
 	    if len(samp)>0 and depth_scale in samp[0].keys() and samp[0][depth_scale]!="":
+              if ylab=='Age': ylab=ylab+' ('+samp[0]['age_unit']+')' # get units of ages - assume they are all the same!
               if dmax==-1 or float(samp[0][depth_scale])<dmax and float(samp[0][depth_scale])>dmin: # filter for depth
                 FDepths.append(float(samp[0][depth_scale]))# fish out data with core_depth
                 FDecs.append(float(spec['specimen_dec'])) # fish out data with core_depth

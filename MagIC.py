@@ -839,11 +839,11 @@ def spec_combine():
     if len(filestring.split())>1:
         outstring='combine_magic.py -WD '+'"'+opath+'"'+' -F pmag_specimens.txt '+filestring +'\n'
         print outstring
+        os.system(outstring)
     else:
         Recs=[{'er_specimen_name':""}]
         pmag.magic_write(opath+'pmag_specimens.txt',Recs,'pmag_specimens')
         print 'Created fake pmag_specimens.txt file in: ',opath+'/pmag_specimens.txt'
-    os.system(outstring)
 
 def update_meas():
     try: # check for anisotropy stuff first
