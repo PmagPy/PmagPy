@@ -56,7 +56,9 @@ def main():
         input=numpy.loadtxt(file)
     else:
         input = numpy.loadtxt(sys.stdin.readlines(),dtype=numpy.float)  # read from standard input
-    dir1,dir2=input[:,0:2],input[:,2:]
+    if len(input.shape)>1: # list of directions
+        dir1,dir2=input[:,0:2],input[:,2:]
+    else: dir1,dir2=input[0:2],input[2:]
     angs=pmag.angle(dir1,dir2)
     for ang in angs:   # read in the data (as string variable), line by line
         print '%7.1f'%(ang)

@@ -202,7 +202,7 @@ def sortbykeys(input,sort_list):
             Output.append(rec)
     return Output
 
-def getlist(data,key): # return a colon delimited list of unique key values
+def get_list(data,key): # return a colon delimited list of unique key values
     keylist=[]
     for rec in data:
         keys=rec[key].split(':')
@@ -1064,6 +1064,14 @@ def angle(D1,D2):
     """
     finds the angle between lists of two directions D1,D2
     """
+    D1=numpy.array(D1)
+    if len(D1.shape)>1:
+        D1=D1[:,0:2] # strip off intensity
+    else: D1=D1[:2]
+    D2=numpy.array(D2)
+    if len(D2.shape)>1:
+        D2=D2[:,0:2] # strip off intensity
+    else: D2=D2[:2]
     X1=dir2cart(D1) # convert to cartesian from polar
     X2=dir2cart(D2)
     angles=[] # set up a list for angles
@@ -1308,13 +1316,13 @@ def domean(indata,start,end,calculation_type):
 #  	get angle with  center of mass
 #
     CMdir=cart2dir(cm)
-    Dirp=(Dir[0],Dir[1],1.)
+    Dirp=[Dir[0],Dir[1],1.]
     dang=angle(CMdir,Dirp)
     mpars["specimen_dec"]=Dir[0]
     mpars["specimen_inc"]=Dir[1]
     mpars["specimen_mad"]=MAD
     mpars["specimen_n"]=int(Nrec)
-    mpars["specimen_dang"]=dang
+    mpars["specimen_dang"]=dang[0]
     mpars["measurement_step_min"]=datablock[start][0]
     mpars["measurement_step_max"]=datablock[end][0]
     return mpars
@@ -2144,8 +2152,9 @@ def fisher_mean(data):
     N=len(data)
     if N <2:
        return fpars
-    for rec in data:
-        X.append(dir2cart([rec[0],rec[1],1.]))
+    X=dir2cart(data)
+    #for rec in data:
+    #    X.append(dir2cart([rec[0],rec[1],1.]))
     for i in range(len(X)):
         for c in range(3):
            Xbar[c]+=X[i][c]

@@ -281,8 +281,8 @@ def main():
 				   if len(site_height)>0:PmagSampRec["sample_height"]=site_height[0]['site_height'] # add in height if available
 				   PmagSampRec['sample_comp_name']=comp
 				   PmagSampRec['sample_tilt_correction']=coord
-				   PmagSampRec['er_specimen_names']= pmag.getlist(CompDir,'er_specimen_name') # get a list of the specimen names used
-				   PmagSampRec['magic_method_codes']= pmag.getlist(CompDir,'magic_method_codes') # get a list of the methods used
+				   PmagSampRec['er_specimen_names']= pmag.get_list(CompDir,'er_specimen_name') # get a list of the specimen names used
+				   PmagSampRec['magic_method_codes']= pmag.get_list(CompDir,'magic_method_codes') # get a list of the methods used
 				   if nocrit!=1: # apply selection criteria
 				       if PmagSampRec['sample_alpha95']!="" and float(PmagSampRec['sample_alpha95'])<=SampCrit['sample_alpha95']:
 					   SampDirs.append(PmagSampRec)
@@ -313,9 +313,9 @@ def main():
 			   site_height=pmag.get_dictitem(height_nfo,'er_site_name',site,'T')
 			   if len(site_height)>0:PmagSampRec["sample_height"]=site_height[0]['site_height'] # add in height if available
 			   PmagSampRec['sample_tilt_correction']=coord
-			   PmagSampRec['sample_comp_name']= pmag.getlist(CoordDir,'specimen_comp_name') # get components used
-			   PmagSampRec['er_specimen_names']= pmag.getlist(CoordDir,'er_specimen_name') # get specimne names averaged
-			   PmagSampRec['magic_method_codes']= pmag.getlist(CoordDir,'magic_method_codes') # assemble method codes
+			   PmagSampRec['sample_comp_name']= pmag.get_list(CoordDir,'specimen_comp_name') # get components used
+			   PmagSampRec['er_specimen_names']= pmag.get_list(CoordDir,'er_specimen_name') # get specimne names averaged
+			   PmagSampRec['magic_method_codes']= pmag.get_list(CoordDir,'magic_method_codes') # assemble method codes
 			   if nocrit!=1: # apply selection criteria
 			       if float(PmagSampRec['sample_alpha95'])<=SampCrit['sample_alpha95']: 
 				   SampDirs.append(PmagSampRec)
@@ -342,8 +342,8 @@ def main():
 	       if agefile != "":   PmagSampRec=pmag.get_age(PmagSampRec,"er_site_name","sample_inferred_", AgeNFO,DefaultAge)
 	       site_height=pmag.get_dictitem(height_nfo,'er_site_name',PmagSampRec['er_site_name'],'T')
 	       if len(site_height)>0:PmagSampRec["sample_height"]=site_height[0]['site_height'] # add in height if available
-	       PmagSampRec['er_specimen_names']= pmag.getlist(SampI,'er_specimen_name')
-	       PmagSampRec['magic_method_codes']= pmag.getlist(SampI,'magic_method_codes')
+	       PmagSampRec['er_specimen_names']= pmag.get_list(SampI,'er_specimen_name')
+	       PmagSampRec['magic_method_codes']= pmag.get_list(SampI,'magic_method_codes')
 	       if nocrit!=1:  # apply criteria!
                    if PmagSampRec['sample_int_n']!="" and int(PmagSampRec['sample_int_n'])>=int(SampIntCrit['sample_int_n']):
                        if SampIntCrit['sample_int_sigma']=='':
@@ -400,15 +400,15 @@ def main():
 			PmagSiteRec["er_location_name"]=siteD[0]['er_location_name']
 			PmagSiteRec["er_site_name"]=siteD[0]['er_site_name']
 			PmagSiteRec['site_tilt_correction']=coords[-1]
-			PmagSiteRec['site_comp_name']= pmag.getlist(siteD,key+'_comp_name')
-			PmagSiteRec['er_'+key+'_names']= pmag.getlist(siteD,'er_'+key+'_name')
+			PmagSiteRec['site_comp_name']= pmag.get_list(siteD,key+'_comp_name')
+			PmagSiteRec['er_'+key+'_names']= pmag.get_list(siteD,'er_'+key+'_name')
 # determine the demagnetization code (DC3,4 or 5) for this site
 			AFnum=len(pmag.get_dictitem(siteD,'magic_method_codes','LP-DIR-AF','has'))
 			Tnum=len(pmag.get_dictitem(siteD,'magic_method_codes','LP-DIR-T','has'))
 			DC=3
 			if AFnum>0:DC+=1
 			if Tnum>0:DC+=1
-			PmagSiteRec['magic_method_codes']= pmag.getlist(siteD,'magic_method_codes')+':'+ 'LP-DC'+str(DC)
+			PmagSiteRec['magic_method_codes']= pmag.get_list(siteD,'magic_method_codes')+':'+ 'LP-DC'+str(DC)
 			PmagSiteRec['magic_method_codes'].strip(":")
 			if plotsites==1:
                             print PmagSiteRec['er_site_name']
@@ -422,16 +422,16 @@ def main():
     		    PmagSiteRec["er_site_name"]=siteD[0]['er_site_name']
 		    PmagSiteRec['site_comp_name']=comp
 		    PmagSiteRec['site_tilt_correction']=coords[-1]
-		    PmagSiteRec['site_comp_name']= pmag.getlist(siteD,key+'_comp_name')
-		    PmagSiteRec['er_'+key+'_names']= pmag.getlist(siteD,'er_'+key+'_name')
+		    PmagSiteRec['site_comp_name']= pmag.get_list(siteD,key+'_comp_name')
+		    PmagSiteRec['er_'+key+'_names']= pmag.get_list(siteD,'er_'+key+'_name')
     		    AFnum=len(pmag.get_dictitem(siteD,'magic_method_codes','LP-DIR-AF','has'))
     	    	    Tnum=len(pmag.get_dictitem(siteD,'magic_method_codes','LP-DIR-T','has'))
 	    	    DC=3
 		    if AFnum>0:DC+=1
 		    if Tnum>0:DC+=1
-		    PmagSiteRec['magic_method_codes']= pmag.getlist(siteD,'magic_method_codes')+':'+ 'LP-DC'+str(DC)
+		    PmagSiteRec['magic_method_codes']= pmag.get_list(siteD,'magic_method_codes')+':'+ 'LP-DC'+str(DC)
 		    PmagSiteRec['magic_method_codes'].strip(":")
-		    if Daverage==0:PmagSiteRec['site_comp_name']= pmag.getlist(siteD,key+'_comp_name')
+		    if Daverage==0:PmagSiteRec['site_comp_name']= pmag.get_list(siteD,key+'_comp_name')
 	    	    if plotsites==1:pmagplotlib.plotSITE(EQ['eqarea'],PmagSiteRec,siteD,key)
 		    PmagSites.append(PmagSiteRec)
         else:
@@ -526,15 +526,15 @@ def main():
             PmagResRec["er_analyst_mail_names"]=user
             PmagResRec["data_type"]='i'
             if Iaverage==0:
-                PmagSiteRec['er_specimen_names']= pmag.getlist(Ints,'er_specimen_name') # list of all specimens used
-                PmagResRec['er_specimen_names']= pmag.getlist(Ints,'er_specimen_name')
+                PmagSiteRec['er_specimen_names']= pmag.get_list(Ints,'er_specimen_name') # list of all specimens used
+                PmagResRec['er_specimen_names']= pmag.get_list(Ints,'er_specimen_name')
             if Iaverage==1:
-                PmagSiteRec['er_sample_names']= pmag.getlist(Ints,'er_sample_name') # list of all samples used
-                PmagResRec['er_sample_names']= pmag.getlist(Ints,'er_sample_name')
+                PmagSiteRec['er_sample_names']= pmag.get_list(Ints,'er_sample_name') # list of all samples used
+                PmagResRec['er_sample_names']= pmag.get_list(Ints,'er_sample_name')
             PmagSiteRec['er_site_name']= site
             PmagResRec['er_site_names']= site
-            PmagSiteRec['magic_method_codes']= pmag.getlist(Ints,'magic_method_codes')
-            PmagResRec['magic_method_codes']= pmag.getlist(Ints,'magic_method_codes')
+            PmagSiteRec['magic_method_codes']= pmag.get_list(Ints,'magic_method_codes')
+            PmagResRec['magic_method_codes']= pmag.get_list(Ints,'magic_method_codes')
             if int(PmagResRec["average_int_n"]) >= int(SiteIntCrit['site_int_n']) or nocrit==1: # apply criteria or NOT
                 if nocrit==1 or (float(PmagResRec["average_int_sigma"]) <=float(SiteIntCrit['site_int_sigma']) or float(PmagResRec['average_int_sigma_perc']) <= float(SiteIntCrit['site_int_sigma_perc'])): 
                   b,sig=float(PmagResRec['average_int']),""

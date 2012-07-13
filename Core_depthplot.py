@@ -269,6 +269,7 @@ def main():
                    pieces=rec['er_sample_name'].split('-')
                    location=rec['er_location_name']
                    title=location
+                   
         SData=pmag.sort_diclist(Data,'core_depth')
         for rec in SData: # fish out bulk measurement data from desired depths
             if dmax==-1 or float(rec['core_depth'])<dmax and float(rec['core_depth'])>dmin:
@@ -294,6 +295,8 @@ def main():
         print 'spec file found'
         BFLs=pmag.get_dictitem(Specs,'magic_method_codes','DE-BFL','has')  # get all the discrete data with best fit lines
         for spec in BFLs:
+            if location=="":
+               location=spec['er_location_name']
             samp=pmag.get_dictitem(Samps,'er_sample_name',spec['er_sample_name'],'T')
             if len(samp)>0 and depth_scale in samp[0].keys() and samp[0][depth_scale]!="":
               if ylab=='Age': ylab=ylab+' ('+samp[0]['age_unit']+')' # get units of ages - assume they are all the same!
@@ -305,6 +308,8 @@ def main():
                 print 'no core_depth found for: ',spec['er_specimen_name']
         FMs=pmag.get_dictitem(Specs,'magic_method_codes','DE-FM','has')  # get all the discrete data with best fit lines
         for spec in FMs:
+            if location=="":
+               location=spec['er_location_name']
             samp=pmag.get_dictitem(Samps,'er_sample_name',spec['er_sample_name'],'T')
 	    if len(samp)>0 and depth_scale in samp[0].keys() and samp[0][depth_scale]!="":
               if ylab=='Age': ylab=ylab+' ('+samp[0]['age_unit']+')' # get units of ages - assume they are all the same!
@@ -315,12 +320,16 @@ def main():
             else:
                 print 'no core_depth found for: ',spec['er_specimen_name']
     ResDepths,ResDecs,ResIncs=[],[],[]
+    if 'age' in depth_scale: # set y-key
+        res_scale='average_age'
+    else:
+        res_scale='average_height'
     if res_file!="": #creates lists of Result Data
         for res in Results:
             meths=res['magic_method_codes'].split(":")
             if 'DE-FM' in meths:
-              if dmax==-1 or float(res['average_height'])<dmax and float(rec['average_height'])>dmin: # filter for depth
-                ResDepths.append(float(res['average_height'])) # fish out data with core_depth
+              if dmax==-1 or float(res[res_scale])<dmax and float(res[res_scale])>dmin: # filter for depth
+                ResDepths.append(float(res[res_scale])) # fish out data with core_depth
                 ResDecs.append(float(res['average_dec'])) # fish out data with core_depth
                 ResIncs.append(float(res['average_inc'])) # fish out data with core_depth
                 Susc,Sus_depths=[],[]
@@ -386,8 +395,6 @@ def main():
                 pylab.axis([0,360.,dmax,dmin])
             pylab.xlabel('Declination')
             pylab.ylabel(ylab)
-            if title!="":pylab.title(title)
-            title=""
             plt+=1 
             pmagplotlib.delticks(ax) # dec xticks are too crowded otherwise
     if pltI==1:
@@ -412,8 +419,6 @@ def main():
                 pylab.axis([-90,90,dmax,dmin])
             pylab.xlabel('Inclination')
             pylab.ylabel('')
-            if title!="":pylab.title(title)
-            title=""
             plt+=1
     if pltM==1 and len(Ints)>0 or len(SInts)>0:
             pylab.subplot(1,pcol,plt)
@@ -454,8 +459,6 @@ def main():
                     pylab.xlabel('Intensity (Am^2)')
                 else:
                     pylab.xlabel('Intensity (Am^2/kg)')
-            if title!="":pylab.title(title)
-            title=""
             plt+=1
     if suc_file!="" or len(SSucs)>0:
             pylab.subplot(1,pcol,plt)
@@ -473,8 +476,6 @@ def main():
                      if logit==1:pylab.semilogx([minSuc,maxSuc],[depth,depth],'b--')
             pylab.axis([minSuc,maxSuc,dmax,dmin])
             pylab.xlabel('Susceptibility')
-            if title!="":pylab.title(title)
-            title=""
             plt+=1
     if wig_file!="":
             pylab.subplot(1,pcol,plt)
@@ -485,8 +486,6 @@ def main():
                      pylab.plot([WIG[0],WIG[-1]],[depth,depth],'b--')
             pylab.axis([min(WIG),max(WIG),dmax,dmin])
             pylab.xlabel(plt_key)
-            if title!="":pylab.title(title)
-            title=""
             plt+=1
     if pTS==1:
             ax1=pylab.subplot(1,pcol,plt)
@@ -519,6 +518,7 @@ def main():
                     ax2.text(1.05,d,c[0]) # 
             ax2.axis([-.25,1.5,amax,amin])
     figname=location+'_m:_'+method+'_core-depthplot'+fmt
+    pylab.title(location)
     if verbose:
         pylab.draw()
         ans=raw_input("Save plot? y/[n] ")
