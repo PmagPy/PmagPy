@@ -57,18 +57,22 @@ def main():
         specdata=pmag.get_dictitem(PmagRecs,'specimen',spc,'T') # get all this one's data
         DIMs,Temps=[],[]
         for dat in specdata: # step through the data
-            DIMs.append([float(dat['dec']),float(dat['inc']),float(dat['M'])])
+            DIMs.append([float(dat['dec']),float(dat['inc']),float(dat['M'])*1e-3])
             Temps.append(float(dat['treatment']))
         carts=pmag.dir2cart(DIMs).transpose()
         if norm==1: # want to normalize
             nrm=max(max(abs(carts[0])),max(abs(carts[1])),max(abs(carts[2]))) # by maximum of x,y,z values
-        else: nrm=1. # don't normalize
+            ylab="M/M_max"
+        else: 
+            nrm=1. # don't normalize
+            ylab="Magnetic moment (Am^2)"
+        xlab="Temperature (C)"
         pmagplotlib.plotXY(FIG['lowrie'],Temps,abs(carts[0])/nrm,sym='r-')
         pmagplotlib.plotXY(FIG['lowrie'],Temps,abs(carts[0])/nrm,sym='ro') # X direction
         pmagplotlib.plotXY(FIG['lowrie'],Temps,abs(carts[1])/nrm,sym='c-')
         pmagplotlib.plotXY(FIG['lowrie'],Temps,abs(carts[1])/nrm,sym='cs') # Y direction
         pmagplotlib.plotXY(FIG['lowrie'],Temps,abs(carts[2])/nrm,sym='k-')
-        pmagplotlib.plotXY(FIG['lowrie'],Temps,abs(carts[2])/nrm,sym='k^',title=spc) # Z direction
+        pmagplotlib.plotXY(FIG['lowrie'],Temps,abs(carts[2])/nrm,sym='k^',title=spc,xlab=xlab,ylab=ylab) # Z direction
         pmagplotlib.drawFIGS(FIG)
         ans=raw_input('Save figure? y/[n]')
         if ans=='y':
