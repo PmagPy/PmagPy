@@ -7,7 +7,6 @@ def main():
         -f FILE, input csv file
         -Fsa FILE, output er_samples.txt file for updating, default is to overwrite er_samples.txt`
     """
-    samp_out="er_samples.txt"
     dir_path='.'
     if "-WD" in sys.argv:
         ind=sys.argv.index("-WD")
@@ -28,8 +27,14 @@ def main():
         samp_out=dir_path+'/'+sys.argv[ind+1]
         Samps,file_type=pmag.magic_read(samp_out)
         print len(Samps), ' read in from: ',samp_out
+    else:
+        samp_out=dir_path+'/er_samples.txt'
     input=open(samp_file,"rU").readlines()
     keys=input[0].replace('\n','').split(',')
+    if "CSF-B Top (m)" in keys:
+        comp_depth_key="CSF-B Top (m)"
+    else: comp_depth_key=""
+    print 'comp_depth_key=',comp_depth_key
     if "Top Depth (m)" in keys:  # incorporate changes to LIMS data model, while maintaining backward compatibility
         depth_key="Top Depth (m)"
     elif "CSF-A Top (m)" in keys:
@@ -49,7 +54,7 @@ def main():
         ODPRec,SampRec={},{}
         interval,core="",""
         rec=line.replace('\n','').split(',')
-        for k in range(len(keys)):ODPRec[keys[k]]=rec[k]
+        for k in range(len(keys)):ODPRec[keys[k]]=rec[k].strip('"')
         SampRec['er_sample_alternatives']=ODPRec[text_key]
         if "Label Id" in keys: # old format
             label=ODPRec['Label Id'].split()
@@ -77,6 +82,7 @@ def main():
             SampRec['sample_dip']="0"
             SampRec['sample_azimuth']="0"
             SampRec['sample_core_depth']=ODPRec[depth_key]
+            if comp_depth_key!="":SampRec['sample_composite_depth']=ODPRec[comp_depth_key]
             dates=ODPRec[date_key].split()
             if '/' in dates[0]: # have a date
                 mmddyy=dates[0].split('/')
@@ -97,5 +103,5 @@ def main():
                ErSamples.append(samp)
     Recs,keys=pmag.fillkeys(ErSamples)
     pmag.magic_write(samp_out,Recs,'er_samples')
-    print('sample information written to er_samples.txt')              
+    print 'sample information written to: ',samp_out  
 main()

@@ -4705,14 +4705,14 @@ def measurements_methods(meas_data,noave):
 # now look through this specimen's records - try to figure out what experiment it is
 #
         if len(NewSpecs)>1: # more than one meas for this spec - part of experiment
-            SpecMeths=getlist(NewSpecs,'magic_method_codes').split(":")
+            SpecMeths=get_list(NewSpecs,'magic_method_codes').split(":")
             if "LT-T-I" in  SpecMeths: # TRM steps - could be anisotropy, TRM acquisition, Shaw or a Thellier experiment or TDS experiment
     #
     # collect all the infield steps and look for changes in dc field vector
     #
                 Steps=[]
                 for rec in  NewSpecs: 
-                    methods=getlist(NewSpecs,'magic_method_codes').split(":")
+                    methods=get_list(NewSpecs,'magic_method_codes').split(":")
                     if "LT-T-I" in methods:Steps.append(rec)  # get all infield steps together
                 rec_bak=Steps[0]
                 if "treatment_dc_field_phi" in rec_bak.keys() and "treatment_dc_field_theta" in rec_bak.keys():   
