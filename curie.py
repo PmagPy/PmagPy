@@ -186,10 +186,9 @@ def main():
     PLT={'M_T':1,'der1':2,'der2':3,'Curie':4} 
     pmagplotlib.plot_init(PLT['M_T'],5,5)
     string='M-T (sliding window=%i)'%int(window_len)
+    pmagplotlib.plotXY(PLT['M_T'],T,M_smooth,sym='-')
     pmagplotlib.plotXY(PLT['M_T'],T,M,sym='--',xlab='Temperature C',ylab='Magnetization',title=string)
-    pmagplotlib.drawFIGS(PLT)
-    plot(T,M_smooth,'-')
-
+    
     #calculate first derivative
     d1,T_d1=[],[]
     for i in range(len(M_smooth)-1):
@@ -204,7 +203,7 @@ def main():
     pmagplotlib.plot_init(PLT['der1'],5,5)
     string='1st dervative (sliding window=%i)'%int(window_len)
     pmagplotlib.plotXY(PLT['der1'],T_d1,d1_smooth,sym='-',xlab='Temperature C',title=string)
-    plot(T_d1,d1,'--b')
+    pmagplotlib.plotXY(PLT['der1'],T_d1,d1,sym='b--')
 
     #calculate second derivative
     d2,T_d2=[],[]
@@ -257,6 +256,7 @@ def main():
     #plot Curie temp for different sliding window length
     pmagplotlib.plot_init(PLT['Curie'],5,5)
     pmagplotlib.plotXY(PLT['Curie'],wn,curie,sym='.',xlab='Sliding Window Width (degrees)',ylab='Curie Temp',title='Curie Statistics')    
+    pmagplotlib.drawFIGS(PLT)
     raw_input()
 
 main()

@@ -13,7 +13,7 @@ def main():
        takes dec/inc as first two columns in space delimited file
 
     SYNTAX
-       goprinc.py [-h][-i][command line options]  [< filename]
+       goprinc.py [-h][command line options]  [< filename]
 
     OPTIONS
         -h prints help message and quits

@@ -2,7 +2,7 @@ import  numpy,string,sys,random
 import numpy.linalg
 import exceptions
 def get_version(): 
-    return "pmagpy-2.128"
+    return "pmagpy-2.129"
 def sort_diclist(undecorated,sort_on):
     decorated=[(dict_[sort_on],dict_) for dict_ in undecorated]
     decorated.sort()
@@ -2694,13 +2694,13 @@ def doprinc(data):
     gets principal components from data
     """
     ppars={}
-    rad,X=numpy.pi/180.,[]
-    for rec in data:
-        dir=[]
-        for c in rec: dir.append(c)
-        if len(dir)==2:dir.append(1.)
-        cart= (dir2cart(dir))
-        X.append(cart)
+    rad=numpy.pi/180.
+    X=dir2cart(data)
+    #for rec in data:
+    #    dir=[]
+    #    for c in rec: dir.append(c)
+    #    cart= (dir2cart(dir))
+    #    X.append(cart)
 #   put in T matrix
 #
     T=numpy.array(Tmatrix(X))
@@ -4380,67 +4380,67 @@ def doigrf(long,lat,alt,date):
             sv.append((dgrf1945[i]-igrf1940[i])/5.)
         x,y,z,f=magsyn(gh,sv,1940.,date,itype,alt,colat,long)
     elif date<1950:
-        for i in range(len(igrf1945)):
+        for i in range(len(dgrf1945)):
             gh.append(dgrf1945[i])
             sv.append((dgrf1950[i]-dgrf1945[i])/5.)
         x,y,z,f=magsyn(gh,sv,1940.,date,itype,alt,colat,long)
     elif date<1955:
-        for i in range(len(igrf1950)):
+        for i in range(len(dgrf1950)):
             gh.append(dgrf1950[i])
             sv.append((dgrf1955[i]-dgrf1950[i])/5.)
         x,y,z,f=magsyn(gh,sv,1950.,date,itype,alt,colat,long)
     elif date<1960:
-        for i in range(len(igrf1955)):
+        for i in range(len(dgrf1955)):
             gh.append(dgrf1955[i])
             sv.append((dgrf1960[i]-dgrf1955[i])/5.)
         x,y,z,f=magsyn(gh,sv,1955.,date,itype,alt,colat,long)
     elif date<1965:
-        for i in range(len(igrf1960)):
+        for i in range(len(dgrf1960)):
             gh.append(dgrf1960[i])
             sv.append((dgrf1965[i]-dgrf1960[i])/5.)
         x,y,z,f=magsyn(gh,sv,1960.,date,itype,alt,colat,long)
     elif date<1970:
-        for i in range(len(igrf1965)):
+        for i in range(len(dgrf1965)):
             gh.append(dgrf1965[i])
             sv.append((dgrf1970[i]-dgrf1965[i])/5.)
         x,y,z,f=magsyn(gh,sv,1965.,date,itype,alt,colat,long)
     elif date<1975:
-        for i in range(len(igrf1970)):
+        for i in range(len(dgrf1970)):
             gh.append(dgrf1970[i])
             sv.append((dgrf1975[i]-dgrf1970[i])/5.)
         x,y,z,f=magsyn(gh,sv,1970.,date,itype,alt,colat,long)
     elif date<1980:
-        for i in range(len(igrf1975)):
+        for i in range(len(dgrf1975)):
             gh.append(dgrf1975[i])
             sv.append((dgrf1980[i]-dgrf1975[i])/5.)
         x,y,z,f=magsyn(gh,sv,1975,date,itype,alt,colat,long)
     elif date<1985:
-        for i in range(len(igrf1980)):
+        for i in range(len(dgrf1980)):
             gh.append(dgrf1980[i])
             sv.append((dgrf1985[i]-dgrf1980[i])/5.)
         x,y,z,f=magsyn(gh,sv,1980.,date,itype,alt,colat,long)
     elif date<1990:
-        for i in range(len(igrf1985)):
+        for i in range(len(dgrf1985)):
             gh.append(dgrf1985[i])
             sv.append((dgrf1990[i]-dgrf1985[i])/5.)
         x,y,z,f=magsyn(gh,sv,1985,date,itype,alt,colat,long)
     elif date<1995:
-        for i in range(len(igrf1990)):
+        for i in range(len(dgrf1990)):
             gh.append(dgrf1990[i])
             sv.append((dgrf1995[i]-dgrf1990[i])/5.)
         x,y,z,f=magsyn(gh,sv,1990.,date,itype,alt,colat,long)
     elif date<2000:
-        for i in range(len(igrf1995)):
+        for i in range(len(dgrf1995)):
             gh.append(dgrf1995[i])
             sv.append((dgrf1900[i]-dgrf1995[i])/5.)
         x,y,z,f=magsyn(gh,sv,1995.,date,itype,alt,colat,long)
     elif date<2005:
-        for i in range(len(igrf2000)):
+        for i in range(len(dgrf2000)):
             gh.append(dgrf2000[i])
-            sv.append((igrf2005[i]-dgrf2000[i])/5.)
+            sv.append((dgrf2005[i]-dgrf2000[i])/5.)
         x,y,z,f=magsyn(gh,sv,2000.,date,itype,alt,colat,long)
     elif date<2010:
-        for i in range(len(igrf2005)):
+        for i in range(len(dgrf2005)):
             gh.append(dgrf2005[i])
             sv.append((igrf2010[i]-dgrf2005[i])/5.)
         x,y,z,f=magsyn(gh,sv,2005.,date,itype,alt,colat,long)

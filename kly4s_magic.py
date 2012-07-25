@@ -119,10 +119,9 @@ def main():
         AppSpec=1
     if '-fad' in sys.argv:
         ind=sys.argv.index('-fad')
-        azdipfile=dirpath+"/"+sys.argv[ind+1]
+        azdipfile=dir_path+"/"+sys.argv[ind+1]
         azfile=open(azdipfile,'rU')
         AzDipDat=azfile.readlines() 
-        azfile.close()
     if '-loc' in sys.argv:
         ind=sys.argv.index('-loc')
         locname=sys.argv[ind+1] 
@@ -150,7 +149,6 @@ def main():
         except IOError:
             print 'trouble opening ',specfile 
     Data=input.readlines()
-    input.close()
     samps=[]
     if sampfile!=dir_path+'/': 
         samps,file_type=pmag.magic_read(sampfile)
@@ -186,8 +184,8 @@ def main():
         if azdipfile!="":
             for key in AniRec.keys():SampRec[key]=AniRec[key]
             for oline in AzDipDat: # look for exact match first
-                orec=oline.split()
-                if orec[0].upper() == specname.upper(): # we have a match
+                orec=oline.replace('\n','').split()
+                if orec[0].upper() in specname.upper(): # we have a match
                    labaz,labdip=pmag.orient(float(orec[1]),float(orec[2]),or_con)  
                    bed_dip_direction=float(orec[3])-90. # assume dip to right of strike
                    bed_dip=float(orec[4])

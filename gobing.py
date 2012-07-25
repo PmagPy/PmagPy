@@ -12,10 +12,10 @@ def main():
        takes dec/inc as first two columns in space delimited file
 
     SYNTAX
-       gobing.py [-i]  [< filename]
+       gobing.py [-f]  [< filename]
 
     OPTIONS
-        -i for interactive filename entry
+        -f FILE to read from FILE
         < filename for reading from standard input
 
     OUTPUT
@@ -25,8 +25,9 @@ def main():
         if '-h' in sys.argv: # check if help is needed
             print main.__doc__
             sys.exit() # graceful quit
-        if '-i' in sys.argv: # ask for filename
-            file=raw_input("Enter file name with dec, inc data: ")
+        if '-f' in sys.argv: # ask for filename
+            ind=sys.argv.index('-f')
+            file=sys.argv[ind+1]
             f=open(file,'rU')
             data=f.readlines()
         else:

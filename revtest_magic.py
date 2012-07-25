@@ -51,6 +51,9 @@ def main():
     critfile=dir_path+'/'+critfile
     Accept=['site_k','site_alpha95','site_n','site_n_lines']
     data,file_type=pmag.magic_read(infile)
+    if file_type!='pmag_sites':
+        print "Error opening file"
+        sys.exit()
 #    ordata,file_type=pmag.magic_read(orfile)
     if '-exc' in sys.argv:
         crits,file_type=pmag.magic_read(critfile)
