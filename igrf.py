@@ -9,7 +9,7 @@ def spitout(line):
     long=float(rec[3])
     if long<0:long=long+360
     x,y,z,f=pmag.doigrf(long,lat,alt,date)
-    Dir=pmag.cart2dir( (x,y,z))
+    Dir=pmag.cart2dir((x,y,z))
     print '%7.1f %7.1f %8.0f'%(Dir[0],Dir[1],f)           
     return Dir
 

@@ -61,6 +61,7 @@ def main():
 #
 #
     pmagplotlib.plotZED(ZED,datablock,angle,s,SIunits) # plot the data
+    pmagplotlib.drawFIGS(ZED)
     while 1:
 
 #

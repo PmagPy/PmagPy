@@ -44,6 +44,7 @@ def main():
     QQ={'qq':1}
     pmagplotlib.plot_init(QQ['qq'],5,5)
     pmagplotlib.plotQQnorm(QQ['qq'],X,'Q-Q Plot') # make plot
+    pmagplotlib.drawFIGS(QQ)
     files,fmt={},'svg'
     for key in QQ.keys():
         files[key]=key+'.'+fmt 

@@ -70,6 +70,9 @@ def main():
 # 
     in_file=dir_path+'/'+in_file
     Specs,file_type=pmag.magic_read(in_file)
+    if file_type!='pmag_specimens':
+        print 'Error opening file'
+        sys.exit()
     sitelist=[]
     for rec in Specs:
         if rec['er_site_name'] not in sitelist: sitelist.append(rec['er_site_name'])
@@ -107,6 +110,7 @@ def main():
             print '% tilt correction: ',coord
             if plot==1:
                 pmagplotlib.plotLNP(EQ['eqarea'],site,data,fpars,'specimen_direction_type')
+                pmagplotlib.drawFIGS(EQ)
                 ans=raw_input("s[a]ve plot, [q]uit, <return> to continue:\n ")
                 if ans=="a":
                     files={}

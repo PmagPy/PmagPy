@@ -4335,117 +4335,117 @@ def doigrf(long,lat,alt,date):
         sv=(field2-field1)/10.
         x,y,z,f=magsyn(gh,sv,date0,date,itype,alt,colat,long)
     elif date<1905:
-        for i in range(reclen):
+        for i in range(len(igrf1900)):
             gh.append(igrf1900[i])
             sv.append((igrf1905[i]-igrf1900[i])/5.)
         x,y,z,f=magsyn(gh,sv,1900.,date,itype,alt,colat,long)
     elif date<1910:
-        for i in range(reclen):
+        for i in range(len(igrf1905)):
             gh.append(igrf1905[i])
             sv.append((igrf1910[i]-igrf1905[i])/5.)
         x,y,z,f=magsyn(gh,sv,1905.,date,itype,alt,colat,long)
     elif date<1915:
-        for i in range(reclen):
+        for i in range(len(igrf1910)):
             gh.append(igrf1910[i])
             sv.append((igrf1915[i]-igrf1910[i])/5.)
         x,y,z,f=magsyn(gh,sv,1910.,date,itype,alt,colat,long)
     elif date<1920:
-        for i in range(reclen):
+        for i in range(len(igrf1915)):
             gh.append(igrf1915[i])
             sv.append((igrf1920[i]-igrf1915[i])/5.)
         x,y,z,f=magsyn(gh,sv,1915.,date,itype,alt,colat,long)
     elif date<1925:
-        for i in range(reclen):
+        for i in range(len(igrf1920)):
             gh.append(igrf1920[i])
             sv.append((igrf1925[i]-igrf1920[i])/5.)
         x,y,z,f=magsyn(gh,sv,1915.,date,itype,alt,colat,long)
     elif date<1930:
-        for i in range(reclen):
+        for i in range(len(igrf1925)):
             gh.append(igrf1925[i])
             sv.append((igrf1930[i]-igrf1925[i])/5.)
         x,y,z,f=magsyn(gh,sv,1925.,date,itype,alt,colat,long)
     elif date<1935:
-        for i in range(reclen):
+        for i in range(len(igrf1930)):
             gh.append(igrf1930[i])
             sv.append((igrf1935[i]-igrf1930[i])/5.)
         x,y,z,f=magsyn(gh,sv,1930.,date,itype,alt,colat,long)
     elif date<1940:
-        for i in range(reclen):
+        for i in range(len(igrf1935)):
             gh.append(igrf1935[i])
             sv.append((igrf1940[i]-igrf1935[i])/5.)
         x,y,z,f=magsyn(gh,sv,1935.,date,itype,alt,colat,long)
     elif date<1945:
-        for i in range(reclen):
+        for i in range(len(igrf1940)):
             gh.append(igrf1940[i])
             sv.append((dgrf1945[i]-igrf1940[i])/5.)
         x,y,z,f=magsyn(gh,sv,1940.,date,itype,alt,colat,long)
     elif date<1950:
-        for i in range(reclen):
+        for i in range(len(igrf1945)):
             gh.append(dgrf1945[i])
             sv.append((dgrf1950[i]-dgrf1945[i])/5.)
         x,y,z,f=magsyn(gh,sv,1940.,date,itype,alt,colat,long)
     elif date<1955:
-        for i in range(reclen):
+        for i in range(len(igrf1950)):
             gh.append(dgrf1950[i])
             sv.append((dgrf1955[i]-dgrf1950[i])/5.)
         x,y,z,f=magsyn(gh,sv,1950.,date,itype,alt,colat,long)
     elif date<1960:
-        for i in range(reclen):
+        for i in range(len(igrf1955)):
             gh.append(dgrf1955[i])
             sv.append((dgrf1960[i]-dgrf1955[i])/5.)
         x,y,z,f=magsyn(gh,sv,1955.,date,itype,alt,colat,long)
     elif date<1965:
-        for i in range(reclen):
+        for i in range(len(igrf1960)):
             gh.append(dgrf1960[i])
             sv.append((dgrf1965[i]-dgrf1960[i])/5.)
         x,y,z,f=magsyn(gh,sv,1960.,date,itype,alt,colat,long)
     elif date<1970:
-        for i in range(reclen):
+        for i in range(len(igrf1965)):
             gh.append(dgrf1965[i])
             sv.append((dgrf1970[i]-dgrf1965[i])/5.)
         x,y,z,f=magsyn(gh,sv,1965.,date,itype,alt,colat,long)
     elif date<1975:
-        for i in range(reclen):
+        for i in range(len(igrf1970)):
             gh.append(dgrf1970[i])
             sv.append((dgrf1975[i]-dgrf1970[i])/5.)
         x,y,z,f=magsyn(gh,sv,1970.,date,itype,alt,colat,long)
     elif date<1980:
-        for i in range(reclen):
+        for i in range(len(igrf1975)):
             gh.append(dgrf1975[i])
             sv.append((dgrf1980[i]-dgrf1975[i])/5.)
         x,y,z,f=magsyn(gh,sv,1975,date,itype,alt,colat,long)
     elif date<1985:
-        for i in range(reclen):
+        for i in range(len(igrf1980)):
             gh.append(dgrf1980[i])
             sv.append((dgrf1985[i]-dgrf1980[i])/5.)
         x,y,z,f=magsyn(gh,sv,1980.,date,itype,alt,colat,long)
     elif date<1990:
-        for i in range(reclen):
+        for i in range(len(igrf1985)):
             gh.append(dgrf1985[i])
             sv.append((dgrf1990[i]-dgrf1985[i])/5.)
         x,y,z,f=magsyn(gh,sv,1985,date,itype,alt,colat,long)
     elif date<1995:
-        for i in range(reclen):
+        for i in range(len(igrf1990)):
             gh.append(dgrf1990[i])
             sv.append((dgrf1995[i]-dgrf1990[i])/5.)
         x,y,z,f=magsyn(gh,sv,1990.,date,itype,alt,colat,long)
     elif date<2000:
-        for i in range(reclen):
+        for i in range(len(igrf1995)):
             gh.append(dgrf1995[i])
             sv.append((dgrf1900[i]-dgrf1995[i])/5.)
         x,y,z,f=magsyn(gh,sv,1995.,date,itype,alt,colat,long)
     elif date<2005:
-        for i in range(reclen):
+        for i in range(len(igrf2000)):
             gh.append(dgrf2000[i])
             sv.append((igrf2005[i]-dgrf2000[i])/5.)
         x,y,z,f=magsyn(gh,sv,2000.,date,itype,alt,colat,long)
     elif date<2010:
-        for i in range(reclen):
+        for i in range(len(igrf2005)):
             gh.append(dgrf2005[i])
             sv.append((igrf2010[i]-dgrf2005[i])/5.)
         x,y,z,f=magsyn(gh,sv,2005.,date,itype,alt,colat,long)
     else:
-        for i in range(reclen):
+        for i in range(len(igrf2010)):
             gh.append(igrf2010[i])
             sv.append(sv2010_15[i])
         x,y,z,f=magsyn(gh,sv,2010.,date,itype,alt,colat,long)

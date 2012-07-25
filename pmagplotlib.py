@@ -1803,9 +1803,6 @@ def plotXTF(fignum,XTF,Fs,e,b):
         k+=1 
     pylab.title(e+': B = '+'%8.1e'%(b)+' T')
     pylab.legend(Flab,'upper left')
-    pylab.ion()
-    pylab.draw()
-    pylab.ioff()
 #
 def plotXTB(fignum,XTB,Bs,e,f):
     """ function to plot series of chi measurements as a function of temperature, holding frequency constant and varying B

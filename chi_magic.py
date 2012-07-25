@@ -109,6 +109,7 @@ def main():
             if len(XT)>1: # if there are any temperature dependent data
                 pmagplotlib.plot_init(plotnum,5,5) # initialize plot
                 pmagplotlib.plotXTF(plotnum,XTF,Fs,e,b) # call the plotting function
+                pmagplotlib.drawFIGS({'fig':plotnum})
                 plotnum+=1 # increment plot number
             f=Fs[0] # set frequency to minimum
             XTB=[] # initialize list if chi versus Temp and field
@@ -121,6 +122,7 @@ def main():
             if len(XT)>1: # if there are any temperature dependent data
                 pmagplotlib.plot_init(plotnum,5,5) # set up plot
                 pmagplotlib.plotXTB(plotnum,XTB,Bs,e,f) # call the plotting function
+                pmagplotlib.drawFIGS({'fig':plotnum})
                 plotnum+=1 # increment plot number
             if '-i' in sys.argv: 
                 for ind in range(len(Ts)):  # print list of temperatures available

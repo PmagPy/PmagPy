@@ -63,32 +63,33 @@ def main():
         max=float(sys.argv[ind+2])
     if '-n' in sys.argv:
         ind=sys.argv.index('-n')
-        nb=int(sys.argv[ind+1])
-    if '-u' in sys.argv:
-        ind=sys.argv.index('-u')
-        csd=float(sys.argv[ind+1])
-        kappa=(81./csd)**2
-#
-# get to work
-#
-    PLTS={'geo':1,'strat':2,'taus':3} # make plot dictionary
-    pmagplotlib.plot_init(PLTS['geo'],5,5)
-    pmagplotlib.plot_init(PLTS['strat'],5,5)
-    pmagplotlib.plot_init(PLTS['taus'],5,5)
-    DIDDs= [] # set up list for dec inc  dip_direction, dip
-    for line in data:   # read in the data from standard input
-        rec=line.split() # split each line on space to get records
-        DIDDs.append([float(rec[0]),float(rec[1]),float(rec[2]),float(rec[3])])
-    pmagplotlib.plotEQ(PLTS['geo'],DIDDs,'Geographic')
-    TCs=[]
-    for k in range(len(DIDDs)):
-        drot,irot=pmag.dotilt(DIDDs[k][0],DIDDs[k][1],DIDDs[k][2],DIDDs[k][3])
-        TCs.append([drot,irot,1.])
-    pmagplotlib.plotEQ(PLTS['strat'],TCs,'Stratigraphic')
-    Percs=range(min,max)
-    Cdf,Untilt=[],[]
-    pylab.figure(num=PLTS['taus'])
-    print 'doing ',nb,' iterations...please be patient.....'
+		nb=int(sys.argv[ind+1])
+	    if '-u' in sys.argv:
+		ind=sys.argv.index('-u')
+		csd=float(sys.argv[ind+1])
+		kappa=(81./csd)**2
+	#
+	# get to work
+	#
+	    PLTS={'geo':1,'strat':2,'taus':3} # make plot dictionary
+	    pmagplotlib.plot_init(PLTS['geo'],5,5)
+	    pmagplotlib.plot_init(PLTS['strat'],5,5)
+	    pmagplotlib.plot_init(PLTS['taus'],5,5)
+	    DIDDs= [] # set up list for dec inc  dip_direction, dip
+	    for line in data:   # read in the data from standard input
+		rec=line.split() # split each line on space to get records
+		DIDDs.append([float(rec[0]),float(rec[1]),float(rec[2]),float(rec[3])])
+	    pmagplotlib.plotEQ(PLTS['geo'],DIDDs,'Geographic')
+	    TCs=[]
+	    for k in range(len(DIDDs)):
+		drot,irot=pmag.dotilt(DIDDs[k][0],DIDDs[k][1],DIDDs[k][2],DIDDs[k][3])
+		TCs.append([drot,irot,1.])
+	    pmagplotlib.plotEQ(PLTS['strat'],TCs,'Stratigraphic')
+	    pmagplotlib.drawFIGS(PLTS)
+	    Percs=range(min,max)
+	    Cdf,Untilt=[],[]
+	    pylab.figure(num=PLTS['taus'])
+	    print 'doing ',nb,' iterations...please be patient.....'
     for n in range(nb): # do bootstrap data sets - plot first 25 as dashed red line
         if n%50==0:print n
         Taus=[] # set up lists for taus
@@ -123,6 +124,9 @@ def main():
     print tit
     print 'range of all bootstrap samples: ', Untilt[0], ' - ', Untilt[-1]
     pylab.title(tit)
+    pylab.ion()
+    pylab.draw()
+    pylab.ioff()
     try:
         raw_input('Return to save all figures, cntl-d to quit\n')
     except:
