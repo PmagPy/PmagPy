@@ -1405,16 +1405,21 @@ def plotCDF(fignum,data,xlab,sym,title,**kwargs):
     for d in data:sdata.append(d) # have to copy the data to avoid overwriting it!
     sdata.sort()
     X,Y=[],[]
+    color=""
     for j in range(len(sdata)):
         Y.append(float(j)/float(len(sdata)))
         X.append(sdata[j]) 
     if 'color' in kwargs.keys():
-        sym=kwargs['color']
+        color=kwargs['color']
     if 'linewidth' in kwargs.keys():
         lw=kwargs['linewidth']
     else:
         lw=1
-    pylab.plot(X,Y,color=sym,linewidth=lw)
+    if color!="":
+        pylab.plot(X,Y,color=sym,linewidth=lw)
+    else:
+        pylab.plot(X,Y,sym,linewidth=lw)
+  
     pylab.xlabel(xlab)
     pylab.ylabel('Cumulative Distribution')
     pylab.title(title)
@@ -2203,57 +2208,32 @@ def plotCOM(CDF,BDI1,BDI2,d):
 #
 #   convert to cartesian coordinates X1,X2, Y1,Y2 and Z1, Z2
 #
-    X1,X2,Y1,Y2,Z1,Z2=[],[],[],[],[],[]
-    for dir in BDI1:
-        cart=pmag.dir2cart([dir[0],dir[1],1.])
-        X1.append(cart[0])
-        Y1.append(cart[1])
-        Z1.append(cart[2])
+    cart= pmag.dir2cart(BDI1).transpose()
+    X1,Y1,Z1=cart[0],cart[1],cart[2]
     min=int(0.025*len(X1))
     max=int(0.975*len(X1))
-    X1.sort()
-    bounds1=[]
-    bounds1.append(X1[min])
-    bounds1.append(X1[max])
-    plotCDF(CDF['X'],X1,"X component",'r',"")
+    X1,y=plotCDF(CDF['X'],X1,"X component",'r',"")
+    bounds1=[X1[min],X1[max]]
     plotVs(CDF['X'],bounds1,'r','-')
-    Y1.sort()
-    bounds1=[]
-    bounds1.append(Y1[min])
-    bounds1.append(Y1[max])
-    plotCDF(CDF['Y'],Y1,"Y component",'r',"")
+    Y1,y=plotCDF(CDF['Y'],Y1,"Y component",'r',"")
+    bounds1=[Y1[min],Y1[max]]
     plotVs(CDF['Y'],bounds1,'r','-')
-    Z1.sort()
-    bounds1=[]
-    bounds1.append(Z1[min])
-    bounds1.append(Z1[max])
-    plotCDF(CDF['Z'],Z1,"Z component",'r',"")
+    Z1,y=plotCDF(CDF['Z'],Z1,"Z component",'r',"")
+    bounds1=[Z1[min],Z1[max]]
     plotVs(CDF['Z'],bounds1,'r','-')
     if d[0]=="": # repeat for second data set
         bounds2=[]
-        for dir in BDI2:
-            cart=pmag.dir2cart([dir[0],dir[1],1.])
-            X2.append(cart[0])
-            Y2.append(cart[1])
-            Z2.append(cart[2])
-        X2.sort()
-        bounds2=[]
-        bounds2.append(X2[min])
-        bounds2.append(X2[max])
-        plotCDF(CDF['X'],X2,"X component",'k--',"")
-        plotVs(CDF['X'],bounds2,'k','--')
-        Y2.sort()
-        bounds2=[]
-        bounds2.append(Y2[min])
-        bounds2.append(Y2[max])
-        plotCDF(CDF['Y'],Y2,"Y component",'k--',"")
-        plotVs(CDF['Y'],bounds2,'k','--')
-        Z2.sort()
-        bounds2=[]
-        bounds2.append(Z2[min])
-        bounds2.append(Z2[max])
-        plotCDF(CDF['Z'],Z2,"Z component",'k--',"")
-        plotVs(CDF['Z'],bounds2,'k','--')
+        cart= pmag.dir2cart(BDI2).transpose()
+        X2,Y2,Z2=cart[0],cart[1],cart[2]
+        X2,y=plotCDF(CDF['X'],X2,"X component",'b',"")
+        bounds2=[X2[min],X2[max]]
+        plotVs(CDF['X'],bounds2,'b','--')
+        Y2,y=plotCDF(CDF['Y'],Y2,"Y component",'b',"")
+        bounds2=[Y2[min],Y2[max]]
+        plotVs(CDF['Y'],bounds2,'b','--')
+        Z2,y=plotCDF(CDF['Z'],Z2,"Z component",'b',"")
+        bounds2=[Z2[min],Z2[max]]
+        plotVs(CDF['Z'],bounds2,'b','--')
     else:
         cart=pmag.dir2cart([d[0],d[1],1.0]) 
         plotVs(CDF['X'],[cart[0]],'k','--')
