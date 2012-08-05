@@ -1,13 +1,5 @@
 #!/usr/bin/env python
-import pmag,sys,exceptions
-def spitout(line):
-    cart=[]  # initialize list for  dec,inc,intensity
-    dat=line.split() # split the data on a space into columns
-    for element in dat: # step through dec,inc, int
-        cart.append(float(element)) # append floating point variable to "cart"
-    dir= pmag.cart2dir(cart)  # send cart to cart2dir
-    print '%7.1f %7.1f %10.3e'%(dir[0],dir[1],dir[2])
-    return dir
+import pmag,sys,exceptions,numpy
 def main():
     """
     NAME
@@ -40,19 +32,7 @@ def main():
         ind=sys.argv.index('-F')
         ofile=sys.argv[ind+1]
         outfile=open(ofile,'w')
-    if '-f' in sys.argv:
-        ind=sys.argv.index('-f')
-        file=sys.argv[ind+1]
-        f=open(file,'rU')
-        dat=[]
-        input=f.readlines()
-        for line in input:
-            dir=spitout(line)
-            if ofile!="":
-               outstring='%7.1f %7.1f %10.8e\n' %(dir[0],dir[1],dir[2]) 
-               outfile.write(outstring)
-        sys.exit()
-    elif '-i' in sys.argv:
+    if '-i' in sys.argv:
         cont=1
         while cont==1:
             cart=[]
@@ -68,8 +48,16 @@ def main():
                 sys.exit()
             dir= pmag.cart2dir(cart)  # send dir to dir2cart and spit out result
             print '%7.1f %7.1f %10.3e'%(dir[0],dir[1],dir[2])
+    elif '-f' in sys.argv:
+        ind=sys.argv.index('-f')
+        file=sys.argv[ind+1]
+        input=numpy.loadtxt(file) # read from a file
     else:
-        input = sys.stdin.readlines()  # read from standard input
-        for line in input:   # read in the data (as string variable), line by line
-            dir=spitout(line)
+        input = numpy.loadtxt(sys.stdin,dtype=numpy.float)  # read from standard input
+    dir=pmag.cart2dir(input)
+    for line in dir:
+        print '%7.1f %7.1f %10.3e'%(line[0],line[1],line[2])
+        if ofile!="":
+           outstring='%7.1f %7.1f %10.8e\n' %(line[0],line[1],line[2]) 
+           outfile.write(outstring)
 main() 

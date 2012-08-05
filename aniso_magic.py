@@ -32,6 +32,7 @@ def main():
         -sav don't make the rmag_results table - just save all the plots
         -fmt [svg, png, jpg] format for output images, pdf default
         -gtc DEC INC  dec,inc of pole to great circle 
+        -d Vi DEC INC; Vi (1,2,3) to compare to direction DEC INC
     DEFAULTS  
        AFILE:  rmag_anisotropy.txt
        RFILE:  rmag_results.txt
@@ -51,7 +52,7 @@ def main():
     ipar,ihext,ivec,iboot,imeas,isite,iplot,vec=0,0,0,1,1,0,1,0
     hpars,bpars,PDir=[],[],[]
     CS,crd='-1','s'
-    fmt='pdf'
+    fmt='eps'
     ResRecs=[]
     orlist=[]
     outfile,comp,Dir,gtcirc,PDir='rmag_results.txt',0,[],0,[]
@@ -97,6 +98,11 @@ def main():
         d,i=float(args[ind+1]),float(args[ind+2])
         PDir.append(d)
         PDir.append(i)
+    if '-d' in args:
+        comp=1
+        ind=args.index('-d')
+        vec=int(args[ind+1])-1
+        Dir=[float(args[ind+2]),float(args[ind+3])] 
 #
 # set up plots
 #
@@ -110,13 +116,12 @@ def main():
         if iplot==1:
             inittcdf=1
             pmagplotlib.plot_init(ANIS['tcdf'],5,5)
-        if comp==1:
-            if iplot==1:
-                initcdf=1
-                ANIS['vxcdf'],ANIS['vycdf'],ANIS['vzcdf']=4,5,6
-                pmagplotlib.plot_init(ANIS['vxcdf'],5,5)
-                pmagplotlib.plot_init(ANIS['vycdf'],5,5)
-                pmagplotlib.plot_init(ANIS['vzcdf'],5,5)
+        if comp==1 and iplot==1:
+            initcdf=1
+            ANIS['vxcdf'],ANIS['vycdf'],ANIS['vzcdf']=4,5,6
+            pmagplotlib.plot_init(ANIS['vxcdf'],5,5)
+            pmagplotlib.plot_init(ANIS['vycdf'],5,5)
+            pmagplotlib.plot_init(ANIS['vzcdf'],5,5)
     if iplot==1:
         pmagplotlib.plot_init(ANIS['conf'],5,5)
         pmagplotlib.plot_init(ANIS['data'],5,5)
@@ -147,7 +152,6 @@ def main():
       site=""
       sdata,Ss=[],[] # list of S format data
       Locs,Sites,Samples,Specimens,Cits=[],[],[],[],[]
-      Dir=[],[]
       if isite==0:
           sdata=data
       else:
@@ -155,44 +159,44 @@ def main():
           for rec in data:
               if rec['er_site_name']==site:sdata.append(rec) 
       anitypes=[]
-      for rec in sdata:
-        if rec["anisotropy_tilt_correction"]==CS:
-            if rec['anisotropy_type'] not in anitypes:anitypes.append(rec['anisotropy_type'])
-            if rec['er_location_name'] not in Locs:Locs.append(rec['er_location_name'])
-            if rec['er_site_name'] not in Sites:Sites.append(rec['er_site_name'])
-            if rec['er_sample_name'] not in Samples:Samples.append(rec['er_sample_name'])
-            if rec['er_specimen_name'] not in Specimens:Specimens.append(rec['er_specimen_name'])
-            if rec['er_citation_names'] not in Cits:Cits.append(rec['er_citation_names'])
-            s=[]
-            s.append(float(rec["anisotropy_s1"]))
-            s.append(float(rec["anisotropy_s2"]))
-            s.append(float(rec["anisotropy_s3"]))
-            s.append(float(rec["anisotropy_s4"]))
-            s.append(float(rec["anisotropy_s5"]))
-            s.append(float(rec["anisotropy_s6"]))
-            if s[0]<=1.0:Ss.append(s) # protect against crap
-            tau,Vdirs=pmag.doseigs(s)
-            ResRec={}
-            ResRec['er_location_names']=rec['er_location_name']
-            ResRec['er_citation_names']=rec['er_citation_names']
-            ResRec['er_site_names']=rec['er_site_name']
-            ResRec['er_sample_names']=rec['er_sample_name']
-            ResRec['er_specimen_names']=rec['er_specimen_name']
-            ResRec['rmag_result_name']=rec['er_specimen_name']+":"+rec['anisotropy_type']
-            ResRec["er_analyst_mail_names"]=user
-            ResRec["tilt_correction"]=CS
-            ResRec["anisotropy_type"]=rec['anisotropy_type']
-            ResRec["anisotropy_v1_dec"]='%7.1f'%(Vdirs[0][0])
-            ResRec["anisotropy_v2_dec"]='%7.1f'%(Vdirs[1][0])
-            ResRec["anisotropy_v3_dec"]='%7.1f'%(Vdirs[2][0])
-            ResRec["anisotropy_v1_inc"]='%7.1f'%(Vdirs[0][1])
-            ResRec["anisotropy_v2_inc"]='%7.1f'%(Vdirs[1][1])
-            ResRec["anisotropy_v3_inc"]='%7.1f'%(Vdirs[2][1])
-            ResRec["anisotropy_t1"]='%10.8f'%(tau[0])
-            ResRec["anisotropy_t2"]='%10.8f'%(tau[1])
-            ResRec["anisotropy_t3"]='%10.8f'%(tau[2])
-            ResRec['anisotropy_type']=pmag.makelist(anitypes)
-            ResRecs.append(ResRec) 
+      csrecs=pmag.get_dictitem(sdata,'anisotropy_tilt_correction',CS,'T')
+      for rec in csrecs:
+          if rec['anisotropy_type'] not in anitypes:anitypes.append(rec['anisotropy_type'])
+          if rec['er_location_name'] not in Locs:Locs.append(rec['er_location_name'])
+          if rec['er_site_name'] not in Sites:Sites.append(rec['er_site_name'])
+          if rec['er_sample_name'] not in Samples:Samples.append(rec['er_sample_name'])
+          if rec['er_specimen_name'] not in Specimens:Specimens.append(rec['er_specimen_name'])
+          if rec['er_citation_names'] not in Cits:Cits.append(rec['er_citation_names'])
+          s=[]
+          s.append(float(rec["anisotropy_s1"]))
+          s.append(float(rec["anisotropy_s2"]))
+          s.append(float(rec["anisotropy_s3"]))
+          s.append(float(rec["anisotropy_s4"]))
+          s.append(float(rec["anisotropy_s5"]))
+          s.append(float(rec["anisotropy_s6"]))
+          if s[0]<=1.0:Ss.append(s) # protect against crap
+          tau,Vdirs=pmag.doseigs(s)
+          ResRec={}
+          ResRec['er_location_names']=rec['er_location_name']
+          ResRec['er_citation_names']=rec['er_citation_names']
+          ResRec['er_site_names']=rec['er_site_name']
+          ResRec['er_sample_names']=rec['er_sample_name']
+          ResRec['er_specimen_names']=rec['er_specimen_name']
+          ResRec['rmag_result_name']=rec['er_specimen_name']+":"+rec['anisotropy_type']
+          ResRec["er_analyst_mail_names"]=user
+          ResRec["tilt_correction"]=CS
+          ResRec["anisotropy_type"]=rec['anisotropy_type']
+          ResRec["anisotropy_v1_dec"]='%7.1f'%(Vdirs[0][0])
+          ResRec["anisotropy_v2_dec"]='%7.1f'%(Vdirs[1][0])
+          ResRec["anisotropy_v3_dec"]='%7.1f'%(Vdirs[2][0])
+          ResRec["anisotropy_v1_inc"]='%7.1f'%(Vdirs[0][1])
+          ResRec["anisotropy_v2_inc"]='%7.1f'%(Vdirs[1][1])
+          ResRec["anisotropy_v3_inc"]='%7.1f'%(Vdirs[2][1])
+          ResRec["anisotropy_t1"]='%10.8f'%(tau[0])
+          ResRec["anisotropy_t2"]='%10.8f'%(tau[1])
+          ResRec["anisotropy_t3"]='%10.8f'%(tau[2])
+          ResRec['anisotropy_type']=pmag.makelist(anitypes)
+          ResRecs.append(ResRec) 
       if len(Ss)>1:
           title="LO:_"+ResRec['er_location_names']+'_SI:_'+site+'_SA:__SP:__CO:_'+crd
           ResRec['er_location_names']=pmag.makelist(Locs)
@@ -375,9 +379,7 @@ def main():
                       try:
                           vdi=raw_input("Vi D I: ").split()
                           vec=int(vdi[0])-1
-                          Dir.append(float(vdi[1]))
-                          Dir.append(float(vdi[2]))
-                          Dir.append(1.)
+                          Dir=[float(vdi[1]),float(vdi[2])]
                           con=0
                       except IndexError:
                           print " Incorrect entry, try again " 

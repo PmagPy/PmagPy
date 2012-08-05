@@ -1,8 +1,9 @@
-import  numpy,string,sys,random
+import  numpy,string,sys
+from numpy import random
 import numpy.linalg
 import exceptions
 def get_version(): 
-    return "pmagpy-2.129"
+    return "pmagpy-2.130"
 def sort_diclist(undecorated,sort_on):
     decorated=[(dict_[sort_on],dict_) for dict_ in undecorated]
     decorated.sort()
@@ -1085,22 +1086,42 @@ def cart2dir(cart):
     """
     converts a direction to cartesian coordinates
     """
-    Dir=[] # establish a list to put directions in
+    cart=numpy.array(cart)
     rad=numpy.pi/180. # constant to convert degrees to radians
-    R=numpy.sqrt(cart[0]**2+cart[1]**2+cart[2]**2) # calculate resultant vector length
-    if R==0:
-       print 'trouble in cart2dir'
-       print cart
-       return [0.0,0.0,0.0]
-    D=numpy.arctan2(cart[1],cart[0])/rad  # calculate declination taking care of correct quadrants (arctan2)
-    if D<0:D=D+360. # put declination between 0 and 360.
-    if D>360.:D=D-360.
-    Dir.append(D)  # append declination to Dir list
-    I=numpy.arcsin(cart[2]/R)/rad # calculate inclination (converting to degrees)
-    Dir.append(I) # append inclination to Dir list
-    Dir.append(R) # append vector length to Dir list
-    return Dir # return the directions list
+    if len(cart.shape)>1:
+        Xs,Ys,Zs=cart[:,0],cart[:,1],cart[:,2]
+    else: #single vector
+        Xs,Ys,Zs=cart[0],cart[1],cart[2]
+    Rs=numpy.sqrt(Xs**2+Ys**2+Zs**2) # calculate resultant vector length
+    Decs=(numpy.arctan2(Ys,Xs)/rad)%360. # calculate declination taking care of correct quadrants (arctan2) and making modulo 360.
+    try:
+        Incs=numpy.arcsin(Zs/Rs)/rad # calculate inclination (converting to degrees) # 
+    except:
+        print 'trouble in cart2dir' # most likely division by zero somewhere
+        return numpy.zeros(3)
+        
+    return numpy.array([Decs,Incs,Rs]).transpose() # return the directions list
 
+#def cart2dir(cart): # OLD ONE
+#    """
+#    converts a direction to cartesian coordinates
+#    """
+#    Dir=[] # establish a list to put directions in
+#    rad=numpy.pi/180. # constant to convert degrees to radians
+#    R=numpy.sqrt(cart[0]**2+cart[1]**2+cart[2]**2) # calculate resultant vector length
+#    if R==0:
+#       print 'trouble in cart2dir'
+#       print cart
+#       return [0.0,0.0,0.0]
+#    D=numpy.arctan2(cart[1],cart[0])/rad  # calculate declination taking care of correct quadrants (arctan2)
+#    if D<0:D=D+360. # put declination between 0 and 360.
+#    if D>360.:D=D-360.
+#    Dir.append(D)  # append declination to Dir list
+#    I=numpy.arcsin(cart[2]/R)/rad # calculate inclination (converting to degrees)
+#    Dir.append(I) # append inclination to Dir list
+#    Dir.append(R) # append vector length to Dir list
+#    return Dir # return the directions list
+#
 def tauV(T):
     """
     gets the eigenvalues (tau) and eigenvectors (V) from matrix T
@@ -2782,9 +2803,7 @@ def fshdev(k):
      returns a direction from distribution with TM=0,90 and kappa of k
     """
     R1=random.random()
-    random.jumpahead(int(R1*1000))
     R2=random.random()
-    random.jumpahead(int(R2*1000))
     L=numpy.exp(-2*k)
     a=R1*(1-L)+L
     fac=numpy.sqrt((-numpy.log(a))/(2*k))
@@ -3142,9 +3161,7 @@ def gaussdev(mean,sigma):
     """
     returns a number drawn from a gaussian distribution with given mean, sigma
     """
-    random.jumpahead(10)
-    random.jumpahead(10)
-    return random.gauss(mean,sigma) # return gaussian deviate
+    return random.normal(mean,sigma) # return gaussian deviate
 #
 def get_unf(N):
 #
@@ -3536,31 +3553,34 @@ def tcalc(nf,p):
         return t
     else:
         return 0
+#
 def sbar(Ss):
     """
     calculate average s,sigma from list of "s"s.
     """
     npts=len(Ss)
-    D=[]
-    avd=numpy.zeros((6,),'f') # make the a matrix
-    avs=numpy.zeros((6,),'f') # make the a matrix
-    for s in Ss:
-        D.append(s[:]) # append a copy of s
-        D[-1][3]=D[-1][3]+0.5*(s[0]+s[1])
-        D[-1][4]=D[-1][4]+0.5*(s[1]+s[2])
-        D[-1][5]=D[-1][5]+0.5*(s[0]+s[2])
-        for j in range(6):
-            avd[j]+=(D[-1][j])/float(npts)
-            avs[j]+=(s[j])/float(npts)
+    Ss=numpy.array(Ss).transpose()
+    avd,avs=[],[]
+    D=numpy.array([Ss[0],Ss[1],Ss[2],Ss[3]+0.5*(Ss[0]+Ss[1]),Ss[4]+0.5*(Ss[1]+Ss[2]),Ss[5]+0.5*(Ss[0]+Ss[2])]).transpose()
+    for j in range(6):
+        avd.append(numpy.average(D[j]))
+        avs.append(numpy.average(Ss[j]))
+    #for s in Ss:
+    #    print 'from sbar: ',s
+    #    D.append(s[:]) # append a copy of s
+    #    D[-1][3]=D[-1][3]+0.5*(s[0]+s[1])
+    #    D[-1][4]=D[-1][4]+0.5*(s[1]+s[2])
+    #    D[-1][5]=D[-1][5]+0.5*(s[0]+s[2])
+    #    for j in range(6):
+    #        avd[j]+=(D[-1][j])/float(npts)
+    #        avs[j]+=(s[j])/float(npts)
 #   calculate sigma
     nf=(npts-1)*6 # number of degrees of freedom
     s0=0
-    for i in range(npts):
-        for j in range(6):
-            s0=s0+((D[i][j]-avd[j]))**2
+    Dels=(D-avd)**2
+    s0=numpy.sum(Dels)
     sigma=numpy.sqrt(s0/float(nf))
     return nf,sigma,avs
-#
 def dohext(nf,sigma,s):
     """
     calculates hext parameters for nf, sigma and s
@@ -3592,7 +3612,7 @@ def dohext(nf,sigma,s):
     return hpars
 #
 #
-def designk15(npos):
+def design(npos):
     """
      make a design matrix for an anisotropy experiment
     """
@@ -3601,6 +3621,9 @@ def designk15(npos):
 # rotatable design of Jelinek for kappabridge (see Tauxe, 1998)
 #
         A=numpy.array([[.5,.5,0,-1.,0,0],[.5,.5,0,1.,0,0],[1,.0,0,0,0,0],[.5,.5,0,-1.,0,0],[.5,.5,0,1.,0,0],[0,.5,.5,0,-1.,0],[0,.5,.5,0,1.,0],[0,1.,0,0,0,0],[0,.5,.5,0,-1.,0],[0,.5,.5,0,1.,0],[.5,0,.5,0,0,-1.],[.5,0,.5,0,0,1.],[0,0,1.,0,0,0],[.5,0,.5,0,0,-1.],[.5,0,.5,0,0,1.]]) #  design matrix for 15 measurment positions
+    elif npos==6:
+        A=numpy.array([[1.,0,0,0,0,0],[0,1.,0,0,0,0],[0,0,1.,0,0,0],[.5,.5,0,1.,0,0],[0,.5,.5,0,1.,0],[.5,0,.5,0,0,1.]]) #  design matrix for 6 measurment positions
+
     else:
         print "measurement protocol not supported yet "
         sys.exit()
@@ -3615,7 +3638,7 @@ def dok15_s(k15):
     calculates least-squares matrix for 15 measurements from Jelinek [1976]
     """
 #
-    A,B=designk15(15) #  get design matrix for 15 measurements
+    A,B=design(15) #  get design matrix for 15 measurements
     sbar=numpy.dot(B,k15) # get mean s
     t=(sbar[0]+sbar[1]+sbar[2]) # trace
     bulk=t/3. # bulk susceptibility
@@ -3668,41 +3691,25 @@ def dostilt(s,bed_az,bed_dip):
         Vrot.append([d,i])
     return doeigs_s(tau,Vrot)
 #
+#
 def apseudo(Ss,ipar,sigma):
     """
      draw a bootstrap sample of Ss
     """
 #
-    BSs=[]
-    for k in range(len(Ss)):
-        ind=random.randint(0,len(Ss)-1)
-        random.jumpahead(int(ind*1000))
-        if ipar==0:
-            BSs.append(Ss[ind])
-        else:
-            ps=Ss[ind][:]
-            bs=[]
-            for s in ps:
-                bs.append(random.gauss(s,sigma))
-                random.jumpahead(10)
-            BSs.append(bs)
-    return BSs
-
-def apseudo_new(Ss,ipar,sigma):
-    """
-     draw a bootstrap sample of Ss
-    """
-#
-    BSs=[]
-    Inds=numpy.random.randint(len(Ss),size=len(Ss)) # get list of random indices
-    S=numpy.array(Ss)
-    if ipar==0: 
-        BSs=S[Inds] # return pseudosample of Ss
-    else:
-        BSs=numpy.random.normal(S[Inds],sigma) # return pseudosample of Ss
-    return BSs
-#
-#
+    Is=random.randint(0,len(Ss)-1,size=len(Ss)) # draw N random integers
+    Ss=numpy.array(Ss)
+    if ipar==0:
+        BSs=Ss[Is]
+    else: # need to recreate measurement - then do the parametric stuffr
+        A,B=design(6) # get the design matrix for 6 measurements
+        K,BSs=[],[]
+        for k in range(len(Ss)):
+            K.append(numpy.dot(A,Ss[k]))
+        Pars=numpy.random.normal(K,sigma)
+        for k in range(len(Ss)):
+            BSs.append(numpy.dot(B,Pars[k]))
+    return numpy.array(BSs)
 #
 def sbootpars(Taus,Vs):
     """
@@ -5442,14 +5449,12 @@ def mktk03(terms,seed,G2,G3):
     alpha=g10/afact
     s1=s_l(1,alpha)
     s10=sfact*s1
-    gnew=random.gauss(g10,s10)
+    gnew=random.normal(g10,s10)
     if p==1:print 1,0,gnew,0
     gh.append(gnew)
-    random.jumpahead(10)
-    gh.append(random.gauss(0,s1))
+    gh.append(random.normal(0,s1))
     gnew=gh[-1]
-    random.jumpahead(10)
-    gh.append(random.gauss(0,s1))
+    gh.append(random.normal(0,s1))
     hnew=gh[-1]
     if p==1:print 1,1,gnew,hnew
     for l in range(2,terms+1):
@@ -5461,13 +5466,12 @@ def mktk03(terms,seed,G2,G3):
             j=(l-m)%2
             if j==1:
                 s=s*sfact
-            gh.append(random.gauss(OFF,s))
+            gh.append(random.normal(OFF,s))
             gnew=gh[-1]
-            random.jumpahead(10)
             if m==0:
                 hnew=0
             else: 
-                gh.append(random.gauss(0,s))
+                gh.append(random.normal(0,s))
                 hnew=gh[-1]
             if p==1:print l,m,gnew,hnew
     return gh
@@ -5502,7 +5506,6 @@ def pseudo(DIs):
     return D[Inds]
     #for k in range(len(DIs)):
     #    ind=random.randint(0,len(DIs)-1)
-    #    random.jumpahead(int(ind*1000))
     #    BDIs.append(DIs[ind])
     #return BDIs 
 #
@@ -5533,7 +5536,6 @@ def pseudosample(x):
     BXs=[]
     for k in range(len(x)):
         ind=random.randint(0,len(x)-1)
-        random.jumpahead(int(ind*1000))
         BXs.append(x[ind])
     return BXs 
 

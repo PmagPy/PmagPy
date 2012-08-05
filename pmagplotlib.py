@@ -39,7 +39,7 @@ def click(event):
     print 'you clicked', event.xdata,event.ydata
 #	
 #
-def delticks(fig):
+def delticks(fig): # deletes half the x-axis tick marks
     locs= fig.xaxis.get_ticklocs()
     nlocs=numpy.delete(locs,range(0,len(locs),2))
     fig.set_xticks(nlocs)
@@ -2025,7 +2025,7 @@ def plotANIS(ANIS,Ss,iboot,ihext,ivec,ipar,title,plt,comp,vec,Dir):
             tbounds=[]
             tbounds.append(ts[tminind])
             tbounds.append(ts[tmaxind])
-            #plotVs(ANIS['tcdf'],tbounds,'k','-')
+            plotVs(ANIS['tcdf'],tbounds,'k','-')
             pylab.axvline(x=tbounds[0],linewidth=1,color='k',linestyle='-')
             pylab.axvline(x=tbounds[1],linewidth=1,color='k',linestyle='-')
             if comp==1: # do eigenvector of choice
@@ -2050,8 +2050,11 @@ def plotANIS(ANIS,Ss,iboot,ihext,ivec,ipar,title,plt,comp,vec,Dir):
                 vbounds=[]
                 vbounds.append(Vxs[vminind])
                 vbounds.append(Vxs[vmaxind])
-                plotVs(ANIS['vxcdf'],vbounds,'r','--')
-                plotVs(ANIS['vxcdf'],[Ccart[0]],'r','-')
+                pylab.axvline(x=vbounds[0],linewidth=1,color='r',linestyle='--')
+                pylab.axvline(x=vbounds[1],linewidth=1,color='r',linestyle='--')
+                #plotVs(ANIS['vxcdf'],vbounds,'r','--')
+                #plotVs(ANIS['vxcdf'],[Ccart[0]],'r','-')
+                pylab.axvline(x=Ccart[0][0],linewidth=1,color='r',linestyle='-')
                 plotCDF(ANIS['vycdf'],Vys,"V_"+str(vec+1)+"2",'b',"")
                 Vys.sort()
                 vminind=int(0.025*len(Vys))
@@ -2059,8 +2062,11 @@ def plotANIS(ANIS,Ss,iboot,ihext,ivec,ipar,title,plt,comp,vec,Dir):
                 vbounds=[]
                 vbounds.append(Vys[vminind])
                 vbounds.append(Vys[vmaxind])
-                plotVs(ANIS['vycdf'],vbounds,'b','--')
-                plotVs(ANIS['vycdf'],[Ccart[1]],'b','-')
+                pylab.axvline(x=vbounds[0],linewidth=1,color='b',linestyle='--')
+                pylab.axvline(x=vbounds[1],linewidth=1,color='b',linestyle='--')
+                pylab.axvline(x=Ccart[0][1],linewidth=1,color='b',linestyle='-')
+                #plotVs(ANIS['vycdf'],vbounds,'b','--')
+                #plotVs(ANIS['vycdf'],[Ccart[1]],'b','-')
                 plotCDF(ANIS['vzcdf'],Vzs,"V_"+str(vec+1)+"3",'k',"")
                 Vzs.sort()
                 vminind=int(0.025*len(Vzs))
@@ -2068,8 +2074,11 @@ def plotANIS(ANIS,Ss,iboot,ihext,ivec,ipar,title,plt,comp,vec,Dir):
                 vbounds=[]
                 vbounds.append(Vzs[vminind])
                 vbounds.append(Vzs[vmaxind])
-                plotVs(ANIS['vzcdf'],vbounds,'k','--')
-                plotVs(ANIS['vzcdf'],[Ccart[2]],'k','-')
+                pylab.axvline(x=vbounds[0],linewidth=1,color='k',linestyle='--')
+                pylab.axvline(x=vbounds[1],linewidth=1,color='k',linestyle='--')
+                pylab.axvline(x=Ccart[0][2],linewidth=1,color='k',linestyle='-')
+                #plotVs(ANIS['vzcdf'],vbounds,'k','--')
+                #plotVs(ANIS['vzcdf'],[Ccart[2]],'k','-')
         bpars['v1_dec']=hpars['v1_dec'] 
         bpars['v2_dec']=hpars['v2_dec'] 
         bpars['v3_dec']=hpars['v3_dec'] 

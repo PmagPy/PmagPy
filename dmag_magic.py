@@ -30,6 +30,7 @@ def main():
     XLP=""
     norm=1
     LT='LT-AF-Z'
+    units,dmag_key='T','treatment_ac_field'
     if len(sys.argv)>1:
         if '-h' in sys.argv:
             print main.__doc__
@@ -47,7 +48,6 @@ def main():
         if '-XLP' in sys.argv:
             ind=sys.argv.index("-XLP")
             XLP=sys.argv[ind+1] # get lab protocol for excluding
-        dmag_key='T'
         if '-LT' in sys.argv:
             ind=sys.argv.index("-LT")
             LT='LT-'+sys.argv[ind+1]+'-Z' # get lab treatment for plotting
@@ -61,7 +61,7 @@ def main():
                 units='U'
     data,file_type=pmag.magic_read(in_file)
     sids=pmag.get_specs(data)
-    pmagplotlib.plot_init(FIG['demag'],6,6)
+    pmagplotlib.plot_init(FIG['demag'],5,5)
     print len(data),' records read from ',in_file
     #
     #
@@ -99,13 +99,15 @@ def main():
                     if len(meths)>0 and LT in meths or 'LT-NO' in meths: 
                         title=rec[plot_key]
                         INTblock.append([float(rec[dmag_key]),0,0,float(rec[int_key]),1,rec['measurement_flag']])
-            if len(INTblock)>2: pmagplotlib.plotMT(FIG['demag'],INTblock,title,0,units,norm)
-        ans=raw_input(" S[a]ve to save plot, [q]uit,  Return to continue:  ")
-        if ans=='q':sys.exit()
-        if ans=="a": 
-            files={}
-            for key in FIG.keys():
-                files[key]=title+'_'+LT+'.svg' 
-            pmagplotlib.saveP(FIG,files) 
-        pmagplotlib.clearFIG(FIG['demag'])
+            if len(INTblock)>2: 
+                pmagplotlib.plotMT(FIG['demag'],INTblock,title,0,units,norm)
+                pmagplotlib.drawFIGS(FIG)
+                ans=raw_input(" S[a]ve to save plot, [q]uit,  Return to continue:  ")
+                if ans=='q':sys.exit()
+                if ans=="a": 
+                    files={}
+                    for key in FIG.keys():
+                        files[key]=title+'_'+LT+'.svg' 
+                    pmagplotlib.saveP(FIG,files) 
+                pmagplotlib.clearFIG(FIG['demag'])
 main() 

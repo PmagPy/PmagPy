@@ -64,4 +64,5 @@ def main():
             low=Top[k]+Int[k+1] # increment to next temp step
         except:
             f.close()
+    print "output stored in: chart.txt"
 main()

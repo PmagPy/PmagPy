@@ -37,7 +37,6 @@ def main():
         -dc B PHI THETA: dc lab field (in micro tesla) and phi,theta, default is none
               NB: use PHI, THETA = -1 -1 to signal that it changes, i.e. in anisotropy experiment
         -ac B : peak AF field (in mT) for ARM acquisition, default is none
-        -FT [SIO,LDGO] : file type.  default is SIO (.mag file format)
         -ncn NCON:  specify naming convention: default is #1 below
         -A: don't average replicate measurements
        Sample naming convention:
@@ -198,10 +197,6 @@ def main():
     if "-ins" in args:
         ind=args.index("-ins")
         inst=args[ind+1]
-    if '-FT' in args:
-        ind=args.index("-FT")
-        FT=args[ind+1]
-        if FT=="LDGO":infile_type="ldgo" # default is "mag"
     if "-A" in args: noave=1
     if "-ncn" in args:
         ind=args.index("-ncn")
