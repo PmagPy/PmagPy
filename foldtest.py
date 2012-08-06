@@ -22,6 +22,7 @@ def main():
         -u ANGLE (circular standard deviation) for uncertainty on bedding poles
         -b MIN MAX bounds for quick search of percent untilting [default is -10 to 150%]
         -n NB  number of bootstrap samples [default is 1000]
+        -fmt FMT, specify format - default is svg
     
     OUTPUT
         Geographic: is an equal area projection of the input data in 
@@ -44,6 +45,7 @@ def main():
 
     """
     kappa=0
+    fmt='svg'
     nb=1000 # number of bootstraps
     min,max=-10,150
     if '-h' in sys.argv: # check if help is needed
@@ -52,65 +54,59 @@ def main():
     if '-f' in sys.argv:
         ind=sys.argv.index('-f')
         file=sys.argv[ind+1] 
-        f=open(file,'rU')
-        data=f.readlines()
+        DIDDs=numpy.loadtxt(file)
     else:
         print main.__doc__
         sys.exit()
+    if '-fmt' in sys.argv:
+        ind=sys.argv.index('-fmt')
+        fmt=sys.argv[ind+1]
     if '-b' in sys.argv:
         ind=sys.argv.index('-b')
         min=float(sys.argv[ind+1])
         max=float(sys.argv[ind+2])
     if '-n' in sys.argv:
         ind=sys.argv.index('-n')
-		nb=int(sys.argv[ind+1])
-	    if '-u' in sys.argv:
-		ind=sys.argv.index('-u')
-		csd=float(sys.argv[ind+1])
-		kappa=(81./csd)**2
-	#
-	# get to work
-	#
-	    PLTS={'geo':1,'strat':2,'taus':3} # make plot dictionary
-	    pmagplotlib.plot_init(PLTS['geo'],5,5)
-	    pmagplotlib.plot_init(PLTS['strat'],5,5)
-	    pmagplotlib.plot_init(PLTS['taus'],5,5)
-	    DIDDs= [] # set up list for dec inc  dip_direction, dip
-	    for line in data:   # read in the data from standard input
-		rec=line.split() # split each line on space to get records
-		DIDDs.append([float(rec[0]),float(rec[1]),float(rec[2]),float(rec[3])])
-	    pmagplotlib.plotEQ(PLTS['geo'],DIDDs,'Geographic')
-	    TCs=[]
-	    for k in range(len(DIDDs)):
-		drot,irot=pmag.dotilt(DIDDs[k][0],DIDDs[k][1],DIDDs[k][2],DIDDs[k][3])
-		TCs.append([drot,irot,1.])
-	    pmagplotlib.plotEQ(PLTS['strat'],TCs,'Stratigraphic')
-	    pmagplotlib.drawFIGS(PLTS)
-	    Percs=range(min,max)
-	    Cdf,Untilt=[],[]
-	    pylab.figure(num=PLTS['taus'])
-	    print 'doing ',nb,' iterations...please be patient.....'
+        nb=int(sys.argv[ind+1])
+    if '-u' in sys.argv:
+        ind=sys.argv.index('-u')
+        csd=float(sys.argv[ind+1])
+        kappa=(81./csd)**2
+    #
+    # get to work
+    #
+    PLTS={'geo':1,'strat':2,'taus':3} # make plot dictionary
+    pmagplotlib.plot_init(PLTS['geo'],5,5)
+    pmagplotlib.plot_init(PLTS['strat'],5,5)
+    pmagplotlib.plot_init(PLTS['taus'],5,5)
+    pmagplotlib.plotEQ(PLTS['geo'],DIDDs,'Geographic')
+    D,I=pmag.dotilt_V(DIDDs)
+    TCs=numpy.array([D,I]).transpose()
+    pmagplotlib.plotEQ(PLTS['strat'],TCs,'Stratigraphic')
+    pmagplotlib.drawFIGS(PLTS)
+    Percs=range(min,max)
+    Cdf,Untilt=[],[]
+    pylab.figure(num=PLTS['taus'])
+    print 'doing ',nb,' iterations...please be patient.....'
     for n in range(nb): # do bootstrap data sets - plot first 25 as dashed red line
-        if n%50==0:print n
-        Taus=[] # set up lists for taus
-        PDs=pmag.pseudo(DIDDs)
-        if kappa!=0:
-            for k in range(len(PDs)):
-                d,i=pmag.fshdev(kappa)
-                dipdir,dip=pmag.dodirot(d,i,PDs[k][2],PDs[k][3])
-                PDs[k][2]=dipdir            
-                PDs[k][3]=dip
-        for perc in Percs:
-            tilt=0.01*perc
-            TCs=[]
-            for k in range(len(PDs)):
-                drot,irot=pmag.dotilt(PDs[k][0],PDs[k][1],PDs[k][2],tilt*PDs[k][3])
-                TCs.append([drot,irot,1.])
-            ppars=pmag.doprinc(TCs) # get principal directions
-            Taus.append(ppars['tau1'])
-        if n<25:pylab.plot(Percs,Taus,'r--')
-        Untilt.append(Percs[Taus.index(numpy.max(Taus))]) # tilt that gives maximum tau
-        Cdf.append(float(n)/float(nb))
+            if n%50==0:print n
+            Taus=[] # set up lists for taus
+            PDs=pmag.pseudo(DIDDs)
+            if kappa!=0:
+                for k in range(len(PDs)):
+                    d,i=pmag.fshdev(kappa)
+                    dipdir,dip=pmag.dodirot(d,i,PDs[k][2],PDs[k][3])
+                    PDs[k][2]=dipdir            
+                    PDs[k][3]=dip
+            for perc in Percs:
+                tilt=numpy.array([1.,1.,1.,0.01*perc])
+                D,I=pmag.dotilt_V(PDs*tilt)
+                TCs=numpy.array([D,I]).transpose()
+                ppars=pmag.doprinc(TCs) # get principal directions
+                Taus.append(ppars['tau1'])
+            if n<25:pylab.plot(Percs,Taus,'r--')
+            Untilt.append(Percs[Taus.index(numpy.max(Taus))]) # tilt that gives maximum tau
+            Cdf.append(float(n)/float(nb))
     pylab.plot(Percs,Taus,'k')
     pylab.xlabel('% Untilting')
     pylab.ylabel('tau_1 (red), CDF (green)')
@@ -127,13 +123,13 @@ def main():
     pylab.ion()
     pylab.draw()
     pylab.ioff()
-    try:
-        raw_input('Return to save all figures, cntl-d to quit\n')
-    except:
+    ans= raw_input('S[a]ve all figures, <Return> to quit   ')
+    if ans!='a':
         print "Good bye"
         sys.exit()
-    files={}
-    for key in PLTS.keys():
-        files[key]=('fold_'+'%s'%(key.strip()[:2])+'.svg')
-    pmagplotlib.saveP(PLTS,files)
+    else:
+        files={}
+        for key in PLTS.keys():
+            files[key]=('fold_'+'%s'%(key.strip()[:2])+'.'+fmt)
+        pmagplotlib.saveP(PLTS,files)
 main()

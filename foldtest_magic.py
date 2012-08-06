@@ -8,7 +8,7 @@ def main():
        foldtest_magic.py
 
     DESCRIPTION
-       does a fold test (Tauxe, 2007) on data
+       does a fold test (Tauxe, 2010) on data
 
     INPUT FORMAT
        pmag_specimens format file, er_samples.txt format file (for bedding)
@@ -113,11 +113,11 @@ def main():
                                 DIDDs.append([Dec,Inc,dip_dir,dip])
 
     pmagplotlib.plotEQ(PLTS['geo'],DIDDs,'Geographic')
-    TCs=[]
-    for k in range(len(DIDDs)):
-        drot,irot=pmag.dotilt(DIDDs[k][0],DIDDs[k][1],DIDDs[k][2],DIDDs[k][3])
-        TCs.append([drot,irot,1.])
+    data=numpy.array(DIDDs)
+    D,I=pmag.dotilt_V(data)
+    TCs=numpy.array([D,I]).transpose()
     pmagplotlib.plotEQ(PLTS['strat'],TCs,'Stratigraphic')
+    pmagplotlib.drawFIGS(PLTS)
     Percs=range(min,max)
     Cdf,Untilt=[],[]
     pylab.figure(num=PLTS['taus'])
@@ -125,13 +125,11 @@ def main():
     for n in range(nb): # do bootstrap data sets - plot first 25 as dashed red line
         if n%50==0:print n
         Taus=[] # set up lists for taus
-        PDs=pmag.pseudo(DIDDs)
+        PDs=pmag.pseudo(data)
         for perc in Percs:
-            tilt=0.01*perc
-            TCs=[]
-            for k in range(len(PDs)):
-                drot,irot=pmag.dotilt(PDs[k][0],PDs[k][1],PDs[k][2],tilt*PDs[k][3])
-                TCs.append([drot,irot,1.])
+            tilt=numpy.array([1.,1.,1.,0.01*perc])
+            D,I=pmag.dotilt_V(PDs*tilt) 
+            TCs=numpy.array([D,I]).transpose()
             ppars=pmag.doprinc(TCs) # get principal directions
             Taus.append(ppars['tau1'])
         if n<25:pylab.plot(Percs,Taus,'r--')
@@ -149,9 +147,9 @@ def main():
     tit= '%i - %i %s'%(Untilt[lower],Untilt[upper],'Percent Unfolding')
     print tit
     pylab.title(tit)
-    try:
-        raw_input('Return to save all figures, cntl-d to quit\n')
-    except EOFError:
+    pmagplotlib.drawFIGS(PLTS)
+    ans= raw_input('S[a]ve all figures, <Return> to quit')
+    if ans!='a':
         print "Good bye"
         sys.exit()
     files={}

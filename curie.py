@@ -134,14 +134,9 @@ def main():
 
 
     # read data from file
-    M,T=[],[]
-    f=open(meas_file,'rU')
-    Data=f.readlines()
-    for line in Data:
-        rec=line.split()
-        T.append(float(rec[0]))
-        M.append(float(rec[1]))
-
+    Data=numpy.loadtxt(meas_file,dtype=numpy.float)
+    T=Data.transpose()[0]
+    M=Data.transpose()[1]
     # cut the data if -t is one of the flags
     if t_begin:
         while T[0]<t_begin:

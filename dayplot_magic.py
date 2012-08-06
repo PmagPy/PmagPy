@@ -42,6 +42,7 @@ def main():
     if '-sav' in sys.argv:
         plots=1
         verbose=0
+    else: plots=0
     hyst_file=dir_path+'/'+hyst_file
     rem_file=dir_path+'/'+rem_file
     #

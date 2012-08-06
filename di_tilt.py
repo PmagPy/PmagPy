@@ -1,14 +1,5 @@
 #!/usr/bin/env python
-import pmag,sys,exceptions
-def spitout(line):
-    rec=line.split()  # split each line on the spaces
-    Dec=float(rec[0]) # assign first column to dec - convert to floating point
-    Inc=float(rec[1]) # 2nd column => inc
-    Dip_dir=float(rec[2])  # 3rd column => azimuth
-    Dip=float(rec[3]) # 4th column => plunge
-    dec,inc=pmag.dotilt(Dec,Inc,Dip_dir,Dip) # call dogeo from pmag module
-    print '%7.1f %7.1f '%(dec,inc)
-    return dec,inc
+import pmag,sys,exceptions,numpy
 def main():
     """
     NAME
@@ -28,7 +19,7 @@ def main():
         -h prints help message and quits
         -i for interactive data entry
         -f FILE command line entry of file name
-         otherwise put data in input format in space delimited file
+        -F OFILE, specify output file, default is standard output
 
 
     OUTPUT:
@@ -37,6 +28,12 @@ def main():
     if '-h' in sys.argv:
         print main.__doc__
         sys.exit()
+    if '-F' in sys.argv:
+        ind=sys.argv.index('-F')
+        ofile=sys.argv[ind+1]
+        out=open(ofile,'w')
+        print ofile, ' opened for output'
+    else: ofile=""
     if '-i' in sys.argv: # interactive flag
         while 1:
             try:
@@ -51,10 +48,13 @@ def main():
     elif '-f' in sys.argv:
         ind=sys.argv.index('-f')
         file=sys.argv[ind+1]
-        f=open(file,'rU')
-        data=f.readlines()
+        data=numpy.loadtxt(file)
     else:
-        data=sys.stdin.readlines() # read in the data from the datafile
-    for line in data: # step through line by line
-        dec,inc=spitout(line)
+        data=numpy.loadtxt(sys.stdin,dtype=numpy.float) # read in the data from the datafile
+    D,I=pmag.dotilt_V(data)
+    for k in range(len(D)):
+        if ofile=="":
+            print '%7.1f %7.1f'%(D[k],I[k])
+        else:
+            out.write('%7.1f %7.1f\n'%(D[k],I[k]))
 main()

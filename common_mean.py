@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-import sys,pmagplotlib,pmag,exceptions
+import sys,pmagplotlib,pmag,exceptions,numpy
 def main():
     """
     NAME
@@ -24,7 +24,7 @@ def main():
      
 
     """
-    D1,D2,d,i,file2=[],[],"","",""
+    d,i,file2="","",""
     if '-h' in sys.argv: # check if help is needed
         print main.__doc__
         sys.exit() # graceful quit
@@ -38,19 +38,8 @@ def main():
         ind=sys.argv.index('-dir')
         d=float(sys.argv[ind+1])
         i=float(sys.argv[ind+2])
-    f=open(file1,'rU')
-    for line in f.readlines():
-        rec=line.split()
-        Dec,Inc=float(rec[0]),float(rec[1]) 
-        D1.append([Dec,Inc])
-    f.close()
-    if file2!="":
-        f=open(file2,'rU')
-        for line in f.readlines():
-            rec=line.split()
-            Dec,Inc=float(rec[0]),float(rec[1]) 
-            D2.append([Dec,Inc])
-        f.close()
+    D1=numpy.loadtxt(file1,dtype=numpy.float)
+    if file2!="": D2=numpy.loadtxt(file2,dtype=numpy.float)
 #
     counter,NumSims=0,1000
 #
@@ -62,6 +51,7 @@ def main():
 #   convert to cartesian coordinates X1,X2, Y1,Y2 and Z1, Z2
 #
     if d=="": # repeat for second data set
+        print "Doing second  set of directions, please be patient.."
         BDI2=pmag.di_boot(D2)
     else:
         BDI2=[]
@@ -74,15 +64,16 @@ def main():
     pmagplotlib.plotCOM(CDF,BDI1,BDI2,[d,i])
     pmagplotlib.drawFIGS(CDF)
     try:
-        raw_input("Return to save plots - <cntl-D> to quit")
+        ans=raw_input("S[a]ve plots, <Return> to quit ")
     except:
        print "\n Good bye\n"
        sys.exit()
-    files={}
-    files['X']='CD_X.svg'
-    files['Y']='CD_Y.svg'
-    files['Z']='CD_Z.svg'
-    pmagplotlib.saveP(CDF,files)
+    if ans=="a":
+        files={}
+        files['X']='CD_X.svg'
+        files['Y']='CD_Y.svg'
+        files['Z']='CD_Z.svg'
+        pmagplotlib.saveP(CDF,files)
  
 main()
 

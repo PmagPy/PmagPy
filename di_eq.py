@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-import sys,math,pmag
+import sys,math,pmag,numpy
 def main():
     """
     NAME
@@ -13,6 +13,7 @@ def main():
         di_eq.py [command line options] [< filename]
     
     OPTIONS
+        -h  prints help message and quits
         -f FILE, input file
     """
     out=""
@@ -21,17 +22,19 @@ def main():
         print main.__doc__
         sys.exit()
     if '-f' in sys.argv:
-        dat=[]
         ind=sys.argv.index('-f')
         file=sys.argv[ind+1]  
-        f=open(file,'rU')
-        input=f.readlines()
+        DI=numpy.loadtxt(file,dtype=numpy.float)
     else:
-        input = sys.stdin.readlines()  # read from standard input
-    for line in input:
-        rec=line.split()
-        d,i=float(rec[0]),float(rec[1]) 
-        XY=pmag.dimap(d,i)
-        print XY[0],XY[1] # 
+        DI = numpy.loadtxt(sys.stdin,dtype=numpy.float)  # read from standard input
+    Ds=DI.transpose()[0]
+    Is=DI.transpose()[1]
+    if len(DI)>1: #array of data
+       XY=pmag.dimap_V(Ds,Is)
+       for xy in XY:
+           print '%f %f'%(xy[0],xy[1])
+    else: # single data point
+       XY=pmag.dimap(Ds,Is)
+       print '%f %f'%(XY[0],XY[1])
 
 main() 

@@ -962,6 +962,30 @@ def dotilt(dec,inc,bed_az,bed_dip):
     return Dir[0],Dir[1] # return declination, inclination of rotated direction
 
 
+def dotilt_V(input):
+    """
+    does a tilt correction on dec,inc using bedding dip direction bed_az and dip bed_dip
+    """
+    input=input.transpose() 
+    dec, inc, bed_az, bed_dip =input[0],input[1],input[2],input[3]  # unpack input array into separate arrays
+    rad=numpy.pi/180. # convert to radians
+    Dir=numpy.array([dec,inc]).transpose()
+    X=dir2cart(Dir).transpose() # get cartesian coordinates
+    N=numpy.size(dec)
+
+# get some sines and cosines of new coordinate system
+    sa,ca= -numpy.sin(bed_az*rad),numpy.cos(bed_az*rad) 
+    cdp,sdp= numpy.cos(bed_dip*rad),numpy.sin(bed_dip*rad) 
+# do the rotation
+    xc=X[0]*(sa*sa+ca*ca*cdp)+X[1]*(ca*sa*(1.-cdp))+X[2]*sdp*ca
+    yc=X[0]*ca*sa*(1.-cdp)+X[1]*(ca*ca+sa*sa*cdp)-X[2]*sa*sdp
+    zc=X[0]*ca*sdp-X[1]*sdp*sa-X[2]*cdp
+# convert back to direction:
+    cart=numpy.array([xc,yc,-zc]).transpose()
+    Dir=cart2dir(cart).transpose()
+    return Dir[0],Dir[1] # return declination, inclination arrays of rotated direction
+
+
 def dogeo(dec,inc,az,pl):
     """
     rotates dec,in into geographic coordinates using az,pl as azimuth and plunge of X direction
@@ -986,6 +1010,31 @@ def dogeo(dec,inc,az,pl):
 #
     Dir_geo=cart2dir([xp,yp,zp])
     return Dir_geo[0],Dir_geo[1]    # send back declination and inclination
+def dogeo_V(input):
+    """
+    rotates dec,in into geographic coordinates using az,pl as azimuth and plunge of X direction
+    handles  array for  input 
+    """
+    input=input.transpose() 
+    dec, inc, az, pl =input[0],input[1],input[2],input[3]  # unpack input array into separate arrays
+    Dir=numpy.array([dec,inc]).transpose()
+    X=dir2cart(Dir).transpose() # get cartesian coordinates
+    N=numpy.size(dec)
+    A1=dir2cart(numpy.array([az,pl,numpy.ones(N)]).transpose()).transpose()
+    A2=dir2cart(numpy.array([az+90.,numpy.zeros(N),numpy.ones(N)]).transpose()).transpose()
+    A3=dir2cart(numpy.array([az-180.,90.-pl,numpy.ones(N)]).transpose()).transpose()
+
+# do rotation
+#
+    xp=A1[0]*X[0]+A2[0]*X[1]+A3[0]*X[2]
+    yp=A1[1]*X[0]+A2[1]*X[1]+A3[1]*X[2]
+    zp=A1[2]*X[0]+A2[2]*X[1]+A3[2]*X[2]
+    cart=numpy.array([xp,yp,zp]).transpose()
+#
+# transform back to dec,inc
+#
+    Dir_geo=cart2dir(cart).transpose()
+    return Dir_geo[0],Dir_geo[1]    # send back declination and inclination arrays
 
 def dodirot(D,I,Dbar,Ibar):
     d,irot=dogeo(D,I,Dbar,90.-Ibar)
@@ -1166,17 +1215,6 @@ def Tmatrix(X):
                 T[k][l] += row[k]*row[l]
     return T
 
-#def dir2cart(dir):   # subroutine to do conversion
-#    """
-#    converts direction in dir to cartesian coordinates in cart
-#    """
-#    rad=numpy.pi/180.# define constant to convert from degrees to radians
-#    cart=[]# initialize list for cartesian coordinates
-#    if len(dir)==2:dir.append(1.)
-#    cart.append(numpy.cos(dir[0]*rad)*numpy.cos(dir[1]*rad)*dir[2])  # append the x coordinate
-#    cart.append(numpy.sin(dir[0]*rad)*numpy.cos(dir[1]*rad)*dir[2])# append the y coordinate
-#    cart.append(numpy.sin(dir[1]*rad)*dir[2])# append the z coordinate
-#   return cart # return the list of coordinates
 
 def dir2cart(d):
    # converts list or array of vector directions, in degrees, to array of cartesian coordinates, in x,y,z
@@ -1241,7 +1279,7 @@ def domean(indata,start,end,calculation_type):
         else: 
             data=[datablock[k][1],datablock[k][2],1.0] # unit weight
         fdata.append(data)
-        cart= (dir2cart(data))
+        cart= dir2cart(data)
         X.append(cart)
     if calculation_type=='DE-BFL-O': # include origin as point
 #        X.append([0.,0.,0.])
@@ -2287,7 +2325,7 @@ def dolnp(data,direction_type_key):
 #
 # sort data  into lines and planes and collect cartesian coordinates
     for rec in data:
-        cart=dir2cart([rec["dec"],rec["inc"],1.])
+        cart=dir2cart([rec["dec"],rec["inc"]]).transpose()
         if direction_type_key in rec.keys() and rec[direction_type_key]=='p': # this is a pole to a plane
             n_planes+=1
             L.append(cart) # this is the "EL, EM, EN" array of MM88
@@ -3024,6 +3062,24 @@ def dimap(D,I):
 ### CALCULATE THE X,Y COORDINATES FOR THE EQUAL AREA PROJECTION
     R=numpy.sqrt( 1.-X[2])/(numpy.sqrt(X[0]**2+X[1]**2)) # from Collinson 1983
     XY[1],XY[0]=X[0]*R,X[1]*R
+
+### RETURN XY[X,Y]
+    return XY
+
+def dimap_V(D,I):
+    """
+    FUNCTION TO MAP DECLINATION, INCLINATIONS INTO EQUAL AREA PROJECTION, X,Y
+
+    Usage:     dimap_V(D, I)
+        D and I are both numpy arrays
+
+    """
+### GET CARTESIAN COMPONENTS OF INPUT DIRECTION
+    DI=numpy.array([D,I]).transpose() # 
+    X=dir2cart(DI).transpose()
+### CALCULATE THE X,Y COORDINATES FOR THE EQUAL AREA PROJECTION
+    R=numpy.sqrt( 1.-abs(X[2]))/(numpy.sqrt(X[0]**2+X[1]**2)) # from Collinson 1983
+    XY=numpy.array([X[1]*R,X[0]*R]).transpose()
 
 ### RETURN XY[X,Y]
     return XY
@@ -5504,10 +5560,6 @@ def pseudo(DIs):
     Inds=numpy.random.randint(len(DIs),size=len(DIs))
     D=numpy.array(DIs)
     return D[Inds]
-    #for k in range(len(DIs)):
-    #    ind=random.randint(0,len(DIs)-1)
-    #    BDIs.append(DIs[ind])
-    #return BDIs 
 #
 def di_boot(DIs):
     """
@@ -7219,32 +7271,6 @@ def linreg(x,y):
     linpars['n']=n
     return linpars
 
-def dimap(D,I):
-    """
-    FUNCTION TO MAP DECLINATION, INCLINATIONS INTO EQUAL AREA PROJECTION, X,Y
-
-    Usage:     dimap(D, I)
-    Argin:     Declination (float) and Inclination (float)
-
-    """
-    ### DEFINE FUNCTION VARIABLES
-    XY=[0.,0.]                                         # initialize equal area projection x,y
-
-    ### GET CARTESIAN COMPONENTS OF INPUT DIRECTION
-    X=dir2cart([D,I,1.])
-
-    ### CHECK IF Z = 1 AND ABORT
-    if X[2] ==1.0: return XY                           # return [0,0]
-
-    ### TAKE THE ABSOLUTE VALUE OF Z
-    if X[2]<0:X[2]=-X[2]                               # this only works on lower hemisphere projections
-
-    ### CALCULATE THE X,Y COORDINATES FOR THE EQUAL AREA PROJECTION
-    R=numpy.sqrt( 1.-X[2])/(numpy.sqrt(X[0]**2+X[1]**2)) # from Collinson 1983
-    XY[1],XY[0]=X[0]*R,X[1]*R
-
-    ### RETURN XY[X,Y]
-    return XY
 
 def squish(incs,f):
     """

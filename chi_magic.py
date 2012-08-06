@@ -127,8 +127,8 @@ def main():
             if '-i' in sys.argv: 
                 for ind in range(len(Ts)):  # print list of temperatures available
                     print ind,int(Ts[ind]) 
-                cont=raw_input("Enter index of desired temperature step, [s]ave plots, [return] to quit ")
-                if cont=='s':
+                cont=raw_input("Enter index of desired temperature step, s[a]ve plots, [return] to quit ")
+                if cont=='a':
                         files={}
                         PLTS={}
                         for p in range(1,plotnum):
@@ -136,7 +136,7 @@ def main():
                             files[key]=e+'_'+key+'.'+fmt
                             PLTS[key]=key
                         pmagplotlib.saveP(PLTS,files)
-                        cont=raw_input("Enter index of desired temperature step, [s]ave plots, [return] to quit ")
+                        cont=raw_input("Enter index of desired temperature step, s[a]ve plots, [return] to quit ")
                 if cont=="":cont='q'
             while cont!="q":
                 if '-i' in sys.argv:Tind=int(cont) # set temperature index
@@ -169,9 +169,9 @@ def main():
                 if '-i' in sys.argv:
                     for ind in range(len(Ts)): # just in case you forgot, print out a new list of temperatures
                         print ind,int(Ts[ind]) 
-                    cont=raw_input("Enter index of next temperature step, [s]ave plots,  [return] to quit ") # ask for new temp
+                    cont=raw_input("Enter index of next temperature step, s[a]ve plots,  [return] to quit ") # ask for new temp
                     if cont=="":sys.exit()
-                    if cont=='s':
+                    if cont=='a':
                         files={}
                         PLTS={}
                         for p in range(1,plotnum):
@@ -179,11 +179,11 @@ def main():
                             files[key]=e+'_'+key+'.'+fmt
                             PLTS[key]=p
                         pmagplotlib.saveP(PLTS,files)
-                        cont=raw_input("Enter index of desired temperature step, [s]ave plots, [return] to quit ")
+                        cont=raw_input("Enter index of desired temperature step, s[a]ve plots, [return] to quit ")
                         if cont=="":sys.exit()
                 else:
-                    ans=raw_input("enter [s]ave to save files,  [return] to quit ")
-                    if ans=='s': 
+                    ans=raw_input("enter s[a]ve to save files,  [return] to quit ")
+                    if ans=='a': 
                         files={}
                         PLTS={}
                         for p in range(1,plotnum):
