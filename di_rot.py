@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-import pmag,sys,math
+import pmag,sys,math,numpy
 def main():
     """
     NAME
@@ -31,10 +31,9 @@ def main():
     if '-f' in sys.argv:
         ind=sys.argv.index('-f')
         infile=sys.argv[ind+1]
-        f=open(infile,'rU')
-        data=f.readlines()
+        data=numpy.loadtxt(infile)
     else:
-        data=sys.stdin.readlines()
+        data=numpy.loadtxt(sys.stdin,dtype=numpy.float)
     if '-F' in sys.argv:
         ind=sys.argv.index('-F')
         outfile=sys.argv[ind+1]
@@ -45,21 +44,22 @@ def main():
     if '-I' in sys.argv:
         ind=sys.argv.index('-I')
         I=float(sys.argv[ind+1])
-    Decs,Incs=[],[]
-    for k in range(len(data)):
-        line=data[k]
-        if '\t' in line:
-            di=line.split('\t') # split each line on space to get records
-        else:
-            di=line.split()
-        drot,irot=pmag.dotilt(float(di[0]),float(di[1]),D-180.,90.-I)
-        drot=drot-180.
-        if drot<0:drot+=360.
+    if len(data.shape)>1: # 2-D array
+        N=data.shape[0] 
+        DipDir,Dip=numpy.ones(N,dtype=numpy.float).transpose()*(D-180.),numpy.ones(N,dtype=numpy.float).transpose()*(90.-I)
+        data=data.transpose()
+        data=numpy.array([data[0],data[1],DipDir ,Dip]).transpose()
+        drot,irot=pmag.dotilt_V(data)
+        drot=(drot-180.)%360.  # 
+        for k in range(N): 
+             if outfile=="":
+                print '%7.1f %7.1f ' % (drot[k],irot[k])
+             else:
+                out.write('%7.1f %7.1f\n' % (drot[k],irot[k]))
+    else: 
+        d,i=pmag.dotilt(data[0],data[1],(D-180.),90.-I)
         if outfile=="":
-            print '%7.1f %7.1f ' % (drot,irot)
-        elif k==len(data)-1:
-            out.write('%7.1f %7.1f' % (drot,irot))
+            print '%7.1f %7.1f ' % ((d-180.)%360.,i)
         else:
-            out.write('%7.1f %7.1f \n ' % (drot,irot))
-    if outfile!="":out.close()
+            out.write('%7.1f %7.1f\n' % ((d-180.)%360.,i))
 main()

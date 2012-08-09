@@ -445,8 +445,7 @@ def flip(D):
     for rec in D:
         ang=angle([rec[0],rec[1]],[ppars['dec'],ppars['inc']])
         if ang>90.:
-            d,i=rec[0]-180.,-rec[1]
-            if d<0:d+=360.
+            d,i=(rec[0]-180.)%360.,-rec[1]
             D2.append([d,i,1.])
         else:
             D1.append([rec[0],rec[1],1.])
@@ -1127,7 +1126,7 @@ def angle(D1,D2):
     angles=[] # set up a list for angles
     for k in range(X1.shape[0]): # single vector
         angle= numpy.arccos(numpy.dot(X1[k],X2[k]))*180./numpy.pi # take the dot product
-        if angle<0:angle=angle+360. # make always positive
+        angle=angle%360.
         angles.append(angle)
     return numpy.array(angles)
 
@@ -1370,7 +1369,6 @@ def domean(indata,start,end,calculation_type):
     if calculation_type=="DE-BFP":
         Dir=cart2dir(v3)
         MAD=numpy.arctan(numpy.sqrt(t[2]/t[1]+t[2]/t[0]))/rad
-    if Dir[0] < 0: Dir[0] += 360.
 #
 #  	get angle with  center of mass
 #
@@ -2128,9 +2126,7 @@ def dosundec(sundata):
     beta=numpy.arcsin(beta)/rad
     if delta < lat: beta=180-beta
     sunaz=180-beta
-    suncor=sunaz+float(sundata["shadow_angle"])
-    if suncor > 360:suncor=suncor-360
-    if suncor < 0:suncor=suncor+360
+    suncor=(sunaz+float(sundata["shadow_angle"]))%360. #  mod 360
     return suncor
 
 def gha(julian_day,f):
@@ -2554,8 +2550,7 @@ def dobingham(data):
     if PDir[1] < 0: 
         PDir[0]+=180.
         PDir[1]=-PDir[1]
-    if PDir[0] < 0: PDir[0] += 360.
-    if PDir[0]>360: PDir[0]-=360.
+    PDir[0]=PDir[0]%360. 
     bpars["dec"]=PDir[0]
     bpars["inc"]=PDir[1]
     bpars["Edec"]=EDir[0]
@@ -2578,8 +2573,7 @@ def doflip(dec,inc):
    """
    if inc <0:
        inc=-inc
-       dec=dec+180.
-   if dec > 360: dec=dec-360.
+       dec=(dec+180.)%360.
    return dec,inc
 
 def doincfish(inc):
@@ -2737,12 +2731,10 @@ def dokent(data,NN):
     kpars["Einc"]=EDir[1]
     if kpars["Zinc"]<0:
         kpars["Zinc"]=-kpars["Zinc"]
-        kpars["Zdec"]=kpars["Zdec"]+180.
-        if kpars["Zdec"]>360:kpars["Zdec"]=kpars["Zdec"]-360.
+        kpars["Zdec"]=(kpars["Zdec"]+180.)%360.
     if kpars["Einc"]<0:
         kpars["Einc"]=-kpars["Einc"]
-        kpars["Edec"]=kpars["Edec"]+180.
-        if kpars["Edec"]>360:kpars["Edec"]=kpars["Edec"]-360.
+        kpars["Edec"]=(kpars["Edec"]+180.)%360.
     kpars["Zeta"]=zeta*180./numpy.pi
     kpars["Eta"]=eta*180./numpy.pi
     return kpars
@@ -2939,8 +2931,7 @@ def doaniscorr(PmagSpecRec,AniSpec):
     newint=Dir[2]*ZparInt/HparInt
     if cDir[0]-Dir[0]>90:
         cDir[1]=-cDir[1]
-        cDir[0]=cDir[0]-180.
-        if cDir[0]<0:cDir[0]=cDir[0]+360.
+        cDir[0]=(cDir[0]-180.)%360.
     AniSpecRec["specimen_dec"]='%7.1f'%(cDir[0])
     AniSpecRec["specimen_inc"]='%7.1f'%(cDir[1])
     AniSpecRec["specimen_int"]='%9.4e'%(newint)
@@ -2988,9 +2979,7 @@ def vgp_di(plat,plong,slat,slong):
         dec=numpy.arccos(cosd)
     if -numpy.pi<signdec*delphi and signdec<0: dec=2.*numpy.pi-dec  # checking quadrant 
     if signdec*delphi> numpy.pi: dec=2.*numpy.pi-dec
-    dec=dec/rad
-    if dec < 0: dec = dec + 360.
-    if dec > 360: dec = dec - 360.
+    dec=(dec/rad)%360.
     inc=(numpy.arctan2(2.*numpy.cos(thetaM),numpy.sin(thetaM)))/rad
     return  dec,inc
 
@@ -3296,8 +3285,7 @@ def doseigs(s):
         Vdir= cart2dir(v)
         if Vdir[1]<0:
             Vdir[1]=-Vdir[1]
-            Vdir[0]=Vdir[0]+180.
-            if Vdir[0]>360:Vdir[0]=Vdir[0]-360.
+            Vdir[0]=(Vdir[0]+180.)%360.
         Vdirs.append([Vdir[0],Vdir[1]])
     return tau,Vdirs
 #
@@ -5302,8 +5290,7 @@ def get_tilt(dec_geo,inc_geo,dec_tilt,inc_tilt):
     SCart[1]=numpy.sqrt(1/(X**2+1.))
     SCart[0]=SCart[1]*X
     SDir=cart2dir(SCart)
-    DipDir=SDir[0]+90.
-    if DipDir<0:DipDir=DipDir+360.
+    DipDir=(SDir[0]+90.)%360.
 # D is creat circle distance between geo direction and strike
 # theta is GCD between geo and tilt (on unit sphere).  use law of cosines
 # to get small cirlce between geo and tilt (dip)

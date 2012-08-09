@@ -606,7 +606,7 @@ def plotMT(fignum,datablock,s,num,units,norm):
             M.append(rec[3]/Ints[-1])
         else:
             M.append(rec[3])
-        if recnum>0:
+        if recnum>0 and len(rec)>0 and len(recbak)>0:
             v=[]
             if recbak[0]!=rec[0]:
 	        V0=pmag.dir2cart([recbak[1],recbak[2],recbak[3]])

@@ -15,7 +15,7 @@ def main():
 
     OPTIONS
         -f FILE: specify input file, default is er_samples.txt
-        -F FILE: specify output file, default is: location_orient.txt 
+        -F FILE: specify output file, default is: orient_LOCATION.txt 
 
     INPUT FORMAT
         er_samples.txt formatted file
@@ -39,11 +39,7 @@ def main():
         sys.exit()
     if "-F" in args:
         ind=args.index("-F")
-        opath=sys.argv[ind+1]
-        pathlist=opath.split('/')
-        opath=""
-        for  p in pathlist[:-1]:opath=opath+p+"/"
-        orient_file=pathlist[-1]
+        orient_file=dir_path+'/'+sys.argv[ind+1]
     if "-f" in args:
         ind=args.index("-f")
         samp_file=dir_path+'/'+sys.argv[ind+1]
@@ -69,7 +65,7 @@ def main():
                    if SampKeys[i] in samp.keys():OrRec[OrKeys[i]]=samp[SampKeys[i]]
                 OrOut.append(OrRec)
         loc=location_name.replace(" ","_") 
-        outfile=opath+orient_file+'_'+loc+'.txt'
+        if '-F'!=args:outfile=orient_file+'_'+loc+'.txt'
         pmag.magic_write(outfile,OrOut,location_name)
         print "Data saved in: ", outfile
 main()

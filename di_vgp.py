@@ -1,24 +1,5 @@
 #!/usr/bin/env python
-import pmag,sys
-
-def spitout(*input):
-    output = []
-    if len(input) > 1:
-        (dec,inc,a95,slat,slon) = (input)
-        output = pmag.dia_vgp(dec,inc,a95,slat,slon)
-    else:
-        input = input[0]
-        output = pmag.dia_vgp(input)
-    return printout(output)
-
-def printout(output): # print out returned stuff
-    if len(output) > 1:
-        if isinstance(output[0],list):        
-            for i in range(len(output[0])):
-                print '%7.1f %7.1f'%(output[0][i],output[1][i])
-        else:
-            print '%7.1f %7.1f'%(output[0],output[1]) 
-
+import pmag,sys,numpy
 def main():
     """
     NAME
@@ -52,7 +33,12 @@ def main():
     if '-h' in sys.argv:
         print main.__doc__
         sys.exit()
+    if '-F' in sys.argv:
+        outfile=sys.argv[sys.arv.index('-F')+1]
+    else:
+        outfile=''
     if '-i' in sys.argv: # if one is -i
+        a95=0
         while 1:
             try:
                 ans   = raw_input("Input Declination: <cntrl-D to quit>  ")
@@ -62,39 +48,36 @@ def main():
                 ans   = raw_input("Input Site Latitude:  ")
                 slat  = float(ans)
                 ans   = raw_input("Input Site Longitude:  ")
-                slong = float(ans)                
-
-                spitout(Dec,Inc,0.,slat,slong)
+                slong = float(ans)     
+                output = pmag.dia_vgp(Dec,Inc,a95,slat,slong)
+                print output
+                print '%7.1f %7.1f'%(output[0],output[1]) 
             except:
                 print "\n Good-bye\n"
                 sys.exit()
-            
-    elif '-f' in sys.argv: # manual input of file name
+    elif '-f' in sys.argv: # input of file name
         ind=sys.argv.index('-f')
         file=sys.argv[ind+1]
-        f=open(file,'rU')
-        inlist  = []
-        for line in f.readlines():
-            inlist.append([])
-            i = 0
-            # loop over the elements, split by whitespace
-            for el in line.split():
-                i = i+1
-                if i%3 == 0: # append '0' for a95
-                    inlist[-1].append(float(0))
-                inlist[-1].append(float(el))
-        spitout(inlist)
-    else:
-        input = sys.stdin.readlines()  # read from standard input
-        inlist  = []
-        for line in input:   # read in the data (as string variable), line by line
-            inlist.append([])
-            i = 0
-            # loop over the elements, split by whitespace
-            for el in line.split():
-                i = i+1
-                if i%3 == 0: # append '0' for a95
-                    inlist[-1].append(float(0))
-                inlist[-1].append(float(el))
-        spitout(inlist)
+        data=numpy.loadtxt(file)
+    else: #
+        data = numpy.loadtxt(sys.stdin,dtype=numpy.float) # read from S/I
+    if len(data.shape)>1: # 2-D array
+            N=data.shape[0]    
+            if data.shape[1]==4:   # only dec,inc,sitelat, site long -no alpha95
+                data=data.transpose()
+                inlist=numpy.array([data[0],data[1],numpy.zeros(N),data[2],data[3]]).transpose()
+            output = pmag.dia_vgp(inlist)
+            for k in range(N):
+                if outfile=='':
+                    print '%7.1f %7.1f'%(output[0][k],output[1][k]) 
+                else:
+                    outfile.write('%7.1f %7.1f\n'%(output[0][k],output[1][k]))
+    else: # single line of data
+        if len(data)==4:
+            data=[data[0],data[1],0,data[2],data[3]]
+        output = pmag.dia_vgp(data)
+        if outfile=='': # spit to standard output
+            print '%7.1f %7.1f'%(output[0],output[1]) 
+        else: # write to file
+            outfile.write('%7.1f %7.1f\n'%(output[0],output[1]))
 main()
