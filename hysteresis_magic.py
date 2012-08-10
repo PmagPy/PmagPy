@@ -29,7 +29,7 @@ def main():
     user,meas_file,rmag_out,rmag_file="","agm_measurements.txt","rmag_hysteresis.txt",""
     pltspec=""
     dir_path='.'
-    fmt='png'
+    fmt='svg'
     verbose=pmagplotlib.verbose
     version_num=pmag.get_version()
     if '-WD' in args:
@@ -82,12 +82,12 @@ def main():
     if verbose:
         if verbose:print "Plots may be on top of each other - use mouse to place "
     if PLT:
-        HDD['hyst'],HDD['deltaM'],HDD['DdeltaM'],HDD['irm'],HDD['imag']=1,2,3,4,5
-        pmagplotlib.plot_init(HDD['imag'],5,5)
-        pmagplotlib.plot_init(HDD['irm'],5,5)
+        HDD['hyst'],HDD['deltaM'],HDD['DdeltaM']=1,2,3
         pmagplotlib.plot_init(HDD['DdeltaM'],5,5)
         pmagplotlib.plot_init(HDD['deltaM'],5,5)
         pmagplotlib.plot_init(HDD['hyst'],5,5)
+        imag_init=0
+        irm_init=0
     else:
         HDD['hyst'],HDD['deltaM'],HDD['DdeltaM'],HDD['irm'],HDD['imag']=0,0,0,0,0
     #
@@ -202,6 +202,10 @@ def main():
             rmeths=[]
             for meth in meths: rmeths.append(meth)
             if verbose:print 'plotting IRM'
+            if irm_init==0:
+                HDD['irm']=5
+                pmagplotlib.plot_init(HDD['irm'],5,5)
+                irm_init=1
             rpars=pmagplotlib.plotIRM(HDD['irm'],Bdcd,Mdcd,irm_exp) 
             RemRec['remanence_mr_moment']=rpars['remanence_mr_moment']
             RemRec['remanence_bcr']=rpars['remanence_bcr']
@@ -214,15 +218,19 @@ def main():
             RemRec["er_citation_names"]="This study"
             RemRecs.append(RemRec)
         else: 
-            pmagplotlib.clearFIG(HDD['irm'])
+            if irm_init:pmagplotlib.clearFIG(HDD['irm'])
         if len(Bimag)>0: 
             if verbose:print 'plotting initial magnetization curve'
 # first normalize by Ms
             Mnorm=[]
             for m in Mimag: Mnorm.append(m/float(hpars['hysteresis_ms_moment']))
+            if imag_init==0:
+                HDD['imag']=4
+                pmagplotlib.plot_init(HDD['imag'],5,5)
+                imag_init=1
             pmagplotlib.plotIMAG(HDD['imag'],Bimag,Mnorm,imag_exp) 
         else: 
-            pmagplotlib.clearFIG(HDD['imag'])
+            if imag_init:pmagplotlib.clearFIG(HDD['imag'])
     #
         files={}
         if plots:

@@ -1,12 +1,6 @@
 #!/usr/bin/env python
 import pmag,sys,exceptions,numpy
 #
-def spitout(line):
-    x,y,z,f=pmag.doigrf(line[3]%360.,line[2],line[1],line[0])
-    Dir=pmag.cart2dir((x,y,z))
-    print '%7.1f %7.1f %8.0f %7.1f %7.1f %7.1f %7.1f'%(Dir[0],Dir[1],f,line[0],line[1],line[2],line[3])           
-    return Dir
-
 def main():
     """
     NAME
@@ -29,6 +23,7 @@ def main():
        -h prints help message and quits
        -i for interactive data entry
        -f FILE  specify file name with input data 
+       -F FILE  specify output file name
     
     INPUT FORMAT 
       interactive entry:
@@ -59,13 +54,26 @@ def main():
                 line=line+" "+alt
                 line=line+" "+raw_input("Latitude (positive north) ")
                 line=line+" "+raw_input("Longitude (positive east) ")
-                dir=spitout(line)
+                x,y,z,f=pmag.doigrf(line[3]%360.,line[2],line[1],line[0])
+                Dir=pmag.cart2dir((x,y,z))
+                print '%7.1f %7.1f %8.0f'%(Dir[0],Dir[1],f)           
             except:
                 print "\nGood-bye\n"
                 sys.exit()
     else:
         input=numpy.loadtxt(sys.stdin,dtype=numpy.float)
+    if '-F' in sys.argv:
+        ind=sys.argv.index('-F')
+        outfile=sys.argv[ind+1]
+        out=open(outfile,'w')
+    else:outfile=""
     for line in input:
-        dir=spitout(line)
+        x,y,z,f=pmag.doigrf(line[3]%360.,line[2],line[1],line[0])
+        Dir=pmag.cart2dir((x,y,z))
+        if outfile!="":
+            out.write('%7.1f %7.1f %8.0f %7.1f %7.1f %7.1f %7.1f\n'%(Dir[0],Dir[1],f,line[0],line[1],line[2],line[3]))           
+        else:
+            print '%7.1f %7.1f %8.0f %7.1f %7.1f %7.1f %7.1f'%(Dir[0],Dir[1],f,line[0],line[1],line[2],line[3])           
+             
 main()
 
