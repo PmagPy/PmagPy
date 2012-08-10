@@ -4487,7 +4487,7 @@ def doigrf(long,lat,alt,date):
     elif date<2000:
         for i in range(len(dgrf1995)):
             gh.append(dgrf1995[i])
-            sv.append((dgrf1900[i]-dgrf1995[i])/5.)
+            sv.append((dgrf1990[i]-dgrf1995[i])/5.)
         x,y,z,f=magsyn(gh,sv,1995.,date,itype,alt,colat,long)
     elif date<2005:
         for i in range(len(dgrf2000)):

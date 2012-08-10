@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-import pmag,sys
+import pmag,sys,numpy
 def main():
     """
     NAME
@@ -35,19 +35,13 @@ def main():
         sys.exit() # graceful quit
     if '-i' in sys.argv: # ask for filename
         file=raw_input("Enter file name with inc data: ")
-        f=open(file,'rU`')
-        data=f.readlines()
+        inc=numpy.loadtxt(file)
     elif '-f' in sys.argv:
-        dat=[]
         ind=sys.argv.index('-f')
         file=sys.argv[ind+1]
-        f=open(file,'rU`')
-        data=f.readlines()
+        inc=numpy.loadtxt(file)
     else:
-        data = sys.stdin.readlines()  # read from standard input
-    for line in data:
-       rec=line.split()
-       inc.append(float(rec[0]))
+        inc = numpy.loadtxt(sys.stdin,dtype=numpy.float)
     #
     #get doincfish to do the dirty work:
     fpars= pmag.doincfish(inc)

@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-import pmag,sys,exceptions,numpy
+import pmag,sys,numpy,exceptions
 #
 def main():
     """
@@ -46,20 +46,20 @@ def main():
         input=numpy.loadtxt(file)
     elif '-i' in sys.argv:
         while 1:
-            try: 
-                line=""
-                line=line+raw_input("Decimal year: <cntrl-D to quit> ")
-                alt=raw_input("Elevation in km [0] ")
-                if alt=="":alt="0"
-                line=line+" "+alt
-                line=line+" "+raw_input("Latitude (positive north) ")
-                line=line+" "+raw_input("Longitude (positive east) ")
-                x,y,z,f=pmag.doigrf(line[3]%360.,line[2],line[1],line[0])
-                Dir=pmag.cart2dir((x,y,z))
-                print '%7.1f %7.1f %8.0f'%(Dir[0],Dir[1],f)           
-            except:
-                print "\nGood-bye\n"
-                sys.exit()
+          try:
+            line=[]
+            line.append(float(raw_input("Decimal year: <cntrl-D to quit> ")))
+            alt=raw_input("Elevation in km [0] ")
+            if alt=="":alt="0"
+            line.append(float(alt))
+            line.append(float(raw_input("Latitude (positive north) ")))
+            line.append(float(raw_input("Longitude (positive east) ")))
+            x,y,z,f=pmag.doigrf(line[3]%360.,line[2],line[1],line[0])
+            Dir=pmag.cart2dir((x,y,z))
+            print '%7.1f %7.1f %8.0f'%(Dir[0],Dir[1],f)           
+          except EOFError:
+            print "\n Good-bye\n"
+            sys.exit()
     else:
         input=numpy.loadtxt(sys.stdin,dtype=numpy.float)
     if '-F' in sys.argv:

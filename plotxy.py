@@ -29,7 +29,9 @@ def main():
         -xlab XLAB
         -ylab YLAB
         -l  connect symbols with lines
+        -fmt [svg,png,pdf,eps] specify output format, default is svg
     """
+    fmt='svg' 
     col1,col2=0,1
     sym,size = 'ro',50
     xlab,ylab='',''
@@ -40,6 +42,9 @@ def main():
     if '-f' in sys.argv:
         ind=sys.argv.index('-f')
         file=sys.argv[ind+1]
+    if '-fmt' in sys.argv:
+        ind=sys.argv.index('-fmt')
+        fmt=sys.argv[ind+1]
     if '-c' in sys.argv:
         ind=sys.argv.index('-c')
         col1=int(sys.argv[ind+1])-1
@@ -92,6 +97,9 @@ def main():
     if lines==1:pylab.plot(X,Y,'k-')
     if '-b' in sys.argv:pylab.axis([xmin,xmax,ymin,ymax])
     pylab.draw()
-    ans=raw_input("Press return to quit  ")
+    ans=raw_input("S[a]ve to save figure, <Return>  to quit  ")
+    if ans=='a':
+        pylab.savefig('plotXY.'+fmt) 
+        print 'Figure saved as: ','plotXY.'+fmt
     sys.exit()
 main()
