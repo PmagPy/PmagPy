@@ -1,16 +1,10 @@
 #!/usr/bin/env python
-import pmag,sys,exceptions
+import pmag,sys,exceptions,numpy
 #
 def spitout(line):
-    rec=line.split()
-    date=float(rec[0])
-    alt=float(rec[1])
-    lat=float(rec[2])
-    long=float(rec[3])
-    if long<0:long=long+360
-    x,y,z,f=pmag.doigrf(long,lat,alt,date)
+    x,y,z,f=pmag.doigrf(line[3]%360.,line[2],line[1],line[0])
     Dir=pmag.cart2dir((x,y,z))
-    print '%7.1f %7.1f %8.0f'%(Dir[0],Dir[1],f)           
+    print '%7.1f %7.1f %8.0f %7.1f %7.1f %7.1f %7.1f'%(Dir[0],Dir[1],f,line[0],line[1],line[2],line[3])           
     return Dir
 
 def main():
@@ -46,7 +40,7 @@ def main():
            space delimited string: date  alt   lat long
 
     OUTPUT  FORMAT
-        Declination Inclination Intensity (nT)
+        Declination Inclination Intensity (nT) date alt lat long
     """
     if len(sys.argv)!=0 and '-h' in sys.argv:
         print main.__doc__
@@ -54,9 +48,7 @@ def main():
     if '-f' in sys.argv:
         ind=sys.argv.index('-f')
         file=sys.argv[ind+1]
-        f=open(file,'rU') 
-        dat=[]
-        input=f.readlines()
+        input=numpy.loadtxt(file)
     elif '-i' in sys.argv:
         while 1:
             try: 
@@ -72,7 +64,7 @@ def main():
                 print "\nGood-bye\n"
                 sys.exit()
     else:
-        input=sys.stdin.readlines()
+        input=numpy.loadtxt(sys.stdin,dtype=numpy.float)
     for line in input:
         dir=spitout(line)
 main()

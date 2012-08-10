@@ -305,13 +305,14 @@ def main():
                         rpars.append(Bkpars['Einc'])
                     etitle="Bootstrapped confidence ellipse"
                 elif dist=='BV':
+                    sym={'lower':['o','c'],'upper':['o','g'],'size':3,'edgecolor':'face'}
                     if len(nDIs)>5:
                         BnDIs=pmag.di_boot(nDIs)
-                        pmagplotlib.plotEQ(FIG['bdirs'],BnDIs,'Bootstrapped Eigenvectors')
+                        pmagplotlib.plotEQsym(FIG['bdirs'],BnDIs,'Bootstrapped Eigenvectors', sym)
                     if len(rDIs)>5:
                         BrDIs=pmag.di_boot(rDIs)
                         if len(nDIs)>5:  # plot on existing plots
-                            pmagplotlib.plotDI(FIG['bdirs'],BrDIs)
+                            pmagplotlib.plotDIsym(FIG['bdirs'],BrDIs,sym)
                         else:
                             pmagplotlib.plotEQ(FIG['bdirs'],BrDIs,'Bootstrapped Eigenvectors')
             if dist=='B':

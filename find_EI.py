@@ -1,20 +1,21 @@
 #!/usr/bin/env python
-import pmag,math,random,sys,numpy,pmagplotlib,exceptions
+import pmag,sys,numpy,pmagplotlib
+from numpy import random
 def EI(inc):
     poly_tk03= [  3.15976125e-06,  -3.52459817e-04,  -1.46641090e-02,   2.89538539e+00]  
     return poly_tk03[0]*inc**3 + poly_tk03[1]*inc**2+poly_tk03[2]*inc+poly_tk03[3]
 
 
 def find_f(data):
-    rad=math.pi/180.
+    rad=numpy.pi/180.
     Es,Is,Fs,V2s=[],[],[],[]
     ppars=pmag.doprinc(data)
     D=ppars['dec']
+    Decs,Incs=data.transpose()[0],data.transpose()[1]
+    Tan_Incs=numpy.tan(Incs*rad)
     for f in numpy.arange(1.,.2 ,-.01):
-        fdata=[]
-        for rec in data:
-            U=math.atan((1./f)*math.tan(rec[1]*rad))/rad
-            fdata.append([rec[0],U,1.])
+        U=numpy.arctan((1./f)*Tan_Incs)/rad
+        fdata=numpy.array([Decs,U]).transpose()
         ppars=pmag.doprinc(fdata)
         Fs.append(f)
         Es.append(ppars["tau2"]/ppars["tau3"])
@@ -29,9 +30,8 @@ def find_f(data):
             del V2s[-1]
             if len(Fs)>0:
                 for f in numpy.arange(Fs[-1],.2 ,-.005):
-                    for rec in data:
-                        U=math.atan((1./f)*math.tan(rec[1]*rad))/rad
-                        fdata.append([rec[0],U,1.])
+                    U=numpy.arctan((1./f)*Tan_Incs)/rad
+                    fdata=numpy.array([Decs,U]).transpose()
                     ppars=pmag.doprinc(fdata)
                     Fs.append(f)
                     Es.append(ppars["tau2"]/ppars["tau3"])
@@ -53,10 +53,16 @@ def main():
         Finds bootstrap confidence bounds
 
     SYNTAX
-        find_EI.py [-h][-i] [-f FILE] 
+        find_EI.py [command line options]
+
+    OPTIONS
+        -h prints help message and quits
+        -i allows interactive input of file name
+        -f FILE specify input file name
+        -nb N specify number of bootstraps - the more the better, but slower!, default is 1000
 
     INPUT
-        dec/inc pairs
+        dec/inc pairs, delimited with space or tabs
 
     OUTPUT
         three plots:  1) equal area plot of original directions
@@ -65,17 +71,19 @@ def main():
                          Estimate from original data set plotted as solid line
 
     """
+    nb=1000
     if '-i' in sys.argv:
         file=raw_input("Enter file name for processing: ")
-        f=open(file,'rU') 
     elif '-f' in sys.argv:
         ind=sys.argv.index('-f')
         file=sys.argv[ind+1]
-        f=open(file,'rU') 
     else:
         print main.__doc__
         sys.exit()
-    rseed,nb,data=10,100,[]
+    if '-nb' in sys.argv:
+        ind=sys.argv.index('-nb')
+        nb=int(sys.argv[ind+1])
+    data=numpy.loadtxt(file)
     upper,lower=int(round(.975*nb)),int(round(.025*nb))
     E,I=[],[]
     PLTS={'eq':1,'ei':2,'cdf':3,'v2':4}
@@ -83,14 +91,8 @@ def main():
     pmagplotlib.plot_init(PLTS['ei'],5,5) 
     pmagplotlib.plot_init(PLTS['cdf'],5,5) 
     pmagplotlib.plot_init(PLTS['v2'],5,5) 
-    random.seed(rseed)
-    for line in f.readlines():
-        rec=line.split()
-        dec=float(rec[0])
-        inc=float(rec[1])
-        rec=[dec,inc,1.]
-        data.append(rec)
     pmagplotlib.plotEQ(PLTS['eq'],data,'Data')
+    pmagplotlib.drawFIGS(PLTS)
     ppars=pmag.doprinc(data)
     Io=ppars['inc']
     n=ppars["N"]
@@ -101,11 +103,7 @@ def main():
     b=0
     print "Bootstrapping.... be patient"
     while b<nb:
-        bdata=[]
-        for j in range(n):
-            boot=random.randint(0,n-1)
-            random.jumpahead(rseed)
-            bdata.append(data[boot])
+        bdata=pmag.pseudo(data)
         Es,Is,Fs,V2s=find_f(bdata)
         if b<25:
             pmagplotlib.plotEI(PLTS['ei'],Es,Is,Fs[-1])
@@ -129,9 +127,8 @@ def main():
     pmagplotlib.drawFIGS(PLTS)
     print "Io Inc  I_lower, I_upper, Elon, E_lower, E_upper"
     print '%7.1f %s %7.1f _ %7.1f ^ %7.1f:  %6.4f _ %6.4f ^ %6.4f' %(Io, " => ", Inc, I[lower],I[upper], Elong, E[lower],E[upper])
-    try:
-        raw_input("Return to save plots - <return> to quit:  ")
-    except EOFError:
+    ans= raw_input("S[a]ve plots - <return> to quit:  ")
+    if ans!='a':
        print "\n Good bye\n"
        sys.exit()
     files={}

@@ -452,13 +452,15 @@ def plotDIsym(fignum,DIblock,sym):
         size=50
     else:
         size=sym['size']
+    if 'edgecolor' not in sym.keys():
+        sym['edgecolor']='k'
     if len(X_down)>0: 
-        pylab.scatter(X_down,Y_down,marker=sym['lower'][0],c=sym['lower'][1],s=size)
+        pylab.scatter(X_down,Y_down,marker=sym['lower'][0],c=sym['lower'][1],s=size,edgecolor=sym['edgecolor'])
         if globals !=0:
             globals.DIlist  = X_down
             globals.DIlisty = Y_down
     if len(X_up)>0: 
-        pylab.scatter(X_up,Y_up,marker=sym['upper'][0],c=sym['upper'][1],s=size)
+        pylab.scatter(X_up,Y_up,marker=sym['upper'][0],c=sym['upper'][1],s=size,edgecolor=sym['edgecolor'])
         if globals !=0:
             globals.DIlist  = X_up
             globals.DIlisty = Y_up

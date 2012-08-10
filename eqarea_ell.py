@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-import sys,pmag,pmagplotlib
+import sys,pmag,pmagplotlib,numpy
 def main():
     """
     NAME
@@ -24,6 +24,7 @@ def main():
     FIG={} # plot dictionary
     FIG['eq']=1 # eqarea is figure 1
     fmt,dist,mode='svg','F',1
+    sym={'lower':['o','r'],'upper':['o','w'],'size':10}
     plotE=0
     if '-h' in sys.argv:
         print main.__doc__
@@ -32,8 +33,7 @@ def main():
     if '-f' in sys.argv:
         ind=sys.argv.index("-f")
         title=sys.argv[ind+1]
-        f=open(title,'rU')
-        data=f.readlines()
+        data=numpy.loadtxt(title).transpose()
     if '-ell' in sys.argv:
         plotE=1
         ind=sys.argv.index('-ell')
@@ -49,15 +49,10 @@ def main():
     if '-fmt' in sys.argv:
         ind=sys.argv.index("-fmt")
         fmt=sys.argv[ind+1]
-    DIblock=[]
-    for line in data:
-        if '\t' in line:
-            rec=line.split('\t') # split each line on space to get records
-        else:
-            rec=line.split() # split each line on space to get records
-        DIblock.append([float(rec[0]),float(rec[1])])
+    DIblock=numpy.array([data[0],data[1]]).transpose()
     if len(DIblock)>0: 
-        pmagplotlib.plotEQ(FIG['eq'],DIblock,title)
+        pmagplotlib.plotEQsym(FIG['eq'],DIblock,title,sym)
+        pmagplotlib.drawFIGS(FIG)
     else:
         print "no data to plot"
         sys.exit()
@@ -208,6 +203,7 @@ def main():
                 pmagplotlib.plotCONF(FIG['eq'],etitle,[],rpars,0)
         elif len(rDIs)>3 and dist!='BV':
             pmagplotlib.plotCONF(FIG['eq'],etitle,[],rpars,0)
+        pmagplotlib.drawFIGS(FIG)
     pmagplotlib.drawFIGS(FIG)
         #
     files={}
