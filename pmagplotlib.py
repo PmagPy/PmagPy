@@ -1152,10 +1152,10 @@ def plotLNP(fignum,s,datablock,fpars,direction_type_key):
 #   plot on the data
 #
     coord=datablock[0]['tilt_correction']
-    title=''
-    if coord=='-1':title=s+": specimen coordinates"
-    if coord=='0':title=s+": geographic coordinates"
-    if coord=='100':title=s+": tilt corrected coordinates"
+    title=s
+    if coord=='-1':title=title+": specimen coordinates"
+    if coord=='0':title=title+": geographic coordinates"
+    if coord=='100':title=title+": tilt corrected coordinates"
     DIblock,GCblock=[],[]
     for plotrec in datablock:
         if plotrec[direction_type_key]=='p': # direction is pole to plane
@@ -2349,6 +2349,15 @@ def plotMAP(fignum,lats,lons,Opts):
     else:
         m=Basemap(llcrnrlon=Opts['lonmin'],llcrnrlat=Opts['latmin'],urcrnrlat=Opts['latmax'],urcrnrlon=Opts['lonmax'],projection=Opts['proj'],lat_0=Opts['lat_0'],lon_0=Opts['lon_0'],lat_ts=0.,resolution=Opts['res'],boundinglat=Opts['boundinglat'])
     if 'details' in Opts.keys():
+        if Opts['details']['fancy']==1:
+           from pylab import meshgrid
+           from mpl_toolkits.basemap import basemap_datadir
+           EDIR=basemap_datadir+"/"
+           etopo=numpy.loadtxt(EDIR+'etopo20data.gz')
+           elons=numpy.loadtxt(EDIR+'etopo20lons.gz')
+           elats=numpy.loadtxt(EDIR+'etopo20lats.gz')
+           x,y=m(*meshgrid(elons,elats))
+           cs=m.contourf(x,y,etopo,30)
         if Opts['details']['coasts']==1:m.drawcoastlines(color='k')
         if Opts['details']['rivers']==1:m.drawrivers(color='b')
         if Opts['details']['states']==1:m.drawstates(color='r')

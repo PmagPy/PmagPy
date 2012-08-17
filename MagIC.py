@@ -1213,7 +1213,7 @@ def add_mag():
         else:  # all others
             Result['loc']=''
         d=MagDialog(root)
-        LP_types=["AF: alternating field demagnetization","S: Shaw method paleointensity","T: Thermal de(re)magnetization including thellier but excluding TRM acquisition","NRM: no lab treatment","TRM: TRM acquisition experiment","ANI: anisotropy of TRM,IRM or ARM","D: double demagnetization","G: GRM protocol","I: IRM"]
+        LP_types=["AF: alternating field demagnetization","S: Shaw method paleointensity","T: Thermal de(re)magnetization including thellier but excluding TRM acquisition","NRM: no lab treatment","TRM: TRM acquisition experiment","ANI: anisotropy of TRM,IRM or ARM","D: double demagnetization","G: GRM protocol","I: IRM","I3d: Lowrie 3D-IRM"]
         checks=ask_check(root,LP_types,'select lab protocols:\n ')
         LPlist= map((lambda var:var.get()),checks)
         LP=""
@@ -2778,6 +2778,11 @@ def irm_magic():
     print outstring
     os.system(outstring)
 
+def lowrie_magic():
+    outstring='lowrie_magic.py -WD '+'"'+opath+'"'
+    print outstring
+    os.system(outstring)
+
 def chart():
     outstring='chartmaker.py'
     print outstring
@@ -3016,6 +3021,7 @@ def create_menus():
     plotmenu.add_command(label="Curie Temperatures data",command=curie)
     plotmenu.add_command(label="Hysteresis parameters",command=dayplot)
     plotmenu.add_command(label="Plot IRM acquisition",command=irm_magic)
+    plotmenu.add_command(label="Plot 3D-IRM experiment",command=lowrie_magic)
     plotmenu.add_command(label="Plot measurement data versus depth",command=core_depthplot)
     plotmenu.add_command(label="Plot AMS data versus depth",command=ani_depthplot)
     plotmenu.add_separator()

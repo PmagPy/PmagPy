@@ -20,6 +20,7 @@ def main():
         -h prints help message and quits
         -f SFILE, specify er_sites.txt format file
         -res [c,l,i,h] specify resolution (crude,low,intermediate,high)
+        -etp plot the etopo20 topographic mesh
         -pad [LAT LON]  pad bounding box by LAT/LON  (default is [.5 .5] degrees)
         -grd SPACE specify grid spacing
         -prj [lcc] , specify projection (lcc=lambert conic conformable), default is mercator
@@ -41,6 +42,7 @@ def main():
     proj='merc'
     prn_name=0
     prn_loc=0
+    fancy=0
     padlon,padlat,gridspace,details=.5,.5,.5,1
     fmt='pdf'
     if '-h' in sys.argv:
@@ -52,6 +54,7 @@ def main():
     if '-res' in sys.argv:
         ind = sys.argv.index('-res')
         res=sys.argv[ind+1]
+    if '-etp' in sys.argv:fancy=1
     if '-n' in sys.argv:prn_name=1
     if '-l' in sys.argv:prn_loc=1
     if '-o' in sys.argv:ocean=1
@@ -99,6 +102,7 @@ def main():
     Opts['lat_0']=0.5*(numpy.min(slats)+numpy.max(slats))
     Opts['names']=names
     Opts['gridspace']=gridspace
+    Opts['details']['fancy']=fancy
     if details==1:
         Opts['details']={'coasts':1,'rivers':1,'states':1,'countries':1,'ocean':1} 
     else: 

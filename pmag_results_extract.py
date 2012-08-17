@@ -55,7 +55,7 @@ def main():
         Specout='Specimens.txt'
     # read in pmag_results file
     res_file=dir_path+'/'+res_file
-    spec_file=dir_path+'/'+spec_file
+    if spec_file!="":spec_file=dir_path+'/'+spec_file
     outfile=dir_path+'/'+outfile
     Ioutfile=dir_path+'/'+Ioutfile
     Soutfile=dir_path+'/'+Soutfile
@@ -82,8 +82,10 @@ def main():
         f.write('\hline\n')
         sf.write('\hline\n')
     Sites,file_type=pmag.magic_read(res_file)
-    for site in Sites:
-        if site["pmag_result_name"][0:3]=="VGP":
+    VGPs=pmag.get_dictitem(Sites,'vgp_lat','','F') # get all results with VGPs
+    for site in VGPs:
+        if len(site['er_site_names'].split(":"))==1:
+            if 'er_sample_names' not in site.keys():site['er_sample_names']=''
             if 'pole_comp_name' in site.keys():
                comp=site['pole_comp_name'] 
             else:
@@ -130,8 +132,24 @@ def main():
                 outstring='%s & %s & %s & %s & %s & %s & %s & %s  & %s & %s\n'%("Specimen","MAD","Beta","N","Q","DANG","f\_vds","DRATS","T (C)",'Corrections\\\\')
             fsp.write(outstring)
             fsp.write('\hline\n')
-    for site in Sites: # do results level stuff
-        if site["pmag_result_name"][0:6]=="V[A]DM":
+    VDMs=pmag.get_dictitem(Sites,'vdm','','F')
+    for site in VDMs: # do results level stuff
+      if len(site['er_site_names'].split(":"))==1:
+            if 'average_int_sigma_perc' not in site.keys():site['average_int_sigma_perc']="0"
+            if site["average_int_sigma"]=="":site["average_int_sigma"]="0"        
+            if site["average_int_sigma_perc"]=="":site["average_int_sigma_perc"]="0"        
+            if site["vadm"]=="":site["vadm"]="0"        
+            if site["vadm_sigma"]=="":site["vadm_sigma"]="0"        
+            if latex==0:
+                outstring='%s\t%s\t%s\t%6.2f\t%5.2f\t%5.1f\t%6.2f\t%5.2f \n'%(site["er_site_names"],site["er_sample_names"],site["average_int_n"],1e6*float(site["average_int"]),1e6*float(site["average_int_sigma"]),float(site['average_int_sigma_perc']),1e-21*float(site["vadm"]),1e-21*float(site["vadm_sigma"]))
+                f1.write(outstring)
+            else:
+                outstring='%s & %s & %s & %6.2f\t%5.2f & %5.1f & %6.2f & %5.2f %s\n'%(site["er_site_names"],site["er_sample_names"],site["average_int_n"],1e6*float(site["average_int"]),1e6*float(site["average_int_sigma"]),float(site['average_int_sigma_perc']),1e-21*float(site["vadm"]),1e-21*float(site["vadm_sigma"]),'\\\\')
+                f1.write(outstring)
+    VADMs=pmag.get_dictitem(Sites,'vadm','','F')
+    for site in VADMs: # do results level stuff
+      if len(site['er_site_names'].split(":"))==1:
+            if 'average_int_sigma_perc' not in site.keys():site['average_int_sigma_perc']="0"
             if site["average_int_sigma"]=="":site["average_int_sigma"]="0"        
             if site["average_int_sigma_perc"]=="":site["average_int_sigma_perc"]="0"        
             if site["vadm"]=="":site["vadm"]="0"        

@@ -56,8 +56,6 @@ def main():
     if "-fsa" in args:
         ind=args.index("-fsa")
         samp_file=sys.argv[ind+1]
-    else:
-        samp_file=""
     if "-crd" in args:
         ind=args.index("-crd")
         coord=sys.argv[ind+1]

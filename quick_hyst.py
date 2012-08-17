@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-import sys,pmagplotlib,pmag
+import sys,pmagplotlib,pmag,numpy
 def main():
     """
     NAME
@@ -119,6 +119,8 @@ def main():
     # now plot the hysteresis curve(s)
     #
               if len(B)>0: 
+                    B=numpy.array(B)
+                    M=numpy.array(M)
                     if t==Temps[-1]:
                         xlab='Field (T)'
                         ylab=m
@@ -126,6 +128,8 @@ def main():
                     if t==Temps[0]:
                         pmagplotlib.clearFIG(HDD['hyst'])
                     pmagplotlib.plotXY(HDD['hyst'],B,M,sym=c[cnum],xlab=xlab,ylab=ylab,title=title) 
+                    pmagplotlib.plotXY(HDD['hyst'],[1.1*B.min(),1.1*B.max()],[0,0],sym='k-',xlab=xlab,ylab=ylab,title=title) 
+                    pmagplotlib.plotXY(HDD['hyst'],[0,0],[1.1*M.min(),1.1*M.max()],sym='k-',xlab=xlab,ylab=ylab,title=title) 
                     if verbose:pmagplotlib.drawFIGS(HDD)
                     cnum+=1
                     if cnum==len(c):cnum=0

@@ -120,9 +120,7 @@ def main():
     print tit
     print 'range of all bootstrap samples: ', Untilt[0], ' - ', Untilt[-1]
     pylab.title(tit)
-    pylab.ion()
-    pylab.draw()
-    pylab.ioff()
+    pmagplotlib.drawFIGS(PLTS)
     ans= raw_input('S[a]ve all figures, <Return> to quit   ')
     if ans!='a':
         print "Good bye"
@@ -130,6 +128,6 @@ def main():
     else:
         files={}
         for key in PLTS.keys():
-            files[key]=('fold_'+'%s'%(key.strip()[:2])+'.'+fmt)
+            files[key]=('foldtest_'+'%s'%(key.strip()[:2])+'.'+fmt)
         pmagplotlib.saveP(PLTS,files)
 main()

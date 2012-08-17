@@ -19,8 +19,10 @@ def main():
            symbols are '.' for points, ^, for triangle, s for square, etc.
             -, for lines, -- for dotted lines, see matplotlib online documentation for plot()
         -eye  ELAT ELON [specify eyeball location]
+        -etp  put on topography
         -f FILE, specify input file
         -res [c,l,i,h] specify resolution (crude, low, intermediate, high]
+        -fmt [pdf,eps, png] specify output format (default is pdf) 
         -prj PROJ,  specify one of the supported projections: (see basemap.py online documentation)
             aeqd = Azimuthal Equidistant
             poly = Polyconic
@@ -66,17 +68,22 @@ def main():
     fmt='pdf'
     sym='ro'
     symsize=5
+    fancy=0
     if '-WD' in sys.argv:
         ind = sys.argv.index('-WD')
         dir_path=sys.argv[ind+1]
     if '-h' in sys.argv:
         print main.__doc__
         sys.exit()
+    if '-fmt' in sys.argv:
+        ind = sys.argv.index('-fmt')
+        fmt=sys.argv[ind+1]
     if '-res' in sys.argv:
         ind = sys.argv.index('-res')
         res=sys.argv[ind+1]
         if res!= 'c' and res!='l':
             print 'this resolution will take a while - be patient'
+    if '-etp' in sys.argv: fancy=1
     if '-prj' in sys.argv:
         ind = sys.argv.index('-prj')
         proj=sys.argv[ind+1]
@@ -115,7 +122,7 @@ def main():
     Opts['details']['states']=0
     Opts['details']['countries']=0
     Opts['details']['ocean']=0
-
+    Opts['details']['fancy']=fancy
     if proj=='merc':
         Opts['latmin']=-70
         Opts['latmax']=70

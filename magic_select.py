@@ -29,7 +29,7 @@ def main():
          for paleolat, use KEY: model_lat (uses lat, if age<5 Ma, else, model_lat, or attempts calculation from average_inc if no model_lat.) returns estimate in model_lat key
 
     """
-    dir_path="./"
+    dir_path="."
     flag=''
     if '-h' in sys.argv:
         print main.__doc__

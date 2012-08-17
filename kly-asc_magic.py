@@ -329,8 +329,4 @@ def main():
         output="er_sites.txt"
         pmag.magic_write(output,SiteRecs,'er_sites')
         print "site info put in ",output
-    print """"
-         You can now import your data into the Magic Console and complete data entry, 
-         for example the site locations, lithologies, etc. plotting can be done with aniso_magic.py
-    """
 main()

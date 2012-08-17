@@ -3,7 +3,7 @@ from numpy import random
 import numpy.linalg
 import exceptions
 def get_version(): 
-    return "pmagpy-2.131"
+    return "pmagpy-2.132"
 def sort_diclist(undecorated,sort_on):
     decorated=[(dict_[sort_on],dict_) for dict_ in undecorated]
     decorated.sort()
@@ -1322,6 +1322,7 @@ def domean(indata,start,end,calculation_type):
 #   get sorted evals/evects
 #
     t,V=tauV(T)
+    if t[2]<0:t[2]=0 # make positive
     if t==[]:
         mpars["specimen_direction_type"]="Error"
         print "Error in calculation"
@@ -2321,7 +2322,7 @@ def dolnp(data,direction_type_key):
 #
 # sort data  into lines and planes and collect cartesian coordinates
     for rec in data:
-        cart=dir2cart([rec["dec"],rec["inc"]]).transpose()
+        cart=dir2cart([rec["dec"],rec["inc"]])[0]
         if direction_type_key in rec.keys() and rec[direction_type_key]=='p': # this is a pole to a plane
             n_planes+=1
             L.append(cart) # this is the "EL, EM, EN" array of MM88
@@ -4656,26 +4657,22 @@ def measurements_methods(meas_data,noave):
 #
     SpecTmps,SpecOuts=[],[]
     for spec in sids:
-        TRM=0 # list  of measurement records for this specimen
+        TRM,IRM3D=0,0 # list  of measurement records for this specimen
         expcodes=""
 # first collect all data for this specimen and do lab treatments
         SpecRecs=get_dictitem(meas_data,'er_specimen_name',spec,'T')
-#        SpecRecs=[]
-#        for rec in meas_data:
-#            if rec['er_specimen_name']==spec:SpecRecs.append(rec)
-#
-# try to assign lab treatment codes from data - but look for TRM acquisistion flag
-#
         for rec in SpecRecs:
             tmpmeths=rec['magic_method_codes'].split(":")
             meths=[]
             if "LP-TRM" in tmpmeths:TRM=1 # catch these suckers here!
+            if "LP-IRM-3D" in tmpmeths:
+                IRM3D=1 # catch these suckers here!
 #
 # write over existing method codes
 #
 # find NRM data (LT-NO)
 #
-            if  float(rec["measurement_temp"])>=273. and float(rec["measurement_temp"]) < 323.:   
+            elif  float(rec["measurement_temp"])>=273. and float(rec["measurement_temp"]) < 323.:   
 # between 0 and 50C is room T measurement
                 if ("measurement_dc_field" not in rec.keys() or float(rec["measurement_dc_field"])==0 or rec["measurement_dc_field"]=="") and ("measurement_ac_field" not in rec.keys() or float(rec["measurement_ac_field"])==0 or rec["measurement_ac_field"]==""): 
 # measurement done in zero field!
@@ -4739,12 +4736,7 @@ def measurements_methods(meas_data,noave):
         expcodes=""
         NewSpecs,SpecMeths=[],[]
         experiment_name,measnum="",1
-#
-# collect all the experimental data for this specimen
-#
-#        for rec in SpecTmps: # from all the records
-#            if rec["er_specimen_name"]==spec:
-#                NewSpecs.append(rec) # pick out those from this specimen
+        if IRM3D==1:experiment_name="LP-IRM-3D"
         NewSpecs=get_dictitem(SpecTmps,'er_specimen_name',spec,'T')
 #
 # first look for replicate measurements

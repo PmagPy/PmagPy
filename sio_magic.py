@@ -24,6 +24,7 @@ def main():
             T: thermal including thellier but not trm acquisition
             S: Shaw method
             I: IRM (acquisition)
+            I3d: 3D IRM experiment
             N: NRM only
             TRM: trm acquisition
             ANI: anisotropy experiment
@@ -230,6 +231,8 @@ def main():
         if "I" in codes:
             methcode="LP-IRM"
             irmunits="mT"
+        if "I3d" in codes:
+            methcode="LP-IRM-3D"
         if "S" in codes: 
             demag="S"
             methcode="LP-PI-TRM:LP-PI-ALT-AFARM"
@@ -267,7 +270,7 @@ def main():
     SynRecs,MagRecs=[],[]
     version_num=pmag.get_version()
     if 1:
-    #if infile_type=="mag":
+    #if infile_type=="SIO format":
         for line in input.readlines():
             instcode=""
             if len(line)>2:
@@ -528,7 +531,8 @@ def main():
                 MagRec["magic_instrument_codes"]=instcode
                 MagRec["er_analyst_mail_names"]=user
                 MagRec["er_citation_names"]=citation
-                MagRec["magic_method_codes"]=meas_type
+                if methcode=="LP-IRM-3D": meas_type=methcode
+                MagRec["magic_method_codes"]=methcode
                 MagRec["measurement_flag"]='g'
                 MagRec["er_specimen_name"]=rec[0]
                 if 'std' in rec[0]:

@@ -70,22 +70,24 @@ def main():
     #
     #
     A,Vgps,Pvgps=180.,[],[]
-    for rec in data:
-        resname=rec['pmag_result_name'].split()
-        if len(resname)>1 and resname[0].strip()=="VGP:" and resname[1].strip()=="Site":
+    VgpRecs=pmag.get_dictitem(data,'vgp_lat','','F') # get all non-blank vgp latitudes
+    VgpRecs=pmag.get_dictitem(VgpRecs,'vgp_lon','','F') # get all non-blank vgp longitudes
+    SiteRecs=pmag.get_dictitem(VgpRecs,'data_type','i','T') # get VGPs (as opposed to averaged)
+    SiteRecs=pmag.get_dictitem(SiteRecs,coord_key,coord,'T') # get right coordinate system
+    for rec in SiteRecs:
             if anti==1:
-                if rec['vgp_lat'] !="" and rec[coord_key]==coord and 90.-abs(float(rec['vgp_lat']))<=cutoff and float(rec['average_k'])>=kappa: 
+                if 90.-abs(float(rec['vgp_lat']))<=cutoff and float(rec['average_k'])>=kappa: 
                     if float(rec['vgp_lat'])<0:
                         rec['vgp_lat']='%7.1f'%(-1*float(rec['vgp_lat']))
                         rec['vgp_lon']='%7.1f'%(float(rec['vgp_lon'])-180.)
                     Vgps.append(rec)
                     Pvgps.append([float(rec['vgp_lon']),float(rec['vgp_lat'])])
             elif rev==0: # exclude normals
-                if rec['vgp_lat'] !="" and rec[coord_key]==coord and 90.-(float(rec['vgp_lat']))<=cutoff and float(rec['average_k'])>=kappa: 
+                if 90.-(float(rec['vgp_lat']))<=cutoff and float(rec['average_k'])>=kappa: 
                     Vgps.append(rec)
                     Pvgps.append([float(rec['vgp_lon']),float(rec['vgp_lat'])])
-            else: # exclude normals
-                if rec['vgp_lat'] !="" and rec[coord_key]==coord and 90.-abs(float(rec['vgp_lat']))<=cutoff and float(rec['average_k'])>=kappa: 
+            else: # include normals
+                if 90.-abs(float(rec['vgp_lat']))<=cutoff and float(rec['average_k'])>=kappa: 
                     if float(rec['vgp_lat'])<0:
                         rec['vgp_lat']='%7.1f'%(-1*float(rec['vgp_lat']))
                         rec['vgp_lon']='%7.1f'%(float(rec['vgp_lon'])-180.)

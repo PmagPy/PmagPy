@@ -332,7 +332,7 @@ def main():
                              pmagplotlib.plot_init(ANIS['tcdf'],5,5)
                              inittcdf=1
                  bpars,hpars=pmagplotlib.plotANIS(ANIS,Ss,iboot,ihext,ivec,ipar,title,iplot,comp,vec,Dir)
-                 print 'you may have to click on the figure to refresh'
+                 pmagplotlib.drawFIGS(ANIS)
               if ans=="c":
                   print "Current Coordinate system is: "
                   if CS=='-1':print " Specimen"

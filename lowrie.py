@@ -18,7 +18,9 @@ def main():
         -h prints help message and quits
         -f FILE: specify input file
         -N do not normalize by maximum magnetization
+        -fmt [svg, pdf, eps, png] specify fmt, default is svg
     """
+    fmt='svg'
     FIG={} # plot dictionary
     FIG['lowrie']=1 # demag is figure 1
     pmagplotlib.plot_init(FIG['lowrie'],6,6)
@@ -74,9 +76,11 @@ def main():
         pmagplotlib.plotXY(FIG['lowrie'],Temps,abs(carts[2])/nrm,sym='k-')
         pmagplotlib.plotXY(FIG['lowrie'],Temps,abs(carts[2])/nrm,sym='k^',title=spc,xlab=xlab,ylab=ylab) # Z direction
         pmagplotlib.drawFIGS(FIG)
-        ans=raw_input('Save figure? y/[n]')
-        if ans=='y':
-            files={'lowrie':spc+'.pdf'}
+        ans=raw_input('S[a]ve figure? [q]uit, <return> to continue   ')
+        if ans=='a':
+            files={'lowrie':'lowrie:_'+spc+'_.'+fmt}
             pmagplotlib.saveP(FIG,files)
+        elif ans=='q':
+            sys.exit()
         pmagplotlib.clearFIG(FIG['lowrie'])
 main() 
