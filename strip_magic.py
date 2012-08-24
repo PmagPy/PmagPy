@@ -46,8 +46,8 @@ def main():
     Vadm_keys=['vadm']
     X_keys=[Age_keys,Depth_keys]
     Y_keys=[Dec_keys,Inc_keys,Int_keys,Chi_keys,VLat_keys,VLon_keys,Vdm_keys,Vadm_keys]
-    method,fmt="",'.svg'
-    FIG={'strat':1,'ts':2}
+    method,fmt="",'svg'
+    FIG={'strat':1}
     plotexp,pTS=0,0
     dir_path="./"
     if '-WD' in sys.argv: 
@@ -62,7 +62,7 @@ def main():
         res_file=dir_path+'/'+sys.argv[ind+1]
     if '-fmt' in sys.argv:
         ind=sys.argv.index('-fmt')
-        fmt='.'+sys.argv[ind+1]
+        fmt=sys.argv[ind+1]
     if '-obj' in sys.argv:
         ind=sys.argv.index('-obj')
         obj=sys.argv[ind+1]
@@ -261,17 +261,18 @@ def main():
         pmagplotlib.plotHs(FIG['strat'],[0],'b','-')
         pmagplotlib.plotHs(FIG['strat'],[-90,90],'g','-')
     if pTS==1: 
+        FIG['ts']=2
         pmagplotlib.plot_init(FIG['ts'],10,5)
         pmagplotlib.plotTS(FIG['ts'],[amin,amax],ts)
-    files,fmt={},'svg'
+    files={}
     for key in FIG.keys():
         files[key]=key+'.'+fmt 
     if pmagplotlib.isServer: 
         black     = '#000000'
         purple    = '#800080'
         files={}
-        files['strat']=xaxis+'_'+yaxis+'_'+fmt
-        files['ts']='ts'+fmt
+        files['strat']=xaxis+'_'+yaxis+'_.'+fmt
+        files['ts']='ts.'+fmt
         titles={}
         titles['strat']='Depth/Time Series Plot'
         titles['ts']='Time Series Plot'

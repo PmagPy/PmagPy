@@ -3212,16 +3212,13 @@ def gaussdev(mean,sigma):
 def get_unf(N):
 #
 # subroutine to retrieve N uniformly distributed directions
-#
-    di,xn,yn,zn=[],[],[],[]
+# using Fisher et al. (1987) way.
 #
 # get uniform direcctions (x,y,z)
-    for  n in range(N):
-        z=random.uniform(-1.,1.)
-        t=random.uniform(0.,360.)
-        i=numpy.arcsin(z)*180./numpy.pi
-        di.append([t,i])
-    return di
+    z=random.uniform(-1.,1.,size=N)
+    t=random.uniform(0.,360.,size=N)
+    i=numpy.arcsin(z)*180./numpy.pi
+    return numpy.array([t,i]).transpose()
 
 #def get_unf(N): #Jeff's way
 #    """

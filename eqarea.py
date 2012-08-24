@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-import sys,pmagplotlib
+import sys,pmagplotlib,numpy
 def main():
     """
     NAME
@@ -12,12 +12,11 @@ def main():
        takes dec/inc as first two columns in space delimited file
    
     SYNTAX
-       eqarea.py [-f FILE]
+       eqarea.py [options]
 
     OPTIONS
-        -i for interactive filename entry
-        -f FILE, specify file on command line
-        -p save figure and quit
+        -f FILE, specify file on command line 
+        -sav save figure and quit
         -fmt [svg,jpg,png,pdf] set figure format [default is svg]
         -s  SIZE specify symbol size - default is 20
         -Lsym  SHAPE  COLOR specify shape and color for lower hemisphere
@@ -34,7 +33,7 @@ def main():
     if '-h' in sys.argv: # check if help is needed
         print main.__doc__
         sys.exit() # graceful quit
-    if '-p' in sys.argv: plot=1
+    if '-sav' in sys.argv: plot=1
     if '-fmt'  in sys.argv:
         ind=sys.argv.index('-fmt')
         fmt=sys.argv[ind+1] 
@@ -51,24 +50,14 @@ def main():
         ind=sys.argv.index('-Usym')
         sym['upper'][0]=sys.argv[ind+1] 
         sym['upper'][1]=sys.argv[ind+2] 
-    if '-i' in sys.argv: # ask for filename
-        file=raw_input("Enter file name with dec, inc data: ")
-        f=open(file,'rU')
-        data=f.readlines()
-    elif '-f' in sys.argv: # ask for filename
+    if '-f' in sys.argv: # ask for filename
         ind=sys.argv.index('-f')
         file=sys.argv[ind+1]
-        f=open(file,'rU')
-        data=f.readlines()
-    DI= [] # set up list for dec inc data
-    for line in data:   # read in the data from standard input
-        if '\t' in line:
-            rec=line.split('\t') # split each line on space to get records
-        else:
-            rec=line.split() # split each line on space to get records
-        if len(rec)>1:
-            DI.append([float(rec[0]),float(rec[1])]) # append first two columns as DI pair
-#
+    else: 
+        print main.__doc__
+        print ' \n   -f option required'
+        sys.exit() # graceful quit
+    DI=numpy.loadtxt(file)
     EQ={'eq':1}
     pmagplotlib.plot_init(EQ['eq'],5,5)
     pmagplotlib.plotEQsym(EQ['eq'],DI,'Equal Area Plot',sym) # make plot

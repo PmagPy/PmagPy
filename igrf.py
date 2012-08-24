@@ -7,13 +7,11 @@ def main():
         igrf.py
 
     DESCRIPTION
-        This program calculates igrf field values for years >1945 
+        This program calculates igrf field values 
     using the routine of Malin and  Barraclough (1981) 
-    based on dgrfs from 1945 to 1990, 1995 and igrf 2005.
+    based on d/igrfs from 1900 to 2010.
+    Prior to 1900, it uses CALS3K.1b and prior to 2000BCE, it uses CALS10k-4b
     Calculates reference field vector at  specified location and time.
-    Uses appropriate IGRF or DGRF for date > 1945.
-    For dates prior to 1945, the GUFM1 coefficients of Jackson et al. (2000) 
-    are used.
 
   
     SYNTAX

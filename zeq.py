@@ -6,7 +6,11 @@ def main():
        zeq.py
   
     DESCRIPTION
-       plots demagnetization data.
+       plots demagnetization data. The equal area projection has the X direction (usually North in geographic coordinates)
+          to the top.  The red line is the X axis of the Zijderveld diagram.  Solid symbols are lower hemisphere. 
+          The solid (open) symbols in the Zijderveld diagram are X,Y (X,Z) pairs.  The demagnetization diagram plots the
+          fractional remanence remaining after each step. The green line is the fraction of the total remaence removed 
+          between each step.  
 
     INPUT FORMAT
        takes specimen_name treatment intensity declination inclination  in space

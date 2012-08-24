@@ -383,13 +383,17 @@ def main():
             spec+=1
     pmag_file=dir_path+'/'+pmag_file
     pmag.magic_write(pmag_file,PmagSpecs,'pmag_specimens')
+    print 'uncorrected thellier data saved in: ',pmag_file
     if anis==1 and len(AniSpecRecs)>0:
         anisout=dir_path+'/'+anisout
         pmag.magic_write(anisout,AniSpecRecs,'pmag_specimens')
+        print 'anisotropy corrected data saved in: ',anisout
     if nltrm==1 and len(NltSpecRecs)>0:
         nltout=dir_path+'/'+nltout
         pmag.magic_write(nltout,NltSpecRecs,'pmag_specimens')
+        print 'non-linear TRM corrected data saved in: ',nltout
     if crfrac!=0:
         crout=dir_path+'/'+crout
         pmag.magic_write(crout,CRSpecs,'pmag_specimens')
+        print 'cooling rate corrected data saved in: ',crout
 main()

@@ -17,6 +17,7 @@ def main():
         -eye  ELAT ELON [specify eyeball location], default is 90., 0.
         -f FILE pmag_results format file, [default is pmag_results.txt] 
         -res [c,l,i,h] specify resolution (crude, low, intermediate, high]
+        -etp plot the etopo20 topographpy data (requires high resolution data set)
         -prj PROJ,  specify one of the following:
              ortho = orthographic
              lcc = lambert conformal
@@ -31,6 +32,7 @@ def main():
         -S:  plot antipodes of all poles
         -age : plot the ages next to the poles
         -crd [g,t] : choose coordinate system, default is to plot all site VGPs
+        -fmt [pdf, png, eps...] specify output format, default is pdf
     
     DEFAULTS
         FILE: pmag_results.txt
@@ -51,6 +53,7 @@ def main():
     sym,size='ro',8
     rsym,rsize='g^',8
     anti=0
+    fancy=0
     coord=""
     if '-WD' in sys.argv:
         ind = sys.argv.index('-WD')
@@ -59,9 +62,13 @@ def main():
         print main.__doc__
         sys.exit()
     if '-S' in sys.argv:anti=1
+    if '-fmt' in sys.argv:
+        ind = sys.argv.index('-fmt')
+        fmt=sys.argv[ind+1]
     if '-res' in sys.argv:
         ind = sys.argv.index('-res')
         res=sys.argv[ind+1]
+    if '-etp' in sys.argv:fancy=1
     if '-prj' in sys.argv:
         ind = sys.argv.index('-prj')
         proj=sys.argv[ind+1]
@@ -99,13 +106,11 @@ def main():
     lats,lons,dp,dm,a95=[],[],[],[],[]
     Pars=[]
     dates,rlats,rlons=[],[],[]
-    Results=[]
-    for rec in data:
-        if 'pmag_result_name' in rec.keys() and 'Site' in rec['pmag_result_name']:
-            if coord=="" or rec['tilt_correction']==coord:Results.append(rec)
-        elif coord=="" or rec['tilt_correction']==coord:Results.append(rec)
+    Results=pmag.get_dictitem(data,'data_type','i','T') # get all site level data
+    Results=pmag.get_dictitem(Results,'vgp_lat','','F') # get all non-blank latitudes
+    Results=pmag.get_dictitem(Results,'vgp_lon','','F') # get all non-blank longitudes
+    if coord!="":Results=pmag.get_dictitem(Results,'tilt_correction',coord,'T') # get specified coordinate system
     for rec in Results:
-        if 'vgp_lat' in rec.keys() and rec['vgp_lat']!="" and  'vgp_lon' in rec.keys() and rec['vgp_lon']!="":
             if 'average_age' in rec.keys() and rec['average_age']!="" and ages==1:
                 dates.append(rec['average_age'])
             lat=float(rec['vgp_lat'])
@@ -147,9 +152,8 @@ def main():
                 ppars.append(0.)
                 Pars.append(ppars)
     Opts={'latmin':-90,'latmax':90,'lonmin':0.,'lonmax':360.,'lat_0':lat_0,'lon_0':lon_0,'proj':proj,'sym':'bs','symsize':3,'pltgrid':0,'res':res,'boundinglat':0.}
-    Opts['details']={'coasts':1,'rivers':0, 'states':0, 'countries':0,'ocean':1}
+    Opts['details']={'coasts':1,'rivers':0, 'states':0, 'countries':0,'ocean':1,'fancy':fancy}
     pmagplotlib.plotMAP(FIG['map'],[90.],[0.],Opts) # make the base map with a blue triangle at the pole`
-    Opts['details']={'coasts':0,'rivers':0, 'states':0, 'countries':0,'ocean':0}
     Opts['pltgrid']=-1
     Opts['sym']=sym
     Opts['symsize']=size
