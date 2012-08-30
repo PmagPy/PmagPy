@@ -19,6 +19,7 @@ def main():
         -f FILE: specify input rmag_anisotropy format file from magic
         -fb FILE: specify input magic_measurements format file from magic
         -fsa FILE: specify input er_samples format file from magic 
+        -fa FILE: specify input er_ages format file from magic 
         -d min max [in m] depth range to plot
         -ds [mcd,mbsf], specify depth scale, default is mbsf
         -sav save plot without review
@@ -33,6 +34,7 @@ def main():
     pcol=3
     verbose=pmagplotlib.verbose
     plots=0
+    age_file=""
     if '-WD' in sys.argv: 
         ind=sys.argv.index('-WD')
         dir_path=sys.argv[ind+1]
@@ -51,6 +53,13 @@ def main():
     if '-fsa' in sys.argv:
         ind=sys.argv.index('-fsa')
         samp_file=dir_path+'/'+sys.argv[ind+1]
+        if '-fa' in sys.argv:
+            print main.__doc__
+            print 'only -fsa OR -fa - not both'
+            sys.exit()
+    elif '-fa' in sys.argv:
+        ind=sys.argv.index('-fa')
+        age_file=dir_path+"/"+sys.argv[ind+1]
     if '-fmt' in sys.argv:
         ind=sys.argv.index('-fmt')
         fmt='.'+sys.argv[ind+1]
@@ -61,8 +70,10 @@ def main():
         dmax=float(sys.argv[ind+2])
     if '-ds' in sys.argv and 'mcd' in sys.argv: # sets depth scale to meters composite depth (as opposed to meters below sea floor)
         depth_scale='sample_composite_depth'
-    else:
+    elif age_file=="":
         depth_scale='sample_core_depth'
+    else:
+        depth_scale='age'
     if '-sav' in sys.argv:
         plots=1
         verbose=0
@@ -70,7 +81,11 @@ def main():
     # get data read in
     isbulk=0 # tests if there are bulk susceptibility measurements
     AniData,file_type=pmag.magic_read(ani_file)  # read in tensor elements
-    Samps,file_type=pmag.magic_read(samp_file)  # read in sample depth info from er_sample.txt format file
+    if age_file=="":
+        Samps,file_type=pmag.magic_read(samp_file)  # read in sample depth info from er_sample.txt format file
+    else:
+        Samps,file_type=pmag.magic_read(age_file)  # read in sample age info from er_ages.txt format file
+        age_unit=Samps[0]['age_unit']
     for s in Samps:s['er_sample_name']=s['er_sample_name'].upper() # change to upper case for every sample name
     Meas,file_type=pmag.magic_read(meas_file) 
     if file_type=='magic_measurements':isbulk=1
@@ -144,6 +159,8 @@ def main():
         ax.set_xlabel('Eigenvalues')
         if depth_scale=='sample_core_depth':
             ax.set_ylabel('Depth (mbsf)')
+        elif depth_scale=='age':
+            ax.set_ylabel('Age ('+age_unit+')')
         else:
             ax.set_ylabel('Depth (mcd)')
         ax2=pylab.subplot(1,pcol,2) # make the second column

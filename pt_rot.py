@@ -14,19 +14,20 @@ def main():
 
     OPTIONS
         -h prints help and quits
-        -f file with lat lon plate age Dplate as space delimited input
+        -f file with lon lat plate age Dplate as space delimited input
            Dplate is the destination plate coordinates desires 
            - default is "fixed south africa"
-           Dplate should be one of: [af, aus, eur, ind, sam, ant, grn, nam]
+           Dplate should be one of: [nwaf, neaf,saf,aus, eur, ind, sam, ant, grn, nam]
         -ff file Efile,   file  has lat lon data file and Efile has sequential rotation poles: Elat Elon Omega 
-        -F OFILE, output pmag_results formatted file, default -
-           prints out rotated lat, lon
+        -F OFILE, output pmag_results formatted file with rotated points stored in vgp_lon, vgp_lat
+           default is to print out rotated lon, lat to standard output
     
     """
     dir_path='.'
     PTS=[]
     ResRecs=[]
     ofile=""
+    Dplates=['nwaf', 'neaf','saf','aus', 'eur', 'ind', 'sam', 'ant', 'grn', 'nam']
     if '-WD' in sys.argv:
         ind = sys.argv.index('-WD')
         dir_path=sys.argv[ind+1]
@@ -59,16 +60,16 @@ def main():
     for line in data:
         PtRec={}
         rec=line.split()
-        PtRec['site_lat']=rec[0]
-        PtRec['site_lon']=rec[1]
+        PtRec['site_lat']=rec[1]
+        PtRec['site_lon']=rec[0]
         if '-ff' in sys.argv:
-            pt_lat,pt_lon=float(rec[0]),float(rec[1])
+            pt_lat,pt_lon=float(rec[1]),float(rec[0])
             for pole in Poles:
                 ptrot= pmag.PTrot(pole,[pt_lat],[pt_lon])
                 pt_lat=ptrot[0][0]
                 pt_lon=ptrot[1][0]
             if ofile=="":
-                print ptrot[0][0], ptrot[1][0]
+                print ptrot[1][0], ptrot[0][0]
             else:
                 ResRec={'vgp_lat': '%7.1f'%(ptrot[0][0]),'vgp_lon':'%7.1f'%( ptrot[1][0])}
                 ResRecs.append(ResRec)
@@ -102,7 +103,7 @@ def main():
                     pole[2]=-pole[2] 
                     ptrot= pmag.PTrot(pole,[pt_lat],[pt_lon])
                 if ofile=="":
-                    print ptrot[0][0], ptrot[1][0]
+                    print ptrot[1][0], ptrot[0][0]
                 else:
                     ResRec={'vgp_lat': '%7.1f'%(ptrot[0][0]),'vgp_lon':'%7.1f'%( ptrot[1][0])}
                     ResRecs.append(ResRec)
@@ -112,13 +113,13 @@ def main():
                     pole[2]=-pole[2] 
                     ptrot= pmag.PTrot(pole,[pt_lat],[pt_lon])
                     if ofile=="":
-                        print ptrot[0][0], ptrot[1][0]
+                        print ptrot[1][0], ptrot[0][0]
                     else:
                         ResRec={'vgp_lat': '%7.1f'%(ptrot[0][0]),'vgp_lon':'%7.1f'%( ptrot[1][0])}
                         ResRecs.append(ResRec)
                 else:
                     if ofile=="":
-                        print ptrot[0][0], ptrot[1][0]
+                        print ptrot[1][0], ptrot[0][0]
                     else:
                         ResRec={'vgp_lat': '%7.1f'%(ptrot[0][0]),'vgp_lon':'%7.1f'%( ptrot[1][0])}
                         ResRecs.append(ResRec)

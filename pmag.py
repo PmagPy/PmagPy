@@ -3,7 +3,7 @@ from numpy import random
 import numpy.linalg
 import exceptions
 def get_version(): 
-    return "pmagpy-2.132"
+    return "pmagpy-2.134"
 def sort_diclist(undecorated,sort_on):
     decorated=[(dict_[sort_on],dict_) for dict_ in undecorated]
     decorated.sort()

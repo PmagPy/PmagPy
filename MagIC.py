@@ -2327,11 +2327,13 @@ def set_out(question=""):
         opath= tkFileDialog.askdirectory()
 #        print opath,' has been set'
 
-def help_magic():
-    """
-    Help string
-    """
-    print help_magic.__doc__
+def help_magic(helpme):
+    pass
+#    import webbrowser
+#    if helpme=="MagIC":
+#        webbrowser.open("http://earthref.org/MAGIC/help:txt")
+#    else:
+#        webbrowser.open("http://magician.ucsd.edu/Software/PmagPy/Docs/PmagPy.html#"+helpme)
 
 
 def exit():
@@ -3049,7 +3051,9 @@ def create_menus():
     menubar.add_cascade(label="Utilities",menu=utilitymenu)
 #    helpmenu=Menu(menubar)
 #    menubar.add_cascade(label="Help",menu=helpmenu)
-#    helpmenu.add_command(label="About MagIC",command=help_magic)
+#    helpmenu.add_command(label="PmagPy help documents",command=help_magic('PmagPy'))
+#    helpmenu.add_command(label="MagIC.py help documents",command=help_magic('MagIC.py'))
+#    helpmenu.add_command(label="MagIC database help",command=help_magic('MagIC'))
     root.config(menu=menubar)
 
 
@@ -3058,6 +3062,7 @@ def create_menus():
 ###
 global Result,OrResult,user,ApwpResult,NCN_types,OCN_types,MCD_types
 user=""
+helpme=""
 root=Tk()
 root.title("MagIC-Py GUI")
 #####
