@@ -4,6 +4,8 @@ import numpy.linalg
 import exceptions
 import os
 import check_updates
+def dummy():
+    pass
 def get_version():
     version=check_updates.get_version()
     return version
