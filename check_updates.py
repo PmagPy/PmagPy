@@ -3,6 +3,7 @@ import sys
 import time
 import urllib2
 import pickle
+from Tkinter import *
 
 def get_version():
     global pmagpy_path,local_path
@@ -67,8 +68,11 @@ def main():
     
     # Warn the user if their local PmagPy installation is out of date
     if local_version != remote_version:
-        from Tkinter import *
-        import tkMessageBox
-        tkMessageBox.showinfo("Your local installation of PmagPy is out of date. Please download the latest version (https://github.com/ltauxe/PmagPy/zipball/master).")
+        root=Tk()
+        root.title("Message from PmagPy")
+        frame=Frame(root)
+        l=Label(frame,text="Your local installation of PmagPy is out of date. \n You can download the latest version at \n https://github.com/ltauxe/PmagPy/zipball/master")
+    l.pack(side.TOP)
+    root.wait_window(frame)
 
 main()
