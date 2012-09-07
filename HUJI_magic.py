@@ -236,7 +236,7 @@ def main():
                     MagRec["er_sample_name"]=rec[0][:specnum]
                 else:
                     MagRec["er_sample_name"]=rec[0]
-                if samp_con!='8':
+                if int(samp_con)!=6:
                     site=pmag.parse_site(MagRec['er_sample_name'],samp_con,Z)
                     MagRec["er_site_name"]=site
                     MagRec["er_location_name"]=er_location_name

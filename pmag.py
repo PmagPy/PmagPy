@@ -2,8 +2,11 @@ import  numpy,string,sys
 from numpy import random
 import numpy.linalg
 import exceptions
-def get_version(): 
-    return "pmagpy-2.134"
+import os
+import check_updates
+def get_version():
+    version=check_updates.get_version()
+    return version
 def sort_diclist(undecorated,sort_on):
     decorated=[(dict_[sort_on],dict_) for dict_ in undecorated]
     decorated.sort()
@@ -5048,6 +5051,7 @@ def measurements_methods(meas_data,noave):
                         measnum+=1
                     else:
                         rec["magic_method_codes"]=rec["magic_method_codes"]+":"+experiment_name
+                        rec["magic_method_codes"]=rec["magic_method_codes"].strip(':')
                         rec['measurement_number']='%i'%(measnum)  # assign measurement numbers
                         measnum+=1
                         rec["magic_experiment_name"]=spec+":"+experiment_name

@@ -6,7 +6,7 @@ def main():
         DIR_redo.py
 
     DESCRIPTION
-        converts the Enkin DIR format to PmagPy redo file
+        converts the Cogne DIR format to PmagPy redo file
 
     SYNTAX 
         DIR_redo.py [-h] [command line options]

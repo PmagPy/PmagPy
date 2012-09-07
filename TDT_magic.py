@@ -49,7 +49,7 @@ def main():
                 XXX.13 (or .3) second zero-field step after infield (pTRM check step)
                        XXX.13 MUST be done in this order [XXX.00, XXX.11 [optional XXX.12] XXX.13]
          
-         Intensity assumed to be total moment in 10^3 Am^2 (emu)
+         Intensity assumed to be magnetization in mA/m
          Declination:  Declination in specimen coordinate system
          Inclination:  Declination in specimen coordinate system
 
@@ -68,12 +68,8 @@ def main():
 #
 # get command line arguments
 #
-    dir_path='.'
     meas_file,samp_file="magic_measurements.txt","er_samples.txt"
     user=""
-    if "-WD" in args:
-        ind=args.index("-WD")
-        dir_path=args[ind+1]
     if "-h" in args:
         print main.__doc__
         sys.exit()
@@ -82,10 +78,10 @@ def main():
         user=args[ind+1]
     if '-F' in args:
         ind=args.index("-F")
-        meas_file=dir_path+'/'+args[ind+1]
+        meas_file=args[ind+1]
     if '-f' in args:
         ind=args.index("-f")
-        magfile=dir_path+'/'+args[ind+1]
+        magfile=args[ind+1]
         try:
             input=open(magfile,'rU')
         except:
@@ -177,7 +173,7 @@ def main():
                 if treat[1][-1]=='3':
                     MagRec["treatment_dc_field"]='0'  # this is a zero field step
                     meas_type="LT-PTRM-MD" # pTRM tail check
-            MagRec["measurement_magn_moment"]='%10.3e'% (float(rec[2])*1e-3) # moment in Am^2 (from emu)
+            MagRec["measurement_magn_volume"]='%10.3e'% (float(rec[2])*1e-3) # magnetization in Am^2 (from mA/m)
             MagRec["measurement_dec"]=rec[3]
             MagRec["measurement_inc"]=rec[4]
             MagRec["er_analyst_mail_names"]=user

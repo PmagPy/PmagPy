@@ -21,6 +21,7 @@ def main():
         -loc LOCNAME : specify location/study name
         -A: don't average replicate measurements
         -ncn NCON: specify naming convention
+        -mcd [SO-MAG,SO-SUN,SO-SIGHT...] supply how these samples were oriented
        Sample naming convention:
             [1] XXXXY: where XXXX is an arbitrary length site designation and Y
                 is the single character sample designation.  e.g., TG001a is the
@@ -39,7 +40,7 @@ def main():
     """
 # initialize some stuff
     noave=0
-    methcode,inst="",""
+    inst=""
     samp_con,Z='1',""
     missing=1
     demag="N"
@@ -113,6 +114,9 @@ def main():
         ind=args.index("-loc")
         er_location_name=args[ind+1]
     if "-A" in args: noave=1
+    if "-mcd" in args: 
+        ind=args.index("-mcd")
+        meth_code=args[ind+1]
     data=open(mag_file,'rU').readlines() # read in data from file
     comment=data[0]
     line=data[1].strip()
@@ -150,6 +154,7 @@ def main():
     vol=rec[v_ind][:-3]
     date=rec[-2]
     time=rec[-1]
+    ErSampRec['magic_method_codes']=meth_code
     if 'er_location_name' not in ErSampRec.keys():ErSampRec['er_location_name']=er_location_name
     if 'er_site_name' not in ErSampRec.keys():ErSampRec['er_site_name']=er_site_name
     if 'er_citation_names' not in ErSampRec.keys():ErSampRec['er_citation_names']='This study'

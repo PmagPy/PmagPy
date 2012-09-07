@@ -6,7 +6,7 @@ def main():
         CIT_magic.py
  
     DESCRIPTION
-        converts CalTech (CIT) .sam  format files to magic_measurements format files
+        converts CIT and .sam  format files to magic_measurements format files
 
     SYNTAX
         CIT_magic.py [command line options]
@@ -23,6 +23,7 @@ def main():
         -spc NUM : specify number of characters to designate a  specimen, default = 0
         -ncn NCON: specify naming convention
         -loc LOCNAME : specify location/study name, must have either LOCNAME or SITEFILE or be a synthetic
+        -mcd [FS-FD:SO-MAG,.....] colon delimited list for method codes applied to all specimens in .sam file
         -dc B PHI THETA: dc lab field (in micro tesla) and phi,theta, default is none
               NB: use PHI, THETA = -1 -1 to signal that it changes, i.e. in anisotropy experiment
         -ac B : peak AF field (in mT) for ARM acquisition, default is none
@@ -31,19 +32,15 @@ def main():
         Best to put separate experiments (all AF, thermal, thellier, trm aquisition, Shaw, etc.) 
 
     NOTES:
- 
-       Sample naming convention:
+         Sample naming convention:
             [1] XXXXY: where XXXX is an arbitrary length site designation and Y
                 is the single character sample designation.  e.g., TG001a is the
                 first sample from site TG001.    [default]
             [2] XXXX-YY: YY sample from site XXXX (XXX, YY of arbitary length)
-            [3] XXXX.YY: YY sample from site XXXX (XXX, YY of arbitary length)
-            [4-Z] XXXX[YYY]:  YYY is sample designation with Z characters from site XXX
-            [5] site name same as sample
-            [6] site is entered under a separate column
-            [7-Z] [XXXX]YYY:  XXXX is site designation with Z characters with sample name XXXXYYYY
-            NB: all others you will have to customize your self
-                 or e-mail ltauxe@ucsd.edu for help.
+            [3] XXXX.YY: YY sample from site XXXX (XXX, YY of arbitary length) [default]
+            [4-Z] XXXXYYY:  YYY is sample designation with Z characters from site XXX
+            [5] all others you will have to either customize your
+                self or e-mail ltauxe@ucsd.edu for help.
  
     """
 #        
@@ -81,6 +78,11 @@ def main():
     if '-loc' in args:
         ind=args.index("-loc")
         locname=args[ind+1]
+    if '-mcd' in args:
+        ind=args.index("-mcd")
+        methods=args[ind+1]
+    else:
+        methods='SO-MAG'
     if '-spc' in args:
         ind=args.index("-spc")
         specnum=-int(args[ind+1])
@@ -92,18 +94,11 @@ def main():
         samp_con=sys.argv[ind+1]
         if "4" in samp_con:
             if "-" not in samp_con:
-                print "option [4] must be in form 4-Z where Z is an integer"
+                print "option [4] must be in form 3-Z where Z is an integer"
                 sys.exit()
             else: 
                 Z=samp_con.split("-")[1]
                 samp_con="4"
-        if "7" in samp_con:
-            if "-" not in samp_con:
-                print "option [7] must be in form 7-Z where Z is an integer"
-                sys.exit()
-            else:
-                Z=samp_con.split("-")[1]
-                samp_con="7"
     if '-f' in args:
         ind=args.index("-f")
         magfile=args[ind+1]
@@ -141,35 +136,6 @@ def main():
         ErLocRec["location_end_lon"]=site_lon
         ErLocs.append(ErLocRec)
         Cdec=float(line[2])
-        if len(line)>4:
-            fa_az=line[3]
-            fa_pl=line[4]
-        if len(line)>6:
-            bed_dip_dir='%7.1f'%(float(line[5]+90.))
-            bed_dip=line[6]
-        for k in range(ln+1,len(File)):
-            line=File[k]
-            rec=line.split()
-            specimen=rec[0]
-            specimens.append(specimen)
-    else:
-        print 'file type not yet supported'
-        sys.exit()
-    for specimen in specimens:
-        ErSpecRec,ErSampRec,ErSiteRec={},{},{}
-        if specnum!=0:
-            sample=specimen[:specnum]
-        else: sample=specimen
-        site=pmag.parse_site(sample,samp_con,Z)
-        ErSpecRec['er_specimen_name']=specimen
-        ErSpecRec['er_sample_name']=sample
-        ErSpecRec['er_site_name']=site
-        ErSpecRec['er_location_name']=locname
-        ErSpecRec['er_citation_name']=citation
-        ErSampRec['er_sample_name']=sample
-        ErSampRec['er_site_name']=site
-        ErSampRec['er_location_name']=locname
-        ErSampRec['er_citation_name']=citation
         for k in range(ln+1,len(File)):
             line=File[k]
             rec=line.split()
@@ -190,6 +156,8 @@ def main():
         ErSampRec['er_site_name']=site
         ErSampRec['er_location_name']=locname
         ErSampRec['er_citation_name']=citation
+        ErSampRec['magic_method_codes']=methods
+        ErSampRec['sample_declination_correction']='%7.1f'%(Cdec)
         ErSiteRec['er_site_name']=site
         ErSiteRec['er_location_name']=locname
         ErSiteRec['er_citation_name']=citation
@@ -197,7 +165,8 @@ def main():
         ErSiteRec['site_lon']=site_lon
         f=open(dir_path+'/'+specimen,'rU')
         Lines=f.readlines()
-        comment=Lines[0][10:]
+        comment=""
+        line=Lines[0].split()
         if len(line)>2:comment=line[2]
         info=Lines[1].split()
         vol=float(info[-1])
@@ -262,13 +231,15 @@ def main():
                 print "trouble with your treatment steps"
             MeasRec['measurement_dec']=line[46:51]
             MeasRec['measurement_inc']=line[52:58]
-            int='%8.2e'%(float(line[31:39])*vol*1e-3) # convert to Am2
-            MeasRec['measurement_magn_moment']=int
+            M='%8.2e'%(float(line[31:39])*vol*1e-3) # convert to Am2
+            MeasRec['measurement_magn_moment']=M
             MeasRec['measurement_x_sd']='%8.2e'%(float(line[58:67])*1e-8) #(convert e-5emu to Am2)
             MeasRec['measurement_y_sd']='%8.2e'%(float(line[67:76])*1e-8)
             MeasRec['measurement_z_sd']='%8.2e'%(float(line[76:85])*1e-8)
             MeasRec['measurement_csd']='%7.1f'%(eval(line[41:46]))
             MeasRec['magic_instrument_codes']=line[85:]
+            MeasRec["measurement_positions"]='1'
+
             MeasRecs.append(MeasRec)
         ErSpecs.append(ErSpecRec)
         if sample not in samples:

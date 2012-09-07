@@ -400,11 +400,13 @@ def main():
                     else:
                         MagRec["er_sample_name"]=rec[0]
                     if "-fsa" in args:
-                        for samp in Samps:
-                            if samp["er_sample_name"] == MagRec["er_sample_name"]: 
-                                MagRec["er_location_name"]=samp["er_location_name"]
-                                MagRec["er_site_name"]=samp["er_site_name"]
-                                break
+                        samp=pmag.get_dictitem(Samps,'er_sample_name',MagRec['er_sample_name'],'T')
+                        if len(samp)>0:
+                            MagRec["er_location_name"]=samp[0]["er_location_name"]
+                            MagRec["er_site_name"]=samp[0]["er_site_name"]
+                        else: 
+                            MagRec['er_location_name']=''
+                            MagRec["er_site_name"]=''
                     elif int(samp_con)!=6:
                         site=pmag.parse_site(MagRec['er_sample_name'],samp_con,Z)
                         MagRec["er_site_name"]=site
@@ -532,7 +534,7 @@ def main():
                 MagRec["er_analyst_mail_names"]=user
                 MagRec["er_citation_names"]=citation
                 if methcode=="LP-IRM-3D": meas_type=methcode
-                MagRec["magic_method_codes"]=methcode
+                MagRec["magic_method_codes"]=methcode.strip(':')
                 MagRec["measurement_flag"]='g'
                 MagRec["er_specimen_name"]=rec[0]
                 if 'std' in rec[0]:

@@ -131,6 +131,7 @@ is the percent cooling rate factor to apply to specimens from this sample, DA-CR
     site_file=dir_path+"/er_sites.txt"
     image_file=dir_path+"/er_images.txt"
     SampRecs,SiteRecs,ImageRecs=[],[],[]
+    sample_description=""
     if "-h" in args:
         print main.__doc__
         sys.exit()
@@ -168,6 +169,7 @@ is the percent cooling rate factor to apply to specimens from this sample, DA-CR
         corr=sys.argv[ind+1] 
         if corr=="2":
             DecCorr=float(sys.argv[ind+2])
+            sample_description="Declination correction supplied by user"
         elif corr=="3":
             DecCorr=0.
     if '-BCN' in args:
@@ -211,9 +213,7 @@ is the percent cooling rate factor to apply to specimens from this sample, DA-CR
         if OrRec['mag_azimuth']==" ":OrRec["mag_azimuth"]=""
         if OrRec['field_dip']==" ":OrRec["field_dip"]=""
         if 'sample_description' in OrRec.keys():
-            sample_description=OrRec['sample_description']
-        else:
-            sample_description=""
+            sample_description=OrRec['sample_description']+", "+sample_description
         if 'sample_igsn' in OrRec.keys():
             sample_igsn=OrRec['sample_igsn']
         else:
@@ -239,7 +239,6 @@ is the percent cooling rate factor to apply to specimens from this sample, DA-CR
         if 'sample_orientation_flag' in OrRec.keys():
             if OrRec['sample_orientation_flag']=='b' or OrRec["mag_azimuth"]=="": 
                 sample_orientation_flag='b'
-                if "sample_description" in OrRec.keys():sample_description=OrRec['sample_description']
         methcodes=meths  # initialize method codes
         if meths!='':
             if 'method_codes' in OrRec.keys() and OrRec['method_codes'].strip()!="":methcodes=methcodes+":"+OrRec['method_codes'] # add notes 
@@ -250,7 +249,6 @@ is the percent cooling rate factor to apply to specimens from this sample, DA-CR
         MagRec["er_location_name"]=location_name
         MagRec["er_citation_names"]="This study"
         MagRec['sample_orientation_flag']=sample_orientation_flag
-        MagRec['sample_description']=sample_description
         MagRec['sample_igsn']=sample_igsn
         MagRec['sample_texture']=sample_texture
         MagRec['sample_cooling_rate']=sample_cooling_rate
@@ -272,7 +270,7 @@ is the percent cooling rate factor to apply to specimens from this sample, DA-CR
             if labaz<0:labaz+=360.
         else:
             labaz,labdip="",""
-        if "GPS_baseline" in OrRec.keys():newbaseline=OrRec["GPS_baseline"]
+        if "GPS_baseline" in OrRec.keys() and OrRec['GPS_baseline']!="":newbaseline=OrRec["GPS_baseline"]
         if newbaseline!="":baseline=float(newbaseline)
         if 'participants' in OrRec.keys() and OrRec['participants']!="" and OrRec['participants']!=participantlist: 
             participantlist=OrRec['participants']
@@ -340,6 +338,7 @@ is the percent cooling rate factor to apply to specimens from this sample, DA-CR
             x,y,z,f=pmag.doigrf(lon,lat,0,decimal_year)
             Dir=pmag.cart2dir( (x,y,z)) 
             DecCorr=Dir[0]
+            sample_description=sample_description+' -Declination correction from IGRF at site'
         if "bedding_dip" in OrRec.keys(): 
             if OrRec["bedding_dip"]!="":
                 MagRec["sample_bed_dip"]=OrRec["bedding_dip"]
@@ -361,6 +360,7 @@ is the percent cooling rate factor to apply to specimens from this sample, DA-CR
             MagRec["sample_declination_correction"]=''
             methcodes=methcodes+':SO-NO'
         MagRec["magic_method_codes"]=methcodes
+        MagRec['sample_description']=sample_description
     #
     # work on the site stuff too
         if int(samp_con) !=6:
@@ -422,6 +422,9 @@ is the percent cooling rate factor to apply to specimens from this sample, DA-CR
             SiteOuts.append(SiteRec)
         if sample not in samplelist:
             samplelist.append(sample)
+            if MagRec['sample_azimuth']!="": # assume magnetic compass only
+                MagRec['magic_method_codes']=MagRec['magic_method_codes']+':SO-MAG'
+                MagRec['magic_method_codes']=MagRec['magic_method_codes'].strip(":")
             SampOuts.append(MagRec)
             if MagRec['sample_azimuth']!="" and corr!='3':
                 az=labaz+DecCorr
@@ -466,7 +469,7 @@ is the percent cooling rate factor to apply to specimens from this sample, DA-CR
                 for key in MagRec.keys():
                     SunRec[key]=MagRec[key]  # make a copy of MagRec
                 SunRec["sample_azimuth"]='%7.1f'%(sundec) 
-                SunRec["sample_declination_correction"]='0'
+                SunRec["sample_declination_correction"]=''
                 SunRec["magic_method_codes"]=methcodes+':SO-SUN'
                 SampOuts.append(SunRec)
     #
@@ -478,7 +481,7 @@ is the percent cooling rate factor to apply to specimens from this sample, DA-CR
                     GPSRec[key]=MagRec[key]  # make a copy of MagRec
                 prism_angle=float(OrRec["prism_angle"])
                 laser_angle=float(OrRec["laser_angle"])
-                baseline=float(OrRec["baseline"])
+                if OrRec["GPS_baseline"]!="": baseline=float(OrRec["GPS_baseline"]) # new baseline
                 gps_dec=baseline+laser_angle+prism_angle-90.
                 while gps_dec>360.:
                     gps_dec=gps_dec-360.
@@ -487,7 +490,7 @@ is the percent cooling rate factor to apply to specimens from this sample, DA-CR
                 for key in MagRec.keys():
                     GPSRec[key]=MagRec[key]  # make a copy of MagRec
                 GPSRec["sample_azimuth"]='%7.1f'%(gps_dec) 
-                GPSRec["sample_declination_correction"]='0'
+                GPSRec["sample_declination_correction"]=''
                 GPSRec["magic_method_codes"]=methcodes+':SO-GPS-DIFF'
                 SampOuts.append(GPSRec)
             if "GPS_Az" in OrRec.keys() and OrRec["GPS_Az"]!="":  # there are differential GPS Azimuth data   
@@ -495,7 +498,7 @@ is the percent cooling rate factor to apply to specimens from this sample, DA-CR
                 for key in MagRec.keys():
                     GPSRec[key]=MagRec[key]  # make a copy of MagRec
                 GPSRec["sample_azimuth"]='%7.1f'%(float(OrRec["GPS_Az"])) 
-                GPSRec["sample_declination_correction"]='0'
+                GPSRec["sample_declination_correction"]=''
                 GPSRec["magic_method_codes"]=methcodes+':SO-GPS-DIFF'
                 SampOuts.append(GPSRec)
         if average_bedding!="0":  
@@ -510,13 +513,13 @@ is the percent cooling rate factor to apply to specimens from this sample, DA-CR
         else:
             Samps.append(rec)
     for rec in SampRecs:
-        if rec['er_sample_name'] not in samplelist: # inherit prior record
+        if rec['er_sample_name'] not in samplelist: # overwrite prior for this sample 
             Samps.append(rec)
     for rec in SiteRecs:
-        if rec['er_site_name'] not in sitelist: # inherit prior record
+        if rec['er_site_name'] not in sitelist: # overwrite prior for this sample
             SiteOuts.append(rec)
     for rec in ImageRecs:
-        if rec['er_image_name'] not in imagelist: # inherit prior record
+        if rec['er_image_name'] not in imagelist: # overwrite prior for this sample
             ImageOuts.append(rec)
     print 'saving data...'
     SampsOut,keys=pmag.fillkeys(Samps)

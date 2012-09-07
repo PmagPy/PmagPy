@@ -34,7 +34,6 @@ def main():
     if "CSF-B Top (m)" in keys:
         comp_depth_key="CSF-B Top (m)"
     else: comp_depth_key=""
-    print 'comp_depth_key=',comp_depth_key
     if "Top Depth (m)" in keys:  # incorporate changes to LIMS data model, while maintaining backward compatibility
         depth_key="Top Depth (m)"
     elif "CSF-A Top (m)" in keys:

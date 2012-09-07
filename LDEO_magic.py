@@ -53,58 +53,30 @@ def main():
                  or e-mail ltauxe@ucsd.edu for help.
  
             [8] synthetic - has no site name
-            [9] ODP naming convention 
     INPUT
         Best to put separate experiments (all AF, thermal, thellier, trm aquisition, Shaw, etc.) in 
            seperate .mag files (eg. af.mag, thermal.mag, etc.)
 
-        Format of SIO .mag files:   
-        Spec Treat CSD Intensity Declination Inclination [optional metadata string]
+        Format of LDEO files:   
+isaf2.fix       
+LAT:   .00  LON:    .00
+    ID     TREAT  I  CD    J    CDECL CINCL  GDECL GINCL  BDECL BINCL  SUSC  M/V
+________________________________________________________________________________
+is031c2       .0  SD  0 461.600 163.9  17.5  337.1  74.5  319.1  74.4    .0   .0
         
-        
-        Spec: specimen name
-        Treat:  treatment step
-            XXX T in Centigrade
-            XXX AF in mT
-            for special experiments:
-              Thellier:
-                XXX.0  first zero field step
-                XXX.1  first in field step [XXX.0 and XXX.1 can be done in any order]
-                XXX.2  second in-field step at lower temperature (pTRM check)
-                XXX.3  second zero-field step after infield (pTRM check step)
-                       XXX.3 MUST be done in this order [XXX.0, XXX.1 [optional XXX.2] XXX.3]
-              AARM:
-                X.00  baseline step (AF in zero bias field - high peak field)
-                X.1   ARM step (in field step)  where
-                   X is the step number in the 15 position scheme 
-                      (see Appendix to Lecture 13 - Lectures in Paleomagnetism, 2007)
-              TRM:
-                XXX.YYY  XXX is temperature step of total TRM
-                         YYY is dc field in microtesla
-
-              Shaw:
-                XXX.YY   XXX is AF field
-                    YY=00 is AF of NRM
-                    YY=01 is AF of ARM1
-                    YY=02 is AF of TRM
-                    YY=03 is AF of ARM2
-                specify temperature and field of Total TRM step on command line
-         
-         Intensity assumed to be total moment in 10^3 Am^2 (emu)
-         Declination:  Declination in specimen coordinate system
-         Inclination:  Declination in specimen coordinate system
-
-         Optional metatdata string:  mm/dd/yy;hh:mm;[dC,mT];xx.xx;UNITS;USER;INST;NMEAS
-             hh in 24 hours.  
-             dC or mT units of treatment XXX (see Treat above) for thermal or AF respectively
-             xx.xxx   DC field
-             UNITS of DC field (microT, mT)
-             INST:  instrument code, number of axes, number of positions (e.g., G34 is 2G, three axes, 
-                    measured in four positions)
-             NMEAS: number of measurements in a single position (1,3,200...)
-       
-      Format of LDGO files:   
-        SPEC TREAT INST CSD Intensity CDECL CINCL [GDECL GINCL BDECL BINCL SUSC ]
+        ID: specimen name
+        TREAT:  treatment step
+        I:  Instrument 
+        CD:  Circular standard devation
+        J: intensity.  assumed to be total moment in 10^-4 (emu)
+        CDECL:  Declination in specimen coordinate system
+        CINCL:  Declination in specimen coordinate system
+        GDECL:  Declination in geographic coordinate system
+        GINCL:  Declination in geographic coordinate system
+        BDECL:  Declination in bedding adjusted coordinate system
+        BINCL:  Declination in bedding adjusted coordinate system
+        SUSC:  magnetic susceptibility (in micro SI)a
+        M/V: mass or volume for nomalizing (0 won't normalize)
      
     """
 # initialize some stuff

@@ -26,6 +26,7 @@ def main():
              SO-ASC   an ASC orientation device was used
              SO-MAG   orientation with magnetic compass
         -loc: location name, default="unknown"
+        -app appends to existing er_samples.txt file, default is to overwrite
 
     INPUT FORMAT
         Input files must be space delimited:
@@ -110,13 +111,19 @@ def main():
     if "-loc" in args:
         ind=args.index("-loc")
         location_name=(sys.argv[ind+1])
+    if '-app' in args:
+        try:
+            SampRecs,file_type=pmag.magic_read(samp_file)
+            print "sample data to be appended to: ",samp_file
+        except:
+            print 'problem with existing samp file: ',samp_file,' will create new'
     #
     # read in file to convert
     #
     azfile=open(orient_file,'rU')
     AzDipDat=azfile.readlines()
     azfile.close()
-    SampOut=[]
+    SampOut,samplist=[],[]
     for line in AzDipDat: 
         orec=line.split()
         if len(orec)>2:
@@ -148,6 +155,10 @@ def main():
             MagRec["er_site_name"]=site
             MagRec['magic_software_packages']=version_num
             SampOut.append(MagRec)
-    pmag.magic_write(samp_file,SampOut,"er_samples")
+            if MagRec['er_sample_name'] not in samplist:samplist.append(MagRec['er_sample_name'])
+    for samp in SampRecs:
+        if samp not in samplist:SampOut.append(samp)
+    Samps,keys=pmag.fillkeys(SampOut)
+    pmag.magic_write(samp_file,Samps,"er_samples")
     print "Data saved in ", samp_file
 main()

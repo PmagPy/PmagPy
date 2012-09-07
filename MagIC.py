@@ -7,10 +7,11 @@ import pmag,string
 #
 class make_entry(tkSimpleDialog.Dialog): # makes an entry table for basic data from global variable Result
     def body(self, master):
-        g=0
         self.list=Edict.keys()
         self.list.sort()
         self.out=[]
+        #Label(master, text=instruction).grid(row=0,coiumnspan=2)
+        g=1
         for i in range(len(self.list)):
             self.ival=StringVar()
             self.ival.set(Edict[self.list[i]])
@@ -25,18 +26,21 @@ class make_entry(tkSimpleDialog.Dialog): # makes an entry table for basic data f
             self.e=self.out[i]
             Edict[self.list[i]]=self.e.get()
         self.result=Edict
+
 class make_check: # makes check boxes with labels in input_d
         def __init__(self, master,input_d,instruction):
                 self.top=Toplevel(master)
                 self.top.geometry('+50+50')
                 self.check_value=[] 
-                self.b = Button(self.top, text="OK", command=self.ok)
-                self.b.grid(row=0,columnspan=1)
+                self.l=Label(self.top, text=instruction)
+                self.l.grid(row=0,columnspan=2,sticky=W)
                 for i in range(len(input_d)):
                         self.var=IntVar()
                         self.cb=Checkbutton(self.top,variable=self.var, text=input_d[i])
                         self.cb.grid(row=i+1,columnspan=2,sticky=W)
                         self.check_value.append(self.var)
+                self.b = Button(self.top, text="OK", command=self.ok)
+                self.b.grid(row=i+2,columnspan=1)
         def ok(self):
                 self.top.destroy()
 
@@ -111,7 +115,7 @@ def add_agm():
         -spc NUM, specify number of characters to designate a  specimen, default = 0
         -bak: set this to 'y' if this is a back-field curve file 
     """
-    ncn_rv=ask_radio(root,NCN_types,'select naming convention:') # sets naming convention
+    ncn_rv=ask_radio(root,NCN_types,'Select naming convention:') # sets naming convention
     if ncn_rv==3 or ncn_rv==6: # site_name and location in er_samples.txt file
         Edict={'loc':'','usr':"",'spn':basename.split('.')[0],'ins':'','spc':'1','Z':"",'bak':'n'}
     if ncn_rv==5: # site_name and location in er_samples.txt file
@@ -128,7 +132,7 @@ def add_agm():
 def add_agm_dir():
     global Edict 
     agmpath= tkFileDialog.askdirectory()
-    ncn_rv=ask_radio(root,NCN_types,'select naming convention\n NB: all file names must have specimen name as root\n and have same naming convention relating specimen to sample and site:') # sets naming convention
+    ncn_rv=ask_radio(root,NCN_types,'Select naming convention\n NB: all file names must have specimen name as root\n and have same naming convention relating specimen to sample and site:') # sets naming convention
     print """
     OPTIONS
         -loc LOCNAME : specify location/study name, (only if naming convention < 6)
@@ -250,61 +254,110 @@ def add_curie():
         logfile=open(opath+"/measurements.log",'w')
         logfile.write(basename+".magic" +" | " + outstring+"\n")
 
-class MagDialog(tkSimpleDialog.Dialog): # makes an entry table for basic data from a .mag file
-    def body(self, master):
-        Label(master, text="Location name: [default=unknown]").grid(row=0)
-        Label(master, text="# characters for specimen: [default=1]").grid(row=1)
-        Label(master, text="dc field (uT): [default=0]").grid(row=3)
-        Label(master, text="dc field (phi): [default=0],set to -1 if ANI").grid(row=4)
-        Label(master, text="dc field (theta): [default=-90],set to -1 if ANI").grid(row=5)
-        Label(master, text="peak AF field (mT): [default=0]").grid(row=6)
-        Label(master, text="Measurer: ").grid(row=7)
-        Label(master, text="Average replicates [y/n]: [default is y] ").grid(row=8)
-        Label(master, text="Z: only for naming convention #4").grid(row=9)
-        Label(master, text="coil: Coil number for ASC impulse coil ").grid(row=10)
-        self.loc = Entry(master)
-        self.spc=Entry(master,textvariable='1')
-        self.B = Entry(master)
-        self.phi = Entry(master)
-        self.theta = Entry(master)
-        self.ac = Entry(master)
-        self.usr = Entry(master)
-        self.noave = Entry(master)
-        self.Z = Entry(master)
-        self.coil = Entry(master)
-        self.loc.grid(row=0, column=1)
-        self.spc.grid(row=1, column=1)
-        self.B.grid(row=3, column=1)
-        self.phi.grid(row=4, column=1)
-        self.theta.grid(row=5, column=1)
-        self.ac.grid(row=6, column=1)
-        self.usr.grid(row=7, column=1)
-        self.noave.grid(row=8, column=1)
-        self.Z.grid(row=9, column=1)
-        self.coil.grid(row=10, column=1)
-        return self.loc # initial focus
-    def apply(self):
-        Result['out']=opath+"/"+basename+".magic"
+class make_sio: # makes an entry table for basic data from an SIO formatted file
+    def __init__(self,master):
+        top=self.top=Toplevel(master)
+        self.top.geometry('+50+50')
+        Label(top,text='Fill in the following information for your study(* are required): ').grid(row=0,columnspan=2)
+        Label(top, text="*******************").grid(row=1,sticky=W)
+        Label(top, text="* Location name: [default=unknown]").grid(row=2,sticky=W)
+        self.loc = Entry(top)
+        self.loc.grid(row=2, column=1,sticky=W)
+        Label(top, text="Measurer: ").grid(row=3,sticky=W)
+        self.usr = Entry(top)
+        self.usr.grid(row=3, column=1,sticky=W)
+        Label(top, text="Average replicates [y/n]: [default is y] ").grid(row=4,sticky=W)
+        self.noave = Entry(top)
+        self.noave.grid(row=4, column=1,sticky=W)
+        Label(top, text="* # characters to distinguish specimen from sample: [default=1]").grid(row=5,sticky=W)
+        self.spc=Entry(top,textvariable='1')
+        self.spc.grid(row=5, column=1,sticky=W)
+        g=6
+        if SIO['LP']:
+            Label(top, text="*******************").grid(row=6,sticky=W)
+            Label(top, text="Lab protocol particulars:").grid(row=7,sticky=W)
+            Label(top, text="*******************").grid(row=8,sticky=W)
+            g+=3
+            self.lp_check_value=[] 
+            for i in range(len(LP_types)):
+                self.var=IntVar()
+                self.cb=Checkbutton(top,variable=self.var, text=LP_types[i])
+                self.cb.grid(row=i+g,column=0,sticky=W)
+                if i==1:g+=1 # make extra room if AF 
+                if i==2:g+=1 # make extra room if Thermal
+                self.lp_check_value.append(self.var)
+            Label(top, text="leave blank if not needed").grid(row=9,column=2,sticky=E)
+            Label(top, text="peak AF field (mT) if ARM:").grid(row=10,column=1,sticky=E)
+            self.ac = Entry(top)
+            self.ac.grid(row=10, column=2,sticky=W)
+            Label(top, text="dc field (uT) for ARM/TRM:").grid(row=11,column=1,sticky=E)
+            self.B = Entry(top)
+            self.B.grid(row=11, column=2,sticky=W)
+            Label(top, text="dc field (phi): [default=0]:").grid(row=12,column=1,sticky=E)
+            self.phi = Entry(top)
+            self.phi.grid(row=12, column=2,sticky=W)
+            Label(top, text="dc field (theta): [default=-90]:").grid(row=13,column=1,sticky=E)
+            self.theta = Entry(top)
+            self.theta.grid(row=13, column=2,sticky=W)
+            Label(top, text="coil: Coil number for ASC impulse coil:").grid(row=16,column=1,sticky=E)
+            self.coil = Entry(top)
+            self.coil.grid(row=16, column=2,sticky=E)
+            g=16
+        if SIO['MCD']==1:
+            Label(top, text="*******************").grid(row=g,sticky=W)
+            Label(top, text="Sampling particulars:").grid(row=g+1,sticky=W)
+            Label(top, text="*******************").grid(row=g+2,sticky=W)
+            g+=3
+            self.mcd_check_value=[] 
+            for i in range(len(MCD_types)):
+                self.var=IntVar()
+                self.cb=Checkbutton(top,variable=self.var, text=MCD_types[i])
+                self.cb.grid(row=i+g,column=0,sticky=W)
+                self.mcd_check_value.append(self.var)
+            g=g+i+1
+        self.b = Button(top, text="OK", command=self.ok)
+        self.b.grid(row=g)
+    def ok(self):
+        global SIO
         if self.usr.get()!="":
-            Result['usr']=self.usr.get()
-        Result['noave']=self.noave.get()
+            SIO['usr']=self.usr.get()
+        if self.noave.get()!="":
+            SIO['noave']=self.noave.get()
+        else:
+            SIO['noave']='y'
         if self.loc.get()!="":
-            Result['loc']=self.loc.get()
-        if self.B.get()!="":
-            Result['dc']=self.B.get()
-        if self.phi.get()!="":
-            Result['phi']=self.phi.get()
-        if self.theta.get()!="":
-            Result['theta']=self.theta.get()
-        if self.ac.get()!="":
-            Result['ac']=self.ac.get()
+            SIO['loc']=self.loc.get()
+        else:
+            SIO['loc']='unknown'
         if self.spc.get()!="":
-            Result['spc']=self.spc.get()
-        if self.Z.get()!="":
-            Result['Z']=self.Z.get()
-        if self.coil.get()!="":
-            Result['coil']=self.coil.get()
-        self.result=Result
+            SIO['spc']=self.spc.get()
+        if self.noave.get()!="":
+            SIO['noave']=self.noave.get()
+        if SIO['LP']==1:
+            if self.B.get()!="":
+                SIO['dc']=self.B.get()
+            if self.phi.get()!="":
+                SIO['phi']=self.phi.get()
+            if self.theta.get()!="":
+                SIO['theta']=self.theta.get()
+            if self.ac.get()!="":
+                SIO['ac']=self.ac.get()
+            if self.coil.get()!="":
+                SIO['coil']=self.coil.get()
+            SIO['lp_check_value']=self.lp_check_value
+        if SIO['MCD']==1:
+            MCD=""
+            MCD_list=map((lambda var:var.get()),self.mcd_check_value) # returns method code check box list
+            for i in range(len(MCD_list)):
+                if MCD_list[i]==1:MCD=MCD+MCD_types[i].split(":")[0]+":"
+                SIO['mcd']='%s'%(MCD[:-1].strip(':'))
+        self.top.destroy()
+
+def ask_sio(parent):
+    global SIO
+    m=make_sio(parent)
+    parent.wait_window(m.top)
+
 
 radio_value = 99
 class make_radio: # makes a radio button form with labels in input_d
@@ -366,18 +419,10 @@ def convert_samps():
         tkMessageBox.showinfo("Info"," orientation files created in selected output directory\n NB: there will be a file for every location name found in the er_samples.txt file.\n format is location_orient.txt.\n Edit this file, then re-import with Import orient.txt format option.")
     except:
         print 'No er_samples.txt file - import something first! '
+
 def add_ODP_samp():
     global apath
-    apath=tkFileDialog.askopenfilename(title="Select ODP Sample Summary .csv file:")
-    infile=open(apath,'rU').readlines()
-    file=apath.split('/')[-1]
-    print apath,'opened for reading'
-    afile=opath+'/'+file
-    out=open(afile,'w')
-    for line in infile: 
-        out.write(line) # copies contents of source file to Project directory
-    out.close()
-    print apath,' copied to ',afile  
+    file,path=copy_text_file("Select ODP Sample Summary .csv file:")
     outstring='ODP_samples_magic.py -WD '+opath+' -f '+file+' -Fsa er_samples.txt'
     print outstring
     os.system(outstring)
@@ -395,16 +440,7 @@ def ODP_fix_names():
 
 def add_ODP_sum():
     global apath
-    apath=tkFileDialog.askopenfilename(title="Select ODP Core Summary .csv file:")
-    file=apath.split('/')[-1]
-    infile=open(apath,'rU').readlines()
-    print apath,'opened for reading'
-    afile=opath+'/'+file
-    out=open(afile,'w')
-    for line in infile: 
-        out.write(line) # copies contents of source file to Project directory
-    out.close()
-    print apath,' copied to ',afile  
+    file,path=copy_text_file("Select ODP Core Summary .csv file:")
     try:
         logfile=open(opath+"/ODPsummary.log",'a')
         logfile.write(file+"\n")
@@ -426,63 +462,161 @@ def add_ages():
     out.close()
     print apath,' copied to ',afile  
 
+class make_names:
+    def __init__(self,master):
+        top=self.top=Toplevel(master)
+        self.top.geometry('+50+50')
+        Label(top,text='select naming convention').grid(row=0,columnspan=1)
+        self.Z=StringVar()
+        self.Y=StringVar()
+        self.rv=IntVar()
+    # make the naming convention check boxes
+        for i in range(len(NCN_types)):
+            ncn=NCN_types[i].split(":")
+            Radiobutton(top,variable=self.rv,value=i,text=ncn[1]).grid(row=i+1,column=0,sticky=W)
+            if ncn[0]=='4': 
+               self.Y=Entry(self.top)
+               self.Y.grid(row=i+1,column=1) 
+            if ncn[0]=='7': 
+               self.Z=Entry(self.top)
+               self.Z.grid(row=i+1,column=1) 
+        self.b = Button(top, text="OK", command=self.ok)
+        self.b.grid(row=i+2,columnspan=2)
+    def ok(self):
+        global radio_value,Z,Y
+        radio_value=self.rv.get()
+        Z=self.Z.get()
+        Y=self.Y.get()
+        self.top.destroy()
+
+def ask_names(parent):
+    global radio_value,Z,Y
+    m=make_names(parent)
+    parent.wait_window(m.top)
+    names={'rv':radio_value,'Z':Z,'Y':Y}
+    while (names['rv']==3 and names['Y']=="") or (names['rv']==6 and names['Z']==""):
+        print "You must specify the # characters for sample/site, with this naming convention"
+        m=make_names(parent)
+        parent.wait_window(m.top)
+        names={'rv':radio_value,'Z':Z,'Y':Y}
+    return names
+
+class make_ocn:
+    def __init__(self,master):
+        global suns
+        top=self.top=Toplevel(master)
+        self.top.geometry('+50+50')
+        Label(top,text='select orientation convention and declination correction').grid(row=0,columnspan=1)
+        self.dec=StringVar()
+        self.gmt=StringVar()
+        self.ocn_rv=IntVar()
+        self.dec_rv=IntVar()
+    # make the naming convention check boxes
+        for i in range(len(OCN_types)):
+            ocn=OCN_types[i].split(":")
+            Radiobutton(top,variable=self.ocn_rv,value=i,text=ocn[1]).grid(row=i+1,column=0,sticky=W)
+        g=i+3
+        for i in range(len(DCN_types)-1):
+            dcn=DCN_types[i].split(":")
+            Radiobutton(top,variable=self.dec_rv,value=i,text=dcn[1]).grid(row=i+g,column=0,sticky=W)
+            if dcn[0]=='2': 
+               self.dec=Entry(self.top)
+               self.dec.grid(row=i+g,column=1,sticky=W)
+        if suns>0: # ask for GMT offset
+           dcn=DCN_types[-1].split(":")
+           Label(top, text="Hours to ADD local time for GMT, default is 0:").grid(row=i+g+1,sticky=W)
+           self.gmt=Entry(top)
+           self.gmt.grid(row=i+g+1,column=1,sticky=W) 
+        self.b = Button(top, text="OK", command=self.ok)
+        self.b.grid(row=i+g+2,columnspan=2)
+    def ok(self):
+        global ocn_rv,dec_rv,dec,GMT,suns,app
+        ocn_rv=self.ocn_rv.get()
+        dec_rv=self.dec_rv.get()
+        dec=self.dec.get()
+        if suns!=0: 
+            GMT=self.gmt.get()
+            if GMT=="":GMT='0'
+        else: GMT=""
+        self.top.destroy()
+
+def ask_ocn(parent):
+    global ocn_rv,dec_rv,dec,GMT
+    m=make_ocn(parent)
+    parent.wait_window(m.top)
+    orients={'ocn_rv':ocn_rv,'dec_rv':dec_rv,'dec':dec,'gmt':GMT}
+    while (orients['ocn_rv']==1 and  orients['dec']==""):
+        print "You must specify a declination correction, with dec convention #2!"
+        m=make_ocn(parent)
+        parent.wait_window(m.top)
+        orients={'ocn_rv':ocn_rv,'dec_rv':dec_rv,'dec':dec,'gmt':GMT}
+    return orients
+
+
+def copy_text_file(title):
+    path=tkFileDialog.askopenfilename(title=title)
+    infile=open(path,'rU').readlines()
+    file=path.split('/')[-1]
+    basename=file
+    ofile=opath+"/"+file
+    out=open(ofile,'w') # copy file to MagIC directory
+    for line in infile:
+        out.write(line)
+    print path,' copied to ',ofile
+    return file,path
+
+def copy_magic_file(title):
+    path=tkFileDialog.askopenfilename(title=title)
+    file=path.split('/')[-1]
+    data,filetype=pmag.magic_read(path)
+    cpfile=opath+'/'+file
+    pmag.magic_write(cpfile,data,filetype) # copy over to project directory
+    print path,' copied to ',cpfile
+    return data,filetype,file,path
 
 def orient(): # imports an orientation file to magic
-    global orpath
-    orpath=tkFileDialog.askopenfilename(title="Select orientation file:")
-    file=orpath.split('/')[-1]
-    infile=open(orpath,'rU').readlines()
-    print orpath,'opened for reading'
-    orfile=opath+'/'+file
-    out=open(orfile,'w')
-    for line in infile: 
-        out.write(line) # copies contents of source file to Project directory
-    out.close()
-    print orpath,' copied to ',orfile  
-    N_types=["1: XXXXY: where XXXX is site designation, Y is sample", "2: XXXX-YY: YY sample from site XXXX (XXX, YY of arbitary length)", "3: XXXX.YY: YY sample from site XXXX (XXX, YY of arbitary length)","4: XXXX[YYY] where YYY is sample designation with Z characters from site XXX; Z will be supplied on next page", "5: sample name=site name","6: site name entered in site_name column in the orient.txt format input file","7-Z: [XXXX]YYY where XXXX is Z character long site name"]
-    ocn_rv=ask_radio(root,OCN_types,'select orientation convention:') # sets orientation convention 
-    DCN_types=["1: Use the IGRF value at the lat/long and date supplied","2: Will supply dec correction later","3: mag_az is already corrected in file"]
-    dcn_rv=ask_radio(root,DCN_types,'select declination convention:') # sets declination convention 
-    ncn_rv=ask_radio(root,N_types,'select naming convention:') # sets naming convention
-    o=OrDialog(root) # gets the entry table data with all the good stuff in o.result 
-    while (o.result['dcn']=="2" and  o.result['dec']==""):
-        print "You must specify a declination correction, with dec convention #2!"
-        o=OrDialog(root)
-    while o.result['dcn']=="4" and  o.result['Z']=="":
-        print "You must specify the # characters for sample ID, with naming convention #4!"
-        o=OrDialog(root)
-    while o.result['dcn']=="7" and  o.result['Z']=="":
-        print "You must specify the # characters for sample ID, with naming convention #7!"
-        o=OrDialog(root)
-    BED_types=["Take fisher mean of bedding poles?","Don't correct bedding dip direction with declination - already correct"]
-    bed_checks=ask_check(root,BED_types,'choose bedding conventions:') # 
-    BED_list=map((lambda var:var.get()),bed_checks) # returns method code  radio button list
-    mcd_checks=ask_check(root,MCD_types,'select appropriate field methods:') # allows adding of meta data describing field methods
+    global orpath,suns
+    ordata,location,file,orpath=copy_magic_file("Select orientation file:")
+#
+# check a few things
+#
+    Tilts=pmag.get_dictitem(ordata,'bedding_dip','','F') # are there bedding dips? 
+    Suns=pmag.get_dictitem(ordata,'shadow_angle','','F') # are there sun compass data?
+    suns=len(Suns)
+    names=ask_names(root)
+    orients=ask_ocn(root) # sets orientation convention 
+    mcd_checks=ask_check(root,MCD_types,'Select field methods that apply to all samples:') # allows adding of meta data describing field methods
     MCD_list=map((lambda var:var.get()),mcd_checks) # returns method code  radio button list
     MCD=""
     for i in range(len(MCD_list)):
         if MCD_list[i]==1:MCD=MCD+MCD_types[i].split(":")[0]+":"
-    o.result['mcd']=MCD[:-1]
-    o.result['ocn']=OCN_types[ocn_rv].split(":")[0]
-    o.result['dcn']=DCN_types[dcn_rv].split(":")[0]
-    o.result['ncn']=N_types[ncn_rv].split(":")[0]
+    orients['mcd']='%s'%(MCD[:-1].strip(':'))
+    orients['ocn']='%s'%(OCN_types[ocn_rv].split(":")[0])
+    orients['dcn']='%s'%(DCN_types[dec_rv].split(":")[0])
+    orients['ncn']='%s'%(NCN_types[names['rv']])
 #
 # build the command (outstring) for orientation_magic.py
 #
-    outstring='orientation_magic.py -WD '+opath +'  -ocn '+ o.result['ocn'] + ' -f '+file + ' -dcn '+o.result['dcn'] 
-    if o.result['dcn']=="2":outstring=outstring + o.result['dec']
-    outstring=outstring+' -ncn '+o.result['ncn'] 
-    if o.result['ncn']=="4":outstring=outstring + '-'+o.result['Z']
-    if o.result['ncn']=="7":outstring=outstring + '-'+o.result['Z']
-    if o.result['gmt']!="":outstring=outstring + ' -gmt '+o.result['gmt']
-    if o.result['mcd']!="":outstring=outstring + ' -mcd '+o.result['mcd']
-    if o.result['app'].lower()=="y":outstring=outstring + ' -app '
-    if BED_list[0]==1:outstring=outstring+' -a '
-    if BED_list[1]==1:outstring=outstring+' -BCN '
+    outstring='orientation_magic.py -WD '+opath+ ' -ocn '+ orients['ocn'] + ' -f '+file + ' -dcn '+orients['dcn'] 
+    if orients['dcn']=="2":outstring=outstring + ' %s'%(orients['dec'])
+    outstring=outstring+' -ncn '+'%s'%(names['rv']+1)
+    if names['rv']==3:outstring=outstring + '-'+'%s'%(names['Y'])
+    if names['rv']==6:outstring=outstring + '-'+'%s'%(names['Z'])
+    if orients['gmt']!="":outstring=outstring + ' -gmt '+'%s'%(orients['gmt'])
+    if orients['mcd']!="":outstring=outstring + ' -mcd '+'%s'%(orients['mcd'])
+    if len(Tilts)>0:
+        BED_types=["Take fisher mean of bedding poles?","Don't correct bedding dip direction with declination - already correct"]
+        bed_checks=ask_check(root,BED_types,'choose bedding conventions:') # 
+        BED_list=map((lambda var:var.get()),bed_checks) # returns method code  radio button list
+        if BED_list[0]==1:outstring=outstring+' -a '
+        if BED_list[1]==1:outstring=outstring+' -BCN '
+    Samps,filetype=pmag.magic_read(opath+'/er_samples.txt') # check if existing
+    if len(Samps)>0: # there is an existing file
+        if tkMessageBox.askyesno("","Update and append existing er_samples file? No will overwrite"): outstring=outstring + ' -app '
     print outstring
     os.system(outstring)
     try:
-        logfile=open(orpath+"/orient.log",'a')
+        logfile=open(opath+"/orient.log",'a')
         logfile.write("er_samples.txt/er_sites.txt/er_images.txt | " + outstring+"\n")
     except IOError:
         logfile=open(opath+"/orient.log",'w')
@@ -492,33 +626,30 @@ def orient(): # imports an orientation file to magic
 
 def azdip(): 
     global orpath
-    orpath=tkFileDialog.askopenfilename(title="Set AzDip file:")
-    file=orpath.split('/')[-1]
-    infile=open(orpath,'rU').readlines()
-    print orpath,'opened for reading'
-    orfile=opath+'/'+file
-    out=open(orfile,'w')
-    for line in infile: 
-        out.write(line) # copies contents of source file to Project directory
-    out.close()
-    print orpath,' copied to ',orfile  
-    ncn_rv=ask_radio(root,NCN_types,'select naming convention - #4-7 are not supported for this option:') # sets naming convention
+    file,path=copy_text_file("Select AzDip file:")
+    names=ask_names(root)
     mcd_checks=ask_check(root,MCD_types,'select appropriate field methods:') # allows adding of meta data describing field methods
     MCD_list=map((lambda var:var.get()),mcd_checks) # returns method code  radio button list
     MCD=""
     for i in range(len(MCD_list)):
         if MCD_list[i]==1:MCD=MCD+MCD_types[i].split(":")[0]+":"
+    MCD=MCD.strip(":")
         
 #
 # build the command (outstring) for orientation_magic.py
 #
-    outstring='azdip_magic.py -Fsa '+opath +'/er_samples.txt' + ' -f ' + orfile 
-    outstring=outstring+' -ncn '+str(ncn_rv+1)
+    outstring='azdip_magic.py -Fsa '+opath +'/er_samples.txt' + ' -f ' + opath+'/'+file 
+    outstring=outstring+' -ncn '+'%s'%(names['rv']+1)
+    if names['rv']==3:outstring=outstring + '-'+'%s'%(names['Y'])
+    if names['rv']==6:outstring=outstring + '-'+'%s'%(names['Z'])
     if MCD!="":outstring=outstring + ' -mcd '+MCD
+    Samps,filetype=pmag.magic_read(opath+'/er_samples.txt') # check if existing
+    if len(Samps)>0: # there is an existing file
+        if tkMessageBox.askyesno("","Update and append existing er_samples file? No will overwrite"): outstring=outstring + ' -app '
     print outstring
     os.system(outstring)
     try:
-        logfile=open(orpath+"/orient.log",'a')
+        logfile=open(path+"/orient.log",'a')
         logfile.write("er_samples.txt/er_sites.txt | " + outstring+"\n")
     except IOError:
         logfile=open(opath+"/orient.log",'w')
@@ -528,11 +659,12 @@ def azdip():
 def update_crd():
     geo,tilt=0,0
     orient,file_type=pmag.magic_read(opath+'/er_samples.txt')
-    for rec in orient:
-        if 'sample_azimuth' in rec.keys() and 'sample_dip' in rec.keys() and  rec['sample_azimuth']!="" and rec['sample_dip']!="": geo=1    
-        if 'sample_bed_dip_direction' in rec.keys() and 'sample_bed_dip' in rec.keys() and rec['sample_bed_dip_direction']!="" and rec['sample_bed_dip']!="":
-             tilt=1    
-             break
+    Geos=pmag.get_dictitem(orient,'sample_azimuth','','F') # orientations?
+    Geos=pmag.get_dictitem(Geos,'sample_dip','','F') # orientations?
+    if len(Geos)>0: geo=1
+    Tilts=pmag.get_dictitem(orient,'sample_bed_dip_direction','','F') # orientations?
+    Tilts=pmag.get_dictitem(Tilts,'sample_bed_dip','','F') # structural corrections?
+    if len(Tilts)>0: tilt=1    
     f=open(opath+'/coordinates.log','w')
     coord='-crd s\n'
     f.write(coord)
@@ -548,7 +680,7 @@ class OrDialog(tkSimpleDialog.Dialog): # makes
     def body(self, master):
         Label(master, text="Dec correction: only if Dec con is #2").grid(row=3)
         Label(master, text="# characters for sample or site [only used with XXXXYYY conventions 4&7]").grid(row=5)
-        Label(master, text="Hours to subract from local time for GMT: [default=0]").grid(row=7)
+        Label(master, text="Hours to add to local time for GMT: [default=0]").grid(row=7)
         Label(master, text="Append/update existing MagIC files [y] [default is to overwrite.] ").grid(row=9)
         self.dec = Entry(master)
         self.Z = Entry(master)
@@ -966,10 +1098,10 @@ def meas_combine():
     if log==0: tkMessageBox.showinfo("Info",'no log files!')
 
 def add_cit():
-        if opath=="":
-            print "Must set output directory first!"
-            return
-        fpath=tkFileDialog.askopenfilename(title="Set input file:")
+        global SIO
+        SIO['LP'],SIO['MCD']=0,1 # don't get lab protocols, do get method codes
+# copy over files
+        fpath=tkFileDialog.askopenfilename(title="Select .sam file in directory with specimen data:")
         in_path=fpath.split('/')
         file=in_path[-1] 
         ipath=""
@@ -981,7 +1113,6 @@ def add_cit():
             out.write(line)
         out.close()
         print fpath,' copied to ',ofile
-        outstring='CIT_magic.py -WD '+'"'+opath+'"'+'  -f '+file + ' -F ' + file+'.magic'
         ln=0
         if infile[0]=="CIT":
             ln+=3
@@ -997,15 +1128,32 @@ def add_cit():
             out.close()
             ln+=1
             print ipath+mfile,' copied to ',ofile
+# get the location, naming conventions, method codes, etc.
+        ask_sio(root)
+        names=ask_names(root)
+        outstring='CIT_magic.py -WD '+'"'+opath+'"'+'  -f '+file + ' -F ' + file+'.magic'
+        if SIO['mcd']!="": # add method codes
+            outstring=outstring+' -mcd '+SIO['mcd']
+        outstring=outstring+ ' -spc ' + SIO['spc']
+        if SIO['loc']!="":outstring=outstring + ' -loc "'+ SIO['loc']+'"'
+        if SIO['usr']!="":outstring=outstring + ' -usr '+ SIO['usr']
+        if SIO['noave']=="n":outstring=outstring + ' -A '
+        outstring=outstring+' -ncn '+'%s'%(names['rv']+1)
+        if names['rv']==3:outstring=outstring + '-'+'%s'%(names['Y'])
+        if names['rv']==6:outstring=outstring + '-'+'%s'%(names['Z'])
+        if outstring[-1]=='8':outstring=outstring+' -Fsa '+opath+'/er_synthetics.txt'
         print outstring
         os.system(outstring)
-#        tkMessageBox.showinfo("Info",file+' imported to MagIC \n Check command window for errors')
         try:
             logfile=open(opath+"/measurements.log",'a')
             logfile.write(file+".magic  | " + outstring+"\n")
         except IOError:
             logfile=open(opath+"/measurements.log",'w')
             logfile.write(file+".magic | " + outstring+"\n")
+        try: # add to orientation log
+            logfile=open(opath+"/orient.log",'a')
+            logfile.write("er_samples.txt/er_sites.txt | " + outstring+"\n")
+
 #        tkMessageBox.showinfo("Info",file+" converted to magic format and added to measurements.log  \n Check command window for errors")
         
 
@@ -1197,30 +1345,33 @@ def add_PMM():
     logfile.close()
     tkMessageBox.showinfo("Info","Interpretation file imported to Project Directory, see terminal window for error messages \n You can check interpretations with Demagnetization Data and \n Assemble specimens when done.")
 
-def add_mag():
-        global fpath,basename, Result
-        Result={'usr':'','out':'','dc':'0','ac':'0','phi':'0','theta':'-90','spc':'1','coil':''}
-        if opath=="":
-            print "Must set output directory first!"
-            return
-        fpath=tkFileDialog.askopenfilename(title="Set input file:")
-        file=fpath.split('/')[-1] 
-        basename=file
-        ofile=opath+"/"+file
-        ncn_rv=ask_radio(root,NCN_types,'select naming convention:') # sets naming convention
-        if ncn_rv==3: # site_name and location in er_samples.txt file
-            Result['Z']=""
-        else:  # all others
-            Result['loc']=''
-        d=MagDialog(root)
-        LP_types=["AF: alternating field demagnetization","S: Shaw method paleointensity","T: Thermal de(re)magnetization including thellier but excluding TRM acquisition","NRM: no lab treatment","TRM: TRM acquisition experiment","ANI: anisotropy of TRM,IRM or ARM","D: double demagnetization","G: GRM protocol","I: IRM","I3d: Lowrie 3D-IRM"]
-        checks=ask_check(root,LP_types,'select lab protocols:\n ')
-        LPlist= map((lambda var:var.get()),checks)
+def add_ldeo():
+    add_mag('ldeo')
+
+def add_sio():
+    add_mag('sio')
+
+def add_huji():
+    add_mag('huji')
+
+def add_tdt():
+    add_mag('tdt')
+
+def add_mag(ftype):
+        global fpath,basename, SIO
+        basename,fpath=copy_text_file("Select magnetometer format input file: ")
+        ifile=opath+'/'+basename 
+        outfile=opath+'/'+basename+'.magic'
+        names=ask_names(root)
+        ask_sio(root)
+        LPlist= map((lambda var:var.get()),SIO['lp_check_value'])
         LP=""
         for i in range(len(LPlist)):
              if LPlist[i]==1:
                  LP=LP+LP_types[i].split(':')[0]+":"
                  if "ANI" in LP.split(':'): 
+                     SIO['phi']='-1'
+                     SIO['theta']='-1'
                      try:
                          filelist=[]
                          lp_types=[]
@@ -1239,23 +1390,25 @@ def add_mag():
                      for i in range(len(filelist)):
                          logfile.write(filelist[i]+' | '+ lp_types[i]+'\n') 
                      logfile.close()
-        d.result['LP']=LP[:-1]
-        d.result['fpath']=fpath
-        infile=open(fpath,'rU').readlines()
-        out=open(ofile,'w')
-        for line in infile:
-            out.write(line)
-        out.close()
-        outstring='sio_magic.py -F '+d.result['out']+' -f '+ ofile+ ' -LP ' + d.result['LP'] + ' -spc ' + d.result['spc'] 
-        if d.result['loc']!="":outstring=outstring + ' -loc "'+ d.result['loc']+'"'
-        if d.result['dc']!="0":outstring=outstring + ' -dc '+ d.result['dc'] + ' ' + d.result['phi'] + ' ' + d.result['theta']
-        if d.result['coil']!="":outstring=outstring + ' -V '+ d.result['coil'] 
-        if d.result['usr']!="":outstring=outstring + ' -usr '+ d.result['usr'] 
-        if d.result['noave']=="n":outstring=outstring + ' -A '
-        outstring=outstring+' -ncn '+NCN_types[ncn_rv].split(":")[0]
-        if ncn_rv==3:outstring=outstring+'-'+d.result['Z']+" "
-        if ncn_rv==6:outstring=outstring+'-'+d.result['Z']+" "
-        if outstring[-1]=='6':outstring=outstring+' -fsa '+opath+'/er_samples.txt'
+        SIO['fpath']=fpath
+        if ftype=='huji': 
+            outstring = 'HUJI_magic.py '
+        if ftype=='ldeo': 
+            outstring = 'LDEO_magic.py '
+        elif ftype=='sio':
+            outstring = 'SIO_magic.py '
+        elif ftype=='tdt':
+            outstring = 'TDT_magic.py '
+        outstring=outstring+' -F '+outfile+' -f '+ ifile+ ' -LP ' + LP.strip(":") + ' -spc ' + SIO['spc'] 
+        if SIO['loc']!="":outstring=outstring + ' -loc "'+ SIO['loc']+'"'
+        if SIO['dc']!="0":outstring=outstring + ' -dc '+ SIO['dc'] + ' ' + SIO['phi'] + ' ' + SIO['theta']
+        if SIO['coil']!="":outstring=outstring + ' -V '+ SIO['coil'] 
+        if SIO['usr']!="":outstring=outstring + ' -usr '+ SIO['usr'] 
+        if SIO['noave']=="n":outstring=outstring + ' -A '
+        outstring=outstring+' -ncn '+'%s'%(names['rv']+1)
+        if names['rv']==3:outstring=outstring + '-'+'%s'%(names['Y'])
+        if names['rv']==6:outstring=outstring + '-'+'%s'%(names['Z'])
+        if outstring[-1]=='8':outstring=outstring+' -Fsa '+opath+'/er_synthetics.txt'
         print outstring
         os.system(outstring)
         try:
@@ -1264,56 +1417,8 @@ def add_mag():
         except IOError:
             logfile=open(opath+"/measurements.log",'w')
             logfile.write(basename+".magic" +" | " + outstring+"\n")
-#        tkMessageBox.showinfo("Info",file+" converted to magic format and added to measurements.log  \n Check command window for errors")
 
 
-def add_ldgo():
-        global fpath,basename,Result
-        Result={'usr':'','out':'','dc':'0','ac':'0','phi':'0','theta':'-90','loc':"unknown",'spc':'1'}
-        if opath=="":
-            print "Must set output directory first!"
-            return
-        fpath=tkFileDialog.askopenfilename(title="Set input file:")
-        file=fpath.split('/')[-1] 
-        basename=file
-        LP_types=["AF: alternating field demagnetization","T: Thermal de(re)magnetization including thellier but excluding TRM acquisition","NRM: no lab treatment","TRM: TRM acquisition experiment","ANI: anisotropy of TRM or ARM","D: double demagnetization","G: GRM protocol"]
-        checks=ask_check(root,LP_types,'select lab protocols:\n ')
-        LPlist= map((lambda var:var.get()),checks)
-        LP=""
-        for i in range(len(LPlist)):
-             if LPlist[i]==1:LP=LP+LP_types[i].split(':')[0]+":"
-        ncn_rv=ask_radio(root,NCN_types,'select naming convention:') # sets naming convention
-        if ncn_rv==3: # site_name and location in er_samples.txt file
-            Result['Z']=""
-        else:  # all others
-            Result['loc']=''
-        d=MagDialog(root)
-        d.result['LP']=LP[:-1]
-        d.result['fpath']=fpath
-        ofile=opath+"/"+file
-        infile=open(fpath,'rU').readlines()
-        out=open(ofile,'w')
-        for line in infile:
-            out.write(line)
-        out.close()
-        outstring='mag_magic.py -FT LDGO -F '+d.result['out']+' -f '+ ofile+ ' -LP ' + d.result['LP'] + ' -spc ' + d.result['spc'] 
-        if d.result['loc']!="":outstring=outstring + ' -loc "'+ d.result['loc']+'"'
-        if d.result['dc']!="0":outstring=outstring + ' -dc '+ d.result['dc'] + ' ' + d.result['phi'] + ' ' + d.result['theta']
-        if d.result['usr']!="":outstring=outstring + ' -usr '+ d.result['usr'] 
-        orient=['Recalculate azimuth and plunge from ldeo file', ' Will use imported orientation file. ']
-        or_rv=ask_radio(root,orient,'Choose option: ') # 
-        if or_rv==0: outstring=outstring + ' -Fsa '+ opath+'/er_samples.txt' # overwrite any existing er_samples.txt file
-        outstring=outstring+' -ncn '+NCN_types[ncn_rv].split(":")[0]
-        if ncn_rv==3:outstring=outstring+'-'+d.result['Z']+" "
-        print outstring
-        os.system(outstring)
-        try:
-            logfile=open(opath+"/measurements.log",'a')
-            logfile.write(basename+".magic" +" | " + outstring+"\n")
-        except IOError:
-            logfile=open(opath+"/measurements.log",'w')
-            logfile.write(basename+".magic" +" | " + outstring+"\n")
-#        tkMessageBox.showinfo("Info",file+" converted to magic format and added to measurements.log\n er_samples.txt file created, to overwrite, import orientation file (AzDip or orient.txt format).")
 
 def add_uu():
     global fpath,basename,Edict
@@ -1453,41 +1558,13 @@ def add_ub():
         logfile=open(opath+"/measurements.log",'w')
         logfile.write(file+".magic" +" | " + outstring+"\n")
 #    tkMessageBox.showinfo("Info",file+" converted to magic format and added to measurements.log  \n Check command window for errors")
-
-def add_pmd_ascii():
-    global Edict
-    dpath=tkFileDialog.askdirectory(title="Select Directory of .PMD files for import ")
-    ncn_rv=ask_radio(root,NCN_types,'select naming convention\n NB: all file names must have same naming convention relating specimen to sample and site:') # sets naming convention
-    ncn_string=str(ncn_rv+1)
-    Edict={'usr':"",'spc':'0','ins':''}
-    if ncn_rv==3 or ncn_rv==6:
-        Edict['loc']=""
-        Edict['Z']=""
-    elif ncn_rv!=5:
-        Edict['loc']=""
-    make_entry(root) 
-    if ncn_rv==3 or ncn_rv==6:ncn_string=ncn_string+'-'+Edict['Z']
-    mcd_checks=ask_check(root,MCD_types,'select appropriate field methods:') # allows adding of meta data describing field methods
-    MCD_list=map((lambda var:var.get()),mcd_checks) # returns method code  radio button list
-    MCD=""
-    for i in range(len(MCD_list)):
-        if MCD_list[i]==1:MCD=MCD+MCD_types[i].split(":")[0]+":"
-    AVE_types=["Do not average replicate measurements","Average replicate measurements"]
-    ave_rv=ask_radio(root,AVE_types,'choose desired averaging option:') # 
-    try:
-        open(opath+'/er_samples.txt','r')
-        APP=""
-        Or_types=["Append to existing er_samples.txt file","Overwrite existing er_samples.txt file"]
-        or_rv=ask_radio(root,Or_types,'choose desired averaging option:') # 
-        if or_rv==0: APP=" -Fsa er_samples.txt "
-    except:
-        APP=""
+def copy_text_directory(title,fmt):
+    dpath=tkFileDialog.askdirectory(title=title)
     filelist=os.listdir(dpath) # get directory listing
-    first=1
-    for file in filelist: 
-      if first!=1:APP=" -Fsa er_samples.txt "
-      first=0 
-      if file.split('.')[1].lower()=='pmd':
+    outlist=[]
+    for file in filelist:
+      if file.split('.')[-1].lower()==fmt:
+        outlist.append(file)
         basename=file
         ofile=opath+"/"+file
         infile=open(dpath+'/'+file,'rU').readlines()
@@ -1496,31 +1573,59 @@ def add_pmd_ascii():
             out.write(line)
         out.close()
         print ofile,' copied to MagIC project directory'
-        outstring='PMD_magic.py  -WD '+'"'+opath+'"'+ ' -F '+file+'.magic'+' -f '+ file +APP
-        if MCD!="": # add method codes
-            outstring=outstring+' -mcd '+MCD[:-1]
-        outstring=outstring+' -ncn '+ncn_string
-        if ave_rv==0:outstring=outstring+ ' -A'
-        if Edict['usr']!="":outstring=outstring + ' -usr '+ Edict['usr']
-        if 'loc' in Edict.keys() and  Edict['loc']!="":outstring=outstring + ' -loc "'+ Edict['loc']+'"'
-        if Edict['ins']!="":outstring=outstring + ' -ins '+ Edict['ins']
+    return dpath,outlist
+
+def add_pmd_ascii():
+    global SIO
+    SIO['LP']=0
+    SIO['MCD'],APP=1,0
+    dpath,pmdlist=copy_text_directory("Select Directory of .PMD files for import ",'pmd')
+    names=ask_names(root)
+    ask_sio(root)
+    Samps,filetype=pmag.magic_read(opath+'/er_samples.txt') # check if existing
+    if len(Samps)>0: # there is an existing file
+        APP=tkMessageBox.askyesno("","Update and append existing er_samples file? No will overwrite")
+    for file in pmdlist: 
+        print file, pmdlist
+        if pmdlist.index(file)==0 and APP==0:  # overwrite existing
+            outstring='PMD_magic.py  -WD '+'"'+opath+'"'+ ' -F '+file+'.magic'+' -f '+ file 
+        else: # append to existing
+            outstring='PMD_magic.py  -WD '+'"'+opath+'"'+ ' -F '+file+'.magic'+' -f '+ file +' -Fsa er_samples.txt '
+        if SIO['mcd']!="": # add method codes
+            outstring=outstring+' -mcd '+SIO['mcd']
+        outstring=outstring+ ' -spc ' + SIO['spc']
+        if SIO['loc']!="":outstring=outstring + ' -loc "'+ SIO['loc']+'"'
+        if SIO['usr']!="":outstring=outstring + ' -usr '+ SIO['usr']
+        if SIO['noave']=="n":outstring=outstring + ' -A '
+        outstring=outstring+' -ncn '+'%s'%(names['rv']+1)
+        if names['rv']==3:outstring=outstring + '-'+'%s'%(names['Y'])
+        if names['rv']==6:outstring=outstring + '-'+'%s'%(names['Z'])
+        if outstring[-1]=='8':outstring=outstring+' -Fsa '+opath+'/er_synthetics.txt'
         print outstring
         os.system(outstring)
-        try:  # add file to measurements.log
-            filelist=[]
-            logfile=open(opath+"/measurements.log",'r')
-            for line in logfile.readlines():
-                if line.split()[0] not in filelist:filelist.append(line.split()[0])
-            if basename+'.magic' not in filelist:filelist.append(basename+'.magic')
-        except IOError:
-            filelist=[basename+'.magic']
-        logfile=open(opath+"/measurements.log",'w')
-        for f in filelist:
-            logfile.write(f+' | '+outstring+'\n')
-        logfile.close()
+    try:  # add files to measurements.log
+        filelist=[]
+        logfile=open(opath+"/measurements.log",'r')
+        for line in logfile.readlines():
+            if line.split()[0] not in filelist:filelist.append(line.split()[0])
+    except IOError:
+        pass
+    for file in pmdlist:
+        if file+'.magic' not in filelist:filelist.append(file+'.magic')
+    logfile=open(opath+"/measurements.log",'w')
+    for f in filelist:
+        logfile.write(f+' | '+outstring+'\n')
+    logfile.close()
+    try: # add to orientation log
+        logfile=open(opath+"/orient.log",'a')
+        logfile.write("er_samples.txt/er_sites.txt/er_images.txt | " + outstring+"\n")
+    except IOError:
+        logfile=open(opath+"/orient.log",'w')
+        logfile.write("er_samples.txt/er_sites.txt/er_images.txt  | " + outstring+"\n")
+    update_crd()
 
 
-def add_ur_jr6():
+def add_jr6():
     global Edict
     dpath=tkFileDialog.askdirectory(title="Select Directory of .JR6 files for import ")
     ncn_rv=ask_radio(root,NCN_types,'select naming convention\n NB: all file names must have same naming convention relating specimen to sample and site:') # sets naming convention
@@ -1559,7 +1664,7 @@ def add_ur_jr6():
             out.write(line)
         out.close()
     outfile=dirname+'.magic'
-    outstring='UR_jr6_magic.py  -WD '+opath +'/'+' -F '+dirname+'.magic'
+    outstring='JR6_magic.py  -WD '+opath +'/'+' -F '+dirname+'.magic'
     if Edict['usr']!="":outstring=outstring + ' -usr '+ Edict['usr']
     if Edict['loc']!="":outstring=outstring + ' -loc "'+ Edict['loc']+'"'
     if Edict['spc']!="":outstring=outstring + ' -spc '+ Edict['spc']
@@ -1698,6 +1803,7 @@ def add_2G():
 
 def add_ODP_srm(): 
     pass
+
 def add_ODP_csv():
     global Edict
     AVE_types=["Average replicate measurements","Do not average replicate measurements"]
@@ -1892,73 +1998,7 @@ def add_umich():
             logfile.write(f+' | '+outstring+'\n')
         logfile.close()
 
-def add_tdt():
-    global Edict
-    dpath=tkFileDialog.askdirectory(title="Select Directory of .tdt files for import ")
-    ncn_rv=ask_radio(root,NCN_types,'select naming convention\n NB: all file names must have same naming convention relating specimen to sample and site:') # sets naming convention
-    Edict={'usr':"",'spc':'0','fmt':'tdt'}
-    if ncn_rv==3: Edict['Z']=""
-    if ncn_rv==6: Edict['Z']=""
-    if ncn_rv!=5: Edict['loc']=""
-    make_entry(root) 
-    filelist=os.listdir(dpath) # get directory listing
-    for file in filelist: 
-      print 'processing: ',file
-      if len(file.split('.'))>1 and file.split('.')[1].lower()==Edict['fmt'].lower():
-        basename=file
-        ofile=opath+"/"+file
-        infile=open(dpath+'/'+file,'rU').readlines()
-        out=open(ofile,'w') # copy file to MagIC project directory
-        for line in infile:
-            out.write(line)
-        out.close()
-        outstring='TDT_magic.py -WD '+'"'+opath+'"'+ ' -F '+file+'.magic'+' -f '+ file
-        outstring=outstring+' -ncn '+str(ncn_rv+1) 
-        if ncn_rv==3 or ncn_rv==6:
-            outstring=outstring+'-'+Edict['Z']
-        if Edict['usr']!="":outstring=outstring + ' -usr '+ Edict['usr']
-        if Edict['spc']!="":outstring=outstring + ' -spc '+ Edict['spc']
-        if 'loc' in Edict.keys() and  Edict['loc']!="":outstring=outstring + ' -loc "'+ Edict['loc']+'"'
-        print outstring
-        os.system(outstring)
-        try:  # add file to measurements.log
-            filelist=[]
-            logfile=open(opath+"/measurements.log",'r')
-            for line in logfile.readlines():
-                if line.split()[0] not in filelist:filelist.append(line.split()[0])
-            if basename+'.magic' not in filelist:filelist.append(basename+'.magic')
-        except IOError:
-            filelist=[basename+'.magic']
-        logfile=open(opath+"/measurements.log",'w')
-        for f in filelist:
-            logfile.write(f+' | '+outstring+'\n')
-        logfile.close()
 
-
-def add_leg_ucsc():
-    global fpath,basename,Result
-    Result={'usr':'','loc':"unknown",'spc':'1'}
-    fpath= tkFileDialog.askdirectory(title="Set directory with files to import")
-    basename=fpath.split('/')[-1]  # this is the directory name for copying
-    d=MagDialog(root)
-    try:
-        print opath,opath+'/'+basename
-        shutil.copytree(fpath,opath+'/'+basename) # copy contents of directory to MagIC project directory
-    except OSError: # directory already exists
-        shutil.rmtree(opath+'/'+basename) # remove it
-        shutil.copytree(fpath,opath+'/'+basename) # copy it again
-    outstring='UCSC_leg_magic.py -WD '+opath+'/'+basename + ' -loc '+d.result['loc']
-    if d.result['usr']!="":outstring=outstring + ' -usr '+ d.result['usr'] 
-    if d.result['spc']!="":outstring=outstring + ' -spc '+ d.result['spc'] 
-    print outstring
-    os.system(outstring) # this should create a bunch of files in the new directory
-    try:
-        logfile=open(opath+"/ucsc_imports.log",'a')
-        logfile.write(basename+'\n')
-    except IOError:
-        logfile=open(opath+"/ucsc_imports.log",'w')
-        logfile.write(basename+'\n')
-#    tkMessageBox.showinfo("Info",basename+" converted to magic format and added to ucsc_imports.log  \n Check command window for errors")
 
 def add_ucsc():
     global fpath,basename,Edict
@@ -1976,60 +2016,6 @@ def add_ucsc():
 #    tkMessageBox.showinfo("Info",basename+' imported to MagIC, saved in magic_measurements format and added to ams.log  \n Check command window for errors')
 
 
-def add_huji():
-        global fpath,basename, Result
-        Result={'usr':'','out':'','dc':'0','ac':'0','phi':'0','theta':'-90','loc':"unknown",'spc':'1'}
-        if opath=="":
-            print "Must set output directory first!"
-            return
-        fpath=tkFileDialog.askopenfilename(title="Set input file:")
-        file=fpath.split('/')[-1] 
-        basename=file
-        ofile=opath+"/"+file
-        LP_types=["AF: alternating field demagnetization","S: Shaw method paleointensity","T: Thermal de(re)magnetization including thellier but excluding TRM acquisition","NRM: no lab treatment","TRM: TRM acquisition experiment","ANI: anisotropy of TRM,IRM or ARM","D: double demagnetization","G: GRM protocol","I: IRM"]
-        checks=ask_check(root,LP_types,'select lab protocols:\n ')
-        LPlist= map((lambda var:var.get()),checks)
-        d=MagDialog(root)
-        LP=""
-        for i in range(len(LPlist)):
-             if LPlist[i]==1:
-                 LP=LP+LP_types[i].split(':')[0]+":"
-                 if "ANI" in LP.split(':'): 
-                     try:
-                         filelist=[]
-                         logfile=open(opath+"/ani.log",'r')
-                         for line in logfile.readlines():
-                             if line.split()[0] not in filelist:filelist.append(line.split()[0])
-                         if basename+'.magic' not in filelist:filelist.append(basename+'.magic')
-                     except IOError:
-                         filelist=[basename+'.magic']
-                     logfile=open(opath+"/ani.log",'w')
-                     for f in filelist:
-                         logfile.write(f+'\n') 
-                     logfile.close()
-        d.result['LP']=LP[:-1]
-        d.result['fpath']=fpath
-        infile=open(fpath,'rU').readlines()
-        out=open(ofile,'w')
-        for line in infile:
-            out.write(line)
-        out.close()
-        outstring='HUJI_magic.py  -F '+d.result['out']+' -f '+ ofile+ ' -LP ' + d.result['LP'] + ' -spc ' + d.result['spc'] 
-        if d.result['loc']!="":outstring=outstring + ' -loc "'+ d.result['loc']+'"'
-        if d.result['dc']!="0":outstring=outstring + ' -dc '+ d.result['dc'] + ' ' + d.result['phi'] + ' ' + d.result['theta']
-        if d.result['usr']!="":outstring=outstring + ' -usr '+ d.result['usr'] 
-        if d.result['noave']=="n":outstring=outstring + ' -A '
-        ncn_rv=ask_radio(root,NCN_types,'select naming convention:') # sets naming convention
-        outstring=outstring+' -ncn '+NCN_types[ncn_rv].split(":")[0]
-        print outstring
-        os.system(outstring)
-        try:
-            logfile=open(opath+"/measurements.log",'a')
-            logfile.write(basename+".magic" +" | " + outstring+"\n")
-        except IOError:
-            logfile=open(opath+"/measurements.log",'w')
-            logfile.write(basename+".magic" +" | " + outstring+"\n")
-#        tkMessageBox.showinfo("Info",file+" converted to magic format and added to measurements.log  \n Check command window for errors")
 
 
 def add_s_dir():
@@ -2446,7 +2432,7 @@ def aniso():
         outstring=outstring+ ' -f rmag_anisotropy.txt' 
         outstring=outstring+ ' -F rmag_results.txt'
     except IOError:
-        tkMessageBox.showinfo("Info",'select Assemble measurements first. ')
+        tkMessageBox.showinfo("Info",'select Combine measurements first. ')
         return
     ELL_types=["-x: Hext ellipses","-B: suppress bootstrap","-par: parametric bootstrap","-v: plot bootstrap eigenvectors","-sit: plot by site instead of whole file"]
     ell_checks=ask_check(root,ELL_types,'select desired options:') # allows adding of meta data describing field methods
@@ -2475,7 +2461,7 @@ def sitemeans():
     try:
         open(opath+"/magic_measurements.txt",'r')
     except IOError:
-        tkMessageBox.showinfo("Info","Assemble measurements first")
+        tkMessageBox.showinfo("Info","Combine measurements first")
         return
     sfiles=['Use default specimen file','Customize choice of specimen file']
     spec_rv=ask_radio(root,sfiles,'Choose option for specimen files:') # 
@@ -2796,7 +2782,7 @@ def ani_depthplot():
         open(opath+"/rmag_anisotropy.txt",'r')
         open(opath+"/magic_measurements.txt",'r')
     except IOError:
-        tkMessageBox.showinfo("Info",'select Assemble measurements first.   ')
+        tkMessageBox.showinfo("Info",'select Combine measurements first.   ')
         return
     outstring='ani_depthplot.py -WD '+'"'+opath+'"' +' -fb magic_measurements.txt '
     Edict={'Depth Max':'','Depth Min':''}
@@ -2962,29 +2948,31 @@ def create_menus():
     orientmenu.add_command(label="ODP Sample Summary csv file",command=add_ODP_samp)
     magmenu=Menu(importmenu)
     importmenu.add_cascade(label="Magnetometer files",menu=magmenu)
-    magmenu.add_command(label="SIO format",command=add_mag)
-    magmenu.add_command(label="LDEO format",command=add_ldgo)
+    magmenu.add_command(label="SIO format",command=add_sio)
+    filemenu.add_separator()
     magmenu.add_command(label="CIT format",command=add_cit)
-    magmenu.add_command(label="UU format",command=add_uu)
-    magmenu.add_command(label="UB format",command=add_ub)
-    magmenu.add_command(label="2G format",command=add_2G)
-    UCSCmenu=Menu(magmenu)
-    magmenu.add_cascade(label="UCSC formats",menu=UCSCmenu)
-    UCSCmenu.add_command(label="UCSC New format",command=add_ucsc)
-    UCSCmenu.add_command(label="UCSC legacy format",command=add_leg_ucsc)
-    magmenu.add_command(label="LIV-MW format",command=add_liv)
+   # magmenu.add_command(label="2G-ascii format",command=add_2G_asc)
+   # magmenu.add_command(label="2G-binary format",command=add_2G_bin)
     magmenu.add_command(label="HUJI format",command=add_huji)
-    magmenu.add_command(label="PMD (Enkin) format",command=add_pmd_ascii)
-    magmenu.add_command(label="PMD (IPG-PaleoMac) format",command=add_ipg)
-    magmenu.add_command(label="UMICH (Gee) format",command=add_umich)
-    magmenu.add_command(label="TDT format",command=add_tdt)
-    magmenu.add_command(label="UR (JR6)  format",command=add_ur_jr6)
+   # magmenu.add_command(label="JR6 format",command=add_jr6)
+    magmenu.add_command(label="LDEO format",command=add_ldeo)
     ODPmenu=Menu(magmenu)
     magmenu.add_cascade(label="IODP formats",menu=ODPmenu)
     ODPmenu.add_command(label="ODP SRM .dsc files",command=add_ODP_dsc)
 #    ODPmenu.add_command(label="ODP SRM .srm files",command=add_ODP_srm)
     ODPmenu.add_command(label="ODP SRM .csv files",command=add_ODP_csv)
     ODPmenu.add_command(label="ODP Minispin .spn files",command=add_ODP_spn)
+    magmenu.add_command(label="PMD (ascii) format",command=add_pmd_ascii)
+   # magmenu.add_command(label="PMD (IPG-PaleoMac) format",command=add_ipg)
+#    magmenu.add_command(label="UU format",command=add_uu)
+#    magmenu.add_command(label="UB format",command=add_ub)
+#    UCSCmenu=Menu(magmenu)
+#    magmenu.add_cascade(label="UCSC formats",menu=UCSCmenu)
+   # UCSCmenu.add_command(label="UCSC New format",command=add_ucsc)
+   # UCSCmenu.add_command(label="UCSC legacy format",command=add_leg_ucsc)
+#    magmenu.add_command(label="LIV-MW format",command=add_liv)
+#    magmenu.add_command(label="UMICH (Gee) format",command=add_umich)
+    magmenu.add_command(label="TDT format",command=add_tdt)
     amsmenu=Menu(importmenu)
     importmenu.add_cascade(label="Anisotropy files",menu=amsmenu)
     s_menu=Menu(amsmenu)
@@ -3000,7 +2988,7 @@ def create_menus():
     agmmenu.add_command(label="Import entire directory",command=add_agm_dir)
     importmenu.add_command(label="Curie Temperatures",command=add_curie)
     importmenu.add_separator()
-    importmenu.add_command(label="Assemble measurements",command=meas_combine)
+    importmenu.add_command(label="Combine measurements",command=meas_combine)
     importmenu.add_command(label="Convert er_samples => orient.txt",command=convert_samps)
     importmenu.add_command(label="Update measurements\n if new orientation imported",command=update_meas)
     importmenu.add_separator()
@@ -3098,7 +3086,10 @@ user=""
 OrResult={'out':'er_samples.txt','gmt':'0','dec':'','Z':'','dcn':'1','dec':'','Z':'','ocn':'1','ncn':'1','a':0,'app':'n'}
 SMopts={'usr':user,'min':"",'max':"",'units':"","crd":"s",'frac':"",'type':""}
 ApwpResult={}
-NCN_types=["1: XXXXY: where XXXX is site designation, Y is sample", "2: XXXX-YY: YY sample from site XXXX (XXX, YY of arbitary length)", "3: XXXX.YY: YY sample from site XXXX (XXX, YY of arbitary length)","4: XXXX[YYY] where YYY is sample designation with Z characters from site XXX; Z will be supplied on next page", "5: sample name=site name","6: OPTION NOT AVAILABLE, TO TIE SPECIAL SITE NAME TO SAMPLE, USE UPDATE MEASUREMENTS OPTION","7: [XXXX]YYY where XXXX is Z character long site name","8: this is a synthetic and has no site name","9: ODP naming convention"] 
+NCN_types=["1: XXXXY: where XXXX is site designation, Y is sample", "2: XXXX-YY: YY sample from site XXXX (XXX, YY of arbitary length)", "3: XXXX.YY: YY sample from site XXXX (XXX, YY of arbitary length)","4: XXXX[YYY] where YYY is sample designation, enter number of Y:", "5: sample name=site name","6: Site names in orient.txt file","7: [XXXX]YYY where XXXX is the site name, enter number of X:","8: this is a synthetic and has no site name"] 
 OCN_types=["1: Lab arrow azimuth = mag_azimuth; Lab arrow dip=-field_dip (field_dip is hade)", "2: Lab arrow azimuth = mag_azimuth-90 (mag_azimuth is strike); Lab arrow dip = -field_dip","3: Lab arrow azimuth = mag_azimuth; Lab arrow dip = 90-field_dip (field_dip is inclination of lab arrow)","4: Lab arrow azimuth and dip are same as mag_azimuth, field_dip","5: Lab arrow azimuth and dip are mag_azimuth, field_dip-90 (field arrow is inclination of specimen Z direction)","6: Lab arrow azimuth = mag_azimuth-90 (mag_azimuth is strike); Lab arrow dip = 90-field_dip"]
-MCD_types=["FS-FD: field sampling done with a drill","FS-H: field sampling done with hand samples","FS-LOC-GPS: field location done with GPS","FS-LOC-MAP:  field location done with map","SO-POM:  a Pomeroy orientation device was used","SO-ASC:  an ASC orientation device was used","SO-MAG: a magnetic compass was used","SO-SUN: a sun compass was used "]
+MCD_types=["FS-FD: field sampling done with a drill","FS-H: field sampling done with hand samples","FS-LOC-GPS: field location done with GPS","FS-LOC-MAP:  field location done with map","SO-POM:  a Pomeroy orientation device was used","SO-ASC:  an ASC orientation device was used","SO-MAG: magnetic compass used for all orientations","SO-SUN: sun compass used for all orientations","SO-SM: either magnetic or sun used on all orientations","SO-SIGHT: orientation from sighting"]
+DCN_types=["1: Use the IGRF DEC value at the lat/long and date supplied","2: Use this DEC: ","3: DEC=0, mag_az is already corrected in file","4: value to ADD to local time for GMT"]
+LP_types=["NRM: no lab treatment", "AF: alternating field de(re)magnetization","T: Thermal de(re)magnetization including Thellier, excluding TRM acquis.","TRM: TRM acquisition experiment","ANI: anisotropy of TRM,IRM or ARM","I: IRM","I3d: Lowrie 3D-IRM"]
+SIO={'usr':'','out':'','dc':'0','ac':'0','phi':'0','theta':'-90','spc':'1','coil':'','LP':1,'MCD':0}
 root.mainloop()
