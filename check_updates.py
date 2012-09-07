@@ -67,7 +67,8 @@ def main():
     
     # Warn the user if their local PmagPy installation is out of date
     if local_version != remote_version:
-        from Tkinter import tkMessageBox
+        from Tkinter import *
+        import tkMessageBox
         tkMessageBox.showinfo("Your local installation of PmagPy is out of date. Please download the latest version (https://github.com/ltauxe/PmagPy/zipball/master).")
 
 main()
