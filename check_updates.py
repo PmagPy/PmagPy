@@ -71,8 +71,10 @@ def main():
         root=Tk()
         root.title("Message from PmagPy")
         frame=Frame(root)
-        l=Label(frame,text="Your local installation of PmagPy is out of date. \n You can download the latest version at \n https://github.com/ltauxe/PmagPy/zipball/master")
-    l.pack(side.TOP)
-    root.wait_window(frame)
+        frame.pack()
+        l=Label(frame,text="     Your local installation of PmagPy is out of date.\n       Please download the latest version:      \n https://github.com/ltauxe/PmagPy/zipball/master.      ")
+        l.pack(side=TOP)
+        root.wait_window(frame)
+
 
 main()
