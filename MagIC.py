@@ -1098,64 +1098,66 @@ def meas_combine():
     if log==0: tkMessageBox.showinfo("Info",'no log files!')
 
 def add_cit():
-        global SIO
-        SIO['LP'],SIO['MCD']=0,1 # don't get lab protocols, do get method codes
+    global SIO
+    SIO['LP'],SIO['MCD']=0,1 # don't get lab protocols, do get method codes
 # copy over files
-        fpath=tkFileDialog.askopenfilename(title="Select .sam file in directory with specimen data:")
-        in_path=fpath.split('/')
-        file=in_path[-1] 
-        ipath=""
-        for n in in_path[:-1]: ipath=ipath+n+'/'
-        ofile=opath+'/'+file
-        infile=open(fpath,'rU').readlines()
+    fpath=tkFileDialog.askopenfilename(title="Select .sam file in directory with specimen data:")
+    in_path=fpath.split('/')
+    file=in_path[-1] 
+    ipath=""
+    for n in in_path[:-1]: ipath=ipath+n+'/'
+    ofile=opath+'/'+file
+    infile=open(fpath,'rU').readlines()
+    out=open(ofile,'w')
+    for line in infile:
+        out.write(line)
+    out.close()
+    print fpath,' copied to ',ofile
+    ln=0
+    if infile[0]=="CIT":
+        ln+=3
+    else:
+        ln+=2
+    while ln<len(infile):
+        mfile=infile[ln].split()[0]
+        ofile=opath+"/"+mfile
+        cpfile=open(ipath+mfile,'rU').readlines()
         out=open(ofile,'w')
-        for line in infile:
+        for line in cpfile:
             out.write(line)
         out.close()
-        print fpath,' copied to ',ofile
-        ln=0
-        if infile[0]=="CIT":
-            ln+=3
-        else:
-            ln+=2
-        while ln<len(infile):
-            mfile=infile[ln].split()[0]
-            ofile=opath+"/"+mfile
-            cpfile=open(ipath+mfile,'rU').readlines()
-            out=open(ofile,'w')
-            for line in cpfile:
-                out.write(line)
-            out.close()
-            ln+=1
-            print ipath+mfile,' copied to ',ofile
+        ln+=1
+        print ipath+mfile,' copied to ',ofile
 # get the location, naming conventions, method codes, etc.
-        ask_sio(root)
-        names=ask_names(root)
-        outstring='CIT_magic.py -WD '+'"'+opath+'"'+'  -f '+file + ' -F ' + file+'.magic'
-        if SIO['mcd']!="": # add method codes
-            outstring=outstring+' -mcd '+SIO['mcd']
-        outstring=outstring+ ' -spc ' + SIO['spc']
-        if SIO['loc']!="":outstring=outstring + ' -loc "'+ SIO['loc']+'"'
-        if SIO['usr']!="":outstring=outstring + ' -usr '+ SIO['usr']
-        if SIO['noave']=="n":outstring=outstring + ' -A '
-        outstring=outstring+' -ncn '+'%s'%(names['rv']+1)
-        if names['rv']==3:outstring=outstring + '-'+'%s'%(names['Y'])
-        if names['rv']==6:outstring=outstring + '-'+'%s'%(names['Z'])
-        if outstring[-1]=='8':outstring=outstring+' -Fsa '+opath+'/er_synthetics.txt'
-        print outstring
-        os.system(outstring)
-        try:
-            logfile=open(opath+"/measurements.log",'a')
-            logfile.write(file+".magic  | " + outstring+"\n")
-        except IOError:
-            logfile=open(opath+"/measurements.log",'w')
-            logfile.write(file+".magic | " + outstring+"\n")
-        try: # add to orientation log
-            logfile=open(opath+"/orient.log",'a')
-            logfile.write("er_samples.txt/er_sites.txt | " + outstring+"\n")
+    ask_sio(root)
+    names=ask_names(root)
+    outstring='CIT_magic.py -WD '+'"'+opath+'"'+'  -f '+file + ' -F ' + file+'.magic'
+    if SIO['mcd']!="": # add method codes
+        outstring=outstring+' -mcd '+SIO['mcd']
+    outstring=outstring+ ' -spc ' + SIO['spc']
+    if SIO['loc']!="":outstring=outstring + ' -loc "'+ SIO['loc']+'"'
+    if SIO['usr']!="":outstring=outstring + ' -usr '+ SIO['usr']
+    if SIO['noave']=="n":outstring=outstring + ' -A '
+    outstring=outstring+' -ncn '+'%s'%(names['rv']+1)
+    if names['rv']==3:outstring=outstring + '-'+'%s'%(names['Y'])
+    if names['rv']==6:outstring=outstring + '-'+'%s'%(names['Z'])
+    if outstring[-1]=='8':outstring=outstring+' -Fsa '+opath+'/er_synthetics.txt'
+    print outstring
+    os.system(outstring)
+    try:
+        logfile=open(opath+"/measurements.log",'a')
+        logfile.write(file+".magic  | " + outstring+"\n")
+    except IOError:
+        logfile=open(opath+"/measurements.log",'w')
+        logfile.write(file+".magic | " + outstring+"\n")
+    try: # add to orientation log
+        logfile=open(opath+"/orient.log",'a')
+        logfile.write("er_samples.txt/er_sites.txt | " + outstring+"\n")
+    except:
+        logfile=open(opath+"/orient.log",'w')
+        logfile.write("er_samples.txt/er_sites.txt | " + outstring+"\n")
 
-#        tkMessageBox.showinfo("Info",file+" converted to magic format and added to measurements.log  \n Check command window for errors")
-        
+
 
 def add_redo():
     try:
@@ -1204,7 +1206,6 @@ def add_redo():
         pass
     print outstring
     os.system(outstring)
-    tkMessageBox.showinfo("Info","Interpretation file imported to Project Directory, see terminal window for error messages \n You can check interpretations with Demagnetization Data and \n Assemble specimens when done.")
 
 def add_DIR_ascii():
     try:
@@ -2313,13 +2314,9 @@ def set_out(question=""):
         opath= tkFileDialog.askdirectory()
 #        print opath,' has been set'
 
-def help_magic(helpme):
-    pass
-#    import webbrowser
-#    if helpme=="MagIC":
-#        webbrowser.open("http://earthref.org/MAGIC/help:txt")
-#    else:
-#        webbrowser.open("http://magician.ucsd.edu/Software/PmagPy/Docs/PmagPy.html#"+helpme)
+def help_magic():
+    import webbrowser
+    webbrowser.open("http://magician.ucsd.edu/Software/PmagPy/Docs/PmagPy.html")
 
 
 def exit():
@@ -3037,11 +3034,9 @@ def create_menus():
     utilitymenu.add_command(label="Expected directions/Paleolatitudes",command=apwp)
     utilitymenu.add_separator()
     menubar.add_cascade(label="Utilities",menu=utilitymenu)
-#    helpmenu=Menu(menubar)
-#    menubar.add_cascade(label="Help",menu=helpmenu)
-#    helpmenu.add_command(label="PmagPy help documents",command=help_magic('PmagPy'))
-#    helpmenu.add_command(label="MagIC.py help documents",command=help_magic('MagIC.py'))
-#    helpmenu.add_command(label="MagIC database help",command=help_magic('MagIC'))
+    helpmenu=Menu(menubar)
+    menubar.add_cascade(label="Help",menu=helpmenu)
+    helpmenu.add_command(label="PmagPy Help",command=help_magic)
     root.config(menu=menubar)
 
 
