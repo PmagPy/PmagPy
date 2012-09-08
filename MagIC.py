@@ -428,19 +428,19 @@ def add_ODP_samp():
     os.system(outstring)
            
 
-def ODP_fix_names():
-    filelist=os.listdir(opath)
-    for file in filelist: # fix up ODP sample names
-        if file.split(".")[-1]=='magic' or file.split("_")[-1]=='anisotropy.txt':
-            fname=file.split('/')[-1]
-            outstring='ODP_fix_names.py  -WD '+opath+' -f '+fname
-            print outstring
-            os.system(outstring)
-    
-
+#def ODP_fix_names():
+#    filelist=os.listdir(opath)
+#    for file in filelist: # fix up ODP sample names
+#        if file.split(".")[-1]=='magic' or file.split("_")[-1]=='anisotropy.txt':
+#            fname=file.split('/')[-1]
+#            outstring='ODP_fix_names.py  -WD '+opath+' -f '+fname
+#            print outstring
+#            os.system(outstring)
+#    
+#
 def add_ODP_sum():
     global apath
-    file,path=copy_text_file("Select ODP Core Summary .csv file:")
+    file,path=copy_text_file("Select IODP Core Summary .csv file:")
     try:
         logfile=open(opath+"/ODPsummary.log",'a')
         logfile.write(file+"\n")
@@ -1802,14 +1802,11 @@ def add_2G():
 #    tkMessageBox.showinfo("Info",file+" converted to magic format and added to measurements.log  \n Check command window for errors")
 
 
-def add_ODP_srm(): 
-    pass
-
-def add_ODP_csv():
+def add_srm_csv():
     global Edict
+    fpath=tkFileDialog.askopenfilename(title="Set WebTabular SRM .csv file:")
     AVE_types=["Average replicate measurements","Do not average replicate measurements"]
     ave_rv=ask_radio(root,AVE_types,'choose desired averaging option:') #
-    fpath=tkFileDialog.askopenfilename(title="Set input file:")
     file=fpath.split('/')[-1] 
     basename=file
     ofile=opath+"/"+file
@@ -1818,7 +1815,7 @@ def add_ODP_csv():
     for line in infile:
         out.write(line)
     out.close()
-    outstring='ODP_csv_magic.py  -WD '+'"'+opath+'"'+ ' -F '+file+'.magic -f '+ofile
+    outstring='IODP_csv_magic.py  -WD '+'"'+opath+'"'+ ' -F '+file+'.magic -f '+ofile
     if ave_rv==1:outstring=outstring+ ' -A'
     try:
         sampfile=open(opath+"/er_samples.txt",'r') # append to existing er_samples file
@@ -1833,122 +1830,6 @@ def add_ODP_csv():
     except IOError:
         logfile=open(opath+"/measurements.log",'w')
         logfile.write(basename+".magic" +" | " + outstring+"\n")
-
-def add_ODP_spn():
-    global Edict
-    fpath=tkFileDialog.askopenfilename(title="Set input file:")
-    file=fpath.split('/')[-1] 
-    basename=file
-    ofile=opath+"/"+file
-    infile=open(fpath,'rU').readlines()
-    out=open(ofile,'w') # copy file to MagIC project directory
-    for line in infile:
-        out.write(line)
-    out.close()
-    AVE_types=["Average replicate measurements","Do not average replicate measurements"]
-    ave_rv=ask_radio(root,AVE_types,'choose desired averaging option:') #
-    LP_types=["AF demagnetization","Thermal demagnetization","Anhysteretic remanence","Isothermal Remanence"]
-    LP_rv=ask_radio(root,LP_types,'choose desired treatment type:') #
-    outstring='ODP_spn_magic.py  -WD '+'"'+opath+'"'+ ' -F '+file+'.magic -f '+file
-    if ave_rv==1:outstring=outstring+ ' -A'
-    if LP_rv==0:outstring=outstring+ ' -LP AF'
-    if LP_rv==1:outstring=outstring+ ' -LP T'
-    if LP_rv==2:
-        dc=raw_input("What was your DC field (uT): ")
-        outstring=outstring+ ' -LP A '+dc
-    if LP_rv==3:outstring=outstring+ ' -LP I'
-    vol_types=["Change default volume? ","Assume 10.5 cc"]
-    vol_rv=ask_radio(root,vol_types,'choose desired volume option:') #
-    if vol_rv==0:
-        vol=raw_input("What was your assumed volume (cc): ")
-        outstring=outstring + " -v "+vol
-    print outstring
-    os.system(outstring)
-    try:
-        logfile=open(opath+"/measurements.log",'a')
-        logfile.write(basename+".magic" +" | " + outstring+"\n")
-    except IOError:
-        logfile=open(opath+"/measurements.log",'w')
-        logfile.write(basename+".magic" +" | " + outstring+"\n")
-
-
-def add_ODP_dsc():
-    global Edict
-    AVE_types=["Average replicate measurements","Do not average replicate measurements"]
-    ave_rv=ask_radio(root,AVE_types,'choose desired averaging option:') #
-    dpath=tkFileDialog.askdirectory(title="Select Directory of ODP discrete sample files for import ")
-    filelist=os.listdir(dpath) # get directory listing
-    dirname=dpath.split('/')[-1]
-    try:
-        dirlist=os.listdir(opath+'/'+dirname) # check if existing directory
-        print dirlist
-        for f in dirlist:
-            os.remove(opath+'/'+dirname+'/'+f) # clean it out
-            print 'removing  ',opath+'/'+dirname+'/'+f
-    except:
-        os.mkdir(opath+'/'+dirname)
-    for file in filelist: 
-      if file.split('.')[-1].lower()=='dsc':
-        ofile=opath+'/'+dirname+"/"+file
-        infile=open(dpath+'/'+file,'rU').readlines()
-        out=open(ofile,'w') # copy file to MagIC project directory
-        for line in infile:
-            out.write(line)
-        out.close()
-    outfile=dirname+'.magic'
-    outstring='ODP_dsc_magic.py  -WD '+opath+'/'+dirname+'/'+' -F '+dirname+'.magic'
-    outstring=outstring + ' -Fsa er_samples.txt -Fsp er_specimens.txt'
-    if ave_rv==1:outstring=outstring+ ' -A'
-    print outstring
-    os.system(outstring)
-    try: # combine er_sample data
-        open(opath+"/er_samples.txt",'r') # append to existing er_samples file
-        Samps,file_type=pmag.magic_read(opath+"/er_samples.txt") # append to existing er_samples file
-        NewSamps,file_type=pmag.magic_read(opath+'/'+dirname+"/er_samples.txt") 
-        samples,OutSamps=[],[]
-        for samp in Samps:
-            if samp['er_sample_name'] not in samples:
-                samples.append(samp['er_sample_name'])
-                OutSamps.append(samp) 
-        for samp in NewSamps:
-            if samp['er_sample_name'] not in samples:
-                samples.append(samp['er_sample_name'])
-                OutSamps.append(samp) 
-        Samps,keys=pmag.fillkeys(OutSamps)
-        pmag.magic_write(opath+'/er_samples.txt',Samps,'er_samples.txt') # write combined file to project directory
-    except IOError:
-        os.rename(opath+'/'+dirname+'/er_samples.txt', opath+'/er_samples.txt')
-    try: # combine er_specimen data
-        open(opath+"/er_specimens.txt",'r') # append to existing er_samples file
-        Samps,file_type=pmag.magic_read(opath+"/er_specimens.txt") # append to existing er_samples file
-        NewSamps,file_type=pmag.magic_read(opath+'/'+dirname+"/er_specimens.txt") 
-        samples,OutSamps=[],[]
-        for samp in Samps:
-            if samp['er_specimen_name'] not in samples:
-                samples.append(samp['er_specimen_name'])
-                OutSamps.append(samp) 
-        for samp in NewSamps:
-            if samp['er_specimen_name'] not in samples:
-                samples.append(samp['er_specimen_name'])
-                OutSamps.append(samp) 
-        Samps,keys=pmag.fillkeys(OutSamps)
-        pmag.magic_write(opath+'/er_specimens.txt',Samps,'er_specimens.txt') # write combined file to project directory
-    except IOError:
-        os.rename(opath+'/'+dirname+'/er_specimens.txt', opath+'/er_specimens.txt')
-    os.rename(opath+'/'+dirname+'/'+dirname+'.magic', opath+'/'+dirname+'.magic')
-    try:  # add file to measurements.log
-        filelist=[]
-        logfile=open(opath+"/measurements.log",'r')
-        for line in logfile.readlines():
-            if line.split()[0] not in filelist:filelist.append(line.split()[0])
-        if outfile not in filelist:filelist.append(outfile)
-    except IOError:
-        filelist=[outfile]
-    logfile=open(opath+"/measurements.log",'w')
-    for f in filelist:
-        logfile.write(f+' | '+outstring+'\n')
-    logfile.close()
-#    tkMessageBox.showinfo("Info",file+" converted to magic format and added to measurements.log  \n Check command window for errors")
 
 
 def add_umich():
@@ -2351,6 +2232,8 @@ def zeq():
         logfile.write(file+'\n') 
     logfile.close()
 #    tkMessageBox.showinfo("Info","Specimen interpretations saved in "+opath+'/zeq_specimens.txt \n Check command window for errors')
+def thellier_gui():
+    os.system('my_thellier_tool_1.1.py')
 
 def thellier():
     t_command="thellier_magic.py -fsp "+opath+'/thellier_specimens.txt' 
@@ -2891,7 +2774,7 @@ def core_depthplot():
             open(opath+"/pmag_specimens.txt",'r')
             outstring=outstring + ' -fsp pmag_specimens.txt ' + syms['dsym']+ ' ' +syms['dsize'] 
         except IOError:
-            tkMessageBox.showinfo("Info","Assemble specimens first")
+            print 'cant plot  PCAs  - none found'
     else:
         outstring=outstring+' -S '
     if PLT_list[6]==0: outstring = outstring + ' -log'
@@ -2953,12 +2836,7 @@ def create_menus():
     magmenu.add_command(label="HUJI format",command=add_huji)
    # magmenu.add_command(label="JR6 format",command=add_jr6)
     magmenu.add_command(label="LDEO format",command=add_ldeo)
-    ODPmenu=Menu(magmenu)
-    magmenu.add_cascade(label="IODP formats",menu=ODPmenu)
-    ODPmenu.add_command(label="IODP SRM .dsc files",command=add_ODP_dsc)
-#    ODPmenu.add_command(label="ODP SRM .srm files",command=add_ODP_srm)
-    ODPmenu.add_command(label="IODP SRM .csv files",command=add_ODP_csv)
-    ODPmenu.add_command(label="IODP Minispin .spn files",command=add_ODP_spn)
+    magmenu.add_command(label="IODP SRM (csv) format",command=add_srm_csv)
     magmenu.add_command(label="PMD (ascii) format",command=add_pmd_ascii)
    # magmenu.add_command(label="PMD (IPG-PaleoMac) format",command=add_ipg)
 #    magmenu.add_command(label="UU format",command=add_uu)
@@ -3002,6 +2880,7 @@ def create_menus():
     plotmenu.add_separator()
     plotmenu.add_command(label="Demagnetization data ",command=zeq)
     plotmenu.add_command(label="Thellier-type experiments",command=thellier)
+#    plotmenu.add_command(label="Thellier GUI",command=thellier_gui)
     plotmenu.add_command(label="Microwave experiments",command=microwave)
     plotmenu.add_command(label="Anisotropy data",command=aniso)
     plotmenu.add_command(label="Hysteresis data",command=hysteresis)

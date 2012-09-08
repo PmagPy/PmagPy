@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-import pmag,sys,os
+import pmag,sys,os,exceptions
 def main():
     """
     NAME
@@ -82,31 +82,35 @@ def main():
             print 'processing: ',file
             input=open(file,'rU').readlines()
             keys=input[0].replace('\n','').split(',') # splits on underscores
+            if "Interval Top (cm) on SHLF" in keys:interval_key="Interval Top (cm) on SHLF"
+            if " Interval Bot (cm) on SECT" in keys:interval_key=" Interval Bot (cm) on SECT"
+            if "Top Depth (m)" in keys:depth_key="Top Depth (m)"
+            if "CSF-A Top (m)" in keys:depth_key="CSF-A Top (m)" 
+            if "CSF-B Top (m)" in keys:depth_key="CSF-B Top (m)" # use this model if available 
+            if "Demag level (mT)" in keys:demag_key="Demag level (mT)"
+            if "Demag Level (mT)" in keys: demag_key="Demag Level (mT)"
+            if "Inclination (Tray- and Bkgrd-Corrected) (deg)" in keys:inc_key="Inclination (Tray- and Bkgrd-Corrected) (deg)"
+            if "Inclination background + tray corrected  (deg)" in keys:inc_key="Inclination background + tray corrected  (deg)"
+            if "Inclination background + tray corrected  (\xc2\xb0)" in keys:inc_key="Inclination background + tray corrected  (\xc2\xb0)"
+            if "Declination (Tray- and Bkgrd-Corrected) (deg)" in keys:dec_key="Declination (Tray- and Bkgrd-Corrected) (deg)"
+            if "Declination background + tray corrected (deg)" in keys:dec_key="Declination background + tray corrected (deg)"
+            if "Declination background + tray corrected (\xc2\xb0)" in keys:dec_key="Declination background + tray corrected (\xc2\xb0)"
+            if "Intensity (Tray- and Bkgrd-Corrected) (A/m)" in keys:int_key="Intensity (Tray- and Bkgrd-Corrected) (A/m)"
+            if "Intensity background + tray corrected  (A/m)" in keys:int_key="Intensity background + tray corrected  (A/m)"
+            if "Core Type" in keys:
+                type="Core Type"
+            else: type="Type" 
             for line in input[1:]:
+              InRec={}
+              for k in range(len(keys)):InRec[keys[k]]=line.split(',')[k]
+              try:
                 run_number=""
                 inst="ODP-SRM"
                 volume='15.59' # set default volume to this
                 MagRec,SpecRec,SampRec,SiteRec={},{},{},{}
-                InRec={}
-                for k in range(len(keys)):InRec[keys[k]]=line.split(',')[k]
                 expedition=InRec['Exp']
                 location=InRec['Site']+InRec['Hole']
 # Maintain backward compatibility for the ever-changing LIMS format (Argh!)
-                if "Interval Top (cm) on SHLF" in InRec.keys():interval_key="Interval Top (cm) on SHLF"
-                if "Interval Top (cm) on SECT" in InRec.keys():interval_key="Interval Top (cm) on SECT"
-                if "Top Depth (m)" in InRec.keys():depth_key="Top Depth (m)"
-                if "CSF-A Top (m)" in InRec.keys():depth_key="CSF-A Top (m)" 
-                if "Demag level (mT)" in InRec.keys():demag_key="Demag level (mT)"
-                if "Demag Level (mT)" in InRec.keys(): demag_key="Demag Level (mT)"
-                if "Inclination (Tray- and Bkgrd-Corrected) (deg)" in InRec.keys():inc_key="Inclination (Tray- and Bkgrd-Corrected) (deg)"
-                if "Inclination background + tray corrected  (deg)" in InRec.keys():inc_key="Inclination background + tray corrected  (deg)"
-                if "Declination (Tray- and Bkgrd-Corrected) (deg)" in InRec.keys():dec_key="Declination (Tray- and Bkgrd-Corrected) (deg)"
-                if "Declination background + tray corrected (deg)" in InRec.keys():dec_key="Declination background + tray corrected (deg)"
-                if "Intensity (Tray- and Bkgrd-Corrected) (A/m)" in InRec.keys():int_key="Intensity (Tray- and Bkgrd-Corrected) (A/m)"
-                if "Intensity background + tray corrected  (A/m)" in InRec.keys():int_key="Intensity background + tray corrected  (A/m)"
-                if "Core Type" in InRec.keys():
-                    type="Core Type"
-                else: type="Type" 
                 while len(InRec['Core'])<3:
                     InRec['Core']='0'+InRec['Core']
                 if "Last Tray Measurment" in InRec.keys() and "Discrete" in InRec['Last Tray Measurement'] or 'dscr' in csv_file :  # assume discrete sample
@@ -197,6 +201,8 @@ def main():
                 if MagRec['er_site_name']  not in sites:
                     sites.append(MagRec['er_site_name'])
                     SiteRecs.append(SiteRec)
+              except:
+                 pass
     if len(SpecRecs)>0:
         pmag.magic_write(spec_file,SpecRecs,'er_specimens')
         print 'specimens stored in ',spec_file
