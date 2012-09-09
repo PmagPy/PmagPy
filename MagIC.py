@@ -314,9 +314,9 @@ class make_sio: # makes an entry table for basic data from an SIO formatted file
                 self.cb=Checkbutton(top,variable=self.var, text=MCD_types[i])
                 self.cb.grid(row=i+g,column=0,sticky=W)
                 self.mcd_check_value.append(self.var)
-            g=g+i+1
+            g=g+i
         self.b = Button(top, text="OK", command=self.ok)
-        self.b.grid(row=g)
+        self.b.grid(row=g+1)
     def ok(self):
         global SIO
         if self.usr.get()!="":
