@@ -33,7 +33,7 @@ def main():
     try:
         fh_last = open(last_path, 'r+')
         last_checked = pickle.load(fh_last)
-        if last_checked > time.time() - 24*60*60:
+        if last_checked < time.time() - 24*60*60:
             return            # stop here because it's been less than 24 hours
         else:
             pickle.dump(time.time(), fh_last)
