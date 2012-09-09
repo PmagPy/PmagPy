@@ -5,13 +5,13 @@ import sys,pmag,math
 def main():
     """
     NAME
-        ParseMeas.py
+        parse_measurements.py
 
     DESCRIPTION
         takes measurments file and creates specimen and instrument files
 
     SYNTAX
-        ParseMeas.py [command line options]
+        parse_measurements.py [command line options]
 
     OPTIONS
         -h prints help message and quits

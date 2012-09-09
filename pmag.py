@@ -272,6 +272,8 @@ def ParseMeasFile(measfile,sitefile,instout,specout): # fix up some stuff for up
             if 'specimen_class' not in ErSpecRec.keys():ErSpecRec["specimen_class"]=site['site_class'] 
             if 'specimen_lithology' not in ErSpecRec.keys():ErSpecRec["specimen_lithology"]=site['site_lithology'] 
             if 'specimen_type' not in ErSpecRec.keys():ErSpecRec["specimen_type"]=site['site_type'] 
+            if 'specimen_volume' not in ErSpecRec.keys():ErSpecRec["specimen_volume"]=""
+            if 'specimen_mass' not in ErSpecRec.keys():ErSpecRec["specimen_mass"]=""
             ErSpecs.append(ErSpecRec)
     #
     #
