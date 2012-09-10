@@ -230,9 +230,12 @@ def ParseMeasFile(measfile,sitefile,instout,specout): # fix up some stuff for up
         print file_type,"This is not a valid magic_measurements file "
         sys.exit()
     # read in site data
-    SiteNFO,file_type=magic_read(sitefile)
-    if file_type=="bad_file":
-        print "Bad  or no er_sites file - lithology, etc will not be imported"
+    if sitefile!="":
+        SiteNFO,file_type=magic_read(sitefile)
+        if file_type=="bad_file":
+            print "Bad  or no er_sites file - lithology, etc will not be imported"
+    else:
+        SiteNFO=[]
     # define the Er_specimen records to create a new er_specimens.txt file
     #
     suniq,ErSpecs=[],[]

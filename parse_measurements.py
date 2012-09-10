@@ -15,16 +15,16 @@ def main():
 
     OPTIONS
         -h prints help message and quits
-        -f: magic_measurements input file, default is "magic_measurements.txt"
-        -fsi: er_sites input file, default is "er_sites.txt"
-        -Fsp: specimen output er_specimens format file, default is "er_specimens.txt"
-        -Fin: instrument output  magic_instruments format file, default is "magic_instruments.txt"
+        -f FILE magic_measurements input file, default is "magic_measurements.txt"
+        -fsi FILE er_sites input file, default is none
+        -Fsp  FILE specimen output er_specimens format file, default is "er_specimens.txt"
+        -Fin FILE instrument output  magic_instruments format file, default is "magic_instruments.txt"
     OUPUT
         writes er_specimens and magic_instruments formatted files
 
     """
     infile='magic_measurements.txt'
-    sitefile="er_sites.txt"
+    sitefile=""
     specout="er_specimens.txt"
     instout="magic_instruments.txt"
 # get command line stuff
@@ -47,7 +47,7 @@ def main():
         ind=sys.argv.index("-WD")
         dir_path=sys.argv[ind+1]
         infile=dir_path+'/'+infile
-        sitefile=dir_path+'/'+sitefile
+        if sitefile!="":sitefile=dir_path+'/'+sitefile
         specout=dir_path+'/'+specout
         instout=dir_path+'/'+instout
 # now do re-ordering 
