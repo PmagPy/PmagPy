@@ -98,109 +98,130 @@ def custom():
 #    tkMessageBox.showinfo("Info",'Selection criteria saved in pmag_criteria.txt\n check command window for errors')
     print "New Criteria saved in pmag_criteria.txt"
 
+class make_agm: # makes an entry table for basic data for an AGM file
+    def __init__(self,master):
+        global AGM
+        top=self.top=Toplevel(master)
+        self.top.geometry('+50+50')
+        Label(top,text='Fill in the following information for your study(* are required): ').grid(row=0,columnspan=2)
+        Label(top, text="*******************").grid(row=1,sticky=W)
+        Label(top, text="* Location name: [default=unknown]").grid(row=2,sticky=W)
+        self.loc = Entry(top)
+        self.loc.grid(row=2, column=1,sticky=W)
+        Label(top, text="Measurer: ").grid(row=3,sticky=W)
+        self.usr = Entry(top)
+        self.usr.grid(row=3, column=1,sticky=W)
+        Label(top, text="Instrument: ").grid(row=4,sticky=W)
+        self.ins = Entry(top)
+        self.ins.grid(row=4, column=1,sticky=W)
+        g=5
+        if AGM['spn']: # ask for specimen name and other particulars
+            Label(top, text="* Specimen name").grid(row=g,sticky=W)
+            self.spn=Entry(top,textvariable='')
+            self.spn.grid(row=g, column=1,sticky=W)
+        else: # importing whole directory - must follow strict file name rules
+            Label(top, text="For importing directories: ").grid(row=g,sticky=W)
+            Label(top, text="File names must be SPECIMEN_NAME.AGM for hysteresis").grid(row=g+1,sticky=W)
+            Label(top, text="OR file names are  SPECIMEN_NAME.IRM for backfield (case insensitive)").grid(row=g+2,sticky=W)
+        g+=3
+        Label(top, text="* # characters to distinguish specimen from sample: [default=1]").grid(row=g,sticky=W)
+        self.spc=Entry(top,textvariable='1')
+        self.spc.grid(row=g, column=1,sticky=W)
+        g+=1
+        Label(top, text="*******************").grid(row=g,sticky=W)
+        Label(top, text="Lab protocol particulars:").grid(row=g+1,sticky=W)
+        Label(top, text="*******************").grid(row=g+2,sticky=W)
+        g+=3
+        self.rv = IntVar()
+        Radiobutton(top,variable=self.rv, value=0,text='CGS units').grid(row=g,sticky="W")
+        self.rv = IntVar()
+        Radiobutton(top,variable=self.rv, value=1,text='SI units').grid(row=g+1,sticky="W")
+        g+=2
+        self.agm_check_value=[]
+        if AGM['spn']: # also ask if backfield file 
+            self.var=IntVar()
+            self.cb=Checkbutton(top,variable=self.var, text='backfield curve')
+            self.cb.grid(row=g,column=0,sticky=W)
+            self.agm_check_value.append(self.var)
+            g+=1
+        self.b = Button(top, text="OK", command=self.ok)
+        self.b.grid(row=g+1)
+    def ok(self):
+        global AGM
+        if self.usr.get()!="":
+            AGM['usr']=self.usr.get()
+        if self.loc.get()!="":
+            AGM['loc']=self.loc.get()
+        if self.spc.get()!="":
+            AGM['spc']=self.spc.get()
+        if AGM['spn']:
+            if self.spn.get()!="":
+                AGM['spn']=self.spn.get()
+            agmlist= map((lambda var:var.get()),self.agm_check_value)
+        else:agmlist=[0]
+        if agmlist[0]==1:AGM['bak']=1 # make it a backfield
+        radio_value=self.rv.get()
+        if radio_value==1:AGM['SI']=1 # make SI
+        self.top.destroy()
+0
+def ask_agm(parent):
+    global AGM
+    m=make_agm(parent)
+    parent.wait_window(m.top)
 
-def add_agm():
-    global Edict 
-    fpath=tkFileDialog.askopenfilename(title="Set AGM input file:")
-    file=fpath.split('/')[-1] 
-    basename=file
-    print """
-    OPTIONS
-        -loc LOCNAME : specify location/study name, (only if naming convention < 6)
-        -syn SYN,  synthetic specimen name (either specimen_name or synthetic_name must be specified,
-                  but NOT BOTH)
-        -ins INST : specify which instrument was used (e.g, SIO-Maud), default is "unknown"
-        -usr USER:   identify user, default is ""
-        -spn SPEC, specimen name, default is base of input file name, e.g. SPECNAME.agm
-        -spc NUM, specify number of characters to designate a  specimen, default = 0
-        -bak: set this to 'y' if this is a back-field curve file 
-    """
-    ncn_rv=ask_radio(root,NCN_types,'Select naming convention:') # sets naming convention
-    if ncn_rv==3 or ncn_rv==6: # site_name and location in er_samples.txt file
-        Edict={'loc':'','usr':"",'spn':basename.split('.')[0],'ins':'','spc':'1','Z':"",'bak':'n'}
-    if ncn_rv==5: # site_name and location in er_samples.txt file
-        Edict={'usr':"",'spn':basename.split('.')[0],'syn':'','ins':'','spc':'1','bak':'n'}
-    elif ncn_rv==7: # specimen comes from a synthetic sample
-        Edict={'usr':"",'syn':basename.split('.')[0],'ins':'','bak':'n'}
-    else:  # all others
-        Edict={'loc':'','usr':"",'spn':basename.split('.')[0],'ins':'','spc':'1','bak':'n'}
-    make_entry(root)
-    Edict['ncn']=ncn_rv
-    add_agm_file(fpath)
-
+def add_agm_file():
+    global AGM,names
+  # copies .agm or .irm file sets up AGM settings for constructing command line
+    basename,fpath=copy_text_file("Select AGM/IRM input file: ")
+    names=ask_names(root) # gets naming convention
+    if names['rv']==7: AGM['syn']=1 # see if synthetic?
+    AGM['spn']=1 # won't ask for specimen name or whether backfield experiment
+    AGM['bak']=0 # sets default to be hysteresis loop - not backfield
+    ask_agm(root) # sets up AGM dictionary
+    add_agm(fpath)
 
 def add_agm_dir():
-    global Edict 
-    agmpath= tkFileDialog.askdirectory()
-    ncn_rv=ask_radio(root,NCN_types,'Select naming convention\n NB: all file names must have specimen name as root\n and have same naming convention relating specimen to sample and site:') # sets naming convention
-    print """
-    OPTIONS
-        -loc LOCNAME : specify location/study name, (only if naming convention < 6)
-        -spc: number of characters to distinguish from sample name
-        -syn SYN,  synthetic specimen name (either specimen_name or synthetic_name must be specified,
-                  but NOT BOTH)
-        -ins INST : specify which instrument was used (e.g, SIO-Maud), default is "unknown"
-        -usr USER:   identify user, default is ""
-        -bak: set this to 'y' if these are back-field curves
-    """
-    if ncn_rv==3: # site_name and location in er_samples.txt file
-        Edict={'loc':'','usr':"",'ins':'','spc':'1','Z':"",'bak':'n'}
-    if ncn_rv==5: # site_name and location in er_samples.txt file
-        Edict={'usr':"",'ins':'','spc':'1','bak':'n'}
-    elif ncn_rv==6:
-        Edict={'loc':'','usr':"",'ins':'','bak':'n'}
-    else: 
-        Edict={'loc':'','usr':"",'ins':'','spc':'1','bak':'n'}
-    make_entry(root)
-    Edict['ncn']=ncn_rv
-    filelist=os.listdir(agmpath)
-    for file in filelist:
-        if ncn_rv!=6:
-            Edict['spn']=file.split('.')[0]
-        else:
-            Edict['syn']=file.split('.')[0]
-        add_agm_file(agmpath+'/'+file)
-    tkMessageBox.showinfo("Info","Import of directory completed - select Assemble Measurement before plotting\n Check terminal window for errors")
+    global AGM,names
+  # copies .agm and .irm files from whole directory to project directory, and sets up AGM settings for constructing command line
+    dpath,filelist=copy_text_directory(" Select Directory with .AGM and/or .IRM files  for import ",['agm','irm'])
+    names=ask_names(root) # name convention
+    AGM['spn']=0 # don't ask for a specimen name - it must in the file name
+    ask_agm(root) #  set up AGM dictionary settings
+    for file in filelist: # step through file by file
+        name_parts=file.split('.') # get specimen name and format
+        spn=''
+        for n in name_parts[0:-1]:spn=spn+n # skip the file format to create specimen name
+        AGM['spn']=spn # set specimen name
+        if name_parts[-1].lower()=='agm':AGM['bak']=0 # .agm means hysteresis
+        if name_parts[-1].lower()=='irm':AGM['bak']=1 # .irm means backfield
+        fpath=dpath+'/'+file 
+        add_agm(fpath) 
 
-def add_agm_file(fpath):
+def add_agm(fpath):
+    global AGM,names
+ # constructs command for AGM_magic.py
     file=fpath.split('/')[-1] 
-    basename=file
-    ofile=opath+"/"+file
-    try:
-        filelist=[]
-        logfile=open(opath+"/agm.log",'r')
-        for line in logfile.readlines():
-            if line.split()[0] not in filelist:filelist.append(line.split()[0])
-        if basename+'.magic' not in filelist:filelist.append(basename+'.magic')
-    except IOError:
-        filelist=[basename+'.magic']
-    logfile=open(opath+"/agm.log",'w')
-    for f in filelist:
-        logfile.write(f+'\n') 
-    logfile.close()
-    infile=open(fpath,'rU').readlines()
-    out=open(ofile,'w')
-    for line in infile:
-        out.write(line)
-    out.close()
-    if Edict['ncn']!=6:
-        outstring='agm_magic.py -WD '+'"'+opath+'"'+ ' -F '+basename+'.magic -f '+ basename+ '  -spn ' + Edict['spn']+' -spc '+Edict['spc'] 
-    else:
-        outstring='agm_magic.py -WD '+'"'+opath+'"'+ ' -F '+basename+'.magic -f '+ basename+ '  -syn ' + Edict['syn']
-    outstring=outstring + ' -ncn '+str(Edict['ncn']+1)
-    if Edict['ncn']==5: outstring=outstring+' -fsa er_samples.txt'
-    if Edict['usr']!="":outstring=outstring + ' -usr '+ Edict['usr']
-    if 'loc' in Edict.keys() and Edict['loc']!="":outstring=outstring + ' -loc "'+ Edict['loc']+'"'
-    if Edict['ins']!="":outstring=outstring + ' -ins '+ Edict['ins'] 
-    if Edict['bak']=="y" or Edict['bak']=='Y':outstring=outstring + ' -bak '
+    outstring='AGM_magic.py -WD '+opath+ ' -f '+file +' -F '+file+'.magic '+' -spc '+AGM['spc']
+    if AGM['loc']!="":outstring=outstring + ' -loc "'+ AGM['loc']+'"' # er_location_name
+    if AGM['usr']!="":outstring=outstring + ' -usr "'+ AGM['usr']+'"' # user name
+    if AGM['ins']!="": outstring=outstring+' -ins '+AGM['ins'] # instrument name
+    if AGM['bak']: outstring=outstring+' -bak ' # if a backfield curve
+    if AGM['SI']==1: outstring=outstring+' -u SI ' # if SI units
+    outstring=outstring+' -ncn '+'%s'%(names['rv']+1) # sets naming convention
+    if names['rv']==3:outstring=outstring + '-'+'%s'%(names['Y'])
+    if names['rv']==6:outstring=outstring + '-'+'%s'%(names['Z'])
+    if names['rv']=='7': # synthetic
+        outstring=outstring+' -Fsa '+opath+'/er_synthetics.txt -syn '+AGM['spn']
+    else: # or not
+        outstring=outstring+' -Fsa '+opath+'/er_specimens.txt -spn '+AGM['spn']
     print outstring
     os.system(outstring)
     try:
         logfile=open(opath+"/measurements.log",'a')
-        logfile.write(basename+".magic" +" | " + outstring+"\n")
+        logfile.write(file+".magic" +" | " + outstring+"\n")
     except IOError:
         logfile=open(opath+"/measurements.log",'w')
-        logfile.write(basename+".magic" +" | " + outstring+"\n")
+        logfile.write(file+".magic" +" | " + outstring+"\n")
 
 
 def add_curie():
@@ -214,7 +235,7 @@ def add_curie():
         -loc LOCNAME : specify location/study name, (only if naming convention < 6)
         -syn SYN,  synthetic specimen name (either specimen_name or synthetic_name must be specified,
                   but NOT BOTH)
-        -ins INST : specify which instrument was used (e.g, SIO-Maud), default is "unknown"
+        -ins INST : specify which instrument was used (e.g, MAG-Maud), default is "unknown"
         -usr USER:   identify user, default is ""
         -spn SPEC, specimen name, default is base of input file name, e.g. SPECNAME.agm
         -spc NUM, specify number of characters to designate a  specimen, default = 0
@@ -254,7 +275,7 @@ def add_curie():
         logfile=open(opath+"/measurements.log",'w')
         logfile.write(basename+".magic" +" | " + outstring+"\n")
 
-class make_sio: # makes an entry table for basic data from an SIO formatted file
+class make_mag: # makes an entry table for basic data from an MAG formatted file
     def __init__(self,master):
         top=self.top=Toplevel(master)
         self.top.geometry('+50+50')
@@ -272,8 +293,11 @@ class make_sio: # makes an entry table for basic data from an SIO formatted file
         Label(top, text="* # characters to distinguish specimen from sample: [default=1]").grid(row=5,sticky=W)
         self.spc=Entry(top,textvariable='1')
         self.spc.grid(row=5, column=1,sticky=W)
-        g=6
-        if SIO['LP']:
+        Label(top, text="instrument used?").grid(row=6,sticky=W)
+        self.ins=Entry(top,textvariable='')
+        self.ins.grid(row=6, column=1,sticky=W)
+        g=7
+        if MAG['LP']:
             Label(top, text="*******************").grid(row=6,sticky=W)
             Label(top, text="Lab protocol particulars:").grid(row=7,sticky=W)
             Label(top, text="*******************").grid(row=8,sticky=W)
@@ -303,7 +327,7 @@ class make_sio: # makes an entry table for basic data from an SIO formatted file
             self.coil = Entry(top)
             self.coil.grid(row=16, column=2,sticky=E)
             g=16
-        if SIO['MCD']==1:
+        if MAG['MCD']==1:
             Label(top, text="*******************").grid(row=g,sticky=W)
             Label(top, text="Sampling particulars:").grid(row=g+1,sticky=W)
             Label(top, text="*******************").grid(row=g+2,sticky=W)
@@ -318,46 +342,50 @@ class make_sio: # makes an entry table for basic data from an SIO formatted file
         self.b = Button(top, text="OK", command=self.ok)
         self.b.grid(row=g+1)
     def ok(self):
-        global SIO
+        global MAG
         if self.usr.get()!="":
-            SIO['usr']=self.usr.get()
+            MAG['usr']=self.usr.get()
         if self.noave.get()!="":
-            SIO['noave']=self.noave.get()
+            MAG['noave']=self.noave.get()
         else:
-            SIO['noave']='y'
+            MAG['noave']='y'
         if self.loc.get()!="":
-            SIO['loc']=self.loc.get()
+            MAG['loc']=self.loc.get()
         else:
-            SIO['loc']='unknown'
+            MAG['loc']='unknown'
         if self.spc.get()!="":
-            SIO['spc']=self.spc.get()
-        if self.noave.get()!="":
-            SIO['noave']=self.noave.get()
-        if SIO['LP']==1:
+            MAG['spc']=self.spc.get()
+        if self.ins.get()!="":
+            MAG['ins']=self.spc.get()
+        if MAG['LP']==1:
             if self.B.get()!="":
-                SIO['dc']=self.B.get()
+                MAG['dc']=self.B.get()
             if self.phi.get()!="":
-                SIO['phi']=self.phi.get()
+                MAG['phi']=self.phi.get()
             if self.theta.get()!="":
-                SIO['theta']=self.theta.get()
+                MAG['theta']=self.theta.get()
             if self.ac.get()!="":
-                SIO['ac']=self.ac.get()
+                MAG['ac']=self.ac.get()
             if self.coil.get()!="":
-                SIO['coil']=self.coil.get()
-            SIO['lp_check_value']=self.lp_check_value
-        if SIO['MCD']==1:
+                MAG['coil']=self.coil.get()
+            MAG['lp_check_value']=self.lp_check_value
+        if MAG['MCD']==1:
             MCD=""
             MCD_list=map((lambda var:var.get()),self.mcd_check_value) # returns method code check box list
             for i in range(len(MCD_list)):
                 if MCD_list[i]==1:MCD=MCD+MCD_types[i].split(":")[0]+":"
-                SIO['mcd']='%s'%(MCD[:-1].strip(':'))
+                MAG['mcd']='%s'%(MCD[:-1].strip(':'))
         self.top.destroy()
 
-def ask_sio(parent):
-    global SIO
-    m=make_sio(parent)
+def ask_mag(parent):
+    global MAG
+    m=make_mag(parent)
     parent.wait_window(m.top)
 
+def ask_ams(parent):
+    global MAG
+    m=make_ams(parent)
+    parent.wait_window(m.top)
 
 radio_value = 99
 class make_radio: # makes a radio button form with labels in input_d
@@ -450,17 +478,7 @@ def add_ODP_sum():
 
 
 def add_ages():
-    global apath
-    apath=tkFileDialog.askopenfilename(title="Select er_ages.txt file:")
-    file=apath.split('/')[-1]
-    infile=open(apath,'rU').readlines()
-    print apath,'opened for reading'
-    afile=opath+'/'+file
-    out=open(afile,'w')
-    for line in infile: 
-        out.write(line) # copies contents of source file to Project directory
-    out.close()
-    print apath,' copied to ',afile  
+    file,path=copy_text_file("Select er_ages formatted file: ")
 
 class make_names:
     def __init__(self,master):
@@ -1098,8 +1116,8 @@ def meas_combine():
     if log==0: tkMessageBox.showinfo("Info",'no log files!')
 
 def add_cit():
-    global SIO
-    SIO['LP'],SIO['MCD']=0,1 # don't get lab protocols, do get method codes
+    global MAG
+    MAG['LP'],MAG['MCD']=0,1 # don't get lab protocols, do get method codes
 # copy over files
     fpath=tkFileDialog.askopenfilename(title="Select .sam file in directory with specimen data:")
     in_path=fpath.split('/')
@@ -1129,15 +1147,15 @@ def add_cit():
         ln+=1
         print ipath+mfile,' copied to ',ofile
 # get the location, naming conventions, method codes, etc.
-    ask_sio(root)
+    ask_mag(root)
     names=ask_names(root)
     outstring='CIT_magic.py -WD '+'"'+opath+'"'+'  -f '+file + ' -F ' + file+'.magic'
-    if SIO['mcd']!="": # add method codes
-        outstring=outstring+' -mcd '+SIO['mcd']
-    outstring=outstring+ ' -spc ' + SIO['spc']
-    if SIO['loc']!="":outstring=outstring + ' -loc "'+ SIO['loc']+'"'
-    if SIO['usr']!="":outstring=outstring + ' -usr '+ SIO['usr']
-    if SIO['noave']=="n":outstring=outstring + ' -A '
+    if MAG['mcd']!="": # add method codes
+        outstring=outstring+' -mcd '+MAG['mcd']
+    outstring=outstring+ ' -spc ' + MAG['spc']
+    if MAG['loc']!="":outstring=outstring + ' -loc "'+ MAG['loc']+'"'
+    if MAG['usr']!="":outstring=outstring + ' -usr '+ MAG['usr']
+    if MAG['noave']=="n":outstring=outstring + ' -A '
     outstring=outstring+' -ncn '+'%s'%(names['rv']+1)
     if names['rv']==3:outstring=outstring + '-'+'%s'%(names['Y'])
     if names['rv']==6:outstring=outstring + '-'+'%s'%(names['Z'])
@@ -1163,9 +1181,9 @@ def add_redo():
     try:
         open(opath+'/magic_measurements.txt','r')
     except IOError:
-        tkMessageBox.showinfo("Info","You must Assemble Measurments first!")
+        tkMessageBox.showinfo("Info","You must Combine Measurments first!")
         return
-    lpath=tkFileDialog.askopenfilename(title="Set 'redo' file:")
+    lpath=tkFileDialog.askopenfilename(title="Select 'redo' file:")
     infile=open(lpath,'rU').readlines()
     if '\t' in infile[0]:
         line=infile[0].split('\t')
@@ -1177,7 +1195,6 @@ def add_redo():
         file='thellier_redo'
     ofile=opath+'/'+file
     out=open(ofile,'w')
-    redo_list=[]
     for line in infile:
         out.write(line)
     out.close()
@@ -1211,7 +1228,7 @@ def add_DIR_ascii():
     try:
         open(opath+'/magic_measurements.txt','r')
     except IOError:
-        tkMessageBox.showinfo("Info","You must Assemble Measurments first!")
+        tkMessageBox.showinfo("Info","You must Combine Measurments first!")
         return
     lpath=tkFileDialog.askopenfilename(title="Set 'DIR' file:")
     infile=open(lpath,'rU').readlines()
@@ -1258,7 +1275,7 @@ def add_LSQ():
     try:
         open(opath+'/magic_measurements.txt','r')
     except IOError:
-        tkMessageBox.showinfo("Info","You must Assemble Measurments first!")
+        tkMessageBox.showinfo("Info","You must Combine Measurements first!")
         return
     lpath=tkFileDialog.askopenfilename(title="Set 'LSQ' file:")
     infile=open(lpath,'rU').readlines()
@@ -1304,7 +1321,7 @@ def add_PMM():
     try:
         open(opath+'/magic_measurements.txt','r')
     except IOError:
-        tkMessageBox.showinfo("Info","You must Assemble Measurments first!")
+        tkMessageBox.showinfo("Info","You must Combine Measurements first!")
         return
     lpath=tkFileDialog.askopenfilename(title="Set 'PMM' file:")
     infile=open(lpath,'rU').readlines()
@@ -1359,20 +1376,20 @@ def add_tdt():
     add_mag('tdt')
 
 def add_mag(ftype):
-        global fpath,basename, SIO
+        global fpath,basename, MAG
         basename,fpath=copy_text_file("Select magnetometer format input file: ")
         ifile=opath+'/'+basename 
         outfile=opath+'/'+basename+'.magic'
         names=ask_names(root)
-        ask_sio(root)
-        LPlist= map((lambda var:var.get()),SIO['lp_check_value'])
+        ask_mag(root)
+        LPlist= map((lambda var:var.get()),MAG['lp_check_value'])
         LP=""
         for i in range(len(LPlist)):
              if LPlist[i]==1:
                  LP=LP+LP_types[i].split(':')[0]+":"
                  if "ANI" in LP.split(':'): 
-                     SIO['phi']='-1'
-                     SIO['theta']='-1'
+                     MAG['phi']='-1'
+                     MAG['theta']='-1'
                      try:
                          filelist=[]
                          lp_types=[]
@@ -1391,21 +1408,22 @@ def add_mag(ftype):
                      for i in range(len(filelist)):
                          logfile.write(filelist[i]+' | '+ lp_types[i]+'\n') 
                      logfile.close()
-        SIO['fpath']=fpath
+        MAG['fpath']=fpath
         if ftype=='huji': 
             outstring = 'HUJI_magic.py '
         if ftype=='ldeo': 
             outstring = 'LDEO_magic.py '
         elif ftype=='sio':
-            outstring = 'SIO_magic.py '
+            outstring = 'MAG_magic.py '
         elif ftype=='tdt':
             outstring = 'TDT_magic.py '
-        outstring=outstring+' -F '+outfile+' -f '+ ifile+ ' -LP ' + LP.strip(":") + ' -spc ' + SIO['spc'] 
-        if SIO['loc']!="":outstring=outstring + ' -loc "'+ SIO['loc']+'"'
-        if SIO['dc']!="0":outstring=outstring + ' -dc '+ SIO['dc'] + ' ' + SIO['phi'] + ' ' + SIO['theta']
-        if SIO['coil']!="":outstring=outstring + ' -V '+ SIO['coil'] 
-        if SIO['usr']!="":outstring=outstring + ' -usr '+ SIO['usr'] 
-        if SIO['noave']=="n":outstring=outstring + ' -A '
+        outstring=outstring+' -F '+outfile+' -f '+ ifile+ ' -LP ' + LP.strip(":") + ' -spc ' + MAG['spc'] 
+        if MAG['loc']!="":outstring=outstring + ' -loc "'+ MAG['loc']+'"'
+        if MAG['dc']!="0":outstring=outstring + ' -dc '+ MAG['dc'] + ' ' + MAG['phi'] + ' ' + MAG['theta']
+        if MAG['coil']!="":outstring=outstring + ' -V '+ MAG['coil'] 
+        if MAG['usr']!="":outstring=outstring + ' -usr '+ MAG['usr'] 
+        if MAG['ins']!="":outstring=outstring + ' -ins '+ MAG['ins'] 
+        if MAG['noave']=="n":outstring=outstring + ' -A '
         outstring=outstring+' -ncn '+'%s'%(names['rv']+1)
         if names['rv']==3:outstring=outstring + '-'+'%s'%(names['Y'])
         if names['rv']==6:outstring=outstring + '-'+'%s'%(names['Z'])
@@ -1559,70 +1577,79 @@ def add_ub():
         logfile=open(opath+"/measurements.log",'w')
         logfile.write(file+".magic" +" | " + outstring+"\n")
 #    tkMessageBox.showinfo("Info",file+" converted to magic format and added to measurements.log  \n Check command window for errors")
-def copy_text_directory(title,fmt):
-    dpath=tkFileDialog.askdirectory(title=title)
+
+def copy_text_directory(title,fmtlist):
+    # copies files matching formats in fmtlist to project directory
+    dpath=tkFileDialog.askdirectory(title=title) # get directory path name
     filelist=os.listdir(dpath) # get directory listing
-    outlist=[]
-    for file in filelist:
-      if file.split('.')[-1].lower()==fmt:
-        outlist.append(file)
-        basename=file
-        ofile=opath+"/"+file
-        infile=open(dpath+'/'+file,'rU').readlines()
-        out=open(ofile,'w') # copy file to MagIC project directory
-        for line in infile:
-            out.write(line)
-        out.close()
-        print ofile,' copied to MagIC project directory'
+    outlist=[] # list of files copied
+    for fmt in fmtlist: # look for each desired format 
+        for file in filelist:
+            if file.split('.')[-1].lower()==fmt: # check format
+                outlist.append(file) # collect name
+                basename=file
+                ofile=opath+"/"+file
+                infile=open(dpath+'/'+file,'rU').readlines() # this will convert to UNIX format
+                out=open(ofile,'w') # copy file to MagIC project directory
+                for line in infile:
+                    out.write(line)
+                out.close()
+                print ofile,' copied to MagIC project directory'
     return dpath,outlist
 
+def add_2G_bin():
+    add_pmd_like('2G_bin')
+
 def add_pmd_ascii():
-    global SIO
-    SIO['LP']=0
-    SIO['MCD'],APP=1,0
-    dpath,pmdlist=copy_text_directory("Select Directory of .PMD files for import ",'pmd')
+    add_pmd_like('pmd')
+
+
+def add_pmd_like(type):
+    global MAG
+    MAG['LP']=0
+    MAG['MCD'],APP=1,0
+    if type=='pmd': 
+        title="Select Directory of .PMD files for import"
+        fmt='pmd'
+        basestring='PMD_magic.py '
+    if type=='2G_bin': 
+        title="Select Directory of .DAT files for import"
+        fmt='dat'
+        basestring='2G_bin_magic.py '
+    dpath,pmdlist=copy_text_directory(title,[fmt])
     names=ask_names(root)
-    ask_sio(root)
+    ask_mag(root)
+    outlist=[]
     Samps,filetype=pmag.magic_read(opath+'/er_samples.txt') # check if existing
     if len(Samps)>0: # there is an existing file
         APP=tkMessageBox.askyesno("","Update and append existing er_samples file? No will overwrite")
     for file in pmdlist: 
-        print file, pmdlist
+        outstring=basestring
         if pmdlist.index(file)==0 and APP==0:  # overwrite existing
-            outstring='PMD_magic.py  -WD '+'"'+opath+'"'+ ' -F '+file+'.magic'+' -f '+ file 
+            outstring=outstring+'  -WD '+'"'+opath+'"'+ ' -F '+file+'.magic'+' -f '+ file 
         else: # append to existing
-            outstring='PMD_magic.py  -WD '+'"'+opath+'"'+ ' -F '+file+'.magic'+' -f '+ file +' -Fsa er_samples.txt '
-        if SIO['mcd']!="": # add method codes
-            outstring=outstring+' -mcd '+SIO['mcd']
-        outstring=outstring+ ' -spc ' + SIO['spc']
-        if SIO['loc']!="":outstring=outstring + ' -loc "'+ SIO['loc']+'"'
-        if SIO['usr']!="":outstring=outstring + ' -usr '+ SIO['usr']
-        if SIO['noave']=="n":outstring=outstring + ' -A '
+            outstring=outstring+'  -WD '+'"'+opath+'"'+ ' -F '+file+'.magic'+' -f '+ file +' -Fsa er_samples.txt '
+        if MAG['mcd']!="": # add method codes
+            outstring=outstring+' -mcd '+MAG['mcd']
+        outstring=outstring+ ' -spc ' + MAG['spc']
+        if MAG['loc']!="":outstring=outstring + ' -loc "'+ MAG['loc']+'"'
+        if MAG['usr']!="":outstring=outstring + ' -usr '+ MAG['usr']
+        if MAG['noave']=="n":outstring=outstring + ' -A '
         outstring=outstring+' -ncn '+'%s'%(names['rv']+1)
         if names['rv']==3:outstring=outstring + '-'+'%s'%(names['Y'])
         if names['rv']==6:outstring=outstring + '-'+'%s'%(names['Z'])
         if outstring[-1]=='8':outstring=outstring+' -Fsa '+opath+'/er_synthetics.txt'
         print outstring
         os.system(outstring)
-    try:  # add files to measurements.log
-        filelist=[]
-        logfile=open(opath+"/measurements.log",'r')
-        for line in logfile.readlines():
-            if line.split()[0] not in filelist:filelist.append(line.split()[0])
+        outlist.append(outstring)
+    try:
+        logfile=open(opath+"/measurements.log",'a')
     except IOError:
-        pass
-    for file in pmdlist:
-        if file+'.magic' not in filelist:filelist.append(file+'.magic')
-    logfile=open(opath+"/measurements.log",'w')
-    for f in filelist:
-        logfile.write(f+' | '+outstring+'\n')
-    logfile.close()
-    try: # add to orientation log
-        logfile=open(opath+"/orient.log",'a')
-        logfile.write("er_samples.txt/er_sites.txt/er_images.txt | " + outstring+"\n")
-    except IOError:
-        logfile=open(opath+"/orient.log",'w')
-        logfile.write("er_samples.txt/er_sites.txt/er_images.txt  | " + outstring+"\n")
+        logfile=open(opath+"/measurements.log",'w')
+    for k in range(len(pmdlist)):
+        basename=pmdlist[k]
+        outstring=outlist[k]
+        logfile.write(basename+".magic" +" | " + outstring+"\n")
     update_crd()
 
 
@@ -1751,56 +1778,6 @@ def add_ipg():
         logfile.write(f+' | '+outstring+'\n')
     logfile.close()
 
-def add_2G():
-    global Edict
-    dpath=tkFileDialog.askdirectory(title="Select Directory of 2G files for import ")
-    ncn_rv=ask_radio(root,NCN_types,'select naming convention\n NB: all file names must have same naming convention relating specimen to sample and site:') # sets naming convention
-    ocn_rv=ask_radio(root,OCN_types,'select orientation convention:')
-    Edict={'usr':"",'spc':'1','ins':''}
-    if ncn_rv==3: Edict['Z']=""
-    if ncn_rv!=5: Edict['loc']=""
-    make_entry(root) 
-    mcd_checks=ask_check(root,MCD_types,'select appropriate field methods:') # allows adding of meta data describing field methods
-    MCD_list=map((lambda var:var.get()),mcd_checks) # returns method code  radio button list
-    MCD=""
-    for i in range(len(MCD_list)):
-        if MCD_list[i]==1:MCD=MCD+MCD_types[i].split(":")[0]+":"
-    AVE_types=["Do not average replicate measurements","Average replicate measurements"]
-    ave_rv=ask_radio(root,AVE_types,'choose desired averaging option:') # 
-    filelist=os.listdir(dpath) # get directory listing
-    for file in filelist: 
-      if file.split('.')[1].lower()=='dat':
-        basename=file
-        ofile=opath+"/"+file
-        infile=open(dpath+'/'+file,'rU').readlines()
-        out=open(ofile,'w') # copy file to MagIC project directory
-        for line in infile:
-            out.write(line)
-        out.close()
-        outstring='2G_magic.py -Fsa er_samples.txt  -WD '+'"'+opath+'"'+ ' -F '+file+'.magic'+' -f '+ file
-        if MCD!="": # add method codes
-            outstring=outstring+' -mcd '+MCD[:-1]
-        outstring=outstring+' -ncn '+str(ncn_rv+1) +' -ocn '+str(ocn_rv+1) + ' -spc '+Edict['spc']
-        if ave_rv==1:outstring=outstring+ ' -a'
-        if Edict['usr']!="":outstring=outstring + ' -usr '+ Edict['usr']
-        if 'loc' in Edict.keys() and  Edict['loc']!="":outstring=outstring + ' -loc "'+ Edict['loc']+'"'
-        if Edict['ins']!="":outstring=outstring + ' -ins '+ Edict['ins']
-        print outstring
-        os.system(outstring)
-        try:  # add file to measurements.log
-            filelist=[]
-            logfile=open(opath+"/measurements.log",'r')
-            for line in logfile.readlines():
-                if line.split()[0] not in filelist:filelist.append(line.split()[0])
-            if basename+'.magic' not in filelist:filelist.append(basename+'.magic')
-        except IOError:
-            filelist=[basename+'.magic']
-        logfile=open(opath+"/measurements.log",'w')
-        for f in filelist:
-            logfile.write(f+' | '+outstring+'\n')
-        logfile.close()
-#    tkMessageBox.showinfo("Info",file+" converted to magic format and added to measurements.log  \n Check command window for errors")
-
 
 def add_srm_csv():
     global Edict
@@ -1918,7 +1895,7 @@ def add_s_dir():
     -spc: number of characters to distinguish from sample name
     -typ: anisotropy type: AMS, AARM, ATRM
     -usr: name of person who made measurements
-    -ins: name of instrument (e.g., SIO:Bruno)
+    -ins: name of instrument (e.g., MAG:Bruno)
     -crd: [s,g,t] coordinate system of data
     """
     make_entry(root)
@@ -1930,7 +1907,7 @@ def add_s_dir():
         if ncn_rv!=6 and checklist[0]==0:
             Edict['spn']=file.split('.')[0]
         add_s_file(spath+'/'+file)
-    tkMessageBox.showinfo("Info","Import of directory completed - select Assemble Measurement before plotting\n Check terminal window for errors")
+    tkMessageBox.showinfo("Info","Import of directory completed - select Combine Measurement before plotting\n Check terminal window for errors")
 
 def add_s():
     global Edict
@@ -1956,7 +1933,7 @@ def add_s():
     -spc: number of characters to distinguish from sample name
     -typ: anisotropy type: AMS, AARM, ATRM 
     -usr: name of person who made measurements
-    -ins: name of instrument (e.g., SIO:Bruno)
+    -ins: name of instrument (e.g., MAG:Bruno)
     -crd: [s,g,t] coordinate system of data 
     -spn: specimen name  (only if names not first column in file)
     """
@@ -2008,167 +1985,40 @@ def add_s_file(spath):
     logfile.close()
     print basename+' imported to MagIC, saved in rmag_anisotropy format and added to ams.log.'
 
-def add_k15():
-    global Edict
-    kpath=tkFileDialog.askopenfilename(title="Set .k15  file:")
-    file=kpath.split('/')[-1]
-    basename=file.split('.')[0]
-    ncn_rv=ask_radio(root,NCN_types,'select naming convention:') # sets naming convention
-    if ncn_rv==3: # need to specify Z
-        Edict={'loc':'','usr':"",'ins':'','spc':'1','Z':""}
-    if ncn_rv==5: # site_name and location in er_samples.txt file
-        Edict={'usr':"",'ins':'','spc':'1'}
-    else:  # all others
-        Edict={'loc':'','usr':"",'ins':'','spc':'1'}
-    print """
-    -loc LOCNAME : specify location/study name, (only if naming convention < 6)
-    -spc: number of characters to distinguish from sample name
-    -usr: name of person who made measurements
-    -ins: name of instrument (e.g., SIO:Bruno)
-    """
-    make_entry(root)
-    if ncn_rv==3 and Edict['Z']!="":
-        outstring=outstring + '-'+Edict['Z']
-    elif ncn_rv==3:
-        tkMessageBox.showinfo("Info","Must specify 'Z' with this naming convention")
-        add_k15()
-    infile=open(kpath,'rU').readlines()
-    kfile=opath+'/'+file
-    out=open(kfile,'w')
-    for line in infile: 
-        out.write(line) # copies contents of source file to Project directory
-    out.close()
-    print kpath,' copied to ',kfile  
-#
-    outstring='k15_magic.py -WD '+'"'+opath+'"'+' -f '+file +' -F '+file+'.magic'+' -Fa '+file+'_anisotropy.txt -Fsa er_samples.txt' + ' -ncn '+str(ncn_rv+1)
-    if 'loc' in Edict.keys() and Edict['loc']!="":outstring=outstring + ' -loc "'+ Edict['loc']+'"'
-    if Edict['ins']!="":outstring=outstring + ' -ins '+ Edict['ins']
-    if Edict['spc']!="":outstring=outstring + ' -spc '+ Edict['spc']
-    if Edict['usr']!="":outstring=outstring + ' -usr '+ Edict['usr']
-    print outstring
-    os.system(outstring)
-    try:
-        filelist=[]
-        logfile=open(opath+"/ams.log",'r')
-        for line in logfile.readlines():
-            if line.split()[0] not in filelist:filelist.append(line.split()[0])
-        if basename+'_anisotropy.txt' not in filelist:filelist.append(file+'_anisotropy.txt')
-    except IOError:
-        filelist=[file+'_anisotropy.txt']
-    logfile=open(opath+"/ams.log",'w')
-    for f in filelist:
-        logfile.write(f+'\n') 
-    logfile.close()
-    try:
-        logfile=open(opath+"/measurements.log",'a')
-        logfile.write(file+".magic" +" | " + outstring+"\n")
-    except IOError:
-        logfile=open(opath+"/measurements.log",'w')
-        logfile.write(file+".magic" +" | " + outstring+"\n")
 
 def add_sufar4():
-    global Edict
-    kpath=tkFileDialog.askopenfilename(title="Set sufar4-asc  file:")
-    file=kpath.split('/')[-1]
-    infile=open(kpath,'rU').readlines()
-    kfile=opath+'/'+file
-    out=open(kfile,'w')
-    for line in infile: 
-        out.write(line) # copies contents of source file to Project directory
-    out.close()
-    print kpath,' copied to ',kfile  
-#
-    outstring='sufar4-asc_magic.py -WD '+'"'+opath+'"'+' -f '+file +' -F '+file+'.magic'+' -Fa '+file+'_anisotropy.txt '
-    ncn_rv=ask_radio(root,NCN_types,'select naming convention:') # sets naming convention
-    if NCN_types[ncn_rv].split(":")[0]=="9": # ODP naming convention
-        outstring=outstring +  ' -spc  0 -ins ODP-KLY4S -ncn 9'
-    else:
-        outstring=outstring + ' -ncn '+NCN_types[ncn_rv].split(":")[0]
-        Edict={'usr':"",'loc':"unknown",'spc':'1','ins':'unknown'}
-        make_entry(root) 
-        if Edict['usr']!="":outstring=outstring + ' -usr '+ Edict['usr']
-        if Edict['loc']!="":outstring=outstring + ' -loc "'+ Edict['loc']+'"'
-        if Edict['ins']!="":outstring=outstring + ' -ins '+ Edict['ins']
-        if Edict['spc']!="":outstring=outstring + ' -spc '+ Edict['spc']
-    print outstring
-    os.system(outstring)
-    if NCN_types[ncn_rv].split(":")[0]=="9": # ODP naming convention - fixing the stupid sample names (pads core number)
-        outstring='ODP_fix_names.py  -WD '+opath+' -f '+file+'.magic'
-        print outstring
-        os.system(outstring)
-        outstring='ODP_fix_names.py  -WD '+opath+' -f '+file+'_anisotropy.txt'
-        print outstring
-        os.system(outstring)
-    try:
-        filelist=[]
-        logfile=open(opath+"/ams.log",'r')
-        for line in logfile.readlines():
-            if line.split()[0] not in filelist:filelist.append(line.split()[0])
-        if file+'_anisotropy.txt' not in filelist:filelist.append(file+'_anisotropy.txt')
-    except IOError:
-        filelist=[file+'_anisotropy.txt']
-    try:
-        filelist=[]
-        logfile=open(opath+"/ams.log",'r')
-        for line in logfile.readlines():
-            if line.split()[0] not in filelist:filelist.append(line.split()[0])
-        if file+'_anisotropy.txt' not in filelist:filelist.append(file+'_anisotropy.txt')
-    except IOError:
-        filelist=[file+'_anisotropy.txt']
-    logfile=open(opath+"/ams.log",'w')
-    for f in filelist:
-        logfile.write(f+'\n') 
-    logfile.close()
-#    tkMessageBox.showinfo("Info",file+' imported to MagIC, saved in rmag_anisotropy format and added to ams.log  \n Check command window for errors')
-    try:
-        logfile=open(opath+"/measurements.log",'a')
-        logfile.write(file+".magic" +" | " + outstring+"\n")
-    except IOError:
-        logfile=open(opath+"/measurements.log",'w')
-        logfile.write(file+".magic" +" | " + outstring+"\n")
-#    tkMessageBox.showinfo("Info",'measurements saved in '+file+'.magic  and added to measurements.log  \n Check command window for errors')
+    add_ams('sufar4')
 
+def add_k15():
+    add_ams('k15')
 
 def add_kly4s():
-    global Edict
-    kpath=tkFileDialog.askopenfilename(title="Set kly4s  file:")
-    file=kpath.split('/')[-1]
-    infile=open(kpath,'rU').readlines()
-    kfile=opath+'/'+file
-    out=open(kfile,'w')
-    for line in infile: 
-        out.write(line) # copies contents of source file to Project directory
-    out.close()
-    print kpath,' copied to ',kfile  
+    add_ams('kly4s')
+
+
+def add_ams(format): # add generic AMS data
+    global MAG
+    file,kpath=copy_text_file(" Select AMS input file: ")
 #
-# build the command (outstring) for orientation_magic.py
+# build the command (outstring) for kly4s_magic.py
 #
-    outstring='kly4s_magic.py -WD '+'"'+opath+'"'+' -f '+file +' -F '+file+'.magic'+' -Fa '+file+'_anisotropy.txt '
-    ncn_rv=ask_radio(root,NCN_types,'select naming convention:') # sets naming convention
-    if NCN_types[ncn_rv].split(":")[0]=="9": # ODP naming convention
-        outstring=outstring +  ' -spc  0 -ins ODP-KLY4S'
-    else:
-        try:
-            open(opath+'/er_samples.txt','rU')
-            outstring=outstring+' -fsa er_samples.txt '
-        except IOError:
-            tkMessageBox.showinfo("Info","No orientation data imported, using specimen coordinates only\n  Import orientation file first, then re-import kly4s data.")
-        outstring=outstring + ' -ncn '+NCN_types[ncn_rv].split(":")[0]
-        Edict={'usr':"",'loc':"unknown",'spc':'1','ins':'SIO-KLY4S'}
-        make_entry(root) 
-        if Edict['usr']!="":outstring=outstring + ' -usr '+ Edict['usr']
-        if Edict['loc']!="":outstring=outstring + ' -loc "'+ Edict['loc']+'"'
-        if Edict['ins']!="":outstring=outstring + ' -ins '+ Edict['ins']
-        if Edict['spc']!="":outstring=outstring + ' -spc '+ Edict['spc']
-    print outstring
+    if format=='sufar4':
+        outstring='SUFAR4_asc_magic.py -WD '+'"'+opath+'"'+' -f '+file +' -F '+file+'.magic'+' -Fa '+file+'_anisotropy.txt '+'-Fsa er_samples.txt -Fs er_specimens.txt' 
+    if format=='kly4s':
+        outstring='KLY4S_magic.py -WD '+'"'+opath+'"'+' -f '+file +' -F '+file+'.magic'+' -Fa '+file+'_anisotropy.txt '
+    if format=='k15':
+        outstring='k15_magic.py -WD '+'"'+opath+'"'+' -f '+file +' -F '+file+'.magic'+' -Fa '+file+'_anisotropy.txt '+'-Fsa er_samples.txt' 
+    names=ask_names(root)  # set naming convention
+    ask_ams(root) # set up MAG dictionary
+    if MAG['loc']!="":outstring=outstring + ' -loc "'+ MAG['loc']+'"' # er_location_name
+    if MAG['usr']!="":outstring=outstring + ' -usr '+ MAG['usr'] # user name
+    if MAG['ins']!="":outstring=outstring + ' -usr '+ MAG['ins'] # instrument name
+    outstring=outstring+' -ncn '+'%s'%(names['rv']+1) # naming convention
+    if names['rv']==3:outstring=outstring + '-'+'%s'%(names['Y'])
+    if names['rv']==6:outstring=outstring + '-'+'%s'%(names['Z'])
+    if outstring[-1]=='8':outstring=outstring+' -Fsa '+opath+'/er_synthetics.txt'
+    print outstring # execute command
     os.system(outstring)
-    if NCN_types[ncn_rv].split(":")[0]=="9": # ODP naming convention - fixing the stupid sample names (pads core number)
-        outstring='ODP_fix_names.py  -WD '+opath+' -f '+file+'.magic'
-        print outstring
-        os.system(outstring)
-        outstring='ODP_fix_names.py  -WD '+opath+' -f '+file+'_anisotropy.txt'
-        print outstring
-        os.system(outstring)
     try:
         filelist=[]
         logfile=open(opath+"/ams.log",'rU')
@@ -2181,14 +2031,12 @@ def add_kly4s():
     for f in filelist:
         logfile.write(f+'\n') 
     logfile.close()
-#    tkMessageBox.showinfo("Info",file+' imported to MagIC, saved in rmag_anisotropy format and added to ams.log  \n Check command window for errors')
     try:
         logfile=open(opath+"/measurements.log",'a')
         logfile.write(file+".magic" +" | " + outstring+"\n")
     except IOError:
         logfile=open(opath+"/measurements.log",'w')
         logfile.write(file+".magic" +" | " + outstring+"\n")
-#    tkMessageBox.showinfo("Info",'measurements saved in '+file+'.magic  and added to measurements.log  \n Check command window for errors')
 
 def set_out(question=""):
         global opath,user
@@ -2210,7 +2058,7 @@ def zeq():
         z_command=z_command+ ' -f '+opath+'/magic_measurements.txt' 
         z_command=z_command+ ' -fsp ' +opath+"/zeq_specimens.txt"
     except IOError:
-        tkMessageBox.showinfo("Info",'select Assemble Measurements in Import file first. ')
+        tkMessageBox.showinfo("Info",'select Combine Measurements in Import file first. ')
         return
     try:
         open(opath+'/er_samples.txt','r')
@@ -2241,7 +2089,7 @@ def thellier():
         open(opath+'/magic_measurements.txt','r')
         t_command=t_command+' -f '+opath+'/magic_measurements.txt'
     except IOError:
-        tkMessageBox.showinfo("Info",'Select Assemble in Import file first.')
+        tkMessageBox.showinfo("Info",'Select Combine Measurements in Import file first.')
         return
     try:
         open(opath+'/pmag_criteria.txt','r')
@@ -2274,7 +2122,7 @@ def microwave():
         open(opath+'/magic_measurements.txt','r')
         t_command=t_command+' -f '+opath+'/magic_measurements.txt'
     except IOError:
-        tkMessageBox.showinfo("Info",'Select Assemble in Import file first.')
+        tkMessageBox.showinfo("Info",'Select Combine Measurements in Import file first.')
         return
     try:
         open(opath+'/pmag_criteria.txt','r')
@@ -2832,7 +2680,7 @@ def create_menus():
     filemenu.add_separator()
     magmenu.add_command(label="CIT format",command=add_cit)
    # magmenu.add_command(label="2G-ascii format",command=add_2G_asc)
-   # magmenu.add_command(label="2G-binary format",command=add_2G_bin)
+    magmenu.add_command(label="2G-binary format",command=add_2G_bin)
     magmenu.add_command(label="HUJI format",command=add_huji)
    # magmenu.add_command(label="JR6 format",command=add_jr6)
     magmenu.add_command(label="LDEO format",command=add_ldeo)
@@ -2850,32 +2698,33 @@ def create_menus():
     magmenu.add_command(label="TDT format",command=add_tdt)
     amsmenu=Menu(importmenu)
     importmenu.add_cascade(label="Anisotropy files",menu=amsmenu)
-    s_menu=Menu(amsmenu)
-    amsmenu.add_cascade(label=".s format",menu=s_menu)
-    s_menu.add_command(label="import single .s file", command=add_s)
-    s_menu.add_command(label="import entire directory", command=add_s_dir)
+#    s_menu=Menu(amsmenu)
+#    amsmenu.add_cascade(label=".s format",menu=s_menu)
+#    s_menu.add_command(label="import single .s file", command=add_s)
+#    s_menu.add_command(label="import entire directory", command=add_s_dir)
     amsmenu.add_command(label="kly4s format",command=add_kly4s)
     amsmenu.add_command(label="k15 format",command=add_k15)
     amsmenu.add_command(label="Sufar 4.0 ascii format",command=add_sufar4)
     agmmenu=Menu(importmenu)
     importmenu.add_cascade(label="Hysteresis files",menu=agmmenu)
-    agmmenu.add_command(label="Import single agm file",command=add_agm)
+    agmmenu.add_command(label="Import single agm file",command=add_agm_file)
     agmmenu.add_command(label="Import entire directory",command=add_agm_dir)
-    importmenu.add_command(label="Curie Temperatures",command=add_curie)
+#    importmenu.add_command(label="Curie Temperatures",command=add_curie)
     importmenu.add_separator()
     importmenu.add_command(label="Combine measurements",command=meas_combine)
+    importmenu.add_separator()
     importmenu.add_command(label="Convert er_samples => orient.txt",command=convert_samps)
     importmenu.add_command(label="Update measurements\n if new orientation imported",command=update_meas)
     importmenu.add_separator()
     importmenu.add_command(label="Import er_ages.txt",command=add_ages)
+    prior=Menu(importmenu)
+    importmenu.add_cascade(label="Import prior interpretations",menu=prior)
+    prior.add_command(label="PmagPy redo file",command=add_redo)
+#    prior.add_command(label="DIR (Enkin) file",command=add_DIR_ascii)
+#    prior.add_command(label="LSQ (Jones/PaleoMag) file",command=add_LSQ)
+#    prior.add_command(label="PMM (USCS) file",command=add_PMM)
     menubar.add_cascade(label="Import",menu=importmenu)
     plotmenu=Menu(menubar)
-    prior=Menu(plotmenu)
-    plotmenu.add_cascade(label="Import prior interpretations",menu=prior)
-    prior.add_command(label="PmagPy redo file",command=add_redo)
-    prior.add_command(label="DIR (Enkin) file",command=add_DIR_ascii)
-    prior.add_command(label="LSQ (Jones/PaleoMag) file",command=add_LSQ)
-    prior.add_command(label="PMM (USCS) file",command=add_PMM)
     plotmenu.add_command(label="Customize Criteria ",command=custom)
     plotmenu.add_separator()
     plotmenu.add_command(label="Demagnetization data ",command=zeq)
@@ -2884,7 +2733,7 @@ def create_menus():
     plotmenu.add_command(label="Microwave experiments",command=microwave)
     plotmenu.add_command(label="Anisotropy data",command=aniso)
     plotmenu.add_command(label="Hysteresis data",command=hysteresis)
-    plotmenu.add_command(label="Curie Temperatures data",command=curie)
+#    plotmenu.add_command(label="Curie Temperatures data",command=curie)
     plotmenu.add_command(label="Hysteresis parameters",command=dayplot)
     plotmenu.add_command(label="Plot IRM acquisition",command=irm_magic)
     plotmenu.add_command(label="Plot 3D-IRM experiment",command=lowrie_magic)
@@ -2965,5 +2814,6 @@ OCN_types=["1: Lab arrow azimuth = mag_azimuth; Lab arrow dip=-field_dip (field_
 MCD_types=["FS-FD: field sampling done with a drill","FS-H: field sampling done with hand samples","FS-LOC-GPS: field location done with GPS","FS-LOC-MAP:  field location done with map","SO-POM:  a Pomeroy orientation device was used","SO-ASC:  an ASC orientation device was used","SO-MAG: magnetic compass used for all orientations","SO-SUN: sun compass used for all orientations","SO-SM: either magnetic or sun used on all orientations","SO-SIGHT: orientation from sighting"]
 DCN_types=["1: Use the IGRF DEC value at the lat/long and date supplied","2: Use this DEC: ","3: DEC=0, mag_az is already corrected in file","4: value to ADD to local time for GMT"]
 LP_types=["NRM: no lab treatment", "AF: alternating field de(re)magnetization","T: Thermal de(re)magnetization including Thellier, excluding TRM acquis.","TRM: TRM acquisition experiment","ANI: anisotropy of TRM,IRM or ARM","I: IRM","I3d: Lowrie 3D-IRM"]
-SIO={'usr':'','out':'','dc':'0','ac':'0','phi':'0','theta':'-90','spc':'1','coil':'','LP':1,'MCD':0}
+MAG={'usr':'','out':'','dc':'0','ac':'0','phi':'0','theta':'-90','spc':'1','coil':'','LP':1,'MCD':0,'ins':''}
+AGM={'usr':'','loc':'unknown','spc':'1','spn':0,'syn':0,'SI':0,'bak':0,'ins':''}
 root.mainloop()

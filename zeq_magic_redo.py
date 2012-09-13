@@ -119,7 +119,11 @@ def main():
     #
         meas_meth=[]
         spec=pmag.get_dictitem(meas_data,'er_specimen_name',s,'T')   
-        for rec in  spec: # copy of vital stats to PmagSpecRec from first spec record in demag block
+        if len(spec)==0:
+            print 'no data found for specimen:  ',s
+            print 'delete from zeq_redo input file...., then try again'
+        else: 
+          for rec in  spec: # copy of vital stats to PmagSpecRec from first spec record in demag block
            skip=1
            methods=rec["magic_method_codes"].split(":")
            if len(set(methods) & set(INCL))>0:
@@ -150,10 +154,6 @@ def main():
                    if "LP-DIR-M" in meas_meth or "LT-M-Z" in meas_meth: 
                        PmagSpecRec["measurement_step_unit"]="J"
                        if "LP-DIR-M" not in method_codes:method_codes.append("LP-DIR-M") 
-        if PmagSpecRec=={}:
-            print 'no data found for specimen:  ',s
-            print 'delete from zeq_redo input file...., then try again'
-            sys.exit()
     #
     #
         datablock,units=pmag.find_dmag_rec(s,spec) # fish out the demag data for this specimen

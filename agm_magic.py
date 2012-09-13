@@ -87,14 +87,14 @@ def main():
     if '-Fsp' in args:
         ind=args.index("-Fsp")
         specfile=dir_path+'/'+args[ind+1]
-    if "-spn" in args:
-        ind=args.index("-spn")
-        er_specimen_name=args[ind+1]
     specnum,samp_con,Z=0,'1',1
     if "-spc" in args:
         ind=args.index("-spc")
         specnum=int(args[ind+1])
         if specnum!=0:specnum=-specnum
+    if "-spn" in args:
+        ind=args.index("-spn")
+        er_specimen_name=args[ind+1]
     elif "-syn" not in args:
         print "you must specify a specimen name"
         sys.exit()
