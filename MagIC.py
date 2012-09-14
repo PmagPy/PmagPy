@@ -2012,7 +2012,8 @@ def add_ams(format): # add generic AMS data
     ask_ams(root) # set up MAG dictionary
     if MAG['loc']!="":outstring=outstring + ' -loc "'+ MAG['loc']+'"' # er_location_name
     if MAG['usr']!="":outstring=outstring + ' -usr '+ MAG['usr'] # user name
-    if MAG['ins']!="":outstring=outstring + ' -usr '+ MAG['ins'] # instrument name
+    if MAG['ins']!="":outstring=outstring + ' -ins '+ MAG['ins'] # instrument name
+    if MAG['spc']!="":outstring=outstring + ' -spc '+ MAG['spc'] # instrument name
     outstring=outstring+' -ncn '+'%s'%(names['rv']+1) # naming convention
     if names['rv']==3:outstring=outstring + '-'+'%s'%(names['Y'])
     if names['rv']==6:outstring=outstring + '-'+'%s'%(names['Z'])
