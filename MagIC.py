@@ -382,11 +382,6 @@ def ask_mag(parent):
     m=make_mag(parent)
     parent.wait_window(m.top)
 
-def ask_ams(parent):
-    global MAG
-    m=make_ams(parent)
-    parent.wait_window(m.top)
-
 radio_value = 99
 class make_radio: # makes a radio button form with labels in input_d
         def __init__(self, master,input_d,instruction):
@@ -1998,6 +1993,7 @@ def add_kly4s():
 
 def add_ams(format): # add generic AMS data
     global MAG
+    MAG['LP']=0
     file,kpath=copy_text_file(" Select AMS input file: ")
 #
 # build the command (outstring) for kly4s_magic.py
@@ -2009,7 +2005,7 @@ def add_ams(format): # add generic AMS data
     if format=='k15':
         outstring='k15_magic.py -WD '+'"'+opath+'"'+' -f '+file +' -F '+file+'.magic'+' -Fa '+file+'_anisotropy.txt '+'-Fsa er_samples.txt' 
     names=ask_names(root)  # set naming convention
-    ask_ams(root) # set up MAG dictionary
+    ask_mag(root) # set up MAG dictionary
     if MAG['loc']!="":outstring=outstring + ' -loc "'+ MAG['loc']+'"' # er_location_name
     if MAG['usr']!="":outstring=outstring + ' -usr '+ MAG['usr'] # user name
     if MAG['ins']!="":outstring=outstring + ' -ins '+ MAG['ins'] # instrument name
