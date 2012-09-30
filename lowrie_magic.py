@@ -64,8 +64,8 @@ def main():
             Temps.append(float(dat['treatment_temp'])+273.)
         carts=pmag.dir2cart(DIMs).transpose()
         if norm==1: # want to normalize
-            nrm=max(max(abs(carts[0])),max(abs(carts[1])),max(abs(carts[2]))) # by maximum of x,y,z values
-            ylab="M/M_max"
+            nrm=(DIMs[0][2]) # normalize by NRM
+            ylab="M/M_o"
         else: 
             nrm=1. # don't normalize
             ylab="Magnetic moment (Am^2)"

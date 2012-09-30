@@ -321,9 +321,9 @@ class make_mag: # makes an entry table for basic data from an MAG formatted file
         self.ins.grid(row=6, column=1,sticky=W)
         g=7
         if MAG['LP']:
-            Label(top, text="*******************").grid(row=6,sticky=W)
-            Label(top, text="Lab protocol particulars:").grid(row=7,sticky=W)
-            Label(top, text="*******************").grid(row=8,sticky=W)
+            Label(top, text="*******************").grid(row=g,sticky=W)
+            Label(top, text="Lab protocol particulars:").grid(row=g+1,sticky=W)
+            Label(top, text="*******************").grid(row=g+2,sticky=W)
             g+=3
             self.lp_check_value=[] 
             for i in range(len(LP_types)):
@@ -333,23 +333,26 @@ class make_mag: # makes an entry table for basic data from an MAG formatted file
                 if i==1:g+=1 # make extra room if AF 
                 if i==2:g+=1 # make extra room if Thermal
                 self.lp_check_value.append(self.var)
-            Label(top, text="leave blank if not needed").grid(row=9,column=2,sticky=E)
-            Label(top, text="peak AF field (mT) if ARM:").grid(row=10,column=1,sticky=E)
+            Label(top, text="leave blank if not needed").grid(row=g-2,column=2,sticky=E)
+            Label(top, text="peak AF field (mT) if ARM:").grid(row=g-1,column=1,sticky=E)
             self.ac = Entry(top)
-            self.ac.grid(row=10, column=2,sticky=W)
-            Label(top, text="dc field (uT) for ARM/TRM:").grid(row=11,column=1,sticky=E)
+            self.ac.grid(row=g-1, column=2,sticky=W)
+            Label(top, text="dc field (uT) for ARM/TRM:").grid(row=g,column=1,sticky=E)
             self.B = Entry(top)
-            self.B.grid(row=11, column=2,sticky=W)
-            Label(top, text="dc field (phi): [default=0]:").grid(row=12,column=1,sticky=E)
+            self.B.grid(row=g, column=2,sticky=W)
+            g+=1
+            Label(top, text="dc field (phi): [default=0]:").grid(row=g,column=1,sticky=E)
             self.phi = Entry(top)
-            self.phi.grid(row=12, column=2,sticky=W)
-            Label(top, text="dc field (theta): [default=-90]:").grid(row=13,column=1,sticky=E)
+            self.phi.grid(row=g, column=2,sticky=W)
+            g+=1
+            Label(top, text="dc field (theta): [default=-90]:").grid(row=g,column=1,sticky=E)
             self.theta = Entry(top)
-            self.theta.grid(row=13, column=2,sticky=W)
-            Label(top, text="coil: Coil number for ASC impulse coil:").grid(row=16,column=1,sticky=E)
+            self.theta.grid(row=g, column=2,sticky=W)
+            g+=3
+            Label(top, text="Coil number for ASC impulse coil (if treatment units in Volts):").grid(row=g,column=1,sticky=E)
             self.coil = Entry(top)
-            self.coil.grid(row=16, column=2,sticky=E)
-            g=16
+            self.coil.grid(row=g, column=2,sticky=W)
+            g+=2
         if MAG['MCD']==1:
             Label(top, text="*******************").grid(row=g,sticky=W)
             Label(top, text="Sampling particulars:").grid(row=g+1,sticky=W)
@@ -2560,6 +2563,9 @@ def irm_magic():
 
 def lowrie_magic():
     outstring='lowrie_magic.py -WD '+'"'+opath+'"'
+    plt_types=["Use measurement units","Normalize to unity"]
+    plt_rv=ask_radio(root,plt_types,'Choose desired option:') # 
+    if plt_rv==0:outstring=outstring+' -N '
     print outstring
     os.system(outstring)
 
