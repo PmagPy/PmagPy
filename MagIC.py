@@ -275,6 +275,29 @@ def add_curie():
         logfile=open(opath+"/measurements.log",'w')
         logfile.write(basename+".magic" +" | " + outstring+"\n")
 
+class make_PlotOptions:
+    global PlotOptions
+    def __init__(self,master):
+        top=self.top=Toplevel(master)
+        self.top.geometry('+50+50')
+        Label(top,text='Check the desired plot options:').grid(row=0,columnspan=2)
+        Label(top, text="*******************").grid(row=1,sticky=W)
+        self.plt_check_value=[] 
+        g=1
+        for op in PlotOptions: # make the check boxes for the plot
+            self.var=IntVar()
+            self.cb=Checkbutton(top,variable=self.var,text=op)
+            self.cb.grid(row=g,sticky=W) 
+            g+=1
+            self.plt_check_value.append(self.var)
+        self.b = Button(top, text="OK", command=self.ok)
+        self.b.grid(row=g+1)
+    def ok(self):
+        PlotOptions.append(self.plt_check_value)
+        self.top.destroy()
+
+
+
 class make_mag: # makes an entry table for basic data from an MAG formatted file
     def __init__(self,master):
         top=self.top=Toplevel(master)
@@ -376,6 +399,11 @@ class make_mag: # makes an entry table for basic data from an MAG formatted file
                 if MCD_list[i]==1:MCD=MCD+MCD_types[i].split(":")[0]+":"
                 MAG['mcd']='%s'%(MCD[:-1].strip(':'))
         self.top.destroy()
+
+def ask_plt(parent):
+    global PlotOptions
+    m=make_PlotOptions(parent)
+    parent.wait_window(m.top)
 
 def ask_mag(parent):
     global MAG
@@ -1409,7 +1437,7 @@ def add_mag(ftype):
         if ftype=='ldeo': 
             outstring = 'LDEO_magic.py '
         elif ftype=='sio':
-            outstring = 'MAG_magic.py '
+            outstring = 'sio_magic.py '
         elif ftype=='tdt':
             outstring = 'TDT_magic.py '
         outstring=outstring+' -F '+outfile+' -f '+ ifile+ ' -LP ' + LP.strip(":") + ' -spc ' + MAG['spc'] 
@@ -2512,7 +2540,21 @@ def curie():
     os.system(outstring)
   
 def irm_magic():
+    global PlotOptions
+    if 'Normalize to unit intensity' not in PlotOptions:
+        PlotOptions.append('Normalize to unit intensity')
+    ask_plt(root)
+    plt_check_values=PlotOptions.pop() # get and delete the plot options
+    PLTlist= map((lambda var:var.get()),plt_check_values) # get a list of the plot option check boxes
     outstring='irmaq_magic.py -WD '+'"'+opath+'"'
+    if PLTlist[1]==1:
+        outstring =outstring+' -obj sit ' # plot by site
+    elif PLTlist[2]==1:
+        outstring =outstring+' -obj sam ' # plot by sample
+    elif PLTlist[3]==1:
+        outstring =outstring+' -obj spc ' # plot by specimen
+    if PLTlist[4]==0:
+        outstring =outstring+' -N ' # do not normalize
     print outstring
     os.system(outstring)
 
@@ -2834,14 +2876,27 @@ tkMessageBox.showinfo("Info","First Step: \n Set Project MagIC Directory\n\n Thi
 set_out()
 #user=tkSimpleDialog.askstring("Enter MagIC mail name:","")
 user=""
+#### common lists, dictionaries
 OrResult={'out':'er_samples.txt','gmt':'0','dec':'','Z':'','dcn':'1','dec':'','Z':'','ocn':'1','ncn':'1','a':0,'app':'n'}
+#
 SMopts={'usr':user,'min':"",'max':"",'units':"","crd":"s",'frac':"",'type':""}
+#
 ApwpResult={}
+#
 NCN_types=["1: XXXXY: where XXXX is site designation, Y is sample", "2: XXXX-YY: YY sample from site XXXX (XXX, YY of arbitary length)", "3: XXXX.YY: YY sample from site XXXX (XXX, YY of arbitary length)","4: XXXX[YYY] where YYY is sample designation, enter number of Y:", "5: sample name=site name","6: Site names in orient.txt file","7: [XXXX]YYY where XXXX is the site name, enter number of X:","8: this is a synthetic and has no site name"] 
+#
 OCN_types=["1: Lab arrow azimuth = mag_azimuth; Lab arrow dip=-field_dip (field_dip is hade)", "2: Lab arrow azimuth = mag_azimuth-90 (mag_azimuth is strike); Lab arrow dip = -field_dip","3: Lab arrow azimuth = mag_azimuth; Lab arrow dip = 90-field_dip (field_dip is inclination of lab arrow)","4: Lab arrow azimuth and dip are same as mag_azimuth, field_dip","5: Lab arrow azimuth and dip are mag_azimuth, field_dip-90 (field arrow is inclination of specimen Z direction)","6: Lab arrow azimuth = mag_azimuth-90 (mag_azimuth is strike); Lab arrow dip = 90-field_dip"]
+#
 MCD_types=["FS-FD: field sampling done with a drill","FS-H: field sampling done with hand samples","FS-LOC-GPS: field location done with GPS","FS-LOC-MAP:  field location done with map","SO-POM:  a Pomeroy orientation device was used","SO-ASC:  an ASC orientation device was used","SO-MAG: magnetic compass used for all orientations","SO-SUN: sun compass used for all orientations","SO-SM: either magnetic or sun used on all orientations","SO-SIGHT: orientation from sighting"]
+#
 DCN_types=["1: Use the IGRF DEC value at the lat/long and date supplied","2: Use this DEC: ","3: DEC=0, mag_az is already corrected in file","4: value to ADD to local time for GMT"]
+#
 LP_types=["NRM: no lab treatment", "AF: alternating field de(re)magnetization","T: Thermal de(re)magnetization including Thellier, excluding TRM acquis.","TRM: TRM acquisition experiment","ANI: anisotropy of TRM,IRM or ARM","I: IRM","I3d: Lowrie 3D-IRM"]
+#
 MAG={'usr':'','out':'','dc':'0','ac':'0','phi':'0','theta':'-90','spc':'1','coil':'','LP':1,'MCD':0,'ins':''}
+#
 AGM={'usr':'','loc':'unknown','spc':'1','spn':0,'syn':0,'SI':0,'bak':0,'ins':''}
+#
+PlotOptions=['Plot by location','Plot by site','Plot by sample','Plot by specimen']
+#
 root.mainloop()

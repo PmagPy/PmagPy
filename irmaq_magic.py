@@ -47,13 +47,9 @@ def main():
             if plot_by=='sit':plot_key='er_site_name'
             if plot_by=='sam':plot_key='er_sample_name'
             if plot_by=='spc':plot_key='er_specimen_name'
-#        if '-LP' in sys.argv:
-#            ind=sys.argv.index("-LT")
-#            LP='LP-'+sys.argv[ind+1] # get lab protocol for plotting
     data,file_type=pmag.magic_read(in_file)
     sids=pmag.get_specs(data)
     pmagplotlib.plot_init(FIG['exp'],6,6)
-    print len(data),' records read from ',in_file
     #
     #
     # find desired intensity data
@@ -62,38 +58,34 @@ def main():
     #
     plotlist,intlist=[],['measurement_magnitude','measurement_magn_moment','measurement_magn_volume','measurement_magn_mass']
     IntMeths=[]
-    for  rec in data:
-        meths=[]
-        methcodes=rec['magic_method_codes'].split(':')
-        for meth in methcodes:meths.append(meth.strip())
-        for key in rec.keys():
-            if key in intlist and rec[key]!="":
-                if key not in IntMeths:IntMeths.append(key)
-                if rec[plot_key] not in plotlist and LP in meths: plotlist.append(rec[plot_key])
-        plotlist.sort()
-    if len(IntMeths)==0:
+    data=pmag.get_dictitem(data,'magic_method_codes',LP,'has') # get all the records with this lab protocol
+    Ints={}
+    NoInts,int_key=1,""
+    for key in intlist:
+       Ints[key]=pmag.get_dictitem(data,key,'','F') # get all non-blank data for intensity type
+       if len(Ints[key])>0:
+           NoInts=0 
+           if int_key=="":int_key=key
+    if NoInts==1:
         print 'No intensity information found'
         sys.exit()
-    int_key=IntMeths[0] # plot first intensity method found - normalized to initial value anyway - doesn't matter which used
+    for  rec in Ints[int_key]:
+        if rec[plot_key] not in plotlist: plotlist.append(rec[plot_key])
+    plotlist.sort()
     for plot in plotlist:
         print plot
-        for spec in sids:
-            title,INTblock="",[]
-            for rec in data:
-                if 'measurement_flag' not in rec.keys():rec['measurement_flag']='g'
-                if rec[plot_key]==plot and int_key in rec.keys() and rec[int_key]!="" and rec['er_specimen_name']==spec:
-                    meths=[]
-                    methcodes=rec['magic_method_codes'].split(':')
-                    for meth in methcodes:
-                        LPtest=meth.split('-')
-                        if XLP not in LPtest: meths.append(meth.strip())
-                    if len(meths)>0 and LP in meths or 'LT-NO' in meths: 
-                        title=rec[plot_key]
-                        INTblock.append([float(rec[dmag_key]),0,0,float(rec[int_key]),1,rec['measurement_flag']])
-            Sdata=INTblock.sort()
-            if len(INTblock)>2: 
-                pmagplotlib.plotMT(FIG['exp'],INTblock,title,0,units,norm)
-                pmagplotlib.drawFIGS(FIG)
+        INTblock=[]
+        data=pmag.get_dictitem(Ints[int_key],plot_key,plot,'T') # get data with right intensity info whose plot_key matches plot
+        sids=pmag.get_specs(data) # get a list of specimens with appropriate data
+        if len(sids)>0: 
+            title=data[0][plot_key]
+        for s in sids:
+            INTblock=[]
+            sdata=pmag.get_dictitem(data,'er_specimen_name',s,'T') # get data for each specimen
+            for rec in sdata:
+                INTblock.append([float(rec[dmag_key]),0,0,float(rec[int_key]),1,'g'])
+            pmagplotlib.plotMT(FIG['exp'],INTblock,title,0,units,norm)
+        pmagplotlib.drawFIGS(FIG)
         ans=raw_input(" S[a]ve to save plot, [q]uit,  Return to continue:  ")
         if ans=='q':sys.exit()
         if ans=="a": 
