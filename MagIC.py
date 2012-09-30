@@ -2040,9 +2040,34 @@ def set_out(question=""):
         opath= tkFileDialog.askdirectory()
 #        print opath,' has been set'
 
-def help_magic():
+def help_PmagPy():
+    helpme="#PmagPy"
+    help_magic(helpme)
+
+
+def help_FileMenu():
+    helpme="#FileMenu"
+    help_magic(helpme)
+
+def help_ImportMenu():
+    helpme="#ImportMenu"
+    help_magic(helpme)
+
+def help_AnalysisMenu():
+    helpme="#AnalysisPlotsMenu"
+    help_magic(helpme)
+
+def help_PrepareMenu():
+    helpme="#PrepareMagicConsole"
+    help_magic(helpme)
+
+def help_Utilities():
+    helpme="#Utilities"
+    help_magic(helpme)
+
+def help_magic(helpme):
     import webbrowser
-    webbrowser.open("http://magician.ucsd.edu/Software/PmagPy/Docs/PmagPy.html")
+    webbrowser.open("http://magician.ucsd.edu/Software/PmagPy/Docs/PmagPy.html"+helpme)
 
 
 def exit():
@@ -2725,43 +2750,49 @@ def create_menus():
     plotmenu.add_command(label="Customize Criteria ",command=custom)
     plotmenu.add_separator()
     plotmenu.add_command(label="Demagnetization data ",command=zeq)
+#    plotmenu.add_command(label="Demagnetization GUI",command=zeq_gui)
     plotmenu.add_command(label="Thellier-type experiments",command=thellier)
 #    plotmenu.add_command(label="Thellier GUI",command=thellier_gui)
-    plotmenu.add_command(label="Microwave experiments",command=microwave)
-    plotmenu.add_command(label="Anisotropy data",command=aniso)
+#    plotmenu.add_command(label="Microwave experiments",command=microwave)
     plotmenu.add_command(label="Hysteresis data",command=hysteresis)
 #    plotmenu.add_command(label="Curie Temperatures data",command=curie)
-    plotmenu.add_command(label="Hysteresis parameters",command=dayplot)
-    plotmenu.add_command(label="Plot IRM acquisition",command=irm_magic)
-    plotmenu.add_command(label="Plot 3D-IRM experiment",command=lowrie_magic)
-    plotmenu.add_command(label="Plot measurement data versus depth",command=core_depthplot)
-    plotmenu.add_command(label="Plot AMS data versus depth",command=ani_depthplot)
-    plotmenu.add_separator()
-    plotmenu.add_command(label="Assemble specimens",command=spec_combine)
-    plotmenu.add_separator()
-    plotmenu.add_command(label="Check sample orientations",command=site_edit)
-    plotmenu.add_separator()
-    plotmenu.add_command(label="Assemble results",command=sitemeans)
-    plotmenu.add_command(label="Extract Results to Table",command=extract)
-    plotmenu.add_command(label="Prepare Upload txt File",command=upload)
-    menubar.add_cascade(label="Data Reduction",menu=plotmenu)
-    utilitymenu=Menu(menubar)
-    eqareamenu=Menu(utilitymenu)
-    utilitymenu.add_cascade(label="Equal area plots",menu=eqareamenu)
+    plotmenu.add_command(label="Hysteresis ratio plots",command=dayplot)
+    plotmenu.add_command(label="IRM acquisition",command=irm_magic)
+    plotmenu.add_command(label="3D-IRM experiment",command=lowrie_magic)
+    plotmenu.add_command(label="Remanence data versus depth/height",command=core_depthplot)
+    plotmenu.add_command(label="Anisotropy data versus depth/height",command=ani_depthplot)
+    eqareamenu=Menu(plotmenu)
     eqareamenu.add_command(label="Quick look - NRM directions",command=quick_look)
-    eqareamenu.add_command(label="General equal area plots",command=eqarea)
-    utilitymenu.add_command(label="Map of  VGPs",command=vgp_map)
-    utilitymenu.add_command(label="Basemap of site locations",command=map_sites)
-    utilitymenu.add_command(label="Reversal test",command=revtest)
-    utilitymenu.add_command(label="Fold test ",command=fold)
-    utilitymenu.add_command(label="Elong/Inc",command=EI,state="disabled")
+    eqareamenu.add_command(label="General remanence directions",command=eqarea)
+    eqareamenu.add_command(label="Anisotropy data",command=aniso)
+    plotmenu.add_cascade(label="Equal area plots",menu=eqareamenu)
+    plotmenu.add_command(label="Map of VGPs",command=vgp_map)
+    plotmenu.add_command(label="Map of site locations",command=map_sites)
+    plotmenu.add_command(label="Reversals test",command=revtest)
+    plotmenu.add_command(label="Fold test ",command=fold)
+    plotmenu.add_command(label="Elong/Inc",command=EI,state="disabled")
+    menubar.add_cascade(label="Analysis and Plots",menu=plotmenu)
+    uploadmenu=Menu(menubar)
+    uploadmenu.add_command(label="Assemble specimens",command=spec_combine)
+    uploadmenu.add_separator()
+    uploadmenu.add_command(label="Check sample orientations",command=site_edit)
+    uploadmenu.add_command(label="Assemble results",command=sitemeans)
+    uploadmenu.add_command(label="Extract Results to Table",command=extract)
+    uploadmenu.add_command(label="Prepare Upload txt File",command=upload)
+    menubar.add_cascade(label="Prepare for MagIC Console",menu=uploadmenu)
+    utilitymenu=Menu(menubar)
     utilitymenu.add_command(label="Make IZZI exp.  chart",command=chart)
     utilitymenu.add_command(label="Expected directions/Paleolatitudes",command=apwp)
     utilitymenu.add_separator()
     menubar.add_cascade(label="Utilities",menu=utilitymenu)
     helpmenu=Menu(menubar)
     menubar.add_cascade(label="Help",menu=helpmenu)
-    helpmenu.add_command(label="PmagPy Help",command=help_magic)
+    helpmenu.add_command(label="PmagPy Help",command=help_PmagPy)
+    helpmenu.add_command(label="File Menu",command=help_FileMenu)
+    helpmenu.add_command(label="Import Menu",command=help_ImportMenu)
+    helpmenu.add_command(label="Analysis and Plots Menu",command=help_AnalysisMenu)
+    helpmenu.add_command(label="Prepare for MagIC Console Menu",command=help_PrepareMenu)
+    helpmenu.add_command(label="Utilities Menu",command=help_Utilities)
     root.config(menu=menubar)
 
 
