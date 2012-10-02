@@ -275,14 +275,19 @@ def add_curie():
         logfile.write(basename+".magic" +" | " + outstring+"\n")
 
 class make_PlotOptions:
-    global PlotOptions
+    global PlotOptions,COORDs
     def __init__(self,master):
         top=self.top=Toplevel(master)
         self.top.geometry('+50+50')
         Label(top,text='Check the desired plot options:').grid(row=0,columnspan=2)
         Label(top, text="*******************").grid(row=1,sticky=W)
+        g=2
+        self.coord_rv=IntVar()
+        if len(COORDs)>1:
+            for i in range(len(COORDs)):
+                Radiobutton(top,variable=self.coord_rv,value=i,text=COORDs[i]).grid(row=g,stick=W)
+                g+=1
         self.plt_check_value=[] 
-        g=1
         for op in PlotOptions: # make the check boxes for the plot
             self.var=IntVar()
             self.cb=Checkbutton(top,variable=self.var,text=op)
@@ -292,8 +297,12 @@ class make_PlotOptions:
         self.b = Button(top, text="OK", command=self.ok)
         self.b.grid(row=g+1)
     def ok(self):
+        global PlotOptions,COORDs
         PlotOptions.append(self.plt_check_value)
+        if len(COORDs)>1:
+            COORDs=COORDs[self.coord_rv.get()] # return the desired coordinate system
         self.top.destroy()
+
 class make_ani:
     def __init__(self,master):
         top=self.top=Toplevel(master)
@@ -586,7 +595,7 @@ def ask_strat(parent):
     parent.wait_window(m.top)
 
 def ask_plt(parent):
-    global PlotOptions
+    global PlotOptions,COORDs
     m=make_PlotOptions(parent)
     parent.wait_window(m.top)
 
@@ -617,7 +626,7 @@ def ask_radio(parent,choices,title): # returns the values of the radio button fo
         parent.wait_window(m.top)
         return radio_value
 
-def age(): # imports a site age file
+def add_age(): # imports a site age file
     global orpath
     mpath=tkFileDialog.askopenfilename(title="Set age file:")
     file=mpath.split('/')[-1]
@@ -632,17 +641,12 @@ def age(): # imports a site age file
 
 
 def model_lat(): # imports a site paleolatitude file
-    global orpath
-    mpath=tkFileDialog.askopenfilename(title="Set paleolatitude  file:")
-    file=mpath.split('/')[-1]
-    infile=open(mpath,'rU').readlines()
-    print mpath,'opened for reading'
+    global opath
+    basename,fpath=copy_text_file("Select paleolatitude file")
     mfile=opath+'/model_lat.txt'
-    out=open(mfile,'w')
-    for line in infile: 
-        out.write(line) # copies contents of source file to Project directory
-    out.close()
-    print orpath,' copied to ',mfile  
+    outstring='mv '+opath+'/'+basename+' '+mfile
+    os.system(outstring)
+    print basename,' copied to model_lat.txt'
 
 def convert_samps():
     outpath=tkFileDialog.askdirectory(title="Set output directory for orient.txt file")
@@ -687,6 +691,10 @@ def add_ODP_sum():
 
 def add_ages():
     file,path=copy_text_file("Select er_ages formatted file: ")
+    afile=opath+'/er_ages.txt'
+    outstring='mv '+opath+'/'+file+' '+afile
+    os.system(outstring)
+    print file,' copied to er_ages.txt'
 
 class make_names:
     def __init__(self,master):
@@ -2555,7 +2563,7 @@ def eqarea():
     except:
        pass
     if len(files)==0:
-       tkMessageBox.showinfo("Info","You have no files available for processing \n Assemble specimens first.")
+       tkMessageBox.showinfo("Info","You have no files available for processing \n Interpret measurements and assemble specimens first.")
        return
     file_rv=ask_radio(root,files,'Select File type') 
     if file_rv==0:FILE='pmag_specimens.txt -WD ' +opath
@@ -2600,42 +2608,62 @@ def eqarea():
     os.system(outstring)
 
 def quick_look():
-    try:
+    global PlotOptions,COORDs
+    COORDs=[] # restore to initial
+    try: # make the NRM file for plotting
         data,file_type=pmag.magic_read(opath+"/magic_measurements.txt")
         NRMs=[]
         nrmfile=opath+'/nrm_measurements.txt'
         nrmspec=opath+'/nrm_specimens.txt'
         sampfile=opath+'/er_samples.txt'
-        for rec in data:
-            meths=rec["magic_method_codes"].replace(" ","").split(":")
-            if "LT-NO" in meths:NRMs.append(rec)
+        NRMs=pmag.get_dictitem(data,'magic_method_codes','LT-NO','has')
         pmag.magic_write(nrmfile,NRMs,'magic_measurements')
         print "NRM measurements saved in ",nrmfile
     except:
         print "select assemble measurements first"
         return  
-    mk_command = 'nrm_specimens_magic.py -A -f '+nrmfile+'  -F '+nrmspec +' -fsa '+sampfile  # don't average replicates
-    eq_command = 'eqarea_magic.py -WD '+opath+' -f nrm_specimens.txt'
-    try:
-        open(opath+'/er_samples.txt','r')
-        crd_OPTS=['Specimen','Geographic','Tilt adjusted']
-        crd_rv=ask_radio(root,crd_OPTS,'select coordinate system:') # sets naming convention
-        if crd_rv==1: 
-            mk_command=mk_command+ ' -crd g -fsa '+opath+'/er_samples.txt -F '+nrmspec
-            eq_command=eq_command+' -crd g '
-        if crd_rv==2:
-            mk_command=mk_command+ ' -crd t -fsa '+opath+'/er_samples.txt -F '+nrmspec
-            eq_command=eq_command+' -crd t '
-    except IOError:
-        tkMessageBox.showinfo("Info",'No orientation file available, use specimen coordinates or import orientations')
-    objs=["Whole file","By Site","By Sample"]
-    obj_rv=ask_radio(root,objs,'Select Level for plotting')
-    if obj_rv==1:eq_command=eq_command+' -obj sit '
-    if obj_rv==2:eq_command=eq_command+' -obj sam '
+    mk_command = 'nrm_specimens_magic.py -A -f '+nrmfile+'  -F '+opath+'/nrm_specimens_s.txt '  +' -fsa '+sampfile  # don't average replicates
     print mk_command
-    os.system(mk_command)
+    os.system(mk_command) # make the nrm file
+    mk_command = 'nrm_specimens_magic.py -A -crd g -f '+nrmfile+'  -F '+opath+'/nrm_specimens_g.txt '  +' -fsa '+sampfile  # don't average replicates
+    print mk_command
+    os.system(mk_command) # make the nrm file
+    mk_command = 'nrm_specimens_magic.py -A -crd t -f '+nrmfile+'  -F '+opath+'/nrm_specimens_t.txt '  +' -fsa '+sampfile  # don't average replicates
+    print mk_command
+    os.system(mk_command) # make the nrm file
+    outstring='combine_magic.py -WD '+opath+' -F nrm_specimens.txt -f nrm_specimens_s.txt nrm_specimens_g.txt nrm_specimens_t.txt'
+    print outstring
+    os.system(outstring) # make the nrm file
+    NRMspecs,filetype=pmag.magic_read(nrmspec)
+    NRMs=pmag.get_dictitem(NRMspecs,'specimen_tilt_correction','-1','T') # are there specimen coordinates?
+    NRMg=pmag.get_dictitem(NRMspecs,'specimen_tilt_correction','0','T') # are there geographic data?
+    NRMt=pmag.get_dictitem(NRMspecs,'specimen_tilt_correction','100','T') # are there tilt corrected data?
+    if len(NRMs)>0:
+        COORDs.append('Specimen')
+    if len(NRMg)>0:
+        COORDs.append('Geographic')
+    if len(NRMt)>0:
+        COORDs.append('Tilt corrected')
+    if len(NRMspecs)>0 and len(COORDs)==0:COORDs=['Specimen']
+    ask_plt(root) # get the desired plotting options
+    plt_check_values=PlotOptions.pop() # get and delete the plot options
+    eq_command = 'eqarea_magic.py -WD '+opath+' -f nrm_specimens.txt'
+    PLTlist= map((lambda var:var.get()),plt_check_values) # get a list of the plot option check boxes
+    if PLTlist[1]==1:
+        eq_command =eq_command+' -obj sit ' # plot by site
+    elif PLTlist[2]==1:
+        eq_command =eq_command+' -obj sam ' # plot by sample
+    elif PLTlist[3]==1:
+        eq_command =eq_command+' -obj spc ' # plot by specimen
+    if 'Specimen' in  COORDs:  # radio button options
+        eq_command=eq_command + ' -crd s ' # plot geographic coordinates
+    elif 'Geographic' in  COORDs: 
+        eq_command=eq_command + ' -crd g ' # plot geographic coordinates
+    elif 'Tilt corrected' in  COORDs: 
+        eq_command=eq_command + ' -crd t ' # plot geographic coordinates
     print eq_command
     os.system(eq_command)
+    COORDs=[] # restore to initial
 
 def map_sites():
 #    Cont=["Requires installation of basemap tool,  continue?   "]
@@ -2702,7 +2730,7 @@ def fold():
     cust_rv=ask_radio(root,cust,'Customize selection criteria?') # 
     if cust_rv!=0:
         outstring=outstring+' -exc '
-        if cust_rv!=3:custom()
+        if cust_rv!=3 and cust_rv!=1:custom()
     print outstring
     os.system(outstring)
 
@@ -2916,6 +2944,8 @@ def create_menus():
     orientmenu.add_command(label="AzDip format",command=azdip)
     orientmenu.add_command(label="ODP Core Summary csv file",command=add_ODP_sum)
     orientmenu.add_command(label="ODP Sample Summary csv file",command=add_ODP_samp)
+    orientmenu.add_command(label="Import model latitude data file",command=model_lat)
+    orientmenu.add_command(label="Import er_ages.txt file",command=add_ages)
     magmenu=Menu(importmenu)
     importmenu.add_cascade(label="Magnetometer files",menu=magmenu)
     magmenu.add_command(label="SIO format",command=add_sio)
@@ -2958,7 +2988,6 @@ def create_menus():
     importmenu.add_command(label="Convert er_samples => orient.txt",command=convert_samps)
     importmenu.add_command(label="Update measurements\n if new orientation imported",command=update_meas)
     importmenu.add_separator()
-    importmenu.add_command(label="Import er_ages.txt",command=add_ages)
     prior=Menu(importmenu)
     importmenu.add_cascade(label="Import prior interpretations",menu=prior)
     prior.add_command(label="PmagPy redo file",command=add_redo)
@@ -2974,6 +3003,11 @@ def create_menus():
     plotmenu.add_command(label="Thellier-type experiments",command=thellier)
 #    plotmenu.add_command(label="Thellier GUI",command=thellier_gui)
 #    plotmenu.add_command(label="Microwave experiments",command=microwave)
+    eqareamenu=Menu(plotmenu)
+    eqareamenu.add_command(label="Quick look - NRM directions",command=quick_look)
+    eqareamenu.add_command(label="General remanence directions",command=eqarea)
+    eqareamenu.add_command(label="Anisotropy data",command=aniso)
+    plotmenu.add_cascade(label="Equal area plots",menu=eqareamenu)
     plotmenu.add_command(label="Hysteresis data",command=hysteresis)
 #    plotmenu.add_command(label="Curie Temperatures data",command=curie)
     plotmenu.add_command(label="Hysteresis ratio plots",command=dayplot)
@@ -2981,26 +3015,20 @@ def create_menus():
     plotmenu.add_command(label="3D-IRM experiment",command=lowrie_magic)
     plotmenu.add_command(label="Remanence data versus depth/height",command=core_depthplot)
     plotmenu.add_command(label="Anisotropy data versus depth/height",command=ani_depthplot)
-    eqareamenu=Menu(plotmenu)
-    eqareamenu.add_command(label="Quick look - NRM directions",command=quick_look)
-    eqareamenu.add_command(label="General remanence directions",command=eqarea)
-    eqareamenu.add_command(label="Anisotropy data",command=aniso)
-    plotmenu.add_cascade(label="Equal area plots",menu=eqareamenu)
-    plotmenu.add_command(label="Map of VGPs",command=vgp_map)
-    plotmenu.add_command(label="Map of site locations",command=map_sites)
     plotmenu.add_command(label="Reversals test",command=revtest)
     plotmenu.add_command(label="Fold test ",command=fold)
     plotmenu.add_command(label="Elong/Inc",command=EI,state="disabled")
     menubar.add_cascade(label="Analysis and Plots",menu=plotmenu)
     uploadmenu=Menu(menubar)
     uploadmenu.add_command(label="Assemble specimens",command=spec_combine)
-    uploadmenu.add_separator()
-    uploadmenu.add_command(label="Check sample orientations",command=site_edit)
     uploadmenu.add_command(label="Assemble results",command=sitemeans)
-    uploadmenu.add_command(label="Extract Results to Table",command=extract)
     uploadmenu.add_command(label="Prepare Upload txt File",command=upload)
     menubar.add_cascade(label="Prepare for MagIC Console",menu=uploadmenu)
     utilitymenu=Menu(menubar)
+    utilitymenu.add_command(label="Check sample orientations",command=site_edit)
+    utilitymenu.add_command(label="Extract Results to Table",command=extract)
+    utilitymenu.add_command(label="Map of VGPs",command=vgp_map)
+    utilitymenu.add_command(label="Map of site locations",command=map_sites)
     utilitymenu.add_command(label="Make IZZI exp.  chart",command=chart)
     utilitymenu.add_command(label="Expected directions/Paleolatitudes",command=apwp)
     utilitymenu.add_separator()
@@ -3084,4 +3112,5 @@ SYM_colors=['b', 'g','r','c','m', 'y', 'k','w']
 SYM_size=['3', '5','7','10']
 STRAT={'long_sym':'o','long_color':'b','long_size':'5','disc_sym':'^','disc_color':'r','disc_size':'10','dmin':'','dmax':'','af':'','therm':'','arm':'','irm':'','ts':'','amin':'','amax':''}
 ANI={'dmin':'','dmax':'','mcd':'0'}
+COORDs=[]
 root.mainloop()

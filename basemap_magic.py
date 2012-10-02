@@ -102,11 +102,11 @@ def main():
     Opts['lat_0']=0.5*(numpy.min(slats)+numpy.max(slats))
     Opts['names']=names
     Opts['gridspace']=gridspace
-    Opts['details']['fancy']=fancy
     if details==1:
         Opts['details']={'coasts':1,'rivers':1,'states':1,'countries':1,'ocean':1} 
     else: 
         Opts['details']={'coasts':1,'rivers':0,'states':0,'countries':0,'ocean':1} 
+    Opts['details']['fancy']=fancy
     pmagplotlib.plotMAP(FIG['map'],lats,lons,Opts)
     if verbose:pmagplotlib.drawFIGS(FIG)
     files={}
