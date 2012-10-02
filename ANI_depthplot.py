@@ -184,8 +184,8 @@ def main():
         figname=location+'_ani-depthplot'+fmt
         if verbose:
             pylab.draw()
-            ans=raw_input("Save plot? y/[n] ")
-            if ans=='y':
+            ans=raw_input("S[a]ve plot? Return to quit ")
+            if ans=='a':
                 pylab.savefig(figname)
                 print 'Plot saved as ',figname
         elif plots:

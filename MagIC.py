@@ -134,7 +134,6 @@ class make_agm: # makes an entry table for basic data for an AGM file
         g+=3
         self.rv = IntVar()
         Radiobutton(top,variable=self.rv, value=0,text='CGS units').grid(row=g,sticky="W")
-        self.rv = IntVar()
         Radiobutton(top,variable=self.rv, value=1,text='SI units').grid(row=g+1,sticky="W")
         g+=2
         self.agm_check_value=[]
@@ -294,6 +293,37 @@ class make_PlotOptions:
         self.b.grid(row=g+1)
     def ok(self):
         PlotOptions.append(self.plt_check_value)
+        self.top.destroy()
+class make_ani:
+    def __init__(self,master):
+        top=self.top=Toplevel(master)
+        self.top.geometry('+50+50')
+        g=0
+# make left hand panel with data and plotting options
+        Label(top,text="Plotting Options").grid(row=g,columnspan=4)
+        g+=1
+        Label(top,text="Minimum Depth: ").grid(row=g,sticky=W)
+        self.dmin=Entry(top)
+        self.dmin.grid(row=g,column=1,sticky=W)
+        g+=1
+        Label(top,text="Maximum Depth: ").grid(row=g,sticky=W)
+        self.dmax=Entry(top)
+        self.dmax.grid(row=g,column=1,sticky=W)
+        g+=1
+        self.meters_rv = IntVar()
+        Radiobutton(top,variable=self.meters_rv, value=0,text='meters').grid(row=g,sticky="W")
+        self.mcd_rv = IntVar()
+        Radiobutton(top,variable=self.mcd_rv, value=1,text='composite depth units').grid(row=g+1,sticky="W")
+        g+=2
+        b=Button(top,text="OK",command=self.ok)
+        b.grid(row=g)
+    def ok(self):
+        global ANI
+        if self.dmin.get()!="":
+            ANI['dmin']=self.dmin.get()
+        if self.dmax.get()!="":
+            ANI['dmax']=self.dmax.get()
+        ANI['mcd']=self.mcd_rv.get()
         self.top.destroy()
 
 class make_strat:
@@ -544,6 +574,11 @@ class make_mag:
                 if MCD_list[i]==1:MCD=MCD+MCD_types[i].split(":")[0]+":"
                 MAG['mcd']='%s'%(MCD[:-1].strip(':'))
         self.top.destroy()
+
+def ask_ani(parent):
+    global ANI
+    m=make_ani(parent)
+    parent.wait_window(m.top)
 
 def ask_strat(parent):
     global STRAT,SYM_descr, SYM_col_descr,SYM_size
@@ -2722,7 +2757,7 @@ def chart():
     os.system(outstring)
 
 def ani_depthplot():
-    global Edict
+    global ANI
     try:
         open(opath+"/rmag_anisotropy.txt",'r')
         open(opath+"/magic_measurements.txt",'r')
@@ -2730,17 +2765,13 @@ def ani_depthplot():
         tkMessageBox.showinfo("Info",'select Combine measurements first.   ')
         return
     outstring='ani_depthplot.py -WD '+'"'+opath+'"' +' -fb magic_measurements.txt '
-    Edict={'Depth Max':'','Depth Min':''}
-    make_entry(root)
+    ask_ani(root)
     dmin,dmax=-1,-1
-    if Edict['Depth Min']!='':dmin=Edict['Depth Min']
-    if Edict['Depth Max']!='':
-        dmax=Edict['Depth Max']
+    if ANI['dmin']!='':dmin=ANI['dmin']
+    if ANI['dmax']!='':
+        dmax=ANI['dmax']
         outstring=outstring+' -d '+dmin+' '+dmax
-    PLT_types=["Use composite depth - not for core boundaries!"]
-    plt_checks=ask_check(root,PLT_types,'choose plotting options:') #
-    PLT_list=map((lambda var:var.get()),plt_checks) # returns method code  radio button list
-    if PLT_list[0]!=0:
+    if ANI['mcd']==1:
         outstring=outstring+' -ds mcd '
     print outstring
     os.system(outstring)
@@ -3052,4 +3083,5 @@ SYM_col_descr=['blue', 'green','red','cyan','magenta', 'yellow', 'black','white'
 SYM_colors=['b', 'g','r','c','m', 'y', 'k','w']
 SYM_size=['3', '5','7','10']
 STRAT={'long_sym':'o','long_color':'b','long_size':'5','disc_sym':'^','disc_color':'r','disc_size':'10','dmin':'','dmax':'','af':'','therm':'','arm':'','irm':'','ts':'','amin':'','amax':''}
+ANI={'dmin':'','dmax':'','mcd':'0'}
 root.mainloop()
