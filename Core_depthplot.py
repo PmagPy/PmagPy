@@ -521,8 +521,8 @@ def main():
     pylab.title(location)
     if verbose:
         pylab.draw()
-        ans=raw_input("Save plot? y/[n] ")
-        if ans=='y':
+        ans=raw_input("S[a]ve plot? ")
+        if ans=='a':
             pylab.savefig(figname)
             print 'Plot saved as ',figname
     elif plots:

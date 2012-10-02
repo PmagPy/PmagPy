@@ -296,9 +296,151 @@ class make_PlotOptions:
         PlotOptions.append(self.plt_check_value)
         self.top.destroy()
 
+class make_strat:
+    def __init__(self,master):
+        top=self.top=Toplevel(master)
+        self.top.geometry('+50+50')
+        g=0
+# make left hand panel with data and plotting options
+        Label(top,text="Plotting Options").grid(row=g,columnspan=4)
+        g+=1
+        Label(top,text="Minimum Depth: ").grid(row=g,sticky=W)
+        self.dmin=Entry(top)
+        self.dmin.grid(row=g,column=1,sticky=W)
+        g+=1
+        Label(top,text="Maximum Depth: ").grid(row=g,sticky=W)
+        self.dmax=Entry(top)
+        self.dmax.grid(row=g,column=1,sticky=W)
+        g+=1
+        Label(top,text="AF step (mT): ").grid(row=g,sticky=W)
+        self.af=Entry(top)
+        self.af.grid(row=g,column=1,sticky=W)
+        g+=1
+        Label(top,text="Thermal step (C): ").grid(row=g,sticky=W)
+        self.therm=Entry(top)
+        self.therm.grid(row=g,column=1,sticky=W)
+        g+=1
+        Label(top,text="Peak field ARM (mT): ").grid(row=g,sticky=W)
+        self.arm=Entry(top)
+        self.arm.grid(row=g,column=1,sticky=W)
+        g+=1
+        Label(top,text="IRM (mT): ").grid(row=g,sticky=W)
+        self.irm=Entry(top)
+        self.irm.grid(row=g,column=1,sticky=W)
+        g+=1
+        Label(top,text="Time scale preference [ck95, gts04] ").grid(row=g,sticky=W)
+        self.ts=Entry(top)
+        self.ts.grid(row=g,column=1,sticky=W)
+        g+=1
+        Label(top,text="Time scale Minimum Age (Ma)").grid(row=g,sticky=W)
+        self.amin=Entry(top)
+        self.amin.grid(row=g,column=1,sticky=W)
+        g+=1
+        Label(top,text="Time scale Maximum Age (Ma)").grid(row=g,sticky=W)
+        self.amax=Entry(top)
+        self.amax.grid(row=g,column=1,sticky=W)
+        g=1
+# make right hand panel with for check boxes with plotting options
+        self.strat_check_value=[] # make a list for check box values
+        self.check_list=['Plot Declinations','Plot Inclinations','Plot Intensities [linear scale]','Plot Intensities [log scale]','Use weight normalized intensities','Plot BFL/FM directions from Specimens table', 'Plot directions in Results table','Plot core boundaries','Use composite depth scale','Connect long core symbols','Plot blanket specimen step']
+        for box in self.check_list:
+            self.var=IntVar()
+            self.cb=Checkbutton(top,variable=self.var, text=box)
+            self.cb.grid(row=g,column=2,sticky=W)
+            self.strat_check_value.append(self.var)
+            self.var=IntVar()
+            g+=1
+# customize symbols for long core measurements:
+        row=0
+        column=3
+        Label(top,text="Long core symbol").grid(row=row,column=column,sticky=W)
+        row+=1
+        self.long_sym=IntVar()
+        for sym in range(len(SYM_descr)):
+            rb=Radiobutton(top,variable=self.long_sym,value=sym,text=SYM_descr[sym]) 
+            rb.grid(row=row,column=column,sticky=W)
+            row+=1
+        column+=1
+        row=0
+        Label(top,text="Long core color").grid(row=row,column=column,sticky=W)
+        row+=1
+        self.long_color=IntVar()
+        for sym in range(len(SYM_col_descr)):
+            rb=Radiobutton(top,variable=self.long_color,value=sym,text=SYM_col_descr[sym]) 
+            rb.grid(row=row,column=column,sticky=W)
+            row+=1
+        column+=1
+        row=0
+        Label(top,text="Long core size").grid(row=row,column=column,sticky=W)
+        row+=1
+        self.long_size=IntVar()
+        for sym in range(len(SYM_size)):
+            rb=Radiobutton(top,variable=self.long_size,value=sym,text=SYM_size[sym]) 
+            rb.grid(row=row,column=column,sticky=W)
+            row+=1
+# customize symbols for discrete specimen  directions:
+        row=0
+        column+=1
+        Label(top,text="Specimen direction marker").grid(row=row,column=column,sticky=W)
+        row+=1
+        self.disc_sym=IntVar()
+        for sym in range(len(SYM_descr)):
+            rb=Radiobutton(top,variable=self.disc_sym,value=sym,text=SYM_descr[sym]) 
+            rb.grid(row=row,column=column,sticky=W)
+            row+=1
+        row=0
+        column+=1
+        Label(top,text="Specimen direction color").grid(row=row,column=column,sticky=W)
+        row+=1
+        self.disc_color=IntVar()
+        for sym in range(len(SYM_col_descr)):
+            rb=Radiobutton(top,variable=self.disc_color,value=sym,text=SYM_col_descr[sym]) 
+            rb.grid(row=row,column=column,sticky=W)
+            row+=1
+        row=0
+        column+=1
+        Label(top,text="Specimen size").grid(row=row,column=column,sticky=W)
+        row+=1
+        self.disc_size=IntVar()
+        for sym in range(len(SYM_size)):
+            rb=Radiobutton(top,variable=self.disc_size,value=sym,text=SYM_size[sym]) 
+            rb.grid(row=row,column=column,sticky=W)
+            row+=1
+        b=Button(top,text="OK",command=self.ok)
+        b.grid(row=len(SYM_descr)+2)
 
+    def ok(self):
+        global STRAT,SYM_markers,SYM_colors,SYM_size
+        if self.dmin.get()!="":
+            STRAT['dmin']=self.dmin.get()
+        if self.dmax.get()!="":
+            STRAT['dmax']=self.dmax.get()
+        if self.af.get()!="":
+            STRAT['af']=self.af.get()
+        if self.therm.get()!="":
+            STRAT['therm']=self.therm.get()
+        if self.arm.get()!="":
+            STRAT['arm']=self.arm.get()
+        if self.irm.get()!="":
+            STRAT['irm']=self.irm.get()
+        if self.ts.get()!="":
+            STRAT['ts']=self.ts.get()
+        if self.amin.get()!="":
+            STRAT['amin']=self.amin.get()
+        if self.amax.get()!="":
+            STRAT['amax']=self.amax.get()
+        if self.amax.get()!="":
+            STRAT['amax']=self.amax.get()
+        STRAT['strat_check_list']= map((lambda var:var.get()),self.strat_check_value)
+        STRAT['long_sym']=SYM_markers[self.long_sym.get()]
+        STRAT['long_color']=SYM_colors[self.long_color.get()]
+        STRAT['long_size']=SYM_size[self.long_size.get()]
+        STRAT['disc_sym']=SYM_markers[self.disc_sym.get()]
+        STRAT['disc_color']=SYM_colors[self.disc_color.get()]
+        STRAT['disc_size']=SYM_size[self.disc_size.get()]
+        self.top.destroy()
 
-class make_mag: # makes an entry table for basic data from an MAG formatted file
+class make_mag:
     def __init__(self,master):
         top=self.top=Toplevel(master)
         self.top.geometry('+50+50')
@@ -402,6 +544,11 @@ class make_mag: # makes an entry table for basic data from an MAG formatted file
                 if MCD_list[i]==1:MCD=MCD+MCD_types[i].split(":")[0]+":"
                 MAG['mcd']='%s'%(MCD[:-1].strip(':'))
         self.top.destroy()
+
+def ask_strat(parent):
+    global STRAT,SYM_descr, SYM_col_descr,SYM_size
+    m=make_strat(parent)
+    parent.wait_window(m.top)
 
 def ask_plt(parent):
     global PlotOptions
@@ -2635,8 +2782,7 @@ def get_symbols():
     return sym,size
     
 def core_depthplot():
-    global Edict
-    syms={'sym':'bo','size':'5','dsym':'r^','dsize':'10'}
+    global STRAT
     try:
         open(opath+'/magic_measurements.txt') # check if pmag_results file exists
         outstring="core_depthplot.py -WD "+opath # get list of available plots
@@ -2648,54 +2794,49 @@ def core_depthplot():
         outstring=outstring + ' -fsa er_samples.txt'
     except IOError:
         pass       
-    Edict={'Step AF (mT)':'','Step T (C)':'','Peak field ARM (mT)':'','Step IRM (mT)':'','Depth Max':'','Depth Min':'','Time Scale (ck95,gts04)':'','Time Scale Age Max':'','Time Scale Age Min':''}
-    make_entry(root)
-    if Edict['Step AF (mT)']!='':outstring=outstring+ ' -LP AF '+Edict['Step AF (mT)']
-    if Edict['Step T (C)']!='':outstring=outstring+ ' -LP T '+Edict['Step T (C) ']
-    if Edict['Peak field ARM (mT)']!='':outstring=outstring+ ' -LP ARM '+Edict['Peak field ARM (mT)']
-    if Edict['Step IRM (mT)']!='':outstring=outstring+ ' -LP IRM '+Edict['Step IRM (mT)']
+    ask_strat(root)
+    syms={'sym':STRAT['long_color']+STRAT['long_sym'],'size':STRAT['long_size'],'dsym':STRAT['disc_color']+STRAT['disc_sym'],'dsize':STRAT['disc_size']}
+    if STRAT['af']!='':outstring=outstring+ ' -LP AF '+STRAT['af']
+    if STRAT['therm']!='':outstring=outstring+ ' -LP T '+STRAT['therm']
+    if STRAT['arm']!='':outstring=outstring+ ' -LP ARM '+STRAT['arm']
+    if STRAT['irm']!='':outstring=outstring+ ' -LP IRM '+STRAT['irm']
     dmin,dmax=0,0
-    if Edict['Depth Min']!='':dmin=Edict['Depth Min']
-    if Edict['Depth Max']!='':
-        dmax=Edict['Depth Max']
+    if STRAT['dmin']!='':dmin=STRAT['dmin']
+    if STRAT['dmax']!='':
+        dmax=STRAT['dmax']
         outstring=outstring+' -d '+dmin+' '+dmax
     ts=''
-    if Edict['Time Scale (ck95,gts04)']!='' and Edict['Time Scale Age Max']!='' and Edict['Time Scale Age Min']!='':
-        outstring=outstring+' -ts '+Edict['Time Scale (ck95,gts04)']+' '+Edict['Time Scale Age Min']+' '+Edict['Time Scale Age Max']
-    PLT_types=["Don't plot declinations","Don't plot inclinations","Don't plot intensities","Don't connect the dots","Don't plot the core boundaries","Don't plot the specimen directions","Don't use log scale for intensities","Customize long core symbols","Customize best-fit specimen symbols","Normalize intensity by weight","Plot Directions from Results","Use composite depth - not for core boundaries!"]
-    plt_checks=ask_check(root,PLT_types,'choose plotting options:') #
-    PLT_list=map((lambda var:var.get()),plt_checks) # returns method code  radio button list
-    if PLT_list[7]!=0:
-        syms['sym'],syms['size']=get_symbols()
-    if PLT_list[8]!=0:
-        syms['dsym'],syms['dsize']=get_symbols()
+    if STRAT['ts']!='' and STRAT['amax']!='' and STRAT['amin']!='':
+        outstring=outstring+' -ts '+STRAT['ts']+' '+STRAT['amin']+' '+STRAT['amax']
     outstring=outstring+' -sym '+'"'+syms['sym']+'"'+' '+syms['size']
-    if PLT_list[9]!=0: outstring=outstring+' -n er_specimens.txt'
-    if PLT_list[0]==1:outstring=outstring+' -D '
-    if PLT_list[1]==1:outstring=outstring+' -I '
-    if PLT_list[2]==1:outstring=outstring+' -M '
-    if PLT_list[3]==1:outstring=outstring+' -L '
-    if PLT_list[10]==1:outstring=outstring+' -fres pmag_results.txt ro 5 '
-    if PLT_list[11]==1:outstring=outstring+' -ds mcd '
-    if PLT_list[4]==0:
+    PLT_list=STRAT['strat_check_list']
+    if PLT_list[0]==0:outstring=outstring+' -D '
+    if PLT_list[1]==0:outstring=outstring+' -I '
+    if PLT_list[2]==0:outstring=outstring+' -M '
+    if PLT_list[3]==1:outstring=outstring+' -log '
+    if PLT_list[4]==1: outstring=outstring+' -n er_specimens.txt'
+    if PLT_list[5]==1:
+        try:
+            open(opath+"/pmag_specimens.txt",'r')
+            outstring=outstring + ' -fsp pmag_specimens.txt ' + syms['dsym']+ ' ' +syms['dsize'] 
+        except IOError:
+            print 'cant plot  PCAs  - none found'
+    if PLT_list[6]==1:outstring=outstring+' -fres pmag_results.txt ro 5 '
+    if PLT_list[7]==1:
         try:
             logfile=open(opath+"/ODPsummary.log",'r')
             files=logfile.readlines()
+            print files
             for file in files[-1:]: # find most recently added core summary file
                 if 'coresummary' in file:
                     outstring=outstring + ' -fsum '+file.replace('\n','')
                     break
         except IOError:
             pass
-    if PLT_list[5]==0:
-        try:
-            open(opath+"/pmag_specimens.txt",'r')
-            outstring=outstring + ' -fsp pmag_specimens.txt ' + syms['dsym']+ ' ' +syms['dsize'] 
-        except IOError:
-            print 'cant plot  PCAs  - none found'
-    else:
+    if PLT_list[8]==1:outstring=outstring+' -ds mcd ' # use composite depth
+    if PLT_list[9]==0:outstring=outstring+' -L ' # don't connect the dots
+    if PLT_list[10]==0:
         outstring=outstring+' -S '
-    if PLT_list[6]==0: outstring = outstring + ' -log'
     print outstring
     os.system(outstring)
   
@@ -2905,4 +3046,10 @@ AGM={'usr':'','loc':'unknown','spc':'1','spn':0,'syn':0,'SI':0,'bak':0,'ins':''}
 #
 PlotOptions=['Plot by location','Plot by site','Plot by sample','Plot by specimen']
 #
+SYM_descr=['circle', 'triangle_down','triangle_up','triangle_right','triangle_left', 'square', 'pentagon','star','hexagon','plus','x','diamond','pipe','dash']
+SYM_markers=['o', 'v','^','>','<', 's', 'p','*','h','+','x','D','|','-']
+SYM_col_descr=['blue', 'green','red','cyan','magenta', 'yellow', 'black','white']
+SYM_colors=['b', 'g','r','c','m', 'y', 'k','w']
+SYM_size=['3', '5','7','10']
+STRAT={'long_sym':'o','long_color':'b','long_size':'5','disc_sym':'^','disc_color':'r','disc_size':'10','dmin':'','dmax':'','af':'','therm':'','arm':'','irm':'','ts':'','amin':'','amax':''}
 root.mainloop()
