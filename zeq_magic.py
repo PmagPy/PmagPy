@@ -208,7 +208,8 @@ def main():
     #
         s_meas=pmag.get_dictitem(meas_data,'er_specimen_name',s,'T') # fish out this specimen
         s_meas=pmag.get_dictitem(s_meas,'magic_method_codes','Z','has') # fish out zero field steps
-        for rec in  s_meas:
+        if len(s_meas)>0:
+          for rec in  s_meas:
                PmagSpecRec["magic_instrument_codes"]=rec["magic_instrument_codes"]  # copy over instruments
                PmagSpecRec["er_citation_names"]="This study"
                PmagSpecRec["er_specimen_name"]=s
@@ -226,23 +227,23 @@ def main():
     #
     # find the data from the meas_data file for this specimen
     #
-        data,units=pmag.find_dmag_rec(s,meas_data)
-        PmagSpecRec["measurement_step_unit"]= units
-        u=units.split(":")
-        if "T" in units:PmagSpecRec["magic_method_codes"]=PmagSpecRec["magic_method_codes"]+":LP-DIR-AF"
-        if "K" in units:PmagSpecRec["magic_method_codes"]=PmagSpecRec["magic_method_codes"]+":LP-DIR-T"
-        if "J" in units:PmagSpecRec["magic_method_codes"]=PmagSpecRec["magic_method_codes"]+":LP-DIR-M"
+          data,units=pmag.find_dmag_rec(s,meas_data)
+          PmagSpecRec["measurement_step_unit"]= units
+          u=units.split(":")
+          if "T" in units:PmagSpecRec["magic_method_codes"]=PmagSpecRec["magic_method_codes"]+":LP-DIR-AF"
+          if "K" in units:PmagSpecRec["magic_method_codes"]=PmagSpecRec["magic_method_codes"]+":LP-DIR-T"
+          if "J" in units:PmagSpecRec["magic_method_codes"]=PmagSpecRec["magic_method_codes"]+":LP-DIR-M"
     #
     # find prior interpretation
     #
-        if len(CurrRecs)==0: # check if already in
-          beg_pca,end_pca="",""
-          calculation_type=""
-          if inspec !="":
-            if verbose:
+          if len(CurrRecs)==0: # check if already in
+            beg_pca,end_pca="",""
+            calculation_type=""
+            if inspec !="":
+              if verbose:
                 print "    looking up previous interpretations..."
-            ind=len(PriorRecs)-1  # start from back and delete from PriorRecs as we go
-            while ind>=0:
+              ind=len(PriorRecs)-1  # start from back and delete from PriorRecs as we go
+              while ind>=0:
                 prec=PriorRecs[ind]
                 if prec["er_specimen_name"]==s: 
                     CurrRec={}
@@ -294,10 +295,10 @@ def main():
                            if verbose:print '%s %i %7.1f %7.1f %7.1f %7.1f %7.1f, %s, %s \n' % (CurrRec["er_specimen_name"],int(CurrRec["specimen_n"]),float(CurrRec["specimen_mad"]),float(CurrRec["measurement_step_min"]),float(CurrRec["measurement_step_max"]),float(CurrRec["specimen_dec"]),float(CurrRec["specimen_inc"]),calculation_type,CurrRec['specimen_comp_name'])
                     del PriorRecs[ind] # take out of PriorRecs
                 ind-=1
-            if len(CurrRecs)==0:beg_pca,end_pca="",""
-        datablock=data
-        noskip=1
-        if len(datablock) <3: 
+              if len(CurrRecs)==0:beg_pca,end_pca="",""
+          datablock=data
+          noskip=1
+          if len(datablock) <3: 
             noskip=0
             if backup==0:
                 k+=1
@@ -307,9 +308,9 @@ def main():
                 for rec in CurrRecs:
                     PriorRecs.append(rec)
             CurrRecs=[]
-        else:
+          else:
             backup=0 
-        if noskip:
+          if noskip:
         #
         # find replicate measurements at given treatment step and average them
         #
@@ -374,9 +375,9 @@ def main():
     # set the end pca point to last point  if not set
             if e==0 or e>len(plotblock)-1: e=len(plotblock)-1
             if angle=="": angle=plotblock[0][1] # rotate to NRM declination
-            title=s+'_s_'
-            if geo==1 and tilt==0 and noorient!=1:title=s+'_g_'
-            if tilt==1 and noorient!=1:title=s+'_t_'
+            title=s+'_s'
+            if geo==1 and tilt==0 and noorient!=1:title=s+'_g'
+            if tilt==1 and noorient!=1:title=s+'_t'
             pmagplotlib.plotZED(ZED,plotblock,angle,title,units)
             if verbose:pmagplotlib.drawFIGS(ZED)
             if len(CurrRecs)!=0:
@@ -731,6 +732,7 @@ def main():
                   k+=1
                   files={}
                   locname.replace('/','-')
+                  print PmagSpecRec
                   for key in ZED.keys():
                       files[key]="LO:_"+locname+'_SI:_'+PmagSpecRec['er_site_name']+'_SA:_'+PmagSpecRec['er_sample_name']+'_SP:_'+s+'_CO:_'+coord+'_TY:_'+key+'_.'+fmt
                   if pmagplotlib.isServer:
@@ -751,6 +753,7 @@ def main():
                     os.system('rm '+inspec)
             CurrRecs,beg_pca,end_pca=[],"","" # next up
             changeS=0
+        else: k+=1 # skip record - not enough data
     if changeM==1:
         pmag.magic_write(meas_file,meas_data,'magic_measurements')
 main()

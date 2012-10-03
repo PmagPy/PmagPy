@@ -73,7 +73,7 @@ def main():
                     NewRecs.append(rec)
                 pmag.magic_write(outfile,Recs,file_type)
                 print file_type," data put in ",outfile
-                if file_type =='pmag_specimens': # sort out zeq_specimens and thellier_specimens
+                if file_type =='pmag_specimens' and 'magic_measurements.txt' in File and 'measurement_step_min' in File and 'measurement_step_max' in File: # sort out zeq_specimens and thellier_specimens
                     os.system('mk_redo.py')
                     os.system('zeq_magic_redo.py')
                     os.system('thellier_magic_redo.py')
@@ -85,9 +85,14 @@ def main():
             else:
                 rec=line.split('\t')
                 Rec={}
-                for k in range(len(keys)):
-                     Rec[keys[k]]=rec[k]
-                Recs.append(Rec)
+                if len(rec)==len(keys):
+                    for k in range(len(rec)):
+                       Rec[keys[k]]=rec[k]
+                    Recs.append(Rec)
+                else:
+                    print 'WARNING:  problem in file with line: '
+                    print line
+                    print 'skipping....'
                 LN+=1
     if len(Recs)>0:
         if filenum==0:

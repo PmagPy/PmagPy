@@ -160,6 +160,7 @@ def main():
             if plot_key=='er_specimen_names':
                 specimen=rec['er_specimen_names']
             if dir_type_key not in rec.keys() or rec[dir_type_key]=="":rec[dir_type_key]='l'
+            if 'magic_method_codes' not in rec.keys():rec['magic_method_codes']=""
             DIblock.append([float(rec[dec_key]),float(rec[inc_key])])
             SLblock.append([rec[name_key],rec['magic_method_codes']])
             if rec[tilt_key]==coord and rec[dir_type_key]!='l' and rec[dec_key]!="" and rec[inc_key]!="":
