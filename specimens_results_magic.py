@@ -217,7 +217,7 @@ def main():
 	elif rec['er_site_name'] not in sites:
 	    sites.append(rec['er_site_name'])
 	if 'specimen_int' not in rec.keys():rec['specimen_int']=''
-	if 'specimen_comp_name' not in rec.keys():rec['specimen_comp_name']='A'
+	if 'specimen_comp_name' not in rec.keys() or rec['specimen_comp_name']=="":rec['specimen_comp_name']='A'
 	if rec['specimen_comp_name'] not in Comps:Comps.append(rec['specimen_comp_name'])
         rec['specimen_tilt_correction']=rec['specimen_tilt_correction'].strip('\n')
 	if "specimen_tilt_correction" not in rec.keys(): rec["specimen_tilt_correction"]="-1" # assume sample coordinates
@@ -501,7 +501,7 @@ def main():
                       if angle <= 55.: PmagSiteRec["site_polarity"]='n'
                       if angle > 55. and angle < 125.: PmagSiteRec["site_polarity"]='t'
                       if angle >= 125.: PmagSiteRec["site_polarity"]='r'
-            PmagResults.append(PmagResRec)
+                PmagResults.append(PmagResRec)
     if noInt!=1 and nositeints!=1:
       for site in sites: # now do intensities for each site
         if plotsites==1:print site

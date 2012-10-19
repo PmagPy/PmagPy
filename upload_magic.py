@@ -73,35 +73,35 @@ def main():
                         if key=='specimen_Z' and key in rec.keys():
                             rec[key]='specimen_z' # change  # change this to lower case
                         if key in rec.keys():del rec[key] # get rid of unwanted keys
-            if file_type=='er_samples': # check to only upload first orientation record!
-                Done,NewData=[],[]
+            if file_type=='er_samples': # check to only upload top priority orientation record!
+                NewSamps,Done=[],[]
                 for rec in Data:
                     if rec['er_sample_name'] not in Done:
-                        NewData.append(rec)
+                        orient,az_type=pmag.get_orient(Data,rec['er_sample_name'])
+                        NewSamps.append(orient)
                         Done.append(rec['er_sample_name'])
-                Data=NewData           
-                print 'only first orientation record from er_samples.txt read in '
-            if All==0:
-              if file_type=='magic_measurements': # check to only upload first orientation record!
-                NewData=[]
+                Data=NewSamps           
+                print 'only highest priority orientation record from er_samples.txt read in '
+            if file_type=='er_specimens': #  only specimens that have sample names
+                NewData,SpecDone=[],[]
                 for rec in Data:
                     if rec['er_sample_name'] in Done:
                         NewData.append(rec)
+                        SpecDone.append(rec['er_specimen_name'])
                     else: 
-                        print 'excluded from ',file_type,' : ', rec['er_specimen_name']
-                Data=NewData           
-                print 'only measurements that are used for interpretations '
-            if file_type=='er_specimens': # 
-                NewData=[]
-                for rec in Data:
-                    if rec['er_sample_name'] in Done:
-
-                        NewData.append(rec)
-                    else: 
-                        print 'excluded: ' 
+                        print 'no sample record found for: ' 
                         print rec
                 Data=NewData           
-                print 'only measurements that are used for interpretations '
+                print 'only measurements that have specimen/sample info'
+            if file_type=='magic_measurments': #  only measurments that have specimen names
+                NewData=[]
+                for rec in Data:
+                    if rec['er_sample_name'] in SpecDone:
+                        NewData.append(rec)
+                    else: 
+                        print 'no specimen record found for: ' 
+                        print rec
+                Data=NewData           
     # write out the data
             if len(Data)>0:
                 if first_file==1:

@@ -979,20 +979,9 @@ def upload():
         pmag.ParseMeasFile(measfile,sitefile,instfile,specout)
     except:
         pass
-    # now re-order er_samples.txt file to put sample orientations in proper order (used ones on top)
-    try:
-        specfile=opath+"/zeq_specimens_g.txt"
-        open(specfile,'rU') # test if there are oriented specimens   
-        sampfile=opath+"/er_samples.txt"
-        open(sampfile,'rU') # test if there is er_samples file with orientations
-        print "re-ordering er_samples table with used orientations on top"
-        pmag.ReorderSamples(specfile,sampfile,sampfile) # re-order sampfile with selected orientation on top 
-    except:
-        pass
     outstring="upload_magic.py -WD "+'"'+opath+'"' 
     print outstring
     os.system(outstring) # call upload magic
-#    tkMessageBox.showinfo("Info","Import upload_dos.txt into Excel program 'MagIC Console'\n check command window for errors")
 
 def download():
     if opath=="":

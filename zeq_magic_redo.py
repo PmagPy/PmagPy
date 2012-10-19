@@ -84,15 +84,6 @@ def main():
             print file_type
             print "This is not a valid er_samples file " 
             sys.exit()
-    # set orientation priorities
-        SO_methods=[]
-        for rec in samp_data:
-           if "magic_method_codes" in rec:
-               methlist=rec["magic_method_codes"]
-               for meth in methlist.split(":"):
-                   if "SO" in meth and "SO-POM" not in meth.strip():
-                       if meth.strip() not in SO_methods: SO_methods.append(meth.strip())
-        SO_priorities=pmag.set_priorities(SO_methods,0)
     #
     #
     #
@@ -174,38 +165,20 @@ def main():
         #
         # do geo or stratigraphic correction now
         #
-            if geo==1:
+            if geo==1 or tilt==1:
        # find top priority orientation method
-                redo,p=1,0
-                if len(SO_methods)<=1:
-                    az_type=SO_methods[0]
-                    orient=pmag.find_samp_rec(PmagSpecRec["er_sample_name"],samp_data,az_type)
-                    if orient["sample_azimuth"]  !="": method_codes.append(az_type)
-                    redo=0
-                while redo==1:
-                    if p>=len(SO_priorities):
-                        print "no orientation data for ",s
-                        orient["sample_azimuth"]=""
-                        orient["sample_dip"]=""
-                        method_codes.append("SO-NO")
-                        redo=0
-                    else:
-                        az_type=SO_methods[SO_methods.index(SO_priorities[p])]
-                        orient=pmag.find_samp_rec(PmagSpecRec["er_sample_name"],samp_data,az_type)
-                        if orient["sample_azimuth"]  !="":
-                            method_codes.append(az_type)
-                            redo=0
-                    p+=1
+                orient,az_type=pmag.get_orient(samp_data,PmagSpecRec["er_sample_name"])
+                if az_type not in method_codes:method_codes.append(az_type)
         #
         #  if tilt selected,  get stratigraphic correction
         #
                 tiltblock,geoblock=[],[]
                 for rec in datablock:
                     if "sample_azimuth" in orient.keys() and orient["sample_azimuth"]!="":
-                        d_geo,i_geo=pmag.dogeo(rec[1],rec[2],orient["sample_azimuth"],orient["sample_dip"])
+                        d_geo,i_geo=pmag.dogeo(rec[1],rec[2],float(orient["sample_azimuth"]),float(orient["sample_dip"]))
                         geoblock.append([rec[0],d_geo,i_geo,rec[3],rec[4],rec[5]])
                         if tilt==1 and "sample_bed_dip_direction" in orient.keys(): 
-                            d_tilt,i_tilt=pmag.dotilt(d_geo,i_geo,orient["sample_bed_dip_direction"],orient["sample_bed_dip"])
+                            d_tilt,i_tilt=pmag.dotilt(d_geo,i_geo,float(orient["sample_bed_dip_direction"]),float(orient["sample_bed_dip"]))
                             tiltblock.append([rec[0],d_tilt,i_tilt,rec[3],rec[4],rec[5]])
                         elif tilt==1:
                             if PmagSpecRec["er_sample_name"] not in skipped:

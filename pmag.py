@@ -46,6 +46,30 @@ def find(f,seq):
        if f in item: return item
     return ""
 
+def get_orient(samp_data,er_sample_name):
+    # set orientation priorities
+    EX=["SO-ASC","SO-POM"]
+    orient={'er_sample_name':er_sample_name,'sample_azimuth':"",'sample_dip':"",'sample_description':""}
+    orients=get_dictitem(samp_data,'er_sample_name',er_sample_name,'T') # get all the orientation data for this sample
+    if len(orients)>0:orient=orients[0] # re-initialize to first one
+    methods=get_dictitem(orients,'magic_method_codes','SO-','has')
+    methods=get_dictkey(methods,'magic_method_codes','') # get a list of all orientation methods for this sample
+    SO_methods=[]
+    for methcode in methods:
+        meths=methcode.split(":")
+        for meth in meths:
+           if meth.strip() not in EX:SO_methods.append(meth)
+   # find top priority orientation method
+    if len(SO_methods)==0:
+        print "no orientation data for ",er_sample_name
+        az_type="SO-NO"
+    else:
+        SO_priorities=set_priorities(SO_methods,0)
+        az_type=SO_methods[SO_methods.index(SO_priorities[0])]
+        orient=get_dictitem(orients,'magic_method_codes',az_type,'has')[0] # re-initialize to best one
+    return orient,az_type
+    
+
 def cooling_rate(SpecRec,SampRecs,crfrac,crtype):
     CrSpecRec,frac,crmcd={},0,'DA-CR'
     for key in SpecRec.keys():CrSpecRec[key]=SpecRec[key]
@@ -276,7 +300,7 @@ def ParseMeasFile(measfile,sitefile,instout,specout): # fix up some stuff for up
             if 'specimen_lithology' not in ErSpecRec.keys():ErSpecRec["specimen_lithology"]=site['site_lithology'] 
             if 'specimen_type' not in ErSpecRec.keys():ErSpecRec["specimen_type"]=site['site_type'] 
             if 'specimen_volume' not in ErSpecRec.keys():ErSpecRec["specimen_volume"]=""
-            if 'specimen_mass' not in ErSpecRec.keys():ErSpecRec["specimen_mass"]=""
+            if 'specimen_weight' not in ErSpecRec.keys():ErSpecRec["specimen_weight"]=""
             ErSpecs.append(ErSpecRec)
     #
     #
