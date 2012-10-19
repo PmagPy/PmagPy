@@ -198,6 +198,7 @@ def main():
           ResRec['anisotropy_type']=pmag.makelist(anitypes)
           ResRecs.append(ResRec) 
       if len(Ss)>1:
+          print Ss
           title="LO:_"+ResRec['er_location_names']+'_SI:_'+site+'_SA:__SP:__CO:_'+crd
           ResRec['er_location_names']=pmag.makelist(Locs)
           bpars,hpars=pmagplotlib.plotANIS(ANIS,Ss,iboot,ihext,ivec,ipar,title,iplot,comp,vec,Dir)

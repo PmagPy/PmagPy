@@ -131,7 +131,6 @@ is the percent cooling rate factor to apply to specimens from this sample, DA-CR
     site_file=dir_path+"/er_sites.txt"
     image_file=dir_path+"/er_images.txt"
     SampRecs,SiteRecs,ImageRecs=[],[],[]
-    sample_description=""
     if "-h" in args:
         print main.__doc__
         sys.exit()
@@ -169,7 +168,6 @@ is the percent cooling rate factor to apply to specimens from this sample, DA-CR
         corr=sys.argv[ind+1] 
         if corr=="2":
             DecCorr=float(sys.argv[ind+2])
-            sample_description="Declination correction supplied by user"
         elif corr=="3":
             DecCorr=0.
     if '-BCN' in args:
@@ -213,7 +211,9 @@ is the percent cooling rate factor to apply to specimens from this sample, DA-CR
         if OrRec['mag_azimuth']==" ":OrRec["mag_azimuth"]=""
         if OrRec['field_dip']==" ":OrRec["field_dip"]=""
         if 'sample_description' in OrRec.keys():
-            sample_description=OrRec['sample_description']+", "+sample_description
+            sample_description=OrRec['sample_description']
+        else:
+            sample_description=""
         if 'sample_igsn' in OrRec.keys():
             sample_igsn=OrRec['sample_igsn']
         else:
@@ -265,11 +265,14 @@ is the percent cooling rate factor to apply to specimens from this sample, DA-CR
         MagRec["sample_height"],MagRec["sample_bed_dip_direction"],MagRec["sample_bed_dip"]="","",""
         if "er_sample_alternatives" in OrRec.keys():MagRec["er_sample_alternatives"]=OrRec["sample_alternatives"]
         sample=OrRec["sample_name"]
+        if OrRec['mag_azimuth']=="" and OrRec['field_dip']!="":
+            OrRec['mag_azimuth']='999'
         if OrRec["mag_azimuth"]!="":
             labaz,labdip=pmag.orient(float(OrRec["mag_azimuth"]),float(OrRec["field_dip"]),or_con)
             if labaz<0:labaz+=360.
         else:
             labaz,labdip="",""
+        if  OrRec['mag_azimuth']=='999':labaz=""
         if "GPS_baseline" in OrRec.keys() and OrRec['GPS_baseline']!="":newbaseline=OrRec["GPS_baseline"]
         if newbaseline!="":baseline=float(newbaseline)
         if 'participants' in OrRec.keys() and OrRec['participants']!="" and OrRec['participants']!=participantlist: 
@@ -338,7 +341,6 @@ is the percent cooling rate factor to apply to specimens from this sample, DA-CR
             x,y,z,f=pmag.doigrf(lon,lat,0,decimal_year)
             Dir=pmag.cart2dir( (x,y,z)) 
             DecCorr=Dir[0]
-            sample_description=sample_description+' -Declination correction from IGRF at site'
         if "bedding_dip" in OrRec.keys(): 
             if OrRec["bedding_dip"]!="":
                 MagRec["sample_bed_dip"]=OrRec["bedding_dip"]
@@ -434,7 +436,13 @@ is the percent cooling rate factor to apply to specimens from this sample, DA-CR
                     CMDRec[key]=MagRec[key] # make a copy of MagRec
                 CMDRec["sample_azimuth"]='%7.1f'%(az)
                 CMDRec["magic_method_codes"]=methcodes+':SO-CMD-NORTH'
+                CMDRec["magic_method_codes"]=CMDRec['magic_method_codes'].strip(':')
                 CMDRec["sample_declination_correction"]='%7.1f'%(DecCorr)
+                if corr=='1':
+                    CMDRec['sample_description']=sample_description+':Declination correction calculated from IGRF'
+                else:
+                    CMDRec['sample_description']=sample_description+':Declination correction supplied by user'
+                CMDRec["sample_description"]=CMDRec['sample_description'].strip(':')
                 SampOuts.append(CMDRec)
             if "mag_az_bs" in OrRec.keys() and OrRec["mag_az_bs"] !="" and OrRec["mag_az_bs"]!=" ":
                 SRec={}
@@ -471,6 +479,7 @@ is the percent cooling rate factor to apply to specimens from this sample, DA-CR
                 SunRec["sample_azimuth"]='%7.1f'%(sundec) 
                 SunRec["sample_declination_correction"]=''
                 SunRec["magic_method_codes"]=methcodes+':SO-SUN'
+                SunRec["magic_method_codes"]=SunRec['magic_method_codes'].strip(':')
                 SampOuts.append(SunRec)
     #
     # check for differential GPS data

@@ -3611,10 +3611,13 @@ def sbar(Ss):
     npts=len(Ss)
     Ss=numpy.array(Ss).transpose()
     avd,avs=[],[]
-    D=numpy.array([Ss[0],Ss[1],Ss[2],Ss[3]+0.5*(Ss[0]+Ss[1]),Ss[4]+0.5*(Ss[1]+Ss[2]),Ss[5]+0.5*(Ss[0]+Ss[2])]).transpose()
+    #D=numpy.array([Ss[0],Ss[1],Ss[2],Ss[3]+0.5*(Ss[0]+Ss[1]),Ss[4]+0.5*(Ss[1]+Ss[2]),Ss[5]+0.5*(Ss[0]+Ss[2])]).transpose()
+    D=numpy.array([Ss[0],Ss[1],Ss[2],Ss[3]+0.5*(Ss[0]+Ss[1]),Ss[4]+0.5*(Ss[1]+Ss[2]),Ss[5]+0.5*(Ss[0]+Ss[2])])
+    print D
     for j in range(6):
         avd.append(numpy.average(D[j]))
         avs.append(numpy.average(Ss[j]))
+    D=D.transpose()
     #for s in Ss:
     #    print 'from sbar: ',s
     #    D.append(s[:]) # append a copy of s
