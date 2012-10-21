@@ -2277,7 +2277,7 @@ def help_Utilities():
 
 def help_magic(helpme):
     import webbrowser
-    webbrowser.open("http://magician.ucsd.edu/Software/PmagPy/Docs/PmagPy.html"+helpme)
+    webbrowser.open("http://earthref.org/MAGIC/cookbook"+helpme)
 
 
 def exit():
@@ -2313,7 +2313,7 @@ def zeq():
     logfile.close()
 #    tkMessageBox.showinfo("Info","Specimen interpretations saved in "+opath+'/zeq_specimens.txt \n Check command window for errors')
 def thellier_gui():
-    os.system('my_thellier_tool_1.1.py')
+    os.system('thellier_gui.py')
 
 def thellier():
     t_command="thellier_magic.py -fsp "+opath+'/thellier_specimens.txt' 

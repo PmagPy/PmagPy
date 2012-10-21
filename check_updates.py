@@ -26,7 +26,6 @@ def main():
     global pmagpy_path,local_path
     local_version=get_version()
     last_path   = os.path.join(pmagpy_path, 'version_last_checked.txt')
-
     # Get the version of the local PmagPy installation
     # from the version.txt file in the current directory.
     # Make sure this check for an update hasn't be done in the last 24 hours
