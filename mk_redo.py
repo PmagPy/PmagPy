@@ -52,6 +52,7 @@ def main():
     if file_type != 'pmag_specimens':
         print  file_type, " this is not a valid pmag_specimens file"
         sys.exit()
+    outstrings=[]
     for spec in prior_spec_data:
         tmp=spec["magic_method_codes"].split(":")
         meths=[]
@@ -72,9 +73,13 @@ def main():
                 calculation_type='DE-FM'
             if zredo=="":zredo=open(zfile,"w")
             outstring='%s %s %s %s %s \n'%(spec["er_specimen_name"],calculation_type,spec["measurement_step_min"],spec["measurement_step_max"],comp_name)
-            zredo.write(outstring)
+            if outstring not in outstrings:
+                zredo.write(outstring)
+            outstrings.append(outstring) # only writes unique interpretions
         elif "PI" in meths and "TRM" in meths:   # thellier record
             if tredo=="":tredo=open(tfile,"w")
             outstring='%s %i %i \n'%(spec["er_specimen_name"],float(spec["measurement_step_min"]),float(spec["measurement_step_max"]))
-            tredo.write(outstring)
+            if outstring not in outstrings:
+                tredo.write(outstring)
+            outstrings.append(outstring) # only writes unique interpretions
 main()        

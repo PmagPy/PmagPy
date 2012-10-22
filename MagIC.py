@@ -646,7 +646,6 @@ def model_lat(): # imports a site paleolatitude file
     mfile=opath+'/model_lat.txt'
     outstring='mv '+opath+'/'+basename+' '+mfile
     os.system(outstring)
-    print basename,' copied to model_lat.txt'
 
 def convert_samps():
     outpath=tkFileDialog.askdirectory(title="Set output directory for orient.txt file")
@@ -898,6 +897,7 @@ def update_crd():
     if len(Geos)>0: geo=1
     Tilts=pmag.get_dictitem(orient,'sample_bed_dip_direction','','F') # orientations?
     Tilts=pmag.get_dictitem(Tilts,'sample_bed_dip','','F') # structural corrections?
+    Tilts=pmag.get_dictitem(Tilts,'sample_bed_dip','0','F') # find non-zero tilts
     if len(Tilts)>0: tilt=1    
     f=open(opath+'/coordinates.log','w')
     coord='-crd s\n'
@@ -962,8 +962,12 @@ def start_over():
     clear=tkMessageBox.askyesno('Confirmation Dialog','This will delete everything in the Project Directory\n Do you wish to proceed')
     if clear==True:
         filelist=os.listdir(opath)
-        for file in filelist: os.remove(opath+"/"+file)
-        tkMessageBox.showinfo("Info","All files removed from Project Directory\n check command window for errors")
+        for file in filelist: 
+            try:
+                os.remove(opath+"/"+file)
+            except:
+                shutil.rmtree(opath+"/"+file)
+        tkMessageBox.showinfo("Info","All files and directories removed from Project Directory\n check command window for errors")
     else:
         tkMessageBox.showinfo("Info","Clear was aborted - your files are safe")
  
@@ -984,70 +988,20 @@ def upload():
     os.system(outstring) # call upload magic
 
 def download():
-    if opath=="":
-        print "Must set output directory first!"
-        return
-    fpath=tkFileDialog.askopenfilename(title="Set MagIC template .txt file:")
-    in_path=fpath.split('/')
-    file=in_path[-1] 
-    ipath=""
-    for n in in_path[:-1]: ipath=ipath+n+'/'
-    ofile=opath+'/'+file
-    infile=open(fpath,'rU').readlines()
-    out=open(ofile,'w')
-    for line in infile:
-        out.write(line)
-    out.close()
-    print fpath,' copied to ',ofile
+    file,path=copy_text_file("Select downloaded MagIC txt file:")
     outstring="download_magic.py -WD "+'"'+opath +'"'+' -f '+file
     print outstring
     os.system(outstring)
     filestring=""
     update_crd()
-    try:
-#  I took out the method code checking because downloaded files mix experiment types and this gets messy real fast
-#
-#        print 'checking on measurements.txt file'
-#        open(opath+'/magic_measurements.txt','r')
-#        outstring='fix_meas_magic.py -WD '+'"'+opath+'"'
-#        print outstring
-#        os.system(outstring)
-#        print 'Checked method codes in magic_measurements.txt'
-        pass
-        try:
-            outstring="mk_redo.py -WD "+'"'+opath+'"'
-            print outstring
-            os.system(outstring)
-            try:
-                open(opath+'/zeq_redo','r')
-                outstring='zeq_magic_redo.py -WD '+'"'+opath+'"'
-                print outstring
-                os.system(outstring)
-                filestring=' zeq_specimens.txt '
-            except IOError:
-                pass
-            try:
-                open(opath+'/thellier_redo','r')
-                outstring='thellier_magic_redo.py -WD '+'"'+opath+'"'
-                try:
-                    open(opath+'/pmag_criteria.txt','r')
-                    outstring=outstring+' -fcr pmag_criteria.txt '
-                except:
-                    pass
-                print outstring
-                os.system(outstring)
-                filestring=filestring+' thellier_specimens.txt '
-            except IOError:
-                pass
-            if filestring!="":
-                outstring='combine_magic.py -WD '+'"'+opath+'"'+' -F pmag_specimens.txt -f '+filestring
-                print outstring
-                os.system(outstring)
-        except:
-            pass
-    except IOError:
-        pass
-#    tkMessageBox.showinfo("Info",file +' unpacked into tab delimited MagIC txt files in: '+opath+'\n check command window for errors')
+    filelist=os.listdir(opath)
+    if 'pmag_specimens.txt'in filelist: # recreate zeq_specimens and thellier_specimens
+        specdata,file_type=pmag.magic_read(opath+'/pmag_specimens.txt')
+        DIRS=pmag.get_dictitem(specdata,'magic_method_codes','DIR','has')
+        pmag.magic_write(opath+'/zeq_specimens.txt',DIRS,'pmag_specimens') # write out available directions
+        PINTS=pmag.get_dictitem(specdata,'magic_method_codes','LP-PI-TRM','has')
+        pmag.magic_write(opath+'/thellier_specimens.txt',PINTS,'pmag_specimens') # write out available directions
+    spec_combine() # make all the specimen coordinate systems available for plotting
 
 def list_con():
     try:
@@ -1089,24 +1043,21 @@ def spec_combine():
     filestring=" -f "
     rmag_anisotropy_instring=""
     rmag_results_instring=""
-    try: # check for aarm anisotropy stuff first
+    filelist=os.listdir(opath)
+    if 'aarm_measurements.txt' in filelist:
         aarmfile=open(opath+"/aarm_measurements.txt",'r')
         outstring='aarm_magic.py -WD '+'"'+opath+'"'
         print outstring
         os.system(outstring)
         rmag_anisotropy_instring=rmag_anisotropy_instring+' arm_anisotropy.txt '
         rmag_results_instring=rmag_results_instring+' aarm_results.txt '
-    except IOError:
-        pass
-    try: # check for atrm anisotropy stuff next
+    if 'atrm_measurments.txt' in filelist:
         atrmfile=open(opath+"/atrm_measurements.txt",'r')
         outstring='atrm_magic.py -WD '+'"'+opath+'"'
         print outstring
         os.system(outstring)
         rmag_anisotropy_instring=rmag_anisotropy_instring+' trm_anisotropy.txt '
         rmag_results_instring=rmag_results_instring+' atrm_results.txt '
-    except IOError:
-        pass
     if rmag_anisotropy_instring!="":
         rmag_outstring='combine_magic.py -WD '+'"'+opath+'"' + ' -F rmag_anisotropy.txt -f '+rmag_anisotropy_instring
         print rmag_outstring
@@ -1114,15 +1065,13 @@ def spec_combine():
         rmag_outstring='combine_magic.py -WD '+'"'+opath+'"' + ' -F rmag_results.txt -f '+rmag_results_instring
         print rmag_outstring
         os.system(rmag_outstring)
-    try:
+    if 'zeq_specimens.txt' in filelist:
         open(opath+'/zeq_specimens.txt','r')
         outstring="mk_redo.py -f zeq_specimens.txt -F zeq_redo -WD "+'"'+opath+'"'
         print outstring
         os.system(outstring)
         basestring='zeq_magic_redo.py   -WD '+'"'+opath+'"'
-        print outstring
-        os.system(outstring)
-        try:
+        if 'coordinates.log' in filelist: 
             f=open(opath+'/coordinates.log','r')
             lines=f.readlines()
             coords=[]
@@ -1142,55 +1091,35 @@ def spec_combine():
                 print redstring
                 os.system(redstring)
                 filestring=filestring+' zeq_specimens_t.txt '
-        except: # no coordinates.log file
+        else: # no coordinates.log file
             print 'problem in coordinates.log file'
             shutil.copyfile(opath+'/zeq_specimens.txt',opath+'/zeq_specimens_crd.txt')  # copy each data file to project directory
             filestring=filestring + ' zeq_specimens_crd.txt ' 
-    except:
-       pass
-    try:
-        open(opath+'/thellier_specimens.txt') # check anisotropy correction
-        types=["Non-linear TRM", "Anisotropy","Cooling Rate"]
-        checks=ask_check(root,types,'choose corrections desired for paleointensity estimates')
-        check_list=map((lambda var:var.get()),checks) # returns file type choices
+    if 'thellier_specimens.txt' in filelist:
+        open(opath+'/thellier_specimens.txt') # check for thellier data 
         filestring=filestring+' thellier_specimens.txt '
         outstring="mk_redo.py -f thellier_specimens.txt -F thellier_redo  -WD "+'"'+opath+'"'
         os.system(outstring)
         print outstring
         outstring='thellier_magic_redo.py -WD '+'"'+opath+'"'
-        try:
+        if 'pmag_criteria.txt' in filelist:
             open(opath+'/pmag_criteria.txt','r')
             outstring=outstring+' -fcr pmag_criteria.txt '
-        except:
-            pass
-        if check_list[2]==1: 
-            outstring = outstring + " -CR " # do cooling rate correction
-            filestring=filestring+' CR_specimens.txt '
-            cr=CRDialog(root) # gets the entry table data with all the good stuff in cr.result
-            if cr.result['frac']!="" and cr.result['type']!="":
-                outstring=outstring+ cr.result['frac'] +" " + cr.result['type']
-        if check_list[0]==1: 
-            outstring = outstring + " -NLT " # do non-linear correction
-            filestring=filestring+' NLT_specimens.txt '
-        if check_list[1]==1:
-            try:
-                f=open(opath+'/rmag_anisotropy.txt','rU')
-                outstring=outstring + " -ANI " # do anisotropy correction
-                ani=1
-            except: # no anisotropy data
-                tkMessageBox.showinfo("Info",'No anisotropy data found')
-            os.system(outstring)
-            print outstring
-            replacestring='replace_AC_specimens.py  -WD '+'"'+opath+'"'
-            print "CAUTION: replacing thellier data with anisotropy corrected data"
-            print replacestring
-            os.system(replacestring)
-            filestring=filestring+' TorAC_specimens.txt '
-        else:
-            os.system(outstring)
-            print outstring
-    except:
-        pass
+        outstring = outstring + " -NLT " # do non-linear correction if available
+        if 'rmag_anisotropy.txt' in filelist:
+            f=open(opath+'/rmag_anisotropy.txt','rU')
+            outstring=outstring + " -ANI " # do anisotropy correction
+            ani=1
+        os.system(outstring)
+      #      print outstring
+      #      replacestring='replace_AC_specimens.py  -WD '+'"'+opath+'"'
+      #      print "CAUTION: replacing thellier data with anisotropy corrected data"
+      #      print replacestring
+      #      os.system(replacestring)
+      #      filestring=filestring+' TorAC_specimens.txt '
+      #  else:
+           # os.system(outstring)
+           # print outstring
     if len(filestring.split())>1:
         outstring='combine_magic.py -WD '+'"'+opath+'"'+' -F pmag_specimens.txt '+filestring +'\n'
         print outstring
@@ -2284,17 +2213,16 @@ def exit():
     sys.exit()
 
 def zeq():
-    z_command="zeq_magic.py "
+    z_command='zeq_magic.py -WD '+'"'+opath+'"'
     try:
         open(opath+'/magic_measurements.txt','r')
-        z_command=z_command+ ' -f '+opath+'/magic_measurements.txt' 
-        z_command=z_command+ ' -fsp ' +opath+"/zeq_specimens.txt"
+        z_command=z_command+ ' -fsp zeq_specimens.txt'
     except IOError:
         tkMessageBox.showinfo("Info",'select Combine Measurements in Import file first. ')
         return
     try:
         open(opath+'/er_samples.txt','r')
-        z_command=z_command+ ' -crd g -fsa '+opath+'/er_samples.txt'
+        z_command=z_command+ ' -crd g -fsa er_samples.txt'
     except IOError:
         tkMessageBox.showinfo("Info",'No orientation file available, use specimen coordinates or import orientations')
     print z_command

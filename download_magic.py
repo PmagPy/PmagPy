@@ -113,7 +113,7 @@ def main():
 # look through locations table and create separate directories for each location
     locs,locnum=[],1
     if 'er_locations' in type_list:
-        locs,file_type=pmag.magic_read('er_locations.txt')
+        locs,file_type=pmag.magic_read(dir_path+'/er_locations.txt')
     if len(locs)>0: # at least one location
         for loc in locs:
             print 'location_'+str(locnum)+": ",loc['er_location_name']

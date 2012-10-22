@@ -51,8 +51,7 @@ def main():
     calculation_type,inspec,fmt="","zeq_specimens.txt","svg"
     user,spec_keys,locname="",[],''
     plot_file=""
-    sfile,som="",""
-    meas_file,geo,tilt,ask,samp_file='magic_measurements.txt',0,0,0,'er_samples.txt'
+    sfile=""
     plot_file=""
     PriorRecs=[] # empty list for prior interpretations
     backup=0
@@ -60,21 +59,30 @@ def main():
     if '-h' in sys.argv:
         print main.__doc__
         sys.exit()
+    if '-WD' in sys.argv:
+        ind=sys.argv.index('-WD')
+        dir_path=sys.argv[ind+1]
+    else:
+        dir_path='.'
+    meas_file,geo,tilt,ask,samp_file=dir_path+'/magic_measurements.txt',0,0,0,dir_path+'/er_samples.txt'
     if '-f' in sys.argv:
         ind=sys.argv.index('-f')
-        meas_file=sys.argv[ind+1]
+        meas_file=dir_path+'/'+sys.argv[ind+1]
     if '-fsp' in sys.argv:
         ind=sys.argv.index('-fsp')
-        inspec=sys.argv[ind+1]
+        inspec=dir_path+'/'+sys.argv[ind+1]
     if '-fsa' in sys.argv:
         ind=sys.argv.index('-fsa')
-        samp_file=sys.argv[ind+1]
+        samp_file=dir_path+'/'+sys.argv[ind+1]
         sfile='ok'
     if '-crd' in sys.argv:
         ind=sys.argv.index('-crd')
         coord=sys.argv[ind+1]
-        if coord=='g':geo=1
-        if coord=='t':geo,tilt=1,1
+        if coord=='g' or coord=='t':
+            samp_data,file_type=pmag.magic_read(samp_file)
+            if file_type=='er_samples':sfile='ok'
+            geo=1
+            if coord=='t':tilt=1
     if '-spc' in sys.argv:
         ind=sys.argv.index('-spc')
         specimen=sys.argv[ind+1]
@@ -88,7 +96,7 @@ def main():
             if direction_type=='F':calculation_type='DE-FM'
         if '-Fp' in sys.argv: 
             ind=sys.argv.index('-Fp')
-            plot_file=sys.argv[ind+1]
+            plot_file=dir_path+'/'+sys.argv[ind+1]
     if '-A' in sys.argv: doave=0
     if '-sav' in sys.argv: 
         plots=1
@@ -112,59 +120,37 @@ def main():
             methods=methods+meth+":"
         rec["magic_method_codes"]=methods[:-1]  # get rid of annoying spaces in Anthony's export files 
         if "magic_instrument_codes" not in rec.keys() :rec["magic_instrument_codes"]=""
-    #
-    # figure out which sample_azimuth to use, if multiple orientation methods
-    #
-    if geo==1: 
-        samp_data,file_type=pmag.magic_read(samp_file)
-        if file_type != 'er_samples':
-           print file_type
-           print "This is not a valid er_samples file " 
-        SO_methods,SO_priorities,prior_list=[],[],[]
-        for rec in samp_data:
-           if "magic_method_codes" in rec.keys():
-               methlist=rec["magic_method_codes"].replace(" ","").split(":")
-               for meth in methlist:
-                   if "SO" in meth and "SO-POM" not in meth and "SO-GT5" not in meth and "SO-ASC" not in meth and "SO-BAD" not in meth: 
-                       if meth not in SO_methods: SO_methods.append(meth)
-    #
-        SO_priorities=pmag.set_priorities(SO_methods,ask)
-    # 
-    # get prior interpretations if desired
-    #
-    try:
-        open(inspec,'rU')
-        PriorRecs,file_type=pmag.magic_read(inspec)
-        if file_type != 'pmag_specimens':
-            print  file_type, " this is not a valid pmag_specimens file"
-            sys.exit()
-        PriorSpecs=[]
-        for Rec in PriorRecs:
-            if 'magic_software_packages' not in Rec.keys():Rec['magic_software_packages']=""
-            if Rec['er_specimen_name'] not in PriorSpecs:
-                if 'specimen_comp_name' not in Rec.keys():Rec['specimen_comp_name']="A"
-                PriorSpecs.append(Rec['er_specimen_name'])
-            else:
-                if 'specimen_comp_name' not in Rec.keys():Rec['specimen_comp_name']="A"
-            if "magic_method_codes" in Rec.keys():
-                methods=[]
-                tmp=Rec["magic_method_codes"].replace(" ","").split(":")
-                for meth in tmp:
-                    methods.append(meth)
-                if 'DE-FM' in methods:
-                    Rec['calculation_type']='DE-FM' # this won't be imported but helps
-                if 'DE-BFL' in methods:
-                    Rec['calculation_type']='DE-BFL'
-                if 'DE-BFL-A' in methods:
-                    Rec['calculation_type']='DE-BFL-A'
-                if 'DE-BFL-O' in methods:
-                    Rec['calculation_type']='DE-BFL-O'
-                if 'DE-BFP' in methods:
-                    Rec['calculation_type']='DE-BFP'
-            else:
-                Rec['calculation_type']='DE-BFL' # default is to assume a best-fit line
-    except IOError:
+    PriorRecs,file_type=pmag.magic_read(inspec)
+    if file_type != 'pmag_specimens':
+        print  file_type, " this is not a valid pmag_specimens file"
+        sys.exit()
+    PriorSpecs=[]
+    if len(PriorRecs)==0:
         if verbose:print "starting new file ",inspec
+    for Rec in PriorRecs:
+        if 'magic_software_packages' not in Rec.keys():Rec['magic_software_packages']=""
+        if Rec['er_specimen_name'] not in PriorSpecs:
+            if 'specimen_comp_name' not in Rec.keys():Rec['specimen_comp_name']="A"
+            PriorSpecs.append(Rec['er_specimen_name'])
+        else:
+            if 'specimen_comp_name' not in Rec.keys():Rec['specimen_comp_name']="A"
+        if "magic_method_codes" in Rec.keys():
+            methods=[]
+            tmp=Rec["magic_method_codes"].replace(" ","").split(":")
+            for meth in tmp:
+                methods.append(meth)
+            if 'DE-FM' in methods:
+                Rec['calculation_type']='DE-FM' # this won't be imported but helps
+            if 'DE-BFL' in methods:
+                Rec['calculation_type']='DE-BFL'
+            if 'DE-BFL-A' in methods:
+                Rec['calculation_type']='DE-BFL-A'
+            if 'DE-BFL-O' in methods:
+                Rec['calculation_type']='DE-BFL-O'
+            if 'DE-BFP' in methods:
+                Rec['calculation_type']='DE-BFP'
+        else:
+            Rec['calculation_type']='DE-BFL' # default is to assume a best-fit line
     #
     # get list of unique specimen names
     #
@@ -209,7 +195,7 @@ def main():
         s_meas=pmag.get_dictitem(meas_data,'er_specimen_name',s,'T') # fish out this specimen
         s_meas=pmag.get_dictitem(s_meas,'magic_method_codes','Z','has') # fish out zero field steps
         if len(s_meas)>0:
-          for rec in  s_meas:
+          for rec in  s_meas: # fix up a few things for the output record
                PmagSpecRec["magic_instrument_codes"]=rec["magic_instrument_codes"]  # copy over instruments
                PmagSpecRec["er_citation_names"]="This study"
                PmagSpecRec["er_specimen_name"]=s
@@ -240,61 +226,67 @@ def main():
             beg_pca,end_pca="",""
             calculation_type=""
             if inspec !="":
-              if verbose:
-                print "    looking up previous interpretations..."
-              ind=len(PriorRecs)-1  # start from back and delete from PriorRecs as we go
-              while ind>=0:
-                prec=PriorRecs[ind]
-                if prec["er_specimen_name"]==s: 
-                    CurrRec={}
-                    for key in prec.keys():CurrRec[key]=prec[key]
-                    CurrRecs.append(CurrRec) # put in CurrRecs
-                    method_codes= CurrRec["magic_method_codes"].replace(" ","").split(':')
-                    calculation_type='DE-BFL'
-                    if 'DE-FM' in method_codes: calculation_type='DE-FM'
-                    if 'DE-BFP' in method_codes: calculation_type='DE-BFP'
-                    if 'DE-BFL-A' in method_codes: calculation_type='DE-BFL-A'
-                    if 'specimen_dang' not in CurrRec.keys():
-                        if verbose:print 'Run mk_redo.py and zeq_magic_redo.py to get the specimen_dang values'
-                        CurrRec['specimen_dang']=-1
-                    if calculation_type!='DE-FM':
-                        if verbose:print "Specimen  N    MAD    DANG  start     end      dec     inc  type  component"
-                        if units=='K':
-                            if verbose:print '%s %i %7.1f %7.1f %7.1f %7.1f %7.1f %7.1f  %s  %s \n' % (CurrRec["er_specimen_name"],int(CurrRec["specimen_n"]),float(CurrRec["specimen_mad"]),float(CurrRec["specimen_dang"]),float(CurrRec["measurement_step_min"])-273,float(CurrRec["measurement_step_max"])-273,float(CurrRec["specimen_dec"]),float(CurrRec["specimen_inc"]),calculation_type,CurrRec['specimen_comp_name'])
-                        elif units=='T':
-                           if verbose:print '%s %i %7.1f %7.1f %7.1f %7.1f %7.1f %7.1f  %s  %s \n' % (CurrRec["er_specimen_name"],int(CurrRec["specimen_n"]),float(CurrRec["specimen_mad"]),float(CurrRec["specimen_dang"]),float(CurrRec["measurement_step_min"])*1e3,float(CurrRec["measurement_step_max"])*1e3,float(CurrRec["specimen_dec"]),float(CurrRec["specimen_inc"]),calculation_type,CurrRec['specimen_comp_name'])
-                        elif 'T' in units and 'K' in units:
-                                if float(CurrRec['measurement_step_min'])<1.0 :
-                                    min=float(CurrRec['measurement_step_min'])*1e3
-                                else:
-                                    min=float(CurrRec['measurement_step_min'])-273
-                                if float(CurrRec['measurement_step_max'])<1.0 :
-                                    max=float(CurrRec['measurement_step_max'])*1e3
-                                else:
-                                    max=float(CurrRec['measurement_step_max'])-273
-                                if verbose:print '%s %i %7.1f %i %i %7.1f %7.1f %7.1f, %s \n' % (CurrRec["er_specimen_name"],int(CurrRec["specimen_n"]),float(CurrRec["specimen_mad"]),float(CurrRec['specimen_dang']),min,max,float(CurrRec["specimen_dec"]),float(CurrRec["specimen_inc"]),calculation_type)
-                        elif 'J' in units:
-                           if verbose:print '%s %i %7.1f %7.1f %7.1f %7.1f %7.1f %7.1f  %s  %s \n' % (CurrRec["er_specimen_name"],int(CurrRec["specimen_n"]),float(CurrRec["specimen_mad"]),float(CurrRec['specimen_dang']),float(CurrRec["measurement_step_min"]),float(CurrRec["measurement_step_max"]),float(CurrRec["specimen_dec"]),float(CurrRec["specimen_inc"]),calculation_type,CurrRec['specimen_comp_name'])
-                    else:
-                        if verbose:print "Specimen  a95 DANG   start     end      dec     inc  type  component"
-                        if units=='K':
-                             if verbose:print '%s %i %7.1f %7.1f %7.1f %7.1f %7.1f  %s  %s \n' % (CurrRec["er_specimen_name"],int(CurrRec["specimen_n"]),float(CurrRec["specimen_alpha95"]),float(CurrRec["measurement_step_min"])-273,float(CurrRec["measurement_step_max"])-273,float(CurrRec["specimen_dec"]),float(CurrRec["specimen_inc"]),calculation_type,CurrRec['specimen_comp_name'])
-                        elif units=='T':
-                              if verbose:print '%s %i %7.1f %7.1f %7.1f %7.1f %7.1f  %s  %s \n' % (CurrRec["er_specimen_name"],int(CurrRec["specimen_n"]),float(CurrRec["specimen_alpha95"]),float(CurrRec["measurement_step_min"])*1e3,float(CurrRec["measurement_step_max"])*1e3,float(CurrRec["specimen_dec"]),float(CurrRec["specimen_inc"]),calculation_type,CurrRec['specimen_comp_name'])
-                        elif 'T' in units and 'K' in units:
-                                if float(CurrRec['measurement_step_min'])<1.0 :
-                                    min=float(CurrRec['measurement_step_min'])*1e3
-                                else:
-                                    min=float(CurrRec['measurement_step_min'])-273
-                                if float(CurrRec['measurement_step_max'])<1.0 :
-                                    max=float(CurrRec['measurement_step_max'])*1e3
-                                else:
-                                    max=float(CurrRec['measurement_step_max'])-273
-                                if verbose:print '%s %i %7.1f %i %i %7.1f %7.1f, %s \n' % (CurrRec["er_specimen_name"],int(CurrRec["specimen_n"]),float(CurrRec["specimen_alpha95"]),min,max,float(CurrRec["specimen_dec"]),float(CurrRec["specimen_inc"]),calculation_type)
-                        elif 'J' in units:
-                           if verbose:print '%s %i %7.1f %7.1f %7.1f %7.1f %7.1f, %s, %s \n' % (CurrRec["er_specimen_name"],int(CurrRec["specimen_n"]),float(CurrRec["specimen_mad"]),float(CurrRec["measurement_step_min"]),float(CurrRec["measurement_step_max"]),float(CurrRec["specimen_dec"]),float(CurrRec["specimen_inc"]),calculation_type,CurrRec['specimen_comp_name'])
-                    del PriorRecs[ind] # take out of PriorRecs
-                ind-=1
+              if verbose: print "    looking up previous interpretations..."
+              precs=pmag.get_dictitem(PriorRecs,'er_specimen_name',s,'T') # get all the prior recs with this specimen name
+              precs=pmag.get_dictitem(precs,'magic_method_codes','LP-DIR','has') # get the directional data
+              PriorRecs=pmag.get_dictitem(PriorRecs,'er_specimen_name',s,'F') # take them all out of prior recs
+         # get the ones that meet the current coordinate system
+              for prec in precs:
+                if 'specimen_tilt_correction' not in prec.keys() or prec['specimen_tilt_correction']=='-1':
+                    crd='s'
+                elif prec['specimen_tilt_correction']=='0':
+                    crd='g'
+                elif prec['specimen_tilt_correction']=='100':
+                    crd='t'
+                else:
+                    crd='?'
+                CurrRec={}
+                for key in prec.keys():CurrRec[key]=prec[key]
+                CurrRecs.append(CurrRec) # put in CurrRecs
+                method_codes= CurrRec["magic_method_codes"].replace(" ","").split(':')
+                calculation_type='DE-BFL'
+                if 'DE-FM' in method_codes: calculation_type='DE-FM'
+                if 'DE-BFP' in method_codes: calculation_type='DE-BFP'
+                if 'DE-BFL-A' in method_codes: calculation_type='DE-BFL-A'
+                if 'specimen_dang' not in CurrRec.keys():
+                    if verbose:print 'Run mk_redo.py and zeq_magic_redo.py to get the specimen_dang values'
+                    CurrRec['specimen_dang']=-1
+                if calculation_type!='DE-FM' and crd==coord: # not a fisher mean
+                    if verbose:print "Specimen  N    MAD    DANG  start     end      dec     inc  type  component coordinates"
+                    if units=='K':
+                            if verbose:print '%s %i %7.1f %7.1f %7.1f %7.1f %7.1f %7.1f  %s  %s       %s \n' % (CurrRec["er_specimen_name"],int(CurrRec["specimen_n"]),float(CurrRec["specimen_mad"]),float(CurrRec["specimen_dang"]),float(CurrRec["measurement_step_min"])-273,float(CurrRec["measurement_step_max"])-273,float(CurrRec["specimen_dec"]),float(CurrRec["specimen_inc"]),calculation_type,CurrRec['specimen_comp_name'],crd)
+                    elif units=='T':
+                       if verbose:print '%s %i %7.1f %7.1f %7.1f %7.1f %7.1f %7.1f  %s  %s %s \n' % (CurrRec["er_specimen_name"],int(CurrRec["specimen_n"]),float(CurrRec["specimen_mad"]),float(CurrRec["specimen_dang"]),float(CurrRec["measurement_step_min"])*1e3,float(CurrRec["measurement_step_max"])*1e3,float(CurrRec["specimen_dec"]),float(CurrRec["specimen_inc"]),calculation_type,CurrRec['specimen_comp_name'],crd)
+                    elif 'T' in units and 'K' in units:
+                            if float(CurrRec['measurement_step_min'])<1.0 :
+                                min=float(CurrRec['measurement_step_min'])*1e3
+                            else:
+                                min=float(CurrRec['measurement_step_min'])-273
+                            if float(CurrRec['measurement_step_max'])<1.0 :
+                                max=float(CurrRec['measurement_step_max'])*1e3
+                            else:
+                                max=float(CurrRec['measurement_step_max'])-273
+                            if verbose:print '%s %i %7.1f %i %i %7.1f %7.1f %7.1f, %s        %s\n' % (CurrRec["er_specimen_name"],int(CurrRec["specimen_n"]),float(CurrRec["specimen_mad"]),float(CurrRec['specimen_dang']),min,max,float(CurrRec["specimen_dec"]),float(CurrRec["specimen_inc"]),calculation_type,crd)
+                    elif 'J' in units:
+                       if verbose:print '%s %i %7.1f %7.1f %7.1f %7.1f %7.1f %7.1f  %s  %s       %s \n' % (CurrRec["er_specimen_name"],int(CurrRec["specimen_n"]),float(CurrRec["specimen_mad"]),float(CurrRec['specimen_dang']),float(CurrRec["measurement_step_min"]),float(CurrRec["measurement_step_max"]),float(CurrRec["specimen_dec"]),float(CurrRec["specimen_inc"]),calculation_type,CurrRec['specimen_comp_name'],crd)
+                elif calculation_type=='DE-FM' and crd==coord: # fisher mean
+                    if verbose:print "Specimen  a95 DANG   start     end      dec     inc  type  component coordinates"
+                    if units=='K':
+                         if verbose:print '%s %i %7.1f %7.1f %7.1f %7.1f %7.1f  %s  %s       %s \n' % (CurrRec["er_specimen_name"],int(CurrRec["specimen_n"]),float(CurrRec["specimen_alpha95"]),float(CurrRec["measurement_step_min"])-273,float(CurrRec["measurement_step_max"])-273,float(CurrRec["specimen_dec"]),float(CurrRec["specimen_inc"]),calculation_type,CurrRec['specimen_comp_name'],crd)
+                    elif units=='T':
+                          if verbose:print '%s %i %7.1f %7.1f %7.1f %7.1f %7.1f  %s  %s       %s \n' % (CurrRec["er_specimen_name"],int(CurrRec["specimen_n"]),float(CurrRec["specimen_alpha95"]),float(CurrRec["measurement_step_min"])*1e3,float(CurrRec["measurement_step_max"])*1e3,float(CurrRec["specimen_dec"]),float(CurrRec["specimen_inc"]),calculation_type,CurrRec['specimen_comp_name'],crd)
+                    elif 'T' in units and 'K' in units:
+                            if float(CurrRec['measurement_step_min'])<1.0 :
+                                min=float(CurrRec['measurement_step_min'])*1e3
+                            else:
+                                min=float(CurrRec['measurement_step_min'])-273
+                            if float(CurrRec['measurement_step_max'])<1.0 :
+                                max=float(CurrRec['measurement_step_max'])*1e3
+                            else:
+                                max=float(CurrRec['measurement_step_max'])-273
+                            if verbose:print '%s %i %7.1f %i %i %7.1f %7.1f %s       %s \n' % (CurrRec["er_specimen_name"],int(CurrRec["specimen_n"]),float(CurrRec["specimen_alpha95"]),min,max,float(CurrRec["specimen_dec"]),float(CurrRec["specimen_inc"]),calculation_type,crd)
+                    elif 'J' in units:
+                       if verbose:print '%s %i %7.1f %7.1f %7.1f %7.1f %7.1f %s %s       %s \n' % (CurrRec["er_specimen_name"],int(CurrRec["specimen_n"]),float(CurrRec["specimen_mad"]),float(CurrRec["measurement_step_min"]),float(CurrRec["measurement_step_max"]),float(CurrRec["specimen_dec"]),float(CurrRec["specimen_inc"]),calculation_type,CurrRec['specimen_comp_name'],crd)
               if len(CurrRecs)==0:beg_pca,end_pca="",""
           datablock=data
           noskip=1
@@ -325,48 +317,30 @@ def main():
             if geo==1:
         #
         # find top priority orientation method
-                redo,p=1,0
-                if len(SO_methods)<=1: 
-                    az_type=SO_methods[0] 
-                    orient=pmag.find_samp_rec(PmagSpecRec["er_sample_name"],samp_data,az_type)
-                    if az_type!="SO-NO"  and orient['sample_azimuth']!='':
-                        if float(orient['sample_azimuth'])!=0 and float(orient['sample_dip'])!=0: method_codes.append(az_type)
-                        redo=0
-                    else:
-                        orient=pmag.find_samp_rec(PmagSpecRec["er_sample_name"],samp_data,az_type)
-                        if verbose:
-                            print "no orientation data for ",s 
-                        orient["sample_azimuth"]=0
-                        orient["sample_dip"]=0
-                        noorient=1
-                        method_codes.append("SO-NO")
-                        redo=0
-                while redo==1:
-                    if p>=len(SO_priorities):
-                        if verbose:
-                            print "no orientation data for ",s 
-                        orient["sample_azimuth"]=0
-                        orient["sample_dip"]=0
-                        noorient=1
-                        method_codes.append("SO-NO")
-                        redo=0
-                    else:
-                        az_type=SO_methods[SO_methods.index(SO_priorities[p])]
-                        orient=pmag.find_samp_rec(PmagSpecRec["er_sample_name"],samp_data,az_type)
-                        if orient["sample_azimuth"]  !="" and float(orient['sample_azimuth'])!=0 and float(orient['sample_dip'])!=0:
-                            method_codes.append(az_type)
-                            redo=0
-                        noorient=0
-                    p+=1
+                orient,az_type=pmag.get_orient(samp_data,PmagSpecRec["er_sample_name"])
+                if az_type=='SO-NO':
+                    if verbose: print "no orientation data for ",s 
+                    orient["sample_azimuth"]=0
+                    orient["sample_dip"]=0
+                    noorient=1
+                    method_codes.append("SO-NO")
+                    orient["sample_azimuth"]=0
+                    orient["sample_dip"]=0
+                    orient["sample_bed_dip_azimuth"]=0
+                    orient["sample_bed_dip"]=0
+                    noorient=1
+                    method_codes.append("SO-NO")
+                else: 
+                    noorient=0
         #
         #  if stratigraphic selected,  get stratigraphic correction
         #
                 tiltblock,geoblock=[],[]
                 for rec in datablock:
-                    d_geo,i_geo=pmag.dogeo(rec[1],rec[2],orient["sample_azimuth"],orient["sample_dip"])
+                    d_geo,i_geo=pmag.dogeo(rec[1],rec[2],float(orient["sample_azimuth"]),float(orient["sample_dip"]))
                     geoblock.append([rec[0],d_geo,i_geo,rec[3],rec[4],rec[5],rec[6]])
                     if tilt==1 and "sample_bed_dip" in orient.keys() and float(orient['sample_bed_dip'])!=0: 
-                        d_tilt,i_tilt=pmag.dotilt(d_geo,i_geo,orient["sample_bed_dip_direction"],orient["sample_bed_dip"])
+                        d_tilt,i_tilt=pmag.dotilt(d_geo,i_geo,float(orient["sample_bed_dip_direction"]),float(orient["sample_bed_dip"]))
                         tiltblock.append([rec[0],d_tilt,i_tilt,rec[3],rec[4],rec[5],rec[6]])
                     if tilt==1: plotblock=tiltblock
                     if geo==1 and tilt==0:plotblock=geoblock
@@ -504,24 +478,12 @@ def main():
                         if geo==1 and sfile=="":
                             samp_file=raw_input(" Input er_samples file for sample orientations [er_samples.txt] " )
                             if samp_file=="":samp_file="er_samples.txt"
-                            sfile="ok"
                             samp_data,file_type=pmag.magic_read(samp_file)
                             if file_type != 'er_samples':
                                print file_type
-                               print "This is not a valid er_samples file " 
-                               sys.exit()
-            # figure out which sample_azimuth to use, if multiple orientation methods
-            #
-                        if geo==1 and som=="":
-                            SO_methods=[]
-                            for rec in samp_data:
-                               if "magic_method_codes" in rec:
-                                   methlist=rec["magic_method_codes"]
-                                   for meth in methlist.split(":"):
-                                       if "SO" in meth and "SO-POM" not in meth: 
-                                           if meth not in SO_methods: SO_methods.append(meth)
-                            SO_priorities=pmag.set_priorities(SO_methods,ask)
-                            som="ok"
+                               print "This is not a valid er_samples file - coordinate system not changed" 
+                            else:
+                               sfile="ok"
                         ans=""
                     if ans=='s':
                         keepon=1
