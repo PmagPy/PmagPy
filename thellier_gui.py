@@ -49,15 +49,14 @@ class Arai_GUI(wx.Frame):
         wx.Frame.__init__(self, None, wx.ID_ANY, self.title)
         self.redo_specimens={}
         self.currentDirectory = os.getcwd() # get the current working directory
-        self.get_DIR()                      # choose directory dialog
-        
+        self.get_DIR()                      # choose directory dialog        
         accept_new_parameters_default,accept_new_parameters_null=self.get_default_criteria()    # inialize Null selecting criteria
         self.accept_new_parameters_null=accept_new_parameters_null
         self.accept_new_parameters_default=accept_new_parameters_default
         # inialize Null selecting criteria
         accept_new_parameters=self.read_criteria_from_file(self.WD+"/pmag_criteria.txt")          
         self.accept_new_parameters=accept_new_parameters
-        
+        self.Data,self.Data_hierarchy={},{}
         self.Data,self.Data_hierarchy=self.get_data() # Get data from magic_measurements and rmag_anistropy if exist.
         self.Data_samples={}
         self.last_saved_pars={}
@@ -1329,13 +1328,16 @@ class Arai_GUI(wx.Frame):
               if tmin_kelvin not in self.Data[specimen]['t_Arai'] or tmax_kelvin not in self.Data[specimen]['t_Arai'] :
                   self.GUI_log.write ("-W- WARNING: cant fit temperature bounds in the redo file to the actual measurement. specimen %s\n"%specimen)
               else:
-                  self.Data[specimen]['pars']=self.get_PI_parameters(specimen,float(tmin_kelvin),float(tmax_kelvin))
-                  self.Data[specimen]['pars']['saved']=True
-                  # write intrepretation into sample data
-                  sample=self.Data_hierarchy['specimens'][specimen]
-                  if sample not in self.Data_samples.keys():
-                      self.Data_samples[sample]={}
-                  self.Data_samples[sample][specimen]=self.Data[specimen]['pars']['specimen_int_uT']
+                  try:
+                      self.Data[specimen]['pars']=self.get_PI_parameters(specimen,float(tmin_kelvin),float(tmax_kelvin))
+                      self.Data[specimen]['pars']['saved']=True
+                      # write intrepretation into sample data
+                      sample=self.Data_hierarchy['specimens'][specimen]
+                      if sample not in self.Data_samples.keys():
+                          self.Data_samples[sample]={}
+                      self.Data_samples[sample][specimen]=self.Data[specimen]['pars']['specimen_int_uT']
+                  except:
+                      self.GUI_log.write ("-E- ERROR. Cant calculate PI paremeters for specimen %s using redo file. Check!"%(specimen))
           else:
               self.GUI_log.write ("-W- WARNING: Cant find specimen %s from redo file in measurement file!\n"%specimen)
         fin.close()
@@ -3298,7 +3300,7 @@ class Optimizer(wx.Frame):
         Text1="Inster functions in the text window below, each function in a seperate line.\n"
         Text2="Use a valid python syntax with logic or arithmetic operators\n use the example functions\n\n"
         Text3="List of legal operands:\n"
-        Text4="location_sample_n:  Total number of samples in the study that pass the criteria\n"
+        Text4="study_sample_n:  Total number of samples in the study that pass the criteria\n"
         Text5="test_group_n:  Number of test groups that have at least one sample that passed the criteria\n" 
         Text6="max_group_int_sigma_uT:  standard deviation of the group with the maximum scatter \n"
         Text7="max_group_int_sigma_perc:  maximum [standard deviation of the group divided by its mean] in unit of %\n"
@@ -3336,7 +3338,7 @@ class Optimizer(wx.Frame):
         self.Bind(wx.EVT_BUTTON, self.on_run_optimizer_button, self.run_optimizer_button)
 
         # put an example
-        self.text_logger.SetValue("location_sample_n\ntest_group_n\nmax_group_int_sigma_uT\nmax_group_int_sigma_perc\n((max_group_int_sigma_uT < 6) or (max_group_int_sigma_perc < 10)) and  int(location_sample_n)")
+        self.text_logger.SetValue("study_sample_n\ntest_group_n\nmax_group_int_sigma_uT\nmax_group_int_sigma_perc\n((max_group_int_sigma_uT < 6) or (max_group_int_sigma_perc < 10)) and  int(study_sample_n)")
 
         box=wx.BoxSizer(wx.wx.HORIZONTAL)
         vbox = wx.BoxSizer(wx.VERTICAL)
@@ -3411,7 +3413,7 @@ class Optimizer(wx.Frame):
     def on_check_button(self,event):
         S1=self.text_logger.GetValue()
         func=S1.split('\n')
-        location_sample_n,test_group_n,max_group_int_sigma_uT,max_group_int_sigma_perc=10,10.,0.1,0.1
+        study_sample_n,test_group_n,max_group_int_sigma_uT,max_group_int_sigma_perc=10,10.,0.1,0.1
         functions=[]
         OK=True
         for f in func:

@@ -1439,7 +1439,7 @@ class main():
       # study_n parameter
       # max_group_int_sigma_uT parameter
 
-      location_sample_n=len(Optimizer_STDEV_OPT[Key].keys())
+      study_sample_n=len(Optimizer_STDEV_OPT[Key].keys())
       #print "===="
       tmp= Optimizer_STDEV_OPT[Key].keys()
       tmp.sort()
@@ -1525,7 +1525,7 @@ class main():
     clf()
     delta_f=(f_range[1]-f_range[0])/2
     delta_s=(beta_range[1]-beta_range[0])/2
-    if "location_sample_n" in function:
+    if "study_sample_n" in function:
       Flattened=optimization_functions_matrices[function].flatten()
       N_colors=max(Flattened)-min(Flattened)
       cdict = cmap._segmentdata.copy()
@@ -1557,7 +1557,7 @@ class main():
     colorbar()
 
     f_index=0
-    if "location_sample_n" in function or "test_group_n" in function:
+    if "study_sample_n" in function or "test_group_n" in function:
       for FRAC in f_range:
         beta_index=0
         for beta in beta_range:
