@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 from Tkinter import *
-import exceptions,shutil
+import exceptions,shutil,sys
 import tkFileDialog, tkSimpleDialog, string, os,sys,tkMessageBox,shutil
 import pmag,string
 #
@@ -2228,7 +2228,7 @@ def add_ams(format): # add generic AMS data
 
 def set_out(question=""):
         global opath,user
-        opath= tkFileDialog.askdirectory()
+        opath= tkFileDialog.askdirectory(title="Choose MagIC project directory. NB: Windows users must choose an existing directory")
 #        print opath,' has been set'
 
 def help_PmagPy():
@@ -3049,7 +3049,7 @@ b=Button(frame,text="Quit",command=exit)
 b.pack(side=TOP)
 create_menus()
 #####
-tkMessageBox.showinfo("Info","First Step: \n Set Project MagIC Directory\n\n This should have NO SPACES in Path\n\n This Directory is to be used by this program ONLY.\n\n Only import files from a single Location or MagIC download file into this directory. ")
+tkMessageBox.showinfo("Info","First Step: \n Set Project MagIC Directory\n\n This should have NO SPACES in Path\n\n Windows users can only select an existing Directory!! \n\n This Directory is to be used by this program ONLY.\n\n Only import files from a single Location or MagIC download file into this directory. ")
 set_out()
 #user=tkSimpleDialog.askstring("Enter MagIC mail name:","")
 user=""
