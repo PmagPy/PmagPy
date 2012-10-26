@@ -241,6 +241,22 @@ def get_list(data,key): # return a colon delimited list of unique key values
     for k in keylist:keystring=keystring+':'+k
     return keystring[1:]
 
+def ParseSiteFile(site_file):
+    Sites,file_type=magic_read(site_file)
+    LocNames,Locations=[],[]
+    for site in Sites:
+        if site['er_location_name'] not in LocNames: # new location name
+            LocNames.append(site['er_location_name'])
+            sites_locs=get_dictitem(Sites,'er_location_name',site['er_location_name'],'T') # get all sites for this loc
+            lats=get_dictkey(sites_locs,'site_lat','f') # get all the latitudes as floats
+            lons=get_dictkey(sites_locs,'site_lon','f') # get all the longitudes as floats
+            LocRec={'er_citation_names':'This study','er_location_name':site['er_location_name'],'location_type':''}
+            LocRec['location_begin_lat']=str(min(lats))
+            LocRec['location_end_lat']=str(max(lats))
+            LocRec['location_begin_lon']=str(min(lons))
+            LocRec['location_end_lon']=str(max(lons))
+            Locations.append(LocRec)
+    return Locations
 
 def ParseMeasFile(measfile,sitefile,instout,specout): # fix up some stuff for uploading
     #
@@ -250,7 +266,6 @@ def ParseMeasFile(measfile,sitefile,instout,specout): # fix up some stuff for up
     InstRecs=[]
     meas_data,file_type=magic_read(measfile)
     if file_type != 'magic_measurements':
-        print file_type
         print file_type,"This is not a valid magic_measurements file "
         sys.exit()
     # read in site data
@@ -388,11 +403,13 @@ def default_criteria(nocrit):
 # set some sort of quasi-reasonable default criteria
 #   
         SpecCrit['pmag_criteria_code']='DE-SPEC'
+        SpecCrit['criteria_definition']='specimen level directional criteria'
         SpecCrit['specimen_mad']='5.49'
         SpecCrit['specimen_alpha95']='5.49'
         SpecCrit['specimen_n']='4'
         SpecIntCrit={}
         SpecIntCrit['pmag_criteria_code']='IE-SPEC'
+        SpecIntCrit['criteria_definition']='specimen level intensity criteria'
         SpecIntCrit['specimen_int_ptrm_n']='2'
         SpecIntCrit['specimen_drats']='20.5'
         SpecIntCrit['specimen_b_beta']='0.1'
@@ -406,28 +423,34 @@ def default_criteria(nocrit):
         #SpecIntCrit['measurement_step_max']='623'
         SampCrit={}
         SampCrit['pmag_criteria_code']='DE-SAMP'
+        SampCrit['criteria_definition']='sample level directional criteria'
         SampCrit['sample_alpha95']='10.49'
         SampIntCrit={}
         SampIntCrit['pmag_criteria_code']='IE-SAMP'
+        SampIntCrit['criteria_definition']='sample level intensity criteria'
         SampIntCrit['sample_int_n']='2'
         SampIntCrit['sample_int_sigma']='5.5e-6'
         SampIntCrit['sample_int_sigma_perc']='15.5'
         SiteIntCrit={}
         SiteIntCrit['pmag_criteria_code']='IE-SITE'
+        SiteIntCrit['criteria_definition']='site level intensity criteria'
         SiteIntCrit['site_int_n']='2'
         SiteIntCrit['site_int_sigma']='5.5e-6' 
         SiteIntCrit['site_int_sigma_perc']='15.5'
         SiteCrit={}
         SiteCrit['pmag_criteria_code']='DE-SITE'
+        SiteCrit['criteria_definition']='site level directional criteria'
         SiteCrit['site_n']='5'
         SiteCrit['site_n_lines']='4'
         SiteCrit['site_k']='100'
         SiteCrit['site_alpha95']='180'
         NpoleCrit={}
         NpoleCrit['pmag_criteria_code']='NPOLE'
+        NpoleCrit['criteria_definition']='criteria for normal poles'
         NpoleCrit['site_polarity']="n"
         RpoleCrit={}
         RpoleCrit['pmag_criteria_code']='RPOLE'
+        RpoleCrit['criteria_definition']='criteria for reverse poles'
         RpoleCrit['site_polarity']="r"
     else:
         SpecCrit={'pmag_criteria_code':'DE-SPEC','specimen_mad':'180.', 'specimen_alpha95':'180.','specimen_n':'0'}
@@ -446,6 +469,8 @@ def default_criteria(nocrit):
         RpoleCrit={'pmag_criteria_code':'RPOLE', 'site_polarity':"r"}
         RpoleCrit['criteria_definition']='inclusion in reverse pole'
     Critrecs=[SpecCrit,SpecIntCrit,SampCrit,SampIntCrit,SiteIntCrit,SiteCrit,NpoleCrit,RpoleCrit]
+    for rec in Critrecs:
+        if 'er_citation_names' not in rec:rec['er_citation_names']='This study'
     return Critrecs
 
 def grade(PmagSpecRec,accept): 
@@ -3637,7 +3662,6 @@ def sbar(Ss):
     avd,avs=[],[]
     #D=numpy.array([Ss[0],Ss[1],Ss[2],Ss[3]+0.5*(Ss[0]+Ss[1]),Ss[4]+0.5*(Ss[1]+Ss[2]),Ss[5]+0.5*(Ss[0]+Ss[2])]).transpose()
     D=numpy.array([Ss[0],Ss[1],Ss[2],Ss[3]+0.5*(Ss[0]+Ss[1]),Ss[4]+0.5*(Ss[1]+Ss[2]),Ss[5]+0.5*(Ss[0]+Ss[2])])
-    print D
     for j in range(6):
         avd.append(numpy.average(D[j]))
         avs.append(numpy.average(Ss[j]))

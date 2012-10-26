@@ -48,25 +48,20 @@ def main():
         sys.exit()
     # read in site data
     #
-    LocNames=[]
+    LocNames,Locations=[],[]
     for site in Sites:
-        if site['er_location_name'] not in LocNames:LocNames.append(site['er_lcoation_name'])
-    for loc in LocNames:
-        lats,lons=[],[]
-        for site in Sites:
-            if 'site_lat' in site.keys() and site['site_lat'].strip()!="":
-                lats.append(float(site['site_lat'])
-            if 'site_lon' in site.keys() and site['site_lon'].strip()!="":
-                lon.append(float(site['site_lon'])
-        lats.sort()
-        lons.sort()
-        LocRec={'er_citation_names':'This study','er_location_name':loc,'location_type':'outcrop'}
-        LocRec['begin_lat']=str(lats[0])
-        LocRec['end_lat']=str(lats[-1])
-        LocRec['begin_lon']=str(lons[0])
-        LocRec['end_lon']=str(lons[-1])
-        Locations.append(LocRec)
-    if len(Locations)>1:
+        if site['er_location_name'] not in LocNames: # new location name
+            LocNames.append(site['er_location_name'])
+            sites_locs=pmag.get_dictitem(Sites,'er_location_name',site['er_location_name'],'T') # get all sites for this loc
+            lats=pmag.get_dictkey(sites_locs,'site_lat','f') # get all the latitudes as floats
+            lons=pmag.get_dictkey(sites_locs,'site_lon','f') # get all the longitudes as floats
+            LocRec={'er_citation_names':'This study','er_location_name':site['er_location_name'],'location_type':''}
+            LocRec['location_begin_lat']=str(min(lats))
+            LocRec['location_end_lat']=str(max(lats))
+            LocRec['location_begin_lon']=str(min(lons))
+            LocRec['location_end_lon']=str(max(lons))
+            Locations.append(LocRec)
+    if len(Locations)>0:
         pmag.magic_write(loc_file,Locations,"er_locations")
         print "Locations written to: ",loc_file
 main()

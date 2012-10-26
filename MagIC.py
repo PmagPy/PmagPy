@@ -103,7 +103,7 @@ class make_agm: # makes an entry table for basic data for an AGM file
         global AGM
         top=self.top=Toplevel(master)
         self.top.geometry('+50+50')
-        Label(top,text='Fill in the following information for your study(* are required): ').grid(row=0,columnspan=2)
+        Label(top,text='Fill in the following information for your study (* are required): ').grid(row=0,columnspan=2)
         Label(top, text="*******************").grid(row=1,sticky=W)
         Label(top, text="* Location name: [default=unknown]").grid(row=2,sticky=W)
         self.loc = Entry(top)
@@ -584,6 +584,35 @@ class make_mag:
                 MAG['mcd']='%s'%(MCD[:-1].strip(':'))
         self.top.destroy()
 
+class make_loctypes: # gets missing location_type data
+    global NoLocType
+    global LocTypes
+    def __init__(self, master):
+        top=self.top=Toplevel(master) 
+        self.top.geometry('+50+50')
+        Label(top,text='Choose location type for: '+NoLocType['er_location_name']).grid(row=0,column=0,sticky=W,columnspan=3)
+        column=1
+        row=0
+        self.loc_type=IntVar()
+        for type in range(len(LocTypes)):
+            row+=1
+            rb=Radiobutton(top,variable=self.loc_type,value=type,text=LocTypes[type]) 
+            rb.grid(row=row,column=column,sticky=W)
+            row+=1
+        b=Button(top,text="OK",command=self.ok)
+        b.grid(row=row+1,column=column)
+    def ok(self):
+        global LocTypes
+        global NoLocType
+        type = self.loc_type.get()
+        NoLocType['location_type']=LocTypes[type]
+        self.top.destroy()
+
+def ask_loctype(parent):
+    global NewLocs
+    m=make_loctypes(parent)
+    parent.wait_window(m.top)
+
 def ask_ani(parent):
     global ANI
     m=make_ani(parent)
@@ -626,19 +655,9 @@ def ask_radio(parent,choices,title): # returns the values of the radio button fo
         parent.wait_window(m.top)
         return radio_value
 
-def add_age(): # imports a site age file
+def add_file(): # imports a site age file
     global orpath
-    mpath=tkFileDialog.askopenfilename(title="Set age file:")
-    file=mpath.split('/')[-1]
-    infile=open(mpath,'rU').readlines()
-    print mpath,'opened for reading'
-    mfile=opath+'/er_ages.txt'
-    out=open(mfile,'w')
-    for line in infile: 
-        out.write(line) # copies contents of source file to Project directory
-    out.close()
-    print orpath,' copied to ',mfile  
-
+    basename,fpath=copy_text_file("Select MagIC file to import")
 
 def model_lat(): # imports a site paleolatitude file
     global opath
@@ -687,13 +706,6 @@ def add_ODP_sum():
         logfile=open(opath+"/ODPsummary.log",'w')
         logfile.write(file+"\n")
 
-
-def add_ages():
-    file,path=copy_text_file("Select er_ages formatted file: ")
-    afile=opath+'/er_ages.txt'
-    outstring='mv '+opath+'/'+file+' '+afile
-    os.system(outstring)
-    print file,' copied to er_ages.txt'
 
 class make_names:
     def __init__(self,master):
@@ -972,17 +984,57 @@ def start_over():
         tkMessageBox.showinfo("Info","Clear was aborted - your files are safe")
  
 def upload():
+    global NoLocType,GotLocTypes
+    filelist=os.listdir(opath) # get a list of files in the directory
+    LocReq=['er_location_name','location_begin_lat','location_begin_lon','location_end_lat','location_end_lon','er_citation_names','location_type']
     # create a specimen table from the magic_measurements table
-    try:
+    sitefile=opath+"/er_sites.txt"
+    if 'magic_measurements.txt' in filelist:
         measfile=opath+"/magic_measurements.txt"
-        open(measfile,'rU') # test if there are measurements
         instfile=opath+"/magic_instruments.txt"
-        sitefile=opath+"/er_sites.txt"
         specout=opath+"/er_specimens.txt"
         print "creating specimen and instrument files from magic_measurements.txt"
         pmag.ParseMeasFile(measfile,sitefile,instfile,specout)
-    except:
-        pass
+    if 'er_sites.txt' in filelist:
+        NewLocs=pmag.ParseSiteFile(sitefile)
+        loclist,Locs=[],[]
+        if 'er_locations.txt' in filelist: # now check locations table for inherited info
+            OldLocs,file_type=pmag.magic_read(opath+'/er_locations.txt') # read in the location info    
+            for newloc in NewLocs:
+                if newloc['er_location_name'] not in loclist: # it really shouldn't be
+                    loclist.append(newloc['er_location_name'])
+                    oldlocs=pmag.get_dictitem(OldLocs,'er_location_name',newloc['er_location_name'],'T') # get existing location record
+                if len(oldlocs)>0: # should be only one
+                    oldloc=oldlocs[0]
+                    for key in oldloc.keys():
+                        if key in newloc.keys() and newloc[key]=='': newloc[key]=oldloc[key] # inherit prior info
+                    cits=oldloc['er_citation_names'].split(':')
+                    if len(cits)>1: # more than just This study
+                        citation='This study'
+                        for cit in cits: # inherit citation info
+                            if cit not in citation:citation=citation+':'+cit
+                        newloc['er_citation_names']=citation
+                Locs.append(newloc) 
+            for oldloc in OldLocs:
+                if oldloc['er_location_name'] not in loclist: # found a missing location name
+                    Locs.append(oldloc)
+        else:
+            Locs=NewLocs
+        pmag.magic_write(opath+'/er_locations.txt',Locs,'er_locations') # write out location info
+        print 'wrote out Locs: ',Locs
+    if 'er_locations.txt' in os.listdir(opath): # check for er_locations table
+        print 'checking location info'
+        Locs,filetype=pmag.magic_read(opath+'/er_locations.txt') # read it in
+        NoLocTypes=pmag.get_dictitem(Locs,'location_type','','T') # get all locations with blank location_type key
+        WithLocTypes=pmag.get_dictitem(Locs,'location_type','','F') # get all locations with  location_type key
+        if len(NoLocTypes)>0: # if there are blanks
+            for NoLocType in NoLocTypes:
+                ask_loctype(root)
+                WithLocTypes.append(NoLocType) # add the new location types to the rest 
+        pmag.magic_write(opath+'/er_locations.txt',WithLocTypes,'er_locations')
+        print 'locations table updated'
+    else: 
+        'Could not make er_location.txt file \n you will need one prior to uploading'
     outstring="upload_magic.py -WD "+'"'+opath+'"' 
     print outstring
     os.system(outstring) # call upload magic
@@ -2406,23 +2458,31 @@ def sitemeans():
     
 class SMDialog(tkSimpleDialog.Dialog): # makes an entry table for basic data from a .mag file
     def body(self, master):
+        AgeTypes=['Ga','Ka','Ma','Years AD (+/-)','Years BP','Years Cal AD (+/-)','Years Cal BP']
         Label(master, text="Minimum age").grid(row=0)
         Label(master, text="Maximum age").grid(row=1)
-        Label(master, text="age  units").grid(row=2)
+        Label(master, text="age  units:").grid(row=2)
         self.min = Entry(master)
         self.max=Entry(master)
-        self.units=Entry(master)
-        self.min.grid(row=0, column=1)
+        self.min.grid(row=0, column=1,sticky=W)
         self.max.grid(row=1, column=1)
-        self.units.grid(row=2, column=1)
-        return self.min # initial focus
+        Label(master,text='Age units: ')
+        column=1
+        row=2
+        self.units=IntVar()
+        for type in range(len(AgeTypes)):
+            rb=Radiobutton(master,variable=self.units,value=type,text=AgeTypes[type])
+            rb.grid(row=row,column=column,sticky=W)
+            row+=1
+        return self.min
     def apply(self):
+        AgeTypes=['Ga','Ka','Ma','Years AD (+/-)','Years BP','Years Cal AD (+/-)','Years Cal BP']
         if self.min.get()!="":
             SMopts['min']=self.min.get()
         if self.max.get()!="":
             SMopts['max']=self.max.get()
         if self.units.get()!="":
-            SMopts['units']=self.units.get()
+            SMopts['units']=AgeTypes[self.units.get()]
         self.result=SMopts
 
 class CRDialog(tkSimpleDialog.Dialog): # makes an entry table for basic data for cooling rate correction
@@ -2862,7 +2922,6 @@ def create_menus():
     orientmenu.add_command(label="ODP Core Summary csv file",command=add_ODP_sum)
     orientmenu.add_command(label="ODP Sample Summary csv file",command=add_ODP_samp)
     orientmenu.add_command(label="Import model latitude data file",command=model_lat)
-    orientmenu.add_command(label="Import er_ages.txt file",command=add_ages)
     magmenu=Menu(importmenu)
     importmenu.add_cascade(label="Magnetometer files",menu=magmenu)
     magmenu.add_command(label="SIO format",command=add_sio)
@@ -2912,6 +2971,7 @@ def create_menus():
 #    prior.add_command(label="LSQ (Jones/PaleoMag) file",command=add_LSQ)
 #    prior.add_command(label="PMM (USCS) file",command=add_PMM)
     menubar.add_cascade(label="Import",menu=importmenu)
+    importmenu.add_command(label="Import MagIC formatted file (er_ages, er_citation, er_location...)",command=add_file)
     plotmenu=Menu(menubar)
     plotmenu.add_command(label="Customize Criteria ",command=custom)
     plotmenu.add_separator()
@@ -3030,4 +3090,5 @@ SYM_size=['3', '5','7','10']
 STRAT={'long_sym':'o','long_color':'b','long_size':'5','disc_sym':'^','disc_color':'r','disc_size':'10','dmin':'','dmax':'','af':'','therm':'','arm':'','irm':'','ts':'','amin':'','amax':''}
 ANI={'dmin':'','dmax':'','mcd':'0'}
 COORDs=[]
+LocTypes=['Archeological Site','Core','Drill Site','Lake Core','Land Section','Lunar','Martian','Outcrop','Region','Stratigraphic Section','Submarine Site']
 root.mainloop()

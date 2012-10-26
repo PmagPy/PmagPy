@@ -413,6 +413,7 @@ def main():
 			if plotsites==1:
                             print PmagSiteRec['er_site_name']
                             pmagplotlib.plotSITE(EQ['eqarea'],PmagSiteRec,siteD,key) # plot and list the data
+                            pmagplotlib.drawFIGS(EQ)
 			PmagSites.append(PmagSiteRec) 
 	    else: # last component only
 	        siteD=tmp1[:] # get the last orientation system specified
