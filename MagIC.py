@@ -2266,65 +2266,59 @@ def exit():
 
 def zeq():
     z_command='zeq_magic.py -WD '+'"'+opath+'"'
-    try:
-        open(opath+'/magic_measurements.txt','r')
-        z_command=z_command+ ' -fsp zeq_specimens.txt'
-    except IOError:
+    filelist=os.listdir(opath)
+    if 'magic_measurements.txt' not in filelist:
         tkMessageBox.showinfo("Info",'select Combine Measurements in Import file first. ')
         return
-    try:
-        open(opath+'/er_samples.txt','r')
+    if 'zeq_specimens.txt' in filelist:
+        z_command=z_command +' -fsp zeq_specimens.txt'
+    if 'er_samples.txt' in filelist:
         z_command=z_command+ ' -crd g -fsa er_samples.txt'
-    except IOError:
+    else:
         tkMessageBox.showinfo("Info",'No orientation file available, use specimen coordinates or import orientations')
     print z_command
     os.system(z_command)
-    try:
-        filelist=[]
+    if 'specimens.log' in filelist:
+        files=[]
         logfile=open(opath+"/specimens.log",'r')
         for line in logfile.readlines():
-            if line.split()[0] not in filelist:filelist.append(line.split()[0])
-        if "zeq_specimens.txt" not in filelist:filelist.append("zeq_specimens.txt")
-    except IOError:
-        filelist=['zeq_specimens.txt']
+            if line.split()[0] not in filelist:files.append(line.split()[0])
+        if "zeq_specimens.txt" not in filelist:files.append("zeq_specimens.txt")
+    else:
+        files=['zeq_specimens.txt']
     logfile=open(opath+"/specimens.log",'w')
-    for file in filelist:
+    for file in files:
         logfile.write(file+'\n') 
     logfile.close()
-#    tkMessageBox.showinfo("Info","Specimen interpretations saved in "+opath+'/zeq_specimens.txt \n Check command window for errors')
+
 def thellier_gui():
     os.system('thellier_gui.py')
 
 def thellier():
-    t_command="thellier_magic.py -fsp "+opath+'/thellier_specimens.txt' 
-    try:
-        open(opath+'/magic_measurements.txt','r')
-        t_command=t_command+' -f '+opath+'/magic_measurements.txt'
-    except IOError:
+    filelist=os.listdir(opath)
+    if 'magic_measurements.txt' not in filelist: 
         tkMessageBox.showinfo("Info",'Select Combine Measurements in Import file first.')
         return
-    try:
-        open(opath+'/pmag_criteria.txt','r')
+    t_command=t_command+' -f '+opath+'/magic_measurements.txt'
+    if 'thellier_specimens.txt' in filelist:
+        t_command=t_command+" -fsp "+opath+'/thellier_specimens.txt' 
+    if 'pmag_criteria.txt' in filelist:
         t_command=t_command+' -f '+opath+'/magic_measurements.txt' +' -fcr '+opath+'/pmag_criteria.txt'
-    except:
-        pass
-    try:
+    if 'rmag_anisotropy' in filelist:
         open(opath+'/rmag_anisotropy.txt','rU')
         t_command=t_command+' -fan '+opath+'/rmag_anisotropy.txt'
-    except:
-        pass
     print t_command
     os.system(t_command)
-    try:
-        filelist=[]
+    if 'specimens.log' in filelist:
+        files=[]
         logfile=open(opath+"/specimens.log",'r')
         for line in logfile.readlines():
-            if line.split()[0] not in filelist:filelist.append(line.split()[0])
-        if "thellier_specimens.txt" not in filelist:filelist.append("thellier_specimens.txt")
-    except IOError:
-        filelist=['thellier_specimens.txt']
+            if line.split()[0] not in files:files.append(line.split()[0])
+        if "thellier_specimens.txt" not in files:files.append("thellier_specimens.txt")
+    else:
+        files=['thellier_specimens.txt']
     logfile=open(opath+"/specimens.log",'w')
-    for file in filelist:
+    for file in files:
         logfile.write(file+'\n') 
     logfile.close()
 

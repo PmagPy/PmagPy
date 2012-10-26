@@ -120,12 +120,9 @@ def main():
             methods=methods+meth+":"
         rec["magic_method_codes"]=methods[:-1]  # get rid of annoying spaces in Anthony's export files 
         if "magic_instrument_codes" not in rec.keys() :rec["magic_instrument_codes"]=""
-    PriorRecs,file_type=pmag.magic_read(inspec)
-    if file_type != 'pmag_specimens':
-        print  file_type, " this is not a valid pmag_specimens file"
-        sys.exit()
     PriorSpecs=[]
-    if len(PriorRecs)==0:
+    PriorRecs,file_type=pmag.magic_read(inspec)
+    if len(PriorRecs)==0: 
         if verbose:print "starting new file ",inspec
     for Rec in PriorRecs:
         if 'magic_software_packages' not in Rec.keys():Rec['magic_software_packages']=""
