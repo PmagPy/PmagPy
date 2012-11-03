@@ -1362,7 +1362,6 @@ def add_cit():
         logfile.write("er_samples.txt/er_sites.txt | " + outstring+"\n")
 
 
-
 def add_redo():
     try:
         open(opath+'/magic_measurements.txt','r')
@@ -2292,14 +2291,16 @@ def zeq():
     logfile.close()
 
 def thellier_gui():
-    os.system('thellier_gui.py')
+    outstring='thellier_gui.py -WD '+opath
+    print outstring
+    os.system(outstring)
 
 def thellier():
     filelist=os.listdir(opath)
     if 'magic_measurements.txt' not in filelist: 
         tkMessageBox.showinfo("Info",'Select Combine Measurements in Import file first.')
         return
-    t_command=t_command+' -f '+opath+'/magic_measurements.txt'
+    t_command='thellier_magic.py -f '+opath+'/magic_measurements.txt'
     if 'thellier_specimens.txt' in filelist:
         t_command=t_command+" -fsp "+opath+'/thellier_specimens.txt' 
     if 'pmag_criteria.txt' in filelist:
@@ -2961,6 +2962,7 @@ def create_menus():
     prior=Menu(importmenu)
     importmenu.add_cascade(label="Import prior interpretations",menu=prior)
     prior.add_command(label="PmagPy redo file",command=add_redo)
+#    prior.add_command(label="MagIC format specimen  file",command=add_specimen)
 #    prior.add_command(label="DIR (Enkin) file",command=add_DIR_ascii)
 #    prior.add_command(label="LSQ (Jones/PaleoMag) file",command=add_LSQ)
 #    prior.add_command(label="PMM (USCS) file",command=add_PMM)

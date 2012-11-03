@@ -48,6 +48,7 @@ class Arai_GUI(wx.Frame):
     def __init__(self):
         wx.Frame.__init__(self, None, wx.ID_ANY, self.title)
         self.redo_specimens={}
+        self.Data,self.Data_hierarchy={},{}
         self.currentDirectory = os.getcwd() # get the current working directory
         self.get_DIR()                      # choose directory dialog        
         accept_new_parameters_default,accept_new_parameters_null=self.get_default_criteria()    # inialize Null selecting criteria
@@ -56,12 +57,12 @@ class Arai_GUI(wx.Frame):
         # inialize Null selecting criteria
         accept_new_parameters=self.read_criteria_from_file(self.WD+"/pmag_criteria.txt")          
         self.accept_new_parameters=accept_new_parameters
-        self.Data,self.Data_hierarchy={},{}
         self.Data,self.Data_hierarchy=self.get_data() # Get data from magic_measurements and rmag_anistropy if exist.
         self.Data_samples={}
         self.last_saved_pars={}
         self.specimens=self.Data.keys()         # get list of specimens
         self.specimens.sort()                   # get list of specimens
+        self.s=self.specimens[0]
         self.panel = wx.Panel(self)          # make the Panel
         self.Main_Frame()                   # build the main frame
         self.create_menu()                  # create manu bar
@@ -69,14 +70,23 @@ class Arai_GUI(wx.Frame):
     def get_DIR(self):
         """ Choose a working directory dialog
         """
-        dialog = wx.DirDialog(None, "Choose a directory:",defaultPath = self.currentDirectory ,style=wx.DD_DEFAULT_STYLE | wx.DD_NEW_DIR_BUTTON | wx.DD_CHANGE_DIR)
-        if dialog.ShowModal() == wx.ID_OK:
-          self.WD=dialog.GetPath()
-        self.magic_file=self.WD+"/"+"magic_measurements.txt"
-        dialog.Destroy()
-
+        if '-WD' not in sys.argv:
+            dialog = wx.DirDialog(None, "Choose a directory:",defaultPath = self.currentDirectory ,style=wx.DD_DEFAULT_STYLE | wx.DD_NEW_DIR_BUTTON | wx.DD_CHANGE_DIR)
+            if dialog.ShowModal() == wx.ID_OK:
+                self.WD=dialog.GetPath()
         #intialize GUI_log
-        self.GUI_log=open("%s/Thellier_GUI.log"%self.WD,'w')
+            self.GUI_log=open("%s/Thellier_GUI.log"%self.WD,'w')
+            dialog.Destroy()
+        else:
+            ind=sys.argv.index('-WD')
+            self.WD=sys.argv[ind+1]
+        #intialize GUI_log
+            self.GUI_log=open("%s/Thellier_GUI.log"%self.WD,'w')
+            filelist=os.listdir(self.WD)
+            if 'thellier_specimens.txt' in filelist:
+                outstring= 'mk_redo.py -WD '+self.WD+' -f thellier_specimens.txt'
+                os.system(outstring)
+        self.magic_file=self.WD+"/magic_measurements.txt"
         
     def Main_Frame(self):
         """ Build main frame od panel: buttons, etc.
@@ -122,8 +132,6 @@ class Arai_GUI(wx.Frame):
 
         # initialize first specimen in list as current specimen
         self.s=self.specimens[0]
-
-
         # set font size and style
         #font1 = wx.Font(10, wx.SWISS, wx.NORMAL, wx.NORMAL, False, u'Comic Sans MS')
         font1 = wx.Font(9, wx.SWISS, wx.NORMAL, wx.NORMAL, False, u'Arial')
@@ -413,7 +421,6 @@ class Arai_GUI(wx.Frame):
         if sample not in self.Data_samples.keys():
             self.Data_samples[sample]={}
         self.Data_samples[sample][self.s]=self.Data[self.s]['pars']["specimen_int_uT"]
-        
         #self.redo_specimens[self.s]['pars']=self.get_PI_parameters(self.s,float(t1)+273,float(t2)+273)
         #self.redo_specimens[self.s]['t_min']=273+float(t1)
         #self.redo_specimens[self.s]['t_max']=273.+float(t2)
@@ -789,7 +796,6 @@ class Arai_GUI(wx.Frame):
             #for path in paths:
             #print "-I- Read redo file:",redo_file
         dlg.Destroy()
-
         self.read_redo_file(redo_file)
     #----------------------------------------------------------------------
 
@@ -1313,7 +1319,6 @@ class Arai_GUI(wx.Frame):
             print sp
             print self.Data[sp]['pars']
         self.Data_samples={}
-        
         fin=open(redo_file,'rU')
         for Line in fin.readlines():
           line=Line.strip('\n').split()
