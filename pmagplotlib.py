@@ -2344,8 +2344,12 @@ def plotMAP(fignum,lats,lons,Opts):
     rgba_ocean=(200,250,255,255)
     ExPar=['ortho']
     ExMer=['sinus','moll','ortho']
+    mlabels=[0,0,0,1]  # draw meridian labels on the bottom [left,right,top,bottom]
+    plabels=[1,0,0,0] # draw parallel labels on the left
+    if Opts['proj'] in ExMer:mlabels=[0,0,0,0] 
     if Opts['proj'] in ExPar:
         m=Basemap(projection=Opts['proj'],lat_0=Opts['lat_0'],lon_0=Opts['lon_0'],resolution=Opts['res'])
+        plabels=[0,0,0,0]
     else:
         m=Basemap(llcrnrlon=Opts['lonmin'],llcrnrlat=Opts['latmin'],urcrnrlat=Opts['latmax'],urcrnrlon=Opts['lonmax'],projection=Opts['proj'],lat_0=Opts['lat_0'],lon_0=Opts['lon_0'],lat_ts=0.,resolution=Opts['res'],boundinglat=Opts['boundinglat'])
     if 'details' in Opts.keys():
@@ -2362,26 +2366,20 @@ def plotMAP(fignum,lats,lons,Opts):
         if Opts['details']['rivers']==1:m.drawrivers(color='b')
         if Opts['details']['states']==1:m.drawstates(color='r')
         if Opts['details']['countries']==1:m.drawcountries(color='g')
-    #    if Opts['details']['ocean']==1:m.drawlsmask(land_color=rgba_land,ocean_color=rgba_ocean,lsmask_lats=None)
+        if Opts['details']['ocean']==1:m.drawlsmask(land_color=rgba_land,ocean_color=rgba_ocean,lsmask_lats=None)
     if Opts['pltgrid']==0.:
         circles=numpy.arange(Opts['latmin'],Opts['latmax']+15.,15.)
         meridians=numpy.arange(Opts['lonmin'],Opts['lonmax']+30.,30.)
     elif Opts['pltgrid']>0:
-        if Opts['proj'] in ExMer:
+        if Opts['proj'] in ExMer or Opts['proj']=='lcc':
             circles=numpy.arange(-90,180.+Opts['gridspace'],Opts['gridspace'])
             meridians=numpy.arange(0,360.,Opts['gridspace'])
         else:
             circles=numpy.arange(int(Opts['latmin']-2.*Opts['padlat']),(Opts['latmax']+2.*Opts['padlat']),Opts['gridspace'])
             meridians=numpy.arange(int(Opts['lonmin']-2.*Opts['padlon']),(Opts['lonmax']+2.*Opts['padlon']),Opts['gridspace'])
     if Opts['pltgrid']>=0:
-        if Opts['proj'] not in ExPar:
-            m.drawparallels(circles,color='purple',labels=[1,1,1,1])
-        else:
-            m.drawparallels(circles,color='purple')
-        if Opts['proj'] not in ExMer:
-            m.drawmeridians(meridians,color='purple',labels=[1,1,1,1])
-        else:
-            m.drawmeridians(meridians,color='purple')
+        m.drawparallels(circles,color='black',labels=plabels)
+        m.drawmeridians(meridians,color='black',labels=mlabels)
         m.drawmapboundary()
     prn_name,symsize=0,5
     if 'names' in Opts.keys()>0:
