@@ -15,8 +15,10 @@ def main():
         -h: prints the help message and quits.
         -usr USER:   identify user, default is ""
         -f FILE: specify .mag format input file, required
+        -fsa SAMPFILE : specify er_samples.txt file relating samples, site and locations names,default is none
         -F FILE: specify output file, default is magic_measurements.txt
         -Fsy: specify er_synthetics file, default is er_sythetics.txt
+        -Fsa: specify output er_samples file, default is NONE (only for LDGO formatted files)
         -LP [colon delimited list of protocols, include all that apply]
             AF:  af demag
             T: thermal including thellier but not trm acquisition
@@ -48,10 +50,11 @@ def main():
             [5] site name same as sample
             [6] site is entered under a separate column
             [7-Z] [XXXX]YYY:  XXXX is site designation with Z characters with sample name XXXXYYYY
-            [8] synthetic - has no site name
-            [9] ODP naming convention 
             NB: all others you will have to customize your self
                  or e-mail ltauxe@ucsd.edu for help.
+ 
+            [8] synthetic - has no site name
+            [9] ODP naming convention 
     INPUT
         Best to put separate experiments (all AF, thermal, thellier, trm aquisition, Shaw, etc.) in 
            seperate .mag files (eg. af.mag, thermal.mag, etc.)
@@ -101,6 +104,9 @@ def main():
                     measured in four positions)
              NMEAS: number of measurements in a single position (1,3,200...)
        
+      Format of LDGO files:   
+        SPEC TREAT INST CSD Intensity CDECL CINCL [GDECL GINCL BDECL BINCL SUSC ]
+     
     """
 # initialize some stuff
     infile_type="mag"
@@ -375,7 +381,7 @@ def main():
                         demag="AF"
                         if code1[4]=='microT' and float(code1[3])!=0.: labfield=float(code1[3])*1e-6
                     if code1[4]=='microT' and labfield!=0. and meas_type!="LT-IRM":
-                        phi,theta=0.,90.
+                        phi,theta=0.,-90.
                         if demag=="T": meas_type="LT-T-I"
                         if demag=="AF": meas_type="LT-AF-I"
                         MagRec["treatment_dc_field"]='%8.3e'%(labfield)
