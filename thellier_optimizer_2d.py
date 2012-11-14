@@ -18,158 +18,16 @@ from scipy.optimize import curve_fit
 
 rcParams.update({"svg.embed_char_paths":False})
 
-class main():
+def Thellier_optimizer(WD, Data,Data_hierarchy,criteria_fixed_paremeters_file,optimizer_group_file_path,optimizer_functions_path,beta_range,frac_range):
   """
-  (See Shaar and Tauxe. 2012b for details and examples)
+                      
+  """
+  #def __init__(WD, Data,optimizer_group_file_path,optimizer_functions_path,beta_range,frac_range):
+  #  print "HELLO WORLD"
+  #  #if __name__ == '__main__':
 
-  GENERAL
-  ******
-  
-  The Thellier_optimizer.py program does the following:
-  1) Chooses the optimal temperature bounds in Arai plots of all specimens (Instead of doing it manually).
-  2) Calculates the optimal sample's 'best mean'
-     (a 'best mean' is the sample mean that passs the criteria with a minimum standard deviation).
-  3) Finds the optimal set of selecting criteria that yield minimum scattering of the data within 'test sites'.
-     (a 'test site' is a site with more than one sample that should have, by definition, the same paleointensity value)
-
-
-  Test Sites
-  ************
-  
-  TEST-SITES are sites with at least 2 samples that should have (by assumption) the same paleointensity value.
-  Examples for TEST-SITES are contemporaneous cooling units such as pottery/slag samples found in the same archaeological context
-  or ontemporaneous lava flows.
-
-  Choosing the appropriate TEST SITES is the most important stage in running the program becasue it includes strict
-  assumptions about the data set.
-
-  Use can define TEST-SITES in two ways, using one of the following files 
-  1) SITE_SAMPLE_FILE (recommended): a file that contain a list of samples and sites. The format os the file in as er_samples.txt (see details below)
-  2) Magic_measurements.txt: The program read the site_name for each sample/specimen directly from the magic_measurements.txt file.
-     All sites, in this case, are 'test sites'
-
-  INPUTS (for formats see OPTIONS below):
-  *******************************************************
-
-  1) One or more MagIC working directories (MagIC_DIRs):
-    Each MagIC directory MUST include magic_measurements.txt. An optional file is rmag_anistropy.txt for anisotropy corrections.
-  2) A Fixed_criteria_file (FIXED_CRITERIA_FILE):
-    FIXED_CRITERIA_FILE  contains a list of paleointensity parametes that are used as selecting criteria.
-    These parameters are set to fixed values during the optimization procedure (while the program looks for the optimal f and SC parameters). 
-  3) A list of 'test-sites' and their corresponding sample names (SITE_SAMPLE_FILE):
-    If the user does not provide this list, the program uses the er_site_name column in the magic_measurements.txt file to assign specimens to samples and samples to sites,
-    and all sites are treated as test-sites (if they contain more than one sample).
-  4) A list of optimization_functions (OPTIMIZATION_FUNCTIONS_FILE):
-    The program calculates optimization functions for different values of f and SC the values.
-    Suggested optimization function:
-    (SS_max < <SS_threshold>) and  N:
-     which means: setting a threshold for the maximum standard deviation of 'test-sites' (SS_threshold); and choosing f and SC that maximize the total number of samples that passed the criteria (N) 
     
-
-  OUTPUTS:
-  ********
-
-  Output files are arranged in folders for simplicity.
-  (Notice that output files in the ./run directory can be large and exceed 1GB).
-  ./run: A folder with all the outputs of Thellier_auto_interpretation.py (see fiffernt documentation for Thellier_auto_interpretation.py)
-  ./optimizer/optimzer.results.txt (A txt file with the optimization results).
-      Each line contain: f;SC;'Test-Site' name; A list of all the samples in the 'test-sits' that passed; 'best-mean' of samples; test-site mean; test-site standard deviation.
-  ./optimizer/pdf/optimization_function_*.pdf (color-map of the optimization functions values for differnt f, SC- pdf format)
-  ./optimizer/svg/optimization_function_*.svg (color-map of the optimization functions values for differnt f, SC - svg format)
-
-
-
-  PROCEDURE:
-  **********
-  A) For each f and SC:
-    1) Run Thellier_auto_interpretation.py (see different documentation)
-       The procedure of the Thellier_auto_interpretation.py is as follow:
-       1.1) For each specimen:
-            Loop through all the possible temperature bounds in the Arai plot,
-            and save only the interpretation (temperature bounds) that pass the selecting criteria ('acceptable interpretations')
-       1.2) For each sample:
-            finds the 'best sample mean' by selecting from all the 'acceptable interpretations'
-            the choice that yields a minimum standard deviation of the sample mean.
-  B) For each f and SC:
-       Screen out the 'best sample mean' that pass the criteria for samples.
-       Caluclate the values of optimization functions using the 'best sample mean' of samples from the TEST SITES.
-
-
-  OPTIONS:
-  *******
-   -WD: (Optional)
-                      A list of pathes do all the MagIC working directiories
-                      example:
-                      -WD ~/Documents/Cyprus,./my_files/Timna
-  
-
-   -optimize_by_site_name: (optional)
-                      "er_sample_name" and "er_site_same" columns in magic_measurements.txt
-                      are used to define 'test sites'
-                      if the other option (-optimize_by_list) is not used, then this is the default.
-
-  -optimize_by_list <site-sample_file>: (optional)
-                      The format of the site-sample_file is similar to er_samples.txt
-                      A tab delimited text that contains a list of samples and test-sites:
-                        first line is:tab   er_samples
-                        next line is header: er_sample_name	er_site_name  comments
-                        and next line contains the information
-                        if the line"exclude" appears in the 'comments' column then the sample is exlcuded from the optimization calculation.
-
-  -criteria_fixed_paremeters <fixed_criteria_file>: (Required)
-                      A file with the fixed parameters values that are not included in the optimization algorithm.                   
-                      The format is similar to pmag_criteria.txt (tab delimited text).
-                      The following parameters must appear:
-                        specimen_int_mad, specimen_n, specimen_int_ptrm_n,specimen_max_f_diff
-                        sample_int_n, sample_int_sigma_uT, sample_int_sigma_perc
-
-                      ??RON?? Otherwise use the default:
-                      ??RON?? specimen_int_mad=5; specimen_n=3; specimen_int_ptrm_n=2
-                      ??RON?? sample_int_n=3,sample_int_sigma_uT=6?,sample_int_sigma_perc=10?
-                      
-  -optimization_functions <optimization_function_file> (Required)
-                      Each line in this file includes an optimization function (can be more than one)
-                      The optimization function uses the following parameters:
-                      N = N_samples: Total number of samples in the study that pass the criteria
-                      SS_max = Site-Scatter-Max: The site with the maximum standrad deviation
-                      SS_std = Site-Scatter-standrad-deviation. Site-Scatter is the standrad deviation of each site.
-                               SS_std is the standrad deviation of all the Site-Scatter
-                      Examples:
-                      N 
-                      SS_max
-                      SS_std
-                      N/SS_max
-                      if SS_max>6:N
-
-                      The functions [N] and [if SS_max>XXX(value is microT) :N] are recommended.
-  
-
-  -beta_range <start,end,step>: (Required)
-                      The range of beta parameters used for the optimization.
-                      example (recommended): -beta_range 0.04,0.30,0.02
-                      
-  -f_range <start,end,step>: (Required)
-                      The range of FRAC parameter used for the optimization. f should be larger than 0.75
-                      exaple (recommended): -f_range 0.76,0.92,0.02
-
-
-  Example (Cyprus Data):
-  
-  Thellier_optimizer.1.0.py  -optimize_by_list  optimizer_site_samples.txt  -WD Cyprus -criteria_fixed_paremeters pmag_fixed_criteria.txt -optimization_functions optimization_functions.txt -beta_range 0.08,0.32,0.02 -f_range 0.76,0.94,0.02 > optimizer.log
-                      
-  """
-
-
-  #=============================================================
-  # definition
-  #=============================================================
-
-##  def find_key(Dict, sample):
-##      """return the key of dictionary dic given the value"""
-##      for site in Dict.keys():
-##        if sample in Dict[site]:
-##          found_site=site
-##      return found_site
+      
 
   def tan_h(x, a, b):
       return a*tanh(b*x)
@@ -217,12 +75,6 @@ class main():
 
   def find_sample_min_max_interpretation (Intensities,acceptance_criteria):
 
-  ##      Min_array=[]
-  ##      Min_array_std=inf
-  ##      Min_array_tmp=[]
-  ##      Min_interpretations={}
-  ##      Min_interpretations_tmp={}
-
         
         tmp_Intensities={}
         Acceptable_sample_min,Acceptable_sample_max="",""
@@ -249,12 +101,6 @@ class main():
                 if len(tmp_Intensities[sample_to_remove])==0:
                     break
                     
-        #print "Intensities",Intensities        
-        #print "Ron Check mi min sample"
-        #print "min:",tmp_Intensities,B_tmp,Acceptable_sample_min
-        #print "----"
-
-        #--------------------
         tmp_Intensities={}
         for this_specimen in Intensities.keys():
           B_list=Intensities[this_specimen]
@@ -279,7 +125,6 @@ class main():
                 Acceptable_sample_max=mean(B_tmp)
                 break
             else:
-                print "removing sample %s"%sample_to_remove
                 tmp_Intensities[sample_to_remove].remove(B_tmp_max)
                 if len(tmp_Intensities[sample_to_remove])<1:
                     break
@@ -288,7 +133,7 @@ class main():
         #print "======"
 
         if Acceptable_sample_min=="" or Acceptable_sample_max=="":
-            print "-W- Cant calculate acceptable sample bounds"
+            #print "-W- Cant calculate acceptable sample bounds"
             return(0.,0.)
         return(Acceptable_sample_min,Acceptable_sample_max)     
 
@@ -301,112 +146,13 @@ class main():
   #
   #=============================================================
 
-
-
-  if '-h' in sys.argv: # check if help is needed
-      print main.__doc__
-      sys.exit() # graceful quit
-
-
-  if '-WD' in sys.argv:
-      ind=sys.argv.index("-WD")
-      #dir_pathes_string=sys.argv[ind+1]
-      #dir_pathes=dir_pathes_string.split(',')
-      WD=sys.argv[ind+1]
-  else:
-##      dir_pathes=["./"]
-##      dir_pathes_string = "-WD ./"
-      WD="./"
-
-      
-  if '-optimize_by_site_name' in sys.argv:
-      OPTIMIZE_BY_SITE_NAME=True
-  else:
-      OPTIMIZE_BY_SITE_NAME=False
-
-      
-  if '-optimize_by_list' in sys.argv:
-      ind=sys.argv.index("-optimize_by_list")
-      sites_sample_file=sys.argv[ind+1]
-      OPTIMIZE_BY_SITE_NAME=False
-      OPTIMIZE_BY_LIST=True
-  else:
-      OPTIMIZE_BY_LIST=False
-
-  if '-criteria_fixed_paremeters' in sys.argv:
-      ind=sys.argv.index("-criteria_fixed_paremeters")
-      criteria_fixed_paremeters_file=sys.argv[ind+1]
-  else:
-      criteria_fixed_paremeters_file="/optimizer/pmag_fixed_criteria.txt"
-      
-  if '-optimization_functions' in sys.argv:
-      ind=sys.argv.index("-optimization_functions")    
-      optimization_function_file=sys.argv[ind+1]
-  else:
-      print "Missing optimization functions file . Exiting"
-      exit()
-      
-  if '-beta_range' in sys.argv:
-      ind=sys.argv.index("-beta_range")
-      beta_range=sys.argv[ind+1]
-      beta_range=beta_range.split(',')
-      beta_range=arange(float(beta_range[0]),float(beta_range[1])+float(beta_range[2]),float(beta_range[2]))
-  else:
-      print "Missing beta_range range. Exiting"
-      exit()
-
-  if '-f_range' in sys.argv:
-      ind=sys.argv.index("-f_range")
-      f_range=sys.argv[ind+1]
-      f_range=f_range.split(',')
-      f_range=arange(float(f_range[0]),float(f_range[1])+float(f_range[2]),float(f_range[2]))
-  else:
-      print "Missing FRAC range. Exiting"
-      exit()
-    
-  if "-forced_interpretation" in sys.argv:
-    ind=sys.argv.index("-forced_interpretation")
-    forced_interpretation_file=sys.argv[ind+1]
-    Forced_interpretation_string="-forced_interpretation forced_interpretation_file"
-  else:
-    Forced_interpretation_string=""    
-
-
-  if "-sample_mean_type" in sys.argv:
-      sample_mean_types_string=sys.argv.index("-sample_mean_type")
-      sample_mean_types=sys.argv[ind+1]
-      sample_mean_types=sample_mean_types.split(',')
-
-      if "STDEV-OPT" in sample_mean_types:
-         DO_SAMPLE_BEST_MEAN=True
-      else:
-         DO_SAMPLE_BEST_MEAN=False
-         
-      if "BS" in sample_mean_types:
-         DO_SAMPLE_BOOTSTRP_MEAN=True
-      else:
-         DO_SAMPLE_BOOTSTRP_MEAN=False
-         
-      if "BS-PAR" in sample_mean_types:
-         DO_SAMPLE_PARA_BOOTSTRP_MEAN=True
-      else:               
-         DO_SAMPLE_PARA_BOOTSTRP_MEAN=False
-
-  else:
-     sample_mean_types_string=""
-     DO_SAMPLE_BEST_MEAN,DO_SAMPLE_BOOTSTRP_MEAN,DO_SAMPLE_PARA_BOOTSTRP_MEAN= True,True,True
-     
-
-#===========================================================================================================
-
-
+  
   #------------------------------------------------
   # Initialize values
   #------------------------------------------------
 
-
+  logfile=open(WD+"/optimizer/thellier_optimizer.log",'w')
   start_time = time.time()
-
   accept_new_parameters={}
   criteria_specimen_list=['specimen_n','specimen_int_ptrm_n','specimen_f','specimen_fvds','specimen_frac','specimen_gap_max','specimen_b_beta','specimen_scat',
                  'specimen_dang','specimen_drats','specimen_int_mad','specimen_md','specimen_g','specimen_q']
@@ -422,8 +168,8 @@ class main():
   thellier_optimizer_master_file=gzip.open(WD+'/optimizer/thellier_optimizer_interpretation_log.txt.gz', 'wb')
 
   String="er_specimen_name\t"+"t_min\t"+"t_max_\t"+"specimen_int_uT\t"
-  for key in criteria_specimen_list:
-      String=String+key+"\t"
+  for crit in criteria_specimen_list:
+      String=String+crit+"\t"
   thellier_optimizer_master_file.write(String[:-1]+"\n")
   String=""
     
@@ -431,7 +177,7 @@ class main():
   # Write header to optimizer output
   #------------------------------------------------
 
-  Optimizer_results_file=open(WD + "/optimizer/optimzer_results.txt",'w')
+  Optimizer_results_file=open(WD + "/optimizer/optimizer_results.txt",'w')
   String="specimen_frac\tspecimen_beta\tTest_Site\tSamples\tB_samples\tTest Site Mean\tTest Site STD\tTest Site [STD/Mean]\n"
   Optimizer_results_file.write(String)
 
@@ -474,7 +220,7 @@ class main():
   
   # A list of all acceptance criteria used by program
 
-  print "-I read ceriteria_file "
+  logfile.write( "-I read ceriteria_file\n ")
  
   fin=open(WD+ "/" + criteria_fixed_paremeters_file,'rU')
   fin.readline()
@@ -498,14 +244,18 @@ class main():
                 accept_new_parameters[criteria_keys[i]]=float(line[i])
   fin.close()
 
-  for key in criteria_specimen_list + criteria_sample_list:
-    print "-I- threshold value %s:"%(key),accept_new_parameters[key]
+  for crit in criteria_specimen_list + criteria_sample_list:
+    try:
+      logfile.write(  "-I- threshold value %s:%.2f\n"%(crit,accept_new_parameters[crit]))
+    except:
+      logfile.write(  "-I- threshold value %s:%s\n"%(crit,accept_new_parameters[crit]))
+                  
   #------------------------------------------------
   # read Optimization functions
   #------------------------------------------------
 
   optimization_functions=[]
-  fin=open(WD + "/" + optimization_function_file,'rU')
+  fin=open(WD + "/" + optimizer_functions_path,'rU')
   for line in fin.readlines():
     optimization_functions.append(line.strip('\n'))
 
@@ -516,393 +266,39 @@ class main():
   #------------------------------------------------
 
   sites_samples={}
-
-  if OPTIMIZE_BY_SITE_NAME:
-    pathes=dir_pathes
-  elif OPTIMIZE_BY_LIST:
-    pathes=["./"]
-    
-  for dir_path in pathes:
-    if OPTIMIZE_BY_SITE_NAME:
-      fin=open(dir_path+"magic_measurements.txt",'rU')
-    if OPTIMIZE_BY_LIST:
-      fin=open(sites_sample_file,'rU')            
-    line=fin.readline()
-    line=fin.readline()
-    header=line.strip('\n').split('\t')
-    for line in fin.readlines():
-      tmp_data={}
-      line=line.strip('\n').split('\t')
-      for i in range(len(line)):
-        tmp_data[header[i]]=line[i]
-      sample=tmp_data['er_sample_name']
-      site=tmp_data['er_group_name']
-      if "comments" in tmp_data.keys() and "exclude" in tmp_data['comments']:
-        print "-W- WARNING: ignoring sample %s"%sample
-        continue
-      if site not in sites_samples.keys():
-        sites_samples[site]=[]
-      if sample not in sites_samples[site]:
-        sites_samples[site].append(sample)
-
-
-  #------------------------------------------------
-  # Read magic measurement file and sort to blocks
-  #------------------------------------------------
-
-  # All data information is stored in Data[secimen]={}
-  Data={}
-  Data_hierarchy={}
-
-  # read magic file  
-  meas_data,file_type=pmag.magic_read(WD+"/"+"magic_measurements.txt")
-  print "-I- Read magic file %s" %(WD+"/"+"magic_measurements.txt")
-
-  # get list of unique specimen names
+##
+##    if OPTIMIZE_BY_SITE_NAME:
+##      pathes=dir_pathes
+##    elif OPTIMIZE_BY_LIST:
+##      pathes=["./"]
+##      
+##    for dir_path in pathes:
+##      if OPTIMIZE_BY_SITE_NAME:
+##        fin=open(dir_path+"magic_measurements.txt",'rU')
+##      if OPTIMIZE_BY_LIST:
   
-  CurrRec=[]
-  sids=pmag.get_specs(meas_data) # samples ID's
-  
-  for s in sids:
-
-      if s not in Data.keys():
-          Data[s]={}
-          Data[s]['datablock']=[]
-          Data[s]['trmblock']=[]
-
-      zijdblock,units=pmag.find_dmag_rec(s,meas_data)
-      Data[s]['zijdblock']=zijdblock
-
-      
-  for rec in meas_data:
-      s=rec["er_specimen_name"]
-      sample=rec["er_sample_name"]
-      if sample not in Data_hierarchy.keys():
-          Data_hierarchy[sample]=[]
-      if s not in Data_hierarchy[sample]:
-          Data_hierarchy[sample].append(s)
-      
-      if "magic_method_codes" not in rec.keys():
-          rec["magic_method_codes"]=""
-      #methods=rec["magic_method_codes"].split(":")
-      if "LP-PI-TRM" in rec["magic_method_codes"]:
-          Data[s]['datablock'].append(rec)
-      if "LP-TRM" in rec["magic_method_codes"]:
-          Data[s]['trmblock'].append(rec)
-              
-  specimens=Data.keys()
-  specimens.sort()
-
-  #------------------------------------------------
-  # Read anisotropy file from rmag_anisotropy.txt
-  #------------------------------------------------
-
-  anis_data=[]
-  try:
-      anis_data,file_type=pmag.magic_read(WD+'/rmag_anisotropy.txt')
-      print "-I- Anisotropy data read  %s/from rmag_anisotropy.txt"%WD
-  except:
-      print "-W- WARNING cant find rmag_anistropy in working directory"
-      
-  for AniSpec in anis_data:
-      s=AniSpec['er_specimen_name']
-
-      if s not in Data.keys():
-          print "-W- WARNING: specimen %s in rmag_anisotropy.txt but not in magic_measurement.txt. Check it !"%s
-          continue
-      if 'AniSpec' in Data[s].keys():
-          print "-E- ERROR: more than one anisotropy data for specimen %s Fix it!"%s
-      Data[s]['AniSpec']=AniSpec
-      
-  #------------------------------------------------
-  # Calculate Non Linear TRM parameters
-  # Following Shaar et al. (2010):
-  #
-  # Procedure:
-  #
-  # A) If there are only 2 NLT measurement: C
-  #
-  #   Cant do NLT correctio procedure (few data points).
-  #   Instead, check the different in the ratio (M/B) in the two measurements.
-  #   slop_diff = max(first slope, second slope)/min(first slope, second slope)
-  #   if: 1.1 > slop_diff > 1.05 : WARNING
-  #   if: > slop_diff > 1s.1 : WARNING
-  #
-  # B) If there are at least 3 NLT measurement:
-  #
-  # 1) Read the NLT measurement file
-  #   If there is no baseline measurement in the NLT experiment:
-  #    then take the baseline from the zero-field step of the IZZI experiment.
-  #
-  # 2) Fit tanh function of the NLT measurement normalized by M[oven field]
-  #   M/M[oven field] = alpha * tanh (beta*B)
-  #   alpha and beta are used for the Banc calculation using equation (3) in Shaar et al. (2010):
-  #   Banc= tanh^-1[(b*Fa)/alpha]/beta where Fa  is anistropy correction factor and 'b' is the Arai plot slope.
-  #
-  # 3) If best fit function algorithm does not converge, check NLT data using option (A) above.
-  #    If 
-  #
-  #------------------------------------------------
+  fin=open(optimizer_group_file_path,'rU')            
+  line=fin.readline()
+  line=fin.readline()
+  header=line.strip('\n').split('\t')
+  for line in fin.readlines():
+    tmp_data={}
+    line=line.strip('\n').split('\t')
+    for i in range(len(line)):
+      tmp_data[header[i]]=line[i]
+    sample=tmp_data['er_sample_name']
+    site=tmp_data['er_group_name']
+    if "comments" in tmp_data.keys() and "exclude" in tmp_data['comments']:
+      logfile.write(  "-W- WARNING: ignoring sample %s\n"%sample)
+      continue
+    if site not in sites_samples.keys():
+      sites_samples[site]=[]
+    if sample not in sites_samples[site]:
+      sites_samples[site].append(sample)
 
 
 
-  # Searching and sorting NLT Data 
-
-  for s in specimens:
-      datablock = Data[s]['datablock']
-      trmblock = Data[s]['trmblock']
-
-      if len(trmblock)<2:
-          continue
-
-      B_NLT,M_NLT=[],[]
-
-      # find temperature of NLT acquisition
-      NLT_temperature=float(trmblock[0]['treatment_temp'])
-      
-      # search for baseline in the Data block
-      M_baseline=0.
-      for rec in datablock:
-          if float(rec['treatment_temp'])==NLT_temperature and float(rec['treatment_dc_field'])==0:
-             M_baseline=float(rec['measurement_magn_moment'])
-             
-      # search for Blab used in the IZZI experiment (need it for the following calculation)
-      for rec in datablock:  
-          if float(rec['treatment_dc_field'])!=0:
-              labfield=float(rec['treatment_dc_field'])
-
-      for rec in trmblock:
-
-          # if there is a baseline in TRM block, then use it 
-          if float(rec['treatment_dc_field'])==0:
-              M_baseline=float(rec['measurement_magn_moment'])
-          B_NLT.append(float(rec['treatment_dc_field']))
-          M_NLT.append(float(rec['measurement_magn_moment']))
-          
-      print "-I- Found %i NLT datapoints for specimen %s: B="%(len(B_NLT),s),array(B_NLT)*1e6
-
-      #substitute baseline
-      M_NLT=array(M_NLT)-M_baseline
-
-      # calculate M/B ratio for each step, and compare them
-      # If cant do NLT correction: check a difference in M/B ratio
-      # > 5% : WARNING
-      # > 10%: ERROR           
-
-      slopes=M_NLT/B_NLT
-
-      if len(trmblock)==2:
-          if max(slopes)/min(slopes)<1.05:
-              print "-I- 2 NLT measurement for specimen %s. [max(M/B)]/ [min(M/B)] < 1.05."%s         
-          elif max(slopes)/min(slopes)<1.1:
-              print "-W- WARNING: 2 NLT measurement for specimen %s. [max(M/B)]/ [min(M/B)] is %.2f  (   > 1.05 and  < 1.1 ). More NLT mrasurements are required  !" %(s,max(slopes)/min(slopes))
-              print "-I- NLT meaurements specime %s: B,M="%s,B_NLT,M_NLT
-          else:
-              print "-E- ERROR: 2 NLT measurement for specimen %s. [max(M/B)]/ [min(M/B)] is %.2f  ( > 1.1 ). More NLT mrasurements are required  !" %(s,max(slopes)/min(slopes))
-              print "-I- NLT meaurements specime %s: B,M="%s,B_NLT,M_NLT
-              
-      # NLT procedure following Shaar et al (2010)        
-      
-      if len(trmblock)>2:
-          B_NLT=append([0.],B_NLT)
-          M_NLT=append([0.],M_NLT)
-          
-          try:
-              # First try to fit tanh function (add point 0,0 in the begining)
-              alpha_0=max(M_NLT)
-              beta_0=2e4
-              popt, pcov = curve_fit(tan_h, B_NLT, M_NLT,p0=(alpha_0,beta_0))
-              M_lab=popt[0]*math.tanh(labfield*popt[1])
-
-              # Now  fit tanh function to the normalized curve
-              M_NLT_norm=M_NLT/M_lab
-              popt, pcov = curve_fit(tan_h, B_NLT, M_NLT_norm,p0=(popt[0]/M_lab,popt[1]))
-              Data[s]['NLT_parameters']=(popt, pcov)
-              print "-I- calculated tanh parameters for specimen %s"%s
-                              
-          except RuntimeError:
-              print "-W- WARNING: Cant fit tanh function to NLT data specimen %s. Ignore NLT data for specimen %s. Instead check [max(M/B)]/ [min(M/B)] "%(s,s)
-              print "-I- NLT meaurements specime %s: B,M="%s,B_NLT,M_NLT
-              
-              # Cant do NLT correction. Instead, check a difference in M/B ratio
-              # The maximum difference allowd is 5%
-              # if difference is larger than 5%: WARNING            
-              
-              if max(slopes)/min(slopes)<1.05:
-                  print "-I- 2 NLT measurement for specimen %s. [max(M/B)]/ [min(M/B)] < 1.05."%s         
-              elif max(slopes)/min(slopes)<1.1:
-                  print "-W- WARNING: 2 NLT measurement for specimen %s. [max(M/B)]/ [min(M/B)] is %.2f  (   > 1.05 and  < 1.1 ). More NLT mrasurements are required  !" %(s,max(slopes)/min(slopes))
-                  print "-I- NLT meaurements specime %s: B,M="%s,B_NLT,M_NLT
-              else:
-                  print "-E- ERROR: 2 NLT measurement for specimen %s. [max(M/B)]/ [min(M/B)] is %.2f  ( > 1.1 ). More NLT mrasurements are required  !" %(s,max(slopes)/min(slopes))
-                  print "-I- NLT meaurements specime %s: B,M="%s,B_NLT,M_NLT
-              
-          
-  print "-I- Done calculating non linear TRM parameters"
-            
-  #------------------------------------------------
-  # sort Arai block
-  #------------------------------------------------
-
-
-  for s in specimens:
-    datablock = Data[s]['datablock']
-    zijdblock=Data[s]['zijdblock']
-    if len(datablock) <4:
-       print "-E- ERROR: skipping specimen %s, data block is too small - moving forward "%s
-       continue
-
-    
-    araiblock,field=pmag.sortarai(datablock,s,0)
-    Data[s]['araiblok']=araiblock
-    Data[s]['pars']={}
-    Data[s]['pars']['lab_dc_field']=field
-    Data[s]['pars']['er_specimen_name']=s   
-    
-    first_Z=araiblock[0]
-
-    if len(araiblock[0])!= len(araiblock[1]):
-       print "-E- ERROR: unequal length of Z steps and I steps. Check specimen %s"% s
-       print "-E- Program is exiting now until it fixed...sorry"    
-
-    #--------------------------------------------------------------
-    # collect all zijderveld data to array and calculate VDS
-    #--------------------------------------------------------------
-
-    z_temperatures=[row[0] for row in zijdblock]
-    zdata=[]
-    vector_diffs=[]
-    NRM=zijdblock[0][3]
-
-    for k in range(len(zijdblock)):
-        DIR=[zijdblock[k][1],zijdblock[k][2],zijdblock[k][3]/NRM]
-        cart=pmag.dir2cart(DIR)
-        zdata.append(array([cart[0],cart[1],cart[2]]))
-        if k>0:
-            vector_diffs.append(sqrt(sum((array(zdata[-2])-array(zdata[-1]))**2)))
-    vector_diffs.append(sqrt(sum(array(zdata[-1])**2))) # last vector of the vds
-    vds=sum(vector_diffs)  # vds calculation       
-    zdata=array(zdata)
-
-    Data[s]['vector_diffs']=array(vector_diffs)
-    Data[s]['vds']=vds
-    Data[s]['zdata']=zdata
-    Data[s]['z_temp']=z_temperatures
-    
-    #--------------------------------------------------------------
-    # collect all Arai plot data points to array 
-    #--------------------------------------------------------------
-
-    # collect Arai data points
-    zerofields,infields=araiblock[0],araiblock[1]
-
-    Data[s]['NRMS']=zerofields
-    Data[s]['PTRMS']=infields
-    
-    x_Arai,y_Arai=[],[] # all the data points               
-    t_Arai=[]
-    steps_Arai=[]              
-
-    infield_temperatures=[row[0] for row in infields]
-    zerofield_temperatures=[row[0] for row in zerofields]
-
-    # check a correct order of tempertures
-    PROBLEM=False
-    for i in range (2,len(infield_temperatures)):
-        if float(infield_temperatures[i])<float(infield_temperatures[i-1]):
-            PROBLEM=True
-            break
-    if PROBLEM:
-        print "-E ERROR: wrong order of temperatures specimen %s. Skipping specimen!"%s
-        del(Data[s])
-        #specimens.remove(s)
-        continue
-
-    # check a correct order of tempertures
-    PROBLEM=False
-    for i in range (2,len(zerofield_temperatures)):
-        if float(zerofield_temperatures[i])<float(zerofield_temperatures[i-1]):
-            PROBLEM=True
-            break
-    if PROBLEM:
-        print "-E ERROR: wrong order of temperatures specimen %s. Skipping specimen!"%s
-        del(Data[s])
-        #specimens.remove(s)
-        continue
-
-
-
-    for k in range(len(zerofields)):                  
-      index_infield=infield_temperatures.index(zerofields[k][0])
-      x_Arai.append(infields[index_infield][3]/NRM)
-      y_Arai.append(zerofields[k][3]/NRM)
-      t_Arai.append(zerofields[k][0])
-      if zerofields[k][4]==1:
-        steps_Arai.append('ZI')
-      else:
-        steps_Arai.append('IZ')        
-    x_Arai=array(x_Arai)
-    y_Arai=array(y_Arai)
-    
-    Data[s]['x_Arai']=x_Arai
-    Data[s]['y_Arai']=y_Arai
-    Data[s]['t_Arai']=t_Arai
-    Data[s]['steps_Arai']=steps_Arai
-
-
-    #--------------------------------------------------------------
-    # collect all pTRM check to array 
-    #--------------------------------------------------------------
-
-    ptrm_checks = araiblock[2]
-    zerofield_temperatures=[row[0] for row in zerofields]
-
-    x_ptrm_check,y_ptrm_check,ptrm_checks_temperatures=[],[],[]
-
-    for k in range(len(ptrm_checks)):
-      if ptrm_checks[k][0] in zerofield_temperatures:
-        index_zerofield=zerofield_temperatures.index(ptrm_checks[k][0])
-        x_ptrm_check.append(ptrm_checks[k][3]/NRM)
-        y_ptrm_check.append(zerofields[index_zerofield][3]/NRM)
-        ptrm_checks_temperatures.append(ptrm_checks[k][0])
-      
-    x_ptrm_check=array(x_ptrm_check)  
-    ptrm_check=array(y_ptrm_check)
-    ptrm_checks_temperatures=array(ptrm_checks_temperatures)
-    Data[s]['x_ptrm_check']=x_ptrm_check
-    Data[s]['y_ptrm_check']=y_ptrm_check
-    Data[s]['ptrm_checks_temperatures']=ptrm_checks_temperatures
-
-
-    #--------------------------------------------------------------
-    # collect tail checks 
-    #--------------------------------------------------------------
-
-
-    ptrm_tail = araiblock[3]
-    #print ptrm_tail
-    x_tail_check,y_tail_check=[],[]
-
-    for k in range(len(ptrm_tail)):                  
-      index_infield=infield_temperatures.index(ptrm_tail[k][0])
-      x_tail_check.append(infields[index_infield][3]/NRM)
-      y_tail_check.append(ptrm_tail[k][3]/NRM + zerofields[index_infield][3]/NRM)
-
-    x_tail_check=array(x_tail_check)  
-    y_tail_check=array(y_tail_check)
-
-    Data[s]['x_tail_check']=x_tail_check
-    Data[s]['y_tail_check']=y_tail_check
-
-  print "-I- Done reading and sorting measurements files"
-  
-
-  #--------------------------------------------------------------    
-  # looping through all data points in the Arai plot
-  # and calculate all the parameters except scat (because beta is needed for that)
-  #--------------------------------------------------------------
-
-  print "-I- Now looping through all data points in the Arai plot"
+  logfile.write(  "-I- Now looping through all data points in the Arai plot\n")
 
   thellier_optimizer_master_table={}
   
@@ -912,8 +308,7 @@ class main():
   specimens.sort()
   
   for s in specimens:
-    thellier_optimizer_master_table[s]=[]
-    
+    thellier_optimizer_master_table[s]=[]    
     datablock = Data[s]['datablock']
     t_Arai=Data[s]['t_Arai']
     x_Arai=Data[s]['x_Arai']
@@ -925,14 +320,13 @@ class main():
     z_temperatures=Data[s]['z_temp']
     
     if len(t_Arai)<4:
-      print "-W- skipping specimen %s"%s
+      logfile.write(  "-W- skipping specimen %s\n"%s)
       continue
     for start in range (0,len(t_Arai)-n_min+1):
       for end in range (start+n_min-1,len(t_Arai)):
         pars={}
         pars['lab_dc_field']=Data[s]['pars']['lab_dc_field']
         pars['er_specimen_name']=s
-
         
         tmin=t_Arai[start]
         tmax=t_Arai[end]
@@ -947,10 +341,10 @@ class main():
         pars["measurement_step_max"]=float(tmax)
 
         if  tmin not in z_temperatures:
-          print "-E- ERROR: specimen %s temperature %f apears in Arai plot but not in Zijderveld plot"%(s,tmin)
+          logfile.write(  "-E- ERROR: specimen %s temperature %f apears in Arai plot but not in Zijderveld plot\n"%(s,tmin))
           continue
         if  tmax not in z_temperatures:
-          print "-E- ERROR: specimen %s temperature %f apears in Arai plot but not in Zijderveld plot"%(s,tmax)
+          logfile.write(  "-E- ERROR: specimen %s temperature %f apears in Arai plot but not in Zijderveld plot\n"%(s,tmax))
           continue
 
         zstart=z_temperatures.index(tmin)
@@ -997,7 +391,7 @@ class main():
         # best fit PCA direction
         pars["specimen_dec"] =  DIR_PCA[0]
         pars["specimen_inc"] =  DIR_PCA[1]
-        pars["specimen_zij_v1_cart"] =  best_fit_vector
+        pars["specimen_PCA_v1"] =  best_fit_vector 
 
         # MAD Kirschvink (1980)
         pars["specimen_int_mad"]=MAD
@@ -1126,19 +520,68 @@ class main():
         # Calculate anistropy correction factor
         #-------------------------------------------------            
 
+##        if "AniSpec" in Data[s].keys():
+##           AniSpec=Data[s]['AniSpec']
+##           AniSpecRec=pmag.doaniscorr(pars,AniSpec)
+##           pars["AC_specimen_dec"]=AniSpecRec["specimen_dec"]
+##           pars["AC_specimen_inc"]=AniSpecRec["specimen_inc"]
+##           pars["AC_specimen_int"]=AniSpecRec["specimen_int"]
+##           pars["AC_specimen_correction_factor"]=float(pars["AC_specimen_int"])/float(pars["specimen_int"])
+##           pars["specimen_int_uT"]=float(pars["AC_specimen_int"])*1e6
+##
+##        else:
+##           pars["AC_specimen_correction_factor"]=1.0
+##           pars["specimen_int_uT"]=float(pars["specimen_int"])*1e6
         if "AniSpec" in Data[s].keys():
-           AniSpec=Data[s]['AniSpec']
-           AniSpecRec=pmag.doaniscorr(pars,AniSpec)
-           pars["AC_specimen_dec"]=AniSpecRec["specimen_dec"]
-           pars["AC_specimen_inc"]=AniSpecRec["specimen_inc"]
-           pars["AC_specimen_int"]=AniSpecRec["specimen_int"]
-           pars["AC_specimen_correction_factor"]=float(pars["AC_specimen_int"])/float(pars["specimen_int"])
+           S_matrix=zeros((3,3),'f')
+           S_matrix[0,0]=Data[s]['AniSpec']['anisotropy_s1']
+           S_matrix[1,1]=Data[s]['AniSpec']['anisotropy_s2']
+           S_matrix[2,2]=Data[s]['AniSpec']['anisotropy_s3']
+           S_matrix[0,1]=Data[s]['AniSpec']['anisotropy_s4']
+           S_matrix[1,0]=Data[s]['AniSpec']['anisotropy_s4']
+           S_matrix[1,2]=Data[s]['AniSpec']['anisotropy_s5']
+           S_matrix[2,1]=Data[s]['AniSpec']['anisotropy_s5']
+           S_matrix[0,2]=Data[s]['AniSpec']['anisotropy_s6']
+           S_matrix[2,0]=Data[s]['AniSpec']['anisotropy_s6']
+
+           TRM_anc_unit=array(pars['specimen_PCA_v1'])/sqrt(pars['specimen_PCA_v1'][0]**2+pars['specimen_PCA_v1'][1]**2+pars['specimen_PCA_v1'][2]**2)
+           B_lab_unit=pmag.dir2cart([ Data[s]['Thellier_dc_field_phi'], Data[s]['Thellier_dc_field_theta'],1])
+##           print "Quality check"
+##           print "phi,thata,1 ",[ self.Data[s]['Thellier_dc_field_phi'], self.Data[s]['Thellier_dc_field_theta'],1]
+##           #raw_input("---")
+           B_lab_unit=array([0,0,-1])
+##           print B_lab_unit
+##           print B_anc_unit
+##           print "S_matrix",S_matrix
+##           print "inv(S_matrix)",inv(S_matrix)
+##           print "dot(inv(S_matrix),B_anc_unit)",dot(inv(S_matrix),B_anc_unit)
+##           print "norm  dot(inv(S_matrix),B_anc_unit)",linalg.norm(dot(inv(S_matrix),B_anc_unit.transpose()))
+##           
+##           print "linalg.norm(dot((inv(S_matrix),B_lab_unit.transpose())))",linalg.norm(dot(inv(S_matrix),B_lab_unit))
+           #pars["Anisotropy_correction_factor"]= linalg.norm(dot(inv(S_matrix),B_anc_unit.transpose()))/linalg.norm(dot(inv(S_matrix),B_lab_unit))
+
+           Anisotropy_correction_factor=linalg.norm(dot(inv(S_matrix),TRM_anc_unit.transpose()))*norm(dot(S_matrix,B_lab_unit))
+           pars["Anisotropy_correction_factor"]=Anisotropy_correction_factor
+
+##           print "aniso_factor", pars["Anisotropy_correction_factor"]
+           pars["AC_specimen_int"]= pars["Anisotropy_correction_factor"] * float(pars["specimen_int"])
+##           print "aniso_int",pars["AC_specimen_int"]
+           
+           #AniSpecRec=pmag.doaniscorr(pars,AniSpec)
+           #pars["AC_specimen_dec"]=AniSpecRec["specimen_dec"]
+           #pars["AC_specimen_inc"]=AniSpecRec["specimen_inc"]
+           #pars["AC_specimen_int"]=AniSpecRec["specimen_int"]
+           #pars["AC_specimen_int"]=AniSpecRec["specimen_int"]
+           #try:
+           #    pars["Anisotropy_correction_factor"]=float(pars["AC_specimen_int"])/float(pars["specimen_int"])
+           #except:
+           #    pars["Anisotropy_correction_factor"]=1.0
+           pars["AC_anisotropy_type"]=Data[s]['AniSpec']["anisotropy_type"]
            pars["specimen_int_uT"]=float(pars["AC_specimen_int"])*1e6
 
         else:
-           pars["AC_specimen_correction_factor"]=1.0
+           pars["Anisotropy_correction_factor"]=1.0
            pars["specimen_int_uT"]=float(pars["specimen_int"])*1e6
-
            
         #-------------------------------------------------                    
         # NLT and anisotropy correction together in one equation
@@ -1150,7 +593,7 @@ class main():
            alpha=Data[s]['NLT_parameters'][0][0]
            beta=Data[s]['NLT_parameters'][0][1]
            b=float(pars["specimen_b"])
-           Fa=pars["AC_specimen_correction_factor"]
+           Fa=pars["Anisotropy_correction_factor"]
 
            if ((abs(b)*Fa)/alpha) <1.0:
                Banc_NLT=math.atanh( ((abs(b)*Fa)/alpha) ) / beta
@@ -1162,7 +605,7 @@ class main():
                else:                       
                    pars["NLT_specimen_correction_factor"]=Banc_NLT/float(pars["specimen_int"])
            else:
-               print "-W- WARNING: problematic NLT mesurements specimens %s. Cant do NLT calculation. check data"%s
+               logfile.write(  "-W- WARNING: problematic NLT mesurements specimens %s. Cant do NLT calculation. check data\n"%s)
                pars["NLT_specimen_correction_factor"]=-999
         else:
            pars["NLT_specimen_correction_factor"]=-999
@@ -1173,9 +616,9 @@ class main():
         # Save all the interpretation into file
         #--------------------------------------------------------------
         String=s+"\t"+"%s\t"%pars["measurement_step_min"]+"%s\t"%pars["measurement_step_max"]+"%s\t"%pars["specimen_int_uT"]
-        for key in criteria_specimen_list:
-           if key != "specimen_scat":
-               String=String+"%f"%pars[key]+"\t"
+        for crit in criteria_specimen_list:
+           if crit != "specimen_scat":
+               String=String+"%f"%pars[crit]+"\t"
            #elif key=="specimen_scat":
            #    String=String+"%s"%pars[key]+"\t"
            #elif  key=="specimen_n" or  key=="specimen_int_ptrm_n":
@@ -1189,7 +632,7 @@ class main():
   runtime_sec = time_1 - start_time
   m, s = divmod(runtime_sec, 60)
   h, m = divmod(m, 60)
-  thellier_optimizer_master_file.write( "-I- runtime from start (hh:mm:ss)" + "%d:%02d:%02d" % (h, m, s))       
+  thellier_optimizer_master_file.write( "-I- runtime from start (hh:mm:ss)" + "%d:%02d:%02ds\n" % (h, m, s))       
         
 
 
@@ -1200,10 +643,8 @@ class main():
 
   Optimizer_data={}
   Optimizer_STDEV_OPT={}
-  #print "-I- f_range",f_range
-  #print "-I- beta_range",beta_range
   
-  for frac in f_range:
+  for frac in frac_range:
     for beta in beta_range:
 
       accept_new_parameters['specimen_b_beta']=beta
@@ -1211,25 +652,25 @@ class main():
       Key="%.2f,%.2f"%(float(frac),float(beta))
 
       Optimizer_data[Key]={}
-      
-      for sample in Data_hierarchy.keys():
-        for specimen in Data_hierarchy[sample]:
-
+      for sample in Data_hierarchy['samples'].keys():
+        for specimen in Data_hierarchy['samples'][sample]:
           if specimen not in specimens:
             continue
           
           for pars in thellier_optimizer_master_table[specimen]:
             Fail=False
-            for key in high_threshold_value_list:
-              if float(pars[key])>float(accept_new_parameters[key]):
-                thellier_optimizer_master_file.write(  "key=%s - specimen %s, tmin,tmax =(%.0f,%.0f) fail on %s\n"%(Key,specimen,float(pars["measurement_step_min"])-273,float(pars["measurement_step_max"])-273,key))
+            for crit in high_threshold_value_list:
+              if float(pars[crit])>float(accept_new_parameters[crit]):
+                thellier_optimizer_master_file.write(  "key=%s - specimen %s, tmin,tmax =(%.0f,%.0f) fail on %s\n"%(Key,specimen,float(pars["measurement_step_min"])-273,float(pars["measurement_step_max"])-273,crit))
                 Fail=True
-            if Fail: continue
-            for key in low_threshold_value_list:
-              if float(pars[key])<float(accept_new_parameters[key]):
-                thellier_optimizer_master_file.write( "key=%s - specimen %s, tmin,tmax =(%.0f,%.0f) fail on %s\n"%(Key,specimen,float(pars["measurement_step_min"])-273,float(pars["measurement_step_max"])-273,key))
+            if Fail:
+              continue
+            for crit in low_threshold_value_list:
+              if float(pars[crit])<float(accept_new_parameters[crit]):
+                thellier_optimizer_master_file.write( "key=%s - specimen %s, tmin,tmax =(%.0f,%.0f) fail on %s\n"%(Key,specimen,float(pars["measurement_step_min"])-273,float(pars["measurement_step_max"])-273,crit))
                 Fail=True
-            if Fail: continue
+            if Fail:
+              continue
             #-------------------------------------------------                     
             # Calculate the new 'beta box' parameter using beta
             # all datapoints, pTRM checks, and tail-checks, should be inside a "beta box"
@@ -1344,7 +785,7 @@ class main():
               Optimizer_data[Key][sample][specimen]=[]
             Optimizer_data[Key][sample][specimen].append(pars['specimen_int_uT'])
             thellier_optimizer_master_file.write( "-I- key= %s specimen %s pass tmin,tmax= (%.0f,%.0f) "%(Key,specimen,float(pars["measurement_step_min"])-273,float(pars["measurement_step_max"])-273))
-
+            
             
 
       
@@ -1354,10 +795,11 @@ class main():
   # i.e. STDEV_OPT
   #-------------------------------------------------                     
 
-  for frac in f_range:
+  for frac in frac_range:
     for beta in beta_range:
       Key="%.2f,%.2f"%(float(frac),float(beta))
       Optimizer_STDEV_OPT[Key]={}
+      
       #--------------------------------------------------------------
       # check for outlier specimens in each sample
       #--------------------------------------------------------------
@@ -1377,12 +819,10 @@ class main():
                         exclude_specimens_list.append(specimen)
                         
             if len(exclude_specimens_list)>1:
-                #print "-I- checking now if any speimens to exlude due to B_max<average-2*sigma or B_min > average+2*sigma sample %s" %s
                 thellier_optimizer_master_file.write( "-I- check outlier sample =%s; frac=%f,beta=%f,: more than one specimen can be excluded.\n"%(sample,frac,beta))
                 exclude_specimens_list=[]
 
             if len(exclude_specimens_list)==1:
-                #print exclude_specimens_list
                 exclude_specimen=exclude_specimens_list[0]
                 del Optimizer_data[Key][sample][exclude_specimen]
                 thellier_optimizer_master_file.write( "-W- WARNING: frac=%f,beta=%f, specimen %s is exluded from sample %s because is is an outlier.\n "%(frac,beta,exclude_specimens_list[0],sample))
@@ -1429,10 +869,10 @@ class main():
   optimization_functions_matrices={}
     
   for function in optimization_functions:
-    optimization_functions_matrices[function]=zeros((len(beta_range),len(f_range)))
+    optimization_functions_matrices[function]=zeros((len(beta_range),len(frac_range)))
 
   f_index=0  
-  for frac in f_range:
+  for frac in frac_range:
     beta_index=0
     for beta in beta_range:      
       Key="%.2f,%.2f"%(float(frac),float(beta))
@@ -1440,16 +880,11 @@ class main():
       # max_group_int_sigma_uT parameter
 
       study_sample_n=len(Optimizer_STDEV_OPT[Key].keys())
-      #print "===="
       tmp= Optimizer_STDEV_OPT[Key].keys()
       tmp.sort()
-      #print Key
-      #print tmp
-      #print Key,"study_n",len(Optimizer_STDEV_OPT[Key].keys()),Optimizer_STDEV_OPT[Key].keys()
       max_group_int_sigma_uT=0
       max_group_int_sigma_perc=0
       test_group_n=0
-      
       for site in sites_samples:
         site_B=[];site_samples_id=[]
         for sample in sites_samples[site]:
@@ -1485,20 +920,16 @@ class main():
 
       for Function in optimization_functions:
         
-        Command="opt_func= %s"%Function
+        #Command="opt_func= %s"%Function
         try:
-          exec Command
-          optimization_functions_matrices[Function][beta_index,f_index]=opt_func
-          #print "Key",Key
-          #print "function",Function
-          #print "opt_func",opt_func
+          optimization_functions_matrices[Function][beta_index,f_index]=eval(Function)
+          #optimization_functions_matrices[Function][beta_index,f_index]=opt_func
         except:
-          print "-E Error: something is wrong with optimization function %s. Check!"%Function
+          logfile.write(  "-E Error: something is wrong with optimization function %s. Check!\n"%Function)
 
       beta_index+=1
     f_index+=1
         
-  #print     optimization_functions_matrices    
   #------------------------------------------------------
   # Make the plots
   #------------------------------------------------------
@@ -1513,17 +944,15 @@ class main():
 
   Fig_counter=0
   for function in optimization_functions:
-    #print function
-    #print optimization_functions_matrices[function]
     if sum(optimization_functions_matrices[function].flatten())==0:
       Fig_counter+=1
       continue
 
-    x,y = meshgrid(f_range,beta_range)
+    x,y = meshgrid(frac_range,beta_range)
     cmap = matplotlib.cm.get_cmap('jet')
     figure(Fig_counter,(8,8))
     clf()
-    delta_f=(f_range[1]-f_range[0])/2
+    delta_f=(frac_range[1]-frac_range[0])/2
     delta_s=(beta_range[1]-beta_range[0])/2
     if "study_sample_n" in function:
       Flattened=optimization_functions_matrices[function].flatten()
@@ -1548,17 +977,17 @@ class main():
           cdict[COLOR] = tuple(L)
       discrete_jet=matplotlib.colors.LinearSegmentedColormap('colormap',cdict,1024)
       #Cmap=cmap_discretize(cmap,max(Flattened))
-      img = imshow(optimization_functions_matrices[function],interpolation='nearest',cmap = discrete_jet,extent=(f_range[0]-delta_f,f_range[-1]+delta_f,beta_range[-1]+delta_s,beta_range[0]-delta_s))
+      img = imshow(optimization_functions_matrices[function],interpolation='nearest',cmap = discrete_jet,extent=(frac_range[0]-delta_f,frac_range[-1]+delta_f,beta_range[-1]+delta_s,beta_range[0]-delta_s))
     else:
-      img = imshow(optimization_functions_matrices[function],interpolation='nearest',cmap = cmap,extent=(f_range[0]-delta_f,f_range[-1]+delta_f,beta_range[-1]+delta_s,beta_range[0]-delta_s))
+      img = imshow(optimization_functions_matrices[function],interpolation='nearest',cmap = cmap,extent=(frac_range[0]-delta_f,frac_range[-1]+delta_f,beta_range[-1]+delta_s,beta_range[0]-delta_s))
       
-    xticks(f_range)
+    xticks(frac_range)
     yticks(beta_range)
     colorbar()
 
     f_index=0
     if "study_sample_n" in function or "test_group_n" in function:
-      for FRAC in f_range:
+      for FRAC in frac_range:
         beta_index=0
         for beta in beta_range:
           text(FRAC,beta,"%i"%int(optimization_functions_matrices[function][beta_index,f_index]),fontsize=8,color='gray',horizontalalignment='center',verticalalignment='center')
@@ -1582,9 +1011,10 @@ class main():
   runtime_sec = time.time() - start_time
   m, s = divmod(runtime_sec, 60)
   h, m = divmod(m, 60)
-  print "-I- runtime from start (hh:mm:ss) " + "%d:%02d:%02d" % (h, m, s)
-  print "-I- Finished sucsessfuly."
-  print "-I- DONE"
+  logfile.write(  "-I- runtime from start (hh:mm:ss) " + "%d:%02d:%02d\n" % (h, m, s))
+  logfile.write(  "-I- Finished sucsessfuly.\n")
+  logfile.write(  "-I- DONE\n")
 
-main()
   
+
+

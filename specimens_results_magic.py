@@ -173,12 +173,12 @@ def main():
     for critrec in crit_data: # get the selection criteria sorted out into dictionaries
 	if critrec["pmag_criteria_code"]=="DE-SPEC": SpecCrit=critrec
 	if critrec["pmag_criteria_code"]=="DE-SAMP": SampCrit=critrec
-	if critrec["pmag_criteria_code"]=="IE-SAMP": SampIntCrit=critrec
+	if "IE-SAMP" in critrec["pmag_criteria_code"]: SampIntCrit=critrec
 	if critrec["pmag_criteria_code"]=="IE-SITE": SiteIntCrit=critrec
 	if critrec["pmag_criteria_code"]=="DE-SITE": SiteCrit=critrec
 	if critrec["pmag_criteria_code"]=="NPOLE": NpoleCrit=critrec
 	if critrec["pmag_criteria_code"]=="RPOLE": RpoleCrit=critrec
-	if critrec["pmag_criteria_code"]=="IE-SPEC": 
+	if "IE-SPEC" in critrec["pmag_criteria_code"]: 
             SpecIntCrit=critrec
 	    accept_keys=['specimen_int_ptrm_n','specimen_md','specimen_fvds','specimen_b_beta','specimen_dang','specimen_drats','specimen_int_mad']
 	    accept={}

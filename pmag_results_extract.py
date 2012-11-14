@@ -109,9 +109,9 @@ def main():
         f1.write(outstring)
         if spec_file!="":
             if grade:
-                outstring='%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t %s\t%s\n'%("Specimen","MAD","Beta","N","Q","DANG","f\_vds","DRATS","T (C)",'Corrections','Grade')
+                outstring='%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t %s\t%s\n'%("Specimen","B (uT)","MAD","Beta","N","Q","DANG","f\_vds","DRATS","T (C)",'Corrections','Grade')
             else:
-                outstring='%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s \t%s\n'%("Specimen","MAD","Beta","N","Q","DANG","f\_vds","DRATS","T (C)",'Corrections')
+                outstring='%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s \t%s\n'%("Specimen","B (uT)","MAD","Beta","N","Q","DANG","f\_vds","DRATS","T (C)",'Corrections')
             fsp.write(outstring)
     else:
         f1.write('\\begin{table}\n')
@@ -122,14 +122,14 @@ def main():
         if spec_file!="":
             fsp.write('\\begin{table}\n')
             if grade:
-                fsp.write('\\begin{tabular}{rrrrrrrrrrr}\n')
+                fsp.write('\\begin{tabular}{rrrrrrrrrrrr}\n')
             else:
-                fsp.write('\\begin{tabular}{rrrrrrrrrr}\n')
+                fsp.write('\\begin{tabular}{rrrrrrrrrrr}\n')
             fsp.write('\hline\n')
             if grade:
-                outstring='%s & %s & %s & %s & %s & %s & %s & %s & %s & %s & %s\n'%("Specimen","MAD","Beta","N","Q","DANG","f\_vds","DRATS","T (C)",'Corrections',"Grade\\\\")
+                outstring='%s & %s & %s & %s & %s & %s & %s & %s & %s & %s & %s & %s\n'%("Specimen","B (uT)","MAD","Beta","N","Q","DANG","f\_vds","DRATS","T (C)",'Corrections',"Grade\\\\")
             else:
-                outstring='%s & %s & %s & %s & %s & %s & %s & %s  & %s & %s\n'%("Specimen","MAD","Beta","N","Q","DANG","f\_vds","DRATS","T (C)",'Corrections\\\\')
+                outstring='%s & %s & %s & %s & %s & %s & %s & %s  & %s & %s & %s\n'%("Specimen","B (uT)","MAD","Beta","N","Q","DANG","f\_vds","DRATS","T (C)",'Corrections\\\\')
             fsp.write(outstring)
             fsp.write('\hline\n')
     VDMs=pmag.get_dictitem(Sites,'vdm','','F')
@@ -185,15 +185,15 @@ def main():
             if corrections.strip()=="":corrections="None"
             if latex==0:
                 if grade:
-                    outstring='%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n'%(spec['er_specimen_name'],spec['specimen_int_mad'],spec['specimen_b_beta'],spec['specimen_int_n'],spec['specimen_q'],spec['specimen_dang'],spec['specimen_fvds'],spec['specimen_drats'],trange,corrections,spec['specimen_grade'])
+                    outstring='%s\t%7.1f\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n'%(spec['er_specimen_name'],float(spec['specimen_int'])*1e6,spec['specimen_int_mad'],spec['specimen_b_beta'],spec['specimen_int_n'],spec['specimen_q'],spec['specimen_dang'],spec['specimen_fvds'],spec['specimen_drats'],trange,corrections,spec['specimen_grade'])
                 else:
-                    outstring='%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n'%(spec['er_specimen_name'],spec['specimen_int_mad'],spec['specimen_b_beta'],spec['specimen_int_n'],spec['specimen_q'],spec['specimen_dang'],spec['specimen_fvds'],spec['specimen_drats'],trange,corrections)
+                    outstring='%s\t%7.1f\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n'%(spec['er_specimen_name'],float(spec['specimen_int'])*1e6,spec['specimen_int_mad'],spec['specimen_b_beta'],spec['specimen_int_n'],spec['specimen_q'],spec['specimen_dang'],spec['specimen_fvds'],spec['specimen_drats'],trange,corrections)
                 fsp.write(outstring)
             else: 
                 if grade:
-                    outstring='%s & %s & %s & %s & %s & %s & %s & %s & %s & %s & %s \n'%(spec['er_specimen_name'],spec['specimen_int_mad'],spec['specimen_b_beta'],spec['specimen_int_n'],spec['specimen_q'],spec['specimen_dang'],spec['specimen_fvds'],spec['specimen_drats'],trange,corrections,spec['specimen_grade']+'\\\\')
+                    outstring='%s & %7.1f& %s & %s & %s & %s & %s & %s & %s & %s & %s & %s \n'%(spec['er_specimen_name'],float(spec['specimen_int'])*1e6,spec['specimen_int_mad'],spec['specimen_b_beta'],spec['specimen_int_n'],spec['specimen_q'],spec['specimen_dang'],spec['specimen_fvds'],spec['specimen_drats'],trange,corrections,spec['specimen_grade']+'\\\\')
                 else:
-                    outstring='%s & %s & %s & %s & %s & %s & %s & %s & %s & %s \n'%(spec['er_specimen_name'],spec['specimen_int_mad'],spec['specimen_b_beta'],spec['specimen_int_n'],spec['specimen_q'],spec['specimen_dang'],spec['specimen_fvds'],spec['specimen_drats'],trange,corrections+'\\\\')
+                    outstring='%s & %7.1f& %s & %s & %s & %s & %s & %s & %s & %s & %s \n'%(spec['er_specimen_name'],float(spec['specimen_int'])*1e6,spec['specimen_int_mad'],spec['specimen_b_beta'],spec['specimen_int_n'],spec['specimen_q'],spec['specimen_dang'],spec['specimen_fvds'],spec['specimen_drats'],trange,corrections+'\\\\')
                 fsp.write(outstring)
     # 
     if latex==1:

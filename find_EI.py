@@ -60,6 +60,7 @@ def main():
         -i allows interactive input of file name
         -f FILE specify input file name
         -nb N specify number of bootstraps - the more the better, but slower!, default is 1000
+        -fmt [svg,png,eps,pdf..] change plot format, default is svg
 
     INPUT
         dec/inc pairs, delimited with space or tabs
@@ -71,7 +72,7 @@ def main():
                          Estimate from original data set plotted as solid line
 
     """
-    nb=1000
+    fmt,nb='svg',1000
     if '-i' in sys.argv:
         file=raw_input("Enter file name for processing: ")
     elif '-f' in sys.argv:
@@ -83,6 +84,9 @@ def main():
     if '-nb' in sys.argv:
         ind=sys.argv.index('-nb')
         nb=int(sys.argv[ind+1])
+    if '-fmt' in sys.argv:
+        ind=sys.argv.index('-fmt')
+        fmt=sys.argv[ind+1]
     data=numpy.loadtxt(file)
     upper,lower=int(round(.975*nb)),int(round(.025*nb))
     E,I=[],[]
@@ -132,9 +136,9 @@ def main():
        print "\n Good bye\n"
        sys.exit()
     files={}
-    files['eq']='findEI_eq.svg'
-    files['ei']='findEI_ei.svg'
-    files['cdf']='findEI_cdf.svg'
-    files['v2']='findEI_v2.svg'
+    files['eq']='findEI_eq.'+fmt
+    files['ei']='findEI_ei.'+fmt
+    files['cdf']='findEI_cdf.'+fmt
+    files['v2']='findEI_v2.'+fmt
     pmagplotlib.saveP(PLTS,files)
 main()
