@@ -1163,15 +1163,15 @@ def spec_combine():
             outstring=outstring + " -ANI " # do anisotropy correction
             ani=1
         os.system(outstring)
-      #      print outstring
-      #      replacestring='replace_AC_specimens.py  -WD '+'"'+opath+'"'
-      #      print "CAUTION: replacing thellier data with anisotropy corrected data"
-      #      print replacestring
-      #      os.system(replacestring)
-      #      filestring=filestring+' TorAC_specimens.txt '
-      #  else:
-           # os.system(outstring)
-           # print outstring
+        print outstring
+        #    replacestring='replace_AC_specimens.py  -WD '+'"'+opath+'"'
+        #    print "CAUTION: replacing thellier data with anisotropy corrected data"
+        #    print replacestring
+        #    os.system(replacestring)
+        #    filestring=filestring+' TorAC_specimens.txt '
+        #else:
+        #    os.system(outstring)
+        #    print outstring
     if len(filestring.split())>1:
         outstring='combine_magic.py -WD '+'"'+opath+'"'+' -F pmag_specimens.txt '+filestring +'\n'
         print outstring
@@ -1621,8 +1621,6 @@ def add_mag(ftype):
         except IOError:
             logfile=open(opath+"/measurements.log",'w')
             logfile.write(basename+".magic" +" | " + outstring+"\n")
-
-
 
 def add_uu():
     global fpath,basename,Edict
@@ -2974,7 +2972,7 @@ def create_menus():
     plotmenu.add_command(label="Demagnetization data ",command=zeq)
 #    plotmenu.add_command(label="Demagnetization GUI",command=zeq_gui)
     plotmenu.add_command(label="Thellier-type experiments",command=thellier)
-#    plotmenu.add_command(label="Thellier GUI",command=thellier_gui)
+    plotmenu.add_command(label="Thellier GUI",command=thellier_gui)
 #    plotmenu.add_command(label="Microwave experiments",command=microwave)
     eqareamenu=Menu(plotmenu)
     eqareamenu.add_command(label="Quick look - NRM directions",command=quick_look)

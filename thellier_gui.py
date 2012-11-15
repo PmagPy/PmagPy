@@ -1509,7 +1509,7 @@ class Arai_GUI(wx.Frame):
 
         #specimen_bound
         Fout_specimens_bounds=open("./"+"/thellier_interpreter/thellier_interpreter_specimens_bounds.txt",'w')
-        String="Slecetion criteria:\n"
+        String="Selection criteria:\n"
         for key in accept_specimen_keys:
                 String=String+key+"\t"
         Fout_specimens_bounds.write(String[:-1]+"\n")
@@ -1546,7 +1546,7 @@ class Arai_GUI(wx.Frame):
             #        String=String+"%s\t"%self.accept_new_parameters[key]                
             #Fout_STDEV_OPT_samples.write(String[:-1]+"\n")
 
-            String="Slecetion criteria:\n"
+            String="Selection criteria:\n"
             for key in self.accept_new_parameters.keys():
                 if "sample" in key:
                     String=String+key+"\t"
@@ -1747,7 +1747,7 @@ class Arai_GUI(wx.Frame):
                 else:
                     AC_correction_factor=1.
                     AC_correction_type="-"
-                    WARNING="WARNING: No Anistropy correction"
+                    WARNING="WARNING: No anisotropy correction"
                 
                 B_anc=pars['specimen_int_uT']
                     
@@ -2128,14 +2128,14 @@ class Arai_GUI(wx.Frame):
             if criteria in self.low_threshold_velue_list and float(self.accept_new_parameters[criteria])<0.1:
                 specimen_criteria_list.remove(criteria)                
 
-        header=""
+        header="pmag_criteria_code\t"
         for key in sample_criteria_list:
             header=header+key+"\t"
         for key in specimen_criteria_list:
             header=header+key+"\t"
         fout.write(header+"specimen_scat\n")
 
-        line=""
+        line="IE-SPEC:IE-SAMP\t"
         for key in sample_criteria_list:
             if key in ['sample_bs','sample_bs_par','sample_stdev_opt']:
                 line=line+"%s"%str(self.accept_new_parameters[key])+"\t"
@@ -2151,8 +2151,7 @@ class Arai_GUI(wx.Frame):
             
         fout.write(line[:-1]+"\n")
         fout.close()
-        
-        
+            
     #----------------------------------------------------------------------            
 
     def on_menu_run_optimizer(self, event):
@@ -3474,6 +3473,7 @@ class Arai_GUI(wx.Frame):
 
       accept_new_parameters_null['sample_int_sigma_uT']=0
       accept_new_parameters_null['sample_int_sigma_perc']=0
+      accept_new_parameters_null['sample_int_n_outlier_check']=100000
 
       
       #print accept_new_parameters_default
@@ -3607,7 +3607,7 @@ class Arai_GUI(wx.Frame):
           anis_data,file_type=pmag.magic_read(self.WD+'/rmag_anisotropy.txt')
           self.GUI_log.write( "-I- Anisotropy data read  %s/from rmag_anisotropy.txt\n"%self.WD)
       except:
-          self.GUI_log.write("-W- WARNING cant find rmag_anistropy in working directory\n")
+          self.GUI_log.write("-W- WARNING cant find rmag_anisotropy in working directory\n")
           
       for AniSpec in anis_data:
           s=AniSpec['er_specimen_name']
@@ -4190,7 +4190,11 @@ class Criteria_Dialog(wx.Dialog):
                     'sample_int_BS_68_uT','sample_int_BS_95_uT','sample_int_BS_68_perc','sample_int_BS_95_perc']:
             #print "ron key",key
             if key in ['sample_int_n','sample_int_n_outlier_check']:
-                Value="%.0f"%self.accept_new_parameters[key]
+                if self.accept_new_parameters[key]<100:
+                    Value="%.0f"%self.accept_new_parameters[key]
+                else:
+                    Value=""
+                    
             elif key in ['sample_stdev_opt','sample_bs','sample_bs_par']:
                 Value=self.accept_new_parameters[key]
                 if Value==False: continue            
