@@ -74,14 +74,18 @@ class Arai_GUI(wx.Frame):
     def get_DIR(self):
         """ Choose a working directory dialog
         """
-        dialog = wx.DirDialog(None, "Choose a directory:",defaultPath = self.currentDirectory ,style=wx.DD_DEFAULT_STYLE | wx.DD_NEW_DIR_BUTTON | wx.DD_CHANGE_DIR)
-        if dialog.ShowModal() == wx.ID_OK:
-          self.WD=dialog.GetPath()
+        if "-WD" in sys.argv:
+            ind=sys.argv.index('-WD')
+            self.WD=sys.argv[ind+1] 
+        else:   
+            dialog = wx.DirDialog(None, "Choose a directory:",defaultPath = self.currentDirectory ,style=wx.DD_DEFAULT_STYLE | wx.DD_NEW_DIR_BUTTON | wx.DD_CHANGE_DIR)
+            if dialog.ShowModal() == wx.ID_OK:
+              self.WD=dialog.GetPath()
+            dialog.Destroy()
         self.magic_file=self.WD+"/"+"magic_measurements.txt"
-        dialog.Destroy()
-
-        #intialize GUI_log
+            #intialize GUI_log
         self.GUI_log=open("%s/Thellier_GUI.log"%self.WD,'w')
+        self.GUI_log=open("%s/Thellier_GUI.log"%self.WD,'a')
         
     def Main_Frame(self):
         """ Build main frame od panel: buttons, etc.
@@ -1119,64 +1123,86 @@ class Arai_GUI(wx.Frame):
             line=fin.readline()
             header=line.strip('\n').split('\t')
             for L in fin.readlines():
+                print L
                 line=L.strip('\n').split('\t')
+                print line
                 for i in range(len(header)):
-                    if "pmag_criteria_code" in header:
-                        index=header.index("pmag_criteria_code")
-                        if line[index]=="IE-SPEC":
-                         
-                            # search for specimens criteria:
-                            if header[i] in self.high_threshold_velue_list and float(line[i])<100:
-                                replace_acceptance_criteria[header[i]]=float(line[i])                    
-                            elif header[i] in self.low_threshold_velue_list and float(line[i])>0.01:
-                                replace_acceptance_criteria[header[i]]=float(line[i])
-
-                            # scat parametr (true/false)
-                            elif header[i] == 'specimen_scat' and ( line[i]=='True' or line[i]=='TRUE' or line[i]==True):
-                                replace_acceptance_criteria[specimen_scat]=True
-                            elif header[i] == 'specimen_scat' and ( line[i]=='False' or line[i]=='FALSE' or line[i]==False):
-                                replace_acceptance_criteria[specimen_scat]=False
-                        if line[index]=="IE-SAMP":
-                            # search for sample criteria:
-                            if header[i] in ['sample_int_n','sample_int_sigma_uT','sample_int_sigma_perc','sample_int_interval_uT','sample_int_interval_perc','sample_int_n_outlier_check']:
-                                replace_acceptance_criteria[header[i]]=float(line[i])
-                            if header[i] == "sample_int_sigma":
-                                replace_acceptance_criteria['sample_int_sigma']=float(line[i])*1e-6
-                                replace_acceptance_criteria['sample_int_sigma_uT']=float(line[i])*1e6
-                                                                
-                    else:
-                        #print header[i],line[i]
-                        # search for specimens criteria:
-                        if header[i] in self.high_threshold_velue_list and float(line[i])<100:
-                            replace_acceptance_criteria[header[i]]=float(line[i])                    
-                        if header[i] in self.low_threshold_velue_list and float(line[i])>0.01:
-                            replace_acceptance_criteria[header[i]]=float(line[i])
+    ##                if "pmag_criteria_code" in header:
+    ##                    index=header.index("pmag_criteria_code")
+    ##                    if line[index]=="IE-SPEC" or line[index]=="IE-SAMP:IE-SPEC" :
+    ##                        print line[index]
+    ##                        print header[i]
+    ##                     
+    ##                        # search for specimens criteria:
+    ##                        if header[i] in self.high_threshold_velue_list and float(line[i])<100:
+    ##                            print header[i],"replaced"
+    ##                            replace_acceptance_criteria[header[i]]=float(line[i])                    
+    ##                        elif header[i] in self.low_threshold_velue_list and float(line[i])>0.01:
+    ##                            print header[i],"replaced"
+    ##                            replace_acceptance_criteria[header[i]]=float(line[i])
+    ##
+    ##                        # scat parametr (true/false)
+    ##                        elif header[i] == 'specimen_scat' and ( line[i]=='True' or line[i]=='TRUE' or line[i]==True):
+    ##                            replace_acceptance_criteria[specimen_scat]=True
+    ##                        elif header[i] == 'specimen_scat' and ( line[i]=='False' or line[i]=='FALSE' or line[i]==False):
+    ##                            replace_acceptance_criteria[specimen_scat]=False
+    ##                    if line[index]=="IE-SAMP"  or line[index]=="IE-SAMP:IE-SPEC" :
+    ##                        # search for sample criteria:
+    ##                        if header[i] in ['sample_int_n','sample_int_sigma_uT','sample_int_sigma_perc','sample_int_interval_uT','sample_int_interval_perc','sample_int_n_outlier_check']:
+    ##                            replace_acceptance_criteria[header[i]]=float(line[i])
+    ##                        if header[i] == "sample_int_sigma":
+    ##                            replace_acceptance_criteria['sample_int_sigma']=float(line[i])*1e-6
+    ##                            replace_acceptance_criteria['sample_int_sigma_uT']=float(line[i])*1e6
+    ##                                                            
+    ##                else:
+    ##                    #print header[i],line[i]
+    ##                    # search for specimens criteria:
+                        if header[i] in self.high_threshold_velue_list:
+                            try:
+                                if float(line[i])<100:
+                                    replace_acceptance_criteria[header[i]]=float(line[i])
+                            except:
+                                pass
+                        if header[i] in self.low_threshold_velue_list:
+                            try:
+                                if float(line[i])>0.01:
+                                    replace_acceptance_criteria[header[i]]=float(line[i])
+                            except:
+                                pass
 
                         # scat parametr (true/false)
                         if header[i] == 'specimen_scat' and ( line[i]=='True' or line[i]=='TRUE' or line[i]==True):
-                            replace_acceptance_criteria['specimen_scat']=True
+                                replace_acceptance_criteria['specimen_scat']=True
                         if header[i] == 'specimen_scat' and ( line[i]=='False' or line[i]=='FALSE' or line[i]==False):
-                            replace_acceptance_criteria['specimen_scat']=False
-                            
+                                replace_acceptance_criteria['specimen_scat']=False
+
                         # search for sample criteria:
                         if header[i] in ['sample_int_n','sample_int_sigma_uT','sample_int_sigma_perc','sample_int_interval_uT','sample_int_interval_perc','sample_int_n_outlier_check',\
                                          'specimen_int_max_slope_diff','specimen_int_BS_68_uT','specimen_int_BS_95_uT','specimen_int_BS_68_perc','specimen_int_BS_95_perc']:
-                            replace_acceptance_criteria[header[i]]=float(line[i])                    
+                            try:
+                                replace_acceptance_criteria[header[i]]=float(line[i])
+                            except:
+                                pass
                         if header[i] == "sample_int_sigma":
-                            replace_acceptance_criteria['sample_int_sigma']=float(line[i])*1e-6
-                            replace_acceptance_criteria['sample_int_sigma_uT']=float(line[i])*1e6
+                            try:
+                                replace_acceptance_criteria['sample_int_sigma']=float(line[i])*1e-6
+                                replace_acceptance_criteria['sample_int_sigma_uT']=float(line[i])*1e6
+                            except:
+                                pass
                         if header[i] in ["sample_bs_par","sample_bs","sample_stdev_opt"]:
                             if line[i]==True or line[i] in ["True","TRUE","1"]:
                                 replace_acceptance_criteria[header[i]]=True
-                            
-
+                                
+            if  replace_acceptance_criteria["sample_bs_par"]==False and replace_acceptance_criteria["sample_bs"]==False and replace_acceptance_criteria["sample_stdev_opt"]==False:
+                replace_acceptance_criteria["sample_stdev_opt"]=True
+            
             fin.close()
             return(replace_acceptance_criteria)
         
+        #except:
+        #    self.GUI_log.write("-W- Cant read Criteria file from path\n")
+        #    self.GUI_log.write("-I- using default criteria\n")
         except:
-            self.GUI_log.write("-W- Cant read Criteria file from path\n")
-            self.GUI_log.write("-I- using default criteria\n")
-
             return(default_acceptance_criteria)
 
     #----------------------------------------------------------------------
@@ -1475,12 +1501,12 @@ class Arai_GUI(wx.Frame):
 
         self.write_acceptance_criteria_to_file()
         try:
-            shutil.rmtree("./thellier_interpreter")
+            shutil.rmtree(self.WD+"/thellier_interpreter")
         except:
             pass
 
         try:
-            os.mkdir("./thellier_interpreter")
+            os.mkdir(self.WD+"/thellier_interpreter")
         except:
             pass
 
@@ -1495,11 +1521,11 @@ class Arai_GUI(wx.Frame):
         #------------------------------------------------
 
         # log file
-        thellier_interpreter_log=open(self.WD+"/"+"./thellier_interpreter//thellier_interpreter.log",'w')
+        thellier_interpreter_log=open(self.WD+"/"+"/thellier_interpreter//thellier_interpreter.log",'w')
         thellier_interpreter_log.write("-I- Start auto interpreter\n")
 
         # "all grade A interpretation
-        thellier_interpreter_all=open("./"+"/thellier_interpreter/thellier_interpreter_all.txt",'w')
+        thellier_interpreter_all=open(self.WD+"/thellier_interpreter/thellier_interpreter_all.txt",'w')
         thellier_interpreter_all.write("tab\tpmag_specimens\n")
         String="er_specimen_name\tmeasurement_step_min\tmeasurement_step_max\tspecimen_lab_field_dc_uT\tspecimen_int_corr_anisotropy\tspecimen_int_corr_nlt\tspecimen_int_uT\t"
         for key in accept_specimen_keys:
@@ -1508,7 +1534,7 @@ class Arai_GUI(wx.Frame):
         thellier_interpreter_all.write(String)
 
         #specimen_bound
-        Fout_specimens_bounds=open("./"+"/thellier_interpreter/thellier_interpreter_specimens_bounds.txt",'w')
+        Fout_specimens_bounds=open(self.WD+"/thellier_interpreter/thellier_interpreter_specimens_bounds.txt",'w')
         String="Selection criteria:\n"
         for key in accept_specimen_keys:
                 String=String+key+"\t"
@@ -1526,16 +1552,16 @@ class Arai_GUI(wx.Frame):
 
         # STDEV-OPT output files
         if self.accept_new_parameters['sample_stdev_opt']:
-            Fout_STDEV_OPT_redo=open("./"+"/thellier_interpreter/thellier_interpreter_STDEV-OPT_redo",'w')
+            Fout_STDEV_OPT_redo=open(self.WD+"/thellier_interpreter/thellier_interpreter_STDEV-OPT_redo",'w')
 
-            Fout_STDEV_OPT_specimens=open("./"+"/thellier_interpreter/thellier_interpreter_STDEV-OPT_specimens.txt",'w')
+            Fout_STDEV_OPT_specimens=open(self.WD+"/thellier_interpreter/thellier_interpreter_STDEV-OPT_specimens.txt",'w')
             Fout_STDEV_OPT_specimens.write("tab\tpmag_specimens\n")
             String="er_sample_name\ter_specimen_name\tspecimen_int_uT\tmeasurement_step_min\tmeasurement_step_min\tspecimen_lab_field_dc\tAnisotropy_correction_factor\tNLT_correction_factor\t"
             for key in accept_specimen_keys:
                 String=String+key+"\t"        
             Fout_STDEV_OPT_specimens.write(String[:-1]+"\n")
 
-            Fout_STDEV_OPT_samples=open("./"+"/thellier_interpreter/thellier_interpreter_STDEV-OPT_samples.txt",'w')
+            Fout_STDEV_OPT_samples=open(self.WD+"/thellier_interpreter/thellier_interpreter_STDEV-OPT_samples.txt",'w')
             #Fout_STDEV_OPT_samples.write(String[:-1]+"\n")
             #Fout_STDEV_OPT_samples.write("---------------------------------\n")
             #String=""
@@ -1576,14 +1602,14 @@ class Arai_GUI(wx.Frame):
         # simple bootstrap output files
            
         if self.accept_new_parameters['sample_bs']:
-           Fout_BS_samples=open("./"+"/thellier_interpreter/thellier_interpreter_BS_samples.txt",'w')
+           Fout_BS_samples=open(self.WD+"/thellier_interpreter/thellier_interpreter_BS_samples.txt",'w')
            Fout_BS_samples.write(String[:-1]+"\n")
            Fout_BS_samples.write("---------------------------------\n")
            Fout_BS_samples.write("er_sample_name\tsample_int_n\tsample_int_uT\tsample_int_68_low\tsample_int_68_high\tsample_int_95_low\tsample_int_95_high\tsample_int_sigma_uT\tsample_int_sigma_perc\tWARNING\n")
         # parameteric bootstrap output files
 
         if self.accept_new_parameters['sample_bs_par']:
-           Fout_BS_PAR_samples=open("./"+"/thellier_interpreter/thellier_interpreter_BS-PAR_samples.txt",'w')
+           Fout_BS_PAR_samples=open(self.WD+"/thellier_interpreter/thellier_interpreter_BS-PAR_samples.txt",'w')
            Fout_BS_PAR_samples.write(String[:-1]+"\n") 
            Fout_BS_PAR_samples.write("---------------------------------\n")
            Fout_BS_PAR_samples.write("er_sample_name\tsample_int_n\tsample_int_uT\tsample_int_68_low\tsample_int_68_high\tsample_int_95_low\tsample_int_95_high\tsample_int_sigma_uT\tsample_int_sigma_perc\tWARNING\n")
@@ -3463,7 +3489,7 @@ class Arai_GUI(wx.Frame):
       # NULL  
       for key in ( accept_new_parameters_default.keys()):
           accept_new_parameters_null[key]=accept_new_parameters_default[key]
-      accept_new_parameters_default['sample_stdev_opt']=False
+      accept_new_parameters_null['sample_stdev_opt']=False
       accept_new_parameters_null['specimen_frac']=0
       accept_new_parameters_null['specimen_gap_max']=1000
       accept_new_parameters_null['specimen_b_beta']=10000

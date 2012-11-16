@@ -1090,12 +1090,12 @@ def site_edit():
     except:
         pass
     
-    
-def spec_combine():
+   
+def anispec_combine():
+    filelist=os.listdir(opath)
     filestring=" -f "
     rmag_anisotropy_instring=""
     rmag_results_instring=""
-    filelist=os.listdir(opath)
     if 'aarm_measurements.txt' in filelist:
         aarmfile=open(opath+"/aarm_measurements.txt",'r')
         outstring='aarm_magic.py -WD '+'"'+opath+'"'
@@ -1110,6 +1110,7 @@ def spec_combine():
         os.system(outstring)
         rmag_anisotropy_instring=rmag_anisotropy_instring+' trm_anisotropy.txt '
         rmag_results_instring=rmag_results_instring+' atrm_results.txt '
+    if 'ams_anisotropy' in filelist: rmag_anisotropy_instring=rmag_anisotorpy_instring+' ams_anisotropy.txt '
     if rmag_anisotropy_instring!="":
         rmag_outstring='combine_magic.py -WD '+'"'+opath+'"' + ' -F rmag_anisotropy.txt -f '+rmag_anisotropy_instring
         print rmag_outstring
@@ -1117,6 +1118,10 @@ def spec_combine():
         rmag_outstring='combine_magic.py -WD '+'"'+opath+'"' + ' -F rmag_results.txt -f '+rmag_results_instring
         print rmag_outstring
         os.system(rmag_outstring)
+
+def spec_combine():
+    anispec_combine()
+    filelist=os.listdir(opath)
     if 'zeq_specimens.txt' in filelist:
         open(opath+'/zeq_specimens.txt','r')
         outstring="mk_redo.py -f zeq_specimens.txt -F zeq_redo -WD "+'"'+opath+'"'
@@ -1214,7 +1219,6 @@ def meas_combine():
         outstring='combine_magic.py -WD '+'"'+opath+'"'+' -F magic_measurements.txt '+filestring
         print outstring
         os.system(outstring)
-#        tkMessageBox.showinfo("Info",'all magic files combined into magic_measurements.txt \n Check command window for errors')
         log=1
     except IOError:
         pass
@@ -1243,7 +1247,6 @@ def meas_combine():
         outstring='combine_magic.py -WD '+'"'+opath+'"'+' -F er_sites.txt '+filestring
         print outstring
         os.system(outstring)
-#        tkMessageBox.showinfo("Info",'all magic files combined \n Check command window for errors')
         log=1
     except IOError:
         pass
@@ -1279,10 +1282,10 @@ def meas_combine():
             outstring='combine_magic.py -WD '+'"'+opath+'"'+' -F atrm_measurements.txt '+filestring
             print outstring
             os.system(outstring)
-#        tkMessageBox.showinfo("Info",'all ARM anisotropy files combined into aarm_measurements.txt \n Check command window for errors.')
         log=1
     except IOError:
         pass
+    ams=0
     try:
         logfile=open(opath+"/ams.log",'r')
         filestring="-f "
@@ -1292,14 +1295,14 @@ def meas_combine():
             if file not in files:files.append(file)
         for file in files:
             filestring=filestring + file + ' '
-        outstring='combine_magic.py -WD '+'"'+opath+'"'+' -F rmag_anisotropy.txt '+filestring
+        outstring='combine_magic.py -WD '+'"'+opath+'"'+' -F ams_anisotropy.txt '+filestring
         print outstring
         os.system(outstring)
-#        tkMessageBox.showinfo("Info",'all anisotropy files combined into rmag_anisotropy.txt \n Check command window for errors.')
-        log=1
+        log,ams=1,1
     except IOError:
         pass
     if log==0: tkMessageBox.showinfo("Info",'no log files!')
+    if len(atrm_files)>0 or len(aarm_files)>0: anispec_combine()
 
 def add_cit():
     global MAG
@@ -1362,13 +1365,16 @@ def add_cit():
         logfile.write("er_samples.txt/er_sites.txt | " + outstring+"\n")
 
 
+def add_specimen(): # imports a pmag_specimen formatted file
+    basename,fpath=copy_text_file("Select pmag_specimen.txt file to import - Will overwrite existing interpretations!")
+    spec_combine() # assemble the specimen data
+
 def add_redo():
-    try:
-        open(opath+'/magic_measurements.txt','r')
-    except IOError:
+    files=os.listdir(opath)
+    if 'magic_measurements.txt' not in files:
         tkMessageBox.showinfo("Info","You must Combine Measurments first!")
         return
-    lpath=tkFileDialog.askopenfilename(title="Select 'redo' file:")
+    basename,lpath=copy_text_file("Select 'redo' format file: ")
     infile=open(lpath,'rU').readlines()
     if '\t' in infile[0]:
         line=infile[0].split('\t')
@@ -1378,19 +1384,11 @@ def add_redo():
         file='zeq_redo'
     else:
         file='thellier_redo'
-    ofile=opath+'/'+file
-    out=open(ofile,'w')
-    for line in infile:
-        out.write(line)
-    out.close()
-    print lpath,' copied to ',ofile
     filelist=[]
-    try:
+    if 'specimens.log' in files:
         logfile=open(opath+"/specimens.log",'r')
         for line in logfile.readlines():
             if line.split()[0] not in filelist:filelist.append(line.split()[0])
-    except IOError:
-        pass
     if file=='zeq_redo':
         outstring='zeq_magic_redo.py -WD '+'"'+opath+'"'
         if "zeq_specimens.txt" not in filelist:filelist.append("zeq_specimens.txt")
@@ -1401,13 +1399,11 @@ def add_redo():
     for file in filelist:
         logfile.write(file+'\n') 
     logfile.close()
-    try:
-        open(opath+'/pmag_criteria.txt','r')
+    if 'pmag_criteria.txt' in files:
         outstring=outstring+' -fcr pmag_criteria.txt '
-    except:
-        pass
     print outstring
     os.system(outstring)
+    os.remove(opath+'/'+basename)
 
 def add_DIR_ascii():
     try:
@@ -2055,7 +2051,6 @@ def add_ucsc():
     out.close()
     outstring='UCSC_magic.py -WD '+'"'+opath+'"'+ ' -F '+basename+'.magic'+' -f '+ file
     os.system(outstring)
-#    tkMessageBox.showinfo("Info",basename+' imported to MagIC, saved in magic_measurements format and added to ams.log  \n Check command window for errors')
 
 
 
@@ -2292,6 +2287,23 @@ def thellier_gui():
     outstring='thellier_gui.py -WD '+opath
     print outstring
     os.system(outstring)
+    files=os.listdir(opath)
+    if 'thellier_GUI.redo' in files: # check for a thellier_GUI.redo file
+        outstring='thellier_magic_redo.py -WD '+'"'+opath+'"' +' -fre thellier_GUI.redo'
+        print outstring
+        os.system(outstring)
+        if 'pmag_criteria.txt' in files: outstring=outstring+' -fcr pmag_criteria.txt '
+        filelist=[]
+        if "thellier_specimens.txt" not in filelist:filelist.append("thellier_specimens.txt")
+        if 'specimen.log' in files:
+            logfile=open(opath+"/specimens.log",'r')
+            for line in logfile.readlines():
+                if line.split()[0] not in filelist:filelist.append(line.split()[0])
+            logfile=open(opath+"/specimens.log",'w')
+        for file in filelist:
+            logfile.write(file+'\n')
+        logfile.close()
+        os.remove(opath+'/thellier_GUI.redo')
 
 def thellier():
     filelist=os.listdir(opath)
@@ -2960,7 +2972,7 @@ def create_menus():
     prior=Menu(importmenu)
     importmenu.add_cascade(label="Import prior interpretations",menu=prior)
     prior.add_command(label="PmagPy redo file",command=add_redo)
-#    prior.add_command(label="MagIC format specimen  file",command=add_specimen)
+    prior.add_command(label="MagIC format specimen  file",command=add_specimen)
 #    prior.add_command(label="DIR (Enkin) file",command=add_DIR_ascii)
 #    prior.add_command(label="LSQ (Jones/PaleoMag) file",command=add_LSQ)
 #    prior.add_command(label="PMM (USCS) file",command=add_PMM)
@@ -2971,8 +2983,10 @@ def create_menus():
     plotmenu.add_separator()
     plotmenu.add_command(label="Demagnetization data ",command=zeq)
 #    plotmenu.add_command(label="Demagnetization GUI",command=zeq_gui)
-    plotmenu.add_command(label="Thellier-type experiments",command=thellier)
-    plotmenu.add_command(label="Thellier GUI",command=thellier_gui)
+    thelliermenu=Menu(plotmenu)
+    thelliermenu.add_command(label="thellier_magic program",command=thellier)
+    thelliermenu.add_command(label="Thellier GUI",command=thellier_gui)
+    plotmenu.add_cascade(label="Thellier-type experiments",menu=thelliermenu)
 #    plotmenu.add_command(label="Microwave experiments",command=microwave)
     eqareamenu=Menu(plotmenu)
     eqareamenu.add_command(label="Quick look - NRM directions",command=quick_look)

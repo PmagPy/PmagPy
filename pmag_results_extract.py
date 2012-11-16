@@ -175,7 +175,8 @@ def main():
     # put specimen level data here!  
     if spec_file!="": 
         Specs,file_type=pmag.magic_read(spec_file)
-        for spec in Specs:
+        SpecsInts=pmag.get_dictitem(Specs,'specimen_int','','F') 
+        for spec in SpecsInts:
             trange= '%i'%(int(float(spec['measurement_step_min'])-273))+'-'+'%i'%(int(float(spec['measurement_step_max'])-273))
             meths=spec['magic_method_codes'].split(':')
             corrections=''
