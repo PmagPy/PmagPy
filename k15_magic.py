@@ -251,6 +251,7 @@ def main():
                     ResRec["anisotropy_v2_zeta_semi_angle"]='%7.1f'%(hpars['e23'])
                     ResRec["anisotropy_v3_eta_semi_angle"]='%7.1f'%(hpars['e13'])
                     ResRec["anisotropy_v3_zeta_semi_angle"]='%7.1f'%(hpars['e23'])
+                    ResRec["result_description"]='Critical F: '+hpars["F_crit"]+';Critical F12/F13: '+hpars["F12_crit"]
                     ResRecs.append(ResRec)
                     if igeo==1: 
                         sbarg=pmag.dosgeo(sbar,az,pl) 
@@ -283,6 +284,7 @@ def main():
                         ResRecG['anisotropy_v3_eta_inc']=ResRecG['anisotropy_v1_inc']
                         ResRecG['anisotropy_v3_zeta_dec']=ResRecG['anisotropy_v2_dec']
                         ResRecG['anisotropy_v3_zeta_inc']=ResRecG['anisotropy_v2_inc']
+                        ResRecG["result_description"]='Critical F: '+hpars["F_crit"]+';Critical F12/F13: '+hpars["F12_crit"]
                         ResRecs.append(ResRecG)
                         AnisRecs.append(AnisRecG)
                     if itilt==1: 
@@ -316,6 +318,7 @@ def main():
                         ResRecT['anisotropy_v3_zeta_dec']=ResRecT['anisotropy_v2_dec']
                         ResRecT['anisotropy_v3_zeta_inc']=ResRecT['anisotropy_v2_inc']
                         ResRecT["anisotropy_tilt_correction"]='100'
+                        ResRecT["result_description"]='Critical F: '+hpars["F_crit"]+';Critical F12/F13: '+hpars["F12_crit"]
                         ResRecs.append(ResRecT)
                         AnisRecs.append(AnisRecT)
                     k15,linecnt=[],0

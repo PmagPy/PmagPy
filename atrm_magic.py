@@ -214,6 +214,7 @@ def main():
             RmagResRec["anisotropy_ftest"]='%7.1f '%(hpars["F"])
             RmagResRec["anisotropy_ftest12"]='%7.1f '%(hpars["F12"])
             RmagResRec["anisotropy_ftest23"]='%7.1f '%(hpars["F23"])
+            RmagResRec["result_description"]='Critical F: '+hpars["F_crit"]+';Critical F12/F13: '+hpars["F12_crit"]
             if hpars["e12"]>hpars["e13"]:
                 RmagResRec["anisotropy_v1_zeta_semi_angle"]='%7.1f '%(hpars['e12'])
                 RmagResRec["anisotropy_v1_zeta_dec"]='%7.1f '%(hpars['v2_dec'])

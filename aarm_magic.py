@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-import sys,pmag,math,numpy
+import sys,pmag,numpy
 def main():
     """
     NAME
@@ -177,7 +177,7 @@ def main():
                 S+=d*d
             nf=float(npos*3-6) # number of degrees of freedom
             if S >0: 
-                sigma=math.sqrt(S/nf)
+                sigma=numpy.sqrt(S/nf)
             else: sigma=0
             RmagSpecRec["rmag_anisotropy_name"]=data[0]["er_specimen_name"]
             RmagSpecRec["er_location_name"]=data[0]["er_location_name"]
@@ -264,6 +264,7 @@ def main():
             RmagResRec["anisotropy_ftest"]='%7.1f '%(hpars["F"])
             RmagResRec["anisotropy_ftest12"]='%7.1f '%(hpars["F12"])
             RmagResRec["anisotropy_ftest23"]='%7.1f '%(hpars["F23"])
+            RmagResRec["result_description"]='Critical F: '+hpars["F_crit"]+';Critical F12/F13: '+hpars["F12_crit"]
             if hpars["e12"]>hpars["e13"]:
                 RmagResRec["anisotropy_v1_zeta_semi_angle"]='%7.1f '%(hpars['e12'])
                 RmagResRec["anisotropy_v1_zeta_dec"]='%7.1f '%(hpars['v2_dec'])

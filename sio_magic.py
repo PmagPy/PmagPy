@@ -78,18 +78,21 @@ def main():
                 X.00  baseline step (AF in zero bias field - high peak field)
                 X.1   ARM step (in field step)  where
                    X is the step number in the 15 position scheme 
-                      (see Appendix to Lecture 13 - Lectures in Paleomagnetism, 2007)
+                      (see Appendix to Lecture 13 - http://magician.ucsd.edu/Essentials_2)
+              ATRM:
+                X.00 optional baseline
+                X.1 ATRM step (+X)
+                X.2 ATRM step (+Y)
+                X.3 ATRM step (+Z)
+                X.4 ATRM step (-X)
+                X.5 ATRM step (-Y)
+                X.6 ATRM step (-Z)
+                X.7 optional alteration check (+X)
+
               TRM:
                 XXX.YYY  XXX is temperature step of total TRM
                          YYY is dc field in microtesla
 
-              Shaw:
-                XXX.YY   XXX is AF field
-                    YY=00 is AF of NRM
-                    YY=01 is AF of ARM1
-                    YY=02 is AF of TRM
-                    YY=03 is AF of ARM2
-                specify temperature and field of Total TRM step on command line
          
          Intensity assumed to be total moment in 10^3 Am^2 (emu)
          Declination:  Declination in specimen coordinate system
@@ -104,8 +107,6 @@ def main():
                     measured in four positions)
              NMEAS: number of measurements in a single position (1,3,200...)
        
-      Format of LDGO files:   
-        SPEC TREAT INST CSD Intensity CDECL CINCL [GDECL GINCL BDECL BINCL SUSC ]
      
     """
 # initialize some stuff

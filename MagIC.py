@@ -1093,7 +1093,6 @@ def site_edit():
    
 def anispec_combine():
     filelist=os.listdir(opath)
-    filestring=" -f "
     rmag_anisotropy_instring=""
     rmag_results_instring=""
     if 'aarm_measurements.txt' in filelist:
@@ -1121,6 +1120,7 @@ def anispec_combine():
 
 def spec_combine():
     anispec_combine()
+    filestring=" -f "
     filelist=os.listdir(opath)
     if 'zeq_specimens.txt' in filelist:
         open(opath+'/zeq_specimens.txt','r')
@@ -1153,8 +1153,8 @@ def spec_combine():
             shutil.copyfile(opath+'/zeq_specimens.txt',opath+'/zeq_specimens_crd.txt')  # copy each data file to project directory
             filestring=filestring + ' zeq_specimens_crd.txt ' 
     if 'thellier_specimens.txt' in filelist:
-        open(opath+'/thellier_specimens.txt') # check for thellier data 
         filestring=filestring+' thellier_specimens.txt '
+        open(opath+'/thellier_specimens.txt') # check for thellier data 
         outstring="mk_redo.py -f thellier_specimens.txt -F thellier_redo  -WD "+'"'+opath+'"'
         os.system(outstring)
         print outstring
@@ -1177,6 +1177,8 @@ def spec_combine():
         #else:
         #    os.system(outstring)
         #    print outstring
+    if 'thellier_gui_specimens.txt' in filelist:
+        filestring=filestring+' thellier_gui_specimens.txt '
     if len(filestring.split())>1:
         outstring='combine_magic.py -WD '+'"'+opath+'"'+' -F pmag_specimens.txt '+filestring +'\n'
         print outstring
@@ -2288,22 +2290,22 @@ def thellier_gui():
     print outstring
     os.system(outstring)
     files=os.listdir(opath)
-    if 'thellier_GUI.redo' in files: # check for a thellier_GUI.redo file
-        outstring='thellier_magic_redo.py -WD '+'"'+opath+'"' +' -fre thellier_GUI.redo'
-        print outstring
-        os.system(outstring)
-        if 'pmag_criteria.txt' in files: outstring=outstring+' -fcr pmag_criteria.txt '
-        filelist=[]
-        if "thellier_specimens.txt" not in filelist:filelist.append("thellier_specimens.txt")
-        if 'specimen.log' in files:
-            logfile=open(opath+"/specimens.log",'r')
-            for line in logfile.readlines():
-                if line.split()[0] not in filelist:filelist.append(line.split()[0])
-            logfile=open(opath+"/specimens.log",'w')
-        for file in filelist:
-            logfile.write(file+'\n')
-        logfile.close()
-        os.remove(opath+'/thellier_GUI.redo')
+    #if 'thellier_GUI.redo' in files: # check for a thellier_GUI.redo file
+    #    outstring='thellier_magic_redo.py -WD '+'"'+opath+'"' +' -fre thellier_GUI.redo'
+    #    print outstring
+    #    os.system(outstring)
+    #    if 'pmag_criteria.txt' in files: outstring=outstring+' -fcr pmag_criteria.txt '
+    #    filelist=[]
+    #    if "thellier_specimens.txt" not in filelist:filelist.append("thellier_specimens.txt")
+    #    if 'specimen.log' in files:
+    #        logfile=open(opath+"/specimens.log",'r')
+    #        for line in logfile.readlines():
+    #            if line.split()[0] not in filelist:filelist.append(line.split()[0])
+    #        logfile=open(opath+"/specimens.log",'w')
+    #    for file in filelist:
+    #        logfile.write(file+'\n')
+    #    logfile.close()
+    #    os.remove(opath+'/thellier_GUI.redo')
 
 def thellier():
     filelist=os.listdir(opath)
@@ -2458,7 +2460,7 @@ def sitemeans():
     outstring="specimens_results_magic.py  -WD "+'"'+opath+'"'+" "+clist
     print outstring
     os.system(outstring)
-        
+    # ADD thellier_GUI STUFF SOMEHOW    
         
     
 class SMDialog(tkSimpleDialog.Dialog): # makes an entry table for basic data from a .mag file
