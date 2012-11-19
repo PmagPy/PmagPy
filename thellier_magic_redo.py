@@ -335,8 +335,9 @@ def main():
                                 Spc=NltSpecRec
                             else: # find uncorrected data
                                 Spc=PmagSpecRec
-                            for AniSpec in anis_data:
-                                if AniSpec["er_specimen_name"].lower()==PmagSpecRec["er_specimen_name"].lower():
+                            AniSpecs=pmag.get_dictitem(anis_data,'er_specimen_name',PmagSpecRec['er_specimen_name'],'T')
+                            if len(AniSpecs)>0:
+                                    AniSpec=AniSpecs[0]
                                     AniSpecRec=pmag.doaniscorr(Spc,AniSpec)
                                     AniSpecRec['specimen_grade']=PmagSpecRec['specimen_grade']
                                     inst_codes=Spc["magic_instrument_codes"]
@@ -353,10 +354,10 @@ def main():
                                         CrSpecRec=pmag.cooling_rate(AniSpecRec,SCR,crfrac,crtype)
                                         if CrSpecRec['er_specimen_name']!='none':CrSpecs.append(CrSpecRec)
                                     AniSpecRecs.append(AniSpecRec) 
-                                    break
                     elif anis==1:
-                        for AniSpec in anis_data:
-                            if AniSpec["er_specimen_name"].lower()==PmagSpecRec["er_specimen_name"].lower():
+                        AniSpecs=pmag.get_dictitem(anis_data,'er_specimen_name',PmagSpecRec['er_specimen_name'],'T')
+                        if len(AniSpecs)>0:
+                                AniSpec=AniSpecs[0]
                                 AniSpecRec=pmag.doaniscorr(PmagSpecRec,AniSpec)
                                 AniSpecRec['specimen_grade']=PmagSpecRec['specimen_grade']
                                 inst_codes=PmagSpecRec["magic_instrument_codes"]
@@ -376,7 +377,6 @@ def main():
                                     CrSpecRec['magic_method_codes'] = CrSpecRec['magic_method_codes']+':DA-CR-'+crtype
                                     CRSpecs.append(CrSpecRec)
                                 AniSpecRecs.append(AniSpecRec) 
-                                break
                 spec +=1
         else:
             print "skipping ",s

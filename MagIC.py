@@ -2987,7 +2987,7 @@ def create_menus():
 #    plotmenu.add_command(label="Demagnetization GUI",command=zeq_gui)
     thelliermenu=Menu(plotmenu)
     thelliermenu.add_command(label="thellier_magic program",command=thellier)
-    thelliermenu.add_command(label="Thellier GUI",command=thellier_gui)
+    thelliermenu.add_command(label="Thellier GUI program",command=thellier_gui)
     plotmenu.add_cascade(label="Thellier-type experiments",menu=thelliermenu)
 #    plotmenu.add_command(label="Microwave experiments",command=microwave)
     eqareamenu=Menu(plotmenu)

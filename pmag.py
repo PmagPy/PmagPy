@@ -1640,7 +1640,8 @@ def PintPars(araiblock,zijdblock,start,end):
     pars["specimen_inc"]=PCA["specimen_inc"]
     pars["specimen_int_mad"]=PCA["specimen_mad"]
     pars["specimen_dang"]=PCA["specimen_dang"]
-    pars["specimen_int_ptrm_n"]=len(ptrm_check)
+    #pars["specimen_int_ptrm_n"]=len(ptrm_check) # this is WRONG!
+    pars["specimen_int_ptrm_n"]=Nptrm
 # and the ThetaChecks
     if ThetaChecks!="":
         t=0
@@ -2927,26 +2928,48 @@ def magnetic_lat(inc):
     paleo_lat=numpy.arctan( 0.5*numpy.tan(inc*rad))/rad
     return paleo_lat
 
-def Dir_anis_corr(InDir,AniSpec):
-    """
-    takes the 6 element 's' vector and the Dec,Inc 'InDir' data,
-    performs simple anisotropy correction. returns corrected Dec, Inc
-    """
+def check_F(AniSpec):
     s=numpy.zeros((6),'f')
-    Dir=numpy.zeros((3),'f')
+    sigma=float(AniSpec["anisotropy_sigma"])
+    if AniSpec['anisotropy_type']=='AMS':
+        nf=int(AniSpec["anisotropy_n"])-6
+    else:
+        nf=3*int(AniSpec["anisotropy_n"])-6
     s[0]=float(AniSpec["anisotropy_s1"])
     s[1]=float(AniSpec["anisotropy_s2"])
     s[2]=float(AniSpec["anisotropy_s3"])
     s[3]=float(AniSpec["anisotropy_s4"])
     s[4]=float(AniSpec["anisotropy_s5"])
     s[5]=float(AniSpec["anisotropy_s6"])
+    chibar=(s[0]+s[1]+s[2])/3.
+    tau,Vdir=doseigs(s)
+    t2sum=0
+    for i in range(3): t2sum+=tau[i]**2
+    F=0.4*(t2sum-3*chibar**2)/(sigma**2)
+    Fcrit=fcalc(5,nf)
+    if F>Fcrit: # anisotropic
+        print 'anisotropic'
+        chi=numpy.array([[s[0],s[3],s[5]],[s[3],s[1],s[4]],[s[5],s[4],s[2]]])
+        chi_inv=numpy.linalg.inv(chi)
+        trace=chi_inv[0][0]+chi_inv[1][1]+chi_inv[2][2]
+        chi_inv=3.*chi_inv/trace
+    else: # isotropic
+        print 'isotropic'
+        chi_inv=numpy.array([[1.,0,0],[0,1.,0],[0,0,1.]]) # make anisotropy tensor identity tensor
+        chi=chi_inv
+    return chi,chi_inv
+
+def Dir_anis_corr(InDir,AniSpec):
+    """
+    takes the 6 element 's' vector and the Dec,Inc 'InDir' data,
+    performs simple anisotropy correction. returns corrected Dec, Inc
+    """
+    Dir=numpy.zeros((3),'f')
     Dir[0]=InDir[0]
     Dir[1]=InDir[1]
     Dir[2]=1.
-    chi=numpy.array([[s[0],s[3],s[5]],[s[3],s[1],s[4]],[s[5],s[4],s[2]]])
-    chi_inv=numpy.linalg.inv(chi)
-    trace=chi_inv[0][0]+chi_inv[1][1]+chi_inv[2][2]
-    chi_inv=3.*chi_inv/trace
+    chi,chi_inv=check_F(AniSpec)
+    if chi[0][0]==1.:return Dir # isotropic
     X=dir2cart(Dir)
     M=numpy.array(X)
     H=numpy.dot(M,chi_inv)
@@ -2960,35 +2983,30 @@ def doaniscorr(PmagSpecRec,AniSpec):
     AniSpecRec={}
     for key in PmagSpecRec.keys():
         AniSpecRec[key]=PmagSpecRec[key]
-    s=numpy.zeros((6),'f')
     Dir=numpy.zeros((3),'f')
-    s[0]=float(AniSpec["anisotropy_s1"])
-    s[1]=float(AniSpec["anisotropy_s2"])
-    s[2]=float(AniSpec["anisotropy_s3"])
-    s[3]=float(AniSpec["anisotropy_s4"])
-    s[4]=float(AniSpec["anisotropy_s5"])
-    s[5]=float(AniSpec["anisotropy_s6"])
     Dir[0]=float(PmagSpecRec["specimen_dec"])
     Dir[1]=float(PmagSpecRec["specimen_inc"])
     Dir[2]=float(PmagSpecRec["specimen_int"])
-    chi=numpy.array([[s[0],s[3],s[5]],[s[3],s[1],s[4]],[s[5],s[4],s[2]]])
-    chi_inv=numpy.linalg.inv(chi)
-    trace=chi_inv[0][0]+chi_inv[1][1]+chi_inv[2][2]
-    chi_inv=3.*chi_inv/trace
-    X=dir2cart(Dir)
-    M=numpy.array(X)
-    H=numpy.dot(M,chi_inv)
-    cDir= cart2dir(H)
-    Hunit=[H[0]/cDir[2],H[1]/cDir[2],H[2]/cDir[2]] # unit vector parallel to Banc
-    Zunit=[0,0,-1.] # unit vector parallel to lab field
-    Hpar=numpy.dot(chi,Hunit) # unit vector applied along ancient field
-    Zpar=numpy.dot(chi,Zunit) # unit vector applied along lab field
-    HparInt=cart2dir(Hpar)[2] # intensity of resultant vector from ancient field
-    ZparInt=cart2dir(Zpar)[2] # intensity of resultant vector from lab field
-    newint=Dir[2]*ZparInt/HparInt
-    if cDir[0]-Dir[0]>90:
-        cDir[1]=-cDir[1]
-        cDir[0]=(cDir[0]-180.)%360.
+# check if F test passes!   
+    chi,chi_inv=check_F(AniSpec)
+    if chi[0][0]==1.: # isotropic
+        cDir=[Dir[0],Dir[1]] # no change
+        newint=Dir[2]
+    else:
+        X=dir2cart(Dir)
+        M=numpy.array(X)
+        H=numpy.dot(M,chi_inv)
+        cDir= cart2dir(H)
+        Hunit=[H[0]/cDir[2],H[1]/cDir[2],H[2]/cDir[2]] # unit vector parallel to Banc
+        Zunit=[0,0,-1.] # unit vector parallel to lab field
+        Hpar=numpy.dot(chi,Hunit) # unit vector applied along ancient field
+        Zpar=numpy.dot(chi,Zunit) # unit vector applied along lab field
+        HparInt=cart2dir(Hpar)[2] # intensity of resultant vector from ancient field
+        ZparInt=cart2dir(Zpar)[2] # intensity of resultant vector from lab field
+        newint=Dir[2]*ZparInt/HparInt
+        if cDir[0]-Dir[0]>90:
+            cDir[1]=-cDir[1]
+            cDir[0]=(cDir[0]-180.)%360.
     AniSpecRec["specimen_dec"]='%7.1f'%(cDir[0])
     AniSpecRec["specimen_inc"]='%7.1f'%(cDir[1])
     AniSpecRec["specimen_int"]='%9.4e'%(newint)
@@ -2999,7 +3017,8 @@ def doaniscorr(PmagSpecRec,AniSpec):
         methcodes=""
     if methcodes=="": methcodes="DA-AC-"+AniSpec['anisotropy_type']
     if methcodes!="": methcodes=methcodes+":DA-AC-"+AniSpec['anisotropy_type']
-    AniSpecRec["magic_method_codes"]=methcodes
+    if chi[0][0]==1.: # isotropic 
+        AniSpecRec["magic_method_codes"]=methcodes+':DA-AC-ISO' # indicates anisotropy was checked and no change necessary
     return AniSpecRec
 
 def vfunc(pars_1,pars_2):
@@ -3814,16 +3833,15 @@ def dohext(nf,sigma,s):
     calculates hext parameters for nf, sigma and s
     """
 #
-    hpars={}
-    F=fcalc(2,nf) # f table for 2,nf degrees of freedom for 95% conf
-    hpars['F_crit']='%s'%(fcalc(5,nf))
-    hpars['F12_crit']='%s'%(fcalc(2,nf))
     if nf==-1:return hextpars 
-    f=numpy.sqrt(2*F)
-    chibar=(s[0]+s[1]+s[2])/3.
+    f=numpy.sqrt(2.*fcalc(2,nf))
     t2sum=0
     tau,Vdir=doseigs(s)
     for i in range(3): t2sum+=tau[i]**2
+    chibar=(s[0]+s[1]+s[2])/3.
+    hpars={}
+    hpars['F_crit']='%s'%(fcalc(5,nf))
+    hpars['F12_crit']='%s'%(fcalc(2,nf))
     hpars["F"]=0.4*(t2sum-3*chibar**2)/(sigma**2)
     hpars["F12"]=0.5*((tau[0]-tau[1])/sigma)**2
     hpars["F23"]=0.5*((tau[1]-tau[2])/sigma)**2

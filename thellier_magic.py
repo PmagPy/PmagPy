@@ -411,7 +411,6 @@ def main():
                        print """
                s[a]ve plot, set [b]ounds for calculation, [d]elete current interpretation, [p]revious, [s]ample, [q]uit:
                """
-#START HERE
                        ans=raw_input('Return for next specimen \n')
                        if ans=="": 
                            specimen +=1
@@ -535,6 +534,7 @@ def main():
                            if verbose:pmagplotlib.drawFIGS(AZD)
                            pars["specimen_lab_field_dc"]=field
                            pars["specimen_int"]=-1*field*pars["specimen_b"]
+                           pars=pmag.scoreit(pars,PmagSpecRec,accept,'',verbose)
                            saveit=raw_input("Save this interpretation? [y]/n \n")
                            if saveit!='n':
                                PriorRecs.append(PmagSpecRec) # put back an interpretation
