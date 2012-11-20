@@ -161,7 +161,7 @@ def main():
             print file_type,"This is not a valid rmag_anisotropy file "
             sys.exit()
     if nlt_file=="":
-        nlt_data=pmag.get_dictitem(meas_data,'magic_method_codes','LP-TRM','has'  # look for trm acquisition data in the meas_data file
+        nlt_data=pmag.get_dictitem(meas_data,'magic_method_codes','LP-TRM','has')  # look for trm acquisition data in the meas_data file
     else:
         nlt_file=dir_path+"/"+nlt_file 
         nlt_data,file_type=pmag.magic_read(nlt_file)

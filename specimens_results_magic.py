@@ -28,6 +28,7 @@ def main():
 	    NB: only the tilt corrected data will appear on the results table, if both g and t are selected.
         -cor [AC:CR:NL]: colon delimited list of required data adjustments for all specimens 
             included in intensity calculations (anisotropy, cooling rate, non-linear TRM)
+            unless specified, corrections will not be applied
 	-age MIN MAX UNITS:   specify age boundaries and units
 	-exc:  use exiting selection criteria (in pmag_criteria.txt file), default is default criteria
 	-C: no acceptance criteria
@@ -73,6 +74,7 @@ def main():
     coords=['0']
     Dcrit,Icrit,nocrit=0,0,0
     corrections=[]
+    nocorrection=['DA-NL','DA-AC','DA-CR']
 # get command line stuff
     if "-h" in args:
 	print main.__doc__
@@ -80,6 +82,9 @@ def main():
     if '-cor' in args:
         ind=args.index('-cor')
         corrections=args[ind+1].split(':') # list of required data adjustments
+        for cor in corrections:
+            cor='DA-'+cor
+            nocorrection.remove(cor)
     if '-f' in args:
 	ind=args.index("-f")
 	measfile=args[ind+1]
@@ -175,25 +180,52 @@ def main():
 	    print "Acceptance criteria are defaults"
 	else:
 	    print "No acceptance criteria used "
-    SpecCrit,SpecIntCrit,SampCrit,SampIntCrit,SiteIntCrit,SiteCrit,NpoleCrit,RpoleCrit={},{},{},{},{},{},{},{}
+    SpecCrit,SpecIntCrit,SampCrit,SampIntCrit,SiteIntCrit,SiteCrit,NpoleCrit,RpoleCrit,accept={},{},{},{},{},{},{},{},{}
+    samp_keys=['sample_int_sigma','sample_int_sigma_perc','sample_int_n']
+    spec_keys=['specimen_int_ptrm_n','specimen_md','specimen_fvds','specimen_b_beta','specimen_dang','specimen_drats','specimen_int_mad']
+    TmpCrits=[]
     for critrec in crit_data: # get the selection criteria sorted out into dictionaries
-	if critrec["pmag_criteria_code"]=="DE-SPEC": SpecCrit=critrec
-	if critrec["pmag_criteria_code"]=="DE-SAMP": SampCrit=critrec
-	if "IE-SAMP" in critrec["pmag_criteria_code"]: SampIntCrit=critrec
-	if critrec["pmag_criteria_code"]=="IE-SITE": SiteIntCrit=critrec
-	if critrec["pmag_criteria_code"]=="DE-SITE": SiteCrit=critrec
-	if critrec["pmag_criteria_code"]=="NPOLE": NpoleCrit=critrec
-	if critrec["pmag_criteria_code"]=="RPOLE": RpoleCrit=critrec
-	if "IE-SPEC" in critrec["pmag_criteria_code"]: 
-            SpecIntCrit=critrec
-	    accept_keys=['specimen_int_ptrm_n','specimen_md','specimen_fvds','specimen_b_beta','specimen_dang','specimen_drats','specimen_int_mad']
-	    accept={}
-            for key in accept_keys:
-	        if key not in critrec.keys():
-	            accept[key]=-1
-                else:
-                    accept[key]=float(critrec[key])
-    TmpCrits=[SpecCrit,SpecIntCrit,SampCrit,SampIntCrit,SiteIntCrit,SiteCrit,NpoleCrit,RpoleCrit]
+        if 'pmag_criteria_code' in critrec.keys():
+	    if 'DE-SPEC' in critrec["pmag_criteria_code"]:
+                SpecCrit=critrec
+                TmpCrits.append(SpecCrit)
+	    if 'DE-SAMP' in critrec["pmag_criteria_code"]:
+                SampCrit=critrec
+                TmpCrits.append(SampCrit)
+	    if "IE-SAMP" in critrec["pmag_criteria_code"]:  # changed to accomodate Shaar's thellier_gui pmag_criteria.txt files
+                if 'sample_int_sigma_uT' in critrec.keys():
+                    critrec['sample_int_sigma']='%10.3e'%(eval(critrec['sample_int_sigma_uT'])*1e-6)
+                SampIntCrit['pmag_criteria_code']='IE-SAMP'
+                for key in samp_keys:
+	            if key not in critrec.keys() or critrec[key]=="":
+	                SampIntCrit[key]=-1
+                    else:
+                        SampIntCrit[key]=critrec[key]
+                TmpCrits.append(SampIntCrit)
+	    if 'IE-SITE' in critrec["pmag_criteria_code"]=="IE-SITE": 
+                SiteIntCrit=critrec
+                TmpCrits.append(SiteIntCrit)
+       	    if critrec["pmag_criteria_code"]=="DE-SITE": 
+                SiteCrit=critrec
+                TmpCrits.append(SiteCrit)
+            if critrec["pmag_criteria_code"]=="NPOLE": 
+                NpoleCrit=critrec
+                TmpCrits.append(NpoleCrit)
+            if critrec["pmag_criteria_code"]=="RPOLE": 
+                RpoleCrit=critrec
+                TmpCrits.append(RpoleCrit)
+            if "IE-SPEC" in critrec["pmag_criteria_code"]:  # changed to accomodate Shaar's thellier_gui pmag_criteria.txt files
+                SpecIntCrit['pmag_criteria_code']='IE-SPEC'
+                for key in spec_keys:
+	            if key not in critrec.keys():
+	                accept[key]=-1
+                        SpecIntCrit[key]=-1
+                    else:
+                        accept[key]=float(critrec[key])
+                        SpecIntCrit[key]=critrec[key]
+                TmpCrits.append(SpecIntCrit)
+    print TmpCrits
+
     #
     # assemble criteria keys and store in file
     #
@@ -248,8 +280,10 @@ def main():
 # check for required data adjustments
         if len(corrections)>0 and len(SpecInts)>0:
             for cor in corrections:
-                cor='DA-'+cor
                 SpecInts=pmag.get_dictitem(SpecInts,'magic_method_codes',cor,'has') # only take specimens with the required corrections
+        if len(nocorrection)>0 and len(SpecInts)>0:
+            for cor in nocorrection:
+                SpecInts=pmag.get_dictitem(SpecInts,'magic_method_codes',cor,'not') # exclude the corrections not specified for inclusion
     if noDir==0: # don't skip directions
 	AllDirs=pmag.get_dictitem(Data,'specimen_direction_type','','F') # retrieve specimens with directed lines and planes
 	Ns=pmag.get_dictitem(AllDirs,'specimen_n','','F')  # get all specimens with specimen_n information 
@@ -354,8 +388,8 @@ def main():
 	       if len(site_height)>0:PmagSampRec["sample_height"]=site_height[0]['site_height'] # add in height if available
 	       PmagSampRec['er_specimen_names']= pmag.get_list(SampI,'er_specimen_name')
 	       PmagSampRec['magic_method_codes']= pmag.get_list(SampI,'magic_method_codes')
-	       if nocrit!=1:  # apply criteria!
-                   if PmagSampRec['sample_int_n']!="" and int(PmagSampRec['sample_int_n'])>=int(SampIntCrit['sample_int_n']):
+	       if nocrit!=1 or SampIntCrit=={}:  # apply criteria!
+                   if PmagSampRec['sample_int_n']!="" and eval(PmagSampRec['sample_int_n'])>=eval(SampIntCrit['sample_int_n']):
                        if SampIntCrit['sample_int_sigma']=='':
                            PmagSampRec['pmag_criteria_codes']="IE-SPEC"
 	                   SampInts.append(PmagSampRec)
@@ -546,8 +580,8 @@ def main():
             PmagResRec['er_site_names']= site
             PmagSiteRec['magic_method_codes']= pmag.get_list(Ints,'magic_method_codes')
             PmagResRec['magic_method_codes']= pmag.get_list(Ints,'magic_method_codes')
-            if int(PmagResRec["average_int_n"]) >= int(SiteIntCrit['site_int_n']) or nocrit==1: # apply criteria or NOT
-                if nocrit==1 or (float(PmagResRec["average_int_sigma"]) <=float(SiteIntCrit['site_int_sigma']) or float(PmagResRec['average_int_sigma_perc']) <= float(SiteIntCrit['site_int_sigma_perc'])): 
+            if SiteIntCrit=={} or 'site_int_n' in SiteIntCrit.keys() and eval(PmagResRec["average_int_n"]) >= eval(SiteIntCrit['site_int_n']) or nocrit==1: # apply criteria or NOT
+                if nocrit==1 or SiteIntCrit=={} or  (float(PmagResRec["average_int_sigma"]) <=float(SiteIntCrit['site_int_sigma']) or float(PmagResRec['average_int_sigma_perc']) <= float(SiteIntCrit['site_int_sigma_perc'])): 
                   b,sig=float(PmagResRec['average_int']),""
                   if(PmagResRec['average_int_sigma'])!="":sig=float(PmagResRec['average_int_sigma'])
                   sdir=pmag.get_dictitem(PmagResults,'er_site_names',site,'T') # fish out site direction
