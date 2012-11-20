@@ -2948,13 +2948,11 @@ def check_F(AniSpec):
     F=0.4*(t2sum-3*chibar**2)/(sigma**2)
     Fcrit=fcalc(5,nf)
     if F>Fcrit: # anisotropic
-        print 'anisotropic'
         chi=numpy.array([[s[0],s[3],s[5]],[s[3],s[1],s[4]],[s[5],s[4],s[2]]])
         chi_inv=numpy.linalg.inv(chi)
-        trace=chi_inv[0][0]+chi_inv[1][1]+chi_inv[2][2]
-        chi_inv=3.*chi_inv/trace
+        #trace=chi_inv[0][0]+chi_inv[1][1]+chi_inv[2][2] # don't normalize twice
+        #chi_inv=3.*chi_inv/trace
     else: # isotropic
-        print 'isotropic'
         chi_inv=numpy.array([[1.,0,0],[0,1.,0],[0,0,1.]]) # make anisotropy tensor identity tensor
         chi=chi_inv
     return chi,chi_inv

@@ -608,6 +608,9 @@ class make_loctypes: # gets missing location_type data
         NoLocType['location_type']=LocTypes[type]
         self.top.destroy()
 
+
+
+
 def ask_loctype(parent):
     global NewLocs
     m=make_loctypes(parent)
@@ -1095,21 +1098,25 @@ def anispec_combine():
     filelist=os.listdir(opath)
     rmag_anisotropy_instring=""
     rmag_results_instring=""
-    if 'aarm_measurements.txt' in filelist:
-        aarmfile=open(opath+"/aarm_measurements.txt",'r')
-        outstring='aarm_magic.py -WD '+'"'+opath+'"'
+    data,file_type=pmag.magic_read(opath+'/magic_measurements.txt')
+    aarm_data=pmag.get_dictitem(data,'magic_method_codes','LP-AN-ARM','has')
+    atrm_data=pmag.get_dictitem(data,'magic_method_codes','LP-AN-TRM','has')
+    ams_data=pmag.get_dictitem(data,'magic_method_codes','LP-AN-MS','has')
+    if len(aarm_data)>0:
+        print 'recalculating arm_anisotropy, arm_results.txt'
+        outstring='aarm_magic.py -WD '+'"'+opath+'"'+' -f magic_measurements.txt'
         print outstring
         os.system(outstring)
         rmag_anisotropy_instring=rmag_anisotropy_instring+' arm_anisotropy.txt '
         rmag_results_instring=rmag_results_instring+' aarm_results.txt '
-    if 'atrm_measurments.txt' in filelist:
-        atrmfile=open(opath+"/atrm_measurements.txt",'r')
-        outstring='atrm_magic.py -WD '+'"'+opath+'"'
+    if len(atrm_data)>0:
+        print 'recalculating trm_anisotropy, atrm_results.txt'
+        outstring='atrm_magic.py -WD '+'"'+opath+'"' +' -f magic_measurements.txt'
         print outstring
         os.system(outstring)
         rmag_anisotropy_instring=rmag_anisotropy_instring+' trm_anisotropy.txt '
         rmag_results_instring=rmag_results_instring+' atrm_results.txt '
-    if 'ams_anisotropy' in filelist: rmag_anisotropy_instring=rmag_anisotorpy_instring+' ams_anisotropy.txt '
+    if len(ams_data)>0: rmag_anisotropy_instring=rmag_anisotorpy_instring+' ams_anisotropy.txt '
     if rmag_anisotropy_instring!="":
         rmag_outstring='combine_magic.py -WD '+'"'+opath+'"' + ' -F rmag_anisotropy.txt -f '+rmag_anisotropy_instring
         print rmag_outstring
@@ -1117,7 +1124,6 @@ def anispec_combine():
         rmag_outstring='combine_magic.py -WD '+'"'+opath+'"' + ' -F rmag_results.txt -f '+rmag_results_instring
         print rmag_outstring
         os.system(rmag_outstring)
-
 def spec_combine():
     anispec_combine()
     filestring=" -f "
@@ -1154,19 +1160,16 @@ def spec_combine():
             filestring=filestring + ' zeq_specimens_crd.txt ' 
     if 'thellier_specimens.txt' in filelist:
         filestring=filestring+' thellier_specimens.txt '
-        open(opath+'/thellier_specimens.txt') # check for thellier data 
         outstring="mk_redo.py -f thellier_specimens.txt -F thellier_redo  -WD "+'"'+opath+'"'
-        os.system(outstring)
         print outstring
+        os.system(outstring)
         outstring='thellier_magic_redo.py -WD '+'"'+opath+'"'
         if 'pmag_criteria.txt' in filelist:
             open(opath+'/pmag_criteria.txt','r')
             outstring=outstring+' -fcr pmag_criteria.txt '
-        outstring = outstring + " -NLT " # do non-linear correction if available
-        if 'rmag_anisotropy.txt' in filelist:
-            f=open(opath+'/rmag_anisotropy.txt','rU')
+        if 'rmag_anisotropy.txt' in filelist:    
+            filestring = filestring+' AC_specimens.txt'
             outstring=outstring + " -ANI " # do anisotropy correction
-            ani=1
         os.system(outstring)
         print outstring
         #    replacestring='replace_AC_specimens.py  -WD '+'"'+opath+'"'
@@ -1177,8 +1180,11 @@ def spec_combine():
         #else:
         #    os.system(outstring)
         #    print outstring
-    if 'thellier_gui_specimens.txt' in filelist:
-        filestring=filestring+' thellier_gui_specimens.txt '
+    #if 'thellier_gui_specimens.txt' in filelist:
+    #    filestring=filestring+' thellier_gui_specimens.txt '
+    filelist=os.listdir(opath)
+    if 'NLT_specimens.txt' in filelist:
+        filestring=filestring+' NLT_specimens.txt'
     if len(filestring.split())>1:
         outstring='combine_magic.py -WD '+'"'+opath+'"'+' -F pmag_specimens.txt '+filestring +'\n'
         print outstring
@@ -1392,10 +1398,10 @@ def add_redo():
         for line in logfile.readlines():
             if line.split()[0] not in filelist:filelist.append(line.split()[0])
     if file=='zeq_redo':
-        outstring='zeq_magic_redo.py -WD '+'"'+opath+'"'
+        outstring='zeq_magic_redo.py -WD '+'"'+opath+'"' +' -fre ' +basename
         if "zeq_specimens.txt" not in filelist:filelist.append("zeq_specimens.txt")
     elif file=='thellier_redo':
-        outstring='thellier_magic_redo.py -WD '+'"'+opath+'"'
+        outstring='thellier_magic_redo.py -WD '+'"'+opath+'"' +' -fre ' +basename
         if "thellier_specimens.txt" not in filelist:filelist.append("thellier_specimens.txt")
     logfile=open(opath+"/specimens.log",'w')
     for file in filelist:
@@ -1405,7 +1411,7 @@ def add_redo():
         outstring=outstring+' -fcr pmag_criteria.txt '
     print outstring
     os.system(outstring)
-    os.remove(opath+'/'+basename)
+    #os.remove(opath+'/'+basename)
 
 def add_DIR_ascii():
     try:
@@ -2392,105 +2398,162 @@ def aniso():
     print outstring
     os.system(outstring)
 
+def ask_results(parent):
+    m=make_results(parent)
+    parent.wait_window(m.top)
+
 def sitemeans():
-    clist,error=" ",0
-    crd=["s: Specimen coordinates","g: geographic", "t: tilt corrected","b: both geo and tilt corrected"]
-    sm=SMDialog(root) # gets the entry table data with all the good stuff in sm.result
-    if sm.result['min']!="" and sm.result['max']!="" and sm.result["units"]!="":
-        clist=clist+ ' -age '+sm.result['min']+' '+sm.result['max']+' '+'"'+sm.result['units']+'" '
-    cust=['Use default criteria', 'Use no selection criteria','Customize criteria ']
-    erfiles=['Import existing file','Will fill in later']
-    try:
+    global RES,Res_Types
+    clist=""
+    filelist=os.listdir(opath)
+    if 'pmag_specimens.txt' not in filelist:
+        tkMessageBox.showinfo("Info","Assemble specimens first")
+        return
+    if 'er_sites.txt' not in filelist:
+        tkMessageBox.showinfo("Info","Make an er_sites.txt file, e.g. with orient.txt file - required for results table")
+        return
+    if 'er_samples.txt' in filelist: # find coordinate systems
+            samps,file_type=pmag.magic_read(opath+'/er_samples.txt') # read in data
+            Grecs=pmag.get_dictitem(samps,'sample_azimuth','','F')# get all none blank sample orientations
+            Grecs=pmag.get_dictitem(Grecs,'sample_dip','0','F')# get all none zero sample orientations
+            if len(Grecs)>0: RES['ask_g']=1
+            Brecs=pmag.get_dictitem(samps,'sample_bed_dip','','F')# get all none blank bedding corrections
+            Brecs=pmag.get_dictitem(Brecs,'sample_bed_dip','0','F')# get all none zero bedding corrections
+            if len(Brecs)>0: RES['ask_t']=1
+    specs,file_type=pmag.magic_read(opath+'/pmag_specimens.txt')
+    anispecs=pmag.get_dictitem(specs,'magic_method_codes','DA-AC','has')
+    if len(anispecs)>0:
+        RES['ask_ani']=1
+    nltspecs=pmag.get_dictitem(specs,'magic_method_codes','DA-NL','has')
+    if len(nltspecs)>0:
+        RES['ask_nlt']=1
+    crspecs=pmag.get_dictitem(specs,'magic_method_codes','DA-CR','has')
+    if len(crspecs)>0:
+        RES['ask_cr']=1
+    ask_results(root)
+    clist=clist+ ' -age '+RES['age_min']+' '+RES['age_max']+' '+'"'+RES['age_units']+'" '
+    if 'er_ages.txt' in filelist:
         open(opath+"/er_ages.txt",'rU')
         clist=clist+' -fa '+opath+'/er_ages.txt'
-    except:
-        print 'Ages missing, you should fill them in later'
-    try:
-        open(opath+"/magic_measurements.txt",'r')
-    except IOError:
-        tkMessageBox.showinfo("Info","Combine measurements first")
-        return
-    sfiles=['Use default specimen file','Customize choice of specimen file']
-    spec_rv=ask_radio(root,sfiles,'Choose option for specimen files:') # 
-    if spec_rv==1:
-        fpath=tkFileDialog.askopenfilename(title="Select specimen file for averaging at sample/site level")
-        file=fpath.split('/')[-1] 
-        basename=file.split('_')[-1]
-        if basename!='specimens.txt':
-            tkMessageBox.showinfo("Info","Must be a specimen file type: e.g., thellier_specimens.txt, AC_specimens.txt...")
-            fpath=tkFileDialog.askopenfilename(title="Select specimen file for averaging at sample/site level")
-            file=fpath.split('/')[-1] 
-    else: 
-        try:
-            specfile=opath+"/pmag_specimens.txt"
-            open(specfile,'r')
-            file="pmag_specimens.txt"
-            # re-order 
-            #tkMessageBox.showinfo("Info","Assemble specimens first")
-            #return
-        except:
-            pass
-    clist=clist+' -fsp '+file
-    try:
-        open(opath+"/er_sites.txt",'r')
-    except IOError:
-        tkMessageBox.showinfo("Info","Make an er_sites.txt file, e.g. with orient.txt file")
-        return
-    OPT_types=["-D: Use default selection criteria","-C: Use no selection criteria", "-exc: Use customized selection criteria","-aD: Average multiple specimen lines per sample, default is by site","-aI: Average multiple specimen intensities per sample, default is by site","-sam: Calculate sample level VGPs/V[A]DMs, default is by site","-xSi: skip site level intensity data","-p: look at data by site","-lat: Use present latitude for VADM calculation","-fla model_lat.txt: use site paleolatitude data in model_lat.txt file","-xD: skip directions", "-xI: skip intensities","-pol: calculate averages by polarity"]
-    opt_checks=ask_check(root,OPT_types,'select desired options:') #
-    OPT_list=map((lambda var:var.get()),opt_checks) # returns method code  radio button list
-    for opt in range(len(OPT_list)):
-        if OPT_list[opt]==1:clist=clist+' '+OPT_types[opt].split(":")[0]+' '
-    if OPT_list[9]==1:
-        try:
-            open(opath+"/model_lat.txt",'r')
-        except IOError:
+    else:
+        print 'Age table missing, you should fill in an er_ages.txt table and import it - or fill in later on results table'
+    if RES['check_list'][9]==1: # use model latitudes
+        if 'model_lat.txt' not in filelist:
             tkMessageBox.showinfo("Info","Import paleolatitude file first ")
             return
-    if '-xD' not in clist:
-        try:
-            open(opath+"/er_samples.txt",'r')
-            crd_rv=ask_radio(root,crd,'Select Coordinate system') # sets coordinate system
-            if crd_rv==0:clist=clist+' -crd s '
-            if crd_rv==1:clist=clist+' -crd g '
-            if crd_rv==2:clist=clist+' -crd t '
-            if crd_rv==3:clist=clist+' -crd b '
-        except IOError:
-            pass
+    for opt in range(len(RES['check_list'])):
+        if RES['check_list'][opt]==1:clist=clist+' '+Res_Types[opt].split(":")[0]+ ' '
+    if RES['check_list'][11]==0: # include directions
+            if RES['g']==1 and RES['t']==1:
+                clist=clist+' -crd b'  
+            elif RES['s']==1:
+                clist=clist+' -crd s '
+            elif RES['g']==1:
+                clist=clist+' -crd g '
+            elif RES['t']==1:
+                clist=clist+' -crd t '
+    if RES['cor'] !="":
+        clist=clist+' -cor '+RES['cor'].strip(':') # tack on intensity calculation preferences
     outstring="specimens_results_magic.py  -WD "+'"'+opath+'"'+" "+clist
     print outstring
     os.system(outstring)
-    # ADD thellier_GUI STUFF SOMEHOW    
         
     
-class SMDialog(tkSimpleDialog.Dialog): # makes an entry table for basic data from a .mag file
-    def body(self, master):
+class make_results(): # makes an entry table for results calculation
+    global Res_Types,RES
+    def __init__(self, master):
         AgeTypes=['Ga','Ka','Ma','Years AD (+/-)','Years BP','Years Cal AD (+/-)','Years Cal BP']
-        Label(master, text="Minimum age").grid(row=0)
-        Label(master, text="Maximum age").grid(row=1)
-        Label(master, text="age  units:").grid(row=2)
-        self.min = Entry(master)
-        self.max=Entry(master)
-        self.min.grid(row=0, column=1,sticky=W)
-        self.max.grid(row=1, column=1)
-        Label(master,text='Age units: ')
-        column=1
-        row=2
+        top=self.top=Toplevel(master)
+        Label(top,text='Fill in preferences for results calculations: ').grid(row=0,columnspan=3)
+        self.top.geometry('+50+50')
+        column=2
+        Label(top, text="Minimum age:").grid(row=2,column=column,sticky=W)
+        self.min = Entry(top)
+        self.min.grid(row=3, column=column,sticky=W)
+        Label(top, text="Maximum age").grid(row=4,column=column,sticky=W)
+        self.max=Entry(top)
+        self.max.grid(row=5, column=column,sticky=W)
+        Label(top,text='Age units: ').grid(row=6,column=column,sticky=W)
+        row=7
         self.units=IntVar()
         for type in range(len(AgeTypes)):
-            rb=Radiobutton(master,variable=self.units,value=type,text=AgeTypes[type])
+            rb=Radiobutton(top,variable=self.units,value=type,text=AgeTypes[type])
             rb.grid(row=row,column=column,sticky=W)
             row+=1
-        return self.min
-    def apply(self):
+        self.res_check_value=[]
+        row,column=2,0
+        for i in range(len(Res_Types)):
+            self.var=IntVar()
+            self.cb=Checkbutton(top,variable=self.var,text=Res_Types[i])
+            self.cb.grid(row=row+i,column=column,sticky=W)
+            self.res_check_value.append(self.var)
+        row=row+i
+        self.Coordinates,self.g_check_value,self.t_check_value=[],[],[]
+        if RES['ask_g']:
+            row+=1
+            self.var=IntVar()
+            self.cb=Checkbutton(top,variable=self.var,text='Geographic coordinates')
+            self.cb.grid(row=row,column=column,sticky=W)
+            self.Coordinates.append('g')
+            self.g_check_value.append(self.var)
+        if RES['ask_t']:
+            row+=1
+            self.var=IntVar()
+            self.cb=Checkbutton(top,variable=self.var,text='Tectonic coordinates')
+            self.cb.grid(row=row,column=column,sticky=W)
+            self.Coordinates.append('t')
+            self.t_value.append(self.var)
+        self.Corrections,self.ani_value,self.cr_value,self.nlt_value=[],[],[],[]
+        if RES['ask_ani']:
+            row+=1
+            self.var=IntVar()
+            self.cb=Checkbutton(top,variable=self.var,text='Anisotropy check for intensities required?')
+            self.cb.grid(row=row,column=column,sticky=W)
+            self.Corrections.append('ani')
+            self.ani_value.append(self.var)
+        if RES['ask_nlt']:
+            row+=1
+            self.var=IntVar()
+            self.cb=Checkbutton(top,variable=self.var,text='Non-linear TRM check for intensities required?')
+            self.cb.grid(row=row,column=column,sticky=W)
+            self.Corrections.append('nlt')
+            self.nlt_value.append(self.var)
+#        if RES['ask_cr']:
+#            row+=1
+#            self.var=IntVar()
+#            self.cb=Checkbutton(top,variable=self.var,text='Cooling rate correction for intensities required?')
+#            self.cb.grid(row=row,column=column,sticky=W)
+#            self.Corrections.append('cr')
+#            self.cr_value.append(self.var)
+        self.b = Button(top, text="OK", command=self.ok)
+        self.b.grid(row=row+1,column=1)
+    def ok(self):
         AgeTypes=['Ga','Ka','Ma','Years AD (+/-)','Years BP','Years Cal AD (+/-)','Years Cal BP']
         if self.min.get()!="":
-            SMopts['min']=self.min.get()
+            RES['age_min']=self.min.get()
         if self.max.get()!="":
-            SMopts['max']=self.max.get()
+            RES['age_max']=self.max.get()
         if self.units.get()!="":
-            SMopts['units']=AgeTypes[self.units.get()]
-        self.result=SMopts
+            RES['age_units']=AgeTypes[self.units.get()]
+        RES['check_list']= map((lambda var:var.get()),self.res_check_value) # returns check box list from Res_Types and coordinates
+        if 'g' in self.Coordinates:
+            g_list=map((lambda var:var.get()),self.g_check_value) # returns check box list from Res_Types and coordites
+            if g_list[0]==1:RES['g']=1
+        if 't' in self.Coordinates:
+            t_list=map((lambda var:var.get()),self.t_check_value) # returns check box list from Res_Types and coordites
+            if t_list[0]==1:RES['t']=1
+        corrlist=""
+        if 'ani' in self.Corrections:
+            ani_list=map((lambda var:var.get()),self.ani_value) # returns check box list from Res_Types and coordites
+            if ani_list[0]==1:corrlist=corrlist+':AC'
+        if 'nlt' in self.Corrections:
+            nlt_list=map((lambda var:var.get()),self.nlt_value) # returns check box list from Res_Types and coordites
+            if nlt_list[0]==1:corrlist=corrlist+':NL'
+        if 'cr' in self.Corrections:
+            cr_list=map((lambda var:var.get()),self.cr_value) # returns check box list from Res_Types and coordites
+            if cr_list[0]==1:corrlist=corrlist+':CR'
+        RES['cor']=corrlist
+        self.top.destroy()
 
 class CRDialog(tkSimpleDialog.Dialog): # makes an entry table for basic data for cooling rate correction
     def body(self, master):
@@ -3101,4 +3164,7 @@ STRAT={'long_sym':'o','long_color':'b','long_size':'5','disc_sym':'^','disc_colo
 ANI={'dmin':'','dmax':'','mcd':'0'}
 COORDs=[]
 LocTypes=['Archeological Site','Core','Drill Site','Lake Core','Land Section','Lunar','Martian','Outcrop','Region','Stratigraphic Section','Submarine Site']
+RES={'age_min':'0','age_max': '4.5','age_units': 'Ga','ask_ani':0,'ask_cr':0,'ask_nlt':0,'cor':'','ask_g':0,'ask_t':0,'g':0,'t':0,'s':1}
+Res_Types=["-D: Use default selection criteria","-C: Use no selection criteria", "-exc: Use customized selection criteria","-aD: Average multiple specimen lines per sample, default is by site","-aI: Average multiple specimen intensities per sample, default is by site","-sam: Calculate sample level VGPs/V[A]DMs, default is by site","-xSi: skip site level intensity data","-p: look at data by site","-lat: Use present latitude for VADM calculation","-fla model_lat.txt: use site paleolatitude data in model_lat.txt file","-xD: skip directions", "-xI: skip intensities","-pol: calculate averages by polarity"]
+CRD={'s':1,'g':0,'b':0}
 root.mainloop()

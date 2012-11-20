@@ -26,6 +26,8 @@ def main():
 	    (s, specimen, g geographic, t, tilt corrected, b, geographic and tilt corrected)
 	    Default is to assume geographic
 	    NB: only the tilt corrected data will appear on the results table, if both g and t are selected.
+        -cor [AC:CR:NL]: colon delimited list of required data adjustments for all specimens 
+            included in intensity calculations (anisotropy, cooling rate, non-linear TRM)
 	-age MIN MAX UNITS:   specify age boundaries and units
 	-exc:  use exiting selection criteria (in pmag_criteria.txt file), default is default criteria
 	-C: no acceptance criteria
@@ -70,10 +72,14 @@ def main():
     polarity=0
     coords=['0']
     Dcrit,Icrit,nocrit=0,0,0
+    corrections=[]
 # get command line stuff
     if "-h" in args:
 	print main.__doc__
 	sys.exit()
+    if '-cor' in args:
+        ind=args.index('-cor')
+        corrections=args[ind+1].split(':') # list of required data adjustments
     if '-f' in args:
 	ind=args.index("-f")
 	measfile=args[ind+1]
@@ -182,7 +188,6 @@ def main():
             SpecIntCrit=critrec
 	    accept_keys=['specimen_int_ptrm_n','specimen_md','specimen_fvds','specimen_b_beta','specimen_dang','specimen_drats','specimen_int_mad']
 	    accept={}
-	    accept['specimen_int_ptrm_n']=2.0
             for key in accept_keys:
 	        if key not in critrec.keys():
 	            accept[key]=-1
@@ -240,6 +245,11 @@ def main():
 		if score==len(accept.keys()): SpecInts.append(rec) # intensity record to be included in sample, site calculations
 	else:
 	    SpecInts=IntData[:] # take everything - no selection criteria
+# check for required data adjustments
+        if len(corrections)>0 and len(SpecInts)>0:
+            for cor in corrections:
+                cor='DA-'+cor
+                SpecInts=pmag.get_dictitem(SpecInts,'magic_method_codes',cor,'has') # only take specimens with the required corrections
     if noDir==0: # don't skip directions
 	AllDirs=pmag.get_dictitem(Data,'specimen_direction_type','','F') # retrieve specimens with directed lines and planes
 	Ns=pmag.get_dictitem(AllDirs,'specimen_n','','F')  # get all specimens with specimen_n information 

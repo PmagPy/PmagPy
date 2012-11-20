@@ -80,6 +80,7 @@ def main():
     rmag_res=dir_path+'/'+rmag_res
     # read in data
     meas_data,file_type=pmag.magic_read(meas_file)
+    meas_data=pmag.get_dictitem(meas_data,'magic_method_codes','LP-AN-ARM','has')
     if file_type != 'magic_measurements':
         print file_type
         print file_type,"This is not a valid magic_measurements file " 
@@ -122,7 +123,6 @@ def main():
     #
         npos=len(data)/2
         if npos==9:
-            print 'Processing: ',s, ' Number of positions: ',npos
         #
         # get dec, inc, int and convert to x,y,z
         #
@@ -327,8 +327,7 @@ def main():
             RmagSpecRecs.append(RmagSpecRec)
             RmagResRecs.append(RmagResRec)
         else:
-            print npos
-            print 'skipping specimen ',s,' only 9 positions supported'
+            print 'skipping specimen ',s,' only 9 positions supported','; this has ',npos
             specimen+=1
     if rmag_anis=="":rmag_anis="rmag_anisotropy.txt"
     pmag.magic_write(rmag_anis,RmagSpecRecs,'rmag_anisotropy')

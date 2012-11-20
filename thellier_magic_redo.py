@@ -26,11 +26,9 @@ def main():
                EG (for educated guess); PS (based on pilots); TRM (based on comparison of two TRMs) 
         -fsa SAMPFILE: er_samples.txt file with cooling rate correction information, default is NO CORRECTION
         -Fcr  CRout: specify pmag_specimen format file for cooling rate corrected data
-        -ANI: there are anisotropy data to correct thellier results
         -fan ANIFILE: specify rmag_anisotropy format file, default is rmag_anisotropy.txt 
         -Fac  ACout: specify pmag_specimen format file for anisotropy corrected data
                  default is AC_specimens.txt
-        -NLT: there are non-linear trm data in the measurements file to correct thellier results
         -fnl NLTFILE: specify magic_measurments format file, default is magic_measurements.txt
         -Fnl NLTout: specify pmag_specimen format file for non-linear trm corrected data
                  default is NLT_specimens.txt
@@ -107,7 +105,6 @@ def main():
             anis_file=args[ind+1]
     #
     if "-NLT" in args:
-        nltrm=1
         if "-Fnl" in args:
             ind=args.index("-Fnl")
             nltout=args[ind+1]
@@ -164,10 +161,12 @@ def main():
             print file_type,"This is not a valid rmag_anisotropy file "
             sys.exit()
     if nlt_file=="":
-        nlt_data=meas_data  # look for trm acquisition data in the meas_data file
+        nlt_data=pmag.get_dictitem(meas_data,'magic_method_codes','LP-TRM','has'  # look for trm acquisition data in the meas_data file
     else:
         nlt_file=dir_path+"/"+nlt_file 
         nlt_data,file_type=pmag.magic_read(nlt_file)
+    if len(nlt_data)>0:
+        nltrm=1
 #
 # sort the specimen names and step through one by one
 #

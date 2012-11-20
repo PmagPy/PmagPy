@@ -64,6 +64,7 @@ def main():
     rmag_res=dir_path+'/'+rmag_res
     # read in data
     meas_data,file_type=pmag.magic_read(meas_file)
+    meas_data=pmag.get_dictitem(meas_data,'magic_method_codes','LP-AN-TRM','has')
     if file_type != 'magic_measurements':
         print file_type
         print file_type,"This is not a valid magic_measurements file " 
@@ -96,7 +97,6 @@ def main():
         #
         data=pmag.get_dictitem(meas_data,'er_specimen_name',s,'T') # fish out data for this specimen name
         if len(data)>5:
-            print 'Processing: ',s 
             RmagSpecRec["rmag_anisotropy_name"]=data[0]["er_specimen_name"]
             RmagSpecRec["er_location_name"]=data[0]["er_location_name"]
             RmagSpecRec["er_specimen_name"]=data[0]["er_specimen_name"]
@@ -136,7 +136,7 @@ def main():
         elif len(BX)!= len(X): # if BX isn't just one measurement or one in between every infield step, just assume it is zero
             print 'something odd about the baselines - just assuming zero'
             for i in range(len(X)):BX.append([0.,0.,0.]) # assume baseline of 0
-        if nmeas<3: # can only do at least 3 positions
+        if nmeas<6: # must have at least 6 measurements right now - 
             print 'skipping specimen ',s,' too few measurements'
             specimen+=1
         else:
