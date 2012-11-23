@@ -1098,6 +1098,7 @@ def plotSLNP(fignum,SiteRec,datablock,key):
     plots lines and planes on a great  circle with alpha 95 and mean
     """
 # make the stereonet
+    pylab.figure(num=fignum)
     plotNET(fignum)
     s=SiteRec['er_site_name']
 #
@@ -1125,7 +1126,6 @@ def plotSLNP(fignum,SiteRec,datablock,key):
     XY=pmag.dimap(float(SiteRec["site_dec"]),float(SiteRec["site_inc"]))
     x.append(XY[0])
     y.append(XY[1])
-    pylab.figure(num=fignum)
     pylab.scatter(x,y,marker='d',s=80,c='g')
     pylab.title(title)
 #

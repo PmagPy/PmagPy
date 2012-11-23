@@ -10,7 +10,6 @@ class make_entry(tkSimpleDialog.Dialog): # makes an entry table for basic data f
         self.list=Edict.keys()
         self.list.sort()
         self.out=[]
-        #Label(master, text=instruction).grid(row=0,coiumnspan=2)
         g=1
         for i in range(len(self.list)):
             self.ival=StringVar()
@@ -65,15 +64,11 @@ def custom():
         crit_data=pmag.default_criteria(0)
     elif option==2: # change existing
         infile=opath+'/pmag_criteria.txt'
-        try:
-            crit_data,file_type=pmag.magic_read(infile)
-            if file_type!='pmag_criteria':
-                print 'bad input file'
-                return
-            print "Acceptance criteria read in from ", infile
-        except:
-            print 'bad pmag_criteria.txt  file'
+        crit_data,file_type=pmag.magic_read(infile)
+        if file_type!='pmag_criteria':
+            print 'bad input file'
             return
+        print "Acceptance criteria read in from ", infile
     elif option==3: # no criteria
         crit_data=pmag.default_criteria(1)
         PmagCrits,critkeys=pmag.fillkeys(crit_data)
@@ -95,7 +90,6 @@ def custom():
     PmagCrits,critkeys=pmag.fillkeys(TmpCrits)
     critout=opath+'/pmag_criteria.txt'
     pmag.magic_write(critout,PmagCrits,'pmag_criteria')
-#    tkMessageBox.showinfo("Info",'Selection criteria saved in pmag_criteria.txt\n check command window for errors')
     print "New Criteria saved in pmag_criteria.txt"
 
 class make_agm: # makes an entry table for basic data for an AGM file
@@ -2432,6 +2426,10 @@ def sitemeans():
         RES['ask_cr']=1
     ask_results(root)
     clist=clist+ ' -age '+RES['age_min']+' '+RES['age_max']+' '+'"'+RES['age_units']+'" '
+    if 'existing' in RES['criteria']:
+        clist=clist+ ' -exc '
+    elif 'No' in RES['criteria']:
+        clist=clist+ ' -C '
     if 'er_ages.txt' in filelist:
         open(opath+"/er_ages.txt",'rU')
         clist=clist+' -fa '+opath+'/er_ages.txt'
@@ -2443,26 +2441,26 @@ def sitemeans():
             return
     for opt in range(len(RES['check_list'])):
         if RES['check_list'][opt]==1:clist=clist+' '+Res_Types[opt].split(":")[0]+ ' '
-    if RES['check_list'][11]==0: # include directions
+    if RES['check_list'][7]==0: # include directions
             if RES['g']==1 and RES['t']==1:
                 clist=clist+' -crd b'  
-            elif RES['s']==1:
-                clist=clist+' -crd s '
-            elif RES['g']==1:
-                clist=clist+' -crd g '
             elif RES['t']==1:
                 clist=clist+' -crd t '
+            elif RES['g']==1:
+                clist=clist+' -crd g '
+            elif RES['s']==1:
+                clist=clist+' -crd s '
     if RES['cor'] !="":
         clist=clist+' -cor '+RES['cor'].strip(':') # tack on intensity calculation preferences
+        if 'DA-AC' in RES['cor']: clist=clist+' -pri ARM:TRM ' # set priority for correction method  as per Mitra et al., in review
     outstring="specimens_results_magic.py  -WD "+'"'+opath+'"'+" "+clist
     print outstring
     os.system(outstring)
         
     
 class make_results(): # makes an entry table for results calculation
-    global Res_Types,RES
+    global Res_Types,RES,Age_Types,Crit_Types
     def __init__(self, master):
-        AgeTypes=['Ga','Ka','Ma','Years AD (+/-)','Years BP','Years Cal AD (+/-)','Years Cal BP']
         top=self.top=Toplevel(master)
         Label(top,text='Fill in preferences for results calculations: ').grid(row=0,columnspan=3)
         self.top.geometry('+50+50')
@@ -2476,26 +2474,33 @@ class make_results(): # makes an entry table for results calculation
         Label(top,text='Age units: ').grid(row=6,column=column,sticky=W)
         row=7
         self.units=IntVar()
-        for type in range(len(AgeTypes)):
-            rb=Radiobutton(top,variable=self.units,value=type,text=AgeTypes[type])
+        for type in range(len(Age_Types)):
+            rb=Radiobutton(top,variable=self.units,value=type,text=Age_Types[type])
             rb.grid(row=row,column=column,sticky=W)
             row+=1
-        self.res_check_value=[]
         row,column=2,0
+        Label(top, text="Choose Selection Criteria Preference:").grid(row=row,column=column,sticky=W)
+        self.criteria=IntVar()
+        for type in range(len(Crit_Types)):
+            rb=Radiobutton(top,variable=self.criteria,value=type,text=Crit_Types[type])
+            rb.grid(row=row,column=column,sticky=W)
+            row+=1
+        row+=1
+        self.res_check_value=[]
         for i in range(len(Res_Types)):
             self.var=IntVar()
             self.cb=Checkbutton(top,variable=self.var,text=Res_Types[i])
             self.cb.grid(row=row+i,column=column,sticky=W)
             self.res_check_value.append(self.var)
         row=row+i
-        self.Coordinates,self.g_check_value,self.t_check_value=[],[],[]
+        self.Coordinates,self.g_value,self.t_value=[],[],[]
         if RES['ask_g']:
             row+=1
             self.var=IntVar()
-            self.cb=Checkbutton(top,variable=self.var,text='Geographic coordinates')
+            self.cb=Checkbutton(top,variable=self.var,text='Geographic coordinates (default is specimen)')
             self.cb.grid(row=row,column=column,sticky=W)
             self.Coordinates.append('g')
-            self.g_check_value.append(self.var)
+            self.g_value.append(self.var)
         if RES['ask_t']:
             row+=1
             self.var=IntVar()
@@ -2528,19 +2533,20 @@ class make_results(): # makes an entry table for results calculation
         self.b = Button(top, text="OK", command=self.ok)
         self.b.grid(row=row+1,column=1)
     def ok(self):
-        AgeTypes=['Ga','Ka','Ma','Years AD (+/-)','Years BP','Years Cal AD (+/-)','Years Cal BP']
+        if self.criteria.get()!="":
+            RES['criteria']=Crit_Types[self.criteria.get()]
         if self.min.get()!="":
             RES['age_min']=self.min.get()
         if self.max.get()!="":
             RES['age_max']=self.max.get()
         if self.units.get()!="":
-            RES['age_units']=AgeTypes[self.units.get()]
+            RES['age_units']=Age_Types[self.units.get()]
         RES['check_list']= map((lambda var:var.get()),self.res_check_value) # returns check box list from Res_Types and coordinates
         if 'g' in self.Coordinates:
-            g_list=map((lambda var:var.get()),self.g_check_value) # returns check box list from Res_Types and coordites
+            g_list=map((lambda var:var.get()),self.g_value) # returns check box list from Res_Types and coordites
             if g_list[0]==1:RES['g']=1
         if 't' in self.Coordinates:
-            t_list=map((lambda var:var.get()),self.t_check_value) # returns check box list from Res_Types and coordites
+            t_list=map((lambda var:var.get()),self.t_value) # returns check box list from Res_Types and coordites
             if t_list[0]==1:RES['t']=1
         corrlist=""
         if 'ani' in self.Corrections:
@@ -2588,42 +2594,33 @@ def vgp_map():
     os.system(outstring)
     
 def eqarea():
-    files=[]
-    try:
-       open(opath+'/pmag_specimens.txt','r')
-       files.append("Specimens")
-    except:
-       pass 
-    try:
-       open(opath+'/pmag_samples.txt','r')
-       files.append("Samples")
-    except:
-        pass
-    try:
-       open(opath+'/pmag_sites.txt','r')
-       files.append("Sites")
-    except:
-       pass
-    try:
-       open(opath+'/pmag_results.txt','r')
-       files.append("Results")
-    except:
-       pass
+    files,objs,queries=[],[],[]
+    filelist=os.listdir(opath)
+    if 'pmag_specimens.txt' in filelist:
+       queries.append("Specimens")
+       files.append("pmag_specimens.txt")
+    if 'pmag_samples.txt' in filelist:
+       files.append("pmag_samples.txt")
+       queries.append("Samples")
+       objs.append("By Sample")
+    if 'pmag_sites.txt' in filelist:
+       files.append("pmag_sites.txt")
+       queries.append("Sites")
+       objs.append("By Site")
+    if 'pmag_results.txt' in filelist:
+       queries.append("Results")
+       files.append("pmag_results.txt")
+       objs.append("By Study")
     if len(files)==0:
        tkMessageBox.showinfo("Info","You have no files available for processing \n Interpret measurements and assemble specimens first.")
        return
     file_rv=ask_radio(root,files,'Select File type') 
-    if file_rv==0:FILE='pmag_specimens.txt -WD ' +opath
-    if file_rv==1:FILE='pmag_samples.txt -WD ' +opath
-    if file_rv==2:FILE='pmag_sites.txt -WD ' +opath
-    if file_rv==3:FILE='pmag_results.txt -WD ' +opath
+    FILE=files[file_rv]+' -WD ' +opath
     outstring="eqarea_magic.py -f "+FILE 
-    objs=["Whole file","By Site","By Sample","By Specimen"]
     obj_rv=ask_radio(root,objs,'Select Level for plotting')
-    if obj_rv==0:outstring=outstring+' -obj all '
-    if obj_rv==1:outstring=outstring+' -obj sit '
-    if obj_rv==2:outstring=outstring+' -obj sam '
-    if obj_rv==3:outstring=outstring+' -obj spc '
+    if objs[obj_rv]=='By Study':outstring=outstring+' -obj all '
+    if objs[obj_rv]=='By Site':outstring=outstring+' -obj sit '
+    if objs[obj_rv]=='By Sample':outstring=outstring+' -obj sam '
     ells=["None","Fisher","Kent","Bingham","Bootstrap ellipses","Bootstrap eigenvectors","Combine Lines & Planes"]
     ell_rv=ask_radio(root,ells,'Select Confidence ellipses')
     if ell_rv==1:outstring=outstring+' -ell F '
@@ -2636,29 +2633,27 @@ def eqarea():
         crit=["None","Existing"]
         crit_rv=ask_radio(root,crit,'Use selection criteria?  [To modify, use customize criteria option')
         if crit_rv==1:outstring=outstring+' -exc '
-        
-    try:
+    if 'coordinates.log' in filelist:
         f=open(opath+'/coordinates.log','r')
-        coords=[]
+        coords,crd=[],[]
         for line in f.readlines():
             coords.append(line.replace('\n',''))
-        crd=["s: Specimen coordinates"]
-        if '-crd g' in coords:crd.append("g: geographic")
-        if '-crd t' in coords:crd.append("t: tilt corrected")
+        if '-crd s' in coords:crd.append("s: Specimen coordinates")
+        if '-crd g' in coords:crd.append("g: Geographic coordinates")
+        if '-crd t' in coords:crd.append("t: Tilt corrected coordinatesd")
         crd_rv=ask_radio(root,crd,'Select Coordinate system') # sets coordinate system
-        if crd_rv==0:outstring=outstring+' -crd s '
-        if crd_rv==1:outstring=outstring+' -crd g '
-        if crd_rv==2:outstring=outstring+' -crd t '
-    except IOError:
-        pass
+        
+        if 's: ' in crd[crd_rv]:outstring=outstring+' -crd s '
+        if 'g: ' in crd[crd_rv]:outstring=outstring+' -crd g '
+        if 't: ' in crd[crd_rv]:outstring=outstring+' -crd t '
     print outstring
     os.system(outstring)
 
 def quick_look():
     global PlotOptions,COORDs
     COORDs=[] # restore to initial
-    try: # make the NRM file for plotting
-        data,file_type=pmag.magic_read(opath+"/magic_measurements.txt")
+    filelist=os.listdir(opath)
+    if 'magic_measurements.txt' in filelist: # make the NRM file for plotting
         NRMs=[]
         nrmfile=opath+'/nrm_measurements.txt'
         nrmspec=opath+'/nrm_specimens.txt'
@@ -2666,7 +2661,7 @@ def quick_look():
         NRMs=pmag.get_dictitem(data,'magic_method_codes','LT-NO','has')
         pmag.magic_write(nrmfile,NRMs,'magic_measurements')
         print "NRM measurements saved in ",nrmfile
-    except:
+    else:
         print "select assemble measurements first"
         return  
     mk_command = 'nrm_specimens_magic.py -A -f '+nrmfile+'  -F '+opath+'/nrm_specimens_s.txt '  +' -fsa '+sampfile  # don't average replicates
@@ -3165,6 +3160,8 @@ ANI={'dmin':'','dmax':'','mcd':'0'}
 COORDs=[]
 LocTypes=['Archeological Site','Core','Drill Site','Lake Core','Land Section','Lunar','Martian','Outcrop','Region','Stratigraphic Section','Submarine Site']
 RES={'age_min':'0','age_max': '4.5','age_units': 'Ga','ask_ani':0,'ask_cr':0,'ask_nlt':0,'cor':'','ask_g':0,'ask_t':0,'g':0,'t':0,'s':1}
-Res_Types=["-D: Use default selection criteria","-C: Use no selection criteria", "-exc: Use customized selection criteria","-aD: Average multiple specimen lines per sample, default is by site","-aI: Average multiple specimen intensities per sample, default is by site","-sam: Calculate sample level VGPs/V[A]DMs, default is by site","-xSi: skip site level intensity data","-p: look at data by site","-lat: Use present latitude for VADM calculation","-fla model_lat.txt: use site paleolatitude data in model_lat.txt file","-xD: skip directions", "-xI: skip intensities","-pol: calculate averages by polarity"]
+Res_Types=["-aD: Average multiple specimen lines per sample, default is by site","-aI: Average multiple specimen intensities per sample, default is by site","-sam: Calculate sample level VGPs/V[A]DMs, default is by site","-xSi: skip site level intensity data","-p: look at data by site","-lat: Use present latitude for VADM calculation","-fla model_lat.txt: use site paleolatitude data in model_lat.txt file","-xD: skip directions", "-xI: skip intensities","-pol: calculate averages by polarity"]
 CRD={'s':1,'g':0,'b':0}
+Age_Types=['Ga','Ka','Ma','Years AD (+/-)','Years BP','Years Cal AD (+/-)','Years Cal BP']
+Crit_Types=['Use default criteria','Use existing criteria','No Criteria']
 root.mainloop()

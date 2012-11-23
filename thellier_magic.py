@@ -80,12 +80,7 @@ def main():
 #
 # default acceptance criteria
 #
-    accept_keys=['specimen_int_ptrm_n','specimen_md','specimen_fvds','specimen_b_beta','specimen_dang','specimen_drats','specimen_int_mad']
-    CritRecs=pmag.default_criteria(0)
-    accept={}
-    for rec in CritRecs:
-        for key in accept_keys:
-            if key in rec.keys():accept[key]=rec[key]
+    accept=pmag.default_criteria(0)[0] # set the default criteria
 #
 # parse command line options
 #
@@ -124,16 +119,18 @@ def main():
         ind=sys.argv.index('-fcr')
         critout=sys.argv[ind+1]
         crit_data,file_type=pmag.magic_read(critout)
-        if verbose: print "Acceptance criteria read in from ", critout
-        accept={}
-        accept['specimen_int_ptrm_n']=2.0
-        for critrec in crit_data:
-            if critrec["pmag_criteria_code"]=="IE-SPEC": 
-                for key in accept_keys:
-                    if key not in critrec.keys():
-                        accept[key]=-1
-                    else:
-                        accept[key]=float(critrec[key])
+        if file_type!='pmag_criteria':
+            if verbose: print 'bad pmag_criteria file, using no acceptance criteria'
+            accept=pmag.default_criteria(1)[0]
+        else:
+            if verbose: print "Acceptance criteria read in from ", critout
+            accept={'pmag_criteria_code':'ACCEPTANCE','er_citation_names':'This study'}
+            for critrec in crit_data:
+                if 'sample_int_sigma_uT' in critrec.keys(): # accommodate Shaar's new criterion
+                    critrec['sample_int_sigma']='%10.3e'%(eval(critrec['sample_int_sigma_uT'])*1e-6)
+                for key in critrec.keys():
+                    if key not in accept.keys() and critrec[key]!='':
+                        accept[key]=critrec[key]
     try:
         open(inspec,'rU')
         PriorRecs,file_type=pmag.magic_read(inspec)

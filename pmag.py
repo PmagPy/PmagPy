@@ -397,100 +397,88 @@ def get_Sb(data):
                 N+=1.
     return numpy.sqrt( Sb/float(N-1.) )
 def default_criteria(nocrit):
+    Crits={}
     if nocrit==0: # use default criteria
-        SpecCrit={}
 # 
 # set some sort of quasi-reasonable default criteria
 #   
-        SpecCrit['pmag_criteria_code']='DE-SPEC'
-        SpecCrit['criteria_definition']='specimen level directional criteria'
-        SpecCrit['specimen_mad']='5.49'
-        SpecCrit['specimen_alpha95']='5.49'
-        SpecCrit['specimen_n']='4'
-        SpecIntCrit={}
-        SpecIntCrit['pmag_criteria_code']='IE-SPEC'
-        SpecIntCrit['criteria_definition']='specimen level intensity criteria'
-        SpecIntCrit['specimen_int_ptrm_n']='2'
-        SpecIntCrit['specimen_drats']='20.5'
-        SpecIntCrit['specimen_b_beta']='0.1'
-        SpecIntCrit['specimen_md']='15'
-        SpecIntCrit['specimen_fvds']='0.7'
-        SpecIntCrit['specimen_q']='1.0'
-        SpecIntCrit['specimen_dang']='10.5'
-        SpecIntCrit['specimen_int_mad']='10.5'
-#        SpecIntCrit['specimen_Z']='4'
-        #SpecIntCrit['measurement_step_min']='373'
-        #SpecIntCrit['measurement_step_max']='623'
-        SampCrit={}
-        SampCrit['pmag_criteria_code']='DE-SAMP'
-        SampCrit['criteria_definition']='sample level directional criteria'
-        SampCrit['sample_alpha95']='10.49'
-        SampIntCrit={}
-        SampIntCrit['pmag_criteria_code']='IE-SAMP'
-        SampIntCrit['criteria_definition']='sample level intensity criteria'
-        SampIntCrit['sample_int_n']='2'
-        SampIntCrit['sample_int_sigma']='5.5e-6'
-        SampIntCrit['sample_int_sigma_perc']='15.5'
-        SiteIntCrit={}
-        SiteIntCrit['pmag_criteria_code']='IE-SITE'
-        SiteIntCrit['criteria_definition']='site level intensity criteria'
-        SiteIntCrit['site_int_n']='2'
-        SiteIntCrit['site_int_sigma']='5.5e-6' 
-        SiteIntCrit['site_int_sigma_perc']='15.5'
-        SiteCrit={}
-        SiteCrit['pmag_criteria_code']='DE-SITE'
-        SiteCrit['criteria_definition']='site level directional criteria'
-        SiteCrit['site_n']='5'
-        SiteCrit['site_n_lines']='4'
-        SiteCrit['site_k']='100'
-        SiteCrit['site_alpha95']='180'
-        NpoleCrit={}
-        NpoleCrit['pmag_criteria_code']='NPOLE'
-        NpoleCrit['criteria_definition']='criteria for normal poles'
-        NpoleCrit['site_polarity']="n"
-        RpoleCrit={}
-        RpoleCrit['pmag_criteria_code']='RPOLE'
-        RpoleCrit['criteria_definition']='criteria for reverse poles'
-        RpoleCrit['site_polarity']="r"
+        Crits['pmag_criteria_code']='ACCEPT'
+        Crits['criteria_definition']='acceptance criteria for study'
+        Crits['er_citation_names']='This study'
+        Crits['specimen_mad']='5'
+        Crits['specimen_alpha95']='5'
+        Crits['specimen_n']='4'
+        Crits['specimen_int_ptrm_n']='2'
+        Crits['specimen_drats']='20'
+        Crits['specimen_b_beta']='0.1'
+        Crits['specimen_md']='15'
+        Crits['specimen_fvds']='0.7'
+        Crits['specimen_q']='1.0'
+        Crits['specimen_dang']='10'
+        Crits['specimen_int_mad']='10'
+    #    Crits['measurement_step_min']='1000'
+    #    Crits['measurement_step_max']='0'
+        Crits['sample_alpha95']='10'
+        Crits['sample_int_n']='2'
+        Crits['sample_int_sigma']='5e-6'
+        Crits['sample_int_sigma_perc']='15'
+        Crits['site_int_n']='2'
+        Crits['site_int_sigma']='5e-6' 
+        Crits['site_int_sigma_perc']='15'
+        Crits['site_n']='5'
+        Crits['site_n_lines']='4'
+        Crits['site_k']='50'
+        Crits['site_alpha95']='180'
     else:
-        SpecCrit={'pmag_criteria_code':'DE-SPEC','specimen_mad':'180.', 'specimen_alpha95':'180.','specimen_n':'0'}
-        SpecCrit['criteria_definition']='specimen direction'
-        SpecIntCrit={'pmag_criteria_code':'IE-SPEC', 'specimen_int_ptrm_n':'0','specimen_drats':'100','specimen_b_beta':'10', 'specimen_md':'100', 'specimen_fvds':'0', 'specimen_q':'0', 'specimen_dang':'180', 'specimen_int_mad':'180'}
-        SpecIntCrit['criteria_definition']='specimen intensity'
-        SampCrit={'pmag_criteria_code':'DE-SAMP', 'sample_alpha95':'180'}
-        SampCrit['criteria_definition']='sample direction'
-        SampIntCrit={'pmag_criteria_code':'IE-SAMP', 'sample_int_n':'0', 'sample_int_sigma':'1000', 'sample_int_sigma_perc':'1000'}
-        SampIntCrit['criteria_definition']='sample intensity'
-        SiteCrit={'pmag_criteria_code':'DE-SITE','criteria_definition':'site direction', 'site_n':'1', 'site_n_lines':'0', 'site_k':'1','site_alpha95':'180'}
-        SiteIntCrit={'pmag_criteria_code':'IE-SITE', 'site_int_n':'0', 'site_int_sigma':'1000', 'site_int_sigma_perc':'1000'}
-        SiteIntCrit['criteria_definition']='site intensity'
-        NpoleCrit={'pmag_criteria_code':'NPOLE','site_polarity':"n"}
-        NpoleCrit['criteria_definition']='inclusion in normal pole'
-        RpoleCrit={'pmag_criteria_code':'RPOLE', 'site_polarity':"r"}
-        RpoleCrit['criteria_definition']='inclusion in reverse pole'
-    Critrecs=[SpecCrit,SpecIntCrit,SampCrit,SampIntCrit,SiteIntCrit,SiteCrit,NpoleCrit,RpoleCrit]
-    for rec in Critrecs:
-        if 'er_citation_names' not in rec:rec['er_citation_names']='This study'
-    return Critrecs
+        Crits['pmag_criteria_code']='ACCEPT'
+        Crits['criteria_definition']='acceptance criteria for study'
+        Crits['er_citation_names']='This study'
+        Crits['specimen_mad']='180'
+        Crits['specimen_alpha95']='180'
+        Crits['specimen_n']='0'
+        Crits['specimen_int_ptrm_n']='0'
+        Crits['specimen_drats']='180'
+        Crits['specimen_b_beta']='100'
+        Crits['specimen_md']='100'
+        Crits['specimen_fvds']='0'
+        Crits['specimen_q']='0'
+        Crits['specimen_dang']='180'
+        Crits['specimen_int_mad']='180'
+    #    Crits['measurement_step_min']='0'
+    #    Crits['measurement_step_max']='0'
+        Crits['sample_alpha95']='180'
+        Crits['sample_int_n']='0'
+        Crits['sample_int_sigma']='100'
+        Crits['sample_int_sigma_perc']='100'
+        Crits['site_int_n']='0'
+        Crits['site_int_sigma']='100'
+        Crits['site_int_sigma_perc']='1000'
+        Crits['site_n']='0'
+        Crits['site_n_lines']='0'
+        Crits['site_k']='0'
+        Crits['site_alpha95']='180'
+    return [Crits]
 
-def grade(PmagSpecRec,accept): 
+def grade(PmagRec,accept,type): 
     """
-    Finds the 'grade' of a thellier-thellier experiment, given the acceptance criteria
+    Finds the 'grade' (pass/fail; A/F) of a record (specimen,sample,site) given the acceptance criteria
     """
-    kill={}
-    for key in accept.keys():
-       kill[key]=0
-    score=len(accept.keys())
-    for key in accept.keys():
-        if key!='specimen_fvds' and key!='specimen_int_ptrm_n':
-            if float(PmagSpecRec[key])>float(accept[key]):
-                score-=1
-                kill[key]+=1
-        else:
-            if float(PmagSpecRec[key])<float(accept[key]):
-                score-=1
-                kill[key]+=1 
-    return score,kill
+    GREATERTHAN=['specimen_q','site_k','site_n','site_n_lines','site_int_n','measurement_step_min','measurement_step_max','specimen_int_ptrm_n','specimen_fvds','specimen_frac','specimen_f','specimen_n','specimen_int_n','sample_int_n'] # these statistics must be exceede to pass, all others must be less than (except specimen_scat, which must be true)
+    ISTRUE=['specimen_scat']
+    kill=[] # criteria that kill the record
+    for key in PmagRec.keys():
+        if PmagRec[key]!="":
+            if key in accept.keys() and type in key and accept[key]!="": # check if this is one of the acceptance criteria
+                if key in ISTRUE: # boolean must be true
+                    if PmagRec[key]!=True:
+                        kill.append(key)
+                if key in GREATERTHAN:
+                    if eval(PmagRec[key])<=eval(accept[key]):
+                        kill.append(key)
+                else:
+                    if eval(PmagRec[key])>=eval(accept[key]):
+                        kill.append(key)
+    return kill
     
 #
 def flip(D):
@@ -718,7 +706,7 @@ def vspec_magic(data):
 #
 def get_specs(data):
     """
-     takes a magic measurement file and returns a list of unique specimen names
+     takes a magic format file and returns a list of unique specimen names
     """
 # sort the specimen names
 #
@@ -2351,7 +2339,7 @@ def lnpbykey(data,key0,key1): # calculate a fisher mean of key1 data for a group
     elif len(data)==1:
         PmagRec[key0+"_dec"]=data[0][key1+'_dec']
         PmagRec[key0+"_inc"]=data[0][key1+'_inc']
-        PmagRec[key0+"_n_total"]='1'
+        PmagRec[key0+"_n"]='1'
         if data[0][key1+'_direction_type']=='l': 
             PmagRec[key0+"_n_lines"]='1'
             PmagRec[key0+"_n_planes"]='0'
@@ -2506,13 +2494,12 @@ def scoreit(pars,PmagSpecRec,accept,text,verbose):
     #PmagSpecRec["specimen_Z"]='%7.1f'%(pars["specimen_Z"])
   # check score
    #
-    score,kill=grade(PmagSpecRec,accept)
+    kill=grade(PmagSpecRec,accept,'specimen')
     Grade=""
-    if score==len(accept.keys()):Grade='A'
-    if score==len(accept.keys())-1:Grade='B'
-    if score==len(accept.keys())-2:Grade='C'
-    if score==len(accept.keys())-3:Grade='D'
-    if score<=len(accept.keys())-4:Grade='F'
+    if len(kill)==0:
+        Grade='A'
+    else:
+        Grade='F'
     pars["specimen_grade"]=Grade
     if verbose==0:
         return pars
@@ -2526,13 +2513,12 @@ def scoreit(pars,PmagSpecRec,accept,text,verbose):
         pars_out= (s,(pars["measurement_step_min"]),(pars["measurement_step_max"]),(pars["specimen_int_n"]),1e6*(pars["specimen_lab_field_dc"]),1e6*(pars["specimen_int"]),pars["specimen_b"],pars["specimen_q"],pars["specimen_f"],pars["specimen_fvds"],pars["specimen_b_beta"],pars["specimen_int_mad"],pars["specimen_dang"],pars["specimen_drats"],pars["specimen_int_ptrm_n"],pars["specimen_grade"],numpy.sqrt(pars["specimen_rsc"]),int(pars["specimen_md"]), pars["specimen_b_sigma"],pars["specimen_theta"],pars["specimen_delta"],pars["specimen_gamma"])
         outstring= '%s %4.0f %4.0f %i %4.1f %4.1f %5.3f %5.1f %5.3f %5.3f %5.3f  %7.1f %7.1f %7.1f %s %s %6.3f %i %5.3f %7.1f %7.1f %7.1f' % pars_out +'\n'               
     if pars["specimen_grade"]!="A":
-        print '\nkilled by:'
-        for key in kill.keys():
-            if kill[key]==1:print key
+        print '\n killed by:'
+        print kill
         print '\n'
     print outstr
     print outstring
-    return pars
+    return pars,kill
 
 def b_vdm(B,lat):
     """ 

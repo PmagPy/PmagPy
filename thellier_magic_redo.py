@@ -121,22 +121,19 @@ def main():
     meas_file=dir_path+"/"+meas_file
     mk_file=dir_path+"/"+mk_file
     critout=dir_path+"/"+critout
-    try:
-        open(critout,'rU')
-        accept_keys=['specimen_int_ptrm_n','specimen_md','specimen_fvds','specimen_b_beta','specimen_dang','specimen_drats','specimen_int_mad']
-        crit_data,file_type=pmag.magic_read(critout)
+    crit_data,file_type=pmag.magic_read(critout)
+    if file_type!='pmag_criteria':
+        print 'bad pmag_criteria file, using no acceptance criteria'
+        accept=pmag.default_criteria(1)[0]
+    else:
+        accept={'pmag_criteria_code':'ACCEPTANCE','er_citation_names':'This study'}
         print "Acceptance criteria read in from ", critout
-        accept={}
-        accept['specimen_int_ptrm_n']=2.0
         for critrec in crit_data:
-            if critrec["pmag_criteria_code"]=="IE-SPEC":
-                for key in accept_keys:
-                    if key not in critrec.keys():
-                        accept[key]=-1
-                    else:
-                        accept[key]=float(critrec[key])
-    except:
-        critout="" # no acceptance criteria specified
+            if 'sample_int_sigma_uT' in critrec.keys(): # accommodate Shaar's new criterion
+                    critrec['sample_int_sigma']='%10.3e'%(eval(critrec['sample_int_sigma_uT'])*1e-6)
+            for key in critrec.keys():
+                if key not in accept.keys() and critrec[key]!='':
+                    accept[key]=critrec[key]
     meas_data,file_type=pmag.magic_read(meas_file)
     if file_type != 'magic_measurements':
         print file_type
@@ -276,16 +273,14 @@ def main():
                     PmagSpecRec["magic_software_packages"]=version_num
                     PmagSpecRec["specimen_description"]=comment
                     if critout!="":
-                        score,kill=pmag.grade(PmagSpecRec,accept)
-                        Grade=""
-                        if score==len(accept.keys()):Grade='A'
-                        if score==len(accept.keys())-1:Grade='B'
-                        if score==len(accept.keys())-2:Grade='C'
-                        if score==len(accept.keys())-3:Grade='D'
-                        if score<=len(accept.keys())-4:Grade='F'
+                        kill=pmag.grade(PmagSpecRec,accept,'specimen')
+                        if len(kill)>0:
+                            Grade='F' # fails
+                        else:
+                            Grade='A' # passes
                         PmagSpecRec["specimen_grade"]=Grade
                     else:
-                        PmagSpecRec["specimen_grade"]=""
+                        PmagSpecRec["specimen_grade"]="" # not graded
                     if nltrm==0 and anis==0 and cool!=0: # apply cooling rate correction
                         SCR=pmag.get_dictitem(SampCRs,'er_sample_name',PmagSpecRec['er_sample_name'],'T') # get this samples, cooling rate correction 
                         CrSpecRec=pmag.cooling_rate(PmagSpecRec,SCR,crfrac,crtype)
