@@ -337,7 +337,7 @@ def main():
                                pars["er_specimen_name"]=s
                                if verbose:
                                    print 'Saved interpretation: '
-                               pars=pmag.scoreit(pars,PmagSpecRec,accept,'',verbose)
+                               pars,kill=pmag.scoreit(pars,PmagSpecRec,accept,'',verbose)
                                pmagplotlib.plotB(AZD,araiblock,zijdblock,pars)
                                if verbose:pmagplotlib.drawFIGS(AZD)
                                if len(trmblock)>2:
@@ -469,7 +469,7 @@ def main():
                            pars["specimen_lab_field_dc"]=field
                            pars["specimen_int"]=-1*field*pars["specimen_b"]
                            pars["er_specimen_name"]=s
-                           pars=pmag.scoreit(pars,PmagSpecRec,accept,'',0)
+                           pars,kill=pmag.scoreit(pars,PmagSpecRec,accept,'',0)
                            PmagSpecRec["measurement_step_min"]='%8.3e' % (pars["measurement_step_min"])
                            PmagSpecRec["measurement_step_max"]='%8.3e' % (pars["measurement_step_max"])
                            PmagSpecRec["measurement_step_unit"]="K"
@@ -531,7 +531,7 @@ def main():
                            if verbose:pmagplotlib.drawFIGS(AZD)
                            pars["specimen_lab_field_dc"]=field
                            pars["specimen_int"]=-1*field*pars["specimen_b"]
-                           pars=pmag.scoreit(pars,PmagSpecRec,accept,'',verbose)
+                           pars,kill=pmag.scoreit(pars,PmagSpecRec,accept,'',verbose)
                            saveit=raw_input("Save this interpretation? [y]/n \n")
                            if saveit!='n':
                                PriorRecs.append(PmagSpecRec) # put back an interpretation

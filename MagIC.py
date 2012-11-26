@@ -1208,6 +1208,9 @@ def update_meas():
 
 def meas_combine():
     log=0
+    ani_types=[]
+    aarm_files=[]
+    atrm_files=[]
     try:
         logfile=open(opath+"/measurements.log",'r')
         filestring="-f "
@@ -1254,9 +1257,6 @@ def meas_combine():
         pass
     try:
         logfile=open(opath+"/ani.log",'r')
-        ani_types=[]
-        aarm_files=[]
-        atrm_files=[]
         for line in logfile.readlines():
             description=line.split("|")
             file=description[0][:-1]

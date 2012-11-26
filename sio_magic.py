@@ -272,6 +272,7 @@ def main():
     version_num=pmag.get_version()
     if 1:
     #if infile_type=="SIO format":
+        print methcode
         for line in input.readlines():
             instcode=""
             if len(line)>2:
