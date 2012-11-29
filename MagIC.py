@@ -665,14 +665,12 @@ def model_lat(): # imports a site paleolatitude file
 
 def convert_samps():
     outpath=tkFileDialog.askdirectory(title="Set output directory for orient.txt file")
-    sampfile=opath+'/er_samples.txt'
-    try:
-        open(sampfile,'r')
-        outstring='convert_samples.py -f er_samples.txt -F '+outpath+'/orient.txt '+' -WD '+opath
+    files=os.listdir(opath)
+    if 'er_samples.txt' in files:
+        outstring='convert_samples.py  -WD '+opath +' -OD '+outpath 
         print outstring
         os.system(outstring)
-        tkMessageBox.showinfo("Info"," orientation files created in selected output directory\n NB: there will be a file for every location name found in the er_samples.txt file.\n format is location_orient.txt.\n Edit this file, then re-import with Import orient.txt format option.")
-    except:
+    else:
         print 'No er_samples.txt file - import something first! '
 
 def add_ODP_samp():
@@ -3027,7 +3025,7 @@ def create_menus():
     importmenu.add_command(label="Combine measurements",command=meas_combine)
     importmenu.add_separator()
     importmenu.add_command(label="Convert er_samples => orient.txt",command=convert_samps)
-    importmenu.add_command(label="Update measurements\n if new orientation imported",command=update_meas)
+    importmenu.add_command(label="Update measurements\n with new site names",command=update_meas)
     importmenu.add_separator()
     prior=Menu(importmenu)
     importmenu.add_cascade(label="Import prior interpretations",menu=prior)

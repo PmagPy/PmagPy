@@ -272,7 +272,6 @@ def main():
     version_num=pmag.get_version()
     if 1:
     #if infile_type=="SIO format":
-        print methcode
         for line in input.readlines():
             instcode=""
             if len(line)>2:
@@ -438,12 +437,12 @@ def main():
                         if meas_type=="LT-AF-Z": MagRec["treatment_dc_field"]='0'
                     else: # AARM experiment
                         if treat[1][0]=='0':
-                            meas_type="LT-AF-Z"
+                            meas_type="LT-AF-Z:LP-AN-ARM:"
                             MagRec["treatment_ac_field"]='%8.3e' %(peakfield) # peak field in tesla
                             MagRec["treatment_dc_field"]='%8.3e'%(0)
                             if labfield!=0 and methcode!="LP-AN-ARM": print "Warning - inconsistency in mag file with lab field - overriding file with 0"
                         else:
-                            meas_type="LT-AF-I"
+                            meas_type="LT-AF-I:LP-AN-ARM"
                             ipos=int(treat[0])-1
                             MagRec["treatment_dc_field_phi"]='%7.1f' %(dec[ipos])
                             MagRec["treatment_dc_field_theta"]='%7.1f'% (inc[ipos])
@@ -451,11 +450,18 @@ def main():
                             MagRec["treatment_ac_field"]='%8.3e' %(peakfield) # peak field in tesla
                 elif demag=="T" and methcode == "LP-AN-TRM":
                     if treat[1][0]=='0':
-                            meas_type="LT-T-Z"
+                            meas_type="LT-T-Z:LP-AN-TRM"
                             MagRec["treatment_dc_field"]='%8.3e'%(0)
                             MagRec["treatment_temp"]='%8.3e' % (float(treat[0])+273.) # temp in kelvin
+                    elif treat[1][0]=='7': # alteration check as final measurement
+                            meas_type="LT-PTRM-I:LP-AN-TRM"
+                            ipos=int(treat[1][0])-1
+                            MagRec["treatment_dc_field_phi"]='%7.1f' %(tdec[ipos])
+                            MagRec["treatment_dc_field_theta"]='%7.1f'% (tinc[ipos])
+                            MagRec["treatment_temp"]='%8.3e' % (float(treat[0])+273.) # temp in kelvin
+                            MagRec["treatment_dc_field"]='%8.3e'%(labfield)
                     else:
-                            meas_type="LT-T-I"
+                            meas_type="LT-T-I:LP-AN-TRM"
                             ipos=int(treat[1][0])-1
                             MagRec["treatment_dc_field_phi"]='%7.1f' %(tdec[ipos])
                             MagRec["treatment_dc_field_theta"]='%7.1f'% (tinc[ipos])
@@ -536,7 +542,8 @@ def main():
                 MagRec["er_analyst_mail_names"]=user
                 MagRec["er_citation_names"]=citation
                 if methcode=="LP-IRM-3D": meas_type=methcode
-                MagRec["magic_method_codes"]=methcode.strip(':')
+                #MagRec["magic_method_codes"]=methcode.strip(':')
+                MagRec["magic_method_codes"]=meas_type
                 MagRec["measurement_flag"]='g'
                 MagRec["er_specimen_name"]=rec[0]
                 if 'std' in rec[0]:
@@ -545,6 +552,7 @@ def main():
                     MagRec["measurement_standard"]='u'
                 MagRec["measurement_number"]='1'
                 MagRecs.append(MagRec) 
+       
     MagOuts=pmag.measurements_methods(MagRecs,noave)
     pmag.magic_write(meas_file,MagOuts,'magic_measurements')
     print "results put in ",meas_file

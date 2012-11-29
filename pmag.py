@@ -473,10 +473,10 @@ def grade(PmagRec,accept,type):
                     if PmagRec[key]!=True:
                         kill.append(key)
                 if key in GREATERTHAN:
-                    if eval(PmagRec[key])<=eval(accept[key]):
+                    if eval(PmagRec[key])<eval(accept[key]):
                         kill.append(key)
                 else:
-                    if eval(PmagRec[key])>=eval(accept[key]):
+                    if eval(PmagRec[key])>eval(accept[key]):
                         kill.append(key)
     return kill
     
@@ -2502,7 +2502,7 @@ def scoreit(pars,PmagSpecRec,accept,text,verbose):
         Grade='F'
     pars["specimen_grade"]=Grade
     if verbose==0:
-        return pars
+        return pars,kill
     diffcum=0
     if pars['measurement_step_unit']=='K':
         outstr= "specimen     Tmin  Tmax  N  lab_field  B_anc  b  q  f(coe)  Fvds  beta  MAD  Dang  Drats  Nptrm  Grade  R  MD%  sigma  Gmax \n"
@@ -4839,27 +4839,30 @@ def measurements_methods(meas_data,noave):
 #
     version_num=get_version()
     sids=get_specs(meas_data)
+# list  of measurement records for this specimen
 #
 # step through spec by spec 
 #
     SpecTmps,SpecOuts=[],[]
     for spec in sids:
-        TRM,IRM3D=0,0 # list  of measurement records for this specimen
+        TRM,IRM3D,ATRM=0,0,0
         expcodes=""
 # first collect all data for this specimen and do lab treatments
-        SpecRecs=get_dictitem(meas_data,'er_specimen_name',spec,'T')
+        SpecRecs=get_dictitem(meas_data,'er_specimen_name',spec,'T') # list  of measurement records for this specimen
         for rec in SpecRecs:
             tmpmeths=rec['magic_method_codes'].split(":")
             meths=[]
             if "LP-TRM" in tmpmeths:TRM=1 # catch these suckers here!
-            if "LP-IRM-3D" in tmpmeths:
+            if "LP-IRM-3D" in tmpmeths: 
                 IRM3D=1 # catch these suckers here!
+            elif "LP-AN-TRM" in tmpmeths: 
+                ATRM=1 # catch these suckers here!
 #
-# write over existing method codes
+# otherwise write over existing method codes
 #
 # find NRM data (LT-NO)
 #
-            elif  float(rec["measurement_temp"])>=273. and float(rec["measurement_temp"]) < 323.:   
+            elif float(rec["measurement_temp"])>=273. and float(rec["measurement_temp"]) < 323.:   
 # between 0 and 50C is room T measurement
                 if ("measurement_dc_field" not in rec.keys() or float(rec["measurement_dc_field"])==0 or rec["measurement_dc_field"]=="") and ("measurement_ac_field" not in rec.keys() or float(rec["measurement_ac_field"])==0 or rec["measurement_ac_field"]==""): 
 # measurement done in zero field!
@@ -4906,15 +4909,14 @@ def measurements_methods(meas_data,noave):
                         else:
                             metha=raw_input("Enter the lab protocol code that best describes this experiment ")
                             meths.append(metha)
+                methcode=""
+                for meth in meths:
+                    methcode=methcode+meth.strip()+":"
+                rec["magic_method_codes"]=methcode[:-1] # assign them back
 #
 # done with first pass, collect and assign provisional method codes
-
-            rec["er_citation_names"]="This study"
             if "measurement_description" not in rec.keys():rec["measurement_description"]=""
-            methcode=""
-            for meth in meths:
-                methcode=methcode+meth.strip()+":"
-            rec["magic_method_codes"]=methcode[:-1] # assign them back
+            rec["er_citation_names"]="This study"
             SpecTmps.append(rec)
 # ready for second pass through, step through specimens, check whether ptrm, ptrm tail checks, or AARM, etc.
 #
@@ -4924,6 +4926,7 @@ def measurements_methods(meas_data,noave):
         NewSpecs,SpecMeths=[],[]
         experiment_name,measnum="",1
         if IRM3D==1:experiment_name="LP-IRM-3D"
+        if ATRM==1:experiment_name="LP-AN-TRM"
         NewSpecs=get_dictitem(SpecTmps,'er_specimen_name',spec,'T')
 #
 # first look for replicate measurements
@@ -4938,9 +4941,9 @@ def measurements_methods(meas_data,noave):
 #
 # now look through this specimen's records - try to figure out what experiment it is
 #
-        if len(NewSpecs)>1: # more than one meas for this spec - part of experiment
+        if len(NewSpecs)>1: # more than one meas for this spec - part of an unknown experiment
             SpecMeths=get_list(NewSpecs,'magic_method_codes').split(":")
-            if "LT-T-I" in  SpecMeths: # TRM steps - could be anisotropy, TRM acquisition, Shaw or a Thellier experiment or TDS experiment
+            if "LT-T-I" in  SpecMeths and experiment_name=="": # TRM steps, could be TRM acquisition, Shaw or a Thellier experiment or TDS experiment
     #
     # collect all the infield steps and look for changes in dc field vector
     #
@@ -4959,7 +4962,7 @@ def measurements_methods(meas_data,noave):
                             if phi!=phi0 or theta!=theta0: ANIS=1   # if direction changes, is some sort of anisotropy experiment
                         if ANIS==1:
                             experiment_name="LP-AN-TRM"
-                if experiment_name=="":  # not anisotropy of TRM - acquisition or Shaw?
+                if experiment_name=="":  # could be TRM  acquisition or Shaw?
                     if "LT-AF-I" in SpecMeths and "LT-AF-Z" in SpecMeths: # must be Shaw :(
                         experiment_name="LP-PI-TRM:LP-PI-ALT-AFARM"
                     elif TRM==0: # catch a TRM acquisition experiment not already labelled
@@ -4976,7 +4979,7 @@ def measurements_methods(meas_data,noave):
                 TI=1
           
             else: TI= 0 # no infield steps at all
-            if "LT-T-Z" in  SpecMeths: # thermal demag steps
+            if "LT-T-Z" in  SpecMeths and experiment_name=="": # thermal demag steps
                 if TI==0: 
                     experiment_name="LP-DIR-T" # just ordinary thermal demag
                 
@@ -5237,8 +5240,9 @@ def measurements_methods(meas_data,noave):
                         rec['measurement_number']='%i'%(measnum)  # assign measurement numbers
                         measnum+=1
                     else:
-                        rec["magic_method_codes"]=rec["magic_method_codes"]+":"+experiment_name
-                        rec["magic_method_codes"]=rec["magic_method_codes"].strip(':')
+                        if experiment_name not in rec['magic_method_codes']:
+                            rec["magic_method_codes"]=rec["magic_method_codes"]+":"+experiment_name
+                            rec["magic_method_codes"]=rec["magic_method_codes"].strip(':')
                         rec['measurement_number']='%i'%(measnum)  # assign measurement numbers
                         measnum+=1
                         rec["magic_experiment_name"]=spec+":"+experiment_name

@@ -6,7 +6,6 @@
 #
 # Rev 1.0 Initial revision August 2012 
 #---------------------------------------------------------------------------
-
 import matplotlib
 import pylab,scipy,os,time
 from pylab import * 
@@ -281,9 +280,11 @@ def Thellier_optimizer(WD, Data,Data_hierarchy,criteria_fixed_paremeters_file,op
   line=fin.readline()
   line=fin.readline()
   header=line.strip('\n').split('\t')
+  print header
   for line in fin.readlines():
     tmp_data={}
     line=line.strip('\n').split('\t')
+    print line
     for i in range(len(line)):
       tmp_data[header[i]]=line[i]
     sample=tmp_data['er_sample_name']
@@ -459,6 +460,38 @@ def Thellier_optimizer(WD, Data,Data_hierarchy,criteria_fixed_paremeters_file,op
 
         pars["specimen_int"]=-1*pars['lab_dc_field']*pars["specimen_b"]
 
+##        #-------------------------------------------------
+##        # pTRM checks:
+##        # DRAT ()
+##        # and
+##        # DRATS (Tauxe and Staudigel 2004)
+##        #-------------------------------------------------
+##
+##        x_ptrm_check_in_segment,y_ptrm_check_in_segment,x_Arai_compare=[],[],[]
+##        x_ptrm_check_in_start_to_end,y_ptrm_check_in_start_to_end=[],[]
+##        
+##        for k in range(len(Data[s]['ptrm_checks_temperatures'])):
+##          if Data[s]['ptrm_checks_temperatures'][k] in t_Arai:
+##            if Data[s]['ptrm_checks_temperatures'][k]<=pars["measurement_step_max"]:
+##              x_ptrm_check_in_segment.append(Data[s]['x_ptrm_check'][k])
+##              y_ptrm_check_in_segment.append(Data[s]['y_ptrm_check'][k])
+##              x_Arai_index=t_Arai.index(Data[s]['ptrm_checks_temperatures'][k])
+##              x_Arai_compare.append(x_Arai[x_Arai_index])
+##        x_ptrm_check_in_segment=array(x_ptrm_check_in_segment)  
+##        y_ptrm_check_in_segment=array(y_ptrm_check_in_segment)
+##        x_Arai_compare=array(x_Arai_compare)
+##                                                               
+##                                  
+##        DRATS=100*(abs(sum(x_ptrm_check_in_segment-x_Arai_compare))/(x_Arai[end]))
+##        int_ptrm_n=len(x_ptrm_check_in_segment)
+##        if int_ptrm_n > 0:
+##           pars['specimen_int_ptrm_n']=int_ptrm_n
+##           pars['specimen_drats']=DRATS
+##        else:
+##           pars['specimen_int_ptrm_n']=int_ptrm_n
+##           pars['specimen_drats']=-1
+
+
         #-------------------------------------------------
         # pTRM checks:
         # DRAT ()
@@ -466,22 +499,36 @@ def Thellier_optimizer(WD, Data,Data_hierarchy,criteria_fixed_paremeters_file,op
         # DRATS (Tauxe and Staudigel 2004)
         #-------------------------------------------------
 
-        x_ptrm_check_in_segment,y_ptrm_check_in_segment,x_Arai_compare=[],[],[]
+        x_ptrm_check_in_0_to_end,y_ptrm_check_in_0_to_end,x_Arai_compare=[],[],[]
+        x_ptrm_check_in_start_to_end,y_ptrm_check_in_start_to_end=[],[]
+        #x_ptrm_check_for_SCAT,y_ptrm_check_for_SCAT=[],[]
         
         for k in range(len(Data[s]['ptrm_checks_temperatures'])):
-          if Data[s]['ptrm_checks_temperatures'][k] in t_Arai:
-            if Data[s]['ptrm_checks_temperatures'][k]<=pars["measurement_step_max"]:
-              x_ptrm_check_in_segment.append(Data[s]['x_ptrm_check'][k])
-              y_ptrm_check_in_segment.append(Data[s]['y_ptrm_check'][k])
-              x_Arai_index=t_Arai.index(Data[s]['ptrm_checks_temperatures'][k])
-              x_Arai_compare.append(x_Arai[x_Arai_index])
-        x_ptrm_check_in_segment=array(x_ptrm_check_in_segment)  
-        y_ptrm_check_in_segment=array(y_ptrm_check_in_segment)
+          if Data[s]['ptrm_checks_temperatures'][k]<pars["measurement_step_max"] and Data[s]['ptrm_checks_temperatures'][k] in t_Arai:
+            x_ptrm_check_in_0_to_end.append(Data[s]['x_ptrm_check'][k])
+            y_ptrm_check_in_0_to_end.append(Data[s]['y_ptrm_check'][k])
+            x_Arai_index=t_Arai.index(Data[s]['ptrm_checks_temperatures'][k])
+            x_Arai_compare.append(x_Arai[x_Arai_index])
+            if Data[s]['ptrm_checks_temperatures'][k]>=pars["measurement_step_min"]:
+                x_ptrm_check_in_start_to_end.append(Data[s]['x_ptrm_check'][k])
+                y_ptrm_check_in_start_to_end.append(Data[s]['y_ptrm_check'][k])
+##          if Data[s]['ptrm_checks_temperatures'][k] >=     pars["measurement_step_min"] and Data[s]['ptrm_checks_starting_temperatures'][k] <= pars["measurement_step_max"] :
+##                x_ptrm_check_for_SCAT.append(Data[s]['x_ptrm_check'][k])
+##                y_ptrm_check_for_SCAT.append(Data[s]['y_ptrm_check'][k])
+              
+        # scat uses a different definistion":
+        # use only pTRM that STARTED before the last temperatire step.
+        
+        x_ptrm_check_in_0_to_end=array(x_ptrm_check_in_0_to_end)  
+        y_ptrm_check_in_0_to_end=array(y_ptrm_check_in_0_to_end)
         x_Arai_compare=array(x_Arai_compare)
-                                                               
-                                  
-        DRATS=100*(abs(sum(x_ptrm_check_in_segment-x_Arai_compare))/(x_Arai[end]))
-        int_ptrm_n=len(x_ptrm_check_in_segment)
+        x_ptrm_check_in_start_to_end=array(x_ptrm_check_in_start_to_end)
+        y_ptrm_check_in_start_to_end=array(y_ptrm_check_in_start_to_end)
+##        x_ptrm_check_for_SCAT=array(x_ptrm_check_for_SCAT)
+##        y_ptrm_check_for_SCAT=array(y_ptrm_check_for_SCAT)
+                               
+        DRATS=100*(abs(sum(x_ptrm_check_in_0_to_end-x_Arai_compare))/(x_Arai[end]))
+        int_ptrm_n=len(x_ptrm_check_in_0_to_end)
         if int_ptrm_n > 0:
            pars['specimen_int_ptrm_n']=int_ptrm_n
            pars['specimen_drats']=DRATS
@@ -489,9 +536,31 @@ def Thellier_optimizer(WD, Data,Data_hierarchy,criteria_fixed_paremeters_file,op
            pars['specimen_int_ptrm_n']=int_ptrm_n
            pars['specimen_drats']=-1
 
+
         #-------------------------------------------------
         # Tail check MD
         #-------------------------------------------------
+
+        # collect tail check data"
+        x_tail_check_start_to_end,y_tail_check_start_to_end=[],[]
+        x_tail_check_for_SCAT,y_tail_check_for_SCAT=[],[]
+
+        for k in range(len(Data[s]['tail_check_temperatures'])):
+          if Data[s]['tail_check_temperatures'][k] in t_Arai:
+              if Data[s]['tail_check_temperatures'][k]<=pars["measurement_step_max"] and Data[s]['tail_check_temperatures'][k] >=pars["measurement_step_min"]:
+                   x_tail_check_start_to_end.append(Data[s]['x_tail_check'][k]) 
+                   y_tail_check_start_to_end.append(Data[s]['y_tail_check'][k]) 
+          if Data[s]['tail_check_temperatures'][k] >= pars["measurement_step_min"] and Data[s]['tail_checks_starting_temperatures'][k] <= pars["measurement_step_max"] :
+                x_tail_check_for_SCAT.append(Data[s]['x_tail_check'][k])
+                y_tail_check_for_SCAT.append(Data[s]['y_tail_check'][k])
+
+                
+        x_tail_check_start_to_end=array(x_tail_check_start_to_end)
+        y_tail_check_start_to_end=array(y_tail_check_start_to_end)
+        x_tail_check_for_SCAT=array(x_tail_check_for_SCAT)
+        y_tail_check_for_SCAT=array(y_tail_check_for_SCAT)
+           
+
            
         pars['specimen_md']=-1
 
@@ -590,8 +659,8 @@ def Thellier_optimizer(WD, Data,Data_hierarchy,criteria_fixed_paremeters_file,op
 
         if 'NLT_parameters' in Data[s].keys():
 
-           alpha=Data[s]['NLT_parameters'][0][0]
-           beta=Data[s]['NLT_parameters'][0][1]
+           alpha=Data[s]['NLT_parameters']['tanh_parameters'][0][0]
+           beta=Data[s]['NLT_parameters']['tanh_parameters'][0][1]
            b=float(pars["specimen_b"])
            Fa=pars["Anisotropy_correction_factor"]
 
@@ -692,24 +761,25 @@ def Thellier_optimizer(WD, Data,Data_hierarchy,criteria_fixed_paremeters_file,op
             x_Arai_segment= x_Arai[start:end+1]
             y_Arai_segment= y_Arai[start:end+1]
 
-            x_ptrm_check_in_0_to_end,y_ptrm_check_in_0_to_end=[],[]
-            x_ptrm_check_in_start_to_end,y_ptrm_check_in_start_to_end=[],[]
+            #x_ptrm_check_in_start_to_end,y_ptrm_check_in_start_to_end=[],[]
+            x_ptrm_check_for_SCAT,y_ptrm_check_for_SCAT=[],[]
             
-            for k in range(len(Data[specimen]['ptrm_checks_temperatures'])):
-              if Data[specimen]['ptrm_checks_temperatures'][k] in t_Arai:
-                if Data[specimen]['ptrm_checks_temperatures'][k]<=pars["measurement_step_max"]:
-                  x_ptrm_check_in_0_to_end.append(Data[specimen]['x_ptrm_check'][k])
-                  y_ptrm_check_in_0_to_end.append(Data[specimen]['y_ptrm_check'][k])
-                  if Data[specimen]['ptrm_checks_temperatures'][k]>=pars["measurement_step_min"]:
-                    x_ptrm_check_in_start_to_end.append(Data[specimen]['x_ptrm_check'][k])
-                    y_ptrm_check_in_start_to_end.append(Data[specimen]['y_ptrm_check'][k])
+##            for k in range(len(Data[specimen]['ptrm_checks_temperatures'])):
+##              if Data[specimen]['ptrm_checks_temperatures'][k] in t_Arai:
+##                if Data[specimen]['ptrm_checks_temperatures'][k]<pars["measurement_step_max"]:
+##                  if Data[specimen]['ptrm_checks_temperatures'][k]>=pars["measurement_step_min"]:                    
+##                    x_ptrm_check_in_start_to_end.append(Data[specimen]['x_ptrm_check'][k])
+##                    y_ptrm_check_in_start_to_end.append(Data[specimen]['y_ptrm_check'][k])
 
-                  
-                  #x_Arai_index=t_Arai.index(Data[specimen]['ptrm_checks_temperatures'][k])
-            x_ptrm_check_in_0_to_end=array(x_ptrm_check_in_0_to_end)  
-            y_ptrm_check_in_0_to_end=array(y_ptrm_check_in_0_to_end)
-            x_ptrm_check_in_start_to_end=array(x_ptrm_check_in_start_to_end)
-            y_ptrm_check_in_start_to_end=array(y_ptrm_check_in_start_to_end)
+            for k in range(len(Data[specimen]['ptrm_checks_temperatures'])):
+
+              if Data[specimen]['ptrm_checks_temperatures'][k] >=   pars["measurement_step_min"] and Data[specimen]['ptrm_checks_starting_temperatures'][k] <= pars["measurement_step_max"] :
+                    x_ptrm_check_for_SCAT.append(Data[specimen]['x_ptrm_check'][k])
+                    y_ptrm_check_for_SCAT.append(Data[specimen]['y_ptrm_check'][k])
+            x_ptrm_check_for_SCAT=array(x_ptrm_check_for_SCAT)
+            y_ptrm_check_for_SCAT=array(y_ptrm_check_for_SCAT)
+##            x_ptrm_check_in_start_to_end=array(x_ptrm_check_in_start_to_end)
+##            y_ptrm_check_in_start_to_end=array(y_ptrm_check_in_start_to_end)
             #-----------------------
 
             b=pars['specimen_b']
@@ -739,9 +809,6 @@ def Thellier_optimizer(WD, Data,Data_hierarchy,criteria_fixed_paremeters_file,op
             # higher bounding line of the 'beta box'
             slop2=a2/((a1/b1))
             intercept2=a2       
-
-            #pars['specimen_scat_bounding_line_high']=[intercept2,slop2]
-            #pars['specimen_scat_bounding_line_low']=[intercept1,slop1]
             
             # check if the Arai data points are in the 'box'
 
@@ -762,21 +829,43 @@ def Thellier_optimizer(WD, Data,Data_hierarchy,criteria_fixed_paremeters_file,op
              continue 
 
 
-            if len(x_ptrm_check_in_start_to_end) > 0:
+            if len(x_ptrm_check_for_SCAT) > 0:
 
         
               # the two bounding lines
-              ymin=intercept1+x_ptrm_check_in_start_to_end*slop1
-              ymax=intercept2+x_ptrm_check_in_start_to_end*slop2
+              ymin=intercept1+x_ptrm_check_for_SCAT*slop1
+              ymax=intercept2+x_ptrm_check_for_SCAT*slop2
 
               # arrays of "True" or "False"
-              check_1=y_ptrm_check_in_start_to_end>ymax
-              check_2=y_ptrm_check_in_start_to_end<ymin
+              check_1=y_ptrm_check_for_SCAT>ymax
+              check_2=y_ptrm_check_for_SCAT<ymin
 
               # check if at least one "True" 
               if (sum(check_1)+sum(check_2))>0:
                 thellier_optimizer_master_file.write( "key=%s - specimen %s, tmin,tmax =(%.0f,%.0f) fail on ptrm scat\n"%(Key,specimen,float(pars["measurement_step_min"])-273,float(pars["measurement_step_max"])-273))
                 continue
+
+
+            # check if the tail checks data points are in the 'box'
+
+
+            if len(x_tail_check_for_SCAT) > 0:
+
+              # the two bounding lines
+              ymin=intercept1+x_tail_check_for_SCAT*slop1
+              ymax=intercept2+x_tail_check_for_SCAT*slop2
+
+              # arrays of "True" or "False"
+              check_1=y_tail_check_for_SCAT>ymax
+              check_2=y_tail_check_for_SCAT<ymin
+
+
+              # check if at least one "True" 
+              if (sum(check_1)+sum(check_2))>0:
+                thellier_optimizer_master_file.write( "key=%s - specimen %s, tmin,tmax =(%.0f,%.0f) fail on tail scat\n"%(Key,specimen,float(pars["measurement_step_min"])-273,float(pars["measurement_step_max"])-273))
+                continue
+
+
               
             #------------
             if sample not in  Optimizer_data[Key].keys():
@@ -934,13 +1023,22 @@ def Thellier_optimizer(WD, Data,Data_hierarchy,criteria_fixed_paremeters_file,op
   # Make the plots
   #------------------------------------------------------
 
-  
-  Command_line="mkdir %s/optimizer/"%(WD)
-  os.system(Command_line) 
-  Command_line="mkdir %s/optimizer/pdf"%(WD)
-  os.system(Command_line) 
-  Command_line="mkdir %s/optimizer/svg"%(WD)
-  os.system(Command_line) 
+  print "WD",WD
+  #Command_line="mkdir %s/optimizer/"%(WD)
+  try:
+    os.mkdir(WD + "/optimizer/pdf")
+  except:
+    pass
+  try:
+    os.mkdir(WD + "/optimizer/svg")
+  except:
+    pass
+
+  #os.system(Command_line) 
+  #Command_line="mkdir %s/optimizer/pdf"%(WD)
+  #os.system(Command_line) 
+  #Command_line="mkdir %s/optimizer/svg"%(WD)
+  #os.system(Command_line) 
 
   Fig_counter=0
   for function in optimization_functions:

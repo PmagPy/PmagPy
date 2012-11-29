@@ -28,21 +28,26 @@ def main():
     version_num=pmag.get_version()
     orient_file,samp_file = "orient","er_samples.txt"
     args=sys.argv
-    dir_path='.'
+    dir_path,out_path='.','.'
     #
     #
     if '-WD' in args:
         ind=args.index('-WD')
         dir_path=args[ind+1]
+    if '-OD' in args:
+        ind=args.index('-OD')
+        out_path=args[ind+1]
     if "-h" in args:
         print main.__doc__
         sys.exit()
     if "-F" in args:
         ind=args.index("-F")
-        orient_file=dir_path+'/'+sys.argv[ind+1]
+        orient_file=sys.argv[ind+1]
     if "-f" in args:
         ind=args.index("-f")
-        samp_file=dir_path+'/'+sys.argv[ind+1]
+        samp_file=sys.argv[ind+1]
+    orient_file=out_path+'/'+orient_file
+    samp_file=dir_path+'/'+samp_file
     #
     # read in file to convert
     #
@@ -65,7 +70,8 @@ def main():
                    if SampKeys[i] in samp.keys():OrRec[OrKeys[i]]=samp[SampKeys[i]]
                 OrOut.append(OrRec)
         loc=location_name.replace(" ","_") 
-        if '-F'!=args:outfile=orient_file+'_'+loc+'.txt'
+        #if '-F'!=args:outfile=orient_file+'_'+loc+'.txt'
+        outfile=orient_file+'_'+loc+'.txt'
         pmag.magic_write(outfile,OrOut,location_name)
         print "Data saved in: ", outfile
 main()
