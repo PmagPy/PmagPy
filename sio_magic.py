@@ -339,7 +339,7 @@ def main():
                         instcode=''
                     MagRec["measurement_positions"]=code3[1][2]
                   elif len(code1)>2: # newest format (cryo7 or later)
-                    if methcode!="LP-AN-ARM":labfield=0
+                    if "LP-AN-ARM" not in methcode:labfield=0
                     fmt='new'
                     date=code1[0].split('/') # break date into mon/day/year
                     yy=int(date[2])
@@ -377,7 +377,7 @@ def main():
                     if user=="":user=code1[5]
                     if code1[2][-1]=='C': 
                         demag="T"
-                        if code1[4]=='microT' and float(code1[3])!=0. and methcode!="LP-AN-ARM": labfield=float(code1[3])*1e-6
+                        if code1[4]=='microT' and float(code1[3])!=0. and "LP-AN-ARM" not in methcode: labfield=float(code1[3])*1e-6
                     if code1[2]=='mT' and methcode!="LP-IRM": 
                         demag="AF"
                         if code1[4]=='microT' and float(code1[3])!=0.: labfield=float(code1[3])*1e-6
@@ -552,7 +552,6 @@ def main():
                     MagRec["measurement_standard"]='u'
                 MagRec["measurement_number"]='1'
                 MagRecs.append(MagRec) 
-       
     MagOuts=pmag.measurements_methods(MagRecs,noave)
     pmag.magic_write(meas_file,MagOuts,'magic_measurements')
     print "results put in ",meas_file

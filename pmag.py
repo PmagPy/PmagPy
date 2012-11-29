@@ -4926,7 +4926,7 @@ def measurements_methods(meas_data,noave):
         NewSpecs,SpecMeths=[],[]
         experiment_name,measnum="",1
         if IRM3D==1:experiment_name="LP-IRM-3D"
-        if ATRM==1:experiment_name="LP-AN-TRM"
+        if ATRM==1: experiment_name="LP-AN-TRM"
         NewSpecs=get_dictitem(SpecTmps,'er_specimen_name',spec,'T')
 #
 # first look for replicate measurements
@@ -4947,7 +4947,7 @@ def measurements_methods(meas_data,noave):
     #
     # collect all the infield steps and look for changes in dc field vector
     #
-                Steps=[]
+                Steps,TI=[],1
                 for rec in  NewSpecs: 
                     methods=get_list(NewSpecs,'magic_method_codes').split(":")
                     if "LT-T-I" in methods:Steps.append(rec)  # get all infield steps together
@@ -4955,34 +4955,18 @@ def measurements_methods(meas_data,noave):
                 if "treatment_dc_field_phi" in rec_bak.keys() and "treatment_dc_field_theta" in rec_bak.keys():   
                     if rec_bak["treatment_dc_field_phi"] !="" and rec_bak["treatment_dc_field_theta"]!="":   # at least there is field orientation info
                         phi0,theta0=rec_bak["treatment_dc_field_phi"],rec_bak["treatment_dc_field_theta"]
-                        ANIS=0
                         for k in range(1,len(Steps)):
                             rec=Steps[k]
                             phi,theta=rec["treatment_dc_field_phi"],rec["treatment_dc_field_theta"]
                             if phi!=phi0 or theta!=theta0: ANIS=1   # if direction changes, is some sort of anisotropy experiment
-                        if ANIS==1:
-                            experiment_name="LP-AN-TRM"
-                if experiment_name=="":  # could be TRM  acquisition or Shaw?
-                    if "LT-AF-I" in SpecMeths and "LT-AF-Z" in SpecMeths: # must be Shaw :(
-                        experiment_name="LP-PI-TRM:LP-PI-ALT-AFARM"
-                    elif TRM==0: # catch a TRM acquisition experiment not already labelled
-                        field0=rec_bak["treatment_dc_field"]
-                        for k in range(1,len(Steps)):
-                            rec=Steps[k]
-                            field=rec["treatment_dc_field"]
-                            if field!=field0: TRM=1  # changing DC field strength means must be TRM acquisition 
-                        if TRM==1:
-                            experiment_name="LP-TRM"
-                    else: # we already knew it was a trm acquisition experiment 
-                        TRM=1
-                        experiment_name="LP-TRM"
-                TI=1
-          
+                if "LT-AF-I" in SpecMeths and "LT-AF-Z" in SpecMeths: # must be Shaw :(
+                    experiment_name="LP-PI-TRM:LP-PI-ALT-AFARM"
+                elif TRM==1: 
+                    experiment_name="LP-TRM"
             else: TI= 0 # no infield steps at all
             if "LT-T-Z" in  SpecMeths and experiment_name=="": # thermal demag steps
                 if TI==0: 
                     experiment_name="LP-DIR-T" # just ordinary thermal demag
-                
                 elif TRM!=1: # heart pounding - could be some  kind of TRM normalized paleointensity or LP-TRM-TD experiment 
                     Temps=[]
                     for step in Steps: # check through the infield steps - if all at same temperature, then must be a demag of a total TRM with checks
