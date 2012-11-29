@@ -104,7 +104,7 @@ def main():
             RmagSpecRec["er_site_name"]=data[0]["er_site_name"]
             RmagSpecRec["magic_experiment_names"]=RmagSpecRec["rmag_anisotropy_name"]+":ATRM"
             RmagSpecRec["er_citation_names"]="This study"
-            RmagResRec["rmag_result_name"]=data[0]["er_specimen_name"]
+            RmagResRec["rmag_result_name"]=data[0]["er_specimen_name"]+":ATRM"
             RmagResRec["er_location_names"]=data[0]["er_location_name"]
             RmagResRec["er_specimen_names"]=data[0]["er_specimen_name"]
             RmagResRec["er_sample_names"]=data[0]["er_sample_name"]
