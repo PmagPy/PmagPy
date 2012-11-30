@@ -24,6 +24,7 @@ def main():
             PERC should be a percentage of original (say reduce to 90%)
             TYPE should be one of the following:
                EG (for educated guess); PS (based on pilots); TRM (based on comparison of two TRMs) 
+        -ANI:  perform anisotropy correction
         -fsa SAMPFILE: er_samples.txt file with cooling rate correction information, default is NO CORRECTION
         -Fcr  CRout: specify pmag_specimen format file for cooling rate corrected data
         -fan ANIFILE: specify rmag_anisotropy format file, default is rmag_anisotropy.txt 

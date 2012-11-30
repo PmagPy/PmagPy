@@ -1161,9 +1161,9 @@ def spec_combine():
             outstring=outstring+' -fcr pmag_criteria.txt '
         if 'rmag_anisotropy.txt' in filelist:    
             filestring = filestring+' AC_specimens.txt'
-            outstring=outstring + " -ANI " # do anisotropy correction
-        os.system(outstring)
+            outstring=outstring + " -ANI  " # do anisotropy correction
         print outstring
+        os.system(outstring)
         #    replacestring='replace_AC_specimens.py  -WD '+'"'+opath+'"'
         #    print "CAUTION: replacing thellier data with anisotropy corrected data"
         #    print replacestring

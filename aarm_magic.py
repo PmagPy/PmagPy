@@ -252,6 +252,8 @@ def main():
             RmagSpecRec["anisotropy_unit"]="Am^2"
             RmagSpecRec["anisotropy_n"]='%i'%(npos)
             RmagSpecRec["anisotropy_tilt_correction"]=coord
+            RmagSpecRec["anisotropy_F"]='%7.1f '%(hpars["F"]) # used by thellier_gui - must be taken out for uploading
+            RmagSpecRec["anisotropy_F_crit"]=hpars["F_crit"] # used by thellier_gui - must be taken out for uploading
             RmagResRec["anisotropy_t1"]='%8.6f '%(hpars["t1"])
             RmagResRec["anisotropy_t2"]='%8.6f '%(hpars["t2"])
             RmagResRec["anisotropy_t3"]='%8.6f '%(hpars["t3"])

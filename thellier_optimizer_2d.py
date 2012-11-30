@@ -280,11 +280,11 @@ def Thellier_optimizer(WD, Data,Data_hierarchy,criteria_fixed_paremeters_file,op
   line=fin.readline()
   line=fin.readline()
   header=line.strip('\n').split('\t')
-  print header
+  #print header
   for line in fin.readlines():
     tmp_data={}
     line=line.strip('\n').split('\t')
-    print line
+    #print line
     for i in range(len(line)):
       tmp_data[header[i]]=line[i]
     sample=tmp_data['er_sample_name']
@@ -614,6 +614,12 @@ def Thellier_optimizer(WD, Data,Data_hierarchy,criteria_fixed_paremeters_file,op
            S_matrix[2,0]=Data[s]['AniSpec']['anisotropy_s6']
 
            TRM_anc_unit=array(pars['specimen_PCA_v1'])/sqrt(pars['specimen_PCA_v1'][0]**2+pars['specimen_PCA_v1'][1]**2+pars['specimen_PCA_v1'][2]**2)
+           # If Ftest is lower than critical value:
+           # set the anisotropy correction tensor to identity matrix
+           if  float(Data[s]['AniSpec']['anisotropy_F']) < float(Data[s]['AniSpec']['anisotropy_F_crit']):
+               S_matrix=identity(3,'f')
+
+
            B_lab_unit=pmag.dir2cart([ Data[s]['Thellier_dc_field_phi'], Data[s]['Thellier_dc_field_theta'],1])
 ##           print "Quality check"
 ##           print "phi,thata,1 ",[ self.Data[s]['Thellier_dc_field_phi'], self.Data[s]['Thellier_dc_field_theta'],1]
@@ -873,7 +879,7 @@ def Thellier_optimizer(WD, Data,Data_hierarchy,criteria_fixed_paremeters_file,op
             if specimen not in Optimizer_data[Key][sample].keys():
               Optimizer_data[Key][sample][specimen]=[]
             Optimizer_data[Key][sample][specimen].append(pars['specimen_int_uT'])
-            thellier_optimizer_master_file.write( "-I- key= %s specimen %s pass tmin,tmax= (%.0f,%.0f) "%(Key,specimen,float(pars["measurement_step_min"])-273,float(pars["measurement_step_max"])-273))
+            thellier_optimizer_master_file.write( "-I- key= %s specimen %s pass tmin,tmax= (%.0f,%.0f)\n"%(Key,specimen,float(pars["measurement_step_min"])-273,float(pars["measurement_step_max"])-273))
             
             
 

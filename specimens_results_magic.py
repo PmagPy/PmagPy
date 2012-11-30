@@ -76,22 +76,22 @@ def main():
     Dcrit,Icrit,nocrit=0,0,0
     corrections=[]
     nocorrection=['DA-NL','DA-AC','DA-CR']
-    priorities=['DA-AC-TRM','DA-AC-ARM'] # priorities for anisotropy correction
+    priorities=['DA-AC-ARM','DA-AC-TRM'] # priorities for anisotropy correction
 # get command line stuff
     if "-h" in args:
 	print main.__doc__
 	sys.exit()
     if '-cor' in args:
         ind=args.index('-cor')
-        corrections=args[ind+1].split(':') # list of required data adjustments
-        for cor in corrections:
-            cor='DA-'+cor
-            nocorrection.remove(cor)
+        cors=args[ind+1].split(':') # list of required data adjustments
+        for cor in cors:
+            nocorrection.remove('DA-'+cor)
+            corrections.append('DA-'+cor)
     if '-pri' in args:
         ind=args.index('-pri')
         priorities=args[ind+1].split(':') # list of required data adjustments
         for p in priorities:
-            p='DA-AC-'+cor
+            p='DA-AC-'+p
     if '-f' in args:
 	ind=args.index("-f")
 	measfile=args[ind+1]
@@ -259,11 +259,11 @@ def main():
             if len(ThisSpecRecs)==1:
                 PrioritySpecInts.append(ThisSpecRecs[0])
             elif len(ThisSpecRecs)>1: # more than one
+                prec=[]
                 for p in priorities:
                     ThisSpecRecs=pmag.get_dictitem(SpecInts,'magic_method_codes',p,'has') # all the records for this specimen
-                    if len(ThisSpecRecs)>0:
-                        PrioritySpecInts.append(ThisSpecRecs[0]) # take the first one
-                        break
+                    if len(ThisSpecRecs)>0:prec.append(ThisSpecRecs[0])
+                PrioritySpecInts.append(prec[0]) # take the best one
         SpecInts=PrioritySpecInts # this has the first specimen record 
     if noDir==0: # don't skip directions
 	AllDirs=pmag.get_dictitem(Data,'specimen_direction_type','','F') # retrieve specimens with directed lines and planes

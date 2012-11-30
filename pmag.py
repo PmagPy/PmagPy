@@ -65,9 +65,12 @@ def get_orient(samp_data,er_sample_name):
         az_type="SO-NO"
     else:
         SO_priorities=set_priorities(SO_methods,0)
-        az_type=SO_methods[SO_methods.index(SO_priorities[0])]
-        orient=get_dictitem(orients,'magic_method_codes',az_type,'has')[0] # re-initialize to best one
-    return orient,az_type
+        orients=[]
+        for prior in SO_priorities:
+            az_type=SO_methods[SO_methods.index(SO_priorities[0])]
+            orient=get_dictitem(orients,'magic_method_codes',az_type,'has')# collect available in order of priority
+            if len(orient)>0:orients.append(orient[0])
+    return orients[0],az_type
     
 
 def cooling_rate(SpecRec,SampRecs,crfrac,crtype):
@@ -2967,6 +2970,10 @@ def doaniscorr(PmagSpecRec,AniSpec):
     AniSpecRec={}
     for key in PmagSpecRec.keys():
         AniSpecRec[key]=PmagSpecRec[key]
+    if 'magic_method_codes' in AniSpecRec.keys():
+        methcodes=AniSpecRec["magic_method_codes"]
+    else:
+        methcodes=""
     Dir=numpy.zeros((3),'f')
     Dir[0]=float(PmagSpecRec["specimen_dec"])
     Dir[1]=float(PmagSpecRec["specimen_inc"])
@@ -2976,6 +2983,7 @@ def doaniscorr(PmagSpecRec,AniSpec):
     if chi[0][0]==1.: # isotropic
         cDir=[Dir[0],Dir[1]] # no change
         newint=Dir[2]
+        methcodes=methcodes+':DA-AC-'+AniSpec['anisotropy_type']+':DA-AC-ISO'
     else:
         X=dir2cart(Dir)
         M=numpy.array(X)
@@ -2991,18 +2999,12 @@ def doaniscorr(PmagSpecRec,AniSpec):
         if cDir[0]-Dir[0]>90:
             cDir[1]=-cDir[1]
             cDir[0]=(cDir[0]-180.)%360.
+        methcodes=methcodes+":DA-AC-"+AniSpec['anisotropy_type']
     AniSpecRec["specimen_dec"]='%7.1f'%(cDir[0])
     AniSpecRec["specimen_inc"]='%7.1f'%(cDir[1])
     AniSpecRec["specimen_int"]='%9.4e'%(newint)
     AniSpecRec["specimen_correction"]='c'
-    if 'magic_method_codes' in AniSpecRec.keys():
-        methcodes=AniSpecRec["magic_method_codes"]
-    else:
-        methcodes=""
-    if methcodes=="": methcodes="DA-AC-"+AniSpec['anisotropy_type']
-    if methcodes!="": methcodes=methcodes+":DA-AC-"+AniSpec['anisotropy_type']
-    if chi[0][0]==1.: # isotropic 
-        AniSpecRec["magic_method_codes"]=methcodes+':DA-AC-ISO' # indicates anisotropy was checked and no change necessary
+    AniSpecRec["magic_method_codes"]=methcodes.strip(':')
     return AniSpecRec
 
 def vfunc(pars_1,pars_2):
