@@ -388,7 +388,7 @@ def get_Sb(data):
     Sb,N=0.,0.
     for  rec in data:
                 delta=90.-abs(float(rec['vgp_lat']))
-                if rec['average_k']!="0":
+                if rec['average_k']!="0" and 'average_nn' in rec.keys() and rec['average_nn']!="":
                     k=float(rec['average_k'])
                     L=float(rec['average_lat'])*numpy.pi/180. # latitude in radians
                     Nsi=float(rec['average_nn'])
@@ -4737,10 +4737,20 @@ def magsyn(gh,sv,b,date,itype,alt,colat,elong):
 #
 #       real gh(120),sv(120),p(66),q(66),cl(10),sl(10)
 #               real begin,dateq
-    p=numpy.zeros((66),'f')
-    q=numpy.zeros((66),'f')
-    cl=numpy.zeros((10),'f')
-    sl=numpy.zeros((10),'f')
+    n=13 # igrf11
+    nmax= (n+1)*(n+2)/2
+    terms=range(3,100,2)
+    ghnum=0
+    for k in range(n):ghnum+=terms[k] # get the length of gh for n
+    gh=list(gh)
+    sv=list(sv)
+    for k in range(ghnum-len(gh)): # pad gh and sv to length for n=13
+        gh.append(0)
+        sv.append(0)
+    p=numpy.zeros((nmax),'f')
+    q=numpy.zeros((nmax),'f')
+    cl=numpy.zeros((n),'f')
+    sl=numpy.zeros((n),'f')
     begin=b
     t = date - begin
     r = alt
@@ -4776,7 +4786,7 @@ def magsyn(gh,sv,b,date,itype,alt,colat,elong):
     p[2] = st
     q[0] = 0.0
     q[2] = ct
-    for k in range(1,66):
+    for k in range(1,nmax):
         if n < m:   # else go to 2
             m = 0
             n = n + 1

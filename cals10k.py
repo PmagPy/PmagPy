@@ -1,4 +1,3 @@
-
 def coeffs(date):
     if date<-10000:
         print 'date too early'
