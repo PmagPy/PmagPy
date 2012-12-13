@@ -473,7 +473,11 @@ def grade(PmagRec,ACCEPT,type):
     sigmas=[]
     accept={}
     for key in ACCEPT.keys():
-        if type in key and ACCEPT[key]!="":accept[key]=ACCEPT[key]
+        if type in key and ACCEPT[key]!="":
+            accept[key]=ACCEPT[key]
+            if accept[key]=='0':accept[key]=""
+            if accept[key]=='TRUE':accept[key]='True' # this is because Excel always capitalizes True to TRUE and python doesn't recognize that as a boolean.  never mind
+            if accept[key]=='FALSE':accept[key]='False'
     for key in sigma_types:
         if key in accept.keys() and key in PmagRec.keys(): sigmas.append(key)
     if len(sigmas)>1:
