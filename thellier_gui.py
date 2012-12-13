@@ -1,10 +1,22 @@
 #!/usr/bin/env python
 
+#============================================================================================
+# LOG HEADER:
+#============================================================================================
+# Thellier_GUI
+# Author: Ron Shaar
+# Citation: Shaar and Tauxe (2012)
+#
+# Dec-11 2012: Initial revision
+# To do list:
+# 1) calculate MD tail check
+# 2) create pmag_specimens_gui.txt; pmag_samples_gui.txt
+#
+#============================================================================================
 
-#matplotlib.use('WXAgg')
+
 import matplotlib
 from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigCanvas \
-#NavigationToolbar2WxAgg as NavigationToolbar
 
 import sys,pylab,scipy,os
 import pmag
@@ -34,18 +46,6 @@ matplotlib.rc('axes', labelsize=8)
 matplotlib.rcParams['savefig.dpi'] = 300.
 
 rcParams.update({"svg.embed_char_paths":False})
-
-# The recommended way to use wx with mpl is with the WXAgg
-# backend. 
-#
-
-
-#import pprint
-#import random
-#import wx
-#import wx.lib.sized_controls as sc  
-
-#from matplotlib.figure import Figure
 
 
 
@@ -865,11 +865,15 @@ class Arai_GUI(wx.Frame):
         if sample not in self.Data_samples.keys() and 'specimen_int_uT' in self.pars.keys():
             self.Data_samples[sample]={}
         if 'specimen_int_uT' in self.pars.keys():
-            self.Data_samples[sample][self.s]=self.pars['specimen_int_uT']
+            if 'saved' in self.Data[self.s]['pars'].keys():
+                if self.Data[self.s]['pars']['saved']==True:
+                    self.Data_samples[sample][self.s]=self.pars['specimen_int_uT']
+        red_flag=True
         if sample in self.Data_samples.keys():
             for specimen in self.Data_samples[sample]:
                 B.append(self.Data_samples[sample][specimen])
-        else:
+                red_flag=False
+        if red_flag:
             self.sample_int_n_window.SetValue("")
             self.sample_int_uT_window.SetValue("")
             self.sample_int_sigma_window.SetValue("")
@@ -2022,12 +2026,18 @@ class Arai_GUI(wx.Frame):
             aniso_parameters['anisotropy_s5']="%f"%s5
             aniso_parameters['anisotropy_s6']="%f"%s6
             aniso_parameters['anisotropy_degree']="%f"%(t1/t3)
-            aniso_parameters['anisotropy_Tau1']="%f"%t1
-            aniso_parameters['anisotropy_Tau2']="%f"%t2
-            aniso_parameters['anisotropy_Tau3']="%f"%t3
+            aniso_parameters['anisotropy_t1']="%f"%t1
+            aniso_parameters['anisotropy_t2']="%f"%t2
+            aniso_parameters['anisotropy_t3']="%f"%t3
+            aniso_parameters['anisotropy_v1_dec']="%.1f"%DIR_v1[0]
+            aniso_parameters['anisotropy_v1_inc']="%.1f"%DIR_v1[1]
+            aniso_parameters['anisotropy_v2_dec']="%.1f"%DIR_v2[0]
+            aniso_parameters['anisotropy_v2_inc']="%.1f"%DIR_v2[1]
+            aniso_parameters['anisotropy_v3_dec']="%.1f"%DIR_v3[0]
+            aniso_parameters['anisotropy_v3_inc']="%.1f"%DIR_v3[1]
 
             # modified from pmagpy:
-            if len(K)/3==9 or len(K)/3==6 :
+            if len(K)/3==9 or len(K)/3==6 or len(K)/3==15:
                 n_pos=len(K)/3
                 tmpH = Matrices[n_pos]['tmpH']
                 a=s_matrix
@@ -2047,9 +2057,13 @@ class Arai_GUI(wx.Frame):
                 hpars=pmag.dohext(nf,sigma,[s1,s2,s3,s4,s5,s6])
                 
                 aniso_parameters['anisotropy_sigma']="%f"%sigma
-                aniso_parameters['anisotropy_F']="%f"%hpars["F"]
+                aniso_parameters['anisotropy_ftest']="%f"%hpars["F"]
+                aniso_parameters['anisotropy_ftest12']="%f"%hpars["F12"]
+                aniso_parameters['anisotropy_ftest23']="%f"%hpars["F23"]
+                aniso_parameters['result_description']="Critical F: %s"%(hpars['F_crit'])
                 aniso_parameters['anisotropy_F_crit']="%f"%float(hpars['F_crit'])
-            
+                aniso_parameters['anisotropy_n']=n_pos
+                
             return(aniso_parameters)
 
 
@@ -2077,11 +2091,28 @@ class Arai_GUI(wx.Frame):
 
         rmag_anisotropy_file =open(self.WD+"/rmag_anisotropy.txt",'w')
         rmag_anisotropy_file.write("tab\trmag_anisotropy\n")
-        Header=['anisotropy_type','er_sample_name','er_specimen_name','anisotropy_s1','anisotropy_s2','anisotropy_s3','anisotropy_s4','anisotropy_s5','anisotropy_s6','anisotropy_Tau1','anisotropy_Tau2','anisotropy_Tau3','anisotropy_degree','anisotropy_sigma','anisotropy_F','anisotropy_F_crit']
+
+        rmag_results_file =open(self.WD+"/rmag_results.txt",'w')
+        rmag_results_file.write("tab\trmag_results\n")
+        
+        #Header=['anisotropy_type','er_sample_name','er_specimen_name','anisotropy_s1','anisotropy_s2','anisotropy_s3','anisotropy_s4','anisotropy_s5','anisotropy_s6','anisotropy_Tau1','anisotropy_Tau2','anisotropy_Tau3','anisotropy_degree','anisotropy_sigma','anisotropy_F','anisotropy_F_crit']
+        rmag_anistropy_header=['er_specimen_name','er_sample_name','er_site_name','anisotropy_type','anisotropy_n','anisotropy_description','anisotropy_s1','anisotropy_s2','anisotropy_s3','anisotropy_s4','anisotropy_s5','anisotropy_s6','anisotropy_sigma','magic_experiment_names','magic_method_codes','rmag_anisotropy_name']
+
         String=""
-        for i in range (len(Header)):
-            String=String+Header[i]+'\t'
+        for i in range (len(rmag_anistropy_header)):
+            String=String+rmag_anistropy_header[i]+'\t'
         rmag_anisotropy_file.write(String[:-1]+"\n")
+        
+
+
+        rmag_results_header=['er_specimen_name','er_sample_name','er_site_name','anisotropy_type','magic_method_codes','magic_experiment_names','result_description','anisotropy_t1','anisotropy_t2','anisotropy_t3','anisotropy_ftest','anisotropy_ftest12','anisotropy_ftest23',\
+                             'anisotropy_v1_dec','anisotropy_v1_inc','anisotropy_v2_dec','anisotropy_v2_inc','anisotropy_v3_dec','anisotropy_v3_inc']
+
+
+        String=""
+        for i in range (len(rmag_results_header)):
+            String=String+rmag_results_header[i]+'\t'
+        rmag_results_file.write(String[:-1]+"\n")
 
         #-----------------------------------
         # Matrices definitions:
@@ -2351,19 +2382,24 @@ class Arai_GUI(wx.Frame):
                 Data_anisotropy[specimen]['ATRM']['anisotropy_type']="ATRM"
                 Data_anisotropy[specimen]['ATRM']['er_sample_name']=atrmblock[0]['er_sample_name']
                 Data_anisotropy[specimen]['ATRM']['er_specimen_name']=specimen
+                Data_anisotropy[specimen]['ATRM']['er_site_name']=atrmblock[0]['er_site_name']
+                Data_anisotropy[specimen]['ATRM']['anisotropy_description']='Hext statistics adapted to ATRM'
+                Data_anisotropy[specimen]['ATRM']['magic_experiment_names']=specimen+":ATRM"
+                Data_anisotropy[specimen]['ATRM']['magic_method_codes']="LP-AN-TRM:AE-H"
+                Data_anisotropy[specimen]['ATRM']['rmag_anisotropy_name']=specimen
 
-
-                if float(Data_anisotropy[specimen]['ATRM']['anisotropy_F'])<float(Data_anisotropy[specimen]['ATRM']['anisotropy_F_crit']):
+                if float(Data_anisotropy[specimen]['ATRM']['anisotropy_ftest'])<float(Data_anisotropy[specimen]['ATRM']['anisotropy_F_crit']):
 ##                    
-                    aniso_logfile.write( "-W- F-test value for specimen %s is %s: lower than F-test critical value %s\n"%(specimen,Data_anisotropy[specimen]['ATRM']['anisotropy_F'],Data_anisotropy[specimen]['ATRM']['anisotropy_F_crit']))       
+                    aniso_logfile.write( "-W- F-test value for specimen %s is %s: lower than F-test critical value %s\n"%(specimen,Data_anisotropy[specimen]['ATRM']['anisotropy_ftest'],Data_anisotropy[specimen]['ATRM']['anisotropy_F_crit']))       
                 else:
                     aniso_logfile.write( "-I- atrm tensor for specimen %s PASS f-test check \n"%specimen)
 
 ##                aniso_logfile.write( "-I-  atrm tensor for specimen %s PASS criteria\n"%specimen)
 
             if 'aarmblock' in self.Data[specimen].keys():    
+
                 #-----------------------------------
-                # AARM - 9 positions
+                # AARM - 9 or 15 positions
                 #-----------------------------------
                     
                 aniso_logfile.write( "-I- Start calculating AARM tensors\n")
@@ -2372,11 +2408,20 @@ class Arai_GUI(wx.Frame):
                 if len(aarmblock)<18:
                     aniso_logfile.write( "-W- WARNING: not enough aarm measurement for specimen %s\n"%s)
                     continue
-                B=Matrices[9]['B']
+                # 9 positions
+                if len(aarmblock)==18:
+                    n_pos=9
+                    B=Matrices[9]['B']
+                    M=zeros([9,3],'f')
+                # 15 positions
+                if len(aarmblock)==30:
+                    n_pos=15
+                    B=Matrices[15]['B']
+                    M=zeros([15,3],'f')
+                    
                 Reject_specimen = False
-                M=zeros([9,3],'f')
 
-                for i in range(9):
+                for i in range(n_pos):
                     for rec in aarmblock:
                         if float(rec['measurement_number'])==i*2+1:
                             dec=float(rec['measurement_dec'])
@@ -2392,8 +2437,8 @@ class Arai_GUI(wx.Frame):
                     M[i]=M_arm-M_baseline
 
                     
-                K=zeros(3*9,'f')
-                for i in range(9):
+                K=zeros(3*n_pos,'f')
+                for i in range(n_pos):
                     K[i*3]=M[i][0]
                     K[i*3+1]=M[i][1]
                     K[i*3+2]=M[i][2]            
@@ -2404,8 +2449,15 @@ class Arai_GUI(wx.Frame):
                 Data_anisotropy[specimen]['AARM']=aniso_parameters
                 Data_anisotropy[specimen]['AARM']['anisotropy_type']="AARM"
                 Data_anisotropy[specimen]['AARM']['er_sample_name']=aarmblock[0]['er_sample_name']
+                Data_anisotropy[specimen]['AARM']['er_site_name']=aarmblock[0]['er_site_name']
                 Data_anisotropy[specimen]['AARM']['er_specimen_name']=specimen
-                if float(Data_anisotropy[specimen]['AARM']['anisotropy_F'])<float(Data_anisotropy[specimen]['AARM']['anisotropy_F_crit']):
+                Data_anisotropy[specimen]['AARM']['anisotropy_description']='Hext statistics adapted to AARM'
+                Data_anisotropy[specimen]['AARM']['magic_experiment_names']=specimen+":AARM"
+                Data_anisotropy[specimen]['AARM']['magic_method_codes']="LP-AN-ARM:AE-H"
+                Data_anisotropy[specimen]['AARM']['rmag_anisotropy_name']=specimen
+                
+                
+                if float(Data_anisotropy[specimen]['AARM']['anisotropy_ftest'])<float(Data_anisotropy[specimen]['AARM']['anisotropy_F_crit']):
 ##                    aniso_logfile.write( "-W- low F-test value for specimen %s: %s. Setting tensor to identity matrix\n"%(specimen,Data_anisotropy[specimen]['AARM']['anisotropy_Ftest']))
 ##                    for key in ['anisotropy_s1','anisotropy_s2','anisotropy_s3']:
 ##                        Data_anisotropy[specimen]['AARM'][key]="1."
@@ -2414,7 +2466,7 @@ class Arai_GUI(wx.Frame):
 ##                    del Data_anisotropy[specimen]['AARM']['anisotropy_sigma']
 ##                    del Data_anisotropy[specimen]['AARM']['anisotropy_Ftest']
 ##                    
-                    aniso_logfile.write( "-W- F-test value for specimen %s is %s: lower than F-test critical value %s"%(specimen,Data_anisotropy[specimen]['AARM']['anisotropy_F'],Data_anisotropy[specimen]['AARM']['anisotropy_F_crit']))
+                    aniso_logfile.write( "-W- F-test value for specimen %s is %s: lower than F-test critical value %s"%(specimen,Data_anisotropy[specimen]['AARM']['anisotropy_ftest'],Data_anisotropy[specimen]['AARM']['anisotropy_F_crit']))
                     
                 else:
                     aniso_logfile.write( "-I- aarm tensor for specimen %s PASS f-test check \n"%specimen)
@@ -2440,12 +2492,25 @@ class Arai_GUI(wx.Frame):
                 aniso_logfile.write( "-W- WARNING: both aarm and atrm data exist for specimen %s. using AARM\n"%specimen)
                 
             String=""
-            for i in range (len(Header)):
-                if Header[i]=='anisotropy_sigma' or Header[i]=='anisotropy_F':
-                    if Header[i] not in Data_anisotropy[specimen][TYPE].keys():
-                        continue
-                String=String+Data_anisotropy[specimen][TYPE][Header[i]]+'\t'
+            for i in range (len(rmag_anistropy_header)):
+##                if Header[i]=='anisotropy_sigma' or Header[i]=='anisotropy_F':
+##                    if Header[i] not in Data_anisotropy[specimen][TYPE].keys():
+##                        continue
+                try:
+                    String=String+Data_anisotropy[specimen][TYPE][rmag_anistropy_header[i]]+'\t'
+                except:
+                    String=String+"%f"%(Data_anisotropy[specimen][TYPE][rmag_anistropy_header[i]])+'\t'
             rmag_anisotropy_file.write(String[:-1]+"\n")
+
+            String=""
+            for i in range (len(rmag_results_header)):
+                try:
+                    String=String+Data_anisotropy[specimen][TYPE][rmag_results_header[i]]+'\t'
+                except:
+                    String=String+"%f"%(Data_anisotropy[specimen][TYPE][rmag_results_header[i]])+'\t'
+            rmag_results_file.write(String[:-1]+"\n")
+
+            
             self.Data[specimen]['AniSpec']=Data_anisotropy[specimen][TYPE]
         rmag_anisotropy_file.close()
 
@@ -2712,15 +2777,15 @@ class Arai_GUI(wx.Frame):
         thellier_interpreter_log.write("-I- using paleointenisty statistics:\n")
         for key in [key for key in self.accept_new_parameters.keys() if "sample" in key]:
             try:
-                thellier_interpreter_log.write("-I- %s=%.2f"%(key,self.accept_new_parameters[key]))
+                thellier_interpreter_log.write("-I- %s=%.2f\n"%(key,self.accept_new_parameters[key]))
             except:
-                thellier_interpreter_log.write("-I- %s=%s"%(key,self.accept_new_parameters[key]))
+                thellier_interpreter_log.write("-I- %s=%s\n"%(key,self.accept_new_parameters[key]))
                                             
         for key in [key for key in self.accept_new_parameters.keys() if "specimen" in key]:
             try:
-                thellier_interpreter_log.write("-I- %s=%.2f"%(key,self.accept_new_parameters[key]))
+                thellier_interpreter_log.write("-I- %s=%.2f\n"%(key,self.accept_new_parameters[key]))
             except:
-                thellier_interpreter_log.write("-I- %s=%s"%(key,self.accept_new_parameters[key]))
+                thellier_interpreter_log.write("-I- %s=%s\n"%(key,self.accept_new_parameters[key]))
                
                                   
 
@@ -3802,28 +3867,26 @@ class Arai_GUI(wx.Frame):
 
 
         # In-field steps" self.preferences["show_eqarea_pTRMs"]
-        if False:
+        if self.preferences["show_eqarea_pTRMs"]:
             eqarea_data_x_up,eqarea_data_y_up=[],[]
             eqarea_data_x_dn,eqarea_data_y_dn=[],[]
-
-            PTRMS=self.Data[self.s]['PTRMS']
-            CART_pTRMS_orig=array([array(pmag.dir2cart(row[1:4])) for row in PTRMS])
+            PTRMS=self.Data[self.s]['PTRMS'][1:]
+            CART_pTRMS_orig=array([pmag.dir2cart(row[1:4]) for row in PTRMS])
             CART_pTRMS=[row/sqrt(sum((array(row)**2))) for row in CART_pTRMS_orig]
                              
             for i in range(1,len(CART_pTRMS)):
                 if CART_pTRMS[i][2]<=0:
-                    R=sqrt(1.-CART_pTRMS[i][2])/sqrt(CART_pTRMS[i][0]**2+CART_pTRMS[i][1]**2)
+                    R=sqrt(1.-abs(CART_pTRMS[i][2]))/sqrt(CART_pTRMS[i][0]**2+CART_pTRMS[i][1]**2)
                     eqarea_data_x_up.append(CART_pTRMS[i][1]*R)
                     eqarea_data_y_up.append(CART_pTRMS[i][0]*R)
                 else:
-                    R=sqrt(1.-CART_pTRMS[i][2])/sqrt(CART_pTRMS[i][0]**2+CART_pTRMS[i][1]**2)
+                    R=sqrt(1.-abs(CART_pTRMS[i][2]))/sqrt(CART_pTRMS[i][0]**2+CART_pTRMS[i][1]**2)
                     eqarea_data_x_dn.append(CART_pTRMS[i][1]*R)
                     eqarea_data_y_dn.append(CART_pTRMS[i][0]*R)
             if len(eqarea_data_x_up)>0:
                 self.eqplot.scatter(eqarea_data_x_up,eqarea_data_y_up,marker='^',edgecolor='blue', facecolor='white',s=15,lw=1)
             if len(eqarea_data_x_dn)>0:
                 self.eqplot.scatter(eqarea_data_x_dn,eqarea_data_y_dn,marker='^',edgecolor='gray', facecolor='blue',s=15,lw=1)        
-            
         draw()
         self.canvas3.draw()
     
@@ -4517,7 +4580,7 @@ class Arai_GUI(wx.Frame):
            # If Ftest is lower than critical value:
            # set the anisotropy correction tensor to identity matrix
            if 'anisotropy_F_crit' in self.Data[s]['AniSpec'].keys():
-               if  float(self.Data[s]['AniSpec']['anisotropy_F']) < float(self.Data[s]['AniSpec']['anisotropy_F_crit']):
+               if  float(self.Data[s]['AniSpec']['anisotropy_ftest']) < float(self.Data[s]['AniSpec']['anisotropy_F_crit']):
                    S_matrix=identity(3,'f')
                    pars["AC_WARNING"]="Anistropy tensor fail F-test"
            TRM_anc_unit=array(pars['specimen_PCA_v1'])/sqrt(pars['specimen_PCA_v1'][0]**2+pars['specimen_PCA_v1'][1]**2+pars['specimen_PCA_v1'][2]**2)
@@ -5011,14 +5074,22 @@ class Arai_GUI(wx.Frame):
       #------------------------------------------------
 
       #if self.WD != "":
-      anis_data=[]
+      rmag_anis_data=[]
       try:
-          anis_data,file_type=pmag.magic_read(self.WD+'/rmag_anisotropy.txt')
+          rmag_anis_data,file_type=pmag.magic_read(self.WD+'/rmag_anisotropy.txt')
           self.GUI_log.write( "-I- Anisotropy data read  %s/from rmag_anisotropy.txt\n"%self.WD)
       except:
           self.GUI_log.write("-W- WARNING cant find rmag_anisotropy in working directory\n")
+
+      try:
+          results_anis_data,file_type=pmag.magic_read(self.WD+'/rmag_results.txt')
+          self.GUI_log.write( "-I- Anisotropy data read  %s/from rmag_anisotropy.txt\n"%self.WD)
           
-      for AniSpec in anis_data:
+      except:
+          self.GUI_log.write("-W- WARNING cant find rmag_anisotropy in working directory\n")
+
+          
+      for AniSpec in rmag_anis_data:
           s=AniSpec['er_specimen_name']
 
           if s not in Data.keys():
@@ -5027,6 +5098,16 @@ class Arai_GUI(wx.Frame):
           if 'AniSpec' in Data[s].keys():
               self.GUI_log.write("-E- ERROR: more than one anisotropy data for specimen %s Fix it!\n"%s)
           Data[s]['AniSpec']=AniSpec
+        
+      for AniSpec in results_anis_data:
+          s=AniSpec['er_specimen_names']
+          if s not in Data.keys():
+              self.GUI_log.write("-W- WARNING: specimen %s in rmag_results.txt but not in magic_measurement.txt. Check it !\n"%s)
+              continue
+          if 'AniSpec' in Data[s].keys():
+              Data[s]['AniSpec'].update(AniSpec)
+                
+          
           
       #------------------------------------------------
       # Calculate Non Linear TRM parameters

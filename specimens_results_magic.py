@@ -381,6 +381,7 @@ def main():
 		      if PmagResRec!="":PmagResRec['magic_method_codes']=PmagResRec['magic_method_codes']+":IE-MLAT"
 		  if PmagResRec!={}:
                       PmagResRec['er_specimen_names']=PmagSampRec['er_specimen_names']
+                      PmagResRec['er_sample_names']=PmagSampRec['er_sample_name']
                       PmagResRec['pmag_criteria_codes']='ACCEPT'
                       PmagResRec['average_int_sigma_perc']=PmagSampRec['sample_int_sigma_perc']
                       PmagResRec['average_int_sigma']=PmagSampRec['sample_int_sigma']
@@ -546,14 +547,13 @@ def main():
             if Iaverage==0:
                 PmagSiteRec['er_specimen_names']= pmag.get_list(Ints,'er_specimen_name') # list of all specimens used
                 PmagResRec['er_specimen_names']= pmag.get_list(Ints,'er_specimen_name')
-            if Iaverage==1:
-                PmagSiteRec['er_sample_names']= pmag.get_list(Ints,'er_sample_name') # list of all samples used
-                PmagResRec['er_sample_names']= pmag.get_list(Ints,'er_sample_name')
+            PmagSiteRec['er_sample_names']= pmag.get_list(Ints,'er_sample_name') # list of all samples used
+            PmagResRec['er_sample_names']= pmag.get_list(Ints,'er_sample_name')
             PmagSiteRec['er_site_name']= site
             PmagResRec['er_site_names']= site
             PmagSiteRec['magic_method_codes']= pmag.get_list(Ints,'magic_method_codes')
             PmagResRec['magic_method_codes']= pmag.get_list(Ints,'magic_method_codes')
-            kill=pmag.grade(PmagResRec,accept,'site')
+            kill=pmag.grade(PmagSiteRec,accept,'site_int')
             if nocrit==1 or len(kill)==0:
                 b,sig=float(PmagResRec['average_int']),""
                 if(PmagResRec['average_int_sigma'])!="":sig=float(PmagResRec['average_int_sigma'])
@@ -584,6 +584,9 @@ def main():
                         PmagResRec["vadm_n"]=PmagResRec['average_int_n']
                     else:
                         PmagResRec["vadm_sigma"]=""
+	        sitedat=pmag.get_dictitem(SiteNFO,'er_site_name',PmagSiteRec['er_site_name'],'T')[0] # fish out site information (lat/lon, etc.)
+                PmagResRec['average_lat']=sitedat['site_lat']
+                PmagResRec['average_lon']=sitedat['site_lon']
                 PmagResRec['magic_software_packages']=version_num
                 PmagResRec["pmag_result_name"]="V[A]DM: Site "+site
                 PmagResRec["result_description"]="V[A]DM of site"

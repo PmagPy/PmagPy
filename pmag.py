@@ -4,6 +4,9 @@ import numpy.linalg
 import exceptions
 import os
 import check_updates
+import scipy
+from scipy import array,sqrt,mean
+
 def get_version():
     version=check_updates.get_version()
     return version
@@ -65,12 +68,9 @@ def get_orient(samp_data,er_sample_name):
         az_type="SO-NO"
     else:
         SO_priorities=set_priorities(SO_methods,0)
-        orients=[]
-        for prior in SO_priorities:
-            az_type=SO_methods[SO_methods.index(SO_priorities[0])]
-            orient=get_dictitem(orients,'magic_method_codes',az_type,'has')# collect available in order of priority
-            if len(orient)>0:orients.append(orient[0])
-    return orients[0],az_type
+        az_type=SO_methods[SO_methods.index(SO_priorities[0])]
+        orient=get_dictitem(orients,'magic_method_codes',az_type,'has')[0] # re-initialize to best one
+    return orient,az_type
     
 
 def cooling_rate(SpecRec,SampRecs,crfrac,crtype):
@@ -388,7 +388,7 @@ def get_Sb(data):
     Sb,N=0.,0.
     for  rec in data:
                 delta=90.-abs(float(rec['vgp_lat']))
-                if rec['average_k']!="0" and 'average_nn' in rec.keys() and rec['average_nn']!="":
+                if rec['average_k']!="0":
                     k=float(rec['average_k'])
                     L=float(rec['average_lat'])*numpy.pi/180. # latitude in radians
                     Nsi=float(rec['average_nn'])
@@ -462,25 +462,41 @@ def default_criteria(nocrit):
         Crits['site_alpha95']='180'
     return [Crits]
 
-def grade(PmagRec,accept,type): 
+def grade(PmagRec,ACCEPT,type): 
     """
     Finds the 'grade' (pass/fail; A/F) of a record (specimen,sample,site) given the acceptance criteria
     """
     GREATERTHAN=['specimen_q','site_k','site_n','site_n_lines','site_int_n','measurement_step_min','measurement_step_max','specimen_int_ptrm_n','specimen_fvds','specimen_frac','specimen_f','specimen_n','specimen_int_n','sample_int_n'] # these statistics must be exceede to pass, all others must be less than (except specimen_scat, which must be true)
     ISTRUE=['specimen_scat']
     kill=[] # criteria that kill the record
-    for key in PmagRec.keys():
-        if PmagRec[key]!="":
-            if key in accept.keys() and type in key and accept[key]!="": # check if this is one of the acceptance criteria
-                if key in ISTRUE: # boolean must be true
-                    if PmagRec[key]!=True:
-                        kill.append(key)
-                if key in GREATERTHAN:
-                    if eval(PmagRec[key])<eval(accept[key]):
-                        kill.append(key)
-                else:
-                    if eval(PmagRec[key])>eval(accept[key]):
-                        kill.append(key)
+    sigma_types=['sample_int_sigma','sample_int_sigma_perc','site_int_sigma','site_int_sigma_perc','average_int_sigma','average_int_sigma_perc']
+    sigmas=[]
+    accept={}
+    for key in ACCEPT.keys():
+        if type in key and ACCEPT[key]!="":accept[key]=ACCEPT[key]
+    for key in sigma_types:
+        if key in accept.keys() and key in PmagRec.keys(): sigmas.append(key)
+    if len(sigmas)>1:
+        if PmagRec[sigmas[0]]=="" or PmagRec[sigmas[1]]=="":
+           kill.append(sigmas[0]) 
+           kill.append(sigmas[1]) 
+        elif eval(PmagRec[sigmas[0]])>eval(accept[sigmas[0]]) and eval(PmagRec[sigmas[1]])>eval(accept[sigmas[1]]):
+           kill.append(sigmas[0]) 
+           kill.append(sigmas[1]) 
+    elif len(sigmas)==1 and sigmas[0] in accept.keys():
+        if PmagRec[sigmas[0]]>accept[sigmas[0]]:
+           kill.append(sigmas[0]) 
+    for key in accept.keys():
+        if key not in sigma_types:
+            if key in ISTRUE: # boolean must be true
+                if eval(PmagRec[key])!=True:
+                    kill.append(key)
+            if key in GREATERTHAN:
+                if eval(PmagRec[key])<eval(accept[key]):
+                    kill.append(key)
+            else:
+                if eval(PmagRec[key])>eval(accept[key]):
+                    kill.append(key)
     return kill
     
 #
@@ -1470,7 +1486,7 @@ def circ(dec,dip,alpha):
     return D_out,I_out
 
 
-def PintPars(araiblock,zijdblock,start,end):
+def PintPars(datablock,araiblock,zijdblock,start,end,accept):
     """
      calculate the paleointensity magic parameters  make some definitions
     """
@@ -1653,6 +1669,298 @@ def PintPars(araiblock,zijdblock,start,end):
     if GammaChecks!="":
         for gamma in GammaChecks:
             if gamma[0]<=estep: pars['specimen_gamma']=gamma[1]
+
+
+    #--------------------------------------------------------------
+    # From here added By Ron Shaar 11-Dec 2012
+    # New parameters defined in Shaar and Tauxe (2012):
+    # FRAC (specimen_frac) - ranges from 0. to 1.
+    # SCAT (specimen_scat) - takes 1/0
+    # gap_max (specimen_gap_max) - ranges from 0. to 1.
+    #--------------------------------------------------------------
+
+    #--------------------------------------------------------------
+    # FRAC is similar to Fvds, but the numerator is the vds fraction:
+    # FRAC= [ vds (start,end)] / total vds ]
+    # gap_max= max [ (vector difference) /  vds (start,end)]
+    #--------------------------------------------------------------
+
+    # collect all zijderveld data to arrays and calculate VDS
+    
+    z_temperatures=[row[0] for row in zijdblock]
+    zdata=[]                # array of zero-fields measurements in Cartezian coordinates
+    vector_diffs=[]         # array of vector differences (for vds calculation)
+    NRM=zijdblock[0][3]     # NRM
+
+    for k in range(len(zijdblock)):
+        DIR=[zijdblock[k][1],zijdblock[k][2],zijdblock[k][3]/NRM]
+        cart=dir2cart(DIR)
+        zdata.append(array([cart[0],cart[1],cart[2]]))
+        if k>0:
+            vector_diffs.append(sqrt(sum((array(zdata[-2])-array(zdata[-1]))**2)))
+    vector_diffs.append(sqrt(sum(array(zdata[-1])**2))) # last vector differnce: from the last point to the origin.
+    vds=sum(vector_diffs)  # vds calculation       
+    zdata=array(zdata)
+    vector_diffs=array(vector_diffs)
+
+    # calculate the vds within the chosen segment 
+    vector_diffs_segment=vector_diffs[zstart:zend]
+    # FRAC calculation
+    FRAC=sum(vector_diffs_segment)/vds
+    pars['specimen_frac']=FRAC
+
+    # gap_max calculation
+    max_FRAC_gap=max(vector_diffs_segment/sum(vector_diffs_segment))
+    pars['specimen_gap_max']=max_FRAC_gap
+    
+
+    #---------------------------------------------------------------------                     
+    # Calculate the "scat box"
+    # all data-points, pTRM checks, and tail-checks, should be inside a "scat box"
+    #---------------------------------------------------------------------                     
+
+    # intialization
+    pars["fail_arai_beta_box_scatter"]=False # fail scat due to arai plot data points
+    pars["fail_ptrm_beta_box_scatter"]=False # fail scat due to pTRM checks
+    pars["fail_tail_beta_box_scatter"]=False # fail scat due to tail checks
+    pars["specimen_scat"]="Pass" # Pass by default
+
+    #--------------------------------------------------------------
+    # collect all Arai plot data points in arrays 
+
+    x_Arai,y_Arai,t_Arai,steps_Arai=[],[],[],[]           
+    NRMs=araiblock[0]
+    PTRMs=araiblock[1]
+    ptrm_checks = araiblock[2]
+    ptrm_tail = araiblock[3]
+    
+    PTRMs_temperatures=[row[0] for row in PTRMs]
+    NRMs_temperatures=[row[0] for row in NRMs]
+    NRM=NRMs[0][3]    
+
+    for k in range(len(NRMs)):                  
+      index_pTRMs=PTRMs_temperatures.index(NRMs[k][0])
+      x_Arai.append(PTRMs[index_pTRMs][3]/NRM)
+      y_Arai.append(NRMs[k][3]/NRM)
+      t_Arai.append(NRMs[k][0])
+      if NRMs[k][4]==1:
+        steps_Arai.append('ZI')
+      else:
+        steps_Arai.append('IZ')        
+    x_Arai=array(x_Arai)
+    y_Arai=array(y_Arai)
+
+    #--------------------------------------------------------------
+    # collect all pTRM check to arrays 
+
+    x_ptrm_check,y_ptrm_check,ptrm_checks_temperatures,=[],[],[]
+    x_ptrm_check_starting_point,y_ptrm_check_starting_point,ptrm_checks_starting_temperatures=[],[],[]
+    
+    for k in range(len(ptrm_checks)):
+      if ptrm_checks[k][0] in NRMs_temperatures:
+        # find the starting point of the pTRM check:
+        for i in range(len(datablock)):
+            rec=datablock[i]                
+            if "LT-PTRM-I" in rec['magic_method_codes'] and float(rec['treatment_temp'])==ptrm_checks[k][0]:
+                starting_temperature=(float(datablock[i-1]['treatment_temp']))
+                try:
+                    index=t_Arai.index(starting_temperature)
+                    x_ptrm_check_starting_point.append(x_Arai[index])
+                    y_ptrm_check_starting_point.append(y_Arai[index])
+                    ptrm_checks_starting_temperatures.append(starting_temperature)
+
+                    index_zerofield=zerofield_temperatures.index(ptrm_checks[k][0])
+                    x_ptrm_check.append(ptrm_checks[k][3]/NRM)
+                    y_ptrm_check.append(zerofields[index_zerofield][3]/NRM)
+                    ptrm_checks_temperatures.append(ptrm_checks[k][0])
+
+                    break
+                except:
+                    pass
+
+    x_ptrm_check_starting_point=array(x_ptrm_check_starting_point)
+    y_ptrm_check_starting_point=array(y_ptrm_check_starting_point)
+    ptrm_checks_starting_temperatures=array(ptrm_checks_starting_temperatures)
+    x_ptrm_check=array(x_ptrm_check)
+    y_ptrm_check=array(y_ptrm_check)
+    ptrm_checks_temperatures=array(ptrm_checks_temperatures)
+    
+    #--------------------------------------------------------------
+    # collect tail checks to arrays
+
+    x_tail_check,y_tail_check,tail_check_temperatures=[],[],[]
+    x_tail_check_starting_point,y_tail_check_starting_point,tail_checks_starting_temperatures=[],[],[]
+
+    for k in range(len(ptrm_tail)):
+      if ptrm_tail[k][0] in NRMs_temperatures:
+
+        # find the starting point of the pTRM check:
+        for i in range(len(datablock)):
+            rec=datablock[i]                
+            if "LT-PTRM-MD" in rec['magic_method_codes'] and float(rec['treatment_temp'])==ptrm_tail[k][0]:
+                starting_temperature=(float(datablock[i-1]['treatment_temp']))
+                try:
+
+                    index=t_Arai.index(starting_temperature)
+                    x_tail_check_starting_point.append(x_Arai[index])
+                    y_tail_check_starting_point.append(y_Arai[index])
+                    tail_checks_starting_temperatures.append(starting_temperature)
+
+                    index_infield=infield_temperatures.index(ptrm_tail[k][0])
+                    x_tail_check.append(infields[index_infield][3]/NRM)
+                    y_tail_check.append(ptrm_tail[k][3]/NRM + zerofields[index_infield][3]/NRM)
+                    tail_check_temperatures.append(ptrm_tail[k][0])
+
+                    break
+                except:
+                    pass
+
+    x_tail_check=array(x_tail_check)  
+    y_tail_check=array(y_tail_check)
+    tail_check_temperatures=array(tail_check_temperatures)
+    x_tail_check_starting_point=array(x_tail_check_starting_point)
+    y_tail_check_starting_point=array(y_tail_check_starting_point)
+    tail_checks_starting_temperatures=array(tail_checks_starting_temperatures)
+
+            
+    #--------------------------------------------------------------
+    # collect the chosen segment in the Arai plot to arraya
+
+    x_Arai_segment= x_Arai[start:end+1] # chosen segent in the Arai plot
+    y_Arai_segment= y_Arai[start:end+1] # chosen segent in the Arai plot
+
+    #--------------------------------------------------------------
+    # collect pTRM checks in segment to arrays
+    # notice, this is different than the conventional DRATS.
+    # for scat calculation we take only the pTRM checks which were carried out
+    # before reaching the highest temperature in the chosen segment  
+
+    x_ptrm_check_for_SCAT,y_ptrm_check_for_SCAT=[],[]
+    for k in range(len(ptrm_checks_temperatures)):
+      if ptrm_checks_temperatures[k] >= pars["measurement_step_min"] and ptrm_checks_starting_temperatures <= pars["measurement_step_max"] :
+            x_ptrm_check_for_SCAT.append(x_ptrm_check[k])
+            y_ptrm_check_for_SCAT.append(y_ptrm_check[k])
+
+    x_ptrm_check_for_SCAT=array(x_ptrm_check_for_SCAT)
+    y_ptrm_check_for_SCAT=array(y_ptrm_check_for_SCAT)
+    
+    #--------------------------------------------------------------
+    # collect Tail checks in segment to arrays
+    # for scat calculation we take only the tail checks which were carried out
+    # before reaching the highest temperature in the chosen segment  
+
+    x_tail_check_for_SCAT,y_tail_check_for_SCAT=[],[]
+
+    for k in range(len(tail_check_temperatures)):
+      if tail_check_temperatures[k] >= pars["measurement_step_min"] and tail_checks_starting_temperatures[k] <= pars["measurement_step_max"] :
+            x_tail_check_for_SCAT.append(x_tail_check[k])
+            y_tail_check_for_SCAT.append(y_tail_check[k])
+
+            
+    x_tail_check_for_SCAT=array(x_tail_check_for_SCAT)
+    y_tail_check_for_SCAT=array(y_tail_check_for_SCAT)
+    
+    #--------------------------------------------------------------
+    # calculate the lines that define the scat box:            
+
+    # if threshold value for beta is not defined, then scat cannot be calculated (pass)
+    # in this case, scat pass
+    if 'specimen_b_beta' in accept.keys(): 
+        b_beta_threshold=float(accept['specimen_b_beta'])
+        b=pars['specimen_b']             # best fit line
+        cm_x=mean(array(x_Arai_segment)) # x center of mass
+        cm_y=mean(array(y_Arai_segment)) # y center of mass
+        a=cm_y-b*cm_x                   
+
+        # lines with slope = slope +/- 2*(specimen_b_beta)
+
+        two_sigma_beta_threshold=2*b_beta_threshold
+        two_sigma_slope_threshold=abs(two_sigma_beta_threshold*b)
+             
+        # a line with a  shallower  slope  (b + 2*beta*b) passing through the center of mass
+        # y=a1+b1x
+        b1=b+two_sigma_slope_threshold
+        a1=cm_y-b1*cm_x
+
+        # bounding line with steeper  slope (b - 2*beta*b) passing through the center of mass
+        # y=a2+b2x
+        b2=b-two_sigma_slope_threshold
+        a2=cm_y-b2*cm_x
+
+        # lower bounding line of the 'beta box'
+        # y=intercept1+slop1x
+        slop1=a1/((a2/b2))
+        intercept1=a1
+
+        # higher bounding line of the 'beta box'
+        # y=intercept2+slop2x
+
+        slop2=a2/((a1/b1))
+        intercept2=a2       
+
+        pars['specimen_scat_bounding_line_high']=[intercept2,slop2]
+        pars['specimen_scat_bounding_line_low']=[intercept1,slop1]
+
+        #--------------------------------------------------------------
+        # check if the Arai data points are in the 'box'
+
+        # the two bounding lines
+        ymin=intercept1+x_Arai_segment*slop1
+        ymax=intercept2+x_Arai_segment*slop2
+
+        # arrays of "True" or "False"
+        check_1=y_Arai_segment>ymax
+        check_2=y_Arai_segment<ymin
+
+        # check if at least one "True" 
+        if (sum(check_1)+sum(check_2))>0:
+         pars["fail_arai_beta_box_scatter"]=True
+
+        #--------------------------------------------------------------
+        # check if the pTRM checks data points are in the 'box'
+
+        if len(x_ptrm_check_for_SCAT) > 0:
+
+          # the two bounding lines
+          ymin=intercept1+x_ptrm_check_for_SCAT*slop1
+          ymax=intercept2+x_ptrm_check_for_SCAT*slop2
+
+          # arrays of "True" or "False"
+          check_1=y_ptrm_check_for_SCAT>ymax
+          check_2=y_ptrm_check_for_SCAT<ymin
+
+
+          # check if at least one "True" 
+          if (sum(check_1)+sum(check_2))>0:
+            pars["fail_ptrm_beta_box_scatter"]=True
+            
+        #--------------------------------------------------------------    
+        # check if the tail checks data points are in the 'box'
+
+
+        if len(x_tail_check_for_SCAT) > 0:
+
+          # the two bounding lines
+          ymin=intercept1+x_tail_check_for_SCAT*slop1
+          ymax=intercept2+x_tail_check_for_SCAT*slop2
+
+          # arrays of "True" or "False"
+          check_1=y_tail_check_for_SCAT>ymax
+          check_2=y_tail_check_for_SCAT<ymin
+
+
+          # check if at least one "True" 
+          if (sum(check_1)+sum(check_2))>0:
+            pars["fail_tail_beta_box_scatter"]=True
+
+        #--------------------------------------------------------------    
+        # check if specimen_scat is PASS or FAIL:   
+
+        if pars["fail_tail_beta_box_scatter"] or pars["fail_ptrm_beta_box_scatter"] or pars["fail_arai_beta_box_scatter"]:
+              pars["specimen_scat"]='False'
+        else:
+              pars["specimen_scat"]='True'
+                
     return pars,0
 
 def getkeys(table):
@@ -2970,10 +3278,6 @@ def doaniscorr(PmagSpecRec,AniSpec):
     AniSpecRec={}
     for key in PmagSpecRec.keys():
         AniSpecRec[key]=PmagSpecRec[key]
-    if 'magic_method_codes' in AniSpecRec.keys():
-        methcodes=AniSpecRec["magic_method_codes"]
-    else:
-        methcodes=""
     Dir=numpy.zeros((3),'f')
     Dir[0]=float(PmagSpecRec["specimen_dec"])
     Dir[1]=float(PmagSpecRec["specimen_inc"])
@@ -2983,7 +3287,6 @@ def doaniscorr(PmagSpecRec,AniSpec):
     if chi[0][0]==1.: # isotropic
         cDir=[Dir[0],Dir[1]] # no change
         newint=Dir[2]
-        methcodes=methcodes+':DA-AC-'+AniSpec['anisotropy_type']+':DA-AC-ISO'
     else:
         X=dir2cart(Dir)
         M=numpy.array(X)
@@ -2999,12 +3302,19 @@ def doaniscorr(PmagSpecRec,AniSpec):
         if cDir[0]-Dir[0]>90:
             cDir[1]=-cDir[1]
             cDir[0]=(cDir[0]-180.)%360.
-        methcodes=methcodes+":DA-AC-"+AniSpec['anisotropy_type']
     AniSpecRec["specimen_dec"]='%7.1f'%(cDir[0])
     AniSpecRec["specimen_inc"]='%7.1f'%(cDir[1])
     AniSpecRec["specimen_int"]='%9.4e'%(newint)
     AniSpecRec["specimen_correction"]='c'
-    AniSpecRec["magic_method_codes"]=methcodes.strip(':')
+    if 'magic_method_codes' in AniSpecRec.keys():
+        methcodes=AniSpecRec["magic_method_codes"]
+    else:
+        methcodes=""
+    if methcodes=="": methcodes="DA-AC-"+AniSpec['anisotropy_type']
+    if methcodes!="": methcodes=methcodes+":DA-AC-"+AniSpec['anisotropy_type']
+    if chi[0][0]==1.: # isotropic 
+        methcodes= methcodes+':DA-AC-ISO' # indicates anisotropy was checked and no change necessary
+    AniSpecRec["magic_method_codes"]=methcodes.strip(":")
     return AniSpecRec
 
 def vfunc(pars_1,pars_2):
@@ -4737,20 +5047,10 @@ def magsyn(gh,sv,b,date,itype,alt,colat,elong):
 #
 #       real gh(120),sv(120),p(66),q(66),cl(10),sl(10)
 #               real begin,dateq
-    n=13 # igrf11
-    nmax= (n+1)*(n+2)/2
-    terms=range(3,100,2)
-    ghnum=0
-    for k in range(n):ghnum+=terms[k] # get the length of gh for n
-    gh=list(gh)
-    sv=list(sv)
-    for k in range(ghnum-len(gh)): # pad gh and sv to length for n=13
-        gh.append(0)
-        sv.append(0)
-    p=numpy.zeros((nmax),'f')
-    q=numpy.zeros((nmax),'f')
-    cl=numpy.zeros((n),'f')
-    sl=numpy.zeros((n),'f')
+    p=numpy.zeros((66),'f')
+    q=numpy.zeros((66),'f')
+    cl=numpy.zeros((10),'f')
+    sl=numpy.zeros((10),'f')
     begin=b
     t = date - begin
     r = alt
@@ -4786,7 +5086,7 @@ def magsyn(gh,sv,b,date,itype,alt,colat,elong):
     p[2] = st
     q[0] = 0.0
     q[2] = ct
-    for k in range(1,nmax):
+    for k in range(1,66):
         if n < m:   # else go to 2
             m = 0
             n = n + 1
