@@ -327,7 +327,7 @@ def main():
                            for j in range(len(zijdblock)):
                                if float(zijdblock[j][0])==float(PriorRecs[k]["measurement_step_min"]):start=j
                                if float(zijdblock[j][0])==float(PriorRecs[k]["measurement_step_max"]):end=j
-                           pars,errcode=pmag.PintPars(araiblock,zijdblock,start,end)
+                           pars,errcode=pmag.PintPars(datablock,araiblock,zijdblock,start,end,accept)
                            pars['measurement_step_unit']="K"
                            pars['experiment_type']='LP-PI-TRM'
                            del PriorRecs[k]  # put in CurrRec, take out of PriorRecs
@@ -373,8 +373,8 @@ def main():
                          pass
                    if verbose and found==0: print  '    None found :(  ' 
                if spc!="":
-                   if BEG!="":
-                       pars,errcode=pmag.PintPars(araiblock,zijdblock,BEG,END)
+                   if BEG!="": 
+                       pars,errcode=pmag.PintPars(datablock,araiblock,zijdblock,BEG,END,accept)
                        pars['measurement_step_unit']="K"
                        pars["specimen_lab_field_dc"]=field
                        pars["specimen_int"]=-1*field*pars["specimen_b"]
@@ -463,8 +463,8 @@ def main():
                                except ValueError:
                                    print "Bad endpoints - try again! "
                                    start,end=0,len(zijdblock)
-                           s=sids[specimen]
-                           pars,errcode=pmag.PintPars(araiblock,zijdblock,start,end)
+                           s=sids[specimen] 
+                           pars,errcode=pmag.PintPars(datablock,araiblock,zijdblock,start,end,accept)
                            pars['measurement_step_unit']="K"
                            pars["specimen_lab_field_dc"]=field
                            pars["specimen_int"]=-1*field*pars["specimen_b"]

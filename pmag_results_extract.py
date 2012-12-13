@@ -53,35 +53,99 @@ def main():
         Ioutfile='Intensities.txt'
         Soutfile='SiteNfo.txt'
         Specout='Specimens.txt'
-    # read in pmag_results file
     res_file=dir_path+'/'+res_file
     if spec_file!="":spec_file=dir_path+'/'+spec_file
+# open output files
     outfile=dir_path+'/'+outfile
     Ioutfile=dir_path+'/'+Ioutfile
     Soutfile=dir_path+'/'+Soutfile
     Specout=dir_path+'/'+Specout
     f=open(outfile,'w')
     sf=open(Soutfile,'w')
- # do directions first
-    if latex==0:
-        Soutstring='%s \t %s \t %s \t %s \t %s \t %s \t %s \t %s \t %s\n'%("Site","Samples","Location","Lat. (N)","Long. (E)","Age ","Units","Dip Dir","Dip")
-        outstring='%s \t %s \t %s \t %s \t %s \t %s \t %s \t %s \t %s \t %s \t %s \t %s \t %s\n'%("Site","Samples",'Comp.',"%TC","Dec.","Inc.","Nl","Np","k    ","R","a95","PLat","PLong")
-        f.write(outstring)
-        sf.write(Soutstring)
-    else:
+    fI=open(Ioutfile,'w') 
+# set up column headers
+    Sites,file_type=pmag.magic_read(res_file)
+    SiteCols=["Site","Samples","Location","Lat. (N)","Long. (E)","Age ","Age sigma","Units"]
+    SiteKeys=["er_site_names","er_sample_names","average_lat","average_lon","average_age","average_age_sigma","average_age_unit"]
+    DirCols=["Site","Samples",'Comp.',"%TC","Dec.","Inc.","Nl","Np","k    ","R","a95","PLat","PLong"]
+    DirKeys=["er_site_names","er_sample_names","comp","tilt_correction","average_dec","average_inc","average_n_lines","average_n_planes","average_k","average_r","average_alpha95","vgp_lat","vgp_lon"]
+    IntCols=["Site","Specimens","Samples","N_B","B (uT)","s_b","s_b_perc","VADM","s_vadm"]
+    IntKeys=["er_site_names","er_specimen_names","er_sample_names","average_int_n","average_int","average_int_sigma",'average_int_sigma_perc',"vadm","vadm_sigma"]
+    if spec_file!="": 
+        Specs,file_type=pmag.magic_read(spec_file)
+        fsp=open(Specout,'w') # including specimen intensities if desired
+        SpecCols=["Site","Specimen","B (uT)","MAD","Beta","N","Q","DANG","f\_vds","DRATS","T (C)"]
+        SpecKeys=['er_site_name','er_specimen_name','specimen_int','specimen_int_mad','specimen_b_beta','specimen_int_n','specimen_q','specimen_dang','specimen_fvds','specimen_drats','trange']
+        Xtra=['specimen_frac','specimen_scat','specimen_gap_max']
+        if grade:
+            SpecCols.append('Grade')
+            SpecKeys.append('specimen_grade')
+        for x in Xtra:  # put in the new intensity keys if present
+            if x in Specs[0].keys():
+                SpecKeys.append(x)
+                newkey=""
+                for k in x.split('_')[1:]:newkey=newkey+k+'_'
+                SpecCols.append(newkey.strip('_'))
+        SpecCols.append('Corrections')
+        SpecKeys.append('corrections')
+    Micro=['specimen_int','average_int','average_int_sigma'] # these should be multiplied by 1e6
+    Zeta=['vadm','vadm_sigma'] # these should be multiplied by 1e21
+    # write out the header information for each output file
+    if latex: #write out the latex header stuff
+        sep=' & '
+        end='\\\\'
         f.write('\\begin{table}\n')
         sf.write('\\begin{table}\n')
-        f.write('\\begin{tabular}{rrrrrrrrrrrr}\n')
-        sf.write('\\begin{tabular}{rrrrrrrr}\n')
+        fI.write('\\begin{table}\n')
+        if spec_file!="": fsp.write('\\begin{table}\n')
+        tabstring='\\begin{tabular}{'
+        fstring=tabstring
+        for k in range(len(SiteCols)):fstring=fstring+'r'
+        f.write(fstring+'}\n')
+        f.write('\hline\n')
+        fstring=tabstring
+        for k in range(len(DirCols)):fstring=fstring+'r'
+        sf.write(fstring+'}\n')
+        sf.write('\hline\n')
+        fstring=tabstring
+        for k in range(len(IntCols)):fstring=fstring+'r'
+        fI.write(fstring+'}\n')
+        fI.write('\hline\n')
+        if spec_file!="":
+            fstring=tabstring
+            for k in range(len(SpecCols)):fstring=fstring+'r'
+            fsp.write(fstring+'}\n')
+            fsp.write('\hline\n')
+            print SpecCols
+            raw_input('better?')
+    else:   # just set the tab and line endings for tab delimited
+        sep=' \t '
+        end=''
+# now write out the actual column headers
+    Soutstring,Doutstring,Ioutstring,Spoutstring="","","",""
+    for k in range(len(SiteCols)): Soutstring=Soutstring+SiteCols[k]+sep
+    Soutstring=Soutstring+end
+    Soutstring=Soutstring.strip(sep) +"\n"
+    sf.write(Soutstring)
+    for k in range(len(DirCols)): Doutstring=Doutstring+DirCols[k]+sep
+    Doutstring=Doutstring+end
+    Doutstring=Doutstring.strip(sep) +"\n"
+    f.write(Doutstring)
+    for k in range(len(IntCols)): Ioutstring=Ioutstring+IntCols[k]+sep
+    Ioutstring=Ioutstring+end
+    Ioutstring=Ioutstring.strip(sep) +"\n"
+    fI.write(Ioutstring)
+    if spec_file!="":
+        for k in range(len(SpecCols)): Spoutstring=Spoutstring+SpecCols[k]+sep
+        Spoutstring=Spoutstring+end
+        Spoutstring=Spoutstring.strip(sep) +"\n"
+        fsp.write(Spoutstring)
+    if latex: # put in a horizontal line in latex file
         f.write('\hline\n')
         sf.write('\hline\n')
-        Soutstring='%s & %s & %s & %s & %s & %s & %s & %s & %s %s\n'%("Site", "Samples","Location","Lat. (N)","Long. (E)","Age ","Units","Dip Dir","Dip",'\\\\')
-        outstring='%s & %s & %s & %s & %s & %s & %s & %s & %s & %s & %s & %s & %s %s\n'%("Site", "Samples","Comp.","\%TC","Dec.","Inc.","Nl","Np","k","R","a95","PLat","PLong",'\\\\')
-        f.write(outstring)
-        sf.write(Soutstring)
-        f.write('\hline\n')
-        sf.write('\hline\n')
-    Sites,file_type=pmag.magic_read(res_file)
+        fI.write('\hline\n')
+        if spec_file!="": fsp.write('\hline\n')
+ # do directions first
     VGPs=pmag.get_dictitem(Sites,'vgp_lat','','F') # get all results with VGPs
     for site in VGPs:
         if len(site['er_site_names'].split(":"))==1:
@@ -92,126 +156,86 @@ def main():
                comp="A"
             if 'average_n_lines' not in site.keys():site['average_n_lines']=site['average_nn']
             if 'average_n_planes' not in site.keys():site['average_n_planes']=""
-            if latex==0:
-                outstring='%s \t %s \t %s \t %s \t %s \t %s\n'%(site["er_site_names"],site["er_sample_names"],site["average_lat"],site["average_lon"],site["average_age"],site["average_age_unit"])
-                sf.write(outstring)
-                outstring='%s \t %s \t %s \t  %s \t %s \t %s \t %s \t %s \t %s \t %s \t %s \t %s \t %s\n'%(site["er_site_names"],site["er_sample_names"],comp,site["tilt_correction"],site["average_dec"],site["average_inc"],site["average_n_lines"],site["average_n_planes"],site["average_k"],site["average_r"],site["average_alpha95"],site["vgp_lat"],site["vgp_lon"])
-                f.write(outstring)
-            else:
-                outstring='%s & %s & %s & %s & %s & %s%s\n'%(site["er_site_names"],site["er_sample_names"],site["average_lat"],site["average_lon"],site["average_age"],site["average_age_unit"],'\\\\')
-                sf.write(outstring)
-                outstring='%s & %s & %s & %s & %s & %s & %s & %s& %s & %s & %s & %s & %s%s\n'%(site["er_site_names"],site["er_sample_names"],comp,site["tilt_correction"],site["average_dec"],site["average_inc"],site["average_n_lines"],site["average_n_planes"],site["average_k"],site["average_r"],site["average_alpha95"],site["vgp_lat"],site["vgp_lon"],'\\\\')
-                f.write(outstring)
-    f1=open(Ioutfile,'w') # now do intensities
-    if spec_file!="": fsp=open(Specout,'w')
-    if latex==0:
-        outstring='%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n'%("Site","Specimens","N_B","B (uT)","s_b","s_b\%","VADM","s_vadm")
-        f1.write(outstring)
-        if spec_file!="":
-            if grade:
-                outstring='%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t %s\t%s\n'%("Site","Specimen","B (uT)","MAD","Beta","N","Q","DANG","f\_vds","DRATS","T (C)",'Corrections','Grade')
-            else:
-                outstring='%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s \t%s\n'%("Site","Specimen","B (uT)","MAD","Beta","N","Q","DANG","f\_vds","DRATS","T (C)",'Corrections')
-            fsp.write(outstring)
-    else:
-        f1.write('\\begin{table}\n')
-        f1.write('\\begin{tabular}{rrrrrrr}\n')
-        f1.write('\hline\n')
-        outstring='%s & %s & %s & %s & %s & %s & %s & %s%s\n'%("Site","Specimens","N_B","B (uT)","s_b","s_b\%","VADM","s_vadm","\\\\")
-        f1.write(outstring)
-        if spec_file!="":
-            fsp.write('\\begin{table}\n')
-            if grade:
-                fsp.write('\\begin{tabular}{rrrrrrrrrrrr}\n')
-            else:
-                fsp.write('\\begin{tabular}{rrrrrrrrrrr}\n')
-            fsp.write('\hline\n')
-            if grade:
-                outstring='%s &%s & %s & %s & %s & %s & %s & %s & %s & %s & %s & %s & %s\n'%("Site","Specimen","B (uT)","MAD","Beta","N","Q","DANG","f\_vds","DRATS","T (C)",'Corrections',"Grade\\\\")
-            else:
-                outstring='%s &%s & %s & %s & %s & %s & %s & %s & %s  & %s & %s & %s\n'%("Site","Specimen","B (uT)","MAD","Beta","N","Q","DANG","f\_vds","DRATS","T (C)",'Corrections\\\\')
-            fsp.write(outstring)
-            fsp.write('\hline\n')
-    VDMs=pmag.get_dictitem(Sites,'vdm','','F')
-    for site in VDMs: # do results level stuff
-      if len(site['er_site_names'].split(":"))==1:
-            if 'average_int_sigma_perc' not in site.keys():site['average_int_sigma_perc']="0"
-            if site["average_int_sigma"]=="":site["average_int_sigma"]="0"        
-            if site["average_int_sigma_perc"]=="":site["average_int_sigma_perc"]="0"        
-            if site["vadm"]=="":site["vadm"]="0"        
-            if site["vadm_sigma"]=="":site["vadm_sigma"]="0"        
-            if latex==0:
-                if 'er_specimen_names' in site.keys():
-                    outstring='%s\t%s\t%s\t%6.2f\t%5.2f\t%5.1f\t%6.2f\t%5.2f \n'%(site["er_site_names"],site["er_specimen_names"],site["average_int_n"],1e6*float(site["average_int"]),1e6*float(site["average_int_sigma"]),float(site['average_int_sigma_perc']),1e-21*float(site["vadm"]),1e-21*float(site["vadm_sigma"]))
-                else:
-                    outstring='%s\t%s\t%6.2f\t%5.2f\t%5.1f\t%6.2f\t%5.2f \n'%(site["er_site_names"],site["average_int_n"],1e6*float(site["average_int"]),1e6*float(site["average_int_sigma"]),float(site['average_int_sigma_perc']),1e-21*float(site["vadm"]),1e-21*float(site["vadm_sigma"]))
-                f1.write(outstring)
-            else:
-                if 'er_specimen_names' in site.keys():
-                    outstring='%s & %s & %s & %6.2f\t%5.2f & %5.1f & %6.2f & %5.2f %s\n'%(site["er_site_names"],site["er_specimen_names"],site["average_int_n"],1e6*float(site["average_int"]),1e6*float(site["average_int_sigma"]),float(site['average_int_sigma_perc']),1e-21*float(site["vadm"]),1e-21*float(site["vadm_sigma"]),'\\\\')
-                else:
-                    outstring='%s & %s & %6.2f\t%5.2f & %5.1f & %6.2f & %5.2f %s\n'%(site["er_site_names"],site["average_int_n"],1e6*float(site["average_int"]),1e6*float(site["average_int_sigma"]),float(site['average_int_sigma_perc']),1e-21*float(site["vadm"]),1e-21*float(site["vadm_sigma"]),'\\\\')
-                f1.write(outstring)
+            Soutstring,Doutstring="",""
+            for key in SiteKeys:
+                if key in site.keys():Soutstring=Soutstring+site[key]+sep
+            Soutstring=Soutstring.strip(sep) +end
+            sf.write(Soutstring+'\n')
+            for key in DirKeys:
+                if key in site.keys():Doutstring=Doutstring+site[key]+sep
+            Doutstring=Doutstring.strip(sep) +end
+            f.write(Doutstring+'\n')
+# now do intensities
     VADMs=pmag.get_dictitem(Sites,'vadm','','F')
     for site in VADMs: # do results level stuff
-      if len(site['er_site_names'].split(":"))==1:
+        if site not in VGPs:
+            Soutstring=""
+            for key in SiteKeys:
+                if key in site.keys():Soutstring=Soutstring+site[key]+sep
+            Soutstring=Soutstring.strip(sep) +end
+            sf.write(Soutstring+'\n')
+        if len(site['er_site_names'].split(":"))==1:
             if 'average_int_sigma_perc' not in site.keys():site['average_int_sigma_perc']="0"
             if site["average_int_sigma"]=="":site["average_int_sigma"]="0"        
             if site["average_int_sigma_perc"]=="":site["average_int_sigma_perc"]="0"        
             if site["vadm"]=="":site["vadm"]="0"        
-            if site["vadm_sigma"]=="":site["vadm_sigma"]="0"        
-            if latex==0:
-                if 'er_specimen_names' in site.keys():
-                    outstring='%s\t%s\t%s\t%6.2f\t%5.2f\t%5.1f\t%6.2f\t%5.2f \n'%(site["er_site_names"],site["er_specimen_names"],site["average_int_n"],1e6*float(site["average_int"]),1e6*float(site["average_int_sigma"]),float(site['average_int_sigma_perc']),1e-21*float(site["vadm"]),1e-21*float(site["vadm_sigma"]))
-                else:
-                    outstring='%s\t%s\t%6.2f\t%5.2f\t%5.1f\t%6.2f\t%5.2f \n'%(site["er_site_names"],site["average_int_n"],1e6*float(site["average_int"]),1e6*float(site["average_int_sigma"]),float(site['average_int_sigma_perc']),1e-21*float(site["vadm"]),1e-21*float(site["vadm_sigma"]))
-                f1.write(outstring)
-            else:
-                if 'er_specimen_names' in site.keys():
-                    outstring='%s & %s & %s & %6.2f\t%5.2f & %5.1f & %6.2f & %5.2f %s\n'%(site["er_site_names"],site["er_specimen_names"],site["average_int_n"],1e6*float(site["average_int"]),1e6*float(site["average_int_sigma"]),float(site['average_int_sigma_perc']),1e-21*float(site["vadm"]),1e-21*float(site["vadm_sigma"]),'\\\\')
-                else:
-                    outstring='%s & %s & %6.2f\t%5.2f & %5.1f & %6.2f & %5.2f %s\n'%(site["er_site_names"],site["average_int_n"],1e6*float(site["average_int"]),1e6*float(site["average_int_sigma"]),float(site['average_int_sigma_perc']),1e-21*float(site["vadm"]),1e-21*float(site["vadm_sigma"]),'\\\\')
-                f1.write(outstring)
-    # put specimen level data here!  
+            if site["vadm_sigma"]=="":site["vadm_sigma"]="0"       
+        for key in site.keys(): # reformat vadms, intensities
+            if key in Micro: site[key]='%7.1f'%(float(site[key])*1e6)
+            if key in Zeta: site[key]='%7.1f'%(float(site[key])*1e-21)
+        outstring=""
+        for key in IntKeys:
+          if key not in site.keys():site[key]=""
+          outstring=outstring+site[key]+sep
+        outstring=outstring.strip(sep)+end +'\n'
+        fI.write(outstring)
+#    VDMs=pmag.get_dictitem(Sites,'vdm','','F') # get non-blank VDMs
+#    for site in VDMs: # do results level stuff
+#      if len(site['er_site_names'].split(":"))==1:
+#            if 'average_int_sigma_perc' not in site.keys():site['average_int_sigma_perc']="0"
+#            if site["average_int_sigma"]=="":site["average_int_sigma"]="0"        
+#            if site["average_int_sigma_perc"]=="":site["average_int_sigma_perc"]="0"        
+#            if site["vadm"]=="":site["vadm"]="0"        
+#            if site["vadm_sigma"]=="":site["vadm_sigma"]="0"       
+#      for key in site.keys(): # reformat vadms, intensities
+#            if key in Micro: site[key]='%7.1f'%(float(site[key])*1e6)
+#            if key in Zeta: site[key]='%7.1f'%(float(site[key])*1e-21)
+#      outstring=""
+#      for key in IntKeys:
+#          outstring=outstring+site[key]+sep
+#      fI.write(outstring.strip(sep)+'\n')
     if spec_file!="": 
-        Specs,file_type=pmag.magic_read(spec_file)
         SpecsInts=pmag.get_dictitem(Specs,'specimen_int','','F') 
         for spec in SpecsInts:
-            trange= '%i'%(int(float(spec['measurement_step_min'])-273))+'-'+'%i'%(int(float(spec['measurement_step_max'])-273))
+            spec['trange']= '%i'%(int(float(spec['measurement_step_min'])-273))+'-'+'%i'%(int(float(spec['measurement_step_max'])-273))
             meths=spec['magic_method_codes'].split(':')
             corrections=''
             for meth in meths:
                 if 'DA' in meth:corrections=corrections+meth[3:]+':'
             corrections=corrections.strip(':') 
             if corrections.strip()=="":corrections="None"
-            if latex==0:
-                if grade:
-                    outstring='%s\t %s\t%7.1f\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n'%(spec['er_site_name'],spec['er_specimen_name'],float(spec['specimen_int'])*1e6,spec['specimen_int_mad'],spec['specimen_b_beta'],spec['specimen_int_n'],spec['specimen_q'],spec['specimen_dang'],spec['specimen_fvds'],spec['specimen_drats'],trange,corrections,spec['specimen_grade'])
-                else:
-                    outstring='%s\t %s\t%7.1f\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n'%(spec['er_site_name'],spec['er_specimen_name'],float(spec['specimen_int'])*1e6,spec['specimen_int_mad'],spec['specimen_b_beta'],spec['specimen_int_n'],spec['specimen_q'],spec['specimen_dang'],spec['specimen_fvds'],spec['specimen_drats'],trange,corrections)
-                fsp.write(outstring)
-            else: 
-                if grade:
-                    outstring='%s &%s & %7.1f& %s & %s & %s & %s & %s & %s & %s & %s & %s & %s \n'%(spec['er_site_name'],spec['er_specimen_name'],float(spec['specimen_int'])*1e6,spec['specimen_int_mad'],spec['specimen_b_beta'],spec['specimen_int_n'],spec['specimen_q'],spec['specimen_dang'],spec['specimen_fvds'],spec['specimen_drats'],trange,corrections,spec['specimen_grade']+'\\\\')
-                else:
-                    outstring='%s &%s & %7.1f& %s & %s & %s & %s & %s & %s & %s & %s & %s \n'%(spec['er_site_name'],spec['er_specimen_name'],float(spec['specimen_int'])*1e6,spec['specimen_int_mad'],spec['specimen_b_beta'],spec['specimen_int_n'],spec['specimen_q'],spec['specimen_dang'],spec['specimen_fvds'],spec['specimen_drats'],trange,corrections+'\\\\')
-                fsp.write(outstring)
+            spec['corrections']=corrections
+            outstring=""
+            for key in SpecKeys:
+              outstring=outstring+spec[key]+sep
+            fsp.write(outstring.strip(sep)+end+'\n')
     # 
-    if latex==1:
+    if latex: # write out the tail stuff
         f.write('\hline\n')
         sf.write('\hline\n')
-        f1.write('\hline\n')
+        fI.write('\hline\n')
         f.write('\end{tabular}\n')
         sf.write('\end{tabular}\n')
+        fI.write('\end{tabular}\n')
         f.write('\end{table}\n')
-        f1.write('\end{table}\n')
+        fI.write('\end{table}\n')
         if spec_file!="":
             fsp.write('\hline\n')
             fsp.write('\end{tabular}\n')
             fsp.write('\end{table}\n')
     f.close()
     sf.close()
-    f1.close()
+    fI.close()
     print 'data saved in: ',outfile,Ioutfile,Soutfile
     if spec_file!="":
         fsp.close()

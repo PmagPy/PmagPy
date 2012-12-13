@@ -40,7 +40,7 @@ tab  location_name
             "locations" should be put in separate files.  The definition of a "location" is rather loose.
              Also this is the word 'tab' not a tab, which will be indicated by '\t'.
         The second line has the names of the columns (tab delimited), e.g.:
-site_name sample_name mag_azimuth field_dip date lat long sample_lithology sample_type sample_class shadow_angle hhmm stratigraphic_height bedding_dip_direction bedding_dip GPS_baseline image_name image_look image_photographer participants method_codes site_name site_description sample_description GPS_Az, sample_igsn, sample_texture, sample_cooling_rate, cooling_rate_corr, cooling_rate_mcd
+site_name sample_name mag_azimuth field_dip date lat long sample_lithology sample_type sample_class shadow_angle hhmm stratigraphic_height bedding_dip_direction bedding_dip GPS_baseline image_name image_look image_photographer participants method_codes site_description sample_description GPS_Az, sample_igsn, sample_texture, sample_cooling_rate, cooling_rate_corr, cooling_rate_mcd
 
     
       Notes: 
@@ -365,14 +365,14 @@ is the percent cooling rate factor to apply to specimens from this sample, DA-CR
         MagRec['sample_description']=sample_description
     #
     # work on the site stuff too
-        if int(samp_con) !=6:
-            site=pmag.parse_site(OrRec["sample_name"],samp_con,Z) # parse out the site name
-        else:
+        if 'site_name' in OrRec.keys():
             site=OrRec['site_name']
+        else:
+            site=pmag.parse_site(OrRec["sample_name"],samp_con,Z) # parse out the site name
         MagRec["er_site_name"]=site
         site_description="" # overwrite any prior description
         if 'site_description' in OrRec.keys() and OrRec['site_description']!="":
-            site_description=OrRec['site_description'].replace(",")
+            site_description=OrRec['site_description'].replace(",",";")
         if "image_name" in OrRec.keys():
             images=OrRec["image_name"].split(":")
             if "image_look" in OrRec.keys():

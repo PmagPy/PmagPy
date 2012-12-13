@@ -184,6 +184,7 @@ def main():
     # find the data from the meas_data file for this specimen
     #
         datablock=pmag.get_dictitem(meas_data,'er_specimen_name',s,'T') 
+        datablock=pmag.get_dictitem(datablock,'magic_method_codes','LP-PI-TRM','has') #pick out the thellier experiment data 
         if len(datablock)>0:
             for rec in datablock:
                 if "magic_instrument_codes" not in rec.keys(): rec["magic_instrument_codes"]="unknown"
@@ -206,7 +207,7 @@ def main():
                 rec["magic_experiment_name"]=""
             else:
                 PmagSpecRec["magic_experiment_names"]=rec["magic_experiment_name"]
-            meths=rec["magic_method_codes"].split(":")
+            meths=rec["magic_experiment_name"].split(":")
             for meth in meths:
                 if meth.strip() not in methcodes and "LP-" in meth:methcodes.append(meth.strip())
     #
@@ -235,7 +236,10 @@ def main():
                 nsteps=end-start
                 if nsteps>2:
                     zijdblock,units=pmag.find_dmag_rec(s,meas_data)
-                    pars,errcode=pmag.PintPars(araiblock,zijdblock,start,end)
+                    pars,errcode=pmag.PintPars(datablock,araiblock,zijdblock,start,end,accept)
+                    if 'specimen_scat' in pars.keys(): PmagSpecRec['specimen_scat']=pars['specimen_scat']
+                    if 'specimen_frac' in pars.keys(): PmagSpecRec['specimen_frac']='%5.3f'%(pars['specimen_frac'])
+                    if 'specimen_gap_max' in pars.keys(): PmagSpecRec['specimen_gap_max']='%5.3f'%(pars['specimen_gap_max'])
                     pars['measurement_step_unit']=units
                     pars["specimen_lab_field_dc"]=field
                     pars["specimen_int"]=-1*field*pars["specimen_b"]
@@ -270,7 +274,7 @@ def main():
                     methods=""
                     for meth in methcodes:
                         methods=methods+meth+":"
-                    PmagSpecRec["magic_method_codes"]=methods[:-1]
+                    PmagSpecRec["magic_method_codes"]=methods.strip(':')
                     PmagSpecRec["magic_software_packages"]=version_num
                     PmagSpecRec["specimen_description"]=comment
                     if critout!="":
@@ -335,13 +339,7 @@ def main():
                                     AniSpec=AniSpecs[0]
                                     AniSpecRec=pmag.doaniscorr(Spc,AniSpec)
                                     AniSpecRec['specimen_grade']=PmagSpecRec['specimen_grade']
-                                    inst_codes=Spc["magic_instrument_codes"]
-                                    if "magic_instrument_codes" in AniSpec.keys():
-                                        if inst_codes=="unknown":
-                                            inst_codes=AniSpec["magic_instrument_codes"]
-                                        else:
-                                            inst_codes=inst_codes+":"+AniSpec["magic_instrument_codes"]
-                                    AniSpecRec["magic_instrument_codes"]=inst_codes
+                                    AniSpecRec["magic_instrument_codes"]=PmagSpecRec['magic_instrument_codes']
                                     AniSpecRec["specimen_correction"]='c'
                                     AniSpecRec["magic_software_packages"]=version_num
                                     if cool!=0:
@@ -355,13 +353,7 @@ def main():
                                 AniSpec=AniSpecs[0]
                                 AniSpecRec=pmag.doaniscorr(PmagSpecRec,AniSpec)
                                 AniSpecRec['specimen_grade']=PmagSpecRec['specimen_grade']
-                                inst_codes=PmagSpecRec["magic_instrument_codes"]
-                                if "magic_instrument_codes" in AniSpec.keys():
-                                    if inst_codes=="unknown":
-                                        inst_codes=AniSpec["magic_instrument_codes"]
-                                    else:
-                                        inst_codes=inst_codes+":"+AniSpec["magic_instrument_codes"]
-                                AniSpecRec["magic_instrument_codes"]=inst_codes
+                                AniSpecRec["magic_instrument_codes"]=PmagSpecRec["magic_instrument_codes"]
                                 AniSpecRec["specimen_correction"]='c'
                                 AniSpecRec["magic_software_packages"]=version_num
                                 if crfrac!=0:
