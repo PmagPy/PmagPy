@@ -5100,7 +5100,11 @@ class Arai_GUI(wx.Frame):
           Data[s]['AniSpec']=AniSpec
         
       for AniSpec in results_anis_data:
+<<<<<<< HEAD
           s=AniSpec['er_specimen_names']
+=======
+          s=AniSpec['er_specimen_name']
+>>>>>>> 425f048e6676c6388482f90b6c3e455984f72f16
           if s not in Data.keys():
               self.GUI_log.write("-W- WARNING: specimen %s in rmag_results.txt but not in magic_measurement.txt. Check it !\n"%s)
               continue
