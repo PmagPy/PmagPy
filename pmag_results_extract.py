@@ -16,11 +16,13 @@ def main():
         -f RFILE, specify pmag_results table; default is pmag_results.txt
         -fa AFILE, specify er_ages table; default is NONE
         -fsp SFILE, specify pmag_specimens table, default is NONE
+        -fcr CFILE, specify pmag_criteria table, default is pmag_criteria.txt
         -g include specimen_grade in table - only works for PmagPy generated pmag_specimen formatted files.
         -tex,  output in LaTeX format
     """
     dir_path='.'
     res_file='pmag_results.txt'
+    crit_file='pmag_criteria.txt'
     spec_file=''
     age_file=""
     latex=0
@@ -37,6 +39,9 @@ def main():
     if '-fsp' in sys.argv:
         ind = sys.argv.index('-fsp')
         spec_file=sys.argv[ind+1]
+    if '-fcr' in sys.argv:
+        ind = sys.argv.index('-fcr')
+        crit_file=sys.argv[ind+1]
     if '-fa' in sys.argv:
         ind = sys.argv.index('-fa')
         age_file=sys.argv[ind+1]
@@ -47,30 +52,43 @@ def main():
         Ioutfile='Intensities.tex'
         Soutfile='SiteNfo.tex'
         Specout='Specimens.tex'
+        Critout='Criteria.tex'
     else:
         latex=0
         outfile='Directions.txt'
         Ioutfile='Intensities.txt'
         Soutfile='SiteNfo.txt'
         Specout='Specimens.txt'
+        Critout='Criteria.txt'
     res_file=dir_path+'/'+res_file
+    crit_file=dir_path+'/'+crit_file
     if spec_file!="":spec_file=dir_path+'/'+spec_file
 # open output files
     outfile=dir_path+'/'+outfile
     Ioutfile=dir_path+'/'+Ioutfile
     Soutfile=dir_path+'/'+Soutfile
     Specout=dir_path+'/'+Specout
+    Critout=dir_path+'/'+Critout
     f=open(outfile,'w')
     sf=open(Soutfile,'w')
     fI=open(Ioutfile,'w') 
+    cr=open(Critout,'w') 
 # set up column headers
     Sites,file_type=pmag.magic_read(res_file)
+    Crits,file_type=pmag.magic_read(crit_file)
     SiteCols=["Site","Samples","Location","Lat. (N)","Long. (E)","Age ","Age sigma","Units"]
     SiteKeys=["er_site_names","er_sample_names","average_lat","average_lon","average_age","average_age_sigma","average_age_unit"]
     DirCols=["Site","Samples",'Comp.',"%TC","Dec.","Inc.","Nl","Np","k    ","R","a95","PLat","PLong"]
     DirKeys=["er_site_names","er_sample_names","comp","tilt_correction","average_dec","average_inc","average_n_lines","average_n_planes","average_k","average_r","average_alpha95","vgp_lat","vgp_lon"]
     IntCols=["Site","Specimens","Samples","N_B","B (uT)","s_b","s_b_perc","VADM","s_vadm"]
     IntKeys=["er_site_names","er_specimen_names","er_sample_names","average_int_n","average_int","average_int_sigma",'average_int_sigma_perc',"vadm","vadm_sigma"]
+    AllowedKeys=['specimen_frac','specimen_scat','specimen_gap_max','measurement_step_min', 'measurement_step_max', 'measurement_step_unit', 'specimen_polarity', 'specimen_nrm', 'specimen_direction_type', 'specimen_comp_nmb', 'specimen_mad', 'specimen_alpha95', 'specimen_n', 'specimen_int_sigma', 'specimen_int_sigma_perc', 'specimen_int_rel_sigma', 'specimen_int_rel_sigma_perc', 'specimen_int_mad', 'specimen_int_n', 'specimen_w', 'specimen_q', 'specimen_f', 'specimen_fvds', 'specimen_b_sigma', 'specimen_b_beta', 'specimen_g', 'specimen_dang', 'specimen_md', 'specimen_ptrm', 'specimen_drat', 'specimen_drats', 'specimen_rsc', 'specimen_viscosity_index', 'specimen_magn_moment', 'specimen_magn_volume', 'specimen_magn_mass', 'specimen_int_ptrm_n', 'specimen_delta', 'specimen_theta', 'specimen_gamma', 'sample_polarity', 'sample_nrm', 'sample_direction_type', 'sample_comp_nmb', 'sample_sigma', 'sample_alpha95', 'sample_n', 'sample_n_lines', 'sample_n_planes', 'sample_k', 'sample_r', 'sample_tilt_correction', 'sample_int_sigma', 'sample_int_sigma_perc', 'sample_int_rel_sigma', 'sample_int_rel_sigma_perc', 'sample_int_n', 'sample_magn_moment', 'sample_magn_volume', 'sample_magn_mass', 'site_polarity', 'site_nrm', 'site_direction_type', 'site_comp_nmb', 'site_sigma', 'site_alpha95', 'site_n', 'site_n_lines', 'site_n_planes', 'site_k', 'site_r', 'site_tilt_correction', 'site_int_sigma', 'site_int_sigma_perc', 'site_int_rel_sigma', 'site_int_rel_sigma_perc', 'site_int_n', 'site_magn_moment', 'site_magn_volume', 'site_magn_mass', 'average_age_min', 'average_age_max', 'average_age_sigma', 'average_age_unit', 'average_sigma', 'average_alpha95', 'average_n', 'average_nn', 'average_k', 'average_r', 'average_int_sigma', 'average_int_rel_sigma', 'average_int_rel_sigma_perc', 'average_int_n', 'average_int_nn', 'vgp_dp', 'vgp_dm', 'vgp_sigma', 'vgp_alpha95', 'vgp_n', 'vdm_sigma', 'vdm_n', 'vadm_sigma', 'vadm_n']
+    crit=Crits[0] # get a list of useful keys
+    for key in crit.keys():
+        if key not in AllowedKeys:del(crit[key])
+    for key in crit.keys():
+        if crit[key]=='' or eval(crit[key])>1000 or eval(crit[key])==0:del(crit[key]) # get rid of all blank or too big ones or too little ones
+    CritKeys=crit.keys()
     if spec_file!="": 
         Specs,file_type=pmag.magic_read(spec_file)
         fsp=open(Specout,'w') # including specimen intensities if desired
@@ -97,6 +115,7 @@ def main():
         f.write('\\begin{table}\n')
         sf.write('\\begin{table}\n')
         fI.write('\\begin{table}\n')
+        cr.write('\\begin{table}\n')
         if spec_file!="": fsp.write('\\begin{table}\n')
         tabstring='\\begin{tabular}{'
         fstring=tabstring
@@ -111,18 +130,20 @@ def main():
         for k in range(len(IntCols)):fstring=fstring+'r'
         fI.write(fstring+'}\n')
         fI.write('\hline\n')
+        fstring=tabstring
+        for k in range(len(CritKeys)):fstring=fstring+'r'
+        cr.write(fstring+'}\n')
+        cr.write('\hline\n')
         if spec_file!="":
             fstring=tabstring
             for k in range(len(SpecCols)):fstring=fstring+'r'
             fsp.write(fstring+'}\n')
             fsp.write('\hline\n')
-            print SpecCols
-            raw_input('better?')
     else:   # just set the tab and line endings for tab delimited
         sep=' \t '
         end=''
 # now write out the actual column headers
-    Soutstring,Doutstring,Ioutstring,Spoutstring="","","",""
+    Soutstring,Doutstring,Ioutstring,Spoutstring,Croutstring="","","","",""
     for k in range(len(SiteCols)): Soutstring=Soutstring+SiteCols[k]+sep
     Soutstring=Soutstring+end
     Soutstring=Soutstring.strip(sep) +"\n"
@@ -135,6 +156,10 @@ def main():
     Ioutstring=Ioutstring+end
     Ioutstring=Ioutstring.strip(sep) +"\n"
     fI.write(Ioutstring)
+    for k in range(len(CritKeys)): Croutstring=Croutstring+CritKeys[k]+sep
+    Croutstring=Croutstring+end
+    Croutstring=Croutstring.strip(sep) +"\n"
+    cr.write(Croutstring)
     if spec_file!="":
         for k in range(len(SpecCols)): Spoutstring=Spoutstring+SpecCols[k]+sep
         Spoutstring=Spoutstring+end
@@ -144,8 +169,16 @@ def main():
         f.write('\hline\n')
         sf.write('\hline\n')
         fI.write('\hline\n')
+        cr.write('\hline\n')
         if spec_file!="": fsp.write('\hline\n')
- # do directions first
+ # do criteria 
+    for crit in Crits: # 
+        Croutstring=""
+        for key in CritKeys:
+            Croutstring=Croutstring+crit[key]+sep
+        Croutstring=Croutstring.strip(sep) +end
+        cr.write(Croutstring+'\n')
+ # do directions 
     VGPs=pmag.get_dictitem(Sites,'vgp_lat','','F') # get all results with VGPs
     for site in VGPs:
         if len(site['er_site_names'].split(":"))==1:
