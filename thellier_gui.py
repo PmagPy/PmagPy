@@ -253,7 +253,7 @@ class Arai_GUI(wx.Frame):
         except:
             pass
         
-        self.n_window=wx.TextCtrl(self.panel,style=wx.TE_CENTER|wx.TE_READONLY,size=(50,20))
+        self.int_n_window=wx.TextCtrl(self.panel,style=wx.TE_CENTER|wx.TE_READONLY,size=(50,20))
         self.int_ptrm_n_window=wx.TextCtrl(self.panel,style=wx.TE_CENTER|wx.TE_READONLY,size=(50,20))
         self.frac_window=wx.TextCtrl(self.panel,style=wx.TE_CENTER|wx.TE_READONLY,size=(50,20))
         self.scat_window=wx.TextCtrl(self.panel,style=wx.TE_READONLY|wx.TE_CENTER,size=(50,20))
@@ -268,7 +268,7 @@ class Arai_GUI(wx.Frame):
         self.drats_window=wx.TextCtrl(self.panel,style=wx.TE_READONLY|wx.TE_CENTER,size=(50,20))
         self.md_window=wx.TextCtrl(self.panel,style=wx.TE_READONLY|wx.TE_CENTER,size=(50,20))
 
-        self.n_threshold_window=wx.TextCtrl(self.panel,style=wx.TE_CENTER|wx.TE_READONLY,size=(50,20))
+        self.int_n_threshold_window=wx.TextCtrl(self.panel,style=wx.TE_CENTER|wx.TE_READONLY,size=(50,20))
         self.int_ptrm_n_threshold_window=wx.TextCtrl(self.panel,style=wx.TE_CENTER|wx.TE_READONLY,size=(50,20))
         self.frac_threshold_window=wx.TextCtrl(self.panel,style=wx.TE_CENTER|wx.TE_READONLY,size=(50,20))
         self.scat_threshold_window=wx.TextCtrl(self.panel,style=wx.TE_CENTER|wx.TE_READONLY,size=(50,20))
@@ -283,7 +283,7 @@ class Arai_GUI(wx.Frame):
         self.drats_threshold_window=wx.TextCtrl(self.panel,style=wx.TE_READONLY|wx.TE_CENTER,size=(50,20))
         self.md_threshold_window=wx.TextCtrl(self.panel,style=wx.TE_READONLY|wx.TE_CENTER,size=(50,20))
 
-        self.n_threshold_window.SetBackgroundColour(wx.NullColor)
+        self.int_n_threshold_window.SetBackgroundColour(wx.NullColor)
         self.int_ptrm_n_threshold_window.SetBackgroundColour(wx.NullColor)
         self.frac_threshold_window.SetBackgroundColour(wx.NullColor)
         self.scat_threshold_window.SetBackgroundColour(wx.NullColor)
@@ -300,7 +300,7 @@ class Arai_GUI(wx.Frame):
 
         gs = wx.GridSizer(3, 14, 14, 14)
 
-        gs.AddMany( [(wx.StaticText(self.panel,label="n",style=wx.ALIGN_CENTER_VERTICAL),wx.ALIGN_CENTER_VERTICAL),
+        gs.AddMany( [(wx.StaticText(self.panel,label="int_n",style=wx.ALIGN_CENTER_VERTICAL),wx.ALIGN_CENTER_VERTICAL),
             (wx.StaticText(self.panel,label="n_pTRM",style=wx.ALIGN_CENTER_VERTICAL),wx.ALIGN_CENTER_VERTICAL),
             (wx.StaticText(self.panel,label="FRAC",style=wx.ALIGN_CENTER_VERTICAL),wx.ALIGN_CENTER_VERTICAL),
             (wx.StaticText(self.panel,label="SCAT",style=wx.ALIGN_CENTER_VERTICAL),wx.ALIGN_CENTER_VERTICAL),
@@ -314,7 +314,7 @@ class Arai_GUI(wx.Frame):
             (wx.StaticText(self.panel,label="DANG",style=wx.ALIGN_CENTER_VERTICAL)),
             (wx.StaticText(self.panel,label="DRATS",style=wx.ALIGN_CENTER_VERTICAL)),
             (wx.StaticText(self.panel,label="MD tail",style=wx.ALIGN_CENTER_VERTICAL)),
-            (self.n_threshold_window, wx.EXPAND),
+            (self.int_n_threshold_window, wx.EXPAND),
             (self.int_ptrm_n_threshold_window, wx.EXPAND),                     
             (self.frac_threshold_window, wx.EXPAND),
             (self.scat_threshold_window, wx.EXPAND),
@@ -328,7 +328,7 @@ class Arai_GUI(wx.Frame):
             (self.dang_threshold_window, wx.EXPAND),
             (self.drats_threshold_window, wx.EXPAND),
             (self.md_threshold_window, wx.EXPAND),
-            (self.n_window, wx.EXPAND),
+            (self.int_n_window, wx.EXPAND),
             (self.int_ptrm_n_window, wx.EXPAND),
             (self.frac_window, wx.EXPAND),
             (self.scat_window, wx.EXPAND),
@@ -519,7 +519,7 @@ class Arai_GUI(wx.Frame):
 
 
         high_threshold_velue_list=['specimen_gap_max','specimen_b_beta','specimen_dang','specimen_drats','specimen_int_mad','specimen_md']
-        low_threshold_velue_list=['specimen_n','specimen_int_ptrm_n','specimen_f','specimen_fvds','specimen_frac','specimen_g','specimen_q']
+        low_threshold_velue_list=['specimen_int_n','specimen_int_ptrm_n','specimen_f','specimen_fvds','specimen_frac','specimen_g','specimen_q']
       
         self.ignore_parameters={}
         
@@ -533,7 +533,7 @@ class Arai_GUI(wx.Frame):
                 exec command
                 self.ignore_parameters[key]=True
                 continue
-            elif key in ['specimen_n','specimen_int_ptrm_n']:
+            elif key in ['specimen_int_n','specimen_int_ptrm_n']:
                 Value="%.0f"%self.accept_new_parameters[key]
             elif key in ['specimen_dang','specimen_drats','specimen_int_mad','specimen_md','specimen_g','specimen_q']:
                 Value="%.1f"%self.accept_new_parameters[key]
@@ -851,7 +851,7 @@ class Arai_GUI(wx.Frame):
             command="self.%s_window.SetBackgroundColour(wx.NullColor)"%key
             exec command
                                          
-        window_list=['n','int_ptrm_n','frac','scat','gap_max','f','fvds','b_beta','g','q','int_mad','dang','drats','md']
+        window_list=['int_n','int_ptrm_n','frac','scat','gap_max','f','fvds','b_beta','g','q','int_mad','dang','drats','md']
         for key in window_list:
             command="self.%s_window.SetValue(\"\")"%key
             exec command
@@ -1655,7 +1655,7 @@ class Arai_GUI(wx.Frame):
 
     def on_menu_save_interpretation(self, event):
         
-        specimen_criteria_list=['specimen_n','specimen_int_ptrm_n','specimen_f','specimen_fvds','specimen_frac','specimen_gap_max','specimen_b_beta','specimen_scat','specimen_drats','specimen_md','specimen_int_mad','specimen_dang']
+        specimen_criteria_list=['specimen_int_n','specimen_int_ptrm_n','specimen_f','specimen_fvds','specimen_frac','specimen_gap_max','specimen_b_beta','specimen_scat','specimen_drats','specimen_md','specimen_int_mad','specimen_dang']
         thellier_gui_redo_file=open("%s/thellier_GUI.redo"%(self.WD),'w')
         thellier_gui_specimen_file=open("%s/thellier_GUI.specimens.txt"%(self.WD),'w')
         thellier_gui_sample_file=open("%s/thellier_GUI.samples.txt"%(self.WD),'w')
@@ -1676,7 +1676,7 @@ class Arai_GUI(wx.Frame):
                 if key in ['specimen_f','specimen_fvds','specimen_gap_max','specimen_b_beta','specimen_frac','specimen_drats','specimen_md','specimen_int_mad','specimen_dang']:
                         String1=String1+"%.2f"%self.accept_new_parameters[key]+"\t"
 
-                elif key in ['specimen_n','specimen_int_ptrm_n']:
+                elif key in ['specimen_int_n','specimen_int_ptrm_n']:
                         String1=String1+"%.0f"%self.accept_new_parameters[key]+"\t"
                 elif key in ['specimen_scat']:
                         String1=String1+str(self.accept_new_parameters[key])+"\t"
@@ -1749,7 +1749,7 @@ class Arai_GUI(wx.Frame):
                         String=String+"N/A" +"\t"
                     else:
                         String=String+"%.2f"%self.Data[sp]['pars']['specimen_md']+"\t"
-                elif crit in ['specimen_n','specimen_int_ptrm_n']:
+                elif crit in ['specimen_int_n','specimen_int_ptrm_n']:
                         String=String+"%.0f"%self.Data[sp]['pars'][crit]+"\t"
                 elif crit in ['specimen_scat']:
                         String=String+self.Data[sp]['pars'][crit]+"\t"
@@ -2671,8 +2671,8 @@ class Arai_GUI(wx.Frame):
             pass
 
         parameters_with_upper_bounds= ['specimen_gap_max','specimen_b_beta','specimen_dang','specimen_drats','specimen_int_mad','specimen_md']
-        parameters_with_lower_bounds= ['specimen_n','specimen_int_ptrm_n','specimen_f','specimen_fvds','specimen_frac']
-        accept_specimen_keys=['specimen_n','specimen_int_ptrm_n','specimen_f','specimen_fvds','specimen_frac','specimen_gap_max','specimen_b_beta','specimen_dang','specimen_drats','specimen_int_mad','specimen_md']
+        parameters_with_lower_bounds= ['specimen_int_n','specimen_int_ptrm_n','specimen_f','specimen_fvds','specimen_frac']
+        accept_specimen_keys=['specimen_int_n','specimen_int_ptrm_n','specimen_f','specimen_fvds','specimen_frac','specimen_gap_max','specimen_b_beta','specimen_dang','specimen_drats','specimen_int_mad','specimen_md']
 
         #------------------------------------------------
         # Intialize interpreter output files:
@@ -2816,9 +2816,9 @@ class Arai_GUI(wx.Frame):
                     ignore_specimen=True
             if ignore_specimen:
                 continue
-            specimen_n=int(self.accept_new_parameters['specimen_n'])
-            for tmin_i in range(len(temperatures)-specimen_n+1):
-                for tmax_i in range(tmin_i+specimen_n-1,len(temperatures)):
+            specimen_int_n=int(self.accept_new_parameters['specimen_int_n'])
+            for tmin_i in range(len(temperatures)-specimen_int_n+1):
+                for tmax_i in range(tmin_i+specimen_int_n-1,len(temperatures)):
                     tmin=temperatures[tmin_i]
                     tmax=temperatures[tmax_i]
                     pars=self.get_PI_parameters(s,tmin,tmax)
@@ -4028,14 +4028,14 @@ class Arai_GUI(wx.Frame):
          
         # PI statsistics
         
-        window_list=['n','int_ptrm_n','frac','gap_max','f','fvds','b_beta','g','q','int_mad','dang','drats','md']
+        window_list=['int_n','int_ptrm_n','frac','gap_max','f','fvds','b_beta','g','q','int_mad','dang','drats','md']
         high_threshold_velue_list=['specimen_gap_max','specimen_b_beta','specimen_dang','specimen_drats','specimen_int_mad','specimen_md']
-        low_threshold_velue_list=['specimen_n','specimen_int_ptrm_n','specimen_f','specimen_fvds','specimen_frac','specimen_g','specimen_q']
+        low_threshold_velue_list=['specimen_int_n','specimen_int_ptrm_n','specimen_f','specimen_fvds','specimen_frac','specimen_g','specimen_q']
         flag_Fail=False
     
         for key in  high_threshold_velue_list+low_threshold_velue_list:
             #if  key == 'specimen_md': cont
-            if key in ['specimen_n','specimen_int_ptrm_n']:
+            if key in ['specimen_int_n','specimen_int_ptrm_n']:
                 Value="%.0f"%self.pars[key]
             if key in ['specimen_dang','specimen_drats','specimen_int_mad','specimen_md','specimen_g','specimen_q']:
                 Value="%.1f"%self.pars[key]
@@ -4150,7 +4150,7 @@ class Arai_GUI(wx.Frame):
         index_2=self.T_list.index(t2)
 
        
-        if (index_2-index_1)+1 >= self.accept_new_parameters['specimen_n']:
+        if (index_2-index_1)+1 >= self.accept_new_parameters['specimen_int_n']:
             self.pars=self.get_PI_parameters(self.s,float(t1)+273.,float(t2)+273.)
             self.update_GUI_with_new_interpretation()
       
@@ -4224,7 +4224,7 @@ class Arai_GUI(wx.Frame):
         start=t_Arai.index(tmin)
         end=t_Arai.index(tmax)
 
-        if end-start < float(self.accept_new_parameters['specimen_n'] -1):
+        if end-start < float(self.accept_new_parameters['specimen_int_n'] -1):
           return(pars)
                                                  
         #-------------------------------------------------
@@ -4334,7 +4334,7 @@ class Arai_GUI(wx.Frame):
         q_Coe=abs(york_b)*f_Coe*g_Coe/york_sigma
 
         
-        pars['specimen_n']=end-start+1
+        pars['specimen_int_n']=end-start+1
         pars["specimen_b"]=york_b
         pars["specimen_YT"]=y_T       
         pars["specimen_b_sigma"]=york_sigma
@@ -4807,16 +4807,16 @@ class Arai_GUI(wx.Frame):
       #------------------------------------------------
 
 
-      self.criteria_list=['specimen_n','specimen_int_ptrm_n','specimen_f','specimen_fvds','specimen_frac','specimen_gap_max','specimen_b_beta',
+      self.criteria_list=['specimen_int_n','specimen_int_ptrm_n','specimen_f','specimen_fvds','specimen_frac','specimen_gap_max','specimen_b_beta',
                      'specimen_dang','specimen_drats','specimen_int_mad','specimen_md','specimen_g','specimen_q']
       self.high_threshold_velue_list=['specimen_gap_max','specimen_b_beta','specimen_dang','specimen_drats','specimen_int_mad','specimen_md']
-      self.low_threshold_velue_list=['specimen_n','specimen_int_ptrm_n','specimen_f','specimen_fvds','specimen_frac','specimen_g','specimen_q']
+      self.low_threshold_velue_list=['specimen_int_n','specimen_int_ptrm_n','specimen_f','specimen_fvds','specimen_frac','specimen_g','specimen_q']
 
       accept_new_parameters_null={}
       accept_new_parameters_default={}
       #  make a list of default parameters
 
-      accept_new_parameters_default['specimen_n']=3
+      accept_new_parameters_default['specimen_int_n']=3
       accept_new_parameters_default['specimen_int_ptrm_n']=2
       accept_new_parameters_default['specimen_f']=0.
       accept_new_parameters_default['specimen_fvds']=0.
@@ -4873,7 +4873,7 @@ class Arai_GUI(wx.Frame):
       #print accept_new_parameters_default
         
       # A list of all acceptance criteria used by program
-      accept_specimen_keys=['specimen_n','specimen_int_ptrm_n','specimen_f','specimen_fvds','specimen_frac','specimen_gap_max','specimen_b_beta','specimen_dang','specimen_drats','specimen_int_mad','specimen_md']
+      accept_specimen_keys=['specimen_int_n','specimen_int_ptrm_n','specimen_f','specimen_fvds','specimen_frac','specimen_gap_max','specimen_b_beta','specimen_dang','specimen_drats','specimen_int_mad','specimen_md']
       accept_sample_keys=['sample_int_n','sample_int_sigma_uT','sample_int_sigma_perc','sample_int_interval_uT','sample_int_interval_perc']
       
       #self.accept_new_parameters_null=accept_new_parameters_null
@@ -5572,13 +5572,13 @@ class Criteria_Dialog(wx.Dialog):
 
         # Specimen criteria
 
-        window_list_specimens=['n','int_ptrm_n','frac','gap_max','f','fvds','b_beta','g','q','int_mad','dang','drats','md']
+        window_list_specimens=['int_n','int_ptrm_n','frac','gap_max','f','fvds','b_beta','g','q','int_mad','dang','drats','md']
         for key in window_list_specimens:
             command="self.set_specimen_%s=wx.TextCtrl(pnl1,style=wx.TE_CENTER,size=(50,20))"%key
             exec command
         self.set_specimen_scat=wx.CheckBox(pnl1, -1, '', (50, 50))        
         criteria_specimen_window = wx.GridSizer(2, 14, 12, 12)
-        criteria_specimen_window.AddMany( [(wx.StaticText(pnl1,label="n",style=wx.TE_CENTER), wx.EXPAND),
+        criteria_specimen_window.AddMany( [(wx.StaticText(pnl1,label="int_n",style=wx.TE_CENTER), wx.EXPAND),
             (wx.StaticText(pnl1,label="int_ptrm_n",style=wx.TE_CENTER), wx.EXPAND),
             (wx.StaticText(pnl1,label="FRAC",style=wx.TE_CENTER), wx.EXPAND),
             (wx.StaticText(pnl1,label="SCAT",style=wx.TE_CENTER), wx.EXPAND),
@@ -5592,7 +5592,7 @@ class Criteria_Dialog(wx.Dialog):
             (wx.StaticText(pnl1,label="DANG",style=wx.TE_CENTER), wx.EXPAND),
             (wx.StaticText(pnl1,label="DRATS",style=wx.TE_CENTER), wx.EXPAND),
             (wx.StaticText(pnl1,label="MD tail",style=wx.TE_CENTER), wx.EXPAND),
-            (self.set_specimen_n),
+            (self.set_specimen_int_n),
             (self.set_specimen_int_ptrm_n),
             (self.set_specimen_frac),
             (self.set_specimen_scat),                        
@@ -5716,7 +5716,7 @@ class Criteria_Dialog(wx.Dialog):
 
         # Intialize specimen values
         self.high_threshold_velue_list=['specimen_gap_max','specimen_b_beta','specimen_dang','specimen_drats','specimen_int_mad','specimen_md']
-        self.low_threshold_velue_list=['specimen_n','specimen_int_ptrm_n','specimen_f','specimen_fvds','specimen_frac','specimen_g','specimen_q']
+        self.low_threshold_velue_list=['specimen_int_n','specimen_int_ptrm_n','specimen_f','specimen_fvds','specimen_frac','specimen_g','specimen_q']
               
         for key in self.high_threshold_velue_list + self.low_threshold_velue_list:
             if key in self.high_threshold_velue_list and float(self.accept_new_parameters[key]) >100 or\
@@ -5725,7 +5725,7 @@ class Criteria_Dialog(wx.Dialog):
                 command="self.set_%s.SetValue(\"\")"%key
                 exec command
                 continue
-            elif key in ['specimen_n','specimen_int_ptrm_n']:
+            elif key in ['specimen_int_n','specimen_int_ptrm_n']:
                 Value="%.0f"%self.accept_new_parameters[key]
             elif key in ['specimen_dang','specimen_drats','specimen_int_mad','specimen_md','specimen_g','specimen_q']:
                 Value="%.1f"%self.accept_new_parameters[key]
@@ -5923,7 +5923,7 @@ class Optimizer(wx.Frame):
         
 
         self.high_threshold_velue_list=['specimen_gap_max','specimen_b_beta','specimen_dang','specimen_drats','specimen_int_mad','specimen_md']
-        self.low_threshold_velue_list=['specimen_n','specimen_int_ptrm_n','specimen_f','specimen_fvds','specimen_frac','specimen_g','specimen_q']
+        self.low_threshold_velue_list=['specimen_int_n','specimen_int_ptrm_n','specimen_f','specimen_fvds','specimen_frac','specimen_g','specimen_q']
 
         for key in self.high_threshold_velue_list + self.low_threshold_velue_list:
             command="self.fixed_criteria[\"%s\"]=float(dia.set_%s.GetValue())"%(key,key)

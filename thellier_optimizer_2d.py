@@ -153,12 +153,12 @@ def Thellier_optimizer(WD, Data,Data_hierarchy,criteria_fixed_paremeters_file,op
   logfile=open(WD+"/optimizer/thellier_optimizer.log",'w')
   start_time = time.time()
   accept_new_parameters={}
-  criteria_specimen_list=['specimen_n','specimen_int_ptrm_n','specimen_f','specimen_fvds','specimen_frac','specimen_gap_max','specimen_b_beta','specimen_scat',
+  criteria_specimen_list=['specimen_int_n','specimen_int_ptrm_n','specimen_f','specimen_fvds','specimen_frac','specimen_gap_max','specimen_b_beta','specimen_scat',
                  'specimen_dang','specimen_drats','specimen_int_mad','specimen_md','specimen_g','specimen_q']
   criteria_sample_list=['sample_int_n','sample_int_sigma_uT','sample_int_sigma_perc','sample_int_interval_uT','sample_int_interval_perc']
   
   high_threshold_value_list=['specimen_gap_max','specimen_b_beta','specimen_dang','specimen_drats','specimen_int_mad','specimen_md']
-  low_threshold_value_list=['specimen_n','specimen_int_ptrm_n','specimen_f','specimen_fvds','specimen_frac','specimen_g','specimen_q']
+  low_threshold_value_list=['specimen_int_n','specimen_int_ptrm_n','specimen_f','specimen_fvds','specimen_frac','specimen_g','specimen_q']
 
   #------------------------------------------------
   # Write header to thellier_optimizer_master_file
@@ -194,7 +194,7 @@ def Thellier_optimizer(WD, Data,Data_hierarchy,criteria_fixed_paremeters_file,op
 
   # initialize to null value
 
-  accept_new_parameters['specimen_n']=0
+  accept_new_parameters['specimen_int_n']=0
   accept_new_parameters['specimen_int_ptrm_n']=0
   accept_new_parameters['specimen_f']=0.
   accept_new_parameters['specimen_fvds']=0.
@@ -303,7 +303,7 @@ def Thellier_optimizer(WD, Data,Data_hierarchy,criteria_fixed_paremeters_file,op
 
   thellier_optimizer_master_table={}
   
-  n_min=int(accept_new_parameters['specimen_n'])
+  n_min=int(accept_new_parameters['specimen_int_n'])
 
   specimens=Data.keys()
   specimens.sort()
@@ -448,7 +448,7 @@ def Thellier_optimizer(WD, Data,Data_hierarchy,criteria_fixed_paremeters_file,op
         q_Coe=abs(york_b)*f_Coe*g_Coe/york_sigma
 
         
-        pars['specimen_n']=end-start+1
+        pars['specimen_int_n']=end-start+1
         pars["specimen_b"]=york_b
         pars["specimen_YT"]=y_T       
         pars["specimen_b_sigma"]=york_sigma
@@ -616,8 +616,11 @@ def Thellier_optimizer(WD, Data,Data_hierarchy,criteria_fixed_paremeters_file,op
            TRM_anc_unit=array(pars['specimen_PCA_v1'])/sqrt(pars['specimen_PCA_v1'][0]**2+pars['specimen_PCA_v1'][1]**2+pars['specimen_PCA_v1'][2]**2)
            # If Ftest is lower than critical value:
            # set the anisotropy correction tensor to identity matrix
-           if  float(Data[s]['AniSpec']['anisotropy_F']) < float(Data[s]['AniSpec']['anisotropy_F_crit']):
-               S_matrix=identity(3,'f')
+           if 'anisotropy_F_crit' in Data[s]['AniSpec'].keys():
+               if  float(Data[s]['AniSpec']['anisotropy_ftest']) < float(Data[s]['AniSpec']['anisotropy_F_crit']):
+
+           #if  float(Data[s]['AniSpec']['anisotropy_F']) < float(Data[s]['AniSpec']['anisotropy_F_crit']):
+                 S_matrix=identity(3,'f')
 
 
            B_lab_unit=pmag.dir2cart([ Data[s]['Thellier_dc_field_phi'], Data[s]['Thellier_dc_field_theta'],1])

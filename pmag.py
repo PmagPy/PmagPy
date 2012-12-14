@@ -475,9 +475,12 @@ def grade(PmagRec,ACCEPT,type):
     for key in ACCEPT.keys():
         if type in key and ACCEPT[key]!="":
             accept[key]=ACCEPT[key]
-            if accept[key]=='0':accept[key]=""
-            if accept[key]=='TRUE':accept[key]='True' # this is because Excel always capitalizes True to TRUE and python doesn't recognize that as a boolean.  never mind
-            if accept[key]=='FALSE':accept[key]='False'
+            if accept[key]=='TRUE':
+                accept[key]='True' # this is because Excel always capitalizes True to TRUE and python doesn't recognize that as a boolean.  never mind
+            elif accept[key]=='FALSE':
+                accept[key]='False'
+            elif eval(accept[key])==0: 
+                accept[key]=""
     for key in sigma_types:
         if key in accept.keys() and key in PmagRec.keys(): sigmas.append(key)
     if len(sigmas)>1:
@@ -491,7 +494,10 @@ def grade(PmagRec,ACCEPT,type):
         if PmagRec[sigmas[0]]>accept[sigmas[0]]:
            kill.append(sigmas[0]) 
     for key in accept.keys():
-        if key not in sigma_types:
+     if accept[key]!="": 
+        if key not in PmagRec.keys(): 
+            kill.append(key)
+        elif key not in sigma_types:
             if key in ISTRUE: # boolean must be true
                 if eval(PmagRec[key])!=True:
                     kill.append(key)
@@ -1300,6 +1306,18 @@ def dir2cart(d):
     cart= numpy.array([ints*numpy.cos(decs)*numpy.cos(incs),ints*numpy.sin(decs)*numpy.cos(incs),ints*numpy.sin(incs)]).transpose()
     return cart
 
+
+def dms2dd(d):
+   # converts list or array of degree, minute, second locations to array of decimal degrees 
+    d=numpy.array(d)
+    if len(d.shape)>1: # array of angles
+        degs,mins,secs=d[:,0],d[:,1],d[:,2]
+        print degs,mins,secs
+    else: # single vector
+        degs,mins,secs=numpy.array(d[0]),numpy.array(d[1]),numpy.array(d[2])
+        print degs,mins,secs
+    dd= numpy.array(degs+mins/60.+secs/3600.).transpose()
+    return dd
 
 def findrec(s,data):
     """
