@@ -495,14 +495,10 @@ def grade(PmagRec,ACCEPT,type):
         if PmagRec[sigmas[0]]>accept[sigmas[0]]:
            kill.append(sigmas[0]) 
     for key in accept.keys():
-<<<<<<< HEAD
      if accept[key]!="": 
         if key not in PmagRec.keys(): 
             kill.append(key)
         elif key not in sigma_types:
-=======
-        if key not in sigma_types:
->>>>>>> 425f048e6676c6388482f90b6c3e455984f72f16
             if key in ISTRUE: # boolean must be true
                 if eval(PmagRec[key])!=True:
                     kill.append(key)
