@@ -626,7 +626,13 @@ class Arai_GUI(wx.Frame):
         m_save_eq_plot = submenu_save_plots.Append(-1, "&Save equal area plot", "")
         self.Bind(wx.EVT_MENU, self.on_save_Eq_plot, m_save_eq_plot,"Eq")
 
-        m_save_all_plots = submenu_save_plots.Append(-1, "&Save all plots", "")
+        m_save_M_t_plot = submenu_save_plots.Append(-1, "&Save M-t plot", "")
+        self.Bind(wx.EVT_MENU, self.on_save_M_t_plot, m_save_M_t_plot,"Eq")
+
+        m_save_NLT_plot = submenu_save_plots.Append(-1, "&Save NLT plot", "")
+        self.Bind(wx.EVT_MENU, self.on_save_NLT_plot, m_save_NLT_plot,"Eq")
+
+        #m_save_all_plots = submenu_save_plots.Append(-1, "&Save all plots", "")
         #self.Bind(wx.EVT_MENU, self.on_save_all_plots, m_save_all_plots)
 
         m_new_sub_plots = menu_file.AppendMenu(-1, "&Save plot", submenu_save_plots)
@@ -996,7 +1002,7 @@ class Arai_GUI(wx.Frame):
                 self.show_NLT_plot=wx.CheckBox(pnl1, -1, '', (50, 50))        
                                              
                 NLT_window = wx.GridSizer(1, 2, 12, 12)
-                NLT_window.AddMany( [(wx.StaticText(pnl1,label="show Non-linear TRM plot instead of M/M0 plot",style=wx.TE_CENTER), wx.EXPAND),
+                NLT_window.AddMany( [(wx.StaticText(pnl1,label="show Non-linear TRM plot instead of M/T plot",style=wx.TE_CENTER), wx.EXPAND),
                     (self.show_NLT_plot, wx.EXPAND)])                 
                 bSizer5.Add( NLT_window, 0, wx.ALIGN_LEFT|wx.ALL, 5 )
                          
@@ -1181,15 +1187,84 @@ class Arai_GUI(wx.Frame):
 
 
     def on_save_Arai_plot(self, event):
-        SaveMyPlot(self.fig1,self.pars,"Arai")
+        #search for NRM:
+        nrm0=""
+        for rec in self.Data[self.s]['datablock']:            
+          if "LT-NO" in rec['magic_method_codes']:
+              nrm0= "%.2e"%float(rec['measurement_magn_moment'])
+              break
 
+        self.fig1.text(0.1,0.93,'$NRM_0 = %s Am^2 $'%(nrm0),{'family':'Arial', 'fontsize':10, 'style':'normal','va':'center', 'ha':'left' })
+        self.fig1.text(0.9,0.93,'%s'%(self.s),{'family':'Arial', 'fontsize':10, 'style':'normal','va':'center', 'ha':'right' })
+        #self.canvas1.draw()
+        SaveMyPlot(self.fig1,self.pars,"Arai")
+        self.fig1.clear()
+        self.fig1.text(0.01,0.98,"Arai plot",{'family':'Arial', 'fontsize':10, 'style':'normal','va':'center', 'ha':'left' })
+        self.araiplot = self.fig1.add_axes([0.1,0.1,0.8,0.8])
+        self.draw_figure(self.s)
+        self.update_selection()
 
     def on_save_Zij_plot(self, event):
+        self.fig2.text(0.9,0.96,'%s'%(self.s),{'family':'Arial', 'fontsize':10, 'style':'normal','va':'center', 'ha':'right' })
+        #self.canvas1.draw()
         SaveMyPlot(self.fig2,self.pars,"Zij")
-
+        self.fig2.clear()
+        self.fig2.text(0.02,0.96,"Zijderveld",{'family':'Arial', 'fontsize':10, 'style':'normal','va':'center', 'ha':'left' })
+        self.zijplot = self.fig2.add_subplot(111)
+        self.draw_figure(self.s)
+        self.update_selection()
+        
     def on_save_Eq_plot(self, event):
+        self.fig3.text(0.9,0.96,'%s'%(self.s),{'family':'Arial', 'fontsize':10, 'style':'normal','va':'center', 'ha':'right' })        
         SaveMyPlot(self.fig3,self.pars,"Eqarea")
+        self.fig3.clear()
+        self.fig3.text(0.02,0.96,"Equal area",{'family':'Arial', 'fontsize':10, 'style':'normal','va':'center', 'ha':'left' })
+        self.eqplot = self.fig3.add_subplot(111)
+        self.draw_figure(self.s)
+        self.update_selection()
 
+    def on_save_M_t_plot(self,event):
+        if self.preferences['show_NLT_plot'] ==False or 'NLT_parameters' not in self.Data[self.s].keys():
+            self.fig5.text(0.9,0.96,'%s'%(self.s),{'family':'Arial', 'fontsize':10, 'style':'normal','va':'center', 'ha':'right' })        
+            SaveMyPlot(self.fig5,self.pars,"M_T")
+            self.fig5.clear()
+            self.mplot = self.fig5.add_axes([0.2,0.15,0.7,0.7],frameon=True,axisbg='None')
+            self.fig5.text(0.02,0.96,"M/T",{'family':'Arial', 'fontsize':10, 'style':'normal','va':'center', 'ha':'left' })
+            self.draw_figure(self.s)
+            self.update_selection()
+        else:
+            return
+
+    def on_save_NLT_plot(self,event):
+        if self.preferences['show_NLT_plot'] ==True and 'NLT_parameters' in self.Data[self.s].keys():
+            self.fig5.text(0.9,0.96,'%s'%(self.s),{'family':'Arial', 'fontsize':10, 'style':'normal','va':'center', 'ha':'right' })        
+            SaveMyPlot(self.fig5,self.pars,"NLT")
+            self.fig5.clear()
+            self.mplot = self.fig5.add_axes([0.2,0.15,0.7,0.7],frameon=True,axisbg='None')
+            self.fig5.text(0.02,0.96,"Non-linear TRM check",{'family':'Arial', 'fontsize':10, 'style':'normal','va':'center', 'ha':'left' })
+            self.draw_figure(self.s)
+            self.update_selection()
+        else:
+            return
+
+##    def on_save_all_plots(self,event):
+##        #search for NRM:
+##        nrm0=""
+##        for rec in self.Data[self.s]['datablock']:            
+##          if "LT-NO" in rec['magic_method_codes']:
+##              nrm0= "%.2e"%float(rec['measurement_magn_moment'])
+##              break
+##
+##        self.fig1.text(0.1,0.93,'$NRM_0 = %s Am^2 $'%(nrm0),{'family':'Arial', 'fontsize':10, 'style':'normal','va':'center', 'ha':'left' })
+##        self.fig1.text(0.9,0.93,'%s'%(self.s),{'family':'Arial', 'fontsize':10, 'style':'normal','va':'center', 'ha':'right' })
+##        #self.canvas1.draw()
+##        SaveAllMyPlot(self.pars)
+##        self.fig1.clear()
+##        self.fig1.text(0.01,0.98,"Arai plot",{'family':'Arial', 'fontsize':10, 'style':'normal','va':'center', 'ha':'left' })
+##        self.araiplot = self.fig1.add_axes([0.1,0.1,0.8,0.8])
+##        self.draw_figure(self.s)
+##        self.update_selection()
+        
     def on_menu_previous_interpretation(self, event):
         
         save_current_specimen=self.s
@@ -2105,7 +2180,7 @@ class Arai_GUI(wx.Frame):
         
 
 
-        rmag_results_header=['er_specimen_name','er_sample_name','er_site_name','anisotropy_type','magic_method_codes','magic_experiment_names','result_description','anisotropy_t1','anisotropy_t2','anisotropy_t3','anisotropy_ftest','anisotropy_ftest12','anisotropy_ftest23',\
+        rmag_results_header=['er_specimen_names','er_sample_name','er_site_name','anisotropy_type','magic_method_codes','magic_experiment_names','result_description','anisotropy_t1','anisotropy_t2','anisotropy_t3','anisotropy_ftest','anisotropy_ftest12','anisotropy_ftest23',\
                              'anisotropy_v1_dec','anisotropy_v1_inc','anisotropy_v2_dec','anisotropy_v2_inc','anisotropy_v3_dec','anisotropy_v3_inc']
 
 
@@ -2503,6 +2578,7 @@ class Arai_GUI(wx.Frame):
             rmag_anisotropy_file.write(String[:-1]+"\n")
 
             String=""
+            Data_anisotropy[specimen][TYPE]['er_specimen_names']=Data_anisotropy[specimen][TYPE]['er_specimen_name']
             for i in range (len(rmag_results_header)):
                 try:
                     String=String+Data_anisotropy[specimen][TYPE][rmag_results_header[i]]+'\t'
@@ -3906,7 +3982,7 @@ class Arai_GUI(wx.Frame):
 
         if self.preferences['show_NLT_plot'] ==False or 'NLT_parameters' not in self.Data[self.s].keys():
             self.fig5.clf()
-            self.fig5.text(0.02,0.96,"M/M0",{'family':'Arial', 'fontsize':10, 'style':'normal','va':'center', 'ha':'left' })
+            self.fig5.text(0.02,0.96,"M/T",{'family':'Arial', 'fontsize':10, 'style':'normal','va':'center', 'ha':'left' })
             self.mplot = self.fig5.add_axes([0.2,0.15,0.7,0.7],frameon=True,axisbg='None')
             
             self.mplot.clear()
@@ -4689,7 +4765,8 @@ class Arai_GUI(wx.Frame):
 
         self.canvas3.draw()
 
-
+        # plot Zijderveld
+        
         #rotated zijderveld
         NRM_dir=pmag.cart2dir(self.Data[self.s]['zdata'][0])         
         NRM_dec=NRM_dir[0]
@@ -4699,27 +4776,40 @@ class Arai_GUI(wx.Frame):
         PCA_dir_rotated[0]=PCA_dir_rotated[0]-NRM_dec      
         PCA_CART_rotated=pmag.dir2cart(PCA_dir_rotated)
 
-        # Center of mass rotated
-        #print self.CART_rot
-        CM_x=mean(self.CART_rot[:,0])
-        CM_y=mean(self.CART_rot[:,1])
-        CM_z=mean(self.CART_rot[:,2])
-        #print CM_x,CM_y,CM_z
+        tmin_index=self.Data[self.s]['z_temp'].index(self.pars["measurement_step_min"])
+        tmax_index=self.Data[self.s]['z_temp'].index(self.pars["measurement_step_max"])
         
         PCA_dir_rotated=pmag.cart2dir(CART)         
         PCA_dir_rotated[0]=PCA_dir_rotated[0]-NRM_dec      
         PCA_CART_rotated=pmag.dir2cart(PCA_dir_rotated)
+        
+        slop_xy_PCA=-1*PCA_CART_rotated[1]/PCA_CART_rotated[0]
+        slop_xz_PCA=-1*PCA_CART_rotated[2]/PCA_CART_rotated[0]
 
-        PCA_to_plot=array([CM_x+PCA_CART_rotated[0],CM_y+PCA_CART_rotated[1],CM_z+PCA_CART_rotated[1]])
+        # Center of mass rotated
+        CM_x=mean(self.CART_rot[:,0][tmin_index:tmax_index+1])
+        CM_y=mean(self.CART_rot[:,1][tmin_index:tmax_index+1])
+        CM_z=mean(self.CART_rot[:,2][tmin_index:tmax_index+1])
+
+        # intercpet from the center of mass
+        intercept_xy_PCA=-1*CM_y - slop_xy_PCA*CM_x
+        intercept_xz_PCA=-1*CM_z - slop_xz_PCA*CM_x
+
+        xmin_zij, xmax_zij = xlim()
+        xx=array([0,self.CART_rot[:,0][tmin_index]])
+        yy=slop_xy_PCA*xx+intercept_xy_PCA
+        self.zijplot.plot(xx,yy,'-',color='g',lw=1.5,alpha=0.5)
+        yy=slop_xz_PCA*xx+intercept_xz_PCA
+        self.zijplot.plot(xx,yy,'-',color='g',lw=1.5,alpha=0.5)
+        
+        #PCA_to_plot=array([CM_x+PCA_CART_rotated[0],CM_y+PCA_CART_rotated[1],CM_z+PCA_CART_rotated[1]])
 
         #----------
         # To DO! draw best fit line through center of mass
         #----------
-        self.zijplot.plot([0,PCA_CART_rotated[0]],[0,-1*PCA_CART_rotated[1]],'-',color='g')
-        self.zijplot.plot([0,PCA_CART_rotated[0]],[0,-1*PCA_CART_rotated[2]],'-',color='g')
+        #self.zijplot.plot([0,PCA_CART_rotated[0]],[0,-1*PCA_CART_rotated[1]],'-',color='g')
+        #self.zijplot.plot([0,PCA_CART_rotated[0]],[0,-1*PCA_CART_rotated[2]],'-',color='g')
         
-        tmin_index=self.Data[self.s]['z_temp'].index(self.pars["measurement_step_min"])
-        tmax_index=self.Data[self.s]['z_temp'].index(self.pars["measurement_step_max"])
         self.zijplot.scatter([self.CART_rot[:,0][tmin_index]],[-1* self.CART_rot[:,1][tmin_index]],marker='o',s=40,facecolor='g',edgecolor ='k')
         self.zijplot.scatter([self.CART_rot[:,0][tmax_index]],[-1* self.CART_rot[:,1][tmax_index]],marker='o',s=40,facecolor='g',edgecolor ='k')
         
@@ -5075,6 +5165,7 @@ class Arai_GUI(wx.Frame):
 
       #if self.WD != "":
       rmag_anis_data=[]
+      results_anis_data=[]
       try:
           rmag_anis_data,file_type=pmag.magic_read(self.WD+'/rmag_anisotropy.txt')
           self.GUI_log.write( "-I- Anisotropy data read  %s/from rmag_anisotropy.txt\n"%self.WD)
@@ -5101,7 +5192,6 @@ class Arai_GUI(wx.Frame):
         
       for AniSpec in results_anis_data:
           s=AniSpec['er_specimen_names']
-          s=AniSpec['er_specimen_name']
           if s not in Data.keys():
               self.GUI_log.write("-W- WARNING: specimen %s in rmag_results.txt but not in magic_measurement.txt. Check it !\n"%s)
               continue
@@ -5848,7 +5938,6 @@ class MyForm(wx.Frame):
 
 class SaveMyPlot(wx.Frame):
     """"""
-    #----------------------------------------------------------------------
     def __init__(self,fig,pars,plot_type):
         """Constructor"""
         wx.Frame.__init__(self, parent=None, title="Thellier Optimizer")
@@ -5872,6 +5961,8 @@ class SaveMyPlot(wx.Frame):
 
         canvas_tmp_1 = FigCanvas(self.panel, -1, fig)
         canvas_tmp_1.print_figure(path, dpi=self.dpi)  
+
+#----------------------------------------------------------------------
 
 #===========================================================
 # Optimizer
