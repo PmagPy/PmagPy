@@ -26,6 +26,7 @@ def main():
        -loc LAT LON;  specify location, default is line by line
        -alt ALT;  specify altitude in km, default is sealevel (0)
        -plt; make a plot of the time series
+       -fmt [pdf,jpg,eps,svg]  specify format for output figure  (default is svg)
     
     INPUT FORMAT 
       interactive entry:
@@ -39,7 +40,10 @@ def main():
     OUTPUT  FORMAT
         Declination Inclination Intensity (nT) date alt lat long
     """
-    plt=0
+    plt,fmt=0,'svg'
+    if '-fmt' in sys.argv:
+        ind=sys.argv.index('-fmt')
+        fmt=sys.argv[ind+1]
     if len(sys.argv)!=0 and '-h' in sys.argv:
         print main.__doc__
         sys.exit()
@@ -96,6 +100,7 @@ def main():
         import matplotlib
         matplotlib.use("TkAgg")
         import pylab
+        pylab.ion()
         Ages,Decs,Incs,Ints=[],[],[],[]
     for line in input:
         x,y,z,f=pmag.doigrf(line[3]%360.,line[2],line[1],line[0])
@@ -119,7 +124,11 @@ def main():
         fig.add_subplot(313)
         pylab.plot(Ages,Ints)
         pylab.xlabel('Ages')
-        pylab.show()
-        raw_input('clost plot window to quit')
+        pylab.draw()
+        ans=raw_input("S[a]ve to save figure, <Return>  to quit  ")
+        if ans=='a':
+            pylab.savefig('igrf.'+fmt)
+            print 'Figure saved as: ','igrf.'+fmt
+        sys.exit()
 main()
 
