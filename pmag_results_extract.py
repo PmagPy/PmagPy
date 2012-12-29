@@ -98,7 +98,7 @@ def main():
         fsp=open(Specout,'w') # including specimen intensities if desired
         SpecCols=["Site","Specimen","B (uT)","MAD","Beta","N","Q","DANG","f-vds","DRATS","T (C)"]
         SpecKeys=['er_site_name','er_specimen_name','specimen_int','specimen_int_mad','specimen_b_beta','specimen_int_n','specimen_q','specimen_dang','specimen_fvds','specimen_drats','trange']
-        Xtra=['specimen_frac','specimen_scat','specimen_gap_max']
+        Xtra=['specimen_frac','specimen_scat','specimen_gmax']
         if grade:
             SpecCols.append('Grade')
             SpecKeys.append('specimen_grade')
@@ -211,7 +211,9 @@ def main():
         if site not in VGPs:
             Soutstring=""
             for key in SiteKeys:
-                if key in site.keys():Soutstring=Soutstring+site[key]+sep
+                if key in site.keys():
+                    Soutstring=Soutstring+site[key]+sep
+                else: Soutstring=Soutstring + " " + sep
             Soutstring=Soutstring.strip(sep) +end
             sf.write(Soutstring+'\n')
         if len(site['er_site_names'].split(":"))==1:
