@@ -39,8 +39,16 @@ def get_dictkey(In,k,dtype):
     Out=[]
     for d in In: 
         if dtype=='': Out.append(d[k]) 
-        if dtype=='f':Out.append(float(d[k]))
-        if dtype=='int':Out.append(int(d[k]))
+        if dtype=='f':
+            if d[k]=="":
+                Out.append(0)
+            else:
+                Out.append(float(d[k]))
+        if dtype=='int':
+            if d[k]=="":
+                Out.append(0)
+            else:
+                Out.append(int(d[k]))
     return Out 
         
 
@@ -475,10 +483,10 @@ def grade(PmagRec,ACCEPT,type):
     for key in ACCEPT.keys():
         if type in key and ACCEPT[key]!="":
             accept[key]=ACCEPT[key]
-            if accept[key]=='TRUE':
-                accept[key]='True' # this is because Excel always capitalizes True to TRUE and python doesn't recognize that as a boolean.  never mind
-            elif accept[key]=='FALSE':
-                accept[key]='False'
+            if key in ISTRUE and accept[key]=='TRUE' or accept[key]=='True':
+                accept[key]='1' # this is because Excel always capitalizes True to TRUE and python doesn't recognize that as a boolean.  never mind
+            elif accept[key]=='FALSE' or accept[key]=='False':
+                accept[key]='0'
             elif eval(accept[key])==0: 
                 accept[key]=""
         if type in key and ACCEPT[key]!="":accept[key]=ACCEPT[key]
@@ -496,11 +504,11 @@ def grade(PmagRec,ACCEPT,type):
            kill.append(sigmas[0]) 
     for key in accept.keys():
      if accept[key]!="": 
-        if key not in PmagRec.keys(): 
+        if key not in PmagRec.keys() or PmagRec[key]=='': 
             kill.append(key)
         elif key not in sigma_types:
             if key in ISTRUE: # boolean must be true
-                if eval(PmagRec[key])!=True:
+                if PmagRec[key]!='1':
                     kill.append(key)
             if key in GREATERTHAN:
                 if eval(PmagRec[key])<eval(accept[key]):
@@ -900,7 +908,10 @@ def magic_read(infile):
     for rec in hold:
         magic_record={}
         if len(magic_keys) != len(rec):
-            print "Warning: Uneven record lengths detected: ",rec
+            
+            print "Warning: Uneven record lengths detected: "
+            print magic_keys
+            print rec
         for k in range(len(rec)):
            magic_record[magic_keys[k]]=rec[k].strip('\n')
         magic_data.append(magic_record)
@@ -1699,7 +1710,7 @@ def PintPars(datablock,araiblock,zijdblock,start,end,accept):
     # New parameters defined in Shaar and Tauxe (2012):
     # FRAC (specimen_frac) - ranges from 0. to 1.
     # SCAT (specimen_scat) - takes 1/0
-    # gap_max (specimen_gap_max) - ranges from 0. to 1.
+    # gap_max (specimen_gmax) - ranges from 0. to 1.
     #--------------------------------------------------------------
 
     #--------------------------------------------------------------
@@ -1734,7 +1745,7 @@ def PintPars(datablock,araiblock,zijdblock,start,end,accept):
 
     # gap_max calculation
     max_FRAC_gap=max(vector_diffs_segment/sum(vector_diffs_segment))
-    pars['specimen_gap_max']=max_FRAC_gap
+    pars['specimen_gmax']=max_FRAC_gap
     
 
     #---------------------------------------------------------------------                     
@@ -1746,7 +1757,7 @@ def PintPars(datablock,araiblock,zijdblock,start,end,accept):
     pars["fail_arai_beta_box_scatter"]=False # fail scat due to arai plot data points
     pars["fail_ptrm_beta_box_scatter"]=False # fail scat due to pTRM checks
     pars["fail_tail_beta_box_scatter"]=False # fail scat due to tail checks
-    pars["specimen_scat"]="Pass" # Pass by default
+    pars["specimen_scat"]="1" # Pass by default
 
     #--------------------------------------------------------------
     # collect all Arai plot data points in arrays 
@@ -1980,9 +1991,9 @@ def PintPars(datablock,araiblock,zijdblock,start,end,accept):
         # check if specimen_scat is PASS or FAIL:   
 
         if pars["fail_tail_beta_box_scatter"] or pars["fail_ptrm_beta_box_scatter"] or pars["fail_arai_beta_box_scatter"]:
-              pars["specimen_scat"]='False'
+              pars["specimen_scat"]='0'
         else:
-              pars["specimen_scat"]='True'
+              pars["specimen_scat"]='1'
                 
     return pars,0
 
@@ -2825,6 +2836,9 @@ def scoreit(pars,PmagSpecRec,accept,text,verbose):
     PmagSpecRec["specimen_rsc"]='%6.4f '%(pars["specimen_rsc"])
     PmagSpecRec["specimen_md"]='%i '%(int(pars["specimen_md"]))
     PmagSpecRec["specimen_b_sigma"]='%5.3f '%(pars["specimen_b_sigma"])
+    if 'specimen_scat' in pars.keys():PmagSpecRec['specimen_scat']=pars['specimen_scat']
+    if 'specimen_gmax' in pars.keys():PmagSpecRec['specimen_gmax']=pars['specimen_gmax']
+    if 'specimen_frac' in pars.keys():PmagSpecRec['specimen_frac']=pars['specimen_frac']
     #PmagSpecRec["specimen_Z"]='%7.1f'%(pars["specimen_Z"])
   # check score
    #

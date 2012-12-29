@@ -21,6 +21,7 @@ def main():
 	-fsm: sample input er_samples format file, default is "er_samples.txt"
 	-fsi: specimen input er_sites format file, default is "er_sites.txt"
 	-fla: specify a file with paleolatitudes for calculating VADMs, default is not to calculate VADMS
+               format is:  site_name paleolatitude (space delimited file)
 	-fa AGES: specify er_ages format file with age information
 	-crd [s,g,t,b]:   specify coordinate system
 	    (s, specimen, g geographic, t, tilt corrected, b, geographic and tilt corrected)
@@ -81,6 +82,9 @@ def main():
     if "-h" in args:
 	print main.__doc__
 	sys.exit()
+    if '-WD' in args:
+	ind=args.index("-WD")
+	dir_path=args[ind+1]
     if '-cor' in args:
         ind=args.index('-cor')
         cors=args[ind+1].split(':') # list of required data adjustments
@@ -136,8 +140,9 @@ def main():
 	    print "you should set a paleolatitude file OR use present day lat - not both"
 	    sys.exit()
 	ind=args.index("-fla")
-	model_lat_file=args[ind+1]
+	model_lat_file=dir_path+'/'+args[ind+1]
 	get_model_lat=2
+        print model_lat_file
 	mlat=open(model_lat_file,'rU')
 	ModelLats=[]
 	for line in mlat.readlines():
@@ -162,8 +167,6 @@ def main():
             pmagplotlib.plotNET(EQ['eqarea']) # I don't know why this has to be here, but otherwise the first plot never plots...
             pmagplotlib.drawFIGS(EQ)
     if '-WD' in args:
-	ind=args.index("-WD")
-	dir_path=args[ind+1]
 	infile=dir_path+'/'+infile
 	measfile=dir_path+'/'+measfile
 	instout=dir_path+'/'+instout
@@ -175,7 +178,6 @@ def main():
 	siteout=dir_path+'/'+siteout
 	resout=dir_path+'/'+resout
 	critout=dir_path+'/'+critout
-	if model_lat_file!="":model_lat_file=dir_path+'/'+model_lat_file
     if "-exc" in args: # use existing pmag_criteria file 
 	if "-C" in args:
 	    print 'you can not use both existing and no criteria - choose either -exc OR -C OR neither (for default)'
@@ -584,9 +586,14 @@ def main():
                         PmagResRec["vadm_n"]=PmagResRec['average_int_n']
                     else:
                         PmagResRec["vadm_sigma"]=""
-	        sitedat=pmag.get_dictitem(SiteNFO,'er_site_name',PmagSiteRec['er_site_name'],'T')[0] # fish out site information (lat/lon, etc.)
-                PmagResRec['average_lat']=sitedat['site_lat']
-                PmagResRec['average_lon']=sitedat['site_lon']
+	        sitedat=pmag.get_dictitem(SiteNFO,'er_site_name',PmagSiteRec['er_site_name'],'T') # fish out site information (lat/lon, etc.)
+                if len(sitedat)>0:
+                    sitedat=sitedat[0]
+                    PmagResRec['average_lat']=sitedat['site_lat']
+                    PmagResRec['average_lon']=sitedat['site_lon']
+                else:
+                    PmagResRec['average_lon']='UNKNOWN'
+                    PmagResRec['average_lon']='UNKNOWN'
                 PmagResRec['magic_software_packages']=version_num
                 PmagResRec["pmag_result_name"]="V[A]DM: Site "+site
                 PmagResRec["result_description"]="V[A]DM of site"

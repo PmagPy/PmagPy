@@ -83,7 +83,7 @@ def main():
     SiteKeys=["er_site_names","er_sample_names","average_lat","average_lon","average_age","average_age_sigma","average_age_unit"]
     DirCols=["Site","Samples",'Comp.',"%TC","Dec.","Inc.","Nl","Np","k    ","R","a95","PLat","PLong"]
     DirKeys=["er_site_names","er_sample_names","comp","tilt_correction","average_dec","average_inc","average_n_lines","average_n_planes","average_k","average_r","average_alpha95","vgp_lat","vgp_lon"]
-    IntCols=["Site","Specimens","Samples","N_B","B (uT)","s_b","s_b_perc","VADM","s_vadm"]
+    IntCols=["Site","Specimens","Samples","N","B (uT)","sigma","sigma perc","VADM","VADM sigma"]
     IntKeys=["er_site_names","er_specimen_names","er_sample_names","average_int_n","average_int","average_int_sigma",'average_int_sigma_perc',"vadm","vadm_sigma"]
     AllowedKeys=['specimen_frac','specimen_scat','specimen_gap_max','measurement_step_min', 'measurement_step_max', 'measurement_step_unit', 'specimen_polarity', 'specimen_nrm', 'specimen_direction_type', 'specimen_comp_nmb', 'specimen_mad', 'specimen_alpha95', 'specimen_n', 'specimen_int_sigma', 'specimen_int_sigma_perc', 'specimen_int_rel_sigma', 'specimen_int_rel_sigma_perc', 'specimen_int_mad', 'specimen_int_n', 'specimen_w', 'specimen_q', 'specimen_f', 'specimen_fvds', 'specimen_b_sigma', 'specimen_b_beta', 'specimen_g', 'specimen_dang', 'specimen_md', 'specimen_ptrm', 'specimen_drat', 'specimen_drats', 'specimen_rsc', 'specimen_viscosity_index', 'specimen_magn_moment', 'specimen_magn_volume', 'specimen_magn_mass', 'specimen_int_ptrm_n', 'specimen_delta', 'specimen_theta', 'specimen_gamma', 'sample_polarity', 'sample_nrm', 'sample_direction_type', 'sample_comp_nmb', 'sample_sigma', 'sample_alpha95', 'sample_n', 'sample_n_lines', 'sample_n_planes', 'sample_k', 'sample_r', 'sample_tilt_correction', 'sample_int_sigma', 'sample_int_sigma_perc', 'sample_int_rel_sigma', 'sample_int_rel_sigma_perc', 'sample_int_n', 'sample_magn_moment', 'sample_magn_volume', 'sample_magn_mass', 'site_polarity', 'site_nrm', 'site_direction_type', 'site_comp_nmb', 'site_sigma', 'site_alpha95', 'site_n', 'site_n_lines', 'site_n_planes', 'site_k', 'site_r', 'site_tilt_correction', 'site_int_sigma', 'site_int_sigma_perc', 'site_int_rel_sigma', 'site_int_rel_sigma_perc', 'site_int_n', 'site_magn_moment', 'site_magn_volume', 'site_magn_mass', 'average_age_min', 'average_age_max', 'average_age_sigma', 'average_age_unit', 'average_sigma', 'average_alpha95', 'average_n', 'average_nn', 'average_k', 'average_r', 'average_int_sigma', 'average_int_rel_sigma', 'average_int_rel_sigma_perc', 'average_int_n', 'average_int_nn', 'vgp_dp', 'vgp_dm', 'vgp_sigma', 'vgp_alpha95', 'vgp_n', 'vdm_sigma', 'vdm_n', 'vadm_sigma', 'vadm_n']
     if crit_file!="":
@@ -96,7 +96,7 @@ def main():
     if spec_file!="": 
         Specs,file_type=pmag.magic_read(spec_file)
         fsp=open(Specout,'w') # including specimen intensities if desired
-        SpecCols=["Site","Specimen","B (uT)","MAD","Beta","N","Q","DANG","f\_vds","DRATS","T (C)"]
+        SpecCols=["Site","Specimen","B (uT)","MAD","Beta","N","Q","DANG","f-vds","DRATS","T (C)"]
         SpecKeys=['er_site_name','er_specimen_name','specimen_int','specimen_int_mad','specimen_b_beta','specimen_int_n','specimen_q','specimen_dang','specimen_fvds','specimen_drats','trange']
         Xtra=['specimen_frac','specimen_scat','specimen_gap_max']
         if grade:
@@ -257,7 +257,9 @@ def main():
             spec['corrections']=corrections
             outstring=""
             for key in SpecKeys:
-              outstring=outstring+spec[key]+sep
+                if key in Micro: spec[key]='%7.1f'%(float(spec[key])*1e6)
+                if key in Zeta: spec[key]='%7.1f'%(float(spec[key])*1e-21)
+                outstring=outstring+spec[key]+sep
             fsp.write(outstring.strip(sep)+end+'\n')
     # 
     if latex: # write out the tail stuff
