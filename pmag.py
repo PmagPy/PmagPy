@@ -409,6 +409,8 @@ def get_Sb(data):
     return numpy.sqrt( Sb/float(N-1.) )
 def default_criteria(nocrit):
     Crits={}
+    critkeys=['magic_experiment_names', 'measurement_step_min', 'measurement_step_max', 'measurement_step_unit', 'specimen_polarity', 'specimen_nrm', 'specimen_direction_type', 'specimen_comp_nmb', 'specimen_mad', 'specimen_alpha95', 'specimen_n', 'specimen_int_sigma', 'specimen_int_sigma_perc', 'specimen_int_rel_sigma', 'specimen_int_rel_sigma_perc', 'specimen_int_mad', 'specimen_int_n', 'specimen_w', 'specimen_q', 'specimen_f', 'specimen_fvds', 'specimen_b_sigma', 'specimen_b_beta', 'specimen_g', 'specimen_dang', 'specimen_md', 'specimen_ptrm', 'specimen_drat', 'specimen_drats', 'specimen_rsc', 'specimen_viscosity_index', 'specimen_magn_moment', 'specimen_magn_volume', 'specimen_magn_mass', 'specimen_int_ptrm_n', 'specimen_delta', 'specimen_theta', 'specimen_gamma', 'specimen_frac','specimen_gmax','specimen_scat','sample_polarity', 'sample_nrm', 'sample_direction_type', 'sample_comp_nmb', 'sample_sigma', 'sample_alpha95', 'sample_n', 'sample_n_lines', 'sample_n_planes', 'sample_k', 'sample_r', 'sample_tilt_correction', 'sample_int_sigma', 'sample_int_sigma_perc', 'sample_int_rel_sigma', 'sample_int_rel_sigma_perc', 'sample_int_n', 'sample_magn_moment', 'sample_magn_volume', 'sample_magn_mass', 'site_polarity', 'site_nrm', 'site_direction_type', 'site_comp_nmb', 'site_sigma', 'site_alpha95', 'site_n', 'site_n_lines', 'site_n_planes', 'site_k', 'site_r', 'site_tilt_correction', 'site_int_sigma', 'site_int_sigma_perc', 'site_int_rel_sigma', 'site_int_rel_sigma_perc', 'site_int_n', 'site_magn_moment', 'site_magn_volume', 'site_magn_mass', 'average_age_min', 'average_age_max', 'average_age_sigma', 'average_age_unit', 'average_sigma', 'average_alpha95', 'average_n', 'average_nn', 'average_k', 'average_r', 'average_int_sigma', 'average_int_rel_sigma', 'average_int_rel_sigma_perc', 'average_int_n', 'average_int_nn', 'vgp_dp', 'vgp_dm', 'vgp_sigma', 'vgp_alpha95', 'vgp_n', 'vdm_sigma', 'vdm_n', 'vadm_sigma', 'vadm_n', 'criteria_description', 'er_citation_names']
+    for key in critkeys:Crits[key]='' # set up dictionary with all possible
     if nocrit==0: # use default criteria
 # 
 # set some sort of quasi-reasonable default criteria
@@ -418,7 +420,7 @@ def default_criteria(nocrit):
         Crits['er_citation_names']='This study'
         Crits['specimen_mad']='5'
         Crits['specimen_alpha95']='5'
-        Crits['specimen_n']='4'
+        Crits['specimen_int_n']='4'
         Crits['specimen_int_ptrm_n']='2'
         Crits['specimen_drats']='20'
         Crits['specimen_b_beta']='0.1'
@@ -427,8 +429,6 @@ def default_criteria(nocrit):
         Crits['specimen_q']='1.0'
         Crits['specimen_dang']='10'
         Crits['specimen_int_mad']='10'
-    #    Crits['measurement_step_min']='1000'
-    #    Crits['measurement_step_max']='0'
         Crits['sample_alpha95']='10'
         Crits['sample_int_n']='2'
         Crits['sample_int_sigma']='5e-6'
@@ -444,37 +444,35 @@ def default_criteria(nocrit):
         Crits['pmag_criteria_code']='ACCEPT'
         Crits['criteria_definition']='acceptance criteria for study'
         Crits['er_citation_names']='This study'
-        Crits['specimen_mad']='180'
-        Crits['specimen_alpha95']='180'
-        Crits['specimen_n']='0'
-        Crits['specimen_int_ptrm_n']='0'
-        Crits['specimen_drats']='180'
-        Crits['specimen_b_beta']='100'
-        Crits['specimen_md']='100'
-        Crits['specimen_fvds']='0'
-        Crits['specimen_q']='0'
-        Crits['specimen_dang']='180'
-        Crits['specimen_int_mad']='180'
-    #    Crits['measurement_step_min']='0'
-    #    Crits['measurement_step_max']='0'
-        Crits['sample_alpha95']='180'
-        Crits['sample_int_n']='0'
-        Crits['sample_int_sigma']='100'
-        Crits['sample_int_sigma_perc']='100'
-        Crits['site_int_n']='0'
-        Crits['site_int_sigma']='100'
-        Crits['site_int_sigma_perc']='1000'
-        Crits['site_n']='0'
-        Crits['site_n_lines']='0'
-        Crits['site_k']='0'
-        Crits['site_alpha95']='180'
+        Crits['specimen_mad']=''
+        Crits['specimen_alpha95']=''
+        Crits['specimen_n']=''
+        Crits['specimen_int_ptrm_n']=''
+        Crits['specimen_drats']=''
+        Crits['specimen_b_beta']=''
+        Crits['specimen_md']=''
+        Crits['specimen_fvds']=''
+        Crits['specimen_q']=''
+        Crits['specimen_dang']=''
+        Crits['specimen_int_mad']=''
+        Crits['sample_alpha95']=''
+        Crits['sample_int_n']=''
+        Crits['sample_int_sigma']=''
+        Crits['sample_int_sigma_perc']=''
+        Crits['site_int_n']=''
+        Crits['site_int_sigma']=''
+        Crits['site_int_sigma_perc']=''
+        Crits['site_n']=''
+        Crits['site_n_lines']=''
+        Crits['site_k']=''
+        Crits['site_alpha95']=''
     return [Crits]
 
 def grade(PmagRec,ACCEPT,type): 
     """
     Finds the 'grade' (pass/fail; A/F) of a record (specimen,sample,site) given the acceptance criteria
     """
-    GREATERTHAN=['specimen_q','site_k','site_n','site_n_lines','site_int_n','measurement_step_min','measurement_step_max','specimen_int_ptrm_n','specimen_fvds','specimen_frac','specimen_f','specimen_n','specimen_int_n','sample_int_n'] # these statistics must be exceede to pass, all others must be less than (except specimen_scat, which must be true)
+    GREATERTHAN=['specimen_q','site_k','site_n','site_n_lines','site_int_n','measurement_step_min','measurement_step_max','specimen_int_ptrm_n','specimen_fvds','specimen_frac','specimen_f','specimen_n','specimen_int_n','sample_int_n','average_age_min','average_k','average_r','specimen_magn_moment','specimen_magn_volumn','specimen_n','specimen_rsc','sample_n','sample_n_lines','sample_n_planes','sample_k','sample_r','site_magn_moment','site_magn_volumn','site_magn_mass','site_r'] # these statistics must be exceede to pass, all others must be less than (except specimen_scat, which must be true)
     ISTRUE=['specimen_scat']
     kill=[] # criteria that kill the record
     sigma_types=['sample_int_sigma','sample_int_sigma_perc','site_int_sigma','site_int_sigma_perc','average_int_sigma','average_int_sigma_perc']

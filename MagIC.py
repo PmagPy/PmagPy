@@ -5,6 +5,8 @@ import tkFileDialog, tkSimpleDialog, string, os,sys,tkMessageBox,shutil
 import pmag,string
 #
 #
+
+
 class make_entry(tkSimpleDialog.Dialog): # makes an entry table for basic data from global variable Result
     def body(self, master):
         self.list=Edict.keys()
@@ -49,15 +51,95 @@ def ask_check(parent,choices,title): # returns the values of the check box to ca
         parent.wait_window(m.top)
         return m.check_value
 
+class make_criteria:
+    global CritTypes,Crits
+    def __init__(self,master):
+        self.Crits=Crits
+        top=self.top=Toplevel(master)
+        row,column=0,0
+        Label(top,text='Fill in desired criteria').grid(row=row,column=3,sticky=W)
+        row,column=1,0
+        maxrow=row
+        self.out=[]
+        self.list=['Measurement', 'Result','ResultDirection','ResultIntensity', 'Specimen','SpecimenDirection','SpecimenIntensity','Sample','SampleDirection','SampleIntensity','Site','SiteDirection','SiteIntensity']
+        for type in self.list[0:4]:
+            for key in CritTypes[type]:
+                Label(top,text=key).grid(row=row,column=column,sticky=W)
+                self.ival=StringVar()
+                self.ival.set(self.Crits[key])
+                self.e=Entry(top,textvariable=self.ival)
+                self.out.append(self.e)
+                self.e.grid(row=row,column=column+1,sticky=W)
+                row+=1
+        column+=2
+        if row>maxrow:maxrow=row 
+        row=1
+        for type in self.list[4:7]:
+            for key in CritTypes[type]:
+                Label(top,text=key).grid(row=row,column=column,sticky=W)
+                self.ival=StringVar()
+                self.ival.set(self.Crits[key])
+                self.e=Entry(top,textvariable=self.ival)
+                self.out.append(self.e)
+                self.e.grid(row=row,column=column+1,sticky=W)
+                row+=1
+        column+=2
+        if row>maxrow:maxrow=row 
+        row=1
+        for type in self.list[7:10]:
+            for key in CritTypes[type]:
+                Label(top,text=key).grid(row=row,column=column,sticky=W)
+                self.ival=StringVar()
+                self.ival.set(self.Crits[key])
+                self.e=Entry(top,textvariable=self.ival)
+                self.out.append(self.e)
+                self.e.grid(row=row,column=column+1,sticky=W)
+                row+=1
+        column+=2
+        if row>maxrow:maxrow=row 
+        row=1
+        for type in self.list[10:]:
+            for key in CritTypes[type]:
+                Label(top,text=key).grid(row=row,column=column,sticky=W)
+                self.ival=StringVar()
+                self.ival.set(self.Crits[key])
+                self.e=Entry(top,textvariable=self.ival)
+                self.out.append(self.e)
+                self.e.grid(row=row,column=column+1,sticky=W)
+                row+=1
+        if row>maxrow:maxrow=row 
+        B_OK=Button(top,text="OK",command=self.ok).grid(row=maxrow,column=3,sticky=W)
+        
+    def setdefault(self):
+        self.Crits= pmag.default_criteria(0)[0]       
+    def setclear(self):
+        for key in self.Crits.keys():self.Crits[key]=''
+    def ok(self):
+        ind=0
+        for type in self.list:
+            for key in CritTypes[type]:
+                self.e=self.out[ind]
+                ind+=1
+                self.Crits[key]=self.e.get()
+        Crits=self.Crits
+        self.top.destroy()
+            
+def ask_criteria(parent):
+    global Crits
+    m=make_criteria(parent)
+    parent.wait_window(m.top)
+
 def custom():
+    global Crits
     cust=['Use default criteria', 'Change default criteria','Change existing criteria ','Use no selection criteria']
     option=ask_radio(root,cust,'Customize selection criteria?') # 
-    global Edict
     critout=opath+'/pmag_criteria.txt'
+    crit_data=pmag.default_criteria(1) # set to blank values
+    Crits=crit_data[0]
     if option==0: # use default
         crit_data=pmag.default_criteria(0)
-        PmagCrits,critkeys=pmag.fillkeys(crit_data)
-        pmag.magic_write(critout,PmagCrits,'pmag_criteria')
+        crit_data,critkeys=pmag.fillkeys(crit_data)
+        pmag.magic_write(critout,crit_data,'pmag_criteria')
         print "Default criteria saved in pmag_criteria.txt"
         return
     elif option==1: # change default
@@ -70,26 +152,15 @@ def custom():
             return
         print "Acceptance criteria read in from ", infile
     elif option==3: # no criteria
-        crit_data=pmag.default_criteria(1)
-        PmagCrits,critkeys=pmag.fillkeys(crit_data)
-        pmag.magic_write(critout,PmagCrits,'pmag_criteria')
+        pmag.magic_write(critout,crit_data,'pmag_criteria')
         print "Extremely loose criteria saved in pmag_criteria.txt"
         return
-    TmpCrits=[]
     for crit in crit_data:
-        if len(crit.keys())>0:
-            Edict={}
-            for key in crit.keys():
-                if crit[key]=='\n':crit[key]=""
-                if crit[key]!="":Edict[key]=crit[key]
-            c=make_entry(root) 
-            for key in Edict.keys():crit[key]=Edict[key]
-            crit['er_citation_names']="This study"
-            crit['criteria_definition']="Criteria for selection"
-            TmpCrits.append(crit)
-    PmagCrits,critkeys=pmag.fillkeys(TmpCrits)
+        for key in crit.keys():
+            Crits[key]=crit[key]
+    ask_criteria(root) 
     critout=opath+'/pmag_criteria.txt'
-    pmag.magic_write(critout,PmagCrits,'pmag_criteria')
+    pmag.magic_write(critout,[Crits],'pmag_criteria')
     print "New Criteria saved in pmag_criteria.txt"
 
 class make_agm: # makes an entry table for basic data for an AGM file
@@ -2457,7 +2528,7 @@ def sitemeans():
         
     
 class make_results(): # makes an entry table for results calculation
-    global Res_Types,RES,Age_Types,Crit_Types
+    global Res_Types,RES,Age_Types,Crit_Prefs
     def __init__(self, master):
         top=self.top=Toplevel(master)
         Label(top,text='Fill in preferences for results calculations: ').grid(row=0,columnspan=3)
@@ -2479,8 +2550,8 @@ class make_results(): # makes an entry table for results calculation
         row,column=2,0
         Label(top, text="Choose Selection Criteria Preference:").grid(row=row,column=column,sticky=W)
         self.criteria=IntVar()
-        for type in range(len(Crit_Types)):
-            rb=Radiobutton(top,variable=self.criteria,value=type,text=Crit_Types[type])
+        for type in range(len(Crit_Prefs)):
+            rb=Radiobutton(top,variable=self.criteria,value=type,text=Crit_Prefs[type])
             rb.grid(row=row,column=column,sticky=W)
             row+=1
         row+=1
@@ -2532,7 +2603,7 @@ class make_results(): # makes an entry table for results calculation
         self.b.grid(row=row+1,column=1)
     def ok(self):
         if self.criteria.get()!="":
-            RES['criteria']=Crit_Types[self.criteria.get()]
+            RES['criteria']=Crit_Prefs[self.criteria.get()]
         if self.min.get()!="":
             RES['age_min']=self.min.get()
         if self.max.get()!="":
@@ -3162,4 +3233,19 @@ Res_Types=["-aD: Average multiple specimen lines per sample, default is by site"
 CRD={'s':1,'g':0,'b':0}
 Age_Types=['Ga','Ka','Ma','Years AD (+/-)','Years BP','Years Cal AD (+/-)','Years Cal BP']
 Crit_Types=['Use default criteria','Use existing criteria','No Criteria']
+CritTypes={
+'Measurement': ['magic_experiment_names', 'measurement_step_min', 'measurement_step_max', 'measurement_step_unit'], 
+'SpecimenDirection':[ 'specimen_polarity', 'specimen_nrm', 'specimen_direction_type', 'specimen_comp_nmb', 'specimen_mad', 'specimen_alpha95', 'specimen_n'], 
+'SpecimenIntensity': ['specimen_int_sigma', 'specimen_int_sigma_perc', 'specimen_int_rel_sigma', 'specimen_int_rel_sigma_perc', 'specimen_int_mad', 'specimen_int_n', 'specimen_w', 'specimen_q', 'specimen_f', 'specimen_fvds', 'specimen_b_sigma', 'specimen_b_beta', 'specimen_g', 'specimen_dang', 'specimen_md', 'specimen_ptrm', 'specimen_drat', 'specimen_drats', 'specimen_rsc', 'specimen_viscosity_index', 'specimen_int_ptrm_n', 'specimen_delta', 'specimen_theta', 'specimen_gamma','specimen_frac','specimen_gmax','specimen_scat'],
+ 'Specimen':[ 'specimen_magn_moment', 'specimen_magn_volume', 'specimen_magn_mass'], 
+'SampleDirection': [ 'sample_polarity', 'sample_nrm', 'sample_direction_type', 'sample_comp_nmb', 'sample_sigma', 'sample_alpha95', 'sample_n', 'sample_n_lines', 'sample_n_planes', 'sample_k', 'sample_r', 'sample_tilt_correction'], 
+'SampleIntensity': ['sample_int_sigma', 'sample_int_sigma_perc', 'sample_int_rel_sigma', 'sample_int_rel_sigma_perc', 'sample_int_n'],
+'Sample': ['sample_magn_moment', 'sample_magn_volume', 'sample_magn_mass'], 
+'SiteDirection': [ 'site_polarity', 'site_nrm', 'site_direction_type', 'site_comp_nmb', 'site_sigma', 'site_alpha95', 'site_n', 'site_n_lines', 'site_n_planes', 'site_k', 'site_r', 'site_tilt_correction'], 
+'SiteIntensity': [ 'site_int_sigma', 'site_int_sigma_perc', 'site_int_rel_sigma', 'site_int_rel_sigma_perc', 'site_int_n'], 
+'Site': [ 'site_magn_moment', 'site_magn_volume', 'site_magn_mass'], 
+'Result': [ 'average_age_min', 'average_age_max', 'average_age_sigma', 'average_age_unit', 'average_sigma'], 
+'ResultDirection':['average_sigma','average_alpha95','average_n','average_nn','average_k','average_r','vgp_dp','vgp_dm', 'vgp_sigma', 'vgp_alpha95', 'vgp_n'], 
+'ResultIntensity':[ 'average_int_sigma', 'average_int_rel_sigma', 'average_int_rel_sigma_perc', 'average_int_n', 'average_int_nn', 'vdm_sigma', 'vdm_n', 'vadm_sigma', 'vadm_n']}
+Crit_Prefs=['Use default criteria','Use existing criteria','No Criteria']
 root.mainloop()

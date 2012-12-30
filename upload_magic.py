@@ -58,7 +58,7 @@ def main():
     file_names.append(dir_path+'/'+"magic_instruments.txt")
     # begin the upload process
     up=dir_path+"/upload.txt"
-    RmKeys=['citation_label','compilation','calculation_type','average_n_lines','average_n_planes','specimen_grade','site_vgp_lat','site_vgp_lon','direction_type','specimen_Z','magic_instrument_codes','cooling_rate_corr','cooling_rate_mcd','anisotropy_atrm_alt','anisotropy_apar_perc','anisotropy_F','anisotropy_F_crit']
+    RmKeys=['citation_label','compilation','calculation_type','average_n_lines','average_n_planes','specimen_grade','site_vgp_lat','site_vgp_lon','direction_type','specimen_Z','magic_instrument_codes','cooling_rate_corr','cooling_rate_mcd','anisotropy_atrm_alt','anisotropy_apar_perc','anisotropy_F','anisotropy_F_crit','specimen_scat','specimen_gmax','specimen_frac']
     print "Removing: ",RmKeys
     last=file_names[-1]
     methods,first_file=[],1
