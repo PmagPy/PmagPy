@@ -63,12 +63,12 @@ def Thellier_optimizer(WD, Data,Data_hierarchy,criteria_fixed_paremeters_file,op
                   Best_array_tmp.append(closest_value)
                   Best_interpretations_tmp[other_specimen]=closest_value                   
 
-              if std(Best_array_tmp)<best_array_std:
+              if std(Best_array_tmp,ddof=1)<best_array_std:
                   Best_array=Best_array_tmp
-                  best_array_std=std(Best_array)
+                  best_array_std=std(Best_array,ddof=1)
                   Best_interpretations=Best_interpretations_tmp
                   Best_interpretations_tmp={}
-      return Best_interpretations,mean(Best_array),std(Best_array)
+      return Best_interpretations,mean(Best_array),std(Best_array,ddof=1)
 
 
 
@@ -92,7 +92,7 @@ def Thellier_optimizer(WD, Data,Data_hierarchy,criteria_fixed_paremeters_file,op
                 if min(tmp_Intensities[sample])<B_tmp_min:
                     sample_to_remove=sample
                     B_tmp_min=min(tmp_Intensities[sample])
-            if std(B_tmp)<=acceptance_criteria["sample_int_sigma_uT"] or 100*(std(B_tmp)/mean(B_tmp))<=acceptance_criteria["sample_int_sigma_perc"]:
+            if std(B_tmp,ddof=1)<=acceptance_criteria["sample_int_sigma_uT"] or 100*(std(B_tmp,ddof=1)/mean(B_tmp))<=acceptance_criteria["sample_int_sigma_perc"]:
                 Acceptable_sample_min=mean(B_tmp)
                 break
             else:
@@ -120,7 +120,7 @@ def Thellier_optimizer(WD, Data,Data_hierarchy,criteria_fixed_paremeters_file,op
                 if max(tmp_Intensities[sample])>B_tmp_max:
                     sample_to_remove=sample
                     B_tmp_max=max(tmp_Intensities[sample])
-            if std(B_tmp)<acceptance_criteria["sample_int_sigma_uT"] or 100*(std(B_tmp)/mean(B_tmp))<acceptance_criteria["sample_int_sigma_perc"]:
+            if std(B_tmp,ddof=1)<acceptance_criteria["sample_int_sigma_uT"] or 100*(std(B_tmp,ddof=1)/mean(B_tmp))<acceptance_criteria["sample_int_sigma_perc"]:
                 Acceptable_sample_max=mean(B_tmp)
                 break
             else:
@@ -342,10 +342,10 @@ def Thellier_optimizer(WD, Data,Data_hierarchy,criteria_fixed_paremeters_file,op
         pars["measurement_step_max"]=float(tmax)
 
         if  tmin not in z_temperatures:
-          logfile.write(  "-E- ERROR: specimen %s temperature %f apears in Arai plot but not in Zijderveld plot\n"%(s,tmin))
+          logfile.write(  "-E- ERROR: specimen %s temperature %f appears in Arai plot but not in Zijderveld plot\n"%(s,tmin))
           continue
         if  tmax not in z_temperatures:
-          logfile.write(  "-E- ERROR: specimen %s temperature %f apears in Arai plot but not in Zijderveld plot\n"%(s,tmax))
+          logfile.write(  "-E- ERROR: specimen %s temperature %f appears in Arai plot but not in Zijderveld plot\n"%(s,tmax))
           continue
 
         zstart=z_temperatures.index(tmin)
@@ -393,11 +393,14 @@ def Thellier_optimizer(WD, Data,Data_hierarchy,criteria_fixed_paremeters_file,op
         pars["specimen_dec"] =  DIR_PCA[0]
         pars["specimen_inc"] =  DIR_PCA[1]
         pars["specimen_PCA_v1"] =  best_fit_vector 
+        pars["specimen_PCA_sigma_max"] =  sqrt(t1)
+        pars["specimen_PCA_sigma_int"] =  sqrt(t2)
+        pars["specimen_PCA_sigma_min"] =  sqrt(t3)
 
         # MAD Kirschvink (1980)
         pars["specimen_int_mad"]=MAD
         pars["specimen_dang"]=DANG
-
+                        
 
         #-------------------------------------------------
         # York regresssion (York, 1967) following Coe (1978)
@@ -543,22 +546,22 @@ def Thellier_optimizer(WD, Data,Data_hierarchy,criteria_fixed_paremeters_file,op
 
         # collect tail check data"
         x_tail_check_start_to_end,y_tail_check_start_to_end=[],[]
-        x_tail_check_for_SCAT,y_tail_check_for_SCAT=[],[]
+        #x_tail_check_for_SCAT,y_tail_check_for_SCAT=[],[]
 
         for k in range(len(Data[s]['tail_check_temperatures'])):
           if Data[s]['tail_check_temperatures'][k] in t_Arai:
               if Data[s]['tail_check_temperatures'][k]<=pars["measurement_step_max"] and Data[s]['tail_check_temperatures'][k] >=pars["measurement_step_min"]:
                    x_tail_check_start_to_end.append(Data[s]['x_tail_check'][k]) 
                    y_tail_check_start_to_end.append(Data[s]['y_tail_check'][k]) 
-          if Data[s]['tail_check_temperatures'][k] >= pars["measurement_step_min"] and Data[s]['tail_checks_starting_temperatures'][k] <= pars["measurement_step_max"] :
-                x_tail_check_for_SCAT.append(Data[s]['x_tail_check'][k])
-                y_tail_check_for_SCAT.append(Data[s]['y_tail_check'][k])
+          #if Data[s]['tail_check_temperatures'][k] >= pars["measurement_step_min"] and Data[s]['tail_checks_starting_temperatures'][k] <= pars["measurement_step_max"] :
+                #x_tail_check_for_SCAT.append(Data[s]['x_tail_check'][k])
+                #y_tail_check_for_SCAT.append(Data[s]['y_tail_check'][k])
 
                 
         x_tail_check_start_to_end=array(x_tail_check_start_to_end)
         y_tail_check_start_to_end=array(y_tail_check_start_to_end)
-        x_tail_check_for_SCAT=array(x_tail_check_for_SCAT)
-        y_tail_check_for_SCAT=array(y_tail_check_for_SCAT)
+        #x_tail_check_for_SCAT=array(x_tail_check_for_SCAT)
+        #y_tail_check_for_SCAT=array(y_tail_check_for_SCAT)
            
 
            
@@ -749,6 +752,7 @@ def Thellier_optimizer(WD, Data,Data_hierarchy,criteria_fixed_paremeters_file,op
                 Fail=True
             if Fail:
               continue
+            
             #-------------------------------------------------                     
             # Calculate the new 'beta box' parameter using beta
             # all datapoints, pTRM checks, and tail-checks, should be inside a "beta box"
@@ -770,16 +774,10 @@ def Thellier_optimizer(WD, Data,Data_hierarchy,criteria_fixed_paremeters_file,op
             x_Arai_segment= x_Arai[start:end+1]
             y_Arai_segment= y_Arai[start:end+1]
 
-            #x_ptrm_check_in_start_to_end,y_ptrm_check_in_start_to_end=[],[]
+            #-------------------------------------------------                     
+
             x_ptrm_check_for_SCAT,y_ptrm_check_for_SCAT=[],[]
             
-##            for k in range(len(Data[specimen]['ptrm_checks_temperatures'])):
-##              if Data[specimen]['ptrm_checks_temperatures'][k] in t_Arai:
-##                if Data[specimen]['ptrm_checks_temperatures'][k]<pars["measurement_step_max"]:
-##                  if Data[specimen]['ptrm_checks_temperatures'][k]>=pars["measurement_step_min"]:                    
-##                    x_ptrm_check_in_start_to_end.append(Data[specimen]['x_ptrm_check'][k])
-##                    y_ptrm_check_in_start_to_end.append(Data[specimen]['y_ptrm_check'][k])
-
             for k in range(len(Data[specimen]['ptrm_checks_temperatures'])):
 
               if Data[specimen]['ptrm_checks_temperatures'][k] >=   pars["measurement_step_min"] and Data[specimen]['ptrm_checks_starting_temperatures'][k] <= pars["measurement_step_max"] :
@@ -787,8 +785,21 @@ def Thellier_optimizer(WD, Data,Data_hierarchy,criteria_fixed_paremeters_file,op
                     y_ptrm_check_for_SCAT.append(Data[specimen]['y_ptrm_check'][k])
             x_ptrm_check_for_SCAT=array(x_ptrm_check_for_SCAT)
             y_ptrm_check_for_SCAT=array(y_ptrm_check_for_SCAT)
-##            x_ptrm_check_in_start_to_end=array(x_ptrm_check_in_start_to_end)
-##            y_ptrm_check_in_start_to_end=array(y_ptrm_check_in_start_to_end)
+
+            #-------------------------------------------------                     
+
+            x_tail_check_for_SCAT,y_tail_check_for_SCAT=[],[]
+
+            for k in range(len(Data[specimen]['tail_check_temperatures'])):
+
+              if Data[specimen]['tail_check_temperatures'][k] >= pars["measurement_step_min"] and Data[specimen]['tail_checks_starting_temperatures'][k] <= pars["measurement_step_max"] :
+                    x_tail_check_for_SCAT.append(Data[specimen]['x_tail_check'][k])
+                    y_tail_check_for_SCAT.append(Data[specimen]['y_tail_check'][k])     
+            x_tail_check_for_SCAT=array(x_tail_check_for_SCAT)
+            y_tail_check_for_SCAT=array(y_tail_check_for_SCAT)
+
+
+
             #-----------------------
 
             b=pars['specimen_b']
@@ -875,6 +886,57 @@ def Thellier_optimizer(WD, Data,Data_hierarchy,criteria_fixed_paremeters_file,op
                 continue
 
 
+##            #-------------------------------------------------                     
+##            # Calculate the new 'MAD box' parameter
+##            # all datapoints should be inside teh M"AD box"
+##            # defined by the threshold value of MAD
+##            # For definitionsee Shaar and Tauxe (2012)
+##            #-------------------------------------------------                     
+##
+##            accept_new_parameters['specimen_mad_scat']="True"
+##            pars["specimen_mad_scat"]="Pass"
+##            if ('specimen_mad_scat' in accept_new_parameters.keys() and 'specimen_int_mad' in accept_new_parameters.keys()) :
+##                if accept_new_parameters['specimen_mad_scat']==True or accept_new_parameters['specimen_mad_scat'] in [1,"True","TRUE",'1']:
+##                  
+##                    zstart=t_Arai.index(pars["measurement_step_min"])
+##                    zend=t_Arai.index(pars["measurement_step_max"])
+##                    zdata_segment=Data[specimen]['zdata'][zstart:zend+1]
+##
+##                    # center of mass 
+##                    CM_x=mean(zdata_segment[:,0])
+##                    CM_y=mean(zdata_segment[:,1])
+##                    CM_z=mean(zdata_segment[:,2])
+##                    CM=array([CM_x,CM_y,CM_z])
+##
+##                    # threshold value for the distance of the point from a line:
+##                    # this is depends of MAD
+##                    # if MAD= tan-1 [ sigma_perpendicular / sigma_max ]
+##                    # then:
+##                    # sigma_perpendicular_threshold=tan(MAD_threshold)*sigma_max
+##                    sigma_perpendicular_threshold=abs(tan(radians(accept_new_parameters['specimen_int_mad'])) *  pars["specimen_PCA_sigma_max"] )
+##                    
+##                    for P in zdata_segment:
+##                        P_CM=P-CM
+##                        best_fit_vector_unit=pars["specimen_PCA_v1"]/sqrt(sum(pars["specimen_PCA_v1"]**2))
+##                        CM_P_projection_on_PCA_line=dot(best_fit_vector_unit,P_CM)
+##
+##                        # Pythagoras
+##                        P_CM_length=sqrt(sum((P_CM)**2))
+##                        Point_2_PCA_Distance=sqrt((P_CM_length**2-CM_P_projection_on_PCA_line**2))
+##
+##                        #print "sigma_perpendicular_threshold*2",sigma_perpendicular_threshold*2
+##                        if Point_2_PCA_Distance > sigma_perpendicular_threshold*2:
+##                            pars["specimen_mad_scat"]="Fail"
+##                            index=""
+##                            for i in range(len(Data[specimen]['zdata'])):
+##                            
+##                                if P[0] == Data[specimen]['zdata'][i][0] and P[1] == Data[specimen]['zdata'][i][1] and P[2] == Data[specimen]['zdata'][i][2]:
+##                                    index =index+",%i"%i
+##                                    break
+##                            #print "specimen  %s fail on mad_scat,%i"%(s,index)
+##            if pars["specimen_mad_scat"]=="Fail":  
+##                thellier_optimizer_master_file.write( "key=%s - specimen %s, tmin,tmax =(%.0f,%.0f) fail on mad scat point no. %s\n"%(Key,specimen,float(pars["measurement_step_min"])-273,float(pars["measurement_step_max"])-273,index))
+
               
             #------------
             if sample not in  Optimizer_data[Key].keys():
@@ -911,8 +973,8 @@ def Thellier_optimizer(WD, Data,Data_hierarchy,criteria_fixed_paremeters_file,op
                     if specimen_b==specimen: continue
                     B_min_array.append(min(Optimizer_data[Key][sample][specimen_b]))
                     B_max_array.append(max(Optimizer_data[Key][sample][specimen_b]))
-                if max(Optimizer_data[Key][sample][specimen]) < mean(B_min_array) - 2*std(B_min_array) \
-                   or min(Optimizer_data[Key][sample][specimen]) > mean(B_max_array) + 2*std(B_max_array):
+                if max(Optimizer_data[Key][sample][specimen]) < mean(B_min_array) - 2*std(B_min_array,ddof=1) \
+                   or min(Optimizer_data[Key][sample][specimen]) > mean(B_max_array) + 2*std(B_max_array,ddof=1):
                     if specimen not in exclude_specimens_list:
                         exclude_specimens_list.append(specimen)
                         
@@ -993,10 +1055,10 @@ def Thellier_optimizer(WD, Data,Data_hierarchy,criteria_fixed_paremeters_file,op
         site_B=array(site_B)
         if len ( site_B)>1:
           test_group_n+=1
-          if std(site_B)>max_group_int_sigma_uT:
-            max_group_int_sigma_uT=std(site_B)
-          if 100*(std(site_B)/mean(site_B)) > max_group_int_sigma_perc:
-            max_group_int_sigma_perc=100*(std(site_B)/mean(site_B))
+          if std(site_B,ddof=1)>max_group_int_sigma_uT:
+            max_group_int_sigma_uT=std(site_B,ddof=1)
+          if 100*(std(site_B,ddof=1)/mean(site_B)) > max_group_int_sigma_perc:
+            max_group_int_sigma_perc=100*(std(site_B,ddof=1)/mean(site_B))
 
 
         # Print to optimizer results file
@@ -1008,8 +1070,8 @@ def Thellier_optimizer(WD, Data,Data_hierarchy,criteria_fixed_paremeters_file,op
           String=String+"%.1f"%(B)+":"
         String=String[:-1]+'\t'
         String=String+"%.2f"%(mean(site_B))+"\t"  
-        String=String+"%.2f"%(std(site_B))+"\t"  
-        String=String+"%.2f"%(100*(std(site_B)/mean(site_B)))+"\t"  
+        String=String+"%.2f"%(std(site_B,ddof=1))+"\t"  
+        String=String+"%.2f"%(100*(std(site_B,ddof=1)/mean(site_B)))+"\t"  
         #Optimizer_results_file=open("./optimizer/optimzer_%s_results.txt"%sample_mean_method,'a')
         Optimizer_results_file.write(String[:-1]+"\n")
         #Optimizer_results_file.close()
@@ -1057,7 +1119,7 @@ def Thellier_optimizer(WD, Data,Data_hierarchy,criteria_fixed_paremeters_file,op
 
     x,y = meshgrid(frac_range,beta_range)
     cmap = matplotlib.cm.get_cmap('jet')
-    figure(Fig_counter,(8,8))
+    figure(Fig_counter,(11,8))
     clf()
     delta_f=(frac_range[1]-frac_range[0])/2
     delta_s=(beta_range[1]-beta_range[0])/2

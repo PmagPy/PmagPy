@@ -581,6 +581,9 @@ class Arai_GUI(wx.Frame):
               step="I"
           if "LT-PTRM-I" in rec['magic_method_codes']:
               step="P"
+          if "LT-PTRM-MD" in rec['magic_method_codes']:
+              step="T"
+
           TEXT=TEXT+"   %s\t%3.0f\t%5.1f\t%5.1f\t%.2e\n"%(step,float(rec['treatment_temp'])-273.,float(rec['measurement_dec']),float(rec['measurement_inc']),float(rec['measurement_magn_moment']))
 
       self.logger.AppendText( TEXT)
@@ -709,7 +712,7 @@ class Arai_GUI(wx.Frame):
 
 
         menu_Optimizer = wx.Menu()
-        m_run_optimizer = menu_Optimizer.Append(-1, "&Run Thellier optimizer", "")
+        m_run_optimizer = menu_Optimizer.Append(-1, "&Run Consistency test", "")
         self.Bind(wx.EVT_MENU, self.on_menu_run_optimizer, m_run_optimizer)
 
         menu_Plot= wx.Menu()
@@ -724,7 +727,7 @@ class Arai_GUI(wx.Frame):
         self.menubar.Append(menu_anistropy, "&Anistropy")
         self.menubar.Append(menu_Analysis, "&Analysis")
         self.menubar.Append(menu_Auto_Interpreter, "&Auto Interpreter")
-        self.menubar.Append(menu_Optimizer, "&Optimizer")
+        self.menubar.Append(menu_Optimizer, "&Consistency Test")
         self.menubar.Append(menu_Plot, "&Plot")
         
         #self.menubar.Append(menu_Tools, "&Tools")        
@@ -889,7 +892,7 @@ class Arai_GUI(wx.Frame):
             
         N=len(B)
         B_mean=mean(B)
-        B_std=std(B)
+        B_std=std(B,ddof=1)
         B_std_perc=100*(B_std/B_mean)
         
         self.sample_int_n_window.SetValue("%i"%(N))
@@ -964,12 +967,18 @@ class Arai_GUI(wx.Frame):
 
                 bSizer2 = wx.StaticBoxSizer( wx.StaticBox( pnl1, wx.ID_ANY, "Arai plot" ), wx.HORIZONTAL )
                 self.show_Arai_temperatures=wx.CheckBox(pnl1, -1, '', (50, 50))        
+                self.show_Arai_temperatures_steps=FS.FloatSpin(pnl1, -1, min_val=1, max_val=9,increment=1, value=1, extrastyle=FS.FS_LEFT,size=(50,20))
+                self.show_Arai_temperatures_steps.SetFormat("%f")
+                self.show_Arai_temperatures_steps.SetDigits(0)
+
                 self.show_Arai_pTRM_arrows=wx.CheckBox(pnl1, -1, '', (50, 50))        
                                              
-                arai_window = wx.GridSizer(2, 2, 12, 12)
+                arai_window = wx.GridSizer(2, 3, 12, 12)
                 arai_window.AddMany( [(wx.StaticText(pnl1,label="show temperatures",style=wx.TE_CENTER), wx.EXPAND),
+                    (wx.StaticText(pnl1,label="show temperatures but skip steps",style=wx.TE_CENTER), wx.EXPAND),
                     (wx.StaticText(pnl1,label="show pTRM-checks arrows",style=wx.TE_CENTER), wx.EXPAND),                  
                     (self.show_Arai_temperatures, wx.EXPAND),
+                    (self.show_Arai_temperatures_steps, wx.EXPAND),                                      
                     (self.show_Arai_pTRM_arrows, wx.EXPAND)])                 
                 bSizer2.Add( arai_window, 0, wx.ALIGN_LEFT|wx.ALL, 5 )
 
@@ -977,10 +986,15 @@ class Arai_GUI(wx.Frame):
 
                 bSizer3 = wx.StaticBoxSizer( wx.StaticBox( pnl1, wx.ID_ANY, "Zijderveld plot" ), wx.HORIZONTAL )
                 self.show_Zij_temperatures=wx.CheckBox(pnl1, -1, '', (50, 50))        
+                self.show_Zij_temperatures_steps=FS.FloatSpin(pnl1, -1, min_val=1, max_val=9,increment=1, value=1, extrastyle=FS.FS_LEFT,size=(50,20))
+                self.show_Zij_temperatures_steps.SetFormat("%f")
+                self.show_Zij_temperatures_steps.SetDigits(0)
                                              
-                zij_window = wx.GridSizer(1, 2, 12, 12)
+                zij_window = wx.GridSizer(2, 2, 12, 12)
                 zij_window.AddMany( [(wx.StaticText(pnl1,label="show temperatures",style=wx.TE_CENTER), wx.EXPAND),
-                    (self.show_Zij_temperatures, wx.EXPAND)])                 
+                    (wx.StaticText(pnl1,label="show temperatures but skip stpes",style=wx.TE_CENTER), wx.EXPAND),
+                    (self.show_Zij_temperatures, wx.EXPAND),               
+                    (self.show_Zij_temperatures_steps, wx.EXPAND)])                 
                 bSizer3.Add( zij_window, 0, wx.ALIGN_LEFT|wx.ALL, 5 )
 
                 #-----------box4        
@@ -1045,6 +1059,11 @@ class Arai_GUI(wx.Frame):
                     self.show_Arai_temperatures.SetValue(self.preferences["show_Arai_temperatures"])
                 except:
                     self.show_Arai_temperatures.SetValue(True)
+                try:
+                    self.show_Arai_temperatures_steps.SetValue(self.preferences["show_Arai_temperatures_steps"])
+                except:
+                    self.show_Arai_temperatures_steps.SetValue(1.)
+
                 try: 
                     self.show_Arai_pTRM_arrows.SetValue(self.preferences["show_Arai_pTRM_arrows"])
                 except:
@@ -1053,6 +1072,10 @@ class Arai_GUI(wx.Frame):
                     self.show_Zij_temperatures.SetValue(self.preferences["show_Zij_temperatures"])
                 except:
                     self.show_Zij_temperatures.SetValue(True)
+                try:  
+                    self.show_Zij_temperatures_steps.SetValue(self.preferences["show_Zij_temperatures_steps"])
+                except:
+                    self.show_Zij_temperatures_steps.SetValue(1.)
                 try:
                     self.show_eqarea_temperatures.SetValue(self.preferences["show_eqarea_temperatures"])
                 except:
@@ -1076,8 +1099,10 @@ class Arai_GUI(wx.Frame):
             except:
                  self.preferences['gui_resolution']=1.
             self.preferences['show_Arai_temperatures']=dia.show_Arai_temperatures.GetValue()
+            self.preferences['show_Arai_temperatures_steps']=dia.show_Arai_temperatures_steps.GetValue()
             self.preferences['show_Arai_pTRM_arrows']=dia.show_Arai_pTRM_arrows.GetValue()
             self.preferences['show_Zij_temperatures']=dia.show_Zij_temperatures.GetValue()
+            self.preferences['show_Zij_temperatures_steps']=dia.show_Zij_temperatures_steps.GetValue()
             self.preferences['show_eqarea_temperatures']=dia.show_eqarea_temperatures.GetValue()
             self.preferences['show_eqarea_pTRMs']=dia.show_eqarea_pTRMs.GetValue()
             self.preferences['show_NLT_plot']=dia.show_NLT_plot.GetValue()
@@ -1100,7 +1125,7 @@ class Arai_GUI(wx.Frame):
 
                 fout.write("preferences={}\n")
                 for key in  self.preferences.keys():
-                    if key in ['gui_resolution']:
+                    if key in ['gui_resolution','show_Zij_temperatures_steps','show_Arai_temperatures_steps']:
                         String="preferences['%s']=%f\n"%(key,self.preferences[key])
                     else:
                         String="preferences['%s']=%s\n"%(key,self.preferences[key])
@@ -1126,6 +1151,15 @@ class Arai_GUI(wx.Frame):
     def get_preferences(self):
         #default
         preferences={}
+        preferences['gui_resolution']=1.
+        preferences['show_Arai_temperatures']=True
+        preferences['show_Arai_temperatures_steps']=1.            
+        preferences['show_Arai_pTRM_arrows']=True
+        preferences['show_Zij_temperatures']=False
+        preferences['show_Zij_temperatures_steps']=1.
+        preferences['show_eqarea_temperatures']=False
+        preferences['show_eqarea_pTRMs']=True
+        preferences['show_NLT_plot']=True
 
         #try to read preferences file:
         try:
@@ -1133,14 +1167,16 @@ class Arai_GUI(wx.Frame):
             self.GUI_log.write( "-I- thellier_gui.preferences imported\n")
             preferences= thellier_gui_preferences.preferences
         except:
-            self.GUI_log.write( " -I- dont find thellier_gui_preferences file. Use default \n")
-            preferences['gui_resolution']=1.
-            preferences['show_Arai_temperatures']=True
-            preferences['show_Arai_pTRM_arrows']=False
-            preferences['show_Zij_temperatures']=True
-            preferences['show_eqarea_temperatures']=False
-            preferences['show_eqarea_pTRMs']=False
-            preferences['show_NLT_plot']=True
+            self.GUI_log.write( " -I- cant find thellier_gui_preferences file, using defualt default \n")
+##            preferences['gui_resolution']=1.
+##            preferences['show_Arai_temperatures']=True
+##            preferences['show_Arai_temperatures_steps']=1.            
+##            preferences['show_Arai_pTRM_arrows']=True
+##            preferences['show_Zij_temperatures']=False
+##            preferences['show_Zij_temperatures_steps']=1.
+##            preferences['show_eqarea_temperatures']=False
+##            preferences['show_eqarea_pTRMs']=True
+##            preferences['show_NLT_plot']=True
         return(preferences)
         
 
@@ -1479,7 +1515,7 @@ class Arai_GUI(wx.Frame):
         """
                             
 
-        dia = Criteria_Dialog(None, self.accept_new_parameters,title='Set Accpetance Criteria')
+        dia = Criteria_Dialog(None, self.accept_new_parameters,title='Set Acceptance Criteria')
         dia.Center()
         result = dia.ShowModal()
 
@@ -1855,7 +1891,7 @@ class Arai_GUI(wx.Frame):
                 sample_Bs.append(self.Data_samples[sample][spec])
             sample_int_n=len(sample_Bs)
             sample_int_uT=mean(sample_Bs)
-            sample_int_sigma_uT=std(sample_Bs)
+            sample_int_sigma_uT=std(sample_Bs,ddof=1)
             sample_int_sigma_perc=100*(sample_int_sigma_uT/sample_int_uT)
             
             String="%s\t%i\t%.1f\t%.1f\t%.1f\n"%(sample,sample_int_n,sample_int_uT,sample_int_sigma_uT,sample_int_sigma_perc)
@@ -2417,24 +2453,24 @@ class Arai_GUI(wx.Frame):
 
                 aniso_logfile.write( "-I- specimen %s passed alteration check\n"%specimen)
 
-##                # Check for maximum difference in anti parallel directions.
-##                # if the difference between the two measurements is more than maximum_diff
-##                # The specimen is rejected
-##                
-##                # i.e. +x versus -x, +y versus -y, etc.s
-##
-##                for i in range(3):
-##                    M_1=sqrt(sum(array(M[i])**2))
-##                    M_2=sqrt(sum(array(M[i+3])**2))
-##                    
-##                    diff=abs(M_1-M_2)
-##                    diff_ratio=diff/max(M_1,M_2)
-##                    diff_ratio_perc=100*diff_ratio
-##                    
-##                    if diff_ratio_perc>antiparallel_diff_max_perc:            
-##                        aniso_logfile.write( "-E- ERROR: specimen %s Fail antiparallel diff check ,%.1f%%\n"%(specimen,diff_ratio_perc))
-##                        key=['x','y','z']
-##                        Reject_specimen=True
+                # Check for maximum difference in anti parallel directions.
+                # if the difference between the two measurements is more than maximum_diff
+                # The specimen is rejected
+                
+                # i.e. +x versus -x, +y versus -y, etc.s
+
+                for i in range(3):
+                    M_1=sqrt(sum(array(M[i])**2))
+                    M_2=sqrt(sum(array(M[i+3])**2))
+                    
+                    diff=abs(M_1-M_2)
+                    diff_ratio=diff/max(M_1,M_2)
+                    diff_ratio_perc=100*diff_ratio
+                    
+                    if diff_ratio_perc>antiparallel_diff_max_perc:            
+                        aniso_logfile.write( "-E- ERROR: specimen %s Fail antiparallel diff check ,%.1f%%\n"%(specimen,diff_ratio_perc))
+                        key=['x','y','z']
+                        Reject_specimen=True
 
                 if Reject_specimen:
                     continue                                        
@@ -2658,12 +2694,12 @@ class Arai_GUI(wx.Frame):
                         Best_array_tmp.append(closest_value)
                         Best_interpretations_tmp[other_specimen]=closest_value                   
 
-                    if std(Best_array_tmp)<best_array_std:
+                    if std(Best_array_tmp,ddof=1)<best_array_std:
                         Best_array=Best_array_tmp
-                        best_array_std=std(Best_array)
+                        best_array_std=std(Best_array,ddof=1)
                         Best_interpretations=Best_interpretations_tmp
                         Best_interpretations_tmp={}
-            return Best_interpretations,mean(Best_array),std(Best_array)
+            return Best_interpretations,mean(Best_array),std(Best_array,ddof=1)
             
 
         def find_sample_min_max_interpretation (Intensities,acceptance_criteria):
@@ -2688,7 +2724,7 @@ class Arai_GUI(wx.Frame):
                   if min(tmp_Intensities[specimen])<B_tmp_min:
                       specimen_to_remove=specimen
                       B_tmp_min=min(tmp_Intensities[specimen])
-              if std(B_tmp)<=acceptance_criteria["sample_int_sigma_uT"] or 100*(std(B_tmp)/mean(B_tmp))<=acceptance_criteria["sample_int_sigma_perc"]:
+              if std(B_tmp,ddof=1)<=acceptance_criteria["sample_int_sigma_uT"] or 100*(std(B_tmp,ddof=1)/mean(B_tmp))<=acceptance_criteria["sample_int_sigma_perc"]:
                   Acceptable_sample_min=mean(B_tmp)
                   #print "min value,std,",mean(B_tmp),std(B_tmp),100*(std(B_tmp)/mean(B_tmp))
                   break
@@ -2712,7 +2748,7 @@ class Arai_GUI(wx.Frame):
                   if max(tmp_Intensities[specimen])>B_tmp_max:
                       specimen_to_remove=specimen
                       B_tmp_max=max(tmp_Intensities[specimen])
-              if std(B_tmp)<=acceptance_criteria["sample_int_sigma_uT"] or 100*(std(B_tmp)/mean(B_tmp))<=acceptance_criteria["sample_int_sigma_perc"]:
+              if std(B_tmp,ddof=1)<=acceptance_criteria["sample_int_sigma_uT"] or 100*(std(B_tmp,ddof=1)/mean(B_tmp))<=acceptance_criteria["sample_int_sigma_perc"]:
                   Acceptable_sample_max=mean(B_tmp)
                   #print "max value,std,",mean(B_tmp),std(B_tmp),100*(std(B_tmp)/mean(B_tmp))
 
@@ -2786,6 +2822,30 @@ class Arai_GUI(wx.Frame):
         Fout_specimens_bounds.write("--------------------------------\n")
         Fout_specimens_bounds.write("er_sample_name\ter_specimen_name\tspecimen_int_corr_anisotropy\tAnisotropy_code\tspecimen_int_corr_nlt\tspecimen_lab_field_dc_uT\tspecimen_int_min_uT\tspecimen_int_max_uT\tWARNING\n")
 
+
+        criteria_string="Selection criteria:\n"
+        for key in self.accept_new_parameters.keys():
+            if "sample" in key:
+                criteria_string=criteria_string+key+"\t"
+        for key in accept_specimen_keys:
+            if "specimen" in key:
+                criteria_string=criteria_string+key+"\t"
+        criteria_string=criteria_string[:-1]+"\n"
+        for key in self.accept_new_parameters.keys():
+            if "sample" in key:
+                try:
+                    criteria_string=criteria_string+"%.2f"%self.accept_new_parameters[key]+"\t"
+                except:
+                    criteria_string=criteria_string+"%s"%self.accept_new_parameters[key]+"\t"                
+        for key in accept_specimen_keys:
+            if "specimen" in key:
+                try:
+                    criteria_string=criteria_string+"%.2f"%self.accept_new_parameters[key]+"\t"
+                except:
+                    criteria_string=criteria_string+"%s"%self.accept_new_parameters[key]+"\t"
+        criteria_string=criteria_string[:-1]+"\n"
+        criteria_string=criteria_string+"---------------------------------\n"
+
         # STDEV-OPT output files
         if self.accept_new_parameters['sample_int_stdev_opt']:
             Fout_STDEV_OPT_redo=open(self.WD+"/thellier_interpreter/thellier_interpreter_STDEV-OPT_redo",'w')
@@ -2808,46 +2868,49 @@ class Arai_GUI(wx.Frame):
             #        String=String+"%s\t"%self.accept_new_parameters[key]                
             #Fout_STDEV_OPT_samples.write(String[:-1]+"\n")
 
-            String="Selection criteria:\n"
-            for key in self.accept_new_parameters.keys():
-                if "sample" in key:
-                    String=String+key+"\t"
-            for key in accept_specimen_keys:
-                if "specimen" in key:
-                    String=String+key+"\t"
-                    
-            String=String[:-1]+"\n"
-            
-            for key in self.accept_new_parameters.keys():
-                if "sample" in key:
-                    try:
-                        String=String+"%.2f"%self.accept_new_parameters[key]+"\t"
-                    except:
-                        String=String+"%s"%self.accept_new_parameters[key]+"\t"                
-            for key in accept_specimen_keys:
-                if "specimen" in key:
-                    try:
-                        String=String+"%.2f"%self.accept_new_parameters[key]+"\t"
-                    except:
-                        String=String+"%s"%self.accept_new_parameters[key]+"\t"
-            String=String[:-1]+"\n"
-            Fout_STDEV_OPT_samples.write(String)
-            Fout_STDEV_OPT_samples.write("---------------------------------\n")
-
+##            String="Selection criteria:\n"
+##            for key in self.accept_new_parameters.keys():
+##                if "sample" in key:
+##                    String=String+key+"\t"
+##            for key in accept_specimen_keys:
+##                if "specimen" in key:
+##                    String=String+key+"\t"
+##                    
+##            String=String[:-1]+"\n"
+##            
+##            for key in self.accept_new_parameters.keys():
+##                if "sample" in key:
+##                    try:
+##                        String=String+"%.2f"%self.accept_new_parameters[key]+"\t"
+##                    except:
+##                        String=String+"%s"%self.accept_new_parameters[key]+"\t"                
+##            for key in accept_specimen_keys:
+##                if "specimen" in key:
+##                    try:
+##                        String=String+"%.2f"%self.accept_new_parameters[key]+"\t"
+##                    except:
+##                        String=String+"%s"%self.accept_new_parameters[key]+"\t"
+##            String=String[:-1]+"\n"
+##            Fout_STDEV_OPT_samples.write(String)
+##            Fout_STDEV_OPT_samples.write("---------------------------------\n")
+            Fout_STDEV_OPT_samples.write(criteria_string)
             Fout_STDEV_OPT_samples.write("er_sample_name\tsample_int_n\tsample_int_uT\tsample_int_sigma_uT\tsample_int_sigma_perc\tsample_int_interval_uT\tsample_int_interval_perc\tWarning\n")
         # simple bootstrap output files
-           
+        
+
+                
+ 
         if self.accept_new_parameters['sample_int_bs']:
            Fout_BS_samples=open(self.WD+"/thellier_interpreter/thellier_interpreter_BS_samples.txt",'w')
-           Fout_BS_samples.write(String[:-1]+"\n")
-           Fout_BS_samples.write("---------------------------------\n")
+           Fout_BS_samples.write(criteria_string)
+           #Fout_BS_samples.write("---------------------------------\n")
            Fout_BS_samples.write("er_sample_name\tsample_int_n\tsample_int_uT\tsample_int_68_low\tsample_int_68_high\tsample_int_95_low\tsample_int_95_high\tsample_int_sigma_uT\tsample_int_sigma_perc\tWARNING\n")
         # parameteric bootstrap output files
 
         if self.accept_new_parameters['sample_int_bs_par']:
            Fout_BS_PAR_samples=open(self.WD+"/thellier_interpreter/thellier_interpreter_BS-PAR_samples.txt",'w')
-           Fout_BS_PAR_samples.write(String[:-1]+"\n") 
-           Fout_BS_PAR_samples.write("---------------------------------\n")
+           Fout_BS_PAR_samples.write(criteria_string) 
+           #Fout_BS_PAR_samples.write("---------------------------------\n")
            Fout_BS_PAR_samples.write("er_sample_name\tsample_int_n\tsample_int_uT\tsample_int_68_low\tsample_int_68_high\tsample_int_95_low\tsample_int_95_high\tsample_int_sigma_uT\tsample_int_sigma_perc\tWARNING\n")
            
         thellier_interpreter_log.write("-I- using paleointenisty statistics:\n")
@@ -3081,7 +3144,8 @@ class Arai_GUI(wx.Frame):
             # check for outlier specimen
             exclude_specimen=""
             exclude_specimens_list=[]
-            if len(Grade_A_samples[sample].keys())>=float(self.accept_new_parameters['sample_int_n_outlier_check']):            
+            if len(Grade_A_samples[sample].keys())>=float(self.accept_new_parameters['sample_int_n_outlier_check']):
+                thellier_interpreter_log.write( "-I- check outlier for sample %s \n"%sample)
                 all_specimens=Grade_A_samples[sample].keys()
                 for specimen in all_specimens:
                     B_min_array,B_max_array=[],[]
@@ -3089,10 +3153,10 @@ class Arai_GUI(wx.Frame):
                         if specimen_b==specimen: continue
                         B_min_array.append(min(Grade_A_samples[sample][specimen_b]))
                         B_max_array.append(max(Grade_A_samples[sample][specimen_b]))
-                    if max(Grade_A_samples[sample][specimen]) < (mean(B_min_array) - 2*std(B_min_array)) and 2*std(B_min_array) >5.:
+                    if max(Grade_A_samples[sample][specimen]) < (mean(B_min_array) - 2*std(B_min_array,ddof=1)):# and 2*std(B_min_array,ddof=1) >3.:
                         if specimen not in exclude_specimens_list:
                             exclude_specimens_list.append(specimen)
-                    if min(Grade_A_samples[sample][specimen]) > (mean(B_max_array) + 2*std(B_max_array)) and 2*std(B_max_array) >5 :
+                    if min(Grade_A_samples[sample][specimen]) > (mean(B_max_array) + 2*std(B_max_array,ddof=1)):# and 2*std(B_max_array,ddof=1) >3 :
 ##                           print "Ron, check"
 ##                           print "excluding specimen",specimen
 ##                           print "min value",min(Grade_A_samples[sample][specimen])
@@ -3102,7 +3166,7 @@ class Arai_GUI(wx.Frame):
                             exclude_specimens_list.append(specimen)
                          
                 if len(exclude_specimens_list)>1:
-                    #thellier_interpreter_log.write( "-I- checking now if any speimens to exlude due to B_max<average-2*sigma or B_min > average+2*sigma sample %s\n" %s)
+                    thellier_interpreter_log.write( "-I- specimen %s outlier check: more than one specimen can be outlier. first ones are : %s,%s... \n" %(sample,exclude_specimens_list[0],exclude_specimens_list[1]))
                     exclude_specimens_list=[]
 
                 if len(exclude_specimens_list)==1 :
@@ -3221,7 +3285,7 @@ class Arai_GUI(wx.Frame):
                    BS_means=array(BS_means_collection)
                    BS_means.sort()
                    sample_median=median(BS_means)
-                   sample_std=std(BS_means)
+                   sample_std=std(BS_means,ddof=1)
                    sample_68=[BS_means[(0.16)*len(BS_means)],BS_means[(0.84)*len(BS_means)]]
                    sample_95=[BS_means[(0.025)*len(BS_means)],BS_means[(0.975)*len(BS_means)]]
 
@@ -3461,7 +3525,7 @@ class Arai_GUI(wx.Frame):
 
     def on_menu_run_optimizer(self, event):
         self.GUI_log.write ("-I- running thellier_optimizer_2D\n")
-        
+        import thellier_optimizer_2d
 
         Optimizer(self.Data,self.Data_hierarchy,self.WD,self.accept_new_parameters_default)
     #----------------------------------------------------------------------            
@@ -3521,7 +3585,7 @@ class Arai_GUI(wx.Frame):
                 continue
             tmp_B=array(tmp_B)
             B_uT=mean(tmp_B)
-            B_std_uT=std(tmp_B)
+            B_std_uT=std(tmp_B,ddof=1)
             B_std_perc=100*(B_std_uT/B_uT)
             #print "tmp_B",tmp_B,B_uT,B_std_uT,B_std_perc
 
@@ -3529,7 +3593,7 @@ class Arai_GUI(wx.Frame):
                 if (self.accept_new_parameters['sample_int_sigma_uT']==0 and self.accept_new_parameters['sample_int_sigma_perc']==0) or\
                    ( B_std_uT <=self.accept_new_parameters['sample_int_sigma_uT'] or B_std_perc <= self.accept_new_parameters['sample_int_sigma_perc']):
                     #print "sample pass",sample
-                    if ( (max(tmp_B)-min(tmp_B)) <= self.accept_new_parameters['sample_int_interval_uT'] or 100*((max(tmp_B)-min(tmp_B))/mean(std(tmp_B))) <= self.accept_new_parameters['sample_int_interval_perc']):
+                    if ( (max(tmp_B)-min(tmp_B)) <= self.accept_new_parameters['sample_int_interval_uT'] or 100*((max(tmp_B)-min(tmp_B))/mean((tmp_B))) <= self.accept_new_parameters['sample_int_interval_perc']):
                         #print "check, sample %s pass criteria"%sample
                         if sample in self.Data_info["er_ages"].keys():
                             if self.Data_info["er_ages"][sample]["age"] !="":
@@ -3796,7 +3860,6 @@ class Arai_GUI(wx.Frame):
                         self.araiplot.plot([xx1,xx2],[yy1,yy1],color="0.5",lw=0.5,alpha=0.5)
                         self.araiplot.plot([xx2,xx2],[yy1,yy2],color="0.5",lw=0.5,alpha=0.5)
 
-                #self.Data[s]['ptrm_checks_starting_temperatures']
         # Tail checks
         if len(self.x_tail_check >0):
           self.araiplot.scatter (self.x_tail_check,self.y_tail_check,marker='s',edgecolor='0.1',alpha=1.0, facecolor='None',s=80,lw=1)
@@ -3806,8 +3869,14 @@ class Arai_GUI(wx.Frame):
             self.tmp_c=self.Data[self.s]['t_Arai'][i]-273.
           else:
             self.tmp_c=0.
-          if self.preferences['show_Arai_temperatures']:  
+          if self.preferences['show_Arai_temperatures'] and int(self.preferences['show_Arai_temperatures_steps'])!=1:
+              if (i+1)%int(self.preferences['show_Arai_temperatures_steps']) ==0 and i!=0:
+                  self.araiplot.text(self.x_Arai[i],self.y_Arai[i],"  %.0f"%self.tmp_c,fontsize=10,color='gray',ha='left',va='center')                  
+          elif not self.preferences['show_Arai_temperatures']:
+              continue
+          else:
               self.araiplot.text(self.x_Arai[i],self.y_Arai[i],"  %.0f"%self.tmp_c,fontsize=10,color='gray',ha='left',va='center')
+              
         self.araiplot.set_xlabel("TRM / NRM$_0$",fontsize=10)
         self.araiplot.set_ylabel("NRM / NRM$_0$",fontsize=10)
         self.araiplot.set_xlim(xmin=0)
@@ -3848,9 +3917,13 @@ class Arai_GUI(wx.Frame):
         #title(Data[s]['pars']['er_specimen_name']+"\nrotated Zijderveld plot",fontsize=12)
         last_cart_1=array([self.CART_rot[0][0],self.CART_rot[0][1]])
         last_cart_2=array([self.CART_rot[0][0],self.CART_rot[0][2]])
-        if self.preferences['show_Zij_temperatures']:
+        if self.preferences['show_Zij_temperatures'] :
             for i in range(len(self.z_temperatures)):
-              self.zijplot.text(self.CART_rot[i][0],-1*self.CART_rot[i][2]," %.0f"%(self.z_temperatures[i]-273.),fontsize=10,color='gray',ha='left',va='center')   #inc
+                if int(self.preferences['show_Zij_temperatures_steps']) !=1:
+                    if i!=0  and (i+1)%int(self.preferences['show_Zij_temperatures_steps'])==0:
+                        self.zijplot.text(self.CART_rot[i][0],-1*self.CART_rot[i][2]," %.0f"%(self.z_temperatures[i]-273.),fontsize=10,color='gray',ha='left',va='center')   #inc
+                else:
+                  self.zijplot.text(self.CART_rot[i][0],-1*self.CART_rot[i][2]," %.0f"%(self.z_temperatures[i]-273.),fontsize=10,color='gray',ha='left',va='center')   #inc
 
         #-----
         xmin, xmax = self.zijplot.get_xlim()
@@ -4354,12 +4427,78 @@ class Arai_GUI(wx.Frame):
         # best fit PCA direction
         pars["specimen_dec"] =  DIR_PCA[0]
         pars["specimen_inc"] =  DIR_PCA[1]
-        pars["specimen_PCA_v1"] =  best_fit_vector
+        pars["specimen_PCA_v1"] =best_fit_vector 
+        pars["specimen_PCA_sigma_max"] =  sqrt(t1)
+        pars["specimen_PCA_sigma_int"] =  sqrt(t2)
+        pars["specimen_PCA_sigma_min"] =  sqrt(t3)
 
         # MAD Kirschvink (1980)
         pars["specimen_int_mad"]=MAD
         pars["specimen_dang"]=DANG
 
+
+##        #-------------------------------------------------                     
+##        # Calculate the new 'MAD box' parameter
+##        # all datapoints should be inside teh M"AD box"
+##        # defined by the threshold value of MAD
+##        # For definitionsee Shaar and Tauxe (2012)
+##        #-------------------------------------------------                     
+##
+##        pars["specimen_mad_scat"]="Pass"
+##        self.accept_new_parameters['specimen_mad_scat']=True
+##        if 'specimen_mad_scat' in self.accept_new_parameters.keys() and 'specimen_int_mad' in self.accept_new_parameters.keys() :
+##            if self.accept_new_parameters['specimen_mad_scat']==True or self.accept_new_parameters['specimen_mad_scat'] in [1,"True","TRUE",'1']:
+##
+##                # center of mass 
+##                CM_x=mean(zdata_segment[:,0])
+##                CM_y=mean(zdata_segment[:,1])
+##                CM_z=mean(zdata_segment[:,2])
+##                CM=array([CM_x,CM_y,CM_z])
+##
+##                # threshold value for the distance of the point from a line:
+##                # this is depends of MAD
+##                # if MAD= tan-1 [ sigma_perpendicular / sigma_max ]
+##                # then:
+##                # sigma_perpendicular_threshold=tan(MAD_threshold)*sigma_max
+##                sigma_perpendicular_threshold=abs(tan(radians(self.accept_new_parameters['specimen_int_mad'])) *  pars["specimen_PCA_sigma_max"] )
+##                
+##                # Line from
+##                #print "++++++++++++++++++++++++++++++++++"
+##                
+##                for P in zdata_segment:
+##                    # Find the line  P_CM that connect P to the center of mass
+##                    #print "P",P
+##                    #print "CM",CM
+##                    P_CM=P-CM
+##                    #print "P_CM",P_CM
+##                    
+##                    #  the dot product of vector P_CM with the unit direction vector of the best-fit liene. That's the projection of P_CM on the PCA line 
+##                    best_fit_vector_unit=best_fit_vector/sqrt(sum(best_fit_vector**2))
+##                    #print "best_fit_vector_unit",best_fit_vector_unit
+##                    CM_P_projection_on_PCA_line=dot(best_fit_vector_unit,P_CM)
+##                    #print "CM_P_projection_on_PCA_line",CM_P_projection_on_PCA_line
+##
+##                    # Pythagoras
+##                    P_CM_length=sqrt(sum((P_CM)**2))
+##                    Point_2_PCA_Distance=sqrt((P_CM_length**2-CM_P_projection_on_PCA_line**2))
+##                    #print "Point_2_PCA_Distance",Point_2_PCA_Distance
+##
+##
+##                    #print "sigma_perpendicular_threshold*2",sigma_perpendicular_threshold*2
+##                    if Point_2_PCA_Distance > sigma_perpendicular_threshold*2:
+##                        pars["specimen_mad_scat"]="Fail"
+##                        index=999
+##                        for i in range(len(self.Data[s]['zdata'])):
+##                        
+##                            if P[0] == self.Data[s]['zdata'][i][0] and P[1] == self.Data[s]['zdata'][i][1] and P[2] == self.Data[s]['zdata'][i][2]:
+##                                index =i
+##                                break
+##                        #print "specimen  %s fail on mad_scat,%i"%(s,index)
+##                        
+##                    
+##                    
+##                    #CM_P_projection_on_PCA_line_length=sqrt(sum((CM_P_projection_on_PCA_line_length)**2))
+        
 
         #-------------------------------------------------
         # York regresssion (York, 1967) following Coe (1978)
@@ -4634,7 +4773,9 @@ class Arai_GUI(wx.Frame):
         if 'specimen_scat' in pars.keys():
             if pars["specimen_scat"]=="Fail":
                 pars['specimen_fail_criteria'].append('specimen_scat')
-
+        if 'specimen_mad_scat' in pars.keys():
+            if pars["specimen_mad_scat"]=="Fail":
+                pars['specimen_fail_criteria'].append('specimen_mad_scat')
 
 
         #-------------------------------------------------            
@@ -4766,6 +4907,9 @@ class Arai_GUI(wx.Frame):
         self.canvas3.draw()
 
         # plot Zijderveld
+
+        ymin, ymax = self.zijplot.get_ylim()
+        xmin, xmax = self.zijplot.get_xlim()
         
         #rotated zijderveld
         NRM_dir=pmag.cart2dir(self.Data[self.s]['zdata'][0])         
@@ -4787,6 +4931,7 @@ class Arai_GUI(wx.Frame):
         slop_xz_PCA=-1*PCA_CART_rotated[2]/PCA_CART_rotated[0]
 
         # Center of mass rotated
+        
         CM_x=mean(self.CART_rot[:,0][tmin_index:tmax_index+1])
         CM_y=mean(self.CART_rot[:,1][tmin_index:tmax_index+1])
         CM_z=mean(self.CART_rot[:,2][tmin_index:tmax_index+1])
@@ -4799,20 +4944,72 @@ class Arai_GUI(wx.Frame):
         xx=array([0,self.CART_rot[:,0][tmin_index]])
         yy=slop_xy_PCA*xx+intercept_xy_PCA
         self.zijplot.plot(xx,yy,'-',color='g',lw=1.5,alpha=0.5)
-        yy=slop_xz_PCA*xx+intercept_xz_PCA
-        self.zijplot.plot(xx,yy,'-',color='g',lw=1.5,alpha=0.5)
-        
-        #PCA_to_plot=array([CM_x+PCA_CART_rotated[0],CM_y+PCA_CART_rotated[1],CM_z+PCA_CART_rotated[1]])
+        zz=slop_xz_PCA*xx+intercept_xz_PCA
+        self.zijplot.plot(xx,zz,'-',color='g',lw=1.5,alpha=0.5)
 
-        #----------
-        # To DO! draw best fit line through center of mass
-        #----------
-        #self.zijplot.plot([0,PCA_CART_rotated[0]],[0,-1*PCA_CART_rotated[1]],'-',color='g')
-        #self.zijplot.plot([0,PCA_CART_rotated[0]],[0,-1*PCA_CART_rotated[2]],'-',color='g')
-        
-        self.zijplot.scatter([self.CART_rot[:,0][tmin_index]],[-1* self.CART_rot[:,1][tmin_index]],marker='o',s=40,facecolor='g',edgecolor ='k')
-        self.zijplot.scatter([self.CART_rot[:,0][tmax_index]],[-1* self.CART_rot[:,1][tmax_index]],marker='o',s=40,facecolor='g',edgecolor ='k')
-        
+    
+        self.zijplot.scatter([self.CART_rot[:,0][tmin_index]],[-1* self.CART_rot[:,1][tmin_index]],marker='o',s=40,facecolor='g',edgecolor ='k',zorder=100)
+        self.zijplot.scatter([self.CART_rot[:,0][tmax_index]],[-1* self.CART_rot[:,1][tmax_index]],marker='o',s=40,facecolor='g',edgecolor ='k',zorder=100)
+        self.zijplot.scatter([self.CART_rot[:,0][tmin_index]],[-1* self.CART_rot[:,2][tmin_index]],marker='s',s=50,facecolor='g',edgecolor ='k',zorder=100)
+        self.zijplot.scatter([self.CART_rot[:,0][tmax_index]],[-1* self.CART_rot[:,2][tmax_index]],marker='s',s=50,facecolor='g',edgecolor ='k',zorder=100)
+
+
+##        # draw MAD-box
+##        self.accept_new_parameters['specimen_mad_scat']=True
+##        if 'specimen_mad_scat' in self.accept_new_parameters.keys() and 'specimen_int_mad' in self.accept_new_parameters.keys() :
+##            if self.accept_new_parameters['specimen_mad_scat']==True or self.accept_new_parameters['specimen_mad_scat'] in [1,"True","TRUE",'1']:
+##
+##                # center of mass 
+##                CM=array([CM_x,CM_y,CM_z])
+##
+##                # threshold value for the distance of the point from a line:
+##                # this is depends of MAD
+##                # if MAD= tan-1 [ sigma_perpendicular / sigma_max ]
+##                # then:
+##                # sigma_perpendicular_threshold=tan(MAD_threshold)*sigma_max
+##                sigma_perpendicular_threshold=abs(tan(radians(self.accept_new_parameters['specimen_int_mad'])) *  self.pars["specimen_PCA_sigma_max"] )
+##                mad_box_xy_x1,mad_box_xy_x2=[],[]                
+##                mad_box_xy_y1,mad_box_xy_y2=[],[]                
+##                mad_box_xz_x1,mad_box_xz_x2=[],[]                
+##                mad_box_xz_y1,mad_box_xz_y2=[],[]                
+##
+##                for i in range(len(xx)):
+##                    #xy_x_plus=array(xx[i],yy[i])
+##                                        
+##                    # X-Y projectoin
+##                    x_y_projection=cross(array(PCA_CART_rotated),array([0,0,1]))
+##                    x_y_projection=x_y_projection/sqrt(sum(x_y_projection**2))
+##                    new_vector1=array([xx[i],yy[i]])+2*sigma_perpendicular_threshold*array([x_y_projection[0],x_y_projection[1]])
+##                    new_vector2=array([xx[i],yy[i]])-2*sigma_perpendicular_threshold*array([x_y_projection[0],x_y_projection[1]])
+##                    mad_box_xy_x1.append(new_vector1[0])
+##                    mad_box_xy_y1.append(new_vector1[1])
+##                    mad_box_xy_x2.append(new_vector2[0])
+##                    mad_box_xy_y2.append(new_vector2[1])
+##                                                            
+##
+##                    # X-Z projectoin
+##                    x_z_projection=cross(array(PCA_CART_rotated),array([0,1,0]))
+##                    x_z_projection=x_z_projection/sqrt(sum(x_z_projection**2))
+##                    new_vector1=array([xx[i],zz[i]])+2*sigma_perpendicular_threshold*array([x_z_projection[0],x_z_projection[2]])
+##                    new_vector2=array([xx[i],zz[i]])-2*sigma_perpendicular_threshold*array([x_z_projection[0],x_z_projection[2]])
+##                    mad_box_xz_x1.append(new_vector1[0])
+##                    mad_box_xz_y1.append(new_vector1[1])
+##                    mad_box_xz_x2.append(new_vector2[0])
+##                    mad_box_xz_y2.append(new_vector2[1])
+##
+##
+##                #print mad_box_x1,mad_box_y1
+##                self.zijplot.plot(mad_box_xy_x1,mad_box_xy_y1,ls="--",c='k',lw=0.5)
+##                self.zijplot.plot(mad_box_xy_x2,mad_box_xy_y2,ls="--",c='k',lw=0.5)
+##                self.zijplot.plot(mad_box_xz_x1,mad_box_xz_y1,ls="--",c='k',lw=0.5)
+##                self.zijplot.plot(mad_box_xz_x2,mad_box_xz_y2,ls="--",c='k',lw=0.5)
+
+
+
+
+        self.zijplot.set_xlim(xmin, xmax)
+        self.zijplot.set_ylim(ymin, ymax)
+  
         self.canvas2.draw()
 
         # NLT plot
@@ -4851,8 +5048,8 @@ class Arai_GUI(wx.Frame):
 
         if len(specimens_id)>1:
             self.sampleplot.scatter(arange(len(specimens_id)),specimens_B ,marker='s',edgecolor='0.2', facecolor='b',s=40,lw=1)
-            self.sampleplot.axhline(y=mean(specimens_B)+std(specimens_B),color='0.2',ls="--",lw=0.75)
-            self.sampleplot.axhline(y=mean(specimens_B)-std(specimens_B),color='0.2',ls="--",lw=0.75)
+            self.sampleplot.axhline(y=mean(specimens_B)+std(specimens_B,ddof=1),color='0.2',ls="--",lw=0.75)
+            self.sampleplot.axhline(y=mean(specimens_B)-std(specimens_B,ddof=1),color='0.2',ls="--",lw=0.75)
             self.sampleplot.axhline(y=mean(specimens_B),color='0.2',ls="-",lw=0.75,alpha=0.5)
             
             if self.s in specimens_id:
@@ -5197,6 +5394,13 @@ class Arai_GUI(wx.Frame):
               continue
           if 'AniSpec' in Data[s].keys():
               Data[s]['AniSpec'].update(AniSpec)
+              if 'result_description' in AniSpec.keys():
+                result_description=AniSpec['result_description'].split(";")
+                for description in result_description:
+                    if "Critical F" in description:
+                       desc=description.split(":")
+                       Data[s]['AniSpec']['anisotropy_F_crit']=float(desc[1])
+                
                 
           
           
@@ -5978,7 +6182,7 @@ class Optimizer(wx.Frame):
 
         """
         """
-        
+        import thellier_optimizer_2d        
         self.WD=WD
         self.Data=Data
         self.Data_hierarchy=Data_hierarchy
@@ -6149,14 +6353,14 @@ class Optimizer(wx.Frame):
             (self.frac_start_window, wx.EXPAND) ,
             (self.frac_end_window, wx.EXPAND) ,
             (self.frac_step_window, wx.EXPAND) ])
-        Text1="Inster functions in the text window below, each function in a seperate line.\n"
-        Text2="Use a valid python syntax with logic or arithmetic operators\n use the example functions\n\n"
+        Text1="insert functions in the text window below, each function in a seperate line.\n"
+        Text2="Use a valid python syntax with logic or arithmetic operators\n (see example functions)\n\n"
         Text3="List of legal operands:\n"
         Text4="study_sample_n:  Total number of samples in the study that pass the criteria\n"
-        Text5="test_group_n:  Number of test groups that have at least one sample that passed the criteria\n" 
+        Text5="test_group_n:  Number of test groups that have at least one sample that passed acceptance criteria\n" 
         Text6="max_group_int_sigma_uT:  standard deviation of the group with the maximum scatter \n"
-        Text7="max_group_int_sigma_perc:  maximum [standard deviation of the group divided by its mean] in unit of %\n"
-        Text8="Use \"Check function syntax\" when done.\n\n" 
+        Text7="max_group_int_sigma_perc:  standard deviation of the group with the maximum scatter divided by its mean (in unit of %)\n\n"
+        Text8="Check \"Check function syntax\" when done inserting functions.\n\n" 
                     
         self.function_label = wx.StaticText(self.panel, label=Text1+Text2+Text3+Text4+Text5+Text6+Text7+Text8,style=wx.ALIGN_CENTRE)
 
@@ -6174,7 +6378,7 @@ class Optimizer(wx.Frame):
         # group definition  button 
 #        self.optimizer_make_groups_next_button = wx.Button(self.panel, id=-1, label='Next')#,style=wx.BU_EXACTFIT)#, size=(175, 28))
 #        self.Bind(wx.EVT_BUTTON, self.on_optimizer_make_groups_next_button, self.optimizer_make_groups_next_button)
-        self.open_existing_optimizer_group_file = wx.Button(self.panel,id=-1, label='Choose optimizer group file')
+        self.open_existing_optimizer_group_file = wx.Button(self.panel,id=-1, label='Choose a test group file')
         self.Bind(wx.EVT_BUTTON, self.on_open_existing_optimizer_group_file, self.open_existing_optimizer_group_file)
 
         self.optimizer_group_file_window=wx.TextCtrl(self.panel,style=wx.TE_CENTER|wx.TE_READONLY,size=(800,20))
@@ -6186,7 +6390,7 @@ class Optimizer(wx.Frame):
         self.cancel_optimizer_button = wx.Button(self.panel, id=-1, label='Cancel')#,style=wx.BU_EXACTFIT)#, size=(175, 28))
         self.Bind(wx.EVT_BUTTON, self.on_cancel_optimizer_button, self.cancel_optimizer_button)
 
-        self.run_optimizer_button = wx.Button(self.panel, id=-1, label='Run Optimizer')#,style=wx.BU_EXACTFIT)#, size=(175, 28))
+        self.run_optimizer_button = wx.Button(self.panel, id=-1, label='Run Consistency Test')#,style=wx.BU_EXACTFIT)#, size=(175, 28))
         self.Bind(wx.EVT_BUTTON, self.on_run_optimizer_button, self.run_optimizer_button)
 
         # put an example
@@ -6348,7 +6552,7 @@ class Optimizer(wx.Frame):
         
         dirname=self.WD 
             
-        dlg = wx.FileDialog(self, "Choose optimizer test groups file", dirname, "", "*.*", wx.OPEN)
+        dlg = wx.FileDialog(self, "Choose a test groups file", dirname, "", "*.*", wx.OPEN)
         if dlg.ShowModal() == wx.ID_OK:
             filename = dlg.GetFilename()
             self.optimizer_group_file_path=dlg.GetPath()
