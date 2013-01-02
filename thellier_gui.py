@@ -475,7 +475,8 @@ class Arai_GUI(wx.Frame):
         if sample not in self.Data_samples.keys():
             self.Data_samples[sample]={}
         self.Data_samples[sample][self.s]=self.Data[self.s]['pars']["specimen_int_uT"]
-        
+        self.draw_sample_mean()
+        self.write_sample_box()
         #self.redo_specimens[self.s]['pars']=self.get_PI_parameters(self.s,float(t1)+273,float(t2)+273)
         #self.redo_specimens[self.s]['t_min']=273+float(t1)
         #self.redo_specimens[self.s]['t_max']=273.+float(t2)
@@ -502,6 +503,9 @@ class Arai_GUI(wx.Frame):
         self.tmax_box.SetValue("")
         self.clear_boxes()
         self.draw_figure(self.s)
+        self.draw_sample_mean()
+        self.write_sample_box()
+
     #----------------------------------------------------------------------
             
         
@@ -630,10 +634,13 @@ class Arai_GUI(wx.Frame):
         self.Bind(wx.EVT_MENU, self.on_save_Eq_plot, m_save_eq_plot,"Eq")
 
         m_save_M_t_plot = submenu_save_plots.Append(-1, "&Save M-t plot", "")
-        self.Bind(wx.EVT_MENU, self.on_save_M_t_plot, m_save_M_t_plot,"Eq")
+        self.Bind(wx.EVT_MENU, self.on_save_M_t_plot, m_save_M_t_plot,"M_t")
 
         m_save_NLT_plot = submenu_save_plots.Append(-1, "&Save NLT plot", "")
-        self.Bind(wx.EVT_MENU, self.on_save_NLT_plot, m_save_NLT_plot,"Eq")
+        self.Bind(wx.EVT_MENU, self.on_save_NLT_plot, m_save_NLT_plot,"NLT")
+
+        m_save_sample_plot = submenu_save_plots.Append(-1, "&Save sample plot", "")
+        self.Bind(wx.EVT_MENU, self.on_save_sample_plot, m_save_sample_plot,"Samp")
 
         #m_save_all_plots = submenu_save_plots.Append(-1, "&Save all plots", "")
         #self.Bind(wx.EVT_MENU, self.on_save_all_plots, m_save_all_plots)
@@ -868,21 +875,37 @@ class Arai_GUI(wx.Frame):
             exec command
             
     def write_sample_box(self):
-        # sample
+##       B=[]
+##        sample=self.Data_hierarchy['specimens'][self.s]
+##        if sample not in self.Data_samples.keys() and 'specimen_int_uT' in self.pars.keys():
+##            self.Data_samples[sample]={}
+##            
+##        if 'specimen_int_uT' in self.pars.keys():
+##            if 'saved' in self.Data[self.s]['pars'].keys():
+##                if self.Data[self.s]['pars']['saved']==True:
+##                    self.Data_samples[sample][self.s]=self.pars['specimen_int_uT']
+##            
+##        red_flag=True
+
         B=[]
         sample=self.Data_hierarchy['specimens'][self.s]
-        if sample not in self.Data_samples.keys() and 'specimen_int_uT' in self.pars.keys():
-            self.Data_samples[sample]={}
-        if 'specimen_int_uT' in self.pars.keys():
-            if 'saved' in self.Data[self.s]['pars'].keys():
-                if self.Data[self.s]['pars']['saved']==True:
-                    self.Data_samples[sample][self.s]=self.pars['specimen_int_uT']
-        red_flag=True
-        if sample in self.Data_samples.keys():
-            for specimen in self.Data_samples[sample]:
-                B.append(self.Data_samples[sample][specimen])
-                red_flag=False
-        if red_flag:
+        if sample in self.Data_samples.keys() and len(self.Data_samples[sample].keys())>0:
+            if self.s not in self.Data_samples[sample].keys():
+                if 'specimen_int_uT' in self.pars.keys():
+                    B.append(self.pars['specimen_int_uT'])
+            for specimen in self.Data_samples[sample].keys():
+                if specimen==self.s:
+                    if 'specimen_int_uT' in self.pars.keys():
+                        B.append(self.pars['specimen_int_uT'])
+                    else:        
+                        B.append(self.Data_samples[sample][specimen])
+                else:
+                        B.append(self.Data_samples[sample][specimen])
+        else:
+            if 'specimen_int_uT' in self.pars.keys():
+                B.append(self.pars['specimen_int_uT'])
+                
+        if B==[]:
             self.sample_int_n_window.SetValue("")
             self.sample_int_uT_window.SetValue("")
             self.sample_int_sigma_window.SetValue("")
@@ -899,6 +922,9 @@ class Arai_GUI(wx.Frame):
         self.sample_int_uT_window.SetValue("%.1f"%(B_mean))
         self.sample_int_sigma_window.SetValue("%.1f"%(B_std))
         self.sample_int_sigma_perc_window.SetValue("%.1f"%(B_std_perc))
+        self.sample_int_n_window.SetBackgroundColour(wx.NullColor)
+        self.sample_int_sigma_window.SetBackgroundColour(wx.NullColor)
+        self.sample_int_sigma_perc_window.SetBackgroundColour(wx.NullColor)
 
         fail_flag=False
         fail_int_n=False
@@ -907,30 +933,27 @@ class Arai_GUI(wx.Frame):
         
         if N<self.accept_new_parameters['sample_int_n']:
             fail_int_n=True
-        if B_std > self.accept_new_parameters['sample_int_sigma_uT']:
-            fail_int_sigma=True
-        if B_std_perc > self.accept_new_parameters['sample_int_sigma_perc']:
-            fail_int_sigma_perc=True            
+        if not ( B_std <= self.accept_new_parameters['sample_int_sigma_uT'] or B_std_perc <= self.accept_new_parameters['sample_int_sigma_perc']):            
+            if (B_std > self.accept_new_parameters['sample_int_sigma_uT']) :
+                fail_int_sigma=True
+            if B_std_perc > self.accept_new_parameters['sample_int_sigma_perc']:
+                fail_int_sigma_perc=True            
 
         if fail_int_n or fail_int_sigma or fail_int_sigma_perc:
             self.sample_int_uT_window.SetBackgroundColour(wx.RED)
+            
+            if  fail_int_n :
+                self.sample_int_n_window.SetBackgroundColour(wx.RED)
+
+            if  fail_int_sigma :
+                self.sample_int_sigma_window.SetBackgroundColour(wx.RED)
+
+            if  fail_int_sigma_perc :
+                self.sample_int_sigma_perc_window.SetBackgroundColour(wx.RED)
         else:
             self.sample_int_uT_window.SetBackgroundColour(wx.GREEN)
+            
 
-##        if fail_int_n:
-##            self.sample_int_n_window.SetBackgroundColour(wx.RED)
-##        else:
-##            self.sample_int_n_window.SetBackgroundColour(wx.GREEN)
-##
-##        if  fail_int_sigma:
-##            self.sample_int_sigma_window.SetBackgroundColour(wx.RED)
-##        else:
-##            self.sample_int_sigma_window.SetBackgroundColour(wx.GREEN)
-##
-##        if fail_int_sigma_perc:
-##            self.sample_int_sigma_perc_window.SetBackgroundColour(wx.RED)
-##        else:
-##            self.sample_int_sigma_perc_window.SetBackgroundColour(wx.GREEN)
             
             
         
@@ -1019,6 +1042,19 @@ class Arai_GUI(wx.Frame):
                 NLT_window.AddMany( [(wx.StaticText(pnl1,label="show Non-linear TRM plot instead of M/T plot",style=wx.TE_CENTER), wx.EXPAND),
                     (self.show_NLT_plot, wx.EXPAND)])                 
                 bSizer5.Add( NLT_window, 0, wx.ALIGN_LEFT|wx.ALL, 5 )
+
+                #-----------box6        
+
+                bSizer6 = wx.StaticBoxSizer( wx.StaticBox( pnl1, wx.ID_ANY, "Statistical definitions" ), wx.HORIZONTAL )
+                self.bootstrap_N=wx.TextCtrl(pnl1,style=wx.TE_CENTER,size=(80,20))
+                #self.bootstrap_N=FS.FloatSpin(pnl1, -1, min_val=1000, max_val=10000000,increment=1000, value=10000, extrastyle=FS.FS_LEFT,size=(80,20))
+                #self.bootstrap_N.SetFormat("%f")
+                #self.bootstrap_N.SetDigits(0)
+                                             
+                Statistics_definitions_window = wx.GridSizer(1, 2, 12, 12)
+                Statistics_definitions_window.AddMany( [(wx.StaticText(pnl1,label="Bootstrap N",style=wx.TE_CENTER), wx.EXPAND),
+                    (self.bootstrap_N, wx.EXPAND)])                 
+                bSizer6.Add( Statistics_definitions_window, 0, wx.ALIGN_LEFT|wx.ALL, 5 )
                          
                 #----------------------
 
@@ -1040,6 +1076,8 @@ class Arai_GUI(wx.Frame):
                 vbox.Add(bSizer4, flag=wx.ALIGN_CENTER_HORIZONTAL)
                 vbox.AddSpacer(20)
                 vbox.Add(bSizer5, flag=wx.ALIGN_CENTER_HORIZONTAL)
+                vbox.AddSpacer(20)
+                vbox.Add(bSizer6, flag=wx.ALIGN_CENTER_HORIZONTAL)
                 vbox.AddSpacer(20)
 
                 vbox.Add(hbox2, flag=wx.ALIGN_CENTER_HORIZONTAL)
@@ -1088,6 +1126,10 @@ class Arai_GUI(wx.Frame):
                     self.show_NLT_plot.SetValue(self.preferences["show_NLT_plot"])
                 except:
                     self.show_NLT_plot.SetValue(False)
+                try:                    
+                    self.bootstrap_N.SetValue("%.0f"%(self.preferences["BOOTSTRAP_N"]))
+                except:
+                    self.bootstrap_N.SetValue("10000")
                     
                 #----------------------
                     
@@ -1106,6 +1148,10 @@ class Arai_GUI(wx.Frame):
             self.preferences['show_eqarea_temperatures']=dia.show_eqarea_temperatures.GetValue()
             self.preferences['show_eqarea_pTRMs']=dia.show_eqarea_pTRMs.GetValue()
             self.preferences['show_NLT_plot']=dia.show_NLT_plot.GetValue()
+            try:
+                self.preferences['BOOTSTRAP_N']=float(dia.bootstrap_N.GetValue())
+            except:
+                pass
 
             dlg1 = wx.MessageDialog(self,caption="Message:", message="save the thellier_gui.preferences in PmagPy directory!" ,style=wx.OK|wx.ICON_INFORMATION)
             dlg1.ShowModal()
@@ -1131,10 +1177,6 @@ class Arai_GUI(wx.Frame):
                         String="preferences['%s']=%s\n"%(key,self.preferences[key])
                     fout.write(String)    
                     
-##                String=String[:-1]+"\n"    
-##                for key in  self.preferences.keys():
-##                    String=String+"%f"%self.preferences[key]+"\t"
-##                String=String[:-1]+"\n"
                 fout.close()
                 os.chmod(preference_file,0777)            
                 
@@ -1160,7 +1202,8 @@ class Arai_GUI(wx.Frame):
         preferences['show_eqarea_temperatures']=False
         preferences['show_eqarea_pTRMs']=True
         preferences['show_NLT_plot']=True
-
+        preferences['show_NLT_plot']=True
+        preferences['BOOTSTRAP_N']=1e4
         #try to read preferences file:
         try:
             import thellier_gui_preferences
@@ -1168,50 +1211,8 @@ class Arai_GUI(wx.Frame):
             preferences= thellier_gui_preferences.preferences
         except:
             self.GUI_log.write( " -I- cant find thellier_gui_preferences file, using defualt default \n")
-##            preferences['gui_resolution']=1.
-##            preferences['show_Arai_temperatures']=True
-##            preferences['show_Arai_temperatures_steps']=1.            
-##            preferences['show_Arai_pTRM_arrows']=True
-##            preferences['show_Zij_temperatures']=False
-##            preferences['show_Zij_temperatures_steps']=1.
-##            preferences['show_eqarea_temperatures']=False
-##            preferences['show_eqarea_pTRMs']=True
-##            preferences['show_NLT_plot']=True
         return(preferences)
         
-
-
-##    def on_menu_save_preferences(self, event):
-##
-##        dlg1 = wx.MessageDialog(self,caption="Message:", message="save the thellier_gui.preferences in PmagPy directory!" ,style=wx.OK|wx.ICON_INFORMATION)
-##        dlg1.ShowModal()
-##        dlg1.Destroy()
-##    
-##
-##        dlg2 = wx.FileDialog(
-##            self, message="save the thellier_gui_preference.txt in PmagPy directory!",
-##            defaultDir="~/PmagPy", 
-##            defaultFile="thellier_gui.preferences",
-##            style=wx.FD_SAVE | wx.CHANGE_DIR
-##            )
-##        if dlg2.ShowModal() == wx.ID_OK:
-##            preference_file = dlg2.GetPath()
-##            fout=open(preference_file,'w')
-##            String=""
-##            
-##            for key in  preferences.keys():
-##                String=String+key+"\t"
-##            String=String[:-1]+"\n"    
-##            for key in  preferences.keys():
-##                String=String+"%f"%preferences[key]+"\t"
-##            String=String[:-1]+"\n"
-##            fout.write(String)
-##            fout.close()
-##                          
-##            
-##        dlg2.Destroy()
-##
-##        print preference_file
         
 
 
@@ -1271,6 +1272,18 @@ class Arai_GUI(wx.Frame):
         else:
             return
 
+
+    def on_save_sample_plot(self,event):
+        self.fig4.text(0.9,0.96,'%s'%(self.Data_hierarchy['specimens'][self.s]),{'family':'Arial', 'fontsize':10, 'style':'normal','va':'center', 'ha':'right' })        
+        SaveMyPlot(self.fig4,self.pars,"Sample")
+        self.fig4.clear()
+        self.fig4.text(0.02,0.96,"Sample data",{'family':'Arial', 'fontsize':10, 'style':'normal','va':'center', 'ha':'left' })
+        self.sampleplot = self.fig4.add_axes([0.2,0.3,0.7,0.6],frameon=True,axisbg='None')
+        self.draw_figure(self.s)
+        self.update_selection()
+
+
+        
     def on_save_NLT_plot(self,event):
         if self.preferences['show_NLT_plot'] ==True and 'NLT_parameters' in self.Data[self.s].keys():
             self.fig5.text(0.9,0.96,'%s'%(self.s),{'family':'Arial', 'fontsize':10, 'style':'normal','va':'center', 'ha':'right' })        
@@ -3253,7 +3266,7 @@ class Arai_GUI(wx.Frame):
         #--------------------------------------------------------------
 
             if self.accept_new_parameters['sample_int_bs'] or self.accept_new_parameters['sample_int_bs_par']:
-               BOOTSTRAP_N=1000
+               BOOTSTRAP_N=self.preferences['BOOTSTRAP_N']
                Grade_A_samples_BS={} 
                if len(Grade_A_samples[sample].keys()) >= self.accept_new_parameters['sample_int_n']:
                    for specimen in Grade_A_samples[sample].keys():
@@ -3927,6 +3940,10 @@ class Arai_GUI(wx.Frame):
 
         #-----
         xmin, xmax = self.zijplot.get_xlim()
+        if xmax <0:
+            xmax=0
+        if xmin>0:
+            xmin=0
         props = dict(color='black', linewidth=0.5, markeredgewidth=0.5)
 
         #xlocs = [loc for loc in self.zijplot.xaxis.get_majorticklocs()
@@ -3943,6 +3960,11 @@ class Arai_GUI(wx.Frame):
         #-----
 
         ymin, ymax = self.zijplot.get_ylim()
+        if ymax <0:
+            ymax=0
+        if ymin>0:
+            ymin=0
+        
         ylocs = [loc for loc in self.zijplot.yaxis.get_majorticklocs()
                 if loc>=ymin and loc<=ymax]
         ylocs=arange(ymin,ymax,0.2)
@@ -4168,7 +4190,8 @@ class Arai_GUI(wx.Frame):
 
         # now draw the interpretation
         self.draw_interpretation()
-
+        
+        
         # declination/inclination
         self.declination_window.SetValue("%.1f"%(self.pars['specimen_dec']))
         self.inclination_window.SetValue("%.1f"%(self.pars['specimen_inc']))
@@ -4242,6 +4265,8 @@ class Arai_GUI(wx.Frame):
 
         # sample
         self.write_sample_box()
+
+        
 ##        B=[]
 ##        sample=self.Data_hierarchy['specimens'][self.s]
 ##        if sample not in self.Data_samples.keys():
@@ -5028,6 +5053,8 @@ class Arai_GUI(wx.Frame):
         #------
 
         self.draw_sample_mean()
+
+        
     def  draw_sample_mean(self):
 
         self.sampleplot.clear()
@@ -5045,22 +5072,44 @@ class Arai_GUI(wx.Frame):
                    specimens_B.append(self.pars['specimen_int_uT'])
                 else:
                    specimens_B.append(self.Data_samples[sample][spec])
-
-        if len(specimens_id)>1:
+        else:
+            if 'specimen_int_uT' in self.pars.keys():
+                specimens_id=[self.s]
+                specimens_B=[self.pars['specimen_int_uT']]
+        if len(specimens_id)>=1:
             self.sampleplot.scatter(arange(len(specimens_id)),specimens_B ,marker='s',edgecolor='0.2', facecolor='b',s=40,lw=1)
             self.sampleplot.axhline(y=mean(specimens_B)+std(specimens_B,ddof=1),color='0.2',ls="--",lw=0.75)
             self.sampleplot.axhline(y=mean(specimens_B)-std(specimens_B,ddof=1),color='0.2',ls="--",lw=0.75)
             self.sampleplot.axhline(y=mean(specimens_B),color='0.2',ls="-",lw=0.75,alpha=0.5)
             
             if self.s in specimens_id:
-                self.sampleplot.scatter([specimens_id.index(self.s)],[specimens_B[specimens_id.index(self.s)]] ,marker='s',edgecolor='0.2', facecolor='r',s=40,lw=1)
+                self.sampleplot.scatter([specimens_id.index(self.s)],[specimens_B[specimens_id.index(self.s)]] ,marker='s',edgecolor='0.2', facecolor='g',s=40,lw=1)
 
             self.sampleplot.set_xticks(arange(len(specimens_id)))
             self.sampleplot.set_xlim(-0.5,len(specimens_id)-0.5)
             self.sampleplot.set_xticklabels(specimens_id,rotation=90,fontsize=8)
-
+            #ymin,ymax=self.sampleplot.ylim()
+            
+            if "sample_int_sigma_uT" in self.accept_new_parameters.keys() and "sample_int_sigma_perc" in self.accept_new_parameters.keys():                
+                sigma_threshold_for_plot=max(self.accept_new_parameters["sample_int_sigma_uT"],0.01*self.accept_new_parameters["sample_int_sigma_perc"]*mean(specimens_B))
+            elif "sample_int_sigma_uT" in self.accept_new_parameters.keys() :
+                sigma_threshold_for_plot=self.accept_new_parameters["sample_int_sigma_uT"]                
+            elif "sample_int_sigma_perc" in self.accept_new_parameters.keys() :
+                sigma_threshold_for_plot=mean(specimens_B)*0.01*self.accept_new_parameters["sample_int_sigma_perc"]
+            else:
+                sigma_threshold_for_plot =100000
+            if sigma_threshold_for_plot < 20:
+                self.sampleplot.axhline(y=mean(specimens_B)+sigma_threshold_for_plot,color='r',ls="--",lw=0.75)
+                self.sampleplot.axhline(y=mean(specimens_B)-sigma_threshold_for_plot,color='r',ls="--",lw=0.75)
+                y_axis_limit=max(sigma_threshold_for_plot,std(specimens_B,ddof=1),abs(max(specimens_B)-mean(specimens_B)),abs((min(specimens_B)-mean(specimens_B))))
+            else:
+                y_axis_limit=max(std(specimens_B,ddof=1),abs(max(specimens_B)-mean(specimens_B)),abs((min(specimens_B)-mean(specimens_B))))
+                
+            self.sampleplot.set_ylim(mean(specimens_B)-y_axis_limit-1,mean(specimens_B)+y_axis_limit+1)
             self.sampleplot.set_ylabel(r'$\mu$ T',fontsize=8)
             self.sampleplot.tick_params(axis='both', which='major', labelsize=8)
+            self.sampleplot.tick_params(axis='y', which='minor', labelsize=0)
+
         self.canvas4.draw()
         #start_time_5=time.time() 
         #runtime_sec5 = start_time_5 - start_time_4
