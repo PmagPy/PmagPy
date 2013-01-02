@@ -173,7 +173,7 @@ def main():
                 if treat[1][-1]=='3':
                     MagRec["treatment_dc_field"]='0'  # this is a zero field step
                     meas_type="LT-PTRM-MD" # pTRM tail check
-            MagRec["measurement_magn_volume"]='%10.3e'% (float(rec[2])*1e-3) # magnetization in Am^2 (from mA/m)
+            MagRec["measurement_magn_moment"]='%10.3e'% (float(rec[2])*1e-3) # magnetization in Am^2 (from mA/m)
             MagRec["measurement_dec"]=rec[3]
             MagRec["measurement_inc"]=rec[4]
             MagRec["er_analyst_mail_names"]=user
