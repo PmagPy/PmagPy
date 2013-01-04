@@ -1628,17 +1628,21 @@ def add_tdt():
     get_filename('tdt')
 
 def add_tdt_dir():
-    global fpath,basename,MAG
+    global fpath,basename,MAG,names
   # copies files from directory, gets list and calls add_mag for each file
     dpath,filelist=copy_text_directory(" Select Directory with .TDT files  for import ",['tdt','dat'] )
+    names=ask_names(root)
+    ask_mag(root)
     for basename in filelist: # step through file by file
         fpath=opath+'/'+basename 
         outfile=opath+'/'+basename+'.magic'
         add_mag('tdt',outfile)
  
 def get_filename(ftype):
-        global fpath,basename, MAG
+        global fpath,basename, MAG,names
         basename,fpath=copy_text_file("Select magnetometer format input file: ")
+        names=ask_names(root)
+        ask_mag(root)
         fpath=opath+'/'+basename 
         outfile=opath+'/'+basename+'.magic'
         add_mag(ftype,outfile)
@@ -1646,8 +1650,6 @@ def get_filename(ftype):
 
 def add_mag(ftype,outfile):
         global fpath,basename, MAG
-        names=ask_names(root)
-        ask_mag(root)
         LPlist= map((lambda var:var.get()),MAG['lp_check_value'])
         LP=""
         for i in range(len(LPlist)):
