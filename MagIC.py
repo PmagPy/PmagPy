@@ -1616,22 +1616,36 @@ def add_PMM():
     tkMessageBox.showinfo("Info","Interpretation file imported to Project Directory, see terminal window for error messages \n You can check interpretations with Demagnetization Data and \n Assemble specimens when done.")
 
 def add_ldeo():
-    add_mag('ldeo')
+    get_filename('ldeo')
 
 def add_sio():
-    add_mag('sio')
+    get_filename('sio')
 
 def add_huji():
-    add_mag('huji')
+    get_filename('huji')
 
 def add_tdt():
-    add_mag('tdt')
+    get_filename('tdt')
 
-def add_mag(ftype):
+def add_tdt_dir():
+    global fpath,basename,MAG
+  # copies files from directory, gets list and calls add_mag for each file
+    dpath,filelist=copy_text_directory(" Select Directory with .TDT files  for import ",['tdt','dat'] )
+    for basename in filelist: # step through file by file
+        fpath=opath+'/'+basename 
+        outfile=opath+'/'+basename+'.magic'
+        add_mag('tdt',outfile)
+ 
+def get_filename(ftype):
         global fpath,basename, MAG
         basename,fpath=copy_text_file("Select magnetometer format input file: ")
-        ifile=opath+'/'+basename 
+        fpath=opath+'/'+basename 
         outfile=opath+'/'+basename+'.magic'
+        add_mag(ftype,outfile)
+
+
+def add_mag(ftype,outfile):
+        global fpath,basename, MAG
         names=ask_names(root)
         ask_mag(root)
         LPlist= map((lambda var:var.get()),MAG['lp_check_value'])
@@ -1669,7 +1683,7 @@ def add_mag(ftype):
             outstring = 'sio_magic.py '
         elif ftype=='tdt':
             outstring = 'TDT_magic.py '
-        outstring=outstring+' -F '+outfile+' -f '+ ifile+ ' -LP ' + LP.strip(":") + ' -spc ' + MAG['spc'] 
+        outstring=outstring+' -F '+outfile+' -f '+ fpath+ ' -LP ' + LP.strip(":") + ' -spc ' + MAG['spc'] 
         if MAG['loc']!="":outstring=outstring + ' -loc "'+ MAG['loc']+'"'
         if MAG['dc']!="0":outstring=outstring + ' -dc '+ MAG['dc'] + ' ' + MAG['phi'] + ' ' + MAG['theta']
         if MAG['coil']!="":outstring=outstring + ' -V '+ MAG['coil'] 
@@ -3077,7 +3091,10 @@ def create_menus():
    # UCSCmenu.add_command(label="UCSC legacy format",command=add_leg_ucsc)
 #    magmenu.add_command(label="LIV-MW format",command=add_liv)
 #    magmenu.add_command(label="UMICH (Gee) format",command=add_umich)
-    magmenu.add_command(label="TDT format",command=add_tdt)
+    TDTmenu=Menu(magmenu)
+    magmenu.add_cascade(label="TDT format",menu=TDTmenu)
+    TDTmenu.add_command(label="single file",command=add_tdt)
+    TDTmenu.add_command(label="whole directory - file endings .dat or .tdt",command=add_tdt_dir)
     amsmenu=Menu(importmenu)
     importmenu.add_cascade(label="Anisotropy files",menu=amsmenu)
 #    s_menu=Menu(amsmenu)
