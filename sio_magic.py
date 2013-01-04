@@ -449,24 +449,42 @@ def main():
                             MagRec["treatment_dc_field"]='%8.3e'%(labfield)
                             MagRec["treatment_ac_field"]='%8.3e' %(peakfield) # peak field in tesla
                 elif demag=="T" and methcode == "LP-AN-TRM":
+                    MagRec["treatment_temp"]='%8.3e' % (float(treat[0])+273.) # temp in kelvin
                     if treat[1][0]=='0':
-                            meas_type="LT-T-Z:LP-AN-TRM"
-                            MagRec["treatment_dc_field"]='%8.3e'%(0)
-                            MagRec["treatment_temp"]='%8.3e' % (float(treat[0])+273.) # temp in kelvin
-                    elif treat[1][0]=='7': # alteration check as final measurement
-                            meas_type="LT-PTRM-I:LP-AN-TRM"
-                            ipos=int(treat[1][0])-1
-                            MagRec["treatment_dc_field_phi"]='%7.1f' %(tdec[ipos])
-                            MagRec["treatment_dc_field_theta"]='%7.1f'% (tinc[ipos])
-                            MagRec["treatment_temp"]='%8.3e' % (float(treat[0])+273.) # temp in kelvin
-                            MagRec["treatment_dc_field"]='%8.3e'%(labfield)
+                        meas_type="LT-T-Z:LP-AN-TRM"
+                        MagRec["treatment_dc_field"]='%8.3e'%(0)
+                        MagRec["treatment_dc_field_phi"]='0'
+                        MagRec["treatment_dc_field_theta"]='0'
                     else:
-                            meas_type="LT-T-I:LP-AN-TRM"
-                            ipos=int(treat[1][0])-1
-                            MagRec["treatment_dc_field_phi"]='%7.1f' %(tdec[ipos])
-                            MagRec["treatment_dc_field_theta"]='%7.1f'% (tinc[ipos])
-                            MagRec["treatment_temp"]='%8.3e' % (float(treat[0])+273.) # temp in kelvin
-                            MagRec["treatment_dc_field"]='%8.3e'%(labfield)
+                        MagRec["treatment_dc_field"]='%8.3e'%(labfield)
+                        if treat[1][0]=='7': # alteration check as final measurement
+                                meas_type="LT-PTRM-I:LP-AN-TRM"
+                        else:
+                                meas_type="LT-T-I:LP-AN-TRM"
+
+                        # find the direction of the lab field in two ways:
+                        # (1) using the treatment coding (XX.1=+x, XX.2=+y, XX.3=+z, XX.4=-x, XX.5=-y, XX.6=-z)
+                        ipos_code=int(treat[1][0])-1
+                        # (2) using the magnetization
+                        DEC=float(rec[4])
+                        INC=float(rec[5])
+                        if INC < 45 and INC > -45:
+                            if DEC>315  or DEC<45: ipos_guess=0
+                            if DEC>45 and DEC<135: ipos_guess=1
+                            if DEC>135 and DEC<225: ipos_guess=3
+                            if DEC>225 and DEC<315: ipos_guess=4
+                        else:
+                            if INC >45: ipos_guess=2
+                            if INC <-45: ipos_guess=5
+                        # prefer the guess over the code
+                        ipos=ipos_guess
+                        MagRec["treatment_dc_field_phi"]='%7.1f' %(tdec[ipos])
+                        MagRec["treatment_dc_field_theta"]='%7.1f'% (tinc[ipos])
+                        # check it 
+                        if ipos_guess!=ipos_code and treat[1][0]!='7':
+                            print "-E- ERROR: check specimen %s step %s, ATRM measurements, coding does not match the direction of the lab field!"%(rec[0],".".join(list(treat)))
+                        
+
                 elif demag=="S": # Shaw experiment
                     if treat[1][1]=='0':
                         if  int(treat[0])!=0:
