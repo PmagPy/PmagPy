@@ -734,15 +734,23 @@ def model_lat(): # imports a site paleolatitude file
     outstring='mv '+opath+'/'+basename+' '+mfile
     os.system(outstring)
 
+def convert_meas():
+    convert('magic_measurements')
+
 def convert_samps():
-    outpath=tkFileDialog.askdirectory(title="Set output directory for orient.txt file")
+    convert('er_samples')
+
+
+def convert(file_type):
     files=os.listdir(opath)
-    if 'er_samples.txt' in files:
-        outstring='convert_samples.py  -WD '+opath +' -OD '+outpath 
+    outpath=tkFileDialog.askdirectory(title="Set output directory for orient.txt file")
+    file=file_type+'.txt'
+    if file in files:
+        outstring='convert_samples.py  -WD '+opath +' -OD '+outpath +' -f '+file
         print outstring
         os.system(outstring)
     else:
-        print 'No er_samples.txt file - import something first! '
+        print 'File not available - need to assemble measurements or import an orient.txt file first'
 
 def add_ODP_samp():
     global apath
@@ -3114,7 +3122,10 @@ def create_menus():
     importmenu.add_separator()
     importmenu.add_command(label="Combine measurements",command=meas_combine)
     importmenu.add_separator()
-    importmenu.add_command(label="Convert er_samples => orient.txt",command=convert_samps)
+    convert=Menu(importmenu)
+    convert.add_command(label="Convert er_samples => orient.txt",command=convert_samps)
+    convert.add_command(label="Convert magic_measurements => orient.txt",command=convert_meas)
+    importmenu.add_cascade(label="Create an orient.txt template file",menu=convert)
     importmenu.add_command(label="Update measurements\n with new site names",command=update_meas)
     importmenu.add_separator()
     prior=Menu(importmenu)

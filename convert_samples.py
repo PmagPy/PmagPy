@@ -8,7 +8,7 @@ def main():
         convert_samples.py
    
     DESCRIPTION
-        takes an er_samples.txt file and creates an orient.txt file
+        takes an er_samples or magic_measurements format file and creates an orient.txt template
  
     SYNTAX
         convert_samples.py [command line options]
@@ -18,9 +18,9 @@ def main():
         -F FILE: specify output file, default is: orient_LOCATION.txt 
 
     INPUT FORMAT
-        er_samples.txt formatted file
+        er_samples.txt or magic_measurements format file
     OUTPUT
-        orient.txt formatted file
+        orient.txt format file
     """
     #
     # initialize variables
@@ -51,26 +51,35 @@ def main():
     #
     # read in file to convert
     #
+    ErSamples=[]
+    Required=['sample_class','sample_type','sample_lithology','sample_lat','sample_lon']
     Samps,file_type=pmag.magic_read(samp_file)
     Locs=[]
-    OrKeys=['sample_name','mag_azimuth','field_dip','sample_class','sample_type','sample_lithology','lat','long','stratigraphic_height','method_codes','site_name','site_description']
-    SampKeys=['er_sample_name','sample_azimuth','sample_dip','sample_class','sample_type','sample_lithology','sample_lat','sample_lon','sample_height','magic_method_codes','er_site_name','er_sample_description']
-
+    OrKeys=['sample_name','site_name','mag_azimuth','field_dip','sample_class','sample_type','sample_lithology','lat','long','stratigraphic_height','method_codes','site_description']
+    if file_type.lower()=='er_samples':
+        SampKeys=['er_sample_name','er_site_name','sample_azimuth','sample_dip','sample_class','sample_type','sample_lithology','sample_lat','sample_lon','sample_height','magic_method_codes','er_sample_description']
+    elif file_type.lower()=='magic_measurements':
+        SampKeys=['er_sample_name','er_site_name']
+    else:
+        print 'wrong file format; must be er_samples or magic_measurements only'
     for samp in Samps:
-        if samp['er_location_name'] not in Locs:Locs.append(samp['er_location_name']) # get all the location names
+            if samp['er_location_name'] not in Locs:Locs.append(samp['er_location_name']) # get all the location names
     for location_name in Locs:
+        loc_samps=pmag.get_dictitem(Samps,'er_location_name',location_name,'T')
         OrOut=[]
-        for samp in Samps:
-            if samp['er_location_name']==location_name:
+        for samp in loc_samps:
+            if samp['er_sample_name'] not in ErSamples:
+                ErSamples.append(samp['er_sample_name'])
                 OrRec={}
                 if 'sample_date' in samp.keys() and samp['sample_date'].strip()!="":
                     date=samp['sample_date'].split(':')
                     OrRec['date']=date[1]+'/'+date[2]+'/'+date[0][2:4]
                 for i in range(len(SampKeys)): 
-                   if SampKeys[i] in samp.keys():OrRec[OrKeys[i]]=samp[SampKeys[i]]
+                    if SampKeys[i] in samp.keys():OrRec[OrKeys[i]]=samp[SampKeys[i]]
+                for key in Required:
+                    if key not in OrRec.keys():OrRec[key]="" # fill in blank required keys 
                 OrOut.append(OrRec)
         loc=location_name.replace(" ","_") 
-        #if '-F'!=args:outfile=orient_file+'_'+loc+'.txt'
         outfile=orient_file+'_'+loc+'.txt'
         pmag.magic_write(outfile,OrOut,location_name)
         print "Data saved in: ", outfile
