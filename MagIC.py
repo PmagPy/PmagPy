@@ -2575,9 +2575,9 @@ class make_results(): # makes an entry table for results calculation
         Label(top, text="Choose Selection Criteria Preference:").grid(row=row,column=column,sticky=W)
         self.criteria=IntVar()
         for type in range(len(Crit_Prefs)):
+            row+=1
             rb=Radiobutton(top,variable=self.criteria,value=type,text=Crit_Prefs[type])
             rb.grid(row=row,column=column,sticky=W)
-            row+=1
         row+=1
         self.res_check_value=[]
         for i in range(len(Res_Types)):

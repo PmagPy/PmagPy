@@ -1932,7 +1932,7 @@ def plot_close(plot):
 	pylab.ioff()
 
 #
-def plotANIS(ANIS,Ss,iboot,ihext,ivec,ipar,title,plt,comp,vec,Dir):
+def plotANIS(ANIS,Ss,iboot,ihext,ivec,ipar,title,plt,comp,vec,Dir,nb):
     imeas,bpars,hpars=1,[],[]
     npts=len(Ss) # number of data points
     plots={}
@@ -1972,7 +1972,7 @@ def plotANIS(ANIS,Ss,iboot,ihext,ivec,ipar,title,plt,comp,vec,Dir):
 #
     if iboot==1:
         print 'Doing bootstrap - be patient'
-        Tmean,Vmean,Taus,BVs=pmag.s_boot(Ss,ipar) # get eigenvectors of mean tensor
+        Tmean,Vmean,Taus,BVs=pmag.s_boot(Ss,ipar,nb) # get eigenvectors of mean tensor
         bpars=pmag.sbootpars(Taus,BVs)
         bpars['t1']=hpars['t1'] 
         bpars['t2']=hpars['t2'] 

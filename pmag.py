@@ -411,15 +411,14 @@ def default_criteria(nocrit):
     Crits={}
     critkeys=['magic_experiment_names', 'measurement_step_min', 'measurement_step_max', 'measurement_step_unit', 'specimen_polarity', 'specimen_nrm', 'specimen_direction_type', 'specimen_comp_nmb', 'specimen_mad', 'specimen_alpha95', 'specimen_n', 'specimen_int_sigma', 'specimen_int_sigma_perc', 'specimen_int_rel_sigma', 'specimen_int_rel_sigma_perc', 'specimen_int_mad', 'specimen_int_n', 'specimen_w', 'specimen_q', 'specimen_f', 'specimen_fvds', 'specimen_b_sigma', 'specimen_b_beta', 'specimen_g', 'specimen_dang', 'specimen_md', 'specimen_ptrm', 'specimen_drat', 'specimen_drats', 'specimen_rsc', 'specimen_viscosity_index', 'specimen_magn_moment', 'specimen_magn_volume', 'specimen_magn_mass', 'specimen_int_ptrm_n', 'specimen_delta', 'specimen_theta', 'specimen_gamma', 'specimen_frac','specimen_gmax','specimen_scat','sample_polarity', 'sample_nrm', 'sample_direction_type', 'sample_comp_nmb', 'sample_sigma', 'sample_alpha95', 'sample_n', 'sample_n_lines', 'sample_n_planes', 'sample_k', 'sample_r', 'sample_tilt_correction', 'sample_int_sigma', 'sample_int_sigma_perc', 'sample_int_rel_sigma', 'sample_int_rel_sigma_perc', 'sample_int_n', 'sample_magn_moment', 'sample_magn_volume', 'sample_magn_mass', 'site_polarity', 'site_nrm', 'site_direction_type', 'site_comp_nmb', 'site_sigma', 'site_alpha95', 'site_n', 'site_n_lines', 'site_n_planes', 'site_k', 'site_r', 'site_tilt_correction', 'site_int_sigma', 'site_int_sigma_perc', 'site_int_rel_sigma', 'site_int_rel_sigma_perc', 'site_int_n', 'site_magn_moment', 'site_magn_volume', 'site_magn_mass', 'average_age_min', 'average_age_max', 'average_age_sigma', 'average_age_unit', 'average_sigma', 'average_alpha95', 'average_n', 'average_nn', 'average_k', 'average_r', 'average_int_sigma', 'average_int_rel_sigma', 'average_int_rel_sigma_perc', 'average_int_n', 'average_int_nn', 'vgp_dp', 'vgp_dm', 'vgp_sigma', 'vgp_alpha95', 'vgp_n', 'vdm_sigma', 'vdm_n', 'vadm_sigma', 'vadm_n', 'criteria_description', 'er_citation_names']
     for key in critkeys:Crits[key]='' # set up dictionary with all possible
+    Crits['pmag_criteria_code']='ACCEPT'
+    Crits['criteria_definition']='acceptance criteria for study'
+    Crits['er_citation_names']='This study'
     if nocrit==0: # use default criteria
 # 
 # set some sort of quasi-reasonable default criteria
 #   
-        Crits['pmag_criteria_code']='ACCEPT'
-        Crits['criteria_definition']='acceptance criteria for study'
-        Crits['er_citation_names']='This study'
         Crits['specimen_mad']='5'
-        Crits['specimen_alpha95']='5'
         Crits['specimen_int_n']='4'
         Crits['specimen_int_ptrm_n']='2'
         Crits['specimen_drats']='20'
@@ -429,67 +428,48 @@ def default_criteria(nocrit):
         Crits['specimen_q']='1.0'
         Crits['specimen_dang']='10'
         Crits['specimen_int_mad']='10'
-        Crits['sample_alpha95']='10'
-        Crits['sample_int_n']='2'
-        Crits['sample_int_sigma']='5e-6'
-        Crits['sample_int_sigma_perc']='15'
         Crits['site_int_n']='2'
         Crits['site_int_sigma']='5e-6' 
         Crits['site_int_sigma_perc']='15'
         Crits['site_n']='5'
         Crits['site_n_lines']='4'
         Crits['site_k']='50'
-        Crits['site_alpha95']='180'
-    else:
-        Crits['pmag_criteria_code']='ACCEPT'
-        Crits['criteria_definition']='acceptance criteria for study'
-        Crits['er_citation_names']='This study'
-        Crits['specimen_mad']=''
-        Crits['specimen_alpha95']=''
-        Crits['specimen_n']=''
-        Crits['specimen_int_ptrm_n']=''
-        Crits['specimen_drats']=''
-        Crits['specimen_b_beta']=''
-        Crits['specimen_md']=''
-        Crits['specimen_fvds']=''
-        Crits['specimen_q']=''
-        Crits['specimen_dang']=''
-        Crits['specimen_int_mad']=''
-        Crits['sample_alpha95']=''
-        Crits['sample_int_n']=''
-        Crits['sample_int_sigma']=''
-        Crits['sample_int_sigma_perc']=''
-        Crits['site_int_n']=''
-        Crits['site_int_sigma']=''
-        Crits['site_int_sigma_perc']=''
-        Crits['site_n']=''
-        Crits['site_n_lines']=''
-        Crits['site_k']=''
-        Crits['site_alpha95']=''
     return [Crits]
 
 def grade(PmagRec,ACCEPT,type): 
     """
     Finds the 'grade' (pass/fail; A/F) of a record (specimen,sample,site) given the acceptance criteria
     """
-    GREATERTHAN=['specimen_q','site_k','site_n','site_n_lines','site_int_n','measurement_step_min','measurement_step_max','specimen_int_ptrm_n','specimen_fvds','specimen_frac','specimen_f','specimen_n','specimen_int_n','sample_int_n','average_age_min','average_k','average_r','specimen_magn_moment','specimen_magn_volumn','specimen_n','specimen_rsc','sample_n','sample_n_lines','sample_n_planes','sample_k','sample_r','site_magn_moment','site_magn_volumn','site_magn_mass','site_r'] # these statistics must be exceede to pass, all others must be less than (except specimen_scat, which must be true)
+    GREATERTHAN=['specimen_q','site_k','site_n','site_n_lines','site_int_n','measurement_step_min','specimen_int_ptrm_n','specimen_fvds','specimen_frac','specimen_f','specimen_n','specimen_int_n','sample_int_n','average_age_min','average_k','average_r','specimen_magn_moment','specimen_magn_volumn','specimen_rsc','sample_n','sample_n_lines','sample_n_planes','sample_k','sample_r','site_magn_moment','site_magn_volumn','site_magn_mass','site_r'] # these statistics must be exceede to pass, all others must be less than (except specimen_scat, which must be true)
     ISTRUE=['specimen_scat']
     kill=[] # criteria that kill the record
     sigma_types=['sample_int_sigma','sample_int_sigma_perc','site_int_sigma','site_int_sigma_perc','average_int_sigma','average_int_sigma_perc']
     sigmas=[]
     accept={}
+    if type=='specimen_int': 
+        USEKEYS=['specimen_q','measurement_step_min','measurement_step_max','specimen_int_ptrm_n','specimen_fvds','specimen_frac','specimen_f','specimen_int_n','sample_int_n','specimen_magn_moment','specimen_magn_volumn','specimen_rsc','specimen_scat','specimen_drats','specimen_int_mad','specimen_dang','specimen_md','specimen_b_beta','specimen_w','specimen_gmax'] 
+    elif type=='specimen_dir':
+        USEKEYS=['measurement_step_min','measurement_step_max','specimen_mad','specimen_n','specimen_magn_moment','specimen_magn_volumn']
+    elif type=='sample_int':
+        USEKEYS=['sample_int_n','sample_int_sigma','sample_int_sigma_perc']
+    elif type=='sample_dir':
+        USEKEYS=['sample_alpha95','sample_n','sample_n_lines','sample_n_planes','sample_k','sample_r']
+    elif type=='site_int':
+        USEKEYS=['site_int_sigma','site_int_sigma_perc','site_int_n']
+    elif type=='site_dir':
+        USEKEYS=['site_alpha95','site_k','site_n','site_n_lines','site_n_planes','site_r']
+ 
     for key in ACCEPT.keys():
-        if type in key and ACCEPT[key]!="":
+        if ACCEPT[key]!="" and key in USEKEYS:
+            if key in ISTRUE and ACCEPT[key]=='TRUE' or ACCEPT[key]=='True':
+                ACCEPT[key]='1' # this is because Excel always capitalizes True to TRUE and python doesn't recognize that as a boolean.  never mind
+            elif ACCEPT[key]=='FALSE' or ACCEPT[key]=='False':
+                ACCEPT[key]='0'
+            elif eval(ACCEPT[key])==0: 
+                ACCEPT[key]=""
             accept[key]=ACCEPT[key]
-            if key in ISTRUE and accept[key]=='TRUE' or accept[key]=='True':
-                accept[key]='1' # this is because Excel always capitalizes True to TRUE and python doesn't recognize that as a boolean.  never mind
-            elif accept[key]=='FALSE' or accept[key]=='False':
-                accept[key]='0'
-            elif eval(accept[key])==0: 
-                accept[key]=""
-        if type in key and ACCEPT[key]!="":accept[key]=ACCEPT[key]
     for key in sigma_types:
-        if key in accept.keys() and key in PmagRec.keys(): sigmas.append(key)
+        if key in USEKEYS and key in accept.keys() and key in PmagRec.keys(): sigmas.append(key)
     if len(sigmas)>1:
         if PmagRec[sigmas[0]]=="" or PmagRec[sigmas[1]]=="":
            kill.append(sigmas[0]) 
@@ -1897,7 +1877,7 @@ def PintPars(datablock,araiblock,zijdblock,start,end,accept):
 
     # if threshold value for beta is not defined, then scat cannot be calculated (pass)
     # in this case, scat pass
-    if 'specimen_b_beta' in accept.keys(): 
+    if 'specimen_b_beta' in accept.keys() and accept['specimen_b_beta']!="": 
         b_beta_threshold=float(accept['specimen_b_beta'])
         b=pars['specimen_b']             # best fit line
         cm_x=mean(array(x_Arai_segment)) # x center of mass
@@ -3715,6 +3695,8 @@ def fcalc(col,row):
   looks up f from ftables F(row,col), where row is number of degrees of freedom - this is 95% confidence (p=0.05)
     """
 #
+    if row>200:row=200
+    if col>20:col=20
     ftest=numpy.array([[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20],
 [1, 161.469, 199.493, 215.737, 224.5, 230.066, 234.001, 236.772, 238.949, 240.496, 241.838, 242.968, 243.88, 244.798, 245.26, 245.956, 246.422, 246.89, 247.36, 247.596, 248.068],
 [2, 18.5128, 18.9995, 19.1642, 19.2467, 19.2969, 19.3299, 19.3536, 19.371, 19.3852, 19.3963, 19.4043, 19.4122, 19.4186, 19.425, 19.4297, 19.4329, 19.4377, 19.4409, 19.4425, 19.4457],
@@ -4342,7 +4324,7 @@ def sbootpars(Taus,Vs):
     return bpars
 #
 #
-def s_boot(Ss,ipar):
+def s_boot(Ss,ipar,nb):
     """
      returns bootstrap parameters for S data
     """
@@ -4353,7 +4335,7 @@ def s_boot(Ss,ipar):
 #
 # now do bootstrap to collect Vs and taus of bootstrap means
 #
-    nb,Taus,Vs=1000,[],[]  # number of bootstraps, list of bootstrap taus and eigenvectors
+    Taus,Vs=[],[]  # number of bootstraps, list of bootstrap taus and eigenvectors
 #
 
     for k in range(nb): # repeat nb times

@@ -33,6 +33,7 @@ def main():
         -fmt [svg, png, jpg] format for output images, pdf default
         -gtc DEC INC  dec,inc of pole to great circle 
         -d Vi DEC INC; Vi (1,2,3) to compare to direction DEC INC
+        -nb N; specifies the number of bootstraps - default is 1000
     DEFAULTS  
        AFILE:  rmag_anisotropy.txt
        RFILE:  rmag_results.txt
@@ -52,6 +53,7 @@ def main():
     ipar,ihext,ivec,iboot,imeas,isite,iplot,vec=0,0,0,1,1,0,1,0
     hpars,bpars,PDir=[],[],[]
     CS,crd='-1','s'
+    nb=1000
     fmt='eps'
     ResRecs=[]
     orlist=[]
@@ -63,6 +65,9 @@ def main():
     if '-WD' in args:
         ind=args.index('-WD')
         dir_path=args[ind+1]
+    if '-nb' in args:
+        ind=args.index('-nb')
+        nb=int(args[ind+1])
     if '-usr' in args:
         ind=args.index('-usr')
         user=args[ind+1]
@@ -200,7 +205,7 @@ def main():
       if len(Ss)>1:
           title="LO:_"+ResRec['er_location_names']+'_SI:_'+site+'_SA:__SP:__CO:_'+crd
           ResRec['er_location_names']=pmag.makelist(Locs)
-          bpars,hpars=pmagplotlib.plotANIS(ANIS,Ss,iboot,ihext,ivec,ipar,title,iplot,comp,vec,Dir)
+          bpars,hpars=pmagplotlib.plotANIS(ANIS,Ss,iboot,ihext,ivec,ipar,title,iplot,comp,vec,Dir,nb)
           if len(PDir)>0:
               pmagplotlib.plotC(ANIS['data'],PDir,90.,'g')
               pmagplotlib.plotC(ANIS['conf'],PDir,90.,'g')
@@ -331,7 +336,7 @@ def main():
                              ANIS['tcdf']=3
                              pmagplotlib.plot_init(ANIS['tcdf'],5,5)
                              inittcdf=1
-                 bpars,hpars=pmagplotlib.plotANIS(ANIS,Ss,iboot,ihext,ivec,ipar,title,iplot,comp,vec,Dir)
+                 bpars,hpars=pmagplotlib.plotANIS(ANIS,Ss,iboot,ihext,ivec,ipar,title,iplot,comp,vec,Dir,nb)
                  pmagplotlib.drawFIGS(ANIS)
               if ans=="c":
                   print "Current Coordinate system is: "
@@ -383,7 +388,7 @@ def main():
                           con=0
                       except IndexError:
                           print " Incorrect entry, try again " 
-                  bpars,hpars=pmagplotlib.plotANIS(ANIS,Ss,iboot,ihext,ivec,ipar,title,iplot,comp,vec,Dir)
+                  bpars,hpars=pmagplotlib.plotANIS(ANIS,Ss,iboot,ihext,ivec,ipar,title,iplot,comp,vec,Dir,nb)
                   Dir,comp=[],0
               if ans=='g':
                   con,cnt=1,0

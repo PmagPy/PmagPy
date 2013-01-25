@@ -242,7 +242,7 @@ def main():
 	IntData=pmag.get_dictitem(Data,'specimen_int','','F') # retrieve specimens with intensity data
 	if nocrit==0: # use selection criteria
 	    for rec in IntData: # do selection criteria
-		kill=pmag.grade(rec,accept,'specimen')
+		kill=pmag.grade(rec,accept,'specimen_int')
 		if len(kill)==0: SpecInts.append(rec) # intensity record to be included in sample, site calculations
 	else:
 	    SpecInts=IntData[:] # take everything - no selection criteria
@@ -272,7 +272,7 @@ def main():
 	Ns=pmag.get_dictitem(AllDirs,'specimen_n','','F')  # get all specimens with specimen_n information 
 	if nocrit!=1: # use selection criteria
 	    for rec in Ns: # look through everything with specimen_n for "good" data
-                kill=pmag.grade(rec,accept,'specimen')
+                kill=pmag.grade(rec,accept,'specimen_dir')
                 if len(kill)==0: # nothing killed it
 			SpecDirs.append(rec)
 	else: # no criteria
@@ -309,7 +309,7 @@ def main():
 				   PmagSampRec['er_specimen_names']= pmag.get_list(CompDir,'er_specimen_name') # get a list of the specimen names used
 				   PmagSampRec['magic_method_codes']= pmag.get_list(CompDir,'magic_method_codes') # get a list of the methods used
 				   if nocrit!=1: # apply selection criteria
-                                       kill=pmag.grade(PmagSampRec,accept,'sample')
+                                       kill=pmag.grade(PmagSampRec,accept,'sample_dir')
                                    else:
                                        kill=[]
 				   if len(kill)==0:
@@ -335,7 +335,7 @@ def main():
 			   PmagSampRec['er_specimen_names']= pmag.get_list(CoordDir,'er_specimen_name') # get specimne names averaged
 			   PmagSampRec['magic_method_codes']= pmag.get_list(CoordDir,'magic_method_codes') # assemble method codes
 			   if nocrit!=1: # apply selection criteria
-                               kill=pmag.grade(PmagSampRec,accept,'sample')
+                               kill=pmag.grade(PmagSampRec,accept,'sample_dir')
 			       if len(kill)==0: # passes the mustard
 				   SampDirs.append(PmagSampRec)
 				   if vgps==1:
@@ -417,7 +417,8 @@ def main():
 			PmagSiteRec["er_site_name"]=siteD[0]['er_site_name']
 			PmagSiteRec['site_tilt_correction']=coords[-1]
 			PmagSiteRec['site_comp_name']= pmag.get_list(siteD,key+'_comp_name')
-			PmagSiteRec['er_'+key+'_names']= pmag.get_list(siteD,'er_'+key+'_name')
+			PmagSiteRec['er_sample_names']= pmag.get_list(siteD,'er_sample_name')
+			PmagSiteRec['er_specimen_names']= pmag.get_list(siteD,'er_specimen_name')
 # determine the demagnetization code (DC3,4 or 5) for this site
 			AFnum=len(pmag.get_dictitem(siteD,'magic_method_codes','LP-DIR-AF','has'))
 			Tnum=len(pmag.get_dictitem(siteD,'magic_method_codes','LP-DIR-T','has'))
@@ -440,7 +441,8 @@ def main():
 		    PmagSiteRec['site_comp_name']=comp
 		    PmagSiteRec['site_tilt_correction']=coords[-1]
 		    PmagSiteRec['site_comp_name']= pmag.get_list(siteD,key+'_comp_name')
-		    PmagSiteRec['er_'+key+'_names']= pmag.get_list(siteD,'er_'+key+'_name')
+		    PmagSiteRec['er_specimen_names']= pmag.get_list(siteD,'er_specimen_name')
+		    PmagSiteRec['er_sample_names']= pmag.get_list(siteD,'er_sample_name')
     		    AFnum=len(pmag.get_dictitem(siteD,'magic_method_codes','LP-DIR-AF','has'))
     	    	    Tnum=len(pmag.get_dictitem(siteD,'magic_method_codes','LP-DIR-T','has'))
 	    	    DC=3
@@ -466,7 +468,7 @@ def main():
 		PmagSiteRec["magic_method_codes"]=PmagSiteRec['magic_method_codes']+":DE-FM-LP"
 	    elif int(PmagSiteRec["site_n_lines"])>2:
 		PmagSiteRec["magic_method_codes"]=PmagSiteRec['magic_method_codes']+":DE-FM"
-	    kill=pmag.grade(PmagSiteRec,accept,'site')
+	    kill=pmag.grade(PmagSiteRec,accept,'site_dir')
             if len(kill)==0: 
 		PmagResRec={} # set up dictionary for the pmag_results table entry
 		PmagResRec['data_type']='i' # decorate it a bit
@@ -492,7 +494,8 @@ def main():
 		PmagResRec['er_citation_names']='This study'
 		PmagResRec['er_analyst_mail_names']=user
 		PmagResRec["er_location_names"]=PmagSiteRec["er_location_name"]
-		PmagResRec["er_"+key+"_names"]=PmagSiteRec["er_"+key+"_names"]
+		PmagResRec["er_specimen_names"]=PmagSiteRec["er_specimen_names"]
+		PmagResRec["er_sample_names"]=PmagSiteRec["er_sample_names"]
 		PmagResRec["tilt_correction"]=PmagSiteRec['site_tilt_correction']
 		PmagResRec["pole_comp_name"]=PmagSiteRec['site_comp_name']
 		PmagResRec["average_dec"]=PmagSiteRec["site_dec"]

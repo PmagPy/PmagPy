@@ -82,7 +82,7 @@ def main():
     SiteCols=["Site","Samples","Location","Lat. (N)","Long. (E)","Age ","Age sigma","Units"]
     SiteKeys=["er_site_names","er_sample_names","average_lat","average_lon","average_age","average_age_sigma","average_age_unit"]
     DirCols=["Site","Samples",'Comp.',"%TC","Dec.","Inc.","Nl","Np","k    ","R","a95","PLat","PLong"]
-    DirKeys=["er_site_names","er_sample_names","comp","tilt_correction","average_dec","average_inc","average_n_lines","average_n_planes","average_k","average_r","average_alpha95","vgp_lat","vgp_lon"]
+    DirKeys=["er_site_names","er_sample_names","pole_comp_name","tilt_correction","average_dec","average_inc","average_n_lines","average_n_planes","average_k","average_r","average_alpha95","vgp_lat","vgp_lon"]
     IntCols=["Site","Specimens","Samples","N","B (uT)","sigma","sigma perc","VADM","VADM sigma"]
     IntKeys=["er_site_names","er_specimen_names","er_sample_names","average_int_n","average_int","average_int_sigma",'average_int_sigma_perc',"vadm","vadm_sigma"]
     AllowedKeys=['specimen_frac','specimen_scat','specimen_gap_max','measurement_step_min', 'measurement_step_max', 'measurement_step_unit', 'specimen_polarity', 'specimen_nrm', 'specimen_direction_type', 'specimen_comp_nmb', 'specimen_mad', 'specimen_alpha95', 'specimen_n', 'specimen_int_sigma', 'specimen_int_sigma_perc', 'specimen_int_rel_sigma', 'specimen_int_rel_sigma_perc', 'specimen_int_mad', 'specimen_int_n', 'specimen_w', 'specimen_q', 'specimen_f', 'specimen_fvds', 'specimen_b_sigma', 'specimen_b_beta', 'specimen_g', 'specimen_dang', 'specimen_md', 'specimen_ptrm', 'specimen_drat', 'specimen_drats', 'specimen_rsc', 'specimen_viscosity_index', 'specimen_magn_moment', 'specimen_magn_volume', 'specimen_magn_mass', 'specimen_int_ptrm_n', 'specimen_delta', 'specimen_theta', 'specimen_gamma', 'sample_polarity', 'sample_nrm', 'sample_direction_type', 'sample_comp_nmb', 'sample_sigma', 'sample_alpha95', 'sample_n', 'sample_n_lines', 'sample_n_planes', 'sample_k', 'sample_r', 'sample_tilt_correction', 'sample_int_sigma', 'sample_int_sigma_perc', 'sample_int_rel_sigma', 'sample_int_rel_sigma_perc', 'sample_int_n', 'sample_magn_moment', 'sample_magn_volume', 'sample_magn_mass', 'site_polarity', 'site_nrm', 'site_direction_type', 'site_comp_nmb', 'site_sigma', 'site_alpha95', 'site_n', 'site_n_lines', 'site_n_planes', 'site_k', 'site_r', 'site_tilt_correction', 'site_int_sigma', 'site_int_sigma_perc', 'site_int_rel_sigma', 'site_int_rel_sigma_perc', 'site_int_n', 'site_magn_moment', 'site_magn_volume', 'site_magn_mass', 'average_age_min', 'average_age_max', 'average_age_sigma', 'average_age_unit', 'average_sigma', 'average_alpha95', 'average_n', 'average_nn', 'average_k', 'average_r', 'average_int_sigma', 'average_int_rel_sigma', 'average_int_rel_sigma_perc', 'average_int_n', 'average_int_nn', 'vgp_dp', 'vgp_dm', 'vgp_sigma', 'vgp_alpha95', 'vgp_n', 'vdm_sigma', 'vdm_n', 'vadm_sigma', 'vadm_n']
@@ -190,10 +190,7 @@ def main():
     for site in VGPs:
         if len(site['er_site_names'].split(":"))==1:
             if 'er_sample_names' not in site.keys():site['er_sample_names']=''
-            if 'pole_comp_name' in site.keys():
-               comp=site['pole_comp_name'] 
-            else:
-               comp="A"
+            if 'pole_comp_name' not in site.keys(): site['pole_comp_name']="A"
             if 'average_n_lines' not in site.keys():site['average_n_lines']=site['average_nn']
             if 'average_n_planes' not in site.keys():site['average_n_planes']=""
             Soutstring,Doutstring="",""
