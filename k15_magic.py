@@ -189,7 +189,7 @@ def main():
                     k15.append(1e-6*float(rec[i])) # assume measurements in micro SI
                 if linecnt==4:
                     sbar,sigma,bulk=pmag.dok15_s(k15) 
-                    hpars=pmag.dohext(15,sigma,sbar) 
+                    hpars=pmag.dohext(9,sigma,sbar) 
                     MeasRec["treatment_temp"]='%8.3e' % (273) # room temp in kelvin
                     MeasRec["measurement_temp"]='%8.3e' % (273) # room temp in kelvin
                     for i in range(15):
@@ -255,7 +255,7 @@ def main():
                     ResRecs.append(ResRec)
                     if igeo==1: 
                         sbarg=pmag.dosgeo(sbar,az,pl) 
-                        hparsg=pmag.dohext(15,sigma,sbarg) 
+                        hparsg=pmag.dohext(9,sigma,sbarg) 
                         AnisRecG=copy.copy(AnisRec)
                         ResRecG=copy.copy(ResRec)
                         AnisRecG["anisotropy_s1"]='%12.10f'%(sbarg[0])
@@ -289,7 +289,7 @@ def main():
                         AnisRecs.append(AnisRecG)
                     if itilt==1: 
                         sbart=pmag.dostilt(sbarg,bed_az,bed_dip) 
-                        hparst=pmag.dohext(15,sigma,sbart)
+                        hparst=pmag.dohext(9,sigma,sbart)
                         AnisRecT=copy.copy(AnisRec)
                         ResRecT=copy.copy(ResRec)
                         AnisRecT["anisotropy_s1"]='%12.10f'%(sbart[0])

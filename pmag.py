@@ -428,6 +428,7 @@ def default_criteria(nocrit):
         Crits['specimen_q']='1.0'
         Crits['specimen_dang']='10'
         Crits['specimen_int_mad']='10'
+        Crits['sample_alpha95']='5'
         Crits['site_int_n']='2'
         Crits['site_int_sigma']='5e-6' 
         Crits['site_int_sigma_perc']='15'
@@ -4141,6 +4142,7 @@ def sbar(Ss):
     s0=numpy.sum(Dels)
     sigma=numpy.sqrt(s0/float(nf))
     return nf,sigma,avs
+
 def dohext(nf,sigma,s):
     """
     calculates hext parameters for nf, sigma and s
