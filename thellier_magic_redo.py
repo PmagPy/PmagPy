@@ -121,13 +121,12 @@ def main():
 #
     meas_file=dir_path+"/"+meas_file
     mk_file=dir_path+"/"+mk_file
-    critout=dir_path+"/"+critout
-    crit_data,file_type=pmag.magic_read(critout)
-    if file_type!='pmag_criteria':
-        print 'bad pmag_criteria file, using no acceptance criteria'
-        accept=pmag.default_criteria(1)[0]
-    else:
-        accept={'pmag_criteria_code':'ACCEPTANCE','er_citation_names':'This study'}
+    accept=pmag.default_criteria(1)[0] # set criteria to none
+    if critout!="":
+        critout=dir_path+"/"+critout
+        crit_data,file_type=pmag.magic_read(critout)
+        if file_type!='pmag_criteria':
+            print 'bad pmag_criteria file, using no acceptance criteria'
         print "Acceptance criteria read in from ", critout
         for critrec in crit_data:
             if 'sample_int_sigma_uT' in critrec.keys(): # accommodate Shaar's new criterion
@@ -239,7 +238,7 @@ def main():
                     pars,errcode=pmag.PintPars(datablock,araiblock,zijdblock,start,end,accept)
                     if 'specimen_scat' in pars.keys(): PmagSpecRec['specimen_scat']=pars['specimen_scat']
                     if 'specimen_frac' in pars.keys(): PmagSpecRec['specimen_frac']='%5.3f'%(pars['specimen_frac'])
-                    if 'specimen_gap_max' in pars.keys(): PmagSpecRec['specimen_gap_max']='%5.3f'%(pars['specimen_gap_max'])
+                    if 'specimen_gmax' in pars.keys(): PmagSpecRec['specimen_gmax']='%5.3f'%(pars['specimen_gmax'])
                     pars['measurement_step_unit']=units
                     pars["specimen_lab_field_dc"]=field
                     pars["specimen_int"]=-1*field*pars["specimen_b"]
@@ -278,7 +277,7 @@ def main():
                     PmagSpecRec["magic_software_packages"]=version_num
                     PmagSpecRec["specimen_description"]=comment
                     if critout!="":
-                        kill=pmag.grade(PmagSpecRec,accept,'specimen')
+                        kill=pmag.grade(PmagSpecRec,accept,'specimen_int')
                         if len(kill)>0:
                             Grade='F' # fails
                         else:
@@ -301,12 +300,7 @@ def main():
     #
                         TRMs,Bs=[],[]
                         NltSpecRec=""
-                        NltRecs=[]
-                        for NltRec in nlt_data:
-                            if NltRec['er_specimen_name']==PmagSpecRec["er_specimen_name"]:
-                                meths=NltRec["magic_method_codes"].split(":")
-                                for meth in meths:meth.strip()
-                                if "LP-TRM" in meths: NltRecs.append(NltRec)
+                        NltRecs=pmag.get_dictitem(nlt_data,'er_specimen_name',PmagSpecRec['er_specimen_name'],'has') # fish out all the NLT data for this specimen
                         if len(NltRecs) > 2:
                             for NltRec in NltRecs:
                                 Bs.append(float(NltRec['treatment_dc_field']))

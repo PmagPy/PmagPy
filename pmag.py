@@ -2816,12 +2816,12 @@ def scoreit(pars,PmagSpecRec,accept,text,verbose):
     PmagSpecRec["specimen_md"]='%i '%(int(pars["specimen_md"]))
     PmagSpecRec["specimen_b_sigma"]='%5.3f '%(pars["specimen_b_sigma"])
     if 'specimen_scat' in pars.keys():PmagSpecRec['specimen_scat']=pars['specimen_scat']
-    if 'specimen_gmax' in pars.keys():PmagSpecRec['specimen_gmax']=pars['specimen_gmax']
-    if 'specimen_frac' in pars.keys():PmagSpecRec['specimen_frac']=pars['specimen_frac']
+    if 'specimen_gmax' in pars.keys():PmagSpecRec['specimen_gmax']='%5.3f'%(pars['specimen_gmax'])
+    if 'specimen_frac' in pars.keys():PmagSpecRec['specimen_frac']='%5.3f'%(pars['specimen_frac'])
     #PmagSpecRec["specimen_Z"]='%7.1f'%(pars["specimen_Z"])
   # check score
    #
-    kill=grade(PmagSpecRec,accept,'specimen')
+    kill=grade(PmagSpecRec,accept,'specimen_int')
     Grade=""
     if len(kill)==0:
         Grade='A'
@@ -3243,11 +3243,6 @@ def magnetic_lat(inc):
 
 def check_F(AniSpec):
     s=numpy.zeros((6),'f')
-    sigma=float(AniSpec["anisotropy_sigma"])
-    if AniSpec['anisotropy_type']=='AMS':
-        nf=int(AniSpec["anisotropy_n"])-6
-    else:
-        nf=3*int(AniSpec["anisotropy_n"])-6
     s[0]=float(AniSpec["anisotropy_s1"])
     s[1]=float(AniSpec["anisotropy_s2"])
     s[2]=float(AniSpec["anisotropy_s3"])
@@ -3258,16 +3253,26 @@ def check_F(AniSpec):
     tau,Vdir=doseigs(s)
     t2sum=0
     for i in range(3): t2sum+=tau[i]**2
-    F=0.4*(t2sum-3*chibar**2)/(sigma**2)
-    Fcrit=fcalc(5,nf)
-    if F>Fcrit: # anisotropic
+    if 'anisotropy_sigma' in AniSpec.keys() and 'anisotropy_n' in AniSpec.keys():
+        if AniSpec['anisotropy_type']=='AMS':
+            nf=int(AniSpec["anisotropy_n"])-6
+        else:
+            nf=3*int(AniSpec["anisotropy_n"])-6
+        sigma=float(AniSpec["anisotropy_sigma"])
+        F=0.4*(t2sum-3*chibar**2)/(sigma**2)
+        Fcrit=fcalc(5,nf)
+        if F>Fcrit: # anisotropic
+            chi=numpy.array([[s[0],s[3],s[5]],[s[3],s[1],s[4]],[s[5],s[4],s[2]]])
+            chi_inv=numpy.linalg.inv(chi)
+            #trace=chi_inv[0][0]+chi_inv[1][1]+chi_inv[2][2] # don't normalize twice
+            #chi_inv=3.*chi_inv/trace
+        else: # isotropic
+            chi_inv=numpy.array([[1.,0,0],[0,1.,0],[0,0,1.]]) # make anisotropy tensor identity tensor
+            chi=chi_inv
+    else: # no sigma key available - just do the correction
+        print 'WARNING: NO FTEST ON ANISOTROPY PERFORMED BECAUSE OF MISSING SIGMA - DOING CORRECTION ANYWAY'
         chi=numpy.array([[s[0],s[3],s[5]],[s[3],s[1],s[4]],[s[5],s[4],s[2]]])
         chi_inv=numpy.linalg.inv(chi)
-        #trace=chi_inv[0][0]+chi_inv[1][1]+chi_inv[2][2] # don't normalize twice
-        #chi_inv=3.*chi_inv/trace
-    else: # isotropic
-        chi_inv=numpy.array([[1.,0,0],[0,1.,0],[0,0,1.]]) # make anisotropy tensor identity tensor
-        chi=chi_inv
     return chi,chi_inv
 
 def Dir_anis_corr(InDir,AniSpec):
@@ -3298,7 +3303,7 @@ def doaniscorr(PmagSpecRec,AniSpec):
     Dir[0]=float(PmagSpecRec["specimen_dec"])
     Dir[1]=float(PmagSpecRec["specimen_inc"])
     Dir[2]=float(PmagSpecRec["specimen_int"])
-# check if F test passes!   
+# check if F test passes!  if anisotropy_sigma available
     chi,chi_inv=check_F(AniSpec)
     if chi[0][0]==1.: # isotropic
         cDir=[Dir[0],Dir[1]] # no change

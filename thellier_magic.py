@@ -3,6 +3,7 @@ import sys,pmag,math,pmagplotlib,exceptions
 if not pmagplotlib.isServer: import nlt
 # initialize some variables
 def save_redo(SpecRecs,inspec):
+    SpecRecs,keys=pmag.fillkeys(SpecRecs)
     pmag.magic_write(inspec,SpecRecs,'pmag_specimens')
 
 def main():
@@ -448,12 +449,10 @@ def main():
                            if end==0 or end >=len(zijdblock):end=len(zijdblock)-1
                            GoOn=0
                            while GoOn==0:
-                               print 'Enter index of first point for calculation: ','[',start,']'
-                               answer=raw_input('return to keep default  ')
+                               answer=raw_input('Enter index of first point for calculation: ['+str(start)+']  ')
                                try:
                                    start=int(answer)
-                                   print 'Enter index  of last point for calculation: ','[',end,']'
-                                   answer=raw_input('return to keep default  ')
+                                   answer=raw_input('Enter index  of last point for calculation: ['+str(end)+']  ')
                                    end=int(answer)
                                    if start >=0 and start <len(zijdblock)-2 and end >0 and end <len(zijdblock) or start>=end:
                                        GoOn=1
@@ -470,6 +469,9 @@ def main():
                            pars["specimen_int"]=-1*field*pars["specimen_b"]
                            pars["er_specimen_name"]=s
                            pars,kill=pmag.scoreit(pars,PmagSpecRec,accept,'',0)
+                           PmagSpecRec['specimen_scat']=pars['specimen_scat']
+                           PmagSpecRec['specimen_frac']='%5.3f'%(pars['specimen_frac'])
+                           PmagSpecRec['specimen_gmax']='%5.3f'%(pars['specimen_gmax'])
                            PmagSpecRec["measurement_step_min"]='%8.3e' % (pars["measurement_step_min"])
                            PmagSpecRec["measurement_step_max"]='%8.3e' % (pars["measurement_step_max"])
                            PmagSpecRec["measurement_step_unit"]="K"
@@ -536,9 +538,6 @@ def main():
                            if saveit!='n':
                                PriorRecs.append(PmagSpecRec) # put back an interpretation
                                specimen+=1
-                               if first==1:
-                                   first=0
-                                   PriorRecs,keys=pmag.fillkeys(PriorRecs)
                                save_redo(PriorRecs,inspec)
                            ans=""
                elif plots==1:

@@ -71,7 +71,7 @@ def main():
     R1=pars_1['r']
     R2=pars_2['r']
     F=(N-2)*((R1+R2-R)/(N-R1-R2))
-    Fcrit=pmag.fcalc(2*(N-2))
+    Fcrit=pmag.fcalc(2,2*(N-2))
     print F,Fcrit
 main()
 
