@@ -14,7 +14,8 @@ def main():
    OPTIONS
       -h prints help message and quits
       -i allows interactive file name entry
-      -f filename, specifies file name as a command line option
+      -f FILE, specifies input file name
+      -F FILE, specifies output file name
       < filenmae, reads file from standard input (Unix-like operating systems only)
 
    INPUT
@@ -39,6 +40,12 @@ def main():
        f.close()
    else:
        data=sys.stdin.readlines()
+   ofile=""
+   if '-F' in sys.argv:
+      ind = sys.argv.index('-F')
+      ofile= sys.argv[ind+1]
+      out = open(ofile, 'w + a')
+   file_outstring = ""
    for line in data:
        tau,Vdirs=[],[]
        rec=line.split()
@@ -48,7 +55,10 @@ def main():
        srot=pmag.doeigs_s(tau,Vdirs) 
        outstring=""
        for s in srot:outstring+='%10.8f '%(s)
-       print outstring
+       if ofile=="":
+           print outstring
+       else:
+           out.write(outstring+'\n')
 #
 main() 
 
