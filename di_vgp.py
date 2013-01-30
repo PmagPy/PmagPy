@@ -33,10 +33,12 @@ def main():
     if '-h' in sys.argv:
         print main.__doc__
         sys.exit()
-    if '-F' in sys.argv:
-        outfile=sys.argv[sys.arv.index('-F')+1]
+  if '-F' in sys.argv:
+        ind=sys.argv.index('-F')
+        ofile=sys.argv[ind+1]
+        out=open(ofile,'w')
     else:
-        outfile=''
+        out=''
     if '-i' in sys.argv: # if one is -i
         a95=0
         while 1:
@@ -68,16 +70,16 @@ def main():
                 inlist=numpy.array([data[0],data[1],numpy.zeros(N),data[2],data[3]]).transpose()
             output = pmag.dia_vgp(inlist)
             for k in range(N):
-                if outfile=='':
+                if out=='':
                     print '%7.1f %7.1f'%(output[0][k],output[1][k]) 
                 else:
-                    outfile.write('%7.1f %7.1f\n'%(output[0][k],output[1][k]))
+                    out.write('%7.1f %7.1f\n'%(output[0][k],output[1][k]))
     else: # single line of data
         if len(data)==4:
             data=[data[0],data[1],0,data[2],data[3]]
         output = pmag.dia_vgp(data)
-        if outfile=='': # spit to standard output
+        if out=='': # spit to standard output
             print '%7.1f %7.1f'%(output[0],output[1]) 
         else: # write to file
-            outfile.write('%7.1f %7.1f\n'%(output[0],output[1]))
+            out.write('%7.1f %7.1f\n'%(output[0],output[1]))
 main()

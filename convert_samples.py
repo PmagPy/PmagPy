@@ -52,7 +52,7 @@ def main():
     # read in file to convert
     #
     ErSamples=[]
-    Required=['sample_class','sample_type','sample_lithology','sample_lat','sample_lon']
+    Required=['sample_class','sample_type','sample_lithology','lat','long']
     Samps,file_type=pmag.magic_read(samp_file)
     Locs=[]
     OrKeys=['sample_name','site_name','mag_azimuth','field_dip','sample_class','sample_type','sample_lithology','lat','long','stratigraphic_height','method_codes','site_description']
