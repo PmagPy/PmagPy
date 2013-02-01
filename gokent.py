@@ -12,12 +12,13 @@ def main():
        takes dec/inc as first two columns in space delimited file
 
     SYNTAX
-       gokent.py [-h][-i][command line options]  [< filename]
+       gokent.py [options]
 
     OPTIONS
         -h prints help message and quits
         -i for interactive filename entry
         -f FILE, specify filename
+        -F FILE, specifies output file name
         < filename for reading from standard input
 
     OUTPUT
@@ -39,6 +40,11 @@ def main():
         else:
 #
             data=sys.stdin.readlines() # read in data from standard input
+    ofile = ""
+    if '-F' in sys.argv:
+        ind = sys.argv.index('-F')
+        ofile= sys.argv[ind+1]
+        out = open(ofile, 'w + a')
     DIs= [] # set up list for dec inc data
     for line in data:   # read in the data from standard input
         if '\t' in line:
@@ -48,6 +54,11 @@ def main():
         DIs.append((float(rec[0]),float(rec[1])))
 #
     kpars=pmag.dokent(DIs,len(DIs))
-    print '%7.1f %7.1f %7.1f %7.1f %7.1f %7.1f %7.1f %7.1f %i' % (kpars["dec"],kpars["inc"],kpars["Eta"],kpars["Edec"],kpars["Einc"],kpars["Zeta"],kpars["Zdec"],kpars["Zinc"],kpars["n"])
+    output = '%7.1f %7.1f %7.1f %7.1f %7.1f %7.1f %7.1f %7.1f %i' % (kpars["dec"],kpars["inc"],kpars["Eta"],kpars["Edec"],kpars["Einc"],kpars["Zeta"],kpars["Zdec"],kpars["Zinc"],kpars["n"])
+    if ofile == "":
+        print output
+    else:
+        out.write(output+'\n')
+#    print '%7.1f %7.1f %7.1f %7.1f %7.1f %7.1f %7.1f %7.1f %i' % (kpars["dec"],kpars["inc"],kpars["Eta"],kpars["Edec"],kpars["Einc"],kpars["Zeta"],kpars["Zdec"],kpars["Zinc"],kpars["n"])
     #
 main()

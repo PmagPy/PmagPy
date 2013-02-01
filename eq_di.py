@@ -13,6 +13,7 @@ def main():
     
     OPTIONS
         -f FILE, input file
+        -F FILE, specifies output file name 
         -up if data are upper hemisphere
     """
     out=""
@@ -28,6 +29,13 @@ def main():
         input=f.readlines()
     else:
         input = sys.stdin.readlines()  # read from standard input
+    # NEW
+    ofile = ""
+    if '-F' in sys.argv:
+        ind=sys.argv.index('-F')
+        ofile=sys.argv[ind+1]
+        out=open(ofile, 'w + a')
+    # end NEW
     if '-up' in sys.argv: UP=1
     for line in input:
         rec=line.split()
@@ -45,6 +53,12 @@ def main():
             p=math.atan2(y,x)
         d,i=p*180./math.pi,t*180./math.pi
         if d<0:d+=360.
-        print '%7.1f %7.1f'%(d,i)
-
+        # new
+        outstring = '%7.1f %7.1f'%(d,i)
+        if ofile == "":
+           # print '%7.1f %7.1f'%(d,i)
+            print outstring
+        else:
+            out.write(outstring+'\n')
+        #end
 main() 

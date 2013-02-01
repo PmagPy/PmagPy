@@ -9,12 +9,13 @@ def main():
        rotates .s data into stratigraphic coordinates using strike and dip
   
     SYNTAX
-        s_tilt.py [-h][-i][-f file][<filename]
+        s_tilt.py [-h][options]
 
     OPTIONS
         -h prints help message and quits
         -i allows interactive entry of file name
         -f file specifies filename on command line
+        -F FILE specifies output filename on command line
         < filename, reads from standard input (Unix like operating systems only)
 
     INPUT      
@@ -40,6 +41,11 @@ def main():
         f.close()
     else: 
         data=sys.stdin.readlines()
+    ofile = ""
+    if '-F' in sys.argv:
+        ind = sys.argv.index('-F')
+        ofile= sys.argv[ind+1]
+        out = open(ofile, 'w + a')
     for line in data:
         s=[]
         rec=line.split()
@@ -52,6 +58,9 @@ def main():
         s_rot=pmag.dostilt(s,bed_az,bed_dip)
         outstring=""
         for s in s_rot:outstring+='%10.8f '%(s)
-        print outstring
+        if ofile == "":
+            print outstring
+        else:
+            out.write(outstring+"\n")
 #
 main() 

@@ -8,12 +8,14 @@ def main():
       converts declination/inclination to virtual geomagnetic pole
     
     SYNTAX
-        di_vgp.py [-h] [-i] [-f FILE] [< filename]
+        di_vgp.py [-h] [options]
     
     OPTIONS
         -h prints help message and quits
         -i interactive data entry
-        -f FILE to specify file name on the command line
+        -f FILE to specify intput file 
+        -F FILE to specify output file
+        <filename  to read/write from/to standard input 
     
     INPUT 
       for file entry:
@@ -33,7 +35,7 @@ def main():
     if '-h' in sys.argv:
         print main.__doc__
         sys.exit()
-  if '-F' in sys.argv:
+    if '-F' in sys.argv:
         ind=sys.argv.index('-F')
         ofile=sys.argv[ind+1]
         out=open(ofile,'w')

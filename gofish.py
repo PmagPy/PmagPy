@@ -12,12 +12,13 @@ def main():
        takes dec/inc as first two columns in space delimited file
 
     SYNTAX
-       gofish.py [command line options]  [< filename]
+       gofish.py [options]  [< filename]
 
     OPTIONS
         -h prints help message and quits
         -i for interactive filename entry
         -f FILE, specify input file
+        -F FILE, specifies output file name
         < filename for reading from standard input
    
     OUTPUT
@@ -39,6 +40,11 @@ def main():
         data=f.readlines()
     else:
         data = sys.stdin.readlines()  # read from standard input
+    ofile = ""
+    if '-F' in sys.argv:
+        ind = sys.argv.index('-F')
+        ofile= sys.argv[ind+1]
+        out = open(ofile, 'w + a')
     DIs= [] # set up list for dec inc data
     for line in data:   # read in the data from standard input
         if '\t' in line:
@@ -49,6 +55,9 @@ def main():
 #
     fpars=pmag.fisher_mean(DIs)
     outstring='%7.1f %7.1f    %i %10.4f %8.1f %7.1f %7.1f'%(fpars['dec'],fpars['inc'],fpars['n'],fpars['r'],fpars['k'],fpars['alpha95'], fpars['csd'])
-    print outstring
+    if ofile == "":
+        print outstring
+    else:
+        out.write(outstring+'\n')
     #
 main()

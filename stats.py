@@ -18,6 +18,7 @@ def main():
         -h prints help message and quits
         -i interactive entry of file name
         -f input file name
+        -F output file name
  
     OUTPUT
       N, mean, sum, sigma, (%) 
@@ -38,6 +39,11 @@ def main():
         f=open(file,'rU')
     else:
         f=sys.stdin
+    ofile = ""
+    if '-F' in sys.argv:
+        ind = sys.argv.index('-F')
+        ofile= sys.argv[ind+1]
+        out = open(ofile, 'w + a')
     data=f.readlines()
     dat=[]
     sum=0
@@ -46,5 +52,12 @@ def main():
         dat.append(float(rec[0]))
         sum+=float(float(rec[0]))
     mean,std=pmag.gausspars(dat)
-    print len(dat),mean,sum,std,100*std/mean
+    outdata = len(dat),mean,sum,std,100*std/mean
+    if ofile == "":
+        print len(dat),mean,sum,std,100*std/mean
+    else:
+        for i in outdata:
+            i = str(i)
+            out.write(i + " ")
+
 main()

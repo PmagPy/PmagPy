@@ -10,12 +10,13 @@ def main():
         converts .s format data to eigenparameters.
  
     SYNTAX
-        s_eigs.py [-h][-i][-f file] [<filename]
+        s_eigs.py [-h][options]
 
     OPTIONS
         -h prints help message and quits
         -i allows interactive entry of file name
         -f FILE specifies filename on command line
+        -F FILE specifies output file
         < filename, reads from standard input (Unix like operating systems only) 
 
     INPUT
@@ -40,6 +41,11 @@ def main():
         f.close()
     else: 
         data=sys.stdin.readlines()
+    ofile = ""
+    if '-F' in sys.argv:
+        ind=sys.argv.index('-F')
+        ofile=sys.argv[ind+1]
+        out=open(ofile, "w + a")
     for line in data:
         s=[]
         rec=line.split()
@@ -47,7 +53,10 @@ def main():
             s.append(float(rec[i]))
         tau,Vdirs=pmag.doseigs(s)
         outstring='%10.8f %6.2f %6.2f %10.8f %6.2f %6.2f %10.8f %6.2f %6.2f'%(tau[2],Vdirs[2][0],Vdirs[2][1],tau[1],Vdirs[1][0],Vdirs[1][1],tau[0],Vdirs[0][0],Vdirs[0][1])
-        print outstring
+        if ofile == "":
+            print outstring
+        else:
+            out.write(outstring+'\n')
 #
 main() 
 

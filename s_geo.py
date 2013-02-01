@@ -10,12 +10,13 @@ def main():
        rotates .s data into geographic coordinates using azimuth and plunge
   
     SYNTAX
-        s_geo.py [command line options][<filename]
+        s_geo.py [-h][options]
 
     OPTIONS
         -h prints help message and quits
         -i allows interactive entry of file name
         -f file specifies filename on command line
+        -F FILE specifies output file on command line
         < filename, reads from standard input (Unix like operating systems only)
 
     INPUT      
@@ -41,6 +42,11 @@ def main():
         f.close()
     else: 
         data=sys.stdin.readlines()
+    ofile = ""
+    if '-F' in sys.argv:
+        ind = sys.argv.index('-F')
+        ofile= sys.argv[ind+1]
+        out = open(ofile, 'w + a')
     for line in data:
         s=[]
         rec=line.split()
@@ -50,6 +56,9 @@ def main():
         s_rot=pmag.dosgeo(s,az,pl)
         outstring=""
         for s in s_rot:outstring+='%10.8f '%(s)
-        print outstring
+        if ofile == "":
+            print outstring
+        else:
+            out.write(outstring+"\n")
 #
 main() 

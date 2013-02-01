@@ -5,9 +5,9 @@
 #============================================================================================
 # Thellier_GUI
 # Author: Ron Shaar
-# Citation: Shaar and Tauxe (2012)
+# Citation: Shaar and Tauxe (2013)
 #
-# Dec-11 2012: Initial revision
+# January 2012: Initial revision
 # To do list:
 # 1) calculate MD tail check
 # 2) create pmag_specimens_gui.txt; pmag_samples_gui.txt
@@ -16,7 +16,7 @@
 
 
 import matplotlib
-from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigCanvas \
+from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigCanvas 
 
 import sys,pylab,scipy,os
 import pmag
@@ -30,6 +30,7 @@ import time
 import wx
 import wx.grid
 import random
+import copy
 from pylab import *
 from scipy.optimize import curve_fit
 import wx.lib.agw.floatspin as FS
@@ -60,7 +61,7 @@ class Arai_GUI(wx.Frame):
         wx.Frame.__init__(self, None, wx.ID_ANY, self.title)
         self.redo_specimens={}
         self.currentDirectory = os.getcwd() # get the current working directory
-        self.get_DIR()                      # choose directory dialog        
+        self.get_DIR(first_run=True)        # choose directory dialog        
         accept_new_parameters_default,accept_new_parameters_null=self.get_default_criteria()    # inialize Null selecting criteria
         self.accept_new_parameters_null=accept_new_parameters_null
         self.accept_new_parameters_default=accept_new_parameters_default
@@ -84,10 +85,10 @@ class Arai_GUI(wx.Frame):
         self.Main_Frame()                   # build the main frame
         self.create_menu()                  # create manu bar
         
-    def get_DIR(self):
+    def get_DIR(self,first_run):
         """ Choose a working directory dialog
         """
-        if "-WD" in sys.argv:
+        if "-WD" in sys.argv and first_run:
             ind=sys.argv.index('-WD')
             self.WD=sys.argv[ind+1] 
         else:   
@@ -98,7 +99,7 @@ class Arai_GUI(wx.Frame):
         self.magic_file=self.WD+"/"+"magic_measurements.txt"
             #intialize GUI_log
         self.GUI_log=open("%s/Thellier_GUI.log"%self.WD,'w')
-        self.GUI_log=open("%s/Thellier_GUI.log"%self.WD,'a')
+        #self.GUI_log=open("%s/Thellier_GUI.log"%self.WD,'a')
         
     def Main_Frame(self):
         """ Build main frame od panel: buttons, etc.
@@ -345,7 +346,7 @@ class Arai_GUI(wx.Frame):
 
         gs1 = wx.GridSizer(3, 1,12,12)
         gs1.AddMany( [(wx.StaticText(self.panel,label="",style=wx.ALIGN_CENTER)),
-            (wx.StaticText(self.panel,label="Accpetance criteria:",style=wx.ALIGN_CENTER)),
+            (wx.StaticText(self.panel,label="Acceptance criteria:",style=wx.ALIGN_CENTER)),
             (wx.StaticText(self.panel,label="Specimen's statistics:",style=wx.ALIGN_CENTER))])
         
         self.write_acceptance_criteria_to_boxes()  # write threshold values to boxes
@@ -610,7 +611,7 @@ class Arai_GUI(wx.Frame):
         
         menu_file = wx.Menu()
         
-        m_change_working_directory = menu_file.Append(-1, "&Open MagIC project directory", "")
+        m_change_working_directory = menu_file.Append(-1, "&Change project directory", "")
         self.Bind(wx.EVT_MENU, self.on_menu_change_working_directory, m_change_working_directory)
 
         m_add_working_directory = menu_file.Append(-1, "&Add a MagIC project directory", "")
@@ -766,16 +767,6 @@ class Arai_GUI(wx.Frame):
             self.update_GUI_with_new_interpretation()
         self.write_sample_box()
         
-        # if previous interpretation was saved, display the interpretation.
-        # else leave it empty
-##        if self.s in self.redo_specimens.keys():
-##            self.tmin_box.SetStringSelection("%.0f"%(float(self.redo_specimens[self.s]['pars']['measurement_step_min'])-273))
-##            self.tmax_box.SetStringSelection("%.0f"%(float(self.redo_specimens[self.s]['pars']['measurement_step_max'])-273))
-##            self.pars=self.get_PI_parameters(self.s,float(self.redo_specimens[self.s]['pars']['measurement_step_min']),float(self.redo_specimens[self.s]['pars']['measurement_step_max']))
-##            self.update_GUI_with_new_interpretation()
-##        else:            
-##            self.tmin_box.SetStringSelection("")
-##            self.tmax_box.SetStringSelection("")
 
     #----------------------------------------------------------------------
       
@@ -856,6 +847,7 @@ class Arai_GUI(wx.Frame):
         self.Banc_window.SetValue("")
         self.Banc_window.SetBackgroundColour(wx.NullColor)
         self.Aniso_factor_window.SetValue("")
+        self.Aniso_factor_window.SetBackgroundColour(wx.NullColor)    
         self.NLT_factor_window.SetValue("")
         self.declination_window.SetValue("")
         self.inclination_window.SetValue("")
@@ -1025,12 +1017,16 @@ class Arai_GUI(wx.Frame):
                 bSizer4 = wx.StaticBoxSizer( wx.StaticBox( pnl1, wx.ID_ANY, "Equal area plot" ), wx.HORIZONTAL )
                 self.show_eqarea_temperatures=wx.CheckBox(pnl1, -1, '', (50, 50))        
                 self.show_eqarea_pTRMs=wx.CheckBox(pnl1, -1, '', (50, 50))        
+                self.show_eqarea_IZZI_colors=wx.CheckBox(pnl1, -1, '', (50, 50))        
                                              
-                eqarea_window = wx.GridSizer(2, 2, 12, 12)
+                eqarea_window = wx.GridSizer(2, 3, 12, 12)
                 eqarea_window.AddMany( [(wx.StaticText(pnl1,label="show temperatures",style=wx.TE_CENTER), wx.EXPAND),
                     (wx.StaticText(pnl1,label="show pTRMs directions",style=wx.TE_CENTER), wx.EXPAND),                  
+                    (wx.StaticText(pnl1,label="show IZ and ZI in different colors",style=wx.TE_CENTER), wx.EXPAND),                  
                     (self.show_eqarea_temperatures, wx.EXPAND),
-                    (self.show_eqarea_pTRMs, wx.EXPAND)])                 
+                    (self.show_eqarea_pTRMs, wx.EXPAND),
+                    (self.show_eqarea_IZZI_colors, wx.EXPAND)])                 
+                
                 bSizer4.Add( eqarea_window, 0, wx.ALIGN_LEFT|wx.ALL, 5 )
 
                 #-----------box5        
@@ -1123,6 +1119,10 @@ class Arai_GUI(wx.Frame):
                 except:
                     self.show_eqarea_pTRMs.SetValue(False)
                 try:                    
+                    self.show_eqarea_IZZI_colors.SetValue(self.preferences["show_eqarea_IZZI_colors"])
+                except:
+                    self.show_eqarea_IZZI_colors.SetValue(False)
+                try:                    
                     self.show_NLT_plot.SetValue(self.preferences["show_NLT_plot"])
                 except:
                     self.show_NLT_plot.SetValue(False)
@@ -1147,6 +1147,8 @@ class Arai_GUI(wx.Frame):
             self.preferences['show_Zij_temperatures_steps']=dia.show_Zij_temperatures_steps.GetValue()
             self.preferences['show_eqarea_temperatures']=dia.show_eqarea_temperatures.GetValue()
             self.preferences['show_eqarea_pTRMs']=dia.show_eqarea_pTRMs.GetValue()
+            self.preferences['show_eqarea_IZZI_colors']=dia.show_eqarea_IZZI_colors.GetValue()
+            
             self.preferences['show_NLT_plot']=dia.show_NLT_plot.GetValue()
             try:
                 self.preferences['BOOTSTRAP_N']=float(dia.bootstrap_N.GetValue())
@@ -1201,6 +1203,7 @@ class Arai_GUI(wx.Frame):
         preferences['show_Zij_temperatures_steps']=1.
         preferences['show_eqarea_temperatures']=False
         preferences['show_eqarea_pTRMs']=True
+        preferences['show_eqarea_IZZI_colors']=False      
         preferences['show_NLT_plot']=True
         preferences['show_NLT_plot']=True
         preferences['BOOTSTRAP_N']=1e4
@@ -1341,10 +1344,9 @@ class Arai_GUI(wx.Frame):
 
     def on_menu_change_working_directory(self, event):
         
-
         self.redo_specimens={}
         self.currentDirectory = os.getcwd() # get the current working directory
-        self.get_DIR()                      # choose directory dialog        
+        self.get_DIR(first_run=False)                      # choose directory dialog
         accept_new_parameters_default,accept_new_parameters_null=self.get_default_criteria()    # inialize Null selecting criteria
         self.accept_new_parameters_null=accept_new_parameters_null
         self.accept_new_parameters_default=accept_new_parameters_default
@@ -1494,7 +1496,7 @@ class Arai_GUI(wx.Frame):
 
     
         dlg = wx.FileDialog(
-            self, message="choose a file in a pmagpy redo format",
+            self, message="choose a file in a pmagpy format",
             defaultDir=self.currentDirectory, 
             defaultFile="pmag_criteria.txt",
             #wildcard=wildcard,
@@ -1511,7 +1513,7 @@ class Arai_GUI(wx.Frame):
         # replace with values from file
         replace_acceptance_criteria=self.read_criteria_from_file(criteria_file)
 
-        dia = Criteria_Dialog(None, replace_acceptance_criteria,title='Set Accpetance Criteria from file')
+        dia = Criteria_Dialog(None, replace_acceptance_criteria,title='Set Acceptance Criteria from file')
         dia.Center()
         if dia.ShowModal() == wx.ID_OK: # Until the user clicks OK, show the message            
             self.On_close_criteria_box(dia)
@@ -1533,16 +1535,6 @@ class Arai_GUI(wx.Frame):
         result = dia.ShowModal()
 
         if result == wx.ID_OK: # Until the user clicks OK, show the message
-##            self.Valid_values=True
-##            # check valid values
-##            for key in self.high_threshold_velue_list + self.low_threshold_velue_list + ['sample_int_n','sample_int_sigma','sample_int_sigma_perc','sample_int_n_outlier_check']:
-##                try:
-##                    command="float(dia.set_%s.GetValue())"%(key)
-##                    exec command
-##                except:
-##                    command="if dia.set_%s.GetValue() !=\"\" :  Valid_values=False ; self.show_messege(\"%s\")  "%(key,key)
-##                    exec command
-##            if self.Valid_values ==True:
             self.On_close_criteria_box(dia)
                 
     #----------------------------------------------------------------------
@@ -1554,7 +1546,7 @@ class Arai_GUI(wx.Frame):
         # replace values by the new ones
         
         # specimen's criteria
-        for key in self.high_threshold_velue_list + self.low_threshold_velue_list:
+        for key in self.high_threshold_velue_list + self.low_threshold_velue_list + ['anisotropy_alt']:
             command="replace_acceptance_criteria[\"%s\"]=float(dia.set_%s.GetValue())"%(key,key)
             try:
                 exec command
@@ -1565,6 +1557,11 @@ class Arai_GUI(wx.Frame):
           replace_acceptance_criteria['specimen_scat']=True
         else:
           replace_acceptance_criteria['specimen_scat']=False
+
+        if dia.check_aniso_ftest.GetValue() == True:
+          replace_acceptance_criteria['check_aniso_ftest']=True
+        else:
+          replace_acceptance_criteria['check_aniso_ftest']=False
 
         # sample calculation method:            
         for key in ['sample_int_stdev_opt','sample_int_bs','sample_int_bs_par']:
@@ -1675,37 +1672,8 @@ class Arai_GUI(wx.Frame):
             for L in fin.readlines():
                 line=L.strip('\n').split('\t')
                 for i in range(len(header)):
-    ##                if "pmag_criteria_code" in header:
-    ##                    index=header.index("pmag_criteria_code")
-    ##                    if line[index]=="IE-SPEC" or line[index]=="IE-SAMP:IE-SPEC" :
-    ##                        print line[index]
-    ##                        print header[i]
-    ##                     
-    ##                        # search for specimens criteria:
-    ##                        if header[i] in self.high_threshold_velue_list and float(line[i])<100:
-    ##                            print header[i],"replaced"
-    ##                            replace_acceptance_criteria[header[i]]=float(line[i])                    
-    ##                        elif header[i] in self.low_threshold_velue_list and float(line[i])>0.01:
-    ##                            print header[i],"replaced"
-    ##                            replace_acceptance_criteria[header[i]]=float(line[i])
-    ##
-    ##                        # scat parametr (true/false)
-    ##                        elif header[i] == 'specimen_scat' and ( line[i]=='True' or line[i]=='TRUE' or line[i]==True):
-    ##                            replace_acceptance_criteria[specimen_scat]=True
-    ##                        elif header[i] == 'specimen_scat' and ( line[i]=='False' or line[i]=='FALSE' or line[i]==False):
-    ##                            replace_acceptance_criteria[specimen_scat]=False
-    ##                    if line[index]=="IE-SAMP"  or line[index]=="IE-SAMP:IE-SPEC" :
-    ##                        # search for sample criteria:
-    ##                        if header[i] in ['sample_int_n','sample_int_sigma_uT','sample_int_sigma_perc','sample_int_interval_uT','sample_int_interval_perc','sample_int_n_outlier_check']:
-    ##                            replace_acceptance_criteria[header[i]]=float(line[i])
-    ##                        if header[i] == "sample_int_sigma":
-    ##                            replace_acceptance_criteria['sample_int_sigma']=float(line[i])*1e-6
-    ##                            replace_acceptance_criteria['sample_int_sigma_uT']=float(line[i])*1e6
-    ##                                                            
-    ##                else:
-    ##                    #print header[i],line[i]
-    ##                    # search for specimens criteria:
-                        if header[i] in self.high_threshold_velue_list:
+
+                        if header[i] in self.high_threshold_velue_list + ['anisotropy_alt']:
                             try:
                                 if float(line[i])<100:
                                     replace_acceptance_criteria[header[i]]=float(line[i])
@@ -1723,6 +1691,12 @@ class Arai_GUI(wx.Frame):
                                 replace_acceptance_criteria['specimen_scat']=True
                         if header[i] == 'specimen_scat' and ( line[i]=='False' or line[i]=='FALSE' or line[i]==False):
                                 replace_acceptance_criteria['specimen_scat']=False
+
+                        # aniso parametr (true/false)
+                        if header[i] == 'check_aniso_ftest' and ( line[i]=='True' or line[i]=='TRUE' or line[i]==True):
+                                replace_acceptance_criteria['check_aniso_ftest']=True
+                        if header[i] == 'check_aniso_ftest' and ( line[i]=='False' or line[i]=='FALSE' or line[i]==False):
+                                replace_acceptance_criteria['check_aniso_ftest']=False
 
                         # search for sample criteria:
                         if header[i] in ['sample_int_n','sample_int_sigma_uT','sample_int_sigma_perc','sample_int_interval_uT','sample_int_interval_perc','sample_int_n_outlier_check',\
@@ -1779,7 +1753,7 @@ class Arai_GUI(wx.Frame):
 
     def on_menu_save_interpretation(self, event):
         
-        specimen_criteria_list=['specimen_int_n','specimen_int_ptrm_n','specimen_f','specimen_fvds','specimen_frac','specimen_gap_max','specimen_b_beta','specimen_scat','specimen_drats','specimen_md','specimen_int_mad','specimen_dang']
+        thellier_gui_specimen_criteria_list=['specimen_int_n','specimen_int_ptrm_n','specimen_f','specimen_fvds','specimen_frac','specimen_gap_max','specimen_b_beta','specimen_scat','specimen_drats','specimen_md','specimen_int_mad','specimen_dang','specimen_q','specimen_g']
         thellier_gui_redo_file=open("%s/thellier_GUI.redo"%(self.WD),'w')
         thellier_gui_specimen_file=open("%s/thellier_GUI.specimens.txt"%(self.WD),'w')
         thellier_gui_sample_file=open("%s/thellier_GUI.samples.txt"%(self.WD),'w')
@@ -1815,7 +1789,7 @@ class Arai_GUI(wx.Frame):
         String=""
         for crit in specimen_file_header_list:
             String=String+crit+"\t"
-        for crit in specimen_criteria_list:
+        for crit in thellier_gui_specimen_criteria_list:
             String=String+crit+"\t"
 
         String=String+"PASS/FAIL criteria\t"
@@ -1863,10 +1837,10 @@ class Arai_GUI(wx.Frame):
                     else:
                         String=String+"%.2f"%self.Data[sp]['pars'][crit]+"\t"
                            
-            for crit in specimen_criteria_list:
+            for crit in thellier_gui_specimen_criteria_list:
                 if crit not in self.Data[sp]['pars'].keys():
                            String=String+"N/A"+"\t"
-                elif crit in ['specimen_f','specimen_fvds','specimen_gap_max','specimen_b_beta','specimen_frac','specimen_drats','specimen_int_mad','specimen_dang']:
+                elif crit in ['specimen_f','specimen_fvds','specimen_gap_max','specimen_b_beta','specimen_frac','specimen_drats','specimen_int_mad','specimen_dang','specimen_q','specimen_g']:
                         String=String+"%.2f"%self.Data[sp]['pars'][crit]+"\t"
                 elif crit in ['specimen_md']:
                     if self.Data[sp]['pars']['specimen_md']==-1:
@@ -1940,109 +1914,16 @@ class Arai_GUI(wx.Frame):
 
     def on_menu_calculate_aniso_tensor(self, event):
 
-
-        class anisotropy_dialog(wx.Dialog):
-            
-            def __init__(self, parent,title):
-                super(anisotropy_dialog, self).__init__(parent, title=title)
-                #self.accept_new_parameters=accept_new_parameters
-                #print self.accept_new_parameters
-                self.InitUI()
-                #self.SetSize((250, 200))
-
-            def InitUI(self):
-
-
-                pnl1 = wx.Panel(self)
-
-                vbox = wx.BoxSizer(wx.VERTICAL)
-                #hbox = wx.BoxSizer(wx.HORIZONTAL)
-                
-                bSizer1 = wx.StaticBoxSizer( wx.StaticBox( pnl1, wx.ID_ANY, "ATRM" ), wx.HORIZONTAL )
-                self.atrm_alteration_check_perc=wx.TextCtrl(pnl1,style=wx.TE_CENTER,size=(50,20))
-                self.atrm_antiparallel_diff=wx.TextCtrl(pnl1,style=wx.TE_CENTER,size=(50,20))
-                                             
-                atrm_window = wx.GridSizer(2, 2, 12, 12)
-                atrm_window.AddMany( [(wx.StaticText(pnl1,label="alteration check",style=wx.TE_CENTER), wx.EXPAND),
-                    (wx.StaticText(pnl1,label="anti-parallel difference",style=wx.TE_CENTER), wx.EXPAND),                                  
-                    (self.atrm_alteration_check_perc, wx.EXPAND),                                  
-                    (self.atrm_antiparallel_diff, wx.EXPAND)])
-                bSizer1.Add( atrm_window, 0, wx.ALIGN_LEFT|wx.ALL, 5 )
-
-                #-----------        
-                         
-
-                hbox2 = wx.BoxSizer(wx.HORIZONTAL)
-                self.okButton = wx.Button(pnl1, wx.ID_OK, "&OK")
-                self.cancelButton = wx.Button(pnl1, wx.ID_CANCEL, '&Cancel')
-                hbox2.Add(self.okButton)
-                hbox2.Add(self.cancelButton )
-                #self.okButton.Bind(wx.EVT_BUTTON, self.OnOK)
-                                    
-                #----------------------
-
-                bSizer2 = wx.StaticBoxSizer( wx.StaticBox( pnl1, wx.ID_ANY, "AARM" ), wx.HORIZONTAL )
-                self.aarm_f_test=wx.TextCtrl(pnl1,style=wx.TE_CENTER,size=(50,20))
-                                             
-                aarm_window = wx.GridSizer(1, 1, 12, 12)
-                aarm_window.AddMany( [(wx.StaticText(pnl1,label="F-test",style=wx.TE_CENTER), wx.EXPAND),
-                    (self.aarm_f_test, wx.EXPAND)])                                  
-                bSizer2.Add( aarm_window, 0, wx.ALIGN_LEFT|wx.ALL, 5 )
-                         
-                                    
-                #----------------------  
-
-                
-                vbox.AddSpacer(20)
-                TEXT1="   Alteration check (units of %): threshold value for 100*[delta_M)/(M1,M2)]   \n   where M1 is the first measurement and M2 is the alteration check   \n\n"
-                TEXT2="   Anti-parallel difference (units of %): threshold value for 100*[delta_M)/(M1,M2)]   \n  where M1,M2 are measurements in anti-parallel directions    \n"
-
-                vbox.Add(wx.StaticText(pnl1,label=TEXT1,style=wx.TE_CENTER), wx.EXPAND)
-                vbox.Add(wx.StaticText(pnl1,label=TEXT2,style=wx.TE_CENTER), wx.EXPAND)
-
-                vbox.AddSpacer(10)
-                vbox.Add(bSizer1, flag=wx.ALIGN_CENTER_HORIZONTAL)
-                TEXT1="   F-test threshold is for aarm in at least 9 positions   \n"
-
-                vbox.Add(wx.StaticText(pnl1,label=TEXT1,style=wx.TE_CENTER), wx.EXPAND)
-
-
-                vbox.AddSpacer(10)
-                vbox.Add(bSizer2, flag=wx.ALIGN_CENTER_HORIZONTAL)
-                vbox.AddSpacer(20)
-
-                vbox.Add(hbox2, flag=wx.ALIGN_CENTER_HORIZONTAL)
-                vbox.AddSpacer(20)
-                            
-                pnl1.SetSizer(vbox)
-                vbox.Fit(self)
-
-        
-        dia = anisotropy_dialog(None,"set anisotropy statistics")
-        dia.Center()
-        
-        if dia.ShowModal() == wx.ID_OK: # Until the user clicks OK, show the message
-            try:
-                atrm_alteration_check_perc=float(dia.atrm_alteration_check_perc.GetValue())
-            except:
-                atrm_alteration_check_perc=10000.
-            try:
-                atrm_antiparallel_diff_check_perc=float(dia.atrm_antiparallel_diff.GetValue())
-            except:
-                atrm_antiparallel_diff_check_perc=10000.
-            try:
-                aarm_f_test_check=float(dia.aarm_f_test.GetValue())
-            except:
-                aarm_f_test_check=10000.
-        self.anisotropy_criteria={}
-        self.anisotropy_criteria['atrm_alteration_check_perc']=atrm_alteration_check_perc
-        self.anisotropy_criteria['atrm_antiparallel_diff_check_perc']=atrm_antiparallel_diff_check_perc
-        self.anisotropy_criteria['aarm_f_test_check']=aarm_f_test_check
-        
         self.calculate_anistropy_tensors()
+        text1="Anisotropy tensors elements are saved in rmag_anistropy.txt\n"
+        text2="Other anisotropy statistics are saved in rmag_results.txt\n"
+        
+        dlg1 = wx.MessageDialog(self,caption="Message:", message=text1+text2 ,style=wx.OK|wx.ICON_INFORMATION)
+        dlg1.ShowModal()
+        dlg1.Destroy()
 
+        
 
-    #-----------------------------------
 
 
 
@@ -2054,23 +1935,6 @@ class Arai_GUI(wx.Frame):
 
     def calculate_anistropy_tensors(self):
 
-        def doseigs(s):
-            """
-            convert s format for eigenvalues and eigenvectors
-            """
-        #
-            A=s2a(s) # convert s to a (see Tauxe 1998)
-            tau,V=tauV(A) # convert to eigenvalues (t), eigenvectors (V)
-            Vdirs=[]
-            for v in V: # convert from cartesian to direction
-                Vdir= cart2dir(v)
-                if Vdir[1]<0:
-                    Vdir[1]=-Vdir[1]
-                    Vdir[0]=Vdir[0]+180.
-                    if Vdir[0]>360:Vdir[0]=Vdir[0]-360.
-                Vdirs.append([Vdir[0],Vdir[1]])
-            return tau,Vdirs
-        #
 
 
         def tauV(T):
@@ -2191,20 +2055,12 @@ class Arai_GUI(wx.Frame):
             return(aniso_parameters)
 
 
-        # MAIN
-        alteration_diff_max_perc = self.anisotropy_criteria['atrm_alteration_check_perc']
-        antiparallel_diff_max_perc = self.anisotropy_criteria['atrm_antiparallel_diff_check_perc']
-        f_test_max = self.anisotropy_criteria['aarm_f_test_check']
 
         
         aniso_logfile=open(self.WD+"/rmag_anisotropy.log",'w')
 
         aniso_logfile.write("------------------------\n")
         aniso_logfile.write( "-I- Start rmag anisrotropy script\n")
-        aniso_logfile.write( "-I- Quality check parameters:\n")
-        aniso_logfile.write( "-I- differene between antiparallel measuremenets: 100* [(m1-m2)/max(m1,m2)] < %.1f\n" %antiparallel_diff_max_perc)
-        aniso_logfile.write( "-I- difference in alteration check 100*[(delta_m)/max(m1,m2)] < %.1f\n"%alteration_diff_max_perc)
-        aniso_logfile.write( "-I- maximum f_test < %.2f\n"%f_test_max)
         aniso_logfile.write( "------------------------\n")
 
 
@@ -2219,8 +2075,7 @@ class Arai_GUI(wx.Frame):
         rmag_results_file =open(self.WD+"/rmag_results.txt",'w')
         rmag_results_file.write("tab\trmag_results\n")
         
-        #Header=['anisotropy_type','er_sample_name','er_specimen_name','anisotropy_s1','anisotropy_s2','anisotropy_s3','anisotropy_s4','anisotropy_s5','anisotropy_s6','anisotropy_Tau1','anisotropy_Tau2','anisotropy_Tau3','anisotropy_degree','anisotropy_sigma','anisotropy_F','anisotropy_F_crit']
-        rmag_anistropy_header=['er_specimen_name','er_sample_name','er_site_name','anisotropy_type','anisotropy_n','anisotropy_description','anisotropy_s1','anisotropy_s2','anisotropy_s3','anisotropy_s4','anisotropy_s5','anisotropy_s6','anisotropy_sigma','magic_experiment_names','magic_method_codes','rmag_anisotropy_name']
+        rmag_anistropy_header=['er_specimen_name','er_sample_name','er_site_name','anisotropy_type','anisotropy_n','anisotropy_description','anisotropy_s1','anisotropy_s2','anisotropy_s3','anisotropy_s4','anisotropy_s5','anisotropy_s6','anisotropy_sigma','anisotropy_alt','magic_experiment_names','magic_method_codes','rmag_anisotropy_name']
 
         String=""
         for i in range (len(rmag_anistropy_header)):
@@ -2325,6 +2180,7 @@ class Arai_GUI(wx.Frame):
                 #print "-I- Start calculating ATRM tensor for "
                 atrmblock=self.Data[specimen]['atrmblock']
                 trmblock=self.Data[specimen]['trmblock']
+                zijdblock=self.Data[specimen]['zijdblock']
                 if len(atrmblock)<6:
                     aniso_logfile.write("-W- specimen %s has not enough measurementf for ATRM calculation\n"%specimen)
                     continue
@@ -2336,7 +2192,7 @@ class Arai_GUI(wx.Frame):
                 # The zero field step is a "baseline"
                 # and the atrm measurements are substructed from the baseline
                 # if there is a zero field is in the atrm block: then use this measurement as a baseline
-                # if not, the program searches for the zero-field step in the trm block. 
+                # if not, the program searches for the zero-field step in the zijderveld block. 
                 # the baseline is the average of all the zero field steps in the same temperature (in case there is more than one)
 
                 # Search the baseline in the ATRM measurement
@@ -2366,15 +2222,16 @@ class Arai_GUI(wx.Frame):
                     aniso_logfile.write( "-I- found ATRM baseline for specimen %s\n"%specimen)
                     
                 else:
-                    if  len(trmblock)!=0 :
-                        for rec in trmblock:
-                            if float(rec['treatment_dc_field'])==0 and float(rec['treatment_temp'])==atrm_temperature:
-                                dec=float(rec['measurement_dec'])
-                                inc=float(rec['measurement_inc'])
-                                moment=float(rec['measurement_magn_moment'])
+                    if len(zijdblock)!=0 :
+                        for rec in zijdblock:
+                            zij_temp=rec[0]
+                            #print rec
+                            if zij_temp==atrm_temperature:
+                                dec=float(rec[1])
+                                inc=float(rec[2])
+                                moment=float(rec[3])
                                 baselines.append(array(pmag.dir2cart([dec,inc,moment])))
-                                aniso_logfile.write( "-I- Found %i ATRM baselines for specimen %s in other TRM measurements. Averaging measurements\n"%(len(baselines),specimen))
-
+                                aniso_logfile.write( "-I- Found %i ATRM baselines for specimen %s in Zijderveld block. Averaging measurements\n"%(len(baselines),specimen))
                 if  len(baselines)==0:
                     baseline=zeros(3,'f')
                     aniso_logfile.write( "-I- No aTRM baseline for specimen %s\n"%specimen)
@@ -2420,22 +2277,22 @@ class Arai_GUI(wx.Frame):
                     
                     #+x, M[0]
                     if treatment_dc_field_phi==0 and treatment_dc_field_theta==0 :
-                        M[0]=array(pmag.dir2cart([dec,inc,moment]))
+                        M[0]=CART
                     #+Y , M[1]
                     if treatment_dc_field_phi==90 and treatment_dc_field_theta==0 :
-                        M[1]=array(pmag.dir2cart([dec,inc,moment]))
+                        M[1]=CART
                     #+Z , M[2]
                     if treatment_dc_field_phi==0 and treatment_dc_field_theta==90 :
-                        M[2]=array(pmag.dir2cart([dec,inc,moment]))
+                        M[2]=CART
                     #-x, M[3]
                     if treatment_dc_field_phi==180 and treatment_dc_field_theta==0 :
-                        M[3]=array(pmag.dir2cart([dec,inc,moment]))
+                        M[3]=CART
                     #-Y , M[4]
                     if treatment_dc_field_phi==270 and treatment_dc_field_theta==0 :
-                        M[4]=array(pmag.dir2cart([dec,inc,moment]))
+                        M[4]=CART
                     #-Z , M[5]
                     if treatment_dc_field_phi==0 and treatment_dc_field_theta==-90 :
-                        M[5]=array(pmag.dir2cart([dec,inc,moment]))
+                        M[5]=CART
             
                 # check if at least one measurement in missing
                 for i in range(len(M)):
@@ -2443,11 +2300,9 @@ class Arai_GUI(wx.Frame):
                         aniso_logfile.write( "-E- ERROR: missing atrm data for specimen %s\n"%(specimen))
                         Reject_specimen=True
 
-                if Reject_specimen:
-                    continue                                        
-
                 # alteration check        
 
+                anisotropy_alt=0
                 if Alteration_check!="":
                     for i in range(len(M)):
                         if Alteration_check_index==i:
@@ -2456,15 +2311,10 @@ class Arai_GUI(wx.Frame):
                             diff=abs(M_1-M_2)
                             diff_ratio=diff/max(M_1,M_2)
                             diff_ratio_perc=100*diff_ratio
-                            if diff_ratio_perc > alteration_diff_max_perc:
-                                aniso_logfile.write( "-E- ERROR: specimen %s Fail alteration check ,%.1f%%\n"%(specimen,diff_ratio_perc))
-                                Reject_specimen=True
+                            if diff_ratio_perc > anisotropy_alt:
+                                anisotropy_alt=diff_ratio_perc
                 else:
                     aniso_logfile.write( "-W- Warning: no alteration check for specimen %s \n "%specimen )
-                if Reject_specimen:
-                    continue                                        
-
-                aniso_logfile.write( "-I- specimen %s passed alteration check\n"%specimen)
 
                 # Check for maximum difference in anti parallel directions.
                 # if the difference between the two measurements is more than maximum_diff
@@ -2480,68 +2330,63 @@ class Arai_GUI(wx.Frame):
                     diff_ratio=diff/max(M_1,M_2)
                     diff_ratio_perc=100*diff_ratio
                     
-                    if diff_ratio_perc>antiparallel_diff_max_perc:            
-                        aniso_logfile.write( "-E- ERROR: specimen %s Fail antiparallel diff check ,%.1f%%\n"%(specimen,diff_ratio_perc))
-                        key=['x','y','z']
-                        Reject_specimen=True
-
-                if Reject_specimen:
-                    continue                                        
-##                aniso_logfile.write( "-I- specimen %s passed antiparallel difference check\n"%specimen)
-                    
+                    if diff_ratio_perc>anisotropy_alt:
+                        anisotropy_alt=diff_ratio_perc
+                        
+                if not Reject_specimen:
                 
-                # K vector (18 elements, M1[x], M1[y], M1[z], ... etc.) 
-                K=zeros(18,'f')
-                K[0],K[1],K[2]=M[0][0],M[0][1],M[0][2]
-                K[3],K[4],K[5]=M[1][0],M[1][1],M[1][2]
-                K[6],K[7],K[8]=M[2][0],M[2][1],M[2][2]
-                K[9],K[10],K[11]=M[3][0],M[3][1],M[3][2]
-                K[12],K[13],K[14]=M[4][0],M[4][1],M[4][2]
-                K[15],K[16],K[17]=M[5][0],M[5][1],M[5][2]
+                    # K vector (18 elements, M1[x], M1[y], M1[z], ... etc.) 
+                    K=zeros(18,'f')
+                    K[0],K[1],K[2]=M[0][0],M[0][1],M[0][2]
+                    K[3],K[4],K[5]=M[1][0],M[1][1],M[1][2]
+                    K[6],K[7],K[8]=M[2][0],M[2][1],M[2][2]
+                    K[9],K[10],K[11]=M[3][0],M[3][1],M[3][2]
+                    K[12],K[13],K[14]=M[4][0],M[4][1],M[4][2]
+                    K[15],K[16],K[17]=M[5][0],M[5][1],M[5][2]
 
-                if specimen not in Data_anisotropy.keys():
-                    Data_anisotropy[specimen]={}
-                aniso_parameters=calculate_aniso_parameters(B,K)
-                Data_anisotropy[specimen]['ATRM']=aniso_parameters
-                Data_anisotropy[specimen]['ATRM']['anisotropy_type']="ATRM"
-                Data_anisotropy[specimen]['ATRM']['er_sample_name']=atrmblock[0]['er_sample_name']
-                Data_anisotropy[specimen]['ATRM']['er_specimen_name']=specimen
-                Data_anisotropy[specimen]['ATRM']['er_site_name']=atrmblock[0]['er_site_name']
-                Data_anisotropy[specimen]['ATRM']['anisotropy_description']='Hext statistics adapted to ATRM'
-                Data_anisotropy[specimen]['ATRM']['magic_experiment_names']=specimen+":ATRM"
-                Data_anisotropy[specimen]['ATRM']['magic_method_codes']="LP-AN-TRM:AE-H"
-                Data_anisotropy[specimen]['ATRM']['rmag_anisotropy_name']=specimen
+                    if specimen not in Data_anisotropy.keys():
+                        Data_anisotropy[specimen]={}
+                    aniso_parameters=calculate_aniso_parameters(B,K)
+                    Data_anisotropy[specimen]['ATRM']=aniso_parameters
+                    Data_anisotropy[specimen]['ATRM']['anisotropy_alt']="%.2f"%anisotropy_alt               
+                    Data_anisotropy[specimen]['ATRM']['anisotropy_type']="ATRM"
+                    Data_anisotropy[specimen]['ATRM']['er_sample_name']=atrmblock[0]['er_sample_name']
+                    Data_anisotropy[specimen]['ATRM']['er_specimen_name']=specimen
+                    Data_anisotropy[specimen]['ATRM']['er_site_name']=atrmblock[0]['er_site_name']
+                    Data_anisotropy[specimen]['ATRM']['anisotropy_description']='Hext statistics adapted to ATRM'
+                    Data_anisotropy[specimen]['ATRM']['magic_experiment_names']=specimen+":ATRM"
+                    Data_anisotropy[specimen]['ATRM']['magic_method_codes']="LP-AN-TRM:AE-H"
+                    Data_anisotropy[specimen]['ATRM']['rmag_anisotropy_name']=specimen
 
-                if float(Data_anisotropy[specimen]['ATRM']['anisotropy_ftest'])<float(Data_anisotropy[specimen]['ATRM']['anisotropy_F_crit']):
-##                    
-                    aniso_logfile.write( "-W- F-test value for specimen %s is %s: lower than F-test critical value %s\n"%(specimen,Data_anisotropy[specimen]['ATRM']['anisotropy_ftest'],Data_anisotropy[specimen]['ATRM']['anisotropy_F_crit']))       
-                else:
-                    aniso_logfile.write( "-I- atrm tensor for specimen %s PASS f-test check \n"%specimen)
-
-##                aniso_logfile.write( "-I-  atrm tensor for specimen %s PASS criteria\n"%specimen)
 
             if 'aarmblock' in self.Data[specimen].keys():    
 
                 #-----------------------------------
-                # AARM - 9 or 15 positions
+                # AARM - 6, 9 or 15 positions
                 #-----------------------------------
                     
-                aniso_logfile.write( "-I- Start calculating AARM tensors\n")
+                aniso_logfile.write( "-I- Start calculating AARM tensors specimen %s\n"%specimen)
 
                 aarmblock=self.Data[specimen]['aarmblock']
-                if len(aarmblock)<18:
-                    aniso_logfile.write( "-W- WARNING: not enough aarm measurement for specimen %s\n"%s)
+                if len(aarmblock)<12:
+                    aniso_logfile.write( "-W- WARNING: not enough aarm measurement for specimen %s\n"%specimen)
                     continue
-                # 9 positions
-                if len(aarmblock)==18:
+                elif len(aarmblock)==12:
+                    n_pos=6
+                    B=Matrices[6]['B']
+                    M=zeros([6,3],'f')
+                elif len(aarmblock)==18:
                     n_pos=9
                     B=Matrices[9]['B']
                     M=zeros([9,3],'f')
                 # 15 positions
-                if len(aarmblock)==30:
+                elif len(aarmblock)==30:
                     n_pos=15
                     B=Matrices[15]['B']
                     M=zeros([15,3],'f')
+                else:
+                    aniso_logfile.write( "-E- ERROR: number of measurements in aarm block is incorrect sample %s\n"%specimen)
+                    continue
                     
                 Reject_specimen = False
 
@@ -2571,6 +2416,7 @@ class Arai_GUI(wx.Frame):
                     Data_anisotropy[specimen]={}
                 aniso_parameters=calculate_aniso_parameters(B,K)
                 Data_anisotropy[specimen]['AARM']=aniso_parameters
+                Data_anisotropy[specimen]['AARM']['anisotropy_alt']=""               
                 Data_anisotropy[specimen]['AARM']['anisotropy_type']="AARM"
                 Data_anisotropy[specimen]['AARM']['er_sample_name']=aarmblock[0]['er_sample_name']
                 Data_anisotropy[specimen]['AARM']['er_site_name']=aarmblock[0]['er_site_name']
@@ -2580,20 +2426,6 @@ class Arai_GUI(wx.Frame):
                 Data_anisotropy[specimen]['AARM']['magic_method_codes']="LP-AN-ARM:AE-H"
                 Data_anisotropy[specimen]['AARM']['rmag_anisotropy_name']=specimen
                 
-                
-                if float(Data_anisotropy[specimen]['AARM']['anisotropy_ftest'])<float(Data_anisotropy[specimen]['AARM']['anisotropy_F_crit']):
-##                    aniso_logfile.write( "-W- low F-test value for specimen %s: %s. Setting tensor to identity matrix\n"%(specimen,Data_anisotropy[specimen]['AARM']['anisotropy_Ftest']))
-##                    for key in ['anisotropy_s1','anisotropy_s2','anisotropy_s3']:
-##                        Data_anisotropy[specimen]['AARM'][key]="1."
-##                    for key in ['anisotropy_s4','anisotropy_s5','anisotropy_s6']:
-##                        Data_anisotropy[specimen]['AARM'][key]="0."
-##                    del Data_anisotropy[specimen]['AARM']['anisotropy_sigma']
-##                    del Data_anisotropy[specimen]['AARM']['anisotropy_Ftest']
-##                    
-                    aniso_logfile.write( "-W- F-test value for specimen %s is %s: lower than F-test critical value %s"%(specimen,Data_anisotropy[specimen]['AARM']['anisotropy_ftest'],Data_anisotropy[specimen]['AARM']['anisotropy_F_crit']))
-                    
-                else:
-                    aniso_logfile.write( "-I- aarm tensor for specimen %s PASS f-test check \n"%specimen)
 
         #-----------------------------------   
 
@@ -2608,35 +2440,33 @@ class Arai_GUI(wx.Frame):
         for specimen in specimens:
             # if both AARM and ATRM axist prefer the AARM !!
             if 'AARM' in Data_anisotropy[specimen].keys():
-                TYPE='AARM'
-            else:
-                TYPE='ATRM'
-
+                TYPES=['AARM']
+            if 'ATRM' in Data_anisotropy[specimen].keys():
+                TYPES=['ATRM']
             if  'AARM' in Data_anisotropy[specimen].keys() and 'ATRM' in Data_anisotropy[specimen].keys():
-                aniso_logfile.write( "-W- WARNING: both aarm and atrm data exist for specimen %s. using AARM\n"%specimen)
-                
-            String=""
-            for i in range (len(rmag_anistropy_header)):
-##                if Header[i]=='anisotropy_sigma' or Header[i]=='anisotropy_F':
-##                    if Header[i] not in Data_anisotropy[specimen][TYPE].keys():
-##                        continue
-                try:
-                    String=String+Data_anisotropy[specimen][TYPE][rmag_anistropy_header[i]]+'\t'
-                except:
-                    String=String+"%f"%(Data_anisotropy[specimen][TYPE][rmag_anistropy_header[i]])+'\t'
-            rmag_anisotropy_file.write(String[:-1]+"\n")
+                TYPES=['ATRM','AARM']
+                aniso_logfile.write( "-W- WARNING: both aarm and atrm data exist for specimen %s. using AARM by default. If you prefer using one of them, delete the other!\n"%specimen)
+            for TYPE in TYPES:
+                String=""
+                for i in range (len(rmag_anistropy_header)):
+                    try:
+                        String=String+Data_anisotropy[specimen][TYPE][rmag_anistropy_header[i]]+'\t'
+                    except:
+                        String=String+"%f"%(Data_anisotropy[specimen][TYPE][rmag_anistropy_header[i]])+'\t'
+                rmag_anisotropy_file.write(String[:-1]+"\n")
 
-            String=""
-            Data_anisotropy[specimen][TYPE]['er_specimen_names']=Data_anisotropy[specimen][TYPE]['er_specimen_name']
-            for i in range (len(rmag_results_header)):
-                try:
-                    String=String+Data_anisotropy[specimen][TYPE][rmag_results_header[i]]+'\t'
-                except:
-                    String=String+"%f"%(Data_anisotropy[specimen][TYPE][rmag_results_header[i]])+'\t'
-            rmag_results_file.write(String[:-1]+"\n")
+                String=""
+                Data_anisotropy[specimen][TYPE]['er_specimen_names']=Data_anisotropy[specimen][TYPE]['er_specimen_name']
+                for i in range (len(rmag_results_header)):
+                    try:
+                        String=String+Data_anisotropy[specimen][TYPE][rmag_results_header[i]]+'\t'
+                    except:
+                        String=String+"%f"%(Data_anisotropy[specimen][TYPE][rmag_results_header[i]])+'\t'
+                rmag_results_file.write(String[:-1]+"\n")
 
-            
-            self.Data[specimen]['AniSpec']=Data_anisotropy[specimen][TYPE]
+                if 'AniSpec' not in self.Data[specimen]:
+                    self.Data[specimen]['AniSpec']={}
+                self.Data[specimen]['AniSpec'][TYPE]=Data_anisotropy[specimen][TYPE]
         rmag_anisotropy_file.close()
 
     #==================================================        
@@ -2656,6 +2486,7 @@ class Arai_GUI(wx.Frame):
     def on_menu_run_interpreter(self, event):
 
         import random
+        import copy
         """
         Run thellier_auto_interpreter
         """
@@ -2673,28 +2504,12 @@ class Arai_GUI(wx.Frame):
             return(result)
 
         def find_sample_min_std (Intensities):
-            # if only one specimen take the interpretation with maximum frac
-                        
-                        
-                
                 
             Best_array=[]
             best_array_std=inf
             Best_array_tmp=[]
             Best_interpretations={}
             Best_interpretations_tmp={}
-##            if len(Intensities.keys())==1:
-##                for specimen in Intensities.keys():
-##                    best_pars=Intensities[specimen][0]
-##                    print Intensities[specimen]
-##                    for i in range(1,len(Intensities[specimen])):
-##                        print Intensities[specimen][i]
-##                        if Intensities[specimen][i]['specimen_frac']>best_pars['specimen_frac']:
-##                            best_pars=Intensities[specimen][i]
-##                    Best_interpretations[specimen]=best_pars
-##                    
-##                return Best_interpretations,best_pars['specimen_int_uT'],0  
-##            else:
             for this_specimen in Intensities.keys():
                 for value in Intensities[this_specimen]:
                     Best_interpretations_tmp[this_specimen]=value
@@ -2710,7 +2525,7 @@ class Arai_GUI(wx.Frame):
                     if std(Best_array_tmp,ddof=1)<best_array_std:
                         Best_array=Best_array_tmp
                         best_array_std=std(Best_array,ddof=1)
-                        Best_interpretations=Best_interpretations_tmp
+                        Best_interpretations=copy.deepcopy(Best_interpretations_tmp)
                         Best_interpretations_tmp={}
             return Best_interpretations,mean(Best_array),std(Best_array,ddof=1)
             
@@ -2797,7 +2612,7 @@ class Arai_GUI(wx.Frame):
 
         parameters_with_upper_bounds= ['specimen_gap_max','specimen_b_beta','specimen_dang','specimen_drats','specimen_int_mad','specimen_md']
         parameters_with_lower_bounds= ['specimen_int_n','specimen_int_ptrm_n','specimen_f','specimen_fvds','specimen_frac']
-        accept_specimen_keys=['specimen_int_n','specimen_int_ptrm_n','specimen_f','specimen_fvds','specimen_frac','specimen_gap_max','specimen_b_beta','specimen_dang','specimen_drats','specimen_int_mad','specimen_md']
+        accept_specimen_keys=['specimen_int_n','specimen_int_ptrm_n','specimen_f','specimen_fvds','specimen_frac','specimen_gap_max','specimen_b_beta','specimen_dang','specimen_drats','specimen_int_mad','specimen_md','specimen_g','specimen_q']
 
         #------------------------------------------------
         # Intialize interpreter output files:
@@ -2871,41 +2686,6 @@ class Arai_GUI(wx.Frame):
             Fout_STDEV_OPT_specimens.write(String[:-1]+"\n")
 
             Fout_STDEV_OPT_samples=open(self.WD+"/thellier_interpreter/thellier_interpreter_STDEV-OPT_samples.txt",'w')
-            #Fout_STDEV_OPT_samples.write(String[:-1]+"\n")
-            #Fout_STDEV_OPT_samples.write("---------------------------------\n")
-            #String=""
-            #for key in accept_specimen_keys:
-            #    if key!= "specimen_frac":
-            #        String=String+"%.2f\t"%self.accept_new_parameters[key]
-            #    else:
-            #        String=String+"%s\t"%self.accept_new_parameters[key]                
-            #Fout_STDEV_OPT_samples.write(String[:-1]+"\n")
-
-##            String="Selection criteria:\n"
-##            for key in self.accept_new_parameters.keys():
-##                if "sample" in key:
-##                    String=String+key+"\t"
-##            for key in accept_specimen_keys:
-##                if "specimen" in key:
-##                    String=String+key+"\t"
-##                    
-##            String=String[:-1]+"\n"
-##            
-##            for key in self.accept_new_parameters.keys():
-##                if "sample" in key:
-##                    try:
-##                        String=String+"%.2f"%self.accept_new_parameters[key]+"\t"
-##                    except:
-##                        String=String+"%s"%self.accept_new_parameters[key]+"\t"                
-##            for key in accept_specimen_keys:
-##                if "specimen" in key:
-##                    try:
-##                        String=String+"%.2f"%self.accept_new_parameters[key]+"\t"
-##                    except:
-##                        String=String+"%s"%self.accept_new_parameters[key]+"\t"
-##            String=String[:-1]+"\n"
-##            Fout_STDEV_OPT_samples.write(String)
-##            Fout_STDEV_OPT_samples.write("---------------------------------\n")
             Fout_STDEV_OPT_samples.write(criteria_string)
             Fout_STDEV_OPT_samples.write("er_sample_name\tsample_int_n\tsample_int_uT\tsample_int_sigma_uT\tsample_int_sigma_perc\tsample_int_interval_uT\tsample_int_interval_perc\tWarning\n")
         # simple bootstrap output files
@@ -3015,12 +2795,6 @@ class Arai_GUI(wx.Frame):
                            String=String+"%.2f\t"%float(pars["NLT_specimen_correction_factor"])
                         else:
                            String=String+"-\t"
-##                            if "NLTC_specimen_int" in  pars.keys():
-##                               Bancient=float(pars["NLTC_specimen_int"])
-##                            elif  "AC_specimen_int" in pars.keys():
-##                               Bancient=float(pars["AC_specimen_int"])
-##                            else:
-##                               Bancient=float(pars["specimen_int"])                   
                         Bancient=float(pars['specimen_int_uT'])
                         String=String+"%.1f\t"%(Bancient)
 
@@ -3042,11 +2816,6 @@ class Arai_GUI(wx.Frame):
                             new_pars[k]=pars[k]
                         TEMP="%.0f,%.0f"%(float(pars["measurement_step_min"])-273,float(pars["measurement_step_max"])-273)
                         All_grade_A_Recs[s][TEMP]=new_pars
-##                        print "================="
-##                        for TEMP in All_grade_A_Recs[s].keys():
-##                            print TEMP
-##                            print All_grade_A_Recs[s][TEMP]
-##                            #raw_input("+++")
 
 
         specimens_list=All_grade_A_Recs.keys()
@@ -3071,13 +2840,6 @@ class Arai_GUI(wx.Frame):
 
             for TEMP in All_grade_A_Recs[s].keys():
                 pars=All_grade_A_Recs[s][TEMP]
-##                    if "NLTC_specimen_int" in rec.keys():
-##                        B_anc=float(rec["NLTC_specimen_int"])*1e6
-##                    elif  "AC_specimen_int" in rec.keys():
-##                        B_anc=float(rec["AC_specimen_int"])*1e6
-##                    else:
-##                        #B_anc=float(rec["specimen_int"])*1e6
-##                        WARNING="WARNING: No Anistropy correction"
                 if "AC_anisotropy_type" in pars.keys():
                     AC_correction_factor=pars["Anisotropy_correction_factor"]
                     AC_correction_type=pars["AC_anisotropy_type"]
@@ -3140,19 +2902,96 @@ class Arai_GUI(wx.Frame):
         samples=Grade_A_samples.keys()
         samples.sort()
 
-        #--------------------------------------------------------------
-        # check for outlier specimens
-        # Outlier check is done only if
-        # (1) number of specimen >= accept_new_parameters['sample_int_n_outlier_check']
-        # (2) an outlier exists if one (and only one!) specimen has an outlier result defined
-        # by:
-        # Bmax(specimen_1) < mean[max(specimen_2),max(specimen_3),max(specimen_3)...] - 2*sigma
-        # or
-        # Bmin(specimen_1) < mean[min(specimen_2),min(specimen_3),min(specimen_3)...] + 2*sigma
-        # (3) 2*sigma > 5 microT
-        #--------------------------------------------------------------
+        # show all interpretation after sone with the interpreter. 
+        # first delete all previous interpretation
+        for sp in self.Data.keys():
+            del self.Data[sp]['pars']
+            self.Data[sp]['pars']={}
+            self.Data[sp]['pars']['lab_dc_field']=self.Data[sp]['lab_dc_field']
+            self.Data[sp]['pars']['er_specimen_name']=self.Data[sp]['er_specimen_name']   
+            self.Data[sp]['pars']['er_sample_name']=self.Data[sp]['er_sample_name']
+        self.Data_samples={}
+        interpreter_redo={}
+
+        
 
         for sample in samples:
+
+            #--------------------------------------------------------------
+            # check for anistropy issue:
+            # If the average anisotropy correction in the sample is > 10%,
+            # and there are enough good specimens with  anisotropy correction to pass sample's criteria
+            # then dont use the uncorrected specimens for sample's calculation. 
+            #--------------------------------------------------------------
+
+            if len(Grade_A_samples[sample].keys())>self.accept_new_parameters['sample_int_n']:
+                aniso_corrections=[]
+                for specimen in Grade_A_samples[sample].keys():
+                    AC_correction_factor=0
+                    for k in All_grade_A_Recs[specimen].keys():
+                        pars=All_grade_A_Recs[specimen][k]
+                        if "AC_anisotropy_type" in pars.keys():
+                            if "AC_WARNING" in pars.keys():
+                                if "TRM" in pars["AC_WARNING"] and  pars["AC_anisotropy_type"]== "ATRM" \
+                                   or "ARM" in pars["AC_WARNING"] and  pars["AC_anisotropy_type"]== "AARM":
+                                    continue
+                                AC_correction_factor=max(AC_correction_factor,pars["Anisotropy_correction_factor"])
+                    if AC_correction_factor!=0:
+                        aniso_corrections.append(abs(1.-float(AC_correction_factor)))
+                if aniso_corrections!=[]:
+                    thellier_interpreter_log.write("sample %s have anisotropy factor mean of %f"%(sample,mean(aniso_corrections)))
+
+                if mean(aniso_corrections) > 0.10:
+                    tmp_Grade_A_samples=copy.deepcopy(Grade_A_samples)
+                    warning_messeage=""
+                    WARNING_tmp=""
+                    #print "sample %s have anisotropy factor mean of %f"%(sample,mean(aniso_corrections))
+                    for specimen in Grade_A_samples[sample].keys():
+                        ignore_specimen=False
+                        intenstities=All_grade_A_Recs[specimen].keys()
+                        pars=All_grade_A_Recs[specimen][intenstities[0]]
+                        if "AC_anisotropy_type" not in pars.keys():
+                            ignore_specimen=True
+                        elif "AC_WARNING" in pars.keys():
+                            if "alteration check" in pars["AC_WARNING"]:
+                                if "TRM" in pars["AC_WARNING"] and  pars["AC_anisotropy_type"]== "ATRM" \
+                                   or "ARM" in pars["AC_WARNING"] and  pars["AC_anisotropy_type"]== "AARM":
+                                    ignore_specimen=True
+                        if ignore_specimen: 
+                            warning_messeage = warning_messeage + "-W- WARNING: specimen %s is exluded from sample %s because it doesnt have anisotropy correction, and other specimens are very anistropic\n"%(specimen,sample)
+                            WARNING_tmp=WARNING_tmp+"excluding specimen %s; "%(specimen)
+                            del tmp_Grade_A_samples[sample][specimen]
+                            
+                     # check if new sample pass criteria:
+                    #print warning_messeage
+                    if len(tmp_Grade_A_samples[sample].keys())>=self.accept_new_parameters['sample_int_n']:
+                        Best_interpretations,best_mean,best_std=find_sample_min_std(tmp_Grade_A_samples[sample])
+                        sample_acceptable_min,sample_acceptable_max = find_sample_min_max_interpretation (tmp_Grade_A_samples[sample],self.accept_new_parameters)
+                        sample_int_interval_uT=sample_acceptable_max-sample_acceptable_min
+                        sample_int_interval_perc=100*((sample_acceptable_max-sample_acceptable_min)/best_mean)       
+
+                        # check if interpretation pass criteria (if yes ignore the specimens). if no, keep it the old way:
+                        if ( self.accept_new_parameters['sample_int_sigma_uT'] ==0 and self.accept_new_parameters['sample_int_sigma_perc']==0 ) or \
+                           (best_std <= self.accept_new_parameters['sample_int_sigma_uT'] or 100*(best_std/best_mean) <= self.accept_new_parameters['sample_int_sigma_perc']):
+                            if sample_int_interval_uT <= self.accept_new_parameters['sample_int_interval_uT'] or sample_int_interval_perc <= self.accept_new_parameters['sample_int_interval_perc']:
+                                Grade_A_samples[sample]=copy.deepcopy(tmp_Grade_A_samples[sample])
+                                WARNING=WARNING_tmp
+                                thellier_interpreter_log.write(warning_messeage)
+
+                                
+            #--------------------------------------------------------------
+            # check for outlier specimens
+            # Outlier check is done only if
+            # (1) number of specimen >= accept_new_parameters['sample_int_n_outlier_check']
+            # (2) an outlier exists if one (and only one!) specimen has an outlier result defined
+            # by:
+            # Bmax(specimen_1) < mean[max(specimen_2),max(specimen_3),max(specimen_3)...] - 2*sigma
+            # or
+            # Bmin(specimen_1) < mean[min(specimen_2),min(specimen_3),min(specimen_3)...] + 2*sigma
+            # (3) 2*sigma > 5 microT
+            #--------------------------------------------------------------
+
+
             WARNING=""
             # check for outlier specimen
             exclude_specimen=""
@@ -3170,11 +3009,6 @@ class Arai_GUI(wx.Frame):
                         if specimen not in exclude_specimens_list:
                             exclude_specimens_list.append(specimen)
                     if min(Grade_A_samples[sample][specimen]) > (mean(B_max_array) + 2*std(B_max_array,ddof=1)):# and 2*std(B_max_array,ddof=1) >3 :
-##                           print "Ron, check"
-##                           print "excluding specimen",specimen
-##                           print "min value",min(Grade_A_samples[sample][specimen])
-##                           print "other values:",B_max_array
-##                           print "other values std",std(B_max_array)
                            if specimen not in exclude_specimens_list:
                             exclude_specimens_list.append(specimen)
                          
@@ -3190,6 +3024,41 @@ class Arai_GUI(wx.Frame):
                     WARNING=WARNING+"excluding specimen %s; "%(exclude_specimens_list[0])
 
 
+
+
+
+                                        
+            
+            #--------------------------------------------------------------
+            #  diaplay the interpretation (not only the interpretations that pass samples criteria) after the nterpreter end running.
+            #--------------------------------------------------------------
+
+            # if only one specimen take the interpretation with maximum frac
+            if len(Grade_A_samples[sample].keys()) == 1:
+                specimen=Grade_A_samples[sample].keys()[0]
+                frac_max=0
+                for TEMP in All_grade_A_Recs[specimen].keys():
+                    if All_grade_A_Recs[specimen][TEMP]['specimen_frac']>frac_max:
+                        best_intensity=All_grade_A_Recs[specimen][TEMP]['specimen_int_uT']
+                for TEMP in All_grade_A_Recs[specimen].keys():                        
+                    if All_grade_A_Recs[specimen][TEMP]['specimen_int_uT']==best_intensity:
+                        self.Data[specimen]['pars'].update(All_grade_A_Recs[specimen][TEMP])
+                        self.Data[specimen]['pars']['saved']=True
+                        if sample not in self.Data_samples.keys():
+                          self.Data_samples[sample]={}
+                        self.Data_samples[sample][specimen]=self.Data[specimen]['pars']['specimen_int_uT']
+
+            if len(Grade_A_samples[sample].keys()) > 1:
+                Best_interpretations,best_mean,best_std=find_sample_min_std(Grade_A_samples[sample])
+                for specimen in Grade_A_samples[sample].keys():
+                    for TEMP in All_grade_A_Recs[specimen].keys():
+                        if All_grade_A_Recs[specimen][TEMP]['specimen_int_uT']==Best_interpretations[specimen]:
+                            self.Data[specimen]['pars'].update(All_grade_A_Recs[specimen][TEMP])
+                            self.Data[specimen]['pars']['saved']=True
+                            if sample not in self.Data_samples.keys():
+                              self.Data_samples[sample]={}
+                            self.Data_samples[sample][specimen]=self.Data[specimen]['pars']['specimen_int_uT']
+
         #--------------------------------------------------------------
         # calcuate STDEV-OPT 'best means' and write results to files
         #--------------------------------------------------------------
@@ -3200,9 +3069,8 @@ class Arai_GUI(wx.Frame):
                 for specimen in Grade_A_samples[sample].keys():
                     if "AniSpec" not in self.Data[specimen].keys():
                         n_no_atrm+=1
-
+            
                 if len(Grade_A_samples[sample].keys())>=self.accept_new_parameters['sample_int_n']:
-                    # if int_n==1 takes the intrepretation with the maximum frac
                     Best_interpretations,best_mean,best_std=find_sample_min_std(Grade_A_samples[sample])
                     sample_acceptable_min,sample_acceptable_max = find_sample_min_max_interpretation (Grade_A_samples[sample],self.accept_new_parameters)
                     sample_int_interval_uT=sample_acceptable_max-sample_acceptable_min
@@ -3213,6 +3081,7 @@ class Arai_GUI(wx.Frame):
                     thellier_interpreter_log.write(TEXT+"\n")
                     thellier_interpreter_log.write("-I- sample %s STDEV-OPT mean=%f, STDEV-OPT std=%f \n"%(sample,best_mean,best_std))
                     thellier_interpreter_log.write("-I- sample %s STDEV-OPT minimum/maximum accepted interpretation  %.2f,%.2f\n" %(sample,sample_acceptable_min,sample_acceptable_max))
+
 
                     # check if interpretation pass criteria:
                     if ( self.accept_new_parameters['sample_int_sigma_uT'] ==0 and self.accept_new_parameters['sample_int_sigma_perc']==0 ) or \
@@ -3226,8 +3095,6 @@ class Arai_GUI(wx.Frame):
                                         t_min=All_grade_A_Recs[specimen][TEMP]['measurement_step_min']
                                         t_max=All_grade_A_Recs[specimen][TEMP]['measurement_step_max']
                                         
-                                #t_min=int(float(Redo_data_specimens[specimen][Best_interpretations[specimen]]['measurement_step_min']))
-                                #t_max=int(float(Redo_data_specimens[specimen][Best_interpretations[specimen]]['measurement_step_max']))
                                             
                                         Fout_STDEV_OPT_redo.write("%s\t%i\t%i\n"%(specimen,t_min,t_max))
 
@@ -3312,7 +3179,6 @@ class Arai_GUI(wx.Frame):
                        Fout_BS_PAR_samples.write(String)
 
 
-               
                                                   
         
         thellier_interpreter_log.write( "-I- Statistics:\n")
@@ -3342,14 +3208,15 @@ class Arai_GUI(wx.Frame):
             Fout_BS_PAR_samples.close()
             
 
-            
-
-        if  self.accept_new_parameters['sample_int_stdev_opt']:
-            self.read_redo_file(self.WD+"/thellier_interpreter/thellier_interpreter_STDEV-OPT_redo")
         dlg1 = wx.MessageDialog(self,caption="Message:", message="Interpreter finished sucsessfuly\nCheck output files in folder /thellier_interpreter in the current project directory" ,style=wx.OK|wx.ICON_INFORMATION)
-    
-        #except:
-        #    dlg1 = wx.MessageDialog(self,caption="Error:", message="Interpreter finished with Errors" ,style=wx.OK)
+
+
+        # display the interpretation of the current specimen:
+        self.pars=self.Data[self.s]['pars']
+        self.clear_boxes()
+        self.draw_figure(self.s)
+        self.update_GUI_with_new_interpretation()
+
 
         dlg1.ShowModal()
         dlg1.Destroy()
@@ -3474,7 +3341,7 @@ class Arai_GUI(wx.Frame):
         fout=open(self.WD+"/"+"pmag_criteria.txt",'w')
         String="tab\tpmag_criteria\n"
         fout.write(String)
-        specimen_criteria_list=self.criteria_list+["specimen_int_max_slope_diff"]
+        specimen_criteria_list=self.criteria_list+["specimen_int_max_slope_diff"]+['check_aniso_ftest']+['anisotropy_alt']
         sample_criteria_list=[key for key in self.accept_new_parameters.keys() if "sample" in key]
         if self.accept_new_parameters['sample_int_stdev_opt'] == True:                                      
             for k in ['sample_int_bs','sample_int_bs_par','sample_int_BS_68_uT','sample_int_BS_68_perc','sample_int_BS_95_uT','sample_int_BS_95_perc']:
@@ -3494,7 +3361,7 @@ class Arai_GUI(wx.Frame):
                 specimen_criteria_list.remove("specimen_int_max_slope_diff")
                 
         for criteria in specimen_criteria_list:
-            if criteria in self.high_threshold_velue_list and float(self.accept_new_parameters[criteria])>100:
+            if criteria in (self.high_threshold_velue_list + ['anisotropy_alt']) and float(self.accept_new_parameters[criteria])>100:
                 specimen_criteria_list.remove(criteria)
             if criteria in self.low_threshold_velue_list and float(self.accept_new_parameters[criteria])<0.1:
                 specimen_criteria_list.remove(criteria)                
@@ -3514,13 +3381,16 @@ class Arai_GUI(wx.Frame):
                     
         line="IE-SPEC:IE-SAMP\t"
         for key in sample_criteria_list:
-            if key in ['sample_int_bs','sample_int_bs_par','sample_int_stdev_opt']:
+            if key in ['sample_int_bs','sample_int_bs_par','sample_int_stdev_opt','check_aniso_ftest']:
                 line=line+"%s"%str(self.accept_new_parameters[key])+"\t"
             else:
                 line=line+"%f"%self.accept_new_parameters[key]+"\t"
                 
         for key in specimen_criteria_list:
-            line=line+"%f"%self.accept_new_parameters[key]+"\t"
+            if key=='check_aniso_ftest':
+                line=line+str(self.accept_new_parameters[key])+"\t"
+            else:    
+                line=line+"%f"%self.accept_new_parameters[key]+"\t"
         if self.accept_new_parameters["specimen_scat"]:
             line=line+"True"+"\t"
         else:
@@ -3559,7 +3429,15 @@ class Arai_GUI(wx.Frame):
         
 
     def On_close_plot_dialog(self,dia):
-        #figure(1)
+
+        set_map_lat_min=""
+        set_map_lat_max=""                      
+        set_map_lat_grid=""                       
+        set_map_lon_min=""
+        set_map_lon_max=""
+        set_map_lon_grid=""
+
+
         x_autoscale=dia.set_x_axis_auto.GetValue()
         try:
             x_axis_min=float(dia.set_plot_age_min.GetValue())
@@ -3580,8 +3458,32 @@ class Arai_GUI(wx.Frame):
         plt_B=dia.set_plot_B.GetValue()
         plt_VADM=dia.set_plot_VADM.GetValue()
         show_sample_labels=dia.show_samples_ID.GetValue()
-        show_map=dia.show_map.GetValue()
+        show_x_error_bar=dia.show_x_error_bar.GetValue()                                
+        show_y_error_bar=dia.show_y_error_bar.GetValue()                                
 
+
+        show_map=dia.show_map.GetValue()
+        set_map_autoscale=dia.set_map_autoscale.GetValue()
+        if not set_map_autoscale:
+            window_list_commands=["lat_min","lat_max","lat_grid","lon_min","lon_max","lon_grid"]
+            for key in window_list_commands:
+                try:
+                    command="set_map_%s=float(dia.set_map_%s.GetValue())"%(key,key)
+                    exec command
+                except:
+                    command="set_map_%s='' "%key
+                    exec command
+                    
+            
+            try:
+                set_map_lat_min=float(dia.set_map_lat_min.GetValue())
+                set_map_lat_max=float(dia.set_map_lat_max.GetValue() )                       
+                set_map_lat_grid=float(dia.set_map_lat_grid.GetValue())                        
+                set_map_lon_min=float(dia.set_map_lon_min.GetValue())
+                set_map_lon_max=float(dia.set_map_lon_max.GetValue())
+                set_map_lon_grid=float(dia.set_map_lon_grid.GetValue())
+            except:
+                pass
         plot_by_locations={}
         #X_data,X_data_plus,X_data_minus=[],[],[]
         #Y_data,Y_data_plus,Y_data_minus=[],[],[]
@@ -3721,67 +3623,66 @@ class Arai_GUI(wx.Frame):
         # longitudes go from 20 to 380.
         Plot_map=show_map
         if Plot_map:
-            try:
+            if True:
                 from mpl_toolkits.basemap import Basemap
                 from mpl_toolkits.basemap import basemap_datadir
-    ##            EDIR=basemap_datadir+"/"
-    ##            topodatin=np.loadtxt(EDIR+'etopo20data.gz')
-    ##            lonsin=np.loadtxt(EDIR+'etopo20lons.gz')
-    ##            latsin=np.loadtxt(EDIR+'etopo20lats.gz')
-
-                #topodatin = np.loadtxt('etopo20data.gz')
-                #lonsin = np.loadtxt('etopo20lons.gz')
-                #latsin = np.loadtxt('etopo20lats.gz')
-
-    ##            # draw parallels
-    ##            delat = 30.
-    ##            circles = np.arange(0.,90.+delat,delat).tolist()+\
-    ##                      np.arange(-delat,-90.-delat,-delat).tolist()
-    ##
-    ##            delon = 60.
-    ##            meridians = np.arange(-180,180,delon)
-    ##
-    ##            # shift data so lons go from -180 to 180 instead of 20 to 380.
-    ##            topoin,lons = shiftgrid(180.,topodatin,lonsin,start=False)
-    ##            lats = latsin
-
-                # create new figure
                 ion()
                 fig2=figure(2)
+                clf()
                 ioff()
 
                 SiteLat_min=lat_min-5
                 SiteLat_max=lat_max+5
                 SiteLon_min=lon_min-5
                 SiteLon_max=lon_max+5
+                
+                if not set_map_autoscale:
+                    if set_map_lat_min!="":
+                        SiteLat_min=set_map_lat_min
+                    if set_map_lat_max !="":
+                        SiteLat_max=set_map_lat_max
+                    if set_map_lon_min !="":
+                        SiteLon_min=set_map_lon_min
+                    if set_map_lon_max !="":
+                        SiteLon_max=set_map_lon_max                       
 
                 m=Basemap(llcrnrlon=SiteLon_min,llcrnrlat=SiteLat_min,urcrnrlon=SiteLon_max,urcrnrlat=SiteLat_max,projection='merc',resolution='i')
 
-                #m.drawparallels(arange(SiteLat_min,SiteLat_max+5,5),labels=[1,0,0,0],linewidth=0.2)
-                #m.drawmeridians(arange(SiteLon_min,SiteLon_max+5,5),labels=[0,0,1,0],linewidth=0.2)
+                if set_map_lat_grid !="" and set_map_lon_grid!=0:
+##                    lat_min_round=SiteLat_min-SiteLat_min%set_map_lat_grid
+##                    lat_max_round=SiteLat_max-SiteLat_max%set_map_lat_grid
+##                    lon_min_round=SiteLon_min-SiteLon_min%set_map_lat_grid
+##                    lon_max_round=SiteLon_max-SiteLon_max%set_map_lat_grid
+                    m.drawparallels(np.arange(SiteLat_min,SiteLat_max+set_map_lat_grid,set_map_lat_grid),linewidth=0.5,labels=[1,0,0,0],fontsize=10)
+                    m.drawmeridians(np.arange(SiteLon_min,SiteLon_max+set_map_lon_grid,set_map_lon_grid),linewidth=0.5,labels=[0,0,0,1],fontsize=10)
 
-                #m=Basemap(llcrnrlon=SiteLon_min,llcrnrlat=SiteLat_min,urcrnrlon=SiteLon_max,urcrnrlat=SiteLat_max,projection='merc',resolution='l')
-                ###x1,y1=m([30],[30])
-                lat_min_round=SiteLat_min-SiteLat_min%10
-                lat_max_round=SiteLat_max-SiteLat_max%10
-                lon_min_round=SiteLon_min-SiteLon_min%10
-                lon_max_round=SiteLon_max-SiteLon_max%10
-
-                m.drawparallels(np.arange(lat_min_round,lat_max_round+5,5),linewidth=0.5,labels=[1,0,0,0],fontsize=10)
-                m.drawmeridians(np.arange(lon_min_round,lon_max_round+5,5),linewidth=0.5,labels=[0,0,0,1],fontsize=10)
+                else:
+                    lat_min_round=SiteLat_min-SiteLat_min%10
+                    lat_max_round=SiteLat_max-SiteLat_max%10
+                    lon_min_round=SiteLon_min-SiteLon_min%10
+                    lon_max_round=SiteLon_max-SiteLon_max%10
+                    m.drawparallels(np.arange(lat_min_round,lat_max_round+5,5),linewidth=0.5,labels=[1,0,0,0],fontsize=10)
+                    m.drawmeridians(np.arange(lon_min_round,lon_max_round+5,5),linewidth=0.5,labels=[0,0,0,1],fontsize=10)
 
                 m.fillcontinents(zorder=0,color='0.9')
                 m.drawcoastlines()
                 m.drawcountries()
                 m.drawmapboundary()
-            except:
+            else:
                 print "Cant plot map. Is basemap installed?"
-            
         for location in locations:
             figure(1)
             X_data,X_data_minus,X_data_plus=plot_by_locations[location]['X_data'],plot_by_locations[location]['X_data_minus'],plot_by_locations[location]['X_data_plus']
             Y_data,Y_data_minus,Y_data_plus=plot_by_locations[location]['Y_data'],plot_by_locations[location]['Y_data_minus'],plot_by_locations[location]['Y_data_plus']
-            errorbar(X_data,Y_data,xerr=[array(X_data_minus),array(X_data_plus)],yerr=[Y_data_minus,Y_data_plus],fmt='s',label=location)
+            if not show_x_error_bar:
+                Xerr=None
+            else:
+                Xerr=[array(X_data_minus),array(X_data_plus)]
+            if not show_y_error_bar:
+                Yerr=None
+            else:
+                Yerr=[Y_data_minus,Y_data_plus]
+            errorbar(X_data,Y_data,xerr=Xerr,yerr=Yerr,fmt='s',label=location)
             if Plot_map:
                 figure(2)
                 lat=plot_by_locations[location]['site_lat']
@@ -3796,8 +3697,9 @@ class Arai_GUI(wx.Frame):
 
         h,l = ax.get_legend_handles_labels()
         Fig.legend(h,l,loc='center left',fancybox="True",numpoints=1,prop=legend_font_props)
-
-        ylim(ymin=0)
+        y_min,y_max=ylim()
+        if y_min<0:
+            ax.set_ylim(ymin=0)
 
         if plt_VADM:
             #ylabel("VADM ZAm^2")
@@ -3812,13 +3714,34 @@ class Arai_GUI(wx.Frame):
         if plt_x_years:
             #xlabel("Date")
             ax.set_xlabel("Date",fontsize=12)
+
+        if not x_autoscale:
+            try:
+                ax.set_xlim(xmin=x_axis_min)
+            except:
+                pass
+            try:
+                ax.set_xlim(xmax=x_axis_max)
+            except:
+                pass
+            
+
+        if not y_autoscale:
+            try:
+                ax.set_ylim(ymin=y_axis_min)
+            except:
+                pass
+            try:
+                ax.set_ylim(ymax=y_axis_max)
+            except:
+                pass
+
         
         #Fig.legend(legend_labels,locations,'upper right',numpoints=1,title="Locations")
         if  show_sample_labels:
             for location in locations:
                 for i in  range(len(plot_by_locations[location]['samples_names'])):
                     text(plot_by_locations[location]['X_data'][i],plot_by_locations[location]['Y_data'][i],"  "+ plot_by_locations[location]['samples_names'][i],fontsize=10,color="0.5")
-
 
         show()
     
@@ -4011,12 +3934,13 @@ class Arai_GUI(wx.Frame):
         x_eq_dn=array([row[0] for row in self.zij_norm if row[2]>0])
         y_eq_dn=array([row[1] for row in self.zij_norm if row[2]>0])
         z_eq_dn=abs(array([row[2] for row in self.zij_norm if row[2]>0]))
-
+        
         if len(x_eq_dn)>0:
             R=array(sqrt(1-z_eq_dn)/sqrt(x_eq_dn**2+y_eq_dn**2)) # from Collinson 1983
             eqarea_data_x_dn=y_eq_dn*R
             eqarea_data_y_dn=x_eq_dn*R
             self.eqplot.scatter([eqarea_data_x_dn],[eqarea_data_y_dn],marker='o',edgecolor='gray', facecolor='black',s=15,lw=1)
+                    
             
 
         x_eq_up,y_eq_up,z_eq_up=[],[],[]
@@ -4101,7 +4025,10 @@ class Arai_GUI(wx.Frame):
               self.mplot.set_xlabel("C",fontsize=8)
               self.mplot.set_ylabel("M / NRM$_0$",fontsize=8)
               #self.mplot.set_xtick(labelsize=2)
-              self.mplot.tick_params(axis='both', which='major', labelsize=8)
+              try:
+                  self.mplot.tick_params(axis='both', which='major', labelsize=8)
+              except:
+                  pass
               #self.mplot.tick_params(axis='x', which='major', labelsize=8)          
               self.mplot.spines["right"].set_visible(False)
               self.mplot.spines["top"].set_visible(False)
@@ -4131,8 +4058,11 @@ class Arai_GUI(wx.Frame):
             self.mplot.scatter(array(self.Data[self.s]['NLT_parameters']['B_NLT'])*1e6,self.Data[self.s]['NLT_parameters']['M_NLT_norm'],marker='o',facecolor='b',edgecolor ='k',s=15)
             self.mplot.set_xlabel("$\mu$ T",fontsize=8)
             self.mplot.set_ylabel("M / M[%.0f]"%(self.Data[self.s]['lab_dc_field']*1e6),fontsize=8)
-            self.mplot.tick_params(axis='both', which='major', labelsize=8)
-            #self.mplot.frame.set_linewidth(0.01)
+            try:
+                self.mplot.tick_params(axis='both', which='major', labelsize=8)
+            except:
+                pass
+            #self.mplot.frametick_pa.set_linewidth(0.01)
             self.mplot.set_xlim(xmin=0)
             self.mplot.set_ylim(ymin=0)
             xmin,xmax=self.mplot.get_xlim()
@@ -4256,8 +4186,18 @@ class Arai_GUI(wx.Frame):
 
         if "AniSpec" in self.Data[self.s]:
           self.Aniso_factor_window.SetValue("%.2f"%(self.pars['Anisotropy_correction_factor']))
+          if self.pars["AC_WARNING"]!="" and\
+             ("TRM" in self.pars["AC_WARNING"] and  self.pars["AC_anisotropy_type"]== "ATRM" \
+               or "ARM" in self.pars["AC_WARNING"] and  self.pars["AC_anisotropy_type"]== "AARM"):              
+                self.Aniso_factor_window.SetBackgroundColour(wx.RED)  
+          else:
+            self.Aniso_factor_window.SetBackgroundColour(wx.NullColor)  
+
         else:
           self.Aniso_factor_window.SetValue("None")
+
+        
+        
         if self.pars['NLT_specimen_correction_factor']!=-1:
           self.NLT_factor_window.SetValue("%.2f"%(self.pars['NLT_specimen_correction_factor']))
         else:
@@ -4369,6 +4309,12 @@ class Arai_GUI(wx.Frame):
             cart= array([ints*cos(decs)*cos(incs),ints*sin(decs)*cos(incs),ints*sin(incs)]).transpose()
             return cart
 
+        def calculate_ftest(s,sigma,nf):
+            chibar=(s[0][0]+s[1][1]+s[2][2])/3.
+            t=array(linalg.eigvals(s))
+            F=0.4*(t[0]**2+t[1]**2+t[2]**2 - 3*chibar**2)/(float(sigma)**2)
+
+            return(F)
 
         """
         calcualte statisics 
@@ -4443,10 +4389,10 @@ class Arai_GUI(wx.Frame):
          best_fit_vector=v1
 
         # MAD Kirschvink (1980)
-        MAD=degrees(arctan(sqrt((t2+t3)/t1)))
+        MAD=math.degrees(arctan(sqrt((t2+t3)/t1)))
 
         # DANG Tauxe and Staudigel 2004
-        DANG=degrees( arccos( ( dot(cm, best_fit_vector) )/( sqrt(sum(cm**2)) * sqrt(sum(best_fit_vector**2)))))
+        DANG=math.degrees( arccos( ( dot(cm, best_fit_vector) )/( sqrt(sum(cm**2)) * sqrt(sum(best_fit_vector**2)))))
 
 
         # best fit PCA direction
@@ -4596,7 +4542,8 @@ class Arai_GUI(wx.Frame):
         x_ptrm_check_in_0_to_end,y_ptrm_check_in_0_to_end,x_Arai_compare=[],[],[]
         x_ptrm_check_in_start_to_end,y_ptrm_check_in_start_to_end=[],[]
         x_ptrm_check_for_SCAT,y_ptrm_check_for_SCAT=[],[]
-        
+
+        stop_scat_collect=False
         for k in range(len(self.Data[s]['ptrm_checks_temperatures'])):
           if self.Data[s]['ptrm_checks_temperatures'][k]<pars["measurement_step_max"] and self.Data[s]['ptrm_checks_temperatures'][k] in t_Arai:
             x_ptrm_check_in_0_to_end.append(self.Data[s]['x_ptrm_check'][k])
@@ -4606,9 +4553,18 @@ class Arai_GUI(wx.Frame):
             if self.Data[s]['ptrm_checks_temperatures'][k]>=pars["measurement_step_min"]:
                 x_ptrm_check_in_start_to_end.append(self.Data[s]['x_ptrm_check'][k])
                 y_ptrm_check_in_start_to_end.append(self.Data[s]['y_ptrm_check'][k])
-          if self.Data[s]['ptrm_checks_temperatures'][k] >=     pars["measurement_step_min"] and self.Data[s]['ptrm_checks_starting_temperatures'][k] <= pars["measurement_step_max"] :
+          if self.Data[s]['ptrm_checks_temperatures'][k] >= pars["measurement_step_min"] and self.Data[s]['ptrm_checks_starting_temperatures'][k] <= pars["measurement_step_max"] :
                 x_ptrm_check_for_SCAT.append(self.Data[s]['x_ptrm_check'][k])
                 y_ptrm_check_for_SCAT.append(self.Data[s]['y_ptrm_check'][k])
+          # If triangle is within the interval but started after the upper temperature bound, then one pTRM check is included
+          # For example: if T_max=480, the traingle in 450 fall far, and it started at 500, then it is included
+          # the ateration occured between 450 and 500, we dont know when.
+          if  stop_scat_collect==False and \
+             self.Data[s]['ptrm_checks_temperatures'][k] < pars["measurement_step_max"] and self.Data[s]['ptrm_checks_starting_temperatures'][k] > pars["measurement_step_max"] :
+                x_ptrm_check_for_SCAT.append(self.Data[s]['x_ptrm_check'][k])
+                y_ptrm_check_for_SCAT.append(self.Data[s]['y_ptrm_check'][k])
+                stop_scat_collect=True
+              
               
         # scat uses a different definistion":
         # use only pTRM that STARTED before the last temperatire step.
@@ -4790,10 +4746,21 @@ class Arai_GUI(wx.Frame):
 
         pars['specimen_fail_criteria']=[]
         for key in self.high_threshold_velue_list:
-            if pars[key]>float(self.accept_new_parameters[key]):
+            if key in ['specimen_gap_max','specimen_b_beta']:
+                value=round(pars[key],2)
+            elif key in ['specimen_dang','specimen_int_mad']:
+                value=round(pars[key],1)
+            else:
+                value=pars[key]
+                
+            if value>float(self.accept_new_parameters[key]):
                 pars['specimen_fail_criteria'].append(key)
         for key in self.low_threshold_velue_list:
-            if pars[key]<float(self.accept_new_parameters[key]):
+            if key in ['specimen_f','specimen_fvds','specimen_frac','specimen_g','specimen_q']:
+                value=round(pars[key],2)
+            else: 
+                value=pars[key]
+            if value < float(self.accept_new_parameters[key]):
                 pars['specimen_fail_criteria'].append(key)
         if 'specimen_scat' in pars.keys():
             if pars["specimen_scat"]=="Fail":
@@ -4808,23 +4775,75 @@ class Arai_GUI(wx.Frame):
         #-------------------------------------------------            
 
         if "AniSpec" in self.Data[s].keys():
-           S_matrix=zeros((3,3),'f')
-           S_matrix[0,0]=self.Data[s]['AniSpec']['anisotropy_s1']
-           S_matrix[1,1]=self.Data[s]['AniSpec']['anisotropy_s2']
-           S_matrix[2,2]=self.Data[s]['AniSpec']['anisotropy_s3']
-           S_matrix[0,1]=self.Data[s]['AniSpec']['anisotropy_s4']
-           S_matrix[1,0]=self.Data[s]['AniSpec']['anisotropy_s4']
-           S_matrix[1,2]=self.Data[s]['AniSpec']['anisotropy_s5']
-           S_matrix[2,1]=self.Data[s]['AniSpec']['anisotropy_s5']
-           S_matrix[0,2]=self.Data[s]['AniSpec']['anisotropy_s6']
-           S_matrix[2,0]=self.Data[s]['AniSpec']['anisotropy_s6']
+           pars["AC_WARNING"]=""
+           # if both aarm and atrm tensor axist, try first the atrm. if it fails use the aarm.
+           if 'AARM' in self.Data[s]["AniSpec"].keys() and 'ATRM' in self.Data[s]["AniSpec"].keys():
+               TYPES=['AARM','ATRM']
+           else:
+               TYPES=self.Data[s]["AniSpec"].keys()
+           for TYPE in TYPES:
+               red_flag=False
+               S_matrix=zeros((3,3),'f')
+               S_matrix[0,0]=self.Data[s]['AniSpec'][TYPE]['anisotropy_s1']
+               S_matrix[1,1]=self.Data[s]['AniSpec'][TYPE]['anisotropy_s2']
+               S_matrix[2,2]=self.Data[s]['AniSpec'][TYPE]['anisotropy_s3']
+               S_matrix[0,1]=self.Data[s]['AniSpec'][TYPE]['anisotropy_s4']
+               S_matrix[1,0]=self.Data[s]['AniSpec'][TYPE]['anisotropy_s4']
+               S_matrix[1,2]=self.Data[s]['AniSpec'][TYPE]['anisotropy_s5']
+               S_matrix[2,1]=self.Data[s]['AniSpec'][TYPE]['anisotropy_s5']
+               S_matrix[0,2]=self.Data[s]['AniSpec'][TYPE]['anisotropy_s6']
+               S_matrix[2,0]=self.Data[s]['AniSpec'][TYPE]['anisotropy_s6']
 
-           # If Ftest is lower than critical value:
-           # set the anisotropy correction tensor to identity matrix
-           if 'anisotropy_F_crit' in self.Data[s]['AniSpec'].keys():
-               if  float(self.Data[s]['AniSpec']['anisotropy_ftest']) < float(self.Data[s]['AniSpec']['anisotropy_F_crit']):
-                   S_matrix=identity(3,'f')
-                   pars["AC_WARNING"]="Anistropy tensor fail F-test"
+               #self.Data[s]['AniSpec']['anisotropy_type']=self.Data[s]['AniSpec']['anisotropy_type']
+               self.Data[s]['AniSpec'][TYPE]['anisotropy_n']=int(float(self.Data[s]['AniSpec'][TYPE]['anisotropy_n']))
+
+               this_specimen_f_type=self.Data[s]['AniSpec'][TYPE]['anisotropy_type']+"_"+"%i"%(int(self.Data[s]['AniSpec'][TYPE]['anisotropy_n']))
+               
+               Ftest_crit={} 
+               Ftest_crit['ATRM_6']=  3.1059
+               Ftest_crit['AARM_6']=  3.1059
+               Ftest_crit['AARM_9']= 2.6848
+               Ftest_crit['AARM_15']= 2.4558
+
+               # threshold value for Ftest:
+               
+               if 'AniSpec' in self.Data[s].keys() and TYPE in self.Data[s]['AniSpec'].keys()\
+                  and 'anisotropy_sigma' in  self.Data[s]['AniSpec'][TYPE].keys() \
+                  and self.Data[s]['AniSpec'][TYPE]['anisotropy_sigma']!="":
+                  # Calculate Ftest. If Ftest exceeds threshold value: set anistropy tensor to identity matrix
+                   sigma=float(self.Data[s]['AniSpec'][TYPE]['anisotropy_sigma'])             
+                   nf = 3*int(self.Data[s]['AniSpec'][TYPE]['anisotropy_n'])-6
+                   F=calculate_ftest(S_matrix,sigma,nf)
+                   #print s,"F",F
+                   self.Data[s]['AniSpec'][TYPE]['ftest']=F
+                   #print "s,sigma,nf,F,Ftest_crit[this_specimen_f_type]"
+                   #print s,sigma,nf,F,Ftest_crit[this_specimen_f_type]
+                   if self.accept_new_parameters['check_aniso_ftest']:
+                       Ftest_threshold=Ftest_crit[this_specimen_f_type]
+                       if self.Data[s]['AniSpec'][TYPE]['ftest'] < Ftest_crit[this_specimen_f_type]:
+                           S_matrix=identity(3,'f')
+                           pars["AC_WARNING"]=pars["AC_WARNING"]+"%s tensor fails F-test; "%(TYPE)
+                           red_flag=True
+                           
+               else:
+                   self.Data[s]['AniSpec'][TYPE]['anisotropy_sigma']=""
+                   self.Data[s]['AniSpec'][TYPE]['ftest']=1e10
+     
+                
+               if 'anisotropy_alt' in self.Data[s]['AniSpec'][TYPE].keys() and self.Data[s]['AniSpec'][TYPE]['anisotropy_alt']!="":
+                   if float(self.Data[s]['AniSpec'][TYPE]['anisotropy_alt']) > float(self.accept_new_parameters['anisotropy_alt']):
+                       S_matrix=identity(3,'f')
+                       pars["AC_WARNING"]=pars["AC_WARNING"]+"%s tensor fails alteration check: %.1f%% > %.1f%%; "%(TYPE,float(self.Data[s]['AniSpec'][TYPE]['anisotropy_alt']),float(self.accept_new_parameters['anisotropy_alt']))
+                       red_flag=True
+               else:
+                   self.Data[s]['AniSpec'][TYPE]['anisotropy_alt']=""
+
+                   
+               # if AARM passes, use the AARM.    
+               if TYPE=='AARM' and red_flag==False:
+                   break
+               else:
+                   pass
            TRM_anc_unit=array(pars['specimen_PCA_v1'])/sqrt(pars['specimen_PCA_v1'][0]**2+pars['specimen_PCA_v1'][1]**2+pars['specimen_PCA_v1'][2]**2)
            B_lab_unit=dir2cart([ self.Data[s]['Thellier_dc_field_phi'], self.Data[s]['Thellier_dc_field_theta'],1])
            B_lab_unit=array([0,0,-1])
@@ -4832,7 +4851,7 @@ class Arai_GUI(wx.Frame):
            pars["Anisotropy_correction_factor"]=Anisotropy_correction_factor
            pars["AC_specimen_int"]= pars["Anisotropy_correction_factor"] * float(pars["specimen_int"])
            
-           pars["AC_anisotropy_type"]=self.Data[s]['AniSpec']["anisotropy_type"]
+           pars["AC_anisotropy_type"]=self.Data[s]['AniSpec'][TYPE]["anisotropy_type"]
            pars["specimen_int_uT"]=float(pars["AC_specimen_int"])*1e6
 
         else:
@@ -4911,6 +4930,8 @@ class Arai_GUI(wx.Frame):
             self.araiplot.plot(xx,yy1,'--',lw=0.5,alpha=0.5)
             self.araiplot.plot(xx,yy2,'--',lw=0.5,alpha=0.5)
 
+        self.araiplot.set_xlim(xmin=0)
+        self.araiplot.set_ylim(ymin=0)
         
         draw()
         self.canvas1.draw()
@@ -5107,8 +5128,14 @@ class Arai_GUI(wx.Frame):
                 
             self.sampleplot.set_ylim(mean(specimens_B)-y_axis_limit-1,mean(specimens_B)+y_axis_limit+1)
             self.sampleplot.set_ylabel(r'$\mu$ T',fontsize=8)
-            self.sampleplot.tick_params(axis='both', which='major', labelsize=8)
-            self.sampleplot.tick_params(axis='y', which='minor', labelsize=0)
+            try:
+                self.sampleplot.tick_params(axis='both', which='major', labelsize=8)
+            except:
+                pass
+            try:
+                self.sampleplot.tick_params(axis='y', which='minor', labelsize=0)
+            except:
+                pass
 
         self.canvas4.draw()
         #start_time_5=time.time() 
@@ -5170,6 +5197,10 @@ class Arai_GUI(wx.Frame):
       accept_new_parameters_default['sample_int_n']=3
       accept_new_parameters_default['sample_int_n_outlier_check']=6
 
+      # anistropy criteria
+      accept_new_parameters_default['anisotropy_alt']=10
+      accept_new_parameters_default['check_aniso_ftest']=True
+
 
       # Sample mean calculation type 
       accept_new_parameters_default['sample_int_stdev_opt']=True
@@ -5200,6 +5231,8 @@ class Arai_GUI(wx.Frame):
       accept_new_parameters_null['specimen_int_mad']=100000
       accept_new_parameters_null['specimen_scat']=False
       accept_new_parameters_null['specimen_int_ptrm_n']=0
+      accept_new_parameters_null['anisotropy_alt']=1e10
+      accept_new_parameters_null['check_aniso_ftest']=True
 
       accept_new_parameters_null['sample_int_sigma_uT']=0
       accept_new_parameters_null['sample_int_sigma_perc']=0
@@ -5433,26 +5466,28 @@ class Arai_GUI(wx.Frame):
               self.GUI_log.write("-W- WARNING: specimen %s in rmag_anisotropy.txt but not in magic_measurement.txt. Check it !\n"%s)
               continue
           if 'AniSpec' in Data[s].keys():
-              self.GUI_log.write("-E- ERROR: more than one anisotropy data for specimen %s Fix it!\n"%s)
-          Data[s]['AniSpec']=AniSpec
+              self.GUI_log.write("-W- WARNING: more than one anisotropy data for specimen %s !\n"%s)
+          TYPE=AniSpec['anisotropy_type']
+          if 'AniSpec' not in Data[s].keys():
+              Data[s]['AniSpec']={}
+          Data[s]['AniSpec'][TYPE]=AniSpec
         
       for AniSpec in results_anis_data:
           s=AniSpec['er_specimen_names']
           if s not in Data.keys():
               self.GUI_log.write("-W- WARNING: specimen %s in rmag_results.txt but not in magic_measurement.txt. Check it !\n"%s)
               continue
-          if 'AniSpec' in Data[s].keys():
-              Data[s]['AniSpec'].update(AniSpec)
+          TYPE=AniSpec['anisotropy_type']         
+          if 'AniSpec' in Data[s].keys() and TYPE in  Data[s]['AniSpec'].keys():
+              Data[s]['AniSpec'][TYPE].update(AniSpec)
               if 'result_description' in AniSpec.keys():
                 result_description=AniSpec['result_description'].split(";")
                 for description in result_description:
                     if "Critical F" in description:
                        desc=description.split(":")
-                       Data[s]['AniSpec']['anisotropy_F_crit']=float(desc[1])
+                       Data[s]['AniSpec'][TYPE]['anisotropy_F_crit']=float(desc[1])
                 
-                
-          
-          
+                          
       #------------------------------------------------
       # Calculate Non Linear TRM parameters
       # Following Shaar et al. (2010):
@@ -5500,11 +5535,6 @@ class Arai_GUI(wx.Frame):
           # find temperature of NLT acquisition
           NLT_temperature=float(trmblock[0]['treatment_temp'])
           
-          # search for baseline in the Data block
-          M_baseline=0.
-          for rec in datablock:
-              if float(rec['treatment_temp'])==NLT_temperature and float(rec['treatment_dc_field'])==0:
-                 M_baseline=float(rec['measurement_magn_moment'])
                  
           # search for Blab used in the IZZI experiment (need it for the following calculation)
           found_labfield=False  
@@ -5516,6 +5546,8 @@ class Arai_GUI(wx.Frame):
           if not found_labfield:
               continue
 
+          # collect the data from trmblock
+          M_baseline=0.
           for rec in trmblock:
 
               # if there is a baseline in TRM block, then use it 
@@ -5523,7 +5555,28 @@ class Arai_GUI(wx.Frame):
                   M_baseline=float(rec['measurement_magn_moment'])
               B_NLT.append(float(rec['treatment_dc_field']))
               M_NLT.append(float(rec['measurement_magn_moment']))
+
+          # collect more data from araiblock
+
+
+          for rec in datablock:
+              if float(rec['treatment_temp'])==NLT_temperature and float(rec['treatment_dc_field']) !=0:
+                  B_NLT.append(float(rec['treatment_dc_field']))
+                  M_NLT.append(float(rec['measurement_magn_moment']))
+                  
+    
+          # If cnat find baseline in trm block
+          #  search for baseline in the Data block. 
+          if M_baseline==0:
+              m_tmp=[]
+              for rec in datablock:
+                  if float(rec['treatment_temp'])==NLT_temperature and float(rec['treatment_dc_field'])==0:
+                     m_tmp.append(float(rec['measurement_magn_moment']))
+                     self.GUI_log.write("-I- Found basleine for NLT measurements in datablock, specimen %s\n"%s)         
+              if len(m_tmp)>0:
+                  M_baseline=mean(m_tmp)
               
+
           ####  Ron dont delete it ### print "-I- Found %i NLT datapoints for specimen %s: B="%(len(B_NLT),s),array(B_NLT)*1e6
 
           #substitute baseline
@@ -5553,6 +5606,7 @@ class Arai_GUI(wx.Frame):
               M_NLT=append([0.],M_NLT)
               
               try:
+                  #print s,B_NLT, M_NLT    
                   # First try to fit tanh function (add point 0,0 in the begining)
                   alpha_0=max(M_NLT)
                   beta_0=2e4
@@ -5912,7 +5966,7 @@ class Criteria_Dialog(wx.Dialog):
 
         vbox = wx.BoxSizer(wx.VERTICAL)
 
-        bSizer1 = wx.StaticBoxSizer( wx.StaticBox( pnl1, wx.ID_ANY, "Specimen accpetance criteria" ), wx.HORIZONTAL )
+        bSizer1 = wx.StaticBoxSizer( wx.StaticBox( pnl1, wx.ID_ANY, "Specimen acceptance criteria" ), wx.HORIZONTAL )
 
         # Specimen criteria
 
@@ -5953,6 +6007,20 @@ class Criteria_Dialog(wx.Dialog):
                                            
 
         bSizer1.Add( criteria_specimen_window, 0, wx.ALIGN_LEFT|wx.ALL, 5 )
+
+        #-----------        
+
+        bSizer1a = wx.StaticBoxSizer( wx.StaticBox( pnl1, wx.ID_ANY, "anistropy criteria" ), wx.HORIZONTAL )
+        self.set_anisotropy_alt=wx.TextCtrl(pnl1,style=wx.TE_CENTER,size=(50,20))
+        self.check_aniso_ftest= wx.CheckBox(pnl1, -1, '', (10, 10))
+        criteria_aniso_window = wx.GridSizer(2, 2, 12, 12)
+        criteria_aniso_window.AddMany( [(wx.StaticText(pnl1,label="use F test as acceptance criteria",style=wx.TE_CENTER), wx.EXPAND),
+            (wx.StaticText(pnl1,label="alteration check threshold value (%)",style=wx.TE_CENTER), wx.EXPAND),
+            (self.check_aniso_ftest),
+            (self.set_anisotropy_alt)])
+
+        bSizer1a.Add( criteria_aniso_window, 0, wx.ALIGN_LEFT|wx.ALL, 5 )
+
 
         #-----------        
 
@@ -6048,7 +6116,9 @@ class Criteria_Dialog(wx.Dialog):
         hbox3.Add(self.okButton)
         hbox3.Add(self.cancelButton )
         #self.okButton.Bind(wx.EVT_BUTTON, self.OnOK)
-        #-----------  
+        #-----------
+
+        
 
         # Intialize values
         #print self.accept_new_parameters
@@ -6084,6 +6154,18 @@ class Criteria_Dialog(wx.Dialog):
             self.set_specimen_scat.SetValue(True)
         else:
             self.set_specimen_scat.SetValue(False)
+
+        # Intialize anisotropy values
+
+        if float(self.accept_new_parameters['anisotropy_alt']) < 100:
+            self.set_anisotropy_alt.SetValue("%.1f"%(float(self.accept_new_parameters['anisotropy_alt'])))
+        if self.accept_new_parameters['check_aniso_ftest'] in [True,"TRUE","True",'1',1]:
+            self.check_aniso_ftest.SetValue(True)
+        else:
+            self.check_aniso_ftest.SetValue(False)
+            
+
+            
         # Intialize sample criteria values
         for key in ['sample_int_stdev_opt','sample_int_bs','sample_int_bs_par','sample_int_n','sample_int_sigma_uT','sample_int_sigma_perc','sample_int_interval_uT','sample_int_interval_perc','sample_int_n_outlier_check',\
                     'sample_int_BS_68_uT','sample_int_BS_95_uT','sample_int_BS_68_perc','sample_int_BS_95_perc']:
@@ -6116,6 +6198,8 @@ class Criteria_Dialog(wx.Dialog):
         #----------------------  
         vbox.AddSpacer(20)
         vbox.Add(bSizer1, flag=wx.ALIGN_CENTER_HORIZONTAL)
+        vbox.AddSpacer(20)
+        vbox.Add(bSizer1a, flag=wx.ALIGN_CENTER_HORIZONTAL)
         vbox.AddSpacer(20)
         vbox.Add(bSizer2, flag=wx.ALIGN_CENTER_HORIZONTAL)
         vbox.AddSpacer(20)
@@ -6270,7 +6354,7 @@ class Optimizer(wx.Frame):
         self.high_threshold_velue_list=['specimen_gap_max','specimen_b_beta','specimen_dang','specimen_drats','specimen_int_mad','specimen_md']
         self.low_threshold_velue_list=['specimen_int_n','specimen_int_ptrm_n','specimen_f','specimen_fvds','specimen_frac','specimen_g','specimen_q']
 
-        for key in self.high_threshold_velue_list + self.low_threshold_velue_list:
+        for key in self.high_threshold_velue_list + self.low_threshold_velue_list +['anisotropy_alt']:
             command="self.fixed_criteria[\"%s\"]=float(dia.set_%s.GetValue())"%(key,key)
             try:
                 exec command
@@ -6282,6 +6366,14 @@ class Optimizer(wx.Frame):
           self.fixed_criteria['specimen_scat']=True
         else:
           self.fixed_criteria['specimen_scat']=False
+
+
+        if dia.check_aniso_ftest.GetValue() == True:
+          self.fixed_criteria['check_aniso_ftest']=True
+        else:
+          self.fixed_criteria['check_aniso_ftest']=False
+
+
 
         # sample ceiteria:            
         for key in ['sample_int_n','sample_int_sigma_uT','sample_int_sigma_perc','sample_int_interval_uT','sample_int_interval_perc','sample_int_n_outlier_check']:
@@ -6315,9 +6407,9 @@ class Optimizer(wx.Frame):
             String="tab\tpmag_criteria\n"
             fout.write(String)
             sample_criteria_list=[key for key in self.fixed_criteria.keys() if "sample" in key]
-            specimen_criteria_list=self.high_threshold_velue_list + self.low_threshold_velue_list + ["specimen_scat"]
+            specimen_criteria_list=self.high_threshold_velue_list + self.low_threshold_velue_list + ["specimen_scat"] +['check_aniso_ftest']+['anisotropy_alt']
             for criteria in specimen_criteria_list:
-                if criteria in self.high_threshold_velue_list and float(self.fixed_criteria[criteria])>100:
+                if criteria in (self.high_threshold_velue_list + ['anisotropy_alt']) and float(self.fixed_criteria[criteria])>100:
                     specimen_criteria_list.remove(criteria)
                 if criteria in self.low_threshold_velue_list and float(self.fixed_criteria[criteria])<0.1:
                     specimen_criteria_list.remove(criteria)
@@ -6332,10 +6424,11 @@ class Optimizer(wx.Frame):
             for key in sample_criteria_list:
                 line=line+"%f"%self.fixed_criteria[key]+"\t"
             for key in specimen_criteria_list:
-                if key=="specimen_scat":
+                if key=="specimen_scat" or key=="check_aniso_ftest":
                     line=line+"%s"%self.fixed_criteria[key]+"\t"
                 else:
                     line=line+"%f"%self.fixed_criteria[key]+"\t"
+
             fout.write(line[:-1]+"\n")
             fout.close()
 
@@ -6738,10 +6831,20 @@ class Plot_Dialog(wx.Dialog):
         bSizer3 = wx.StaticBoxSizer( wx.StaticBox( pnl1, wx.ID_ANY, "more plot options" ), wx.HORIZONTAL )
         
         self.show_samples_ID=wx.CheckBox(pnl1, -1, '', (50, 50))
+        self.show_x_error_bar=wx.CheckBox(pnl1, -1, '', (50, 50))
+        self.show_y_error_bar=wx.CheckBox(pnl1, -1, '', (50, 50))
+        
         self.show_samples_ID.SetValue(True)
-        bsizer_3_window = wx.GridSizer(2, 1, 12, 12)
+        self.show_x_error_bar.SetValue(True)
+        self.show_y_error_bar.SetValue(True)
+
+        bsizer_3_window = wx.GridSizer(2, 3, 12, 12)
         bsizer_3_window.AddMany( [(wx.StaticText(pnl1,label="show sample labels",style=wx.TE_CENTER), wx.EXPAND),
-            (self.show_samples_ID)])
+            (wx.StaticText(pnl1,label="show x error bars",style=wx.TE_CENTER), wx.EXPAND),
+            (wx.StaticText(pnl1,label="show y error bars",style=wx.TE_CENTER), wx.EXPAND),
+            (self.show_samples_ID),
+            (self.show_x_error_bar),                                  
+            (self.show_y_error_bar)])
                                            
         bSizer3.Add( bsizer_3_window, 0, wx.ALIGN_LEFT|wx.ALL, 5 )
 
@@ -6754,9 +6857,33 @@ class Plot_Dialog(wx.Dialog):
         
         self.show_map=wx.CheckBox(pnl1, -1, '', (50, 50))
         self.show_map.SetValue(False)
-        bsizer_4_window = wx.GridSizer(1, 1, 12, 12)
+        self.set_map_autoscale=wx.CheckBox(pnl1, -1, '', (50, 50))
+        self.set_map_autoscale.SetValue(True)
+
+        window_list_commands=["lat_min","lat_max","lat_grid","lon_min","lon_max","lon_grid"]
+        for key in window_list_commands:
+            command="self.set_map_%s=wx.TextCtrl(pnl1,style=wx.TE_CENTER,size=(50,20))"%key
+            exec command
+        bsizer_4_window = wx.GridSizer(2, 8, 12, 12)
+
         bsizer_4_window.AddMany( [(wx.StaticText(pnl1,label="show location map",style=wx.TE_CENTER), wx.EXPAND),
-            (self.show_map)])
+            (wx.StaticText(pnl1,label="auto scale",style=wx.TE_CENTER), wx.EXPAND),                      
+            (wx.StaticText(pnl1,label="lat min",style=wx.TE_CENTER), wx.EXPAND),
+            (wx.StaticText(pnl1,label="lat max",style=wx.TE_CENTER), wx.EXPAND),                                        
+            (wx.StaticText(pnl1,label="lat grid",style=wx.TE_CENTER), wx.EXPAND),                                        
+            (wx.StaticText(pnl1,label="lon min",style=wx.TE_CENTER), wx.EXPAND),
+            (wx.StaticText(pnl1,label="lon max",style=wx.TE_CENTER), wx.EXPAND),
+            (wx.StaticText(pnl1,label="lon grid",style=wx.TE_CENTER), wx.EXPAND),
+            (self.show_map),
+            (self.set_map_autoscale),
+            (self.set_map_lat_min),
+            (self.set_map_lat_max),                        
+            (self.set_map_lat_grid),                        
+            (self.set_map_lon_min),
+            (self.set_map_lon_max),
+            (self.set_map_lon_grid)])
+
+        
                                            
         bSizer4.Add( bsizer_4_window, 0, wx.ALIGN_LEFT|wx.ALL, 5 )
 

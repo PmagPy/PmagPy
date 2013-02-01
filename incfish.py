@@ -12,12 +12,13 @@ def main():
        takes inc data 
 
     SYNTAX
-       incfish.py [-h][-i][-f FILE]  [< filename]
+       incfish.py [options]  [< filename]
 
     OPTIONS
         -h prints help message and quits
         -i for interactive filename entry
         -f FILE, specify input file name
+        -F FILE, specify output file name
         < filename for reading from standard input
    
     OUTPUT
@@ -42,9 +43,17 @@ def main():
         inc=numpy.loadtxt(file)
     else:
         inc = numpy.loadtxt(sys.stdin,dtype=numpy.float)
+    ofile=""
+    if '-F' in sys.argv:
+        ind = sys.argv.index('-F')
+        ofile= sys.argv[ind+1]
+        out = open(ofile, 'w + a')
     #
     #get doincfish to do the dirty work:
     fpars= pmag.doincfish(inc)
     outstring='%7.1f %7.1f  %i %8.1f %7.1f %7.1f'%(fpars['ginc'],fpars['inc'],fpars['n'],fpars['r'],fpars['k'],fpars['alpha95'])
-    print outstring
+    if ofile == "":
+        print outstring
+    else:
+        out.write(outstring+'\n')
 main()

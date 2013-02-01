@@ -13,6 +13,7 @@ from scipy import *
 import  scipy.interpolate
 import gzip
 import pmag
+import copy
 from scipy.optimize import curve_fit
 
 rcParams.update({"svg.embed_char_paths":False})
@@ -26,6 +27,12 @@ def Thellier_optimizer(WD, Data,Data_hierarchy,criteria_fixed_paremeters_file,op
   #  #if __name__ == '__main__':
 
     
+  def calculate_ftest(s,sigma,nf):
+      chibar=(s[0][0]+s[1][1]+s[2][2])/3.
+      t=array(linalg.eigvals(s))
+      F=0.4*(t[0]**2+t[1]**2+t[2]**2 - 3*chibar**2)/(float(sigma)**2)
+
+      return(F)
       
 
   def tan_h(x, a, b):
@@ -66,7 +73,7 @@ def Thellier_optimizer(WD, Data,Data_hierarchy,criteria_fixed_paremeters_file,op
               if std(Best_array_tmp,ddof=1)<best_array_std:
                   Best_array=Best_array_tmp
                   best_array_std=std(Best_array,ddof=1)
-                  Best_interpretations=Best_interpretations_tmp
+                  Best_interpretations=copy.deepcopy(Best_interpretations_tmp)
                   Best_interpretations_tmp={}
       return Best_interpretations,mean(Best_array),std(Best_array,ddof=1)
 
@@ -78,7 +85,7 @@ def Thellier_optimizer(WD, Data,Data_hierarchy,criteria_fixed_paremeters_file,op
         tmp_Intensities={}
         Acceptable_sample_min,Acceptable_sample_max="",""
         for this_specimen in Intensities.keys():
-          B_list=Intensities[this_specimen]
+          B_list=copy.deepcopy(Intensities[this_specimen])
           if len(B_list)>0:
               B_list.sort()
               tmp_Intensities[this_specimen]=B_list
@@ -102,7 +109,7 @@ def Thellier_optimizer(WD, Data,Data_hierarchy,criteria_fixed_paremeters_file,op
                     
         tmp_Intensities={}
         for this_specimen in Intensities.keys():
-          B_list=Intensities[this_specimen]
+          B_list=copy.deepcopy(Intensities[this_specimen])
           if len(B_list)>0:
               B_list.sort()
               tmp_Intensities[this_specimen]=B_list
@@ -153,11 +160,11 @@ def Thellier_optimizer(WD, Data,Data_hierarchy,criteria_fixed_paremeters_file,op
   logfile=open(WD+"/optimizer/thellier_optimizer.log",'w')
   start_time = time.time()
   accept_new_parameters={}
-  criteria_specimen_list=['specimen_int_n','specimen_int_ptrm_n','specimen_f','specimen_fvds','specimen_frac','specimen_gap_max','specimen_b_beta','specimen_scat',
+  criteria_specimen_list=['specimen_int_n','specimen_int_ptrm_n','specimen_f','specimen_fvds','specimen_frac','specimen_gmax','specimen_b_beta','specimen_scat',
                  'specimen_dang','specimen_drats','specimen_int_mad','specimen_md','specimen_g','specimen_q']
   criteria_sample_list=['sample_int_n','sample_int_sigma_uT','sample_int_sigma_perc','sample_int_interval_uT','sample_int_interval_perc']
   
-  high_threshold_value_list=['specimen_gap_max','specimen_b_beta','specimen_dang','specimen_drats','specimen_int_mad','specimen_md']
+  high_threshold_value_list=['specimen_gmax','specimen_b_beta','specimen_dang','specimen_drats','specimen_int_mad','specimen_md']
   low_threshold_value_list=['specimen_int_n','specimen_int_ptrm_n','specimen_f','specimen_fvds','specimen_frac','specimen_g','specimen_q']
 
   #------------------------------------------------
@@ -199,7 +206,7 @@ def Thellier_optimizer(WD, Data,Data_hierarchy,criteria_fixed_paremeters_file,op
   accept_new_parameters['specimen_f']=0.
   accept_new_parameters['specimen_fvds']=0.
   accept_new_parameters['specimen_frac']=0
-  accept_new_parameters['specimen_gap_max']=0.0
+  accept_new_parameters['specimen_gmax']=0.0
   accept_new_parameters['specimen_b_beta']=100000
   accept_new_parameters['specimen_dang']=100000
   accept_new_parameters['specimen_drats']=100000
@@ -231,15 +238,21 @@ def Thellier_optimizer(WD, Data,Data_hierarchy,criteria_fixed_paremeters_file,op
       for i in range(len(line)):
         if criteria_keys[i]=="specimen_scat" and  ( str(line[i]) == "True" or line[i] == True or str(line[i]) == "TRUE" or line[i]=='1' ):
           accept_new_parameters['specimen_scat']=True
-        if criteria_keys[i]=="specimen_scat" and  ( str(line[i]) == "False" or line[i] == False or str(line[i]) == "FALSE" or line[i]=='0' ):
-          accept_new_parameters['specimen_scat']=False          
-        if 'pmag_criteria_code' in criteria_keys and "IE-SPEC" in line and "specimen" in criteria_keys[i] :
+        elif criteria_keys[i]=="specimen_scat" and  ( str(line[i]) == "False" or line[i] == False or str(line[i]) == "FALSE" or line[i]=='0' ):
+          accept_new_parameters['specimen_scat']=False
+
+        elif criteria_keys[i]=="check_aniso_ftest" and  ( str(line[i]) == "True" or line[i] == True or str(line[i]) == "TRUE" or line[i]=='1' ):
+          accept_new_parameters['check_aniso_ftest']=True
+        elif criteria_keys[i]=="check_aniso_ftest" and  ( str(line[i]) == "False" or line[i] == False or str(line[i]) == "FALSE" or line[i]=='0' ):
+          accept_new_parameters['check_aniso_ftest']=False
+          
+        elif 'pmag_criteria_code' in criteria_keys and "IE-SPEC" in line and "specimen" in criteria_keys[i] :
           accept_new_parameters[criteria_keys[i]]=float(line[i])
-        if 'pmag_criteria_code' in criteria_keys and "IE-SAMP" in line and "sample" in criteria_keys[i] :
+        elif 'pmag_criteria_code' in criteria_keys and "IE-SAMP" in line and "sample" in criteria_keys[i] :
           accept_new_parameters[criteria_keys[i]]=float(line[i])
-        if 'pmag_criteria_code' not in criteria_keys:
-            if "sample" in criteria_keys[i] or "specimen" in criteria_keys[i]:
-              if criteria_keys[i]!="specimen_scat":
+        elif 'pmag_criteria_code' not in criteria_keys:
+            if "sample" in criteria_keys[i] or "specimen" in criteria_keys[i] or criteria_keys[i]=="anisotropy_alt":
+              if criteria_keys[i]!="specimen_scat" and criteria_keys[i]!="check_aniso_ftest" :
                 accept_new_parameters[criteria_keys[i]]=float(line[i])
   fin.close()
 
@@ -582,7 +595,7 @@ def Thellier_optimizer(WD, Data,Data_hierarchy,criteria_fixed_paremeters_file,op
         max_FRAC_gap=max(vector_diffs_segment/sum(vector_diffs_segment))
 
         pars['specimen_frac']=FRAC
-        pars['specimen_gap_max']=max_FRAC_gap
+        pars['specimen_gmax']=max_FRAC_gap
 
 
         # avoid pathological cases when specimen_frac is very small (less than 10%)
@@ -592,77 +605,87 @@ def Thellier_optimizer(WD, Data,Data_hierarchy,criteria_fixed_paremeters_file,op
         # Calculate anistropy correction factor
         #-------------------------------------------------            
 
-##        if "AniSpec" in Data[s].keys():
-##           AniSpec=Data[s]['AniSpec']
-##           AniSpecRec=pmag.doaniscorr(pars,AniSpec)
-##           pars["AC_specimen_dec"]=AniSpecRec["specimen_dec"]
-##           pars["AC_specimen_inc"]=AniSpecRec["specimen_inc"]
-##           pars["AC_specimen_int"]=AniSpecRec["specimen_int"]
-##           pars["AC_specimen_correction_factor"]=float(pars["AC_specimen_int"])/float(pars["specimen_int"])
-##           pars["specimen_int_uT"]=float(pars["AC_specimen_int"])*1e6
-##
-##        else:
-##           pars["AC_specimen_correction_factor"]=1.0
-##           pars["specimen_int_uT"]=float(pars["specimen_int"])*1e6
         if "AniSpec" in Data[s].keys():
-           S_matrix=zeros((3,3),'f')
-           S_matrix[0,0]=Data[s]['AniSpec']['anisotropy_s1']
-           S_matrix[1,1]=Data[s]['AniSpec']['anisotropy_s2']
-           S_matrix[2,2]=Data[s]['AniSpec']['anisotropy_s3']
-           S_matrix[0,1]=Data[s]['AniSpec']['anisotropy_s4']
-           S_matrix[1,0]=Data[s]['AniSpec']['anisotropy_s4']
-           S_matrix[1,2]=Data[s]['AniSpec']['anisotropy_s5']
-           S_matrix[2,1]=Data[s]['AniSpec']['anisotropy_s5']
-           S_matrix[0,2]=Data[s]['AniSpec']['anisotropy_s6']
-           S_matrix[2,0]=Data[s]['AniSpec']['anisotropy_s6']
+           pars["AC_WARNING"]=""
+           # if both aarm and atrm tensor axist, try first the atrm. if it fails use the aarm.
+           if 'AARM' in Data[s]["AniSpec"].keys() and 'ATRM' in Data[s]["AniSpec"].keys():
+               TYPES=['AARM','ATRM']
+           else:
+               TYPES=Data[s]["AniSpec"].keys()
+           for TYPE in TYPES:
+
+               red_flag=False
+               S_matrix=zeros((3,3),'f')
+               S_matrix[0,0]=Data[s]['AniSpec'][TYPE]['anisotropy_s1']
+               S_matrix[1,1]=Data[s]['AniSpec'][TYPE]['anisotropy_s2']
+               S_matrix[2,2]=Data[s]['AniSpec'][TYPE]['anisotropy_s3']
+               S_matrix[0,1]=Data[s]['AniSpec'][TYPE]['anisotropy_s4']
+               S_matrix[1,0]=Data[s]['AniSpec'][TYPE]['anisotropy_s4']
+               S_matrix[1,2]=Data[s]['AniSpec'][TYPE]['anisotropy_s5']
+               S_matrix[2,1]=Data[s]['AniSpec'][TYPE]['anisotropy_s5']
+               S_matrix[0,2]=Data[s]['AniSpec'][TYPE]['anisotropy_s6']
+               S_matrix[2,0]=Data[s]['AniSpec'][TYPE]['anisotropy_s6']
+
+               Data[s]['AniSpec'][TYPE]['anisotropy_n']=int(float(Data[s]['AniSpec'][TYPE]['anisotropy_n']))
+
+               this_specimen_f_type=Data[s]['AniSpec'][TYPE]['anisotropy_type']+"_"+"%i"%(int(Data[s]['AniSpec'][TYPE]['anisotropy_n']))
+               
+               Ftest_crit={} 
+               Ftest_crit['ATRM_6']=  3.1059
+               Ftest_crit['AARM_9']= 2.6848
+               Ftest_crit['AARM_15']= 2.4558
+
+               
+               # threshold value for Ftest: 
+               if Data[s]['AniSpec'][TYPE]['anisotropy_sigma']!="":
+                  # Calculate Ftest. If Ftest exceeds threshold value: set anistropy tensor to identity matrix
+                   sigma=float(Data[s]['AniSpec'][TYPE]['anisotropy_sigma'])             
+                   nf = 3*int(Data[s]['AniSpec'][TYPE]['anisotropy_n'])-6
+                   F=calculate_ftest(S_matrix,sigma,nf)
+                   #print s,"F",F
+                   Data[s]['AniSpec'][TYPE]['ftest']=F
+                   if accept_new_parameters['check_aniso_ftest']:
+                       Ftest_threshold=Ftest_crit[this_specimen_f_type]
+                       if Data[s]['AniSpec'][TYPE]['ftest'] < Ftest_crit[this_specimen_f_type]:
+                           S_matrix=identity(3,'f')
+                           pars["AC_WARNING"]="%s tensor fails F-test; "%(TYPE)
+                           red_flag=True
+                           
+               else:
+                   Data[s]['AniSpec'][TYPE]['anisotropy_sigma']=""
+                   Data[s]['AniSpec'][TYPE]['ftest']=1e10
+
+
+               if Data[s]['AniSpec'][TYPE]['anisotropy_alt']!="":
+                   if float(Data[s]['AniSpec'][TYPE]['anisotropy_alt']) > float(accept_new_parameters['anisotropy_alt']):
+                       S_matrix=identity(3,'f')
+                       pars["AC_WARNING"]=pars["AC_WARNING"]+"%s tensor fails alteration check: %.1f%% > %.1f%%; "%(TYPE,float(Data[s]['AniSpec'][TYPE]['anisotropy_alt']),float(accept_new_parameters['anisotropy_alt']))
+                       
+               else:
+                   Data[s]['AniSpec'][TYPE]['anisotropy_alt']=""
+
+
+               # if AARM passes, use the AARM.    
+               if TYPE=='AARM' and red_flag==False:
+                   break
+               else:
+                   #print 'specimen %s AARM fails ftest, try ATRM'%(s)
+                   pass
+
 
            TRM_anc_unit=array(pars['specimen_PCA_v1'])/sqrt(pars['specimen_PCA_v1'][0]**2+pars['specimen_PCA_v1'][1]**2+pars['specimen_PCA_v1'][2]**2)
-           # If Ftest is lower than critical value:
-           # set the anisotropy correction tensor to identity matrix
-           if 'anisotropy_F_crit' in Data[s]['AniSpec'].keys():
-               if  float(Data[s]['AniSpec']['anisotropy_ftest']) < float(Data[s]['AniSpec']['anisotropy_F_crit']):
-
-           #if  float(Data[s]['AniSpec']['anisotropy_F']) < float(Data[s]['AniSpec']['anisotropy_F_crit']):
-                 S_matrix=identity(3,'f')
-
-
            B_lab_unit=pmag.dir2cart([ Data[s]['Thellier_dc_field_phi'], Data[s]['Thellier_dc_field_theta'],1])
-##           print "Quality check"
-##           print "phi,thata,1 ",[ self.Data[s]['Thellier_dc_field_phi'], self.Data[s]['Thellier_dc_field_theta'],1]
-##           #raw_input("---")
            B_lab_unit=array([0,0,-1])
-##           print B_lab_unit
-##           print B_anc_unit
-##           print "S_matrix",S_matrix
-##           print "inv(S_matrix)",inv(S_matrix)
-##           print "dot(inv(S_matrix),B_anc_unit)",dot(inv(S_matrix),B_anc_unit)
-##           print "norm  dot(inv(S_matrix),B_anc_unit)",linalg.norm(dot(inv(S_matrix),B_anc_unit.transpose()))
-##           
-##           print "linalg.norm(dot((inv(S_matrix),B_lab_unit.transpose())))",linalg.norm(dot(inv(S_matrix),B_lab_unit))
-           #pars["Anisotropy_correction_factor"]= linalg.norm(dot(inv(S_matrix),B_anc_unit.transpose()))/linalg.norm(dot(inv(S_matrix),B_lab_unit))
-
            Anisotropy_correction_factor=linalg.norm(dot(inv(S_matrix),TRM_anc_unit.transpose()))*norm(dot(S_matrix,B_lab_unit))
            pars["Anisotropy_correction_factor"]=Anisotropy_correction_factor
-
-##           print "aniso_factor", pars["Anisotropy_correction_factor"]
            pars["AC_specimen_int"]= pars["Anisotropy_correction_factor"] * float(pars["specimen_int"])
-##           print "aniso_int",pars["AC_specimen_int"]
-           
-           #AniSpecRec=pmag.doaniscorr(pars,AniSpec)
-           #pars["AC_specimen_dec"]=AniSpecRec["specimen_dec"]
-           #pars["AC_specimen_inc"]=AniSpecRec["specimen_inc"]
-           #pars["AC_specimen_int"]=AniSpecRec["specimen_int"]
-           #pars["AC_specimen_int"]=AniSpecRec["specimen_int"]
-           #try:
-           #    pars["Anisotropy_correction_factor"]=float(pars["AC_specimen_int"])/float(pars["specimen_int"])
-           #except:
-           #    pars["Anisotropy_correction_factor"]=1.0
-           pars["AC_anisotropy_type"]=Data[s]['AniSpec']["anisotropy_type"]
+           pars["AC_anisotropy_type"]=Data[s]['AniSpec'][TYPE]["anisotropy_type"]
            pars["specimen_int_uT"]=float(pars["AC_specimen_int"])*1e6
 
         else:
            pars["Anisotropy_correction_factor"]=1.0
            pars["specimen_int_uT"]=float(pars["specimen_int"])*1e6
+           pars["AC_WARNING"]="No anistropy correction"
            
         #-------------------------------------------------                    
         # NLT and anisotropy correction together in one equation
@@ -741,13 +764,24 @@ def Thellier_optimizer(WD, Data,Data_hierarchy,criteria_fixed_paremeters_file,op
           for pars in thellier_optimizer_master_table[specimen]:
             Fail=False
             for crit in high_threshold_value_list:
-              if float(pars[crit])>float(accept_new_parameters[crit]):
+              if crit in ['specimen_gmax','specimen_b_beta']:
+                  value=round(float(pars[crit]),2)
+              elif crit in ['specimen_dang','specimen_int_mad']:
+                  value=round(float(pars[crit]),1)
+              else:
+                  value=float(pars[crit])
+
+              if value>float(accept_new_parameters[crit]):
                 thellier_optimizer_master_file.write(  "key=%s - specimen %s, tmin,tmax =(%.0f,%.0f) fail on %s\n"%(Key,specimen,float(pars["measurement_step_min"])-273,float(pars["measurement_step_max"])-273,crit))
                 Fail=True
             if Fail:
               continue
             for crit in low_threshold_value_list:
-              if float(pars[crit])<float(accept_new_parameters[crit]):
+              if crit in ['specimen_f','specimen_fvds','specimen_frac','specimen_g','specimen_q']:
+                  value=round(float(pars[crit]),2)
+              else: 
+                  value=float(pars[crit])
+              if value<float(accept_new_parameters[crit]):
                 thellier_optimizer_master_file.write( "key=%s - specimen %s, tmin,tmax =(%.0f,%.0f) fail on %s\n"%(Key,specimen,float(pars["measurement_step_min"])-273,float(pars["measurement_step_max"])-273,crit))
                 Fail=True
             if Fail:
@@ -777,12 +811,23 @@ def Thellier_optimizer(WD, Data,Data_hierarchy,criteria_fixed_paremeters_file,op
             #-------------------------------------------------                     
 
             x_ptrm_check_for_SCAT,y_ptrm_check_for_SCAT=[],[]
-            
+
+            stop_scat_collect=False
             for k in range(len(Data[specimen]['ptrm_checks_temperatures'])):
 
               if Data[specimen]['ptrm_checks_temperatures'][k] >=   pars["measurement_step_min"] and Data[specimen]['ptrm_checks_starting_temperatures'][k] <= pars["measurement_step_max"] :
                     x_ptrm_check_for_SCAT.append(Data[specimen]['x_ptrm_check'][k])
                     y_ptrm_check_for_SCAT.append(Data[specimen]['y_ptrm_check'][k])
+
+              # If triangle is within the interval but started after the upper temperature bound, then one pTRM check is included
+              # For example: if T_max=480, the traingle in 450 fall far, and it started at 500, then it is included
+              # the ateration occured between 450 and 500, we dont know when.
+              if  stop_scat_collect==False and \
+                 Data[specimen]['ptrm_checks_temperatures'][k] < pars["measurement_step_max"] and Data[specimen]['ptrm_checks_starting_temperatures'][k] > pars["measurement_step_max"] :
+                    x_ptrm_check_for_SCAT.append(Data[specimen]['x_ptrm_check'][k])
+                    y_ptrm_check_for_SCAT.append(Data[specimen]['y_ptrm_check'][k])
+                    stop_scat_collect=True
+
             x_ptrm_check_for_SCAT=array(x_ptrm_check_for_SCAT)
             y_ptrm_check_for_SCAT=array(y_ptrm_check_for_SCAT)
 
@@ -943,7 +988,10 @@ def Thellier_optimizer(WD, Data,Data_hierarchy,criteria_fixed_paremeters_file,op
               Optimizer_data[Key][sample]={}
             if specimen not in Optimizer_data[Key][sample].keys():
               Optimizer_data[Key][sample][specimen]=[]
-            Optimizer_data[Key][sample][specimen].append(pars['specimen_int_uT'])
+            Optimizer_data[Key][sample][specimen].append(pars)
+            #if sample=="mk102201" and beta==0.09 and frac==0.8:
+            #  print specimen
+            #  print pars
             thellier_optimizer_master_file.write( "-I- key= %s specimen %s pass tmin,tmax= (%.0f,%.0f)\n"%(Key,specimen,float(pars["measurement_step_min"])-273,float(pars["measurement_step_max"])-273))
             
             
@@ -957,24 +1005,117 @@ def Thellier_optimizer(WD, Data,Data_hierarchy,criteria_fixed_paremeters_file,op
 
   for frac in frac_range:
     for beta in beta_range:
+       
       Key="%.2f,%.2f"%(float(frac),float(beta))
+      print Key
       Optimizer_STDEV_OPT[Key]={}
-      
+
       #--------------------------------------------------------------
-      # check for outlier specimens in each sample
+      # sort results
       #--------------------------------------------------------------
+      B_specimens={}
       for sample in Optimizer_data[Key].keys():
+        print sample
+        B_specimens[sample]={}
+        for specimen in Optimizer_data[Key][sample].keys():
+          if specimen not in B_specimens.keys():
+            B_specimens[sample][specimen]=[]
+          for pars in Optimizer_data[Key][sample][specimen]:
+            B_specimens[sample][specimen].append(pars['specimen_int_uT'])
+          B_specimens[sample][specimen].sort()
+        #print "B_specimens before outlier and aniso check"
+        #print B_specimens[sample]
+
+        #--------------------------------------------------------------
+        # check for anistropy issue:
+        # If the average anisotropy correction in the sample is > 10%,
+        # and there are enough good specimens with  anisotropy correction to pass sample's criteria
+        # then dont use the uncorrected specimens for sample's calculation. 
+        #--------------------------------------------------------------
+
+
+        if len(Optimizer_data[Key][sample].keys())>accept_new_parameters['sample_int_n']:
+            aniso_corrections=[]
+            for specimen in Optimizer_data[Key][sample].keys():
+                AC_correction_factor=0
+                for pars in Optimizer_data[Key][sample][specimen]:
+                    if "AC_anisotropy_type" in pars.keys():
+                        if "AC_WARNING" in pars.keys():
+                            if "TRM" in pars["AC_WARNING"] and  pars["AC_anisotropy_type"]== "ATRM" \
+                               or "ARM" in pars["AC_WARNING"] and  pars["AC_anisotropy_type"]== "AARM":
+                                continue
+                        AC_correction_factor=max(AC_correction_factor,pars["Anisotropy_correction_factor"])
+                if AC_correction_factor!=0:
+                    aniso_corrections.append(abs(1.-float(AC_correction_factor)))
+            if mean(aniso_corrections) > 0.10:
+                tmp_B_specimens=copy.deepcopy(B_specimens[sample])
+                #print "tmp_B_specimens 1",tmp_B_specimens
+                warning_messeage=""
+                #WARNING_tmp=""
+                print "sample %s have anisotropy factor mean of %f"%(sample,mean(aniso_corrections))
+                for specimen in Optimizer_data[Key][sample].keys():
+                    ignore_specimen=False
+                    pars=Optimizer_data[Key][sample][specimen][0]
+                    if "AC_anisotropy_type" not in pars.keys():
+                        ignore_specimen=True
+                    elif "AC_WARNING" in pars.keys():
+                        if "alteration check" in pars["AC_WARNING"]:
+                            if "TRM" in pars["AC_WARNING"] and  pars["AC_anisotropy_type"]== "ATRM" \
+                               or "ARM" in pars["AC_WARNING"] and  pars["AC_anisotropy_type"]== "AARM":
+                                ignore_specimen=True
+                    if ignore_specimen: 
+                        warning_messeage = warning_messeage + "-W- WARNING: specimen %s is exluded from sample %s because it doesnt have anisotropy correction, and other specimens are very anistropic\n"%(specimen,sample)
+                        #WARNING_tmp=WARNING_tmp+"excluding specimen %s; "%(specimen)
+                        del tmp_B_specimens[specimen]
+                        
+                 # check if new sample pass criteria:
+                print warning_messeage
+                #print "tmp_B_specimens 2",tmp_B_specimens
+
+                #print "B_specimens -1",B_specimens[sample]
+               
+                if len(tmp_B_specimens.keys())>=accept_new_parameters['sample_int_n']:
+                    #print "tmp_B_specimens 20",tmp_B_specimens
+                    #print "B_specimens 20",B_specimens[sample]
+
+                    Best_interpretations,best_mean,best_std=find_sample_min_std(tmp_B_specimens)
+                    #print "tmp_B_specimens 21",tmp_B_specimens
+                    # print "B_specimens 21",B_specimens[sample]
+                    
+                    sample_acceptable_min,sample_acceptable_max = find_sample_min_max_interpretation (tmp_B_specimens,accept_new_parameters)
+                    
+                    sample_int_interval_uT=sample_acceptable_max-sample_acceptable_min
+                    sample_int_interval_perc=100*((sample_acceptable_max-sample_acceptable_min)/best_mean)       
+
+                    #print "tmp_B_specimens 22",tmp_B_specimens
+                    #print "B_specimens 22",B_specimens[sample]
+    
+                    # check if interpretation pass criteria (if yes ignore the specimens). if no, keep it the old way:
+                    if ( accept_new_parameters['sample_int_sigma_uT'] ==0 and accept_new_parameters['sample_int_sigma_perc']==0 ) or \
+                       (best_std <= accept_new_parameters['sample_int_sigma_uT'] or 100*(best_std/best_mean) <= accept_new_parameters['sample_int_sigma_perc']):
+                        if sample_int_interval_uT <= accept_new_parameters['sample_int_interval_uT'] or sample_int_interval_perc <= accept_new_parameters['sample_int_interval_perc']:
+                            B_specimens[sample]=copy.deepcopy(tmp_B_specimens)
+                            #print "specimens"
+                            #print tmp_B_specimens
+                            #print B_specimens[sample]
+                #print "B_specimens 0",B_specimens[sample]
+    
+          
+        #--------------------------------------------------------------
+        # check for outlier specimens in each sample
+        #--------------------------------------------------------------
+        #print "B_specimens 1",B_specimens[sample]
         exclude_specimens_list=[]   
-        if len(Optimizer_data[Key][sample].keys())>=float(accept_new_parameters['sample_int_n_outlier_check']):            
-            all_specimens=Optimizer_data[Key][sample].keys()
+        if len(B_specimens[sample].keys())>=float(accept_new_parameters['sample_int_n_outlier_check']):            
+            all_specimens=B_specimens[sample].keys()
             for specimen in all_specimens:
                 B_min_array,B_max_array=[],[]
                 for specimen_b in all_specimens:
                     if specimen_b==specimen: continue
-                    B_min_array.append(min(Optimizer_data[Key][sample][specimen_b]))
-                    B_max_array.append(max(Optimizer_data[Key][sample][specimen_b]))
-                if max(Optimizer_data[Key][sample][specimen]) < mean(B_min_array) - 2*std(B_min_array,ddof=1) \
-                   or min(Optimizer_data[Key][sample][specimen]) > mean(B_max_array) + 2*std(B_max_array,ddof=1):
+                    B_min_array.append(min(B_specimens[sample][specimen_b]))
+                    B_max_array.append(max(B_specimens[sample][specimen_b]))
+                if max(B_specimens[sample][specimen]) < mean(B_min_array) - 2*std(B_min_array,ddof=1) \
+                   or min(B_specimens[sample][specimen]) > mean(B_max_array) + 2*std(B_max_array,ddof=1):
                     if specimen not in exclude_specimens_list:
                         exclude_specimens_list.append(specimen)
                         
@@ -991,10 +1132,12 @@ def Thellier_optimizer(WD, Data,Data_hierarchy,criteria_fixed_paremeters_file,op
         # find the best mean
         #--------------------------------------------------------------
 
+        #print "B_specimens 2",B_specimens[sample]
 
-        if len(Optimizer_data[Key][sample].keys())>=accept_new_parameters['sample_int_n']:
-           Best_interpretations,best_mean,best_std=find_sample_min_std(Optimizer_data[Key][sample])
-           sample_acceptable_min,sample_acceptable_max = find_sample_min_max_interpretation (Optimizer_data[Key][sample],accept_new_parameters)
+        if len(B_specimens[sample].keys())>=accept_new_parameters['sample_int_n']:
+           #print B_specimens[sample]
+           Best_interpretations,best_mean,best_std=find_sample_min_std(B_specimens[sample])
+           sample_acceptable_min,sample_acceptable_max = find_sample_min_max_interpretation (B_specimens[sample],accept_new_parameters)
            sample_int_interval_uT=sample_acceptable_max-sample_acceptable_min
            sample_int_interval_perc=100*((sample_acceptable_max-sample_acceptable_min)/best_mean)
            if best_std <= (accept_new_parameters['sample_int_sigma_uT']) or 100*(best_std/best_mean) <= accept_new_parameters['sample_int_sigma_perc']:
@@ -1006,7 +1149,9 @@ def Thellier_optimizer(WD, Data,Data_hierarchy,criteria_fixed_paremeters_file,op
                #  String=String + "%.2f,"%(BB)
                thellier_optimizer_master_file.write( String+"\n")                                      
                thellier_optimizer_master_file.write( "-I- 'best mean' pass. frac=%f; beta=%f  sample %s: mean=%f, std=%f, accepted_interval=%f \n"%(frac,beta,sample,best_mean,best_std,sample_int_interval_uT))
-
+               #print frac,beta
+               #print sample
+               #print Best_interpretations,best_mean,best_std
                #if Key not in Optimizer_STDEV_OPT.keys():
                #  Optimizer_STDEV_OPT[Key]={}
                if sample not in Optimizer_STDEV_OPT[Key]:
@@ -1094,7 +1239,7 @@ def Thellier_optimizer(WD, Data,Data_hierarchy,criteria_fixed_paremeters_file,op
   # Make the plots
   #------------------------------------------------------
 
-  print "WD",WD
+  #print "WD",WD
   #Command_line="mkdir %s/optimizer/"%(WD)
   try:
     os.mkdir(WD + "/optimizer/pdf")
@@ -1171,7 +1316,7 @@ def Thellier_optimizer(WD, Data,Data_hierarchy,criteria_fixed_paremeters_file,op
     Ax.set_aspect('auto')
     savefig("%s/optimizer/pdf/optimization_function_%i"%(WD,Fig_counter) +".pdf")
     savefig("%s/optimizer/svg/optimization_function_%i"%(WD,Fig_counter) +".svg")
-
+    close()
     Fig_counter+=1        
                 
 
