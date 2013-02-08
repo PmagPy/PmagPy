@@ -189,15 +189,20 @@ def getsampVGP(SampRec,SiteNFO):
         return ""
 
 def getsampVDM(SampRec,SampNFO):
-    samp=get_dictitem(SampNFO,'er_sample_name',SampRec['er_sample_name'],'T')[0]
-    lat=float(samp['sample_lat'])    
-    int = float(SampRec['sample_int'])
-    vdm=b_vdm(int,lat)     
-    if 'sample_int_sigma' in SampRec.keys() and  SampRec['sample_int_sigma']!="":
-        sig=b_vdm(float(SampRec['sample_int_sigma']),lat)
-        sig='%8.3e'%(sig)
+    samps=get_dictitem(SampNFO,'er_sample_name',SampRec['er_sample_name'],'T')
+    if len(samps)>0:
+        samp=samps[0]
+        lat=float(samp['sample_lat'])    
+        int = float(SampRec['sample_int'])
+        vdm=b_vdm(int,lat)     
+        if 'sample_int_sigma' in SampRec.keys() and  SampRec['sample_int_sigma']!="":
+            sig=b_vdm(float(SampRec['sample_int_sigma']),lat)
+            sig='%8.3e'%(sig)
+        else:
+            sig=""
     else:
-        sig=""
+        print 'could not find sample info for: ', SampRec['er_sample_name']
+        return {} 
     ResRec={}
     ResRec['pmag_result_name']='V[A]DM Sample: '+SampRec['er_sample_name']
     ResRec['er_location_names']=SampRec['er_location_name']
@@ -448,7 +453,7 @@ def grade(PmagRec,ACCEPT,type):
     sigmas=[]
     accept={}
     if type=='specimen_int': 
-        USEKEYS=['specimen_q','measurement_step_min','measurement_step_max','specimen_int_ptrm_n','specimen_fvds','specimen_frac','specimen_f','specimen_int_n','sample_int_n','specimen_magn_moment','specimen_magn_volumn','specimen_rsc','specimen_scat','specimen_drats','specimen_int_mad','specimen_dang','specimen_md','specimen_b_beta','specimen_w','specimen_gmax'] 
+        USEKEYS=['specimen_q','measurement_step_min','measurement_step_max','specimen_int_ptrm_n','specimen_fvds','specimen_frac','specimen_f','specimen_int_n','specimen_magn_moment','specimen_magn_volumn','specimen_rsc','specimen_scat','specimen_drats','specimen_int_mad','specimen_dang','specimen_md','specimen_b_beta','specimen_w','specimen_gmax'] 
     elif type=='specimen_dir':
         USEKEYS=['measurement_step_min','measurement_step_max','specimen_mad','specimen_n','specimen_magn_moment','specimen_magn_volumn']
     elif type=='sample_int':

@@ -142,7 +142,6 @@ def main():
 	ind=args.index("-fla")
 	model_lat_file=dir_path+'/'+args[ind+1]
 	get_model_lat=2
-        print model_lat_file
 	mlat=open(model_lat_file,'rU')
 	ModelLats=[]
 	for line in mlat.readlines():
@@ -150,6 +149,8 @@ def main():
 	    tmp=line.split()
 	    ModelLat["er_site_name"]=tmp[0]
 	    ModelLat["site_model_lat"]=tmp[1]
+	    ModelLat["er_sample_name"]=tmp[0] 
+	    ModelLat["sample_lat"]=tmp[1]
 	    ModelLats.append(ModelLat)
 	get_model_lat=2
     elif '-lat' in args:
@@ -380,7 +381,7 @@ def main():
                       del(PmagResRec['model_lat']) # get rid of the model lat key
 		  elif get_model_lat==2: # use model latitude
 		      PmagResRec=pmag.getsampVDM(PmagSampRec,ModelLats)
-		      if PmagResRec!="":PmagResRec['magic_method_codes']=PmagResRec['magic_method_codes']+":IE-MLAT"
+		      if PmagResRec!={}:PmagResRec['magic_method_codes']=PmagResRec['magic_method_codes']+":IE-MLAT"
 		  if PmagResRec!={}:
                       PmagResRec['er_specimen_names']=PmagSampRec['er_specimen_names']
                       PmagResRec['er_sample_names']=PmagSampRec['er_sample_name']
