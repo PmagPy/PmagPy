@@ -38,7 +38,7 @@ def main():
         -dc B PHI THETA: dc lab field (in micro tesla) and phi,theta, default is none
               NB: use PHI, THETA = -1 -1 to signal that it changes, i.e. in anisotropy experiment
         -ac B : peak AF field (in mT) for ARM acquisition, default is none
-        -ncn NCON:  specify naming convention: default is #1 below
+        -nfcn NCON:  specify naming convention: default is #1 below
         -A: don't average replicate measurements
        Sample naming convention:
             [1] XXXXY: where XXXX is an arbitrary length site designation and Y
@@ -207,15 +207,15 @@ def main():
                 print "option [4] must be in form 4-Z where Z is an integer"
                 sys.exit()
             else:
-                Z=samp_con.split("-")[1]
+                Z=int(samp_con.split("-")[1])
                 samp_con="4"
         if "7" in samp_con:
             if "-" not in samp_con:
                 print "option [7] must be in form 7-Z where Z is an integer"
                 sys.exit()
             else:
-                Z=samp_con.split("-")[1]
-                samp_con="4"
+                Z=int(samp_con.split("-")[1])
+                samp_con="7"
                 
     # lab process:
     if '-LP' in args:
@@ -288,8 +288,22 @@ def main():
                 MagRec["er_sample_name"]=specimen[:specnum]
             else:
                 MagRec["er_sample_name"]=rec[0]
-                
-            MagRec["er_site_name"]=MagRec["er_sample_name"]  # site need to be done"
+            if samp_con=="1":
+                MagRec["er_site_name"]=MagRec["er_sample_name"][:-1]
+            elif samp_con=="2":
+                MagRec["er_site_name"]=MagRec["er_sample_name"].split("-")[0]
+            elif samp_con=="3":
+                MagRec["er_site_name"]=MagRec["er_sample_name"].split(".")[0]
+            # samp_con 4 to be done !
+            elif samp_con=="4":
+                MagRec["er_site_name"]=MagRec["er_sample_name"][:Z]
+            elif samp_con=="5":
+                MagRec["er_site_name"]=MagRec["er_sample_name"]
+            elif samp_con=="6":
+                MagRec["er_site_name"]=MagRec["er_sample_name"]              
+            else:    
+                MagRec["er_site_name"]=MagRec["er_sample_name"]  # site need to be done"
+
             if float(date[2])>80:
                 yyyy="19"+date[2]
             else:
