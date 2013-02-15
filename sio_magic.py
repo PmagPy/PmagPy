@@ -216,7 +216,7 @@ def main():
                 sys.exit()
             else:
                 Z=samp_con.split("-")[1]
-                samp_con="4"
+                samp_con="7"
     if '-LP' in args:
         ind=args.index("-LP")
         codelist=args[ind+1]
