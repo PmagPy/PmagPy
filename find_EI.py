@@ -13,7 +13,7 @@ def find_f(data):
     D=ppars['dec']
     Decs,Incs=data.transpose()[0],data.transpose()[1]
     Tan_Incs=numpy.tan(Incs*rad)
-    for f in numpy.arange(1.,.2 ,-.05):
+    for f in numpy.arange(1.,.2 ,-.01):
         U=numpy.arctan((1./f)*Tan_Incs)/rad
         fdata=numpy.array([Decs,U]).transpose()
         ppars=pmag.doprinc(fdata)
@@ -23,23 +23,24 @@ def find_f(data):
         if 180.-angle<angle:angle=180.-angle
         V2s.append(angle)
         Is.append(abs(ppars["inc"]))
-        if EI(abs(ppars["inc"]))<=Es[-1] and len(Es)>1 and angle<45:
-            print Es[-1],Is[-1],EI(Is[-1]),angle
+        if EI(abs(ppars["inc"]))<=Es[-1]:
             del Es[-1]
             del Is[-1]
             del Fs[-1]
-            del V2s[-1] 
-            for f in numpy.arange(Fs[-1],.1 ,-.005):
-                U=numpy.arctan((1./f)*Tan_Incs)/rad
-                fdata=numpy.array([Decs,U]).transpose()
-                ppars=pmag.doprinc(fdata)
-                Fs.append(f)
-                Es.append(ppars["tau2"]/ppars["tau3"])
-                Is.append(abs(ppars["inc"]))
-                angle=pmag.angle([D,0],[ppars["V2dec"],0])
-                if 180.-angle<angle:angle=180.-angle
-                V2s.append(angle)
-                if EI(abs(ppars["inc"]))<=Es[-1] and angle<45: return Es,Is,Fs,V2s
+            del V2s[-1]
+            if len(Fs)>0:
+                for f in numpy.arange(Fs[-1],.2 ,-.005):
+                    U=numpy.arctan((1./f)*Tan_Incs)/rad
+                    fdata=numpy.array([Decs,U]).transpose()
+                    ppars=pmag.doprinc(fdata)
+                    Fs.append(f)
+                    Es.append(ppars["tau2"]/ppars["tau3"])
+                    Is.append(abs(ppars["inc"]))
+                    angle=pmag.angle([D,0],[ppars["V2dec"],0])
+                    if 180.-angle<angle:angle=180.-angle
+                    V2s.append(angle)
+                    if EI(abs(ppars["inc"]))<=Es[-1]:
+                        return Es,Is,Fs,V2s
     return [0],[0],[0],[0]
 def main():
     """
@@ -65,10 +66,13 @@ def main():
         dec/inc pairs, delimited with space or tabs
 
     OUTPUT
-        three plots:  1) equal area plot of original directions
+        four plots:  1) equal area plot of original directions
                       2) Elongation/inclination pairs as a function of f,  data plus 25 bootstrap samples
                       3) Cumulative distribution of bootstrapped optimal inclinations plus uncertainties.
                          Estimate from original data set plotted as solid line
+                      4) Orientation of principle direction through unflattening
+    NOTE: If distribution does not have a solution, plot labeled: Pathological.  Some bootstrap samples may have
+       valid solutions and those are plotted in the CDFs and E/I plot.
 
     """
     fmt,nb='svg',1000
@@ -121,7 +125,10 @@ def main():
     Eexp=[]
     for i in I:
        Eexp.append(EI(i)) 
-    title= '%7.1f [%7.1f, %7.1f]' %( Inc, I[lower],I[upper])
+    if Inc==0:
+        title= 'Pathological Distribution: '+'[%7.1f, %7.1f]' %(I[lower],I[upper])
+    else:
+        title= '%7.1f [%7.1f, %7.1f]' %( Inc, I[lower],I[upper])
     pmagplotlib.plotEI(PLTS['ei'],Eexp,I,1)
     pmagplotlib.plotCDF(PLTS['cdf'],I,'Inclinations','r',title)
     pmagplotlib.plotVs(PLTS['cdf'],[I[lower],I[upper]],'b','--')

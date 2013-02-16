@@ -56,6 +56,7 @@ class make_criteria:
     def __init__(self,master):
         self.Crits=Crits
         top=self.top=Toplevel(master)
+        top=self.top=Canvas(master)
         row,column=0,0
         Label(top,text='Fill in desired criteria').grid(row=row,column=3,sticky=W)
         row,column=1,0
