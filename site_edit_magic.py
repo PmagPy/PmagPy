@@ -62,6 +62,7 @@ def main():
 # 
     in_file=dir_path+'/'+in_file
     sampfile=dir_path+'/'+sampfile
+    crd='s'
     Specs,file_type=pmag.magic_read(in_file)
     if file_type!='pmag_specimens':
         print ' bad pmag_specimen input file'
@@ -136,6 +137,7 @@ def main():
                         for key in spec.keys():rec[key]=spec[key]
                         rec['dec'],rec['inc']=pmag.dogeo(float(spec['specimen_dec']),float(spec['specimen_inc']),float(orient['sample_azimuth']),float(orient['sample_dip']))
                         rec["tilt_correction"]='1'
+                        crd='g'
                         rec['sample_azimuth']=orient['sample_azimuth']
                         rec['sample_dip']=orient['sample_dip']
                         data.append(rec)
@@ -159,7 +161,7 @@ def main():
             if ans=="p": k-=2
             if ans=="a":
                 files={}
-                files['eqarea']=site+'_'+crd+'_'+'eqarea'+'.'+fmt
+                files['eqarea']=site+'_'+crd+'_eqarea'+'.'+fmt
                 pmagplotlib.saveP(EQ,files)
             if ans=="q": sys.exit()
             if ans=="e" and Samps==[]:

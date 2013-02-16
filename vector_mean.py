@@ -17,6 +17,7 @@ def main():
     OPTIONS
         -h prints help message and quits
         -f FILE, specify input file
+        -F FILE, specify output file
         < filename for reading from standard input
    
     OUTPUT
@@ -32,10 +33,18 @@ def main():
         file=sys.argv[ind+1]
     else:
         file = sys.stdin  # read from standard input
+    ofile=""
+    if '-F' in sys.argv:
+        ind = sys.argv.index('-F')
+        ofile= sys.argv[ind+1]
+        out = open(ofile, 'w + a')
     DIIs=numpy.loadtxt(file,dtype=numpy.float) # read in the data
 #
     vpars,R=pmag.vector_mean(DIIs)
     outstring='%7.1f %7.1f   %10.3e %i'%(vpars[0],vpars[1],R,len(DIIs))
-    print outstring
+    if ofile == "":
+        print outstring
+    else:
+        out.write(outstring + "\n")
     #
 main()

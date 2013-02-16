@@ -53,6 +53,7 @@ def main():
         rmag_file=dir_path+'/'+rmag_file
     if '-P' in args:
         PLT=0
+        irm_init,imag_init=-1,-1 
     if '-sav' in args:
         verbose=0
         plots=1
@@ -80,7 +81,7 @@ def main():
     HystRecs,RemRecs=[],[]
     HDD={}
     if verbose:
-        if verbose:print "Plots may be on top of each other - use mouse to place "
+        if verbose and PLT:print "Plots may be on top of each other - use mouse to place "
     if PLT:
         HDD['hyst'],HDD['deltaM'],HDD['DdeltaM']=1,2,3
         pmagplotlib.plot_init(HDD['DdeltaM'],5,5)
@@ -114,7 +115,7 @@ def main():
         print sids[k]
     while k < len(sids):
         s=sids[k]
-        if verbose:print s, k+1 , 'out of ',len(sids)
+        if verbose and PLT:print s, k+1 , 'out of ',len(sids)
     #
     #
         B,M,Bdcd,Mdcd=[],[],[],[] #B,M for hysteresis, Bdcd,Mdcd for irm-dcd data
@@ -168,7 +169,7 @@ def main():
             hmeths=[]
             for meth in meths: hmeths.append(meth)
             hpars=pmagplotlib.plotHDD(HDD,B,M,e) 
-            if verbose:pmagplotlib.drawFIGS(HDD)
+            if verbose and PLT:pmagplotlib.drawFIGS(HDD)
     #
     # get prior interpretations from hyst_data
             if rmag_file!="":
@@ -201,7 +202,7 @@ def main():
         if len(Bdcd)>0: 
             rmeths=[]
             for meth in meths: rmeths.append(meth)
-            if verbose:print 'plotting IRM'
+            if verbose and PLT:print 'plotting IRM'
             if irm_init==0:
                 HDD['irm']=5
                 pmagplotlib.plot_init(HDD['irm'],5,5)
@@ -240,7 +241,7 @@ def main():
                 files[key]=locname+'_'+s+'_'+key+'.'+fmt
             pmagplotlib.saveP(HDD,files)
             if pltspec!="":sys.exit()
-        if verbose:
+        if verbose and PLT:
             pmagplotlib.drawFIGS(HDD)
             ans=raw_input("S[a]ve plots, [s]pecimen name, [q]uit, <return> to continue\n ")
             if ans=="a":
