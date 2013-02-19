@@ -56,11 +56,11 @@ class make_criteria:
     def __init__(self,master):
         self.Crits=Crits
         top=self.top=Toplevel(master)
-        top=self.top=Canvas(master)
+        #top=Tk()
         row,column=0,0
         Label(top,text='Fill in desired criteria').grid(row=row,column=3,sticky=W)
         row,column=1,0
-        maxrow=row
+        #maxrow=row
         self.out=[]
         self.list=['Measurement', 'Result','ResultDirection','ResultIntensity', 'Specimen','SpecimenDirection','SpecimenIntensity','Sample','SampleDirection','SampleIntensity','Site','SiteDirection','SiteIntensity']
         for type in self.list[0:4]:
@@ -72,9 +72,9 @@ class make_criteria:
                 self.out.append(self.e)
                 self.e.grid(row=row,column=column+1,sticky=W)
                 row+=1
-        column+=2
-        if row>maxrow:maxrow=row 
-        row=1
+                if row>=30:
+                    row=0
+                    column+=2
         for type in self.list[4:7]:
             for key in CritTypes[type]:
                 Label(top,text=key).grid(row=row,column=column,sticky=W)
@@ -84,9 +84,9 @@ class make_criteria:
                 self.out.append(self.e)
                 self.e.grid(row=row,column=column+1,sticky=W)
                 row+=1
-        column+=2
-        if row>maxrow:maxrow=row 
-        row=1
+                if row>=30:
+                    row=0
+                    column+=2
         for type in self.list[7:10]:
             for key in CritTypes[type]:
                 Label(top,text=key).grid(row=row,column=column,sticky=W)
@@ -96,9 +96,9 @@ class make_criteria:
                 self.out.append(self.e)
                 self.e.grid(row=row,column=column+1,sticky=W)
                 row+=1
-        column+=2
-        if row>maxrow:maxrow=row 
-        row=1
+                if row>=30:
+                    row=0
+                    column+=2
         for type in self.list[10:]:
             for key in CritTypes[type]:
                 Label(top,text=key).grid(row=row,column=column,sticky=W)
@@ -108,8 +108,10 @@ class make_criteria:
                 self.out.append(self.e)
                 self.e.grid(row=row,column=column+1,sticky=W)
                 row+=1
-        if row>maxrow:maxrow=row 
-        B_OK=Button(top,text="OK",command=self.ok).grid(row=maxrow,column=3,sticky=W)
+                if row>=30:
+                    row=0
+                    column+=2
+        B_OK=Button(top,text="OK",command=self.ok,width=15).grid(row=row+1,column=column,sticky=W)
         
     def setdefault(self):
         self.Crits= pmag.default_criteria(0)[0]       
