@@ -8,7 +8,7 @@ def main():
        foldtest.py
 
     DESCRIPTION
-       does a fold test (Tauxe, 2008) on data
+       does a fold test (Tauxe, 2010) on data
 
     INPUT FORMAT
        dec inc dip_direction dip

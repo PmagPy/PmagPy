@@ -17,9 +17,15 @@ def main():
     OPTIONS
         -h help message
         -f FILE, specify file on command line
+        -F FILE, specify output file for statistics
 
+    OUTPUT:
+        Dec Inc N Mu Mu_crit Me Me_crit Y/N
+     where direction is the principal component and Y/N is Fisherian or not
+     separate lines for each mode with N >=10 (N and R)
     """
     fmt,plot='svg',0
+    outfile=""
     if '-h' in sys.argv: # check if help is needed
         print main.__doc__
         sys.exit() # graceful quit
@@ -28,6 +34,9 @@ def main():
         file=sys.argv[ind+1]
         f=open(file,'rU')
         data=f.readlines()
+    if '-F' in sys.argv:
+        ind=sys.argv.index('-F')
+        outfile=open(sys.argv[ind+1],'w') # open output file
     DIs,nDIs,rDIs= [],[],[] # set up list for data
     for line in data:   # read in the data from standard input
         if '\t' in line:
@@ -52,9 +61,10 @@ def main():
         pmagplotlib.plot_init(QQ['exp1'],5,5)
         if len(nDIs) < 10: 
             ppars=pmag.doprinc(rDIs) # get principal directions
-            Dbar,Ibar=ppars['dec']-180.,-ppars['inc']
+            Drbar,Irbar=ppars['dec']-180.,-ppars['inc']
+            Nr=len(rDIs)
             for di in rDIs:
-                d,irot=pmag.dotilt(di[0],di[1],Dbar-180.,90.-Ibar) # rotate to mean
+                d,irot=pmag.dotilt(di[0],di[1],Drbar-180.,90.-Irbar) # rotate to mean
                 drot=d-180.
                 if drot<0:drot=drot+360.
                 D1.append(drot)           
@@ -63,17 +73,26 @@ def main():
                 Itit='Mode 2 Inclinations'
         else:          
             ppars=pmag.doprinc(nDIs) # get principal directions
-            Dbar,Ibar=ppars['dec'],ppars['inc']
+            Dnbar,Inbar=ppars['dec'],ppars['inc']
+            Nn=len(nDIs)
             for di in nDIs:
-                d,irot=pmag.dotilt(di[0],di[1],Dbar-180.,90.-Ibar) # rotate to mean
+                d,irot=pmag.dotilt(di[0],di[1],Dnbar-180.,90.-Inbar) # rotate to mean
                 drot=d-180.
                 if drot<0:drot=drot+360.
                 D1.append(drot)
                 I1.append(irot)
                 Dtit='Mode 1 Declinations'
                 Itit='Mode 1 Inclinations'
-        pmagplotlib.plotQQunf(QQ['unf1'],D1,Dtit) # make plot
-        pmagplotlib.plotQQexp(QQ['exp1'],I1,Itit) # make plot
+        Mu_n,Mu_ncr=pmagplotlib.plotQQunf(QQ['unf1'],D1,Dtit) # make plot
+        Me_n,Me_ncr=pmagplotlib.plotQQexp(QQ['exp1'],I1,Itit) # make plot
+        if outfile!="":
+#        Dec Inc N Mu Mu_crit Me Me_crit Y/N
+            if Mu_n<=Mu_ncr and Me_n<=Me_ncr:
+               F='Y'
+            else:
+               F='N'
+            outstring='%7.1f %7.1f %i %5.3f %5.3f %5.3f %5.3f %s \n'%(Dnbar,Inbar,Nn,Mu_n,Mu_ncr,Me_n,Me_ncr,F)
+            outfile.write(outstring)
     else:
         print 'you need N> 10 for at least one mode'
         sys.exit()
@@ -84,17 +103,26 @@ def main():
         pmagplotlib.plot_init(QQ['unf2'],5,5)
         pmagplotlib.plot_init(QQ['exp2'],5,5)
         ppars=pmag.doprinc(rDIs) # get principal directions
-        Dbar,Ibar=ppars['dec']-180.,-ppars['inc']
+        Drbar,Irbar=ppars['dec']-180.,-ppars['inc']
+        Nr=len(rDIs)
         for di in rDIs:
-            d,irot=pmag.dotilt(di[0],di[1],Dbar-180.,90.-Ibar) # rotate to mean
+            d,irot=pmag.dotilt(di[0],di[1],Drbar-180.,90.-Irbar) # rotate to mean
             drot=d-180.
             if drot<0:drot=drot+360.
             D2.append(drot)           
             I2.append(irot) 
             Dtit='Mode 2 Declinations'
             Itit='Mode 2 Inclinations'
-        pmagplotlib.plotQQunf(QQ['unf2'],D2,Dtit) # make plot
-        pmagplotlib.plotQQexp(QQ['exp2'],I2,Itit) # make plot
+        Mu_r,Mu_rcr=pmagplotlib.plotQQunf(QQ['unf2'],D2,Dtit) # make plot
+        Me_r,Me_rcr=pmagplotlib.plotQQexp(QQ['exp2'],I2,Itit) # make plot
+        if outfile!="":
+#        Dec Inc N Mu Mu_crit Me Me_crit Y/N
+            if Mu_r<=Mu_rcr and Me_r<=Me_rcr:
+               F='Y'
+            else:
+               F='N'
+            outstring='%7.1f %7.1f %i %5.3f %5.3f %5.3f %5.3f %s \n'%(Drbar,Irbar,Nr,Mu_r,Mu_rcr,Me_r,Me_rcr,F)
+            outfile.write(outstring)
     pmagplotlib.drawFIGS(QQ) 
     files={}
     for key in QQ.keys():

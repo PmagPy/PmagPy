@@ -287,6 +287,7 @@ def plotQQunf(fignum,D,title):
     pylab.xlabel('Uniform Quantile')
     pylab.ylabel('Data Quantile')
     pylab.draw()
+    return Mu, 1.207
 
 def plotQQexp(fignum,I,title):
     """
@@ -325,18 +326,15 @@ def plotQQexp(fignum,I,title):
     notestr='Me: '+'%7.3f'%(Me)
     pylab.text(.1*bounds[1],.8*bounds[3],notestr)
     if Me > 1.094:
-        notestr="Non-fisherian"
+        notestr="Not Exponential"
     else:
-        notestr="Fisherian"
+        notestr="Exponential (95%)"
     pylab.text(.1*bounds[1],.7*bounds[3],notestr)
     pylab.title(title)
     pylab.xlabel('Exponential Quantile')
     pylab.ylabel('Data Quantile')
     pylab.draw()
-    
-
-
-
+    return Me, 1.094
 
 def plotNET(fignum):
     """

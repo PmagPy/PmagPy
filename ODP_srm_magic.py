@@ -14,7 +14,7 @@ def main():
     OPTIONS
         -h: prints the help message and quits.
         -F FILE: specify output  measurements file, default is magic_measurements.txt
-        -Fsa FILE: specify output er_specimens.txt file, default is er_sample.txt
+        -Fsa FILE: specify output er_sample.txt file, default is er_sample.txt
         -A : don't average replicate measurements
     INPUT
         put data from a single core into a directory. depths will be below core top

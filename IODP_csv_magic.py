@@ -3,14 +3,14 @@ import pmag,sys,os,exceptions
 def main():
     """
     NAME
-        ODP_csv_magic.py
+        IODP_csv_magic.py
  
     DESCRIPTION
         converts ODP LIMS sample format files to magic_measurements format files
 
 
     SYNTAX
-        ODP_csv_magic.py [command line options]
+        IODP_csv_magic.py [command line options]
 
     OPTIONS
         -h: prints the help message and quits.
@@ -21,7 +21,7 @@ def main():
         -Fsi FILE: specify output er_sites.txt file, default is er_sites.txt
         -A : don't average replicate measurements
     INPUTS
- 	 ODP .csv file format exported from LIMS database
+ 	 IODP .csv file format exported from LIMS database
     """
 #        
 #
