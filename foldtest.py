@@ -18,13 +18,14 @@ def main():
 
     OPTIONS
         -h prints help message and quits
-        -f FILE
+        -f FILE file with input data
+        -F FILE for confidence bounds on fold test
         -u ANGLE (circular standard deviation) for uncertainty on bedding poles
         -b MIN MAX bounds for quick search of percent untilting [default is -10 to 150%]
         -n NB  number of bootstrap samples [default is 1000]
         -fmt FMT, specify format - default is svg
     
-    OUTPUT
+    OUTPUT PLOTS
         Geographic: is an equal area projection of the input data in 
                     original coordinates
         Stratigraphic: is an equal area projection of the input data in 
@@ -42,7 +43,11 @@ def main():
         If the 95% conf bounds include 100, then a post-tilt magnetization is indicated
         If the 95% conf bounds exclude both 0 and 100, syn-tilt magnetization is
                 possible as is vertical axis rotation or other pathologies
-
+        Geographic: is an equal area projection of the input data in 
+    
+    OPTIONAL OUTPUT FILE:
+       The output file has the % untilting within the 95% confidence bounds
+nd the number of bootstrap samples
     """
     kappa=0
     fmt='svg'
@@ -51,6 +56,11 @@ def main():
     if '-h' in sys.argv: # check if help is needed
         print main.__doc__
         sys.exit() # graceful quit
+    if '-F' in sys.argv:
+        ind=sys.argv.index('-F')
+        outfile=open(sys.argv[ind+1],'w')
+    else:
+        outfile=""
     if '-f' in sys.argv:
         ind=sys.argv.index('-f')
         file=sys.argv[ind+1] 
@@ -120,6 +130,8 @@ def main():
     print tit
     print 'range of all bootstrap samples: ', Untilt[0], ' - ', Untilt[-1]
     pylab.title(tit)
+    outstring= '%i - %i; %i\n'%(Untilt[lower],Untilt[upper],nb)
+    if outfile!="":outfile.write(outstring)
     pmagplotlib.drawFIGS(PLTS)
     ans= raw_input('S[a]ve all figures, <Return> to quit   ')
     if ans!='a':
