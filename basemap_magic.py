@@ -103,10 +103,11 @@ def main():
     Opts['names']=names
     Opts['gridspace']=gridspace
     if details==1:
-        Opts['details']={'coasts':1,'rivers':1,'states':1,'countries':1,'ocean':1} 
+        Opts['details']={'coasts':1,'rivers':1,'states':1,'countries':1,'ocean':0} 
     else: 
-        Opts['details']={'coasts':1,'rivers':0,'states':0,'countries':0,'ocean':1} 
+        Opts['details']={'coasts':1,'rivers':0,'states':0,'countries':0,'ocean':0} 
     Opts['details']['fancy']=fancy
+    if ocean==1:Opts['details']['ocean']=1
     pmagplotlib.plotMAP(FIG['map'],lats,lons,Opts)
     if verbose:pmagplotlib.drawFIGS(FIG)
     files={}
