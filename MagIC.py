@@ -2280,7 +2280,7 @@ def add_ams(format): # add generic AMS data
 # build the command (outstring) for kly4s_magic.py
 #
     if format=='sufar4':
-        outstring='SUFAR4_asc_magic.py -WD '+'"'+opath+'"'+' -f '+file +' -F '+file+'.magic'+' -Fa '+file+'_anisotropy.txt '+'-Fsa er_samples.txt -Fs er_specimens.txt' 
+        outstring='SUFAR4-asc_magic.py -WD '+'"'+opath+'"'+' -f '+file +' -F '+file+'.magic'+' -Fa '+file+'_anisotropy.txt '+'-Fsa er_samples.txt -Fs er_specimens.txt' 
     if format=='kly4s':
         outstring='KLY4S_magic.py -WD '+'"'+opath+'"'+' -f '+file +' -F '+file+'.magic'+' -Fa '+file+'_anisotropy.txt '
     if format=='k15':
