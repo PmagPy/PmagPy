@@ -16,6 +16,7 @@ def main():
        -f input file name
        -b binsize
        -fmt [svg,png,pdf,eps,jpg] specify format for image, default is svg
+       -N don't normize
     
     INPUT FORMAT
         single variable
@@ -34,11 +35,22 @@ def main():
     if '-f' in sys.argv:
         ind=sys.argv.index('-f')
         file=sys.argv[ind+1]
+    if '-N' in sys.argv:
+        norm=0
+        ylab='Number'
+    else:
+        norm=1
+        ylab='Frequency'
     if '-b' in sys.argv:
         ind=sys.argv.index('-b')
         binsize=int(sys.argv[ind+1])
     else:
         binsize=5
+    if '-xlab' in sys.argv:
+        ind=sys.argv.index('-xlab')
+        xlab=sys.argv[ind+1]
+    else:
+        xlab='x'
     if  file!="":
         D=numpy.loadtxt(file)
     else:
@@ -46,11 +58,10 @@ def main():
     # read in data
     #
     Nbins=len(D)/binsize
-    print Nbins
-    n,bins,patches=pylab.hist(D,bins=Nbins,facecolor='white',histtype='step',color='black',normed=1)
+    n,bins,patches=pylab.hist(D,bins=Nbins,facecolor='white',histtype='step',color='black',normed=norm)
     pylab.axis([D.min(),D.max(),0,n.max()+.1*n.max()]) 
-    pylab.xlabel('x')
-    pylab.ylabel('Frequency')
+    pylab.xlabel(xlab)
+    pylab.ylabel(ylab)
     name='N = '+str(len(D))
     pylab.title(name)
     pylab.draw()

@@ -14,9 +14,12 @@
 #
 #============================================================================================
 
-
+global CURRENT_VRSION
+CURRENT_VRSION = "v.2.0"
 import matplotlib
-from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigCanvas 
+matplotlib.use('WXAgg')
+
+from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigCanvas \
 
 import sys,pylab,scipy,os
 import pmag
@@ -24,6 +27,7 @@ try:
     import thellier_gui_preferences
 except:
     pass
+import copy
 import stat
 import subprocess
 import time
@@ -39,7 +43,9 @@ try:
 except:
     pass
 
-import thellier_optimizer_2d
+from matplotlib.backends.backend_wx import NavigationToolbar2Wx
+
+import thellier_consistency_test
 
 matplotlib.rc('xtick', labelsize=10) 
 matplotlib.rc('ytick', labelsize=10) 
@@ -47,6 +53,7 @@ matplotlib.rc('axes', labelsize=8)
 matplotlib.rcParams['savefig.dpi'] = 300.
 
 rcParams.update({"svg.embed_char_paths":False})
+rcParams.update({"svg.fonttype":'none'})
 
 
 
@@ -55,28 +62,36 @@ rcParams.update({"svg.embed_char_paths":False})
 class Arai_GUI(wx.Frame):
     """ The main frame of the application
     """
-    title = 'PmagPy Thellier GUI'
+    title = "PmagPy Thellier GUI %s"%CURRENT_VRSION
     
     def __init__(self):
+        global FIRST_RUN
+        FIRST_RUN=True
         wx.Frame.__init__(self, None, wx.ID_ANY, self.title)
         self.redo_specimens={}
         self.currentDirectory = os.getcwd() # get the current working directory
-        self.get_DIR(first_run=True)        # choose directory dialog        
+        self.get_DIR()        # choose directory dialog        
         accept_new_parameters_default,accept_new_parameters_null=self.get_default_criteria()    # inialize Null selecting criteria
         self.accept_new_parameters_null=accept_new_parameters_null
         self.accept_new_parameters_default=accept_new_parameters_default
+        #self.accept_new_parameters=copy.deepcopy(accept_new_parameters_default)
         preferences=self.get_preferences()
         self.dpi = 100
         
         self.preferences=preferences
-        # inialize Null selecting criteria
+        # inialize selecting criteria
         accept_new_parameters=self.read_criteria_from_file(self.WD+"/pmag_criteria.txt")          
         self.accept_new_parameters=accept_new_parameters
+        #self.accept_new_parameters=accept_new_parameters
         self.Data,self.Data_hierarchy,self.Data_info={},{},{}
         self.MagIC_directories_list=[]
 
         self.Data,self.Data_hierarchy=self.get_data() # Get data from magic_measurements and rmag_anistropy if exist.
         self.Data_info=self.get_data_info() # get all ages, locations etc. (from er_ages, er_sites, er_locations)
+
+        if  "-tree" in sys.argv and FIRST_RUN:
+            self.open_magic_tree()
+
         self.Data_samples={}
         self.last_saved_pars={}
         self.specimens=self.Data.keys()         # get list of specimens
@@ -84,13 +99,27 @@ class Arai_GUI(wx.Frame):
         self.panel = wx.Panel(self)          # make the Panel
         self.Main_Frame()                   # build the main frame
         self.create_menu()                  # create manu bar
+        self.Arai_zoom()
+        self.Zij_zoom()
+        self.arrow_keys()
+
+        self.get_previous_interpretation() # get interpretations from pmag_specimens.txt
+        FIRST_RUN=False
+
         
-    def get_DIR(self,first_run):
+    def get_DIR(self):
         """ Choose a working directory dialog
         """
-        if "-WD" in sys.argv and first_run:
+        if "-WD" in sys.argv and FIRST_RUN:
             ind=sys.argv.index('-WD')
             self.WD=sys.argv[ind+1] 
+##        elif "-tree" in sys.argv and first_run:
+##            print "Ron"
+##            ind=sys.argv.index('-tree')
+##            self.WD=sys.argv[ind+1]
+##            self.on_menu_m_open_magic_tree("here")
+##            self.GUI_log=open("%s/Thellier_GUI.log"%self.WD,'w')
+##            return
         else:   
             dialog = wx.DirDialog(None, "Choose a directory:",defaultPath = self.currentDirectory ,style=wx.DD_DEFAULT_STYLE | wx.DD_NEW_DIR_BUTTON | wx.DD_CHANGE_DIR)
             if dialog.ShowModal() == wx.ID_OK:
@@ -101,32 +130,58 @@ class Arai_GUI(wx.Frame):
         self.GUI_log=open("%s/Thellier_GUI.log"%self.WD,'w')
         #self.GUI_log=open("%s/Thellier_GUI.log"%self.WD,'a')
         
+##    def add_toolbar(self):
+##        self.toolbar = NavigationToolbar2Wx(self.canvas1)
+##        
+##        self.toolbar.Realize()
+##        if wx.Platform == '__WXMAC__':
+##            # Mac platform (OSX 10.3, MacPython) does not seem to cope with
+##            # having a toolbar in a sizer. This work-around gets the buttons
+##            # back, but at the expense of having the toolbar at the top
+##            self.SetToolBar(self.toolbar)
+##        else:
+##            # On Windows platform, default window size is incorrect, so set
+##            # toolbar width to figure width.
+##            tw, th = self.toolbar.GetSizeTuple()
+##            fw, fh = self.canvas.GetSizeTuple()
+##            # By adding toolbar in sizer, we are able to put it at the bottom
+##            # of the frame - so appearance is closer to GTK version.
+##            # As noted above, doesn't work for Mac.
+##            self.toolbar.SetSize(wx.Size(fw, th))
+##            self.sizer.Add(self.toolbar, 0, wx.LEFT | wx.EXPAND)
+##        # update the axes menu on the toolbar
+##        self.toolbar.update()
+
     def Main_Frame(self):
         """ Build main frame od panel: buttons, etc.
             choose the first specimen and display data
         """
+
+        #self.GUI_RESOLUTION=0.75
+        self.GUI_RESOLUTION=float(self.preferences['gui_resolution'])/100
+        
         #----------------------------------------------------------------------                     
         # Create the mpl Figure and FigCanvas objects. 
         # 5x4 inches, 100 dots-per-inch
         #----------------------------------------------------------------------                     
         #
-        self.fig1 = Figure((5., 5.), dpi=self.dpi)
+        self.fig1 = Figure((5.*self.GUI_RESOLUTION, 5.*self.GUI_RESOLUTION), dpi=self.dpi)
         self.canvas1 = FigCanvas(self.panel, -1, self.fig1)
-        self.fig1.text(0.01,0.98,"Arai plot",{'family':'Arial', 'fontsize':10, 'style':'normal','va':'center', 'ha':'left' })
-
-        self.fig2 = Figure((2.5, 2.5), dpi=self.dpi)
+        self.fig1.text(0.01,0.98,"Arai plot",{'family':'Arial', 'fontsize':10*self.GUI_RESOLUTION, 'style':'normal','va':'center', 'ha':'left' })
+        
+        self.fig2 = Figure((2.5*self.GUI_RESOLUTION, 2.5*self.GUI_RESOLUTION), dpi=self.dpi)
         self.canvas2 = FigCanvas(self.panel, -1, self.fig2)
-        self.fig2.text(0.02,0.96,"Zijderveld",{'family':'Arial', 'fontsize':10, 'style':'normal','va':'center', 'ha':'left' })
+        self.fig2.text(0.02,0.96,"Zijderveld",{'family':'Arial', 'fontsize':10*self.GUI_RESOLUTION, 'style':'normal','va':'center', 'ha':'left' })
 
-        self.fig3 = Figure((2.5, 2.5), dpi=self.dpi)
+        self.fig3 = Figure((2.5*self.GUI_RESOLUTION, 2.5*self.GUI_RESOLUTION), dpi=self.dpi)
         self.canvas3 = FigCanvas(self.panel, -1, self.fig3)
-        self.fig3.text(0.02,0.96,"Equal area",{'family':'Arial', 'fontsize':10, 'style':'normal','va':'center', 'ha':'left' })
+        self.fig3.text(0.02,0.96,"Equal area",{'family':'Arial', 'fontsize':10*self.GUI_RESOLUTION, 'style':'normal','va':'center', 'ha':'left' })
 
-        self.fig4 = Figure((2.5, 2.5), dpi=self.dpi)
+        self.fig4 = Figure((2.5*self.GUI_RESOLUTION, 2.5*self.GUI_RESOLUTION), dpi=self.dpi)
         self.canvas4 = FigCanvas(self.panel, -1, self.fig4)
-        self.fig4.text(0.02,0.96,"Sample data",{'family':'Arial', 'fontsize':10, 'style':'normal','va':'center', 'ha':'left' })
+        self.fig4.text(0.02,0.96,"Sample data",{'family':'Arial', 'fontsize':10*self.GUI_RESOLUTION, 'style':'normal','va':'center', 'ha':'left' })
 
-        self.fig5 = Figure((2.5, 2.5), dpi=self.dpi)
+        self.fig5 = Figure((2.5*self.GUI_RESOLUTION, 2.5*self.GUI_RESOLUTION), dpi=self.dpi)
         self.canvas5 = FigCanvas(self.panel, -1, self.fig5)
         #self.fig5.text(0.02,0.96,"M/M0",{'family':'Arial', 'fontsize':10, 'style':'normal','va':'center', 'ha':'left' })
 
@@ -143,9 +198,9 @@ class Arai_GUI(wx.Frame):
         #----------------------------------------------------------------------                     
 
         #wx.StaticBox(self.panel, -1, 'select specimen', (5, 10), size=(160, 107))
-        select_specimen_box = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY, "select specimen" ), wx.HORIZONTAL )
+        #select_specimen_box = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY, "select specimen" ), wx.HORIZONTAL )
         #wx.StaticBox(self.panel, -1, 'select temperature bounds', (170, 10), size=(260, 107))
-        select_temperature_box = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY, "select temperature bounds" ), wx.HORIZONTAL )
+        #select_temperature_box = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY, "select temperature bounds" ), wx.HORIZONTAL )
 
         # initialize first specimen in list as current specimen
         try:
@@ -156,94 +211,202 @@ class Arai_GUI(wx.Frame):
 
         # set font size and style
         #font1 = wx.Font(10, wx.SWISS, wx.NORMAL, wx.NORMAL, False, u'Comic Sans MS')
-        font1 = wx.Font(9, wx.SWISS, wx.NORMAL, wx.NORMAL, False, u'Arial')
+        FONT_RATIO=self.GUI_RESOLUTION+(self.GUI_RESOLUTION-1)*5
+        font1 = wx.Font(9+FONT_RATIO, wx.SWISS, wx.NORMAL, wx.NORMAL, False, u'Arial')
+        # GUI headers
+        font2 = wx.Font(12+min(1,FONT_RATIO), wx.SWISS, wx.NORMAL, wx.NORMAL, False, u'Arial')
+        font3 = wx.Font(11+FONT_RATIO, wx.SWISS, wx.NORMAL, wx.NORMAL, False, u'Arial')
         font = wx.SystemSettings_GetFont(wx.SYS_SYSTEM_FONT)
-        font.SetPointSize(10)
+        font.SetPointSize(10+FONT_RATIO)        
+##        font1 = wx.SystemSettings_GetFont(wx.SYS_SYSTEM_FONT)
+##        font1.SetPointSize(max(8,9*self.GUI_RESOLUTION))
+##        font2 = wx.SystemSettings_GetFont(wx.SYS_SYSTEM_FONT)
+##        font2.SetPointSize(14*self.GUI_RESOLUTION)
+##        font3 = wx.SystemSettings_GetFont(wx.SYS_SYSTEM_FONT)
+##        font3.SetPointSize(10*self.GUI_RESOLUTION)
+           
 
+        # text_box for presenting the measurements
+        self.logger = wx.TextCtrl(self.panel, id=-1, size=(200*self.GUI_RESOLUTION,500*self.GUI_RESOLUTION), style=wx.TE_MULTILINE | wx.TE_READONLY | wx.HSCROLL)
+        self.logger.SetFont(font1)
+        
+
+
+
+        #   ---------------------------  
+        #  select specimen box
+
+        box_sizer_select_specimen = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY,"specimen" ), wx.VERTICAL )
 
         # Combo-box with a list of specimen
         #self.specimens_box_label = wx.StaticText(self.panel, label=" ")
-        self.specimens_box = wx.ComboBox(self.panel, -1, self.s, (100, 20), wx.DefaultSize,self.specimens, wx.CB_DROPDOWN,name="specimen")
+        self.specimens_box = wx.ComboBox(self.panel, -1, self.s, (250*self.GUI_RESOLUTION, 25), wx.DefaultSize,self.specimens, wx.CB_DROPDOWN,name="specimen")
+        self.specimens_box.SetFont(font2)
         self.Bind(wx.EVT_TEXT, self.onSelect_specimen,self.specimens_box)
         
         # buttons to move forward and backwards from specimens        
-        self.nextbutton = wx.Button(self.panel, id=-1, label='next')#,style=wx.BU_EXACTFIT)#, size=(175, 28))
+        self.nextbutton = wx.Button(self.panel, id=-1, label='next',size=(75*self.GUI_RESOLUTION, 25))#,style=wx.BU_EXACTFIT)#, size=(175, 28))
         self.Bind(wx.EVT_BUTTON, self.on_next_button, self.nextbutton)
-
-        self.prevbutton = wx.Button(self.panel, id=-1, label='previous')#,style=wx.BU_EXACTFIT)#, size=(175, 28))
+        self.nextbutton.SetFont(font2)
+        
+        self.prevbutton = wx.Button(self.panel, id=-1, label='previous',size=(75*self.GUI_RESOLUTION, 25))#,style=wx.BU_EXACTFIT)#, size=(175, 28))
+        self.prevbutton.SetFont(font2)
         self.Bind(wx.EVT_BUTTON, self.on_prev_button, self.prevbutton)
         
-        #  temperatures bounds
+        select_specimen_window = wx.GridSizer(1, 2, 5, 10)
+        select_specimen_window.AddMany( [(self.prevbutton, wx.ALIGN_LEFT),
+            (self.nextbutton, wx.ALIGN_LEFT)])
+
+        box_sizer_select_specimen.Add(self.specimens_box, 0, wx.TOP, 0 )        
+        box_sizer_select_specimen.Add(select_specimen_window, 0, wx.TOP, 4 )        
+
+
+
+
+        #   ---------------------------  
+        #  select temperatures box
+
+        box_sizer_select_temp = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY,"temperatures" ), wx.HORIZONTAL )
+        
         try:
             self.temperatures=array(self.Data[self.s]['t_Arai'])-273.
             self.T_list=["%.0f"%T for T in self.temperatures]
         except:
             self.T_list=[]
         
-        #  Tmin
-        self.tmin_box_label = wx.StaticText(self.panel, label=" T min")
-        self.tmin_box = wx.ComboBox(self.panel, -1, "" , (50, 20), wx.DefaultSize,self.T_list, wx.CB_DROPDOWN)
+        self.tmin_box = wx.ComboBox(self.panel, -1 ,size=(100*self.GUI_RESOLUTION, 25),choices=self.T_list, style=wx.CB_DROPDOWN)
+        self.tmin_box.SetFont(font2)
         self.Bind(wx.EVT_COMBOBOX, self.get_new_T_PI_parameters,self.tmin_box)
 
-        #  Tmax
-        self.tmax_box_label = wx.StaticText(self.panel, label=" T max")
-        self.tmax_box = wx.ComboBox(self.panel, -1, "", (50, 20), wx.DefaultSize,self.T_list, wx.CB_DROPDOWN)
+        self.tmax_box = wx.ComboBox(self.panel, -1 ,size=(100*self.GUI_RESOLUTION, 25),choices=self.T_list, style=wx.CB_DROPDOWN)
         self.Bind(wx.EVT_COMBOBOX, self.get_new_T_PI_parameters,self.tmax_box)
 
+        select_temp_window = wx.GridSizer(3, 1, 5, 10)
+        select_temp_window.AddMany( [(self.tmin_box, wx.ALIGN_LEFT),
+            (self.tmax_box, wx.ALIGN_LEFT)])
+        box_sizer_select_temp.Add(select_temp_window, 0, wx.TOP, 3.5 )        
+
+
+        #   ---------------------------  
+
+        #  save/delete box
+
+        box_sizer_save = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY,"" ), wx.HORIZONTAL )
+
         # save/delete interpretation buttons
-        self.save_interpretation_button = wx.Button(self.panel, id=-1, label='save')#,style=wx.BU_EXACTFIT)#, size=(175, 28))
-        self.delete_interpretation_button = wx.Button(self.panel, id=-1, label='delete')#,style=wx.BU_EXACTFIT)#, size=(175, 28))
+        self.save_interpretation_button = wx.Button(self.panel, id=-1, label='save',size=(75*self.GUI_RESOLUTION,25))#,style=wx.BU_EXACTFIT)#, size=(175, 28))
+        self.save_interpretation_button.SetFont(font2)
+        self.delete_interpretation_button = wx.Button(self.panel, id=-1, label='delete',size=(75*self.GUI_RESOLUTION,25))#,style=wx.BU_EXACTFIT)#, size=(175, 28))
+        self.delete_interpretation_button.SetFont(font2)
         self.Bind(wx.EVT_BUTTON, self.on_save_interpretation_button, self.save_interpretation_button)
         self.Bind(wx.EVT_BUTTON, self.on_delete_interpretation_button, self.delete_interpretation_button)
-
-        # text_box for presenting the measurements
-        self.logger = wx.TextCtrl(self.panel, id=-1, size=(200,500), style=wx.TE_MULTILINE | wx.TE_READONLY | wx.HSCROLL)
-        self.logger.SetFont(font1)
         
+        save_delete_window = wx.GridSizer(2, 1, 5, 10*self.GUI_RESOLUTION)
+        save_delete_window.AddMany( [(self.save_interpretation_button, wx.ALIGN_LEFT),
+            (self.delete_interpretation_button, wx.ALIGN_LEFT)])
+        box_sizer_save.Add(save_delete_window, 0, wx.TOP, 5.5 )        
+
+
+        #   ---------------------------  
         # Specimen interpretation window (Blab; Banc, Dec, Inc, correction factors etc.)
 
-        self.Blab_window=wx.TextCtrl(self.panel,style=wx.TE_CENTER|wx.TE_READONLY,size=(50,20))
-        self.Banc_window=wx.TextCtrl(self.panel,style=wx.TE_CENTER|wx.TE_READONLY,size=(50,20))
-        self.Aniso_factor_window=wx.TextCtrl(self.panel,style=wx.TE_CENTER|wx.TE_READONLY,size=(50,20))
-        self.NLT_factor_window=wx.TextCtrl(self.panel,style=wx.TE_CENTER|wx.TE_READONLY,size=(50,20))
-        self.declination_window=wx.TextCtrl(self.panel,style=wx.TE_CENTER|wx.TE_READONLY,size=(50,20))
-        self.inclination_window=wx.TextCtrl(self.panel,style=wx.TE_CENTER|wx.TE_READONLY,size=(50,20))
+        
+        self.Blab_window=wx.TextCtrl(self.panel,style=wx.TE_CENTER|wx.TE_READONLY,size=(50*self.GUI_RESOLUTION,25))
+        self.Blab_window.SetFont(font2)
+        self.Banc_window=wx.TextCtrl(self.panel,style=wx.TE_CENTER|wx.TE_READONLY,size=(50*self.GUI_RESOLUTION,25))
+        self.Banc_window.SetFont(font2)        
+        self.Aniso_factor_window=wx.TextCtrl(self.panel,style=wx.TE_CENTER|wx.TE_READONLY,size=(50*self.GUI_RESOLUTION,25))
+        self.Aniso_factor_window.SetFont(font2) 
+        self.NLT_factor_window=wx.TextCtrl(self.panel,style=wx.TE_CENTER|wx.TE_READONLY,size=(50*self.GUI_RESOLUTION,25))
+        self.NLT_factor_window.SetFont(font2) 
+        self.declination_window=wx.TextCtrl(self.panel,style=wx.TE_CENTER|wx.TE_READONLY,size=(50*self.GUI_RESOLUTION,25))
+        self.declination_window.SetFont(font2) 
+        self.inclination_window=wx.TextCtrl(self.panel,style=wx.TE_CENTER|wx.TE_READONLY,size=(50*self.GUI_RESOLUTION,25))
+        self.inclination_window.SetFont(font2) 
 
-        # Sample interpretation window (sample_int_n, sample_int_sigma, sample_int_sigma_perc)
+        self.Blab_label=wx.StaticText(self.panel,label="\nB_lab",style=wx.ALIGN_CENTRE)
+        self.Blab_label.SetFont(font3)
+        self.Banc_label=wx.StaticText(self.panel,label="\nB_anc",style=wx.ALIGN_CENTRE)
+        self.Banc_label.SetFont(font3)
+        self.aniso_corr_label=wx.StaticText(self.panel,label="Aniso\ncorrection",style=wx.ALIGN_CENTRE)
+        self.aniso_corr_label.SetFont(font3)
+        self.nlt_corr_label=wx.StaticText(self.panel,label="NLT\ncorrection",style=wx.ALIGN_CENTRE)
+        self.nlt_corr_label.SetFont(font3)
+        self.dec_label=wx.StaticText(self.panel,label="\nDec",style=wx.ALIGN_CENTRE)
+        self.dec_label.SetFont(font3)
+        self.inc_label=wx.StaticText(self.panel,label="\nInc",style=wx.ALIGN_CENTRE)
+        self.inc_label.SetFont(font3)
 
-        for key in ["sample_int_n","sample_int_uT","sample_int_sigma","sample_int_sigma_perc"]:
-            command="self.%s_window=wx.TextCtrl(self.panel,style=wx.TE_CENTER|wx.TE_READONLY,size=(50,20))"%key
-            exec command
 
-        sample_stat_window = wx.GridSizer(2, 4, 5, 10)
-        box_sizer_sample = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY,"sample results" ), wx.HORIZONTAL )
-        sample_stat_window.AddMany( [(wx.StaticText(self.panel,label="\nmean",style=wx.TE_CENTER), wx.EXPAND),
-            (wx.StaticText(self.panel,label="\nN ",style=wx.TE_CENTER), wx.EXPAND),
-            (wx.StaticText(self.panel,label="\n std uT",style=wx.TE_CENTER), wx.EXPAND),
-            (wx.StaticText(self.panel,label="\n std perc" , style=wx.TE_CENTER),wx.EXPAND),
-            (self.sample_int_uT_window, wx.EXPAND),
-            (self.sample_int_n_window, wx.EXPAND) ,
-            (self.sample_int_sigma_window, wx.EXPAND) ,
-            (self.sample_int_sigma_perc_window, wx.EXPAND)])
-        box_sizer_sample.Add(sample_stat_window, 0, wx.ALIGN_LEFT, 1 )        
-
-        # Specimen paleointensity statistics
-
-        specimen_stat_window = wx.GridSizer(2, 6, 5, 10)
+        specimen_stat_window = wx.GridSizer(2, 6, 0, 19*self.GUI_RESOLUTION)
         box_sizer_specimen = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY,"specimen results"  ), wx.HORIZONTAL )
-        specimen_stat_window.AddMany( [(wx.StaticText(self.panel,label="\nB_lab",style=wx.TE_CENTER), wx.EXPAND),
-            (wx.StaticText(self.panel,label="\nB_anc",style=wx.TE_CENTER), wx.EXPAND),
-            (wx.StaticText(self.panel,label="Aniso\ncorrection",style=wx.TE_CENTER), wx.EXPAND),
-            (wx.StaticText(self.panel,label="NLT\ncorrection", style=wx.TE_CENTER),wx.EXPAND),
-            (wx.StaticText(self.panel,label="\nDec", style=wx.TE_CENTER),wx.TE_CENTER),
-            (wx.StaticText(self.panel,label="\nInc", style=wx.TE_CENTER),wx.EXPAND),                          
+        specimen_stat_window.AddMany( [(self.Blab_label, wx.EXPAND),
+            ((self.Banc_label), wx.EXPAND),
+            ((self.aniso_corr_label), wx.EXPAND),
+            ((self.nlt_corr_label),wx.EXPAND),
+            ((self.dec_label),wx.TE_CENTER),
+            ((self.inc_label),wx.EXPAND),                          
             (self.Blab_window, wx.EXPAND),
             (self.Banc_window, wx.EXPAND) ,
             (self.Aniso_factor_window, wx.EXPAND) ,
             (self.NLT_factor_window, wx.EXPAND),
             (self.declination_window, wx.EXPAND) ,
             (self.inclination_window, wx.EXPAND)])
-        box_sizer_specimen.Add( specimen_stat_window, 0, wx.ALIGN_LEFT, 1 )
+        box_sizer_specimen.Add( specimen_stat_window, 0, wx.ALIGN_LEFT, 0 )
+
+
+
+        #   ---------------------------  
+        #  Sample interpretation window 
+
+        # Sample interpretation window (sample_int_n, sample_int_sigma, sample_int_sigma_perc)
+
+        for key in ["sample_int_n","sample_int_uT","sample_int_sigma","sample_int_sigma_perc"]:
+            command="self.%s_window=wx.TextCtrl(self.panel,style=wx.TE_CENTER|wx.TE_READONLY,size=(50*self.GUI_RESOLUTION,25))"%key
+            exec command
+            command = "self.%s_window.SetFont(font2)"%key
+            exec command
+
+##        for key in ["sample results","\nmean","\nN","\n std uT","\n std uT"]:
+##            K=key.strip("\n");K=K.replace(" ", "_")
+##            command="%s_label=wx.StaticBox( self.panel, wx.ID_ANY,'%s',style=wx.TE_CENTER )"%(K,key)
+##            print command
+##            exec command
+##            command="%s_label.SetFont(font3)"%K
+##            exec command
+
+        sample_mean_label=wx.StaticText(self.panel,label="\nmean",style=wx.TE_CENTER)
+        sample_mean_label.SetFont(font3)
+        sample_N_label=wx.StaticText(self.panel,label="\nN ",style=wx.TE_CENTER)
+        sample_N_label.SetFont(font3)
+        sample_std_label=wx.StaticText(self.panel,label="\n std uT",style=wx.TE_CENTER)
+        sample_std_label.SetFont(font3)
+        sample_std_per_label=wx.StaticText(self.panel,label="\n std %",style=wx.TE_CENTER)
+        sample_std_per_label.SetFont(font3)
+
+        
+        sample_stat_window = wx.GridSizer(2, 4, 0, 19*self.GUI_RESOLUTION)
+
+
+        box_sizer_sample = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY,"sample results" ), wx.HORIZONTAL )
+        sample_stat_window.AddMany( [(sample_mean_label, wx.EXPAND),
+            (sample_N_label, wx.EXPAND),
+            (sample_std_label, wx.EXPAND),
+            (sample_std_per_label ,wx.EXPAND),
+            (self.sample_int_uT_window, wx.EXPAND),
+            (self.sample_int_n_window, wx.EXPAND) ,
+            (self.sample_int_sigma_window, wx.EXPAND) ,
+            (self.sample_int_sigma_perc_window, wx.EXPAND)])
+        box_sizer_sample.Add(sample_stat_window, 0, wx.ALIGN_LEFT, 0 )        
+
+
+
+
+
+        #   ---------------------------  
+
+        # Specimen paleointensity statistics
+
 
         # Specimen statistcis window 
         try:
@@ -253,101 +416,177 @@ class Arai_GUI(wx.Frame):
               specimen_frac="%.2f"%self.Data[self.s]['pars']['specimen_frac']
         except:
             pass
+
+        #self.preferences['show_statistics_on_gui']=["int_n","int_ptrm_n","frac","scat","gmax","b_beta","int_mad","dang","f","fvds","g","q","drats","md"]
+        #preperences['show_statistics_on_gui']=["int_n","ptrm_n","frac","scat","gmax","beta","int_mad","dang"]
+        Statsitics_labels={}
+        Statsitics_labels["int_n"]="n"
+        Statsitics_labels["int_ptrm_n"]="n_ptrm"
+        Statsitics_labels["frac"]="FRAC"
+        Statsitics_labels["scat"]="SCAT"
+        Statsitics_labels["gmax"]="GAP-MAX"
+        Statsitics_labels["b_beta"]="beta"
+        Statsitics_labels["int_mad"]="MAD"
+        Statsitics_labels["dang"]="DANG"
+        Statsitics_labels["f"]="f"
+        Statsitics_labels["fvds"]="fvds"
+        Statsitics_labels["g"]="g"
+        Statsitics_labels["q"]="q"
+        Statsitics_labels["drats"]="DRATS"
+        Statsitics_labels["md"]="MD"
+
+        hbox_criteria = wx.BoxSizer(wx.HORIZONTAL)
+        TEXT=[" ","Acceptance criteria:","Specimen statistics:"]
+        for i in range(len(TEXT)):
+            command="self.label_%i=wx.StaticText(self.panel,label='%s',style=wx.ALIGN_CENTER,size=(180,25))"%(i,TEXT[i])
+            #print command
+            exec command
+            command="self.label_%i.SetFont(font3)"%i
+            #print command
+            exec command
+        gs1 = wx.GridSizer(3, 1,5*self.GUI_RESOLUTION,5*self.GUI_RESOLUTION)
+ 
+        gs1.AddMany( [(self.label_0,wx.EXPAND),(self.label_1,wx.EXPAND),(self.label_2,wx.EXPAND)])
         
-        self.int_n_window=wx.TextCtrl(self.panel,style=wx.TE_CENTER|wx.TE_READONLY,size=(50,20))
-        self.int_ptrm_n_window=wx.TextCtrl(self.panel,style=wx.TE_CENTER|wx.TE_READONLY,size=(50,20))
-        self.frac_window=wx.TextCtrl(self.panel,style=wx.TE_CENTER|wx.TE_READONLY,size=(50,20))
-        self.scat_window=wx.TextCtrl(self.panel,style=wx.TE_READONLY|wx.TE_CENTER,size=(50,20))
-        self.gap_max_window=wx.TextCtrl(self.panel,style=wx.TE_READONLY|wx.TE_CENTER,size=(50,20))
-        self.f_window=wx.TextCtrl(self.panel,style=wx.TE_READONLY|wx.TE_CENTER,size=(50,20))
-        self.fvds_window=wx.TextCtrl(self.panel,style=wx.TE_READONLY|wx.TE_CENTER,size=(50,20))
-        self.b_beta_window=wx.TextCtrl(self.panel,style=wx.TE_READONLY|wx.TE_CENTER,size=(50,20))
-        self.g_window=wx.TextCtrl(self.panel,style=wx.TE_READONLY|wx.TE_CENTER,size=(50,20))
-        self.q_window=wx.TextCtrl(self.panel,style=wx.TE_READONLY|wx.TE_CENTER,size=(50,20))
-        self.int_mad_window=wx.TextCtrl(self.panel,style=wx.TE_READONLY|wx.TE_CENTER,size=(50,20))
-        self.dang_window=wx.TextCtrl(self.panel,style=wx.TE_READONLY|wx.TE_CENTER,size=(50,20))
-        self.drats_window=wx.TextCtrl(self.panel,style=wx.TE_READONLY|wx.TE_CENTER,size=(50,20))
-        self.md_window=wx.TextCtrl(self.panel,style=wx.TE_READONLY|wx.TE_CENTER,size=(50,20))
 
-        self.int_n_threshold_window=wx.TextCtrl(self.panel,style=wx.TE_CENTER|wx.TE_READONLY,size=(50,20))
-        self.int_ptrm_n_threshold_window=wx.TextCtrl(self.panel,style=wx.TE_CENTER|wx.TE_READONLY,size=(50,20))
-        self.frac_threshold_window=wx.TextCtrl(self.panel,style=wx.TE_CENTER|wx.TE_READONLY,size=(50,20))
-        self.scat_threshold_window=wx.TextCtrl(self.panel,style=wx.TE_CENTER|wx.TE_READONLY,size=(50,20))
-        self.gap_max_threshold_window=wx.TextCtrl(self.panel,style=wx.TE_READONLY|wx.TE_CENTER,size=(50,20))
-        self.f_threshold_window=wx.TextCtrl(self.panel,style=wx.TE_READONLY|wx.TE_CENTER,size=(50,20))
-        self.fvds_threshold_window=wx.TextCtrl(self.panel,style=wx.TE_READONLY|wx.TE_CENTER,size=(50,20))
-        self.b_beta_threshold_window=wx.TextCtrl(self.panel,style=wx.TE_READONLY|wx.TE_CENTER,size=(50,20))
-        self.g_threshold_window=wx.TextCtrl(self.panel,style=wx.TE_READONLY|wx.TE_CENTER,size=(50,20))
-        self.q_threshold_window=wx.TextCtrl(self.panel,style=wx.TE_READONLY|wx.TE_CENTER,size=(50,20))
-        self.int_mad_threshold_window=wx.TextCtrl(self.panel,style=wx.TE_READONLY|wx.TE_CENTER,size=(50,20))
-        self.dang_threshold_window=wx.TextCtrl(self.panel,style=wx.TE_READONLY|wx.TE_CENTER,size=(50,20))
-        self.drats_threshold_window=wx.TextCtrl(self.panel,style=wx.TE_READONLY|wx.TE_CENTER,size=(50,20))
-        self.md_threshold_window=wx.TextCtrl(self.panel,style=wx.TE_READONLY|wx.TE_CENTER,size=(50,20))
+                                     
+##            command="gs1.AddMany( [(self.%s_label,wx.EXPAND),(self.%s_threshold_window,wx.EXPAND),(self.%s_window,wx.EXPAND)])"%(statistic,statistic,statistic,statistic)
+##            exec command
+##            command="hbox_criteria.Add(gs_%s,flag=wx.ALIGN_LEFT)"%statistic
+##            exec command
+##        hbox_criteria.AddSpacer(12)
 
-        self.int_n_threshold_window.SetBackgroundColour(wx.NullColor)
-        self.int_ptrm_n_threshold_window.SetBackgroundColour(wx.NullColor)
-        self.frac_threshold_window.SetBackgroundColour(wx.NullColor)
-        self.scat_threshold_window.SetBackgroundColour(wx.NullColor)
-        self.gap_max_threshold_window.SetBackgroundColour(wx.NullColor)
-        self.f_threshold_window.SetBackgroundColour(wx.NullColor)
-        self.fvds_threshold_window.SetBackgroundColour(wx.NullColor)
-        self.b_beta_threshold_window.SetBackgroundColour(wx.NullColor)
-        self.g_threshold_window.SetBackgroundColour(wx.NullColor)
-        self.q_threshold_window.SetBackgroundColour(wx.NullColor)
-        self.int_mad_threshold_window.SetBackgroundColour(wx.NullColor)
-        self.dang_threshold_window.SetBackgroundColour(wx.NullColor)
-        self.drats_threshold_window.SetBackgroundColour(wx.NullColor)
-        self.md_threshold_window.SetBackgroundColour(wx.NullColor)
 
-        gs = wx.GridSizer(3, 14, 14, 14)
+##        gs1 = wx.GridSizer(3, 1,5*self.GUI_RESOLUTION,5*self.GUI_RESOLUTION)
+##        gs1.AddMany( [(wx.StaticText(self.panel,label="",style=wx.ALIGN_CENTER,size=(180,25)),wx.EXPAND),
+##            (wx.StaticText(self.panel,label="Acceptance criteria:",style=wx.ALIGN_CENTER,size=(180,25)),wx.EXPAND),
+##            (wx.StaticText(self.panel,label="Specimen's statistics:",style=wx.ALIGN_CENTER,size=(180,25)),wx.EXPAND)])
+        hbox_criteria.Add(gs1,flag=wx.ALIGN_LEFT)
 
-        gs.AddMany( [(wx.StaticText(self.panel,label="int_n",style=wx.ALIGN_CENTER_VERTICAL),wx.ALIGN_CENTER_VERTICAL),
-            (wx.StaticText(self.panel,label="n_pTRM",style=wx.ALIGN_CENTER_VERTICAL),wx.ALIGN_CENTER_VERTICAL),
-            (wx.StaticText(self.panel,label="FRAC",style=wx.ALIGN_CENTER_VERTICAL),wx.ALIGN_CENTER_VERTICAL),
-            (wx.StaticText(self.panel,label="SCAT",style=wx.ALIGN_CENTER_VERTICAL),wx.ALIGN_CENTER_VERTICAL),
-            (wx.StaticText(self.panel,label="gap_max",style=wx.ALIGN_CENTER_VERTICAL),wx.ALIGN_CENTER_VERTICAL),
-            (wx.StaticText(self.panel,label="f",style=wx.ALIGN_CENTER_VERTICAL),wx.ALIGN_CENTER_VERTICAL),
-            (wx.StaticText(self.panel,label="fvds",style=wx.ALIGN_CENTER_VERTICAL),wx.ALIGN_CENTER_VERTICAL),
-            (wx.StaticText(self.panel,label="beta",style=wx.ALIGN_CENTER_VERTICAL),wx.ALIGN_CENTER_VERTICAL),
-            (wx.StaticText(self.panel,label="g",style=wx.ALIGN_CENTER_VERTICAL),wx.ALIGN_CENTER_VERTICAL),
-            (wx.StaticText(self.panel,label="q",style=wx.ALIGN_CENTER_VERTICAL),wx.ALIGN_CENTER_VERTICAL),
-            (wx.StaticText(self.panel,label="MAD",style=wx.ALIGN_CENTER_VERTICAL)),
-            (wx.StaticText(self.panel,label="DANG",style=wx.ALIGN_CENTER_VERTICAL)),
-            (wx.StaticText(self.panel,label="DRATS",style=wx.ALIGN_CENTER_VERTICAL)),
-            (wx.StaticText(self.panel,label="MD tail",style=wx.ALIGN_CENTER_VERTICAL)),
-            (self.int_n_threshold_window, wx.EXPAND),
-            (self.int_ptrm_n_threshold_window, wx.EXPAND),                     
-            (self.frac_threshold_window, wx.EXPAND),
-            (self.scat_threshold_window, wx.EXPAND),
-            (self.gap_max_threshold_window, wx.EXPAND),
-            (self.f_threshold_window, wx.EXPAND),
-            (self.fvds_threshold_window, wx.EXPAND),
-            (self.b_beta_threshold_window, wx.EXPAND),
-            (self.g_threshold_window, wx.EXPAND),
-            (self.q_threshold_window, wx.EXPAND),
-            (self.int_mad_threshold_window, wx.EXPAND),
-            (self.dang_threshold_window, wx.EXPAND),
-            (self.drats_threshold_window, wx.EXPAND),
-            (self.md_threshold_window, wx.EXPAND),
-            (self.int_n_window, wx.EXPAND),
-            (self.int_ptrm_n_window, wx.EXPAND),
-            (self.frac_window, wx.EXPAND),
-            (self.scat_window, wx.EXPAND),
-            (self.gap_max_window, wx.EXPAND),
-            (self.f_window, wx.EXPAND),
-            (self.fvds_window, wx.EXPAND),
-            (self.b_beta_window, wx.EXPAND),
-            (self.g_window, wx.EXPAND),
-            (self.q_window, wx.EXPAND),
-            (self.int_mad_window, wx.EXPAND),
-            (self.dang_window, wx.EXPAND),
-            (self.drats_window, wx.EXPAND),
-            (self.md_window, wx.EXPAND)])
+        for statistic in self.preferences['show_statistics_on_gui']:
+            command="self.%s_window=wx.TextCtrl(self.panel,style=wx.TE_CENTER|wx.TE_READONLY,size=(50*self.GUI_RESOLUTION,25))"%statistic
+            exec command
+            command="self.%s_window.SetFont(font3)"%statistic
+            exec command
+            command="self.%s_threshold_window=wx.TextCtrl(self.panel,style=wx.TE_CENTER|wx.TE_READONLY,size=(50*self.GUI_RESOLUTION,25))"%statistic
+            exec command
+            command="self.%s_threshold_window.SetFont(font3)"%statistic
+            exec command
+            command="self.%s_threshold_window.SetBackgroundColour(wx.NullColor)"%statistic
+            exec command
+            command="self.%s_label=wx.StaticText(self.panel,label='%s',style=wx.ALIGN_CENTRE)"%(statistic,Statsitics_labels[statistic])
+            #print command
+            exec command
+            command="self.%s_label.SetFont(font3)"%statistic
+            exec command
+            
+        for statistic in self.preferences['show_statistics_on_gui']:
+            command="gs_%s = wx.GridSizer(3, 1,5*self.GUI_RESOLUTION,5*self.GUI_RESOLUTION)"%statistic
+            exec command
+            command="gs_%s.AddMany( [(self.%s_label,wx.EXPAND),(self.%s_threshold_window,wx.EXPAND),(self.%s_window,wx.EXPAND)])"%(statistic,statistic,statistic,statistic)
+            exec command
+            command="hbox_criteria.Add(gs_%s,flag=wx.ALIGN_LEFT)"%statistic
+            exec command
+            hbox_criteria.AddSpacer(12)
+           
+        #for statistic in self.preperences['show_statistics_on_gui']
+            
+##        self.int_n_window=wx.TextCtrl(self.panel,style=wx.TE_CENTER|wx.TE_READONLY,size=(50,20))
+##        self.int_ptrm_n_window=wx.TextCtrl(self.panel,style=wx.TE_CENTER|wx.TE_READONLY,size=(50,20))
+##        self.frac_window=wx.TextCtrl(self.panel,style=wx.TE_CENTER|wx.TE_READONLY,size=(50,20))
+##        self.scat_window=wx.TextCtrl(self.panel,style=wx.TE_READONLY|wx.TE_CENTER,size=(50,20))
+##        self.gmax_window=wx.TextCtrl(self.panel,style=wx.TE_READONLY|wx.TE_CENTER,size=(50,20))
+##        self.f_window=wx.TextCtrl(self.panel,style=wx.TE_READONLY|wx.TE_CENTER,size=(50,20))
+##        self.fds_window=wx.TextCtrl(self.panel,style=wx.TE_READONLY|wx.TE_CENTER,size=(50,20))
+##        self.b_beta_window=wx.TextCtrl(self.panel,style=wx.TE_READONLY|wx.TE_CENTER,size=(50,20))
+##        self.g_window=wx.TextCtrl(self.panel,style=wx.TE_READONLY|wx.TE_CENTER,size=(50,20))
+##        self.q_window=wx.TextCtrl(self.panel,style=wx.TE_READONLY|wx.TE_CENTER,size=(50,20))
+##        self.int_mad_window=wx.TextCtrl(self.panel,style=wx.TE_READONLY|wx.TE_CENTER,size=(50,20))
+##        self.dang_window=wx.TextCtrl(self.panel,style=wx.TE_READONLY|wx.TE_CENTER,size=(50,20))
+##        self.drats_window=wx.TextCtrl(self.panel,style=wx.TE_READONLY|wx.TE_CENTER,size=(50,20))
+##        self.md_window=wx.TextCtrl(self.panel,style=wx.TE_READONLY|wx.TE_CENTER,size=(50,20))
+##
+##        self.int_n_threshold_window=wx.TextCtrl(self.panel,style=wx.TE_CENTER|wx.TE_READONLY,size=(50,20))
+##        self.int_ptrm_n_threshold_window=wx.TextCtrl(self.panel,style=wx.TE_CENTER|wx.TE_READONLY,size=(50,20))
+##        self.frac_threshold_window=wx.TextCtrl(self.panel,style=wx.TE_CENTER|wx.TE_READONLY,size=(50,20))
+##        self.scat_threshold_window=wx.TextCtrl(self.panel,style=wx.TE_CENTER|wx.TE_READONLY,size=(50,20))
+##        self.gmax_threshold_window=wx.TextCtrl(self.panel,style=wx.TE_READONLY|wx.TE_CENTER,size=(50,20))
+##        self.f_threshold_window=wx.TextCtrl(self.panel,style=wx.TE_READONLY|wx.TE_CENTER,size=(50,20))
+##        self.fvds_threshold_window=wx.TextCtrl(self.panel,style=wx.TE_READONLY|wx.TE_CENTER,size=(50,20))
+##        self.b_beta_threshold_window=wx.TextCtrl(self.panel,style=wx.TE_READONLY|wx.TE_CENTER,size=(50,20))
+##        self.g_threshold_window=wx.TextCtrl(self.panel,style=wx.TE_READONLY|wx.TE_CENTER,size=(50,20))
+##        self.q_threshold_window=wx.TextCtrl(self.panel,style=wx.TE_READONLY|wx.TE_CENTER,size=(50,20))
+##        self.int_mad_threshold_window=wx.TextCtrl(self.panel,style=wx.TE_READONLY|wx.TE_CENTER,size=(50,20))
+##        self.dang_threshold_window=wx.TextCtrl(self.panel,style=wx.TE_READONLY|wx.TE_CENTER,size=(50,20))
+##        self.drats_threshold_window=wx.TextCtrl(self.panel,style=wx.TE_READONLY|wx.TE_CENTER,size=(50,20))
+##        self.md_threshold_window=wx.TextCtrl(self.panel,style=wx.TE_READONLY|wx.TE_CENTER,size=(50,20))
 
-        gs1 = wx.GridSizer(3, 1,12,12)
-        gs1.AddMany( [(wx.StaticText(self.panel,label="",style=wx.ALIGN_CENTER)),
-            (wx.StaticText(self.panel,label="Acceptance criteria:",style=wx.ALIGN_CENTER)),
-            (wx.StaticText(self.panel,label="Specimen's statistics:",style=wx.ALIGN_CENTER))])
+##        self.int_n_threshold_window.SetBackgroundColour(wx.NullColor)
+##        self.int_ptrm_n_threshold_window.SetBackgroundColour(wx.NullColor)
+##        self.frac_threshold_window.SetBackgroundColour(wx.NullColor)
+##        self.scat_threshold_window.SetBackgroundColour(wx.NullColor)
+##        self.gmax_threshold_window.SetBackgroundColour(wx.NullColor)
+##        self.f_threshold_window.SetBackgroundColour(wx.NullColor)
+##        self.fvds_threshold_window.SetBackgroundColour(wx.NullColor)
+##        self.b_beta_threshold_window.SetBackgroundColour(wx.NullColor)
+##        self.g_threshold_window.SetBackgroundColour(wx.NullColor)
+##        self.q_threshold_window.SetBackgroundColour(wx.NullColor)
+##        self.int_mad_threshold_window.SetBackgroundColour(wx.NullColor)
+##        self.dang_threshold_window.SetBackgroundColour(wx.NullColor)
+##        self.drats_threshold_window.SetBackgroundColour(wx.NullColor)
+##        self.md_threshold_window.SetBackgroundColour(wx.NullColor)
+
+##        gs = wx.GridSizer(3, 14, 14, 14)
+
+##        gs=wx.GridSizer(3, len(self.preperences['show_statistics_on_gui']), 14, 14)
+##        gs.AddMany( [(wx.StaticText(self.panel,label="int_n",style=wx.ALIGN_CENTER_VERTICAL),wx.ALIGN_CENTER_VERTICAL),
+##            (wx.StaticText(self.panel,label="n_pTRM",style=wx.ALIGN_CENTER_VERTICAL),wx.ALIGN_CENTER_VERTICAL),
+##            (wx.StaticText(self.panel,label="FRAC",style=wx.ALIGN_CENTER_VERTICAL),wx.ALIGN_CENTER_VERTICAL),
+##            (wx.StaticText(self.panel,label="SCAT",style=wx.ALIGN_CENTER_VERTICAL),wx.ALIGN_CENTER_VERTICAL),
+##            (wx.StaticText(self.panel,label="gmax",style=wx.ALIGN_CENTER_VERTICAL),wx.ALIGN_CENTER_VERTICAL),
+##            (wx.StaticText(self.panel,label="f",style=wx.ALIGN_CENTER_VERTICAL),wx.ALIGN_CENTER_VERTICAL),
+##            (wx.StaticText(self.panel,label="fvds",style=wx.ALIGN_CENTER_VERTICAL),wx.ALIGN_CENTER_VERTICAL),
+##            (wx.StaticText(self.panel,label="beta",style=wx.ALIGN_CENTER_VERTICAL),wx.ALIGN_CENTER_VERTICAL),
+##            (wx.StaticText(self.panel,label="g",style=wx.ALIGN_CENTER_VERTICAL),wx.ALIGN_CENTER_VERTICAL),
+##            (wx.StaticText(self.panel,label="q",style=wx.ALIGN_CENTER_VERTICAL),wx.ALIGN_CENTER_VERTICAL),
+##            (wx.StaticText(self.panel,label="MAD",style=wx.ALIGN_CENTER_VERTICAL)),
+##            (wx.StaticText(self.panel,label="DANG",style=wx.ALIGN_CENTER_VERTICAL)),
+##            (wx.StaticText(self.panel,label="DRATS",style=wx.ALIGN_CENTER_VERTICAL)),
+##            (wx.StaticText(self.panel,label="MD tail",style=wx.ALIGN_CENTER_VERTICAL)),
+##            (self.int_n_threshold_window, wx.EXPAND),
+##            (self.int_ptrm_n_threshold_window, wx.EXPAND),                     
+##            (self.frac_threshold_window, wx.EXPAND),
+##            (self.scat_threshold_window, wx.EXPAND),
+##            (self.gmax_threshold_window, wx.EXPAND),
+##            (self.f_threshold_window, wx.EXPAND),
+##            (self.fvds_threshold_window, wx.EXPAND),
+##            (self.b_beta_threshold_window, wx.EXPAND),
+##            (self.g_threshold_window, wx.EXPAND),
+##            (self.q_threshold_window, wx.EXPAND),
+##            (self.int_mad_threshold_window, wx.EXPAND),
+##            (self.dang_threshold_window, wx.EXPAND),
+##            (self.drats_threshold_window, wx.EXPAND),
+##            (self.md_threshold_window, wx.EXPAND),
+##            (self.int_n_window, wx.EXPAND),
+##            (self.int_ptrm_n_window, wx.EXPAND),
+##            (self.frac_window, wx.EXPAND),
+##            (self.scat_window, wx.EXPAND),
+##            (self.gmax_window, wx.EXPAND),
+##            (self.f_window, wx.EXPAND),
+##            (self.fvds_window, wx.EXPAND),
+##            (self.b_beta_window, wx.EXPAND),
+##            (self.g_window, wx.EXPAND),
+##            (self.q_window, wx.EXPAND),
+##            (self.int_mad_window, wx.EXPAND),
+##            (self.dang_window, wx.EXPAND),
+##            (self.drats_window, wx.EXPAND),
+##            (self.md_window, wx.EXPAND)])
+##
+##
+##        gs1 = wx.GridSizer(3, 1,12*self.GUI_RESOLUTION,12*self.GUI_RESOLUTION)
+##        gs1.AddMany( [(wx.StaticText(self.panel,label="",style=wx.ALIGN_CENTER)),
+##            (wx.StaticText(self.panel,label="Acceptance criteria:",style=wx.ALIGN_CENTER)),
+##            (wx.StaticText(self.panel,label="Specimen's statistics:",style=wx.ALIGN_CENTER))])
         
         self.write_acceptance_criteria_to_boxes()  # write threshold values to boxes
 
@@ -360,64 +599,79 @@ class Arai_GUI(wx.Frame):
         vbox1 = wx.BoxSizer(wx.VERTICAL)
         hbox1 = wx.BoxSizer(wx.HORIZONTAL)
 
-        hbox1a= wx.BoxSizer(wx.HORIZONTAL)
-        hbox1b= wx.BoxSizer(wx.HORIZONTAL)
-        vbox1a=wx.BoxSizer(wx.VERTICAL)
+        #hbox1a= wx.BoxSizer(wx.HORIZONTAL)
+        #hbox1b= wx.BoxSizer(wx.HORIZONTAL)
+        #vbox1a=wx.BoxSizer(wx.VERTICAL)
 
-        hbox1c= wx.BoxSizer(wx.HORIZONTAL)
-        hbox1d= wx.BoxSizer(wx.HORIZONTAL)
-        vbox1b=wx.BoxSizer(wx.VERTICAL)
+        #hbox1c= wx.BoxSizer(wx.HORIZONTAL)
+##        hbox1d= wx.BoxSizer(wx.HORIZONTAL)
+##        vbox1b=wx.BoxSizer(wx.VERTICAL)
         
         #hbox1a.Add(self.specimens_box_label, flag=wx.ALIGN_CENTER_VERTICAL,border=2)
-        hbox1a.Add(self.specimens_box, flag=wx.ALIGN_CENTER_VERTICAL)#, border=10)
-        hbox1b.Add(self.prevbutton,flag=wx.ALIGN_CENTER_VERTICAL)#, border=8)
-        hbox1b.Add(self.nextbutton, flag=wx.ALIGN_CENTER_VERTICAL)#, border=10)
-        vbox1a.Add(hbox1a,flag=wx.ALIGN_RIGHT)
-        vbox1a.AddSpacer(10)
-        vbox1a.Add(hbox1b,flag=wx.ALIGN_RIGHT)
-        select_specimen_box.Add(vbox1a)
+        #hbox1a.Add(self.specimens_box, flag=wx.ALIGN_CENTER_VERTICAL | wx.GROW)#, border=10)
+        #hbox1b.Add(self.prevbutton,flag=wx.ALIGN_CENTER_VERTICAL)#, border=8)
+        #hbox1b.Add(self.nextbutton, flag=wx.ALIGN_CENTER_VERTICAL)#, border=10)
+        #vbox1a.Add(hbox1a,flag=wx.ALIGN_RIGHT)
+        #vbox1a.AddSpacer(10)
+        #vbox1a.Add(hbox1b,flag=wx.ALIGN_RIGHT)
+        #select_specimen_box.Add(vbox1a)
 
-        hbox1c.Add(self.tmin_box_label, flag=wx.ALIGN_CENTER_VERTICAL,border=2)
-        hbox1c.Add(self.tmin_box, flag=wx.ALIGN_CENTER_VERTICAL)#, border=10)
-
-        hbox1c.AddSpacer(10)
-        hbox1c.Add(self.save_interpretation_button,flag=wx.ALIGN_CENTER_VERTICAL)#, border=8)
-
-        hbox1d.Add(self.tmax_box_label,flag=wx.ALIGN_CENTER_VERTICAL)#, border=8)
-        hbox1d.Add(self.tmax_box, flag=wx.ALIGN_CENTER_VERTICAL)#, border=10)
-
-        hbox1d.AddSpacer(10)
-        hbox1d.Add(self.delete_interpretation_button,flag=wx.ALIGN_CENTER_VERTICAL)#, border=8)
+##        hbox1c.Add(self.tmin_box_label, flag=wx.ALIGN_CENTER_VERTICAL,border=2)
+##        hbox1c.Add(self.tmin_box, flag=wx.ALIGN_CENTER_VERTICAL)#, border=10)
+##
+##        hbox1c.AddSpacer(10)
+##        hbox1c.Add(self.save_interpretation_button,flag=wx.ALIGN_CENTER_VERTICAL)#, border=8)
+##
+##        hbox1d.Add(self.tmax_box_label,flag=wx.ALIGN_CENTER_VERTICAL)#, border=8)
+##        hbox1d.Add(self.tmax_box, flag=wx.ALIGN_CENTER_VERTICAL)#, border=10)
+##
+##        hbox1d.AddSpacer(10)
+##        hbox1d.Add(self.delete_interpretation_button,flag=wx.ALIGN_CENTER_VERTICAL)#, border=8)
         
-        vbox1b.Add(hbox1c,flag=wx.ALIGN_RIGHT)
-        vbox1b.AddSpacer(10)
-        vbox1b.Add(hbox1d,flag=wx.ALIGN_RIGHT)
+##        vbox1b.Add(hbox1c,flag=wx.ALIGN_RIGHT)
+##        vbox1b.AddSpacer(10)
+##        vbox1b.Add(hbox1d,flag=wx.ALIGN_RIGHT)
 
-        select_temperature_box.Add(vbox1b)
+        #select_temperature_box.Add(vbox1b)
     
         vbox1.AddSpacer(10)
         hbox1.AddSpacer(10)
         #hbox1.Add(vbox1a,flag=wx.ALIGN_CENTER_VERTICAL)#,flag=wx.ALIGN_CENTER_VERTICAL)
-        hbox1.Add(select_specimen_box,flag=wx.ALIGN_CENTER_VERTICAL)
-        hbox1.AddSpacer(10)        
+        #hbox1.Add(select_specimen_box,flag=wx.ALIGN_CENTER_VERTICAL)
+        #hbox1.AddSpacer(10)        
         #hbox1.Add(vbox1b,flag=wx.ALIGN_CENTER_VERTICAL)#,flag=wx.ALIGN_CENTER_VERTICAL)
-        hbox1.Add(select_temperature_box,flag=wx.ALIGN_CENTER_VERTICAL)#,flag=wx.ALIGN_CENTER_VERTICAL)
+        #hbox1.Add(select_temperature_box,flag=wx.ALIGN_CENTER_VERTICAL)#,flag=wx.ALIGN_CENTER_VERTICAL)
+
+        hbox1.Add(box_sizer_select_specimen,flag=wx.ALIGN_LEFT|wx.ALIGN_BOTTOM)
         hbox1.AddSpacer(10)
-        hbox1.Add(box_sizer_specimen, flag=wx.ALIGN_LEFT)
+
+        
+        hbox1.Add(box_sizer_select_temp, flag=wx.ALIGN_LEFT|wx.ALIGN_BOTTOM)
         hbox1.AddSpacer(10)
-        hbox1.Add(box_sizer_sample, flag=wx.ALIGN_LEFT)
+
+        hbox1.Add(box_sizer_save, flag=wx.ALIGN_LEFT|wx.ALIGN_BOTTOM)
+        hbox1.AddSpacer(10)
+
+        hbox1.Add(box_sizer_specimen, flag=wx.ALIGN_LEFT|wx.ALIGN_BOTTOM)
+        hbox1.AddSpacer(10)
+        hbox1.Add(box_sizer_sample, flag=wx.ALIGN_LEFT|wx.ALIGN_BOTTOM)
 
         vbox1.Add(hbox1, flag=wx.ALIGN_LEFT)#, border=10)
         self.panel.SetSizer(vbox1)
 
-
+        vbox2a=wx.BoxSizer(wx.VERTICAL)
+        #vbox2a.Add(self.toolbar1,flag=wx.ALIGN_TOP,border=8)
+        vbox2a.Add(self.logger,flag=wx.ALIGN_TOP,border=8)
+        
         hbox2 = wx.BoxSizer(wx.HORIZONTAL)
-        hbox2.Add(self.logger,flag=wx.ALIGN_CENTER_HORIZONTAL)#,border=8)        
-        hbox2.Add(self.canvas1,flag=wx.ALIGN_CENTER_HORIZONTAL)#,border=8)
+        #hbox2.Add(self.logger,flag=wx.ALIGN_CENTER_HORIZONTAL)#,border=8)        
+        hbox2.Add(vbox2a,flag=wx.ALIGN_CENTER_HORIZONTAL)#,border=8)        
+        hbox2.Add(self.canvas1,flag=wx.ALIGN_CENTER_HORIZONTAL,border=8)
 
         vbox2 = wx.BoxSizer(wx.VERTICAL)        
-        vbox2.Add(self.canvas2,flag=wx.ALIGN_LEFT)#,border=8)
-        vbox2.Add(self.canvas3,flag=wx.ALIGN_LEFT)#,border=8)
+        vbox2.Add(self.canvas2,flag=wx.ALIGN_LEFT,border=8)
+        vbox2.Add(self.canvas3,flag=wx.ALIGN_LEFT,border=8)
+        #vbox2.Add(
 
         vbox3 = wx.BoxSizer(wx.VERTICAL)        
         vbox3.Add(self.canvas4,flag=wx.ALIGN_LEFT|wx.ALIGN_TOP,border=8)
@@ -434,15 +688,17 @@ class Arai_GUI(wx.Frame):
                                     
 
         #hbox1.Add(specimen_stat_window, proportion=1, flag=wx.EXPAND)
-        hbox3 = wx.BoxSizer(wx.HORIZONTAL)
-        hbox3.AddSpacer(10)                            
-        hbox3.Add(gs1,flag=wx.ALIGN_LEFT)
-        hbox3.AddSpacer(10)        
-
-        hbox3.Add(gs,flag=wx.ALIGN_LEFT)
-  
-        vbox1.AddSpacer(20)
-        vbox1.Add(hbox3,flag=wx.LEFT)
+##        hbox3 = wx.BoxSizer(wx.HORIZONTAL)
+##        hbox3.AddSpacer(10)                            
+##        hbox3.Add(gs1,flag=wx.ALIGN_LEFT)
+##        hbox3.AddSpacer(10)        
+##
+##        hbox3.Add(gs,flag=wx.ALIGN_LEFT)
+##  
+##        vbox1.AddSpacer(20)
+##        vbox1.Add(hbox3,flag=wx.LEFT)
+        vbox1.AddSpacer(5)
+        vbox1.Add(hbox_criteria,flag=wx.LEFT)
         vbox1.AddSpacer(20)
 
         self.panel.SetSizer(vbox1)
@@ -496,7 +752,7 @@ class Arai_GUI(wx.Frame):
         self.Data[self.s]['pars']['lab_dc_field']=self.Data[self.s]['lab_dc_field']
         self.Data[self.s]['pars']['er_specimen_name']=self.Data[self.s]['er_specimen_name']   
         self.Data[self.s]['pars']['er_sample_name']=self.Data[self.s]['er_sample_name']   
-        sample=self.Data[self.s]['pars']['er_sample_name']
+        self.Data[self.s]['pars']['er_sample_name']=self.Data[self.s]['er_sample_name']   
         if sample in self.Data_samples.keys():
             if self.s in self.Data_samples[sample].keys():
                 del self.Data_samples[sample][self.s]
@@ -523,7 +779,7 @@ class Arai_GUI(wx.Frame):
 ##            raw_input("check it ")
 
 
-        high_threshold_velue_list=['specimen_gap_max','specimen_b_beta','specimen_dang','specimen_drats','specimen_int_mad','specimen_md']
+        high_threshold_velue_list=['specimen_gmax','specimen_b_beta','specimen_dang','specimen_drats','specimen_int_mad','specimen_md']
         low_threshold_velue_list=['specimen_int_n','specimen_int_ptrm_n','specimen_f','specimen_fvds','specimen_frac','specimen_g','specimen_q']
       
         self.ignore_parameters={}
@@ -532,23 +788,24 @@ class Arai_GUI(wx.Frame):
             if (key in high_threshold_velue_list and float(self.accept_new_parameters[key]) >100) or\
                (key in low_threshold_velue_list and float(self.accept_new_parameters[key]) <0.1):
                 Value=""
-                command="self.%s_threshold_window.SetValue(\"\")"%key.split('specimen_')[-1]
-                exec command
-                command="self.%s_threshold_window.SetBackgroundColour(wx.Colour(128, 128, 128))"%key.split('specimen_')[-1]
-                exec command
+                if key.split('specimen_')[-1] in self.preferences['show_statistics_on_gui']:
+                    command="self.%s_threshold_window.SetValue(\"\")"%key.split('specimen_')[-1]
+                    exec command
+                    command="self.%s_threshold_window.SetBackgroundColour(wx.Colour(128, 128, 128))"%key.split('specimen_')[-1]
+                    exec command
                 self.ignore_parameters[key]=True
                 continue
             elif key in ['specimen_int_n','specimen_int_ptrm_n']:
                 Value="%.0f"%self.accept_new_parameters[key]
             elif key in ['specimen_dang','specimen_drats','specimen_int_mad','specimen_md','specimen_g','specimen_q']:
                 Value="%.1f"%self.accept_new_parameters[key]
-            elif key in ['specimen_f','specimen_fvds','specimen_frac','specimen_b_beta','specimen_gap_max']:
+            elif key in ['specimen_f','specimen_fvds','specimen_frac','specimen_b_beta','specimen_gmax']:
                 Value="%.2f"%self.accept_new_parameters[key]
-
-            command="self.%s_threshold_window.SetValue(Value)"%key.split('specimen_')[-1]
-            exec command
-            command="self.%s_threshold_window.SetBackgroundColour(wx.WHITE)"%key.split('specimen_')[-1]            
-            exec command
+            if key.split('specimen_')[-1]:
+                command="self.%s_threshold_window.SetValue(Value)"%key.split('specimen_')[-1]
+                exec command
+                command="self.%s_threshold_window.SetBackgroundColour(wx.WHITE)"%key.split('specimen_')[-1]            
+                exec command
             self.ignore_parameters[key]=False
 
         # scat parameter
@@ -570,7 +827,8 @@ class Arai_GUI(wx.Frame):
       """
 
       self.logger.Clear()
-      font1 = wx.Font(10, wx.SWISS, wx.NORMAL, wx.NORMAL, False, u'Arial')
+      FONT_RATIO=self.GUI_RESOLUTION+(self.GUI_RESOLUTION-1)*5
+      font1 = wx.Font(9+FONT_RATIO, wx.SWISS, wx.NORMAL, wx.NORMAL, False, u'Arial')
       String="  Step\tTemp\t Dec\t Inc\tMoment\n"
       self.logger.AppendText(String)
 
@@ -603,8 +861,11 @@ class Arai_GUI(wx.Frame):
 
         menu_preferences = wx.Menu()
         
-        m_preferences = menu_preferences.Append(-1, "&Set preferences", "")
-        self.Bind(wx.EVT_MENU, self.on_menu_preferences, m_preferences)
+        m_preferences_apperance = menu_preferences.Append(-1, "&Appearence preferences", "")
+        self.Bind(wx.EVT_MENU, self.on_menu_appearance_preferences, m_preferences_apperance)
+
+        m_preferences_stat = menu_preferences.Append(-1, "&Statistics preferences", "")
+        self.Bind(wx.EVT_MENU, self.on_menu_preferences_stat, m_preferences_stat)
 
         #m_save_preferences = menu_preferences.Append(-1, "&Save preferences", "")
         #self.Bind(wx.EVT_MENU, self.on_menu_save_preferences, m_save_preferences)
@@ -727,6 +988,17 @@ class Arai_GUI(wx.Frame):
         m_plot_data = menu_Plot.Append(-1, "&Plot paleointensity curve", "")
         self.Bind(wx.EVT_MENU, self.on_menu_plot_data, m_plot_data)
 
+        menu_results_table= wx.Menu()
+        m_make_results_table = menu_results_table.Append(-1, "&Make results Table", "")
+        self.Bind(wx.EVT_MENU, self.on_menu_results_data, m_make_results_table)
+
+
+        menu_MagIC= wx.Menu()
+        m_build_magic_model= menu_MagIC.Append(-1, "&Build MagIC model", "")
+        m_prepare_MagIC_results_tables= menu_MagIC.Append(-1, "&Make MagIC results Table", "")
+        self.Bind(wx.EVT_MENU, self.on_menu__prepare_MagIC_results_tables, m_prepare_MagIC_results_tables)
+
+
         
         #menu_help = wx.Menu()
         #m_about = menu_help.Append(-1, "&About\tF1", "About the demo")
@@ -737,9 +1009,9 @@ class Arai_GUI(wx.Frame):
         self.menubar.Append(menu_Auto_Interpreter, "&Auto Interpreter")
         self.menubar.Append(menu_Optimizer, "&Consistency Test")
         self.menubar.Append(menu_Plot, "&Plot")
+        self.menubar.Append(menu_results_table, "&Table")
+        self.menubar.Append(menu_MagIC, "&MagIC")
         
-        #self.menubar.Append(menu_Tools, "&Tools")        
-        #self.menubar.Append(menu_help, "&Help")
         self.SetMenuBar(self.menubar)
 
 
@@ -859,12 +1131,13 @@ class Arai_GUI(wx.Frame):
             command="self.%s_window.SetBackgroundColour(wx.NullColor)"%key
             exec command
                                          
-        window_list=['int_n','int_ptrm_n','frac','scat','gap_max','f','fvds','b_beta','g','q','int_mad','dang','drats','md']
+        window_list=['int_n','int_ptrm_n','frac','scat','gmax','f','fvds','b_beta','g','q','int_mad','dang','drats','md']
         for key in window_list:
-            command="self.%s_window.SetValue(\"\")"%key
-            exec command
-            command="self.%s_window.SetBackgroundColour(wx.NullColor)"%key
-            exec command
+            if key in self.preferences['show_statistics_on_gui']:
+                command="self.%s_window.SetValue(\"\")"%key
+                exec command
+                command="self.%s_window.SetBackgroundColour(wx.NullColor)"%key
+                exec command
             
     def write_sample_box(self):
 ##       B=[]
@@ -954,12 +1227,12 @@ class Arai_GUI(wx.Frame):
     # manu bar options:
     #----------------------------------------------------------------------
 
-    def on_menu_preferences(self,event):
-        class preferences_dialog(wx.Dialog):
+    def on_menu_appearance_preferences(self,event):
+        class preferences_appearance_dialog(wx.Dialog):
             
             def __init__(self, parent,title,preferences):
                 self.preferences=preferences
-                super(preferences_dialog, self).__init__(parent, title=title)
+                super(preferences_appearance_dialog, self).__init__(parent, title=title)
                 self.InitUI()
 
             def InitUI(self):
@@ -974,7 +1247,7 @@ class Arai_GUI(wx.Frame):
                 self.gui_resolution=wx.TextCtrl(pnl1,style=wx.TE_CENTER,size=(50,20))
                                              
                 appearance_window = wx.GridSizer(1, 2, 12, 12)
-                appearance_window.AddMany( [(wx.StaticText(pnl1,label="GUI resolution",style=wx.TE_CENTER), wx.EXPAND),
+                appearance_window.AddMany( [(wx.StaticText(pnl1,label="GUI resolution (100% is default size)",style=wx.TE_CENTER), wx.EXPAND),
                     (self.gui_resolution, wx.EXPAND)])
                 bSizer1.Add( appearance_window, 0, wx.ALIGN_LEFT|wx.ALL, 5 )
 
@@ -1039,18 +1312,18 @@ class Arai_GUI(wx.Frame):
                     (self.show_NLT_plot, wx.EXPAND)])                 
                 bSizer5.Add( NLT_window, 0, wx.ALIGN_LEFT|wx.ALL, 5 )
 
-                #-----------box6        
-
-                bSizer6 = wx.StaticBoxSizer( wx.StaticBox( pnl1, wx.ID_ANY, "Statistical definitions" ), wx.HORIZONTAL )
-                self.bootstrap_N=wx.TextCtrl(pnl1,style=wx.TE_CENTER,size=(80,20))
-                #self.bootstrap_N=FS.FloatSpin(pnl1, -1, min_val=1000, max_val=10000000,increment=1000, value=10000, extrastyle=FS.FS_LEFT,size=(80,20))
-                #self.bootstrap_N.SetFormat("%f")
-                #self.bootstrap_N.SetDigits(0)
-                                             
-                Statistics_definitions_window = wx.GridSizer(1, 2, 12, 12)
-                Statistics_definitions_window.AddMany( [(wx.StaticText(pnl1,label="Bootstrap N",style=wx.TE_CENTER), wx.EXPAND),
-                    (self.bootstrap_N, wx.EXPAND)])                 
-                bSizer6.Add( Statistics_definitions_window, 0, wx.ALIGN_LEFT|wx.ALL, 5 )
+##                #-----------box6        
+##
+##                bSizer6 = wx.StaticBoxSizer( wx.StaticBox( pnl1, wx.ID_ANY, "Statistical definitions" ), wx.HORIZONTAL )
+##                self.bootstrap_N=wx.TextCtrl(pnl1,style=wx.TE_CENTER,size=(80,20))
+##                #self.bootstrap_N=FS.FloatSpin(pnl1, -1, min_val=1000, max_val=10000000,increment=1000, value=10000, extrastyle=FS.FS_LEFT,size=(80,20))
+##                #self.bootstrap_N.SetFormat("%f")
+##                #self.bootstrap_N.SetDigits(0)
+##                                             
+##                Statistics_definitions_window = wx.GridSizer(1, 2, 12, 12)
+##                Statistics_definitions_window.AddMany( [(wx.StaticText(pnl1,label="Bootstrap N",style=wx.TE_CENTER), wx.EXPAND),
+##                    (self.bootstrap_N, wx.EXPAND)])                 
+##                bSizer6.Add( Statistics_definitions_window, 0, wx.ALIGN_LEFT|wx.ALL, 5 )
                          
                 #----------------------
 
@@ -1073,8 +1346,8 @@ class Arai_GUI(wx.Frame):
                 vbox.AddSpacer(20)
                 vbox.Add(bSizer5, flag=wx.ALIGN_CENTER_HORIZONTAL)
                 vbox.AddSpacer(20)
-                vbox.Add(bSizer6, flag=wx.ALIGN_CENTER_HORIZONTAL)
-                vbox.AddSpacer(20)
+##                vbox.Add(bSizer6, flag=wx.ALIGN_CENTER_HORIZONTAL)
+##                vbox.AddSpacer(20)
 
                 vbox.Add(hbox2, flag=wx.ALIGN_CENTER_HORIZONTAL)
                 vbox.AddSpacer(20)
@@ -1088,7 +1361,7 @@ class Arai_GUI(wx.Frame):
                 try:
                     self.gui_resolution.SetValue("%.0f"%self.preferences["gui_resolution"])                    
                 except:
-                    self.gui_resolution.SetValue("1")
+                    self.gui_resolution.SetValue("100")
                 try:
                     self.show_Arai_temperatures.SetValue(self.preferences["show_Arai_temperatures"])
                 except:
@@ -1126,20 +1399,25 @@ class Arai_GUI(wx.Frame):
                     self.show_NLT_plot.SetValue(self.preferences["show_NLT_plot"])
                 except:
                     self.show_NLT_plot.SetValue(False)
-                try:                    
-                    self.bootstrap_N.SetValue("%.0f"%(self.preferences["BOOTSTRAP_N"]))
-                except:
-                    self.bootstrap_N.SetValue("10000")
+##                try:                    
+##                    self.bootstrap_N.SetValue("%.0f"%(self.preferences["BOOTSTRAP_N"]))
+##                except:
+##                    self.bootstrap_N.SetValue("10000")
                     
                 #----------------------
                     
-        dia = preferences_dialog(None,"Thellier_gui preferences",self.preferences)
+        dia = preferences_appearance_dialog(None,"Thellier_gui appearance preferences",self.preferences)
         dia.Center()
         if dia.ShowModal() == wx.ID_OK: # Until the user clicks OK, show the message
-            try:
-                self.preferences['gui_resolution']=float(dia.gui_resolution.GetValue())
-            except:
-                 self.preferences['gui_resolution']=1.
+            #try:
+            change_resolution=False
+            if float(dia.gui_resolution.GetValue()) != self.preferences['gui_resolution']:
+                     change_resolution=True
+                     
+            self.preferences['gui_resolution']=float(dia.gui_resolution.GetValue())                    
+
+            #except:
+            #     self.preferences['gui_resolution']=100.
             self.preferences['show_Arai_temperatures']=dia.show_Arai_temperatures.GetValue()
             self.preferences['show_Arai_temperatures_steps']=dia.show_Arai_temperatures_steps.GetValue()
             self.preferences['show_Arai_pTRM_arrows']=dia.show_Arai_pTRM_arrows.GetValue()
@@ -1150,10 +1428,233 @@ class Arai_GUI(wx.Frame):
             self.preferences['show_eqarea_IZZI_colors']=dia.show_eqarea_IZZI_colors.GetValue()
             
             self.preferences['show_NLT_plot']=dia.show_NLT_plot.GetValue()
+##            try:
+##                self.preferences['BOOTSTRAP_N']=float(dia.bootstrap_N.GetValue())
+##            except:
+##                pass
+
+            dlg1 = wx.MessageDialog(self,caption="Message:", message="save the thellier_gui.preferences in PmagPy directory!" ,style=wx.OK|wx.ICON_INFORMATION)
+            dlg1.ShowModal()
+            dlg1.Destroy()
+        
+
+            dlg2 = wx.FileDialog(
+                self, message="save the thellier_gui_preference.txt in PmagPy directory!",
+                defaultDir="~/PmagPy", 
+                defaultFile="thellier_gui_preferences.py",
+                style=wx.FD_SAVE | wx.CHANGE_DIR
+                )
+            if dlg2.ShowModal() == wx.ID_OK:
+                preference_file = dlg2.GetPath()
+                fout=open(preference_file,'w')
+                String=""
+
+                fout.write("preferences={}\n")
+
+                for key in  self.preferences.keys():
+                    if key in ['BOOTSTRAP_N','gui_resolution','show_Zij_temperatures_steps','show_Arai_temperatures_steps']:
+                        String="preferences['%s']=%f\n"%(key,self.preferences[key])
+                    elif key in ["VDM_or_VADM"]:
+                        String="preferences['%s']='%s'\n"%(key,self.preferences[key])
+                    elif key in ["show_statistics_on_gui"]:
+                        TEXT=""
+                        for stat in self.preferences[key]:
+                            TEXT=TEXT+"'"+stat+"',"                        
+                        String="preferences['%s']=[%s]\n"%(key,TEXT[:-1])
+                    else:
+                        String="preferences['%s']=%f\n"%(key,self.preferences[key])
+                        
+##                        String="preferences['%s']=%f\n"%(key,self.preferences[key
+##                for key in  self.preferences.keys():
+##                    if key in ['gui_resolution','show_Zij_temperatures_steps','show_Arai_temperatures_steps']:
+##                        String="preferences['%s']=%f\n"%(key,self.preferences[key])
+##                    else:
+##                        String="preferences['%s']=%s\n"%(key,self.preferences[key])
+##                    fout.write(String)    
+                    fout.write(String)    
+                fout.close()
+                os.chmod(preference_file,0777)            
+                
+            dlg2.Destroy()
+
+            if change_resolution:
+                dlg3 = wx.MessageDialog(self, "GUI resolution is changed.\nYou will need to restart the program","Confirm Exit", wx.OK|wx.ICON_QUESTION)
+                result = dlg3.ShowModal()
+                dlg3.Destroy()
+                if result == wx.ID_OK:
+                    exit()
+
+            
+            return()
+        
+
+    #-----------------------------------
+
+    def get_preferences(self):
+        #default
+        preferences={}
+        preferences['gui_resolution']=100.
+        preferences['show_Arai_temperatures']=True
+        preferences['show_Arai_temperatures_steps']=1.            
+        preferences['show_Arai_pTRM_arrows']=True
+        preferences['show_Zij_temperatures']=False
+        preferences['show_Zij_temperatures_steps']=1.
+        preferences['show_eqarea_temperatures']=False
+        preferences['show_eqarea_pTRMs']=True
+        preferences['show_eqarea_IZZI_colors']=False      
+        preferences['show_NLT_plot']=True
+        preferences['show_NLT_plot']=True
+        preferences['BOOTSTRAP_N']=1e4
+        preferences['VDM_or_VADM']="VADM"
+        preferences['show_statistics_on_gui']=["int_n","int_ptrm_n","frac","scat","gmax","b_beta","int_mad","dang","f","fvds","g","q","drats"]
+        #try to read preferences file:
+        try:
+            import thellier_gui_preferences
+            self.GUI_log.write( "-I- thellier_gui.preferences imported\n")
+            preferences.update(thellier_gui_preferences.preferences)
+        except:
+            self.GUI_log.write( " -I- cant find thellier_gui_preferences file, using defualt default \n")
+        return(preferences)
+        
+
+
+    #----------------------------------
+
+    def on_menu_preferences_stat(self,event):
+        class preferences_stats_dialog(wx.Dialog):
+            
+            def __init__(self, parent,title,preferences):
+                self.preferences=preferences
+                super(preferences_stats_dialog, self).__init__(parent, title=title)
+                self.InitUI()
+
+            def on_add_button(self,event):
+                selName = str(self.criteria_options.GetStringSelection())
+                if selName not in self.preferences['show_statistics_on_gui']:
+                  self.preferences['show_statistics_on_gui'].append(selName)
+                #self.update_text_box()
+                self.criteria_list_window.Set(self.preferences['show_statistics_on_gui'])
+                self.criteria_options.Set(self.statistics_options)
+
+            def on_remove_button(self,event):
+                selName = str(self.criteria_list_window.GetStringSelection())
+                if selName  in self.preferences['show_statistics_on_gui']:
+                  self.preferences['show_statistics_on_gui'].remove(selName)
+                self.criteria_list_window.Set(self.preferences['show_statistics_on_gui'])
+                self.criteria_options.Set(self.statistics_options)
+               
+##            def update_text_box(self):
+##                TEXT=""
+##                for key in self.preferences['show_statistics_on_gui']:
+##                  TEXT=TEXT+key+"\n"
+##                TEXT=TEXT[:-1]
+##                self.criteria_list_window.SetValue('')
+##                self.criteria_list_window.SetValue(TEXT)
+                
+            def InitUI(self):
+
+                pnl1 = wx.Panel(self)
+
+                vbox = wx.BoxSizer(wx.VERTICAL)
+
+                #-----------box1        
+
+                bSizer1 = wx.StaticBoxSizer( wx.StaticBox( pnl1, wx.ID_ANY, "Statistical definitions" ), wx.HORIZONTAL )
+                self.bootstrap_N=wx.TextCtrl(pnl1,style=wx.TE_CENTER,size=(80,20))
+                                             
+                Statistics_definitions_window = wx.GridSizer(1, 2, 12, 12)
+                Statistics_definitions_window.AddMany( [(wx.StaticText(pnl1,label="Bootstrap N",style=wx.TE_CENTER), wx.EXPAND),
+                    (self.bootstrap_N, wx.EXPAND)])                 
+                bSizer1.Add( Statistics_definitions_window, 0, wx.ALIGN_LEFT|wx.ALL, 5 )
+                
+                #-----------box2        
+
+                bSizer2 = wx.StaticBoxSizer( wx.StaticBox( pnl1, wx.ID_ANY, "Dipole Moment" ), wx.HORIZONTAL )
+
+                self.v_adm_box = wx.ComboBox(pnl1, -1, self.preferences['VDM_or_VADM'], (100, 20), wx.DefaultSize, ["VADM","VDM"], wx.CB_DROPDOWN,name="VDM or VADM?")
+                                             
+                Statistics_VADM = wx.GridSizer(1, 2, 12, 12)
+                Statistics_VADM.AddMany( [(wx.StaticText(pnl1,label="VDM or VADM?",style=wx.TE_CENTER), wx.EXPAND),
+                    (self.v_adm_box, wx.EXPAND)])                 
+                bSizer2.Add( Statistics_VADM, 0, wx.ALIGN_LEFT|wx.ALL, 5 )
+                         
+                #----------------------
+                                    
+                bSizer3 = wx.StaticBoxSizer( wx.StaticBox( pnl1, wx.ID_ANY, "Choose statistics to display on GUI" ), wx.VERTICAL )
+
+                self.statistics_options=["int_n","int_ptrm_n","frac","scat","gmax","b_beta","int_mad","dang","f","fvds","g","q","drats","md"]
+                #self.criteria_list_window = wx.TextCtrl(pnl1, id=-1, size=(200,250), style=wx.TE_MULTILINE | wx.TE_READONLY | wx.HSCROLL)
+                self.criteria_list_window =wx.ListBox(choices=self.preferences['show_statistics_on_gui'], id=-1,name='listBox1', parent=pnl1, size=wx.Size(150, 150), style=0)
+                self.criteria_options = wx.ListBox(choices=self.statistics_options, id=-1,name='listBox1', parent=pnl1, size=wx.Size(150, 150), style=0)
+                #self.criteria_options.Bind(wx.EVT_LISTBOX, self.on_choose_criterion,id=-1)
+                self.criteria_add =  wx.Button(pnl1, id=-1, label='add')
+                self.Bind(wx.EVT_BUTTON, self.on_add_button, self.criteria_add)
+                self.criteria_remove =  wx.Button(pnl1, id=-1, label='remove')
+                self.Bind(wx.EVT_BUTTON, self.on_remove_button, self.criteria_remove)
+
+                Statistics_criteria_0 = wx.GridSizer(1, 2, 0, 0)
+                Statistics_criteria_0.AddMany( [(wx.StaticText(pnl1,label="Options:"), wx.EXPAND),
+                    (wx.StaticText(pnl1,label="Statistics displayed:"), wx.EXPAND)])
+   
+                Statistics_criteria_1 = wx.GridSizer(2, 2, 0, 0)
+                Statistics_criteria_1.AddMany( [((self.criteria_options),wx.EXPAND),
+                    ((self.criteria_list_window),wx.EXPAND),
+                    ((self.criteria_add),wx.EXPAND),
+                    ((self.criteria_remove),wx.EXPAND)])
+
+
+##                bSizer3.Add(self.criteria_options,wx.ALIGN_LEFT)
+##                bSizer3.Add(self.criteria_add,wx.ALIGN_LEFT)
+##                bSizer3.Add(self.criteria_list_window)
+                bSizer3.Add(Statistics_criteria_0, 0, wx.ALIGN_TOP, 0 )
+                bSizer3.Add(Statistics_criteria_1, 0, wx.ALIGN_TOP, 0 )
+                #self.update_text_box() 
+
+                #----------------------
+
+                hbox2 = wx.BoxSizer(wx.HORIZONTAL)
+                self.okButton = wx.Button(pnl1, wx.ID_OK, "&OK")
+                self.cancelButton = wx.Button(pnl1, wx.ID_CANCEL, '&Cancel')
+                hbox2.Add(self.okButton)
+                hbox2.Add(self.cancelButton )
+
+                
+                #----------------------  
+                vbox.AddSpacer(20)
+                vbox.Add(bSizer1, flag=wx.ALIGN_TOP)
+                vbox.AddSpacer(20)
+
+                vbox.Add(bSizer2, flag=wx.ALIGN_TOP)
+                vbox.AddSpacer(20)
+
+                vbox.Add(bSizer3, flag=wx.ALIGN_TOP)
+                vbox.AddSpacer(20)
+
+                vbox.Add(hbox2, flag=wx.ALIGN_TOP)
+                vbox.AddSpacer(20)
+                            
+                pnl1.SetSizer(vbox)
+                vbox.Fit(self)
+
+
+                #---------------------- Initialize  values:
+
+                try:                    
+                    self.bootstrap_N.SetValue("%.0f"%(self.preferences["BOOTSTRAP_N"]))
+                except:
+                    self.bootstrap_N.SetValue("10000")
+                    
+                #----------------------
+                    
+        dia = preferences_stats_dialog(None,"Thellier_gui statistical preferences",self.preferences)
+        dia.Center()
+        if dia.ShowModal() == wx.ID_OK: # Until the user clicks OK, show the message
             try:
                 self.preferences['BOOTSTRAP_N']=float(dia.bootstrap_N.GetValue())
             except:
                 pass
+
+            self.preferences['VDM_or_VADM']=str(dia.v_adm_box.GetValue())
 
             dlg1 = wx.MessageDialog(self,caption="Message:", message="save the thellier_gui.preferences in PmagPy directory!" ,style=wx.OK|wx.ICON_INFORMATION)
             dlg1.ShowModal()
@@ -1173,10 +1674,19 @@ class Arai_GUI(wx.Frame):
 
                 fout.write("preferences={}\n")
                 for key in  self.preferences.keys():
-                    if key in ['gui_resolution','show_Zij_temperatures_steps','show_Arai_temperatures_steps']:
+                    if key in ['BOOTSTRAP_N','gui_resolution','show_Zij_temperatures_steps','show_Arai_temperatures_steps']:
                         String="preferences['%s']=%f\n"%(key,self.preferences[key])
+                    elif key in ["VDM_or_VADM"]:
+                        String="preferences['%s']='%s'\n"%(key,self.preferences[key])
+                    elif key in ["show_statistics_on_gui"]:
+                        TEXT=""
+                        for stat in self.preferences[key]:
+                            TEXT=TEXT+"'"+stat+"',"                        
+                        String="preferences['%s']=[%s]\n"%(key,TEXT[:-1])
+                        
                     else:
-                        String="preferences['%s']=%s\n"%(key,self.preferences[key])
+                        String="preferences['%s']=%f\n"%(key,self.preferences[key])
+                    print String
                     fout.write(String)    
                     
                 fout.close()
@@ -1185,38 +1695,7 @@ class Arai_GUI(wx.Frame):
             dlg2.Destroy()
 
             
-            return()
-        
-        
-
-
-    #-----------------------------------
-
-    def get_preferences(self):
-        #default
-        preferences={}
-        preferences['gui_resolution']=1.
-        preferences['show_Arai_temperatures']=True
-        preferences['show_Arai_temperatures_steps']=1.            
-        preferences['show_Arai_pTRM_arrows']=True
-        preferences['show_Zij_temperatures']=False
-        preferences['show_Zij_temperatures_steps']=1.
-        preferences['show_eqarea_temperatures']=False
-        preferences['show_eqarea_pTRMs']=True
-        preferences['show_eqarea_IZZI_colors']=False      
-        preferences['show_NLT_plot']=True
-        preferences['show_NLT_plot']=True
-        preferences['BOOTSTRAP_N']=1e4
-        #try to read preferences file:
-        try:
-            import thellier_gui_preferences
-            self.GUI_log.write( "-I- thellier_gui.preferences imported\n")
-            preferences= thellier_gui_preferences.preferences
-        except:
-            self.GUI_log.write( " -I- cant find thellier_gui_preferences file, using defualt default \n")
-        return(preferences)
-        
-        
+            return()  
 
 
     #-----------------------------------
@@ -1346,7 +1825,7 @@ class Arai_GUI(wx.Frame):
         
         self.redo_specimens={}
         self.currentDirectory = os.getcwd() # get the current working directory
-        self.get_DIR(first_run=False)                      # choose directory dialog
+        self.get_DIR()                      # choose directory dialog
         accept_new_parameters_default,accept_new_parameters_null=self.get_default_criteria()    # inialize Null selecting criteria
         self.accept_new_parameters_null=accept_new_parameters_null
         self.accept_new_parameters_default=accept_new_parameters_default
@@ -1422,10 +1901,19 @@ class Arai_GUI(wx.Frame):
     #----------------------------------------------------------------------
 
     def on_menu_m_open_magic_tree(self, event):
-        dialog = wx.DirDialog(None, "Choose a path. All magic directories in the pass will be imported:",defaultPath = self.currentDirectory ,style=wx.DD_DEFAULT_STYLE | wx.DD_NEW_DIR_BUTTON | wx.DD_CHANGE_DIR)
-        if dialog.ShowModal() == wx.ID_OK:
-          new_dir=dialog.GetPath()
-        dialog.Destroy()
+        self.open_magic_tree()
+        
+    def open_magic_tree(self):
+
+        busy_frame=wx.BusyInfo("Loading data\n It may take few seconds, depending on the number of specimens ...", self)
+        #busy_frame.Center()
+        if FIRST_RUN and "-tree" in sys.argv:
+            new_dir=self.WD
+        else:
+            dialog = wx.DirDialog(None, "Choose a path. All magic directories in the pass will be imported:",defaultPath = self.currentDirectory ,style=wx.DD_DEFAULT_STYLE | wx.DD_NEW_DIR_BUTTON | wx.DD_CHANGE_DIR)
+            if dialog.ShowModal() == wx.ID_OK:
+              new_dir=dialog.GetPath()
+            dialog.Destroy()
 
         #os.chdir(new_dir)
         for FILE in os.listdir(new_dir):
@@ -1451,12 +1939,13 @@ class Arai_GUI(wx.Frame):
 
         
         # updtate plots and data
-        self.WD=self.currentDirectory
-        self.specimens_box.SetItems(self.specimens)
-        self.s=self.specimens[0]
-        self.specimens_box.SetStringSelection(self.s)
-        self.update_selection()                    
-
+        if not FIRST_RUN:
+            self.WD=self.currentDirectory
+            self.specimens_box.SetItems(self.specimens)
+            self.s=self.specimens[0]
+            self.specimens_box.SetStringSelection(self.s)
+            self.update_selection()                    
+        busy_frame.Destroy()
     #----------------------------------------------------------------------
 
     def on_menu_open_magic_file(self, event):
@@ -1541,8 +2030,11 @@ class Arai_GUI(wx.Frame):
             
     def On_close_criteria_box(self,dia):
         # inialize newcriteria with the default values
-        tmp_acceptance_criteria,replace_acceptance_criteria=self.get_default_criteria()
-        
+        tmp_acceptance_criteria,null_acceptance_criteria=self.get_default_criteria()
+        replace_acceptance_criteria={}
+        for k in null_acceptance_criteria.keys():
+            replace_acceptance_criteria[k]=null_acceptance_criteria[k]
+            
         # replace values by the new ones
         
         # specimen's criteria
@@ -1662,8 +2154,10 @@ class Arai_GUI(wx.Frame):
         """
 
         # initialize Null and Default 
-        default_acceptance_criteria,replace_acceptance_criteria=self.get_default_criteria()
-        # Replace with new parametrs
+        default_acceptance_criteria,null_acceptance_criteria=self.get_default_criteria()        # Replace with new parametrs
+        replace_acceptance_criteria={}
+        for key in null_acceptance_criteria:
+            replace_acceptance_criteria[key]=null_acceptance_criteria[key]
         try:
             fin=open(criteria_file,'rU')
             line=fin.readline()
@@ -1735,7 +2229,11 @@ class Arai_GUI(wx.Frame):
         Initialize acceptance criteria tp default
         """
         
-        default_acceptance_criteria,replace_acceptance_criteria=self.get_default_criteria()
+        default_acceptance_criteria,null_acceptance_criteria=self.get_default_criteria()
+        replace_acceptance_criteria={}
+        for k in null_acceptance_criteria.keys():
+            replace_acceptance_criteria[k]=null_acceptance_criteria[k]
+        
         self.accept_new_parameters=default_acceptance_criteria
         self.clear_boxes()
         self.write_acceptance_criteria_to_boxes()
@@ -1753,7 +2251,7 @@ class Arai_GUI(wx.Frame):
 
     def on_menu_save_interpretation(self, event):
         
-        thellier_gui_specimen_criteria_list=['specimen_int_n','specimen_int_ptrm_n','specimen_f','specimen_fvds','specimen_frac','specimen_gap_max','specimen_b_beta','specimen_scat','specimen_drats','specimen_md','specimen_int_mad','specimen_dang','specimen_q','specimen_g']
+        thellier_gui_specimen_criteria_list=['specimen_int_n','specimen_int_ptrm_n','specimen_f','specimen_fvds','specimen_frac','specimen_gmax','specimen_b_beta','specimen_scat','specimen_drats','specimen_md','specimen_int_mad','specimen_dang','specimen_q','specimen_g']
         thellier_gui_redo_file=open("%s/thellier_GUI.redo"%(self.WD),'w')
         thellier_gui_specimen_file=open("%s/thellier_GUI.specimens.txt"%(self.WD),'w')
         thellier_gui_sample_file=open("%s/thellier_GUI.samples.txt"%(self.WD),'w')
@@ -1771,7 +2269,7 @@ class Arai_GUI(wx.Frame):
                 continue
             else:
                 String=String+key+"\t"
-                if key in ['specimen_f','specimen_fvds','specimen_gap_max','specimen_b_beta','specimen_frac','specimen_drats','specimen_md','specimen_int_mad','specimen_dang']:
+                if key in ['specimen_f','specimen_fvds','specimen_gmax','specimen_b_beta','specimen_frac','specimen_drats','specimen_md','specimen_int_mad','specimen_dang']:
                         String1=String1+"%.2f"%self.accept_new_parameters[key]+"\t"
 
                 elif key in ['specimen_int_n','specimen_int_ptrm_n']:
@@ -1840,7 +2338,7 @@ class Arai_GUI(wx.Frame):
             for crit in thellier_gui_specimen_criteria_list:
                 if crit not in self.Data[sp]['pars'].keys():
                            String=String+"N/A"+"\t"
-                elif crit in ['specimen_f','specimen_fvds','specimen_gap_max','specimen_b_beta','specimen_frac','specimen_drats','specimen_int_mad','specimen_dang','specimen_q','specimen_g']:
+                elif crit in ['specimen_f','specimen_fvds','specimen_gmax','specimen_b_beta','specimen_frac','specimen_drats','specimen_int_mad','specimen_dang','specimen_q','specimen_g']:
                         String=String+"%.2f"%self.Data[sp]['pars'][crit]+"\t"
                 elif crit in ['specimen_md']:
                     if self.Data[sp]['pars']['specimen_md']==-1:
@@ -2084,7 +2582,7 @@ class Arai_GUI(wx.Frame):
         
 
 
-        rmag_results_header=['er_specimen_names','er_sample_name','er_site_name','anisotropy_type','magic_method_codes','magic_experiment_names','result_description','anisotropy_t1','anisotropy_t2','anisotropy_t3','anisotropy_ftest','anisotropy_ftest12','anisotropy_ftest23',\
+        rmag_results_header=['er_specimen_names','er_sample_names','er_site_names','anisotropy_type','magic_method_codes','magic_experiment_names','result_description','anisotropy_t1','anisotropy_t2','anisotropy_t3','anisotropy_ftest','anisotropy_ftest12','anisotropy_ftest23',\
                              'anisotropy_v1_dec','anisotropy_v1_inc','anisotropy_v2_dec','anisotropy_v2_inc','anisotropy_v3_dec','anisotropy_v3_inc']
 
 
@@ -2354,7 +2852,7 @@ class Arai_GUI(wx.Frame):
                     Data_anisotropy[specimen]['ATRM']['er_specimen_name']=specimen
                     Data_anisotropy[specimen]['ATRM']['er_site_name']=atrmblock[0]['er_site_name']
                     Data_anisotropy[specimen]['ATRM']['anisotropy_description']='Hext statistics adapted to ATRM'
-                    Data_anisotropy[specimen]['ATRM']['magic_experiment_names']=specimen+":ATRM"
+                    Data_anisotropy[specimen]['ATRM']['magic_experiment_names']=specimen+";ATRM"
                     Data_anisotropy[specimen]['ATRM']['magic_method_codes']="LP-AN-TRM:AE-H"
                     Data_anisotropy[specimen]['ATRM']['rmag_anisotropy_name']=specimen
 
@@ -2422,7 +2920,7 @@ class Arai_GUI(wx.Frame):
                 Data_anisotropy[specimen]['AARM']['er_site_name']=aarmblock[0]['er_site_name']
                 Data_anisotropy[specimen]['AARM']['er_specimen_name']=specimen
                 Data_anisotropy[specimen]['AARM']['anisotropy_description']='Hext statistics adapted to AARM'
-                Data_anisotropy[specimen]['AARM']['magic_experiment_names']=specimen+":AARM"
+                Data_anisotropy[specimen]['AARM']['magic_experiment_names']=specimen+";AARM"
                 Data_anisotropy[specimen]['AARM']['magic_method_codes']="LP-AN-ARM:AE-H"
                 Data_anisotropy[specimen]['AARM']['rmag_anisotropy_name']=specimen
                 
@@ -2457,6 +2955,8 @@ class Arai_GUI(wx.Frame):
 
                 String=""
                 Data_anisotropy[specimen][TYPE]['er_specimen_names']=Data_anisotropy[specimen][TYPE]['er_specimen_name']
+                Data_anisotropy[specimen][TYPE]['er_sample_names']=Data_anisotropy[specimen][TYPE]['er_sample_name']
+                Data_anisotropy[specimen][TYPE]['er_site_names']=Data_anisotropy[specimen][TYPE]['er_site_name']
                 for i in range (len(rmag_results_header)):
                     try:
                         String=String+Data_anisotropy[specimen][TYPE][rmag_results_header[i]]+'\t'
@@ -2610,9 +3110,9 @@ class Arai_GUI(wx.Frame):
         except:
             pass
 
-        parameters_with_upper_bounds= ['specimen_gap_max','specimen_b_beta','specimen_dang','specimen_drats','specimen_int_mad','specimen_md']
+        parameters_with_upper_bounds= ['specimen_gmax','specimen_b_beta','specimen_dang','specimen_drats','specimen_int_mad','specimen_md']
         parameters_with_lower_bounds= ['specimen_int_n','specimen_int_ptrm_n','specimen_f','specimen_fvds','specimen_frac']
-        accept_specimen_keys=['specimen_int_n','specimen_int_ptrm_n','specimen_f','specimen_fvds','specimen_frac','specimen_gap_max','specimen_b_beta','specimen_dang','specimen_drats','specimen_int_mad','specimen_md','specimen_g','specimen_q']
+        accept_specimen_keys=['specimen_int_n','specimen_int_ptrm_n','specimen_f','specimen_fvds','specimen_frac','specimen_gmax','specimen_b_beta','specimen_dang','specimen_drats','specimen_int_mad','specimen_md','specimen_g','specimen_q']
 
         #------------------------------------------------
         # Intialize interpreter output files:
@@ -2939,7 +3439,7 @@ class Arai_GUI(wx.Frame):
                     if AC_correction_factor!=0:
                         aniso_corrections.append(abs(1.-float(AC_correction_factor)))
                 if aniso_corrections!=[]:
-                    thellier_interpreter_log.write("sample %s have anisotropy factor mean of %f"%(sample,mean(aniso_corrections)))
+                    thellier_interpreter_log.write("sample %s have anisotropy factor mean of %f\n"%(sample,mean(aniso_corrections)))
 
                 if mean(aniso_corrections) > 0.10:
                     tmp_Grade_A_samples=copy.deepcopy(Grade_A_samples)
@@ -3207,7 +3707,7 @@ class Arai_GUI(wx.Frame):
         if self.accept_new_parameters['sample_int_bs_par']:
             Fout_BS_PAR_samples.close()
             
-
+        os.system('\a')
         dlg1 = wx.MessageDialog(self,caption="Message:", message="Interpreter finished sucsessfuly\nCheck output files in folder /thellier_interpreter in the current project directory" ,style=wx.OK|wx.ICON_INFORMATION)
 
 
@@ -3221,7 +3721,6 @@ class Arai_GUI(wx.Frame):
         dlg1.ShowModal()
         dlg1.Destroy()
         busy_frame.Destroy()
-
     #----------------------------------------------------------------------
 
     def on_menu_open_interpreter_file(self, event):
@@ -3310,6 +3809,7 @@ class Arai_GUI(wx.Frame):
     #----------------------------------------------------------------------            
 
     def write_acceptance_criteria_to_file(self):
+        import copy
         """
         Write new acceptance criteria to pmag_criteria.txt
         """
@@ -3348,21 +3848,29 @@ class Arai_GUI(wx.Frame):
                 sample_criteria_list.remove(k)
                 if "specimen_int_max_slope_diff" in specimen_criteria_list:
                     specimen_criteria_list.remove("specimen_int_max_slope_diff")
+
         else:
             for k in ['sample_int_sigma_uT','sample_int_sigma_perc','sample_int_interval_uT','sample_int_stdev_opt']:
                 sample_criteria_list.remove(k)
-        for k in ['sample_int_sigma_uT','sample_int_sigma_perc','sample_int_interval_uT','sample_int_interval_perc','sample_int_BS_68_uT','sample_int_BS_68_perc','sample_int_BS_95_uT','sample_int_BS_95_perc']:
+        for k in ['sample_int_sigma_uT','sample_int_sigma_perc','sample_int_interval_uT','sample_int_interval_perc','sample_int_BS_68_uT','sample_int_BS_68_perc','sample_int_BS_95_uT','sample_int_BS_95_perc',]:
             if  k in sample_criteria_list:
                 if float(self.accept_new_parameters[k]) > 999:
                     sample_criteria_list.remove(k)
+        if  float(self.accept_new_parameters["sample_int_n_outlier_check"])> 99:
+            sample_criteria_list.remove("sample_int_n_outlier_check")
 
+        if "sample_int_sigma_uT"  in sample_criteria_list and "sample_int_sigma" not in sample_criteria_list:
+            sample_criteria_list.append("sample_int_sigma")
+            self.accept_new_parameters["sample_int_sigma"]=float(self.accept_new_parameters["sample_int_sigma_uT"])*1e-6
+        
         if "specimen_int_max_slope_diff" in  specimen_criteria_list:
             if float(self.accept_new_parameters['specimen_int_max_slope_diff'])>999:
                 specimen_criteria_list.remove("specimen_int_max_slope_diff")
-                
-        for criteria in specimen_criteria_list:
+        c_list=copy.copy(specimen_criteria_list)       
+        for criteria in c_list:
             if criteria in (self.high_threshold_velue_list + ['anisotropy_alt']) and float(self.accept_new_parameters[criteria])>100:
                 specimen_criteria_list.remove(criteria)
+            #if criteria in ['specimen_g'] and float(self.accept_new_parameters[criteria])>100:
             if criteria in self.low_threshold_velue_list and float(self.accept_new_parameters[criteria])<0.1:
                 specimen_criteria_list.remove(criteria)                
 
@@ -3383,6 +3891,8 @@ class Arai_GUI(wx.Frame):
         for key in sample_criteria_list:
             if key in ['sample_int_bs','sample_int_bs_par','sample_int_stdev_opt','check_aniso_ftest']:
                 line=line+"%s"%str(self.accept_new_parameters[key])+"\t"
+            elif key in ['sample_int_sigma']:
+                line=line+"%.2e"%self.accept_new_parameters[key]+"\t"                
             else:
                 line=line+"%f"%self.accept_new_parameters[key]+"\t"
                 
@@ -3407,10 +3917,10 @@ class Arai_GUI(wx.Frame):
     #----------------------------------------------------------------------            
 
     def on_menu_run_optimizer(self, event):
-        self.GUI_log.write ("-I- running thellier_optimizer_2D\n")
-        import thellier_optimizer_2d
+        self.GUI_log.write ("-I- running thellier consistency test\n")
+        import  thellier_consistency_test
 
-        Optimizer(self.Data,self.Data_hierarchy,self.WD,self.accept_new_parameters_default)
+        Consistency_Test(self.Data,self.Data_hierarchy,self.WD,self.accept_new_parameters_default)
     #----------------------------------------------------------------------            
 
     def on_menu_plot_data (self, event):
@@ -3427,8 +3937,538 @@ class Arai_GUI(wx.Frame):
         if dia.ShowModal() == wx.ID_OK: # Until the user clicks OK, show the message            
             self.On_close_plot_dialog(dia)
         
+    #----------------------------------------------------------------------            
+
+    def on_menu_results_data (self, event):
+
+        # Results of all the samples that passed the criteria
+        
+        # search for ages and Latitudes
+        samples_list=self.Data_samples.keys()
+        samples_list.sort()
+        Results_table_data={}
+        for sample in samples_list:
+
+            Age,age_unit,age_range_low,age_range_high="","","",""
+            lat,lon,VADM,VADM_sigma="","","",""
+
+            found_age,found_lat=False,False
+
+            # Find the mean paleointenisty for each sample
+            tmp_B=[]
+            for spec in self.Data_samples[sample].keys():
+                tmp_B.append( self.Data_samples[sample][spec])
+            if len(tmp_B)<1:
+                continue
+            tmp_B=array(tmp_B)
+            B_uT=mean(tmp_B)
+            B_std_uT=std(tmp_B,ddof=1)
+            B_std_perc=100*(B_std_uT/B_uT)
+            
+            # check if sample passed the criteria
+            sample_pass_criteria=False
+            if len(tmp_B)>=self.accept_new_parameters['sample_int_n']:
+                if (self.accept_new_parameters['sample_int_sigma_uT']==0 and self.accept_new_parameters['sample_int_sigma_perc']==0) or\
+                   ( B_std_uT <=self.accept_new_parameters['sample_int_sigma_uT'] or B_std_perc <= self.accept_new_parameters['sample_int_sigma_perc']):
+                    if ( (max(tmp_B)-min(tmp_B)) <= self.accept_new_parameters['sample_int_interval_uT'] or 100*((max(tmp_B)-min(tmp_B))/mean((tmp_B))) <= self.accept_new_parameters['sample_int_interval_perc']):
+                        sample_pass_criteria=True
+
+            if not sample_pass_criteria:
+                continue
+
+            Results_table_data[sample]={}
+            
+            # search for samples age in er_ages.txt by sample or by site
+            site = self.Data_info["er_samples"][sample]['er_site_name']
+            found_age=False
+            if sample in self.Data_info["er_ages"].keys():
+                age_key=sample
+            elif site in self.Data_info["er_ages"].keys():
+                age_key=site
+            else:
+                age_key=""
+            if age_key !="":
+                try:
+                    age_unit=self.Data_info["er_ages"][age_key]["age_unit"]                
+                except:
+                    age_unit="unknown"               
+                    
+                if self.Data_info["er_ages"][age_key]["age"] !="":
+                    Age = float(self.Data_info["er_ages"][age_key]["age"])
+                    found_age=True
+                    
+                if "age_range_low" in self.Data_info["er_ages"][age_key].keys() and "age_range_high" in self.Data_info["er_ages"][age_key].keys():
+                   age_range_low=float(self.Data_info["er_ages"][age_key]["age_range_low"])
+                   age_range_high=float(self.Data_info["er_ages"][age_key]["age_range_high"])
+                   
+                   if not found_age:
+                       Age=(age_range_low+age_range_high)/2
+                       found_age=True
+
+                elif "age_sigma" in self.Data_info["er_ages"][age_key].keys() and found_age:
+                   age_range_low=Age-float(self.Data_info["er_ages"][age_key]["age_sigma"])
+                   age_range_high= Age+float(self.Data_info["er_ages"][age_key]["age_sigma"])
+
+                elif found_age:
+                   age_range_low=Age
+                   age_range_high=Age
+
+            # convert ages from Years BP to Years Cal AD (+/-)
+                if "Years BP" in age_unit:
+                    Age=1950-Age
+                    age_range_low=1950-age_range_low
+                    age_range_high=1950-age_range_high
+                    age_unit="Years Cal AD (+/-)"             
+            
+            # search for Lon/Lat
+            if sample in self.Data_info["er_samples"].keys() and "site_lat" in self.Data_info["er_samples"][sample].keys():
+                lat=float(self.Data_info["er_samples"][sample]["site_lat"])
+                lon=float(self.Data_info["er_samples"][sample]["site_lon"])
+                found_lat=True
+                
+            elif site in self.Data_info["er_sites"].keys() and "site_lat" in self.Data_info["er_sites"][site].keys():
+                lat=float(self.Data_info["er_sites"][site]["site_lat"])
+                lon=float(self.Data_info["er_sites"][site]["site_lon"])
+                found_lat=True
+
+            if found_lat:
+                VADM=pmag.b_vdm(B_uT*1e-6,lat)*1e-21
+                VADM_plus=pmag.b_vdm((B_uT+B_std_uT)*1e-6,lat)*1e-21
+                VADM_minus=pmag.b_vdm((B_uT-B_std_uT)*1e-6,lat)*1e-21
+                VADM_sigma=(VADM_plus-VADM_minus)/2
+                
+            Results_table_data[sample]["N"]="%i"%(len(tmp_B))            
+            Results_table_data[sample]["B_uT"]="%.1f"%(B_uT)
+            Results_table_data[sample]["B_std_uT"]="%.1f"%(B_std_uT)
+            Results_table_data[sample]["B_std_perc"]="%.1f"%(B_std_perc)
+            if found_lat:
+                Results_table_data[sample]["Lat"]="%f"%lat
+                Results_table_data[sample]["Lon"]="%f"%lon
+                Results_table_data[sample]["VADM"]="%.1f"%VADM
+                Results_table_data[sample]["VADM_sigma"]="%.1f"%VADM_sigma
+            else:
+                Results_table_data[sample]["Lat"]=""
+                Results_table_data[sample]["Lon"]=""
+                Results_table_data[sample]["VADM"]=""
+                Results_table_data[sample]["VADM_sigma"]=""
+            if found_age:
+                Results_table_data[sample]["Age"]="%.0f"%Age
+                Results_table_data[sample]["Age_low"]="%.0f"%age_range_low
+                Results_table_data[sample]["Age_high"]="%.0f"%age_range_high
+            else:
+                Results_table_data[sample]["Age"]=""
+                Results_table_data[sample]["Age_low"]=""
+                Results_table_data[sample]["Age_high"]=""
+            Results_table_data[sample]["Age_units"]=age_unit
+                
+        samples_list= Results_table_data.keys()
+        samples_list.sort()
+        if len(samples_list) <1:
+            return
+        else:
+            fout=open(self.WD+"/results_table.txt",'w')
+            Keys=["sample","Lat","Lon","Age","Age_low","Age_high","Age_units","N","B_uT","B_std_uT","VADM","VADM_sigma"]
+            fout.write("\t".join(Keys)+"\n")
+            for sample in samples_list:
+                String=sample+"\t"
+                for k in Keys[1:]:
+                    String=String+Results_table_data[sample][k]+"\t"
+                fout.write(String[:-1]+"\n")
+            fout.close()
+
+            dlg1 = wx.MessageDialog(self,caption="Message:", message="Output results table is saved in 'results_table.txt'" ,style=wx.OK|wx.ICON_INFORMATION)
+            dlg1.ShowModal()
+            dlg1.Destroy()
+            
+        return
+
+    #----------------------------------------------------------------------            
+
+    def on_menu__prepare_MagIC_results_tables (self, event):
+
+        #read MagIC model
+        fail_read_magic_model_files=self.read_magic_model()
+        if len(fail_read_magic_model_files)>0:
+            for F in fail_read_magic_model_files:
+                print "-E- Failed reading MagIC Model file %s"%F
+            return
+        
+        Fout_specimens=self.WD+"/pmag_specimens.txt"
+        pmag_specimens_header_1=["er_location_name","er_site_name","er_sample_name","er_specimen_name"]
+        pmag_specimens_header_2=['measurement_step_min','measurement_step_max','specimen_int']        
+        pmag_specimens_header_3=["specimen_correction","specimen_int_corr_anisotropy"]
+        pmag_specimens_header_4=['specimen_int_n','specimen_int_ptrm_n','specimen_f','specimen_fvds','specimen_frac','specimen_gmax','specimen_b_beta','specimen_scat','specimen_drats','specimen_md','specimen_int_mad','specimen_dang','specimen_q','specimen_g']
+        pmag_specimens_header_5=["magic_experiment_names","magic_method_codes","measurement_step_unit","specimen_lab_field_dc"]
+        pmag_specimens_header_6=["er_citation_names"]
+        try:
+            version= pmag.get_version()
+        except:
+            version=""
+        version=version+": thellier_gui."+CURRENT_VRSION
+        for k in self.ignore_parameters.keys():
+            if k in pmag_specimens_header_4 and self.ignore_parameters[k]==True:
+                pmag_specimens_header_4.remove(k)
+
+        specimens_list=[]
+        for specimen in self.Data.keys():
+            if 'pars' in self.Data[specimen].keys():
+                if 'saved' in self.Data[specimen]['pars'].keys() and self.Data[specimen]['pars']['saved']==True:
+                    specimens_list.append(specimen)
+        MagIC_results_data={}
+        MagIC_results_data['pmag_specimens']={}
+        MagIC_results_data['pmag_samples']={}
+        MagIC_results_data['pmag_results']={}
+        
+        specimens_list.sort()
+        #print specimens_list
+        for specimen in specimens_list:
+            if 'pars' in self.Data[specimen].keys() and 'saved' in self.Data[specimen]['pars'].keys() and self.Data[specimen]['pars']['saved']==True:
+                MagIC_results_data['pmag_specimens'][specimen]={}
+                if version!="unknown":
+                    MagIC_results_data['pmag_specimens'][specimen]['magic_software_packages']=version
+                MagIC_results_data['pmag_specimens'][specimen]['er_citation_names']="This study"
+                #MagIC_results_data['pmag_specimens'][specimen]['er_analyst_mail_names']="unknown"
+                
+                MagIC_results_data['pmag_specimens'][specimen]['er_specimen_name']=specimen
+                MagIC_results_data['pmag_specimens'][specimen]['er_sample_name']=self.MagIC_model["specimens"][specimen]['er_sample_name']
+                MagIC_results_data['pmag_specimens'][specimen]['er_site_name']=self.MagIC_model["specimens"][specimen]['er_site_name']
+
+                
+                MagIC_results_data['pmag_specimens'][specimen]['er_location_name']=self.MagIC_model["specimens"][specimen]['er_location_name']
+                MagIC_results_data['pmag_specimens'][specimen]['magic_method_codes']=self.Data[specimen]['pars']['magic_method_codes']
+                tmp=MagIC_results_data['pmag_specimens'][specimen]['magic_method_codes'].split(":")
+                magic_experiment_names=specimen
+                for m in tmp:
+                    if "LP" in m:
+                        magic_experiment_names=magic_experiment_names+" : " + m
+                MagIC_results_data['pmag_specimens'][specimen]['magic_experiment_names']=magic_experiment_names                
+                    
+                #MagIC_results_data['pmag_specimens'][specimen]['magic_instrument_codes']=""               
+                MagIC_results_data['pmag_specimens'][specimen]['measurement_step_unit']='K'
+                MagIC_results_data['pmag_specimens'][specimen]['specimen_lab_field_dc']="%.2e"%(self.Data[specimen]['pars']['lab_dc_field'])
+                MagIC_results_data['pmag_specimens'][specimen]['specimen_correction']=self.Data[specimen]['pars']['specimen_correction']
+                for key in pmag_specimens_header_4:
+                    #print key
+                    if key in ['specimen_int_ptrm_n','specimen_int_n']:
+                        MagIC_results_data['pmag_specimens'][specimen][key]="%i"%(self.Data[specimen]['pars'][key])     
+                    elif key in ['specimen_scat'] and self.Data[specimen]['pars'][key]=="Fail":                            
+                        MagIC_results_data['pmag_specimens'][specimen][key]="0"     
+                    elif key in ['specimen_scat'] and self.Data[specimen]['pars'][key]=="Pass":                            
+                        MagIC_results_data['pmag_specimens'][specimen][key]="1"     
+                    else:
+                        MagIC_results_data['pmag_specimens'][specimen][key]="%.2f"%(self.Data[specimen]['pars'][key])                             
+                                
+                MagIC_results_data['pmag_specimens'][specimen]['specimen_int']="%.2e"%(self.Data[specimen]['pars']['specimen_int'])
+                MagIC_results_data['pmag_specimens'][specimen]['measurement_step_min']="%i"%(self.Data[specimen]['pars']['measurement_step_min'])
+                MagIC_results_data['pmag_specimens'][specimen]['measurement_step_max']="%i"%(self.Data[specimen]['pars']['measurement_step_max'])
+                if "specimen_int_corr_anisotropy" in  self.Data[specimen]['pars'].keys():
+                    MagIC_results_data['pmag_specimens'][specimen]['specimen_int_corr_anisotropy']="%.2f"%(self.Data[specimen]['pars']['specimen_int_corr_anisotropy'])
+                else:
+                    MagIC_results_data['pmag_specimens'][specimen]['specimen_int_corr_anisotropy']=""
+                    
+        # wrire pmag_specimens.txt
+        fout=open(self.WD+"/pmag_specimens.txt",'w')
+        fout.write("tab\tpmag_specimens\n")
+        headers=pmag_specimens_header_1+pmag_specimens_header_2+pmag_specimens_header_3+pmag_specimens_header_4+pmag_specimens_header_5+pmag_specimens_header_6
+        String=""
+        for key in headers:
+            String=String+key+"\t"
+        fout.write(String[:-1]+"\n")
+        for specimen in specimens_list:
+            String=""
+            for key in headers:
+                String=String+MagIC_results_data['pmag_specimens'][specimen][key]+"\t"
+            fout.write(String[:-1]+"\n")
+        fout.close()    
+        #-------------
+        # pmag_samples.txt
+        #-------------
+
+        pmag_samples_header_1=["er_location_name","er_site_name","er_sample_name"]
+        pmag_samples_header_2=["er_specimen_names","sample_int","sample_int_n","sample_int_sigma","sample_int_sigma_perc"]
+        pmag_samples_header_3=["sample_description","magic_software_packages"]
+        pmag_samples_header_4=["er_citation_names"]
+
+        pmag_samples_list=[]
+        for sample in self.Data_samples.keys():
+            if sample in self.Data_samples.keys():
+                specimens_names=""
+                B=[]
+                for specimen in self.Data_samples[sample].keys():
+                    B.append(self.Data_samples[sample][specimen])
+                    specimens_names=specimens_names+specimen+":"
+                specimens_names=specimens_names[:-1]
+                if specimens_names!="":
+
+                    sample_pass_criteria=False
+                    if len(B)>=self.accept_new_parameters['sample_int_n']:
+                        B_std_uT=std(B,ddof=1)
+                        B_std_perc=std(B,ddof=1)/mean(B)*100
+                        if (self.accept_new_parameters['sample_int_sigma_uT']==0 and self.accept_new_parameters['sample_int_sigma_perc']==0) or\
+                           ( B_std_uT <=self.accept_new_parameters['sample_int_sigma_uT'] or B_std_perc <= self.accept_new_parameters['sample_int_sigma_perc']):
+                            if ( (max(B)-min(B)) <= self.accept_new_parameters['sample_int_interval_uT'] or 100*((max(B)-min(B))/mean((B))) <= self.accept_new_parameters['sample_int_interval_perc']):
+                                sample_pass_criteria=True
+                    if not sample_pass_criteria:
+                        #print "skipping sample" %sample
+                        continue
+                    pmag_samples_list.append(sample)
+                    MagIC_results_data['pmag_samples'][sample]={}
+                    MagIC_results_data['pmag_samples'][sample]['er_specimen_names']=specimens_names
+                    MagIC_results_data['pmag_samples'][sample]['sample_int']="%.2e"%(mean(B)*1e-6)
+                    MagIC_results_data['pmag_samples'][sample]['sample_int_n']="%i"%(len(B))
+                    MagIC_results_data['pmag_samples'][sample]['sample_int_sigma']="%.2e"%(std(B,ddof=1)*1e-6)
+                    MagIC_results_data['pmag_samples'][sample]['sample_int_sigma_perc']="%.2f"%(std(B,ddof=1)/mean(B)*100)
+                    for key in pmag_samples_header_1:
+                        MagIC_results_data['pmag_samples'][sample][key]=self.MagIC_model["er_samples"][sample][key]
+                    
+                    MagIC_results_data['pmag_samples'][sample]["pmag_criteria_codes"]=""
+                    MagIC_results_data['pmag_samples'][sample]["sample_description"]="sample intensity. Mean of specimens"
+                    MagIC_results_data['pmag_samples'][sample]["magic_software_packages"]=version
+                    
+                    MagIC_results_data['pmag_samples'][sample]["er_citation_names"]="This study"
+                   
+                    
+        # wrire pmag_samples.txt
+        fout=open(self.WD+"/pmag_samples.txt",'w')
+        fout.write("tab\tpmag_samples\n")
+        headers=pmag_samples_header_1+pmag_samples_header_2+pmag_samples_header_3+pmag_samples_header_4
+        String=""
+        for key in headers:
+            String=String+key+"\t"
+        fout.write(String[:-1]+"\n")
+
+        pmag_samples_list.sort()
+        for sample in pmag_samples_list:
+            String=""
+            for key in headers:
+                String=String+MagIC_results_data['pmag_samples'][sample][key]+"\t"
+            fout.write(String[:-1]+"\n")
+            
+        #-------------
+        # pmag_results.txt
+        #-------------
+
+        pmag_results_header_1=["er_location_names","er_site_names","er_sample_names"]
+        pmag_results_header_2=["average_lat","average_lon",]
+        pmag_results_header_3=["average_int_n","average_int","average_int_sigma","average_int_sigma_perc"]
+        if self.preferences['VDM_or_VADM']=="VDM":
+            pmag_results_header_4=["vdm","vdm_sigma"]        
+        else:    
+            pmag_results_header_4=["vadm","vadm_sigma"]
+        #pmag_results_header_5=["data_type","magic_method_codes","magic_software_packages"]
+        #pmag_results_header_5=["data_type","pmag_result_name","result_description","er_analyst_mail_names","er_citation_names"]
+        pmag_results_header_5=[ "data_type","pmag_result_name","result_description","er_citation_names"]        
+        # for ages, check the er_ages.txt, and take whats theres
+        age_headers=[]
+        for site in self.MagIC_model["er_ages"].keys():
+            if "age" in self.MagIC_model["er_ages"][site].keys() and self.MagIC_model["er_ages"][site]["age"]!="" and "age" not in age_headers:
+               age_headers.append("age")
+            if "age_sigma" in self.MagIC_model["er_ages"][site].keys() and self.MagIC_model["er_ages"][site]["age_sigma"]!="" and "age_sigma" not in age_headers:
+               age_headers.append("age_sigma")
+            if "age_range_low" in self.MagIC_model["er_ages"][site].keys() and self.MagIC_model["er_ages"][site]["age_range_low"]!="" and "age_range_low" not in age_headers:
+               age_headers.append("age_range_low")
+            if "age_range_high" in self.MagIC_model["er_ages"][site].keys() and self.MagIC_model["er_ages"][site]["age_range_high"]!="" and "age_range_high" not in age_headers:
+               age_headers.append("age_range_high")
+            if "age_unit" in self.MagIC_model["er_ages"][site].keys() and self.MagIC_model["er_ages"][site]["age_unit"]!="" and "age_unit" not in age_headers:
+               age_headers.append("age_unit")
+                                             
+               
+        for sample in pmag_samples_list:       
+            MagIC_results_data['pmag_results'][sample]={}
+            
+            MagIC_results_data['pmag_results'][sample]["er_location_names"]=MagIC_results_data['pmag_samples'][sample]['er_location_name']
+            MagIC_results_data['pmag_results'][sample]["er_site_names"]=MagIC_results_data['pmag_samples'][sample]['er_site_name']
+            MagIC_results_data['pmag_results'][sample]["er_sample_names"]=MagIC_results_data['pmag_samples'][sample]['er_sample_name']
+
+##            for key in pmag_results_header_1:
+##                MagIC_results_data['pmag_results'][sample][key]=self.MagIC_model["er_samples"][sample][key]            
+##            for key in pmag_results_header_1:
+##                MagIC_results_data['pmag_results'][sample][key]=self.MagIC_model["er_samples"][sample][key]
+            site=self.MagIC_model["er_samples"][sample]["er_site_name"]
+            lat,lon="",""
+            try:
+                lat=self.MagIC_model["er_sites"][site]["site_lat"]
+                MagIC_results_data['pmag_results'][sample]["average_lat"]=lat
+            except:
+                self.GUI_log.write( "-E- MagIC model error: cant find latitude for site %s, sample %s\n"%(site,sample))
+            try:    
+                lon=self.MagIC_model["er_sites"][site]["site_lon"]
+                MagIC_results_data['pmag_results'][sample]["average_lon"]=lon
+            except:
+                self.GUI_log.write( "-E- MagIC model error: cant find longitude for site %s, sample %s\n"%(site,sample))
+
+            MagIC_results_data['pmag_results'][sample]["average_lat"]=lat
+            MagIC_results_data['pmag_results'][sample]["average_lon"]=lon
+            
+            MagIC_results_data['pmag_results'][sample]["average_int_n"]=MagIC_results_data['pmag_samples'][sample]['sample_int_n']
+            MagIC_results_data['pmag_results'][sample]["average_int"]=MagIC_results_data['pmag_samples'][sample]['sample_int']
+            MagIC_results_data['pmag_results'][sample]["average_int_sigma"]=MagIC_results_data['pmag_samples'][sample]['sample_int_sigma']
+            MagIC_results_data['pmag_results'][sample]["average_int_sigma_perc"]=MagIC_results_data['pmag_samples'][sample]['sample_int_sigma_perc']
+
+
+
+            if self.preferences['VDM_or_VADM']=="VDM":
+                pass
+                # to be done
+            else:
+                if lat!="":
+                    lat=float(lat)
+                    B=float(MagIC_results_data['pmag_samples'][sample]['sample_int'])
+                    B_sigma=float(MagIC_results_data['pmag_samples'][sample]['sample_int_sigma'])
+                    VADM=pmag.b_vdm(B,lat)
+                    VADM_plus=pmag.b_vdm(B+B_sigma,lat)
+                    VADM_minus=pmag.b_vdm(B-B_sigma,lat)
+                    VADM_sigma=(VADM_plus-VADM_minus)/2
+                    MagIC_results_data['pmag_results'][sample]["vadm"]="%.2e"%VADM
+                    MagIC_results_data['pmag_results'][sample]["vadm_sigma"]="%.2e"%VADM_sigma
+                else:
+                    MagIC_results_data['pmag_results'][sample]["vadm"]=""
+                    MagIC_results_data['pmag_results'][sample]["vadm_sigma"]=""
+            if   MagIC_results_data['pmag_results'][sample]["vadm"]   != "":     
+                MagIC_results_data['pmag_results'][sample]["pmag_result_name"]="Paleointensity;V[A]DM;" +sample
+                MagIC_results_data['pmag_results'][sample]["result_description"]="Paleointensity; V[A]DM"
+            else:
+                MagIC_results_data['pmag_results'][sample]["pmag_result_name"]="Paleointensity;" +sample
+                MagIC_results_data['pmag_results'][sample]["result_description"]="Paleointensity"
+    
+            MagIC_results_data['pmag_results'][sample]["data_type"]="a"
+            MagIC_results_data['pmag_results'][sample]["er_citation_names"]="This study"
+            
+            
+                
+        # wrire pmag_samples.txt
+        fout=open(self.WD+"/pmag_results.txt",'w')
+        fout.write("tab\tpmag_results\n")
+        headers=pmag_results_header_1+pmag_results_header_2+pmag_results_header_3+pmag_results_header_4+pmag_results_header_5
+        String=""
+        for key in headers:
+            String=String+key+"\t"
+        fout.write(String[:-1]+"\n")
+
+        pmag_samples_list.sort()
+        for sample in pmag_samples_list:
+            String=""
+            for key in headers:
+                String=String+MagIC_results_data['pmag_results'][sample][key]+"\t"
+            fout.write(String[:-1]+"\n")
+        fout.close()
+        
+        #-------------
+        # MAgic_methods.txt
+        #-------------
+
+        # search for all magic_methods in all files:
+        magic_method_codes=[]
+        for F in ["magic_measurements.txt","rmag_anisotropy.txt","rmag_results.txt","rmag_results.txt","pmag_samples.txt","pmag_specimens.txt","pmag_sites.txt","er_ages.txt"]:
+            try:
+                fin=open(self.WD+"/"+F,'rU')
+            except:
+                continue
+            line=fin.readline()
+            line=fin.readline()
+            header=line.strip('\n').split('\t')
+            if  "magic_method_codes" not in header:
+                continue
+            else:
+                index=header.index("magic_method_codes")
+            for line in fin.readlines():
+                tmp=line.strip('\n').split('\t')
+                codes=tmp[index].replace(" ","").split(":")
+                for code in codes:
+                    if code !="" and code not in magic_method_codes:
+                        magic_method_codes.append(code)
+            fin.close()
+            
+        magic_method_codes.sort()
+        #print magic_method_codes
+        magic_methods_header_1=["magic_method_code"]
+        fout=open(self.WD+"/magic_methods.txt",'w')
+        fout.write("tab\tmagic_methods\n")
+        fout.write("magic_method_code\n")
+        for code in magic_method_codes:
+            fout.write("%s\n"%code)
+        fout.close
+                
+
+
+                
+    def read_magic_model (self):
+        # Read MagIC Data model:
+
+        self.MagIC_model={}
+        self.MagIC_model["specimens"]={}
+        self.MagIC_model["er_samples"]={}
+        self.MagIC_model["er_sites"]={}
+        self.MagIC_model["er_locations"]={}
+        self.MagIC_model["er_ages"]={}
+        fail=[]
+        self.MagIC_model["specimens"]=self.read_magic_file(self.WD+"/er_specimens.txt",1,'er_specimen_name')
+        try:
+            self.MagIC_model["specimens"]=self.read_magic_file(self.WD+"/er_specimens.txt",1,'er_specimen_name')
+        except:
+            self.GUI_log.write ("-W- Cant find er_specimens.txt in project directory")
+            fail.append("er_specimens.txt")
+            pass
+        try:
+            self.MagIC_model["er_samples"]=self.read_magic_file(self.WD+"/er_samples.txt",1,'er_sample_name')
+        except:
+            self.GUI_log.write ("-W- Cant find er_sample.txt in project directory")
+            fail.append("er_sample.txt")
+            pass
+        try:
+            self.MagIC_model["er_sites"]=self.read_magic_file(self.WD+"/er_sites.txt",1,'er_site_name')
+        except:
+            self.GUI_log.write ("-W- Cant find er_sites.txt in project directory")
+            fail.append("er_sites.txt")
+            pass
+        try:
+            self.MagIC_model["er_locations"]=self.read_magic_file(self.WD+"/er_locations.txt",1,'er_location_name')
+        except:
+            self.GUI_log.write ("-W- Cant find er_locations.txt in project directory")
+            fail.append("er_locations.txt")
+            pass
+
+        try:
+            self.MagIC_model["er_ages"]=self.read_magic_file(self.WD+"/er_ages",1,'er_site_name')
+        except:
+            self.GUI_log.write ("-W- Cant find er_ages.txt in project directory")
+            pass
+
+        return (fail)
+        
+                          
+    def read_magic_file(self,path,ignore_lines_n,sort_by_this_name):
+        DATA={}
+        fin=open(path,'rU')
+        #ignore first lines
+        for i in range(ignore_lines_n):
+            fin.readline()
+        #header
+        line=fin.readline()
+        header=line.strip('\n').split('\t')
+        #print header
+        for line in fin.readlines():
+            if line[0]=="#":
+                continue
+            tmp_data={}
+            tmp_line=line.strip('\n').split('\t')
+            #print tmp_line
+            for i in range(len(tmp_line)):
+                if i>= len(header):
+                    continue
+                tmp_data[header[i]]=tmp_line[i]
+            DATA[tmp_data[sort_by_this_name]]=tmp_data
+        fin.close()        
+        return(DATA)
+                
+                
+    #----------------------------------------------------------------------  
+
 
     def On_close_plot_dialog(self,dia):
+
+        COLORS=['b','g','r','c','m','y','orange','gray','purple','brown','indigo','darkolivegreen','gold','mediumorchid','b','g','r','c','m','y','orange','gray','purple','brown','indigo','darkolivegreen','gold','mediumorchid']
+        SYMBOLS=['o','d','h','p','s','*','v','<','>','^','o','d','h','p','s','*','v','<','>','^','o','d','h','p','s','*','v','<','>','^',]
 
         set_map_lat_min=""
         set_map_lat_max=""                      
@@ -3509,6 +4549,18 @@ class Arai_GUI(wx.Frame):
                    ( B_std_uT <=self.accept_new_parameters['sample_int_sigma_uT'] or B_std_perc <= self.accept_new_parameters['sample_int_sigma_perc']):
                     #print "sample pass",sample
                     if ( (max(tmp_B)-min(tmp_B)) <= self.accept_new_parameters['sample_int_interval_uT'] or 100*((max(tmp_B)-min(tmp_B))/mean((tmp_B))) <= self.accept_new_parameters['sample_int_interval_perc']):
+
+                        if sample in self.Data_info["er_ages"].keys() and "age_description" in self.Data_info["er_ages"][sample].keys():
+                            info= self.Data_info["er_ages"][sample]["age_description"]
+                        elif site in self.Data_info["er_samples"][sample]['er_site_name'] and "age_description" in self.Data_info["er_ages"][site].keys():
+                            info= self.Data_info["er_ages"][site]["age_description"]
+                       
+                        if "poor" in info or "controversial" in info or "moderate" in info:
+                            print "skipping sample %s because of age quality" %sample
+                            self.GUI_log.write( "-W- Plot: skipping sample %s because of age quality\n"%sample)
+                            continue
+                                                                                                     
+
                         #print "check, sample %s pass criteria"%sample
                         if sample in self.Data_info["er_ages"].keys():
                             if self.Data_info["er_ages"][sample]["age"] !="":
@@ -3560,6 +4612,10 @@ class Arai_GUI(wx.Frame):
                                 location=self.Data_info["er_sites"][site]["er_location_name"]
                         except:
                             location="unknown"
+
+                        if not found_age:
+                            self.GUI_log.write( "-W- Plot: skipping sample %s because cant find age\n"%sample)
+                            print "-W- Plot: skipping sample %s because  cant find age\n"%sample
                             
                         if found_age:
                             
@@ -3601,7 +4657,11 @@ class Arai_GUI(wx.Frame):
                                 plot_by_locations[location]['Y_data_plus'].append(VADM_plus-VADM)
                                 plot_by_locations[location]['Y_data_minus'].append(VADM-VADM_minus)
                                 plot_by_locations[location]['samples_names'].append(sample)
-                                
+
+                            elif plt_VADM and not found_lat:
+                                self.GUI_log.write( "-W- Plot: skipping sample %s because cant find latitude for V[A]DM calculation\n"%sample)
+                                print "-W- Plot: skipping sample %s because  cant find latitude for V[A]DM calculation\n"%sample
+                                                                
                             found_age=False
                             found_lat=False
                             
@@ -3670,6 +4730,7 @@ class Arai_GUI(wx.Frame):
                 m.drawmapboundary()
             else:
                 print "Cant plot map. Is basemap installed?"
+        cnt=0    
         for location in locations:
             figure(1)
             X_data,X_data_minus,X_data_plus=plot_by_locations[location]['X_data'],plot_by_locations[location]['X_data_minus'],plot_by_locations[location]['X_data_plus']
@@ -3682,21 +4743,26 @@ class Arai_GUI(wx.Frame):
                 Yerr=None
             else:
                 Yerr=[Y_data_minus,Y_data_plus]
-            errorbar(X_data,Y_data,xerr=Xerr,yerr=Yerr,fmt='s',label=location)
+            errorbar(X_data,Y_data,xerr=Xerr,yerr=Yerr,fmt=SYMBOLS[cnt%len(SYMBOLS)],color=COLORS[cnt%len(COLORS)],label=location)
             if Plot_map:
                 figure(2)
                 lat=plot_by_locations[location]['site_lat']
                 lon=plot_by_locations[location]['site_lon']
 ##                print "lonlat", lon,lat
                 x1,y1=m([lon],[lat])
-                m.scatter(x1,y1,s=[50],marker="o")
+                m.scatter(x1,y1,s=[50],marker=SYMBOLS[cnt%len(SYMBOLS)],color=COLORS[cnt%len(COLORS)])
+            cnt+=1
+                
         figure(1)
         #figtext(0.05,0.95,"N=%i"%len(X_data))
+        
         legend_font_props = matplotlib.font_manager.FontProperties()
         legend_font_props.set_size(12)
 
         h,l = ax.get_legend_handles_labels()
-        Fig.legend(h,l,loc='center left',fancybox="True",numpoints=1,prop=legend_font_props)
+        legend(h,l,loc='center left', bbox_to_anchor=[0, 0, 1, 1],bbox_transform=Fig.transFigure,numpoints=1,prop=legend_font_props)
+
+        #Fig.legend(h,l,loc='center left',fancybox="True",numpoints=1,prop=legend_font_props)
         y_min,y_max=ylim()
         if y_min<0:
             ax.set_ylim(ymin=0)
@@ -3743,6 +4809,7 @@ class Arai_GUI(wx.Frame):
                 for i in  range(len(plot_by_locations[location]['samples_names'])):
                     text(plot_by_locations[location]['X_data'][i],plot_by_locations[location]['Y_data'][i],"  "+ plot_by_locations[location]['samples_names'][i],fontsize=10,color="0.5")
 
+
         show()
     
 #===========================================================
@@ -3781,14 +4848,14 @@ class Arai_GUI(wx.Frame):
           else:
              self.GUI_log.write("-E- Cant plot Arai plot. check the data for specimen %s\n"%s)
         if len(self.x_Arai_ZI)>0:
-            self.araiplot.scatter (self.x_Arai_ZI,self.y_Arai_ZI,marker='o',facecolor='r',edgecolor ='k',s=25)
+            self.araiplot.scatter (self.x_Arai_ZI,self.y_Arai_ZI,marker='o',facecolor='r',edgecolor ='k',s=25*self.GUI_RESOLUTION)
         if len(self.x_Arai_IZ)>0:
-            self.araiplot.scatter (self.x_Arai_IZ,self.y_Arai_IZ,marker='o',facecolor='b',edgecolor ='k',s=25)
+            self.araiplot.scatter (self.x_Arai_IZ,self.y_Arai_IZ,marker='o',facecolor='b',edgecolor ='k',s=25*self.GUI_RESOLUTION)
 
         # pTRM checks
         if 'x_ptrm_check' in self.Data[self.s]:
             if len(self.Data[self.s]['x_ptrm_check'])>0:
-                self.araiplot.scatter (self.Data[self.s]['x_ptrm_check'],self.Data[self.s]['y_ptrm_check'],marker='^',edgecolor='0.1',alpha=1.0, facecolor='None',s=80,lw=1)
+                self.araiplot.scatter (self.Data[self.s]['x_ptrm_check'],self.Data[self.s]['y_ptrm_check'],marker='^',edgecolor='0.1',alpha=1.0, facecolor='None',s=80*self.GUI_RESOLUTION,lw=1)
                 if self.preferences['show_Arai_pTRM_arrows']:
                     for i in range(len(self.Data[self.s]['x_ptrm_check'])):
                         xx1,yy1=self.Data[s]['x_ptrm_check_starting_point'][i],self.Data[s]['y_ptrm_check_starting_point'][i]
@@ -3798,7 +4865,7 @@ class Arai_GUI(wx.Frame):
 
         # Tail checks
         if len(self.x_tail_check >0):
-          self.araiplot.scatter (self.x_tail_check,self.y_tail_check,marker='s',edgecolor='0.1',alpha=1.0, facecolor='None',s=80,lw=1)
+          self.araiplot.scatter (self.x_tail_check,self.y_tail_check,marker='s',edgecolor='0.1',alpha=1.0, facecolor='None',s=80*self.GUI_RESOLUTION,lw=1)
 
         for i in range(len(self.Data[self.s]['t_Arai'])):
           if self.Data[self.s]['t_Arai'][i]!=0:
@@ -3813,8 +4880,8 @@ class Arai_GUI(wx.Frame):
           else:
               self.araiplot.text(self.x_Arai[i],self.y_Arai[i],"  %.0f"%self.tmp_c,fontsize=10,color='gray',ha='left',va='center')
               
-        self.araiplot.set_xlabel("TRM / NRM$_0$",fontsize=10)
-        self.araiplot.set_ylabel("NRM / NRM$_0$",fontsize=10)
+        self.araiplot.set_xlabel("TRM / NRM$_0$",fontsize=10*self.GUI_RESOLUTION)
+        self.araiplot.set_ylabel("NRM / NRM$_0$",fontsize=10*self.GUI_RESOLUTION)
         self.araiplot.set_xlim(xmin=0)
         self.araiplot.set_ylim(ymin=0)
         #search for NRM:
@@ -3829,6 +4896,8 @@ class Arai_GUI(wx.Frame):
 
         #draw()
         self.canvas1.draw()
+        self.arai_xlim_initial=self.araiplot.axes.get_xlim() 
+        self.arai_ylim_initial=self.araiplot.axes.get_ylim() 
 
         #start_time_2=time.time() 
         #runtime_sec2 = start_time_2 - start_time
@@ -3839,7 +4908,7 @@ class Arai_GUI(wx.Frame):
         #-----------------------------------------------------------
 
         self.zijplot.clear()
-        self.MS=6;self.dec_MEC='k';self.dec_MFC='b'; self.inc_MEC='k';self.inc_MFC='r'
+        self.MS=6*self.GUI_RESOLUTION;self.dec_MEC='k';self.dec_MFC='b'; self.inc_MEC='k';self.inc_MFC='r'
         self.CART_rot=self.Data[self.s]['zij_rotated']
         self.z_temperatures=self.Data[self.s]['z_temp']
         self.vds=self.Data[self.s]['vds']
@@ -3857,9 +4926,9 @@ class Arai_GUI(wx.Frame):
             for i in range(len(self.z_temperatures)):
                 if int(self.preferences['show_Zij_temperatures_steps']) !=1:
                     if i!=0  and (i+1)%int(self.preferences['show_Zij_temperatures_steps'])==0:
-                        self.zijplot.text(self.CART_rot[i][0],-1*self.CART_rot[i][2]," %.0f"%(self.z_temperatures[i]-273.),fontsize=10,color='gray',ha='left',va='center')   #inc
+                        self.zijplot.text(self.CART_rot[i][0],-1*self.CART_rot[i][2]," %.0f"%(self.z_temperatures[i]-273.),fontsize=10*self.GUI_RESOLUTION,color='gray',ha='left',va='center')   #inc
                 else:
-                  self.zijplot.text(self.CART_rot[i][0],-1*self.CART_rot[i][2]," %.0f"%(self.z_temperatures[i]-273.),fontsize=10,color='gray',ha='left',va='center')   #inc
+                  self.zijplot.text(self.CART_rot[i][0],-1*self.CART_rot[i][2]," %.0f"%(self.z_temperatures[i]-273.),fontsize=10*self.GUI_RESOLUTION,color='gray',ha='left',va='center')   #inc
 
         #-----
         xmin, xmax = self.zijplot.get_xlim()
@@ -3903,6 +4972,8 @@ class Arai_GUI(wx.Frame):
         #----
 
 
+        self.zij_xlim_initial=self.zijplot.axes.get_xlim() 
+        self.zij_ylim_initial=self.zijplot.axes.get_ylim() 
 
         self.canvas2.draw()
         
@@ -3939,7 +5010,7 @@ class Arai_GUI(wx.Frame):
             R=array(sqrt(1-z_eq_dn)/sqrt(x_eq_dn**2+y_eq_dn**2)) # from Collinson 1983
             eqarea_data_x_dn=y_eq_dn*R
             eqarea_data_y_dn=x_eq_dn*R
-            self.eqplot.scatter([eqarea_data_x_dn],[eqarea_data_y_dn],marker='o',edgecolor='gray', facecolor='black',s=15,lw=1)
+            self.eqplot.scatter([eqarea_data_x_dn],[eqarea_data_y_dn],marker='o',edgecolor='gray', facecolor='black',s=15*self.GUI_RESOLUTION,lw=1)
                     
             
 
@@ -3951,11 +5022,11 @@ class Arai_GUI(wx.Frame):
             R=array(sqrt(1-z_eq_up)/sqrt(x_eq_up**2+y_eq_up**2)) # from Collinson 1983
             eqarea_data_x_up=y_eq_up*R
             eqarea_data_y_up=x_eq_up*R
-            self.eqplot.scatter([eqarea_data_x_up],[eqarea_data_y_up],marker='o',edgecolor='black', facecolor='white',s=15,lw=1)        
+            self.eqplot.scatter([eqarea_data_x_up],[eqarea_data_y_up],marker='o',edgecolor='black', facecolor='white',s=15*self.GUI_RESOLUTION,lw=1)        
         
         if self.preferences['show_eqarea_temperatures']:
             for i in range(len(self.z_temperatures)):
-                self.eqplot.text(eqarea_data_x[i],eqarea_data_y[i],"%.0f"%(float(self.z_temperatures[i])-273),fontsize=8,color="0.5")
+                self.eqplot.text(eqarea_data_x[i],eqarea_data_y[i],"%.0f"%(float(self.z_temperatures[i])-273),fontsize=8*self.GUI_RESOLUTION,color="0.5")
         
         
         #self.eqplot.text(eqarea_data_x[0],eqarea_data_y[0]," NRM",fontsize=8,color='gray',ha='left',va='center')
@@ -3979,9 +5050,9 @@ class Arai_GUI(wx.Frame):
                     eqarea_data_x_dn.append(CART_pTRMS[i][1]*R)
                     eqarea_data_y_dn.append(CART_pTRMS[i][0]*R)
             if len(eqarea_data_x_up)>0:
-                self.eqplot.scatter(eqarea_data_x_up,eqarea_data_y_up,marker='^',edgecolor='blue', facecolor='white',s=15,lw=1)
+                self.eqplot.scatter(eqarea_data_x_up,eqarea_data_y_up,marker='^',edgecolor='blue', facecolor='white',s=15*self.GUI_RESOLUTION,lw=1)
             if len(eqarea_data_x_dn)>0:
-                self.eqplot.scatter(eqarea_data_x_dn,eqarea_data_y_dn,marker='^',edgecolor='gray', facecolor='blue',s=15,lw=1)        
+                self.eqplot.scatter(eqarea_data_x_dn,eqarea_data_y_dn,marker='^',edgecolor='gray', facecolor='blue',s=15*self.GUI_RESOLUTION,lw=1)        
         draw()
         self.canvas3.draw()
     
@@ -4001,7 +5072,7 @@ class Arai_GUI(wx.Frame):
 
         if self.preferences['show_NLT_plot'] ==False or 'NLT_parameters' not in self.Data[self.s].keys():
             self.fig5.clf()
-            self.fig5.text(0.02,0.96,"M/T",{'family':'Arial', 'fontsize':10, 'style':'normal','va':'center', 'ha':'left' })
+            self.fig5.text(0.02,0.96,"M/T",{'family':'Arial', 'fontsize':10*self.GUI_RESOLUTION, 'style':'normal','va':'center', 'ha':'left' })
             self.mplot = self.fig5.add_axes([0.2,0.15,0.7,0.7],frameon=True,axisbg='None')
             
             self.mplot.clear()
@@ -4020,10 +5091,10 @@ class Arai_GUI(wx.Frame):
               M_pTRMS=array([row[3] for row in PTRMS])/NRMS[0][3]
 
               self.mplot.clear()
-              self.mplot.plot(temperatures_NRMS,M_NRMS,'bo-',mec='0.2',markersize=5,lw=1)
-              self.mplot.plot(temperatures_NRMS,M_pTRMS,'ro-',mec='0.2',markersize=5,lw=1)
-              self.mplot.set_xlabel("C",fontsize=8)
-              self.mplot.set_ylabel("M / NRM$_0$",fontsize=8)
+              self.mplot.plot(temperatures_NRMS,M_NRMS,'bo-',mec='0.2',markersize=5*self.GUI_RESOLUTION,lw=1)
+              self.mplot.plot(temperatures_NRMS,M_pTRMS,'ro-',mec='0.2',markersize=5*self.GUI_RESOLUTION,lw=1)
+              self.mplot.set_xlabel("C",fontsize=8*self.GUI_RESOLUTION)
+              self.mplot.set_ylabel("M / NRM$_0$",fontsize=8*self.GUI_RESOLUTION)
               #self.mplot.set_xtick(labelsize=2)
               try:
                   self.mplot.tick_params(axis='both', which='major', labelsize=8)
@@ -4094,8 +5165,106 @@ class Arai_GUI(wx.Frame):
         eq.vlines((0,0),(0.9,-0.9),(1.0,-1.0),'k')
         eq.hlines((0,0),(0.9,-0.9),(1.0,-1.0),'k')
         eq.plot([0.0],[0.0],'+k')
-        
 
+
+    #===========================================================
+    # Zoom properties 
+    #===========================================================
+        
+    def Arai_zoom(self):
+        cursur_entry_arai=self.canvas1.mpl_connect('axes_enter_event', self.on_enter_arai_fig) 
+        cursur_leave_arai=self.canvas1.mpl_connect('axes_leave_event', self.on_leave_arai_fig)
+
+    def on_leave_arai_fig(self,event):
+        self.canvas1.mpl_disconnect(self.cid1)
+        self.canvas1.mpl_disconnect(self.cid2)
+        self.canvas1.SetCursor(wx.StockCursor(wx.CURSOR_ARROW))
+        self.curser_in_arai_figure=False
+                
+    def on_enter_arai_fig(self,event):
+        self.curser_in_arai_figure=True
+        self.canvas1.SetCursor(wx.StockCursor(wx.CURSOR_CROSS))
+        cid1=self.canvas1.mpl_connect('button_press_event', self.onclick)
+        cid2=self.canvas1.mpl_connect('button_release_event', self.onclick_2)
+
+    def onclick(self,event):
+        if self.curser_in_arai_figure:
+            self.tmp1_x=event.xdata
+            self.tmp1_y=event.ydata
+        
+    def onclick_2(self,event):
+        self.canvas1.mpl_connect('axes_leave_event', self.on_leave_arai_fig)
+        if self.curser_in_arai_figure:
+            try:
+                self.tmp2_x=event.xdata
+                self.tmp2_y=event.ydata
+                if self.tmp1_x < self.tmp2_x and self.tmp1_y > self.tmp2_y:
+                    self.araiplot.set_xlim(xmin=self.tmp1_x,xmax=self.tmp2_x)
+                    self.araiplot.set_ylim(ymin=self.tmp2_y,ymax=self.tmp1_y)
+                else:
+                    self.araiplot.set_xlim(xmin=self.arai_xlim_initial[0],xmax=self.arai_xlim_initial[1])
+                    self.araiplot.set_ylim(ymin=self.arai_ylim_initial[0],ymax=self.arai_ylim_initial[1])
+                self.canvas1.draw()
+            except:
+                pass
+        else:
+            return
+        
+    def Zij_zoom(self):
+        cursur_entry_arai=self.canvas1.mpl_connect('axes_enter_event', self.on_enter_zij_fig) 
+        cursur_leave_arai=self.canvas2.mpl_connect('axes_leave_event', self.on_leave_zij_fig)
+
+    def on_leave_zij_fig (self,event):
+        self.canvas2.mpl_disconnect(self.cid3)
+        self.canvas2.mpl_disconnect(self.cid4)
+        self.canvas2.SetCursor(wx.StockCursor(wx.CURSOR_ARROW))
+        self.curser_in_zij_figure=False
+                
+    def on_enter_zij_fig(self,event):
+        self.curser_in_zij_figure=True
+        self.canvas2.SetCursor(wx.StockCursor(wx.CURSOR_CROSS))
+        cid3=self.canvas2.mpl_connect('button_press_event', self.onclick_z_1)
+        cid4=self.canvas2.mpl_connect('button_release_event', self.onclick_z_2)
+
+    def onclick_z_1(self,event):
+        if self.curser_in_zij_figure:
+            self.tmp3_x=event.xdata
+            self.tmp3_y=event.ydata
+        
+    def onclick_z_2(self,event):
+        self.canvas2.mpl_connect('axes_leave_event', self.on_leave_arai_fig)
+        if self.curser_in_zij_figure:
+            self.tmp4_x=event.xdata
+            self.tmp4_y=event.ydata
+            if self.tmp3_x < self.tmp4_x and self.tmp3_y > self.tmp4_y:
+                self.zijplot.set_xlim(xmin=self.tmp3_x,xmax=self.tmp4_x)
+                self.zijplot.set_ylim(ymin=self.tmp4_y,ymax=self.tmp3_y)
+            else:
+                self.zijplot.set_xlim(xmin=self.zij_xlim_initial[0],xmax=self.zij_xlim_initial[1])
+                self.zijplot.set_ylim(ymin=self.zij_ylim_initial[0],ymax=self.zij_ylim_initial[1])
+            self.canvas2.draw()
+        else:
+            return
+
+    def arrow_keys(self):
+        self.panel.Bind(wx.EVT_CHAR, self.onCharEvent)
+
+    def onCharEvent(self, event):
+        keycode = event.GetKeyCode()
+        controlDown = event.CmdDown()
+        altDown = event.AltDown()
+        shiftDown = event.ShiftDown()
+ 
+        if keycode == wx.WXK_RIGHT or keycode == wx.WXK_NUMPAD_RIGHT or keycode == wx.WXK_WINDOWS_RIGHT:
+            #print "you pressed the right!"
+            self.on_next_button(None)
+        elif keycode == wx.WXK_LEFT or keycode == wx.WXK_NUMPAD_LEFT or keycode == wx.WXK_WINDOWS_LEFT:
+            #print "you pressed the right!"
+            self.on_prev_button(None)
+        event.Skip()
+ 
+        
+        
 #===========================================================
 # Update GUI with new interpretation
 #===========================================================
@@ -4130,8 +5299,8 @@ class Arai_GUI(wx.Frame):
          
         # PI statsistics
         
-        window_list=['int_n','int_ptrm_n','frac','gap_max','f','fvds','b_beta','g','q','int_mad','dang','drats','md']
-        high_threshold_velue_list=['specimen_gap_max','specimen_b_beta','specimen_dang','specimen_drats','specimen_int_mad','specimen_md']
+        window_list=['int_n','int_ptrm_n','frac','gmax','f','fvds','b_beta','g','q','int_mad','dang','drats','md']
+        high_threshold_velue_list=['specimen_gmax','specimen_b_beta','specimen_dang','specimen_drats','specimen_int_mad','specimen_md']
         low_threshold_velue_list=['specimen_int_n','specimen_int_ptrm_n','specimen_f','specimen_fvds','specimen_frac','specimen_g','specimen_q']
         flag_Fail=False
     
@@ -4141,11 +5310,11 @@ class Arai_GUI(wx.Frame):
                 Value="%.0f"%self.pars[key]
             if key in ['specimen_dang','specimen_drats','specimen_int_mad','specimen_md','specimen_g','specimen_q']:
                 Value="%.1f"%self.pars[key]
-            if key in ['specimen_f','specimen_fvds','specimen_frac','specimen_b_beta','specimen_gap_max']:
+            if key in ['specimen_f','specimen_fvds','specimen_frac','specimen_b_beta','specimen_gmax']:
                 Value="%.2f"%self.pars[key]            
             command= "self.%s_window.SetValue(Value)"%key.split('specimen_')[-1]
-            exec(command)
-
+            if key.split('specimen_')[-1] in self.preferences['show_statistics_on_gui']:
+                exec(command)
             if self.ignore_parameters[key]:
                 command="self.%s_window.SetBackgroundColour(wx.NullColor)"%key.split('specimen_')[-1]  # set text color                
             elif (key in high_threshold_velue_list) and (float(self.pars[key])<=float(self.accept_new_parameters[key])):
@@ -4155,7 +5324,8 @@ class Arai_GUI(wx.Frame):
             else:
                 command="self.%s_window.SetBackgroundColour(wx.RED)"%key.split('specimen_')[-1]  # set text color
                 flag_Fail=True
-            exec command    
+            if key.split('specimen_')[-1] in self.preferences['show_statistics_on_gui']:
+                exec command    
 
         # Scat
         if self.accept_new_parameters['specimen_scat']:
@@ -4164,16 +5334,19 @@ class Arai_GUI(wx.Frame):
             else:
               self.scat_window.SetValue("pass")
 
-            if self.ignore_parameters['specimen_scat']:
+            if self.ignore_parameters['specimen_scat'] and  "scat" in self.preferences['show_statistics_on_gui']:
               self.scat_window.SetBackgroundColour(wx.NullColor) # set text color
             elif self.pars["fail_arai_beta_box_scatter"] or self.pars["fail_ptrm_beta_box_scatter"] or self.pars["fail_tail_beta_box_scatter"] :
-              self.scat_window.SetBackgroundColour(wx.RED) # set text color
+              if "scat" in self.preferences['show_statistics_on_gui']:
+                  self.scat_window.SetBackgroundColour(wx.RED) # set text color
               flag_Fail=True
             else :
-              self.scat_window.SetBackgroundColour(wx.GREEN) # set text color
+              if "scat" in self.preferences['show_statistics_on_gui']:
+                  self.scat_window.SetBackgroundColour(wx.GREEN) # set text color
         else:
-            self.scat_window.SetValue("")
-            self.scat_window.SetBackgroundColour(wx.NullColor) # set text color
+            if "scat" in self.preferences['show_statistics_on_gui']:
+                self.scat_window.SetValue("")
+                self.scat_window.SetBackgroundColour(wx.NullColor) # set text color
 
 
         # Banc, correction factor
@@ -4319,11 +5492,14 @@ class Arai_GUI(wx.Frame):
         """
         calcualte statisics 
         """
-              
-        pars=self.Data[s]['pars']        
+        pars=self.Data[s]['pars']
         datablock = self.Data[s]['datablock']
         pars=self.Data[s]['pars']
+        # get MagIC mothod codes:
 
+        #pars['magic_method_codes']="LP-PI-TRM" # thellier Method
+        
+        
         t_Arai=self.Data[s]['t_Arai']
         x_Arai=self.Data[s]['x_Arai']
         y_Arai=self.Data[s]['y_Arai']
@@ -4398,10 +5574,18 @@ class Arai_GUI(wx.Frame):
         # best fit PCA direction
         pars["specimen_dec"] =  DIR_PCA[0]
         pars["specimen_inc"] =  DIR_PCA[1]
-        pars["specimen_PCA_v1"] =best_fit_vector 
+        pars["specimen_PCA_v1"] =best_fit_vector
+        if t1 <0 or t1==0:
+            t1=1e-10
+        if t2 <0 or t2==0:
+            t2=1e-10
+        if t3 <0 or t3==0:
+            t3=1e-10
+            
         pars["specimen_PCA_sigma_max"] =  sqrt(t1)
         pars["specimen_PCA_sigma_int"] =  sqrt(t2)
         pars["specimen_PCA_sigma_min"] =  sqrt(t3)
+            
 
         # MAD Kirschvink (1980)
         pars["specimen_int_mad"]=MAD
@@ -4519,7 +5703,18 @@ class Arai_GUI(wx.Frame):
 
         q_Coe=abs(york_b)*f_Coe*g_Coe/york_sigma
 
-        
+
+        count_IZ= self.Data[self.s]['steps_Arai'].count('IZ')
+        count_ZI= self.Data[self.s]['steps_Arai'].count('ZI')
+        if count_IZ >1 and count_ZI >1:
+            pars['magic_method_codes']="LP-PI-BT-IZZI"
+        elif count_IZ <1 and count_ZI >1:
+            pars['magic_method_codes']="LP-PI-ZI"
+        elif count_IZ >1 and count_ZI <1:
+            pars['magic_method_codes']="LP-PI-IZ"            
+        else:
+            pars['magic_method_codes']=""
+            
         pars['specimen_int_n']=end-start+1
         pars["specimen_b"]=york_b
         pars["specimen_YT"]=y_T       
@@ -4529,8 +5724,15 @@ class Arai_GUI(wx.Frame):
         pars["specimen_fvds"]=f_vds
         pars["specimen_g"]=g_Coe
         pars["specimen_q"]=q_Coe
-
         pars["specimen_int"]=-1*pars['lab_dc_field']*pars["specimen_b"]
+        pars['magic_method_codes']+=":IE-TT"
+        if 'x_ptrm_check' in self.Data[self.s].keys():
+            if len(self.Data[self.s]['x_ptrm_check'])>0:
+                pars['magic_method_codes']+=":LP-PI-ALT-PTRM"
+        if 'x_tail_check' in self.Data[self.s].keys():
+            if len(self.Data[self.s]['x_tail_check'])>0:
+                pars['magic_method_codes']+=":LP-PI-BT-MD"
+
 
         #-------------------------------------------------
         # pTRM checks:
@@ -4738,7 +5940,7 @@ class Arai_GUI(wx.Frame):
         max_FRAC_gap=max(vector_diffs_segment/sum(vector_diffs_segment))
 
         pars['specimen_frac']=FRAC
-        pars['specimen_gap_max']=max_FRAC_gap
+        pars['specimen_gmax']=max_FRAC_gap
 
         #-------------------------------------------------  
         # Check if specimen pass Acceptance criteria
@@ -4746,7 +5948,7 @@ class Arai_GUI(wx.Frame):
 
         pars['specimen_fail_criteria']=[]
         for key in self.high_threshold_velue_list:
-            if key in ['specimen_gap_max','specimen_b_beta']:
+            if key in ['specimen_gmax','specimen_b_beta']:
                 value=round(pars[key],2)
             elif key in ['specimen_dang','specimen_int_mad']:
                 value=round(pars[key],1)
@@ -4776,7 +5978,7 @@ class Arai_GUI(wx.Frame):
 
         if "AniSpec" in self.Data[s].keys():
            pars["AC_WARNING"]=""
-           # if both aarm and atrm tensor axist, try first the atrm. if it fails use the aarm.
+           # if both aarm and atrm tensor axist, try first the aarm. if it fails use the atrm.
            if 'AARM' in self.Data[s]["AniSpec"].keys() and 'ATRM' in self.Data[s]["AniSpec"].keys():
                TYPES=['AARM','ATRM']
            else:
@@ -4853,12 +6055,25 @@ class Arai_GUI(wx.Frame):
            
            pars["AC_anisotropy_type"]=self.Data[s]['AniSpec'][TYPE]["anisotropy_type"]
            pars["specimen_int_uT"]=float(pars["AC_specimen_int"])*1e6
+           if TYPE=='AARM':
+               if ":LP-AN-ARM" not in pars['magic_method_codes']:
+                  pars['magic_method_codes']+=":LP-AN-ARM:AE-H:DA-AC-AARM"
+                  pars['specimen_correction']='c'
+                  pars['specimen_int_corr_anisotropy']=Anisotropy_correction_factor
+           if TYPE=='ATRM':
+               if ":LP-AN-TRM" not in pars['magic_method_codes']:
+                  pars['magic_method_codes']+=":LP-AN-TRM:AE-H:DA-AC-ATRM"
+                  pars['specimen_correction']='c' 
+                  pars['specimen_int_corr_anisotropy']=Anisotropy_correction_factor
 
+ 
         else:
            pars["Anisotropy_correction_factor"]=1.0
            pars["specimen_int_uT"]=float(pars["specimen_int"])*1e6
            pars["AC_WARNING"]="No anistropy correction"
-           
+           pars['specimen_correction']='u' 
+
+        pars["specimen_int_corr_anisotropy"]=pars["Anisotropy_correction_factor"]   
         #-------------------------------------------------                    
         # NLT and anisotropy correction together in one equation
         # See Shaar et al (2010), Equation (3)
@@ -4880,13 +6095,16 @@ class Arai_GUI(wx.Frame):
                    pars["NLT_specimen_correction_factor"]=Banc_NLT/float(pars["AC_specimen_int"])
                else:                       
                    pars["NLT_specimen_correction_factor"]=Banc_NLT/float(pars["specimen_int"])
+               if ":LP-TRM" not in pars['magic_method_codes']:
+                  pars['magic_method_codes']+=":LP-TRM:DA-NL"
+               pars['specimen_correction']='c' 
+
            else:
                self.GUI_log.write ("-W- WARNING: problematic NLT mesurements for specimens %s. Cant do NLT calculation. check data\n"%s)
                pars["NLT_specimen_correction_factor"]=-1
         else:
            pars["NLT_specimen_correction_factor"]=-1
 
-        
         return(pars)
         
 
@@ -5098,13 +6316,13 @@ class Arai_GUI(wx.Frame):
                 specimens_id=[self.s]
                 specimens_B=[self.pars['specimen_int_uT']]
         if len(specimens_id)>=1:
-            self.sampleplot.scatter(arange(len(specimens_id)),specimens_B ,marker='s',edgecolor='0.2', facecolor='b',s=40,lw=1)
+            self.sampleplot.scatter(arange(len(specimens_id)),specimens_B ,marker='s',edgecolor='0.2', facecolor='b',s=40*self.GUI_RESOLUTION,lw=1)
             self.sampleplot.axhline(y=mean(specimens_B)+std(specimens_B,ddof=1),color='0.2',ls="--",lw=0.75)
             self.sampleplot.axhline(y=mean(specimens_B)-std(specimens_B,ddof=1),color='0.2',ls="--",lw=0.75)
             self.sampleplot.axhline(y=mean(specimens_B),color='0.2',ls="-",lw=0.75,alpha=0.5)
             
             if self.s in specimens_id:
-                self.sampleplot.scatter([specimens_id.index(self.s)],[specimens_B[specimens_id.index(self.s)]] ,marker='s',edgecolor='0.2', facecolor='g',s=40,lw=1)
+                self.sampleplot.scatter([specimens_id.index(self.s)],[specimens_B[specimens_id.index(self.s)]] ,marker='s',edgecolor='0.2', facecolor='g',s=40*self.GUI_RESOLUTION,lw=1)
 
             self.sampleplot.set_xticks(arange(len(specimens_id)))
             self.sampleplot.set_xlim(-0.5,len(specimens_id)-0.5)
@@ -5170,9 +6388,9 @@ class Arai_GUI(wx.Frame):
       #------------------------------------------------
 
 
-      self.criteria_list=['specimen_int_n','specimen_int_ptrm_n','specimen_f','specimen_fvds','specimen_frac','specimen_gap_max','specimen_b_beta',
+      self.criteria_list=['specimen_int_n','specimen_int_ptrm_n','specimen_f','specimen_fvds','specimen_frac','specimen_gmax','specimen_b_beta',
                      'specimen_dang','specimen_drats','specimen_int_mad','specimen_md','specimen_g','specimen_q']
-      self.high_threshold_velue_list=['specimen_gap_max','specimen_b_beta','specimen_dang','specimen_drats','specimen_int_mad','specimen_md']
+      self.high_threshold_velue_list=['specimen_gmax','specimen_b_beta','specimen_dang','specimen_drats','specimen_int_mad','specimen_md']
       self.low_threshold_velue_list=['specimen_int_n','specimen_int_ptrm_n','specimen_f','specimen_fvds','specimen_frac','specimen_g','specimen_q']
 
       accept_new_parameters_null={}
@@ -5184,7 +6402,7 @@ class Arai_GUI(wx.Frame):
       accept_new_parameters_default['specimen_f']=0.
       accept_new_parameters_default['specimen_fvds']=0.
       accept_new_parameters_default['specimen_frac']=0.8
-      accept_new_parameters_default['specimen_gap_max']=0.6
+      accept_new_parameters_default['specimen_gmax']=0.6
       accept_new_parameters_default['specimen_b_beta']=0.1
       accept_new_parameters_default['specimen_dang']=100000
       accept_new_parameters_default['specimen_drats']=100000
@@ -5226,7 +6444,7 @@ class Arai_GUI(wx.Frame):
           accept_new_parameters_null[key]=accept_new_parameters_default[key]
       accept_new_parameters_null['sample_int_stdev_opt']=False
       accept_new_parameters_null['specimen_frac']=0
-      accept_new_parameters_null['specimen_gap_max']=1000
+      accept_new_parameters_null['specimen_gmax']=10000
       accept_new_parameters_null['specimen_b_beta']=10000
       accept_new_parameters_null['specimen_int_mad']=100000
       accept_new_parameters_null['specimen_scat']=False
@@ -5242,7 +6460,7 @@ class Arai_GUI(wx.Frame):
       #print accept_new_parameters_default
         
       # A list of all acceptance criteria used by program
-      accept_specimen_keys=['specimen_int_n','specimen_int_ptrm_n','specimen_f','specimen_fvds','specimen_frac','specimen_gap_max','specimen_b_beta','specimen_dang','specimen_drats','specimen_int_mad','specimen_md']
+      accept_specimen_keys=['specimen_int_n','specimen_int_ptrm_n','specimen_f','specimen_fvds','specimen_frac','specimen_gmax','specimen_b_beta','specimen_dang','specimen_drats','specimen_int_mad','specimen_md']
       accept_sample_keys=['sample_int_n','sample_int_sigma_uT','sample_int_sigma_perc','sample_int_interval_uT','sample_int_interval_perc']
       
       #self.accept_new_parameters_null=accept_new_parameters_null
@@ -5346,6 +6564,7 @@ class Arai_GUI(wx.Frame):
       for rec in meas_data:
           s=rec["er_specimen_name"]
           sample=rec["er_sample_name"]
+        
           if "magic_method_codes" not in rec.keys():
               rec["magic_method_codes"]=""
           #methods=rec["magic_method_codes"].split(":")
@@ -5388,20 +6607,6 @@ class Arai_GUI(wx.Frame):
                if meth in methods:skip=1
           if skip==0:
              tr = float(rec["treatment_temp"])            
-##             if "LT-NO" in methods: 
-##                 tr = float(rec["treatment_temp"])
-##             if "LT-AF-Z" in methods: 
-##                 af_flag=1
-##                 tr = float(rec["treatment_ac_field"])
-##                 if "T" not in units:units.append("T")
-##             if "LT-T-Z" in methods: 
-##                 therm_flag=1
-##                 tr = float(rec["treatment_temp"])
-                 #if "K" not in units:units.append("K")
-##             if "LT-M-Z" in methods: 
-##                 mw_flag=1
-##                 tr = float(rec["treatment_mw_power"])*float(rec["treatment_mw_time"])
-##                 if "J" not in units:units.append("J")
              if "LP-PI-TRM-IZ" in methods or "LP-PI-M-IZ" in methods:  # looking for in-field first thellier or microwave data - otherwise, just ignore this
                  ZI=0
              else:
@@ -5671,6 +6876,7 @@ class Arai_GUI(wx.Frame):
         Data[s]['pars']['lab_dc_field']=field
         Data[s]['pars']['er_specimen_name']=s
         Data[s]['pars']['er_sample_name']=Data_hierarchy['specimens'][s]
+
         Data[s]['lab_dc_field']=field
         Data[s]['er_specimen_name']=s   
         Data[s]['er_sample_name']=Data_hierarchy['specimens'][s]
@@ -5757,7 +6963,8 @@ class Arai_GUI(wx.Frame):
             steps_Arai.append('IZ')        
         x_Arai=array(x_Arai)
         y_Arai=array(y_Arai)
-        
+        #else:
+        #    Data[s]['pars']['magic_method_codes']=""
         Data[s]['x_Arai']=x_Arai
         Data[s]['y_Arai']=y_Arai
         Data[s]['t_Arai']=t_Arai
@@ -5805,12 +7012,12 @@ class Arai_GUI(wx.Frame):
         Data[s]['x_ptrm_check_starting_point']=array(x_ptrm_check_starting_point)
         Data[s]['y_ptrm_check_starting_point']=array(y_ptrm_check_starting_point)               
         Data[s]['ptrm_checks_starting_temperatures']=array(ptrm_checks_starting_temperatures)
-        if len(ptrm_checks_starting_temperatures) != len(ptrm_checks_temperatures):
-            print s
-            print Data[s]['ptrm_checks_temperatures']
-            print Data[s]['ptrm_checks_starting_temperatures']
-            print "help"
-            #exit()
+##        if len(ptrm_checks_starting_temperatures) != len(ptrm_checks_temperatures):
+##            print s
+##            print Data[s]['ptrm_checks_temperatures']
+##            print Data[s]['ptrm_checks_starting_temperatures']
+##            print "help"
+            
         #--------------------------------------------------------------
         # collect tail checks 
         #--------------------------------------------------------------
@@ -5945,6 +7152,64 @@ class Arai_GUI(wx.Frame):
         
         return(Data_info)
 
+    #--------------------------------------------------------------    
+    # Read previose interpretation from pmag_specimens.txt (if exist)
+    #--------------------------------------------------------------
+    
+    def get_previous_interpretation(self):
+        try:
+            self.GUI_log.write ("-I- Read pmag_specimens.txt for previouse interpretation")
+            prev_pmag_specimen=self.read_magic_file(self.WD+"/pmag_specimens.txt",1,'er_specimen_name')
+            #f
+            # first delete all previous interpretation
+            for sp in self.Data.keys():
+                del self.Data[sp]['pars']
+                self.Data[sp]['pars']={}
+                self.Data[sp]['pars']['lab_dc_field']=self.Data[sp]['lab_dc_field']
+                self.Data[sp]['pars']['er_specimen_name']=self.Data[sp]['er_specimen_name']   
+                self.Data[sp]['pars']['er_sample_name']=self.Data[sp]['er_sample_name']
+
+            self.Data_samples={}
+
+            for specimen in prev_pmag_specimen.keys():
+              tmin_kelvin=float(prev_pmag_specimen[specimen]['measurement_step_min'])
+              tmax_kelvin=float(prev_pmag_specimen[specimen]['measurement_step_max'])
+              if specimen not in self.redo_specimens.keys():
+                self.redo_specimens[specimen]={}
+              self.redo_specimens[specimen]['t_min']=float(tmin_kelvin)
+              self.redo_specimens[specimen]['t_max']=float(tmax_kelvin)
+              if specimen in self.Data.keys():
+                  if tmin_kelvin not in self.Data[specimen]['t_Arai'] or tmax_kelvin not in self.Data[specimen]['t_Arai'] :
+                      self.GUI_log.write ("-W- WARNING: cant fit temperature bounds in the redo file to the actual measurement. specimen %s\n"%specimen)
+                  else:
+                      try:
+                          self.Data[specimen]['pars']=self.get_PI_parameters(specimen,float(tmin_kelvin),float(tmax_kelvin))
+                          self.Data[specimen]['pars']['saved']=True
+                          # write intrepretation into sample data
+                          sample=self.Data_hierarchy['specimens'][specimen]
+                          if sample not in self.Data_samples.keys():
+                              self.Data_samples[sample]={}
+                          self.Data_samples[sample][specimen]=self.Data[specimen]['pars']['specimen_int_uT']
+                      except:
+                          self.GUI_log.write ("-E- ERROR. Cant calculate PI paremeters for specimen %s using redo file. Check!"%(specimen))
+              else:
+                  self.GUI_log.write ("-W- WARNING: Cant find specimen %s from redo file in measurement file!\n"%specimen)
+
+            try:
+                self.s
+            except:
+                self.s=self.specimens[0]
+                    
+            self.pars=self.Data[self.s]['pars']
+            self.clear_boxes()
+            self.draw_figure(self.s)
+            self.update_GUI_with_new_interpretation()
+        except:
+            return
+                    
+        
+
+
 #--------------------------------------------------------------    
 # Change Acceptance criteria dialog
 #--------------------------------------------------------------
@@ -5970,7 +7235,7 @@ class Criteria_Dialog(wx.Dialog):
 
         # Specimen criteria
 
-        window_list_specimens=['int_n','int_ptrm_n','frac','gap_max','f','fvds','b_beta','g','q','int_mad','dang','drats','md']
+        window_list_specimens=['int_n','int_ptrm_n','frac','gmax','f','fvds','b_beta','g','q','int_mad','dang','drats','md']
         for key in window_list_specimens:
             command="self.set_specimen_%s=wx.TextCtrl(pnl1,style=wx.TE_CENTER,size=(50,20))"%key
             exec command
@@ -5994,7 +7259,7 @@ class Criteria_Dialog(wx.Dialog):
             (self.set_specimen_int_ptrm_n),
             (self.set_specimen_frac),
             (self.set_specimen_scat),                        
-            (self.set_specimen_gap_max),
+            (self.set_specimen_gmax),
             (self.set_specimen_f),
             (self.set_specimen_fvds),
             (self.set_specimen_b_beta),
@@ -6129,7 +7394,7 @@ class Criteria_Dialog(wx.Dialog):
 
 
         # Intialize specimen values
-        self.high_threshold_velue_list=['specimen_gap_max','specimen_b_beta','specimen_dang','specimen_drats','specimen_int_mad','specimen_md']
+        self.high_threshold_velue_list=['specimen_gmax','specimen_b_beta','specimen_dang','specimen_drats','specimen_int_mad','specimen_md']
         self.low_threshold_velue_list=['specimen_int_n','specimen_int_ptrm_n','specimen_f','specimen_fvds','specimen_frac','specimen_g','specimen_q']
               
         for key in self.high_threshold_velue_list + self.low_threshold_velue_list:
@@ -6143,7 +7408,7 @@ class Criteria_Dialog(wx.Dialog):
                 Value="%.0f"%self.accept_new_parameters[key]
             elif key in ['specimen_dang','specimen_drats','specimen_int_mad','specimen_md','specimen_g','specimen_q']:
                 Value="%.1f"%self.accept_new_parameters[key]
-            elif key in ['specimen_f','specimen_fvds','specimen_frac','specimen_b_beta','specimen_gap_max']:
+            elif key in ['specimen_f','specimen_fvds','specimen_frac','specimen_b_beta','specimen_gmax']:
                 Value="%.2f"%self.accept_new_parameters[key]
 
             command="self.set_%s.SetValue(Value)"%key
@@ -6277,7 +7542,7 @@ class SaveMyPlot(wx.Frame):
     """"""
     def __init__(self,fig,pars,plot_type):
         """Constructor"""
-        wx.Frame.__init__(self, parent=None, title="Thellier Optimizer")
+        wx.Frame.__init__(self, parent=None, title="")
 
         file_choices="(*.pdf)|*.pdf|(*.svg)|*.svg| (*.png)|*.png"
         default_fig_name="%s_%s.pdf"%(pars['er_specimen_name'],plot_type)
@@ -6302,11 +7567,11 @@ class SaveMyPlot(wx.Frame):
 #----------------------------------------------------------------------
 
 #===========================================================
-# Optimizer
+# Consostency Test
 #===========================================================
     
 
-class Optimizer(wx.Frame):
+class Consistency_Test(wx.Frame):
     """"""
  
     #----------------------------------------------------------------------
@@ -6315,18 +7580,11 @@ class Optimizer(wx.Frame):
 
         """
         """
-        import thellier_optimizer_2d        
+        import  thellier_consistency_test        
         self.WD=WD
         self.Data=Data
         self.Data_hierarchy=Data_hierarchy
         self.fixed_criteria=criteria
-##        beta_start,beta_end,beta_step,=0.1,0.2,0.2
-##        frac_start,frac_end,frac_step=0.6,0.8,0.2
-##        beta_range=arange(beta_start,beta_step+beta_end,beta_step)
-##        frac_range=arange(frac_start,frac_step+frac_end,beta_step)
-##        Optimizer_group_file_path="/Users/ronshaar/geology/Projects/Thellier_GUI/Southern_Levant/Hecht_etal_2012/er_test_groups_hecht_2012.txt"
-##        optimizer_functions_path="/optimizer/optimizer_functions.txt"
-##        criteria_fixed_paremeters_file="/optimizer/pmag_fixed_criteria.txt"
 
         self.panel = wx.Panel(self)
         self.make_fixed_criteria()
@@ -6351,7 +7609,7 @@ class Optimizer(wx.Frame):
     def On_close_fixed_criteria_box(self,dia):
         
 
-        self.high_threshold_velue_list=['specimen_gap_max','specimen_b_beta','specimen_dang','specimen_drats','specimen_int_mad','specimen_md']
+        self.high_threshold_velue_list=['specimen_gmax','specimen_b_beta','specimen_dang','specimen_drats','specimen_int_mad','specimen_md']
         self.low_threshold_velue_list=['specimen_int_n','specimen_int_ptrm_n','specimen_f','specimen_fvds','specimen_frac','specimen_g','specimen_q']
 
         for key in self.high_threshold_velue_list + self.low_threshold_velue_list +['anisotropy_alt']:
@@ -6386,7 +7644,7 @@ class Optimizer(wx.Frame):
 
 
         #  message dialog
-        dlg1 = wx.MessageDialog(self,caption="Warning:", message="Canges are save to optimizer/pmag_fixed_criteria.txt" ,style=wx.OK|wx.CANCEL)
+        dlg1 = wx.MessageDialog(self,caption="Warning:", message="Canges are save to consistency_test/pmag_fixed_criteria.txt" ,style=wx.OK|wx.CANCEL)
         result = dlg1.ShowModal()
         if result == wx.ID_CANCEL:
 
@@ -6400,10 +7658,10 @@ class Optimizer(wx.Frame):
             try:
                 #Command_line="mkdir %s" %(self.WD+"/optimizer")
                 #os.system(Command_line)
-                os.mkdir(self.WD+"/optimizer")
+                os.mkdir(self.WD+"/consistency_test")
             except:
                 pass
-            fout=open(self.WD+"/optimizer/pmag_fixed_criteria.txt",'w')
+            fout=open(self.WD+"/consistency_test/pmag_fixed_criteria.txt",'w')
             String="tab\tpmag_criteria\n"
             fout.write(String)
             sample_criteria_list=[key for key in self.fixed_criteria.keys() if "sample" in key]
@@ -6445,7 +7703,7 @@ class Optimizer(wx.Frame):
         
     def init_optimizer_frame(self):
 
-        Text="Set optimizer function parameters"
+        Text="Set Consistency Test function parameters"
         dlg = wx.MessageDialog(self, Text, caption="Second step", style=wx.OK )
         dlg.ShowModal(); dlg.Destroy()
 
@@ -6537,7 +7795,7 @@ class Optimizer(wx.Frame):
 
         # put an example
         try:
-            function_in=open(self.WD+"/optimizer/optimizer_functions.txt",'rU')
+            function_in=open(self.WD+"/consistency_test/consistency_test_functions.txt",'rU')
             TEXT=""
             for line in function_in.readlines():
                 TEXT=TEXT+line
@@ -6644,49 +7902,6 @@ class Optimizer(wx.Frame):
     def on_change_function (self,event):
             self.check_status.SetValue("")
          
-##    def on_optimizer_make_groups_next_button (self,event):
-##        if self.check_status.GetValue()!= "PASS":
-##            dlg1 = wx.MessageDialog(self, caption="",message="You must check function syntax first",style=wx.OK)
-##            dlg1.ShowModal()            
-##            return
-##        dlg1 = wx.Dialog(self,title="Optimizer test group definition")
-##
-##
-##        # Opene existing group definition 
-##        open_existing_optimizer_group_file = wx.Button(dlg1,id=-1, label='Open existing group definition file')
-##        self.Bind(wx.EVT_BUTTON, self.on_open_existing_optimizer_group_file, open_existing_optimizer_group_file)
-##
-##        
-##        make_new_optimizer_group_file = wx.Button(dlg1,id=-1, label='make new group definition file')#,style=wx.BU_EXACTFIT)#, size=(175, 28))
-##        #self.Bind(wx.EVT_BUTTON, self.on_make_new_optimizer_group_file, self.make_new_optimizer_group_file)
-##
-##        Text="explenation"                    
-##        TEXT = wx.StaticText(dlg1, label=Text,style=wx.ALIGN_CENTRE)
-##
-##        
-##        box=wx.BoxSizer(wx.wx.VERTICAL)
-##        hbox1a = wx.BoxSizer(wx.HORIZONTAL)
-##        hbox1b = wx.BoxSizer(wx.HORIZONTAL)
-##        hbox1c = wx.BoxSizer(wx.HORIZONTAL)
-##
-##        hbox1a.Add(TEXT,flag=wx.ALIGN_CENTER_VERTICAL,border=2)        
-##        hbox1b.Add(open_existing_optimizer_group_file,flag=wx.ALIGN_CENTER_VERTICAL,border=2)        
-##        hbox1c.Add(make_new_optimizer_group_file,flag=wx.ALIGN_CENTER_VERTICAL,border=2)        
-##
-##        box.AddSpacer(30)
-##        box.Add(hbox1a, flag=wx.ALIGN_CENTER_HORIZONTAL)#, border=10)        
-##        box.AddSpacer(10)
-##        box.Add(hbox1b, flag=wx.ALIGN_CENTER_HORIZONTAL)#, border=10)        
-##        box.AddSpacer(10)
-##        box.Add(hbox1c, flag=wx.ALIGN_CENTER_HORIZONTAL)#, border=10)        
-##        box.AddSpacer(30)
-##
-##        
-##        dlg1.SetSizer(box)
-##        box.Fit(dlg1)
-##
-##        dlg1.Centre()
-##        dlg1.Show()
 
 
     #def on_make_new_optimizer_group_file(self,event):
@@ -6711,20 +7926,20 @@ class Optimizer(wx.Frame):
             frac_end=float(self.frac_end_window.GetValue())
             frac_step=float(self.frac_step_window.GetValue())
 
-            optimizer_function_file=open(self.WD+"/optimizer/optimizer_functions.txt",'w')
+            optimizer_function_file=open(self.WD+"/consistency_test/consistency_test_functions.txt",'w')
             TEXT=self.text_logger.GetValue()
             optimizer_function_file.write(TEXT)
             optimizer_function_file.close()
 
-            gframe=wx.BusyInfo("Running Thellier auto optimizer\n It may take a while ....", self)
+            gframe=wx.BusyInfo("Running Thellier Consistency Test\n It may take a while ....", self)
 
-            optimizer_functions_path="/optimizer/optimizer_functions.txt"
-            criteria_fixed_paremeters_file="/optimizer/pmag_fixed_criteria.txt"
+            optimizer_functions_path="/consistency_test/consistency_test_functions.txt"
+            criteria_fixed_paremeters_file="/consistency_test/pmag_fixed_criteria.txt"
             
             beta_range=arange(beta_start,beta_end,beta_step)
             frac_range=arange(frac_start,frac_end,beta_step)
             #try:
-            thellier_optimizer_2d.Thellier_optimizer(self.WD, self.Data,self.Data_hierarchy,criteria_fixed_paremeters_file,self.optimizer_group_file_path,optimizer_functions_path,beta_range,frac_range)
+            thellier_consistency_test.Thellier_consistency_test(self.WD, self.Data,self.Data_hierarchy,criteria_fixed_paremeters_file,self.optimizer_group_file_path,optimizer_functions_path,beta_range,frac_range)
             #except:
             #    dlg1 = wx.MessageDialog(self,caption="Error:", message="Optimizer finished with Errors" ,style=wx.OK)
                 
@@ -6743,7 +7958,7 @@ class Optimizer(wx.Frame):
 ##                dlg1 = wx.MessageDialog(self,caption="Error:", message="Optimizer finished with Errors" ,style=wx.OK)
             
 
-            dlg1 = wx.MessageDialog(self,caption="Message:", message="Optimizer finished sucsessfuly\nCheck folder optimizer in working directory" ,style=wx.OK|wx.ICON_INFORMATION)
+            dlg1 = wx.MessageDialog(self,caption="Message:", message="Consistency Test finished sucsessfuly\nCheck folder consistency_test in working directory" ,style=wx.OK|wx.ICON_INFORMATION)
             dlg1.ShowModal()
             dlg1.Destroy()
             gframe.Destroy()
@@ -6960,3 +8175,4 @@ if __name__ == '__main__':
     app.MainLoop()
 
     
+
