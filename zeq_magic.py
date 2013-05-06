@@ -48,7 +48,7 @@ def main():
     version_num=pmag.get_version()
     verbose=pmagplotlib.verbose
     beg_pca,end_pca,direction_type="","",'l'
-    calculation_type,inspec,fmt="","zeq_specimens.txt","svg"
+    calculation_type,fmt="","svg"
     user,spec_keys,locname="",[],''
     plot_file=""
     sfile=""
@@ -64,6 +64,7 @@ def main():
         dir_path=sys.argv[ind+1]
     else:
         dir_path='.'
+    inspec=dir_path+'/'+'zeq_specimens.txt'
     meas_file,geo,tilt,ask,samp_file=dir_path+'/magic_measurements.txt',0,0,0,dir_path+'/er_samples.txt'
     if '-f' in sys.argv:
         ind=sys.argv.index('-f')
@@ -121,6 +122,8 @@ def main():
         rec["magic_method_codes"]=methods[:-1]  # get rid of annoying spaces in Anthony's export files 
         if "magic_instrument_codes" not in rec.keys() :rec["magic_instrument_codes"]=""
     PriorSpecs=[]
+    print inspec
+    raw_input()
     PriorRecs,file_type=pmag.magic_read(inspec)
     if len(PriorRecs)==0: 
         if verbose:print "starting new file ",inspec
