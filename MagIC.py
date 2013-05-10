@@ -3015,7 +3015,7 @@ def core_depthplot():
     if PLT_list[5]==1:
         try:
             open(opath+"/pmag_specimens.txt",'r')
-            outstring=outstring + ' -fsp pmag_specimens.txt ' + syms['dsym']+ ' ' +syms['dsize'] 
+            outstring=outstring + ' -fsp pmag_specimens.txt ' + '"'+syms['dsym']+'"'+ ' ' +syms['dsize'] 
         except IOError:
             print 'cant plot  PCAs  - none found'
     if PLT_list[6]==1:outstring=outstring+' -fres pmag_results.txt ro 5 '
