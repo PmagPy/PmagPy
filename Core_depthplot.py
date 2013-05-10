@@ -381,7 +381,7 @@ def main():
             if len(Decs)==0 and pltL==1 and len(SDecs)>0:pylab.plot(SDecs,SDepths,'k')
             if len(SDecs)>0:pylab.plot(SDecs,SDepths,Ssym,markersize=Ssize) 
             if spc_file!="":pylab.plot(SpecDecs,SpecDepths,spc_sym,markersize=spc_size) 
-            if spc_file!="" and len(FDepths)>0:pylab.plot(FDecs,FDepths,'cd',markersize=spc_size) 
+            if spc_file!="" and len(FDepths)>0:pylab.scatter(FDecs,FDepths,marker=spc_sym[-1],edgecolor=spc_sym[0],facecolor='white',s=spc_size**2) 
             if res_file!="":pylab.plot(ResDecs,ResDepths,res_sym,markersize=res_size) 
             if sum_file!="":
                 for core in Cores:
@@ -404,7 +404,7 @@ def main():
             if len(Incs)==0 and pltL==1 and len(SIncs)>0:pylab.plot(SIncs,SDepths,'k')
             if len(SIncs)>0:pylab.plot(SIncs,SDepths,Ssym,markersize=Ssize) 
             if spc_file!="" and len(SpecDepths)>0:pylab.plot(SpecIncs,SpecDepths,spc_sym,markersize=spc_size) 
-            if spc_file!="" and len(FDepths)>0:pylab.plot(FIncs,FDepths,'cd',markersize=spc_size) 
+            if spc_file!="" and len(FDepths)>0:pylab.scatter(FIncs,FDepths,marker=spc_sym[-1],edgecolor=spc_sym[0],facecolor='white',s=spc_size**2)
             if res_file!="":pylab.plot(ResIncs,ResDepths,res_sym,markersize=res_size) 
             if sum_file!="":
                 for core in Cores:
