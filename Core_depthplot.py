@@ -21,7 +21,8 @@ def main():
         -fsa FILE: specify input er_samples format file from magic for depth
         -fa FILE: specify input er_ages format file from magic for age
               NB: must have either -fsa OR -fa (not both)
-        -fsp FILE sym size: specify input zeq_specimen format file from magic, sym and size 
+        -fsp FILE sym size: specify input zeq_specimen format file from magic, sym and size
+              NB: PCAs will have specified color, while fisher means will be white with specified color as the edgecolor
         -fres FILE specify input pmag_results file from magic, sym and size
         -LP [AF,T,ARM,IRM, X] step [in mT,C,mT,mT, mass/vol] to plot 
         -S do not plot blanket treatment data (if this is set, you don't need the -LP)
