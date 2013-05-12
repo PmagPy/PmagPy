@@ -2956,7 +2956,7 @@ def get_symbols():
     if SYM_rv==8: marker='h'
     if SYM_rv==9: marker='+'
     if SYM_rv==10: marker='x'
-    if SYM_rv==11: marker='D'
+    if SYM_rv==11: marker='d'
     if SYM_rv==12: marker='|'
     if SYM_rv==13: marker='_'
     SYM_col=['blue', 'green','red','cyan','magenta', 'yellow', 'black','white']
