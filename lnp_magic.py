@@ -37,7 +37,7 @@ def main():
     out_file=""
     fmt,plot='svg',1
     Crits=""
-    M,N=180.,1
+    M,N,acutoff,kcutoff=180.,1,180.,0.
     if '-h' in sys.argv:
         print main.__doc__
         sys.exit()
@@ -50,9 +50,10 @@ def main():
     if '-exc' in sys.argv:
         Crits,file_type=pmag.magic_read(dir_path+'/pmag_criteria.txt')
         for crit in Crits:
-            if crit['pmag_criteria_code']=='DE-SPEC':
-                M=float(crit['specimen_mad'])
-                N=float(crit['specimen_n'])
+            if 'specimen_mad' in crit:   M=float(crit['specimen_mad'])
+            if 'specimen_n' in crit:   N=float(crit['specimen_n'])
+            if 'site_alpha95' in crit: acutoff=float(crit['site_alpha95']
+            if 'site_k' in crit: kcutoff=float(crit['site_k']
     if '-F' in sys.argv:
         ind=sys.argv.index("-F")
         out_file=sys.argv[ind+1]
