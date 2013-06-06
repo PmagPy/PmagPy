@@ -252,6 +252,13 @@ def main():
     pmagplotlib.plot_init(PLT['Curie'],5,5)
     pmagplotlib.plotXY(PLT['Curie'],wn,curie,sym='.',xlab='Sliding Window Width (degrees)',ylab='Curie Temp',title='Curie Statistics')    
     pmagplotlib.drawFIGS(PLT)
-    raw_input()
+    ans=raw_input(" S[a]ve to save plot, [q]uit, Return to continue:  ")
+    if ans=="q": sys.exit()
+    if ans=="a":
+        files = {}
+        for key in PLT.keys():
+            files[key]=str(key) + ".svg"
+        pmagplotlib.saveP(PLT,files)
 
 main()
+
