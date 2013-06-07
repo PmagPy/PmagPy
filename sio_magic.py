@@ -30,6 +30,15 @@ def main():
             ANI: anisotropy experiment
             D: double AF demag
             G: triple AF demag (GRM protocol)
+            CR: cooling rate experiment.
+                The treatment coding of the measurement file should be: XXX.00,XXX.10, XXX.20 ...XX.70 etc. (XXX.00 is optional)
+                where XXX in the temperature and .10,.20... are running numbers of the cooling rates steps.
+                XXX.00 is optional zerofield baseline. XXX.70 is alteration check.
+                syntax in sio_magic is: -LP CR xxx,yyy,zzz,.....xx -A
+                where xx, yyy,zzz...xxx  are cooling time in [K/minutes], seperated by comma, ordered at the same order as XXX.10,XXX.20 ...XX.70
+                if you use a zerofield step then no need to specify the cooling rate for the zerofield
+                It is important to add to the command line the -A option so the measurements will not be evraged.
+                But users need to make sure that there are no duplicate meaurements in the file
         -V [1,2,3] units of IRM field in volts using ASC coil #1,2 or 3
         -spc NUM : specify number of characters to designate a  specimen, default = 0
         -loc LOCNAME : specify location/study name, must have either LOCNAME or SAMPFILE or be a synthetic
@@ -203,14 +212,14 @@ def main():
     if "-ncn" in args:
         ind=args.index("-ncn")
         samp_con=sys.argv[ind+1]
-        if "4" in samp_con:
+        if "4-" in samp_con:
             if "-" not in samp_con:
                 print "option [4] must be in form 4-Z where Z is an integer"
                 sys.exit()
             else:
                 Z=samp_con.split("-")[1]
                 samp_con="4"
-        if "7" in samp_con:
+        if "7-" in samp_con:
             if "-" not in samp_con:
                 print "option [7] must be in form 7-Z where Z is an integer"
                 sys.exit()
@@ -253,6 +262,13 @@ def main():
         if "TRM" in codes: 
             demag="T"
             trm=1
+        if "CR" in codes: 
+            demag="T"
+            cooling_rate_experiment=1
+            ind=args.index("CR")
+            coolling_times=args[ind+1]
+            coolling_times_list=coolling_times.split(',')
+            
     if "-V" in args:
         methcode="LP-IRM"
         ind=args.index("-V")
@@ -264,6 +280,8 @@ def main():
             sys.exit()
     if demag=="T" and "ANI" in codes:
         methcode="LP-AN-TRM"
+    if demag=="T" and "CR" in codes:
+        methcode="LP-CR-TRM"
     if demag=="AF" and "ANI" in codes:
         methcode="LP-AN-ARM"
         if labfield==0: labfield=50e-6
@@ -529,6 +547,35 @@ def main():
                             MagRec["treatment_ac_field"]='%8.3e' % ( float(treat[0])*1e-3) # AF field in tesla
                             MagRec["treatment_dc_field"]='0'
                             meas_type="LT-AF-Z"
+
+
+                # Cooling rate experient # added by rshaar
+                elif demag=="T" and methcode == "LP-CR-TRM":
+
+                    MagRec["treatment_temp"]='%8.3e' % (float(treat[0])+273.) # temp in kelvin
+                    if treat[1][0]=='0':
+                        meas_type="LT-T-Z:LP-CR-TRM"
+                        MagRec["treatment_dc_field"]='%8.3e'%(0)
+                        MagRec["treatment_dc_field_phi"]='0'
+                        MagRec["treatment_dc_field_theta"]='0'
+                    else:
+                        MagRec["treatment_dc_field"]='%8.3e'%(labfield)
+                        if treat[1][0]=='7': # alteration check as final measurement
+                                meas_type="LT-PTRM-I:LP-CR-TRM"
+                        else:
+                                meas_type="LT-T-I:LP-CR-TRM"
+                        MagRec["treatment_dc_field_phi"]='%7.1f' % (phi) # labfield phi
+                        MagRec["treatment_dc_field_theta"]='%7.1f' % (theta) # labfield theta
+                        
+                        indx=int(treat[1][0])-1
+                        # alteration check matjed as 0.7 in the measurement file
+                        if indx==6:
+                           cooling_time= coolling_times_list[-1]
+                        else:
+                            cooling_time=coolling_times_list[indx]
+                        MagRec["measurement_description"]="cooling_rate"+":"+cooling_time+":"+"K/min"
+
+
                 elif demag!='N':  
                   if len(treat)==1:treat.append('0')
                   MagRec["treatment_temp"]='%8.3e' % (float(treat[0])+273.) # temp in kelvin
@@ -552,6 +599,9 @@ def main():
                     MagRec["treatment_dc_field_phi"]='%7.1f' % (phi) # labfield phi
                     MagRec["treatment_dc_field_theta"]='%7.1f' % (theta) # labfield theta
                     meas_type="LT-T-I:LP-TRM" # trm acquisition experiment
+
+                            
+
                 MagRec["measurement_csd"]=rec[2]
                 MagRec["measurement_magn_moment"]='%10.3e'% (float(rec[3])*1e-3) # moment in Am^2 (from emu)
                 MagRec["measurement_dec"]=rec[4]

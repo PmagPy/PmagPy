@@ -2,44 +2,42 @@
 import string,sys,pmag
 def main():
     """
+
     NAME
-        sio_magic.py
+        HUJI_magic.py
  
     DESCRIPTION
-        converts SIO .mag format files to magic_measurements format files
+        converts HUJI format files to magic_measurements format files
 
     SYNTAX
-        sio_magic.py [command line options]
+        HUJI_magic.py [command line options]
 
     OPTIONS
         -h: prints the help message and quits.
         -usr USER:   identify user, default is ""
-        -f FILE: specify .mag format input file, required
-        -fsa SAMPFILE : specify er_samples.txt file relating samples, site and locations names,default is none
+        -f FILE: specify input file, required
         -F FILE: specify output file, default is magic_measurements.txt
-        -Fsy: specify er_synthetics file, default is er_sythetics.txt
-        -Fsa: specify output er_samples file, default is NONE (only for LDGO formatted files)
         -LP [colon delimited list of protocols, include all that apply]
             AF:  af demag
             T: thermal including thellier but not trm acquisition
-            S: Shaw method
-            I: IRM (acquisition)
-            I3d: 3D IRM experiment
             N: NRM only
             TRM: trm acquisition
             ANI: anisotropy experiment
-            D: double AF demag
-            G: triple AF demag (GRM protocol)
-        -V [1,2,3] units of IRM field in volts using ASC coil #1,2 or 3
+            CR: cooling rate experiment.
+                The treatment coding of the measurement file should be: XXX.00,XXX.10, XXX.20 ...XX.70 etc. (XXX.00 is optional)
+                where XXX in the temperature and .10,.20... are running numbers of the cooling rates steps.
+                XXX.00 is optional zerofield baseline. XXX.70 is alteration check.
+                syntax in sio_magic is: -LP CR xxx,yyy,zzz,.....xx
+                where xx, yyy,zzz...xxx  are cooling time in [K/minutes], seperated by comma, ordered at the same order as XXX.10,XXX.20 ...XX.70
+                if you use a zerofield step then no need to specify the cooling rate for the zerofield
+            
         -spc NUM : specify number of characters to designate a  specimen, default = 0
         -loc LOCNAME : specify location/study name, must have either LOCNAME or SAMPFILE or be a synthetic
-        -syn INST TYPE:  sets these specimens as synthetics created at institution INST and of type TYPE
-        -ins INST : specify which demag instrument was used (e.g, SIO-Suzy or SIO-Odette),default is ""
         -dc B PHI THETA: dc lab field (in micro tesla) and phi,theta, default is none
               NB: use PHI, THETA = -1 -1 to signal that it changes, i.e. in anisotropy experiment
-        -ac B : peak AF field (in mT) for ARM acquisition, default is none
-        -nfcn NCON:  specify naming convention: default is #1 below
-        -A: don't average replicate measurements
+        # to do! -ac B : peak AF field (in mT) for ARM acquisition, default is none
+        -ncn NCON:  specify naming convention: default is #1 below
+        
        Sample naming convention:
             [1] XXXXY: where XXXX is an arbitrary length site designation and Y
                 is the single character sample designation.  e.g., TG001a is the
@@ -56,13 +54,15 @@ def main():
             [8] synthetic - has no site name
             [9] ODP naming convention 
     INPUT
-        Best to put separate experiments (all AF, thermal, thellier, trm aquisition, Shaw, etc.) in 
-           seperate .mag files (eg. af.mag, thermal.mag, etc.)
+        separate experiments ( AF, thermal, thellier, trm aquisition) should be seperate  files
+        (eg. af.txt, thermal.txt, etc.)
 
-        Format of SIO .mag files:   
-        Spec Treat CSD Intensity Declination Inclination [optional metadata string]
-        
-        
+        HUJI masurement file format  (space delimited text):   
+        Spec lab-running-numbe-code  Date Hour Treatment-type(T/N/A) Treatment(XXX.XX) dec(geo) inc(geo) dec(tilt) inc(tilt)
+
+        ---------
+
+        conventions:
         Spec: specimen name
         Treat:  treatment step
             XXX T in Centigrade
@@ -72,28 +72,24 @@ def main():
                 XXX.0  first zero field step
                 XXX.1  first in field step [XXX.0 and XXX.1 can be done in any order]
                 XXX.2  second in-field step at lower temperature (pTRM check)
-                XXX.3  second zero-field step after infield (pTRM check step)
-                       XXX.3 MUST be done in this order [XXX.0, XXX.1 [optional XXX.2] XXX.3]
-              AARM:
-                X.00  baseline step (AF in zero bias field - high peak field)
-                X.1   ARM step (in field step)  where
-                   X is the step number in the 15 position scheme 
-                      (see Appendix to Lecture 13 - Lectures in Paleomagnetism, 2007)
+
+              ATRM:
+                X.00 optional baseline
+                X.1 ATRM step (+X)
+                X.2 ATRM step (+Y)
+                X.3 ATRM step (+Z)
+                X.4 ATRM step (-X)
+                X.5 ATRM step (-Y)
+                X.6 ATRM step (-Z)
+                X.7 optional alteration check (+X)
+
               TRM:
                 XXX.YYY  XXX is temperature step of total TRM
                          YYY is dc field in microtesla
-
-              Shaw:
-                XXX.YY   XXX is AF field
-                    YY=00 is AF of NRM
-                    YY=01 is AF of ARM1
-                    YY=02 is AF of TRM
-                    YY=03 is AF of ARM2
-                specify temperature and field of Total TRM step on command line
          
          Intensity assumed to be total moment in 10^3 Am^2 (emu)
          Declination:  Declination in specimen coordinate system
-         Inclination:  Declination in specimen coordinate system
+         Inclination:  Inclination in specimen coordinate system
 
          Optional metatdata string:  mm/dd/yy;hh:mm;[dC,mT];xx.xx;UNITS;USER;INST;NMEAS
              hh in 24 hours.  
@@ -103,37 +99,9 @@ def main():
              INST:  instrument code, number of axes, number of positions (e.g., G34 is 2G, three axes, 
                     measured in four positions)
              NMEAS: number of measurements in a single position (1,3,200...)
-       
-      Format of LDGO files:   
-        SPEC TREAT INST CSD Intensity CDECL CINCL [GDECL GINCL BDECL BINCL SUSC ]
      
     """
-# initialize some stuff
-    #infile_type="mag"
-    noave=0
-    methcode,inst="LP-NO",""
-    phi,theta,peakfield,labfield=0,0,0,0
-    pTRM,MD,samp_con,Z=0,0,'1',1
-    dec=[315,225,180,135,45,90,270,270,270,90,180,180,0,0,0]
-    inc=[0,0,0,0,0,-45,-45,0,45,45,45,-45,-90,-45,45]
-    tdec=[0,90,0,180,270,0,0,90,0]
-    tinc=[0,0,90,0,0,-90,0,0,90]
-    missing=1
-    demag="N"
-    er_location_name=""
-    citation='This study'
     args=sys.argv
-    fmt='old'
-    syn=0
-    synfile='er_synthetics.txt'
-    samp_file,ErSamps='',[]
-    trm=0
-    irm=0
-    specnum=0
-    coil=""
-#
-# get command line arguments
-#
     meas_file="magic_measurements.txt"
     user=""
     if "-h" in args:
@@ -142,21 +110,11 @@ def main():
     if "-usr" in args:
         ind=args.index("-usr")
         user=args[ind+1]
+    else:
+        user=""
     if '-F' in args:
         ind=args.index("-F")
         meas_file=args[ind+1]
-    if '-Fsy' in args:
-        ind=args.index("-Fsy")
-        synfile=args[ind+1]
-    if '-Fsa' in args:
-        ind=args.index("-Fsa")
-        samp_file=args[ind+1]
-        try:
-            open(samp_file,'rU')
-            ErSamps,file_type=pmag.magic_read(samp_file)
-            print 'sample information will be appended to new er_samples.txt file'
-        except:
-            print 'sample information will be stored in new er_samples.txt file'
     if '-f' in args:
         ind=args.index("-f")
         magfile=args[ind+1]
@@ -184,32 +142,18 @@ def main():
     if "-loc" in args:
         ind=args.index("-loc")
         er_location_name=args[ind+1]
-    if "-fsa" in args:
-        ind=args.index("-fsa")
-        Samps,file_type=pmag.magic_read(args[ind+1])
-    if '-syn' in args:
-        syn=1
-        ind=args.index("-syn")
-        institution=args[ind+1]
-        syntype=args[ind+2]
-        if '-fsy' in args:
-            ind=args.index("-fsy")
-            synfile=args[ind+1]
-    if "-ins" in args:
-        ind=args.index("-ins")
-        inst=args[ind+1]
-    if "-A" in args: noave=1
+        
     if "-ncn" in args:
         ind=args.index("-ncn")
         samp_con=sys.argv[ind+1]
-        if "4" in samp_con:
+        if "4-" in samp_con:
             if "-" not in samp_con:
                 print "option [4] must be in form 4-Z where Z is an integer"
                 sys.exit()
             else:
                 Z=int(samp_con.split("-")[1])
                 samp_con="4"
-        if "7" in samp_con:
+        if "7-" in samp_con:
             if "-" not in samp_con:
                 print "option [7] must be in form 7-Z where Z is an integer"
                 sys.exit()
@@ -224,22 +168,35 @@ def main():
         codes=codelist.split(':')
         if "AF" in codes:
             demag='AF' 
-            #if'-dc' not in args: methcode="LT-AF-Z" #not supported yet
-            #if'-dc' in args: methcode="LT-AF-I"  #not supported yet
+            LPcode="LP-DIR-AF"
         if "T" in codes:
             demag="T"
-            if '-dc' not in args: methcode="LT-T-Z"
-            if '-dc' in args: methcode="LT-T-I"
+            if '-dc' not in args: LPcode="LP-DIR-T"
+            if '-dc' in args: LPcode="LP-PI-TRM"
+            if "ANI" in codes:
+                if '-dc' not in args:
+                    print "missing option -dc exiting"
+                    exit()
+
+                LPcode="LP-AN-TRM"
+                
         if "TRM" in codes: 
             demag="T"
-            trm=1
-    if demag=="T" and "ANI" in codes:
-        methcode="LP-AN-TRM"
-        
-##    if demag=="AF" and "ANI" in codes:
-##        methcode="LP-AN-ARM"
-##        if labfield==0: labfield=50e-6
-##        if peakfield==0: peakfield=.180
+            LPcode="LP-TRM"
+            #trm=1
+            
+        if "CR" in codes:
+            demag="T"
+            # dc should be in the code
+            if '-dc' not in args:
+                print "missing option -dc exiting"
+                exit()
+            
+            LPcode="LP-TRM-CR" # TRM in different cooling rates
+            ind=args.index("-LP")
+            CR_cooling_times=args[ind+2].split(",")
+            
+            #print CR_cooling_time ,"CR_cooling_time"
 
     version_num=pmag.get_version()
 
@@ -247,187 +204,384 @@ def main():
     
     #--------------------------------------
     # Read the file
+    # Assumption:
+    # 1. different lab protocolsa are in different files
+    # 2. measurements are in the correct order
     #--------------------------------------
 
+    Data={}
+
+    line_no=0
+
     for line in input.readlines():
+        line_no+=1
+        this_line_data={}
+        line_no+=1
         instcode=""
-        if len(line)>2:
-            rec=line.split()
-            #print rec
+        if len(line)<2:
+            continue
+        if line[0]=="#": #HUJI way of marking bad data points
+            continue
+        
+        rec=line.strip('\n').split()
+        specimen=rec[0]
+        date=rec[2].split("/")
+        hour=rec[3].split(":")
+        treatment_type=rec[4]
+        treatment=rec[5].split(".")
+        dec=rec[6]
+        inc=rec[7]
+        dec_tilted=rec[8]
+        inc_tilted=rec[9]
+        moment_emu=float(rec[10])
 
-            if rec[0][0]=='#': # HUJI way of marking bad data points
-                continue
-            specimen=rec[0]
-            date=rec[2].split("/")
-            hour=rec[3].split(":")
-            treatment_type=rec[4]
-            treatment=rec[5].split(".")
-            dec=rec[6]
-            inc=rec[7]
-            dec_tilted=rec[8]
-            inc_tilted=rec[9]
-            moment_emu=float(rec[10])
+        if specimen not in Data.keys():
+            Data[specimen]=[]
+            
+        # check duplicate treatments:
+        # if yes, delete the first and use the second
 
+        if len(Data[specimen])>0:
+            if treatment==Data[specimen][-1]['treatment']:
+                del(Data[specimen][-1])
+                print "-W- Identical treatimens in file %s magfile line %i: specimen %s, treatment %s deleting the first. " %(magfile, line_no, specimen,".".join(treatment))
+
+        this_line_data={}
+        this_line_data['specimen']=specimen
+        this_line_data['date']=date
+        this_line_data['hour']=hour
+        this_line_data['treatment_type']=treatment_type
+        this_line_data['treatment']=treatment
+        this_line_data['dec']=dec
+        this_line_data['inc']=inc
+        this_line_data['dec_tilted']=dec_tilted
+        this_line_data['inc_tilted']=inc_tilted
+        this_line_data['moment_emu']=moment_emu                                     
+        Data[specimen].append(this_line_data)
+
+        
+    print "-I- done reading file %s"%magfile
+
+    #--------------------------------------
+    # Convert to MagIC
+    #--------------------------------------
+    
+    specimens_list=Data.keys()
+    specimens_list.sort()
+
+
+    MagRecs=[]
+    for specimen in  specimens_list:
+        for i in range(len(Data[specimen])):
+            #print LPcode
+            this_line_data=Data[specimen][i]
+            methcode=""
             MagRec={}
-            MagRec['er_location_name']=er_location_name
-            MagRec['magic_software_packages']=version_num
-            MagRec["treatment_temp"]='%8.3e' % (273) # room temp in kelvin
-            MagRec["measurement_temp"]='%8.3e' % (273) # room temp in kelvin
-            MagRec["treatment_ac_field"]='0'
-            MagRec["treatment_dc_field"]='0'
-            MagRec["treatment_dc_field_phi"]='0'
-            MagRec["treatment_dc_field_theta"]='0'
-            MagRec["er_specimen_name"]=specimen
-            MagRec["measurement_magn_moment"]='%10.3e'% (moment_emu*1e-3) # moment in Am^2 (from emu)
-            MagRec["measurement_dec"]=dec
-            MagRec["measurement_inc"]=inc
-
-            MagRec["measurement_csd"]=""
-            MagRec["measurement_positions"]=""
+            MagRec["er_specimen_name"]=this_line_data['specimen']
             if specnum!=0:
-                MagRec["er_sample_name"]=specimen[:specnum]
+                MagRec["er_sample_name"]=this_line_data['specimen'][:specnum]
             else:
-                MagRec["er_sample_name"]=rec[0]
+                MagRec["er_sample_name"]=this_line_data['specimen']
+
             if samp_con=="1":
                 MagRec["er_site_name"]=MagRec["er_sample_name"][:-1]
             elif samp_con=="2":
-                MagRec["er_site_name"]=MagRec["er_sample_name"].split("-")[0]
+                parts=MagRec["er_sample_name"].split('-')
+                MagRec["er_site_name"]= parts[0]
             elif samp_con=="3":
-                MagRec["er_site_name"]=MagRec["er_sample_name"].split(".")[0]
-            # samp_con 4 to be done !
-            elif samp_con=="4":
-                MagRec["er_site_name"]=MagRec["er_sample_name"][:Z]
-            elif samp_con=="5":
+                parts=MagRec["er_sample_name"].split('.')
+                MagRec["er_site_name"]= parts[0]
+            elif samp_con=='4':
+                MagRec["er_site_name"]=MagRec["er_sample_name"][0:-Z]
+            elif samp_con=='5':
                 MagRec["er_site_name"]=MagRec["er_sample_name"]
-            elif samp_con=="6":
-                MagRec["er_site_name"]=MagRec["er_sample_name"]              
-            else:    
-                MagRec["er_site_name"]=MagRec["er_sample_name"]  # site need to be done"
+            elif samp_con=='7':
+                MagRec["er_site_name"]=MagRec["er_sample_name"][0:Z]                
+            else:
+                MagRec["er_site_name"]=MagRec["er_sample_name"] # site=sample by default
+            
+            if "-loc" in args:
+                MagRec['er_location_name']=er_location_name
+            else:
+                MagRec['er_location_name']=MagRec["er_site_name"]
+                
+            MagRec["measurement_temp"]='%8.3e' % (273) # room temp in kelvin
+            MagRec["measurement_magn_moment"]='%10.3e'% (float(this_line_data['moment_emu'])*1e-3) # moment in Am^2 (from emu)
+            MagRec["measurement_dec"]=this_line_data['dec']
+            MagRec["measurement_inc"]=this_line_data['inc']
+
+            date=this_line_data['date']
+            hour=this_line_data['hour']    
 
             if float(date[2])>80:
                 yyyy="19"+date[2]
             else:
                 yyyy="20"+date[2]
+            if len (date[0])==1:
+                date[0]="0"+date[0]
+            if len (date[1])==1:
+                date[1]="0"+date[1]
             MagRec["measurement_date"]=":".join([yyyy,date[0],date[1],hour[0],hour[1],"00.00"])
+            #print MagRec["measurement_date"],"   Ron check please"
             MagRec["measurement_time_zone"]='JER'
-            if treatment_type =="N":
-                meas_type="LT-NO"
-            if treatment_type =="A":
-                demag="AF"
-                #meas_type="LT-AF-I"
-            if treatment_type =="T":
-                demag="T"
-                #meas_type="LT-T-I"
 
-
-            #---------------------------------------
-            # NRM
-            #----------------------------------------
-
-
-            #-LT-NO---------------------------------------
+            MagRec['er_analyst_mail_names'] =user         
+            MagRec["er_citation_names"]="This study"
+            MagRec["magic_instrument_codes"]="HUJI-2G"
+            MagRec["measurement_flag"]="g"
+            MagRec["measurement_positions"]="1"
+            MagRec["measurement_positions"]="1"
+            MagRec["measurement_standard"]="u"
+            MagRec["measurement_description"]=""
+            #----------------------------------------            
             # AF demag
-            # So far support only AF demag
-            # do not support AARM
+            # do not support AARM yet
             #----------------------------------------
+            
             if demag=="AF":
                 
                 # demag in zero field
-                if methcode != "LP-AN-ARM":                        
-                    MagRec["treatment_ac_field"]='%8.3e' %(float(treatment[0])*1e-3) # peak field in tesla
+                if LPcode != "LP-AN-ARM":
+                    MagRec["treatment_ac_field"]='%8.3e' %(float(this_line_data['treatment'][0])*1e-3) # peak field in tesla
                     MagRec["treatment_dc_field"]='0'
-                    
+                    MagRec["treatment_dc_field_phi"]='0'
+                    MagRec["treatment_dc_field_theta"]='0'
+                    if treatment_type=="N":
+                        methcode="LP-DIR-AF:LT-NO"
+                    elif treatment_type=="A":
+                        methcode="LP-DIR-AF:LT-AF-Z"
+                    else:
+                        print "ERROR in treatment field line %i... exiting until you fix the problem" %line_no
+                        exit()
+                                            
                 # AARM experiment    
                 else:
-                    print "Dont supprot AARM in HUJI format yet. sorry..."
+                    print "Dont supprot AARM in HUJI format yet. sorry... do be DONE"
+                MagRec["magic_method_codes"]=methcode
+                MagRec["magic_experiment_name"]=specimen+ ":" + LPcode
+                MagRec["measurement_number"]="%i"%i
+                MagRec["measurement_description"]=""
 
+                MagRecs.append(MagRec)
+                #continue
+                                
             #----------------------------------------
-            # Thermal demag and Thellier experiment
-            # So far support only: "IZ", "ZI", "IZZI", pTRM checks
-            # do not support AARM
-            #----------------------------------------
-
-            if demag=="T" in codes and "ANI" not in codes:
-                if treatment[1]=='0' or  treatment[1]=='00':
-                        #meas_type="LT-T-Z"
-                        MagRec["treatment_dc_field"]='%8.3e'%(0)
-                        MagRec["treatment_temp"]='%8.3e' % (float(treatment[0])+273.) # temp in kelvin
-                elif treatment[1]=='1' or  treatment[1]=='10':
-                        #meas_type="LT-T-I"
-                        MagRec["treatment_dc_field"]='%8.3e' % (labfield) # labfield in tesla (convert from microT)
-                        MagRec["treatment_dc_field_phi"]='%7.1f' % (phi) # labfield phi
-                        MagRec["treatment_dc_field_theta"]='%7.1f' % (theta) # labfield theta
-                        MagRec["treatment_temp"]='%8.3e' % (float(treatment[0])+273.) # temp in kelvin
-                        
-                elif treatment[1]=='2' or  treatment[1]=='20':
-                        #meas_type="LT-PTRM-I"
-                        MagRec["treatment_dc_field"]='%8.3e' % (labfield) # labfield in tesla (convert from microT)
-                        MagRec["treatment_dc_field_phi"]='%7.1f' % (phi) # labfield phi
-                        MagRec["treatment_dc_field_theta"]='%7.1f' % (theta) # labfield theta
-                        MagRec["treatment_temp"]='%8.3e' % (float(treatment[0])+273.) # temp in kelvin
-
-
-            #----------------------------------------
-            # ATRM measurements
-            # The direction of the magnetization is used to determine the
-            # direction of the field.
+            # Thermal:  
+            # Thellier experiment: "IZ", "ZI", "IZZI", pTRM checks
+            # Thermal demag
+            # Thermal cooling rate experiment
+            # Thermal NLT
             #----------------------------------------
 
 
-            if demag=="T" in codes and "ANI" in codes:
-                    methcode="LP-AN-TRM"
-                    if treatment[1]=='0' or treatment[1]=='00':
-                            #meas_type="LT-T-Z"
+            if demag=="T": 
+
+                treatment=this_line_data['treatment']
+                treatment_type=this_line_data['treatment_type']
+                
+                    
+                #----------------------------------------
+                # Thellier experimet
+                #----------------------------------------
+
+                if LPcode == "LP-PI-TRM"  : # Thelllier experiment
+
+                    
+
+                    MagRec["magic_experiment_name"]=specimen+ ":" + LPcode
+                    methcode=LPcode        
+                    
+                    if treatment_type=="N" or ( (treatment[1]=='0' or  treatment[1]=='00') and float(treatment[0])==0):
+                            LT_code="LT-NO"
+                            MagRec["treatment_dc_field_phi"]='0' 
+                            MagRec["treatment_dc_field_theta"]='0' 
+                            MagRec["treatment_dc_field"]='0'
+                            MagRec["treatment_temp"]='273.'
+                                                                  
+                    elif treatment[1]=='0' or  treatment[1]=='00':
+                            LT_code="LT-T-Z"
+                            MagRec["treatment_dc_field_phi"]='0' 
+                            MagRec["treatment_dc_field_theta"]='0' 
                             MagRec["treatment_dc_field"]='%8.3e'%(0)
                             MagRec["treatment_temp"]='%8.3e' % (float(treatment[0])+273.) # temp in kelvin
+
+                            # check if this is ZI or IZ:
+                            #  check if the same temperature already measured:
+                            methcode="LP-PI-TRM:LP-PI-TRM-ZI"
+                            for j in range (0,i):
+                                if Data[specimen][j]['treatment'][0] == treatment[0]:
+                                    if Data[specimen][j]['treatment'][1] == '1' or Data[specimen][j]['treatment'][1] == '10':
+                                        methcode="LP-PI-TRM:LP-PI-TRM-IZ"
+                                    else:
+                                        methcode="LP-PI-TRM:LP-PI-TRM-ZI"
+                                                                               
+                                    
+                    elif treatment[1]=='1' or  treatment[1]=='10':
+                            LT_code="LT-T-I"
+                            MagRec["treatment_dc_field"]='%8.3e' % (labfield) # labfield in tesla (convert from microT)
+                            MagRec["treatment_dc_field_phi"]='%7.1f' % (phi) # labfield phi
+                            MagRec["treatment_dc_field_theta"]='%7.1f' % (theta) # labfield theta
+                            MagRec["treatment_temp"]='%8.3e' % (float(treatment[0])+273.) # temp in kelvin
+
+                            # check if this is ZI or IZ:
+                            #  check if the same temperature already measured:
+                            methcode="LP-PI-TRM:LP-PI-TRM-IZ"
+                            for j in range (0,i):
+                                if Data[specimen][j]['treatment'][0] == treatment[0]:
+                                    if Data[specimen][j]['treatment'][1] == '0' or Data[specimen][j]['treatment'][1] == '00':
+                                        methcode="LP-PI-TRM:LP-PI-TRM-ZI"
+                                    else:
+                                        methcode="LP-PI-TRM:LP-PI-TRM-IZ"
+                            
+                    elif treatment[1]=='2' or  treatment[1]=='20':
+                            LT_code="LT-PTRM-I"
+                            MagRec["treatment_dc_field"]='%8.3e' % (labfield) # labfield in tesla (convert from microT)
+                            MagRec["treatment_dc_field_phi"]='%7.1f' % (phi) # labfield phi
+                            MagRec["treatment_dc_field_theta"]='%7.1f' % (theta) # labfield theta
+                            MagRec["treatment_temp"]='%8.3e' % (float(treatment[0])+273.) # temp in kelvin
+                            methcode="LP-PI-TRM:LP-PI-TRM-IZ"
+
                     else:
+                            print "ERROR in treatment field line %i... exiting until you fix the problem" %line_no
+                            exit()
+                    
+                    MagRec["magic_method_codes"]=LT_code+":"+methcode
+                    MagRec["measurement_number"]="%i"%i            
+                    MagRec["measurement_description"]=""
+                    MagRecs.append(MagRec)
+                    #continue
+                    
+                                            
+                #----------------------------------------
+                # demag experimet
+                #----------------------------------------
+
+
+                if LPcode == "LP-DIR-T"  :
+                    MagRec["magic_experiment_name"]=specimen+ ":" + LPcode
+                    methcode=LPcode        
+                    
+                    if treatment_type=="N":
+                        LT_code="LT-NO"
+                    else:
+                        LT_code="LT-T-Z"
+                                            
+                        methcode=LPcode+":"+"LT-T-Z"
+                    MagRec["treatment_dc_field_phi"]='0' 
+                    MagRec["treatment_dc_field_theta"]='0' 
+                    MagRec["treatment_dc_field"]='%8.3e'%(0)
+                    MagRec["treatment_temp"]='%8.3e' % (float(treatment[0])+273.) # temp in kelvin
+                    MagRec["magic_method_codes"]=LT_code+":"+methcode
+                    MagRec["measurement_number"]="%i"%i            
+                    MagRec["measurement_description"]=""
+                    MagRecs.append(MagRec)
+                    #continue
+                        
+
+                #----------------------------------------
+                # ATRM measurements
+                # The direction of the magnetization is used to determine the
+                # direction of the lab field.
+                #----------------------------------------
+                
+
+                if LPcode =="LP-AN-TRM" :
+                    
+                    MagRec["magic_experiment_name"]=specimen+ ":" + LPcode
+                    methcode=LPcode        
+
+                    if float(treatment[1])==0:
+                        MagRec["magic_method_codes"]="LP-AN-TRM:LT-T-Z"
+                        MagRec["treatment_dc_field_phi"]='0'
+                        MagRec["treatment_dc_field_theta"]='0'
+                        MagRec["treatment_temp"]='%8.3e' % (float(treatment[0])+273.) # temp in kelvin
+                        MagRec["treatment_dc_field"]='0'
+                    else:
+                        if float(treatment[1])==7:
+                            # alteration check
+                            methcode="LP-AN-TRM:LT-PTRM-I"
+                            MagRec["measurement_number"]='7'# -z
+                        else:    
+                            MagRec["magic_method_codes"]="LP-AN-TRM:LT-T-I"
                             inc=float(inc);dec=float(dec)
-                            if abs(inc)<45 and (dec<45 or dec>315):
+                            if abs(inc)<45 and (dec<45 or dec>315): # +x
                                 tdec,tinc=0,0
+                                MagRec["measurement_number"]='1'
                             if abs(inc)<45 and (dec<135 and dec>45):
                                 tdec,tinc=90,0
+                                MagRec["measurement_number"]='2' # +y
                             if inc>45 :
                                 tdec,tinc=0,90
+                                MagRec["measurement_number"]='3' # +z
                             if abs(inc)<45 and (dec<225 and dec>135):
                                 tdec,tinc=180,0
+                                MagRec["measurement_number"]='4' # -x
                             if abs(inc)<45 and (dec<315 and dec>225):
                                 tdec,tinc=270,0
+                                MagRec["measurement_number"]='5'# -y
                             if inc<-45 :
                                 tdec,tinc=0,-90
-                            
-                            MagRec["treatment_dc_field_phi"]='%7.1f' %(tdec)
-                            MagRec["treatment_dc_field_theta"]='%7.1f'% (tinc)
-                            MagRec["treatment_temp"]='%8.3e' % (float(treatment[0])+273.) # temp in kelvin
-                            MagRec["treatment_dc_field"]='%8.3e'%(labfield)
-
-            #----------------------------------------
-            # ATRM measurements
-            # The direction of the magnetization is used to determine the
-            # direction of the field.
-            #----------------------------------------
-
-
-            if "TRM" in codes:
+                                MagRec["measurement_number"]='6'# -z
                         
-                labfield=float(treatment[1])*1e-6
-                MagRec["treatment_temp"]='%8.3e' % (float(treatment[0])+273.) # temp in kelvin                
-                MagRec["treatment_dc_field"]='%8.3e' % (labfield) # labfield in tesla (convert from microT)
-                MagRec["treatment_dc_field_phi"]='%7.1f' % (phi) # labfield phi
-                MagRec["treatment_dc_field_theta"]='%7.1f' % (theta) # labfield theta
-                meas_type="LT-T-I:LP-TRM" # trm acquisition experiment
+                        MagRec["treatment_dc_field_phi"]='%7.1f' %(tdec)
+                        MagRec["treatment_dc_field_theta"]='%7.1f'% (tinc)
+                        MagRec["treatment_temp"]='%8.3e' % (float(treatment[0])+273.) # temp in kelvin
+                        MagRec["treatment_dc_field"]='%8.3e'%(labfield)
+                    MagRec["measurement_description"]=""
+                    MagRecs.append(MagRec)
+                    #continue
 
+                #----------------------------------------
+                # NLT measurements
+                # or TRM acquisistion experiment
+                #----------------------------------------
 
-            MagRec["measurement_number"]='1'            
-            MagRec["magic_method_codes"]=methcode.strip(':')
-            MagRecs.append(MagRec)
-    #print MagRecs
-    #print len(MagRecs)
-    MagOuts=pmag.measurements_methods(MagRecs,noave)
-    pmag.magic_write(meas_file,MagOuts,'magic_measurements')
-    print "results put in ",meas_file
-    if samp_file!="":
-        pmag.magic_write(samp_file,ErSamps,'er_samples')
-        print "sample orientations put in ",samp_file
+                
+                if LPcode == "LP-TRM"  :
+                    MagRec["magic_experiment_name"]=specimen+ ":" + LPcode
+                    MagRec["magic_method_codes"]="LP-TRM:LT-T-I"
+                    if float(treatment[1])==0:
+                        labfield=0
+                    else:
+                        labfield=float(float(treatment[1]))*1e-6
+                    MagRec["treatment_temp"]='%8.3e' % (float(treatment[0])+273.) # temp in kelvin                
+                    MagRec["treatment_dc_field"]='%8.3e' % (labfield) # labfield in tesla (convert from microT)
+                    MagRec["treatment_dc_field_phi"]='%7.1f' % (phi) # labfield phi
+                    MagRec["treatment_dc_field_theta"]='%7.1f' % (theta) # labfield theta
+                    MagRec["measurement_number"]="%i"%i            
+                    MagRec["measurement_description"]=""
+                    MagRecs.append(MagRec)
+                    #continue
+    
+
+                #----------------------------------------
+                # Cooling rate experiments
+                #----------------------------------------
+                
+                if  LPcode =="LP-TRM-CR":
+                    index=int(treatment[1][0])
+                    #print index,"index"
+                    #print CR_cooling_times,"CR_cooling_times"
+                    #print CR_cooling_times[index-1]
+                    #print CR_cooling_times[0:index-1]
+                    CR_cooling_time=CR_cooling_times[index-1]
+                    if CR_cooling_time in CR_cooling_times[0:index-1]:
+                        MagRec["magic_method_codes"]="LP-TRM-CR"+":" +"LT-PTRM-I"
+                    else:    
+                        MagRec["magic_method_codes"]="LP-TRM-CR"
+                    MagRec["magic_experiment_name"]=specimen+ ":" + LPcode
+                    MagRec["treatment_temp"]='%8.3e' % (float(treatment[0])+273.) # temp in kelvin                
+                    MagRec["treatment_dc_field"]='%8.3e' % (labfield) # labfield in tesla (convert from microT)
+                    MagRec["treatment_dc_field_phi"]='%7.1f' % (phi) # labfield phi
+                    MagRec["treatment_dc_field_theta"]='%7.1f' % (theta) # labfield theta
+                    MagRec["measurement_number"]="%i"%index
+                    MagRec["measurement_description"]="%i minutes cooling time"%int(CR_cooling_time)
+                    MagRecs.append(MagRec)
+                    #continue
+
+    
+    pmag.magic_write(meas_file,MagRecs,'magic_measurements')
+    print "-I- results put in ",meas_file
                 
                     
 
