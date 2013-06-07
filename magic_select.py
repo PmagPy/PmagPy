@@ -31,6 +31,9 @@ def main():
     """
     dir_path="."
     flag=''
+    if '-WD' in sys.argv:
+        ind=sys.argv.index('-WD')
+        dir_path=sys.argv[ind+1]
     if '-h' in sys.argv:
         print main.__doc__
         sys.exit()

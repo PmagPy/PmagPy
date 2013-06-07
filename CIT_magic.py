@@ -19,6 +19,7 @@ def main():
         -F FILE: specify output  measurements file, default is magic_measurements.txt
         -Fsp FILE: specify output er_specimens.txt file, default is er_specimens.txt
         -Fsi FILE: specify output er_sites.txt file, default is er_sites.txt
+        -Fsa FILE: specify output er_samples.txt file, default is er_samples.txt  # LORI
         -n [gm,kg,cc,m3]: specify normalization
         -spc NUM : specify number of characters to designate a  specimen, default = 0
         -ncn NCON: specify naming convention
@@ -75,6 +76,9 @@ def main():
     if '-Fsa' in args:
         ind=args.index("-Fsa")
         samp_file=args[ind+1]
+    if 'Fsi' in args:   # LORI addition
+        ind=args.index("-Fsi")
+        site_file=args[ind+1]
     if '-loc' in args:
         ind=args.index("-loc")
         locname=args[ind+1]

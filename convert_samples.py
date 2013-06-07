@@ -29,6 +29,7 @@ def main():
     orient_file,samp_file = "orient","er_samples.txt"
     args=sys.argv
     dir_path,out_path='.','.'
+    default_outfile = True
     #
     #
     if '-WD' in args:
@@ -43,6 +44,7 @@ def main():
     if "-F" in args:
         ind=args.index("-F")
         orient_file=sys.argv[ind+1]
+        default_outfile = False
     if "-f" in args:
         ind=args.index("-f")
         samp_file=sys.argv[ind+1]
@@ -56,6 +58,7 @@ def main():
     Samps,file_type=pmag.magic_read(samp_file)
     Locs=[]
     OrKeys=['sample_name','site_name','mag_azimuth','field_dip','sample_class','sample_type','sample_lithology','lat','long','stratigraphic_height','method_codes','site_description']
+    print "file_type", file_type # LJ
     if file_type.lower()=='er_samples':
         SampKeys=['er_sample_name','er_site_name','sample_azimuth','sample_dip','sample_class','sample_type','sample_lithology','sample_lat','sample_lon','sample_height','magic_method_codes','er_sample_description']
     elif file_type.lower()=='magic_measurements':
@@ -80,7 +83,10 @@ def main():
                     if key not in OrRec.keys():OrRec[key]="" # fill in blank required keys 
                 OrOut.append(OrRec)
         loc=location_name.replace(" ","_") 
-        outfile=orient_file+'_'+loc+'.txt'
+        if default_outfile:
+            outfile=orient_file+'_'+loc+'.txt'
+        else:
+            outfile=orient_file
         pmag.magic_write(outfile,OrOut,location_name)
         print "Data saved in: ", outfile
 main()

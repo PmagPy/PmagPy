@@ -40,13 +40,15 @@ def main():
     if '-WD' in args:
         ind=args.index("-WD")
         dir_path=args[ind+1]
+        print "dir_path", dir_path
     if "-h" in args:
         print main.__doc__
         sys.exit()
     if "-A" in args: noave=1
     if '-f' in args:
         ind=args.index("-f")
-        csv_file=args[ind+1]
+#        csv_file=args[ind+1] # original
+        csv_file=dir_path + '/' + args[ind+1] # LJ
     if '-F' in args:
         ind=args.index("-F")
         meas_file=args[ind+1]
@@ -77,6 +79,7 @@ def main():
         if samp['er_sample_name'] not in samples:
             samples.append(samp['er_sample_name'])
             SampRecs.append(samp)
+    print "filelist", filelist # LJ
     for file in filelist: # parse each file
         if file[-3:].lower()=='csv':
             print 'processing: ',file
