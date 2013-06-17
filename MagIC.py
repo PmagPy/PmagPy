@@ -2061,6 +2061,30 @@ def add_srm_csv():
     fpath=tkFileDialog.askopenfilename(title="Set WebTabular SRM .csv file:")
     AVE_types=["Average replicate measurements","Do not average replicate measurements"]
     ave_rv=ask_radio(root,AVE_types,'choose desired averaging option:') #
+    Depth_types=["CSF-A","CSF-B"]
+    d_rv=ask_radio(root,Depth_types,'choose desired depth scale (must be in file!):') #
+    file=fpath.split('/')[-1] 
+    basename=file
+    ofile=opath+"/"+file
+    infile=open(fpath,'rU').readlines()
+    out=open(ofile,'w') # copy file to MagIC project directory
+    for line in infile:
+        out.write(line)
+    out.close()
+    outstring='IODP_csv_magic.py  -WD '+'"'+opath+'"'+ ' -F '+file+'.magic -f '+file
+    if ave_rv==1:outstring=outstring+ ' -A'
+    if d_rv==1:outstring=outstring+ ' -d b'
+    try:
+        sampfile=open(opath+"/er_samples.txt",'r') # append to existing er_samples file
+        outstring=outstring + ' -Fsa er_samples.txt'
+    except IOError:
+        pass
+    print outstring
+    os.system(outstring)
+    try:
+        logfile=open(opath+"/measurements.log",'a')
+    except IOError:
+        pass
     file=fpath.split('/')[-1] 
     basename=file
     ofile=opath+"/"+file
