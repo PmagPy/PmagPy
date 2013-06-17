@@ -20,7 +20,6 @@ def main():
         -Fsa FILE: specify output er_samples.txt file, default is er_samples.txt
         -Fsi FILE: specify output er_sites.txt file, default is er_sites.txt
         -A : don't average replicate measurements
-        -d [a,b] specify depth scale (csf-a or csf-b); default is CSF-A
     INPUTS
  	 IODP .csv file format exported from LIMS database
     """
@@ -69,9 +68,6 @@ def main():
         ErSamps,file_type=pmag.magic_read(samp_file)
     else:
         samp_file=dir_path+'/'+samp_file
-    if '-d' in args:
-        ind=args.index("-d")
-        depth_method=args[ind+1]
     site_file=dir_path+'/'+site_file
     meas_file=dir_path+'/'+meas_file
     if csv_file=="":
@@ -94,11 +90,10 @@ def main():
             if " Interval Bot (cm) on SECT" in keys:interval_key=" Interval Bot (cm) on SECT"
             if "Top Depth (m)" in keys:depth_key="Top Depth (m)"
             if "CSF-A Top (m)" in keys:depth_key="CSF-A Top (m)" 
-            if "CSF-B Top (m)" in keys:
-                if depth_method=='b':
-                    depth_key="CSF-B Top (m)" # use this model if available 
-                else:
-                    print 'WARNING: NO CSF-B depth scale available!!!!, using CSF-A'
+            if "CSF-B Top (m)" in keys: 
+                comp_depth_key="CSF-B Top (m)" # use this model if available 
+            else:
+                comp_depth_key=""
             if "Demag level (mT)" in keys:demag_key="Demag level (mT)"
             if "Demag Level (mT)" in keys: demag_key="Demag Level (mT)"
             if "Inclination (Tray- and Bkgrd-Corrected) (deg)" in keys:inc_key="Inclination (Tray- and Bkgrd-Corrected) (deg)"
@@ -138,7 +133,8 @@ def main():
                 SampRec['sample_azimuth']='0'
                 SampRec['sample_dip']='0'
                 SampRec['sample_core_depth']=InRec[depth_key]
-                SampRec['sample_description']='Core depth is in '+depth_key
+                if comp_depth_key!='':
+                    SampRec['sample_composite_depth']=InRec[comp_depth_key]
                 if "Discrete" in InRec['Last Tray Measurement']: 
                     SampRec['magic_method_codes']='FS-C-DRILL-IODP:SP-SS-C:SO-V'
                 else:

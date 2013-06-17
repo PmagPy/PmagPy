@@ -5,9 +5,10 @@ def main():
     ODP_samples_magic.py
     OPTIONS:
         -f FILE, input csv file
-        -Fsa FILE, output er_samples.txt file for updating, default is to overwrite er_samples.txt`
+        -Fsa FILE, output er_samples.txt file for updating, default is to overwrite er_samples.txt
     """
     dir_path='.'
+    comp_depth_key=""
     if "-WD" in sys.argv:
         ind=sys.argv.index("-WD")
         dir_path=sys.argv[ind+1]
@@ -31,9 +32,7 @@ def main():
         samp_out=dir_path+'/er_samples.txt'
     input=open(samp_file,"rU").readlines()
     keys=input[0].replace('\n','').split(',')
-    if "CSF-B Top (m)" in keys:
-        comp_depth_key="CSF-B Top (m)"
-    else: comp_depth_key=""
+    if "CSF-B Top (m)" in keys: comp_depth_key="CSF-B Top (m)"
     if "Top Depth (m)" in keys:  # incorporate changes to LIMS data model, while maintaining backward compatibility
         depth_key="Top Depth (m)"
     elif "CSF-A Top (m)" in keys:
@@ -81,7 +80,8 @@ def main():
             SampRec['sample_dip']="0"
             SampRec['sample_azimuth']="0"
             SampRec['sample_core_depth']=ODPRec[depth_key]
-            if comp_depth_key!="":SampRec['sample_composite_depth']=ODPRec[comp_depth_key]
+            if comp_depth_key!="":
+                SampRec['sample_composite_depth']=ODPRec[comp_depth_key]
             dates=ODPRec[date_key].split()
             if '/' in dates[0]: # have a date
                 mmddyy=dates[0].split('/')
