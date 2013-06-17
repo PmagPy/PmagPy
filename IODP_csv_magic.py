@@ -38,6 +38,7 @@ def main():
     dir_path,demag='.','NRM'
     args=sys.argv
     noave=0
+    depth_method='a'
     if '-WD' in args:
         ind=args.index("-WD")
         dir_path=args[ind+1]
