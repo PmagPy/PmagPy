@@ -66,11 +66,11 @@ def main():
         ind=args.index("-Fsa")
         samp_file=dir_path+'/'+args[ind+1]
         ErSamps,file_type=pmag.magic_read(samp_file)
+    else:
+        samp_file=dir_path+'/'+samp_file
     if '-d' in args:
         ind=args.index("-d")
         depth_method=args[ind+1]
-    else:
-        samp_file=dir_path+'/'+samp_file
     site_file=dir_path+'/'+site_file
     meas_file=dir_path+'/'+meas_file
     if csv_file=="":
