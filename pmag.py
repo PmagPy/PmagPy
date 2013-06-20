@@ -4893,7 +4893,7 @@ def doigrf(long,lat,alt,date):
     if date<-10000:
         print 'too old'
         sys.exit()
-    if date<-2000:
+    if date<-1000:
         import cals10k # goes back to 8000 BC now
         date0=date-date%10
         field1=numpy.array(cals10k.coeffs(date0))
