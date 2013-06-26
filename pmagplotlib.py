@@ -2373,8 +2373,11 @@ def plotMAP(fignum,lats,lons,Opts):
             circles=numpy.arange(-90,180.+Opts['gridspace'],Opts['gridspace'])
             meridians=numpy.arange(0,360.,Opts['gridspace'])
         else:
-            circles=numpy.arange(int(Opts['latmin']-2.*Opts['padlat']),(Opts['latmax']+2.*Opts['padlat']),Opts['gridspace'])
-            meridians=numpy.arange(int(Opts['lonmin']-2.*Opts['padlon']),(Opts['lonmax']+2.*Opts['padlon']),Opts['gridspace'])
+            g=Opts['gridspace']
+            latmin,lonmin=g*int(Opts['latmin']/g), g*int(Opts['lonmin']/g)
+            latmax,lonmax=g*int(Opts['latmax']/g), g*int(Opts['lonmax']/g)
+            circles=numpy.arange(latmin-2.*Opts['padlat'],latmax+2.*Opts['padlat'],Opts['gridspace'])
+            meridians=numpy.arange(lonmin-2.*Opts['padlon'],lonmax+2.*Opts['padlon'],Opts['gridspace'])
     if Opts['pltgrid']>=0:
         m.drawparallels(circles,color='black',labels=plabels)
         m.drawmeridians(meridians,color='black',labels=mlabels)

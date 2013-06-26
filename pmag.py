@@ -3217,26 +3217,20 @@ def fshdev(k):
     dec=2*numpy.pi*R2*180./numpy.pi
     return dec,inc
 
-def lowes(infile,outfile):
+def lowes(data):
     """
     gets Lowe's power spectrum from infile - writes to ofile
     """  
-    ll=1
-    pow=0
-    f=open(infile,'rU')
-    o=open(outfile,'w')
-    out=''
-    for line in f.xreadlines():
-     data=line.split()
-     l,m,s=int(data[0]),int(data[1]),1e-3*float(data[2])
-     if l == ll:
-      pow=pow+s**2
-     if l != ll:
-      out=out+str(ll)+' '+str((ll+1)*pow) +'\n'
-      pow=s**2
-      ll=l
-    out=out+str(l)+' '+str((l+1)*pow) +'\n'
-    o.write(out)
+    Ls=range(1,9)
+    Rs=[]
+    recno=0
+    for l in Ls:
+        pow=0
+        for m in range(0,l+1):
+            pow+=(l+1)*((1e-3*data[recno][2])**2+(1e-3*data[recno][3])**2)
+            recno+=1
+        Rs.append(pow)
+    return Ls,Rs
 
 def magnetic_lat(inc):
     """
@@ -4832,7 +4826,7 @@ def sortmwarai(datablock,exp_type):
     return araiblock,field
     
     #
-def doigrf(long,lat,alt,date):
+def doigrf(long,lat,alt,date,**kwargs):
     """
 #       calculates the interpolated (<2010) or extrapolated (>2010) main field and
 #       secular variation coefficients and passes these to the Malin and Barraclough
@@ -5033,8 +5027,28 @@ def doigrf(long,lat,alt,date):
             gh.append(igrf2010[i])
             sv.append(sv2010_15[i])
         x,y,z,f=magsyn(gh,sv,2010.,date,itype,alt,colat,long)
-    return x,y,z,f
+    if 'coeffs' in kwargs.keys():
+        return gh
+    else:
+        return x,y,z,f
 #
+def unpack(gh):
+    """ 
+    unpacks gh list into l m g h type list
+    """
+    data=[]
+    k,l=0,1
+    while k+1<len(gh):
+        for m in range(l+1):
+            if m==0:
+                data.append([l,m,gh[k],0])
+                k+=1
+            else:
+                data.append([l,m,gh[k],gh[k+1]])
+                k+=2
+    return data
+
+
 def magsyn(gh,sv,b,date,itype,alt,colat,elong):
     """
 # Computes x, y, z, and f for a given date and position, from the

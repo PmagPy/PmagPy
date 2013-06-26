@@ -18,7 +18,7 @@ def main():
 
     OPTIONS
         -h prints help message and quits
-        -f SFILE, specify er_sites.txt format file
+        -f SFILE, specify er_sites.txt or pmag_results.txt format file
         -res [c,l,i,h] specify resolution (crude,low,intermediate,high)
         -etp plot the etopo20 topographic mesh
         -pad [LAT LON]  pad bounding box by LAT/LON  (default is [.5 .5] degrees)
@@ -27,7 +27,8 @@ def main():
         -n print site names (default is not)
         -l print location names (default is not)
         -o color ocean blue/land green (default is not)
-        -D don't plot details of rivers, boundaries, etc.
+        -R don't plot details of rivers
+        -B don't plot national/state  boundaries, etc.
         -sav save plot and quit quietly
         -fmt [png,svg,eps,jpg,pdf] specify format for output, default is pdf     
     DEFAULTS
@@ -58,7 +59,8 @@ def main():
     if '-n' in sys.argv:prn_name=1
     if '-l' in sys.argv:prn_loc=1
     if '-o' in sys.argv:ocean=1
-    if '-D' in sys.argv:details=0
+    if '-R' in sys.argv:rivers=0
+    if '-B' in sys.argv:boundaries=0
     if '-prj' in sys.argv:
         ind = sys.argv.index('-prj')
         proj=sys.argv[ind+1]
@@ -84,16 +86,24 @@ def main():
     pmagplotlib.plot_init(FIG['map'],6,6)
     # read in er_sites file
     Sites,file_type=pmag.magic_read(sites_file)
+    if 'results' in file_type:
+        latkey='average_lat'
+        lonkey='average_lon'
+        namekey='pmag_result_name'
+    else:
+        latkey='site_lat'
+        lonkey='site_lon'
+        namekey='er_site_name'
     lats,lons=[],[]
     slats,slons=[],[]
     names,locs=[],[]
     for site in Sites:
         if prn_loc==1 and location=="":location=site['er_location_name']
-        lats.append(float(site['site_lat']))
-        l=float(site['site_lon'])
+        lats.append(float(site[latkey]))
+        l=float(site[lonkey])
         if l<0:l=l+360. # make positive
         lons.append(l)
-        if prn_name==1:names.append(site['er_site_name'])
+        if prn_name==1:names.append(site[namekey])
         if prn_loc==1:locs.append(site['er_location_name'])
     for lat in lats:slats.append(lat)
     for lon in lons:slons.append(lon)
@@ -102,12 +112,13 @@ def main():
     Opts['lat_0']=0.5*(numpy.min(slats)+numpy.max(slats))
     Opts['names']=names
     Opts['gridspace']=gridspace
-    if details==1:
-        Opts['details']={'coasts':1,'rivers':1,'states':1,'countries':1,'ocean':0} 
-    else: 
-        Opts['details']={'coasts':1,'rivers':0,'states':0,'countries':0,'ocean':0} 
-    Opts['details']['fancy']=fancy
+    Opts['details']={'coasts':1,'rivers':1,'states':1,'countries':1,'ocean':0} 
     if ocean==1:Opts['details']['ocean']=1
+    if rivers==1: Opts['details']['rivers']=0
+    if boundaries==1:
+        Opts['details']['states']=0
+        Opts['details']['countries']=0
+    Opts['details']['fancy']=fancy
     pmagplotlib.plotMAP(FIG['map'],lats,lons,Opts)
     if verbose:pmagplotlib.drawFIGS(FIG)
     files={}
