@@ -9,6 +9,7 @@ def main():
     """
     NAME 
         basemap_magic.py
+        NB:  this program no longer maintained - use plot_mapPTS.py for greater functionality
 
     DESCRIPTION
         makes a map of locations in er_sites.txt
@@ -44,6 +45,7 @@ def main():
     prn_name=0
     prn_loc=0
     fancy=0
+    rivers,boundaries=0,0
     padlon,padlat,gridspace,details=.5,.5,.5,1
     fmt='pdf'
     if '-h' in sys.argv:
@@ -90,10 +92,12 @@ def main():
         latkey='average_lat'
         lonkey='average_lon'
         namekey='pmag_result_name'
+        lockey='er_location_names'
     else:
         latkey='site_lat'
         lonkey='site_lon'
         namekey='er_site_name'
+        lockey='er_location_name'
     lats,lons=[],[]
     slats,slons=[],[]
     names,locs=[],[]
@@ -104,7 +108,7 @@ def main():
         if l<0:l=l+360. # make positive
         lons.append(l)
         if prn_name==1:names.append(site[namekey])
-        if prn_loc==1:locs.append(site['er_location_name'])
+        if prn_loc==1:locs.append(site[lockey])
     for lat in lats:slats.append(lat)
     for lon in lons:slons.append(lon)
     Opts={'res':res,'proj':proj,'loc_name':locs,'padlon':padlon,'padlat':padlat,'latmin':numpy.min(slats)-padlat,'latmax':numpy.max(slats)+padlat,'lonmin':numpy.min(slons)-padlon,'lonmax':numpy.max(slons)+padlon,'sym':'ro','boundinglat':0.,'pltgrid':1.}

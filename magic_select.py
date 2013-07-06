@@ -25,8 +25,10 @@ def main():
                the value is greater than the numerical value of the string (min)
                the value is less than the numerical value of the string (max)
       NOTES
-         for age range, use KEY: age (converts to Ma, takes mid point of low, high if no value for age.
-         for paleolat, use KEY: model_lat (uses lat, if age<5 Ma, else, model_lat, or attempts calculation from average_inc if no model_lat.) returns estimate in model_lat key
+         for age range: 
+             use KEY: age (converts to Ma, takes mid point of low, high if no value for age.
+         for paleolat:
+             use KEY: model_lat (uses lat, if age<5 Ma, else, model_lat, or attempts calculation from average_inc if no model_lat.) returns estimate in model_lat key
 
     """
     dir_path="."

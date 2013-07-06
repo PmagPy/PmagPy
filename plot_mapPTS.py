@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # define some variables
-import pmag,sys,pmagplotlib,continents
+import pmag,sys,pmagplotlib,continents,numpy
 def main():
     """
     NAME 
@@ -21,8 +21,13 @@ def main():
         -eye  ELAT ELON [specify eyeball location]
         -etp  put on topography
         -f FILE, specify input file
+        -o color ocean blue/land green (default is not)
         -res [c,l,i,h] specify resolution (crude, low, intermediate, high]
-        -fmt [pdf,eps, png] specify output format (default is pdf) 
+        -fmt [pdf,eps, png] specify output format (default is pdf)
+        -R don't plot details of rivers
+        -B don't plot national/state boundaries, etc.
+        -pad [LAT LON] pad bounding box by LAT/LON (default is not)
+        -grd SPACE specify grid spacing
         -prj PROJ,  specify one of the supported projections: (see basemap.py online documentation)
             aeqd = Azimuthal Equidistant
             poly = Polyconic
@@ -49,13 +54,19 @@ def main():
             cass= Cassini-Soldner
             splaea = South-Polar Lambert Azimuthal
             robin = Robinson
+        Special codes for MagIC formatted input files:
+            -n
+            -l
     
     INPUTS
-        space delimited LON LAT data
+        space or tab delimited LON LAT data
+        OR: 
+           standard MagIC formatted er_sites or pmag_results table
     DEFAULTS
         res:  c
-        prj: mollweide 
+        prj: mollweide;  lcc for MagIC format files 
         ELAT,ELON = 0,0
+        pad LAT,LON=0,0
         NB: high resolution or lines can be very slow
     
     """
@@ -64,11 +75,14 @@ def main():
     res='c'
     proj='moll'
     Lats,Lons=[],[]
-    lat_0,lon_0=0.,0.
     fmt='pdf'
     sym='ro'
     symsize=5
     fancy=0
+    rivers,boundaries,ocean=1,1,0
+    latmin,latmax,lonmin,lonmax,lat_0,lon_0=-90,90,0.,360.,0.,0.
+    padlat,padlon,gridspace=0,0,30
+    prn_name,prn_loc,names,locs=0,0,[],[]
     if '-WD' in sys.argv:
         ind = sys.argv.index('-WD')
         dir_path=sys.argv[ind+1]
@@ -84,9 +98,12 @@ def main():
         if res!= 'c' and res!='l':
             print 'this resolution will take a while - be patient'
     if '-etp' in sys.argv: fancy=1
-    if '-prj' in sys.argv:
-        ind = sys.argv.index('-prj')
-        proj=sys.argv[ind+1]
+    if '-R' in sys.argv:rivers=0
+    if '-B' in sys.argv:boundaries=0
+    if '-o' in sys.argv:ocean=1
+    if '-grd' in sys.argv:
+        ind = sys.argv.index('-grd')
+        gridspace=float(sys.argv[ind+1])
     if '-eye' in sys.argv:
         ind = sys.argv.index('-eye')
         lat_0=float(sys.argv[ind+1])
@@ -95,19 +112,54 @@ def main():
         ind = sys.argv.index('-sym')
         sym=sys.argv[ind+1]
         symsize=int(sys.argv[ind+2])
+    if '-pad' in sys.argv:
+        ind = sys.argv.index('-pad')
+        padlat=float(sys.argv[ind+1])
+        padlon=float(sys.argv[ind+2])
     if '-f' in sys.argv:
         ind = sys.argv.index('-f')
         file=dir_path+'/'+sys.argv[ind+1]
-        f=open(file,'rU')
-        ptdata=f.readlines()
-        for line in ptdata:
-            rec=line.split()
-            if len(rec)>1:
-               Lons.append(float(rec[0]))
-               Lats.append(float(rec[1]))
+        header=open(file,'rU').readlines()[0].split('\t')
+        if 'tab' in header[0]:
+            if '-n' in sys.argv:prn_name=1
+            if '-l' in sys.argv:prn_loc=1
+            proj='lcc'
+            if 'results' in header[1]:
+                latkey='average_lat'
+                lonkey='average_lon'
+                namekey='pmag_result_name'
+                lockey='er_location_names'
+            elif 'sites' in header[1]:
+                latkey='site_lat'
+                lonkey='site_lon'
+                namekey='er_site_name'
+                lockey='er_location_name'
+            else:  
+                print 'file type not supported'
+                print main.__doc__
+                sys.exit()
+            Sites,file_type=pmag.magic_read(file)
+            Lats=pmag.get_dictkey(Sites,latkey,'f')
+            Lons=pmag.get_dictkey(Sites,lonkey,'f')
+            if prn_name==1:names=pmag.get_dictkey(Sites,namekey,'')
+            if prn_loc==1:names=pmag.get_dictkey(Sites,lockey,'')
+        else:
+            f=open(file,'rU')
+            ptdata=numpy.loadtxt(file)
+            Lons=ptdata.transpose()[0]
+            Lats=ptdata.transpose()[1]
+        latmin=numpy.min(Lats)-padlat
+        lonmin=numpy.min(Lons)-padlon
+        latmax=numpy.max(Lats)+padlat
+        lonmax=numpy.max(Lons)+padlon
+        lon_0=0.5*(lonmin+lonmax)
+        lat_0=0.5*(latmin+latmax)
     else:
         print "input file must be specified"
         sys.exit()
+    if '-prj' in sys.argv:
+        ind = sys.argv.index('-prj')
+        proj=sys.argv[ind+1]
     FIG={'map':1}
     pmagplotlib.plot_init(FIG['map'],6,6)
     if res=='c':skip=8
@@ -115,14 +167,16 @@ def main():
     if res=='i':skip=2
     if res=='h':skip=1
     cnt=0
-    Opts={'latmin':-90,'latmax':90,'lonmin':0.,'lonmax':360.,'lat_0':lat_0,'lon_0':lon_0,'proj':proj,'sym':sym,'symsize':3,'pltgrid':0,'res':res,'boundinglat':0.}
+    Opts={'latmin':latmin,'latmax':latmax,'lonmin':lonmin,'lonmax':lonmax,'lat_0':lat_0,'lon_0':lon_0,'proj':proj,'sym':sym,'symsize':3,'pltgrid':1,'res':res,'boundinglat':0.,'padlon':padlon,'padlat':padlat,'gridspace':gridspace}
     Opts['details']={}
     Opts['details']['coasts']=1
-    Opts['details']['rivers']=0
-    Opts['details']['states']=0
-    Opts['details']['countries']=0
-    Opts['details']['ocean']=0
+    Opts['details']['rivers']=rivers
+    Opts['details']['states']=boundaries
+    Opts['details']['countries']=boundaries
+    Opts['details']['ocean']=ocean
     Opts['details']['fancy']=fancy
+    if len(names)>0:Opts['names']=names
+    if len(locs)>0:Opts['loc_name']=locs
     if proj=='merc':
         Opts['latmin']=-70
         Opts['latmax']=70
