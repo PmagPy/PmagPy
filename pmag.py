@@ -4896,7 +4896,10 @@ def doigrf(long,lat,alt,date,**kwargs):
         sv=(field2-field1)/10.
         x,y,z,f=magsyn(gh,sv,date0,date,itype,alt,colat,long)
     elif date<1800:
-        import cals3k # goes back to 2000 BC now
+        if 'mod3k' in kwargs.keys() and kwargs['mod3k']=='arch3k':
+            import arch3k as cals3k # use ARCH3k coefficients
+        else:
+            import cals3k # goes back to 2000 BC now
         date0=date-date%10
         field1=numpy.array(cals3k.coeffs(date0))
         field2=numpy.array(cals3k.coeffs(date0+10.))
@@ -4904,7 +4907,10 @@ def doigrf(long,lat,alt,date,**kwargs):
         sv=(field2-field1)/10.
         x,y,z,f=magsyn(gh,sv,date0,date,itype,alt,colat,long)
     elif date<1900:
-        import cals3k # goes back to 2000 BC now
+        if 'mod3k' in kwargs.keys() and kwargs['mod3k']=='arch3k':
+            import arch3k as cals3k # use ARCH3k coefficients
+        else:
+            import cals3k # goes back to 2000 BC now
         date0=1800
         field1=numpy.array(cals3k.coeffs(date0))
         field2=[-31543, -2298, 5922, -677, 2905, -1061, 924, 1121, 1022, -1469, -330, 1256, 3, 572, 523, 876, 628, 195, 660, -69, -361, -210, 134, -75, -184, 328, -210, 264, 53, 5, -33, -86, -124, -16, 3, 63, 61, -9, -11, 83, -217, 2, -58, -35, 59, 36, -90, -69, 70, -55, -45, 0, -13, 34, -10, -41, -1, -21, 28, 18, -12, 6, -22, 11, 8, 8, -4, -14, -9, 7, 1, -13, 2, 5, -9, 16, 5, -5, 8, -18, 8, 10, -20, 1, 14, -11, 5, 12, -3, 1, -2, -2, 8, 2, 10, -1, -2, -1, 2, -3, -4, 2, 2, 1, -5, 2, -2, 6, 6, -4, 4, 0, 0, -2, 2, 4, 2, 0, 0, -6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]

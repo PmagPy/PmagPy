@@ -10,7 +10,8 @@ def main():
         This program calculates igrf field values 
     using the routine of Malin and  Barraclough (1981) 
     based on d/igrfs from 1900 to 2010.
-    Prior to 1900, it uses CALS3K.4 and prior to 2000BCE, it uses CALS10k-4b
+    between 1900 and 1000BCE, it uses CALS3K.4 or ARCH3K.1 
+    Prior to 1000BCE, it uses CALS10k-4b
     Calculates reference field vector at  specified location and time.
 
   
@@ -27,6 +28,7 @@ def main():
        -alt ALT;  specify altitude in km, default is sealevel (0)
        -plt; make a plot of the time series
        -fmt [pdf,jpg,eps,svg]  specify format for output figure  (default is svg)
+       -mod [arch3k,cals3k] specify model for 3ka to 1900 AD, default is cals3k.4b
     
     INPUT FORMAT 
       interactive entry:
@@ -47,6 +49,10 @@ def main():
     if len(sys.argv)!=0 and '-h' in sys.argv:
         print main.__doc__
         sys.exit()
+    if '-mod' in sys.argv:
+        ind=sys.argv.index('-mod')
+        mod3k=sys.argv[ind+1]
+    else: mod3k=''
     if '-f' in sys.argv:
         ind=sys.argv.index('-f')
         file=sys.argv[ind+1]
@@ -61,7 +67,10 @@ def main():
             line.append(float(alt))
             line.append(float(raw_input("Latitude (positive north) ")))
             line.append(float(raw_input("Longitude (positive east) ")))
-            x,y,z,f=pmag.doigrf(line[3]%360.,line[2],line[1],line[0])
+            if mod3k=='':
+                x,y,z,f=pmag.doigrf(line[3]%360.,line[2],line[1],line[0])
+            else:
+                x,y,z,f=pmag.doigrf(line[3]%360.,line[2],line[1],line[0],mod3k=mod3k)
             Dir=pmag.cart2dir((x,y,z))
             print '%7.1f %7.1f %8.0f'%(Dir[0],Dir[1],f)           
           except EOFError:
@@ -103,7 +112,10 @@ def main():
         pylab.ion()
         Ages,Decs,Incs,Ints=[],[],[],[]
     for line in input:
-        x,y,z,f=pmag.doigrf(line[3]%360.,line[2],line[1],line[0])
+        if mod3k=='':
+            x,y,z,f=pmag.doigrf(line[3]%360.,line[2],line[1],line[0])
+        else:
+            x,y,z,f=pmag.doigrf(line[3]%360.,line[2],line[1],line[0],mod3k=mod3k)
         Dir=pmag.cart2dir((x,y,z))
         if outfile!="":
             out.write('%7.1f %7.1f %8.0f %7.1f %7.1f %7.1f %7.1f\n'%(Dir[0],Dir[1],f,line[0],line[1],line[2],line[3]))           
