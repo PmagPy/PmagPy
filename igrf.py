@@ -110,7 +110,7 @@ def main():
         matplotlib.use("TkAgg")
         import pylab
         pylab.ion()
-        Ages,Decs,Incs,Ints=[],[],[],[]
+        Ages,Decs,Incs,Ints,VADMs=[],[],[],[],[]
     for line in input:
         if mod3k=='':
             x,y,z,f=pmag.doigrf(line[3]%360.,line[2],line[1],line[0])
@@ -125,16 +125,23 @@ def main():
             Decs.append(Dir[0])
             Incs.append(Dir[1])
             Ints.append(f*1e-3)
+            VADMs.append(pmag.b_vdm(f*1e-9,line[2])*1e-21)
         else:
             print '%7.1f %7.1f %8.0f %7.1f %7.1f %7.1f %7.1f'%(Dir[0],Dir[1],f,line[0],line[1],line[2],line[3])           
     if plt:
-        fig=pylab.figure(num=1,figsize=(7,5))
-        fig.add_subplot(311)
+        fig=pylab.figure(num=1,figsize=(7,9))
+        fig.add_subplot(411)
         pylab.plot(Ages,Decs)
-        fig.add_subplot(312)
+        pylab.ylabel('Declination ($^{\circ}$)')
+        fig.add_subplot(412)
         pylab.plot(Ages,Incs)
-        fig.add_subplot(313)
+        pylab.ylabel('Inclination ($^{\circ}$)')
+        fig.add_subplot(413)
         pylab.plot(Ages,Ints)
+        pylab.ylabel('Intensity ($\mu$T)')
+        fig.add_subplot(414)
+        pylab.plot(Ages,VADMs)
+        pylab.ylabel('VADMs (ZAm$^2$)')
         pylab.xlabel('Ages')
         pylab.draw()
         ans=raw_input("S[a]ve to save figure, <Return>  to quit  ")
