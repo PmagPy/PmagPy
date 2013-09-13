@@ -4,6 +4,18 @@
 # LOG HEADER:
 #============================================================================================
 #
+# Thellier_GUI Version 2.05 9/02/2013
+# Add LP-PI-M-II protocol (microwave Thellier experiment)
+#
+# Thellier_GUI Version 2.041 7/03/2013
+# Bug fix cooling rate corrections
+#
+# Thellier_GUI Version 2.041 6/14/2013
+# Bug fix
+#
+# Thellier_GUI Version 2.04 6/14/2013
+# 1. Add conversion script from generic file format
+#
 # Thellier_GUI Version 2.03 6/6/2013
 # 1. Add cooling rate correction option
 #
@@ -14,7 +26,8 @@
 # Thellier_GUI Version 2.01 4/26/2013
 # 1. remove defenitions imported from pmag.py, so it can run as stand alone file.
 # 2. Add ptrm directions statistics
-# 
+#
+#
 # 
 #
 #-------------------------
@@ -893,9 +906,9 @@ class Arai_GUI(wx.Frame):
               step="N"
           if "LT-T-Z" in rec['magic_method_codes']:
               step="Z"
-          if "LT-T-I" in rec['magic_method_codes']:
+          if "LT-T-I" in rec['magic_method_codes'] or 'LT-M-I' in rec['magic_method_codes']:
               step="I"
-          if "LT-PTRM-I" in rec['magic_method_codes']:
+          if "LT-PTRM-I" in rec['magic_method_codes'] or "LT-PMRM-I" in rec['magic_method_codes']:
               step="P"
           if "LT-PTRM-MD" in rec['magic_method_codes']:
               step="T"
@@ -955,6 +968,9 @@ class Arai_GUI(wx.Frame):
 
         m_save_NLT_plot = submenu_save_plots.Append(-1, "&Save NLT plot", "")
         self.Bind(wx.EVT_MENU, self.on_save_NLT_plot, m_save_NLT_plot,"NLT")
+
+        m_save_CR_plot = submenu_save_plots.Append(-1, "&Save cooling rate plot", "")
+        self.Bind(wx.EVT_MENU, self.on_save_CR_plot, m_save_CR_plot,"CR")
 
         m_save_sample_plot = submenu_save_plots.Append(-1, "&Save sample plot", "")
         self.Bind(wx.EVT_MENU, self.on_save_sample_plot, m_save_sample_plot,"Samp")
@@ -1049,6 +1065,8 @@ class Arai_GUI(wx.Frame):
 
 
         menu_MagIC= wx.Menu()
+        m_convert_to_magic= menu_MagIC.Append(-1, "&Convert generic files to MagIC format", "")
+        self.Bind(wx.EVT_MENU, self.on_menu_convert_to_magic, m_convert_to_magic)
         m_build_magic_model= menu_MagIC.Append(-1, "&Run MagIC model builder", "")
         self.Bind(wx.EVT_MENU, self.on_menu_MagIC_model_builder, m_build_magic_model)
         m_prepare_MagIC_results_tables= menu_MagIC.Append(-1, "&Make MagIC results Table", "")
@@ -1847,6 +1865,21 @@ class Arai_GUI(wx.Frame):
             self.update_selection()
         else:
             return
+
+    def on_save_CR_plot(self,event):
+        if self.preferences['show_CR_plot'] ==True and 'cooling_rate_data' in self.Data[self.s].keys():
+            self.fig3.text(0.9,0.96,'%s'%(self.s),{'family':'Arial', 'fontsize':10, 'style':'normal','va':'center', 'ha':'right' })        
+            SaveMyPlot(self.fig3,self.pars,"CR")
+            self.fig3.clear()
+            self.eqplot = self.fig3.add_axes([0.2,0.15,0.7,0.7],frameon=True,axisbg='None')
+            self.fig3.text(0.02,0.96,"Cooling rate correction",{'family':'Arial', 'fontsize':10, 'style':'normal','va':'center', 'ha':'left' })
+            self.draw_figure(self.s)
+            self.update_selection()
+        else:
+            return
+
+
+
 
 ##    def on_save_all_plots(self,event):
 ##        #search for NRM:
@@ -4593,7 +4626,22 @@ class Arai_GUI(wx.Frame):
         self.Data,self.Data_hierarchy=self.get_data() # Get data from magic_measurements and rmag_anistropy if exist.
         self.Data_info=self.get_data_info() # get all ages, locations etc. (from er_ages, er_sites, er_locations)
        
-                
+    def on_menu_convert_to_magic(self,event):
+        dia = convert_generic_files_to_MagIC(self.WD)
+        dia.Show()
+        dia.Center()
+        self.magic_file=self.WD+"/"+"magic_measurements.txt"
+        self.GUI_log=open("%s/Thellier_GUI.log"%self.WD,'w')
+        self.Data,self.Data_hierarchy={},{}
+        self.Data,self.Data_hierarchy=self.get_data() # Get data from magic_measurements and rmag_anistropy if exist.
+        self.Data_info=self.get_data_info() # get all ages, locations etc. (from er_ages, er_sites, er_locations)
+        self.redo_specimens={}
+        self.specimens=self.Data.keys()
+        self.specimens.sort()                                                                
+        self.specimens_box.SetItems(self.specimens)
+        self.s=self.specimens[0]
+        self.update_selection()
+
     #----------------------------------------------------------------------  
     #---------------------------------------------------------------------- 
 
@@ -5230,37 +5278,10 @@ class Arai_GUI(wx.Frame):
             self.eqplot.scatter(lan_cooling_rates,moment_norm,marker='o',facecolor='b',edgecolor ='k',s=25)
             self.eqplot.scatter([x0],[y0],marker='s',facecolor='r',edgecolor ='k',s=25)
 
-##            lab_cooling_rate= self.Data[self.s]['cooling_rate_data']['lab_cooling_rate']
-##            moments=[]
-##            lan_cooling_rates=[]
-##            for pair in self.Data[self.s]['cooling_rate_data']['pairs']+[self.Data[self.s]['cooling_rate_data']['alteration_check']]:
-##                #print pair
-##                #print lab_cooling_rate
-##                lan_cooling_rates.append(math.log(lab_cooling_rate/pair[0]))
-##                moments.append(pair[1])
-##                if pair[0]==lab_cooling_rate:
-##                    lab_moment=pair[1]
-##            moment_norm=array(moments)/lab_moment
-##
-##            
-##            
-##            #self.mplot.clear()
-##            self.eqplot.scatter(array(lan_cooling_rates),moment_norm,marker='o',facecolor='b',edgecolor ='k',s=25)
-##            #self.eqplot.scatter([0.41],[],marker='s',facecolor='b',edgecolor ='r',s=15)
-##
-##            
-##            (a,b)=polyfit(lan_cooling_rates, moment_norm, 1)
-##            ancient_cooling_rate=0.41
-##            x=linspace(0,math.log(lab_cooling_rate/ancient_cooling_rate),10)
-##            y=polyval([a,b],x)
-##            self.eqplot.plot(x,y,"--",color='k')
-##            x0=math.log(lab_cooling_rate/ancient_cooling_rate)
-##            y0=a*x0+b
-##            self.eqplot.scatter([x0],[y0],marker='s',facecolor='r',edgecolor ='k',s=25)
 
             #self.Data_info["er_samples"][
-            self.eqplot.set_ylabel("TRM / TRM[fast]",fontsize=8)
-            self.eqplot.set_xlabel("lan(CR_lab/CR)",fontsize=8)
+            self.eqplot.set_ylabel("TRM / TRM[oven]",fontsize=8)
+            self.eqplot.set_xlabel("ln(CR[oven]/CR)",fontsize=8)
             self.eqplot.set_xlim(left=-0.2)
             try:
               self.eqplot.tick_params(axis='both', which='major', labelsize=8)
@@ -5314,7 +5335,10 @@ class Arai_GUI(wx.Frame):
               self.mplot.clear()
               self.mplot.plot(temperatures_NRMS,M_NRMS,'bo-',mec='0.2',markersize=5*self.GUI_RESOLUTION,lw=1)
               self.mplot.plot(temperatures_NRMS,M_pTRMS,'ro-',mec='0.2',markersize=5*self.GUI_RESOLUTION,lw=1)
-              self.mplot.set_xlabel("C",fontsize=8*self.GUI_RESOLUTION)
+              if self.Data[self.s]['T_or_MW']!="MW":
+                  self.mplot.set_xlabel("C",fontsize=8*self.GUI_RESOLUTION)
+              else:
+                  self.mplot.set_xlabel("Treatment",fontsize=8*self.GUI_RESOLUTION)                  
               self.mplot.set_ylabel("M / NRM$_0$",fontsize=8*self.GUI_RESOLUTION)
               #self.mplot.set_xtick(labelsize=2)
               try:
@@ -6841,7 +6865,12 @@ class Arai_GUI(wx.Frame):
           self.MagIC_directories_list.append(self.WD)
       #for dir_path in self.dir_pathes:
       #print "start Magic read %s " %self.magic_file
-      meas_data,file_type=self.magic_read(self.magic_file)
+      try:
+          meas_data,file_type=self.magic_read(self.magic_file)
+      except:
+          print "-E- ERROR: Cant read magic_measurement.txt file. File is corrupted."
+          return {},{}
+
       #print "done Magic read %s " %self.magic_file
 
       self.GUI_log.write("-I- Read magic file  %s\n"%self.magic_file)
@@ -6849,12 +6878,11 @@ class Arai_GUI(wx.Frame):
       # get list of unique specimen names
       
       CurrRec=[]
-      print "get sids"
-
+      #print "get sids"
       sids=self.get_specs(meas_data) # samples ID's
-      print "done get sids"
+      #print "done get sids"
 
-      print "initialize blocks"
+      #print "initialize blocks"
       
       for s in sids:
 
@@ -6867,9 +6895,9 @@ class Arai_GUI(wx.Frame):
           #Data[s]['zijdblock']=zijdblock
 
 
-      print "done initialize blocks"
+      #print "done initialize blocks"
 
-      print "sorting meas data"
+      #print "sorting meas data"
           
       for rec in meas_data:
           s=rec["er_specimen_name"]
@@ -6954,7 +6982,7 @@ class Arai_GUI(wx.Frame):
                  Data[s]['zijdblock'].append([tr,dec,inc,int,ZI,rec['measurement_flag'],rec['magic_instrument_codes']])
                  #print methods
 
-                 
+       
           if sample not in Data_hierarchy['samples'].keys():
               Data_hierarchy['samples'][sample]=[]
           if s not in Data_hierarchy['samples'][sample]:
@@ -6964,7 +6992,7 @@ class Arai_GUI(wx.Frame):
 
 
           
-      print "done sorting meas data"
+      #print "done sorting meas data"
       
       self.specimens=Data.keys()
       self.specimens.sort()
@@ -7053,7 +7081,7 @@ class Arai_GUI(wx.Frame):
 
 
       # Searching and sorting NLT Data 
-      print "searching NLT data"
+      #print "searching NLT data"
 
       for s in self.specimens:
           datablock = Data[s]['datablock']
@@ -7172,7 +7200,7 @@ class Arai_GUI(wx.Frame):
                       self.GUI_log.write("-E- ERROR: 2 NLT measurement for specimen %s. [max(M/B)]/ [min(M/B)] is %.2f  ( > 1.1 ). More NLT mrasurements may be required  !\n" %(s,max(slopes)/min(slopes)))
                       #print "-I- NLT meaurements specime %s: B,M="%s,B_NLT,M_NLT
                   
-      print "done searching NLT data"
+      #print "done searching NLT data"
               
       self.GUI_log.write("-I- Done calculating non linear TRM parameters for all specimens\n")
 
@@ -7191,12 +7219,17 @@ class Arai_GUI(wx.Frame):
           trmblock = Data[s]['trmblock']
           if 'crblock' in Data[s].keys():
               if len(Data[s]['crblock'])<3:
+                  del Data[s]['crblock']
                   continue
 
               sample=Data_hierarchy['specimens'][s]
               # in MagIC format that cooling rate is in K/My
-              ancient_cooling_rate=float(self.Data_info["er_samples"][sample]['sample_cooling_rate'])
-              ancient_cooling_rate=ancient_cooling_rate/(1e6*365*24*60) # change to K/minute
+##              try:
+##                  ancient_cooling_rate=float(self.Data_info["er_samples"][sample]['sample_cooling_rate'])
+##                  ancient_cooling_rate=ancient_cooling_rate/(1e6*365*24*60) # change to K/minute
+##              except:
+##                  self.GUI_log.write("-W- Cant find ancient cooling rate estimation for sample %s"%sample)
+##                  continue                  
               try:
                   ancient_cooling_rate=float(self.Data_info["er_samples"][sample]['sample_cooling_rate'])
                   ancient_cooling_rate=ancient_cooling_rate/(1e6*365*24*60) # change to K/minute
@@ -7211,6 +7244,10 @@ class Arai_GUI(wx.Frame):
               for rec in Data[s]['crblock']:
                   magic_method_codes=rec['magic_method_codes'].strip(' ').strip('\n').split(":")
                   measurement_description=rec['measurement_description'].strip(' ').strip('\n').split(":")
+                  if "LT-T-Z" in magic_method_codes:
+                      cooling_rate_data['baseline']=float(rec['measurement_magn_moment'])
+                      continue
+                
                   index=measurement_description.index("K/min")
                   cooling_rate=float(measurement_description[index-1])
                   cooling_rates_list.append(cooling_rate)
@@ -7231,6 +7268,7 @@ class Arai_GUI(wx.Frame):
                     moments.append(pair[1])
                     if pair[0]==cooling_rate_data['lab_cooling_rate']:
                         lab_fast_cr_moments.append(pair[1])
+              #print s, cooling_rate_data['alteration_check']
               lan_cooling_rates.append(math.log(cooling_rate_data['lab_cooling_rate']/cooling_rate_data['alteration_check'][0]))
               lab_fast_cr_moments.append(cooling_rate_data['alteration_check'][1])
               moments.append(cooling_rate_data['alteration_check'][1])        
@@ -7297,7 +7335,7 @@ class Arai_GUI(wx.Frame):
       # sort Arai block
       #------------------------------------------------
 
-      print "sort blocks to arai, zij. etc."
+      #print "sort blocks to arai, zij. etc."
 
       for s in self.specimens:
         # collected the data
@@ -7312,10 +7350,9 @@ class Arai_GUI(wx.Frame):
            Data_hierarchy['samples'][sample].remove(s)
            continue 
         araiblock,field=self.sortarai(datablock,s,0)
-        #print "0",araiblock[0]
-        #print "1",araiblock[0]
-        #raw_input("araiblock")
-        Data[s]['araiblok']=araiblock
+
+
+        Data[s]['araiblock']=araiblock
         Data[s]['pars']={}
         Data[s]['pars']['lab_dc_field']=field
         Data[s]['pars']['er_specimen_name']=s
@@ -7332,6 +7369,17 @@ class Arai_GUI(wx.Frame):
         if len(araiblock[0])!= len(araiblock[1]):
            self.GUI_log.write( "-E- ERROR: unequal length of Z steps and I steps. Check specimen %s"% s)
            #continue
+
+      # Fix zijderveld block for Thellier-Thellier protocol (II)
+      # (take the vector subtruiction instead of the zerofield steps)
+      #araiblock,field=self.sortarai(Data[s]['datablock'],s,0)
+      #if "LP-PI-II" in Data[s]['datablock'][0]["magic_method_codes"] or "LP-PI-M-II" in Data[s]['datablock'][0]["magic_method_codes"] or "LP-PI-T-II" in Data[s]['datablock'][0]["magic_method_codes"]:
+      #    for zerofield in araiblock[0]:
+      #        Data[s]['zijdblock'].append([zerofield[0],zerofield[1],zerofield[2],zerofield[3],0,'g',""])
+        if "LP-PI-II" in datablock[0]["magic_method_codes"] or "LP-PI-M-II" in datablock[0]["magic_method_codes"] or "LP-PI-T-II" in datablock[0]["magic_method_codes"]:
+          for zerofield in araiblock[0]:
+              Data[s]['zijdblock'].append([zerofield[0],zerofield[1],zerofield[2],zerofield[3],0,'g',""])
+
 
         #--------------------------------------------------------------
         # collect all zijderveld data to array and calculate VDS
@@ -7556,7 +7604,7 @@ class Arai_GUI(wx.Frame):
       self.GUI_log.write("-I- number of specimens in this project directory: %i\n"%len(self.specimens))
       self.GUI_log.write("-I- number of samples in this project directory: %i\n"%len(Data_hierarchy['samples'].keys()))
 
-      print "done sort blocks to arai, zij. etc."
+      #print "done sort blocks to arai, zij. etc."
   
       return(Data,Data_hierarchy)
 
@@ -7589,12 +7637,12 @@ class Arai_GUI(wx.Frame):
         try:
             data_er_samples=read_magic_file(self.WD+"/er_samples.txt",'er_sample_name')
         except:
-            self.GUI_log.write ("-W- Cant find er_sample.txt in project directory")
+            self.GUI_log.write ("-W- Cant find er_sample.txt in project directory\n")
 
         try:
             data_er_sites=read_magic_file(self.WD+"/er_sites.txt",'er_site_name')
         except:
-            self.GUI_log.write ("-W- Cant find er_sites.txt in project directory")
+            self.GUI_log.write ("-W- Cant find er_sites.txt in project directory\n")
 
         try:
             data_er_ages=read_magic_file(self.WD+"/er_ages.txt",'er_sample_name')
@@ -7602,7 +7650,7 @@ class Arai_GUI(wx.Frame):
             try:
                 data_er_ages=read_magic_file(self.WD+"/er_ages.txt",'er_site_name')
             except:    
-                self.GUI_log.write ("-W- Cant find er_ages in project directory")
+                self.GUI_log.write ("-W- Cant find er_ages in project directory\n")
 
 
         Data_info["er_samples"]=data_er_samples
@@ -8168,6 +8216,10 @@ class Arai_GUI(wx.Frame):
                     first_I.append([0,0.,0.,0.,1])
                     first_Z.append([0,dec,inc,str,1])  # NRM step
                     
+        #---------------------
+        # find  IZ and ZI
+        #---------------------
+                    
                 
         for temp in Treat_I: # look through infield steps and find matching Z step
             if temp in Treat_Z: # found a match
@@ -8210,25 +8262,83 @@ class Arai_GUI(wx.Frame):
 ##                if 180.-gamma<gamma:
 ##                    gamma=180.-gamma
 ##                GammaChecks.append([temp-273.,gamma])
+
+
+        #---------------------
+        # find Thellier Thellier protocol
+        #---------------------
+        if 'LP-PI-II'in methcodes or 'LP-PI-T-II' in methcodes or 'LP-PI-M-II' in methcodes:
+            for i in range(1,len(Treat_I)): # look through infield steps and find matching Z step
+                if Treat_I[i] == Treat_I[i-1]:
+                    # ignore, if there are more than 
+                    temp= Treat_I[i]
+                    irec1=datablock[ISteps[i-1]]
+                    dec1=float(irec1["measurement_dec"])
+                    inc1=float(irec1["measurement_inc"])
+                    moment1=float(irec1["measurement_magn_moment"])
+                    if len(first_I)<2:
+                        dec_initial=dec1;inc_initial=inc1
+                    cart1=array(self.dir2cart([dec1,inc1,moment1]))
+                    irec2=datablock[ISteps[i]]
+                    dec2=float(irec2["measurement_dec"])
+                    inc2=float(irec2["measurement_inc"])
+                    moment2=float(irec2["measurement_magn_moment"])
+                    cart2=array(self.dir2cart([dec2,inc2,moment2]))
+
+                    # check if its in the same treatment
+                    if Treat_I[i] == Treat_I[i-2] and dec2!=dec_initial and inc2!=inc_initial:
+                        continue
+                    if dec1!=dec2 and inc1!=inc2:
+                        zerofield=(cart2+cart1)/2
+                        infield=(cart2-cart1)/2
+
+                        DIR_zerofield=self.cart2dir(zerofield)
+                        DIR_infield=self.cart2dir(infield)
+
+                        first_Z.append([temp,DIR_zerofield[0],DIR_zerofield[1],DIR_zerofield[2],0])
+                        first_I.append([temp,DIR_infield[0],DIR_infield[1],DIR_infield[2],0])
+                
+
+        #---------------------
+        # find  pTRM checks
+        #---------------------
+                    
         for temp in Treat_PI: # look through infield steps and find matching Z step
-            step=PISteps[Treat_PI.index(temp)]
-            rec=datablock[step]
-            dec=float(rec["measurement_dec"])
-            inc=float(rec["measurement_inc"])
-            str=float(rec[momkey])
-            brec=datablock[step-1] # take last record as baseline to subtract
-            pdec=float(brec["measurement_dec"])
-            pinc=float(brec["measurement_inc"])
-            pint=float(brec[momkey])
-            X=self.dir2cart([dec,inc,str])
-            prevX=self.dir2cart([pdec,pinc,pint])
-            I=[]
-            for c in range(3): I.append(X[c]-prevX[c])
-            dir1=self.cart2dir(I)
-            if Zdiff==0:
-                ptrm_check.append([temp,dir1[0],dir1[1],dir1[2]])
+            if 'LP-PI-II' not in methcodes:
+                step=PISteps[Treat_PI.index(temp)]
+                rec=datablock[step]
+                dec=float(rec["measurement_dec"])
+                inc=float(rec["measurement_inc"])
+                str=float(rec[momkey])
+                brec=datablock[step-1] # take last record as baseline to subtract
+                pdec=float(brec["measurement_dec"])
+                pinc=float(brec["measurement_inc"])
+                pint=float(brec[momkey])
+                X=self.dir2cart([dec,inc,str])
+                prevX=self.dir2cart([pdec,pinc,pint])
+                I=[]
+                for c in range(3): I.append(X[c]-prevX[c])
+                dir1=self.cart2dir(I)
+                if Zdiff==0:
+                    ptrm_check.append([temp,dir1[0],dir1[1],dir1[2]])
+                else:
+                    ptrm_check.append([temp,0.,0.,I[2]])
             else:
-                ptrm_check.append([temp,0.,0.,I[2]])
+                step=PISteps[Treat_PI.index(temp)]
+                rec=datablock[step]
+                dec=float(rec["measurement_dec"])
+                inc=float(rec["measurement_inc"])
+                moment=float(rec["measurement_magn_moment"])
+                for zerofield in first_Z:
+                    if zerofield[0]==temp:
+                        M1=array(self.dir2cart([dec,inc,moment]))
+                        M2=array(self.dir2cart([zerofield[1],zerofield[2],zerofield[3]]))
+                        diff=M1-M2
+                        diff_cart=self.cart2dir(diff)
+                        ptrm_check.append([temp,diff_cart[0],diff_cart[1],diff_cart[2]])
+                        
+                        
+                        
     # in case there are zero-field pTRM checks (not the SIO way)
         for temp in Treat_PZ:
             step=PZSteps[Treat_PZ.index(temp)]
@@ -8250,21 +8360,11 @@ class Arai_GUI(wx.Frame):
         for temp in Treat_M:
             step=MSteps[Treat_M.index(temp)] # tail check step - just do a difference in magnitude!
             rec=datablock[step]
-    #        dec=float(rec["measurement_dec"])
-    #        inc=float(rec["measurement_inc"])
             str=float(rec[momkey])
             if temp in Treat_Z:
                 step=ZSteps[Treat_Z.index(temp)]
                 brec=datablock[step]
-    #        pdec=float(brec["measurement_dec"])
-    #        pinc=float(brec["measurement_inc"])
                 pint=float(brec[momkey])
-    #        X=dir2cart([dec,inc,str])
-    #        prevX=dir2cart([pdec,pinc,pint])
-    #        I=[]
-    #        for c in range(3):I.append(X[c]-prevX[c])
-    #        d=cart2dir(I)
-    #        ptrm_tail.append([temp,d[0],d[1],d[2]])
                 ptrm_tail.append([temp,0,0,str-pint])  # difference - if negative, negative tail!
             else:
                 print s, '  has a tail check with no first zero field step - check input file! for step',temp-273.
@@ -8276,6 +8376,7 @@ class Arai_GUI(wx.Frame):
                    print " Something wrong with this specimen! Better fix it or delete it "
                    raw_input(" press return to acknowledge message")
         araiblock=(first_Z,first_I,ptrm_check,ptrm_tail,zptrm_check,GammaChecks)
+        
         return araiblock,field
 
 
@@ -8954,7 +9055,7 @@ class Consistency_Test(wx.Frame):
     def on_check_button(self,event):
         S1=self.text_logger.GetValue()
         func=S1.split('\n')
-        study_sample_n,test_group_n,max_group_int_sigma_uT,max_group_int_sigma_perc=10,10.,0.1,0.1
+        study_sample_n,test_group_n,max_group_int_sigma_uT,max_group_int_sigma_perc,max_sample_accuracy_uT,max_sample_accuracy_perc=10,10.,0.1,0.1,1,0.1
         functions=[]
         OK=True
         for f in func:
@@ -9035,7 +9136,6 @@ class Consistency_Test(wx.Frame):
             dlg1.ShowModal()
             dlg1.Destroy()
             gframe.Destroy()
-            exit()
         
 
 #--------------------------------------------------------------    
@@ -9959,6 +10059,559 @@ class MagIC_model_builder(wx.Frame):
 ##      return(Data,Data_hierarchy)
     
 
+#--------------------------------------------------------------    
+# MagIC generic files conversion
+#--------------------------------------------------------------
+
+
+class convert_generic_files_to_MagIC(wx.Frame):
+    """"""
+    title = "PmagPy Thellier GUI generic file conversion"
+
+    def __init__(self,WD):
+        wx.Frame.__init__(self, None, wx.ID_ANY, self.title)
+        self.panel = wx.Panel(self)
+        self.max_files=10
+        self.WD=WD
+        self.InitUI()
+
+    def InitUI(self):
+
+        pnl = self.panel
+
+        #---sizer infor ----
+
+        TEXT1="Generic thellier GUI file is a tab-delimited file with the following headers:\n"
+        TEXT2="Specimen  Treatment  Declination  Inclination  Moment\n"
+        TEXT3="Treatment: XXX.Y or XXX.YY where XXX is temperature in C, and YY is treatment code. See tutorial for explenation. NRM step is 000.00\n" 
+        TEXT4="Moment: In units of emu.\n"
+
+        TEXT=TEXT1+TEXT2+TEXT3+TEXT4
+        bSizer_info = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY, "" ), wx.HORIZONTAL )
+        bSizer_info.Add(wx.StaticText(pnl,label=TEXT),wx.ALIGN_LEFT)
+            
+
+        #---sizer 0 ----
+        TEXT="File:\n Choose measurement file\n No spaces are alowd in path"
+        bSizer0 = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY, "" ), wx.VERTICAL )
+        bSizer0.Add(wx.StaticText(pnl,label=TEXT),wx.ALIGN_TOP)
+        bSizer0.AddSpacer(5)
+        for i in range(self.max_files):
+            command= "self.file_path_%i = wx.TextCtrl(self.panel, id=-1, size=(200,25), style=wx.TE_READONLY)"%i
+            exec command
+            command= "self.add_file_button_%i =  wx.Button(self.panel, id=-1, label='add',name='add_%i')"%(i,i)
+            exec command
+            command= "self.Bind(wx.EVT_BUTTON, self.on_add_file_button_i, self.add_file_button_%i)"%i
+            #print command
+            exec command            
+            command="bSizer0_%i = wx.BoxSizer(wx.HORIZONTAL)"%i
+            exec command
+            command="bSizer0_%i.Add(wx.StaticText(pnl,label=('%i  '[:2])),wx.ALIGN_LEFT)"%(i,i+1)
+            exec command
+            
+            command="bSizer0_%i.Add(self.file_path_%i,wx.ALIGN_LEFT)" %(i,i)
+            exec command
+            command="bSizer0_%i.Add(self.add_file_button_%i,wx.ALIGN_LEFT)" %(i,i)
+            exec command
+            command="bSizer0.Add(bSizer0_%i,wx.ALIGN_TOP)" %i
+            exec command
+            bSizer0.AddSpacer(5)
+              
+        #---sizer 1 ----
+
+        TEXT="\n\nExperiment:"
+        bSizer1 = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY, "" ), wx.VERTICAL )
+        bSizer1.Add(wx.StaticText(pnl,label=TEXT),wx.ALIGN_TOP)
+        self.experiments_names=['IZZI','IZ','ZI','ATRM 6 positions','cooling rate','NLT']
+        bSizer1.AddSpacer(5)
+        for i in range(self.max_files):
+            command="self.protocol_info_%i = wx.ComboBox(self.panel, -1, self.experiments_names[0], size=(100,25), choices=self.experiments_names, style=wx.CB_DROPDOWN)"%i
+            #command="self.protocol_info_%i = wx.TextCtrl(self.panel, id=-1, size=(100,20), style=wx.TE_MULTILINE | wx.HSCROLL)"%i
+            #print command
+            exec command
+            command="bSizer1.Add(self.protocol_info_%i,wx.ALIGN_TOP)"%i        
+            exec command
+            bSizer1.AddSpacer(5)
+
+        #---sizer 2 ----
+
+        TEXT="Blab:\n(microT dec inc)\nexample: 40 0 -90 "
+        bSizer2 = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY, "" ), wx.VERTICAL )
+        bSizer2.Add(wx.StaticText(pnl,label=TEXT),wx.ALIGN_TOP)
+        bSizer2.AddSpacer(5)
+        for i in range(self.max_files):
+            command= "self.file_info_Blab_%i = wx.TextCtrl(self.panel, id=-1, size=(40,25))"%i
+            exec command
+            command= "self.file_info_Blab_dec_%i = wx.TextCtrl(self.panel, id=-1, size=(40,25))"%i
+            exec command
+            command= "self.file_info_Blab_inc_%i = wx.TextCtrl(self.panel, id=-1, size=(40,25))"%i
+            exec command          
+            command="bSizer2_%i = wx.BoxSizer(wx.HORIZONTAL)"%i
+            exec command
+            command="bSizer2_%i.Add(self.file_info_Blab_%i ,wx.ALIGN_LEFT)" %(i,i)
+            exec command
+            command="bSizer2_%i.Add(self.file_info_Blab_dec_%i,wx.ALIGN_LEFT)" %(i,i)
+            exec command
+            command="bSizer2_%i.Add(self.file_info_Blab_inc_%i,wx.ALIGN_LEFT)" %(i,i)
+            exec command
+            command="bSizer2.Add(bSizer2_%i,wx.ALIGN_TOP)" %i
+            exec command
+            bSizer2.AddSpacer(5)
+
+
+        #self.blab_info = wx.TextCtrl(self.panel, id=-1, size=(80,250), style=wx.TE_MULTILINE | wx.HSCROLL)
+        #bSizer2.Add(self.blab_info,wx.ALIGN_TOP)        
+
+        #---sizer 3 ----
+
+        TEXT="\nUser\nname:"
+        bSizer3 = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY, "" ), wx.VERTICAL )
+        bSizer3.Add(wx.StaticText(pnl,label=TEXT),wx.ALIGN_TOP)
+        bSizer3.AddSpacer(5)
+        for i in range(self.max_files):
+            command= "self.file_info_user_%i = wx.TextCtrl(self.panel, id=-1, size=(60,25))"%i
+            exec command
+            command="bSizer3.Add(self.file_info_user_%i,wx.ALIGN_TOP)" %i
+            exec command
+            bSizer3.AddSpacer(5)
+
+        #---sizer 4 ----
+
+        TEXT="\nSample-specimen\nnaming convention:"
+        bSizer4 = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY, "" ), wx.VERTICAL )
+        bSizer4.Add(wx.StaticText(pnl,label=TEXT),wx.ALIGN_TOP)
+        self.sample_naming_conventions=['sample=specimen','no. of terminate characters','charceter delimited']
+        bSizer4.AddSpacer(5)
+        for i in range(self.max_files):
+            command="self.sample_naming_convention_%i = wx.ComboBox(self.panel, -1, self.sample_naming_conventions[0], size=(180,25), choices=self.sample_naming_conventions, style=wx.CB_DROPDOWN)"%i
+            exec command            
+            command="self.sample_naming_convention_char_%i = wx.TextCtrl(self.panel, id=-1, size=(40,25))"%i
+            exec command
+            command="bSizer4_%i = wx.BoxSizer(wx.HORIZONTAL)"%i
+            exec command
+            command="bSizer4_%i.Add(self.sample_naming_convention_%i,wx.ALIGN_LEFT)" %(i,i)
+            exec command
+            command="bSizer4_%i.Add(self.sample_naming_convention_char_%i,wx.ALIGN_LEFT)" %(i,i)
+            exec command
+            command="bSizer4.Add(bSizer4_%i,wx.ALIGN_TOP)"%i        
+            exec command
+
+            bSizer4.AddSpacer(5)
+
+        #---sizer 5 ----
+
+        TEXT="\nSite-sample\nnaming convention:"
+        bSizer5 = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY, "" ), wx.VERTICAL )
+        bSizer5.Add(wx.StaticText(pnl,label=TEXT),wx.ALIGN_TOP)
+        self.site_naming_conventions=['site=sample','no. of terminate characters','charceter delimited']
+        bSizer5.AddSpacer(5)
+        for i in range(self.max_files):
+            command="self.site_naming_convention_char_%i = wx.TextCtrl(self.panel, id=-1, size=(40,25))"%i
+            exec command
+            command="self.site_naming_convention_%i = wx.ComboBox(self.panel, -1, self.site_naming_conventions[0], size=(180,25), choices=self.site_naming_conventions, style=wx.CB_DROPDOWN)"%i
+            exec command
+            command="bSizer5_%i = wx.BoxSizer(wx.HORIZONTAL)"%i
+            exec command
+            command="bSizer5_%i.Add(self.site_naming_convention_%i,wx.ALIGN_LEFT)" %(i,i)
+            exec command
+            command="bSizer5_%i.Add(self.site_naming_convention_char_%i,wx.ALIGN_LEFT)" %(i,i)
+            exec command
+            command="bSizer5.Add(bSizer5_%i,wx.ALIGN_TOP)"%i        
+            exec command
+            bSizer5.AddSpacer(5)
+
+
+
+
+        #------------------
+
+        #self.add_file_button =  wx.Button(self.panel, id=-1, label='add file')
+        #self.Bind(wx.EVT_BUTTON, self.on_add_file_button, self.add_file_button)
+
+        #self.remove_file_button =  wx.Button(self.panel, id=-1, label='remove file')
+
+                     
+        self.okButton = wx.Button(self.panel, wx.ID_OK, "&OK")
+        self.Bind(wx.EVT_BUTTON, self.on_okButton, self.okButton)
+
+        self.cancelButton = wx.Button(self.panel, wx.ID_CANCEL, '&Cancel')
+        self.Bind(wx.EVT_BUTTON, self.on_cancelButton, self.cancelButton)
+
+        hbox1 = wx.BoxSizer(wx.HORIZONTAL)        
+        #hbox1.Add(self.add_file_button)
+        #hbox1.Add(self.remove_file_button )
+
+        hbox2 = wx.BoxSizer(wx.HORIZONTAL)        
+        hbox2.Add(self.okButton)
+        hbox2.Add(self.cancelButton )
+
+        #------
+
+        vbox=wx.BoxSizer(wx.VERTICAL)
+
+        hbox = wx.BoxSizer(wx.HORIZONTAL)
+        hbox.AddSpacer(5)
+        hbox.Add(bSizer0, flag=wx.ALIGN_LEFT)        
+        hbox.AddSpacer(5)
+        hbox.Add(bSizer1, flag=wx.ALIGN_LEFT)        
+        hbox.AddSpacer(5)
+        hbox.Add(bSizer2, flag=wx.ALIGN_LEFT)        
+        hbox.AddSpacer(5)
+        hbox.Add(bSizer3, flag=wx.ALIGN_LEFT)        
+        hbox.AddSpacer(5)
+        hbox.Add(bSizer4, flag=wx.ALIGN_LEFT)        
+        hbox.AddSpacer(5)
+        hbox.Add(bSizer5, flag=wx.ALIGN_LEFT)        
+        hbox.AddSpacer(5)
+
+        #-----
+        
+        vbox.AddSpacer(20)
+        vbox.Add(bSizer_info,flag=wx.ALIGN_CENTER_HORIZONTAL)
+        vbox.AddSpacer(20)        
+        vbox.Add(hbox)
+        vbox.AddSpacer(20)
+        vbox.Add(hbox1,flag=wx.ALIGN_CENTER_HORIZONTAL)
+        vbox.AddSpacer(20)
+        vbox.Add(hbox2,flag=wx.ALIGN_CENTER_HORIZONTAL)
+        vbox.AddSpacer(20)
+        
+        self.panel.SetSizer(vbox)
+        vbox.Fit(self)
+        self.Show()
+        self.Centre()
+
+
+    def cart2dir(cart):
+        """
+        converts a direction to cartesian coordinates
+        """
+        cart=array(cart)
+        rad=pi/180. # constant to convert degrees to radians
+        if len(cart.shape)>1:
+            Xs,Ys,Zs=cart[:,0],cart[:,1],cart[:,2]
+        else: #single vector
+            Xs,Ys,Zs=cart[0],cart[1],cart[2]
+        Rs=sqrt(Xs**2+Ys**2+Zs**2) # calculate resultant vector length
+        Decs=(arctan2(Ys,Xs)/rad)%360. # calculate declination taking care of correct quadrants (arctan2) and making modulo 360.
+        try:
+            Incs=arcsin(Zs/Rs)/rad # calculate inclination (converting to degrees) # 
+        except:
+            print 'trouble in cart2dir' # most likely division by zero somewhere
+            return zeros(3)
+            
+        return array([Decs,Incs,Rs]).transpose() # return the directions list
+
+
+
+    def on_add_file_button(self,event):
+
+        dlg = wx.FileDialog(
+            None,message="choose file to convert to MagIC",
+            defaultDir=self.WD, 
+            defaultFile="",
+            style=wx.OPEN | wx.CHANGE_DIR
+            )        
+        if dlg.ShowModal() == wx.ID_OK:
+            FILE = dlg.GetPath()
+        # fin=open(FILE,'rU')
+        self.file_path.AppendText(FILE+"\n")
+        self.protocol_info.AppendText("IZZI"+"\n")
+
+
+    def on_add_file_button_i(self,event):
+
+        dlg = wx.FileDialog(
+            None,message="choose file to convert to MagIC",
+            defaultDir="./", 
+            defaultFile="",
+            style=wx.OPEN | wx.CHANGE_DIR
+            )        
+        if dlg.ShowModal() == wx.ID_OK:
+            FILE = dlg.GetPath()
+        # fin=open(FILE,'rU')
+        button = event.GetEventObject()
+        name=button.GetName()
+        i=int((name).split("_")[-1])
+        #print "The button's name is " + button.GetName()
+        
+        command="self.file_path_%i.SetValue(FILE)"%i
+        exec command
+
+        #self.file_path.AppendText(FILE)
+        #self.protocol_info.AppendText("IZZI"+"\n")
+
+
+
+    def read_generic_file(self,path):
+        Data={}
+        Fin=open(path,'rU')
+        header=Fin.readline().strip('\n').split('\t')
+        
+        for line in Fin.readlines():
+            tmp_data={}
+            l=line.strip('\n').split('\t')
+            if len(l)<len(header):
+                continue
+            else:
+                for i in range(len(header)):
+                    tmp_data[header[i]]=l[i]
+                specimen=tmp_data['Specimen']
+                if specimen not in Data.keys():
+                    Data[specimen]=[]
+                # check dupliactes
+                if len(Data[specimen]) >0:
+                    if tmp_data['Treatment']==Data[specimen][-1]['Treatment']:
+                        print "-W- WARNING: duplicate measurements specimen %s, Treatment %s. keeping onlt the last one"%(tmp_data['Specimen'],tmp_data['Treatment'])
+                        Data[specimen].pop()
+                        
+                Data[specimen].append(tmp_data)
+        return(Data)               
+
+    def on_okButton(self,event):
+
+
+        #-----------------------------------
+        # Prepare MagIC measurement file
+        #-----------------------------------
+
+        # prepare output file
+        magic_headers=['er_citation_names','er_specimen_name',"er_sample_name","er_site_name",'er_location_name','er_analyst_mail_names',\
+                       "magic_instrument_codes","measurement_flag","measurement_standard","magic_experiment_name","magic_method_codes","measurement_number",'treatment_temp',"measurement_dec","measurement_inc",\
+                       "measurement_magn_moment","measurement_temp","treatment_dc_field","treatment_dc_field_phi","treatment_dc_field_theta"]             
+
+        fout=open("magic_measurements.txt",'w')        
+        fout.write("tab\tmagic_measurements\n")
+        header_string=""
+        for i in range(len(magic_headers)):
+            header_string=header_string+magic_headers[i]+"\t"
+        fout.write(header_string[:-1]+"\n")
+
+        #-----------------------------------
+            
+        Data={}
+        header_codes=[]
+        ERROR=""
+        datafiles=[]
+        for i in range(self.max_files):
+
+            # read data from generic file
+            datafile=""
+            command="datafile=self.file_path_%i.GetValue()"%i
+            exec command
+            if datafile!="":
+                try:
+                    this_file_data= self.read_generic_file(datafile)
+                except:
+                    print "-E- Cant read file %s" %datafile                
+            else:
+                continue
+
+                
+            # get experiment
+            command="experiment=self.protocol_info_%i.GetValue()"%i
+            exec command
+
+            # get Blab
+            labfield=["0","-1","-1"]
+            command="labfield[0]=self.file_info_Blab_%i.GetValue()"%i
+            exec command
+            command="labfield[1]=self.file_info_Blab_dec_%i.GetValue()"%i
+            exec command
+            command="labfield[2]=self.file_info_Blab_inc_%i.GetValue()"%i
+            exec command
+            
+            # get User_name
+            user_name=""
+            command="user_name=self.file_info_user_%i.GetValue()"%i
+            exec command
+            
+            # get sample-specimen naming convention
+
+            sample_naming_convenstion=["",""]
+            command="sample_naming_convenstion[0]=self.sample_naming_convention_%i.GetValue()"%i
+            exec command
+            command="sample_naming_convenstion[1]=self.sample_naming_convention_char_%i.GetValue()"%i
+            exec command
+            
+            # get site-sample naming convention
+
+            site_naming_convenstion=["",""]
+            command="site_naming_convenstion[0]=self.site_naming_convention_%i.GetValue()"%i
+            exec command
+            command="site_naming_convenstion[1]=self.site_naming_convention_char_%i.GetValue()"%i
+            exec command
+
+            #-------------------------------
+            Magic_lab_protocols={}
+            Magic_lab_protocols['IZZI'] = "LP-PI-TRM:LP-PI-BT-IZZI"
+            Magic_lab_protocols['IZ'] = "LP-PI-TRM:LP-PI-TRM-IZ"
+            Magic_lab_protocols['ZI'] = "LP-PI-TRM:LP-PI-TRM-ZI"
+            Magic_lab_protocols['ATRM 6 positions'] = "LP-AN-TRM" # LT-T-I:
+            Magic_lab_protocols['cooling rate'] = "LP-CR-TRM" # LT-T-I:
+            Magic_lab_protocols['NLT'] = "LP-TRM" # LT-T-I:
+            #------------------------------
+
+            for specimen in this_file_data.keys():
+                measurement_running_number=0
+                this_specimen_teratments=[]
+                for meas_line in this_file_data[specimen]:
+                    MagRec={}
+                    #
+                    MagRec["er_specimen_name"]=meas_line['Specimen']
+                    MagRec['er_citation_names']="This study"
+                    MagRec["er_sample_name"]=self.get_sample_name(MagRec["er_specimen_name"],sample_naming_convenstion)
+                    MagRec["er_site_name"]=self.get_site_name(MagRec["er_sample_name"],site_naming_convenstion)
+                    MagRec['er_location_name']=""
+                    MagRec['er_analyst_mail_names']=user_name 
+                    MagRec["magic_instrument_codes"]="" 
+                    MagRec["measurement_flag"]='g'
+                    MagRec["measurement_number"]="%i"%measurement_running_number
+                    MagRec['treatment_temp']="%.2f"%(float(meas_line['Treatment'].split(".")[0])+273.)
+                    MagRec["measurement_dec"]=meas_line["Declination"]
+                    MagRec["measurement_inc"]=meas_line["Inclination"]
+                    MagRec["measurement_magn_moment"]='%10.3e'%(float(meas_line["Moment"])*1e-3) # in Am^2
+                    MagRec["measurement_temp"]='273.' # room temp in kelvin
+                    MagRec["treatment_dc_field"]='%8.3e'%(float(labfield[0])*1e-6)
+                    MagRec["treatment_dc_field_phi"]="%.2f"%(float(labfield[1]))
+                    MagRec["treatment_dc_field_theta"]="%.2f"%(float(labfield[2]))
+                    MagRec["measurement_standard"]="u"
+                    MagRec["magic_experiment_name"]=MagRec["er_specimen_name"]+":"+Magic_lab_protocols[experiment]
+
+                    this_specimen_teratments.append(float(meas_line['Treatment']))                    
+                    # fill in LP and LT
+                    lab_protocols_string=Magic_lab_protocols[experiment]
+                    tr_temp=float(meas_line['Treatment'].split(".")[0])
+                    if len(meas_line['Treatment'].split("."))==1:
+                        tr_tr=0
+                    else:
+                        tr_tr=float(meas_line['Treatment'].split(".")[1])
+                    
+                    # identify the step in the experiment from Experiment_Type,
+                    # IZ/ZI/IZZI
+                    if experiment in ['IZZI','IZ','ZI']:
+                        if float(tr_temp)==0:
+                            lab_treatment="LT-NO" # NRM
+                        elif float(tr_tr)==0:                            
+                            lab_treatment="LT-T-Z"
+                            if tr_temp+0.1 in this_specimen_teratments[:-1]:
+                                lab_protocols_string="LP-PI-TRM-IZ:"+lab_protocols_string
+                            else:
+                                lab_protocols_string="LP-PI-TRM-ZI:"+lab_protocols_string
+                                                
+                        elif float(tr_tr)==10 or float(tr_tr)==1:                            
+                            lab_treatment="LT-T-I"
+                            if tr_temp+0.0 in this_specimen_teratments[:-1]:
+                                lab_protocols_string="LP-PI-TRM-ZI:"+lab_protocols_string
+                            else:
+                                lab_protocols_string="LP-PI-TRM-IZ:"+lab_protocols_string
+
+                        elif float(tr_tr)==20 or float(tr_tr)==2:                            
+                            lab_treatment="LT-PTRM-I"            
+                        else:                            
+                            print "-E- unknown measurement code specimen %s treatmemt %s"%(meas_line['Specimen'],meas_line['Treatment'])
+                        
+                    elif experiment in ['ATRM 6 positions']:
+                        lab_protocols_string="LP-AN-TRM"
+                        if float(tr_tr)==0:
+                            lab_treatment="LT-T-Z"
+                            MagRec["treatment_dc_field_phi"]='0'
+                            MagRec["treatment_dc_field_theta"]='0'
+                        else:
+                                    
+                            # find the direction of the lab field in two ways:
+                            # (1) using the treatment coding (XX.1=+x, XX.2=+y, XX.3=+z, XX.4=-x, XX.5=-y, XX.6=-z)
+                            tdec=[0,90,0,180,270,0,0,90,0]
+                            tinc=[0,0,90,0,0,-90,0,0,90]
+                            if tr_tr < 10:
+                                ipos_code=int(tr_tr)-1
+                            else:
+                                ipos_code=int(tr_tr/10)-1
+                            # (2) using the magnetization
+                            DEC=float(meas_line["Declination"])
+                            INC=float(meas_line["Inclination"])
+                            if INC < 45 and INC > -45:
+                                if DEC>315  or DEC<45: ipos_guess=0
+                                if DEC>45 and DEC<135: ipos_guess=1
+                                if DEC>135 and DEC<225: ipos_guess=3
+                                if DEC>225 and DEC<315: ipos_guess=4
+                            else:
+                                if INC >45: ipos_guess=2
+                                if INC <-45: ipos_guess=5
+                            # prefer the guess over the code
+                            ipos=ipos_guess
+                            # check it 
+                            if tr_tr!= 7 and tr_tr!= 70:
+                                if ipos_guess!=ipos_code:
+                                    print "-W- WARNING: check specimen %s step %s, ATRM measurements, coding does not match the direction of the lab field"%(specimen,meas_line['Treatment'])
+                            MagRec["treatment_dc_field_phi"]='%7.1f' %(tdec[ipos])
+                            MagRec["treatment_dc_field_theta"]='%7.1f'% (tinc[ipos])
+                                
+                            if float(tr_tr)==70 or float(tr_tr)==7: # alteration check as final measurement
+                                    lab_treatment="LT-PTRM-I"
+                            else:
+                                    lab_treatment="LT-T-I"
+                                
+                    elif experiment in ['cooling rate']:
+                        print "Dont support yet cooling rate experiment file. Contact rshaar@ucsd.edu"
+                    elif experiment in ['NLT']:
+                        if float(tr_tr)==0:
+                            lab_protocols_string="LP-TRM"
+                            lab_treatment="LT-T-Z"
+                        else:
+                            lab_protocols_string="LP-TRM"
+                            lab_treatment="LT-T-I"
+                            
+                    MagRec["magic_method_codes"]=lab_treatment+":"+lab_protocols_string
+                    line_string=""
+                    for i in range(len(magic_headers)):
+                        line_string=line_string+MagRec[magic_headers[i]]+"\t"
+                    fout.write(line_string[:-1]+"\n")
+
+        #--
+        MSG="files converted to MagIC format and merged into one file:\n magic_measurements.txt\n "            
+        dlg1 = wx.MessageDialog(None,caption="Message:", message=MSG ,style=wx.OK|wx.ICON_INFORMATION)
+        dlg1.ShowModal()
+        dlg1.Destroy()
+
+        self.Destroy()
+
+
+    def on_cancelButton(self,event):
+        self.Destroy()
+
+    def get_sample_name(self,specimen,sample_naming_convenstion):
+        if sample_naming_convenstion[0]=="sample=specimen":
+            sample=specimen
+        elif sample_naming_convenstion[0]=="no. of terminate characters":
+            n=int(sample_naming_convenstion[1])*-1
+            sample=specimen[:n]
+        elif sample_naming_convenstion[0]=="charceter delimited":
+            d=sample_naming_convenstion[1]
+            sample_splitted=specimen.split(d)
+            if len(sample_splitted)==1:
+                sample=sample_splitted[0]
+            else:
+                sample=d.join(sample_splitted[:-1])
+        return sample
+                            
+    def get_site_name(self,sample,site_naming_convenstion):
+        if site_naming_convenstion[0]=="site=sample":
+            site=sample
+        elif site_naming_convenstion[0]=="no. of terminate characters":
+            n=int(site_naming_convenstion[1])*-1
+            site=sample[:n]
+        elif site_naming_convenstion[0]=="charceter delimited":
+            d=site_naming_convenstion[1]
+            site_splitted=sample.split(d)
+            if len(site_splitted)==1:
+                site=site_splitted[0]
+            else:
+                site=d.join(site_splitted[:-1])
+        
+        return site
+            
+    
 #--------------------------------------------------------------    
 # Run the GUI
 #--------------------------------------------------------------

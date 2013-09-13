@@ -2984,7 +2984,7 @@ def core_depthplot():
         open(opath+'/magic_measurements.txt') # check if pmag_results file exists
         outstring="core_depthplot.py -WD "+opath # get list of available plots
     except IOError:
-        tkMessageBox.showinfo("Info",'Must assemble measurements first')
+        tkMessageBox.showinfo("Info",'Must combin measurements first')
         return
     try:
         open(opath+"/er_samples.txt")
