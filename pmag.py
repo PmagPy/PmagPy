@@ -4899,7 +4899,7 @@ def doigrf(long,lat,alt,date,**kwargs):
         if 'mod3k' in kwargs.keys() and kwargs['mod3k']=='arch3k':
             import arch3k as cals3k # use ARCH3k coefficients
         else:
-            import cals3k # goes back to 2000 BC now
+            import cals3k_4b as cals3k # goes back to 2000 BC now
         date0=date-date%10
         field1=numpy.array(cals3k.coeffs(date0))
         field2=numpy.array(cals3k.coeffs(date0+10.))
