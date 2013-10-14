@@ -5736,7 +5736,7 @@ def parse_site(sample,convention,Z):
 # Site-Sample format eg:  BG94-1  (used by PGL lab in Beijing)
 #
     if convention=="2":
-        parts=sample.split('-')
+        parts=sample.strip('-').split('-')
         return parts[0]
 #
 # Sample is XXXX.YY where XXX is site and YY is sample 

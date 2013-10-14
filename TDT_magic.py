@@ -38,6 +38,7 @@ def main():
    2 line header:
    Thellier-tdt
    XX.0  (field in microtesla)
+   blank line indicates new specimen
    Data:
    Spec Treat Intensity Declination Inclination
         
@@ -121,7 +122,9 @@ def main():
     data=input.readlines()
     rec=data[1].split()
     labfield=float(rec[0])*1e-6
-    for line in data[2:]:
+    ind=2
+    for line in data[ind:]:
+      if line!="":
         rec=line.split()
         if len(rec)>2:
             MagRec={}
@@ -180,10 +183,13 @@ def main():
             MagRec["er_citation_names"]=citation
             MagRec["magic_method_codes"]=meas_type
             MagRec["measurement_flag"]='g'
-            MagRec["er_specimen_name"]=rec[0]
             MagRec["measurement_standard"]='u'
             MagRec["measurement_number"]='1'
             MagRecs.append(MagRec) 
+      else: # new specimen
+        rec=data[ind+2].split()
+        labfield=float(rec[0])*1e-6
+        ind+=3
     MagOuts=pmag.measurements_methods(MagRecs,noave)
     pmag.magic_write(meas_file,MagOuts,'magic_measurements')
     print "results put in ",meas_file
