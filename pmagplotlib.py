@@ -1422,6 +1422,7 @@ def plotCDF(fignum,data,xlab,sym,title,**kwargs):
   
     pylab.xlabel(xlab)
     pylab.ylabel('Cumulative Distribution')
+    pylab.axis([0,numpy.max(X)*1.1,0,1.1])
     pylab.title(title)
     return X,Y
 #
