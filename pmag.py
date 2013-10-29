@@ -3605,10 +3605,10 @@ def get_unf(N):
 # subroutine to retrieve N uniformly distributed directions
 # using Fisher et al. (1987) way.
 #
-# get uniform direcctions (x,y,z)
+# get uniform directions  [dec,inc]
     z=random.uniform(-1.,1.,size=N)
-    t=random.uniform(0.,360.,size=N)
-    i=numpy.arcsin(z)*180./numpy.pi
+    t=random.uniform(0.,360.,size=N) # decs
+    i=numpy.arcsin(z)*180./numpy.pi # incs
     return numpy.array([t,i]).transpose()
 
 #def get_unf(N): #Jeff's way
