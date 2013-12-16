@@ -242,7 +242,7 @@ def main():
             methcode="LP-IRM"
             irmunits="mT"
         if "I3d" in codes:
-            methcode="LP-IRM-3D"
+            methcode="LT-T-Z:LP-IRM-3D"
         if "S" in codes: 
             demag="S"
             methcode="LP-PI-TRM:LP-PI-ALT-AFARM"
@@ -609,7 +609,7 @@ def main():
                 MagRec["magic_instrument_codes"]=instcode
                 MagRec["er_analyst_mail_names"]=user
                 MagRec["er_citation_names"]=citation
-                if methcode=="LP-IRM-3D": meas_type=methcode
+                if "LP-IRM-3D" in methcode : meas_type=methcode
                 #MagRec["magic_method_codes"]=methcode.strip(':')
                 MagRec["magic_method_codes"]=meas_type
                 MagRec["measurement_flag"]='g'
@@ -619,6 +619,7 @@ def main():
                 else:
                     MagRec["measurement_standard"]='u'
                 MagRec["measurement_number"]='1'
+                print MagRec['treatment_temp']
                 MagRecs.append(MagRec) 
     MagOuts=pmag.measurements_methods(MagRecs,noave)
     pmag.magic_write(meas_file,MagOuts,'magic_measurements')

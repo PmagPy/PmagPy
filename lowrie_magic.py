@@ -61,7 +61,7 @@ def main():
         DIMs,Temps=[],[]
         for dat in specdata: # step through the data
             DIMs.append([float(dat['measurement_dec']),float(dat['measurement_inc']),float(dat['measurement_magn_moment'])])
-            Temps.append(float(dat['treatment_temp'])+273.)
+            Temps.append(float(dat['treatment_temp'])-273.)
         carts=pmag.dir2cart(DIMs).transpose()
         if norm==1: # want to normalize
             nrm=(DIMs[0][2]) # normalize by NRM

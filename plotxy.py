@@ -3,6 +3,7 @@ import matplotlib,sys
 matplotlib.use("TkAgg")
 import pylab
 pylab.ion()
+import numpy
 def main():
     """
     NAME
@@ -30,6 +31,7 @@ def main():
         -ylab YLAB
         -l  connect symbols with lines
         -fmt [svg,png,pdf,eps] specify output format, default is svg
+        -poly X   plot a degree X polynomial through the data
     """
     fmt='svg' 
     col1,col2=0,1
@@ -67,6 +69,9 @@ def main():
         xmax=float(sys.argv[ind+2])
         ymin=float(sys.argv[ind+3])
         ymax=float(sys.argv[ind+4])
+    if '-poly' in sys.argv:
+        ind=sys.argv.index('-poly')
+        degr=sys.argv[ind+1]
     if '-sym' in sys.argv:
         ind=sys.argv.index('-sym')
         sym=sys.argv[ind+1]
@@ -85,6 +90,13 @@ def main():
         Y.append(float(rec[col2]))
         if '-xsig' in sys.argv:Xerrs.append(float(rec[col3]))
         if '-ysig' in sys.argv:Yerrs.append(float(rec[col4]))
+    if '-poly' in sys.argv:
+          coeffs=numpy.polyfit(X,Y,degr)
+          polynomial=numpy.poly1d(coeffs)
+          xs=numpy.linspace(numpy.min(X),numpy.max(X),10)
+          ys=polynomial(xs)
+          pylab.plot(xs,ys)
+          print polynomial
     if sym!='':pylab.scatter(X,Y,marker=sym[1],c=sym[0],s=size)
     if '-xsig' in sys.argv and '-ysig' in sys.argv:
         pylab.errorbar(X,Y,xerr=Xerrs,yerr=Yerrs,fmt=None)

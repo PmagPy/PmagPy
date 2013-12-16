@@ -171,6 +171,14 @@ def plotLINES(fignum,line,sym,x,y):
 
 def plotXY(fignum,X,Y,**kwargs):
     pylab.figure(num=fignum)
+#    if 'poly' in kwargs.keys():
+#          coeffs=numpy.polyfit(X,Y,kwargs['poly']) 
+#          polynomial=numpy.poly1d(coeffs)
+#          xs=numpy.arange(numpy.min(X),numpy.max(X))
+#          ys=polynomial(xs) 
+#          pylab.plot(xs,ys)
+#          print coefs
+#          print polynomial
     if 'sym' in kwargs.keys():
         sym=kwargs['sym']
     else: sym='ro'
