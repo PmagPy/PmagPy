@@ -3,6 +3,10 @@
 #============================================================================================
 # LOG HEADER:
 #============================================================================================
+# Thellier_GUI Version 2.09 01/05/2014
+# Change STDEV-OPT algorithm from minimizing the standard deviaion to minimzing the precentage of standrd deviation.
+# Resize acceptance criterai dialog window
+#
 # Thellier_GUI Version 2.08 12/04/2013
 # Add Additivity checks code
 #
@@ -55,7 +59,7 @@
 #============================================================================================
 
 global CURRENT_VRSION
-CURRENT_VRSION = "v.2.07"
+CURRENT_VRSION = "v.2.09"
 import matplotlib
 matplotlib.use('WXAgg')
 
@@ -2101,10 +2105,21 @@ class Arai_GUI(wx.Frame):
                 #try:
                     self.WD=path
                     self.magic_file=path+"/"+"magic_measurements.txt"
-                    new_Data,new_Data_hierarchy=self.get_data()
                     new_Data_info=self.get_data_info()
+                    self.Data_info["er_samples"].update(new_Data_info["er_samples"])
+                    self.Data_info["er_sites"].update(new_Data_info["er_sites"])
+                    self.Data_info["er_ages"].update(new_Data_info["er_ages"])
+                   
+                    new_Data,new_Data_hierarchy=self.get_data()
+                    if new_Data=={}:
+                        print "-E- ERROR importing MagIC data from path."
+                        continue                        
+                    #for s in new_Data.keys():
+                    #    if 'crblock' in new_Data[s].keys():
+                    #        print s,': found crblock in new data'
+                    #    if 'cooling_rate_data' in new_Data[s].keys():
+                    #        print s,': cooling_rate_data in new data'
 
-                    self.Data.update(new_Data)
                     self.Data_hierarchy['samples'].update(new_Data_hierarchy['samples'])
                     self.Data_hierarchy['sites'].update(new_Data_hierarchy['sites'])
                     self.Data_hierarchy['specimens'].update(new_Data_hierarchy['specimens'])
@@ -2112,15 +2127,18 @@ class Arai_GUI(wx.Frame):
                     self.Data_hierarchy['site_of_specimen'].update(new_Data_hierarchy['site_of_specimen'])   
                     self.Data_hierarchy['site_of_sample'].update(new_Data_hierarchy['site_of_sample'])   
 
-                    self.Data_info["er_samples"].update(new_Data_info["er_samples"])
-                    self.Data_info["er_sites"].update(new_Data_info["er_sites"])
-                    self.Data_info["er_ages"].update(new_Data_info["er_ages"])
+                    self.Data.update(new_Data)
                 #except:
-                #    pass
         self.specimens=self.Data.keys()         # get list of specimens
         self.specimens.sort()                   # get list of specimens
 
-        
+        #temp patch
+        #for s in self.specimens:
+        #    if 'crblock' in self.Data[s].keys():
+        #        print s,': found crblock'
+        #    if 'cooling_rate_data' in self.Data[s].keys():
+        #         print s,': cooling_rate_data'
+               
         # updtate plots and data
         if not FIRST_RUN:
             self.WD=self.currentDirectory
@@ -3220,10 +3238,11 @@ class Arai_GUI(wx.Frame):
                     result=a
             return(result)
 
-        def find_sample_min_std (Intensities):
+        def find_sample_min_std (Intensities): 
+            #find the best interpretation with the minimum stratard deviation (percent)
                 
             Best_array=[]
-            best_array_std=inf
+            best_array_std_perc=inf
             Best_array_tmp=[]
             Best_interpretations={}
             Best_interpretations_tmp={}
@@ -3239,9 +3258,9 @@ class Arai_GUI(wx.Frame):
                         Best_array_tmp.append(closest_value)
                         Best_interpretations_tmp[other_specimen]=closest_value                   
 
-                    if std(Best_array_tmp,ddof=1)<best_array_std:
+                    if std(Best_array_tmp,ddof=1)/mean(Best_array_tmp)<best_array_std_perc:
                         Best_array=Best_array_tmp
-                        best_array_std=std(Best_array,ddof=1)
+                        best_array_std_perc=std(Best_array,ddof=1)/mean(Best_array_tmp)
                         Best_interpretations=copy.deepcopy(Best_interpretations_tmp)
                         Best_interpretations_tmp={}
             return Best_interpretations,mean(Best_array),std(Best_array,ddof=1)
@@ -3253,7 +3272,7 @@ class Arai_GUI(wx.Frame):
 
           # make a new dictionary named "tmp_Intensities" with all grade A interpretation sorted. 
           tmp_Intensities={}
-          Acceptable_sample_min,Acceptable_sample_max="",""
+          Acceptable_sample_min_mean,Acceptable_sample_max_mean="",""
           for this_specimen in Intensities.keys():
             B_list=[B  for B in Intensities[this_specimen]]
             if len(B_list)>0:
@@ -3270,7 +3289,8 @@ class Arai_GUI(wx.Frame):
                       specimen_to_remove=specimen
                       B_tmp_min=min(tmp_Intensities[specimen])
               if std(B_tmp,ddof=1)<=acceptance_criteria["sample_int_sigma_uT"] or 100*(std(B_tmp,ddof=1)/mean(B_tmp))<=acceptance_criteria["sample_int_sigma_perc"]:
-                  Acceptable_sample_min=mean(B_tmp)
+                  Acceptable_sample_min_mean=mean(B_tmp)
+                  Acceptable_sample_min_std=std(B_tmp,ddof=1)
                   #print "min value,std,",mean(B_tmp),std(B_tmp),100*(std(B_tmp)/mean(B_tmp))
                   break
               else:
@@ -3294,7 +3314,8 @@ class Arai_GUI(wx.Frame):
                       specimen_to_remove=specimen
                       B_tmp_max=max(tmp_Intensities[specimen])
               if std(B_tmp,ddof=1)<=acceptance_criteria["sample_int_sigma_uT"] or 100*(std(B_tmp,ddof=1)/mean(B_tmp))<=acceptance_criteria["sample_int_sigma_perc"]:
-                  Acceptable_sample_max=mean(B_tmp)
+                  Acceptable_sample_max_mean=mean(B_tmp)
+                  Acceptable_sample_max_std=std(B_tmp,ddof=1)
                   #print "max value,std,",mean(B_tmp),std(B_tmp),100*(std(B_tmp)/mean(B_tmp))
 
                   break
@@ -3303,9 +3324,9 @@ class Arai_GUI(wx.Frame):
                   if len(tmp_Intensities[specimen_to_remove])<1:
                       break
 
-          if Acceptable_sample_min=="" or Acceptable_sample_max=="":
-              return(0.,0.)
-          return(Acceptable_sample_min,Acceptable_sample_max) 
+          if Acceptable_sample_min_mean=="" or Acceptable_sample_max_mean=="":
+              return(0.,0.,0.,0.)
+          return(Acceptable_sample_min_mean,Acceptable_sample_min_std,Acceptable_sample_max_mean,Acceptable_sample_max_std) 
 
         ############
         # End function definitions
@@ -3405,7 +3426,7 @@ class Arai_GUI(wx.Frame):
             if self.accept_new_parameters['average_by_sample_or_site']=='sample':
                 Fout_STDEV_OPT_samples=open(self.WD+"/thellier_interpreter/thellier_interpreter_STDEV-OPT_samples.txt",'w')
                 Fout_STDEV_OPT_samples.write(criteria_string)
-                Fout_STDEV_OPT_samples.write("er_sample_name\tsample_int_n\tsample_int_uT\tsample_int_sigma_uT\tsample_int_sigma_perc\tsample_int_interval_uT\tsample_int_interval_perc\tWarning\n")
+                Fout_STDEV_OPT_samples.write("er_sample_name\tsample_int_n\tsample_int_uT\tsample_int_sigma_uT\tsample_int_sigma_perc\tsample_int_min_uT\tsample_int_min_sigma_uT\tsample_int_max_uT\tsample_int_max_sigma_uT\tsample_int_interval_uT\tsample_int_interval_perc\tWarning\n")
             else:
                 Fout_STDEV_OPT_sites=open(self.WD+"/thellier_interpreter/thellier_interpreter_STDEV-OPT_sites.txt",'w')
                 Fout_STDEV_OPT_sites.write(criteria_string)
@@ -3513,8 +3534,12 @@ class Arai_GUI(wx.Frame):
                         String=String+"%.0f\t"%(float(pars["measurement_step_min"])-273.)
                         String=String+"%.0f\t"%(float(pars["measurement_step_max"])-273.)
                         String=String+"%.0f\t"%(float(pars["lab_dc_field"])*1e6)
-                        if "AC_specimen_correction_factor" in pars.keys():
-                           String=String+"%.2f\t"%float(pars["AC_specimen_correction_factor"])
+                        #if "Anisotropy_correction_factor" in All_grade_A_Recs[specimen][TEMP].keys():
+                        #    Anisotropy_correction_factor="%.2f"%(All_grade_A_Recs[specimen][TEMP]["Anisotropy_correction_factor"])
+                        #if "AC_specimen_correction_factor" in pars.keys():
+                        #   String=String+"%.2f\t"%float(pars["AC_specimen_correction_factor"])
+                        if "Anisotropy_correction_factor" in pars.keys():
+                           String=String+"%.2f\t"%float(pars["Anisotropy_correction_factor"])
                         else:
                            String=String+"-\t"
                         if  float(pars["NLT_specimen_correction_factor"])!=-999:
@@ -3654,7 +3679,8 @@ class Arai_GUI(wx.Frame):
         #--------------------------------------------------------------
         # Find the STDEV-OPT 'best mean':
         # the interprettaions that give
-        # the minimum standrad deviation.
+        # the minimum standrad deviation (perc!)
+        # not nesseserily the standrad deviation in microT
         #
         #--------------------------------------------------------------
 
@@ -3711,8 +3737,7 @@ class Arai_GUI(wx.Frame):
                             pars=All_grade_A_Recs[specimen][k]
                             if "AC_anisotropy_type" in pars.keys():
                                 if "AC_WARNING" in pars.keys():
-                                    if "TRM" in pars["AC_WARNING"] and  pars["AC_anisotropy_type"]== "ATRM" \
-                                       or "ARM" in pars["AC_WARNING"] and  pars["AC_anisotropy_type"]== "AARM":
+                                    if "TRM" in pars["AC_WARNING"] and pars["AC_anisotropy_type"]== "ATRM" and "alteration" in pars["AC_WARNING"]:
                                         continue
                                     AC_correction_factor=max(AC_correction_factor,pars["Anisotropy_correction_factor"])
                         if AC_correction_factor!=0:
@@ -3733,9 +3758,8 @@ class Arai_GUI(wx.Frame):
                                 ignore_specimen=True
                             elif "AC_WARNING" in pars.keys():
                                 #if "alteration check" in pars["AC_WARNING"]:
-                                if True:
-                                    if "TRM" in pars["AC_WARNING"] and  pars["AC_anisotropy_type"]== "ATRM" \
-                                       or "ARM" in pars["AC_WARNING"] and  pars["AC_anisotropy_type"]== "AARM":
+                                    if pars["AC_anisotropy_type"]== "ATRM" and "TRM" in pars["AC_WARNING"] and  "alteration" in pars["AC_WARNING"]  : 
+                                       #or "ARM" in pars["AC_WARNING"] and  pars["AC_anisotropy_type"]== "AARM":
                                         ignore_specimen=True
                             if ignore_specimen: 
                                 warning_messeage = warning_messeage + "-W- WARNING: specimen %s is exluded from sample %s because it doesnt have anisotropy correction, and other specimens are very anistropic\n"%(specimen,sample_or_site)
@@ -3750,7 +3774,7 @@ class Arai_GUI(wx.Frame):
                         
                         if len(tmp_Grade_A_sorted[sample_or_site].keys())>=self.accept_new_parameters['sample_int_n']:
                             Best_interpretations,best_mean,best_std=find_sample_min_std(tmp_Grade_A_sorted[sample_or_site])
-                            sample_acceptable_min,sample_acceptable_max = find_sample_min_max_interpretation (tmp_Grade_A_sorted[sample_or_site],self.accept_new_parameters)
+                            sample_acceptable_min,sample_acceptable_min_std,sample_acceptable_max,sample_acceptable_max_std = find_sample_min_max_interpretation (tmp_Grade_A_sorted[sample_or_site],self.accept_new_parameters)
                             sample_int_interval_uT=sample_acceptable_max-sample_acceptable_min
                             sample_int_interval_perc=100*((sample_acceptable_max-sample_acceptable_min)/best_mean)       
 
@@ -3862,18 +3886,37 @@ class Arai_GUI(wx.Frame):
 
 
             if self.accept_new_parameters['sample_int_stdev_opt']:
-                n_no_atrm=0
+                n_anistropy=0
+                n_anistropy_fail=0
+                n_anistropy_pass=0
+                for specimen in Grade_A_sorted[sample_or_site].keys():
+                    if "AniSpec" in self.Data[specimen].keys():
+                        n_anistropy+=1
+                        if 'pars' in self.Data[specimen].keys() and "AC_WARNING" in  self.Data[specimen]['pars'].keys():
+                            #if "F-test" in self.Data[specimen]['pars']["AC_WARNING"] \
+                            if  self.Data[specimen]['pars']["AC_anisotropy_type"]=='ATRM' and "alteration" in self.Data[specimen]['pars']["AC_WARNING"]:
+                                n_anistropy_fail+=1
+                            else:
+                                n_anistropy_pass+=1
+                               
+                                 
+                            
+                no_cooling_rate=True
+                n_cooling_rate=0
+                n_cooling_rate_pass=0
+                n_cooling_rate_fail=0
                 
                 for specimen in Grade_A_sorted[sample_or_site].keys():
-                    if "AniSpec" not in self.Data[specimen].keys():
-                        n_no_atrm+=1
-                        
-                no_cooling_rate=True
-                for specimen in Grade_A_sorted[sample_or_site].keys():
-                    if "cooling_rate_data" in self.Data[specimen].keys():
-                        if "CR_correction_factor" in self.Data[specimen]["cooling_rate_data"].keys():
-                            if self.Data[specimen]["cooling_rate_data"]["CR_correction_factor"]!= -1 and self.Data[specimen]["cooling_rate_data"]["CR_correction_factor"]!= -999:
-                                no_cooling_rate=False
+                        if "cooling_rate_data" in self.Data[specimen].keys():
+                            n_cooling_rate+=1
+                            if "CR_correction_factor" in self.Data[specimen]["cooling_rate_data"].keys():
+                                if self.Data[specimen]["cooling_rate_data"]["CR_correction_factor"]!= -1 and self.Data[specimen]["cooling_rate_data"]["CR_correction_factor"]!= -999:
+                                    no_cooling_rate=False
+                                if 'CR_correction_factor_flag' in self.Data[specimen]["cooling_rate_data"].keys():
+                                    if 'calculated' in self.Data[specimen]['cooling_rate_data']['CR_correction_factor_flag']:
+                                        n_cooling_rate_pass+=1
+                                    elif 'failed'  in self.Data[specimen]['cooling_rate_data']['CR_correction_factor_flag']:
+                                        n_cooling_rate_fail+=1 
                                 
  
              #--------------------------------------------------------------
@@ -3882,7 +3925,7 @@ class Arai_GUI(wx.Frame):
     
                 if len(Grade_A_sorted[sample_or_site].keys())>=self.accept_new_parameters['sample_int_n'] and len(Grade_A_sorted[sample_or_site].keys()) > 1:
                     Best_interpretations,best_mean,best_std=find_sample_min_std(Grade_A_sorted[sample_or_site])
-                    sample_acceptable_min,sample_acceptable_max = find_sample_min_max_interpretation (Grade_A_sorted[sample_or_site],self.accept_new_parameters)
+                    sample_acceptable_min,sample_acceptable_min_std,sample_acceptable_max,sample_acceptable_max_std = find_sample_min_max_interpretation (Grade_A_sorted[sample_or_site],self.accept_new_parameters)
                     sample_int_interval_uT=sample_acceptable_max-sample_acceptable_min
                     sample_int_interval_perc=100*((sample_acceptable_max-sample_acceptable_min)/best_mean)       
                     TEXT= "-I- sample %s 'STDEV-OPT interpretation: "%sample
@@ -3912,8 +3955,11 @@ class Arai_GUI(wx.Frame):
                                         #B_lab=float(Redo_data_specimens[specimen][Best_interpretations[specimen]]['lab_dc_field'])*1e6
                                         B_lab=float(All_grade_A_Recs[specimen][TEMP]['lab_dc_field'])*1e6
                                         sample=All_grade_A_Recs[specimen][TEMP]['er_sample_name']
-                                        if 'AC_specimen_correction_factor' in All_grade_A_Recs[specimen][TEMP].keys():
-                                            Anisotropy_correction_factor="%.2f"%float(All_grade_A_Recs[specimen][TEMP]['AC_specimen_correction_factor'])
+                                        if "Anisotropy_correction_factor" in All_grade_A_Recs[specimen][TEMP].keys():
+                                            Anisotropy_correction_factor="%.2f"%(All_grade_A_Recs[specimen][TEMP]["Anisotropy_correction_factor"])
+                                            #AC_correction_type=pars["AC_anisotropy_type"]
+                                        #if 'AC_specimen_correction_factor' in All_grade_A_Recs[specimen][TEMP].keys():
+                                        #    Anisotropy_correction_factor="%.2f"%float(All_grade_A_Recs[specimen][TEMP]['AC_specimen_correction_factor'])
                                         else:
                                             Anisotropy_correction_factor="-"                
                                         if  All_grade_A_Recs[specimen][TEMP]["NLT_specimen_correction_factor"] != -1:
@@ -3935,12 +3981,21 @@ class Arai_GUI(wx.Frame):
                                                      
                             # write the interpretation to the sample file
                           
-                            if n_no_atrm>0:
-                                 WARNING=WARNING+"% i specimens with no anisotropy correction; "%int(n_no_atrm)
+                            if n_anistropy == 0:
+                                 WARNING=WARNING+"No anisotropy corrections; "
+                            else:    
+                                 WARNING=WARNING+"%i / %i specimens pass anisotropy criteria; "%(int(n_anistropy)-int(n_anistropy_fail),int(n_anistropy))
+                            
                             if no_cooling_rate:
                                  WARNING=WARNING+" No cooling rate corrections; "
-                            
-                            String="%s\t%i\t%.2f\t%.2f\t%.3f\t%.2f\t%.2f\t%s\n"%(sample_or_site,len(Best_interpretations),best_mean,best_std,100*(best_std/best_mean),sample_int_interval_uT,sample_int_interval_perc,WARNING)
+                            else:
+                                 WARNING=WARNING+ "%i / %i specimens pass cooling rate criteria ;"%(int(n_cooling_rate_pass),int(n_cooling_rate))
+                                                      
+                            String="%s\t%i\t%.2f\t%.2f\t%.2f\t%.2f\t%.2f\t%.2f\t%.3f\t%.2f\t%.2f\t%s\n"%\
+                            (sample_or_site,len(Best_interpretations),best_mean,best_std,100*(best_std/best_mean),\
+                            sample_acceptable_min,sample_acceptable_min_std,
+                            sample_acceptable_max,sample_acceptable_max_std,\
+                            sample_int_interval_uT,sample_int_interval_perc,WARNING)
                             if self.accept_new_parameters['average_by_sample_or_site']=='sample':
                                 Fout_STDEV_OPT_samples.write(String)
                             else:
@@ -5521,9 +5576,8 @@ class Arai_GUI(wx.Frame):
         #print "-I- draw Zij figures is", runtime_sec3,"seconds"
 
         #-----------------------------------------------------------
-        # Draw Equal area plot
+        # Draw Cooling rate data
         #-----------------------------------------------------------
-
 
         if self.preferences['show_CR_plot'] ==False or 'crblock' not in self.Data[self.s].keys():
 
@@ -5995,6 +6049,7 @@ class Arai_GUI(wx.Frame):
               
         else:
           self.CR_factor_window.SetValue("None")
+          self.CR_factor_window.SetBackgroundColour(wx.NullColor)  
 
         # sample
         self.write_sample_box()
@@ -6704,7 +6759,7 @@ class Arai_GUI(wx.Frame):
                            
                else:
                    self.Data[s]['AniSpec'][TYPE]['anisotropy_sigma']=""
-                   self.Data[s]['AniSpec'][TYPE]['ftest']=1e10
+                   self.Data[s]['AniSpec'][TYPE]['ftest']=99999
      
                 
                if 'anisotropy_alt' in self.Data[s]['AniSpec'][TYPE].keys() and self.Data[s]['AniSpec'][TYPE]['anisotropy_alt']!="":
@@ -6715,12 +6770,20 @@ class Arai_GUI(wx.Frame):
                else:
                    self.Data[s]['AniSpec'][TYPE]['anisotropy_alt']=""
 
-                   
-               # if AARM passes, use the AARM.    
-               if TYPE=='AARM' and red_flag==False:
-                   break
-               else:
-                   pass
+               self.Data[s]['AniSpec'][TYPE]['S_matrix']=S_matrix 
+           #--------------------------  
+           # if AARM passes all, use the AARM.
+           # if ATRM fail alteration use the AARM
+           # if both fail F-test: use AARM
+           if len(TYPES)>1:
+               if "ATRM tensor fails alteration check" in pars["AC_WARNING"]:
+                   TYPE='AARM'
+               elif "ATRM tensor fails F-test" in pars["AC_WARNING"]:
+                   TYPE='AARM'
+               else: 
+                   TYPE=='AARM'
+           S_matrix= self.Data[s]['AniSpec'][TYPE]['S_matrix']
+           #---------------------------        
            TRM_anc_unit=array(pars['specimen_PCA_v1'])/sqrt(pars['specimen_PCA_v1'][0]**2+pars['specimen_PCA_v1'][1]**2+pars['specimen_PCA_v1'][2]**2)
            B_lab_unit=self.dir2cart([ self.Data[s]['Thellier_dc_field_phi'], self.Data[s]['Thellier_dc_field_theta'],1])
            #B_lab_unit=array([0,0,-1])
@@ -7542,7 +7605,7 @@ class Arai_GUI(wx.Frame):
       # Searching and sorting NLT Data 
       #print "searching NLT data"
 
-      for s in self.specimens:
+      for s in sids:
           datablock = Data[s]['datablock']
           trmblock = Data[s]['trmblock']
 
@@ -7621,6 +7684,27 @@ class Arai_GUI(wx.Frame):
           # NLT procedure following Shaar et al (2010)        
           
           if len(trmblock)>2:
+              red_flag=False
+
+              # check alteration
+              B_alterations=[]
+              for i in range(len(B_NLT)):
+                  if list(B_NLT).count(B_NLT[i])>1:
+                      if B_NLT[i] not in B_alterations:
+                        B_alterations.append(B_NLT[i]) 
+              for B in B_alterations:
+                  M=[]
+                  for i in range(len(B_NLT)):
+                      if B_NLT[i]==B:
+                          M.append(M_NLT[i])
+                  if (max(M)-min(M))/mean(M) > 0.05:
+                    self.GUI_log.write("-E- ERROR: NLT for specimen %s does not pass 5 perc alteration check: %.3f \n" %(s,(max(M)-min(M))/mean(M)))
+                    red_flag=True
+                    
+                      
+                  
+          if len(trmblock)>2 and not red_flag:
+           
               B_NLT=append([0.],B_NLT)
               M_NLT=append([0.],M_NLT)
               
@@ -7673,7 +7757,7 @@ class Arai_GUI(wx.Frame):
       #
       #------------------------------------------------
 
-      for s in self.specimens:
+      for s in sids:
           datablock = Data[s]['datablock']
           trmblock = Data[s]['trmblock']
           if 'crblock' in Data[s].keys():
@@ -7691,11 +7775,11 @@ class Arai_GUI(wx.Frame):
 ##                  continue                  
               try:
                   ancient_cooling_rate=float(self.Data_info["er_samples"][sample]['sample_cooling_rate'])
-                  ancient_cooling_rate=ancient_cooling_rate/(1e6*365*24*60) # change to K/minute
+                  ancient_cooling_rate=ancient_cooling_rate/(1e6*365.*24.*60.) # change to K/minute
               except:
-                  self.GUI_log.write("-W- Cant find ancient cooling rate estimation for sample %s"%sample)
+                  self.GUI_log.write("-W- Cant find ancient cooling rate estimation for sample %s\n"%sample)
                   continue
-              self.Data_info["er_samples"]
+              #self.Data_info["er_samples"]
               cooling_rate_data={}
               cooling_rate_data['pairs']=[]
               cooling_rates_list=[]
@@ -7769,7 +7853,7 @@ class Arai_GUI(wx.Frame):
               if alteration_check_perc<=5:    
                   cooling_rate_data['CR_correction_factor_flag']="calculated"
                   cooling_rate_data['CR_correction_factor']=1./(y0)
-                  
+              
               Data[s]['cooling_rate_data']= cooling_rate_data     
 
               
@@ -9246,7 +9330,7 @@ class Criteria_Dialog(wx.Dialog):
             command="self.set_specimen_%s=wx.TextCtrl(pnl1,style=wx.TE_CENTER,size=(50,20))"%key
             exec command
         self.set_specimen_scat=wx.CheckBox(pnl1, -1, '', (50, 50))        
-        criteria_specimen_window = wx.GridSizer(2, 14, 12, 12)
+        criteria_specimen_window = wx.GridSizer(2, 14, 6, 6)
         criteria_specimen_window.AddMany( [(wx.StaticText(pnl1,label="int_n",style=wx.TE_CENTER), wx.EXPAND),
             (wx.StaticText(pnl1,label="int_ptrm_n",style=wx.TE_CENTER), wx.EXPAND),
             (wx.StaticText(pnl1,label="FRAC",style=wx.TE_CENTER), wx.EXPAND),
@@ -9284,7 +9368,7 @@ class Criteria_Dialog(wx.Dialog):
         bSizer1a = wx.StaticBoxSizer( wx.StaticBox( pnl1, wx.ID_ANY, "anisotropy criteria" ), wx.HORIZONTAL )
         self.set_anisotropy_alt=wx.TextCtrl(pnl1,style=wx.TE_CENTER,size=(50,20))
         self.check_aniso_ftest= wx.CheckBox(pnl1, -1, '', (10, 10))
-        criteria_aniso_window = wx.GridSizer(2, 2, 12, 12)
+        criteria_aniso_window = wx.GridSizer(2, 2, 6, 6)
         criteria_aniso_window.AddMany( [(wx.StaticText(pnl1,label="use F test as acceptance criteria",style=wx.TE_CENTER), wx.EXPAND),
             (wx.StaticText(pnl1,label="alteration check threshold value (%)",style=wx.TE_CENTER), wx.EXPAND),
             (self.check_aniso_ftest),
@@ -9295,7 +9379,7 @@ class Criteria_Dialog(wx.Dialog):
 
         #-----------        
 
-        bSizer2 = wx.StaticBoxSizer( wx.StaticBox( pnl1, wx.ID_ANY, "" ), wx.HORIZONTAL )
+        #bSizer2 = wx.StaticBoxSizer( wx.StaticBox( pnl1, wx.ID_ANY, "" ), wx.HORIZONTAL )
 
         bSizer2 = wx.StaticBoxSizer( wx.StaticBox( pnl1, wx.ID_ANY, "Sample/Site acceptance criteria" ), wx.HORIZONTAL )
     
@@ -9306,7 +9390,7 @@ class Criteria_Dialog(wx.Dialog):
         for key in window_list_samples:
             command="self.set_sample_%s=wx.TextCtrl(pnl1,style=wx.TE_CENTER,size=(50,20))"%key
             exec command
-        criteria_sample_window = wx.GridSizer(2, 3, 12, 12)
+        criteria_sample_window = wx.GridSizer(2, 3, 6, 6)
         criteria_sample_window.AddMany( [(wx.StaticText(pnl1,label="Averge by sample/site",style=wx.TE_CENTER), wx.EXPAND),
             (wx.StaticText(pnl1,label="int_n",style=wx.TE_CENTER), wx.EXPAND),
             (wx.StaticText(pnl1,label="int_n_outlier_check",style=wx.TE_CENTER), wx.EXPAND),
@@ -9316,7 +9400,35 @@ class Criteria_Dialog(wx.Dialog):
 
         bSizer2.Add( criteria_sample_window, 0, wx.ALIGN_LEFT|wx.ALL, 5 )
 
+
         #-----------        
+
+
+        bSizer2a = wx.StaticBoxSizer( wx.StaticBox( pnl1, wx.ID_ANY, "mean calculation algorithm" ), wx.HORIZONTAL )
+    
+        #self.set_sample_int_stdev_opt=wx.RadioButton(pnl1, -1, 'Enable STDEV-OPT', (10, 10), style=wx.RB_GROUP)
+        #self.set_sample_int_bs=wx.RadioButton(pnl1, -1, 'Enable BS ', (10, 30))
+        #self.set_sample_int_bs_par=wx.RadioButton(pnl1, -1, 'Enable BS_PAR', (50, 50))
+
+        self.set_sample_int_stdev_opt=wx.RadioButton(pnl1, -1, '', (10, 10), style=wx.RB_GROUP)
+        self.set_sample_int_bs=wx.RadioButton(pnl1, -1, ' ', (10, 30))
+        self.set_sample_int_bs_par=wx.RadioButton(pnl1, -1, '', (50, 50))
+        
+        criteria_sample_window = wx.GridSizer(1, 3, 6, 6)
+        criteria_sample_window.AddMany( [(wx.StaticText(pnl1,label="Enable STDEV-OPT",style=wx.TE_CENTER), wx.EXPAND),
+            (wx.StaticText(pnl1,label="Enable BS",style=wx.TE_CENTER), wx.EXPAND),
+            (wx.StaticText(pnl1,label="Enable BS_PAR",style=wx.TE_CENTER), wx.EXPAND),
+            (self.set_sample_int_stdev_opt),            
+            (self.set_sample_int_bs),
+            (self.set_sample_int_bs_par)])
+
+        bSizer2a.Add( criteria_sample_window, 0, wx.ALIGN_LEFT|wx.ALL, 5 )
+
+
+        #-----------        
+
+
+
 
         bSizer3 = wx.StaticBoxSizer( wx.StaticBox( pnl1, wx.ID_ANY, "Sample/site acceptance criteria: STDEV-OPT" ), wx.HORIZONTAL )
         # Sample STEV-OPT
@@ -9324,11 +9436,8 @@ class Criteria_Dialog(wx.Dialog):
         for key in window_list_samples:
             command="self.set_sample_%s=wx.TextCtrl(pnl1,style=wx.TE_CENTER,size=(50,20))"%key
             exec command
-        self.set_sample_int_stdev_opt=wx.RadioButton(pnl1, -1, 'Enable STDEV-OPT', (10, 10), style=wx.RB_GROUP)
-        self.set_sample_int_bs=wx.RadioButton(pnl1, -1, 'Enable BS ', (10, 30))
-        self.set_sample_int_bs_par=wx.RadioButton(pnl1, -1, 'Enable BS_PAR', (50, 50))
         
-        criteria_sample_window_2 = wx.GridSizer(2, 5, 12, 12)
+        criteria_sample_window_2 = wx.GridSizer(2, 5, 6, 6)
         criteria_sample_window_2.AddMany( [(wx.StaticText(pnl1,label="int_sigma_uT",style=wx.TE_CENTER), wx.EXPAND),
             (wx.StaticText(pnl1,label="int_sigma_perc",style=wx.TE_CENTER), wx.EXPAND),
             (wx.StaticText(pnl1,label="int_interval",style=wx.TE_CENTER), wx.EXPAND),
@@ -9342,12 +9451,15 @@ class Criteria_Dialog(wx.Dialog):
 
         bSizer3.Add( criteria_sample_window_2, 0, wx.ALIGN_LEFT|wx.ALL, 5 )
 
-        vbox1 = wx.BoxSizer(wx.VERTICAL)
-        vbox1.AddSpacer(10)
-        vbox1.Add(self.set_sample_int_stdev_opt,flag=wx.ALIGN_CENTER_HORIZONTAL)
-        vbox1.AddSpacer(10)
-        vbox1.Add(bSizer3,flag=wx.ALIGN_CENTER_HORIZONTAL)#,flag=wx.ALIGN_CENTER_VERTICAL)
-        vbox1.AddSpacer(10)
+
+
+
+        #vbox1 = wx.BoxSizer(wx.VERTICAL)
+        #vbox1.AddSpacer(10)
+        #vbox1.Add(self.set_sample_int_stdev_opt,flag=wx.ALIGN_CENTER_HORIZONTAL)
+        #vbox1.AddSpacer(10)
+        #vbox1.Add(bSizer3,flag=wx.ALIGN_CENTER_HORIZONTAL)#,flag=wx.ALIGN_CENTER_VERTICAL)
+        #vbox1.AddSpacer(10)
         
         
         #-----------        
@@ -9360,7 +9472,7 @@ class Criteria_Dialog(wx.Dialog):
         # for bootstarp
         self.set_specimen_int_max_slope_diff=wx.TextCtrl(pnl1,style=wx.TE_CENTER,size=(50,20))
         
-        criteria_sample_window_3 = wx.GridSizer(2, 5, 12, 12)
+        criteria_sample_window_3 = wx.GridSizer(2, 5, 6, 6)
         criteria_sample_window_3.AddMany( [(wx.StaticText(pnl1,label="specimen_int_max_slope_diff",style=wx.TE_CENTER), wx.EXPAND),
             (wx.StaticText(pnl1,label="int_BS_68_uT",style=wx.TE_CENTER), wx.EXPAND),
             (wx.StaticText(pnl1,label="int_BS_68_perc",style=wx.TE_CENTER), wx.EXPAND),
@@ -9374,17 +9486,17 @@ class Criteria_Dialog(wx.Dialog):
 
         bSizer4.Add( criteria_sample_window_3, 0, wx.ALIGN_LEFT|wx.ALL, 5 )
 
-        hbox2a = wx.BoxSizer(wx.HORIZONTAL)
-        hbox2a.Add(self.set_sample_int_bs,flag=wx.ALIGN_CENTER_VERTICAL)
-        hbox2a.AddSpacer(10)
-        hbox2a.Add(self.set_sample_int_bs_par,flag=wx.ALIGN_CENTER_VERTICAL)
+        #hbox2a = wx.BoxSizer(wx.HORIZONTAL)
+        #hbox2a.Add(self.set_sample_int_bs,flag=wx.ALIGN_CENTER_VERTICAL)
+        #hbox2a.AddSpacer(10)
+        #hbox2a.Add(self.set_sample_int_bs_par,flag=wx.ALIGN_CENTER_VERTICAL)
 
-        vbox2 = wx.BoxSizer(wx.VERTICAL)
-        vbox2.AddSpacer(10)
-        vbox2.Add(hbox2a,flag=wx.ALIGN_CENTER_HORIZONTAL)#,flag=wx.ALIGN_CENTER_VERTICAL)
-        vbox2.AddSpacer(10)
-        vbox2.Add(bSizer4,flag=wx.ALIGN_CENTER_VERTICAL)#,flag=wx.ALIGN_CENTER_VERTICAL)
-        vbox2.AddSpacer(10)
+        #vbox2 = wx.BoxSizer(wx.VERTICAL)
+        #vbox2.AddSpacer(10)
+        #vbox2.Add(hbox2a,flag=wx.ALIGN_CENTER_HORIZONTAL)#,flag=wx.ALIGN_CENTER_VERTICAL)
+        #vbox2.AddSpacer(10)
+        #vbox2.Add(bSizer4,flag=wx.ALIGN_CENTER_VERTICAL)#,flag=wx.ALIGN_CENTER_VERTICAL)
+        #vbox2.AddSpacer(10)
 
         #-----------        
 
@@ -9394,6 +9506,7 @@ class Criteria_Dialog(wx.Dialog):
         self.okButton = wx.Button(pnl1, wx.ID_OK, "&OK")
         self.cancelButton = wx.Button(pnl1, wx.ID_CANCEL, '&Cancel')
         hbox3.Add(self.okButton)
+        hbox3.AddSpacer(10)
         hbox3.Add(self.cancelButton )
         #self.okButton.Bind(wx.EVT_BUTTON, self.OnOK)
         #-----------
@@ -9478,19 +9591,21 @@ class Criteria_Dialog(wx.Dialog):
 
         
         #----------------------  
-        vbox.AddSpacer(20)
+        vbox.AddSpacer(10)
         vbox.Add(bSizer1, flag=wx.ALIGN_CENTER_HORIZONTAL)
-        vbox.AddSpacer(20)
+        vbox.AddSpacer(10)
         vbox.Add(bSizer1a, flag=wx.ALIGN_CENTER_HORIZONTAL)
-        vbox.AddSpacer(20)
+        vbox.AddSpacer(10)
         vbox.Add(bSizer2, flag=wx.ALIGN_CENTER_HORIZONTAL)
-        vbox.AddSpacer(20)
-        vbox.Add(vbox1, flag=wx.ALIGN_CENTER_HORIZONTAL)
-        vbox.AddSpacer(20)
-        vbox.Add(vbox2, flag=wx.ALIGN_CENTER_HORIZONTAL)
-        vbox.AddSpacer(20)
+        vbox.AddSpacer(10)
+        vbox.Add(bSizer2a, flag=wx.ALIGN_CENTER_HORIZONTAL)
+        vbox.AddSpacer(10)
+        vbox.Add(bSizer3, flag=wx.ALIGN_CENTER_HORIZONTAL)
+        vbox.AddSpacer(10)
+        vbox.Add(bSizer4, flag=wx.ALIGN_CENTER_HORIZONTAL)
+        vbox.AddSpacer(10)
         vbox.Add(hbox3, flag=wx.ALIGN_CENTER_HORIZONTAL)
-        vbox.AddSpacer(20)
+        vbox.AddSpacer(10)
                     
         pnl1.SetSizer(vbox)
         vbox.Fit(self)
