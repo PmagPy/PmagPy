@@ -3,6 +3,9 @@
 #============================================================================================
 # LOG HEADER:
 #============================================================================================
+# Thellier_GUI Version 2.10 01/13/2014
+# Fix compatibility with 64 bit
+#
 # Thellier_GUI Version 2.09 01/05/2014
 # Change STDEV-OPT algorithm from minimizing the standard deviaion to minimzing the precentage of standrd deviation.
 # Resize acceptance criterai dialog window
@@ -59,7 +62,7 @@
 #============================================================================================
 
 global CURRENT_VRSION
-CURRENT_VRSION = "v.2.09"
+CURRENT_VRSION = "v.2.10"
 import matplotlib
 matplotlib.use('WXAgg')
 
@@ -158,8 +161,6 @@ class Arai_GUI(wx.Frame):
 
         self.get_previous_interpretation() # get interpretations from pmag_specimens.txt
         FIRST_RUN=False
-
-
         
     def get_DIR(self):
         """ Choose a working directory dialog
@@ -307,12 +308,18 @@ class Arai_GUI(wx.Frame):
         self.prevbutton.SetFont(font2)
         self.Bind(wx.EVT_BUTTON, self.on_prev_button, self.prevbutton)
         
-        select_specimen_window = wx.GridSizer(1, 2, 5, 10)
+        select_specimen_window = wx.GridSizer(1, 2, 0, 10*self.GUI_RESOLUTION)
         select_specimen_window.AddMany( [(self.prevbutton, wx.ALIGN_LEFT),
             (self.nextbutton, wx.ALIGN_LEFT)])
 
-        box_sizer_select_specimen.Add(self.specimens_box, 0, wx.TOP, 0 )        
-        box_sizer_select_specimen.Add(select_specimen_window, 0, wx.TOP, 4 )        
+        select_specimen_window_2 = wx.GridSizer(2, 1, 6, 10*self.GUI_RESOLUTION)
+        select_specimen_window_2.AddMany( [(self.specimens_box, wx.ALIGN_LEFT),
+            (select_specimen_window, wx.ALIGN_LEFT)])
+
+        box_sizer_select_specimen.Add(select_specimen_window_2, 0, wx.TOP, 0 )        
+
+        #box_sizer_select_specimen.Add(self.specimens_box, 0, wx.TOP, 0 )        
+        #box_sizer_select_specimen.Add(select_specimen_window, 0, wx.TOP, 0 )        
 
 
 
@@ -342,13 +349,13 @@ class Arai_GUI(wx.Frame):
         self.tmax_box = wx.ComboBox(self.panel, -1 ,size=(100*self.GUI_RESOLUTION, 25),choices=self.T_list, style=wx.CB_DROPDOWN)
         self.Bind(wx.EVT_COMBOBOX, self.get_new_T_PI_parameters,self.tmax_box)
 
-        select_temp_window = wx.GridSizer(3, 1, 5, 10)
+        select_temp_window = wx.GridSizer(3, 1, 12, 10*self.GUI_RESOLUTION)
         select_temp_window.AddMany( [(self.tmin_box, wx.ALIGN_LEFT),
             (self.tmax_box, wx.ALIGN_LEFT)])
-        box_sizer_select_temp.Add(select_temp_window, 0, wx.TOP, 3.5 )        
+        box_sizer_select_temp.Add(select_temp_window, 0, wx.TOP, 0 )        
 
 
-        #   ---------------------------  
+        #   ---------------------------     
 
         #  save/delete box
 
@@ -362,10 +369,10 @@ class Arai_GUI(wx.Frame):
         self.Bind(wx.EVT_BUTTON, self.on_save_interpretation_button, self.save_interpretation_button)
         self.Bind(wx.EVT_BUTTON, self.on_delete_interpretation_button, self.delete_interpretation_button)
         
-        save_delete_window = wx.GridSizer(2, 1, 5, 10*self.GUI_RESOLUTION)
+        save_delete_window = wx.GridSizer(2, 1, 14, 20*self.GUI_RESOLUTION)
         save_delete_window.AddMany( [(self.save_interpretation_button, wx.ALIGN_LEFT),
             (self.delete_interpretation_button, wx.ALIGN_LEFT)])
-        box_sizer_save.Add(save_delete_window, 0, wx.TOP, 5.5 )        
+        box_sizer_save.Add(save_delete_window, 0, wx.TOP, 0 )        
 
 
         #   ---------------------------  
@@ -388,22 +395,22 @@ class Arai_GUI(wx.Frame):
         self.inclination_window.SetFont(font2) 
 
         self.Blab_label=wx.StaticText(self.panel,label="\nB_lab",style=wx.ALIGN_CENTRE)
-        self.Blab_label.SetFont(font3)
+        self.Blab_label.SetFont(font2)
         self.Banc_label=wx.StaticText(self.panel,label="\nB_anc",style=wx.ALIGN_CENTRE)
-        self.Banc_label.SetFont(font3)
+        self.Banc_label.SetFont(font2)
         self.aniso_corr_label=wx.StaticText(self.panel,label="Aniso\ncorrection",style=wx.ALIGN_CENTRE)
-        self.aniso_corr_label.SetFont(font3)
+        self.aniso_corr_label.SetFont(font2)
         self.nlt_corr_label=wx.StaticText(self.panel,label="NLT\ncorrection",style=wx.ALIGN_CENTRE)
-        self.nlt_corr_label.SetFont(font3)
+        self.nlt_corr_label.SetFont(font2)
         self.cr_corr_label=wx.StaticText(self.panel,label="CR\ncorrection",style=wx.ALIGN_CENTRE)
-        self.cr_corr_label.SetFont(font3)
+        self.cr_corr_label.SetFont(font2)
         self.dec_label=wx.StaticText(self.panel,label="\nDec",style=wx.ALIGN_CENTRE)
-        self.dec_label.SetFont(font3)
+        self.dec_label.SetFont(font2)
         self.inc_label=wx.StaticText(self.panel,label="\nInc",style=wx.ALIGN_CENTRE)
-        self.inc_label.SetFont(font3)
+        self.inc_label.SetFont(font2)
 
 
-        specimen_stat_window = wx.GridSizer(2, 7, 0, 19*self.GUI_RESOLUTION)
+        specimen_stat_window = wx.GridSizer(2, 7, 0, 20*self.GUI_RESOLUTION)
         box_sizer_specimen = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY,"specimen results"  ), wx.HORIZONTAL )
         specimen_stat_window.AddMany( [(self.Blab_label, wx.EXPAND),
             ((self.Banc_label), wx.EXPAND),
@@ -443,16 +450,16 @@ class Arai_GUI(wx.Frame):
 ##            exec command
 
         sample_mean_label=wx.StaticText(self.panel,label="\nmean",style=wx.TE_CENTER)
-        sample_mean_label.SetFont(font3)
+        sample_mean_label.SetFont(font2)
         sample_N_label=wx.StaticText(self.panel,label="\nN ",style=wx.TE_CENTER)
-        sample_N_label.SetFont(font3)
+        sample_N_label.SetFont(font2)
         sample_std_label=wx.StaticText(self.panel,label="\n std uT",style=wx.TE_CENTER)
-        sample_std_label.SetFont(font3)
+        sample_std_label.SetFont(font2)
         sample_std_per_label=wx.StaticText(self.panel,label="\n std %",style=wx.TE_CENTER)
-        sample_std_per_label.SetFont(font3)
+        sample_std_per_label.SetFont(font2)
 
         
-        sample_stat_window = wx.GridSizer(2, 4, 0, 19*self.GUI_RESOLUTION)
+        sample_stat_window = wx.GridSizer(2, 4, 0, 20*self.GUI_RESOLUTION)
 
 
         box_sizer_sample = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY,"sample results" ), wx.HORIZONTAL )
@@ -543,7 +550,7 @@ class Arai_GUI(wx.Frame):
             exec command
             command="self.%s_threshold_window.SetFont(font3)"%statistic
             exec command
-            command="self.%s_threshold_window.SetBackgroundColour(wx.NullColor)"%statistic
+            command="self.%s_threshold_window.SetBackgroundColour(wx.NullColour)"%statistic
             exec command
             command="self.%s_label=wx.StaticText(self.panel,label='%s',style=wx.ALIGN_CENTRE)"%(statistic,Statsitics_labels[statistic])
             exec command
@@ -591,20 +598,20 @@ class Arai_GUI(wx.Frame):
 ##        self.drats_threshold_window=wx.TextCtrl(self.panel,style=wx.TE_READONLY|wx.TE_CENTER,size=(50,20))
 ##        self.md_threshold_window=wx.TextCtrl(self.panel,style=wx.TE_READONLY|wx.TE_CENTER,size=(50,20))
 
-##        self.int_n_threshold_window.SetBackgroundColour(wx.NullColor)
-##        self.int_ptrm_n_threshold_window.SetBackgroundColour(wx.NullColor)
-##        self.frac_threshold_window.SetBackgroundColour(wx.NullColor)
-##        self.scat_threshold_window.SetBackgroundColour(wx.NullColor)
-##        self.gmax_threshold_window.SetBackgroundColour(wx.NullColor)
-##        self.f_threshold_window.SetBackgroundColour(wx.NullColor)
-##        self.fvds_threshold_window.SetBackgroundColour(wx.NullColor)
-##        self.b_beta_threshold_window.SetBackgroundColour(wx.NullColor)
-##        self.g_threshold_window.SetBackgroundColour(wx.NullColor)
-##        self.q_threshold_window.SetBackgroundColour(wx.NullColor)
-##        self.int_mad_threshold_window.SetBackgroundColour(wx.NullColor)
-##        self.dang_threshold_window.SetBackgroundColour(wx.NullColor)
-##        self.drats_threshold_window.SetBackgroundColour(wx.NullColor)
-##        self.md_threshold_window.SetBackgroundColour(wx.NullColor)
+##        self.int_n_threshold_window.SetBackgroundColour(wx.NullColour)
+##        self.int_ptrm_n_threshold_window.SetBackgroundColour(wx.NullColour)
+##        self.frac_threshold_window.SetBackgroundColour(wx.NullColour)
+##        self.scat_threshold_window.SetBackgroundColour(wx.NullColour)
+##        self.gmax_threshold_window.SetBackgroundColour(wx.NullColour)
+##        self.f_threshold_window.SetBackgroundColour(wx.NullColour)
+##        self.fvds_threshold_window.SetBackgroundColour(wx.NullColour)
+##        self.b_beta_threshold_window.SetBackgroundColour(wx.NullColour)
+##        self.g_threshold_window.SetBackgroundColour(wx.NullColour)
+##        self.q_threshold_window.SetBackgroundColour(wx.NullColour)
+##        self.int_mad_threshold_window.SetBackgroundColour(wx.NullColour)
+##        self.dang_threshold_window.SetBackgroundColour(wx.NullColour)
+##        self.drats_threshold_window.SetBackgroundColour(wx.NullColour)
+##        self.md_threshold_window.SetBackgroundColour(wx.NullColour)
 
 ##        gs = wx.GridSizer(3, 14, 14, 14)
 
@@ -727,7 +734,7 @@ class Arai_GUI(wx.Frame):
         hbox1.Add(box_sizer_sample, flag=wx.ALIGN_LEFT|wx.ALIGN_BOTTOM)
         hbox1.AddSpacer(2)
 
-        vbox1.Add(hbox1, flag=wx.ALIGN_LEFT)#, border=10)
+        vbox1.Add(hbox1, flag=wx.ALIGN_LEFT, border=8)
         self.panel.SetSizer(vbox1)
 
         vbox2a=wx.BoxSizer(wx.VERTICAL)
@@ -737,21 +744,21 @@ class Arai_GUI(wx.Frame):
         hbox2 = wx.BoxSizer(wx.HORIZONTAL)
         #hbox2.Add(self.logger,flag=wx.ALIGN_CENTER_HORIZONTAL)#,border=8)        
         hbox2.Add(vbox2a,flag=wx.ALIGN_CENTER_HORIZONTAL)#,border=8)        
-        hbox2.Add(self.canvas1,flag=wx.ALIGN_CENTER_HORIZONTAL,border=8)
+        hbox2.Add(self.canvas1,flag=wx.ALIGN_CENTER_HORIZONTAL)#,border=8)
 
         vbox2 = wx.BoxSizer(wx.VERTICAL)        
-        vbox2.Add(self.canvas2,flag=wx.ALIGN_LEFT,border=8)
-        vbox2.Add(self.canvas3,flag=wx.ALIGN_LEFT,border=8)
+        vbox2.Add(self.canvas2,flag=wx.ALIGN_LEFT)#,border=8)
+        vbox2.Add(self.canvas3,flag=wx.ALIGN_LEFT)#,border=8)
         #vbox2.Add(
 
         vbox3 = wx.BoxSizer(wx.VERTICAL)        
-        vbox3.Add(self.canvas4,flag=wx.ALIGN_LEFT|wx.ALIGN_TOP,border=8)
-        vbox3.Add(self.canvas5,flag=wx.ALIGN_LEFT|wx.ALIGN_TOP,border=8)
+        vbox3.Add(self.canvas4,flag=wx.ALIGN_LEFT|wx.ALIGN_TOP)#,border=8)
+        vbox3.Add(self.canvas5,flag=wx.ALIGN_LEFT|wx.ALIGN_TOP)#,border=8)
         
         hbox2.Add(vbox2,flag=wx.ALIGN_CENTER_HORIZONTAL)#,border=8)
         hbox2.Add(vbox3,flag=wx.ALIGN_CENTER_HORIZONTAL)#,border=8)
 
-        vbox1.Add(hbox2, flag=wx.LEFT)#, border=10)
+        vbox1.Add(hbox2, flag=wx.LEFT, border=8)
 
 
         hbox_test = wx.BoxSizer(wx.HORIZONTAL)
@@ -926,6 +933,7 @@ class Arai_GUI(wx.Frame):
       self.logger.Clear()
       FONT_RATIO=self.GUI_RESOLUTION+(self.GUI_RESOLUTION-1)*5
       font1 = wx.Font(9+FONT_RATIO, wx.SWISS, wx.NORMAL, wx.NORMAL, False, u'Arial')
+      #String="Step | Temp |  Dec  |  Inc  | M [Am^2]\n"
       String="  Step\tTemp\t Dec\t Inc\tM [Am^2]\n"
       # microwave
       if "LP-PI-M" in self.Data[self.s]['datablock'][0]['magic_method_codes']:
@@ -957,7 +965,9 @@ class Arai_GUI(wx.Frame):
           else:
               print "unrecognized step in specimen",self.s,"  Method codes: ", rec['magic_method_codes'] 
           if THERMAL:
-              TEXT=TEXT+"   %s\t%3.0f\t%5.1f\t%5.1f\t%.2e\n"%(step,float(rec['treatment_temp'])-273.,float(rec['measurement_dec']),float(rec['measurement_inc']),float(rec['measurement_magn_moment']))
+               TEXT=TEXT+"   %s\t%3.0f\t%5.1f\t%5.1f\t%.2e\n"%(step,float(rec['treatment_temp'])-273.,float(rec['measurement_dec']),float(rec['measurement_inc']),float(rec['measurement_magn_moment']))
+
+#              TEXT=TEXT+"  %s      %3.0f      %5.1f    %5.1f   %.2e\n"%(step,float(rec['treatment_temp'])-273.,float(rec['measurement_dec']),float(rec['measurement_inc']),float(rec['measurement_magn_moment']))
           elif MICROWAVE: # mcrowave
                 if "measurement_description" in rec.keys():
                     MW_step=rec["measurement_description"].strip('\n').split(":")
@@ -1248,19 +1258,23 @@ class Arai_GUI(wx.Frame):
 
         self.Blab_window.SetValue("")     
         self.Banc_window.SetValue("")
-        self.Banc_window.SetBackgroundColour(wx.NullColor)
+        self.Banc_window.SetBackgroundColour(wx.NullColour)
         self.Aniso_factor_window.SetValue("")
-        self.Aniso_factor_window.SetBackgroundColour(wx.NullColor)    
+        self.Aniso_factor_window.SetBackgroundColour(wx.NullColour)    
         self.NLT_factor_window.SetValue("")
+        self.NLT_factor_window.SetBackgroundColour(wx.NullColour)    
         self.CR_factor_window.SetValue("")
+        self.CR_factor_window.SetBackgroundColour(wx.NullColour)    
         self.declination_window.SetValue("")
+        self.declination_window.SetBackgroundColour(wx.NullColour)
         self.inclination_window.SetValue("")
+        self.inclination_window.SetBackgroundColour(wx.NullColour)
 
         window_list=['sample_int_n','sample_int_uT','sample_int_sigma','sample_int_sigma_perc']
         for key in window_list:
             command="self.%s_window.SetValue(\"\")"%key
             exec command
-            command="self.%s_window.SetBackgroundColour(wx.NullColor)"%key
+            command="self.%s_window.SetBackgroundColour(wx.NullColour)"%key
             exec command
                                          
         window_list=['int_n','int_ptrm_n','frac','scat','gmax','f','fvds','b_beta','g','q','int_mad','dang','drats','md','ptrms_dec','ptrms_inc','ptrms_mad','ptrms_angle']
@@ -1268,7 +1282,7 @@ class Arai_GUI(wx.Frame):
             if key in self.preferences['show_statistics_on_gui']:
                 command="self.%s_window.SetValue(\"\")"%key
                 exec command
-                command="self.%s_window.SetBackgroundColour(wx.NullColor)"%key
+                command="self.%s_window.SetBackgroundColour(wx.NullColour)"%key
                 exec command
             
     def write_sample_box(self):
@@ -1332,7 +1346,7 @@ class Arai_GUI(wx.Frame):
             self.sample_int_uT_window.SetValue("")
             self.sample_int_sigma_window.SetValue("")
             self.sample_int_sigma_perc_window.SetValue("")
-            self.sample_int_uT_window.SetBackgroundColour(wx.NullColor)
+            self.sample_int_uT_window.SetBackgroundColour(wx.NullColour)
             return()
             
         N=len(B)
@@ -1344,9 +1358,9 @@ class Arai_GUI(wx.Frame):
         self.sample_int_uT_window.SetValue("%.1f"%(B_mean))
         self.sample_int_sigma_window.SetValue("%.1f"%(B_std))
         self.sample_int_sigma_perc_window.SetValue("%.1f"%(B_std_perc))
-        self.sample_int_n_window.SetBackgroundColour(wx.NullColor)
-        self.sample_int_sigma_window.SetBackgroundColour(wx.NullColor)
-        self.sample_int_sigma_perc_window.SetBackgroundColour(wx.NullColor)
+        self.sample_int_n_window.SetBackgroundColour(wx.NullColour)
+        self.sample_int_sigma_window.SetBackgroundColour(wx.NullColour)
+        self.sample_int_sigma_perc_window.SetBackgroundColour(wx.NullColour)
 
         fail_flag=False
         fail_int_n=False
@@ -1648,6 +1662,7 @@ class Arai_GUI(wx.Frame):
                 result = dlg3.ShowModal()
                 dlg3.Destroy()
                 if result == wx.ID_OK:
+                    self.Destroy()
                     exit()
 
             
@@ -2909,7 +2924,7 @@ class Arai_GUI(wx.Frame):
                 # aTRM 6 positions
                 #-----------------------------------
                     
-                #print "-I- Start calculating ATRM tensor for "
+                aniso_logfile.write("-I- Start calculating ATRM tensor for specimen %s "%specimen)
                 atrmblock=self.Data[specimen]['atrmblock']
                 trmblock=self.Data[specimen]['trmblock']
                 zijdblock=self.Data[specimen]['zijdblock']
@@ -3201,6 +3216,11 @@ class Arai_GUI(wx.Frame):
                 if 'AniSpec' not in self.Data[specimen]:
                     self.Data[specimen]['AniSpec']={}
                 self.Data[specimen]['AniSpec'][TYPE]=Data_anisotropy[specimen][TYPE]
+
+        aniso_logfile.write("------------------------\n")
+        aniso_logfile.write("-I- Done rmag anisotropy script\n")
+        aniso_logfile.write( "------------------------\n")
+        
         rmag_anisotropy_file.close()
 
     #==================================================        
@@ -5817,6 +5837,7 @@ class Arai_GUI(wx.Frame):
         eq.vlines((0,0),(0.9,-0.9),(1.0,-1.0),'k')
         eq.hlines((0,0),(0.9,-0.9),(1.0,-1.0),'k')
         eq.plot([0.0],[0.0],'+k')
+        return()
 
 
     #===========================================================
@@ -5973,7 +5994,7 @@ class Arai_GUI(wx.Frame):
             if key.split('specimen_')[-1] in self.preferences['show_statistics_on_gui']:
                 exec(command)
             if self.ignore_parameters[key]:
-                command="self.%s_window.SetBackgroundColour(wx.NullColor)"%key.split('specimen_')[-1]  # set text color                
+                command="self.%s_window.SetBackgroundColour(wx.NullColour)"%key.split('specimen_')[-1]  # set text color                
             elif (key in high_threshold_velue_list) and (float(self.pars[key])<=float(self.accept_new_parameters[key])):
                 command="self.%s_window.SetBackgroundColour(wx.GREEN)"%key.split('specimen_')[-1]  # set text color
             elif (key in low_threshold_velue_list) and (float(self.pars[key])>=float(self.accept_new_parameters[key])):
@@ -5992,7 +6013,7 @@ class Arai_GUI(wx.Frame):
               self.scat_window.SetValue("pass")
 
             if self.ignore_parameters['specimen_scat'] and  "scat" in self.preferences['show_statistics_on_gui']:
-              self.scat_window.SetBackgroundColour(wx.NullColor) # set text color
+              self.scat_window.SetBackgroundColour(wx.NullColour) # set text color
             elif self.pars["fail_arai_beta_box_scatter"] or self.pars["fail_ptrm_beta_box_scatter"] or self.pars["fail_tail_beta_box_scatter"] :
               if "scat" in self.preferences['show_statistics_on_gui']:
                   self.scat_window.SetBackgroundColour(wx.RED) # set text color
@@ -6003,7 +6024,7 @@ class Arai_GUI(wx.Frame):
         else:
             if "scat" in self.preferences['show_statistics_on_gui']:
                 self.scat_window.SetValue("")
-                self.scat_window.SetBackgroundColour(wx.NullColor) # set text color
+                self.scat_window.SetBackgroundColour(wx.NullColour) # set text color
 
 
         # Banc, correction factor
@@ -6029,7 +6050,7 @@ class Arai_GUI(wx.Frame):
 
         else:
           self.Aniso_factor_window.SetValue("None")
-          self.Aniso_factor_window.SetBackgroundColour(wx.NullColor)  
+          self.Aniso_factor_window.SetBackgroundColour(wx.NullColour)  
 
         
         
@@ -6045,11 +6066,11 @@ class Arai_GUI(wx.Frame):
           elif  'CR_WARNING' in self.pars.keys() and 'inferred' in self.pars['CR_WARNING']:
             self.CR_factor_window.SetBackgroundColour('#FFFACD')  
           else:
-            self.CR_factor_window.SetBackgroundColour(wx.NullColor)  
+            self.CR_factor_window.SetBackgroundColour(wx.NullColour)  
               
         else:
           self.CR_factor_window.SetValue("None")
-          self.CR_factor_window.SetBackgroundColour(wx.NullColor)  
+          self.CR_factor_window.SetBackgroundColour(wx.NullColour)  
 
         # sample
         self.write_sample_box()
@@ -7377,7 +7398,6 @@ class Arai_GUI(wx.Frame):
       #print "initialize blocks"
       
       for s in sids:
-
           if s not in Data.keys():
               Data[s]={}
               Data[s]['datablock']=[]
@@ -7517,7 +7537,6 @@ class Arai_GUI(wx.Frame):
       
       self.specimens=Data.keys()
       self.specimens.sort()
-
 
       
       #------------------------------------------------
@@ -8353,7 +8372,7 @@ class Arai_GUI(wx.Frame):
     
     def get_previous_interpretation(self):
         try:
-            self.GUI_log.write ("-I- Read pmag_specimens.txt for previouse interpretation")
+            self.GUI_log.write ("-I- Read pmag_specimens.txt for previous interpretation")
             prev_pmag_specimen=self.read_magic_file(self.WD+"/pmag_specimens.txt",1,'er_specimen_name')
             #f
             # first delete all previous interpretation
@@ -9517,7 +9536,7 @@ class Criteria_Dialog(wx.Dialog):
         #print self.accept_new_parameters
 
         for key in window_list_specimens:
-            command="self.set_specimen_%s.SetBackgroundColour(wx.NullColor)"%key
+            command="self.set_specimen_%s.SetBackgroundColour(wx.NullColour)"%key
         exec command
 
 
