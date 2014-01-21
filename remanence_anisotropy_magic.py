@@ -359,7 +359,7 @@ def main():
             # aTRM 6 positions
             #-----------------------------------
                 
-            aniso_logfile.write("-I- Start calculating ATRM tensor for specimen %s "%specimen)
+            aniso_logfile.write("-I- Start calculating ATRM tensor for specimen %s\n "%specimen)
             atrmblock=Data[specimen]['atrmblock']
             if len(atrmblock)<6:
                 aniso_logfile.write("-W- specimen %s has not enough measurementf for ATRM calculation\n"%specimen)

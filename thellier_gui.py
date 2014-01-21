@@ -3,6 +3,9 @@
 #============================================================================================
 # LOG HEADER:
 #============================================================================================
+# Thellier_GUI Version 2.11 01/13/2014
+# adjust diplay to automatically fit screen size
+
 # Thellier_GUI Version 2.10 01/13/2014
 # Fix compatibility with 64 bit
 #
@@ -62,7 +65,7 @@
 #============================================================================================
 
 global CURRENT_VRSION
-CURRENT_VRSION = "v.2.10"
+CURRENT_VRSION = "v.2.11"
 import matplotlib
 matplotlib.use('WXAgg')
 
@@ -212,8 +215,18 @@ class Arai_GUI(wx.Frame):
             choose the first specimen and display data
         """
 
+        dw, dh = wx.DisplaySize() 
+        w, h = self.GetSize()
+        #print 'diplay', dw, dh
+        #print "gui", w, h
+        r1=dw/1250.
+        r2=dw/750.
+        
+        #if  dw>w:
+        self.GUI_RESOLUTION=min(r1,r2,1.3)
+
         #self.GUI_RESOLUTION=0.75
-        self.GUI_RESOLUTION=float(self.preferences['gui_resolution'])/100
+        #self.GUI_RESOLUTION=float(self.preferences['gui_resolution'])/100
         
         #----------------------------------------------------------------------                     
         # Create the mpl Figure and FigCanvas objects. 
@@ -5416,7 +5429,7 @@ class Arai_GUI(wx.Frame):
         #self.y_additivity_check=self.Data[self.s]['y_additivity_check']
 
         self.araiplot.clear()        
-        self.araiplot.plot(self.Data[self.s]['x_Arai'],self.Data[self.s]['y_Arai'],'0.2',lw=0.75)
+        self.araiplot.plot(self.Data[self.s]['x_Arai'],self.Data[self.s]['y_Arai'],'0.2',lw=0.75,clip_on=False)
 
         for i in range(len(self.Data[self.s]['steps_Arai'])):
           if self.Data[self.s]['steps_Arai'][i]=="ZI":
@@ -5428,9 +5441,9 @@ class Arai_GUI(wx.Frame):
           else:
              self.GUI_log.write("-E- Cant plot Arai plot. check the data for specimen %s\n"%s)
         if len(self.x_Arai_ZI)>0:
-            self.araiplot.scatter (self.x_Arai_ZI,self.y_Arai_ZI,marker='o',facecolor='r',edgecolor ='k',s=25*self.GUI_RESOLUTION)
+            self.araiplot.scatter (self.x_Arai_ZI,self.y_Arai_ZI,marker='o',facecolor='r',edgecolor ='k',s=25*self.GUI_RESOLUTION,clip_on=False)
         if len(self.x_Arai_IZ)>0:
-            self.araiplot.scatter (self.x_Arai_IZ,self.y_Arai_IZ,marker='o',facecolor='b',edgecolor ='k',s=25*self.GUI_RESOLUTION)
+            self.araiplot.scatter (self.x_Arai_IZ,self.y_Arai_IZ,marker='o',facecolor='b',edgecolor ='k',s=25*self.GUI_RESOLUTION,clip_on=False)
 
         # pTRM checks
         if 'x_ptrm_check' in self.Data[self.s]:
@@ -5440,12 +5453,12 @@ class Arai_GUI(wx.Frame):
                     for i in range(len(self.Data[self.s]['x_ptrm_check'])):
                         xx1,yy1=self.Data[s]['x_ptrm_check_starting_point'][i],self.Data[s]['y_ptrm_check_starting_point'][i]
                         xx2,yy2=self.Data[s]['x_ptrm_check'][i],self.Data[s]['y_ptrm_check'][i]
-                        self.araiplot.plot([xx1,xx2],[yy1,yy1],color="0.5",lw=0.5,alpha=0.5)
-                        self.araiplot.plot([xx2,xx2],[yy1,yy2],color="0.5",lw=0.5,alpha=0.5)
+                        self.araiplot.plot([xx1,xx2],[yy1,yy1],color="0.5",lw=0.5,alpha=0.5,clip_on=False)
+                        self.araiplot.plot([xx2,xx2],[yy1,yy2],color="0.5",lw=0.5,alpha=0.5,clip_on=False)
 
         # Tail checks
         if len(self.x_tail_check >0):
-          self.araiplot.scatter (self.x_tail_check,self.y_tail_check,marker='s',edgecolor='0.1',alpha=1.0, facecolor='None',s=80*self.GUI_RESOLUTION,lw=1)
+          self.araiplot.scatter (self.x_tail_check,self.y_tail_check,marker='s',edgecolor='0.1',alpha=1.0, facecolor='None',s=80*self.GUI_RESOLUTION,lw=1,clip_on=False)
 
 
         # Additivity checks
@@ -5453,13 +5466,13 @@ class Arai_GUI(wx.Frame):
         # pTRM checks
         if 'x_additivity_check' in self.Data[self.s]:
             if len(self.Data[self.s]['x_additivity_check'])>0:
-                self.araiplot.scatter (self.Data[self.s]['x_additivity_check'],self.Data[self.s]['y_additivity_check'],marker='D',edgecolor='0.1',alpha=1.0, facecolor='None',s=80*self.GUI_RESOLUTION,lw=1)
+                self.araiplot.scatter (self.Data[self.s]['x_additivity_check'],self.Data[self.s]['y_additivity_check'],marker='D',edgecolor='0.1',alpha=1.0, facecolor='None',s=80*self.GUI_RESOLUTION,lw=1,clip_on=False)
                 if self.preferences['show_Arai_pTRM_arrows']:
                     for i in range(len(self.Data[self.s]['x_additivity_check'])):
                         xx1,yy1=self.Data[s]['x_additivity_check_starting_point'][i],self.Data[s]['y_additivity_check_starting_point'][i]
                         xx2,yy2=self.Data[s]['x_additivity_check'][i],self.Data[s]['y_additivity_check'][i]
-                        self.araiplot.plot([xx1,xx1],[yy1,yy2],color="0.5",lw=0.5,alpha=0.5)
-                        self.araiplot.plot([xx1,xx2],[yy2,yy2],color="0.5",lw=0.5,alpha=0.5)
+                        self.araiplot.plot([xx1,xx1],[yy1,yy2],color="0.5",lw=0.5,alpha=0.5,clip_on=False)
+                        self.araiplot.plot([xx1,xx2],[yy2,yy2],color="0.5",lw=0.5,alpha=0.5,clip_on=False)
 
         # Arai plot temperatures
 
@@ -5474,11 +5487,11 @@ class Arai_GUI(wx.Frame):
             self.tmp_c=0.
           if self.preferences['show_Arai_temperatures'] and int(self.preferences['show_Arai_temperatures_steps'])!=1:
               if (i+1)%int(self.preferences['show_Arai_temperatures_steps']) ==0 and i!=0:
-                  self.araiplot.text(self.x_Arai[i],self.y_Arai[i],"  %.0f"%self.tmp_c,fontsize=10,color='gray',ha='left',va='center')                  
+                  self.araiplot.text(self.x_Arai[i],self.y_Arai[i],"  %.0f"%self.tmp_c,fontsize=10,color='gray',ha='left',va='center',clip_on=False)                  
           elif not self.preferences['show_Arai_temperatures']:
               continue
           else:
-              self.araiplot.text(self.x_Arai[i],self.y_Arai[i],"  %.0f"%self.tmp_c,fontsize=10,color='gray',ha='left',va='center')
+              self.araiplot.text(self.x_Arai[i],self.y_Arai[i],"  %.0f"%self.tmp_c,fontsize=10,color='gray',ha='left',va='center',clip_on=False)
 
 
 
@@ -5521,8 +5534,8 @@ class Arai_GUI(wx.Frame):
         self.CART_rot=self.Data[self.s]['zij_rotated']
         self.z_temperatures=self.Data[self.s]['z_temp']
         self.vds=self.Data[self.s]['vds']
-        self.zijplot.plot(self.CART_rot[:,0],-1* self.CART_rot[:,1],'bo-',mfc=self.dec_MFC,mec=self.dec_MEC,markersize=self.MS)  #x,y or N,E
-        self.zijplot.plot(self.CART_rot[:,0],-1 * self.CART_rot[:,2],'rs-',mfc=self.inc_MFC,mec=self.inc_MEC,markersize=self.MS)   #x-z or N,D
+        self.zijplot.plot(self.CART_rot[:,0],-1* self.CART_rot[:,1],'bo-',mfc=self.dec_MFC,mec=self.dec_MEC,markersize=self.MS,clip_on=False)  #x,y or N,E
+        self.zijplot.plot(self.CART_rot[:,0],-1 * self.CART_rot[:,2],'rs-',mfc=self.inc_MFC,mec=self.inc_MEC,markersize=self.MS,clip_on=False)   #x-z or N,D
         #self.zijplot.axhline(0,c='k')
         #self.zijplot.axvline(0,c='k')
         self.zijplot.axis('off')
@@ -5540,9 +5553,9 @@ class Arai_GUI(wx.Frame):
             for i in range(len(self.z_temperatures)):
                 if int(self.preferences['show_Zij_temperatures_steps']) !=1:
                     if i!=0  and (i+1)%int(self.preferences['show_Zij_temperatures_steps'])==0:
-                        self.zijplot.text(self.CART_rot[i][0],-1*self.CART_rot[i][2]," %.0f"%(self.z_temperatures[i]-K_diff),fontsize=10*self.GUI_RESOLUTION,color='gray',ha='left',va='center')   #inc
+                        self.zijplot.text(self.CART_rot[i][0],-1*self.CART_rot[i][2]," %.0f"%(self.z_temperatures[i]-K_diff),fontsize=10*self.GUI_RESOLUTION,color='gray',ha='left',va='center',clip_on=False)   #inc
                 else:
-                  self.zijplot.text(self.CART_rot[i][0],-1*self.CART_rot[i][2]," %.0f"%(self.z_temperatures[i]-K_diff),fontsize=10*self.GUI_RESOLUTION,color='gray',ha='left',va='center')   #inc
+                  self.zijplot.text(self.CART_rot[i][0],-1*self.CART_rot[i][2]," %.0f"%(self.z_temperatures[i]-K_diff),fontsize=10*self.GUI_RESOLUTION,color='gray',ha='left',va='center',clip_on=False)   #inc
 
         #-----
         xmin, xmax = self.zijplot.get_xlim()
@@ -5561,7 +5574,7 @@ class Arai_GUI(wx.Frame):
         axxline, = self.zijplot.plot([xmin, xmax], [0, 0], **props)
         xtickline.set_clip_on(False)
         axxline.set_clip_on(False)
-        self.zijplot.text(xmax,0,' x',fontsize=10,verticalalignment='bottom')
+        self.zijplot.text(xmax,0,' x',fontsize=10,verticalalignment='bottom',clip_on=False)
 
         #-----
 
@@ -5581,7 +5594,7 @@ class Arai_GUI(wx.Frame):
         axyline, = self.zijplot.plot([0, 0],[ymin, ymax], **props)
         ytickline.set_clip_on(False)
         axyline.set_clip_on(False)
-        self.zijplot.text(0,ymin,' y,z',fontsize=10,verticalalignment='top')
+        self.zijplot.text(0,ymin,' y,z',fontsize=10,verticalalignment='top',clip_on=False)
 
         #----
 
@@ -5618,7 +5631,7 @@ class Arai_GUI(wx.Frame):
             R=array(sqrt(1-z_eq)/sqrt(x_eq**2+y_eq**2)) # from Collinson 1983
             eqarea_data_x=y_eq*R
             eqarea_data_y=x_eq*R
-            self.eqplot.plot(eqarea_data_x,eqarea_data_y,lw=0.5,color='gray')
+            self.eqplot.plot(eqarea_data_x,eqarea_data_y,lw=0.5,color='gray',clip_on=False)
             #self.eqplot.scatter([eqarea_data_x_dn[i]],[eqarea_data_y_dn[i]],marker='o',edgecolor='0.1', facecolor='blue',s=15,lw=1)
 
 
@@ -5631,7 +5644,7 @@ class Arai_GUI(wx.Frame):
                 R=array(sqrt(1-z_eq_dn)/sqrt(x_eq_dn**2+y_eq_dn**2)) # from Collinson 1983
                 eqarea_data_x_dn=y_eq_dn*R
                 eqarea_data_y_dn=x_eq_dn*R
-                self.eqplot.scatter([eqarea_data_x_dn],[eqarea_data_y_dn],marker='o',edgecolor='gray', facecolor='black',s=15*self.GUI_RESOLUTION,lw=1)
+                self.eqplot.scatter([eqarea_data_x_dn],[eqarea_data_y_dn],marker='o',edgecolor='gray', facecolor='black',s=15*self.GUI_RESOLUTION,lw=1,clip_on=False)
                         
                 
 
@@ -5643,7 +5656,7 @@ class Arai_GUI(wx.Frame):
                 R=array(sqrt(1-z_eq_up)/sqrt(x_eq_up**2+y_eq_up**2)) # from Collinson 1983
                 eqarea_data_x_up=y_eq_up*R
                 eqarea_data_y_up=x_eq_up*R
-                self.eqplot.scatter([eqarea_data_x_up],[eqarea_data_y_up],marker='o',edgecolor='black', facecolor='white',s=15*self.GUI_RESOLUTION,lw=1)        
+                self.eqplot.scatter([eqarea_data_x_up],[eqarea_data_y_up],marker='o',edgecolor='black', facecolor='white',s=15*self.GUI_RESOLUTION,lw=1,clip_on=False)        
             
             if self.preferences['show_eqarea_temperatures']:
                 for i in range(len(self.z_temperatures)):
@@ -5651,7 +5664,7 @@ class Arai_GUI(wx.Frame):
                         K_dif=0.
                     else:
                         K_dif=273.                    
-                    self.eqplot.text(eqarea_data_x[i],eqarea_data_y[i],"%.0f"%(float(self.z_temperatures[i])-K_dif),fontsize=8*self.GUI_RESOLUTION,color="0.5")
+                    self.eqplot.text(eqarea_data_x[i],eqarea_data_y[i],"%.0f"%(float(self.z_temperatures[i])-K_dif),fontsize=8*self.GUI_RESOLUTION,color="0.5",clip_on=False)
             
             
             #self.eqplot.text(eqarea_data_x[0],eqarea_data_y[0]," NRM",fontsize=8,color='gray',ha='left',va='center')
@@ -5675,9 +5688,9 @@ class Arai_GUI(wx.Frame):
                         eqarea_data_x_dn.append(CART_pTRMS[i][1]*R)
                         eqarea_data_y_dn.append(CART_pTRMS[i][0]*R)
                 if len(eqarea_data_x_up)>0:
-                    self.eqplot.scatter(eqarea_data_x_up,eqarea_data_y_up,marker='^',edgecolor='blue', facecolor='white',s=15*self.GUI_RESOLUTION,lw=1)
+                    self.eqplot.scatter(eqarea_data_x_up,eqarea_data_y_up,marker='^',edgecolor='blue', facecolor='white',s=15*self.GUI_RESOLUTION,lw=1,clip_on=False)
                 if len(eqarea_data_x_dn)>0:
-                    self.eqplot.scatter(eqarea_data_x_dn,eqarea_data_y_dn,marker='^',edgecolor='gray', facecolor='blue',s=15*self.GUI_RESOLUTION,lw=1)        
+                    self.eqplot.scatter(eqarea_data_x_dn,eqarea_data_y_dn,marker='^',edgecolor='gray', facecolor='blue',s=15*self.GUI_RESOLUTION,lw=1,clip_on=False)        
             draw()
             self.canvas3.draw()
     
@@ -5703,8 +5716,8 @@ class Arai_GUI(wx.Frame):
                 y=polyval([a,b],x)
                 self.eqplot.plot(x,y,"--",color='k')
                 
-                self.eqplot.scatter(lan_cooling_rates,moment_norm,marker='o',facecolor='b',edgecolor ='k',s=25)
-                self.eqplot.scatter([x0],[y0],marker='s',facecolor='r',edgecolor ='k',s=25)
+                self.eqplot.scatter(lan_cooling_rates,moment_norm,marker='o',facecolor='b',edgecolor ='k',s=25,clip_on=False)
+                self.eqplot.scatter([x0],[y0],marker='s',facecolor='r',edgecolor ='k',s=25,clip_on=False)
     
     
                 #self.Data_info["er_samples"][
@@ -5760,8 +5773,8 @@ class Arai_GUI(wx.Frame):
               M_pTRMS=array([row[3] for row in PTRMS])/NRMS[0][3]
 
               self.mplot.clear()
-              self.mplot.plot(temperatures_NRMS,M_NRMS,'bo-',mec='0.2',markersize=5*self.GUI_RESOLUTION,lw=1)
-              self.mplot.plot(temperatures_NRMS,M_pTRMS,'ro-',mec='0.2',markersize=5*self.GUI_RESOLUTION,lw=1)
+              self.mplot.plot(temperatures_NRMS,M_NRMS,'bo-',mec='0.2',markersize=5*self.GUI_RESOLUTION,lw=1,clip_on=False)
+              self.mplot.plot(temperatures_NRMS,M_pTRMS,'ro-',mec='0.2',markersize=5*self.GUI_RESOLUTION,lw=1,clip_on=False)
               if self.Data[self.s]['T_or_MW']!="MW":
                   self.mplot.set_xlabel("C",fontsize=8*self.GUI_RESOLUTION)
               else:
@@ -5798,7 +5811,7 @@ class Arai_GUI(wx.Frame):
             self.fig5.text(0.02,0.96,"Non-linear TRM check",{'family':'Arial', 'fontsize':10, 'style':'normal','va':'center', 'ha':'left' })
             self.mplot = self.fig5.add_axes([0.2,0.15,0.7,0.7],frameon=True,axisbg='None')
             #self.mplot.clear()
-            self.mplot.scatter(array(self.Data[self.s]['NLT_parameters']['B_NLT'])*1e6,self.Data[self.s]['NLT_parameters']['M_NLT_norm'],marker='o',facecolor='b',edgecolor ='k',s=15)
+            self.mplot.scatter(array(self.Data[self.s]['NLT_parameters']['B_NLT'])*1e6,self.Data[self.s]['NLT_parameters']['M_NLT_norm'],marker='o',facecolor='b',edgecolor ='k',s=15,clip_on=False)
             self.mplot.set_xlabel("$\mu$ T",fontsize=8)
             self.mplot.set_ylabel("M / M[%.0f]"%(self.Data[self.s]['lab_dc_field']*1e6),fontsize=8)
             try:
@@ -5814,7 +5827,7 @@ class Arai_GUI(wx.Frame):
             beta=self.Data[self.s]['NLT_parameters']['tanh_parameters'][0][1]
             y=alpha*(tanh(x*1e-6*beta))
             labfiled=self.Data[self.s]['lab_dc_field']
-            self.mplot.plot(x,x*1e-6*(alpha*(tanh(labfiled*beta))/labfiled),'--',color='black',linewidth=0.7)
+            self.mplot.plot(x,x*1e-6*(alpha*(tanh(labfiled*beta))/labfiled),'--',color='black',linewidth=0.7,clip_on=False)
             self.mplot.plot(x,y,'-',color='green',linewidth=1)
             
             #self.mplot.spines["right"].set_visible(False)
@@ -5833,10 +5846,10 @@ class Arai_GUI(wx.Frame):
         eq.axis((-1,1,-1,1))
         eq.axis('off')
         theta=arange(0.,2*pi,2*pi/1000)
-        eq.plot(cos(theta),sin(theta),'k')
+        eq.plot(cos(theta),sin(theta),'k',clip_on=False)
         eq.vlines((0,0),(0.9,-0.9),(1.0,-1.0),'k')
         eq.hlines((0,0),(0.9,-0.9),(1.0,-1.0),'k')
-        eq.plot([0.0],[0.0],'+k')
+        eq.plot([0.0],[0.0],'+k',clip_on=False)
         return()
 
 
@@ -9432,7 +9445,7 @@ class Criteria_Dialog(wx.Dialog):
         self.set_sample_int_stdev_opt=wx.RadioButton(pnl1, -1, '', (10, 10), style=wx.RB_GROUP)
         self.set_sample_int_bs=wx.RadioButton(pnl1, -1, ' ', (10, 30))
         self.set_sample_int_bs_par=wx.RadioButton(pnl1, -1, '', (50, 50))
-        
+
         criteria_sample_window = wx.GridSizer(1, 3, 6, 6)
         criteria_sample_window.AddMany( [(wx.StaticText(pnl1,label="Enable STDEV-OPT",style=wx.TE_CENTER), wx.EXPAND),
             (wx.StaticText(pnl1,label="Enable BS",style=wx.TE_CENTER), wx.EXPAND),
@@ -11606,6 +11619,10 @@ class convert_generic_files_to_MagIC(wx.Frame):
 if __name__ == '__main__':
     app = wx.PySimpleApp()
     app.frame = Arai_GUI()
+    #dw, dh = wx.DisplaySize() 
+    #w, h = app.frame.GetSize()
+    #print 'display:', dw, dh
+    #print "gui:", w, h
     app.frame.Show()
     app.frame.Center()
     app.MainLoop()

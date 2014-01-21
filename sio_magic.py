@@ -619,7 +619,7 @@ def main():
                 else:
                     MagRec["measurement_standard"]='u'
                 MagRec["measurement_number"]='1'
-                print MagRec['treatment_temp']
+                #print MagRec['treatment_temp']
                 MagRecs.append(MagRec) 
     MagOuts=pmag.measurements_methods(MagRecs,noave)
     pmag.magic_write(meas_file,MagOuts,'magic_measurements')
