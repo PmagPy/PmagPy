@@ -418,8 +418,10 @@ def main():
 			PmagSiteRec["er_site_name"]=siteD[0]['er_site_name']
 			PmagSiteRec['site_tilt_correction']=coords[-1]
 			PmagSiteRec['site_comp_name']= pmag.get_list(siteD,key+'_comp_name')
-			PmagSiteRec['er_sample_names']= pmag.get_list(siteD,'er_sample_name')
-			PmagSiteRec['er_specimen_names']= pmag.get_list(siteD,'er_specimen_name')
+                        if Daverage==1:
+			    PmagSiteRec['er_sample_names']= pmag.get_list(siteD,'er_sample_name')
+                        else:
+			    PmagSiteRec['er_specimen_names']= pmag.get_list(siteD,'er_specimen_name')
 # determine the demagnetization code (DC3,4 or 5) for this site
 			AFnum=len(pmag.get_dictitem(siteD,'magic_method_codes','LP-DIR-AF','has'))
 			Tnum=len(pmag.get_dictitem(siteD,'magic_method_codes','LP-DIR-T','has'))
@@ -495,8 +497,10 @@ def main():
 		PmagResRec['er_citation_names']='This study'
 		PmagResRec['er_analyst_mail_names']=user
 		PmagResRec["er_location_names"]=PmagSiteRec["er_location_name"]
-		PmagResRec["er_specimen_names"]=PmagSiteRec["er_specimen_names"]
-		PmagResRec["er_sample_names"]=PmagSiteRec["er_sample_names"]
+                if Daverage==1:
+		    PmagResRec["er_sample_names"]=PmagSiteRec["er_sample_names"]
+                else:
+		    PmagResRec["er_specimen_names"]=PmagSiteRec["er_specimen_names"]
 		PmagResRec["tilt_correction"]=PmagSiteRec['site_tilt_correction']
 		PmagResRec["pole_comp_name"]=PmagSiteRec['site_comp_name']
 		PmagResRec["average_dec"]=PmagSiteRec["site_dec"]
