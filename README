@@ -3,9 +3,13 @@ by Lisa Tauxe.  Complete documentation is available at:
 http://magician.ucsd.edu/Software/PmagPy
 
 To install, unzip this folder and put it on your Desktop.  click on the
-install script for your system. 
+install script for your system.
 
 For Linux users, just copy the contents of the folder into one in you home directory named PmagPy.  Add that directory to your path.
+
+Alternatively install pip (http://www.pip-installer.org) and run `pip install -r requirements.txt".
+
+Run `python eqarea.py` to test that your development environment is correctly setup.
 
 Every time you update this package be sure to copy the ENTIRE contents over.
 
