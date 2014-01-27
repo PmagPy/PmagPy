@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 import sys
-import pmag
+from . import pmag
 
 
 def main():
@@ -19,7 +19,7 @@ def main():
 
     INPUT
        takes magic formatted pmag_specimens file
-    
+
     OUPUT
         prints site_name n_lines n_planes K alpha95 dec inc R
 
@@ -34,8 +34,8 @@ def main():
         -exc use criteria in pmag_criteria.txt
     """
     dir_path = '.'
-    FIG = {} # plot dictionary
-    FIG['eqarea'] = 1 # eqarea is figure 1
+    FIG = {}  # plot dictionary
+    FIG['eqarea'] = 1  # eqarea is figure 1
     in_file, plot_key, coord = 'pmag_specimens.txt', 'er_site_name', "-1"
     out_file = ""
     fmt, plot = 'svg', 1
@@ -68,13 +68,17 @@ def main():
             if '-crd' in sys.argv:
                 ind = sys.argv.index("-crd")
             crd = sys.argv[ind + 1]
-            if crd == 's': coord = "-1"
-            if crd == 'g': coord = "0"
-            if crd == 't': coord = "100"
+            if crd == 's':
+                coord = "-1"
+            if crd == 'g':
+                coord = "0"
+            if crd == 't':
+                coord = "100"
             if '-fmt' in sys.argv:
                 ind = sys.argv.index("-fmt")
             fmt = sys.argv[ind + 1]
-            if '-P' in sys.argv: plot = 0
+            if '-P' in sys.argv:
+                plot = 0
             #
             in_file = dir_path + '/' + in_file
             Specs, file_type = pmag.magic_read(in_file)
@@ -87,7 +91,7 @@ def main():
                     sitelist.append(rec['er_site_name'])
             sitelist.sort()
             if plot == 1:
-                import pmagplotlib
+                from . import pmagplotlib
             EQ = {}
             EQ['eqarea'] = 1
             pmagplotlib.plot_init(EQ['eqarea'], 4, 4)
@@ -96,7 +100,8 @@ def main():
             data = []
             for spec in Specs:
                 if 'specimen_tilt_correction' not in spec.keys():
-                    spec['specimen_tilt_correction'] = '-1' # assume unoriented
+                    # assume unoriented
+                    spec['specimen_tilt_correction'] = '-1'
             if spec['er_site_name'] == site:
                 if 'specimen_mad' not in spec.keys() or spec['specimen_mad'] == "":
                     if 'specimen_alpha95' in spec.keys() and spec['specimen_alpha95'] != "":
@@ -119,10 +124,17 @@ def main():
                    fpars["alpha95"], fpars["dec"], fpars["inc"], fpars["R"])
             if out_file != "":
                 if float(fpars["alpha95"]) <= acutoff and float(fpars["K"]) >= kcutoff:
-                    out.write('%s %s %s\n' % (fpars["dec"], fpars['inc'], fpars['alpha95']))
+                    out.write(
+                        '%s %s %s\n' %
+                        (fpars["dec"], fpars['inc'], fpars['alpha95']))
             print '% tilt correction: ', coord
             if plot == 1:
-                pmagplotlib.plotLNP(EQ['eqarea'], site, data, fpars, 'specimen_direction_type')
+                pmagplotlib.plotLNP(
+                    EQ['eqarea'],
+                    site,
+                    data,
+                    fpars,
+                    'specimen_direction_type')
             pmagplotlib.drawFIGS(EQ)
             ans = raw_input("s[a]ve plot, [q]uit, <return> to continue:\n ")
             if ans == "a":

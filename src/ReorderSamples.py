@@ -1,7 +1,11 @@
 #!/usr/bin/env python
-import sys,pmag,math
+import sys
+from . import pmag
+import math
 #
 #
+
+
 def main():
     """
     NAME
@@ -22,28 +26,28 @@ def main():
         writes re-ordered er_samples.txt file
 
     """
-    infile='pmag_specimens.txt'
-    sampfile="er_samples.txt"
-    outfile="er_samples.txt"
+    infile = 'pmag_specimens.txt'
+    sampfile = "er_samples.txt"
+    outfile = "er_samples.txt"
 # get command line stuff
     if "-h" in sys.argv:
-	print main.__doc__
+        print main.__doc__
         sys.exit()
     if '-fsp' in sys.argv:
-	ind=sys.argv.index("-fsp")
-	infile=sys.argv[ind+1]
+        ind = sys.argv.index("-fsp")
+        infile = sys.argv[ind + 1]
     if '-fsm' in sys.argv:
-	ind=sys.argv.index("-fsm")
-	sampfile=sys.argv[ind+1]
+        ind = sys.argv.index("-fsm")
+        sampfile = sys.argv[ind + 1]
     if '-F' in sys.argv:
-	ind=sys.argv.index("-F")
-	outfile=sys.argv[ind+1]
+        ind = sys.argv.index("-F")
+        outfile = sys.argv[ind + 1]
     if '-WD' in sys.argv:
-        ind=sys.argv.index("-WD")
-        dir_path=sys.argv[ind+1]
-        infile=dir_path+'/'+infile
-        sampfile=dir_path+'/'+sampfile
-        outfile=dir_path+'/'+outfile
-# now do re-ordering 
-    pmag.ReorderSamples(infile,sampfile,outfile)
+        ind = sys.argv.index("-WD")
+        dir_path = sys.argv[ind + 1]
+        infile = dir_path + '/' + infile
+        sampfile = dir_path + '/' + sampfile
+        outfile = dir_path + '/' + outfile
+# now do re-ordering
+    pmag.ReorderSamples(infile, sampfile, outfile)
 main()

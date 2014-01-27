@@ -1,11 +1,16 @@
 #!/usr/bin/env python
-import sys,math,pmag,exceptions
+import sys
+import math
+from . import pmag
+import exceptions
+
+
 def main():
     """
-    NAME 
+    NAME
         dipole_pinc.py
 
-    DESCRIPTION	
+    DESCRIPTION
         gives GAD inclination at specified (paleo) latitude
 
     SYNTAX
@@ -20,22 +25,23 @@ def main():
         print main.__doc__
         sys.exit()
     elif '-f' in sys.argv:
-       ind=sys.argv.index('-f')
-       file=sys.argv[ind+1]
-       f=open(file,'rU')
-       data=f.readlines()
+        ind = sys.argv.index('-f')
+        file = sys.argv[ind + 1]
+        f = open(file, 'rU')
+        data = f.readlines()
     elif '-i' not in sys.argv:
-       data=sys.stdin.readlines()
+        data = sys.stdin.readlines()
     if '-i' not in sys.argv:
         for line in data:
-            rec=line.split()
-            print '%7.1f'%(pmag.pinc(float(rec[0])))
-    else: 
-       while 1:
-           try:
-               lat=raw_input("Paleolat for converting to inclination: <cntl-D> to quit ")
-               print '%7.1f'%(pmag.pinc(float(lat)))
-           except EOFError:
-               print '\n Good-bye \n'
-               sys.exit()
-main()        
+            rec = line.split()
+            print '%7.1f' % (pmag.pinc(float(rec[0])))
+    else:
+        while True:
+            try:
+                lat = raw_input(
+                    "Paleolat for converting to inclination: <cntl-D> to quit ")
+                print '%7.1f' % (pmag.pinc(float(lat)))
+            except EOFError:
+                print '\n Good-bye \n'
+                sys.exit()
+main()

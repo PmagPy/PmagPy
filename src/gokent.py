@@ -1,5 +1,8 @@
 #!/usr/bin/env python
-import pmag,sys
+from . import pmag
+import sys
+
+
 def main():
     """
     NAME
@@ -25,40 +28,49 @@ def main():
        mean dec, mean inc, Eta, Deta, Ieta, Zeta, Zdec, Zinc, N
     """
     if len(sys.argv) > 0:
-        if '-h' in sys.argv: # check if help is needed
+        if '-h' in sys.argv:  # check if help is needed
             print main.__doc__
-            sys.exit() # graceful quit
+            sys.exit()  # graceful quit
         if '-f' in sys.argv:
-            ind=sys.argv.index('-f')
-            file=sys.argv[ind+1]
-            f=open(file,'rU')
-            data=f.readlines()
-        elif '-i' in sys.argv: # ask for filename
-            file=raw_input("Enter file name with dec, inc data: ")
-            f=open(file,'rU')
-            data=f.readlines()
+            ind = sys.argv.index('-f')
+            file = sys.argv[ind + 1]
+            f = open(file, 'rU')
+            data = f.readlines()
+        elif '-i' in sys.argv:  # ask for filename
+            file = raw_input("Enter file name with dec, inc data: ")
+            f = open(file, 'rU')
+            data = f.readlines()
         else:
 #
-            data=sys.stdin.readlines() # read in data from standard input
+            data = sys.stdin.readlines()  # read in data from standard input
     ofile = ""
     if '-F' in sys.argv:
         ind = sys.argv.index('-F')
-        ofile= sys.argv[ind+1]
+        ofile = sys.argv[ind + 1]
         out = open(ofile, 'w + a')
-    DIs= [] # set up list for dec inc data
+    DIs = []  # set up list for dec inc data
     for line in data:   # read in the data from standard input
         if '\t' in line:
-            rec=line.split('\t') # split each line on space to get records
+            rec = line.split('\t')  # split each line on space to get records
         else:
-            rec=line.split() # split each line on space to get records
-        DIs.append((float(rec[0]),float(rec[1])))
+            rec = line.split()  # split each line on space to get records
+        DIs.append((float(rec[0]), float(rec[1])))
 #
-    kpars=pmag.dokent(DIs,len(DIs))
-    output = '%7.1f %7.1f %7.1f %7.1f %7.1f %7.1f %7.1f %7.1f %i' % (kpars["dec"],kpars["inc"],kpars["Eta"],kpars["Edec"],kpars["Einc"],kpars["Zeta"],kpars["Zdec"],kpars["Zinc"],kpars["n"])
+    kpars = pmag.dokent(DIs, len(DIs))
+    output = '%7.1f %7.1f %7.1f %7.1f %7.1f %7.1f %7.1f %7.1f %i' % (
+        kpars["dec"],
+        kpars["inc"],
+        kpars["Eta"],
+        kpars["Edec"],
+        kpars["Einc"],
+        kpars["Zeta"],
+        kpars["Zdec"],
+        kpars["Zinc"],
+        kpars["n"])
     if ofile == "":
         print output
     else:
-        out.write(output+'\n')
+        out.write(output + '\n')
 #    print '%7.1f %7.1f %7.1f %7.1f %7.1f %7.1f %7.1f %7.1f %i' % (kpars["dec"],kpars["inc"],kpars["Eta"],kpars["Edec"],kpars["Einc"],kpars["Zeta"],kpars["Zdec"],kpars["Zinc"],kpars["n"])
     #
 main()

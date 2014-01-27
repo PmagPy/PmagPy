@@ -1,5 +1,10 @@
 #!/usr/bin/env python
-import string,sys,pmag,math
+import string
+import sys
+from . import pmag
+import math
+
+
 def main():
     """
     NAME
@@ -18,12 +23,12 @@ def main():
         -f FILE: specify .ams input file name
         -fad AZDIP: specify AZDIP file with orientations, will create er_samples.txt file
         -fsa SFILE: specify existing er_samples.txt file with orientation information
-        -fsp SPFILE: specify existing er_specimens.txt file for appending 
+        -fsp SPFILE: specify existing er_specimens.txt file for appending
         -F MFILE: specify magic_measurements output file
         -Fa AFILE: specify rmag_anisotropy output file
         -ocn ORCON:  specify orientation convention: default is #3 below -only with AZDIP file
         -usr USER: specify who made the measurements
-        -loc LOC: specify location name for study 
+        -loc LOC: specify location name for study
         -ins INST: specify instrument used
         -spc SPEC: specify number of characters to specify specimen from sample
         -ncn NCON:  specify naming convention: default is #1 below
@@ -33,7 +38,7 @@ def main():
         AFILE: rmag_anisotropy.txt
         SPFILE: create new er_specimen.txt file
         USER: ""
-        LOC: "unknown" 
+        LOC: "unknown"
         INST: "SIO-KLY4S"
         SPEC: 1  specimen name is same as sample (if SPEC is 1, sample is all but last character)
     NOTES:
@@ -41,11 +46,11 @@ def main():
             [1] XXXXY: where XXXX is an arbitrary length site designation and Y
                 is the single character sample designation.  e.g., TG001a is the
                 first sample from site TG001.    [default]
-            [2] XXXX-YY: YY sample from site XXXX (XXX, YY of arbitary length) 
+            [2] XXXX-YY: YY sample from site XXXX (XXX, YY of arbitary length)
             [3] XXXX.YY: YY sample from site XXXX (XXX, YY of arbitary length)
             [4-Z] XXXXYYY:  YYY is sample designation with Z characters from site XXX
-            [5] all others you will have to either customize your 
-                self or e-mail ltauxe@ucsd.edu for help.  
+            [5] all others you will have to either customize your
+                self or e-mail ltauxe@ucsd.edu for help.
        Orientation convention:
             [1] Lab arrow azimuth= azimuth; Lab arrow dip=-dip
                 i.e., dip is degrees from vertical down - the hade [default]
@@ -53,282 +58,319 @@ def main():
                 i.e., azimuth is strike and dip is hade
             [3] Lab arrow azimuth = azimuth; Lab arrow dip = dip-90
                 e.g. dip is degrees from horizontal of drill direction
-            [4] Lab arrow azimuth = azimuth; Lab arrow dip = dip 
-            [5] Lab arrow azimuth = azimuth; Lab arrow dip = 90-dip 
+            [4] Lab arrow azimuth = azimuth; Lab arrow dip = dip
+            [5] Lab arrow azimuth = azimuth; Lab arrow dip = 90-dip
             [6] all others you will have to either customize your
                 self or e-mail ltauxe@ucsd.edu for help.
 
     """
-    citation='This study'
-    cont=0
-    ask=0
-    samp_con,Z="1",1
-    or_con="3" # see orientation_magic.py help message
-    inst,specnum="SIO-KLY4S",0
-    AniRecs,SpecRecs,SampRecs,MeasRecs=[],[],[],[]
-    user,locname,specfile="","unknown","er_specimens.txt"
-    AppSpec=0
-    sampfile,measfile='','magic_measurements.txt'
-    anisfile='rmag_anisotropy.txt'
-    azdipfile=""
-    dir_path='.'
+    citation = 'This study'
+    cont = 0
+    ask = 0
+    samp_con, Z = "1", 1
+    or_con = "3"  # see orientation_magic.py help message
+    inst, specnum = "SIO-KLY4S", 0
+    AniRecs, SpecRecs, SampRecs, MeasRecs = [], [], [], []
+    user, locname, specfile = "", "unknown", "er_specimens.txt"
+    AppSpec = 0
+    sampfile, measfile = '', 'magic_measurements.txt'
+    anisfile = 'rmag_anisotropy.txt'
+    azdipfile = ""
+    dir_path = '.'
     if '-WD' in sys.argv:
-        ind=sys.argv.index('-WD')
-        dir_path=sys.argv[ind+1] 
+        ind = sys.argv.index('-WD')
+        dir_path = sys.argv[ind + 1]
     if '-h' in sys.argv:
         print main.__doc__
         sys.exit()
     if '-usr' in sys.argv:
-        ind=sys.argv.index('-usr')
-        user=sys.argv[ind+1] 
+        ind = sys.argv.index('-usr')
+        user = sys.argv[ind + 1]
     if '-ocn' in sys.argv:
-        ind=sys.argv.index('-ocn')
-        or_con=sys.argv[ind+1] 
+        ind = sys.argv.index('-ocn')
+        or_con = sys.argv[ind + 1]
     if "-ncn" in sys.argv:
-        ind=sys.argv.index("-ncn")
-        samp_con=sys.argv[ind+1]
+        ind = sys.argv.index("-ncn")
+        samp_con = sys.argv[ind + 1]
         if "4" in samp_con:
             if "-" not in samp_con:
                 print "option [4] must be in form 3-Z where Z is an integer"
                 sys.exit()
             else:
-                Z=samp_con.split("-")[1]
-                samp_con="4"
+                Z = samp_con.split("-")[1]
+                samp_con = "4"
     if '-f' in sys.argv:
-        ind=sys.argv.index('-f')
-        amsfile=sys.argv[ind+1] 
+        ind = sys.argv.index('-f')
+        amsfile = sys.argv[ind + 1]
     else:
         print main.__doc__
         print 'must specify ascii input file '
         sys.exit()
     if '-F' in sys.argv:
-        ind=sys.argv.index('-F')
-        measfile=sys.argv[ind+1] 
+        ind = sys.argv.index('-F')
+        measfile = sys.argv[ind + 1]
     if '-Fa' in sys.argv:
-        ind=sys.argv.index('-Fa')
-        anisfile=sys.argv[ind+1] 
+        ind = sys.argv.index('-Fa')
+        anisfile = sys.argv[ind + 1]
     if '-Fr' in sys.argv:
-        ind=sys.argv.index('-Fr')
-        routput=sys.argv[ind+1] 
+        ind = sys.argv.index('-Fr')
+        routput = sys.argv[ind + 1]
     if '-fsa' in sys.argv:
-        ind=sys.argv.index('-fsa')
-        sampfile=sys.argv[ind+1] 
+        ind = sys.argv.index('-fsa')
+        sampfile = sys.argv[ind + 1]
     if '-fsp' in sys.argv:
-        ind=sys.argv.index('-fsp')
-        specfile=sys.argv[ind+1] 
-        AppSpec=1
+        ind = sys.argv.index('-fsp')
+        specfile = sys.argv[ind + 1]
+        AppSpec = 1
     if '-fad' in sys.argv:
-        ind=sys.argv.index('-fad')
-        azdipfile=dir_path+"/"+sys.argv[ind+1]
-        azfile=open(azdipfile,'rU')
-        AzDipDat=azfile.readlines() 
+        ind = sys.argv.index('-fad')
+        azdipfile = dir_path + "/" + sys.argv[ind + 1]
+        azfile = open(azdipfile, 'rU')
+        AzDipDat = azfile.readlines()
     if '-loc' in sys.argv:
-        ind=sys.argv.index('-loc')
-        locname=sys.argv[ind+1] 
+        ind = sys.argv.index('-loc')
+        locname = sys.argv[ind + 1]
     if '-spc' in sys.argv:
-        ind=sys.argv.index('-spc')
-        specnum=-(int(sys.argv[ind+1]))
+        ind = sys.argv.index('-spc')
+        specnum = -(int(sys.argv[ind + 1]))
         #if specnum!=0:specnum=-specnum
-    specfile=dir_path+'/'+specfile
-    sampfile=dir_path+'/'+sampfile
-    measfile=dir_path+'/'+measfile
-    anisfile=dir_path+'/'+anisfile
-    amsfile=dir_path+'/'+amsfile
+    specfile = dir_path + '/' + specfile
+    sampfile = dir_path + '/' + sampfile
+    measfile = dir_path + '/' + measfile
+    anisfile = dir_path + '/' + anisfile
+    amsfile = dir_path + '/' + amsfile
     try:
-        input=open(amsfile,'rU')
+        input = open(amsfile, 'rU')
     except:
         print 'Error opening file: ', amsfile
         sys.exit()
-    SpecRecs,speclist=[],[]
-    if AppSpec==1:
+    SpecRecs, speclist = [], []
+    if AppSpec == 1:
         try:
-            SpecRecs,filetype=pmag.magic_read(specfile) # append new records to existing
-            if len(SpecRecs)>0:
+            # append new records to existing
+            SpecRecs, filetype = pmag.magic_read(specfile)
+            if len(SpecRecs) > 0:
                 for spec in SpecRecs:
-                    if spec['er_specimen_name'] not in speclist:speclist.append(spec['er_specimen_name'])
+                    if spec['er_specimen_name'] not in speclist:
+                        speclist.append(spec['er_specimen_name'])
         except IOError:
-            print 'trouble opening ',specfile 
-    Data=input.readlines()
-    samps=[]
-    if sampfile!=dir_path+'/': 
-        samps,file_type=pmag.magic_read(sampfile)
-        SO_methods=[]
+            print 'trouble opening ', specfile
+    Data = input.readlines()
+    samps = []
+    if sampfile != dir_path + '/':
+        samps, file_type = pmag.magic_read(sampfile)
+        SO_methods = []
         for rec in samps:
-           if "magic_method_codes" in rec.keys():
-               methlist=rec["magic_method_codes"].replace(" ","").split(":")
-               for meth in methlist:
-                   if "SO" in meth and "SO-POM" not in meth and "SO-GT5" not in meth and "SO-ASC" not in meth and "SO-BAD" not in meth:
-                       if meth not in SO_methods: SO_methods.append(meth)
+            if "magic_method_codes" in rec.keys():
+                methlist = rec[
+                    "magic_method_codes"].replace(
+                    " ",
+                    "").split(
+                    ":")
+                for meth in methlist:
+                    if "SO" in meth and "SO-POM" not in meth and "SO-GT5" not in meth and "SO-ASC" not in meth and "SO-BAD" not in meth:
+                        if meth not in SO_methods:
+                            SO_methods.append(meth)
     #
-        SO_priorities=pmag.set_priorities(SO_methods,ask)
+        SO_priorities = pmag.set_priorities(SO_methods, ask)
     for line in Data:
-      rec=line.split()
-      if len(rec)>0:
-        AniRec,SpecRec,SampRec,SiteRec,MeasRec={},{},{},{},{}
-        specname=rec[0]
-        if specnum!=0:
-            sampname=specname[:specnum]
-        else:
-            sampname=specname
-        site=pmag.parse_site(sampname,samp_con,Z)
-        AniRec['er_location_name']=locname
-        AniRec['er_citation_names']="This study"
-        AniRec['magic_instrument_codes']=inst
-        method_codes=['LP-X','AE-H','LP-AN-MS']
-        AniRec['magic_experiment_name']=specname+":"+"LP-AN-MS"
-        AniRec['er_analyst_mail_names']=user
-        AniRec['er_site_name']=site
-        AniRec['er_sample_name']=sampname
-        AniRec['er_specimen_name']=specname
-        labaz,labdip,bed_dip_direction,bed_dip="","","",""
-        if azdipfile!="":
-            for key in AniRec.keys():SampRec[key]=AniRec[key]
-            for oline in AzDipDat: # look for exact match first
-                orec=oline.replace('\n','').split()
-                if orec[0].upper() in specname.upper(): # we have a match
-                   labaz,labdip=pmag.orient(float(orec[1]),float(orec[2]),or_con)  
-                   bed_dip_direction=float(orec[3])-90. # assume dip to right of strike
-                   bed_dip=float(orec[4])
-                   break
-            if labaz=="":  # found no exact match - now look at sample level
-                for oline in AzDipDat: 
-                    orec=oline.split()
-                    if orec[0].upper() == sampname.upper(): # we have a match
-                       labaz,labdip=pmag.orient(float(orec[1]),float(orec[2]),or_con)  
-                       bed_dip_direction=float(orec[3])-90. # assume dip to right of strike
-                       bed_dip=float(orec[4])
-                       break
-            if labaz=="":  # found no exact match - now look at sample level
-                print 'found no orientation data - will use specimen coordinates' 
-                raw_input("<return> to continue")
+        rec = line.split()
+        if len(rec) > 0:
+            AniRec, SpecRec, SampRec, SiteRec, MeasRec = {}, {}, {}, {}, {}
+            specname = rec[0]
+            if specnum != 0:
+                sampname = specname[:specnum]
             else:
-                for key in AniRec.keys():SampRec[key]=AniRec[key]
-                SampRec['sample_azimuth']='%7.1f'%(labaz)
-                SampRec['sample_dip']='%7.1f'%(labdip)
-                SampRec['sample_bed_dip_direction']='%7.1f'%(bed_dip_direction)
-                SampRec['sample_bed_dip']='%7.1f'%(bed_dip)
-                SampRecs.append(SampRec)
-        elif sampfile!=dir_path+'/':
-           redo,p=1,0
-           orient={}
-           if len(SO_methods)==1:
-                az_type=SO_methods[0]
-                orient=pmag.find_samp_rec(AniRec["er_sample_name"],samps,az_type)
-                if orient['sample_azimuth']!="":
-                    method_codes.append(az_type)
+                sampname = specname
+            site = pmag.parse_site(sampname, samp_con, Z)
+            AniRec['er_location_name'] = locname
+            AniRec['er_citation_names'] = "This study"
+            AniRec['magic_instrument_codes'] = inst
+            method_codes = ['LP-X', 'AE-H', 'LP-AN-MS']
+            AniRec['magic_experiment_name'] = specname + ":" + "LP-AN-MS"
+            AniRec['er_analyst_mail_names'] = user
+            AniRec['er_site_name'] = site
+            AniRec['er_sample_name'] = sampname
+            AniRec['er_specimen_name'] = specname
+            labaz, labdip, bed_dip_direction, bed_dip = "", "", "", ""
+            if azdipfile != "":
+                for key in AniRec.keys():
+                    SampRec[key] = AniRec[key]
+                for oline in AzDipDat:  # look for exact match first
+                    orec = oline.replace('\n', '').split()
+                    if orec[0].upper() in specname.upper():  # we have a match
+                        labaz, labdip = pmag.orient(
+                            float(orec[1]), float(orec[2]), or_con)
+                        # assume dip to right of strike
+                        bed_dip_direction = float(orec[3]) - 90.
+                        bed_dip = float(orec[4])
+                        break
+                # found no exact match - now look at sample level
+                if labaz == "":
+                    for oline in AzDipDat:
+                        orec = oline.split()
+                        # we have a match
+                        if orec[0].upper() == sampname.upper():
+                            labaz, labdip = pmag.orient(
+                                float(orec[1]), float(orec[2]), or_con)
+                            # assume dip to right of strike
+                            bed_dip_direction = float(orec[3]) - 90.
+                            bed_dip = float(orec[4])
+                            break
+                # found no exact match - now look at sample level
+                if labaz == "":
+                    print 'found no orientation data - will use specimen coordinates'
+                    raw_input("<return> to continue")
                 else:
-                    print "no orientation data for ",AniRec["er_sample_name"],labaz
-                    orient["sample_azimuth"]=""
-                    orient["sample_dip"]=""
-                    orient["sample_bed_dip_direction"]=""
-                    orient["sample_bed_dip"]=""
-                    noorient=1
-                    method_codes.append("SO-NO")
-                    redo=0
-                redo=0
-           while redo==1:
-                if p>=len(SO_priorities):
-                    print "no orientation data for ",AniRec["er_sample_name"],labaz
-                    orient["sample_azimuth"]=""
-                    orient["sample_dip"]=""
-                    orient["sample_bed_dip_direction"]=""
-                    orient["sample_bed_dip"]=""
-                    noorient=1
-                    method_codes.append("SO-NO")
-                    redo=0
-                else:
-                    az_type=SO_methods[SO_methods.index(SO_priorities[p])]
-                    orient=pmag.find_samp_rec(AniRec["er_sample_name"],samps,az_type)
-                    if orient["sample_azimuth"]  !="":
+                    for key in AniRec.keys():
+                        SampRec[key] = AniRec[key]
+                    SampRec['sample_azimuth'] = '%7.1f' % (labaz)
+                    SampRec['sample_dip'] = '%7.1f' % (labdip)
+                    SampRec[
+                        'sample_bed_dip_direction'] = '%7.1f' % (
+                        bed_dip_direction)
+                    SampRec['sample_bed_dip'] = '%7.1f' % (bed_dip)
+                    SampRecs.append(SampRec)
+            elif sampfile != dir_path + '/':
+                redo, p = 1, 0
+                orient = {}
+                if len(SO_methods) == 1:
+                    az_type = SO_methods[0]
+                    orient = pmag.find_samp_rec(
+                        AniRec["er_sample_name"],
+                        samps,
+                        az_type)
+                    if orient['sample_azimuth'] != "":
                         method_codes.append(az_type)
-                        redo=0
-                    noorient=0
-                p+=1
-           if orient['sample_azimuth']!="":labaz=float(orient['sample_azimuth'])
-           if orient['sample_dip']!="":labdip=float(orient['sample_dip'])
-           if "sample_bed_dip_direction" in orient.keys() and orient['sample_bed_dip_direction']!="": bed_dip_direction=float(orient['sample_bed_dip_direction'])
-           if "sample_bed_dip" in orient.keys() and orient['sample_bed_dip']!="": sample_bed_dip=float(orient['sample_bed_dip'])
-        for key in AniRec.keys():SpecRec[key]=AniRec[key]
-        for key in AniRec.keys():MeasRec[key]=AniRec[key]
-        AniRec['anisotropy_type']="AMS"
-        AniRec['anisotropy_n']="192"
-        AniRec['anisotropy_s1']=rec[1]
-        AniRec['anisotropy_s2']=rec[2]
-        AniRec['anisotropy_s3']=rec[3]
-        AniRec['anisotropy_s4']=rec[4]
-        AniRec['anisotropy_s5']=rec[5]
-        AniRec['anisotropy_s6']=rec[6]
-        AniRec['anisotropy_sigma']=rec[7]
-        AniRec['anisotropy_tilt_correction']='-1'
-        AniRec['anisotropy_unit']='Normalized by trace'
-        SpecRec['specimen_volume']='%8.3e'%(1e-6*float(rec[12])) # volume from cc to m^3
-        MeasRec['measurement_flag']='g' # good
-        MeasRec['measurement_standard']='u' # unknown
-        date=rec[14].split('/')
-        if int(date[2])>80:
-           date[2]='19'+date[2]
-        else: 
-           date[2]='20'+date[2]
-        datetime=date[2]+':'+date[0]+':'+date[1]+":"
-        datetime=datetime+rec[15]
-        MeasRec['measurement_number']='1'
-        MeasRec['measurement_date']=datetime 
-        MeasRec['measurement_lab_field_ac']='%8.3e'%(4*math.pi*1e-7*float(rec[11])) # convert from A/m to T
-        MeasRec['measurement_temp']="300" # assumed room T in kelvin
-        MeasRec['measurement_chi_volume']=rec[8]
-        MeasRec['measurement_description']='Bulk measurement'
-        MeasRec['magic_method_codes']='LP-X'
-        if SpecRec['er_specimen_name'] not in speclist: # add to list
-            speclist.append(SpecRec['er_specimen_name'])
-            SpecRecs.append(SpecRec)
-        MeasRecs.append(MeasRec)
-        methods=""
-        for meth in method_codes:
-            methods=methods+meth+":"
-        AniRec["magic_method_codes"]=methods[:-1]  # get rid of annoying spaces in Anthony's export files
-        AniRecs.append(AniRec)
-        if labaz!="": # have orientation info
-            AniRecG,AniRecT={},{}
-            for key in AniRec.keys():AniRecG[key]=AniRec[key]
-            for key in AniRec.keys():AniRecT[key]=AniRec[key]
-            sbar=[]
-            sbar.append(float(AniRec['anisotropy_s1']))
-            sbar.append(float(AniRec['anisotropy_s2']))
-            sbar.append(float(AniRec['anisotropy_s3']))
-            sbar.append(float(AniRec['anisotropy_s4']))
-            sbar.append(float(AniRec['anisotropy_s5']))
-            sbar.append(float(AniRec['anisotropy_s6']))
-            sbarg=pmag.dosgeo(sbar,labaz,labdip)
-            AniRecG["anisotropy_s1"]='%12.10f'%(sbarg[0])
-            AniRecG["anisotropy_s2"]='%12.10f'%(sbarg[1])
-            AniRecG["anisotropy_s3"]='%12.10f'%(sbarg[2])
-            AniRecG["anisotropy_s4"]='%12.10f'%(sbarg[3])
-            AniRecG["anisotropy_s5"]='%12.10f'%(sbarg[4])
-            AniRecG["anisotropy_s6"]='%12.10f'%(sbarg[5])
-            AniRecG["anisotropy_tilt_correction"]='0'
-            AniRecs.append(AniRecG)
-            if bed_dip!="" and bed_dip!=0: # have tilt correction
-                sbart=pmag.dostilt(sbarg,bed_dip_direction,bed_dip)
-                AniRecT["anisotropy_s1"]='%12.10f'%(sbart[0])
-                AniRecT["anisotropy_s2"]='%12.10f'%(sbart[1])
-                AniRecT["anisotropy_s3"]='%12.10f'%(sbart[2])
-                AniRecT["anisotropy_s4"]='%12.10f'%(sbart[3])
-                AniRecT["anisotropy_s5"]='%12.10f'%(sbart[4])
-                AniRecT["anisotropy_s6"]='%12.10f'%(sbart[5])
-                AniRecT["anisotropy_tilt_correction"]='100'
-                AniRecs.append(AniRecT)
-    pmag.magic_write(anisfile,AniRecs,'rmag_anisotropy')
-    pmag.magic_write(measfile,MeasRecs,'magic_measurements')
-    pmag.magic_write(specfile,SpecRecs,'er_specimens')
-    print 'anisotropy data saved in ',anisfile
-    print 'measurement data saved in ',measfile
-    if AppSpec==1:
-        print 'new specimen information  added  to ',specfile
+                    else:
+                        print "no orientation data for ", AniRec["er_sample_name"], labaz
+                        orient["sample_azimuth"] = ""
+                        orient["sample_dip"] = ""
+                        orient["sample_bed_dip_direction"] = ""
+                        orient["sample_bed_dip"] = ""
+                        noorient = 1
+                        method_codes.append("SO-NO")
+                        redo = 0
+                    redo = 0
+                while redo == 1:
+                    if p >= len(SO_priorities):
+                        print "no orientation data for ", AniRec["er_sample_name"], labaz
+                        orient["sample_azimuth"] = ""
+                        orient["sample_dip"] = ""
+                        orient["sample_bed_dip_direction"] = ""
+                        orient["sample_bed_dip"] = ""
+                        noorient = 1
+                        method_codes.append("SO-NO")
+                        redo = 0
+                    else:
+                        az_type = SO_methods[
+                            SO_methods.index(SO_priorities[p])]
+                        orient = pmag.find_samp_rec(
+                            AniRec["er_sample_name"],
+                            samps,
+                            az_type)
+                        if orient["sample_azimuth"] != "":
+                            method_codes.append(az_type)
+                            redo = 0
+                        noorient = 0
+                    p += 1
+                if orient['sample_azimuth'] != "":
+                    labaz = float(orient['sample_azimuth'])
+                if orient['sample_dip'] != "":
+                    labdip = float(orient['sample_dip'])
+                if "sample_bed_dip_direction" in orient.keys() and orient['sample_bed_dip_direction'] != "":
+                    bed_dip_direction = float(
+                        orient['sample_bed_dip_direction'])
+                if "sample_bed_dip" in orient.keys() and orient['sample_bed_dip'] != "":
+                    sample_bed_dip = float(orient['sample_bed_dip'])
+            for key in AniRec.keys():
+                SpecRec[key] = AniRec[key]
+            for key in AniRec.keys():
+                MeasRec[key] = AniRec[key]
+            AniRec['anisotropy_type'] = "AMS"
+            AniRec['anisotropy_n'] = "192"
+            AniRec['anisotropy_s1'] = rec[1]
+            AniRec['anisotropy_s2'] = rec[2]
+            AniRec['anisotropy_s3'] = rec[3]
+            AniRec['anisotropy_s4'] = rec[4]
+            AniRec['anisotropy_s5'] = rec[5]
+            AniRec['anisotropy_s6'] = rec[6]
+            AniRec['anisotropy_sigma'] = rec[7]
+            AniRec['anisotropy_tilt_correction'] = '-1'
+            AniRec['anisotropy_unit'] = 'Normalized by trace'
+            # volume from cc to m^3
+            SpecRec['specimen_volume'] = '%8.3e' % (1e-6 * float(rec[12]))
+            MeasRec['measurement_flag'] = 'g'  # good
+            MeasRec['measurement_standard'] = 'u'  # unknown
+            date = rec[14].split('/')
+            if int(date[2]) > 80:
+                date[2] = '19' + date[2]
+            else:
+                date[2] = '20' + date[2]
+            datetime = date[2] + ':' + date[0] + ':' + date[1] + ":"
+            datetime = datetime + rec[15]
+            MeasRec['measurement_number'] = '1'
+            MeasRec['measurement_date'] = datetime
+            # convert from A/m to T
+            MeasRec['measurement_lab_field_ac'] = '%8.3e' % (
+                4 * math.pi * 1e-7 * float(rec[11]))
+            MeasRec['measurement_temp'] = "300"  # assumed room T in kelvin
+            MeasRec['measurement_chi_volume'] = rec[8]
+            MeasRec['measurement_description'] = 'Bulk measurement'
+            MeasRec['magic_method_codes'] = 'LP-X'
+            if SpecRec['er_specimen_name'] not in speclist:  # add to list
+                speclist.append(SpecRec['er_specimen_name'])
+                SpecRecs.append(SpecRec)
+            MeasRecs.append(MeasRec)
+            methods = ""
+            for meth in method_codes:
+                methods = methods + meth + ":"
+            # get rid of annoying spaces in Anthony's export files
+            AniRec["magic_method_codes"] = methods[:-1]
+            AniRecs.append(AniRec)
+            if labaz != "":  # have orientation info
+                AniRecG, AniRecT = {}, {}
+                for key in AniRec.keys():
+                    AniRecG[key] = AniRec[key]
+                for key in AniRec.keys():
+                    AniRecT[key] = AniRec[key]
+                sbar = []
+                sbar.append(float(AniRec['anisotropy_s1']))
+                sbar.append(float(AniRec['anisotropy_s2']))
+                sbar.append(float(AniRec['anisotropy_s3']))
+                sbar.append(float(AniRec['anisotropy_s4']))
+                sbar.append(float(AniRec['anisotropy_s5']))
+                sbar.append(float(AniRec['anisotropy_s6']))
+                sbarg = pmag.dosgeo(sbar, labaz, labdip)
+                AniRecG["anisotropy_s1"] = '%12.10f' % (sbarg[0])
+                AniRecG["anisotropy_s2"] = '%12.10f' % (sbarg[1])
+                AniRecG["anisotropy_s3"] = '%12.10f' % (sbarg[2])
+                AniRecG["anisotropy_s4"] = '%12.10f' % (sbarg[3])
+                AniRecG["anisotropy_s5"] = '%12.10f' % (sbarg[4])
+                AniRecG["anisotropy_s6"] = '%12.10f' % (sbarg[5])
+                AniRecG["anisotropy_tilt_correction"] = '0'
+                AniRecs.append(AniRecG)
+                if bed_dip != "" and bed_dip != 0:  # have tilt correction
+                    sbart = pmag.dostilt(sbarg, bed_dip_direction, bed_dip)
+                    AniRecT["anisotropy_s1"] = '%12.10f' % (sbart[0])
+                    AniRecT["anisotropy_s2"] = '%12.10f' % (sbart[1])
+                    AniRecT["anisotropy_s3"] = '%12.10f' % (sbart[2])
+                    AniRecT["anisotropy_s4"] = '%12.10f' % (sbart[3])
+                    AniRecT["anisotropy_s5"] = '%12.10f' % (sbart[4])
+                    AniRecT["anisotropy_s6"] = '%12.10f' % (sbart[5])
+                    AniRecT["anisotropy_tilt_correction"] = '100'
+                    AniRecs.append(AniRecT)
+    pmag.magic_write(anisfile, AniRecs, 'rmag_anisotropy')
+    pmag.magic_write(measfile, MeasRecs, 'magic_measurements')
+    pmag.magic_write(specfile, SpecRecs, 'er_specimens')
+    print 'anisotropy data saved in ', anisfile
+    print 'measurement data saved in ', measfile
+    if AppSpec == 1:
+        print 'new specimen information  added  to ', specfile
     else:
-        print 'specimen information  saved in new ',specfile
-    if azdipfile!="":
-        sampfile='er_samples.txt'
-        pmag.magic_write(sampfile,SampRecs,'er_samples')
-        print 'sample data saved in ',sampfile
+        print 'specimen information  saved in new ', specfile
+    if azdipfile != "":
+        sampfile = 'er_samples.txt'
+        pmag.magic_write(sampfile, SampRecs, 'er_samples')
+        print 'sample data saved in ', sampfile
 main()
-

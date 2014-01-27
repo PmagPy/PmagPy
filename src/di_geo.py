@@ -1,5 +1,10 @@
 #!/usr/bin/env python
-import pmag,sys,exceptions,numpy
+from . import pmag
+import sys
+import exceptions
+import numpy
+
+
 def main():
     """
     NAME
@@ -27,33 +32,35 @@ def main():
         print main.__doc__
         sys.exit()
     if '-F' in sys.argv:
-        ind=sys.argv.index('-F')
-        ofile=sys.argv[ind+1]
-        out=open(ofile,'w')
+        ind = sys.argv.index('-F')
+        ofile = sys.argv[ind + 1]
+        out = open(ofile, 'w')
         print ofile, ' opened for output'
-    else: ofile=""
+    else:
+        ofile = ""
 
-    if '-i' in sys.argv: # interactive flag
-        while 1:
+    if '-i' in sys.argv:  # interactive flag
+        while True:
             try:
-                Dec=float(raw_input("Declination: <cntrl-D> to quit  "))
+                Dec = float(raw_input("Declination: <cntrl-D> to quit  "))
             except EOFError:
                 print "\n Good-bye\n"
                 sys.exit()
-            Inc=float(raw_input("Inclination: "))
-            Az=float(raw_input("Azimuth: "))
-            Pl=float(raw_input("Plunge: "))
-            print '%7.1f %7.1f'%(pmag.dogeo(Dec,Inc,Az,Pl))
+            Inc = float(raw_input("Inclination: "))
+            Az = float(raw_input("Azimuth: "))
+            Pl = float(raw_input("Plunge: "))
+            print '%7.1f %7.1f' % (pmag.dogeo(Dec, Inc, Az, Pl))
     elif '-f' in sys.argv:
-        ind=sys.argv.index('-f')
-        file=sys.argv[ind+1]
-        data=numpy.loadtxt(file)
+        ind = sys.argv.index('-f')
+        file = sys.argv[ind + 1]
+        data = numpy.loadtxt(file)
     else:
-        data=numpy.loadtxt(sys.stdin,dtype=numpy.float) # read in the data from the datafile
-    D,I=pmag.dogeo_V(data)
+        # read in the data from the datafile
+        data = numpy.loadtxt(sys.stdin, dtype=numpy.float)
+    D, I = pmag.dogeo_V(data)
     for k in range(len(D)):
-        if ofile=="":
-            print '%7.1f %7.1f'%(D[k],I[k])
+        if ofile == "":
+            print '%7.1f %7.1f' % (D[k], I[k])
         else:
-            out.write('%7.1f %7.1f\n'%(D[k],I[k]))
+            out.write('%7.1f %7.1f\n' % (D[k], I[k]))
 main()

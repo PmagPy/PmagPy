@@ -1,12 +1,16 @@
 #!/usr/bin/env python
-import pmag,sys,math
+from . import pmag
+import sys
+import math
+
+
 def main():
     """
     NAME
         fishrot.py
 
     DESCRIPTION
-        generates set of Fisher distribed data from specified distribution 
+        generates set of Fisher distribed data from specified distribution
 
     SYNTAX
         fishrot.py [-h][-i][command line options]
@@ -22,38 +26,38 @@ def main():
             kappa:  fisher distribution concentration parameter
             N:  number of directions desired
     OUTPUT
-        dec,  inc   
+        dec,  inc
 
 
     """
-    N,kappa,D,I=100,20.,0.,90.
-    if len(sys.argv)!=0 and  '-h' in sys.argv:
+    N, kappa, D, I = 100, 20., 0., 90.
+    if len(sys.argv) != 0 and '-h' in sys.argv:
         print main.__doc__
         sys.exit()
     elif '-i' in sys.argv:
-        ans=raw_input('    Kappa: ')
-        kappa=float(ans)
-        ans=raw_input('    N: ')
-        N=int(ans)
-        ans=raw_input('    Mean Dec: ')
-        D=float(ans)
-        ans=raw_input('    Mean Inc: ')
-        I=float(ans)
+        ans = raw_input('    Kappa: ')
+        kappa = float(ans)
+        ans = raw_input('    N: ')
+        N = int(ans)
+        ans = raw_input('    Mean Dec: ')
+        D = float(ans)
+        ans = raw_input('    Mean Inc: ')
+        I = float(ans)
     else:
         if '-k' in sys.argv:
-            ind=sys.argv.index('-k')
-            kappa=float(sys.argv[ind+1])
+            ind = sys.argv.index('-k')
+            kappa = float(sys.argv[ind + 1])
         if '-n' in sys.argv:
-            ind=sys.argv.index('-n')
-            N=int(sys.argv[ind+1])
+            ind = sys.argv.index('-n')
+            N = int(sys.argv[ind + 1])
         if '-D' in sys.argv:
-            ind=sys.argv.index('-D')
-            D=float(sys.argv[ind+1])
+            ind = sys.argv.index('-D')
+            D = float(sys.argv[ind + 1])
         if '-I' in sys.argv:
-            ind=sys.argv.index('-I')
-            I=float(sys.argv[ind+1])
-    for k in range(N): 
-        dec,inc= pmag.fshdev(kappa)  # send kappa to fshdev
-        drot,irot=pmag.dodirot(dec,inc,D,I)   
-        print '%7.1f %7.1f ' % (drot,irot)
+            ind = sys.argv.index('-I')
+            I = float(sys.argv[ind + 1])
+    for k in range(N):
+        dec, inc = pmag.fshdev(kappa)  # send kappa to fshdev
+        drot, irot = pmag.dodirot(dec, inc, D, I)
+        print '%7.1f %7.1f ' % (drot, irot)
 main()

@@ -1,5 +1,8 @@
 #!/usr/bin/env python
-import pmag,sys
+from . import pmag
+import sys
+
+
 def main():
     """
     NAME
@@ -10,7 +13,7 @@ def main():
 
     INPUT (COMMAND LINE ENTRY)
     OUTPUT
-        x 
+        x
 
     SYNTAX
         gaussian.py [command line options]
@@ -23,29 +26,29 @@ def main():
         -F specify output file
 
     """
-    N,mean,sigma=100,0,1.
-    outfile=""
+    N, mean, sigma = 100, 0, 1.
+    outfile = ""
     if '-h' in sys.argv:
         print main.__doc__
         sys.exit()
     else:
         if '-s' in sys.argv:
-            ind=sys.argv.index('-s')
-            sigma=float(sys.argv[ind+1])
+            ind = sys.argv.index('-s')
+            sigma = float(sys.argv[ind + 1])
         if '-n' in sys.argv:
-            ind=sys.argv.index('-n')
-            N=int(sys.argv[ind+1])
+            ind = sys.argv.index('-n')
+            N = int(sys.argv[ind + 1])
         if '-m' in sys.argv:
-            ind=sys.argv.index('-m')
-            mean=float(sys.argv[ind+1])
+            ind = sys.argv.index('-m')
+            mean = float(sys.argv[ind + 1])
         if '-F' in sys.argv:
-            ind=sys.argv.index('-F')
-            outfile=sys.argv[ind+1]
-            out=open(outfile,'w')
-    for k in range(N): 
-        x='%f'%(pmag.gaussdev(mean,sigma))  # send kappa to fshdev
-        if outfile=="":
+            ind = sys.argv.index('-F')
+            outfile = sys.argv[ind + 1]
+            out = open(outfile, 'w')
+    for k in range(N):
+        x = '%f' % (pmag.gaussdev(mean, sigma))  # send kappa to fshdev
+        if outfile == "":
             print x
         else:
-           out.write(x+'\n')
+            out.write(x + '\n')
 main()

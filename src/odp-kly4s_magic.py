@@ -1,5 +1,10 @@
 #!/usr/bin/env python
-import string,sys,pmag,copy
+import string
+import sys
+from . import pmag
+import copy
+
+
 def main():
     """
     NAME
@@ -20,7 +25,7 @@ def main():
         -Fr RFILE: specify rmag_results output file
         -Fs SFILE: specify er_specimens output file with location, sample, site, etc. information
         -usr USER: specify who made the measurements
-        -loc LOC: specify location name for study 
+        -loc LOC: specify location name for study
         -ins INST: specify instrument used
         -spc SPEC: specify number of characters to specify specimen from sample
         -ncn NCON:  specify naming convention: default is #2 below
@@ -48,187 +53,212 @@ def main():
             [7-Z] [XXXX]YYY:  XXXX is site designation with Z characters with sample name XXXXYYYY
             NB: all others you will have to customize your self
                  or e-mail ltauxe@ucsd.edu for help.
- 
+
 
     """
-    citation='This study'
-    cont=0
-    samp_con,Z="1",1
-    AniRecSs,AniRecs,SpecRecs,SampRecs,SiteRecs,MeasRecs=[],[],[],[],[],[]
-    user,locname,specfile="","unknown","er_specimens.txt"
-    isspec,inst,specnum='0',"PGL-KLY3",0
-    spin,new=1,0
-    dir_path='.'
+    citation = 'This study'
+    cont = 0
+    samp_con, Z = "1", 1
+    AniRecSs, AniRecs, SpecRecs, SampRecs, SiteRecs, MeasRecs = [
+    ], [], [], [], [], []
+    user, locname, specfile = "", "unknown", "er_specimens.txt"
+    isspec, inst, specnum = '0', "PGL-KLY3", 0
+    spin, new = 1, 0
+    dir_path = '.'
     if '-WD' in sys.argv:
-        ind=sys.argv.index('-WD')
-        dir_path=sys.argv[ind+1] 
-    aoutput,routput,moutput=dir_path+'/rmag_anisotropy.txt',dir_path+'/rmag_results.txt',dir_path+'/magic_measurements.txt'
+        ind = sys.argv.index('-WD')
+        dir_path = sys.argv[ind + 1]
+    aoutput, routput, moutput = dir_path + '/rmag_anisotropy.txt', dir_path + \
+        '/rmag_results.txt', dir_path + '/magic_measurements.txt'
     if '-h' in sys.argv:
         print main.__doc__
         sys.exit()
     if '-usr' in sys.argv:
-        ind=sys.argv.index('-usr')
-        user=sys.argv[ind+1] 
+        ind = sys.argv.index('-usr')
+        user = sys.argv[ind + 1]
     if "-ncn" in sys.argv:
-        ind=sys.argv.index("-ncn")
-        samp_con=sys.argv[ind+1]
+        ind = sys.argv.index("-ncn")
+        samp_con = sys.argv[ind + 1]
         if "4" in samp_con:
             if "-" not in samp_con:
                 print "option [4] must be in form 4-Z where Z is an integer"
                 sys.exit()
             else:
-                Z=samp_con.split("-")[1]
-                samp_con="4"
+                Z = samp_con.split("-")[1]
+                samp_con = "4"
         if "7" in samp_con:
             if "-" not in samp_con:
                 print "option [7] must be in form 7-Z where Z is an integer"
                 sys.exit()
             else:
-                Z=samp_con.split("-")[1]
-                samp_con="7"
-    if '-k15' in sys.argv:spin=0
+                Z = samp_con.split("-")[1]
+                samp_con = "7"
+    if '-k15' in sys.argv:
+        spin = 0
     if '-f' in sys.argv:
-        ind=sys.argv.index('-f')
-        ascfile=dir_path+'/'+sys.argv[ind+1] 
+        ind = sys.argv.index('-f')
+        ascfile = dir_path + '/' + sys.argv[ind + 1]
     if '-F' in sys.argv:
-        ind=sys.argv.index('-F')
-        moutput=dir_path+'/'+sys.argv[ind+1] 
+        ind = sys.argv.index('-F')
+        moutput = dir_path + '/' + sys.argv[ind + 1]
     if '-Fa' in sys.argv:
-        ind=sys.argv.index('-Fa')
-        aoutput=dir_path+'/'+sys.argv[ind+1] 
+        ind = sys.argv.index('-Fa')
+        aoutput = dir_path + '/' + sys.argv[ind + 1]
     if '-Fr' in sys.argv:
-        ind=sys.argv.index('-Fr')
-        routput=dir_path+'/'+sys.argv[ind+1] 
+        ind = sys.argv.index('-Fr')
+        routput = dir_path + '/' + sys.argv[ind + 1]
     if '-Fs' in sys.argv:
-        ind=sys.argv.index('-Fs')
-        specfile=dir_path+'/'+sys.argv[ind+1] 
-        isspec='1'
+        ind = sys.argv.index('-Fs')
+        specfile = dir_path + '/' + sys.argv[ind + 1]
+        isspec = '1'
     elif '-loc' in sys.argv:
-        ind=sys.argv.index('-loc')
-        locname=sys.argv[ind+1] 
+        ind = sys.argv.index('-loc')
+        locname = sys.argv[ind + 1]
     if '-spc' in sys.argv:
-        ind=sys.argv.index('-spc')
-        specnum=-(int(sys.argv[ind+1]))
-    if isspec=="1": 
-        specs,file_type=pmag.magic_read(specfile)
-    specnames,sampnames,sitenames=[],[],[]
-    if '-new' not in sys.argv: # see if there are already specimen,sample, site files lying around
+        ind = sys.argv.index('-spc')
+        specnum = -(int(sys.argv[ind + 1]))
+    if isspec == "1":
+        specs, file_type = pmag.magic_read(specfile)
+    specnames, sampnames, sitenames = [], [], []
+    # see if there are already specimen,sample, site files lying around
+    if '-new' not in sys.argv:
         try:
-            SpecRecs,file_type=pmag.magic_read(dir_path+'/er_specimens.txt')
+            SpecRecs, file_type = pmag.magic_read(
+                dir_path + '/er_specimens.txt')
             for spec in SpecRecs:
-                if spec['er_specimen_name'] not in specnames:specnames.append(samp['er_specimen_name'])
+                if spec['er_specimen_name'] not in specnames:
+                    specnames.append(samp['er_specimen_name'])
         except:
-            SpecRecs,specs=[],[]
+            SpecRecs, specs = [], []
         try:
-            SampRecs,file_type=pmag.magic_read(dir_path+'/er_samples.txt')
+            SampRecs, file_type = pmag.magic_read(dir_path + '/er_samples.txt')
             for samp in SampRecs:
-                if samp['er_sample_name'] not in sampnames:sampnames.append(samp['er_sample_name'])
+                if samp['er_sample_name'] not in sampnames:
+                    sampnames.append(samp['er_sample_name'])
         except:
-            sampnames,SampRecs=[],[]
+            sampnames, SampRecs = [], []
         try:
-            SiteRecs,file_type=pmag.magic_read(dir_path+'/er_sites.txt')
+            SiteRecs, file_type = pmag.magic_read(dir_path + '/er_sites.txt')
             for site in SiteRecs:
-                if site['er_site_names'] not in sitenames:sitenames.append(site['er_site_name'])
+                if site['er_site_names'] not in sitenames:
+                    sitenames.append(site['er_site_name'])
         except:
-            sitenames,SiteRecs=[],[]
+            sitenames, SiteRecs = [], []
     try:
-        input=open(ascfile,'rU')
+        input = open(ascfile, 'rU')
     except:
         print 'Error opening file: ', ascfile
-    Data=input.readlines()
-    k=0
-    while k<len(Data):
+    Data = input.readlines()
+    k = 0
+    while k < len(Data):
         line = Data[k]
-        words=line.split()
+        words = line.split()
         print words
-        if "ANISOTROPY" in words: # first line of data for the spec
-            MeasRec,AniRec,SpecRec,SampRec,SiteRec={},{},{},{},{}
-            specname=words[0]
-            AniRec['er_specimen_name']=specname
-            if isspec=="1":
+        if "ANISOTROPY" in words:  # first line of data for the spec
+            MeasRec, AniRec, SpecRec, SampRec, SiteRec = {}, {}, {}, {}, {}
+            specname = words[0]
+            AniRec['er_specimen_name'] = specname
+            if isspec == "1":
                 for spec in specs:
-                    if spec['er_specimen_name']==specname:
-                        AniRec['er_sample_name']=spec['er_sample_name']
-                        AniRec['er_site_name']=spec['er_site_name']
-                        AniRec['er_location_name']=spec['er_location_name']
+                    if spec['er_specimen_name'] == specname:
+                        AniRec['er_sample_name'] = spec['er_sample_name']
+                        AniRec['er_site_name'] = spec['er_site_name']
+                        AniRec['er_location_name'] = spec['er_location_name']
                         break
-            elif isspec=="0":
-                AniRec['er_sample_name']=specname[:specnum]
-		SpecRec['er_specimen_name']=specname
-		SpecRec['er_sample_name']=specname[:specnum]
-		SampRec['er_sample_name']=specname[:specnum]
-		SiteRec['er_sample_name']=specname[:specnum]
-		SiteRec['site_description']='s'
-                AniRec['er_site_name']=pmag.parse_site(AniRec['er_sample_name'],samp_con,Z)
-                SpecRec['er_site_name']=pmag.parse_site(AniRec['er_sample_name'],samp_con,Z)
-                SampRec['er_site_name']=pmag.parse_site(AniRec['er_sample_name'],samp_con,Z)
-                SiteRec['er_site_name']=pmag.parse_site(AniRec['er_sample_name'],samp_con,Z)
-                AniRec['er_location_name']=locname
-                SpecRec['er_location_name']=locname
-                SampRec['er_location_name']=locname
-                SiteRec['er_location_name']=locname
-                AniRec['er_citation_names']="This study"
-                SpecRec['er_citation_names']="This study"
-                SampRec['er_citation_names']="This study"
-                SiteRec['er_citation_names']="This study"
-            AniRec['er_citation_names']="This study"
-            AniRec['magic_instrument_codes']=inst
-            AniRec['magic_method_codes']="LP-X:AE-H:LP-AN-MS"
-            AniRec['magic_experiment_names']=specname+":"+"LP-AN-MS"
-            AniRec['er_analyst_mail_names']=user
-            for key in AniRec.keys():MeasRec[key]=AniRec[key]
-            MeasRec['measurement_flag']='g'
-            AniRec['anisotropy_flag']='g'
-            MeasRec['measurement_standard']='u'
-            MeasRec['measurement_description']='Bulk sucsecptibility measurement'
-            AniRec['anisotropy_type']="AMS"
-            AniRec['anisotropy_unit']="Normalized by trace"
-            AniRec['anisotropy_unit']='SI'
-            if spin==1:
-                AniRec['anisotropy_n']="192"
+            elif isspec == "0":
+                AniRec['er_sample_name'] = specname[:specnum]
+                SpecRec['er_specimen_name'] = specname
+                SpecRec['er_sample_name'] = specname[:specnum]
+                SampRec['er_sample_name'] = specname[:specnum]
+                SiteRec['er_sample_name'] = specname[:specnum]
+                SiteRec['site_description'] = 's'
+                AniRec['er_site_name'] = pmag.parse_site(
+                    AniRec['er_sample_name'],
+                    samp_con,
+                    Z)
+                SpecRec['er_site_name'] = pmag.parse_site(
+                    AniRec['er_sample_name'],
+                    samp_con,
+                    Z)
+                SampRec['er_site_name'] = pmag.parse_site(
+                    AniRec['er_sample_name'],
+                    samp_con,
+                    Z)
+                SiteRec['er_site_name'] = pmag.parse_site(
+                    AniRec['er_sample_name'],
+                    samp_con,
+                    Z)
+                AniRec['er_location_name'] = locname
+                SpecRec['er_location_name'] = locname
+                SampRec['er_location_name'] = locname
+                SiteRec['er_location_name'] = locname
+                AniRec['er_citation_names'] = "This study"
+                SpecRec['er_citation_names'] = "This study"
+                SampRec['er_citation_names'] = "This study"
+                SiteRec['er_citation_names'] = "This study"
+            AniRec['er_citation_names'] = "This study"
+            AniRec['magic_instrument_codes'] = inst
+            AniRec['magic_method_codes'] = "LP-X:AE-H:LP-AN-MS"
+            AniRec['magic_experiment_names'] = specname + ":" + "LP-AN-MS"
+            AniRec['er_analyst_mail_names'] = user
+            for key in AniRec.keys():
+                MeasRec[key] = AniRec[key]
+            MeasRec['measurement_flag'] = 'g'
+            AniRec['anisotropy_flag'] = 'g'
+            MeasRec['measurement_standard'] = 'u'
+            MeasRec[
+                'measurement_description'] = 'Bulk sucsecptibility measurement'
+            AniRec['anisotropy_type'] = "AMS"
+            AniRec['anisotropy_unit'] = "Normalized by trace"
+            AniRec['anisotropy_unit'] = 'SI'
+            if spin == 1:
+                AniRec['anisotropy_n'] = "192"
             else:
-                AniRec['anisotropy_n']="15"
-        if 'Azi' in words and isspec=='0': 
-            SampRec['sample_azimuth']=words[1]
-            labaz=float(words[1])
+                AniRec['anisotropy_n'] = "15"
+        if 'Azi' in words and isspec == '0':
+            SampRec['sample_azimuth'] = words[1]
+            labaz = float(words[1])
         if 'Dip' in words:
-            SampRec['sample_dip']='%7.1f'%(-float(words[1]))
-            SpecRec['specimen_vol']='%8.3e'%(float(words[10])*1e-6) # convert actual volume to m^3 from cm^3
-            labdip=float(words[1])-90.
-        if 'T1' in words and 'F1' in words: 
-            k+=2 # read in fourth line down
-            line=Data[k]
-            rec=line.split()
-            dd,dip_direction=0,0
-            if len(rec)>0:
-                dd=rec[1].split('/')
-                dip_direction=int(dd[0])+90
-            SampRec['sample_bed_dip_direction']='%i'%(dip_direction)
-            SampRec['sample_bed_dip']=dd[1]
-            bed_dip=float(dd[1])
+            SampRec['sample_dip'] = '%7.1f' % (-float(words[1]))
+            # convert actual volume to m^3 from cm^3
+            SpecRec['specimen_vol'] = '%8.3e' % (float(words[10]) * 1e-6)
+            labdip = float(words[1]) - 90.
+        if 'T1' in words and 'F1' in words:
+            k += 2  # read in fourth line down
+            line = Data[k]
+            rec = line.split()
+            dd, dip_direction = 0, 0
+            if len(rec) > 0:
+                dd = rec[1].split('/')
+                dip_direction = int(dd[0]) + 90
+            SampRec['sample_bed_dip_direction'] = '%i' % (dip_direction)
+            SampRec['sample_bed_dip'] = dd[1]
+            bed_dip = float(dd[1])
         if "Mean" in words:
-            k+=4 # read in fourth line down
-            line=Data[k]
-            rec=line.split()
-            if len(rec)>0:
-                MeasRec['measurement_chi_volume']=rec[1]
-                sigma=.01*float(rec[2])/3.
-                AniRec['anisotropy_sigma']='%7.4f'%(sigma)
+            k += 4  # read in fourth line down
+            line = Data[k]
+            rec = line.split()
+            if len(rec) > 0:
+                MeasRec['measurement_chi_volume'] = rec[1]
+                sigma = .01 * float(rec[2]) / 3.
+                AniRec['anisotropy_sigma'] = '%7.4f' % (sigma)
         if "susceptibilities" in words:  # first part of specimen data
-            line=Data[k+2]
-            rec=line.split()
-            AniRec['anisotropy_s1']='%7.4f'%(float(rec[1])/3.) # eigenvalues sum to unity - not 3
-            AniRec['anisotropy_s2']='%7.4f'%(float(rec[2])/3.) 
-            AniRec['anisotropy_s3']='%7.4f'%(float(rec[3])/3.)
-            k+=2
-            line=Data[k]
-            rec=line.split()
-            AniRec['anisotropy_s4']='%7.4f'%(float(rec[0])/3.) # eigenvalues sum to unity - not 3
-            AniRec['anisotropy_s5']='%7.4f'%(float(rec[1])/3.) 
-            AniRec['anisotropy_s6']='%7.4f'%(float(rec[2])/3.)
-            AniRec['anisotropy_tilt_correction']='-1'
-            AniRecs.append(AniRec) 
-            MeasRecs.append(MeasRec) 
+            line = Data[k + 2]
+            rec = line.split()
+            # eigenvalues sum to unity - not 3
+            AniRec['anisotropy_s1'] = '%7.4f' % (float(rec[1]) / 3.)
+            AniRec['anisotropy_s2'] = '%7.4f' % (float(rec[2]) / 3.)
+            AniRec['anisotropy_s3'] = '%7.4f' % (float(rec[3]) / 3.)
+            k += 2
+            line = Data[k]
+            rec = line.split()
+            # eigenvalues sum to unity - not 3
+            AniRec['anisotropy_s4'] = '%7.4f' % (float(rec[0]) / 3.)
+            AniRec['anisotropy_s5'] = '%7.4f' % (float(rec[1]) / 3.)
+            AniRec['anisotropy_s6'] = '%7.4f' % (float(rec[2]) / 3.)
+            AniRec['anisotropy_tilt_correction'] = '-1'
+            AniRecs.append(AniRec)
+            MeasRecs.append(MeasRec)
             if SpecRec['er_specimen_name'] not in specnames:
                 SpecRecs.append(SpecRec)
                 specnames.append(SpecRec['er_specimen_name'])
@@ -238,23 +268,23 @@ def main():
             if SiteRec['er_site_name'] not in sitenames:
                 SiteRecs.append(SiteRec)
                 sitenames.append(SiteRec['er_site_name'])
-        k+=1 # skip to next specimen
-    pmag.magic_write(aoutput,AniRecs,'rmag_anisotropy')
-    print "anisotropy tensors put in ",aoutput
-    pmag.magic_write(moutput,MeasRecs,'magic_measurements')
-    print "bulk measurements put in ",moutput
-    if isspec=="0":
-        output=dir_path+"/er_specimens.txt"
-        pmag.magic_write(output,SpecRecs,'er_specimens')
-        print "specimen info put in ",output
-        output=dir_path+"/er_samples.txt"
-        pmag.magic_write(output,SampRecs,'er_samples')
-        print "sample info put in ",output
-        output=dir_path+"/er_sites.txt"
-        pmag.magic_write(output,SiteRecs,'er_sites')
-        print "site info put in ",output
+        k += 1  # skip to next specimen
+    pmag.magic_write(aoutput, AniRecs, 'rmag_anisotropy')
+    print "anisotropy tensors put in ", aoutput
+    pmag.magic_write(moutput, MeasRecs, 'magic_measurements')
+    print "bulk measurements put in ", moutput
+    if isspec == "0":
+        output = dir_path + "/er_specimens.txt"
+        pmag.magic_write(output, SpecRecs, 'er_specimens')
+        print "specimen info put in ", output
+        output = dir_path + "/er_samples.txt"
+        pmag.magic_write(output, SampRecs, 'er_samples')
+        print "sample info put in ", output
+        output = dir_path + "/er_sites.txt"
+        pmag.magic_write(output, SiteRecs, 'er_sites')
+        print "site info put in ", output
     print """"
-         You can now import your data into the Magic Console and complete data entry, 
+         You can now import your data into the Magic Console and complete data entry,
          for example the site locations, lithologies, etc. plotting can be done with aniso_magic.py
     """
 main()

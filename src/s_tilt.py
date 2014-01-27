@@ -1,5 +1,9 @@
 #!/usr/bin/env python
-import sys,pmag,math
+import sys
+from . import pmag
+import math
+
+
 def main():
     """
     NAME
@@ -7,7 +11,7 @@ def main():
 
     DESCRIPTION
        rotates .s data into stratigraphic coordinates using strike and dip
-  
+
     SYNTAX
         s_tilt.py [-h][options]
 
@@ -18,9 +22,9 @@ def main():
         -F FILE specifies output filename on command line
         < filename, reads from standard input (Unix like operating systems only)
 
-    INPUT      
+    INPUT
         x11 x22 x33 x12 x23 x13 strike dip
-   
+
     OUTPUT
         x11 x22 x33 x12 x23 x13
     """
@@ -29,38 +33,40 @@ def main():
         sys.exit()
 # read in the data
     elif '-i' in sys.argv:
-        file=raw_input("Enter filename for processing: ")
-        f=open(file,'rU')
-        data=f.readlines()
+        file = raw_input("Enter filename for processing: ")
+        f = open(file, 'rU')
+        data = f.readlines()
         f.close()
     elif '-f' in sys.argv:
-        ind=sys.argv.index('-f')
-        file=sys.argv[ind+1] 
-        f=open(file,'rU')
-        data=f.readlines()
+        ind = sys.argv.index('-f')
+        file = sys.argv[ind + 1]
+        f = open(file, 'rU')
+        data = f.readlines()
         f.close()
-    else: 
-        data=sys.stdin.readlines()
+    else:
+        data = sys.stdin.readlines()
     ofile = ""
     if '-F' in sys.argv:
         ind = sys.argv.index('-F')
-        ofile= sys.argv[ind+1]
+        ofile = sys.argv[ind + 1]
         out = open(ofile, 'w + a')
     for line in data:
-        s=[]
-        rec=line.split()
+        s = []
+        rec = line.split()
         for i in range(6):
             s.append(float(rec[i]))
-        bed_az,bed_dip=float(rec[6])+90.,float(rec[7]) #dip direction,dip
+        # dip direction,dip
+        bed_az, bed_dip = float(rec[6]) + 90., float(rec[7])
 #
 # get eigenvectors
 #
-        s_rot=pmag.dostilt(s,bed_az,bed_dip)
-        outstring=""
-        for s in s_rot:outstring+='%10.8f '%(s)
+        s_rot = pmag.dostilt(s, bed_az, bed_dip)
+        outstring = ""
+        for s in s_rot:
+            outstring += '%10.8f ' % (s)
         if ofile == "":
             print outstring
         else:
-            out.write(outstring+"\n")
+            out.write(outstring + "\n")
 #
-main() 
+main()

@@ -1,9 +1,14 @@
 #!/usr/bin/env python
-import pmag,sys
+from . import pmag
+import sys
+
+
 def spitout(kappa):
-    dec,inc= pmag.fshdev(kappa)  # send kappa to fshdev
-    print '%7.1f %7.1f ' % (dec,inc)
-    return 
+    dec, inc = pmag.fshdev(kappa)  # send kappa to fshdev
+    print '%7.1f %7.1f ' % (dec, inc)
+    return
+
+
 def main():
     """
     NAME
@@ -14,7 +19,7 @@ def main():
 
     INPUT (COMMAND LINE ENTRY)
     OUTPUT
-        dec,  inc   
+        dec,  inc
 
     SYNTAX
         fisher.py [-h] [-i] [command line options]
@@ -29,21 +34,22 @@ def main():
             N:  number of directions desired
 
     """
-    N,kappa=100,20
+    N, kappa = 100, 20
     if '-h' in sys.argv:
         print main.__doc__
         sys.exit()
     elif '-i' in sys.argv:
-        ans=raw_input('    Kappa: ')
-        kappa=float(ans)
-        ans=raw_input('    N: ')
-        N=int(ans)
+        ans = raw_input('    Kappa: ')
+        kappa = float(ans)
+        ans = raw_input('    N: ')
+        N = int(ans)
     else:
         if '-k' in sys.argv:
-            ind=sys.argv.index('-k')
-            kappa=float(sys.argv[ind+1])
+            ind = sys.argv.index('-k')
+            kappa = float(sys.argv[ind + 1])
         if '-n' in sys.argv:
-            ind=sys.argv.index('-n')
-            N=int(sys.argv[ind+1])
-    for k in range(N): spitout(kappa)
+            ind = sys.argv.index('-n')
+            N = int(sys.argv[ind + 1])
+    for k in range(N):
+        spitout(kappa)
 main()
