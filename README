@@ -1,13 +1,13 @@
 This directory contains the python scripts in the PmagPy software distribution
-by Lisa Tauxe.  Complete documentation is available at:
-http://magician.ucsd.edu/Software/PmagPy
+by "Lisa Tauxe" <ltauxe@ucsd.edu>.
 
-To install, unzip this folder and put it on your Desktop.  click on the
-install script for your system. 
+Complete documentation is available at: http://magician.ucsd.edu/Software/PmagPy
 
-For Linux users, just copy the contents of the folder into one in you home directory named PmagPy.  Add that directory to your path.
+To install, first grab the latest pip for your platform (http://www.pip-installer.org/).
+E.g.: once you have Python installed Windows or Mac, run `easy_install pip`.
+On debian-based Linux distributions; run: `sudo apt-get install python-pip`.
 
-Every time you update this package be sure to copy the ENTIRE contents over.
+Next, run `pip install -r requirements.txt`. You may find it easier/quicker to get pre-built binaries for your distro.
 
-lisa tauxe
-ltauxe@ucsd.edu
+Finally, run: `pip install git+https://github.com/ltauxe/PmagPy#egg=pmagpy`.
+
