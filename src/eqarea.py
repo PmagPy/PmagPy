@@ -113,5 +113,4 @@ def main():
             pmagplotlib.saveP(EQ, files)
 
 
-if __name__ == '__main__':
-    main()
+main()
