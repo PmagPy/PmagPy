@@ -2323,12 +2323,13 @@ class Zeq_GUI(wx.Frame):
                     self.pmag_results_data['specimens'][specimen]={}
                     if specimen in self.Data.keys() and 'zijdblock_steps' in self.Data[specimen]\
                     and tmin in self.Data[specimen]['zijdblock_steps']\
-                    and tmax in self.Data[specimen]['zijdblock_steps']:                        
+                    and tmax in self.Data[specimen]['zijdblock_steps']:
+                        print                         
                         #print "specimen,tmin,tmax",specimen,tmin,tmax
                         self.pmag_results_data['specimens'][specimen]['DA-DIR']=self.get_PCA_parameters(specimen,tmin,tmax,'specimen',calculation_type)
-                        if len(self.Data[self.s]['zijdblock_geo'])>0:      
+                        if len(self.Data[specimen]['zijdblock_geo'])>0:      
                             self.pmag_results_data['specimens'][specimen]['DA-DIR-GEO']=self.get_PCA_parameters(specimen,tmin,tmax,'geographic',calculation_type)                
-                        if len(self.Data[self.s]['zijdblock_tilt'])>0:      
+                        if len(self.Data[specimen]['zijdblock_tilt'])>0:      
                             self.pmag_results_data['specimens'][specimen]['DA-DIR-TILT']=self.get_PCA_parameters(specimen,tmin,tmax,'tilt-corrected',calculation_type)                        
                     else:
                         self.GUI_log.write ( "-W- WARNING: Cant find specimen and steps of specimen %s tmin=%s, tmax=%s"%(specimen,tmin,tmax))
