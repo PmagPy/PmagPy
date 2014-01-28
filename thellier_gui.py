@@ -72,6 +72,7 @@ matplotlib.use('WXAgg')
 from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigCanvas \
 
 import sys,pylab,scipy,os
+import pmag
 ##try:
 ##    import pmag
 ##except:
@@ -80,14 +81,12 @@ try:
     import thellier_gui_preferences
 except:
     pass
-import copy
 import stat
 import subprocess
 import time
 import wx
 import wx.grid
 import random
-import copy
 from pylab import *
 from scipy.optimize import curve_fit
 import wx.lib.agw.floatspin as FS
@@ -99,6 +98,8 @@ except:
 from matplotlib.backends.backend_wx import NavigationToolbar2Wx
 
 import thellier_consistency_test
+import copy
+from copy import deepcopy
 
 matplotlib.rc('xtick', labelsize=10) 
 matplotlib.rc('ytick', labelsize=10) 
@@ -185,7 +186,7 @@ class Arai_GUI(wx.Frame):
             dialog.Destroy()
         self.magic_file=self.WD+"/"+"magic_measurements.txt"
             #intialize GUI_log
-        self.GUI_log=open("%s/Thellier_GUI.log"%self.WD,'w')
+        self.GUI_log=open("%s/thellier_GUI.log"%self.WD,'w')
         #self.GUI_log=open("%s/Thellier_GUI.log"%self.WD,'a')
         
 ##    def add_toolbar(self):
@@ -4580,7 +4581,25 @@ class Arai_GUI(wx.Frame):
                 print "-E- Failed reading MagIC Model file %s"%F
             return
         
-        Fout_specimens=self.WD+"/pmag_specimens.txt"
+        #------------------
+        # read "old" pmag results data and sort out directional data
+        # this data will be marged later with os.
+        PmagRecsOld={}
+        for FILE in ['pmag_specimens.txt','pmag_samples.txt','pmag_sites.txt','pmag_results.txt']:
+            PmagRecsOld[FILE],meas_data=[],[]
+            try: 
+                meas_data,file_type=pmag.magic_read(self.WD+"/"+FILE)
+                self.GUI_log.write("-I- Read old magic file  %s\n"%(self.WD+"/"+FILE))
+                #if FILE !='pmag_specimens.txt':
+                os.rename(self.WD+"/"+FILE,self.WD+"/"+FILE+".backup")
+                self.GUI_log.write("-I- rename old magic file  %s.backup\n"%(self.WD+"/"+FILE))
+            except:
+                continue                                                                           
+            for rec in meas_data:
+                if "magic_method_codes" in rec.keys():
+                    if "LP-PI" not in rec['magic_method_codes'] and "IE" not in rec['magic_method_codes'] :
+                        PmagRecsOld[FILE].append(rec)
+            #PmagRecsOld[FILE]=self.converge_pmag_rec_headers(PmagRecsOld[FILE])
         pmag_specimens_header_1=["er_location_name","er_site_name","er_sample_name","er_specimen_name"]
         pmag_specimens_header_2=['measurement_step_min','measurement_step_max','specimen_int']        
         pmag_specimens_header_3=["specimen_correction","specimen_int_corr_anisotropy","specimen_int_corr_nlt","specimen_int_corr_cooling_rate"]
@@ -4678,7 +4697,15 @@ class Arai_GUI(wx.Frame):
                 String=String+MagIC_results_data['pmag_specimens'][specimen][key]+"\t"
             fout.write(String[:-1]+"\n")
         fout.close()    
-
+        
+        
+        # merge with non-intensity data
+        meas_data,file_type=pmag.magic_read(self.WD+"/pmag_specimens.txt")
+        for rec in PmagRecsOld["pmag_specimens.txt"]:
+            meas_data.append(rec)
+        meas_data=self.converge_pmag_rec_headers(meas_data)
+        pmag.magic_write(self.WD+"/"+"pmag_specimens.txt",meas_data,'pmag_specimens')
+        os.remove(self.WD+"/pmag_specimens.txt.backup")  
         #-------------
         # pmag_samples.txt or pmag_sites.txt
         #-------------
@@ -4691,7 +4718,7 @@ class Arai_GUI(wx.Frame):
         if BY_SAMPLES:
            pmag_samples_header_1.append("er_sample_name")
         pmag_samples_header_2=["er_specimen_names","sample_int","sample_int_n","sample_int_sigma","sample_int_sigma_perc"]
-        pmag_samples_header_3=["sample_description","magic_software_packages"]
+        pmag_samples_header_3=["sample_description","magic_method_codes","magic_software_packages"]
         pmag_samples_header_4=["er_citation_names"]
 
         pmag_samples_or_sites_list=[]
@@ -4740,6 +4767,7 @@ class Arai_GUI(wx.Frame):
                     
                     MagIC_results_data['pmag_samples_or_sites'][sample_or_site]["pmag_criteria_codes"]=""
                     MagIC_results_data['pmag_samples_or_sites'][sample_or_site]["sample_description"]="Mean of specimens"
+                    MagIC_results_data['pmag_samples_or_sites'][sample_or_site]['magic_method_codes']="LP-PI"
                     MagIC_results_data['pmag_samples_or_sites'][sample_or_site]["magic_software_packages"]=version
                     
                     MagIC_results_data['pmag_samples_or_sites'][sample_or_site]["er_citation_names"]="This study"
@@ -4765,7 +4793,33 @@ class Arai_GUI(wx.Frame):
             for key in headers:
                 String=String+MagIC_results_data['pmag_samples_or_sites'][sample_or_site][key]+"\t"
             fout.write(String[:-1]+"\n")
+        fout.close()
             
+        # merge with non-intensity data
+        if BY_SAMPLES:
+            meas_data,file_type=pmag.magic_read(self.WD+"/pmag_samples.txt")
+            for rec in PmagRecsOld["pmag_samples.txt"]:
+                meas_data.append(rec)
+            meas_data=self.converge_pmag_rec_headers(meas_data)
+            pmag.magic_write(self.WD+"/"+"pmag_samples.txt",meas_data,'pmag_samples')
+            try:
+                os.remove(self.WD+"/pmag_samples.backup") 
+            except:
+                pass     
+            pmag.magic_write(self.WD+"/"+"pmag_sites.txt",PmagRecsOld["pmag_sites.txt"],'pmag_sites')
+        else:
+            meas_data,file_type=pmag.magic_read(self.WD+"/pmag_sites.txt")
+            for rec in PmagRecsOld["pmag_sites.txt"]:
+                meas_data.append(rec)
+            meas_data=self.converge_pmag_rec_headers(meas_data)
+            pmag.magic_write(self.WD+"/"+"pmag_sites.txt",meas_data,'pmag_sites')
+            try:
+                os.remove(self.WD+"/pmag_samples.backup") 
+            except:
+                pass     
+    
+            pmag.magic_write(self.WD+"/"+"pmag_samples.txt",PmagRecsOld["pmag_samples.txt"],'pmag_samples')
+                                                        
         #-------------
         # pmag_results.txt
         #-------------
@@ -4779,7 +4833,7 @@ class Arai_GUI(wx.Frame):
             pmag_results_header_4=["vdm","vdm_sigma"]        
         else:    
             pmag_results_header_4=["vadm","vadm_sigma"]
-        pmag_results_header_5=[ "data_type","pmag_result_name","result_description","er_citation_names"]        
+        pmag_results_header_5=[ "data_type","pmag_result_name","magic_method_codes","result_description","er_citation_names","magic_software_packages"]        
         # for ages, check the er_ages.txt, and take whats theres
         age_headers=[]
         for site in self.MagIC_model["er_ages"].keys():
@@ -4824,8 +4878,6 @@ class Arai_GUI(wx.Frame):
             MagIC_results_data['pmag_results'][sample_or_site]["average_int_sigma"]=MagIC_results_data['pmag_samples_or_sites'][sample_or_site]['sample_int_sigma']
             MagIC_results_data['pmag_results'][sample_or_site]["average_int_sigma_perc"]=MagIC_results_data['pmag_samples_or_sites'][sample_or_site]['sample_int_sigma_perc']
 
-
-
             if self.preferences['VDM_or_VADM']=="VDM":
                 pass
                 # to be done
@@ -4850,6 +4902,8 @@ class Arai_GUI(wx.Frame):
                 MagIC_results_data['pmag_results'][sample_or_site]["pmag_result_name"]="Paleointensity;" +sample_or_site
                 MagIC_results_data['pmag_results'][sample_or_site]["result_description"]="Paleointensity"
     
+            MagIC_results_data['pmag_results'][sample_or_site]["magic_software_packages"]=version
+            MagIC_results_data['pmag_results'][sample_or_site]["magic_method_codes"]="LP-PI"
             MagIC_results_data['pmag_results'][sample_or_site]["data_type"]="a"
             MagIC_results_data['pmag_results'][sample_or_site]["er_citation_names"]="This study"
             
@@ -4871,6 +4925,18 @@ class Arai_GUI(wx.Frame):
                 String=String+MagIC_results_data['pmag_results'][sample_or_site][key]+"\t"
             fout.write(String[:-1]+"\n")
         fout.close()
+
+        # merge with non-intensity data
+        meas_data,file_type=pmag.magic_read(self.WD+"/pmag_results.txt")
+        for rec in PmagRecsOld["pmag_results.txt"]:
+            meas_data.append(rec)
+        meas_data=self.converge_pmag_rec_headers(meas_data)
+        pmag.magic_write(self.WD+"/"+"pmag_results.txt",meas_data,'pmag_results')
+        try:
+            os.remove(self.WD+"/pmag_results.backup") 
+        except:
+            pass     
+
         
         #-------------
         # MAgic_methods.txt
@@ -4914,6 +4980,20 @@ class Arai_GUI(wx.Frame):
         dlg1.Destroy()
         
         
+    def converge_pmag_rec_headers(self,old_recs):
+        # fix the headers of pmag recs
+        recs={}
+        recs=copy.deepcopy(old_recs)
+        headers=[]
+        for rec in recs:
+            for key in rec.keys():
+                if key not in headers:
+                    headers.append(key)
+        for rec in recs:
+            for header in headers:
+                if header not in rec.keys():
+                    rec[header]=""
+        return recs
                 
     def read_magic_model (self):
         # Read MagIC Data model:
@@ -8226,7 +8306,7 @@ class Arai_GUI(wx.Frame):
         x_AC,y_AC,AC_temperatures,AC=[],[],[],[]
         x_AC_starting_point,y_AC_starting_point,AC_starting_temperatures=[],[],[]
 
-        tmp_data_block=list(copy(datablock))
+        tmp_data_block=list(copy.copy(datablock))
         for k in range(len(additivity_checks)):
           if additivity_checks[k][0] in zerofield_temperatures:
             for i in range(len(tmp_data_block)):
@@ -8384,62 +8464,66 @@ class Arai_GUI(wx.Frame):
     #--------------------------------------------------------------
     
     def get_previous_interpretation(self):
+        prev_pmag_specimen=[]
         try:
+            prev_pmag_specimen,file_type=pmag.magic_read(self.WD+"/pmag_specimens.txt")
             self.GUI_log.write ("-I- Read pmag_specimens.txt for previous interpretation")
-            prev_pmag_specimen=self.read_magic_file(self.WD+"/pmag_specimens.txt",1,'er_specimen_name')
-            #f
-            # first delete all previous interpretation
-            for sp in self.Data.keys():
-                del self.Data[sp]['pars']
-                self.Data[sp]['pars']={}
-                self.Data[sp]['pars']['lab_dc_field']=self.Data[sp]['lab_dc_field']
-                self.Data[sp]['pars']['er_specimen_name']=self.Data[sp]['er_specimen_name']   
-                self.Data[sp]['pars']['er_sample_name']=self.Data[sp]['er_sample_name']
-
-            self.Data_samples={}
-            self.Data_sites={}
-
-            for specimen in prev_pmag_specimen.keys():
-              tmin_kelvin=float(prev_pmag_specimen[specimen]['measurement_step_min'])
-              tmax_kelvin=float(prev_pmag_specimen[specimen]['measurement_step_max'])
-              if specimen not in self.redo_specimens.keys():
-                self.redo_specimens[specimen]={}
-              self.redo_specimens[specimen]['t_min']=float(tmin_kelvin)
-              self.redo_specimens[specimen]['t_max']=float(tmax_kelvin)
-              if specimen in self.Data.keys():
-                  if tmin_kelvin not in self.Data[specimen]['t_Arai'] or tmax_kelvin not in self.Data[specimen]['t_Arai'] :
-                      self.GUI_log.write ("-W- WARNING: cant fit temperature bounds in the redo file to the actual measurement. specimen %s\n"%specimen)
-                  else:
-                      try:
-                          self.Data[specimen]['pars']=self.get_PI_parameters(specimen,float(tmin_kelvin),float(tmax_kelvin))
-                          self.Data[specimen]['pars']['saved']=True
-                          # write intrepretation into sample data
-                          sample=self.Data_hierarchy['specimens'][specimen]
-                          if sample not in self.Data_samples.keys():
-                              self.Data_samples[sample]={}
-                          self.Data_samples[sample][specimen]=self.Data[specimen]['pars']['specimen_int_uT']
-                          
-                          site=self.get_site_from_hierarchy(sample)
-                          if site not in self.Data_sites.keys():
-                              self.Data_sites[site]={}
-                          self.Data_sites[site][specimen]=self.Data[specimen]['pars']['specimen_int_uT']
-
-                      except:
-                          self.GUI_log.write ("-E- ERROR. Cant calculate PI paremeters for specimen %s using redo file. Check!"%(specimen))
-              else:
-                  self.GUI_log.write ("-W- WARNING: Cant find specimen %s from redo file in measurement file!\n"%specimen)
-
-            try:
-                self.s
-            except:
-                self.s=self.specimens[0]
-                    
-            self.pars=self.Data[self.s]['pars']
-            self.clear_boxes()
-            self.draw_figure(self.s)
-            self.update_GUI_with_new_interpretation()
         except:
+            self.GUI_log.write ("-I- No pmag_specimens.txt for previous interpretation")
             return
+        # first delete all previous interpretation
+        for sp in self.Data.keys():
+            del self.Data[sp]['pars']
+            self.Data[sp]['pars']={}
+            self.Data[sp]['pars']['lab_dc_field']=self.Data[sp]['lab_dc_field']
+            self.Data[sp]['pars']['er_specimen_name']=self.Data[sp]['er_specimen_name']   
+            self.Data[sp]['pars']['er_sample_name']=self.Data[sp]['er_sample_name']
+        self.Data_samples={}
+        self.Data_sites={}
+
+        #specimens_list=pmag.get_specs(self.WD+"/pmag_specimens.txt")
+        #specimens_list.sort()
+        for rec in prev_pmag_specimen:
+            if "LP-PI" not in rec["magic_method_codes"]:
+                continue
+            specimen=rec['er_specimen_name']
+            tmin_kelvin=float(rec['measurement_step_min'])
+            tmax_kelvin=float(rec['measurement_step_max'])
+            if specimen not in self.redo_specimens.keys():
+                self.redo_specimens[specimen]={}
+                self.redo_specimens[specimen]['t_min']=float(tmin_kelvin)
+                self.redo_specimens[specimen]['t_max']=float(tmax_kelvin)
+            if specimen in self.Data.keys():
+                if tmin_kelvin not in self.Data[specimen]['t_Arai'] or tmax_kelvin not in self.Data[specimen]['t_Arai'] :
+                    self.GUI_log.write ("-W- WARNING: cant fit temperature bounds in the redo file to the actual measurement. specimen %s\n"%specimen)
+                else:
+                    try:
+                        self.Data[specimen]['pars']=self.get_PI_parameters(specimen,float(tmin_kelvin),float(tmax_kelvin))
+                        self.Data[specimen]['pars']['saved']=True
+                        # write intrepretation into sample data
+                        sample=self.Data_hierarchy['specimens'][specimen]
+                        if sample not in self.Data_samples.keys():
+                            self.Data_samples[sample]={}
+                        self.Data_samples[sample][specimen]=self.Data[specimen]['pars']['specimen_int_uT']
+                        
+                        site=self.get_site_from_hierarchy(sample)
+                        if site not in self.Data_sites.keys():
+                            self.Data_sites[site]={}
+                        self.Data_sites[site][specimen]=self.Data[specimen]['pars']['specimen_int_uT']
+
+                    except:
+                        self.GUI_log.write ("-E- ERROR. Cant calculate PI paremeters for specimen %s using redo file. Check!"%(specimen))
+            else:
+                self.GUI_log.write ("-W- WARNING: Cant find specimen %s from redo file in measurement file!\n"%specimen)
+
+        #try:
+        #    self.s
+        #except:
+        self.s=self.specimens[0]                
+        self.pars=self.Data[self.s]['pars']
+        self.clear_boxes()
+        self.draw_figure(self.s)
+        self.update_GUI_with_new_interpretation()
                     
 
 

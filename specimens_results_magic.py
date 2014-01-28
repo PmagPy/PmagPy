@@ -491,7 +491,7 @@ def main():
 		if PmagSiteRec['site_tilt_correction']=='0':C=' (geog. coord) '
 		if PmagSiteRec['site_tilt_correction']=='100':C=' (strat. coord) '
 		PmagResRec["pmag_result_name"]="VGP Site: "+PmagSiteRec["er_site_name"] # decorate some more
-		PmagResRec["result_description"]="Site VGP, coord system = "+coord+' component: '+comp
+		PmagResRec["result_description"]="Site VGP, coord system = "+str(coord)+' component: '+comp
 		PmagResRec['er_site_names']=PmagSiteRec['er_site_name']
 		PmagResRec['pmag_criteria_codes']='ACCEPT'
 		PmagResRec['er_citation_names']='This study'

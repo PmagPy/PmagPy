@@ -2579,6 +2579,7 @@ def fisher_mean(data):
     """
     calculates fisher parameters for data
     """
+
     R,Xbar,X,fpars=0,[0,0,0],[],{}
     N=len(data)
     if N <2:
@@ -2681,7 +2682,47 @@ def lnpbykey(data,key0,key1): # calculate a fisher mean of key1 data for a group
         PmagRec[key0+"_direction_type"]="l"
     return PmagRec
 
+def fisher_by_pol(data):
+    """
+    input:    as in dolnp (list of dictionaries with 'dec' and 'inc')
+    description: do fisher mean after splitting data into two polaroties domains.
+    output: three dictionaries:
+        'A'= polarity 'A'
+        'B = polarity 'B'
+        'ALL'= switching polarity of 'B' directions, and calculate fisher mean of all data     
+    code modified from eqarea_ell.py b rshaar 1/23/2014
+    """
+    FisherByPoles={}
+    DIblock=[]
+    for rec in data:
+        if 'dec' in rec.keys() and 'inc' in rec.keys():
+            DIblock.append([float(rec["dec"]),float(rec["inc"])]) # collect data for fisher calculation
+    ppars=doprinc(array(DIblock)) # get principal directions  
+    reference_DI=[ppars['dec'],ppars['inc']] # choose the northerly declination principe component ("normal") 
+    if reference_DI[0]<90 or reference_DI[0]>270:
+        reference_DI[0]=(reference_DI[0]+180.)%360
+        reference_DI[1]=reference_DI[1]*-1.
 
+    nDIs,rDIs,all_DI,npars,rpars=[],[],[],[],[]
+    for DI in DIblock:            
+        if angle([DI[0],DI[1]],reference_DI) > 90.:
+            rDIs.append(DI)
+            all_DI.append( [(DI[0]+180.)%360.,-1.*DI[1]])
+        else:
+            nDIs.append(DI)
+            all_DI.append(DI)
+            
+    for mode in ['A','B','All']:
+        FisherByPoles[mode]={}
+        if mode=='A':
+            FisherByPoles[mode]=fisher_mean(nDIs)
+        elif mode=='B':              
+            FisherByPoles[mode]=fisher_mean(rDIs)
+        elif mode=='All':           
+            FisherByPoles[mode]=fisher_mean(all_DI)
+    return FisherByPoles       
+    
+     
 def dolnp(data,direction_type_key):
     """
     returns fisher mean, a95 for data  using method of mcfadden and mcelhinny '88 for lines and planes
