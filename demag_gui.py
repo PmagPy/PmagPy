@@ -121,6 +121,7 @@ class Zeq_GUI(wx.Frame):
             self.s=self.specimens[0]
         else:
             self.s=""
+        self.pars={} 
         self.samples=self.Data_hierarchy['samples'].keys()         # get list of samples
         self.samples.sort()                   # get list of specimens
         self.sites=self.Data_hierarchy['sites'].keys()         # get list of sites
@@ -1079,7 +1080,10 @@ class Zeq_GUI(wx.Frame):
         """
         if "-WD" in sys.argv and FIRST_RUN:
             ind=sys.argv.index('-WD')
-            self.WD=sys.argv[ind+1] 
+            self.WD=sys.argv[ind+1]
+            os.chdir(self.WD)
+            self.WD=os.getcwd()+"/"
+ 
         else:   
             dialog = wx.DirDialog(None, "Choose a directory:",defaultPath = self.currentDirectory ,style=wx.DD_DEFAULT_STYLE | wx.DD_NEW_DIR_BUTTON | wx.DD_CHANGE_DIR)
             if dialog.ShowModal() == wx.ID_OK:
@@ -2279,10 +2283,19 @@ class Zeq_GUI(wx.Frame):
 #        return(data_pmag_table)
         
     def update_pmag_tables(self):
-        
-        pmag_specimens,file_type=pmag.magic_read(self.WD+"/"+"pmag_specimens.txt")
-        pmag_samples,file_type=pmag.magic_read(self.WD+"/"+"pmag_samples.txt")
-        pmag_sites,file_type=pmag.magic_read(self.WD+"/"+"pmag_sites.txt")
+        pmag_specimens,pmag_samples,pmag_sites=[],[],[]
+        try:
+            pmag_specimens,file_type=pmag.magic_read(self.WD+"/"+"pmag_specimens.txt")
+        except:
+            print "-I- Cant read pmag_specimens.txt"
+        try:
+            pmag_samples,file_type=pmag.magic_read(self.WD+"/"+"pmag_samples.txt")
+        except:
+            print "-I- Cant read pmag_samples.txt"
+        try:
+            pmag_sites,file_type=pmag.magic_read(self.WD+"/"+"pmag_sites.txt")
+        except:
+            print "-I- Cant read pmag_sites.txt"
         self.GUI_log.write ("-I- Reading previous interpretations from pmag* tables\n")        
         #--------------------------
         # reads pmag_specimens.txt and 
@@ -2324,7 +2337,6 @@ class Zeq_GUI(wx.Frame):
                     if specimen in self.Data.keys() and 'zijdblock_steps' in self.Data[specimen]\
                     and tmin in self.Data[specimen]['zijdblock_steps']\
                     and tmax in self.Data[specimen]['zijdblock_steps']:
-                        print                         
                         #print "specimen,tmin,tmax",specimen,tmin,tmax
                         self.pmag_results_data['specimens'][specimen]['DA-DIR']=self.get_PCA_parameters(specimen,tmin,tmax,'specimen',calculation_type)
                         if len(self.Data[specimen]['zijdblock_geo'])>0:      
@@ -2750,9 +2762,9 @@ class Zeq_GUI(wx.Frame):
         # save pmag_*.txt.tmp without directional data           
         #---------------------------------------  
         
-        PmagRecsOld={}
-        for FILE in ['pmag_specimens.txt','pmag_samples.txt','pmag_sites.txt','pmag_results']:
-            PmagRecsOld[FILE]=[]
+        self.PmagRecsOld={}
+        for FILE in ['pmag_specimens.txt','pmag_samples.txt','pmag_sites.txt','pmag_results.txt']:
+            self.PmagRecsOld[FILE]=[]
             try: 
                 meas_data,file_type=pmag.magic_read(self.WD+"/"+FILE)
                 self.GUI_log.write("-I- Read old magic file  %s\n"%self.WD+"/"+FILE)
@@ -2765,7 +2777,7 @@ class Zeq_GUI(wx.Frame):
             for rec in meas_data:
                 if "magic_method_codes" in rec.keys():
                     if "LP-DIR" not in rec['magic_method_codes'] and "DE-" not in  rec['magic_method_codes']:
-                        PmagRecsOld[FILE].append(rec)
+                        self.PmagRecsOld[FILE].append(rec)
             #pmag.magic_write(self.WD+"/"+FILE+".tmp",PmagRecs,FILE.split(".")[0])
             #self.GUI_log.write("-I- Write magic file  %s\n"%self.WD+"/"+FILE+".tmp") 
 
@@ -2864,7 +2876,7 @@ class Zeq_GUI(wx.Frame):
                     PmagSpecRec['specimen_tilt_correction']="-1"
                 PmagSpecs.append(PmagSpecRec)    
         # add the 'old' lines with no "LP-DIR" in 
-        for rec in PmagRecsOld['pmag_specimens.txt']:
+        for rec in self.PmagRecsOld['pmag_specimens.txt']:
             PmagSpecs.append(rec)
         PmagSpecs_fixed=self.merge_pmag_recs(PmagSpecs)
         pmag.magic_write(self.WD+"/"+"pmag_specimens.txt",PmagSpecs_fixed,'pmag_specimens')
@@ -2891,7 +2903,7 @@ class Zeq_GUI(wx.Frame):
         # run specimens_results_magic.py
         
         #-- acceptance criteria
-        run_script_flags=["specimens_results_magic.py","-fsp", "pmag_specimens.txt", "-xI", "-WD", str(self.WD)]
+        run_script_flags=["specimens_results_magic.py","-fsp","pmag_specimens.txt", "-xI", "-WD", str(self.WD)]
         if dia.cb_acceptance_criteria.GetValue()==True:
             run_script_flags.append("-exc")
         else:
@@ -2936,20 +2948,25 @@ class Zeq_GUI(wx.Frame):
             run_script_flags.append("-pol")
             
         #print  run_script_flags
-        subprocess.call(run_script_flags, shell=True)
-        print "-I- running python script:\n %s"%(" ".join(run_script_flags))
+        outstring=" ".join(run_script_flags)
+        os.system(outstring)
+        #    subprocess.call(run_script_flags, shell=True)
+        
+        print "-I- running python script:\n %s"%(outstring)
         # reads new pmag tables, and merge the old lines:
         for FILE in ['pmag_samples.txt','pmag_sites.txt','pmag_results.txt']:
             pmag_data=[]
             try:
                 pmag_data,file_type=pmag.magic_read(self.WD+"/"+FILE)
-                for rec in PmagRecsOld[FILE]:
+            except:
+                pass
+            if FILE in self.PmagRecsOld.keys():
+                for rec in self.PmagRecsOld[FILE]:
                     pmag_data.append(rec)
+            if len(pmag_data) >0:
                 pmag_data_fixed=self.merge_pmag_recs(pmag_data)
                 pmag.magic_write(self.WD+"/"+FILE,pmag_data_fixed,FILE.split(".")[0])
                 self.GUI_log.write( "write new interpretations in %s\n"%(self.WD+"/"+FILE))
-            except:
-                self.GUI_log.write( "ignore file when writing results tables: %s\n"%(self.WD+"/"+FILE))
 
         self.update_pmag_tables()
         self.update_selection()
