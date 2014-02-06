@@ -309,7 +309,6 @@ def main():
             MagRec["measurement_magn_moment"]='%10.3e'% (float(this_line_data['moment_emu'])*1e-3) # moment in Am^2 (from emu)
             MagRec["measurement_dec"]=this_line_data['dec']
             MagRec["measurement_inc"]=this_line_data['inc']
-
             date=this_line_data['date']
             hour=this_line_data['hour']    
 
@@ -324,7 +323,6 @@ def main():
             MagRec["measurement_date"]=":".join([yyyy,date[0],date[1],hour[0],hour[1],"00.00"])
             #print MagRec["measurement_date"],"   Ron check please"
             MagRec["measurement_time_zone"]='JER'
-
             MagRec['er_analyst_mail_names'] =user         
             MagRec["er_citation_names"]="This study"
             MagRec["magic_instrument_codes"]="HUJI-2G"
@@ -333,6 +331,7 @@ def main():
             MagRec["measurement_positions"]="1"
             MagRec["measurement_standard"]="u"
             MagRec["measurement_description"]=""
+            MagRec["treatment_temp"]='%8.3e' % (float(treatment[0])+273.) # temp in kelvin
             #----------------------------------------            
             # AF demag
             # do not support AARM yet
@@ -503,7 +502,7 @@ def main():
                             MagRec["measurement_number"]='7'# -z
                         else:    
                             MagRec["magic_method_codes"]="LP-AN-TRM:LT-T-I"
-                            inc=float(inc);dec=float(dec)
+                            inc=float(MagRec["measurement_inc"]);dec=float(MagRec["measurement_dec"])
                             if abs(inc)<45 and (dec<45 or dec>315): # +x
                                 tdec,tinc=0,0
                                 MagRec["measurement_number"]='1'
