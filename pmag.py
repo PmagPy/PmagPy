@@ -5247,7 +5247,7 @@ def measurements_methods(meas_data,noave):
 #
     SpecTmps,SpecOuts=[],[]
     for spec in sids:
-        TRM,IRM3D,ATRM=0,0,0
+        TRM,IRM3D,ATRM,CR=0,0,0,0
         expcodes=""
 # first collect all data for this specimen and do lab treatments
         SpecRecs=get_dictitem(meas_data,'er_specimen_name',spec,'T') # list  of measurement records for this specimen
@@ -5259,6 +5259,8 @@ def measurements_methods(meas_data,noave):
                 IRM3D=1 # catch these suckers here!
             elif "LP-AN-TRM" in tmpmeths: 
                 ATRM=1 # catch these suckers here!
+            elif "LP-CR-TRM" in tmpmeths: 
+                CR=1 # catch these suckers here!
 #
 # otherwise write over existing method codes
 #
@@ -5329,6 +5331,7 @@ def measurements_methods(meas_data,noave):
         experiment_name,measnum="",1
         if IRM3D==1:experiment_name="LP-IRM-3D"
         if ATRM==1: experiment_name="LP-AN-TRM"
+        if CR==1: experiment_name="LP-CR"
         NewSpecs=get_dictitem(SpecTmps,'er_specimen_name',spec,'T')
 #
 # first look for replicate measurements
