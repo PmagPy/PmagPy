@@ -200,8 +200,10 @@ def main():
                 accept[key]=critrec[key]
     #
     #
-    pmag.magic_write(critout,[accept],'pmag_criteria')
-    print "\n Pmag Criteria stored in ",critout,'\n'
+    if "-exc" not in args and "-C" not in args:
+        print "args",args
+        pmag.magic_write(critout,[accept],'pmag_criteria')
+        print "\n Pmag Criteria stored in ",critout,'\n'
 #
 # now we're done slow dancing
 #
