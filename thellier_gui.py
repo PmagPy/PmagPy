@@ -8519,11 +8519,14 @@ class Arai_GUI(wx.Frame):
         #try:
         #    self.s
         #except:
-        self.s=self.specimens[0]                
-        self.pars=self.Data[self.s]['pars']
-        self.clear_boxes()
-        self.draw_figure(self.s)
-        self.update_GUI_with_new_interpretation()
+        try:
+            self.s=self.specimens[0]                
+            self.pars=self.Data[self.s]['pars']
+            self.clear_boxes()
+            self.draw_figure(self.s)
+            self.update_GUI_with_new_interpretation()
+        except:
+            pass
                     
 
 
