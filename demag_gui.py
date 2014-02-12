@@ -135,8 +135,9 @@ class Zeq_GUI(wx.Frame):
         self.panel = wx.Panel(self)          # make the Panel
         self.Main_Frame()                   # build the main frame
         self.create_menu()                  # create manu bar
-        #self.Zij_zoom()
-        #self.arrow_keys()
+        self.Zij_zoom()
+        self.arrow_keys()
+        self.Zij_picker()
 
         #self.get_previous_interpretation() # get interpretations from pmag_specimens.txt
         FIRST_RUN=False
@@ -198,10 +199,33 @@ class Zeq_GUI(wx.Frame):
         self.canvas4 = FigCanvas(self.panel, -1, self.fig4)
 
         # make axes of the figures
-        self.zijplot = self.fig1.add_axes([0.1,0.1,0.8,0.8])
+        #self.zijplot = self.fig1.add_axes([0.1,0.1,0.8,0.8])
         #self.specimen_eqarea = self.fig2.add_subplot(111)
-        self.m_plot = self.fig3.add_axes([0.2,0.15,0.7,0.7],frameon=True,axisbg='None')
-        self.high_level_eqarea = self.fig4.add_subplot(111)
+        #self.m_plot = self.fig3.add_axes([0.2,0.15,0.7,0.7],frameon=True,axisbg='None')
+        #self.m_plot_interpretation = self.fig3.add_axes(self.m_plot.get_position(), frameon=False,axisbg='None')
+
+        
+        #self.high_level_eqarea = self.fig4.add_subplot(111)
+        
+        self.specimen_eqarea_net = self.fig2.add_subplot(111)  
+        self.draw_net(self.specimen_eqarea_net)        
+        self.specimen_eqarea = self.fig2.add_axes(self.specimen_eqarea_net.get_position(), frameon=False,axisbg='None')
+        self.specimen_eqarea_interpretation = self.fig2.add_axes(self.specimen_eqarea_net.get_position(), frameon=False,axisbg='None')
+        self.specimen_eqarea_interpretation.axis('equal')
+        self.specimen_eqarea_interpretation.xaxis.set_visible(False)
+        self.specimen_eqarea_interpretation.yaxis.set_visible(False)
+          
+        
+                    
+        self.high_level_eqarea_net = self.fig4.add_subplot(111)
+        self.draw_net(self.high_level_eqarea_net)        
+        #self.high_level_eqarea = self.high_level_eqarea_net.twinx()        
+        #self.draw_net(self.specimen_eqarea_net)        
+        self.high_level_eqarea = self.fig4.add_axes(self.high_level_eqarea_net.get_position(), frameon=False,axisbg='None')
+        self.high_level_eqarea_interpretation = self.fig4.add_axes(self.high_level_eqarea_net.get_position(), frameon=False,axisbg='None')
+        self.high_level_eqarea_interpretation.axis('equal')
+        self.high_level_eqarea_interpretation.xaxis.set_visible(False)
+        self.high_level_eqarea_interpretation.yaxis.set_visible(False)
 
 
         #----------------------------------------------------------------------                     
@@ -222,10 +246,17 @@ class Zeq_GUI(wx.Frame):
         # Create text_box for presenting the measurements
         #----------------------------------------------------------------------                     
 
-        self.logger = wx.TextCtrl(self.panel, id=-1, size=(200*self.GUI_RESOLUTION,300*self.GUI_RESOLUTION), style=wx.TE_MULTILINE | wx.TE_READONLY | wx.HSCROLL)
+        #self.logger = wx.TextCtrl(self.panel, id=-1, size=(200*self.GUI_RESOLUTION,300*self.GUI_RESOLUTION), style=wx.TE_MULTILINE | wx.TE_READONLY | wx.HSCROLL)
+        self.logger = wx.ListCtrl(self.panel, -1, size=(200*self.GUI_RESOLUTION,300*self.GUI_RESOLUTION),style=wx.LC_REPORT)
+        print "res",self.GUI_RESOLUTION
         self.logger.SetFont(font1)
-
-
+        self.logger.InsertColumn(0, 'i',width=25*self.GUI_RESOLUTION)
+        self.logger.InsertColumn(1, 'Step',width=25*self.GUI_RESOLUTION)
+        self.logger.InsertColumn(2, 'Tr',width=35*self.GUI_RESOLUTION)
+        self.logger.InsertColumn(3, 'Dec',width=35*self.GUI_RESOLUTION)
+        self.logger.InsertColumn(4, 'Inc',width=35*self.GUI_RESOLUTION)
+        self.logger.InsertColumn(5, 'M',width=45*self.GUI_RESOLUTION) 
+        self.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.OnClick_listctrl, self.logger)     
         #----------------------------------------------------------------------                     
         #  select specimen box
         #----------------------------------------------------------------------                     
@@ -447,6 +478,157 @@ class Zeq_GUI(wx.Frame):
         # Draw figures and add  text
         self.update_selection()
 
+
+    #----------------------------------------------------------------------
+    # Arrow keys control
+    #----------------------------------------------------------------------
+
+    def arrow_keys(self):
+        self.panel.Bind(wx.EVT_CHAR, self.onCharEvent)
+
+    def onCharEvent(self, event):
+        keycode = event.GetKeyCode()
+        #controlDown = event.CmdDown()
+        #altDown = event.AltDown()
+        #shiftDown = event.ShiftDown()
+ 
+        if keycode == wx.WXK_RIGHT or keycode == wx.WXK_NUMPAD_RIGHT or keycode == wx.WXK_WINDOWS_RIGHT:
+            #print "you pressed the right!"
+            self.on_next_button(None)
+        elif keycode == wx.WXK_LEFT or keycode == wx.WXK_NUMPAD_LEFT or keycode == wx.WXK_WINDOWS_LEFT:
+            #print "you pressed the right!"
+            self.on_prev_button(None)
+        event.Skip()
+
+    #----------------------------------------------------------------------
+    # zooming into zijderveld
+    #----------------------------------------------------------------------
+
+    def Zij_zoom(self):
+        cursur_entry_zij=self.canvas1.mpl_connect('axes_enter_event', self.on_enter_zij_fig) 
+        cursur_leave_zij=self.canvas1.mpl_connect('axes_leave_event', self.on_leave_zij_fig)
+
+    def on_leave_zij_fig (self,event):
+        self.canvas1.mpl_disconnect(self.cid3)
+        self.canvas1.mpl_disconnect(self.cid4)
+        self.canvas1.SetCursor(wx.StockCursor(wx.CURSOR_ARROW))
+        self.curser_in_zij_figure=False
+                
+    def on_enter_zij_fig(self,event):
+        #AX=gca(label='zig_orig')
+        #print AX
+        self.fig1.sca(self.zijplot)
+        self.curser_in_zij_figure=True
+        self.canvas1.SetCursor(wx.StockCursor(wx.CURSOR_CROSS))
+        cid3=self.canvas1.mpl_connect('button_press_event', self.onclick_z_1)
+        cid4=self.canvas1.mpl_connect('button_release_event', self.onclick_z_2)
+
+    def onclick_z_1(self,event):
+        if self.curser_in_zij_figure:
+            self.tmp3_x=event.xdata
+            self.tmp3_y=event.ydata
+        
+    def onclick_z_2(self,event):
+        self.canvas1.mpl_connect('axes_leave_event', self.on_leave_zij_fig)
+        if self.curser_in_zij_figure:
+            self.tmp4_x=event.xdata
+            self.tmp4_y=event.ydata
+            delta_x=abs(self.tmp3_x - self.tmp4_x )
+            delta_y=abs(self.tmp3_y - self.tmp4_y )
+            
+            if self.tmp3_x < self.tmp4_x and self.tmp3_y > self.tmp4_y and delta_x >0.05 and delta_y >0.05:
+                self.zijplot.set_xlim(xmin=self.tmp3_x,xmax=self.tmp4_x)
+                self.zijplot.set_ylim(ymin=self.tmp4_y,ymax=self.tmp3_y)
+                #self.zijplot_interpretation.set_xlim(xmin=self.tmp3_x,xmax=self.tmp4_x)
+                #self.zijplot_interpretation.set_ylim(ymin=self.tmp4_y,ymax=self.tmp3_y)
+            elif delta_x < 0.05 and delta_y < 0.05:
+                return
+            else:
+                self.zijplot.set_xlim(xmin=self.zij_xlim_initial[0],xmax=self.zij_xlim_initial[1])
+                self.zijplot.set_ylim(ymin=self.zij_ylim_initial[0],ymax=self.zij_ylim_initial[1])
+                #self.zijplot_interpretation.set_xlim(xmin=self.zij_xlim_initial[0],xmax=self.zij_xlim_initial[1])
+                #self.zijplot_interpretation.set_ylim(ymin=self.zij_ylim_initial[0],ymax=self.zij_ylim_initial[1])
+            self.canvas1.draw()
+        else:
+            return
+
+    #----------------------------------------------------------------------
+    # Picking bounds from Zijderveld plot
+    #----------------------------------------------------------------------
+
+    def Zij_picker(self):
+       self.canvas1.mpl_connect('pick_event', self.onpick)
+       #self.canvas1.mpl_connect('pick_event', self.onpick())
+        
+    def onpick(self,event):
+        self.second_click=time.time()
+        try:
+            if self.second_click-self.first_click > 1:
+                self.first_click=self.second_click
+                return
+        except:
+            self.first_click= self.second_click
+            return     
+        index = event.ind[0]
+        #print "index",index
+
+        # delete previose interpretation on screen
+        if len(self.zijplot.collections)>0:
+             self.zijplot.collections=[] # scatter green plots 
+        if self.green_line_plot:
+             del self.zijplot.lines[-1] # green line
+             del self.zijplot.lines[-1]# green line
+             self.green_line_plot=False
+
+        for item in range(self.logger.GetItemCount()):
+            self.logger.SetItemBackgroundColour(item,"WHITE")
+            self.logger.Select(item, on=0)
+#self.tmin_box.SetValue("")   # tmin box 
+        #self.tmin_box.SetValue("")  # tmax box     
+        
+        self.specimen_eqarea_interpretation.clear()   # equal area
+        self.mplot_interpretation.clear() # M / M0
+                
+        tmin_index,tmax_index="",""
+        if str(self.tmin_box.GetValue())!="":
+            tmin_index=self.tmin_box.GetSelection()
+        if str(self.tmax_box.GetValue())!="":
+            tmax_index=self.tmax_box.GetSelection()
+
+        if tmin_index !="" and tmax_index =="":
+            if index<tmin_index:
+                self.tmin_box.SetSelection(index)
+                self.tmax_box.SetSelection(tmin_index)
+            else:
+                self.tmax_box.SetSelection(index)
+            self.logger.Select(index, on=0)
+            self.get_new_PCA_parameters(-1)
+            
+        elif tmin_index =="" and tmax_index !="":
+            if index>tmax_index:
+                self.tmin_box.SetSelection(tmax_index)
+                self.tmax_box.SetSelection(index)
+            else:
+                self.tmin_box.SetSelection(index)
+            self.logger.Select(index, on=0)
+            self.get_new_PCA_parameters(-1)
+        else:
+            if int(index) > (self.logger.GetItemCount())/2.:
+                self.tmin_box.SetValue("")
+                self.tmax_box.SetSelection(int(index))
+            else:
+                self.tmin_box.SetSelection(int(index))
+                self.tmax_box.SetValue("")
+
+            self.logger.Select(index, on=1)            
+            self.zijplot.scatter([self.CART_rot[:,0][index]],[-1* self.CART_rot[:,1][index]],marker='o',s=40,facecolor='g',edgecolor ='k',zorder=100,clip_on=False)
+            self.zijplot.scatter([self.CART_rot[:,0][index]],[-1* self.CART_rot[:,2][index]],marker='s',s=50,facecolor='g',edgecolor ='k',zorder=100,clip_on=False)
+
+            #self.mplot_interpretation.scatter([self.Data[self.s]['zijdblock'][index][0]],[self.Data[self.s]['zijdblock'][index][3]/self.Data[self.s]['zijdblock'][0][3]],marker='o',s=30,facecolor='g',edgecolor ='k',zorder=100,clip_on=False)
+        self.canvas1.draw()
+        self.canvas2.draw()
+        self.canvas3.draw()
+        
     #----------------------------------------------------------------------
     # Draw plots
     #----------------------------------------------------------------------
@@ -457,7 +639,7 @@ class Zeq_GUI(wx.Frame):
         #-----------------------------------------------------------
         #  initialization
         #-----------------------------------------------------------
-        
+        #start_time=time.time() 
         self.s=s
         
         if self.orthogonal_box.GetValue()=="orthogonal E-W":
@@ -513,15 +695,24 @@ class Zeq_GUI(wx.Frame):
         # Draw Zij plot
         #-----------------------------------------------------------
         self.fig1.clf()
-        self.zijplot = self.fig1.add_axes([0.1,0.1,0.8,0.8])
+        self.zijplot = self.fig1.add_axes([0.1,0.1,0.8,0.8],frameon=False, axisbg='None',label='zig_orig',zorder=0)
         self.zijplot.clear()
+        self.zijplot.axis('equal')
+        self.zijplot.xaxis.set_visible(False)
+        self.zijplot.yaxis.set_visible(False)
+        self.green_line_plot=False
+        #self.zijplot_interpretation = self.fig1.add_axes(self.zijplot.get_position(), frameon=False,axisbg='None',label='zij_interpretation',zorder=1)
+        #self.zijplot_interpretation.clear()
+        #self.zijplot_interpretation.axis('equal')
+        #self.zijplot_interpretation.xaxis.set_visible(False)
+        #self.zijplot_interpretation.yaxis.set_visible(False)
+        
         self.MS=6*self.GUI_RESOLUTION;self.dec_MEC='k';self.dec_MFC='r'; self.inc_MEC='k';self.inc_MFC='b'
         self.zijdblock_steps=self.Data[self.s]['zijdblock_steps']
         self.vds=self.Data[self.s]['vds']
-        self.zijplot.plot(self.CART_rot[:,0],-1* self.CART_rot[:,1],'ro-',mfc=self.dec_MFC,mec=self.dec_MEC,markersize=self.MS,clip_on=False)  #x,y or N,E
-        self.zijplot.plot(self.CART_rot[:,0],-1 * self.CART_rot[:,2],'bs-',mfc=self.inc_MFC,mec=self.inc_MEC,markersize=self.MS,clip_on=False)   #x-z or N,D
-        self.zijplot.axis('off')
-        self.zijplot.axis('equal')
+        self.zijplot.plot(self.CART_rot[:,0],-1* self.CART_rot[:,1],'ro-',mfc=self.dec_MFC,mec=self.dec_MEC,markersize=self.MS,clip_on=False,picker=True)  #x,y or N,E
+        self.zijplot.plot(self.CART_rot[:,0],-1 * self.CART_rot[:,2],'bs-',mfc=self.inc_MFC,mec=self.inc_MEC,markersize=self.MS,clip_on=False,picker=True)   #x-z or N,D
+        #self.zijplot.axis('off')
         last_cart_1=array([self.CART_rot[0][0],self.CART_rot[0][1]])
         last_cart_2=array([self.CART_rot[0][0],self.CART_rot[0][2]])
         #K_diff=0
@@ -539,16 +730,21 @@ class Zeq_GUI(wx.Frame):
             xmax=0
         if xmin>0:
             xmin=0
-        else:
-            xmin=xmin+xmin%0.2
+        #else:
+        #    xmin=xmin+xmin%0.2
         props = dict(color='black', linewidth=1.0, markeredgewidth=0.5)
 
-        xlocs=arange(xmin,xmax,0.2)
-        xtickline, = self.zijplot.plot(xlocs, [0]*len(xlocs),linestyle='',
-                marker='+', **props)
+        xlocs=array(list(arange(0.2,xmax,0.2)) + list(arange(-0.2,xmin,-0.2)))
+        if len(xlocs)>0:
+            xtickline, = self.zijplot.plot(xlocs, [0]*len(xlocs),linestyle='',marker='+', **props)
+            xtickline.set_clip_on(False)
+                
+        #xlocs=arange(0,xmin,0.2)
+        #if len(xlocs)>1:
+        #    xtickline, = self.zijplot.plot(xlocs, [0]*len(xlocs),linestyle='',marker='+', **props)
+        #    xtickline.set_clip_on(False)
 
         axxline, = self.zijplot.plot([xmin, xmax], [0, 0], **props)
-        xtickline.set_clip_on(False)
         axxline.set_clip_on(False)
         
         TEXT=""
@@ -580,18 +776,29 @@ class Zeq_GUI(wx.Frame):
             ymax=0
         if ymin>0:
             ymin=0
-        else:
-            ymin=ymin+ymin%0.2
-        ylocs = [loc for loc in self.zijplot.yaxis.get_majorticklocs()
-                if loc>=ymin and loc<=ymax]
-        ylocs=arange(ymin,ymax,0.2)
-
-        ytickline, = self.zijplot.plot([0]*len(ylocs),ylocs,linestyle='',
-                marker='+', **props)
+        #else:
+        #    ymin=ymin+ymin%0.2
+        #ylocs = [loc for loc in self.zijplot.yaxis.get_majorticklocs()
+        #        if loc>=ymin and loc<=ymax]
+ 
+        ylocs=array(list(arange(0.2,ymax,0.2)) + list(arange(-0.2,ymin,-0.2)))
+        if len(ylocs)>0:
+            ytickline, = self.zijplot.plot([0]*len(ylocs),ylocs, linestyle='',marker='+', **props)
+            ytickline.set_clip_on(False)
+       
+        #ylocs=arange(0,ymax,0.2)        
+        #if len(ylocs)>1:
+        #    ytickline, = self.zijplot.plot([0]*len(ylocs),ylocs,linestyle='',marker='+', **props)
+        #    ytickline.set_clip_on(False)
+        
+        #ylocs=arange(0,ymin,0.2)
+        #if len(ylocs)>1:
+        #    ytickline, = self.zijplot.plot([0]*len(ylocs),ylocs,linestyle='',marker='+', **props)
+        #    ytickline.set_clip_on(False)
 
         axyline, = self.zijplot.plot([0, 0],[ymin, ymax], **props)
-        ytickline.set_clip_on(False)
         axyline.set_clip_on(False)
+
         TEXT1,TEXT2="",""
         if self.COORDINATE_SYSTEM=='specimen':
                 TEXT1,TEXT2=" y","      z"  
@@ -609,31 +816,60 @@ class Zeq_GUI(wx.Frame):
         #----
 
 
-        self.zij_xlim_initial=self.zijplot.axes.get_xlim() 
-        self.zij_ylim_initial=self.zijplot.axes.get_ylim() 
+        #self.zij_xlim_initial=self.zijplot.axes.get_xlim() 
+        #self.zij_ylim_initial=self.zijplot.axes.get_ylim() 
 
         if self.ORTHO_PLOT_TYPE=='N-S':
             STRING=""
+            #STRING1="N-S orthogonal plot"
             self.fig1.text(0.01,0.98,"N-S orthogonal plot",{'family':'Arial', 'fontsize':10*self.GUI_RESOLUTION, 'style':'normal','va':'center', 'ha':'left' })
         elif self.ORTHO_PLOT_TYPE=='E-W':
             STRING=""
+            #STRING1="E-W orthogonal plot"
             self.fig1.text(0.01,0.98,"E-W orthogonal plot",{'family':'Arial', 'fontsize':10*self.GUI_RESOLUTION, 'style':'normal','va':'center', 'ha':'left' })
         else:
             self.fig1.text(0.01,0.98,"Zijderveld plot",{'family':'Arial', 'fontsize':10*self.GUI_RESOLUTION, 'style':'normal','va':'center', 'ha':'left' })
             STRING="X-axis rotated to NRM (%.0f); "%(self.zijblock[0][1])
-        STRING=STRING+"NRM=%.2e "%(self.zijblock[0][3])+ '$Am^2$'
+            #STRING1="Zijderveld plot"
+         
+        #self.zijplot.text(-0.02, 1.1, STRING1,
+        #{'family':'Arial', 'fontsize':10*self.GUI_RESOLUTION, 'style':'normal','va':'center', 'ha':'left' },
+        #transform=self.zijplot.transAxes)
         
+        STRING=STRING+"NRM=%.2e "%(self.zijblock[0][3])+ '$Am^2$'        
         self.fig1.text(0.01,0.95,STRING,{'family':'Arial', 'fontsize':8*self.GUI_RESOLUTION, 'style':'normal','va':'center', 'ha':'left' })
+        #self.zijplot.text(1.1,0.95,STRING,{'family':'Arial', 'fontsize':8*self.GUI_RESOLUTION, 'style':'normal','va':'center', 'ha':'left' })
+        
+        #self.zijplot.text(-0.02, 1.05, STRING,
+        #{'family':'Arial', 'fontsize':8*self.GUI_RESOLUTION, 'style':'normal','va':'center', 'ha':'left' },
+        #transform=self.zijplot.transAxes)
+
+        xmin, xmax = self.zijplot.get_xlim()
+        ymin, ymax = self.zijplot.get_ylim()
+        #self.zijplot_interpretation.plot([xmin,xmax],[ymin,ymax],lw=0)
+        #self.zijplot_interpretation.set_xlim(xmin,xmax)
+        #self.zijplot_interpretation.set_ylim(ymin,ymax)
+
+        
+        self.zij_xlim_initial=(xmin, xmax)
+        self.zij_ylim_initial=(ymin, ymax )
+        
+                
         self.canvas1.draw()
+        #start_time_1=time.time() 
+        #runtime_sec1 = start_time_1 - start_time
+        #print "-I- draw Zij figures is", runtime_sec1,"seconds"
 
         #-----------------------------------------------------------
         # specimen equal area
         #-----------------------------------------------------------
-        self.fig2.clf()
-        self.specimen_eqarea = self.fig2.add_subplot(111)
-        self.fig2.text(0.02,0.96,"specimen",{'family':'Arial', 'fontsize':10*self.GUI_RESOLUTION, 'style':'normal','va':'center', 'ha':'left' })
+        #self.fig2.clf()
+        #self.specimen_eqarea = self.fig2.add_subplot(111)
+        self.specimen_eqarea.clear()
+        self.specimen_eqarea_interpretation.clear()
+        self.specimen_eqarea.text(-1.2,1.15,"specimen: %s"%self.s,{'family':'Arial', 'fontsize':10*self.GUI_RESOLUTION, 'style':'normal','va':'center', 'ha':'left' })
         # draw_net
-        self.draw_net(self.specimen_eqarea)
+        #self.draw_net(self.specimen_eqarea)
 
 
         x_eq=array([row[0] for row in self.zij_norm])
@@ -676,9 +912,15 @@ class Zeq_GUI(wx.Frame):
             for i in range(len(self.zijdblock_steps)):
                 self.specimen_eqarea.text(eqarea_data_x[i],eqarea_data_y[i],"%.0f"%float(self.zijdblock_steps[i]),fontsize=8*self.GUI_RESOLUTION,color="0.5")
         
-        
+        self.specimen_eqarea.set_xlim(-1., 1.)        
+        self.specimen_eqarea.set_ylim(-1., 1.)        
+        self.specimen_eqarea.axes.set_aspect('equal')
+        self.specimen_eqarea.axis('off')
         self.canvas2.draw()
 
+        #start_time_2=time.time() 
+        #runtime_sec2 = start_time_2 - start_time_1
+        #print "-I- draw eqarea figures is", runtime_sec2,"seconds"
 
         #-----------------------------------------------------------
         # Draw M/M0 plot ( or NLT data on the same area in the GUI)
@@ -687,6 +929,9 @@ class Zeq_GUI(wx.Frame):
         self.fig3.clf()
         self.fig3.text(0.02,0.96,'$M/M_0$',{'family':'Arial', 'fontsize':10*self.GUI_RESOLUTION, 'style':'normal','va':'center', 'ha':'left' })
         self.mplot = self.fig3.add_axes([0.2,0.15,0.7,0.7],frameon=True,axisbg='None')        
+        self.mplot_interpretation = self.fig3.add_axes(self.mplot.get_position(), frameon=False,axisbg='None')
+        self.mplot_interpretation.xaxis.set_visible(False)
+        self.mplot_interpretation.yaxis.set_visible(False)
         
         #fig, ax1 = plt.subplots()
         #print "measurement_step_unit",self.Data[self.s]['measurement_step_unit'] 
@@ -759,7 +1004,10 @@ class Zeq_GUI(wx.Frame):
         
         #xt=xticks()
 
-        self.canvas3.draw()
+        #self.canvas3.draw()
+        #start_time_3=time.time() 
+        #runtime_sec3 = start_time_3 - start_time_2
+        #print "-I- draw M_M0 figures is", runtime_sec3,"seconds"
 
         #-----------------------------------------------------------
         # high level equal area
@@ -774,6 +1022,49 @@ class Zeq_GUI(wx.Frame):
         #self.canvas4.draw()
 
         draw()
+        #start_time_4=time.time() 
+        #runtime_sec4 = start_time_4 - start_time_3
+        #print "-I- draw high level figures is", runtime_sec4,"seconds"
+
+    def draw_net_new(self,ax):
+        FIG.clear()
+        eq=FIG
+        host = fig.add_subplot(111)
+        eq.axis((-1,1,-1,1))
+        eq.axis('off')
+        theta=arange(0.,2*pi,2*pi/1000)
+        eq.plot(cos(theta),sin(theta),'k',clip_on=False,lw=1)
+        #eq.vlines((0,0),(0.9,-0.9),(1.0,-1.0),'k')
+        #eq.hlines((0,0),(0.9,-0.9),(1.0,-1.0),'k')
+        #eq.plot([0.0],[0.0],'+k')
+
+        Xsym,Ysym=[],[]
+        for I in range(10,100,10):
+            XY=pmag.dimap(0.,I)
+            Xsym.append(XY[0])
+            Ysym.append(XY[1])
+        for I in range(10,90,10):
+            XY=pmag.dimap(90.,I)
+            Xsym.append(XY[0])
+            Ysym.append(XY[1])
+        for I in range(10,90,10):
+            XY=pmag.dimap(180.,I)
+            Xsym.append(XY[0])
+            Ysym.append(XY[1])
+        for I in range(10,90,10):
+            XY=pmag.dimap(270.,I)
+            Xsym.append(XY[0])
+            Ysym.append(XY[1])
+        eq.plot(Xsym,Ysym,'k+',clip_on=False,mew=0.5)
+        for D in range(0,360,10):
+            Xtick,Ytick=[],[]
+            for I in range(4):
+                XY=pmag.dimap(D,I)
+                Xtick.append(XY[0])
+                Ytick.append(XY[1])
+            eq.plot(Xtick,Ytick,'k',clip_on=False,lw=0.5)
+        eq.axes.set_aspect('equal')
+
 
     def draw_net(self,FIG):
         FIG.clear()
@@ -811,7 +1102,7 @@ class Zeq_GUI(wx.Frame):
                 Xtick.append(XY[0])
                 Ytick.append(XY[1])
             eq.plot(Xtick,Ytick,'k',clip_on=False,lw=0.5)
-
+        eq.axes.set_aspect('equal')
 
     #----------------------------------------------------------------------
     # add text to text box
@@ -823,16 +1114,16 @@ class Zeq_GUI(wx.Frame):
       """ Add text to measurement data wondow.
       """
 
-      self.logger.Clear()
-      FONT_RATIO=self.GUI_RESOLUTION+(self.GUI_RESOLUTION-1)*5
-      font1 = wx.Font(9+FONT_RATIO, wx.SWISS, wx.NORMAL, wx.NORMAL, False, u'Arial')
+      #self.logger.Clear()
+      #FONT_RATIO=self.GUI_RESOLUTION+(self.GUI_RESOLUTION-1)*5
+      #font1 = wx.Font(9+FONT_RATIO, wx.SWISS, wx.NORMAL, wx.NORMAL, False, u'Arial')
       
       #Header
-      String="Step\t Tr\t Dec\t Inc\tM [Am^2]\n"
-      self.logger.AppendText(String)
+      #String="Step\t Tr\t Dec\t Inc\tM [Am^2]\n"
+      #self.logger.AppendText(String)
 
       #Body
-      self.logger.SetFont(font1)
+      #self.logger.SetFont(font1)
       if self.COORDINATE_SYSTEM=='geographic':
           zijdblock=self.Data[self.s]['zijdblock_geo']
       elif self.COORDINATE_SYSTEM=='tilt-corrected':
@@ -842,6 +1133,7 @@ class Zeq_GUI(wx.Frame):
             
           
       TEXT=""
+      self.logger.DeleteAllItems()
       for i in range(len(zijdblock)):
           lab_treatment=self.Data[self.s]['zijdblock_lab_treatments'][i]
           Step=""
@@ -856,11 +1148,16 @@ class Zeq_GUI(wx.Frame):
           Dec=zijdblock[i][1]
           Inc=zijdblock[i][2]
           Int=zijdblock[i][3]
-          TEXT=TEXT+"%s\t%3.1f\t%5.1f\t%5.1f\t%.2e\n"%(Step,Tr,Dec,Inc,Int)
+          self.logger.InsertStringItem(i, "%i"%i)
+          self.logger.SetStringItem(i, 1, Step)
+          self.logger.SetStringItem(i, 2, "%.1f"%Tr)
+          self.logger.SetStringItem(i, 3, "%.1f"%Dec)
+          self.logger.SetStringItem(i, 4, "%.1f"%Inc)
+          self.logger.SetStringItem(i, 5, "%.2e"%Int)
+          #TEXT=TEXT+"%s\t%3.1f\t%5.1f\t%5.1f\t%.2e\n"%(Step,Tr,Dec,Inc,Int)
               
-      self.logger.AppendText( TEXT)
-      
-
+      #self.logger.AppendText( TEXT)
+      #print self.logger.SetSelection(2,5)  
 
     #----------------------------------------------------------------------
       
@@ -916,6 +1213,7 @@ class Zeq_GUI(wx.Frame):
     #----------------------------------------------------------------------
 
     def on_next_button(self,event):
+        
       """ update figures and text when a next button is selected
       """
       #del self.Data[self.s]['pars']
@@ -960,10 +1258,26 @@ class Zeq_GUI(wx.Frame):
         """
 
         # clear all boxes
+        #start_time=time.time() 
         self.clear_boxes() 
+ 
+        #start_time_1=time.time()        
+        #runtime_sec = start_time_1 - start_time
+        #print "-I- draw clear_boxes is", runtime_sec,"seconds"
+
         self.Add_text(self.s)
-        self.draw_figure(self.s)
+
+        #start_time_2=time.time()        
+        #runtime_sec = start_time_2 - start_time_1
+        #print "-I- Add_text is", runtime_sec,"seconds"
         
+        self.draw_figure(self.s)
+
+        #start_time_3=time.time()        
+        #runtime_sec = start_time_3 - start_time_2
+        #print "-I- draw_figure is", runtime_sec,"seconds"
+
+                
         # updtaes treatment list
         #--------------------------
         #treatments=[]
@@ -974,6 +1288,10 @@ class Zeq_GUI(wx.Frame):
         self.tmax_box.SetItems(self.T_list)
         self.tmin_box.SetStringSelection("")
         self.tmax_box.SetStringSelection("")
+
+        #start_time_4=time.time()        
+        #runtime_sec = start_time_4 - start_time_3
+        #print "-I- update treatment is", runtime_sec,"seconds"
 
         # update high level boxes and figures (if needed)
         #--------------------------
@@ -989,12 +1307,13 @@ class Zeq_GUI(wx.Frame):
             new_string=self.Data_hierarchy['location_of_specimen'][self.s]
         self.level_names.SetValue(new_string)
 
-        if new_string!=old_string:
-            self.plot_higher_levels_data()
+        #if new_string!=old_string:
+        #    self.plot_higher_levels_data()
                                         
         # check if specimen's interpretation is saved 
         #--------------------------
-        if self.s in self.pmag_results_data['specimens'].keys():
+        found_interpretation=False
+        if self.s in self.pmag_results_data['specimens'].keys() and found_interpretation==False:
           for dirtype in self.pmag_results_data['specimens'][self.s].keys():
               if 'measurement_step_min' in self.pmag_results_data['specimens'][self.s][dirtype].keys()\
               and 'measurement_step_max' in self.pmag_results_data['specimens'][self.s][dirtype].keys():
@@ -1038,13 +1357,22 @@ class Zeq_GUI(wx.Frame):
                   elif calculation_type=="DE-FM": PCA_type="Fisher"
                   elif calculation_type=="DE-BFP": PCA_type="plane"
                   self.PCA_type_box.SetStringSelection(PCA_type)
-                  coordinate_system=self.COORDINATE_SYSTEM
                   
-                  # calcuate again self.pars and update the figures and the statistics tables.                                
-                  self.pars=self.get_PCA_parameters(self.s,tmin,tmax,coordinate_system,calculation_type) 
-                  #self.pars['zijdblock_step_min']=tmin                    
-                  #self.pars['zijdblock_step_max']=tmax                        
-                  self.update_GUI_with_new_interpretation()
+                  found_interpretation=True
+                  
+        
+        # calcuate again self.pars and update the figures and the statistics tables. 
+        coordinate_system=self.COORDINATE_SYSTEM
+        if found_interpretation:                               
+            self.pars=self.get_PCA_parameters(self.s,tmin,tmax,coordinate_system,calculation_type) 
+            #self.pars['zijdblock_step_min']=tmin                    
+            #self.pars['zijdblock_step_max']=tmax                        
+            self.update_GUI_with_new_interpretation()
+
+        #start_time_5=time.time()        
+        #runtime_sec = start_time_5 - start_time_4
+        #print "-I- update interpretation", runtime_sec,"seconds"
+
 
         # check if high level interpretation exists 
         #--------------------------
@@ -1066,11 +1394,20 @@ class Zeq_GUI(wx.Frame):
                 calculation_type= mpars['calculation_type'] 
                 self.show_higher_levels_pars(mpars)
 
+        #start_time_5a=time.time()        
+        #runtime_sec = start_time_5a - start_time_5
+        #print "-I- higher level", runtime_sec,"seconds"
               
         self.mean_type_box.SetValue(calculation_type)
         self.plot_higher_levels_data()
         
+        #start_time_6=time.time()        
+        #runtime_sec = start_time_6 - start_time_5
+        #print "-I- higher level plot", runtime_sec,"seconds"
 
+        #start_time_7=time.time()        
+        #runtime_sec = start_time_7 - start_time
+        #print "-I- total:", runtime_sec,"seconds"
 
     #----------------------------------------------------------------------
 
@@ -1091,6 +1428,53 @@ class Zeq_GUI(wx.Frame):
             dialog.Destroy()
         self.magic_file=self.WD+"/"+"magic_measurements.txt"
         self.GUI_log=open("%s/zeq.log"%self.WD,'w')
+
+    #----------------------------------------------------------------------
+
+
+    def OnClick_listctrl(self,event):
+
+        for item in range(self.logger.GetItemCount()):
+            self.logger.SetItemBackgroundColour(item,"WHITE")
+          
+        index=int(event.GetText())
+        tmin_index,tmax_index="",""
+        
+        if str(self.tmin_box.GetValue())!="":
+            tmin_index=self.tmin_box.GetSelection()
+        if str(self.tmax_box.GetValue())!="":
+            tmax_index=self.tmax_box.GetSelection()
+
+        if tmin_index !="" and tmax_index =="":
+            if index<tmin_index:
+                self.tmin_box.SetSelection(index)
+                self.tmax_box.SetSelection(tmin_index)
+            else:
+                self.tmax_box.SetSelection(index)
+            self.logger.Select(index, on=0)
+            self.get_new_PCA_parameters(-1)
+            
+        elif tmin_index =="" and tmax_index !="":
+            if index>tmax_index:
+                self.tmin_box.SetSelection(tmax_index)
+                self.tmax_box.SetSelection(index)
+            else:
+                self.tmin_box.SetSelection(index)
+            self.logger.Select(index, on=0)
+            self.get_new_PCA_parameters(-1)
+            
+        else:
+            if int(index) > (self.logger.GetItemCount())/2.:
+                self.tmin_box.SetValue("")
+                self.tmax_box.SetSelection(int(index))
+            else:
+                self.tmin_box.SetSelection(int(index))
+                self.tmax_box.SetValue("")
+            return
+          
+             
+       
+
 
     #----------------------------------------------------------------------
 
@@ -1189,7 +1573,7 @@ class Zeq_GUI(wx.Frame):
             
   
         # re-draw the figures
-        self.draw_figure(self.s)
+        #self.draw_figure(self.s)
 
         # now draw the interpretation
         self.draw_interpretation()
@@ -1204,16 +1588,39 @@ class Zeq_GUI(wx.Frame):
         #tmax=self.pars['measurement_step_max']
         tmax_index=self.Data[self.s]['zijdblock_steps'].index(self.pars['zijdblock_step_max'])
 
- 
-        # Zijderveld plot  
+        # Zijderveld plot
+        
+        # delete previous interpretation:
+                    
+              
         ymin, ymax = self.zijplot.get_ylim()
         xmin, xmax = self.zijplot.get_xlim()
+
+        #self.zijplot_interpretation.clear()
         
-        self.zijplot.scatter([self.CART_rot[:,0][tmin_index]],[-1* self.CART_rot[:,1][tmin_index]],marker='o',s=40,facecolor='g',edgecolor ='k',zorder=100,clip_on=False)
-        self.zijplot.scatter([self.CART_rot[:,0][tmax_index]],[-1* self.CART_rot[:,1][tmax_index]],marker='o',s=40,facecolor='g',edgecolor ='k',zorder=100,clip_on=False)
-        self.zijplot.scatter([self.CART_rot[:,0][tmin_index]],[-1* self.CART_rot[:,2][tmin_index]],marker='s',s=50,facecolor='g',edgecolor ='k',zorder=100,clip_on=False)
-        self.zijplot.scatter([self.CART_rot[:,0][tmax_index]],[-1* self.CART_rot[:,2][tmax_index]],marker='s',s=50,facecolor='g',edgecolor ='k',zorder=100,clip_on=False)
-    
+                
+        #self.zijplot.scatter([self.CART_rot[:,0][tmin_index]],[-1* self.CART_rot[:,1][tmin_index]],marker='o',s=40,facecolor='g',edgecolor ='k',zorder=100,clip_on=False)
+        #self.zijplot.scatter([self.CART_rot[:,0][tmax_index]],[-1* self.CART_rot[:,1][tmax_index]],marker='o',s=40,facecolor='g',edgecolor ='k',zorder=100,clip_on=False)
+        #self.zijplot.scatter([self.CART_rot[:,0][tmin_index]],[-1* self.CART_rot[:,2][tmin_index]],marker='s',s=50,facecolor='g',edgecolor ='k',zorder=100,clip_on=False)
+        #self.zijplot.scatter([self.CART_rot[:,0][tmax_index]],[-1* self.CART_rot[:,2][tmax_index]],marker='s',s=50,facecolor='g',edgecolor ='k',zorder=100,clip_on=False)
+
+        #print "1)lines",self.zijplot.lines
+        #print "2)collection",self.zijplot.collections
+        
+        # delete previose interpretation
+        if len(self.zijplot.collections)>0:
+             self.zijplot.collections=[] # scatter green plots 
+        if self.green_line_plot:
+             del self.zijplot.lines[-1] # green line
+             del self.zijplot.lines[-1]# green line
+        #print "lines",self.zijplot.lines
+        #print "collection",self.zijplot.collections
+        
+        self.zijplot.scatter([self.CART_rot[:,0][tmin_index],self.CART_rot[:,0][tmax_index]],[-1* self.CART_rot[:,1][tmin_index],-1* self.CART_rot[:,1][tmax_index]],marker='o',s=40,facecolor='g',edgecolor ='k',zorder=100,clip_on=False)
+        self.zijplot.scatter([self.CART_rot[:,0][tmin_index],self.CART_rot[:,0][tmax_index]],[-1* self.CART_rot[:,2][tmin_index],-1* self.CART_rot[:,2][tmax_index]],marker='s',s=50,facecolor='g',edgecolor ='k',zorder=100,clip_on=False)
+        #print "lines",self.zijplot.lines
+        #print "collection",self.zijplot.collections
+        
         if self.pars['calculation_type'] in ['DE-BFL','DE-BFL-A','DE-BFL-O']:
             
             #rotated zijderveld
@@ -1254,15 +1661,20 @@ class Zeq_GUI(wx.Frame):
     
             xx=array([0,self.CART_rot[:,0][tmin_index]])
             yy=slop_xy_PCA*xx+intercept_xy_PCA
-            self.zijplot.plot(xx,yy,'-',color='g',lw=1.5,alpha=0.5)
+            #self.zijplot_interpretation.plot(xx,yy,'-',color='g',lw=3,alpha=0.5)
             zz=slop_xz_PCA*xx+intercept_xz_PCA
-            self.zijplot.plot(xx,zz,'-',color='g',lw=1.5,alpha=0.5)
-                    
-        self.zijplot.set_xlim(xmin, xmax)
-        self.zijplot.set_ylim(ymin, ymax)
+            #self.zijplot_interpretation.plot(xx,zz,'-',color='g',lw=3,alpha=0.5)
+            self.zijplot.plot(xx,yy,'-',color='g',lw=3,alpha=0.5,zorder=0)
+            self.zijplot.plot(xx,zz,'-',color='g',lw=3,alpha=0.5,zorder=0)
+            self.green_line_plot=True  
+        #self.zijplot_interpretation.set_xlim(xmin, xmax)
+        #self.zijplot_interpretation.set_ylim(ymin, ymax)
+        #self.zijplot_interpretation.axis('off')
+            
         self.canvas1.draw()       
     
         # Equal Area plot
+        self.specimen_eqarea_interpretation.clear()
         if self.pars['calculation_type']!='DE-BFP':
             CART=pmag.dir2cart([self.pars['specimen_dec'],self.pars['specimen_inc'],1])    
             x=CART[0]
@@ -1276,7 +1688,11 @@ class Zeq_GUI(wx.Frame):
                 FC='green';EC='0.1'
             else:
                 FC='yellow';EC='green'
-            self.specimen_eqarea.scatter([eqarea_x],[eqarea_y],marker='o',edgecolor=EC, facecolor=FC,s=30,lw=1,clip_on=False)
+            self.specimen_eqarea_interpretation.scatter([eqarea_x],[eqarea_y],marker='o',edgecolor=EC, facecolor=FC,s=30,lw=1,clip_on=False)
+            self.specimen_eqarea_interpretation.set_xlim(-1., 1.)        
+            self.specimen_eqarea_interpretation.set_ylim(-1., 1.)        
+            self.specimen_eqarea_interpretation.axes.set_aspect('equal')
+            self.specimen_eqarea_interpretation.axis('off')
             self.canvas2.draw()
         
         # draw a best-fit plane
@@ -1298,23 +1714,32 @@ class Zeq_GUI(wx.Frame):
                 if I_c[k]>0:
                     X_c_d.append(XY[0])
                     Y_c_d.append(XY[1])
-            self.specimen_eqarea.plot(X_c_d,Y_c_d,'b')
-            self.specimen_eqarea.plot(X_c_up,Y_c_up,'c')
+            self.specimen_eqarea_interpretation.plot(X_c_d,Y_c_d,'b')
+            self.specimen_eqarea_interpretation.plot(X_c_up,Y_c_up,'c')
             
-            self.specimen_eqarea.set_xlim(xmin, xmax)
-            self.specimen_eqarea.set_ylim(ymin, ymax)           
+            self.specimen_eqarea_interpretation.set_xlim(xmin, xmax)
+            self.specimen_eqarea_interpretation.set_ylim(ymin, ymax)           
             self.canvas2.draw()
             
                                         
         # M/M0 plot
+        self.mplot_interpretation.clear()
         ymin, ymax = self.mplot.get_ylim()
         xmin, xmax = self.mplot.get_xlim()
-        self.mplot.scatter([self.Data[self.s]['zijdblock'][tmin_index][0]],[self.Data[self.s]['zijdblock'][tmin_index][3]/self.Data[self.s]['zijdblock'][0][3]],marker='o',s=30,facecolor='g',edgecolor ='k',zorder=100,clip_on=False)
-        self.mplot.scatter([self.Data[self.s]['zijdblock'][tmax_index][0]],[self.Data[self.s]['zijdblock'][tmax_index][3]/self.Data[self.s]['zijdblock'][0][3]],marker='o',s=30,facecolor='g',edgecolor ='k',zorder=100,clip_on=False)
-        self.mplot.set_xlim(xmin, xmax)
-        self.mplot.set_ylim(ymin, ymax)
+        self.mplot_interpretation.scatter([self.Data[self.s]['zijdblock'][tmin_index][0]],[self.Data[self.s]['zijdblock'][tmin_index][3]/self.Data[self.s]['zijdblock'][0][3]],marker='o',s=30,facecolor='g',edgecolor ='k',zorder=100,clip_on=False)
+        self.mplot_interpretation.scatter([self.Data[self.s]['zijdblock'][tmax_index][0]],[self.Data[self.s]['zijdblock'][tmax_index][3]/self.Data[self.s]['zijdblock'][0][3]],marker='o',s=30,facecolor='g',edgecolor ='k',zorder=100,clip_on=False)
+        self.mplot_interpretation.set_xlim(xmin, xmax)
+        self.mplot_interpretation.set_ylim(ymin, ymax)
         self.canvas3.draw()
-
+        
+        # logger
+        #self.logger.SetBackgroundColour('red')
+        for item in range(self.logger.GetItemCount()):
+            if item >= tmin_index and item <= tmax_index:
+                self.logger.SetItemBackgroundColour(item,"LIGHT BLUE") # gray
+            else:
+                self.logger.SetItemBackgroundColour(item,"WHITE")
+                
     #----------------------------------------------------------------------
 
                     
@@ -1357,7 +1782,8 @@ class Zeq_GUI(wx.Frame):
         #for dirtype in ['DA-DIR','DA-DIR-GEO','DA-DIR-TILT']:
         #    if dirtype in self.Data[self.s].keys():
         #        del self.Data[self.s][dirtype]
-        del(self.pmag_results_data['specimens'][self.s])
+        if self.s in self.pmag_results_data.keys():
+            del(self.pmag_results_data['specimens'][self.s])
         
         self.tmin_box.SetValue("")
         self.tmax_box.SetValue("")
@@ -1573,13 +1999,17 @@ class Zeq_GUI(wx.Frame):
        self.UPPER_LEVEL_MEAN=self.mean_type_box.GetValue() 
        
 
-       self.fig4.clf()
+       #self.fig4.clf()
+       self.high_level_eqarea.clear()
        what_is_it=self.level_box.GetValue()+": "+self.level_names.GetValue()
-       self.fig4.text(0.02,0.96,what_is_it,{'family':'Arial', 'fontsize':10*self.GUI_RESOLUTION, 'style':'normal','va':'center', 'ha':'left' })
-       self.high_level_eqarea = self.fig4.add_subplot(111)        
+       self.high_level_eqarea.text(-1.2,1.15,what_is_it,{'family':'Arial', 'fontsize':10*self.GUI_RESOLUTION, 'style':'normal','va':'center', 'ha':'left' })
+
+              
+       #self.high_level_eqarea_net = self.fig4.add_subplot(111)        
+       #self.high_level_eqarea = self.high_level_eqarea_net.twinx()        
        # draw_net        
-       self.draw_net(self.high_level_eqarea)
-       self.canvas4.draw()
+       #self.draw_net(self.high_level_eqarea)
+       #self.canvas4.draw()
 
        if self.COORDINATE_SYSTEM=="geographic": dirtype='DA-DIR-GEO'
        elif self.COORDINATE_SYSTEM=="tilt-corrected": dirtype='DA-DIR-TILT'
@@ -1620,11 +2050,15 @@ class Zeq_GUI(wx.Frame):
                    self.plot_eqarea_mean( self.high_level_means[high_level_type][high_level_name][dirtype],self.high_level_eqarea)
                         
            
-                                    
+       self.high_level_eqarea.set_xlim(-1., 1.)                                
+       self.high_level_eqarea.set_ylim(-1., 1.)
+       self.high_level_eqarea.axes.set_aspect('equal')
+       self.high_level_eqarea.axis('off')
        self.canvas4.draw()
                         
     def plot_eqarea_pars(self,pars,fig):
         # plot best-fit plane
+        #fig.clear()
         if pars=={}:
             return
         if 'calculation_type' in pars.keys() and pars['calculation_type']=='DE-BFP':
@@ -1661,6 +2095,7 @@ class Zeq_GUI(wx.Frame):
             fig.scatter([XY[0]],[XY[1]],marker='o',edgecolor='black', facecolor=FC,s=SIZE,lw=1,clip_on=False)
                             
     def plot_eqarea_mean(self,meanpars,fig):
+        #fig.clear()
         mpars_to_plot=[]
         if meanpars=={}:
             return
@@ -2538,8 +2973,8 @@ class Zeq_GUI(wx.Frame):
         menu_MagIC= wx.Menu()
         #m_convert_to_magic= menu_MagIC.Append(-1, "&Convert generic files to MagIC format", "")
         #self.Bind(wx.EVT_MENU, self.on_menu_convert_to_magic, m_convert_to_magic)
-        #m_build_magic_model= menu_MagIC.Append(-1, "&Run MagIC model builder", "")
-        #self.Bind(wx.EVT_MENU, self.on_menu_MagIC_model_builder, m_build_magic_model)
+        m_build_magic_model= menu_MagIC.Append(-1, "&Run MagIC model builder", "")
+        self.Bind(wx.EVT_MENU, self.on_menu_MagIC_model_builder, m_build_magic_model)
         m_make_MagIC_results_tables= menu_MagIC.Append(-1, "&Save MagIC results tables", "")
         self.Bind(wx.EVT_MENU, self.on_menu_make_MagIC_results_tables, m_make_MagIC_results_tables)
 
@@ -2992,7 +3427,28 @@ class Zeq_GUI(wx.Frame):
                     rec[header]=""
         return recs
             
+
                         
+    def on_menu_MagIC_model_builder(self,event):
+        #try:
+        import MagIC_Model_Builder
+        #except:
+        #    pass
+
+        
+        help_window=MagIC_Model_Builder.MyHtmlPanel(None, "MagIC Model Builder Help ")
+        help_window.Show()
+            
+        dia = MagIC_Model_Builder.MagIC_model_builder(self.WD,self.Data,self.Data_hierarchy)
+        dia.Show()
+        dia.Center()
+        help_window.Close()
+        self.Data,self.Data_hierarchy,self.Data_info={},{},{}
+        self.Data,self.Data_hierarchy=self.get_data() # Get data from magic_measurements and rmag_anistropy if exist.
+        self.Data_info=self.get_data_info() # get all ages, locations etc. (from er_ages, er_sites, er_locations)
+                                            
+
+                                                                                                                                                                                                
 #--------------------------------------------------------------    
 # Save plots
 #--------------------------------------------------------------
