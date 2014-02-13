@@ -48,6 +48,8 @@ from matplotlib.backends.backend_wx import NavigationToolbar2Wx
 import copy
 from copy import deepcopy
 
+
+
 matplotlib.rc('xtick', labelsize=10) 
 matplotlib.rc('ytick', labelsize=10) 
 matplotlib.rc('axes', labelsize=8) 
@@ -211,9 +213,10 @@ class Zeq_GUI(wx.Frame):
         self.draw_net(self.specimen_eqarea_net)        
         self.specimen_eqarea = self.fig2.add_axes(self.specimen_eqarea_net.get_position(), frameon=False,axisbg='None')
         self.specimen_eqarea_interpretation = self.fig2.add_axes(self.specimen_eqarea_net.get_position(), frameon=False,axisbg='None')
-        self.specimen_eqarea_interpretation.axis('equal')
         self.specimen_eqarea_interpretation.xaxis.set_visible(False)
         self.specimen_eqarea_interpretation.yaxis.set_visible(False)
+        self.specimen_eqarea_interpretation.axes.set_aspect('equal')
+        self.specimen_eqarea_interpretation.axis('off')
           
         
                     
@@ -224,8 +227,9 @@ class Zeq_GUI(wx.Frame):
         self.high_level_eqarea = self.fig4.add_axes(self.high_level_eqarea_net.get_position(), frameon=False,axisbg='None')
         self.high_level_eqarea_interpretation = self.fig4.add_axes(self.high_level_eqarea_net.get_position(), frameon=False,axisbg='None')
         self.high_level_eqarea_interpretation.axis('equal')
-        self.high_level_eqarea_interpretation.xaxis.set_visible(False)
-        self.high_level_eqarea_interpretation.yaxis.set_visible(False)
+        self.high_level_eqarea_interpretation.axis('off')
+        #self.high_level_eqarea_interpretation.xaxis.set_visible(False)
+        #self.high_level_eqarea_interpretation.yaxis.set_visible(False)
 
 
         #----------------------------------------------------------------------                     
@@ -476,7 +480,10 @@ class Zeq_GUI(wx.Frame):
         # get previous interpretations from spmag tables
         self.update_pmag_tables()
         # Draw figures and add  text
-        self.update_selection()
+        try:
+            self.update_selection()
+        except:
+            pass
 
 
     #----------------------------------------------------------------------
@@ -1613,6 +1620,7 @@ class Zeq_GUI(wx.Frame):
         if self.green_line_plot:
              del self.zijplot.lines[-1] # green line
              del self.zijplot.lines[-1]# green line
+        self.green_line_plot=False
         #print "lines",self.zijplot.lines
         #print "collection",self.zijplot.collections
         
@@ -3430,19 +3438,23 @@ class Zeq_GUI(wx.Frame):
 
                         
     def on_menu_MagIC_model_builder(self,event):
-        #try:
+            
         import MagIC_Model_Builder
-        #except:
-        #    pass
-
-        
-        help_window=MagIC_Model_Builder.MyHtmlPanel(None, "MagIC Model Builder Help ")
-        help_window.Show()
+        foundHTML=False
+        try:
+            PATH= sys.modules['MagIC_Model_Builder'].__file__
+            HTML_PATH="/".join(PATH.split("/")[:-1]+["MagICModlBuilderHelp.html"])
+            foundHTML=True
+        except:
+            pass
+        if foundHTML:
+            help_window=MagIC_Model_Builder.MyHtmlPanel(None,HTML_PATH)
+            help_window.Show()
             
         dia = MagIC_Model_Builder.MagIC_model_builder(self.WD,self.Data,self.Data_hierarchy)
         dia.Show()
         dia.Center()
-        help_window.Close()
+        #help_window.Close()
         self.Data,self.Data_hierarchy,self.Data_info={},{},{}
         self.Data,self.Data_hierarchy=self.get_data() # Get data from magic_measurements and rmag_anistropy if exist.
         self.Data_info=self.get_data_info() # get all ages, locations etc. (from er_ages, er_sites, er_locations)

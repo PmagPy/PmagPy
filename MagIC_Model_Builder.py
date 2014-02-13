@@ -14,6 +14,7 @@ import os
 #import pmag
 #import time
 import wx
+import wx.html
 import wx.grid
 #from pylab import *
 #from scipy.optimize import curve_fit
@@ -36,14 +37,11 @@ class MagIC_model_builder(wx.Frame):
  
     #----------------------------------------------------------------------
     def __init__(self,WD,Data,Data_hierarchy):
-        print "WD,Data,Data_hierarchy"
-        print Data.keys()
         #print WD
         #print ".............."
         #print Data
         #print "-------------"
         #print Data_hierarchy
-        print "========="
         wx.Frame.__init__(self, parent=None)
         self.panel = wx.Panel(self)
         self.er_specimens_header=['er_citation_names','er_specimen_name','er_sample_name','er_site_name','er_location_name','specimen_class','specimen_lithology','specimen_type']
@@ -593,22 +591,37 @@ class MagIC_model_builder(wx.Frame):
             except:
                 pass
 
+class HtmlWindow(wx.html.HtmlWindow):
+    def OnLinkClicked(self, link):
+        wx.LaunchDefaultBrowser(link.GetHref())
+
 class MyHtmlPanel(wx.Frame):
-     def __init__(self, parent, title):
-        wx.Frame.__init__(self, parent, -1, title)
-        html = wx.html.HtmlWindow(self)
-        if "gtk2" in wx.PlatformInfo:
-            html.SetStandardFonts()
-        html.LoadPage('/Users/ronshaar/Academy/Projects/Thellier_GUI/documents/MagIcModelBuilder_manual/MagIC_Model_Builder_Help.html')  
+     def __init__(self, parent,HTML):
+        wx.Frame.__init__(self, parent, wx.ID_ANY, title="Help Window", size=(800,600))
+        html = HtmlWindow(self)
+        html.LoadPage(HTML)  
+        #self.Show()
+
+
+#class HtmlWindow(wx.html.HtmlWindow,id):
+#    def __init__(self, parent):
+#        wx.html.HtmlWindow.__init__(self,parent,id=-1)
+#        if "gtk2" in wx.PlatformInfo:
+#            self.SetStandardFonts()
+#
+#    def OnLinkClicked(self, link):
+#        wx.LaunchDefaultBrowser(link.GetHref())
+#
+#class MyHtmlPanel(wx.Frame):
+#     def __init__(self, parent,id):
+#        wx.Frame.__init__(self, parent,id)
+#        panel = wx.Panel(self)
+#        html = HtmlWindow(self,-1)
+#        if "gtk2" in wx.PlatformInfo:
+#            html.SetStandardFonts()
+#        html.LoadPage('MagICModlBuilderHelp.html')  
+#        sizer = wx.BoxSizer(wx.VERTICAL)
+#        sizer.Add(html, 1, wx.EXPAND)
+#        sizer.Fit(self)
+#        panel.SetSizer(sizer)
                
-    #def __init__(self):
-    #    """Constructor"""
-    #    wx.Frame.__init__(self, parent=None)        
-    #    panel = wx.Panel(self)
-    
-    #def __init__(self, parent, id):
-        # default pos is (0, 0) and size is (-1, -1) which fills the frame
-        #wx.Panel.__init__(self, parent, id)
-        #self.SetBackgroundColour("yellow")
-        #self.html1 = wx.html.HtmlWindow(self.panel, id, pos=(0,30), size=(602,310))
-        #self.html1.LoadPage('/Users/ronshaar/Academy/Projects/Thellier_GUI/documents/MagIcModelBuilder_manual/MagIC_Model_Builder_Help.html')
