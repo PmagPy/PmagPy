@@ -984,6 +984,9 @@ def magic_write(ofile,Recs,file_type):
     """
     writes out a magic format list of dictionaries to ofile
     """
+    
+    if len(Recs)<1:
+        return
     pmag_out=open(ofile,'w')
     outstring="tab \t"+file_type+"\n"
     pmag_out.write(outstring)

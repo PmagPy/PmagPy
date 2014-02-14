@@ -187,6 +187,7 @@ class Arai_GUI(wx.Frame):
         self.magic_file=self.WD+"/"+"magic_measurements.txt"
             #intialize GUI_log
         self.GUI_log=open("%s/thellier_GUI.log"%self.WD,'w')
+        os.chdir(self.WD)
         #self.GUI_log=open("%s/Thellier_GUI.log"%self.WD,'a')
         
 ##    def add_toolbar(self):
@@ -4705,7 +4706,10 @@ class Arai_GUI(wx.Frame):
             meas_data.append(rec)
         meas_data=self.converge_pmag_rec_headers(meas_data)
         pmag.magic_write(self.WD+"/"+"pmag_specimens.txt",meas_data,'pmag_specimens')
-        os.remove(self.WD+"/pmag_specimens.txt.backup")  
+        try:
+            os.remove(self.WD+"/pmag_specimens.txt.backup") 
+        except:
+            pass 
         #-------------
         # pmag_samples.txt or pmag_sites.txt
         #-------------
@@ -5066,6 +5070,18 @@ class Arai_GUI(wx.Frame):
                 
 
     def on_menu_MagIC_model_builder(self,event):
+        import MagIC_Model_Builder
+        foundHTML=False
+        try:
+            PATH= sys.modules['MagIC_Model_Builder'].__file__
+            HTML_PATH="/".join(PATH.split("/")[:-1]+["MagICModlBuilderHelp.html"])
+            foundHTML=True
+        except:
+            pass
+        if foundHTML:
+            help_window=MagIC_Model_Builder.MyHtmlPanel(None,HTML_PATH)
+            help_window.Show()
+
         dia = MagIC_model_builder(self.WD,self.Data,self.Data_hierarchy)
         dia.Show()
         dia.Center()

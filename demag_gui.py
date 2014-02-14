@@ -1424,8 +1424,7 @@ class Zeq_GUI(wx.Frame):
         """
         if "-WD" in sys.argv and FIRST_RUN:
             ind=sys.argv.index('-WD')
-            self.WD=sys.argv[ind+1]
-            os.chdir(self.WD)
+            self.WD=sys.argv[ind+1]            
             self.WD=os.getcwd()+"/"
  
         else:   
@@ -1433,6 +1432,7 @@ class Zeq_GUI(wx.Frame):
             if dialog.ShowModal() == wx.ID_OK:
               self.WD=dialog.GetPath()
             dialog.Destroy()
+        os.chdir(self.WD)
         self.magic_file=self.WD+"/"+"magic_measurements.txt"
         self.GUI_log=open("%s/zeq.log"%self.WD,'w')
 
@@ -2951,12 +2951,12 @@ class Zeq_GUI(wx.Frame):
         #-----------------                            
 
         menu_Tools = wx.Menu()
-        m_prev_interpretation = menu_Tools.Append(-1, "&Blanket demagnetization", "")
+        m_bulk_demagnetization = menu_Tools.Append(-1, "&Bulk demagnetization", "")
 
         #-------------------
         
-        menu_Plot= wx.Menu()
-        m_plot_data = menu_Plot.Append(-1, "&Plot ...", "")
+        #menu_Plot= wx.Menu()
+        #m_plot_data = menu_Plot.Append(-1, "&Plot ...", "")
         #self.Bind(wx.EVT_MENU, self.on_menu_plot_data, m_plot_data)
 
         #-------------------
@@ -2981,6 +2981,9 @@ class Zeq_GUI(wx.Frame):
         menu_MagIC= wx.Menu()
         #m_convert_to_magic= menu_MagIC.Append(-1, "&Convert generic files to MagIC format", "")
         #self.Bind(wx.EVT_MENU, self.on_menu_convert_to_magic, m_convert_to_magic)
+        m_samples_orientation= menu_MagIC.Append(-1, "&Sample orientation", "")
+        self.Bind(wx.EVT_MENU, self.on_menu_samples_orientation, m_samples_orientation)
+
         m_build_magic_model= menu_MagIC.Append(-1, "&Run MagIC model builder", "")
         self.Bind(wx.EVT_MENU, self.on_menu_MagIC_model_builder, m_build_magic_model)
         m_make_MagIC_results_tables= menu_MagIC.Append(-1, "&Save MagIC results tables", "")
@@ -2992,7 +2995,7 @@ class Zeq_GUI(wx.Frame):
         self.menubar.Append(menu_file, "&File")
         self.menubar.Append(menu_Analysis, "&Analysis")
         self.menubar.Append(menu_Tools, "&Tools")
-        self.menubar.Append(menu_Plot, "&Plot")
+        #self.menubar.Append(menu_Plot, "&Plot")
         #self.menubar.Append(menu_results_table, "&Table")        
         self.menubar.Append(menu_MagIC, "&MagIC")        
         self.SetMenuBar(self.menubar)
@@ -3460,7 +3463,13 @@ class Zeq_GUI(wx.Frame):
         self.Data_info=self.get_data_info() # get all ages, locations etc. (from er_ages, er_sites, er_locations)
                                             
 
-                                                                                                                                                                                                
+    def on_menu_samples_orientation(self,event):
+        pass
+        #import orient_magic_wx
+        #dia = orient_magic_wx.OrientFrame(self.WD,self.Data_hierarchy)
+        #dia.Show()
+        #dia.Center()
+                                                                                                                                                                                                        
 #--------------------------------------------------------------    
 # Save plots
 #--------------------------------------------------------------
