@@ -2354,6 +2354,11 @@ def help_magic(helpme):
 def exit():
     sys.exit()
 
+def demag_gui():
+    z_command='demag_gui.py -WD '+'"'+opath+'"'
+    print z_command
+    os.system(z_command)
+
 def zeq():
     z_command='zeq_magic.py -WD '+'"'+opath+'"'
     filelist=os.listdir(opath)
@@ -3143,8 +3148,10 @@ def create_menus():
     plotmenu=Menu(menubar)
     plotmenu.add_command(label="Customize Criteria ",command=custom)
     plotmenu.add_separator()
-    plotmenu.add_command(label="Demagnetization data ",command=zeq)
-#    plotmenu.add_command(label="Demagnetization GUI",command=zeq_gui)
+    demagmenu=Menu(plotmenu)
+    demagmenu.add_command(label="zeq_magic program",command=zeq)
+    demagmenu.add_command(label="Demagnetization GUI",command=demag_gui)
+    plotmenu.add_cascade(label="Demagnetization experiments",menu=demagmenu)
     thelliermenu=Menu(plotmenu)
     thelliermenu.add_command(label="thellier_magic program",command=thellier)
     thelliermenu.add_command(label="Thellier GUI program",command=thellier_gui)
