@@ -896,7 +896,13 @@ def magic_read(infile):
             print "Warning: Uneven record lengths detected: "
             print magic_keys
             print rec
-        for k in range(len(rec)):
+        # modified by Ron Shaar:
+        # add a health check:
+        # if len(magic_keys) > len(rec): take rec
+        # if len(magic_keys) < len(rec): take magic_keys
+        # original code: for k in range(len(rec)):
+        # channged to: for k in range(min(len(magic_keys),len(rec))):
+        for k in range(min(len(magic_keys),len(rec))):
            magic_record[magic_keys[k]]=rec[k].strip('\n')
         magic_data.append(magic_record)
     magictype=file_type.lower().split("_")
