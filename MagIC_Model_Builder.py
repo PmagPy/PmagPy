@@ -333,8 +333,13 @@ class MagIC_model_builder(wx.Frame):
         #data
         #print "specimens_list:",specimens_list
         for specimen in specimens_list:
+          #print "specimen",specimen
+          #print self.data_er_specimens
           #print "specimen: ",specimen
-          sample=self.Data_hierarchy['sample_of_specimen'][specimen]
+          if  specimen in self.data_er_specimens.keys() and  "er_sample_name" in self.data_er_specimens[specimen].keys() and self.data_er_specimens[specimen]["er_sample_name"] != "":
+                sample=self.data_er_specimens[specimen]["er_sample_name"]   
+          else:
+              sample=self.Data_hierarchy['sample_of_specimen'][specimen]
           string=""
           for key in self.er_specimens_header:
             if key=="er_citation_names":
@@ -342,7 +347,9 @@ class MagIC_model_builder(wx.Frame):
             elif key=="er_specimen_name":
               string=string+specimen+"\t"
             elif key=="er_sample_name":
-              string=string+self.Data_hierarchy['sample_of_specimen'][specimen]+"\t"
+            # take sample name from existing 
+             #print self.data_er_specimens[specimen]
+                string=string+sample+"\t"
             # take 'er_location_name','er_site_name' from er_sample table
             elif (key in ['er_location_name','er_site_name'] and sample in self.data_er_samples.keys() \
                  and  key in self.data_er_samples[sample] and self.data_er_samples[sample][key]!=""):
@@ -354,7 +361,7 @@ class MagIC_model_builder(wx.Frame):
                 string=string+self.data_er_samples[sample][sample_key]+"\t"
             # take information from the existing er_samples table             
             elif specimen in self.data_er_specimens.keys() and key in self.data_er_specimens[specimen].keys() and self.data_er_specimens[specimen][key]!="":
-                string=string+specimen+self.data_er_specimens[specimen][key]+"\t"
+                string=string+self.data_er_specimens[specimen][key]+"\t"
             else:
               string=string+"\t"
           er_specimens_file.write(string[:-1]+"\n")
@@ -464,7 +471,7 @@ class MagIC_model_builder(wx.Frame):
 
 
         #-----------------------------------------------------
-        # Fix magic_measurement with sites and locations  
+        # Fix magic_measurement with samples, sites and locations  
         #-----------------------------------------------------
 
         f_old=open(self.WD+"/magic_measurements.txt",'rU')
@@ -482,7 +489,13 @@ class MagIC_model_builder(wx.Frame):
             tmp={}
             for i in range(len(header)):
                 tmp[header[i]]=tmp_line[i]
+            specimen=tmp["er_specimen_name"]
             sample=tmp["er_sample_name"]
+            if specimen in  self.data_er_specimens.keys() and "er_sample_name" in self.data_er_specimens[specimen].keys():
+                if sample != self.data_er_specimens[specimen]["er_sample_name"]:
+                    sample=self.data_er_specimens[specimen]["er_sample_name"]
+                    tmp["er_sample_name"]=sample
+                                    
             if sample in self.data_er_samples.keys() and "er_site_name" in self.data_er_samples[sample].keys() and self.data_er_samples[sample]["er_site_name"]!="":
                 tmp["er_site_name"]=self.data_er_samples[sample]["er_site_name"]
             site=tmp["er_site_name"]
