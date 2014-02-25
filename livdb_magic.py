@@ -3,7 +3,7 @@
 import wx,string,sys,math,os
 import scipy
 from scipy import *
-
+import sys
 
 
 
@@ -49,6 +49,14 @@ class convert_livdb_files_to_MagIC(wx.Frame):
         self.create_menu()
         self.InitUI()
 
+        if "-WD" in sys.argv :
+            ind=sys.argv.index('-WD')
+            self.WD=sys.argv[ind+1] 
+        else:
+            self.WD="./"
+        os.chdir(self.WD)
+        self.WD=os.getcwd()+"/"
+
     def create_menu(self):
         """ Create menu
         """
@@ -78,7 +86,7 @@ class convert_livdb_files_to_MagIC(wx.Frame):
         TEXT1="Instructions:\n"
         TEXT2="Put all livdb files of the same Location in one folder\n"
         TEXT3="If there is a more than one location use multiple folders\n"
-        TEXT4="Each measurement file end with '.livdb'\n"
+        TEXT4="Each measurement file end with '.livdb' or .livdb.csv\n"
 
         TEXT=TEXT1+TEXT2+TEXT3+TEXT4
         bSizer_info = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY, "" ), wx.HORIZONTAL )
@@ -252,7 +260,7 @@ class convert_livdb_files_to_MagIC(wx.Frame):
 
         dlg = wx.DirDialog(
             None,message="choose directtory with livdb files",
-            defaultPath ="./",
+            defaultPath =self.WD,
             style=wx.OPEN | wx.CHANGE_DIR
             )
         if dlg.ShowModal() == wx.ID_OK:
@@ -405,7 +413,7 @@ class convert_livdb_files_to_MagIC(wx.Frame):
             # 1) First line is the header.
             #    The header includes 19 fields delimited by comma (',') 
             #    Notice: space is not a delimiter !
-            #    In the list below the delimiter is not used, and the concersion script assumes comma delimited file
+            #    In the list below the delimiter is not used, and the conversion script assumes comma delimited file
             #
             # Header fields:
             # Sample code (string): (delimiter = space+)
@@ -501,7 +509,7 @@ class convert_livdb_files_to_MagIC(wx.Frame):
             #-----------------------------------
 
             for files in os.listdir(DIRS_data[dir_name]["path"]):
-                if files.endswith(".livdb"):
+                if files.endswith(".livdb") or files.endswith(".livdb.csv") :
                     print "Open file: ", DIRS_data[dir_name]["path"]+"/"+files
                     fin=open(DIRS_data[dir_name]["path"]+"/"+files,'rU')
                     Data={}
@@ -615,7 +623,7 @@ class convert_livdb_files_to_MagIC(wx.Frame):
                             if Experiment_Type in supported_experiments:
 
                                 header_line=Data[specimen][Experiment_Type]['header_data']
-                                experiment_treatments=[]
+                                experiment_treatments,lab_treatments=[],[]
                                 measurement_running_number=0
                                 for i in range(len(Data[specimen][Experiment_Type]['meas_data'])):
                                     meas_line=Data[specimen][Experiment_Type]['meas_data'][i]
@@ -742,7 +750,7 @@ class convert_livdb_files_to_MagIC(wx.Frame):
                                                       %(MagRec["er_specimen_name"], Experiment_Type)
                                         else:
                                             lab_treatment="LT-M-I"
-                                        experiment_treatments.append(treatment)
+                                        #experiment_treatments.append(treatment)
 
                                     #-----------------------------------
                                     # Coe/Aitken/IZZI protocols: 
@@ -831,12 +839,27 @@ class convert_livdb_files_to_MagIC(wx.Frame):
                                                     IZorZI="I"
 
                                                 elif labfield!=0 and treatment  in experiment_treatments:
-                                                    if IZorZI=='Z' or IZorZI=='':
-                                                        if float(treatment) < float(experiment_treatments[-1]):
+                                                    #if IZorZI=='Z' or IZorZI=='':
+                                                        
+                                                        prev_treatment=treatment
+                                                        #print lab_treatments,"lab_treatments"
+                                                        #print experiment_treatments,"experiment_treatments"
+                                                        if len(experiment_treatments)>2 and len(lab_treatments)>2:
+                                                            for j in range(len(lab_treatments)-1,0,-1):
+                                                                if "LT-PTRM-I" in lab_treatments[j] or "LT-PMRM-I" in lab_treatments[j]:
+                                                                    continue
+                                                                prev_treatment=experiment_treatments[j]
+                                                                break
+                                                        #print "prev_treatment",prev_treatment
+                                                        #print "treatment",treatment
+                                                        
+                                                        if float(treatment) < float(prev_treatment):
                                                             lab_treatment="LT-PMRM-I"*MW + "LT-PTRM-I"*TH
+                                                            IZorZI==''
                                                         else:
                                                             lab_treatment="LT-M-I"*MW + "LT-T-I"*TH
                                                             IZorZI=""
+                                                        
                                                 else:
                                                     print "-E- ERROR. specimen %s. Cant relate step %s to the protocol"%\
                                                           (MagRec["er_specimen_name"],treatment)
@@ -849,8 +872,8 @@ class convert_livdb_files_to_MagIC(wx.Frame):
                                             print "-W- WARNING sample %s treatment=%s. Step Type is %s but the program assumes %s"\
                                                   %(MagRec["er_specimen_name"],treatment , meas_line['Step Type'],lab_treatment)
 
-                                        experiment_treatments.append(treatment)
-
+                                        #experiment_treatments.append(treatment)
+                                        lab_treatments.append(lab_treatment)
                                     #-----------------------------------
                                     # Perpendicular method: MW-PI-P :
                                     #-----------------------------------
@@ -864,7 +887,7 @@ class convert_livdb_files_to_MagIC(wx.Frame):
                                         else:
                                             lab_treatment="LT-M-I:LT-NRM-PERP"
 
-                                        experiment_treatments.append(treatment)
+                                        #experiment_treatments.append(treatment)
 
                                     #-----------------------------------
                                     # MW demagnetization
@@ -881,7 +904,7 @@ class convert_livdb_files_to_MagIC(wx.Frame):
                                             lab_protocols_string="LP-DIR-M"
                                             lab_treatment="LT-M-Z"
 
-                                    experiment_treatments.append(treatment)
+                                        #experiment_treatments.append(treatment)
 
                                     #-----------------------------------
                                     # Thermal demagnetization
@@ -898,6 +921,8 @@ class convert_livdb_files_to_MagIC(wx.Frame):
                                             lab_protocols_string="LP-DIR-T"
                                             lab_treatment="LT-T-Z"
 
+                                        #experiment_treatments.append(treatment)
+
                                     #-----------------------------------
                                     # AF demagnetization
                                     #-----------------------------------
@@ -913,9 +938,11 @@ class convert_livdb_files_to_MagIC(wx.Frame):
                                             lab_protocols_string="LP-DIR-AF"
                                             lab_treatment="LT-AF-Z"
 
+                                    
+                                    experiment_treatments.append(treatment)
+
                                     #-----------------------------------
                                             
-                                    experiment_treatments.append(treatment)
 
                                     MagRec["magic_method_codes"]=lab_treatment+":"+lab_protocols_string
                                     MagRec["magic_experiment_name"]=specimen+":"+lab_protocols_string

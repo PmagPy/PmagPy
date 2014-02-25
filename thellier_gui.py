@@ -3,9 +3,16 @@
 #============================================================================================
 # LOG HEADER:
 #============================================================================================
+# Thellier_GUI Version 2.13 02/25/2014
+# Add option for more than one pTRMs one after the other
+
+# Thellier_GUI Version 2.12 0/19/2014
+# Fix compatibility issues PC/Mac
+# change display preferences
+#
 # Thellier_GUI Version 2.11 01/13/2014
 # adjust diplay to automatically fit screen size
-
+#
 # Thellier_GUI Version 2.10 01/13/2014
 # Fix compatibility with 64 bit
 #
@@ -158,10 +165,14 @@ class Arai_GUI(wx.Frame):
         self.specimens.sort()                   # get list of specimens
         self.panel = wx.Panel(self)          # make the Panel
         self.Main_Frame()                   # build the main frame
-        self.create_menu()                  # create manu bar
-        self.Arai_zoom()
-        self.Zij_zoom()
+        self.create_menu() 
+        try:
+            self.Arai_zoom()
+            self.Zij_zoom()
+        except:
+            pass
         self.arrow_keys()
+        FIRST_RUN=False
 
         self.get_previous_interpretation() # get interpretations from pmag_specimens.txt
         FIRST_RUN=False
@@ -188,6 +199,8 @@ class Arai_GUI(wx.Frame):
             #intialize GUI_log
         self.GUI_log=open("%s/thellier_GUI.log"%self.WD,'w')
         os.chdir(self.WD)
+        self.WD=os.getcwd()+"/"
+        #print "self.WD",self.WD
         #self.GUI_log=open("%s/Thellier_GUI.log"%self.WD,'a')
         
 ##    def add_toolbar(self):
@@ -225,11 +238,26 @@ class Arai_GUI(wx.Frame):
         r2=dw/750.
         
         #if  dw>w:
-        self.GUI_RESOLUTION=min(r1,r2,1.3)
-
+        GUI_RESOLUTION=min(r1,r2,1.3)
+        if 'gui_resolution' in self.preferences.keys():
+            if float(self.preferences['gui_resolution'])!=1:
         #self.GUI_RESOLUTION=0.75
-        #self.GUI_RESOLUTION=float(self.preferences['gui_resolution'])/100
-        
+                self.GUI_RESOLUTION=float(self.preferences['gui_resolution'])/100
+            else:
+                self.GUI_RESOLUTION=min(r1,r2,1.3)
+        else:
+            self.GUI_RESOLUTION=min(r1,r2,1.3)
+
+        if self.GUI_RESOLUTION >= 1.1 and self.GUI_RESOLUTION <= 1.3:
+            font2 = wx.Font(13, wx.SWISS, wx.NORMAL, wx.NORMAL, False, u'Arial')
+        elif self.GUI_RESOLUTION <= 0.9 and self.GUI_RESOLUTION < 1.0 :
+            font2 = wx.Font(11, wx.SWISS, wx.NORMAL, wx.NORMAL, False, u'Arial')
+        elif self.GUI_RESOLUTION <= 0.9 :
+            font2 = wx.Font(10, wx.SWISS, wx.NORMAL, wx.NORMAL, False, u'Arial')
+        else:
+            font2 = wx.Font(12, wx.SWISS, wx.NORMAL, wx.NORMAL, False, u'Arial')
+        print "    self.GUI_RESOLUTION",self.GUI_RESOLUTION
+            
         #----------------------------------------------------------------------                     
         # Create the mpl Figure and FigCanvas objects. 
         # 5x4 inches, 100 dots-per-inch
@@ -237,11 +265,11 @@ class Arai_GUI(wx.Frame):
         #
         self.fig1 = Figure((5.*self.GUI_RESOLUTION, 5.*self.GUI_RESOLUTION), dpi=self.dpi)
         self.canvas1 = FigCanvas(self.panel, -1, self.fig1)
-        self.fig1.text(0.01,0.98,"Arai plot",{'family':'Arial', 'fontsize':10*self.GUI_RESOLUTION, 'style':'normal','va':'center', 'ha':'left' })
+        self.fig1.text(0.01,0.98,"Arai plot",{'family':'Arial', 'fontsize':10, 'style':'normal','va':'center', 'ha':'left' })
         
         self.fig2 = Figure((2.5*self.GUI_RESOLUTION, 2.5*self.GUI_RESOLUTION), dpi=self.dpi)
         self.canvas2 = FigCanvas(self.panel, -1, self.fig2)
-        self.fig2.text(0.02,0.96,"Zijderveld",{'family':'Arial', 'fontsize':10*self.GUI_RESOLUTION, 'style':'normal','va':'center', 'ha':'left' })
+        self.fig2.text(0.02,0.96,"Zijderveld",{'family':'Arial', 'fontsize':10, 'style':'normal','va':'center', 'ha':'left' })
 
         self.fig3 = Figure((2.5*self.GUI_RESOLUTION, 2.5*self.GUI_RESOLUTION), dpi=self.dpi)
         self.canvas3 = FigCanvas(self.panel, -1, self.fig3)
@@ -249,7 +277,7 @@ class Arai_GUI(wx.Frame):
 
         self.fig4 = Figure((2.5*self.GUI_RESOLUTION, 2.5*self.GUI_RESOLUTION), dpi=self.dpi)
         self.canvas4 = FigCanvas(self.panel, -1, self.fig4)
-        self.fig4.text(0.02,0.96,"Sample data",{'family':'Arial', 'fontsize':10*self.GUI_RESOLUTION, 'style':'normal','va':'center', 'ha':'left' })
+        self.fig4.text(0.02,0.96,"Sample data",{'family':'Arial', 'fontsize':10, 'style':'normal','va':'center', 'ha':'left' })
 
         self.fig5 = Figure((2.5*self.GUI_RESOLUTION, 2.5*self.GUI_RESOLUTION), dpi=self.dpi)
         self.canvas5 = FigCanvas(self.panel, -1, self.fig5)
@@ -284,7 +312,7 @@ class Arai_GUI(wx.Frame):
         FONT_RATIO=self.GUI_RESOLUTION+(self.GUI_RESOLUTION-1)*5
         font1 = wx.Font(9+FONT_RATIO, wx.SWISS, wx.NORMAL, wx.NORMAL, False, u'Arial')
         # GUI headers
-        font2 = wx.Font(12+min(1,FONT_RATIO), wx.SWISS, wx.NORMAL, wx.NORMAL, False, u'Arial')
+        
         font3 = wx.Font(11+FONT_RATIO, wx.SWISS, wx.NORMAL, wx.NORMAL, False, u'Arial')
         font = wx.SystemSettings_GetFont(wx.SYS_SYSTEM_FONT)
         font.SetPointSize(10+FONT_RATIO)        
@@ -358,7 +386,7 @@ class Arai_GUI(wx.Frame):
             self.T_list=[]
         
         self.tmin_box = wx.ComboBox(self.panel, -1 ,size=(100*self.GUI_RESOLUTION, 25),choices=self.T_list, style=wx.CB_DROPDOWN)
-        self.tmin_box.SetFont(font2)
+        #self.tmin_box.SetFont(font2)
         self.Bind(wx.EVT_COMBOBOX, self.get_new_T_PI_parameters,self.tmin_box)
 
         self.tmax_box = wx.ComboBox(self.panel, -1 ,size=(100*self.GUI_RESOLUTION, 25),choices=self.T_list, style=wx.CB_DROPDOWN)
@@ -395,19 +423,19 @@ class Arai_GUI(wx.Frame):
 
         
         self.Blab_window=wx.TextCtrl(self.panel,style=wx.TE_CENTER|wx.TE_READONLY,size=(50*self.GUI_RESOLUTION,25))
-        self.Blab_window.SetFont(font2)
+        #self.Blab_window.SetFont(font2)
         self.Banc_window=wx.TextCtrl(self.panel,style=wx.TE_CENTER|wx.TE_READONLY,size=(50*self.GUI_RESOLUTION,25))
-        self.Banc_window.SetFont(font2)        
+        #self.Banc_window.SetFont(font2)        
         self.Aniso_factor_window=wx.TextCtrl(self.panel,style=wx.TE_CENTER|wx.TE_READONLY,size=(50*self.GUI_RESOLUTION,25))
-        self.Aniso_factor_window.SetFont(font2) 
+        #self.Aniso_factor_window.SetFont(font2) 
         self.NLT_factor_window=wx.TextCtrl(self.panel,style=wx.TE_CENTER|wx.TE_READONLY,size=(50*self.GUI_RESOLUTION,25))
-        self.NLT_factor_window.SetFont(font2) 
+        #self.NLT_factor_window.SetFont(font2) 
         self.CR_factor_window=wx.TextCtrl(self.panel,style=wx.TE_CENTER|wx.TE_READONLY,size=(50*self.GUI_RESOLUTION,25))
-        self.CR_factor_window.SetFont(font2) 
+        #self.CR_factor_window.SetFont(font2) 
         self.declination_window=wx.TextCtrl(self.panel,style=wx.TE_CENTER|wx.TE_READONLY,size=(50*self.GUI_RESOLUTION,25))
-        self.declination_window.SetFont(font2) 
+        #self.declination_window.SetFont(font2) 
         self.inclination_window=wx.TextCtrl(self.panel,style=wx.TE_CENTER|wx.TE_READONLY,size=(50*self.GUI_RESOLUTION,25))
-        self.inclination_window.SetFont(font2) 
+        #self.inclination_window.SetFont(font2) 
 
         self.Blab_label=wx.StaticText(self.panel,label="\nB_lab",style=wx.ALIGN_CENTRE)
         self.Blab_label.SetFont(font2)
@@ -453,8 +481,8 @@ class Arai_GUI(wx.Frame):
         for key in ["sample_int_n","sample_int_uT","sample_int_sigma","sample_int_sigma_perc"]:
             command="self.%s_window=wx.TextCtrl(self.panel,style=wx.TE_CENTER|wx.TE_READONLY,size=(50*self.GUI_RESOLUTION,25))"%key
             exec command
-            command = "self.%s_window.SetFont(font2)"%key
-            exec command
+            #command = "self.%s_window.SetFont(font2)"%key
+            #exec command
 
 ##        for key in ["sample results","\nmean","\nN","\n std uT","\n std uT"]:
 ##            K=key.strip("\n");K=K.replace(" ", "_")
@@ -534,9 +562,9 @@ class Arai_GUI(wx.Frame):
             command="self.label_%i=wx.StaticText(self.panel,label='%s',style=wx.ALIGN_CENTER,size=(180,25))"%(i,TEXT[i])
             #print command
             exec command
-            command="self.label_%i.SetFont(font3)"%i
+            #command="self.label_%i.SetFont(font2)"%i
             #print command
-            exec command
+            #exec command
         gs1 = wx.GridSizer(3, 1,5*self.GUI_RESOLUTION,5*self.GUI_RESOLUTION)
  
         gs1.AddMany( [(self.label_0,wx.EXPAND),(self.label_1,wx.EXPAND),(self.label_2,wx.EXPAND)])
@@ -559,17 +587,17 @@ class Arai_GUI(wx.Frame):
         for statistic in self.preferences['show_statistics_on_gui']:
             command="self.%s_window=wx.TextCtrl(self.panel,style=wx.TE_CENTER|wx.TE_READONLY,size=(50*self.GUI_RESOLUTION,25))"%statistic
             exec command
-            command="self.%s_window.SetFont(font3)"%statistic
+            command="self.%s_window.SetFont(font2)"%statistic
             exec command
             command="self.%s_threshold_window=wx.TextCtrl(self.panel,style=wx.TE_CENTER|wx.TE_READONLY,size=(50*self.GUI_RESOLUTION,25))"%statistic
             exec command
-            command="self.%s_threshold_window.SetFont(font3)"%statistic
+            command="self.%s_threshold_window.SetFont(font2)"%statistic
             exec command
             command="self.%s_threshold_window.SetBackgroundColour(wx.NullColour)"%statistic
             exec command
             command="self.%s_label=wx.StaticText(self.panel,label='%s',style=wx.ALIGN_CENTRE)"%(statistic,Statsitics_labels[statistic])
             exec command
-            command="self.%s_label.SetFont(font3)"%statistic
+            command="self.%s_label.SetFont(font2)"%statistic
             exec command
             
         for statistic in self.preferences['show_statistics_on_gui']:
@@ -947,7 +975,13 @@ class Arai_GUI(wx.Frame):
 
       self.logger.Clear()
       FONT_RATIO=self.GUI_RESOLUTION+(self.GUI_RESOLUTION-1)*5
-      font1 = wx.Font(9+FONT_RATIO, wx.SWISS, wx.NORMAL, wx.NORMAL, False, u'Arial')
+      if self.GUI_RESOLUTION >1.1:
+          font1 = wx.Font(11, wx.SWISS, wx.NORMAL, wx.NORMAL, False, u'Arial')
+      elif self.GUI_RESOLUTION <=0.9:
+          font1 = wx.Font(8, wx.SWISS, wx.NORMAL, wx.NORMAL, False, u'Arial')
+      else:   
+          font1 = wx.Font(10, wx.SWISS, wx.NORMAL, wx.NORMAL, False, u'Arial')
+          
       #String="Step | Temp |  Dec  |  Inc  | M [Am^2]\n"
       String="  Step\tTemp\t Dec\t Inc\tM [Am^2]\n"
       # microwave
@@ -1631,11 +1665,14 @@ class Arai_GUI(wx.Frame):
             dlg1 = wx.MessageDialog(self,caption="Message:", message="save the thellier_gui.preferences in PmagPy directory!" ,style=wx.OK|wx.ICON_INFORMATION)
             dlg1.ShowModal()
             dlg1.Destroy()
-        
-
+            PATH="~/PmagPy"
+            try:
+                PATH= sys.modules['pmag'].__file__
+            except:
+                pass
             dlg2 = wx.FileDialog(
                 self, message="save the thellier_gui_preference.txt in PmagPy directory!",
-                defaultDir="~/PmagPy", 
+                defaultDir=PATH, 
                 defaultFile="thellier_gui_preferences.py",
                 style=wx.FD_SAVE | wx.CHANGE_DIR
                 )
@@ -4693,15 +4730,17 @@ class Arai_GUI(wx.Frame):
             String=String+key+"\t"
         fout.write(String[:-1]+"\n")
         for specimen in specimens_list:
+            #print "specimen",specimen
             String=""
             for key in headers:
                 String=String+MagIC_results_data['pmag_specimens'][specimen][key]+"\t"
+            #print "String",String
             fout.write(String[:-1]+"\n")
         fout.close()    
         
         
         # merge with non-intensity data
-        meas_data,file_type=pmag.magic_read(self.WD+"/pmag_specimens.txt")
+        meas_data,file_type=self.magic_read(self.WD+"/pmag_specimens.txt")
         for rec in PmagRecsOld["pmag_specimens.txt"]:
             meas_data.append(rec)
         meas_data=self.converge_pmag_rec_headers(meas_data)
@@ -4801,24 +4840,24 @@ class Arai_GUI(wx.Frame):
             
         # merge with non-intensity data
         if BY_SAMPLES:
-            meas_data,file_type=pmag.magic_read(self.WD+"/pmag_samples.txt")
+            meas_data,file_type=self.magic_read(self.WD+"/pmag_samples.txt")
             for rec in PmagRecsOld["pmag_samples.txt"]:
                 meas_data.append(rec)
             meas_data=self.converge_pmag_rec_headers(meas_data)
             pmag.magic_write(self.WD+"/"+"pmag_samples.txt",meas_data,'pmag_samples')
             try:
-                os.remove(self.WD+"/pmag_samples.backup") 
+                os.remove(self.WD+"/pmag_samples.txt.backup") 
             except:
                 pass     
             pmag.magic_write(self.WD+"/"+"pmag_sites.txt",PmagRecsOld["pmag_sites.txt"],'pmag_sites')
         else:
-            meas_data,file_type=pmag.magic_read(self.WD+"/pmag_sites.txt")
+            meas_data,file_type=self.magic_read(self.WD+"/pmag_sites.txt")
             for rec in PmagRecsOld["pmag_sites.txt"]:
                 meas_data.append(rec)
             meas_data=self.converge_pmag_rec_headers(meas_data)
             pmag.magic_write(self.WD+"/"+"pmag_sites.txt",meas_data,'pmag_sites')
             try:
-                os.remove(self.WD+"/pmag_samples.backup") 
+                os.remove(self.WD+"/pmag_samples.txt.backup") 
             except:
                 pass     
     
@@ -4929,15 +4968,16 @@ class Arai_GUI(wx.Frame):
                 String=String+MagIC_results_data['pmag_results'][sample_or_site][key]+"\t"
             fout.write(String[:-1]+"\n")
         fout.close()
-
+        
+        #print "self.WD",self.WD
         # merge with non-intensity data
-        meas_data,file_type=pmag.magic_read(self.WD+"/pmag_results.txt")
+        meas_data,file_type=self.magic_read(self.WD+"/pmag_results.txt")
         for rec in PmagRecsOld["pmag_results.txt"]:
             meas_data.append(rec)
         meas_data=self.converge_pmag_rec_headers(meas_data)
         pmag.magic_write(self.WD+"/"+"pmag_results.txt",meas_data,'pmag_results')
         try:
-            os.remove(self.WD+"/pmag_results.backup") 
+            os.remove(self.WD+"/pmag_results.txt.backup") 
         except:
             pass     
 
@@ -5068,8 +5108,43 @@ class Arai_GUI(wx.Frame):
         fin.close()        
         return(DATA)
                 
+    def read_er_ages_file(self,path,ignore_lines_n,sort_by_these_names):
+        '''
+        read er_ages, sort it by site or sample (the header that is not empty)
+        and convert ages to calender year
+        
+        '''
+        DATA={}
+        fin=open(path,'rU')
+        #ignore first lines
+        for i in range(ignore_lines_n):
+            fin.readline()
+        #header
+        line=fin.readline()
+        header=line.strip('\n').split('\t')
+        #print header
+        for line in fin.readlines():
+            if line[0]=="#":
+                continue
+            tmp_data={}
+            tmp_line=line.strip('\n').split('\t')
+            for i in range(len(tmp_line)):
+                if i>= len(header):
+                    continue
+                tmp_data[header[i]]=tmp_line[i]
+            for name in sort_by_these_names:
+                if name in tmp_data.keys() and   tmp_data[name] !="": 
+                    er_ages_rec=self.convert_ages_to_calender_year(tmp_data)
+                    DATA[tmp_data[name]]=er_ages_rec
+        fin.close()        
+        return(DATA)
+
 
     def on_menu_MagIC_model_builder(self,event):
+        #dia = MagIC_model_builder(self.WD,self.Data,self.Data_hierarchy)
+        #dia.Show()
+        #dia.Center()
+
         import MagIC_Model_Builder
         foundHTML=False
         try:
@@ -5081,13 +5156,18 @@ class Arai_GUI(wx.Frame):
         if foundHTML:
             help_window=MagIC_Model_Builder.MyHtmlPanel(None,HTML_PATH)
             help_window.Show()
-
-        dia = MagIC_model_builder(self.WD,self.Data,self.Data_hierarchy)
+            
+        dia = MagIC_Model_Builder.MagIC_model_builder(self.WD,self.Data,self.Data_hierarchy)
         dia.Show()
         dia.Center()
+        #help_window.Close()
         self.Data,self.Data_hierarchy,self.Data_info={},{},{}
         self.Data,self.Data_hierarchy=self.get_data() # Get data from magic_measurements and rmag_anistropy if exist.
         self.Data_info=self.get_data_info() # get all ages, locations etc. (from er_ages, er_sites, er_locations)
+        
+        #self.Data,self.Data_hierarchy,self.Data_info={},{},{}
+        #self.Data,self.Data_hierarchy=self.get_data() # Get data from magic_measurements and rmag_anistropy if exist.
+        #self.Data_info=self.get_data_info() # get all ages, locations etc. (from er_ages, er_sites, er_locations)
        
     def on_menu_convert_to_magic(self,event):
         dia = convert_generic_files_to_MagIC(self.WD)
@@ -5104,6 +5184,102 @@ class Arai_GUI(wx.Frame):
         self.specimens_box.SetItems(self.specimens)
         self.s=self.specimens[0]
         self.update_selection()
+
+    def calculate_sample_mean(self,Data_samples_or_sites,sample_or_site,acceptance_criteria):
+        '''
+        Data_samples_or_sites ={}
+        Data_samples_or_sites[sample_or_site]={}
+        Data_samples_or_sites[sample_or_site][specimen]=B
+        '''
+        pars={}
+        tmp_B=[]
+        for spec in Data_samples_or_sites[sample_or_site].keys():
+            tmp_B.append(Data_samples_or_sites[sample_or_site][spec])
+        if len(tmp_B)<1:
+            return pars
+        tmp_B=array(tmp_B)
+        pars['N']=len(tmp_B)
+        pars['B_uT']=mean(tmp_B)
+        pars['B_std_uT']=std(tmp_B,ddof=1)
+        pars['B_std_perc']=100*(pars['B_std_uT']/pars['B_uT'])
+        pars['sample_int_interval_uT']=(max(tmp_B)-min(tmp_B))
+        pars['sample_int_interval_perc']=100*(pars['sample_int_interval_uT']/pars['B_uT'])
+        pars['pass_or_fail']='fail'
+        #check if pass criteria
+        if pars['N']>=acceptance_criteria['sample_int_n']:
+            if (acceptance_criteria['sample_int_sigma_uT']==0 and acceptance_criteria['sample_int_sigma_perc']==0) or\
+                (pars['B_uT'] <= acceptance_criteria['sample_int_sigma_uT'] or pars['B_std_perc'] <= acceptance_criteria['sample_int_sigma_perc']):
+                    if ( pars['sample_int_interval_uT'] <= acceptance_criteria['sample_int_interval_uT'] or pars['sample_int_interval_perc'] <= acceptance_criteria['sample_int_interval_perc']):
+                        pars['pass_or_fail']='pass'
+        return(pars)
+        
+        
+    def convert_ages_to_calender_year(self,er_ages_rec):
+        '''
+        convert all age units to calender year
+        '''
+
+        if "age" not in  er_ages_rec.keys():
+            return(er_ages_rec)
+        if "age_unit" not in er_ages_rec.keys():
+            return(er_ages_rec)
+        if er_ages_rec["age_unit"]=="":
+            return(er_ages_rec)
+
+        if  er_ages_rec["age"]=="":
+            if "age_range_high" in er_ages_rec.keys() and "age_range_low" in er_ages_rec.keys():
+                if er_ages_rec["age_range_high"] != "" and  er_ages_rec["age_range_low"] != "":
+                 er_ages_rec["age"]=mean([float(er_ages_rec["age_range_high"]),float(er_ages_rec["age_range_low"])])
+        if  er_ages_rec["age"]=="":
+            return(er_ages_rec)
+
+            #age_descriptier_ages_recon=er_ages_rec["age_description"] 
+        
+            
+        age_unit=er_ages_rec["age_unit"]
+        
+        # Fix 'age': 
+        mutliplier=1
+        if age_unit=="Ga":
+            mutliplier=-1e9
+        if age_unit=="Ma":
+            mutliplier=-1e6
+        if age_unit=="Ka":
+            mutliplier=-1e3
+        if age_unit=="Years AD (+/-)" or age_unit=="Years Cal AD (+/-)":
+            mutliplier=1
+        if age_unit=="Years BP" or age_unit =="Years Cal BP":
+            mutliplier=1
+        age = float(er_ages_rec["age"])*mutliplier
+        if age_unit=="Years BP" or age_unit =="Years Cal BP":
+            age=1950-age
+        er_ages_rec['age_cal_year']=age   
+
+        # Fix 'age_range_low':                        
+        age_range_low=age
+        age_range_high=age
+        age_sigma=0
+        
+        if "age_sigma" in er_ages_rec.keys() and er_ages_rec["age_sigma"] !="":
+            age_sigma=float(er_ages_rec["age_sigma"])*mutliplier
+            if age_unit=="Years BP" or age_unit =="Years Cal BP":
+                age_sigma=1950-age_sigma
+            age_range_low= age-age_sigma
+            age_range_high= age+age_sigma
+            
+        if "age_range_high" in er_ages_rec.keys() and "age_range_low" in er_ages_rec.keys():
+            if er_ages_rec["age_range_high"] != "" and  er_ages_rec["age_range_low"] != "":
+                age_range_high=float(er_ages_rec["age_range_high"])*mutliplier
+                if age_unit=="Years BP" or age_unit =="Years Cal BP":
+                    age_range_high=1950-age_range_high                              
+                age_range_low=float(er_ages_rec["age_range_low"])*mutliplier
+                if age_unit=="Years BP" or age_unit =="Years Cal BP":
+                    age_range_low=1950-age_range_low                              
+        er_ages_rec['age_cal_year_range_low']= age_range_low
+        er_ages_rec['age_cal_year_range_high']= age_range_high
+        
+        return(er_ages_rec)
+          
 
     #----------------------------------------------------------------------  
     #---------------------------------------------------------------------- 
@@ -5171,98 +5347,112 @@ class Arai_GUI(wx.Frame):
         plot_by_locations={}
         #X_data,X_data_plus,X_data_minus=[],[],[]
         #Y_data,Y_data_plus,Y_data_minus=[],[],[]
-        samples_names=[]
-        samples_or_sites_names=[]
+        #samples_names=[]
+        #samples_or_sites_names=[]
  
         if self.accept_new_parameters['average_by_sample_or_site']=='sample':
             Data_samples_or_sites=copy.deepcopy(self.Data_samples)
              
         else:
             Data_samples_or_sites=copy.deepcopy(self.Data_sites)
-       
-        # search for ages:
-        
+            
+        # search for lat (for VADM calculation) and age:        
         lat_min,lat_max,lon_min,lon_max=90,0,180,-180
         for sample_or_site in Data_samples_or_sites.keys():
+
             #print sample_or_site
             found_age,found_lat=False,False
-            tmp_B=[]
-            for spec in Data_samples_or_sites[sample_or_site].keys():
-                tmp_B.append( Data_samples_or_sites[sample_or_site][spec])
-            if len(tmp_B)<1:
-                continue
-            tmp_B=array(tmp_B)
-            B_uT=mean(tmp_B)
-            B_std_uT=std(tmp_B,ddof=1)
-            B_std_perc=100*(B_std_uT/B_uT)
-
+#            tmp_B=[]
+#            for spec in Data_samples_or_sites[sample_or_site].keys():
+#                tmp_B.append( Data_samples_or_sites[sample_or_site][spec])
+#            if len(tmp_B)<1:
+#                continue
+#            tmp_B=array(tmp_B)
+#            B_uT=mean(tmp_B)
+#            B_std_uT=std(tmp_B,ddof=1)
+#            B_std_perc=100*(B_std_uT/B_uT)
+#
+            #if len(tmp_B)>=self.accept_new_parameters['sample_int_n']:
+            #    if (self.accept_new_parameters['sample_int_sigma_uT']==0 and self.accept_new_parameters['sample_int_sigma_perc']==0) or\
+            #       ( B_std_uT <=self.accept_new_parameters['sample_int_sigma_uT'] or B_std_perc <= self.accept_new_parameters['sample_int_sigma_perc']):
+            #        if ( (max(tmp_B)-min(tmp_B)) <= self.accept_new_parameters['sample_int_interval_uT'] or 100*((max(tmp_B)-min(tmp_B))/mean((tmp_B))) <= self.accept_new_parameters['sample_int_interval_perc']):
+            
             #check if pass criteria
-            if len(tmp_B)>=self.accept_new_parameters['sample_int_n']:
-                if (self.accept_new_parameters['sample_int_sigma_uT']==0 and self.accept_new_parameters['sample_int_sigma_perc']==0) or\
-                   ( B_std_uT <=self.accept_new_parameters['sample_int_sigma_uT'] or B_std_perc <= self.accept_new_parameters['sample_int_sigma_perc']):
-                    if ( (max(tmp_B)-min(tmp_B)) <= self.accept_new_parameters['sample_int_interval_uT'] or 100*((max(tmp_B)-min(tmp_B))/mean((tmp_B))) <= self.accept_new_parameters['sample_int_interval_perc']):
-                        if sample_or_site in self.Data_hierarchy['sites'].keys():
-                            site= sample_or_site
-                        elif self.Data_hierarchy['site_of_sample'].keys():
-                            site=self.Data_hierarchy['site_of_sample'][sample_or_site]
+            sample_or_site_mean_pars=self.calculate_sample_mean(Data_samples_or_sites,sample_or_site,self.accept_new_parameters)
+            # print "sample_or_site",sample_or_site
+            if sample_or_site_mean_pars['pass_or_fail']=='pass':
+                       # print  "sample_or_site pass"
+                        
+
+                        
+#                        if sample_or_site in self.Data_hierarchy['sites'].keys():
+#                            site= sample_or_site
+#                        elif self.Data_hierarchy['site_of_sample'].keys():
+#                            site=self.Data_hierarchy['site_of_sample'][sample_or_site]
+#                        else:
+#                            site=sample_or_site
+#
+                        if self.accept_new_parameters['average_by_sample_or_site']=='sample':
+                            site_name=self.Data_hierarchy['site_of_sample'][sample_or_site] 
                         else:
-                            site= sample_or_site
-
-                        #-----
-                        # serch for age data and
-                        # convert all ages to calender age. 
-                        # i.e. 300ka would be -300,000
-                        # and 2000 BP would be -50
-
-                        #-----
-                                                    
+                            site_name=sample_or_site
+                                                                                
                         found_age=False
                         er_ages_rec={}
-                        if sample_or_site in self.Data_info["er_ages"].keys() and "age" in self.Data_info["er_ages"][sample_or_site].keys() and self.Data_info["er_ages"][sample_or_site]["age"]!="":
+                        if sample_or_site in self.Data_info["er_ages"].keys():
                             er_ages_rec=self.Data_info["er_ages"][sample_or_site]
-                            found_age=True 
-                        elif site in self.Data_info["er_ages"].keys() and "age" in self.Data_info["er_ages"][site].keys() and self.Data_info["er_ages"][site]["age"]!="":
-                            er_ages_rec=self.Data_info["er_ages"][site]
-                            found_age=True 
+                        elif  site_name in   self.Data_info["er_ages"].keys():
+                            er_ages_rec=self.Data_info["er_ages"][site_name]
+                        #print "er_ages_rec",er_ages_rec
+                        if "age" in er_ages_rec.keys() and er_ages_rec["age"]!="":
+                            found_age=True
+
+                        #print  "found age "
+                        #print "-----"
+                             
+                            #er_ages_rec=self.Data_info["er_ages"][sample_or_site]
+                        #elif site in self.Data_info["er_ages"].keys() and "age" in self.Data_info["er_ages"][site].keys() and self.Data_info["er_ages"][site]["age"]!="":
+                        #    er_ages_rec=self.Data_info["er_ages"][site]
+                        #    found_age=True 
                         if  found_age:
                             age_description=er_ages_rec["age_description"] 
-                            age_unit=er_ages_rec["age_unit"]
-                            mutliplier=1
-                            if age_unit=="Ga":
-                                mutliplier=-1e9
-                            if age_unit=="Ma":
-                                mutliplier=-1e6
-                            if age_unit=="Ka":
-                                mutliplier=-1e3
-                            if age_unit=="Years AD (+/-)" or age_unit=="Years Cal AD (+/-)":
-                                mutliplier=1
-                            if age_unit=="Years BP" or age_unit =="Years Cal BP":
-                                mutliplier=1
-                                
-                            
-                            age = float(er_ages_rec["age"])*mutliplier
-                            if age_unit=="Years BP" or age_unit =="Years Cal BP":
-                                age=1950-age
-                            age_range_low=age
-                            age_range_high=age
-                            age_sigma=0
-                            
-                            if "age_sigma" in er_ages_rec.keys():
-                               age_sigma=float(er_ages_rec["age_sigma"])*mutliplier
-                               if age_unit=="Years BP" or age_unit =="Years Cal BP":
-                                 age_sigma=1950-age_sigma
-                               age_range_low= age-age_sigma
-                               age_range_high= age+age_sigma
-                            else:                              
-                                if "age_range_high" in er_ages_rec.keys() and "age_range_low" in er_ages_rec.keys():
-                                    age_range_high=float(er_ages_rec["age_range_high"])*mutliplier
-                                    if age_unit=="Years BP" or age_unit =="Years Cal BP":
-                                        age_range_high=1950-age_range_high                              
-                                    age_range_low=float(er_ages_rec["age_range_low"])*mutliplier
-                                    if age_unit=="Years BP" or age_unit =="Years Cal BP":
-                                        age_range_low=1950-age_range_low                              
                         else:
                             continue
+                            #age_unit=er_ages_rec["age_unit"]
+                            #mutliplier=1
+                            #if age_unit=="Ga":
+                            #    mutliplier=-1e9
+                            #if age_unit=="Ma":
+                            #    mutliplier=-1e6
+                            #if age_unit=="Ka":
+                            #    mutliplier=-1e3
+                            #if age_unit=="Years AD (+/-)" or age_unit=="Years Cal AD (+/-)":
+                            #    mutliplier=1
+                            #if age_unit=="Years BP" or age_unit =="Years Cal BP":
+                            #    mutliplier=1
+                            #    
+                            #
+                            #age = float(er_ages_rec["age"])*mutliplier
+                            #if age_unit=="Years BP" or age_unit =="Years Cal BP":
+                            #    age=1950-age
+                            #age_range_low=age
+                            #age_range_high=age
+                            #age_sigma=0
+                            #
+                            #if "age_sigma" in er_ages_rec.keys():
+                            #   age_sigma=float(er_ages_rec["age_sigma"])*mutliplier
+                            #   if age_unit=="Years BP" or age_unit =="Years Cal BP":
+                            #     age_sigma=1950-age_sigma
+                            #   age_range_low= age-age_sigma
+                            #   age_range_high= age+age_sigma
+                            #else:                              
+                            #    if "age_range_high" in er_ages_rec.keys() and "age_range_low" in er_ages_rec.keys():
+                            #        age_range_high=float(er_ages_rec["age_range_high"])*mutliplier
+                            #        if age_unit=="Years BP" or age_unit =="Years Cal BP":
+                            #            age_range_high=1950-age_range_high                              
+                            #        age_range_low=float(er_ages_rec["age_range_low"])*mutliplier
+                            #        if age_unit=="Years BP" or age_unit =="Years Cal BP":
+                            #            age_range_low=1950-age_range_low                              
                          
                         #-----  
                         # ignore "poor" and "controversial" ages
@@ -5281,17 +5471,22 @@ class Arai_GUI(wx.Frame):
                         #-----
                         
                         found_lat=False
+                        #print "site_name",site_name
+                        #print self.Data_info["er_sites"].keys()
                         er_sites_rec={}
-                        if sample_or_site in self.Data_info["er_sites"].keys():
-                            er_sites_rec=self.Data_info["er_sites"][sample_or_site]
+                        if site_name in self.Data_info["er_sites"].keys():
+                            er_sites_rec=self.Data_info["er_sites"][site_name]
                             found_lat=True 
-                        elif site in self.Data_info["er_sites"].keys():
-                            er_sites_rec=self.Data_info["er_sites"][site]
-                            found_lat=True 
+                        #print "found_lat"
+                        #elif site in self.Data_info["er_sites"].keys():
+                        #    er_sites_rec=self.Data_info["er_sites"][site]
+                        #    found_lat=True 
                         
                         if found_lat:
                             lat=float(er_sites_rec["site_lat"])
                             lon=float(er_sites_rec["site_lon"])
+                        
+
                         
 
                         #-----  
@@ -5326,12 +5521,14 @@ class Arai_GUI(wx.Frame):
                             lat_min,lat_max=min(lat_min,lat),max(lat_max,lat)
                             lon_min,lon_max=min(lon_min,lon),max(lon_max,lon)
                         if  plt_B:
-                            plot_by_locations[location]['Y_data'].append(B_uT)
-                            plot_by_locations[location]['Y_data_plus'].append(B_std_uT)
-                            plot_by_locations[location]['Y_data_minus'].append(B_std_uT)
+                            plot_by_locations[location]['Y_data'].append(sample_or_site_mean_pars['B_uT'])
+                            plot_by_locations[location]['Y_data_plus'].append(sample_or_site_mean_pars['B_std_uT'])
+                            plot_by_locations[location]['Y_data_minus'].append(sample_or_site_mean_pars['B_std_uT'])
                             plot_by_locations[location]['samples_names'].append(sample_or_site)
                             
                         elif plt_VADM and found_lat: # units of ZAm^2
+                            B_uT=sample_or_site_mean_pars['B_uT']
+                            B_std_uT=sample_or_site_mean_pars['B_std_uT']
                             VADM=self.b_vdm(B_uT*1e-6,lat)*1e-21
                             VADM_plus=self.b_vdm((B_uT+B_std_uT)*1e-6,lat)*1e-21
                             VADM_minus=self.b_vdm((B_uT-B_std_uT)*1e-6,lat)*1e-21
@@ -5345,10 +5542,13 @@ class Arai_GUI(wx.Frame):
                             print "-W- Plot: skipping sample %s because  cant find latitude for V[A]DM calculation\n"%sample_or_site
                             continue
 
+                        age=float(er_ages_rec["age_cal_year"])
+                        age_range_low=float(er_ages_rec["age_cal_year_range_low"])
+                        age_range_high = float(er_ages_rec["age_cal_year_range_high"])                                     
+
                         plot_by_locations[location]['X_data'].append(age)
                         plot_by_locations[location]['X_data_plus'].append(age_range_high-age)
                         plot_by_locations[location]['X_data_minus'].append(age-age_range_low)
-                                                                
                         found_age=False
                         found_lat=False
                         
@@ -5510,7 +5710,6 @@ class Arai_GUI(wx.Frame):
         #-----------------------------------------------------------
         # Draw Arai plot
         #-----------------------------------------------------------
-        
         self.s=s
 
         self.x_Arai_ZI,self.y_Arai_ZI=[],[]
@@ -5597,11 +5796,28 @@ class Arai_GUI(wx.Frame):
 ##          self.araiplot.scatter (self.x_additivity_check,self.y_additivity_check,marker='D',edgecolor='0.1',alpha=1.0, facecolor='None',s=80*self.GUI_RESOLUTION,lw=1)
 
 
-              
-        self.araiplot.set_xlabel("TRM / NRM$_0$",fontsize=10*self.GUI_RESOLUTION)
-        self.araiplot.set_ylabel("NRM / NRM$_0$",fontsize=10*self.GUI_RESOLUTION)
+        if   self.GUI_RESOLUTION >1.1:
+            FONTSIZE=11
+        elif   self.GUI_RESOLUTION <0.9:
+            FONTSIZE=9
+        else:
+            FONTSIZE=10
+
+        if   self.GUI_RESOLUTION >1.1:
+            FONTSIZE_1=11
+        elif   self.GUI_RESOLUTION <0.9:
+            FONTSIZE_1=9
+        else:
+            FONTSIZE_1=10
+
+                                
+        self.araiplot.set_xlabel("TRM / NRM0",fontsize=FONTSIZE)
+        self.araiplot.set_ylabel("NRM / NRM0",fontsize=FONTSIZE)
         self.araiplot.set_xlim(xmin=0)
         self.araiplot.set_ylim(ymin=0)
+
+
+        
         #search for NRM:
         nrm0=""
         for rec in self.Data[self.s]['datablock']:            
@@ -5649,9 +5865,9 @@ class Arai_GUI(wx.Frame):
             for i in range(len(self.z_temperatures)):
                 if int(self.preferences['show_Zij_temperatures_steps']) !=1:
                     if i!=0  and (i+1)%int(self.preferences['show_Zij_temperatures_steps'])==0:
-                        self.zijplot.text(self.CART_rot[i][0],-1*self.CART_rot[i][2]," %.0f"%(self.z_temperatures[i]-K_diff),fontsize=10*self.GUI_RESOLUTION,color='gray',ha='left',va='center',clip_on=False)   #inc
+                        self.zijplot.text(self.CART_rot[i][0],-1*self.CART_rot[i][2]," %.0f"%(self.z_temperatures[i]-K_diff),fontsize=FONTSIZE,color='gray',ha='left',va='center',clip_on=False)   #inc
                 else:
-                  self.zijplot.text(self.CART_rot[i][0],-1*self.CART_rot[i][2]," %.0f"%(self.z_temperatures[i]-K_diff),fontsize=10*self.GUI_RESOLUTION,color='gray',ha='left',va='center',clip_on=False)   #inc
+                  self.zijplot.text(self.CART_rot[i][0],-1*self.CART_rot[i][2]," %.0f"%(self.z_temperatures[i]-K_diff),fontsize=FONTSIZE,color='gray',ha='left',va='center',clip_on=False)   #inc
 
         #-----
         xmin, xmax = self.zijplot.get_xlim()
@@ -5711,7 +5927,7 @@ class Arai_GUI(wx.Frame):
         if self.preferences['show_CR_plot'] ==False or 'crblock' not in self.Data[self.s].keys():
 
             self.fig3.clf()
-            self.fig3.text(0.02,0.96,"Equal area",{'family':'Arial', 'fontsize':10*self.GUI_RESOLUTION, 'style':'normal','va':'center', 'ha':'left' })
+            self.fig3.text(0.02,0.96,"Equal area",{'family':'Arial', 'fontsize':FONTSIZE, 'style':'normal','va':'center', 'ha':'left' })
             self.eqplot = self.fig3.add_subplot(111)
 
 
@@ -5753,14 +5969,21 @@ class Arai_GUI(wx.Frame):
                 eqarea_data_x_up=y_eq_up*R
                 eqarea_data_y_up=x_eq_up*R
                 self.eqplot.scatter([eqarea_data_x_up],[eqarea_data_y_up],marker='o',edgecolor='black', facecolor='white',s=15*self.GUI_RESOLUTION,lw=1,clip_on=False)        
-            
+
+            if   self.GUI_RESOLUTION >1.1:
+                FONTSIZE_1=9
+            elif   self.GUI_RESOLUTION <0.9:
+                FONTSIZE_1=8
+            else:
+                FONTSIZE_1=7
+                        
             if self.preferences['show_eqarea_temperatures']:
                 for i in range(len(self.z_temperatures)):
                     if self.Data[self.s]['T_or_MW']!="MW":
                         K_dif=0.
                     else:
                         K_dif=273.                    
-                    self.eqplot.text(eqarea_data_x[i],eqarea_data_y[i],"%.0f"%(float(self.z_temperatures[i])-K_dif),fontsize=8*self.GUI_RESOLUTION,color="0.5",clip_on=False)
+                    self.eqplot.text(eqarea_data_x[i],eqarea_data_y[i],"%.0f"%(float(self.z_temperatures[i])-K_dif),fontsize=FONTSIZE_1,color="0.5",clip_on=False)
             
             
             #self.eqplot.text(eqarea_data_x[0],eqarea_data_y[0]," NRM",fontsize=8,color='gray',ha='left',va='center')
@@ -5787,13 +6010,12 @@ class Arai_GUI(wx.Frame):
                     self.eqplot.scatter(eqarea_data_x_up,eqarea_data_y_up,marker='^',edgecolor='blue', facecolor='white',s=15*self.GUI_RESOLUTION,lw=1,clip_on=False)
                 if len(eqarea_data_x_dn)>0:
                     self.eqplot.scatter(eqarea_data_x_dn,eqarea_data_y_dn,marker='^',edgecolor='gray', facecolor='blue',s=15*self.GUI_RESOLUTION,lw=1,clip_on=False)        
-            draw()
             self.canvas3.draw()
     
         else:
 
             self.fig3.clf()
-            self.fig3.text(0.02,0.96,"Cooling rate experiment",{'family':'Arial', 'fontsize':10*self.GUI_RESOLUTION, 'style':'normal','va':'center', 'ha':'left' })
+            self.fig3.text(0.02,0.96,"Cooling rate experiment",{'family':'Arial', 'fontsize':FONTSIZE, 'style':'normal','va':'center', 'ha':'left' })
             self.eqplot = self.fig3.add_axes([0.2,0.15,0.7,0.7],frameon=True,axisbg='None')
 
             if 'cooling_rate_data' in self.Data[self.s].keys() and\
@@ -5817,8 +6039,8 @@ class Arai_GUI(wx.Frame):
     
     
                 #self.Data_info["er_samples"][
-                self.eqplot.set_ylabel("TRM / TRM[oven]",fontsize=8)
-                self.eqplot.set_xlabel("ln(CR[oven]/CR)",fontsize=8)
+                self.eqplot.set_ylabel("TRM / TRM[oven]",fontsize=FONTSIZE_1)
+                self.eqplot.set_xlabel("ln(CR[oven]/CR)",fontsize=FONTSIZE_1)
                 self.eqplot.set_xlim(left=-0.2)
                 try:
                     self.eqplot.tick_params(axis='both', which='major', labelsize=8)
@@ -5829,7 +6051,8 @@ class Arai_GUI(wx.Frame):
                 self.eqplot.spines["top"].set_visible(False)
                 self.eqplot.get_xaxis().tick_bottom()
                 self.eqplot.get_yaxis().tick_left()
-            draw()
+            
+            #draw()
             self.canvas3.draw()
 
         #-----------------------------------------------------------
@@ -5846,7 +6069,7 @@ class Arai_GUI(wx.Frame):
 
         if self.preferences['show_NLT_plot'] ==False or 'NLT_parameters' not in self.Data[self.s].keys():
             self.fig5.clf()
-            self.fig5.text(0.02,0.96,"M/T",{'family':'Arial', 'fontsize':10*self.GUI_RESOLUTION, 'style':'normal','va':'center', 'ha':'left' })
+            self.fig5.text(0.02,0.96,"M/T",{'family':'Arial', 'fontsize':FONTSIZE, 'style':'normal','va':'center', 'ha':'left' })
             self.mplot = self.fig5.add_axes([0.2,0.15,0.7,0.7],frameon=True,axisbg='None')
             
             self.mplot.clear()
@@ -5872,10 +6095,10 @@ class Arai_GUI(wx.Frame):
               self.mplot.plot(temperatures_NRMS,M_NRMS,'bo-',mec='0.2',markersize=5*self.GUI_RESOLUTION,lw=1,clip_on=False)
               self.mplot.plot(temperatures_NRMS,M_pTRMS,'ro-',mec='0.2',markersize=5*self.GUI_RESOLUTION,lw=1,clip_on=False)
               if self.Data[self.s]['T_or_MW']!="MW":
-                  self.mplot.set_xlabel("C",fontsize=8*self.GUI_RESOLUTION)
+                  self.mplot.set_xlabel("C",fontsize=FONTSIZE_1)
               else:
-                  self.mplot.set_xlabel("Treatment",fontsize=8*self.GUI_RESOLUTION)                  
-              self.mplot.set_ylabel("M / NRM$_0$",fontsize=8*self.GUI_RESOLUTION)
+                  self.mplot.set_xlabel("Treatment",fontsize=FONTSIZE_1)                  
+              self.mplot.set_ylabel("M / NRM0",fontsize=FONTSIZE_1)
               #self.mplot.set_xtick(labelsize=2)
               try:
                   self.mplot.tick_params(axis='both', which='major', labelsize=8)
@@ -7292,7 +7515,7 @@ class Arai_GUI(wx.Frame):
                 y_axis_limit=max(std(specimens_B,ddof=1),abs(max(specimens_B)-mean(specimens_B)),abs((min(specimens_B)-mean(specimens_B))))
                 
             self.sampleplot.set_ylim(mean(specimens_B)-y_axis_limit-1,mean(specimens_B)+y_axis_limit+1)
-            self.sampleplot.set_ylabel(r'$\mu$ T',fontsize=8)
+            self.sampleplot.set_ylabel('uT',fontsize=8)
             try:
                 self.sampleplot.tick_params(axis='both', which='major', labelsize=8)
             except:
@@ -8195,15 +8418,26 @@ class Arai_GUI(wx.Frame):
                 
                 if  (THERMAL and "LT-PTRM-I" in rec['magic_method_codes'] and float(rec['treatment_temp'])==ptrm_checks[k][0])\
                    or (MICROWAVE and "LT-PMRM-I" in rec['magic_method_codes'] and float(this_temp)==float(ptrm_checks[k][0])) :
-                    if THERMAL:
-                        starting_temperature=(float(datablock[i-1]['treatment_temp']))
-                    elif MICROWAVE:
-                        MW_step=datablock[i-1]["measurement_description"].strip('\n').split(":")
-                        for STEP in MW_step:
-                            if "Number" in STEP:
-                                starting_temperature=float(STEP.split("-")[-1])
-                                                
-
+                    # serach for strating temperature with zerofield
+                    found_start_temp=False
+                    for j in range(i,0,-1):
+                        #tmp_rec=datablock[i]
+                        if THERMAL:
+                            if float(datablock[j]['treatment_dc_field'])==0:
+                                starting_temperature=(float(datablock[j]['treatment_temp']))
+                                found_start_temp=True
+                            
+                        elif MICROWAVE:
+                            if float(datablock[j]['treatment_dc_field'])==0:
+                                MW_step=datablock[j]["measurement_description"].strip('\n').split(":")
+                                for STEP in MW_step:
+                                    if "Number" in STEP:
+                                        starting_temperature=float(STEP.split("-")[-1])
+                                        found_start_temp=True
+                        if found_start_temp:
+                            break                         
+                    if found_start_temp==False:
+                        continue
                     try:
                         index=t_Arai.index(starting_temperature)
                         x_ptrm_check_starting_point.append(x_Arai[index])
@@ -8323,6 +8557,7 @@ class Arai_GUI(wx.Frame):
         x_AC_starting_point,y_AC_starting_point,AC_starting_temperatures=[],[],[]
 
         tmp_data_block=list(copy.copy(datablock))
+        #print "specimen:",s
         for k in range(len(additivity_checks)):
           if additivity_checks[k][0] in zerofield_temperatures:
             for i in range(len(tmp_data_block)):
@@ -8358,7 +8593,16 @@ class Arai_GUI(wx.Frame):
                         AC_temperatures.append(additivity_checks[k][0])
                         index_pTRMs=t_Arai.index(additivity_checks[k][0])
                         AC.append(additivity_checks[k][3]/NRM - x_Arai[index_pTRMs])
-
+                        #print "Tmin=",additivity_checks[k][0],"pTRM1= ",x_Arai[index_pTRMs]
+                        #print "Tmax=",additivity_checks[k][0],"pTRM2= ",x_Arai[index]
+                        #print "pTRM_*=",x_Arai[index]-x_Arai[index_pTRMs]
+                        #print "index 1:",index
+                        #print "additivity_checks[k][3]/NRM",additivity_checks[k][3]/NRM,self.dir2cart([additivity_checks[k][1],additivity_checks[k][2],additivity_checks[k][3]])
+                        print "x_Arai[index_pTRMs]",x_Arai[index_pTRMs]
+                        print "x_AC",x_AC
+                        #print "pTRM_j_i", x_Arai[index]-additivity_checks[k][3]/NRM
+                        #print "AC",additivity_checks[k][3]/NRM - x_Arai[index_pTRMs]
+                        #print "....."
                     except:
                         pass
 
@@ -8375,7 +8619,10 @@ class Arai_GUI(wx.Frame):
 
         Data[s]['AC']=AC
         #print s
-        #print AC
+        #print "AC",AC
+        #print "x_AC",x_AC
+        #print "x_AC",x_AC
+        
         Data[s]['x_additivity_check']=x_AC
         Data[s]['y_additivity_check']=y_AC
         Data[s]['additivity_check_temperatures']=AC_temperatures
@@ -8424,37 +8671,39 @@ class Arai_GUI(wx.Frame):
         data_er_sites={}
 
         # samples
-        def read_magic_file(path,sort_by_this_name):
-            DATA={}
-            fin=open(path,'rU')
-            fin.readline()
-            line=fin.readline()
-            header=line.strip('\n').split('\t')
-            for line in fin.readlines():
-                tmp_data={}
-                tmp_line=line.strip('\n').split('\t')
-                for i in range(len(tmp_line)):
-                    tmp_data[header[i]]=tmp_line[i]
-                DATA[tmp_data[sort_by_this_name]]=tmp_data
-            fin.close()        
-            return(DATA)
+        #def read_magic_file(path,sort_by_this_name):
+        #    DATA={}
+        #    fin=open(path,'rU')
+        #    fin.readline()
+        #    line=fin.readline()
+        #    header=line.strip('\n').split('\t')
+        #    for line in fin.readlines():
+        #        tmp_data={}
+        #        tmp_line=line.strip('\n').split('\t')
+        #        for i in range(len(tmp_line)):
+        #            tmp_data[header[i]]=tmp_line[i]
+        #        DATA[tmp_data[sort_by_this_name]]=tmp_data
+        #    fin.close()        
+        #    return(DATA)
         try:
-            data_er_samples=read_magic_file(self.WD+"/er_samples.txt",'er_sample_name')
+            data_er_samples=self.read_magic_file(self.WD+"/er_samples.txt",1,'er_sample_name')
         except:
             self.GUI_log.write ("-W- Cant find er_sample.txt in project directory\n")
 
         try:
-            data_er_sites=read_magic_file(self.WD+"/er_sites.txt",'er_site_name')
+            data_er_sites=self.read_magic_file(self.WD+"/er_sites.txt",1,'er_site_name')
         except:
             self.GUI_log.write ("-W- Cant find er_sites.txt in project directory\n")
 
         try:
-            data_er_ages=read_magic_file(self.WD+"/er_ages.txt",'er_sample_name')
+            data_er_ages=self.read_er_ages_file(self.WD+"/er_ages.txt",1,["er_site_name","er_sample_name"])
         except:
-            try:
-                data_er_ages=read_magic_file(self.WD+"/er_ages.txt",'er_site_name')
-            except:    
-                self.GUI_log.write ("-W- Cant find er_ages in project directory\n")
+            self.GUI_log.write ("-W- Cant find er_ages.txt in project directory\n")
+
+            #try:
+            #    data_er_ages=read_magic_file(self.WD+"/er_ages.txt",'er_site_name')
+            #except:    
+            #    self.GUI_log.write ("-W- Cant find er_ages in project directory\n")
 
 
         Data_info["er_samples"]=data_er_samples
@@ -8914,7 +9163,7 @@ class Arai_GUI(wx.Frame):
         try:
             f=open(infile,"rU")
         except:
-            return [],'-E- can oprn MagIc file %s. bad_file'%infile
+            return [],'-E- can open MagIc file %s. bad_file'%infile
         firstline = f.readline().strip('\n')
         if firstline[0]=="s":
             delim='space'
@@ -9255,7 +9504,8 @@ class Arai_GUI(wx.Frame):
         for temp in Treat_PI: # look through infield steps and find matching Z step
             #print temp
             foundit=False
-            for i in range(1,len(datablock)): # look through infield steps and find what step was before the pTRM check
+            found_i_index=False
+            for i in range(1,len(datablock)): # look through infield steps and find what zerofield step was before the pTRM check
                 rec=datablock[i]
                 dec=float(rec["measurement_dec"])
                 inc=float(rec["measurement_inc"])
@@ -9267,81 +9517,68 @@ class Arai_GUI(wx.Frame):
                 if 'LT-PTRM-I' in rec['magic_method_codes'] or 'LT-PMRM-I' in rec['magic_method_codes'] :
                     if (THERMAL and "treatment_temp" in rec.keys() and float(rec["treatment_temp"])==float(temp) )\
                        or (MICROWAVE and "measurement_description" in rec.keys() and "Step Number-%.0f"%float(temp) in rec["measurement_description"]):
-                        prev_rec=datablock[i-1]
-                        prev_dec=float(prev_rec["measurement_dec"])
-                        prev_inc=float(prev_rec["measurement_inc"])
-                        prev_moment=float(prev_rec["measurement_magn_moment"])
-                        prev_phi=float(prev_rec["treatment_dc_field_phi"])
-                        prev_theta=float(prev_rec["treatment_dc_field_theta"])
-                        prev_M=array(self.dir2cart([prev_dec,prev_inc,prev_moment]))
-                        foundit=True
-                        #print "found it"
-                        #print prev_dec,prev_inc,prev_moment
-                        break
-
+                           found_i_index=True
+                           break
+                
+            if not found_i_index:
+                continue
+                
             if 'LP-PI-II' not in methcodes:
-                # previous measurements is either T (tail check) or Z (tail check)
-                if foundit:
-##                    step=PISteps[Treat_PI.index(temp)]
-##                    rec=datablock[step]
-    ##                brec=datablock[step-1] # take last record as baseline to subtract
-    ##                pdec=float(brec["measurement_dec"])
-    ##                pinc=float(brec["measurement_inc"])
-    ##                pint=float(brec[momkey])
-##                    X=self.dir2cart([dec,inc,str])
-##                    prevX=self.dir2cart([prev_dec,prev_inc,prev_moment])
-
-                    diff_cart=M-prev_M
-                    diff_dir=self.cart2dir(diff_cart)
+                 # Important: suport several pTRM checks in a row, but
+                 # does not support pTRM checks after infield step
+                 for j in range(i,1,-1):
+                     if "LT-M-I" in datablock[j]['magic_method_codes'] or "LT-T-I"in datablock[j]['magic_method_codes'] :
+                         print "-W- WARNING: specimen %s: pTRM check after infield step. please check"%(datablock[j]["er_specimen_name"])
+                         break 
+                     if float(datablock[j]['treatment_dc_field'])==0:
+                        foundit=True
+                        prev_rec=datablock[j]
+                        break
+            else: # Thellier-Thellier protocol
+                foundit=True
+                prev_rec=datablock[i-1]
+            
+            if foundit:                            
+                prev_dec=float(prev_rec["measurement_dec"])
+                prev_inc=float(prev_rec["measurement_inc"])
+                prev_moment=float(prev_rec["measurement_magn_moment"])
+                prev_phi=float(prev_rec["treatment_dc_field_phi"])
+                prev_theta=float(prev_rec["treatment_dc_field_theta"])
+                prev_M=array(self.dir2cart([prev_dec,prev_inc,prev_moment]))
+            
+            if  'LP-PI-II' not in methcodes:   
+                diff_cart=M-prev_M
+                diff_dir=self.cart2dir(diff_cart)
+                ptrm_check.append([temp,diff_dir[0],diff_dir[1],diff_dir[2]])
+            else:           
+                # health check for T-T protocol:
+                if theta!=prev_theta:
+                    diff=(M-prev_M)/2
+                    diff_dir=self.cart2dir(diff)
                     ptrm_check.append([temp,diff_dir[0],diff_dir[1],diff_dir[2]])
-
-
-##                    I=[]
-##                    for c in range(3): I.append(X[c]-prevX[c])
-##                    dir1=self.cart2dir(I)
-##                    if Zdiff==0:
-##                        ptrm_check.append([temp,dir1[0],dir1[1],dir1[2]])
-##                    else:
-##                        ptrm_check.append([temp,0.,0.,I[2]])
-            else:
-                if foundit:
-##                    step=PISteps[Treat_PI.index(temp)]
-##                    rec=datablock[step]
-##                    dec=float(rec["measurement_dec"])
-##                    inc=float(rec["measurement_inc"])
-##                    moment=float(rec["measurement_magn_moment"])
-##                    phi=float(rec["treatment_dc_field_phi"])
-##                    theta=float(rec["treatment_dc_field_theta"])
-##                    M1=prev_M
-##                    #M1=array(self.dir2cart([prev_dec,prev_inc,prev_moment]))
-##                    M2=array(self.dir2cart([dec,inc,moment]))
-
-                    if theta!=prev_theta:
-                        diff=(M-prev_M)/2
-                        diff_dir=self.cart2dir(diff)
-                        ptrm_check.append([temp,diff_dir[0],diff_dir[1],diff_dir[2]])
-                    else:
-                        print "-W- WARNING: specimen. pTRM check not in place in Thellier Thellier protocol. step please check"
+                else:
+                    print "-W- WARNING: specimen. pTRM check not in place in Thellier Thellier protocol. step please check"
+                
                         
                         
                         
-    # in case there are zero-field pTRM checks (not the SIO way)
-        for temp in Treat_PZ:
-            step=PZSteps[Treat_PZ.index(temp)]
-            rec=datablock[step]
-            dec=float(rec["measurement_dec"])
-            inc=float(rec["measurement_inc"])
-            str=float(rec[momkey])
-            brec=datablock[step-1]
-            pdec=float(brec["measurement_dec"])
-            pinc=float(brec["measurement_inc"])
-            pint=float(brec[momkey])
-            X=self.dir2cart([dec,inc,str])
-            prevX=self.dir2cart([pdec,pinc,pint])
-            I=[]
-            for c in range(3): I.append(X[c]-prevX[c])
-            dir2=self.cart2dir(I)
-            zptrm_check.append([temp,dir2[0],dir2[1],dir2[2]])
+    ## in case there are zero-field pTRM checks (not the SIO way)
+    #    for temp in Treat_PZ:
+    #        step=PZSteps[Treat_PZ.index(temp)]
+    #        rec=datablock[step]
+    #        dec=float(rec["measurement_dec"])
+    #        inc=float(rec["measurement_inc"])
+    #        str=float(rec[momkey])
+    #        brec=datablock[step-1]
+    #        pdec=float(brec["measurement_dec"])
+    #        pinc=float(brec["measurement_inc"])
+    #        pint=float(brec[momkey])
+    #        X=self.dir2cart([dec,inc,str])
+    #        prevX=self.dir2cart([pdec,pinc,pint])
+    #        I=[]
+    #        for c in range(3): I.append(X[c]-prevX[c])
+    #        dir2=self.cart2dir(I)
+    #        zptrm_check.append([temp,dir2[0],dir2[1],dir2[2]])
 
 
 ##        ## get pTRM tail checks together -
@@ -9410,7 +9647,6 @@ class Arai_GUI(wx.Frame):
             inc0=float(datablock[step_0]["measurement_inc"])
             moment0=float(datablock[step_0]['measurement_magn_moment'])
             V0=self.dir2cart([dec0,inc0,moment0])
-
             # find the infield step that comes before the additivity check
             foundit=False
             for j in range(step_0,1,-1):
@@ -9421,12 +9657,22 @@ class Arai_GUI(wx.Frame):
                 inc1=float(datablock[j]["measurement_inc"])
                 moment1=float(datablock[j]['measurement_magn_moment'])
                 V1=self.dir2cart([dec1,inc1,moment1])
+                #print "additivity check: ",s
+                #print j
+                #print "ACC=V1-V0:"
+                #print "V1=",[dec1,inc1,moment1],self.dir2cart([dec1,inc1,moment1])/float(datablock[0]["measurement_magn_moment"])
+                #print "V1=",self.dir2cart([dec1,inc1,moment1])/float(datablock[0]["measurement_magn_moment"])
+                #print "V0=",[dec0,inc0,moment0],self.dir2cart([dec0,inc0,moment0])/float(datablock[0]["measurement_magn_moment"])
+                #print "NRM=",float(datablock[0]["measurement_magn_moment"])
+                #print "-------"
                 
                 I=[]
                 for c in range(3): I.append(V1[c]-V0[c])
                 dir1=self.cart2dir(I)
                 additivity_check.append([temp,dir1[0],dir1[1],dir1[2]])
-
+                #print "I",array(I)/float(datablock[0]["measurement_magn_moment"]),dir1,"(dir1 unnormalized)"
+                X=array(I)/float(datablock[0]["measurement_magn_moment"])
+                #print "I",sqrt(sum(X**2))
         araiblock=(first_Z,first_I,ptrm_check,ptrm_tail,zptrm_check,GammaChecks,additivity_check)
 
         
@@ -10433,563 +10679,582 @@ class MyLogFileErrors(wx.Frame):
 
 
 
-#--------------------------------------------------------------    
-# MagIC model builder
-#--------------------------------------------------------------
+##--------------------------------------------------------------    
+## MagIC model builder
+##--------------------------------------------------------------
+#
+#
+#class MagIC_model_builder(wx.Frame):
+#    """"""
+# 
+#    #----------------------------------------------------------------------
+#    def __init__(self,WD,Data,Data_hierarchy):
+#        wx.Frame.__init__(self, parent=None)
+#        self.panel = wx.Panel(self)
+#        self.er_specimens_header=['er_citation_names','er_specimen_name','er_sample_name','er_site_name','er_location_name','specimen_class','specimen_lithology','specimen_type']
+#        self.er_samples_header=['er_citation_names','er_sample_name','er_site_name','er_location_name','sample_class','sample_lithology','sample_type','sample_lat','sample_lon']
+#        self.er_sites_header=['er_citation_names','er_site_name','er_location_name','site_class','site_lithology','site_type','site_definition','site_lon','site_lat']
+#        self.er_locations_header=['er_citation_names','er_location_name','location_begin_lon','location_end_lon','location_begin_lat','location_end_lat','location_type']
+#        self.er_ages_header=['er_citation_names','er_site_name','er_location_name','age_description','magic_method_codes','age','age_unit']
+#        self.WD=WD
+#        self.Data,self.Data_hierarchy=Data,Data_hierarchy
+#        self.read_MagIC_info()
+#        self.SetTitle("Choose header for each MagIC Table" )
+#        import MagIC_Model_Builder
+#        foundHTML=False
+#        try:
+#            PATH= sys.modules['MagIC_Model_Builder'].__file__
+#            HTML_PATH="/".join(PATH.split("/")[:-1]+["MagICModlBuilderHelp.html"])
+#            foundHTML=True
+#        except:
+#            pass
+#        if foundHTML:
+#            self.help_window=MagIC_Model_Builder.MyHtmlPanel(None,HTML_PATH)
+#            self.help_window.Show()
+#        self.InitUI()
+#
+#    def InitUI(self):
+#
+#        er_specimens_optional_header=['er_specimen_alternatives','er_expedition_name','er_formation_name','er_member_name',\
+#                                      'specimen_texture','specimen_alteration','specimen_alteration_type',\
+#                                      'specimen_elevation','specimen_height','specimen_core_depth','specimen_composite_depth','specimen_azimuth','specimen_dip',\
+#                                      'specimen_volume','specimen_weight','specimen_density','specimen_size','specimen_shape','specimen_igsn','specimen_description',\
+#                                      'magic_method_codes','er_scientist_mail_names']
+#        er_samples_optional_header=['sample_elevation','er_scientist_mail_names','magic_method_codes','sample_bed_dip','sample_bed_dip_direction','sample_dip',\
+#                                    'sample_azimuth','sample_declination_correction','sample_orientation_flag','sample_time_zone','sample_date','sample_height',\
+#                                    'sample_location_precision','sample_location_geoid','sample_composite_depth','sample_core_depth','sample_cooling_rate',\
+#                                    'er_sample_alternatives','sample_description','er_member_name','er_expedition_name','er_expedition_name','sample_alteration_type',\
+#                                    'sample_alteration','sample_texture','sample_igsn']
+#
+#        er_sites_optional_header=['site_location_precision','er_scientist_mail_names','magic_method_codes','site_bed_dip','site_bed_dip_direction','site_height',\
+#                                  'site_elevation','site_location_geoid','site_composite_depth','site_core_depth','site_cooling_rate','site_description','er_member_name',\
+#                                  'er_site_alternatives','er_expedition_name','er_formation_name','site_igsn']
+#                                
+#          
+#        er_locations_optional_header=['continent_ocean','location_geoid','location_precision','location_end_elevation','location_begin_elevation','ocean_sea','er_scientist_mail_names',\
+#                                      'location_lithology','country','region','village_city','plate_block','terrane','geological_province_section','tectonic_setting',\
+#                                      'location_class','location_description','location_url','er_location_alternatives']
+#
+#          
+#        er_ages_optional_header=['er_timescale_citation_names','age_range_low','age_range_high','age_sigma','age_culture_name','oxygen_stage','astronomical_stage','magnetic_reversal_chron',\
+#                                 'er_sample_name','er_specimen_name','er_fossil_name','er_mineral_name','tiepoint_name','tiepoint_height','tiepoint_height_sigma',\
+#                                 'tiepoint_elevation','tiepoint_type','timescale_eon','timescale_era','timescale_period','timescale_epoch',\
+#                                 'timescale_stage','biostrat_zone','conodont_zone','er_formation_name','er_expedition_name','tiepoint_alternatives',\
+#                                 'er_member_name']
+#
+#        if len(self.data_er_specimens.keys())>0:
+#            for key in self.data_er_specimens[self.data_er_specimens.keys()[0]].keys():
+#                if key not in self.er_specimens_header:
+#                    self.er_specimens_header.append(key)
+#
+#        if len(self.data_er_samples.keys()) >0:
+#            for key in self.data_er_samples[self.data_er_samples.keys()[0]].keys():
+#                if key not in self.er_samples_header:
+#                    self.er_samples_header.append(key)
+#
+#        if len(self.data_er_sites.keys()) >0:
+#            for key in self.data_er_sites[self.data_er_sites.keys()[0]].keys():
+#                if key not in self.er_sites_header:
+#                    self.er_sites_header.append(key)
+#
+#        if len(self.data_er_locations.keys()) >0:
+#            for key in self.data_er_locations[self.data_er_locations.keys()[0]].keys():
+#                if key not in self.er_locations_header:
+#                    self.er_locations_header.append(key)
+#
+#        if len(self.data_er_ages.keys())>0:
+#            #print self.data_er_ages.keys()
+#            for key in self.data_er_ages[self.data_er_ages.keys()[0]].keys():
+#                if key not in self.er_ages_header:
+#                    self.er_ages_header.append(key)
+#                  
+#        
+#        pnl1 = self.panel
+#
+#        table_list=["er_specimens","er_samples","er_sites","er_locations","er_ages"]
+#        #table_list=["er_specimens"]
+#
+#        for table in table_list:
+#          N=table_list.index(table)
+#          command="bSizer%i = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY, '%s' ), wx.VERTICAL )"%(N,table)
+#          exec command
+#          command="self.%s_info = wx.TextCtrl(self.panel, id=-1, size=(200,250), style=wx.TE_MULTILINE | wx.TE_READONLY | wx.HSCROLL)"%table
+#          exec command
+#          command = "self.%s_info_options = wx.ListBox(choices=%s_optional_header, id=-1,name='listBox1', parent=self.panel, size=wx.Size(200, 250), style=0)"%(table,table)
+#          exec command
+#          command="self.%s_info_add =  wx.Button(self.panel, id=-1, label='add')"%table
+#          exec command
+#          command="self.Bind(wx.EVT_BUTTON, self.on_%s_add_button, self.%s_info_add)"%(table,table)
+#          exec command
+#          command="self.%s_info_remove =  wx.Button(self.panel, id=-1, label='remove')"%table
+#          exec command
+#          command="self.Bind(wx.EVT_BUTTON, self.on_%s_remove_button, self.%s_info_remove)"%(table,table)
+#          exec command
+#        
+#                
+#        #------
+#          command="bSizer%i.Add(wx.StaticText(pnl1,label='%s header list:'),wx.ALIGN_TOP)"%(N,table)
+#          exec command
+#          command="bSizer%i.Add(self.%s_info,wx.ALIGN_TOP)"%(N,table)
+#          exec command
+#          command="bSizer%i.Add(wx.StaticText(pnl1,label='%s optional:'),wx.ALIGN_TOP)"%(N,table)
+#          exec command
+#          command="bSizer%i.Add(self.%s_info_options,wx.ALIGN_TOP)"%(N,table)
+#          exec command
+#          command="bSizer%i.Add(self.%s_info_add,wx.ALIGN_TOP)"%(N,table)
+#          exec command
+#          command="bSizer%i.Add(self.%s_info_remove,wx.ALIGN_TOP)"%(N,table)
+#          exec command
+#
+#          
+#          self.update_text_box(table)
+#          
+#        hbox1 = wx.BoxSizer(wx.HORIZONTAL)
+#        self.okButton = wx.Button(self.panel, wx.ID_OK, "&OK")
+#        self.Bind(wx.EVT_BUTTON, self.on_okButton, self.okButton)
+#
+#        self.cancelButton = wx.Button(self.panel, wx.ID_CANCEL, '&Cancel')
+#        self.Bind(wx.EVT_BUTTON, self.on_cancelButton, self.cancelButton)
+#
+#        hbox1.Add(self.okButton)
+#        hbox1.Add(self.cancelButton )
+#
+#        #------
+#        vbox=wx.BoxSizer(wx.VERTICAL)
+#        
+#        hbox = wx.BoxSizer(wx.HORIZONTAL)
+#        hbox.AddSpacer(20)
+#        hbox.Add(bSizer0, flag=wx.ALIGN_LEFT)
+#        hbox.AddSpacer(20)
+#        hbox.Add(bSizer1, flag=wx.ALIGN_LEFT)
+#        hbox.AddSpacer(20)
+#        hbox.Add(bSizer2, flag=wx.ALIGN_LEFT)
+#        hbox.AddSpacer(20)
+#        hbox.Add(bSizer3, flag=wx.ALIGN_LEFT)
+#        hbox.AddSpacer(20)
+#        hbox.Add(bSizer4, flag=wx.ALIGN_LEFT)
+#        hbox.AddSpacer(20)
+#
+#        vbox.AddSpacer(20)
+#        vbox.Add(hbox)
+#        vbox.AddSpacer(20)
+#        vbox.Add(hbox1,flag=wx.ALIGN_CENTER_HORIZONTAL)
+#        vbox.AddSpacer(20)
+#        
+#        self.panel.SetSizer(vbox)
+#        vbox.Fit(self)
+#        self.Show()
+#        self.Centre()
+#
+#
+#    def update_text_box(self,table):
+#        TEXT=""
+#        command="keys=self.%s_header"%table
+#        exec command
+#        for key in keys:
+#          TEXT=TEXT+key+"\n"
+#        TEXT=TEXT[:-1]
+#        commad="self.%s_info.SetValue('')"%table
+#        exec command
+#        command="self.%s_info.SetValue(TEXT)"%table
+#        exec command
+#
+#    def on_er_specimens_add_button(self, event):
+#        selName = str(self.er_specimens_info_options.GetStringSelection())
+#        if selName not in self.er_specimens_header:
+#          self.er_specimens_header.append(selName)
+#        self.update_text_box('er_specimens')
+#          
+#    def on_er_samples_add_button(self, event):
+#        selName = self.er_samples_info_options.GetStringSelection()
+#        if selName not in self.er_samples_header:
+#          self.er_samples_header.append(selName)
+#        self.update_text_box('er_samples')
+#        
+#    def on_er_sites_add_button(self, event):
+#        selName = self.er_sites_info_options.GetStringSelection()
+#        if selName not in self.er_sites_header:
+#          self.er_sites_header.append(selName)
+#        self.update_text_box('er_sites')
+#        
+#    def on_er_locations_add_button(self, event):
+#        selName = self.er_locations_info_options.GetStringSelection()
+#        if selName not in self.er_locations_header:
+#          self.er_locations_header.append(selName)
+#        self.update_text_box('er_locations')
+#        
+#    def on_er_ages_add_button(self, event):
+#        selName = self.er_ages_info_options.GetStringSelection()
+#        if selName not in self.er_ages_header:
+#          self.er_ages_header.append(selName)
+#        self.update_text_box('er_ages')
+#
+#    def on_er_specimens_remove_button(self, event):
+#        selName = str(self.er_specimens_info_options.GetStringSelection())
+#        if selName  in self.er_specimens_header:
+#          self.er_specimens_header.remove(selName)
+#        self.update_text_box('er_specimens')
+#          
+#    def on_er_samples_remove_button(self, event):
+#        selName = self.er_samples_info_options.GetStringSelection()
+#        if selName  in self.er_samples_header:
+#          self.er_samples_header.remove(selName)
+#        self.update_text_box('er_samples')
+#        
+#    def on_er_sites_remove_button(self, event):
+#        selName = self.er_sites_info_options.GetStringSelection()
+#        if selName  in self.er_sites_header:
+#          self.er_sites_header.remove(selName)
+#        self.update_text_box('er_sites')
+#        
+#    def on_er_locations_remove_button(self, event):
+#        selName = self.er_locations_info_options.GetStringSelection()
+#        if selName  in self.er_locations_header:
+#          self.er_locations_header.remove(selName)
+#        self.update_text_box('er_locations')
+#        
+#    def on_er_ages_remove_button(self, event):
+#        selName = self.er_ages_info_options.GetStringSelection()
+#        if selName  in self.er_ages_header:
+#          self.er_ages_header.remove(selName)
+#        self.update_text_box('er_ages')
+#
+#    def on_okButton(self, event):
+#        specimens_list=self.Data.keys()
+#
+#        samples_list=self.Data_hierarchy['samples'].keys()
+#        samples_list.sort()
+#
+#        specimens_list=self.Data_hierarchy['specimens'].keys()
+#        specimens_list.sort()
+#
+#        #---------------------------------------------
+#        # make er_samples.txt
+#        #---------------------------------------------
+#
+#        #header
+#        er_samples_file=open(self.WD+"er_samples.txt",'w')
+#        er_samples_file.write("tab\ter_samples\n")
+#        string=""
+#        for key in self.er_samples_header:
+#          string=string+key+"\t"
+#        er_samples_file.write(string[:-1]+"\n")
+#
+#        for sample in samples_list:
+#          string=""
+#          for key in self.er_samples_header:
+#            if key=="er_citation_names":
+#              string=string+"This study"+"\t"
+#            elif key=="er_sample_name":
+#              string=string+sample+"\t"
+#            # try to take lat/lon from er_sites table
+#            elif (key in ['er_location_name'] and sample in self.data_er_samples.keys()\
+#                  and "er_site_name" in self.data_er_samples[sample].keys()\
+#                  and self.data_er_samples[sample]['er_site_name'] in self.data_er_sites.keys()\
+#                  and key in self.data_er_sites[self.data_er_samples[sample]['er_site_name']].keys()):
+#              string=string+self.data_er_sites[self.data_er_samples[sample]['er_site_name']][key]+"\t"
+#
+#            elif (key in ['sample_lon','sample_lat'] and sample in self.data_er_samples.keys()\
+#                  and "er_site_name" in self.data_er_samples[sample].keys()\
+#                  and self.data_er_samples[sample]['er_site_name'] in self.data_er_sites.keys()\
+#                  and "site_"+key.split("_")[1] in self.data_er_sites[self.data_er_samples[sample]['er_site_name']].keys()):
+#              string=string+self.data_er_sites[self.data_er_samples[sample]['er_site_name']]["site_"+key.split("_")[1]]+"\t"
+#
+#
+###            elif (key in ['sample_lon','sample_lat'] and sample in self.data_er_samples.keys()\
+###                  and "er_site_name" in self.data_er_samples[sample].keys()\
+###                  and self.data_er_samples[sample]['er_site_name'] in self.data_er_sites.keys()\
+###                  and key in self.data_er_sites[self.data_er_samples[sample]['er_site_name']].keys()):
+###              string=string+self.data_er_sites[self.data_er_samples[sample]['er_site_name']][key]+"\t"
+#
+#            
+#            # take information from the existing er_samples table 
+#            elif sample in self.data_er_samples.keys() and key in self.data_er_samples[sample].keys() and self.data_er_samples[sample][key]!="":
+#                string=string+self.data_er_samples[sample][key]+"\t"
+#            else:
+#              string=string+"\t"
+#          er_samples_file.write(string[:-1]+"\n")
+#
+#        #---------------------------------------------
+#        # make er_specimens.txt
+#        #---------------------------------------------
+#
+#        #header
+#        er_specimens_file=open(self.WD+"er_specimens.txt",'w')
+#        er_specimens_file.write("tab\ter_specimens\n")
+#        string=""
+#        for key in self.er_specimens_header:
+#          string=string+key+"\t"
+#        er_specimens_file.write(string[:-1]+"\n")
+#
+#        #data
+#        for specimen in specimens_list:
+#          sample=self.Data_hierarchy['specimens'][specimen]
+#          string=""
+#          for key in self.er_specimens_header:
+#            if key=="er_citation_names":
+#              string=string+"This study"+"\t"
+#            elif key=="er_specimen_name":
+#              string=string+specimen+"\t"
+#            elif key=="er_sample_name":
+#              string=string+self.Data_hierarchy['specimens'][specimen]+"\t"
+#            # take 'er_location_name','er_site_name' from er_sample table
+#            elif (key in ['er_location_name','er_site_name'] and sample in self.data_er_samples.keys() \
+#                 and  key in self.data_er_samples[sample] and self.data_er_samples[sample][key]!=""):
+#              string=string+self.data_er_samples[sample][key]+"\t"
+#            # take 'specimen_class','specimen_lithology','specimen_type' from er_sample table
+#            elif key in ['specimen_class','specimen_lithology','specimen_type']:
+#              sample_key="sample_"+key.split('specimen_')[1]
+#              if (sample in self.data_er_samples.keys() and sample_key in self.data_er_samples[sample] and self.data_er_samples[sample][sample_key]!=""):
+#                string=string+self.data_er_samples[sample][sample_key]+"\t"
+#            # take information from the existing er_samples table             
+#            elif specimen in self.data_er_specimens.keys() and key in self.data_er_specimens[specimen].keys() and self.data_er_specimens[specimen][key]!="":
+#                string=string+specimen+self.data_er_specimens[specimen][key]+"\t"
+#            else:
+#              string=string+"\t"
+#          er_specimens_file.write(string[:-1]+"\n")
+#          
+#
+#        #---------------------------------------------
+#        # make er_sites.txt
+#        #---------------------------------------------
+#
+#        #header
+#        er_sites_file=open(self.WD+"er_sites.txt",'w')
+#        er_sites_file.write("tab\ter_sites\n")
+#        string=""
+#        for key in self.er_sites_header:
+#          string=string+key+"\t"
+#        er_sites_file.write(string[:-1]+"\n")
+#
+#        #data
+#        sites_list=self.data_er_sites.keys()
+#        for sample in self.data_er_samples.keys():
+#          if "er_site_name" in self.data_er_samples[sample].keys() and self.data_er_samples[sample]["er_site_name"] not in sites_list:
+#            sites_list.append(self.data_er_samples[sample]["er_site_name"])
+#        sites_list.sort()        
+#        for site in sites_list:
+#          string=""
+#          for key in self.er_sites_header:
+#            if key=="er_citation_names":
+#              string=string+"This study"+"\t"
+#            elif key=="er_site_name":
+#              string=string+site+"\t"
+#            # take information from the existing er_samples table             
+#            elif (site in self.data_er_sites.keys() and key in self.data_er_sites[site].keys() and self.data_er_sites[site][key]!=""):
+#                string=string+self.data_er_sites[site][key]+"\t"
+#            else:
+#              string=string+"\t"
+#          er_sites_file.write(string[:-1]+"\n")
+#
+#        #---------------------------------------------
+#        # make er_locations.txt
+#        #---------------------------------------------
+#
+#        #header
+#        er_locations_file=open(self.WD+"er_locations.txt",'w')
+#        er_locations_file.write("tab\ter_locations\n")
+#        string=""
+#        for key in self.er_locations_header:
+#          string=string+key+"\t"
+#        er_locations_file.write(string[:-1]+"\n")
+#
+#        #data
+#        locations_list=self.data_er_locations.keys()
+#        for site in self.data_er_sites.keys():
+#          if "er_location_name" in self.data_er_sites[site].keys() and self.data_er_sites[site]["er_location_name"] not in locations_list:
+#            locations_list.append(self.data_er_sites[site]["er_location_name"])
+#        locations_list.sort()        
+#        for location in locations_list:
+#          string=""
+#          for key in self.er_locations_header:
+#            if key=="er_citation_names":
+#              string=string+"This study"+"\t"
+#            elif key=="er_location_name":
+#              string=string+location+"\t"
+#            # take information from the existing er_samples table             
+#            elif (location in self.data_er_locations.keys() and key in self.data_er_locations[location].keys() and self.data_er_locations[location][key]!=""):
+#                string=string+self.data_er_locations[location][key]+"\t"
+#            else:
+#              string=string+"\t"
+#          er_locations_file.write(string[:-1]+"\n")
+#
+#
+#
+#        #---------------------------------------------
+#        # make er_ages.txt
+#        #---------------------------------------------
+#
+#        #header
+#        er_ages_file=open(self.WD+"er_ages.txt",'w')
+#        er_ages_file.write("tab\ter_ages\n")
+#        string=""
+#        for key in self.er_ages_header:
+#          string=string+key+"\t"
+#        er_ages_file.write(string[:-1]+"\n")
+#
+#        #data
+#        sites_list=self.data_er_sites.keys()
+#        sites_list.sort()        
+#        for site in sites_list:
+#          string=""
+#          for key in self.er_ages_header:
+#            if key=="er_site_name":
+#              string=string+site+"\t"
+#
+#            elif key=="er_citation_names":
+#              string=string+"This study"+"\t"
+#
+#            elif (key in ['er_location_name'] and site in self.data_er_sites.keys() \
+#                 and  key in self.data_er_sites[site] and self.data_er_sites[site][key]!=""):
+#              string=string+self.data_er_sites[site][key]+"\t"
+#              
+#            # take information from the existing er_samples table             
+#            elif (site in self.data_er_ages.keys() and key in self.data_er_ages[site].keys() and self.data_er_ages[site][key]!=""):
+#                string=string+self.data_er_ages[site][key]+"\t"
+#            else:
+#              string=string+"\t"
+#          er_ages_file.write(string[:-1]+"\n")
+#
+#
+#
+#        #-----------------------------------------------------
+#        # Fix magic_measurement with sites and locations  
+#        #-----------------------------------------------------
+#
+#        f_old=open(self.WD+"/magic_measurements.txt",'rU')
+#        f_new=open(self.WD+"/magic_measurements.new.tmp.txt",'w')
+#             
+#        line=f_old.readline()
+#        f_new.write(line)
+#
+#        line=f_old.readline()
+#        header=line.strip("\n").split('\t')
+#        f_new.write(line)
+#
+#        for line in f_old.readlines():
+#            tmp_line=line.strip('\n').split('\t')
+#            tmp={}
+#            for i in range(len(header)):
+#                tmp[header[i]]=tmp_line[i]
+#            sample=tmp["er_sample_name"]
+#            if sample in self.data_er_samples.keys() and "er_site_name" in self.data_er_samples[sample].keys() and self.data_er_samples[sample]["er_site_name"]!="":
+#                tmp["er_site_name"]=self.data_er_samples[sample]["er_site_name"]
+#            site=tmp["er_site_name"]
+#            if site in self.data_er_sites.keys() and "er_location_name" in self.data_er_sites[site].keys() and self.data_er_sites[site]["er_location_name"]!="":
+#                tmp["er_location_name"]=self.data_er_sites[site]["er_location_name"]
+#
+#            new_line=""
+#            for i in range(len(header)):
+#                new_line=new_line+tmp[header[i]]+"\t"
+#            #print new_line
+#            f_new.write(new_line[:-1]+"\n")
+#        f_new.close()
+#        os.remove(self.WD+"/magic_measurements.txt")
+#        os.rename(self.WD+"/magic_measurements.new.tmp.txt",self.WD+"/magic_measurements.txt")
+#        
+#
+#                
+###        #---------------------------------------------
+###        # make er_locations.txt
+###        #---------------------------------------------
+###
+###        #header
+###        er_qges_file=open(self.WD+"er_ages.txt",'w')
+###        er_ages_file.write("tab\ter_ages\n")
+###        string=""
+###        for key in self.er_ages_header:
+###          string=string+key+"\t"
+###        er_ages_file.write(string[:-1]+"\n")
+###
+###        #data
+###        ages_list=self.data_er_ages.keys()
+###        ages_list.sort()        
+###        for age in ages_list:
+###          string=""
+###          for key in self.er_locations_header:
+###            if key=="er_citation_names":
+###              string=string+"This study"+"\t"
+###            elif key=="er_location_name":
+###              string=string+location+"\t"
+###            elif (location in self.data_er_locations.keys() and key in self.data_er_locations[location].keys() and self.data_er_locations[location][key]!=""):
+###                string=string+self.data_er_locations[location][key]+"\t"
+###            else:
+###              string=string+"\t"
+###          er_locations_file.write(string[:-1]+"\n")
+#
+#
+#        
+#        dlg1 = wx.MessageDialog(self,caption="Message:", message="New MagIC model is saved. deleting All previous interpretations." ,style=wx.OK|wx.ICON_INFORMATION)
+#        dlg1.ShowModal()
+#        dlg1.Destroy()
+#        try:
+#            self.help_window.Destroy()
+#        except:
+#            pass      
+#
+#        self.Destroy()
+#        
+#    def on_cancelButton(self,event):
+#        self.Destroy()
+#        try:
+#            self.help_window.Destroy()
+#        except:
+#            pass      
+#    def read_magic_file(self,path,sort_by_this_name):
+#        DATA={}
+#        fin=open(path,'rU')
+#        fin.readline()
+#        line=fin.readline()
+#        header=line.strip('\n').split('\t')
+#        counter=0
+#        for line in fin.readlines():
+#            tmp_data={}
+#            tmp_line=line.strip('\n').split('\t')
+#            for i in range(len(tmp_line)):
+#                tmp_data[header[i]]=tmp_line[i]
+#            if sort_by_this_name=="by_line_number":
+#              DATA[counter]=tmp_data
+#              counter+=1
+#            else:
+#              DATA[tmp_data[sort_by_this_name]]=tmp_data
+#        fin.close()        
+#        return(DATA)
+#
+#
+#    def read_MagIC_info(self):
+#        Data_info={}
+#        #print "-I- read existing MagIC model files"
+#        self.data_er_specimens,self.data_er_samples,self.data_er_sites,self.data_er_locations,self.data_er_ages={},{},{},{},{}
+#
+#        try:
+#            self.data_er_specimens=self.read_magic_file(self.WD+"/er_specimens.txt",'er_specimen_name')
+#        except:
+#            #self.GUI_log.write ("-W- Cant find er_sample.txt in project directory")
+#            pass
+#        try:
+#            self.data_er_samples=self.read_magic_file(self.WD+"/er_samples.txt",'er_sample_name')
+#        except:
+#            #self.GUI_log.write ("-W- Cant find er_sample.txt in project directory")
+#            pass
+#        try:
+#            self.data_er_sites=self.read_magic_file(self.WD+"/er_sites.txt",'er_site_name')
+#        except:
+#            pass
+#        try:
+#            self.data_er_locations=self.read_magic_file(self.WD+"/er_locations.txt",'er_location_name')
+#        except:
+#            #self.GUI_log.write ("-W- Cant find er_sites.txt in project directory")
+#            pass
+#        try:
+#            self.data_er_ages=self.read_magic_file(self.WD+"/er_ages.txt","er_site_name")
+#        except:
+#            try:
+#                self.data_er_ages=self.read_magic_file(self.WD+"/er_ages.txt","er_sample_name")
+#            except:
+#                pass
 
-
-class MagIC_model_builder(wx.Frame):
-    """"""
- 
-    #----------------------------------------------------------------------
-    def __init__(self,WD,Data,Data_hierarchy):
-        wx.Frame.__init__(self, parent=None)
-        self.panel = wx.Panel(self)
-        self.er_specimens_header=['er_citation_names','er_specimen_name','er_sample_name','er_site_name','er_location_name','specimen_class','specimen_lithology','specimen_type']
-        self.er_samples_header=['er_citation_names','er_sample_name','er_site_name','er_location_name','sample_class','sample_lithology','sample_type','sample_lat','sample_lon']
-        self.er_sites_header=['er_citation_names','er_site_name','er_location_name','site_class','site_lithology','site_type','site_definition','site_lon','site_lat']
-        self.er_locations_header=['er_citation_names','er_location_name','location_begin_lon','location_end_lon','location_begin_lat','location_end_lat','location_type']
-        self.er_ages_header=['er_citation_names','er_site_name','er_location_name','age_description','magic_method_codes','age','age_unit']
-        self.WD=WD
-        self.Data,self.Data_hierarchy=Data,Data_hierarchy
-        self.read_MagIC_info()
-        self.SetTitle("Choose header for each MagIC Table" )
-        self.InitUI()
-
-    def InitUI(self):
-
-        er_specimens_optional_header=['er_specimen_alternatives','er_expedition_name','er_formation_name','er_member_name',\
-                                      'specimen_texture','specimen_alteration','specimen_alteration_type',\
-                                      'specimen_elevation','specimen_height','specimen_core_depth','specimen_composite_depth','specimen_azimuth','specimen_dip',\
-                                      'specimen_volume','specimen_weight','specimen_density','specimen_size','specimen_shape','specimen_igsn','specimen_description',\
-                                      'magic_method_codes','er_scientist_mail_names']
-        er_samples_optional_header=['sample_elevation','er_scientist_mail_names','magic_method_codes','sample_bed_dip','sample_bed_dip_direction','sample_dip',\
-                                    'sample_azimuth','sample_declination_correction','sample_orientation_flag','sample_time_zone','sample_date','sample_height',\
-                                    'sample_location_precision','sample_location_geoid','sample_composite_depth','sample_core_depth','sample_cooling_rate',\
-                                    'er_sample_alternatives','sample_description','er_member_name','er_expedition_name','er_expedition_name','sample_alteration_type',\
-                                    'sample_alteration','sample_texture','sample_igsn']
-
-        er_sites_optional_header=['site_location_precision','er_scientist_mail_names','magic_method_codes','site_bed_dip','site_bed_dip_direction','site_height',\
-                                  'site_elevation','site_location_geoid','site_composite_depth','site_core_depth','site_cooling_rate','site_description','er_member_name',\
-                                  'er_site_alternatives','er_expedition_name','er_formation_name','site_igsn']
-                                
-          
-        er_locations_optional_header=['continent_ocean','location_geoid','location_precision','location_end_elevation','location_begin_elevation','ocean_sea','er_scientist_mail_names',\
-                                      'location_lithology','country','region','village_city','plate_block','terrane','geological_province_section','tectonic_setting',\
-                                      'location_class','location_description','location_url','er_location_alternatives']
-
-          
-        er_ages_optional_header=['er_timescale_citation_names','age_range_low','age_range_high','age_sigma','age_culture_name','oxygen_stage','astronomical_stage','magnetic_reversal_chron',\
-                                 'er_sample_name','er_specimen_name','er_fossil_name','er_mineral_name','tiepoint_name','tiepoint_height','tiepoint_height_sigma',\
-                                 'tiepoint_elevation','tiepoint_type','timescale_eon','timescale_era','timescale_period','timescale_epoch',\
-                                 'timescale_stage','biostrat_zone','conodont_zone','er_formation_name','er_expedition_name','tiepoint_alternatives',\
-                                 'er_member_name']
-
-        if len(self.data_er_specimens.keys())>0:
-            for key in self.data_er_specimens[self.data_er_specimens.keys()[0]].keys():
-                if key not in self.er_specimens_header:
-                    self.er_specimens_header.append(key)
-
-        if len(self.data_er_samples.keys()) >0:
-            for key in self.data_er_samples[self.data_er_samples.keys()[0]].keys():
-                if key not in self.er_samples_header:
-                    self.er_samples_header.append(key)
-
-        if len(self.data_er_sites.keys()) >0:
-            for key in self.data_er_sites[self.data_er_sites.keys()[0]].keys():
-                if key not in self.er_sites_header:
-                    self.er_sites_header.append(key)
-
-        if len(self.data_er_locations.keys()) >0:
-            for key in self.data_er_locations[self.data_er_locations.keys()[0]].keys():
-                if key not in self.er_locations_header:
-                    self.er_locations_header.append(key)
-
-        if len(self.data_er_ages.keys())>0:
-            #print self.data_er_ages.keys()
-            for key in self.data_er_ages[self.data_er_ages.keys()[0]].keys():
-                if key not in self.er_ages_header:
-                    self.er_ages_header.append(key)
-                  
-        
-        pnl1 = self.panel
-
-        table_list=["er_specimens","er_samples","er_sites","er_locations","er_ages"]
-        #table_list=["er_specimens"]
-
-        for table in table_list:
-          N=table_list.index(table)
-          command="bSizer%i = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY, '%s' ), wx.VERTICAL )"%(N,table)
-          exec command
-          command="self.%s_info = wx.TextCtrl(self.panel, id=-1, size=(200,250), style=wx.TE_MULTILINE | wx.TE_READONLY | wx.HSCROLL)"%table
-          exec command
-          command = "self.%s_info_options = wx.ListBox(choices=%s_optional_header, id=-1,name='listBox1', parent=self.panel, size=wx.Size(200, 250), style=0)"%(table,table)
-          exec command
-          command="self.%s_info_add =  wx.Button(self.panel, id=-1, label='add')"%table
-          exec command
-          command="self.Bind(wx.EVT_BUTTON, self.on_%s_add_button, self.%s_info_add)"%(table,table)
-          exec command
-          command="self.%s_info_remove =  wx.Button(self.panel, id=-1, label='remove')"%table
-          exec command
-          command="self.Bind(wx.EVT_BUTTON, self.on_%s_remove_button, self.%s_info_remove)"%(table,table)
-          exec command
-        
-                
-        #------
-          command="bSizer%i.Add(wx.StaticText(pnl1,label='%s header list:'),wx.ALIGN_TOP)"%(N,table)
-          exec command
-          command="bSizer%i.Add(self.%s_info,wx.ALIGN_TOP)"%(N,table)
-          exec command
-          command="bSizer%i.Add(wx.StaticText(pnl1,label='%s optional:'),wx.ALIGN_TOP)"%(N,table)
-          exec command
-          command="bSizer%i.Add(self.%s_info_options,wx.ALIGN_TOP)"%(N,table)
-          exec command
-          command="bSizer%i.Add(self.%s_info_add,wx.ALIGN_TOP)"%(N,table)
-          exec command
-          command="bSizer%i.Add(self.%s_info_remove,wx.ALIGN_TOP)"%(N,table)
-          exec command
-
-          
-          self.update_text_box(table)
-          
-        hbox1 = wx.BoxSizer(wx.HORIZONTAL)
-        self.okButton = wx.Button(self.panel, wx.ID_OK, "&OK")
-        self.Bind(wx.EVT_BUTTON, self.on_okButton, self.okButton)
-
-        self.cancelButton = wx.Button(self.panel, wx.ID_CANCEL, '&Cancel')
-        self.Bind(wx.EVT_BUTTON, self.on_cancelButton, self.cancelButton)
-
-        hbox1.Add(self.okButton)
-        hbox1.Add(self.cancelButton )
-
-        #------
-        vbox=wx.BoxSizer(wx.VERTICAL)
-        
-        hbox = wx.BoxSizer(wx.HORIZONTAL)
-        hbox.AddSpacer(20)
-        hbox.Add(bSizer0, flag=wx.ALIGN_LEFT)
-        hbox.AddSpacer(20)
-        hbox.Add(bSizer1, flag=wx.ALIGN_LEFT)
-        hbox.AddSpacer(20)
-        hbox.Add(bSizer2, flag=wx.ALIGN_LEFT)
-        hbox.AddSpacer(20)
-        hbox.Add(bSizer3, flag=wx.ALIGN_LEFT)
-        hbox.AddSpacer(20)
-        hbox.Add(bSizer4, flag=wx.ALIGN_LEFT)
-        hbox.AddSpacer(20)
-
-        vbox.AddSpacer(20)
-        vbox.Add(hbox)
-        vbox.AddSpacer(20)
-        vbox.Add(hbox1,flag=wx.ALIGN_CENTER_HORIZONTAL)
-        vbox.AddSpacer(20)
-        
-        self.panel.SetSizer(vbox)
-        vbox.Fit(self)
-        self.Show()
-        self.Centre()
-
-
-    def update_text_box(self,table):
-        TEXT=""
-        command="keys=self.%s_header"%table
-        exec command
-        for key in keys:
-          TEXT=TEXT+key+"\n"
-        TEXT=TEXT[:-1]
-        commad="self.%s_info.SetValue('')"%table
-        exec command
-        command="self.%s_info.SetValue(TEXT)"%table
-        exec command
-
-    def on_er_specimens_add_button(self, event):
-        selName = str(self.er_specimens_info_options.GetStringSelection())
-        if selName not in self.er_specimens_header:
-          self.er_specimens_header.append(selName)
-        self.update_text_box('er_specimens')
-          
-    def on_er_samples_add_button(self, event):
-        selName = self.er_samples_info_options.GetStringSelection()
-        if selName not in self.er_samples_header:
-          self.er_samples_header.append(selName)
-        self.update_text_box('er_samples')
-        
-    def on_er_sites_add_button(self, event):
-        selName = self.er_sites_info_options.GetStringSelection()
-        if selName not in self.er_sites_header:
-          self.er_sites_header.append(selName)
-        self.update_text_box('er_sites')
-        
-    def on_er_locations_add_button(self, event):
-        selName = self.er_locations_info_options.GetStringSelection()
-        if selName not in self.er_locations_header:
-          self.er_locations_header.append(selName)
-        self.update_text_box('er_locations')
-        
-    def on_er_ages_add_button(self, event):
-        selName = self.er_ages_info_options.GetStringSelection()
-        if selName not in self.er_ages_header:
-          self.er_ages_header.append(selName)
-        self.update_text_box('er_ages')
-
-    def on_er_specimens_remove_button(self, event):
-        selName = str(self.er_specimens_info_options.GetStringSelection())
-        if selName  in self.er_specimens_header:
-          self.er_specimens_header.remove(selName)
-        self.update_text_box('er_specimens')
-          
-    def on_er_samples_remove_button(self, event):
-        selName = self.er_samples_info_options.GetStringSelection()
-        if selName  in self.er_samples_header:
-          self.er_samples_header.remove(selName)
-        self.update_text_box('er_samples')
-        
-    def on_er_sites_remove_button(self, event):
-        selName = self.er_sites_info_options.GetStringSelection()
-        if selName  in self.er_sites_header:
-          self.er_sites_header.remove(selName)
-        self.update_text_box('er_sites')
-        
-    def on_er_locations_remove_button(self, event):
-        selName = self.er_locations_info_options.GetStringSelection()
-        if selName  in self.er_locations_header:
-          self.er_locations_header.remove(selName)
-        self.update_text_box('er_locations')
-        
-    def on_er_ages_remove_button(self, event):
-        selName = self.er_ages_info_options.GetStringSelection()
-        if selName  in self.er_ages_header:
-          self.er_ages_header.remove(selName)
-        self.update_text_box('er_ages')
-
-    def on_okButton(self, event):
-        specimens_list=self.Data.keys()
-
-        samples_list=self.Data_hierarchy['samples'].keys()
-        samples_list.sort()
-
-        specimens_list=self.Data_hierarchy['specimens'].keys()
-        specimens_list.sort()
-
-        #---------------------------------------------
-        # make er_samples.txt
-        #---------------------------------------------
-
-        #header
-        er_samples_file=open(self.WD+"er_samples.txt",'w')
-        er_samples_file.write("tab\ter_samples\n")
-        string=""
-        for key in self.er_samples_header:
-          string=string+key+"\t"
-        er_samples_file.write(string[:-1]+"\n")
-
-        for sample in samples_list:
-          string=""
-          for key in self.er_samples_header:
-            if key=="er_citation_names":
-              string=string+"This study"+"\t"
-            elif key=="er_sample_name":
-              string=string+sample+"\t"
-            # try to take lat/lon from er_sites table
-            elif (key in ['er_location_name'] and sample in self.data_er_samples.keys()\
-                  and "er_site_name" in self.data_er_samples[sample].keys()\
-                  and self.data_er_samples[sample]['er_site_name'] in self.data_er_sites.keys()\
-                  and key in self.data_er_sites[self.data_er_samples[sample]['er_site_name']].keys()):
-              string=string+self.data_er_sites[self.data_er_samples[sample]['er_site_name']][key]+"\t"
-
-            elif (key in ['sample_lon','sample_lat'] and sample in self.data_er_samples.keys()\
-                  and "er_site_name" in self.data_er_samples[sample].keys()\
-                  and self.data_er_samples[sample]['er_site_name'] in self.data_er_sites.keys()\
-                  and "site_"+key.split("_")[1] in self.data_er_sites[self.data_er_samples[sample]['er_site_name']].keys()):
-              string=string+self.data_er_sites[self.data_er_samples[sample]['er_site_name']]["site_"+key.split("_")[1]]+"\t"
-
-
-##            elif (key in ['sample_lon','sample_lat'] and sample in self.data_er_samples.keys()\
-##                  and "er_site_name" in self.data_er_samples[sample].keys()\
-##                  and self.data_er_samples[sample]['er_site_name'] in self.data_er_sites.keys()\
-##                  and key in self.data_er_sites[self.data_er_samples[sample]['er_site_name']].keys()):
-##              string=string+self.data_er_sites[self.data_er_samples[sample]['er_site_name']][key]+"\t"
-
-            
-            # take information from the existing er_samples table 
-            elif sample in self.data_er_samples.keys() and key in self.data_er_samples[sample].keys() and self.data_er_samples[sample][key]!="":
-                string=string+self.data_er_samples[sample][key]+"\t"
-            else:
-              string=string+"\t"
-          er_samples_file.write(string[:-1]+"\n")
-
-        #---------------------------------------------
-        # make er_specimens.txt
-        #---------------------------------------------
-
-        #header
-        er_specimens_file=open(self.WD+"er_specimens.txt",'w')
-        er_specimens_file.write("tab\ter_specimens\n")
-        string=""
-        for key in self.er_specimens_header:
-          string=string+key+"\t"
-        er_specimens_file.write(string[:-1]+"\n")
-
-        #data
-        for specimen in specimens_list:
-          sample=self.Data_hierarchy['specimens'][specimen]
-          string=""
-          for key in self.er_specimens_header:
-            if key=="er_citation_names":
-              string=string+"This study"+"\t"
-            elif key=="er_specimen_name":
-              string=string+specimen+"\t"
-            elif key=="er_sample_name":
-              string=string+self.Data_hierarchy['specimens'][specimen]+"\t"
-            # take 'er_location_name','er_site_name' from er_sample table
-            elif (key in ['er_location_name','er_site_name'] and sample in self.data_er_samples.keys() \
-                 and  key in self.data_er_samples[sample] and self.data_er_samples[sample][key]!=""):
-              string=string+self.data_er_samples[sample][key]+"\t"
-            # take 'specimen_class','specimen_lithology','specimen_type' from er_sample table
-            elif key in ['specimen_class','specimen_lithology','specimen_type']:
-              sample_key="sample_"+key.split('specimen_')[1]
-              if (sample in self.data_er_samples.keys() and sample_key in self.data_er_samples[sample] and self.data_er_samples[sample][sample_key]!=""):
-                string=string+self.data_er_samples[sample][sample_key]+"\t"
-            # take information from the existing er_samples table             
-            elif specimen in self.data_er_specimens.keys() and key in self.data_er_specimens[specimen].keys() and self.data_er_specimens[specimen][key]!="":
-                string=string+specimen+self.data_er_specimens[specimen][key]+"\t"
-            else:
-              string=string+"\t"
-          er_specimens_file.write(string[:-1]+"\n")
-          
-
-        #---------------------------------------------
-        # make er_sites.txt
-        #---------------------------------------------
-
-        #header
-        er_sites_file=open(self.WD+"er_sites.txt",'w')
-        er_sites_file.write("tab\ter_sites\n")
-        string=""
-        for key in self.er_sites_header:
-          string=string+key+"\t"
-        er_sites_file.write(string[:-1]+"\n")
-
-        #data
-        sites_list=self.data_er_sites.keys()
-        for sample in self.data_er_samples.keys():
-          if "er_site_name" in self.data_er_samples[sample].keys() and self.data_er_samples[sample]["er_site_name"] not in sites_list:
-            sites_list.append(self.data_er_samples[sample]["er_site_name"])
-        sites_list.sort()        
-        for site in sites_list:
-          string=""
-          for key in self.er_sites_header:
-            if key=="er_citation_names":
-              string=string+"This study"+"\t"
-            elif key=="er_site_name":
-              string=string+site+"\t"
-            # take information from the existing er_samples table             
-            elif (site in self.data_er_sites.keys() and key in self.data_er_sites[site].keys() and self.data_er_sites[site][key]!=""):
-                string=string+self.data_er_sites[site][key]+"\t"
-            else:
-              string=string+"\t"
-          er_sites_file.write(string[:-1]+"\n")
-
-        #---------------------------------------------
-        # make er_locations.txt
-        #---------------------------------------------
-
-        #header
-        er_locations_file=open(self.WD+"er_locations.txt",'w')
-        er_locations_file.write("tab\ter_locations\n")
-        string=""
-        for key in self.er_locations_header:
-          string=string+key+"\t"
-        er_locations_file.write(string[:-1]+"\n")
-
-        #data
-        locations_list=self.data_er_locations.keys()
-        for site in self.data_er_sites.keys():
-          if "er_location_name" in self.data_er_sites[site].keys() and self.data_er_sites[site]["er_location_name"] not in locations_list:
-            locations_list.append(self.data_er_sites[site]["er_location_name"])
-        locations_list.sort()        
-        for location in locations_list:
-          string=""
-          for key in self.er_locations_header:
-            if key=="er_citation_names":
-              string=string+"This study"+"\t"
-            elif key=="er_location_name":
-              string=string+location+"\t"
-            # take information from the existing er_samples table             
-            elif (location in self.data_er_locations.keys() and key in self.data_er_locations[location].keys() and self.data_er_locations[location][key]!=""):
-                string=string+self.data_er_locations[location][key]+"\t"
-            else:
-              string=string+"\t"
-          er_locations_file.write(string[:-1]+"\n")
-
-
-
-        #---------------------------------------------
-        # make er_ages.txt
-        #---------------------------------------------
-
-        #header
-        er_ages_file=open(self.WD+"er_ages.txt",'w')
-        er_ages_file.write("tab\ter_ages\n")
-        string=""
-        for key in self.er_ages_header:
-          string=string+key+"\t"
-        er_ages_file.write(string[:-1]+"\n")
-
-        #data
-        sites_list=self.data_er_sites.keys()
-        sites_list.sort()        
-        for site in sites_list:
-          string=""
-          for key in self.er_ages_header:
-            if key=="er_site_name":
-              string=string+site+"\t"
-
-            elif key=="er_citation_names":
-              string=string+"This study"+"\t"
-
-            elif (key in ['er_location_name'] and site in self.data_er_sites.keys() \
-                 and  key in self.data_er_sites[site] and self.data_er_sites[site][key]!=""):
-              string=string+self.data_er_sites[site][key]+"\t"
-              
-            # take information from the existing er_samples table             
-            elif (site in self.data_er_ages.keys() and key in self.data_er_ages[site].keys() and self.data_er_ages[site][key]!=""):
-                string=string+self.data_er_ages[site][key]+"\t"
-            else:
-              string=string+"\t"
-          er_ages_file.write(string[:-1]+"\n")
-
-
-
-        #-----------------------------------------------------
-        # Fix magic_measurement with sites and locations  
-        #-----------------------------------------------------
-
-        f_old=open(self.WD+"/magic_measurements.txt",'rU')
-        f_new=open(self.WD+"/magic_measurements.new.tmp.txt",'w')
-             
-        line=f_old.readline()
-        f_new.write(line)
-
-        line=f_old.readline()
-        header=line.strip("\n").split('\t')
-        f_new.write(line)
-
-        for line in f_old.readlines():
-            tmp_line=line.strip('\n').split('\t')
-            tmp={}
-            for i in range(len(header)):
-                tmp[header[i]]=tmp_line[i]
-            sample=tmp["er_sample_name"]
-            if sample in self.data_er_samples.keys() and "er_site_name" in self.data_er_samples[sample].keys() and self.data_er_samples[sample]["er_site_name"]!="":
-                tmp["er_site_name"]=self.data_er_samples[sample]["er_site_name"]
-            site=tmp["er_site_name"]
-            if site in self.data_er_sites.keys() and "er_location_name" in self.data_er_sites[site].keys() and self.data_er_sites[site]["er_location_name"]!="":
-                tmp["er_location_name"]=self.data_er_sites[site]["er_location_name"]
-
-            new_line=""
-            for i in range(len(header)):
-                new_line=new_line+tmp[header[i]]+"\t"
-            #print new_line
-            f_new.write(new_line[:-1]+"\n")
-        f_new.close()
-        os.remove(self.WD+"/magic_measurements.txt")
-        os.rename(self.WD+"/magic_measurements.new.tmp.txt",self.WD+"/magic_measurements.txt")
-        
-
-                
-##        #---------------------------------------------
-##        # make er_locations.txt
-##        #---------------------------------------------
-##
-##        #header
-##        er_qges_file=open(self.WD+"er_ages.txt",'w')
-##        er_ages_file.write("tab\ter_ages\n")
-##        string=""
-##        for key in self.er_ages_header:
-##          string=string+key+"\t"
-##        er_ages_file.write(string[:-1]+"\n")
-##
-##        #data
-##        ages_list=self.data_er_ages.keys()
-##        ages_list.sort()        
-##        for age in ages_list:
-##          string=""
-##          for key in self.er_locations_header:
-##            if key=="er_citation_names":
-##              string=string+"This study"+"\t"
-##            elif key=="er_location_name":
-##              string=string+location+"\t"
-##            elif (location in self.data_er_locations.keys() and key in self.data_er_locations[location].keys() and self.data_er_locations[location][key]!=""):
-##                string=string+self.data_er_locations[location][key]+"\t"
-##            else:
-##              string=string+"\t"
-##          er_locations_file.write(string[:-1]+"\n")
-
-
-        
-        dlg1 = wx.MessageDialog(self,caption="Message:", message="New MagIC model is saved. deleting All previous interpretations." ,style=wx.OK|wx.ICON_INFORMATION)
-        dlg1.ShowModal()
-        dlg1.Destroy()
-        self.Destroy()
-
-    def on_cancelButton(self,event):
-        self.Destroy()
-      
-    def read_magic_file(self,path,sort_by_this_name):
-        DATA={}
-        fin=open(path,'rU')
-        fin.readline()
-        line=fin.readline()
-        header=line.strip('\n').split('\t')
-        counter=0
-        for line in fin.readlines():
-            tmp_data={}
-            tmp_line=line.strip('\n').split('\t')
-            for i in range(len(tmp_line)):
-                tmp_data[header[i]]=tmp_line[i]
-            if sort_by_this_name=="by_line_number":
-              DATA[counter]=tmp_data
-              counter+=1
-            else:
-              DATA[tmp_data[sort_by_this_name]]=tmp_data
-        fin.close()        
-        return(DATA)
-
-
-    def read_MagIC_info(self):
-        Data_info={}
-        #print "-I- read existing MagIC model files"
-        self.data_er_specimens,self.data_er_samples,self.data_er_sites,self.data_er_locations,self.data_er_ages={},{},{},{},{}
-
-        try:
-            self.data_er_specimens=self.read_magic_file(self.WD+"/er_specimens.txt",'er_specimen_name')
-        except:
-            #self.GUI_log.write ("-W- Cant find er_sample.txt in project directory")
-            pass
-        try:
-            self.data_er_samples=self.read_magic_file(self.WD+"/er_samples.txt",'er_sample_name')
-        except:
-            #self.GUI_log.write ("-W- Cant find er_sample.txt in project directory")
-            pass
-        try:
-            self.data_er_sites=self.read_magic_file(self.WD+"/er_sites.txt",'er_site_name')
-        except:
-            pass
-        try:
-            self.data_er_locations=self.read_magic_file(self.WD+"/er_locations.txt",'er_location_name')
-        except:
-            #self.GUI_log.write ("-W- Cant find er_sites.txt in project directory")
-            pass
-        try:
-            self.data_er_ages=self.read_magic_file(self.WD+"/er_ages.txt","er_site_name")
-        except:
-            try:
-                self.data_er_ages=self.read_magic_file(self.WD+"/er_ages.txt","er_sample_name")
-            except:
-                pass
-
-    
+#----end here----    
 ##        Data_info["er_samples"]=data_er_samples
 ##        Data_info["er_sites"]=data_er_sites
 ##        Data_info["er_ages"]=data_er_ages
