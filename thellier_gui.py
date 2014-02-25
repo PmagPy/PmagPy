@@ -72,7 +72,7 @@
 #============================================================================================
 
 global CURRENT_VRSION
-CURRENT_VRSION = "v.2.11"
+CURRENT_VRSION = "v.2.13"
 import matplotlib
 matplotlib.use('WXAgg')
 
@@ -8405,69 +8405,43 @@ class Arai_GUI(wx.Frame):
         x_ptrm_check_starting_point,y_ptrm_check_starting_point,ptrm_checks_starting_temperatures=[],[],[]
         for k in range(len(ptrm_checks)):
           if ptrm_checks[k][0] in zerofield_temperatures:
-            # find the starting point of the pTRM check:
-            for i in range(len(datablock)):
-                rec=datablock[i]
+              zero_field_index=ptrm_checks[k][4]
+              #print Data[s]['datablock']
+              
+              # find the starting point of the pTRM check:
+              rec=Data[s]['datablock'][zero_field_index]
+              if THERMAL:
+                    starting_temperature=(float(rec['treatment_temp']))
+                    #found_start_temp=True
+              elif MICROWAVE:
+                    MW_step=rec["measurement_description"].strip('\n').split(":")
+                    for STEP in MW_step:
+                        if "Number" in STEP:
+                            starting_temperature=float(STEP.split("-")[-1])
+                            #found_start_temp=True
+                      
 
-                if MICROWAVE:
-                    if "measurement_description" in rec.keys():
-                        MW_step=rec["measurement_description"].strip('\n').split(":")
-                        for STEP in MW_step:
-                            if "Number" in STEP:
-                                this_temp=float(STEP.split("-")[-1])
-                
-                if  (THERMAL and "LT-PTRM-I" in rec['magic_method_codes'] and float(rec['treatment_temp'])==ptrm_checks[k][0])\
-                   or (MICROWAVE and "LT-PMRM-I" in rec['magic_method_codes'] and float(this_temp)==float(ptrm_checks[k][0])) :
-                    # serach for strating temperature with zerofield
-                    found_start_temp=False
-                    for j in range(i,0,-1):
-                        #tmp_rec=datablock[i]
-                        if THERMAL:
-                            if float(datablock[j]['treatment_dc_field'])==0:
-                                starting_temperature=(float(datablock[j]['treatment_temp']))
-                                found_start_temp=True
-                            
-                        elif MICROWAVE:
-                            if float(datablock[j]['treatment_dc_field'])==0:
-                                MW_step=datablock[j]["measurement_description"].strip('\n').split(":")
-                                for STEP in MW_step:
-                                    if "Number" in STEP:
-                                        starting_temperature=float(STEP.split("-")[-1])
-                                        found_start_temp=True
-                        if found_start_temp:
-                            break                         
-                    if found_start_temp==False:
-                        continue
-                    try:
-                        index=t_Arai.index(starting_temperature)
-                        x_ptrm_check_starting_point.append(x_Arai[index])
-                        y_ptrm_check_starting_point.append(y_Arai[index])
-                        ptrm_checks_starting_temperatures.append(starting_temperature)
+                  #if MICROWAVE:
+                  #  if "measurement_description" in rec.keys():
+                  #      MW_step=rec["measurement_description"].strip('\n').split(":")
+                  #      for STEP in MW_step:
+                  #          if "Number" in STEP:
+                  #              this_temp=float(STEP.split("-")[-1])
+              #if found_start_temp==False:
+              #      continue
+              try:
+                index=t_Arai.index(starting_temperature)
+                x_ptrm_check_starting_point.append(x_Arai[index])
+                y_ptrm_check_starting_point.append(y_Arai[index])
+                ptrm_checks_starting_temperatures.append(starting_temperature)
 
-                        index_zerofield=zerofield_temperatures.index(ptrm_checks[k][0])
-                        x_ptrm_check.append(ptrm_checks[k][3]/NRM)
-                        y_ptrm_check.append(zerofields[index_zerofield][3]/NRM)
-                        ptrm_checks_temperatures.append(ptrm_checks[k][0])
-                    except:
-                        pass
+                index_zerofield=zerofield_temperatures.index(ptrm_checks[k][0])
+                x_ptrm_check.append(ptrm_checks[k][3]/NRM)
+                y_ptrm_check.append(zerofields[index_zerofield][3]/NRM)
+                ptrm_checks_temperatures.append(ptrm_checks[k][0])
+              except:
+                pass
                     
-##                # microwave
-##                if "LT-PMRM-I" in rec['magic_method_codes'] and float(rec['treatment_mw_power'])==ptrm_checks[k][0]:
-##                    starting_temperature=(float(datablock[i-1]['treatment_mw_power']))
-##                    
-##                    try:
-##                        index=t_Arai.index(starting_temperature)
-##                        x_ptrm_check_starting_point.append(x_Arai[index])
-##                        y_ptrm_check_starting_point.append(y_Arai[index])
-##                        ptrm_checks_starting_temperatures.append(starting_temperature)
-##
-##                        index_zerofield=zerofield_temperatures.index(ptrm_checks[k][0])
-##                        x_ptrm_check.append(ptrm_checks[k][3]/NRM)
-##                        y_ptrm_check.append(zerofields[index_zerofield][3]/NRM)
-##                        ptrm_checks_temperatures.append(ptrm_checks[k][0])
-##                    except:
-##                        pass
-
                     
         x_ptrm_check=array(x_ptrm_check)  
         ptrm_check=array(y_ptrm_check)
@@ -9501,42 +9475,55 @@ class Arai_GUI(wx.Frame):
         # find  pTRM checks
         #---------------------
                     
-        for temp in Treat_PI: # look through infield steps and find matching Z step
-            #print temp
-            foundit=False
-            found_i_index=False
-            for i in range(1,len(datablock)): # look through infield steps and find what zerofield step was before the pTRM check
-                rec=datablock[i]
-                dec=float(rec["measurement_dec"])
-                inc=float(rec["measurement_inc"])
-                moment=float(rec["measurement_magn_moment"])
-                phi=float(rec["treatment_dc_field_phi"])
-                theta=float(rec["treatment_dc_field_theta"])
-                M=array(self.dir2cart([dec,inc,moment]))
+        for i in range(len(Treat_PI)): # look through infield steps and find matching Z step
+#            #print temp
+#            foundit=False
+#            found_i_index=False
+#            # look through infield steps and find what zerofield step was before the pTRM check
+#            # first find the zerofield before the pTRM check (index_i)
+#            for i in range(1,len(datablock)): 
+#                rec=datablock[i]
+#                dec=float(rec["measurement_dec"])
+#                inc=float(rec["measurement_inc"])
+#                moment=float(rec["measurement_magn_moment"])
+#                phi=float(rec["treatment_dc_field_phi"])
+#                theta=float(rec["treatment_dc_field_theta"])
+#                M=array(self.dir2cart([dec,inc,moment]))
+#
+#                if 'LT-PTRM-I' in rec['magic_method_codes'] or 'LT-PMRM-I' in rec['magic_method_codes'] :
+#                    if (THERMAL and "treatment_temp" in rec.keys() and float(rec["treatment_temp"])==float(temp) )\
+#                       or (MICROWAVE and "measurement_description" in rec.keys() and "Step Number-%.0f"%float(temp) in rec["measurement_description"]):
+#                           found_i_index=True
+#                           break
+#                
+#            if not found_i_index:
+#                continue
+            temp=Treat_PI[i]
+            k=PISteps[ i]   
+            rec=datablock[k]
+            dec=float(rec["measurement_dec"])
+            inc=float(rec["measurement_inc"])
+            moment=float(rec["measurement_magn_moment"])
+            phi=float(rec["treatment_dc_field_phi"])
+            theta=float(rec["treatment_dc_field_theta"])
+            M=array(self.dir2cart([dec,inc,moment]))
 
-                if 'LT-PTRM-I' in rec['magic_method_codes'] or 'LT-PMRM-I' in rec['magic_method_codes'] :
-                    if (THERMAL and "treatment_temp" in rec.keys() and float(rec["treatment_temp"])==float(temp) )\
-                       or (MICROWAVE and "measurement_description" in rec.keys() and "Step Number-%.0f"%float(temp) in rec["measurement_description"]):
-                           found_i_index=True
-                           break
-                
-            if not found_i_index:
-                continue
-                
             if 'LP-PI-II' not in methcodes:
                  # Important: suport several pTRM checks in a row, but
                  # does not support pTRM checks after infield step
-                 for j in range(i,1,-1):
-                     if "LT-M-I" in datablock[j]['magic_method_codes'] or "LT-T-I"in datablock[j]['magic_method_codes'] :
+                 for j in range(k,1,-1):
+                     if "LT-M-I" in datablock[j]['magic_method_codes'] or "LT-T-I" in datablock[j]['magic_method_codes'] :
                          print "-W- WARNING: specimen %s: pTRM check after infield step. please check"%(datablock[j]["er_specimen_name"])
                          break 
                      if float(datablock[j]['treatment_dc_field'])==0:
                         foundit=True
                         prev_rec=datablock[j]
+                        zerofield_index=j
                         break
             else: # Thellier-Thellier protocol
                 foundit=True
-                prev_rec=datablock[i-1]
+                prev_rec=datablock[k-1]
+                zerofield_index=k-1
             
             if foundit:                            
                 prev_dec=float(prev_rec["measurement_dec"])
@@ -9549,13 +9536,13 @@ class Arai_GUI(wx.Frame):
             if  'LP-PI-II' not in methcodes:   
                 diff_cart=M-prev_M
                 diff_dir=self.cart2dir(diff_cart)
-                ptrm_check.append([temp,diff_dir[0],diff_dir[1],diff_dir[2]])
+                ptrm_check.append([temp,diff_dir[0],diff_dir[1],diff_dir[2],zerofield_index])
             else:           
                 # health check for T-T protocol:
                 if theta!=prev_theta:
                     diff=(M-prev_M)/2
                     diff_dir=self.cart2dir(diff)
-                    ptrm_check.append([temp,diff_dir[0],diff_dir[1],diff_dir[2]])
+                    ptrm_check.append([temp,diff_dir[0],diff_dir[1],diff_dir[2],zerofield_index])
                 else:
                     print "-W- WARNING: specimen. pTRM check not in place in Thellier Thellier protocol. step please check"
                 
