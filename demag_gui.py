@@ -1425,7 +1425,7 @@ class Zeq_GUI(wx.Frame):
         if "-WD" in sys.argv and FIRST_RUN:
             ind=sys.argv.index('-WD')
             self.WD=sys.argv[ind+1]            
-            self.WD=os.getcwd()+"/"
+            #self.WD=os.getcwd()+"/"
  
         else:   
             dialog = wx.DirDialog(None, "Choose a directory:",defaultPath = self.currentDirectory ,style=wx.DD_DEFAULT_STYLE | wx.DD_NEW_DIR_BUTTON | wx.DD_CHANGE_DIR)
@@ -1433,6 +1433,7 @@ class Zeq_GUI(wx.Frame):
               self.WD=dialog.GetPath()
             dialog.Destroy()
         os.chdir(self.WD)
+        self.WD=os.getcwd()+"/"
         self.magic_file=self.WD+"/"+"magic_measurements.txt"
         self.GUI_log=open("%s/zeq.log"%self.WD,'w')
 
