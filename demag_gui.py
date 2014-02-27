@@ -4,7 +4,7 @@
 # LOG HEADER:
 #============================================================================================
 #
-# Demag_GUI Version 0.1 (beta) by Ron Shaar
+# Demag_GUI Version 0.2 (beta) by Ron Shaar
 # 
 #
 #
@@ -17,7 +17,7 @@
 
 
 global CURRENT_VRSION
-CURRENT_VRSION = "v.0.1"
+CURRENT_VRSION = "v.0.2"
 import matplotlib
 matplotlib.use('WXAgg')
 
@@ -120,7 +120,7 @@ class Zeq_GUI(wx.Frame):
         self.specimens=self.Data.keys()         # get list of specimens
         self.specimens.sort()                   # get list of specimens
         if len(self.specimens)>0:
-            self.s=self.specimens[0]
+            self.s=str(self.specimens[0])
         else:
             self.s=""
         self.pars={} 
@@ -167,7 +167,7 @@ class Zeq_GUI(wx.Frame):
         # initialize first specimen in list as current specimen
         #----------------------------------------------------------------------                     
         try:
-            self.s=self.specimens[0]
+            self.s=str(self.specimens[0])
         except:
             self.s=""
         try:
@@ -540,8 +540,11 @@ class Zeq_GUI(wx.Frame):
         if self.curser_in_zij_figure:
             self.tmp4_x=event.xdata
             self.tmp4_y=event.ydata
-            delta_x=abs(self.tmp3_x - self.tmp4_x )
-            delta_y=abs(self.tmp3_y - self.tmp4_y )
+            try:
+                delta_x=abs(self.tmp3_x - self.tmp4_x )
+                delta_y=abs(self.tmp3_y - self.tmp4_y )
+            except:
+                return
             
             if self.tmp3_x < self.tmp4_x and self.tmp3_y > self.tmp4_y and delta_x >0.05 and delta_y >0.05:
                 self.zijplot.set_xlim(xmin=self.tmp3_x,xmax=self.tmp4_x)
@@ -917,7 +920,7 @@ class Zeq_GUI(wx.Frame):
         #self.preferences['show_eqarea_treatments']=True
         if self.preferences['show_eqarea_treatments']:
             for i in range(len(self.zijdblock_steps)):
-                self.specimen_eqarea.text(eqarea_data_x[i],eqarea_data_y[i],"%.0f"%float(self.zijdblock_steps[i]),fontsize=8*self.GUI_RESOLUTION,color="0.5")
+                self.specimen_eqarea.text(eqarea_data_x[i],eqarea_data_y[i],"%.1f"%float(self.zijdblock_steps[i]),fontsize=8*self.GUI_RESOLUTION,color="0.5")
         
         self.specimen_eqarea.set_xlim(-1., 1.)        
         self.specimen_eqarea.set_ylim(-1., 1.)        
@@ -934,7 +937,7 @@ class Zeq_GUI(wx.Frame):
         #-----------------------------------------------------------
 
         self.fig3.clf()
-        self.fig3.text(0.02,0.96,'$M/M_0$',{'family':'Arial', 'fontsize':10*self.GUI_RESOLUTION, 'style':'normal','va':'center', 'ha':'left' })
+        self.fig3.text(0.02,0.96,'M/M0',{'family':'Arial', 'fontsize':10*self.GUI_RESOLUTION, 'style':'normal','va':'center', 'ha':'left' })
         self.mplot = self.fig3.add_axes([0.2,0.15,0.7,0.7],frameon=True,axisbg='None')        
         self.mplot_interpretation = self.fig3.add_axes(self.mplot.get_position(), frameon=False,axisbg='None')
         self.mplot_interpretation.xaxis.set_visible(False)
@@ -980,7 +983,7 @@ class Zeq_GUI(wx.Frame):
             ax2.spines["right"].set_visible(False)
             self.mplot.get_xaxis().tick_bottom()
             self.mplot.get_yaxis().tick_left()
-            self.mplot.set_ylabel("M / NRM$_0$",fontsize=8*self.GUI_RESOLUTION)
+            self.mplot.set_ylabel("M / NRM0",fontsize=8*self.GUI_RESOLUTION)
         
         else:
             
@@ -1028,7 +1031,7 @@ class Zeq_GUI(wx.Frame):
         #self.draw_net(self.high_level_eqarea)
         #self.canvas4.draw()
 
-        draw()
+        self.canvas4.draw()
         #start_time_4=time.time() 
         #runtime_sec4 = start_time_4 - start_time_3
         #print "-I- draw high level figures is", runtime_sec4,"seconds"
@@ -1171,7 +1174,7 @@ class Zeq_GUI(wx.Frame):
     def onSelect_specimen(self, event):
         """ update figures and text when a new specimen is selected
         """        
-        self.s=self.specimens_box.GetValue()
+        self.s=str(self.specimens_box.GetValue())
         #self.pars=self.Data[self.s]['pars'] 
         self.update_selection()
 
@@ -1232,8 +1235,8 @@ class Zeq_GUI(wx.Frame):
         index=0
       else:
         index+=1
-      self.s=self.specimens[index]
-      self.specimens_box.SetStringSelection(self.s)      
+      self.s=str(self.specimens[index])
+      self.specimens_box.SetStringSelection(str(self.s))      
       self.update_selection()
     #----------------------------------------------------------------------
 
@@ -1253,8 +1256,8 @@ class Zeq_GUI(wx.Frame):
       index=self.specimens.index(self.s)
       if index==0: index=len(self.specimens)
       index-=1
-      self.s=self.specimens[index]
-      self.specimens_box.SetStringSelection(self.s)
+      self.s=str(self.specimens[index])
+      self.specimens_box.SetStringSelection(str(self.s))
       self.update_selection()
 
     #----------------------------------------------------------------------
@@ -1332,24 +1335,24 @@ class Zeq_GUI(wx.Frame):
                   elif self.Data[self.s]['measurement_step_unit']=="C":
                       tmin="%.0fC"%(measurement_step_min)
                   elif self.Data[self.s]['measurement_step_unit']=="mT":
-                      tmin="%.0fmT"%(measurement_step_min)
+                      tmin="%.1fmT"%(measurement_step_min)
                   else: # combimned experiment T:AF
                     if "%.0fC"%(measurement_step_min) in self.Data[self.s]['zijdblock_steps']:
                         tmin="%.0fC"%(measurement_step_min)
-                    elif "%.0fmT"%(measurement_step_min) in self.Data[self.s]['zijdblock_steps']:
-                        tmin="%.0fmT"%(measurement_step_min)
+                    elif "%.1fmT"%(measurement_step_min) in self.Data[self.s]['zijdblock_steps']:
+                        tmin="%.1fmT"%(measurement_step_min)
                     else:
                         continue
                         
                   if self.Data[self.s]['measurement_step_unit']=="C":
                       tmax="%.0fC"%(measurement_step_max)
                   elif self.Data[self.s]['measurement_step_unit']=="mT":
-                      tmax="%.0fmT"%(measurement_step_max)
+                      tmax="%.1fmT"%(measurement_step_max)
                   else: # combimned experiment T:AF
                     if "%.0fC"%(measurement_step_max) in self.Data[self.s]['zijdblock_steps']:
                         tmax="%.0fC"%(measurement_step_max)
-                    elif "%.0fmT"%(measurement_step_max) in self.Data[self.s]['zijdblock_steps']:
-                        tmax="%.0fmT"%(measurement_step_max)
+                    elif "%.1fmT"%(measurement_step_max) in self.Data[self.s]['zijdblock_steps']:
+                        tmax="%.1fmT"%(measurement_step_max)
                     else:
                         continue
                                                                     
@@ -1405,7 +1408,7 @@ class Zeq_GUI(wx.Frame):
         #runtime_sec = start_time_5a - start_time_5
         #print "-I- higher level", runtime_sec,"seconds"
               
-        self.mean_type_box.SetValue(calculation_type)
+        self.mean_type_box.SetStringSelection(calculation_type)
         self.plot_higher_levels_data()
         
         #start_time_6=time.time()        
@@ -1435,7 +1438,7 @@ class Zeq_GUI(wx.Frame):
         os.chdir(self.WD)
         self.WD=os.getcwd()+"/"
         self.magic_file=self.WD+"/"+"magic_measurements.txt"
-        self.GUI_log=open("%s/zeq.log"%self.WD,'w')
+        self.GUI_log=open("%s/demag_gui.log"%self.WD,'w')
 
     #----------------------------------------------------------------------
 
@@ -1731,15 +1734,16 @@ class Zeq_GUI(wx.Frame):
             self.canvas2.draw()
             
                                         
-        # M/M0 plot
-        self.mplot_interpretation.clear()
-        ymin, ymax = self.mplot.get_ylim()
-        xmin, xmax = self.mplot.get_xlim()
-        self.mplot_interpretation.scatter([self.Data[self.s]['zijdblock'][tmin_index][0]],[self.Data[self.s]['zijdblock'][tmin_index][3]/self.Data[self.s]['zijdblock'][0][3]],marker='o',s=30,facecolor='g',edgecolor ='k',zorder=100,clip_on=False)
-        self.mplot_interpretation.scatter([self.Data[self.s]['zijdblock'][tmax_index][0]],[self.Data[self.s]['zijdblock'][tmax_index][3]/self.Data[self.s]['zijdblock'][0][3]],marker='o',s=30,facecolor='g',edgecolor ='k',zorder=100,clip_on=False)
-        self.mplot_interpretation.set_xlim(xmin, xmax)
-        self.mplot_interpretation.set_ylim(ymin, ymax)
-        self.canvas3.draw()
+        # M/M0 plot (only if C or mT - not both)
+        if self.Data[self.s]['measurement_step_unit'] !="mT:C" and self.Data[self.s]['measurement_step_unit'] !="C:mT":
+            ymin, ymax = self.mplot.get_ylim()
+            xmin, xmax = self.mplot.get_xlim()
+            self.mplot_interpretation.clear()
+            self.mplot_interpretation.scatter([self.Data[self.s]['zijdblock'][tmin_index][0]],[self.Data[self.s]['zijdblock'][tmin_index][3]/self.Data[self.s]['zijdblock'][0][3]],marker='o',s=30,facecolor='g',edgecolor ='k',zorder=100,clip_on=False)
+            self.mplot_interpretation.scatter([self.Data[self.s]['zijdblock'][tmax_index][0]],[self.Data[self.s]['zijdblock'][tmax_index][3]/self.Data[self.s]['zijdblock'][0][3]],marker='o',s=30,facecolor='g',edgecolor ='k',zorder=100,clip_on=False)
+            self.mplot_interpretation.set_xlim(xmin, xmax)
+            self.mplot_interpretation.set_ylim(ymin, ymax)
+            self.canvas3.draw()
         
         # logger
         #self.logger.SetBackgroundColour('red')
@@ -1791,17 +1795,19 @@ class Zeq_GUI(wx.Frame):
         #for dirtype in ['DA-DIR','DA-DIR-GEO','DA-DIR-TILT']:
         #    if dirtype in self.Data[self.s].keys():
         #        del self.Data[self.s][dirtype]
-        if self.s in self.pmag_results_data.keys():
-            del(self.pmag_results_data['specimens'][self.s])
         
-        self.tmin_box.SetValue("")
-        self.tmax_box.SetValue("")
-        self.clear_boxes()
-        self.onSelect_orthogonal_box(self.s)
-        # calculate higher level data
-        self.calculate_higher_levels_data()
-        #self.plot_higher_levels_data()
+        if 'specimens' in self.pmag_results_data.keys() and str(self.s) in self.pmag_results_data['specimens'].keys():
+            del(self.pmag_results_data['specimens'][str(self.s)])
+        self.pars={}
         self.update_selection()
+        #self.tmin_box.SetValue("")
+        #self.tmax_box.SetValue("")
+        #self.clear_boxes()
+        #self.Add_text(self.s)
+        #self.draw_figure(self.s)
+        #self.calculate_higher_levels_data()
+        #self.plot_higher_levels_data()
+        #self.update_selection()
         return
  
     #----------------------------------------------------------------------
@@ -1880,8 +1886,8 @@ class Zeq_GUI(wx.Frame):
        
        if  self.s not in specimen_list:
            specimen_list.sort()
-           self.s=specimen_list[0]
-           self.specimens_box.SetStringSelection(self.s)      
+           self.s=str(specimen_list[0])
+           self.specimens_box.SetStringSelection(str(self.s))      
            self.update_selection()
            #self.calculate_higher_levels_data()
            #self.plot_higher_levels_data()
@@ -1907,6 +1913,7 @@ class Zeq_GUI(wx.Frame):
             elements_list=self.Data_hierarchy[high_level_type][high_level_name][elements_type]
             pars_for_mean=[]              
             for element in elements_list:
+                #found_element=False
                 if elements_type=='specimens':
                     if element in self.pmag_results_data['specimens'].keys():
                         if dirtype in self.pmag_results_data['specimens'][element].keys():
@@ -1920,6 +1927,8 @@ class Zeq_GUI(wx.Frame):
                             else:
                                 print "-E- ERROR: cant find mean for element %s"%element
                                 continue 
+                        else:
+                            continue
                     else:
                         continue                                           
                 else:
@@ -1930,11 +1939,12 @@ class Zeq_GUI(wx.Frame):
                                 dec,inc,direction_type=pars["dec"],pars["inc"],'l'
                             else:
                                 print "-E- ERROR: cant find mean for element %s"%element
-                                continue                                
+                                continue 
+                        else:
+                            continue                               
                             #pars_for_mean.append({'dec':float(dec),'inc':float(inc),'direction_type':direction_type})
                     else:
                         continue
-                        
                 pars_for_mean.append({'dec':float(dec),'inc':float(inc),'direction_type':direction_type,'element_name':element})
                                                                                                                                                                       
             if len(pars_for_mean)  > 0 and calculation_type !="None":
@@ -2443,8 +2453,10 @@ class Zeq_GUI(wx.Frame):
                       self.GUI_log.write("-E- ERROR: specimen %s has more than one demagnetization experiment name. You need to merge them to one experiment-name?\n")
                  if float(tr)==0 or float(tr)==273:
                     Data[s]['zijdblock_steps'].append("0")                     
-                 else:
+                 elif measurement_step_unit=="C":
                     Data[s]['zijdblock_steps'].append("%.0f%s"%(tr,measurement_step_unit))
+                 else:
+                    Data[s]['zijdblock_steps'].append("%.1f%s"%(tr,measurement_step_unit))
                  #--------------
                  Data[s]['magic_experiment_name']=rec["magic_experiment_name"]
                  if "magic_instrument_codes" in rec.keys():
@@ -2566,6 +2578,8 @@ class Zeq_GUI(wx.Frame):
       #------------------------------------------------
 
       for s in self.specimens:
+        #print s
+        #print  Data[s]['zijdblock'] 
         # collected the data
         zijdblock=Data[s]['zijdblock']
         zijdblock_geo=Data[s]['zijdblock_geo']
@@ -2764,7 +2778,7 @@ class Zeq_GUI(wx.Frame):
                 elif float(rec['measurement_step_min'])>2: # thermal
                     tmin="%.0fC"%(float(rec['measurement_step_min'])-273.)
                 else: # AF
-                    tmin="%.0fmT"%(float(rec['measurement_step_min'])*1000.)
+                    tmin="%.1fmT"%(float(rec['measurement_step_min'])*1000.)
 
                 if float(rec['measurement_step_max'])==0 or float(rec['measurement_step_max'])==273.:
                     tmax="0"
@@ -2892,8 +2906,8 @@ class Zeq_GUI(wx.Frame):
 
         menu_file = wx.Menu()
         
-        #m_change_working_directory = menu_file.Append(-1, "&Change project directory", "")
-        #self.Bind(wx.EVT_MENU, self.on_menu_change_working_directory, m_change_working_directory)
+        m_change_working_directory = menu_file.Append(-1, "&Choose project directory", "")
+        self.Bind(wx.EVT_MENU, self.on_menu_change_working_directory, m_change_working_directory)
 
         #m_open_magic_file = menu_file.Append(-1, "&Open MagIC measurement file", "")
         #self.Bind(wx.EVT_MENU, self.on_menu_open_magic_file, m_open_magic_file)
@@ -2980,8 +2994,8 @@ class Zeq_GUI(wx.Frame):
         #-----------------                            
 
         menu_MagIC= wx.Menu()
-        #m_convert_to_magic= menu_MagIC.Append(-1, "&Convert generic files to MagIC format", "")
-        #self.Bind(wx.EVT_MENU, self.on_menu_convert_to_magic, m_convert_to_magic)
+        m_convert_to_magic= menu_MagIC.Append(-1, "&Convert generic files to MagIC format", "")
+        self.Bind(wx.EVT_MENU, self.on_menu_generic_to_magic, m_convert_to_magic)
         m_samples_orientation= menu_MagIC.Append(-1, "&Sample orientation", "")
         self.Bind(wx.EVT_MENU, self.on_menu_samples_orientation, m_samples_orientation)
 
@@ -3002,6 +3016,81 @@ class Zeq_GUI(wx.Frame):
         self.SetMenuBar(self.menubar)
 
     #============================================
+
+    def reset(self):
+        '''
+        reset the GUI like restarting it (same as __init__
+        '''
+        #global FIRST_RUN
+        FIRST_RUN=False
+        self.redo_specimens={}
+        self.currentDirectory = os.getcwd() # get the current working directory
+        self.get_DIR()        # choose directory dialog
+                
+        #preferences=self.get_preferences()
+        #self.dpi = 100
+        #self.preferences={}
+        #self.preferences=preferences
+
+        self.COORDINATE_SYSTEM='specimen'
+        self.Data_info=self.get_data_info() # Read  er_* data
+        self.Data,self.Data_hierarchy=self.get_data() # Get data from magic_measurements and rmag_anistropy if exist.
+        
+        self.pmag_results_data={}
+        for level in ['specimens','samples','sites','lcoations','study']:
+            self.pmag_results_data[level]={}
+        self.high_level_means={}
+
+        high_level_means={}                                            
+        for high_level in ['samples','sites','locations','study']:
+            if high_level not in self.high_level_means.keys():
+                self.high_level_means[high_level]={}
+        
+        
+        self.Data_samples={}
+        self.last_saved_pars={}
+        self.specimens=self.Data.keys()         # get list of specimens
+        self.specimens.sort()                   # get list of specimens
+        if len(self.specimens)>0:
+            self.s=str(self.specimens[0])
+        else:
+            self.s=""
+        self.pars={} 
+        self.samples=self.Data_hierarchy['samples'].keys()         # get list of samples
+        self.samples.sort()                   # get list of specimens
+        self.sites=self.Data_hierarchy['sites'].keys()         # get list of sites
+        self.sites.sort()                   # get list of sites
+        self.locations=self.Data_hierarchy['locations'].keys()         # get list of sites
+        self.locations.sort()                   # get list of sites
+        
+        #----------------------------------------------------------------------                     
+        # initialize first specimen in list as current specimen
+        #----------------------------------------------------------------------                     
+        try:
+            self.s=str(self.specimens[0])
+        except:
+            self.s=""
+        try:
+            self.sample=self.Data_hierarchy['sample_of_specimen'][self.s]
+        except:
+            self.sample=""
+        try:
+            self.site=self.Data_hierarchy['site_of_specimen'][self.s]
+        except:
+            self.site=""
+
+        #self.get_previous_interpretation() # get interpretations from pmag_specimens.txt
+
+        self.specimens_box.SetItems(self.specimens)
+
+        self.update_pmag_tables()
+        # Draw figures and add  text
+        try:
+            self.update_selection()
+        except:
+            pass
+        
+        FIRST_RUN=False
 
     #--------------------------------------------------------------
     # File menu 
@@ -3039,6 +3128,11 @@ class Zeq_GUI(wx.Frame):
         self.draw_figure(self.s)
         self.update_selection()
 
+    def on_menu_change_working_directory(self, event):
+        self.reset()
+    
+                
+        
     #--------------------------------------------------------------
     # Analysis menu Bar functions
     #--------------------------------------------------------------
@@ -3088,6 +3182,7 @@ class Zeq_GUI(wx.Frame):
         # first delete all previous interpretation
         self.clear_interpretations
         fin=open(redo_file,'rU')
+        
         for Line in fin.readlines():
             line=Line.strip('\n').split()
             specimen=line[0]
@@ -3108,26 +3203,26 @@ class Zeq_GUI(wx.Frame):
                 if float(line[2])==0:
                     tmin="0"
                 else:
-                    tmin="%.0fmT"%(float(line[2])*1000)
+                    tmin="%.1fmT"%(float(line[2])*1000)
                 if float(line[3])==0:
                     tmax="0"
                 else:
-                    tmax="%.0fmT"%(float(line[3])*1000)
+                    tmax="%.1fmT"%(float(line[3])*1000)
             else: # combimned experiment T:AF
                 if float(line[2])==0:
                     tmin="0"
                 elif "%.0fC"%(float(line[2])-273) in self.Data[specimen]['zijdblock_steps']:
                     tmin="%.0fC"%(float(line[2])-273)
-                elif "%.0fmT"%(float(line[2])*1000) in self.Data[specimen]['zijdblock_steps']:
-                    tmin="%.0fmT"%(float(line[2])*1000)
+                elif "%.1fmT"%(float(line[2])*1000) in self.Data[specimen]['zijdblock_steps']:
+                    tmin="%.1fmT"%(float(line[2])*1000)
                 else:
                     continue
                 if float(line[3])==0:
                     tmax="0"
                 elif "%.0fC"%(float(line[3])-273) in self.Data[specimen]['zijdblock_steps']:
                     tmax="%.0fC"%(float(line[3])-273)
-                elif "%.0fmT"%(float(line[3])*1000) in self.Data[specimen]['zijdblock_steps']:
-                    tmax="%.0fmT"%(float(line[3])*1000)
+                elif "%.1fmT"%(float(line[3])*1000) in self.Data[specimen]['zijdblock_steps']:
+                    tmax="%.1fmT"%(float(line[3])*1000)
                 else:
                     continue
             if tmin not in self.Data[specimen]['zijdblock_steps'] or  tmax not in self.Data[specimen]['zijdblock_steps']:
@@ -3141,7 +3236,7 @@ class Zeq_GUI(wx.Frame):
                 self.pmag_results_data['specimens'][specimen]['DA-DIR-TILT']=self.get_PCA_parameters(specimen,tmin,tmax,'tilt-corrected',calculation_type)                        
           
         fin.close()
-        self.s=self.specimens_box.GetValue()
+        self.s=str(self.specimens_box.GetValue())
         self.update_selection()
 
 
@@ -3184,7 +3279,7 @@ class Zeq_GUI(wx.Frame):
                                 
     def on_menu_clear_interpretation(self,event):
         self.clear_interpretations()
-        self.s=self.specimens_box.GetValue()
+        self.s=str(self.specimens_box.GetValue())
         self.update_selection()
         
     #--------------------------------------------------------------
@@ -3470,7 +3565,27 @@ class Zeq_GUI(wx.Frame):
         #dia = orient_magic_wx.OrientFrame(self.WD,self.Data_hierarchy)
         #dia.Show()
         #dia.Center()
+
                                                                                                                                                                                                         
+    def on_menu_generic_to_magic(self,event):
+        import demag_dialogs
+        f=demag_dialogs.convert_generic_files_to_MagIC(self.WD)
+        #def MyOnClose(evt):
+        #    print "My onclose called"
+        #    f.MakeModal(False)
+        #    self.on_close_generic_file(self.WD)
+        #    evt.Skip()
+        #f.Bind(wx.EVT_CLOSE, MyOnClose)
+        #f.MakeModal() 
+        #if f.END==True:
+        #    self.on_close_generic_file(self.WD)
+        #    f.Close()
+        #self.on_close_generic_file(self.WD)
+   # def on_close_generic_file(self,WD):
+   #     print "Closed"
+   #     print WD    
+        
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                
 #--------------------------------------------------------------    
 # Save plots
 #--------------------------------------------------------------

@@ -3,6 +3,9 @@
 #============================================================================================
 # LOG HEADER:
 #============================================================================================
+# Thellier_GUI Version 2.14 02/26/2014
+# minor changes compatibiilty with 64 bit python
+
 # Thellier_GUI Version 2.13 02/25/2014
 # Add option for more than one pTRMs one after the other
 
@@ -72,7 +75,7 @@
 #============================================================================================
 
 global CURRENT_VRSION
-CURRENT_VRSION = "v.2.13"
+CURRENT_VRSION = "v.2.14"
 import matplotlib
 matplotlib.use('WXAgg')
 
@@ -392,7 +395,7 @@ class Arai_GUI(wx.Frame):
         self.tmax_box = wx.ComboBox(self.panel, -1 ,size=(100*self.GUI_RESOLUTION, 25),choices=self.T_list, style=wx.CB_DROPDOWN)
         self.Bind(wx.EVT_COMBOBOX, self.get_new_T_PI_parameters,self.tmax_box)
 
-        select_temp_window = wx.GridSizer(3, 1, 12, 10*self.GUI_RESOLUTION)
+        select_temp_window = wx.GridSizer(2, 1, 12, 10*self.GUI_RESOLUTION)
         select_temp_window.AddMany( [(self.tmin_box, wx.ALIGN_LEFT),
             (self.tmax_box, wx.ALIGN_LEFT)])
         box_sizer_select_temp.Add(select_temp_window, 0, wx.TOP, 0 )        
@@ -1475,9 +1478,10 @@ class Arai_GUI(wx.Frame):
 
                 bSizer2 = wx.StaticBoxSizer( wx.StaticBox( pnl1, wx.ID_ANY, "Arai plot" ), wx.HORIZONTAL )
                 self.show_Arai_temperatures=wx.CheckBox(pnl1, -1, '', (50, 50))        
-                self.show_Arai_temperatures_steps=FS.FloatSpin(pnl1, -1, min_val=1, max_val=9,increment=1, value=1, extrastyle=FS.FS_LEFT,size=(50,20))
-                self.show_Arai_temperatures_steps.SetFormat("%f")
-                self.show_Arai_temperatures_steps.SetDigits(0)
+                #self.show_Arai_temperatures_steps=FS.FloatSpin(pnl1, -1, min_val=1, max_val=9,increment=1, value=1, extrastyle=FS.FS_LEFT,size=(50,20))
+                #self.show_Arai_temperatures_steps.SetFormat("%f")
+                #self.show_Arai_temperatures_steps.SetDigits(0)
+                self.show_Arai_temperatures_steps=wx.SpinCtrl(pnl1, -1, '1', (50, 20), (60, -1), min=1, max=9)
 
                 self.show_Arai_pTRM_arrows=wx.CheckBox(pnl1, -1, '', (50, 50))        
                                              
@@ -1494,9 +1498,10 @@ class Arai_GUI(wx.Frame):
 
                 bSizer3 = wx.StaticBoxSizer( wx.StaticBox( pnl1, wx.ID_ANY, "Zijderveld plot" ), wx.HORIZONTAL )
                 self.show_Zij_temperatures=wx.CheckBox(pnl1, -1, '', (50, 50))        
-                self.show_Zij_temperatures_steps=FS.FloatSpin(pnl1, -1, min_val=1, max_val=9,increment=1, value=1, extrastyle=FS.FS_LEFT,size=(50,20))
-                self.show_Zij_temperatures_steps.SetFormat("%f")
-                self.show_Zij_temperatures_steps.SetDigits(0)
+                #self.show_Zij_temperatures_steps=FS.FloatSpin(pnl1, -1, min_val=1, max_val=9,increment=1, value=1, extrastyle=FS.FS_LEFT,size=(50,20))
+                #self.show_Zij_temperatures_steps.SetFormat("%f")
+                #self.show_Zij_temperatures_steps.SetDigits(0)
+                self.show_Zij_temperatures_steps=wx.SpinCtrl(pnl1, -1, '1', (50, 20), (60, -1), min=1, max=9)
                                              
                 zij_window = wx.GridSizer(2, 2, 12, 12)
                 zij_window.AddMany( [(wx.StaticText(pnl1,label="show temperatures",style=wx.TE_CENTER), wx.EXPAND),
