@@ -294,11 +294,11 @@ class Zeq_GUI(wx.Frame):
         # Combo-box with a list of specimen
         self.coordinates_box = wx.ComboBox(self.panel, -1, 'specimen', (300*self.GUI_RESOLUTION, 25), wx.DefaultSize,['specimen','geographic','tilt-corrected'], wx.CB_DROPDOWN,name="coordinates")
         self.coordinates_box.SetFont(font2)
-        self.Bind(wx.EVT_TEXT, self.onSelect_coordinates,self.coordinates_box)
+        self.Bind(wx.EVT_COMBOBOX, self.onSelect_coordinates,self.coordinates_box)
         #self.box_sizer_select_coordinate.Add(self.coordinates_box, 0, wx.TOP, 0 )        
         self.orthogonal_box = wx.ComboBox(self.panel, -1, 'Zijderveld', (300*self.GUI_RESOLUTION, 25), wx.DefaultSize,['Zijderveld','orthogonal E-W','orthogonal N-S'], wx.CB_DROPDOWN,name="orthogonal_plot")
         self.orthogonal_box.SetFont(font2)
-        self.Bind(wx.EVT_TEXT, self.onSelect_orthogonal_box,self.orthogonal_box)
+        self.Bind(wx.EVT_COMBOBOX, self.onSelect_orthogonal_box,self.orthogonal_box)
 
         self.box_sizer_select_specimen.Add(wx.StaticText(self.panel,label="specimen:",style=wx.TE_CENTER))        
         self.box_sizer_select_specimen.Add(self.specimens_box, 0, wx.TOP, 0 )        
@@ -390,20 +390,20 @@ class Zeq_GUI(wx.Frame):
         self.box_sizer_high_level = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY,"higher level mean"  ), wx.HORIZONTAL )                        
         self.level_box = wx.ComboBox(self.panel, -1, 'site', (100*self.GUI_RESOLUTION, 25), wx.DefaultSize,['sample','site','location','study'], wx.CB_DROPDOWN,name="high_level")
         self.level_box.SetFont(font2)
-        self.Bind(wx.EVT_TEXT, self.onSelect_higher_level,self.level_box)
+        self.Bind(wx.EVT_COMBOBOX, self.onSelect_higher_level,self.level_box)
 
         self.level_names = wx.ComboBox(self.panel, -1,self.site, (100*self.GUI_RESOLUTION, 25), wx.DefaultSize,self.sites, wx.CB_DROPDOWN,name="high_level_names")
         self.level_names.SetFont(font2)
-        self.Bind(wx.EVT_TEXT, self.onSelect_level_name,self.level_names)
+        self.Bind(wx.EVT_COMBOBOX, self.onSelect_level_name,self.level_names)
 
 
         self.show_box = wx.ComboBox(self.panel, -1, 'specimens', (100*self.GUI_RESOLUTION, 25), wx.DefaultSize,['specimens','samples','sites','sites-VGP'], wx.CB_DROPDOWN,name="high_elements")
         self.show_box.SetFont(font2)
-        self.Bind(wx.EVT_TEXT, self.onSelect_show_box,self.show_box)
+        self.Bind(wx.EVT_COMBOBOX, self.onSelect_show_box,self.show_box)
 
         self.mean_type_box = wx.ComboBox(self.panel, -1, 'None', (100*self.GUI_RESOLUTION, 25), wx.DefaultSize,['Fisher','Fisher by polarity','Bingham','None'], wx.CB_DROPDOWN,name="high_type")
         self.mean_type_box.SetFont(font2)
-        self.Bind(wx.EVT_TEXT, self.onSelect_mean_type_box,self.mean_type_box)
+        self.Bind(wx.EVT_COMBOBOX, self.onSelect_mean_type_box,self.mean_type_box)
 
                 
         high_level_window = wx.GridSizer(2, 3, 0, 19*self.GUI_RESOLUTION)

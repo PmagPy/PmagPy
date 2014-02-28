@@ -3,7 +3,7 @@
 #============================================================================================
 # LOG HEADER:
 #============================================================================================
-# Thellier_GUI Version 2.14 02/26/2014
+# Thellier_GUI Version 2.14 02/28/2014
 # minor changes compatibiilty with 64 bit python
 
 # Thellier_GUI Version 2.13 02/25/2014
@@ -343,7 +343,7 @@ class Arai_GUI(wx.Frame):
         #self.specimens_box_label = wx.StaticText(self.panel, label=" ")
         self.specimens_box = wx.ComboBox(self.panel, -1, self.s, (250*self.GUI_RESOLUTION, 25), wx.DefaultSize,self.specimens, wx.CB_DROPDOWN,name="specimen")
         self.specimens_box.SetFont(font2)
-        self.Bind(wx.EVT_TEXT, self.onSelect_specimen,self.specimens_box)
+        self.Bind(wx.EVT_COMBOBOX, self.onSelect_specimen,self.specimens_box)
         
         # buttons to move forward and backwards from specimens        
         self.nextbutton = wx.Button(self.panel, id=-1, label='next',size=(75*self.GUI_RESOLUTION, 25))#,style=wx.BU_EXACTFIT)#, size=(175, 28))
@@ -3809,16 +3809,16 @@ class Arai_GUI(wx.Frame):
                 if len(Grade_A_sorted[sample_or_site].keys())>self.accept_new_parameters['sample_int_n']:
                     aniso_corrections=[]
                     for specimen in Grade_A_sorted[sample_or_site].keys():
-                        AC_correction_factor=0
+                        AC_correction_factor_1=0
                         for k in All_grade_A_Recs[specimen].keys():
                             pars=All_grade_A_Recs[specimen][k]
                             if "AC_anisotropy_type" in pars.keys():
                                 if "AC_WARNING" in pars.keys():
                                     if "TRM" in pars["AC_WARNING"] and pars["AC_anisotropy_type"]== "ATRM" and "alteration" in pars["AC_WARNING"]:
                                         continue
-                                    AC_correction_factor=max(AC_correction_factor,pars["Anisotropy_correction_factor"])
-                        if AC_correction_factor!=0:
-                            aniso_corrections.append(abs(1.-float(AC_correction_factor)))
+                                    AC_correction_factor_1=max(AC_correction_factor,abs(1.-pars["Anisotropy_correction_factor"]))
+                        if AC_correction_factor_1!=0:
+                            aniso_corrections.append(AC_correction_factor_1)
                     if aniso_corrections!=[]:
                         thellier_interpreter_log.write("sample_or_site %s have anisotropy factor mean of %f\n"%(sample_or_site,mean(aniso_corrections)))
 
