@@ -529,7 +529,7 @@ def plotZ(fignum,datablock,angle,s,norm):
             if delta=="":delta=.02*x[-1]
             if recnum%2==0 and len(x)>0: pylab.text(x[-1]-delta,z[-1]+delta,(' '+str(recnum)),fontsize=9)
             recnum+=1
-        elif len(plotrec)==6 and plotrec[5]=='b':
+        elif len(plotrec)>=6 and plotrec[5]=='b':
           #  zb.append(-rec[2])
             zb.append(rec[2])
             xb.append(rec[0])

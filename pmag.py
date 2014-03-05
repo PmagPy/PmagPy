@@ -1341,6 +1341,7 @@ def domean(indata,start,end,calculation_type):
     mpars={}
     datablock=[]
     ind=0
+    start0,end0=start,end
     for rec in indata:
         if len(rec)<6:rec.append('g')
         if rec[5]=='b' and ind==start: 
@@ -1351,13 +1352,13 @@ def domean(indata,start,end,calculation_type):
             start-=1
         if rec[5]=='g':
             datablock.append(rec) # use only good data
-        else:
-            end-=1
+ #       else:
+ #           end-=1
         ind+=1
     mpars["calculation_type"]=calculation_type
     rad=numpy.pi/180.
     if end>len(datablock)-1 or end<start : end=len(datablock)-1
-    control,data,X,Nrec=[],[],[],float(end-start+1)
+    control,data,X,Nrec=[],[],[],len(datablock)
     cm=[0.,0.,0.]
 #
 #  get cartesian coordinates
@@ -1382,8 +1383,8 @@ def domean(indata,start,end,calculation_type):
         mpars["specimen_alpha95"]=fpars["alpha95"]
         mpars["specimen_n"]=fpars["n"]
         mpars["specimen_r"]=fpars["r"]
-        mpars["measurement_step_min"]=datablock[start][0]
-        mpars["measurement_step_max"]=datablock[end][0]
+        mpars["measurement_step_min"]=indata[start0][0]
+        mpars["measurement_step_max"]=indata[end0][0]
         mpars["center_of_mass"]=cm
         mpars["specimen_dang"]=-1
         return mpars
@@ -1425,8 +1426,8 @@ def domean(indata,start,end,calculation_type):
         mpars["specimen_dec"]=Dir[0]
         mpars["specimen_inc"]=Dir[1]
         mpars["specimen_n"]=len(fdata)
-        mpars["measurement_step_min"]=datablock[start][0]
-        mpars["measurement_step_max"]=datablock[end][0]
+        mpars["measurement_step_min"]=indata[start0][0]
+        mpars["measurement_step_max"]=indata[end0][0]
         mpars["center_of_mass"]=cm
         s1=numpy.sqrt(t[0])
         MAD=numpy.arctan(numpy.sqrt(t[1]+t[2])/s1)/rad
@@ -1472,8 +1473,8 @@ def domean(indata,start,end,calculation_type):
     mpars["specimen_mad"]=MAD
     mpars["specimen_n"]=int(Nrec)
     mpars["specimen_dang"]=dang[0]
-    mpars["measurement_step_min"]=datablock[start][0]
-    mpars["measurement_step_max"]=datablock[end][0]
+    mpars["measurement_step_min"]=indata[start0][0]
+    mpars["measurement_step_max"]=indata[end0][0]
     return mpars
 
 def circ(dec,dip,alpha):
