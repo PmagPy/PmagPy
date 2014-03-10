@@ -6508,7 +6508,7 @@ class Arai_GUI(wx.Frame):
             return(F)
 
         """
-        calcualte statisics 
+        calculate statisics 
         """
 
 
@@ -6518,8 +6518,13 @@ class Arai_GUI(wx.Frame):
         # get MagIC mothod codes:
 
         #pars['magic_method_codes']="LP-PI-TRM" # thellier Method
-        
-        
+        import SPD
+        import SPD.spd as spd
+        #def __init__(self, Data,specimen_name,tmin,tmax):
+        print 's:', s
+        print 'specimens:', self.Data.keys()
+        Pint_pars = spd.PintPars(self.Data, str(s), tmin, tmax)
+        print Pint_pars
         t_Arai=self.Data[s]['t_Arai']
         x_Arai=self.Data[s]['x_Arai']
         y_Arai=self.Data[s]['y_Arai']
@@ -8276,6 +8281,7 @@ class Arai_GUI(wx.Frame):
         Data[s]['vds']=vds
         Data[s]['zdata']=zdata
         Data[s]['z_temp']=z_temperatures
+        Data[s]['NRM']=NRM
         
       #--------------------------------------------------------------    
       # Rotate zijderveld plot
