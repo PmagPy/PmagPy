@@ -92,11 +92,13 @@ def main():
         if '-ysig' in sys.argv:Yerrs.append(float(rec[col4]))
     if '-poly' in sys.argv:
           coeffs=numpy.polyfit(X,Y,degr)
+          correl=numpy.corrcoef(X,Y)**2
           polynomial=numpy.poly1d(coeffs)
           xs=numpy.linspace(numpy.min(X),numpy.max(X),10)
           ys=polynomial(xs)
           pylab.plot(xs,ys)
           print polynomial
+          if degr=='1': print 'R-square value =', '%5.4f'%(correl[0,1])
     if sym!='':pylab.scatter(X,Y,marker=sym[1],c=sym[0],s=size)
     if '-xsig' in sys.argv and '-ysig' in sys.argv:
         pylab.errorbar(X,Y,xerr=Xerrs,yerr=Yerrs,fmt=None)
