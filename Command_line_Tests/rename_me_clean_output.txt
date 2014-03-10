@@ -1,0 +1,424 @@
+rhino
+test magic_select.py
+test magic_select.py raised error: This program needs WD option
+-----------
+-----------
+test chi_magic.py
+testing help for chi_magic.py
+589
+Help message successfully called
+-
+CLEANING HOUSE
+-
+Non-WD program about to run:
+chi_magic.py -f /Users/nebula/Python/Tests/chi_magic_example.dat -F None None None None None None None stdin=a
+output is plot
+stdout:IRM-Kappa-2352 1 out of  2
+IRM-OldBlue-1892 2 out of  2
+Skipping susceptibitily - AC field plot as a function of temperature
+enter s[a]ve to save files,  [return] to quit 1  saved in  IRM-OldBlue-1892_1.svg
+3  saved in  IRM-OldBlue-1892_3.svg
+2  saved in  IRM-OldBlue-1892_2.svg
+
+no files were created
+files updated:  {'IRM-OldBlue-1892_2.svg': <FoundFile ./new-test-output:IRM-OldBlue-1892_2.svg>, 'IRM-OldBlue-1892_3.svg': <FoundFile ./new-test-output:IRM-OldBlue-1892_3.svg>, 'IRM-OldBlue-1892_1.svg': <FoundFile ./new-test-output:IRM-OldBlue-1892_1.svg>}
+Checking stdout output
+chi_magic.py output as expected
+-
+Testing: chi_magic.py with incorrect short output, expecting error
+Checking stdout output
+Output was: 
+wrong
+Output should have been: 
+{'IRM-OldBlue-1892_2.svg': <FoundFile ./new-test-output:IRM-OldBlue-1892_2.svg>, 'IRM-OldBlue-1892_3.svg': <FoundFile ./new-test-output:IRM-OldBlue-1892_3.svg>, 'IRM-OldBlue-1892_1.svg': <FoundFile ./new-test-output:IRM-OldBlue-1892_1.svg>}
+Error raised
+Error expected
+-
+test measurements_normalize_test.py
+testing help for measurements_normalize.py
+505
+Help message successfully called
+-
+CLEANING HOUSE
+-
+WD program about to run:
+('measurements_normalize.py', '-WD', '/Users/nebula/Python/Tests', '-f', 'measurements_normalize_example.dat', '-F', 'measurements_normalize_output_new.out', '-fsp', 'measurements_normalize_specimens_weight.txt', None, None, None, None, 'stdin=None')
+stdout:Data saved in  /Users/nebula/Python/Tests/measurements_normalize_output_new.out
+
+output is file: measurements_normalize_output_new.out
+checking file output, using: measurements_normalize_output_new.out AND measurements_normalize_output_correct.out
+parsing file (by word): measurements_normalize_output_new.out
+test measurements_normalize_test.py raised error: [Errno 2] No such file or directory: 'measurements_normalize_output_new.out'
+-----------
+-----------
+test pt_rot.py
+testing help for pt_rot.py
+763
+Help message successfully called
+-
+CLEANING HOUSE
+-
+WD program about to run:
+('pt_rot.py', '-WD', '/Users/nebula/Python/Tests', '-f', 'pt_rot_example.dat', '-F', 'pt_rot_results_new.out', None, None, None, None, None, None, 'stdin=None')
+stdout:
+output is file: pt_rot_results_new.out
+checking file output, using: pt_rot_results_new.out AND pt_rot_results_correct.out
+parsing file (by word): pt_rot_results_new.out
+test pt_rot.py raised error: [Errno 2] No such file or directory: 'pt_rot_results_new.out'
+-----------
+-----------
+test dayplot_magic.py
+testing help for dayplot_magic.py
+548
+Help message successfully called
+-
+CLEANING HOUSE
+-
+WD program about to run:
+('dayplot_magic.py', '-WD', '/Users/nebula/Python/Tests', '-f', 'dayplot_magic_example.dat', '-F', None, None, None, None, None, None, None, 'stdin=a')
+output is plot
+stdout: S[a]ve to save plots, return to quit:  4  saved in  LO:_unknown_SI:__SA:__SP:__TY:_bcr1-bcr2_.svg
+3  saved in  LO:_unknown_SI:__SA:__SP:__TY:_S-Bcr_.svg
+1  saved in  LO:_unknown_SI:__SA:__SP:__TY:_day_.svg
+2  saved in  LO:_unknown_SI:__SA:__SP:__TY:_S-Bc_.svg
+
+no files were created
+files updated:  {'LO:_unknown_SI:__SA:__SP:__TY:_day_.svg': <FoundFile ./new-test-output:LO:_unknown_SI:__SA:__SP:__TY:_day_.svg>, 'LO:_unknown_SI:__SA:__SP:__TY:_bcr1-bcr2_.svg': <FoundFile ./new-test-output:LO:_unknown_SI:__SA:__SP:__TY:_bcr1-bcr2_.svg>, 'LO:_unknown_SI:__SA:__SP:__TY:_S-Bc_.svg': <FoundFile ./new-test-output:LO:_unknown_SI:__SA:__SP:__TY:_S-Bc_.svg>, 'LO:_unknown_SI:__SA:__SP:__TY:_S-Bcr_.svg': <FoundFile ./new-test-output:LO:_unknown_SI:__SA:__SP:__TY:_S-Bcr_.svg>}
+Checking stdout output
+Output was: 
+{'LO:_unknown_SI:__SA:__SP:__TY:_day_.svg': <FoundFile ./new-test-output:LO:_unknown_SI:__SA:__SP:__TY:_day_.svg>, 'LO:_unknown_SI:__SA:__SP:__TY:_bcr1-bcr2_.svg': <FoundFile ./new-test-output:LO:_unknown_SI:__SA:__SP:__TY:_bcr1-bcr2_.svg>, 'LO:_unknown_SI:__SA:__SP:__TY:_S-Bc_.svg': <FoundFile ./new-test-output:LO:_unknown_SI:__SA:__SP:__TY:_S-Bc_.svg>, 'LO:_unknown_SI:__SA:__SP:__TY:_S-Bcr_.svg': <FoundFile ./new-test-output:LO:_unknown_SI:__SA:__SP:__TY:_S-Bcr_.svg>}
+Output should have been: 
+{'LO:_unknown_SI:__SA:__SP:__TY:_day_.svg': <FoundFile ./new-test-output:LO:_unknown_SI:__SA:__SP:__TY:_day_.svg>, 'LO:_unknown_SI:__SA:__SP:__TY:_S-Bc_.svg': <FoundFile ./new-test-output:LO:_unknown_SI:__SA:__SP:__TY:_S-Bc_.svg>, 'LO:_unknown_SI:__SA:__SP:__TY:_S-Bcr_.svg': <FoundFile ./new-test-output:LO:_unknown_SI:__SA:__SP:__TY:_S-Bcr_.svg>}
+Error raised
+test dayplot_magic.py raised error: dayplot_magic.py produced incorrect output
+-----------
+-----------
+test revtest.py
+testing help for revtest.py
+509
+Help message successfully called
+-
+CLEANING HOUSE
+-
+Non-WD program about to run:
+revtest.py -f /Users/nebula/Python/Tests/revtest_example.dat -F None None None None None None None stdin=a
+output is plot
+stdout:doing first mode, be patient
+doing second mode, be patient
+s[a]ve plots, [q]uit: 2  saved in  REV_Y.svg
+1  saved in  REV_X.svg
+3  saved in  REV_Z.svg
+
+no files were created
+files updated:  {'REV_Z.svg': <FoundFile ./new-test-output:REV_Z.svg>, 'REV_Y.svg': <FoundFile ./new-test-output:REV_Y.svg>, 'REV_X.svg': <FoundFile ./new-test-output:REV_X.svg>}
+Checking stdout output
+revtest.py output as expected
+-
+Testing: revtest.py with incorrect short output, expecting error
+Checking stdout output
+Output was: 
+not right
+Output should have been: 
+{'REV_Z.svg': <FoundFile ./new-test-output:REV_Z.svg>, 'REV_Y.svg': <FoundFile ./new-test-output:REV_Y.svg>, 'REV_X.svg': <FoundFile ./new-test-output:REV_X.svg>}
+Error raised
+Error expected
+-
+test combine_magic_test.py
+checking file output, using: combine_magic_output_new.out AND combine_magic_output_correct.out
+parsing file (by word): combine_magic_output_new.out
+test combine_magic_test.py raised error: [Errno 2] No such file or directory: 'combine_magic_output_new.out'
+-----------
+-----------
+test agm_magic.py
+testing help for agm_magic.py
+2206
+Help message successfully called
+-
+CLEANING HOUSE
+-
+WD program about to run:
+('agm_magic.py', '-WD', '/Users/nebula/Python/Tests', '-f', 'agm_magic_example.agm', '-F', 'agm_magic_output_new.out', '-spn', 'myspec', '--usr', 'Lima Tango', '-u', 'cgs', 'stdin=None')
+stdout:specimen name put in  /Users/nebula/Python/Tests/er_specimens.txt
+results put in  /Users/nebula/Python/Tests/agm_magic_output_new.out
+
+output is file: agm_magic_output_new.out
+checking file output, using: agm_magic_output_new.out AND agm_magic_output_correct.out
+parsing file (by word): agm_magic_output_new.out
+test agm_magic.py raised error: [Errno 2] No such file or directory: 'agm_magic_output_new.out'
+-----------
+-----------
+test common_mean.py
+testing help for common_mean.py
+543
+Help message successfully called
+-
+CLEANING HOUSE
+-
+Non-WD program about to run:
+common_mean.py -f /Users/nebula/Python/Tests/common_mean_ex_file1.dat -F None -f2 /Users/nebula/Python/Tests/common_mean_ex_file2.dat None None None None stdin=a
+output is plot
+stdout:Doing first set of directions, please be patient..
+Doing second  set of directions, please be patient..
+S[a]ve plots, <Return> to quit 2  saved in  CD_Y.svg
+1  saved in  CD_X.svg
+3  saved in  CD_Z.svg
+
+no files were created
+files updated:  {'CD_X.svg': <FoundFile ./new-test-output:CD_X.svg>, 'CD_Y.svg': <FoundFile ./new-test-output:CD_Y.svg>, 'CD_Z.svg': <FoundFile ./new-test-output:CD_Z.svg>}
+Checking stdout output
+common_mean.py output as expected
+-
+Testing: common_mean.py with incorrect short output, expecting error
+Checking stdout output
+Output was: 
+wrong
+Output should have been: 
+{'CD_X.svg': <FoundFile ./new-test-output:CD_X.svg>, 'CD_Y.svg': <FoundFile ./new-test-output:CD_Y.svg>, 'CD_Z.svg': <FoundFile ./new-test-output:CD_Z.svg>}
+Error raised
+Error expected
+-
+Successfully updated file
+test lnp_magic.py
+CLEANING HOUSE
+-
+Testing lnp_magic.py
+parsing file (by word): /Users/nebula/Python/Tests/lnp_magic_output_correct.txt
+finished parsing file: /Users/nebula/Python/Tests/lnp_magic_output_correct.txt
+test lnp_magic.py raised error: -F option doesn't work
+-----------
+-----------
+test mk_redo.py
+testing help for mk_redo.py
+649
+Help message successfully called
+-
+CLEANING HOUSE
+-
+WD program about to run:
+('mk_redo.py', '-WD', '/Users/nebula/Python/Tests', '-f', 'mk_redo_example.txt', '-F', 'mk_redo_results_new.out', None, None, None, None, None, None, 'stdin=None')
+stdout:
+output is file: mk_redo_results_new.out
+checking file output, using: mk_redo_results_new.out AND mk_redo_results_correct.out
+parsing file (by word): mk_redo_results_new.out
+test mk_redo.py raised error: [Errno 2] No such file or directory: 'mk_redo_results_new.out'
+-----------
+-----------
+test plot_magic_keys.py
+test plot_magic_keys.py raised error: raw_input at the end
+-----------
+-----------
+test HUJI_magic.py
+test HUJI_magic.py raised error: initializing variables were removed
+-----------
+-----------
+test s_magic.py
+testing help for s_magic.py
+2028
+Help message successfully called
+-
+CLEANING HOUSE
+-
+WD program about to run:
+('s_magic.py', '-WD', '/Users/nebula/Python/Tests', '-f', 's_magic_example.dat', '-F', 's_magic_results_new.out', '-loc', 'Camelot', '-usr', 'Merlin', None, None, 'stdin=None')
+stdout:data saved in  /Users/nebula/Python/Tests/s_magic_results_new.out
+
+output is file: s_magic_results_new.out
+checking file output, using: s_magic_results_new.out AND s_magic_results_correct.out
+parsing file (by word): s_magic_results_new.out
+test s_magic.py raised error: [Errno 2] No such file or directory: 's_magic_results_new.out'
+-----------
+-----------
+test k15.py
+testing help for k15_s.py
+771
+Help message successfully called
+-
+CLEANING HOUSE
+-
+Non-WD program about to run:
+k15_s.py -f /Users/nebula/Python/Tests/k15_s_example.dat -F /Users/nebula/Python/Tests/k15_s_results_new.out None None None None None None stdin=None
+stdout:
+output is file: /Users/nebula/Python/Tests/k15_s_results_new.out
+checking file output, using: /Users/nebula/Python/Tests/k15_s_results_new.out AND k15_s_results_correct.out
+parsing file (by word): /Users/nebula/Python/Tests/k15_s_results_new.out
+finished parsing file: /Users/nebula/Python/Tests/k15_s_results_new.out
+finished parsing file /Users/nebula/Python/Tests/k15_s_results_new.out
+['0.33146986', '0.33413991', '0.33439023', '0.00075095', '-0.00083439', '-0.00016688', '0.00008618', '0.33335925', '0.33335925', '0.33328149', '-0.00155521', '-0.00132193', '0.00116641', '0.00017193', '0.33097634', '0.33573565', '0.33328801', '0.00163177', '0.00013598', '0.00000000', '0.00018131', '0.33150029', '0.33465420', '0.33384551', '-0.00064696', '-0.00056609', '-0.00048522', '0.00014863', '0.33121986', '0.33521197', '0.33356816', '-0.00046966', '-0.00046966', '-0.00086104', '0.00018376', ...
+parsing file (by word): k15_s_results_correct.out
+finished parsing file: k15_s_results_correct.out
+finished parsing file k15_s_results_correct.out
+['0.33146986', '0.33413991', '0.33439023', '0.00075095', '-0.00083439', '-0.00016688', '0.00008618', '0.33335925', '0.33335925', '0.33328149', '-0.00155521', '-0.00132193', '0.00116641', '0.00017193', '0.33097634', '0.33573565', '0.33328801', '0.00163177', '0.00013598', '0.00000000', '0.00018131', '0.33150029', '0.33465420', '0.33384551', '-0.00064696', '-0.00056609', '-0.00048522', '0.00014863', '0.33121986', '0.33521197', '0.33356816', '-0.00046966', '-0.00046966', '-0.00086104', '0.00018376',...
+checking output (in list form)
+output_list:         ['0.33146986', '0.33413991', '0.33439023', '0.00075095', '-0.00083439', '-0.00016688', '0.00008618', '0.33335925', '0.33335925', '0.33328149', '-0.00155521', '-0.00132193', '0.00116641', '0.00017193', ...
+correct_output_list: ['0.33146986', '0.33413991', '0.33439023', '0.00075095', '-0.00083439', '-0.00016688', '0.00008618', '0.33335925', '0.33335925', '0.33328149', '-0.00155521', '-0.00132193', '0.00116641', '0.00017193', ....
+Comparing two lists
+0.33146986     0.33146986
+0.33413991     0.33413991
+0.33439023     0.33439023
+0.00075095     0.00075095
+-0.00083439     -0.00083439
+-0.00016688     -0.00016688
+0.00008618     0.00008618
+0.33335925     0.33335925
+0.33335925     0.33335925
+0.33328149     0.33328149
+-0.00155521     -0.00155521
+-0.00132193     -0.00132193
+0.00116641     0.00116641
+0.00017193     0.00017193
+0.33097634     0.33097634
+0.33573565     0.33573565
+0.33328801     0.33328801
+0.00163177     0.00163177
+0.00013598     0.00013598
+0.00000000     0.00000000
+0.00018131     0.00018131
+0.33150029     0.33150029
+0.33465420     0.33465420
+0.33384551     0.33384551
+-0.00064696     -0.00064696
+-0.00056609     -0.00056609
+-0.00048522     -0.00048522
+0.00014863     0.00014863
+0.33121986     0.33121986
+0.33521197     0.33521197
+0.33356816     0.33356816
+-0.00046966     -0.00046966
+-0.00046966     -0.00046966
+-0.00086104     -0.00086104
+0.00018376     0.00018376
+0.33179570     0.33179570
+0.33405602     0.33405602
+0.33414828     0.33414828
+-0.00009226     -0.00009226
+-0.00004613     -0.00004613
+-0.00027677     -0.00027677
+0.00010474     0.00010474
+0.33243163     0.33243163
+0.33439898     0.33439898
+0.33316939     0.33316939
+0.00106564     0.00106564
+0.00032789     0.00032789
+0.00000000     0.00000000
+0.00017624     0.00017624
+0.33175478     0.33175478
+0.33512715     0.33512715
+0.33311808     0.33311808
+0.00078928     0.00078928
+0.00000000     0.00000000
+-0.00007175     -0.00007175
+0.00011116     0.00011116
+Lists were the same
+k15_s.py produced correct output
+Testing: k15_s.py with incorrect file, expecting error
+checking file output, using: k15_s_results_incorrect.out AND k15_s_results_correct.out
+parsing file (by word): k15_s_results_incorrect.out
+finished parsing file: k15_s_results_incorrect.out
+finished parsing file k15_s_results_incorrect.out
+['0.33146986', '0.33413991', '0.33439023', '0.00075095', '-0.00083439', '-0.00016688', '0.00008618', '0.33335925', '0.33335925', '0.33328149', '-0.00155521', '-0.00132193', '0.00116641', '0.00017193', '0.33097634', '0.33573565', '0.33328801', '0.00163177', '0.00013598', '0.00000000', '0.00018131', '0.33150029', '0.33465420', '0.33384551', '-0.00064696', '-0.00056609', '-0.00048522', '0.00014863', '0.33121986', '0.33521197', '0.33356816', '-0.00046966', '-0.00046966', '-0.00086104', '0.00018376', ...
+parsing file (by word): k15_s_results_correct.out
+finished parsing file: k15_s_results_correct.out
+finished parsing file k15_s_results_correct.out
+['0.33146986', '0.33413991', '0.33439023', '0.00075095', '-0.00083439', '-0.00016688', '0.00008618', '0.33335925', '0.33335925', '0.33328149', '-0.00155521', '-0.00132193', '0.00116641', '0.00017193', '0.33097634', '0.33573565', '0.33328801', '0.00163177', '0.00013598', '0.00000000', '0.00018131', '0.33150029', '0.33465420', '0.33384551', '-0.00064696', '-0.00056609', '-0.00048522', '0.00014863', '0.33121986', '0.33521197', '0.33356816', '-0.00046966', '-0.00046966', '-0.00086104', '0.00018376',...
+checking output (in list form)
+output_list:         ['0.33146986', '0.33413991', '0.33439023', '0.00075095', '-0.00083439', '-0.00016688', '0.00008618', '0.33335925', '0.33335925', '0.33328149', '-0.00155521', '-0.00132193', '0.00116641', '0.00017193', ...
+correct_output_list: ['0.33146986', '0.33413991', '0.33439023', '0.00075095', '-0.00083439', '-0.00016688', '0.00008618', '0.33335925', '0.33335925', '0.33328149', '-0.00155521', '-0.00132193', '0.00116641', '0.00017193', ....
+Comparing two lists
+0.33146986     0.33146986
+0.33413991     0.33413991
+0.33439023     0.33439023
+0.00075095     0.00075095
+-0.00083439     -0.00083439
+-0.00016688     -0.00016688
+0.00008618     0.00008618
+0.33335925     0.33335925
+0.33335925     0.33335925
+0.33328149     0.33328149
+-0.00155521     -0.00155521
+-0.00132193     -0.00132193
+0.00116641     0.00116641
+0.00017193     0.00017193
+0.33097634     0.33097634
+0.33573565     0.33573565
+0.33328801     0.33328801
+0.00163177     0.00163177
+0.00013598     0.00013598
+0.00000000     0.00000000
+0.00018131     0.00018131
+0.33150029     0.33150029
+0.33465420     0.33465420
+0.33384551     0.33384551
+-0.00064696     -0.00064696
+-0.00056609     -0.00056609
+-0.00048522     -0.00048522
+0.00014863     0.00014863
+0.33121986     0.33121986
+0.33521197     0.33521197
+0.33356816     0.33356816
+-0.00046966     -0.00046966
+-0.00046966     -0.00046966
+-0.00086104     -0.00086104
+0.00018376     0.00018376
+0.33179570     0.33179570
+0.33405602     0.33405602
+0.33414828     0.33414828
+-0.00009226     -0.00009226
+Output contained:    0.00004613
+but should have had: -0.00004613
+Error raised
+Error expected
+-
+CLEANING HOUSE
+-
+Non-WD program about to run:
+k15_s.py -f /Users/nebula/Python/Tests/k15_s_example.dat -F /Users/nebula/Python/Tests/k15_s_results_other_new.out -crd g t None None None stdin=None
+stdout:
+output is file: /Users/nebula/Python/Tests/k15_s_results_other_new.out
+checking file output, using: /Users/nebula/Python/Tests/k15_s_results_other_new.out AND k15_s_results_new.out
+parsing file (by word): /Users/nebula/Python/Tests/k15_s_results_other_new.out
+finished parsing file: /Users/nebula/Python/Tests/k15_s_results_other_new.out
+finished parsing file /Users/nebula/Python/Tests/k15_s_results_other_new.out
+['0.33412680', '0.33282733', '0.33304587', '-0.00015289', '0.00124840', '0.00135721', '0.00008618', '0.33556300', '0.33198264', '0.33245432', '0.00087259', '0.00024141', '0.00096166', '0.00017193', '0.33584908', '0.33140627', '0.33274469', '0.00131844', '0.00118816', '0.00002987', '0.00018131', '0.33479753', '0.33142531', '0.33377719', '-0.00047493', '0.00049541', '0.00044303', '0.00014863', '0.33505613', '0.33114845', '0.33379540', '-0.00101375', '0.00028536', '0.00034852', '0.00018376', '0.334 ...
+parsing file (by word): k15_s_results_new.out
+test k15.py raised error: [Errno 2] No such file or directory: 'k15_s_results_new.out'
+-----------
+-----------
+test convert2unix.py
+stat1:   16777217 9669908 -rw-r--r-- 1 nebula staff 0 11 "Mar 10 10:50:42 2014" "Mar 10 10:50:42 2014" "Mar 10 10:50:42 2014" "Mar 10 10:50:42 2014" 4096 8 0 convert2unix_example.dat
+
+stat2:  16777217 9669908 -rw-r--r-- 1 nebula staff 0 11 "Mar 10 10:50:42 2014" "Mar 10 10:50:42 2014" "Mar 10 10:50:42 2014" "Mar 10 10:50:42 2014" 4096 8 0 convert2unix_example.dat
+
+convert2unix did not affect target file
+test convert2unix.py raised error: convert2unix did not affect target file
+-----------
+-----------
+test curie.py
+testing help for curie.py
+862
+Help message successfully called
+-
+CLEANING HOUSE
+-
+Non-WD program about to run:
+curie.py -f /Users/nebula/Python/Tests/curie_example.dat -F /Users/nebula/Python/Tests/curie_results_new.out None None None None None None stdin=a
+output is stdout: 
+second deriative maximum is at T=205
+ S[a]ve to save plot, [q]uit, Return to continue:  4  saved in  Curie.svg
+3  saved in  der2.svg
+2  saved in  der1.svg
+1  saved in  M_T.svg
+
+Checking stdout output
+Output was: 
+second deriative maximum is at T=205
+ S[a]ve to save plot, [q]uit, Return to continue:  4  saved in  Curie.svg
+3  saved in  der2.svg
+2  saved in  der1.svg
+1  saved in  M_T.svg
+
+Output should have been: 
+curie_results_correct.txt
+Error raised
+test curie.py raised error: curie.py still has a lone raw_input() at its end...
+-----------
+-----------

@@ -1,0 +1,289 @@
+rhino
+test hysteresis_magic.py
+parsing args
+Testing hysteresis_magic.py
+about to run WD program
+('hysteresis_magic.py', '-WD', '/Users/nebula/Python/Tests', '-f', 'hysteresis_magic_example.dat', '-F', 'hysteresis_magic_rmag_new.out', None, None, '-P', None, None, None, 'stdin=q')
+stdout: hysteresis parameters saved in  /Users/nebula/Python/Tests/hysteresis_magic_rmag_new.out
+remanence parameters saved in  /Users/nebula/Python/Tests/rmag_remanence.txt
+
+files created: {}
+files updated: {}
+None
+hysteresis_magic_remanence_new.out
+about to run WD program
+('hysteresis_magic.py', '-WD', '/Users/nebula/Python/Tests', '-f', 'hysteresis_magic_example.dat', '-F', 'hysteresis_magic_rmag_new.out', None, 'hysteresis_magic_remanence_new.out', '-P', None, None, None, 'stdin=q')
+stdout: hysteresis parameters saved in  /Users/nebula/Python/Tests/hysteresis_magic_rmag_new.out
+remanence parameters saved in  /Users/nebula/Python/Tests/rmag_remanence.txt
+
+files created: {}
+files updated: {}
+ran program: hysteresis_magic.py
+checking outfile1 against correctfile1
+testing hysteresis_magic.py: hysteresis_magic_rmag_new.out against reference file: hysteresis_magic_rmag_correct.txt
+NOT expecting an error
+parsing file (by word): hysteresis_magic_rmag_new.out
+test hysteresis_magic.py raised error: [Errno 2] No such file or directory: 'hysteresis_magic_rmag_new.out'
+-----------
+-----------
+test IODP_csv.py
+parsing args
+
+    NAME
+        IODP_csv_magic.py
+ 
+    DESCRIPTION
+        converts ODP LIMS sample format files to magic_measurements format files
+
+
+    SYNTAX
+        IODP_csv_magic.py [command line options]
+
+    OPTIONS
+        -h: prints the help message and quits.
+        -f FILE: specify input .csv file, default is all in directory
+        -F FILE: specify output  measurements file, default is magic_measurements.txt
+        -Fsp FILE: specify output er_specimens.txt file, default is er_specimens.txt
+        -Fsa FILE: specify output er_samples.txt file, default is er_samples.txt
+        -Fsi FILE: specify output er_sites.txt file, default is er_sites.txt
+        -A : don't average replicate measurements
+    INPUTS
+ 	 IODP .csv file format exported from LIMS database
+    
+
+about to run WD program
+('IODP_csv_magic.py', '-WD', '/Users/nebula/Python/Tests', '-f', 'IODP_csv_example.csv', '-F', 'IODP_magic_measurements_new.out', '-Fsp', 'IODP_er_specimens_new.out', '-Fsa', 'IODP_er_samples_new.out', '-Fsi', 'IODP_er_sites_new.out', 'stdin=None')
+STDOUT: dir_path /Users/nebula/Python/Tests
+filelist ['/Users/nebula/Python/Tests/IODP_csv_example.csv']
+processing:  /Users/nebula/Python/Tests/IODP_csv_example.csv
+specimens stored in  /Users/nebula/Python/Tests/IODP_er_specimens_new.out
+samples stored in  /Users/nebula/Python/Tests/IODP_er_samples_new.out
+sites stored in  /Users/nebula/Python/Tests/IODP_er_sites_new.out
+averaging: records  1 3
+averaging: records  4 6
+318-U1359B-003H_5A-0.00 started with  6  ending with  2
+Averaged replicate measureme .... 
+ -U1359B-018H_3A-80.00 started with  3  ending with  2
+Averaged replicate measurements
+averaging: records  1 2
+318-U1359B-018H_3A-85.00 started with  3  ending with  2
+Averaged replicate measurements
+averaging: records  1 2
+318-U1359B-018H_3A-90.00 started with  3  ending with  2
+Averaged replicate measurements
+averaging: records  1 2
+318-U1359B-018H_3A-95.00 started with  3  ending with  2
+Averaged replicate measurements
+data stored in  /Users/nebula/Python/Tests/IODP_magic_measurements_new.out
+
+files created: {}
+files updated: {}
+ran program: IODP_csv_magic.py
+checking outfile1 against correctfile1
+testing IODP_csv_magic.py: IODP_magic_measurements_new.out against reference file: IODP_magic_measurements_correct.out
+NOT expecting an error
+parsing file (by word): IODP_magic_measurements_new.out
+test IODP_csv.py raised error: [Errno 2] No such file or directory: 'IODP_magic_measurements_new.out'
+-----------
+-----------
+None
+parsing args
+about to run WD program
+('SUFAR4-asc_magic.py', '-WD', '/Users/nebula/Python/Tests', '-f', 'sufar4-asc_magic_example.txt', '-F', 'sufar4_magic_measurements_new.out', '-Fa', 'sufar4_rmag_anisotropy_new.out', '-loc', 'U1356A', '-spc', '0', 'stdin=None')
+stdout: anisotropy tensors put in  /Users/nebula/Python/Tests/sufar4_rmag_anisotropy_new.out
+bulk measurements put in  /Users/nebula/Python/Tests/sufar4_magic_measurements_new.out
+specimen info put in  /Users/nebula/Python/Tests/er_specimens.txt
+sample info put in  /Users/nebula/Python/Tests/er_samples.txt
+site info put in  /Users/nebula/Python/Tests/er_sites.txt
+
+         You can now import your data into the Magic Console and complete data entry, 
+         for example the site locations, lithologies, etc. plotting can be done with aniso_magic.py
+    
+
+files created: {}
+files updated: {}
+ran program: SUFAR4-asc_magic.py
+checking outfile1 against correctfile1
+testing SUFAR4-asc_magic.py: sufar4_magic_measurements_new.out against reference file: sufar4_magic_measurements_correct.out
+NOT expecting an error
+parsing file (by word): sufar4_magic_measurements_new.out
+None raised error: [Errno 2] No such file or directory: 'sufar4_magic_measurements_new.out'
+-----------
+-----------
+test parse_measurements_test()
+Testing parse_measurements.py
+parsing args
+about to run WD program
+('parse_measurements.py', '-WD', '/Users/nebula/Python/Tests', '-f', 'parse_measurements_example.dat', '-Fsp', 'parse_measurements_er_specimens_new.out', '-Fin', 'parse_measurements_magic_instruments_new.out', None, None, None, None, 'stdin=None')
+STDOUT: site record in er_sites table not found for:  318-U1359A-002H-1-W-109
+site record in er_sites table not found for:  318-U1359A-002H-2-W-135
+site record in er_sites table not found for:  318-U1359A-002H-3-W-45
+site record in er_sites table not found for:  318-U1359A-002H-4-W-65
+site record in er_sites table not found for:  318-U1359A-002H-6-W-7
+site record in er_sites table not found for:  318-U1359A-003H-1-W-50
+site record in er_sites table not found for:  318-U1359A-003H-2-W-37
+site record in e .... 
+ er_sites table not found for:  318-U1359A-018X-6-W-57
+site record in er_sites table not found for:  318-U1359A-019X-4-W-40
+site record in er_sites table not found for:  318-U1359A-021X-4-W-18
+site record in er_sites table not found for:  318-U1359A-022X-2-W-95
+ Er_Specimen data (with updated info from site if necessary)  saved in  /Users/nebula/Python/Tests/parse_measurements_er_specimens_new.out
+ Instruments data saved in  /Users/nebula/Python/Tests/parse_measurements_magic_instruments_new.out
+
+files created: {}
+files updated: {}
+ran program: parse_measurements.py
+checking outfile1 against correctfile1
+testing parse_measurements.py: parse_measurements_er_specimens_new.out against reference file: parse_measurements_er_specimens_correct.out
+NOT expecting an error
+parsing file (by word): parse_measurements_er_specimens_new.out
+test parse_measurements_test() raised error: [Errno 2] No such file or directory: 'parse_measurements_er_specimens_new.out'
+-----------
+-----------
+test thellier_magic_redo.py
+Testing thellier_magic_redo.py
+parsing args
+About to run: thellier_magic_redo.py -WD /Users/nebula/Python/Tests -f thellier_magic_redo_example.dat -fnl thellier_magic_redo_measurements.txt -fre thellier_magic_redo2.txt -fan thellier_magic_redo_rmag_anisotropy.txt -F thellier_magic_redo_specimens_new.out -Fnl thellier_magic_redo_NLT_specimens_new.out -Fac thellier_magic_redo_AC_specimens_new.out -NLT -ANI
+STDOUT: Processing  112  specimens - please wait 
+Optimization terminated successfully.
+         Current function value: 0.000000
+         Iterations: 68
+         Function evaluations: 140
+Optimization terminated successfully.
+         Current function value: 0.000000
+         Iterations: 48
+         Function evaluations: 118
+s1p1-01  Banc=  85.5544088616
+WARNING: NO FTEST ON ANISOTROPY PERFORMED BECAUSE OF MISSING SIGMA - DOING CORRECTION ANYWAY
+Optimization terminated successfully.
+         Current function value: 0.000000
+         Iterations: 66
+         Function evaluations: 144
+Optimization terminated successfully.
+         Current function value: 0.000000
+         Iterations: 49
+         Funct
+ .... 
+nated successfully.
+         Current function value: 0.000000
+         Iterations: 65
+         Function evaluations: 147
+Optimization terminated successfully.
+         Current function value: 0.000000
+         Iterations: 48
+         Function evaluations: 112
+s2s8-07  Banc=  180.082563667
+WARNING: NO FTEST ON ANISOTROPY PERFORMED BECAUSE OF MISSING SIGMA - DOING CORRECTION ANYWAY
+uncorrected thellier data saved in:  /Users/nebula/Python/Tests/thellier_magic_redo_specimens_new.out
+anisotropy corrected data saved in:  /Users/nebula/Python/Tests/thellier_magic_redo_AC_specimens_new.out
+non-linear TRM corrected data saved in:  /Users/nebula/Python/Tests/thellier_magic_redo_NLT_specimens_new.out
+
+FILES UPDATED: {}
+FILES CREATED: {}
+checking outfile1 against correctfile1
+testing thellier_magic_redo.py: thellier_magic_redo_NLT_specimens_new.out against reference file: thellier_magic_redo_NLT_specimens_correct.txt
+NOT expecting an error
+parsing file (by word): thellier_magic_redo_NLT_specimens_new.out
+test thellier_magic_redo.py raised error: [Errno 2] No such file or directory: 'thellier_magic_redo_NLT_specimens_new.out'
+-----------
+-----------
+test kly4s_magic.py
+Testing kly4s_magic.py
+parsing args
+anisotropy data saved in  /Users/nebula/Python/Tests/kly4s_rmag_anisotropy_new.out
+measurement data saved in  /Users/nebula/Python/Tests/kly4s_magic_measurements_new.out
+specimen information  saved in new  /Users/nebula/Python/Tests/er_specimens.txt
+
+Renamed er_specimens.txt to kly4s_er_specimens.txt
+checking outfile1 against correctfile1
+testing kly4s_magic.py: kly4s_magic_measurements_new.out against reference file: kly4s_magic_measurements_correct.txt
+NOT expecting an error
+parsing file (by word): kly4s_magic_measurements_new.out
+test kly4s_magic.py raised error: [Errno 2] No such file or directory: 'kly4s_magic_measurements_new.out'
+-----------
+-----------
+test k15_magic.py
+Testing k15_magic.py
+parsing args
+Data saved to:  /Users/nebula/Python/Tests/k15_magic_er_samples_new.out /Users/nebula/Python/Tests/k15_magic_rmag_anisotropy_new.out /Users/nebula/Python/Tests/rmag_results.txt /Users/nebula/Python/Tests/k15_magic_measurements_new.out
+
+checking outfile1 against correctfile1
+testing k15_magic.py: k15_magic_er_samples_new.out against reference file: k15_magic_er_samples_correct.txt
+NOT expecting an error
+parsing file (by word): k15_magic_er_samples_new.out
+test k15_magic.py raised error: [Errno 2] No such file or directory: 'k15_magic_er_samples_new.out'
+-----------
+-----------
+None
+parsing args
+about to run WD program
+('PMD_magic.py', '-WD', '/Users/nebula/Python/Tests', '-f', 'PMD_example.pmd', '-F', 'PMD_out_new.out', '-Fsa', 'PMD_new_er_samples.txt', '-mcd', 'SO-MAG', None, None, 'stdin=None')
+stdout: sample information will be appended to  /Users/nebula/Python/Tests/PMD_new_er_samples.txt
+results put in  /Users/nebula/Python/Tests/PMD_out_new.out
+sample orientations put in  /Users/nebula/Python/Tests/PMD_new_er_samples.txt
+
+files created: {}
+files updated: {}
+ran program: PMD_magic.py
+checking outfile1 against correctfile1
+testing PMD_magic.py: PMD_out_new.out against reference file: PMD_out_correct.out
+NOT expecting an error
+parsing file (by word): PMD_out_new.out
+None raised error: [Errno 2] No such file or directory: 'PMD_out_new.out'
+-----------
+-----------
+testing aarm_magic.py
+Testing aarm_magic
+parsing args
+about to run WD program
+('aarm_magic.py', '-WD', '/Users/nebula/Python/Tests', '-f', 'aarm_measurements.txt', '-Fa', 'aarm_magic_anisotropy_new.out', '-Fr', 'aarm_magic_results_new.out', None, None, None, None, 'stdin=None')
+stdout: specimen tensor elements stored in  /Users/nebula/Python/Tests/aarm_magic_anisotropy_new.out
+specimen statistics and eigenparameters stored in  /Users/nebula/Python/Tests/aarm_magic_results_new.out
+
+files created: {}
+files updated: {}
+ran program: aarm_magic.py
+checking outfile1 against correctfile1
+testing aarm_magic.py: aarm_magic_anisotropy_new.out against reference file: aarm_magic_anisotropy_correct.out
+NOT expecting an error
+parsing file (by word): aarm_magic_anisotropy_new.out
+testing aarm_magic.py raised error: [Errno 2] No such file or directory: 'aarm_magic_anisotropy_new.out'
+-----------
+-----------
+test atrm_magic.py
+Testing atrm_magic.py:
+parsing args
+about to run WD program
+('atrm_magic.py', '-WD', '/Users/nebula/Python/Tests', '-f', 'atrm_magic_measurements.txt', '-Fa', 'atrm_anisotropy_new.out', '-Fr', 'atrm_results_new.out', None, None, None, None, 'stdin=None')
+stdout: specimen tensor elements stored in  /Users/nebula/Python/Tests/atrm_anisotropy_new.out
+specimen statistics and eigenparameters stored in  /Users/nebula/Python/Tests/atrm_results_new.out
+
+files created: {}
+files updated: {}
+ran program: atrm_magic.py
+checking outfile1 against correctfile1
+testing atrm_magic.py: atrm_anisotropy_new.out against reference file: atrm_anisotropy_correct.txt
+NOT expecting an error
+parsing file (by word): atrm_anisotropy_new.out
+test atrm_magic.py raised error: [Errno 2] No such file or directory: 'atrm_anisotropy_new.out'
+-----------
+-----------
+test orientation_magic.py
+Testing orientation_magic.py
+parsing args
+about to run WD program
+('orientation_magic.py', '-WD', '/Users/nebula/Python/Tests', '-f', 'orientation_magic_example.txt', '-Fsi', 'orientation_magic_er_sites_new.out', '-Fsa', 'orientation_magic_er_samples_new.out', None, None, None, None, 'stdin=None')
+stdout: saving data...
+Data saved in  /Users/nebula/Python/Tests/orientation_magic_er_samples_new.out  and  /Users/nebula/Python/Tests/orientation_magic_er_sites_new.out
+
+files created: {}
+files updated: {}
+ran program: orientation_magic.py
+checking outfile1 against correctfile1
+testing orientation_magic.py: orientation_magic_er_sites_new.out against reference file: orientation_magic_er_sites_correct.out
+NOT expecting an error
+parsing file (by word): orientation_magic_er_sites_new.out
+test orientation_magic.py raised error: [Errno 2] No such file or directory: 'orientation_magic_er_sites_new.out'
+-----------
+-----------
+finished with Extra_output.py testing and re-testing

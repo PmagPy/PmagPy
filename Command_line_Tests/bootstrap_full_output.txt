@@ -9,13 +9,13 @@ Testing aniso_magic.py, running bootstrap: 5000 times
 Doing bootstrap - be patient
 Boostrap Statistics: 
  tau_i, V_i_D, V_i_I, V_i_zeta, V_i_zeta_D, V_i_zeta_I, V_i_eta, V_i_eta_D, V_i_eta_I
-0.34040287    29.6    14.5    32.3    171.5     67.6      6.5    296.1     13.2 
-0.33536589   166.3    70.5    23.6     26.1     13.6     10.7    293.1     11.9 
-0.32423124   296.2    12.8    10.8    179.9     63.0      4.9     31.8     23.4 
+0.34040287    29.6    14.5    33.5    171.5     67.5      6.6    296.0     13.2 
+0.33536589   166.3    70.5    24.1     26.7     13.3     10.7    293.8     12.2 
+0.32423124   296.2    12.8    10.8    178.4     64.0      4.9     31.5     22.3 
 Anisotropy results saved in  /Users/nebula/Python/Tests/aniso_magic_rmag_anisotropy_new.out
  Good bye 
 
-['Doing', 'bootstrap', '-', 'be', 'patient', 'Boostrap', 'Statistics:', 'tau_i,', 'V_i_D,', 'V_i_I,', 'V_i_zeta,', 'V_i_zeta_D,', 'V_i_zeta_I,', 'V_i_eta,', 'V_i_eta_D,', 'V_i_eta_I', '0.34040287', '29.6', '14.5', '32.3', '171.5', '67.6', '6.5', '296.1', '13.2', '0.33536589', '166.3', '70.5', '23.6', '26.1', '13.6', '10.7', '293.1', '11.9', '0.32423124', '296.2', '12.8', '10.8', '179.9', '63.0', '4.9', '31.8', '23.4', 'Anisotropy', 'results', 'saved', 'in', '/Users/nebula/Python/Tests/aniso_magic_rmag_anisotropy_new.out', 'Good', 'bye']
+['Doing', 'bootstrap', '-', 'be', 'patient', 'Boostrap', 'Statistics:', 'tau_i,', 'V_i_D,', 'V_i_I,', 'V_i_zeta,', 'V_i_zeta_D,', 'V_i_zeta_I,', 'V_i_eta,', 'V_i_eta_D,', 'V_i_eta_I', '0.34040287', '29.6', '14.5', '33.5', '171.5', '67.5', '6.6', '296.0', '13.2', '0.33536589', '166.3', '70.5', '24.1', '26.7', '13.3', '10.7', '293.8', '12.2', '0.32423124', '296.2', '12.8', '10.8', '178.4', '64.0', '4.9', '31.5', '22.3', 'Anisotropy', 'results', 'saved', 'in', '/Users/nebula/Python/Tests/aniso_magic_rmag_anisotropy_new.out', 'Good', 'bye']
 success
 success
 success
@@ -48,13 +48,13 @@ Testing aniso_magic.py, running bootstrap: 5000 times
 Doing bootstrap - be patient
 Boostrap Statistics: 
  tau_i, V_i_D, V_i_I, V_i_zeta, V_i_zeta_D, V_i_zeta_I, V_i_eta, V_i_eta_D, V_i_eta_I
-0.34040287    29.6    14.5    33.7    171.2     67.3      6.7    296.0     13.4 
-0.33536589   166.3    70.5    24.1     26.8     13.3     10.8    293.8     12.1 
-0.32423124   296.2    12.8    10.8    178.9     63.7      5.0     31.5     22.6 
+0.34040287    29.6    14.5    32.9    171.4     67.7      6.6    296.0     13.1 
+0.33536589   166.3    70.5    24.0     27.0     13.3     10.6    294.1     12.1 
+0.32423124   296.2    12.8    10.7    179.5     63.4      4.9     31.6     22.9 
 Anisotropy results saved in  /Users/nebula/Python/Tests/aniso_magic_rmag_anisotropy_new.out
  Good bye 
 
-['Doing', 'bootstrap', '-', 'be', 'patient', 'Boostrap', 'Statistics:', 'tau_i,', 'V_i_D,', 'V_i_I,', 'V_i_zeta,', 'V_i_zeta_D,', 'V_i_zeta_I,', 'V_i_eta,', 'V_i_eta_D,', 'V_i_eta_I', '0.34040287', '29.6', '14.5', '33.7', '171.2', '67.3', '6.7', '296.0', '13.4', '0.33536589', '166.3', '70.5', '24.1', '26.8', '13.3', '10.8', '293.8', '12.1', '0.32423124', '296.2', '12.8', '10.8', '178.9', '63.7', '5.0', '31.5', '22.6', 'Anisotropy', 'results', 'saved', 'in', '/Users/nebula/Python/Tests/aniso_magic_rmag_anisotropy_new.out', 'Good', 'bye']
+['Doing', 'bootstrap', '-', 'be', 'patient', 'Boostrap', 'Statistics:', 'tau_i,', 'V_i_D,', 'V_i_I,', 'V_i_zeta,', 'V_i_zeta_D,', 'V_i_zeta_I,', 'V_i_eta,', 'V_i_eta_D,', 'V_i_eta_I', '0.34040287', '29.6', '14.5', '32.9', '171.4', '67.7', '6.6', '296.0', '13.1', '0.33536589', '166.3', '70.5', '24.0', '27.0', '13.3', '10.6', '294.1', '12.1', '0.32423124', '296.2', '12.8', '10.7', '179.5', '63.4', '4.9', '31.6', '22.9', 'Anisotropy', 'results', 'saved', 'in', '/Users/nebula/Python/Tests/aniso_magic_rmag_anisotropy_new.out', 'Good', 'bye']
 success
 success
 success
@@ -87,13 +87,13 @@ Testing aniso_magic.py, running bootstrap: 5000 times
 Doing bootstrap - be patient
 Boostrap Statistics: 
  tau_i, V_i_D, V_i_I, V_i_zeta, V_i_zeta_D, V_i_zeta_I, V_i_eta, V_i_eta_D, V_i_eta_I
-0.34040287    29.6    14.5    35.0    171.8     67.0      6.7    296.0     13.4 
-0.33536589   166.3    70.5    24.7     27.3     13.3     10.8    294.4     12.3 
-0.32423124   296.2    12.8    10.8    178.7     63.9      5.0     31.5     22.4 
+0.34040287    29.6    14.5    32.7    171.1     67.4      6.6    296.0     13.4 
+0.33536589   166.3    70.5    23.8     26.8     13.4     10.8    293.9     12.1 
+0.32423124   296.2    12.8    10.9    179.4     63.4      5.0     31.6     23.0 
 Anisotropy results saved in  /Users/nebula/Python/Tests/aniso_magic_rmag_anisotropy_new.out
  Good bye 
 
-['Doing', 'bootstrap', '-', 'be', 'patient', 'Boostrap', 'Statistics:', 'tau_i,', 'V_i_D,', 'V_i_I,', 'V_i_zeta,', 'V_i_zeta_D,', 'V_i_zeta_I,', 'V_i_eta,', 'V_i_eta_D,', 'V_i_eta_I', '0.34040287', '29.6', '14.5', '35.0', '171.8', '67.0', '6.7', '296.0', '13.4', '0.33536589', '166.3', '70.5', '24.7', '27.3', '13.3', '10.8', '294.4', '12.3', '0.32423124', '296.2', '12.8', '10.8', '178.7', '63.9', '5.0', '31.5', '22.4', 'Anisotropy', 'results', 'saved', 'in', '/Users/nebula/Python/Tests/aniso_magic_rmag_anisotropy_new.out', 'Good', 'bye']
+['Doing', 'bootstrap', '-', 'be', 'patient', 'Boostrap', 'Statistics:', 'tau_i,', 'V_i_D,', 'V_i_I,', 'V_i_zeta,', 'V_i_zeta_D,', 'V_i_zeta_I,', 'V_i_eta,', 'V_i_eta_D,', 'V_i_eta_I', '0.34040287', '29.6', '14.5', '32.7', '171.1', '67.4', '6.6', '296.0', '13.4', '0.33536589', '166.3', '70.5', '23.8', '26.8', '13.4', '10.8', '293.9', '12.1', '0.32423124', '296.2', '12.8', '10.9', '179.4', '63.4', '5.0', '31.6', '23.0', 'Anisotropy', 'results', 'saved', 'in', '/Users/nebula/Python/Tests/aniso_magic_rmag_anisotropy_new.out', 'Good', 'bye']
 success
 success
 success
@@ -138,7 +138,7 @@ TRYING
 testing bootams.py
 doing bootams
 finished running bootams.py
-[0.33505, 0.00021, 5.3, 14.7, 10.2, 260.8, 38.8, 13.6, 111.8, 46.9, 0.33334, 0.00021, 124.5, 61.7, 6.1, 225.4, 5.9, 17.2, 318.6, 28.6, 0.33161, 0.00014, 268.8, 23.6, 10.7, 358.2, 4.3, 12.5, 97.7, 65.7]
+[0.33505, 0.00021, 5.3, 14.7, 10.3, 260.8, 38.6, 13.5, 111.9, 47.1, 0.33334, 0.00021, 124.5, 61.7, 6.1, 225.3, 5.9, 17.2, 318.5, 28.6, 0.33161, 0.00014, 268.8, 23.6, 10.7, 358.4, 4.6, 12.5, 98.6, 65.7]
 finished do_bootams()
 success
 success
@@ -173,7 +173,7 @@ success
 End of check_bootstrap
 doing bootams
 finished running bootams.py
-[0.33505, 0.00021, 5.3, 14.7, 10.3, 261.0, 38.3, 13.6, 112.1, 47.3, 0.33334, 0.00021, 124.5, 61.7, 6.1, 225.3, 5.9, 17.3, 318.6, 28.6, 0.33161, 0.00014, 268.8, 23.6, 10.7, 358.6, 5.1, 12.5, 100.0, 65.5]
+[0.33505, 0.00021, 5.3, 14.7, 10.3, 261.0, 38.3, 13.5, 112.1, 47.4, 0.33334, 0.00021, 124.5, 61.7, 6.1, 225.3, 5.9, 17.2, 318.5, 28.6, 0.33161, 0.00014, 268.8, 23.6, 10.7, 358.6, 5.1, 12.5, 99.9, 65.5]
 success
 success
 success
@@ -425,7 +425,7 @@ success
 End of check_bootstrap
 TRYING
  - 
-[1.0, 110.1, 204.6, 7.7, 1.0, 29.1, 8.1, 3.2, 6.1, 59.6, 2.0, 246.7, 148.7, 4.2, 1.0, 26.0, 16.0, 8.0, 185.1, -58.8]
+[1.0, 110.4, 205.1, 7.8, 1.0, 29.0, 8.3, 3.2, 6.0, 59.6, 2.0, 247.0, 149.0, 4.2, 1.0, 26.1, 15.9, 8.1, 185.1, -58.8]
 20
 [(1.0, 1.0), (109.0, 112.0), (203.0, 207.0), (7.0, 8.0), (0.9, 1.1), (28.5, 29.5), (7.5, 9.5), (3.0, 3.5), (5.5, 6.5), (59.0, 60.0), (1.9, 2.1), (247.0, 250.0), (148.0, 153.0), (4.0, 4.6), (0.9, 1.1), (26.0, 27.0), (14.5, 16.5), (7.5, 8.5), (184.5, 186.5), (-59.5, -58.0)]
 20
@@ -440,19 +440,20 @@ success
 success
 success
 success
-z was: 246.7, upper_bound was: 250.0, lower_bound was: 247.0
-error raised
-test eqarea_magic.py failed
-program, ex:  eqarea program produced incorrect output (246.7 should have been between 247.0 and 250.0)
-type(ex) <type 'exceptions.ValueError'>
-ex.args ('program produced incorrect output (246.7 should have been between 247.0 and 250.0)',)
-0 <type 'exceptions.ValueError'>
-1 program produced incorrect output (246.7 should have been between 247.0 and 250.0)
-2 <traceback object at 0x724210>
+success
+success
+success
+success
+success
+success
+success
+success
+success
+End of check_bootstrap
 TRYING
  - 
-[0.0, 1000.0, 100.0, 1000.0, 200.0, 1000.0, 300.0, 1000.0, 400.0, 1000.0, 500.0, 1000.0, 600.0, 1000.0, 700.0, 1000.0, 800.0, 1000.0, 900.0, 1000.0, 13.0, 17.8, 13.5, 21.3, 37.0]
-[13.0, 17.8, 13.5, 21.3, 37.0]
+[0.0, 1000.0, 100.0, 1000.0, 200.0, 1000.0, 300.0, 1000.0, 400.0, 1000.0, 500.0, 1000.0, 600.0, 1000.0, 700.0, 1000.0, 800.0, 1000.0, 900.0, 1000.0, 13.0, 17.8, 13.6, 21.3, 37.0]
+[13.0, 17.8, 13.6, 21.3, 37.0]
 success
 success
 success
@@ -474,4 +475,320 @@ full output = Bootstrapping.... be patient
 225  out of  1000
 250  out of  1000
 275  out of  1000
-300  out o
+300  out of  1000
+325  out of  1000
+350  out of  1000
+375  out of  1000
+400  out of  1000
+425  out of  1000
+450  out of  1000
+475  out of  1000
+500  out of  1000
+525  out of  1000
+550  out of  1000
+575  out of  1000
+600  out of  1000
+625  out of  1000
+650  out of  1000
+675  out of  1000
+700  out of  1000
+725  out of  1000
+750  out of  1000
+775  out of  1000
+800  out of  1000
+825  out of  1000
+850  out of  1000
+875  out of  1000
+900  out of  1000
+925  out of  1000
+950  out of  1000
+975  out of  1000
+1000  out of  1000
+Io Inc  I_lower, I_upper, Elon, E_lower, E_upper
+   38.9  =>     58.8 _    48.3 ^    67.8:  1.4679 _ 1.2775 ^ 1.7287
+S[a]ve plots - <return> to quit:  2  saved in  findEI_ei.svg
+3  saved in  findEI_cdf.svg
+1  saved in  findEI_eq.svg
+4  saved in  findEI_v2.svg
+
+files created: {'findEI_ei.svg': <FoundFile ./new-test-output:findEI_ei.svg>, 'findEI_v2.svg': <FoundFile ./new-test-output:findEI_v2.svg>, 'findEI_cdf.svg': <FoundFile ./new-test-output:findEI_cdf.svg>, 'findEI_eq.svg': <FoundFile ./new-test-output:findEI_eq.svg>}
+files updated: {}
+raw output = ['38.9', '=>', '58.8', '_', '48.3', '^', '67.8:', '1.4679', '_', '1.2775', '^', '1.7287']
+clean output = [38.9, 58.8, 48.3, 67.8, 1.4679, 1.2775, 1.7287]
+Finish run_EI()
+[38.9, 58.8, 48.3, 67.8, 1.4679, 1.2775, 1.7287]
+success
+success
+success
+success
+success
+success
+success
+End of check_bootstrap
+('find_EI.py', '-f', '/Users/nebula/Python/Tests/find_EI_example.dat', '-nb', 1000, "stdin='a'")
+full output = Bootstrapping.... be patient
+25  out of  1000
+50  out of  1000
+75  out of  1000
+100  out of  1000
+125  out of  1000
+150  out of  1000
+175  out of  1000
+200  out of  1000
+225  out of  1000
+250  out of  1000
+275  out of  1000
+300  out of  1000
+325  out of  1000
+350  out of  1000
+375  out of  1000
+400  out of  1000
+425  out of  1000
+450  out of  1000
+475  out of  1000
+500  out of  1000
+525  out of  1000
+550  out of  1000
+575  out of  1000
+600  out of  1000
+625  out of  1000
+650  out of  1000
+675  out of  1000
+700  out of  1000
+725  out of  1000
+750  out of  1000
+775  out of  1000
+800  out of  1000
+825  out of  1000
+850  out of  1000
+875  out of  1000
+900  out of  1000
+925  out of  1000
+950  out of  1000
+975  out of  1000
+1000  out of  1000
+Io Inc  I_lower, I_upper, Elon, E_lower, E_upper
+   38.9  =>     58.8 _    48.1 ^    67.1:  1.4679 _ 1.2899 ^ 1.7387
+S[a]ve plots - <return> to quit:  2  saved in  findEI_ei.svg
+3  saved in  findEI_cdf.svg
+1  saved in  findEI_eq.svg
+4  saved in  findEI_v2.svg
+
+files created: {}
+files updated: {'findEI_ei.svg': <FoundFile ./new-test-output:findEI_ei.svg>, 'findEI_v2.svg': <FoundFile ./new-test-output:findEI_v2.svg>, 'findEI_cdf.svg': <FoundFile ./new-test-output:findEI_cdf.svg>, 'findEI_eq.svg': <FoundFile ./new-test-output:findEI_eq.svg>}
+raw output = ['38.9', '=>', '58.8', '_', '48.1', '^', '67.1:', '1.4679', '_', '1.2899', '^', '1.7387']
+clean output = [38.9, 58.8, 48.1, 67.1, 1.4679, 1.2899, 1.7387]
+Finish run_EI()
+success
+success
+success
+success
+success
+success
+success
+End of check_bootstrap
+('find_EI.py', '-f', '/Users/nebula/Python/Tests/find_EI_example.dat', '-nb', 1000, "stdin='a'")
+Script result: find_EI.py -f /Users/nebula/Python/Tests/find_EI_example.dat -nb 1000
+  return code: -15
+test find_EI.py failed
+program, ex:  find_EI Script returned code: -15
+type(ex) <type 'exceptions.AssertionError'>
+ex.args ('Script returned code: -15',)
+0 <type 'exceptions.AssertionError'>
+1 Script returned code: -15
+2 <traceback object at 0x526580>
+messed up programs ['test find_EI.py']
+total errors found: 1
+THESE ONES ARE BROKEN  ['test find_EI.py']
+redo me list [<function complete_find_EI_test at 0x5236b0>]
+rhino
+test find_EI.py
+('find_EI.py', '-f', '/Users/nebula/Python/Tests/find_EI_example.dat', '-nb', 1000, "stdin='a'")
+full output = Bootstrapping.... be patient
+25  out of  1000
+50  out of  1000
+75  out of  1000
+100  out of  1000
+125  out of  1000
+150  out of  1000
+175  out of  1000
+200  out of  1000
+225  out of  1000
+250  out of  1000
+275  out of  1000
+300  out of  1000
+325  out of  1000
+350  out of  1000
+375  out of  1000
+400  out of  1000
+425  out of  1000
+450  out of  1000
+475  out of  1000
+500  out of  1000
+525  out of  1000
+550  out of  1000
+575  out of  1000
+600  out of  1000
+625  out of  1000
+650  out of  1000
+675  out of  1000
+700  out of  1000
+725  out of  1000
+750  out of  1000
+775  out of  1000
+800  out of  1000
+825  out of  1000
+850  out of  1000
+875  out of  1000
+900  out of  1000
+925  out of  1000
+950  out of  1000
+975  out of  1000
+1000  out of  1000
+Io Inc  I_lower, I_upper, Elon, E_lower, E_upper
+   38.9  =>     58.8 _    48.9 ^    68.1:  1.4679 _ 1.2673 ^ 1.7129
+S[a]ve plots - <return> to quit:  2  saved in  findEI_ei.svg
+3  saved in  findEI_cdf.svg
+1  saved in  findEI_eq.svg
+4  saved in  findEI_v2.svg
+
+files created: {}
+files updated: {'findEI_ei.svg': <FoundFile ./new-test-output:findEI_ei.svg>, 'findEI_v2.svg': <FoundFile ./new-test-output:findEI_v2.svg>, 'findEI_cdf.svg': <FoundFile ./new-test-output:findEI_cdf.svg>, 'findEI_eq.svg': <FoundFile ./new-test-output:findEI_eq.svg>}
+raw output = ['38.9', '=>', '58.8', '_', '48.9', '^', '68.1:', '1.4679', '_', '1.2673', '^', '1.7129']
+clean output = [38.9, 58.8, 48.9, 68.1, 1.4679, 1.2673, 1.7129]
+Finish run_EI()
+[38.9, 58.8, 48.9, 68.1, 1.4679, 1.2673, 1.7129]
+success
+success
+success
+success
+success
+success
+success
+End of check_bootstrap
+('find_EI.py', '-f', '/Users/nebula/Python/Tests/find_EI_example.dat', '-nb', 1000, "stdin='a'")
+full output = Bootstrapping.... be patient
+25  out of  1000
+50  out of  1000
+75  out of  1000
+100  out of  1000
+125  out of  1000
+150  out of  1000
+175  out of  1000
+200  out of  1000
+225  out of  1000
+250  out of  1000
+275  out of  1000
+300  out of  1000
+325  out of  1000
+350  out of  1000
+375  out of  1000
+400  out of  1000
+425  out of  1000
+450  out of  1000
+475  out of  1000
+500  out of  1000
+525  out of  1000
+550  out of  1000
+575  out of  1000
+600  out of  1000
+625  out of  1000
+650  out of  1000
+675  out of  1000
+700  out of  1000
+725  out of  1000
+750  out of  1000
+775  out of  1000
+800  out of  1000
+825  out of  1000
+850  out of  1000
+875  out of  1000
+900  out of  1000
+925  out of  1000
+950  out of  1000
+975  out of  1000
+1000  out of  1000
+Io Inc  I_lower, I_upper, Elon, E_lower, E_upper
+   38.9  =>     58.8 _    48.9 ^    66.7:  1.4679 _ 1.2971 ^ 1.7227
+S[a]ve plots - <return> to quit:  2  saved in  findEI_ei.svg
+3  saved in  findEI_cdf.svg
+1  saved in  findEI_eq.svg
+4  saved in  findEI_v2.svg
+
+files created: {}
+files updated: {'findEI_ei.svg': <FoundFile ./new-test-output:findEI_ei.svg>, 'findEI_v2.svg': <FoundFile ./new-test-output:findEI_v2.svg>, 'findEI_cdf.svg': <FoundFile ./new-test-output:findEI_cdf.svg>, 'findEI_eq.svg': <FoundFile ./new-test-output:findEI_eq.svg>}
+raw output = ['38.9', '=>', '58.8', '_', '48.9', '^', '66.7:', '1.4679', '_', '1.2971', '^', '1.7227']
+clean output = [38.9, 58.8, 48.9, 66.7, 1.4679, 1.2971, 1.7227]
+Finish run_EI()
+success
+success
+success
+success
+success
+success
+success
+End of check_bootstrap
+('find_EI.py', '-f', '/Users/nebula/Python/Tests/find_EI_example.dat', '-nb', 1000, "stdin='a'")
+full output = Bootstrapping.... be patient
+25  out of  1000
+50  out of  1000
+75  out of  1000
+100  out of  1000
+125  out of  1000
+150  out of  1000
+175  out of  1000
+200  out of  1000
+225  out of  1000
+250  out of  1000
+275  out of  1000
+300  out of  1000
+325  out of  1000
+350  out of  1000
+375  out of  1000
+400  out of  1000
+425  out of  1000
+450  out of  1000
+475  out of  1000
+500  out of  1000
+525  out of  1000
+550  out of  1000
+575  out of  1000
+600  out of  1000
+625  out of  1000
+650  out of  1000
+675  out of  1000
+700  out of  1000
+725  out of  1000
+750  out of  1000
+775  out of  1000
+800  out of  1000
+825  out of  1000
+850  out of  1000
+875  out of  1000
+900  out of  1000
+925  out of  1000
+950  out of  1000
+975  out of  1000
+1000  out of  1000
+Io Inc  I_lower, I_upper, Elon, E_lower, E_upper
+   38.9  =>     58.8 _    47.7 ^    67.2:  1.4679 _ 1.2890 ^ 1.7531
+S[a]ve plots - <return> to quit:  2  saved in  findEI_ei.svg
+3  saved in  findEI_cdf.svg
+1  saved in  findEI_eq.svg
+4  saved in  findEI_v2.svg
+
+files created: {}
+files updated: {'findEI_ei.svg': <FoundFile ./new-test-output:findEI_ei.svg>, 'findEI_v2.svg': <FoundFile ./new-test-output:findEI_v2.svg>, 'findEI_cdf.svg': <FoundFile ./new-test-output:findEI_cdf.svg>, 'findEI_eq.svg': <FoundFile ./new-test-output:findEI_eq.svg>}
+raw output = ['38.9', '=>', '58.8', '_', '47.7', '^', '67.2:', '1.4679', '_', '1.2890', '^', '1.7531']
+clean output = [38.9, 58.8, 47.7, 67.2, 1.4679, 1.289, 1.7531]
+Finish run_EI()
+success
+success
+success
+success
+success
+success
+success
+End of check_bootstrap
+Finished find_EI test
+finished with Bootstrap testing and re-testing

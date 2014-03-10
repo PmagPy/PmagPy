@@ -1,0 +1,184 @@
+extra_output_errors_list:  
+test hysteresis_magic.py: [Errno 2] No such file or directory: 'hysteresis_magic_rmag_new.out'.  
+Traceback below: 
+  File "/Users/nebula/Python/PmagPy/Command_line_Tests/error_logging.py", line 27, in go_through
+    v()
+  File "Extra_output.py", line 249, in complete_hysteresis_magic_test
+    hysteresis_magic.ex_out_sequence() # this re runs hysteresis magic, but that is not a problem
+  File "Extra_output.py", line 141, in ex_out_sequence
+    self.standard_check_file_sequence()
+  File "Extra_output.py", line 147, in standard_check_file_sequence
+    self.check_file_output(self.outfile1, self.correctfile1, reference="correct")
+  File "Extra_output.py", line 128, in check_file_output
+    out = PT.file_parse_by_word_and_pmagpy_strip(outfile)
+  File "/Users/nebula/Python/PmagPy/Command_line_Tests/PmagPy_tests.py", line 57, in file_parse_by_word_and_pmagpy_strip
+    data = file_parse_by_word(a_file)
+  File "/Users/nebula/Python/PmagPy/Command_line_Tests/PmagPy_tests.py", line 26, in file_parse_by_word
+    data = open(the_file, 'rU').readlines()
+
+test IODP_csv.py: [Errno 2] No such file or directory: 'IODP_magic_measurements_new.out'.  
+Traceback below: 
+  File "/Users/nebula/Python/PmagPy/Command_line_Tests/error_logging.py", line 27, in go_through
+    v()
+  File "Extra_output.py", line 437, in complete_IODP_csv_magic_test
+    IODP_csv.ex_out_sequence()
+  File "Extra_output.py", line 141, in ex_out_sequence
+    self.standard_check_file_sequence()
+  File "Extra_output.py", line 147, in standard_check_file_sequence
+    self.check_file_output(self.outfile1, self.correctfile1, reference="correct")
+  File "Extra_output.py", line 128, in check_file_output
+    out = PT.file_parse_by_word_and_pmagpy_strip(outfile)
+  File "/Users/nebula/Python/PmagPy/Command_line_Tests/PmagPy_tests.py", line 57, in file_parse_by_word_and_pmagpy_strip
+    data = file_parse_by_word(a_file)
+  File "/Users/nebula/Python/PmagPy/Command_line_Tests/PmagPy_tests.py", line 26, in file_parse_by_word
+    data = open(the_file, 'rU').readlines()
+
+None: [Errno 2] No such file or directory: 'sufar4_magic_measurements_new.out'.  
+Traceback below: 
+  File "/Users/nebula/Python/PmagPy/Command_line_Tests/error_logging.py", line 27, in go_through
+    v()
+  File "Extra_output.py", line 460, in complete_SUFAR4_asc_magic_test
+    sufar4.ex_out_sequence()
+  File "Extra_output.py", line 141, in ex_out_sequence
+    self.standard_check_file_sequence()
+  File "Extra_output.py", line 147, in standard_check_file_sequence
+    self.check_file_output(self.outfile1, self.correctfile1, reference="correct")
+  File "Extra_output.py", line 128, in check_file_output
+    out = PT.file_parse_by_word_and_pmagpy_strip(outfile)
+  File "/Users/nebula/Python/PmagPy/Command_line_Tests/PmagPy_tests.py", line 57, in file_parse_by_word_and_pmagpy_strip
+    data = file_parse_by_word(a_file)
+  File "/Users/nebula/Python/PmagPy/Command_line_Tests/PmagPy_tests.py", line 26, in file_parse_by_word
+    data = open(the_file, 'rU').readlines()
+
+test parse_measurements_test(): [Errno 2] No such file or directory: 'parse_measurements_er_specimens_new.out'.  
+Traceback below: 
+  File "/Users/nebula/Python/PmagPy/Command_line_Tests/error_logging.py", line 27, in go_through
+    v()
+  File "Extra_output.py", line 353, in complete_parse_measurements_test
+    parse_measurements.ex_out_sequence()
+  File "Extra_output.py", line 141, in ex_out_sequence
+    self.standard_check_file_sequence()
+  File "Extra_output.py", line 147, in standard_check_file_sequence
+    self.check_file_output(self.outfile1, self.correctfile1, reference="correct")
+  File "Extra_output.py", line 128, in check_file_output
+    out = PT.file_parse_by_word_and_pmagpy_strip(outfile)
+  File "/Users/nebula/Python/PmagPy/Command_line_Tests/PmagPy_tests.py", line 57, in file_parse_by_word_and_pmagpy_strip
+    data = file_parse_by_word(a_file)
+  File "/Users/nebula/Python/PmagPy/Command_line_Tests/PmagPy_tests.py", line 26, in file_parse_by_word
+    data = open(the_file, 'rU').readlines()
+
+test thellier_magic_redo.py: [Errno 2] No such file or directory: 'thellier_magic_redo_NLT_specimens_new.out'.  
+Traceback below: 
+  File "/Users/nebula/Python/PmagPy/Command_line_Tests/error_logging.py", line 27, in go_through
+    v()
+  File "Extra_output.py", line 377, in complete_thellier_magic_redo_test
+    thellier_magic_redo.standard_check_file_sequence()
+  File "Extra_output.py", line 147, in standard_check_file_sequence
+    self.check_file_output(self.outfile1, self.correctfile1, reference="correct")
+  File "Extra_output.py", line 128, in check_file_output
+    out = PT.file_parse_by_word_and_pmagpy_strip(outfile)
+  File "/Users/nebula/Python/PmagPy/Command_line_Tests/PmagPy_tests.py", line 57, in file_parse_by_word_and_pmagpy_strip
+    data = file_parse_by_word(a_file)
+  File "/Users/nebula/Python/PmagPy/Command_line_Tests/PmagPy_tests.py", line 26, in file_parse_by_word
+    data = open(the_file, 'rU').readlines()
+
+test kly4s_magic.py: [Errno 2] No such file or directory: 'kly4s_magic_measurements_new.out'.  
+Traceback below: 
+  File "/Users/nebula/Python/PmagPy/Command_line_Tests/error_logging.py", line 27, in go_through
+    v()
+  File "Extra_output.py", line 299, in complete_kly4s_magic_test
+    kly4s.standard_check_file_sequence()
+  File "Extra_output.py", line 147, in standard_check_file_sequence
+    self.check_file_output(self.outfile1, self.correctfile1, reference="correct")
+  File "Extra_output.py", line 128, in check_file_output
+    out = PT.file_parse_by_word_and_pmagpy_strip(outfile)
+  File "/Users/nebula/Python/PmagPy/Command_line_Tests/PmagPy_tests.py", line 57, in file_parse_by_word_and_pmagpy_strip
+    data = file_parse_by_word(a_file)
+  File "/Users/nebula/Python/PmagPy/Command_line_Tests/PmagPy_tests.py", line 26, in file_parse_by_word
+    data = open(the_file, 'rU').readlines()
+
+test k15_magic.py: [Errno 2] No such file or directory: 'k15_magic_er_samples_new.out'.  
+Traceback below: 
+  File "/Users/nebula/Python/PmagPy/Command_line_Tests/error_logging.py", line 27, in go_through
+    v()
+  File "Extra_output.py", line 269, in complete_k15_magic_test
+    k15_magic.standard_check_file_sequence()
+  File "Extra_output.py", line 147, in standard_check_file_sequence
+    self.check_file_output(self.outfile1, self.correctfile1, reference="correct")
+  File "Extra_output.py", line 128, in check_file_output
+    out = PT.file_parse_by_word_and_pmagpy_strip(outfile)
+  File "/Users/nebula/Python/PmagPy/Command_line_Tests/PmagPy_tests.py", line 57, in file_parse_by_word_and_pmagpy_strip
+    data = file_parse_by_word(a_file)
+  File "/Users/nebula/Python/PmagPy/Command_line_Tests/PmagPy_tests.py", line 26, in file_parse_by_word
+    data = open(the_file, 'rU').readlines()
+
+None: [Errno 2] No such file or directory: 'PMD_out_new.out'.  
+Traceback below: 
+  File "/Users/nebula/Python/PmagPy/Command_line_Tests/error_logging.py", line 27, in go_through
+    v()
+  File "Extra_output.py", line 450, in complete_PMD_magic_test
+    PMD_magic.ex_out_sequence()
+  File "Extra_output.py", line 141, in ex_out_sequence
+    self.standard_check_file_sequence()
+  File "Extra_output.py", line 147, in standard_check_file_sequence
+    self.check_file_output(self.outfile1, self.correctfile1, reference="correct")
+  File "Extra_output.py", line 128, in check_file_output
+    out = PT.file_parse_by_word_and_pmagpy_strip(outfile)
+  File "/Users/nebula/Python/PmagPy/Command_line_Tests/PmagPy_tests.py", line 57, in file_parse_by_word_and_pmagpy_strip
+    data = file_parse_by_word(a_file)
+  File "/Users/nebula/Python/PmagPy/Command_line_Tests/PmagPy_tests.py", line 26, in file_parse_by_word
+    data = open(the_file, 'rU').readlines()
+
+testing aarm_magic.py: [Errno 2] No such file or directory: 'aarm_magic_anisotropy_new.out'.  
+Traceback below: 
+  File "/Users/nebula/Python/PmagPy/Command_line_Tests/error_logging.py", line 27, in go_through
+    v()
+  File "Extra_output.py", line 220, in complete_aarm_magic_test
+    aarm_magic.ex_out_sequence()
+  File "Extra_output.py", line 141, in ex_out_sequence
+    self.standard_check_file_sequence()
+  File "Extra_output.py", line 147, in standard_check_file_sequence
+    self.check_file_output(self.outfile1, self.correctfile1, reference="correct")
+  File "Extra_output.py", line 128, in check_file_output
+    out = PT.file_parse_by_word_and_pmagpy_strip(outfile)
+  File "/Users/nebula/Python/PmagPy/Command_line_Tests/PmagPy_tests.py", line 57, in file_parse_by_word_and_pmagpy_strip
+    data = file_parse_by_word(a_file)
+  File "/Users/nebula/Python/PmagPy/Command_line_Tests/PmagPy_tests.py", line 26, in file_parse_by_word
+    data = open(the_file, 'rU').readlines()
+
+test atrm_magic.py: [Errno 2] No such file or directory: 'atrm_anisotropy_new.out'.  
+Traceback below: 
+  File "/Users/nebula/Python/PmagPy/Command_line_Tests/error_logging.py", line 27, in go_through
+    v()
+  File "Extra_output.py", line 231, in complete_atrm_magic_test
+    atrm.ex_out_sequence()
+  File "Extra_output.py", line 141, in ex_out_sequence
+    self.standard_check_file_sequence()
+  File "Extra_output.py", line 147, in standard_check_file_sequence
+    self.check_file_output(self.outfile1, self.correctfile1, reference="correct")
+  File "Extra_output.py", line 128, in check_file_output
+    out = PT.file_parse_by_word_and_pmagpy_strip(outfile)
+  File "/Users/nebula/Python/PmagPy/Command_line_Tests/PmagPy_tests.py", line 57, in file_parse_by_word_and_pmagpy_strip
+    data = file_parse_by_word(a_file)
+  File "/Users/nebula/Python/PmagPy/Command_line_Tests/PmagPy_tests.py", line 26, in file_parse_by_word
+    data = open(the_file, 'rU').readlines()
+
+test orientation_magic.py: [Errno 2] No such file or directory: 'orientation_magic_er_sites_new.out'.  
+Traceback below: 
+  File "/Users/nebula/Python/PmagPy/Command_line_Tests/error_logging.py", line 27, in go_through
+    v()
+  File "Extra_output.py", line 342, in complete_orientation_magic_test
+    orientation_magic.ex_out_sequence()
+  File "Extra_output.py", line 141, in ex_out_sequence
+    self.standard_check_file_sequence()
+  File "Extra_output.py", line 147, in standard_check_file_sequence
+    self.check_file_output(self.outfile1, self.correctfile1, reference="correct")
+  File "Extra_output.py", line 128, in check_file_output
+    out = PT.file_parse_by_word_and_pmagpy_strip(outfile)
+  File "/Users/nebula/Python/PmagPy/Command_line_Tests/PmagPy_tests.py", line 57, in file_parse_by_word_and_pmagpy_strip
+    data = file_parse_by_word(a_file)
+  File "/Users/nebula/Python/PmagPy/Command_line_Tests/PmagPy_tests.py", line 26, in file_parse_by_word
+    data = open(the_file, 'rU').readlines()
+
+programs with errors: ['test hysteresis_magic.py', 'test IODP_csv.py', None, 'test parse_measurements_test()', 'test thellier_magic_redo.py', 'test kly4s_magic.py', 'test k15_magic.py', None, 'testing aarm_magic.py', 'test atrm_magic.py', 'test orientation_magic.py']
+
