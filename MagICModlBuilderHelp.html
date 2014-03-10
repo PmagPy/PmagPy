@@ -37,13 +37,13 @@ After you choose the headers for all the table press on the OK button and follow
 <p>
 <OL>
 <LI>Open er_specimens.txt with Excel.<br>
-Check sample names (under the header er_sample_name). Add or correct if necessary. Save and close the file.<br>
-Ru-run <I>MagIC model builder </I>and press OK. 
+Check sample names (under the header er_sample_name). Add or correct if necessary.<br>
+Save and close the file. Re-run <I>MagIC model builder </I>and press OK. 
 </LI>
 <P>
 <LI>Open er_samples.txt with Excel.<br>
 Fill site name for each sample (under the header er_site_name).<br>
-Ru-run <I>MagIC model builder </I>and press OK. 
+Save and close the file. Re-run <I>MagIC model builder </I>and press OK. 
 </LI>
 <P>
 <LI>Open er_sites.txt with Excel.
@@ -68,7 +68,7 @@ Use controlled vocabularies from  <TT><A NAME="tex2html3"
 </LI>
 <LI>Fill site latitude (under the header site_lat): Decimal degrees between -90 and 90
 </LI>
-<LI>Re-run MagIC project builder and press OK. 
+<LI>Save and close the file. Re-run MagIC project builder and press OK. 
 </LI>
 </UL>
 
@@ -89,7 +89,7 @@ Use controlled vocabularies from <TT><A NAME="tex2html5"
 Use controlled vocabularies from <TT><A NAME="tex2html6"
   HREF="http://earthref.org/cgi-bin/er-s1-controlled-vocabularies.cgi?category=type&amp;type=E">sample type controlled vocabularies</A></TT>. If you cant find any appropriate definition use: Not Specified.
 </LI>
-<LI>Ru-run MagIC project builder and press OK. 
+<LI>Save and close the file. Re-run MagIC project builder and press OK. 
 </LI>
 </UL>
 </LI>
@@ -98,20 +98,35 @@ Use controlled vocabularies from <TT><A NAME="tex2html6"
 
 <UL>
 
-<LI>Open the <I>MagIC model builder </I>and see that er_site_name is already assigned as a header to er_ages.txt table by default.<br>
-  Manually add your choices of headers (for example: age, age_sigma or age,  age_range_low ,age_range_high) and press OK.
-</LI>
-<LI>Open er_ages.txt with Excel.
-  Insert age information under the appropriate headers.<br>.
-  For more details see:
+<LI>Open the <I>MagIC model builder </I>and see that er_site_name is already assigned as a header in er_ages.txt by default.<br>
+  Manually add your choices of headers (for example: age, age_sigma or age,  age_range_low ,age_range_high) and press OK.<br>
+  For explanation in the different headers see:
   <TT><A NAME="tex2html7"
   HREF="http://earthref.org/cgi-bin/magic-s1-data-model.cgi?database_name=magic&search_start=data-model&version=2.4&tbl_name=er_ages">er_ages Table</A></TT> 
+</LI>
+<LI>Open er_ages.txt with Excel.
+  Insert age information under the appropriate headers.<br>
+  For Example:
+  <UL>
+  <LI> Fill age units (under the header age_unit).<br>
+Use controlled vocabularies from <TT><A NAME="tex2html6"
+  HREF="http://earthref.org/cgi-bin/er-s1-controlled-vocabularies.cgi?category=age_unit&type=E">age unit controlled vocabularies</A></TT>.   
+  <LI> Fill age (under the header age).<br>
+  <LI> Fill age_range_low (under the header age_range_low).<br>
+  <LI> Fill age_range_high (under the header age_range_high).<br>
+  <LI> Fill age_description  (under the header age_description): any text line. <br>
+
+  </LI> Fill geochronology method specifying dating technique (under the header magic_method_codes).<br>
+  Use controlled vocabularies from <TT><A NAME="tex2html6"
+  HREF="http://earthref.org/cgi-bin/magic-s1-methods.cgi?database_name=magic&search_start=methods&category=Geochronology%20Method">Geochronology Method  codes</A></TT>.   
+
+  </UL>
+<LI> Save and close the file. Re-run MagIC project builder and press OK.
 
 </LI>
 </UL>
-</LI>
 <P>
-<LI> Quit the GUI and restart it.  
+<LI> The MagIC Model is ready. Quit the GUI and restart it. The new MagIC model will be uploaded. 
 
 </OL>
 

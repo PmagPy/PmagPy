@@ -3,6 +3,13 @@
 #============================================================================================
 # LOG HEADER:
 #============================================================================================
+# Thellier_GUI Version 2.15 03/0/2014
+# minor changes
+
+
+# Thellier_GUI Version 2.14 02/28/2014
+# minor changes compatibiilty with 64 bit python
+
 # Thellier_GUI Version 2.14 02/28/2014
 # minor changes compatibiilty with 64 bit python
 
@@ -75,7 +82,7 @@
 #============================================================================================
 
 global CURRENT_VRSION
-CURRENT_VRSION = "v.2.14"
+CURRENT_VRSION = "v.2.15"
 import matplotlib
 matplotlib.use('WXAgg')
 
@@ -133,6 +140,19 @@ class Arai_GUI(wx.Frame):
     
     def __init__(self):
 
+        TEXT="""
+        NAME
+   	thellier_gui.py
+    
+        DESCRIPTION
+   	GUI for interpreting thellier-type paleointensity data.
+   	For tutorial chcek PmagPy cookbook in http://earthref.org/PmagPy/cookbook/   	    
+        """  
+        args=sys.argv
+        if "-h" in args:
+	   print TEXT
+	   sys.exit()
+              
         global FIRST_RUN
         FIRST_RUN=True
         wx.Frame.__init__(self, None, wx.ID_ANY, self.title)
@@ -2437,13 +2457,18 @@ class Arai_GUI(wx.Frame):
         for key in null_acceptance_criteria:
             replace_acceptance_criteria[key]=null_acceptance_criteria[key]
         try:
+            print "test 1",criteria_file
             fin=open(criteria_file,'rU')
             line=fin.readline()
             line=fin.readline()
             header=line.strip('\n').split('\t')
             for L in fin.readlines():
                 line=L.strip('\n').split('\t')
-                for i in range(len(header)):
+                print line
+                for i in range(min(len(header),line)):
+                        if i >len(header):
+                            break
+                        print i,line[i],header[i]
 
                         if header[i] in self.high_threshold_velue_list + ['anisotropy_alt']:
                             try:
@@ -2499,18 +2524,6 @@ class Arai_GUI(wx.Frame):
                             replace_acceptance_criteria['sample_int_sigma_perc']=float(line[i])
                            
                                 
-                        
-                        # if finding accepatnce criteria for site, replace all acceptance criterai for sample withe site"
-                        #if header[i] in ['site_int_n']:
-                        #    try:
-                        #        if int(line[i])>0:
-                        #            replace_acceptance_criteria['average_by_sample_or_site']=='site'
-                        #            if 'sample_int_n' in replace_acceptance_criteria
-                        #            del  replace_acceptance_criteria['average_by_sample_or_site']
-                        #        except:
-                        #            pass    
-                        #if 'site_int_n' in header and 'sample_int_n' in header:    
-                        #    print "-E- ERROR: both criteria for int_sample and int_specimen
                                                                     
             if  replace_acceptance_criteria["sample_int_bs_par"]==False and replace_acceptance_criteria["sample_int_bs"]==False and replace_acceptance_criteria["sample_int_stdev_opt"]==False:
                 replace_acceptance_criteria["sample_int_stdev_opt"]=True
@@ -2986,7 +2999,7 @@ class Arai_GUI(wx.Frame):
                 trmblock=self.Data[specimen]['trmblock']
                 zijdblock=self.Data[specimen]['zijdblock']
                 if len(atrmblock)<6:
-                    aniso_logfile.write("-W- specimen %s has not enough measurementf for ATRM calculation\n"%specimen)
+                    aniso_logfile.write("-W- specimen %s does not have enough measurements for 6 poistions ATRM calculation\n"%specimen)
                     continue
                 
                 B=Matrices[6]['B']
@@ -4875,33 +4888,41 @@ class Arai_GUI(wx.Frame):
         pmag_results_header_1=["er_location_names","er_site_names"]
         if BY_SAMPLES:
             pmag_results_header_1.append("er_sample_names")
+        pmag_results_header_1.append("er_specimen_names")
+            
         pmag_results_header_2=["average_lat","average_lon",]
         pmag_results_header_3=["average_int_n","average_int","average_int_sigma","average_int_sigma_perc"]
         if self.preferences['VDM_or_VADM']=="VDM":
             pmag_results_header_4=["vdm","vdm_sigma"]        
         else:    
             pmag_results_header_4=["vadm","vadm_sigma"]
-        pmag_results_header_5=[ "data_type","pmag_result_name","magic_method_codes","result_description","er_citation_names","magic_software_packages"]        
+        pmag_results_header_5=[ "data_type","pmag_result_name","magic_method_codes","result_description","er_citation_names","magic_software_packages","pmag_criteria_codes"]        
+
+        
+        
+        
         # for ages, check the er_ages.txt, and take whats theres
-        age_headers=[]
-        for site in self.MagIC_model["er_ages"].keys():
-            if "age" in self.MagIC_model["er_ages"][site].keys() and self.MagIC_model["er_ages"][site]["age"]!="" and "age" not in age_headers:
-               age_headers.append("age")
-            if "age_sigma" in self.MagIC_model["er_ages"][site].keys() and self.MagIC_model["er_ages"][site]["age_sigma"]!="" and "age_sigma" not in age_headers:
-               age_headers.append("age_sigma")
-            if "age_range_low" in self.MagIC_model["er_ages"][site].keys() and self.MagIC_model["er_ages"][site]["age_range_low"]!="" and "age_range_low" not in age_headers:
-               age_headers.append("age_range_low")
-            if "age_range_high" in self.MagIC_model["er_ages"][site].keys() and self.MagIC_model["er_ages"][site]["age_range_high"]!="" and "age_range_high" not in age_headers:
-               age_headers.append("age_range_high")
-            if "age_unit" in self.MagIC_model["er_ages"][site].keys() and self.MagIC_model["er_ages"][site]["age_unit"]!="" and "age_unit" not in age_headers:
-               age_headers.append("age_unit")
+        #age_headers=[]
+        #for site in self.MagIC_model["er_ages"].keys():
+        #    if "age" in self.MagIC_model["er_ages"][site].keys() and self.MagIC_model["er_ages"][site]["age"]!="" and "age" not in age_headers:
+        #       age_headers.append("age")
+        #    if "age_sigma" in self.MagIC_model["er_ages"][site].keys() and self.MagIC_model["er_ages"][site]["age_sigma"]!="" and "age_sigma" not in age_headers:
+        #       age_headers.append("age_sigma")
+        #    if "age_range_low" in self.MagIC_model["er_ages"][site].keys() and self.MagIC_model["er_ages"][site]["age_range_low"]!="" and "age_range_low" not in age_headers:
+        #       age_headers.append("age_range_low")
+        #    if "age_range_high" in self.MagIC_model["er_ages"][site].keys() and self.MagIC_model["er_ages"][site]["age_range_high"]!="" and "age_range_high" not in age_headers:
+        #       age_headers.append("age_range_high")
+        #    if "age_unit" in self.MagIC_model["er_ages"][site].keys() and self.MagIC_model["er_ages"][site]["age_unit"]!="" and "age_unit" not in age_headers:
+        #       age_headers.append("age_unit")
                                              
                
         for sample_or_site in pmag_samples_or_sites_list:       
             MagIC_results_data['pmag_results'][sample_or_site]={}
-            
+            MagIC_results_data['pmag_results'][sample_or_site]['pmag_criteria_codes']="ACCEPT"
             MagIC_results_data['pmag_results'][sample_or_site]["er_location_names"]=MagIC_results_data['pmag_samples_or_sites'][sample_or_site]['er_location_name']
             MagIC_results_data['pmag_results'][sample_or_site]["er_site_names"]=MagIC_results_data['pmag_samples_or_sites'][sample_or_site]['er_site_name']
+            MagIC_results_data['pmag_results'][sample_or_site]["er_specimen_names"]=MagIC_results_data['pmag_samples_or_sites'][sample_or_site]['er_specimen_names']            
+
             if BY_SAMPLES:
                 MagIC_results_data['pmag_results'][sample_or_site]["er_sample_names"]=MagIC_results_data['pmag_samples_or_sites'][sample_or_site]['er_sample_name']
 
@@ -4955,7 +4976,27 @@ class Arai_GUI(wx.Frame):
             MagIC_results_data['pmag_results'][sample_or_site]["data_type"]="a"
             MagIC_results_data['pmag_results'][sample_or_site]["er_citation_names"]="This study"
             
-            
+            # add ages
+            found_age=False
+            site=MagIC_results_data['pmag_results'][sample_or_site]["er_site_names"]
+            if  sample_or_site in self.Data_info["er_ages"].keys():
+                sample_or_site_with_age=sample_or_site
+                found_age=True
+            elif site in self.Data_info["er_ages"].keys():
+                sample_or_site_with_age=site
+                found_age=True
+            if found_age:
+                for header in ["age","age_unit","age_sigma","age_range_low","age_range_high"]:
+                    if header in self.Data_info["er_ages"][sample_or_site_with_age].keys():
+                        if self.Data_info["er_ages"][sample_or_site_with_age][header]!="":
+                            value=self.Data_info["er_ages"][sample_or_site_with_age][header]
+                            header_result="average_"+header
+                            MagIC_results_data['pmag_results'][sample_or_site][header_result]=value
+                                
+                            if header_result not in pmag_results_header_4:
+                               pmag_results_header_4.append(header_result) 
+                
+                            
                 
         # wrire pmag_results.txt
         fout=open(self.WD+"/pmag_results.txt",'w')
@@ -5201,6 +5242,8 @@ class Arai_GUI(wx.Frame):
         for spec in Data_samples_or_sites[sample_or_site].keys():
             tmp_B.append(Data_samples_or_sites[sample_or_site][spec])
         if len(tmp_B)<1:
+            pars['N']=0
+            pars['pass_or_fail']='fail'
             return pars
         tmp_B=array(tmp_B)
         pars['N']=len(tmp_B)
@@ -9481,28 +9524,7 @@ class Arai_GUI(wx.Frame):
         #---------------------
                     
         for i in range(len(Treat_PI)): # look through infield steps and find matching Z step
-#            #print temp
-#            foundit=False
-#            found_i_index=False
-#            # look through infield steps and find what zerofield step was before the pTRM check
-#            # first find the zerofield before the pTRM check (index_i)
-#            for i in range(1,len(datablock)): 
-#                rec=datablock[i]
-#                dec=float(rec["measurement_dec"])
-#                inc=float(rec["measurement_inc"])
-#                moment=float(rec["measurement_magn_moment"])
-#                phi=float(rec["treatment_dc_field_phi"])
-#                theta=float(rec["treatment_dc_field_theta"])
-#                M=array(self.dir2cart([dec,inc,moment]))
-#
-#                if 'LT-PTRM-I' in rec['magic_method_codes'] or 'LT-PMRM-I' in rec['magic_method_codes'] :
-#                    if (THERMAL and "treatment_temp" in rec.keys() and float(rec["treatment_temp"])==float(temp) )\
-#                       or (MICROWAVE and "measurement_description" in rec.keys() and "Step Number-%.0f"%float(temp) in rec["measurement_description"]):
-#                           found_i_index=True
-#                           break
-#                
-#            if not found_i_index:
-#                continue
+
             temp=Treat_PI[i]
             k=PISteps[ i]   
             rec=datablock[k]
@@ -9513,6 +9535,7 @@ class Arai_GUI(wx.Frame):
             theta=float(rec["treatment_dc_field_theta"])
             M=array(self.dir2cart([dec,inc,moment]))
 
+            foundit=False
             if 'LP-PI-II' not in methcodes:
                  # Important: suport several pTRM checks in a row, but
                  # does not support pTRM checks after infield step
@@ -9538,53 +9561,22 @@ class Arai_GUI(wx.Frame):
                 prev_theta=float(prev_rec["treatment_dc_field_theta"])
                 prev_M=array(self.dir2cart([prev_dec,prev_inc,prev_moment]))
             
-            if  'LP-PI-II' not in methcodes:   
-                diff_cart=M-prev_M
-                diff_dir=self.cart2dir(diff_cart)
-                ptrm_check.append([temp,diff_dir[0],diff_dir[1],diff_dir[2],zerofield_index])
-            else:           
-                # health check for T-T protocol:
-                if theta!=prev_theta:
-                    diff=(M-prev_M)/2
-                    diff_dir=self.cart2dir(diff)
+                if  'LP-PI-II' not in methcodes:   
+                    diff_cart=M-prev_M
+                    diff_dir=self.cart2dir(diff_cart)
                     ptrm_check.append([temp,diff_dir[0],diff_dir[1],diff_dir[2],zerofield_index])
-                else:
-                    print "-W- WARNING: specimen. pTRM check not in place in Thellier Thellier protocol. step please check"
+                else:           
+                    # health check for T-T protocol:
+                    if theta!=prev_theta:
+                        diff=(M-prev_M)/2
+                        diff_dir=self.cart2dir(diff)
+                        ptrm_check.append([temp,diff_dir[0],diff_dir[1],diff_dir[2],zerofield_index])
+                    else:
+                        print "-W- WARNING: specimen. pTRM check not in place in Thellier Thellier protocol. step please check"
                 
                         
                         
                         
-    ## in case there are zero-field pTRM checks (not the SIO way)
-    #    for temp in Treat_PZ:
-    #        step=PZSteps[Treat_PZ.index(temp)]
-    #        rec=datablock[step]
-    #        dec=float(rec["measurement_dec"])
-    #        inc=float(rec["measurement_inc"])
-    #        str=float(rec[momkey])
-    #        brec=datablock[step-1]
-    #        pdec=float(brec["measurement_dec"])
-    #        pinc=float(brec["measurement_inc"])
-    #        pint=float(brec[momkey])
-    #        X=self.dir2cart([dec,inc,str])
-    #        prevX=self.dir2cart([pdec,pinc,pint])
-    #        I=[]
-    #        for c in range(3): I.append(X[c]-prevX[c])
-    #        dir2=self.cart2dir(I)
-    #        zptrm_check.append([temp,dir2[0],dir2[1],dir2[2]])
-
-
-##        ## get pTRM tail checks together -
-##        for temp in Treat_M:
-##            step=MSteps[Treat_M.index(temp)] # tail check step - just do a difference in magnitude!
-##            rec=datablock[step]
-##            str=float(rec[momkey])
-##            if temp in Treat_Z:
-##                step=ZSteps[Treat_Z.index(temp)]
-##                brec=datablock[step]
-##                pint=float(brec[momkey])
-##                ptrm_tail.append([temp,0,0,str-pint])  # difference - if negative, negative tail!
-##            else:
-##                print s, '  has a tail check with no first zero field step - check input file! for step',temp-273.
 
 
         #---------------------
@@ -9602,9 +9594,6 @@ class Arai_GUI(wx.Frame):
             foundit=False
             for i in range(1,len(datablock)):
                 if 'LT-T-Z' in datablock[i]['magic_method_codes'] or 'LT-M-Z' in datablock[i]['magic_method_codes'] :
-                    #print "yes"
-                    #print "Step Number-%.0f"%float(temp)
-                    #print rec["measurement_description"]
                     if (THERMAL and "treatment_temp" in datablock[i].keys() and float(datablock[i]["treatment_temp"])==float(temp) )\
                        or (MICROWAVE and "measurement_description" in datablock[i].keys() and "Step Number-%.0f"%float(temp) in datablock[i]["measurement_description"]):
                         prev_rec=datablock[i]

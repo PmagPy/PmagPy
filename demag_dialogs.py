@@ -5,9 +5,22 @@ matplotlib.use('WXAgg')
 import pmag
 import wx
 import copy
+import os
+
+#============================================================================================
+# LOG HEADER:
+#  
+# Dialogs boxes for demag_gui.py
+#
+#============================================================================================
+#
+# 3/10/2014 Version 0.1 (beta) by Ron Shaar
+#
+#
+#============================================================================================
+
 
 #--------------------------------------------------------------    
-# Dialogs boxes for demag_gui.py
 #--------------------------------------------------------------
 
 
@@ -771,7 +784,13 @@ class convert_generic_files_to_MagIC(wx.Frame):
                             print "-I- calculating dip and dip direction used for tilt correction sample %s. results are put in er_samples.txt"%sample
                             self.er_sample_data[sample]['sample_bed_dip_direction']="%.1f"%DipDir
                             self.er_sample_data[sample]['sample_bed_dip']="%.1f"%Dip
-                            
+
+                    #-----------------------------                                                
+                    # er_samples method codes
+                    # geographic coordinates: no
+                    #-----------------------------                    
+                    if found_tilt or found_geo:
+                        self.er_sample_data[sample]['magic_method_codes']="SO-NO"               
                     #-----                    
                     # Lab treatments and MagIC methods
                     #-----                    
@@ -806,8 +825,11 @@ class convert_generic_files_to_MagIC(wx.Frame):
                         self.er_sample_data[sample]['er_sample_name']=sample
                         self.er_sample_data[sample]['er_site_name']=MagRec["er_site_name"]
                         self.er_sample_data[sample]['er_location_name']=MagRec["er_location_name"]
+                        
+                        
                     measurement_running_number+=1
-                # add magic_experiment_name and magic_method_codes
+                
+                # add magic_experiment_name and magic_method_codes to magic_measurements.txt
                 for MagRec in MagRecs_this_specimen:
                     MagRec["magic_experiment_name"]=MagRec["er_specimen_name"]+":"+":".join(this_specimen_LP)
                     MagRec["magic_method_codes"]=MagRec["magic_method_codes"]+":"+":".join(this_specimen_LP)
@@ -911,9 +933,865 @@ class convert_generic_files_to_MagIC(wx.Frame):
         return(DATA)
 
 
+#--------------------------------------------------------------    
+# Popupmenu
+#--------------------------------------------------------------
+
+class GBPopupMenu(wx.Menu):
+    def __init__(self,Data,magic_file,mag_meas_data,s,g_index,position):
+        self.g_index=g_index
+        self.s=s
+        self.Data=Data
+        self.mag_meas_data=mag_meas_data
+        self.magic_file=magic_file
+        #self.measurement_flag=measurement_flag
+        wx.Menu.__init__(self)
+        item = wx.MenuItem(self, wx.NewId(), "'good measurement'")
+        self.AppendItem(item)
+        self.Bind(wx.EVT_MENU, self.OnItemGood, item)
+        item = wx.MenuItem(self, wx.NewId(),"'bad measurement'")
+        self.AppendItem(item)
+        self.Bind(wx.EVT_MENU, self.OnItemBad, item)
+
+    def OnItemGood(self, event):
+        #print "good"
+        index=self.Data[self.s]['mag_meas_data_index'][self.g_index]
+        #print self.mag_meas_data[index]
+        self.mag_meas_data[index]['measurement_flag']='g'
+        self.write_good_bad_magic_measurements()
+        
+        
+     
+    def OnItemBad(self, event):
+        #print "bad"
+        index=self.Data[self.s]['mag_meas_data_index'][self.g_index]
+        #print self.mag_meas_data[index]
+        self.mag_meas_data[index]['measurement_flag']='b'
+        self.write_good_bad_magic_measurements()
+        
+    def write_good_bad_magic_measurements(self):
+        #print "write_good_bad_magic_measurements"
+        print "self.magic_file",self.magic_file
+        pmag.magic_write(self.magic_file,self.mag_meas_data,"magic_measurements")
+                
+
+
+#--------------------------------------------------------------    
+# Change Acceptance criteria dialog
+#--------------------------------------------------------------
+
+
+class demag_criteria_dialog(wx.Dialog):
+
+    def __init__(self, parent, acceptance_criteria,title):
+        style =  wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER  
+        super(demag_criteria_dialog, self).__init__(parent, title=title,style=style)
+        self.acceptance_criteria=acceptance_criteria
+        self.InitUI(acceptance_criteria)
+        #self.SetSize((250, 200))
+
+    def InitUI(self,acceptance_criteria):
+
+        pnl1 = wx.Panel(self)
+
+        #----------- 
+        # specimen criteria
+        #-----------                
+
+        vbox = wx.BoxSizer(wx.VERTICAL)
+        bSizer1 = wx.StaticBoxSizer( wx.StaticBox( pnl1, wx.ID_ANY, "specimen acceptance criteria" ), wx.HORIZONTAL )
+
+        # Specimen criteria
+
+        window_list_specimens=['specimen_n','specimen_mad','specimen_dang','specimen_alpha95']
+        for key in window_list_specimens:
+            command="self.set_%s=wx.TextCtrl(pnl1,style=wx.TE_CENTER,size=(50,20))"%key
+            exec command
+        criteria_specimen_window = wx.GridSizer(2, len(window_list_specimens), 10, 10)
+        criteria_specimen_window.AddMany( [(wx.StaticText(pnl1,label="n",style=wx.TE_CENTER), wx.EXPAND),
+            (wx.StaticText(pnl1,label="MAD",style=wx.TE_CENTER), wx.EXPAND),
+            (wx.StaticText(pnl1,label="DANG",style=wx.TE_CENTER), wx.EXPAND),
+            (wx.StaticText(pnl1,label="alpha95",style=wx.TE_CENTER), wx.EXPAND),
+            (self.set_specimen_n),
+            (self.set_specimen_mad),
+            (self.set_specimen_dang),
+            (self.set_specimen_alpha95)])
+                                           
+        bSizer1.Add( criteria_specimen_window, 0, wx.ALIGN_LEFT|wx.ALL, 5 )
+
+
+        #----------- 
+        # sample criteria
+        #-----------                
+
+
+        bSizer2 = wx.StaticBoxSizer( wx.StaticBox( pnl1, wx.ID_ANY, "sample acceptance criteria" ), wx.HORIZONTAL )
+    
+        #self.set_average_by_sample_or_site=wx.ComboBox(pnl1, -1,size=(150, -1), value = 'sample', choices=['sample','site'], style=wx.CB_READONLY)
+        
+        # Sample criteria
+        window_list_samples=['sample_n','sample_n_lines','sample_n_planes','sample_k','sample_r','sample_alpha95']
+        for key in window_list_samples:
+            command="self.set_%s=wx.TextCtrl(pnl1,style=wx.TE_CENTER,size=(50,20))"%key
+            exec command
+        criteria_sample_window = wx.GridSizer(2, len(window_list_samples), 10, 10)
+        criteria_sample_window.AddMany( [(wx.StaticText(pnl1,label="n",style=wx.TE_CENTER), wx.EXPAND),
+            (wx.StaticText(pnl1,label="n lines",style=wx.TE_CENTER), wx.EXPAND),
+            (wx.StaticText(pnl1,label="n planes",style=wx.TE_CENTER), wx.EXPAND),
+            (wx.StaticText(pnl1,label="k",style=wx.TE_CENTER), wx.EXPAND),
+            (wx.StaticText(pnl1,label="r",style=wx.TE_CENTER), wx.EXPAND),
+            (wx.StaticText(pnl1,label="alpha95",style=wx.TE_CENTER), wx.EXPAND),
+            (self.set_sample_n),            
+            (self.set_sample_n_lines),            
+            (self.set_sample_n_planes),            
+            (self.set_sample_k),
+            (self.set_sample_r),
+            (self.set_sample_alpha95)])
+
+        bSizer2.Add( criteria_sample_window, 0, wx.ALIGN_LEFT|wx.ALL, 5 )
+
+
+        #----------- 
+        # site criteria
+        #-----------                
+
+
+        bSizer3 = wx.StaticBoxSizer( wx.StaticBox( pnl1, wx.ID_ANY, "site acceptance criteria" ), wx.HORIZONTAL )
+            
+        # Site criteria
+        window_list_sites=['site_n','site_n_lines','site_n_planes','site_k','site_r','site_alpha95']
+        for key in window_list_sites:
+            command="self.set_%s=wx.TextCtrl(pnl1,style=wx.TE_CENTER,size=(50,20))"%key
+            exec command
+        criteria_site_window = wx.GridSizer(2, len(window_list_sites), 10, 10)
+        criteria_site_window.AddMany( [(wx.StaticText(pnl1,label="n",style=wx.TE_CENTER), wx.EXPAND),
+            (wx.StaticText(pnl1,label="n lines",style=wx.TE_CENTER), wx.EXPAND),
+            (wx.StaticText(pnl1,label="n planes",style=wx.TE_CENTER), wx.EXPAND),
+            (wx.StaticText(pnl1,label="k",style=wx.TE_CENTER), wx.EXPAND),
+            (wx.StaticText(pnl1,label="r",style=wx.TE_CENTER), wx.EXPAND),
+            (wx.StaticText(pnl1,label="alpha95",style=wx.TE_CENTER), wx.EXPAND),
+            (self.set_site_n),            
+            (self.set_site_n_lines),            
+            (self.set_site_n_planes),            
+            (self.set_site_k),
+            (self.set_site_r),
+            (self.set_site_alpha95)])
+
+        bSizer3.Add( criteria_site_window, 0, wx.ALIGN_LEFT|wx.ALL, 5 )
+
+
+
+        #-----------        
+
+        #ok_sizer=self.CreateButtonSizer(wx.OK|wx.CANCEL)
+
+        hbox3 = wx.BoxSizer(wx.HORIZONTAL)
+        self.okButton = wx.Button(pnl1, wx.ID_OK, "&OK")
+        self.cancelButton = wx.Button(pnl1, wx.ID_CANCEL, '&Cancel')
+        hbox3.Add(self.okButton)
+        hbox3.AddSpacer(10)
+        hbox3.Add(self.cancelButton )
+        #self.okButton.Bind(wx.EVT_BUTTON, self.OnOK)
+        #-----------
+
+        
+        supported_crit=window_list_specimens+window_list_samples+window_list_sites
+        
+        # initialize value:
+        for crit in supported_crit:
+            if crit not in acceptance_criteria.keys():
+                continue
+            if acceptance_criteria[crit]['value']!="":
+                value=float(acceptance_criteria[crit]['value'])
+                if value!=-999:                                   
+                    decimal_points=acceptance_criteria[crit]['decimal_points']
+                    command="self.set_%s.SetValue('%%.%if'%%(value))"%(crit,int(decimal_points))
+                    exec command
+        
+        #----------------------  
+        vbox.AddSpacer(10)
+        vbox.Add(bSizer1, flag=wx.ALIGN_CENTER_HORIZONTAL)
+        vbox.AddSpacer(10)
+        vbox.Add(bSizer2, flag=wx.ALIGN_CENTER_HORIZONTAL)
+        vbox.AddSpacer(10)
+        vbox.Add(bSizer3, flag=wx.ALIGN_CENTER_HORIZONTAL)
+        vbox.AddSpacer(10)
+        vbox.Add(hbox3, flag=wx.ALIGN_CENTER_HORIZONTAL)
+        vbox.AddSpacer(10)
+               
+        hbox_top=wx.BoxSizer(wx.HORIZONTAL)
+        hbox_top.AddSpacer(50)   
+        hbox_top.Add(vbox)                      
+        hbox_top.AddSpacer(50)              
+        pnl1.SetSizer(hbox_top)
+        hbox_top.Fit(self)
+
+#=================================================================
+# demag_orient:
+# read/write
+# calculate sample orientation
+#=================================================================
+
+class OrientFrameGrid(wx.Frame):
+
+    def __init__(self,parent,id,title,WD,Data_hierarchy,size):
+        wx.Frame.__init__(self, parent, -1, title, size=size)
+        
+        #--------------------
+        # initialize stuff
+        #--------------------
+        
+        self.WD=WD
+        self.Data_hierarchy=Data_hierarchy
+        
+        #--------------------
+        # menu bar
+        #--------------------
+        
+        self.menubar = wx.MenuBar()
+        menu_file = wx.Menu()
+        m_open_file = menu_file.Append(-1, "&open orientation file", "")
+        self.Bind(wx.EVT_MENU, self.on_m_open_file, m_open_file)
+        m_save_file = menu_file.Append(-1, "&save orientation file", "")
+        self.Bind(wx.EVT_MENU, self.on_m_save_file, m_save_file)
+        m_calc_orient = menu_file.Append(-1, "&calculate sample orientation", "")
+        self.Bind(wx.EVT_MENU, self.on_m_calc_orient, m_calc_orient)
+        self.menubar.Append(menu_file, "&File")
+        self.SetMenuBar(self.menubar)
+
+        #--------------------
+        # get the orientation data
+        # 1) from file  demag_orient.txt
+        # 2) from Data_hierarchy
+        # and save it to self.orient_data={}
+        #--------------------
+
+        self.samples_list=self.Data_hierarchy['samples']         
+        self.orient_data={}
+        try:
+            self.orient_data=self.read_magic_file(self.WD+"/demag_orient.txt",1,"sample_name")  
+        except:
+            pass
+        for sample in self.samples_list:
+            if sample not in self.orient_data.keys():
+               self.orient_data[sample]={} 
+               self.orient_data[sample]["sample_name"]=sample
+               
+            if sample in Data_hierarchy['site_of_sample'].keys():
+                self.orient_data[sample]["site_name"]=Data_hierarchy['site_of_sample'][sample]
+            else:
+                self.orient_data[sample]["site_name"]=""
+
+        #--------------------
+        # create the grid sheet
+        #--------------------
+                                    
+        self.create_sheet()
+        self.Bind(wx.EVT_CLOSE, self.OnCloseWindow)
+        self.Show()                
+    
+    def create_sheet(self):    
+        '''
+        creat an editable grid showing deamg_orient.txt 
+        '''
+        #--------------------------------
+        # orient.tx support many other headers
+        # but here I put only 
+        # the essential headers for 
+        # sample orientation
+        #--------------------------------
+        
+        self.headers=["sample_name",
+                 "site_name",
+                 "mag_azimuth",
+                 "field_dip",
+                 "bedding_dip_direction",
+                 "bedding_dip",
+                 "shadow_angle",
+                 "lat",
+                 "long",
+                 "date",
+                 "hhmm",
+                 "GPS_baseline",
+                 "GPS_Az",
+                 #"participants",
+                 #"magic_method_codes"
+                 ]
+
+        #--------------------------------
+        # creat the grid
+        #--------------------------------
+        
+        samples_list=self.orient_data.keys()
+        samples_list.sort()
+        self.samples_list = [ sample for sample in samples_list if sample is not "" ] 
+        self.grid = wx.grid.Grid(self, -1)        
+        self.grid.ClearGrid()
+        self.grid.CreateGrid(len(self.samples_list), len(self.headers))
+
+        #--------------------------------
+        # color the columns by groups 
+        #--------------------------------
+        
+        for i in range(len(self.samples_list)):
+            self.grid.SetCellBackgroundColour(i, 0, "LIGHT GREY")
+            self.grid.SetCellBackgroundColour(i, 1, "LIGHT GREY")
+            self.grid.SetCellBackgroundColour(i, 2, "YELLOW")
+            self.grid.SetCellBackgroundColour(i, 3, "YELLOW")
+            self.grid.SetCellBackgroundColour(i, 4, "PALE GREEN")
+            self.grid.SetCellBackgroundColour(i, 5, "PALE GREEN")
+            self.grid.SetCellBackgroundColour(i, 6, "LIGHT BLUE")
+            self.grid.SetCellBackgroundColour(i, 7, "LIGHT BLUE")
+            self.grid.SetCellBackgroundColour(i, 8, "LIGHT BLUE")
+            self.grid.SetCellBackgroundColour(i, 9, "LIGHT BLUE")
+            self.grid.SetCellBackgroundColour(i, 10, "LIGHT BLUE")
+            self.grid.SetCellBackgroundColour(i, 11, "LIGHT MAGENTA")
+            self.grid.SetCellBackgroundColour(i, 12, "LIGHT MAGENTA")
+        
+        #--------------------------------
+        # fill headers names
+        #--------------------------------
+        
+        for i in range(len(self.headers)):
+            self.grid.SetColLabelValue(i, self.headers[i])
+
+        #--------------------------------
+        # fill data from self.orient_data
+        #--------------------------------
+        
+        for sample in self.samples_list:
+            for key in self.orient_data[sample].keys():
+                if key in self.headers:
+                    sample_index=self.samples_list.index(sample)
+                    i=self.headers.index(key)
+                    self.grid.SetCellValue(sample_index,i, self.orient_data[sample][key])
+                        
+        #--------------------------------
+
+        self.grid.AutoSize()
+        
+                
+    def on_m_open_file(self,event):
+        '''
+        open orient.txt
+        read the data
+        display the data from the file in a new grid
+        '''
+        dlg = wx.FileDialog(
+            self, message="choose orient file",
+            defaultDir=self.WD, 
+            defaultFile="",
+            style=wx.OPEN | wx.CHANGE_DIR
+            )
+        if dlg.ShowModal() == wx.ID_OK:
+            orient_file = dlg.GetPath()
+            dlg.Destroy()
+            new_data=self.read_magic_file(orient_file,1,"sample_name") 
+            if len(new_data)>0:
+                self.orient_data={}
+                self.orient_data=new_data
+            self.create_sheet()
+
+    def on_m_save_file(self,event):
+        
+        '''
+        save demag_orient.txt
+        (only the columns that appear on the grid frame)
+        '''
+        
+        fout=open(self.WD+"/demag_orient.txt",'w')
+        STR="tab\tdemag_orient\n"
+        fout.write(STR)
+        STR="\t".join(self.headers)+"\n"
+        fout.write(STR)
+        for sample in self.samples_list:
+            STR=""
+            for header in self.headers:                
+                sample_index=self.samples_list.index(sample)
+                i=self.headers.index(header)
+                value=self.grid.GetCellValue(sample_index,i)
+                STR=STR+value+"\t"
+            fout.write(STR[:-1]+"\n") 
+        dlg1 = wx.MessageDialog(None,caption="Message:", message="data saved in file demag_orient.txt" ,style=wx.OK|wx.ICON_INFORMATION)
+        dlg1.ShowModal()
+        dlg1.Destroy()
+        
+    def read_magic_file(self,path,ignore_lines_n,sort_by_this_name):
+        '''
+        read magic file and store the data in dictionary:
+        Data={}
+        Data[sort_by_this_name]={}
+        '''
+
+        DATA={}
+        fin=open(path,'rU')
+        #ignore first lines
+        for i in range(ignore_lines_n):
+            fin.readline()
+        #header
+        line=fin.readline()
+        header=line.strip('\n').split('\t')
+        #print header
+        for line in fin.readlines():
+            if line[0]=="#":
+                continue
+            tmp_data={}
+            tmp_line=line.strip('\n').split('\t')
+            #print tmp_line
+            for i in range(len(tmp_line)):
+                if i>= len(header):
+                    continue
+                tmp_data[header[i]]=tmp_line[i]
+            DATA[tmp_data[sort_by_this_name]]=tmp_data
+        fin.close()        
+        return(DATA)
+                
+
+    def on_m_calc_orient(self,event):    
+        '''
+        This fucntion does exactly what the 'import orientation' fuction does in MagIC.py 
+        after some dialog boxes the fucntio calls orientation_magic.py 
+        '''
+        
+        # first see if demag_orient.txt
+        self.on_m_save_file(None)
+        orient_convention_dia=orient_convention(None)
+        orient_convention_dia.Center()
+        orient_convention_dia.ShowModal()
+        
+        method_code_dia=method_code_dialog(None)
+        method_code_dia.Center()
+        method_code_dia.ShowModal()
+
+        command= "orientation_magic.py  -Fsa er_samples_orient.txt -Fsi er_sites_orient.txt -f  %s %s %s %s %s %s > ./orientation_magic.log " \
+        %(self.WD+"/demag_orient.txt",\
+        orient_convention_dia.ocn_flag,\
+        orient_convention_dia.dcn_flag,\
+        orient_convention_dia.gmt_flags,\
+        method_code_dia.bedding_codes_flags,\
+        method_code_dia.methodcodes_flags)
+        
+        orient_convention_dia.Destroy()
+        method_code_dia.Destroy()  
+        
+        fail_comamnd=False
+        
+        print "-I- executing command:",command
+        os.chdir(self.WD)
+        try:
+            os.system(command)
+        except:
+            fail_comamnd=True
+        
+        if fail_comamnd:
+            print "-E- ERROR: Error in running orientation_magic.py"
+            return
+        # check if orientation_magic.py finished sucsessfuly
+        data_saved=False
+        if os.path.isfile(self.WD+"/orientation_magic.log"):
+            fin=open(self.WD+"/orientation_magic.log",'r')
+            for line in fin.readlines():
+                if "Data saved in" in line:
+                    data_saved=True
+                    break 
+        
+        if not data_saved:
+            return
+        
+        # check if er_samples.txt exists. 
+        # If yes add/change the following columns:
+        # 1) sample_azimuth,sample_dip
+        # 2) sample_bed_dip, sample_bed_dip_direction
+        # 3) sample_date,
+        # 4) sample_declination_correction
+        # 5) add magic_method_codes
+        
+        er_samples_data={}
+        er_samples_orient_data={}
+        if os.path.isfile(self.WD+"/er_samples.txt"): 
+            er_samples_file=self.WD+"/er_samples.txt"
+            er_samples_data=self.read_magic_file(er_samples_file,1,"er_sample_name")
+        
+        if os.path.isfile(self.WD+"/er_samples_orient.txt"): 
+            er_samples_orient_file=self.WD+"/er_samples_orient.txt"
+            er_samples_orient_data=self.read_magic_file(er_samples_orient_file,1,"er_sample_name")
+        new_samples_added=[]
+        for sample in er_samples_orient_data.keys():
+            if sample not in er_samples_data.keys():
+                new_samples_added.append(sample)
+                er_samples_data[sample]={}
+                er_samples_data[sample]["er_sample_name"]=sample
+            for key in ["sample_azimuth","sample_dip","sample_bed_dip","sample_bed_dip_direction","sample_date","sample_declination_correction"]:
+                if key in er_samples_orient_data[sample].keys():
+                    er_samples_data[sample][key]=er_samples_orient_data[sample][key]
+            if "magic_method_codes" in er_samples_orient_data[sample].keys():
+                if "magic_method_codes" in er_samples_data[sample].keys():
+                    codes=er_samples_data[sample]["magic_method_codes"].strip("\n").replace(" ","").replace("::",":").split(":")
+                else:
+                    codes=[]
+                new_codes=er_samples_orient_data[sample]["magic_method_codes"].strip("\n").replace(" ","").replace("::",":").split(":")
+                all_codes=codes+new_codes
+                all_codes=list(set(all_codes)) # remove duplicates
+                er_samples_data[sample]["magic_method_codes"]=":".join(all_codes)
+                    
+        samples=er_samples_data.keys()
+        samples.sort()
+        er_recs=[]
+        for sample in samples:
+            er_recs.append(er_samples_data[sample])
+            pmag.magic_write(self.WD+"/er_samples.txt",er_recs,"er_samples")
+       
+        dlg1 = wx.MessageDialog(None,caption="Message:", message="orientation data is saved/appended to er_samples.txt" ,style=wx.OK|wx.ICON_INFORMATION)
+        dlg1.ShowModal()
+        dlg1.Destroy()
+        
+        if len(new_samples_added)>0:
+            dlg1 = wx.MessageDialog(None,caption="Warning:", message="new samples added to er_samples.txt\n use MagIC EarthRef Builder to rebuild EarthRef model" ,style=wx.OK|wx.ICON_INFORMATION)
+            dlg1.ShowModal()
+            dlg1.Destroy()
+            
+        self.Destroy()    
+                    
+        
+    def OnCloseWindow(self,event):   
+        dlg1 = wx.MessageDialog(self,caption="Message:", message="Save changes to demag_orient.txt?\n " ,style=wx.OK|wx.CANCEL)
+        result = dlg1.ShowModal()
+        if result == wx.ID_OK:
+            self.on_m_save_file(None)
+            dlg1.Destroy()    
+            self.Destroy()
+        if result == wx.ID_CANCEL:
+            dlg1.Destroy()    
+            self.Destroy()
+
+                     
+
+                
+
+
+class orient_convention(wx.Dialog):
+    
+    def __init__(self, *args, **kw):
+        super(orient_convention, self).__init__(*args, **kw) 
+            
+        self.InitUI()
+        #self.SetSize((250, 200))
+        self.SetTitle("set orientation convention")
+        
+    def InitUI(self):
+
+
+        pnl = wx.Panel(self)        
+        vbox=wx.BoxSizer(wx.VERTICAL)
+
+        #-----------------------
+        # orientation convention
+        #-----------------------
+
+        sbs = wx.StaticBoxSizer( wx.StaticBox( pnl, wx.ID_ANY, 'orientation convention' ), wx.VERTICAL )
+
+        sbs.AddSpacer(5)
+        self.oc_rb1 = wx.RadioButton(pnl, -1,label='Pomeroy: Lab arrow azimuth = mag_azimuth; Lab arrow dip=-field_dip (field_dip is hade)',name='1', style=wx.RB_GROUP)
+        sbs.Add(self.oc_rb1)             
+        sbs.AddSpacer(5)
+        self.oc_rb2 = wx.RadioButton(pnl, -1, label='Lab arrow azimuth = mag_azimuth-90 (mag_azimuth is strike); Lab arrow dip = -field_dip', name='2')
+        sbs.Add(self.oc_rb2)             
+        sbs.AddSpacer(5)
+        self.oc_rb3 = wx.RadioButton(pnl, -1, label='Lab arrow azimuth = mag_azimuth; Lab arrow dip = 90-field_dip (field_dip is inclination of lab arrow)', name='3')        
+        sbs.Add(self.oc_rb3)             
+        sbs.AddSpacer(5)
+        self.oc_rb4 = wx.RadioButton(pnl, -1, label='Lab arrow azimuth and dip are same as mag_azimuth, field_dip',  name='4')        
+        sbs.Add(self.oc_rb4)             
+        sbs.AddSpacer(5)
+        self.oc_rb5 = wx.RadioButton(pnl, -1, label='ASC: Lab arrow azimuth and dip are mag_azimuth, field_dip-90 (field arrow is inclination of specimen Z direction)',name='5')        
+        sbs.Add(self.oc_rb5)             
+        sbs.AddSpacer(5)
+        self.oc_rb6 = wx.RadioButton(pnl, -1, label='Lab arrow azimuth = mag_azimuth-90 (mag_azimuth is strike); Lab arrow dip = 90-field_dip', name='6')        
+        sbs.Add(self.oc_rb6)             
+        sbs.AddSpacer(5)        
+        
+         
+        #-----------------------
+        # declination correction
+        #-----------------------                
+        sbs2 = wx.StaticBoxSizer( wx.StaticBox( pnl, wx.ID_ANY, 'declination correction' ), wx.VERTICAL )
+        hbox_dc1 = wx.BoxSizer(wx.HORIZONTAL)
+
+        sbs2.AddSpacer(5)
+        self.dc_rb1 = wx.RadioButton(pnl, -1, 'Use the IGRF DEC value at the lat/long and date supplied', (10, 50), style=wx.RB_GROUP)        
+        self.dc_rb2 = wx.RadioButton(pnl, -1, 'Use this DEC:', (10, 50))        
+        self.dc_tb2 = wx.TextCtrl(pnl,style=wx.CENTER)
+        self.dc_rb3 = wx.RadioButton(pnl, -1, 'DEC=0, mag_az is already corrected in file', (10, 50))        
+        
+        sbs2.Add(self.dc_rb1)
+        sbs2.AddSpacer(5)
+        hbox_dc1.Add(self.dc_rb2)
+        hbox_dc1.AddSpacer(5)
+        hbox_dc1.Add(self.dc_tb2)
+        sbs2.Add(hbox_dc1)
+        
+        sbs2.AddSpacer(5)
+        sbs2.Add(self.dc_rb3)
+        sbs2.AddSpacer(5)
+        
+        
+        #-----------------------
+        # orienation priority
+        #-----------------------                
+        sbs3 = wx.StaticBoxSizer( wx.StaticBox( pnl, wx.ID_ANY, 'orientation priority' ), wx.VERTICAL )
+
+        sbs3.AddSpacer(5)
+        self.op_rb1 = wx.RadioButton(pnl, -1, label='1) differential GPS 2) sun compass 3) magnetic compass',name='1', style=wx.RB_GROUP)
+        sbs3.Add(self.op_rb1)             
+        sbs3.AddSpacer(5)
+        self.op_rb2 = wx.RadioButton(pnl, -1, label='1) differential GPS 2) magnetic compass 3) sun compass ', name='2')
+        sbs3.Add(self.op_rb2)             
+        sbs3.AddSpacer(5)
+
+
+        #-----------------------
+        #  add local time for GMT
+        #-----------------------                
+
+        sbs4 = wx.StaticBoxSizer( wx.StaticBox( pnl, wx.ID_ANY, 'add local time' ), wx.HORIZONTAL )
+        #hbox_alt = wx.BoxSizer(wx.HORIZONTAL)
+        
+        sbs4.AddSpacer(5)
+        self.dc_alt = wx.TextCtrl(pnl,style=wx.CENTER)
+        alt_txt = wx.StaticText(pnl,label="Hours to ADD local time for GMT, default is 0",style=wx.TE_CENTER)
+        sbs4.Add(alt_txt)
+        sbs4.AddSpacer(5)
+        sbs4.Add(self.dc_alt)
+
+        #-----------------------
+        # OK button
+        #-----------------------                
+              
+        hbox2 = wx.BoxSizer(wx.HORIZONTAL)
+        self.okButton = wx.Button(pnl, wx.ID_OK, "&OK")
+        self.Bind(wx.EVT_BUTTON, self.OnOK, self.okButton)
+        hbox2.Add(self.okButton)
+        
+        #-----------------------
+        # design the frame
+        #-----------------------                
+        
+        vbox.AddSpacer(10)
+        vbox.Add(sbs)
+        vbox.AddSpacer(10)
+        vbox.Add(sbs2)
+        vbox.AddSpacer(10)
+        vbox.Add(sbs3)
+        vbox.AddSpacer(10)
+        vbox.Add(sbs4)
+        vbox.AddSpacer(10)
+        vbox.Add(hbox2)
+        vbox.AddSpacer(10)
+
+        hbox1=wx.BoxSizer(wx.HORIZONTAL)        
+        hbox1.AddSpacer(10)
+        hbox1.Add(vbox)
+        hbox1.AddSpacer(10)
+
+        pnl.SetSizer(hbox1)
+        hbox1.Fit(self)
+
+
+        #-----------------------                
+        # intialize defalut value
+        #-----------------------                
+        
+        self.oc_rb4.SetValue(True)
+        self.dc_rb3.SetValue(True)        
+        self.op_rb1.SetValue(True)   
+        
+    def OnOK(self, e):
+        self.ocn=""
+        if self.oc_rb1.GetValue()==True:self.ocn="1"
+        if self.oc_rb2.GetValue()==True:self.ocn="2"
+        if self.oc_rb3.GetValue()==True:self.ocn="3"
+        if self.oc_rb4.GetValue()==True:self.ocn="4"
+        if self.oc_rb5.GetValue()==True:self.ocn="5"
+        if self.oc_rb6.GetValue()==True:self.ocn="6"
+
+        self.dcn=""
+        if self.dc_rb1.GetValue()==True:self.dcn="1"
+        if self.dc_rb2.GetValue()==True:
+            self.dcn="2"
+            try:
+                float(self.dc_tb2.GetValue())
+            except:
+                dlg1 = wx.MessageDialog(None,caption="Error:", message="Add declination" ,style=wx.OK|wx.ICON_INFORMATION)
+                dlg1.ShowModal()
+                dlg1.Destroy()
+                
+        if self.dc_rb3.GetValue()==True:self.dcn="3"
+        
+        if self.op_rb1.GetValue()==True:self.op="1"
+        if self.op_rb2.GetValue()==True:self.op="2"
+        
+        if self.dc_alt.GetValue()!="":
+            try:
+                float(self.dc_alt.GetValue())
+                gmt_flags="-gmt " + self.dc_alt.GetValue()
+            except:
+                gmt_flags=""
+        else:
+            gmt_flags=""        
+        #-------------
+        self.ocn_flag="-ocn "+ self.ocn
+        self.dcn_flag="-dcn "+ self.dcn
+        self.gmt_flags=gmt_flags
+        self.Close()
+
+
+class method_code_dialog(wx.Dialog):
+    
+    def __init__(self, *args, **kw):
+        super(method_code_dialog, self).__init__(*args, **kw) 
+            
+        self.InitUI()
+        self.SetTitle("additional required information")
+        
+    def InitUI(self):
+
+        pnl = wx.Panel(self)        
+        vbox=wx.BoxSizer(wx.VERTICAL)
+
+        #-----------------------
+        # MagIC codes
+        #-----------------------
+        
+        sbs1 = wx.StaticBoxSizer( wx.StaticBox( pnl, wx.ID_ANY, 'MagIC codes' ), wx.VERTICAL )
+        self.cb1 = wx.CheckBox(pnl, -1, 'FS-FD: field sampling done with a drill')
+        self.cb2 = wx.CheckBox(pnl, -1, 'FS-H: field sampling done with hand sample')
+        self.cb3 = wx.CheckBox(pnl, -1, 'FS-LOC-GPS: field location done with GPS')
+        self.cb4 = wx.CheckBox(pnl, -1, 'FS-LOC-MAP:  field location done with map')
+        self.cb5 = wx.CheckBox(pnl, -1, 'SO-POM:  a Pomeroy orientation device was used')
+        self.cb6 = wx.CheckBox(pnl, -1, 'SO-ASC:  an ASC orientation device was used')
+        self.cb7 = wx.CheckBox(pnl, -1, 'SO-MAG: magnetic compass used for all orientations')
+        self.cb8 = wx.CheckBox(pnl, -1, 'SO-SUN: sun compass used for all orientations')
+        self.cb9 = wx.CheckBox(pnl, -1, 'SO-SM: either magnetic or sun used on all orientations    ')
+        self.cb10 = wx.CheckBox(pnl, -1, 'SO-SIGHT: orientation from sighting')
+
+        sbs1.Add(self.cb1);sbs1.AddSpacer(5)
+        sbs1.Add(self.cb2);sbs1.AddSpacer(5)
+        sbs1.Add(self.cb3);sbs1.AddSpacer(5)
+        sbs1.Add(self.cb4);sbs1.AddSpacer(5)
+        sbs1.Add(self.cb5);sbs1.AddSpacer(5)
+        sbs1.Add(self.cb6);sbs1.AddSpacer(5)
+        sbs1.Add(self.cb7);sbs1.AddSpacer(5)
+        sbs1.Add(self.cb8);sbs1.AddSpacer(5)
+        sbs1.Add(self.cb9);sbs1.AddSpacer(5)
+        sbs1.Add(self.cb10);sbs1.AddSpacer(5)
+
+        #-----------------------
+        # Bedding convention
+        #-----------------------
+        
+        sbs2 = wx.StaticBoxSizer( wx.StaticBox( pnl, wx.ID_ANY, 'bedding convention' ), wx.VERTICAL )
+        self.bed_con1 = wx.CheckBox(pnl, -1, 'Take fisher mean of bedding poles?')
+        self.bed_con2 = wx.CheckBox(pnl, -1, "Don't correct bedding dip direction with declination - already correct")
+
+        sbs2.Add(self.bed_con1);sbs1.AddSpacer(5)
+        sbs2.Add(self.bed_con2);sbs1.AddSpacer(5)
+
+        #-----------------------
+        # OK button
+        #-----------------------                
+              
+        hbox2 = wx.BoxSizer(wx.HORIZONTAL)
+        self.okButton = wx.Button(pnl, wx.ID_OK, "&OK")
+        self.Bind(wx.EVT_BUTTON, self.OnOK, self.okButton)
+        hbox2.Add(self.okButton)
+
+        #-----------------------
+        # design the frame
+        #-----------------------                
+        vbox.Add(sbs1)
+        vbox.AddSpacer(5)
+        vbox.Add(sbs2)
+        vbox.AddSpacer(5)
+        vbox.Add(hbox2)
+        vbox.AddSpacer(10)
+        
+        hbox1=wx.BoxSizer(wx.HORIZONTAL)        
+        hbox1.AddSpacer(10)
+        hbox1.Add(vbox)
+        hbox1.AddSpacer(10)
+
+        pnl.SetSizer(hbox1)
+        hbox1.Fit(self)
+
+    def OnOK(self, e):
+        methodcodes=[]
+        if self.cb1.GetValue() ==True:
+            methodcodes.append('FS-FD')
+        if self.cb2.GetValue() ==True:
+            methodcodes.append('FS-H')
+        if self.cb3.GetValue() ==True:
+            methodcodes.append('FS-LOC-GPS')
+        if self.cb4.GetValue() ==True:
+            methodcodes.append('FS-LOC-MAP')
+        if self.cb5.GetValue() ==True:
+            methodcodes.append('SO-POM')
+        if self.cb6.GetValue() ==True:
+            methodcodes.append('SO-ASC')
+        if self.cb7.GetValue() ==True:
+            methodcodes.append('SO-MAG')
+        if self.cb8.GetValue() ==True:
+            methodcodes.append('SO-SUN')
+        if self.cb9.GetValue() ==True:
+            methodcodes.append('SO-SM')
+        if self.cb10.GetValue() ==True:
+            methodcodes.append('SO-SIGHT')
+        
+        if methodcodes==[]:
+            self.methodcodes_flags=""
+        else:
+            self.methodcodes_flags="-mcd "+":".join(methodcodes)
+        
+        bedding_codes=[]
+        
+        if self.bed_con1.GetValue() ==True:
+            bedding_codes.append("-a")
+        if self.bed_con2.GetValue() ==True:
+            bedding_codes.append("-BCN")
+        
+        self.bedding_codes_flags=" ".join(bedding_codes)   
+        self.Close()
+
+
+#class MyFrame(wx.Frame):
+#    def __init__(self, parent, id, title):
+#        wx.Frame.__init__(self, parent, id, title, size=(500,500))
+#
+#        panel = wx.Panel(self, -1)
+#        wx.Button(panel, 1, 'Show Custom Dialog', (100,100))
+#        self.Bind (wx.EVT_BUTTON, self.OnShowCustomDialog, id=1)
+#
+#    def OnShowCustomDialog(self, event):
+#        #dia = MyDialog(self, -1, 'buttons')
+#                
+#        dia=demag_criteria_dialog(None, {},title='Set Acceptance Criteria')
+#        dia.Center()        
+#        dia.ShowModal()
+#        dia.Destroy()
+#
+#class MyApp(wx.App):
+#    def OnInit(self):
+#        frame = MyFrame(None, -1, 'customdialog1.py')
+#        frame.Show(True)
+#        frame.Centre()
+#        return True
+##
+#app = MyApp(0)
+#app.MainLoop()
+
+
 #if __name__ == '__main__':
 #    app = wx.PySimpleApp()
-#    app.frame = convert_generic_files_to_MagIC("./")
+#    app.frame = demag_criteria_dialog(None, {},title='Set Acceptance Criteria')
 #    app.frame.Show()
 #    app.frame.Center()
 #    app.MainLoop()
