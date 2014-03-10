@@ -1,0 +1,10 @@
+integration_notes.txt: -*- Text -*-  DESCRIPTIVE TEXT.
+
+Copyright (c) 2014 Lori Jonestrask
+Author: Lori Jonestrask (mintblue87@gmail.com) .
+
+
+to do:
+   rename rename_me.py, for god's sake
+   ensure that all tests are actually passing
+   get started with travis

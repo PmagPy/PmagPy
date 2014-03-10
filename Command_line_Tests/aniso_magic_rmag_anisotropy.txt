@@ -1,0 +1,9 @@
+tab 	rmag_results
+anisotropy_t1	anisotropy_t2	anisotropy_t3	anisotropy_type	anisotropy_v1_dec	anisotropy_v1_inc	anisotropy_v2_dec	anisotropy_v2_inc	anisotropy_v3_dec	anisotropy_v3_inc	er_analyst_mail_names	er_citation_names	er_location_names	er_sample_names	er_site_names	er_specimen_names	rmag_result_name	tilt_correction
+0.33999866	0.33663565	0.32336569	AMS	38.4	36.1	183.6	48.4	294.8	17.8		This study	Scripps Beach	dk01a	dk01	dk01a1	dk01a1:AMS	0
+0.34221599	0.33635223	0.32143179	AMS	28.6	15.7	163.6	68.3	294.4	14.6		This study	Scripps Beach	dk01a	dk01	dk01a2	dk01a2:AMS	0
+0.34018460	0.33327547	0.32653996	AMS	23.6	1.4	289.2	72.6	114.0	17.4		This study	Scripps Beach	dk01b	dk01	dk01b1	dk01b1:AMS	0
+0.34344640	0.33322674	0.32332683	AMS	27.1	10.0	155.6	74.1	294.9	12.2		This study	Scripps Beach	dk01b	dk01	dk01b2	dk01b2:AMS	0
+0.33866203	0.33707961	0.32425836	AMS	37.3	32.9	191.4	54.3	299.2	12.4		This study	Scripps Beach	dk01d	dk01	dk01d1	dk01d1:AMS	0
+0.33992603	0.33576027	0.32431367	AMS	42.1	31.0	183.7	52.5	300.2	18.9		This study	Scripps Beach	dk01f	dk01	dk01f1	dk01f1:AMS	0
+0.34040287	0.33536589	0.32423124	AMS	29.6	14.5	166.3	70.5	296.2	12.8		This study	Scripps Beach	dk01a:dk01b:dk01d:dk01f	dk01	dk01a1:dk01a2:dk01b1:dk01b2:dk01d1:dk01f1	dk01:AMS	0

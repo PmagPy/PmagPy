@@ -1,0 +1,191 @@
+tab 	pmag_samples
+er_citation_names	er_location_name	er_sample_name	er_site_name	er_specimen_names	magic_method_codes	pmag_criteria_codes	sample_dec	sample_description	sample_direction_type	sample_inc	sample_inferred_age	sample_inferred_age_sigma	sample_inferred_age_unit	sample_n	sample_n_lines	sample_n_planes	sample_tilt_correction
+This study	San Francisco Volcanics	sv02a	sv02	sv02a1	LP-DIR-AF:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	330.3	sample direction.	l	30.4	0.75	0.17	Ma	1	1	0	0
+This study	San Francisco Volcanics	sv02d	sv02	sv02d1	LP-DIR-AF:SO-CMD-NORTH:DE-BFL:DA-DIR-GEO	DE-SPEC	338.6	sample direction.	l	44.5	0.75	0.17	Ma	1	1	0	0
+This study	San Francisco Volcanics	sv02e	sv02	sv02e1	LP-DIR-AF:SO-CMD-NORTH:DE-BFL:DA-DIR-GEO	DE-SPEC	340.6	sample direction.	l	42.4	0.75	0.17	Ma	1	1	0	0
+This study	San Francisco Volcanics	sv02k	sv02	sv02k1	LP-DIR-AF:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	337.7	sample direction.	l	40.3	0.75	0.17	Ma	1	1	0	0
+This study	San Francisco Volcanics	sv03a	sv03	sv03a1	LP-DIR-AF:SO-CMD-NORTH:DE-BFL:DA-DIR-GEO	DE-SPEC	344.6	sample direction.	l	52.1	2.5	2.5	Ma	1	1	0	0
+This study	San Francisco Volcanics	sv03g	sv03	sv03g1	LP-DIR-AF:SO-CMD-NORTH:DE-BFL:DA-DIR-GEO	DE-SPEC	352.8	sample direction.	l	52.2	2.5	2.5	Ma	1	1	0	0
+This study	San Francisco Volcanics	sv03h	sv03	sv03h1	LP-DIR-AF:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	349.1	sample direction.	l	55.5	2.5	2.5	Ma	1	1	0	0
+This study	San Francisco Volcanics	sv03i	sv03	sv03i1	LP-DIR-AF:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	353.2	sample direction.	l	57.3	2.5	2.5	Ma	1	1	0	0
+This study	San Francisco Volcanics	sv03j	sv03	sv03j1	LP-DIR-AF:SO-CMD-NORTH:DE-BFL:DA-DIR-GEO	DE-SPEC	324.1	sample direction.	l	44.6	2.5	2.5	Ma	1	1	0	0
+This study	San Francisco Volcanics	sv04a	sv04	sv04a1	LP-DIR-AF:SO-CMD-NORTH:DE-BFL:DA-DIR-GEO	DE-SPEC	348.3	sample direction.	l	50.2	2.5	2.5	Ma	1	1	0	0
+This study	San Francisco Volcanics	sv04b	sv04	sv04b1	LP-DIR-AF:SO-CMD-NORTH:DE-BFL:DA-DIR-GEO	DE-SPEC	353	sample direction.	l	46.6	2.5	2.5	Ma	1	1	0	0
+This study	San Francisco Volcanics	sv04d	sv04	sv04d1	LP-DIR-AF:SO-CMD-NORTH:DE-BFL:DA-DIR-GEO	DE-SPEC	342.6	sample direction.	l	48.7	2.5	2.5	Ma	1	1	0	0
+This study	San Francisco Volcanics	sv04e	sv04	sv04e1	LP-DIR-AF:SO-CMD-NORTH:DE-BFL:DA-DIR-GEO	DE-SPEC	342.2	sample direction.	l	56.9	2.5	2.5	Ma	1	1	0	0
+This study	San Francisco Volcanics	sv04i	sv04	sv04i1	LP-DIR-AF:SO-CMD-NORTH:DE-BFL:DA-DIR-GEO	DE-SPEC	347.4	sample direction.	l	50.6	2.5	2.5	Ma	1	1	0	0
+This study	San Francisco Volcanics	sv05b	sv05	sv05b1	LP-DIR-AF:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	160	sample direction.	l	-47.8	2.5	2.5	Ma	1	1	0	0
+This study	San Francisco Volcanics	sv05d	sv05	sv05d2	LP-DIR-AF:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	161.2	sample direction.	l	-47.4	2.5	2.5	Ma	1	1	0	0
+This study	San Francisco Volcanics	sv05h	sv05	sv05h1	LP-DIR-AF:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	172	sample direction.	l	-44.3	2.5	2.5	Ma	1	1	0	0
+This study	San Francisco Volcanics	sv05i	sv05	sv05i1	LP-DIR-AF:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	166.6	sample direction.	l	-54.5	2.5	2.5	Ma	1	1	0	0
+This study	San Francisco Volcanics	sv05j	sv05	sv05j1	LP-DIR-AF:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	157.8	sample direction.	l	-60	2.5	2.5	Ma	1	1	0	0
+This study	San Francisco Volcanics	sv06f	sv06	sv06f1	LP-DIR-AF:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	357.8	sample direction.	l	-39.1	2.5	2.5	Ma	1	1	0	0
+This study	San Francisco Volcanics	sv06h	sv06	sv06h1	LP-DIR-AF:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	344.7	sample direction.	l	-25.1	2.5	2.5	Ma	1	1	0	0
+This study	San Francisco Volcanics	sv07a	sv07	sv07a1	LP-DIR-AF:SO-CMD-NORTH:DE-BFL:DA-DIR-GEO	DE-SPEC	4.1	sample direction.	l	57.1	2.5	2.5	Ma	1	1	0	0
+This study	San Francisco Volcanics	sv07b	sv07	sv07b1	LP-DIR-AF:SO-CMD-NORTH:DE-BFL:DA-DIR-GEO	DE-SPEC	352.3	sample direction.	l	61.6	2.5	2.5	Ma	1	1	0	0
+This study	San Francisco Volcanics	sv07c	sv07	sv07c1	LP-DIR-AF:SO-CMD-NORTH:DE-BFL:DA-DIR-GEO	DE-SPEC	346.5	sample direction.	l	62.5	2.5	2.5	Ma	1	1	0	0
+This study	San Francisco Volcanics	sv07d	sv07	sv07d1	LP-DIR-AF:SO-CMD-NORTH:DE-BFL:DA-DIR-GEO	DE-SPEC	351.2	sample direction.	l	65.3	2.5	2.5	Ma	1	1	0	0
+This study	San Francisco Volcanics	sv07f	sv07	sv07f2	LP-DIR-AF:SO-CMD-NORTH:DE-BFL:DA-DIR-GEO	DE-SPEC	344.1	sample direction.	l	60.2	2.5	2.5	Ma	1	1	0	0
+This study	San Francisco Volcanics	sv07g	sv07	sv07g1	LP-DIR-AF:SO-CMD-NORTH:DE-BFL:DA-DIR-GEO	DE-SPEC	341.2	sample direction.	l	59.3	2.5	2.5	Ma	1	1	0	0
+This study	San Francisco Volcanics	sv07i	sv07	sv07i1	LP-DIR-AF:SO-CMD-NORTH:DE-BFL:DA-DIR-GEO	DE-SPEC	352.3	sample direction.	l	64.6	2.5	2.5	Ma	1	1	0	0
+This study	San Francisco Volcanics	sv08a	sv08	sv08a1	LP-DIR-AF:SO-CMD-NORTH:DE-BFL:DA-DIR-GEO	DE-SPEC	173.5	sample direction.	l	-46.7	2.08	0.48	Ma	1	1	0	0
+This study	San Francisco Volcanics	sv08b	sv08	sv08b1	LP-DIR-AF:SO-CMD-NORTH:DE-BFL:DA-DIR-GEO	DE-SPEC	165	sample direction.	l	-38.2	2.08	0.48	Ma	1	1	0	0
+This study	San Francisco Volcanics	sv08c	sv08	sv08c1	LP-DIR-AF:SO-CMD-NORTH:DE-BFL:DA-DIR-GEO	DE-SPEC	164.7	sample direction.	l	-41.1	2.08	0.48	Ma	1	1	0	0
+This study	San Francisco Volcanics	sv08d	sv08	sv08d1	LP-DIR-AF:SO-CMD-NORTH:DE-BFL:DA-DIR-GEO	DE-SPEC	160.9	sample direction.	l	-48.9	2.08	0.48	Ma	1	1	0	0
+This study	San Francisco Volcanics	sv08e	sv08	sv08e1	LP-DIR-AF:SO-CMD-NORTH:DE-BFL:DA-DIR-GEO	DE-SPEC	171.2	sample direction.	l	-53.8	2.08	0.48	Ma	1	1	0	0
+This study	San Francisco Volcanics	sv08g	sv08	sv08g1	LP-DIR-AF:SO-CMD-NORTH:DE-BFL:DA-DIR-GEO	DE-SPEC	169.4	sample direction.	l	-48.3	2.08	0.48	Ma	1	1	0	0
+This study	San Francisco Volcanics	sv08h	sv08	sv08h1	LP-DIR-AF:SO-CMD-NORTH:DE-BFL:DA-DIR-GEO	DE-SPEC	156.6	sample direction.	l	-44.8	2.08	0.48	Ma	1	1	0	0
+This study	San Francisco Volcanics	sv09e	sv09	sv09e1	LP-DIR-AF:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	242.7	sample direction.	l	-69	1.14	0.17	Ma	1	1	0	0
+This study	San Francisco Volcanics	sv09f	sv09	sv09f1	LP-DIR-AF:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	277	sample direction.	l	-61.2	1.14	0.17	Ma	1	1	0	0
+This study	San Francisco Volcanics	sv09i	sv09	sv09i1	LP-DIR-AF:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	242.5	sample direction.	l	-68.6	1.14	0.17	Ma	1	1	0	0
+This study	San Francisco Volcanics	sv09j	sv09	sv09j1	LP-DIR-AF:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	230.6	sample direction.	l	-67.7	1.14	0.17	Ma	1	1	0	0
+This study	San Francisco Volcanics	sv11k	sv11	sv11k1	LP-DIR-AF:SO-CMD-NORTH:DE-BFL:DA-DIR-GEO	DE-SPEC	193.6	sample direction.	l	-39	1.29	0.15	Ma	1	1	0	0
+This study	San Francisco Volcanics	sv11n	sv11	sv11n1	LP-DIR-AF:SO-CMD-NORTH:DE-BFL:DA-DIR-GEO	DE-SPEC	197.7	sample direction.	l	-51.2	1.29	0.15	Ma	1	1	0	0
+This study	San Francisco Volcanics	sv15a	sv15	sv15a1	LP-DIR-AF:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	345.5	sample direction.	l	24.2	0.33	0.08	Ma	1	1	0	0
+This study	San Francisco Volcanics	sv15b	sv15	sv15b1	LP-DIR-AF:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	346.2	sample direction.	l	26.6	0.33	0.08	Ma	1	1	0	0
+This study	San Francisco Volcanics	sv15c	sv15	sv15c1	LP-DIR-AF:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	351.3	sample direction.	l	24.5	0.33	0.08	Ma	1	1	0	0
+This study	San Francisco Volcanics	sv15d	sv15	sv15d1	LP-DIR-AF:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	355.3	sample direction.	l	24.4	0.33	0.08	Ma	1	1	0	0
+This study	San Francisco Volcanics	sv15f	sv15	sv15f1	LP-DIR-AF:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	355.2	sample direction.	l	26.2	0.33	0.08	Ma	1	1	0	0
+This study	San Francisco Volcanics	sv15h	sv15	sv15h1	LP-DIR-AF:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	3.4	sample direction.	l	26.5	0.33	0.08	Ma	1	1	0	0
+This study	San Francisco Volcanics	sv16a	sv16	sv16a1	LP-DIR-AF:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	350.6	sample direction.	l	28.4	2.5	2.5	Ma	1	1	0	0
+This study	San Francisco Volcanics	sv16b	sv16	sv16b1	LP-DIR-AF:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	352.3	sample direction.	l	28.9	2.5	2.5	Ma	1	1	0	0
+This study	San Francisco Volcanics	sv16c	sv16	sv16c1	LP-DIR-AF:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	358.7	sample direction.	l	23.6	2.5	2.5	Ma	1	1	0	0
+This study	San Francisco Volcanics	sv16e	sv16	sv16e1	LP-DIR-AF:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	359.8	sample direction.	l	19.8	2.5	2.5	Ma	1	1	0	0
+This study	San Francisco Volcanics	sv17i	sv17	sv17i1	LP-DIR-AF:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	131.9	sample direction.	l	62	2.5	2.5	Ma	1	1	0	0
+This study	San Francisco Volcanics	sv18c	sv18	sv18c1	LP-DIR-AF:SO-CMD-NORTH:DE-BFL:DA-DIR-GEO	DE-SPEC	195.9	sample direction.	l	-56.1	2.5	2.5	Ma	1	1	0	0
+This study	San Francisco Volcanics	sv18f	sv18	sv18f1	LP-DIR-AF:SO-CMD-NORTH:DE-BFL:DA-DIR-GEO	DE-SPEC	192.5	sample direction.	l	-56.8	2.5	2.5	Ma	1	1	0	0
+This study	San Francisco Volcanics	sv18g	sv18	sv18g1	LP-DIR-AF:SO-CMD-NORTH:DE-BFL:DA-DIR-GEO	DE-SPEC	197.3	sample direction.	l	-55.5	2.5	2.5	Ma	1	1	0	0
+This study	San Francisco Volcanics	sv18h	sv18	sv18h1	LP-DIR-AF:SO-CMD-NORTH:DE-BFL:DA-DIR-GEO	DE-SPEC	193.4	sample direction.	l	-57.4	2.5	2.5	Ma	1	1	0	0
+This study	San Francisco Volcanics	sv19c	sv19	sv19c1	LP-DIR-AF:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	219	sample direction.	l	32.4	2.5	2.5	Ma	1	1	0	0
+This study	San Francisco Volcanics	sv20c	sv20	sv20c1	LP-DIR-AF:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	355.8	sample direction.	l	42.6	1.04	0.14	Ma	1	1	0	0
+This study	San Francisco Volcanics	sv21g	sv21	sv21g1	LP-DIR-AF:LP-DIR-T:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	76.7	sample direction.	l	-4.3	1.2	0.05	Ma	1	1	0	0
+This study	San Francisco Volcanics	sv21i	sv21	sv21i1	LP-DIR-AF:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	132.2	sample direction.	l	-0.9	1.2	0.05	Ma	1	1	0	0
+This study	San Francisco Volcanics	sv23a	sv23	sv23a1	LP-DIR-AF:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	20.6	sample direction.	l	28.7	1.07	0.15	Ma	1	1	0	0
+This study	San Francisco Volcanics	sv23b	sv23	sv23b1	LP-DIR-AF:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	17	sample direction.	l	29.3	1.07	0.15	Ma	1	1	0	0
+This study	San Francisco Volcanics	sv23f	sv23	sv23f1	LP-DIR-AF:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	18.2	sample direction.	l	26.7	1.07	0.15	Ma	1	1	0	0
+This study	San Francisco Volcanics	sv23g	sv23	sv23g1	LP-DIR-AF:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	25.1	sample direction.	l	29	1.07	0.15	Ma	1	1	0	0
+This study	San Francisco Volcanics	sv24b	sv24	sv24b1	LP-DIR-AF:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	343	sample direction.	l	63.4	2.5	2.5	Ma	1	1	0	0
+This study	San Francisco Volcanics	sv24c	sv24	sv24c1	LP-DIR-AF:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	356.8	sample direction.	l	58.6	2.5	2.5	Ma	1	1	0	0
+This study	San Francisco Volcanics	sv24d	sv24	sv24d1	LP-DIR-AF:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	353.7	sample direction.	l	64.1	2.5	2.5	Ma	1	1	0	0
+This study	San Francisco Volcanics	sv24g	sv24	sv24g1	LP-DIR-AF:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	317.5	sample direction.	l	63.2	2.5	2.5	Ma	1	1	0	0
+This study	San Francisco Volcanics	sv24h	sv24	sv24h1	LP-DIR-AF:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	348.8	sample direction.	l	63.6	2.5	2.5	Ma	1	1	0	0
+This study	San Francisco Volcanics	sv24i	sv24	sv24i1	LP-DIR-AF:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	335.1	sample direction.	l	62.7	2.5	2.5	Ma	1	1	0	0
+This study	San Francisco Volcanics	sv24j	sv24	sv24j1	LP-DIR-AF:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	315.9	sample direction.	l	64.1	2.5	2.5	Ma	1	1	0	0
+This study	San Francisco Volcanics	sv25j	sv25	sv25j1	LP-DIR-AF:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	274.6	sample direction.	l	36.6	1.04	0.04	Ma	1	1	0	0
+This study	San Francisco Volcanics	sv26g	sv26	sv26g1	LP-DIR-AF:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	167.9	sample direction.	l	-62.8	2.5	2.5	Ma	1	1	0	0
+This study	San Francisco Volcanics	sv26h	sv26	sv26h2	LP-DIR-AF:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	150.7	sample direction.	l	-71.5	2.5	2.5	Ma	1	1	0	0
+This study	San Francisco Volcanics	sv26i	sv26	sv26i1	LP-DIR-AF:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	137.9	sample direction.	l	-66.4	2.5	2.5	Ma	1	1	0	0
+This study	San Francisco Volcanics	sv26l	sv26	sv26l1	LP-DIR-AF:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	173.8	sample direction.	l	-75.3	2.5	2.5	Ma	1	1	0	0
+This study	San Francisco Volcanics	sv27a	sv27	sv27a1	LP-DIR-AF:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	359.1	sample direction.	l	56.2	0.071		Ma	1	1	0	0
+This study	San Francisco Volcanics	sv27c	sv27	sv27c1	LP-DIR-AF:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	343.4	sample direction.	l	56.7	0.071		Ma	1	1	0	0
+This study	San Francisco Volcanics	sv27d	sv27	sv27d1	LP-DIR-AF:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	354.4	sample direction.	l	50.5	0.071		Ma	1	1	0	0
+This study	San Francisco Volcanics	sv27j	sv27	sv27j1	LP-DIR-AF:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	1.2	sample direction.	l	58.1	0.071		Ma	1	1	0	0
+This study	San Francisco Volcanics	sv28h	sv28	sv28h1	LP-DIR-AF:LP-DIR-T:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	29.7	sample direction.	l	11.7	2.5	2.5	Ma	1	1	0	0
+This study	San Francisco Volcanics	sv30h	sv30	sv30h1	LP-DIR-AF:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	180.5	sample direction.	l	-40.6	2.5	2.5	Ma	1	1	0	0
+This study	San Francisco Volcanics	sv31a	sv31	sv31a1	LP-DIR-AF:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	5.5	sample direction.	l	45.3	2.5	2.5	Ma	1	1	0	0
+This study	San Francisco Volcanics	sv31b	sv31	sv31b1	LP-DIR-AF:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	11.9	sample direction.	l	45.1	2.5	2.5	Ma	1	1	0	0
+This study	San Francisco Volcanics	sv31c	sv31	sv31c1	LP-DIR-AF:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	12.4	sample direction.	l	43.1	2.5	2.5	Ma	1	1	0	0
+This study	San Francisco Volcanics	sv31e	sv31	sv31e2	LP-DIR-AF:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	17.4	sample direction.	l	48.2	2.5	2.5	Ma	1	1	0	0
+This study	San Francisco Volcanics	sv31k	sv31	sv31k1	LP-DIR-AF:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	16.6	sample direction.	l	49.1	2.5	2.5	Ma	1	1	0	0
+This study	San Francisco Volcanics	sv32a	sv32	sv32a1	LP-DIR-AF:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	348.3	sample direction.	l	60.8	1080		Years AD (+/-)	1	1	0	0
+This study	San Francisco Volcanics	sv32b	sv32	sv32b1	LP-DIR-AF:SO-CMD-NORTH:DE-BFL:DA-DIR-GEO	DE-SPEC	336.3	sample direction.	l	62.5	1080		Years AD (+/-)	1	1	0	0
+This study	San Francisco Volcanics	sv32c	sv32	sv32c1	LP-DIR-AF:SO-CMD-NORTH:DE-BFL:DA-DIR-GEO	DE-SPEC	339.6	sample direction.	l	56.4	1080		Years AD (+/-)	1	1	0	0
+This study	San Francisco Volcanics	sv32d	sv32	sv32d1	LP-DIR-AF:SO-CMD-NORTH:DE-BFL:DA-DIR-GEO	DE-SPEC	346.4	sample direction.	l	57.1	1080		Years AD (+/-)	1	1	0	0
+This study	San Francisco Volcanics	sv32e	sv32	sv32e1	LP-DIR-AF:SO-CMD-NORTH:DE-BFL:DA-DIR-GEO	DE-SPEC	343.7	sample direction.	l	64.1	1080		Years AD (+/-)	1	1	0	0
+This study	San Francisco Volcanics	sv50a	sv50	sv50a1	LP-DIR-AF:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	309.2	sample direction.	l	6.6	2.5	2.5	Ma	1	1	0	0
+This study	San Francisco Volcanics	sv50j	sv50	sv50j1	LP-DIR-AF:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	181.2	sample direction.	l	-42.8	2.5	2.5	Ma	1	1	0	0
+This study	San Francisco Volcanics	sv51a	sv51	sv51a1	LP-DIR-AF:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	302.1	sample direction.	l	11.7	2.5	2.5	Ma	1	1	0	0
+This study	San Francisco Volcanics	sv51e	sv51	sv51e1	LP-DIR-AF:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	171.3	sample direction.	l	-38.1	2.5	2.5	Ma	1	1	0	0
+This study	San Francisco Volcanics	sv51j	sv51	sv51j1	LP-DIR-AF:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	187.5	sample direction.	l	-40.3	2.5	2.5	Ma	1	1	0	0
+This study	San Francisco Volcanics	sv51k	sv51	sv51k2	LP-DIR-AF:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	188.3	sample direction.	l	-37.1	2.5	2.5	Ma	1	1	0	0
+This study	San Francisco Volcanics	sv52a	sv52	sv52a1	LP-DIR-AF:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	174	sample direction.	l	-56.1	2.5	2.5	Ma	1	1	0	0
+This study	San Francisco Volcanics	sv52c	sv52	sv52c1	LP-DIR-AF:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	187.2	sample direction.	l	-56.2	2.5	2.5	Ma	1	1	0	0
+This study	San Francisco Volcanics	sv52g	sv52	sv52g1	LP-DIR-AF:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	192.6	sample direction.	l	-51.1	2.5	2.5	Ma	1	1	0	0
+This study	San Francisco Volcanics	sv52j	sv52	sv52j1	LP-DIR-AF:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	175.9	sample direction.	l	-55	2.5	2.5	Ma	1	1	0	0
+This study	San Francisco Volcanics	sv53b	sv53	sv53b1	LP-DIR-AF:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	171.4	sample direction.	l	29.9	2.5	2.5	Ma	1	1	0	0
+This study	San Francisco Volcanics	sv53i	sv53	sv53i1	LP-DIR-AF:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	179.1	sample direction.	l	-49.1	2.5	2.5	Ma	1	1	0	0
+This study	San Francisco Volcanics	sv53j	sv53	sv53j1	LP-DIR-AF:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	186.3	sample direction.	l	-52.8	2.5	2.5	Ma	1	1	0	0
+This study	San Francisco Volcanics	sv54c	sv54	sv54c1	LP-DIR-AF:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	175.1	sample direction.	l	-45.8	2.5	2.5	Ma	1	1	0	0
+This study	San Francisco Volcanics	sv54d	sv54	sv54d1	LP-DIR-AF:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	175.4	sample direction.	l	-41	2.5	2.5	Ma	1	1	0	0
+This study	San Francisco Volcanics	sv54h	sv54	sv54h1	LP-DIR-AF:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	167.9	sample direction.	l	-56.4	2.5	2.5	Ma	1	1	0	0
+This study	San Francisco Volcanics	sv54i	sv54	sv54i1	LP-DIR-AF:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	188.5	sample direction.	l	-28	2.5	2.5	Ma	1	1	0	0
+This study	San Francisco Volcanics	sv54k	sv54	sv54k1	LP-DIR-AF:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	160.1	sample direction.	l	-60.4	2.5	2.5	Ma	1	1	0	0
+This study	San Francisco Volcanics	sv55a	sv55	sv55a1	LP-DIR-AF:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	181.7	sample direction.	l	-50.5	2.5	2.5	Ma	1	1	0	0
+This study	San Francisco Volcanics	sv55d	sv55	sv55d2	LP-DIR-AF:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	180.3	sample direction.	l	-43.1	2.5	2.5	Ma	1	1	0	0
+This study	San Francisco Volcanics	sv55h	sv55	sv55h1	LP-DIR-AF:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	179.4	sample direction.	l	-42.1	2.5	2.5	Ma	1	1	0	0
+This study	San Francisco Volcanics	sv55j	sv55	sv55j1	LP-DIR-AF:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	183.7	sample direction.	l	-44.3	2.5	2.5	Ma	1	1	0	0
+This study	San Francisco Volcanics	sv56a	sv56	sv56a2	LP-DIR-AF:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	174.9	sample direction.	l	-59.5	2.5	2.5	Ma	1	1	0	0
+This study	San Francisco Volcanics	sv56c	sv56	sv56c1	LP-DIR-AF:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	166.5	sample direction.	l	-52.1	2.5	2.5	Ma	1	1	0	0
+This study	San Francisco Volcanics	sv56d	sv56	sv56d2	LP-DIR-AF:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	167.2	sample direction.	l	-51.4	2.5	2.5	Ma	1	1	0	0
+This study	San Francisco Volcanics	sv56h	sv56	sv56h1	LP-DIR-AF:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	352.7	sample direction.	l	-26.4	2.5	2.5	Ma	1	1	0	0
+This study	San Francisco Volcanics	sv57a	sv57	sv57a1	LP-DIR-AF:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	198	sample direction.	l	-53.8	2.5	2.5	Ma	1	1	0	0
+This study	San Francisco Volcanics	sv57c	sv57	sv57c1	LP-DIR-AF:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	194.9	sample direction.	l	-54.2	2.5	2.5	Ma	1	1	0	0
+This study	San Francisco Volcanics	sv57d	sv57	sv57d1	LP-DIR-AF:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	187.6	sample direction.	l	-57	2.5	2.5	Ma	1	1	0	0
+This study	San Francisco Volcanics	sv57k	sv57	sv57k1	LP-DIR-AF:SO-CMD-NORTH:DE-BFL:DA-DIR-GEO	DE-SPEC	203	sample direction.	l	-14.6	2.5	2.5	Ma	1	1	0	0
+This study	San Francisco Volcanics	sv57l	sv57	sv57l2	LP-DIR-AF:SO-CMD-NORTH:DE-BFL:DA-DIR-GEO	DE-SPEC	210.3	sample direction.	l	-49.6	2.5	2.5	Ma	1	1	0	0
+This study	San Francisco Volcanics	sv58a	sv58	sv58a1	LP-DIR-AF:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	181.6	sample direction.	l	-63.7	2.5	2.5	Ma	1	1	0	0
+This study	San Francisco Volcanics	sv58d	sv58	sv58d1	LP-DIR-AF:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	176.7	sample direction.	l	-60	2.5	2.5	Ma	1	1	0	0
+This study	San Francisco Volcanics	sv58g	sv58	sv58g1	LP-DIR-AF:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	182.5	sample direction.	l	-60	2.5	2.5	Ma	1	1	0	0
+This study	San Francisco Volcanics	sv58k	sv58	sv58k1	LP-DIR-AF:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	188	sample direction.	l	-65.2	2.5	2.5	Ma	1	1	0	0
+This study	San Francisco Volcanics	sv59a	sv59	sv59a1	LP-DIR-AF:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	181	sample direction.	l	-51.7	2.5	2.5	Ma	1	1	0	0
+This study	San Francisco Volcanics	sv59f	sv59	sv59f1	LP-DIR-AF:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	179.6	sample direction.	l	-53.1	2.5	2.5	Ma	1	1	0	0
+This study	San Francisco Volcanics	sv59g	sv59	sv59g1	LP-DIR-AF:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	178.4	sample direction.	l	-52	2.5	2.5	Ma	1	1	0	0
+This study	San Francisco Volcanics	sv59j	sv59	sv59j1	LP-DIR-AF:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	176.4	sample direction.	l	-48.3	2.5	2.5	Ma	1	1	0	0
+This study	San Francisco Volcanics	sv60a	sv60	sv60a1	LP-DIR-AF:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	219.1	sample direction.	l	-21	2.5	2.5	Ma	1	1	0	0
+This study	San Francisco Volcanics	sv60c	sv60	sv60c1	LP-DIR-AF:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	179.5	sample direction.	l	-28.9	2.5	2.5	Ma	1	1	0	0
+This study	San Francisco Volcanics	sv61a	sv61	sv61a1	LP-DIR-AF:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	163.3	sample direction.	l	61	2.5	2.5	Ma	1	1	0	0
+This study	San Francisco Volcanics	sv61g	sv61	sv61g1	LP-DIR-AF:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	348.2	sample direction.	l	63.4	2.5	2.5	Ma	1	1	0	0
+This study	San Francisco Volcanics	sv61i	sv61	sv61i1	LP-DIR-AF:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	356.8	sample direction.	l	54.4	2.5	2.5	Ma	1	1	0	0
+This study	San Francisco Volcanics	sv63a	sv63	sv63a1	LP-DIR-AF:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	354.9	sample direction.	l	43.6	2.5	2.5	Ma	1	1	0	0
+This study	San Francisco Volcanics	sv63f	sv63	sv63f1	LP-DIR-AF:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	353	sample direction.	l	48	2.5	2.5	Ma	1	1	0	0
+This study	San Francisco Volcanics	sv63h	sv63	sv63h1	LP-DIR-AF:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	351.9	sample direction.	l	46.4	2.5	2.5	Ma	1	1	0	0
+This study	San Francisco Volcanics	sv63j	sv63	sv63j1	LP-DIR-AF:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	346.5	sample direction.	l	42.3	2.5	2.5	Ma	1	1	0	0
+This study	San Francisco Volcanics	sv64b	sv64	sv64b1	LP-DIR-AF:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	173.1	sample direction.	l	-51.1	2.5	2.5	Ma	1	1	0	0
+This study	San Francisco Volcanics	sv64c	sv64	sv64c2	LP-DIR-AF:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	185.3	sample direction.	l	-45.3	2.5	2.5	Ma	1	1	0	0
+This study	San Francisco Volcanics	sv64e	sv64	sv64e1	LP-DIR-AF:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	162.4	sample direction.	l	-53	2.5	2.5	Ma	1	1	0	0
+This study	San Francisco Volcanics	sv64g	sv64	sv64g1	LP-DIR-AF:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	167.9	sample direction.	l	-53.7	2.5	2.5	Ma	1	1	0	0
+This study	San Francisco Volcanics	sv64h	sv64	sv64h1	LP-DIR-AF:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	165.5	sample direction.	l	-52.9	2.5	2.5	Ma	1	1	0	0
+This study	San Francisco Volcanics	sv64i	sv64	sv64i1	LP-DIR-AF:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	165.9	sample direction.	l	-52.1	2.5	2.5	Ma	1	1	0	0
+This study	San Francisco Volcanics	sv65a	sv65	sv65a1	LP-DIR-AF:SO-CMD-NORTH:DE-BFL:DA-DIR-GEO	DE-SPEC	32.7	sample direction.	l	65	2.5	2.5	Ma	1	1	0	0
+This study	San Francisco Volcanics	sv65c	sv65	sv65c1	LP-DIR-AF:SO-CMD-NORTH:DE-BFL:DA-DIR-GEO	DE-SPEC	33.1	sample direction.	l	49.7	2.5	2.5	Ma	1	1	0	0
+This study	San Francisco Volcanics	sv65d	sv65	sv65d1	LP-DIR-AF:SO-CMD-NORTH:DE-BFL:DA-DIR-GEO	DE-SPEC	25.9	sample direction.	l	45	2.5	2.5	Ma	1	1	0	0
+This study	San Francisco Volcanics	sv65e	sv65	sv65e1	LP-DIR-AF:SO-CMD-NORTH:DE-BFL:DA-DIR-GEO	DE-SPEC	29.9	sample direction.	l	58.3	2.5	2.5	Ma	1	1	0	0
+This study	San Francisco Volcanics	sv01a	sv01	sv01a1	LP-DIR-AF:SO-CMD-NORTH:DE-BFP:DA-DIR-GEO		348.4	sample direction.	p	-34.7	2.5	2.5	Ma	1	0	1	0
+This study	San Francisco Volcanics	sv01b	sv01	sv01b1	LP-DIR-AF:SO-CMD-NORTH:DE-BFP:DA-DIR-GEO		122.7	sample direction.	p	25.5	2.5	2.5	Ma	1	0	1	0
+This study	San Francisco Volcanics	sv01g	sv01	sv01g1	LP-DIR-AF:SO-CMD-NORTH:DE-BFP:DA-DIR-GEO		162.4	sample direction.	p	36.6	2.5	2.5	Ma	1	0	1	0
+This study	San Francisco Volcanics	sv01h	sv01	sv01h1	LP-DIR-AF:SO-CMD-NORTH:DE-BFP:DA-DIR-GEO		190.4	sample direction.	p	34.6	2.5	2.5	Ma	1	0	1	0
+This study	San Francisco Volcanics	sv01j	sv01	sv01j1	LP-DIR-AF:SO-CMD-NORTH:DE-BFP:DA-DIR-GEO		133.4	sample direction.	p	21.9	2.5	2.5	Ma	1	0	1	0
+This study	San Francisco Volcanics	sv02b	sv02	sv02b1	LP-DIR-AF:SO-SUN:DE-BFP:DA-DIR-GEO		225.7	sample direction.	p	37	0.75	0.17	Ma	1	0	1	0
+This study	San Francisco Volcanics	sv02c	sv02	sv02c1	LP-DIR-AF:SO-SUN:DE-BFP:DA-DIR-GEO		103.1	sample direction.	p	32.3	0.75	0.17	Ma	1	0	1	0
+This study	San Francisco Volcanics	sv03b	sv03	sv03b1	LP-DIR-AF:SO-CMD-NORTH:DE-BFP:DA-DIR-GEO		39.5	sample direction.	p	-24.5	2.5	2.5	Ma	1	0	1	0
+This study	San Francisco Volcanics	sv03d	sv03	sv03d1	LP-DIR-AF:SO-CMD-NORTH:DE-BFP:DA-DIR-GEO		3.9	sample direction.	p	-33.5	2.5	2.5	Ma	1	0	1	0
+This study	San Francisco Volcanics	sv03e	sv03	sv03e1	LP-DIR-AF:SO-CMD-NORTH:DE-BFP:DA-DIR-GEO		8.8	sample direction.	p	-33.8	2.5	2.5	Ma	1	0	1	0
+This study	San Francisco Volcanics	sv05a	sv05	sv05a2	LP-DIR-AF:LP-DIR-T:SO-SUN:DE-BFP:DA-DIR-GEO		202.3	sample direction.	p	31.5	2.5	2.5	Ma	1	0	1	0
+This study	San Francisco Volcanics	sv05c	sv05	sv05c1	LP-DIR-AF:SO-SUN:DE-BFP:DA-DIR-GEO		168.4	sample direction.	p	37.3	2.5	2.5	Ma	1	0	1	0
+This study	San Francisco Volcanics	sv05f	sv05	sv05f1	LP-DIR-AF:SO-SUN:DE-BFP:DA-DIR-GEO		72.5	sample direction.	p	-2.6	2.5	2.5	Ma	1	0	1	0
+This study	San Francisco Volcanics	sv06a	sv06	sv06a1	LP-DIR-AF:SO-SUN:DE-BFP:DA-DIR-GEO		246.5	sample direction.	p	-31.4	2.5	2.5	Ma	1	0	1	0
+This study	San Francisco Volcanics	sv06c	sv06	sv06c3	LP-DIR-AF:SO-SUN:DE-BFP:DA-DIR-GEO		278.3	sample direction.	p	24.5	2.5	2.5	Ma	1	0	1	0
+This study	San Francisco Volcanics	sv06g	sv06	sv06g1	LP-DIR-AF:SO-SUN:DE-BFP:DA-DIR-GEO		59.6	sample direction.	p	24	2.5	2.5	Ma	1	0	1	0
+This study	San Francisco Volcanics	sv07j	sv07	sv07j1	LP-DIR-AF:SO-CMD-NORTH:DE-BFP:DA-DIR-GEO		200.3	sample direction.	p	24.6	2.5	2.5	Ma	1	0	1	0
+This study	San Francisco Volcanics	sv10a	sv10	sv10a1	LP-DIR-AF:SO-SUN:DE-BFP:DA-DIR-GEO		222.6	sample direction.	p	45.2	0.44	0.18	Ma	1	0	1	0
+This study	San Francisco Volcanics	sv10c	sv10	sv10c1	LP-DIR-AF:SO-SUN:DE-BFP:DA-DIR-GEO		264.7	sample direction.	p	14.7	0.44	0.18	Ma	1	0	1	0
+This study	San Francisco Volcanics	sv10f	sv10	sv10f1	LP-DIR-AF:SO-SUN:DE-BFP:DA-DIR-GEO		344.5	sample direction.	p	-34.7	0.44	0.18	Ma	1	0	1	0
+This study	San Francisco Volcanics	sv10g	sv10	sv10g1	LP-DIR-AF:LP-DIR-T:SO-CMD-NORTH:DE-BFP:DA-DIR-GEO		139.9	sample direction.	p	27.6	0.44	0.18	Ma	1	0	1	0
+This study	San Francisco Volcanics	sv10j	sv10	sv10j1	LP-DIR-AF:SO-SUN:DE-BFP:DA-DIR-GEO		93.7	sample direction.	p	6	0.44	0.18	Ma	1	0	1	0
+This study	San Francisco Volcanics	sv11a	sv11	sv11a1	LP-DIR-AF:SO-SUN:DE-BFP:DA-DIR-GEO		206.7	sample direction.	p	45.6	1.29	0.15	Ma	1	0	1	0
+This study	San Francisco Volcanics	sv11b	sv11	sv11b1	LP-DIR-AF:SO-SUN:DE-BFP:DA-DIR-GEO		149	sample direction.	p	42.9	1.29	0.15	Ma	1	0	1	0
+This study	San Francisco Volcanics	sv12e	sv12	sv12e1	LP-DIR-AF:SO-SUN:DE-BFP:DA-DIR-GEO		89.5	sample direction.	p	-21.1	0.34	0.21	Ma	1	0	1	0
+This study	San Francisco Volcanics	sv16h	sv16	sv16h1	LP-DIR-AF:SO-SUN:DE-BFP:DA-DIR-GEO		48	sample direction.	p	-61.3	2.5	2.5	Ma	1	0	1	0
+This study	San Francisco Volcanics	sv17b	sv17	sv17b1	LP-DIR-AF:SO-SUN:DE-BFP:DA-DIR-GEO		202.2	sample direction.	p	28.4	2.5	2.5	Ma	1	0	1	0
+This study	San Francisco Volcanics	sv22c	sv22	sv22c1	LP-DIR-AF:SO-SUN:DE-BFP:DA-DIR-GEO		263.2	sample direction.	p	-2.7	2.43	0.32	Ma	1	0	1	0
+This study	San Francisco Volcanics	sv26d	sv26	sv26d1	LP-DIR-AF:SO-SUN:DE-BFP:DA-DIR-GEO		174.6	sample direction.	p	25.8	2.5	2.5	Ma	1	0	1	0
+This study	San Francisco Volcanics	sv26k	sv26	sv26k1	LP-DIR-AF:SO-SUN:DE-BFP:DA-DIR-GEO		131.3	sample direction.	p	14.7	2.5	2.5	Ma	1	0	1	0
+This study	San Francisco Volcanics	sv27l	sv27	sv27l1	LP-DIR-AF:SO-SUN:DE-BFP:DA-DIR-GEO		41.8	sample direction.	p	-22.6	0.071		Ma	1	0	1	0
+This study	San Francisco Volcanics	sv30i	sv30	sv30i2	LP-DIR-AF:SO-SUN:DE-BFP:DA-DIR-GEO		0.5	sample direction.	p	-53.9	2.5	2.5	Ma	1	0	1	0
+This study	San Francisco Volcanics	sv50d	sv50	sv50d3	LP-DIR-AF:SO-SUN:DE-BFP:DA-DIR-GEO		224.7	sample direction.	p	33.3	2.5	2.5	Ma	1	0	1	0
+This study	San Francisco Volcanics	sv56e	sv56	sv56e1	LP-DIR-AF:SO-SUN:DE-BFP:DA-DIR-GEO		193.1	sample direction.	p	35.2	2.5	2.5	Ma	1	0	1	0
+This study	San Francisco Volcanics	sv61c	sv61	sv61c1	LP-DIR-AF:SO-SUN:DE-BFP:DA-DIR-GEO		264.2	sample direction.	p	2.6	2.5	2.5	Ma	1	0	1	0
+This study	San Francisco Volcanics	sv62b	sv62	sv62b1	LP-DIR-AF:SO-SUN:DE-BFP:DA-DIR-GEO		68.8	sample direction.	p	19.6	2.5	2.5	Ma	1	0	1	0
+This study	San Francisco Volcanics	sv62d	sv62	sv62d1	LP-DIR-AF:SO-SUN:DE-BFP:DA-DIR-GEO		345.3	sample direction.	p	-35.3	2.5	2.5	Ma	1	0	1	0
+This study	San Francisco Volcanics	sv62g	sv62	sv62g1	LP-DIR-AF:SO-SUN:DE-BFP:DA-DIR-GEO		127.1	sample direction.	p	35.1	2.5	2.5	Ma	1	0	1	0
+This study	San Francisco Volcanics	sv65g	sv65	sv65g1	LP-DIR-AF:SO-SUN:DE-BFP:DA-DIR-GEO		289.8	sample direction.	p	10.4	2.5	2.5	Ma	1	0	1	0

@@ -1,0 +1,22 @@
+tab 	er_ages
+age	age_sigma	age_unit	er_citation_names	er_location_name	er_site_name	magic_method_codes
+3.4	0.03	Ma	This study	Snake River	sr01	GM-ARAR-AP
+2	0.05	Ma	This study	Snake River	sr04	GM-ARAR-AP
+0.095	0.05	Ma	This study	Snake River	sr09	GM-ARAR-AP
+0.395	0.01	Ma	This study	Snake River	sr11	GM-ARAR-AP
+0.373	0.06	Ma	This study	Snake River	sr12	GM-ARAR-AP
+0.404	0.07	Ma	This study	Snake River	sr16	GM-ARAR-AP
+0.052	0.012	Ma	This study	Snake River	sr20	GM-ARAR-AP
+1.76	0.016	Ma	This study	Snake River	sr21	GM-ARAR-AP
+2.26	0.05	Ma	This study	Snake River	sr22	GM-ARAR-AP
+1.69	0.02	Ma	This study	Snake River	sr23	GM-ARAR-AP
+0.591	0.015	Ma	This study	Snake River	sr24	GM-ARAR-AP
+0.291	0.016	Ma	This study	Snake River	sr25	GM-ARAR-AP
+1.73	0.01	Ma	This study	Snake River	sr26	GM-ARAR-AP
+2.89	0.02	Ma	This study	Snake River	sr27	GM-ARAR-AP
+2.94	0.025	Ma	This study	Snake River	sr28	GM-ARAR-AP
+5.75	0.125	Ma	This study	Snake River	sr30	GM-ARAR-AP
+0.184	0.014	Ma	This study	Snake River	sr31	GM-ARAR-AP
+0.191	0.008	Ma	This study	Snake River	sr34	GM-ARAR-AP
+0.124	0.039	Ma	This study	Snake River	sr36	GM-ARAR-AP
+0.945	0.03	Ma	This study	Snake River	sr37	GM-ARAR-AP

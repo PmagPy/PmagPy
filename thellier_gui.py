@@ -6460,7 +6460,7 @@ class Arai_GUI(wx.Frame):
             self.update_GUI_with_new_interpretation()
       
     def get_PI_parameters(self,s,tmin,tmax):
-
+        
 
         def cart2dir(cart): # OLD ONE
             """
@@ -6510,6 +6510,8 @@ class Arai_GUI(wx.Frame):
         """
         calcualte statisics 
         """
+
+
         pars=self.Data[s]['pars']
         datablock = self.Data[s]['datablock']
         pars=self.Data[s]['pars']
@@ -6661,73 +6663,7 @@ class Arai_GUI(wx.Frame):
         B_lab_unit=self.dir2cart([ self.Data[s]['Thellier_dc_field_phi'], self.Data[s]['Thellier_dc_field_theta'],1])
         pars["specimen_ptrms_angle"]=math.degrees(math.acos(dot(best_fit_vector,B_lab_unit)/(sqrt(sum(best_fit_vector**2)) * sqrt(sum(B_lab_unit**2)))))
 
-##        print "specimen_ptrms_dec",pars["specimen_ptrms_dec"]
-##        print "specimen_ptrms_inc",pars["specimen_ptrms_inc"]
-##        print "B_lab_unit,v1",B_lab_unit,v1
-##        print "specimen_ptrms_angle", pars["specimen_ptrms_angle"]
-
-##        #-------------------------------------------------                     
-##        # Calculate the new 'MAD box' parameter
-##        # all datapoints should be inside teh M"AD box"
-##        # defined by the threshold value of MAD
-##        # For definitionsee Shaar and Tauxe (2012)
-##        #-------------------------------------------------                     
-##
-##        pars["specimen_mad_scat"]="Pass"
-##        self.accept_new_parameters['specimen_mad_scat']=True
-##        if 'specimen_mad_scat' in self.accept_new_parameters.keys() and 'specimen_int_mad' in self.accept_new_parameters.keys() :
-##            if self.accept_new_parameters['specimen_mad_scat']==True or self.accept_new_parameters['specimen_mad_scat'] in [1,"True","TRUE",'1']:
-##
-##                # center of mass 
-##                CM_x=mean(zdata_segment[:,0])
-##                CM_y=mean(zdata_segment[:,1])
-##                CM_z=mean(zdata_segment[:,2])
-##                CM=array([CM_x,CM_y,CM_z])
-##
-##                # threshold value for the distance of the point from a line:
-##                # this is depends of MAD
-##                # if MAD= tan-1 [ sigma_perpendicular / sigma_max ]
-##                # then:
-##                # sigma_perpendicular_threshold=tan(MAD_threshold)*sigma_max
-##                sigma_perpendicular_threshold=abs(tan(radians(self.accept_new_parameters['specimen_int_mad'])) *  pars["specimen_PCA_sigma_max"] )
-##                
-##                # Line from
-##                #print "++++++++++++++++++++++++++++++++++"
-##                
-##                for P in zdata_segment:
-##                    # Find the line  P_CM that connect P to the center of mass
-##                    #print "P",P
-##                    #print "CM",CM
-##                    P_CM=P-CM
-##                    #print "P_CM",P_CM
-##                    
-##                    #  the dot product of vector P_CM with the unit direction vector of the best-fit liene. That's the projection of P_CM on the PCA line 
-##                    best_fit_vector_unit=best_fit_vector/sqrt(sum(best_fit_vector**2))
-##                    #print "best_fit_vector_unit",best_fit_vector_unit
-##                    CM_P_projection_on_PCA_line=dot(best_fit_vector_unit,P_CM)
-##                    #print "CM_P_projection_on_PCA_line",CM_P_projection_on_PCA_line
-##
-##                    # Pythagoras
-##                    P_CM_length=sqrt(sum((P_CM)**2))
-##                    Point_2_PCA_Distance=sqrt((P_CM_length**2-CM_P_projection_on_PCA_line**2))
-##                    #print "Point_2_PCA_Distance",Point_2_PCA_Distance
-##
-##
-##                    #print "sigma_perpendicular_threshold*2",sigma_perpendicular_threshold*2
-##                    if Point_2_PCA_Distance > sigma_perpendicular_threshold*2:
-##                        pars["specimen_mad_scat"]="Fail"
-##                        index=999
-##                        for i in range(len(self.Data[s]['zdata'])):
-##                        
-##                            if P[0] == self.Data[s]['zdata'][i][0] and P[1] == self.Data[s]['zdata'][i][1] and P[2] == self.Data[s]['zdata'][i][2]:
-##                                index =i
-##                                break
-##                        #print "specimen  %s fail on mad_scat,%i"%(s,index)
-##                        
-##                    
-##                    
-##                    #CM_P_projection_on_PCA_line_length=sqrt(sum((CM_P_projection_on_PCA_line_length)**2))
-        
+## removed a bunch of Ron's commented out old code        
 
         #-------------------------------------------------
         # York regresssion (York, 1967) following Coe (1978)

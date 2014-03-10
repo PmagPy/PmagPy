@@ -1,0 +1,8 @@
+tab 	rmag_anisotropy																	
+er_citation_names	anisotropy_sigma	magic_experiment_names	anisotropy_s6	anisotropy_type	er_site_name	er_sample_name	er_location_name	anisotropy_s5	anisotropy_s4	anisotropy_s3	anisotropy_s2	anisotropy_s1	er_specimen_name	anisotropy_unit	anisotropy_mean	magic_method_codes	anisotropy_n	anisotropy_tilt_correction
+This study	0.00027464	dk01a1:AMS	-0.00036542	AMS	dk01	dk01a	Scripps Beach	0.00449771	0.0056526	0.33656454	0.32757074	0.33586472	dk01a1	SI	5.50E-02	LP-X:AE-H	15	0
+This study	0.00017234	dk01a2:AMS	-0.0001627	AMS	dk01	dk01a	Scripps Beach	0.00405271	0.00754076	0.33583224	0.32601482	0.33815295	dk01a2	SI	4.99E-02	LP-X:AE-H	15	0
+This study	0.00025001	dk01b1:AMS	0.0009308	AMS	dk01	dk01b	Scripps Beach	-0.00168595	0.00480824	0.33268023	0.32925552	0.33806428	dk01b1	SI	5.71E-02	LP-X:AE-H	15	0
+This study	0.00052981	dk01b2:AMS	0.00070303	AMS	dk01	dk01b	Scripps Beach	0.00264978	0.00763409	0.33309788	0.32750368	0.33939844	dk01b2	SI	5.74E-02	LP-X:AE-H	15	0
+This study	0.00021973	dk01d1:AMS	-0.00073475	AMS	dk01	dk01d	Scripps Beach	0.00278172	0.00574405	0.33695734	0.32816416	0.3348785	dk01d1	SI	5.06E-02	LP-X:AE-H	15	0
+This study	0.00026104	dk01f1:AMS	-0.00040056	AMS	dk01	dk01f	Scripps Beach	0.00426423	0.00597801	0.33566481	0.32948497	0.33485019	dk01f1	SI	5.38E-02	LP-X:AE-H	15	0
