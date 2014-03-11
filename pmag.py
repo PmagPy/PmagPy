@@ -1373,8 +1373,8 @@ def domean(indata,start,end,calculation_type):
         cart= dir2cart(data)
         X.append(cart)
     if calculation_type=='DE-BFL-O': # include origin as point
-#        X.append([0.,0.,0.])
-        pass
+        X.append([0.,0.,0.])
+        #pass
     if calculation_type=='DE-FM': # for fisher means
         fpars=fisher_mean(fdata)    
         mpars["specimen_direction_type"]='l'
@@ -7868,3 +7868,198 @@ def get_TS(ts):
     print "Time Scale Option Not Available"
     sys.exit()
 
+def initialize_acceptance_criteria ():
+    '''
+    initialize acceptance criteria with NULL values for thellier_gui and demag_gui
+    
+    format:
+    acceptance_criteria={} 
+    acceptance_criteria[MagIC Variable Names]={}
+    acceptance_criteria[MagIC Variable Names]['value']: 
+        a number for acceptance criteria value
+        -999 for N/A
+        1/0 for True/False or Good/Bad
+    acceptance_criteria[MagIC Variable Names]['threshold_type']: 
+        "low":  lower cutoff value i.e. crit>=value pass criteria
+        "high": high cutoff value i.e. crit<=value pass criteria
+        [flag1.flag2]: for flags
+    acceptance_criteria[MagIC Variable Names]['decimal_points']:number of decimal points in rounding
+            (this is used in displaying criteria in the dialog box)
+    '''
+    
+    acceptance_criteria={}
+    # --------------------------------
+    # demag_gui acceptence criteria
+    # --------------------------------
+    
+    for crit in ['specimen_n','sample_n','sample_n_lines','sample_n_planes',\
+    'site_n','site_n_lines','site_n_planes']:
+        acceptance_criteria[crit]={} 
+        acceptance_criteria[crit]['value']=-999
+        acceptance_criteria[crit]['threshold_type']="low"
+        acceptance_criteria[crit]['decimal_points']=0
+      
+    for crit in ['specimen_mad','specimen_dang','specimen_alpha95',\
+    'sample_r','sample_alpha95','sample_sigma','sample_k','sample_tilt_correction',\
+    'site_k','site_r','site_alpha95','site_sigma','site_tilt_correction']:
+        acceptance_criteria[crit]={} 
+        acceptance_criteria[crit]['value']=-999
+        acceptance_criteria[crit]['threshold_type']="high"
+        acceptance_criteria[crit]['decimal_points']=1
+
+    for crit in ['sample_direction_type','site_direction_type']:
+        acceptance_criteria[crit]={} 
+        acceptance_criteria[crit]['value']=-999
+        acceptance_criteria[crit]['threshold_type']=['l','p']
+        acceptance_criteria[crit]['decimal_points']=-999
+
+    for crit in ['sample_polarity','site_polarity']:
+        acceptance_criteria[crit]={} 
+        acceptance_criteria[crit]['value']=-999
+        acceptance_criteria[crit]['threshold_type']=['n','r','t','e','i']
+        acceptance_criteria[crit]['decimal_points']=-999
+
+
+    # --------------------------------
+    # thellier_gui acceptence criteria
+    # --------------------------------
+    
+    # specimen acceptence criteria with low threshold value 
+    for crit in ['specimen_f','specimen_fvds','specimen_nrm_frac','specimen_q','specimen_w','specimen_r_corr','specimen_int_ptrm_n',\
+    'specimen_tail_n','specimen_ac_n']:
+        acceptance_criteria[crit]={} 
+        acceptance_criteria[crit]['value']=-999
+        acceptance_criteria[crit]['threshold_type']="low"
+        if crit in ['specimen_int_ptrm_n','specimen_tail_n','specimen_ac_n']:
+            acceptance_criteria[crit]['decimal_points']=0
+        elif crit in []:
+            acceptance_criteria[crit]['decimal_points']=1
+        elif crit in ['specimen_f','specimen_fvds','specimen_nrm_frac','specimen_q']:
+            acceptance_criteria[crit]['decimal_points']=2
+        else :
+            acceptance_criteria[crit]['decimal_points']=-999
+
+    # specimen acceptence criteria with high threshold value 
+      
+    for crit in ['specimen_b_sigma','specimen_b_beta','specimen_g','specimen_gmax','specimen_k','specimen_k_sse',\
+    'specimen_r_det','specimen_z','specimen_z_md','specimen_int_mad','specimen_int_alpha','specimen_alpha','specimen_alpha_prime',\
+    'specimen_theta','specimen_int_dang','specimen_int_crm','specimen_int_ptrm_n','specimen_ptrm','specimen_ptrm_ck','specimen_drat','specimen_maxdev','specimen_cdrat',\
+    'specimen_drats','specimen_mdrat','specimen_mdev','specimen_dpal','specimen_tail_drat','specimen_dtr','specimen_md','specimen_dt','specimen_dac']:
+        acceptance_criteria[crit]={} 
+        acceptance_criteria[crit]['value']=-999
+        acceptance_criteria[crit]['threshold_type']="high"
+        if crit in ['specimen_int_ptrm_n',]:
+            acceptance_criteria[crit]['decimal_points']=0
+        elif crit in ['specimen_int_mad','specimen_int_dang','specimen_drat','specimen_cdrat','specimen_drats','specimen_tail_drat','specimen_dtr','specimen_md','specimen_dac']:
+            acceptance_criteria[crit]['decimal_points']=1
+        elif crit in ['specimen_gmax']:
+            acceptance_criteria[crit]['decimal_points']=2
+        elif crit in ['specimen_b_sigma','specimen_b_beta','specimen_g']:
+            acceptance_criteria[crit]['decimal_points']=3
+        else :
+            acceptance_criteria[crit]['decimal_points']=-999
+                    
+    for crit in ['specimen_scat']:
+        acceptance_criteria[crit]={} 
+        acceptance_criteria[crit]['value']=-999
+        acceptance_criteria[crit]['threshold_type']=""
+        acceptance_criteria[crit]['decimal_points']=0
+
+    # sample/site acceptence criteria with low threshold value 
+    for crit in ['sample_int_n','site_int_n']:
+        acceptance_criteria[crit]={} 
+        acceptance_criteria[crit]['value']=-999
+        acceptance_criteria[crit]['threshold_type']="low"
+        if crit in ['sample_int_n','site_int_n']:
+            acceptance_criteria[crit]['decimal_points']=0
+        elif crit in []:
+            acceptance_criteria[crit]['decimal_points']=1
+        elif crit in []:
+            acceptance_criteria[crit]['decimal_points']=2
+        else :
+            acceptance_criteria[crit]['decimal_points']=-999
+            
+    # sample/site acceptence criteria with high threshold value 
+      
+    for crit in ['sample_int_rel_sigma','sample_int_rel_sigma_perc','sample_int_sigma','sample_int_sigma_perc',\
+    'site_int_rel_sigma','site_int_rel_sigma_perc','site_int_sigma','site_int_sigma_perc']:
+        acceptance_criteria[crit]={} 
+        acceptance_criteria[crit]['value']=-999
+        acceptance_criteria[crit]['threshold_type']="high"
+        if crit in []:
+            acceptance_criteria[crit]['decimal_points']=0
+        elif crit in ['sample_int_rel_sigma_perc','sample_int_sigma_perc','site_int_rel_sigma_perc','site_int_sigma_perc']:
+            acceptance_criteria[crit]['decimal_points']=1
+        elif crit in []:
+            acceptance_criteria[crit]['decimal_points']=2
+        elif crit in []:
+            acceptance_criteria[crit]['decimal_points']=3
+        else :
+            acceptance_criteria[crit]['decimal_points']=-999
+
+                                    
+                                                                                                            
+    return(acceptance_criteria)
+
+
+
+def read_criteria_from_file(path,acceptance_criteria):
+    '''
+    Read accceptance criteria from magic pmag_criteria file
+    # old format:
+    multiple lines.  pmag_criteria_code defines the type of criteria
+    
+    to deal with old format this function reads all the lines and ignore empty cells.
+    i.e., the program assumes that in each column there is only one value (in one of the lines)   
+
+    
+    # New format for thellier_gui and demag_gui:
+    one long line. pmag_criteria_code=ACCEPT
+    
+    path is the full path to the criteria file
+    
+    the fucntion takes exiting acceptance_criteria
+    and updtate it with criteria from file
+
+    output:
+    acceptance_criteria={} 
+    acceptance_criteria[MagIC Variable Names]={}
+    acceptance_criteria[MagIC Variable Names]['value']: 
+        a number for acceptance criteria value
+        -999 for N/A
+        1/0 for True/False or Good/Bad
+    acceptance_criteria[MagIC Variable Names]['threshold_type']: 
+        "low":  lower cutoff value i.e. crit>=value pass criteria
+        "high": high cutoff value i.e. crit<=value pass criteria
+        [string1,string2,....]: for flags
+    acceptance_criteria[MagIC Variable Names]['decimal_points']:number of decimal points in rounding
+            (this is used in displaying criteria in the dialog box)
+    
+    '''    
+    acceptance_criteria_list=acceptance_criteria.keys()
+    meas_data,file_type=magic_read(path)
+    for rec in meas_data:
+        for crit in rec.keys():
+            if crit in ['pmag_criteria_code','criteria_definition','magic_experiment_names','er_citation_names']:
+                continue
+            if rec[crit]=="":
+                continue
+            if crit not in acceptance_criteria_list:
+                print "-W- WARNING: criteria code %s is not supported by PmagPy GUI. please check"%crit
+                acceptance_criteria[crit]={}
+                acceptance_criteria[crit]['value']=rec[crit]
+                acceptance_criteria[crit]['threshold_type']="inherited"
+                acceptance_criteria[crit]['decimal_points']=-999
+                
+                
+            # criteria as flags
+            if type(acceptance_criteria[crit]['threshold_type'])==list:
+                if str(rec[crit]) in acceptance_criteria[crit]['threshold_type']:
+                    acceptance_criteria[crit]['value']=str(rec[crit])
+                else:
+                    print "-W- WARNING: data %s from criteria code  %s and is not supported by PmagPy GUI. please check"%(crit,rec[crit])
+            elif float(rec[crit]) == -999:
+                continue                
+            else:
+                acceptance_criteria[crit]['value']=float(rec[crit])
+    return(acceptance_criteria)   
