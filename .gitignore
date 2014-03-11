@@ -1,0 +1,5 @@
+*new.out
+.DS_Store
+Command_line_Tests/*output.txt
+Command_line_Tests/*errors_list.txt
+
