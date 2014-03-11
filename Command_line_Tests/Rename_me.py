@@ -444,15 +444,8 @@ def complete_magic_select_test(): # file type.. but it doesn't work yet!  Lisa m
      magic_select_outfile = 'magic_select_results_new.out'
      magic_select_reference = 'magic_select_results_correct.out'
      magic_select_wrong = 'magic_select_results_incorrect.out'
-     raise NameError('This program needs WD option')
-     magic_select = Test_instance('magic_select.py', magic_select_infile, magic_select_outfile, magic_select_reference, magic_select_wrong, None, False, '-key', 'magic_method_codes', 'LP-DIR-AF', 'has')
-     print "fails because needs WD option..."
-     obj = env.run('magic_select.py', '-h')
-     magic_select.run_program()
- #    obj = env.run('magic_select.py', '-f', magic_select_infile, '-key', 'magic_method_codes', 'DE-BFL', 'has', '-F', 'AF_specimens.txt')
-
-#     magic_select.file_in_file_out_sequence()
-    # add unittest when you get it together
+     magic_select = Test_instance('magic_select.py', magic_select_infile, magic_select_outfile, magic_select_reference, magic_select_wrong, None, True, '-key', 'magic_method_codes', 'LP-DIR-AF', 'has')
+     magic_select.file_in_file_out_sequence()
 
 
 def complete_nrm_specimens_magic_test(): # file type

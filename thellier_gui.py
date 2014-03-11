@@ -6521,10 +6521,9 @@ class Arai_GUI(wx.Frame):
         import SPD
         import SPD.spd as spd
         #def __init__(self, Data,specimen_name,tmin,tmax):
-        print 's:', s
-        print 'specimens:', self.Data.keys()
         Pint_pars = spd.PintPars(self.Data, str(s), tmin, tmax)
-        print Pint_pars
+        Pint_pars.calculate_all_statistics()
+
         t_Arai=self.Data[s]['t_Arai']
         x_Arai=self.Data[s]['x_Arai']
         y_Arai=self.Data[s]['y_Arai']
@@ -6662,9 +6661,9 @@ class Arai_GUI(wx.Frame):
 
 
         # best fit PCA direction
-        pars["specimen_ptrms_dec"] =  DIR_PCA[0]
-        pars["specimen_ptrms_inc"] =  DIR_PCA[1]
-        pars["specimen_ptrms_mad"]=MAD
+        pars["specimen_ptrms_dec"] = DIR_PCA[0]
+        pars["specimen_ptrms_inc"] = DIR_PCA[1]
+        pars["specimen_ptrms_mad"] = MAD
         B_lab_unit=self.dir2cart([ self.Data[s]['Thellier_dc_field_phi'], self.Data[s]['Thellier_dc_field_theta'],1])
         pars["specimen_ptrms_angle"]=math.degrees(math.acos(dot(best_fit_vector,B_lab_unit)/(sqrt(sum(best_fit_vector**2)) * sqrt(sum(B_lab_unit**2)))))
 
@@ -7172,9 +7171,42 @@ class Arai_GUI(wx.Frame):
 ##            if sample in Data_info["er_samples"]:
 ##                if 'sample_type' in Data_info["er_samples"][sample].keys():
 ##                    if Data_info["er_samples"][sample]['sample_type'] in ["Baked Clay","Baked Mud",
+        print 'Ron\'s:', pars.keys()
+        print 'mine: ', Pint_pars.pars.keys()
+        common_pars = []
+        for par in pars.keys():
+            if par in Pint_pars.pars.keys():
+                common_pars.append(par)
+        print common_pars
+
+        
+
+
+        new_ron = ['missing i', 'missing nmax', 'measurement_step_min', 'measurement_step_max', 'specimen_int_n',  'specimen_b',  'specimen_b_sigma', 'specimen_int', 'missing B_anc_sigma', 'specimen_YT', 'missing specimen_XT', 'missing specimen_vds', 'missing partial_vds', 'missing x_prime', 'missing y_prime', 'missing delta_x_prime', 'missing_delta_y_prime',  'specimen_f',  'specimen_fvds', 'specimen_frac', 'specimen_b_beta', 'specimen_g',  'specimen_gmax', 'specimen_q', 'missing specimen_w', 'missing specimen_k', 'missing SSE', 'specimen_scat', 'fail_arai_beta_box_scatter',  'fail_tail_beta_box_scatter','fail_ptrm_beta_box_scatter', 'missing R_corr2', 'missing R_det2', 'missing Z', 'missing Zstar', 'missing IZZI_MD', 'specimen_dec', 'missing Dec_Anc', 'specimen_inc', 'missing Inc_Anc', 'missing MAD_Anc', 'specimen_int_mad', 'missing alpha', 'missing theta',  'specimen_dang','missing NRM_dev', 'specimen_ptrms_angle',  'specimen_int_ptrm_n', 'missing max_ptrm_check_percent', 'missing delta_CK', 'missing DRAT', 'missing length_best_fit_line', 'missing MAX_Dev', 'missing CDRAT', 'missing CDRAT_prime',  'specimen_drats', 'missing DRATS_prime', 'missing mean_DRAT', 'missing mean_DEV', 'missing delta_pal', 'missing n_tail',  ' missing DRAT_tail', 'missing delta_TR', 'specimen_md', 'missing n_add', 'missing delta_AC',  'lab_dc_field', 'specimen_cm_x', 'specimen_cm_y', 'specimen_PCA_v1', 'specimen_scat_bounding_line_low',  'specimen_scat_bounding_line_high']
+        new_lori = ['missing i', 'missing nmax', 'missing start', 'missing end', 'specimen_n',  'specimen_b', 'specimen_b_sigma', 'B_anc', 'B_anc_sigma',  'specimen_YT', 'specimen_XT',  'specimen_vds', 'partial_vds',  'x_prime', 'y_prime', 'delta_x_prime', 'delta_y_prime', 'specimen_f', 'specimen_fvds',  'FRAC', 'specimen_b_beta', 'specimen_g', 'GAP-MAX', 'specimen_q', 'specimen_w','specimen_k',  'SSE', 'SCAT',  'fail_arai_beta_box_scatter', 'fail_tail_beta_box_scatter', 'fail_ptrm_beta_box_scatter', 'R_corr2',  'R_det2',  'Z',  'Zstar', 'IZZI_MD', 'Dec_Free', 'Dec_Anc', 'Inc_Free',  'Inc_Anc', 'MAD_Anc',  'MAD_Free',  'alpha', 'theta', 'DANG',  'NRM_dev', 'gamma',  'n_ptrm', 'max_ptrm_check_percent',  'delta_CK', 'DRAT', 'length_best_fit_line', 'max_DEV', 'CDRAT', 'CDRAT_prime',  'DRATS', 'DRATS_prime', 'mean_DRAT', 'mean_DEV',  'delta_pal', 'n_tail', 'DRAT_tail', 'delta_TR',  'MD_VDS', 'n_add', 'delta_AC',  'lab_dc_field', 'x_Arai_mean', 'y_Arai_mean', 'best_fit_vector_Free', 'scat_bounding_line_low', 'scat_bounding_line_high']
+        #print 'Ron\'s:', pars.keys()
+        #print 'mine: ', Pint_pars.pars.keys()
+        
+        for num, par in enumerate(new_lori):
+            print "Ron:", new_ron[num], "Lori", par
+            if 'missing' in par:
+                pass
+            else:
+                print Pint_pars.pars[par],
+            if 'missing' in new_ron[num]:
+                print ' '
+            else:
+                print pars[new_ron[num]]
+            
 
         return(pars)
-        
+        #ron= ['specimen_fail_criteria', 'saved', 'specimen_PCA_sigma_max', 'specimen_ptrms_inc',  'er_sample_name', , 'er_specimen_name', 'specimen_correction', 'specimen_int_corr_cooling_rate', 'AC_WARNING', 'specimen_int_corr_anisotropy', 'specimen_int_uT', 'specimen_PCA_sigma_int', 'specimen_ptrms_dec','NLT_specimen_correction_factor', 'Anisotropy_correction_factor', 'specimen_ptrms_mad', 'specimen_PCA_sigma_min', 'CR_WARNING', 'magic_method_codes']
+
+        #lori =  ['tail_check_max', 'B_lab', 'y_err', 'mean_DEV_prime',  'AC_Checks_segment', 'specimen_int', 'x_err', 'tau_Free', 'tau_Anc', 'max_ptrm_check', 'best_fit_vector_Anc', 'V_Anc', 'y_tag', 'ptrm_checks_included_temps', 'specimen_g_lim', 'V_Free', 'ptrm_checks', 'max_diff', 'tail_check_diffs', 'sum_abs_ptrm_checks', 'sum_ptrm_checks','vector_diffs_segment', 'mean_DRAT_prime', 'zdata_mass_center', 'count_IZ', 'count_ZI', 'vector_diffs', 'x_tag']
+
+
+
+
 #    def get_site_means(self):
 #
 # 

@@ -1,0 +1,15 @@
+troubleshooting.txt: -*- Text -*-  DESCRIPTIVE TEXT.
+
+Copyright (c) 2014 Lori Jonestrask
+Author: Lori Jonestrask (mintblue87@gmail.com) .
+
+
+find_EI problems:
+        $ find_EI.py -f find_EI_example.dat
+        works
+        python Bootstrap.py -r find_EI.py
+        works
+        so.... no problem?
+
+magic_select.py
+        fixed

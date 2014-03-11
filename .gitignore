@@ -1,5 +1,8 @@
 *new.out
 .DS_Store
 Command_line_Tests/*output.txt
-Command_line_Tests/*errors_list.txt
-
+Command_line_Tests/*_list.txt
+Command_line_Tests/*errors.txt
+Command_line_Tests/magic_select_results_incorrect.out
+*.pyc
+*/*.pyc

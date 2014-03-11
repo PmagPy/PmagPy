@@ -1,12 +1,16 @@
 #! /usr/bin/env python                                                                                                                
 import sys
 from scripttest import TestFileEnvironment
-env = TestFileEnvironment('./new-test-output')
 import unittest
 import subprocess
+import os
 
-file_prefix = '/Users/nebula/Python/Tests/'
-directory =  '/Users/nebula/Python/Tests'
+env = TestFileEnvironment('./new-test-output')
+
+file_prefix = '/Users/nebula/Python/PmagPy/Command_line_Tests/'
+directory = '/Users/nebula/Python/PmagPy/Command_line_Tests'
+#file_prefix = '/Users/nebula/Python/Tests/'
+#directory =  '/Users/nebula/Python/Tests'
 
 def file_parse(the_file):
     """Takes in a file and returns a list with each line as a list item"""

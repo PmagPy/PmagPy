@@ -1,16 +1,3 @@
 bootstrap_errors_list:  
-test find_EI.py: Script returned code: -15.  
-Traceback below: 
-  File "/Users/nebula/Python/PmagPy/Command_line_Tests/error_logging.py", line 27, in go_through
-    v()
-  File "Bootstrap.py", line 159, in complete_find_EI_test
-    output3 = run_EI(1000)
-  File "Bootstrap.py", line 140, in run_EI
-    obj = env.run('find_EI.py', '-f', file_prefix + 'find_EI_example.dat', '-nb', num, stdin='a')
-  File "/Library/Frameworks/Python.framework/Versions/7.3/lib/python2.7/site-packages/ScriptTest-1.2-py2.7.egg/scripttest/__init__.py", line 255, in run
-    result.assert_no_error(quiet)
-  File "/Library/Frameworks/Python.framework/Versions/7.3/lib/python2.7/site-packages/ScriptTest-1.2-py2.7.egg/scripttest/__init__.py", line 402, in assert_no_error
-    "Script returned code: %s" % self.returncode)
-
-programs with errors: ['test find_EI.py']
+programs with errors: []
 
