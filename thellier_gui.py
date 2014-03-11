@@ -2079,7 +2079,7 @@ class Arai_GUI(wx.Frame):
         """
         dlg = wx.FileDialog(
             self, message="choose a file in a pmagpy redo format",
-            defaultDir=self.currentDirectory, 
+            defaultDir=self.WD, 
             defaultFile="",
             #wildcard=wildcard,
             style=wx.OPEN | wx.CHANGE_DIR
@@ -2279,7 +2279,7 @@ class Arai_GUI(wx.Frame):
     
         dlg = wx.FileDialog(
             self, message="choose a file in a pmagpy format",
-            defaultDir=self.currentDirectory, 
+            defaultDir=self.WD, 
             defaultFile="pmag_criteria.txt",
             #wildcard=wildcard,
             style=wx.OPEN | wx.CHANGE_DIR
@@ -2457,18 +2457,15 @@ class Arai_GUI(wx.Frame):
         for key in null_acceptance_criteria:
             replace_acceptance_criteria[key]=null_acceptance_criteria[key]
         try:
-            print "test 1",criteria_file
             fin=open(criteria_file,'rU')
             line=fin.readline()
             line=fin.readline()
             header=line.strip('\n').split('\t')
             for L in fin.readlines():
                 line=L.strip('\n').split('\t')
-                print line
                 for i in range(min(len(header),line)):
                         if i >len(header):
                             break
-                        print i,line[i],header[i]
 
                         if header[i] in self.high_threshold_velue_list + ['anisotropy_alt']:
                             try:
@@ -4199,8 +4196,15 @@ class Arai_GUI(wx.Frame):
             dirname=self.WD + "/thellier_interpreter"
         except:
             dirname=self.WD
-            
-        dlg = wx.FileDialog(self, "Choose an auto-interpreter output file", dirname, "", "*.*", wx.OPEN)
+
+        dlg = wx.FileDialog(
+            self, message="Choose an auto-interpreter output file",
+            defaultDir=dirname, 
+            defaultFile="",
+            style=wx.OPEN | wx.CHANGE_DIR
+            )
+                        
+        #dlg = wx.FileDialog(self, "Choose an auto-interpreter output file", defaultDir=dirname, "", "*.*", wx.OPEN)
         if dlg.ShowModal() == wx.ID_OK:
             filename = dlg.GetFilename()
             path=dlg.GetPath()
