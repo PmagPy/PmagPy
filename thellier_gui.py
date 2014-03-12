@@ -81,6 +81,7 @@ matplotlib.use('WXAgg')
 
 from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigCanvas \
 
+import numpy
 import sys,pylab,scipy,os
 import pmag
 ##try:
@@ -7178,6 +7179,7 @@ class Arai_GUI(wx.Frame):
             if par in Pint_pars.pars.keys():
                 common_pars.append(par)
         print common_pars
+        #return pars
 
         
 
@@ -7199,12 +7201,30 @@ class Arai_GUI(wx.Frame):
                 print pars[new_ron[num]]
             
 
+        
+        ron= ['specimen_fail_criteria', 'saved', 'specimen_PCA_sigma_max', 'specimen_ptrms_inc',  'er_sample_name', 'er_specimen_name', 'specimen_correction', 'specimen_int_corr_cooling_rate', 'AC_WARNING', 'specimen_int_corr_anisotropy', 'specimen_int_uT', 'specimen_PCA_sigma_int', 'specimen_ptrms_dec','NLT_specimen_correction_factor', 'Anisotropy_correction_factor', 'specimen_ptrms_mad', 'specimen_PCA_sigma_min', 'CR_WARNING', 'magic_method_codes']
+
+        lori =  ['tail_check_max', 'B_lab', 'y_err', 'mean_DEV_prime',  'AC_Checks_segment', 'specimen_int', 'x_err', 'tau_Free', 'tau_Anc', 'max_ptrm_check', 'best_fit_vector_Anc', 'V_Anc', 'y_tag', 'ptrm_checks_included_temps', 'specimen_g_lim', 'V_Free', 'ptrm_checks', 'max_diff', 'tail_check_diffs', 'sum_abs_ptrm_checks', 'sum_ptrm_checks','vector_diffs_segment', 'mean_DRAT_prime', 'zdata_mass_center', 'count_IZ', 'count_ZI', 'vector_diffs', 'x_tag']
+        print 'ron', ron
+        for p in ron:
+            pintparvalues = [x for x in Pint_pars.pars.values() if (type(x) != list) and (type(x) != numpy.ndarray)]
+            #print pars[p]
+            if pars[p] in pintparvalues:
+                print p, pars[p]
+            for k, v in Pint_pars.pars.iteritems():
+                if (type(v) != list) and (type(v) != numpy.ndarray):
+                    if pars[p] == v:
+                        print k, v
+        print 'uT', pars['specimen_int_uT']
+        print 'int', pars['specimen_int']
+        print 'cart pTRMS orig', CART_pTRMS_orig
+        print 'ptrm M (should be the same as orient tensor)', cov(M)
+        print 'ptrm eigenvalues', eigenvalues
+        print 'ptrm eigenvectors', eigenvectors
+        print 'specimen_ptrms_dec', pars['specimen_ptrms_dec']
+        print 'specimen_ptrms_inc', pars['specimen_ptrms_inc']
+        
         return(pars)
-        #ron= ['specimen_fail_criteria', 'saved', 'specimen_PCA_sigma_max', 'specimen_ptrms_inc',  'er_sample_name', , 'er_specimen_name', 'specimen_correction', 'specimen_int_corr_cooling_rate', 'AC_WARNING', 'specimen_int_corr_anisotropy', 'specimen_int_uT', 'specimen_PCA_sigma_int', 'specimen_ptrms_dec','NLT_specimen_correction_factor', 'Anisotropy_correction_factor', 'specimen_ptrms_mad', 'specimen_PCA_sigma_min', 'CR_WARNING', 'magic_method_codes']
-
-        #lori =  ['tail_check_max', 'B_lab', 'y_err', 'mean_DEV_prime',  'AC_Checks_segment', 'specimen_int', 'x_err', 'tau_Free', 'tau_Anc', 'max_ptrm_check', 'best_fit_vector_Anc', 'V_Anc', 'y_tag', 'ptrm_checks_included_temps', 'specimen_g_lim', 'V_Free', 'ptrm_checks', 'max_diff', 'tail_check_diffs', 'sum_abs_ptrm_checks', 'sum_ptrm_checks','vector_diffs_segment', 'mean_DRAT_prime', 'zdata_mass_center', 'count_IZ', 'count_ZI', 'vector_diffs', 'x_tag']
-
-
 
 
 #    def get_site_means(self):
