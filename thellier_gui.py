@@ -6577,6 +6577,7 @@ class Arai_GUI(wx.Frame):
         v2=real(array(eigenvectors[:,index_t2]))
         v3=real(array(eigenvectors[:,index_t3]))
 
+
         # chech if v1 is the "right" polarity
         cm=array(mean(zdata_segment.T,axis=1)) # center of mass
         v1_plus=v1*sqrt(sum(cm**2))
@@ -6596,7 +6597,6 @@ class Arai_GUI(wx.Frame):
         # DANG Tauxe and Staudigel 2004
         DANG=math.degrees( arccos( ( dot(cm, best_fit_vector) )/( sqrt(sum(cm**2)) * sqrt(sum(best_fit_vector**2)))))
 
-
         # best fit PCA direction
         pars["specimen_dec"] =  DIR_PCA[0]
         pars["specimen_inc"] =  DIR_PCA[1]
@@ -6607,6 +6607,8 @@ class Arai_GUI(wx.Frame):
             t2=1e-10
         if t3 <0 or t3==0:
             t3=1e-10
+
+       # print '---------------------'
             
         pars["specimen_PCA_sigma_max"] =  sqrt(t1)
         pars["specimen_PCA_sigma_int"] =  sqrt(t2)
@@ -6623,6 +6625,7 @@ class Arai_GUI(wx.Frame):
         # and calculate the angular difference to the lab field
         # MAD calculation following Kirschvink (1980)
         #-------------------------------------------------
+       # print '------start ptrm PCA stuff--------'
         
         PTRMS = self.Data[s]['PTRMS'][1:]
         CART_pTRMS_orig=array([self.dir2cart(row[1:4]) for row in PTRMS])
@@ -6644,18 +6647,25 @@ class Arai_GUI(wx.Frame):
         v2=real(array(eigenvectors[:,index_t2]))
         v3=real(array(eigenvectors[:,index_t3]))
 
-        # chech if v1 is the "right" polarity
+        # check if v1 is the "right" polarity
         cm=array(mean(CART_pTRMS_orig.T,axis=1)) # center of mass
+       # print 'cm of CART_pTRMS_orig', cm
         v1_plus=v1*sqrt(sum(cm**2))
         v1_minus=v1*-1*sqrt(sum(cm**2))
         test_v=CART_pTRMS_orig[0]-CART_pTRMS_orig[-1]
 
         if sqrt(sum((v1_minus-test_v)**2)) > sqrt(sum((v1_plus-test_v)**2)):
-         DIR_PCA=self.cart2dir(v1*-1)
-         best_fit_vector=v1*-1
+           # print 'sqrt(sum((v1_minus-test_v)**2)) > sqrt(sum((v1_plus-test_v)**2))'
+           # print sqrt(sum((v1_minus-test_v)**2)), '>', sqrt(sum((v1_plus-test_v)**2))
+           # print 'correcting v1 for ptrm'
+            DIR_PCA=self.cart2dir(v1*-1)
+            best_fit_vector=v1*-1
         else:
-         DIR_PCA=self.cart2dir(v1)
-         best_fit_vector=v1
+           # print 'sqrt(sum((v1_minus-test_v)**2)) > sqrt(sum((v1_plus-test_v)**2))'
+           # print sqrt(sum((v1_minus-test_v)**2)), '>', sqrt(sum((v1_plus-test_v)**2))
+           # print 'NOT correcting v1 for ptrm'
+            DIR_PCA=self.cart2dir(v1)
+            best_fit_vector=v1
 
         # MAD Kirschvink (1980)
         MAD=math.degrees(arctan(sqrt((t2+t3)/t1)))
@@ -7172,20 +7182,44 @@ class Arai_GUI(wx.Frame):
 ##            if sample in Data_info["er_samples"]:
 ##                if 'sample_type' in Data_info["er_samples"][sample].keys():
 ##                    if Data_info["er_samples"][sample]['sample_type'] in ["Baked Clay","Baked Mud",
-        print 'Ron\'s:', pars.keys()
-        print 'mine: ', Pint_pars.pars.keys()
+        #print 'Ron\'s:', pars.keys()
+        #print 'mine: ', Pint_pars.pars.keys()
         common_pars = []
         for par in pars.keys():
             if par in Pint_pars.pars.keys():
                 common_pars.append(par)
-        print common_pars
+        #print common_pars
         #return pars
+
+
+        def mapping(dictionary, mapping):
+            mapped_dictionary = {}
+            for key, value in dictionary.iteritems():
+                if key in mapping.keys():
+                    new_key = mapping[key]
+                    mapped_dictionary[new_key] = value
+                else:
+                    mapped_dictionary[key] = value
+            return mapped_dictionary
+
+
 
         
 
+        new_ron = ['missing i', 'missing nmax', 'measurement_step_min', 'measurement_step_max', 'specimen_int_n',  'specimen_b',  'specimen_b_sigma', 'specimen_int_uT', 'missing B_anc_sigma', 'specimen_YT', 'missing specimen_XT', 'missing specimen_vds', 'missing partial_vds', 'missing x_prime', 'missing y_prime', 'missing delta_x_prime', 'missing_delta_y_prime',  'specimen_f',  'specimen_fvds', 'specimen_frac', 'specimen_b_beta', 'specimen_g',  'specimen_gmax', 'specimen_q', 'missing specimen_w', 'missing specimen_k', 'missing SSE', 'specimen_scat', 'fail_arai_beta_box_scatter',  'fail_tail_beta_box_scatter','fail_ptrm_beta_box_scatter', 'missing R_corr2', 'missing R_det2', 'missing Z', 'missing Zstar', 'missing IZZI_MD', 'specimen_dec', 'missing Dec_Anc', 'specimen_inc', 'missing Inc_Anc', 'missing MAD_Anc', 'specimen_int_mad', 'missing alpha', 'missing theta',  'specimen_dang','missing NRM_dev', 'specimen_ptrms_angle',  'specimen_int_ptrm_n', 'missing max_ptrm_check_percent', 'missing delta_CK', 'missing DRAT', 'missing length_best_fit_line', 'missing MAX_Dev', 'missing CDRAT', 'missing CDRAT_prime',  'specimen_drats', 'missing DRATS_prime', 'missing mean_DRAT', 'missing mean_DEV', 'missing delta_pal', 'missing n_tail',  ' missing DRAT_tail', 'missing delta_TR', 'specimen_md', 'missing n_add', 'missing delta_AC',  'lab_dc_field', 'specimen_cm_x', 'specimen_cm_y', 'specimen_PCA_v1', 'specimen_scat_bounding_line_low',  'specimen_scat_bounding_line_high']
+        new_lori = ['missing i', 'missing nmax', 'tmin', 'tmax', 'specimen_n',  'specimen_b', 'specimen_b_sigma', 'B_anc', 'B_anc_sigma',  'specimen_YT', 'specimen_XT',  'specimen_vds', 'partial_vds',  'x_prime', 'y_prime', 'delta_x_prime', 'delta_y_prime', 'specimen_f', 'specimen_fvds',  'FRAC', 'specimen_b_beta', 'specimen_g', 'GAP-MAX', 'specimen_q', 'specimen_w','specimen_k',  'SSE', 'SCAT',  'fail_arai_beta_box_scatter', 'fail_tail_beta_box_scatter', 'fail_ptrm_beta_box_scatter', 'R_corr2',  'R_det2',  'Z',  'Zstar', 'IZZI_MD', 'Dec_Free', 'Dec_Anc', 'Inc_Free',  'Inc_Anc', 'MAD_Anc',  'MAD_Free',  'alpha', 'theta', 'DANG',  'NRM_dev', 'gamma',  'n_ptrm', 'max_ptrm_check_percent',  'delta_CK', 'DRAT', 'length_best_fit_line', 'max_DEV', 'CDRAT', 'CDRAT_prime',  'DRATS', 'DRATS_prime', 'mean_DRAT', 'mean_DEV',  'delta_pal', 'n_tail', 'DRAT_tail', 'delta_TR',  'MD_VDS', 'n_add', 'delta_AC',  'lab_dc_field', 'x_Arai_mean', 'y_Arai_mean', 'best_fit_vector_Free', 'scat_bounding_line_low', 'scat_bounding_line_high']
+        
+        a_map = {}
+        for n in range(len(new_ron)):
+            if 'missing' not in new_ron[n] and 'missing' not in new_lori[n]:
+                key = new_lori[n]
+                value = new_ron[n]
+                a_map[key] = value
 
-        new_ron = ['missing i', 'missing nmax', 'measurement_step_min', 'measurement_step_max', 'specimen_int_n',  'specimen_b',  'specimen_b_sigma', 'specimen_int', 'missing B_anc_sigma', 'specimen_YT', 'missing specimen_XT', 'missing specimen_vds', 'missing partial_vds', 'missing x_prime', 'missing y_prime', 'missing delta_x_prime', 'missing_delta_y_prime',  'specimen_f',  'specimen_fvds', 'specimen_frac', 'specimen_b_beta', 'specimen_g',  'specimen_gmax', 'specimen_q', 'missing specimen_w', 'missing specimen_k', 'missing SSE', 'specimen_scat', 'fail_arai_beta_box_scatter',  'fail_tail_beta_box_scatter','fail_ptrm_beta_box_scatter', 'missing R_corr2', 'missing R_det2', 'missing Z', 'missing Zstar', 'missing IZZI_MD', 'specimen_dec', 'missing Dec_Anc', 'specimen_inc', 'missing Inc_Anc', 'missing MAD_Anc', 'specimen_int_mad', 'missing alpha', 'missing theta',  'specimen_dang','missing NRM_dev', 'specimen_ptrms_angle',  'specimen_int_ptrm_n', 'missing max_ptrm_check_percent', 'missing delta_CK', 'missing DRAT', 'missing length_best_fit_line', 'missing MAX_Dev', 'missing CDRAT', 'missing CDRAT_prime',  'specimen_drats', 'missing DRATS_prime', 'missing mean_DRAT', 'missing mean_DEV', 'missing delta_pal', 'missing n_tail',  ' missing DRAT_tail', 'missing delta_TR', 'specimen_md', 'missing n_add', 'missing delta_AC',  'lab_dc_field', 'specimen_cm_x', 'specimen_cm_y', 'specimen_PCA_v1', 'specimen_scat_bounding_line_low',  'specimen_scat_bounding_line_high']
-        new_lori = ['missing i', 'missing nmax', 'missing start', 'missing end', 'specimen_n',  'specimen_b', 'specimen_b_sigma', 'B_anc', 'B_anc_sigma',  'specimen_YT', 'specimen_XT',  'specimen_vds', 'partial_vds',  'x_prime', 'y_prime', 'delta_x_prime', 'delta_y_prime', 'specimen_f', 'specimen_fvds',  'FRAC', 'specimen_b_beta', 'specimen_g', 'GAP-MAX', 'specimen_q', 'specimen_w','specimen_k',  'SSE', 'SCAT',  'fail_arai_beta_box_scatter', 'fail_tail_beta_box_scatter', 'fail_ptrm_beta_box_scatter', 'R_corr2',  'R_det2',  'Z',  'Zstar', 'IZZI_MD', 'Dec_Free', 'Dec_Anc', 'Inc_Free',  'Inc_Anc', 'MAD_Anc',  'MAD_Free',  'alpha', 'theta', 'DANG',  'NRM_dev', 'gamma',  'n_ptrm', 'max_ptrm_check_percent',  'delta_CK', 'DRAT', 'length_best_fit_line', 'max_DEV', 'CDRAT', 'CDRAT_prime',  'DRATS', 'DRATS_prime', 'mean_DRAT', 'mean_DEV',  'delta_pal', 'n_tail', 'DRAT_tail', 'delta_TR',  'MD_VDS', 'n_add', 'delta_AC',  'lab_dc_field', 'x_Arai_mean', 'y_Arai_mean', 'best_fit_vector_Free', 'scat_bounding_line_low', 'scat_bounding_line_high']
+        print 'a_map', a_map
+
+        mapped_pars = mapping(pars, a_map)
+        print 'mapped_pars', mapped_pars
         #print 'Ron\'s:', pars.keys()
         #print 'mine: ', Pint_pars.pars.keys()
         
@@ -7205,24 +7239,25 @@ class Arai_GUI(wx.Frame):
         ron= ['specimen_fail_criteria', 'saved', 'specimen_PCA_sigma_max', 'specimen_ptrms_inc',  'er_sample_name', 'er_specimen_name', 'specimen_correction', 'specimen_int_corr_cooling_rate', 'AC_WARNING', 'specimen_int_corr_anisotropy', 'specimen_int_uT', 'specimen_PCA_sigma_int', 'specimen_ptrms_dec','NLT_specimen_correction_factor', 'Anisotropy_correction_factor', 'specimen_ptrms_mad', 'specimen_PCA_sigma_min', 'CR_WARNING', 'magic_method_codes']
 
         lori =  ['tail_check_max', 'B_lab', 'y_err', 'mean_DEV_prime',  'AC_Checks_segment', 'specimen_int', 'x_err', 'tau_Free', 'tau_Anc', 'max_ptrm_check', 'best_fit_vector_Anc', 'V_Anc', 'y_tag', 'ptrm_checks_included_temps', 'specimen_g_lim', 'V_Free', 'ptrm_checks', 'max_diff', 'tail_check_diffs', 'sum_abs_ptrm_checks', 'sum_ptrm_checks','vector_diffs_segment', 'mean_DRAT_prime', 'zdata_mass_center', 'count_IZ', 'count_ZI', 'vector_diffs', 'x_tag']
-        print 'ron', ron
-        for p in ron:
-            pintparvalues = [x for x in Pint_pars.pars.values() if (type(x) != list) and (type(x) != numpy.ndarray)]
-            #print pars[p]
-            if pars[p] in pintparvalues:
-                print p, pars[p]
-            for k, v in Pint_pars.pars.iteritems():
-                if (type(v) != list) and (type(v) != numpy.ndarray):
-                    if pars[p] == v:
-                        print k, v
-        print 'uT', pars['specimen_int_uT']
-        print 'int', pars['specimen_int']
-        print 'cart pTRMS orig', CART_pTRMS_orig
-        print 'ptrm M (should be the same as orient tensor)', cov(M)
-        print 'ptrm eigenvalues', eigenvalues
-        print 'ptrm eigenvectors', eigenvectors
-        print 'specimen_ptrms_dec', pars['specimen_ptrms_dec']
-        print 'specimen_ptrms_inc', pars['specimen_ptrms_inc']
+        #print 'ron', ron
+        #for p in ron:
+        #    pintparvalues = [x for x in Pint_pars.pars.values() if (type(x) != list) and (type(x) != numpy.ndarray)]
+        #    #print pars[p]
+        #    if pars[p] in pintparvalues:
+        #        print p, pars[p]
+        #    for k, v in Pint_pars.pars.iteritems():
+        #        if (type(v) != list) and (type(v) != numpy.ndarray):
+        #            if pars[p] == v:
+        #                print k, v
+        #print 'uT', pars['specimen_int_uT']
+        #print 'int', pars['specimen_int']
+        #print 'cart pTRMS orig', CART_pTRMS_orig
+        #print 'ptrm M (should be the same as X1_prime - mean(X1), etc)', M
+        #print 'ptrm cov(M) (should be the same as orient tensor)', cov(M)
+        #print 'ptrm eigenvalues', eigenvalues
+        #print 'ptrm eigenvectors', eigenvectors
+        #print 'specimen_ptrms_dec', pars['specimen_ptrms_dec']
+        #print 'specimen_ptrms_inc', pars['specimen_ptrms_inc']
         
         return(pars)
 
