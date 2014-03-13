@@ -6532,6 +6532,8 @@ class Arai_GUI(wx.Frame):
 
         new_ron = ['missing i', 'missing nmax', 'measurement_step_min', 'measurement_step_max', 'specimen_int_n',  'specimen_b',  'specimen_b_sigma', 'specimen_int_uT', 'missing B_anc_sigma', 'specimen_YT', 'missing specimen_XT', 'missing specimen_vds', 'missing partial_vds', 'missing x_prime', 'missing y_prime', 'missing delta_x_prime', 'missing_delta_y_prime',  'specimen_f',  'specimen_fvds', 'specimen_frac', 'specimen_b_beta', 'specimen_g',  'specimen_gmax', 'specimen_q', 'missing specimen_w', 'missing specimen_k', 'missing SSE', 'specimen_scat', 'fail_arai_beta_box_scatter',  'fail_tail_beta_box_scatter','fail_ptrm_beta_box_scatter', 'missing R_corr2', 'missing R_det2', 'missing Z', 'missing Zstar', 'missing IZZI_MD', 'specimen_dec', 'missing Dec_Anc', 'specimen_inc', 'missing Inc_Anc', 'missing MAD_Anc', 'specimen_int_mad', 'missing alpha', 'missing theta',  'specimen_dang','missing NRM_dev', 'specimen_ptrms_angle',  'specimen_int_ptrm_n', 'missing max_ptrm_check_percent', 'missing delta_CK', 'missing DRAT', 'missing length_best_fit_line', 'missing MAX_Dev', 'missing CDRAT', 'missing CDRAT_prime',  'specimen_drats', 'missing DRATS_prime', 'missing mean_DRAT', 'missing mean_DEV', 'missing delta_pal', 'missing n_tail',  ' missing DRAT_tail', 'missing delta_TR', 'specimen_md', 'missing n_add', 'missing delta_AC',  'lab_dc_field', 'specimen_cm_x', 'specimen_cm_y', 'specimen_PCA_v1', 'specimen_scat_bounding_line_low',  'specimen_scat_bounding_line_high']
         new_lori = ['missing i', 'missing nmax', 'tmin', 'tmax', 'specimen_n',  'specimen_b', 'specimen_b_sigma', 'B_anc', 'B_anc_sigma',  'specimen_YT', 'specimen_XT',  'specimen_vds', 'partial_vds',  'x_prime', 'y_prime', 'delta_x_prime', 'delta_y_prime', 'specimen_f', 'specimen_fvds',  'FRAC', 'specimen_b_beta', 'specimen_g', 'GAP-MAX', 'specimen_q', 'specimen_w','specimen_k',  'SSE', 'SCAT',  'fail_arai_beta_box_scatter', 'fail_tail_beta_box_scatter', 'fail_ptrm_beta_box_scatter', 'R_corr2',  'R_det2',  'Z',  'Zstar', 'IZZI_MD', 'Dec_Free', 'Dec_Anc', 'Inc_Free',  'Inc_Anc', 'MAD_Anc',  'MAD_Free',  'alpha', 'theta', 'DANG',  'NRM_dev', 'gamma',  'n_ptrm', 'max_ptrm_check_percent',  'delta_CK', 'DRAT', 'length_best_fit_line', 'max_DEV', 'CDRAT', 'CDRAT_prime',  'DRATS', 'DRATS_prime', 'mean_DRAT', 'mean_DEV',  'delta_pal', 'n_tail', 'DRAT_tail', 'delta_TR',  'MD_VDS', 'n_add', 'delta_AC',  'lab_dc_field', 'x_Arai_mean', 'y_Arai_mean', 'best_fit_vector_Free', 'scat_bounding_line_low', 'scat_bounding_line_high']
+            
+        a_map = {'fail_ptrm_beta_box_scatter': 'fail_ptrm_beta_box_scatter', 'scat_bounding_line_low': 'specimen_scat_bounding_line_low', 'fail_tail_beta_box_scatter': 'fail_tail_beta_box_scatter', 'MD_VDS': 'specimen_md', 'B_anc': 'specimen_int_uT', 'FRAC': 'specimen_frac', 'Inc_Free': 'specimen_inc', 'best_fit_vector_Free': 'specimen_PCA_v1', 'specimen_b_sigma': 'specimen_b_sigma', 'specimen_YT': 'specimen_YT', 'y_Arai_mean': 'specimen_cm_y', 'SCAT': 'specimen_scat', 'MAD_Free': 'specimen_int_mad', 'n_ptrm': 'specimen_int_ptrm_n', 'tmin': 'measurement_step_min', 'x_Arai_mean': 'specimen_cm_x', 'Dec_Free': 'specimen_dec', 'DRATS': 'specimen_drats', 'specimen_fvds': 'specimen_fvds', 'specimen_b_beta': 'specimen_b_beta', 'specimen_b': 'specimen_b', 'specimen_g': 'specimen_g', 'fail_arai_beta_box_scatter': 'fail_arai_beta_box_scatter', 'specimen_f': 'specimen_f', 'tmax': 'measurement_step_max', 'specimen_n': 'specimen_int_n', 'specimen_q': 'specimen_q', 'lab_dc_field': 'lab_dc_field', 'GAP-MAX': 'specimen_gmax', 'DANG': 'specimen_dang', 'gamma': 'specimen_ptrms_angle', 'scat_bounding_line_high': 'specimen_scat_bounding_line_high', 'PCA_sigma_max_Free': "specimen_PCA_sigma_max" , 'PCA_sigma_int_Free': 'specimen_PCA_sigma_int', 'PCA_sigma_min_Free': 'specimen_PCA_sigma_min' } # spd name: thellier_gui name
 
 
         pars=self.Data[s]['pars']
@@ -6600,6 +6602,7 @@ class Arai_GUI(wx.Frame):
 
         zdata_segment=self.Data[s]['zdata'][zstart:zend+1]
 
+        replacing_with_spd = """
         #  PCA in 2 lines
         M = (zdata_segment-mean(zdata_segment.T,axis=1)).T # subtract the mean (along columns)
         [eigenvalues,eigenvectors] = linalg.eig(cov(M)) # attention:not always sorted
@@ -6648,18 +6651,18 @@ class Arai_GUI(wx.Frame):
             t3=1e-10
 
        # print '---------------------'
-            
+       # lj PUT THESE IN SPD
         pars["specimen_PCA_sigma_max"] =  sqrt(t1)
         pars["specimen_PCA_sigma_int"] =  sqrt(t2)
         pars["specimen_PCA_sigma_min"] =  sqrt(t3)
-            
+
 
         # MAD Kirschvink (1980)
         #lj
         #pars["specimen_int_mad"]=MAD
         #pars["specimen_dang"]=DANG
         #lj
-
+        """
 
         #-------------------------------------------------
         # calualte PCA of the pTRMs over the entire temperature range
@@ -7242,38 +7245,11 @@ class Arai_GUI(wx.Frame):
 ##            if sample in Data_info["er_samples"]:
 ##                if 'sample_type' in Data_info["er_samples"][sample].keys():
 ##                    if Data_info["er_samples"][sample]['sample_type'] in ["Baked Clay","Baked Mud",
-        #print 'Ron\'s:', pars.keys()
-        #print 'mine: ', Pint_pars.pars.keys()
-        common_pars = []
-        for par in pars.keys():
-            if par in Pint_pars.pars.keys():
-                common_pars.append(par)
-        #print common_pars
-        #return pars
 
-
-
-
-
-        
-
-        #print 'mapped_pars', mapped_pars
-        # mapped pars is the regular PintPars.pars, except that many of those pars are renamed to work with thellier gui
 
         expected_pars = ['fail_ptrm_beta_box_scatter', 'specimen_frac', 'specimen_fail_criteria', 'specimen_dang', 'measurement_step_max', 'specimen_scat_bounding_line_high', 'saved', 'specimen_PCA_sigma_max', 'specimen_int', 'specimen_q', 'specimen_fvds', 'specimen_b_sigma', 'specimen_ptrms_inc', 'specimen_YT', 'er_sample_name', 'specimen_md', 'specimen_int_n', 'specimen_scat_bounding_line_low', 'specimen_inc', 'er_specimen_name', 'specimen_correction', 'specimen_int_corr_cooling_rate', 'AC_WARNING', 'specimen_int_corr_anisotropy', 'specimen_int_mad', 'specimen_int_uT', 'fail_tail_beta_box_scatter', 'specimen_cm_y', 'specimen_cm_x', 'specimen_dec', 'specimen_PCA_sigma_int', 'specimen_drats', 'specimen_b_beta', 'specimen_ptrms_dec', 'specimen_b', 'fail_arai_beta_box_scatter', 'specimen_g', 'specimen_f', 'specimen_int_ptrm_n', 'NLT_specimen_correction_factor', 'Anisotropy_correction_factor', 'specimen_ptrms_mad', 'specimen_ptrms_angle', 'specimen_PCA_sigma_min', 'CR_WARNING', 'lab_dc_field', 'measurement_step_min', 'specimen_PCA_v1', 'specimen_scat', 'specimen_gmax', 'magic_method_codes']
 
         
-#        for num, par in enumerate(new_lori):
-#            print "Ron:", new_ron[num], "Lori", par
-#            if 'missing' in par:
-#                pass
-#            else:
-#                print Pint_pars.pars[par],
-#            if 'missing' in new_ron[num]:
-#                print ' '
-#            else:
-#                print pars[new_ron[num]]
-            
 
         def combine_dictionaries(d1, d2):
             """
@@ -7282,14 +7258,13 @@ class Arai_GUI(wx.Frame):
             """
             for key, value in d2.iteritems():
                 if key not in d1.keys():
-                    print 'adding {key} to d1'.format(key)
                     d1[key] = value
             return d1
 
         
-        ron= ['specimen_fail_criteria', 'saved', 'specimen_PCA_sigma_max', 'specimen_ptrms_inc',  'er_sample_name', 'er_specimen_name', 'specimen_correction', 'specimen_int_corr_cooling_rate', 'AC_WARNING', 'specimen_int_corr_anisotropy', 'specimen_int_uT', 'specimen_PCA_sigma_int', 'specimen_ptrms_dec','NLT_specimen_correction_factor', 'Anisotropy_correction_factor', 'specimen_ptrms_mad', 'specimen_PCA_sigma_min', 'CR_WARNING', 'magic_method_codes']
+        ron= ['specimen_fail_criteria', 'saved', 'specimen_PCA_sigma_max', 'specimen_ptrms_inc',  'er_sample_name', 'er_specimen_name', 'specimen_correction', 'specimen_int_corr_cooling_rate', 'AC_WARNING', 'specimen_int_corr_anisotropy', 'specimen_int_uT', 'specimen_PCA_sigma_int', 'specimen_ptrms_dec','NLT_specimen_correction_factor', 'Anisotropy_correction_factor', 'specimen_ptrms_mad', 'specimen_PCA_sigma_min', 'CR_WARNING', 'magic_method_codes'] # still not mapped
 
-        lori =  ['tail_check_max', 'B_lab', 'y_err', 'mean_DEV_prime',  'AC_Checks_segment', 'specimen_int', 'x_err', 'tau_Free', 'tau_Anc', 'max_ptrm_check', 'best_fit_vector_Anc', 'V_Anc', 'y_tag', 'ptrm_checks_included_temps', 'specimen_g_lim', 'V_Free', 'ptrm_checks', 'max_diff', 'tail_check_diffs', 'sum_abs_ptrm_checks', 'sum_ptrm_checks','vector_diffs_segment', 'mean_DRAT_prime', 'zdata_mass_center', 'count_IZ', 'count_ZI', 'vector_diffs', 'x_tag']
+        lori =  ['tail_check_max', 'B_lab', 'y_err', 'mean_DEV_prime',  'AC_Checks_segment', 'specimen_int', 'x_err', 'tau_Free', 'tau_Anc', 'max_ptrm_check', 'best_fit_vector_Anc', 'V_Anc', 'y_tag', 'ptrm_checks_included_temps', 'specimen_g_lim', 'V_Free', 'ptrm_checks', 'max_diff', 'tail_check_diffs', 'sum_abs_ptrm_checks', 'sum_ptrm_checks','vector_diffs_segment', 'mean_DRAT_prime', 'zdata_mass_center', 'count_IZ', 'count_ZI', 'vector_diffs', 'x_tag'] # not needed
         #print 'ron', ron
         #for p in ron:
         #    pintparvalues = [x for x in Pint_pars.pars.values() if (type(x) != list) and (type(x) != numpy.ndarray)]
@@ -7310,14 +7285,10 @@ class Arai_GUI(wx.Frame):
         #print 'specimen_ptrms_dec', pars['specimen_ptrms_dec']
         #print 'specimen_ptrms_inc', pars['specimen_ptrms_inc']
         #mapped_pars['specimen_frac'] = 'turtles!'
-        full_pars = combine_dictionaries(mapped_pars, pars) # not working :(
-        print 'full_pars.keys():', full_pars.keys()
-        print 'full_pars["specimen_frac"]',full_pars['specimen_frac']
-        self.pars = full_pars
-        print 'self.Data[s]["pars"].keys() at end of get_pi_parameters', self.Data[s]['pars'].keys()
-        self.Data[s]['pars'] = full_pars
-        return full_pars
-        #return(pars)
+
+        self.Data[s]['pars'] = pars
+#        return full_pars
+        return(pars)
 
 
 #    def get_site_means(self):
