@@ -6281,7 +6281,8 @@ class Arai_GUI(wx.Frame):
 #===========================================================
 
     def update_GUI_with_new_interpretation(self):
-       
+        print 'calling update_GUI_with_new_interpretation'
+        print 'specimen_dec exists', self.pars['specimen_dec']
         #-------------------------------------------------
         # Updtae GUI
         #-------------------------------------------------
@@ -6298,13 +6299,14 @@ class Arai_GUI(wx.Frame):
             self.tmin_box.SetValue("%.0f"%(float(self.pars['measurement_step_min'])))
             self.tmax_box.SetValue("%.0f"%(float(self.pars['measurement_step_max'])))
             
-        
+        print 'specimen_dec exists still', self.pars['specimen_dec']
         # First,re-draw the figures
-        self.draw_figure(s)
+        self.draw_figure(s) # pars break here because they are re-set in draw_figure.  but why?
 
+        print 'specimen_dec after draw_figures?', self.pars['specimen_dec']
         # now draw the interpretation
         self.draw_interpretation()
-        
+        print 'specimen_dec after draw_interpretation?', self.pars['specimen_dec']
         
         # declination/inclination
         self.declination_window.SetValue("%.1f"%(self.pars['specimen_dec']))
@@ -6325,7 +6327,7 @@ class Arai_GUI(wx.Frame):
             if key in ['specimen_dang','specimen_drats','specimen_int_mad','specimen_md','specimen_g','specimen_q']:
                 Value="%.1f"%self.pars[key]
             if key in ['specimen_f','specimen_fvds','specimen_frac','specimen_b_beta','specimen_gmax']:
-                Value="%.2f"%self.pars[key]            
+                Value="%.2f"%self.pars[key]
             if key in ["specimen_ptrms_inc","specimen_ptrms_dec","specimen_ptrms_mad","specimen_ptrms_angle"]:
                 Value="%.2f"%self.pars[key]            
             command= "self.%s_window.SetValue(Value)"%key.split('specimen_')[-1]
@@ -6432,7 +6434,8 @@ class Arai_GUI(wx.Frame):
         """
 
         #remember the last saved interpretation
-
+        print 'calling get_new_T_PI_parameters()'
+        print 'self.pars', self.pars.keys()
         if "saved" in self.pars.keys():
             if self.pars['saved']:
                 self.last_saved_pars={}
@@ -6457,7 +6460,9 @@ class Arai_GUI(wx.Frame):
                 self.pars=self.get_PI_parameters(self.s,float(t1)+273.,float(t2)+273.)
             else:
                 self.pars=self.get_PI_parameters(self.s,float(t1),float(t2))
-                
+                print 'self.pars.keys() as updated in get_new_T_PI_parameters', self.pars.keys()
+            print 'self.pars.keys() as updated in get_new_T_PI_parameters', self.pars.keys()
+            print 'specimen_dec present:', self.pars['specimen_dec']
             self.update_GUI_with_new_interpretation()
       
     def get_PI_parameters(self,s,tmin,tmax):
@@ -6512,10 +6517,10 @@ class Arai_GUI(wx.Frame):
         calculate statisics 
         """
 
-
+        print 'self.Data[s]["pars"].keys() at beginning of Get_PI_parameters', self.Data[s]['pars'].keys()
         pars=self.Data[s]['pars']
         datablock = self.Data[s]['datablock']
-        pars=self.Data[s]['pars']
+        pars=self.Data[s]['pars'] # assignments to pars are assiging to self.Data[s]['pars']
         # get MagIC mothod codes:
 
         #pars['magic_method_codes']="LP-PI-TRM" # thellier Method
@@ -6524,6 +6529,7 @@ class Arai_GUI(wx.Frame):
         #def __init__(self, Data,specimen_name,tmin,tmax):
         Pint_pars = spd.PintPars(self.Data, str(s), tmin, tmax)
         Pint_pars.calculate_all_statistics()
+        print 'self.Data[s]["pars"].keys() after Pint_pars call', self.Data[s]['pars'].keys()
 
         t_Arai=self.Data[s]['t_Arai']
         x_Arai=self.Data[s]['x_Arai']
@@ -6598,8 +6604,8 @@ class Arai_GUI(wx.Frame):
         DANG=math.degrees( arccos( ( dot(cm, best_fit_vector) )/( sqrt(sum(cm**2)) * sqrt(sum(best_fit_vector**2)))))
 
         # best fit PCA direction
-        pars["specimen_dec"] =  DIR_PCA[0]
-        pars["specimen_inc"] =  DIR_PCA[1]
+        #pars["specimen_dec"] =  DIR_PCA[0]
+        #pars["specimen_inc"] =  DIR_PCA[1]
         pars["specimen_PCA_v1"] =best_fit_vector
         if t1 <0 or t1==0:
             t1=1e-10
@@ -6995,7 +7001,7 @@ class Arai_GUI(wx.Frame):
             if key in ['specimen_f','specimen_fvds','specimen_frac','specimen_g','specimen_q']:
                 value=round(pars[key],5)
             else: 
-                value=pars[key]
+                value=pars[key] # 
             if pars[key] < float(self.accept_new_parameters[key]):
                 pars['specimen_fail_criteria'].append(key)
         if 'specimen_scat' in pars.keys():
@@ -7199,7 +7205,8 @@ class Arai_GUI(wx.Frame):
                     new_key = mapping[key]
                     mapped_dictionary[new_key] = value
                 else:
-                    mapped_dictionary[key] = value
+                    pass
+                    #mapped_dictionary[key] = value# if this line is left in, it gives everything from the original dictionary
             return mapped_dictionary
 
 
@@ -7218,22 +7225,42 @@ class Arai_GUI(wx.Frame):
 
         print 'a_map', a_map
 
-        mapped_pars = mapping(pars, a_map)
-        print 'mapped_pars', mapped_pars
+        mapped_pars = mapping(Pint_pars.pars, a_map) 
+        #print 'mapped_pars', mapped_pars
+        # mapped pars is the regular PintPars.pars, except that many of those pars are renamed to work with thellier gui
+
+        expected_pars = ['fail_ptrm_beta_box_scatter', 'specimen_frac', 'specimen_fail_criteria', 'specimen_dang', 'measurement_step_max', 'specimen_scat_bounding_line_high', 'saved', 'specimen_PCA_sigma_max', 'specimen_int', 'specimen_q', 'specimen_fvds', 'specimen_b_sigma', 'specimen_ptrms_inc', 'specimen_YT', 'er_sample_name', 'specimen_md', 'specimen_int_n', 'specimen_scat_bounding_line_low', 'specimen_inc', 'er_specimen_name', 'specimen_correction', 'specimen_int_corr_cooling_rate', 'AC_WARNING', 'specimen_int_corr_anisotropy', 'specimen_int_mad', 'specimen_int_uT', 'fail_tail_beta_box_scatter', 'specimen_cm_y', 'specimen_cm_x', 'specimen_dec', 'specimen_PCA_sigma_int', 'specimen_drats', 'specimen_b_beta', 'specimen_ptrms_dec', 'specimen_b', 'fail_arai_beta_box_scatter', 'specimen_g', 'specimen_f', 'specimen_int_ptrm_n', 'NLT_specimen_correction_factor', 'Anisotropy_correction_factor', 'specimen_ptrms_mad', 'specimen_ptrms_angle', 'specimen_PCA_sigma_min', 'CR_WARNING', 'lab_dc_field', 'measurement_step_min', 'specimen_PCA_v1', 'specimen_scat', 'specimen_gmax', 'magic_method_codes']
+        print 'mapped_pars.keys()', mapped_pars.keys()
+        for p in expected_pars:
+            if p not in mapped_pars.keys():
+                mapped_pars[p] = pars[p]
+        print 'expected same as mapped', set(expected_pars) > set(mapped_pars.keys())
+        print 'complete mapped_pars', mapped_pars.keys()
         #print 'Ron\'s:', pars.keys()
         #print 'mine: ', Pint_pars.pars.keys()
         
-        for num, par in enumerate(new_lori):
-            print "Ron:", new_ron[num], "Lori", par
-            if 'missing' in par:
-                pass
-            else:
-                print Pint_pars.pars[par],
-            if 'missing' in new_ron[num]:
-                print ' '
-            else:
-                print pars[new_ron[num]]
+#        for num, par in enumerate(new_lori):
+#            print "Ron:", new_ron[num], "Lori", par
+#            if 'missing' in par:
+#                pass
+#            else:
+#                print Pint_pars.pars[par],
+#            if 'missing' in new_ron[num]:
+#                print ' '
+#            else:
+#                print pars[new_ron[num]]
             
+
+        def combine_dictionaries(d1, d2):
+            """
+            combines dict1 and dict2 into a new dict.  
+            if dict1 and dict2 share a key, the value from dict1 is used
+            """
+            for key, value in d2.iteritems():
+                if key not in d1.keys():
+                    print 'adding {key} to d1'.format(key)
+                    d1[key] = value
+            return d1
 
         
         ron= ['specimen_fail_criteria', 'saved', 'specimen_PCA_sigma_max', 'specimen_ptrms_inc',  'er_sample_name', 'er_specimen_name', 'specimen_correction', 'specimen_int_corr_cooling_rate', 'AC_WARNING', 'specimen_int_corr_anisotropy', 'specimen_int_uT', 'specimen_PCA_sigma_int', 'specimen_ptrms_dec','NLT_specimen_correction_factor', 'Anisotropy_correction_factor', 'specimen_ptrms_mad', 'specimen_PCA_sigma_min', 'CR_WARNING', 'magic_method_codes']
@@ -7258,8 +7285,15 @@ class Arai_GUI(wx.Frame):
         #print 'ptrm eigenvectors', eigenvectors
         #print 'specimen_ptrms_dec', pars['specimen_ptrms_dec']
         #print 'specimen_ptrms_inc', pars['specimen_ptrms_inc']
-        
-        return(pars)
+        #mapped_pars['specimen_frac'] = 'turtles!'
+        full_pars = combine_dictionaries(mapped_pars, pars) # not working :(
+        print 'full_pars.keys():', full_pars.keys()
+        print 'full_pars["specimen_frac"]',full_pars['specimen_frac']
+        self.pars = full_pars
+        print 'self.Data[s]["pars"].keys() at end of get_pi_parameters', self.Data[s]['pars'].keys()
+        self.Data[s]['pars'] = full_pars
+        return full_pars
+        #return(pars)
 
 
 #    def get_site_means(self):
