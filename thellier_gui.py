@@ -6513,11 +6513,27 @@ class Arai_GUI(wx.Frame):
 
             return(F)
 
+        def mapping(dictionary, mapping):
+            mapped_dictionary = {}
+            for key, value in dictionary.iteritems():
+                if key in mapping.keys():
+                    new_key = mapping[key]
+                    mapped_dictionary[new_key] = value
+                else:
+                    pass
+                    #mapped_dictionary[key] = value# if this line is left in, it gives everything from the original dictionary
+            return mapped_dictionary
+
+
         """
         calculate statisics 
         """
 
-        print 'self.Data[s]["pars"].keys() at beginning of Get_PI_parameters', self.Data[s]['pars'].keys()
+
+        new_ron = ['missing i', 'missing nmax', 'measurement_step_min', 'measurement_step_max', 'specimen_int_n',  'specimen_b',  'specimen_b_sigma', 'specimen_int_uT', 'missing B_anc_sigma', 'specimen_YT', 'missing specimen_XT', 'missing specimen_vds', 'missing partial_vds', 'missing x_prime', 'missing y_prime', 'missing delta_x_prime', 'missing_delta_y_prime',  'specimen_f',  'specimen_fvds', 'specimen_frac', 'specimen_b_beta', 'specimen_g',  'specimen_gmax', 'specimen_q', 'missing specimen_w', 'missing specimen_k', 'missing SSE', 'specimen_scat', 'fail_arai_beta_box_scatter',  'fail_tail_beta_box_scatter','fail_ptrm_beta_box_scatter', 'missing R_corr2', 'missing R_det2', 'missing Z', 'missing Zstar', 'missing IZZI_MD', 'specimen_dec', 'missing Dec_Anc', 'specimen_inc', 'missing Inc_Anc', 'missing MAD_Anc', 'specimen_int_mad', 'missing alpha', 'missing theta',  'specimen_dang','missing NRM_dev', 'specimen_ptrms_angle',  'specimen_int_ptrm_n', 'missing max_ptrm_check_percent', 'missing delta_CK', 'missing DRAT', 'missing length_best_fit_line', 'missing MAX_Dev', 'missing CDRAT', 'missing CDRAT_prime',  'specimen_drats', 'missing DRATS_prime', 'missing mean_DRAT', 'missing mean_DEV', 'missing delta_pal', 'missing n_tail',  ' missing DRAT_tail', 'missing delta_TR', 'specimen_md', 'missing n_add', 'missing delta_AC',  'lab_dc_field', 'specimen_cm_x', 'specimen_cm_y', 'specimen_PCA_v1', 'specimen_scat_bounding_line_low',  'specimen_scat_bounding_line_high']
+        new_lori = ['missing i', 'missing nmax', 'tmin', 'tmax', 'specimen_n',  'specimen_b', 'specimen_b_sigma', 'B_anc', 'B_anc_sigma',  'specimen_YT', 'specimen_XT',  'specimen_vds', 'partial_vds',  'x_prime', 'y_prime', 'delta_x_prime', 'delta_y_prime', 'specimen_f', 'specimen_fvds',  'FRAC', 'specimen_b_beta', 'specimen_g', 'GAP-MAX', 'specimen_q', 'specimen_w','specimen_k',  'SSE', 'SCAT',  'fail_arai_beta_box_scatter', 'fail_tail_beta_box_scatter', 'fail_ptrm_beta_box_scatter', 'R_corr2',  'R_det2',  'Z',  'Zstar', 'IZZI_MD', 'Dec_Free', 'Dec_Anc', 'Inc_Free',  'Inc_Anc', 'MAD_Anc',  'MAD_Free',  'alpha', 'theta', 'DANG',  'NRM_dev', 'gamma',  'n_ptrm', 'max_ptrm_check_percent',  'delta_CK', 'DRAT', 'length_best_fit_line', 'max_DEV', 'CDRAT', 'CDRAT_prime',  'DRATS', 'DRATS_prime', 'mean_DRAT', 'mean_DEV',  'delta_pal', 'n_tail', 'DRAT_tail', 'delta_TR',  'MD_VDS', 'n_add', 'delta_AC',  'lab_dc_field', 'x_Arai_mean', 'y_Arai_mean', 'best_fit_vector_Free', 'scat_bounding_line_low', 'scat_bounding_line_high']
+
+
         pars=self.Data[s]['pars']
         datablock = self.Data[s]['datablock']
         pars=self.Data[s]['pars'] # assignments to pars are assiging to self.Data[s]['pars']
@@ -6529,7 +6545,20 @@ class Arai_GUI(wx.Frame):
         #def __init__(self, Data,specimen_name,tmin,tmax):
         Pint_pars = spd.PintPars(self.Data, str(s), tmin, tmax)
         Pint_pars.calculate_all_statistics()
-        print 'self.Data[s]["pars"].keys() after Pint_pars call', self.Data[s]['pars'].keys()
+        
+        #lj
+        a_map = {}
+        for n in range(len(new_ron)):
+            if 'missing' not in new_ron[n] and 'missing' not in new_lori[n]:
+                key = new_lori[n]
+                value = new_ron[n]
+                a_map[key] = value
+
+        print 'a_map', a_map
+        mapped_pars = mapping(Pint_pars.pars, a_map) 
+        pars = mapped_pars
+        #lj
+
 
         t_Arai=self.Data[s]['t_Arai']
         x_Arai=self.Data[s]['x_Arai']
@@ -6561,9 +6590,11 @@ class Arai_GUI(wx.Frame):
         # DANG following Tauxe and Staudigel (2004)
         #-------------------------------------------------               
          
-        pars["measurement_step_min"]=float(tmin)
-        pars["measurement_step_max"]=float(tmax)
- 
+        #lj
+        #pars["measurement_step_min"]=float(tmin)
+        #pars["measurement_step_max"]=float(tmax)
+        #lj
+        
         zstart=z_temperatures.index(tmin)
         zend=z_temperatures.index(tmax)
 
@@ -6604,9 +6635,11 @@ class Arai_GUI(wx.Frame):
         DANG=math.degrees( arccos( ( dot(cm, best_fit_vector) )/( sqrt(sum(cm**2)) * sqrt(sum(best_fit_vector**2)))))
 
         # best fit PCA direction
+        #lj
         #pars["specimen_dec"] =  DIR_PCA[0]
         #pars["specimen_inc"] =  DIR_PCA[1]
-        pars["specimen_PCA_v1"] =best_fit_vector
+        #pars["specimen_PCA_v1"] =best_fit_vector
+        #lj
         if t1 <0 or t1==0:
             t1=1e-10
         if t2 <0 or t2==0:
@@ -6622,8 +6655,10 @@ class Arai_GUI(wx.Frame):
             
 
         # MAD Kirschvink (1980)
-        pars["specimen_int_mad"]=MAD
-        pars["specimen_dang"]=DANG
+        #lj
+        #pars["specimen_int_mad"]=MAD
+        #pars["specimen_dang"]=DANG
+        #lj
 
 
         #-------------------------------------------------
@@ -6747,21 +6782,22 @@ class Arai_GUI(wx.Frame):
             pars['magic_method_codes']="LP-PI-IZ"            
         else:
             pars['magic_method_codes']=""
-            
-        pars['specimen_int_n']=end-start+1
-        pars["specimen_b"]=york_b
-        pars["specimen_YT"]=y_T       
-        pars["specimen_b_sigma"]=york_sigma
-        pars["specimen_b_beta"]=beta_Coe
-        pars["specimen_f"]=f_Coe
-        pars["specimen_fvds"]=f_vds
-        pars["specimen_g"]=g_Coe
-        pars["specimen_q"]=q_Coe
+
+        #lj
+#        pars['specimen_int_n']=end-start+1
+#        pars["specimen_b"]=york_b
+#        pars["specimen_YT"]=y_T       
+#        pars["specimen_b_sigma"]=york_sigma
+#        pars["specimen_b_beta"]=beta_Coe
+#        pars["specimen_f"]=f_Coe
+#        pars["specimen_fvds"]=f_vds
+#        pars["specimen_g"]=g_Coe
+#        pars["specimen_q"]=q_Coe
         pars["specimen_int"]=-1*pars['lab_dc_field']*pars["specimen_b"]
         pars['magic_method_codes']+=":IE-TT"
-        pars["specimen_cm_x"]=x_Arai_mean
-        pars["specimen_cm_y"]=y_Arai_mean
-
+#        pars["specimen_cm_x"]=x_Arai_mean
+#        pars["specimen_cm_y"]=y_Arai_mean
+        #lj
         
         if 'x_ptrm_check' in self.Data[self.s].keys():
             if len(self.Data[self.s]['x_ptrm_check'])>0:
@@ -6818,12 +6854,14 @@ class Arai_GUI(wx.Frame):
                                
         DRATS=100*(abs(sum(x_ptrm_check_in_0_to_end-x_Arai_compare))/(x_Arai[end]))
         int_ptrm_n=len(x_ptrm_check_in_0_to_end)
-        if int_ptrm_n > 0:
-           pars['specimen_int_ptrm_n']=int_ptrm_n
-           pars['specimen_drats']=DRATS
-        else:
-           pars['specimen_int_ptrm_n']=int_ptrm_n
-           pars['specimen_drats']=-1
+        #lj
+        #if int_ptrm_n > 0:
+           #pars['specimen_int_ptrm_n']=int_ptrm_n
+           #pars['specimen_drats']=DRATS
+        #else:
+           #pars['specimen_int_ptrm_n']=int_ptrm_n
+           #pars['specimen_drats']=-1
+        #lj
 
         #-------------------------------------------------
         # Tail check MD
@@ -6850,7 +6888,9 @@ class Arai_GUI(wx.Frame):
 
         #-------------------------------------------------                     
         # Tail check : TO DO !
-        pars['specimen_md']=-1  
+        #lj
+        #pars['specimen_md']=-1  
+        #lj
         #-------------------------------------------------                     
 
         #-------------------------------------------------                     
@@ -6860,17 +6900,20 @@ class Arai_GUI(wx.Frame):
         #-------------------------------------------------                     
 
         if self.accept_new_parameters['specimen_scat']==True or self.accept_new_parameters['specimen_scat'] in [1,"True","TRUE",'1']:
-        
-            pars["fail_arai_beta_box_scatter"]=False
-            pars["fail_ptrm_beta_box_scatter"]=False
-            pars["fail_tail_beta_box_scatter"]=False
+            #lj
+            #pars["fail_arai_beta_box_scatter"]=False
+            #pars["fail_ptrm_beta_box_scatter"]=False
+            #pars["fail_tail_beta_box_scatter"]=False
+            #lj
             
             # best fit line 
             b=pars['specimen_b']
             cm_x=mean(array(x_Arai_segment))
             cm_y=mean(array(y_Arai_segment))
-            pars["specimen_cm_x"]=cm_x
-            pars["specimen_cm_y"]=cm_y
+            #lj
+            #pars["specimen_cm_x"]=cm_x
+            #pars["specimen_cm_y"]=cm_y
+            #lj
             a=cm_y-b*cm_x
 
             # lines with slope = slope +/- 2*(specimen_b_beta)
@@ -6898,9 +6941,11 @@ class Arai_GUI(wx.Frame):
             # higher bounding line of the 'beta box'
             slop2=a2/((a1/b1))
             intercept2=a2       
-
-            pars['specimen_scat_bounding_line_high']=[intercept2,slop2]
-            pars['specimen_scat_bounding_line_low']=[intercept1,slop1]
+            
+            #lj
+            #pars['specimen_scat_bounding_line_high']=[intercept2,slop2]
+            #pars['specimen_scat_bounding_line_low']=[intercept1,slop1]
+            #lj
             
             # check if the Arai data points are in the 'box'
 
@@ -6916,8 +6961,10 @@ class Arai_GUI(wx.Frame):
             check_2=y_Arai_segment<ymin
 
             # check if at least one "True" 
-            if (sum(check_1)+sum(check_2))>0:
-             pars["fail_arai_beta_box_scatter"]=True
+            #lj
+            #if (sum(check_1)+sum(check_2))>0:
+             #pars["fail_arai_beta_box_scatter"]=True
+             #lj
              #print "check, fail beta box"
 
 
@@ -6939,8 +6986,10 @@ class Arai_GUI(wx.Frame):
 
 
               # check if at least one "True" 
-              if (sum(check_1)+sum(check_2))>0:
-                pars["fail_ptrm_beta_box_scatter"]=True
+              #lj
+              #if (sum(check_1)+sum(check_2))>0:
+                #pars["fail_ptrm_beta_box_scatter"]=True
+                #lj
                 #print "check, fail fail_ptrm_beta_box_scatter"
                 
             # check if the tail checks data points are in the 'box'
@@ -6958,16 +7007,19 @@ class Arai_GUI(wx.Frame):
 
 
               # check if at least one "True" 
-              if (sum(check_1)+sum(check_2))>0:
-                pars["fail_tail_beta_box_scatter"]=True
+              #lj
+              #if (sum(check_1)+sum(check_2))>0:
+                #pars["fail_tail_beta_box_scatter"]=True
+                #lj
                 #print "check, fail fail_ptrm_beta_box_scatter"
-
-            if pars["fail_tail_beta_box_scatter"] or pars["fail_ptrm_beta_box_scatter"] or pars["fail_arai_beta_box_scatter"]:
-                  pars["specimen_scat"]="Fail"
-            else:
-                  pars["specimen_scat"]="Pass"
-        else:
-            pars["specimen_scat"]="N/A"
+#lj
+#            if pars["fail_tail_beta_box_scatter"] or pars["fail_ptrm_beta_box_scatter"] or pars["fail_arai_beta_box_scatter"]:
+#                  pars["specimen_scat"]="Fail"
+#            else:
+#                  pars["specimen_scat"]="Pass"
+#        else:
+#            pars["specimen_scat"]="N/A"
+#lj
         #-------------------------------------------------  
         # Calculate the new FRAC parameter (Shaar and Tauxe, 2012).
         # also check that the 'gap' between consecutive measurements is less than 0.5(VDS)
@@ -6979,8 +7031,10 @@ class Arai_GUI(wx.Frame):
         FRAC=sum(vector_diffs_segment)/self.Data[s]['vds']
         max_FRAC_gap=max(vector_diffs_segment/sum(vector_diffs_segment))
 
-        pars['specimen_frac']=FRAC
-        pars['specimen_gmax']=max_FRAC_gap
+        #lj
+        #pars['specimen_frac']=FRAC
+        #pars['specimen_gmax']=max_FRAC_gap
+        #lj
 
         #-------------------------------------------------  
         # Check if specimen pass Acceptance criteria
@@ -7198,46 +7252,16 @@ class Arai_GUI(wx.Frame):
         #return pars
 
 
-        def mapping(dictionary, mapping):
-            mapped_dictionary = {}
-            for key, value in dictionary.iteritems():
-                if key in mapping.keys():
-                    new_key = mapping[key]
-                    mapped_dictionary[new_key] = value
-                else:
-                    pass
-                    #mapped_dictionary[key] = value# if this line is left in, it gives everything from the original dictionary
-            return mapped_dictionary
 
 
 
         
 
-        new_ron = ['missing i', 'missing nmax', 'measurement_step_min', 'measurement_step_max', 'specimen_int_n',  'specimen_b',  'specimen_b_sigma', 'specimen_int_uT', 'missing B_anc_sigma', 'specimen_YT', 'missing specimen_XT', 'missing specimen_vds', 'missing partial_vds', 'missing x_prime', 'missing y_prime', 'missing delta_x_prime', 'missing_delta_y_prime',  'specimen_f',  'specimen_fvds', 'specimen_frac', 'specimen_b_beta', 'specimen_g',  'specimen_gmax', 'specimen_q', 'missing specimen_w', 'missing specimen_k', 'missing SSE', 'specimen_scat', 'fail_arai_beta_box_scatter',  'fail_tail_beta_box_scatter','fail_ptrm_beta_box_scatter', 'missing R_corr2', 'missing R_det2', 'missing Z', 'missing Zstar', 'missing IZZI_MD', 'specimen_dec', 'missing Dec_Anc', 'specimen_inc', 'missing Inc_Anc', 'missing MAD_Anc', 'specimen_int_mad', 'missing alpha', 'missing theta',  'specimen_dang','missing NRM_dev', 'specimen_ptrms_angle',  'specimen_int_ptrm_n', 'missing max_ptrm_check_percent', 'missing delta_CK', 'missing DRAT', 'missing length_best_fit_line', 'missing MAX_Dev', 'missing CDRAT', 'missing CDRAT_prime',  'specimen_drats', 'missing DRATS_prime', 'missing mean_DRAT', 'missing mean_DEV', 'missing delta_pal', 'missing n_tail',  ' missing DRAT_tail', 'missing delta_TR', 'specimen_md', 'missing n_add', 'missing delta_AC',  'lab_dc_field', 'specimen_cm_x', 'specimen_cm_y', 'specimen_PCA_v1', 'specimen_scat_bounding_line_low',  'specimen_scat_bounding_line_high']
-        new_lori = ['missing i', 'missing nmax', 'tmin', 'tmax', 'specimen_n',  'specimen_b', 'specimen_b_sigma', 'B_anc', 'B_anc_sigma',  'specimen_YT', 'specimen_XT',  'specimen_vds', 'partial_vds',  'x_prime', 'y_prime', 'delta_x_prime', 'delta_y_prime', 'specimen_f', 'specimen_fvds',  'FRAC', 'specimen_b_beta', 'specimen_g', 'GAP-MAX', 'specimen_q', 'specimen_w','specimen_k',  'SSE', 'SCAT',  'fail_arai_beta_box_scatter', 'fail_tail_beta_box_scatter', 'fail_ptrm_beta_box_scatter', 'R_corr2',  'R_det2',  'Z',  'Zstar', 'IZZI_MD', 'Dec_Free', 'Dec_Anc', 'Inc_Free',  'Inc_Anc', 'MAD_Anc',  'MAD_Free',  'alpha', 'theta', 'DANG',  'NRM_dev', 'gamma',  'n_ptrm', 'max_ptrm_check_percent',  'delta_CK', 'DRAT', 'length_best_fit_line', 'max_DEV', 'CDRAT', 'CDRAT_prime',  'DRATS', 'DRATS_prime', 'mean_DRAT', 'mean_DEV',  'delta_pal', 'n_tail', 'DRAT_tail', 'delta_TR',  'MD_VDS', 'n_add', 'delta_AC',  'lab_dc_field', 'x_Arai_mean', 'y_Arai_mean', 'best_fit_vector_Free', 'scat_bounding_line_low', 'scat_bounding_line_high']
-        
-        a_map = {}
-        for n in range(len(new_ron)):
-            if 'missing' not in new_ron[n] and 'missing' not in new_lori[n]:
-                key = new_lori[n]
-                value = new_ron[n]
-                a_map[key] = value
-
-        print 'a_map', a_map
-
-        mapped_pars = mapping(Pint_pars.pars, a_map) 
         #print 'mapped_pars', mapped_pars
         # mapped pars is the regular PintPars.pars, except that many of those pars are renamed to work with thellier gui
 
         expected_pars = ['fail_ptrm_beta_box_scatter', 'specimen_frac', 'specimen_fail_criteria', 'specimen_dang', 'measurement_step_max', 'specimen_scat_bounding_line_high', 'saved', 'specimen_PCA_sigma_max', 'specimen_int', 'specimen_q', 'specimen_fvds', 'specimen_b_sigma', 'specimen_ptrms_inc', 'specimen_YT', 'er_sample_name', 'specimen_md', 'specimen_int_n', 'specimen_scat_bounding_line_low', 'specimen_inc', 'er_specimen_name', 'specimen_correction', 'specimen_int_corr_cooling_rate', 'AC_WARNING', 'specimen_int_corr_anisotropy', 'specimen_int_mad', 'specimen_int_uT', 'fail_tail_beta_box_scatter', 'specimen_cm_y', 'specimen_cm_x', 'specimen_dec', 'specimen_PCA_sigma_int', 'specimen_drats', 'specimen_b_beta', 'specimen_ptrms_dec', 'specimen_b', 'fail_arai_beta_box_scatter', 'specimen_g', 'specimen_f', 'specimen_int_ptrm_n', 'NLT_specimen_correction_factor', 'Anisotropy_correction_factor', 'specimen_ptrms_mad', 'specimen_ptrms_angle', 'specimen_PCA_sigma_min', 'CR_WARNING', 'lab_dc_field', 'measurement_step_min', 'specimen_PCA_v1', 'specimen_scat', 'specimen_gmax', 'magic_method_codes']
-        print 'mapped_pars.keys()', mapped_pars.keys()
-        for p in expected_pars:
-            if p not in mapped_pars.keys():
-                mapped_pars[p] = pars[p]
-        print 'expected same as mapped', set(expected_pars) > set(mapped_pars.keys())
-        print 'complete mapped_pars', mapped_pars.keys()
-        #print 'Ron\'s:', pars.keys()
-        #print 'mine: ', Pint_pars.pars.keys()
+
         
 #        for num, par in enumerate(new_lori):
 #            print "Ron:", new_ron[num], "Lori", par
