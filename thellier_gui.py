@@ -10250,6 +10250,7 @@ class Consistency_Test(wx.Frame):
 
             line=""
             for key in sample_criteria_list:
+                # lj problem here with running consistency tests.  it is because the designation of site/sample breaks the line formatting below
                 print 'key in sample_critera_list', key
                 print 'value', self.fixed_criteria[key]
                 line=line+"%f"%self.fixed_criteria[key]+"\t"
