@@ -13,3 +13,10 @@ find_EI problems:
 
 magic_select.py
         fixed
+
+
+lnp_magic.py
+        added missing parentheses 
+        fixed, but you still have a problem:
+        I just realized a problem is that I can only test the installed pythonpath version of Pmag.py.  This may have been a mistake.  it might have been better to test it locally.  oh fuck.  
+
