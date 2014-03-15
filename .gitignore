@@ -12,3 +12,6 @@ Command_line_Tests/new_test_output/*
 rmag_anisotropy.log
 rmag_anisotropy.txt
 rmag_results.txt
+Command_line_Tests/new-test-output/fig.svg
+consistency_test/pmag_fixed_criteria.txt
+Command_line_Tests/None

@@ -624,7 +624,8 @@ class Arai_GUI(wx.Frame):
             command="self.%s_label.SetFont(font2)"%statistic
             exec command
             
-        for statistic in self.preferences['show_statistics_on_gui']:
+
+            for statistic in self.preferences['show_statistics_on_gui']:
             command="gs_%s = wx.GridSizer(3, 1,5*self.GUI_RESOLUTION,5*self.GUI_RESOLUTION)"%statistic
             exec command
             command="gs_%s.AddMany( [(self.%s_label,wx.EXPAND),(self.%s_threshold_window,wx.EXPAND),(self.%s_window,wx.EXPAND)])"%(statistic,statistic,statistic,statistic)
@@ -1370,6 +1371,7 @@ class Arai_GUI(wx.Frame):
 ##                    self.Data_samples[sample][self.s]=self.pars['specimen_int_uT']
 ##            
 ##        red_flag=True
+
 
         B=[]
         
@@ -6560,25 +6562,12 @@ class Arai_GUI(wx.Frame):
 
             return(F)
 
-        def mapping(dictionary, mapping):
-            mapped_dictionary = {}
-            for key, value in dictionary.iteritems():
-                if key in mapping.keys():
-                    new_key = mapping[key]
-                    mapped_dictionary[new_key] = value
-                else:
-                    pass
-                    #mapped_dictionary[key] = value# if this line is left in, it gives everything from the original dictionary
-            return mapped_dictionary
 
 
         """
         calculate statisics 
         """
 
-
-        new_ron = ['missing i', 'missing nmax', 'measurement_step_min', 'measurement_step_max', 'specimen_int_n',  'specimen_b',  'specimen_b_sigma', 'specimen_int_uT', 'missing B_anc_sigma', 'specimen_YT', 'missing specimen_XT', 'missing specimen_vds', 'missing partial_vds', 'missing x_prime', 'missing y_prime', 'missing delta_x_prime', 'missing_delta_y_prime',  'specimen_f',  'specimen_fvds', 'specimen_frac', 'specimen_b_beta', 'specimen_g',  'specimen_gmax', 'specimen_q', 'missing specimen_w', 'missing specimen_k', 'missing SSE', 'specimen_scat', 'fail_arai_beta_box_scatter',  'fail_tail_beta_box_scatter','fail_ptrm_beta_box_scatter', 'missing R_corr2', 'missing R_det2', 'missing Z', 'missing Zstar', 'missing IZZI_MD', 'specimen_dec', 'missing Dec_Anc', 'specimen_inc', 'missing Inc_Anc', 'missing MAD_Anc', 'specimen_int_mad', 'missing alpha', 'missing theta',  'specimen_dang','missing NRM_dev', 'specimen_ptrms_angle',  'specimen_int_ptrm_n', 'missing max_ptrm_check_percent', 'missing delta_CK', 'missing DRAT', 'missing length_best_fit_line', 'missing MAX_Dev', 'missing CDRAT', 'missing CDRAT_prime',  'specimen_drats', 'missing DRATS_prime', 'missing mean_DRAT', 'missing mean_DEV', 'missing delta_pal', 'missing n_tail',  ' missing DRAT_tail', 'missing delta_TR', 'specimen_md', 'missing n_add', 'missing delta_AC',  'lab_dc_field', 'specimen_cm_x', 'specimen_cm_y', 'specimen_PCA_v1', 'specimen_scat_bounding_line_low',  'specimen_scat_bounding_line_high']
-        new_lori = ['missing i', 'missing nmax', 'tmin', 'tmax', 'specimen_n',  'specimen_b', 'specimen_b_sigma', 'B_anc', 'B_anc_sigma',  'specimen_YT', 'specimen_XT',  'specimen_vds', 'partial_vds',  'x_prime', 'y_prime', 'delta_x_prime', 'delta_y_prime', 'specimen_f', 'specimen_fvds',  'FRAC', 'specimen_b_beta', 'specimen_g', 'GAP-MAX', 'specimen_q', 'specimen_w','specimen_k',  'SSE', 'SCAT',  'fail_arai_beta_box_scatter', 'fail_tail_beta_box_scatter', 'fail_ptrm_beta_box_scatter', 'R_corr2',  'R_det2',  'Z',  'Zstar', 'IZZI_MD', 'Dec_Free', 'Dec_Anc', 'Inc_Free',  'Inc_Anc', 'MAD_Anc',  'MAD_Free',  'alpha', 'theta', 'DANG',  'NRM_dev', 'gamma',  'n_ptrm', 'max_ptrm_check_percent',  'delta_CK', 'DRAT', 'length_best_fit_line', 'max_DEV', 'CDRAT', 'CDRAT_prime',  'DRATS', 'DRATS_prime', 'mean_DRAT', 'mean_DEV',  'delta_pal', 'n_tail', 'DRAT_tail', 'delta_TR',  'MD_VDS', 'n_add', 'delta_AC',  'lab_dc_field', 'x_Arai_mean', 'y_Arai_mean', 'best_fit_vector_Free', 'scat_bounding_line_low', 'scat_bounding_line_high']
             
         a_map = {'fail_ptrm_beta_box_scatter': 'fail_ptrm_beta_box_scatter', 'scat_bounding_line_low': 'specimen_scat_bounding_line_low', 'fail_tail_beta_box_scatter': 'fail_tail_beta_box_scatter', 'MD_VDS': 'specimen_md', 'B_anc': 'specimen_int_uT', 'FRAC': 'specimen_frac', 'Inc_Free': 'specimen_inc', 'best_fit_vector_Free': 'specimen_PCA_v1', 'specimen_b_sigma': 'specimen_b_sigma', 'specimen_YT': 'specimen_YT', 'y_Arai_mean': 'specimen_cm_y', 'SCAT': 'specimen_scat', 'MAD_Free': 'specimen_int_mad', 'n_ptrm': 'specimen_int_ptrm_n', 'tmin': 'measurement_step_min', 'x_Arai_mean': 'specimen_cm_x', 'Dec_Free': 'specimen_dec', 'DRATS': 'specimen_drats', 'specimen_fvds': 'specimen_fvds', 'specimen_b_beta': 'specimen_b_beta', 'specimen_b': 'specimen_b', 'specimen_g': 'specimen_g', 'fail_arai_beta_box_scatter': 'fail_arai_beta_box_scatter', 'specimen_f': 'specimen_f', 'tmax': 'measurement_step_max', 'specimen_n': 'specimen_int_n', 'specimen_q': 'specimen_q', 'lab_dc_field': 'lab_dc_field', 'GAP-MAX': 'specimen_gmax', 'DANG': 'specimen_dang', 'gamma': 'specimen_ptrms_angle', 'scat_bounding_line_high': 'specimen_scat_bounding_line_high', 'PCA_sigma_max_Free': "specimen_PCA_sigma_max" , 'PCA_sigma_int_Free': 'specimen_PCA_sigma_int', 'PCA_sigma_min_Free': 'specimen_PCA_sigma_min', 'ptrms_dec_Free': 'specimen_ptrms_dec', 'ptrms_inc_Free': 'specimen_ptrms_inc', 'pTRM_MAD_Free': 'specimen_ptrms_mad'} # spd name: thellier_gui name
 

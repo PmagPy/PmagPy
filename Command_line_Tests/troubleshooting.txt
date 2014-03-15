@@ -15,8 +15,39 @@ magic_select.py
         fixed
 
 
+curie.py
+        fixed
+        added sys.exit()
+
 lnp_magic.py
         added missing parentheses 
         fixed, but you still have a problem:
         I just realized a problem is that I can only test the installed pythonpath version of Pmag.py.  This may have been a mistake.  it might have been better to test it locally.  oh fuck.  
 
+something_with_magic_keys.py
+        fixed test
+
+igrf.py
+
+        subtly changed output
+        someone else must debug
+
+tdt_magic.py
+        can no longer test because a gui window pops up and breaks it
+
+HUJI_magic.py
+
+        certain variables are only set given a particular flag, but then referenced either way.  is this a problem for actual use, or just testing?
+
+specimen_results_magic.py
+        
+        new output column was added
+
+IODP_csv_magic
+        
+        new output column was added
+
+
+to do:
+   package-a-fy pmagpy so you can call tests
+   
