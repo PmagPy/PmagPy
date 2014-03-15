@@ -15,3 +15,8 @@ rmag_results.txt
 Command_line_Tests/new-test-output/fig.svg
 consistency_test/pmag_fixed_criteria.txt
 Command_line_Tests/None
+all_errors_list.txt
+bootstrap_full_output.txt
+extra_out_full_output.txt
+random_full_output.txt
+rename_me_full_output.txt
