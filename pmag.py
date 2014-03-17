@@ -880,6 +880,8 @@ def magic_read(infile):
     for key in line:
         magic_keys.append(key)
     lines=f.readlines()
+    if len(lines)<1:
+       return [],'empty_file' 
     for line in lines[:-1]:
         line.replace('\n','')
         if delim=='space':rec=line[:-1].split()
@@ -1451,6 +1453,10 @@ def domean(indata,start,end,calculation_type):
 ##
         for k in range(3):
             control.append(P1[k]-P2[k])
+        # changed by rshaar
+        # control is taken as the center of mass
+        control=cm
+        
         dot = 0
         for k in range(3):
             dot += v1[k]*control[k]
@@ -7901,7 +7907,8 @@ def initialize_acceptance_criteria ():
    'threshold_type':
        'low'for low threshold value
        'high'for high threshold value
-        [flag1.flag2]: for flags        
+        [flag1.flag2]: for flags  
+        'bool' for bollean flags (can be 'g','b' or True/Flase or 1/0)      
    'decimal_points':
        number of decimal points in rounding
        (this is used in displaying criteria in the dialog box)
@@ -8071,7 +8078,7 @@ def initialize_acceptance_criteria ():
         acceptance_criteria[crit]['decimal_points']=0
         if crit in ['specimen_int_n','specimen_int_ptrm_n','specimen_tail_n','specimen_ac_n']:
             acceptance_criteria[crit]['decimal_points']=0
-        elif crit in ['specimen_f','specimen_fvds','specimen_nrm_frac','specimen_q']:
+        elif crit in ['specimen_f','specimen_fvds','specimen_frac','specimen_q']:
             acceptance_criteria[crit]['decimal_points']=2
         else :
             acceptance_criteria[crit]['decimal_points']=-999
@@ -8079,16 +8086,14 @@ def initialize_acceptance_criteria ():
     # high cutoff value
     for crit in ['specimen_b_sigma','specimen_b_beta','specimen_g','specimen_gmax','specimen_k','specimen_k_sse',\
     'specimen_r_det','specimen_z','specimen_z_md','specimen_int_mad','specimen_int_alpha','specimen_alpha','specimen_alpha_prime',\
-    'specimen_theta','specimen_int_dang','specimen_int_crm','specimen_int_ptrm_n','specimen_ptrm','specimen_ptrm_ck','specimen_drat','specimen_maxdev','specimen_cdrat',\
+    'specimen_theta','specimen_int_dang','specimen_int_crm','specimen_ptrm','specimen_ptrm_ck','specimen_drat','specimen_maxdev','specimen_cdrat',\
     'specimen_drats','specimen_mdrat','specimen_mdev','specimen_dpal','specimen_tail_drat','specimen_dtr','specimen_md','specimen_dt','specimen_dac']:
         acceptance_criteria[crit]={} 
         acceptance_criteria[crit]['category']=category
         acceptance_criteria[crit]['criterion_name']=crit
         acceptance_criteria[crit]['value']=-999
         acceptance_criteria[crit]['threshold_type']="high"
-        if crit in ['specimen_int_ptrm_n',]:
-            acceptance_criteria[crit]['decimal_points']=0
-        elif crit in ['specimen_int_mad','specimen_int_dang','specimen_drat','specimen_cdrat','specimen_drats','specimen_tail_drat','specimen_dtr','specimen_md','specimen_dac']:
+        if crit in ['specimen_int_mad','specimen_int_dang','specimen_drat','specimen_cdrat','specimen_drats','specimen_tail_drat','specimen_dtr','specimen_md','specimen_dac']:
             acceptance_criteria[crit]['decimal_points']=1
         elif crit in ['specimen_gmax']:
             acceptance_criteria[crit]['decimal_points']=2
@@ -8103,7 +8108,7 @@ def initialize_acceptance_criteria ():
         acceptance_criteria[crit]['category']=category
         acceptance_criteria[crit]['criterion_name']=crit
         acceptance_criteria[crit]['value']=-999
-        acceptance_criteria[crit]['threshold_type']=['g','b']
+        acceptance_criteria[crit]['threshold_type']='bool'
         acceptance_criteria[crit]['decimal_points']=-999
                                         
                                         
@@ -8128,7 +8133,7 @@ def initialize_acceptance_criteria ():
         acceptance_criteria[crit]['criterion_name']=crit
         acceptance_criteria[crit]['value']=-999
         acceptance_criteria[crit]['threshold_type']="high"
-        if crit in ['site_int_rel_sigma_perc','site_int_sigma_perc']:
+        if crit in ['sample_int_rel_sigma_perc','sample_int_sigma_perc']:
             acceptance_criteria[crit]['decimal_points']=1
         else :
             acceptance_criteria[crit]['decimal_points']=-999
@@ -8298,8 +8303,7 @@ def initialize_acceptance_criteria ():
             acceptance_criteria[crit]['decimal_points']=-999
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       
     # --------------------------------
-    # 'AGE' 
-    
+    # 'AGE'     
     # --------------------------------
     category='AGE'
     # low cutoff value              
@@ -8328,7 +8332,30 @@ def initialize_acceptance_criteria ():
         acceptance_criteria[crit]['value']=-999
         acceptance_criteria[crit]['threshold_type']=['Ga','Ka','Ma','Years AD (+/-)','Years BP','Years Cal AD (+/-)','Years Cal BP']
         acceptance_criteria[crit]['decimal_points']=-999
+ 
+    # --------------------------------
+    # 'ANI'     
+    # --------------------------------
+    category='ANI'
+    # high cutoff value              
+    for crit in ['anisotropy_alt','sample_aniso_mean','site_aniso_mean']: # value is in precent
+        acceptance_criteria[crit]={} 
+        acceptance_criteria[crit]['category']=category
+        acceptance_criteria[crit]['criterion_name']=crit
+        acceptance_criteria[crit]['value']=-999
+        acceptance_criteria[crit]['threshold_type']="high"
+        acceptance_criteria[crit]['decimal_points']=3
                                                                                                                                                                                                                       
+    # flags                                       
+    for crit in ['anisotropy_ftest_flag']:
+        acceptance_criteria[crit]={} 
+        acceptance_criteria[crit]['category']=category
+        acceptance_criteria[crit]['criterion_name']=crit
+        acceptance_criteria[crit]['value']=-999
+        acceptance_criteria[crit]['threshold_type']='bool'
+        acceptance_criteria[crit]['decimal_points']=-999
+                                                                                                                                                                                                                                                                                                                                                                                                                                           
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     
     return(acceptance_criteria)
 
 
@@ -8370,20 +8397,27 @@ def read_criteria_from_file(path,acceptance_criteria):
     meas_data,file_type=magic_read(path)
     for rec in meas_data:
         for crit in rec.keys():
+            rec[crit]=rec[crit].strip('\n')
             if crit in ['pmag_criteria_code','criteria_definition','magic_experiment_names','er_citation_names']:
                 continue
-            if rec[crit]=="":
+            elif rec[crit]=="":
                 continue
-            if crit not in acceptance_criteria_list:
+            elif crit not in acceptance_criteria_list:
                 print "-W- WARNING: criteria code %s is not supported by PmagPy GUI. please check"%crit
                 acceptance_criteria[crit]={}
                 acceptance_criteria[crit]['value']=rec[crit]
                 acceptance_criteria[crit]['threshold_type']="inherited"
                 acceptance_criteria[crit]['decimal_points']=-999
                 
-                
+            # bollean flag
+            elif acceptance_criteria[crit]['threshold_type']=='bool':
+                if str(rec[crit]) in ['1','g','True','TRUE']:
+                    acceptance_criteria[crit]['value']=True
+                else:
+                    acceptance_criteria[crit]['value']=False
+                                 
             # criteria as flags
-            if type(acceptance_criteria[crit]['threshold_type'])==list:
+            elif type(acceptance_criteria[crit]['threshold_type'])==list:
                 if str(rec[crit]) in acceptance_criteria[crit]['threshold_type']:
                     acceptance_criteria[crit]['value']=str(rec[crit])
                 else:
@@ -8393,3 +8427,38 @@ def read_criteria_from_file(path,acceptance_criteria):
             else:
                 acceptance_criteria[crit]['value']=float(rec[crit])
     return(acceptance_criteria)   
+
+def write_criteria_to_file(path,acceptance_criteria):
+    crit_list=acceptance_criteria.keys()
+    crit_list.sort()
+    rec={}
+    rec['pmag_criteria_code']="ACCEPT"
+    rec['criteria_definition']=""
+    rec['er_citation_names']="This study"
+            
+    for crit in crit_list:
+        # ignore criteria that are not in MagIc model 2.5
+        if 'category' in acceptance_criteria[crit].keys():
+            if acceptance_criteria[crit]['category']=='thellier_gui':
+                continue        
+        if type(acceptance_criteria[crit]['value'])==str:
+            if acceptance_criteria[crit]['value'] != "-999" and acceptance_criteria[crit]['value'] != "":
+                rec[crit]=acceptance_criteria[crit]['value']
+        elif type(acceptance_criteria[crit]['value'])==int:
+            if acceptance_criteria[crit]['value'] !=-999:
+                rec[crit]="%.i"%(acceptance_criteria[crit]['value'])
+        elif type(acceptance_criteria[crit]['value'])==float:
+            if float(acceptance_criteria[crit]['value'])==-999:
+                continue
+            decimal_points=acceptance_criteria[crit]['decimal_points']
+            if decimal_points != -999:
+                command="rec[crit]='%%.%sf'%%(acceptance_criteria[crit]['value'])"%(decimal_points)
+                exec command
+            else:
+                rec[crit]="%e"%(acceptance_criteria[crit]['value'])
+        elif type(acceptance_criteria[crit]['value'])==bool:
+                rec[crit]=str(acceptance_criteria[crit]['value'])
+        else:
+            print "-W- WARNING: statistic %s not written to file:",acceptance_criteria[crit]['value']
+    magic_write(path,[rec],"pmag_criteria")
+    
