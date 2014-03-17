@@ -86,7 +86,7 @@
 #============================================================================================
 
 global CURRENT_VRSION
-CURRENT_VRSION = "v.2.15"
+CURRENT_VRSION = "v.2.16"
 import matplotlib
 matplotlib.use('WXAgg')
 
