@@ -625,7 +625,7 @@ class Arai_GUI(wx.Frame):
             exec command
             
 
-            for statistic in self.preferences['show_statistics_on_gui']:
+        for statistic in self.preferences['show_statistics_on_gui']:
             command="gs_%s = wx.GridSizer(3, 1,5*self.GUI_RESOLUTION,5*self.GUI_RESOLUTION)"%statistic
             exec command
             command="gs_%s.AddMany( [(self.%s_label,wx.EXPAND),(self.%s_threshold_window,wx.EXPAND),(self.%s_window,wx.EXPAND)])"%(statistic,statistic,statistic,statistic)
@@ -6562,14 +6562,24 @@ class Arai_GUI(wx.Frame):
 
             return(F)
 
-
+        def mapping(dictionary, mapping):
+            mapped_dictionary = {}
+            for key, value in dictionary.iteritems():
+                if key in mapping.keys():
+                    new_key = mapping[key]
+                    mapped_dictionary[new_key] = value
+                else:
+                    pass
+                    #mapped_dictionary[key] = value# if this line is left in, it gives everything from the original dictionary
+                    # we will want the above eventually
+            return mapped_dictionary
 
         """
         calculate statisics 
         """
 
             
-        a_map = {'fail_ptrm_beta_box_scatter': 'fail_ptrm_beta_box_scatter', 'scat_bounding_line_low': 'specimen_scat_bounding_line_low', 'fail_tail_beta_box_scatter': 'fail_tail_beta_box_scatter', 'MD_VDS': 'specimen_md', 'B_anc': 'specimen_int_uT', 'FRAC': 'specimen_frac', 'Inc_Free': 'specimen_inc', 'best_fit_vector_Free': 'specimen_PCA_v1', 'specimen_b_sigma': 'specimen_b_sigma', 'specimen_YT': 'specimen_YT', 'y_Arai_mean': 'specimen_cm_y', 'SCAT': 'specimen_scat', 'MAD_Free': 'specimen_int_mad', 'n_ptrm': 'specimen_int_ptrm_n', 'tmin': 'measurement_step_min', 'x_Arai_mean': 'specimen_cm_x', 'Dec_Free': 'specimen_dec', 'DRATS': 'specimen_drats', 'specimen_fvds': 'specimen_fvds', 'specimen_b_beta': 'specimen_b_beta', 'specimen_b': 'specimen_b', 'specimen_g': 'specimen_g', 'fail_arai_beta_box_scatter': 'fail_arai_beta_box_scatter', 'specimen_f': 'specimen_f', 'tmax': 'measurement_step_max', 'specimen_n': 'specimen_int_n', 'specimen_q': 'specimen_q', 'lab_dc_field': 'lab_dc_field', 'GAP-MAX': 'specimen_gmax', 'DANG': 'specimen_dang', 'gamma': 'specimen_ptrms_angle', 'scat_bounding_line_high': 'specimen_scat_bounding_line_high', 'PCA_sigma_max_Free': "specimen_PCA_sigma_max" , 'PCA_sigma_int_Free': 'specimen_PCA_sigma_int', 'PCA_sigma_min_Free': 'specimen_PCA_sigma_min', 'ptrms_dec_Free': 'specimen_ptrms_dec', 'ptrms_inc_Free': 'specimen_ptrms_inc', 'pTRM_MAD_Free': 'specimen_ptrms_mad'} # spd name: thellier_gui name
+        a_map = {'fail_ptrm_beta_box_scatter': 'fail_ptrm_beta_box_scatter', 'scat_bounding_line_low': 'specimen_scat_bounding_line_low', 'fail_tail_beta_box_scatter': 'fail_tail_beta_box_scatter', 'MD_VDS': 'specimen_md', 'B_anc': 'specimen_int_uT', 'FRAC': 'specimen_frac', 'Inc_Free': 'specimen_inc', 'best_fit_vector_Free': 'specimen_PCA_v1', 'specimen_b_sigma': 'specimen_b_sigma', 'specimen_YT': 'specimen_YT', 'y_Arai_mean': 'specimen_cm_y', 'SCAT': 'specimen_scat', 'MAD_Free': 'specimen_int_mad', 'n_ptrm': 'specimen_int_ptrm_n', 'tmin': 'measurement_step_min', 'x_Arai_mean': 'specimen_cm_x', 'Dec_Free': 'specimen_dec', 'DRATS': 'specimen_drats', 'specimen_fvds': 'specimen_fvds', 'specimen_b_beta': 'specimen_b_beta', 'specimen_b': 'specimen_b', 'specimen_g': 'specimen_g', 'fail_arai_beta_box_scatter': 'fail_arai_beta_box_scatter', 'specimen_f': 'specimen_f', 'tmax': 'measurement_step_max', 'specimen_n': 'specimen_int_n', 'specimen_q': 'specimen_q', 'lab_dc_field': 'lab_dc_field', 'GAP-MAX': 'specimen_gmax', 'DANG': 'specimen_dang', 'ptrms_angle_Free': 'specimen_ptrms_angle', 'scat_bounding_line_high': 'specimen_scat_bounding_line_high', 'PCA_sigma_max_Free': "specimen_PCA_sigma_max" , 'PCA_sigma_int_Free': 'specimen_PCA_sigma_int', 'PCA_sigma_min_Free': 'specimen_PCA_sigma_min', 'ptrms_dec_Free': 'specimen_ptrms_dec', 'ptrms_inc_Free': 'specimen_ptrms_inc', 'pTRM_MAD_Free': 'specimen_ptrms_mad'} # spd name: thellier_gui name
 
         print 'accept new parameters', self.accept_new_parameters
         
@@ -6760,7 +6770,7 @@ class Arai_GUI(wx.Frame):
         #pars["specimen_ptrms_inc"] = DIR_PCA[1]
         pars["specimen_ptrms_mad"] = MAD
         B_lab_unit=self.dir2cart([ self.Data[s]['Thellier_dc_field_phi'], self.Data[s]['Thellier_dc_field_theta'],1])
-        pars["specimen_ptrms_angle"]=math.degrees(math.acos(dot(best_fit_vector,B_lab_unit)/(sqrt(sum(best_fit_vector**2)) * sqrt(sum(B_lab_unit**2)))))
+        pars["specimen_ptrms_angle"]=math.degrees(math.acos(dot(best_fit_vector,B_lab_unit)/(sqrt(sum(best_fit_vector**2)) * sqrt(sum(B_lab_unit**2)))))  # from old thellier_gui.py code
        """
 ## removed a bunch of Ron's commented out old code        
 
