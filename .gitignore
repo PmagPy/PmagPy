@@ -1,0 +1,6 @@
+
+.DS_Store
+*.pyc*
+*.*~
+*.*#
+thellier_GUI.log
