@@ -1245,6 +1245,7 @@ class Zeq_GUI(wx.Frame):
         self.clear_boxes() 
         self.Add_text(self.s)
         self.draw_figure(self.s)
+        self.update_selection()
         if self.pars!={}:
             #tmin= "%.0f"%(float(self.pars['measurement_step_min']))       
             #tmax= "%.0f"%(float(self.pars['measurement_step_max']))
@@ -1646,6 +1647,10 @@ class Zeq_GUI(wx.Frame):
                     mpars[k]=0
             except:
                 pass
+        if "DE-BFL" in calculation_type and 'specimen_dang' not in mpars.keys():
+             mpars['specimen_dang']=0
+            
+            
         mpars['zijdblock_step_min']=tmin                    
         mpars['zijdblock_step_max']=tmax
                 
@@ -1749,7 +1754,8 @@ class Zeq_GUI(wx.Frame):
             self.zijplot.plot(xx,yy,'-',color='g',lw=3,alpha=0.5,zorder=0)
             self.zijplot.plot(xx,zz,'-',color='g',lw=3,alpha=0.5,zorder=0)
             self.green_line_plot=True  
-            
+        self.zijplot.set_xlim(xmin=self.zij_xlim_initial[0],xmax=self.zij_xlim_initial[1])
+        self.zijplot.set_ylim(ymin=self.zij_ylim_initial[0],ymax=self.zij_ylim_initial[1])
         self.canvas1.draw()       
     
         # Equal Area plot
