@@ -1455,7 +1455,7 @@ def domean(indata,start,end,calculation_type):
             control.append(P1[k]-P2[k])
         # changed by rshaar
         # control is taken as the center of mass
-        control=cm
+        #control=cm
         
         dot = 0
         for k in range(3):
