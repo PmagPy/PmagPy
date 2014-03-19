@@ -4,3 +4,13 @@
 *.*~
 *.*#
 thellier_GUI.log
+Command_line_Tests/aniso_magic_rmag_anisotropy_new.out
+Command_line_Tests/bootstrap_clean_output.txt
+Command_line_Tests/bootstrap_full_output.txt
+Command_line_Tests/extra_out_clean_output.txt
+Command_line_Tests/extra_out_full_output.txt
+Command_line_Tests/random_clean_output.txt
+Command_line_Tests/random_full_output.txt
+Command_line_Tests/rename_me_clean_output.txt
+Command_line_Tests/rename_me_full_output.txt
+new-test-output/.scripttest-test-dir.txt
