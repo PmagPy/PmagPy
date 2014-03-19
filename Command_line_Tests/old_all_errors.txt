@@ -2,36 +2,26 @@ bootstrap_errors_list:
 programs with errors: []
 
 rename_me_errors_list:  
-test igrf.py: Wrong output.  
+test igrf.py: small change in output files.  someone else must debug.  
 Traceback below: 
   File "/Users/nebula/Python/PmagPy/Command_line_Tests/error_logging.py", line 27, in go_through
     v()
-  File "Rename_me.py", line 648, in complete_igrf_test
-    igrf.file_in_file_out_sequence(interactive=True)
-  File "Rename_me.py", line 185, in file_in_file_out_sequence
-    self.check_file_output(result, self.ref_out)
-  File "Rename_me.py", line 156, in check_file_output
-    self.check_list_output(parsed_output, parsed_correct)
-  File "Rename_me.py", line 142, in check_list_output
-    raise NameError("Wrong output")
+  File "Rename_me.py", line 647, in complete_igrf_test
+    raise Exception('small change in output files.  someone else must debug')
 
-test tdt_magic.py: Help message for TDT_magic.py failed....  
+test tdt_magic.py: TDT_magic pull up gui window and can not be tested.  
 Traceback below: 
   File "/Users/nebula/Python/PmagPy/Command_line_Tests/error_logging.py", line 27, in go_through
     v()
   File "Rename_me.py", line 1271, in complete_TDT_magic_test
-    tdt_magic.file_in_file_out_sequence()
-  File "Rename_me.py", line 183, in file_in_file_out_sequence
-    self.test_help()
-  File "Rename_me.py", line 168, in test_help
-    raise NameError("Help message for " + str(self.name)+ " failed...")
+    raise Exception('TDT_magic pull up gui window and can not be tested')
 
 test HUJI_magic.py: initializing variables were removed.  
 Traceback below: 
   File "/Users/nebula/Python/PmagPy/Command_line_Tests/error_logging.py", line 27, in go_through
     v()
-  File "Rename_me.py", line 1279, in complete_HUJI_magic_test
-    wrong = 'HUJI_magic_incorrect.out'
+  File "Rename_me.py", line 1281, in complete_HUJI_magic_test
+    raise NameError('initializing variables were removed')
 
 programs with errors: ['test igrf.py', 'test tdt_magic.py', 'test HUJI_magic.py']
 
@@ -50,16 +40,5 @@ Traceback below:
   File "Extra_output.py", line 93, in check_list_output
     raise NameError("Wrong output -- output list did not match correct_output_list -- running " + str(self.name))
 
-None: Wrong output -- output list did not match correct_output_list -- running specimens_results_magic.py.  
-Traceback below: 
-  File "/Users/nebula/Python/PmagPy/Command_line_Tests/error_logging.py", line 27, in go_through
-    v()
-  File "Extra_output.py", line 486, in complete_specimens_results_magic_test
-    specimens_results.check_file_output(out1, ref1, "correct")
-  File "Extra_output.py", line 135, in check_file_output
-    self.check_list_output(out, ref)
-  File "Extra_output.py", line 93, in check_list_output
-    raise NameError("Wrong output -- output list did not match correct_output_list -- running " + str(self.name))
-
-programs with errors: ['test IODP_csv.py', None]
+programs with errors: ['test IODP_csv.py']
 

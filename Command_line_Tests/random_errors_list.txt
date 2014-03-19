@@ -1,3 +1,68 @@
 random_errors_list:  
-programs with errors: []
+test tk03.py: [Errno 2] No such file or directory.  
+Traceback below: 
+  File "/Users/nebula/Python/PmagPy/Command_line_Tests/error_logging.py", line 27, in go_through
+    v()
+  File "Random.py", line 107, in complete_tk03_test
+    obj = env.run('tk03.py', '-h')
+  File "/Library/Frameworks/Python.framework/Versions/7.3/lib/python2.7/site-packages/ScriptTest-1.2-py2.7.egg/scripttest/__init__.py", line 237, in run
+    env=clean_environ(self.environ))
+  File "/Library/Frameworks/Python.framework/Versions/7.3/lib/python2.7/subprocess.py", line 679, in __init__
+    errread, errwrite)
+  File "/Library/Frameworks/Python.framework/Versions/7.3/lib/python2.7/subprocess.py", line 1249, in _execute_child
+    raise child_exception
+
+test fisher.py: [Errno 2] No such file or directory.  
+Traceback below: 
+  File "/Users/nebula/Python/PmagPy/Command_line_Tests/error_logging.py", line 27, in go_through
+    v()
+  File "Random.py", line 18, in complete_fisher_test
+    obj1 = env.run('fisher.py', '-k', '30', '-n', '10')
+  File "/Library/Frameworks/Python.framework/Versions/7.3/lib/python2.7/site-packages/ScriptTest-1.2-py2.7.egg/scripttest/__init__.py", line 237, in run
+    env=clean_environ(self.environ))
+  File "/Library/Frameworks/Python.framework/Versions/7.3/lib/python2.7/subprocess.py", line 679, in __init__
+    errread, errwrite)
+  File "/Library/Frameworks/Python.framework/Versions/7.3/lib/python2.7/subprocess.py", line 1249, in _execute_child
+    raise child_exception
+
+test gaussian.py: [Errno 2] No such file or directory.  
+Traceback below: 
+  File "/Users/nebula/Python/PmagPy/Command_line_Tests/error_logging.py", line 27, in go_through
+    v()
+  File "Random.py", line 171, in complete_gaussian_test
+    obj = env.run('gaussian.py', '-h')
+  File "/Library/Frameworks/Python.framework/Versions/7.3/lib/python2.7/site-packages/ScriptTest-1.2-py2.7.egg/scripttest/__init__.py", line 237, in run
+    env=clean_environ(self.environ))
+  File "/Library/Frameworks/Python.framework/Versions/7.3/lib/python2.7/subprocess.py", line 679, in __init__
+    errread, errwrite)
+  File "/Library/Frameworks/Python.framework/Versions/7.3/lib/python2.7/subprocess.py", line 1249, in _execute_child
+    raise child_exception
+
+test fishrot.py: [Errno 2] No such file or directory.  
+Traceback below: 
+  File "/Users/nebula/Python/PmagPy/Command_line_Tests/error_logging.py", line 27, in go_through
+    v()
+  File "Random.py", line 64, in complete_fishrot_test
+    obj = env.run('fishrot.py', '-h')
+  File "/Library/Frameworks/Python.framework/Versions/7.3/lib/python2.7/site-packages/ScriptTest-1.2-py2.7.egg/scripttest/__init__.py", line 237, in run
+    env=clean_environ(self.environ))
+  File "/Library/Frameworks/Python.framework/Versions/7.3/lib/python2.7/subprocess.py", line 679, in __init__
+    errread, errwrite)
+  File "/Library/Frameworks/Python.framework/Versions/7.3/lib/python2.7/subprocess.py", line 1249, in _execute_child
+    raise child_exception
+
+test uniform.py: [Errno 2] No such file or directory.  
+Traceback below: 
+  File "/Users/nebula/Python/PmagPy/Command_line_Tests/error_logging.py", line 27, in go_through
+    v()
+  File "Random.py", line 138, in complete_uniform_test
+    obj = env.run('uniform.py', '-h')
+  File "/Library/Frameworks/Python.framework/Versions/7.3/lib/python2.7/site-packages/ScriptTest-1.2-py2.7.egg/scripttest/__init__.py", line 237, in run
+    env=clean_environ(self.environ))
+  File "/Library/Frameworks/Python.framework/Versions/7.3/lib/python2.7/subprocess.py", line 679, in __init__
+    errread, errwrite)
+  File "/Library/Frameworks/Python.framework/Versions/7.3/lib/python2.7/subprocess.py", line 1249, in _execute_child
+    raise child_exception
+
+programs with errors: ['test tk03.py', 'test fisher.py', 'test gaussian.py', 'test fishrot.py', 'test uniform.py']
 
