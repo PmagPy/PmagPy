@@ -3,6 +3,7 @@
 #============================================================================================
 # LOG HEADER:
 #============================================================================================
+# Demag_GUI Version 0.22 (beta) by Ron Shaar
 #
 # Demag_GUI Version 0.21 (beta) by Ron Shaar
 # 
@@ -17,7 +18,7 @@
 
 
 global CURRENT_VRSION
-CURRENT_VRSION = "v.0.21"
+CURRENT_VRSION = "v.0.22"
 import matplotlib
 matplotlib.use('WXAgg')
 
@@ -3639,7 +3640,7 @@ class Zeq_GUI(wx.Frame):
         if dia.rb_tilt_coor.GetValue()==True:
             run_script_flags.append("-crd");  run_script_flags.append("t")       
         if dia.rb_geo_tilt_coor.GetValue()==True:
-            rb_geo_tilt_coor.append("-crd");  run_script_flags.append("b")       
+            run_script_flags.append("-crd");  run_script_flags.append("b")       
         
         #-- default age options 
         if dia.cb_default_age.GetValue()==True:
