@@ -6462,7 +6462,6 @@ class Arai_GUI(wx.Frame):
         
     def update_GUI_with_new_interpretation(self):
         print 'calling update_GUI_with_new_interpretation'
-        print 'specimen_dec exists', self.pars['specimen_dec']
         #-------------------------------------------------
         # Updtae GUI
         #-------------------------------------------------
@@ -6479,14 +6478,11 @@ class Arai_GUI(wx.Frame):
             self.tmin_box.SetValue("%.0f"%(float(self.pars['measurement_step_min'])))
             self.tmax_box.SetValue("%.0f"%(float(self.pars['measurement_step_max'])))
             
-        print 'specimen_dec exists still', self.pars['specimen_dec']
         # First,re-draw the figures
-        self.draw_figure(s) # pars break here because they are re-set in draw_figure.  but why?
+        self.draw_figure(s) # 
 
-        print 'specimen_dec after draw_figures?', self.pars['specimen_dec']
         # now draw the interpretation
         self.draw_interpretation()
-        print 'specimen_dec after draw_interpretation?', self.pars['specimen_dec']
         
         # declination/inclination
         self.declination_window.SetValue("%.1f"%(self.pars['specimen_dec']))
@@ -6732,8 +6728,6 @@ class Arai_GUI(wx.Frame):
 
         
         pars=self.Data[s]['pars']
-        print 'self.Data[s]', self.Data[s].keys()
-        print 'T_or_MW for {}'.format(s), self.Data[s]['T_or_MW']
         datablock = self.Data[s]['datablock']
         pars=self.Data[s]['pars'] # assignments to pars are assiging to self.Data[s]['pars']
         # get MagIC mothod codes:
@@ -6744,7 +6738,7 @@ class Arai_GUI(wx.Frame):
         #def __init__(self, Data,specimen_name,tmin,tmax):
         Pint_pars = spd.PintPars(self.Data, str(s), tmin, tmax)
         Pint_pars.calculate_all_statistics()
-        print Pint_pars.pars['ptrms_dec_Free']
+
 
         #lj
         #a_map = {}
@@ -6754,11 +6748,8 @@ class Arai_GUI(wx.Frame):
         #        value = new_ron[n]
         #        a_map[key] = value
 
-        print 'a_map', a_map
         mapped_pars = mapping(Pint_pars.pars, a_map) 
         pars = mapped_pars
-        print pars['specimen_ptrms_dec']
-        #lj
 
 
         t_Arai=self.Data[s]['t_Arai']
@@ -7633,16 +7624,10 @@ class Arai_GUI(wx.Frame):
 
       for rec in meas_data:
           s=rec["er_specimen_name"]
-          print 'rec', rec
-          print 's', s
-          print 'assigning T or MW'
           Data[s]['T_or_MW']="T"
           sample=rec["er_sample_name"]
           site=rec["er_site_name"]
           
-          if 'LP-PI-M' in rec['magic_method_codes']:
-              print 'zz, LP-PI-M'
-
           if "LP-PI-M" in rec["magic_method_codes"]:
              Data[s]['T_or_MW']="MW"
           else:
