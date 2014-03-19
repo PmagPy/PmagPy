@@ -34,7 +34,7 @@ class Criteria_Dialog(wx.Dialog):
         # Specimen criteria
         #---------------------------
 
-        window_list_specimens=['int_n','int_ptrm_n','frac','gmax','f','fvds','b_beta','g','q','int_mad','dang','drats','md']
+        window_list_specimens=['int_n','int_ptrm_n','frac','gmax','f','fvds','b_beta','g','q','int_mad','int_dang','drats','md']
         for key in window_list_specimens:
             command="self.set_specimen_%s=wx.TextCtrl(pnl1,style=wx.TE_CENTER,size=(50,20))"%key
             exec command
@@ -65,7 +65,7 @@ class Criteria_Dialog(wx.Dialog):
             (self.set_specimen_g),
             (self.set_specimen_q),
             (self.set_specimen_int_mad),
-            (self.set_specimen_dang),
+            (self.set_specimen_int_dang),
             (self.set_specimen_drats),                                
             (self.set_specimen_md)])
                                            
@@ -212,7 +212,7 @@ class Criteria_Dialog(wx.Dialog):
         # Intialize values: specimen criteria window
         #-------------------------------------------        
 
-        criteria_list_for_window=['specimen_gmax','specimen_b_beta','specimen_dang','specimen_drats','specimen_int_mad','specimen_md']+\
+        criteria_list_for_window=['specimen_gmax','specimen_b_beta','specimen_int_dang','specimen_drats','specimen_int_mad','specimen_md']+\
         ['specimen_int_n','specimen_int_ptrm_n','specimen_f','specimen_fvds','specimen_frac','specimen_g','specimen_q']
         
         for crit in criteria_list_for_window:
@@ -488,7 +488,7 @@ class Consistency_Test(wx.Frame):
     def On_close_fixed_criteria_box(self,dia):
         
 
-        self.high_threshold_velue_list=['specimen_gmax','specimen_b_beta','specimen_dang','specimen_drats','specimen_int_mad','specimen_md']
+        self.high_threshold_velue_list=['specimen_gmax','specimen_b_beta','specimen_int_dang','specimen_drats','specimen_int_mad','specimen_md']
         self.low_threshold_velue_list=['specimen_int_n','specimen_int_ptrm_n','specimen_f','specimen_fvds','specimen_frac','specimen_g','specimen_q']
 
         for key in self.high_threshold_velue_list + self.low_threshold_velue_list +['anisotropy_alt']:

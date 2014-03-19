@@ -1,3 +1,4 @@
+
 *new.out
 .DS_Store
 Command_line_Tests/*output.txt*
@@ -20,4 +21,5 @@ bootstrap_full_output.txt
 extra_out_full_output.txt
 random_full_output.txt
 rename_me_full_output.txt
+
 new-test-output/.scripttest-test-dir.txt

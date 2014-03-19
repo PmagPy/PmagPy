@@ -508,7 +508,7 @@ class Arai_GUI(wx.Frame):
         Statsitics_labels["gmax"]="GAP-MAX"
         Statsitics_labels["b_beta"]="beta"
         Statsitics_labels["int_mad"]="MAD"
-        Statsitics_labels["dang"]="DANG"
+        Statsitics_labels["int_dang"]="DANG"
         Statsitics_labels["f"]="f"
         Statsitics_labels["fvds"]="fvds"
         Statsitics_labels["g"]="g"
@@ -1095,7 +1095,7 @@ class Arai_GUI(wx.Frame):
             command="self.%s_window.SetBackgroundColour(wx.NullColour)"%key
             exec command
                                          
-        window_list=['int_n','int_ptrm_n','frac','scat','gmax','f','fvds','b_beta','g','q','int_mad','dang','drats','md','ptrms_dec','ptrms_inc','ptrms_mad','ptrms_angle']
+        window_list=['int_n','int_ptrm_n','frac','scat','gmax','f','fvds','b_beta','g','q','int_mad','int_dang','drats','md','ptrms_dec','ptrms_inc','ptrms_mad','ptrms_angle']
         for key in window_list:
             if key in self.preferences['show_statistics_on_gui']:
                 command="self.%s_window.SetValue(\"\")"%key
@@ -1106,7 +1106,6 @@ class Arai_GUI(wx.Frame):
     def write_sample_box(self):
         """ 
         """        
-
 
         B=[]
         
@@ -1521,7 +1520,7 @@ class Arai_GUI(wx.Frame):
         preferences['show_CR_plot']=True
         preferences['BOOTSTRAP_N']=1e4
         preferences['VDM_or_VADM']="VADM"
-        preferences['show_statistics_on_gui']=["int_n","int_ptrm_n","frac","scat","gmax","b_beta","int_mad","dang","f","fvds","g","q","drats"]#,'ptrms_dec','ptrms_inc','ptrms_mad','ptrms_angle']
+        preferences['show_statistics_on_gui']=["int_n","int_ptrm_n","frac","scat","gmax","b_beta","int_mad","int_dang","f","fvds","g","q","drats"]#,'ptrms_dec','ptrms_inc','ptrms_mad','ptrms_angle']
         #try to read preferences file:
         try:
             import thellier_gui_preferences
@@ -1597,7 +1596,7 @@ class Arai_GUI(wx.Frame):
                                     
                 bSizer3 = wx.StaticBoxSizer( wx.StaticBox( pnl1, wx.ID_ANY, "Choose statistics to display on GUI" ), wx.VERTICAL )
 
-                self.statistics_options=["int_n","int_ptrm_n","frac","scat","gmax","b_beta","int_mad","dang","f","fvds","g","q","drats","md",'ptrms_dec','ptrms_inc','ptrms_mad','ptrms_angle']
+                self.statistics_options=["int_n","int_ptrm_n","frac","scat","gmax","b_beta","int_mad","int_dang","f","fvds","g","q","drats","md",'ptrms_dec','ptrms_inc','ptrms_mad','ptrms_angle']
                 #self.criteria_list_window = wx.TextCtrl(pnl1, id=-1, size=(200,250), style=wx.TE_MULTILINE | wx.TE_READONLY | wx.HSCROLL)
                 self.criteria_list_window =wx.ListBox(choices=self.preferences['show_statistics_on_gui'], id=-1,name='listBox1', parent=pnl1, size=wx.Size(150, 150), style=0)
                 self.criteria_options = wx.ListBox(choices=self.statistics_options, id=-1,name='listBox1', parent=pnl1, size=wx.Size(150, 150), style=0)
@@ -2832,8 +2831,12 @@ class Arai_GUI(wx.Frame):
                         if Alteration_check_index==i:
                             M_1=sqrt(sum((array(M[i])**2)))
                             M_2=sqrt(sum(Alteration_check**2))
+                            #print specimen
+                            #print "M_1,M_2",M_1,M_2
                             diff=abs(M_1-M_2)
-                            diff_ratio=diff/mean(M_1,M_2)
+                            #print "diff",diff
+                            #print "mean([M_1,M_2])",mean([M_1,M_2])
+                            diff_ratio=diff/mean([M_1,M_2])
                             diff_ratio_perc=100*diff_ratio
                             if diff_ratio_perc > anisotropy_alt:
                                 anisotropy_alt=diff_ratio_perc
@@ -2851,7 +2854,7 @@ class Arai_GUI(wx.Frame):
                     M_2=sqrt(sum(array(M[i+3])**2))
                     
                     diff=abs(M_1-M_2)
-                    diff_ratio=diff/mean(M_1,M_2)
+                    diff_ratio=diff/mean([M_1,M_2])
                     diff_ratio_perc=100*diff_ratio
                     
                     if diff_ratio_perc>anisotropy_alt:
@@ -3480,7 +3483,7 @@ class Arai_GUI(wx.Frame):
                 String=String+crit+"\t"        
             Fout_STDEV_OPT_specimens.write(String[:-1]+"\n")
 
-            if self.average_by_sample_or_site=='sample':
+            if self.acceptance_criteria['average_by_sample_or_site']['value']=='sample':
                 Fout_STDEV_OPT_samples=open(self.WD+"/thellier_interpreter/thellier_interpreter_STDEV-OPT_samples.txt",'w')
                 Fout_STDEV_OPT_samples.write(criteria_string)
                 Fout_STDEV_OPT_samples.write("er_sample_name\tsample_int_n\tsample_int_uT\tsample_int_sigma_uT\tsample_int_sigma_perc\tsample_int_min_uT\tsample_int_min_sigma_uT\tsample_int_max_uT\tsample_int_max_sigma_uT\tsample_int_interval_uT\tsample_int_interval_perc\tWarning\n")
@@ -3774,7 +3777,7 @@ class Arai_GUI(wx.Frame):
         #--------------------------------------------------------------
 
                 
-        if self.average_by_sample_or_site=='sample':
+        if self.acceptance_criteria['average_by_sample_or_site']['value']=='sample':
             Grade_A_sorted=copy.deepcopy(Grade_A_samples)
              
         else:
@@ -4184,7 +4187,7 @@ class Arai_GUI(wx.Frame):
         if self.acceptance_criteria['interpreter_method']['value']=='stdev_opt': 
             Fout_STDEV_OPT_redo.close()
             Fout_STDEV_OPT_specimens.close()
-        if self.average_by_sample_or_site=='sample':
+        if self.acceptance_criteria['average_by_sample_or_site']['value']=='sample':
             Fout_STDEV_OPT_samples.close()
         else:
              Fout_STDEV_OPT_sites.close()
@@ -4473,7 +4476,7 @@ class Arai_GUI(wx.Frame):
         #----------------------------------------------------
         
         # search for ages and Latitudes
-        if self.average_by_sample_or_site=='sample':
+        if self.acceptance_criteria['average_by_sample_or_site']['value']=='sample':
             BY_SITES=False; BY_SAMPLES=True
         else:
             BY_SITES=True; BY_SAMPLES=False        
@@ -4486,7 +4489,7 @@ class Arai_GUI(wx.Frame):
         samples_or_sites_list.sort()
         Results_table_data={}
 
-        if self.average_by_sample_or_site=='sample':
+        if self.acceptance_criteria['average_by_sample_or_site']['value']=='sample':
             BY_SITES=False; BY_SAMPLES=True
         else:
             BY_SITES=True; BY_SAMPLES=False        
@@ -4702,7 +4705,7 @@ class Arai_GUI(wx.Frame):
         pmag_specimens_header_1=["er_location_name","er_site_name","er_sample_name","er_specimen_name"]
         pmag_specimens_header_2=['measurement_step_min','measurement_step_max','specimen_int']        
         pmag_specimens_header_3=["specimen_correction","specimen_int_corr_anisotropy","specimen_int_corr_nlt","specimen_int_corr_cooling_rate"]
-        pmag_specimens_header_4=['specimen_int_n','specimen_int_ptrm_n','specimen_f','specimen_fvds','specimen_frac','specimen_gmax','specimen_b_beta','specimen_scat','specimen_drats','specimen_md','specimen_int_mad','specimen_dang','specimen_q','specimen_g']
+        pmag_specimens_header_4=['specimen_int_n','specimen_int_ptrm_n','specimen_f','specimen_fvds','specimen_frac','specimen_gmax','specimen_b_beta','specimen_scat','specimen_drats','specimen_md','specimen_int_mad','specimen_int_dang','specimen_q','specimen_g']
         pmag_specimens_header_5=["magic_experiment_names","magic_method_codes","measurement_step_unit","specimen_lab_field_dc"]
         pmag_specimens_header_6=["er_citation_names"]
         try:
@@ -4813,7 +4816,7 @@ class Arai_GUI(wx.Frame):
         #-------------
         # pmag_samples.txt or pmag_sites.txt
         #-------------
-        if self.average_by_sample_or_site=='sample':
+        if self.acceptance_criteria['average_by_sample_or_site']['value']=='sample':
             BY_SITES=False; BY_SAMPLES=True
         else:
             BY_SITES=True; BY_SAMPLES=False
@@ -5387,9 +5390,6 @@ class Arai_GUI(wx.Frame):
             #    (pars['B_uT'] <= acceptance_criteria['sample_int_sigma_uT'] or pars['B_std_perc'] <= acceptance_criteria['sample_int_sigma_perc']):
             #        if ( pars['sample_int_interval_uT'] <= acceptance_criteria['sample_int_interval_uT'] or pars['sample_int_interval_perc'] <= acceptance_criteria['sample_int_interval_perc']):
             #            pars['pass_or_fail']='pass'
-        print Data_sample_or_site,
-        print pars
-        print "------"
         return(pars)
         
         
@@ -6700,12 +6700,7 @@ class Arai_GUI(wx.Frame):
                 self.pars=self.get_PI_parameters(self.s,float(t1)+273.,float(t2)+273.)
             else:
                 self.pars=self.get_PI_parameters(self.s,float(t1),float(t2))
-
-                print 'self.pars.keys() as updated in get_new_T_PI_parameters', self.pars.keys()
-            print 'self.pars.keys() as updated in get_new_T_PI_parameters', self.pars.keys()
-            print 'specimen_dec present:', self.pars['specimen_dec']
             self.update_GUI_with_new_interpretation()
-      
 
     def calculate_ftest(self,s,sigma,nf):
         chibar=(s[0][0]+s[1][1]+s[2][2])/3.
@@ -6733,10 +6728,12 @@ class Arai_GUI(wx.Frame):
         """
 
             
-        a_map = {'fail_ptrm_beta_box_scatter': 'fail_ptrm_beta_box_scatter', 'scat_bounding_line_low': 'specimen_scat_bounding_line_low', 'fail_tail_beta_box_scatter': 'fail_tail_beta_box_scatter', 'MD_VDS': 'specimen_md', 'B_anc': 'specimen_int_uT', 'FRAC': 'specimen_frac', 'Inc_Free': 'specimen_inc', 'best_fit_vector_Free': 'specimen_PCA_v1', 'specimen_b_sigma': 'specimen_b_sigma', 'specimen_YT': 'specimen_YT', 'y_Arai_mean': 'specimen_cm_y', 'SCAT': 'specimen_scat', 'MAD_Free': 'specimen_int_mad', 'n_ptrm': 'specimen_int_ptrm_n', 'tmin': 'measurement_step_min', 'x_Arai_mean': 'specimen_cm_x', 'Dec_Free': 'specimen_dec', 'DRATS': 'specimen_drats', 'specimen_fvds': 'specimen_fvds', 'specimen_b_beta': 'specimen_b_beta', 'specimen_b': 'specimen_b', 'specimen_g': 'specimen_g', 'fail_arai_beta_box_scatter': 'fail_arai_beta_box_scatter', 'specimen_f': 'specimen_f', 'tmax': 'measurement_step_max', 'specimen_n': 'specimen_int_n', 'specimen_q': 'specimen_q', 'lab_dc_field': 'lab_dc_field', 'GAP-MAX': 'specimen_gmax', 'DANG': 'specimen_dang', 'ptrms_angle_Free': 'specimen_ptrms_angle', 'scat_bounding_line_high': 'specimen_scat_bounding_line_high', 'PCA_sigma_max_Free': "specimen_PCA_sigma_max" , 'PCA_sigma_int_Free': 'specimen_PCA_sigma_int', 'PCA_sigma_min_Free': 'specimen_PCA_sigma_min', 'ptrms_dec_Free': 'specimen_ptrms_dec', 'ptrms_inc_Free': 'specimen_ptrms_inc', 'pTRM_MAD_Free': 'specimen_ptrms_mad'} # spd name: thellier_gui name
+        a_map = {'fail_ptrm_beta_box_scatter': 'fail_ptrm_beta_box_scatter', 'scat_bounding_line_low': 'specimen_scat_bounding_line_low', 'fail_tail_beta_box_scatter': 'fail_tail_beta_box_scatter', 'MD_VDS': 'specimen_md', 'B_anc': 'specimen_int_uT', 'FRAC': 'specimen_frac', 'Inc_Free': 'specimen_inc', 'best_fit_vector_Free': 'specimen_PCA_v1', 'specimen_b_sigma': 'specimen_b_sigma', 'specimen_YT': 'specimen_YT', 'y_Arai_mean': 'specimen_cm_y', 'SCAT': 'specimen_scat', 'MAD_Free': 'specimen_int_mad', 'n_ptrm': 'specimen_int_ptrm_n', 'tmin': 'measurement_step_min', 'x_Arai_mean': 'specimen_cm_x', 'Dec_Free': 'specimen_dec', 'DRATS': 'specimen_drats', 'specimen_fvds': 'specimen_fvds', 'specimen_b_beta': 'specimen_b_beta', 'specimen_b': 'specimen_b', 'specimen_g': 'specimen_g', 'fail_arai_beta_box_scatter': 'fail_arai_beta_box_scatter', 'specimen_f': 'specimen_f', 'tmax': 'measurement_step_max', 'specimen_n': 'specimen_int_n', 'specimen_q': 'specimen_q', 'lab_dc_field': 'lab_dc_field', 'GAP-MAX': 'specimen_gmax', 'DANG': 'specimen_int_dang', 'ptrms_angle_Free': 'specimen_ptrms_angle', 'scat_bounding_line_high': 'specimen_scat_bounding_line_high', 'PCA_sigma_max_Free': "specimen_PCA_sigma_max" , 'PCA_sigma_int_Free': 'specimen_PCA_sigma_int', 'PCA_sigma_min_Free': 'specimen_PCA_sigma_min', 'ptrms_dec_Free': 'specimen_ptrms_dec', 'ptrms_inc_Free': 'specimen_ptrms_inc', 'pTRM_MAD_Free': 'specimen_ptrms_mad'} # spd name: thellier_gui name
 
         
         pars=self.Data[s]['pars']
+        print 'self.Data[s]', self.Data[s].keys()
+        print 'T_or_MW for {}'.format(s), self.Data[s]['T_or_MW']
         datablock = self.Data[s]['datablock']
         pars=self.Data[s]['pars'] # assignments to pars are assiging to self.Data[s]['pars']
         # get MagIC mothod codes:
@@ -6785,11 +6782,11 @@ class Arai_GUI(wx.Frame):
         start=t_Arai.index(tmin)
         end=t_Arai.index(tmax)
 
-       
         zstart=z_temperatures.index(tmin)
         zend=z_temperatures.index(tmax)
 
         zdata_segment=self.Data[s]['zdata'][zstart:zend+1]
+
 
         # replacing PCA for zdata and for ptrms here
        
@@ -6809,8 +6806,10 @@ class Arai_GUI(wx.Frame):
 
         pars["specimen_int"]=-1*pars['lab_dc_field']*pars["specimen_b"]
 
+
         # replace thellier_gui code for ptrm checks, DRAT etc. here
         # also tail checks and SCAT
+
 
 
         # Ron removed this
@@ -7022,6 +7021,7 @@ class Arai_GUI(wx.Frame):
         expected_pars = ['fail_ptrm_beta_box_scatter', 'specimen_frac', 'specimen_fail_criteria', 'specimen_dang', 'measurement_step_max', 'specimen_scat_bounding_line_high', 'saved', 'specimen_PCA_sigma_max', 'specimen_int', 'specimen_q', 'specimen_fvds', 'specimen_b_sigma', 'specimen_ptrms_inc', 'specimen_YT', 'er_sample_name', 'specimen_md', 'specimen_int_n', 'specimen_scat_bounding_line_low', 'specimen_inc', 'er_specimen_name', 'specimen_correction', 'specimen_int_corr_cooling_rate', 'AC_WARNING', 'specimen_int_corr_anisotropy', 'specimen_int_mad', 'specimen_int_uT', 'fail_tail_beta_box_scatter', 'specimen_cm_y', 'specimen_cm_x', 'specimen_dec', 'specimen_PCA_sigma_int', 'specimen_drats', 'specimen_b_beta', 'specimen_ptrms_dec', 'specimen_b', 'fail_arai_beta_box_scatter', 'specimen_g', 'specimen_f', 'specimen_int_ptrm_n', 'NLT_specimen_correction_factor', 'Anisotropy_correction_factor', 'specimen_ptrms_mad', 'specimen_ptrms_angle', 'specimen_PCA_sigma_min', 'CR_WARNING', 'lab_dc_field', 'measurement_step_min', 'specimen_PCA_v1', 'specimen_scat', 'specimen_gmax', 'magic_method_codes']
 
         
+
         def combine_dictionaries(d1, d2):
             """
             combines dict1 and dict2 into a new dict.  
@@ -7090,6 +7090,7 @@ class Arai_GUI(wx.Frame):
             elif crit=='specimen_scat':
                 if pars["specimen_scat"] in ["Fail",'b',0,'0','FALSE',"False",False]:
                     pars['specimen_fail_criteria'].append('specimen_scat')
+
         return pars                                                                                     
 
                 
@@ -7437,98 +7438,99 @@ class Arai_GUI(wx.Frame):
         self.bs_par=False
 
 
-    def get_default_criteria(self):
-      #------------------------------------------------
-      # read criteria file
-      # Format is as pmag_criteria.txt
-      #------------------------------------------------
 
-
-      self.criteria_list=['specimen_int_n','specimen_int_ptrm_n','specimen_f','specimen_fvds','specimen_frac','specimen_gmax','specimen_b_beta',
-                     'specimen_dang','specimen_drats','specimen_int_mad','specimen_md','specimen_g','specimen_q']
-      self.high_threshold_velue_list=['specimen_gmax','specimen_b_beta','specimen_dang','specimen_drats','specimen_int_mad','specimen_md']
-      self.low_threshold_velue_list=['specimen_int_n','specimen_int_ptrm_n','specimen_f','specimen_fvds','specimen_frac','specimen_g','specimen_q']
-
-      acceptance_criteria_null={}
-      acceptance_criteria_default={}
-      #  make a list of default parameters
-
-      acceptance_criteria_default['specimen_int_n']=3
-      acceptance_criteria_default['specimen_int_ptrm_n']=2
-      acceptance_criteria_default['specimen_f']=0.
-      acceptance_criteria_default['specimen_fvds']=0.
-      acceptance_criteria_default['specimen_frac']=0.8
-      acceptance_criteria_default['specimen_gmax']=0.6
-      acceptance_criteria_default['specimen_b_beta']=0.1
-      acceptance_criteria_default['specimen_dang']=100000
-      acceptance_criteria_default['specimen_drats']=100000
-      acceptance_criteria_default['specimen_int_mad']=5
-      acceptance_criteria_default['specimen_md']=100000
-      acceptance_criteria_default['specimen_g']=0
-      acceptance_criteria_default['specimen_q']=0
-      acceptance_criteria_default['specimen_scat']=True
-
-      acceptance_criteria_default['sample_int_n']=3
-      acceptance_criteria_default['sample_int_n_outlier_check']=1000
-
-      # anistropy criteria
-      acceptance_criteria_default['anisotropy_alt']=10
-      acceptance_criteria_default['check_aniso_ftest']=True
-
-
-      # Sample mean calculation type 
-      acceptance_criteria_default['sample_int_stdev_opt']=True
-      acceptance_criteria_default['sample_int_bs']=False
-      acceptance_criteria_default['sample_int_bs_par']=False
-
-      # Averaging sample or site calculation type 
-
-      acceptance_criteria_default['average_by_sample_or_site']='sample'
-
-      # STDEV-OPT  
-      acceptance_criteria_default['sample_int_sigma_uT']=6
-      acceptance_criteria_default['sample_int_sigma_perc']=10
-      acceptance_criteria_default['sample_aniso_threshold_perc']=1000000
-      acceptance_criteria_default['sample_int_interval_uT']=10000
-      acceptance_criteria_default['sample_int_interval_perc']=10000
-
-      # BS  
-      acceptance_criteria_default['sample_int_BS_68_uT']=10000
-      acceptance_criteria_default['sample_int_BS_68_perc']=10000
-      acceptance_criteria_default['sample_int_BS_95_uT']=10000
-      acceptance_criteria_default['sample_int_BS_95_perc']=10000
-      acceptance_criteria_default['specimen_int_max_slope_diff']=10000
-
-      # NULL  
-      for key in ( acceptance_criteria_default.keys()):
-          acceptance_criteria_null[key]=acceptance_criteria_default[key]
-      acceptance_criteria_null['sample_int_stdev_opt']=False
-      acceptance_criteria_null['specimen_frac']=0
-      acceptance_criteria_null['specimen_gmax']=10000
-      acceptance_criteria_null['specimen_b_beta']=10000
-      acceptance_criteria_null['specimen_int_mad']=100000
-      acceptance_criteria_null['specimen_scat']=False
-      acceptance_criteria_null['specimen_int_ptrm_n']=0
-      acceptance_criteria_null['anisotropy_alt']=1e10
-      acceptance_criteria_null['check_aniso_ftest']=True
-      acceptance_criteria_default['sample_aniso_threshold_perc']=1000000
-
-      #acceptance_criteria_null['sample_int_sigma_uT']=0
-      #acceptance_criteria_null['sample_int_sigma_perc']=0
-      #acceptance_criteria_null['sample_int_n_outlier_check']=100000
-
-      
-      #print acceptance_criteria_default
-        
-      # A list of all acceptance criteria used by program
-      accept_specimen_keys=['specimen_int_n','specimen_int_ptrm_n','specimen_f','specimen_fvds','specimen_frac','specimen_gmax','specimen_b_beta','specimen_dang','specimen_drats','specimen_int_mad','specimen_md']
-      accept_sample_keys=['sample_int_n','sample_int_sigma_uT','sample_int_sigma_perc','sample_aniso_threshold_perc','sample_int_interval_uT','sample_int_interval_perc']
-      
-      #self.acceptance_criteria_null=acceptance_criteria_null
-      return(acceptance_criteria_default,acceptance_criteria_null)
-      #print acceptance_criteria_default
-      #print "yes"
-
+#    def get_default_criteria(self):
+#      #------------------------------------------------
+#      # read criteria file
+#      # Format is as pmag_criteria.txt
+#      #------------------------------------------------
+#
+#
+#      self.criteria_list=['specimen_int_n','specimen_int_ptrm_n','specimen_f','specimen_fvds','specimen_frac','specimen_gmax','specimen_b_beta',
+#                     'specimen_dang','specimen_drats','specimen_int_mad','specimen_md','specimen_g','specimen_q']
+#      self.high_threshold_velue_list=['specimen_gmax','specimen_b_beta','specimen_dang','specimen_drats','specimen_int_mad','specimen_md']
+#      self.low_threshold_velue_list=['specimen_int_n','specimen_int_ptrm_n','specimen_f','specimen_fvds','specimen_frac','specimen_g','specimen_q']
+#
+#      acceptance_criteria_null={}
+#      acceptance_criteria_default={}
+#      #  make a list of default parameters
+#
+#      acceptance_criteria_default['specimen_int_n']=3
+#      acceptance_criteria_default['specimen_int_ptrm_n']=2
+#      acceptance_criteria_default['specimen_f']=0.
+#      acceptance_criteria_default['specimen_fvds']=0.
+#      acceptance_criteria_default['specimen_frac']=0.8
+#      acceptance_criteria_default['specimen_gmax']=0.6
+#      acceptance_criteria_default['specimen_b_beta']=0.1
+#      acceptance_criteria_default['specimen_dang']=100000
+#      acceptance_criteria_default['specimen_drats']=100000
+#      acceptance_criteria_default['specimen_int_mad']=5
+#      acceptance_criteria_default['specimen_md']=100000
+#      acceptance_criteria_default['specimen_g']=0
+#      acceptance_criteria_default['specimen_q']=0
+#      acceptance_criteria_default['specimen_scat']=True
+#
+#      acceptance_criteria_default['sample_int_n']=3
+#      acceptance_criteria_default['sample_int_n_outlier_check']=1000
+#
+#      # anistropy criteria
+#      acceptance_criteria_default['anisotropy_alt']=10
+#      acceptance_criteria_default['check_aniso_ftest']=True
+#
+#
+#      # Sample mean calculation type 
+#      acceptance_criteria_default['sample_int_stdev_opt']=True
+#      acceptance_criteria_default['sample_int_bs']=False
+#      acceptance_criteria_default['sample_int_bs_par']=False
+#
+#      # Averaging sample or site calculation type 
+#
+#      acceptance_criteria_default['average_by_sample_or_site']='sample'
+#
+#      # STDEV-OPT  
+#      acceptance_criteria_default['sample_int_sigma_uT']=6
+#      acceptance_criteria_default['sample_int_sigma_perc']=10
+#      acceptance_criteria_default['sample_aniso_threshold_perc']=1000000
+#      acceptance_criteria_default['sample_int_interval_uT']=10000
+#      acceptance_criteria_default['sample_int_interval_perc']=10000
+#
+#      # BS  
+#      acceptance_criteria_default['sample_int_BS_68_uT']=10000
+#      acceptance_criteria_default['sample_int_BS_68_perc']=10000
+#      acceptance_criteria_default['sample_int_BS_95_uT']=10000
+#      acceptance_criteria_default['sample_int_BS_95_perc']=10000
+#      acceptance_criteria_default['specimen_int_max_slope_diff']=10000
+#
+#      # NULL  
+#      for key in ( acceptance_criteria_default.keys()):
+#          acceptance_criteria_null[key]=acceptance_criteria_default[key]
+#      acceptance_criteria_null['sample_int_stdev_opt']=False
+#      acceptance_criteria_null['specimen_frac']=0
+#      acceptance_criteria_null['specimen_gmax']=10000
+#      acceptance_criteria_null['specimen_b_beta']=10000
+#      acceptance_criteria_null['specimen_int_mad']=100000
+#      acceptance_criteria_null['specimen_scat']=False
+#      acceptance_criteria_null['specimen_int_ptrm_n']=0
+#      acceptance_criteria_null['anisotropy_alt']=1e10
+#      acceptance_criteria_null['check_aniso_ftest']=True
+#      acceptance_criteria_default['sample_aniso_threshold_perc']=1000000
+#
+#      #acceptance_criteria_null['sample_int_sigma_uT']=0
+#      #acceptance_criteria_null['sample_int_sigma_perc']=0
+#      #acceptance_criteria_null['sample_int_n_outlier_check']=100000
+#
+#      
+#      #print acceptance_criteria_default
+#        
+#      # A list of all acceptance criteria used by program
+#      accept_specimen_keys=['specimen_int_n','specimen_int_ptrm_n','specimen_f','specimen_fvds','specimen_frac','specimen_gmax','specimen_b_beta','specimen_dang','specimen_drats','specimen_int_mad','specimen_md']
+#      accept_sample_keys=['sample_int_n','sample_int_sigma_uT','sample_int_sigma_perc','sample_aniso_threshold_perc','sample_int_interval_uT','sample_int_interval_perc']
+#      
+#      #self.acceptance_criteria_null=acceptance_criteria_null
+#      return(acceptance_criteria_default,acceptance_criteria_null)
+#      #print acceptance_criteria_default
+#      #print "yes"
+#
       
     def get_data(self):
       
@@ -7631,11 +7633,17 @@ class Arai_GUI(wx.Frame):
 
       for rec in meas_data:
           s=rec["er_specimen_name"]
+          print 'rec', rec
+          print 's', s
+          print 'assigning T or MW'
           Data[s]['T_or_MW']="T"
           sample=rec["er_sample_name"]
           site=rec["er_site_name"]
+          
+          if 'LP-PI-M' in rec['magic_method_codes']:
+              print 'zz, LP-PI-M'
 
-          if  "LP-PI-M" in rec["magic_method_codes"]:
+          if "LP-PI-M" in rec["magic_method_codes"]:
              Data[s]['T_or_MW']="MW"
           else:
              Data[s]['T_or_MW']="T"
@@ -9016,6 +9024,7 @@ class Arai_GUI(wx.Frame):
 
         
         return araiblock,field
+
 
 
             

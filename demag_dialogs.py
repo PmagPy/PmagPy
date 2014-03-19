@@ -797,11 +797,13 @@ class convert_generic_files_to_MagIC(wx.Frame):
                     if meas_line['treatment']=="N":
                         LT="LT-NO"
                         LP="" 
+                        MagRec["treatment_temp"]="273."                        
                         #MagRec["treatment_temp"]
                     elif meas_line['treatment']=="A":
                         LT="LT-AF-Z" 
                         LP="LP-DIR-AF"
                         MagRec["treatment_ac_field"]="%.4f"%(float(meas_line['step'])*1e-3)
+                        MagRec["treatment_temp"]="273."                        
                         #print MagRec["treatment_ac_field"],"treatment_ac_field"
                     elif meas_line['treatment']=="T":
                         LT="LT-T-Z" 
