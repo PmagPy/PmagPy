@@ -9,6 +9,10 @@ Command_line_Tests/*.pyc*
 Command_line_Tests/new_test_output/*
 *.pyc
 */*.pyc
+*.*~
+*/*.*~
+*.*#
+*/*.#
 
 rmag_anisotropy.log
 rmag_anisotropy.txt
@@ -23,3 +27,5 @@ random_full_output.txt
 rename_me_full_output.txt
 
 new-test-output/.scripttest-test-dir.txt
+
+SPD_consistency_tests/*
