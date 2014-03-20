@@ -12,8 +12,16 @@ gui = tgs.Arai_GUI('/magic_measurements.txt', main_dir)
 specimens = gui.Data.keys()
 spec = spd.PintPars(gui.Data, '0238x6011044', 473., 623.)
 spec.calculate_all_statistics()
-new_spec = spd.PintPars(gui.Data, '0238x5721062', 100. + 273., 525. + 273.)
-new_spec.calculate_all_statistics()
+
+
+SCAT_spec = spd.PintPars(gui.Data, '0238x6011044', 273., 673.) # 0, 400                
+SCAT_spec2 = spd.PintPars(gui.Data, '0238x6011044', 273., 698.) # 0, 425 
+SCAT_spec.York_Regression()
+SCAT_spec2.York_Regression()
+
+
+#new_spec = spd.PintPars(gui.Data, '0238x5721062', 100. + 273., 525. + 273.)
+#new_spec.calculate_all_statistics()
 #gui2 = tgs.Arai_GUI('/consistency_tests/Yamamoto_Hushi_2008_magic_measurements.txt', cwd)
 #thing2 = spd.PintPars(gui2.Data, 'SW01-01A-2', 100. + 273., 480. + 273.)
 

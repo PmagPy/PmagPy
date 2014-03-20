@@ -13,7 +13,7 @@ import sys
 #from SPD_project import spd
 import SPD.lib.lib_arai_plot_statistics as lib_arai
 import SPD.spd as spd
-from SPD.test_instance import spec # pre-made, ready to go PintPars object
+from SPD.test_instance import spec, SCAT_spec, SCAT_spec2 # pre-made, ready to go PintPars object
 
 import known_values
 
@@ -227,11 +227,11 @@ class CheckSCAT(unittest.TestCase): # NOT DONE
         self.assertFalse(result3)
 
     def test_SCAT_real_data(self):
-        thing = spd.PintPars(spd.gui.Data, '0238x6011044', 273., 673.) # 0, 400
-        thing.York_Regression()
+        thing = SCAT_spec #spd.PintPars(spd.gui.Data, '0238x6011044', 273., 673.) # 0, 400
+        #thing.York_Regression()
         #print thing.tmin_K, thing.tmax_K
-        thing1 = spd.PintPars(spd.gui.Data, '0238x6011044', 273., 698.) # 0, 425
-        thing1.York_Regression()
+        thing1 = SCAT_spec2 #spd.PintPars(spd.gui.Data, '0238x6011044', 273., 698.) # 0, 425
+        #thing1.York_Regression()
         #print thing1.tmin_K, thing1.tmax_K
         self.assertEqual('Fail', thing.get_SCAT())
         self.assertEqual('Pass', thing1.get_SCAT())
