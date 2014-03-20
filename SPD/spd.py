@@ -615,6 +615,7 @@ class PintPars(object):
 
 # K temps: [0.0, 100.0, 150.0, 200.0, 225.0, 250.0, 275.0, 300.0, 325.0, 350.0, 375.0, 400.0, 425.0, 450.0, 475.0, 500.0, 525.0, 550.0]
 # C temps: [273, 373.0, 423.0, 473.0, 498.0, 523.0, 548.0, 573.0, 598.0, 623.0, 648.0, 673.0, 698.0, 723.0, 748.0, 773.0, 798.0, 823.0]
+ignore = """
 import new_lj_thellier_gui_spd as tgs
 cwd = os.getcwd()
 main_dir = cwd + '/SPD'
@@ -630,6 +631,7 @@ try:
 except Exception as ex:
     print 'could not make standard specimen objects'
     print ex
+"""
 #thing2 = PintPars(gui.Data, specimens[0], 473., 623.)
 #thing2.calculate_all_statistics()
 #thing3 = PintPars(gui.Data, specimens[1], 473., 623.)

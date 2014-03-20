@@ -11,11 +11,12 @@ import sys
 #    sys.path.append('/Users/nebula/Python')
 import SPD.lib.lib_directional_statistics as lib_direct
 import SPD.spd as spd
+from SPD.test_instance import spec
 #import known_values
 #import lib_directional_statistics as lib_direct
 
 
-thing = spd.thing
+thing = spec
 #thing1 = spd.thing1
 
 class CheckDecInc(unittest.TestCase):
@@ -95,7 +96,7 @@ class CheckDecInc(unittest.TestCase):
 
 
     def test_get_dec_and_inc(self): # testing full thing with real data
-        dec, inc, intenstiy, tau, V, means, PCA_sigma = lib_direct.get_dec_and_inc(spd.thing.zdata, spd.thing.t_Arai, spd.thing.tmin, spd.thing.tmax, anchored=False)
+        dec, inc, intenstiy, tau, V, means, PCA_sigma = lib_direct.get_dec_and_inc(spec.zdata, spec.t_Arai, spec.tmin, spec.tmax, anchored=False)
         self.assertAlmostEqual(dec, 267.4620127216387)
         self.assertAlmostEqual(inc, 86.349431762792364)
         self.assertGreaterEqual(tau[0], tau[1]) 

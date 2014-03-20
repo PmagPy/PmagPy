@@ -5,4 +5,6 @@ python:
 # command to install dependencies, e.g. pip install -r requirements.txt --use-mirrors
 install: pip install scripttest
 # command to run tests, e.g. python setup.py test
-script:  python Command_line_Tests/fake_test.py 
+script:  
+    - python Command_line_Tests/fake_test.py 
+    - python -m unittest discover
