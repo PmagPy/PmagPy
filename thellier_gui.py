@@ -6705,6 +6705,7 @@ class Arai_GUI(wx.Frame):
         return(F)
             
     def get_PI_parameters(self,s,tmin,tmax):
+        print 'calling get_PI_parameters'
 
 
         def mapping(dictionary, mapping):
@@ -6714,8 +6715,8 @@ class Arai_GUI(wx.Frame):
                     new_key = mapping[key]
                     mapped_dictionary[new_key] = value
                 else:
-                    pass
-                    #mapped_dictionary[key] = value# if this line is left in, it gives everything from the original dictionary
+                   # pass
+                    mapped_dictionary[key] = value# if this line is left in, it gives everything from the original dictionary
                     # we will want the above eventually
             return mapped_dictionary
 
@@ -7049,7 +7050,9 @@ class Arai_GUI(wx.Frame):
         #mapped_pars['specimen_frac'] = 'turtles!'
 
         self.Data[s]['pars'] = pars
+        print "pars['specimen_scat_bounding_line_low']", pars['specimen_scat_bounding_line_low']
 #        return full_pars
+        print pars.keys()
         return(pars)
 
                                
