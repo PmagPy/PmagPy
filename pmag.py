@@ -62,6 +62,7 @@ def get_orient(samp_data,er_sample_name):
     EX=["SO-ASC","SO-POM"]
     orient={'er_sample_name':er_sample_name,'sample_azimuth':"",'sample_dip':"",'sample_description':""}
     orients=get_dictitem(samp_data,'er_sample_name',er_sample_name,'T') # get all the orientation data for this sample
+    if 'sample_orientation_flag' in orients[0].keys(): orients=get_dictitem(orients,'sample_orientation_flag','b','F') # exclude all samples with bad orientation flag
     if len(orients)>0:orient=orients[0] # re-initialize to first one
     methods=get_dictitem(orients,'magic_method_codes','SO-','has')
     methods=get_dictkey(methods,'magic_method_codes','') # get a list of all orientation methods for this sample
