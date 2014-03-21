@@ -8,7 +8,7 @@
 
 __all__ = ['lib_additivity_check_statistics', 'lib_curvature', 'lib_ptrm_statistics', 'lib_directional_statistics', 'lib_IZZI_MD', 'lib_arai_plot_statistics', 'lib_tail_check_statistics']
 
-print "initializing in /lib"
+#print "initializing in /lib"
 import lib_arai_plot_statistics
 import lib_curvature
 import lib_directional_statistics
