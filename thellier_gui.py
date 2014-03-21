@@ -6670,7 +6670,6 @@ class Arai_GUI(wx.Frame):
     
         #remember the last saved interpretation
         print 'calling get_new_T_PI_parameters()'
-        print 'self.pars', self.pars.keys()
         if "saved" in self.pars.keys():
             if self.pars['saved']:
                 self.last_saved_pars={}

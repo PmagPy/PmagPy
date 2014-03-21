@@ -48,6 +48,9 @@ IODP_csv_magic
         new output column was added
 
 
-to do:
-   package-a-fy pmagpy so you can call tests
-   
+
+package-a-fy pmagpy so you can call tests
+             angle.py test works!
+             stuck on combine_magic test.  possibly take test_file_prefix out of __init__ and just have it in the actual functions.  in a way, this seems repetitive, but it drastically improved clarity for someone tinkering.  
+
+

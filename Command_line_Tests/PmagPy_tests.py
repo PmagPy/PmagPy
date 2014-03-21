@@ -7,8 +7,9 @@ import os
 
 env = TestFileEnvironment('./new-test-output')
 
-file_prefix = '/Users/nebula/Python/PmagPy/Command_line_Tests/'
-directory = '/Users/nebula/Python/PmagPy/Command_line_Tests'
+
+file_prefix = os.getcwd() + '/' #'/Users/nebula/Python/PmagPy/Command_line_Tests/'
+directory = os.getcwd() #'/Users/nebula/Python/PmagPy/Command_line_Tests'
 #file_prefix = '/Users/nebula/Python/Tests/'
 #directory =  '/Users/nebula/Python/Tests'
 

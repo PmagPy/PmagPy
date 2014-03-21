@@ -11,17 +11,19 @@ import error_logging as EL
 
 file_prefix = PT.file_prefix
 directory = PT.directory
+test_file_prefix = file_prefix + 'Command_line_Tests/'
+test_directory = directory + 'Command_line_Tests'
 
 class Test_instance(object):
      def __init__(self, name, infile, outfile, ref_out, wrong_out, stdin, WD, *args):
          """Takes a program name, an input file, an output file, a reference output file, an incorrect output file, standard input for the program, whether or not the program has a -WD option, and up to 6 additional command line arguments"""
-         self.name = name
+         self.name = file_prefix + name
          if infile != None:
-              self.infile = file_prefix + infile
+              self.infile = test_file_prefix + infile
          else:
               self.infile = None
          if outfile != None:
-              self.outfile = file_prefix + outfile
+              self.outfile = test_file_prefix + outfile
          else:
               self.outfile = None
          self.ref_out = ref_out
@@ -75,8 +77,8 @@ class Test_instance(object):
           PT.clean_house() # this wipes the test output directory and prevents programs from interfering with each other. they are run twice for unittesting
           if self.WD:
                print "WD program about to run:"
-               print(self.name, '-WD', directory, '-f', self.infile, '-F', self.outfile, self.arg_0, self.arg_1, self.arg_2, self.arg_3, self.arg_4, self.arg_5, 'stdin='+str(self.stdin))
-               obj = env.run(self.name, '-WD', directory, '-f', self.infile, '-F', self.outfile, self.arg_0, self.arg_1, self.arg_2, self.arg_3, self.arg_4, self.arg_5, stdin=self.stdin)
+               print(self.name, '-WD', test_directory, '-f', self.infile, '-F', self.outfile, self.arg_0, self.arg_1, self.arg_2, self.arg_3, self.arg_4, self.arg_5, 'stdin='+str(self.stdin))
+               obj = env.run(self.name, '-WD', test_directory, '-f', self.infile, '-F', self.outfile, self.arg_0, self.arg_1, self.arg_2, self.arg_3, self.arg_4, self.arg_5, stdin=self.stdin)
           else:
                print "Non-WD program about to run:"
                print self.name, '-f', self.infile, '-F', self.outfile, self.arg_0, self.arg_1, self.arg_2, self.arg_3, self.arg_4, self.arg_5,  'stdin=' + str(self.stdin)
@@ -180,6 +182,8 @@ class Test_instance(object):
 
      def file_in_file_out_sequence(self, interactive=False):
           """This sequence fully tests a standard program that takes in a file and outputs another file. It defaults to no testing for an interactive mode, but it can be given interactive=True, and then it will"""
+          self.ref_out = test_file_prefix + self.ref_out
+          self.wrong_out = test_file_prefix + self.wrong_out
           self.test_help()
           result = self.run_program(output_type = "file")
           self.check_file_output(result, self.ref_out)
@@ -254,6 +258,9 @@ class Bad_test(unittest.TestCase):
 def complete_angle_test(): 
      """test angle.py"""
      angle = Test_instance('angle.py', 'angle.dat', 'angle_results_new.out', 'angle_results_correct.txt', 'angle_results_incorrect.txt', None, False)
+     print 'infile', open(angle.infile, 'rU')
+     print 'outfile', open(angle.outfile, 'rU')
+     print angle.ref_out
      angle.file_in_file_out_sequence(interactive=True)
 
 # plotting without stdout example
@@ -308,26 +315,27 @@ def complete_azdip_magic_test(): # irregular, because the outfile is signaled wi
      """test azdip_magic.py"""
      # non WD
      azdip_magic_infile = 'azdip_magic_example.dat'
-     azdip_magic_reference = 'azdip_magic_output_correct.out'
-     azdip_magic_wrong = 'azdip_magic_output_incorrect.out'
-     azdip_magic_outfile = file_prefix + 'azdip_magic_output_new.out' # needs file prefix because it doesn't go into the azdip_magic object
+     azdip_magic_reference = test_file_prefix + 'azdip_magic_output_correct.out'
+     azdip_magic_wrong = test_file_prefix + 'azdip_magic_output_incorrect.out'
+     azdip_magic_outfile = test_file_prefix + 'azdip_magic_output_new.out' # needs file prefix because it doesn't go into the azdip_magic object
      azdip_magic = Test_instance('azdip_magic.py', azdip_magic_infile, None, azdip_magic_reference, azdip_magic_wrong, False, None, '-Fsa', azdip_magic_outfile, '-mcd', 'FS-FD:SO-POM', '-loc', "Northern Iceland")
      azdip_magic.run_program(output_type='file')
      print azdip_magic_outfile
-     azdip_magic.check_file_output(azdip_magic_outfile, azdip_magic.ref_out)
+     azdip_magic.check_file_output(azdip_magic_outfile, azdip_magic.ref_out) 
      azdip_magic.unittest_file()
 
 def complete_combine_magic_test(): # irregular type.  this one is a weird amalgam, because of two -f inputs.  but it works.  
      """test combine_magic_test.py"""
      output_file = 'combine_magic_output_new.out'
-     reference_file =  'combine_magic_output_correct.out'
-     incorrect_output = 'combine_magic_output_incorrect.out'
+     reference_file = test_file_prefix + 'combine_magic_output_correct.out'
+     incorrect_output = test_file_prefix + 'combine_magic_output_incorrect.out'
      input_1 = 'combine_magic_input_1.dat'
      input_2 = 'combine_magic_input_2.dat'
     # have to run it specially, because -f takes two arguments.  it doesn't fit with its class in this regard. 
-     obj = env.run('combine_magic.py', '-WD', directory, '-F', output_file, '-f', input_1, input_2)
+     obj = env.run('combine_magic.py', '-WD', test_directory, '-F', output_file, '-f', input_1, input_2)
+     print obj.stdout
      combine_magic = Test_instance('combine_magic.py', None, output_file, reference_file, incorrect_output, None, True, '-f', input_1, input_2)
-     combine_magic.check_file_output(combine_magic.outfile, combine_magic.ref_out)
+     combine_magic.check_file_output(test_file_prefix + combine_magic.outfile, combine_magic.ref_out)
      combine_magic.test_help()
      combine_magic.unittest_file()
      print "Successfully finished combine_magic_test"

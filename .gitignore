@@ -30,3 +30,7 @@ new-test-output/.scripttest-test-dir.txt
 
 SPD_consistency_tests/*
 pmag_criteria.txt
+Command_line_Tests/orient_Northern_Iceland.txt
+Command_line_Tests/specimens_results_magic/pmag_results.txt
+Command_line_Tests/specimens_results_magic/pmag_sites.txt
+rename_me_errors_list.txt
