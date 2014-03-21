@@ -31,13 +31,18 @@ new-test-output/.scripttest-test-dir.txt
 SPD_consistency_tests/*
 pmag_criteria.txt
 
+
+thellier_GUI.log
+Command_line_Tests/*_new.out
+Command_line_Tests/*_clean_output.txt
+Command_line_Tests/*_full_output.txt
+SPD_consistency_tests/*
+new-test-output/*
 Command_line_Tests/orient_Northern_Iceland.txt
 Command_line_Tests/specimens_results_magic/pmag_results.txt
 Command_line_Tests/specimens_results_magic/pmag_sites.txt
 rename_me_errors_list.txt
-
 demag_dialog_boxes.py
-
 tmp.txt
 
 thellier_gui_preferences.py
@@ -77,3 +82,7 @@ thellier_interpreter/thellier_interpreter_STDEV-OPT_specimens.txt
 thellier_interpreter/thellier_interpreter_all.txt
 thellier_interpreter/thellier_interpreter_specimens_bounds.txt
 thellier_GUI.redo
+
+pmag_criteria.txt
+foldtest_results_new.out
+

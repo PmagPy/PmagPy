@@ -533,6 +533,32 @@ def main():
                       if angle > 55. and angle < 125.: PmagSiteRec["site_polarity"]='t'
                       if angle >= 125.: PmagSiteRec["site_polarity"]='r'
                 PmagResults.append(PmagResRec)
+    if polarity==1:
+        crecs=pmag.get_dictitem(PmagSites,'site_tilt_correction','100','T') # find the tilt corrected data
+        if len(crecs)<2:crecs=pmag.get_dictitem(PmagSites,'site_tilt_correction','0','T') # if there aren't any, find the geographic corrected data
+        if len(crecs)>2: # if there are some, 
+            comp=pmag.get_list(crecs,'site_comp_name').split(':')[0] # find the first component 
+            crecs=pmag.get_dictitem(crecs,'site_comp_name',comp,'T') # fish out all of the first component
+            precs=[]
+            for rec in crecs:
+                precs.append({'dec':rec['site_dec'],'inc':rec['site_inc'],'name':rec['er_site_name'],'loc':rec['er_location_name']})
+            polpars=pmag.fisher_by_pol(precs) # calculate average by polarity
+            for mode in polpars.keys(): # hunt through all the modes (normal=A, reverse=B, all=ALL)
+                PolRes={}
+                PolRes['er_citation_names']='This study'
+                PolRes["pmag_result_name"]="Polarity Average: Polarity "+mode # 
+                PolRes["data_type"]="a"
+                PolRes["average_dec"]='%7.1f'%(polpars[mode]['dec'])
+                PolRes["average_inc"]='%7.1f'%(polpars[mode]['inc'])
+                PolRes["average_n"]='%i'%(polpars[mode]['n'])
+                PolRes["average_r"]='%5.4f'%(polpars[mode]['r'])
+                PolRes["average_k"]='%6.0f'%(polpars[mode]['k'])
+                PolRes["average_alpha95"]='%7.1f'%(polpars[mode]['alpha95'])
+		PolRes['er_site_names']= polpars[mode]['sites']
+		PolRes['er_location_names']= polpars[mode]['locs']
+		PolRes['magic_software_packages']=version_num
+                PmagResults.append(PolRes)
+         
     if noInt!=1 and nositeints!=1:
       for site in sites: # now do intensities for each site
         if plotsites==1:print site
