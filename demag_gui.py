@@ -2429,7 +2429,10 @@ class Zeq_GUI(wx.Frame):
           EX=["LP-AN-ARM","LP-AN-TRM","LP-ARM-AFD","LP-ARM2-AFD","LP-TRM-AFD","LP-TRM","LP-TRM-TD","LP-X"] 
           INC=["LT-NO","LT-AF-Z","LT-T-Z", "LT-M-Z"]
 
-          methods=rec["magic_method_codes"].split(":")
+          methods=rec["magic_method_codes"].replace(" ","").strip("\n").split(":")
+          LP_methods=[]
+          LT_methods=[]
+          
           for i in range (len(methods)):
                methods[i]=methods[i].strip()
           if 'measurement_flag' not in rec.keys():
@@ -2438,8 +2441,9 @@ class Zeq_GUI(wx.Frame):
           for meth in methods:
                if meth in ["LT-NO","LT-AF-Z","LT-T-Z", "LT-M-Z"]:
                    lab_treatment=meth
-               if meth in INC:
                    SKIP=False
+               if "LP" in meth:
+                   LP_methods.append(meth) 
           for meth in EX:
                if meth in methods:
                    SKIP=True
@@ -2506,7 +2510,11 @@ class Zeq_GUI(wx.Frame):
                  Data[s]['magic_experiment_name']=rec["magic_experiment_name"]
                  if "magic_instrument_codes" in rec.keys():
                      Data[s]['magic_instrument_codes']=rec['magic_instrument_codes']
+                 #if len(LP_methods)==0:
                  Data[s]["magic_method_codes"]=LPcode
+                 #else:
+                 #Data[s]["magic_method_codes"]=":".join(LP_methods)
+                     
 
 
                  #--------------
@@ -3530,7 +3538,7 @@ class Zeq_GUI(wx.Frame):
                 PmagSpecRec["magic_experiment_names"]=self.Data[specimen]["magic_experiment_name"]
                 if 'magic_instrument_codes' in self.Data[specimen].keys():
                     PmagSpecRec["magic_instrument_codes"]= self.Data[specimen]['magic_instrument_codes']
-                #magic_method_codes=[]
+                #magic_ood_codes=[]
                 #all_methods=self.Data[specimen]['magic_method_codes'].strip('\n').replace(" ","").split(":")
                 #for method in all_methods:
                 #    if "LP" in method:
@@ -3569,12 +3577,12 @@ class Zeq_GUI(wx.Frame):
                 else:
                     PmagSpecRec['measurement_step_max'] = "%8.3e"%(mpars["measurement_step_max"]*1e-3)
                 if "C" in   mpars['zijdblock_step_min']  or "C" in mpars['zijdblock_step_min']:
-                    PmagSpecRec['measurement_step_unit']="C"
+                    PmagSpecRec['measurement_step_unit']="K"
                 else:
                     PmagSpecRec['measurement_step_unit']="T"                                  
                 PmagSpecRec['specimen_n'] = "%.0f"%mpars["specimen_n"]
                 calculation_type=mpars['calculation_type']
-                PmagSpecRec["magic_method_codes"]=self.Data[specimen]['magic_method_codes']+":"+calculation_type+":"+dirtype               
+                PmagSpecRec["magic_method_codes"]=self.Data[specimen]['magic_method_codes']+":"+calculation_type+":"+dirtype
                 if calculation_type in ["DE-BFL","DE-BFL-A","DE-BFL-O"]:
                     PmagSpecRec['specimen_direction_type']='l'
                     PmagSpecRec['specimen_mad']="%.1f"%float(mpars["specimen_mad"])

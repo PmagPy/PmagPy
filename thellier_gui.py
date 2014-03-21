@@ -686,8 +686,9 @@ class Arai_GUI(wx.Frame):
         site=self.get_site_from_hierarchy(sample)                
         if site in self.Data_sites.keys():
             if self.s in self.Data_sites[site].keys():
-                if 'B' in self.Data_sites[site][self.s].keys():
-                    del self.Data_sites[site][self.s]['B']
+                del self.Data_sites[site][self.s]['B']
+                #if 'B' in self.Data_sites[site][self.s].keys():
+                #    del self.Data_sites[site][self.s]['B']
 
         self.tmin_box.SetValue("")
         self.tmax_box.SetValue("")
@@ -1117,9 +1118,8 @@ class Arai_GUI(wx.Frame):
                     if specimen==self.s:
                         if 'specimen_int_uT' in self.pars.keys():
                             B.append(self.pars['specimen_int_uT'])
-                        else:        
-                            B.append(self.Data_samples[sample][specimen]['B'])
                     else:
+                        if specimen in self.Data_samples[sample].keys() and 'B' in self.Data_samples[sample][specimen].keys():
                             B.append(self.Data_samples[sample][specimen]['B'])
             else:
                 if 'specimen_int_uT' in self.pars.keys():
@@ -1139,9 +1139,8 @@ class Arai_GUI(wx.Frame):
                     if specimen==self.s:
                         if 'specimen_int_uT' in self.pars.keys():
                             B.append(self.pars['specimen_int_uT'])
-                        else:        
-                            B.append(self.Data_sites[site][specimen]['B'])
                     else:
+                        if specimen in self.Data_sites[site].keys() and 'B' in self.Data_sites[site][specimen].keys():
                             B.append(self.Data_sites[site][specimen]['B'])
             else:
                 if 'specimen_int_uT' in self.pars.keys():
@@ -1154,6 +1153,11 @@ class Arai_GUI(wx.Frame):
             self.sample_int_sigma_window.SetValue("")
             self.sample_int_sigma_perc_window.SetValue("")
             self.sample_int_uT_window.SetBackgroundColour(wx.NullColour)
+            self.sample_int_n_window.SetBackgroundColour(wx.NullColour)
+            self.sample_int_sigma_window.SetBackgroundColour(wx.NullColour)
+            self.sample_int_sigma_perc_window.SetBackgroundColour(wx.NullColour)
+
+            
             return()
             
         N=len(B)
@@ -1173,39 +1177,50 @@ class Arai_GUI(wx.Frame):
         fail_int_n=False
         fail_int_sigma=False
         fail_int_sigma_perc=False
+        sample_failed=False
         
         if self.acceptance_criteria['sample_int_n']['value'] != -999:
             if N<self.acceptance_criteria['sample_int_n']['value']:
                 fail_int_n=True
-                
+                sample_failed=True
+                self.sample_int_n_window.SetBackgroundColour(wx.RED)
+            else:
+                self.sample_int_n_window.SetBackgroundColour(wx.GREEN)
+        else:
+            self.sample_int_n_window.SetBackgroundColour(wx.NullColour)
+                   
+        
         if self.acceptance_criteria['sample_int_sigma']['value'] != -999:
-            if  B_std*1e-6 > self.acceptance_criteria['sample_int_sigma']:
+            if  B_std*1.e-6 > self.acceptance_criteria['sample_int_sigma']['value']:
                 fail_int_sigma=True 
+                self.sample_int_sigma_window.SetBackgroundColour(wx.RED)
+            else:
+                self.sample_int_sigma_window.SetBackgroundColour(wx.GREEN)
+        else:
+            self.sample_int_sigma_window.SetBackgroundColour(wx.NullColour)
  
         if self.acceptance_criteria['sample_int_sigma_perc']['value'] != -999:
             if  B_std_perc > self.acceptance_criteria['sample_int_sigma_perc']:
-                fail_int_sigma=True 
-
-        if fail_int_n or fail_int_sigma or fail_int_sigma_perc:
-            #self.sample_int_uT_window.SetBackgroundColour(wx.RED)
-            if  fail_int_n :
-                self.sample_int_n_window.SetBackgroundColour(wx.RED)
-                self.sample_int_uT_window.SetBackgroundColour(wx.RED) 
-            if  fail_int_sigma :
-                self.sample_int_sigma_window.SetBackgroundColour(wx.RED)
-            if  fail_int_sigma_perc :
+                fail_int_sigma_perc=True 
                 self.sample_int_sigma_perc_window.SetBackgroundColour(wx.RED)
-            sample_failed=False
-            if not(self.acceptance_criteria['sample_int_sigma']['value']==-999 and self.acceptance_criteria['sample_int_sigma_perc']['value']==-999):
-                if (not fail_int_sigma) or (not fail_int_sigma_perc):
-                    sample_failed=False
-                else:
-                    sample_failed=True
-        
-            if sample_failed:
-                self.sample_int_uT_window.SetBackgroundColour(wx.RED) 
             else:
-                self.sample_int_uT_window.SetBackgroundColour(wx.GREEN)
+                self.sample_int_sigma_perc_window.SetBackgroundColour(wx.GREEN)
+        else:
+            self.sample_int_sigma_perc_window.SetBackgroundColour(wx.NullColour)
+
+                          
+        if self.acceptance_criteria['sample_int_sigma']['value']==-999 and fail_int_sigma_perc:
+            sample_failed=True
+        elif self.acceptance_criteria['sample_int_sigma_perc']['value']==-999 and fail_int_sigma:
+            sample_failed=True
+        elif self.acceptance_criteria['sample_int_sigma']['value'] !=-999 and self.acceptance_criteria['sample_int_sigma_perc']['value']!=-999:
+            if fail_int_sigma and fail_int_sigma_perc:
+                sample_failed=True        
+        
+        if sample_failed:
+            self.sample_int_uT_window.SetBackgroundColour(wx.RED) 
+        else:
+            self.sample_int_uT_window.SetBackgroundColour(wx.GREEN)
             
             #if self.acceptance_criteria['sample_int_sigma']['value'] != -999  or self.acceptance_criteria['sample_int_sigma_perc']['value'] != -999:
             #    if   fail_int_sigma and fail_int_sigma_perc:
@@ -1217,7 +1232,7 @@ class Arai_GUI(wx.Frame):
         
         #else:
         #    self.sample_int_uT_window.SetBackgroundColour(wx.GREEN)
-            
+        #    
 
 
     #----------------------------------------------------------------------
@@ -3548,14 +3563,19 @@ class Arai_GUI(wx.Frame):
                     ignore_specimen=True
             if ignore_specimen:
                 continue
-            specimen_int_n=min(3,int(self.acceptance_criteria['specimen_int_n']['value']))
- 
+            if self.acceptance_criteria['specimen_int_n']['value'] != -999:
+                specimen_int_n=min(3,int(self.acceptance_criteria['specimen_int_n']['value']))
+            else:
+                specimen_int_n=3
             #-------------------------------------------------            
             # loop through all possible tmin,tmax and check if pass criteria
             #-------------------------------------------------
-
+            print s
             for tmin_i in range(len(temperatures)-specimen_int_n+1):
+                print tmin_i
                 for tmax_i in range(tmin_i+specimen_int_n-1,len(temperatures)):
+                    print tmax_i
+                    print len(temperatures)
                     tmin=temperatures[tmin_i]
                     tmax=temperatures[tmax_i]
                     pars=self.get_PI_parameters(s,tmin,tmax)
@@ -3783,8 +3803,8 @@ class Arai_GUI(wx.Frame):
 
         #--------------------------------------------------------------
         # check for anistropy issue:
-        # If the average anisotropy correction in the sample is > 10%,
-        # and there are enough good specimens with  anisotropy correction to pass sample's criteria
+        # If the average anisotropy correction in the sample is larger than a threshold value
+        # and there are enough good specimens with anisotropy correction to pass sample's criteria
         # then dont use the uncorrected specimens for sample's calculation. 
         #--------------------------------------------------------------
         
@@ -3829,13 +3849,15 @@ class Arai_GUI(wx.Frame):
                             pars=All_grade_A_Recs[specimen][intenstities[0]]
                             if "AC_anisotropy_type" not in pars.keys():
                                 ignore_specimen=True
+                                warning_messeage = warning_messeage + "-W- WARNING: specimen %s is exluded from sample %s because it doesnt have anisotropy correction, and other specimens are very anistropic\n"%(specimen,sample_or_site)
                             elif "AC_WARNING" in pars.keys():
                                 #if "alteration check" in pars["AC_WARNING"]:
                                     if pars["AC_anisotropy_type"]== "ATRM" and "TRM" in pars["AC_WARNING"] and  "alteration" in pars["AC_WARNING"]  : 
                                        #or "ARM" in pars["AC_WARNING"] and  pars["AC_anisotropy_type"]== "AARM":
                                         ignore_specimen=True
+                                        warning_messeage = warning_messeage + "-W- WARNING: specimen %s is exluded from sample %s because it failed ATRM alteration check and other specimens are very anistropic\n"%(specimen,sample_or_site)
                             if ignore_specimen: 
-                                warning_messeage = warning_messeage + "-W- WARNING: specimen %s is exluded from sample %s because it doesnt have anisotropy correction, and other specimens are very anistropic\n"%(specimen,sample_or_site)
+                                
                                 WARNING_tmp=WARNING_tmp+"excluding specimen %s; "%(specimen)
                                 del tmp_Grade_A_sorted[sample_or_site][specimen]
 
@@ -3850,6 +3872,10 @@ class Arai_GUI(wx.Frame):
                         if thellier_interpreter_pars['pass_or_fail']=='pass':
                             Grade_A_sorted[sample_or_site]=copy.deepcopy(tmp_Grade_A_sorted[sample_or_site])
                             WARNING=WARNING_tmp
+                            thellier_interpreter_log.write(warning_messeage)
+                        else:
+                            Grade_A_sorted[sample_or_site]=copy.deepcopy(tmp_Grade_A_sorted[sample_or_site])
+                            WARNING=WARNING_tmp + "; sample fail criteria"
                             thellier_interpreter_log.write(warning_messeage)
                             
 #                        if len(tmp_Grade_A_sorted[sample_or_site].keys())>=int_n:
@@ -5592,7 +5618,10 @@ class Arai_GUI(wx.Frame):
                         #    er_ages_rec=self.Data_info["er_ages"][site]
                         #    found_age=True 
                         if  found_age:
-                            age_description=er_ages_rec["age_description"] 
+                            if "age_description" in er_ages_rec.keys():
+                                age_description=er_ages_rec["age_description"] 
+                            else:
+                                age_description=""
                         else:
                             continue
                             #age_unit=er_ages_rec["age_unit"]
@@ -7701,16 +7730,18 @@ class Arai_GUI(wx.Frame):
         #print self.average_by_sample_or_site
         if self.acceptance_criteria['average_by_sample_or_site']['value']=='sample':                         
             if sample in self.Data_samples.keys():
-                for spec in self.Data_samples[sample].keys():
-                    specimens_id.append(spec)
-                if self.s not in specimens_id and 'specimen_int_uT' in self.pars.keys():
-                    specimens_id.append(self.s)
-                specimens_id.sort()
-                for spec in specimens_id:
+                specimens_list=self.Data_samples[sample].keys()
+                if self.s not in specimens_list and 'specimen_int_uT' in self.pars.keys():
+                    specimens_list.append(self.s)
+                specimens_list.sort()                    
+                for spec in specimens_list:
                     if spec==self.s and 'specimen_int_uT' in self.pars.keys():
                         specimens_B.append(self.pars['specimen_int_uT'])
+                        specimens_id.append(spec)
                     else:
-                        specimens_B.append(self.Data_samples[sample][spec]['B'])
+                        if spec in self.Data_samples[sample].keys() and 'B' in self.Data_samples[sample][spec].keys():
+                            specimens_B.append(self.Data_samples[sample][spec]['B'])
+                            specimens_id.append(spec)
             else:
                 if 'specimen_int_uT' in self.pars.keys():
                     specimens_id=[self.s]
@@ -7718,16 +7749,19 @@ class Arai_GUI(wx.Frame):
         # average by site
         else:
             if site in self.Data_sites.keys():
-                for spec in self.Data_sites[site].keys():
-                    specimens_id.append(spec)
-                if self.s not in specimens_id and 'specimen_int_uT' in self.pars.keys():
-                    specimens_id.append(self.s)
-                specimens_id.sort()
-                for spec in specimens_id:
+                
+                specimens_list=self.Data_sites[site].keys()
+                if self.s not in specimens_list and 'specimen_int_uT' in self.pars.keys():
+                    specimens_list.append(self.s)
+                specimens_list.sort()                    
+                for spec in specimens_list:
                     if spec==self.s and 'specimen_int_uT' in self.pars.keys():
                         specimens_B.append(self.pars['specimen_int_uT'])
+                        specimens_id.append(spec)
                     else:
-                        specimens_B.append(self.Data_sites[site][spec])
+                        if spec in self.Data_sites[site].keys() and 'B' in self.Data_sites[site][spec].keys():
+                            specimens_B.append(self.Data_sites[site][spec]['B'])
+                            specimens_id.append(spec)
             else:
                 if 'specimen_int_uT' in self.pars.keys():
                     specimens_id=[self.s]
