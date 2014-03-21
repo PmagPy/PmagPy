@@ -112,6 +112,7 @@ except:
     pass
 import stat
 import subprocess
+import shutil
 import time
 import wx
 import wx.grid
