@@ -2716,33 +2716,52 @@ def fisher_by_pol(data):
     code modified from eqarea_ell.py b rshaar 1/23/2014
     """
     FisherByPoles={}
-    DIblock=[]
+    DIblock,nameblock,locblock=[],[],[]
     for rec in data:
         if 'dec' in rec.keys() and 'inc' in rec.keys():
             DIblock.append([float(rec["dec"]),float(rec["inc"])]) # collect data for fisher calculation
+        if 'name' in rec.keys():nameblock.append(rec['name'])
+        if 'loc' in rec.keys():locblock.append(rec['loc'])
     ppars=doprinc(array(DIblock)) # get principal directions  
     reference_DI=[ppars['dec'],ppars['inc']] # choose the northerly declination principe component ("normal") 
-    if reference_DI[0]<90 or reference_DI[0]>270:
+    if reference_DI[0]>90 and reference_DI[0]<270: # make reference direction in northern hemisphere
         reference_DI[0]=(reference_DI[0]+180.)%360
         reference_DI[1]=reference_DI[1]*-1.
-
     nDIs,rDIs,all_DI,npars,rpars=[],[],[],[],[]
-    for DI in DIblock:            
-        if angle([DI[0],DI[1]],reference_DI) > 90.:
-            rDIs.append(DI)
-            all_DI.append( [(DI[0]+180.)%360.,-1.*DI[1]])
+    nlist,rlist,alllist="","",""
+    nloclist,rloclist,allloclist="","",""
+    for k in range(len(DIblock)):            
+        if angle([DIblock[k][0],DIblock[k][1]],reference_DI) > 90.:
+            rDIs.append(DIblock[k])
+            rlist=rlist+":"+nameblock[k]
+            if locblock[k] not in rloclist:rloclist=rloclist+":"+locblock[k]
+            all_DI.append( [(DIblock[k][0]+180.)%360.,-1.*DIblock[k][1]])
+            alllist=alllist+":"+nameblock[k]
+            if locblock[k] not in allloclist:allloclist=allloclist+":"+locblock[k]
         else:
-            nDIs.append(DI)
-            all_DI.append(DI)
+            nDIs.append(DIblock[k])
+            nlist=nlist+":"+nameblock[k]
+            if locblock[k] not in nloclist:nloclist=nloclist+":"+locblock[k]
+            all_DI.append(DIblock[k])
+            alllist=alllist+":"+nameblock[k]
+            if locblock[k] not in allloclist:allloclist=allloclist+":"+locblock[k]
             
     for mode in ['A','B','All']:
-        FisherByPoles[mode]={}
-        if mode=='A':
-            FisherByPoles[mode]=fisher_mean(nDIs)
-        elif mode=='B':              
-            FisherByPoles[mode]=fisher_mean(rDIs)
-        elif mode=='All':           
-            FisherByPoles[mode]=fisher_mean(all_DI)
+        if mode=='A' and len(nDIs)>2:
+            fpars=fisher_mean(nDIs)
+            fpars['sites']=nlist.strip(':')
+            fpars['locs']=nloclist.strip(':')
+            FisherByPoles[mode]=fpars
+        elif mode=='B' and len(rDIs)>2:              
+            fpars=fisher_mean(rDIs)
+            fpars['sites']=rlist.strip(':')
+            fpars['locs']=rloclist.strip(':')
+            FisherByPoles[mode]=fpars
+        elif mode=='All' and len(all_DI)>2:           
+            fpars=fisher_mean(all_DI)
+            fpars['sites']=alllist.strip(':')
+            fpars['locs']=allloclist.strip(':')
+            FisherByPoles[mode]=fpars
     return FisherByPoles       
     
      
