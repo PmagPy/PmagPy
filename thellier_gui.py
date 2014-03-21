@@ -3,6 +3,10 @@
 #============================================================================================
 # LOG HEADER:
 #============================================================================================
+# Thellier_GUI Version 2.18 03/21/2014
+# insert SPD.py.
+# some bug fix
+#
 # Thellier_GUI Version 2.17 03/20/2014
 # insert SPD.py.
 # merge changes in appearance
@@ -90,7 +94,7 @@
 #============================================================================================
 
 global CURRENT_VRSION
-CURRENT_VRSION = "v.2.16"
+CURRENT_VRSION = "v.2.18"
 import matplotlib
 matplotlib.use('WXAgg')
 
