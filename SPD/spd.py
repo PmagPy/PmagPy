@@ -77,7 +77,7 @@ import SPD.lib.lib_additivity_check_statistics as lib_add
 
 class PintPars(object):
     def __init__(self, Data,specimen_name,tmin,tmax):
-        print "calling __init__ PintPars object"
+        #print "calling __init__ PintPars object"
         #print 'specimens', Data.keys()
         self.s=specimen_name
         self.specimen_Data=Data[self.s]
@@ -569,7 +569,7 @@ class PintPars(object):
 
 
     def calculate_all_statistics(self):
-        print "calling calculate_all_statistics in spd.py"
+        #print "calling calculate_all_statistics in spd.py"
         self.York_Regression()
         self.get_vds()
         self.get_FRAC()
@@ -610,7 +610,7 @@ class PintPars(object):
         # additivity check statistics
         self.get_n_add()
         self.get_delta_AC()
-        print "done with calculate_all_statistics"
+        #print "done with calculate_all_statistics"
 
 
 # K temps: [0.0, 100.0, 150.0, 200.0, 225.0, 250.0, 275.0, 300.0, 325.0, 350.0, 375.0, 400.0, 425.0, 450.0, 475.0, 500.0, 525.0, 550.0]
