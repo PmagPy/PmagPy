@@ -7,6 +7,9 @@
 #--------------------------------------------------------------
 
 import wx
+import os
+from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigCanvas \
+
 
 class Criteria_Dialog(wx.Dialog):
 

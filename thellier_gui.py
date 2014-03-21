@@ -931,8 +931,8 @@ class Arai_GUI(wx.Frame):
         m_run_optimizer = menu_Optimizer.Append(-1, "&Run Consistency test", "")
         self.Bind(wx.EVT_MENU, self.on_menu_run_optimizer, m_run_optimizer)
 
-        m_run_consistency_test_b = menu_Optimizer.Append(-1, "&Run Consistency test beta version", "")
-        self.Bind(wx.EVT_MENU, self.on_menu_run_consistency_test_b, m_run_consistency_test_b)
+        #m_run_consistency_test_b = menu_Optimizer.Append(-1, "&Run Consistency test beta version", "")
+        #self.Bind(wx.EVT_MENU, self.on_menu_run_consistency_test_b, m_run_consistency_test_b)
 
         menu_Plot= wx.Menu()
         m_plot_data = menu_Plot.Append(-1, "&Plot paleointensity curve", "")
@@ -4469,15 +4469,23 @@ class Arai_GUI(wx.Frame):
     #----------------------------------------------------------------------            
 
     def on_menu_run_optimizer(self, event):
+        dlg1 = wx.MessageDialog(self,caption="Message:",message="Consistency test is no longer supported in this version" ,style=wx.OK)
+        result = dlg1.ShowModal()
+        if result == wx.ID_OK:
+            dlg1.Destroy()
+            return
+        
         self.GUI_log.write ("-I- running thellier consistency test\n")
         import  thellier_consistency_test
 
         thellier_gui_dialogs.Consistency_Test(self.Data,self.Data_hierarchy,self.WD,self.acceptance_criteria_default)
 
     def on_menu_run_consistency_test_b(self, event):
-        self.GUI_log.write ("-I- running thellier consistency test beta version\n")
-        print "not supported yet"
-        pass        
+        dlg1 = wx.MessageDialog(self,caption="Message:",message="Consistency test is no longer supported in this version" ,style=wx.OK)
+        result = dlg1.ShowModal()
+        if result == wx.ID_OK:
+            dlg1.Destroy()
+            return
     #----------------------------------------------------------------------            
 
     def on_menu_plot_data (self, event):
@@ -4521,7 +4529,8 @@ class Arai_GUI(wx.Frame):
             BY_SITES=False; BY_SAMPLES=True
         else:
             BY_SITES=True; BY_SAMPLES=False        
-        
+
+                
         for sample_or_site in samples_or_sites_list:
 
             Age,age_unit,age_range_low,age_range_high="","","",""
@@ -4541,7 +4550,7 @@ class Arai_GUI(wx.Frame):
             if sample_or_site_pars['pass_or_fail']=='fail':
                 continue
             
-            N=sample_or_site_pars['B']
+            N=sample_or_site_pars['N']
             B_uT=sample_or_site_pars['B_uT']
             B_std_uT=sample_or_site_pars['B_std_uT']
             B_std_perc=sample_or_site_pars['B_std_perc']
@@ -4627,7 +4636,7 @@ class Arai_GUI(wx.Frame):
                 VADM_minus=pmag.b_vdm((B_uT-B_std_uT)*1e-6,lat)*1e-21
                 VADM_sigma=(VADM_plus-VADM_minus)/2
                 
-            Results_table_data[sample_or_site]["N"]="%i"%(len(N))            
+            Results_table_data[sample_or_site]["N"]="%i"%(int(N))            
             Results_table_data[sample_or_site]["B_uT"]="%.1f"%(B_uT)
             Results_table_data[sample_or_site]["B_std_uT"]="%.1f"%(B_std_uT)
             Results_table_data[sample_or_site]["B_std_perc"]="%.1f"%(B_std_perc)
