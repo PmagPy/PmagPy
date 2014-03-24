@@ -12,20 +12,22 @@ import error_logging as EL
 file_prefix = PT.file_prefix
 directory = PT.directory
 test_file_prefix = file_prefix + 'Command_line_Tests/'
-test_directory = directory + 'Command_line_Tests'
+test_directory = directory + '/Command_line_Tests'
 
 class Test_instance(object):
      def __init__(self, name, infile, outfile, ref_out, wrong_out, stdin, WD, *args):
          """Takes a program name, an input file, an output file, a reference output file, an incorrect output file, standard input for the program, whether or not the program has a -WD option, and up to 6 additional command line arguments"""
          self.name = file_prefix + name
-         if infile != None:
-              self.infile = test_file_prefix + infile
-         else:
-              self.infile = None
-         if outfile != None:
-              self.outfile = test_file_prefix + outfile
-         else:
-              self.outfile = None
+         #if infile != None:
+         #     self.infile = test_file_prefix + infile
+         #else:
+         #     self.infile = None
+         #if outfile != None:
+         #     self.outfile = test_file_prefix + outfile
+         #else:
+         #     self.outfile = None
+         self.infile = infile
+         self.outfile = outfile
          self.ref_out = ref_out
          self.wrong_out = wrong_out
          self.stdin = stdin
@@ -182,8 +184,6 @@ class Test_instance(object):
 
      def file_in_file_out_sequence(self, interactive=False):
           """This sequence fully tests a standard program that takes in a file and outputs another file. It defaults to no testing for an interactive mode, but it can be given interactive=True, and then it will"""
-          self.ref_out = test_file_prefix + self.ref_out
-          self.wrong_out = test_file_prefix + self.wrong_out
           self.test_help()
           result = self.run_program(output_type = "file")
           self.check_file_output(result, self.ref_out)
@@ -257,16 +257,13 @@ class Bad_test(unittest.TestCase):
 # file_in_file_out example
 def complete_angle_test(): 
      """test angle.py"""
-     angle = Test_instance('angle.py', 'angle.dat', 'angle_results_new.out', 'angle_results_correct.txt', 'angle_results_incorrect.txt', None, False)
-     print 'infile', open(angle.infile, 'rU')
-     print 'outfile', open(angle.outfile, 'rU')
-     print angle.ref_out
+     angle = Test_instance('angle.py', test_file_prefix + 'angle.dat', test_file_prefix + 'angle_results_new.out', test_file_prefix + 'angle_results_correct.txt', test_file_prefix + 'angle_results_incorrect.txt', None, False)
      angle.file_in_file_out_sequence(interactive=True)
 
 # plotting without stdout example
 def complete_zeq_test():   
      """test zeq.py"""
-     zeq_infile = 'zeq_example.dat'
+     zeq_infile = test_file_prefix + 'zeq_example.dat'
      zeq_reference_output = """0      0.0 9.283e-08   339.9    57.9 
 1      2.5 7.582e-08   325.7    49.1 
 2      5.0 6.292e-08   321.3    45.9 
@@ -301,10 +298,10 @@ def complete_chartmaker_test():
 def complete_di_eq_test(): 
      """test di_eq.py"""
      print "Testing di_eq.py"
-     di_eq_infile = 'di_eq_example.dat'
+     di_eq_infile = test_file_prefix + 'di_eq_example.dat'
      di_eq_outfile = None
      di_eq_reference = ['-0.239410', '-0.893491', '0.436413', '0.712161', '0.063844', '0.760300', '0.321447', '0.686216', '0.322720', '0.670562', '0.407412', '0.540654', '0.580156', '0.340376', '0.105351', '0.657728', '0.247173', '0.599687', '0.182349', '0.615600', '0.174815', '0.601717', '0.282746', '0.545472', '0.264863', '0.538273', '0.235758', '0.534536', '0.290665', '0.505482', '0.260629', '0.511513', '0.232090', '0.516423', '0.244448', '0.505666', '0.277927', '0.464381', '0.250510', '0.477152', '0.291770', '0.440816', '0.108769', '0.516148', '0.196706', '0.482014', '0.349390', '0.381292', '0.168407', '0.475566', '0.206286', '0.446444', '0.175701', '0.450649', '0.301104', '0.378539', '0.204955', '0.423970', '0.199755', '0.422584', '0.346920', '0.308010', '0.119030', '0.441144', '0.239848', '0.376486', '0.269528', '0.342510', '0.085451', '0.423789', '0.192224', '0.387233', '0.172608', '0.395084', '0.272008', '0.320741', '0.393981', '0.117451', '-0.017726', '0.406002', '0.154273', '0.367000', '0.213903', '0.335760', '0.103221', '0.372202', '0.231833', '0.283245', '0.072160', '0.351538', '0.007802', '0.319236', '0.152583', '0.265350', '0.248133', '0.136412']
-     di_eq_wrong = "wrong"
+     di_eq_wrong = ['1','2','3','4','5']
      di_eq = Test_instance('di_eq.py', di_eq_infile, di_eq_outfile, di_eq_reference, di_eq_wrong, None, False)
      di_eq.list_sequence()
 
@@ -314,7 +311,7 @@ def complete_di_eq_test():
 def complete_azdip_magic_test(): # irregular, because the outfile is signaled with -Fsa, not -F.  sequence is in longhand
      """test azdip_magic.py"""
      # non WD
-     azdip_magic_infile = 'azdip_magic_example.dat'
+     azdip_magic_infile = test_file_prefix + 'azdip_magic_example.dat'
      azdip_magic_reference = test_file_prefix + 'azdip_magic_output_correct.out'
      azdip_magic_wrong = test_file_prefix + 'azdip_magic_output_incorrect.out'
      azdip_magic_outfile = test_file_prefix + 'azdip_magic_output_new.out' # needs file prefix because it doesn't go into the azdip_magic object
@@ -333,7 +330,6 @@ def complete_combine_magic_test(): # irregular type.  this one is a weird amalga
      input_2 = 'combine_magic_input_2.dat'
     # have to run it specially, because -f takes two arguments.  it doesn't fit with its class in this regard. 
      obj = env.run('combine_magic.py', '-WD', test_directory, '-F', output_file, '-f', input_1, input_2)
-     print obj.stdout
      combine_magic = Test_instance('combine_magic.py', None, output_file, reference_file, incorrect_output, None, True, '-f', input_1, input_2)
      combine_magic.check_file_output(test_file_prefix + combine_magic.outfile, combine_magic.ref_out)
      combine_magic.test_help()

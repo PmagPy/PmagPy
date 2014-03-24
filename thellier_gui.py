@@ -6775,8 +6775,8 @@ class Arai_GUI(wx.Frame):
                     new_key = mapping[key]
                     mapped_dictionary[new_key] = value
                 else:
-                   # pass
-                    mapped_dictionary[key] = value# if this line is left in, it gives everything from the original dictionary
+                    pass
+                    #mapped_dictionary[key] = value# if this line is left in, it gives everything from the original dictionary
                     # we will want the above eventually
             return mapped_dictionary
 

@@ -136,6 +136,7 @@ class PintPars(object):
 
   #      self.pars['magic_method_codes']=Data[self.s]['pars']['magic_method_codes']
         self.pars['specimen_n']=self.end-self.start+1
+        self.pars['specimen_n_total']=len(self.x_Arai)
 
  
         #LJ ADDING stats:
