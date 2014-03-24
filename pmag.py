@@ -1457,6 +1457,7 @@ def domean(indata,start,end,calculation_type):
         # changed by rshaar
         # control is taken as the center of mass
         #control=cm
+
         
         dot = 0
         for k in range(3):
@@ -2720,8 +2721,17 @@ def fisher_by_pol(data):
     for rec in data:
         if 'dec' in rec.keys() and 'inc' in rec.keys():
             DIblock.append([float(rec["dec"]),float(rec["inc"])]) # collect data for fisher calculation
-        if 'name' in rec.keys():nameblock.append(rec['name'])
-        if 'loc' in rec.keys():locblock.append(rec['loc'])
+        else:
+            continue
+        if 'name' in rec.keys():
+            nameblock.append(rec['name'])
+        else:
+            nameblock.append("")    
+        if 'loc' in rec.keys():
+            locblock.append(rec['loc'])
+        else:
+            locblock.append("")
+            
     ppars=doprinc(array(DIblock)) # get principal directions  
     reference_DI=[ppars['dec'],ppars['inc']] # choose the northerly declination principe component ("normal") 
     if reference_DI[0]>90 and reference_DI[0]<270: # make reference direction in northern hemisphere
@@ -8088,15 +8098,15 @@ def initialize_acceptance_criteria ():
     category='IE-SPEC'
 
     # low cutoff value
-    for crit in ['specimen_int_n','specimen_f','specimen_fvds','specimen_frac','specimen_q','specimen_w','specimen_r_corr','specimen_int_ptrm_n',\
-    'specimen_tail_n','specimen_ac_n']:
+    for crit in ['specimen_int_n','specimen_f','specimen_fvds','specimen_frac','specimen_q','specimen_w','specimen_r_sq','specimen_int_ptrm_n',\
+    'specimen_int_ptrm_tail_n','specimen_ac_n']:
         acceptance_criteria[crit]={} 
         acceptance_criteria[crit]['category']=category
         acceptance_criteria[crit]['criterion_name']=crit
         acceptance_criteria[crit]['value']=-999
         acceptance_criteria[crit]['threshold_type']="low"
         acceptance_criteria[crit]['decimal_points']=0
-        if crit in ['specimen_int_n','specimen_int_ptrm_n','specimen_tail_n','specimen_ac_n']:
+        if crit in ['specimen_int_n','specimen_int_ptrm_n','specimen_int_ptrm_tail_n','specimen_ac_n']:
             acceptance_criteria[crit]['decimal_points']=0
         elif crit in ['specimen_f','specimen_fvds','specimen_frac','specimen_q']:
             acceptance_criteria[crit]['decimal_points']=2
@@ -8105,15 +8115,15 @@ def initialize_acceptance_criteria ():
     
     # high cutoff value
     for crit in ['specimen_b_sigma','specimen_b_beta','specimen_g','specimen_gmax','specimen_k','specimen_k_sse',\
-    'specimen_r_det','specimen_z','specimen_z_md','specimen_int_mad','specimen_int_alpha','specimen_alpha','specimen_alpha_prime',\
-    'specimen_theta','specimen_int_dang','specimen_int_crm','specimen_ptrm','specimen_ptrm_ck','specimen_drat','specimen_maxdev','specimen_cdrat',\
-    'specimen_drats','specimen_mdrat','specimen_mdev','specimen_dpal','specimen_tail_drat','specimen_dtr','specimen_md','specimen_dt','specimen_dac']:
+    'specimen_coeff_det_sq','specimen_z','specimen_z_md','specimen_int_mad','specimen_int_mad_anc','specimen_int_alpha','specimen_alpha','specimen_alpha_prime',\
+    'specimen_theta','specimen_int_dang','specimen_int_crm','specimen_ptrm','specimen_dck','specimen_drat','specimen_maxdev','specimen_cdrat',\
+    'specimen_drats','specimen_mdrat','specimen_mdev','specimen_dpal','specimen_tail_drat','specimen_dtr','specimen_md','specimen_dt','specimen_dac','specimen_gamma']:
         acceptance_criteria[crit]={} 
         acceptance_criteria[crit]['category']=category
         acceptance_criteria[crit]['criterion_name']=crit
         acceptance_criteria[crit]['value']=-999
         acceptance_criteria[crit]['threshold_type']="high"
-        if crit in ['specimen_int_mad','specimen_int_dang','specimen_drat','specimen_cdrat','specimen_drats','specimen_tail_drat','specimen_dtr','specimen_md','specimen_dac']:
+        if crit in ['specimen_int_mad','specimen_int_mad_anc','specimen_int_dang','specimen_drat','specimen_cdrat','specimen_drats','specimen_tail_drat','specimen_dtr','specimen_md','specimen_dac','specimen_gamma']:
             acceptance_criteria[crit]['decimal_points']=1
         elif crit in ['specimen_gmax']:
             acceptance_criteria[crit]['decimal_points']=2

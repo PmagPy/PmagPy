@@ -1203,8 +1203,9 @@ class OrientFrameGrid(wx.Frame):
         # sample orientation
         #--------------------------------
         
-        self.headers=["sample_name",
-                 "site_name",
+        self.headers=["sample_orientation_flag",
+                 "sample_name",
+                 #"site_name",
                  "mag_azimuth",
                  "field_dip",
                  "bedding_dip_direction",
@@ -1237,7 +1238,7 @@ class OrientFrameGrid(wx.Frame):
         
         for i in range(len(self.samples_list)):
             self.grid.SetCellBackgroundColour(i, 0, "LIGHT GREY")
-            self.grid.SetCellBackgroundColour(i, 1, "LIGHT GREY")
+            self.grid.SetCellBackgroundColour(i, 1, "LIGHT STEEL BLUE")
             self.grid.SetCellBackgroundColour(i, 2, "YELLOW")
             self.grid.SetCellBackgroundColour(i, 3, "YELLOW")
             self.grid.SetCellBackgroundColour(i, 4, "PALE GREEN")
@@ -1365,8 +1366,9 @@ class OrientFrameGrid(wx.Frame):
         method_code_dia.Center()
         method_code_dia.ShowModal()
 
-        command= "orientation_magic.py  -Fsa er_samples_orient.txt -Fsi er_sites_orient.txt -f  %s %s %s %s %s %s > ./orientation_magic.log " \
-        %(self.WD+"/demag_orient.txt",\
+        command= "orientation_magic.py -WD %s -Fsa er_samples_orient.txt -Fsi er_sites_orient.txt -f  %s %s %s %s %s %s > ./orientation_magic.log " \
+        %(self.WD,\
+        "demag_orient.txt",\
         orient_convention_dia.ocn_flag,\
         orient_convention_dia.dcn_flag,\
         orient_convention_dia.gmt_flags,\
@@ -1410,20 +1412,22 @@ class OrientFrameGrid(wx.Frame):
         
         er_samples_data={}
         er_samples_orient_data={}
-        if os.path.isfile(self.WD+"/er_samples.txt"): 
+        if os.path.isfile(self.WD+"/er_samples.txt"):
             er_samples_file=self.WD+"/er_samples.txt"
             er_samples_data=self.read_magic_file(er_samples_file,1,"er_sample_name")
         
         if os.path.isfile(self.WD+"/er_samples_orient.txt"): 
+            
             er_samples_orient_file=self.WD+"/er_samples_orient.txt"
             er_samples_orient_data=self.read_magic_file(er_samples_orient_file,1,"er_sample_name")
         new_samples_added=[]
         for sample in er_samples_orient_data.keys():
             if sample not in er_samples_data.keys():
                 new_samples_added.append(sample)
-                er_samples_data[sample]={}
-                er_samples_data[sample]["er_sample_name"]=sample
-            for key in ["sample_azimuth","sample_dip","sample_bed_dip","sample_bed_dip_direction","sample_date","sample_declination_correction"]:
+                continue
+                #er_samples_data[sample]={}
+                #er_samples_data[sample]["er_sample_name"]=sample
+            for key in ["sample_orientation_flag","sample_azimuth","sample_dip","sample_bed_dip","sample_bed_dip_direction","sample_date","sample_declination_correction"]:
                 if key in er_samples_orient_data[sample].keys():
                     er_samples_data[sample][key]=er_samples_orient_data[sample][key]
             if "magic_method_codes" in er_samples_orient_data[sample].keys():
@@ -1435,7 +1439,6 @@ class OrientFrameGrid(wx.Frame):
                 all_codes=codes+new_codes
                 all_codes=list(set(all_codes)) # remove duplicates
                 er_samples_data[sample]["magic_method_codes"]=":".join(all_codes)
-                    
         samples=er_samples_data.keys()
         samples.sort()
         er_recs=[]
@@ -1448,7 +1451,7 @@ class OrientFrameGrid(wx.Frame):
         dlg1.Destroy()
         
         if len(new_samples_added)>0:
-            dlg1 = wx.MessageDialog(None,caption="Warning:", message="new samples added to er_samples.txt\n use MagIC EarthRef Builder to rebuild EarthRef model" ,style=wx.OK|wx.ICON_INFORMATION)
+            dlg1 = wx.MessageDialog(None,caption="Warning:", message="The following samples are in orient file, but not in magic_measurements.txt:\n %s "%(" , ".join(new_samples_added)) ,style=wx.OK|wx.ICON_INFORMATION)
             dlg1.ShowModal()
             dlg1.Destroy()
             

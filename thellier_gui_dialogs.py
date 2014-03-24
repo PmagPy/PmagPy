@@ -1,29 +1,125 @@
+#!/usr/bin/env python
+
+#============================================================================================
+# LOG HEADER:
+#  
+# Dialogs boxes for thellier_gui.py
+#
+#============================================================================================
+#
+# 3/22/2014 Version 1.0 by Ron Shaar
+#
+#
+#============================================================================================
+
 #--------------------------------------------------------------    
 # Thellier GUI dialog
 #--------------------------------------------------------------
 
+import matplotlib
+matplotlib.use('WXAgg')
+import pmag
+import wx
+import copy
+import os
+
+# only this one is nessesary.
+import wx
+from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigCanvas \
+
 #--------------------------------------------------------------    
-# Change Acceptance criteria dialog
+# paleointensity statistics list (SPD.v.1.0)
 #--------------------------------------------------------------
 
-import wx
+class PI_Statistics_Dialog(wx.Dialog):
 
-class Criteria_Dialog(wx.Dialog):
-
-    def __init__(self, parent, acceptance_criteria,title):
+    def __init__(self, parent, show_statistics_on_gui,title):
+        print "Hi"
+        print "show_statistics_on_gui",show_statistics_on_gui
         style =  wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER  
-        super(Criteria_Dialog, self).__init__(parent, title=title,style=style)
-        self.acceptance_criteria=acceptance_criteria
-        self.InitUI()
+        super(PI_Statistics_Dialog, self).__init__(parent, title=title,style=style)
+        self.show_statistics_on_gui=copy.copy(show_statistics_on_gui)
 
+        self.stat_by_category={}
+        
+        self.stat_by_category['Arai plot']=['specimen_int_n',
+        'specimen_frac','specimen_f','specimen_fvds',
+        'specimen_b_sigma','specimen_b_beta','specimen_scat',
+        'specimen_g','specimen_gmax',
+        'specimen_k','specimen_k_sse',
+        'specimen_z','specimen_z_md',
+        'specimen_q',
+        'specimen_r_sq','specimen_coeff_det_sq',      
+        ]
+        self.stat_by_category['Direction']=['specimen_int_mad','specimen_int_mad_anc','specimen_int_dang','specimen_int_alpha','specimen_alpha_prime','specimen_theta','specimen_int_crm','specimen_gamma']
+        self.stat_by_category['pTRM Checks']=['specimen_int_ptrm_n','specimen_ptrm','specimen_drat','specimen_drats','specimen_cdrat','specimen_mdrat',
+        'specimen_dck','specimen_maxdev','specimen_mdev','specimen_dpal']
+        self.stat_by_category['Tail Checks']=['specimen_int_ptrm_tail_n','specimen_md','specimen_tail_drat','specimen_dtr','specimen_dt']
+        self.stat_by_category['Additivity Checks']=['specimen_ac_n','specimen_dac']
+        self.DESC={}
+        self.DESC['specimen_frac']='The angle between the applied field direction and the ChRM direction of the NRM as determined from the free-floating PCA fit to the selected demagnetization steps of the paleointensity experiment'
+        self.DESC['specimen_int_n']='Number of measurements included in field strength calculations'
+        self.DESC['specimen_alpha_prime']='Angular difference between the anchored best-fit direction from the paleointensity experiment and an independent measure of the paleomagnetic direction'
+        self.DESC['specimen_alpha']='Angular difference between the anchored and free-floating best-fit directions on a vector component diagram'
+        self.DESC['specimen_int_alpha']='Angular difference between the anchored and free-floating best-fit directions on a vector component diagram from a paleointensity experiment'
+        self.DESC['specimen_mad']='Maximum Angular Deviation (MAD) of the free-floating directional PCA fits to the paleomagnetic vector'
+        self.DESC['specimen_mad_anc']='Maximum Angular Deviation (MAD) of the anchored directional PCA fits to the paleomagnetic vector'
+        self.DESC['specimen_int_mad']='Maximum Angular Deviation (MAD) of the free-floating directional PCA fits to the paleomagnetic vector from a paleointensity experiment'
+        self.DESC['specimen_int_mad_anc']='Maximum Angular Deviation (MAD) of the anchored directional PCA fits to the paleomagnetic vector from a paleointensity experiment'
+        self.DESC['specimen_w']='Weighting factor'
+        self.DESC['specimen_q']='A measure of the overall quality of the paleointensity estimate and combines the relative scatter of the best-fit line, the NRM fraction and the gap factor'
+        self.DESC['specimen_f']='NRM fraction used for the best-fit on an Arai plot '
+        self.DESC['specimen_fvds']='NRM fraction used for the best-fit on an Arai plot calculated as a vector difference sum'
+        self.DESC['specimen_b']='The slope of the best-fit line of the selected TRM and NRM points on an Arai plot'
+        self.DESC['specimen_b_sigma']='The standard error on the slope on an Arai plot'
+        self.DESC['specimen_b_beta']='The ratio of the standard error of the slope to the absolute value of the slope on an Arai plot'
+        self.DESC['specimen_g']='The gap reflects the average spacing of the selected Arai plot points along the best-fit line'
+        self.DESC['specimen_gmax']='The maximum gap between two points in Arai plot determined by vector arithmetic'
+        self.DESC['specimen_r_sq']='The squared correlation coefficient to estimate the strength of the linear relationship between the NRM and TRM over the best-fit Arai plot segment'
+        self.DESC['specimen_coeff_det_sq']='The squared coefficient of determination to estimate variance accounted for by the linear model fit on an Arai plot'
+        self.DESC['specimen_dang']='Deviation angle of direction of component with respect to origin'
+        self.DESC['specimen_int_dang']='The angle between the free-floating best-fit direction and the vector connecting the center of mass and the origin of the vector component diagram'
+        self.DESC['specimen_int_crm']='The cumulative deflection between the NRM vectors and the ChRM direction'
+        self.DESC['specimen_int_ptrm_tail_n']='Number of pTRM tail checks used in paleointensity experiment'
+        self.DESC['specimen_md']='Maximum absolute difference produced by a pTRM tail check, normalized by the vector difference sum of the NRM'
+        self.DESC['specimen_tail_drat']='Maximum absolute difference produced by a pTRM tail check, normalized by the length of the best-fit line'
+        self.DESC['specimen_dtr']='Maximum absolute difference produced by a pTRM tail check, normalized by the NRM (obtained from the intersection of the best-fit line and the y-axis on an Arai plot)'
+        self.DESC['specimen_int_ptrm_n']='Number of pTRM checks used in paleointensity experiment'
+        self.DESC['specimen_ptrm']='Maximum absolute difference produced by a pTRM check, normalized by the TRM acquired at that heating step'
+        self.DESC['specimen_dck']='Maximum absolute difference produced by a pTRM check, normalized by the total TRM (obtained from the intersection of the best-fit line and the x-axis on an Arai plot)'
+        self.DESC['specimen_maxdev']='Maximum absolute difference produced by a pTRM check, normalized by the length of the TRM segment of the best-fit line on an Arai plot'
+        self.DESC['specimen_drat']='Maximum absolute difference produced by a pTRM check, normalized by the length of the best-fit line'
+        self.DESC['specimen_mdrat']='The average difference produced by a pTRM check, normalized by the length of the best-fit line'
+        self.DESC['specimen_cdrat']='Cumulative difference ratio difference produced by a pTRM check'
+        self.DESC['specimen_drats']='Cumulative pTRM check difference normalized by the pTRM gained at the maximum temperature used for the best-fit on the Arai plot'
+        self.DESC['specimen_mdev']='Mean deviation of a pTRM check'
+        self.DESC['specimen_dpal']='A measure of cumulative alteration determined by the difference of the alteration corrected intensity estimate (Valet et al., 1996) and the uncorrected estimate, normalized by the uncorrected estimate (Leonhardt et al., 2004a)'
+        self.DESC['specimen_dt']='The extent of a pTRM tail after correction for angular dependence'
+        self.DESC['specimen_dac']='The maximum absolute additivity check difference normalized by the total TRM (obtained from the intersection of the best-fit line and the x-axis on an Arai plot'
+        self.DESC['specimen_ac_n']='The number of additivity checks used to analyze the best-fit segment on an Arai plot'
+        self.DESC['specimen_k']='The curvature of the Arai plot as determined by the best-fit circle to all of the data '
+        self.DESC['specimen_k_sse']='The quality of the best-fit circle used to determine k'
+        self.DESC['specimen_z']='Arai plot zigzag parameter calculated using the scatter around the best-fit slope on an Arai plot'
+        self.DESC['specimen_z_md']='Arai plot zigzag parameter calculated by the area bounded by the curve that the ZI points make and the curve that the IZ points make'
+        self.DESC['specimen_scat']='All pTRM checks, MD checks, IZ ZI data, etc. are in the box (g = good or b=bad)'
+        self.DESC['specimen_viscosity_index']='Viscosity index'
+        self.DESC['specimen_lab_field_dc']='Applied DC field in laboratory'
+        self.DESC['specimen_lab_field_ac']='Applied maximum or peak AC field in laboratory'
+        self.DESC['specimen_magn_moment']='Measured magnetic moment'
+        self.DESC['specimen_magn_volume']='Measured intensity of magnetization, Volume normalized'
+        self.DESC['specimen_magn_mass']='Measured intensity of magnetization, Mass normalized'
+        self.DESC['specimen_int_corr_cooling_rate']='Cooling rate correction factor for intensity'
+        self.DESC['specimen_int_corr_anisotropy']='Anisotropy correction factor for intensity'
+        self.DESC['specimen_int_corr_nlt']='Non-linear TRM correction factor for intensity'
+        self.DESC['specimen_delta']='Maximum angle of deviation between assumed NRM and measured NRM in perpendicular paleointensity method'
+        self.DESC['specimen_theta']='The angle between the applied field direction and the ChRM direction of the NRM as determined from the free-floating PCA fit to the selected demagnetization steps of the paleointensity experiment'
+        self.DESC['specimen_gamma']='Maximum angle of deviation between acquired pTRM direction and assumed applied field direction'
+        self.InitUI()
+        self.initialize_stat()
     def InitUI(self):
 
-
         pnl1 = wx.Panel(self)
-
         vbox = wx.BoxSizer(wx.VERTICAL)
-
-        bSizer1 = wx.StaticBoxSizer( wx.StaticBox( pnl1, wx.ID_ANY, "specimen acceptance criteria" ), wx.HORIZONTAL )
 
         #============================        
         # design the panel
@@ -34,43 +130,211 @@ class Criteria_Dialog(wx.Dialog):
         # Specimen criteria
         #---------------------------
 
-        window_list_specimens=['int_n','int_ptrm_n','frac','gmax','f','fvds','b_beta','g','q','int_mad','int_dang','drats','md']
-        for key in window_list_specimens:
-            command="self.set_specimen_%s=wx.TextCtrl(pnl1,style=wx.TE_CENTER,size=(50,20))"%key
+        categories=['Arai plot','Direction','pTRM Checks','Tail Checks','Additivity Checks']
+        for k in range(len(categories)):
+            command = "bSizer%i = wx.StaticBoxSizer( wx.StaticBox( pnl1, wx.ID_ANY, '%s' ), wx.VERTICAL )"%(k,categories[k])
             exec command
-        self.set_specimen_scat=wx.CheckBox(pnl1, -1, '', (50, 50))        
-        criteria_specimen_window = wx.GridSizer(2, 14, 6, 6)
-        criteria_specimen_window.AddMany( [(wx.StaticText(pnl1,label="int_n",style=wx.TE_CENTER), wx.EXPAND),
-            (wx.StaticText(pnl1,label="int_ptrm_n",style=wx.TE_CENTER), wx.EXPAND),
-            (wx.StaticText(pnl1,label="FRAC",style=wx.TE_CENTER), wx.EXPAND),
-            (wx.StaticText(pnl1,label="SCAT",style=wx.TE_CENTER), wx.EXPAND),
-            (wx.StaticText(pnl1,label="gap_max",style=wx.TE_CENTER), wx.EXPAND),
-            (wx.StaticText(pnl1,label="f",style=wx.TE_CENTER), wx.EXPAND),
-            (wx.StaticText(pnl1,label="fvds",style=wx.TE_CENTER), wx.EXPAND),
-            (wx.StaticText(pnl1,label="beta",style=wx.TE_CENTER), wx.EXPAND),
-            (wx.StaticText(pnl1,label="g",style=wx.TE_CENTER), wx.EXPAND),
-            (wx.StaticText(pnl1,label="q",style=wx.TE_CENTER), wx.EXPAND),
-            (wx.StaticText(pnl1,label="MAD",style=wx.TE_CENTER), wx.EXPAND),
-            (wx.StaticText(pnl1,label="DANG",style=wx.TE_CENTER), wx.EXPAND),
-            (wx.StaticText(pnl1,label="DRATS",style=wx.TE_CENTER), wx.EXPAND),
-            (wx.StaticText(pnl1,label="MD tail",style=wx.TE_CENTER), wx.EXPAND),
-            (self.set_specimen_int_n),
-            (self.set_specimen_int_ptrm_n),
-            (self.set_specimen_frac),
-            (self.set_specimen_scat),                        
-            (self.set_specimen_gmax),
-            (self.set_specimen_f),
-            (self.set_specimen_fvds),
-            (self.set_specimen_b_beta),
-            (self.set_specimen_g),
-            (self.set_specimen_q),
-            (self.set_specimen_int_mad),
-            (self.set_specimen_int_dang),
-            (self.set_specimen_drats),                                
-            (self.set_specimen_md)])
+            
+            for stat in self.stat_by_category[categories[k]]:
+                short_name=stat.replace("specimen_","")
+                command="self.set_specimen_%s=wx.CheckBox(pnl1,-1,label='%s',name='%s')"%(short_name,short_name,short_name)
+                exec command
+                command = "self.Bind(wx.EVT_CHECKBOX, self.OnCheckBox, self.set_specimen_%s)"%(short_name)
+                exec command                
+                command="self.specimen_%s_button = wx.Button(pnl1, -1, label='description',name='%s')" %(short_name,stat)
+                exec command
+                command = "self.Bind(wx.EVT_BUTTON,self.PI_stat_description, self.specimen_%s_button)"%(short_name)
+                exec command
+                
+            for i in range(len(self.stat_by_category[categories[k]])):
+                command="hbox_%i= wx.BoxSizer(wx.HORIZONTAL)"%i
+                exec command
+                stat=self.stat_by_category[categories[k]][i]
+                short_name=stat.replace("specimen_","")
+                command="hbox_%i.Add(self.specimen_%s_button)"%(i,short_name)
+                exec command
+                command="hbox_%i.AddSpacer(10)"%(i)
+                exec command
+                
+                command="hbox_%i.Add(self.set_specimen_%s)"%(i,short_name)
+                exec command
+                command="bSizer%i.Add(hbox_%i)"%(k,i)
+                exec command
+                command="bSizer%i.AddSpacer(10)"%k
+                exec command
+        #self.specimen_int_n_button.Bind(wx.EVT_BUTTON, lambda evt, name=specimen_int_n_button.GetLabel(): self.onButton(evt, name)        
+        #self.Bind(wx.EVT_BUTTON,self.PI_stat_description, self.specimen_int_n_button)
+        #---------------------------
+        # OK / CANCEL
+        #---------------------------
+
+        hbox_OK_CANCEL = wx.BoxSizer(wx.HORIZONTAL)
+        self.okButton = wx.Button(pnl1, wx.ID_OK, "&OK")
+        self.cancelButton = wx.Button(pnl1, wx.ID_CANCEL, '&Cancel')
+        hbox_OK_CANCEL.Add(self.okButton)
+        hbox_OK_CANCEL.AddSpacer(10)
+        hbox_OK_CANCEL.Add(self.cancelButton )
+
+        #============================        
+        # arrange sizers
+        #============================   
+             
+             
+        hbox= wx.BoxSizer(wx.HORIZONTAL)
+        hbox.AddSpacer(10)
+        hbox.Add(bSizer0, flag=wx.ALIGN_CENTER_HORIZONTAL)
+        hbox.AddSpacer(10)
+        hbox.Add(bSizer1, flag=wx.ALIGN_CENTER_HORIZONTAL)
+        hbox.AddSpacer(10)
+        hbox.Add(bSizer2, flag=wx.ALIGN_CENTER_HORIZONTAL)
+        hbox.AddSpacer(10)
+        hbox.Add(bSizer3, flag=wx.ALIGN_CENTER_HORIZONTAL)
+        hbox.AddSpacer(10)
+        hbox.Add(bSizer4, flag=wx.ALIGN_CENTER_HORIZONTAL)
+        hbox.AddSpacer(10)            
+                                    
+        vbox.AddSpacer(10)
+        vbox.Add(hbox, flag=wx.ALIGN_CENTER_HORIZONTAL)
+        vbox.AddSpacer(10)
+        vbox.Add(hbox_OK_CANCEL, flag=wx.ALIGN_CENTER_HORIZONTAL)
+        vbox.AddSpacer(10)
+                    
+        pnl1.SetSizer(vbox)
+        vbox.Fit(self)
+
+
+    def initialize_stat(self):
+        categories=['Arai plot','Direction','pTRM Checks','Tail Checks','Additivity Checks']
+        for short_name in self.show_statistics_on_gui:
+            for category in categories:
+                if "specimen_" + short_name in self.stat_by_category[category]:
+                    command="self.set_specimen_%s.SetValue(True)"%short_name
+                    exec command
+                    
+                    
+
+    def PI_stat_description(self,event):
+        button = event.GetEventObject()
+        crit=button.GetName()
+        TEXT=self.DESC[crit]
+        TEXT=TEXT+"\n\n"
+        TEXT=TEXT+"For more details see:\n http://www.paleomag.net/SPD"
+        dlg1 = wx.MessageDialog(None,caption=crit, message=TEXT ,style=wx.OK|wx.ICON_INFORMATION)
+        dlg1.ShowModal()
+        dlg1.Destroy()
+        
+    def OnCheckBox(self,event):
+        checkbox= event.GetEventObject()
+        if checkbox.GetValue()==True:
+            crit=str(checkbox.GetName())
+            if crit not in self.show_statistics_on_gui:
+                self.show_statistics_on_gui.append(crit)
+        if checkbox.GetValue()==False:
+            crit=str(checkbox.GetName())
+            if crit in self.show_statistics_on_gui:
+                self.show_statistics_on_gui.remove(crit)
+        
+        # arrange_all_statistics in order:
+        tmp_list=copy.copy(self.show_statistics_on_gui)
+        self.show_statistics_on_gui=[]
+        categories=['Arai plot','Direction','pTRM Checks','Tail Checks','Additivity Checks']
+        for category in categories:
+            for stat in self.stat_by_category[category]:
+                short_name=str(stat.replace("specimen_",""))
+                if short_name in tmp_list:
+                    self.show_statistics_on_gui.append(short_name)
+
+
+#--------------------------------------------------------------    
+# Change Acceptance criteria dialog
+#--------------------------------------------------------------
+
+
+
+class Criteria_Dialog(wx.Dialog):
+
+    def __init__(self, parent, acceptance_criteria,preferences,title):
+        style =  wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER  
+        super(Criteria_Dialog, self).__init__(parent, title=title,style=style)
+        self.acceptance_criteria=acceptance_criteria
+        self.preferences=preferences
+        self.InitUI()
+
+
+
+    def InitUI(self):
+
+
+        pnl1 = wx.Panel(self)
+
+        vbox = wx.BoxSizer(wx.VERTICAL)
+
+
+        #============================        
+        # design the panel
+        #============================        
+
+        #---------------------------
+        # sizer 1
+        # Specimen criteria
+        #---------------------------
+
+        bSizer1 = wx.StaticBoxSizer( wx.StaticBox( pnl1, wx.ID_ANY, "specimen acceptance criteria" ), wx.HORIZONTAL )
+        
+        hbox_criteria = wx.BoxSizer(wx.HORIZONTAL)
+        window_list_specimens=self.preferences['show_statistics_on_gui']
+        
+        for stat in window_list_specimens:
+            if stat=='scat':
+                self.set_specimen_scat=wx.CheckBox(pnl1, -1, '')
+            else:
+                command="self.set_specimen_%s=wx.TextCtrl(pnl1,style=wx.TE_CENTER,size=(50,20))"%stat
+                exec command
+            command="self.%s_label=wx.StaticText(pnl1,label='%s',style=wx.ALIGN_CENTRE)"%(stat,stat.replace("specimen_",""))
+            exec command
+            
+            command="gs_%s = wx.GridSizer(2, 1,5,5)"%stat
+            exec command            
+            command="gs_%s.AddMany( [(self.%s_label,wx.EXPAND),(self.set_specimen_%s,wx.EXPAND)])"%(stat,stat,stat)
+            exec command
+            command="bSizer1.Add(gs_%s,flag=wx.ALIGN_LEFT)"%stat
+            exec command
+            bSizer1.AddSpacer(12)
+
+                
+                                                
+        #criteria_specimen_window = wx.GridSizer(2, 14, 6, 6)
+        #criteria_specimen_window.AddMany( [(wx.StaticText(pnl1,label="int_n",style=wx.TE_CENTER), wx.EXPAND),
+        #    (wx.StaticText(pnl1,label="int_ptrm_n",style=wx.TE_CENTER), wx.EXPAND),
+        #    (wx.StaticText(pnl1,label="FRAC",style=wx.TE_CENTER), wx.EXPAND),
+        #    (wx.StaticText(pnl1,label="SCAT",style=wx.TE_CENTER), wx.EXPAND),
+        #    (wx.StaticText(pnl1,label="gap_max",style=wx.TE_CENTER), wx.EXPAND),
+        #    (wx.StaticText(pnl1,label="f",style=wx.TE_CENTER), wx.EXPAND),
+        #    (wx.StaticText(pnl1,label="fvds",style=wx.TE_CENTER), wx.EXPAND),
+        #    (wx.StaticText(pnl1,label="beta",style=wx.TE_CENTER), wx.EXPAND),
+        #    (wx.StaticText(pnl1,label="g",style=wx.TE_CENTER), wx.EXPAND),
+        #    (wx.StaticText(pnl1,label="q",style=wx.TE_CENTER), wx.EXPAND),
+        #    (wx.StaticText(pnl1,label="MAD",style=wx.TE_CENTER), wx.EXPAND),
+        #    (wx.StaticText(pnl1,label="DANG",style=wx.TE_CENTER), wx.EXPAND),
+        #    (wx.StaticText(pnl1,label="DRATS",style=wx.TE_CENTER), wx.EXPAND),
+        #    (wx.StaticText(pnl1,label="MD tail",style=wx.TE_CENTER), wx.EXPAND),
+        #    (self.set_specimen_int_n),
+        #    (self.set_specimen_int_ptrm_n),
+        #    (self.set_specimen_frac),
+        #    (self.set_specimen_scat),                        
+        #    (self.set_specimen_gmax),
+        #    (self.set_specimen_f),
+        #    (self.set_specimen_fvds),
+        #    (self.set_specimen_b_beta),
+        #    (self.set_specimen_g),
+        #    (self.set_specimen_q),
+        #    (self.set_specimen_int_mad),
+        #    (self.set_specimen_int_dang),
+        #    (self.set_specimen_drats),                                
+        #    (self.set_specimen_md)])
                                            
 
-        bSizer1.Add( criteria_specimen_window, 0, wx.ALIGN_LEFT|wx.ALL, 5 )
+        # bSizer1.Add( criteria_specimen_window, 0, wx.ALIGN_LEFT|wx.ALL, 5 )
 
         #---------------------------
         # anistropy criteria
@@ -212,32 +476,35 @@ class Criteria_Dialog(wx.Dialog):
         # Intialize values: specimen criteria window
         #-------------------------------------------        
 
-        criteria_list_for_window=['specimen_gmax','specimen_b_beta','specimen_int_dang','specimen_drats','specimen_int_mad','specimen_md']+\
-        ['specimen_int_n','specimen_int_ptrm_n','specimen_f','specimen_fvds','specimen_frac','specimen_g','specimen_q']
+        #criteria_list_for_window=['specimen_gmax','specimen_b_beta','specimen_int_dang','specimen_drats','specimen_int_mad','specimen_md']+\
+        #['specimen_int_n','specimen_int_ptrm_n','specimen_f','specimen_fvds','specimen_frac','specimen_g','specimen_q']
         
+        criteria_list_for_window=self.preferences['show_statistics_on_gui']
         for crit in criteria_list_for_window:
             value=""
-            if self.acceptance_criteria[crit]['value']==-999:
-                value=""
-            elif type(self.acceptance_criteria[crit]['threshold_type'])==list:
-                if type(self.acceptance_criteria[crit]['value'])==str:
-                    value=self.acceptance_criteria[crit]['value']
-            elif type(self.acceptance_criteria[crit]['value'])==float or  type(self.acceptance_criteria[crit]['value'])==int:
-                if self.acceptance_criteria[crit]['decimal_points']!=-999:
-                    command="value='%%.%if'%%(self.acceptance_criteria[crit]['value'])"%int(self.acceptance_criteria[crit]['decimal_points'])
-                    exec command
+            crit="specimen_"+crit
+            if crit!="specimen_scat":
+                if self.acceptance_criteria[crit]['value']==-999:
+                    value=""
+                elif type(self.acceptance_criteria[crit]['threshold_type'])==list:
+                    if type(self.acceptance_criteria[crit]['value'])==str:
+                        value=self.acceptance_criteria[crit]['value']
+                elif type(self.acceptance_criteria[crit]['value'])==float or  type(self.acceptance_criteria[crit]['value'])==int:
+                    if self.acceptance_criteria[crit]['decimal_points']!=-999:
+                        command="value='%%.%if'%%(self.acceptance_criteria[crit]['value'])"%int(self.acceptance_criteria[crit]['decimal_points'])
+                        exec command
+                    else:
+                        value="%.3e"%(self.acceptance_criteria[crit]['value'])
+    
+                command="self.set_%s.SetValue(value)"%crit
+    
+                exec command
+            else:    
+                if self.acceptance_criteria['specimen_scat']['value'] in [True,1,"True","TRUE","1","1.0",'g']:
+                    self.set_specimen_scat.SetValue(True)
+                    
                 else:
-                    value="%.3e"%(self.acceptance_criteria[crit]['value'])
-
-            command="self.set_%s.SetValue(value)"%crit
-
-            exec command
-            
-        if self.acceptance_criteria['specimen_scat']['value'] in [True,1,"True","TRUE","1","1.0",'g']:
-            self.set_specimen_scat.SetValue(True)
-            
-        else:
-            self.set_specimen_scat.SetValue(False)
+                    self.set_specimen_scat.SetValue(False)
 
         #-------------------------------------------        
         # Intialize values: anisotropy window
@@ -1604,3 +1871,128 @@ class convert_generic_files_to_MagIC(wx.Frame):
                 site=d.join(site_splitted[:-1])
         
         return site
+
+class preferences_stats_dialog(wx.Dialog):
+            
+            def __init__(self, parent,title,preferences):
+                self.preferences=preferences
+                super(preferences_stats_dialog, self).__init__(parent, title=title)
+                self.InitUI()
+
+            def on_add_button(self,event):
+                selName = str(self.criteria_options.GetStringSelection())
+                if selName not in self.preferences['show_statistics_on_gui']:
+                  self.preferences['show_statistics_on_gui'].append(selName)
+                #self.update_text_box()
+                self.criteria_list_window.Set(self.preferences['show_statistics_on_gui'])
+                self.criteria_options.Set(self.statistics_options)
+
+            def on_remove_button(self,event):
+                selName = str(self.criteria_list_window.GetStringSelection())
+                if selName  in self.preferences['show_statistics_on_gui']:
+                  self.preferences['show_statistics_on_gui'].remove(selName)
+                self.criteria_list_window.Set(self.preferences['show_statistics_on_gui'])
+                self.criteria_options.Set(self.statistics_options)
+               
+                
+            def InitUI(self):
+
+                pnl1 = wx.Panel(self)
+
+                vbox = wx.BoxSizer(wx.VERTICAL)
+
+                #-----------box1        
+
+                bSizer1 = wx.StaticBoxSizer( wx.StaticBox( pnl1, wx.ID_ANY, "Statistical definitions" ), wx.HORIZONTAL )
+                self.bootstrap_N=wx.TextCtrl(pnl1,style=wx.TE_CENTER,size=(80,20))
+                                             
+                Statistics_definitions_window = wx.GridSizer(1, 2, 12, 12)
+                Statistics_definitions_window.AddMany( [(wx.StaticText(pnl1,label="Bootstrap N",style=wx.TE_CENTER), wx.EXPAND),
+                    (self.bootstrap_N, wx.EXPAND)])                 
+                bSizer1.Add( Statistics_definitions_window, 0, wx.ALIGN_LEFT|wx.ALL, 5 )
+                
+                #-----------box2        
+
+                bSizer2 = wx.StaticBoxSizer( wx.StaticBox( pnl1, wx.ID_ANY, "Dipole Moment" ), wx.HORIZONTAL )
+
+                self.v_adm_box = wx.ComboBox(pnl1, -1, self.preferences['VDM_or_VADM'], (100, 20), wx.DefaultSize, ["VADM","VDM"], wx.CB_DROPDOWN,name="VDM or VADM?")
+                                             
+                Statistics_VADM = wx.GridSizer(1, 2, 12, 12)
+                Statistics_VADM.AddMany( [(wx.StaticText(pnl1,label="VDM or VADM?",style=wx.TE_CENTER), wx.EXPAND),
+                    (self.v_adm_box, wx.EXPAND)])                 
+                bSizer2.Add( Statistics_VADM, 0, wx.ALIGN_LEFT|wx.ALL, 5 )
+                         
+                #----------------------
+                                    
+#                bSizer3 = wx.StaticBoxSizer( wx.StaticBox( pnl1, wx.ID_ANY, "Choose statistics to display on GUI" ), wx.VERTICAL )
+#
+#                self.statistics_options=["int_n","int_ptrm_n","frac","scat","gmax","b_beta","int_mad","int_dang","f","fvds","g","q","drats","md",'ptrms_dec','ptrms_inc','ptrms_mad','ptrms_angle']
+#                #self.criteria_list_window = wx.TextCtrl(pnl1, id=-1, size=(200,250), style=wx.TE_MULTILINE | wx.TE_READONLY | wx.HSCROLL)
+#                self.criteria_list_window =wx.ListBox(choices=self.preferences['show_statistics_on_gui'], id=-1,name='listBox1', parent=pnl1, size=wx.Size(150, 150), style=0)
+#                self.criteria_options = wx.ListBox(choices=self.statistics_options, id=-1,name='listBox1', parent=pnl1, size=wx.Size(150, 150), style=0)
+#                #self.criteria_options.Bind(wx.EVT_LISTBOX, self.on_choose_criterion,id=-1)
+#                self.criteria_add =  wx.Button(pnl1, id=-1, label='add')
+#                self.Bind(wx.EVT_BUTTON, self.on_add_button, self.criteria_add)
+#                self.criteria_remove =  wx.Button(pnl1, id=-1, label='remove')
+#                self.Bind(wx.EVT_BUTTON, self.on_remove_button, self.criteria_remove)
+#
+#                Statistics_criteria_0 = wx.GridSizer(1, 2, 0, 0)
+#                Statistics_criteria_0.AddMany( [(wx.StaticText(pnl1,label="Options:"), wx.EXPAND),
+#                    (wx.StaticText(pnl1,label="Statistics displayed:"), wx.EXPAND)])
+#   
+#                Statistics_criteria_1 = wx.GridSizer(2, 2, 0, 0)
+#                Statistics_criteria_1.AddMany( [((self.criteria_options),wx.EXPAND),
+#                    ((self.criteria_list_window),wx.EXPAND),
+#                    ((self.criteria_add),wx.EXPAND),
+#                    ((self.criteria_remove),wx.EXPAND)])
+#
+#
+###                bSizer3.Add(self.criteria_options,wx.ALIGN_LEFT)
+###                bSizer3.Add(self.criteria_add,wx.ALIGN_LEFT)
+###                bSizer3.Add(self.criteria_list_window)
+#                bSizer3.Add(Statistics_criteria_0, 0, wx.ALIGN_TOP, 0 )
+#                bSizer3.Add(Statistics_criteria_1, 0, wx.ALIGN_TOP, 0 )
+#                #self.update_text_box() 
+
+                #----------------------
+
+                hbox2 = wx.BoxSizer(wx.HORIZONTAL)
+                self.okButton = wx.Button(pnl1, wx.ID_OK, "&OK")
+                self.cancelButton = wx.Button(pnl1, wx.ID_CANCEL, '&Cancel')
+                hbox2.Add(self.okButton)
+                hbox2.Add(self.cancelButton )
+
+                
+                #----------------------  
+                vbox.AddSpacer(20)
+                vbox.Add(bSizer1, flag=wx.ALIGN_TOP)
+                vbox.AddSpacer(20)
+
+                vbox.Add(bSizer2, flag=wx.ALIGN_TOP)
+                vbox.AddSpacer(20)
+
+                #vbox.Add(bSizer3, flag=wx.ALIGN_TOP)
+                #vbox.AddSpacer(20)
+
+                vbox.Add(hbox2, flag=wx.ALIGN_TOP)
+                vbox.AddSpacer(20)
+                            
+                pnl1.SetSizer(vbox)
+                vbox.Fit(self)
+
+
+                #---------------------- Initialize  values:
+
+                try:                    
+                    self.bootstrap_N.SetValue("%.0f"%(self.preferences["BOOTSTRAP_N"]))
+                except:
+                    self.bootstrap_N.SetValue("10000")
+                    
+                #----------------------
+
+#if __name__ == '__main__':
+#    app = wx.PySimpleApp()
+#    app.frame = PI_Statistics_Dialog(None, {},title='SPD list')
+#    app.frame.Show()
+#    app.frame.Center()
+#    app.MainLoop()

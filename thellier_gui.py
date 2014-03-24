@@ -3,6 +3,18 @@
 #============================================================================================
 # LOG HEADER:
 #============================================================================================
+#
+# Thellier_GUI Version 2.19 03/23/2014
+# update dialog boxes with SPD.1.0
+#
+# Thellier_GUI Version 2.18 03/21/2014
+# insert SPD.py.
+# some bug fix
+#
+# Thellier_GUI Version 2.17 03/20/2014
+# insert SPD.py.
+# merge changes in appearance
+#
 # Thellier_GUI Version 2.16 03/17/2014
 # code cleanup for SPD.1.0 insertion
 # change pmag_criteria.txt format to fit MagIC model 2.5
@@ -70,7 +82,6 @@
 # 2. Add ptrm directions statistics
 #
 #
-# 
 #
 #-------------------------
 #
@@ -79,14 +90,12 @@
 # Citation: Shaar and Tauxe (2013)
 #
 # January 2012: Initial revision
-# To do list:
-# 1) calculate MD tail check
 #
 #
 #============================================================================================
 
 global CURRENT_VRSION
-CURRENT_VRSION = "v.2.16"
+CURRENT_VRSION = "v.2.19"
 import matplotlib
 matplotlib.use('WXAgg')
 
@@ -104,6 +113,7 @@ except:
     pass
 import stat
 import subprocess
+import shutil
 import time
 import wx
 import wx.grid
@@ -499,27 +509,27 @@ class Arai_GUI(wx.Frame):
         # Specimen paleointensity statistics
         # ---------------------------  
         
-        Statsitics_labels={}
-        Statsitics_labels["int_n"]="n"
-        Statsitics_labels["int_ptrm_n"]="n_ptrm"
-        Statsitics_labels["frac"]="FRAC"
-        Statsitics_labels["scat"]="SCAT"
-        Statsitics_labels["gmax"]="GAP-MAX"
-        Statsitics_labels["b_beta"]="beta"
-        Statsitics_labels["int_mad"]="MAD"
-        Statsitics_labels["int_dang"]="DANG"
-        Statsitics_labels["f"]="f"
-        Statsitics_labels["fvds"]="fvds"
-        Statsitics_labels["g"]="g"
-        Statsitics_labels["q"]="q"
-        Statsitics_labels["drats"]="DRATS"
-        Statsitics_labels["md"]="MD"
-        
-        # not in SPD
-        Statsitics_labels["ptrms_inc"]="pTRMs_inc"
-        Statsitics_labels["ptrms_dec"]="pTRMs_dec"
-        Statsitics_labels["ptrms_mad"]="pTRMs_MAD"
-        Statsitics_labels["ptrms_angle"]="pTRMs_angle"
+        #Statsitics_labels={}
+        #Statsitics_labels["int_n"]="n"
+        #Statsitics_labels["int_ptrm_n"]="n_ptrm"
+        #Statsitics_labels["frac"]="FRAC"
+        #Statsitics_labels["scat"]="SCAT"
+        #Statsitics_labels["gmax"]="GAP-MAX"
+        #Statsitics_labels["b_beta"]="beta"
+        #Statsitics_labels["int_mad"]="MAD"
+        #Statsitics_labels["int_dang"]="DANG"
+        #Statsitics_labels["f"]="f"
+        #Statsitics_labels["fvds"]="fvds"
+        #Statsitics_labels["g"]="g"
+        #Statsitics_labels["q"]="q"
+        #Statsitics_labels["drats"]="DRATS"
+        #Statsitics_labels["md"]="MD"
+        #
+        ## not in SPD
+        #Statsitics_labels["ptrms_inc"]="pTRMs_inc"
+        #Statsitics_labels["ptrms_dec"]="pTRMs_dec"
+        #Statsitics_labels["ptrms_mad"]="pTRMs_MAD"
+        #Statsitics_labels["ptrms_angle"]="pTRMs_angle"
 
         hbox_criteria = wx.BoxSizer(wx.HORIZONTAL)
         TEXT=[" ","Acceptance criteria:","Specimen statistics:"]
@@ -543,7 +553,7 @@ class Arai_GUI(wx.Frame):
             exec command
             command="self.%s_threshold_window.SetBackgroundColour(wx.NullColour)"%statistic
             exec command
-            command="self.%s_label=wx.StaticText(self.panel,label='%s',style=wx.ALIGN_CENTRE)"%(statistic,Statsitics_labels[statistic])
+            command="self.%s_label=wx.StaticText(self.panel,label='%s',style=wx.ALIGN_CENTRE)"%(statistic,statistic.replace("specimen_","").replace("int_",""))
             exec command
             command="self.%s_label.SetFont(font2)"%statistic
             exec command
@@ -817,8 +827,12 @@ class Arai_GUI(wx.Frame):
         m_preferences_apperance = menu_preferences.Append(-1, "&Appearence preferences", "")
         self.Bind(wx.EVT_MENU, self.on_menu_appearance_preferences, m_preferences_apperance)
 
-        m_preferences_stat = menu_preferences.Append(-1, "&Statistics preferences", "")
+        m_preferences_spd = menu_preferences.Append(-1, "&Specimen paleointensity statistics (from SPD list)", "")
+        self.Bind(wx.EVT_MENU, self.on_menu_m_preferences_spd, m_preferences_spd)
+
+        m_preferences_stat = menu_preferences.Append(-1, "&Statistical preferences", "")
         self.Bind(wx.EVT_MENU, self.on_menu_preferences_stat, m_preferences_stat)
+
 
         #m_save_preferences = menu_preferences.Append(-1, "&Save preferences", "")
         #self.Bind(wx.EVT_MENU, self.on_menu_save_preferences, m_save_preferences)
@@ -828,8 +842,8 @@ class Arai_GUI(wx.Frame):
         m_change_working_directory = menu_file.Append(-1, "&Change project directory", "")
         self.Bind(wx.EVT_MENU, self.on_menu_change_working_directory, m_change_working_directory)
 
-        m_add_working_directory = menu_file.Append(-1, "&Add a MagIC project directory", "")
-        self.Bind(wx.EVT_MENU, self.on_menu_add_working_directory, m_add_working_directory)
+        #m_add_working_directory = menu_file.Append(-1, "&Add a MagIC project directory", "")
+        #self.Bind(wx.EVT_MENU, self.on_menu_add_working_directory, m_add_working_directory)
 
         m_open_magic_file = menu_file.Append(-1, "&Open MagIC measurement file", "")
         self.Bind(wx.EVT_MENU, self.on_menu_open_magic_file, m_open_magic_file)
@@ -898,10 +912,10 @@ class Arai_GUI(wx.Frame):
         m_new_sub = menu_Analysis.AppendMenu(-1, "Acceptance criteria", submenu_criteria)
 
 
-        m_previous_interpretation = menu_Analysis.Append(-1, "&Import previous interpretation ('redo' file)", "")
+        m_previous_interpretation = menu_Analysis.Append(-1, "&Import previous interpretation from a 'redo' file)", "")
         self.Bind(wx.EVT_MENU, self.on_menu_previous_interpretation, m_previous_interpretation)
 
-        m_save_interpretation = menu_Analysis.Append(-1, "&Save current interpretations to a redo file", "")
+        m_save_interpretation = menu_Analysis.Append(-1, "&Save current interpretations to a 'redo' file", "")
         self.Bind(wx.EVT_MENU, self.on_menu_save_interpretation, m_save_interpretation)
 
         m_delete_interpretation = menu_Analysis.Append(-1, "&Clear all current interpretations", "")
@@ -927,8 +941,8 @@ class Arai_GUI(wx.Frame):
         m_run_optimizer = menu_Optimizer.Append(-1, "&Run Consistency test", "")
         self.Bind(wx.EVT_MENU, self.on_menu_run_optimizer, m_run_optimizer)
 
-        m_run_consistency_test_b = menu_Optimizer.Append(-1, "&Run Consistency test beta version", "")
-        self.Bind(wx.EVT_MENU, self.on_menu_run_consistency_test_b, m_run_consistency_test_b)
+        #m_run_consistency_test_b = menu_Optimizer.Append(-1, "&Run Consistency test beta version", "")
+        #self.Bind(wx.EVT_MENU, self.on_menu_run_consistency_test_b, m_run_consistency_test_b)
 
         menu_Plot= wx.Menu()
         m_plot_data = menu_Plot.Append(-1, "&Plot paleointensity curve", "")
@@ -1456,6 +1470,11 @@ class Arai_GUI(wx.Frame):
 ##            except:
 ##                pass
 
+
+            self.write_preferences_to_file(change_resolution)
+
+    def write_preferences_to_file(self,need_to_close_frame):
+                        
             dlg1 = wx.MessageDialog(self,caption="Message:", message="save the thellier_gui.preferences in PmagPy directory!" ,style=wx.OK|wx.ICON_INFORMATION)
             dlg1.ShowModal()
             dlg1.Destroy()
@@ -1490,30 +1509,21 @@ class Arai_GUI(wx.Frame):
                     else:
                         String="preferences['%s']=%f\n"%(key,self.preferences[key])
                         
-##                        String="preferences['%s']=%f\n"%(key,self.preferences[key
-##                for key in  self.preferences.keys():
-##                    if key in ['gui_resolution','show_Zij_temperatures_steps','show_Arai_temperatures_steps']:
-##                        String="preferences['%s']=%f\n"%(key,self.preferences[key])
-##                    else:
-##                        String="preferences['%s']=%s\n"%(key,self.preferences[key])
-##                    fout.write(String)    
                     fout.write(String)    
                 fout.close()
                 os.chmod(preference_file,0777)            
                 
             dlg2.Destroy()
 
-            if change_resolution:
-                dlg3 = wx.MessageDialog(self, "GUI resolution is changed.\nYou will need to restart the program","Confirm Exit", wx.OK|wx.ICON_QUESTION)
+            if need_to_close_frame:
+                dlg3 = wx.MessageDialog(self, "You need to restart the program.\n","Confirm Exit", wx.OK|wx.ICON_QUESTION)
                 result = dlg3.ShowModal()
                 dlg3.Destroy()
                 if result == wx.ID_OK:
                     self.Destroy()
                     exit()
 
-            
-            return()
-        
+                    
 
     #-----------------------------------
 
@@ -1548,132 +1558,8 @@ class Arai_GUI(wx.Frame):
     #----------------------------------
 
     def on_menu_preferences_stat(self,event):
-        class preferences_stats_dialog(wx.Dialog):
-            
-            def __init__(self, parent,title,preferences):
-                self.preferences=preferences
-                super(preferences_stats_dialog, self).__init__(parent, title=title)
-                self.InitUI()
-
-            def on_add_button(self,event):
-                selName = str(self.criteria_options.GetStringSelection())
-                if selName not in self.preferences['show_statistics_on_gui']:
-                  self.preferences['show_statistics_on_gui'].append(selName)
-                #self.update_text_box()
-                self.criteria_list_window.Set(self.preferences['show_statistics_on_gui'])
-                self.criteria_options.Set(self.statistics_options)
-
-            def on_remove_button(self,event):
-                selName = str(self.criteria_list_window.GetStringSelection())
-                if selName  in self.preferences['show_statistics_on_gui']:
-                  self.preferences['show_statistics_on_gui'].remove(selName)
-                self.criteria_list_window.Set(self.preferences['show_statistics_on_gui'])
-                self.criteria_options.Set(self.statistics_options)
-               
-##            def update_text_box(self):
-##                TEXT=""
-##                for key in self.preferences['show_statistics_on_gui']:
-##                  TEXT=TEXT+key+"\n"
-##                TEXT=TEXT[:-1]
-##                self.criteria_list_window.SetValue('')
-##                self.criteria_list_window.SetValue(TEXT)
-                
-            def InitUI(self):
-
-                pnl1 = wx.Panel(self)
-
-                vbox = wx.BoxSizer(wx.VERTICAL)
-
-                #-----------box1        
-
-                bSizer1 = wx.StaticBoxSizer( wx.StaticBox( pnl1, wx.ID_ANY, "Statistical definitions" ), wx.HORIZONTAL )
-                self.bootstrap_N=wx.TextCtrl(pnl1,style=wx.TE_CENTER,size=(80,20))
-                                             
-                Statistics_definitions_window = wx.GridSizer(1, 2, 12, 12)
-                Statistics_definitions_window.AddMany( [(wx.StaticText(pnl1,label="Bootstrap N",style=wx.TE_CENTER), wx.EXPAND),
-                    (self.bootstrap_N, wx.EXPAND)])                 
-                bSizer1.Add( Statistics_definitions_window, 0, wx.ALIGN_LEFT|wx.ALL, 5 )
-                
-                #-----------box2        
-
-                bSizer2 = wx.StaticBoxSizer( wx.StaticBox( pnl1, wx.ID_ANY, "Dipole Moment" ), wx.HORIZONTAL )
-
-                self.v_adm_box = wx.ComboBox(pnl1, -1, self.preferences['VDM_or_VADM'], (100, 20), wx.DefaultSize, ["VADM","VDM"], wx.CB_DROPDOWN,name="VDM or VADM?")
-                                             
-                Statistics_VADM = wx.GridSizer(1, 2, 12, 12)
-                Statistics_VADM.AddMany( [(wx.StaticText(pnl1,label="VDM or VADM?",style=wx.TE_CENTER), wx.EXPAND),
-                    (self.v_adm_box, wx.EXPAND)])                 
-                bSizer2.Add( Statistics_VADM, 0, wx.ALIGN_LEFT|wx.ALL, 5 )
-                         
-                #----------------------
-                                    
-                bSizer3 = wx.StaticBoxSizer( wx.StaticBox( pnl1, wx.ID_ANY, "Choose statistics to display on GUI" ), wx.VERTICAL )
-
-                self.statistics_options=["int_n","int_ptrm_n","frac","scat","gmax","b_beta","int_mad","int_dang","f","fvds","g","q","drats","md",'ptrms_dec','ptrms_inc','ptrms_mad','ptrms_angle']
-                #self.criteria_list_window = wx.TextCtrl(pnl1, id=-1, size=(200,250), style=wx.TE_MULTILINE | wx.TE_READONLY | wx.HSCROLL)
-                self.criteria_list_window =wx.ListBox(choices=self.preferences['show_statistics_on_gui'], id=-1,name='listBox1', parent=pnl1, size=wx.Size(150, 150), style=0)
-                self.criteria_options = wx.ListBox(choices=self.statistics_options, id=-1,name='listBox1', parent=pnl1, size=wx.Size(150, 150), style=0)
-                #self.criteria_options.Bind(wx.EVT_LISTBOX, self.on_choose_criterion,id=-1)
-                self.criteria_add =  wx.Button(pnl1, id=-1, label='add')
-                self.Bind(wx.EVT_BUTTON, self.on_add_button, self.criteria_add)
-                self.criteria_remove =  wx.Button(pnl1, id=-1, label='remove')
-                self.Bind(wx.EVT_BUTTON, self.on_remove_button, self.criteria_remove)
-
-                Statistics_criteria_0 = wx.GridSizer(1, 2, 0, 0)
-                Statistics_criteria_0.AddMany( [(wx.StaticText(pnl1,label="Options:"), wx.EXPAND),
-                    (wx.StaticText(pnl1,label="Statistics displayed:"), wx.EXPAND)])
-   
-                Statistics_criteria_1 = wx.GridSizer(2, 2, 0, 0)
-                Statistics_criteria_1.AddMany( [((self.criteria_options),wx.EXPAND),
-                    ((self.criteria_list_window),wx.EXPAND),
-                    ((self.criteria_add),wx.EXPAND),
-                    ((self.criteria_remove),wx.EXPAND)])
-
-
-##                bSizer3.Add(self.criteria_options,wx.ALIGN_LEFT)
-##                bSizer3.Add(self.criteria_add,wx.ALIGN_LEFT)
-##                bSizer3.Add(self.criteria_list_window)
-                bSizer3.Add(Statistics_criteria_0, 0, wx.ALIGN_TOP, 0 )
-                bSizer3.Add(Statistics_criteria_1, 0, wx.ALIGN_TOP, 0 )
-                #self.update_text_box() 
-
-                #----------------------
-
-                hbox2 = wx.BoxSizer(wx.HORIZONTAL)
-                self.okButton = wx.Button(pnl1, wx.ID_OK, "&OK")
-                self.cancelButton = wx.Button(pnl1, wx.ID_CANCEL, '&Cancel')
-                hbox2.Add(self.okButton)
-                hbox2.Add(self.cancelButton )
-
-                
-                #----------------------  
-                vbox.AddSpacer(20)
-                vbox.Add(bSizer1, flag=wx.ALIGN_TOP)
-                vbox.AddSpacer(20)
-
-                vbox.Add(bSizer2, flag=wx.ALIGN_TOP)
-                vbox.AddSpacer(20)
-
-                vbox.Add(bSizer3, flag=wx.ALIGN_TOP)
-                vbox.AddSpacer(20)
-
-                vbox.Add(hbox2, flag=wx.ALIGN_TOP)
-                vbox.AddSpacer(20)
-                            
-                pnl1.SetSizer(vbox)
-                vbox.Fit(self)
-
-
-                #---------------------- Initialize  values:
-
-                try:                    
-                    self.bootstrap_N.SetValue("%.0f"%(self.preferences["BOOTSTRAP_N"]))
-                except:
-                    self.bootstrap_N.SetValue("10000")
                     
-                #----------------------
-                    
-        dia = preferences_stats_dialog(None,"Thellier_gui statistical preferences",self.preferences)
+        dia = thellier_gui_dialogs.preferences_stats_dialog(None,"Thellier_gui statistical preferences",self.preferences)
         dia.Center()
         if dia.ShowModal() == wx.ID_OK: # Until the user clicks OK, show the message
             try:
@@ -1723,6 +1609,24 @@ class Arai_GUI(wx.Frame):
 
             
             return()  
+
+
+    def on_menu_m_preferences_spd(self, event):
+        
+        dia = thellier_gui_dialogs.PI_Statistics_Dialog(None, self.preferences["show_statistics_on_gui"],title='SPD list')
+        dia.Center()
+        if dia.ShowModal() == wx.ID_OK: # Until the user clicks OK, show the message            
+            self.On_close_spd_box(dia)
+    
+    def On_close_spd_box(self, dia):
+        if self.preferences["show_statistics_on_gui"]!=dia.show_statistics_on_gui:
+            self.preferences["show_statistics_on_gui"]=dia.show_statistics_on_gui
+            self.write_preferences_to_file(True)
+        else:
+            pass
+                
+        
+        
 
 
     #-----------------------------------
@@ -2067,7 +1971,7 @@ class Arai_GUI(wx.Frame):
         self.add_thelier_gui_criteria()
         self.read_criteria_file(criteria_file)            
             
-        dia = thellier_gui_dialogs.Criteria_Dialog(None, self.acceptance_criteria,title='Acceptance Criteria')
+        dia = thellier_gui_dialogs.Criteria_Dialog(None, self.acceptance_criteria,self.preferences,title='Acceptance Criteria')
         dia.Center()
         if dia.ShowModal() == wx.ID_OK: # Until the user clicks OK, show the message            
             self.On_close_criteria_box(dia)
@@ -2082,7 +1986,7 @@ class Arai_GUI(wx.Frame):
         """
                             
 
-        dia = thellier_gui_dialogs.Criteria_Dialog(None, self.acceptance_criteria,title='Set Acceptance Criteria')
+        dia = thellier_gui_dialogs.Criteria_Dialog(None, self.acceptance_criteria,self.preferences,title='Set Acceptance Criteria')
         dia.Center()
         result = dia.ShowModal()
 
@@ -3570,12 +3474,8 @@ class Arai_GUI(wx.Frame):
             #-------------------------------------------------            
             # loop through all possible tmin,tmax and check if pass criteria
             #-------------------------------------------------
-            print s
             for tmin_i in range(len(temperatures)-specimen_int_n+1):
-                print tmin_i
                 for tmax_i in range(tmin_i+specimen_int_n-1,len(temperatures)):
-                    print tmax_i
-                    print len(temperatures)
                     tmin=temperatures[tmin_i]
                     tmax=temperatures[tmax_i]
                     pars=self.get_PI_parameters(s,tmin,tmax)
@@ -4465,15 +4365,22 @@ class Arai_GUI(wx.Frame):
     #----------------------------------------------------------------------            
 
     def on_menu_run_optimizer(self, event):
+        dlg1 = wx.MessageDialog(self,caption="Message:",message="Consistency test is no longer supported in this version" ,style=wx.OK)
+        result = dlg1.ShowModal()
+        if result == wx.ID_OK:
+            dlg1.Destroy()
+            return
         self.GUI_log.write ("-I- running thellier consistency test\n")
         import  thellier_consistency_test
 
         thellier_gui_dialogs.Consistency_Test(self.Data,self.Data_hierarchy,self.WD,self.acceptance_criteria_default)
 
     def on_menu_run_consistency_test_b(self, event):
-        self.GUI_log.write ("-I- running thellier consistency test beta version\n")
-        print "not supported yet"
-        pass        
+        dlg1 = wx.MessageDialog(self,caption="Message:",message="Consistency test is no longer supported in this version" ,style=wx.OK)
+        result = dlg1.ShowModal()
+        if result == wx.ID_OK:
+            dlg1.Destroy()
+            return
     #----------------------------------------------------------------------            
 
     def on_menu_plot_data (self, event):
@@ -4517,7 +4424,8 @@ class Arai_GUI(wx.Frame):
             BY_SITES=False; BY_SAMPLES=True
         else:
             BY_SITES=True; BY_SAMPLES=False        
-        
+
+                
         for sample_or_site in samples_or_sites_list:
 
             Age,age_unit,age_range_low,age_range_high="","","",""
@@ -4537,7 +4445,7 @@ class Arai_GUI(wx.Frame):
             if sample_or_site_pars['pass_or_fail']=='fail':
                 continue
             
-            N=sample_or_site_pars['B']
+            N=sample_or_site_pars['N']
             B_uT=sample_or_site_pars['B_uT']
             B_std_uT=sample_or_site_pars['B_std_uT']
             B_std_perc=sample_or_site_pars['B_std_perc']
@@ -4623,7 +4531,7 @@ class Arai_GUI(wx.Frame):
                 VADM_minus=pmag.b_vdm((B_uT-B_std_uT)*1e-6,lat)*1e-21
                 VADM_sigma=(VADM_plus-VADM_minus)/2
                 
-            Results_table_data[sample_or_site]["N"]="%i"%(len(N))            
+            Results_table_data[sample_or_site]["N"]="%i"%(int(N))            
             Results_table_data[sample_or_site]["B_uT"]="%.1f"%(B_uT)
             Results_table_data[sample_or_site]["B_std_uT"]="%.1f"%(B_std_uT)
             Results_table_data[sample_or_site]["B_std_perc"]="%.1f"%(B_std_perc)
@@ -5559,7 +5467,7 @@ class Arai_GUI(wx.Frame):
             Data_samples_or_sites=copy.deepcopy(self.Data_sites)
             
         # search for lat (for VADM calculation) and age:        
-        lat_min,lat_max,lon_min,lon_max=90,0,180,-180
+        lat_min,lat_max,lon_min,lon_max=90,-90,180,-180
         for sample_or_site in Data_samples_or_sites.keys():
 
             #print sample_or_site
@@ -5790,7 +5698,8 @@ class Arai_GUI(wx.Frame):
                     if set_map_lon_min !="":
                         SiteLon_min=set_map_lon_min
                     if set_map_lon_max !="":
-                        SiteLon_max=set_map_lon_max                       
+                        SiteLon_max=set_map_lon_max 
+                                        
 
                 m=Basemap(llcrnrlon=SiteLon_min,llcrnrlat=SiteLat_min,urcrnrlon=SiteLon_max,urcrnrlat=SiteLat_max,projection='merc',resolution='i')
 
@@ -6555,27 +6464,41 @@ class Arai_GUI(wx.Frame):
             else:
                 command="self.%s_window.SetBackgroundColour(wx.GREEN)"%stat.split('specimen_')[-1]  # set text color
             exec command
-        
-        # specimen_scat                
-        if self.acceptance_criteria['specimen_scat']['value'] in ['True','TRUE','1',1,True,'g']:
-            if self.pars["fail_arai_beta_box_scatter"] or self.pars["fail_ptrm_beta_box_scatter"] or self.pars["fail_tail_beta_box_scatter"]:
-              self.scat_window.SetValue("fail")
-            else:
-              self.scat_window.SetValue("pass")
 
-            if self.acceptance_criteria['specimen_scat']['value'] == -999 and 'scat' in self.preferences['show_statistics_on_gui']:
-              self.scat_window.SetBackgroundColour(wx.NullColour) # set text color
-            elif self.pars["fail_arai_beta_box_scatter"] or self.pars["fail_ptrm_beta_box_scatter"] or self.pars["fail_tail_beta_box_scatter"] :
-              if "scat" in self.preferences['show_statistics_on_gui']:
-                  self.scat_window.SetBackgroundColour(wx.RED) # set text color
-              flag_Fail=True
-            else :
-              if "scat" in self.preferences['show_statistics_on_gui']:
-                  self.scat_window.SetBackgroundColour(wx.GREEN) # set text color
-        else:
-            if "scat" in self.preferences['show_statistics_on_gui']:
+        # specimen_scat                
+        if self.preferences['show_statistics_on_gui']:
+            if self.acceptance_criteria['specimen_scat']['value'] in ['True','TRUE','1',1,True,'g']:
+                if self.pars["specimen_scat"]=='Pass':
+                    self.scat_window.SetValue("Pass")
+                    self.scat_window.SetBackgroundColour(wx.GREEN) # set text color
+                else:
+                    self.scat_window.SetValue("Fail")
+                    self.scat_window.SetBackgroundColour(wx.RED) # set text color
+                                        
+            else:        
                 self.scat_window.SetValue("")
                 self.scat_window.SetBackgroundColour(wx.NullColour) # set text color
+                
+#        # specimen_scat                
+#        if self.acceptance_criteria['specimen_scat']['value'] in ['True','TRUE','1',1,True,'g']:
+#            if self.pars["fail_arai_beta_box_scatter"] or self.pars["fail_ptrm_beta_box_scatter"] or self.pars["fail_tail_beta_box_scatter"]:
+#              self.scat_window.SetValue("fail")
+#            else:
+#              self.scat_window.SetValue("pass")
+#
+#            if self.acceptance_criteria['specimen_scat']['value'] == -999 and 'scat' in self.preferences['show_statistics_on_gui']:
+#              self.scat_window.SetBackgroundColour(wx.NullColour) # set text color
+#            elif self.pars["fail_arai_beta_box_scatter"] or self.pars["fail_ptrm_beta_box_scatter"] or self.pars["fail_tail_beta_box_scatter"] :
+#              if "scat" in self.preferences['show_statistics_on_gui']:
+#                  self.scat_window.SetBackgroundColour(wx.RED) # set text color
+#              flag_Fail=True
+#            else :
+#              if "scat" in self.preferences['show_statistics_on_gui']:
+#                  self.scat_window.SetBackgroundColour(wx.GREEN) # set text color
+#        else:
+#            if "scat" in self.preferences['show_statistics_on_gui']:
+#                self.scat_window.SetValue("")
+#                self.scat_window.SetBackgroundColour(wx.NullColour) # set text color
  
                 
 #                               
@@ -6698,7 +6621,6 @@ class Arai_GUI(wx.Frame):
         """
     
         #remember the last saved interpretation
-
         if "saved" in self.pars.keys():
             if self.pars['saved']:
                 self.last_saved_pars={}
@@ -6734,58 +6656,55 @@ class Arai_GUI(wx.Frame):
         return(F)
             
     def get_PI_parameters(self,s,tmin,tmax):
+        #print 'calling get_PI_parameters'
 
 
-        #def cart2dir(cart): # OLD ONE
-        #    """
-        #    converts a direction to cartesian coordinates
-        #    """
-        #    Dir=[] # establish a list to put directions in
-        #    rad=pi/180. # constant to convert degrees to radians
-        #    R=sqrt(cart[0]**2+cart[1]**2+cart[2]**2) # calculate resultant vector length
-        #    if R==0:
-        #       #print 'trouble in cart2dir'
-        #       #print cart
-        #       return [0.0,0.0,0.0]
-        #    D=arctan2(cart[1],cart[0])/rad  # calculate declination taking care of correct quadrants (arctan2)
-        #    if D<0:D=D+360. # put declination between 0 and 360.
-        #    if D>360.:D=D-360.
-        #    Dir.append(D)  # append declination to Dir list
-        #    I=arcsin(cart[2]/R)/rad # calculate inclination (converting to degrees)
-        #    Dir.append(I) # append inclination to Dir list
-        #    Dir.append(R) # append vector length to Dir list
-        #    return Dir # return the directions list
-
-
-        #def dir2cart(d):
-        #   # converts list or array of vector directions, in degrees, to array of cartesian coordinates, in x,y,z
-        #    ints=ones(len(d)).transpose() # get an array of ones to plug into dec,inc pairs
-        #    d=array(d)
-        #    rad=pi/180.
-        #    if len(d.shape)>1: # array of vectors
-        #        decs,incs=d[:,0]*rad,d[:,1]*rad
-        #        if d.shape[1]==3: ints=d[:,2] # take the given lengths
-        #    else: # single vector
-        #        decs,incs=array(d[0])*rad,array(d[1])*rad
-        #        if len(d)==3: 
-        #            ints=array(d[2])
-        #        else:
-        #            ints=array([1.])
-        #    cart= array([ints*cos(decs)*cos(incs),ints*sin(decs)*cos(incs),ints*sin(incs)]).transpose()
-        #    return cart
-
+        def mapping(dictionary, mapping):
+            mapped_dictionary = {}
+            for key, value in dictionary.iteritems():
+                if key in mapping.keys():
+                    new_key = mapping[key]
+                    mapped_dictionary[new_key] = value
+                else:
+                   # pass
+                    mapped_dictionary[key] = value# if this line is left in, it gives everything from the original dictionary
+                    # we will want the above eventually
+            return mapped_dictionary
 
         """
-        calcualte statisics 
+        calculate statisics 
         """
-        pars=self.Data[s]['pars']
+
+            
+        a_map = {'fail_ptrm_beta_box_scatter': 'fail_ptrm_beta_box_scatter', 'scat_bounding_line_low': 'specimen_scat_bounding_line_low', 'fail_tail_beta_box_scatter': 'fail_tail_beta_box_scatter', 'MD_VDS': 'specimen_md', 'B_anc': 'specimen_int_uT', 'FRAC': 'specimen_frac', 'Inc_Free': 'specimen_inc', 'best_fit_vector_Free': 'specimen_PCA_v1', 'specimen_b_sigma': 'specimen_b_sigma', 'specimen_YT': 'specimen_YT', 'y_Arai_mean': 'specimen_cm_y', 'SCAT': 'specimen_scat', 'MAD_Free': 'specimen_int_mad', 'n_ptrm': 'specimen_int_ptrm_n', 'tmin': 'measurement_step_min', 'x_Arai_mean': 'specimen_cm_x', 'Dec_Free': 'specimen_dec', 'DRATS': 'specimen_drats', 'specimen_fvds': 'specimen_fvds', 'specimen_b_beta': 'specimen_b_beta', 'specimen_b': 'specimen_b', 'specimen_g': 'specimen_g', 'fail_arai_beta_box_scatter': 'fail_arai_beta_box_scatter', 'specimen_f': 'specimen_f', 'tmax': 'measurement_step_max', 'specimen_n': 'specimen_int_n', 'specimen_q': 'specimen_q', 'lab_dc_field': 'lab_dc_field', 'GAP-MAX': 'specimen_gmax', 'DANG': 'specimen_int_dang', 'ptrms_angle_Free': 'specimen_ptrms_angle', 'scat_bounding_line_high': 'specimen_scat_bounding_line_high', 'PCA_sigma_max_Free': "specimen_PCA_sigma_max" , 'PCA_sigma_int_Free': 'specimen_PCA_sigma_int', 'PCA_sigma_min_Free': 'specimen_PCA_sigma_min', 'ptrms_dec_Free': 'specimen_ptrms_dec', 'ptrms_inc_Free': 'specimen_ptrms_inc', 'pTRM_MAD_Free': 'specimen_ptrms_mad'} # spd name: thellier_gui name
+
+        
+        #pars=self.Data[s]['pars']
         datablock = self.Data[s]['datablock']
-        pars=self.Data[s]['pars']
+        pars=copy.deepcopy(self.Data[s]['pars']) # assignments to pars are assiging to self.Data[s]['pars']
         # get MagIC mothod codes:
 
         #pars['magic_method_codes']="LP-PI-TRM" # thellier Method
-        
-        
+        import SPD
+        import SPD.spd as spd
+        #def __init__(self, Data,specimen_name,tmin,tmax):
+        Pint_pars = spd.PintPars(self.Data, str(s), tmin, tmax)
+        Pint_pars.calculate_all_statistics()
+
+
+        #lj
+        #a_map = {}
+        #for n in range(len(new_ron)):
+        #    if 'missing' not in new_ron[n] and 'missing' not in new_lori[n]:
+        #        key = new_lori[n]
+        #        value = new_ron[n]
+        #        a_map[key] = value
+
+        mapped_pars = mapping(Pint_pars.pars, a_map) 
+        pars.update(mapped_pars)
+        #print pars
+
+
         t_Arai=self.Data[s]['t_Arai']
         x_Arai=self.Data[s]['x_Arai']
         y_Arai=self.Data[s]['y_Arai']
@@ -6807,196 +6726,18 @@ class Arai_GUI(wx.Frame):
         start=t_Arai.index(tmin)
         end=t_Arai.index(tmax)
 
-        #if end-start < float(self.acceptance_criteria['specimen_int_n']['value'] -1):
-        #  return(pars)
-                                                 
-        #-------------------------------------------------
-        # calualte PCA of the zerofield steps
-        # MAD calculation following Kirschvink (1980)
-        # DANG following Tauxe and Staudigel (2004)
-        #-------------------------------------------------               
-         
-        pars["measurement_step_min"]=float(tmin)
-        pars["measurement_step_max"]=float(tmax)
- 
         zstart=z_temperatures.index(tmin)
         zend=z_temperatures.index(tmax)
 
         zdata_segment=self.Data[s]['zdata'][zstart:zend+1]
 
-        #  PCA in 2 lines
-        M = (zdata_segment-mean(zdata_segment.T,axis=1)).T # subtract the mean (along columns)
-        [eigenvalues,eigenvectors] = linalg.eig(cov(M)) # attention:not always sorted
 
-        # sort eigenvectors and eigenvalues
-        eigenvalues=list(eigenvalues)
-        tmp=[0,1,2]
-        t1=max(eigenvalues);index_t1=eigenvalues.index(t1);tmp.remove(index_t1)
-        t3=min(eigenvalues);index_t3=eigenvalues.index(t3);tmp.remove(index_t3)
-        index_t2=tmp[0];t2=eigenvalues[index_t2]
-        v1=real(array(eigenvectors[:,index_t1]))
-        v2=real(array(eigenvectors[:,index_t2]))
-        v3=real(array(eigenvectors[:,index_t3]))
+        # replacing PCA for zdata and for ptrms here
+       
 
-        # chech if v1 is the "right" polarity
-        cm=array(mean(zdata_segment.T,axis=1)) # center of mass
-        v1_plus=v1*sqrt(sum(cm**2))
-        v1_minus=v1*-1*sqrt(sum(cm**2))
-        test_v=zdata_segment[0]-zdata_segment[-1]
+## removed a bunch of Ron's commented out old code        
 
-        if sqrt(sum((v1_minus-test_v)**2)) < sqrt(sum((v1_plus-test_v)**2)):
-         DIR_PCA=pmag.cart2dir(v1*-1)
-         best_fit_vector=v1*-1
-        else:
-         DIR_PCA=pmag.cart2dir(v1)
-         best_fit_vector=v1
-
-        # MAD Kirschvink (1980)
-        MAD=math.degrees(arctan(sqrt((t2+t3)/t1)))
-
-        # DANG Tauxe and Staudigel 2004
-        DANG=math.degrees( arccos( ( dot(cm, best_fit_vector) )/( sqrt(sum(cm**2)) * sqrt(sum(best_fit_vector**2)))))
-
-
-        # best fit PCA direction
-        pars["specimen_dec"] =  DIR_PCA[0]
-        pars["specimen_inc"] =  DIR_PCA[1]
-        pars["specimen_PCA_v1"] =best_fit_vector
-        if t1 <0 or t1==0:
-            t1=1e-10
-        if t2 <0 or t2==0:
-            t2=1e-10
-        if t3 <0 or t3==0:
-            t3=1e-10
-            
-        pars["specimen_PCA_sigma_max"] =  sqrt(t1)
-        pars["specimen_PCA_sigma_int"] =  sqrt(t2)
-        pars["specimen_PCA_sigma_min"] =  sqrt(t3)
-            
-
-        # MAD Kirschvink (1980)
-        pars["specimen_int_mad"]=MAD
-        pars["specimen_int_dang"]=DANG
-
-
-        #-------------------------------------------------
-        # calualte PCA of the pTRMs over the entire temperature range
-        # and calculate the angular difference to the lab field
-        # MAD calculation following Kirschvink (1980)
-        #-------------------------------------------------
-        
-        PTRMS = self.Data[s]['PTRMS'][1:]
-        CART_pTRMS_orig=array([pmag.dir2cart(row[1:4]) for row in PTRMS])
-        #CART_pTRMS=[row/sqrt(sum((array(row)**2))) for row in CART_pTRMS_orig]
-##        print "CART_pTRMS_orig",CART_pTRMS_orig
-##        print "----"
-        
-        #  PCA in 2 lines
-        M = (CART_pTRMS_orig-mean(CART_pTRMS_orig.T,axis=1)).T # subtract the mean (along columns)
-        [eigenvalues,eigenvectors] = linalg.eig(cov(M)) # attention:not always sorted
-
-        # sort eigenvectors and eigenvalues
-        eigenvalues=list(eigenvalues)
-        tmp=[0,1,2]
-        t1=max(eigenvalues);index_t1=eigenvalues.index(t1);tmp.remove(index_t1)
-        t3=min(eigenvalues);index_t3=eigenvalues.index(t3);tmp.remove(index_t3)
-        index_t2=tmp[0];t2=eigenvalues[index_t2]
-        v1=real(array(eigenvectors[:,index_t1]))
-        v2=real(array(eigenvectors[:,index_t2]))
-        v3=real(array(eigenvectors[:,index_t3]))
-
-        # chech if v1 is the "right" polarity
-        cm=array(mean(CART_pTRMS_orig.T,axis=1)) # center of mass
-        v1_plus=v1*sqrt(sum(cm**2))
-        v1_minus=v1*-1*sqrt(sum(cm**2))
-        test_v=CART_pTRMS_orig[0]-CART_pTRMS_orig[-1]
-
-        if sqrt(sum((v1_minus-test_v)**2)) > sqrt(sum((v1_plus-test_v)**2)):
-         DIR_PCA=pmag.cart2dir(v1*-1)
-         best_fit_vector=v1*-1
-        else:
-         DIR_PCA=pmag.cart2dir(v1)
-         best_fit_vector=v1
-
-        # MAD Kirschvink (1980)
-        MAD=math.degrees(arctan(sqrt((t2+t3)/t1)))
-
-
-        # best fit PCA direction
-        pars["specimen_ptrms_dec"] =  DIR_PCA[0]
-        pars["specimen_ptrms_inc"] =  DIR_PCA[1]
-        pars["specimen_ptrms_mad"]=MAD
-        B_lab_unit=pmag.dir2cart([ self.Data[s]['Thellier_dc_field_phi'], self.Data[s]['Thellier_dc_field_theta'],1])
-        pars["specimen_ptrms_angle"]=math.degrees(math.acos(dot(best_fit_vector,B_lab_unit)/(sqrt(sum(best_fit_vector**2)) * sqrt(sum(B_lab_unit**2)))))
-
-##        print "specimen_ptrms_dec",pars["specimen_ptrms_dec"]
-##        print "specimen_ptrms_inc",pars["specimen_ptrms_inc"]
-##        print "B_lab_unit,v1",B_lab_unit,v1
-##        print "specimen_ptrms_angle", pars["specimen_ptrms_angle"]
-
-##        #-------------------------------------------------                     
-##        # Calculate the new 'MAD box' parameter
-##        # all datapoints should be inside teh M"AD box"
-##        # defined by the threshold value of MAD
-##        # For definitionsee Shaar and Tauxe (2012)
-##        #-------------------------------------------------                     
-##
-##        pars["specimen_mad_scat"]="Pass"
-##        self.acceptance_criteria['specimen_mad_scat']=True
-##        if 'specimen_mad_scat' in self.acceptance_criteria.keys() and 'specimen_int_mad' in self.acceptance_criteria.keys() :
-##            if self.acceptance_criteria['specimen_mad_scat']==True or self.acceptance_criteria['specimen_mad_scat'] in [1,"True","TRUE",'1']:
-##
-##                # center of mass 
-##                CM_x=mean(zdata_segment[:,0])
-##                CM_y=mean(zdata_segment[:,1])
-##                CM_z=mean(zdata_segment[:,2])
-##                CM=array([CM_x,CM_y,CM_z])
-##
-##                # threshold value for the distance of the point from a line:
-##                # this is depends of MAD
-##                # if MAD= tan-1 [ sigma_perpendicular / sigma_max ]
-##                # then:
-##                # sigma_perpendicular_threshold=tan(MAD_threshold)*sigma_max
-##                sigma_perpendicular_threshold=abs(tan(radians(self.acceptance_criteria['specimen_int_mad'])) *  pars["specimen_PCA_sigma_max"] )
-##                
-##                # Line from
-##                #print "++++++++++++++++++++++++++++++++++"
-##                
-##                for P in zdata_segment:
-##                    # Find the line  P_CM that connect P to the center of mass
-##                    #print "P",P
-##                    #print "CM",CM
-##                    P_CM=P-CM
-##                    #print "P_CM",P_CM
-##                    
-##                    #  the dot product of vector P_CM with the unit direction vector of the best-fit liene. That's the projection of P_CM on the PCA line 
-##                    best_fit_vector_unit=best_fit_vector/sqrt(sum(best_fit_vector**2))
-##                    #print "best_fit_vector_unit",best_fit_vector_unit
-##                    CM_P_projection_on_PCA_line=dot(best_fit_vector_unit,P_CM)
-##                    #print "CM_P_projection_on_PCA_line",CM_P_projection_on_PCA_line
-##
-##                    # Pythagoras
-##                    P_CM_length=sqrt(sum((P_CM)**2))
-##                    Point_2_PCA_Distance=sqrt((P_CM_length**2-CM_P_projection_on_PCA_line**2))
-##                    #print "Point_2_PCA_Distance",Point_2_PCA_Distance
-##
-##
-##                    #print "sigma_perpendicular_threshold*2",sigma_perpendicular_threshold*2
-##                    if Point_2_PCA_Distance > sigma_perpendicular_threshold*2:
-##                        pars["specimen_mad_scat"]="Fail"
-##                        index=999
-##                        for i in range(len(self.Data[s]['zdata'])):
-##                        
-##                            if P[0] == self.Data[s]['zdata'][i][0] and P[1] == self.Data[s]['zdata'][i][1] and P[2] == self.Data[s]['zdata'][i][2]:
-##                                index =i
-##                                break
-##                        #print "specimen  %s fail on mad_scat,%i"%(s,index)
-##                        
-##                    
-##                    
-##                    #CM_P_projection_on_PCA_line_length=sqrt(sum((CM_P_projection_on_PCA_line_length)**2))
-        
-
+#lj
         #-------------------------------------------------
         # York regresssion (York, 1967) following Coe (1978)
         # calculate f,fvds,
@@ -7005,296 +6746,17 @@ class Arai_GUI(wx.Frame):
 
         x_Arai_segment= x_Arai[start:end+1]
         y_Arai_segment= y_Arai[start:end+1]
+        # replace thellier_gui code for york regression here
 
-        x_Arai_mean=mean(x_Arai_segment)
-        y_Arai_mean=mean(y_Arai_segment)
-
-        # equations (2),(3) in Coe (1978) for b, sigma
-        n=end-start+1
-        x_err=x_Arai_segment-x_Arai_mean
-        y_err=y_Arai_segment-y_Arai_mean
-
-        # York b
-        york_b=-1* sqrt( sum(y_err**2) / sum(x_err**2) )
-
-        # york sigma
-        york_sigma= sqrt ( (2 * sum(y_err**2) - 2*york_b*sum(x_err*y_err)) / ( (n-2) * sum(x_err**2) ) )
-
-        # beta  parameter 
-        if  york_b!=0:              
-            beta_Coe=abs(york_sigma/york_b)
-        else:
-            beta_Coe=0
-
-        # y_T is the intercept of the extrepolated line
-        # through the center of mass (see figure 7 in Coe (1978))
-        y_T = y_Arai_mean - york_b* x_Arai_mean
-
-        # calculate the extarplated data points for f and fvds
-        # (see figure 7 in Coe (1978))
-        x_tag=(y_Arai_segment - y_T ) / york_b
-        y_tag=york_b*x_Arai_segment + y_T
-
-        # intersect of the dashed square and the horizontal dahed line  next to delta-y-5 in figure 7, Coe (1978)
-        x_prime=(x_Arai_segment+x_tag) / 2
-        y_prime=(y_Arai_segment+y_tag) / 2
-
-        f_Coe=abs((y_prime[0]-y_prime[-1])/y_T)
-
-        f_vds=abs((y_prime[0]-y_prime[-1])/self.Data[s]['vds'])
-
-        g_Coe= 1 - (sum((y_prime[:-1]-y_prime[1:])**2) / sum((y_prime[:-1]-y_prime[1:]))**2 )
-
-        q_Coe=abs(york_b)*f_Coe*g_Coe/york_sigma
-
-
-        count_IZ= self.Data[self.s]['steps_Arai'].count('IZ')
-        count_ZI= self.Data[self.s]['steps_Arai'].count('ZI')
-        if count_IZ >1 and count_ZI >1:
-            pars['magic_method_codes']="LP-PI-BT-IZZI"
-        elif count_IZ <1 and count_ZI >1:
-            pars['magic_method_codes']="LP-PI-ZI"
-        elif count_IZ >1 and count_ZI <1:
-            pars['magic_method_codes']="LP-PI-IZ"            
-        else:
-            pars['magic_method_codes']=""
-            
-        pars['specimen_int_n']=end-start+1
-        pars["specimen_b"]=york_b
-        pars["specimen_YT"]=y_T       
-        pars["specimen_b_sigma"]=york_sigma
-        pars["specimen_b_beta"]=beta_Coe
-        pars["specimen_f"]=f_Coe
-        pars["specimen_fvds"]=f_vds
-        pars["specimen_g"]=g_Coe
-        pars["specimen_q"]=q_Coe
         pars["specimen_int"]=-1*pars['lab_dc_field']*pars["specimen_b"]
-        pars['magic_method_codes']+=":IE-TT"
-        pars["specimen_cm_x"]=x_Arai_mean
-        pars["specimen_cm_y"]=y_Arai_mean
-
-        
-        if 'x_ptrm_check' in self.Data[self.s].keys():
-            if len(self.Data[self.s]['x_ptrm_check'])>0:
-                pars['magic_method_codes']+=":LP-PI-ALT-PTRM"
-        if 'x_tail_check' in self.Data[self.s].keys():
-            if len(self.Data[self.s]['x_tail_check'])>0:
-                pars['magic_method_codes']+=":LP-PI-BT-MD"
 
 
-        #-------------------------------------------------
-        # pTRM checks:
-        # DRAT ()
-        # and
-        # DRATS (Tauxe and Staudigel 2004)
-        #-------------------------------------------------
-
-        x_ptrm_check_in_0_to_end,y_ptrm_check_in_0_to_end,x_Arai_compare=[],[],[]
-        x_ptrm_check_in_start_to_end,y_ptrm_check_in_start_to_end=[],[]
-        x_ptrm_check_for_SCAT,y_ptrm_check_for_SCAT=[],[]
-
-        stop_scat_collect=False
-        for k in range(len(self.Data[s]['ptrm_checks_temperatures'])):
-          if self.Data[s]['ptrm_checks_temperatures'][k]<pars["measurement_step_max"] and self.Data[s]['ptrm_checks_temperatures'][k] in t_Arai:
-            x_ptrm_check_in_0_to_end.append(self.Data[s]['x_ptrm_check'][k])
-            y_ptrm_check_in_0_to_end.append(self.Data[s]['y_ptrm_check'][k])
-            x_Arai_index=t_Arai.index(self.Data[s]['ptrm_checks_temperatures'][k])
-            x_Arai_compare.append(x_Arai[x_Arai_index])
-            if self.Data[s]['ptrm_checks_temperatures'][k]>=pars["measurement_step_min"]:
-                x_ptrm_check_in_start_to_end.append(self.Data[s]['x_ptrm_check'][k])
-                y_ptrm_check_in_start_to_end.append(self.Data[s]['y_ptrm_check'][k])
-          if self.Data[s]['ptrm_checks_temperatures'][k] >= pars["measurement_step_min"] and self.Data[s]['ptrm_checks_starting_temperatures'][k] <= pars["measurement_step_max"] :
-                x_ptrm_check_for_SCAT.append(self.Data[s]['x_ptrm_check'][k])
-                y_ptrm_check_for_SCAT.append(self.Data[s]['y_ptrm_check'][k])
-          # If triangle is within the interval but started after the upper temperature bound, then one pTRM check is included
-          # For example: if T_max=480, the traingle in 450 fall far, and it started at 500, then it is included
-          # the ateration occured between 450 and 500, we dont know when.
-          if  stop_scat_collect==False and \
-             self.Data[s]['ptrm_checks_temperatures'][k] < pars["measurement_step_max"] and self.Data[s]['ptrm_checks_starting_temperatures'][k] > pars["measurement_step_max"] :
-                x_ptrm_check_for_SCAT.append(self.Data[s]['x_ptrm_check'][k])
-                y_ptrm_check_for_SCAT.append(self.Data[s]['y_ptrm_check'][k])
-                stop_scat_collect=True
-              
-              
-        # scat uses a different definistion":
-        # use only pTRM that STARTED before the last temperatire step.
-        
-        x_ptrm_check_in_0_to_end=array(x_ptrm_check_in_0_to_end)  
-        y_ptrm_check_in_0_to_end=array(y_ptrm_check_in_0_to_end)
-        x_Arai_compare=array(x_Arai_compare)
-        x_ptrm_check_in_start_to_end=array(x_ptrm_check_in_start_to_end)
-        y_ptrm_check_in_start_to_end=array(y_ptrm_check_in_start_to_end)
-        x_ptrm_check_for_SCAT=array(x_ptrm_check_for_SCAT)
-        y_ptrm_check_for_SCAT=array(y_ptrm_check_for_SCAT)
-                               
-        DRATS=100*(abs(sum(x_ptrm_check_in_0_to_end-x_Arai_compare))/(x_Arai[end]))
-        int_ptrm_n=len(x_ptrm_check_in_0_to_end)
-        if int_ptrm_n > 0:
-           pars['specimen_int_ptrm_n']=int_ptrm_n
-           pars['specimen_drats']=DRATS
-        else:
-           pars['specimen_int_ptrm_n']=int_ptrm_n
-           pars['specimen_drats']=-1
-
-        #-------------------------------------------------
-        # Tail check MD
-        #-------------------------------------------------
-
-        # collect tail check data"
-        x_tail_check_start_to_end,y_tail_check_start_to_end=[],[]
-        x_tail_check_for_SCAT,y_tail_check_for_SCAT=[],[]
-
-        for k in range(len(self.Data[s]['tail_check_temperatures'])):
-          if self.Data[s]['tail_check_temperatures'][k] in t_Arai:
-              if self.Data[s]['tail_check_temperatures'][k]<=pars["measurement_step_max"] and self.Data[s]['tail_check_temperatures'][k] >=pars["measurement_step_min"]:
-                   x_tail_check_start_to_end.append(self.Data[s]['x_tail_check'][k]) 
-                   y_tail_check_start_to_end.append(self.Data[s]['y_tail_check'][k]) 
-          if self.Data[s]['tail_check_temperatures'][k] >= pars["measurement_step_min"] and self.Data[s]['tail_checks_starting_temperatures'][k] <= pars["measurement_step_max"] :
-                x_tail_check_for_SCAT.append(self.Data[s]['x_tail_check'][k])
-                y_tail_check_for_SCAT.append(self.Data[s]['y_tail_check'][k])
-
-                
-        x_tail_check_start_to_end=array(x_tail_check_start_to_end)
-        y_tail_check_start_to_end=array(y_tail_check_start_to_end)
-        x_tail_check_for_SCAT=array(x_tail_check_for_SCAT)
-        y_tail_check_for_SCAT=array(y_tail_check_for_SCAT)
-
-        #-------------------------------------------------                     
-        # Tail check : TO DO !
-        pars['specimen_md']=-1  
-        #-------------------------------------------------                     
-
-        #-------------------------------------------------                     
-        # Calculate the new 'beta box' parameter
-        # all datapoints, pTRM checks, and tail-checks, should be inside a "beta box"
-        # For definition of "beta box" see Shaar and Tauxe (2012)
-        #-------------------------------------------------                     
-
-        if self.acceptance_criteria['specimen_scat']['value'] in [True,1,"True","TRUE",'1','g']\
-        and self.acceptance_criteria['specimen_b_beta']['value'] != -999:
-        
-            pars["fail_arai_beta_box_scatter"]=False
-            pars["fail_ptrm_beta_box_scatter"]=False
-            pars["fail_tail_beta_box_scatter"]=False
-            
-            # best fit line 
-            b=pars['specimen_b']
-            cm_x=mean(array(x_Arai_segment))
-            cm_y=mean(array(y_Arai_segment))
-            pars["specimen_cm_x"]=cm_x
-            pars["specimen_cm_y"]=cm_y
-            a=cm_y-b*cm_x
-
-            # lines with slope = slope +/- 2*(specimen_b_beta)
-
-            if self.acceptance_criteria['specimen_b_beta']['value'] != -999:
-                self.GUI_log.write ("-E- ERROR: specimen_beta not in pmag_criteria file, cannot calculate 'beta box' scatter\n") 
-
-            b_beta_threshold=self.acceptance_criteria['specimen_b_beta']['value']
-
-            two_sigma_beta_threshold=2*b_beta_threshold
-            two_sigma_slope_threshold=abs(two_sigma_beta_threshold*b)
-                 
-            # a line with a  shallower  slope  (b + 2*beta*b) passing through the center of mass
-            b1=b+two_sigma_slope_threshold
-            a1=cm_y-b1*cm_x
-
-            # bounding line with steeper  slope (b - 2*beta*b) passing through the center of mass
-            b2=b-two_sigma_slope_threshold
-            a2=cm_y-b2*cm_x
-
-            # lower bounding line of the 'beta box'
-            slop1=a1/((a2/b2))
-            intercept1=a1
-
-            # higher bounding line of the 'beta box'
-            slop2=a2/((a1/b1))
-            intercept2=a2       
-
-            pars['specimen_scat_bounding_line_high']=[intercept2,slop2]
-            pars['specimen_scat_bounding_line_low']=[intercept1,slop1]
-            
-            # check if the Arai data points are in the 'box'
-
-            x_Arai_segment=array(x_Arai_segment)
-            y_Arai_segment=array(y_Arai_segment)
-
-            # the two bounding lines
-            ymin=intercept1+x_Arai_segment*slop1
-            ymax=intercept2+x_Arai_segment*slop2
-
-            # arrays of "True" or "False"
-            check_1=y_Arai_segment>ymax
-            check_2=y_Arai_segment<ymin
-
-            # check if at least one "True" 
-            if (sum(check_1)+sum(check_2))>0:
-             pars["fail_arai_beta_box_scatter"]=True
-             #print "check, fail beta box"
+        # replace thellier_gui code for ptrm checks, DRAT etc. here
+        # also tail checks and SCAT
 
 
-            # check if the pTRM checks data points are in the 'box'
 
-            # using x_ptrm_check_in_segment (defined above)
-            # using y_ptrm_check_in_segment (defined above)
-
-
-            if len(x_ptrm_check_for_SCAT) > 0:
-
-              # the two bounding lines
-              ymin=intercept1+x_ptrm_check_for_SCAT*slop1
-              ymax=intercept2+x_ptrm_check_for_SCAT*slop2
-
-              # arrays of "True" or "False"
-              check_1=y_ptrm_check_for_SCAT>ymax
-              check_2=y_ptrm_check_for_SCAT<ymin
-
-
-              # check if at least one "True" 
-              if (sum(check_1)+sum(check_2))>0:
-                pars["fail_ptrm_beta_box_scatter"]=True
-                #print "check, fail fail_ptrm_beta_box_scatter"
-                
-            # check if the tail checks data points are in the 'box'
-
-
-            if len(x_tail_check_for_SCAT) > 0:
-
-              # the two bounding lines
-              ymin=intercept1+x_tail_check_for_SCAT*slop1
-              ymax=intercept2+x_tail_check_for_SCAT*slop2
-
-              # arrays of "True" or "False"
-              check_1=y_tail_check_for_SCAT>ymax
-              check_2=y_tail_check_for_SCAT<ymin
-
-
-              # check if at least one "True" 
-              if (sum(check_1)+sum(check_2))>0:
-                pars["fail_tail_beta_box_scatter"]=True
-                #print "check, fail fail_ptrm_beta_box_scatter"
-
-            if pars["fail_tail_beta_box_scatter"] or pars["fail_ptrm_beta_box_scatter"] or pars["fail_arai_beta_box_scatter"]:
-                  pars["specimen_scat"]="Fail"
-            else:
-                  pars["specimen_scat"]="Pass"
-        else:
-            pars["specimen_scat"]="N/A"
-        
-        #-------------------------------------------------  
-        # Calculate the new FRAC parameter (Shaar and Tauxe, 2012).
-        # also check that the 'gap' between consecutive measurements is less than 0.5(VDS)
-        #
-        #-------------------------------------------------  
-
-        vector_diffs=self.Data[s]['vector_diffs']
-        vector_diffs_segment=vector_diffs[zstart:zend]
-        FRAC=sum(vector_diffs_segment)/self.Data[s]['vds']
-        max_FRAC_gap=max(vector_diffs_segment/sum(vector_diffs_segment))
-
-        pars['specimen_frac']=FRAC
-        pars['specimen_gmax']=max_FRAC_gap
-
+        # Ron removed this
         #-------------------------------------------------  
         # Check if specimen pass Acceptance criteria
         #-------------------------------------------------  
@@ -7326,9 +6788,19 @@ class Arai_GUI(wx.Frame):
 
 
         #-------------------------------------------------                     
-        # Calculate the direction of pTMRMS
+        # Add missing parts of code from old get_PI
         #-------------------------------------------------                     
 
+        count_IZ= self.Data[self.s]['steps_Arai'].count('IZ')
+        count_ZI= self.Data[self.s]['steps_Arai'].count('ZI')
+        if count_IZ >1 and count_ZI >1:
+            pars['magic_method_codes']="LP-PI-BT-IZZI"
+        elif count_IZ <1 and count_ZI >1:
+            pars['magic_method_codes']="LP-PI-ZI"
+        elif count_IZ >1 and count_ZI <1:
+            pars['magic_method_codes']="LP-PI-IZ"            
+        else:
+            pars['magic_method_codes']=""
 
         #-------------------------------------------------            
         # Calculate anistropy correction factor
@@ -7499,8 +6971,52 @@ class Arai_GUI(wx.Frame):
             pars["CR_WARNING"]="no cooling rate correction"
             
 
-        return(pars)
+
+        expected_pars = ['fail_ptrm_beta_box_scatter', 'specimen_frac', 'specimen_fail_criteria', 'specimen_dang', 'measurement_step_max', 'specimen_scat_bounding_line_high', 'saved', 'specimen_PCA_sigma_max', 'specimen_int', 'specimen_q', 'specimen_fvds', 'specimen_b_sigma', 'specimen_ptrms_inc', 'specimen_YT', 'er_sample_name', 'specimen_md', 'specimen_int_n', 'specimen_scat_bounding_line_low', 'specimen_inc', 'er_specimen_name', 'specimen_correction', 'specimen_int_corr_cooling_rate', 'AC_WARNING', 'specimen_int_corr_anisotropy', 'specimen_int_mad', 'specimen_int_uT', 'fail_tail_beta_box_scatter', 'specimen_cm_y', 'specimen_cm_x', 'specimen_dec', 'specimen_PCA_sigma_int', 'specimen_drats', 'specimen_b_beta', 'specimen_ptrms_dec', 'specimen_b', 'fail_arai_beta_box_scatter', 'specimen_g', 'specimen_f', 'specimen_int_ptrm_n', 'NLT_specimen_correction_factor', 'Anisotropy_correction_factor', 'specimen_ptrms_mad', 'specimen_ptrms_angle', 'specimen_PCA_sigma_min', 'CR_WARNING', 'lab_dc_field', 'measurement_step_min', 'specimen_PCA_v1', 'specimen_scat', 'specimen_gmax', 'magic_method_codes']
+
         
+
+        def combine_dictionaries(d1, d2):
+            """
+            combines dict1 and dict2 into a new dict.  
+            if dict1 and dict2 share a key, the value from dict1 is used
+            """
+            for key, value in d2.iteritems():
+                if key not in d1.keys():
+                    d1[key] = value
+            return d1
+
+        
+        ron= ['specimen_fail_criteria', 'saved', 'specimen_ptrms_inc',  'er_sample_name', 'er_specimen_name', 'specimen_correction', 'specimen_int_corr_cooling_rate', 'AC_WARNING', 'specimen_int_corr_anisotropy', 'specimen_int_uT', 'specimen_ptrms_dec','NLT_specimen_correction_factor', 'Anisotropy_correction_factor', 'specimen_ptrms_mad', 'CR_WARNING', 'magic_method_codes'] # still not mapped
+
+        lori =  ['tail_check_max', 'B_lab', 'y_err', 'mean_DEV_prime',  'AC_Checks_segment', 'specimen_int', 'x_err', 'tau_Free', 'tau_Anc', 'max_ptrm_check', 'best_fit_vector_Anc', 'V_Anc', 'y_tag', 'ptrm_checks_included_temps', 'specimen_g_lim', 'V_Free', 'ptrm_checks', 'max_diff', 'tail_check_diffs', 'sum_abs_ptrm_checks', 'sum_ptrm_checks','vector_diffs_segment', 'mean_DRAT_prime', 'zdata_mass_center', 'count_IZ', 'count_ZI', 'vector_diffs', 'x_tag'] # not needed
+        #print 'ron', ron
+        #for p in ron:
+        #    pintparvalues = [x for x in Pint_pars.pars.values() if (type(x) != list) and (type(x) != numpy.ndarray)]
+        #    #print pars[p]
+        #    if pars[p] in pintparvalues:
+        #        print p, pars[p]
+        #    for k, v in Pint_pars.pars.iteritems():
+        #        if (type(v) != list) and (type(v) != numpy.ndarray):
+        #            if pars[p] == v:
+        #                print k, v
+        #print 'uT', pars['specimen_int_uT']
+        #print 'int', pars['specimen_int']
+        #print 'cart pTRMS orig', CART_pTRMS_orig
+        #print 'ptrm M (should be the same as X1_prime - mean(X1), etc)', M
+        #print 'ptrm cov(M) (should be the same as orient tensor)', cov(M)
+        #print 'ptrm eigenvalues', eigenvalues
+        #print 'ptrm eigenvectors', eigenvectors
+        #print 'specimen_ptrms_dec', pars['specimen_ptrms_dec']
+        #print 'specimen_ptrms_inc', pars['specimen_ptrms_inc']
+        #mapped_pars['specimen_frac'] = 'turtles!'
+
+        self.Data[s]['pars'] = pars
+        #print "pars['specimen_scat_bounding_line_low']", pars['specimen_scat_bounding_line_low']
+#        return full_pars
+        #print pars.keys()
+        return(pars)
+                
     def check_specimen_PI_criteria(self,pars):
         '''
         # Check if specimen pass Acceptance criteria
@@ -8664,6 +8180,7 @@ class Arai_GUI(wx.Frame):
         Data[s]['vds']=vds
         Data[s]['zdata']=zdata
         Data[s]['z_temp']=z_temperatures
+        Data[s]['NRM']=NRM
         
       #--------------------------------------------------------------    
       # Rotate zijderveld plot

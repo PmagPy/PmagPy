@@ -3,6 +3,8 @@
 #============================================================================================
 # LOG HEADER:
 #============================================================================================
+# Demag_GUI Version 0.23 (beta) by Ron Shaar
+
 # Demag_GUI Version 0.22 (beta) by Ron Shaar
 #
 # Demag_GUI Version 0.21 (beta) by Ron Shaar
@@ -18,7 +20,7 @@
 
 
 global CURRENT_VRSION
-CURRENT_VRSION = "v.0.22"
+CURRENT_VRSION = "v.0.23"
 import matplotlib
 matplotlib.use('WXAgg')
 
@@ -2531,9 +2533,14 @@ class Zeq_GUI(wx.Frame):
                                   
                  try:
                     sample_azimuth=float(self.Data_info["er_samples"][sample]['sample_azimuth'])
-                    sample_dip=float(self.Data_info["er_samples"][sample]['sample_dip'])                 
-                    d_geo,i_geo=pmag.dogeo(dec,inc,sample_azimuth,sample_dip)
-                    Data[s]['zijdblock_geo'].append([tr,d_geo,i_geo,intensity,ZI,rec['measurement_flag'],rec['magic_instrument_codes']])
+                    sample_dip=float(self.Data_info["er_samples"][sample]['sample_dip'])
+                    sample_orientation_flag='g'
+                    if 'sample_orientation_flag' in  self.Data_info["er_samples"][sample].keys():
+                        if str(self.Data_info["er_samples"][sample]['sample_orientation_flag'])=='b':
+                            sample_orientation_flag='b'
+                    if sample_orientation_flag!='b':                     
+                        d_geo,i_geo=pmag.dogeo(dec,inc,sample_azimuth,sample_dip)
+                        Data[s]['zijdblock_geo'].append([tr,d_geo,i_geo,intensity,ZI,rec['measurement_flag'],rec['magic_instrument_codes']])
                  except:
                     self.GUI_log.write( "-W- cant find sample_azimuth,sample_dip for sample %s\n"%sample) 
 
@@ -3012,7 +3019,7 @@ class Zeq_GUI(wx.Frame):
         m_new_sub = menu_Analysis.AppendMenu(-1, "Acceptance criteria", submenu_criteria)
 
 
-        m_previous_interpretation = menu_Analysis.Append(-1, "&Import previous interpretation ('redo' file)", "")
+        m_previous_interpretation = menu_Analysis.Append(-1, "&Import previous interpretation from a redo file", "")
         self.Bind(wx.EVT_MENU, self.on_menu_previous_interpretation, m_previous_interpretation)
 
         m_save_interpretation = menu_Analysis.Append(-1, "&Save current interpretations to a redo file", "")
@@ -3612,7 +3619,7 @@ class Zeq_GUI(wx.Frame):
         pmag.magic_write(self.WD+"/"+"pmag_specimens.txt",PmagSpecs_fixed,'pmag_specimens')
         self.GUI_log.write( "specimen data stored in %s\n"%self.WD+"/"+"pmag_specimens.txt")
         
-        TEXT="specimen results are saved in pmag_specimens.txt.\nPress OK for MagIC results tables options."
+        TEXT="specimen results are saved in pmag_specimens.txt.\nPress OK for samples/sites and final MagIC results tables."
         dlg = wx.MessageDialog(self, caption="Saved",message=TEXT,style=wx.OK|wx.CANCEL )
         result = dlg.ShowModal()
         if result == wx.ID_OK:            
@@ -3762,11 +3769,12 @@ class Zeq_GUI(wx.Frame):
         dia = MagIC_Model_Builder.MagIC_model_builder(self.WD,self.Data,self.Data_hierarchy)
         dia.Show()
         dia.Center()
+        print "OK"
         #help_window.Close()
         self.Data,self.Data_hierarchy,self.Data_info={},{},{}
-        self.Data,self.Data_hierarchy=self.get_data() # Get data from magic_measurements and rmag_anistropy if exist.
         self.Data_info=self.get_data_info() # get all ages, locations etc. (from er_ages, er_sites, er_locations)
-                                            
+        self.Data,self.Data_hierarchy=self.get_data() # Get data from magic_measurements and rmag_anistropy if exist.
+        self.update_selection()                                    
 
     def on_menu_samples_orientation(self,event):
         

@@ -1,0 +1,1 @@
+SPD.py is the main document.  new_lj_thellier_gui_spd is a truncated version of thelllier_gui_spd that just parses magic_measurements files for analysis.  files with the prefix 'lib_' are statistical libraries that are imported into SPD.py for calculations.  files with the prefix 'test_' correspond to 'lib_' files and contain tests for those libraries.  

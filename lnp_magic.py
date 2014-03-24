@@ -52,8 +52,8 @@ def main():
         for crit in Crits:
             if 'specimen_mad' in crit:   M=float(crit['specimen_mad'])
             if 'specimen_n' in crit:   N=float(crit['specimen_n'])
-            if 'site_alpha95' in crit: acutoff=float(crit['site_alpha95']
-            if 'site_k' in crit: kcutoff=float(crit['site_k']
+            if 'site_alpha95' in crit: acutoff=float(crit['site_alpha95'])
+            if 'site_k' in crit: kcutoff=float(crit['site_k'])
     if '-F' in sys.argv:
         ind=sys.argv.index("-F")
         out_file=sys.argv[ind+1]
