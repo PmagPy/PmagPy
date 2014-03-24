@@ -1,1 +1,0 @@
-Site 	 Specimens 	 Samples 	 N 	 B (uT) 	 sigma 	 sigma perc 	 VADM 	 VADM sigma

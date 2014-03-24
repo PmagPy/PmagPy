@@ -1,3 +1,0 @@
-bootstrap_errors_list:  
-programs with errors: []
-
