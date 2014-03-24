@@ -1,4 +1,9 @@
 
+<<<<<<< HEAD
+tmp.txt
+
+thellier_gui_preferences.pyc
+=======
 *new.out
 .DS_Store
 Command_line_Tests/*output.txt*
@@ -44,6 +49,7 @@ Command_line_Tests/specimens_results_magic/pmag_sites.txt
 rename_me_errors_list.txt
 demag_dialog_boxes.py
 tmp.txt
+>>>>>>> FETCH_HEAD
 
 thellier_gui_preferences.py
 
@@ -51,6 +57,11 @@ thellier_gui_new_criteria.py
 
 thellier_gui_lori.py
 
+<<<<<<< HEAD
+*.pyc
+
+=======
+>>>>>>> FETCH_HEAD
 thellier_gui_backup_March_17.py
 
 thellier_gui_backup_Feb_19.py
@@ -61,6 +72,9 @@ orient_magic_wx.py
 
 demag_gui copy.py
 
+<<<<<<< HEAD
+demag_dialog_boxes.py
+=======
 thellier_consistency_test.pyc
 
 thellier_consistency_test.pyc
@@ -86,3 +100,6 @@ thellier_GUI.redo
 pmag_criteria.txt
 foldtest_results_new.out
 
+>>>>>>> FETCH_HEAD
+
+Command_line_Tests/.striprc
