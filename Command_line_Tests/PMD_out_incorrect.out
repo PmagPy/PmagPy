@@ -1,0 +1,12 @@
+tab 	magic_measurements
+er_citation_names	er_location_name	er_sample_name	er_site_name	er_specimen_name	magic_experiment_name	magic_method_codes	magic_software_packages	measurement_dec	measurement_description	measurement_flag	measurement_inc	measurement_magn_moment	measurement_magn_volume	measurement_number	measurement_standard	measurement_temp	treatment_ac_field	treatment_temp
+This study	unknown	ss0101	ss010	ss0101a	ss0101a:LP-DIR-AF	LT-NO:LP-DIR-AF	pmagpy-2.194	245.1	Date: 06/17/2003 12:00	g	71.5	5.599e-05	+5.09E+00	1	u	2.730e+02	0.000e+00	2.730e+02
+This study	unknown	ss0101	ss010	ss0101a	ss0101a:LP-DIR-AF	LT-AF-Z:LP-DIR-AF	pmagpy-2.194	243.7	Date: 06/17/2063 12:00	g	71.3	5.312e-05	+4.83E+00	2	u	2.730e+02	2.000e-03	2.730e+02
+This study	unknown	ss0101	ss010	ss0101a	ss0101a:LP-DIR-AF	LT-AF-Z:LP-DIR-AF	pmagpy-2.194	237.6	Date: 06/17/2003 12:00	g	69.2	3.872e-05	+3.52E+00	3	u	2.730e+02	5.000e-03	2.730e+02
+This study	unknown	ss0101	ss010	ss0101a	ss0101a:LP-DIR-AF	LT-AF-Z:LP-DIR-AF	pmagpy-2.194	220.5	Date: 06/17/2003 12:00	g	63.3	2.149e-05	+1.95E+00	4	u	2.730e+02	8.000e-03	2.730e+02
+This study	unknown	ss0101	ss010	ss0101a	ss0101a:LP-DIR-AF	LT-AF-Z:LP-DIR-AF	pmagpy-2.194	205.9	Date: 06/17/2003 12:00	g	57.6	1.421e-05	+1.29E+00	5	u	2.730e+02	1.200e-02	2.730e+02
+This study	unknown	ss0101	ss010	ss0101a	ss0101a:LP-DIR-AF	LT-AF-Z:LP-DIR-AF	pmagpy-2.194	200.6	Date: 06/17/2003 12:00	g	54.4	1.102e-05	+1.00E+00	6	u	2.730e+02	1.800e-02	2.730e+02
+This study	unknown	ss0101	ss010	ss0101a	ss0101a:LP-DIR-AF	LT-AF-Z:LP-DIR-AF	pmagpy-2.194	198.6	Date: 06/17/2003 12:00	g	52.8	9.011e-06	+8.19E-01	7	u	2.730e+02	2.500e-02	2.730e+02
+This study	unknown	ss0101	ss010	ss0101a	ss0101a:LP-DIR-AF	LT-AF-Z:LP-DIR-AF	pmagpy-2.194	196.5	Date: 06/17/2003 12:00	g	51.1	5.180e-06	+4.71E-01	8	u	2.730e+02	5.000e-02	2.730e+02
+This study	unknown	ss0101	ss010	ss0101a	ss0101a:LP-DIR-AF	LT-AF-Z:LP-DIR-AF	pmagpy-2.194	196.5	Date: 06/17/2003 12:00	g	49.9	2.915e-06	+2.65E-01	9	u	2.730e+02	9.000e-02	2.730e+02
+This study	unknown	ss0101	ss010	ss0101a	ss0101a:LP-DIR-AF	LT-AF-Z:LP-DIR-AF	pmagpy-2.194	197.2	Date: 06/17/2003 12:00	g	50.6	1.566e-06	+1.42E-01	10	u	2.730e+02	1.800e-01	2.730e+02

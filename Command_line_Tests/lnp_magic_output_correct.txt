@@ -1,0 +1,162 @@
+sv01
+Site lines planes  kappa   a95   dec   inc
+sv01 0  5     286      6.6    179.0    -54.3  4.9948 
+% tilt correction:  0
+sv02
+Site lines planes  kappa   a95   dec   inc
+sv02 4  2     113      6.6    338.8     38.6  5.9647 
+% tilt correction:  0
+sv03
+Site lines planes  kappa   a95   dec   inc
+sv03 5  3     108      5.5    344.0     53.1  7.9491 
+% tilt correction:  0
+sv04
+Site lines planes  kappa   a95   dec   inc
+sv04 5  0     286      4.5    346.9     50.7  4.9860 
+% tilt correction:  0
+sv05
+Site lines planes  kappa   a95   dec   inc
+sv05 5  3     165      4.5    164.1    -51.3  7.9667 
+% tilt correction:  0
+sv06
+Site lines planes  kappa   a95   dec   inc
+sv06 2  3      81      9.7    351.4    -32.0  4.9691 
+% tilt correction:  0
+sv07
+Site lines planes  kappa   a95   dec   inc
+sv07 7  1     318      3.1    350.3     61.8  7.9796 
+% tilt correction:  0
+sv08
+Site lines planes  kappa   a95   dec   inc
+sv08 7  0     151      4.9    165.7    -46.1  6.9603 
+% tilt correction:  0
+sv09
+Site lines planes  kappa   a95   dec   inc
+sv09 5  0      10     26.2    251.6    -57.1  4.5791 
+% tilt correction:  0
+sv10
+Site lines planes  kappa   a95   dec   inc
+sv10 0  5      65     13.9    188.9    -47.3  4.9770 
+% tilt correction:  0
+sv11
+Site lines planes  kappa   a95   dec   inc
+sv11 2  2     116     10.0    193.6    -43.2  3.9827 
+% tilt correction:  0
+sv12
+skipping site - not enough data with specified coordinate system
+sv13
+skipping site - not enough data with specified coordinate system
+sv15
+Site lines planes  kappa   a95   dec   inc
+sv15 6  0     175      5.1    352.8     25.5  5.9714 
+% tilt correction:  0
+sv16
+Site lines planes  kappa   a95   dec   inc
+sv16 4  1     166      6.1    356.0     24.1  4.9789 
+% tilt correction:  0
+sv17
+skipping site - not enough data with specified coordinate system
+sv18
+Site lines planes  kappa   a95   dec   inc
+sv18 5  0     704      2.9    192.8    -55.9  4.9943 
+% tilt correction:  0
+sv19
+skipping site - not enough data with specified coordinate system
+sv20
+skipping site - not enough data with specified coordinate system
+sv21
+skipping site - not enough data with specified coordinate system
+sv22
+skipping site - not enough data with specified coordinate system
+sv23
+Site lines planes  kappa   a95   dec   inc
+sv23 4  1     464      3.7     19.5     29.0  4.9925 
+% tilt correction:  0
+sv24
+Site lines planes  kappa   a95   dec   inc
+sv24 7  0     109      5.8    339.2     63.7  6.9452 
+% tilt correction:  0
+sv25
+skipping site - not enough data with specified coordinate system
+sv26
+Site lines planes  kappa   a95   dec   inc
+sv26 4  2     109      6.7    159.0    -69.1  5.9633 
+% tilt correction:  0
+sv27
+Site lines planes  kappa   a95   dec   inc
+sv27 4  1     241      5.1    354.0     55.9  4.9854 
+% tilt correction:  0
+sv28
+skipping site - not enough data with specified coordinate system
+sv30
+skipping site - not enough data with specified coordinate system
+sv31
+Site lines planes  kappa   a95   dec   inc
+sv31 5  0     394      3.9     12.7     46.2  4.9898 
+% tilt correction:  0
+sv32
+Site lines planes  kappa   a95   dec   inc
+sv32 5  0     384      3.9    342.9     60.3  4.9896 
+% tilt correction:  0
+sv50
+Site lines planes  kappa   a95   dec   inc
+sv50 2  1       1    180.0    266.8    -40.9  1.9606 
+% tilt correction:  0
+sv51
+Site lines planes  kappa   a95   dec   inc
+sv51 4  0       2     84.3    207.2    -39.4  2.6222 
+% tilt correction:  0
+sv52
+Site lines planes  kappa   a95   dec   inc
+sv52 4  0     199      6.5    182.7    -54.9  3.9850 
+% tilt correction:  0
+sv53
+Site lines planes  kappa   a95   dec   inc
+sv53 3  0       3     86.4    178.0    -26.5  2.3622 
+% tilt correction:  0
+sv54
+Site lines planes  kappa   a95   dec   inc
+sv54 5  0      30     14.1    175.3    -46.7  4.8684 
+% tilt correction:  0
+sv55
+Site lines planes  kappa   a95   dec   inc
+sv55 4  0     409      4.5    181.2    -45.0  3.9927 
+% tilt correction:  0
+sv56
+Site lines planes  kappa   a95   dec   inc
+sv56 4  1       3     50.1    171.1    -68.8  3.9527 
+% tilt correction:  0
+sv57
+Site lines planes  kappa   a95   dec   inc
+sv57 5  0      20     17.8    199.6    -46.4  4.7950 
+% tilt correction:  0
+sv58
+Site lines planes  kappa   a95   dec   inc
+sv58 4  0     570      3.9    182.0    -62.3  3.9947 
+% tilt correction:  0
+sv59
+Site lines planes  kappa   a95   dec   inc
+sv59 4  0    1128      2.7    178.8    -51.3  3.9973 
+% tilt correction:  0
+sv60
+skipping site - not enough data with specified coordinate system
+sv61
+Site lines planes  kappa   a95   dec   inc
+sv61 3  1       7     39.5      2.9     77.8  3.6408 
+% tilt correction:  0
+sv62
+Site lines planes  kappa   a95   dec   inc
+sv62 0  3     308     38.3    133.7    -52.3  2.9984 
+% tilt correction:  0
+sv63
+Site lines planes  kappa   a95   dec   inc
+sv63 4  0     489      4.2    351.5     45.1  3.9939 
+% tilt correction:  0
+sv64
+Site lines planes  kappa   a95   dec   inc
+sv64 6  0     172      5.1    170.4    -51.6  5.9710 
+% tilt correction:  0
+sv65
+Site lines planes  kappa   a95   dec   inc
+sv65 4  1      90      8.3     31.0     54.4  4.9611 
+% tilt correction:  0

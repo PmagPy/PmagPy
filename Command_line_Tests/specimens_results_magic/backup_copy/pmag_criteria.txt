@@ -1,0 +1,3 @@
+tab 	pmag_criteria
+criteria_definition	er_citation_names	pmag_criteria_code	sample_alpha95	site_alpha95	site_int_n	site_int_sigma	site_int_sigma_perc	site_k	site_n	site_n_lines	site_polarity	specimen_b_beta	specimen_dang	specimen_drats	specimen_fvds	specimen_int_mad	specimen_int_ptrm_n	specimen_mad	specimen_md	specimen_n	specimen_q
+Criteria for selection of specimen direction	This study	DE-SPEC	180	180	2	5.5e-06	15.5	100	5	4	n	0.1	10.5	20.5	0.7	10.5	2	5.49	15	4	1

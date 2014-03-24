@@ -1,0 +1,26 @@
+tab 	magic_methods
+er_citation_names	magic_method_code	method_definition	method_description	method_iaga7	method_type	method_url_tauxe
+	DA-DIR-GEO	Direction correction: Adjusted for sample orientation			Data Adjustment	
+Kirschvink 1980	DE-BFL	Best fit line			Direction Estimation	http://earthref.org/MAGIC/books/Tauxe/2005/lecture.09.htm#DE-BFL
+Kirschvink 1980	DE-BFP	Best fit plane			Direction Estimation	http://earthref.org/MAGIC/books/Tauxe/2005/lecture.09.htm#DE-BFL
+Cox & Doell 1960	DE-DI	Pole latitude and longitude calculation from mean declination-inclination		Ptype D	Direction Estimation	
+Fisher 1953	DE-FM	Fisher mean			Direction Estimation	
+McFadden & McElhinny 1988	DE-FM-LP	Fisher mean: Line and planes			Direction Estimation	
+Cox & Doell 1960	DE-VGP	Pole latitude and longitude calculation from mean VGP		Ptype V	Direction Estimation	
+	DE-VM	Vector mean, including magnitude of vector, rather than just Fisher mean unit vectors			Direction Estimation	
+Collinson 1983	FS-FD	Field drilling using a hand-held portable drill			Field Sampling	http://earthref.org/MAGIC/books/Tauxe/2005/lecture.09.htm#FS-FD
+	FS-LOC-GPS	Location determination: Latitude and longitude by GPS measurement			Field Sampling	
+	GM-C14	Radiocarbon age determination			Geochronology Method	
+	GM-KAR	40K-40Ar age determination			Geochronology Method	
+McElhinny & McFadden 2000	LP-DC5	Magnetic vectors isolated using two or more demagnetization methods with principle component analysis		DC5	Lab Protocol	http://earthref.org/MAGIC/books/Tauxe/2005/lecture.16.htm#IAGA7
+	LP-DIR-AF	Directional data: Step-wise alternating field demagnetization			Lab Protocol	
+	LP-DIR-T	Directional data: Step-wise thermal demagnetization			Lab Protocol	
+As & Zijderveld 1958 : Collinson 1983	LT-AF-Z	Alternating field: In zero field	A specimen is subject to a decaying and alternating magnetic field such that the magnetic moments with coercivities below the peak field are aligned in opposed directions, and thus cancel. Specimens are typically reoriented in three or more orthogonal axes.	A	Lab Treatment	http://earthref.org/MAGIC/books/Tauxe/2005/lecture.09.htm#LT-AFZ
+	LT-NO	No treatments applied before measurement		N	Lab Treatment	
+Wilson 1961 : Collinson 1983	LT-T-Z	Specimen cooling: In zero field	Heating the specimen to the desired temperature step and then cooling in zero ambient magnetic field.	T	Lab Treatment	http://earthref.org/MAGIC/books/Tauxe/2005/lecture.09.htm#LT-TZ
+	SO-CMD-NORTH	Correction applied for magnetic declination: True north			Sample Orientation	http://earthref.org/MAGIC/books/Tauxe/2005/lecture.09.htm#SO-CMD
+Collinson 1983	SO-MAG	Magnetic compass			Sample Orientation	http://earthref.org/MAGIC/books/Tauxe/2005/lecture.09.htm#SO-MAG
+	SO-POM	Pomeroy orientation device			Sample Orientation	http://earthref.org/MAGIC/books/Tauxe/2005/lecture.09.htm#SO-POM
+Collinson 1983	SO-SM	Magnetic and/or sun compass			Sample Orientation	
+Collinson 1983	SO-SUN	Sun compass			Sample Orientation	http://earthref.org/MAGIC/books/Tauxe/2005/lecture.09.htm#SO-SUN
+McFadden & McElhinny 1990	ST-R-2	Reversals test 2: Compares Watson's V statistic for normal and reverse modes with monte carlo simulation	This reversal test compares the means of the normal and reversed data, and assesses the quality using Watson's V-statistic to test whether the two samples could have been drawn from distributions sharing a common mean direction, depend on the number of observations in each sample and whether the two distributions share a common precision. Results can be classified as 'A' if ?c <= 5°, 'B' if 5° <= ?c <= 10°, or ‘C' if 10° <= ?c <= 20°, and indeterminate if ?c > 20°.	R	Stability Tests	

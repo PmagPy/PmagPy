@@ -3474,8 +3474,12 @@ class Arai_GUI(wx.Frame):
             #-------------------------------------------------            
             # loop through all possible tmin,tmax and check if pass criteria
             #-------------------------------------------------
+            #print s
             for tmin_i in range(len(temperatures)-specimen_int_n+1):
+                #print tmin_i
                 for tmax_i in range(tmin_i+specimen_int_n-1,len(temperatures)):
+                    #print tmax_i
+                    #print len(temperatures)
                     tmin=temperatures[tmin_i]
                     tmax=temperatures[tmax_i]
                     pars=self.get_PI_parameters(s,tmin,tmax)

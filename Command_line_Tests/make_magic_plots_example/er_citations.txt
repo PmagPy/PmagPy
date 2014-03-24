@@ -1,0 +1,13 @@
+tab 	er_citations
+book_editors	book_title	citation_type	city	doi	er_citation_name	journal	keywords	long_authors	pages	publisher	title	volume	year
+		Electronic Journal		10.1029/2002GC000343	This study	Geochemistry, Geophysics, Geosystems	TAFI	Tauxe, L., Constable, C., Johnson, C.L., Koppers, A.A.P., Miller, W.R. and Staudigel, H.	Unknown		Paleomagnetism of the southwestern U.S.A. recorded by 0-5 Ma igneous rocks	11	2003
+		Journal			As & Zijderveld 1958	Geophysical Journal International		As, J.A. and Zijderveld, J.D.A.	308-319		Magnetic cleaning of rocks in paleomagnetic research	1	1958
+	Methods in rock magnetism and Paleomagnetism: Techniques and instrumentation	Book	London		Collinson 1983			Collinson, D.W.	503	Chapman and Hall			1983
+		Journal			Cox & Doell 1960	Geological Society of America, Bulletin		Cox, A. and Doell, R.R.	645		Review of paleomagnetism	71	1960
+		Journal			Fisher 1953	Proceedings of the Royal Society of London		Fisher, R.A.	295-305		Dispersion on a sphere	A217	1953
+		Journal			Kirschvink 1980	Geophysical Journal of the Royal Astronomical Society		Kirschvink, J.L.	699-718		The least squares line and plane and the analysis of palaeomagnetic data	62	1980
+Dmowska, R., Holton, J.R. and Rossby, H.T.	Paleomagnetism: continents and oceans	Serial Book	San Diego		McElhinny & McFadden 2000	International Geophysics Series		McElhinny, M.W. and McFadden, P.L.	1-1	Academic Press		73	2000
+		Journal			McFadden & McElhinny 1988	Earth and Planetary Science Letters		McFadden, P.L. and McElhinny, M.W.	163-189		The combined analysis of remagnetization circles and direct observations in palaeomagnetism	87	1988
+		Journal			McFadden & McElhinny 1990	Geophysical Journal International		McFadden, P.L. and McElhinny, M.W.	725-729		Classification of the reversal test in palaeomagnetism	103	1990
+		Journal			Tanaka et al. 1990	Bulletin, United States Geological Survey		Tanaka, K.L., Onstott, T.C. and Shoemaker, E.N.	1-1		Magnetostratigraphy of the San Francisco Volcanic Field, Arizona	1929	1990
+		Journal			Wilson 1961	Geophysical Journal of the Royal Astronomical Society		Wilson, R.L.	45-58		Palaeomagnetism in Northern Ireland, Part I. The thermal demagnetization of natural magnetic moments in rocks	5	1961
