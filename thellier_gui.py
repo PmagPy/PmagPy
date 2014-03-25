@@ -6670,8 +6670,8 @@ class Arai_GUI(wx.Frame):
                     new_key = mapping[key]
                     mapped_dictionary[new_key] = value
                 else:
-                    pass
-                    #mapped_dictionary[key] = value# if this line is left in, it gives everything from the original dictionary
+                    #pass
+                    mapped_dictionary[key] = value# if this line is left in, it gives everything from the original dictionary
                     # we will want the above eventually
             return mapped_dictionary
 
@@ -6680,7 +6680,7 @@ class Arai_GUI(wx.Frame):
         """
 
             
-        a_map = {'fail_ptrm_beta_box_scatter': 'fail_ptrm_beta_box_scatter', 'scat_bounding_line_low': 'specimen_scat_bounding_line_low', 'fail_tail_beta_box_scatter': 'fail_tail_beta_box_scatter', 'MD_VDS': 'specimen_md', 'B_anc': 'specimen_int_uT', 'FRAC': 'specimen_frac', 'Inc_Free': 'specimen_inc', 'best_fit_vector_Free': 'specimen_PCA_v1', 'specimen_b_sigma': 'specimen_b_sigma', 'specimen_YT': 'specimen_YT', 'y_Arai_mean': 'specimen_cm_y', 'SCAT': 'specimen_scat', 'MAD_Free': 'specimen_int_mad', 'n_ptrm': 'specimen_int_ptrm_n', 'tmin': 'measurement_step_min', 'x_Arai_mean': 'specimen_cm_x', 'Dec_Free': 'specimen_dec', 'DRATS': 'specimen_drats', 'specimen_fvds': 'specimen_fvds', 'specimen_b_beta': 'specimen_b_beta', 'specimen_b': 'specimen_b', 'specimen_g': 'specimen_g', 'fail_arai_beta_box_scatter': 'fail_arai_beta_box_scatter', 'specimen_f': 'specimen_f', 'tmax': 'measurement_step_max', 'specimen_n': 'specimen_int_n', 'specimen_q': 'specimen_q', 'lab_dc_field': 'lab_dc_field', 'GAP-MAX': 'specimen_gmax', 'DANG': 'specimen_int_dang', 'ptrms_angle_Free': 'specimen_ptrms_angle', 'scat_bounding_line_high': 'specimen_scat_bounding_line_high', 'PCA_sigma_max_Free': "specimen_PCA_sigma_max" , 'PCA_sigma_int_Free': 'specimen_PCA_sigma_int', 'PCA_sigma_min_Free': 'specimen_PCA_sigma_min', 'ptrms_dec_Free': 'specimen_ptrms_dec', 'ptrms_inc_Free': 'specimen_ptrms_inc', 'pTRM_MAD_Free': 'specimen_ptrms_mad'} # spd name: thellier_gui name
+        a_map = {'fail_ptrm_beta_box_scatter': 'fail_ptrm_beta_box_scatter', 'scat_bounding_line_low': 'specimen_scat_bounding_line_low', 'fail_tail_beta_box_scatter': 'fail_tail_beta_box_scatter', 'MD_VDS': 'specimen_md', 'B_anc': 'specimen_int_uT', 'FRAC': 'specimen_frac', 'Inc_Free': 'specimen_inc', 'best_fit_vector_Free': 'specimen_PCA_v1', 'specimen_b_sigma': 'specimen_b_sigma', 'specimen_YT': 'specimen_YT', 'y_Arai_mean': 'specimen_cm_y', 'SCAT': 'specimen_scat', 'MAD_Free': 'specimen_int_mad', 'MAD_Anc': 'specimen_int_mad_anc', 'n_ptrm': 'specimen_int_ptrm_n', 'tmin': 'measurement_step_min', 'x_Arai_mean': 'specimen_cm_x', 'Dec_Free': 'specimen_dec', 'DRATS': 'specimen_drats', 'specimen_fvds': 'specimen_fvds', 'specimen_b_beta': 'specimen_b_beta', 'specimen_b': 'specimen_b', 'specimen_g': 'specimen_g', 'fail_arai_beta_box_scatter': 'fail_arai_beta_box_scatter', 'specimen_f': 'specimen_f', 'tmax': 'measurement_step_max', 'specimen_n': 'specimen_int_n', 'specimen_q': 'specimen_q', 'lab_dc_field': 'lab_dc_field', 'GAP-MAX': 'specimen_gmax', 'DANG': 'specimen_int_dang', 'ptrms_angle_Free': 'specimen_ptrms_angle', 'scat_bounding_line_high': 'specimen_scat_bounding_line_high', 'PCA_sigma_max_Free': "specimen_PCA_sigma_max" , 'PCA_sigma_int_Free': 'specimen_PCA_sigma_int', 'PCA_sigma_min_Free': 'specimen_PCA_sigma_min', 'ptrms_dec_Free': 'specimen_ptrms_dec', 'ptrms_inc_Free': 'specimen_ptrms_inc', 'pTRM_MAD_Free': 'specimen_ptrms_mad', 'theta': 'specimen_theta', 'gamma': 'specimen_gamma', 'delta_TR': 'specimen_dtr', 'delta_AC': 'specimen_dac', 'SSE': 'specimen_k_sse', 'Z': 'specimen_z', 'IZZI_MD': 'specimen_z_md', 'R_det2': 'specimen_r_sq', 'R_corr2': 'specimen_coeff_det_sq', 'alpha': 'specimen_int_alpha', 'max_ptrm_check': 'specimen_ptrm', 'DRAT': 'specimen_drat', 'CDRAT': 'specimen_cdrat', 'mean_DRAT': 'specimen_mdrat', 'delta_CK': 'specimen_dck', 'max_DEV': 'specimen_maxdev', 'mean_DEV': 'specimen_mdev', 'delta_pal': 'specimen_dpal', 'n_tail': 'specimen_int_ptrm_tail_n', 'MD_VDS': 'specimen_md', 'DRAT_tail': 'specimen_tail_drat', 'delta_AC': 'specimen_dac', 'n_add' : 'specimen_ac_n'} # spd name: thellier_gui name
 
         
         #pars=self.Data[s]['pars']
@@ -6691,23 +6691,11 @@ class Arai_GUI(wx.Frame):
         #pars['magic_method_codes']="LP-PI-TRM" # thellier Method
         import SPD
         import SPD.spd as spd
-        #def __init__(self, Data,specimen_name,tmin,tmax):
         Pint_pars = spd.PintPars(self.Data, str(s), tmin, tmax)
         Pint_pars.calculate_all_statistics()
 
-
-        #lj
-        #a_map = {}
-        #for n in range(len(new_ron)):
-        #    if 'missing' not in new_ron[n] and 'missing' not in new_lori[n]:
-        #        key = new_lori[n]
-        #        value = new_ron[n]
-        #        a_map[key] = value
-
         mapped_pars = mapping(Pint_pars.pars, a_map) 
         pars.update(mapped_pars)
-        #print pars
-
 
         t_Arai=self.Data[s]['t_Arai']
         x_Arai=self.Data[s]['x_Arai']
@@ -6976,9 +6964,6 @@ class Arai_GUI(wx.Frame):
             
 
 
-        expected_pars = ['fail_ptrm_beta_box_scatter', 'specimen_frac', 'specimen_fail_criteria', 'specimen_dang', 'measurement_step_max', 'specimen_scat_bounding_line_high', 'saved', 'specimen_PCA_sigma_max', 'specimen_int', 'specimen_q', 'specimen_fvds', 'specimen_b_sigma', 'specimen_ptrms_inc', 'specimen_YT', 'er_sample_name', 'specimen_md', 'specimen_int_n', 'specimen_scat_bounding_line_low', 'specimen_inc', 'er_specimen_name', 'specimen_correction', 'specimen_int_corr_cooling_rate', 'AC_WARNING', 'specimen_int_corr_anisotropy', 'specimen_int_mad', 'specimen_int_uT', 'fail_tail_beta_box_scatter', 'specimen_cm_y', 'specimen_cm_x', 'specimen_dec', 'specimen_PCA_sigma_int', 'specimen_drats', 'specimen_b_beta', 'specimen_ptrms_dec', 'specimen_b', 'fail_arai_beta_box_scatter', 'specimen_g', 'specimen_f', 'specimen_int_ptrm_n', 'NLT_specimen_correction_factor', 'Anisotropy_correction_factor', 'specimen_ptrms_mad', 'specimen_ptrms_angle', 'specimen_PCA_sigma_min', 'CR_WARNING', 'lab_dc_field', 'measurement_step_min', 'specimen_PCA_v1', 'specimen_scat', 'specimen_gmax', 'magic_method_codes']
-
-        
 
         def combine_dictionaries(d1, d2):
             """
@@ -6991,33 +6976,7 @@ class Arai_GUI(wx.Frame):
             return d1
 
         
-        ron= ['specimen_fail_criteria', 'saved', 'specimen_ptrms_inc',  'er_sample_name', 'er_specimen_name', 'specimen_correction', 'specimen_int_corr_cooling_rate', 'AC_WARNING', 'specimen_int_corr_anisotropy', 'specimen_int_uT', 'specimen_ptrms_dec','NLT_specimen_correction_factor', 'Anisotropy_correction_factor', 'specimen_ptrms_mad', 'CR_WARNING', 'magic_method_codes'] # still not mapped
-
-        lori =  ['tail_check_max', 'B_lab', 'y_err', 'mean_DEV_prime',  'AC_Checks_segment', 'specimen_int', 'x_err', 'tau_Free', 'tau_Anc', 'max_ptrm_check', 'best_fit_vector_Anc', 'V_Anc', 'y_tag', 'ptrm_checks_included_temps', 'specimen_g_lim', 'V_Free', 'ptrm_checks', 'max_diff', 'tail_check_diffs', 'sum_abs_ptrm_checks', 'sum_ptrm_checks','vector_diffs_segment', 'mean_DRAT_prime', 'zdata_mass_center', 'count_IZ', 'count_ZI', 'vector_diffs', 'x_tag'] # not needed
-        #print 'ron', ron
-        #for p in ron:
-        #    pintparvalues = [x for x in Pint_pars.pars.values() if (type(x) != list) and (type(x) != numpy.ndarray)]
-        #    #print pars[p]
-        #    if pars[p] in pintparvalues:
-        #        print p, pars[p]
-        #    for k, v in Pint_pars.pars.iteritems():
-        #        if (type(v) != list) and (type(v) != numpy.ndarray):
-        #            if pars[p] == v:
-        #                print k, v
-        #print 'uT', pars['specimen_int_uT']
-        #print 'int', pars['specimen_int']
-        #print 'cart pTRMS orig', CART_pTRMS_orig
-        #print 'ptrm M (should be the same as X1_prime - mean(X1), etc)', M
-        #print 'ptrm cov(M) (should be the same as orient tensor)', cov(M)
-        #print 'ptrm eigenvalues', eigenvalues
-        #print 'ptrm eigenvectors', eigenvectors
-        #print 'specimen_ptrms_dec', pars['specimen_ptrms_dec']
-        #print 'specimen_ptrms_inc', pars['specimen_ptrms_inc']
-        #mapped_pars['specimen_frac'] = 'turtles!'
-
         self.Data[s]['pars'] = pars
-        #print "pars['specimen_scat_bounding_line_low']", pars['specimen_scat_bounding_line_low']
-#        return full_pars
         #print pars.keys()
         return(pars)
                 
