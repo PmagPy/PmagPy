@@ -44,16 +44,17 @@ def York_Regression(x_segment, y_segment, x_mean, y_mean, n, lab_dc_field, steps
     count_IZ = steps_Arai.count('IZ')
     count_ZI = steps_Arai.count('ZI')
     B_lab = lab_dc_field * 1e6
-    B_anc = abs(york_b) * B_lab
-    specimen_int = -1* lab_dc_field * york_b
+    B_anc = abs(york_b) * B_lab # in microtesla
     B_anc_sigma = york_sigma * B_lab
+    specimen_int = -1* lab_dc_field * york_b # in tesla
+    specimen_int_sigma = york_sigma * lab_dc_field
     return {'x_err': x_err, 'y_err': y_err, 'x_tag': x_tag, 'y_tag': y_tag, 
             'specimen_b': york_b, 'specimen_b_sigma': york_sigma, 'specimen_b_beta': beta_Coe, 
             'y_int': y_T, 'x_int': x_T, 'x_prime': x_prime, 'y_prime': y_prime, 
             'delta_x_prime': delta_x_prime, 'delta_y_prime': delta_y_prime, 'specimen_f': f_Coe, 
             'specimen_g': g_Coe, 'specimen_g_lim': g_lim, 'specimen_q': q_Coe, 'specimen_w': w_Coe, 
             'count_IZ': count_IZ, 'count_ZI': count_ZI, 'B_lab': B_lab, 'B_anc': B_anc, 
-            'B_anc_sigma': B_anc_sigma, 'specimen_int': specimen_int}
+            'B_anc_sigma': B_anc_sigma, 'specimen_int': specimen_int, 'specimen_int_sigma': specimen_int_sigma}
 
 def get_vds(zdata, delta_y_prime, start, end): 
     """takes zdata array: [[1, 2, 3], [3, 4, 5]], 

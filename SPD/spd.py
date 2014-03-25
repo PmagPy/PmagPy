@@ -129,7 +129,8 @@ class PintPars(object):
 
         self.pars={}
 
-        self.pars['lab_dc_field']=self.specimen_Data['pars']['lab_dc_field']
+        self.pars['specimen_lab_dc_field'] = self.specimen_Data['pars']['lab_dc_field']
+ #       self.pars['specimen_lab_ac_field'] = self.specimen_Data['pars']['lab_ac_field']
         self.B_lab_dir = [self.specimen_Data['Thellier_dc_field_phi'], self.specimen_Data['Thellier_dc_field_theta'], 
                           self.specimen_Data['Thellier_dc_field_uT']]  # 
         self.B_lab_cart = lib_direct.dir2cart(self.B_lab_dir)
@@ -171,7 +172,7 @@ class PintPars(object):
         x_segment, y_segment = self.x_Arai_segment, self.y_Arai_segment
         x_mean, y_mean = self.x_Arai_mean, self.y_Arai_mean
         n = self.n
-        lab_dc_field = float(self.specimen_Data['lab_dc_field'])
+        lab_dc_field = float(self.pars['specimen_lab_dc_field'])
         steps_Arai = self.specimen_Data['steps_Arai']
         data = lib_arai.York_Regression(x_segment, y_segment, x_mean, y_mean, n, lab_dc_field, steps_Arai)
         self.pars['x_err'] = data['x_err']
@@ -198,6 +199,7 @@ class PintPars(object):
         self.pars['B_anc'] = data['B_anc']
         self.pars['B_anc_sigma'] = data['B_anc_sigma']
         self.pars['specimen_int'] = data['specimen_int']
+        self.pars['specimen_int_sigma'] = data['specimen_int_sigma']
         return data
 
     def get_vds(self):
