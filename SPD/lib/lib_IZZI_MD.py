@@ -14,7 +14,6 @@ def rect_area(three_points):
 
 
 def get_IZZI_MD(X_arai,Y_arai,Step,start,end):
-
     if end-start <4:
         return(9999.99)
 
@@ -62,6 +61,8 @@ def get_IZZI_MD(X_arai,Y_arai,Step,start,end):
         # calculate the area between the IZ and the ZI curve
         # and the length of the ZI curve
         # the IZZI parameter is: IZZI_area/ZI_length
+        if len(Step_IZZI_MD) <= 2:
+           return 0
         for i in range(len(X_IZZI_MD)-2):
 
             if Step_IZZI_MD[i]=='ZI' or Step_IZZI_MD[i]=='IZ':
@@ -72,7 +73,7 @@ def get_IZZI_MD(X_arai,Y_arai,Step,start,end):
 
                 slope_A_C=(C[1]-A[1])/(C[0]-A[0])
                 intercept_A_C=A[1]-(slope_A_C*A[0])
-                #print slope_A_C,intercept_A_C
+                #print 'slope_A_C,intercept_A_C', slope_A_C,intercept_A_C
                 #raw_input()
                 if B[1] < slope_A_C*B[0]+intercept_A_C:
                     down_triangle=True
@@ -87,6 +88,7 @@ def get_IZZI_MD(X_arai,Y_arai,Step,start,end):
                 if Step_IZZI_MD[i]=='ZI':
                     total_ZI_curve=total_ZI_curve+sqrt( (C[0]-A[0])**2 + (C[1]-A[1])**2)
 
-
+        if total_ZI_curve == 0:
+           return 0
         IZZI_MD=total_Z_area/total_ZI_curve
         return(IZZI_MD)
