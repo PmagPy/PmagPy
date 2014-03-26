@@ -733,6 +733,8 @@ class convert_generic_files_to_MagIC(wx.Frame):
                     #-----------------------------                                                
                     # specimen coordinates: yes
                     # geographic coordinates: yes
+                    #
+                    # commant: Ron, this need to be tested !!
                     #-----------------------------                    
                     if found_geo and found_s:
                         
