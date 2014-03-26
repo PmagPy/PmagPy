@@ -370,25 +370,27 @@ class Zeq_GUI(wx.Frame):
  
         self.box_sizer_specimen_stat = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY,"specimen mean statistics"  ), wx.HORIZONTAL )                        
                
-        for parameter in ['dec','inc','n','mad','mad_anc','sang','alpha_95']:
+        for parameter in ['dec','inc','n','mad','dang','alpha95']:
             COMMAND="self.%s_window=wx.TextCtrl(self.panel,style=wx.TE_CENTER|wx.TE_READONLY,size=(50*self.GUI_RESOLUTION,25))"%parameter
             exec COMMAND
             COMMAND="self.%s_window.SetFont(font2)"%parameter
             exec COMMAND
 
-        specimen_stat_window = wx.GridSizer(2, 5, 0, 19*self.GUI_RESOLUTION)
+        specimen_stat_window = wx.GridSizer(2, 6, 0, 15*self.GUI_RESOLUTION)
         specimen_stat_window.AddMany( [(wx.StaticText(self.panel,label="\ndec",style=wx.TE_CENTER), wx.EXPAND),
             (wx.StaticText(self.panel,label="\ninc",style=wx.TE_CENTER), wx.EXPAND),
-            (wx.StaticText(self.panel,label="\nN",style=wx.TE_CENTER),wx.EXPAND),
-            (wx.StaticText(self.panel,label="\nMAD",style=wx.TE_CENTER),wx.EXPAND),
-            (wx.StaticText(self.panel,label="\nMAD-ANC",style=wx.TE_CENTER),wx.EXPAND),
-            (wx.StaticText(self.panel,label="\nDANG",style=wx.TE_CENTER),wx.TE_CENTER),
-            (wx.StaticText(self.panel,label="\n95",style=wx.TE_CENTER),wx.TE_CENTER),
+            (wx.StaticText(self.panel,label="\nn",style=wx.TE_CENTER),wx.EXPAND),
+            (wx.StaticText(self.panel,label="\nmad",style=wx.TE_CENTER),wx.EXPAND),
+            #(wx.StaticText(self.panel,label="\nmad-anc",style=wx.TE_CENTER),wx.EXPAND),
+            (wx.StaticText(self.panel,label="\ndang",style=wx.TE_CENTER),wx.TE_CENTER),
+            (wx.StaticText(self.panel,label="\na95",style=wx.TE_CENTER),wx.TE_CENTER),
             (self.dec_window, wx.EXPAND),
             (self.inc_window, wx.EXPAND) ,
             (self.n_window, wx.EXPAND) ,
-            (self.MAD_window, wx.EXPAND),
-            (self.DANG_window, wx.EXPAND)])
+            (self.mad_window, wx.EXPAND),
+            #(self.mad_anc_window, wx.EXPAND),
+            (self.dang_window, wx.EXPAND),
+            (self.alpha95_window, wx.EXPAND)])
         self.box_sizer_specimen_stat.Add( specimen_stat_window, 0, wx.ALIGN_LEFT, 0 )
 
         #----------------------------------------------------------------------                     
@@ -413,7 +415,7 @@ class Zeq_GUI(wx.Frame):
         self.Bind(wx.EVT_COMBOBOX, self.onSelect_mean_type_box,self.mean_type_box)
 
                 
-        high_level_window = wx.GridSizer(2, 3, 0, 19*self.GUI_RESOLUTION)
+        high_level_window = wx.GridSizer(2, 3, 0, 15*self.GUI_RESOLUTION)
         high_level_window.AddMany( [(self.level_box, wx.EXPAND),
             (wx.StaticText(self.panel,label="\nshow",style=wx.TE_CENTER), wx.EXPAND),
             (wx.StaticText(self.panel,label="\nmean",style=wx.TE_CENTER), wx.EXPAND),
@@ -1718,14 +1720,21 @@ class Zeq_GUI(wx.Frame):
         self.dec_window.SetValue("%.1f"%self.pars['specimen_dec'])
         self.inc_window.SetValue("%.1f"%self.pars['specimen_inc'])
         self.n_window.SetValue("%i"%self.pars['specimen_n'])
+
         if 'specimen_mad' in self.pars.keys():
-            self.MAD_window.SetValue("%.1f"%self.pars['specimen_mad'])
+            self.mad_window.SetValue("%.1f"%self.pars['specimen_mad'])
         else:
-            self.MAD_window.SetValue("")
+            self.mad_window.SetValue("")
+
         if 'specimen_dang' in self.pars.keys() and float(self.pars['specimen_dang'])!=-1:
-            self.DANG_window.SetValue("%.1f"%self.pars['specimen_dang'])
+            self.dang_window.SetValue("%.1f"%self.pars['specimen_dang'])
         else:
-            self.DANG_window.SetValue("")
+            self.dang_window.SetValue("")
+
+        if 'specimen_alpha95' in self.pars.keys() and float(self.pars['specimen_alpha95'])!=-1:
+            self.alpha95_window.SetValue("%.1f"%self.pars['specimen_alpha95'])
+        else:
+            self.alpha95_window.SetValue("")
         
         if self.orthogonal_box.GetValue()=="X=best fit line dec":                              
             if  'specimen_dec' in self.pars.keys(): 
@@ -1950,7 +1959,7 @@ class Zeq_GUI(wx.Frame):
         self.tmax_box.SetItems(self.T_list)
         self.tmax_box.SetSelection(-1)
 
-        for parameter in ['dec','inc','n','MAD','DANG']:
+        for parameter in ['dec','inc','n','mad','dang','alpha95']:
             COMMAND="self.%s_window.SetValue('')"%parameter
             exec COMMAND
             COMMAND="self.%s_window.SetBackgroundColour(wx.NullColour)"%parameter
