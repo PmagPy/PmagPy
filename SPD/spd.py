@@ -509,6 +509,18 @@ class PintPars(object):
         self.pars['delta_AC'] = delta_AC
         self.pars['AC_Checks_segment'] = incl_AC_checks
         return delta_AC
+
+    # statistics that require an independent paleointensity study
+
+    def get_alpha_prime(self):
+        self.pars['specimen_alpha_prime'] = -999
+
+    def get_CRM_percent(self):
+        self.pars['specimen_int_crm'] = -999
+
+    def get_delta_t_star(self):
+        self.pars['specimen_dt'] = -999
+
       
     def arai_plot_statistics(self):
         self.York_Regression()
@@ -617,6 +629,12 @@ class PintPars(object):
         # additivity check statistics
         self.get_n_add()
         self.get_delta_AC()
+        # stats that require an independent chrm or are not yet coded
+        self.get_alpha_prime()
+        self.get_CRM_percent()
+        self.get_delta_t_star()
+
+
         #print "done with calculate_all_statistics"
 
 
