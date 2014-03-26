@@ -1,3 +1,0 @@
-tab 	magic_measurements
-er_analyst_mail_names	er_citation_names	er_location_name	er_sample_name	er_site_name	er_specimen_name	er_synthetic_name	magic_experiment_name	magic_instrument_codes	magic_method_codes	magic_software_packages	measurement_csd	measurement_dec	measurement_description	measurement_flag	measurement_inc	measurement_magn_moment	measurement_number	measurement_positions	measurement_standard	measurement_temp	treatment_ac_field	treatment_dc_field	treatment_dc_field_phi	treatment_dc_field_theta	treatment_temp
-	This study	Socorro	sc12b	sc12	sc12b1		sc12b1:LT-NO		LT-NO:DE-VM	pmagpy-2.194	82.9	186.5	average of multiple measurements	g	9.8	1.617e-05	1	22.0	u	2.730e+02	0	0	0	0	2.730e+02

@@ -1,8 +1,0 @@
-tab 	er_specimens
-er_citation_name	er_location_name	er_sample_name	er_site_name	er_specimen_name
-This study	Mamainse Point	MP18-1	MP18	MP18-1
-This study	Mamainse Point	MP18-2	MP18	MP18-2
-This study	Mamainse Point	MP18-3	MP18	MP18-3
-This study	Mamainse Point	MP18-4	MP18	MP18-4
-This study	Mamainse Point	MP18-5	MP18	MP18-5
-This study	Mamainse Point	MP18-6	MP18	MP18-6

@@ -1,3 +1,0 @@
-tab 	er_samples
-er_citation_names	er_location_name	er_sample_description	er_sample_name	er_site_name	magic_method_codes	sample_azimuth	sample_bed_dip	sample_bed_dip_direction	sample_dip
-This study	unknown	Strat post corrected - Summit Springs, -	ss0101	ss010	SO-MAG	93.9	0.0	90.0	-61.0
