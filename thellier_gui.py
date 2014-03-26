@@ -6449,7 +6449,6 @@ class Arai_GUI(wx.Frame):
                 value='%.3e'%self.pars[stat]
             elif type(self.acceptance_criteria[stat]['decimal_points'])==float or type(self.acceptance_criteria[stat]['decimal_points'])==int:
                 command="value='%%.%if'%%(float(self.pars[stat]))"%(int(self.acceptance_criteria[stat]['decimal_points']))
-                print command
                 exec command
             #elif  stat=='specimen_scat':
             #    value= str(self.acceptance_criteria[stat]['value'])  
