@@ -76,9 +76,8 @@ import SPD.lib.lib_additivity_check_statistics as lib_add
 
 
 class PintPars(object):
+    """ __init__(self, Data,specimen_name,tmin,tmax)"""
     def __init__(self, Data,specimen_name,tmin,tmax):
-        #print "calling __init__ PintPars object"
-        #print 'specimens', Data.keys()
         self.s=specimen_name
         self.specimen_Data=Data[self.s]
         self.datablock = self.specimen_Data['datablock']
@@ -389,7 +388,6 @@ class PintPars(object):
         tmin, tmax = self.tmin, self.tmax
         ptrm_temps, ptrm_starting_temps = self.ptrm_checks_temperatures, self.ptrm_checks_starting_temperatures
         n, steps = lib_ptrm.get_n_ptrm(tmin, tmax, ptrm_temps, ptrm_starting_temps)
-#        print "n_ptrm", n, "steps", steps
         self.pars['n_ptrm'] = n
         self.pars['ptrm_checks_included_temps'] = steps
         
@@ -419,6 +417,11 @@ class PintPars(object):
         self.pars['DRAT'] = DRAT
         self.pars['length_best_fit_line'] = L
         return DRAT
+
+    def get_length_best_fit_line(self):
+        L = lib_ptrm.get_length_best_fit_line(self.pars['delta_x_prime'], self.pars['delta_y_prime'])
+        self.pars['length_best_fit_line'] = L
+        return L
 
     def get_max_DEV(self):
         max_DEV = lib_ptrm.get_max_DEV(self.pars['delta_x_prime'], self.pars['max_ptrm_check'])
@@ -502,7 +505,6 @@ class PintPars(object):
         return n_add
 
     def get_delta_AC(self):
-#        print "doing delta AC"
         delta_AC, incl_AC_checks = lib_add.get_delta_AC(self.pars['n_add'], self.AC_Diffs, self.pars['specimen_XT'])
         self.pars['delta_AC'] = delta_AC
         self.pars['AC_Checks_segment'] = incl_AC_checks
@@ -593,15 +595,19 @@ class PintPars(object):
         self.get_gamma()
         # ptrm check statistics
         self.get_n_ptrm()
-        self.get_max_ptrm_check()
-        self.get_delta_CK()
-        self.get_DRAT()
-        self.get_max_DEV()
-        self.get_CDRAT()
-        self.get_DRATS()
-        self.get_mean_DRAT()
-        self.get_mean_DEV()
-        self.get_delta_pal()
+        if self.pars['n_ptrm'] == 0:
+            self.pars['max_ptrm_check'], self.pars['delta_CK'], self.pars['get_DRAT'], self.pars['DRAT'], self.pars['DRATS'], self.pars['CDRAT'], self.pars['mean_DRAT'], self.pars['mean_DEV'], self.pars['max_DEV'], self.pars['delta_pal'] = 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+            self.get_length_best_fit_line()
+        else:
+            self.get_max_ptrm_check()
+            self.get_delta_CK()
+            self.get_DRAT()
+            self.get_max_DEV()
+            self.get_CDRAT()
+            self.get_DRATS()
+            self.get_mean_DRAT()
+            self.get_mean_DEV()
+            self.get_delta_pal()
         # tail check statistics
         self.get_n_tail()
         self.get_max_tail_check()
@@ -616,8 +622,10 @@ class PintPars(object):
 
 # K temps: [0.0, 100.0, 150.0, 200.0, 225.0, 250.0, 275.0, 300.0, 325.0, 350.0, 375.0, 400.0, 425.0, 450.0, 475.0, 500.0, 525.0, 550.0]
 # C temps: [273, 373.0, 423.0, 473.0, 498.0, 523.0, 548.0, 573.0, 598.0, 623.0, 648.0, 673.0, 698.0, 723.0, 748.0, 773.0, 798.0, 823.0]
+
+
 ignore = """
-import new_lj_thellier_gui_spd as tgs
+
 cwd = os.getcwd()
 main_dir = cwd + '/SPD'
 try:
