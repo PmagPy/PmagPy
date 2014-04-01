@@ -1,6 +1,7 @@
 
 *new.out
 .DS_Store
+Command_line_Tests*
 Command_line_Tests/*output.txt*
 Command_line_Tests/*_list.txt*
 Command_line_Tests/*errors*
