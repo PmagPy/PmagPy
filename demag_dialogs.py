@@ -1154,11 +1154,11 @@ class OrientFrameGrid(wx.Frame):
         
         self.menubar = wx.MenuBar()
         menu_file = wx.Menu()
-        m_open_file = menu_file.Append(-1, "&open orientation file", "")
+        m_open_file = menu_file.Append(-1, "&Open orientation file", "")
         self.Bind(wx.EVT_MENU, self.on_m_open_file, m_open_file)
-        m_save_file = menu_file.Append(-1, "&save orientation file", "")
+        m_save_file = menu_file.Append(-1, "&Save orientation file", "")
         self.Bind(wx.EVT_MENU, self.on_m_save_file, m_save_file)
-        m_calc_orient = menu_file.Append(-1, "&calculate sample orientation", "")
+        m_calc_orient = menu_file.Append(-1, "&Calculate samples orientation", "")
         self.Bind(wx.EVT_MENU, self.on_m_calc_orient, m_calc_orient)
         self.menubar.Append(menu_file, "&File")
         self.SetMenuBar(self.menubar)
@@ -1192,6 +1192,8 @@ class OrientFrameGrid(wx.Frame):
                                     
         self.create_sheet()
         self.Bind(wx.EVT_CLOSE, self.OnCloseWindow)
+        # save the template
+        self.on_m_save_file(None)
         self.Show()                
     
     def create_sheet(self):    
@@ -1316,10 +1318,11 @@ class OrientFrameGrid(wx.Frame):
                 i=self.headers.index(header)
                 value=self.grid.GetCellValue(sample_index,i)
                 STR=STR+value+"\t"
-            fout.write(STR[:-1]+"\n") 
-        dlg1 = wx.MessageDialog(None,caption="Message:", message="data saved in file demag_orient.txt" ,style=wx.OK|wx.ICON_INFORMATION)
-        dlg1.ShowModal()
-        dlg1.Destroy()
+            fout.write(STR[:-1]+"\n")
+        if event!=None: 
+            dlg1 = wx.MessageDialog(None,caption="Message:", message="data saved in file demag_orient.txt" ,style=wx.OK|wx.ICON_INFORMATION)
+            dlg1.ShowModal()
+            dlg1.Destroy()
         
     def read_magic_file(self,path,ignore_lines_n,sort_by_this_name):
         '''

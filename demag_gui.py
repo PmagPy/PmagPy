@@ -24,7 +24,8 @@ CURRENT_VRSION = "v.0.23"
 import matplotlib
 matplotlib.use('WXAgg')
 
-from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigCanvas \
+from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigCanvas 
+from matplotlib.backends.backend_wxagg import NavigationToolbar2WxAgg as NavigationToolbar
 
 import sys,pylab,scipy,os
 try:
@@ -145,10 +146,10 @@ class Zeq_GUI(wx.Frame):
         self.panel = wx.Panel(self)          # make the Panel
         self.Main_Frame()                   # build the main frame
         self.create_menu()                  # create manu bar
+        self.Zij_picker()
         self.Zij_zoom()
         self.arrow_keys()
-        self.Zij_picker()
-
+        self.Bind(wx.EVT_CLOSE, self.on_menu_exit)
         #self.get_previous_interpretation() # get interpretations from pmag_specimens.txt
         FIRST_RUN=False
 
@@ -197,6 +198,8 @@ class Zeq_GUI(wx.Frame):
         #
         self.fig1 = Figure((5.*self.GUI_RESOLUTION, 5.*self.GUI_RESOLUTION), dpi=self.dpi)
         self.canvas1 = FigCanvas(self.panel, -1, self.fig1)
+        self.toolbar1 = NavigationToolbar(self.canvas1)
+        self.toolbar1.Hide()
         #self.fig1.text(0.01,0.98,"Zijderveld plot",{'family':'Arial', 'fontsize':10*self.GUI_RESOLUTION, 'style':'normal','va':'center', 'ha':'left' })
         
         self.fig2 = Figure((2.5*self.GUI_RESOLUTION, 2.5*self.GUI_RESOLUTION), dpi=self.dpi)
@@ -523,8 +526,30 @@ class Zeq_GUI(wx.Frame):
     #----------------------------------------------------------------------
 
     def Zij_zoom(self):
-        cursur_entry_zij=self.canvas1.mpl_connect('axes_enter_event', self.on_enter_zij_fig) 
-        cursur_leave_zij=self.canvas1.mpl_connect('axes_leave_event', self.on_leave_zij_fig)
+        self.on_enter_zij_fig_new(None)
+        #cursur_entry_zij=self.canvas1.mpl_connect('axes_enter_event', self.on_enter_zij_fig_new) 
+        #cursur_leave_zij=self.canvas1.mpl_connect('axes_leave_event', self.on_leave_zij_fig)
+
+    def on_enter_zij_fig_new(self,event):
+        #self.statusbar1.SetStatusText("Zoom")
+        self.toolbar1.zoom()        
+        cid3=self.canvas1.mpl_connect('button_press_event', self.onclick_z_11)
+        cid4=self.canvas1.mpl_connect('button_release_event', self.onclick_z_22)
+
+    def onclick_z_11(self,event):
+        #if self.curser_in_zij_figure:
+        self.tmp_x_press=event.xdata
+        self.tmp_y_press=event.ydata
+        
+    def onclick_z_22(self,event):
+        self.tmp_x_release=event.xdata
+        self.tmp_y_release=event.ydata
+        if abs(self.tmp_x_press-self.tmp_x_release)<0.05 and abs(self.tmp_y_press-self.tmp_y_release)<0.05:
+                self.zijplot.set_xlim(xmin=self.zij_xlim_initial[0],xmax=self.zij_xlim_initial[1])
+                self.zijplot.set_ylim(ymin=self.zij_ylim_initial[0],ymax=self.zij_ylim_initial[1])
+                self.canvas1.draw()
+
+
 
     def on_leave_zij_fig (self,event):
         self.canvas1.mpl_disconnect(self.cid3)
@@ -3228,8 +3253,11 @@ class Zeq_GUI(wx.Frame):
     #--------------------------------------------------------------
 
     def on_menu_exit(self, event):
-        self.Destroy()
-        exit()
+        dlg1 = wx.MessageDialog(None,caption="Warning:", message="Exiting program.\nSave all interpretation to a 'redo' file or to MagIC specimens result table\n\nPress OK to exit" ,style=wx.OK|wx.CANCEL|wx.ICON_INFORMATION)
+        if dlg1.ShowModal() == wx.ID_OK:
+            dlg1.Destroy()
+            self.Destroy()
+            exit()
 
     def on_save_Zij_plot(self, event):
         self.fig1.text(0.9,0.98,'%s'%(self.s),{'family':'Arial', 'fontsize':10, 'style':'normal','va':'center', 'ha':'right' })
@@ -3342,7 +3370,7 @@ class Zeq_GUI(wx.Frame):
         self.GUI_log.write ("-I- read redo file and processing new bounds")
         self.redo_specimens={}
         # first delete all previous interpretation
-        self.clear_interpretations
+        self.clear_interpretations()
         fin=open(redo_file,'rU')
         
         for Line in fin.readlines():
@@ -3873,13 +3901,22 @@ class Zeq_GUI(wx.Frame):
         self.update_selection()                                    
 
     def on_menu_samples_orientation(self,event):
-        
+        TEXT="A template for file demag_orient.txt, which contains samples orientation data was created in MagIC working directory.\n\n"
+        TEXT=TEXT+"You can view/modify the orientation data using the demag-gui frame, or using Excel.\n\n"
+        TEXT=TEXT+"If you choose to use Excel:\n"
+        TEXT=TEXT+"1) save demag_orient.txt as 'tab delimited'\n"
+        TEXT=TEXT+"2) Import demag_orient.txt to the demag-gui frame by choosing from the menu-bar: File -> Open orientation file\n\n"
+        TEXT=TEXT+"After filling orientation data choose from the menu-bar: File -> Calculate samples orientations"
+              
         SIZE=self.GetSize()
         frame = demag_dialogs.OrientFrameGrid (None, -1, 'demag_orient.txt',self.WD,self.Data_hierarchy,SIZE)
-        #frame=orientation_priorities_dialog(None, -1)        
         
         frame.Show(True)
         frame.Centre()
+        dlg1 = wx.MessageDialog(self,caption="Message:", message=TEXT ,style=wx.OK)
+        result = dlg1.ShowModal()
+        if result == wx.ID_OK:
+            dlg1.Destroy()    
 
                                                                                                                                                                                                         
     def on_menu_generic_to_magic(self,event):

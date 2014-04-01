@@ -216,7 +216,7 @@ class Arai_GUI(wx.Frame):
 
         self.get_previous_interpretation() # get interpretations from pmag_specimens.txt
         FIRST_RUN=False
-        
+        self.Bind(wx.EVT_CLOSE, self.on_menu_exit)        
     def get_DIR(self):
         """ 
         open dialog box for choosing a working directory 
@@ -1632,8 +1632,13 @@ class Arai_GUI(wx.Frame):
     #-----------------------------------
         
     def on_menu_exit(self, event):
-        self.Destroy()
-        exit()
+        dlg1 = wx.MessageDialog(None,caption="Warning:", message="Exiting program.\nSave all interpretation to a 'redo' file or to MagIC specimens result table\n\nPress OK to exit" ,style=wx.OK|wx.CANCEL|wx.ICON_INFORMATION)
+        if dlg1.ShowModal() == wx.ID_OK:
+            dlg1.Destroy()
+            self.Destroy()
+            exit()
+        #if dlg1.ShowModal() == wx.ID_CANCEL:
+        #    dlg1.Destroy()
 
 
     def on_save_Arai_plot(self, event):
@@ -4203,7 +4208,6 @@ class Arai_GUI(wx.Frame):
         fin=open(redo_file,'rU')
         for Line in fin.readlines():
           line=Line.strip('\n').split()
-          print "line",line
           specimen=line[0]
           tmin_kelvin=float(line[1])
           tmax_kelvin=float(line[2])
@@ -4212,7 +4216,6 @@ class Arai_GUI(wx.Frame):
           self.redo_specimens[specimen]['t_min']=float(tmin_kelvin)
           self.redo_specimens[specimen]['t_max']=float(tmax_kelvin)
           if specimen in self.Data.keys():
-              print "it is here",specimen
               if tmin_kelvin not in self.Data[specimen]['t_Arai'] or tmax_kelvin not in self.Data[specimen]['t_Arai'] :
                   self.GUI_log.write ("-W- WARNING: cant fit temperature bounds in the redo file to the actual measurement. specimen %s\n"%specimen)
               else:
