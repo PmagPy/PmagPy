@@ -30,6 +30,8 @@ def get_delta_AC(n_add, add_checks, x_int):
         delta_AC = float('NaN')
     return delta_AC, incl_add_checks
 
+
+ignore = """
 #probs ignore all below
 def get_ptrm_star(incl_temps, starting_temps, x_Arai, t_Arai):
     ptrm_star = {}
@@ -62,7 +64,7 @@ def get_add_checks(ptrm_star, ptrm_actual):
 
 
 def get_max_ptrm_check(ptrm_checks_included_temps, ptrm_checks_all_temps, ptrm_x, t_Arai, x_Arai):
-    """sorts through included ptrm_checks and finds the largest ptrm check diff, the sum of the total diffs, and the percentage of the largest check / original measurement at that temperature step"""
+    #sorts through included ptrm_checks and finds the largest ptrm check diff, the sum of the total diffs, and the percentage of the largest check / original measurement at that temperature step#
     diffs = []
     abs_diffs = []
     x_Arai_compare = []
@@ -87,3 +89,4 @@ def get_max_ptrm_check(ptrm_checks_included_temps, ptrm_checks_all_temps, ptrm_x
     check_percent = max(check_percents)
     sum_diffs = abs(sum(diffs))
 
+"""

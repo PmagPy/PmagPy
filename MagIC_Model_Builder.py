@@ -382,11 +382,11 @@ class MagIC_model_builder(wx.Frame):
         #data
         sites_list=self.data_er_sites.keys()
         for sample in self.data_er_samples.keys():
-          if "er_site_name" in self.data_er_samples[sample].keys() and self.data_er_samples[sample]["er_site_name"] not in sites_list:
+          if "er_site_name" in self.data_er_samples[sample].keys() and self.data_er_samples[sample]["er_site_name"] not in sites_list and self.data_er_samples[sample]["er_site_name"]!="":
             sites_list.append(self.data_er_samples[sample]["er_site_name"])
-        sites_list.sort()        
+        sites_list.sort() 
+        string=""       
         for site in sites_list:
-          string=""
           for key in self.er_sites_header:
             if key=="er_citation_names":
               string=string+"This study"+"\t"

@@ -76,6 +76,10 @@ def get_DRAT(delta_x_prime, delta_y_prime, max_ptrm_check):
     DRAT = (max_ptrm_check / L) * 100
     return DRAT, L
 
+def get_length_best_fit_line(delta_x_prime, delta_y_prime):
+    L = numpy.sqrt(delta_x_prime**2 + delta_y_prime**2)
+    return L
+
 def get_max_DEV(delta_x_prime, max_ptrm_check):
     """
     input: delta_x_prime, max_ptrm_check

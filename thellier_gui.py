@@ -3,6 +3,10 @@
 #============================================================================================
 # LOG HEADER:
 #============================================================================================
+#
+# Thellier_GUI Version 2.19 03/23/2014
+# update dialog boxes with SPD.1.0
+#
 # Thellier_GUI Version 2.18 03/21/2014
 # insert SPD.py.
 # some bug fix
@@ -78,7 +82,6 @@
 # 2. Add ptrm directions statistics
 #
 #
-# 
 #
 #-------------------------
 #
@@ -87,14 +90,12 @@
 # Citation: Shaar and Tauxe (2013)
 #
 # January 2012: Initial revision
-# To do list:
-# 1) calculate MD tail check
 #
 #
 #============================================================================================
 
 global CURRENT_VRSION
-CURRENT_VRSION = "v.2.18"
+CURRENT_VRSION = "v.2.19"
 import matplotlib
 matplotlib.use('WXAgg')
 
@@ -215,7 +216,7 @@ class Arai_GUI(wx.Frame):
 
         self.get_previous_interpretation() # get interpretations from pmag_specimens.txt
         FIRST_RUN=False
-        
+        self.Bind(wx.EVT_CLOSE, self.on_menu_exit)        
     def get_DIR(self):
         """ 
         open dialog box for choosing a working directory 
@@ -508,27 +509,27 @@ class Arai_GUI(wx.Frame):
         # Specimen paleointensity statistics
         # ---------------------------  
         
-        Statsitics_labels={}
-        Statsitics_labels["int_n"]="n"
-        Statsitics_labels["int_ptrm_n"]="n_ptrm"
-        Statsitics_labels["frac"]="FRAC"
-        Statsitics_labels["scat"]="SCAT"
-        Statsitics_labels["gmax"]="GAP-MAX"
-        Statsitics_labels["b_beta"]="beta"
-        Statsitics_labels["int_mad"]="MAD"
-        Statsitics_labels["int_dang"]="DANG"
-        Statsitics_labels["f"]="f"
-        Statsitics_labels["fvds"]="fvds"
-        Statsitics_labels["g"]="g"
-        Statsitics_labels["q"]="q"
-        Statsitics_labels["drats"]="DRATS"
-        Statsitics_labels["md"]="MD"
-        
-        # not in SPD
-        Statsitics_labels["ptrms_inc"]="pTRMs_inc"
-        Statsitics_labels["ptrms_dec"]="pTRMs_dec"
-        Statsitics_labels["ptrms_mad"]="pTRMs_MAD"
-        Statsitics_labels["ptrms_angle"]="pTRMs_angle"
+        #Statsitics_labels={}
+        #Statsitics_labels["int_n"]="n"
+        #Statsitics_labels["int_ptrm_n"]="n_ptrm"
+        #Statsitics_labels["frac"]="FRAC"
+        #Statsitics_labels["scat"]="SCAT"
+        #Statsitics_labels["gmax"]="GAP-MAX"
+        #Statsitics_labels["b_beta"]="beta"
+        #Statsitics_labels["int_mad"]="MAD"
+        #Statsitics_labels["int_dang"]="DANG"
+        #Statsitics_labels["f"]="f"
+        #Statsitics_labels["fvds"]="fvds"
+        #Statsitics_labels["g"]="g"
+        #Statsitics_labels["q"]="q"
+        #Statsitics_labels["drats"]="DRATS"
+        #Statsitics_labels["md"]="MD"
+        #
+        ## not in SPD
+        #Statsitics_labels["ptrms_inc"]="pTRMs_inc"
+        #Statsitics_labels["ptrms_dec"]="pTRMs_dec"
+        #Statsitics_labels["ptrms_mad"]="pTRMs_MAD"
+        #Statsitics_labels["ptrms_angle"]="pTRMs_angle"
 
         hbox_criteria = wx.BoxSizer(wx.HORIZONTAL)
         TEXT=[" ","Acceptance criteria:","Specimen statistics:"]
@@ -552,7 +553,7 @@ class Arai_GUI(wx.Frame):
             exec command
             command="self.%s_threshold_window.SetBackgroundColour(wx.NullColour)"%statistic
             exec command
-            command="self.%s_label=wx.StaticText(self.panel,label='%s',style=wx.ALIGN_CENTRE)"%(statistic,Statsitics_labels[statistic])
+            command="self.%s_label=wx.StaticText(self.panel,label='%s',style=wx.ALIGN_CENTRE)"%(statistic,statistic.replace("specimen_","").replace("int_",""))
             exec command
             command="self.%s_label.SetFont(font2)"%statistic
             exec command
@@ -826,8 +827,12 @@ class Arai_GUI(wx.Frame):
         m_preferences_apperance = menu_preferences.Append(-1, "&Appearence preferences", "")
         self.Bind(wx.EVT_MENU, self.on_menu_appearance_preferences, m_preferences_apperance)
 
-        m_preferences_stat = menu_preferences.Append(-1, "&Statistics preferences", "")
+        m_preferences_spd = menu_preferences.Append(-1, "&Specimen paleointensity statistics (from SPD list)", "")
+        self.Bind(wx.EVT_MENU, self.on_menu_m_preferences_spd, m_preferences_spd)
+
+        m_preferences_stat = menu_preferences.Append(-1, "&Statistical preferences", "")
         self.Bind(wx.EVT_MENU, self.on_menu_preferences_stat, m_preferences_stat)
+
 
         #m_save_preferences = menu_preferences.Append(-1, "&Save preferences", "")
         #self.Bind(wx.EVT_MENU, self.on_menu_save_preferences, m_save_preferences)
@@ -837,8 +842,8 @@ class Arai_GUI(wx.Frame):
         m_change_working_directory = menu_file.Append(-1, "&Change project directory", "")
         self.Bind(wx.EVT_MENU, self.on_menu_change_working_directory, m_change_working_directory)
 
-        m_add_working_directory = menu_file.Append(-1, "&Add a MagIC project directory", "")
-        self.Bind(wx.EVT_MENU, self.on_menu_add_working_directory, m_add_working_directory)
+        #m_add_working_directory = menu_file.Append(-1, "&Add a MagIC project directory", "")
+        #self.Bind(wx.EVT_MENU, self.on_menu_add_working_directory, m_add_working_directory)
 
         m_open_magic_file = menu_file.Append(-1, "&Open MagIC measurement file", "")
         self.Bind(wx.EVT_MENU, self.on_menu_open_magic_file, m_open_magic_file)
@@ -907,10 +912,10 @@ class Arai_GUI(wx.Frame):
         m_new_sub = menu_Analysis.AppendMenu(-1, "Acceptance criteria", submenu_criteria)
 
 
-        m_previous_interpretation = menu_Analysis.Append(-1, "&Import previous interpretation ('redo' file)", "")
+        m_previous_interpretation = menu_Analysis.Append(-1, "&Import previous interpretation from a 'redo' file)", "")
         self.Bind(wx.EVT_MENU, self.on_menu_previous_interpretation, m_previous_interpretation)
 
-        m_save_interpretation = menu_Analysis.Append(-1, "&Save current interpretations to a redo file", "")
+        m_save_interpretation = menu_Analysis.Append(-1, "&Save current interpretations to a 'redo' file", "")
         self.Bind(wx.EVT_MENU, self.on_menu_save_interpretation, m_save_interpretation)
 
         m_delete_interpretation = menu_Analysis.Append(-1, "&Clear all current interpretations", "")
@@ -1465,6 +1470,11 @@ class Arai_GUI(wx.Frame):
 ##            except:
 ##                pass
 
+
+            self.write_preferences_to_file(change_resolution)
+
+    def write_preferences_to_file(self,need_to_close_frame):
+                        
             dlg1 = wx.MessageDialog(self,caption="Message:", message="save the thellier_gui.preferences in PmagPy directory!" ,style=wx.OK|wx.ICON_INFORMATION)
             dlg1.ShowModal()
             dlg1.Destroy()
@@ -1499,30 +1509,21 @@ class Arai_GUI(wx.Frame):
                     else:
                         String="preferences['%s']=%f\n"%(key,self.preferences[key])
                         
-##                        String="preferences['%s']=%f\n"%(key,self.preferences[key
-##                for key in  self.preferences.keys():
-##                    if key in ['gui_resolution','show_Zij_temperatures_steps','show_Arai_temperatures_steps']:
-##                        String="preferences['%s']=%f\n"%(key,self.preferences[key])
-##                    else:
-##                        String="preferences['%s']=%s\n"%(key,self.preferences[key])
-##                    fout.write(String)    
                     fout.write(String)    
                 fout.close()
                 os.chmod(preference_file,0777)            
                 
             dlg2.Destroy()
 
-            if change_resolution:
-                dlg3 = wx.MessageDialog(self, "GUI resolution is changed.\nYou will need to restart the program","Confirm Exit", wx.OK|wx.ICON_QUESTION)
+            if need_to_close_frame:
+                dlg3 = wx.MessageDialog(self, "You need to restart the program.\n","Confirm Exit", wx.OK|wx.ICON_QUESTION)
                 result = dlg3.ShowModal()
                 dlg3.Destroy()
                 if result == wx.ID_OK:
                     self.Destroy()
                     exit()
 
-            
-            return()
-        
+                    
 
     #-----------------------------------
 
@@ -1557,132 +1558,8 @@ class Arai_GUI(wx.Frame):
     #----------------------------------
 
     def on_menu_preferences_stat(self,event):
-        class preferences_stats_dialog(wx.Dialog):
-            
-            def __init__(self, parent,title,preferences):
-                self.preferences=preferences
-                super(preferences_stats_dialog, self).__init__(parent, title=title)
-                self.InitUI()
-
-            def on_add_button(self,event):
-                selName = str(self.criteria_options.GetStringSelection())
-                if selName not in self.preferences['show_statistics_on_gui']:
-                  self.preferences['show_statistics_on_gui'].append(selName)
-                #self.update_text_box()
-                self.criteria_list_window.Set(self.preferences['show_statistics_on_gui'])
-                self.criteria_options.Set(self.statistics_options)
-
-            def on_remove_button(self,event):
-                selName = str(self.criteria_list_window.GetStringSelection())
-                if selName  in self.preferences['show_statistics_on_gui']:
-                  self.preferences['show_statistics_on_gui'].remove(selName)
-                self.criteria_list_window.Set(self.preferences['show_statistics_on_gui'])
-                self.criteria_options.Set(self.statistics_options)
-               
-##            def update_text_box(self):
-##                TEXT=""
-##                for key in self.preferences['show_statistics_on_gui']:
-##                  TEXT=TEXT+key+"\n"
-##                TEXT=TEXT[:-1]
-##                self.criteria_list_window.SetValue('')
-##                self.criteria_list_window.SetValue(TEXT)
-                
-            def InitUI(self):
-
-                pnl1 = wx.Panel(self)
-
-                vbox = wx.BoxSizer(wx.VERTICAL)
-
-                #-----------box1        
-
-                bSizer1 = wx.StaticBoxSizer( wx.StaticBox( pnl1, wx.ID_ANY, "Statistical definitions" ), wx.HORIZONTAL )
-                self.bootstrap_N=wx.TextCtrl(pnl1,style=wx.TE_CENTER,size=(80,20))
-                                             
-                Statistics_definitions_window = wx.GridSizer(1, 2, 12, 12)
-                Statistics_definitions_window.AddMany( [(wx.StaticText(pnl1,label="Bootstrap N",style=wx.TE_CENTER), wx.EXPAND),
-                    (self.bootstrap_N, wx.EXPAND)])                 
-                bSizer1.Add( Statistics_definitions_window, 0, wx.ALIGN_LEFT|wx.ALL, 5 )
-                
-                #-----------box2        
-
-                bSizer2 = wx.StaticBoxSizer( wx.StaticBox( pnl1, wx.ID_ANY, "Dipole Moment" ), wx.HORIZONTAL )
-
-                self.v_adm_box = wx.ComboBox(pnl1, -1, self.preferences['VDM_or_VADM'], (100, 20), wx.DefaultSize, ["VADM","VDM"], wx.CB_DROPDOWN,name="VDM or VADM?")
-                                             
-                Statistics_VADM = wx.GridSizer(1, 2, 12, 12)
-                Statistics_VADM.AddMany( [(wx.StaticText(pnl1,label="VDM or VADM?",style=wx.TE_CENTER), wx.EXPAND),
-                    (self.v_adm_box, wx.EXPAND)])                 
-                bSizer2.Add( Statistics_VADM, 0, wx.ALIGN_LEFT|wx.ALL, 5 )
-                         
-                #----------------------
-                                    
-                bSizer3 = wx.StaticBoxSizer( wx.StaticBox( pnl1, wx.ID_ANY, "Choose statistics to display on GUI" ), wx.VERTICAL )
-
-                self.statistics_options=["int_n","int_ptrm_n","frac","scat","gmax","b_beta","int_mad","int_dang","f","fvds","g","q","drats","md",'ptrms_dec','ptrms_inc','ptrms_mad','ptrms_angle']
-                #self.criteria_list_window = wx.TextCtrl(pnl1, id=-1, size=(200,250), style=wx.TE_MULTILINE | wx.TE_READONLY | wx.HSCROLL)
-                self.criteria_list_window =wx.ListBox(choices=self.preferences['show_statistics_on_gui'], id=-1,name='listBox1', parent=pnl1, size=wx.Size(150, 150), style=0)
-                self.criteria_options = wx.ListBox(choices=self.statistics_options, id=-1,name='listBox1', parent=pnl1, size=wx.Size(150, 150), style=0)
-                #self.criteria_options.Bind(wx.EVT_LISTBOX, self.on_choose_criterion,id=-1)
-                self.criteria_add =  wx.Button(pnl1, id=-1, label='add')
-                self.Bind(wx.EVT_BUTTON, self.on_add_button, self.criteria_add)
-                self.criteria_remove =  wx.Button(pnl1, id=-1, label='remove')
-                self.Bind(wx.EVT_BUTTON, self.on_remove_button, self.criteria_remove)
-
-                Statistics_criteria_0 = wx.GridSizer(1, 2, 0, 0)
-                Statistics_criteria_0.AddMany( [(wx.StaticText(pnl1,label="Options:"), wx.EXPAND),
-                    (wx.StaticText(pnl1,label="Statistics displayed:"), wx.EXPAND)])
-   
-                Statistics_criteria_1 = wx.GridSizer(2, 2, 0, 0)
-                Statistics_criteria_1.AddMany( [((self.criteria_options),wx.EXPAND),
-                    ((self.criteria_list_window),wx.EXPAND),
-                    ((self.criteria_add),wx.EXPAND),
-                    ((self.criteria_remove),wx.EXPAND)])
-
-
-##                bSizer3.Add(self.criteria_options,wx.ALIGN_LEFT)
-##                bSizer3.Add(self.criteria_add,wx.ALIGN_LEFT)
-##                bSizer3.Add(self.criteria_list_window)
-                bSizer3.Add(Statistics_criteria_0, 0, wx.ALIGN_TOP, 0 )
-                bSizer3.Add(Statistics_criteria_1, 0, wx.ALIGN_TOP, 0 )
-                #self.update_text_box() 
-
-                #----------------------
-
-                hbox2 = wx.BoxSizer(wx.HORIZONTAL)
-                self.okButton = wx.Button(pnl1, wx.ID_OK, "&OK")
-                self.cancelButton = wx.Button(pnl1, wx.ID_CANCEL, '&Cancel')
-                hbox2.Add(self.okButton)
-                hbox2.Add(self.cancelButton )
-
-                
-                #----------------------  
-                vbox.AddSpacer(20)
-                vbox.Add(bSizer1, flag=wx.ALIGN_TOP)
-                vbox.AddSpacer(20)
-
-                vbox.Add(bSizer2, flag=wx.ALIGN_TOP)
-                vbox.AddSpacer(20)
-
-                vbox.Add(bSizer3, flag=wx.ALIGN_TOP)
-                vbox.AddSpacer(20)
-
-                vbox.Add(hbox2, flag=wx.ALIGN_TOP)
-                vbox.AddSpacer(20)
-                            
-                pnl1.SetSizer(vbox)
-                vbox.Fit(self)
-
-
-                #---------------------- Initialize  values:
-
-                try:                    
-                    self.bootstrap_N.SetValue("%.0f"%(self.preferences["BOOTSTRAP_N"]))
-                except:
-                    self.bootstrap_N.SetValue("10000")
                     
-                #----------------------
-                    
-        dia = preferences_stats_dialog(None,"Thellier_gui statistical preferences",self.preferences)
+        dia = thellier_gui_dialogs.preferences_stats_dialog(None,"Thellier_gui statistical preferences",self.preferences)
         dia.Center()
         if dia.ShowModal() == wx.ID_OK: # Until the user clicks OK, show the message
             try:
@@ -1734,11 +1611,34 @@ class Arai_GUI(wx.Frame):
             return()  
 
 
+    def on_menu_m_preferences_spd(self, event):
+        
+        dia = thellier_gui_dialogs.PI_Statistics_Dialog(None, self.preferences["show_statistics_on_gui"],title='SPD list')
+        dia.Center()
+        if dia.ShowModal() == wx.ID_OK: # Until the user clicks OK, show the message            
+            self.On_close_spd_box(dia)
+    
+    def On_close_spd_box(self, dia):
+        if self.preferences["show_statistics_on_gui"]!=dia.show_statistics_on_gui:
+            self.preferences["show_statistics_on_gui"]=dia.show_statistics_on_gui
+            self.write_preferences_to_file(True)
+        else:
+            pass
+                
+        
+        
+
+
     #-----------------------------------
         
     def on_menu_exit(self, event):
-        self.Destroy()
-        exit()
+        dlg1 = wx.MessageDialog(None,caption="Warning:", message="Exiting program.\nSave all interpretation to a 'redo' file or to MagIC specimens result table\n\nPress OK to exit" ,style=wx.OK|wx.CANCEL|wx.ICON_INFORMATION)
+        if dlg1.ShowModal() == wx.ID_OK:
+            dlg1.Destroy()
+            self.Destroy()
+            exit()
+        #if dlg1.ShowModal() == wx.ID_CANCEL:
+        #    dlg1.Destroy()
 
 
     def on_save_Arai_plot(self, event):
@@ -2076,7 +1976,7 @@ class Arai_GUI(wx.Frame):
         self.add_thelier_gui_criteria()
         self.read_criteria_file(criteria_file)            
             
-        dia = thellier_gui_dialogs.Criteria_Dialog(None, self.acceptance_criteria,title='Acceptance Criteria')
+        dia = thellier_gui_dialogs.Criteria_Dialog(None, self.acceptance_criteria,self.preferences,title='Acceptance Criteria')
         dia.Center()
         if dia.ShowModal() == wx.ID_OK: # Until the user clicks OK, show the message            
             self.On_close_criteria_box(dia)
@@ -2091,7 +1991,7 @@ class Arai_GUI(wx.Frame):
         """
                             
 
-        dia = thellier_gui_dialogs.Criteria_Dialog(None, self.acceptance_criteria,title='Set Acceptance Criteria')
+        dia = thellier_gui_dialogs.Criteria_Dialog(None, self.acceptance_criteria,self.preferences,title='Set Acceptance Criteria')
         dia.Center()
         result = dia.ShowModal()
 
@@ -4308,7 +4208,6 @@ class Arai_GUI(wx.Frame):
         fin=open(redo_file,'rU')
         for Line in fin.readlines():
           line=Line.strip('\n').split()
-          print "line",line
           specimen=line[0]
           tmin_kelvin=float(line[1])
           tmax_kelvin=float(line[2])
@@ -4317,7 +4216,6 @@ class Arai_GUI(wx.Frame):
           self.redo_specimens[specimen]['t_min']=float(tmin_kelvin)
           self.redo_specimens[specimen]['t_max']=float(tmax_kelvin)
           if specimen in self.Data.keys():
-              print "it is here",specimen
               if tmin_kelvin not in self.Data[specimen]['t_Arai'] or tmax_kelvin not in self.Data[specimen]['t_Arai'] :
                   self.GUI_log.write ("-W- WARNING: cant fit temperature bounds in the redo file to the actual measurement. specimen %s\n"%specimen)
               else:
@@ -4479,7 +4377,6 @@ class Arai_GUI(wx.Frame):
         if result == wx.ID_OK:
             dlg1.Destroy()
             return
-        
         self.GUI_log.write ("-I- running thellier consistency test\n")
         import  thellier_consistency_test
 
@@ -5577,7 +5474,7 @@ class Arai_GUI(wx.Frame):
             Data_samples_or_sites=copy.deepcopy(self.Data_sites)
             
         # search for lat (for VADM calculation) and age:        
-        lat_min,lat_max,lon_min,lon_max=90,0,180,-180
+        lat_min,lat_max,lon_min,lon_max=90,-90,180,-180
         for sample_or_site in Data_samples_or_sites.keys():
 
             #print sample_or_site
@@ -5808,7 +5705,8 @@ class Arai_GUI(wx.Frame):
                     if set_map_lon_min !="":
                         SiteLon_min=set_map_lon_min
                     if set_map_lon_max !="":
-                        SiteLon_max=set_map_lon_max                       
+                        SiteLon_max=set_map_lon_max 
+                                        
 
                 m=Basemap(llcrnrlon=SiteLon_min,llcrnrlat=SiteLat_min,urcrnrlon=SiteLon_max,urcrnrlat=SiteLat_max,projection='merc',resolution='i')
 
@@ -6766,27 +6664,7 @@ class Arai_GUI(wx.Frame):
             
     def get_PI_parameters(self,s,tmin,tmax):
         #print 'calling get_PI_parameters'
-
-
-        def mapping(dictionary, mapping):
-            mapped_dictionary = {}
-            for key, value in dictionary.iteritems():
-                if key in mapping.keys():
-                    new_key = mapping[key]
-                    mapped_dictionary[new_key] = value
-                else:
-                   # pass
-                    mapped_dictionary[key] = value# if this line is left in, it gives everything from the original dictionary
-                    # we will want the above eventually
-            return mapped_dictionary
-
-        """
-        calculate statisics 
-        """
-
-            
-#        a_map = {'fail_ptrm_beta_box_scatter': 'fail_ptrm_beta_box_scatter', 'scat_bounding_line_low': 'specimen_scat_bounding_line_low', 'fail_tail_beta_box_scatter': 'fail_tail_beta_box_scatter', 'MD_VDS': 'specimen_md', 'B_anc': 'specimen_int_uT', 'FRAC': 'specimen_frac', 'Inc_Free': 'specimen_inc', 'best_fit_vector_Free': 'specimen_PCA_v1', 'specimen_b_sigma': 'specimen_b_sigma', 'specimen_YT': 'specimen_YT', 'y_Arai_mean': 'specimen_cm_y', 'SCAT': 'specimen_scat', 'MAD_Free': 'specimen_int_mad', 'n_ptrm': 'specimen_int_ptrm_n', 'tmin': 'measurement_step_min', 'x_Arai_mean': 'specimen_cm_x', 'Dec_Free': 'specimen_dec', 'DRATS': 'specimen_drats', 'specimen_fvds': 'specimen_fvds', 'specimen_b_beta': 'specimen_b_beta', 'specimen_b': 'specimen_b', 'specimen_g': 'specimen_g', 'fail_arai_beta_box_scatter': 'fail_arai_beta_box_scatter', 'specimen_f': 'specimen_f', 'tmax': 'measurement_step_max', 'specimen_n': 'specimen_int_n', 'specimen_q': 'specimen_q', 'lab_dc_field': 'lab_dc_field', 'GAP-MAX': 'specimen_gmax', 'DANG': 'specimen_int_dang', 'ptrms_angle_Free': 'specimen_ptrms_angle', 'scat_bounding_line_high': 'specimen_scat_bounding_line_high', 'PCA_sigma_max_Free': "specimen_PCA_sigma_max" , 'PCA_sigma_int_Free': 'specimen_PCA_sigma_int', 'PCA_sigma_min_Free': 'specimen_PCA_sigma_min', 'ptrms_dec_Free': 'specimen_ptrms_dec', 'ptrms_inc_Free': 'specimen_ptrms_inc', 'pTRM_MAD_Free': 'specimen_ptrms_mad'} # spd name: thellier_gui name
-
+        #print 's: {}, tmin: {}, tmax: {}'.format(s, tmin, tmax)
 
         
         #pars=self.Data[s]['pars']
@@ -6797,24 +6675,10 @@ class Arai_GUI(wx.Frame):
         #pars['magic_method_codes']="LP-PI-TRM" # thellier Method
         import SPD
         import SPD.spd as spd
-        #def __init__(self, Data,specimen_name,tmin,tmax):
-        Pint_pars = spd.PintPars(self.Data, str(s), tmin, tmax)
+        Pint_pars = spd.PintPars(self.Data, str(s), tmin, tmax, 'magic')
         Pint_pars.calculate_all_statistics()
 
-
-        #lj
-        #a_map = {}
-        #for n in range(len(new_ron)):
-        #    if 'missing' not in new_ron[n] and 'missing' not in new_lori[n]:
-        #        key = new_lori[n]
-        #        value = new_ron[n]
-        #        a_map[key] = value
-        from pars import mapping as a_map
-        mapped_pars = mapping(Pint_pars.pars, a_map) 
-        print mapped_pars
-        pars.update(mapped_pars)
-        print pars
-
+        pars.update(Pint_pars.pars) # temp
 
         t_Arai=self.Data[s]['t_Arai']
         x_Arai=self.Data[s]['x_Arai']
@@ -7095,15 +6959,9 @@ class Arai_GUI(wx.Frame):
             return d1
 
         
-        ron= ['specimen_fail_criteria', 'saved', 'specimen_ptrms_inc',  'er_sample_name', 'er_specimen_name', 'specimen_correction', 'specimen_int_corr_cooling_rate', 'AC_WARNING', 'specimen_int_corr_anisotropy', 'specimen_int_uT', 'specimen_ptrms_dec','NLT_specimen_correction_factor', 'Anisotropy_correction_factor', 'specimen_ptrms_mad', 'CR_WARNING', 'magic_method_codes'] # still not mapped
-
-        lori =  ['tail_check_max', 'B_lab', 'y_err', 'mean_DEV_prime',  'AC_Checks_segment', 'specimen_int', 'x_err', 'tau_Free', 'tau_Anc', 'max_ptrm_check', 'best_fit_vector_Anc', 'V_Anc', 'y_tag', 'ptrm_checks_included_temps', 'specimen_g_lim', 'V_Free', 'ptrm_checks', 'max_diff', 'tail_check_diffs', 'sum_abs_ptrm_checks', 'sum_ptrm_checks','vector_diffs_segment', 'mean_DRAT_prime', 'zdata_mass_center', 'count_IZ', 'count_ZI', 'vector_diffs', 'x_tag'] # not needed
-
-
         self.Data[s]['pars'] = pars
-        #print "pars['specimen_scat_bounding_line_low']", pars['specimen_scat_bounding_line_low']
-#        return full_pars
-        print pars.keys()
+        #print pars.keys()
+
         return(pars)
                 
     def check_specimen_PI_criteria(self,pars):
