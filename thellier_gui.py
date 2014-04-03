@@ -7026,10 +7026,11 @@ class Arai_GUI(wx.Frame):
         yy=b*xx+a
         self.araiplot.plot(xx,yy,'g-',lw=2,alpha=0.5)
         if self.acceptance_criteria['specimen_scat']['value'] in [True,"True","TRUE",'1','g']:
-            yy1=xx*pars['specimen_scat_bounding_line_low'][1]+pars['specimen_scat_bounding_line_low'][0]
-            yy2=xx*pars['specimen_scat_bounding_line_high'][1]+pars['specimen_scat_bounding_line_high'][0]
-            self.araiplot.plot(xx,yy1,'--',lw=0.5,alpha=0.5)
-            self.araiplot.plot(xx,yy2,'--',lw=0.5,alpha=0.5)
+            if pars['specimen_scat_bounding_line_low'] != 0: # prevents error if there are no SCAT lines available
+                yy1=xx*pars['specimen_scat_bounding_line_low'][1]+pars['specimen_scat_bounding_line_low'][0]
+                yy2=xx*pars['specimen_scat_bounding_line_high'][1]+pars['specimen_scat_bounding_line_high'][0]
+                self.araiplot.plot(xx,yy1,'--',lw=0.5,alpha=0.5)
+                self.araiplot.plot(xx,yy2,'--',lw=0.5,alpha=0.5)
 
         self.araiplot.set_xlim(xmin=0)
         self.araiplot.set_ylim(ymin=0)
@@ -8363,8 +8364,8 @@ class Arai_GUI(wx.Frame):
                         #print "pTRM_*=",x_Arai[index]-x_Arai[index_pTRMs]
                         #print "index 1:",index
                         #print "additivity_checks[k][3]/NRM",additivity_checks[k][3]/NRM,pmag.dir2cart([additivity_checks[k][1],additivity_checks[k][2],additivity_checks[k][3]])
-                        print "x_Arai[index_pTRMs]",x_Arai[index_pTRMs]
-                        print "x_AC",x_AC
+                        #print "x_Arai[index_pTRMs]",x_Arai[index_pTRMs]
+                        #print "x_AC",x_AC
                         #print "pTRM_j_i", x_Arai[index]-additivity_checks[k][3]/NRM
                         #print "AC",additivity_checks[k][3]/NRM - x_Arai[index_pTRMs]
                         #print "....."
