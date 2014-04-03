@@ -233,6 +233,14 @@ class PintPars(object):
         return data[0], data[3]
 
     def get_SCAT(self):
+        if (len(set(self.y_Arai_segment)) == 1): # prevents divide by zero, i.e. if all y values in segment are the same [1,1,1]
+            self.pars['SCAT'] = 0 #float('nan')
+            self.pars['fail_arai_beta_box_scatter'] = 0# float('nan')
+            self.pars["fail_ptrm_beta_box_scatter"] = 0#float('nan')
+            self.pars["fail_tail_beta_box_scatter"] = 0#float('nan')
+            self.pars['scat_bounding_line_high'] = 0# float('nan')
+            self.pars['scat_bounding_line_low'] = 0#float('nan')
+            return 0
         slope = self.pars['specimen_b'] 
         x_mean, y_mean = self.x_Arai_mean, self.y_Arai_mean
         x_Arai_segment, y_Arai_segment = self.x_Arai_segment, self.y_Arai_segment
