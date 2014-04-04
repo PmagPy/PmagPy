@@ -68,57 +68,48 @@ def main():
 
     INPUT
     
-        A generic file is a tab-delimited file. Each columns should have a header.
-        The file must include the follwing headers. The order of the columns is not important.
-        specimen:
-            string specifying specimen name
-        treatment:
-            a number with one or two decimal point (X.Y) 
-            coding for thermal demagnetization:  
-                0.0 or 0 is NRM.
-                X is temperature in celcsius
-                Y is always 0
-            coding for AF demagnetization:
-                0.0 or 0 is NRM.
-                X is AF peak field in mT
-                Y is always 0
-            coding for Thellier-type experiment: 
-                0.0 or 0 is NRM
-                X is temperature in celcsius
-                Y=0: zerofield               
-                Y=1: infield               
-                Y=2: pTRM check               
-                Y=3: pTRM tail check               
-                Y=4: Additivity check  
-                # Ron, Add also 5 for Thellier protocol             
-       treatment_type:
-           N: NRM 
-           A: AF
-           T: Thermal 
-       moment:
-           magnetic moment in emu !!            
-       
-       In addition. at least one of the following headers are requiered:    
-       dec_s:
-           declination in specimen coordinate system (0 to 360)   
-       inc_s:
-           inclination in specimen coordinate system (-90 to 90)    
-       dec_g:
-           declination in geographic coordinate system (0 to 360)      
-       inc_g:
-           inclination in geographic coordinate system (-90 to 90)        
-       dec_t:
-           declination in tilt-corrected coordinate system (0 to 360)       
-       inc_t:
-           inclination in tilt-corrected coordinate system (-90 to 90)       
-            
-    
-    Testing:
-        1) make a genetric file with AF
-        2) make a genetric file with Thermal
-        3) make a genetric file with Thermal + AF 
-        4) make a genetric file with IZZI 
-        5) check duplicates option
+            A generic file is a tab-delimited file. Each columns should have a header.
+            The file must include the follwing headers. The order of the columns is not important.
+            specimen:
+                string specifying specimen name
+            treatment:
+                a number with one or two decimal point (X.Y)
+                coding for thermal demagnetization: 
+                    0.0 or 0 is NRM.
+                    X is temperature in celcsius
+                    Y is always 0
+                coding for AF demagnetization:
+                    0.0 or 0 is NRM.
+                    X is AF peak field in mT
+                    Y is always 0
+                coding for Thellier-type experiment:
+                    0.0 or 0 is NRM
+                    X is temperature in celcsius
+                    Y=0: zerofield              
+                    Y=1: infield              
+                    Y=2: pTRM check              
+                    Y=3: pTRM tail check              
+                    Y=4: Additivity check 
+                    # Ron, Add also 5 for Thellier protocol            
+        treatment_type:
+            N: NRM
+            A: AF
+            T: Thermal
+        moment:
+            magnetic moment in emu !!           
+        
+        In addition. at least one of the following headers are requiered:   
+        dec_s:
+            declination in specimen coordinate system (0 to 360)  
+        inc_s:
+            inclination in specimen coordinate system (-90 to 90)                
+        
+        Testing:
+            1) make a genetric file with AF
+            2) make a genetric file with Thermal
+            3) make a genetric file with Thermal + AF 
+            4) make a genetric file with IZZI 
+            5) check duplicates option
                                         
     """
 
@@ -204,10 +195,10 @@ def main():
         '''
         get sample/site name from specimen/sample using naming convention
         '''
-        if nc[0]==1:
+        if float(nc[0])==1:
             number_of_char=int(nc[1])*-1
             high_name=name[:number_of_char]
-        elif nc[0]==2:
+        elif float(nc[0])==2:
             d=str(nc[1])
             name_splitted=name.split(d)
             if len(name_splitted)==1:
@@ -259,8 +250,8 @@ def main():
     if "-dc" in args:
         ind=args.index("-dc")
         labfield=float(args[ind+1])*1e-6
-        phi=float(args[ind+2])
-        theta=float(args[ind+3])
+        labfield_phi=float(args[ind+2])
+        labfield_theta=float(args[ind+3])
     if '-exp' in args:
         ind=args.index("-exp")
         experiment=args[ind+1]        
@@ -272,14 +263,14 @@ def main():
     if "-samp" in args:
         ind=args.index("-samp")
         sample_nc=[]
-        sample_nc[0]=args[ind+1]
-        sample_nc[1]=args[ind+2]
+        sample_nc.append(args[ind+1])
+        sample_nc.append(args[ind+2])
 
     if "-site" in args:
         ind=args.index("-site")
         site_nc=[]
-        site_nc[0]=args[ind+1]
-        site_nc[1]=args[ind+2]
+        site_nc.append(args[ind+1])
+        site_nc.append(args[ind+2])
     if "-loc" in args:
         ind=args.index("-loc")
         er_location_name=args[ind+1]
@@ -328,7 +319,7 @@ def main():
         LP_this_specimen=[] # a list of all lab protocols
         IZ,ZI=0,0 # counter for IZ and ZI steps
         
-        for meas_line in mag_data:            
+        for meas_line in mag_data[specimen]:            
             
             #------------------
             # trivial MagRec data
@@ -337,8 +328,8 @@ def main():
             MagRec={}
             MagRec['er_citation_names']="This study"
             MagRec["er_specimen_name"]=meas_line['specimen']
-            MagRec["er_sample_name"]=get_upper_level_name(MagRec["er_specimen_name"],nc)
-            MagRec["er_site_name"]=get_upper_level_name(MagRec["er_sample_name"],nc)
+            MagRec["er_sample_name"]=get_upper_level_name(MagRec["er_specimen_name"],sample_nc)
+            MagRec["er_site_name"]=get_upper_level_name(MagRec["er_sample_name"],site_nc)
             MagRec['er_location_name']=er_location_name
             MagRec['er_analyst_mail_names']=user 
             MagRec["magic_instrument_codes"]="" 
@@ -347,27 +338,34 @@ def main():
             
             MagRec["measurement_magn_moment"]='%10.3e'%(float(meas_line["moment"])*1e-3) # in Am^2
             MagRec["measurement_temp"]='273.' # room temp in kelvin
-            if experiment in ['PI','NLT','CR']:                        
-                MagRec["treatment_dc_field"]='%8.3e'%(float(labfield[0])*1e-6)
-                MagRec["treatment_dc_field_phi"]="%.2f"%(float(labfield[1]))
-                MagRec["treatment_dc_field_theta"]="%.2f"%(float(labfield[2]))
+
+            #------------------
+            #  decode treatments from treatment column in the generic file 
+            #------------------
+            
+            treatment=[]
+            treatment_code=str(meas_line['treatment']).split(".")
+            treatment.append(float(treatment_code[0]))
+            if len(treatment_code)==0:
+                treatment.append(0)
+            else:
+                treatment.append(float(treatment_code[1]))
+
+            if experiment in ['PI','NLT','CR']:
+                
+                if float(treatment[1])==0:
+                    MagRec["treatment_dc_field"]="0"
+                    MagRec["treatment_dc_field_phi"]="0"
+                    MagRec["treatment_dc_field_theta"]="0"
+                else:                        
+                    MagRec["treatment_dc_field"]='%8.3e'%(float(labfield))
+                    MagRec["treatment_dc_field_phi"]="%.2f"%(float(labfield_phi))
+                    MagRec["treatment_dc_field_theta"]="%.2f"%(float(labfield_theta))
             else:
                 MagRec["treatment_dc_field"]=""
                 MagRec["treatment_dc_field_phi"]=""
                 MagRec["treatment_dc_field_theta"]=""
             
-            print "Ron, dont forget    magic_experiment_name !!"
-
-            #------------------
-            #  decode treatments from treatment column in the generic file 
-            #------------------
-
-            treatment=float(str(meas_line['treatment']).split("."))
-            treatment[0]=float(treatment[0])
-            if len(treatment)==0:
-                treatment[1]=0
-            else:
-                treatment[1]=float(treatment[1])
 
             #------------------
             # treatment temperature/peak field 
@@ -396,7 +394,7 @@ def main():
             # Lab treatment and lab protocoal for NRM:
             #---------------------
             
-            if float['treatment']==0:
+            if float(meas_line['treatment'])==0:
                 LT="LT-NO"
                 LP="" # will be filled later after finishing reading all measurements line
 
@@ -428,10 +426,10 @@ def main():
                 
                 this_specimen_treatments.append(float(meas_line['treatment']))
                 if LT=="LT-T-Z":
-                    if int(meas_line['treatment'])+0.1 in this_specimen_treatments:
+                    if treatment[0]+0.1 in this_specimen_treatments:
                         LP==LP+":"+"LP-PI-IZ"
                 if LT=="LT-T-I":
-                    if int(meas_line['treatment'])+0.0 in this_specimen_treatments:
+                    if treatment[0]+0.0 in this_specimen_treatments:
                         LP==LP+":"+"LP-PI-ZI"
                 
             #---------------------                    
@@ -626,7 +624,8 @@ def main():
                     pass
                     # (nothing to do)
                 else:
-                    print "-W- WARNING: missing sample_dip or sample_azimuth for sample %s"%sample
+                    if "Demag" in experiment:
+                        print "-W- WARNING: missing sample_dip or sample_azimuth for sample %s"%sample
 
             #-----------------------------                                                
             # tilt-corrected coordinates: yes
@@ -666,8 +665,8 @@ def main():
             MagRec["magic_method_codes"]=LT
             MagRecs_this_specimen.append(MagRec)
 
-            if LP!="" and LP not in this_specimen_LP:
-                LP_this_specimen.append(LP)
+            #if LP!="" and LP not in LP_this_specimen:
+            #    LP_this_specimen.append(LP)
             
             measurement_running_number+=1
             #-------                    
@@ -697,9 +696,10 @@ def main():
             LT=""
             for code in magic_method_codes:
                 if "LT" in code:
-                    LT=code;break            
+                    LT=code;
+                    break            
             MagRec["magic_method_codes"]=LT+":"+":".join(LP_this_specimen)
         MagRecs.append(MagRec)   
                                 
 
-
+main()
