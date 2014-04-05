@@ -33,8 +33,10 @@ def main():
                 AF and/or Thermal
             PI:
                 paleointenisty thermal experiment (ZI/IZ/IZZI)
-            ATRM-6:
-                ATRM in six positions
+            ATRM n:
+                ATRM in n positions
+            AARM n:
+                AARM in n positions
             CR:
                 cooling rate experiment
             NLT:
@@ -260,6 +262,14 @@ def main():
         print main.__doc__
         sys.exit()
 
+    if experiment=='ATRM':
+        ind=args.index("ATRM")
+        atrm_n_pos=int(args[ind+1])    
+            
+    if experiment=='AARM':
+        ind=args.index("AARM")
+        aarm_n_pos=int(args[ind+1])        
+       
     if "-samp" in args:
         ind=args.index("-samp")
         sample_nc=[]
@@ -351,6 +361,11 @@ def main():
             else:
                 treatment.append(float(treatment_code[1]))
 
+            #------------------
+            #  lab field direction
+            #------------------
+
+
             if experiment in ['PI','NLT','CR']:
                 
                 if float(treatment[1])==0:
@@ -366,7 +381,6 @@ def main():
                 MagRec["treatment_dc_field_phi"]=""
                 MagRec["treatment_dc_field_theta"]=""
             
-
             #------------------
             # treatment temperature/peak field 
             #------------------
@@ -384,6 +398,7 @@ def main():
             else: 
                     MagRec['treatment_temp']="%.2f"%(treatment[0]+273.)
                     MagRec["treatment_ac_field"]=""                                                        
+
 
             #---------------------                    
             # Lab treatment
@@ -448,13 +463,46 @@ def main():
             # Lab treatment and lab protocoal for ATRM experiment
             #---------------------
                                 
-            elif 'ATRM' in experiment :
-                LP="LP-AN-TRM"
+            elif experiment in ['ATRM','AARM']:
+                
+                if experiment=='ATRM':
+                    LP="LP-AN-TRM"
+                    n_pos=atrm_n_pos                    
+                    if n_pos!=6:
+                        print "the program does not support ATRM in %i position."%n_pos
+                        continue
+                        
+                if experiment=='AARM':
+                    #MagRec['treatment_temp']="273."
+                    #MagRec["treatment_ac_field"]=""                                                        
+                    LP="LP-AN-ARM"
+                    n_pos=aarm_n_pos
+                    if n_pos!=6:
+                        print "the program does not support AARM in %i position."%n_pos
+                        continue
+                                
                 if treatment[1]==0:
-                    LT="LT-T-Z"
+                    if experiment=='ATRM':
+                        LT="LT-T-Z"
+                        MagRec['treatment_temp']="%.2f"%(treatment[0]+273.)
+                        MagRec["treatment_ac_field"]="" 
+                                                                               
+                    else:
+                        LT="LT-AF-Z"                        
+                        MagRec['treatment_temp']="273."
+                        MagRec["treatment_ac_field"]="%.3e"%(treatment[0]*1e-3)  
+                    MagRec["treatment_dc_field"]='0'                                               
                     MagRec["treatment_dc_field_phi"]='0'
                     MagRec["treatment_dc_field_theta"]='0'
                 else:
+                    if experiment=='ATRM':
+                        if float(treatment[1])==70 or float(treatment[1])==7: # alteration check as final measurement
+                            LT="LT-PTRM-I"
+                        else:
+                            LT="LT-T-I"
+                    else:
+                        LT="LT-AF-I"
+                    MagRec["treatment_dc_field"]='%8.3e'%(float(labfield))                                               
                             
                     # find the direction of the lab field in two ways:
                     
@@ -476,6 +524,9 @@ def main():
                     elif meas_line["dec_t"]!="":
                         DEC=float(meas_line["dec_t"])
                         INC=float(meas_line["inc_t"])
+                    if DEC<0 and DEC>-359:
+                        DEC=360.+DEC
+                        
                     if INC < 45 and INC > -45:
                         if DEC>315  or DEC<45: ipos_guess=0
                         if DEC>45 and DEC<135: ipos_guess=1
@@ -489,14 +540,10 @@ def main():
                     # check it 
                     if treatment[1]!= 7 and treatment[1]!= 70:
                         if ipos_guess!=ipos_code:
-                            print "-W- WARNING: check specimen %s step %s, ATRM measurements, coding does not match the direction of the lab field"%(specimen,meas_line['Treatment'])
+                            print "-W- WARNING: check specimen %s step %s, anistropy measurements, coding does not match the direction of the lab field"%(specimen,meas_line['treatment'])
                     MagRec["treatment_dc_field_phi"]='%7.1f' %(tdec[ipos])
                     MagRec["treatment_dc_field_theta"]='%7.1f'% (tinc[ipos])
                         
-                    if float(treatment[1])==70 or float(treatment[1])==7: # alteration check as final measurement
-                            LT="LT-PTRM-I"
-                    else:
-                            LT="LT-T-I"
 
             #---------------------                    
             # Lab treatment and lab protocoal for cooling rate experiment
