@@ -3,8 +3,10 @@
 #============================================================================================
 # LOG HEADER:
 #============================================================================================
+# Thellier_GUI Version 2.21 04/07/2014
+# fix bug is scat statistics window
 #
-# Thellier_GUI Version 2.0 04/04/2014
+# Thellier_GUI Version 2.20 04/04/2014
 # add support for pTRM after infield step
 #
 # Thellier_GUI Version 2.19 03/23/2014
@@ -98,7 +100,7 @@
 #============================================================================================
 
 global CURRENT_VRSION
-CURRENT_VRSION = "v.2.19"
+CURRENT_VRSION = "v.2.21"
 import matplotlib
 matplotlib.use('WXAgg')
 
@@ -6476,7 +6478,7 @@ class Arai_GUI(wx.Frame):
             exec command
 
         # specimen_scat                
-        if self.preferences['show_statistics_on_gui']:
+        if 'specimen_scat' in     self.preferences['show_statistics_on_gui']:
             if self.acceptance_criteria['specimen_scat']['value'] in ['True','TRUE','1',1,True,'g']:
                 if self.pars["specimen_scat"]=='Pass':
                     self.scat_window.SetValue("Pass")
@@ -8233,7 +8235,7 @@ class Arai_GUI(wx.Frame):
                 
                 #print ptrm_checks[k]
                 #print ' ptrm_checks[k][4]', ptrm_checks[k][4]
-                if ptrm_checks[k][5]=='after I':
+                if ptrm_checks[k][5]==0:
                     index_zerofield=zerofield_temperatures.index(ptrm_checks[k][0])
                     index_infield=infield_temperatures.index(ptrm_checks[k][0])
                     infield_cart=dir2cart([infields[index_infield][1],infields[index_infield][2],infields[index_infield][3]])
@@ -8704,9 +8706,9 @@ class Arai_GUI(wx.Frame):
         # sort out first_Z records
                 # check if ZI/IZ in in method codes:
                 ZI=""
-                if "LP-PI-TRM-IZ" in methcodes or "LP-PI-M-IZ" in methcodes: 
+                if "LP-PI-TRM-IZ" in methcodes or "LP-PI-M-IZ" in methcodes or "LP-PI-IZ" in methcodes: 
                     ZI=0    
-                elif "LP-PI-TRM-ZI" in methcodes or "LP-PI-M-ZI" in methcodes: 
+                elif "LP-PI-TRM-ZI" in methcodes or "LP-PI-M-ZI" in methcodes or "LP-PI-ZI" in methcodes:  
                     ZI=1    
                 elif "LP-PI-BT-IZZI" in methcodes:
                     ZI==""
@@ -8820,13 +8822,13 @@ class Arai_GUI(wx.Frame):
                  # does not support pTRM checks after infield step
                  for j in range(k,1,-1):
                      if "LT-M-I" in datablock[j]['magic_method_codes'] or "LT-T-I" in datablock[j]['magic_method_codes']:
-                         pTRM_order='after I'
+                         after_zerofield=0. 
                          foundit=True
                          prev_rec=datablock[j]
                          zerofield_index=j  
                          break                       
                      if float(datablock[j]['treatment_dc_field'])==0:
-                         pTRM_order='after Z'
+                         after_zerofield=1.
                          foundit=True
                          prev_rec=datablock[j]
                          zerofield_index=j
@@ -8847,10 +8849,10 @@ class Arai_GUI(wx.Frame):
                 if  'LP-PI-II' not in methcodes:   
                     diff_cart=M-prev_M
                     diff_dir=pmag.cart2dir(diff_cart)
-                    if pTRM_order=='after I':
-                        ptrm_check.append([temp,diff_dir[0],diff_dir[1],diff_dir[2],zerofield_index,'after I'])
+                    if after_zerofield==0:
+                        ptrm_check.append([temp,diff_dir[0],diff_dir[1],diff_dir[2],zerofield_index,after_zerofield])
                     else:
-                        ptrm_check.append([temp,diff_dir[0],diff_dir[1],diff_dir[2],zerofield_index,'after Z'])
+                        ptrm_check.append([temp,diff_dir[0],diff_dir[1],diff_dir[2],zerofield_index,after_zerofield])
                 else:           
                     # health check for T-T protocol:
                     if theta!=prev_theta:
