@@ -4129,7 +4129,6 @@ class Arai_GUI(wx.Frame):
             Fout_BS_samples.close()
         if self.acceptance_criteria['interpreter_method']['value']=='bs_par':
             Fout_BS_PAR_samples.close()
-            
         os.system('\a')
         dlg1 = wx.MessageDialog(self,caption="Message:", message="Interpreter finished sucsessfuly\nCheck output files in folder /thellier_interpreter in the current project directory" ,style=wx.OK|wx.ICON_INFORMATION)
 
@@ -4140,10 +4139,10 @@ class Arai_GUI(wx.Frame):
         self.draw_figure(self.s)
         self.update_GUI_with_new_interpretation()
 
-
         dlg1.ShowModal()
         dlg1.Destroy()
         busy_frame.Destroy()
+
     #----------------------------------------------------------------------
 
     def on_menu_open_interpreter_file(self, event):
@@ -6665,6 +6664,7 @@ class Arai_GUI(wx.Frame):
     def get_PI_parameters(self,s,tmin,tmax):
         #print 'calling get_PI_parameters'
         #print 's: {}, tmin: {}, tmax: {}'.format(s, tmin, tmax)
+        #print self.preferences['show_statistics_on_gui']
         
         #pars=self.Data[s]['pars']
         datablock = self.Data[s]['datablock']
@@ -6674,10 +6674,10 @@ class Arai_GUI(wx.Frame):
         #pars['magic_method_codes']="LP-PI-TRM" # thellier Method
         import SPD
         import SPD.spd as spd
-        Pint_pars = spd.PintPars(self.Data, str(s), tmin, tmax, 'magic')
+        Pint_pars = spd.PintPars(self.Data, str(s), tmin, tmax, 'magic', self.preferences['show_statistics_on_gui'])
         Pint_pars.calculate_all_statistics()
 
-        pars.update(Pint_pars.pars) # temp
+        pars.update(Pint_pars.pars) # 
 
         t_Arai=self.Data[s]['t_Arai']
         x_Arai=self.Data[s]['x_Arai']
