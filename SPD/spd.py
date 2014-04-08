@@ -685,8 +685,8 @@ class PintPars(object):
         self.get_alpha_prime()
         self.get_CRM_percent()
         self.get_delta_t_star()
-        if self.mapping == 'magic':
-            self.pars = map_magic.mapping(self.pars, map_magic.spd2magic_map)
+#        if self.mapping == 'magic':
+#            self.pars = map_magic.mapping(self.pars, map_magic.spd2magic_map)
 
 
 
@@ -760,32 +760,62 @@ class PintPars(object):
 
     dependencies = {
         'get_alpha': (York_Regression, get_dec_and_inc),
-        'get_curve': (York_Regression,)
-    }
+        'get_curve': (York_Regression,),
+        'get_R_corr2': (York_Regression,),
+        'York_Regression': (None,),
+        'get_dec_and_inc': (None,),
+        'get_n_tail': (None,),
+        'get_DRATS': (get_n_ptrm, get_max_ptrm_check),
+        'get_FRAC': (York_Regression, get_vds),
+        'get_vds': (York_Regression,),
+        'get_SCAT': (York_Regression,),
+        'get_Z': (York_Regression,),
+        'get_R_det2': (York_Regression,),
+        'get_MAD': (get_dec_and_inc,),
+        'get_DANG': (get_dec_and_inc,),
+        'get_theta': (get_dec_and_inc,),
+}
+
+
+
+
 
     #statistics = {k: v for (k,v) in statistics.items() if v != None}    
     #print [k for (k,v) in statistics.items() if v.__name__ == 'York_Regression']
 
     def reqd_stats(self):
         stats_run = []
-        print self.calculate
+        print 'self.calculate: ', self.calculate
         for stat in self.calculate: # iterate through all stats that should be calculated
             func = self.statistics[stat]
             print 'func', func
             if func: # sometimes this will be none, since statistics like tmin are generated during __init__ and don't require a function to be run
-                if func.__name__ in self.dependencies: 
+                if func.__name__ == 'York_Regression':
+                    print 'York_Regression'
+                    if 'York_Regression' not in stats_run:
+                        func(self)
+                        stats_run.append(func.__name__)
+                elif func.__name__ in self.dependencies: 
                     print 'in!'
+                    #if self.dependencies[func.__name__] == None: continue # if there are no dependencies
                     for d in self.dependencies[func.__name__]:
+                        if d == None: continue
+                        print 'd: ', d,
                         if d.__name__ not in stats_run: # if the dependency has not already been run, run it
                             d(self)
                             stats_run.append(d.__name__)
+                    print ' '
                     if func.__name__ not in stats_run:
                         func(self) # all dependencies have been satisfied, so run the main function
                         stats_run.append(func.__name__)
                 else:
-                    self.calculate_all_statistics() # if no dependency info can be found, just run all statistics
-                    return 0
-        print stats_run
+                    print 'alert: did not find dependencies, now attempting to run'
+                    func(self) # for now, I want to see this error
+                    stats_run.append(func.__name__)
+                    #self.calculate_all_statistics() # if no dependency info can be found, just run all statistics
+                    #return 0 # since all possible statistics have been run, the function ends
+        print 'self.pars.keys()', self.pars.keys()
+        print 'stats run: ', stats_run
 
 
 
