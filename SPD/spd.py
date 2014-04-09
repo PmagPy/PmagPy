@@ -245,6 +245,15 @@ class PintPars(object):
         self.pars['SSE'] = data[3]
         return data[0], data[3]
 
+    def get_curve_prime(self):
+        """not in SPD documentation.  same as k, but using the segment instead of the full data set"""
+        if len(self.x_Arai_segment) < 4:
+            self.pars['specimen_k_prime'], self.pars['specimen_k_prime_SSE'] = 0, 0
+            return 0
+        data = lib_k.AraiCurvature(self.x_Arai_segment, self.y_Arai_segment)
+        self.pars['specimen_k_prime'] = data[0]
+        self.pars['specimen_k_prime_SSE'] = data[3]
+
     def get_SCAT(self):
         if (len(set(self.y_Arai_segment)) == 1): # prevents divide by zero, i.e. if all y values in segment are the same [1,1,1]
             self.pars['SCAT'] = 0 #float('nan')
@@ -555,6 +564,7 @@ class PintPars(object):
         self.get_vds()
         self.get_FRAC()
         self.get_curve()
+        self.get_curve_prime()
         self.get_SCAT()
         self.get_R_corr2()
         self.get_R_det2()
@@ -669,12 +679,15 @@ class PintPars(object):
         'scat_bounding_line_high': get_SCAT,
         'specimen_k': get_curve,
         'specimen_int_crm': get_CRM_percent,
-        'specimen_dt': get_delta_t_star
+        'specimen_dt': get_delta_t_star,
+        'specimen_k_prime': get_curve_prime,
+        'specimen_k_prime_SSE': get_curve_prime
     }
 
     dependencies = {
         'get_alpha': (York_Regression, get_dec_and_inc),
         'get_curve': (York_Regression,),
+        'get_curve_prime': (York_Regression,),
         'get_R_corr2': (York_Regression,),
         'York_Regression': (None,),
         'get_dec_and_inc': (None,),
