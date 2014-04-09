@@ -387,6 +387,7 @@ class MagIC_model_builder(wx.Frame):
         sites_list.sort() 
         string=""       
         for site in sites_list:
+          string=""    
           for key in self.er_sites_header:
             if key=="er_citation_names":
               string=string+"This study"+"\t"

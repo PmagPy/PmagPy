@@ -3,6 +3,9 @@
 #============================================================================================
 # LOG HEADER:
 #============================================================================================
+# Thellier_GUI Version 2.22 04/09/2014
+# fix Blab window bug
+#
 # Thellier_GUI Version 2.21 04/07/2014
 # fix bug is scat statistics window
 #
@@ -100,7 +103,7 @@
 #============================================================================================
 
 global CURRENT_VRSION
-CURRENT_VRSION = "v.2.21"
+CURRENT_VRSION = "v.2.22"
 import matplotlib
 matplotlib.use('WXAgg')
 
@@ -6491,83 +6494,11 @@ class Arai_GUI(wx.Frame):
                 self.scat_window.SetValue("")
                 self.scat_window.SetBackgroundColour(wx.NullColour) # set text color
                 
-#        # specimen_scat                
-#        if self.acceptance_criteria['specimen_scat']['value'] in ['True','TRUE','1',1,True,'g']:
-#            if self.pars["fail_arai_beta_box_scatter"] or self.pars["fail_ptrm_beta_box_scatter"] or self.pars["fail_tail_beta_box_scatter"]:
-#              self.scat_window.SetValue("fail")
-#            else:
-#              self.scat_window.SetValue("pass")
-#
-#            if self.acceptance_criteria['specimen_scat']['value'] == -999 and 'scat' in self.preferences['show_statistics_on_gui']:
-#              self.scat_window.SetBackgroundColour(wx.NullColour) # set text color
-#            elif self.pars["fail_arai_beta_box_scatter"] or self.pars["fail_ptrm_beta_box_scatter"] or self.pars["fail_tail_beta_box_scatter"] :
-#              if "scat" in self.preferences['show_statistics_on_gui']:
-#                  self.scat_window.SetBackgroundColour(wx.RED) # set text color
-#              flag_Fail=True
-#            else :
-#              if "scat" in self.preferences['show_statistics_on_gui']:
-#                  self.scat_window.SetBackgroundColour(wx.GREEN) # set text color
-#        else:
-#            if "scat" in self.preferences['show_statistics_on_gui']:
-#                self.scat_window.SetValue("")
-#                self.scat_window.SetBackgroundColour(wx.NullColour) # set text color
- 
-                
-#                               
-#                                                             
-#        window_list=['int_n','int_ptrm_n','frac','gmax','f','fvds','b_beta','g','q','int_mad','dang','drats','md']
-#        high_threshold_velue_list=['specimen_gmax','specimen_b_beta','specimen_dang','specimen_drats','specimen_int_mad','specimen_md']
-#        low_threshold_velue_list=['specimen_int_n','specimen_int_ptrm_n','specimen_f','specimen_fvds','specimen_frac','specimen_g','specimen_q']
-#        flag_Fail=False
-#    
-#        for key in  high_threshold_velue_list+low_threshold_velue_list + ["specimen_ptrms_inc","specimen_ptrms_dec","specimen_ptrms_mad","specimen_ptrms_angle"]:
-#            if key in ['specimen_int_n','specimen_int_ptrm_n']:
-#                Value="%.0f"%self.pars[key]
-#            if key in ['specimen_dang','specimen_drats','specimen_int_mad','specimen_md','specimen_g','specimen_q']:
-#                Value="%.1f"%self.pars[key]
-#            if key in ['specimen_f','specimen_fvds','specimen_frac','specimen_b_beta','specimen_gmax']:
-#                Value="%.2f"%self.pars[key]            
-#            if key in ["specimen_ptrms_inc","specimen_ptrms_dec","specimen_ptrms_mad","specimen_ptrms_angle"]:
-#                Value="%.2f"%self.pars[key]            
-#            command= "self.%s_window.SetValue(Value)"%key.split('specimen_')[-1]
-#            if key.split('specimen_')[-1] in self.preferences['show_statistics_on_gui']:
-#                exec(command)
-#            if self.ignore_parameters[key]:
-#                command="self.%s_window.SetBackgroundColour(wx.NullColour)"%key.split('specimen_')[-1]  # set text color                
-#            elif (key in high_threshold_velue_list) and (float(self.pars[key])<=float(self.acceptance_criteria[key])):
-#                command="self.%s_window.SetBackgroundColour(wx.GREEN)"%key.split('specimen_')[-1]  # set text color
-#            elif (key in low_threshold_velue_list) and (float(self.pars[key])>=float(self.acceptance_criteria[key])):
-#                command="self.%s_window.SetBackgroundColour(wx.GREEN)"%key.split('specimen_')[-1]  # set text color
-#            else:
-#                command="self.%s_window.SetBackgroundColour(wx.RED)"%key.split('specimen_')[-1]  # set text color
-#                flag_Fail=True
-#            if key.split('specimen_')[-1] in self.preferences['show_statistics_on_gui']:
-#                exec command    
-#
-#        # Scat
-#        if self.acceptance_criteria['specimen_scat']:
-#            if self.pars["fail_arai_beta_box_scatter"] or self.pars["fail_ptrm_beta_box_scatter"] or self.pars["fail_tail_beta_box_scatter"]:
-#              self.scat_window.SetValue("fail")
-#            else:
-#              self.scat_window.SetValue("pass")
-#
-#            if self.ignore_parameters['specimen_scat'] and  "scat" in self.preferences['show_statistics_on_gui']:
-#              self.scat_window.SetBackgroundColour(wx.NullColour) # set text color
-#            elif self.pars["fail_arai_beta_box_scatter"] or self.pars["fail_ptrm_beta_box_scatter"] or self.pars["fail_tail_beta_box_scatter"] :
-#              if "scat" in self.preferences['show_statistics_on_gui']:
-#                  self.scat_window.SetBackgroundColour(wx.RED) # set text color
-#              flag_Fail=True
-#            else :
-#              if "scat" in self.preferences['show_statistics_on_gui']:
-#                  self.scat_window.SetBackgroundColour(wx.GREEN) # set text color
-#        else:
-#            if "scat" in self.preferences['show_statistics_on_gui']:
-#                self.scat_window.SetValue("")
-#                self.scat_window.SetBackgroundColour(wx.NullColour) # set text color
 
+        # Blab, Banc, correction factors
 
-        # Banc, correction factor
-
+        self.Blab_window.SetValue("%.0f"%(float(self.Data[self.s]['pars']['lab_dc_field'])*1e6))
+        
         self.Banc_window.SetValue("%.1f"%(self.pars['specimen_int_uT']))
         if flag_Fail:
           self.Banc_window.SetBackgroundColour(wx.RED)
