@@ -475,6 +475,9 @@ class PintPars(object):
         self.pars['mean_DEV_prime'] = mean_DEV_prime
 
     def get_delta_pal(self): 
+        if self.pars['n_ptrm'] == 0: # otherwise will error if no ptrm checks
+            self.pars['delta_pal'] = 0
+            return 0
         ptrms_segment, checks_segment = lib_ptrm.get_segments(self.PTRMS, self.PTRM_Checks, self.tmax)
         delta_pal = lib_ptrm.get_full_delta_pal(self.PTRMS, self.PTRM_Checks, self.NRM, self.pars['y_err'], 
                                                 self.y_Arai_mean, self.pars['specimen_b'], self.start, self.end,
@@ -542,111 +545,20 @@ class PintPars(object):
     def get_delta_t_star(self):
         self.pars['specimen_dt'] = -999.
 
-
-    # lists of statistics
-    def get_arai_stats(self):
-        stats = [self.York_Regression, self.get_vds, self.get_FRAC, self.get_curve, self.get_SCAT, self.get_R_corr2, self.get_R_det2, self.get_Z, self.get_Zstar, self.get_IZZI_MD]
-        return stats
-
-      
-    def arai_plot_statistics(self):
-        stats = get_arai_stats()
-        for stat in stats:
-            self.stat()
-        #self.York_Regression()
-        #self.get_vds()
-        #self.get_FRAC()
-        #self.get_curve()
-        #self.get_SCAT()
-        #self.get_R_corr2()
-        #self.get_R_det2()
-        #self.get_Z()
-        #self.get_Zstar()
-        #self.get_IZZI_MD()
-
-    def get_directional_stats(self):
-        stats = [self.get_dec_and_inc, self.get_ptrm_dec_and_inc,  
-                 self.get_MAD, self.get_ptrm_MAD,  self.get_alpha,  self.get_DANG, self.get_NRM_dev,
-                 self.get_theta, self.get_gamma]
-        return stats
-        
-
-    def directional_statistics(self):
-        stats = self.get_directional_stats()
-        for stat in stats:
-            self.stat()
-       # self.York_Regression()
-       # self.get_vds()
-        #
-       # self.get_dec_and_inc()
-       # self.get_ptrm_dec_and_inc()
-       # self.get_MAD()
-       # self.get_ptrm_MAD()
-       # self.get_alpha()
-       # self.get_DANG()
-       # self.get_NRM_dev()
-       # self.get_theta() # not necessarily done
-       # self.get_gamma() # ditto        
-
-    def get_ptrm_stats(self):
-        stats = [self.get_n_ptrm, self.get_max_ptrm_check, self.get_delta_CK, 
-                 self.get_DRAT, self.get_max_DEV, self.get_CDRAT, self.get_DRATS, self.get_mean_DRAT, 
-                 self.get_mean_DEV, self.get_delta_pal]
-        return stats
-
-
-
-    def ptrm_check_statistics(self):# ptrm check statistics
-        self.York_Regression()
-        self.get_vds()
-        #
-        self.get_n_ptrm()
-        self.get_max_ptrm_check()
-        self.get_delta_CK()
-        self.get_DRAT()
-        self.get_max_DEV()
-        self.get_CDRAT()
-        self.get_DRATS()
-        self.get_mean_DRAT()
-        self.get_mean_DEV()
-        self.get_delta_pal()
-
-
-
-    def get_tail_stats(self):
-        stats = [self.get_n_ptrm, self.get_max_ptrm_check, self.get_DRAT,
-                 self.get_n_tail, self.get_max_tail_check, self.get_DRAT_tail, self.get_delta_TR, self.get_MD_VDS]
-        return stats
-        
-
-    def tail_check_statistics(self):
-        # tail check statistics
-        self.York_Regression()
-        self.get_vds()
-        self.get_n_ptrm()
-        self.get_max_ptrm_check()
-        self.get_DRAT()
-        #
-        self.get_n_tail()
-        self.get_max_tail_check()
-        self.get_DRAT_tail()
-        self.get_delta_TR()
-        self.get_MD_VDS()
-
-    def additivity_check_statistics(self):
-        self.get_n_add()
-        self.get_delta_AC()
-
-
-    def get_add_stats(self):
-        stats = [self.get_n_add, self.get_delta_AC]
-        return stats
+    # two methods for running the statistics
 
     def calculate_all_statistics(self):
         #print "calling calculate_all_statistics in spd.py"
-        arai_plot_stats = self.get_arai_stats()
-        for stat in arai_plot_stats:
-            stat()
+        self.York_Regression()
+        self.get_vds()
+        self.get_FRAC()
+        self.get_curve()
+        self.get_SCAT()
+        self.get_R_corr2()
+        self.get_R_det2()
+        self.get_Z()
+        self.get_Zstar()
+        self.get_IZZI_MD()
         # directional statistics
         self.get_dec_and_inc()
         self.get_ptrm_dec_and_inc()
@@ -685,8 +597,8 @@ class PintPars(object):
         self.get_alpha_prime()
         self.get_CRM_percent()
         self.get_delta_t_star()
-#        if self.mapping == 'magic':
-#            self.pars = map_magic.mapping(self.pars, map_magic.spd2magic_map)
+        if self.mapping == 'magic':
+            self.pars = map_magic.mapping(self.pars, map_magic.spd2magic_map)
 
 
 
@@ -774,48 +686,56 @@ class PintPars(object):
         'get_MAD': (get_dec_and_inc,),
         'get_DANG': (get_dec_and_inc,),
         'get_theta': (get_dec_and_inc,),
+        'get_max_ptrm_check': (get_n_ptrm,),
+        'get_DRAT': (York_Regression, get_n_ptrm, get_max_ptrm_check),
+        'get_CDRAT': (York_Regression, get_n_ptrm, get_max_ptrm_check, get_DRAT),
+        'get_mean_DRAT': (York_Regression, get_n_ptrm, get_max_ptrm_check, get_DRAT),
+        'get_delta_CK': (York_Regression, get_n_ptrm, get_max_ptrm_check),
+        'get_max_DEV': (York_Regression, get_n_ptrm, get_max_ptrm_check),
+        'get_mean_DEV': (York_Regression, get_n_ptrm, get_max_ptrm_check),
+        'get_delta_pal': (York_Regression,),
+        'get_MD_VDS': (York_Regression, get_vds, get_n_tail, get_max_tail_check),
+        'get_DRAT_tail': (York_Regression, get_n_ptrm, get_max_ptrm_check, get_DRAT, get_n_tail, get_max_tail_check),
+        'get_delta_TR': (York_Regression, get_n_tail, get_max_tail_check),
+        'get_delta_AC': (York_Regression, get_n_add,),
 }
 
-
-
-
-
-    #statistics = {k: v for (k,v) in statistics.items() if v != None}    
-    #print [k for (k,v) in statistics.items() if v.__name__ == 'York_Regression']
-
-    def reqd_stats(self):
+    def reqd_stats(self):  
         stats_run = []
-        print 'self.calculate: ', self.calculate
+        #print 'self.calculate: ', self.calculate
         for stat in self.calculate: # iterate through all stats that should be calculated
             func = self.statistics[stat]
-            print 'func', func
+            #print 'func', func
             if func: # sometimes this will be none, since statistics like tmin are generated during __init__ and don't require a function to be run
                 if func.__name__ == 'York_Regression':
-                    print 'York_Regression'
+                    #print 'York_Regression'
                     if 'York_Regression' not in stats_run:
                         func(self)
                         stats_run.append(func.__name__)
                 elif func.__name__ in self.dependencies: 
-                    print 'in!'
-                    #if self.dependencies[func.__name__] == None: continue # if there are no dependencies
                     for d in self.dependencies[func.__name__]:
                         if d == None: continue
-                        print 'd: ', d,
+                        #print 'd: ', d,
                         if d.__name__ not in stats_run: # if the dependency has not already been run, run it
                             d(self)
                             stats_run.append(d.__name__)
-                    print ' '
                     if func.__name__ not in stats_run:
                         func(self) # all dependencies have been satisfied, so run the main function
                         stats_run.append(func.__name__)
                 else:
-                    print 'alert: did not find dependencies, now attempting to run'
-                    func(self) # for now, I want to see this error
-                    stats_run.append(func.__name__)
-                    #self.calculate_all_statistics() # if no dependency info can be found, just run all statistics
-                    #return 0 # since all possible statistics have been run, the function ends
-        print 'self.pars.keys()', self.pars.keys()
-        print 'stats run: ', stats_run
+                    #print 'alert: did not find dependencies, now attempting to run'
+                    try:
+                        func(self) # this will work if the function has no dependencies
+                        stats_run.append(func.__name__)
+                    except:
+                        self.calculate_all_statistics() # if no dependency info can be found, just run all statistics
+                        return 0 # since all possible statistics have been run, the function ends
+        #print 'stats run: ', stats_run
+        if self.mapping == 'magic':
+            self.pars = map_magic.mapping(self.pars, map_magic.spd2magic_map)
+        if len(stats_run) != len(set(stats_run)):
+            raise Exception('lengths were off')
+        
 
 
 

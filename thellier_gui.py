@@ -6675,7 +6675,8 @@ class Arai_GUI(wx.Frame):
         import SPD
         import SPD.spd as spd
         Pint_pars = spd.PintPars(self.Data, str(s), tmin, tmax, 'magic', self.preferences['show_statistics_on_gui'])
-        Pint_pars.calculate_all_statistics()
+        Pint_pars.reqd_stats() # calculate only statistics indicated in self.preferences
+        #Pint_pars.calculate_all_statistics() # calculate every statistic available
 
         pars.update(Pint_pars.pars) # 
 
