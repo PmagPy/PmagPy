@@ -17,10 +17,15 @@ def York_Regression(x_segment, y_segment, x_mean, y_mean, n, lab_dc_field, steps
     york_b = -1* numpy.sqrt(sum(y_err**2) / sum(x_err**2) )  # averaged slope
 
     b = numpy.sign(sum(x_err * y_err)) * numpy.std(y_segment, ddof=1)/numpy.std(x_segment, ddof=1) # ddof is degrees of freedom
-    york_b = b
+    if b == 0:
+        york_b = 1e-10
+    else:
+        york_b = b
 
     york_sigma= numpy.sqrt( (2 * sum(y_err**2) - 2*york_b* sum(x_err*y_err)) / ( (n-2) * sum(x_err**2) ) )
-    beta_Coe=abs(york_sigma/york_b) 
+    if york_sigma == 0: # prevent divide by zero
+        york_sigma = 1e-10
+    beta_Coe = abs(york_sigma/york_b) 
     # y_T is the intercept of the extrepolated line
     # through the center of mass (see figure 7 in Coe (1978))  
     y_T = y_mean - (york_b* x_mean)
@@ -37,7 +42,10 @@ def York_Regression(x_segment, y_segment, x_mean, y_mean, n, lab_dc_field, steps
     delta_y_prime = abs(max(y_prime) - min(y_prime)) # NRM length of best fit line
 
     f_Coe = delta_y_prime / abs(y_T)
-    g_Coe =  1 - (sum((y_prime[:-1]-y_prime[1:])**2) / delta_y_prime ** 2)  # gap factor
+    if delta_y_prime:
+        g_Coe =  1 - (sum((y_prime[:-1]-y_prime[1:])**2) / delta_y_prime ** 2)  # gap factor
+    else:
+        g_Coe = float('nan')
     g_lim = (float(n) - 2) / (float(n) - 1) 
     q_Coe = abs(york_b)*f_Coe*g_Coe/york_sigma
     w_Coe = q_Coe / numpy.sqrt(n - 2)
@@ -222,8 +230,8 @@ def get_R_corr2(x_avg, y_avg, x_segment, y_segment): #
     """
     xd = x_segment - x_avg # detrend x_segment
     yd = y_segment - y_avg # detrend y_segment
-#    if sum(xd**2) * sum(yd**2) == 0:
-#        raise ValueError('attempting to divide by zero')
+    if sum(xd**2) * sum(yd**2) == 0: # prevent divide by zero error
+        return float('nan')
     rcorr = sum((xd * yd))**2 / (sum(xd**2) * sum(yd**2))
     return rcorr
 
@@ -234,8 +242,11 @@ def get_R_det2(y_segment, y_avg, y_prime):
     """
     numerator = sum((numpy.array(y_segment) - numpy.array(y_prime))**2)
     denominator = sum((numpy.array(y_segment) - y_avg)**2)
-    R_det2 = 1 - (numerator / denominator)
-    return R_det2
+    if denominator: # prevent divide by zero error
+        R_det2 = 1 - (numerator / denominator)
+        return R_det2
+    else:
+        return float('nan')
 
 def get_b_wiggle(x, y, y_int):
     """returns instantaneous slope from the ratio of NRM lost to TRM gained at the ith step"""

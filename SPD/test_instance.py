@@ -8,10 +8,39 @@ import new_lj_thellier_gui_spd as tgs
 cwd = os.getcwd()
 main_dir = cwd + '/SPD'
 
+
+calculate = ['int_n', 'frac', 'fvds', 'b_sigma', 'b_beta', 'scat', 'g', 'k', 'k_sse', 'z', 'int_mad_anc', 'int_dang', 'int_alpha', 'alpha_prime', 'theta', 'gamma', 'int_ptrm_n', 'ptrm', 'drat', 'mdrat', 'maxdev', 'dpal', 'md', 'tail_drat', 'dtr', 'dac']
+
+#calculate = ['int_n', 'frac', 'f', 'fvds', 'b_sigma', 'b_beta', 'scat', 'g', 'k', 'k_sse', 'z', 'z_md', 'q', 'r_sq', 'coeff_det_sq', 'int_mad', 'int_mad_anc', 'int_dang', 'int_alpha', 'alpha_prime', 'theta', 'int_crm', 'gamma', 'int_ptrm_n', 'ptrm', 'drat', 'drats', 'cdrat', 'mdrat', 'dck', 'maxdev', 'mdev', 'dpal', 'int_ptrm_tail_n', 'md', 'tail_drat', 'dtr', 'dt', 'ac_n', 'dac', 'gmax']
+
+#calculate = ['int_n', 'int_alpha', 'f', 'k', 'drats', 'int_ptrm_tail_n']
+#calculate = ['drats']
+
 gui = tgs.Arai_GUI('/magic_measurements.txt', main_dir)
 specimens = gui.Data.keys()
-spec = spd.PintPars(gui.Data, '0238x6011044', 473., 623., 'magic')
-spec.calculate_all_statistics()
+spec = spd.PintPars(gui.Data, '0238x6011044', 473., 623., 'magic', calculate)
+
+def make_specimens(calculate=calculate):
+    for stat in calculate:
+        spec = spd.PintPars(gui.Data, '0238x6011044', 473., 623., 'magic', [stat])
+        spec.reqd_stats()
+        print '---------'
+    print calculate
+
+
+def many_specimens(calculate=calculate):
+    from itertools import combinations
+    c = combinations(calculate, 2)
+    for combo in c:
+        print 'combo', combo
+        spec = spd.PintPars(gui.Data, '0238x6011044', 473., 623., 'magic', combo)
+        spec.reqd_stats()
+        print 'XXXXXXXXXXXXXXX'
+
+
+
+
+#spec.calculate_all_statistics()
 
 
 SCAT_spec = spd.PintPars(gui.Data, '0238x6011044', 273., 673.) # 0, 400                
