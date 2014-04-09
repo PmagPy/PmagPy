@@ -6477,7 +6477,7 @@ class Arai_GUI(wx.Frame):
             exec command
 
         # specimen_scat                
-        if 'specimen_scat' in     self.preferences['show_statistics_on_gui']:
+        if 'scat' in     self.preferences['show_statistics_on_gui']:
             if self.acceptance_criteria['specimen_scat']['value'] in ['True','TRUE','1',1,True,'g']:
                 if self.pars["specimen_scat"]=='Pass':
                     self.scat_window.SetValue("Pass")
@@ -7033,11 +7033,12 @@ class Arai_GUI(wx.Frame):
         yy=b*xx+a
         self.araiplot.plot(xx,yy,'g-',lw=2,alpha=0.5)
         if self.acceptance_criteria['specimen_scat']['value'] in [True,"True","TRUE",'1','g']:
-            if pars['specimen_scat_bounding_line_low'] != 0: # prevents error if there are no SCAT lines available
-                yy1=xx*pars['specimen_scat_bounding_line_low'][1]+pars['specimen_scat_bounding_line_low'][0]
-                yy2=xx*pars['specimen_scat_bounding_line_high'][1]+pars['specimen_scat_bounding_line_high'][0]
-                self.araiplot.plot(xx,yy1,'--',lw=0.5,alpha=0.5)
-                self.araiplot.plot(xx,yy2,'--',lw=0.5,alpha=0.5)
+            if 'specimen_scat_bounding_line_low' in pars:
+                if pars['specimen_scat_bounding_line_low'] != 0: # prevents error if there are no SCAT lines available
+                    yy1=xx*pars['specimen_scat_bounding_line_low'][1]+pars['specimen_scat_bounding_line_low'][0]
+                    yy2=xx*pars['specimen_scat_bounding_line_high'][1]+pars['specimen_scat_bounding_line_high'][0]
+                    self.araiplot.plot(xx,yy1,'--',lw=0.5,alpha=0.5)
+                    self.araiplot.plot(xx,yy2,'--',lw=0.5,alpha=0.5)
 
         self.araiplot.set_xlim(xmin=0)
         self.araiplot.set_ylim(ymin=0)
