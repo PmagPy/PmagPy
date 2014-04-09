@@ -28,11 +28,12 @@ import SPD.lib.lib_directional_statistics as lib_direct
 import SPD.lib.lib_ptrm_statistics as lib_ptrm
 import SPD.lib.lib_tail_check_statistics as lib_tail
 import SPD.lib.lib_additivity_check_statistics as lib_add
+import SPD.mapping.map_magic as map_magic
 
 
 # Data{} is a dictionary sorted by specimen name
 # i.e. Data[specine_a]={} ; Data[specine_b]={} etc.
-# Each specimen data is sorted to th efollowing "blocks":
+# Each specimen data is sorted to the following "blocks":
 
 # Arai plot:
 # Data[s]['x_Arai']=[] # a list of x_i 
@@ -76,17 +77,18 @@ import SPD.lib.lib_additivity_check_statistics as lib_add
 
 
 class PintPars(object):
-    """ __init__(self, Data,specimen_name,tmin,tmax)"""
-    def __init__(self, Data,specimen_name,tmin,tmax):
-        self.s=specimen_name
-        self.specimen_Data=Data[self.s]
+    """ __init__(self, Data,specimen_name,tmin,tmax,mapping=None)"""
+    def __init__(self, Data,specimen_name,tmin,tmax,mapping=None):
+        self.s = specimen_name
+        self.mapping = mapping
+        self.specimen_Data = Data[self.s]
         self.datablock = self.specimen_Data['datablock']
 
-        self.x_Arai=self.specimen_Data['x_Arai']
-        self.y_Arai=self.specimen_Data['y_Arai']
-        self.t_Arai=self.specimen_Data['t_Arai']
+        self.x_Arai = self.specimen_Data['x_Arai']
+        self.y_Arai = self.specimen_Data['y_Arai']
+        self.t_Arai = self.specimen_Data['t_Arai']
 
-        self.zdata = self.specimen_Data['zdata'] # LJ add
+        self.zdata = self.specimen_Data['zdata']
 
         self.x_tail_check=self.specimen_Data['x_tail_check']
         self.y_tail_check=self.specimen_Data['y_tail_check']
@@ -231,6 +233,14 @@ class PintPars(object):
         return data[0], data[3]
 
     def get_SCAT(self):
+        if (len(set(self.y_Arai_segment)) == 1): # prevents divide by zero, i.e. if all y values in segment are the same [1,1,1]
+            self.pars['SCAT'] = 0 #float('nan')
+            self.pars['fail_arai_beta_box_scatter'] = 0# float('nan')
+            self.pars["fail_ptrm_beta_box_scatter"] = 0#float('nan')
+            self.pars["fail_tail_beta_box_scatter"] = 0#float('nan')
+            self.pars['scat_bounding_line_high'] = 0# float('nan')
+            self.pars['scat_bounding_line_low'] = 0#float('nan')
+            return 0
         slope = self.pars['specimen_b'] 
         x_mean, y_mean = self.x_Arai_mean, self.y_Arai_mean
         x_Arai_segment, y_Arai_segment = self.x_Arai_segment, self.y_Arai_segment
@@ -633,6 +643,9 @@ class PintPars(object):
         self.get_alpha_prime()
         self.get_CRM_percent()
         self.get_delta_t_star()
+        if self.mapping == 'magic':
+            self.pars = map_magic.mapping(self.pars, map_magic.a_map)
+
 
 
         #print "done with calculate_all_statistics"

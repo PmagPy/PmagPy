@@ -1,5 +1,8 @@
 #!/usr/bin/env python
 import string,sys,pmag
+import scipy
+import copy
+import os
 def main():
     """
     NAME
@@ -39,22 +42,36 @@ def main():
                 AARM in n positions
             CR:
                 cooling rate experiment
+                The treatment coding of the measurement file should be: XXX.00,XXX.10, XXX.20 ...XX.70 etc. (XXX.00 is optional)
+                where XXX in the temperature and .10,.20... are running numbers of the cooling rates steps.
+                XXX.00 is optional zerofield baseline. XXX.70 is alteration check.
+                syntax in sio_magic is: -LP CR xxx,yyy,zzz,.....xx -A
+                where xx, yyy,zzz...xxx  are cooling rates in [K/minutes], seperated by comma, ordered at the same order as XXX.10,XXX.20 ...XX.70
+                
+                No need to specify the cooling rate for the zerofield
+                It is important to add to the command line the -A option so the measurements will not be evraged.
+                But users need to make sure that there are no duplicate meaurements in the file
+            
             NLT:
                 non-linear-TRM experiment
                 
         -samp X Y
             specimen-sample naming convention.
+            X=0 Y=n: specimen is distiguished from sample by n initial characters.
+                     (example: if n=4 then and specimen = mgf13a then sample = mgf13)
             X=1 Y=n: specimen is distiguished from sample by n terminate characters.
-                     (example: if n=1 then specimen = mgf13a and sample = mgf13)
+                     (example: if n=1 then and specimen = mgf13a then sample = mgf13)
             X=2 Y=c: specimen is distiguishing from sample by a delimiter.
-                     (example: if c=- then specimen = mgf13-a and sample = mgf13)
+                     (example: if c=- then annd specimen = mgf13-a then sample = mgf13)
 
         -site X Y
             sample-site naming convention.
+            X=0 Y=n: sample is distiguished from site by n initial characters.
+                     (example: if n=3 then and sample = mgf13 then sample = mgf)
             X=1 Y=n: sample is distiguished from site by n terminate characters.
-                     (example: if n=2 then sample = mgf13 and site = mg)
+                     (example: if n=2 and sample = mgf13 then site = mgf)
             X=2 Y=c: specimen is distiguishing from sample by a delimiter.
-                     (example: if c=- then sample = mgf-13 and site = mg)
+                     (example: if c='-' and sample = 'mgf-13' then site = mgf)
         
         -loc LOCNAM 
             specify location/study name.
@@ -67,6 +84,8 @@ def main():
             NB: use PHI, THETA = -1 -1 to signal that it changes, i.e. in anisotropy experiment.
               
         -A: don't average replicate measurements. Take the last measurement from replicate measurements.
+        
+        -WD working directory
 
     INPUT
     
@@ -158,48 +177,156 @@ def main():
         Data={}
         Fin=open(path,'rU')
         header=Fin.readline().strip('\n').split('\t')
-        
+        duplicates=[]
         for line in Fin.readlines():
-            tmp_data={}
-            duplicates=[]
-            found_duplicate=False
+            tmp_data={}            
+            #found_duplicate=False
             l=line.strip('\n').split('\t')
             for i in range(min(len(header),len(l))):
                 tmp_data[header[i]]=l[i]
             specimen=tmp_data['specimen']
             if specimen not in Data.keys():
                 Data[specimen]=[]
-                Data[specimen].append(tmp_data)
-                continue
-            
-            # check replicates
-            if tmp_data['treatment']==Data[specimen][-1]['treatment'] and tmp_data['treatment_type']==Data[specimen][-1]['treatment_type']:
-                found_duplicate=True
-                duplicates.append(tmp_data)
-                continue
-            else:                           
+            Data[specimen].append(tmp_data)
+        # search fro duplicates 
+        for specimen in Data.keys():
+            x=len(Data[specimen])-1
+            new_data=[]
+            duplicates=[]
+            for i in range(1,x):                
+                while i< len(Data[specimen]) and Data[specimen][i]['treatment']==Data[specimen][i-1]['treatment'] and Data[specimen][i]['treatment_type']==Data[specimen][i-1]['treatment_type']:
+                   duplicates.append(Data[specimen][i])
+                   del(Data[specimen][i])
                 if len(duplicates)>0:
-                    Data[specimen].append(average_duplicates(duplicates))
-                duplicate=False
-                duplicates=[]
-                Data[specimen].append(tmp_data)                            
+                   if average_replicates:
+                       duplicates.append(Data[specimen][i-1])
+                       Data[specimen][i-1]=average_duplicates(duplicates)
+                       print "-W- WARNING: averaging %i duplicates for specimen %s treatmant %s"%(len(duplicates),specimen,duplicates[-1]['treatment'])
+                       duplicates=[]
+                   else:
+                       Data[specimen][i-1]=duplicates[-1]
+                       print "-W- WARNING: found %i duplicates for specimen %s treatmant %s. Taking the last measurement only"%(len(duplicates),specimen,duplicates[-1]['treatment'])
+                       duplicates=[]
+                        
+                if i==len(Data[specimen])-1:
+                    break
+                          
+                    
+                    
+            #    if tmp_data['treatment']==Data[specimen][-1]['treatment'] and tmp_data['treatment_type']==Data[specimen][-1]['treatment_type']:
+            #    
+            ## check replicates
+            #if tmp_data['treatment']==Data[specimen][-1]['treatment'] and tmp_data['treatment_type']==Data[specimen][-1]['treatment_type']:
+            #    #found_duplicate=True
+            #    duplicates.append(Data[specimen][-1]) 
+            #    duplicates.append(tmp_data)
+            #    del(Data[specimen][-1])                
+            #    continue
+            #else:                           
+            #    if len(duplicates)>0:
+            #        if average_replicates:
+            #            Data[specimen].append(average_duplicates(duplicates))
+            #            print "-W- WARNING: averaging %i duplicates for specimen %s treatmant %s"%(len(duplicates),specimen,duplicates[-1]['treatment'])
+            #        else:
+            #            Data[specimen].append(duplicates[-1])                        
+            #            print "-W- WARNING: found %i duplicates for specimen %s treatmant %s. Taking the last measurement only"%(len(duplicates),specimen,duplicates[-1]['treatment'])
+            #    duplicates=[]
+            #    Data[specimen].append(tmp_data)
+                                        
            
         return(Data)               
 
     def average_duplicates(duplicates):
         '''
         avarage replicate measurements.
-        '''        
-        print "Ron, dont forget to add duplicate measuremens function"
-        return duplicates[-1]
-    
+        '''
+        carts_s,carts_g,carts_t=[],[],[]   
+        for rec in duplicates:
+            moment=float(rec['moment'])
+            if 'dec_s' in rec.keys() and 'inc_s' in rec.keys():
+                if rec['dec_s']!="" and rec['inc_s']!="":
+                    dec_s=float(rec['dec_s'])
+                    inc_s=float(rec['inc_s'])
+                    cart_s=pmag.dir2cart([dec_s,inc_s,moment])
+                    carts_s.append(cart_s)
+            if 'dec_g' in rec.keys() and 'inc_g' in rec.keys():
+                if rec['dec_g']!="" and rec['inc_g']!="":
+                    dec_g=float(rec['dec_g'])
+                    inc_g=float(rec['inc_g'])
+                    cart_g=pmag.dir2cart([dec_g,inc_g,moment])
+                    carts_g.append(cart_g)
+            if 'dec_t' in rec.keys() and 'inc_t' in rec.keys():
+                if rec['dec_t']!="" and rec['inc_t']!="":
+                    dec_t=float(rec['dec_t'])
+                    inc_t=float(rec['inc_t'])
+                    cart_t=pmag.dir2cart([dec_t,inc_t,moment])
+                    carts_t.append(cart_t)
+        if len(carts_s)>0:                               
+            carts=scipy.array(carts_s)
+            x_mean=scipy.mean(carts[:,0])
+            y_mean=scipy.mean(carts[:,1])
+            z_mean=scipy.mean(carts[:,2])
+            mean_dir=pmag.cart2dir([x_mean,y_mean,z_mean])
+            mean_dec_s="%.2f"%mean_dir[0]
+            mean_inc_s="%.2f"%mean_dir[1]
+            mean_moment="%10.3e"%mean_dir[2]
+        else:
+            mean_dec_s,mean_inc_s="",""
+        if len(carts_g)>0:                               
+            carts=scipy.array(carts_g)
+            x_mean=scipy.mean(carts[:,0])
+            y_mean=scipy.mean(carts[:,1])
+            z_mean=scipy.mean(carts[:,2])
+            mean_dir=pmag.cart2dir([x_mean,y_mean,z_mean])
+            mean_dec_g="%.2f"%mean_dir[0]
+            mean_inc_g="%.2f"%mean_dir[1]
+            mean_moment="%10.3e"%mean_dir[2]
+        else:
+            mean_dec_g,mean_inc_g="",""
+            
+        if len(carts_t)>0:                               
+            carts=scipy.array(carts_t)
+            x_mean=scipy.mean(carts[:,0])
+            y_mean=scipy.mean(carts[:,1])
+            z_mean=scipy.mean(carts[:,2])
+            mean_dir=pmag.cart2dir([x_mean,y_mean,z_mean])
+            mean_dec_t="%.2f"%mean_dir[0]
+            mean_inc_t="%.2f"%mean_dir[1]
+            mean_moment="%10.3e"%mean_dir[2]
+        else:
+            mean_dec_t,mean_inc_t="",""
+                                                                        
+        meanrec={}
+        for key in duplicates[0].keys():
+            if key in ['dec_s','inc_s','dec_g','inc_g','dec_t','inc_t','moment']:
+                continue
+            else:
+                meanrec[key]=duplicates[0][key]
+        meanrec['dec_s']=mean_dec_s
+        meanrec['dec_g']=mean_dec_g
+        meanrec['dec_t']=mean_dec_t
+        meanrec['inc_s']=mean_inc_s
+        meanrec['inc_g']=mean_inc_g
+        meanrec['inc_t']=mean_inc_t
+        meanrec['moment']=mean_moment
+        return meanrec
+                    
     def get_upper_level_name(name,nc):
         '''
         get sample/site name from specimen/sample using naming convention
         '''
-        if float(nc[0])==1:
-            number_of_char=int(nc[1])*-1
-            high_name=name[:number_of_char]
+        if float(nc[0])==0:
+            if float(nc[1])!=0:
+                number_of_char=int(nc[1])
+                high_name=name[:number_of_char]
+            else:
+                high_name=name
+        elif float(nc[0])==1:
+            if float(nc[1])!=0:
+                number_of_char=int(nc[1])*-1
+                high_name=name[:number_of_char]
+            else:
+                high_name=name
         elif float(nc[0])==2:
             d=str(nc[1])
             name_splitted=name.split(d)
@@ -207,8 +334,23 @@ def main():
                 high_name=name_splitted[0]
             else:
                 high_name=d.join(name_splitted[:-1])
+        else:
+            high_name=name
         return high_name
                             
+    def merge_pmag_recs(old_recs):
+        recs={}
+        recs=copy.deepcopy(old_recs)
+        headers=[]
+        for rec in recs:
+            for key in rec.keys():
+                if key not in headers:
+                    headers.append(key)
+        for rec in recs:
+            for header in headers:
+                if header not in rec.keys():
+                    rec[header]=""
+        return recs
     
     #--------------------------------------
     # get command line arguments
@@ -230,12 +372,9 @@ def main():
     if '-Fsa' in args:
         ind=args.index("-Fsa")
         samp_file=args[ind+1]
-        try:
-            open(samp_file,'rU')
-            ErSamps,file_type=pmag.magic_read(samp_file)
-            print 'sample information will be appended to new er_samples.txt file'
-        except:
-            print 'sample information will be stored in new er_samples.txt file'
+    else:
+        samp_file="er_samples.txt"
+
     if '-f' in args:
         ind=args.index("-f")
         magfile=args[ind+1]
@@ -269,7 +408,12 @@ def main():
     if experiment=='AARM':
         ind=args.index("AARM")
         aarm_n_pos=int(args[ind+1])        
-       
+
+    if  experiment=='CR':
+        ind=args.index("CR")
+        coolling_times=args[ind+1]
+        coolling_times_list=coolling_times.split(',')
+              
     if "-samp" in args:
         ind=args.index("-samp")
         sample_nc=[]
@@ -287,23 +431,37 @@ def main():
     else:
         er_location_name=""
     if "-A" in args:
-        noave=1                
+        noave=1 
+    else:
+        noave=0             
+
+    if "-WD" in args:
+        ind=args.index("-WD")
+        WD=args[ind+1]
+        os.chdir(WD)
+
+        
+
 
     #--------------------------------------
     # read data from er_samples.txt
     #--------------------------------------
 
-    if "-fsa" in args:
-        ind=args.index("-fsa")
-        er_sample_file=args[ind+1]
-    else:
-        er_sample_file="er_samples.txt"
+    #if "-fsa" in args:
+    #   ind=args.index("-fsa")
+    #    er_sample_file=args[ind+1]
+    #else:
+    #    er_sample_file="er_samples.txt"
 
     er_sample_data={}
+    #er_sample_data=sort_magic_file(samp_file,1,'er_sample_name')
     try:
-        er_sample_data=sort_magic_file(er_sample_file,'er_sample_name')
+        er_sample_data=sort_magic_file(samp_file,1,'er_sample_name')
+        print "-I- Found er_samples.txt"
+        print '-I- sample information will be appended to existing er_samples.txt file'
     except:
         print "-I- Cant find file er_samples.txt"
+        print '-I- sample information will be stored in new er_samples.txt file'
             
     #--------------------------------------
     # read data from generic file
@@ -329,7 +487,7 @@ def main():
         LP_this_specimen=[] # a list of all lab protocols
         IZ,ZI=0,0 # counter for IZ and ZI steps
         
-        for meas_line in mag_data[specimen]:            
+        for meas_line in mag_data[specimen]:  
             
             #------------------
             # trivial MagRec data
@@ -356,7 +514,7 @@ def main():
             treatment=[]
             treatment_code=str(meas_line['treatment']).split(".")
             treatment.append(float(treatment_code[0]))
-            if len(treatment_code)==0:
+            if len(treatment_code)==1:
                 treatment.append(0)
             else:
                 treatment.append(float(treatment_code[1]))
@@ -441,12 +599,11 @@ def main():
                 
                 this_specimen_treatments.append(float(meas_line['treatment']))
                 if LT=="LT-T-Z":
-                    if treatment[0]+0.1 in this_specimen_treatments:
-                        LP==LP+":"+"LP-PI-IZ"
+                    if float(treatment[0]+0.1) in this_specimen_treatments:
+                        LP=LP+":"+"LP-PI-IZ"
                 if LT=="LT-T-I":
-                    if treatment[0]+0.0 in this_specimen_treatments:
-                        LP==LP+":"+"LP-PI-ZI"
-                
+                    if float(treatment[0]+0.0) in this_specimen_treatments:
+                        LP=LP+":"+"LP-PI-ZI"
             #---------------------                    
             # Lab treatment and lab protocoal for demag experiment
             #---------------------
@@ -544,13 +701,38 @@ def main():
                     MagRec["treatment_dc_field_phi"]='%7.1f' %(tdec[ipos])
                     MagRec["treatment_dc_field_theta"]='%7.1f'% (tinc[ipos])
                         
-
+        
             #---------------------                    
             # Lab treatment and lab protocoal for cooling rate experiment
             #---------------------
                                                         
-            elif 'CR' in experiment :
-                print "Dont support yet cooling rate experiment file. Contact rshaar@ucsd.edu"
+            elif experiment == "CR":
+                
+                coolling_times_list
+                LP="LP-CR-TRM"                
+                MagRec["treatment_temp"]='%8.3e' % (float(treatment[0])+273.) # temp in kelvin
+                
+                if treatment[1]==0:
+                    LT="LT-T-Z"                    
+                    MagRec["treatment_dc_field"]="0"
+                    MagRec["treatment_dc_field_phi"]='0'
+                    MagRec["treatment_dc_field_theta"]='0'
+                else:                     
+                    if treatment[1]==7: # alteration check as final measurement
+                            LT="LT-PTRM-I"
+                    else:
+                            LT="LT-T-I" 
+                    MagRec["treatment_dc_field"]='%8.3e'%(labfield)
+                    MagRec["treatment_dc_field_phi"]='%7.1f' % (labfield_phi) # labfield phi
+                    MagRec["treatment_dc_field_theta"]='%7.1f' % (labfield_theta) # labfield theta                    
+
+                    indx=int(treatment[1])-1
+                    # alteration check matjed as 0.7 in the measurement file
+                    if indx==6:
+                        cooling_time= coolling_times_list[-1]
+                    else:
+                        cooling_time=coolling_times_list[indx]
+                    MagRec["measurement_description"]="cooling_rate"+":"+cooling_time+":"+"K/min"
     
 
             #---------------------                    
@@ -565,7 +747,7 @@ def main():
             # LP will be fixed after all measurement lines are read
             #---------------------
             
-            MagRec["magic_method_codes"]=LP+":"+LT
+            MagRec["magic_method_codes"]=LT+":"+LP
 
             #---------------------  
             # Demag experiments only:                                      
@@ -598,13 +780,16 @@ def main():
 
             found_s,found_geo,found_tilt=False,False,False
             if "dec_s" in meas_line.keys() and "inc_s" in meas_line.keys():
-                found_s=True
+                if meas_line["dec_s"]!="" and meas_line["inc_s"]!="":
+                    found_s=True
                 MagRec["measurement_dec"]=meas_line["dec_s"]
                 MagRec["measurement_inc"]=meas_line["inc_s"]
             if "dec_g" in meas_line.keys() and "inc_g" in meas_line.keys():
-                found_geo=True
+                if meas_line["dec_g"]!="" and meas_line["inc_g"]!="":
+                    found_geo=True
             if "dec_t" in meas_line.keys() and "inc_t" in meas_line.keys():
-                found_tilt=True
+                if meas_line["dec_t"]!="" and meas_line["inc_t"]!="":
+                    found_tilt=True
                 
             #-----------------------------                    
             # specimen coordinates: no
@@ -709,7 +894,7 @@ def main():
                 er_sample_data[sample]['er_site_name']=MagRec["er_site_name"]
                 er_sample_data[sample]['er_location_name']=MagRec["er_location_name"]
 
-            MagRec["magic_method_codes"]=LT
+            #MagRec["magic_method_codes"]=LT
             MagRecs_this_specimen.append(MagRec)
 
             #if LP!="" and LP not in LP_this_specimen:
@@ -729,7 +914,6 @@ def main():
             for code in magic_method_codes:
                 if "LP" in code and code not in LP_this_specimen:
                     LP_this_specimen.append(code)
- 
         # check IZ/ZI/IZZI
         if "LP-PI-ZI" in   LP_this_specimen and "LP-PI-IZ" in   LP_this_specimen:
             LP_this_specimen.remove("LP-PI-ZI")
@@ -742,11 +926,29 @@ def main():
             magic_method_codes=MagRec["magic_method_codes"].split(":")
             LT=""
             for code in magic_method_codes:
-                if "LT" in code:
+                if code[:3]=="LT-":
                     LT=code;
                     break            
             MagRec["magic_method_codes"]=LT+":"+":".join(LP_this_specimen)
-        MagRecs.append(MagRec)   
+            
+            MagRecs.append(MagRec)   
                                 
+    #--
+    # write magic_measurements.txt
+    #--
+    MagRecs_fixed=merge_pmag_recs(MagRecs)
+    pmag.magic_write(meas_file,MagRecs_fixed,'magic_measurements')
+    print "-I- MagIC file is saved in  %s"%meas_file
+
+    #--
+    # write er_samples.txt
+    #--
+    ErSamplesRecs=[]
+    samples=er_sample_data.keys()
+    samples.sort()
+    for sample in samples:
+        ErSamplesRecs.append(er_sample_data[sample])
+    ErSamplesRecs_fixed=merge_pmag_recs(ErSamplesRecs)
+    pmag.magic_write("er_samples.txt",ErSamplesRecs_fixed,'er_samples')
 
 main()

@@ -10,7 +10,7 @@ main_dir = cwd + '/SPD'
 
 gui = tgs.Arai_GUI('/magic_measurements.txt', main_dir)
 specimens = gui.Data.keys()
-spec = spd.PintPars(gui.Data, '0238x6011044', 473., 623.)
+spec = spd.PintPars(gui.Data, '0238x6011044', 473., 623., 'magic')
 spec.calculate_all_statistics()
 
 
