@@ -5011,11 +5011,10 @@ class Arai_GUI(wx.Frame):
         for sample_or_site in pmag_samples_or_sites_list:
             String=""
             for key in headers:
-                if key in MagIC_results_data['pmag_results'].keys():
+                if key in MagIC_results_data['pmag_results'][sample_or_site].keys():
                     String=String+MagIC_results_data['pmag_results'][sample_or_site][key]+"\t"
                 else:
                     String=String+""+"\t"
-                    
             fout.write(String[:-1]+"\n")
         fout.close()
         
@@ -6485,7 +6484,7 @@ class Arai_GUI(wx.Frame):
             exec command
 
         # specimen_scat                
-        if 'specimen_scat' in     self.preferences['show_statistics_on_gui']:
+        if 'scat' in     self.preferences['show_statistics_on_gui']:
             if self.acceptance_criteria['specimen_scat']['value'] in ['True','TRUE','1',1,True,'g']:
                 if self.pars["specimen_scat"]=='Pass':
                     self.scat_window.SetValue("Pass")
