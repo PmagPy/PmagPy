@@ -2744,7 +2744,6 @@ class Zeq_GUI(wx.Frame):
         zdata_tilt=[]
         vector_diffs=[]
         NRM=zijdblock[0][3]
-
         for k in range(len(zijdblock)):
             # specimen coordinates
             DIR=[zijdblock[k][1],zijdblock[k][2],zijdblock[k][3]/NRM]
