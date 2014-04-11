@@ -47,6 +47,7 @@ class PI_Statistics_Dialog(wx.Dialog):
         'specimen_b_sigma','specimen_b_beta','specimen_scat',
         'specimen_g','specimen_gmax',
         'specimen_k','specimen_k_sse',
+        'specimen_k_prime', 'specimen_k_prime_sse',
         'specimen_z','specimen_z_md',
         'specimen_q',
         'specimen_r_sq','specimen_coeff_det_sq',      
