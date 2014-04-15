@@ -31,13 +31,39 @@ class import_magnetometer_data(wx.Dialog):
         sbs.Add(wx.StaticLine(pnl), 0, wx.ALL|wx.EXPAND, 5)
         sbs.AddSpacer(5)
         
+
         for i in range(1,len(formats)):
             command="self.oc_rb%i = wx.RadioButton(pnl, -1, label='%s', name='%i')"%(i,formats[i],i)
             exec command
             command="sbs.Add(self.oc_rb%i)"%(i)
             exec command
             sbs.AddSpacer(5)
+            #
+            command = "self.Bind(wx.EVT_RADIOBUTTON, self.OnRadioButtonSelect, self.oc_rb%i)" % (i)
+            exec command
+            #
+
         self.oc_rb0.SetValue(True)
+        self.checked_rb = self.oc_rb0
+
+
+        #---------------------
+        # Lori's experiment
+        #---------------------
+        ignore = """
+        self.Bind(wx.EVT_RADIOBUTTON, self.OnRadioButtonSelect, self.oc_rb0)
+        self.Bind(wx.EVT_RADIOBUTTON, self.OnRadioButtonSelect, self.oc_rb1)
+        self.Bind(wx.EVT_RADIOBUTTON, self.OnRadioButtonSelect, self.oc_rb2)
+        self.Bind(wx.EVT_RADIOBUTTON, self.OnRadioButtonSelect, self.oc_rb3)
+        self.Bind(wx.EVT_RADIOBUTTON, self.OnRadioButtonSelect, self.oc_rb4)
+        self.Bind(wx.EVT_RADIOBUTTON, self.OnRadioButtonSelect, self.oc_rb5)
+        self.Bind(wx.EVT_RADIOBUTTON, self.OnRadioButtonSelect, self.oc_rb6)
+        self.Bind(wx.EVT_RADIOBUTTON, self.OnRadioButtonSelect, self.oc_rb7)
+        self.Bind(wx.EVT_RADIOBUTTON, self.OnRadioButtonSelect, self.oc_rb8)
+        """
+
+
+
         
         #---------------------
         # OK/Cancel buttons
@@ -77,9 +103,34 @@ class import_magnetometer_data(wx.Dialog):
         self.Destroy()
 
     def on_okButton(self,event):
-        generic_dia = convert_generic_files_to_MagIC(self.WD)
-        generic_dia.Show()
-        generic_dia.Center()
+        print 'self.checked', self.checked_rb
+        file_type = self.checked_rb.Label.split()[0] # extracts name of the checked radio button
+        print 'file_type', file_type
+        if file_type == 'generic':
+            generic_dia = convert_generic_files_to_MagIC(self.WD)
+            generic_dia.Center()
+            generic_dia.Show()
+        if file_type == 'SIO':
+            SIO_dia = convert_SIO_files_to_MagIC(self.WD)
+            SIO_dia.Center()
+            SIO_dia.Show()
+
+
+    def OnRadioButtonSelect(self, event):
+        print 'calling OnRadioButtonSelect'
+#        print 'self', self
+#        print 'dir(self)', dir(self)
+#        print 'event', event
+#        print 'dir(event)', dir(event)
+#        print 'event.GetEventObject', event.GetEventObject()
+        print 'previous self.checked_rb', self.checked_rb.Label
+        self.checked_rb = event.GetEventObject()
+        print 'current self.checked_rb', self.checked_rb.Label
+#        print '-------------'
+
+
+
+
 
 #--------------------------------------------------------------
 # MagIC generic files conversion
@@ -408,6 +459,31 @@ class convert_generic_files_to_MagIC(wx.Frame):
                 site=d.join(site_splitted[:-1])
         
         return site
+
+
+
+class convert_SIO_files_to_MagIC(wx.Frame):
+    """stuff"""
+    title = "PmagPy SIO file conversion"
+
+    def __init__(self,WD):
+        wx.Frame.__init__(self, None, wx.ID_ANY, self.title)
+        self.panel = wx.Panel(self)
+        self.WD=WD
+        self.InitUI()
+
+        
+    def InitUI(self):
+        print 'initializing UI for SIO file conversion'
+
+        self.panel.SetBackgroundColour('#4f5049')
+        vbox = wx.BoxSizer(wx.VERTICAL)
+
+        midPan = wx.Panel(self.panel)
+        midPan.SetBackgroundColour('#ededed')
+
+        vbox.Add(midPan, 1, wx.EXPAND | wx.ALL, 20)
+        self.panel.SetSizer(vbox)
 
 #if __name__ == '__main__':
 #    print "Hi"
