@@ -30,6 +30,7 @@ class import_magnetometer_data(wx.Dialog):
         sbs.AddSpacer(5)
         sbs.Add(wx.StaticLine(pnl), 0, wx.ALL|wx.EXPAND, 5)
         sbs.AddSpacer(5)
+        self.Bind(wx.EVT_RADIOBUTTON, self.OnRadioButtonSelect, self.oc_rb0)
         
 
         for i in range(1,len(formats)):
