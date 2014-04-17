@@ -165,7 +165,7 @@ class convert_generic_files_to_MagIC(wx.Frame):
         self.file_path = wx.TextCtrl(self.panel, id=-1, size=(400,25), style=wx.TE_READONLY)
         self.add_file_button = wx.Button(self.panel, id=-1, label='add',name='add')
         self.Bind(wx.EVT_BUTTON, self.on_add_file_button, self.add_file_button)    
-        TEXT="Choose file (no spaces are alowd in path):"
+        TEXT="Choose file (no spaces are allowed in path):"
         bSizer0.Add(wx.StaticText(pnl,label=TEXT),wx.ALIGN_LEFT)
         bSizer0.AddSpacer(5)
         bSizer0_1=wx.BoxSizer(wx.HORIZONTAL)
@@ -470,6 +470,7 @@ class convert_SIO_files_to_MagIC(wx.Frame):
     def __init__(self,WD):
         wx.Frame.__init__(self, None, wx.ID_ANY, self.title)
         self.panel = wx.Panel(self)
+        self.max_files = 1 # but maybe it could take more??
         self.WD=WD
         self.InitUI()
 
@@ -477,14 +478,124 @@ class convert_SIO_files_to_MagIC(wx.Frame):
     def InitUI(self):
         print 'initializing UI for SIO file conversion'
 
-        self.panel.SetBackgroundColour('#4f5049')
-        vbox = wx.BoxSizer(wx.VERTICAL)
+        pnl = self.panel
 
-        midPan = wx.Panel(self.panel)
-        midPan.SetBackgroundColour('#ededed')
+        TEXT = "SIO Format file"
+        bSizer_info = wx.BoxSizer(wx.HORIZONTAL)
+        bSizer_info.Add(wx.StaticText(pnl, label=TEXT), wx.ALIGN_LEFT)
 
-        vbox.Add(midPan, 1, wx.EXPAND | wx.ALL, 20)
-        self.panel.SetSizer(vbox)
+        #---sizer 0 ----
+        bSizer0 =  wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY, "" ), wx.VERTICAL )
+        self.file_path = wx.TextCtrl(self.panel, id=-1, size=(400,25), style=wx.TE_READONLY)
+        self.add_file_button = wx.Button(self.panel, id=-1, label='add',name='add')
+#        self.Bind(wx.EVT_BUTTON, self.on_add_file_button, self.add_file_button)    
+        TEXT="Choose file (no spaces are allowd in path):"
+        bSizer0.Add(wx.StaticText(pnl,label=TEXT),wx.ALIGN_LEFT)
+        bSizer0.AddSpacer(5)
+        bSizer0_1=wx.BoxSizer(wx.HORIZONTAL)
+        bSizer0_1.Add(self.add_file_button,wx.ALIGN_LEFT)
+        bSizer0_1.AddSpacer(5)
+        bSizer0_1.Add(self.file_path,wx.ALIGN_LEFT)
+        bSizer0.Add(bSizer0_1,wx.ALIGN_LEFT)
+
+        #---sizer 1 ----
+        TEXT="User name (optional):"
+        bSizer1 = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY, "" ), wx.HORIZONTAL )
+        bSizer1.Add(wx.StaticText(pnl,label=TEXT),wx.ALIGN_LEFT)
+        bSizer1.AddSpacer(5)
+        self.file_info_user = wx.TextCtrl(self.panel, id=-1, size=(100,25))
+        bSizer1.Add(self.file_info_user,wx.ALIGN_LEFT)
+
+        #---sizer 2 ----
+        TEXT = "Experiment type (select all that apply):"
+        bSizer2 = wx.StaticBoxSizer(wx.StaticBox(self.panel, wx.ID_ANY, ""), wx.HORIZONTAL )
+        gridSizer2 = wx.GridSizer(5, 2, 0, 0)
+        gridSizer2.Add(wx.StaticText(pnl, label = TEXT), wx.ALIGN_LEFT)
+        gridSizer2.AddSpacer(1)
+#        check1  = wx.CheckBox(pnl, -1, 'Type A', (10, 10))
+#        check2 = wx.CheckBox(pnl, -1, 'Type B', (10, 20))
+#        gridSizer2.Add(check1, wx.ALIGN_RIGHT)
+#        gridSizer2.Add(check2, wx.ALIGN_RIGHT)
+        self.experiments_names=['Demag', 'Thermal(includes thellier but not trm)', 'Shaw method', 'IRM (acquisition)', '3D IRM experiment', 'NRM only', 'TRM acquisition', 'double AF demag', 'triple AF demag (GRM protocol)', 'Cooling rate experiment']
+        for n, ex in enumerate(self.experiments_names):
+            cb = wx.CheckBox(pnl, -1, ex)
+            gridSizer2.Add(cb, wx.ALIGN_RIGHT)
+
+        bSizer2.Add(gridSizer2, wx.ALIGN_RIGHT)
+        bSizer2.AddSpacer(5)
+
+
+        #---sizer 3 ----
+        TEXT="Lab field (leave blank if unnecessary). Example: 40 0 -90"
+        bSizer3 = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY, "" ), wx.VERTICAL )
+        self.file_info_text=wx.StaticText(self.panel,label=TEXT,style=wx.TE_CENTER)
+        self.file_info_Blab = wx.TextCtrl(self.panel, id=-1, size=(40,25))
+        self.file_info_Blab_dec = wx.TextCtrl(self.panel, id=-1, size=(40,25))
+        self.file_info_Blab_inc = wx.TextCtrl(self.panel, id=-1, size=(40,25))
+        gridbSizer3 = wx.GridSizer(2, 3, 0, 10)
+        gridbSizer3.AddMany( [(wx.StaticText(self.panel,label="B (uT)",style=wx.TE_CENTER),wx.ALIGN_LEFT),
+            (wx.StaticText(self.panel,label="dec",style=wx.TE_CENTER),wx.ALIGN_LEFT),
+            (wx.StaticText(self.panel,label="inc",style=wx.TE_CENTER),wx.ALIGN_LEFT),
+            (self.file_info_Blab,wx.ALIGN_LEFT),
+            (self.file_info_Blab_dec,wx.ALIGN_LEFT),
+            (self.file_info_Blab_inc,wx.ALIGN_LEFT)])
+        bSizer3.Add(self.file_info_text,wx.ALIGN_LEFT)
+        bSizer3.AddSpacer(10)
+        bSizer3.Add(gridbSizer3,wx.ALIGN_LEFT)
+
+        # should this be a wizard???  or a different format? a wizard might allow the synthetics bit to go easier
+
+
+        self.okButton = wx.Button(self.panel, wx.ID_OK, "&OK")
+#        self.Bind(wx.EVT_BUTTON, self.on_okButton, self.okButton)
+
+        self.cancelButton = wx.Button(self.panel, wx.ID_CANCEL, '&Cancel')
+        self.Bind(wx.EVT_BUTTON, self.on_cancelButton, self.cancelButton)
+
+        hboxok = wx.BoxSizer(wx.HORIZONTAL)
+        hboxok.Add(self.okButton)
+        hboxok.Add(self.cancelButton )
+
+        #------
+        vbox=wx.BoxSizer(wx.VERTICAL)
+        vbox.AddSpacer(10)
+        vbox.Add(bSizer_info, flag=wx.ALIGN_LEFT)
+        vbox.AddSpacer(10)
+        vbox.Add(bSizer0, flag=wx.ALIGN_LEFT)
+        vbox.AddSpacer(10)
+        vbox.Add(bSizer1, flag=wx.ALIGN_LEFT)
+        vbox.AddSpacer(10)
+        vbox.Add(gridSizer2, flag=wx.ALIGN_LEFT)
+        vbox.AddSpacer(10)
+        vbox.Add(bSizer3, flag=wx.ALIGN_LEFT)
+        vbox.AddSpacer(10)
+#        vbox.Add(bSizer4, flag=wx.ALIGN_LEFT)
+        vbox.AddSpacer(10)
+#        vbox.Add(bSizer5, flag=wx.ALIGN_LEFT)
+        vbox.AddSpacer(10)
+#        vbox.Add(bSizer6, flag=wx.ALIGN_LEFT)
+        vbox.AddSpacer(10)
+#        vbox.Add(bSizer7, flag=wx.ALIGN_LEFT)
+        vbox.AddSpacer(10)
+        vbox.Add(wx.StaticLine(self.panel), 0, wx.ALL|wx.EXPAND, 5)
+        vbox.Add(hboxok, flag=wx.ALIGN_CENTER)        
+        vbox.AddSpacer(5)
+
+        hbox_all= wx.BoxSizer(wx.HORIZONTAL)
+        hbox_all.AddSpacer(20)
+        hbox_all.AddSpacer(vbox)
+        hbox_all.AddSpacer(20)
+        
+        self.panel.SetSizer(hbox_all)
+        hbox_all.Fit(self)
+        self.Show()
+        self.Centre()
+        
+    def on_cancelButton(self,event):
+        self.Destroy()
+                        
+
+
 
 #if __name__ == '__main__':
 #    print "Hi"
