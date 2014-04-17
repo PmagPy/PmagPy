@@ -61,6 +61,7 @@ class MagMainFrame(wx.Frame):
         self.btn3 =buttons.GenButton(self.panel, id=-1, label=TEXT,size=(450, 50))
         self.btn3.SetBackgroundColour("#FDC68A")
         self.btn3.InitColours()
+        self.Bind(wx.EVT_BUTTON, self.on_er_data,self.btn3)
 
         TEXT="unpack downloaded txt file "
         self.btn4 =buttons.GenButton(self.panel, id=-1, label=TEXT,size=(300, 50))
@@ -219,7 +220,23 @@ class MagMainFrame(wx.Frame):
         pmag_dialogs_dia.Center()
         pmag_dialogs_dia.ShowModal()
                                     
+    def on_er_data(self,event):
 
+        import MagIC_Model_Builder
+        foundHTML=False
+        try:
+            PATH= sys.modules['MagIC_Model_Builder'].__file__
+            HTML_PATH="/".join(PATH.split("/")[:-1]+["MagICModlBuilderHelp.html"])
+            foundHTML=True
+        except:
+            pass
+        if foundHTML:
+            help_window=MagIC_Model_Builder.MyHtmlPanel(None,HTML_PATH)
+            help_window.Show()
+            
+        dia = MagIC_Model_Builder.MagIC_model_builder(self.WD,self.Data,self.Data_hierarchy)
+        dia.Show()
+        dia.Center()
                                                                                                                                                                                                                         
 #==============================================================
 # Menu Bar functions

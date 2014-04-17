@@ -76,6 +76,7 @@ class import_magnetometer_data(wx.Dialog):
         self.cancelButton = wx.Button(pnl, wx.ID_CANCEL, '&Cancel')
         self.Bind(wx.EVT_BUTTON, self.on_cancelButton, self.cancelButton)
         self.nextButton = wx.Button(pnl, id=-1, label='Next step')
+        self.Bind(wx.EVT_BUTTON, self.on_nextButton, self.nextButton)
         hboxok.Add(self.okButton)
         hboxok.AddSpacer(20)
         hboxok.Add(self.cancelButton )
@@ -133,6 +134,12 @@ class import_magnetometer_data(wx.Dialog):
 
 
 
+    def on_nextButton(self,event):
+        self.Destroy()
+        combine_dia = combine_magic_dialog(self.WD)
+        combine_dia.Show()
+        combine_dia.Center()
+        
 #--------------------------------------------------------------
 # MagIC generic files conversion
 #--------------------------------------------------------------
@@ -309,8 +316,7 @@ class convert_generic_files_to_MagIC(wx.Frame):
         hbox_all.Fit(self)
         self.Show()
         self.Centre()
-        
-                        
+
 
     def on_add_file_button(self,event):
 
@@ -460,7 +466,138 @@ class convert_generic_files_to_MagIC(wx.Frame):
                 site=d.join(site_splitted[:-1])
         
         return site
+        
+#--------------------------------------------------------------
+# dialog for combine_magic.py 
+#--------------------------------------------------------------
 
+
+class combine_magic_dialog(wx.Frame):
+    """"""
+    title = "Combine magic files"
+
+    def __init__(self,WD):
+        wx.Frame.__init__(self, None, wx.ID_ANY, self.title)
+        self.panel = wx.Panel(self)
+        self.max_files = 1
+        self.WD=WD
+        self.InitUI()
+
+    def InitUI(self):
+
+        pnl = self.panel
+
+        #---sizer infor ----
+
+        TEXT="Step 2: \nCombine different MagIC formatted files to one file name 'magic_measurements.txt'"
+        bSizer_info = wx.BoxSizer(wx.HORIZONTAL)
+        bSizer_info.Add(wx.StaticText(pnl,label=TEXT),wx.ALIGN_LEFT)
+            
+
+        #---sizer 0 ----
+        bSizer0 =  wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY, "" ), wx.HORIZONTAL )
+        #self.file_path = wx.TextCtrl(self.panel, id=-1, size=(400,25), style=wx.TE_READONLY)
+        self.add_file_button = wx.Button(self.panel, id=-1, label='add file',name='add')
+        self.Bind(wx.EVT_BUTTON, self.on_add_file_button, self.add_file_button)    
+        self.add_all_files_button = wx.Button(self.panel, id=-1, label="add all files with '.magic' suffix",name='add_all')
+        self.Bind(wx.EVT_BUTTON, self.on_add_all_files_button, self.add_all_files_button)    
+        #TEXT="Choose file (no spaces are alowd in path):"
+        #bSizer0.Add(wx.StaticText(pnl,label=TEXT),wx.ALIGN_CENTER)
+        bSizer0.AddSpacer(5)
+        bSizer0.Add(self.add_file_button,wx.ALIGN_LEFT)
+        bSizer0.AddSpacer(5)
+        bSizer0.Add(self.add_all_files_button,wx.ALIGN_LEFT)
+        bSizer0.AddSpacer(5)
+                
+        #------------------
+
+        bSizer1 =  wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY, "" ), wx.VERTICAL )
+        self.file_pathes = wx.TextCtrl(self.panel, id=-1, size=(800,500), style=wx.TE_MULTILINE)
+        #self.add_file_button = wx.Button(self.panel, id=-1, label='add',name='add')
+        #self.Bind(wx.EVT_BUTTON, self.on_add_file_button, self.add_file_button)    
+        TEXT="files list:"
+        bSizer1.AddSpacer(5)
+        bSizer1.Add(wx.StaticText(pnl,label=TEXT),wx.ALIGN_LEFT)        
+        bSizer1.AddSpacer(5)
+        bSizer1.Add(self.file_pathes,wx.ALIGN_LEFT)
+        bSizer1.AddSpacer(5)
+                
+        #------------------
+                     
+        self.okButton = wx.Button(self.panel, wx.ID_OK, "&OK")
+        self.Bind(wx.EVT_BUTTON, self.on_okButton, self.okButton)
+
+        self.cancelButton = wx.Button(self.panel, wx.ID_CANCEL, '&Cancel')
+        self.Bind(wx.EVT_BUTTON, self.on_cancelButton, self.cancelButton)
+
+        hboxok = wx.BoxSizer(wx.HORIZONTAL)
+        hboxok.Add(self.okButton)
+        hboxok.Add(self.cancelButton )
+
+        #------
+        vbox=wx.BoxSizer(wx.VERTICAL)
+        vbox.AddSpacer(10)
+        vbox.Add(bSizer_info, flag=wx.ALIGN_LEFT)
+        vbox.AddSpacer(10)
+        vbox.Add(bSizer0, flag=wx.ALIGN_LEFT)
+        vbox.AddSpacer(10)
+        vbox.Add(bSizer1, flag=wx.ALIGN_LEFT)
+        vbox.AddSpacer(10)
+        vbox.Add(wx.StaticLine(self.panel), 0, wx.ALL|wx.EXPAND, 5)
+        vbox.Add(hboxok, flag=wx.ALIGN_CENTER)        
+        vbox.AddSpacer(5)
+
+        hbox_all= wx.BoxSizer(wx.HORIZONTAL)
+        hbox_all.AddSpacer(20)
+        hbox_all.AddSpacer(vbox)
+        hbox_all.AddSpacer(20)
+        
+        self.panel.SetSizer(hbox_all)
+        hbox_all.Fit(self)
+        self.Show()
+        self.Centre()
+                        
+    
+    def on_add_file_button(self,event):
+
+        dlg = wx.FileDialog(
+            None,message="choose MagIC formatted measurement file",
+            defaultDir=self.WD,
+            defaultFile="",
+            style=wx.OPEN | wx.CHANGE_DIR
+            )
+        if dlg.ShowModal() == wx.ID_OK:
+            #self.box_sizer_high_level_text.Add(self.high_level_text_box, 0, wx.ALIGN_LEFT, 0 )  
+            self.file_pathes.AppendText(str(dlg.GetPath())+"\n")
+
+    def on_add_all_files_button(self,event):
+        all_files=os.listdir(self.WD)
+        for F in all_files:
+            F=str(F)
+            if len(F)>6:
+                if F[-6:]==".magic":
+                    self.file_pathes.AppendText(F+"\n")
+                     
+        
+        
+        
+    def on_cancelButton(self,event):
+        self.Destroy()
+
+    def on_okButton(self,event):
+        files_text=self.file_pathes.GetValue()
+        files=files_text.replace(" ","").split('\n')
+        print files
+        COMMAND="combine_magic.py -F magic_measurements.txt -f %s"%(" ".join(files) )       
+        print "-I- Running Python command:\n %s"%COMMAND
+        #subprocess.call(COMMAND, shell=True)        
+        os.system(COMMAND)                                          
+        
+        MSG="%i file are merged to one MagIC format file:\n magic_measurements.txt.\n\n See Termimal (Mac) or command prompt (windows) for errors"%(len(files))
+        dlg1 = wx.MessageDialog(None,caption="Message:", message=MSG ,style=wx.OK|wx.ICON_INFORMATION)
+        dlg1.ShowModal()
+        dlg1.Destroy()
+        self.Destroy()
 
 
 class convert_SIO_files_to_MagIC(wx.Frame):
@@ -518,8 +655,6 @@ class convert_SIO_files_to_MagIC(wx.Frame):
         bSizer2.Add(wx.StaticText(pnl, label = TEXT), wx.ALIGN_LEFT)
         bSizer2.Add(gridSizer2, wx.ALIGN_RIGHT)
         bSizer2.AddSpacer(4)
-
-
 
         #---sizer 3 ----
         TEXT="Lab field (leave blank if unnecessary). Example: 40 0 -90"
@@ -598,15 +733,6 @@ class convert_SIO_files_to_MagIC(wx.Frame):
         self.coil_field = wx.TextCtrl(self.panel, id=-1, size=(100,25))
         bSizer8.Add(self.coil_field, wx.ALIGN_LEFT)
 
-
-
-        #---sizer 8 ----
-#        "-V [1,2,3] units of IRM field in volts using ASC coil #1,2 or 3"
-#        "Coil number for ASC impulse coil (if treatment units in Volts)"
-
-        # should this be a wizard???  or a different format? a wizard might allow the synthetics bit to go easier
-
-
         self.okButton = wx.Button(self.panel, wx.ID_OK, "&OK")
 #        self.Bind(wx.EVT_BUTTON, self.on_okButton, self.okButton)
 
@@ -661,10 +787,11 @@ class convert_SIO_files_to_MagIC(wx.Frame):
 
 
 
+
 #if __name__ == '__main__':
 #    print "Hi"
 #    app = wx.PySimpleApp()
-#    app.frame = convert_generic_files_to_MagIC( "./")
+#    app.frame = combine_magic_dialog( "./")
 #    app.frame.Show()
 #    app.frame.Center()
 #    app.MainLoop()
