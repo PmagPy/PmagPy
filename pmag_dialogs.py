@@ -489,12 +489,12 @@ class convert_SIO_files_to_MagIC(wx.Frame):
         self.file_path = wx.TextCtrl(self.panel, id=-1, size=(400,25), style=wx.TE_READONLY)
         self.add_file_button = wx.Button(self.panel, id=-1, label='add',name='add')
 #        self.Bind(wx.EVT_BUTTON, self.on_add_file_button, self.add_file_button)    
-        TEXT="Choose file (no spaces are allowd in path):"
+        TEXT="Choose file (no spaces are allowed in path):"
         bSizer0.Add(wx.StaticText(pnl,label=TEXT),wx.ALIGN_LEFT)
-        bSizer0.AddSpacer(5)
+        bSizer0.AddSpacer(4)
         bSizer0_1=wx.BoxSizer(wx.HORIZONTAL)
         bSizer0_1.Add(self.add_file_button,wx.ALIGN_LEFT)
-        bSizer0_1.AddSpacer(5)
+        bSizer0_1.AddSpacer(4)
         bSizer0_1.Add(self.file_path,wx.ALIGN_LEFT)
         bSizer0.Add(bSizer0_1,wx.ALIGN_LEFT)
 
@@ -502,32 +502,28 @@ class convert_SIO_files_to_MagIC(wx.Frame):
         TEXT="User name (optional):"
         bSizer1 = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY, "" ), wx.HORIZONTAL )
         bSizer1.Add(wx.StaticText(pnl,label=TEXT),wx.ALIGN_LEFT)
-        bSizer1.AddSpacer(5)
+        bSizer1.AddSpacer(4)
         self.file_info_user = wx.TextCtrl(self.panel, id=-1, size=(100,25))
         bSizer1.Add(self.file_info_user,wx.ALIGN_LEFT)
 
         #---sizer 2 ----
         TEXT = "Experiment type (select all that apply):"
-        bSizer2 = wx.StaticBoxSizer(wx.StaticBox(self.panel, wx.ID_ANY, ""), wx.HORIZONTAL )
-        gridSizer2 = wx.GridSizer(5, 2, 0, 0)
-        gridSizer2.Add(wx.StaticText(pnl, label = TEXT), wx.ALIGN_LEFT)
-        gridSizer2.AddSpacer(1)
-#        check1  = wx.CheckBox(pnl, -1, 'Type A', (10, 10))
-#        check2 = wx.CheckBox(pnl, -1, 'Type B', (10, 20))
-#        gridSizer2.Add(check1, wx.ALIGN_RIGHT)
-#        gridSizer2.Add(check2, wx.ALIGN_RIGHT)
+        box = wx.StaticBox(self.panel, wx.ID_ANY, "")
+        gridSizer2 = wx.GridSizer(5, 3, 0, 0)
         self.experiments_names=['Demag', 'Thermal(includes thellier but not trm)', 'Shaw method', 'IRM (acquisition)', '3D IRM experiment', 'NRM only', 'TRM acquisition', 'double AF demag', 'triple AF demag (GRM protocol)', 'Cooling rate experiment']
         for n, ex in enumerate(self.experiments_names):
             cb = wx.CheckBox(pnl, -1, ex)
             gridSizer2.Add(cb, wx.ALIGN_RIGHT)
-
+        bSizer2 = wx.StaticBoxSizer(box, wx.VERTICAL )
+        bSizer2.Add(wx.StaticText(pnl, label = TEXT), wx.ALIGN_LEFT)
         bSizer2.Add(gridSizer2, wx.ALIGN_RIGHT)
-        bSizer2.AddSpacer(5)
+        bSizer2.AddSpacer(4)
+
 
 
         #---sizer 3 ----
         TEXT="Lab field (leave blank if unnecessary). Example: 40 0 -90"
-        bSizer3 = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY, "" ), wx.VERTICAL )
+        bSizer3 = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY, "", size=(100, 100) ), wx.VERTICAL )
         self.file_info_text=wx.StaticText(self.panel,label=TEXT,style=wx.TE_CENTER)
         self.file_info_Blab = wx.TextCtrl(self.panel, id=-1, size=(40,25))
         self.file_info_Blab_dec = wx.TextCtrl(self.panel, id=-1, size=(40,25))
@@ -540,8 +536,73 @@ class convert_SIO_files_to_MagIC(wx.Frame):
             (self.file_info_Blab_dec,wx.ALIGN_LEFT),
             (self.file_info_Blab_inc,wx.ALIGN_LEFT)])
         bSizer3.Add(self.file_info_text,wx.ALIGN_LEFT)
-        bSizer3.AddSpacer(10)
+        bSizer3.AddSpacer(8)
         bSizer3.Add(gridbSizer3,wx.ALIGN_LEFT)
+
+        #---sizer 4 ----
+
+        #TEXT="Sample-specimen naming convention:"
+        bSizer4 = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY, "" ), wx.VERTICAL )
+        self.ncn_keys = ['XXXXY', 'XXXX-YY', 'XXXX.YY', 'XXXX[YYY] where YYY is sample designation, enter number of Y', 'sample name=site name', 'Site names in orient.txt file', '[XXXX]YYY where XXXX is the site name, enter number of X', 'this is a synthetic and has no site name']
+        self.ncn_values = range(1,9)
+        self.sample_naming_conventions = dict(zip(self.ncn_keys, self.ncn_values))
+        self.select_naming_convention = wx.ComboBox(self.panel, -1, self.ncn_keys[0], size=(250,25), choices=self.ncn_keys, style=wx.CB_DROPDOWN)
+        self.sample_naming_convention_char = wx.TextCtrl(self.panel, id=-1, size=(40,25))
+        gridbSizer4 = wx.GridSizer(2, 2, 0, 10)
+        gridbSizer4.AddMany( [(wx.StaticText(self.panel,label="specimen-sample naming convention",style=wx.TE_CENTER),wx.ALIGN_LEFT),
+            (wx.StaticText(self.panel,label="delimiter (if necessary)",style=wx.TE_CENTER),wx.ALIGN_LEFT),
+            (self.select_naming_convention,wx.ALIGN_LEFT),
+            (self.sample_naming_convention_char,wx.ALIGN_LEFT)])
+        #bSizer4.Add(self.sample_specimen_text,wx.ALIGN_LEFT)
+        bSizer4.AddSpacer(8)
+        bSizer4.Add(gridbSizer4,wx.ALIGN_LEFT)
+
+        #---sizer 5 ----
+        TEXT="Location name (optional):"
+        bSizer5 = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY, "" ), wx.HORIZONTAL )
+        bSizer5.Add(wx.StaticText(pnl,label=TEXT),wx.ALIGN_LEFT)
+        bSizer5.AddSpacer(4)
+        self.location= wx.TextCtrl(self.panel, id=-1, size=(100,25))
+        bSizer5.Add(self.location,wx.ALIGN_LEFT)
+
+
+        #---sizer 6 ----
+        bSizer6 = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY, "" ), wx.HORIZONTAL )
+        TEXT="replicate measurements:"
+        self.replicate_text = wx.StaticText(self.panel,label=TEXT,style=wx.TE_CENTER)
+        self.replicate_rb1 = wx.RadioButton(self.panel, -1, 'Average replicate measurements', style=wx.RB_GROUP)
+        self.replicate_rb1.SetValue(True)
+        self.replicate_rb2 = wx.RadioButton(self.panel, -1, 'take only last measurement from replicate measurements')
+        bSizer6.Add(self.replicate_text,wx.ALIGN_LEFT)
+        bSizer6.AddSpacer(8)
+        bSizer6.Add(self.replicate_rb1,wx.ALIGN_LEFT)
+        bSizer6.AddSpacer(8)
+        bSizer6.Add(self.replicate_rb2,wx.ALIGN_LEFT)
+
+        #---sizer 7 ----
+        bSizer7 = wx.StaticBoxSizer(wx.StaticBox(self.panel, wx.ID_ANY, ""), wx.HORIZONTAL)
+        TEXT = "peak AF field (mT) if ARM: "
+        self.AF_field_text = wx.StaticText(self.panel, label=TEXT, style = wx.TE_CENTER)
+        bSizer7.Add(self.AF_field_text, wx.ALIGN_LEFT)
+        bSizer7.AddSpacer(4)
+        self.AF_field = wx.TextCtrl(self.panel, id=-1, size=(100,25))
+        bSizer7.Add(self.AF_field, wx.ALIGN_LEFT)
+
+        #---sizer 8 ----
+
+        bSizer8 = wx.StaticBoxSizer(wx.StaticBox(self.panel, wx.ID_ANY, ""), wx.HORIZONTAL)
+        TEXT = "Coil number for ASC impulse coil (if treatment units in Volts): "
+        self.coil_text = wx.StaticText(self.panel, label=TEXT, style = wx.TE_CENTER)
+        bSizer8.Add(self.coil_text, wx.ALIGN_LEFT)
+        bSizer8.AddSpacer(4)
+        self.coil_field = wx.TextCtrl(self.panel, id=-1, size=(100,25))
+        bSizer8.Add(self.coil_field, wx.ALIGN_LEFT)
+
+
+
+        #---sizer 8 ----
+#        "-V [1,2,3] units of IRM field in volts using ASC coil #1,2 or 3"
+#        "Coil number for ASC impulse coil (if treatment units in Volts)"
 
         # should this be a wizard???  or a different format? a wizard might allow the synthetics bit to go easier
 
@@ -558,28 +619,31 @@ class convert_SIO_files_to_MagIC(wx.Frame):
 
         #------
         vbox=wx.BoxSizer(wx.VERTICAL)
-        vbox.AddSpacer(10)
+        vbox.AddSpacer(8)
         vbox.Add(bSizer_info, flag=wx.ALIGN_LEFT)
-        vbox.AddSpacer(10)
+        vbox.AddSpacer(8)
         vbox.Add(bSizer0, flag=wx.ALIGN_LEFT)
-        vbox.AddSpacer(10)
+        vbox.AddSpacer(8)
         vbox.Add(bSizer1, flag=wx.ALIGN_LEFT)
-        vbox.AddSpacer(10)
-        vbox.Add(gridSizer2, flag=wx.ALIGN_LEFT)
-        vbox.AddSpacer(10)
+        vbox.AddSpacer(8)
+#        vbox.Add(gridSizer2, flag=wx.ALIGN_LEFT)
+        vbox.Add(bSizer2, flag=wx.ALIGN_LEFT)
+        vbox.AddSpacer(8)
         vbox.Add(bSizer3, flag=wx.ALIGN_LEFT)
-        vbox.AddSpacer(10)
-#        vbox.Add(bSizer4, flag=wx.ALIGN_LEFT)
-        vbox.AddSpacer(10)
-#        vbox.Add(bSizer5, flag=wx.ALIGN_LEFT)
-        vbox.AddSpacer(10)
-#        vbox.Add(bSizer6, flag=wx.ALIGN_LEFT)
-        vbox.AddSpacer(10)
-#        vbox.Add(bSizer7, flag=wx.ALIGN_LEFT)
-        vbox.AddSpacer(10)
+        vbox.AddSpacer(8)
+        vbox.Add(bSizer4, flag=wx.ALIGN_LEFT)
+        vbox.AddSpacer(8)
+        vbox.Add(bSizer5, flag=wx.ALIGN_LEFT)
+        vbox.AddSpacer(8)
+        vbox.Add(bSizer6, flag=wx.ALIGN_LEFT)
+        vbox.AddSpacer(8)
+        vbox.Add(bSizer7, flag=wx.ALIGN_LEFT)
+        vbox.AddSpacer(8)
+        vbox.Add(bSizer8, flag=wx.ALIGN_LEFT)
+        vbox.AddSpacer(8)
         vbox.Add(wx.StaticLine(self.panel), 0, wx.ALL|wx.EXPAND, 5)
         vbox.Add(hboxok, flag=wx.ALIGN_CENTER)        
-        vbox.AddSpacer(5)
+        vbox.AddSpacer(4)
 
         hbox_all= wx.BoxSizer(wx.HORIZONTAL)
         hbox_all.AddSpacer(20)
