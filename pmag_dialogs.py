@@ -109,30 +109,20 @@ class import_magnetometer_data(wx.Dialog):
         file_type = self.checked_rb.Label.split()[0] # extracts name of the checked radio button
         print 'file_type', file_type
         if file_type == 'generic':
-            generic_dia = convert_generic_files_to_MagIC(self.WD)
-            generic_dia.Center()
-            generic_dia.Show()
-        if file_type == 'SIO':
-            SIO_dia = convert_SIO_files_to_MagIC(self.WD)
-            SIO_dia.Center()
-            SIO_dia.Show()
+            dia = convert_generic_files_to_MagIC(self.WD)
+        elif file_type == 'SIO':
+            dia = convert_SIO_files_to_MagIC(self.WD)
+        elif file_type == 'CIT':
+            dia = convert_CIT_files_to_MagIC(self.WD)
+        dia.Center()
+        dia.Show()
 
 
     def OnRadioButtonSelect(self, event):
         print 'calling OnRadioButtonSelect'
-#        print 'self', self
-#        print 'dir(self)', dir(self)
-#        print 'event', event
-#        print 'dir(event)', dir(event)
-#        print 'event.GetEventObject', event.GetEventObject()
-        print 'previous self.checked_rb', self.checked_rb.Label
         self.checked_rb = event.GetEventObject()
         print 'current self.checked_rb', self.checked_rb.Label
 #        print '-------------'
-
-
-
-
 
     def on_nextButton(self,event):
         self.Destroy()
@@ -785,6 +775,154 @@ class convert_SIO_files_to_MagIC(wx.Frame):
         self.Destroy()
                         
 
+
+class convert_CIT_files_to_MagIC(wx.Frame):
+    """stuff"""
+    title = "PmagPy CIT file conversion"
+
+    def __init__(self,WD):
+        wx.Frame.__init__(self, None, wx.ID_ANY, self.title)
+        self.panel = wx.Panel(self)
+        self.max_files = 1 # but maybe it could take more??
+        self.WD = WD
+        self.InitUI()
+
+
+    def InitUI(self):
+        print 'initializing UI for SIO file conversion'
+
+        pnl = self.panel
+
+        TEXT = "CIT Format file"
+        bSizer_info = wx.BoxSizer(wx.HORIZONTAL)
+        bSizer_info.Add(wx.StaticText(pnl, label=TEXT), wx.ALIGN_LEFT)
+
+        #---sizer 0 ----
+        bSizer0 =  wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY, "" ), wx.VERTICAL )
+        self.file_path = wx.TextCtrl(self.panel, id=-1, size=(400,25), style=wx.TE_READONLY)
+        self.add_file_button = wx.Button(self.panel, id=-1, label='add',name='add')
+#        self.Bind(wx.EVT_BUTTON, self.on_add_file_button, self.add_file_button)    
+        TEXT="Choose file (no spaces are allowed in path):"
+        bSizer0.Add(wx.StaticText(pnl,label=TEXT),wx.ALIGN_LEFT)
+        bSizer0.AddSpacer(4)
+        bSizer0_1=wx.BoxSizer(wx.HORIZONTAL)
+        bSizer0_1.Add(self.add_file_button,wx.ALIGN_LEFT)
+        bSizer0_1.AddSpacer(4)
+        bSizer0_1.Add(self.file_path,wx.ALIGN_LEFT)
+        bSizer0.Add(bSizer0_1,wx.ALIGN_LEFT)
+
+        #---sizer 1 ----
+        TEXT="Measurer (optional):"
+        bSizer1 = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY, "" ), wx.HORIZONTAL )
+        bSizer1.Add(wx.StaticText(pnl,label=TEXT),wx.ALIGN_LEFT)
+        bSizer1.AddSpacer(4)
+        self.file_info_user = wx.TextCtrl(self.panel, id=-1, size=(100,25))
+        bSizer1.Add(self.file_info_user,wx.ALIGN_LEFT)
+        
+        #---sizer 2 ----
+        TEXT = "Sampling Particulars (select all that apply):"
+        box = wx.StaticBox(self.panel, wx.ID_ANY, "")
+        gridSizer2 = wx.GridSizer(6, 2, 0, 0)
+        particulars = ["FS-FD: field sampling done with a drill", "FS-H: field sampling done with hand samples", "FS-LOC-GPS: field location done with GPS", "FS-LOC-MAP:  field location done with map", "SO-POM:  a Pomeroy orientation device was used", "SO-ASC:  an ASC orientation device was used", "SO-MAG: magnetic compass used for all orientations", "SO-SUN: sun compass used for all orientations", "SO-SM: either magnetic or sun used on all orientations", "SO-SIGHT: orientation from sighting"]
+        for n, ex in enumerate(particulars):
+            cb = wx.CheckBox(pnl, -1, ex)
+            gridSizer2.Add(cb, wx.ALIGN_RIGHT)
+        bSizer2 = wx.StaticBoxSizer(box, wx.VERTICAL )
+        bSizer2.Add(wx.StaticText(pnl, label = TEXT), wx.ALIGN_LEFT)
+        bSizer2.Add(gridSizer2, wx.ALIGN_RIGHT)
+        bSizer2.AddSpacer(4)
+
+        #---sizer 3 ----
+
+        #TEXT="Sample-specimen naming convention:"
+        bSizer3 = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY, "" ), wx.VERTICAL )
+        self.ncn_keys = ['XXXXY', 'XXXX-YY', 'XXXX.YY', 'XXXX[YYY] where YYY is sample designation, enter number of Y', 'sample name=site name', 'Site names in orient.txt file', '[XXXX]YYY where XXXX is the site name, enter number of X', 'this is a synthetic and has no site name']
+        self.ncn_values = range(1,9)
+        self.sample_naming_conventions = dict(zip(self.ncn_keys, self.ncn_values))
+        self.select_naming_convention = wx.ComboBox(self.panel, -1, self.ncn_keys[0], size=(250,25), choices=self.ncn_keys, style=wx.CB_DROPDOWN)
+        self.sample_naming_convention_char = wx.TextCtrl(self.panel, id=-1, size=(40,25))
+        gridbSizer4 = wx.GridSizer(2, 2, 5, 10)
+        gridbSizer4.AddMany( [(wx.StaticText(self.panel,label="specimen-sample naming convention",style=wx.TE_CENTER),wx.ALIGN_LEFT),
+            (wx.StaticText(self.panel,label="delimiter (if necessary)",style=wx.TE_CENTER),wx.ALIGN_LEFT),
+            (self.select_naming_convention,wx.ALIGN_LEFT),
+            (self.sample_naming_convention_char,wx.ALIGN_LEFT)])
+        #bSizer4.Add(self.sample_specimen_text,wx.ALIGN_LEFT)
+        bSizer3.AddSpacer(8)
+        bSizer3.Add(gridbSizer4,wx.ALIGN_LEFT)
+
+        #---sizer 4 ----
+        TEXT="Location name (optional):"
+        bSizer4 = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY, "" ), wx.HORIZONTAL )
+        bSizer4.Add(wx.StaticText(pnl,label=TEXT),wx.ALIGN_LEFT)
+        bSizer4.AddSpacer(4)
+        self.location= wx.TextCtrl(self.panel, id=-1, size=(100,25))
+        bSizer4.Add(self.location,wx.ALIGN_LEFT)
+
+
+        #---sizer 5 ----
+        bSizer5 = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY, "" ), wx.HORIZONTAL )
+        TEXT="replicate measurements:"
+        self.replicate_text = wx.StaticText(self.panel,label=TEXT,style=wx.TE_CENTER)
+        self.replicate_rb1 = wx.RadioButton(self.panel, -1, 'Average replicate measurements', style=wx.RB_GROUP)
+        self.replicate_rb1.SetValue(True)
+        self.replicate_rb2 = wx.RadioButton(self.panel, -1, 'take only last measurement from replicate measurements')
+        bSizer5.Add(self.replicate_text,wx.ALIGN_LEFT)
+        bSizer5.AddSpacer(8)
+        bSizer5.Add(self.replicate_rb1,wx.ALIGN_LEFT)
+        bSizer5.AddSpacer(8)
+        bSizer5.Add(self.replicate_rb2,wx.ALIGN_LEFT)
+
+
+
+        self.okButton = wx.Button(self.panel, wx.ID_OK, "&OK")
+#        self.Bind(wx.EVT_BUTTON, self.on_okButton, self.okButton)
+
+        self.cancelButton = wx.Button(self.panel, wx.ID_CANCEL, '&Cancel')
+        self.Bind(wx.EVT_BUTTON, self.on_cancelButton, self.cancelButton)
+
+        hboxok = wx.BoxSizer(wx.HORIZONTAL)
+        hboxok.Add(self.okButton)
+        hboxok.Add(self.cancelButton )
+
+        #------
+        vbox=wx.BoxSizer(wx.VERTICAL)
+        vbox.AddSpacer(10)
+        vbox.Add(bSizer_info, flag=wx.ALIGN_LEFT)
+        vbox.AddSpacer(10)
+        vbox.Add(bSizer0, flag=wx.ALIGN_LEFT)
+        vbox.AddSpacer(10)
+        vbox.Add(bSizer1, flag=wx.ALIGN_LEFT)
+        vbox.AddSpacer(10)
+        vbox.Add(bSizer2, flag=wx.ALIGN_LEFT)
+        vbox.AddSpacer(10)
+        vbox.Add(bSizer3, flag=wx.ALIGN_LEFT)
+        vbox.AddSpacer(10)
+        vbox.Add(bSizer4, flag=wx.ALIGN_LEFT)
+        vbox.AddSpacer(10)
+        vbox.Add(bSizer5, flag=wx.ALIGN_LEFT)
+        vbox.AddSpacer(10)
+#        vbox.Add(bSizer6, flag=wx.ALIGN_LEFT)
+#        vbox.AddSpacer(10)
+#        vbox.Add(bSizer7, flag=wx.ALIGN_LEFT)
+#        vbox.AddSpacer(10)
+#        vbox.Add(bSizer8, flag=wx.ALIGN_LEFT)
+        vbox.AddSpacer(10)
+        vbox.Add(wx.StaticLine(self.panel), 0, wx.ALL|wx.EXPAND, 5)
+        vbox.Add(hboxok, flag=wx.ALIGN_CENTER)        
+        vbox.AddSpacer(5)
+
+        hbox_all= wx.BoxSizer(wx.HORIZONTAL)
+        hbox_all.AddSpacer(20)
+        hbox_all.AddSpacer(vbox)
+        hbox_all.AddSpacer(20)
+        
+        self.panel.SetSizer(hbox_all)
+        hbox_all.Fit(self)
+        self.Show()
+        self.Centre()
+        
+    def on_cancelButton(self,event):
+        self.Destroy()
 
 
 
