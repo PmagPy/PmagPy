@@ -86,3 +86,45 @@ class replicate_measurements():
 
     def sizer(self):
         return self.bSizer6
+
+
+
+class check_boxes():
+    
+    def __init__(self, parent, gridsize, choices, text):
+        box = wx.StaticBox(parent, wx.ID_ANY, "")
+        gridSizer2 = wx.GridSizer(gridsize[0], gridsize[1], gridsize[2], gridsize[3])
+        for n, choice in enumerate(choices):
+            cb = wx.CheckBox(parent, -1, choice)
+            gridSizer2.Add(cb, wx.ALIGN_RIGHT)
+        self.bSizer2 = wx.StaticBoxSizer(box, wx.VERTICAL)
+        self.bSizer2.Add(wx.StaticText(parent, label = text), wx.ALIGN_LEFT)
+        self.bSizer2.Add(gridSizer2, wx.ALIGN_RIGHT)
+        self.bSizer2.AddSpacer(4)
+
+    def sizer(self):
+        return self.bSizer2
+
+class lab_field():
+    
+    def __init__(self, parent):
+        TEXT="Lab field (leave blank if unnecessary). Example: 40 0 -90"
+        self.bSizer3 = wx.StaticBoxSizer( wx.StaticBox( parent, wx.ID_ANY, "", size=(100, 100) ), wx.VERTICAL )
+        self.file_info_text=wx.StaticText(parent,label=TEXT,style=wx.TE_CENTER)
+        self.file_info_Blab = wx.TextCtrl(parent, id=-1, size=(40,25))
+        self.file_info_Blab_dec = wx.TextCtrl(parent, id=-1, size=(40,25))
+        self.file_info_Blab_inc = wx.TextCtrl(parent, id=-1, size=(40,25))
+        gridbSizer3 = wx.GridSizer(2, 3, 0, 10)
+        gridbSizer3.AddMany( [(wx.StaticText(parent,label="B (uT)",style=wx.TE_CENTER),wx.ALIGN_LEFT),
+            (wx.StaticText(parent,label="dec",style=wx.TE_CENTER),wx.ALIGN_LEFT),
+            (wx.StaticText(parent,label="inc",style=wx.TE_CENTER),wx.ALIGN_LEFT),
+            (self.file_info_Blab,wx.ALIGN_LEFT),
+            (self.file_info_Blab_dec,wx.ALIGN_LEFT),
+            (self.file_info_Blab_inc,wx.ALIGN_LEFT)])
+        self.bSizer3.Add(self.file_info_text,wx.ALIGN_LEFT)
+        self.bSizer3.AddSpacer(8)
+        self.bSizer3.Add(gridbSizer3,wx.ALIGN_LEFT)
+
+    def sizer(self):
+        return self.bSizer3
+        
