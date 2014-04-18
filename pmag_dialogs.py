@@ -6,6 +6,7 @@
 import wx
 import os
 import subprocess
+import pmag_widgets as pw
 
 class import_magnetometer_data(wx.Dialog):
     
@@ -612,26 +613,10 @@ class convert_SIO_files_to_MagIC(wx.Frame):
         bSizer_info.Add(wx.StaticText(pnl, label=TEXT), wx.ALIGN_LEFT)
 
         #---sizer 0 ----
-        bSizer0 =  wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY, "" ), wx.VERTICAL )
-        self.file_path = wx.TextCtrl(self.panel, id=-1, size=(400,25), style=wx.TE_READONLY)
-        self.add_file_button = wx.Button(self.panel, id=-1, label='add',name='add')
-#        self.Bind(wx.EVT_BUTTON, self.on_add_file_button, self.add_file_button)    
-        TEXT="Choose file (no spaces are allowed in path):"
-        bSizer0.Add(wx.StaticText(pnl,label=TEXT),wx.ALIGN_LEFT)
-        bSizer0.AddSpacer(4)
-        bSizer0_1=wx.BoxSizer(wx.HORIZONTAL)
-        bSizer0_1.Add(self.add_file_button,wx.ALIGN_LEFT)
-        bSizer0_1.AddSpacer(4)
-        bSizer0_1.Add(self.file_path,wx.ALIGN_LEFT)
-        bSizer0.Add(bSizer0_1,wx.ALIGN_LEFT)
+        bSizer0 = pw.choose_file(self.panel, method=None).sizer()
 
         #---sizer 1 ----
-        TEXT="User name (optional):"
-        bSizer1 = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY, "" ), wx.HORIZONTAL )
-        bSizer1.Add(wx.StaticText(pnl,label=TEXT),wx.ALIGN_LEFT)
-        bSizer1.AddSpacer(4)
-        self.file_info_user = wx.TextCtrl(self.panel, id=-1, size=(100,25))
-        bSizer1.Add(self.file_info_user,wx.ALIGN_LEFT)
+        bSizer1 = pw.labeled_text_field(self.panel).sizer()
 
         #---sizer 2 ----
         TEXT = "Experiment type (select all that apply):"
@@ -789,7 +774,7 @@ class convert_CIT_files_to_MagIC(wx.Frame):
 
 
     def InitUI(self):
-        print 'initializing UI for SIO file conversion'
+        print 'initializing UI for CIT file conversion'
 
         pnl = self.panel
 
@@ -798,26 +783,12 @@ class convert_CIT_files_to_MagIC(wx.Frame):
         bSizer_info.Add(wx.StaticText(pnl, label=TEXT), wx.ALIGN_LEFT)
 
         #---sizer 0 ----
-        bSizer0 =  wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY, "" ), wx.VERTICAL )
-        self.file_path = wx.TextCtrl(self.panel, id=-1, size=(400,25), style=wx.TE_READONLY)
-        self.add_file_button = wx.Button(self.panel, id=-1, label='add',name='add')
-#        self.Bind(wx.EVT_BUTTON, self.on_add_file_button, self.add_file_button)    
-        TEXT="Choose file (no spaces are allowed in path):"
-        bSizer0.Add(wx.StaticText(pnl,label=TEXT),wx.ALIGN_LEFT)
-        bSizer0.AddSpacer(4)
-        bSizer0_1=wx.BoxSizer(wx.HORIZONTAL)
-        bSizer0_1.Add(self.add_file_button,wx.ALIGN_LEFT)
-        bSizer0_1.AddSpacer(4)
-        bSizer0_1.Add(self.file_path,wx.ALIGN_LEFT)
-        bSizer0.Add(bSizer0_1,wx.ALIGN_LEFT)
+        bSizer0 = pw.choose_file(self.panel, 'add!').sizer()
+        #self.choose_file_box = pw.choose_file(self.panel, wx.ID_ANY, 'zebra').choose_file_sizer()
 
         #---sizer 1 ----
         TEXT="Measurer (optional):"
-        bSizer1 = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY, "" ), wx.HORIZONTAL )
-        bSizer1.Add(wx.StaticText(pnl,label=TEXT),wx.ALIGN_LEFT)
-        bSizer1.AddSpacer(4)
-        self.file_info_user = wx.TextCtrl(self.panel, id=-1, size=(100,25))
-        bSizer1.Add(self.file_info_user,wx.ALIGN_LEFT)
+        bSizer1 = pw.labeled_text_field(self.panel, TEXT).sizer()
         
         #---sizer 2 ----
         TEXT = "Sampling Particulars (select all that apply):"
