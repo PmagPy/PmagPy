@@ -650,44 +650,15 @@ class convert_SIO_files_to_MagIC(wx.Frame):
         bSizer3.Add(gridbSizer3,wx.ALIGN_LEFT)
 
         #---sizer 4 ----
-
-        #TEXT="Sample-specimen naming convention:"
-        bSizer4 = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY, "" ), wx.VERTICAL )
-        self.ncn_keys = ['XXXXY', 'XXXX-YY', 'XXXX.YY', 'XXXX[YYY] where YYY is sample designation, enter number of Y', 'sample name=site name', 'Site names in orient.txt file', '[XXXX]YYY where XXXX is the site name, enter number of X', 'this is a synthetic and has no site name']
-        self.ncn_values = range(1,9)
-        self.sample_naming_conventions = dict(zip(self.ncn_keys, self.ncn_values))
-        self.select_naming_convention = wx.ComboBox(self.panel, -1, self.ncn_keys[0], size=(250,25), choices=self.ncn_keys, style=wx.CB_DROPDOWN)
-        self.sample_naming_convention_char = wx.TextCtrl(self.panel, id=-1, size=(40,25))
-        gridbSizer4 = wx.GridSizer(2, 2, 0, 10)
-        gridbSizer4.AddMany( [(wx.StaticText(self.panel,label="specimen-sample naming convention",style=wx.TE_CENTER),wx.ALIGN_LEFT),
-            (wx.StaticText(self.panel,label="delimiter (if necessary)",style=wx.TE_CENTER),wx.ALIGN_LEFT),
-            (self.select_naming_convention,wx.ALIGN_LEFT),
-            (self.sample_naming_convention_char,wx.ALIGN_LEFT)])
-        #bSizer4.Add(self.sample_specimen_text,wx.ALIGN_LEFT)
-        bSizer4.AddSpacer(8)
-        bSizer4.Add(gridbSizer4,wx.ALIGN_LEFT)
+        bSizer4 = pw.select_specimen_ncn(self.panel).sizer()
 
         #---sizer 5 ----
         TEXT="Location name (optional):"
-        bSizer5 = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY, "" ), wx.HORIZONTAL )
-        bSizer5.Add(wx.StaticText(pnl,label=TEXT),wx.ALIGN_LEFT)
-        bSizer5.AddSpacer(4)
-        self.location= wx.TextCtrl(self.panel, id=-1, size=(100,25))
-        bSizer5.Add(self.location,wx.ALIGN_LEFT)
+        bSizer5 = pw.labeled_text_field(self.panel, TEXT).sizer()
 
 
         #---sizer 6 ----
-        bSizer6 = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY, "" ), wx.HORIZONTAL )
-        TEXT="replicate measurements:"
-        self.replicate_text = wx.StaticText(self.panel,label=TEXT,style=wx.TE_CENTER)
-        self.replicate_rb1 = wx.RadioButton(self.panel, -1, 'Average replicate measurements', style=wx.RB_GROUP)
-        self.replicate_rb1.SetValue(True)
-        self.replicate_rb2 = wx.RadioButton(self.panel, -1, 'take only last measurement from replicate measurements')
-        bSizer6.Add(self.replicate_text,wx.ALIGN_LEFT)
-        bSizer6.AddSpacer(8)
-        bSizer6.Add(self.replicate_rb1,wx.ALIGN_LEFT)
-        bSizer6.AddSpacer(8)
-        bSizer6.Add(self.replicate_rb2,wx.ALIGN_LEFT)
+        bSizer6 = pw.replicate_measurements(self.panel).sizer()
 
         #---sizer 7 ----
         bSizer7 = wx.StaticBoxSizer(wx.StaticBox(self.panel, wx.ID_ANY, ""), wx.HORIZONTAL)
@@ -806,6 +777,7 @@ class convert_CIT_files_to_MagIC(wx.Frame):
         #---sizer 3 ----
 
         #TEXT="Sample-specimen naming convention:"
+        """
         bSizer3 = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY, "" ), wx.VERTICAL )
         self.ncn_keys = ['XXXXY', 'XXXX-YY', 'XXXX.YY', 'XXXX[YYY] where YYY is sample designation, enter number of Y', 'sample name=site name', 'Site names in orient.txt file', '[XXXX]YYY where XXXX is the site name, enter number of X', 'this is a synthetic and has no site name']
         self.ncn_values = range(1,9)
@@ -820,17 +792,15 @@ class convert_CIT_files_to_MagIC(wx.Frame):
         #bSizer4.Add(self.sample_specimen_text,wx.ALIGN_LEFT)
         bSizer3.AddSpacer(8)
         bSizer3.Add(gridbSizer4,wx.ALIGN_LEFT)
+        """
+        bSizer3 = pw.select_specimen_ncn(self.panel).sizer()
 
         #---sizer 4 ----
         TEXT="Location name (optional):"
-        bSizer4 = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY, "" ), wx.HORIZONTAL )
-        bSizer4.Add(wx.StaticText(pnl,label=TEXT),wx.ALIGN_LEFT)
-        bSizer4.AddSpacer(4)
-        self.location= wx.TextCtrl(self.panel, id=-1, size=(100,25))
-        bSizer4.Add(self.location,wx.ALIGN_LEFT)
-
+        bSizer4 = pw.labeled_text_field(self.panel, TEXT).sizer()
 
         #---sizer 5 ----
+        """
         bSizer5 = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY, "" ), wx.HORIZONTAL )
         TEXT="replicate measurements:"
         self.replicate_text = wx.StaticText(self.panel,label=TEXT,style=wx.TE_CENTER)
@@ -842,6 +812,8 @@ class convert_CIT_files_to_MagIC(wx.Frame):
         bSizer5.Add(self.replicate_rb1,wx.ALIGN_LEFT)
         bSizer5.AddSpacer(8)
         bSizer5.Add(self.replicate_rb2,wx.ALIGN_LEFT)
+        """
+        bSizer5 = pw.replicate_measurements(self.panel).sizer()
 
 
 
