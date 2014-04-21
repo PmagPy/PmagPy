@@ -603,43 +603,43 @@ class convert_SIO_files_to_MagIC(wx.Frame):
         #---sizer 0 ----
         #replacing self.panel with self for a minute
         
-        bSizer0 = pw.choose_file(self, method = self.on_add_file_button)
+        self.bSizer0 = pw.choose_file(self, method = self.on_add_file_button)
 
         #---sizer 1 ----
-        bSizer1 = pw.labeled_text_field(self).sizer()
+        self.bSizer1 = pw.labeled_text_field(self)
 
         #---sizer 2 ----
         TEXT = "Experiment type (select all that apply):"
         experiments_names=['Demag', 'Thermal(includes thellier but not trm)', 'Shaw method', 'IRM (acquisition)', '3D IRM experiment', 'NRM only', 'TRM acquisition', 'double AF demag', 'triple AF demag (GRM protocol)', 'Cooling rate experiment']
-        bSizer2 = pw.check_boxes(self, (5, 3, 0, 0), experiments_names, TEXT).sizer()
+        self.bSizer2 = pw.check_boxes(self, (5, 3, 0, 0), experiments_names, TEXT)
 
         #---sizer 3 ----
-        bSizer3 = pw.lab_field(self).sizer()
+        self.bSizer3 = pw.lab_field(self)
 
         #---sizer 4 ----
-        bSizer4 = pw.select_specimen_ncn(self).sizer()
+        self.bSizer4 = pw.select_specimen_ncn(self)
 
         #---sizer 5 ----
         TEXT="Location name (optional):"
-        bSizer5 = pw.labeled_text_field(self, TEXT).sizer()
+        self.bSizer5 = pw.labeled_text_field(self, TEXT)
 
         #---sizer 6 ----
-        bSizer6 = pw.replicate_measurements(self).sizer()
+        self.bSizer6 = pw.replicate_measurements(self)
 
         #---sizer 7 ----
 
         TEXT = "peak AF field (mT) if ARM: "
-        bSizer7 = pw.labeled_text_field(self, TEXT).sizer()
+        self.bSizer7 = pw.labeled_text_field(self, TEXT)
 
         #---sizer 8 ----
 
         TEXT = "Coil number for ASC impulse coil (if treatment units in Volts): "
-        bSizer8 = pw.labeled_text_field(self, TEXT).sizer()
+        self.bSizer8 = pw.labeled_text_field(self, TEXT)
 
         #---buttons ----
 
         self.okButton = wx.Button(self, wx.ID_OK, "&OK")
-#        self.Bind(wx.EVT_BUTTON, self.on_okButton, self.okButton)
+        self.Bind(wx.EVT_BUTTON, self.on_okButton, self.okButton)
 
         self.cancelButton = wx.Button(self, wx.ID_CANCEL, '&Cancel')
         self.Bind(wx.EVT_BUTTON, self.on_cancelButton, self.cancelButton)
@@ -653,23 +653,23 @@ class convert_SIO_files_to_MagIC(wx.Frame):
         vbox.AddSpacer(8)
         vbox.Add(bSizer_info, flag=wx.ALIGN_LEFT)
         vbox.AddSpacer(8)
-        vbox.Add(bSizer0, flag=wx.ALIGN_LEFT)
+        vbox.Add(self.bSizer0, flag=wx.ALIGN_LEFT)
         vbox.AddSpacer(8)
-        vbox.Add(bSizer1, flag=wx.ALIGN_LEFT)
+        vbox.Add(self.bSizer1, flag=wx.ALIGN_LEFT)
         vbox.AddSpacer(8)
-        vbox.Add(bSizer2, flag=wx.ALIGN_LEFT)
+        vbox.Add(self.bSizer2, flag=wx.ALIGN_LEFT)
         vbox.AddSpacer(8)
-        vbox.Add(bSizer3, flag=wx.ALIGN_LEFT)
+        vbox.Add(self.bSizer3, flag=wx.ALIGN_LEFT)
         vbox.AddSpacer(8)
-        vbox.Add(bSizer4, flag=wx.ALIGN_LEFT)
+        vbox.Add(self.bSizer4, flag=wx.ALIGN_LEFT)
         vbox.AddSpacer(8)
-        vbox.Add(bSizer5, flag=wx.ALIGN_LEFT)
+        vbox.Add(self.bSizer5, flag=wx.ALIGN_LEFT)
         vbox.AddSpacer(8)
-        vbox.Add(bSizer6, flag=wx.ALIGN_LEFT)
+        vbox.Add(self.bSizer6, flag=wx.ALIGN_LEFT)
         vbox.AddSpacer(8)
-        vbox.Add(bSizer7, flag=wx.ALIGN_LEFT)
+        vbox.Add(self.bSizer7, flag=wx.ALIGN_LEFT)
         vbox.AddSpacer(8)
-        vbox.Add(bSizer8, flag=wx.ALIGN_LEFT)
+        vbox.Add(self.bSizer8, flag=wx.ALIGN_LEFT)
         vbox.AddSpacer(8)
         vbox.Add(wx.StaticLine(self), 0, wx.ALL|wx.EXPAND, 5)
         vbox.Add(hboxok, flag=wx.ALIGN_CENTER)        
@@ -692,8 +692,19 @@ class convert_SIO_files_to_MagIC(wx.Frame):
         text = "choose file to convert to MagIC"
         pw.on_add_file_button(self, event, text)
 
-    def on_OK_button(self, event):
-        pass
+    def on_okButton(self, event):
+        SIO_file = self.bSizer0.return_value()
+        user = self.bSizer1.return_value()
+        experiment_type = self.bSizer2.return_value()
+        lab_field = self.bSizer3.return_value()
+        ncn = self.bSizer4.return_value()
+        loc_name = self.bSizer5.return_value()
+        replicate = self.bSizer6.return_value()
+        peak_AF = self.bSizer7.return_value()
+        coil_number = self.bSizer8.return_value()
+        print "file: {}".format(SIO_file)
+        print "user: {}, experiment: {}, lab_field: {}, ncn: {}, loc: {}, replicate: {}, peak AF: {}, coil number: {}".format(user, experiment_type, lab_field, ncn, loc_name, replicate, peak_AF, coil_number)
+        
         """sio_magic.py  -F /Users/nebula/Desktop/Measurement_Import/CIT_magic/sio_af_example.dat.magic -f /Users/nebula/Desktop/Measurement_Import/CIT_magic/sio_af_example.dat -LP AF -spc 2 -loc "unknown" -ins 2 -ncn 2"""
                         
 

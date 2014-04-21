@@ -5,9 +5,6 @@ import wx
 
 # library for commonly used widgets.  
 
-
-
-
 class choose_file(wx.StaticBoxSizer):
 
     def __init__(self, parent, orient=wx.VERTICAL, btn_text='add', method=None):
@@ -18,7 +15,6 @@ class choose_file(wx.StaticBoxSizer):
         self.method = method
         self.parent = parent
         self.parent.file_path = wx.TextCtrl(self.parent, id=-1, size=(400,25), style=wx.TE_READONLY)
-#        self.file_path = wx.TextCtrl(self.parent, id=-1, size=(400,25), style=wx.TE_READONLY)
         self.add_file_button = wx.Button(self.parent, id=-1, label=btn_text,name='add')
         if method:
             self.parent.Bind(wx.EVT_BUTTON, method, self.add_file_button)
@@ -37,9 +33,7 @@ class choose_file(wx.StaticBoxSizer):
 
 class choose_dir(wx.StaticBox):
     
-#    __init__(self, parent, id, pos, size, style, validator, name) 
     def __init__(self, parent, btn_text='add', method=None):
-        #print 'init choose file'
         self.parent = parent
         self.bSizer0 =  wx.StaticBoxSizer( wx.StaticBox( self.parent, wx.ID_ANY, "" ), wx.VERTICAL )
         self.file_path = wx.TextCtrl(parent, id=-1, size=(400,25), style=wx.TE_READONLY)
@@ -59,14 +53,12 @@ class choose_dir(wx.StaticBox):
         return self.bSizer0
 
 
-
 class labeled_text_field(wx.StaticBoxSizer):
     def __init__(self, parent, label="User name (optional)"):
         self.parent = parent
         box = wx.StaticBox( self.parent, wx.ID_ANY, "" )
         super(labeled_text_field, self).__init__(box, orient=wx.HORIZONTAL)
         TEXT= label
-        #self.bSizer1 = wx.StaticBoxSizer( wx.StaticBox( self.parent, wx.ID_ANY, "" ), wx.HORIZONTAL )
         self.Add(wx.StaticText(self.parent, label=TEXT),wx.ALIGN_LEFT)
         self.AddSpacer(5)
         self.text_field = wx.TextCtrl(self.parent, id=-1, size=(100,25))
@@ -78,7 +70,7 @@ class labeled_text_field(wx.StaticBoxSizer):
 
 
 
-class select_specimen_ncn(wx.StaticBoxSizer):  # possibly will need to add "self" to more of these things to add functionality, but maybe not
+class select_specimen_ncn(wx.StaticBoxSizer):  
     """provides box sizer with a drop down menu for the standard specimen naming conventions"""
     def __init__(self, parent):
         self.parent = parent
@@ -94,7 +86,6 @@ class select_specimen_ncn(wx.StaticBoxSizer):  # possibly will need to add "self
                       (wx.StaticText(parent, label="delimiter (if necessary)", style=wx.TE_CENTER),wx.ALIGN_LEFT),
                       (self.select_naming_convention,wx.ALIGN_LEFT),
                       (self.sample_naming_convention_char,wx.ALIGN_LEFT)])
-        #bSizer4.Add(self.sample_specimen_text,wx.ALIGN_LEFT)                                                
         self.AddSpacer(8)
         self.Add(gridbSizer,wx.ALIGN_LEFT)
 
@@ -102,29 +93,6 @@ class select_specimen_ncn(wx.StaticBoxSizer):  # possibly will need to add "self
         print self.select_naming_convention.GetValue()
         return str(self.select_naming_convention.GetValue()), str(self.sample_naming_convention_char.GetValue())
 
-
-"""
-class select_specimen_ncn():  # possibly will need to add "self" to more of these things to add functionality, but maybe not
-    "provides box sizer with a drop down menu for the standard specimen naming conventions"
-    def __init__(self, parent):
-        self.bSizer3 = wx.StaticBoxSizer( wx.StaticBox( parent, wx.ID_ANY, "" ), wx.VERTICAL )
-        ncn_keys = ['XXXXY', 'XXXX-YY', 'XXXX.YY', 'XXXX[YYY] where YYY is sample designation, enter number of Y', 'sample name=site name', 'Site names in orient.txt file', '[XXXX]YYY where XXXX is the site name, enter number of X', 'this is a synthetic and hasno site name']
-        ncn_values = range(1,9)
-        sample_naming_conventions = dict(zip(ncn_keys, ncn_values))
-        select_naming_convention = wx.ComboBox(parent, -1, ncn_keys[0], size=(250,25), choices=ncn_keys, style=wx.CB_DROPDOWN)
-        sample_naming_convention_char = wx.TextCtrl(parent, id=-1, size=(40,25))
-        gridbSizer4 = wx.GridSizer(2, 2, 5, 10)
-        gridbSizer4.AddMany( [(wx.StaticText(parent,label="specimen-sample naming convention",style=wx.TE_CENTER),wx.ALIGN_LEFT),
-                      (wx.StaticText(parent, label="delimiter (if necessary)", style=wx.TE_CENTER),wx.ALIGN_LEFT),
-                      (select_naming_convention,wx.ALIGN_LEFT),
-                      (sample_naming_convention_char,wx.ALIGN_LEFT)])
-        #bSizer4.Add(self.sample_specimen_text,wx.ALIGN_LEFT)                                                
-        self.bSizer3.AddSpacer(8)
-        self.bSizer3.Add(gridbSizer4,wx.ALIGN_LEFT)
-
-    def sizer(self):
-        return self.bSizer3
-"""
 
 class replicate_measurements(wx.StaticBoxSizer):
     
@@ -147,8 +115,6 @@ class replicate_measurements(wx.StaticBoxSizer):
             return True
         else:
             return False
-
-
 
 class check_boxes(wx.StaticBoxSizer):
     
@@ -174,11 +140,12 @@ class check_boxes(wx.StaticBoxSizer):
         return checked
 
 
-class lab_field():
+class lab_field(wx.StaticBoxSizer):
     
     def __init__(self, parent):
+        box = wx.StaticBox( parent, wx.ID_ANY, "", size=(100, 100) )
+        super(lab_field, self).__init__(box, orient=wx.VERTICAL)
         TEXT="Lab field (leave blank if unnecessary). Example: 40 0 -90"
-        self.bSizer3 = wx.StaticBoxSizer( wx.StaticBox( parent, wx.ID_ANY, "", size=(100, 100) ), wx.VERTICAL )
         self.file_info_text=wx.StaticText(parent,label=TEXT,style=wx.TE_CENTER)
         self.file_info_Blab = wx.TextCtrl(parent, id=-1, size=(40,25))
         self.file_info_Blab_dec = wx.TextCtrl(parent, id=-1, size=(40,25))
@@ -190,13 +157,12 @@ class lab_field():
             (self.file_info_Blab,wx.ALIGN_LEFT),
             (self.file_info_Blab_dec,wx.ALIGN_LEFT),
             (self.file_info_Blab_inc,wx.ALIGN_LEFT)])
-        self.bSizer3.Add(self.file_info_text,wx.ALIGN_LEFT)
-        self.bSizer3.AddSpacer(8)
-        self.bSizer3.Add(gridbSizer3,wx.ALIGN_LEFT)
+        self.Add(self.file_info_text,wx.ALIGN_LEFT)
+        self.AddSpacer(8)
+        self.Add(gridbSizer3,wx.ALIGN_LEFT)
 
-    def sizer(self):
-        return self.bSizer3
-        
+    def return_value(self):
+        return self.file_info_Blab.GetValue(), self.file_info_Blab_dec.GetValue(), self.file_info_Blab_inc.GetValue()
 
 
 def on_add_file_button(SELF, event, text):
