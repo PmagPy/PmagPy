@@ -594,52 +594,54 @@ class convert_SIO_files_to_MagIC(wx.Frame):
     def InitUI(self):
         #print 'initializing UI for SIO file conversion'
 
-        pnl = self.panel
+        #pnl = self.panel
 
         TEXT = "SIO Format file"
         bSizer_info = wx.BoxSizer(wx.HORIZONTAL)
-        bSizer_info.Add(wx.StaticText(pnl, label=TEXT), wx.ALIGN_LEFT)
+        bSizer_info.Add(wx.StaticText(self, label=TEXT), wx.ALIGN_LEFT)
 
         #---sizer 0 ----
-        bSizer0 = pw.choose_file(self.panel, method = self.on_add_file_button)
+        #replacing self.panel with self for a minute
+        
+        bSizer0 = pw.choose_file(self, method = self.on_add_file_button)
 
         #---sizer 1 ----
-        bSizer1 = pw.labeled_text_field(self.panel).sizer()
+        bSizer1 = pw.labeled_text_field(self).sizer()
 
         #---sizer 2 ----
         TEXT = "Experiment type (select all that apply):"
         experiments_names=['Demag', 'Thermal(includes thellier but not trm)', 'Shaw method', 'IRM (acquisition)', '3D IRM experiment', 'NRM only', 'TRM acquisition', 'double AF demag', 'triple AF demag (GRM protocol)', 'Cooling rate experiment']
-        bSizer2 = pw.check_boxes(self.panel, (5, 3, 0, 0), experiments_names, TEXT).sizer()
+        bSizer2 = pw.check_boxes(self, (5, 3, 0, 0), experiments_names, TEXT).sizer()
 
         #---sizer 3 ----
-        bSizer3 = pw.lab_field(self.panel).sizer()
+        bSizer3 = pw.lab_field(self).sizer()
 
         #---sizer 4 ----
-        bSizer4 = pw.select_specimen_ncn(self.panel).sizer()
+        bSizer4 = pw.select_specimen_ncn(self).sizer()
 
         #---sizer 5 ----
         TEXT="Location name (optional):"
-        bSizer5 = pw.labeled_text_field(self.panel, TEXT).sizer()
+        bSizer5 = pw.labeled_text_field(self, TEXT).sizer()
 
         #---sizer 6 ----
-        bSizer6 = pw.replicate_measurements(self.panel).sizer()
+        bSizer6 = pw.replicate_measurements(self).sizer()
 
         #---sizer 7 ----
 
         TEXT = "peak AF field (mT) if ARM: "
-        bSizer7 = pw.labeled_text_field(self.panel, TEXT).sizer()
+        bSizer7 = pw.labeled_text_field(self, TEXT).sizer()
 
         #---sizer 8 ----
 
         TEXT = "Coil number for ASC impulse coil (if treatment units in Volts): "
-        bSizer8 = pw.labeled_text_field(self.panel, TEXT).sizer()
+        bSizer8 = pw.labeled_text_field(self, TEXT).sizer()
 
         #---buttons ----
 
-        self.okButton = wx.Button(self.panel, wx.ID_OK, "&OK")
+        self.okButton = wx.Button(self, wx.ID_OK, "&OK")
 #        self.Bind(wx.EVT_BUTTON, self.on_okButton, self.okButton)
 
-        self.cancelButton = wx.Button(self.panel, wx.ID_CANCEL, '&Cancel')
+        self.cancelButton = wx.Button(self, wx.ID_CANCEL, '&Cancel')
         self.Bind(wx.EVT_BUTTON, self.on_cancelButton, self.cancelButton)
 
         hboxok = wx.BoxSizer(wx.HORIZONTAL)
@@ -669,7 +671,7 @@ class convert_SIO_files_to_MagIC(wx.Frame):
         vbox.AddSpacer(8)
         vbox.Add(bSizer8, flag=wx.ALIGN_LEFT)
         vbox.AddSpacer(8)
-        vbox.Add(wx.StaticLine(self.panel), 0, wx.ALL|wx.EXPAND, 5)
+        vbox.Add(wx.StaticLine(self), 0, wx.ALL|wx.EXPAND, 5)
         vbox.Add(hboxok, flag=wx.ALIGN_CENTER)        
         vbox.AddSpacer(4)
 
@@ -678,7 +680,7 @@ class convert_SIO_files_to_MagIC(wx.Frame):
         hbox_all.AddSpacer(vbox)
         hbox_all.AddSpacer(20)
         
-        self.panel.SetSizer(hbox_all)
+        self.SetSizer(hbox_all)
         hbox_all.Fit(self)
         self.Show()
         self.Centre()
@@ -690,6 +692,9 @@ class convert_SIO_files_to_MagIC(wx.Frame):
         text = "choose file to convert to MagIC"
         pw.on_add_file_button(self, event, text)
 
+    def on_OK_button(self, event):
+        pass
+        """sio_magic.py  -F /Users/nebula/Desktop/Measurement_Import/CIT_magic/sio_af_example.dat.magic -f /Users/nebula/Desktop/Measurement_Import/CIT_magic/sio_af_example.dat -LP AF -spc 2 -loc "unknown" -ins 2 -ncn 2"""
                         
 
 
@@ -699,7 +704,7 @@ class convert_CIT_files_to_MagIC(wx.Frame):
 
     def __init__(self,WD):
         wx.Frame.__init__(self, None, wx.ID_ANY, self.title)
-        self.panel = wx.Panel(self)
+        #self.panel = wx.Panel(self)
         self.max_files = 1 # but maybe it could take more??
         self.WD = WD
         self.InitUI()
@@ -708,39 +713,40 @@ class convert_CIT_files_to_MagIC(wx.Frame):
     def InitUI(self):
         #print 'initializing UI for CIT file conversion'
 
-        pnl = self.panel
+        #pnl = self.panel
 
         TEXT = "CIT Format file"
         bSizer_info = wx.BoxSizer(wx.HORIZONTAL)
-        bSizer_info.Add(wx.StaticText(pnl, label=TEXT), wx.ALIGN_LEFT)
+        bSizer_info.Add(wx.StaticText(self, label=TEXT), wx.ALIGN_LEFT)
 
         #---sizer 0 ----
-        bSizer0 = pw.choose_file(self.panel, 'add', method = self.on_add_file_button)
+        self.bSizer0 = pw.choose_file(self, 'add', method = self.on_add_file_button)
 
         #---sizer 1 ----
         TEXT="Measurer (optional):"
-        bSizer1 = pw.labeled_text_field(self.panel, TEXT).sizer()
+        self.bSizer1 = pw.labeled_text_field(self, TEXT)
         
         #---sizer 2 ----
         TEXT = "Sampling Particulars (select all that apply):"
         particulars = ["FS-FD: field sampling done with a drill", "FS-H: field sampling done with hand samples", "FS-LOC-GPS: field location done with GPS", "FS-LOC-MAP:  field location done with map", "SO-POM:  a Pomeroy orientation device was used", "SO-ASC:  an ASC orientation device was used", "SO-MAG: magnetic compass used for all orientations", "SO-SUN: sun compass used for all orientations", "SO-SM: either magnetic or sun used on all orientations", "SO-SIGHT: orientation from sighting"]
-        bSizer2 = pw.check_boxes(self.panel, (6, 2, 0, 0), particulars, TEXT).sizer()
+        self.bSizer2 = pw.check_boxes(self, (6, 2, 0, 0), particulars, TEXT)
+        #print 'dir(bSizer2)', dir(bSizer2)
 
         #---sizer 3 ----
-        bSizer3 = pw.select_specimen_ncn(self.panel).sizer()
+        self.bSizer3 = pw.select_specimen_ncn(self)
 
         #---sizer 4 ----
         TEXT="Location name (optional):"
-        bSizer4 = pw.labeled_text_field(self.panel, TEXT).sizer()
+        self.bSizer4 = pw.labeled_text_field(self, TEXT)
 
         #---sizer 5 ----
-        bSizer5 = pw.replicate_measurements(self.panel).sizer()
+        self.bSizer5 = pw.replicate_measurements(self)
 
         #---buttons ---
-        self.okButton = wx.Button(self.panel, wx.ID_OK, "&OK")
-#        self.Bind(wx.EVT_BUTTON, self.on_okButton, self.okButton)
+        self.okButton = wx.Button(self, wx.ID_OK, "&OK")
+        self.Bind(wx.EVT_BUTTON, self.on_okButton, self.okButton)
 
-        self.cancelButton = wx.Button(self.panel, wx.ID_CANCEL, '&Cancel')
+        self.cancelButton = wx.Button(self, wx.ID_CANCEL, '&Cancel')
         self.Bind(wx.EVT_BUTTON, self.on_cancelButton, self.cancelButton)
 
         hboxok = wx.BoxSizer(wx.HORIZONTAL)
@@ -752,20 +758,20 @@ class convert_CIT_files_to_MagIC(wx.Frame):
         vbox.AddSpacer(10)
         vbox.Add(bSizer_info, flag=wx.ALIGN_LEFT)
         vbox.AddSpacer(10)
-        vbox.Add(bSizer0, flag=wx.ALIGN_LEFT)
+        vbox.Add(self.bSizer0, flag=wx.ALIGN_LEFT)
         vbox.AddSpacer(10)
-        vbox.Add(bSizer1, flag=wx.ALIGN_LEFT)
+        vbox.Add(self.bSizer1, flag=wx.ALIGN_LEFT)
         vbox.AddSpacer(10)
-        vbox.Add(bSizer2, flag=wx.ALIGN_LEFT)
+        vbox.Add(self.bSizer2, flag=wx.ALIGN_LEFT)
         vbox.AddSpacer(10)
-        vbox.Add(bSizer3, flag=wx.ALIGN_LEFT)
+        vbox.Add(self.bSizer3, flag=wx.ALIGN_LEFT)
         vbox.AddSpacer(10)
-        vbox.Add(bSizer4, flag=wx.ALIGN_LEFT)
+        vbox.Add(self.bSizer4, flag=wx.ALIGN_LEFT)
         vbox.AddSpacer(10)
-        vbox.Add(bSizer5, flag=wx.ALIGN_LEFT)
+        vbox.Add(self.bSizer5, flag=wx.ALIGN_LEFT)
         vbox.AddSpacer(10)
         vbox.AddSpacer(10)
-        vbox.Add(wx.StaticLine(self.panel), 0, wx.ALL|wx.EXPAND, 5)
+        vbox.Add(wx.StaticLine(self), 0, wx.ALL|wx.EXPAND, 5)
         vbox.Add(hboxok, flag=wx.ALIGN_CENTER)        
         vbox.AddSpacer(5)
 
@@ -774,7 +780,7 @@ class convert_CIT_files_to_MagIC(wx.Frame):
         hbox_all.AddSpacer(vbox)
         hbox_all.AddSpacer(20)
         
-        self.panel.SetSizer(hbox_all)
+        self.SetSizer(hbox_all)
         hbox_all.Fit(self)
         self.Show()
         self.Centre()
@@ -784,6 +790,15 @@ class convert_CIT_files_to_MagIC(wx.Frame):
         text = "choose file to convert to MagIC"
         pw.on_add_file_button(self, event, text)
 
+    def on_okButton(self, event):
+        CIT_file = self.bSizer0.return_value()
+        measurer = self.bSizer1.return_value()
+        loc_name = self.bSizer4.return_value()
+        ncn = self.bSizer3.return_value()
+        avg_replicates = self.bSizer5.return_value()
+        particulars = self.bSizer2.return_value()
+        print "file: {}".format(CIT_file)
+        print "measurer: {}, loc_name: {}, ncn: {}, avg replicates: {}, sampling particulars: {}".format(measurer, loc_name, ncn, avg_replicates, particulars)
     def on_cancelButton(self,event):
         self.Destroy()
 
