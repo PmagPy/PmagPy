@@ -49,23 +49,6 @@ class import_magnetometer_data(wx.Dialog):
         self.checked_rb = self.oc_rb0
 
 
-        #---------------------
-        # Lori's experiment
-        #---------------------
-        ignore = """
-        self.Bind(wx.EVT_RADIOBUTTON, self.OnRadioButtonSelect, self.oc_rb0)
-        self.Bind(wx.EVT_RADIOBUTTON, self.OnRadioButtonSelect, self.oc_rb1)
-        self.Bind(wx.EVT_RADIOBUTTON, self.OnRadioButtonSelect, self.oc_rb2)
-        self.Bind(wx.EVT_RADIOBUTTON, self.OnRadioButtonSelect, self.oc_rb3)
-        self.Bind(wx.EVT_RADIOBUTTON, self.OnRadioButtonSelect, self.oc_rb4)
-        self.Bind(wx.EVT_RADIOBUTTON, self.OnRadioButtonSelect, self.oc_rb5)
-        self.Bind(wx.EVT_RADIOBUTTON, self.OnRadioButtonSelect, self.oc_rb6)
-        self.Bind(wx.EVT_RADIOBUTTON, self.OnRadioButtonSelect, self.oc_rb7)
-        self.Bind(wx.EVT_RADIOBUTTON, self.OnRadioButtonSelect, self.oc_rb8)
-        """
-
-
-
         
         #---------------------
         # OK/Cancel buttons
@@ -106,9 +89,9 @@ class import_magnetometer_data(wx.Dialog):
         self.Destroy()
 
     def on_okButton(self,event):
-        print 'self.checked', self.checked_rb
+        #print 'self.checked', self.checked_rb
         file_type = self.checked_rb.Label.split()[0] # extracts name of the checked radio button
-        print 'file_type', file_type
+        #print 'file_type', file_type
         if file_type == 'generic':
             dia = convert_generic_files_to_MagIC(self.WD)
         elif file_type == 'SIO':
@@ -120,9 +103,9 @@ class import_magnetometer_data(wx.Dialog):
 
 
     def OnRadioButtonSelect(self, event):
-        print 'calling OnRadioButtonSelect'
+        #print 'calling OnRadioButtonSelect'
         self.checked_rb = event.GetEventObject()
-        print 'current self.checked_rb', self.checked_rb.Label
+        #print 'current self.checked_rb', self.checked_rb.Label
 #        print '-------------'
 
     def on_nextButton(self,event):
@@ -145,6 +128,7 @@ class convert_generic_files_to_MagIC(wx.Frame):
         self.panel = wx.Panel(self)
         self.max_files=1
         self.WD=WD
+        #print 'self.WD on init generic files', self.WD
         self.InitUI()
 
     def InitUI(self):
@@ -310,15 +294,19 @@ class convert_generic_files_to_MagIC(wx.Frame):
 
 
     def on_add_file_button(self,event):
+        text = "choose file to convert to MagIC"
+        pw.on_add_file_button(self, event, text)
+#        dlg = wx.FileDialog(
+#            None,message="choose file to convert to MagIC",
+#            defaultDir=self.WD,
+#            defaultFile="",
+#            style=wx.OPEN | wx.CHANGE_DIR
+#            style=wx.CHANGE_DIR | wx.OPEN
+#            )
+#        print 'dlg.GetDirectory()', dlg.GetDirectory()
+#        if dlg.ShowModal() == wx.ID_OK:
+#            self.file_path.SetValue(str(dlg.GetPath()))
 
-        dlg = wx.FileDialog(
-            None,message="choose file to convert to MagIC",
-            defaultDir=self.WD,
-            defaultFile="",
-            style=wx.OPEN | wx.CHANGE_DIR
-            )
-        if dlg.ShowModal() == wx.ID_OK:
-            self.file_path.SetValue(str(dlg.GetPath()))
 
     def on_okButton(self,event):
 
@@ -604,7 +592,7 @@ class convert_SIO_files_to_MagIC(wx.Frame):
 
 
     def InitUI(self):
-        print 'initializing UI for SIO file conversion'
+        #print 'initializing UI for SIO file conversion'
 
         pnl = self.panel
 
@@ -613,7 +601,7 @@ class convert_SIO_files_to_MagIC(wx.Frame):
         bSizer_info.Add(wx.StaticText(pnl, label=TEXT), wx.ALIGN_LEFT)
 
         #---sizer 0 ----
-        bSizer0 = pw.choose_file(self.panel, method=None).sizer()
+        bSizer0 = pw.choose_file(self.panel, method = self.on_add_file_button)
 
         #---sizer 1 ----
         bSizer1 = pw.labeled_text_field(self.panel).sizer()
@@ -697,6 +685,11 @@ class convert_SIO_files_to_MagIC(wx.Frame):
         
     def on_cancelButton(self,event):
         self.Destroy()
+
+    def on_add_file_button(self,event):
+        text = "choose file to convert to MagIC"
+        pw.on_add_file_button(self, event, text)
+
                         
 
 
@@ -713,7 +706,7 @@ class convert_CIT_files_to_MagIC(wx.Frame):
 
 
     def InitUI(self):
-        print 'initializing UI for CIT file conversion'
+        #print 'initializing UI for CIT file conversion'
 
         pnl = self.panel
 
@@ -722,7 +715,7 @@ class convert_CIT_files_to_MagIC(wx.Frame):
         bSizer_info.Add(wx.StaticText(pnl, label=TEXT), wx.ALIGN_LEFT)
 
         #---sizer 0 ----
-        bSizer0 = pw.choose_file(self.panel, 'add').sizer()
+        bSizer0 = pw.choose_file(self.panel, 'add', method = self.on_add_file_button)
 
         #---sizer 1 ----
         TEXT="Measurer (optional):"
@@ -785,7 +778,12 @@ class convert_CIT_files_to_MagIC(wx.Frame):
         hbox_all.Fit(self)
         self.Show()
         self.Centre()
-        
+
+
+    def on_add_file_button(self,event):
+        text = "choose file to convert to MagIC"
+        pw.on_add_file_button(self, event, text)
+
     def on_cancelButton(self,event):
         self.Destroy()
 

@@ -3,16 +3,44 @@
 import wx
 
 
-# make library for commonly used widgets.  
+# library for commonly used widgets.  
 
 
-# this isn't right yet, but you can make it work
 
+
+class choose_file(wx.StaticBoxSizer):
+
+    def __init__(self, parent, orient=wx.VERTICAL, btn_text='add', method=None):
+        #__init__ (self, box, orient=HORIZONTAL)
+        box = wx.StaticBox( parent, wx.ID_ANY, "" )
+        super(choose_file, self).__init__(box, orient=wx.VERTICAL)
+        self.btn_text = btn_text
+        self.method = method
+        self.parent = parent
+
+        self.file_path = wx.TextCtrl(self.parent, id=-1, size=(400,25), style=wx.TE_READONLY)
+        self.add_file_button = wx.Button(self.parent, id=-1, label=btn_text,name='add')
+        if method:
+            self.parent.Bind(wx.EVT_BUTTON, method, self.add_file_button)
+        TEXT="Choose file (no spaces are allowed in path):"
+        self.Add(wx.StaticText(self.parent, label=TEXT),wx.ALIGN_LEFT)
+        self.AddSpacer(5)
+        bSizer0_1=wx.BoxSizer(wx.HORIZONTAL)
+        bSizer0_1.Add(self.add_file_button, wx.ALIGN_LEFT)
+        bSizer0_1.AddSpacer(5)
+        bSizer0_1.Add(self.file_path, wx.ALIGN_LEFT)
+        self.Add(bSizer0_1, wx.ALIGN_LEFT)
+
+
+
+
+"""
 class choose_file(wx.StaticBox):
     
 #    __init__(self, parent, id, pos, size, style, validator, name) 
     def __init__(self, parent, btn_text='add', method=None):
         print 'init choose file'
+        print 'method for binding', method
         self.parent = parent
         self.bSizer0 =  wx.StaticBoxSizer( wx.StaticBox( self.parent, wx.ID_ANY, "" ), wx.VERTICAL )
         self.file_path = wx.TextCtrl(parent, id=-1, size=(400,25), style=wx.TE_READONLY)
@@ -23,6 +51,30 @@ class choose_file(wx.StaticBox):
         self.bSizer0.Add(wx.StaticText(self.parent, label=TEXT),wx.ALIGN_LEFT)
         self.bSizer0.AddSpacer(5)
         bSizer0_1=wx.BoxSizer(wx.HORIZONTAL)
+        bSizer0_1.Add(self.add_file_button, wx.ALIGN_LEFT)
+        bSizer0_1.AddSpacer(5)
+        bSizer0_1.Add(self.file_path, wx.ALIGN_LEFT)
+        self.bSizer0.Add(bSizer0_1, wx.ALIGN_LEFT)
+
+    def sizer(self):
+        return self.bSizer0
+"""
+
+class choose_dir(wx.StaticBox):
+    
+#    __init__(self, parent, id, pos, size, style, validator, name) 
+    def __init__(self, parent, btn_text='add', method=None):
+        #print 'init choose file'
+        self.parent = parent
+        self.bSizer0 =  wx.StaticBoxSizer( wx.StaticBox( self.parent, wx.ID_ANY, "" ), wx.VERTICAL )
+        self.file_path = wx.TextCtrl(parent, id=-1, size=(400,25), style=wx.TE_READONLY)
+        self.add_file_button = wx.Button(parent, id=-1, label=btn_text,name='add')
+        if method:
+            self.Bind(wx.EVT_BUTTON, method, self.add_file_button)
+        TEXT="Choose folder (no spaces are allowed in path):"
+        self.bSizer0.Add(wx.StaticText(self.parent, label=TEXT),wx.ALIGN_LEFT)
+        self.bSizer0.AddSpacer(5)
+        bSizer0_1=wx.BoxSizer(wx.HORIZONTAL)
         bSizer0_1.Add(self.add_file_button,wx.ALIGN_LEFT)
         bSizer0_1.AddSpacer(5)
         bSizer0_1.Add(self.file_path,wx.ALIGN_LEFT)
@@ -30,6 +82,8 @@ class choose_file(wx.StaticBox):
 
     def sizer(self):
         return self.bSizer0
+
+
 
     
 class labeled_text_field(wx.StaticBox):
@@ -128,3 +182,30 @@ class lab_field():
     def sizer(self):
         return self.bSizer3
         
+
+
+
+
+
+def on_add_file_button(SELF, event, text):
+    dlg = wx.FileDialog(
+            None, message=text,
+        defaultDir=SELF.WD,
+            defaultFile="",
+        style=wx.OPEN | wx.CHANGE_DIR
+            )
+    if dlg.ShowModal() == wx.ID_OK:
+            SELF.file_path.SetValue(str(dlg.GetPath()))
+"""
+def on_add_file_button(SELF,event, text):
+
+   dlg = wx.FileDialog(
+           None,message=text,
+           defaultDir=SELF.WD,
+        defaultFile="",
+        style=wx.OPEN | wx.CHANGE_DIR
+        )
+   if dlg.ShowModal() == wx.ID_OK:
+        #SELF.box_sizer_high_level_text.Add(SELF.high_level_text_box, 0, wx.ALIGN_LEFT, 0 )                                       
+        SELF.file_pathes.AppendText(str(dlg.GetPath())+"\n")
+"""
