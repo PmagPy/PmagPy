@@ -62,7 +62,6 @@ class labeled_text_field(wx.StaticBoxSizer):
         self.Add(wx.StaticText(self.parent, label=TEXT),wx.ALIGN_LEFT)
         self.AddSpacer(5)
         self.text_field = wx.TextCtrl(self.parent, id=-1, size=(100,25))
-        self.text_field.SetValue('prince of paris')
         self.Add(self.text_field,wx.ALIGN_LEFT)
         
     def return_value(self):
@@ -76,9 +75,9 @@ class select_specimen_ncn(wx.StaticBoxSizer):
         self.parent = parent
         box = wx.StaticBox( parent, wx.ID_ANY, "" )
         super(select_specimen_ncn, self).__init__(box, orient=wx.VERTICAL)
-        ncn_keys = ['XXXXY', 'XXXX-YY', 'XXXX.YY', 'XXXX[YYY] where YYY is sample designation, enter number of Y', 'sample name=site name', 'Site names in orient.txt file', '[XXXX]YYY where XXXX is the site name, enter number of X', 'this is a synthetic and hasno site name']
+        ncn_keys = ['XXXXY', 'XXXX-YY', 'XXXX.YY', 'XXXX[YYY] where YYY is sample designation, enter number of Y', 'sample name=site name', 'Site names in orient.txt file', '[XXXX]YYY where XXXX is the site name, enter number of X', 'this is a synthetic and has no site name']
         ncn_values = range(1,9)
-        sample_naming_conventions = dict(zip(ncn_keys, ncn_values))
+        self.sample_naming_conventions = dict(zip(ncn_keys, ncn_values))
         self.select_naming_convention = wx.ComboBox(parent, -1, ncn_keys[0], size=(250,25), choices=ncn_keys, style=wx.CB_DROPDOWN)
         self.sample_naming_convention_char = wx.TextCtrl(parent, id=-1, size=(40,25))
         gridbSizer = wx.GridSizer(2, 2, 5, 10)
@@ -91,13 +90,18 @@ class select_specimen_ncn(wx.StaticBoxSizer):
 
     def return_value(self):
         print self.select_naming_convention.GetValue()
-        return str(self.select_naming_convention.GetValue()), str(self.sample_naming_convention_char.GetValue())
+        selected_ncn = str(self.select_naming_convention.GetValue())
+        ncn_number = self.sample_naming_conventions[selected_ncn]
+        if ncn_number == 4 or ncn_number == 7: # these are the only two that require a delimiter
+            return str(ncn_number) + '-' + str(self.sample_naming_convention_char.GetValue())
+        else:
+            return str(ncn_number)
 
 
 class replicate_measurements(wx.StaticBoxSizer):
     
     def __init__(self, parent):
-        box = wx.StaticBox( parent, wx.ID_ANY, "replicate measurements box" )
+        box = wx.StaticBox( parent, wx.ID_ANY, "" )
         super(replicate_measurements, self).__init__(box, orient=wx.HORIZONTAL)
         TEXT="replicate measurements:"
         replicate_text = wx.StaticText(parent,label=TEXT,style=wx.TE_CENTER)
@@ -136,7 +140,7 @@ class check_boxes(wx.StaticBoxSizer):
         checked = []
         for cb in self.boxes:
             if cb.GetValue():
-                checked.append(cb.Label)
+                checked.append(str(cb.Label))
         return checked
 
 
@@ -162,7 +166,8 @@ class lab_field(wx.StaticBoxSizer):
         self.Add(gridbSizer3,wx.ALIGN_LEFT)
 
     def return_value(self):
-        return self.file_info_Blab.GetValue(), self.file_info_Blab_dec.GetValue(), self.file_info_Blab_inc.GetValue()
+        lab_field = "{} {} {}".format(self.file_info_Blab.GetValue(), self.file_info_Blab_dec.GetValue(), self.file_info_Blab_inc.GetValue())
+        return lab_field
 
 
 def on_add_file_button(SELF, event, text):

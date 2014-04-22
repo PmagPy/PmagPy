@@ -623,18 +623,22 @@ class convert_SIO_files_to_MagIC(wx.Frame):
         TEXT="Location name (optional):"
         self.bSizer5 = pw.labeled_text_field(self, TEXT)
 
-        #---sizer 6 ----
-        self.bSizer6 = pw.replicate_measurements(self)
+        #---sizer 6 ---
+        TEXT="Instrument name:"
+        self.bSizer6 = pw.labeled_text_field(self, TEXT)
 
         #---sizer 7 ----
-
-        TEXT = "peak AF field (mT) if ARM: "
-        self.bSizer7 = pw.labeled_text_field(self, TEXT)
+        self.bSizer7 = pw.replicate_measurements(self)
 
         #---sizer 8 ----
 
-        TEXT = "Coil number for ASC impulse coil (if treatment units in Volts): "
+        TEXT = "peak AF field (mT) if ARM: "
         self.bSizer8 = pw.labeled_text_field(self, TEXT)
+
+        #---sizer 9 ----
+
+        TEXT = "Coil number for ASC impulse coil (if treatment units in Volts): "
+        self.bSizer9 = pw.labeled_text_field(self, TEXT)
 
         #---buttons ----
 
@@ -671,6 +675,8 @@ class convert_SIO_files_to_MagIC(wx.Frame):
         vbox.AddSpacer(8)
         vbox.Add(self.bSizer8, flag=wx.ALIGN_LEFT)
         vbox.AddSpacer(8)
+        vbox.Add(self.bSizer9, flag=wx.ALIGN_LEFT)
+        vbox.AddSpacer(8)
         vbox.Add(wx.StaticLine(self), 0, wx.ALL|wx.EXPAND, 5)
         vbox.Add(hboxok, flag=wx.ALIGN_CENTER)        
         vbox.AddSpacer(4)
@@ -700,10 +706,11 @@ class convert_SIO_files_to_MagIC(wx.Frame):
         ncn = self.bSizer4.return_value()
         loc_name = self.bSizer5.return_value()
         replicate = self.bSizer6.return_value()
-        peak_AF = self.bSizer7.return_value()
-        coil_number = self.bSizer8.return_value()
+        instrument = self.bSizer7.return_value()
+        peak_AF = self.bSizer8.return_value()
+        coil_number = self.bSizer9.return_value()
         print "file: {}".format(SIO_file)
-        print "user: {}, experiment: {}, lab_field: {}, ncn: {}, loc: {}, replicate: {}, peak AF: {}, coil number: {}".format(user, experiment_type, lab_field, ncn, loc_name, replicate, peak_AF, coil_number)
+        print "user: {}, experiment: {}, lab_field: {}, ncn: {}, loc: {}, replicate: {}, instrument: {}, peak AF: {}, coil number: {}".format(user, experiment_type, lab_field, ncn, loc_name, replicate, instrument, peak_AF, coil_number)
         
         """sio_magic.py  -F /Users/nebula/Desktop/Measurement_Import/CIT_magic/sio_af_example.dat.magic -f /Users/nebula/Desktop/Measurement_Import/CIT_magic/sio_af_example.dat -LP AF -spc 2 -loc "unknown" -ins 2 -ncn 2"""
                         
@@ -744,14 +751,23 @@ class convert_CIT_files_to_MagIC(wx.Frame):
         #print 'dir(bSizer2)', dir(bSizer2)
 
         #---sizer 3 ----
-        self.bSizer3 = pw.select_specimen_ncn(self)
+        self.bSizer3 = pw.lab_field(self)
 
         #---sizer 4 ----
-        TEXT="Location name (optional):"
-        self.bSizer4 = pw.labeled_text_field(self, TEXT)
+        self.bSizer4 = pw.select_specimen_ncn(self)
 
-        #---sizer 5 ----
-        self.bSizer5 = pw.replicate_measurements(self)
+        #---sizer 5 ---
+        TEXT = "specify number of characters to designate a specimen, default = 0"
+        self.bSizer5 = pw.labeled_text_field(self, TEXT)
+
+        #---sizer 6 ----
+        TEXT="Location name (optional):"
+        self.bSizer6 = pw.labeled_text_field(self, TEXT)
+
+        #---sizer 7 ---
+        TEXT = "peak AF field (mT) if ARM: "
+        self.bSizer7 = pw.labeled_text_field(self, TEXT)
+
 
         #---buttons ---
         self.okButton = wx.Button(self, wx.ID_OK, "&OK")
@@ -781,6 +797,9 @@ class convert_CIT_files_to_MagIC(wx.Frame):
         vbox.AddSpacer(10)
         vbox.Add(self.bSizer5, flag=wx.ALIGN_LEFT)
         vbox.AddSpacer(10)
+        vbox.Add(self.bSizer6, flag=wx.ALIGN_LEFT)
+        vbox.AddSpacer(10)
+        vbox.Add(self.bSizer7, flag=wx.ALIGN_LEFT)
         vbox.AddSpacer(10)
         vbox.Add(wx.StaticLine(self), 0, wx.ALL|wx.EXPAND, 5)
         vbox.Add(hboxok, flag=wx.ALIGN_CENTER)        
@@ -802,14 +821,25 @@ class convert_CIT_files_to_MagIC(wx.Frame):
         pw.on_add_file_button(self, event, text)
 
     def on_okButton(self, event):
-        CIT_file = self.bSizer0.return_value()
-        measurer = self.bSizer1.return_value()
-        loc_name = self.bSizer4.return_value()
-        ncn = self.bSizer3.return_value()
-        avg_replicates = self.bSizer5.return_value()
-        particulars = self.bSizer2.return_value()
-        print "file: {}".format(CIT_file)
-        print "measurer: {}, loc_name: {}, ncn: {}, avg replicates: {}, sampling particulars: {}".format(measurer, loc_name, ncn, avg_replicates, particulars)
+        wd = self.WD
+        full_file = self.bSizer0.return_value()
+        ind = full_file.rfind('/')
+        CIT_file = full_file[ind+1:] 
+        outfile = CIT_file + ".magic"
+        user = self.bSizer1.return_value()
+        spec_num = self.bSizer5.return_value()
+        loc_name = self.bSizer6.return_value()
+        ncn = self.bSizer4.return_value()
+        particulars = [p.split(':')[0] for p in self.bSizer2.return_value()]
+        particulars = ':'.join(particulars)
+        lab_field = self.bSizer3.return_value()
+        peak_AF = self.bSizer7.return_value()
+        COMMAND = "CIT_magic.py -WD {} -f {} -F {}  -mcd {} -spc {} -loc {} -usr {} -ncn {} -ac {} -dc {}".format(wd, CIT_file, outfile, particulars, spec_num, loc_name, user, ncn, peak_AF, lab_field)
+        print "-I- Running Python command:\n %s"%COMMAND
+        os.system(COMMAND)                                          
+
+
+
     def on_cancelButton(self,event):
         self.Destroy()
 
