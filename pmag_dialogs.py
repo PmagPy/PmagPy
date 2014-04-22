@@ -559,7 +559,6 @@ class combine_magic_dialog(wx.Frame):
                      
         
         
-        
     def on_cancelButton(self,event):
         self.Destroy()
 
@@ -579,30 +578,27 @@ class combine_magic_dialog(wx.Frame):
         self.Destroy()
 
 
+
+#import wx.lib.scrolledpanel as wxScrolledPanel 
 class convert_SIO_files_to_MagIC(wx.Frame):
     """stuff"""
     title = "PmagPy SIO file conversion"
 
     def __init__(self,WD):
         wx.Frame.__init__(self, None, wx.ID_ANY, self.title)
-        self.panel = wx.Panel(self)
+        #self.panel = wx.Panel(self)
         self.max_files = 1 # but maybe it could take more??
         self.WD=WD
         self.InitUI()
 
 
     def InitUI(self):
-        #print 'initializing UI for SIO file conversion'
-
-        #pnl = self.panel
 
         TEXT = "SIO Format file"
         bSizer_info = wx.BoxSizer(wx.HORIZONTAL)
         bSizer_info.Add(wx.StaticText(self, label=TEXT), wx.ALIGN_LEFT)
+#        bSizer_info.Add(wx.StaticText(self), wx.ALIGN_LEFT)
 
-        #---sizer 0 ----
-        #replacing self.panel with self for a minute
-        
         self.bSizer0 = pw.choose_file(self, method = self.on_add_file_button)
 
         #---sizer 1 ----
@@ -610,7 +606,8 @@ class convert_SIO_files_to_MagIC(wx.Frame):
 
         #---sizer 2 ----
         TEXT = "Experiment type (select all that apply):"
-        experiments_names=['Demag', 'Thermal(includes thellier but not trm)', 'Shaw method', 'IRM (acquisition)', '3D IRM experiment', 'NRM only', 'TRM acquisition', 'double AF demag', 'triple AF demag (GRM protocol)', 'Cooling rate experiment']
+        experiments_names=['Demag', 'Thermal (includes thellier but not trm)', 'Shaw method', 'IRM (acquisition)', '3D IRM experiment', 'NRM only', 'TRM acquisition', 'double AF demag', 'triple AF demag (GRM protocol)', 'Cooling rate experiment']
+
         self.bSizer2 = pw.check_boxes(self, (5, 3, 0, 0), experiments_names, TEXT)
 
         #---sizer 3 ----
@@ -654,29 +651,29 @@ class convert_SIO_files_to_MagIC(wx.Frame):
 
         #------
         vbox=wx.BoxSizer(wx.VERTICAL)
-        vbox.AddSpacer(8)
+        #vbox.AddSpacer(8)
         vbox.Add(bSizer_info, flag=wx.ALIGN_LEFT)
-        vbox.AddSpacer(8)
+        #vbox.AddSpacer(8)
         vbox.Add(self.bSizer0, flag=wx.ALIGN_LEFT)
-        vbox.AddSpacer(8)
+        #vbox.AddSpacer(8)
         vbox.Add(self.bSizer1, flag=wx.ALIGN_LEFT)
-        vbox.AddSpacer(8)
+        #vbox.AddSpacer(8)
         vbox.Add(self.bSizer2, flag=wx.ALIGN_LEFT)
-        vbox.AddSpacer(8)
+        #vbox.AddSpacer(8)
         vbox.Add(self.bSizer3, flag=wx.ALIGN_LEFT)
-        vbox.AddSpacer(8)
+        #vbox.AddSpacer(8)
         vbox.Add(self.bSizer4, flag=wx.ALIGN_LEFT)
-        vbox.AddSpacer(8)
+        #vbox.AddSpacer(8)
         vbox.Add(self.bSizer5, flag=wx.ALIGN_LEFT)
-        vbox.AddSpacer(8)
+        #vbox.AddSpacer(8)
         vbox.Add(self.bSizer6, flag=wx.ALIGN_LEFT)
-        vbox.AddSpacer(8)
+        #vbox.AddSpacer(8)
         vbox.Add(self.bSizer7, flag=wx.ALIGN_LEFT)
-        vbox.AddSpacer(8)
+        #vbox.AddSpacer(8)
         vbox.Add(self.bSizer8, flag=wx.ALIGN_LEFT)
-        vbox.AddSpacer(8)
+        #vbox.AddSpacer(8)
         vbox.Add(self.bSizer9, flag=wx.ALIGN_LEFT)
-        vbox.AddSpacer(8)
+        #vbox.AddSpacer(8)
         vbox.Add(wx.StaticLine(self), 0, wx.ALL|wx.EXPAND, 5)
         vbox.Add(hboxok, flag=wx.ALIGN_CENTER)        
         vbox.AddSpacer(4)
@@ -700,19 +697,29 @@ class convert_SIO_files_to_MagIC(wx.Frame):
 
     def on_okButton(self, event):
         SIO_file = self.bSizer0.return_value()
+        outfile = SIO_file + '.magic'
         user = self.bSizer1.return_value()
         experiment_type = self.bSizer2.return_value()
         lab_field = self.bSizer3.return_value()
         ncn = self.bSizer4.return_value()
         loc_name = self.bSizer5.return_value()
-        replicate = self.bSizer6.return_value()
-        instrument = self.bSizer7.return_value()
+        instrument = self.bSizer6.return_value()
+        replicate = self.bSizer7.return_value()
+        if replicate:
+            replicate = ''
+        else:
+            replicate = '-A'
         peak_AF = self.bSizer8.return_value()
         coil_number = self.bSizer9.return_value()
-        print "file: {}".format(SIO_file)
-        print "user: {}, experiment: {}, lab_field: {}, ncn: {}, loc: {}, replicate: {}, instrument: {}, peak AF: {}, coil number: {}".format(user, experiment_type, lab_field, ncn, loc_name, replicate, instrument, peak_AF, coil_number)
+        experiment_key = {'Demag': 'AF', 'Thermal (includes thellier but not trm)': 'T', 'Shaw method': 'S', 'IRM (acquisition)': 'I', '3D IRM experiment': 'I3d', 'NRM only': 'N', 'TRM acquisition': 'TRM', 'anisotropy experiment': 'ANI', 'double AF demag': 'D', 'triple AF demag (GRM protocol)': 'G', 'Cooling rate experiment': 'CR'}
+        experiment_string = ''
+        for ex in experiment_type:
+            experiment_string += experiment_key[ex] + ':'
+        experiment_string = experiment_string[:-1]
+        COMMAND = "sio_magic.py -F {} -f {} -usr {} -LP {} -loc {} -ncn {} -dc {} -ac {} -V {} -ins {} {}".format(outfile, SIO_file, user, experiment_string, loc_name, ncn, lab_field, peak_AF, coil_number, instrument, replicate)
+        #print 'COMMAND', COMMAND
+        pw.run_command_and_close_window(self, COMMAND, outfile)
         
-        """sio_magic.py  -F /Users/nebula/Desktop/Measurement_Import/CIT_magic/sio_af_example.dat.magic -f /Users/nebula/Desktop/Measurement_Import/CIT_magic/sio_af_example.dat -LP AF -spc 2 -loc "unknown" -ins 2 -ncn 2"""
                         
 
 
@@ -827,7 +834,7 @@ class convert_CIT_files_to_MagIC(wx.Frame):
         CIT_file = full_file[ind+1:] 
         outfile = CIT_file + ".magic"
         user = self.bSizer1.return_value() or "None" # defaults to empty string
-        spec_num = self.bSizer5.return_value() or 1 # defaults to 1 if user doesn't provide a number
+        spec_num = self.bSizer5.return_value() or 0 # defaults to 0 if user doesn't provide a number
         loc_name = self.bSizer6.return_value() or "None" # defaults to empty string
         ncn = self.bSizer4.return_value()
         particulars = [p.split(':')[0] for p in self.bSizer2.return_value()]
@@ -836,18 +843,6 @@ class convert_CIT_files_to_MagIC(wx.Frame):
         peak_AF = self.bSizer7.return_value()
         COMMAND = "CIT_magic.py -WD {} -f {} -F {}  -mcd {} -spc {} -loc {} -usr {} -ncn {} -ac {} -dc {}".format(wd, CIT_file, outfile, particulars, spec_num, loc_name, user, ncn, peak_AF, lab_field)
         pw.run_command_and_close_window(self, COMMAND, outfile)
-
-        #print "-I- Running Python command:\n %s"%COMMAND
-#        os.system(COMMAND)                                          
-#        MSG="file converted to MagIC format file:\n%s.\n\n See Termimal (Mac) or command prompt (windows) for errors"% outfile
-#        dlg = wx.MessageDialog(None,caption="Message:", message=MSG ,style=wx.OK|wx.ICON_INFORMATION)
-#        dlg.ShowModal()
-#        dlg.Destroy()
-
-#        self.Destroy()
-
-
-
 
     def on_cancelButton(self,event):
         self.Destroy()

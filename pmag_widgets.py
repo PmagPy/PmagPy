@@ -21,10 +21,10 @@ class choose_file(wx.StaticBoxSizer):
             self.parent.Bind(wx.EVT_BUTTON, method, self.add_file_button)
         TEXT="Choose file (no spaces are allowed in path):"
         self.Add(wx.StaticText(self.parent, label=TEXT),wx.ALIGN_LEFT)
-        self.AddSpacer(5)
+        self.AddSpacer(4)
         bSizer0_1=wx.BoxSizer(wx.HORIZONTAL)
         bSizer0_1.Add(self.add_file_button, wx.ALIGN_LEFT)
-        bSizer0_1.AddSpacer(5)
+        bSizer0_1.AddSpacer(4)
         bSizer0_1.Add(self.parent.file_path, wx.ALIGN_LEFT)
         self.Add(bSizer0_1, wx.ALIGN_LEFT)
 
@@ -43,10 +43,10 @@ class choose_dir(wx.StaticBox):
             self.Bind(wx.EVT_BUTTON, method, self.add_file_button)
         TEXT="Choose folder (no spaces are allowed in path):"
         self.bSizer0.Add(wx.StaticText(self.parent, label=TEXT),wx.ALIGN_LEFT)
-        self.bSizer0.AddSpacer(5)
+        self.bSizer0.AddSpacer(4)
         bSizer0_1=wx.BoxSizer(wx.HORIZONTAL)
         bSizer0_1.Add(self.add_file_button,wx.ALIGN_LEFT)
-        bSizer0_1.AddSpacer(5)
+        bSizer0_1.AddSpacer(4)
         bSizer0_1.Add(self.file_path,wx.ALIGN_LEFT)
         self.bSizer0.Add(bSizer0_1,wx.ALIGN_LEFT)
 
@@ -61,7 +61,7 @@ class labeled_text_field(wx.StaticBoxSizer):
         super(labeled_text_field, self).__init__(box, orient=wx.HORIZONTAL)
         TEXT= label
         self.Add(wx.StaticText(self.parent, label=TEXT),wx.ALIGN_LEFT)
-        self.AddSpacer(5)
+        self.AddSpacer(4)
         self.text_field = wx.TextCtrl(self.parent, id=-1, size=(100,25))
         self.Add(self.text_field,wx.ALIGN_LEFT)
         
@@ -110,9 +110,9 @@ class replicate_measurements(wx.StaticBoxSizer):
         self.replicate_rb1.SetValue(True)
         self.replicate_rb2 = wx.RadioButton(parent, -1, 'take only last measurement from replicate measurements')
         self.Add(replicate_text,wx.ALIGN_LEFT)
-        self.AddSpacer(10)
+        self.AddSpacer(8)
         self.Add(self.replicate_rb1,wx.ALIGN_LEFT)
-        self.AddSpacer(10)
+        self.AddSpacer(8)
         self.Add(self.replicate_rb2,wx.ALIGN_LEFT)
 
     def return_value(self):
