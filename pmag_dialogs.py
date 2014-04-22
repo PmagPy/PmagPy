@@ -827,7 +827,7 @@ class convert_CIT_files_to_MagIC(wx.Frame):
         CIT_file = full_file[ind+1:] 
         outfile = CIT_file + ".magic"
         user = self.bSizer1.return_value()
-        spec_num = self.bSizer5.return_value()
+        spec_num = self.bSizer5.return_value() or 0 # defaults to 0 if user doesn't provide a number
         loc_name = self.bSizer6.return_value()
         ncn = self.bSizer4.return_value()
         particulars = [p.split(':')[0] for p in self.bSizer2.return_value()]
