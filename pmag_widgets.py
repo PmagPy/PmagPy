@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import os
 import wx
 
 
@@ -170,6 +171,10 @@ class lab_field(wx.StaticBoxSizer):
         return lab_field
 
 
+
+# methods!
+
+
 def on_add_file_button(SELF, event, text):
     print 'SELF', SELF
 #    print 'dir(SELF)', dir(SELF)
@@ -181,6 +186,17 @@ def on_add_file_button(SELF, event, text):
             )
     if dlg.ShowModal() == wx.ID_OK:
             SELF.file_path.SetValue(str(dlg.GetPath()))
+
+def run_command_and_close_window(SELF, command, outfile):
+    print "-I- Running Python command:\n %s"%command
+    os.system(command)                                          
+    MSG="file converted to MagIC format file:\n%s.\n\n See Termimal (Mac) or command prompt (windows) for errors"% outfile
+    dlg = wx.MessageDialog(None,caption="Message:", message=MSG ,style=wx.OK|wx.ICON_INFORMATION)
+    dlg.ShowModal()
+    dlg.Destroy()
+    SELF.Destroy()
+
+
 """
 def on_add_file_button(SELF,event, text):
 

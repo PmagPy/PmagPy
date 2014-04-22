@@ -826,17 +826,26 @@ class convert_CIT_files_to_MagIC(wx.Frame):
         ind = full_file.rfind('/')
         CIT_file = full_file[ind+1:] 
         outfile = CIT_file + ".magic"
-        user = self.bSizer1.return_value()
-        spec_num = self.bSizer5.return_value() or 0 # defaults to 0 if user doesn't provide a number
-        loc_name = self.bSizer6.return_value()
+        user = self.bSizer1.return_value() or "None" # defaults to empty string
+        spec_num = self.bSizer5.return_value() or 1 # defaults to 1 if user doesn't provide a number
+        loc_name = self.bSizer6.return_value() or "None" # defaults to empty string
         ncn = self.bSizer4.return_value()
         particulars = [p.split(':')[0] for p in self.bSizer2.return_value()]
         particulars = ':'.join(particulars)
         lab_field = self.bSizer3.return_value()
         peak_AF = self.bSizer7.return_value()
         COMMAND = "CIT_magic.py -WD {} -f {} -F {}  -mcd {} -spc {} -loc {} -usr {} -ncn {} -ac {} -dc {}".format(wd, CIT_file, outfile, particulars, spec_num, loc_name, user, ncn, peak_AF, lab_field)
-        print "-I- Running Python command:\n %s"%COMMAND
-        os.system(COMMAND)                                          
+        pw.run_command_and_close_window(self, COMMAND, outfile)
+
+        #print "-I- Running Python command:\n %s"%COMMAND
+#        os.system(COMMAND)                                          
+#        MSG="file converted to MagIC format file:\n%s.\n\n See Termimal (Mac) or command prompt (windows) for errors"% outfile
+#        dlg = wx.MessageDialog(None,caption="Message:", message=MSG ,style=wx.OK|wx.ICON_INFORMATION)
+#        dlg.ShowModal()
+#        dlg.Destroy()
+
+#        self.Destroy()
+
 
 
 
