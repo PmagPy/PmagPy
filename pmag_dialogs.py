@@ -870,9 +870,6 @@ class convert_CIT_files_to_MagIC(wx.Frame):
 
 
 
-
-
-
 class convert_HUJI_files_to_MagIC(wx.Frame):
 
     """ """
@@ -896,19 +893,30 @@ class convert_HUJI_files_to_MagIC(wx.Frame):
         self.bSizer0 = pw.choose_file(pnl, 'add', method = self.on_add_file_button)
 
         #---sizer 1 ----
-        
+        self.bSizer1 = pw.labeled_text_field(pnl)
+
         #---sizer 2 ----
+        TEXT = "Experiment type (select all that apply):"
+        experiments_names=['Demag', 'Thermal (includes thellier but not trm)', 'Shaw method', 'IRM (acquisition)', '3D IRM experiment', 'NRM only', 'TRM acquisition', 'double AF demag', 'triple AF demag (GRM protocol)', 'Cooling rate experiment']
+        self.bSizer2 = pw.check_boxes(pnl, (5, 3, 0, 0), experiments_names, TEXT)
 
         #---sizer 3 ----
+        self.bSizer3 = pw.lab_field(pnl)
 
         #---sizer 4 ----
+        self.bSizer4 = pw.select_specimen_ncn(pnl)
 
         #---sizer 5 ---
+        TEXT = "specify number of characters to designate a specimen, default = 0"
+        self.bSizer5 = pw.labeled_text_field(pnl, TEXT)
 
         #---sizer 6 ----
+        TEXT="Location name (optional):"
+        self.bSizer6 = pw.labeled_text_field(pnl, TEXT)
 
         #---sizer 7 ---
-
+        TEXT = "peak AF field (mT) if ARM: "
+        self.bSizer7 = pw.labeled_text_field(pnl, TEXT)
 
         #---buttons ---
         self.okButton = wx.Button(pnl, wx.ID_OK, "&OK")
@@ -928,23 +936,22 @@ class convert_HUJI_files_to_MagIC(wx.Frame):
         vbox.Add(bSizer_info, flag=wx.ALIGN_LEFT)
         vbox.AddSpacer(10)
         vbox.Add(self.bSizer0, flag=wx.ALIGN_LEFT)
-        #vbox.AddSpacer(10)
-        #vbox.Add(self.bSizer1, flag=wx.ALIGN_LEFT)
-        #vbox.AddSpacer(10)
-        #vbox.Add(self.bSizer2, flag=wx.ALIGN_LEFT)
-        #vbox.AddSpacer(10)
-        #vbox.Add(self.bSizer3, flag=wx.ALIGN_LEFT)
-        #vbox.AddSpacer(10)
-        #vbox.Add(self.bSizer4, flag=wx.ALIGN_LEFT)
-        #vbox.AddSpacer(10)
-        #vbox.Add(self.bSizer5, flag=wx.ALIGN_LEFT)
-        #vbox.AddSpacer(10)
-        #vbox.Add(self.bSizer6, flag=wx.ALIGN_LEFT)
-        #vbox.Add(my_hbox, flag=wx.ALIGN_LEFT)
-        #vbox.AddSpacer(10)
-        #vbox.Add(self.bSizer7, flag=wx.ALIGN_LEFT)
-        #vbox.AddSpacer(10)
-        #vbox.Add(wx.StaticLine(self), 0, wx.ALL|wx.EXPAND, 5)
+        vbox.AddSpacer(10)
+        vbox.Add(self.bSizer1, flag=wx.ALIGN_LEFT)
+        vbox.AddSpacer(10)
+        vbox.Add(self.bSizer2, flag=wx.ALIGN_LEFT)
+        vbox.AddSpacer(10)
+        vbox.Add(self.bSizer3, flag=wx.ALIGN_LEFT)
+        vbox.AddSpacer(10)
+        vbox.Add(self.bSizer4, flag=wx.ALIGN_LEFT)
+        vbox.AddSpacer(10)
+        vbox.Add(self.bSizer5, flag=wx.ALIGN_LEFT)
+        vbox.AddSpacer(10)
+        vbox.Add(self.bSizer6, flag=wx.ALIGN_LEFT)
+        vbox.AddSpacer(10)
+        vbox.Add(self.bSizer7, flag=wx.ALIGN_LEFT)
+        vbox.AddSpacer(10)
+        vbox.Add(wx.StaticLine(pnl), 0, wx.ALL|wx.EXPAND, 5)
         vbox.Add(hboxok, flag=wx.ALIGN_CENTER)        
         vbox.AddSpacer(20)
 
@@ -965,8 +972,23 @@ class convert_HUJI_files_to_MagIC(wx.Frame):
         pw.on_add_file_button(self.panel, self.WD, event, text)
 
     def on_okButton(self, event):
-        print self.bSizer0.return_value()
-        #COMMAND = ""
+        HUJI_file = self.bSizer0.return_value()
+        outfile = "????"
+        user = self.bSizer1.return_value()
+        experiment_type = self.bSizer2.return_value()
+        lab_field = self.bSizer3.return_value()
+        ncn = self.bSizer4.return_value()
+        spc = self.bSizer5.return_value()
+        loc_name = self.bSizer6.return_value()
+        peak_AF = self.bSizer7.return_value()
+        experiment_key = {'Demag': 'AF', 'Thermal (includes thellier but not trm)': 'T', 'Shaw method': 'S', 'IRM (acquisition)': 'I', '3D IRM experiment': 'I3d', 'NRM only': 'N', 'TRM acquisition': 'TRM', 'anisotropy experiment': 'ANI', 'double AF demag': 'D', 'triple AF demag (GRM protocol)': 'G', 'Cooling rate experiment': 'CR'}
+        experiment_string = ''
+        for ex in experiment_type:
+            experiment_string += experiment_key[ex] + ':'
+        experiment_string = experiment_string[:-1]
+
+        COMMAND = "HUJI_magic.py -f {} -F {} -usr {} -LP {} -loc {} -ncn {} -dc {} -ac {}".format(HUJI_file, outfile, user, experiment_string, loc_name, ncn, lab_field, peak_AF)
+        print 'COMMAND', COMMAND
         #pw.run_command_and_close_window(self, COMMAND, outfile)
 
     def on_cancelButton(self,event):
@@ -1053,7 +1075,6 @@ class something(wx.Frame):
         #vbox.Add(self.bSizer5, flag=wx.ALIGN_LEFT)
         #vbox.AddSpacer(10)
         #vbox.Add(self.bSizer6, flag=wx.ALIGN_LEFT)
-        #vbox.Add(my_hbox, flag=wx.ALIGN_LEFT)
         #vbox.AddSpacer(10)
         #vbox.Add(self.bSizer7, flag=wx.ALIGN_LEFT)
         #vbox.AddSpacer(10)
