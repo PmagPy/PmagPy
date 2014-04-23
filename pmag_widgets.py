@@ -15,8 +15,11 @@ class choose_file(wx.StaticBoxSizer):
         self.btn_text = btn_text
         self.method = method
         self.parent = parent
+        print 'self.parent', self.parent
         self.parent.file_path = wx.TextCtrl(self.parent, id=-1, size=(400,25), style=wx.TE_READONLY)
+        print 'excalibur'
         self.add_file_button = wx.Button(self.parent, id=-1, label=btn_text,name='add')
+        print 'hooray'
         if method:
             self.parent.Bind(wx.EVT_BUTTON, method, self.add_file_button)
         TEXT="Choose file (no spaces are allowed in path):"
@@ -175,6 +178,22 @@ class lab_field(wx.StaticBoxSizer):
 # methods!
 
 
+
+
+
+def on_add_file_button(SELF, WD, event, text):
+    print 'SELF', SELF
+#    print 'dir(SELF)', dir(SELF)
+    dlg = wx.FileDialog(
+            None, message=text,
+        defaultDir=WD,
+            defaultFile="",
+        style=wx.OPEN | wx.CHANGE_DIR
+            )
+    if dlg.ShowModal() == wx.ID_OK:
+            SELF.file_path.SetValue(str(dlg.GetPath()))
+
+"""
 def on_add_file_button(SELF, event, text):
     print 'SELF', SELF
 #    print 'dir(SELF)', dir(SELF)
@@ -186,6 +205,7 @@ def on_add_file_button(SELF, event, text):
             )
     if dlg.ShowModal() == wx.ID_OK:
             SELF.file_path.SetValue(str(dlg.GetPath()))
+"""
 
 def run_command_and_close_window(SELF, command, outfile):
     print "-I- Running Python command:\n %s"%command
