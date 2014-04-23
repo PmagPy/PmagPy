@@ -748,7 +748,7 @@ class convert_CIT_files_to_MagIC(wx.Frame):
 
     def __init__(self,WD):
         wx.Frame.__init__(self, None, wx.ID_ANY, self.title)
-        #self.panel = wx.Panel(self)
+        self.panel = wx.ScrolledWindow(self)
         self.max_files = 1 # but maybe it could take more??
         self.WD = WD
         self.InitUI()
@@ -757,49 +757,49 @@ class convert_CIT_files_to_MagIC(wx.Frame):
     def InitUI(self):
         #print 'initializing UI for CIT file conversion'
 
-        #pnl = self.panel
+        pnl = self.panel
 
         TEXT = "CIT Format file"
         bSizer_info = wx.BoxSizer(wx.HORIZONTAL)
-        bSizer_info.Add(wx.StaticText(self, label=TEXT), wx.ALIGN_LEFT)
+        bSizer_info.Add(wx.StaticText(pnl, label=TEXT), wx.ALIGN_LEFT)
 
         #---sizer 0 ----
-        self.bSizer0 = pw.choose_file(self, 'add', method = self.on_add_file_button)
+        self.bSizer0 = pw.choose_file(pnl, 'add', method = self.on_add_file_button)
 
         #---sizer 1 ----
         TEXT="Measurer (optional):"
-        self.bSizer1 = pw.labeled_text_field(self, TEXT)
+        self.bSizer1 = pw.labeled_text_field(pnl, TEXT)
         
         #---sizer 2 ----
         TEXT = "Sampling Particulars (select all that apply):"
         particulars = ["FS-FD: field sampling done with a drill", "FS-H: field sampling done with hand samples", "FS-LOC-GPS: field location done with GPS", "FS-LOC-MAP:  field location done with map", "SO-POM:  a Pomeroy orientation device was used", "SO-ASC:  an ASC orientation device was used", "SO-MAG: magnetic compass used for all orientations", "SO-SUN: sun compass used for all orientations", "SO-SM: either magnetic or sun used on all orientations", "SO-SIGHT: orientation from sighting"]
-        self.bSizer2 = pw.check_boxes(self, (6, 2, 0, 0), particulars, TEXT)
+        self.bSizer2 = pw.check_boxes(pnl, (6, 2, 0, 0), particulars, TEXT)
         #print 'dir(bSizer2)', dir(bSizer2)
 
         #---sizer 3 ----
-        self.bSizer3 = pw.lab_field(self)
+        self.bSizer3 = pw.lab_field(pnl)
 
         #---sizer 4 ----
-        self.bSizer4 = pw.select_specimen_ncn(self)
+        self.bSizer4 = pw.select_specimen_ncn(pnl)
 
         #---sizer 5 ---
         TEXT = "specify number of characters to designate a specimen, default = 0"
-        self.bSizer5 = pw.labeled_text_field(self, TEXT)
+        self.bSizer5 = pw.labeled_text_field(pnl, TEXT)
 
         #---sizer 6 ----
         TEXT="Location name (optional):"
-        self.bSizer6 = pw.labeled_text_field(self, TEXT)
+        self.bSizer6 = pw.labeled_text_field(pnl, TEXT)
 
         #---sizer 7 ---
         TEXT = "peak AF field (mT) if ARM: "
-        self.bSizer7 = pw.labeled_text_field(self, TEXT)
+        self.bSizer7 = pw.labeled_text_field(pnl, TEXT)
 
 
         #---buttons ---
-        self.okButton = wx.Button(self, wx.ID_OK, "&OK")
+        self.okButton = wx.Button(pnl, wx.ID_OK, "&OK")
         self.Bind(wx.EVT_BUTTON, self.on_okButton, self.okButton)
 
-        self.cancelButton = wx.Button(self, wx.ID_CANCEL, '&Cancel')
+        self.cancelButton = wx.Button(pnl, wx.ID_CANCEL, '&Cancel')
         self.Bind(wx.EVT_BUTTON, self.on_cancelButton, self.cancelButton)
 
         hboxok = wx.BoxSizer(wx.HORIZONTAL)
@@ -825,20 +825,20 @@ class convert_CIT_files_to_MagIC(wx.Frame):
         vbox.Add(self.bSizer5, flag=wx.ALIGN_LEFT)
         vbox.AddSpacer(10)
         vbox.Add(self.bSizer6, flag=wx.ALIGN_LEFT)
-        vbox.Add(my_hbox, flag=wx.ALIGN_LEFT)
         vbox.AddSpacer(10)
         vbox.Add(self.bSizer7, flag=wx.ALIGN_LEFT)
         vbox.AddSpacer(10)
-        vbox.Add(wx.StaticLine(self), 0, wx.ALL|wx.EXPAND, 5)
+        vbox.Add(wx.StaticLine(self.panel), 0, wx.ALL|wx.EXPAND, 5)
         vbox.Add(hboxok, flag=wx.ALIGN_CENTER)        
-        vbox.AddSpacer(5)
+        vbox.AddSpacer(20)
 
         hbox_all= wx.BoxSizer(wx.HORIZONTAL)
         hbox_all.AddSpacer(20)
         hbox_all.AddSpacer(vbox)
         hbox_all.AddSpacer(20)
         
-        self.SetSizer(hbox_all)
+        self.panel.SetSizer(hbox_all)
+        self.panel.SetScrollbars(20, 20, 50, 50)
         hbox_all.Fit(self)
         self.Show()
         self.Centre()
@@ -846,7 +846,7 @@ class convert_CIT_files_to_MagIC(wx.Frame):
 
     def on_add_file_button(self,event):
         text = "choose file to convert to MagIC"
-        pw.on_add_file_button(self, event, text)
+        pw.on_add_file_button(self.panel, self.WD, event, text)
 
     def on_okButton(self, event):
         wd = self.WD
@@ -946,7 +946,7 @@ class convert_HUJI_files_to_MagIC(wx.Frame):
         #vbox.AddSpacer(10)
         #vbox.Add(wx.StaticLine(self), 0, wx.ALL|wx.EXPAND, 5)
         vbox.Add(hboxok, flag=wx.ALIGN_CENTER)        
-        vbox.AddSpacer(5)
+        vbox.AddSpacer(20)
 
         hbox_all= wx.BoxSizer(wx.HORIZONTAL)
         hbox_all.AddSpacer(20)
@@ -1059,7 +1059,7 @@ class something(wx.Frame):
         #vbox.AddSpacer(10)
         #vbox.Add(wx.StaticLine(self), 0, wx.ALL|wx.EXPAND, 5)
         vbox.Add(hboxok, flag=wx.ALIGN_CENTER)        
-        vbox.AddSpacer(5)
+        vbox.AddSpacer(20)
 
         hbox_all= wx.BoxSizer(wx.HORIZONTAL)
         hbox_all.AddSpacer(20)
