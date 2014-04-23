@@ -171,6 +171,8 @@ class lab_field(wx.StaticBoxSizer):
 
     def return_value(self):
         lab_field = "{} {} {}".format(self.file_info_Blab.GetValue(), self.file_info_Blab_dec.GetValue(), self.file_info_Blab_inc.GetValue())
+        if lab_field.isspace():
+            return ''
         return lab_field
 
 
