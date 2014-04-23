@@ -984,3 +984,102 @@ class convert_HUJI_files_to_MagIC(wx.Frame):
 #    app.frame.Center()
 #    app.MainLoop()
 
+
+# template for an import window
+class something(wx.Frame):
+
+    """ """
+    title = "PmagPy ___ file conversion"
+
+    def __init__(self,WD):
+        wx.Frame.__init__(self, None, wx.ID_ANY, self.title)
+        self.panel = wx.ScrolledWindow(self)
+        self.WD = WD
+        self.InitUI()
+
+    def InitUI(self):
+
+        pnl = self.panel
+
+        TEXT = "Hello here is a bunch of text"
+        bSizer_info = wx.BoxSizer(wx.HORIZONTAL)
+        bSizer_info.Add(wx.StaticText(pnl, label=TEXT), wx.ALIGN_LEFT)
+
+        #---sizer 0 ----
+        self.bSizer0 = pw.choose_file(pnl, 'add', method = self.on_add_file_button)
+
+        #---sizer 1 ----
+        
+        #---sizer 2 ----
+
+        #---sizer 3 ----
+
+        #---sizer 4 ----
+
+        #---sizer 5 ---
+
+        #---sizer 6 ----
+
+        #---sizer 7 ---
+
+
+        #---buttons ---
+        self.okButton = wx.Button(pnl, wx.ID_OK, "&OK")
+        self.Bind(wx.EVT_BUTTON, self.on_okButton, self.okButton)
+
+        self.cancelButton = wx.Button(pnl, wx.ID_CANCEL, '&Cancel')
+        self.Bind(wx.EVT_BUTTON, self.on_cancelButton, self.cancelButton)
+
+        hboxok = wx.BoxSizer(wx.HORIZONTAL)
+        hboxok.Add(self.okButton)
+        hboxok.Add(self.cancelButton )
+
+        #------
+        vbox=wx.BoxSizer(wx.VERTICAL)
+
+        vbox.AddSpacer(10)
+        vbox.Add(bSizer_info, flag=wx.ALIGN_LEFT)
+        vbox.AddSpacer(10)
+        vbox.Add(self.bSizer0, flag=wx.ALIGN_LEFT)
+        #vbox.AddSpacer(10)
+        #vbox.Add(self.bSizer1, flag=wx.ALIGN_LEFT)
+        #vbox.AddSpacer(10)
+        #vbox.Add(self.bSizer2, flag=wx.ALIGN_LEFT)
+        #vbox.AddSpacer(10)
+        #vbox.Add(self.bSizer3, flag=wx.ALIGN_LEFT)
+        #vbox.AddSpacer(10)
+        #vbox.Add(self.bSizer4, flag=wx.ALIGN_LEFT)
+        #vbox.AddSpacer(10)
+        #vbox.Add(self.bSizer5, flag=wx.ALIGN_LEFT)
+        #vbox.AddSpacer(10)
+        #vbox.Add(self.bSizer6, flag=wx.ALIGN_LEFT)
+        #vbox.Add(my_hbox, flag=wx.ALIGN_LEFT)
+        #vbox.AddSpacer(10)
+        #vbox.Add(self.bSizer7, flag=wx.ALIGN_LEFT)
+        #vbox.AddSpacer(10)
+        #vbox.Add(wx.StaticLine(self), 0, wx.ALL|wx.EXPAND, 5)
+        vbox.Add(hboxok, flag=wx.ALIGN_CENTER)        
+        vbox.AddSpacer(5)
+
+        hbox_all= wx.BoxSizer(wx.HORIZONTAL)
+        hbox_all.AddSpacer(20)
+        hbox_all.AddSpacer(vbox)
+        hbox_all.AddSpacer(20)
+        
+        self.panel.SetSizer(hbox_all)
+        self.panel.SetScrollbars(20, 20, 50, 50)
+        hbox_all.Fit(self)
+        self.Show()
+        self.Centre()
+
+
+    def on_add_file_button(self,event):
+        text = "choose file to convert to MagIC"
+        pw.on_add_file_button(self, event, text)
+
+    def on_okButton(self, event):
+        COMMAND = ""
+        pw.run_command_and_close_window(self, COMMAND, outfile)
+
+    def on_cancelButton(self,event):
+        self.Destroy()
