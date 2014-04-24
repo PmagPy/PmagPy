@@ -2,7 +2,7 @@ This directory contains the python scripts in the PmagPy software distribution
 by Lisa Tauxe.  Complete documentation is available at:
 http://earthref.org/PmagPy/cookbook
 
-To install, unzip the downloaded  folder and put it on your Desktop.  click on the
+Download a zip file of the entire repository by clicking on the Download ZIP button on the right side of the page. To install, unzip the downloaded  folder and put it on your Desktop.  click on the
 install script for your system. 
 
 For Linux users, just copy the contents of the folder into one in you home directory named PmagPy. 
