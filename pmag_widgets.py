@@ -15,11 +15,8 @@ class choose_file(wx.StaticBoxSizer):
         self.btn_text = btn_text
         self.method = method
         self.parent = parent
-        print 'self.parent', self.parent
         self.parent.file_path = wx.TextCtrl(self.parent, id=-1, size=(400,25), style=wx.TE_READONLY)
-        print 'excalibur'
         self.add_file_button = wx.Button(self.parent, id=-1, label=btn_text,name='add')
-        print 'hooray'
         if method:
             self.parent.Bind(wx.EVT_BUTTON, method, self.add_file_button)
         TEXT="Choose file (no spaces are allowed in path):"
@@ -93,13 +90,37 @@ class select_specimen_ncn(wx.StaticBoxSizer):
         self.Add(gridbSizer,wx.ALIGN_LEFT)
 
     def return_value(self):
-        print self.select_naming_convention.GetValue()
         selected_ncn = str(self.select_naming_convention.GetValue())
         ncn_number = self.sample_naming_conventions[selected_ncn]
         if ncn_number == 4 or ncn_number == 7: # these are the only two that require a delimiter
             return str(ncn_number) + '-' + str(self.sample_naming_convention_char.GetValue())
         else:
             return str(ncn_number)
+
+
+
+class select_specimen_ocn(wx.StaticBoxSizer):
+    def __init__(self, parent):
+        self.parent = parent
+        box = wx.StaticBox(parent, wx.ID_ANY, "")
+        super(select_specimen_ocn, self).__init__(box, orient=wx.VERTICAL)
+        ocn_keys = ["Lab arrow azimuth= mag_azimuth; Lab arrow dip=-field_dip i.e., field_dip is degrees from vertical down - the hade",
+                "Lab arrow azimuth = mag_azimuth-90; Lab arrow dip = -field_dip i.e., mag_azimuth is strike and field_dip is hade",
+                "Lab arrow azimuth = mag_azimuth; Lab arrow dip = 90-field_dip i.e.,  lab arrow same as field arrow, but field_dip was a hade.",
+                "lab azimuth and dip are same as mag_azimuth, field_dip",
+                "lab azimuth is same as mag_azimuth,lab arrow dip=field_dip-90",
+                "Lab arrow azimuth = mag_azimuth-90; Lab arrow dip = 90-field_dip"]
+        ocn_values = range(1, 6)
+        self.sample_orientation_conventions = dict(zip(ocn_keys, ocn_values))
+        self.select_orientation_convention = wx.ComboBox(parent, -1, ocn_keys[0], size=(705,25), choices=ocn_keys, style=wx.CB_DROPDOWN)
+        self.Add(self.select_orientation_convention, wx.ALIGN_LEFT)
+        self.AddSpacer(8)
+
+    def return_value(self):
+        selected_ocn = str(self.select_orientation_convention.GetValue())
+        return self.sample_orientation_conventions[selected_ocn]
+
+
 
 
 class replicate_measurements(wx.StaticBoxSizer):

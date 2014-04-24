@@ -99,7 +99,7 @@ class import_magnetometer_data(wx.Dialog):
         elif file_type == 'CIT':
             dia = convert_CIT_files_to_MagIC(self.WD)
         elif file_type == '2G-binary':
-            dia = something(self.WD)
+            dia = convert_2G_binary_files_to_MagIC(self.WD)
         elif file_type == 'HUJI':
             dia = convert_HUJI_files_to_MagIC(self.WD)
         dia.Center()
@@ -286,7 +286,7 @@ class convert_generic_files_to_MagIC(wx.Frame):
         vbox.AddSpacer(10)
         vbox.Add(wx.StaticLine(self.panel), 0, wx.ALL|wx.EXPAND, 5)
         vbox.Add(hboxok, flag=wx.ALIGN_CENTER)        
-        vbox.AddSpacer(5)
+        vbox.AddSpacer(20)
 
         hbox_all= wx.BoxSizer(wx.HORIZONTAL)
         hbox_all.AddSpacer(20)
@@ -738,8 +738,6 @@ class convert_SIO_files_to_MagIC(wx.Frame):
         COMMAND = "sio_magic.py -F {} -f {} -usr {} -LP {} -loc {} -ncn {} -dc {} -ac {} -V {} -ins {} {}".format(outfile, SIO_file, user, experiment_string, loc_name, ncn, lab_field, peak_AF, coil_number, instrument, replicate)
         #print 'COMMAND', COMMAND
         pw.run_command_and_close_window(self, COMMAND, outfile)
-        
-                        
 
 
 class convert_CIT_files_to_MagIC(wx.Frame):
@@ -925,9 +923,13 @@ class convert_HUJI_files_to_MagIC(wx.Frame):
         self.cancelButton = wx.Button(pnl, wx.ID_CANCEL, '&Cancel')
         self.Bind(wx.EVT_BUTTON, self.on_cancelButton, self.cancelButton)
 
+        self.helpButton = wx.Button(pnl, wx.ID_ANY, '&Help')
+        self.Bind(wx.EVT_BUTTON, self.on_helpButton, self.helpButton)
+
         hboxok = wx.BoxSizer(wx.HORIZONTAL)
         hboxok.Add(self.okButton)
         hboxok.Add(self.cancelButton )
+        hboxok.Add(self.helpButton)
 
         #------
         vbox=wx.BoxSizer(wx.VERTICAL)
@@ -1005,6 +1007,152 @@ class convert_HUJI_files_to_MagIC(wx.Frame):
     def on_cancelButton(self,event):
         self.Destroy()
 
+    def on_helpButton(self, event):
+        import subprocess
+        command = "HUJI_magic.py -h"
+        #os.system(command)
+        result = subprocess.check_output(command, shell=True)
+        dlg = wx.Dialog(None, title="help")
+        text = wx.TextCtrl(dlg, -1, result, size=(620,540), style=wx.TE_MULTILINE | wx.TE_READONLY)
+        sizer = wx.BoxSizer(wx.VERTICAL)
+        btnsizer = wx.BoxSizer()
+        btn = wx.Button(dlg, wx.ID_OK)
+        btnsizer.Add(btn, 0, wx.ALL, 5)
+        btnsizer.Add((5,-1), 0, wx.ALL, 5)
+        btn = wx.Button(dlg, wx.ID_CANCEL)
+        btnsizer.Add(btn, 0, wx.ALL, 5)
+        sizer.Add(text, 0, wx.EXPAND|wx.ALL, 5)    
+        sizer.Add(btnsizer, 0, wx.EXPAND|wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5)    
+        dlg.SetSizerAndFit(sizer)
+        dlg.Centre()
+        dlg.ShowModal()
+        dlg.Destroy()
+
+
+class convert_2G_binary_files_to_MagIC(wx.Frame):
+
+    """PmagPy 2G-binary conversion """
+    title = "PmagPy 2G-binary file conversion"
+
+    def __init__(self,WD):
+        wx.Frame.__init__(self, None, wx.ID_ANY, self.title)
+        self.panel = wx.ScrolledWindow(self)
+        self.WD = WD
+        self.InitUI()
+
+    def InitUI(self):
+
+        pnl = self.panel
+
+        TEXT = "2G-binary format file"
+        bSizer_info = wx.BoxSizer(wx.HORIZONTAL)
+        bSizer_info.Add(wx.StaticText(pnl, label=TEXT), wx.ALIGN_LEFT)
+
+        #---sizer 0 ----
+        self.bSizer0 = pw.choose_file(pnl, 'add', method = self.on_add_file_button)
+
+        #---sizer 1 ----
+        TEXT = "Sampling Particulars (select all that apply):"
+        particulars = ["FS-FD: field sampling done with a drill", "FS-H: field sampling done with hand samples", "FS-LOC-GPS: field location done with GPS", "FS-LOC-MAP:  field location done with map", "SO-POM:  a Pomeroy orientation device was used", "SO-ASC:  an ASC orientation device was used", "SO-MAG: magnetic compass used for all orientations", "SO-SUN: sun compass used for all orientations", "SO-SM: either magnetic or sun used on all orientations", "SO-SIGHT: orientation from sighting"]
+        self.bSizer1 = pw.check_boxes(pnl, (6, 2, 0, 0), particulars, TEXT)
+
+
+        #---sizer 2 ----
+        self.bSizer2 = pw.select_specimen_ncn(pnl)
+
+        #---sizer 3 ----
+        TEXT = "specify number of characters to designate a specimen, default = 0"
+        self.bSizer3 = pw.labeled_text_field(pnl, TEXT)
+
+        #---sizer 4 ----
+        self.bSizer4 = pw.select_specimen_ocn(pnl)
+
+        #---sizer 5 ----
+        TEXT="Location name (optional):"
+        self.bSizer5 = pw.labeled_text_field(pnl, TEXT)
+
+        #---sizer 6 ---
+        TEXT="Instrument name:"
+        self.bSizer6 = pw.labeled_text_field(pnl, TEXT)
+
+        #---sizer 7 ----
+        self.bSizer7 = pw.replicate_measurements(pnl)
+
+        #---sizer 8 ---
+        TEXT = "peak AF field (mT) if ARM: "
+        self.bSizer8 = pw.labeled_text_field(pnl, TEXT)
+
+
+        #---buttons ---
+        self.okButton = wx.Button(pnl, wx.ID_OK, "&OK")
+        self.Bind(wx.EVT_BUTTON, self.on_okButton, self.okButton)
+
+        self.cancelButton = wx.Button(pnl, wx.ID_CANCEL, '&Cancel')
+        self.Bind(wx.EVT_BUTTON, self.on_cancelButton, self.cancelButton)
+
+        hboxok = wx.BoxSizer(wx.HORIZONTAL)
+        hboxok.Add(self.okButton)
+        hboxok.Add(self.cancelButton )
+
+        #------
+        vbox=wx.BoxSizer(wx.VERTICAL)
+
+        vbox.AddSpacer(10)
+        vbox.Add(bSizer_info, flag=wx.ALIGN_LEFT)
+        vbox.AddSpacer(10)
+        vbox.Add(self.bSizer0, flag=wx.ALIGN_LEFT)
+        vbox.AddSpacer(10)
+        vbox.Add(self.bSizer1, flag=wx.ALIGN_LEFT)
+        vbox.AddSpacer(10)
+        vbox.Add(self.bSizer2, flag=wx.ALIGN_LEFT)
+        vbox.AddSpacer(10)
+        vbox.Add(self.bSizer3, flag=wx.ALIGN_LEFT)
+        vbox.AddSpacer(10)
+        vbox.Add(self.bSizer4, flag=wx.ALIGN_LEFT)
+        vbox.AddSpacer(10)
+        vbox.Add(self.bSizer5, flag=wx.ALIGN_LEFT)
+        vbox.AddSpacer(10)
+        vbox.Add(self.bSizer6, flag=wx.ALIGN_LEFT)
+        vbox.AddSpacer(10)
+        vbox.Add(self.bSizer7, flag=wx.ALIGN_LEFT)
+        vbox.AddSpacer(10)
+        vbox.Add(self.bSizer8, flag=wx.ALIGN_LEFT)
+        vbox.AddSpacer(10)
+        vbox.Add(wx.StaticLine(pnl), 0, wx.ALL|wx.EXPAND, 5)
+        vbox.Add(hboxok, flag=wx.ALIGN_CENTER)        
+        vbox.AddSpacer(20)
+
+        hbox_all= wx.BoxSizer(wx.HORIZONTAL)
+        hbox_all.AddSpacer(20)
+        hbox_all.AddSpacer(vbox)
+        hbox_all.AddSpacer(20)
+        
+        self.panel.SetSizer(hbox_all)
+        self.panel.SetScrollbars(20, 20, 50, 50)
+        hbox_all.Fit(self)
+        self.Show()
+        self.Centre()
+
+    def on_add_file_button(self,event):
+        text = "choose file to convert to MagIC"
+        pw.on_add_file_button(self.panel, self.WD, event, text)
+
+    def on_okButton(self, event):
+        file_2G_bin = self.bSizer0.return_value()
+        outfile = file_2G_bin + '.magic'
+        sampling = self.bSizer1.return_value()
+        ncn = self.bSizer2.return_value()
+        spc = self.bSizer3.return_value()
+        ocn = self.bSizer4.return_value()
+        loc_name = self.bSizer5.return_value()
+        instrument = self.bSizer6.return_value()
+        replicate = self.bSizer7.return_value()
+        peak_AF = self.bSizer8.return_value()
+        COMMAND = "python 2G_bin_magic.py -f {} -F {}"
+        pw.run_command_and_close_window(self, COMMAND, outfile)
+
+    def on_cancelButton(self,event):
+        self.Destroy()
 
 
 
@@ -1089,7 +1237,7 @@ class something(wx.Frame):
         #vbox.AddSpacer(10)
         #vbox.Add(self.bSizer7, flag=wx.ALIGN_LEFT)
         #vbox.AddSpacer(10)
-        #vbox.Add(wx.StaticLine(self), 0, wx.ALL|wx.EXPAND, 5)
+        #vbox.Add(wx.StaticLine(pnl), 0, wx.ALL|wx.EXPAND, 5)
         vbox.Add(hboxok, flag=wx.ALIGN_CENTER)        
         vbox.AddSpacer(20)
 
