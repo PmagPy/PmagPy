@@ -1,12 +1,14 @@
 *new.out
 .DS_Store
 Command_line_Tests/
+
 *.pyc
 */*.pyc
 *.*~
 */*.*~
 *.*#
 */*.*#
+*/*/.#*
 
 rmag_anisotropy.log
 rmag_anisotropy.txt

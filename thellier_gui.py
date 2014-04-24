@@ -4137,7 +4137,6 @@ class Arai_GUI(wx.Frame):
             Fout_BS_samples.close()
         if self.acceptance_criteria['interpreter_method']['value']=='bs_par':
             Fout_BS_PAR_samples.close()
-            
         os.system('\a')
         dlg1 = wx.MessageDialog(self,caption="Message:", message="Interpreter finished sucsessfuly\nCheck output files in folder /thellier_interpreter in the current project directory" ,style=wx.OK|wx.ICON_INFORMATION)
 
@@ -4148,10 +4147,10 @@ class Arai_GUI(wx.Frame):
         self.draw_figure(self.s)
         self.update_GUI_with_new_interpretation()
 
-
         dlg1.ShowModal()
         dlg1.Destroy()
         busy_frame.Destroy()
+
     #----------------------------------------------------------------------
 
     def on_menu_open_interpreter_file(self, event):
@@ -6604,6 +6603,7 @@ class Arai_GUI(wx.Frame):
     def get_PI_parameters(self,s,tmin,tmax):
         #print 'calling get_PI_parameters'
         #print 's: {}, tmin: {}, tmax: {}'.format(s, tmin, tmax)
+
         
         #pars=self.Data[s]['pars']
         datablock = self.Data[s]['datablock']
@@ -6613,10 +6613,11 @@ class Arai_GUI(wx.Frame):
         #pars['magic_method_codes']="LP-PI-TRM" # thellier Method
         import SPD
         import SPD.spd as spd
-        Pint_pars = spd.PintPars(self.Data, str(s), tmin, tmax, 'magic')
-        Pint_pars.calculate_all_statistics()
+        Pint_pars = spd.PintPars(self.Data, str(s), tmin, tmax, 'magic', self.preferences['show_statistics_on_gui'])
+        Pint_pars.reqd_stats() # calculate only statistics indicated in self.preferences
+        #Pint_pars.calculate_all_statistics() # calculate every statistic available
 
-        pars.update(Pint_pars.pars) # temp
+        pars.update(Pint_pars.pars) # 
 
         t_Arai=self.Data[s]['t_Arai']
         x_Arai=self.Data[s]['x_Arai']
@@ -6899,6 +6900,7 @@ class Arai_GUI(wx.Frame):
         
         self.Data[s]['pars'] = pars
         #print pars.keys()
+
         return(pars)
                 
     def check_specimen_PI_criteria(self,pars):
@@ -6965,11 +6967,12 @@ class Arai_GUI(wx.Frame):
         yy=b*xx+a
         self.araiplot.plot(xx,yy,'g-',lw=2,alpha=0.5)
         if self.acceptance_criteria['specimen_scat']['value'] in [True,"True","TRUE",'1','g']:
-            if pars['specimen_scat_bounding_line_low'] != 0: # prevents error if there are no SCAT lines available
-                yy1=xx*pars['specimen_scat_bounding_line_low'][1]+pars['specimen_scat_bounding_line_low'][0]
-                yy2=xx*pars['specimen_scat_bounding_line_high'][1]+pars['specimen_scat_bounding_line_high'][0]
-                self.araiplot.plot(xx,yy1,'--',lw=0.5,alpha=0.5)
-                self.araiplot.plot(xx,yy2,'--',lw=0.5,alpha=0.5)
+            if 'specimen_scat_bounding_line_low' in pars:
+                if pars['specimen_scat_bounding_line_low'] != 0: # prevents error if there are no SCAT lines available
+                    yy1=xx*pars['specimen_scat_bounding_line_low'][1]+pars['specimen_scat_bounding_line_low'][0]
+                    yy2=xx*pars['specimen_scat_bounding_line_high'][1]+pars['specimen_scat_bounding_line_high'][0]
+                    self.araiplot.plot(xx,yy1,'--',lw=0.5,alpha=0.5)
+                    self.araiplot.plot(xx,yy2,'--',lw=0.5,alpha=0.5)
 
         self.araiplot.set_xlim(xmin=0)
         self.araiplot.set_ylim(ymin=0)

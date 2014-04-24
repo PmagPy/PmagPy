@@ -77,10 +77,21 @@ import SPD.mapping.map_magic as map_magic
 
 
 class PintPars(object):
-    """ __init__(self, Data,specimen_name,tmin,tmax,mapping=None)"""
-    def __init__(self, Data,specimen_name,tmin,tmax,mapping=None):
+    """ __init__(self, Data,specimen_name,tmin,tmax,mapping=None, calculate=None)"""
+    def __init__(self, Data, specimen_name, tmin, tmax, mapping=None, calculate=None):
         self.s = specimen_name
         self.mapping = mapping
+        ####
+        if calculate:
+            self.calculate = []
+            for stat in calculate:
+                try:
+                    ind = map_magic.magic.index('specimen_' + stat)
+                    new_stat = map_magic.spd[ind]
+                    self.calculate.append(new_stat)
+                except ValueError:
+                    self.calculate.append(stat)
+        ####
         self.specimen_Data = Data[self.s]
         self.datablock = self.specimen_Data['datablock']
 
@@ -130,13 +141,14 @@ class PintPars(object):
 
         self.pars={}
 
-        self.pars['lab_dc_field']=self.specimen_Data['pars']['lab_dc_field']
+        self.pars['specimen_lab_dc_field'] = self.specimen_Data['pars']['lab_dc_field']
+ #       self.pars['specimen_lab_ac_field'] = self.specimen_Data['pars']['lab_ac_field']
         self.B_lab_dir = [self.specimen_Data['Thellier_dc_field_phi'], self.specimen_Data['Thellier_dc_field_theta'], 
                           self.specimen_Data['Thellier_dc_field_uT']]  # 
         self.B_lab_cart = lib_direct.dir2cart(self.B_lab_dir)
 
   #      self.pars['magic_method_codes']=Data[self.s]['pars']['magic_method_codes']
-        self.pars['specimen_n']=self.end-self.start+1
+        self.pars['specimen_int_n']=self.end-self.start+1
         self.pars['specimen_n_total']=len(self.x_Arai)
 
  
@@ -173,7 +185,7 @@ class PintPars(object):
         x_segment, y_segment = self.x_Arai_segment, self.y_Arai_segment
         x_mean, y_mean = self.x_Arai_mean, self.y_Arai_mean
         n = self.n
-        lab_dc_field = float(self.specimen_Data['lab_dc_field'])
+        lab_dc_field = float(self.pars['specimen_lab_dc_field'])
         steps_Arai = self.specimen_Data['steps_Arai']
         data = lib_arai.York_Regression(x_segment, y_segment, x_mean, y_mean, n, lab_dc_field, steps_Arai)
         self.pars['x_err'] = data['x_err']
@@ -200,6 +212,7 @@ class PintPars(object):
         self.pars['B_anc'] = data['B_anc']
         self.pars['B_anc_sigma'] = data['B_anc_sigma']
         self.pars['specimen_int'] = data['specimen_int']
+        self.pars['specimen_int_sigma'] = data['specimen_int_sigma']
         return data
 
     def get_vds(self):
@@ -231,6 +244,15 @@ class PintPars(object):
         self.pars['specimen_k'] = data[0]
         self.pars['SSE'] = data[3]
         return data[0], data[3]
+
+    def get_curve_prime(self):
+        """not in SPD documentation.  same as k, but using the segment instead of the full data set"""
+        if len(self.x_Arai_segment) < 4:
+            self.pars['specimen_k_prime'], self.pars['specimen_k_prime_SSE'] = 0, 0
+            return 0
+        data = lib_k.AraiCurvature(self.x_Arai_segment, self.y_Arai_segment)
+        self.pars['specimen_k_prime'] = data[0]
+        self.pars['specimen_k_prime_SSE'] = data[3]
 
     def get_SCAT(self):
         if (len(set(self.y_Arai_segment)) == 1): # prevents divide by zero, i.e. if all y values in segment are the same [1,1,1]
@@ -464,6 +486,9 @@ class PintPars(object):
         self.pars['mean_DEV_prime'] = mean_DEV_prime
 
     def get_delta_pal(self): 
+        if self.pars['n_ptrm'] == 0: # otherwise will error if no ptrm checks
+            self.pars['delta_pal'] = 0
+            return 0
         ptrms_segment, checks_segment = lib_ptrm.get_segments(self.PTRMS, self.PTRM_Checks, self.tmax)
         delta_pal = lib_ptrm.get_full_delta_pal(self.PTRMS, self.PTRM_Checks, self.NRM, self.pars['y_err'], 
                                                 self.y_Arai_mean, self.pars['specimen_b'], self.start, self.end,
@@ -523,75 +548,15 @@ class PintPars(object):
     # statistics that require an independent paleointensity study
 
     def get_alpha_prime(self):
-        self.pars['specimen_alpha_prime'] = -999
+        self.pars['specimen_alpha_prime'] = -999.
 
     def get_CRM_percent(self):
-        self.pars['specimen_int_crm'] = -999
+        self.pars['specimen_int_crm'] = -999.
 
     def get_delta_t_star(self):
-        self.pars['specimen_dt'] = -999
+        self.pars['specimen_dt'] = -999.
 
-      
-    def arai_plot_statistics(self):
-        self.York_Regression()
-        self.get_vds()
-        self.get_FRAC()
-        self.get_curve()
-        self.get_SCAT()
-        self.get_R_corr2()
-        self.get_R_det2()
-        self.get_Z()
-        self.get_Zstar()
-        self.get_IZZI_MD()
-
-    def directional_statistics(self):
-        self.York_Regression()
-        self.get_vds()
-        #
-        self.get_dec_and_inc()
-        self.get_ptrm_dec_and_inc()
-        self.get_MAD()
-        self.get_ptrm_MAD()
-        self.get_alpha()
-        self.get_DANG()
-        self.get_NRM_dev()
-        self.get_theta() # not necessarily done
-        self.get_gamma() # ditto        
-
-
-    def ptrm_check_statistics(self):# ptrm check statistics
-        self.York_Regression()
-        self.get_vds()
-        #
-        self.get_n_ptrm()
-        self.get_max_ptrm_check()
-        self.get_delta_CK()
-        self.get_DRAT()
-        self.get_max_DEV()
-        self.get_CDRAT()
-        self.get_DRATS()
-        self.get_mean_DRAT()
-        self.get_mean_DEV()
-        self.get_delta_pal()
-
-    def tail_check_statistics(self):
-        # tail check statistics
-        self.York_Regression()
-        self.get_vds()
-        self.get_n_ptrm()
-        self.get_max_ptrm_check()
-        self.get_DRAT()
-        #
-        self.get_n_tail()
-        self.get_max_tail_check()
-        self.get_DRAT_tail()
-        self.get_delta_TR()
-        self.get_MD_VDS()
-
-    def additivity_check_statistics(self):
-        self.get_n_add()
-        self.get_delta_AC()
-
+    # two methods for running the statistics
 
     def calculate_all_statistics(self):
         #print "calling calculate_all_statistics in spd.py"
@@ -599,6 +564,7 @@ class PintPars(object):
         self.get_vds()
         self.get_FRAC()
         self.get_curve()
+        self.get_curve_prime()
         self.get_SCAT()
         self.get_R_corr2()
         self.get_R_det2()
@@ -644,15 +610,149 @@ class PintPars(object):
         self.get_CRM_percent()
         self.get_delta_t_star()
         if self.mapping == 'magic':
-            self.pars = map_magic.mapping(self.pars, map_magic.a_map)
+            self.pars = map_magic.mapping(self.pars, map_magic.spd2magic_map)
 
 
 
-        #print "done with calculate_all_statistics"
+    statistics = {
+        'alpha': get_alpha,
+        'alpha_prime': get_alpha_prime,
+        'R_corr2': get_R_corr2,
+        'PCA_sigma_int_Free': get_dec_and_inc, 
+        'PCA_sigma_max_Free': get_dec_and_inc,
+        'n_tail': get_n_tail, 
+        'delta_pal': get_delta_pal, 
+        'DRAT_tail': get_DRAT_tail,
+        'MD_VDS': get_MD_VDS, 
+        'n_add': get_n_add, 
+        'delta_AC': get_delta_AC, 
+        'y_Arai_mean': None, 
+        'MAD_Free': get_MAD, 
+        'n_ptrm': get_n_ptrm, 
+        'DRAT': get_DRAT, 
+        'IZZI_MD': get_IZZI_MD, 
+        'FRAC': get_FRAC, 
+        'CDRAT': get_CDRAT, 
+        'Dec_Free': get_dec_and_inc, 
+        'mean_DEV': get_mean_DEV, 
+        'DRATS': get_DRATS, 
+        'Z': get_Z, 
+        'max_DEV': get_max_DEV, 
+        'fail_arai_beta_box_scatter': get_SCAT, 
+        'GAP-MAX': get_vds, 
+        'pTRM_MAD_Free': get_ptrm_MAD, 
+        'ptrms_dec_Free': get_ptrm_dec_and_inc, 
+        'MAD_Anc': get_MAD, 
+        'fail_ptrm_beta_box_scatter': get_SCAT, 
+        'ptrms_angle_Free': get_ptrm_dec_and_inc, 
+        'scat_bounding_line_low': get_SCAT, 
+        'PCA_sigma_min_Free': get_dec_and_inc, 
+        'B_anc': York_Regression, 
+        'SCAT': get_SCAT, 
+        'R_det2': get_R_det2, 
+        'best_fit_vector_Free': get_dec_and_inc, 
+        'specimen_b_beta': York_Regression, 
+        'specimen_YT': York_Regression, 
+        'delta_CK': get_delta_CK, 
+        'lab_dc_field': None, 
+        'Inc_Free': get_dec_and_inc, 
+        'mean_DRAT': get_mean_DRAT, 
+        'theta': get_theta, 
+        'max_ptrm_check': get_max_ptrm_check, 
+        'tmin': None, 
+        'x_Arai_mean': None, 
+        'fail_tail_beta_box_scatter': get_SCAT, 
+        'delta_TR': get_delta_TR, 
+        'alpha': get_alpha, 
+        'specimen_fvds': get_vds, 
+        'specimen_b_sigma': York_Regression, 
+        'specimen_b': York_Regression, 
+        'specimen_g': York_Regression, 
+        'specimen_f': York_Regression, 
+        'tmax': None, 
+        'specimen_int_n': None, 
+        'specimen_q': York_Regression, 
+        'DANG': get_DANG, 
+        'ptrms_inc_Free': get_ptrm_dec_and_inc, 
+        'SSE': get_curve, 
+        'gamma': get_gamma, 
+        'scat_bounding_line_high': get_SCAT,
+        'specimen_k': get_curve,
+        'specimen_int_crm': get_CRM_percent,
+        'specimen_dt': get_delta_t_star,
+        'specimen_k_prime': get_curve_prime,
+        'specimen_k_prime_SSE': get_curve_prime
+    }
+
+    dependencies = {
+        'get_alpha': (York_Regression, get_dec_and_inc),
+        'get_curve': (York_Regression,),
+        'get_curve_prime': (York_Regression,),
+        'get_R_corr2': (York_Regression,),
+        'York_Regression': (None,),
+        'get_dec_and_inc': (None,),
+        'get_n_tail': (None,),
+        'get_DRATS': (get_n_ptrm, get_max_ptrm_check),
+        'get_FRAC': (York_Regression, get_vds),
+        'get_vds': (York_Regression,),
+        'get_SCAT': (York_Regression,),
+        'get_Z': (York_Regression,),
+        'get_R_det2': (York_Regression,),
+        'get_MAD': (get_dec_and_inc,),
+        'get_DANG': (get_dec_and_inc,),
+        'get_theta': (get_dec_and_inc,),
+        'get_max_ptrm_check': (get_n_ptrm,),
+        'get_DRAT': (York_Regression, get_n_ptrm, get_max_ptrm_check),
+        'get_CDRAT': (York_Regression, get_n_ptrm, get_max_ptrm_check, get_DRAT),
+        'get_mean_DRAT': (York_Regression, get_n_ptrm, get_max_ptrm_check, get_DRAT),
+        'get_delta_CK': (York_Regression, get_n_ptrm, get_max_ptrm_check),
+        'get_max_DEV': (York_Regression, get_n_ptrm, get_max_ptrm_check),
+        'get_mean_DEV': (York_Regression, get_n_ptrm, get_max_ptrm_check),
+        'get_delta_pal': (York_Regression,),
+        'get_MD_VDS': (York_Regression, get_vds, get_n_tail, get_max_tail_check),
+        'get_DRAT_tail': (York_Regression, get_n_ptrm, get_max_ptrm_check, get_DRAT, get_n_tail, get_max_tail_check),
+        'get_delta_TR': (York_Regression, get_n_tail, get_max_tail_check),
+        'get_delta_AC': (York_Regression, get_n_add,),
+}
+
+    def reqd_stats(self):  
+        stats_run = []
+        #print 'self.calculate: ', self.calculate
+        for stat in self.calculate: # iterate through all stats that should be calculated
+            func = self.statistics[stat]
+            #print 'func', func
+            if func: # sometimes this will be none, since statistics like tmin are generated during __init__ and don't require a function to be run
+                if func.__name__ == 'York_Regression':
+                    #print 'York_Regression'
+                    if 'York_Regression' not in stats_run:
+                        func(self)
+                        stats_run.append(func.__name__)
+                elif func.__name__ in self.dependencies: 
+                    for d in self.dependencies[func.__name__]:
+                        if d == None: continue
+                        #print 'd: ', d,
+                        if d.__name__ not in stats_run: # if the dependency has not already been run, run it
+                            d(self)
+                            stats_run.append(d.__name__)
+                    if func.__name__ not in stats_run:
+                        func(self) # all dependencies have been satisfied, so run the main function
+                        stats_run.append(func.__name__)
+                else:
+                    #print 'alert: did not find dependencies, now attempting to run'
+                    try:
+                        func(self) # this will work if the function has no dependencies
+                        stats_run.append(func.__name__)
+                    except:
+                        self.calculate_all_statistics() # if no dependency info can be found, just run all statistics
+                        return 0 # since all possible statistics have been run, the function ends
+        #print 'stats run: ', stats_run
+        if self.mapping == 'magic':
+            self.pars = map_magic.mapping(self.pars, map_magic.spd2magic_map)
+        if len(stats_run) != len(set(stats_run)):
+            raise Exception('lengths were off')
+        
 
 
-# K temps: [0.0, 100.0, 150.0, 200.0, 225.0, 250.0, 275.0, 300.0, 325.0, 350.0, 375.0, 400.0, 425.0, 450.0, 475.0, 500.0, 525.0, 550.0]
-# C temps: [273, 373.0, 423.0, 473.0, 498.0, 523.0, 548.0, 573.0, 598.0, 623.0, 648.0, 673.0, 698.0, 723.0, 748.0, 773.0, 798.0, 823.0]
 
 
 ignore = """
