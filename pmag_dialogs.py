@@ -149,6 +149,8 @@ class convert_generic_files_to_MagIC(wx.Frame):
             
 
         #---sizer 0 ----
+        bSizer0 = pw.choose_file(pnl, 'add', method = self.on_add_file_button)
+        """
         bSizer0 =  wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY, "" ), wx.VERTICAL )
         self.file_path = wx.TextCtrl(self.panel, id=-1, size=(400,25), style=wx.TE_READONLY)
         self.add_file_button = wx.Button(self.panel, id=-1, label='add',name='add')
@@ -161,6 +163,7 @@ class convert_generic_files_to_MagIC(wx.Frame):
         bSizer0_1.AddSpacer(5)
         bSizer0_1.Add(self.file_path,wx.ALIGN_LEFT)
         bSizer0.Add(bSizer0_1,wx.ALIGN_LEFT)
+        """
         
         #---sizer 1 ----
         TEXT="User name (optional):"
@@ -301,7 +304,7 @@ class convert_generic_files_to_MagIC(wx.Frame):
 
     def on_add_file_button(self,event):
         text = "choose file to convert to MagIC"
-        pw.on_add_file_button(self, event, text)
+        pw.on_add_file_button(self.panel, self.WD, event, text)
 #        dlg = wx.FileDialog(
 #            None,message="choose file to convert to MagIC",
 #            defaultDir=self.WD,
