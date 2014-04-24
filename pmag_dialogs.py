@@ -977,6 +977,9 @@ class convert_HUJI_files_to_MagIC(wx.Frame):
         pw.on_add_file_button(self.panel, self.WD, event, text)
 
     def on_okButton(self, event):
+        """
+        grab user input values, format them, and run HUJI_magic.py with the appropriate flags
+        """
         HUJI_file = self.bSizer0.return_value()
         outfile = HUJI_file + '.magic'
         user = self.bSizer1.return_value()
@@ -1004,7 +1007,6 @@ class convert_HUJI_files_to_MagIC(wx.Frame):
             experiment_string += experiment_key[ex] + ':'
         if experiment_string:
             experiment_string = '-LP ' + experiment_string[:-1]
-
         COMMAND = "HUJI_magic.py -f {} -F {} {} {} {} -ncn {} {} {} {}".format(HUJI_file, outfile, user, experiment_string, loc_name, ncn, lab_field, spc, peak_AF)
         print 'COMMAND', COMMAND
         pw.run_command_and_close_window(self, COMMAND, outfile)
@@ -1083,10 +1085,6 @@ class convert_2G_binary_files_to_MagIC(wx.Frame):
         #---sizer 7 ----
         self.bSizer7 = pw.replicate_measurements(pnl)
 
-        #---sizer 8 ---
-        TEXT = "peak AF field (mT) if ARM: "
-        self.bSizer8 = pw.labeled_text_field(pnl, TEXT)
-
 
         #---buttons ---
         self.okButton = wx.Button(pnl, wx.ID_OK, "&OK")
@@ -1121,8 +1119,6 @@ class convert_2G_binary_files_to_MagIC(wx.Frame):
         vbox.AddSpacer(10)
         vbox.Add(self.bSizer7, flag=wx.ALIGN_LEFT)
         vbox.AddSpacer(10)
-        vbox.Add(self.bSizer8, flag=wx.ALIGN_LEFT)
-        vbox.AddSpacer(10)
         vbox.Add(wx.StaticLine(pnl), 0, wx.ALL|wx.EXPAND, 5)
         vbox.Add(hboxok, flag=wx.ALIGN_CENTER)        
         vbox.AddSpacer(20)
@@ -1143,17 +1139,28 @@ class convert_2G_binary_files_to_MagIC(wx.Frame):
         pw.on_add_file_button(self.panel, self.WD, event, text)
 
     def on_okButton(self, event):
+        wd = self.WD
         file_2G_bin = self.bSizer0.return_value()
         outfile = file_2G_bin + '.magic'
         sampling = self.bSizer1.return_value()
         ncn = self.bSizer2.return_value()
         spc = self.bSizer3.return_value()
+        if not spc:
+            spc = '-spc 0'
+        else:
+            spc = '-spc ' + spc
         ocn = self.bSizer4.return_value()
         loc_name = self.bSizer5.return_value()
+        if loc_name:
+            loc_name = "-loc " + loc_name
         instrument = self.bSizer6.return_value()
+        if instrument:
+            instrument = "-ins " + instrument
         replicate = self.bSizer7.return_value()
-        peak_AF = self.bSizer8.return_value()
-        COMMAND = "python 2G_bin_magic.py -f {} -F {}"
+        if replicate:
+            replicate = '-a'
+        COMMAND = "2G_bin_magic.py -f {} -F {} -ncn {} {} -ocn {} {} {}".format(file_2G_bin, outfile, ncn, spc, ocn, loc_name, replicate)
+        print COMMAND
         pw.run_command_and_close_window(self, COMMAND, outfile)
 
     def on_cancelButton(self,event):
