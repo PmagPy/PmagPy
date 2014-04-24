@@ -213,6 +213,26 @@ def on_add_file_button(SELF, WD, event, text):
             SELF.file_path.SetValue(str(dlg.GetPath()))
 
 
+def on_helpButton(command):
+    import subprocess
+    result = subprocess.check_output(command, shell=True)
+    dlg = wx.Dialog(None, title="help")
+    text = wx.TextCtrl(dlg, -1, result, size=(620,540), style=wx.TE_MULTILINE | wx.TE_READONLY)
+    sizer = wx.BoxSizer(wx.VERTICAL)
+    btnsizer = wx.BoxSizer()
+    btn = wx.Button(dlg, wx.ID_OK)
+    btnsizer.Add(btn, 0, wx.ALL, 5)
+    btnsizer.Add((5,-1), 0, wx.ALL, 5)
+    #btn = wx.Button(dlg, wx.ID_CANCEL)
+    #btnsizer.Add(btn, 0, wx.ALL, 5)
+    sizer.Add(text, 0, wx.EXPAND|wx.ALL, 5)    
+    sizer.Add(btnsizer, 0, wx.EXPAND|wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5)    
+    dlg.SetSizerAndFit(sizer)
+    dlg.Centre()
+    dlg.ShowModal()
+    dlg.Destroy()
+
+
 
 def run_command_and_close_window(SELF, command, outfile):
     print "-I- Running Python command:\n %s"%command
@@ -222,3 +242,5 @@ def run_command_and_close_window(SELF, command, outfile):
     dlg.ShowModal()
     dlg.Destroy()
     SELF.Destroy()
+
+
