@@ -388,7 +388,7 @@ class Criteria_Dialog(wx.Dialog):
         self.set_bs=wx.RadioButton(pnl1, -1, ' ', (10, 30))
         self.set_bs_par=wx.RadioButton(pnl1, -1, '', (50, 50))
 
-        criteria_sample_window = wx.GridSizer(1, 3, 6, 6)
+        criteria_sample_window = wx.GridSizer(2, 3, 6, 6)
         criteria_sample_window.AddMany( [(wx.StaticText(pnl1,label="Enable STDEV-OPT",style=wx.TE_CENTER), wx.EXPAND),
             (wx.StaticText(pnl1,label="Enable BS",style=wx.TE_CENTER), wx.EXPAND),
             (wx.StaticText(pnl1,label="Enable BS_PAR",style=wx.TE_CENTER), wx.EXPAND),
