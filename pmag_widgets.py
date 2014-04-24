@@ -212,19 +212,7 @@ def on_add_file_button(SELF, WD, event, text):
     if dlg.ShowModal() == wx.ID_OK:
             SELF.file_path.SetValue(str(dlg.GetPath()))
 
-"""
-def on_add_file_button(SELF, event, text):
-    print 'SELF', SELF
-#    print 'dir(SELF)', dir(SELF)
-    dlg = wx.FileDialog(
-            None, message=text,
-        defaultDir=SELF.WD,
-            defaultFile="",
-        style=wx.OPEN | wx.CHANGE_DIR
-            )
-    if dlg.ShowModal() == wx.ID_OK:
-            SELF.file_path.SetValue(str(dlg.GetPath()))
-"""
+
 
 def run_command_and_close_window(SELF, command, outfile):
     print "-I- Running Python command:\n %s"%command
@@ -234,18 +222,3 @@ def run_command_and_close_window(SELF, command, outfile):
     dlg.ShowModal()
     dlg.Destroy()
     SELF.Destroy()
-
-
-"""
-def on_add_file_button(SELF,event, text):
-
-   dlg = wx.FileDialog(
-           None,message=text,
-           defaultDir=SELF.WD,
-        defaultFile="",
-        style=wx.OPEN | wx.CHANGE_DIR
-        )
-   if dlg.ShowModal() == wx.ID_OK:
-        #SELF.box_sizer_high_level_text.Add(SELF.high_level_text_box, 0, wx.ALIGN_LEFT, 0 )                                       
-        SELF.file_pathes.AppendText(str(dlg.GetPath())+"\n")
-"""

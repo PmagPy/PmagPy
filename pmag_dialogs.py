@@ -1141,7 +1141,9 @@ class convert_2G_binary_files_to_MagIC(wx.Frame):
 
     def on_okButton(self, event):
         wd = self.WD
-        file_2G_bin = self.bSizer0.return_value()
+        full_file = self.bSizer0.return_value()
+        index = full_file.rfind('/')
+        file_2G_bin = full_file[index+1:]
         outfile = file_2G_bin + '.magic'
         sampling = self.bSizer1.return_value()
         ncn = self.bSizer2.return_value()
@@ -1160,7 +1162,7 @@ class convert_2G_binary_files_to_MagIC(wx.Frame):
         replicate = self.bSizer7.return_value()
         if replicate:
             replicate = '-a'
-        COMMAND = "2G_bin_magic.py -f {} -F {} -ncn {} {} -ocn {} {} {}".format(file_2G_bin, outfile, ncn, spc, ocn, loc_name, replicate)
+        COMMAND = "2G_bin_magic.py -WD {} -f {} -F {} -ncn {} {} -ocn {} {} {}".format(wd, file_2G_bin, outfile, ncn, spc, ocn, loc_name, replicate)
         print COMMAND
         pw.run_command_and_close_window(self, COMMAND, outfile)
 
