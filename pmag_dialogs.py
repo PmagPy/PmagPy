@@ -980,8 +980,6 @@ class convert_HUJI_files_to_MagIC(wx.Frame):
         if user:
             user = '-usr ' + user
         experiment_type = self.bSizer2.return_value()
-        if experiment_type:
-            experiment_type = '-LP ' + experiment_type
         lab_field = self.bSizer3.return_value()
         if lab_field:
             print 'lab field', lab_field
@@ -990,6 +988,8 @@ class convert_HUJI_files_to_MagIC(wx.Frame):
         spc = self.bSizer5.return_value()
         if not spc:
             spc = '-spc 0'
+        else:
+            spc = '-spc ' + spc
         loc_name = self.bSizer6.return_value()
         if loc_name:
             loc_name = '-loc ' + loc_name
@@ -997,10 +997,12 @@ class convert_HUJI_files_to_MagIC(wx.Frame):
         experiment_key = {'Demag': 'AF', 'Thermal (includes thellier but not trm)': 'T', 'Shaw method': 'S', 'IRM (acquisition)': 'I', '3D IRM experiment': 'I3d', 'NRM only': 'N', 'TRM acquisition': 'TRM', 'anisotropy experiment': 'ANI', 'double AF demag': 'D', 'triple AF demag (GRM protocol)': 'G', 'Cooling rate experiment': 'CR'}
         experiment_string = ''
         for ex in experiment_type:
+            print 'experiment_type', experiment_type
             experiment_string += experiment_key[ex] + ':'
-        experiment_string = experiment_string[:-1]
+        if experiment_string:
+            experiment_string = '-LP ' + experiment_string[:-1]
 
-        COMMAND = "HUJI_magic.py -f {} -F {} {} {} {} -ncn {} {} {}".format(HUJI_file, outfile, user, experiment_string, loc_name, ncn, lab_field, peak_AF)
+        COMMAND = "HUJI_magic.py -f {} -F {} {} {} {} -ncn {} {} {} {}".format(HUJI_file, outfile, user, experiment_string, loc_name, ncn, lab_field, spc, peak_AF)
         print 'COMMAND', COMMAND
         pw.run_command_and_close_window(self, COMMAND, outfile)
 
