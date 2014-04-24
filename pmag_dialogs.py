@@ -323,7 +323,7 @@ class convert_generic_files_to_MagIC(wx.Frame):
         
         ErrorMessage=""
         #-----------
-        FILE=str(self.file_path.GetValue())
+        FILE=str(self.panel.file_path.GetValue())
         #-----------
         # WD="/".join(FILE.split("/")[:-1])
         WD=self.WD
@@ -595,6 +595,7 @@ class convert_SIO_files_to_MagIC(wx.Frame):
     def __init__(self,WD):
         wx.Frame.__init__(self, None, wx.ID_ANY, self.title)
         self.panel = wx.ScrolledWindow(self)
+        self.panel.SetScrollbars(20, 20, 50, 50)
         self.max_files = 1 # but maybe it could take more??
         self.WD=WD
         self.InitUI()

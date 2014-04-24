@@ -203,8 +203,6 @@ class lab_field(wx.StaticBoxSizer):
 
 
 def on_add_file_button(SELF, WD, event, text):
-    print 'SELF', SELF
-#    print 'dir(SELF)', dir(SELF)
     dlg = wx.FileDialog(
             None, message=text,
         defaultDir=WD,
