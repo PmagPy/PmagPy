@@ -107,3 +107,6 @@ bMP.sam
 bMP.sam.magic
 wxpython_demo.py
 wxpython_log.out
+bugs.txt
+example.py
+wx_log.out
