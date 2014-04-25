@@ -6,7 +6,7 @@ def main():
         cart_dir.py
     
     DESCRIPTION
-      converts artesian coordinates to geomangetic elements
+      converts cartesian coordinates to geomagnetic elements
     
     INPUT (COMMAND LINE ENTRY) 
            x1 x2  x3
