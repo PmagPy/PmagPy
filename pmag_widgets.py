@@ -275,8 +275,6 @@ def on_helpButton(command):
     btn = wx.Button(dlg, wx.ID_OK)
     btnsizer.Add(btn, 0, wx.ALL, 5)
     btnsizer.Add((5,-1), 0, wx.ALL, 5)
-    #btn = wx.Button(dlg, wx.ID_CANCEL)
-    #btnsizer.Add(btn, 0, wx.ALL, 5)
     sizer.Add(text, 0, wx.EXPAND|wx.ALL, 5)    
     sizer.Add(btnsizer, 0, wx.EXPAND|wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5)    
     dlg.SetSizerAndFit(sizer)
