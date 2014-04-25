@@ -102,6 +102,8 @@ class import_magnetometer_data(wx.Dialog):
             dia = convert_2G_binary_files_to_MagIC(self.WD)
         elif file_type == 'HUJI':
             dia = convert_HUJI_files_to_MagIC(self.WD)
+        elif file_type == 'LDEO':
+            dia = convert_LDEO_files_to_MagIC(self.WD)
         dia.Center()
         dia.Show()
 
@@ -1170,6 +1172,126 @@ class convert_2G_binary_files_to_MagIC(wx.Frame):
         pw.on_helpButton("2G_bin_magic.py -h")
 
 
+
+class convert_LDEO_files_to_MagIC(wx.Frame):
+
+    """ """
+    title = "PmagPy LDEO file conversion"
+
+    def __init__(self,WD):
+        wx.Frame.__init__(self, None, wx.ID_ANY, self.title)
+        self.panel = wx.ScrolledWindow(self)
+        self.WD = WD
+        self.InitUI()
+
+    def InitUI(self):
+
+        pnl = self.panel
+
+        TEXT = "LDEO format file"
+        bSizer_info = wx.BoxSizer(wx.HORIZONTAL)
+        bSizer_info.Add(wx.StaticText(pnl, label=TEXT), wx.ALIGN_LEFT)
+
+        #---sizer 0 ----
+        self.bSizer0 = pw.choose_file(pnl, 'add', method = self.on_add_file_button)
+
+        #---sizer 1 ----
+        self.bSizer1 = pw.labeled_text_field(pnl)
+        
+        #---sizer 2 ----
+        self.bSizer2 = pw.lab_field(pnl)
+
+        #---sizer 3 ----
+        self.bSizer3 = pw.select_specimen_ncn(pnl)
+
+        #---sizer 4 ----
+        TEXT = "specify number of characters to designate a specimen, default = 0"
+        self.bSizer4 = pw.labeled_text_field(pnl, TEXT)
+
+        #---sizer 5 ---
+        TEXT="Location name (optional):"
+        self.bSizer5 = pw.labeled_text_field(pnl, TEXT)
+
+        #---sizer 6 ---
+        TEXT="Instrument name:"
+        self.bSizer6 = pw.labeled_text_field(pnl, TEXT)
+
+
+        #---sizer 7 ---
+        self.bSizer7 = pw.replicate_measurements(pnl)
+
+
+        #---sizer 8 ----
+        TEXT = "peak AF field (mT) if ARM: "
+        self.bSizer8 = pw.labeled_text_field(pnl, TEXT)
+
+        #---sizer 9 ---
+        TEXT = "Coil number for ASC impulse coil (if treatment units in Volts): "
+        self.bSizer9 = pw.labeled_text_field(pnl, TEXT)
+
+
+        #---buttons ---
+        self.okButton = wx.Button(pnl, wx.ID_OK, "&OK")
+        self.Bind(wx.EVT_BUTTON, self.on_okButton, self.okButton)
+
+        self.cancelButton = wx.Button(pnl, wx.ID_CANCEL, '&Cancel')
+        self.Bind(wx.EVT_BUTTON, self.on_cancelButton, self.cancelButton)
+
+        self.helpButton = wx.Button(pnl, wx.ID_ANY, '&Help')
+        self.Bind(wx.EVT_BUTTON, self.on_helpButton, self.helpButton)
+
+        hboxok = wx.BoxSizer(wx.HORIZONTAL)
+        hboxok.Add(self.okButton, 0, wx.ALL, 5)
+        hboxok.Add(self.cancelButton, 0, wx.ALL, 5)
+        hboxok.Add(self.helpButton, 0, wx.ALL, 5)
+
+        #------
+        vbox=wx.BoxSizer(wx.VERTICAL)
+        hbox0 = wx.BoxSizer(wx.HORIZONTAL)
+        hbox0.Add(self.bSizer5, flag=wx.ALIGN_LEFT|wx.RIGHT, border=5)
+        hbox0.Add(self.bSizer6, flag=wx.ALIGN_LEFT)
+        hbox1 = wx.BoxSizer(wx.HORIZONTAL)
+        hbox1.Add(self.bSizer8, flag=wx.ALIGN_LEFT|wx.RIGHT, border=5)
+        hbox1.Add(self.bSizer9, flag=wx.ALIGN_LEFT)
+
+        vbox.Add(bSizer_info, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        vbox.Add(self.bSizer0, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        vbox.Add(self.bSizer1, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        vbox.Add(self.bSizer2, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        vbox.Add(self.bSizer3, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        vbox.Add(self.bSizer4, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        vbox.Add(hbox0, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        vbox.Add(self.bSizer7, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        vbox.Add(hbox1, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        vbox.AddSpacer(10)
+        vbox.Add(wx.StaticLine(pnl), 0, wx.ALL|wx.EXPAND, 5)
+        vbox.Add(hboxok, flag=wx.ALIGN_CENTER|wx.BOTTOM, border=20)
+
+        hbox_all= wx.BoxSizer(wx.HORIZONTAL)
+        hbox_all.AddSpacer(20)
+        hbox_all.AddSpacer(vbox)
+        hbox_all.AddSpacer(20)
+        
+        self.panel.SetSizer(hbox_all)
+        self.panel.SetScrollbars(20, 20, 50, 50)
+        hbox_all.Fit(self)
+        self.Show()
+        self.Centre()
+
+
+    def on_add_file_button(self,event):
+        text = "choose file to convert to MagIC"
+        pw.on_add_file_button(self, event, text)
+
+    def on_okButton(self, event):
+        COMMAND = ""
+        pw.run_command_and_close_window(self, COMMAND, outfile)
+
+    def on_cancelButton(self,event):
+        self.Destroy()
+
+    def on_helpButton(self, event):
+        pw.on_helpButton("LDEO_magic.py -h")
 
 
 
