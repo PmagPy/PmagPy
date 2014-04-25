@@ -613,10 +613,7 @@ class convert_SIO_files_to_MagIC(wx.Frame):
         self.bSizer1 = pw.labeled_text_field(pnl)
 
         #---sizer 2 ----
-        TEXT = "Experiment type (select all that apply):"
-        experiments_names=['Demag', 'Thermal (includes thellier but not trm)', 'Shaw method', 'IRM (acquisition)', '3D IRM experiment', 'NRM only', 'TRM acquisition', 'double AF demag', 'triple AF demag (GRM protocol)', 'Cooling rate experiment']
-
-        self.bSizer2 = pw.check_boxes(pnl, (5, 3, 0, 0), experiments_names, TEXT)
+        self.bSizer2 = pw.experiment_type(pnl)
 
         #---sizer 3 ----
         self.bSizer3 = pw.lab_field(pnl)
@@ -759,13 +756,7 @@ class convert_SIO_files_to_MagIC(wx.Frame):
             synthetic = '-syn ' + synthetic
         else:
             synthetic = ''
-        experiment_key = {'Demag': 'AF', 'Thermal (includes thellier but not trm)': 'T', 'Shaw method': 'S', 'IRM (acquisition)': 'I', '3D IRM experiment': 'I3d', 'NRM only': 'N', 'TRM acquisition': 'TRM', 'anisotropy experiment': 'ANI', 'double AF demag': 'D', 'triple AF demag (GRM protocol)': 'G', 'Cooling rate experiment': 'CR'}
-        experiment_string = ''
-        for ex in experiment_type:
-            experiment_string += experiment_key[ex] + ':'
-        experiment_string = experiment_string[:-1]
-        COMMAND = "sio_magic.py -F {0} -f {1} {2} -LP {3} {4} -ncn {5} {6} {7} {8} {9} {10} {11}".format(outfile, SIO_file, user, experiment_string, loc_name, ncn, lab_field, peak_AF, coil_number, instrument, replicate, synthetic)
-        #print 'COMMAND', COMMAND
+        COMMAND = "sio_magic.py -F {0} -f {1} {2} -LP {3} {4} -ncn {5} {6} {7} {8} {9} {10} {11}".format(outfile, SIO_file, user, experiment_type, loc_name, ncn, lab_field, peak_AF, coil_number, instrument, replicate, synthetic)
         pw.run_command_and_close_window(self, COMMAND, outfile)
 
     def on_cancelButton(self,event):
@@ -937,9 +928,7 @@ class convert_HUJI_files_to_MagIC(wx.Frame):
         self.bSizer1 = pw.labeled_text_field(pnl)
 
         #---sizer 2 ----
-        TEXT = "Experiment type (select all that apply):"
-        experiments_names=['Demag', 'Thermal (includes thellier but not trm)', 'Shaw method', 'IRM (acquisition)', '3D IRM experiment', 'NRM only', 'TRM acquisition', 'double AF demag', 'triple AF demag (GRM protocol)', 'Cooling rate experiment']
-        self.bSizer2 = pw.check_boxes(pnl, (5, 3, 0, 0), experiments_names, TEXT)
+        self.bSizer2 = pw.experiment_type(pnl)
 
         #---sizer 3 ----
         self.bSizer3 = pw.lab_field(pnl)
@@ -1040,14 +1029,7 @@ class convert_HUJI_files_to_MagIC(wx.Frame):
         if loc_name:
             loc_name = '-loc ' + loc_name
         peak_AF = self.bSizer7.return_value()
-        experiment_key = {'Demag': 'AF', 'Thermal (includes thellier but not trm)': 'T', 'Shaw method': 'S', 'IRM (acquisition)': 'I', '3D IRM experiment': 'I3d', 'NRM only': 'N', 'TRM acquisition': 'TRM', 'anisotropy experiment': 'ANI', 'double AF demag': 'D', 'triple AF demag (GRM protocol)': 'G', 'Cooling rate experiment': 'CR'}
-        experiment_string = ''
-        for ex in experiment_type:
-            print 'experiment_type', experiment_type
-            experiment_string += experiment_key[ex] + ':'
-        if experiment_string:
-            experiment_string = '-LP ' + experiment_string[:-1]
-        COMMAND = "HUJI_magic.py -f {} -F {} {} {} {} -ncn {} {} {} {}".format(HUJI_file, outfile, user, experiment_string, loc_name, ncn, lab_field, spc, peak_AF)
+        COMMAND = "HUJI_magic.py -f {} -F {} -LP {} {} {} -ncn {} {} {} {}".format(HUJI_file, outfile, user, experiment_type, loc_name, ncn, lab_field, spc, peak_AF)
         print 'COMMAND', COMMAND
         pw.run_command_and_close_window(self, COMMAND, outfile)
 
@@ -1223,38 +1205,42 @@ class convert_LDEO_files_to_MagIC(wx.Frame):
 
         #---sizer 1 ----
         self.bSizer1 = pw.labeled_text_field(pnl)
-        
-        #---sizer 2 ----
-        self.bSizer2 = pw.lab_field(pnl)
 
+        #---sizer 2 ---
+        self.bSizer2 = pw.experiment_type(pnl)
+        
         #---sizer 3 ----
-        self.bSizer3 = pw.select_specimen_ncn(pnl)
+        self.bSizer3 = pw.lab_field(pnl)
 
         #---sizer 4 ----
-        TEXT = "specify number of characters to designate a specimen, default = 0"
-        self.bSizer4 = pw.labeled_text_field(pnl, TEXT)
+        self.bSizer4 = pw.select_specimen_ncn(pnl)
 
-        #---sizer 5 ---
-        TEXT="Location name (optional):"
+        #---sizer 5 ----
+        TEXT = "specify number of characters to designate a specimen, default = 0"
         self.bSizer5 = pw.labeled_text_field(pnl, TEXT)
 
         #---sizer 6 ---
-        TEXT="Instrument name (optional):"
+        TEXT="Location name (optional):"
         self.bSizer6 = pw.labeled_text_field(pnl, TEXT)
 
-
         #---sizer 7 ---
-        self.bSizer7 = pw.replicate_measurements(pnl)
+        TEXT="Instrument name (optional):"
+        self.bSizer7 = pw.labeled_text_field(pnl, TEXT)
 
+        #---sizer 8 ---
+        self.bSizer8 = pw.replicate_measurements(pnl)
 
-        #---sizer 8 ----
+        #---sizer 9 ----
         TEXT = "peak AF field (mT) if ARM: "
-        self.bSizer8 = pw.labeled_text_field(pnl, TEXT)
-
-        #---sizer 9 ---
-        TEXT = "Coil number for ASC impulse coil (if treatment units in Volts): "
         self.bSizer9 = pw.labeled_text_field(pnl, TEXT)
 
+        #---sizer 10 ---
+        TEXT = "Coil number for ASC impulse coil (if treatment units in Volts): "
+        self.bSizer10 = pw.labeled_text_field(pnl, TEXT)
+
+        #---sizer 11 ---
+        self.bSizer11 = pw.synthetic(pnl)
+        
 
         #---buttons ---
         self.okButton = wx.Button(pnl, wx.ID_OK, "&OK")
@@ -1274,11 +1260,11 @@ class convert_LDEO_files_to_MagIC(wx.Frame):
         #------
         vbox=wx.BoxSizer(wx.VERTICAL)
         hbox0 = wx.BoxSizer(wx.HORIZONTAL)
-        hbox0.Add(self.bSizer5, flag=wx.ALIGN_LEFT|wx.RIGHT, border=5)
-        hbox0.Add(self.bSizer6, flag=wx.ALIGN_LEFT)
+        hbox0.Add(self.bSizer6, flag=wx.ALIGN_LEFT|wx.RIGHT, border=5)
+        hbox0.Add(self.bSizer7, flag=wx.ALIGN_LEFT)
         hbox1 = wx.BoxSizer(wx.HORIZONTAL)
-        hbox1.Add(self.bSizer8, flag=wx.ALIGN_LEFT|wx.RIGHT, border=5)
-        hbox1.Add(self.bSizer9, flag=wx.ALIGN_LEFT)
+        hbox1.Add(self.bSizer9, flag=wx.ALIGN_LEFT|wx.RIGHT, border=5)
+        hbox1.Add(self.bSizer10, flag=wx.ALIGN_LEFT)
 
         vbox.Add(bSizer_info, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(self.bSizer0, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
@@ -1286,9 +1272,11 @@ class convert_LDEO_files_to_MagIC(wx.Frame):
         vbox.Add(self.bSizer2, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(self.bSizer3, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(self.bSizer4, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        vbox.Add(self.bSizer5, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(hbox0, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
-        vbox.Add(self.bSizer7, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        vbox.Add(self.bSizer8, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(hbox1, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        vbox.Add(self.bSizer11, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.AddSpacer(10)
         vbox.Add(wx.StaticLine(pnl), 0, wx.ALL|wx.EXPAND, 5)
         vbox.Add(hboxok, flag=wx.ALIGN_CENTER|wx.BOTTOM, border=20)
@@ -1307,10 +1295,49 @@ class convert_LDEO_files_to_MagIC(wx.Frame):
 
     def on_add_file_button(self,event):
         text = "choose file to convert to MagIC"
-        pw.on_add_file_button(self, event, text)
+        pw.on_add_file_button(self.panel, self.WD, event, text)
 
     def on_okButton(self, event):
-        COMMAND = ""
+        LDEO_file = self.bSizer0.return_value()
+        outfile = LDEO_file + ".magic"
+        user = self.bSizer1.return_value()
+        if user:
+            user = "-usr " + user
+        experiment_type = self.bSizer2.return_value()
+        print experiment_type
+        lab_field = self.bSizer3.return_value()
+        if lab_field:
+            lab_field = "-dc " + lab_field
+        ncn = self.bSizer4.return_value()
+        spc = self.bSizer5.return_value()
+        if spc:
+            spc = "-spc " + spc
+        else:
+            spc = "-spc 0"
+        loc_name = self.bSizer6.return_value()
+        if loc_name:
+            loc_name = "-loc " + loc_name
+        instrument = self.bSizer7.return_value()
+        if instrument:
+            instrument = "-ins " + instrument
+        replicate = self.bSizer8.return_value()
+        if replicate:
+            replicate = ""
+        else:
+            replicate = "-A"
+        AF_field = self.bSizer9.return_value()
+        if AF_field:
+            AF_field = "-ac " + AF_field
+        coil_number = self.bSizer10.return_value()
+        if coil_number:
+            coil_number = "-V " + coil_number
+        synthetic = self.bSizer11.return_value()
+        if synthetic:
+            synthetic = '-syn ' + synthetic
+        else:
+            synthetic = ''
+        COMMAND = "LDEO_magic.py -f {0} -F {1} {2} -LP {3} {4} -ncn {5} {6} {7} {8} {9} {10} {11} {12}".format(LDEO_file, outfile, user, experiment_type, lab_field, ncn, spc, loc_name, instrument, replicate, AF_field, coil_number, synthetic)
+        print COMMAND
         pw.run_command_and_close_window(self, COMMAND, outfile)
 
     def on_cancelButton(self,event):
@@ -1423,7 +1450,7 @@ class something(wx.Frame):
 
     def on_add_file_button(self,event):
         text = "choose file to convert to MagIC"
-        pw.on_add_file_button(self, event, text)
+        pw.on_add_file_button(self.panel, self.WD, event, text)
 
     def on_okButton(self, event):
         COMMAND = ""

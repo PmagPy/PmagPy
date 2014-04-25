@@ -202,10 +202,9 @@ class synthetic(wx.StaticBoxSizer):
         box = wx.StaticBox(parent, wx.ID_ANY, "if synthetic:")
         super(synthetic, self).__init__(box, orient=wx.VERTICAL)
         gridSizer = wx.GridSizer(2, 2, 3, 10)
-        TEXT="Institution"
-        institution_text = wx.StaticText(parent,label=TEXT,style=wx.TE_CENTER)
+        institution_text = wx.StaticText(parent,label="Institution (no spaces)", style=wx.TE_CENTER)
         self.institution_field = wx.TextCtrl(parent, id=-1, size=(200, 25))
-        type_text = wx.StaticText(parent, label="Type", style=wx.TE_CENTER)
+        type_text = wx.StaticText(parent, label="Type (no spaces)", style=wx.TE_CENTER)
         self.type_field = wx.TextCtrl(parent, id=-1, size=(200, 25))
         gridSizer.AddMany([(institution_text, wx.ALIGN_LEFT),
                            (type_text, wx.ALIGN_LEFT), 
@@ -217,6 +216,38 @@ class synthetic(wx.StaticBoxSizer):
         if self.institution_field.GetValue():
             return str(self.institution_field.GetValue()) + ' ' + str(self.type_field.GetValue())
                                         
+
+
+
+class experiment_type(wx.StaticBoxSizer):
+    
+    def __init__(self, parent):
+        box = wx.StaticBox(parent, wx.ID_ANY, "")
+        super(experiment_type, self).__init__(box, orient=wx.VERTICAL)
+        gridSizer2 = wx.GridSizer(5, 3, 0, 0)
+        self.boxes = []
+        experiment_names=['Demag', 'Thermal (includes thellier but not trm)', 'Shaw method', 'IRM (acquisition)', '3D IRM experiment', 'NRM only', 'TRM acquisition', 'double AF demag', 'triple AF demag (GRM protocol)', 'Cooling rate experiment']
+        TEXT = "Experiment type (select all that apply):"
+        for n, experiment in enumerate(experiment_names):
+            cb = wx.CheckBox(parent, -1, experiment)
+            self.boxes.append(cb)
+            gridSizer2.Add(cb, wx.ALIGN_RIGHT)
+        self.Add(wx.StaticText(parent, label = TEXT), wx.ALIGN_LEFT)
+        self.Add(gridSizer2, wx.ALIGN_RIGHT)
+        self.AddSpacer(4)
+
+    def return_value(self):
+        checked = []
+        for cb in self.boxes:
+            if cb.GetValue():
+                checked.append(str(cb.Label))
+        if not checked:
+            return ''
+        experiment_key = {'Demag': 'AF', 'Thermal (includes thellier but not trm)': 'T', 'Shaw method': 'S', 'IRM (acquisition)': 'I', '3D IRM experiment': 'I3d', 'NRM only': 'N', 'TRM acquisition': 'TRM', 'anisotropy experiment': 'ANI', 'double AF demag': 'D', 'triple AF demag (GRM protocol)': 'G', 'Cooling rate experiment': 'CR'}
+        experiment_string = ''
+        for ex in checked:
+            experiment_string += experiment_key[ex] + ':'
+        return experiment_string[:-1]
     
 
 # methods!
