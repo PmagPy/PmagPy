@@ -172,10 +172,10 @@ class check_boxes(wx.StaticBoxSizer):
 class lab_field(wx.StaticBoxSizer):
     
     def __init__(self, parent):
-        box = wx.StaticBox( parent, wx.ID_ANY, "", size=(100, 100) )
+        box = wx.StaticBox( parent, wx.ID_ANY, "", size=(100,100))
         super(lab_field, self).__init__(box, orient=wx.VERTICAL)
         TEXT="Lab field (leave blank if unnecessary). Example: 40 0 -90"
-        self.file_info_text=wx.StaticText(parent,label=TEXT,style=wx.TE_CENTER)
+        self.file_info_text = wx.StaticText(parent,label=TEXT,style=wx.TE_CENTER)
         self.file_info_Blab = wx.TextCtrl(parent, id=-1, size=(40,25))
         self.file_info_Blab_dec = wx.TextCtrl(parent, id=-1, size=(40,25))
         self.file_info_Blab_inc = wx.TextCtrl(parent, id=-1, size=(40,25))
@@ -197,6 +197,27 @@ class lab_field(wx.StaticBoxSizer):
         return lab_field
 
 
+class synthetic(wx.StaticBoxSizer):
+    def __init__(self, parent):
+        box = wx.StaticBox(parent, wx.ID_ANY, "if synthetic:")
+        super(synthetic, self).__init__(box, orient=wx.VERTICAL)
+        gridSizer = wx.GridSizer(2, 2, 3, 10)
+        TEXT="Institution"
+        institution_text = wx.StaticText(parent,label=TEXT,style=wx.TE_CENTER)
+        self.institution_field = wx.TextCtrl(parent, id=-1, size=(200, 25))
+        type_text = wx.StaticText(parent, label="Type", style=wx.TE_CENTER)
+        self.type_field = wx.TextCtrl(parent, id=-1, size=(200, 25))
+        gridSizer.AddMany([(institution_text, wx.ALIGN_LEFT),
+                           (type_text, wx.ALIGN_LEFT), 
+                           (self.institution_field, wx.ALIGN_LEFT),
+                           (self.type_field, wx.ALIGN_LEFT)])
+        self.Add(gridSizer)
+
+    def return_value(self):
+        if self.institution_field.GetValue():
+            return str(self.institution_field.GetValue()) + ' ' + str(self.type_field.GetValue())
+                                        
+    
 
 # methods!
 

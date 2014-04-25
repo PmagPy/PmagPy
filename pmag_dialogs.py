@@ -629,7 +629,7 @@ class convert_SIO_files_to_MagIC(wx.Frame):
         self.bSizer5 = pw.labeled_text_field(pnl, TEXT)
 
         #---sizer 6 ---
-        TEXT="Instrument name:"
+        TEXT="Instrument name (optional):"
         self.bSizer6 = pw.labeled_text_field(pnl, TEXT)
 
         #---sizer 7 ----
@@ -644,6 +644,9 @@ class convert_SIO_files_to_MagIC(wx.Frame):
 
         TEXT = "Coil number for ASC impulse coil (if treatment units in Volts): "
         self.bSizer9 = pw.labeled_text_field(pnl, TEXT)
+
+        #---sizer 10 ---
+        self.bSizer10 = pw.synthetic(pnl)
 
         #---buttons ----
 
@@ -697,9 +700,12 @@ class convert_SIO_files_to_MagIC(wx.Frame):
         #vbox.Add(self.bSizer9, flag=wx.ALIGN_LEFT)
         #vbox.AddSpacer(8)
         vbox.Add(hbox1, flag=wx.ALIGN_LEFT)
+        vbox.Add(self.bSizer10, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(wx.StaticLine(pnl), 0, wx.ALL|wx.EXPAND, 5)
         vbox.Add(hboxok, flag=wx.ALIGN_CENTER)        
+        vbox.Add(wx.StaticLine(pnl), 0, wx.ALL|wx.EXPAND, 5)
         vbox.AddSpacer(20)
+
 
         hbox_all= wx.BoxSizer(wx.HORIZONTAL)
         hbox_all.AddSpacer(20)
@@ -721,24 +727,44 @@ class convert_SIO_files_to_MagIC(wx.Frame):
         SIO_file = self.bSizer0.return_value()
         outfile = SIO_file + '.magic'
         user = self.bSizer1.return_value()
+        if user:
+            user = "-usr " + user
         experiment_type = self.bSizer2.return_value()
         lab_field = self.bSizer3.return_value()
+        if lab_field:
+            lab_field = "-dc " + lab_field
         ncn = self.bSizer4.return_value()
         loc_name = self.bSizer5.return_value()
+        if loc_name:
+            loc_name = "-loc " + loc_name
+        print "loc_name", loc_name
         instrument = self.bSizer6.return_value()
+        print "instrument", instrument
+        if instrument:
+            instrument = "-ins " + instrument
         replicate = self.bSizer7.return_value()
         if replicate:
             replicate = ''
         else:
             replicate = '-A'
         peak_AF = self.bSizer8.return_value()
+        if peak_AF:
+            peak_AF = "-ac " + peak_AF
+        print "peak_AF", peak_AF
         coil_number = self.bSizer9.return_value()
+        if coil_number:
+            coil_number = "-V " + coil_number
+        synthetic = self.bSizer10.return_value()
+        if synthetic:
+            synthetic = '-syn ' + synthetic
+        else:
+            synthetic = ''
         experiment_key = {'Demag': 'AF', 'Thermal (includes thellier but not trm)': 'T', 'Shaw method': 'S', 'IRM (acquisition)': 'I', '3D IRM experiment': 'I3d', 'NRM only': 'N', 'TRM acquisition': 'TRM', 'anisotropy experiment': 'ANI', 'double AF demag': 'D', 'triple AF demag (GRM protocol)': 'G', 'Cooling rate experiment': 'CR'}
         experiment_string = ''
         for ex in experiment_type:
             experiment_string += experiment_key[ex] + ':'
         experiment_string = experiment_string[:-1]
-        COMMAND = "sio_magic.py -F {} -f {} -usr {} -LP {} -loc {} -ncn {} -dc {} -ac {} -V {} -ins {} {}".format(outfile, SIO_file, user, experiment_string, loc_name, ncn, lab_field, peak_AF, coil_number, instrument, replicate)
+        COMMAND = "sio_magic.py -F {0} -f {1} {2} -LP {3} {4} -ncn {5} {6} {7} {8} {9} {10} {11}".format(outfile, SIO_file, user, experiment_string, loc_name, ncn, lab_field, peak_AF, coil_number, instrument, replicate, synthetic)
         #print 'COMMAND', COMMAND
         pw.run_command_and_close_window(self, COMMAND, outfile)
 
@@ -1075,7 +1101,7 @@ class convert_2G_binary_files_to_MagIC(wx.Frame):
         self.bSizer5 = pw.labeled_text_field(pnl, TEXT)
 
         #---sizer 6 ---
-        TEXT="Instrument name:"
+        TEXT="Instrument name (optional):"
         self.bSizer6 = pw.labeled_text_field(pnl, TEXT)
 
         #---sizer 7 ----
@@ -1213,7 +1239,7 @@ class convert_LDEO_files_to_MagIC(wx.Frame):
         self.bSizer5 = pw.labeled_text_field(pnl, TEXT)
 
         #---sizer 6 ---
-        TEXT="Instrument name:"
+        TEXT="Instrument name (optional):"
         self.bSizer6 = pw.labeled_text_field(pnl, TEXT)
 
 
