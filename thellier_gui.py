@@ -1120,13 +1120,13 @@ class Arai_GUI(wx.Frame):
             command="self.%s_window.SetBackgroundColour(wx.NullColour)"%key
             exec command
                                          
-        window_list=['int_n','int_ptrm_n','frac','scat','gmax','f','fvds','b_beta','g','q','int_mad','int_dang','drats','md','ptrms_dec','ptrms_inc','ptrms_mad','ptrms_angle']
-        for key in window_list:
-            if key in self.preferences['show_statistics_on_gui']:
-                command="self.%s_window.SetValue(\"\")"%key
-                exec command
-                command="self.%s_window.SetBackgroundColour(wx.NullColour)"%key
-                exec command
+        #window_list=['int_n','int_ptrm_n','frac','scat','gmax','f','fvds','b_beta','g','q','int_mad','int_dang','drats','md','ptrms_dec','ptrms_inc','ptrms_mad','ptrms_angle']
+        #for key in window_list:
+        for key in self.preferences['show_statistics_on_gui']:
+            command="self.%s_window.SetValue(\"\")"%key
+            exec command
+            command="self.%s_window.SetBackgroundColour(wx.NullColour)"%key
+            exec command
             
     def write_sample_box(self):
         """ 
