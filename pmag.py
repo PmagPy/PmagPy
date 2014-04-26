@@ -8114,7 +8114,7 @@ def initialize_acceptance_criteria ():
             acceptance_criteria[crit]['decimal_points']=-999
     
     # high cutoff value
-    for crit in ['specimen_b_sigma','specimen_b_beta','specimen_g','specimen_gmax','specimen_k','specimen_k_sse',\
+    for crit in ['specimen_b_sigma','specimen_b_beta','specimen_g','specimen_gmax','specimen_k','specimen_k_sse','specimen_k_prime','specimen_k_prime_sse',\
     'specimen_coeff_det_sq','specimen_z','specimen_z_md','specimen_int_mad','specimen_int_mad_anc','specimen_int_alpha','specimen_alpha','specimen_alpha_prime',\
     'specimen_theta','specimen_int_dang','specimen_int_crm','specimen_ptrm','specimen_dck','specimen_drat','specimen_maxdev','specimen_cdrat',\
     'specimen_drats','specimen_mdrat','specimen_mdev','specimen_dpal','specimen_tail_drat','specimen_dtr','specimen_md','specimen_dt','specimen_dac','specimen_gamma']:

@@ -224,7 +224,9 @@ class Arai_GUI(wx.Frame):
 
         self.get_previous_interpretation() # get interpretations from pmag_specimens.txt
         FIRST_RUN=False
-        self.Bind(wx.EVT_CLOSE, self.on_menu_exit)        
+        self.Bind(wx.EVT_CLOSE, self.on_menu_exit) 
+        self.close_warning=False
+                      
     def get_DIR(self):
         """ 
         open dialog box for choosing a working directory 
@@ -682,6 +684,7 @@ class Arai_GUI(wx.Frame):
                                 
         self.draw_sample_mean()
         self.write_sample_box()
+        self.close_warning=True
         
 
     def on_delete_interpretation_button(self,event):
@@ -714,6 +717,7 @@ class Arai_GUI(wx.Frame):
         self.draw_figure(self.s)
         self.draw_sample_mean()
         self.write_sample_box()
+        self.close_warning=True
 
     #----------------------------------------------------------------------
             
@@ -1640,10 +1644,13 @@ class Arai_GUI(wx.Frame):
     #-----------------------------------
         
     def on_menu_exit(self, event):
-        dlg1 = wx.MessageDialog(None,caption="Warning:", message="Exiting program.\nSave all interpretation to a 'redo' file or to MagIC specimens result table\n\nPress OK to exit" ,style=wx.OK|wx.CANCEL|wx.ICON_INFORMATION)
-        if dlg1.ShowModal() == wx.ID_OK:
-            dlg1.Destroy()
-            self.Destroy()
+        if self.close_warning:
+            dlg1 = wx.MessageDialog(None,caption="Warning:", message="Exiting program.\nSave all interpretation to a 'redo' file or to MagIC specimens result table\n\nPress OK to exit" ,style=wx.OK|wx.CANCEL|wx.ICON_INFORMATION)
+            if dlg1.ShowModal() == wx.ID_OK:
+                dlg1.Destroy()
+                self.Destroy()
+                exit()
+        else:
             exit()
         #if dlg1.ShowModal() == wx.ID_CANCEL:
         #    dlg1.Destroy()
@@ -2348,8 +2355,8 @@ class Arai_GUI(wx.Frame):
 #            thellier_gui_sample_file.close()    
 #        
 #        thellier_gui_specimen_file.close()
-        thellier_gui_redo_file.close()       
-
+        thellier_gui_redo_file.close()   
+        self.close_warning=False    
     def on_menu_clear_interpretation(self, event):
         '''
         clear all current interpretations.
@@ -5071,7 +5078,7 @@ class Arai_GUI(wx.Frame):
         dlg1.ShowModal()
         dlg1.Destroy()
         
-        
+        self.close_warning=False       
     def converge_pmag_rec_headers(self,old_recs):
         # fix the headers of pmag recs
         recs={}
@@ -6459,7 +6466,7 @@ class Arai_GUI(wx.Frame):
                 
             # get the value
             if self.acceptance_criteria[stat]['decimal_points']==-999:
-                value='%.3e'%self.pars[stat]
+                value='%.2e'%self.pars[stat]
             elif type(self.acceptance_criteria[stat]['decimal_points'])==float or type(self.acceptance_criteria[stat]['decimal_points'])==int:
                 command="value='%%.%if'%%(float(self.pars[stat]))"%(int(self.acceptance_criteria[stat]['decimal_points']))
                 exec command
