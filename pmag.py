@@ -3299,7 +3299,7 @@ def dread(infile,cols):
 
 def fshdev(k):
     """
-     returns a direction from distribution with TM=0,90 and kappa of k
+    returns a direction from distribution with mean declination of 0, inclination of 90 and kappa of k
     """
     R1=random.random()
     R2=random.random()
@@ -3470,7 +3470,7 @@ def vgp_di(plat,plong,slat,slong):
 
 def watsonsV(Dir1,Dir2):
     """
-    calculates Watson's V statisting for two sets of directions
+    calculates Watson's V statistic for two sets of directions
     """
     counter,NumSims=0,500
 #
@@ -3560,7 +3560,7 @@ def dimap_V(D,I):
 
 def getmeths(method_type):
     """
-    returns MagIC  method codes available  for a given type
+    returns MagIC  method codes available for a given type
     """
     meths=[]
     if method_type=='GM':
@@ -3689,7 +3689,7 @@ def adjust_ages(AgesIn):
 #
 def gaussdev(mean,sigma):
     """
-    returns a number drawn from a gaussian distribution with given mean, sigma
+    returns a number randomly drawn from a gaussian distribution with the given mean, sigma
     """
     return random.normal(mean,sigma) # return gaussian deviate
 #
