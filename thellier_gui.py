@@ -6480,8 +6480,13 @@ class Arai_GUI(wx.Frame):
             cutoff_value=self.acceptance_criteria[stat]['value']
             if cutoff_value==-999:
                 command="self.%s_window.SetBackgroundColour(wx.NullColour)"%stat.split('specimen_')[-1]  # set text color 
+            elif stat=="specimen_k" or stat=="specimen_k_prime":
+                if abs(self.pars[stat])>cutoff_value:
+                    command="self.%s_window.SetBackgroundColour(wx.RED)"%stat.split('specimen_')[-1]  # set text color
+                    flag_Fail=True                
             elif self.acceptance_criteria[stat]['threshold_type']=='high' and self.pars[stat]>cutoff_value:
                 command="self.%s_window.SetBackgroundColour(wx.RED)"%stat.split('specimen_')[-1]  # set text color
+                flag_Fail=True
             elif self.acceptance_criteria[stat]['threshold_type']=='low' and self.pars[stat]<cutoff_value:
                 command="self.%s_window.SetBackgroundColour(wx.RED)"%stat.split('specimen_')[-1]  # set text color
                 flag_Fail=True
@@ -6926,16 +6931,19 @@ class Arai_GUI(wx.Frame):
             if self.acceptance_criteria[crit]['category']!='IE-SPEC':
                 continue
             cutoff_value=self.acceptance_criteria[crit]['value']
+            if crit=='specimen_scat':
+                if pars["specimen_scat"] in ["Fail",'b',0,'0','FALSE',"False",False]:
+                    pars['specimen_fail_criteria'].append('specimen_scat')
+            elif crit=='specimen_k' or crit=='specimen_k_prime':
+                if abs(pars[crit])>cutoff_value:
+                    pars['specimen_fail_criteria'].append(crit)
             # high threshold value:
-            if self.acceptance_criteria[crit]['threshold_type']=="high":
+            elif self.acceptance_criteria[crit]['threshold_type']=="high":
                 if pars[crit]>cutoff_value:
                     pars['specimen_fail_criteria'].append(crit)
             elif self.acceptance_criteria[crit]['threshold_type']=="low":
                 if pars[crit]<cutoff_value:
                     pars['specimen_fail_criteria'].append(crit)
-            elif crit=='specimen_scat':
-                if pars["specimen_scat"] in ["Fail",'b',0,'0','FALSE',"False",False]:
-                    pars['specimen_fail_criteria'].append('specimen_scat')
         
         return pars                                                                                     
 
