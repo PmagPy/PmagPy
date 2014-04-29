@@ -2318,8 +2318,9 @@ def add_ams(format): # add generic AMS data
 
 def set_out(question=""):
         global opath,user
+        tkMessageBox.showinfo("Helpful Hint","If you are using Mavericks and Canopy, the directory selection window will not close, but your computer is not 'hung'.  Just ignore it until we or Enthought can fix the bug.  ")
         opath= tkFileDialog.askdirectory(title="Choose MagIC project directory. NB: Windows users must choose an existing directory")
-#        print opath,' has been set'
+    #    print opath,' has been set'
 
 def help_PmagPy():
     helpme="#PmagPy"
