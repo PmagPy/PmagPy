@@ -2318,7 +2318,7 @@ def add_ams(format): # add generic AMS data
 
 def set_out(question=""):
         global opath,user
-        tkMessageBox.showinfo("Helpful Hint","If you are using Mavericks and Canopy, the directory selection window will not close, but your computer is not 'hung'.  Just ignore it until we or Enthought can fix the bug.  ")
+#        tkMessageBox.showinfo("Helpful Hint","If you are using Mavericks and Canopy, the directory selection window will not close, but your computer is not 'hung'.  Just ignore it until we or Enthought can fix the bug.  ")
         opath= tkFileDialog.askdirectory(title="Choose MagIC project directory. NB: Windows users must choose an existing directory")
     #    print opath,' has been set'
 
@@ -2356,7 +2356,7 @@ def exit():
     sys.exit()
 
 def demag_gui():
-    z_command='demag_gui.py -WD '+'"'+opath+'"'
+    z_command='pythonw demag_gui.py -WD '+'"'+opath+'"'
     print z_command
     os.system(z_command)
 
@@ -2388,7 +2388,7 @@ def zeq():
     logfile.close()
 
 def thellier_gui():
-    outstring='thellier_gui.py -WD '+opath
+    outstring='pythonw thellier_gui.py -WD '+opath
     print outstring
     os.system(outstring)
     files=os.listdir(opath)
