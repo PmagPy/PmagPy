@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 import wx
 import wx.lib.buttons as buttons
-import pmag,pmag_dialogs
+import pmag
+import pmag_dialogs
 import thellier_gui_dialogs
 import os
 import sys
@@ -13,6 +14,7 @@ class MagMainFrame(wx.Frame):
     title = "PmagPy MagIC main functions"
 
     def __init__(self):
+        print 'init magic main frame'
         global FIRST_RUN
         FIRST_RUN=True
         wx.Frame.__init__(self, None, wx.ID_ANY, self.title)
@@ -27,10 +29,11 @@ class MagMainFrame(wx.Frame):
 
         #---sizer logo ----
                 
-        start_image = wx.Image("/Users/ronshaar/PmagPy/images/logo2.png")
-        start_image.Rescale(1*start_image.GetWidth(), 1*start_image.GetHeight())
-        image = wx.BitmapFromImage(start_image)
-        self.logo = wx.StaticBitmap(self.panel, -1, image) 
+        #start_image = wx.Image("/Users/ronshaar/PmagPy/images/logo2.png")
+        #start_image = wx.Image("/Users/Python/simple_examples/001.png")
+        #start_image.Rescale(start_image.GetWidth(), start_image.GetHeight())
+        #image = wx.BitmapFromImage(start_image)
+        #self.logo = wx.StaticBitmap(self.panel, -1, image) 
                                   
         #---sizer 0 ----
         bSizer0 = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY, "Choose MagIC project directory" ), wx.HORIZONTAL )
@@ -133,7 +136,7 @@ class MagMainFrame(wx.Frame):
         hbox=wx.BoxSizer(wx.HORIZONTAL)
         vbox=wx.BoxSizer(wx.VERTICAL)
         vbox.AddSpacer(5)
-        vbox.Add(self.logo,0,wx.ALIGN_CENTER,0)
+        #vbox.Add(self.logo,0,wx.ALIGN_CENTER,0)
         vbox.AddSpacer(5)        
         vbox.Add(bSizer0,0,wx.ALIGN_CENTER,0)
         vbox.AddSpacer(10)        
@@ -216,6 +219,7 @@ class MagMainFrame(wx.Frame):
         os.system(outstring)
         
     def on_convert_file(self,event):
+        print 'convert file'
         pmag_dialogs_dia=pmag_dialogs.import_magnetometer_data(None, -1, '',self.WD)
         pmag_dialogs_dia.Center()
         pmag_dialogs_dia.ShowModal()
@@ -285,7 +289,7 @@ class MagMainFrame(wx.Frame):
 
 
 if __name__ == "__main__":
-    app = wx.App(False)
+    app = wx.App(redirect=True, filename="beta_log.log")
     frame = MagMainFrame()
     frame.Center()
     frame.Show()

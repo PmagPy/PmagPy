@@ -11,6 +11,7 @@ import pmag_widgets as pw
 class import_magnetometer_data(wx.Dialog):
     
     def __init__(self,parent,id,title,WD):
+        print 'init import magnetometer data'
         wx.Dialog.__init__(self, parent, id, title)#, size=(300, 300))
         #super(import_magnetometer_data, self).__init__(*args, **kw)
         self.WD=WD
@@ -86,12 +87,13 @@ class import_magnetometer_data(wx.Dialog):
         hbox1.Fit(self)
 
     def on_cancelButton(self,event):
+        print 'canceling select file type import dialogue'
         self.Destroy()
 
     def on_okButton(self,event):
-        #print 'self.checked', self.checked_rb
+        print 'self.checked', self.checked_rb
         file_type = self.checked_rb.Label.split()[0] # extracts name of the checked radio button
-        #print 'file_type', file_type
+        print 'file_type', file_type
         if file_type == 'generic':
             dia = convert_generic_files_to_MagIC(self.WD)
         elif file_type == 'SIO':
@@ -106,14 +108,18 @@ class import_magnetometer_data(wx.Dialog):
             dia = convert_LDEO_files_to_MagIC(self.WD)
         elif file_type == 'IODP':
             dia = convert_IODP_csv_files_to_MagIC(self.WD)
+        elif file_type == 'PMD':
+            dia = convert_PMD_files_to_MagIC(self.WD)
+        print 'dia', dia, file_type
         dia.Center()
         dia.Show()
+        print 'showed dia'
 
 
     def OnRadioButtonSelect(self, event):
         #print 'calling OnRadioButtonSelect'
         self.checked_rb = event.GetEventObject()
-        #print 'current self.checked_rb', self.checked_rb.Label
+        print 'current self.checked_rb', self.checked_rb.Label
 #        print '-------------'
 
     def on_nextButton(self,event):
@@ -592,6 +598,7 @@ class convert_SIO_files_to_MagIC(wx.Frame):
     title = "PmagPy SIO file conversion"
 
     def __init__(self,WD):
+        print 'init SIO conversion'
         wx.Frame.__init__(self, None, wx.ID_ANY, self.title)
         self.panel = wx.ScrolledWindow(self)
         self.panel.SetScrollbars(20, 20, 50, 50)
@@ -601,7 +608,7 @@ class convert_SIO_files_to_MagIC(wx.Frame):
 
 
     def InitUI(self):
-
+        print 'init UI'
         pnl = self.panel
 
         TEXT = "SIO Format file"
@@ -1433,6 +1440,135 @@ class convert_IODP_csv_files_to_MagIC(wx.Frame):
 
     def on_helpButton(self, event):
         pw.on_helpButton("-h")
+
+
+
+# template for an import window
+class convert_PMD_files_to_MagIC(wx.Frame):
+
+    """ """
+    title = "PmagPy PMD (ascii) file conversion"
+
+    def __init__(self,WD):
+        wx.Frame.__init__(self, None, wx.ID_ANY, self.title)
+        self.panel = wx.ScrolledWindow(self)
+        self.WD = WD
+        self.InitUI()
+
+    def InitUI(self):
+
+        pnl = self.panel
+
+        TEXT = "PMD format file"
+        bSizer_info = wx.BoxSizer(wx.HORIZONTAL)
+        bSizer_info.Add(wx.StaticText(pnl, label=TEXT), wx.ALIGN_LEFT)
+
+        #---sizer 0 ----
+        self.bSizer0 = pw.choose_file(pnl, 'add', method = self.on_add_file_button)
+
+        #---sizer 1 ----
+        self.bSizer1 = pw.labeled_text_field(pnl)
+        
+        #---sizer 2 ----
+        self.bSizer2 = pw.select_specimen_ncn(pnl)
+
+        #---sizer 3 ---
+        TEXT = "specify number of characters to designate a specimen, default = 0"
+        self.bSizer3 = pw.labeled_text_field(pnl, TEXT)
+
+
+        #---sizer 4 ----
+        TEXT="Location name (optional):"
+        self.bSizer4 = pw.labeled_text_field(pnl, TEXT)
+
+
+        #---sizer 5 ----
+        TEXT = "Sampling Particulars (select all that apply):"
+        particulars = ["FS-FD: field sampling done with a drill", "FS-H: field sampling done with hand samples", "FS-LOC-GPS: field location done with GPS", "FS-LOC-MAP:  field location done with map", "SO-POM:  a Pomeroy orientation device was used", "SO-ASC:  an ASC orientation device was used", "SO-MAG: magnetic compass used for all orientations", "SO-SUN: sun compass used for all orientations", "SO-SM: either magnetic or sun used on all orientations", "SO-SIGHT: orientation from sighting"]
+        self.bSizer5 = pw.check_boxes(pnl, (6, 2, 0, 0), particulars, TEXT)
+
+
+        #---sizer 6 ---
+        self.bSizer6 = pw.replicate_measurements(pnl)
+
+        #---buttons ---
+        self.okButton = wx.Button(pnl, wx.ID_OK, "&OK")
+        self.Bind(wx.EVT_BUTTON, self.on_okButton, self.okButton)
+
+        self.cancelButton = wx.Button(pnl, wx.ID_CANCEL, '&Cancel')
+        self.Bind(wx.EVT_BUTTON, self.on_cancelButton, self.cancelButton)
+
+        self.helpButton = wx.Button(pnl, wx.ID_ANY, '&Help')
+        self.Bind(wx.EVT_BUTTON, self.on_helpButton, self.helpButton)
+
+        hboxok = wx.BoxSizer(wx.HORIZONTAL)
+        hboxok.Add(self.okButton, 0, wx.ALL, 5)
+        hboxok.Add(self.cancelButton, 0, wx.ALL, 5)
+        hboxok.Add(self.helpButton, 0, wx.ALL, 5)
+
+        #------
+        vbox=wx.BoxSizer(wx.VERTICAL)
+
+        vbox.AddSpacer(10)
+        vbox.Add(bSizer_info, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        vbox.Add(self.bSizer0, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        vbox.Add(self.bSizer1, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        vbox.Add(self.bSizer2, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        vbox.Add(self.bSizer3, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        vbox.Add(self.bSizer4, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        vbox.Add(self.bSizer5, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        vbox.Add(self.bSizer6, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        #vbox.Add(self.bSizer7, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        #vbox.AddSpacer(10)
+        #vbox.Add(wx.StaticLine(pnl), 0, wx.ALL|wx.EXPAND, 5)
+        vbox.Add(hboxok, flag=wx.ALIGN_CENTER)        
+        vbox.AddSpacer(20)
+
+        hbox_all= wx.BoxSizer(wx.HORIZONTAL)
+        hbox_all.AddSpacer(20)
+        hbox_all.AddSpacer(vbox)
+        hbox_all.AddSpacer(20)
+        
+        self.panel.SetSizer(hbox_all)
+        self.panel.SetScrollbars(20, 20, 50, 50)
+        hbox_all.Fit(self)
+        self.Show()
+        self.Centre()
+
+
+    def on_add_file_button(self,event):
+        text = "choose file to convert to MagIC"
+        pw.on_add_file_button(self.panel, self.WD, event, text)
+
+    def on_okButton(self, event):
+        print 'doing ok button'
+        wd = self.WD
+        full_file = self.bSizer0.return_value()
+        ind = full_file.rfind('/')
+        PMD_file = full_file[ind+1:] 
+        outfile = PMD_file + ".magic"
+        user = self.bSizer1.return_value()
+        if user:
+            user = "-usr " + user
+        ncn = self.bSizer2.return_value()
+        spc = self.bSizer3.return_value()
+        loc_name = self.bSizer4.return_value()
+        if loc_name:
+            loc_name = "-loc " + loc_name
+        particulars = self.bSizer5.return_value()
+        print particulars
+        replicate = self.bSizer6.return_value()
+        COMMAND = "PMD_magic.py -WD {} -f {} {} -ncn {} -spc {} {}".format(wd, PMD_file, user, ncn, spc, replicate)
+        print COMMAND
+        #pw.run_command_and_close_window(self, COMMAND, outfile)
+
+    def on_cancelButton(self,event):
+        self.Destroy()
+
+    def on_helpButton(self, event):
+        pw.on_helpButton("PMD_magic.py -h")
+
+
 
 
 
