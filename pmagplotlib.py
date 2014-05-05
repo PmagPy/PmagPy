@@ -49,7 +49,7 @@ fig_y_pos=25
 plt_num=0
 def plot_init(fignum,w,h):
     """
-    initializes plot number fignum  with width w and height h
+    initializes plot number fignum with width w and height h
     """
     global fig_x_pos,fig_y_pos,plt_num
     dpi=80
@@ -73,7 +73,6 @@ def plot3d_init(fignum):
     fig=pylab.figure(fignum) 
     ax=fig.add_subplot(111,projection='3d') 
     return ax
-
 
 def plot_square(fignum):
     pylab.figure(num=fignum) 

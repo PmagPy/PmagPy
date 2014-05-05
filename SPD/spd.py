@@ -248,11 +248,11 @@ class PintPars(object):
     def get_curve_prime(self):
         """not in SPD documentation.  same as k, but using the segment instead of the full data set"""
         if len(self.x_Arai_segment) < 4:
-            self.pars['specimen_k_prime'], self.pars['specimen_k_prime_SSE'] = 0, 0
+            self.pars['specimen_k_prime'], self.pars['specimen_k_prime_sse'] = 0, 0
             return 0
         data = lib_k.AraiCurvature(self.x_Arai_segment, self.y_Arai_segment)
         self.pars['specimen_k_prime'] = data[0]
-        self.pars['specimen_k_prime_SSE'] = data[3]
+        self.pars['specimen_k_prime_sse'] = data[3]
 
     def get_SCAT(self):
         if (len(set(self.y_Arai_segment)) == 1): # prevents divide by zero, i.e. if all y values in segment are the same [1,1,1]

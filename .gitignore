@@ -88,10 +88,6 @@ images/logo.png
 images/logo2.ai
 
 
-
-
-
-thellier_gui.py
 sio_thellier_example.dat
 er_samples.txt
 er_sites.txt
@@ -113,3 +109,17 @@ bugs.txt
 example.py
 wx_log.out
 magic_measurements.txt
+beta_log.log
+bugs.txt
+demag_gui.log
+er_samples.txt
+er_sites.txt
+er_specimens.txt
+example.py
+measurements.log
+orient.log
+sio_thellier_example.dat
+wx_log.out
+wxpython_demo.py
+wxpython_log.out
+

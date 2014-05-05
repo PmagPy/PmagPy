@@ -224,7 +224,9 @@ class Arai_GUI(wx.Frame):
 
         self.get_previous_interpretation() # get interpretations from pmag_specimens.txt
         FIRST_RUN=False
-        self.Bind(wx.EVT_CLOSE, self.on_menu_exit)        
+        self.Bind(wx.EVT_CLOSE, self.on_menu_exit) 
+        self.close_warning=False
+                      
     def get_DIR(self):
         """ 
         open dialog box for choosing a working directory 
@@ -449,11 +451,11 @@ class Arai_GUI(wx.Frame):
         self.Blab_label.SetFont(font2)
         self.Banc_label=wx.StaticText(self.panel,label="\nB_anc",style=wx.ALIGN_CENTRE)
         self.Banc_label.SetFont(font2)
-        self.aniso_corr_label=wx.StaticText(self.panel,label="Aniso\ncorrection",style=wx.ALIGN_CENTRE)
+        self.aniso_corr_label=wx.StaticText(self.panel,label="Aniso\ncorr",style=wx.ALIGN_CENTRE)
         self.aniso_corr_label.SetFont(font2)
-        self.nlt_corr_label=wx.StaticText(self.panel,label="NLT\ncorrection",style=wx.ALIGN_CENTRE)
+        self.nlt_corr_label=wx.StaticText(self.panel,label="NLT\ncorr",style=wx.ALIGN_CENTRE)
         self.nlt_corr_label.SetFont(font2)
-        self.cr_corr_label=wx.StaticText(self.panel,label="CR\ncorrection",style=wx.ALIGN_CENTRE)
+        self.cr_corr_label=wx.StaticText(self.panel,label="CR\ncorr",style=wx.ALIGN_CENTRE)
         self.cr_corr_label.SetFont(font2)
         self.dec_label=wx.StaticText(self.panel,label="\nDec",style=wx.ALIGN_CENTRE)
         self.dec_label.SetFont(font2)
@@ -682,6 +684,7 @@ class Arai_GUI(wx.Frame):
                                 
         self.draw_sample_mean()
         self.write_sample_box()
+        self.close_warning=True
         
 
     def on_delete_interpretation_button(self,event):
@@ -714,6 +717,7 @@ class Arai_GUI(wx.Frame):
         self.draw_figure(self.s)
         self.draw_sample_mean()
         self.write_sample_box()
+        self.close_warning=True
 
     #----------------------------------------------------------------------
             
@@ -1116,13 +1120,13 @@ class Arai_GUI(wx.Frame):
             command="self.%s_window.SetBackgroundColour(wx.NullColour)"%key
             exec command
                                          
-        window_list=['int_n','int_ptrm_n','frac','scat','gmax','f','fvds','b_beta','g','q','int_mad','int_dang','drats','md','ptrms_dec','ptrms_inc','ptrms_mad','ptrms_angle']
-        for key in window_list:
-            if key in self.preferences['show_statistics_on_gui']:
-                command="self.%s_window.SetValue(\"\")"%key
-                exec command
-                command="self.%s_window.SetBackgroundColour(wx.NullColour)"%key
-                exec command
+        #window_list=['int_n','int_ptrm_n','frac','scat','gmax','f','fvds','b_beta','g','q','int_mad','int_dang','drats','md','ptrms_dec','ptrms_inc','ptrms_mad','ptrms_angle']
+        #for key in window_list:
+        for key in self.preferences['show_statistics_on_gui']:
+            command="self.%s_window.SetValue(\"\")"%key
+            exec command
+            command="self.%s_window.SetBackgroundColour(wx.NullColour)"%key
+            exec command
             
     def write_sample_box(self):
         """ 
@@ -1640,10 +1644,13 @@ class Arai_GUI(wx.Frame):
     #-----------------------------------
         
     def on_menu_exit(self, event):
-        dlg1 = wx.MessageDialog(None,caption="Warning:", message="Exiting program.\nSave all interpretation to a 'redo' file or to MagIC specimens result table\n\nPress OK to exit" ,style=wx.OK|wx.CANCEL|wx.ICON_INFORMATION)
-        if dlg1.ShowModal() == wx.ID_OK:
-            dlg1.Destroy()
-            self.Destroy()
+        if self.close_warning:
+            dlg1 = wx.MessageDialog(None,caption="Warning:", message="Exiting program.\nSave all interpretation to a 'redo' file or to MagIC specimens result table\n\nPress OK to exit" ,style=wx.OK|wx.CANCEL|wx.ICON_INFORMATION)
+            if dlg1.ShowModal() == wx.ID_OK:
+                dlg1.Destroy()
+                self.Destroy()
+                exit()
+        else:
             exit()
         #if dlg1.ShowModal() == wx.ID_CANCEL:
         #    dlg1.Destroy()
@@ -2348,8 +2355,8 @@ class Arai_GUI(wx.Frame):
 #            thellier_gui_sample_file.close()    
 #        
 #        thellier_gui_specimen_file.close()
-        thellier_gui_redo_file.close()       
-
+        thellier_gui_redo_file.close()   
+        self.close_warning=False    
     def on_menu_clear_interpretation(self, event):
         '''
         clear all current interpretations.
@@ -5071,7 +5078,7 @@ class Arai_GUI(wx.Frame):
         dlg1.ShowModal()
         dlg1.Destroy()
         
-        
+        self.close_warning=False       
     def converge_pmag_rec_headers(self,old_recs):
         # fix the headers of pmag recs
         recs={}
@@ -6459,7 +6466,7 @@ class Arai_GUI(wx.Frame):
                 
             # get the value
             if self.acceptance_criteria[stat]['decimal_points']==-999:
-                value='%.3e'%self.pars[stat]
+                value='%.2e'%self.pars[stat]
             elif type(self.acceptance_criteria[stat]['decimal_points'])==float or type(self.acceptance_criteria[stat]['decimal_points'])==int:
                 command="value='%%.%if'%%(float(self.pars[stat]))"%(int(self.acceptance_criteria[stat]['decimal_points']))
                 exec command
@@ -6473,8 +6480,13 @@ class Arai_GUI(wx.Frame):
             cutoff_value=self.acceptance_criteria[stat]['value']
             if cutoff_value==-999:
                 command="self.%s_window.SetBackgroundColour(wx.NullColour)"%stat.split('specimen_')[-1]  # set text color 
+            elif stat=="specimen_k" or stat=="specimen_k_prime":
+                if abs(self.pars[stat])>cutoff_value:
+                    command="self.%s_window.SetBackgroundColour(wx.RED)"%stat.split('specimen_')[-1]  # set text color
+                    flag_Fail=True                
             elif self.acceptance_criteria[stat]['threshold_type']=='high' and self.pars[stat]>cutoff_value:
                 command="self.%s_window.SetBackgroundColour(wx.RED)"%stat.split('specimen_')[-1]  # set text color
+                flag_Fail=True
             elif self.acceptance_criteria[stat]['threshold_type']=='low' and self.pars[stat]<cutoff_value:
                 command="self.%s_window.SetBackgroundColour(wx.RED)"%stat.split('specimen_')[-1]  # set text color
                 flag_Fail=True
@@ -6919,16 +6931,19 @@ class Arai_GUI(wx.Frame):
             if self.acceptance_criteria[crit]['category']!='IE-SPEC':
                 continue
             cutoff_value=self.acceptance_criteria[crit]['value']
+            if crit=='specimen_scat':
+                if pars["specimen_scat"] in ["Fail",'b',0,'0','FALSE',"False",False]:
+                    pars['specimen_fail_criteria'].append('specimen_scat')
+            elif crit=='specimen_k' or crit=='specimen_k_prime':
+                if abs(pars[crit])>cutoff_value:
+                    pars['specimen_fail_criteria'].append(crit)
             # high threshold value:
-            if self.acceptance_criteria[crit]['threshold_type']=="high":
+            elif self.acceptance_criteria[crit]['threshold_type']=="high":
                 if pars[crit]>cutoff_value:
                     pars['specimen_fail_criteria'].append(crit)
             elif self.acceptance_criteria[crit]['threshold_type']=="low":
                 if pars[crit]<cutoff_value:
                     pars['specimen_fail_criteria'].append(crit)
-            elif crit=='specimen_scat':
-                if pars["specimen_scat"] in ["Fail",'b',0,'0','FALSE',"False",False]:
-                    pars['specimen_fail_criteria'].append('specimen_scat')
         
         return pars                                                                                     
 
