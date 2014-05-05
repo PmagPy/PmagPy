@@ -3299,7 +3299,7 @@ def dread(infile,cols):
 
 def fshdev(k):
     """
-     returns a direction from distribution with TM=0,90 and kappa of k
+    returns a direction from distribution with mean declination of 0, inclination of 90 and kappa of k
     """
     R1=random.random()
     R2=random.random()
@@ -3470,7 +3470,7 @@ def vgp_di(plat,plong,slat,slong):
 
 def watsonsV(Dir1,Dir2):
     """
-    calculates Watson's V statisting for two sets of directions
+    calculates Watson's V statistic for two sets of directions
     """
     counter,NumSims=0,500
 #
@@ -3560,7 +3560,7 @@ def dimap_V(D,I):
 
 def getmeths(method_type):
     """
-    returns MagIC  method codes available  for a given type
+    returns MagIC  method codes available for a given type
     """
     meths=[]
     if method_type=='GM':
@@ -3689,7 +3689,7 @@ def adjust_ages(AgesIn):
 #
 def gaussdev(mean,sigma):
     """
-    returns a number drawn from a gaussian distribution with given mean, sigma
+    returns a number randomly drawn from a gaussian distribution with the given mean, sigma
     """
     return random.normal(mean,sigma) # return gaussian deviate
 #
@@ -8114,8 +8114,7 @@ def initialize_acceptance_criteria ():
             acceptance_criteria[crit]['decimal_points']=-999
     
     # high cutoff value
-    for crit in ['specimen_b_sigma','specimen_b_beta','specimen_g','specimen_gmax','specimen_k','specimen_k_sse',\
-                 'specimen_k_prime', 'specimen_k_prime_sse',
+    for crit in ['specimen_b_sigma','specimen_b_beta','specimen_g','specimen_gmax','specimen_k','specimen_k_sse','specimen_k_prime','specimen_k_prime_sse',\
     'specimen_coeff_det_sq','specimen_z','specimen_z_md','specimen_int_mad','specimen_int_mad_anc','specimen_int_alpha','specimen_alpha','specimen_alpha_prime',\
     'specimen_theta','specimen_int_dang','specimen_int_crm','specimen_ptrm','specimen_dck','specimen_drat','specimen_maxdev','specimen_cdrat',\
     'specimen_drats','specimen_mdrat','specimen_mdev','specimen_dpal','specimen_tail_drat','specimen_dtr','specimen_md','specimen_dt','specimen_dac','specimen_gamma']:
