@@ -13,7 +13,7 @@ import wx.grid
 class import_magnetometer_data(wx.Dialog):
     
     def __init__(self,parent,id,title,WD):
-        print 'init import magnetometer data'
+        #print 'init import magnetometer data'
         wx.Dialog.__init__(self, parent, id, title)#, size=(300, 300))
         #super(import_magnetometer_data, self).__init__(*args, **kw)
         self.WD=WD
@@ -89,13 +89,13 @@ class import_magnetometer_data(wx.Dialog):
         hbox1.Fit(self)
 
     def on_cancelButton(self,event):
-        print 'canceling select file type import dialogue'
+        #print 'canceling select file type import dialogue'
         self.Destroy()
 
     def on_okButton(self,event):
-        print 'self.checked', self.checked_rb
+        #print 'self.checked', self.checked_rb
         file_type = self.checked_rb.Label.split()[0] # extracts name of the checked radio button
-        print 'file_type', file_type
+        #print 'file_type', file_type
         if file_type == 'generic':
             dia = convert_generic_files_to_MagIC(self.WD)
         elif file_type == 'SIO':
@@ -112,16 +112,16 @@ class import_magnetometer_data(wx.Dialog):
             dia = convert_IODP_csv_files_to_MagIC(self.WD)
         elif file_type == 'PMD':
             dia = convert_PMD_files_to_MagIC(self.WD)
-        print 'dia', dia, file_type
+        #print 'dia', dia, file_type
         dia.Center()
         dia.Show()
-        print 'showed dia'
+        #print 'showed dia'
 
 
     def OnRadioButtonSelect(self, event):
         #print 'calling OnRadioButtonSelect'
         self.checked_rb = event.GetEventObject()
-        print 'current self.checked_rb', self.checked_rb.Label
+        #print 'current self.checked_rb', self.checked_rb.Label
 #        print '-------------'
 
     def on_nextButton(self,event):
@@ -146,7 +146,7 @@ class convert_generic_files_to_MagIC(wx.Frame):
         self.panel.SetScrollbars(20, 20, 50, 50)
         self.max_files=1
         self.WD=WD
-        #print 'self.WD on init generic files', self.WD
+        ##print 'self.WD on init generic files', self.WD
         self.InitUI()
 
     def InitUI(self):
@@ -315,7 +315,7 @@ class convert_generic_files_to_MagIC(wx.Frame):
 #            style=wx.OPEN | wx.CHANGE_DIR
 #            style=wx.CHANGE_DIR | wx.OPEN
 #            )
-#        print 'dlg.GetDirectory()', dlg.GetDirectory()
+#        #print 'dlg.GetDirectory()', dlg.GetDirectory()
 #        if dlg.ShowModal() == wx.ID_OK:
 #            self.file_path.SetValue(str(dlg.GetPath()))
 
@@ -600,7 +600,7 @@ class convert_SIO_files_to_MagIC(wx.Frame):
     title = "PmagPy SIO file conversion"
 
     def __init__(self,WD):
-        print 'init SIO conversion'
+        #print 'init SIO conversion'
         wx.Frame.__init__(self, None, wx.ID_ANY, self.title)
         self.panel = wx.ScrolledWindow(self)
         self.panel.SetScrollbars(20, 20, 50, 50)
@@ -610,7 +610,7 @@ class convert_SIO_files_to_MagIC(wx.Frame):
 
 
     def InitUI(self):
-        print 'init UI'
+        #print 'init UI'
         pnl = self.panel
 
         TEXT = "SIO Format file"
@@ -727,9 +727,9 @@ class convert_SIO_files_to_MagIC(wx.Frame):
         loc_name = self.bSizer5.return_value()
         if loc_name:
             loc_name = "-loc " + loc_name
-        print "loc_name", loc_name
+        #print "loc_name", loc_name
         instrument = self.bSizer6.return_value()
-        print "instrument", instrument
+        #print "instrument", instrument
         if instrument:
             instrument = "-ins " + instrument
         replicate = self.bSizer7.return_value()
@@ -740,7 +740,7 @@ class convert_SIO_files_to_MagIC(wx.Frame):
         peak_AF = self.bSizer8.return_value()
         if peak_AF:
             peak_AF = "-ac " + peak_AF
-        print "peak_AF", peak_AF
+        #print "peak_AF", peak_AF
         coil_number = self.bSizer9.return_value()
         if coil_number:
             coil_number = "-V " + coil_number
@@ -1013,7 +1013,7 @@ class convert_HUJI_files_to_MagIC(wx.Frame):
         experiment_type = self.bSizer2.return_value()
         lab_field = self.bSizer3.return_value()
         if lab_field:
-            print 'lab field', lab_field
+            #print 'lab field', lab_field
             lab_field = '-dc ' + lab_field
         ncn = self.bSizer4.return_value()
         spc = self.bSizer5.return_value()
@@ -1026,7 +1026,7 @@ class convert_HUJI_files_to_MagIC(wx.Frame):
             loc_name = '-loc ' + loc_name
         peak_AF = self.bSizer7.return_value()
         COMMAND = "HUJI_magic.py -f {} -F {} -LP {} {} {} -ncn {} {} {} {}".format(HUJI_file, outfile, user, experiment_type, loc_name, ncn, lab_field, spc, peak_AF)
-        print 'COMMAND', COMMAND
+        #print 'COMMAND', COMMAND
         pw.run_command_and_close_window(self, COMMAND, outfile)
 
     def on_cancelButton(self,event):
@@ -1156,7 +1156,7 @@ class convert_2G_binary_files_to_MagIC(wx.Frame):
         if replicate:
             replicate = '-a'
         COMMAND = "2G_bin_magic.py -WD {} -f {} -F {} -ncn {} {} -ocn {} {} {}".format(wd, file_2G_bin, outfile, ncn, spc, ocn, loc_name, replicate)
-        print COMMAND
+        #print COMMAND
         pw.run_command_and_close_window(self, COMMAND, outfile)
 
     def on_cancelButton(self,event):
@@ -1290,7 +1290,7 @@ class convert_LDEO_files_to_MagIC(wx.Frame):
         if user:
             user = "-usr " + user
         experiment_type = self.bSizer2.return_value()
-        print experiment_type
+        #print experiment_type
         lab_field = self.bSizer3.return_value()
         if lab_field:
             lab_field = "-dc " + lab_field
@@ -1323,7 +1323,7 @@ class convert_LDEO_files_to_MagIC(wx.Frame):
         else:
             synthetic = ''
         COMMAND = "LDEO_magic.py -f {0} -F {1} {2} -LP {3} {4} -ncn {5} {6} {7} {8} {9} {10} {11} {12}".format(LDEO_file, outfile, user, experiment_type, lab_field, ncn, spc, loc_name, instrument, replicate, AF_field, coil_number, synthetic)
-        print COMMAND
+        #print COMMAND
         pw.run_command_and_close_window(self, COMMAND, outfile)
 
     def on_cancelButton(self,event):
@@ -1434,7 +1434,7 @@ class convert_IODP_csv_files_to_MagIC(wx.Frame):
         else:
             replicate = "-A"
         COMMAND = "IODP_csv_magic.py -WD {0} -f {1} -F {2} {3}".format(wd, IODP_file, outfile, replicate)
-        print COMMAND
+        #print COMMAND
         pw.run_command_and_close_window(self, COMMAND, outfile)
 
     def on_cancelButton(self,event):
@@ -1543,7 +1543,7 @@ class convert_PMD_files_to_MagIC(wx.Frame):
         pw.on_add_file_button(self.panel, self.WD, event, text)
 
     def on_okButton(self, event):
-        print 'doing ok button'
+        #print 'doing ok button'
         wd = self.WD
         full_file = self.bSizer0.return_value()
         ind = full_file.rfind('/')
@@ -1558,7 +1558,7 @@ class convert_PMD_files_to_MagIC(wx.Frame):
         if loc_name:
             loc_name = "-loc " + loc_name
         particulars = self.bSizer5.return_value()
-        print particulars
+        #print particulars
         replicate = self.bSizer6.return_value()
         COMMAND = "PMD_magic.py -WD {} -f {} {} -ncn {} -spc {} {}".format(wd, PMD_file, user, ncn, spc, replicate)
         print COMMAND
