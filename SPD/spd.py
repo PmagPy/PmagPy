@@ -681,7 +681,7 @@ class PintPars(object):
         'specimen_int_crm': get_CRM_percent,
         'specimen_dt': get_delta_t_star,
         'specimen_k_prime': get_curve_prime,
-        'specimen_k_prime_sse': get_curve_prime
+        'specimen_k_prime_SSE': get_curve_prime
     }
 
     dependencies = {

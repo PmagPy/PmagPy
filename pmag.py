@@ -8127,7 +8127,7 @@ def initialize_acceptance_criteria ():
             acceptance_criteria[crit]['decimal_points']=1
         elif crit in ['specimen_gmax']:
             acceptance_criteria[crit]['decimal_points']=2
-        elif crit in ['specimen_b_sigma','specimen_b_beta','specimen_g','specimen_k']:
+        elif crit in ['specimen_b_sigma','specimen_b_beta','specimen_g','specimen_k', 'specimen_k_prime']:
             acceptance_criteria[crit]['decimal_points']=3
         else :
             acceptance_criteria[crit]['decimal_points']=-999

@@ -36,21 +36,23 @@ class MagIC_model_builder(wx.Frame):
     """"""
  
     #----------------------------------------------------------------------
-    def __init__(self,WD,Data,Data_hierarchy):
+    def __init__(self,WD):
         #print WD
         #print ".............."
         #print Data
         #print "-------------"
         #print Data_hierarchy
-        wx.Frame.__init__(self, parent=None)
+        wx.Frame.__init__(self, None, wx.ID_ANY)
         self.panel = wx.Panel(self)
         self.er_specimens_header=['er_citation_names','er_specimen_name','er_sample_name','er_site_name','er_location_name','specimen_class','specimen_lithology','specimen_type']
         self.er_samples_header=['er_citation_names','er_sample_name','er_site_name','er_location_name','sample_class','sample_lithology','sample_type','sample_lat','sample_lon']
         self.er_sites_header=['er_citation_names','er_site_name','er_location_name','site_class','site_lithology','site_type','site_definition','site_lon','site_lat']
         self.er_locations_header=['er_citation_names','er_location_name','location_begin_lon','location_end_lon','location_begin_lat','location_end_lat','location_type']
         self.er_ages_header=['er_citation_names','er_site_name','er_location_name','age_description','magic_method_codes','age','age_unit']
-        self.WD=WD
-        self.Data,self.Data_hierarchy=Data,Data_hierarchy
+        os.chdir(WD)
+        self.WD=os.getcwd()+"/"        
+        #self.WD=WD
+        self.Data,self.Data_hierarchy=self.get_data()
         self.read_MagIC_info()
         self.SetTitle("Choose header for each MagIC Table" )
         self.InitUI()
@@ -605,6 +607,52 @@ class MagIC_model_builder(wx.Frame):
             except:
                 pass
 
+
+    def get_data(self):
+        
+      Data={}
+      Data_hierarchy={}
+      Data_hierarchy['sites']={}
+      Data_hierarchy['samples']={}
+      Data_hierarchy['specimens']={}
+      Data_hierarchy['sample_of_specimen']={} 
+      Data_hierarchy['site_of_specimen']={}   
+      Data_hierarchy['site_of_sample']={}   
+      try:
+          meas_data,file_type=pmag.magic_read(self.WD+"/magic_measurements.txt")
+      except:
+          print "-E- ERROR: Cant read magic_measurement.txt file. File is corrupted."
+          return {},{}
+         
+      sids=pmag.get_specs(meas_data) # samples ID's
+      
+      for s in sids:
+          if s not in Data.keys():
+              Data[s]={}
+      for rec in meas_data:
+          s=rec["er_specimen_name"]
+          sample=rec["er_sample_name"]
+          site=rec["er_site_name"]
+          if sample not in Data_hierarchy['samples'].keys():
+              Data_hierarchy['samples'][sample]=[]
+
+          if site not in Data_hierarchy['sites'].keys():
+              Data_hierarchy['sites'][site]=[]         
+          
+          if s not in Data_hierarchy['samples'][sample]:
+              Data_hierarchy['samples'][sample].append(s)
+
+          if sample not in Data_hierarchy['sites'][site]:
+              Data_hierarchy['sites'][site].append(sample)
+
+          Data_hierarchy['specimens'][s]=sample
+          Data_hierarchy['sample_of_specimen'][s]=sample  
+          Data_hierarchy['site_of_specimen'][s]=site  
+          Data_hierarchy['site_of_sample'][sample]=site
+      return(Data,Data_hierarchy)
+
+    
+            
 class HtmlWindow(wx.html.HtmlWindow):
     def OnLinkClicked(self, link):
         wx.LaunchDefaultBrowser(link.GetHref())

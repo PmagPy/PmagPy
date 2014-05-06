@@ -83,9 +83,45 @@ foldtest_results_new.out
 
 images/logo.eps
 
-images/logo.png
-
 images/logo2.ai
 
-images/logo2.png
+sio_thellier_example.dat
+er_samples.txt
+er_sites.txt
+er_specimens.txt
+measurements.log
+orient.log
+.#bugs.txt
+MP18-1
+MP18-2
+MP18-3
+MP18-4
+MP18-5
+MP18-6
+bMP.sam
+bMP.sam.magic
+wxpython_demo.py
+wxpython_log.out
+bugs.txt
+example.py
+wx_log.out
+magic_measurements.txt
+beta_log.log
+bugs.txt
+demag_gui.log
+er_samples.txt
+er_sites.txt
+er_specimens.txt
+example.py
+measurements.log
+orient.log
+sio_thellier_example.dat
+wx_log.out
+wxpython_demo.py
+wxpython_log.out
 
+magic_measurements.txt
+
+magic_measurements.txt
+
+#.gitignore#
