@@ -3914,7 +3914,8 @@ class Zeq_GUI(wx.Frame):
             help_window=MagIC_Model_Builder.MyHtmlPanel(None,HTML_PATH)
             help_window.Show()
             
-        dia = MagIC_Model_Builder.MagIC_model_builder(self.WD,self.Data,self.Data_hierarchy)
+        #dia = MagIC_Model_Builder.MagIC_model_builder(self.WD,self.Data,self.Data_hierarchy)
+        dia = MagIC_Model_Builder.MagIC_model_builder(self.WD)#,self.Data,self.Data_hierarchy)
         dia.Show()
         dia.Center()
         print "OK"

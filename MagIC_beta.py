@@ -14,7 +14,6 @@ class MagMainFrame(wx.Frame):
     title = "PmagPy MagIC main functions"
 
     def __init__(self):
-        print 'init magic main frame'
         global FIRST_RUN
         FIRST_RUN=True
         wx.Frame.__init__(self, None, wx.ID_ANY, self.title)
@@ -60,6 +59,7 @@ class MagMainFrame(wx.Frame):
         self.btn2 =buttons.GenButton(self.panel, id=-1, label=TEXT,size=(450, 50))
         self.btn2.SetBackgroundColour("#FDC68A")
         self.btn2.InitColours()
+        self.Bind(wx.EVT_BUTTON, self.on_orientation_button,self.btn2)
         TEXT="3. fill Earth-Ref data"
         self.btn3 =buttons.GenButton(self.panel, id=-1, label=TEXT,size=(450, 50))
         self.btn3.SetBackgroundColour("#FDC68A")
@@ -70,6 +70,7 @@ class MagMainFrame(wx.Frame):
         self.btn4 =buttons.GenButton(self.panel, id=-1, label=TEXT,size=(300, 50))
         self.btn4.SetBackgroundColour("#FDC68A")
         self.btn4.InitColours()
+        self.Bind(wx.EVT_BUTTON, self.on_unpack,self.btn4)
  
         #str = "OR"
         OR = wx.StaticText(self.panel, -1, "or", (20, 120))
@@ -121,13 +122,14 @@ class MagMainFrame(wx.Frame):
         bSizer3 = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY, "Upload to MagIC database" ), wx.HORIZONTAL )
         
         TEXT="prepare upload txt file"
-        self.btn_magic =buttons.GenButton(self.panel, id=-1, label=TEXT,size=(300, 50))
-        self.btn_magic.SetBackgroundColour("#C4DF9B")
-        self.btn_magic.InitColours()
+        self.btn_upload =buttons.GenButton(self.panel, id=-1, label=TEXT,size=(300, 50))
+        self.btn_upload.SetBackgroundColour("#C4DF9B")
+        self.btn_upload.InitColours()
 
         bSizer3.AddSpacer(20)
-        bSizer3.Add(self.btn_magic, 0, wx.ALIGN_CENTER, 0)
+        bSizer3.Add(self.btn_upload, 0, wx.ALIGN_CENTER, 0)
         bSizer3.AddSpacer(20)
+        self.Bind(wx.EVT_BUTTON, self.on_btn_upload,self.btn_upload)
 
 
 
@@ -170,9 +172,7 @@ class MagMainFrame(wx.Frame):
             self.WD=sys.argv[ind+1]            
         
         else:
-            
-            
-            
+                        
             TEXT1="Set Project MagIC Directory.\nPath should have NO SPACES.\n This Directory is to be used by this program ONLY"               
             dlg1 = wx.MessageDialog(self, caption="First step",message=TEXT1,style=wx.OK|wx.ICON_EXCLAMATION)
             result1 = dlg1.ShowModal()            
@@ -222,7 +222,7 @@ class MagMainFrame(wx.Frame):
         print 'convert file'
         pmag_dialogs_dia=pmag_dialogs.import_magnetometer_data(None, -1, '',self.WD)
         pmag_dialogs_dia.Center()
-        pmag_dialogs_dia.ShowModal()
+        pmag_dialogs_dia.Show()
                                     
     def on_er_data(self,event):
 
@@ -237,11 +237,85 @@ class MagMainFrame(wx.Frame):
         if foundHTML:
             help_window=MagIC_Model_Builder.MyHtmlPanel(None,HTML_PATH)
             help_window.Show()
-            
-        dia = MagIC_Model_Builder.MagIC_model_builder(self.WD,self.Data,self.Data_hierarchy)
+        #dia = MagIC_Model_Builder.MagIC_model_builder(self.WD,self.Data,self.Data_hierarchy)
+        dia = MagIC_Model_Builder.MagIC_model_builder(self.WD)#,self.Data,self.Data_hierarchy)
         dia.Show()
         dia.Center()
-                                                                                                                                                                                                                        
+
+
+    def get_data(self):
+        
+      Data={}
+      Data_hierarchy={}
+      Data_hierarchy['sites']={}
+      Data_hierarchy['samples']={}
+      Data_hierarchy['specimens']={}
+      Data_hierarchy['sample_of_specimen']={} 
+      Data_hierarchy['site_of_specimen']={}   
+      Data_hierarchy['site_of_sample']={}   
+      try:
+          meas_data,file_type=pmag.magic_read(self.WD+"/magic_measurements.txt")
+      except:
+          print "-E- ERROR: Cant read magic_measurement.txt file. File is corrupted."
+          return {},{}
+         
+      sids=pmag.get_specs(meas_data) # samples ID's
+      
+      for s in sids:
+          if s not in Data.keys():
+              Data[s]={}
+      for rec in meas_data:
+          s=rec["er_specimen_name"]
+          sample=rec["er_sample_name"]
+          site=rec["er_site_name"]
+          if sample not in Data_hierarchy['samples'].keys():
+              Data_hierarchy['samples'][sample]=[]
+
+          if site not in Data_hierarchy['sites'].keys():
+              Data_hierarchy['sites'][site]=[]         
+          
+          if s not in Data_hierarchy['samples'][sample]:
+              Data_hierarchy['samples'][sample].append(s)
+
+          if sample not in Data_hierarchy['sites'][site]:
+              Data_hierarchy['sites'][site].append(sample)
+
+          Data_hierarchy['specimens'][s]=sample
+          Data_hierarchy['sample_of_specimen'][s]=sample  
+          Data_hierarchy['site_of_specimen'][s]=site  
+          Data_hierarchy['site_of_sample'][sample]=site
+      return(Data,Data_hierarchy)
+                                                                                                                                                                                                                               
+    def on_orientation_button(self,event):
+        #dw, dh = wx.DisplaySize()
+        SIZE=wx.DisplaySize()
+        SIZE=(SIZE[0]-0.1*SIZE[0],SIZE[1]-0.1*SIZE[1])
+        Data,Data_hierarchy=self.get_data()
+        frame = pmag_dialogs.OrientFrameGrid (None, -1, 'demag_orient.txt',self.WD,Data_hierarchy,SIZE)        
+        frame.Show(True)
+        frame.Centre()
+
+    def on_unpack(self,event):  
+
+        dlg = wx.FileDialog(
+            None,message="choose txt file to unpack",
+            defaultDir=self.WD, 
+            defaultFile="",
+            style=wx.OPEN #| wx.CHANGE_DIR
+            )        
+        if dlg.ShowModal() == wx.ID_OK:
+            FILE = dlg.GetFilename()                
+        outstring="download_magic.py -f %s"%FILE
+        print "-I- running python script:\n %s"%(outstring)
+        os.system(outstring)
+        
+    def on_btn_upload(self,event):
+        outstring="upload_magic.py"
+        print "-I- running python script:\n %s"%(outstring)
+        os.system(outstring)
+       
+           
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  
 #==============================================================
 # Menu Bar functions
 #==============================================================
@@ -289,7 +363,8 @@ class MagMainFrame(wx.Frame):
 
 
 if __name__ == "__main__":
-    app = wx.App(redirect=True, filename="beta_log.log")
+    #app = wx.App(redirect=True, filename="beta_log.log")
+    app = wx.PySimpleApp()
     frame = MagMainFrame()
     frame.Center()
     frame.Show()
