@@ -2349,7 +2349,7 @@ def help_Utilities():
 
 def help_magic(helpme):
     import webbrowser
-    webbrowser.open("http://earthref.org/MAGIC/cookbook"+helpme)
+    webbrowser.open("http://earthref.org/PmagPy/cookbook"+helpme)
 
 
 def exit():
