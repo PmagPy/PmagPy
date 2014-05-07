@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env pythonw
 import wx
 import wx.lib.buttons as buttons
 import pmag
@@ -55,7 +55,7 @@ class MagMainFrame(wx.Frame):
         self.btn1.SetBackgroundColour("#FDC68A")
         self.btn1.InitColours()
         self.Bind(wx.EVT_BUTTON, self.on_convert_file,self.btn1)
-        TEXT="2. optional: \n calculate geographic/tilt-corrected directions"
+        TEXT="2. (optional) calculate geographic/tilt-corrected directions"
         self.btn2 =buttons.GenButton(self.panel, id=-1, label=TEXT,size=(450, 50))
         self.btn2.SetBackgroundColour("#FDC68A")
         self.btn2.InitColours()
@@ -185,11 +185,11 @@ class MagMainFrame(wx.Frame):
             dialog = wx.DirDialog(None, TEXT,defaultPath = currentDirectory ,style=wx.DD_DEFAULT_STYLE | wx.DD_NEW_DIR_BUTTON | wx.DD_CHANGE_DIR)
             result=dialog.ShowModal()                                     
             if result == wx.ID_OK:
-              self.WD=dialog.GetPath()
+              self.WD=str(dialog.GetPath())
             dialog.Destroy()
         
         os.chdir(self.WD)
-        self.WD=os.getcwd()+"/"
+        self.WD=str(os.getcwd())+"/"
         self.dir_path.SetValue(self.WD)
 
     #----------------------------------------------------------------------
@@ -219,7 +219,7 @@ class MagMainFrame(wx.Frame):
         os.system(outstring)
         
     def on_convert_file(self,event):
-        print 'convert file'
+        #print self.WD
         pmag_dialogs_dia=pmag_dialogs.import_magnetometer_data(None, -1, '',self.WD)
         pmag_dialogs_dia.Center()
         pmag_dialogs_dia.Show()

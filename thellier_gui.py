@@ -1,8 +1,11 @@
-#!/usr/bin/env python
+#!/usr/bin/env pythonw
 
 #============================================================================================
 # LOG HEADER:
 #============================================================================================
+# Thellier_GUI Version 2.23 05/07/2014
+# Fix Pmag results tables issues
+#
 # Thellier_GUI Version 2.22 04/09/2014
 # fix Blab window bug
 #
@@ -103,7 +106,12 @@
 #============================================================================================
 
 global CURRENT_VRSION
-CURRENT_VRSION = "v.2.22"
+global MICROWAVE
+global THERMAL
+CURRENT_VRSION = "v.2.23"
+MICROWAVE=False
+THERMAL=True
+
 import matplotlib
 matplotlib.use('WXAgg')
 
@@ -4658,7 +4666,11 @@ class Arai_GUI(wx.Frame):
         pmag_specimens_header_1=["er_location_name","er_site_name","er_sample_name","er_specimen_name"]
         pmag_specimens_header_2=['measurement_step_min','measurement_step_max','specimen_int']        
         pmag_specimens_header_3=["specimen_correction","specimen_int_corr_anisotropy","specimen_int_corr_nlt","specimen_int_corr_cooling_rate"]
-        pmag_specimens_header_4=['specimen_int_n','specimen_int_ptrm_n','specimen_f','specimen_fvds','specimen_frac','specimen_gmax','specimen_b_beta','specimen_scat','specimen_drats','specimen_md','specimen_int_mad','specimen_int_dang','specimen_q','specimen_g']
+        pmag_specimens_header_4=[]
+        for short_stat in self.preferences['show_statistics_on_gui']:
+            stat="specimen_"+short_stat
+            pmag_specimens_header_4.append(stat)
+            #pmag_specimens_header_4=['specimen_int_n','specimen_int_ptrm_n','specimen_f','specimen_fvds','specimen_frac','specimen_gmax','specimen_b_beta','specimen_scat','specimen_drats','specimen_md','specimen_int_mad','specimen_int_dang','specimen_q','specimen_g']
         pmag_specimens_header_5=["magic_experiment_names","magic_method_codes","measurement_step_unit","specimen_lab_field_dc"]
         pmag_specimens_header_6=["er_citation_names"]
         try:
@@ -4666,9 +4678,9 @@ class Arai_GUI(wx.Frame):
         except:
             version=""
         version=version+": thellier_gui."+CURRENT_VRSION
-        for k in self.ignore_parameters.keys():
-            if k in pmag_specimens_header_4 and self.ignore_parameters[k]==True:
-                pmag_specimens_header_4.remove(k)
+        #for k in self.ignore_parameters.keys():
+        #    if k in pmag_specimens_header_4 and self.ignore_parameters[k]==True:
+        #        pmag_specimens_header_4.remove(k)
 
         specimens_list=[]
         for specimen in self.Data.keys():
@@ -4699,11 +4711,11 @@ class Arai_GUI(wx.Frame):
 
                 
                 MagIC_results_data['pmag_specimens'][specimen]['er_location_name']=self.MagIC_model["specimens"][specimen]['er_location_name']
-                MagIC_results_data['pmag_specimens'][specimen]['magic_method_codes']=self.Data[specimen]['pars']['magic_method_codes']
+                MagIC_results_data['pmag_specimens'][specimen]['magic_method_codes']=self.Data[specimen]['pars']['magic_method_codes']+":IE-TT"
                 tmp=MagIC_results_data['pmag_specimens'][specimen]['magic_method_codes'].split(":")
                 magic_experiment_names=specimen
                 for m in tmp:
-                    if "LP" in m:
+                    if "LP-" in m:
                         magic_experiment_names=magic_experiment_names+" : " + m
                 MagIC_results_data['pmag_specimens'][specimen]['magic_experiment_names']=magic_experiment_names                
                     
@@ -4733,7 +4745,7 @@ class Arai_GUI(wx.Frame):
                     MagIC_results_data['pmag_specimens'][specimen]['specimen_int_corr_nlt']="%.2f"%(self.Data[specimen]['pars']['specimen_int_corr_nlt'])
                 else:
                     MagIC_results_data['pmag_specimens'][specimen]['specimen_int_corr_nlt']=""
-                if "specimen_int_corr_cooling_rate" in  self.Data[specimen]['pars'].keys():
+                if "specimen_int_corr_cooling_rate" in  self.Data[specimen]['pars'].keys() and self.Data[specimen]['pars']['specimen_int_corr_cooling_rate'] != -999:
                     MagIC_results_data['pmag_specimens'][specimen]['specimen_int_corr_cooling_rate']="%.2f"%(self.Data[specimen]['pars']['specimen_int_corr_cooling_rate'])
                 else:
                     MagIC_results_data['pmag_specimens'][specimen]['specimen_int_corr_cooling_rate']=""
@@ -4777,7 +4789,10 @@ class Arai_GUI(wx.Frame):
         pmag_samples_header_1=["er_location_name","er_site_name"]
         if BY_SAMPLES:
            pmag_samples_header_1.append("er_sample_name")
-        pmag_samples_header_2=["er_specimen_names","sample_int","sample_int_n","sample_int_sigma","sample_int_sigma_perc"]
+        if BY_SAMPLES:
+            pmag_samples_header_2=["er_specimen_names","sample_int","sample_int_n","sample_int_sigma","sample_int_sigma_perc"]
+        else:
+            pmag_samples_header_2=["er_specimen_names","site_int","site_int_n","site_int_sigma","site_int_sigma_perc"]
         pmag_samples_header_3=["sample_description","magic_method_codes","magic_software_packages"]
         pmag_samples_header_4=["er_citation_names"]
 
@@ -4794,9 +4809,17 @@ class Arai_GUI(wx.Frame):
             if True:
                 specimens_names=""
                 B=[]
+                specimens_LP_codes=[]
                 for specimen in Data_samples_or_sites[sample_or_site].keys():
                     B.append(Data_samples_or_sites[sample_or_site][specimen])
+                    magic_codes=MagIC_results_data['pmag_specimens'][specimen]['magic_method_codes']
+                    codes=magic_codes.replace(" ","").split(":")
+                    for code in codes:
+                        if "LP-" in code and code not in specimens_LP_codes:
+                            specimens_LP_codes.append(code)
+                    
                     specimens_names=specimens_names+specimen+":"
+                magic_codes=":".join(specimens_LP_codes)+":IE-TT"
                 specimens_names=specimens_names[:-1]
                 if specimens_names!="":
 
@@ -4821,10 +4844,14 @@ class Arai_GUI(wx.Frame):
                     pmag_samples_or_sites_list.append(sample_or_site)
                     MagIC_results_data['pmag_samples_or_sites'][sample_or_site]={}
                     MagIC_results_data['pmag_samples_or_sites'][sample_or_site]['er_specimen_names']=specimens_names
-                    MagIC_results_data['pmag_samples_or_sites'][sample_or_site]['sample_int']="%.2e"%(B_uT*1e-6)
-                    MagIC_results_data['pmag_samples_or_sites'][sample_or_site]['sample_int_n']="%i"%(N)
-                    MagIC_results_data['pmag_samples_or_sites'][sample_or_site]['sample_int_sigma']="%.2e"%(B_std_uT*1e-6)
-                    MagIC_results_data['pmag_samples_or_sites'][sample_or_site]['sample_int_sigma_perc']="%.2f"%(B_std_perc)
+                    if BY_SAMPLES:
+                        name="sample_"
+                    else:
+                        name="site_"
+                    MagIC_results_data['pmag_samples_or_sites'][sample_or_site][name+'int']="%.2e"%(B_uT*1e-6)
+                    MagIC_results_data['pmag_samples_or_sites'][sample_or_site][name+'int_n']="%i"%(N)
+                    MagIC_results_data['pmag_samples_or_sites'][sample_or_site][name+'int_sigma']="%.2e"%(B_std_uT*1e-6)
+                    MagIC_results_data['pmag_samples_or_sites'][sample_or_site][name+'int_sigma_perc']="%.2f"%(B_std_perc)
                     for key in pmag_samples_header_1:
                         if BY_SAMPLES:
                             MagIC_results_data['pmag_samples_or_sites'][sample_or_site][key]=self.MagIC_model["er_samples"][sample_or_site][key]
@@ -4834,7 +4861,7 @@ class Arai_GUI(wx.Frame):
                     
                     MagIC_results_data['pmag_samples_or_sites'][sample_or_site]["pmag_criteria_codes"]=""
                     MagIC_results_data['pmag_samples_or_sites'][sample_or_site]["sample_description"]="Mean of specimens"
-                    MagIC_results_data['pmag_samples_or_sites'][sample_or_site]['magic_method_codes']="LP-PI"
+                    MagIC_results_data['pmag_samples_or_sites'][sample_or_site]['magic_method_codes']=magic_codes
                     MagIC_results_data['pmag_samples_or_sites'][sample_or_site]["magic_software_packages"]=version
                     
                     MagIC_results_data['pmag_samples_or_sites'][sample_or_site]["er_citation_names"]="This study"
@@ -4947,11 +4974,15 @@ class Arai_GUI(wx.Frame):
 
             MagIC_results_data['pmag_results'][sample_or_site]["average_lat"]=lat
             MagIC_results_data['pmag_results'][sample_or_site]["average_lon"]=lon
-            
-            MagIC_results_data['pmag_results'][sample_or_site]["average_int_n"]=MagIC_results_data['pmag_samples_or_sites'][sample_or_site]['sample_int_n']
-            MagIC_results_data['pmag_results'][sample_or_site]["average_int"]=MagIC_results_data['pmag_samples_or_sites'][sample_or_site]['sample_int']
-            MagIC_results_data['pmag_results'][sample_or_site]["average_int_sigma"]=MagIC_results_data['pmag_samples_or_sites'][sample_or_site]['sample_int_sigma']
-            MagIC_results_data['pmag_results'][sample_or_site]["average_int_sigma_perc"]=MagIC_results_data['pmag_samples_or_sites'][sample_or_site]['sample_int_sigma_perc']
+            if BY_SAMPLES:
+                name='sample'
+            else:
+                name='site'
+                
+            MagIC_results_data['pmag_results'][sample_or_site]["average_int_n"]=MagIC_results_data['pmag_samples_or_sites'][sample_or_site][name+'_int_n']
+            MagIC_results_data['pmag_results'][sample_or_site]["average_int"]=MagIC_results_data['pmag_samples_or_sites'][sample_or_site][name+'_int']
+            MagIC_results_data['pmag_results'][sample_or_site]["average_int_sigma"]=MagIC_results_data['pmag_samples_or_sites'][sample_or_site][name+'_int_sigma']
+            MagIC_results_data['pmag_results'][sample_or_site]["average_int_sigma_perc"]=MagIC_results_data['pmag_samples_or_sites'][sample_or_site][name+'_int_sigma_perc']
 
             if self.preferences['VDM_or_VADM']=="VDM":
                 pass
@@ -4959,8 +4990,10 @@ class Arai_GUI(wx.Frame):
             else:
                 if lat!="":
                     lat=float(lat)
-                    B=float(MagIC_results_data['pmag_samples_or_sites'][sample_or_site]['sample_int'])
-                    B_sigma=float(MagIC_results_data['pmag_samples_or_sites'][sample_or_site]['sample_int_sigma'])
+                    #B=float(MagIC_results_data['pmag_samples_or_sites'][sample_or_site]['sample_int'])
+                    B=float(MagIC_results_data['pmag_results'][sample_or_site]["average_int"])
+                    #B_sigma=float(MagIC_results_data['pmag_samples_or_sites'][sample_or_site]['sample_int_sigma'])
+                    B_sigma=float(MagIC_results_data['pmag_results'][sample_or_site]["average_int_sigma"])
                     VADM=pmag.b_vdm(B,lat)
                     VADM_plus=pmag.b_vdm(B+B_sigma,lat)
                     VADM_minus=pmag.b_vdm(B-B_sigma,lat)
@@ -4978,8 +5011,10 @@ class Arai_GUI(wx.Frame):
                 MagIC_results_data['pmag_results'][sample_or_site]["result_description"]="Paleointensity"
     
             MagIC_results_data['pmag_results'][sample_or_site]["magic_software_packages"]=version
-            MagIC_results_data['pmag_results'][sample_or_site]["magic_method_codes"]="LP-PI"
-            MagIC_results_data['pmag_results'][sample_or_site]["data_type"]="a"
+            MagIC_results_data['pmag_results'][sample_or_site]["magic_method_codes"]=magic_codes
+            # try to make a more meaningful name
+            
+            MagIC_results_data['pmag_results'][sample_or_site]["data_type"]="i"
             MagIC_results_data['pmag_results'][sample_or_site]["er_citation_names"]="This study"
             
             # add ages
@@ -6718,17 +6753,35 @@ class Arai_GUI(wx.Frame):
         # Add missing parts of code from old get_PI
         #-------------------------------------------------                     
 
-        count_IZ= self.Data[self.s]['steps_Arai'].count('IZ')
-        count_ZI= self.Data[self.s]['steps_Arai'].count('ZI')
-        if count_IZ >1 and count_ZI >1:
-            pars['magic_method_codes']="LP-PI-BT-IZZI"
-        elif count_IZ <1 and count_ZI >1:
-            pars['magic_method_codes']="LP-PI-ZI"
-        elif count_IZ >1 and count_ZI <1:
-            pars['magic_method_codes']="LP-PI-IZ"            
+        if MICROWAVE==True:
+            LP_code="LP-PI-M"
         else:
-            pars['magic_method_codes']=""
+            LP_code="LP-PI-TRM"
+                   
+            
+        count_IZ= self.Data[s]['steps_Arai'].count('IZ')
+        count_ZI= self.Data[s]['steps_Arai'].count('ZI')
+        if count_IZ >1 and count_ZI >1:
+            pars['magic_method_codes']=LP_code+":"+"LP-PI-BT-IZZI"
+        elif count_IZ <1 and count_ZI >1:
+            pars['magic_method_codes']=LP_code+":"+"LP-PI-ZI"
+        elif count_IZ >1 and count_ZI <1:
+            pars['magic_method_codes']=LP_code+":"+"LP-PI-IZ"            
+        else:
+            pars['magic_method_codes']=LP_code
 
+        if 'ptrm_checks_temperatures' in self.Data[s].keys() and len(self.Data[s]['ptrm_checks_temperatures'])>0:
+            if MICROWAVE==True:
+                pars['magic_method_codes']+=":LP-PI-ALT-PMRM"
+            else:
+                pars['magic_method_codes']+=":LP-PI-ALT-PTRM"
+                
+        if 'tail_check_temperatures' in self.Data[s].keys() and len(self.Data[s]['tail_check_temperatures'])>0:
+            pars['magic_method_codes']+=":LP-PI-BT-MD"
+
+        if 'additivity_check_temperatures' in self.Data[s].keys() and len(self.Data[s]['additivity_check_temperatures'])>0:
+            pars['magic_method_codes']+=":LP-PI-BT"
+                        
         #-------------------------------------------------            
         # Calculate anistropy correction factor
         #-------------------------------------------------            

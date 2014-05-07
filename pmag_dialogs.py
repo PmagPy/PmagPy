@@ -13,9 +13,7 @@ import wx.grid
 class import_magnetometer_data(wx.Dialog):
     
     def __init__(self,parent,id,title,WD):
-        #print 'init import magnetometer data'
         wx.Dialog.__init__(self, parent, id, title)#, size=(300, 300))
-        #super(import_magnetometer_data, self).__init__(*args, **kw)
         self.WD=WD
         self.InitUI()
         self.SetTitle(title)
@@ -155,7 +153,7 @@ class convert_generic_files_to_MagIC(wx.Frame):
 
         #---sizer infor ----
 
-        TEXT="A generic file template can be found in www.xxxxx"
+        TEXT="convert generic file to MagIC format"
         bSizer_info = wx.BoxSizer(wx.HORIZONTAL)
         bSizer_info.Add(wx.StaticText(pnl,label=TEXT),wx.ALIGN_LEFT)
             
@@ -331,7 +329,7 @@ class convert_generic_files_to_MagIC(wx.Frame):
         # WD="/".join(FILE.split("/")[:-1])
         WD=self.WD
         #-----------
-        OUTFILE=FILE+".magic"
+        OUTFILE=self.WD+"/"+FILE.split('/')[-1]+".magic"
         #-----------
         EXP=""
         exp=str(self.protocol_info.GetValue())
@@ -385,7 +383,7 @@ class convert_generic_files_to_MagIC(wx.Frame):
         #-----------        
 
         if str(self.location.GetValue()) != "":
-            LOC="-loc %s"%str(self.location.GetValue())
+            LOC="-loc '%s'"%str(self.location.GetValue())
         else:
             LOC=""
         #-----------        
@@ -580,8 +578,7 @@ class combine_magic_dialog(wx.Frame):
 
     def on_okButton(self,event):
         files_text=self.file_pathes.GetValue()
-        files=files_text.replace(" ","").split('\n')
-        print files
+        files=files_text.strip('\n').replace(" ","").split('\n')
         COMMAND="combine_magic.py -F magic_measurements.txt -f %s"%(" ".join(files) )       
         print "-I- Running Python command:\n %s"%COMMAND
         #subprocess.call(COMMAND, shell=True)        
@@ -1929,23 +1926,31 @@ class OrientFrameGrid(wx.Frame):
         self.on_m_save_file(None)
         orient_convention_dia=orient_convention(None)
         orient_convention_dia.Center()
-        orient_convention_dia.ShowModal()
+        #orient_convention_dia.ShowModal()
+        if orient_convention_dia.ShowModal() == wx.ID_OK:
+            ocn_flag=orient_convention_dia.ocn_flag
+            dcn_flag=orient_convention_dia.dcn_flag
+            gmt_flags=orient_convention_dia.gmt_flags
+            orient_convention_dia.Destroy()
         
         method_code_dia=method_code_dialog(None)
         method_code_dia.Center()
-        method_code_dia.ShowModal()
-
+        if method_code_dia.ShowModal()== wx.ID_OK:
+            bedding_codes_flags=method_code_dia.bedding_codes_flags
+            methodcodes_flags=method_code_dia.methodcodes_flags
+            method_code_dia.Destroy()
+            
         command= "orientation_magic.py -WD %s -Fsa er_samples_orient.txt -Fsi er_sites_orient.txt -f  %s %s %s %s %s %s > ./orientation_magic.log " \
         %(self.WD,\
         "demag_orient.txt",\
-        orient_convention_dia.ocn_flag,\
-        orient_convention_dia.dcn_flag,\
-        orient_convention_dia.gmt_flags,\
-        method_code_dia.bedding_codes_flags,\
-        method_code_dia.methodcodes_flags)
+        ocn_flag,\
+        dcn_flag,\
+        gmt_flags,\
+        bedding_codes_flags,\
+        methodcodes_flags)
         
-        orient_convention_dia.Destroy()
-        method_code_dia.Destroy()  
+        #orient_convention_dia.Destroy()
+        #method_code_dia.Destroy()  
         
         fail_comamnd=False
         
@@ -2176,7 +2181,7 @@ class orient_convention(wx.Dialog):
         #-----------------------                
         
         self.oc_rb4.SetValue(True)
-        self.dc_rb3.SetValue(True)        
+        self.dc_rb1.SetValue(True)        
         self.op_rb1.SetValue(True)   
         
     def OnOK(self, e):
@@ -2216,7 +2221,8 @@ class orient_convention(wx.Dialog):
         self.ocn_flag="-ocn "+ self.ocn
         self.dcn_flag="-dcn "+ self.dcn
         self.gmt_flags=gmt_flags
-        self.Close()
+        self.EndModal(wx.ID_OK)
+        #self.Close()
 
 
 class method_code_dialog(wx.Dialog):
@@ -2333,6 +2339,7 @@ class method_code_dialog(wx.Dialog):
             bedding_codes.append("-BCN")
         
         self.bedding_codes_flags=" ".join(bedding_codes)   
-        self.Close()
+        self.EndModal(wx.ID_OK) 
+        #self.Close()
 
 
