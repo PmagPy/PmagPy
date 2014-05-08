@@ -6,7 +6,7 @@ def main():
         fishrot.py
 
     DESCRIPTION
-        generates set of Fisher distribed data from specified distribution 
+        generates set of Fisher distributed data from specified distribution 
 
     SYNTAX
         fishrot.py [-h][-i][command line options]
