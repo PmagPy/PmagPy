@@ -3,6 +3,8 @@
 #============================================================================================
 # LOG HEADER:
 #============================================================================================
+# Demag_GUI Version 0.25 (beta) by Ron Shaar
+
 # Demag_GUI Version 0.24 (beta) by Ron Shaar
 #
 # Demag_GUI Version 0.23 (beta) by Ron Shaar
@@ -22,7 +24,7 @@
 
 
 global CURRENT_VRSION
-CURRENT_VRSION = "v.0.24"
+CURRENT_VRSION = "v.0.25"
 import matplotlib
 matplotlib.use('WXAgg')
 

@@ -16,6 +16,7 @@ import os
 import wx
 import wx.html
 import wx.grid
+import pmag
 #from pylab import *
 #from scipy.optimize import curve_fit
 #import wx.lib.agw.floatspin as FS
@@ -37,12 +38,15 @@ class MagIC_model_builder(wx.Frame):
  
     #----------------------------------------------------------------------
     def __init__(self,WD):
+        SIZE=wx.DisplaySize()
+        SIZE=(SIZE[0]-0.05*SIZE[0],SIZE[1]-0.05*SIZE[1])
+
         #print WD
         #print ".............."
         #print Data
         #print "-------------"
         #print Data_hierarchy
-        wx.Frame.__init__(self, None, wx.ID_ANY)
+        wx.Frame.__init__(self, None, wx.ID_ANY,size=SIZE)
         self.panel = wx.Panel(self)
         self.er_specimens_header=['er_citation_names','er_specimen_name','er_sample_name','er_site_name','er_location_name','specimen_class','specimen_lithology','specimen_type']
         self.er_samples_header=['er_citation_names','er_sample_name','er_site_name','er_location_name','sample_class','sample_lithology','sample_type','sample_lat','sample_lon']
@@ -50,7 +54,7 @@ class MagIC_model_builder(wx.Frame):
         self.er_locations_header=['er_citation_names','er_location_name','location_begin_lon','location_end_lon','location_begin_lat','location_end_lat','location_type']
         self.er_ages_header=['er_citation_names','er_site_name','er_location_name','age_description','magic_method_codes','age','age_unit']
         os.chdir(WD)
-        self.WD=os.getcwd()+"/"        
+        self.WD=os.getcwd()+"/"  
         #self.WD=WD
         self.Data,self.Data_hierarchy=self.get_data()
         self.read_MagIC_info()
@@ -122,7 +126,7 @@ class MagIC_model_builder(wx.Frame):
           N=table_list.index(table)
           command="bSizer%i = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY, '%s' ), wx.VERTICAL )"%(N,table)
           exec command
-          command="self.%s_info = wx.TextCtrl(self.panel, id=-1, size=(200,250), style=wx.TE_MULTILINE | wx.TE_READONLY | wx.HSCROLL)"%table
+          command="self.%s_info = wx.TextCtrl(self.panel, id=-1, size=(210,250), style=wx.TE_MULTILINE | wx.TE_READONLY | wx.HSCROLL)"%table
           exec command
           command = "self.%s_info_options = wx.ListBox(choices=%s_optional_header, id=-1,name='listBox1', parent=self.panel, size=wx.Size(200, 250), style=0)"%(table,table)
           exec command
@@ -167,17 +171,17 @@ class MagIC_model_builder(wx.Frame):
         vbox=wx.BoxSizer(wx.VERTICAL)
         
         hbox = wx.BoxSizer(wx.HORIZONTAL)
-        hbox.AddSpacer(20)
+        hbox.AddSpacer(5)
         hbox.Add(bSizer0, flag=wx.ALIGN_LEFT)
-        hbox.AddSpacer(20)
+        hbox.AddSpacer(5)
         hbox.Add(bSizer1, flag=wx.ALIGN_LEFT)
-        hbox.AddSpacer(20)
+        hbox.AddSpacer(5)
         hbox.Add(bSizer2, flag=wx.ALIGN_LEFT)
-        hbox.AddSpacer(20)
+        hbox.AddSpacer(5)
         hbox.Add(bSizer3, flag=wx.ALIGN_LEFT)
-        hbox.AddSpacer(20)
+        hbox.AddSpacer(5)
         hbox.Add(bSizer4, flag=wx.ALIGN_LEFT)
-        hbox.AddSpacer(20)
+        hbox.AddSpacer(5)
 
         vbox.AddSpacer(20)
         vbox.Add(hbox)
@@ -267,7 +271,6 @@ class MagIC_model_builder(wx.Frame):
         #specimens_list=self.Data.keys()
         #print "specimens_list",specimens_list
         #specimens_list.sort()
-
         samples_list=self.Data_hierarchy['samples'].keys()
         samples_list.sort()
 
