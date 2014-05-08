@@ -53,10 +53,11 @@ def main():
         if plot_by=='sam':plot_key='er_sample_name'
         if plot_by=='spc':plot_key='er_specimen_name'
     if '-c' in sys.argv: contour=1
-    plots=0
+    plt=0
     if '-sav' in sys.argv: 
-        plots=1
+        plt=1
         verbose=0
+    print 'plt: ',plt
     if '-ell' in sys.argv:
         plotE=1
         ind=sys.argv.index('-ell')
@@ -341,9 +342,8 @@ def main():
         elif verbose:
             ans=raw_input(" S[a]ve to save plot, [q]uit, Return to continue:  ")
             if ans=="q": sys.exit()
-            if ans=="a": 
-                pmagplotlib.saveP(FIG,files) 
-        if plots:
+            if ans=="a": pmagplotlib.saveP(FIG,files) 
+        if plt:
            pmagplotlib.saveP(FIG,files) 
 
 main() 

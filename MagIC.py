@@ -2750,6 +2750,7 @@ def eqarea():
         if 't: ' in crd[crd_rv]:outstring=outstring+' -crd t '
     print outstring
     os.system(outstring)
+    raw_input()
 
 def quick_look():
     global PlotOptions,COORDs
