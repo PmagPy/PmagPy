@@ -156,6 +156,7 @@ class Zeq_GUI(wx.Frame):
         self.Bind(wx.EVT_CLOSE, self.on_menu_exit)
         #self.get_previous_interpretation() # get interpretations from pmag_specimens.txt
         FIRST_RUN=False
+        self.close_warning=False
 
 
     def Main_Frame(self):
@@ -1980,6 +1981,7 @@ class Zeq_GUI(wx.Frame):
         self.calculate_higher_levels_data()
         #self.plot_higher_levels_data()
         self.update_selection()
+        self.close_warning=True
         
     #----------------------------------------------------------------------  
    
@@ -1996,6 +1998,7 @@ class Zeq_GUI(wx.Frame):
         self.pars={}
         self.calculate_higher_levels_data()
         self.update_selection()
+        self.close_warning=True
         return
  
     #----------------------------------------------------------------------
@@ -3087,8 +3090,11 @@ class Zeq_GUI(wx.Frame):
 
         menu_file = wx.Menu()
         
-        m_change_working_directory = menu_file.Append(-1, "&Change MagIC project directory", "")
-        self.Bind(wx.EVT_MENU, self.on_menu_change_working_directory, m_change_working_directory)
+        #m_change_working_directory = menu_file.Append(-1, "&Change MagIC project directory", "")
+        #self.Bind(wx.EVT_MENU, self.on_menu_change_working_directory, m_change_working_directory)
+
+        m_make_MagIC_results_tables= menu_file.Append(-1, "&Save MagIC Pmag results tables", "")
+        self.Bind(wx.EVT_MENU, self.on_menu_make_MagIC_results_tables, m_make_MagIC_results_tables)
 
         #m_open_magic_file = menu_file.Append(-1, "&Open MagIC measurement file", "")
         #self.Bind(wx.EVT_MENU, self.on_menu_open_magic_file, m_open_magic_file)
@@ -3175,16 +3181,16 @@ class Zeq_GUI(wx.Frame):
 
         #-----------------                            
 
-        menu_MagIC= wx.Menu()
-        m_convert_to_magic= menu_MagIC.Append(-1, "&Convert generic files to MagIC format", "")
-        self.Bind(wx.EVT_MENU, self.on_menu_generic_to_magic, m_convert_to_magic)
-        m_samples_orientation= menu_MagIC.Append(-1, "&Sample orientation", "")
-        self.Bind(wx.EVT_MENU, self.on_menu_samples_orientation, m_samples_orientation)
-
-        m_build_magic_model= menu_MagIC.Append(-1, "&Run MagIC model builder", "")
-        self.Bind(wx.EVT_MENU, self.on_menu_MagIC_model_builder, m_build_magic_model)
-        m_make_MagIC_results_tables= menu_MagIC.Append(-1, "&Save MagIC results tables", "")
-        self.Bind(wx.EVT_MENU, self.on_menu_make_MagIC_results_tables, m_make_MagIC_results_tables)
+#        menu_MagIC= wx.Menu()
+#        m_convert_to_magic= menu_MagIC.Append(-1, "&Convert generic files to MagIC format", "")
+#        self.Bind(wx.EVT_MENU, self.on_menu_generic_to_magic, m_convert_to_magic)
+#        m_samples_orientation= menu_MagIC.Append(-1, "&Sample orientation", "")
+#        self.Bind(wx.EVT_MENU, self.on_menu_samples_orientation, m_samples_orientation)
+#
+#        m_build_magic_model= menu_MagIC.Append(-1, "&Run MagIC model builder", "")
+#        self.Bind(wx.EVT_MENU, self.on_menu_MagIC_model_builder, m_build_magic_model)
+#        m_make_MagIC_results_tables= menu_MagIC.Append(-1, "&Save MagIC results tables", "")
+#        self.Bind(wx.EVT_MENU, self.on_menu_make_MagIC_results_tables, m_make_MagIC_results_tables)
 
         #-----------------                            
         
@@ -3194,7 +3200,7 @@ class Zeq_GUI(wx.Frame):
         self.menubar.Append(menu_Tools, "&Tools")
         #self.menubar.Append(menu_Plot, "&Plot")
         #self.menubar.Append(menu_results_table, "&Table")        
-        self.menubar.Append(menu_MagIC, "&MagIC")        
+        #self.menubar.Append(menu_MagIC, "&MagIC")        
         self.SetMenuBar(self.menubar)
 
     #============================================
@@ -3279,12 +3285,25 @@ class Zeq_GUI(wx.Frame):
     #--------------------------------------------------------------
 
     def on_menu_exit(self, event):
-        dlg1 = wx.MessageDialog(None,caption="Warning:", message="Exiting program.\nSave all interpretation to a 'redo' file or to MagIC specimens result table\n\nPress OK to exit" ,style=wx.OK|wx.CANCEL|wx.ICON_INFORMATION)
-        if dlg1.ShowModal() == wx.ID_OK:
-            dlg1.Destroy()
-            self.Destroy()
+        
+        if self.close_warning:
+            TEXT="Data is not saved to a file yet!\nTo properly save your data:\n1) Analysis --> Save current interpretations to a redo file.\nor\n1) File --> Save MagIC Pmag results tables.\n\n Press OK to exit without saving."
+            
+            #Save all interpretation to a 'redo' file or to MagIC specimens result table\n\nPress OK to exit"
+            dlg1 = wx.MessageDialog(None,caption="Warning:", message=TEXT ,style=wx.OK|wx.CANCEL|wx.ICON_EXCLAMATION)
+            if dlg1.ShowModal() == wx.ID_OK:
+                dlg1.Destroy()
+                self.Destroy()
+                exit()
+        else:
             exit()
-
+        
+#        dlg1 = wx.MessageDialog(None,caption="Warning:", message="Exiting program.\nSave all interpretation to a 'redo' file or to MagIC specimens result table\n\nPress OK to exit" ,style=wx.OK|wx.CANCEL|wx.ICON_INFORMATION)
+#        if dlg1.ShowModal() == wx.ID_OK:
+#            dlg1.Destroy()
+#            self.Destroy()
+#            exit()
+#
     def on_save_Zij_plot(self, event):
         self.fig1.text(0.9,0.98,'%s'%(self.s),{'family':'Arial', 'fontsize':10, 'style':'normal','va':'center', 'ha':'right' })
         SaveMyPlot(self.fig1,self.s,"Zij",self.WD)
@@ -3881,6 +3900,7 @@ class Zeq_GUI(wx.Frame):
         if result == wx.ID_OK:            
             dlg.Destroy()
                         
+        self.close_warning=False       
 
     def merge_pmag_recs(self,old_recs):
         # fix the headers of pmag recs

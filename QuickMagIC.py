@@ -3,7 +3,7 @@ import wx
 import wx.lib.buttons as buttons
 import pmag
 import pmag_dialogs
-import thellier_gui_dialogs
+#import thellier_gui_dialogs
 import os
 import sys
 
@@ -11,20 +11,25 @@ import sys
 
 class MagMainFrame(wx.Frame):
     """"""
-    title = "PmagPy MagIC main functions"
+    try:
+        version= pmag.get_version()
+    except:
+        version=""
+    title = "QuickMagIC   version: %s"%version
 
     def __init__(self):
-        global FIRST_RUN
-        FIRST_RUN=True
+        
+        self.FIRST_RUN=True
         wx.Frame.__init__(self, None, wx.ID_ANY, self.title)
         self.panel = wx.Panel(self)
         self.InitUI()
         self.create_menu()
         self.get_DIR()        # choose directory dialog                    
-    
+        self.HtmlIsOpen=False
+        self.first_time_messsage=False
     def InitUI(self):
 
-        pnl = self.panel
+        #pnl = self.panel
 
         #---sizer logo ----
                 
@@ -156,7 +161,7 @@ class MagMainFrame(wx.Frame):
         hbox.Add(vbox,0,wx.ALIGN_CENTER,0)
         hbox.AddSpacer(5)      
               
-        pnl.SetSizer(hbox)
+        self.panel.SetSizer(hbox)
         hbox.Fit(self)
         
 
@@ -166,31 +171,31 @@ class MagMainFrame(wx.Frame):
     def get_DIR(self):
         """ Choose a working directory dialog
         """
-        self.WD=""
-        if "-WD" in sys.argv and FIRST_RUN:
+        #self.WD=""
+        if "-WD" in sys.argv and self.FIRST_RUN:
             ind=sys.argv.index('-WD')
             self.WD=sys.argv[ind+1]            
         
         else:
                         
-            TEXT1="Set Project MagIC Directory.\nPath should have NO SPACES.\n This Directory is to be used by this program ONLY"               
-            dlg1 = wx.MessageDialog(self, caption="First step",message=TEXT1,style=wx.OK|wx.ICON_EXCLAMATION)
+            TEXT1="Set or create MagIC Project Directory.\nPath should have NO SPACES.\n This Directory is to be used by this program ONLY"               
+            dlg1 = wx.MessageDialog(None, caption="First step",message=TEXT1,style=wx.OK|wx.ICON_EXCLAMATION)
             result1 = dlg1.ShowModal()            
             if result1 == wx.ID_OK:            
                 dlg1.Destroy()
-
+            #self.WD="/Users/ronshaar/Academy/Litratures/misc_documents/MagIC_workshop_2014/Wednesday_workhops/step_by_step_tutorial/MagIC/"
             
             TEXT="choose directory. No spaces are allowed in path!"
-            currentDirectory=os.getcwd()
-            dialog = wx.DirDialog(None, TEXT,defaultPath = currentDirectory ,style=wx.DD_DEFAULT_STYLE | wx.DD_NEW_DIR_BUTTON | wx.DD_CHANGE_DIR)
-            result=dialog.ShowModal()                                     
+            dia = wx.DirDialog(self, message=TEXT,defaultPath = os.getcwd() ,style=wx.DD_DEFAULT_STYLE )
+            result=dia.ShowModal()                                     
             if result == wx.ID_OK:
-              self.WD=str(dialog.GetPath())
-            dialog.Destroy()
+              self.WD=str(dia.GetPath())
+            dia.Destroy()
         
         os.chdir(self.WD)
         self.WD=str(os.getcwd())+"/"
         self.dir_path.SetValue(self.WD)
+        self.FIRST_RUN=False
 
     #----------------------------------------------------------------------
     
@@ -220,29 +225,42 @@ class MagMainFrame(wx.Frame):
         
     def on_convert_file(self,event):
         #print self.WD
-        pmag_dialogs_dia=pmag_dialogs.import_magnetometer_data(None, -1, '',self.WD)
-        pmag_dialogs_dia.Center()
+        pmag_dialogs_dia=pmag_dialogs.import_magnetometer_data(None, wx.ID_ANY, '',self.WD)
         pmag_dialogs_dia.Show()
+        pmag_dialogs_dia.Center()
                                     
     def on_er_data(self,event):
 
-        import MagIC_Model_Builder
+        import ErMagicBuilder
         foundHTML=False
         try:
-            PATH= sys.modules['MagIC_Model_Builder'].__file__
-            HTML_PATH="/".join(PATH.split("/")[:-1]+["MagICModlBuilderHelp.html"])
+            PATH= sys.modules['ErMagicBuilder'].__file__
+            HTML_PATH="/".join(PATH.split("/")[:-1]+["ErMagicBuilderHelp.html"])
             foundHTML=True
         except:
             pass
-        if foundHTML:
-            help_window=MagIC_Model_Builder.MyHtmlPanel(None,HTML_PATH)
-            help_window.Show()
-        #dia = MagIC_Model_Builder.MagIC_model_builder(self.WD,self.Data,self.Data_hierarchy)
-        dia = MagIC_Model_Builder.MagIC_model_builder(self.WD)#,self.Data,self.Data_hierarchy)
+        if foundHTML and not self.HtmlIsOpen:
+            self.HtmlIsOpen=True
+            self.help_window=ErMagicBuilder.MyHtmlPanel(None,HTML_PATH)
+            self.help_window.Show()
+            self.help_window.Bind(wx.EVT_CLOSE, self.OnCloseHtml)
+        dia = ErMagicBuilder.MagIC_model_builder(self.WD)#,self.Data,self.Data_hierarchy)
         dia.Show()
         dia.Center()
+        
+        if self.first_time_messsage==False:
+            TXT="Press OK on 'Earth-Ref Magic Builder' frame and follow the instructions listed in the help window.\n(if you dont see the help window it might be hidden behind the main frame)"
+            dlg = wx.MessageDialog(self, caption="Earth-Ref Magic Builder is opened for the first time",message=TXT,style=wx.OK)
+            result = dlg.ShowModal()
+            if result == wx.ID_OK:            
+                dlg.Destroy()
+                self.first_time_messsage=True
+            
+            
 
-
+    def OnCloseHtml(self,event):
+        self.HtmlIsOpen=False
+        self.help_window.Destroy()
     def get_data(self):
         
       Data={}
@@ -365,7 +383,7 @@ class MagMainFrame(wx.Frame):
 if __name__ == "__main__":
     #app = wx.App(redirect=True, filename="beta_log.log")
     app = wx.PySimpleApp()
-    frame = MagMainFrame()
-    frame.Center()
-    frame.Show()
+    app.frame = MagMainFrame()
+    app.frame.Center()
+    app.frame.Show()
     app.MainLoop()

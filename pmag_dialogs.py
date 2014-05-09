@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env pythonw
 
 #--------------------------------------------------------------
 # converting magnetometer files to MagIC format
@@ -11,7 +11,6 @@ import pmag_widgets as pw
 import wx.grid
 
 class import_magnetometer_data(wx.Dialog):
-    
     def __init__(self,parent,id,title,WD):
         wx.Dialog.__init__(self, parent, id, title)#, size=(300, 300))
         self.WD=WD
@@ -20,23 +19,23 @@ class import_magnetometer_data(wx.Dialog):
         
     def InitUI(self):
 
-        pnl = wx.Panel(self)
+        self.panel = wx.Panel(self)
         vbox=wx.BoxSizer(wx.VERTICAL)
 
         formats=['generic format','SIO format','CIT format','2G-binary format','HUJI format','LDEO format','IODP SRM (csv) format','PMD (ascii) format','TDT format']
-        sbs = wx.StaticBoxSizer( wx.StaticBox( pnl, wx.ID_ANY, 'step 1: choose file format' ), wx.VERTICAL )
+        sbs = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY, 'step 1: choose file format' ), wx.VERTICAL )
 
         sbs.AddSpacer(5)
-        self.oc_rb0 = wx.RadioButton(pnl, -1,label=formats[0],name='0', style=wx.RB_GROUP)
+        self.oc_rb0 = wx.RadioButton(self.panel, -1,label=formats[0],name='0', style=wx.RB_GROUP)
         sbs.Add(self.oc_rb0)
         sbs.AddSpacer(5)
-        sbs.Add(wx.StaticLine(pnl), 0, wx.ALL|wx.EXPAND, 5)
+        sbs.Add(wx.StaticLine(self.panel), 0, wx.ALL|wx.EXPAND, 5)
         sbs.AddSpacer(5)
         self.Bind(wx.EVT_RADIOBUTTON, self.OnRadioButtonSelect, self.oc_rb0)
         
 
         for i in range(1,len(formats)):
-            command="self.oc_rb%i = wx.RadioButton(pnl, -1, label='%s', name='%i')"%(i,formats[i],i)
+            command="self.oc_rb%i = wx.RadioButton(self.panel, -1, label='%s', name='%i')"%(i,formats[i],i)
             exec command
             command="sbs.Add(self.oc_rb%i)"%(i)
             exec command
@@ -56,11 +55,11 @@ class import_magnetometer_data(wx.Dialog):
         #---------------------
                 
         hboxok = wx.BoxSizer(wx.HORIZONTAL)
-        self.okButton =  wx.Button(pnl, id=-1, label='Import file')
+        self.okButton =  wx.Button(self.panel, id=-1, label='Import file')
         self.Bind(wx.EVT_BUTTON, self.on_okButton, self.okButton)
-        self.cancelButton = wx.Button(pnl, wx.ID_CANCEL, '&Cancel')
+        self.cancelButton = wx.Button(self.panel, wx.ID_CANCEL, '&Cancel')
         self.Bind(wx.EVT_BUTTON, self.on_cancelButton, self.cancelButton)
-        self.nextButton = wx.Button(pnl, id=-1, label='Next step')
+        self.nextButton = wx.Button(self.panel, id=-1, label='Next step')
         self.Bind(wx.EVT_BUTTON, self.on_nextButton, self.nextButton)
         hboxok.Add(self.okButton)
         hboxok.AddSpacer(20)
@@ -83,9 +82,8 @@ class import_magnetometer_data(wx.Dialog):
         hbox1.Add(vbox)
         hbox1.AddSpacer(10)
 
-        pnl.SetSizer(hbox1)
+        self.panel.SetSizer(hbox1)
         hbox1.Fit(self)
-
     def on_cancelButton(self,event):
         #print 'canceling select file type import dialogue'
         self.Destroy()
@@ -172,7 +170,7 @@ class convert_generic_files_to_MagIC(wx.Frame):
         #---sizer 2 ----
         TEXT="Experiment:"
         bSizer2 = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY, "" ), wx.HORIZONTAL )
-        self.experiments_names=['Demag (AF and/or Thermal)','Paleointensity-IZZI/ZI/ZI','ATRM 6 positions','AARM 6 positions','cooling rate','NLT']
+        self.experiments_names=['Demag (AF and/or Thermal)','Paleointensity-IZZI/ZI/ZI','ATRM 6 positions','AARM 6 positions','cooling rate','TRM']
         self.protocol_info = wx.ComboBox(self.panel, -1, self.experiments_names[0], size=(300,25),choices=self.experiments_names, style=wx.CB_DROPDOWN)
         bSizer2.Add(wx.StaticText(pnl,label=TEXT),wx.ALIGN_LEFT)
         bSizer2.AddSpacer(5)
@@ -201,12 +199,12 @@ class convert_generic_files_to_MagIC(wx.Frame):
         #TEXT="Sample-specimen naming convention:"
         bSizer4 = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY, "" ), wx.VERTICAL )
         #self.sample_specimen_text=wx.StaticText(self.panel,label=TEXT)
-        self.sample_naming_conventions=['sample=specimen','no. of initial characters','no. of terminate characters','charceter delimited']
+        self.sample_naming_conventions=['sample=specimen','no. of initial characters','no. of terminal characters','character delimited']
         self.sample_naming_convention = wx.ComboBox(self.panel, -1, self.sample_naming_conventions[0], size=(250,25), choices=self.sample_naming_conventions, style=wx.CB_DROPDOWN)
         self.sample_naming_convention_char = wx.TextCtrl(self.panel, id=-1, size=(40,25))
         gridbSizer4 = wx.GridSizer(2, 2, 0, 10)
         gridbSizer4.AddMany( [(wx.StaticText(self.panel,label="specimen-sample naming convention",style=wx.TE_CENTER),wx.ALIGN_LEFT),
-            (wx.StaticText(self.panel,label="delimiter (if necessary)",style=wx.TE_CENTER),wx.ALIGN_LEFT),
+            (wx.StaticText(self.panel,label="delimiter/number (if necessary)",style=wx.TE_CENTER),wx.ALIGN_LEFT),
             (self.sample_naming_convention,wx.ALIGN_LEFT),
             (self.sample_naming_convention_char,wx.ALIGN_LEFT)])
         #bSizer4.Add(self.sample_specimen_text,wx.ALIGN_LEFT)
@@ -217,12 +215,12 @@ class convert_generic_files_to_MagIC(wx.Frame):
 
         bSizer5 = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY, "" ), wx.VERTICAL )
         #bSizer5.Add(wx.StaticText(pnl,label=TEXT),wx.ALIGN_TOP)
-        self.site_naming_conventions=['site=sample','no. of initial characters','no. of terminate characters','charceter delimited']
+        self.site_naming_conventions=['site=sample','no. of initial characters','no. of terminal characters','character delimited']
         self.site_naming_convention_char = wx.TextCtrl(self.panel, id=-1, size=(40,25))
         self.site_naming_convention = wx.ComboBox(self.panel, -1, self.site_naming_conventions[0], size=(250,25), choices=self.site_naming_conventions, style=wx.CB_DROPDOWN)
         gridbSizer5 = wx.GridSizer(2, 2, 0, 10)
         gridbSizer5.AddMany( [(wx.StaticText(self.panel,label="sample-site naming convention",style=wx.TE_CENTER),wx.ALIGN_LEFT),
-            (wx.StaticText(self.panel,label="delimiter (if necessary)",style=wx.TE_CENTER),wx.ALIGN_LEFT),
+            (wx.StaticText(self.panel,label="delimiter/number (if necessary)",style=wx.TE_CENTER),wx.ALIGN_LEFT),
             (self.site_naming_convention,wx.ALIGN_LEFT),
             (self.site_naming_convention_char,wx.ALIGN_LEFT)])
         #bSizer4.Add(self.sample_specimen_text,wx.ALIGN_LEFT)
@@ -230,7 +228,7 @@ class convert_generic_files_to_MagIC(wx.Frame):
         bSizer5.Add(gridbSizer5,wx.ALIGN_LEFT)
 
         #---sizer 6 ----
-        TEXT="Location name (optional):"
+        TEXT="Location name:"
         bSizer6 = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY, "" ), wx.HORIZONTAL )
         bSizer6.Add(wx.StaticText(pnl,label=TEXT),wx.ALIGN_LEFT)
         bSizer6.AddSpacer(5)
@@ -356,9 +354,9 @@ class convert_generic_files_to_MagIC(wx.Frame):
             SAMP="1 0"
         elif samp_naming_convention=='no. of initial characters':
             SAMP="0 %i"%int(samp_naming_convention_char)
-        elif samp_naming_convention=='no. of terminate characters':
+        elif samp_naming_convention=='no. of terminal characters':
             SAMP="1 %s"%samp_naming_convention_char
-        elif samp_naming_convention=='charceter delimited':
+        elif samp_naming_convention=='character delimited':
             SAMP="2 %s"%samp_naming_convention_char
                         
         #-----------
@@ -375,9 +373,9 @@ class convert_generic_files_to_MagIC(wx.Frame):
             SITE="1 0"
         elif sit_naming_convention=='no. of initial characters':
             SITE="0 %i"%int(sit_naming_convention_char)
-        elif sit_naming_convention=='no. of terminate characters':
+        elif sit_naming_convention=='no. of terminal characters':
             SITE="1 %s"%sit_naming_convention_char
-        elif sit_naming_convention=='charceter delimited':
+        elif sit_naming_convention=='character delimited':
             SITE="2 %s"%sit_naming_convention_char
         
         #-----------        
@@ -432,10 +430,10 @@ class convert_generic_files_to_MagIC(wx.Frame):
     def get_sample_name(self,specimen,sample_naming_convenstion):
         if sample_naming_convenstion[0]=="sample=specimen":
             sample=specimen
-        elif sample_naming_convenstion[0]=="no. of terminate characters":
+        elif sample_naming_convenstion[0]=="no. of terminal characters":
             n=int(sample_naming_convenstion[1])*-1
             sample=specimen[:n]
-        elif sample_naming_convenstion[0]=="charceter delimited":
+        elif sample_naming_convenstion[0]=="character delimited":
             d=sample_naming_convenstion[1]
             sample_splitted=specimen.split(d)
             if len(sample_splitted)==1:
@@ -447,10 +445,10 @@ class convert_generic_files_to_MagIC(wx.Frame):
     def get_site_name(self,sample,site_naming_convenstion):
         if site_naming_convenstion[0]=="site=sample":
             site=sample
-        elif site_naming_convenstion[0]=="no. of terminate characters":
+        elif site_naming_convenstion[0]=="no. of terminal characters":
             n=int(site_naming_convenstion[1])*-1
             site=sample[:n]
-        elif site_naming_convenstion[0]=="charceter delimited":
+        elif site_naming_convenstion[0]=="character delimited":
             d=site_naming_convenstion[1]
             site_splitted=sample.split(d)
             if len(site_splitted)==1:
@@ -630,7 +628,7 @@ class convert_SIO_files_to_MagIC(wx.Frame):
         self.bSizer4 = pw.select_specimen_ncn(pnl)
 
         #---sizer 5 ----
-        TEXT="Location name (optional):"
+        TEXT="Location name:"
         self.bSizer5 = pw.labeled_text_field(pnl, TEXT)
 
         #---sizer 6 ---
@@ -801,7 +799,7 @@ class convert_CIT_files_to_MagIC(wx.Frame):
         self.bSizer5 = pw.labeled_text_field(pnl, TEXT)
 
         #---sizer 6 ----
-        TEXT="Location name (optional):"
+        TEXT="Location name:"
         self.bSizer6 = pw.labeled_text_field(pnl, TEXT)
 
         #---sizer 7 ---
@@ -934,7 +932,7 @@ class convert_HUJI_files_to_MagIC(wx.Frame):
         self.bSizer5 = pw.labeled_text_field(pnl, TEXT)
 
         #---sizer 6 ----
-        TEXT="Location name (optional):"
+        TEXT="Location name:"
         self.bSizer6 = pw.labeled_text_field(pnl, TEXT)
 
         #---sizer 7 ---
@@ -1072,7 +1070,7 @@ class convert_2G_binary_files_to_MagIC(wx.Frame):
         self.bSizer4 = pw.select_specimen_ocn(pnl)
 
         #---sizer 5 ----
-        TEXT="Location name (optional):"
+        TEXT="Location name:"
         self.bSizer5 = pw.labeled_text_field(pnl, TEXT)
 
         #---sizer 6 ---
@@ -1203,7 +1201,7 @@ class convert_LDEO_files_to_MagIC(wx.Frame):
         self.bSizer5 = pw.labeled_text_field(pnl, TEXT)
 
         #---sizer 6 ---
-        TEXT="Location name (optional):"
+        TEXT="Location name:"
         self.bSizer6 = pw.labeled_text_field(pnl, TEXT)
 
         #---sizer 7 ---
@@ -1477,7 +1475,7 @@ class convert_PMD_files_to_MagIC(wx.Frame):
 
 
         #---sizer 4 ----
-        TEXT="Location name (optional):"
+        TEXT="Location name:"
         self.bSizer4 = pw.labeled_text_field(pnl, TEXT)
 
 

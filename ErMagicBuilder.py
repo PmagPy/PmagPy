@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env pythonw
 
 #============================================================================================
 # LOG HEADER:
@@ -58,7 +58,7 @@ class MagIC_model_builder(wx.Frame):
         #self.WD=WD
         self.Data,self.Data_hierarchy=self.get_data()
         self.read_MagIC_info()
-        self.SetTitle("Choose header for each MagIC Table" )
+        self.SetTitle("Earth-Ref Magic Builder" )
         self.InitUI()
 
     def InitUI(self):
@@ -291,32 +291,54 @@ class MagIC_model_builder(wx.Frame):
         for sample in samples_list:
           string=""
           for key in self.er_samples_header:
+
+            if sample in self.data_er_samples.keys() and "er_site_name" in self.data_er_samples[sample].keys() and self.data_er_samples[sample]["er_site_name"] != "":
+                site=self.data_er_samples[sample]["er_site_name"]
+            else:
+                site=self.Data_hierarchy['site_of_sample'][sample]
+            
             if key=="er_citation_names":
               string=string+"This study"+"\t"
             elif key=="er_sample_name":
               string=string+sample+"\t"
-            # try to take lat/lon from er_sites table
-            elif (key in ['er_location_name'] and sample in self.data_er_samples.keys()\
-                  and "er_site_name" in self.data_er_samples[sample].keys()\
-                  and self.data_er_samples[sample]['er_site_name'] in self.data_er_sites.keys()\
-                  and key in self.data_er_sites[self.data_er_samples[sample]['er_site_name']].keys()):
-              string=string+self.data_er_sites[self.data_er_samples[sample]['er_site_name']][key]+"\t"
+              
+            elif key in ['er_site_name']:
+                string=string+site+"\t"
 
+            elif key in ['er_location_name']:
+                if site in self.data_er_sites.keys() and key in self.data_er_sites[site].keys():
+                    string=string+self.data_er_sites[site][key]+"\t"
+                else:
+                    string=string+self.Data_hierarchy['location_of_sample'][sample]+"\t"
+                                          
+            ## try to take location name from er_sites table 
+            ## if not: take it from hierachy dictionary                    
+            #elif key in ['er_location_name']:
+            #    if site in self.data_er_sites.keys() and key in self.data_er_sites[site].keys():
+            #        string=string+self.data_er_sites[site][key]+"\t"
+            #    else:
+            #        string=string+self.Data_hierarchy['location_of_sample'][sample]+"\t"
+           
+            #elif (key in ['er_location_name'] and sample in self.data_er_samples.keys()\
+            #      and "er_site_name" in self.data_er_samples[sample].keys()\
+            #      and self.data_er_samples[sample]['er_site_name'] in self.data_er_sites.keys()\
+            #      and key in self.data_er_sites[self.data_er_samples[sample]['er_site_name']].keys()):
+            #  string=string+self.data_er_sites[self.data_er_samples[sample]['er_site_name']][key]+"\t"
+
+            # try to take lat/lon from er_sites table
             elif (key in ['sample_lon','sample_lat'] and sample in self.data_er_samples.keys()\
                   and "er_site_name" in self.data_er_samples[sample].keys()\
                   and self.data_er_samples[sample]['er_site_name'] in self.data_er_sites.keys()\
                   and "site_"+key.split("_")[1] in self.data_er_sites[self.data_er_samples[sample]['er_site_name']].keys()):
               string=string+self.data_er_sites[self.data_er_samples[sample]['er_site_name']]["site_"+key.split("_")[1]]+"\t"
 
-
-##            elif (key in ['sample_lon','sample_lat'] and sample in self.data_er_samples.keys()\
-##                  and "er_site_name" in self.data_er_samples[sample].keys()\
-##                  and self.data_er_samples[sample]['er_site_name'] in self.data_er_sites.keys()\
-##                  and key in self.data_er_sites[self.data_er_samples[sample]['er_site_name']].keys()):
-##              string=string+self.data_er_sites[self.data_er_samples[sample]['er_site_name']][key]+"\t"
-
-            
-            # take information from the existing er_samples table 
+            elif key in ['sample_class','sample_lithology','sample_type']:
+              site_key="site_"+key.split('sample_')[1]
+              if (site in self.data_er_sites.keys() and site_key in self.data_er_sites[site] and self.data_er_sites[site][site_key]!=""):
+                string=string+self.data_er_sites[site][site_key]+"\t"
+                continue
+                        
+            # take information from the existing er_sitestable 
             elif sample in self.data_er_samples.keys() and key in self.data_er_samples[sample].keys() and self.data_er_samples[sample][key]!="":
                 string=string+self.data_er_samples[sample][key]+"\t"
             else:
@@ -335,12 +357,7 @@ class MagIC_model_builder(wx.Frame):
           string=string+key+"\t"
         er_specimens_file.write(string[:-1]+"\n")
 
-        #data
-        #print "specimens_list:",specimens_list
         for specimen in specimens_list:
-          #print "specimen",specimen
-          #print self.data_er_specimens
-          #print "specimen: ",specimen
           if  specimen in self.data_er_specimens.keys() and  "er_sample_name" in self.data_er_specimens[specimen].keys() and self.data_er_specimens[specimen]["er_sample_name"] != "":
                 sample=self.data_er_specimens[specimen]["er_sample_name"]   
           else:
@@ -353,17 +370,41 @@ class MagIC_model_builder(wx.Frame):
               string=string+specimen+"\t"
             elif key=="er_sample_name":
             # take sample name from existing 
-             #print self.data_er_specimens[specimen]
                 string=string+sample+"\t"
-            # take 'er_location_name','er_site_name' from er_sample table
-            elif (key in ['er_location_name','er_site_name'] and sample in self.data_er_samples.keys() \
-                 and  key in self.data_er_samples[sample] and self.data_er_samples[sample][key]!=""):
-              string=string+self.data_er_samples[sample][key]+"\t"
-            # take 'specimen_class','specimen_lithology','specimen_type' from er_sample table
+            # try to take site and location name from er_sample table 
+            # if not: take it from hierachy dictionary                    
+            elif key in ['er_location_name']:
+                if sample in self.data_er_samples.keys() and key in self.data_er_samples[sample].keys():
+                    string=string+self.data_er_samples[sample][key]+"\t"
+                else:
+                    string=string+self.Data_hierarchy['location_of_specimen'][specimen]+"\t"
+            elif key in ['er_site_name']:
+                if sample in self.data_er_samples.keys() and key in self.data_er_samples[sample].keys():
+                    string=string+self.data_er_samples[sample][key]+"\t"
+                else:
+                    string=string+self.Data_hierarchy['site_of_specimen'][specimen]+"\t"
+
+            #
+            #
+            #
+            #elif (key in ['er_location_name','er_site_name'] and sample in self.data_er_samples.keys() \
+            #     and  key in self.data_er_samples[sample] and self.data_er_samples[sample][key]!=""):
+            #  string=string+self.data_er_samples[sample][key]+"\t"
             elif key in ['specimen_class','specimen_lithology','specimen_type']:
               sample_key="sample_"+key.split('specimen_')[1]
               if (sample in self.data_er_samples.keys() and sample_key in self.data_er_samples[sample] and self.data_er_samples[sample][sample_key]!=""):
                 string=string+self.data_er_samples[sample][sample_key]+"\t"
+                continue
+              
+              #sample_key="sample_"+key.split('specimen_')[1]
+              #if 'er_site_name' in self.data_er_samples[sample].keys() and self.data_er_samples[sample]['er_site_name']!="":
+              #  site=self.data_er_samples[sample]['er_site_name']
+              #site_key="site_"+key.split('specimen_')[1]                
+              #if (sample in self.data_er_samples.keys() and sample_key in self.data_er_samples[sample] and self.data_er_samples[sample][sample_key]!=""):
+              #  string=string+self.data_er_samples[sample][sample_key]+"\t"
+              #elif (site in self.data_er_sites.keys() and site_key in self.data_er_sites[site] and self.data_er_sites[site][site_key]!=""):
+              #  string=string+self.data_er_samples[sample][sample_key]+"\t"
+                
             # take information from the existing er_samples table             
             elif specimen in self.data_er_specimens.keys() and key in self.data_er_specimens[specimen].keys() and self.data_er_specimens[specimen][key]!="":
                 string=string+self.data_er_specimens[specimen][key]+"\t"
@@ -386,23 +427,47 @@ class MagIC_model_builder(wx.Frame):
 
         #data
         sites_list=self.data_er_sites.keys()
-        for sample in self.data_er_samples.keys():
-          if "er_site_name" in self.data_er_samples[sample].keys() and self.data_er_samples[sample]["er_site_name"] not in sites_list and self.data_er_samples[sample]["er_site_name"]!="":
-            sites_list.append(self.data_er_samples[sample]["er_site_name"])
+        for site in self.Data_hierarchy['sites'].keys():
+            if site not in sites_list:
+                sites_list.append(site)
+
+        
+        #for sample in self.data_er_samples.keys():
+        #  if "er_site_name" in self.data_er_samples[sample].keys() and self.data_er_samples[sample]["er_site_name"] not in sites_list and self.data_er_samples[sample]["er_site_name"]!="":
+        #    sites_list.append(self.data_er_samples[sample]["er_site_name"])
         sites_list.sort() 
-        string=""       
+        string=""  
+        site_lons=[]     
+        site_lats=[]     
         for site in sites_list:
           string=""    
           for key in self.er_sites_header:
             if key=="er_citation_names":
               string=string+"This study"+"\t"
             elif key=="er_site_name":
-              string=string+site+"\t"
+              string=string+site+"\t"            
             # take information from the existing er_samples table             
             elif (site in self.data_er_sites.keys() and key in self.data_er_sites[site].keys() and self.data_er_sites[site][key]!=""):
                 string=string+self.data_er_sites[site][key]+"\t"
+
+            elif key in ['er_location_name']:
+                string=string+self.Data_hierarchy['location_of_site'][site]+"\t"
+            
             else:
               string=string+"\t"
+
+          if site in self.data_er_sites.keys() and 'site_lon' in self.data_er_sites[site].keys() and self.data_er_sites[site]['site_lon']!="":
+              try:
+                    site_lons.append(float(self.data_er_sites[site]['site_lon']))
+              except:
+                  pass
+          if site in self.data_er_sites.keys() and 'site_lat' in self.data_er_sites[site].keys() and self.data_er_sites[site]['site_lat']!="":
+              try:
+                    site_lats.append(float(self.data_er_sites[site]['site_lat']))
+              except:
+                  pass
+                
+               
           er_sites_file.write(string[:-1]+"\n")
 
         #---------------------------------------------
@@ -419,9 +484,12 @@ class MagIC_model_builder(wx.Frame):
 
         #data
         locations_list=self.data_er_locations.keys()
-        for site in self.data_er_sites.keys():
-          if "er_location_name" in self.data_er_sites[site].keys() and self.data_er_sites[site]["er_location_name"] not in locations_list:
-            locations_list.append(self.data_er_sites[site]["er_location_name"])
+        for location in self.Data_hierarchy['locations'].keys():
+            if location not in locations_list:
+                locations_list.append(location)
+        #for site in self.data_er_sites.keys():
+        #  if "er_location_name" in self.data_er_sites[site].keys() and self.data_er_sites[site]["er_location_name"] not in locations_list:
+        #    locations_list.append(self.data_er_sites[site]["er_location_name"])
         locations_list.sort()        
         for location in locations_list:
           string=""
@@ -430,9 +498,22 @@ class MagIC_model_builder(wx.Frame):
               string=string+"This study"+"\t"
             elif key=="er_location_name":
               string=string+location+"\t"
-            # take information from the existing er_samples table             
+            # take information from the existing er_location table             
             elif (location in self.data_er_locations.keys() and key in self.data_er_locations[location].keys() and self.data_er_locations[location][key]!=""):
                 string=string+self.data_er_locations[location][key]+"\t"
+            elif key in ['location_begin_lon','location_end_lon','location_begin_lat','location_end_lat']:
+                if len(site_lons)>0 and key=='location_begin_lon':
+                    value="%f"%min(site_lons)
+                elif len(site_lons)>0 and key=='location_end_lon':
+                    value="%f"%max(site_lons)
+                elif len(site_lats)>0 and key=='location_begin_lat':
+                    value="%f"%min(site_lats)
+                elif len(site_lats)>0 and key=='location_end_lat':
+                    value="%f"%max(site_lats)
+                else:
+                    value=""
+                string=string+value+"\t"
+                
             else:
               string=string+"\t"
           er_locations_file.write(string[:-1]+"\n")
@@ -549,7 +630,7 @@ class MagIC_model_builder(wx.Frame):
 
 
         
-        dlg1 = wx.MessageDialog(self,caption="Message:", message="New MagIC model is saved. deleting All previous interpretations." ,style=wx.OK|wx.ICON_INFORMATION)
+        dlg1 = wx.MessageDialog(self,caption="Saved", message="MagIC Earth-Ref tables are saved in MagIC Project Directory.\nCleaning up MagIC pmag tables:\n All MagIC pmag tables are deleted!" ,style=wx.OK|wx.ICON_INFORMATION)
         dlg1.ShowModal()
         dlg1.Destroy()
         self.Destroy()
@@ -615,12 +696,16 @@ class MagIC_model_builder(wx.Frame):
         
       Data={}
       Data_hierarchy={}
+      Data_hierarchy['locations']={}
       Data_hierarchy['sites']={}
       Data_hierarchy['samples']={}
       Data_hierarchy['specimens']={}
       Data_hierarchy['sample_of_specimen']={} 
       Data_hierarchy['site_of_specimen']={}   
       Data_hierarchy['site_of_sample']={}   
+      Data_hierarchy['location_of_specimen']={}   
+      Data_hierarchy['location_of_sample']={}   
+      Data_hierarchy['location_of_site']={}   
       try:
           meas_data,file_type=pmag.magic_read(self.WD+"/magic_measurements.txt")
       except:
@@ -636,11 +721,15 @@ class MagIC_model_builder(wx.Frame):
           s=rec["er_specimen_name"]
           sample=rec["er_sample_name"]
           site=rec["er_site_name"]
+          location=rec["er_location_name"]
           if sample not in Data_hierarchy['samples'].keys():
               Data_hierarchy['samples'][sample]=[]
 
           if site not in Data_hierarchy['sites'].keys():
               Data_hierarchy['sites'][site]=[]         
+
+          if location not in Data_hierarchy['locations'].keys():
+              Data_hierarchy['locations'][location]=[]         
           
           if s not in Data_hierarchy['samples'][sample]:
               Data_hierarchy['samples'][sample].append(s)
@@ -648,10 +737,17 @@ class MagIC_model_builder(wx.Frame):
           if sample not in Data_hierarchy['sites'][site]:
               Data_hierarchy['sites'][site].append(sample)
 
+          if site not in Data_hierarchy['locations'][location]:
+              Data_hierarchy['locations'][location].append(site)
+
           Data_hierarchy['specimens'][s]=sample
           Data_hierarchy['sample_of_specimen'][s]=sample  
           Data_hierarchy['site_of_specimen'][s]=site  
           Data_hierarchy['site_of_sample'][sample]=site
+          Data_hierarchy['location_of_specimen'][s]=location 
+          Data_hierarchy['location_of_sample'][sample]=location 
+          Data_hierarchy['location_of_site'][site]=location 
+          
       return(Data,Data_hierarchy)
 
     

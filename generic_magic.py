@@ -25,12 +25,7 @@ def main():
             specify er_samples.txt file for sample orientation data. default is er_samples.txt
         -F FILE
             specify output file, default is magic_measurements.txt
-        
-        ???-Fsy: specify er_synthetics file, default is er_sythetics.txt
-        
-        #-Fsa:
-        #    specify output er_samples file, default is NONE 
-       
+                       
         -exp EXPERIMENT-TYPE 
             Demag:
                 AF and/or Thermal
@@ -89,10 +84,12 @@ def main():
 
     INPUT
     
-            A generic file is a tab-delimited file. Each columns should have a header.
-            The file must include the follwing headers. The order of the columns is not important.
-            specimen:
+        A generic file is a tab-delimited file. Each columns should have a header.
+        The file must include the follwing headers (the order of the columns is not important):
+        
+            specimen
                 string specifying specimen name
+            
             treatment:
                 a number with one or two decimal point (X.Y)
                 coding for thermal demagnetization: 
@@ -112,26 +109,32 @@ def main():
                     Y=3: pTRM tail check              
                     Y=4: Additivity check 
                     # Ron, Add also 5 for Thellier protocol            
-        treatment_type:
-            N: NRM
-            A: AF
-            T: Thermal
-        moment:
-            magnetic moment in emu !!           
-        
-        In addition. at least one of the following headers are requiered:   
-        dec_s:
-            declination in specimen coordinate system (0 to 360)  
-        inc_s:
-            inclination in specimen coordinate system (-90 to 90)                
-        
-        Testing:
-            1) make a genetric file with AF
-            2) make a genetric file with Thermal
-            3) make a genetric file with Thermal + AF 
-            4) make a genetric file with IZZI 
-            5) check duplicates option
-                                        
+            
+            treatment_type:
+                N: NRM
+                A: AF
+                T: Thermal
+            
+            moment:
+                magnetic moment in emu !!           
+            
+        In addition, at least one of the following headers are requiered:   
+            
+            dec_s:
+                declination in specimen coordinate system (0 to 360)  
+            inc_s:
+                inclination in specimen coordinate system (-90 to 90)                
+    
+            dec_g:
+                declination in geographic coordinate system (0 to 360)  
+            inc_g:
+                inclination in geographic coordinate system (-90 to 90)                
+    
+            dec_t:
+                declination in tilt-corrected coordinate system (0 to 360)  
+            inc_t:
+                inclination in tilt-corrected coordinate system (-90 to 90)                
+                                                
     """
 
     #--------------------------------------

@@ -749,9 +749,10 @@ class Arai_GUI(wx.Frame):
             elif crit=="specimen_scat":
                 if self.acceptance_criteria[crit]['value'] in ['g',1,'1',True,"True"]:
                     value="True"
-                    self.scat_threshold_window.SetBackgroundColour(wx.Colour(128, 128, 128))
+                    #self.scat_threshold_window.SetBackgroundColour(wx.Colour(128, 128, 128))
                 else:
                     value=""
+                    self.scat_threshold_window.SetBackgroundColour(wx.Colour(128, 128, 128))
                    
             elif type(self.acceptance_criteria[crit]['value'])==int:
                 value="%i"%self.acceptance_criteria[crit]['value']
@@ -871,6 +872,11 @@ class Arai_GUI(wx.Frame):
         m_open_magic_tree = menu_file.Append(-1, "&Open all MagIC project directories in path", "")
         self.Bind(wx.EVT_MENU, self.on_menu_m_open_magic_tree, m_open_magic_tree)
 
+        menu_file.AppendSeparator()
+
+        m_prepare_MagIC_results_tables= menu_file.Append(-1, "&Save MagIC Pmag results tables", "")
+        self.Bind(wx.EVT_MENU, self.on_menu__prepare_MagIC_results_tables, m_prepare_MagIC_results_tables)
+
         submenu_save_plots = wx.Menu()
 
         m_save_Arai_plot = submenu_save_plots.Append(-1, "&Save Arai plot", "")
@@ -896,6 +902,8 @@ class Arai_GUI(wx.Frame):
 
         #m_save_all_plots = submenu_save_plots.Append(-1, "&Save all plots", "")
         #self.Bind(wx.EVT_MENU, self.on_save_all_plots, m_save_all_plots)
+
+        menu_file.AppendSeparator()
 
         m_new_sub_plots = menu_file.AppendMenu(-1, "&Save plot", submenu_save_plots)
 
@@ -932,7 +940,7 @@ class Arai_GUI(wx.Frame):
         m_new_sub = menu_Analysis.AppendMenu(-1, "Acceptance criteria", submenu_criteria)
 
 
-        m_previous_interpretation = menu_Analysis.Append(-1, "&Import previous interpretation from a 'redo' file)", "")
+        m_previous_interpretation = menu_Analysis.Append(-1, "&Import previous interpretation from a 'redo' file", "")
         self.Bind(wx.EVT_MENU, self.on_menu_previous_interpretation, m_previous_interpretation)
 
         m_save_interpretation = menu_Analysis.Append(-1, "&Save current interpretations to a 'redo' file", "")
@@ -957,9 +965,9 @@ class Arai_GUI(wx.Frame):
         self.Bind(wx.EVT_MENU, self.on_menu_open_interpreter_log, m_open_interpreter_log)
 
 
-        menu_Optimizer = wx.Menu()
-        m_run_optimizer = menu_Optimizer.Append(-1, "&Run Consistency test", "")
-        self.Bind(wx.EVT_MENU, self.on_menu_run_optimizer, m_run_optimizer)
+        #menu_Optimizer = wx.Menu()
+        #m_run_optimizer = menu_Optimizer.Append(-1, "&Run Consistency test", "")
+        #self.Bind(wx.EVT_MENU, self.on_menu_run_optimizer, m_run_optimizer)
 
         #m_run_consistency_test_b = menu_Optimizer.Append(-1, "&Run Consistency test beta version", "")
         #self.Bind(wx.EVT_MENU, self.on_menu_run_consistency_test_b, m_run_consistency_test_b)
@@ -973,13 +981,13 @@ class Arai_GUI(wx.Frame):
         self.Bind(wx.EVT_MENU, self.on_menu_results_data, m_make_results_table)
 
 
-        menu_MagIC= wx.Menu()
-        m_convert_to_magic= menu_MagIC.Append(-1, "&Convert generic files to MagIC format", "")
-        self.Bind(wx.EVT_MENU, self.on_menu_convert_to_magic, m_convert_to_magic)
-        m_build_magic_model= menu_MagIC.Append(-1, "&Run MagIC model builder", "")
-        self.Bind(wx.EVT_MENU, self.on_menu_MagIC_model_builder, m_build_magic_model)
-        m_prepare_MagIC_results_tables= menu_MagIC.Append(-1, "&Make MagIC results Table", "")
-        self.Bind(wx.EVT_MENU, self.on_menu__prepare_MagIC_results_tables, m_prepare_MagIC_results_tables)
+        #menu_MagIC= wx.Menu()
+        #m_convert_to_magic= menu_MagIC.Append(-1, "&Convert generic files to MagIC format", "")
+        #self.Bind(wx.EVT_MENU, self.on_menu_convert_to_magic, m_convert_to_magic)
+        #m_build_magic_model= menu_MagIC.Append(-1, "&Run MagIC model builder", "")
+        #self.Bind(wx.EVT_MENU, self.on_menu_MagIC_model_builder, m_build_magic_model)
+        #m_prepare_MagIC_results_tables= menu_MagIC.Append(-1, "&Make MagIC results Table", "")
+        #self.Bind(wx.EVT_MENU, self.on_menu__prepare_MagIC_results_tables, m_prepare_MagIC_results_tables)
 
 
         
@@ -990,10 +998,10 @@ class Arai_GUI(wx.Frame):
         self.menubar.Append(menu_anistropy, "&Anistropy")
         self.menubar.Append(menu_Analysis, "&Analysis")
         self.menubar.Append(menu_Auto_Interpreter, "&Auto Interpreter")
-        self.menubar.Append(menu_Optimizer, "&Consistency Test")
+        #self.menubar.Append(menu_Optimizer, "&Consistency Test")
         self.menubar.Append(menu_Plot, "&Plot")
         self.menubar.Append(menu_results_table, "&Table")
-        self.menubar.Append(menu_MagIC, "&MagIC")
+        #self.menubar.Append(menu_MagIC, "&MagIC")
         
         self.SetMenuBar(self.menubar)
 
@@ -1653,7 +1661,8 @@ class Arai_GUI(wx.Frame):
         
     def on_menu_exit(self, event):
         if self.close_warning:
-            dlg1 = wx.MessageDialog(None,caption="Warning:", message="Exiting program.\nSave all interpretation to a 'redo' file or to MagIC specimens result table\n\nPress OK to exit" ,style=wx.OK|wx.CANCEL|wx.ICON_INFORMATION)
+            TEXT="Data is not saved to a file yet!\nTo properly save your data:\n1) Analysis --> Save current interpretations to a redo file.\nor\n1) File --> Save MagIC Pmag results tables.\n\n Press OK to exit without saving."
+            dlg1 = wx.MessageDialog(None,caption="Warning:", message=TEXT ,style=wx.OK|wx.CANCEL|wx.ICON_EXCLAMATION)
             if dlg1.ShowModal() == wx.ID_OK:
                 dlg1.Destroy()
                 self.Destroy()
@@ -4790,10 +4799,10 @@ class Arai_GUI(wx.Frame):
         if BY_SAMPLES:
            pmag_samples_header_1.append("er_sample_name")
         if BY_SAMPLES:
-            pmag_samples_header_2=["er_specimen_names","sample_int","sample_int_n","sample_int_sigma","sample_int_sigma_perc"]
+            pmag_samples_header_2=["er_specimen_names","sample_int","sample_int_n","sample_int_sigma","sample_int_sigma_perc","sample_description"]
         else:
-            pmag_samples_header_2=["er_specimen_names","site_int","site_int_n","site_int_sigma","site_int_sigma_perc"]
-        pmag_samples_header_3=["sample_description","magic_method_codes","magic_software_packages"]
+            pmag_samples_header_2=["er_specimen_names","site_int","site_int_n","site_int_sigma","site_int_sigma_perc","site_description"]
+        pmag_samples_header_3=["magic_method_codes","magic_software_packages"]
         pmag_samples_header_4=["er_citation_names"]
 
         pmag_samples_or_sites_list=[]
@@ -4852,6 +4861,7 @@ class Arai_GUI(wx.Frame):
                     MagIC_results_data['pmag_samples_or_sites'][sample_or_site][name+'int_n']="%i"%(N)
                     MagIC_results_data['pmag_samples_or_sites'][sample_or_site][name+'int_sigma']="%.2e"%(B_std_uT*1e-6)
                     MagIC_results_data['pmag_samples_or_sites'][sample_or_site][name+'int_sigma_perc']="%.2f"%(B_std_perc)
+                    MagIC_results_data['pmag_samples_or_sites'][sample_or_site][name+'description']="mean of specimens"
                     for key in pmag_samples_header_1:
                         if BY_SAMPLES:
                             MagIC_results_data['pmag_samples_or_sites'][sample_or_site][key]=self.MagIC_model["er_samples"][sample_or_site][key]
@@ -4860,7 +4870,6 @@ class Arai_GUI(wx.Frame):
                             
                     
                     MagIC_results_data['pmag_samples_or_sites'][sample_or_site]["pmag_criteria_codes"]=""
-                    MagIC_results_data['pmag_samples_or_sites'][sample_or_site]["sample_description"]="Mean of specimens"
                     MagIC_results_data['pmag_samples_or_sites'][sample_or_site]['magic_method_codes']=magic_codes
                     MagIC_results_data['pmag_samples_or_sites'][sample_or_site]["magic_software_packages"]=version
                     
@@ -4929,11 +4938,8 @@ class Arai_GUI(wx.Frame):
             pmag_results_header_4=["vdm","vdm_sigma"]        
         else:    
             pmag_results_header_4=["vadm","vadm_sigma"]
-        pmag_results_header_5=[ "data_type","pmag_result_name","magic_method_codes","result_description","er_citation_names","magic_software_packages","pmag_criteria_codes"]        
-
-        
-        
-        
+        pmag_results_header_5=[ "data_type","pmag_result_name","magic_method_codes","result_description","er_citation_names","magic_software_packages","pmag_criteria_codes"]                
+                
         # for ages, check the er_ages.txt, and take whats theres
         #age_headers=[]
         #for site in self.MagIC_model["er_ages"].keys():
@@ -5038,7 +5044,36 @@ class Arai_GUI(wx.Frame):
                                pmag_results_header_4.append(header_result) 
                 
                             
-                
+        # check for ages:
+        
+        for sample_or_site in pmag_samples_or_sites_list:
+            found_age=False
+            if BY_SAMPLES and sample_or_site in self.Data_info["er_ages"].keys():
+                element_with_age=sample_or_site
+                found_age=True
+            elif BY_SAMPLES and sample_or_site not in self.Data_info["er_ages"].keys():
+                site=self.Data_hierarchy['site_of_sample'][sample_or_site]
+                if site in self.Data_info["er_ages"].keys():
+                    element_with_age=site
+                    found_age=True
+            elif BY_SITES and sample_or_site in self.Data_info["er_ages"].keys():
+                element_with_age=sample_or_site
+                found_age=True
+            else:
+                continue
+                                                          
+            for key in ['age','age_sigma','age_range_low','age_range_high','age_unit']:
+                if key in  self.Data_info["er_ages"][element_with_age].keys():
+                    if  self.Data_info["er_ages"][element_with_age][key] !="":
+                        MagIC_results_data['pmag_results'][sample_or_site][key]=self.Data_info["er_ages"][element_with_age][key]
+                        foundkeys=True
+            if foundkeys==True:
+                if 'magic_method_codes' in self.Data_info["er_ages"][element_with_age].keys():
+                    methods= self.Data_info["er_ages"][element_with_age]['magic_method_codes'].replace(" ","").strip('\n').split(":")
+                    for meth in methods:
+                        MagIC_results_data['pmag_results'][sample_or_site]["magic_method_codes"]=MagIC_results_data['pmag_results'][sample_or_site]["magic_method_codes"] + ":"+ meth
+                             
+                           
         # wrire pmag_results.txt
         fout=open(self.WD+"/pmag_results.txt",'w')
         fout.write("tab\tpmag_results\n")
@@ -5297,8 +5332,12 @@ class Arai_GUI(wx.Frame):
         pars['pass_or_fail']='pass'
         pars['N']=len(tmp_B)
         pars['B_uT']=mean(tmp_B)
-        pars['B_std_uT']=std(tmp_B,ddof=1)
-        pars['B_std_perc']=100*(pars['B_std_uT']/pars['B_uT'])
+        if len(tmp_B)>1:
+            pars['B_std_uT']=std(tmp_B,ddof=1)
+            pars['B_std_perc']=100*(pars['B_std_uT']/pars['B_uT'])    
+        else:
+            pars['B_std_uT']=0
+            pars['B_std_perc']=0    
         pars['sample_int_interval_uT']=(max(tmp_B)-min(tmp_B))
         pars['sample_int_interval_perc']=100*(pars['sample_int_interval_uT']/pars['B_uT'])
         pars['fail_list']=[]
