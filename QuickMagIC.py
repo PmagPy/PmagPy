@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env pythonw
 import wx
 import wx.lib.buttons as buttons
 import pmag
