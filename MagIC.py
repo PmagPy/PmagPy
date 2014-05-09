@@ -2356,7 +2356,7 @@ def exit():
     sys.exit()
 
 def demag_gui():
-    z_command='pythonw demag_gui.py -WD '+'"'+opath+'"'
+    z_command='demag_gui.py -WD '+'"'+opath+'"'
     print z_command
     os.system(z_command)
 
@@ -2388,7 +2388,7 @@ def zeq():
     logfile.close()
 
 def thellier_gui():
-    outstring='pythonw thellier_gui.py -WD '+opath
+    outstring='thellier_gui.py -WD '+opath
     print outstring
     os.system(outstring)
     files=os.listdir(opath)
