@@ -3,6 +3,8 @@
 #============================================================================================
 # LOG HEADER:
 #============================================================================================
+# Demag_GUI Version 0.26 (version for MagIC workshop) by Ron Shaar 5/8/2014
+
 # Demag_GUI Version 0.25 (beta) by Ron Shaar
 
 # Demag_GUI Version 0.24 (beta) by Ron Shaar
@@ -24,7 +26,7 @@
 
 
 global CURRENT_VRSION
-CURRENT_VRSION = "v.0.25"
+CURRENT_VRSION = "v.0.26"
 import matplotlib
 matplotlib.use('WXAgg')
 
@@ -284,7 +286,7 @@ class Zeq_GUI(wx.Frame):
         #self.specimens_box = wx.ComboBox(self.panel, -1, self.s, (250*self.GUI_RESOLUTION, 25), wx.DefaultSize,self.specimens, wx.CB_DROPDOWN,name="specimen")
         self.specimens_box = wx.ComboBox(self.panel, -1, value=self.s,choices=self.specimens, style=wx.CB_DROPDOWN,name="specimen")
         #self.specimens_box.SetFont(font2)
-        self.Bind(wx.EVT_TEXT, self.onSelect_specimen,self.specimens_box)
+        self.Bind(wx.EVT_COMBOBOX, self.onSelect_specimen,self.specimens_box)
         
         # buttons to move forward and backwards from specimens        
         self.nextbutton = wx.Button(self.panel, id=-1, label='next',size=(75*self.GUI_RESOLUTION, 25))#,style=wx.BU_EXACTFIT)#, size=(175, 28))

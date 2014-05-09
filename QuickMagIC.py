@@ -331,6 +331,12 @@ class MagMainFrame(wx.Frame):
         outstring="upload_magic.py"
         print "-I- running python script:\n %s"%(outstring)
         os.system(outstring)
+        TXT="Check terminal (Mac) or command prompt (windows) for error/warnings.\nA file name upload_dos.txt was generated in MagIC Project Directory.\nDrag and drop this file in the MagIC database."
+        dlg = wx.MessageDialog(self, caption="Saved",message=TXT,style=wx.OK)
+        result = dlg.ShowModal()
+        if result == wx.ID_OK:            
+            dlg.Destroy()
+        
        
            
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   
