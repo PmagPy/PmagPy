@@ -846,7 +846,7 @@ class make_ocn:
                self.dec.grid(row=i+g,column=1,sticky=W)
         if suns>0: # ask for GMT offset
            dcn=DCN_types[-1].split(":")
-           Label(top, text="Hours to ADD local time for GMT, default is 0:").grid(row=i+g+1,sticky=W)
+           Label(top, text="Hours to SUBTRACT from local time for GMT, default is 0:").grid(row=i+g+1,sticky=W)
            self.gmt=Entry(top)
            self.gmt.grid(row=i+g+1,column=1,sticky=W) 
         self.b = Button(top, text="OK", command=self.ok)
