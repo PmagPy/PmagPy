@@ -2140,7 +2140,8 @@ class orient_convention(wx.Dialog):
         
         sbs4.AddSpacer(5)
         self.dc_alt = wx.TextCtrl(pnl,style=wx.CENTER)
-        alt_txt = wx.StaticText(pnl,label="Hours to ADD local time for GMT, default is 0",style=wx.TE_CENTER)
+        #alt_txt = wx.StaticText(pnl,label="Hours to ADD local time for GMT, default is 0",style=wx.TE_CENTER)
+        alt_txt = wx.StaticText(pnl,label="Hours to SUBTRACT from local time for GMT, default is 0",style=wx.TE_CENTER)        
         sbs4.Add(alt_txt)
         sbs4.AddSpacer(5)
         sbs4.Add(self.dc_alt)
