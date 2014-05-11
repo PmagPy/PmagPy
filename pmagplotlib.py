@@ -2348,12 +2348,11 @@ def plotMAP(fignum,lats,lons,Opts):
     fig=pylab.figure(num=fignum) 
     rgba_land=(255,255,150,255)
     rgba_ocean=(200,250,255,255)
-    ExPar=['ortho']
-    ExMer=['sinus','moll','ortho']
+    ExMer=['sinus','moll']
     mlabels=[0,0,0,1]  # draw meridian labels on the bottom [left,right,top,bottom]
     plabels=[1,0,0,0] # draw parallel labels on the left
     if Opts['proj'] in ExMer:mlabels=[0,0,0,0] 
-    if Opts['proj'] in ExPar:
+    if Opts['proj'] not in  ExMer:
         m=Basemap(projection=Opts['proj'],lat_0=Opts['lat_0'],lon_0=Opts['lon_0'],resolution=Opts['res'])
         plabels=[0,0,0,0]
     else:
