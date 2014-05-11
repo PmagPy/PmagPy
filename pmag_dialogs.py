@@ -9,6 +9,7 @@ import pmag
 import subprocess
 import pmag_widgets as pw
 import wx.grid
+import subprocess
 
 class import_magnetometer_data(wx.Dialog):
     def __init__(self,parent,id,title,WD):
@@ -327,8 +328,10 @@ class convert_generic_files_to_MagIC(wx.Frame):
         #-----------
         # WD="/".join(FILE.split("/")[:-1])
         WD=self.WD
+        magicoutfile=os.path.split(FILE)[1]+".magic"
+        OUTFILE=os.path.join(self.WD,magicoutfile)
         #-----------
-        OUTFILE=self.WD+"/"+FILE.split('/')[-1]+".magic"
+        #OUTFILE=self.WD+"/"+FILE.split('/')[-1]+".magic"
         #-----------
         EXP=""
         exp=str(self.protocol_info.GetValue())
@@ -382,7 +385,7 @@ class convert_generic_files_to_MagIC(wx.Frame):
         #-----------        
 
         if str(self.location.GetValue()) != "":
-            LOC="-loc '%s'"%str(self.location.GetValue())
+            LOC="-loc \"%s\""%str(self.location.GetValue())
         else:
             LOC=""
         #-----------        
@@ -584,7 +587,8 @@ class combine_magic_dialog(wx.Frame):
         files=files_text.strip('\n').replace(" ","").split('\n')
         COMMAND="combine_magic.py -F magic_measurements.txt -f %s"%(" ".join(files) )       
         print "-I- Running Python command:\n %s"%COMMAND
-        #subprocess.call(COMMAND, shell=True)        
+        #subprocess.call(COMMAND, shell=True)   
+        os.chdir(self.WD)     
         os.system(COMMAND)                                          
         
         MSG="%i file are merged to one MagIC format file:\n magic_measurements.txt.\n\n See Termimal (Mac) or command prompt (windows) for errors"%(len(files))
@@ -1942,39 +1946,56 @@ class OrientFrameGrid(wx.Frame):
             bedding_codes_flags=method_code_dia.bedding_codes_flags
             methodcodes_flags=method_code_dia.methodcodes_flags
             method_code_dia.Destroy()
-            
-        command= "orientation_magic.py -WD %s -Fsa er_samples_orient.txt -Fsi er_sites_orient.txt -f  %s %s %s %s %s %s > ./orientation_magic.log " \
-        %(self.WD,\
-        "demag_orient.txt",\
-        ocn_flag,\
-        dcn_flag,\
-        gmt_flags,\
-        bedding_codes_flags,\
-        methodcodes_flags)
+        #logfile=open(self.WD+"/orientation_magic.log",'w')
+        command_args=['orientation_magic.py']
+        command_args.append("-WD %s"%self.WD)
+        command_args.append("-Fsa er_samples_orient.txt")
+        command_args.append("-Fsi er_sites_orient.txt ")
+        command_args.append("-f %s"%"demag_orient.txt")
+        command_args.append(ocn_flag)
+        command_args.append(dcn_flag)
+        command_args.append(gmt_flags)
+        command_args.append(bedding_codes_flags)
+        command_args.append(methodcodes_flags) 
+        commandline=" ".join(command_args)
+        
+                 
+        #command= "orientation_magic.py -WD %s -Fsa er_samples_orient.txt -Fsi er_sites_orient.txt -f  %s %s %s %s %s %s > ./orientation_magic.log " \
+        #%(self.WD,\
+        #"demag_orient.txt",\
+        #ocn_flag,\
+        #dcn_flag,\
+        #gmt_flags,\
+        #bedding_codes_flags,\
+        #methodcodes_flags)
         
         #orient_convention_dia.Destroy()
         #method_code_dia.Destroy()  
         
         fail_comamnd=False
         
-        print "-I- executing command:",command
+        print "-I- executing command: %s" %commandline
         os.chdir(self.WD)
         try:
-            os.system(command)
+             os.system(commandline)
+             #subprocess.call(command_args,shell=True,stdout=logfile)
+             #logfile.close()
         except:
             fail_comamnd=True
         
         if fail_comamnd:
             print "-E- ERROR: Error in running orientation_magic.py"
             return
+ 
         # check if orientation_magic.py finished sucsessfuly
         data_saved=False
-        if os.path.isfile(self.WD+"/orientation_magic.log"):
-            fin=open(self.WD+"/orientation_magic.log",'r')
-            for line in fin.readlines():
-                if "Data saved in" in line:
-                    data_saved=True
-                    break 
+        if os.path.isfile(self.WD+"/er_samples_orient.txt"):
+            data_saved=True
+            #fin=open(self.WD+"/orientation_magic.log",'r')
+            #for line in fin.readlines():
+            #    if "Data saved in" in line:
+            #        data_saved=True
+            #        break 
         
         if not data_saved:
             return
@@ -1993,15 +2014,17 @@ class OrientFrameGrid(wx.Frame):
             er_samples_file=self.WD+"/er_samples.txt"
             er_samples_data=self.read_magic_file(er_samples_file,1,"er_sample_name")
         
-        if os.path.isfile(self.WD+"/er_samples_orient.txt"): 
-            
+        if os.path.isfile(self.WD+"/er_samples_orient.txt"):             
             er_samples_orient_file=self.WD+"/er_samples_orient.txt"
             er_samples_orient_data=self.read_magic_file(er_samples_orient_file,1,"er_sample_name")
         new_samples_added=[]
         for sample in er_samples_orient_data.keys():
             if sample not in er_samples_data.keys():
                 new_samples_added.append(sample)
-                continue
+                er_samples_data[sample]={}
+                er_samples_data[sample]['er_sample_name']=sample
+              #er_samples_data[sample]['er_citation_names']=
+                #continue
                 #er_samples_data[sample]={}
                 #er_samples_data[sample]["er_sample_name"]=sample
             for key in ["sample_orientation_flag","sample_azimuth","sample_dip","sample_bed_dip","sample_bed_dip_direction","sample_date","sample_declination_correction"]:
@@ -2028,7 +2051,7 @@ class OrientFrameGrid(wx.Frame):
         dlg1.Destroy()
         
         if len(new_samples_added)>0:
-            dlg1 = wx.MessageDialog(None,caption="Warning:", message="The following samples are in orient file, but not in magic_measurements.txt:\n %s "%(" , ".join(new_samples_added)) ,style=wx.OK|wx.ICON_INFORMATION)
+            dlg1 = wx.MessageDialog(None,caption="Warning:", message="The following samples were added to er_samples.txt:\n %s "%(" , ".join(new_samples_added)) ,style=wx.OK|wx.ICON_INFORMATION)
             dlg1.ShowModal()
             dlg1.Destroy()
             

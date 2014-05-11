@@ -335,8 +335,10 @@ class MagIC_model_builder(wx.Frame):
             elif key in ['sample_class','sample_lithology','sample_type']:
               site_key="site_"+key.split('sample_')[1]
               if (site in self.data_er_sites.keys() and site_key in self.data_er_sites[site] and self.data_er_sites[site][site_key]!=""):
-                string=string+self.data_er_sites[site][site_key]+"\t"
-                continue
+                    string=string+self.data_er_sites[site][site_key]+"\t"
+                    continue
+              else:
+                    string=string+'\t'
                         
             # take information from the existing er_sitestable 
             elif sample in self.data_er_samples.keys() and key in self.data_er_samples[sample].keys() and self.data_er_samples[sample][key]!="":
@@ -395,6 +397,8 @@ class MagIC_model_builder(wx.Frame):
               if (sample in self.data_er_samples.keys() and sample_key in self.data_er_samples[sample] and self.data_er_samples[sample][sample_key]!=""):
                 string=string+self.data_er_samples[sample][sample_key]+"\t"
                 continue
+              else:
+                  string=string+"\t"
               
               #sample_key="sample_"+key.split('specimen_')[1]
               #if 'er_site_name' in self.data_er_samples[sample].keys() and self.data_er_samples[sample]['er_site_name']!="":

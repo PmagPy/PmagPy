@@ -3,6 +3,9 @@
 #============================================================================================
 # LOG HEADER:
 #============================================================================================
+# Thellier_GUI Version 2.24 05/11/2014
+# Fix Pmag results tables issues
+#
 # Thellier_GUI Version 2.23 05/07/2014
 # Fix Pmag results tables issues
 #
@@ -5065,7 +5068,7 @@ class Arai_GUI(wx.Frame):
                 found_age=True
             else:
                 continue
-                                                          
+            foundkeys=False                                              
             for key in ['age','age_sigma','age_range_low','age_range_high','age_unit']:
                 if key in  self.Data_info["er_ages"][element_with_age].keys():
                     if  self.Data_info["er_ages"][element_with_age][key] !="":

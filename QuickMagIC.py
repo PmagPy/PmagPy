@@ -236,7 +236,9 @@ class MagMainFrame(wx.Frame):
         foundHTML=False
         try:
             PATH= sys.modules['ErMagicBuilder'].__file__
-            HTML_PATH="/".join(PATH.split("/")[:-1]+["ErMagicBuilderHelp.html"])
+            PmagPyPath=os.path.split(PATH)[0]
+            HTML_PATH=os.path.join(PmagPyPath,"ErMagicBuilderHelp.html")
+            #HTML_PATH="/".join(PATH.split("/")[:-1]+["ErMagicBuilderHelp.html"])
             foundHTML=True
         except:
             pass
