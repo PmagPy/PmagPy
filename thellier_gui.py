@@ -874,7 +874,7 @@ class Arai_GUI(wx.Frame):
 
         menu_file.AppendSeparator()
 
-        m_prepare_MagIC_results_tables= menu_file.Append(-1, "&Save MagIC Pmag results tables", "")
+        m_prepare_MagIC_results_tables= menu_file.Append(-1, "&Save MagIC pmag tables", "")
         self.Bind(wx.EVT_MENU, self.on_menu__prepare_MagIC_results_tables, m_prepare_MagIC_results_tables)
 
         submenu_save_plots = wx.Menu()
@@ -1661,7 +1661,7 @@ class Arai_GUI(wx.Frame):
         
     def on_menu_exit(self, event):
         if self.close_warning:
-            TEXT="Data is not saved to a file yet!\nTo properly save your data:\n1) Analysis --> Save current interpretations to a redo file.\nor\n1) File --> Save MagIC Pmag results tables.\n\n Press OK to exit without saving."
+            TEXT="Data is not saved to a file yet!\nTo properly save your data:\n1) Analysis --> Save current interpretations to a redo file.\nor\n1) File --> Save MagIC pmag tables.\n\n Press OK to exit without saving."
             dlg1 = wx.MessageDialog(None,caption="Warning:", message=TEXT ,style=wx.OK|wx.CANCEL|wx.ICON_EXCLAMATION)
             if dlg1.ShowModal() == wx.ID_OK:
                 dlg1.Destroy()
@@ -2123,7 +2123,7 @@ class Arai_GUI(wx.Frame):
             if type(value)==bool and value==True:
                 self.acceptance_criteria[crit]['value']=True
             elif type(value)==bool and value==False:
-                self.acceptance_criteria[crit]['value']=False                        
+                self.acceptance_criteria[crit]['value']=-999                        
             elif type(value)==unicode and str(value)=="":
                 self.acceptance_criteria[crit]['value']=-999
             elif type(value)==unicode and str(value)!="": # should be a number
@@ -4652,7 +4652,11 @@ class Arai_GUI(wx.Frame):
             for F in fail_read_magic_model_files:
                 print "-E- Failed reading MagIC Model file %s"%F
             return
-        
+        self.on_menu_save_interpretation(None)
+        try:
+            self.on_menu_save_interpretation(self, None)
+        except:
+            pass
         #------------------
         # read "old" pmag results data and sort out directional data
         # this data will be marged later with os.
@@ -4861,7 +4865,7 @@ class Arai_GUI(wx.Frame):
                     MagIC_results_data['pmag_samples_or_sites'][sample_or_site][name+'int_n']="%i"%(N)
                     MagIC_results_data['pmag_samples_or_sites'][sample_or_site][name+'int_sigma']="%.2e"%(B_std_uT*1e-6)
                     MagIC_results_data['pmag_samples_or_sites'][sample_or_site][name+'int_sigma_perc']="%.2f"%(B_std_perc)
-                    MagIC_results_data['pmag_samples_or_sites'][sample_or_site][name+'description']="mean of specimens"
+                    MagIC_results_data['pmag_samples_or_sites'][sample_or_site][name+'description']="paleointensity mean"
                     for key in pmag_samples_header_1:
                         if BY_SAMPLES:
                             MagIC_results_data['pmag_samples_or_sites'][sample_or_site][key]=self.MagIC_model["er_samples"][sample_or_site][key]
@@ -5143,8 +5147,14 @@ class Arai_GUI(wx.Frame):
             fout.write("%s\n"%code)
         fout.close
                 
+        # make pmag_criteria.txt if it does not exist
+        if not os.path.isfile(self.WD+"/pmag_criteria.txt"):
+            Fout=open(self.WD+"/pmag_criteria.txt",'w')
+            Fout.write("tab\tpmag_criteria\n")
+            Fout.write("er_citation_names\tpmag_criteria_code\n")
+            Fout.write("This study\tACCEPT\n")
 
-        dlg1 = wx.MessageDialog(self,caption="Message:", message="MagIC results file are saved in MagIC project folder" ,style=wx.OK|wx.ICON_INFORMATION)
+        dlg1 = wx.MessageDialog(self,caption="Message:", message="MagIC pmag files are saved in MagIC project folder" ,style=wx.OK|wx.ICON_INFORMATION)
         dlg1.ShowModal()
         dlg1.Destroy()
         

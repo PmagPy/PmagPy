@@ -3637,7 +3637,7 @@ def get_age(Rec,sitekey,keybase,Ages,DefaultAge):
     """
     site=Rec[sitekey]
     gotone=0
-    if len(Ages)>1:
+    if len(Ages)>0:
         for agerec in Ages:
             if agerec["er_site_name"]==site:
                 if "age" in agerec.keys() and agerec["age"]!="":

@@ -16,6 +16,7 @@ class import_magnetometer_data(wx.Dialog):
         self.WD=WD
         self.InitUI()
         self.SetTitle(title)
+        self.parent=parent
         
     def InitUI(self):
 
@@ -87,13 +88,12 @@ class import_magnetometer_data(wx.Dialog):
     def on_cancelButton(self,event):
         #print 'canceling select file type import dialogue'
         self.Destroy()
-
     def on_okButton(self,event):
         #print 'self.checked', self.checked_rb
         file_type = self.checked_rb.Label.split()[0] # extracts name of the checked radio button
         #print 'file_type', file_type
         if file_type == 'generic':
-            dia = convert_generic_files_to_MagIC(self.WD)
+            dia = convert_generic_files_to_MagIC(self,self.WD)
         elif file_type == 'SIO':
             dia = convert_SIO_files_to_MagIC(self.WD)
         elif file_type == 'CIT':
@@ -135,13 +135,14 @@ class convert_generic_files_to_MagIC(wx.Frame):
     """"""
     title = "PmagPy generic file conversion"
 
-    def __init__(self,WD):
-        wx.Frame.__init__(self, None, wx.ID_ANY, self.title)
+    def __init__(self,parent,WD):
+        wx.Frame.__init__(self, parent, wx.ID_ANY, self.title)
 #        self.panel = wx.Panel(self)
         self.panel = wx.ScrolledWindow(self)
         self.panel.SetScrollbars(20, 20, 50, 50)
         self.max_files=1
         self.WD=WD
+        self.parent=parent
         ##print 'self.WD on init generic files', self.WD
         self.InitUI()
 
@@ -418,11 +419,15 @@ class convert_generic_files_to_MagIC(wx.Frame):
         dlg1.Destroy()
 
         self.Destroy()
+        self.parent.Destroy()
 
 
     def on_cancelButton(self,event):
         self.Destroy()
-
+        self.parent.Destroy()
+        #self.parent.Show()
+        #self.parent.Center()
+        
     def on_helpButton(self, event):
         pw.on_helpButton("generic_magic.py -h")
 
@@ -503,7 +508,7 @@ class combine_magic_dialog(wx.Frame):
         #------------------
 
         bSizer1 =  wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY, "" ), wx.VERTICAL )
-        self.file_pathes = wx.TextCtrl(self.panel, id=-1, size=(800,500), style=wx.TE_MULTILINE)
+        self.file_pathes = wx.TextCtrl(self.panel, id=-1, size=(500,500), style=wx.TE_MULTILINE)
         #self.add_file_button = wx.Button(self.panel, id=-1, label='add',name='add')
         #self.Bind(wx.EVT_BUTTON, self.on_add_file_button, self.add_file_button)    
         TEXT="files list:"
@@ -555,7 +560,7 @@ class combine_magic_dialog(wx.Frame):
             None,message="choose MagIC formatted measurement file",
             defaultDir=self.WD,
             defaultFile="",
-            style=wx.OPEN | wx.CHANGE_DIR
+            style=wx.OPEN | wx.CHANGE_DIR 
             )
         if dlg.ShowModal() == wx.ID_OK:
             #self.box_sizer_high_level_text.Add(self.high_level_text_box, 0, wx.ALIGN_LEFT, 0 )  

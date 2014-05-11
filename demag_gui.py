@@ -3095,7 +3095,7 @@ class Zeq_GUI(wx.Frame):
         #m_change_working_directory = menu_file.Append(-1, "&Change MagIC project directory", "")
         #self.Bind(wx.EVT_MENU, self.on_menu_change_working_directory, m_change_working_directory)
 
-        m_make_MagIC_results_tables= menu_file.Append(-1, "&Save MagIC Pmag results tables", "")
+        m_make_MagIC_results_tables= menu_file.Append(-1, "&Save MagIC pmag tables", "")
         self.Bind(wx.EVT_MENU, self.on_menu_make_MagIC_results_tables, m_make_MagIC_results_tables)
 
         #m_open_magic_file = menu_file.Append(-1, "&Open MagIC measurement file", "")
@@ -3289,7 +3289,7 @@ class Zeq_GUI(wx.Frame):
     def on_menu_exit(self, event):
         
         if self.close_warning:
-            TEXT="Data is not saved to a file yet!\nTo properly save your data:\n1) Analysis --> Save current interpretations to a redo file.\nor\n1) File --> Save MagIC Pmag results tables.\n\n Press OK to exit without saving."
+            TEXT="Data is not saved to a file yet!\nTo properly save your data:\n1) Analysis --> Save current interpretations to a redo file.\nor\n1) File --> Save MagIC pmag tables.\n\n Press OK to exit without saving."
             
             #Save all interpretation to a 'redo' file or to MagIC specimens result table\n\nPress OK to exit"
             dlg1 = wx.MessageDialog(None,caption="Warning:", message=TEXT ,style=wx.OK|wx.CANCEL|wx.ICON_EXCLAMATION)
@@ -3669,7 +3669,10 @@ class Zeq_GUI(wx.Frame):
         #---------------------------------------
         # save pmag_*.txt.tmp without directional data           
         #---------------------------------------  
-        
+        try:
+            self.on_menu_save_interpretation(None)    
+        except:
+            pass    
         self.PmagRecsOld={}
         for FILE in ['pmag_specimens.txt']:
             self.PmagRecsOld[FILE]=[]
@@ -3790,7 +3793,7 @@ class Zeq_GUI(wx.Frame):
         pmag.magic_write(self.WD+"/"+"pmag_specimens.txt",PmagSpecs_fixed,'pmag_specimens')
         self.GUI_log.write( "specimen data stored in %s\n"%self.WD+"/"+"pmag_specimens.txt")
         
-        TEXT="specimen results are saved in pmag_specimens.txt.\nPress OK for samples/sites and final MagIC results tables."
+        TEXT="specimens interpretations are saved in pmag_specimens.txt.\nPress OK for pmag_samples/pmag_sites/pmag_results tables."
         dlg = wx.MessageDialog(self, caption="Saved",message=TEXT,style=wx.OK|wx.CANCEL )
         result = dlg.ShowModal()
         if result == wx.ID_OK:            
@@ -3812,7 +3815,12 @@ class Zeq_GUI(wx.Frame):
 
                 
         #-- acceptance criteria
-        run_script_flags=["specimens_results_magic.py","-fsp","pmag_specimens.txt", "-xI", "-WD", str(self.WD)]
+        #AGE_STR=""
+        #if os.path.isfile(self.WD+"/er_ages.txt"):
+        #    AGE_STR="-fa er_ages"
+        #    print "YESS !"
+        
+        run_script_flags=["specimens_results_magic.py","-fsp","pmag_specimens.txt", "-xI",  "-WD", str(self.WD)]
         if dia.cb_acceptance_criteria.GetValue()==True:
             run_script_flags.append("-exc")
         else:
@@ -3894,9 +3902,17 @@ class Zeq_GUI(wx.Frame):
                 pmag.magic_write(self.WD+"/"+FILE,pmag_data_fixed,FILE.split(".")[0])
                 self.GUI_log.write( "write new interpretations in %s\n"%(self.WD+"/"+FILE))
 
+        # make pmag_criteria.txt if it does not exist
+        if not os.path.isfile(self.WD+"/pmag_criteria.txt"):
+            Fout=open(self.WD+"/pmag_criteria.txt",'w')
+            Fout.write("tab\tpmag_criteria\n")
+            Fout.write("er_citation_names\tpmag_criteria_code\n")
+            Fout.write("This study\tACCEPT\n")
+            
+
         self.update_pmag_tables()
         self.update_selection()
-        TEXT="interpretations are saved in pmag tables\n"
+        TEXT="interpretations are saved in pmag tables.\n"
         dlg = wx.MessageDialog(self, caption="Saved",message=TEXT,style=wx.OK)
         result = dlg.ShowModal()
         if result == wx.ID_OK:            

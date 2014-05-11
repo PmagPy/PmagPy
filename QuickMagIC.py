@@ -23,10 +23,11 @@ class MagMainFrame(wx.Frame):
         wx.Frame.__init__(self, None, wx.ID_ANY, self.title)
         self.panel = wx.Panel(self)
         self.InitUI()
-        self.create_menu()
+        #self.create_menu()
         self.get_DIR()        # choose directory dialog                    
         self.HtmlIsOpen=False
         self.first_time_messsage=False
+        self.Bind(wx.EVT_CLOSE, self.on_menu_exit)
     def InitUI(self):
 
         #pnl = self.panel
@@ -65,7 +66,7 @@ class MagMainFrame(wx.Frame):
         self.btn2.SetBackgroundColour("#FDC68A")
         self.btn2.InitColours()
         self.Bind(wx.EVT_BUTTON, self.on_orientation_button,self.btn2)
-        TEXT="3. fill Earth-Ref data"
+        TEXT="3. fill Earth-Ref data using EarthRef Magic-Builder "
         self.btn3 =buttons.GenButton(self.panel, id=-1, label=TEXT,size=(450, 50))
         self.btn3.SetBackgroundColour("#FDC68A")
         self.btn3.InitColours()
@@ -225,7 +226,7 @@ class MagMainFrame(wx.Frame):
         
     def on_convert_file(self,event):
         #print self.WD
-        pmag_dialogs_dia=pmag_dialogs.import_magnetometer_data(None, wx.ID_ANY, '',self.WD)
+        pmag_dialogs_dia=pmag_dialogs.import_magnetometer_data(self, wx.ID_ANY, '',self.WD)
         pmag_dialogs_dia.Show()
         pmag_dialogs_dia.Center()
                                     
@@ -339,14 +340,16 @@ class MagMainFrame(wx.Frame):
         
        
            
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  
+    def on_menu_exit(self, event):
+        exit()
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           
 #==============================================================
 # Menu Bar functions
 #==============================================================
 
     #----------------------------------------------------------------------
         
-    def create_menu(self):
+    '''def create_menu(self):
         """ Create menu
         """
         self.menubar = wx.MenuBar()
@@ -380,7 +383,7 @@ class MagMainFrame(wx.Frame):
         self.menubar.Append(menu_import, "&Import")
         self.menubar.Append(menu_analysis_and_plots, "&Analysis and Plots")
         self.menubar.Append(menu_utilities, "&Utilities")        
-        self.SetMenuBar(self.menubar)
+        self.SetMenuBar(self.menubar)'''
 
     #============================================
         
@@ -390,6 +393,6 @@ if __name__ == "__main__":
     #app = wx.App(redirect=True, filename="beta_log.log")
     app = wx.PySimpleApp()
     app.frame = MagMainFrame()
-    app.frame.Center()
     app.frame.Show()
+    app.frame.Center()
     app.MainLoop()
