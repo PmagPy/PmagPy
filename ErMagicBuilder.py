@@ -346,7 +346,7 @@ class MagIC_model_builder(wx.Frame):
             else:
               string=string+"\t"
           er_samples_file.write(string[:-1]+"\n")
-
+        er_samples_file.close()
         #---------------------------------------------
         # make er_specimens.txt
         #---------------------------------------------
@@ -415,7 +415,7 @@ class MagIC_model_builder(wx.Frame):
             else:
               string=string+"\t"
           er_specimens_file.write(string[:-1]+"\n")
-          
+        er_specimens_file.close()  
 
         #---------------------------------------------
         # make er_sites.txt
@@ -473,7 +473,7 @@ class MagIC_model_builder(wx.Frame):
                 
                
           er_sites_file.write(string[:-1]+"\n")
-
+        er_sites_file.close()
         #---------------------------------------------
         # make er_locations.txt
         #---------------------------------------------
@@ -521,7 +521,7 @@ class MagIC_model_builder(wx.Frame):
             else:
               string=string+"\t"
           er_locations_file.write(string[:-1]+"\n")
-
+        er_locations_file.close()
 
 
         #---------------------------------------------
@@ -559,8 +559,8 @@ class MagIC_model_builder(wx.Frame):
               string=string+"\t"
           er_ages_file.write(string[:-1]+"\n")
 
-
-
+        er_ages_file.close()
+        
         #-----------------------------------------------------
         # Fix magic_measurement with samples, sites and locations  
         #-----------------------------------------------------
@@ -599,6 +599,7 @@ class MagIC_model_builder(wx.Frame):
             #print new_line
             f_new.write(new_line[:-1]+"\n")
         f_new.close()
+        f_old.close()
         os.remove(self.WD+"/magic_measurements.txt")
         os.rename(self.WD+"/magic_measurements.new.tmp.txt",self.WD+"/magic_measurements.txt")
         

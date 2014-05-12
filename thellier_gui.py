@@ -4676,7 +4676,7 @@ class Arai_GUI(wx.Frame):
                 continue                                                                           
             for rec in meas_data:
                 if "magic_method_codes" in rec.keys():
-                    if "LP-PI" not in rec['magic_method_codes'] and "IE" not in rec['magic_method_codes'] :
+                    if "LP-PI" not in rec['magic_method_codes'] and "IE-" not in rec['magic_method_codes'] :
                         PmagRecsOld[FILE].append(rec)
             #PmagRecsOld[FILE]=self.converge_pmag_rec_headers(PmagRecsOld[FILE])
         pmag_specimens_header_1=["er_location_name","er_site_name","er_sample_name","er_specimen_name"]
@@ -4917,6 +4917,16 @@ class Arai_GUI(wx.Frame):
             except:
                 pass     
             pmag.magic_write(self.WD+"/"+"pmag_sites.txt",PmagRecsOld["pmag_sites.txt"],'pmag_sites')
+            try:
+                os.remove(self.WD+"/"+"pmag_sites.txt.backup")
+            except:
+                pass
+                  
+            #pmag.magic_write(self.WD+"/"+"pmag_samples.txt",PmagRecsOld["pmag_samples.txt"],'pmag_samples')
+            #try:
+            #    os.rename(self.WD+"/"+"pmag_sites.txt"+".backup",self.WD+"/"+"pmag_sites.txt")
+            #except:
+            #    pass
         else:
             meas_data,file_type=pmag.magic_read(self.WD+"/pmag_sites.txt")
             for rec in PmagRecsOld["pmag_sites.txt"]:
@@ -4924,11 +4934,22 @@ class Arai_GUI(wx.Frame):
             meas_data=self.converge_pmag_rec_headers(meas_data)
             pmag.magic_write(self.WD+"/"+"pmag_sites.txt",meas_data,'pmag_sites')
             try:
-                os.remove(self.WD+"/pmag_samples.txt.backup") 
+                os.remove(self.WD+"/pmag_sites.txt.backup") 
             except:
-                pass     
-    
+                pass 
             pmag.magic_write(self.WD+"/"+"pmag_samples.txt",PmagRecsOld["pmag_samples.txt"],'pmag_samples')
+            try:
+                os.remove(self.WD+"/"+"pmag_samples.txt.backup")
+            except:
+                pass
+                  
+
+            #Ery:    
+            #    os.rename(self.WD+"/"+"pmag_samples.txt"+".backup",self.WD+"/"+"pmag_samples.txt")
+            #except:
+            #    pass
+            #pmag.magic_write(self.WD+"/"+"pmag_samples.txt",PmagRecsOld["pmag_samples.txt"],'pmag_samples')
+            #pmag.magic_write(self.WD+"/"+"pmag_sites.txt",PmagRecsOld["pmag_sites.txt"],'pmag_sites')
                                                         
         #-------------
         # pmag_results.txt
