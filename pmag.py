@@ -5304,6 +5304,7 @@ def measurements_methods(meas_data,noave):
 # first collect all data for this specimen and do lab treatments
         SpecRecs=get_dictitem(meas_data,'er_specimen_name',spec,'T') # list  of measurement records for this specimen
         for rec in SpecRecs:
+            if 'measurement_flag' not in rec.keys():rec['measurement_flag']='g'
             tmpmeths=rec['magic_method_codes'].split(":")
             meths=[]
             if "LP-TRM" in tmpmeths:TRM=1 # catch these suckers here!
