@@ -1282,7 +1282,7 @@ class Zeq_GUI(wx.Frame):
           methods=lab_treatment.split('-')
           if "NO" in methods:
               Step="N "
-          elif "T" in  methods:
+          elif "T" in  methods or "LT" in methods:
               Step="T"
           elif "AF" in  methods:
               Step="AF"             
@@ -2559,7 +2559,7 @@ class Zeq_GUI(wx.Frame):
           
           # list of excluded lab protocols. copied from pmag.find_dmag_rec(s,data)  
           EX=["LP-AN-ARM","LP-AN-TRM","LP-ARM-AFD","LP-ARM2-AFD","LP-TRM-AFD","LP-TRM","LP-TRM-TD","LP-X"] 
-          INC=["LT-NO","LT-AF-Z","LT-T-Z", "LT-M-Z"]
+          INC=["LT-NO","LT-AF-Z","LT-T-Z", "LT-M-Z","LT-LT-Z"]
 
           methods=rec["magic_method_codes"].replace(" ","").strip("\n").split(":")
           LP_methods=[]
@@ -2571,7 +2571,7 @@ class Zeq_GUI(wx.Frame):
               rec['measurement_flag']='g'
           SKIP=True;lab_treatment=""
           for meth in methods:
-               if meth in ["LT-NO","LT-AF-Z","LT-T-Z", "LT-M-Z"]:
+               if meth in ["LT-NO","LT-AF-Z","LT-T-Z", "LT-M-Z","LT-LT-Z"]:
                    lab_treatment=meth
                    SKIP=False
                if "LP" in meth:
@@ -2596,7 +2596,7 @@ class Zeq_GUI(wx.Frame):
                  tr = float(rec["treatment_ac_field"])*1e3 #(mT)
                  measurement_step_unit="mT" # in magic its T in GUI its mT
                  LPcode="LP-DIR-AF"
-             elif  "LT-T-Z" in  methods:
+             elif  "LT-T-Z" in  methods or "LT-LT-Z" in methods:
                  tr = float(rec["treatment_temp"])-273. # celsius
                  measurement_step_unit="C" # in magic its K in GUI its C
                  LPcode="LP-DIR-T"
