@@ -2047,14 +2047,14 @@ class Zeq_GUI(wx.Frame):
            self.level_names.SetItems(self.sites)
            self.level_names.SetStringSelection(self.Data_hierarchy['site_of_specimen'][self.s])
        if self.UPPER_LEVEL=='location':
-           self.show_box.SetItems(['specimens','samples','sites','sites VGP'])
-           if self.show_box.GetValue() not in ['specimens','samples','sites','sites VGP']:
+           self.show_box.SetItems(['specimens','samples','sites'])#,'sites VGP'])
+           if self.show_box.GetValue() not in ['specimens','samples','sites']:#,'sites VGP']:
                self.show_box.SetStringSelection('sites')
            self.level_names.SetItems(self.locations)
            self.level_names.SetStringSelection(self.Data_hierarchy['location_of_specimen'][self.s])
        if self.UPPER_LEVEL=='study':
-           self.show_box.SetItems(['specimens','samples','sites','sites VGP'])
-           if self.show_box.GetValue() not in ['specimens','samples','sites','sites VGP']:
+           self.show_box.SetItems(['specimens','samples','sites'])#,'sites VGP'])
+           if self.show_box.GetValue() not in ['specimens','samples','sites']:#,'sites VGP']:
                self.show_box.SetStringSelection('sites')
            self.level_names.SetItems(['this study'])
            self.level_names.SetStringSelection('this study')
@@ -2177,16 +2177,24 @@ class Zeq_GUI(wx.Frame):
             mpars=pmag.dolnp(pars_for_mean,'direction_type')
         elif calculation_type=='Fisher by polarity':
             mpars=pmag.fisher_by_pol(pars_for_mean)
-            
+            print "mpars",mpars
         
         # change strigs to floats
         if  calculation_type!='Fisher by polarity':  
             for key in mpars.keys():
-                mpars[key]=float( mpars[key] )                
+                try:
+                    mpars[key]=float( mpars[key] )
+                except:
+                    pass
+                                
         else:
             for mode in ['A','B','All']:
+                print mode
                 for key in mpars[mode].keys():
-                    mpars[mode][key]=float(mpars[mode][key])
+                    try:
+                        mpars[mode][key]=float(mpars[mode][key])
+                    except:
+                        pass
         mpars['calculation_type']=calculation_type
 
         return(mpars)
