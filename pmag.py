@@ -5341,7 +5341,7 @@ def measurements_methods(meas_data,noave):
 #
 # find Thermal/infield/zerofield
 #
-                    elif float(rec["treatment_temp"])>323:  # treatment done at  high T
+                    elif float(rec["treatment_temp"])>=323:  # treatment done at  high T
                         if TRM==1:
                             if "LT-T-I" not in meths: meths.append("LT-T-I") # TRM - even if zero applied field! 
                         elif "treatment_dc_field" not in rec.keys() or rec["treatment_dc_field"]=="" or float(rec["treatment_dc_field"])==0.: # no TRM
