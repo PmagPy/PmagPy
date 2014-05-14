@@ -231,6 +231,12 @@ def main():
                 MeasRec['treatment_temp']='%7.1f'%(float(treat)+273)
                 MeasRec['treatment_dc_field']='0'
                 MeasRec['treatment_ac_field']='0'
+            elif treat_type.strip()=='LT':
+                MeasRec['magic_method_codes']='LT-LT-Z'
+                MeasRec['measurement_temp']='273'
+                MeasRec['treatment_temp']='77'
+                MeasRec['treatment_dc_field']='0'
+                MeasRec['treatment_ac_field']='0'
             else:
                 print "trouble with your treatment steps"
             MeasRec['measurement_dec']=line[46:51]
