@@ -3143,7 +3143,7 @@ def create_menus():
     prior.add_command(label="PmagPy redo file",command=add_redo)
     prior.add_command(label="MagIC format specimen  file",command=add_specimen)
 #    prior.add_command(label="DIR (Enkin) file",command=add_DIR_ascii)
-#    prior.add_command(label="LSQ (Jones/PaleoMag) file",command=add_LSQ)
+    prior.add_command(label="LSQ (Jones/PaleoMag) file",command=add_LSQ)
 #    prior.add_command(label="PMM (USCS) file",command=add_PMM)
     menubar.add_cascade(label="Import",menu=importmenu)
     importmenu.add_command(label="Import MagIC formatted file (er_ages, er_citation, er_location...)",command=add_file)

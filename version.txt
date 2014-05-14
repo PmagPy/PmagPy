@@ -1,1 +1,1 @@
-pmagpy-2.226
+pmagpy-2.227
