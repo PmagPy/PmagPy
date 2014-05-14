@@ -231,7 +231,7 @@ def main():
                 MeasRec['treatment_temp']='%7.1f'%(float(treat)+273)
                 MeasRec['treatment_dc_field']='0'
                 MeasRec['treatment_ac_field']='0'
-            elif treat_type.strip()=='LT':
+            elif treat_type.strip()=='LT' or treat_type.strip()=='LN2':
                 MeasRec['magic_method_codes']='LT-LT-Z'
                 MeasRec['measurement_temp']='273'
                 MeasRec['treatment_temp']='77'
