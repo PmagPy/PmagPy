@@ -125,3 +125,5 @@ magic_measurements.txt
 magic_measurements.txt
 
 #.gitignore#
+
+thellier_gui_preferences.py.backup
