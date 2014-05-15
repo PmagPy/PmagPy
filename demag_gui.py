@@ -545,15 +545,17 @@ class Zeq_GUI(wx.Frame):
     #----------------------------------------------------------------------
 
     def Zij_zoom(self):
-        self.on_enter_zij_fig_new(None)
         #cursur_entry_zij=self.canvas1.mpl_connect('axes_enter_event', self.on_enter_zij_fig_new) 
-        #cursur_leave_zij=self.canvas1.mpl_connect('axes_leave_event', self.on_leave_zij_fig)
+        cursur_entry_zij=self.canvas1.mpl_connect('axes_enter_event', self.on_enter_zij_fig) 
+        cursur_leave_zij=self.canvas1.mpl_connect('axes_leave_event', self.on_leave_zij_fig)
 
     def on_enter_zij_fig_new(self,event):
-        #self.statusbar1.SetStatusText("Zoom")
-        self.toolbar1.zoom()        
+        #self.toolbar1.zoom()        
+        self.curser_in_zij_figure=True
+        self.canvas2.SetCursor(wx.StockCursor(wx.CURSOR_CROSS))
         cid3=self.canvas1.mpl_connect('button_press_event', self.onclick_z_11)
         cid4=self.canvas1.mpl_connect('button_release_event', self.onclick_z_22)
+
 
     def onclick_z_11(self,event):
         #if self.curser_in_zij_figure:
@@ -576,6 +578,7 @@ class Zeq_GUI(wx.Frame):
         self.canvas1.SetCursor(wx.StockCursor(wx.CURSOR_ARROW))
         self.curser_in_zij_figure=False
                 
+                                                
     def on_enter_zij_fig(self,event):
         #AX=gca(label='zig_orig')
         #print AX
@@ -600,20 +603,24 @@ class Zeq_GUI(wx.Frame):
                 delta_y=abs(self.tmp3_y - self.tmp4_y )
             except:
                 return
-            
-            if self.tmp3_x < self.tmp4_x and self.tmp3_y > self.tmp4_y and delta_x >0.05 and delta_y >0.05:
+
+            if self.tmp3_x < self.tmp4_x and self.tmp3_y > self.tmp4_y:
                 self.zijplot.set_xlim(xmin=self.tmp3_x,xmax=self.tmp4_x)
                 self.zijplot.set_ylim(ymin=self.tmp4_y,ymax=self.tmp3_y)
-                #self.zijplot_interpretation.set_xlim(xmin=self.tmp3_x,xmax=self.tmp4_x)
-                #self.zijplot_interpretation.set_ylim(ymin=self.tmp4_y,ymax=self.tmp3_y)
-            elif delta_x < 0.05 and delta_y < 0.05:
-                return
             else:
                 self.zijplot.set_xlim(xmin=self.zij_xlim_initial[0],xmax=self.zij_xlim_initial[1])
                 self.zijplot.set_ylim(ymin=self.zij_ylim_initial[0],ymax=self.zij_ylim_initial[1])
-                #self.zijplot_interpretation.set_xlim(xmin=self.zij_xlim_initial[0],xmax=self.zij_xlim_initial[1])
-                #self.zijplot_interpretation.set_ylim(ymin=self.zij_ylim_initial[0],ymax=self.zij_ylim_initial[1])
-            self.canvas1.draw()
+            
+            self.canvas1.draw()                        
+            #if self.tmp3_x < self.tmp4_x and self.tmp3_y > self.tmp4_y and delta_x >0.05 and delta_y >0.05:
+            #    self.zijplot.set_xlim(xmin=self.tmp3_x,xmax=self.tmp4_x)
+            #    self.zijplot.set_ylim(ymin=self.tmp4_y,ymax=self.tmp3_y)
+            #elif delta_x < 0.05 and delta_y < 0.05:
+            #    return
+            #else:
+            #    self.zijplot.set_xlim(xmin=self.zij_xlim_initial[0],xmax=self.zij_xlim_initial[1])
+            #    self.zijplot.set_ylim(ymin=self.zij_ylim_initial[0],ymax=self.zij_ylim_initial[1])
+            #self.canvas1.draw()
         else:
             return
 
