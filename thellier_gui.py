@@ -5155,10 +5155,11 @@ class Arai_GUI(wx.Frame):
                 index=header.index("magic_method_codes")
             for line in fin.readlines():
                 tmp=line.strip('\n').split('\t')
-                codes=tmp[index].replace(" ","").split(":")
-                for code in codes:
-                    if code !="" and code not in magic_method_codes:
-                        magic_method_codes.append(code)
+                if len(tmp) >= index:
+                    codes=tmp[index].replace(" ","").split(":")
+                    for code in codes:
+                        if code !="" and code not in magic_method_codes:
+                            magic_method_codes.append(code)
             fin.close()
             
         magic_method_codes.sort()
@@ -5887,7 +5888,7 @@ class Arai_GUI(wx.Frame):
                 m.scatter(x1,y1,s=[50],marker=SYMBOLS[cnt%len(SYMBOLS)],color=COLORS[cnt%len(COLORS)],edgecolor='black')
             cnt+=1
                 
-        figure(1)#,(15,6))
+        fig1=figure(1)#,(15,6))
         #figtext(0.05,0.95,"N=%i"%len(X_data))
         
         legend_font_props = matplotlib.font_manager.FontProperties()
@@ -5943,8 +5944,13 @@ class Arai_GUI(wx.Frame):
                 for i in  range(len(plot_by_locations[location]['samples_names'])):
                     text(plot_by_locations[location]['X_data'][i],plot_by_locations[location]['Y_data'][i],"  "+ plot_by_locations[location]['samples_names'][i],fontsize=10,color="0.5")
 
-
-        show()
+        dia.Destroy()
+        #fr=thellier_gui_dialogs.ShowPlot(None,fig1)
+        #panel = CanvasPanel(fr)
+        #panel.draw()
+        fr.Show()
+        #PI_Fig.Show()
+        fig1.show()
     
 #===========================================================
 # Draw plots

@@ -74,8 +74,8 @@ class magic_pmag_tables_dialog(wx.Dialog):
         
         default_age_window = wx.GridSizer(2, 4, 6, 6)
         default_age_window.AddMany( [(wx.StaticText(pnl1,label="",style=wx.TE_CENTER), wx.EXPAND),            
-            (wx.StaticText(pnl1,label="min age",style=wx.TE_CENTER), wx.EXPAND),
-            (wx.StaticText(pnl1,label="max age",style=wx.TE_CENTER), wx.EXPAND),
+            (wx.StaticText(pnl1,label="younger bound",style=wx.TE_CENTER), wx.EXPAND),
+            (wx.StaticText(pnl1,label="older bound",style=wx.TE_CENTER), wx.EXPAND),
             (wx.StaticText(pnl1,label="units",style=wx.TE_CENTER), wx.EXPAND),
             (self.cb_default_age,wx.EXPAND),
             (self.default_age_min,wx.EXPAND),

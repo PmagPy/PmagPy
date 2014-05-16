@@ -477,7 +477,8 @@ class combine_magic_dialog(wx.Frame):
 
     def __init__(self,WD):
         wx.Frame.__init__(self, None, wx.ID_ANY, self.title)
-        self.panel = wx.Panel(self)
+        self.panel =  wx.ScrolledWindow(self) #wx.Panel(self)
+        self.panel.SetScrollbars(20, 20, 50, 50)
         self.max_files = 1
         self.WD=WD
         self.InitUI()
@@ -511,7 +512,7 @@ class combine_magic_dialog(wx.Frame):
         #------------------
 
         bSizer1 =  wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY, "" ), wx.VERTICAL )
-        self.file_pathes = wx.TextCtrl(self.panel, id=-1, size=(500,500), style=wx.TE_MULTILINE)
+        self.file_pathes = wx.TextCtrl(self.panel, id=-1, size=(500,200), style=wx.TE_MULTILINE)
         #self.add_file_button = wx.Button(self.panel, id=-1, label='add',name='add')
         #self.Bind(wx.EVT_BUTTON, self.on_add_file_button, self.add_file_button)    
         TEXT="files list:"
