@@ -5948,7 +5948,7 @@ class Arai_GUI(wx.Frame):
         #fr=thellier_gui_dialogs.ShowPlot(None,fig1)
         #panel = CanvasPanel(fr)
         #panel.draw()
-        fr.Show()
+        #fr.Show()
         #PI_Fig.Show()
         fig1.show()
     
