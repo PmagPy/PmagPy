@@ -220,9 +220,9 @@ def LMA(XY,ParIni):
                 Anew = 1/(rTemp + rTemp);                         
                 aabb = aTemp*aTemp + bTemp*bTemp;                          
                 Fnew = (aabb - rTemp*rTemp)*Anew;                             
-                Tnew = numpy.arccos(-aTemp/sqrt(aabb));                                       
+                Tnew = numpy.arccos(-aTemp/numpy.sqrt(aabb));                                       
                 if bTemp > 0:
-                    Tnew = 2*pi - Tnew;           
+                    Tnew = 2*numpy.pi - Tnew;           
                 VarNew = VarOld;                                         
                 break;                               
 

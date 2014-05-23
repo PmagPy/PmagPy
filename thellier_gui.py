@@ -195,16 +195,18 @@ class Arai_GUI(wx.Frame):
         self.currentDirectory = os.getcwd() # get the current working directory
         self.get_DIR()        # choose directory dialog        
         
-        
-        preferences=self.get_preferences()
-        self.dpi = 100
-        
-        self.preferences=preferences
- 
+         
         # inialize selecting criteria
         self.acceptance_criteria=pmag.initialize_acceptance_criteria()
         self.add_thelier_gui_criteria()
         self.read_criteria_file(self.WD+"/pmag_criteria.txt")  
+
+        # preferences
+
+        preferences=self.get_preferences()
+        self.dpi = 100
+        
+        self.preferences=preferences
              
         self.Data,self.Data_hierarchy,self.Data_info={},{},{}
         self.MagIC_directories_list=[]
@@ -1582,6 +1584,22 @@ class Arai_GUI(wx.Frame):
             preferences.update(thellier_gui_preferences.preferences)
         except:
             self.GUI_log.write( " -I- cant find thellier_gui_preferences file, using defualt default \n")
+        
+        # check ooy pmag_criteria.txt
+        # if any statistics do not appear in  preferences['show_statistics_on_gui'] than they should be added:
+        try:
+            criteria_file=os.path.join(self.WD,"pmag_criteria.txt")
+            my_acceptance_criteria=pmag.read_criteria_from_file(criteria_file,self.acceptance_criteria)
+            #    print "-III- Read criteria",my_acceptance_criteria
+            for crit in my_acceptance_criteria.keys():
+                if 'specimen' in crit:
+                    if my_acceptance_criteria[crit]['value']!=-999:
+                        short_crit=crit.split('specimen_')[-1]
+                        if short_crit not in preferences['show_statistics_on_gui']:
+                            preferences['show_statistics_on_gui'].append(short_crit)
+                            print "-IIII-",short_crit, " was added to list"
+        except:
+            pass     
         return(preferences)
         
 
@@ -3447,7 +3465,7 @@ class Arai_GUI(wx.Frame):
             else:
                 Fout_STDEV_OPT_sites=open(self.WD+"/thellier_interpreter/thellier_interpreter_STDEV-OPT_sites.txt",'w')
                 Fout_STDEV_OPT_sites.write(criteria_string)
-                Fout_STDEV_OPT_sites.write("er_site_name\tsite_int_n\tsite_int_uT\tsite_int_sigma_uT\tsite_int_sigma_perc\tsite_int_interval_uT\tsite_int_interval_perc\tWarning\n")
+                Fout_STDEV_OPT_sites.write("er_site_name\tsite_int_n\tsite_int_uT\tsite_int_sigma_uT\site_int_sigma_perc\tsite_int_min_uT\tsite_int_min_sigma_uT\tsite_int_max_uT\tsite_int_max_sigma_uT\tsite_int_interval_uT\tsite_int_interval_perc\tWarning\n")
                 
         # simple bootstrap output files
         # Dont supports site yet!
@@ -3937,7 +3955,7 @@ class Arai_GUI(wx.Frame):
                             sample=self.Data_hierarchy['specimens'][specimen]
                             if sample not in self.Data_samples.keys():
                               self.Data_samples[sample]={}
-                            if specimen not in self.Data_samples.keys():
+                            if specimen not in self.Data_samples[sample].keys():
                               self.Data_samples[sample][specimen]={}
                             self.Data_samples[sample][specimen]['B']=self.Data[specimen]['pars']['specimen_int_uT']
                             site=self.get_site_from_hierarchy(sample)
@@ -4198,8 +4216,8 @@ class Arai_GUI(wx.Frame):
             filename = dlg.GetFilename()
             path=dlg.GetPath()
         #print  filename
-        #print path
-        if "samples" in filename or "bounds" in filename:
+        print filename
+        if "samples" in filename or "bounds" in filename or "site" in filename:
             ignore_n=4
 
         elif "specimens" in filename or "all" in filename:

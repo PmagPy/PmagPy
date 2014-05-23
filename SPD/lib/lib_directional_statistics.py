@@ -112,8 +112,8 @@ def cart2dir(cart):
     else: #single vector
         Xs,Ys,Zs=cart[0],cart[1],cart[2]
     Rs=numpy.sqrt(Xs**2 + Ys**2 + Zs**2) # calculate resultant vector length                 
-    Decs=(numpy.arctan2(Ys,Xs)/rad)%360. # calculate declination taking care of correct quadrants (arctan2) and making modulo 360.
     try:
+        Decs=(numpy.arctan2(Ys,Xs)/rad)%360. # calculate declination taking care of correct quadrants (arctan2) and making modulo 360.
         Incs=numpy.arcsin(Zs/Rs)/rad # calculate inclination (converting to degrees) #                             
     except:
         print 'trouble in cart2dir' # most likely division by zero somewhere

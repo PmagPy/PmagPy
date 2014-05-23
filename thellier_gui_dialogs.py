@@ -34,8 +34,6 @@ from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigCanvas \
 class PI_Statistics_Dialog(wx.Dialog):
 
     def __init__(self, parent, show_statistics_on_gui,title):
-        print "Hi"
-        print "show_statistics_on_gui",show_statistics_on_gui
         style =  wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER  
         super(PI_Statistics_Dialog, self).__init__(parent, title=title,style=style)
         self.show_statistics_on_gui=copy.copy(show_statistics_on_gui)
