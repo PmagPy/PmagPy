@@ -340,7 +340,11 @@ class Arai_GUI(wx.Frame):
 
         self.fig4 = Figure((2.5*self.GUI_RESOLUTION, 2.5*self.GUI_RESOLUTION), dpi=self.dpi)
         self.canvas4 = FigCanvas(self.panel, -1, self.fig4)
-        self.fig4.text(0.02,0.96,"Sample data",{'family':'Arial', 'fontsize':10, 'style':'normal','va':'center', 'ha':'left' })
+        if self.acceptance_criteria['average_by_sample_or_site']['value']=='site':
+            TEXT="Site data"
+        else:
+            TEXT="Sample data"            
+        self.fig4.text(0.02,0.96,TEXT,{'family':'Arial', 'fontsize':10, 'style':'normal','va':'center', 'ha':'left' })
 
         self.fig5 = Figure((2.5*self.GUI_RESOLUTION, 2.5*self.GUI_RESOLUTION), dpi=self.dpi)
         self.canvas5 = FigCanvas(self.panel, -1, self.fig5)
@@ -3465,7 +3469,7 @@ class Arai_GUI(wx.Frame):
             else:
                 Fout_STDEV_OPT_sites=open(self.WD+"/thellier_interpreter/thellier_interpreter_STDEV-OPT_sites.txt",'w')
                 Fout_STDEV_OPT_sites.write(criteria_string)
-                Fout_STDEV_OPT_sites.write("er_site_name\tsite_int_n\tsite_int_uT\tsite_int_sigma_uT\site_int_sigma_perc\tsite_int_min_uT\tsite_int_min_sigma_uT\tsite_int_max_uT\tsite_int_max_sigma_uT\tsite_int_interval_uT\tsite_int_interval_perc\tWarning\n")
+                Fout_STDEV_OPT_sites.write("er_site_name\tsite_int_n\tsite_int_uT\tsite_int_sigma_uT\tsite_int_sigma_perc\tsite_int_min_uT\tsite_int_min_sigma_uT\tsite_int_max_uT\tsite_int_max_sigma_uT\tsite_int_interval_uT\tsite_int_interval_perc\tWarning\n")
                 
         # simple bootstrap output files
         # Dont supports site yet!
