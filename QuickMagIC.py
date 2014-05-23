@@ -329,6 +329,11 @@ class MagMainFrame(wx.Frame):
         outstring="download_magic.py -f %s"%FILE
         print "-I- running python script:\n %s"%(outstring)
         os.system(outstring)
+        TXT="Running download_magic.py program. Check terminal (Mac) or command prompt (windows) for error/warnings\n If no errors occur then MagIC files were save in MagIC Prpject Directory"
+        dlg = wx.MessageDialog(self, caption="Saved",message=TXT,style=wx.OK)
+        result = dlg.ShowModal()
+        if result == wx.ID_OK:            
+            dlg.Destroy()
         
     def on_btn_upload(self,event):
         outstring="upload_magic.py"

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env pythonw
 # -*- coding: utf-8 -*-
 import wx,string,sys,math,os
 import scipy
@@ -814,6 +814,9 @@ class convert_tdt_files_to_MagIC(wx.Frame):
                                 MagRec["treatment_temp"]='%8.3e' % (float(treatments[0])+273.) # temp in kelvin
                                 if "LP-PI-BT-MD" not in methcodes:
                                     methcodes.append("LP-PI-BT-MD")
+                                    MagRec["treatment_dc_field"]="0"
+                                    MagRec["treatment_dc_field_phi"]="0"
+                                    MagRec["treatment_dc_field_theta"]="0"
 
                         # Additivity check step                                            
                         elif float(treatments[1])==4 or float(treatments[1])==40:

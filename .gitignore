@@ -127,3 +127,6 @@ magic_measurements.txt
 #.gitignore#
 
 thellier_gui_preferences.py.backup
+
+
+TDT_brown_magic.py

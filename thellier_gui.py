@@ -514,7 +514,7 @@ class Arai_GUI(wx.Frame):
         sample_stat_window = wx.GridSizer(2, 4, 0, 20*self.GUI_RESOLUTION)
 
 
-        box_sizer_sample = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY,"sample results" ), wx.HORIZONTAL )
+        box_sizer_sample = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY,"sample/site results" ), wx.HORIZONTAL )
         sample_stat_window.AddMany( [(sample_mean_label, wx.EXPAND),
             (sample_N_label, wx.EXPAND),
             (sample_std_label, wx.EXPAND),
@@ -854,8 +854,8 @@ class Arai_GUI(wx.Frame):
         m_preferences_spd = menu_preferences.Append(-1, "&Specimen paleointensity statistics (from SPD list)", "")
         self.Bind(wx.EVT_MENU, self.on_menu_m_preferences_spd, m_preferences_spd)
 
-        m_preferences_stat = menu_preferences.Append(-1, "&Statistical preferences", "")
-        self.Bind(wx.EVT_MENU, self.on_menu_preferences_stat, m_preferences_stat)
+        #m_preferences_stat = menu_preferences.Append(-1, "&Statistical preferences", "")
+        #self.Bind(wx.EVT_MENU, self.on_menu_preferences_stat, m_preferences_stat)
 
 
         #m_save_preferences = menu_preferences.Append(-1, "&Save preferences", "")
@@ -2657,7 +2657,7 @@ class Arai_GUI(wx.Frame):
                 # aTRM 6 positions
                 #-----------------------------------
                     
-                aniso_logfile.write("-I- Start calculating ATRM tensor for specimen %s "%specimen)
+                aniso_logfile.write("-I- Start calculating ATRM tensor for specimen %s\n"%specimen)
                 atrmblock=self.Data[specimen]['atrmblock']
                 trmblock=self.Data[specimen]['trmblock']
                 zijdblock=self.Data[specimen]['zijdblock']
@@ -7872,11 +7872,11 @@ class Arai_GUI(wx.Frame):
 
           # collect more data from araiblock
 
-
+          '''
           for rec in datablock:
               if float(rec['treatment_temp'])==NLT_temperature and float(rec['treatment_dc_field']) !=0:
                   B_NLT.append(float(rec['treatment_dc_field']))
-                  M_NLT.append(float(rec['measurement_magn_moment']))
+                  M_NLT.append(float(rec['measurement_magn_moment']))'''
                   
     
           # If cnat find baseline in trm block
