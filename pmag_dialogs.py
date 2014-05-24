@@ -635,7 +635,10 @@ class convert_SIO_files_to_MagIC(wx.Frame):
         self.bSizer3 = pw.lab_field(pnl)
 
         #---sizer 4 ----
-        self.bSizer4 = pw.select_specimen_ncn(pnl)
+        self.bSizer4 = pw.specimen_n(pnl)
+
+        #---sizer 4a ----
+        self.bSizer4a = pw.select_specimen_ncn(pnl)
 
         #---sizer 5 ----
         TEXT="Location name:"
@@ -682,6 +685,9 @@ class convert_SIO_files_to_MagIC(wx.Frame):
         hbox0 = wx.BoxSizer(wx.HORIZONTAL)
         hbox0.Add(self.bSizer5, flag=wx.ALIGN_LEFT)
         hbox0.Add(self.bSizer6, flag=wx.ALIGN_LEFT|wx.LEFT, border=5)
+        hbox0a = wx.BoxSizer(wx.HORIZONTAL)
+        hbox0a.Add(self.bSizer4, flag=wx.ALIGN_LEFT)
+        hbox0a.Add(self.bSizer4a, flag=wx.ALIGN_LEFT|wx.LEFT, border=5)
         hbox1 =wx.BoxSizer(wx.HORIZONTAL)
         hbox1.Add(self.bSizer8, flag=wx.ALIGN_LEFT)
         hbox1.Add(self.bSizer9, flag=wx.ALIGN_LEFT|wx.LEFT, border=5)
@@ -691,7 +697,8 @@ class convert_SIO_files_to_MagIC(wx.Frame):
         vbox.Add(self.bSizer1, flag=wx.ALIGN_LEFT|wx.TOP, border=8)
         vbox.Add(self.bSizer2, flag=wx.ALIGN_LEFT|wx.TOP, border=8)
         vbox.Add(self.bSizer3, flag=wx.ALIGN_LEFT|wx.TOP, border=8)
-        vbox.Add(self.bSizer4, flag=wx.ALIGN_LEFT|wx.TOP, border=8)
+        vbox.Add(hbox0a, flag=wx.ALIGN_LEFT|wx.TOP, border=8)
+        #vbox.Add(self.bSizer4, flag=wx.ALIGN_LEFT|wx.TOP, border=8)
         vbox.Add(hbox0, flag=wx.ALIGN_LEFT|wx.TOP, border=8)
         vbox.Add(self.bSizer7, flag=wx.ALIGN_LEFT|wx.TOP, border=8)
         vbox.Add(hbox1, flag=wx.ALIGN_LEFT|wx.TOP, border=8)
@@ -730,7 +737,8 @@ class convert_SIO_files_to_MagIC(wx.Frame):
         lab_field = self.bSizer3.return_value()
         if lab_field:
             lab_field = "-dc " + lab_field
-        ncn = self.bSizer4.return_value()
+        spc = self.bSizer4.return_value()
+        ncn = self.bSizer4a.return_value()
         loc_name = self.bSizer5.return_value()
         if loc_name:
             loc_name = "-loc " + loc_name
@@ -756,7 +764,7 @@ class convert_SIO_files_to_MagIC(wx.Frame):
             synthetic = '-syn ' + synthetic
         else:
             synthetic = ''
-        COMMAND = "sio_magic.py -F {0} -f {1} {2} -LP {3} {4} -ncn {5} {6} {7} {8} {9} {10} {11}".format(outfile, SIO_file, user, experiment_type, loc_name, ncn, lab_field, peak_AF, coil_number, instrument, replicate, synthetic)
+        COMMAND = "sio_magic.py -F {0} -f {1} {2} -LP {3} {4} -spc {5} -ncn {6} {7} {8} {9} {10} {11} {12}".format(outfile, SIO_file, user, experiment_type, loc_name,spc, ncn, lab_field, peak_AF, coil_number, instrument, replicate, synthetic)
         pw.run_command_and_close_window(self, COMMAND, outfile)
 
     def on_cancelButton(self,event):

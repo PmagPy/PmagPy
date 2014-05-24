@@ -69,6 +69,22 @@ class labeled_text_field(wx.StaticBoxSizer):
         return self.text_field.GetValue()
 
 
+class specimen_n(wx.StaticBoxSizer):
+    """-spc option (number of characters defining specimen from sample"""
+    def __init__(self, parent, label="number of characters to designate a specimen"):
+        self.parent = parent
+        box = wx.StaticBox( self.parent, wx.ID_ANY, "" )
+        super(specimen_n, self).__init__(box, orient=wx.HORIZONTAL)
+        TEXT= label
+        self.Add(wx.StaticText(self.parent, label=TEXT),wx.ALIGN_LEFT)
+        self.AddSpacer(4)
+        self.spc = wx.SpinCtrl(self.parent, id=-1, size=(100,25),min=0, max=9)
+        self.spc.SetValue(0)
+        self.Add(self.spc,wx.ALIGN_LEFT)
+        
+    def return_value(self):
+        return self.spc.GetValue()
+
 
 class select_specimen_ncn(wx.StaticBoxSizer):  
     """provides box sizer with a drop down menu for the standard specimen naming conventions"""
@@ -226,7 +242,7 @@ class experiment_type(wx.StaticBoxSizer):
         super(experiment_type, self).__init__(box, orient=wx.VERTICAL)
         gridSizer2 = wx.GridSizer(5, 3, 0, 0)
         self.boxes = []
-        experiment_names=['Demag', 'Thermal (includes thellier but not trm)', 'Shaw method', 'IRM (acquisition)', '3D IRM experiment', 'NRM only', 'TRM acquisition', 'double AF demag', 'triple AF demag (GRM protocol)', 'Cooling rate experiment']
+        experiment_names=['AF Demag', 'Thermal (includes thellier but not trm)', 'Shaw method', 'IRM (acquisition)', '3D IRM experiment', 'NRM only', 'TRM acquisition', 'double AF demag', 'triple AF demag (GRM protocol)', 'Cooling rate experiment']
         TEXT = "Experiment type (select all that apply):"
         for n, experiment in enumerate(experiment_names):
             cb = wx.CheckBox(parent, -1, experiment)
