@@ -54,7 +54,6 @@ def main():
                 ans   = raw_input("Input Site Longitude:  ")
                 slong = float(ans)     
                 output = pmag.dia_vgp(Dec,Inc,a95,slat,slong)
-                print output
                 print '%7.1f %7.1f'%(output[0],output[1]) 
             except:
                 print "\n Good-bye\n"
