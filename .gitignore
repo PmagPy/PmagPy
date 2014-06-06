@@ -10,6 +10,7 @@ Command_line_Tests/
 */*.*#
 */*/.#*
 
+IPmag.py
 rmag_anisotropy.log
 rmag_anisotropy.txt
 rmag_results.txt

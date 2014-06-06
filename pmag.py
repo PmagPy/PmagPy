@@ -4926,7 +4926,8 @@ def doigrf(long,lat,alt,date,**kwargs):
 #       routine to calculate the IGRF field. dgrf coefficients for 1945 to 2005, igrf for pre 1945 and post 2010 
 #       from http://www.ngdc.noaa.gov/IAGA/vmod/igrf.html 
 #
-#      for dates prior to 1900, this program uses coefficients from the GUFM1 model of Jackson et al. 2000
+#      for dates prior to between 1900 and 1600, this program uses coefficients from the GUFM1 model of Jackson et al. 2000
+#      prior to that, it uses either arch3k or one of the cals models
 #    
 #
 #       input:
@@ -4988,7 +4989,16 @@ def doigrf(long,lat,alt,date,**kwargs):
         gh=field1
         sv=(field2-field1)/10.
         x,y,z,f=magsyn(gh,sv,date0,date,itype,alt,colat,long)
-    elif date<1800:
+    elif date<1900 and date>1600:
+        import gufm
+        date0=date-date%5
+        field1=gufm.coeffs(date0)
+        field2=gufm.coeffs(date0+5)
+        for i in range(120):
+            gh.append(field1[i])
+            sv.append(field2[i]-field1[i]/5.)
+        x,y,z,f=magsyn(gh,sv,date0,date,itype,alt,colat,long)
+    elif date<1600:
         if 'mod3k' in kwargs.keys() and kwargs['mod3k']=='arch3k':
             import arch3k as cals3k # use ARCH3k coefficients
         else:
