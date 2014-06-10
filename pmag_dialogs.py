@@ -96,19 +96,19 @@ class import_magnetometer_data(wx.Dialog):
         if file_type == 'generic':
             dia = convert_generic_files_to_MagIC(self,self.WD)
         elif file_type == 'SIO':
-            dia = convert_SIO_files_to_MagIC(self.WD)
+            dia = convert_SIO_files_to_MagIC(self, self.WD)
         elif file_type == 'CIT':
-            dia = convert_CIT_files_to_MagIC(self.WD)
+            dia = convert_CIT_files_to_MagIC(self, self.WD)
         elif file_type == '2G-binary':
-            dia = convert_2G_binary_files_to_MagIC(self.WD)
+            dia = convert_2G_binary_files_to_MagIC(self, self.WD)
         elif file_type == 'HUJI':
-            dia = convert_HUJI_files_to_MagIC(self.WD)
+            dia = convert_HUJI_files_to_MagIC(self, self.WD)
         elif file_type == 'LDEO':
-            dia = convert_LDEO_files_to_MagIC(self.WD)
+            dia = convert_LDEO_files_to_MagIC(self, self.WD)
         elif file_type == 'IODP':
-            dia = convert_IODP_csv_files_to_MagIC(self.WD)
+            dia = convert_IODP_csv_files_to_MagIC(self, self.WD)
         elif file_type == 'PMD':
-            dia = convert_PMD_files_to_MagIC(self.WD)
+            dia = convert_PMD_files_to_MagIC(self, self.WD)
         #print 'dia', dia, file_type
         dia.Center()
         dia.Show()
@@ -604,9 +604,9 @@ class convert_SIO_files_to_MagIC(wx.Frame):
     """stuff"""
     title = "PmagPy SIO file conversion"
 
-    def __init__(self,WD):
+    def __init__(self, parent, WD):
         #print 'init SIO conversion'
-        wx.Frame.__init__(self, None, wx.ID_ANY, self.title)
+        wx.Frame.__init__(self, parent, wx.ID_ANY, self.title)
         self.panel = wx.ScrolledWindow(self)
         self.panel.SetScrollbars(20, 20, 50, 50)
         self.max_files = 1 # but maybe it could take more??
@@ -769,6 +769,7 @@ class convert_SIO_files_to_MagIC(wx.Frame):
 
     def on_cancelButton(self,event):
         self.Destroy()
+        self.Parent.Raise()
 
     def on_helpButton(self, event):
         pw.on_helpButton("sio_magic.py -h")
@@ -779,8 +780,9 @@ class convert_CIT_files_to_MagIC(wx.Frame):
     """stuff"""
     title = "PmagPy CIT file conversion"
 
-    def __init__(self,WD):
-        wx.Frame.__init__(self, None, wx.ID_ANY, self.title)
+    def __init__(self, parent, WD):
+        # put in a parent, maybe?
+        wx.Frame.__init__(self, parent, wx.ID_ANY, self.title)
         self.panel = wx.ScrolledWindow(self)
         self.max_files = 1 # but maybe it could take more??
         self.WD = WD
@@ -789,7 +791,8 @@ class convert_CIT_files_to_MagIC(wx.Frame):
 
     def InitUI(self):
         #print 'initializing UI for CIT file conversion'
-
+        print dir(self)
+        print self.Parent
         pnl = self.panel
 
         TEXT = "CIT Format file"
@@ -910,6 +913,7 @@ class convert_CIT_files_to_MagIC(wx.Frame):
 
     def on_cancelButton(self,event):
         self.Destroy()
+        self.Parent.Raise()
 
     def on_helpButton(self, event):
         pw.on_helpButton("CIT_magic.py -h")
@@ -921,8 +925,8 @@ class convert_HUJI_files_to_MagIC(wx.Frame):
     """ """
     title = "PmagPy HUJI file conversion"
 
-    def __init__(self,WD):
-        wx.Frame.__init__(self, None, wx.ID_ANY, self.title)
+    def __init__(self, parent, WD):
+        wx.Frame.__init__(self, parent, wx.ID_ANY, self.title)
         self.panel = wx.ScrolledWindow(self)
         self.WD = WD
         self.InitUI()
@@ -1052,6 +1056,7 @@ class convert_HUJI_files_to_MagIC(wx.Frame):
 
     def on_cancelButton(self,event):
         self.Destroy()
+        self.Parent.Raise()
 
     def on_helpButton(self, event):
         pw.on_helpButton("HUJI_magic.py -h")
@@ -1062,8 +1067,8 @@ class convert_2G_binary_files_to_MagIC(wx.Frame):
     """PmagPy 2G-binary conversion """
     title = "PmagPy 2G-binary file conversion"
 
-    def __init__(self,WD):
-        wx.Frame.__init__(self, None, wx.ID_ANY, self.title)
+    def __init__(self, parent, WD):
+        wx.Frame.__init__(self, parent, wx.ID_ANY, self.title)
         self.panel = wx.ScrolledWindow(self)
         self.WD = WD
         self.InitUI()
@@ -1185,6 +1190,7 @@ class convert_2G_binary_files_to_MagIC(wx.Frame):
 
     def on_cancelButton(self,event):
         self.Destroy()
+        self.Parent.Raise()
 
     def on_helpButton(self, event):
         pw.on_helpButton("2G_bin_magic.py -h")
@@ -1196,8 +1202,8 @@ class convert_LDEO_files_to_MagIC(wx.Frame):
     """ """
     title = "PmagPy LDEO file conversion"
 
-    def __init__(self,WD):
-        wx.Frame.__init__(self, None, wx.ID_ANY, self.title)
+    def __init__(self, parent, WD):
+        wx.Frame.__init__(self, parent, wx.ID_ANY, self.title)
         self.panel = wx.ScrolledWindow(self)
         self.WD = WD
         self.InitUI()
@@ -1354,6 +1360,7 @@ class convert_LDEO_files_to_MagIC(wx.Frame):
 
     def on_cancelButton(self,event):
         self.Destroy()
+        self.Parent.Raise()
 
     def on_helpButton(self, event):
         pw.on_helpButton("LDEO_magic.py -h")
@@ -1366,8 +1373,8 @@ class convert_IODP_csv_files_to_MagIC(wx.Frame):
     """ """
     title = "PmagPy IODP csv conversion"
 
-    def __init__(self,WD):
-        wx.Frame.__init__(self, None, wx.ID_ANY, self.title)
+    def __init__(self, parent, WD):
+        wx.Frame.__init__(self, parent, wx.ID_ANY, self.title)
         self.panel = wx.ScrolledWindow(self)
         self.WD = WD
         self.InitUI()
@@ -1467,6 +1474,7 @@ class convert_IODP_csv_files_to_MagIC(wx.Frame):
 
     def on_cancelButton(self,event):
         self.Destroy()
+        self.Parent.Raise()
 
     def on_helpButton(self, event):
         pw.on_helpButton("-h")
@@ -1479,8 +1487,8 @@ class convert_PMD_files_to_MagIC(wx.Frame):
     """ """
     title = "PmagPy PMD (ascii) file conversion"
 
-    def __init__(self,WD):
-        wx.Frame.__init__(self, None, wx.ID_ANY, self.title)
+    def __init__(self, parent, WD):
+        wx.Frame.__init__(self, parent, wx.ID_ANY, self.title)
         self.panel = wx.ScrolledWindow(self)
         self.WD = WD
         self.InitUI()
@@ -1596,6 +1604,7 @@ class convert_PMD_files_to_MagIC(wx.Frame):
 
     def on_cancelButton(self,event):
         self.Destroy()
+        self.Parent.Raise()
 
     def on_helpButton(self, event):
         pw.on_helpButton("PMD_magic.py -h")
@@ -1619,8 +1628,8 @@ class something(wx.Frame):
     """ """
     title = "PmagPy ___ file conversion"
 
-    def __init__(self,WD):
-        wx.Frame.__init__(self, None, wx.ID_ANY, self.title)
+    def __init__(self, parent, WD):
+        wx.Frame.__init__(self, parent, wx.ID_ANY, self.title)
         self.panel = wx.ScrolledWindow(self)
         self.WD = WD
         self.InitUI()
@@ -1706,6 +1715,7 @@ class something(wx.Frame):
 
     def on_cancelButton(self,event):
         self.Destroy()
+        self.Parent.Raise()
 
     def on_helpButton(self, event):
         pw.on_helpButton("-h")

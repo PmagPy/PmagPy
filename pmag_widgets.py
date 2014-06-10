@@ -308,5 +308,6 @@ def run_command_and_close_window(SELF, command, outfile):
     dlg.ShowModal()
     dlg.Destroy()
     SELF.Destroy()
+    SELF.Parent.Raise()
 
 
