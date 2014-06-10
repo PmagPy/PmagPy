@@ -172,13 +172,14 @@ class MagMainFrame(wx.Frame):
     def get_DIR(self):
         """ Choose a working directory dialog
         """
-        #self.WD=""
+        print "get_DIR()"
+
         if "-WD" in sys.argv and self.FIRST_RUN:
             ind=sys.argv.index('-WD')
             self.WD=sys.argv[ind+1]            
         
         else:
-                        
+            ignore = """
             TEXT1="Set or create MagIC Project Directory.\nPath should have NO SPACES.\n This Directory is to be used by this program ONLY"               
             dlg1 = wx.MessageDialog(None, caption="First step",message=TEXT1,style=wx.OK|wx.ICON_EXCLAMATION)
             result1 = dlg1.ShowModal()            
@@ -186,17 +187,21 @@ class MagMainFrame(wx.Frame):
                 dlg1.Destroy()
             #self.WD="/Users/ronshaar/Academy/Litratures/misc_documents/MagIC_workshop_2014/Wednesday_workhops/step_by_step_tutorial/MagIC/"
             
-            TEXT="choose directory. No spaces are allowed in path!"
-            dia = wx.DirDialog(self, message=TEXT,defaultPath = os.getcwd() ,style=wx.DD_DEFAULT_STYLE )
-            result=dia.ShowModal()                                     
-            if result == wx.ID_OK:
-              self.WD=str(dia.GetPath())
-            dia.Destroy()
-        
+            #TEXT="choose directory. No spaces are allowed in path!"
+            #dia = wx.DirDialog(self, message=TEXT,defaultPath = os.getcwd() ,style=wx.DD_DEFAULT_STYLE )
+            #result=dia.ShowModal()
+            #if result == wx.ID_OK:
+            #  self.WD=str(dia.GetPath())
+            #print 'dia', dia
+            #dia.Destroy()
+            """
+            self.WD = os.getcwd() + '/'
+            
         os.chdir(self.WD)
         self.WD=str(os.getcwd())+"/"
         self.dir_path.SetValue(self.WD)
         self.FIRST_RUN=False
+
 
     #----------------------------------------------------------------------
     
@@ -226,9 +231,33 @@ class MagMainFrame(wx.Frame):
         
     def on_convert_file(self,event):
         #print self.WD
+        #print 'running on convert file'
+        #print 'event', event
         pmag_dialogs_dia=pmag_dialogs.import_magnetometer_data(self, wx.ID_ANY, '',self.WD)
+        #print "pmag dialogs dia created"
         pmag_dialogs_dia.Show()
+        #print "pmag dialogs dia shown"
         pmag_dialogs_dia.Center()
+        #print "pmag dialogs dia centered"
+        #print "dir(pmag_dialogs_dia)"
+        #print dir(pmag_dialogs_dia)
+        #print "dir(self)", dir(self)
+        #print self.GetChildren()
+        #print pmag_dialogs_dia.IsExposed()
+        #print "enabled", pmag_dialogs_dia.IsEnabled()
+        #print "self.IsThisEnabled", self.IsThisEnabled()
+        #print "active", pmag_dialogs_dia.IsActive()
+        #print "frozen", pmag_dialogs_dia.IsFrozen()
+        #print "shown", pmag_dialogs_dia.IsShown()
+        #print "shown on screen", pmag_dialogs_dia.IsShownOnScreen()
+        #print "top level", pmag_dialogs_dia.IsTopLevel()
+        
+        #print pmag_dialogs_dia.Position()
+        #print 'should be showing'
+        #print "self.Frozen", self.IsFrozen()
+        #print "self.panel.IsFrozen()", self.panel.IsFrozen()
+
+
                                     
     def on_er_data(self,event):
 
