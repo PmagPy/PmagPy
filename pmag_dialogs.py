@@ -109,6 +109,10 @@ class import_magnetometer_data(wx.Dialog):
             dia = convert_IODP_csv_files_to_MagIC(self, self.WD)
         elif file_type == 'PMD':
             dia = convert_PMD_files_to_MagIC(self, self.WD)
+        elif file_type == 'TDT':
+            COMMAND = "TDT_magic.py -WD {}".format(self.WD)
+            os.system(COMMAND)
+            return True
         #print 'dia', dia, file_type
         dia.Center()
         dia.Show()
@@ -791,8 +795,6 @@ class convert_CIT_files_to_MagIC(wx.Frame):
 
     def InitUI(self):
         #print 'initializing UI for CIT file conversion'
-        print dir(self)
-        print self.Parent
         pnl = self.panel
 
         TEXT = "CIT Format file"
