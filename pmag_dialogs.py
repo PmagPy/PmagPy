@@ -163,47 +163,28 @@ class convert_generic_files_to_MagIC(wx.Frame):
             
 
         #---sizer 0 ----
-        bSizer0 = pw.choose_file(pnl, 'add', method = self.on_add_file_button)
+        self.bSizer0 = pw.choose_file(pnl, 'add', method = self.on_add_file_button)
         
         #---sizer 1 ----
-        TEXT="User name (optional):"
-        bSizer1 = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY, "" ), wx.HORIZONTAL )
-        bSizer1.Add(wx.StaticText(pnl,label=TEXT),wx.ALIGN_LEFT)
-        bSizer1.AddSpacer(5)
-        self.file_info_user = wx.TextCtrl(self.panel, id=-1, size=(100,25))
-        bSizer1.Add(self.file_info_user,wx.ALIGN_LEFT)
+        self.bSizer1 = pw.labeled_text_field(pnl)
 
         #---sizer 2 ----
+        # unique because only accepts 1 experiment type
         TEXT="Experiment:"
-        bSizer2 = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY, "" ), wx.HORIZONTAL )
+        self.bSizer2 = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY, "" ), wx.HORIZONTAL )
         self.experiments_names=['Demag (AF and/or Thermal)','Paleointensity-IZZI/ZI/ZI','ATRM 6 positions','AARM 6 positions','cooling rate','TRM']
         self.protocol_info = wx.ComboBox(self.panel, -1, self.experiments_names[0], size=(300,25),choices=self.experiments_names, style=wx.CB_DROPDOWN)
-        bSizer2.Add(wx.StaticText(pnl,label=TEXT),wx.ALIGN_LEFT)
-        bSizer2.AddSpacer(5)
-        bSizer2.Add(self.protocol_info,wx.ALIGN_LEFT)
+        self.bSizer2.Add(wx.StaticText(pnl,label=TEXT),wx.ALIGN_LEFT)
+        self.bSizer2.AddSpacer(5)
+        self.bSizer2.Add(self.protocol_info,wx.ALIGN_LEFT)
 
         #---sizer 3 ----
-        TEXT="Lab field (leave blank if unnecessary). Example: 40 0 -90"
-        bSizer3 = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY, "" ), wx.VERTICAL )
-        self.file_info_text=wx.StaticText(self.panel,label=TEXT,style=wx.TE_CENTER)
-        self.file_info_Blab = wx.TextCtrl(self.panel, id=-1, size=(40,25))
-        self.file_info_Blab_dec = wx.TextCtrl(self.panel, id=-1, size=(40,25))
-        self.file_info_Blab_inc = wx.TextCtrl(self.panel, id=-1, size=(40,25))
-        gridbSizer3 = wx.GridSizer(2, 3, 0, 10)
-        gridbSizer3.AddMany( [(wx.StaticText(self.panel,label="B (uT)",style=wx.TE_CENTER),wx.ALIGN_LEFT),
-            (wx.StaticText(self.panel,label="dec",style=wx.TE_CENTER),wx.ALIGN_LEFT),
-            (wx.StaticText(self.panel,label="inc",style=wx.TE_CENTER),wx.ALIGN_LEFT),
-            (self.file_info_Blab,wx.ALIGN_LEFT),
-            (self.file_info_Blab_dec,wx.ALIGN_LEFT),
-            (self.file_info_Blab_inc,wx.ALIGN_LEFT)])
-        bSizer3.Add(self.file_info_text,wx.ALIGN_LEFT)
-        bSizer3.AddSpacer(10)
-        bSizer3.Add(gridbSizer3,wx.ALIGN_LEFT)
+        self.bSizer3 = pw.lab_field(pnl)
 
         #---sizer 4 ----
-
+        # unique because only allows 4 choices (most others have ncn choices)
         #TEXT="Sample-specimen naming convention:"
-        bSizer4 = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY, "" ), wx.VERTICAL )
+        self.bSizer4 = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY, "" ), wx.VERTICAL )
         #self.sample_specimen_text=wx.StaticText(self.panel,label=TEXT)
         self.sample_naming_conventions=['sample=specimen','no. of initial characters','no. of terminal characters','character delimited']
         self.sample_naming_convention = wx.ComboBox(self.panel, -1, self.sample_naming_conventions[0], size=(250,25), choices=self.sample_naming_conventions, style=wx.CB_DROPDOWN)
@@ -214,12 +195,12 @@ class convert_generic_files_to_MagIC(wx.Frame):
             (self.sample_naming_convention,wx.ALIGN_LEFT),
             (self.sample_naming_convention_char,wx.ALIGN_LEFT)])
         #bSizer4.Add(self.sample_specimen_text,wx.ALIGN_LEFT)
-        bSizer4.AddSpacer(10)
-        bSizer4.Add(gridbSizer4,wx.ALIGN_LEFT)
+        self.bSizer4.AddSpacer(10)
+        self.bSizer4.Add(gridbSizer4,wx.ALIGN_LEFT)
         
         #---sizer 5 ----
 
-        bSizer5 = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY, "" ), wx.VERTICAL )
+        self.bSizer5 = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY, "" ), wx.VERTICAL )
         #bSizer5.Add(wx.StaticText(pnl,label=TEXT),wx.ALIGN_TOP)
         self.site_naming_conventions=['site=sample','no. of initial characters','no. of terminal characters','character delimited']
         self.site_naming_convention_char = wx.TextCtrl(self.panel, id=-1, size=(40,25))
@@ -230,28 +211,16 @@ class convert_generic_files_to_MagIC(wx.Frame):
             (self.site_naming_convention,wx.ALIGN_LEFT),
             (self.site_naming_convention_char,wx.ALIGN_LEFT)])
         #bSizer4.Add(self.sample_specimen_text,wx.ALIGN_LEFT)
-        bSizer5.AddSpacer(10)
-        bSizer5.Add(gridbSizer5,wx.ALIGN_LEFT)
+        self.bSizer5.AddSpacer(10)
+        self.bSizer5.Add(gridbSizer5,wx.ALIGN_LEFT)
 
         #---sizer 6 ----
-        TEXT="Location name:"
-        bSizer6 = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY, "" ), wx.HORIZONTAL )
-        bSizer6.Add(wx.StaticText(pnl,label=TEXT),wx.ALIGN_LEFT)
-        bSizer6.AddSpacer(5)
-        self.location= wx.TextCtrl(self.panel, id=-1, size=(100,25))
-        bSizer6.Add(self.location,wx.ALIGN_LEFT)
 
+        TEXT="Location name:"
+        self.bSizer6 = pw.labeled_text_field(pnl, TEXT)
 
         #---sizer 7 ----
-        bSizer7 = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY, "" ), wx.VERTICAL )
-        TEXT="replicate measurements:"
-        self.replicate_text=wx.StaticText(self.panel,label=TEXT,style=wx.TE_CENTER)
-        self.replicate_rb1 = wx.RadioButton(self.panel, -1, 'Average replicate measurements', style=wx.RB_GROUP)
-        self.replicate_rb1.SetValue(True)
-        self.replicate_rb2 = wx.RadioButton(self.panel, -1, 'take only last measurement from replicate measurements')
-        bSizer7.Add(self.replicate_text,wx.ALIGN_LEFT)
-        bSizer7.Add(self.replicate_rb1,wx.ALIGN_LEFT)
-        bSizer7.Add(self.replicate_rb2,wx.ALIGN_LEFT)
+        self.bSizer7 = pw.replicate_measurements(pnl)
 
         #------------------
 
@@ -273,25 +242,15 @@ class convert_generic_files_to_MagIC(wx.Frame):
 
         #------
         vbox=wx.BoxSizer(wx.VERTICAL)
-        vbox.AddSpacer(5)
-        vbox.Add(bSizer_info, flag=wx.ALIGN_LEFT)
-        vbox.AddSpacer(5)
-        vbox.Add(bSizer0, flag=wx.ALIGN_LEFT)
-        vbox.AddSpacer(5)
-        vbox.Add(bSizer1, flag=wx.ALIGN_LEFT)
-        vbox.AddSpacer(5)
-        vbox.Add(bSizer2, flag=wx.ALIGN_LEFT)
-        vbox.AddSpacer(5)
-        vbox.Add(bSizer3, flag=wx.ALIGN_LEFT)
-        vbox.AddSpacer(5)
-        vbox.Add(bSizer4, flag=wx.ALIGN_LEFT)
-        vbox.AddSpacer(5)
-        vbox.Add(bSizer5, flag=wx.ALIGN_LEFT)
-        vbox.AddSpacer(5)
-        vbox.Add(bSizer6, flag=wx.ALIGN_LEFT)
-        vbox.AddSpacer(5)
-        vbox.Add(bSizer7, flag=wx.ALIGN_LEFT)
-        vbox.AddSpacer(5)
+        vbox.Add(bSizer_info, flag=wx.ALIGN_LEFT|wx.TOP, border=5)
+        vbox.Add(self.bSizer0, flag=wx.ALIGN_LEFT|wx.TOP, border=5)
+        vbox.Add(self.bSizer1, flag=wx.ALIGN_LEFT|wx.TOP, border=5)
+        vbox.Add(self.bSizer2, flag=wx.ALIGN_LEFT|wx.TOP, border=5)
+        vbox.Add(self.bSizer3, flag=wx.ALIGN_LEFT|wx.TOP, border=5)
+        vbox.Add(self.bSizer4, flag=wx.ALIGN_LEFT|wx.TOP, border=5)
+        vbox.Add(self.bSizer5, flag=wx.ALIGN_LEFT|wx.TOP, border=5)
+        vbox.Add(self.bSizer6, flag=wx.ALIGN_LEFT|wx.TOP, border=5)
+        vbox.Add(self.bSizer7, flag=wx.ALIGN_LEFT|wx.TOP|wx.BOTTOM, border=5)
         vbox.Add(wx.StaticLine(self.panel), 0, wx.ALL|wx.EXPAND, 5)
         vbox.Add(hboxok, flag=wx.ALIGN_CENTER)        
         vbox.AddSpacer(5)
@@ -310,16 +269,6 @@ class convert_generic_files_to_MagIC(wx.Frame):
     def on_add_file_button(self,event):
         text = "choose file to convert to MagIC"
         pw.on_add_file_button(self.panel, self.WD, event, text)
-#        dlg = wx.FileDialog(
-#            None,message="choose file to convert to MagIC",
-#            defaultDir=self.WD,
-#            defaultFile="",
-#            style=wx.OPEN | wx.CHANGE_DIR
-#            style=wx.CHANGE_DIR | wx.OPEN
-#            )
-#        #print 'dlg.GetDirectory()', dlg.GetDirectory()
-#        if dlg.ShowModal() == wx.ID_OK:
-#            self.file_path.SetValue(str(dlg.GetPath()))
 
 
     def on_okButton(self,event):
@@ -388,17 +337,14 @@ class convert_generic_files_to_MagIC(wx.Frame):
         
         #-----------        
 
-        if str(self.location.GetValue()) != "":
-            LOC="-loc \"%s\""%str(self.location.GetValue())
+        if str(self.bSizer6.return_value()) != "":
+            LOC="-loc \"%s\""%str(self.bSizer6.return_value())
         else:
             LOC=""
         #-----------        
         
         LABFIELD=" "
-        
-        B_uT=str(self.file_info_Blab.GetValue())
-        DEC=str(self.file_info_Blab_dec.GetValue())
-        INC=str(self.file_info_Blab_inc.GetValue())
+        B_uT, DEC, INC = self.bSizer3.return_value().split() or '', '', ''
         
         if EXP != "Demag":
             LABFIELD="-dc "  +B_uT+ " " + DEC + " " + INC
@@ -406,7 +352,7 @@ class convert_generic_files_to_MagIC(wx.Frame):
         #-----------        
 
         DONT_AVERAGE=" "
-        if  self.replicate_rb2==True:
+        if not self.bSizer7.return_value():
             DONT_AVERAGE="-A"   
 
         #-----------   
@@ -426,12 +372,12 @@ class convert_generic_files_to_MagIC(wx.Frame):
         dlg1.Destroy()
 
         self.Destroy()
-        self.parent.Destroy()
+        self.parent.Raise()
 
 
     def on_cancelButton(self,event):
         self.Destroy()
-        self.parent.Destroy()
+        self.parent.Raise()
         #self.parent.Show()
         #self.parent.Center()
         
