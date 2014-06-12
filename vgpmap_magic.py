@@ -106,9 +106,13 @@ def main():
     lats,lons,dp,dm,a95=[],[],[],[],[]
     Pars=[]
     dates,rlats,rlons=[],[],[]
-    Results=pmag.get_dictitem(data,'data_type','i','T') # get all site level data
+    if 'data_type' in data[0].keys():
+        Results=pmag.get_dictitem(data,'data_type','i','T') # get all site level data
+    else:
+        Results=data
     Results=pmag.get_dictitem(Results,'vgp_lat','','F') # get all non-blank latitudes
     Results=pmag.get_dictitem(Results,'vgp_lon','','F') # get all non-blank longitudes
+    print Results
     if coord!="":Results=pmag.get_dictitem(Results,'tilt_correction',coord,'T') # get specified coordinate system
     for rec in Results:
             if 'average_age' in rec.keys() and rec['average_age']!="" and ages==1:
