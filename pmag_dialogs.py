@@ -378,12 +378,9 @@ class convert_generic_files_to_MagIC(wx.Frame):
     def on_cancelButton(self,event):
         self.Destroy()
         self.parent.Raise()
-        #self.parent.Show()
-        #self.parent.Center()
         
     def on_helpButton(self, event):
         pw.on_helpButton("generic_magic.py -h")
-
 
     def get_sample_name(self,specimen,sample_naming_convenstion):
         if sample_naming_convenstion[0]=="sample=specimen":
@@ -831,10 +828,9 @@ class convert_CIT_files_to_MagIC(wx.Frame):
         full_file = self.bSizer0.return_value()
         ind = full_file.rfind('/')
         CIT_file = full_file[ind+1:] 
-        magicoutfile=os.path.split(CIT_file)[1]+".magic"
-        outfile =os.path.join(self.WD,magicoutfile)
-
-        #outfile = CIT_file + ".magic"
+        #magicoutfile = os.path.split(CIT_file)[1]+".magic"
+        #outfile = os.path.join(self.WD,magicoutfile)
+        outfile = CIT_file + ".magic"
         user = self.bSizer1.return_value()
         if user:
             user = "-usr " + user
@@ -1111,9 +1107,9 @@ class convert_2G_binary_files_to_MagIC(wx.Frame):
         full_file = self.bSizer0.return_value()
         index = full_file.rfind('/')
         file_2G_bin = full_file[index+1:]
-        #outfile = file_2G_bin + '.magic'
-        magicoutfile=os.path.split(file_2G_bin)[1]+".magic"
-        outfile=os.path.join(self.WD,magicoutfile)
+        outfile = file_2G_bin + '.magic'
+        #magicoutfile=os.path.split(file_2G_bin)[1]+".magic"
+        #outfile=os.path.join(self.WD,magicoutfile)
         
         sampling = self.bSizer1.return_value()
         ncn = self.bSizer2.return_value()
@@ -1408,9 +1404,9 @@ class convert_IODP_csv_files_to_MagIC(wx.Frame):
         full_file = self.bSizer0.return_value()
         index = full_file.rfind('/')
         IODP_file = full_file[index+1:]
-        #outfile = IODP_file + ".magic"
-        magicoutfile=os.path.split(IODP_file)[1]+".magic"
-        outfile=os.path.join(self.WD,magicoutfile)
+        outfile = IODP_file + ".magic"
+        #magicoutfile=os.path.split(IODP_file)[1]+".magic"
+        #outfile=os.path.join(self.WD,magicoutfile)
         replicate = self.bSizer1.return_value()
         if replicate:
             replicate = ''
