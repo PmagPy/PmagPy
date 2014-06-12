@@ -1532,23 +1532,27 @@ class convert_PMD_files_to_MagIC(wx.Frame):
         full_file = self.bSizer0.return_value()
         ind = full_file.rfind('/')
         PMD_file = full_file[ind+1:] 
-        magicoutfile=os.path.split(PMD_file)[1]+".magic"
-        outfile=os.path.join(self.WD,magicoutfile)
+        #magicoutfile=os.path.split(PMD_file)[1]+".magic" # these don't do anything because PMD_magic automatically names the outfiles magic_measurements.txt and er_samples.txt.
+        #outfile=os.path.join(self.WD,magicoutfile)
         #outfile = PMD_file + ".magic"
         user = self.bSizer1.return_value()
         if user:
             user = "-usr " + user
         ncn = self.bSizer2.return_value()
-        spc = self.bSizer3.return_value()
+        spc = self.bSizer3.return_value() or 0
         loc_name = self.bSizer4.return_value()
         if loc_name:
             loc_name = "-loc " + loc_name
-        particulars = self.bSizer5.return_value()
-        #print particulars
+        particulars = [p.split(':')[0] for p in self.bSizer5.return_value()]
+        particulars = ':'.join(particulars)
         replicate = self.bSizer6.return_value()
-        COMMAND = "PMD_magic.py -WD {} -f {} {} -ncn {} -spc {} {}".format(wd, PMD_file, user, ncn, spc, replicate)
+        if replicate:
+            replicate = ''
+        else:
+            replicate = '-A'
+        COMMAND = "PMD_magic.py -WD {} -f {} {} -ncn {} -mcd {} -spc {} {}".format(wd, PMD_file, user, ncn, particulars, spc, replicate)
         print COMMAND
-        #pw.run_command_and_close_window(self, COMMAND, outfile)
+        pw.run_command_and_close_window(self, COMMAND, outfile)
 
     def on_cancelButton(self,event):
         self.Destroy()
