@@ -1548,7 +1548,7 @@ class convert_PMD_files_to_MagIC(wx.Frame):
             replicate = '-A'
         COMMAND = "PMD_magic.py -WD {} -f {} {} -ncn {} -mcd {} -spc {} {}".format(wd, PMD_file, user, ncn, particulars, spc, replicate)
         print COMMAND
-        pw.run_command_and_close_window(self, COMMAND, outfile)
+        pw.run_command_and_close_window(self, COMMAND, None)
 
     def on_cancelButton(self,event):
         self.Destroy()
