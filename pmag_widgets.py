@@ -120,6 +120,7 @@ class select_specimen_ocn(wx.StaticBoxSizer):
         self.parent = parent
         box = wx.StaticBox(parent, wx.ID_ANY, "")
         super(select_specimen_ocn, self).__init__(box, orient=wx.VERTICAL)
+        label = wx.StaticText(self.parent, label="Orientation:")
         ocn_keys = ["Lab arrow azimuth= mag_azimuth; Lab arrow dip=-field_dip i.e., field_dip is degrees from vertical down - the hade",
                 "Lab arrow azimuth = mag_azimuth-90; Lab arrow dip = -field_dip i.e., mag_azimuth is strike and field_dip is hade",
                 "Lab arrow azimuth = mag_azimuth; Lab arrow dip = 90-field_dip i.e.,  lab arrow same as field arrow, but field_dip was a hade.",
@@ -129,6 +130,7 @@ class select_specimen_ocn(wx.StaticBoxSizer):
         ocn_values = range(1, 6)
         self.sample_orientation_conventions = dict(zip(ocn_keys, ocn_values))
         self.select_orientation_convention = wx.ComboBox(parent, -1, ocn_keys[0], size=(705,25), choices=ocn_keys, style=wx.CB_DROPDOWN)
+        self.Add(label, flag=wx.ALIGN_LEFT|wx.BOTTOM, border=5)
         self.Add(self.select_orientation_convention, wx.ALIGN_LEFT)
         self.AddSpacer(8)
 
@@ -136,6 +138,34 @@ class select_specimen_ocn(wx.StaticBoxSizer):
         selected_ocn = str(self.select_orientation_convention.GetValue())
         return self.sample_orientation_conventions[selected_ocn]
 
+
+class select_declination(wx.StaticBoxSizer):
+    def __init__(self, parent):
+        self.parent = parent
+        box = wx.StaticBox(parent, wx.ID_ANY, "")
+        super(select_declination, self).__init__(box, orient=wx.VERTICAL)
+        label1 = wx.StaticText(self.parent, label="Declination:")
+        label2 = wx.StaticText(self.parent, label="if necessary")
+        dec_box = wx.TextCtrl(self.parent, size=(40, 25))
+        declination_keys = ["Use the IGRF DEC value at the lat/long and date supplied","Use this DEC: ","DEC=0, mag_az is already corrected in file","Correct mag_az but not bedding_dip_dir"]
+        declination_values = range(1, 3)
+        self.dcn = dict(zip(declination_keys, declination_values))
+        self.select_dcn = wx.ComboBox(parent, -1, declination_keys[0], size=(405, 25), choices=declination_keys, style=wx.CB_DROPDOWN)
+        gridSizer = wx.GridSizer(2, 2, 5, 10)
+        gridSizer.AddMany( [label1, label2, self.select_dcn, dec_box])
+        self.Add(gridSizer, wx.ALIGN_LEFT)
+        #self.Add(label, flag=wx.ALIGN_LEFT|wx.BOTTOM, border=5)
+        #self.Add(select_dcn, wx.ALIGN_LEFT)
+        self.AddSpacer(10)
+        
+        
+
+    def return_value(self):
+        selected_dcn = str(self.select_dcn.GetValue())
+        dcn_number = self.dcn[selected_dcn]
+        print selected_dcn
+        print dcn_number
+        
 
 
 
