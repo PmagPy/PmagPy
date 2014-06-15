@@ -146,13 +146,13 @@ class select_declination(wx.StaticBoxSizer):
         super(select_declination, self).__init__(box, orient=wx.VERTICAL)
         label1 = wx.StaticText(self.parent, label="Declination:")
         label2 = wx.StaticText(self.parent, label="if necessary")
-        dec_box = wx.TextCtrl(self.parent, size=(40, 25))
+        self.dec_box = wx.TextCtrl(self.parent, size=(40, 25))
         declination_keys = ["Use the IGRF DEC value at the lat/long and date supplied","Use this DEC: ","DEC=0, mag_az is already corrected in file","Correct mag_az but not bedding_dip_dir"]
-        declination_values = range(1, 3)
+        declination_values = range(1, 4)
         self.dcn = dict(zip(declination_keys, declination_values))
         self.select_dcn = wx.ComboBox(parent, -1, declination_keys[0], size=(405, 25), choices=declination_keys, style=wx.CB_DROPDOWN)
         gridSizer = wx.GridSizer(2, 2, 5, 10)
-        gridSizer.AddMany( [label1, label2, self.select_dcn, dec_box])
+        gridSizer.AddMany( [label1, label2, self.select_dcn, self.dec_box])
         self.Add(gridSizer, wx.ALIGN_LEFT)
         #self.Add(label, flag=wx.ALIGN_LEFT|wx.BOTTOM, border=5)
         #self.Add(select_dcn, wx.ALIGN_LEFT)
@@ -163,8 +163,10 @@ class select_declination(wx.StaticBoxSizer):
     def return_value(self):
         selected_dcn = str(self.select_dcn.GetValue())
         dcn_number = self.dcn[selected_dcn]
-        print selected_dcn
-        print dcn_number
+        if dcn_number == 2:
+            return str(dcn_number) + " " + self.dec_box.GetValue()
+        else:
+            return dcn_number            
         
 
 

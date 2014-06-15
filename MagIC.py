@@ -46,6 +46,7 @@ class make_check: # makes check boxes with labels in input_d
                 self.top.destroy()
 
 def ask_check(parent,choices,title): # returns the values of the check box to caller
+        print "calling ask check"
         global check_value
         m = make_check(parent,choices,title)
         parent.wait_window(m.top)
@@ -812,6 +813,7 @@ class make_names:
         self.top.destroy()
 
 def ask_names(parent):
+    print "calling ask_names"
     global radio_value,Z,Y
     m=make_names(parent)
     parent.wait_window(m.top)
@@ -863,6 +865,7 @@ class make_ocn:
         self.top.destroy()
 
 def ask_ocn(parent):
+    print "calling ask_ocn"
     global ocn_rv,dec_rv,dec,GMT
     m=make_ocn(parent)
     parent.wait_window(m.top)
@@ -902,6 +905,8 @@ def orient(): # imports an orientation file to magic
 #
 # check a few things
 #
+    print "ordata", ordata
+    print "ordata[0]", ordata[0]
     Tilts=pmag.get_dictitem(ordata,'bedding_dip','','F') # are there bedding dips? 
     Suns=pmag.get_dictitem(ordata,'shadow_angle','','F') # are there sun compass data?
     suns=len(Suns)
@@ -926,7 +931,7 @@ def orient(): # imports an orientation file to magic
     if names['rv']==6:outstring=outstring + '-'+'%s'%(names['Z'])
     if orients['gmt']!="":outstring=outstring + ' -gmt '+'%s'%(orients['gmt'])
     if orients['mcd']!="":outstring=outstring + ' -mcd '+'%s'%(orients['mcd'])
-    if len(Tilts)>0:
+    if True:#len(Tilts)>0:
         BED_types=["Take fisher mean of bedding poles?","Don't correct bedding dip direction with declination - already correct"]
         bed_checks=ask_check(root,BED_types,'choose bedding conventions:') # 
         BED_list=map((lambda var:var.get()),bed_checks) # returns method code  radio button list

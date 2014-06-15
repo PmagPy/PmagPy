@@ -55,7 +55,7 @@ class MagICMenu(wx.MenuBar):
 
 
     def orient_import1(self, event): 
-        thing = pmd.ImportOrientFile(self.parent, self.parent.WD)
+        orient1 = pmd.ImportOrientFile(self.parent, self.parent.WD)
         
         # first bring up window to select file
         # then bring up window(s) to select options
