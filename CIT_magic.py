@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+# TESTING
+import os
 import pmag,sys
 def main():
     """
@@ -106,14 +108,22 @@ def main():
     if '-f' in args:
         ind=args.index("-f")
         magfile=args[ind+1]
-    magfile=dir_path+'/'+magfile
-    spec_file=dir_path+'/'+spec_file
-    samp_file=dir_path+'/'+samp_file
-    site_file=dir_path+'/'+site_file
-    meas_file=dir_path+'/'+meas_file
+    # LJ
+    if '-ID' in args:
+        ind = args.index('-ID')
+        input_dir_path = args[ind+1]
+    else:
+        input_dir_path = dir_path
+    output_dir_path = dir_path
+    # LJ
+    magfile = input_dir_path+'/'+magfile
+    spec_file = output_dir_path+'/'+spec_file
+    samp_file = output_dir_path+'/'+samp_file
+    site_file = output_dir_path+'/'+site_file
+    meas_file= output_dir_path+'/'+meas_file
     try:
         input=open(magfile,'r')
-    except:
+    except Exception as ex:
         print "bad sam file name"
         sys.exit()
     File=input.readlines()
@@ -167,7 +177,7 @@ def main():
         ErSiteRec['er_citation_name']=citation
         ErSiteRec['site_lat']=site_lat
         ErSiteRec['site_lon']=site_lon
-        f=open(dir_path+'/'+specimen,'rU')
+        f=open(input_dir_path+'/'+specimen,'rU')
         Lines=f.readlines()
         comment=""
         line=Lines[0].split()
@@ -213,7 +223,7 @@ def main():
             MeasRec=ErSpecRec.copy()
             treat_type=line[0:3]
             treat=line[3:6]
-            if treat_type.strip()=='NRM':
+            if treat_type.strip()=='NRM' or treat == '   ': # LJ reverting back
                 MeasRec['magic_method_codes']='LT-NO'
                 MeasRec['measurement_temp']='273'
                 MeasRec['treatment_temp']='273'

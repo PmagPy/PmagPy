@@ -828,6 +828,13 @@ class convert_CIT_files_to_MagIC(wx.Frame):
         full_file = self.bSizer0.return_value()
         ind = full_file.rfind('/')
         CIT_file = full_file[ind+1:] 
+        # new
+        input_directory = full_file[:ind+1]
+        if input_directory:
+            ID = "-ID " + input_directory
+        else:
+            ID = ''
+        # end new
         #magicoutfile = os.path.split(CIT_file)[1]+".magic"
         #outfile = os.path.join(self.WD,magicoutfile)
         outfile = CIT_file + ".magic"
@@ -851,7 +858,7 @@ class convert_CIT_files_to_MagIC(wx.Frame):
         peak_AF = self.bSizer7.return_value()
         if peak_AF:
             peak_AF = "-ac " + peak_AF
-        COMMAND = "CIT_magic.py -WD {} -f {} -F {}  -mcd {} {} {} {} -ncn {} {} {}".format(wd, CIT_file, outfile, particulars, spec_num, loc_name, user, ncn, peak_AF, lab_field)
+        COMMAND = "CIT_magic.py -WD {} -f {} -F {}  -mcd {} {} {} {} -ncn {} {} {} {}".format(wd, CIT_file, outfile, particulars, spec_num, loc_name, user, ncn, peak_AF, lab_field, ID)
         #print COMMAND
         pw.run_command_and_close_window(self, COMMAND, outfile)
 
