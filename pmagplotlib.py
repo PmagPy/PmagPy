@@ -1408,6 +1408,7 @@ def plotCDF(fignum,data,xlab,sym,title,**kwargs):
 # plots a CDF of data
     #if len(sym)==1:sym=sym+'-'
     fig=pylab.figure(num=fignum) 
+    #sdata=numpy.array(data).sort()
     sdata=[]
     for d in data:sdata.append(d) # have to copy the data to avoid overwriting it!
     sdata.sort()
@@ -1429,7 +1430,6 @@ def plotCDF(fignum,data,xlab,sym,title,**kwargs):
   
     pylab.xlabel(xlab)
     pylab.ylabel('Cumulative Distribution')
-    pylab.axis([0,numpy.max(X)*1.1,0,1.1])
     pylab.title(title)
     return X,Y
 #
@@ -2238,6 +2238,7 @@ def plotCOM(CDF,BDI1,BDI2,d):
     Z1,y=plotCDF(CDF['Z'],Z1,"Z component",'r',"")
     bounds1=[Z1[min],Z1[max]]
     plotVs(CDF['Z'],bounds1,'r','-')
+    drawFIGS(CDF)
     if d[0]=="": # repeat for second data set
         bounds2=[]
         cart= pmag.dir2cart(BDI2).transpose()

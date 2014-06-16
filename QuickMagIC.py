@@ -1,11 +1,12 @@
 #!/usr/bin/env pythonw
 import wx
 import wx.lib.buttons as buttons
-import pmag
-import pmag_dialogs
 #import thellier_gui_dialogs
 import os
 import sys
+import pmag
+import pmag_dialogs
+import pmag_menu
 
 
 
@@ -28,7 +29,12 @@ class MagMainFrame(wx.Frame):
         self.HtmlIsOpen=False
         self.first_time_messsage=False
         self.Bind(wx.EVT_CLOSE, self.on_menu_exit)
+
     def InitUI(self):
+
+        #menubar = pmag_menu.MagICMenu(self)
+        #self.SetMenuBar(menubar)
+
 
         #pnl = self.panel
 
@@ -39,8 +45,11 @@ class MagMainFrame(wx.Frame):
         #start_image.Rescale(start_image.GetWidth(), start_image.GetHeight())
         #image = wx.BitmapFromImage(start_image)
         #self.logo = wx.StaticBitmap(self.panel, -1, image) 
-                                  
+
+
         #---sizer 0 ----
+
+
         bSizer0 = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY, "Choose MagIC project directory" ), wx.HORIZONTAL )
         self.dir_path = wx.TextCtrl(self.panel, id=-1, size=(600,25), style=wx.TE_READONLY)
         self.change_dir_button = buttons.GenButton(self.panel, id=-1, label="change dir",size=(-1, -1))
@@ -172,13 +181,13 @@ class MagMainFrame(wx.Frame):
     def get_DIR(self):
         """ Choose a working directory dialog
         """
-        #self.WD=""
+
         if "-WD" in sys.argv and self.FIRST_RUN:
             ind=sys.argv.index('-WD')
             self.WD=sys.argv[ind+1]            
         
         else:
-                        
+            ignore = """
             TEXT1="Set or create MagIC Project Directory.\nPath should have NO SPACES.\n This Directory is to be used by this program ONLY"               
             dlg1 = wx.MessageDialog(None, caption="First step",message=TEXT1,style=wx.OK|wx.ICON_EXCLAMATION)
             result1 = dlg1.ShowModal()            
@@ -186,17 +195,21 @@ class MagMainFrame(wx.Frame):
                 dlg1.Destroy()
             #self.WD="/Users/ronshaar/Academy/Litratures/misc_documents/MagIC_workshop_2014/Wednesday_workhops/step_by_step_tutorial/MagIC/"
             
-            TEXT="choose directory. No spaces are allowed in path!"
-            dia = wx.DirDialog(self, message=TEXT,defaultPath = os.getcwd() ,style=wx.DD_DEFAULT_STYLE )
-            result=dia.ShowModal()                                     
-            if result == wx.ID_OK:
-              self.WD=str(dia.GetPath())
-            dia.Destroy()
-        
+            #TEXT="choose directory. No spaces are allowed in path!"
+            #dia = wx.DirDialog(self, message=TEXT,defaultPath = os.getcwd() ,style=wx.DD_DEFAULT_STYLE )
+            #result=dia.ShowModal()
+            #if result == wx.ID_OK:
+            #  self.WD=str(dia.GetPath())
+            #print 'dia', dia
+            #dia.Destroy()
+            """
+            self.WD = os.getcwd() + '/'
+            
         os.chdir(self.WD)
         self.WD=str(os.getcwd())+"/"
         self.dir_path.SetValue(self.WD)
         self.FIRST_RUN=False
+
 
     #----------------------------------------------------------------------
     
@@ -225,10 +238,11 @@ class MagMainFrame(wx.Frame):
         os.system(outstring)
         
     def on_convert_file(self,event):
-        #print self.WD
         pmag_dialogs_dia=pmag_dialogs.import_magnetometer_data(self, wx.ID_ANY, '',self.WD)
         pmag_dialogs_dia.Show()
         pmag_dialogs_dia.Center()
+
+
                                     
     def on_er_data(self,event):
 
