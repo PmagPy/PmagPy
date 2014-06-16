@@ -200,7 +200,6 @@ class Arai_GUI(wx.Frame):
         self.acceptance_criteria=pmag.initialize_acceptance_criteria()
         self.add_thelier_gui_criteria()
         self.read_criteria_file(self.WD+"/pmag_criteria.txt")  
-
         # preferences
 
         preferences=self.get_preferences()
@@ -3537,6 +3536,14 @@ class Arai_GUI(wx.Frame):
             #-------------------------------------------------
             #print s
             for tmin_i in range(len(temperatures)-specimen_int_n+1):
+                # check if to include NRM
+                #print temperatures
+                #print  self.acceptance_criteria['include_nrm']['value']
+                if self.acceptance_criteria['include_nrm']['value']==-999:
+                    #print " Its False"
+                    if temperatures[tmin_i]==273:
+                        continue
+                    #    print "ignoring NRM",tmin_i,temperatures[tmin_i]
                 #print tmin_i
                 for tmax_i in range(tmin_i+specimen_int_n-1,len(temperatures)):
                     #print tmax_i
@@ -5518,8 +5525,8 @@ class Arai_GUI(wx.Frame):
         if age_unit=="Years BP" or age_unit =="Years Cal BP":
             mutliplier=1
         age = float(er_ages_rec["age"])*mutliplier
-        #if age_unit=="Years BP" or age_unit =="Years Cal BP":
-        age=1950-age
+        if age_unit=="Years BP" or age_unit =="Years Cal BP":
+            age=1950-age
         er_ages_rec['age_cal_year']=age   
 
         # Fix 'age_range_low':                        
@@ -5788,17 +5795,17 @@ class Arai_GUI(wx.Frame):
                 age_range_high=1950-age_range_high
                 age_range_low=1950-age_range_low
             if set_age_unit == "Ka":
-                age=(1950-age)/1e3
-                age_range_high=(1950-age_range_high)/1e3
-                age_range_low=(1950-age_range_low)/1e3
+                age=age/-1e3
+                age_range_high=age_range_high/-1e3
+                age_range_low=age_range_low/-1e3
             if set_age_unit == "Ma":
-                age=(1950-age)/1e6
-                age_range_high=(1950-age_range_high)/1e6
-                age_range_low=(1950-age_range_low)/1e6
+                age=age/-1e6
+                age_range_high=age_range_high/-1e6
+                age_range_low=age_range_low/-1e6
             if set_age_unit == "Ga":
-                age=(1950-age)/1e9
-                age_range_high=(1950-age_range_high)/1e9
-                age_range_low=(1950-age_range_low)/1e9
+                age=age/-1e9
+                age_range_high=age_range_high/-1e9
+                age_range_low=age_range_low/-1e9
 
             plot_by_locations[location]['X_data'].append(age)
             plot_by_locations[location]['X_data_plus'].append(age_range_high-age)
@@ -7436,11 +7443,17 @@ class Arai_GUI(wx.Frame):
                 self.acceptance_criteria[crit]['value']='sample'
             if crit in ['interpreter_method']:
                 self.acceptance_criteria[crit]['value']='stdev_opt'
-                
             self.acceptance_criteria[crit]['threshold_type']="flag"
             self.acceptance_criteria[crit]['decimal_points']=-999
        
-                     
+        for crit in ['include_nrm']:
+            self.acceptance_criteria[crit]={} 
+            self.acceptance_criteria[crit]['category']=category
+            self.acceptance_criteria[crit]['criterion_name']=crit
+            self.acceptance_criteria[crit]['value']=True
+            self.acceptance_criteria[crit]['threshold_type']="bool"
+            self.acceptance_criteria[crit]['decimal_points']=-999
+                    
         
         # define internal Thellier-GUI definitions:
         self.average_by_sample_or_site='sample'

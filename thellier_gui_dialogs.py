@@ -341,7 +341,7 @@ class Criteria_Dialog(wx.Dialog):
 
         bSizer1a = wx.StaticBoxSizer( wx.StaticBox( pnl1, wx.ID_ANY, "anisotropy criteria" ), wx.HORIZONTAL )
         self.set_anisotropy_alt=wx.TextCtrl(pnl1,style=wx.TE_CENTER,size=(50,20))
-        self.set_anisotropy_ftest=wx.ComboBox(self.panel, -1, value='N/A', choices=["N/A","pass 68%","pass 95%"],style=wx.CB_DROPDOWN,name="aniso-ftest")
+        #self.set_anisotropy_ftest=wx.ComboBox(self.panel, -1, value='None', choices=["None","pass 95%"],style=wx.CB_DROPDOWN,name="aniso-ftest")
         self.set_anisotropy_ftest_flag= wx.CheckBox(pnl1, -1, '', (10, 10))
         criteria_aniso_window = wx.GridSizer(2, 2, 6, 6)
         criteria_aniso_window.AddMany( [(wx.StaticText(pnl1,label="use F test as acceptance criteria",style=wx.TE_CENTER), wx.EXPAND),
@@ -387,14 +387,16 @@ class Criteria_Dialog(wx.Dialog):
         self.set_stdev_opt=wx.RadioButton(pnl1, -1, '', (10, 10), style=wx.RB_GROUP)
         self.set_bs=wx.RadioButton(pnl1, -1, ' ', (10, 30))
         self.set_bs_par=wx.RadioButton(pnl1, -1, '', (50, 50))
-
-        criteria_sample_window = wx.GridSizer(2, 3, 6, 6)
+        self.set_include_nrm= wx.CheckBox(pnl1, -1, '', (10, 10))
+        criteria_sample_window = wx.GridSizer(2, 4, 6, 6)
         criteria_sample_window.AddMany( [(wx.StaticText(pnl1,label="Enable STDEV-OPT",style=wx.TE_CENTER), wx.EXPAND),
             (wx.StaticText(pnl1,label="Enable BS",style=wx.TE_CENTER), wx.EXPAND),
             (wx.StaticText(pnl1,label="Enable BS_PAR",style=wx.TE_CENTER), wx.EXPAND),
+            (wx.StaticText(pnl1,label="include NRM",style=wx.TE_CENTER), wx.EXPAND),
             (self.set_stdev_opt),            
             (self.set_bs),
-            (self.set_bs_par)])
+            (self.set_bs_par),
+            (self.set_include_nrm)])
 
         bSizer2a.Add( criteria_sample_window, 0, wx.ALIGN_LEFT|wx.ALL, 5 )
 
@@ -543,7 +545,11 @@ class Criteria_Dialog(wx.Dialog):
             self.set_bs_par.SetValue(True) 
         else:
             self.set_stdev_opt.SetValue(True) 
-                 
+
+        #-------------------------------------------        
+        # Intialize values: include NRM
+        #-------------------------------------------        
+        self.set_include_nrm.SetValue(True)         
         #-------------------------------------------        
         # Intialize values: sample/site criteria
         #------------------------------------------- 
