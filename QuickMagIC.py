@@ -6,7 +6,7 @@ import os
 import sys
 import pmag
 import pmag_dialogs
-import pmag_menu
+#import pmag_menu
 
 
 
