@@ -828,6 +828,13 @@ class convert_CIT_files_to_MagIC(wx.Frame):
         full_file = self.bSizer0.return_value()
         ind = full_file.rfind('/')
         CIT_file = full_file[ind+1:] 
+        # new
+        input_directory = full_file[:ind+1]
+        if input_directory:
+            ID = "-ID " + input_directory
+        else:
+            ID = ''
+        # end new
         #magicoutfile = os.path.split(CIT_file)[1]+".magic"
         #outfile = os.path.join(self.WD,magicoutfile)
         outfile = CIT_file + ".magic"
@@ -851,7 +858,7 @@ class convert_CIT_files_to_MagIC(wx.Frame):
         peak_AF = self.bSizer7.return_value()
         if peak_AF:
             peak_AF = "-ac " + peak_AF
-        COMMAND = "CIT_magic.py -WD {} -f {} -F {}  -mcd {} {} {} {} -ncn {} {} {}".format(wd, CIT_file, outfile, particulars, spec_num, loc_name, user, ncn, peak_AF, lab_field)
+        COMMAND = "CIT_magic.py -WD {} -f {} -F {}  -mcd {} {} {} {} -ncn {} {} {} {}".format(wd, CIT_file, outfile, particulars, spec_num, loc_name, user, ncn, peak_AF, lab_field, ID)
         #print COMMAND
         pw.run_command_and_close_window(self, COMMAND, outfile)
 
@@ -1021,12 +1028,13 @@ class convert_2G_binary_files_to_MagIC(wx.Frame):
 
         pnl = self.panel
 
-        TEXT = "2G-binary format file"
+        TEXT = "Folder containing one or more 2G-binary format files"
         bSizer_info = wx.BoxSizer(wx.HORIZONTAL)
         bSizer_info.Add(wx.StaticText(pnl, label=TEXT), wx.ALIGN_LEFT)
 
         #---sizer 0 ----
-        self.bSizer0 = pw.choose_file(pnl, 'add', method = self.on_add_file_button)
+        #self.bSizer0 = pw.choose_file(pnl, 'add', method = self.on_add_file_button)
+        self.bSizer0 = pw.choose_dir(pnl, btn_text = 'add', method = self.on_add_dir_button)
 
         #---sizer 1 ----
         TEXT = "Sampling Particulars (select all that apply):"
@@ -1038,7 +1046,7 @@ class convert_2G_binary_files_to_MagIC(wx.Frame):
         self.bSizer2 = pw.select_specimen_ncn(pnl)
 
         #---sizer 3 ----
-        TEXT = "specify number of characters to designate a specimen, default = 0"
+        TEXT = "specify number of characters to designate a specimen, default = 1"
         self.bSizer3 = pw.labeled_text_field(pnl, TEXT)
 
         #---sizer 4 ----
@@ -1098,24 +1106,25 @@ class convert_2G_binary_files_to_MagIC(wx.Frame):
         self.Show()
         self.Centre()
 
-    def on_add_file_button(self,event):
+    def on_add_dir_button(self,event):
         text = "choose file to convert to MagIC"
-        pw.on_add_file_button(self.panel, self.WD, event, text)
+        pw.on_add_dir_button(self.panel, self.WD, event, text)
 
     def on_okButton(self, event):
-        wd = self.WD
-        full_file = self.bSizer0.return_value()
-        index = full_file.rfind('/')
-        file_2G_bin = full_file[index+1:]
-        outfile = file_2G_bin + '.magic'
-        #magicoutfile=os.path.split(file_2G_bin)[1]+".magic"
-        #outfile=os.path.join(self.WD,magicoutfile)
-        
-        sampling = self.bSizer1.return_value()
+        WD = self.WD
+        directory = self.bSizer0.return_value()
+        files = os.listdir(directory)
+        files = [str(f) for f in files if str(f).endswith('.dat')]
+        ID = "-ID " + directory
+        if self.bSizer1.return_value():
+            particulars = [p.split(':')[0] for p in self.bSizer1.return_value()]
+            mcd = ':'.join(particulars)
+        else:
+            mcd = 'FS-FD:SO-POM'
         ncn = self.bSizer2.return_value()
         spc = self.bSizer3.return_value()
         if not spc:
-            spc = '-spc 0'
+            spc = '-spc 1'
         else:
             spc = '-spc ' + spc
         ocn = self.bSizer4.return_value()
@@ -1128,9 +1137,20 @@ class convert_2G_binary_files_to_MagIC(wx.Frame):
         replicate = self.bSizer7.return_value()
         if replicate:
             replicate = '-a'
-        COMMAND = "2G_bin_magic.py -WD {} -f {} -F {} -ncn {} {} -ocn {} {} {}".format(wd, file_2G_bin, outfile, ncn, spc, ocn, loc_name, replicate)
-        #print COMMAND
-        pw.run_command_and_close_window(self, COMMAND, outfile)
+        else:
+            replicate = ''
+        for f in files:
+            file_2G_bin = f
+            outfile = file_2G_bin + ".magic"
+            COMMAND = "2G_bin_magic.py -WD {} -f {} -F {} -ncn {} -mcd {} {} -ocn {} {} {} {}".format(WD, file_2G_bin, outfile, ncn, mcd, spc, ocn, loc_name, replicate, ID)
+            if files.index(f) == (len(files) - 1): # terminate process on last file call
+                pw.run_command_and_close_window(self, COMMAND, outfile)
+            else:
+                pw.run_command(self, COMMAND, outfile)
+
+
+
+
 
     def on_cancelButton(self,event):
         self.Destroy()
