@@ -279,7 +279,6 @@ def on_add_dir_button(SELF, WD, event, text):
         style=wx.OPEN | wx.DD_DEFAULT_STYLE
             )
     if dlg.ShowModal() == wx.ID_OK:
-        print "SELF", SELF
         SELF.dir_path.SetValue(str(dlg.GetPath()))
 
 
@@ -291,7 +290,6 @@ def on_add_file_button(SELF, WD, event, text):
         style=wx.OPEN | wx.CHANGE_DIR
             )
     if dlg.ShowModal() == wx.ID_OK:
-            print "SELF", SELF
             SELF.file_path.SetValue(str(dlg.GetPath()))
 
 

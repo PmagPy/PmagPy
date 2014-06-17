@@ -1046,7 +1046,7 @@ class convert_2G_binary_files_to_MagIC(wx.Frame):
         self.bSizer2 = pw.select_specimen_ncn(pnl)
 
         #---sizer 3 ----
-        TEXT = "specify number of characters to designate a specimen, default = 0"
+        TEXT = "specify number of characters to designate a specimen, default = 1"
         self.bSizer3 = pw.labeled_text_field(pnl, TEXT)
 
         #---sizer 4 ----
@@ -1111,16 +1111,20 @@ class convert_2G_binary_files_to_MagIC(wx.Frame):
         pw.on_add_dir_button(self.panel, self.WD, event, text)
 
     def on_okButton(self, event):
-        wd = self.WD
+        WD = self.WD
         directory = self.bSizer0.return_value()
         files = os.listdir(directory)
-        files = [str(f) for f in files if '.dat' in str(f)]
+        files = [str(f) for f in files if str(f).endswith('.dat')]
         ID = "-ID " + directory
-        sampling = self.bSizer1.return_value()
+        if self.bSizer1.return_value():
+            particulars = [p.split(':')[0] for p in self.bSizer1.return_value()]
+            mcd = ':'.join(particulars)
+        else:
+            mcd = 'FS-FD:SO-POM'
         ncn = self.bSizer2.return_value()
         spc = self.bSizer3.return_value()
         if not spc:
-            spc = '-spc 0'
+            spc = '-spc 1'
         else:
             spc = '-spc ' + spc
         ocn = self.bSizer4.return_value()
@@ -1133,20 +1137,17 @@ class convert_2G_binary_files_to_MagIC(wx.Frame):
         replicate = self.bSizer7.return_value()
         if replicate:
             replicate = '-a'
-        exceptions = {}
+        else:
+            replicate = ''
         for f in files:
             file_2G_bin = f
             outfile = file_2G_bin + ".magic"
-            COMMAND = "2G_bin_magic.py -WD {} -f {} -F {} -ncn {} {} -ocn {} {} {} {}".format(wd, file_2G_bin, outfile, ncn, spc, ocn, loc_name, replicate, ID)
-            if files.index(f) == (len(files) - 1):
+            COMMAND = "2G_bin_magic.py -WD {} -f {} -F {} -ncn {} -mcd {} {} -ocn {} {} {} {}".format(WD, file_2G_bin, outfile, ncn, mcd, spc, ocn, loc_name, replicate, ID)
+            if files.index(f) == (len(files) - 1): # terminate process on last file call
                 pw.run_command_and_close_window(self, COMMAND, outfile)
-                print exceptions
             else:
-                try:
-                    pw.run_command(self, COMMAND, outfile)
-                except KeyError as ex:
-                    print "EXCEPTION!"
-                    exceptions[f] = ex
+                pw.run_command(self, COMMAND, outfile)
+
 
 
 
