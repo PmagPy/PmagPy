@@ -1033,7 +1033,8 @@ class convert_2G_binary_files_to_MagIC(wx.Frame):
         bSizer_info.Add(wx.StaticText(pnl, label=TEXT), wx.ALIGN_LEFT)
 
         #---sizer 0 ----
-        self.bSizer0 = pw.choose_file(pnl, 'add', method = self.on_add_file_button)
+        #self.bSizer0 = pw.choose_file(pnl, 'add', method = self.on_add_file_button)
+        self.bSizer0 = pw.choose_dir(pnl, btn_text = 'add', method = self.on_add_dir_button)
 
         #---sizer 1 ----
         TEXT = "Sampling Particulars (select all that apply):"
@@ -1105,9 +1106,9 @@ class convert_2G_binary_files_to_MagIC(wx.Frame):
         self.Show()
         self.Centre()
 
-    def on_add_file_button(self,event):
+    def on_add_dir_button(self,event):
         text = "choose file to convert to MagIC"
-        pw.on_add_file_button(self.panel, self.WD, event, text)
+        pw.on_add_dir_button(self.panel, self.WD, event, text)
 
     def on_okButton(self, event):
         wd = self.WD
