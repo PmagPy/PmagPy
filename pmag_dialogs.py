@@ -1543,7 +1543,6 @@ class convert_PMD_files_to_MagIC(wx.Frame):
         pw.on_add_file_button(self.panel, self.WD, event, text)
 
     def on_okButton(self, event):
-        #print 'doing ok button'
         wd = self.WD
         full_file = self.bSizer0.return_value()
         ind = full_file.rfind('/')
