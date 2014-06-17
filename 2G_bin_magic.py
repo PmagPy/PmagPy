@@ -159,11 +159,20 @@ def main():
         inst=args[ind+1]
     if "-a" in args:noave=0
     #
+    ID = False
+    if '-ID' in args:
+        ind = args.index('-ID')
+        ID = args[ind+1]
     #
-    mag_file=dir_path+'/'+mag_file
-    samp_file=dir_path+'/'+samp_file
-    site_file=dir_path+'/'+site_file
-    meas_file=dir_path+'/'+meas_file
+    if ID:
+        input_dir_path = ID
+    else:
+        input_dir_path = dir_path
+    output_dir_path = dir_path
+    mag_file = input_dir_path+'/'+mag_file
+    samp_file = output_dir_path+'/'+samp_file
+    site_file = output_dir_path+'/'+site_file
+    meas_file= output_dir_path+'/'+meas_file
     samplist=[]
     try:
         Samps,file_type=pmag.magic_read(samp_file)

@@ -1028,7 +1028,7 @@ class convert_2G_binary_files_to_MagIC(wx.Frame):
 
         pnl = self.panel
 
-        TEXT = "2G-binary format file"
+        TEXT = "Folder containing one or more 2G-binary format files"
         bSizer_info = wx.BoxSizer(wx.HORIZONTAL)
         bSizer_info.Add(wx.StaticText(pnl, label=TEXT), wx.ALIGN_LEFT)
 
@@ -1112,13 +1112,10 @@ class convert_2G_binary_files_to_MagIC(wx.Frame):
 
     def on_okButton(self, event):
         wd = self.WD
-        full_file = self.bSizer0.return_value()
-        index = full_file.rfind('/')
-        file_2G_bin = full_file[index+1:]
-        outfile = file_2G_bin + '.magic'
-        #magicoutfile=os.path.split(file_2G_bin)[1]+".magic"
-        #outfile=os.path.join(self.WD,magicoutfile)
-        
+        directory = self.bSizer0.return_value()
+        files = os.listdir(directory)
+        files = [str(f) for f in files if '.dat' in str(f)]
+        ID = "-ID " + directory
         sampling = self.bSizer1.return_value()
         ncn = self.bSizer2.return_value()
         spc = self.bSizer3.return_value()
@@ -1136,9 +1133,23 @@ class convert_2G_binary_files_to_MagIC(wx.Frame):
         replicate = self.bSizer7.return_value()
         if replicate:
             replicate = '-a'
-        COMMAND = "2G_bin_magic.py -WD {} -f {} -F {} -ncn {} {} -ocn {} {} {}".format(wd, file_2G_bin, outfile, ncn, spc, ocn, loc_name, replicate)
-        #print COMMAND
-        pw.run_command_and_close_window(self, COMMAND, outfile)
+        exceptions = {}
+        for f in files:
+            file_2G_bin = f
+            outfile = file_2G_bin + ".magic"
+            COMMAND = "2G_bin_magic.py -WD {} -f {} -F {} -ncn {} {} -ocn {} {} {} {}".format(wd, file_2G_bin, outfile, ncn, spc, ocn, loc_name, replicate, ID)
+            if files.index(f) == (len(files) - 1):
+                pw.run_command_and_close_window(self, COMMAND, outfile)
+                print exceptions
+            else:
+                try:
+                    pw.run_command(self, COMMAND, outfile)
+                except KeyError as ex:
+                    print "EXCEPTION!"
+                    exceptions[f] = ex
+
+
+
 
     def on_cancelButton(self,event):
         self.Destroy()

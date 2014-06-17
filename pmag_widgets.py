@@ -318,6 +318,7 @@ def on_helpButton(command):
 def run_command(SELF, command, outfile):
     print "-I- Running Python command:\n %s"%command
     os.system(command)
+    print "-I- Saved results in MagIC format file: {}".format(outfile)
 
 
 def run_command_and_close_window(SELF, command, outfile):
