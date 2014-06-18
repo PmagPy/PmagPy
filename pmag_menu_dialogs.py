@@ -132,6 +132,7 @@ class ImportOrientFile(wx.Frame):
         #os.system('cp {} {}'.format(full_infile, WD))
         ind = full_infile.rfind('/')
         infile = full_infile[ind+1:]
+        ID = full_infile[:ind+1]
         particulars = [p.split(':')[0] for p in self.bSizer1.return_value()]
         mcd = ':'.join(particulars)
         ncn = self.bSizer2.return_value()
@@ -153,15 +154,15 @@ class ImportOrientFile(wx.Frame):
         #    else:
         #        overwrite (default)
         print "ncn {}, ocn {}, dcn {}, gmt {}".format(ncn, ocn, dcn, gmt)
-        COMMAND = "orientation_magic.py -WD {} -f {} -ncn {} -ocn {} -dcn {} -gmt {} -mcd {}".format(WD, infile, ncn, ocn, dcn, gmt, mcd)
-        print COMMAND
-        #pw.run_command_and_close_window(self, COMMAND, outfile)
+        COMMAND = "orientation_magic.py -WD {} -f {} -ncn {} -ocn {} -dcn {} -gmt {} -mcd {} -ID {}".format(WD, infile, ncn, ocn, dcn, gmt, mcd, ID)
+        #print COMMAND
+        pw.run_command_and_close_window(self, COMMAND, None)
 
     def on_cancelButton(self,event):
         self.Destroy()
         self.Parent.Raise()
 
     def on_helpButton(self, event):
-        pw.on_helpButton("-h")
+        pw.on_helpButton("orientation_magic.py -h")
 
 

@@ -127,22 +127,28 @@ is the percent cooling rate factor to apply to specimens from this sample, DA-CR
     if "-WD" in args:
         ind=args.index("-WD")
         dir_path=sys.argv[ind+1]
-    orient_file,samp_file,or_con,corr = dir_path+"/orient.txt",dir_path+"/er_samples.txt","1","1"
-    site_file=dir_path+"/er_sites.txt"
-    image_file=dir_path+"/er_images.txt"
+    if "-ID" in args:
+        ind = args.index("-ID")
+        input_dir_path = args[ind+1]
+    else:
+        input_dir_path = dir_path
+    output_dir_path = dir_path
+    orient_file,samp_file,or_con,corr = input_dir_path+"/orient.txt", output_dir_path+"/er_samples.txt","1","1"
+    site_file = output_dir_path+"/er_sites.txt"
+    image_file= output_dir_path+"/er_images.txt"
     SampRecs,SiteRecs,ImageRecs=[],[],[]
     if "-h" in args:
         print main.__doc__
         sys.exit()
     if "-f" in args:
         ind=args.index("-f")
-        orient_file=dir_path+'/'+sys.argv[ind+1]
+        orient_file = input_dir_path+'/'+sys.argv[ind+1]
     if "-Fsa" in args:
         ind=args.index("-Fsa")
-        samp_file=dir_path+'/'+sys.argv[ind+1]
+        samp_file = output_dir_path+'/'+sys.argv[ind+1]
     if "-Fsi" in args:
         ind=args.index("-Fsi")
-        site_file=dir_path+'/'+sys.argv[ind+1]
+        site_file= output_dir_path+'/'+sys.argv[ind+1]
     if '-app' in args:
         AddTo=1
         try:

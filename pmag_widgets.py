@@ -151,7 +151,7 @@ class select_declination(wx.StaticBoxSizer):
         declination_keys = ["Use the IGRF DEC value at the lat/long and date supplied","Use this DEC: ","DEC=0, mag_az is already corrected in file","Correct mag_az but not bedding_dip_dir"]
         declination_values = range(1, 4)
         self.dcn = dict(zip(declination_keys, declination_values))
-        self.select_dcn = wx.ComboBox(parent, -1, declination_keys[0], size=(405, 25), choices=declination_keys, style=wx.CB_DROPDOWN)
+        self.select_dcn = wx.ComboBox(parent, -1, declination_keys[0], size=(405, 25), choices=declination_keys, style=wx.CB_READONLY)
         gridSizer = wx.GridSizer(2, 2, 5, 10)
         gridSizer.AddMany( [label1, label2, self.select_dcn, self.dec_box])
         self.Add(gridSizer, wx.ALIGN_LEFT)

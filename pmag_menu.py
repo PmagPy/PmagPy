@@ -2,8 +2,8 @@
 
 import wx
 import os
-import pmag_basic_dialogs as pbd
-import pmag_menu_dialogs as pmd
+import pmag_basic_dialogs
+import pmag_menu_dialogs
 import pmag_widgets as pw
 
 
@@ -53,14 +53,8 @@ class MagICMenu(wx.MenuBar):
 
 
 
-
     def orient_import1(self, event): 
-        orient1 = pmd.ImportOrientFile(self.parent, self.parent.WD)
-        
-        # first bring up window to select file
-        # then bring up window(s) to select options
-        # then run orientation_magic.py with command-line options
-        print "you clicked item"
+        orient1 = pmag_menu_dialogs.ImportOrientFile(self.parent, self.parent.WD)
 
     def orient_import2(self, event):
         print 'you clicked item2'

@@ -865,7 +865,7 @@ class make_ocn:
         self.top.destroy()
 
 def ask_ocn(parent):
-    print "calling ask_ocn"
+    #print "calling ask_ocn"
     global ocn_rv,dec_rv,dec,GMT
     m=make_ocn(parent)
     parent.wait_window(m.top)
@@ -905,8 +905,6 @@ def orient(): # imports an orientation file to magic
 #
 # check a few things
 #
-    print "ordata", ordata
-    print "ordata[0]", ordata[0]
     Tilts=pmag.get_dictitem(ordata,'bedding_dip','','F') # are there bedding dips? 
     Suns=pmag.get_dictitem(ordata,'shadow_angle','','F') # are there sun compass data?
     suns=len(Suns)
