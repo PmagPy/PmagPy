@@ -97,7 +97,7 @@ class select_specimen_ncn(wx.StaticBoxSizer):
         ncn_keys = ['XXXXY', 'XXXX-YY', 'XXXX.YY', 'XXXX[YYY] where YYY is sample designation, enter number of Y', 'sample name=site name', 'Site names in orient.txt file', '[XXXX]YYY where XXXX is the site name, enter number of X', 'this is a synthetic and has no site name']
         ncn_values = range(1,9)
         self.sample_naming_conventions = dict(zip(ncn_keys, ncn_values))
-        self.select_naming_convention = wx.ComboBox(parent, -1, ncn_keys[0], size=(430,25), choices=ncn_keys, style=wx.CB_DROPDOWN)
+        self.select_naming_convention = wx.ComboBox(parent, -1, ncn_keys[0], size=(430,25), choices=ncn_keys, style=wx.CB_READONLY)
         self.sample_naming_convention_char = wx.TextCtrl(parent, id=-1, size=(40,25))
         label1 = wx.StaticText(parent,label="specimen-sample naming convention:",style=wx.TE_CENTER)
         label2 = wx.StaticText(parent, label="delimiter (if necessary):", style=wx.TE_CENTER)
@@ -130,7 +130,7 @@ class select_specimen_ocn(wx.StaticBoxSizer):
                 "Lab arrow azimuth = mag_azimuth-90; Lab arrow dip = 90-field_dip"]
         ocn_values = range(1, 6)
         self.sample_orientation_conventions = dict(zip(ocn_keys, ocn_values))
-        self.select_orientation_convention = wx.ComboBox(parent, -1, ocn_keys[0], size=(705,25), choices=ocn_keys, style=wx.CB_DROPDOWN)
+        self.select_orientation_convention = wx.ComboBox(parent, -1, ocn_keys[0], size=(705,25), choices=ocn_keys, style=wx.CB_READONLY)
         self.Add(self.select_orientation_convention, wx.ALIGN_LEFT)
         self.AddSpacer(8)
 
@@ -245,7 +245,7 @@ class experiment_type(wx.StaticBoxSizer):
         gridSizer2 = wx.GridSizer(5, 3, 0, 0)
         self.boxes = []
         experiment_names=['AF Demag', 'Thermal (includes thellier but not trm)', 'Shaw method', 'IRM (acquisition)', '3D IRM experiment', 'NRM only', 'TRM acquisition', 'double AF demag', 'triple AF demag (GRM protocol)', 'Cooling rate experiment']
-        TEXT = "Experiment type (select all that apply):"
+        TEXT = "Experiment type (required, select all that apply):"
         for n, experiment in enumerate(experiment_names):
             cb = wx.CheckBox(parent, -1, experiment)
             self.boxes.append(cb)

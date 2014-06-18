@@ -171,7 +171,7 @@ class convert_generic_files_to_MagIC(wx.Frame):
         TEXT="Experiment:"
         self.bSizer2 = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY, "" ), wx.HORIZONTAL )
         self.experiments_names=['Demag (AF and/or Thermal)','Paleointensity-IZZI/ZI/ZI','ATRM 6 positions','AARM 6 positions','cooling rate','TRM']
-        self.protocol_info = wx.ComboBox(self.panel, -1, self.experiments_names[0], size=(300,25),choices=self.experiments_names, style=wx.CB_DROPDOWN)
+        self.protocol_info = wx.ComboBox(self.panel, -1, self.experiments_names[0], size=(300,25),choices=self.experiments_names, style=wx.CB_READONLY)
         self.bSizer2.Add(wx.StaticText(pnl,label=TEXT),wx.ALIGN_LEFT)
         self.bSizer2.AddSpacer(5)
         self.bSizer2.Add(self.protocol_info,wx.ALIGN_LEFT)
@@ -181,11 +181,9 @@ class convert_generic_files_to_MagIC(wx.Frame):
 
         #---sizer 4 ----
         # unique because only allows 4 choices (most others have ncn choices)
-        #TEXT="Sample-specimen naming convention:"
         self.bSizer4 = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY, "" ), wx.VERTICAL )
-        #self.sample_specimen_text=wx.StaticText(self.panel,label=TEXT)
         self.sample_naming_conventions=['sample=specimen','no. of initial characters','no. of terminal characters','character delimited']
-        self.sample_naming_convention = wx.ComboBox(self.panel, -1, self.sample_naming_conventions[0], size=(250,25), choices=self.sample_naming_conventions, style=wx.CB_DROPDOWN)
+        self.sample_naming_convention = wx.ComboBox(self.panel, -1, self.sample_naming_conventions[0], size=(250,25), choices=self.sample_naming_conventions, style=wx.CB_READONLY)
         self.sample_naming_convention_char = wx.TextCtrl(self.panel, id=-1, size=(40,25))
         gridbSizer4 = wx.GridSizer(2, 2, 0, 10)
         gridbSizer4.AddMany( [(wx.StaticText(self.panel,label="specimen-sample naming convention",style=wx.TE_CENTER),wx.ALIGN_LEFT),
@@ -199,16 +197,14 @@ class convert_generic_files_to_MagIC(wx.Frame):
         #---sizer 5 ----
 
         self.bSizer5 = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY, "" ), wx.VERTICAL )
-        #bSizer5.Add(wx.StaticText(pnl,label=TEXT),wx.ALIGN_TOP)
         self.site_naming_conventions=['site=sample','no. of initial characters','no. of terminal characters','character delimited']
         self.site_naming_convention_char = wx.TextCtrl(self.panel, id=-1, size=(40,25))
-        self.site_naming_convention = wx.ComboBox(self.panel, -1, self.site_naming_conventions[0], size=(250,25), choices=self.site_naming_conventions, style=wx.CB_DROPDOWN)
+        self.site_naming_convention = wx.ComboBox(self.panel, -1, self.site_naming_conventions[0], size=(250,25), choices=self.site_naming_conventions, style=wx.CB_READONLY)
         gridbSizer5 = wx.GridSizer(2, 2, 0, 10)
         gridbSizer5.AddMany( [(wx.StaticText(self.panel,label="sample-site naming convention",style=wx.TE_CENTER),wx.ALIGN_LEFT),
             (wx.StaticText(self.panel,label="delimiter/number (if necessary)",style=wx.TE_CENTER),wx.ALIGN_LEFT),
             (self.site_naming_convention,wx.ALIGN_LEFT),
             (self.site_naming_convention_char,wx.ALIGN_LEFT)])
-        #bSizer4.Add(self.sample_specimen_text,wx.ALIGN_LEFT)
         self.bSizer5.AddSpacer(10)
         self.bSizer5.Add(gridbSizer5,wx.ALIGN_LEFT)
 
