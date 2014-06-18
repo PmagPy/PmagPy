@@ -90,9 +90,7 @@ class import_magnetometer_data(wx.Dialog):
         #print 'canceling select file type import dialogue'
         self.Destroy()
     def on_okButton(self,event):
-        #print 'self.checked', self.checked_rb
         file_type = self.checked_rb.Label.split()[0] # extracts name of the checked radio button
-        #print 'file_type', file_type
         if file_type == 'generic':
             dia = convert_generic_files_to_MagIC(self,self.WD)
         elif file_type == 'SIO':
@@ -728,7 +726,6 @@ class convert_CIT_files_to_MagIC(wx.Frame):
     title = "PmagPy CIT file conversion"
 
     def __init__(self, parent, WD):
-        # put in a parent, maybe?
         wx.Frame.__init__(self, parent, wx.ID_ANY, self.title)
         self.panel = wx.ScrolledWindow(self)
         self.max_files = 1 # but maybe it could take more??
@@ -1107,7 +1104,7 @@ class convert_2G_binary_files_to_MagIC(wx.Frame):
         self.Centre()
 
     def on_add_dir_button(self,event):
-        text = "choose file to convert to MagIC"
+        text = "choose directory of files to convert to MagIC"
         pw.on_add_dir_button(self.panel, self.WD, event, text)
 
     def on_okButton(self, event):
@@ -1461,12 +1458,12 @@ class convert_PMD_files_to_MagIC(wx.Frame):
 
         pnl = self.panel
 
-        TEXT = "PMD format file"
+        TEXT = "Folder containing one or more PMD format files"
         bSizer_info = wx.BoxSizer(wx.HORIZONTAL)
         bSizer_info.Add(wx.StaticText(pnl, label=TEXT), wx.ALIGN_LEFT)
 
         #---sizer 0 ----
-        self.bSizer0 = pw.choose_file(pnl, 'add', method = self.on_add_file_button)
+        self.bSizer0 = pw.choose_dir(pnl, 'add', method = self.on_add_dir_button)
 
         #---sizer 1 ----
         self.bSizer1 = pw.labeled_text_field(pnl)
@@ -1538,18 +1535,16 @@ class convert_PMD_files_to_MagIC(wx.Frame):
         self.Centre()
 
 
-    def on_add_file_button(self,event):
-        text = "choose file to convert to MagIC"
-        pw.on_add_file_button(self.panel, self.WD, event, text)
+    def on_add_dir_button(self,event):
+        text = "choose directory of files to convert to MagIC"
+        pw.on_add_dir_button(self.panel, self.WD, event, text)
 
     def on_okButton(self, event):
-        wd = self.WD
-        full_file = self.bSizer0.return_value()
-        ind = full_file.rfind('/')
-        PMD_file = full_file[ind+1:] 
-        #magicoutfile=os.path.split(PMD_file)[1]+".magic" # these don't do anything because PMD_magic automatically names the outfiles magic_measurements.txt and er_samples.txt.
-        #outfile=os.path.join(self.WD,magicoutfile)
-        #outfile = PMD_file + ".magic"
+        WD = self.WD
+        directory = self.bSizer0.return_value()
+        files = os.listdir(directory)
+        files = [str(f) for f in files if str(f).endswith('.pmd')]
+        ID = "-ID " + directory
         user = self.bSizer1.return_value()
         if user:
             user = "-usr " + user
@@ -1565,9 +1560,13 @@ class convert_PMD_files_to_MagIC(wx.Frame):
             replicate = ''
         else:
             replicate = '-A'
-        COMMAND = "PMD_magic.py -WD {} -f {} {} -ncn {} -mcd {} -spc {} {}".format(wd, PMD_file, user, ncn, particulars, spc, replicate)
-        print COMMAND
-        pw.run_command_and_close_window(self, COMMAND, None)
+        for f in files:
+            outfile = f + ".magic"
+            COMMAND = "PMD_magic.py -WD {} -f {} -F {} {} -ncn {} -mcd {} -spc {} {} {}".format(WD, f, outfile, user, ncn, particulars, spc, replicate, ID)
+            if files.index(f) == len(files) -1:
+                pw.run_command_and_close_window(self, COMMAND, outfile)
+            else:
+                pw.run_command(self, COMMAND, outfile)
 
     def on_cancelButton(self,event):
         self.Destroy()
