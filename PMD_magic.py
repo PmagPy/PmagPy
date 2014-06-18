@@ -65,8 +65,14 @@ def main():
     if '-WD' in sys.argv:
         ind = sys.argv.index('-WD')
         dir_path=sys.argv[ind+1]
-    samp_file=dir_path+'/er_samples.txt'
-    meas_file=dir_path+"/magic_measurements.txt"
+    if '-ID' in sys.argv:
+        ind = sys.argv.index('-ID')
+        input_dir_path = sys.argv[ind+1]
+    else:
+        input_dir_path = dir_path
+    output_dir_path = dir_path
+    samp_file = output_dir_path+'/er_samples.txt'
+    meas_file = output_dir_path+"/magic_measurements.txt"
     if "-h" in args:
         print main.__doc__
         sys.exit()
@@ -75,23 +81,23 @@ def main():
         user=args[ind+1]
     if '-F' in args:
         ind=args.index("-F")
-        meas_file=dir_path+'/'+args[ind+1]
+        meas_file = output_dir_path+'/'+args[ind+1]
     if '-Fsa' in args:
-        ind=args.index("-Fsa")
-        samp_file=dir_path+'/'+args[ind+1]
+        ind = args.index("-Fsa")
+        samp_file = output_dir_path+'/'+args[ind+1]
         try:
             open(samp_file,'rU')
             ErSamps,file_type=pmag.magic_read(samp_file)
             print 'sample information will be appended to ', samp_file 
         except:
             print samp_file,' not found: sample information will be stored in new er_samples.txt file'
-            samp_file=dir_path+'/er_samples.txt'
+            samp_file = output_dir_path+'/er_samples.txt'
     if '-f' in args:
-        ind=args.index("-f")
-        mag_file=dir_path+'/'+args[ind+1]
+        ind = args.index("-f")
+        mag_file= input_dir_path+'/'+args[ind+1]
     if "-spc" in args:
-        ind=args.index("-spc")
-        specnum=int(args[ind+1])
+        ind = args.index("-spc")
+        specnum = int(args[ind+1])
         if specnum!=0:specnum=-specnum
     if "-ncn" in args:
         ind=args.index("-ncn")

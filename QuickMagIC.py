@@ -10,6 +10,7 @@ import pmag_menu
 
 
 
+
 class MagMainFrame(wx.Frame):
     """"""
     try:

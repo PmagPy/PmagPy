@@ -200,7 +200,6 @@ class Arai_GUI(wx.Frame):
         self.acceptance_criteria=pmag.initialize_acceptance_criteria()
         self.add_thelier_gui_criteria()
         self.read_criteria_file(self.WD+"/pmag_criteria.txt")  
-
         # preferences
 
         preferences=self.get_preferences()
@@ -259,7 +258,6 @@ class Arai_GUI(wx.Frame):
         self.GUI_log=open("%s/thellier_GUI.log"%self.WD,'a')
         os.chdir(self.WD)
         self.WD=os.getcwd()+"/"
-
     def Main_Frame(self):
         """ 
         Build main frame od panel: buttons, etc.
@@ -3538,6 +3536,14 @@ class Arai_GUI(wx.Frame):
             #-------------------------------------------------
             #print s
             for tmin_i in range(len(temperatures)-specimen_int_n+1):
+                # check if to include NRM
+                #print temperatures
+                #print  self.acceptance_criteria['include_nrm']['value']
+                if self.acceptance_criteria['include_nrm']['value']==-999:
+                    #print " Its False"
+                    if temperatures[tmin_i]==273:
+                        continue
+                    #    print "ignoring NRM",tmin_i,temperatures[tmin_i]
                 #print tmin_i
                 for tmax_i in range(tmin_i+specimen_int_n-1,len(temperatures)):
                     #print tmax_i
@@ -4203,15 +4209,16 @@ class Arai_GUI(wx.Frame):
     #----------------------------------------------------------------------
 
     def on_menu_open_interpreter_file(self, event):
+        #print "self.WD",self.WD
         try:
-            dirname=self.WD + "/thellier_interpreter"
+            dirname=os.path.join(self.WD,"thellier_interpreter")
         except:
             dirname=self.WD
-
+        print "dirname",dirname
         dlg = wx.FileDialog(
             self, message="Choose an auto-interpreter output file",
             defaultDir=dirname, 
-            defaultFile="",
+            #defaultFile="",
             style=wx.OPEN | wx.CHANGE_DIR
             )
                         
@@ -4220,7 +4227,7 @@ class Arai_GUI(wx.Frame):
             filename = dlg.GetFilename()
             path=dlg.GetPath()
         #print  filename
-        print filename
+        #print filename
         if "samples" in filename or "bounds" in filename or "site" in filename:
             ignore_n=4
 
@@ -5579,16 +5586,37 @@ class Arai_GUI(wx.Frame):
         except:
             pass
 
-        plt_x_years=dia.set_plot_year.GetValue()
-        plt_x_BP=dia.set_plot_BP.GetValue()
-        
+        #plt_x_years=dia.set_plot_year.GetValue()
+        #plt_x_BP=dia.set_plot_BP.GetValue()
+        set_age_unit=dia.set_age_unit.GetValue()
         plt_B=dia.set_plot_B.GetValue()
         plt_VADM=dia.set_plot_VADM.GetValue()
         show_sample_labels=dia.show_samples_ID.GetValue()
         show_x_error_bar=dia.show_x_error_bar.GetValue()                                
         show_y_error_bar=dia.show_y_error_bar.GetValue()                                
+        show_STDEVOPT=dia.show_STDEVOPT.GetValue()                                
+        show_STDEVOPT_extended=dia.show_STDEVOPT_extended.GetValue()                                
 
+        if show_STDEVOPT:
+            data2plot={}
+            if self.acceptance_criteria['average_by_sample_or_site']['value']=='sample':
+                FILE=os.path.join(self.WD,'thellier_interpreter','thellier_interpreter_STDEV-OPT_samples.txt')
+                NAME="er_sample_name"
+            else:
+                FILE=os.path.join(self.WD,'thellier_interpreter','thellier_interpreter_STDEV-OPT_sites.txt')
+                NAME="er_site_name"
+            try:
+                data2plot=self.read_magic_file(FILE,4,NAME)
+            except:
+                data2plot={}
+        else:
+            if self.acceptance_criteria['average_by_sample_or_site']['value']=='sample':
+                data2plot=copy.deepcopy(self.Data_samples)   
+            else:
+                data2plot=copy.deepcopy(self.Data_sites)
+                data2plot=copy.deepcopy(Data_samples_or_sites)
 
+       
         show_map=dia.show_map.GetValue()
         set_map_autoscale=dia.set_map_autoscale.GetValue()
         if not set_map_autoscale:
@@ -5612,223 +5640,184 @@ class Arai_GUI(wx.Frame):
             except:
                 pass
         plot_by_locations={}
-        #X_data,X_data_plus,X_data_minus=[],[],[]
-        #Y_data,Y_data_plus,Y_data_minus=[],[],[]
-        #samples_names=[]
-        #samples_or_sites_names=[]
  
-        if self.acceptance_criteria['average_by_sample_or_site']['value']=='sample':
-            Data_samples_or_sites=copy.deepcopy(self.Data_samples)   
-        else:
-            Data_samples_or_sites=copy.deepcopy(self.Data_sites)
             
         # search for lat (for VADM calculation) and age:        
         lat_min,lat_max,lon_min,lon_max=90,-90,180,-180
-        for sample_or_site in Data_samples_or_sites.keys():
+        age_min,age_max=1e10,-1e10
+        #if not show_STDEVOPT:
+        for sample_or_site in data2plot.keys():
 
-            #print sample_or_site
             found_age,found_lat=False,False
-#            tmp_B=[]
-#            for spec in Data_samples_or_sites[sample_or_site].keys():
-#                tmp_B.append( Data_samples_or_sites[sample_or_site][spec])
-#            if len(tmp_B)<1:
-#                continue
-#            tmp_B=array(tmp_B)
-#            B_uT=mean(tmp_B)
-#            B_std_uT=std(tmp_B,ddof=1)
-#            B_std_perc=100*(B_std_uT/B_uT)
-#
-            #if len(tmp_B)>=self.acceptance_criteria['sample_int_n']:
-            #    if (self.acceptance_criteria['sample_int_sigma_uT']==0 and self.acceptance_criteria['sample_int_sigma_perc']==0) or\
-            #       ( B_std_uT <=self.acceptance_criteria['sample_int_sigma_uT'] or B_std_perc <= self.acceptance_criteria['sample_int_sigma_perc']):
-            #        if ( (max(tmp_B)-min(tmp_B)) <= self.acceptance_criteria['sample_int_interval_uT'] or 100*((max(tmp_B)-min(tmp_B))/mean((tmp_B))) <= self.acceptance_criteria['sample_int_interval_perc']):
             
-            #check if pass criteria
-            sample_or_site_mean_pars=self.calculate_sample_mean(Data_samples_or_sites[sample_or_site])#,sample_or_site,self.acceptance_criteria)
-            #print "sample_or_site",sample_or_site_mean_pars
-            if sample_or_site_mean_pars['pass_or_fail']=='pass':
-                        #print "pass criteria" 
-                       # print  "sample_or_site pass"
-                        
+            if not show_STDEVOPT:
+                
+                #calculate sample/site mean and check if pass criteria
+                sample_or_site_mean_pars=self.calculate_sample_mean(data2plot[sample_or_site])#,sample_or_site,self.acceptance_criteria)
+                if sample_or_site_mean_pars['pass_or_fail']!='pass':
+                    continue
+            else:
+                sample_or_site_mean_pars=data2plot[sample_or_site]#,sample_or_site,self.acceptance_criteria)
+                            
+            # locate site_name
+            if self.acceptance_criteria['average_by_sample_or_site']['value']=='sample':
+                site_name=self.Data_hierarchy['site_of_sample'][sample_or_site] 
+            else:
+                site_name=sample_or_site
 
-                        
-#                        if sample_or_site in self.Data_hierarchy['sites'].keys():
-#                            site= sample_or_site
-#                        elif self.Data_hierarchy['site_of_sample'].keys():
-#                            site=self.Data_hierarchy['site_of_sample'][sample_or_site]
-#                        else:
-#                            site=sample_or_site
-#
-                        if self.acceptance_criteria['average_by_sample_or_site']['value']=='sample':
-                            site_name=self.Data_hierarchy['site_of_sample'][sample_or_site] 
-                        else:
-                            site_name=sample_or_site
-                                                                                
-                        found_age=False
-                        er_ages_rec={}
-                        if sample_or_site in self.Data_info["er_ages"].keys():
-                            er_ages_rec=self.Data_info["er_ages"][sample_or_site]
-                        elif  site_name in   self.Data_info["er_ages"].keys():
-                            er_ages_rec=self.Data_info["er_ages"][site_name]
-                        #print "er_ages_rec",er_ages_rec
-                        if "age" in er_ages_rec.keys() and er_ages_rec["age"]!="":
-                            found_age=True
+            #-----  
+            # search for age data                                                                   
+            #-----  
+            er_ages_rec={}
+            if sample_or_site in self.Data_info["er_ages"].keys():
+                er_ages_rec=self.Data_info["er_ages"][sample_or_site]
+            elif  site_name in  self.Data_info["er_ages"].keys():
+                er_ages_rec=self.Data_info["er_ages"][site_name]
+            if "age" in er_ages_rec.keys() and er_ages_rec["age"]!="":
+                found_age=True
 
-                        #print  "found age "
-                        #print "-----"
-                             
-                            #er_ages_rec=self.Data_info["er_ages"][sample_or_site]
-                        #elif site in self.Data_info["er_ages"].keys() and "age" in self.Data_info["er_ages"][site].keys() and self.Data_info["er_ages"][site]["age"]!="":
-                        #    er_ages_rec=self.Data_info["er_ages"][site]
-                        #    found_age=True 
-                        if  found_age:
-                            if "age_description" in er_ages_rec.keys():
-                                age_description=er_ages_rec["age_description"] 
-                            else:
-                                age_description=""
-                        else:
-                            continue
-                            #age_unit=er_ages_rec["age_unit"]
-                            #mutliplier=1
-                            #if age_unit=="Ga":
-                            #    mutliplier=-1e9
-                            #if age_unit=="Ma":
-                            #    mutliplier=-1e6
-                            #if age_unit=="Ka":
-                            #    mutliplier=-1e3
-                            #if age_unit=="Years AD (+/-)" or age_unit=="Years Cal AD (+/-)":
-                            #    mutliplier=1
-                            #if age_unit=="Years BP" or age_unit =="Years Cal BP":
-                            #    mutliplier=1
-                            #    
-                            #
-                            #age = float(er_ages_rec["age"])*mutliplier
-                            #if age_unit=="Years BP" or age_unit =="Years Cal BP":
-                            #    age=1950-age
-                            #age_range_low=age
-                            #age_range_high=age
-                            #age_sigma=0
-                            #
-                            #if "age_sigma" in er_ages_rec.keys():
-                            #   age_sigma=float(er_ages_rec["age_sigma"])*mutliplier
-                            #   if age_unit=="Years BP" or age_unit =="Years Cal BP":
-                            #     age_sigma=1950-age_sigma
-                            #   age_range_low= age-age_sigma
-                            #   age_range_high= age+age_sigma
-                            #else:                              
-                            #    if "age_range_high" in er_ages_rec.keys() and "age_range_low" in er_ages_rec.keys():
-                            #        age_range_high=float(er_ages_rec["age_range_high"])*mutliplier
-                            #        if age_unit=="Years BP" or age_unit =="Years Cal BP":
-                            #            age_range_high=1950-age_range_high                              
-                            #        age_range_low=float(er_ages_rec["age_range_low"])*mutliplier
-                            #        if age_unit=="Years BP" or age_unit =="Years Cal BP":
-                            #            age_range_low=1950-age_range_low                              
-                         
-                        #-----  
-                        # ignore "poor" and "controversial" ages
-                        #-----
+            if not found_age:
+                continue                
+           
+            #elif "age_range_low" in er_ages_rec.keys() and er_ages_rec["age_range_low"]!="" and "age_range_high" in er_ages_rec.keys() and er_ages_rec["age_range_high"]!="":                
+            #    found_age=True
+            #    er_ages_rec["age"]=scipy.mean([float(er_ages_rec["age_range_low"]),float(er_ages_rec["age_range_high"])])
+            if "age_description" in er_ages_rec.keys():
+                age_description=er_ages_rec["age_description"] 
+            else:
+                age_description=""
 
-                                                               
-                        if "poor" in age_description or "controversial" in age_description:
-                            print "skipping sample %s because of age quality" %sample_or_site
-                            self.GUI_log.write( "-W- Plot: skipping sample %s because of age quality\n"%sample_or_site)
-                            continue
+            # ignore "poor" and "controversial" ages
+            if "poor" in age_description or "controversial" in age_description:
+                print "skipping sample %s because of age quality" %sample_or_site
+                self.GUI_log.write( "-W- Plot: skipping sample %s because of age quality\n"%sample_or_site)
+                continue
 
-                               
-                                                                                             
-                        #-----  
-                        # serch for latitude data
-                        #-----
-                        
-                        found_lat=False
-                        #print "site_name",site_name
-                        #print self.Data_info["er_sites"].keys()
-                        er_sites_rec={}
-                        if site_name in self.Data_info["er_sites"].keys():
-                            er_sites_rec=self.Data_info["er_sites"][site_name]
-                            found_lat=True 
-                        #print "found_lat"
-                        #elif site in self.Data_info["er_sites"].keys():
-                        #    er_sites_rec=self.Data_info["er_sites"][site]
-                        #    found_lat=True 
-                        
-                        if found_lat:
-                            lat=float(er_sites_rec["site_lat"])
-                            lon=float(er_sites_rec["site_lon"])
-                        
+            age_min=min(age_min,float(er_ages_rec["age"]))
+            age_max=max(age_max,float(er_ages_rec["age"]))
+            #-----  
+            # serch for latitude data
+            #-----            
+            found_lat,found_lon=False,False
+            er_sites_rec={}
+            if site_name in self.Data_info["er_sites"].keys():
+                er_sites_rec=self.Data_info["er_sites"][site_name]
+                if "site_lat" and er_sites_rec.keys() and er_sites_rec["site_lat"] != "":
+                    found_lat=True 
+                    lat=float(er_sites_rec["site_lat"])
+                if "site_lon" and er_sites_rec.keys() and er_sites_rec["site_lon"] != "":
+                    found_lon=True 
+                    lon=float(er_sites_rec["site_lon"])
+                # convert lon to -180 to +180
+                if lon >180:
+                    lon=lon-360.
+            
+            #-----  
+            # search for latitude data
+            # sort by locations
+            # calculate VADM
+            #-----
 
-                        
-
-                        #-----  
-                        # sort by locations
-                        #-----
-
-                        location="unknown"
-                        #try: 
-                        if sample_or_site in self.Data_info["er_sites"].keys():
-                                location=self.Data_info["er_sites"][sample_or_site]["er_location_name"]
-                        elif sample_or_site in self.Data_info["er_samples"].keys():
-                                location=self.Data_info["er_samples"][sample_or_site]["er_location_name"]                            
-                        else:
-                            location="unknown"
-                        
-                        if location not in plot_by_locations.keys():
-                            plot_by_locations[location]={}
-                            plot_by_locations[location]['X_data'],plot_by_locations[location]['Y_data']=[],[]
-                            plot_by_locations[location]['X_data_plus'],plot_by_locations[location]['Y_data_plus']=[],[]
-                            plot_by_locations[location]['X_data_minus'],plot_by_locations[location]['Y_data_minus']=[],[]
-                            plot_by_locations[location]['samples_names']=[]
-                            plot_by_locations[location]['site_lon'],plot_by_locations[location]['site_lat']=[],[]
-                            #if found_lat:
-                            #    lat_min,lat_max,lon_min,lon_max=lat,lat,lon,lon
-                            #else:
-                            #    lat_min,lat_max,lon_min,lon_max=0,0,0,0
+            if sample_or_site in self.Data_info["er_sites"].keys():
+                    location=self.Data_info["er_sites"][sample_or_site]["er_location_name"]
+            elif sample_or_site in self.Data_info["er_samples"].keys():
+                    location=self.Data_info["er_samples"][sample_or_site]["er_location_name"]                            
+            else:
+                location="unknown"
+            
+            if location not in plot_by_locations.keys():
+                plot_by_locations[location]={}
+                plot_by_locations[location]['X_data'],plot_by_locations[location]['Y_data']=[],[]
+                plot_by_locations[location]['X_data_plus'],plot_by_locations[location]['Y_data_plus']=[],[]
+                plot_by_locations[location]['X_data_minus'],plot_by_locations[location]['Y_data_minus']=[],[]
+                if show_STDEVOPT:
+                    plot_by_locations[location]['Y_data_minus_extended'],plot_by_locations[location]['Y_data_plus_extended']=[],[]
+                plot_by_locations[location]['samples_names']=[]
+                plot_by_locations[location]['site_lon'],plot_by_locations[location]['site_lat']=[],[]
+                    
+            if found_lat:
+                plot_by_locations[location]['site_lon']=lon
+                plot_by_locations[location]['site_lat']=lat
+                lat_min,lat_max=min(lat_min,lat),max(lat_max,lat)
+                lon_min,lon_max=min(lon_min,lon),max(lon_max,lon)
+            
+            if show_STDEVOPT:    
+                B_uT=float(sample_or_site_mean_pars['sample_int_uT'])
+                B_std_uT=float(sample_or_site_mean_pars['sample_int_sigma_uT'])
+                B_max_extended=float(sample_or_site_mean_pars['sample_int_max_uT'])+float(sample_or_site_mean_pars['sample_int_max_sigma_uT'])
+                B_min_extended=float(sample_or_site_mean_pars['sample_int_min_uT'])-float(sample_or_site_mean_pars['sample_int_min_sigma_uT'])                    
+            else:
+                B_uT=float(sample_or_site_mean_pars['B_uT'])
+                B_std_uT=float(sample_or_site_mean_pars['B_std_uT'])
                                 
-                        if found_lat:
-                           plot_by_locations[location]['site_lon']=lon
-                           plot_by_locations[location]['site_lat']=lat
-                        if found_lat:
-                            lat_min,lat_max=min(lat_min,lat),max(lat_max,lat)
-                            lon_min,lon_max=min(lon_min,lon),max(lon_max,lon)
-                        if  plt_B:
-                            plot_by_locations[location]['Y_data'].append(sample_or_site_mean_pars['B_uT'])
-                            plot_by_locations[location]['Y_data_plus'].append(sample_or_site_mean_pars['B_std_uT'])
-                            plot_by_locations[location]['Y_data_minus'].append(sample_or_site_mean_pars['B_std_uT'])
-                            plot_by_locations[location]['samples_names'].append(sample_or_site)
-                            
-                        elif plt_VADM and found_lat: # units of ZAm^2
-                            B_uT=sample_or_site_mean_pars['B_uT']
-                            B_std_uT=sample_or_site_mean_pars['B_std_uT']
-                            VADM=pmag.b_vdm(B_uT*1e-6,lat)*1e-21
-                            VADM_plus=pmag.b_vdm((B_uT+B_std_uT)*1e-6,lat)*1e-21
-                            VADM_minus=pmag.b_vdm((B_uT-B_std_uT)*1e-6,lat)*1e-21
-                            plot_by_locations[location]['Y_data'].append(VADM)
-                            plot_by_locations[location]['Y_data_plus'].append(VADM_plus-VADM)
-                            plot_by_locations[location]['Y_data_minus'].append(VADM-VADM_minus)
-                            plot_by_locations[location]['samples_names'].append(sample_or_site)
+            if  plt_B:
+                plot_by_locations[location]['Y_data'].append(B_uT)
+                plot_by_locations[location]['Y_data_plus'].append(B_std_uT)
+                plot_by_locations[location]['Y_data_minus'].append(B_std_uT)
+                plot_by_locations[location]['samples_names'].append(sample_or_site)
+                
+                if show_STDEVOPT:
+                    plot_by_locations[location]['Y_data_plus_extended'].append(B_max_extended-B)
+                    plot_by_locations[location]['Y_data_minus_extended'].append(B-B_min_extended)
+                                                                        
+            elif plt_VADM and found_lat: # units of ZAm^2
+                VADM=pmag.b_vdm(B_uT*1e-6,lat)*1e-21
+                VADM_plus=pmag.b_vdm((B_uT+B_std_uT)*1e-6,lat)*1e-21
+                VADM_minus=pmag.b_vdm((B_uT-B_std_uT)*1e-6,lat)*1e-21
+                if show_STDEVOPT:
+                    VADM_plus_extended= pmag.b_vdm((B_max_extended)*1e-6,lat)*1e-21
+                    VADM_minus_extended=pmag.b_vdm((B_min_extended)*1e-6,lat)*1e-21
+                
+                plot_by_locations[location]['Y_data'].append(VADM)
+                plot_by_locations[location]['Y_data_plus'].append(VADM_plus-VADM)
+                plot_by_locations[location]['Y_data_minus'].append(VADM-VADM_minus)
+                plot_by_locations[location]['samples_names'].append(sample_or_site)
+                if show_STDEVOPT:
+                    plot_by_locations[location]['Y_data_plus_extended'].append(VADM_plus_extended-VADM)
+                    plot_by_locations[location]['Y_data_minus_extended'].append(VADM-VADM_minus_extended)
 
-                        elif plt_VADM and not found_lat:
-                            self.GUI_log.write( "-W- Plot: skipping sample %s because cant find latitude for V[A]DM calculation\n"%sample_or_site)
-                            print "-W- Plot: skipping sample %s because  cant find latitude for V[A]DM calculation\n"%sample_or_site
-                            continue
+            elif plt_VADM and not found_lat:
+                self.GUI_log.write( "-W- Plot: skipping sample %s because cant find latitude for V[A]DM calculation\n"%sample_or_site)
+                print "-W- Plot: skipping sample %s because  cant find latitude for V[A]DM calculation\n"%sample_or_site
+                continue
 
-                        age=float(er_ages_rec["age_cal_year"])
-                        age_range_low=float(er_ages_rec["age_cal_year_range_low"])
-                        age_range_high = float(er_ages_rec["age_cal_year_range_high"])                                     
+            #-----  
+            # assign the right age
+            #-----
 
-                        plot_by_locations[location]['X_data'].append(age)
-                        plot_by_locations[location]['X_data_plus'].append(age_range_high-age)
-                        plot_by_locations[location]['X_data_minus'].append(age-age_range_low)
-                        found_age=False
-                        found_lat=False
-                        
-                         
-                            
+            age=float(er_ages_rec["age_cal_year"])
+            age_range_low=float(er_ages_rec["age_cal_year_range_low"])
+            age_range_high = float(er_ages_rec["age_cal_year_range_high"])                                     
+
+            # fix ages:
+            if set_age_unit == "Years BP":
+                age=1950-age
+                age_range_high=1950-age_range_high
+                age_range_low=1950-age_range_low
+            if set_age_unit == "Ka":
+                age=age/-1e3
+                age_range_high=age_range_high/-1e3
+                age_range_low=age_range_low/-1e3
+            if set_age_unit == "Ma":
+                age=age/-1e6
+                age_range_high=age_range_high/-1e6
+                age_range_low=age_range_low/-1e6
+            if set_age_unit == "Ga":
+                age=age/-1e9
+                age_range_high=age_range_high/-1e9
+                age_range_low=age_range_low/-1e9
+
+            plot_by_locations[location]['X_data'].append(age)
+            plot_by_locations[location]['X_data_plus'].append(age_range_high-age)
+            plot_by_locations[location]['X_data_minus'].append(age-age_range_low)
+            
+            found_age=False
+            found_lat=False                            
 
 
-        #----
+        #--------
         # map
-
+        #--------
         # read in topo data (on a regular lat/lon grid)
         # longitudes go from 20 to 380.
         Plot_map=show_map
@@ -5860,20 +5849,17 @@ class Arai_GUI(wx.Frame):
                 m=Basemap(llcrnrlon=SiteLon_min,llcrnrlat=SiteLat_min,urcrnrlon=SiteLon_max,urcrnrlat=SiteLat_max,projection='merc',resolution='i')
 
                 if set_map_lat_grid !="" and set_map_lon_grid!=0:
-##                    lat_min_round=SiteLat_min-SiteLat_min%set_map_lat_grid
-##                    lat_max_round=SiteLat_max-SiteLat_max%set_map_lat_grid
-##                    lon_min_round=SiteLon_min-SiteLon_min%set_map_lat_grid
-##                    lon_max_round=SiteLon_max-SiteLon_max%set_map_lat_grid
                     m.drawparallels(np.arange(SiteLat_min,SiteLat_max+set_map_lat_grid,set_map_lat_grid),linewidth=0.5,labels=[1,0,0,0],fontsize=10)
                     m.drawmeridians(np.arange(SiteLon_min,SiteLon_max+set_map_lon_grid,set_map_lon_grid),linewidth=0.5,labels=[0,0,0,1],fontsize=10)
 
                 else:
-                    lat_min_round=SiteLat_min-SiteLat_min%10
+                    pass
+                    '''lat_min_round=SiteLat_min-SiteLat_min%10
                     lat_max_round=SiteLat_max-SiteLat_max%10
                     lon_min_round=SiteLon_min-SiteLon_min%10
                     lon_max_round=SiteLon_max-SiteLon_max%10
                     m.drawparallels(np.arange(lat_min_round,lat_max_round+5,5),linewidth=0.5,labels=[1,0,0,0],fontsize=10)
-                    m.drawmeridians(np.arange(lon_min_round,lon_max_round+5,5),linewidth=0.5,labels=[0,0,0,1],fontsize=10)
+                    m.drawmeridians(np.arange(lon_min_round,lon_max_round+5,5),linewidth=0.5,labels=[0,0,0,1],fontsize=10)'''
 
                 m.fillcontinents(zorder=0,color='0.9')
                 m.drawcoastlines()
@@ -5883,6 +5869,12 @@ class Arai_GUI(wx.Frame):
                 print "Cant plot map. Is basemap installed?"
         cnt=0    
 
+        #-----  
+        # draw paleointensity errorbar plot
+        #-----
+
+        # fix ages
+            
         Fig=figure(1,(15,6))
         clf()
         ax = axes([0.3,0.1,0.6,0.8])
@@ -5893,15 +5885,25 @@ class Arai_GUI(wx.Frame):
             figure(1)
             X_data,X_data_minus,X_data_plus=plot_by_locations[location]['X_data'],plot_by_locations[location]['X_data_minus'],plot_by_locations[location]['X_data_plus']
             Y_data,Y_data_minus,Y_data_plus=plot_by_locations[location]['Y_data'],plot_by_locations[location]['Y_data_minus'],plot_by_locations[location]['Y_data_plus']
+            if show_STDEVOPT:
+                Y_data_minus_extended,Y_data_plus_extended=plot_by_locations[location]['Y_data_minus_extended'],plot_by_locations[location]['Y_data_plus_extended']
+                
+                                
             if not show_x_error_bar:
                 Xerr=None
             else:
                 Xerr=[array(X_data_minus),array(X_data_plus)]
+
             if not show_y_error_bar:
                 Yerr=None
             else:
                 Yerr=[Y_data_minus,Y_data_plus]
+
             errorbar(X_data,Y_data,xerr=Xerr,yerr=Yerr,fmt=SYMBOLS[cnt%len(SYMBOLS)],color=COLORS[cnt%len(COLORS)],label=location)
+            if show_STDEVOPT_extended:
+                errorbar(X_data,Y_data,xerr=None,yerr=[Y_data_minus_extended,Y_data_plus_extended],fmt='.',ms=0,ecolor='red',label="extended error-bar",zorder=0)
+                
+
             if Plot_map:
                 figure(2)
                 lat=plot_by_locations[location]['site_lat']
@@ -5911,7 +5913,6 @@ class Arai_GUI(wx.Frame):
             cnt+=1
                 
         fig1=figure(1)#,(15,6))
-        #figtext(0.05,0.95,"N=%i"%len(X_data))
         
         legend_font_props = matplotlib.font_manager.FontProperties()
         legend_font_props.set_size(12)
@@ -5931,13 +5932,14 @@ class Arai_GUI(wx.Frame):
         if plt_B:
             #ylabel("B (microT)")
             ax.set_ylabel(r'B  $\mu T$',fontsize=12)
-        if plt_x_BP:
-            #xlabel("years BP")
-            ax.set_xlabel("years BP",fontsize=12)
-        if plt_x_years:
-            #xlabel("Date")
-            ax.set_xlabel("Date",fontsize=12)
-
+        #if plt_x_BP:
+        #    #xlabel("years BP")
+        #    ax.set_xlabel("years BP",fontsize=12)
+        #if plt_x_years:
+        #    #xlabel("Date")
+        #    ax.set_xlabel("Date",fontsize=12)
+        ax.set_xlabel(set_age_unit,fontsize=12)
+        
         if not x_autoscale:
             try:
                 ax.set_xlim(xmin=x_axis_min)
@@ -7441,11 +7443,17 @@ class Arai_GUI(wx.Frame):
                 self.acceptance_criteria[crit]['value']='sample'
             if crit in ['interpreter_method']:
                 self.acceptance_criteria[crit]['value']='stdev_opt'
-                
             self.acceptance_criteria[crit]['threshold_type']="flag"
             self.acceptance_criteria[crit]['decimal_points']=-999
        
-                     
+        for crit in ['include_nrm']:
+            self.acceptance_criteria[crit]={} 
+            self.acceptance_criteria[crit]['category']=category
+            self.acceptance_criteria[crit]['criterion_name']=crit
+            self.acceptance_criteria[crit]['value']=True
+            self.acceptance_criteria[crit]['threshold_type']="bool"
+            self.acceptance_criteria[crit]['decimal_points']=-999
+                    
         
         # define internal Thellier-GUI definitions:
         self.average_by_sample_or_site='sample'

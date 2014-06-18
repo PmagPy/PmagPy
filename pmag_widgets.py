@@ -32,26 +32,28 @@ class choose_file(wx.StaticBoxSizer):
         return self.parent.file_path.GetValue()
 
 
-class choose_dir(wx.StaticBox):
+class choose_dir(wx.StaticBoxSizer):
     
     def __init__(self, parent, btn_text='add', method=None):
+        box = wx.StaticBox(parent, wx.ID_ANY, "")
+        super(choose_dir, self).__init__(box, orient=wx.VERTICAL)
+        self.btn_text = btn_text
         self.parent = parent
-        self.bSizer0 =  wx.StaticBoxSizer( wx.StaticBox( self.parent, wx.ID_ANY, "" ), wx.VERTICAL )
-        self.file_path = wx.TextCtrl(parent, id=-1, size=(400,25), style=wx.TE_READONLY)
-        self.add_file_button = wx.Button(parent, id=-1, label=btn_text,name='add')
+        self.parent.dir_path = wx.TextCtrl(parent, id=-1, size=(400,25), style=wx.TE_READONLY)
+        self.add_dir_button = wx.Button(parent, id=-1, label=btn_text,name='add')
         if method:
-            self.Bind(wx.EVT_BUTTON, method, self.add_file_button)
+            self.parent.Bind(wx.EVT_BUTTON, method, self.add_dir_button)
         TEXT="Choose folder (no spaces are allowed in path):"
-        self.bSizer0.Add(wx.StaticText(self.parent, label=TEXT),wx.ALIGN_LEFT)
-        self.bSizer0.AddSpacer(4)
+        self.Add(wx.StaticText(self.parent, label=TEXT),wx.ALIGN_LEFT)
+        self.AddSpacer(4)
         bSizer0_1=wx.BoxSizer(wx.HORIZONTAL)
-        bSizer0_1.Add(self.add_file_button,wx.ALIGN_LEFT)
+        bSizer0_1.Add(self.add_dir_button,wx.ALIGN_LEFT)
         bSizer0_1.AddSpacer(4)
-        bSizer0_1.Add(self.file_path,wx.ALIGN_LEFT)
-        self.bSizer0.Add(bSizer0_1,wx.ALIGN_LEFT)
+        bSizer0_1.Add(self.parent.dir_path,wx.ALIGN_LEFT)
+        self.Add(bSizer0_1,wx.ALIGN_LEFT)
 
-    def sizer(self):
-        return self.bSizer0
+    def return_value(self):
+        return self.parent.dir_path.GetValue()
 
 
 class labeled_text_field(wx.StaticBoxSizer):
@@ -95,14 +97,15 @@ class select_specimen_ncn(wx.StaticBoxSizer):
         ncn_keys = ['XXXXY', 'XXXX-YY', 'XXXX.YY', 'XXXX[YYY] where YYY is sample designation, enter number of Y', 'sample name=site name', 'Site names in orient.txt file', '[XXXX]YYY where XXXX is the site name, enter number of X', 'this is a synthetic and has no site name']
         ncn_values = range(1,9)
         self.sample_naming_conventions = dict(zip(ncn_keys, ncn_values))
-        self.select_naming_convention = wx.ComboBox(parent, -1, ncn_keys[0], size=(250,25), choices=ncn_keys, style=wx.CB_DROPDOWN)
+        self.select_naming_convention = wx.ComboBox(parent, -1, ncn_keys[0], size=(430,25), choices=ncn_keys, style=wx.CB_READONLY)
         self.sample_naming_convention_char = wx.TextCtrl(parent, id=-1, size=(40,25))
-        gridbSizer = wx.GridSizer(2, 2, 5, 10)
-        gridbSizer.AddMany( [(wx.StaticText(parent,label="specimen-sample naming convention",style=wx.TE_CENTER),wx.ALIGN_LEFT),
-                      (wx.StaticText(parent, label="delimiter (if necessary)", style=wx.TE_CENTER),wx.ALIGN_LEFT),
-                      (self.select_naming_convention,wx.ALIGN_LEFT),
-                      (self.sample_naming_convention_char,wx.ALIGN_LEFT)])
-        self.AddSpacer(8)
+        label1 = wx.StaticText(parent,label="specimen-sample naming convention:",style=wx.TE_CENTER)
+        label2 = wx.StaticText(parent, label="delimiter (if necessary):", style=wx.TE_CENTER)
+        gridbSizer = wx.GridBagSizer(5, 10)
+        gridbSizer.Add(label1, (0, 0))
+        gridbSizer.Add(label2, (0, 1))
+        gridbSizer.Add(self.select_naming_convention, (1, 0))
+        gridbSizer.Add(self.sample_naming_convention_char, (1, 1))
         self.Add(gridbSizer,wx.ALIGN_LEFT)
 
     def return_value(self):
@@ -112,7 +115,6 @@ class select_specimen_ncn(wx.StaticBoxSizer):
             return str(ncn_number) + '-' + str(self.sample_naming_convention_char.GetValue())
         else:
             return str(ncn_number)
-
 
 
 class select_specimen_ocn(wx.StaticBoxSizer):
@@ -129,8 +131,7 @@ class select_specimen_ocn(wx.StaticBoxSizer):
                 "Lab arrow azimuth = mag_azimuth-90; Lab arrow dip = 90-field_dip"]
         ocn_values = range(1, 6)
         self.sample_orientation_conventions = dict(zip(ocn_keys, ocn_values))
-        self.select_orientation_convention = wx.ComboBox(parent, -1, ocn_keys[0], size=(705,25), choices=ocn_keys, style=wx.CB_DROPDOWN)
-        self.Add(label, flag=wx.ALIGN_LEFT|wx.BOTTOM, border=5)
+        self.select_orientation_convention = wx.ComboBox(parent, -1, ocn_keys[0], size=(705,25), choices=ocn_keys, style=wx.CB_READONLY)
         self.Add(self.select_orientation_convention, wx.ALIGN_LEFT)
         self.AddSpacer(8)
 
@@ -275,7 +276,7 @@ class experiment_type(wx.StaticBoxSizer):
         gridSizer2 = wx.GridSizer(5, 3, 0, 0)
         self.boxes = []
         experiment_names=['AF Demag', 'Thermal (includes thellier but not trm)', 'Shaw method', 'IRM (acquisition)', '3D IRM experiment', 'NRM only', 'TRM acquisition', 'double AF demag', 'triple AF demag (GRM protocol)', 'Cooling rate experiment']
-        TEXT = "Experiment type (select all that apply):"
+        TEXT = "Experiment type (required, select all that apply):"
         for n, experiment in enumerate(experiment_names):
             cb = wx.CheckBox(parent, -1, experiment)
             self.boxes.append(cb)
@@ -300,6 +301,16 @@ class experiment_type(wx.StaticBoxSizer):
 
 # methods!
 
+
+def on_add_dir_button(SELF, WD, event, text):
+#    print "on add dir button"
+    dlg = wx.DirDialog(
+            None, message=text,
+            defaultPath=".",
+        style=wx.OPEN | wx.DD_DEFAULT_STYLE
+            )
+    if dlg.ShowModal() == wx.ID_OK:
+        SELF.dir_path.SetValue(str(dlg.GetPath()))
 
 
 def on_add_file_button(SELF, WD, event, text):
@@ -332,10 +343,17 @@ def on_helpButton(command):
 
 
 
+
+def run_command(SELF, command, outfile):
+    print "-I- Running Python command:\n %s"%command
+    os.system(command)
+    print "-I- Saved results in MagIC format file: {}".format(outfile)
+
+
 def run_command_and_close_window(SELF, command, outfile):
     print "-I- Running Python command:\n %s"%command
     os.system(command)                                          
-    MSG="file converted to MagIC format file:\n%s.\n\n See Termimal (Mac) or command prompt (windows) for errors"% outfile
+    MSG="file(s) converted to MagIC format file:\n%s.\n\n See Termimal (Mac) or command prompt (windows) for errors"% outfile
     dlg = wx.MessageDialog(None,caption="Message:", message=MSG ,style=wx.OK|wx.ICON_INFORMATION)
     dlg.ShowModal()
     dlg.Destroy()

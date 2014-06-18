@@ -90,9 +90,7 @@ class import_magnetometer_data(wx.Dialog):
         #print 'canceling select file type import dialogue'
         self.Destroy()
     def on_okButton(self,event):
-        #print 'self.checked', self.checked_rb
         file_type = self.checked_rb.Label.split()[0] # extracts name of the checked radio button
-        #print 'file_type', file_type
         if file_type == 'generic':
             dia = convert_generic_files_to_MagIC(self,self.WD)
         elif file_type == 'SIO':
@@ -173,7 +171,7 @@ class convert_generic_files_to_MagIC(wx.Frame):
         TEXT="Experiment:"
         self.bSizer2 = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY, "" ), wx.HORIZONTAL )
         self.experiments_names=['Demag (AF and/or Thermal)','Paleointensity-IZZI/ZI/ZI','ATRM 6 positions','AARM 6 positions','cooling rate','TRM']
-        self.protocol_info = wx.ComboBox(self.panel, -1, self.experiments_names[0], size=(300,25),choices=self.experiments_names, style=wx.CB_DROPDOWN)
+        self.protocol_info = wx.ComboBox(self.panel, -1, self.experiments_names[0], size=(300,25),choices=self.experiments_names, style=wx.CB_READONLY)
         self.bSizer2.Add(wx.StaticText(pnl,label=TEXT),wx.ALIGN_LEFT)
         self.bSizer2.AddSpacer(5)
         self.bSizer2.Add(self.protocol_info,wx.ALIGN_LEFT)
@@ -183,11 +181,9 @@ class convert_generic_files_to_MagIC(wx.Frame):
 
         #---sizer 4 ----
         # unique because only allows 4 choices (most others have ncn choices)
-        #TEXT="Sample-specimen naming convention:"
         self.bSizer4 = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY, "" ), wx.VERTICAL )
-        #self.sample_specimen_text=wx.StaticText(self.panel,label=TEXT)
         self.sample_naming_conventions=['sample=specimen','no. of initial characters','no. of terminal characters','character delimited']
-        self.sample_naming_convention = wx.ComboBox(self.panel, -1, self.sample_naming_conventions[0], size=(250,25), choices=self.sample_naming_conventions, style=wx.CB_DROPDOWN)
+        self.sample_naming_convention = wx.ComboBox(self.panel, -1, self.sample_naming_conventions[0], size=(250,25), choices=self.sample_naming_conventions, style=wx.CB_READONLY)
         self.sample_naming_convention_char = wx.TextCtrl(self.panel, id=-1, size=(40,25))
         gridbSizer4 = wx.GridSizer(2, 2, 0, 10)
         gridbSizer4.AddMany( [(wx.StaticText(self.panel,label="specimen-sample naming convention",style=wx.TE_CENTER),wx.ALIGN_LEFT),
@@ -201,16 +197,14 @@ class convert_generic_files_to_MagIC(wx.Frame):
         #---sizer 5 ----
 
         self.bSizer5 = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY, "" ), wx.VERTICAL )
-        #bSizer5.Add(wx.StaticText(pnl,label=TEXT),wx.ALIGN_TOP)
         self.site_naming_conventions=['site=sample','no. of initial characters','no. of terminal characters','character delimited']
         self.site_naming_convention_char = wx.TextCtrl(self.panel, id=-1, size=(40,25))
-        self.site_naming_convention = wx.ComboBox(self.panel, -1, self.site_naming_conventions[0], size=(250,25), choices=self.site_naming_conventions, style=wx.CB_DROPDOWN)
+        self.site_naming_convention = wx.ComboBox(self.panel, -1, self.site_naming_conventions[0], size=(250,25), choices=self.site_naming_conventions, style=wx.CB_READONLY)
         gridbSizer5 = wx.GridSizer(2, 2, 0, 10)
         gridbSizer5.AddMany( [(wx.StaticText(self.panel,label="sample-site naming convention",style=wx.TE_CENTER),wx.ALIGN_LEFT),
             (wx.StaticText(self.panel,label="delimiter/number (if necessary)",style=wx.TE_CENTER),wx.ALIGN_LEFT),
             (self.site_naming_convention,wx.ALIGN_LEFT),
             (self.site_naming_convention_char,wx.ALIGN_LEFT)])
-        #bSizer4.Add(self.sample_specimen_text,wx.ALIGN_LEFT)
         self.bSizer5.AddSpacer(10)
         self.bSizer5.Add(gridbSizer5,wx.ALIGN_LEFT)
 
@@ -632,9 +626,9 @@ class convert_SIO_files_to_MagIC(wx.Frame):
         hbox0 = wx.BoxSizer(wx.HORIZONTAL)
         hbox0.Add(self.bSizer5, flag=wx.ALIGN_LEFT)
         hbox0.Add(self.bSizer6, flag=wx.ALIGN_LEFT|wx.LEFT, border=5)
-        hbox0a = wx.BoxSizer(wx.HORIZONTAL)
-        hbox0a.Add(self.bSizer4, flag=wx.ALIGN_LEFT)
-        hbox0a.Add(self.bSizer4a, flag=wx.ALIGN_LEFT|wx.LEFT, border=5)
+        #hbox0a = wx.BoxSizer(wx.HORIZONTAL)
+        #hbox0a.Add(self.bSizer4, flag=wx.ALIGN_LEFT)
+        #hbox0a.Add(self.bSizer4a, flag=wx.ALIGN_LEFT|wx.LEFT, border=5)
         hbox1 =wx.BoxSizer(wx.HORIZONTAL)
         hbox1.Add(self.bSizer8, flag=wx.ALIGN_LEFT)
         hbox1.Add(self.bSizer9, flag=wx.ALIGN_LEFT|wx.LEFT, border=5)
@@ -644,8 +638,9 @@ class convert_SIO_files_to_MagIC(wx.Frame):
         vbox.Add(self.bSizer1, flag=wx.ALIGN_LEFT|wx.TOP, border=8)
         vbox.Add(self.bSizer2, flag=wx.ALIGN_LEFT|wx.TOP, border=8)
         vbox.Add(self.bSizer3, flag=wx.ALIGN_LEFT|wx.TOP, border=8)
-        vbox.Add(hbox0a, flag=wx.ALIGN_LEFT|wx.TOP, border=8)
-        #vbox.Add(self.bSizer4, flag=wx.ALIGN_LEFT|wx.TOP, border=8)
+        #vbox.Add(hbox0a, flag=wx.ALIGN_LEFT|wx.TOP, border=8)
+        vbox.Add(self.bSizer4, flag=wx.ALIGN_LEFT|wx.TOP, border=8)
+        vbox.Add(self.bSizer4a, flag=wx.ALIGN_LEFT|wx.TOP, border=8)
         vbox.Add(hbox0, flag=wx.ALIGN_LEFT|wx.TOP, border=8)
         vbox.Add(self.bSizer7, flag=wx.ALIGN_LEFT|wx.TOP, border=8)
         vbox.Add(hbox1, flag=wx.ALIGN_LEFT|wx.TOP, border=8)
@@ -728,7 +723,6 @@ class convert_CIT_files_to_MagIC(wx.Frame):
     title = "PmagPy CIT file conversion"
 
     def __init__(self, parent, WD):
-        # put in a parent, maybe?
         wx.Frame.__init__(self, parent, wx.ID_ANY, self.title)
         self.panel = wx.ScrolledWindow(self)
         self.max_files = 1 # but maybe it could take more??
@@ -828,6 +822,13 @@ class convert_CIT_files_to_MagIC(wx.Frame):
         full_file = self.bSizer0.return_value()
         ind = full_file.rfind('/')
         CIT_file = full_file[ind+1:] 
+        # new
+        input_directory = full_file[:ind+1]
+        if input_directory:
+            ID = "-ID " + input_directory
+        else:
+            ID = ''
+        # end new
         #magicoutfile = os.path.split(CIT_file)[1]+".magic"
         #outfile = os.path.join(self.WD,magicoutfile)
         outfile = CIT_file + ".magic"
@@ -851,7 +852,7 @@ class convert_CIT_files_to_MagIC(wx.Frame):
         peak_AF = self.bSizer7.return_value()
         if peak_AF:
             peak_AF = "-ac " + peak_AF
-        COMMAND = "CIT_magic.py -WD {} -f {} -F {}  -mcd {} {} {} {} -ncn {} {} {}".format(wd, CIT_file, outfile, particulars, spec_num, loc_name, user, ncn, peak_AF, lab_field)
+        COMMAND = "CIT_magic.py -WD {} -f {} -F {}  -mcd {} {} {} {} -ncn {} {} {} {}".format(wd, CIT_file, outfile, particulars, spec_num, loc_name, user, ncn, peak_AF, lab_field, ID)
         #print COMMAND
         pw.run_command_and_close_window(self, COMMAND, outfile)
 
@@ -1021,12 +1022,13 @@ class convert_2G_binary_files_to_MagIC(wx.Frame):
 
         pnl = self.panel
 
-        TEXT = "2G-binary format file"
+        TEXT = "Folder containing one or more 2G-binary format files"
         bSizer_info = wx.BoxSizer(wx.HORIZONTAL)
         bSizer_info.Add(wx.StaticText(pnl, label=TEXT), wx.ALIGN_LEFT)
 
         #---sizer 0 ----
-        self.bSizer0 = pw.choose_file(pnl, 'add', method = self.on_add_file_button)
+        #self.bSizer0 = pw.choose_file(pnl, 'add', method = self.on_add_file_button)
+        self.bSizer0 = pw.choose_dir(pnl, btn_text = 'add', method = self.on_add_dir_button)
 
         #---sizer 1 ----
         TEXT = "Sampling Particulars (select all that apply):"
@@ -1038,7 +1040,7 @@ class convert_2G_binary_files_to_MagIC(wx.Frame):
         self.bSizer2 = pw.select_specimen_ncn(pnl)
 
         #---sizer 3 ----
-        TEXT = "specify number of characters to designate a specimen, default = 0"
+        TEXT = "specify number of characters to designate a specimen, default = 1"
         self.bSizer3 = pw.labeled_text_field(pnl, TEXT)
 
         #---sizer 4 ----
@@ -1098,24 +1100,25 @@ class convert_2G_binary_files_to_MagIC(wx.Frame):
         self.Show()
         self.Centre()
 
-    def on_add_file_button(self,event):
-        text = "choose file to convert to MagIC"
-        pw.on_add_file_button(self.panel, self.WD, event, text)
+    def on_add_dir_button(self,event):
+        text = "choose directory of files to convert to MagIC"
+        pw.on_add_dir_button(self.panel, self.WD, event, text)
 
     def on_okButton(self, event):
-        wd = self.WD
-        full_file = self.bSizer0.return_value()
-        index = full_file.rfind('/')
-        file_2G_bin = full_file[index+1:]
-        outfile = file_2G_bin + '.magic'
-        #magicoutfile=os.path.split(file_2G_bin)[1]+".magic"
-        #outfile=os.path.join(self.WD,magicoutfile)
-        
-        sampling = self.bSizer1.return_value()
+        WD = self.WD
+        directory = self.bSizer0.return_value()
+        files = os.listdir(directory)
+        files = [str(f) for f in files if str(f).endswith('.dat')]
+        ID = "-ID " + directory
+        if self.bSizer1.return_value():
+            particulars = [p.split(':')[0] for p in self.bSizer1.return_value()]
+            mcd = ':'.join(particulars)
+        else:
+            mcd = 'FS-FD:SO-POM'
         ncn = self.bSizer2.return_value()
         spc = self.bSizer3.return_value()
         if not spc:
-            spc = '-spc 0'
+            spc = '-spc 1'
         else:
             spc = '-spc ' + spc
         ocn = self.bSizer4.return_value()
@@ -1128,9 +1131,20 @@ class convert_2G_binary_files_to_MagIC(wx.Frame):
         replicate = self.bSizer7.return_value()
         if replicate:
             replicate = '-a'
-        COMMAND = "2G_bin_magic.py -WD {} -f {} -F {} -ncn {} {} -ocn {} {} {}".format(wd, file_2G_bin, outfile, ncn, spc, ocn, loc_name, replicate)
-        #print COMMAND
-        pw.run_command_and_close_window(self, COMMAND, outfile)
+        else:
+            replicate = ''
+        for f in files:
+            file_2G_bin = f
+            outfile = file_2G_bin + ".magic"
+            COMMAND = "2G_bin_magic.py -WD {} -f {} -F {} -ncn {} -mcd {} {} -ocn {} {} {} {}".format(WD, file_2G_bin, outfile, ncn, mcd, spc, ocn, loc_name, replicate, ID)
+            if files.index(f) == (len(files) - 1): # terminate process on last file call
+                pw.run_command_and_close_window(self, COMMAND, outfile)
+            else:
+                pw.run_command(self, COMMAND, outfile)
+
+
+
+
 
     def on_cancelButton(self,event):
         self.Destroy()
@@ -1405,6 +1419,9 @@ class convert_IODP_csv_files_to_MagIC(wx.Frame):
         index = full_file.rfind('/')
         IODP_file = full_file[index+1:]
         outfile = IODP_file + ".magic"
+        ID = full_file[:index+1] 
+        #IODP_file = full_file[index+1:]
+        #outfile = IODP_file + ".magic"
         #magicoutfile=os.path.split(IODP_file)[1]+".magic"
         #outfile=os.path.join(self.WD,magicoutfile)
         replicate = self.bSizer1.return_value()
@@ -1412,7 +1429,7 @@ class convert_IODP_csv_files_to_MagIC(wx.Frame):
             replicate = ''
         else:
             replicate = "-A"
-        COMMAND = "IODP_csv_magic.py -WD {0} -f {1} -F {2} {3}".format(wd, IODP_file, outfile, replicate)
+        COMMAND = "IODP_csv_magic.py -WD {0} -f {1} -F {2} {3} -ID {4}".format(wd, IODP_file, outfile, replicate, ID)
         #print COMMAND
         pw.run_command_and_close_window(self, COMMAND, outfile)
 
@@ -1441,12 +1458,12 @@ class convert_PMD_files_to_MagIC(wx.Frame):
 
         pnl = self.panel
 
-        TEXT = "PMD format file"
+        TEXT = "Folder containing one or more PMD format files"
         bSizer_info = wx.BoxSizer(wx.HORIZONTAL)
         bSizer_info.Add(wx.StaticText(pnl, label=TEXT), wx.ALIGN_LEFT)
 
         #---sizer 0 ----
-        self.bSizer0 = pw.choose_file(pnl, 'add', method = self.on_add_file_button)
+        self.bSizer0 = pw.choose_dir(pnl, 'add', method = self.on_add_dir_button)
 
         #---sizer 1 ----
         self.bSizer1 = pw.labeled_text_field(pnl)
@@ -1518,19 +1535,16 @@ class convert_PMD_files_to_MagIC(wx.Frame):
         self.Centre()
 
 
-    def on_add_file_button(self,event):
-        text = "choose file to convert to MagIC"
-        pw.on_add_file_button(self.panel, self.WD, event, text)
+    def on_add_dir_button(self,event):
+        text = "choose directory of files to convert to MagIC"
+        pw.on_add_dir_button(self.panel, self.WD, event, text)
 
     def on_okButton(self, event):
-        #print 'doing ok button'
-        wd = self.WD
-        full_file = self.bSizer0.return_value()
-        ind = full_file.rfind('/')
-        PMD_file = full_file[ind+1:] 
-        #magicoutfile=os.path.split(PMD_file)[1]+".magic" # these don't do anything because PMD_magic automatically names the outfiles magic_measurements.txt and er_samples.txt.
-        #outfile=os.path.join(self.WD,magicoutfile)
-        #outfile = PMD_file + ".magic"
+        WD = self.WD
+        directory = self.bSizer0.return_value()
+        files = os.listdir(directory)
+        files = [str(f) for f in files if str(f).endswith('.pmd')]
+        ID = "-ID " + directory
         user = self.bSizer1.return_value()
         if user:
             user = "-usr " + user
@@ -1546,9 +1560,13 @@ class convert_PMD_files_to_MagIC(wx.Frame):
             replicate = ''
         else:
             replicate = '-A'
-        COMMAND = "PMD_magic.py -WD {} -f {} {} -ncn {} -mcd {} -spc {} {}".format(wd, PMD_file, user, ncn, particulars, spc, replicate)
-        print COMMAND
-        pw.run_command_and_close_window(self, COMMAND, None)
+        for f in files:
+            outfile = f + ".magic"
+            COMMAND = "PMD_magic.py -WD {} -f {} -F {} {} -ncn {} -mcd {} -spc {} {} {}".format(WD, f, outfile, user, ncn, particulars, spc, replicate, ID)
+            if files.index(f) == len(files) -1:
+                pw.run_command_and_close_window(self, COMMAND, outfile)
+            else:
+                pw.run_command(self, COMMAND, outfile)
 
     def on_cancelButton(self,event):
         self.Destroy()

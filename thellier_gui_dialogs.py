@@ -341,6 +341,7 @@ class Criteria_Dialog(wx.Dialog):
 
         bSizer1a = wx.StaticBoxSizer( wx.StaticBox( pnl1, wx.ID_ANY, "anisotropy criteria" ), wx.HORIZONTAL )
         self.set_anisotropy_alt=wx.TextCtrl(pnl1,style=wx.TE_CENTER,size=(50,20))
+        #self.set_anisotropy_ftest=wx.ComboBox(self.panel, -1, value='None', choices=["None","pass 95%"],style=wx.CB_DROPDOWN,name="aniso-ftest")
         self.set_anisotropy_ftest_flag= wx.CheckBox(pnl1, -1, '', (10, 10))
         criteria_aniso_window = wx.GridSizer(2, 2, 6, 6)
         criteria_aniso_window.AddMany( [(wx.StaticText(pnl1,label="use F test as acceptance criteria",style=wx.TE_CENTER), wx.EXPAND),
@@ -386,14 +387,16 @@ class Criteria_Dialog(wx.Dialog):
         self.set_stdev_opt=wx.RadioButton(pnl1, -1, '', (10, 10), style=wx.RB_GROUP)
         self.set_bs=wx.RadioButton(pnl1, -1, ' ', (10, 30))
         self.set_bs_par=wx.RadioButton(pnl1, -1, '', (50, 50))
-
-        criteria_sample_window = wx.GridSizer(2, 3, 6, 6)
+        self.set_include_nrm= wx.CheckBox(pnl1, -1, '', (10, 10))
+        criteria_sample_window = wx.GridSizer(2, 4, 6, 6)
         criteria_sample_window.AddMany( [(wx.StaticText(pnl1,label="Enable STDEV-OPT",style=wx.TE_CENTER), wx.EXPAND),
             (wx.StaticText(pnl1,label="Enable BS",style=wx.TE_CENTER), wx.EXPAND),
             (wx.StaticText(pnl1,label="Enable BS_PAR",style=wx.TE_CENTER), wx.EXPAND),
+            (wx.StaticText(pnl1,label="include NRM",style=wx.TE_CENTER), wx.EXPAND),
             (self.set_stdev_opt),            
             (self.set_bs),
-            (self.set_bs_par)])
+            (self.set_bs_par),
+            (self.set_include_nrm)])
 
         bSizer2a.Add( criteria_sample_window, 0, wx.ALIGN_LEFT|wx.ALL, 5 )
 
@@ -542,7 +545,11 @@ class Criteria_Dialog(wx.Dialog):
             self.set_bs_par.SetValue(True) 
         else:
             self.set_stdev_opt.SetValue(True) 
-                 
+
+        #-------------------------------------------        
+        # Intialize values: include NRM
+        #-------------------------------------------        
+        self.set_include_nrm.SetValue(True)         
         #-------------------------------------------        
         # Intialize values: sample/site criteria
         #------------------------------------------- 
@@ -1142,18 +1149,19 @@ class Plot_Dialog(wx.Dialog):
         self.set_x_axis_auto=wx.CheckBox(pnl1, -1, '', (50, 50))
         self.set_x_axis_auto.SetValue(True)
 
-        self.set_plot_year = wx.RadioButton(pnl1, -1, 'timescale = date (year)', (10, 10), style=wx.RB_GROUP)
-        self.set_plot_BP = wx.RadioButton(pnl1, -1, 'timescale = BP ', (10, 30))
-        self.set_plot_year.SetValue(True)
+        self.set_age_unit=wx.ComboBox(pnl1, -1, 'Years AD (+/-)',choices=['Years AD (+/-)','Years BP','Ka','Ma','Ga'],style=wx.CB_DROPDOWN)
         
-        Plot_age_window = wx.GridSizer(2, 5, 12, 12)
-        Plot_age_window.AddMany( [(wx.StaticText(pnl1,label="",style=wx.TE_CENTER), wx.EXPAND),
-            (wx.StaticText(pnl1,label="",style=wx.TE_CENTER), wx.EXPAND),                                  
+        #self.set_plot_year = wx.RadioButton(pnl1, -1, 'timescale = date (year)', (10, 10), style=wx.RB_GROUP)
+        # self.set_plot_BP = wx.RadioButton(pnl1, -1, 'timescale = BP ', (10, 30))
+        #self.set_plot_year.SetValue(True)
+        
+        Plot_age_window = wx.GridSizer(2, 4, 12, 12)
+        Plot_age_window.AddMany( [(wx.StaticText(pnl1,label="age unit",style=wx.TE_CENTER), wx.EXPAND),
             (wx.StaticText(pnl1,label="auto scale",style=wx.TE_CENTER), wx.EXPAND),                                  
-            (wx.StaticText(pnl1,label="age max",style=wx.TE_CENTER), wx.EXPAND),
-            (wx.StaticText(pnl1,label="age min",style=wx.TE_CENTER), wx.EXPAND),
-            (self.set_plot_year),
-            (self.set_plot_BP),                                  
+            (wx.StaticText(pnl1,label="younger bound",style=wx.TE_CENTER), wx.EXPAND),
+            (wx.StaticText(pnl1,label="older bound",style=wx.TE_CENTER), wx.EXPAND),
+            (self.set_age_unit),
+            #(self.set_plot_BP),                                  
             (self.set_x_axis_auto),
             (self.set_plot_age_min),
             (self.set_plot_age_max)])
@@ -1200,18 +1208,25 @@ class Plot_Dialog(wx.Dialog):
         self.show_samples_ID=wx.CheckBox(pnl1, -1, '', (50, 50))
         self.show_x_error_bar=wx.CheckBox(pnl1, -1, '', (50, 50))
         self.show_y_error_bar=wx.CheckBox(pnl1, -1, '', (50, 50))
+        self.show_STDEVOPT=wx.CheckBox(pnl1, -1, '', (50, 50))
+        self.show_STDEVOPT_extended=wx.CheckBox(pnl1, -1, '', (50, 50))
         
         self.show_samples_ID.SetValue(True)
         self.show_x_error_bar.SetValue(True)
         self.show_y_error_bar.SetValue(True)
-
-        bsizer_3_window = wx.GridSizer(2, 3, 12, 12)
+        self.show_STDEVOPT.SetValue(False)
+        self.show_STDEVOPT_extended.SetValue(False)
+        bsizer_3_window = wx.GridSizer(2, 5, 12, 12)
         bsizer_3_window.AddMany( [(wx.StaticText(pnl1,label="show sample labels",style=wx.TE_CENTER), wx.EXPAND),
             (wx.StaticText(pnl1,label="show x error bars",style=wx.TE_CENTER), wx.EXPAND),
             (wx.StaticText(pnl1,label="show y error bars",style=wx.TE_CENTER), wx.EXPAND),
+            (wx.StaticText(pnl1,label="show STDEV-OPT means",style=wx.TE_CENTER), wx.EXPAND),
+            (wx.StaticText(pnl1,label="show STDEV-OPT error bounds",style=wx.TE_CENTER), wx.EXPAND),
             (self.show_samples_ID),
-            (self.show_x_error_bar),                                  
-            (self.show_y_error_bar)])
+            (self.show_x_error_bar),
+            (self.show_y_error_bar),                                              
+            (self.show_STDEVOPT),
+            (self.show_STDEVOPT_extended)])
                                            
         bSizer3.Add( bsizer_3_window, 0, wx.ALIGN_LEFT|wx.ALL, 5 )
 

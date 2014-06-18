@@ -130,13 +130,9 @@ magic_measurements.txt
 thellier_gui_preferences.py.backup
 
 
+
+plot_geomagia_ron.py
+
+pmag_menu.py
+
 TDT_brown_magic.py
-
-Etopo/*
-MagIC-data-model.txt
-
-demag_orient.txt
-upload.txt
-upload_dos.txt
-ldeo_magic_example.dat.magic
-quick_magic_debug.txt
