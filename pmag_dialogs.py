@@ -1423,6 +1423,9 @@ class convert_IODP_csv_files_to_MagIC(wx.Frame):
         index = full_file.rfind('/')
         IODP_file = full_file[index+1:]
         outfile = IODP_file + ".magic"
+        ID = full_file[:index+1] 
+        #IODP_file = full_file[index+1:]
+        #outfile = IODP_file + ".magic"
         #magicoutfile=os.path.split(IODP_file)[1]+".magic"
         #outfile=os.path.join(self.WD,magicoutfile)
         replicate = self.bSizer1.return_value()
@@ -1430,7 +1433,7 @@ class convert_IODP_csv_files_to_MagIC(wx.Frame):
             replicate = ''
         else:
             replicate = "-A"
-        COMMAND = "IODP_csv_magic.py -WD {0} -f {1} -F {2} {3}".format(wd, IODP_file, outfile, replicate)
+        COMMAND = "IODP_csv_magic.py -WD {0} -f {1} -F {2} {3} -ID {4}".format(wd, IODP_file, outfile, replicate, ID)
         #print COMMAND
         pw.run_command_and_close_window(self, COMMAND, outfile)
 

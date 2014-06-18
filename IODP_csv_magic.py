@@ -41,7 +41,12 @@ def main():
     if '-WD' in args:
         ind=args.index("-WD")
         dir_path=args[ind+1]
-        print "dir_path", dir_path
+    if '-ID' in args:
+        ind = args.index('-ID')
+        input_dir_path = args[ind+1]
+    else:
+        input_dir_path = dir_path
+    output_dir_path = dir_path
     if "-h" in args:
         print main.__doc__
         sys.exit()
@@ -49,27 +54,27 @@ def main():
     if '-f' in args:
         ind=args.index("-f")
 #        csv_file=args[ind+1] # original
-        csv_file=dir_path + '/' + args[ind+1] # LJ
+        csv_file = input_dir_path + '/' + args[ind+1] # LJ
     if '-F' in args:
         ind=args.index("-F")
         meas_file=args[ind+1]
     if '-Fsp' in args:
         ind=args.index("-Fsp")
-        spec_file=dir_path+'/'+args[ind+1]
+        spec_file = output_dir_path+'/'+args[ind+1]
         Specs,file_type=pmag.magic_read(spec_file)
     else:
-        spec_file=dir_path+'/'+spec_file
+        spec_file= output_dir_path+'/'+spec_file
     if '-Fsi' in args:
         ind=args.index("-Fsi")
         site_file=args[ind+1]
     if '-Fsa' in args:
         ind=args.index("-Fsa")
-        samp_file=dir_path+'/'+args[ind+1]
+        samp_file = output_dir_path+'/'+args[ind+1]
         ErSamps,file_type=pmag.magic_read(samp_file)
     else:
-        samp_file=dir_path+'/'+samp_file
-    site_file=dir_path+'/'+site_file
-    meas_file=dir_path+'/'+meas_file
+        samp_file = output_dir_path+'/'+samp_file
+    site_file = output_dir_path+'/'+site_file
+    meas_file= output_dir_path+'/'+meas_file
     if csv_file=="":
         filelist=os.listdir(dir_path) # read in list of files to import
     else:
@@ -80,7 +85,6 @@ def main():
         if samp['er_sample_name'] not in samples:
             samples.append(samp['er_sample_name'])
             SampRecs.append(samp)
-    print "filelist", filelist # LJ
     for file in filelist: # parse each file
         if file[-3:].lower()=='csv':
             print 'processing: ',file
