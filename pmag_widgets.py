@@ -97,14 +97,15 @@ class select_specimen_ncn(wx.StaticBoxSizer):
         ncn_keys = ['XXXXY', 'XXXX-YY', 'XXXX.YY', 'XXXX[YYY] where YYY is sample designation, enter number of Y', 'sample name=site name', 'Site names in orient.txt file', '[XXXX]YYY where XXXX is the site name, enter number of X', 'this is a synthetic and has no site name']
         ncn_values = range(1,9)
         self.sample_naming_conventions = dict(zip(ncn_keys, ncn_values))
-        self.select_naming_convention = wx.ComboBox(parent, -1, ncn_keys[0], size=(250,25), choices=ncn_keys, style=wx.CB_DROPDOWN)
+        self.select_naming_convention = wx.ComboBox(parent, -1, ncn_keys[0], size=(430,25), choices=ncn_keys, style=wx.CB_DROPDOWN)
         self.sample_naming_convention_char = wx.TextCtrl(parent, id=-1, size=(40,25))
-        gridbSizer = wx.GridSizer(2, 2, 5, 10)
-        gridbSizer.AddMany( [(wx.StaticText(parent,label="specimen-sample naming convention",style=wx.TE_CENTER),wx.ALIGN_LEFT),
-                      (wx.StaticText(parent, label="delimiter (if necessary)", style=wx.TE_CENTER),wx.ALIGN_LEFT),
-                      (self.select_naming_convention,wx.ALIGN_LEFT),
-                      (self.sample_naming_convention_char,wx.ALIGN_LEFT)])
-        self.AddSpacer(8)
+        label1 = wx.StaticText(parent,label="specimen-sample naming convention:",style=wx.TE_CENTER)
+        label2 = wx.StaticText(parent, label="delimiter (if necessary):", style=wx.TE_CENTER)
+        gridbSizer = wx.GridBagSizer(5, 10)
+        gridbSizer.Add(label1, (0, 0))
+        gridbSizer.Add(label2, (0, 1))
+        gridbSizer.Add(self.select_naming_convention, (1, 0))
+        gridbSizer.Add(self.sample_naming_convention_char, (1, 1))
         self.Add(gridbSizer,wx.ALIGN_LEFT)
 
     def return_value(self):
@@ -114,7 +115,6 @@ class select_specimen_ncn(wx.StaticBoxSizer):
             return str(ncn_number) + '-' + str(self.sample_naming_convention_char.GetValue())
         else:
             return str(ncn_number)
-
 
 
 class select_specimen_ocn(wx.StaticBoxSizer):
