@@ -6,7 +6,8 @@ import os
 import sys
 import pmag
 import pmag_basic_dialogs
-#import pmag_menu
+import pmag_menu
+
 
 
 
@@ -32,8 +33,8 @@ class MagMainFrame(wx.Frame):
 
     def InitUI(self):
 
-        #menubar = pmag_menu.MagICMenu(self)
-        #self.SetMenuBar(menubar)
+        menubar = pmag_menu.MagICMenu(self)
+        self.SetMenuBar(menubar)
 
 
         #pnl = self.panel

@@ -122,6 +122,7 @@ class select_specimen_ocn(wx.StaticBoxSizer):
         self.parent = parent
         box = wx.StaticBox(parent, wx.ID_ANY, "")
         super(select_specimen_ocn, self).__init__(box, orient=wx.VERTICAL)
+        label = wx.StaticText(self.parent, label="Orientation:")
         ocn_keys = ["Lab arrow azimuth= mag_azimuth; Lab arrow dip=-field_dip i.e., field_dip is degrees from vertical down - the hade",
                 "Lab arrow azimuth = mag_azimuth-90; Lab arrow dip = -field_dip i.e., mag_azimuth is strike and field_dip is hade",
                 "Lab arrow azimuth = mag_azimuth; Lab arrow dip = 90-field_dip i.e.,  lab arrow same as field arrow, but field_dip was a hade.",
@@ -131,6 +132,7 @@ class select_specimen_ocn(wx.StaticBoxSizer):
         ocn_values = range(1, 6)
         self.sample_orientation_conventions = dict(zip(ocn_keys, ocn_values))
         self.select_orientation_convention = wx.ComboBox(parent, -1, ocn_keys[0], size=(705,25), choices=ocn_keys, style=wx.CB_READONLY)
+        self.Add(label, wx.ALIGN_LEFT)
         self.Add(self.select_orientation_convention, wx.ALIGN_LEFT)
         self.AddSpacer(8)
 
@@ -138,6 +140,36 @@ class select_specimen_ocn(wx.StaticBoxSizer):
         selected_ocn = str(self.select_orientation_convention.GetValue())
         return self.sample_orientation_conventions[selected_ocn]
 
+
+class select_declination(wx.StaticBoxSizer):
+    def __init__(self, parent):
+        self.parent = parent
+        box = wx.StaticBox(parent, wx.ID_ANY, "")
+        super(select_declination, self).__init__(box, orient=wx.VERTICAL)
+        label1 = wx.StaticText(self.parent, label="Declination:")
+        label2 = wx.StaticText(self.parent, label="if necessary")
+        self.dec_box = wx.TextCtrl(self.parent, size=(40, 25))
+        declination_keys = ["Use the IGRF DEC value at the lat/long and date supplied","Use this DEC: ","DEC=0, mag_az is already corrected in file","Correct mag_az but not bedding_dip_dir"]
+        declination_values = range(1, 4)
+        self.dcn = dict(zip(declination_keys, declination_values))
+        self.select_dcn = wx.ComboBox(parent, -1, declination_keys[0], size=(405, 25), choices=declination_keys, style=wx.CB_READONLY)
+        gridSizer = wx.GridSizer(2, 2, 5, 10)
+        gridSizer.AddMany( [label1, label2, self.select_dcn, self.dec_box])
+        self.Add(gridSizer, wx.ALIGN_LEFT)
+        #self.Add(label, flag=wx.ALIGN_LEFT|wx.BOTTOM, border=5)
+        #self.Add(select_dcn, wx.ALIGN_LEFT)
+        self.AddSpacer(10)
+        
+        
+
+    def return_value(self):
+        selected_dcn = str(self.select_dcn.GetValue())
+        dcn_number = self.dcn[selected_dcn]
+        if dcn_number == 2:
+            return str(dcn_number) + " " + self.dec_box.GetValue()
+        else:
+            return dcn_number            
+        
 
 
 
@@ -185,6 +217,15 @@ class check_boxes(wx.StaticBoxSizer):
             if cb.GetValue():
                 checked.append(str(cb.Label))
         return checked
+
+class sampling_particulars(check_boxes):
+
+    def __init__(self, parent):
+        gridsize = (5, 2, 0, 0)
+        TEXT = "Sampling Particulars (select all that apply):"
+        particulars = ["FS-FD: field sampling done with a drill", "FS-H: field sampling done with hand samples", "FS-LOC-GPS: field location done with GPS", "FS-LOC-MAP:  field location done with map", "SO-POM:  a Pomeroy orientation device was used", "SO-ASC:  an ASC orientation device was used", "SO-MAG: magnetic compass used for all orientations", "SO-SUN: sun compass used for all orientations", "SO-SM: either magnetic or sun used on all orientations", "SO-SIGHT: orientation from sighting"]
+        #self.bSizer1 = pw.check_boxes(pnl, (6, 2, 0, 0), particulars, TEXT)
+        super(sampling_particulars, self).__init__(parent, gridsize, particulars, TEXT)
 
 
 class lab_field(wx.StaticBoxSizer):
@@ -267,6 +308,26 @@ class experiment_type(wx.StaticBoxSizer):
             experiment_string += experiment_key[ex] + ':'
         return experiment_string[:-1]
     
+
+class btn_panel(wx.BoxSizer):
+
+    def __init__(self, SELF, panel):
+        super(btn_panel, self).__init__(wx.HORIZONTAL)
+        pnl = panel
+        SELF.okButton = wx.Button(pnl, wx.ID_OK, "&OK")
+        SELF.Bind(wx.EVT_BUTTON, SELF.on_okButton, SELF.okButton)
+
+        SELF.cancelButton = wx.Button(pnl, wx.ID_CANCEL, '&Cancel')
+        SELF.Bind(wx.EVT_BUTTON, SELF.on_cancelButton, SELF.cancelButton)
+
+        SELF.helpButton = wx.Button(pnl, wx.ID_ANY, '&Help')
+        SELF.Bind(wx.EVT_BUTTON, SELF.on_helpButton, SELF.helpButton)
+
+        self.Add(SELF.okButton, 0, wx.ALL, 5)
+        self.Add(SELF.cancelButton, 0, wx.ALL, 5 )
+        self.Add(SELF.helpButton, 0, wx.ALL, 5)
+
+
 
 # methods!
 
