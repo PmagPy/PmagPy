@@ -126,14 +126,15 @@ class ImportOrientFile(wx.Frame):
         ocn = self.bSizer3.return_value()
         dcn = self.bSizer4.return_value()
         gmt = self.bSizer5.return_value() or 0
-        app = self.bSizer6.return_value()
-        if app:
-            app = "" # overwrite is True
-        else:
-            app = "-app" # overwrite is False, append instead
-        print "ncn {}, ocn {}, dcn {}, gmt {}".format(ncn, ocn, dcn, gmt)
+        try:
+            app = self.bSizer6.return_value()
+            if app:
+                app = "" # overwrite is True
+            else:
+                app = "-app" # overwrite is False, append instead
+        except AttributeError:
+            app = ""
         COMMAND = "orientation_magic.py -WD {} -f {} -ncn {} -ocn {} -dcn {} -gmt {} -mcd {} {} -ID {}".format(WD, infile, ncn, ocn, dcn, gmt, mcd, app, ID)
-        #print COMMAND
         pw.run_command_and_close_window(self, COMMAND, None)
 
     def on_cancelButton(self,event):
@@ -175,13 +176,15 @@ class ImportAzDipFile(wx.Frame):
         #---sizer 4 ----
         # figure out proper formatting for this.  maybe 2 radio buttons?  option1: overwrite option2: update and append.
         TEXT = "Overwrite er_samples.txt file?"
+        label1 = "yes, overwrite file in working directory"
+        label2 = "no, update existing er_samples file"
         er_samples_file_present = True
         try:
             open(self.WD + "/er_samples.txt", "rU")
         except Exception as ex:
             er_samples_file_present = False
         if er_samples_file_present:
-            self.bSizer4 = pw.labeled_text_field(pnl, TEXT)
+            self.bSizer4 = pw.labeled_yes_or_no(pnl, TEXT, label1, label2)
 
         #---buttons ---
         self.okButton = wx.Button(pnl, wx.ID_OK, "&OK")
@@ -229,16 +232,26 @@ class ImportAzDipFile(wx.Frame):
     def on_okButton(self, event):
         WD = self.WD
         full_infile = self.bSizer0.return_value()
-        ind = full_infile.rfind('/')
-        infile = full_infile[ind+1:]
-        ID = full_infile[:ind+1]
+        #ind = full_infile.rfind('/')
+        #infile = full_infile[ind+1:]
+        #ID = full_infile[:ind+1]
         particulars = [p.split(':')[0] for p in self.bSizer1.return_value()]
         mcd = ':'.join(particulars)
         ncn = self.bSizer2.return_value()
         loc = self.bSizer3.return_value()
-        COMMAND = "azdip_magic.py -WD {} -f {} -ncn {} -loc {} -mcd {} -ID {}".format(WD, infile, ncn, loc, mcd, ID)
-        print COMMAND
-        #pw.run_command_and_close_window(self, COMMAND, None)
+        if loc:
+            loc = "-loc " + loc
+        try:
+            app = self.bSizer4.return_value()
+            if app:
+                app = "" # overwrite is True
+            else:
+                app = "-app" # overwrite is False, append instead
+        except AttributeError:
+            app = ""
+        COMMAND = "azdip_magic.py -f {} -ncn {} {} -mcd {} {}".format(full_infile, ncn, loc, mcd, app)
+        #print COMMAND
+        pw.run_command_and_close_window(self, COMMAND, "er_samples.txt")
 
     def on_cancelButton(self,event):
         self.Destroy()
