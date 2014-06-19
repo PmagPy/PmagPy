@@ -746,9 +746,7 @@ class convert_CIT_files_to_MagIC(wx.Frame):
         self.bSizer1 = pw.labeled_text_field(pnl, TEXT)
         
         #---sizer 2 ----
-        TEXT = "Sampling Particulars (select all that apply):"
-        particulars = ["FS-FD: field sampling done with a drill", "FS-H: field sampling done with hand samples", "FS-LOC-GPS: field location done with GPS", "FS-LOC-MAP:  field location done with map", "SO-POM:  a Pomeroy orientation device was used", "SO-ASC:  an ASC orientation device was used", "SO-MAG: magnetic compass used for all orientations", "SO-SUN: sun compass used for all orientations", "SO-SM: either magnetic or sun used on all orientations", "SO-SIGHT: orientation from sighting"]
-        self.bSizer2 = pw.check_boxes(pnl, (6, 2, 0, 0), particulars, TEXT)
+        self.bSizer2 = pw.sampling_particulars(pnl)
 
         #---sizer 3 ----
         self.bSizer3 = pw.lab_field(pnl)
@@ -1031,10 +1029,7 @@ class convert_2G_binary_files_to_MagIC(wx.Frame):
         self.bSizer0 = pw.choose_dir(pnl, btn_text = 'add', method = self.on_add_dir_button)
 
         #---sizer 1 ----
-        TEXT = "Sampling Particulars (select all that apply):"
-        particulars = ["FS-FD: field sampling done with a drill", "FS-H: field sampling done with hand samples", "FS-LOC-GPS: field location done with GPS", "FS-LOC-MAP:  field location done with map", "SO-POM:  a Pomeroy orientation device was used", "SO-ASC:  an ASC orientation device was used", "SO-MAG: magnetic compass used for all orientations", "SO-SUN: sun compass used for all orientations", "SO-SM: either magnetic or sun used on all orientations", "SO-SIGHT: orientation from sighting"]
-        self.bSizer1 = pw.check_boxes(pnl, (6, 2, 0, 0), particulars, TEXT)
-
+        self.bSizer1 = pw.sampling_particulars(pnl)
 
         #---sizer 2 ----
         self.bSizer2 = pw.select_specimen_ncn(pnl)
@@ -1482,10 +1477,7 @@ class convert_PMD_files_to_MagIC(wx.Frame):
 
 
         #---sizer 5 ----
-        TEXT = "Sampling Particulars (select all that apply):"
-        particulars = ["FS-FD: field sampling done with a drill", "FS-H: field sampling done with hand samples", "FS-LOC-GPS: field location done with GPS", "FS-LOC-MAP:  field location done with map", "SO-POM:  a Pomeroy orientation device was used", "SO-ASC:  an ASC orientation device was used", "SO-MAG: magnetic compass used for all orientations", "SO-SUN: sun compass used for all orientations", "SO-SM: either magnetic or sun used on all orientations", "SO-SIGHT: orientation from sighting"]
-        self.bSizer5 = pw.check_boxes(pnl, (6, 2, 0, 0), particulars, TEXT)
-
+        self.bSizer5 = pw.sampling_particulars(pnl)
 
         #---sizer 6 ---
         self.bSizer6 = pw.replicate_measurements(pnl)
