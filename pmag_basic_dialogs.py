@@ -216,23 +216,9 @@ class convert_generic_files_to_MagIC(wx.Frame):
         #---sizer 7 ----
         self.bSizer7 = pw.replicate_measurements(pnl)
 
-        #------------------
-
-                     
-        self.okButton = wx.Button(self.panel, wx.ID_OK, "&OK")
-        self.Bind(wx.EVT_BUTTON, self.on_okButton, self.okButton)
-
-        self.cancelButton = wx.Button(self.panel, wx.ID_CANCEL, '&Cancel')
-        self.Bind(wx.EVT_BUTTON, self.on_cancelButton, self.cancelButton)
-
-        self.helpButton = wx.Button(pnl, wx.ID_ANY, '&Help')
-        self.Bind(wx.EVT_BUTTON, self.on_helpButton, self.helpButton)
-
-
-        hboxok = wx.BoxSizer(wx.HORIZONTAL)
-        hboxok.Add(self.okButton, 0, wx.ALL, 5)
-        hboxok.Add(self.cancelButton, 0, wx.ALL, 5 )
-        hboxok.Add(self.helpButton, 0, wx.ALL, 5)
+        #---buttons ---
+        
+        self.hboxok = pw.btn_panel(self, pnl)
 
         #------
         vbox=wx.BoxSizer(wx.VERTICAL)
@@ -556,7 +542,6 @@ class convert_SIO_files_to_MagIC(wx.Frame):
 
 
     def InitUI(self):
-        #print 'init UI'
         pnl = self.panel
 
         TEXT = "SIO Format file"
@@ -606,20 +591,7 @@ class convert_SIO_files_to_MagIC(wx.Frame):
         self.bSizer10 = pw.synthetic(pnl)
 
         #---buttons ----
-
-        self.okButton = wx.Button(pnl, wx.ID_OK, "&OK")
-        self.Bind(wx.EVT_BUTTON, self.on_okButton, self.okButton)
-
-        self.cancelButton = wx.Button(pnl, wx.ID_CANCEL, '&Cancel')
-        self.Bind(wx.EVT_BUTTON, self.on_cancelButton, self.cancelButton)
-        
-        self.helpButton = wx.Button(pnl, wx.ID_ANY, '&Help')
-        self.Bind(wx.EVT_BUTTON, self.on_helpButton, self.helpButton)
-
-        hboxok = wx.BoxSizer(wx.HORIZONTAL)
-        hboxok.Add(self.okButton, 0, wx.ALL, 5)
-        hboxok.Add(self.cancelButton, 0, wx.ALL, 5 )
-        hboxok.Add(self.helpButton, 0, wx.ALL, 5)
+        hboxok = pw.btn_panel(self, pnl)
 
         #------
         vbox=wx.BoxSizer(wx.VERTICAL)
@@ -768,19 +740,7 @@ class convert_CIT_files_to_MagIC(wx.Frame):
 
 
         #---buttons ---
-        self.okButton = wx.Button(pnl, wx.ID_OK, "&OK")
-        self.Bind(wx.EVT_BUTTON, self.on_okButton, self.okButton)
-
-        self.cancelButton = wx.Button(pnl, wx.ID_CANCEL, '&Cancel')
-        self.Bind(wx.EVT_BUTTON, self.on_cancelButton, self.cancelButton)
-
-        self.helpButton = wx.Button(pnl, wx.ID_ANY, '&Help')
-        self.Bind(wx.EVT_BUTTON, self.on_helpButton, self.helpButton)
-
-        hboxok = wx.BoxSizer(wx.HORIZONTAL)
-        hboxok.Add(self.okButton, 0, wx.ALL, 5)
-        hboxok.Add(self.cancelButton, 0, wx.ALL, 5 )
-        hboxok.Add(self.helpButton, 0, wx.ALL, 5)
+        hboxok = pw.btn_panel(self, pnl)
 
         #------
         vbox=wx.BoxSizer(wx.VERTICAL)
@@ -910,19 +870,7 @@ class convert_HUJI_files_to_MagIC(wx.Frame):
         self.bSizer7 = pw.labeled_text_field(pnl, TEXT)
 
         #---buttons ---
-        self.okButton = wx.Button(pnl, wx.ID_OK, "&OK")
-        self.Bind(wx.EVT_BUTTON, self.on_okButton, self.okButton)
-
-        self.cancelButton = wx.Button(pnl, wx.ID_CANCEL, '&Cancel')
-        self.Bind(wx.EVT_BUTTON, self.on_cancelButton, self.cancelButton)
-
-        self.helpButton = wx.Button(pnl, wx.ID_ANY, '&Help')
-        self.Bind(wx.EVT_BUTTON, self.on_helpButton, self.helpButton)
-
-        hboxok = wx.BoxSizer(wx.HORIZONTAL)
-        hboxok.Add(self.okButton, 0, wx.ALL, 5)
-        hboxok.Add(self.cancelButton, 0, wx.ALL, 5)
-        hboxok.Add(self.helpButton, 0, wx.ALL, 5)
+        hboxok = pw.btn_panel(self, pnl)
 
         #------
         vbox=wx.BoxSizer(wx.VERTICAL)
@@ -1054,19 +1002,7 @@ class convert_2G_binary_files_to_MagIC(wx.Frame):
 
 
         #---buttons ---
-        self.okButton = wx.Button(pnl, wx.ID_OK, "&OK")
-        self.Bind(wx.EVT_BUTTON, self.on_okButton, self.okButton)
-
-        self.cancelButton = wx.Button(pnl, wx.ID_CANCEL, '&Cancel')
-        self.Bind(wx.EVT_BUTTON, self.on_cancelButton, self.cancelButton)
-
-        self.helpButton = wx.Button(pnl, wx.ID_ANY, '&Help')
-        self.Bind(wx.EVT_BUTTON, self.on_helpButton, self.helpButton)
-
-        hboxok = wx.BoxSizer(wx.HORIZONTAL)
-        hboxok.Add(self.okButton, 0, wx.ALL, 5)
-        hboxok.Add(self.cancelButton, 0, wx.ALL, 5 )
-        hboxok.Add(self.helpButton, 0, wx.ALL, 5)
+        hboxok = pw.btn_panel(self, pnl) # creates ok, cancel, help buttons and binds them to appropriate methods
 
         #------
         vbox=wx.BoxSizer(wx.VERTICAL)
@@ -1094,6 +1030,8 @@ class convert_2G_binary_files_to_MagIC(wx.Frame):
         hbox_all.Fit(self)
         self.Show()
         self.Centre()
+
+    #---button methods ---
 
     def on_add_dir_button(self,event):
         text = "choose directory of files to convert to MagIC"
@@ -1136,8 +1074,6 @@ class convert_2G_binary_files_to_MagIC(wx.Frame):
                 pw.run_command_and_close_window(self, COMMAND, outfile)
             else:
                 pw.run_command(self, COMMAND, outfile)
-
-
 
 
 
@@ -1212,19 +1148,7 @@ class convert_LDEO_files_to_MagIC(wx.Frame):
         
 
         #---buttons ---
-        self.okButton = wx.Button(pnl, wx.ID_OK, "&OK")
-        self.Bind(wx.EVT_BUTTON, self.on_okButton, self.okButton)
-
-        self.cancelButton = wx.Button(pnl, wx.ID_CANCEL, '&Cancel')
-        self.Bind(wx.EVT_BUTTON, self.on_cancelButton, self.cancelButton)
-
-        self.helpButton = wx.Button(pnl, wx.ID_ANY, '&Help')
-        self.Bind(wx.EVT_BUTTON, self.on_helpButton, self.helpButton)
-
-        hboxok = wx.BoxSizer(wx.HORIZONTAL)
-        hboxok.Add(self.okButton, 0, wx.ALL, 5)
-        hboxok.Add(self.cancelButton, 0, wx.ALL, 5)
-        hboxok.Add(self.helpButton, 0, wx.ALL, 5)
+        hboxok = pw.btn_panel(self, pnl)
 
         #------
         vbox=wx.BoxSizer(wx.VERTICAL)
@@ -1346,33 +1270,8 @@ class convert_IODP_csv_files_to_MagIC(wx.Frame):
         #---sizer 1 ----
         self.bSizer1 = pw.replicate_measurements(pnl)
         
-        #---sizer 2 ----
-
-        #---sizer 3 ----
-
-        #---sizer 4 ----
-
-        #---sizer 5 ---
-
-        #---sizer 6 ----
-
-        #---sizer 7 ---
-
-
         #---buttons ---
-        self.okButton = wx.Button(pnl, wx.ID_OK, "&OK")
-        self.Bind(wx.EVT_BUTTON, self.on_okButton, self.okButton)
-
-        self.cancelButton = wx.Button(pnl, wx.ID_CANCEL, '&Cancel')
-        self.Bind(wx.EVT_BUTTON, self.on_cancelButton, self.cancelButton)
-
-        self.helpButton = wx.Button(pnl, wx.ID_ANY, '&Help')
-        self.Bind(wx.EVT_BUTTON, self.on_helpButton, self.helpButton)
-
-        hboxok = wx.BoxSizer(wx.HORIZONTAL)
-        hboxok.Add(self.okButton, 0, wx.ALL, 5)
-        hboxok.Add(self.cancelButton, 0, wx.ALL, 5)
-        hboxok.Add(self.helpButton, 0, wx.ALL, 5)
+        hboxok = pw.btn_panel(self, pnl)
 
         #------
         vbox=wx.BoxSizer(wx.VERTICAL)
@@ -1483,19 +1382,7 @@ class convert_PMD_files_to_MagIC(wx.Frame):
         self.bSizer6 = pw.replicate_measurements(pnl)
 
         #---buttons ---
-        self.okButton = wx.Button(pnl, wx.ID_OK, "&OK")
-        self.Bind(wx.EVT_BUTTON, self.on_okButton, self.okButton)
-
-        self.cancelButton = wx.Button(pnl, wx.ID_CANCEL, '&Cancel')
-        self.Bind(wx.EVT_BUTTON, self.on_cancelButton, self.cancelButton)
-
-        self.helpButton = wx.Button(pnl, wx.ID_ANY, '&Help')
-        self.Bind(wx.EVT_BUTTON, self.on_helpButton, self.helpButton)
-
-        hboxok = wx.BoxSizer(wx.HORIZONTAL)
-        hboxok.Add(self.okButton, 0, wx.ALL, 5)
-        hboxok.Add(self.cancelButton, 0, wx.ALL, 5)
-        hboxok.Add(self.helpButton, 0, wx.ALL, 5)
+        hboxok = pw.btn_panel(self, pnl)
 
         #------
         vbox=wx.BoxSizer(wx.VERTICAL)
@@ -1619,19 +1506,8 @@ class something(wx.Frame):
 
 
         #---buttons ---
-        self.okButton = wx.Button(pnl, wx.ID_OK, "&OK")
-        self.Bind(wx.EVT_BUTTON, self.on_okButton, self.okButton)
+        hboxok = pw.btn_panel(self, pnl)
 
-        self.cancelButton = wx.Button(pnl, wx.ID_CANCEL, '&Cancel')
-        self.Bind(wx.EVT_BUTTON, self.on_cancelButton, self.cancelButton)
-
-        self.helpButton = wx.Button(pnl, wx.ID_ANY, '&Help')
-        self.Bind(wx.EVT_BUTTON, self.on_helpButton, self.helpButton)
-
-        hboxok = wx.BoxSizer(wx.HORIZONTAL)
-        hboxok.Add(self.okButton, 0, wx.ALL, 5)
-        hboxok.Add(self.cancelButton, 0, wx.ALL, 5)
-        hboxok.Add(self.helpButton, 0, wx.ALL, 5)
 
         #------
         vbox=wx.BoxSizer(wx.VERTICAL)

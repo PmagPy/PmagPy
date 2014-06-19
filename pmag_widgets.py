@@ -308,6 +308,26 @@ class experiment_type(wx.StaticBoxSizer):
         return experiment_string[:-1]
     
 
+class btn_panel(wx.BoxSizer):
+
+    def __init__(self, SELF, panel):
+        super(btn_panel, self).__init__(wx.HORIZONTAL)
+        pnl = panel
+        SELF.okButton = wx.Button(pnl, wx.ID_OK, "&OK")
+        SELF.Bind(wx.EVT_BUTTON, SELF.on_okButton, SELF.okButton)
+
+        SELF.cancelButton = wx.Button(pnl, wx.ID_CANCEL, '&Cancel')
+        SELF.Bind(wx.EVT_BUTTON, SELF.on_cancelButton, SELF.cancelButton)
+
+        SELF.helpButton = wx.Button(pnl, wx.ID_ANY, '&Help')
+        SELF.Bind(wx.EVT_BUTTON, SELF.on_helpButton, SELF.helpButton)
+
+        self.Add(SELF.okButton, 0, wx.ALL, 5)
+        self.Add(SELF.cancelButton, 0, wx.ALL, 5 )
+        self.Add(SELF.helpButton, 0, wx.ALL, 5)
+
+
+
 # methods!
 
 
