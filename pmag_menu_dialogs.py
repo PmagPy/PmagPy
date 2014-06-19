@@ -248,6 +248,90 @@ class ImportAzDipFile(wx.Frame):
         pw.on_helpButton("azdip_magic.py -h")
 
 
+class ImportODPCoreSummary(wx.Frame):
+
+    title = "Import ODP Core Summary csv file"
+    
+    def __init__(self, parent, WD):
+        wx.Frame.__init__(self, parent, wx.ID_ANY, self.title)
+        self.panel = wx.ScrolledWindow(self)
+        self.WD = WD
+        self.InitUI()
+
+    def InitUI(self):
+        pnl = self.panel
+        TEXT = "ODP Core Summary csv file"
+        bSizer_info = wx.BoxSizer(wx.HORIZONTAL)
+        bSizer_info.Add(wx.StaticText(pnl, label=TEXT), wx.ALIGN_LEFT)
+
+        #---sizer 0 ----
+        self.bSizer0 = pw.choose_file(pnl, 'add', method = self.on_add_file_button)
+
+        #---sizer 1 ----
+        TEXT = "Overwrite er_samples.txt file?"
+        label1 = "yes, overwrite file in working directory"
+        label2 = "no, update existing er_samples file"
+        er_samples_file_present = True
+        try:
+            open(self.WD + "/er_samples.txt", "rU")
+        except Exception as ex:
+            er_samples_file_present = False
+        if er_samples_file_present:
+            self.bSizer1 = pw.labeled_yes_or_no(pnl, TEXT, label1, label2)
+
+        #---buttons ---
+        hboxok = pw.btn_panel(self, pnl)
+
+        vbox = wx.BoxSizer(wx.VERTICAL)
+        vbox.Add(bSizer_info, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        vbox.Add(self.bSizer0, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        try:
+            vbox.Add(self.bSizer1, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        except AttributeError:
+            pass
+        vbox.Add(hboxok, flag=wx.ALIGN_CENTER)        
+        vbox.AddSpacer(20)
+
+        hbox_all = wx.BoxSizer(wx.HORIZONTAL)
+        hbox_all.AddSpacer(20)
+        hbox_all.AddSpacer(vbox)
+
+        self.panel.SetSizer(hbox_all)
+        self.panel.SetScrollbars(20, 20, 50, 50)
+        hbox_all.Fit(self)
+        self.Show()
+        self.Centre()
+
+    def on_add_file_button(self,event):
+        text = "choose file to convert to MagIC"
+        pw.on_add_file_button(self.panel, self.WD, event, text)
+
+    def on_okButton(self, event):
+        WD = self.WD
+        full_infile = self.bSizer0.return_value()
+        index = full_infile.rfind('/')
+        infile = full_infile[index+1:]
+        ID = full_infile[:index+1]
+        try:
+            Fsa = self.bSizer1.return_value()
+            if Fsa:
+                Fsa = ''
+            else:
+                Fsa = "-Fsa er_samples.txt"
+        except AttributeError:
+            Fsa = ''
+        COMMAND = "ODP_samples_magic.py -WD {} -f {} {} -ID {}".format(WD, infile, Fsa, ID)
+        print COMMAND
+        #pw.run_command_and_close_window(self, COMMAND, "er_samples.txt")
+
+    def on_cancelButton(self,event):
+        self.Destroy()
+        self.Parent.Raise()
+
+    def on_helpButton(self, event):
+        pw.on_helpButton("ODP_samples_magic.py -h")
+
+
 class something(wx.Frame):
 
     title = ""
