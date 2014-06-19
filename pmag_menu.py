@@ -57,7 +57,7 @@ class MagICMenu(wx.MenuBar):
         orient1 = pmag_menu_dialogs.ImportOrientFile(self.parent, self.parent.WD)
 
     def orient_import2(self, event):
-        print 'you clicked item2'
+        orient2 = pmag_menu_dialogs.ImportAzDipFile(self.parent, self.parent.WD)
 
     def orient_import3(self, event):
         print 'you clicked item3'

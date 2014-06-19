@@ -217,6 +217,15 @@ class check_boxes(wx.StaticBoxSizer):
                 checked.append(str(cb.Label))
         return checked
 
+class sampling_particulars(check_boxes):
+
+    def __init__(self, parent):
+        gridsize = (5, 2, 0, 0)
+        TEXT = "Sampling Particulars (select all that apply):"
+        particulars = ["FS-FD: field sampling done with a drill", "FS-H: field sampling done with hand samples", "FS-LOC-GPS: field location done with GPS", "FS-LOC-MAP:  field location done with map", "SO-POM:  a Pomeroy orientation device was used", "SO-ASC:  an ASC orientation device was used", "SO-MAG: magnetic compass used for all orientations", "SO-SUN: sun compass used for all orientations", "SO-SM: either magnetic or sun used on all orientations", "SO-SIGHT: orientation from sighting"]
+        #self.bSizer1 = pw.check_boxes(pnl, (6, 2, 0, 0), particulars, TEXT)
+        super(sampling_particulars, self).__init__(parent, gridsize, particulars, TEXT)
+
 
 class lab_field(wx.StaticBoxSizer):
     
