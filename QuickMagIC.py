@@ -5,7 +5,7 @@ import wx.lib.buttons as buttons
 import os
 import sys
 import pmag
-import pmag_dialogs
+import pmag_basic_dialogs
 #import pmag_menu
 
 
@@ -238,7 +238,7 @@ class MagMainFrame(wx.Frame):
         os.system(outstring)
         
     def on_convert_file(self,event):
-        pmag_dialogs_dia=pmag_dialogs.import_magnetometer_data(self, wx.ID_ANY, '',self.WD)
+        pmag_dialogs_dia=pmag_basic_dialogs.import_magnetometer_data(self, wx.ID_ANY, '',self.WD)
         pmag_dialogs_dia.Show()
         pmag_dialogs_dia.Center()
 
@@ -326,7 +326,7 @@ class MagMainFrame(wx.Frame):
         SIZE=wx.DisplaySize()
         SIZE=(SIZE[0]-0.1*SIZE[0],SIZE[1]-0.1*SIZE[1])
         Data,Data_hierarchy=self.get_data()
-        frame = pmag_dialogs.OrientFrameGrid (None, -1, 'demag_orient.txt',self.WD,Data_hierarchy,SIZE)        
+        frame = pmag_basic_dialogs.OrientFrameGrid (None, -1, 'demag_orient.txt',self.WD,Data_hierarchy,SIZE)        
         frame.Show(True)
         frame.Centre()
 
