@@ -70,6 +70,26 @@ class labeled_text_field(wx.StaticBoxSizer):
     def return_value(self):
         return self.text_field.GetValue()
 
+class labeled_yes_or_no(wx.StaticBoxSizer):
+    def __init__(self, parent, TEXT, label1, label2):
+        self.parent = parent
+        box = wx.StaticBox(self.parent, wx.ID_ANY, "")
+        super(labeled_yes_or_no, self).__init__(box, orient=wx.VERTICAL)
+        hbox = wx.BoxSizer(wx.HORIZONTAL)
+        self.rb1 = wx.RadioButton(parent, label=label1, style=wx.RB_GROUP)
+        self.rb2 = wx.RadioButton(parent, label=label2)
+        hbox.Add(self.rb1, wx.ALIGN_LEFT)
+        hbox.AddSpacer(5)
+        hbox.Add(self.rb2, wx.ALIGN_LEFT)
+        text = wx.StaticText(self.parent, label=TEXT, style=wx.TE_CENTER)
+        self.Add(text, wx.ALIGN_LEFT)
+        self.Add(hbox)
+
+    def return_value(self):
+        if self.rb1.GetValue():
+            return True
+        return False
+
 
 class specimen_n(wx.StaticBoxSizer):
     """-spc option (number of characters defining specimen from sample"""
@@ -382,7 +402,9 @@ def run_command(SELF, command, outfile):
 
 def run_command_and_close_window(SELF, command, outfile):
     print "-I- Running Python command:\n %s"%command
-    os.system(command)                                          
+    os.system(command)
+    if not outfile:
+        outfile = ''
     MSG="file(s) converted to MagIC format file:\n%s.\n\n See Termimal (Mac) or command prompt (windows) for errors"% outfile
     dlg = wx.MessageDialog(None,caption="Message:", message=MSG ,style=wx.OK|wx.ICON_INFORMATION)
     dlg.ShowModal()

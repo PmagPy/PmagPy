@@ -55,13 +55,15 @@ class ImportOrientFile(wx.Frame):
         #---sizer 6 ----
         # figure out proper formatting for this.  maybe 2 radio buttons?  option1: overwrite option2: update and append.
         TEXT = "Overwrite er_samples.txt file?"
+        label1 = "yes, overwrite file in working directory"
+        label2 = "no, update existing er_samples file"
         er_samples_file_present = True
         try:
             open(self.WD + "/er_samples.txt", "rU")
         except Exception as ex:
             er_samples_file_present = False
         if er_samples_file_present:
-            self.bSizer6 = pw.labeled_text_field(pnl, TEXT)
+            self.bSizer6 = pw.labeled_yes_or_no(pnl, TEXT, label1, label2)
 
         #---sizer 7 ---
         label = "Select bedding conventions (if needed)"
@@ -72,19 +74,7 @@ class ImportOrientFile(wx.Frame):
 
 
         #---buttons ---
-        self.okButton = wx.Button(pnl, wx.ID_OK, "&OK")
-        self.Bind(wx.EVT_BUTTON, self.on_okButton, self.okButton)
-
-        self.cancelButton = wx.Button(pnl, wx.ID_CANCEL, '&Cancel')
-        self.Bind(wx.EVT_BUTTON, self.on_cancelButton, self.cancelButton)
-
-        self.helpButton = wx.Button(pnl, wx.ID_ANY, '&Help')
-        self.Bind(wx.EVT_BUTTON, self.on_helpButton, self.helpButton)
-
-        hboxok = wx.BoxSizer(wx.HORIZONTAL)
-        hboxok.Add(self.okButton, 0, wx.ALL, 5)
-        hboxok.Add(self.cancelButton, 0, wx.ALL, 5)
-        hboxok.Add(self.helpButton, 0, wx.ALL, 5)
+        hboxok = pw.btn_panel(self, pnl)
 
         #------
         vbox=wx.BoxSizer(wx.VERTICAL)
@@ -136,22 +126,13 @@ class ImportOrientFile(wx.Frame):
         ocn = self.bSizer3.return_value()
         dcn = self.bSizer4.return_value()
         gmt = self.bSizer5.return_value() or 0
-        # can we get these into the display window if needed, not otherwise?
-        # if Tilts > 0:
-        #     Take fisher mean of bedding poles?
-        #         -a: averages all bedding poles and uses average for all samples: default is NO
-        #     else: pass
-        #      Don't correct bedding dip with declination -- already correct
-        #          -BCN: don't correct bedding_dip_dir for magnetic declination -already corrected 
-        #      else: pass
-        # if er_samples.txt file exists (in WD ?):
-        #    ask overwrite or append?
-        #    if append:
-        #        (-app  append/update these data in existing er_samples.txt, er_sites.txt files)
-        #    else:
-        #        overwrite (default)
+        app = self.bSizer6.return_value()
+        if app:
+            app = "" # overwrite is True
+        else:
+            app = "-app" # overwrite is False, append instead
         print "ncn {}, ocn {}, dcn {}, gmt {}".format(ncn, ocn, dcn, gmt)
-        COMMAND = "orientation_magic.py -WD {} -f {} -ncn {} -ocn {} -dcn {} -gmt {} -mcd {} -ID {}".format(WD, infile, ncn, ocn, dcn, gmt, mcd, ID)
+        COMMAND = "orientation_magic.py -WD {} -f {} -ncn {} -ocn {} -dcn {} -gmt {} -mcd {} {} -ID {}".format(WD, infile, ncn, ocn, dcn, gmt, mcd, app, ID)
         #print COMMAND
         pw.run_command_and_close_window(self, COMMAND, None)
 
