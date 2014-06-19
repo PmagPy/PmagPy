@@ -174,7 +174,6 @@ class ImportAzDipFile(wx.Frame):
         self.bSizer3 = pw.labeled_text_field(pnl, "Location:")
 
         #---sizer 4 ----
-        # figure out proper formatting for this.  maybe 2 radio buttons?  option1: overwrite option2: update and append.
         TEXT = "Overwrite er_samples.txt file?"
         label1 = "yes, overwrite file in working directory"
         label2 = "no, update existing er_samples file"
@@ -187,19 +186,7 @@ class ImportAzDipFile(wx.Frame):
             self.bSizer4 = pw.labeled_yes_or_no(pnl, TEXT, label1, label2)
 
         #---buttons ---
-        self.okButton = wx.Button(pnl, wx.ID_OK, "&OK")
-        self.Bind(wx.EVT_BUTTON, self.on_okButton, self.okButton)
-
-        self.cancelButton = wx.Button(pnl, wx.ID_CANCEL, '&Cancel')
-        self.Bind(wx.EVT_BUTTON, self.on_cancelButton, self.cancelButton)
-
-        self.helpButton = wx.Button(pnl, wx.ID_ANY, '&Help')
-        self.Bind(wx.EVT_BUTTON, self.on_helpButton, self.helpButton)
-
-        hboxok = wx.BoxSizer(wx.HORIZONTAL)
-        hboxok.Add(self.okButton, 0, wx.ALL, 5)
-        hboxok.Add(self.cancelButton, 0, wx.ALL, 5)
-        hboxok.Add(self.helpButton, 0, wx.ALL, 5)
+        hboxok = pw.btn_panel(self, pnl)
 
 
         vbox = wx.BoxSizer(wx.VERTICAL)
@@ -259,5 +246,84 @@ class ImportAzDipFile(wx.Frame):
 
     def on_helpButton(self, event):
         pw.on_helpButton("azdip_magic.py -h")
+
+
+class something(wx.Frame):
+
+    title = ""
+    
+    def __init__(self, parent, WD):
+        wx.Frame.__init__(self, parent, wx.ID_ANY, self.title)
+        self.panel = wx.ScrolledWindow(self)
+        self.WD = WD
+        self.InitUI()
+
+    def InitUI(self):
+        pnl = self.panel
+        TEXT = "some text"
+        bSizer_info = wx.BoxSizer(wx.HORIZONTAL)
+        bSizer_info.Add(wx.StaticText(pnl, label=TEXT), wx.ALIGN_LEFT)
+
+        #---sizer 0 ----
+        self.bSizer0 = pw.choose_file(pnl, 'add', method = self.on_add_file_button)
+
+        #---sizer 1 ----
+
+
+        #---sizer 2 ---
+
+
+        #---sizer 3 ---
+
+
+        #---sizer 4 ----
+        #try:
+        #    open(self.WD + "/er_samples.txt", "rU")
+        #except Exception as ex:
+        #    er_samples_file_present = False
+        #if er_samples_file_present:
+        #    self.bSizer4 = pw.labeled_yes_or_no(pnl, TEXT, label1, label2)
+
+        #---buttons ---
+        hboxok = pw.btn_panel(self, pnl)
+
+        vbox = wx.BoxSizer(wx.VERTICAL)
+        vbox.Add(bSizer_info, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        vbox.Add(self.bSizer0, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        #vbox.Add(self.bSizer1, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        #vbox.Add(self.bSizer2, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        #vbox.Add(self.bSizer3, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        #try:
+        #    vbox.Add(self.bSizer4, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        #except AttributeError:
+        #    pass
+        vbox.Add(hboxok, flag=wx.ALIGN_CENTER)        
+        vbox.AddSpacer(20)
+
+        hbox_all = wx.BoxSizer(wx.HORIZONTAL)
+        hbox_all.AddSpacer(20)
+        hbox_all.AddSpacer(vbox)
+
+        self.panel.SetSizer(hbox_all)
+        self.panel.SetScrollbars(20, 20, 50, 50)
+        hbox_all.Fit(self)
+        self.Show()
+        self.Centre()
+
+    def on_add_file_button(self,event):
+        text = "choose file to convert to MagIC"
+        pw.on_add_file_button(self.panel, self.WD, event, text)
+
+    def on_okButton(self, event):
+        COMMAND = ""
+        print COMMAND
+        #pw.run_command_and_close_window(self, COMMAND, "er_samples.txt")
+
+    def on_cancelButton(self,event):
+        self.Destroy()
+        self.Parent.Raise()
+
+    def on_helpButton(self, event):
+        pw.on_helpButton(".py -h")
 
 
