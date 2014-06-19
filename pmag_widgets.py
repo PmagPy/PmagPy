@@ -132,6 +132,7 @@ class select_specimen_ocn(wx.StaticBoxSizer):
         ocn_values = range(1, 6)
         self.sample_orientation_conventions = dict(zip(ocn_keys, ocn_values))
         self.select_orientation_convention = wx.ComboBox(parent, -1, ocn_keys[0], size=(705,25), choices=ocn_keys, style=wx.CB_READONLY)
+        self.Add(label, wx.ALIGN_LEFT)
         self.Add(self.select_orientation_convention, wx.ALIGN_LEFT)
         self.AddSpacer(8)
 

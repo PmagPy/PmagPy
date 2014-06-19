@@ -218,7 +218,7 @@ class convert_generic_files_to_MagIC(wx.Frame):
 
         #---buttons ---
         
-        self.hboxok = pw.btn_panel(self, pnl)
+        hboxok = pw.btn_panel(self, pnl)
 
         #------
         vbox=wx.BoxSizer(wx.VERTICAL)
@@ -324,8 +324,11 @@ class convert_generic_files_to_MagIC(wx.Frame):
         #-----------        
         
         LABFIELD=" "
-        B_uT, DEC, INC = self.bSizer3.return_value().split() or '', '', ''
-        
+        try:
+            B_uT, DEC, INC = self.bSizer3.return_value().split()
+        except ValueError:
+            B_uT, DEC, INC = '', '', ''
+
         if EXP != "Demag":
             LABFIELD="-dc "  +B_uT+ " " + DEC + " " + INC
 
