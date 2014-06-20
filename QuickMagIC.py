@@ -31,6 +31,7 @@ class MagMainFrame(wx.Frame):
         self.first_time_messsage=False
         self.Bind(wx.EVT_CLOSE, self.on_menu_exit)
 
+
     def InitUI(self):
 
         menubar = pmag_menu.MagICMenu(self)

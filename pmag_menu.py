@@ -13,6 +13,11 @@ class MagICMenu(wx.MenuBar):
     def __init__(self, parent):
         self.parent = parent
         super(MagICMenu, self).__init__()
+
+        file_menu = wx.Menu()
+        fitem = file_menu.Append(wx.ID_EXIT, 'Quit', 'Quit application')
+        parent.Bind(wx.EVT_MENU, self.on_quit, fitem)
+
         import_menu = wx.Menu()
 
         orient_submenu = wx.Menu()
@@ -52,6 +57,8 @@ class MagICMenu(wx.MenuBar):
         self.Append(import_menu, 'Import')
 
 
+    def on_quit(self, event):
+        self.parent.Close()
 
     def orient_import1(self, event): 
         orient1 = pmag_menu_dialogs.ImportOrientFile(self.parent, self.parent.WD)
