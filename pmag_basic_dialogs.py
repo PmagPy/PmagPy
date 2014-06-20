@@ -169,19 +169,20 @@ class convert_generic_files_to_MagIC(wx.Frame):
         #---sizer 2 ----
         # unique because only accepts 1 experiment type
         TEXT="Experiment:"
-        self.bSizer2 = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY, "" ), wx.HORIZONTAL )
+        self.bSizer2 = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY, "" ), wx.HORIZONTAL)
         self.gridBSizer = wx.GridBagSizer(5, 10)
         self.label1 = wx.StaticText(pnl, label=TEXT)
-        self.label2 = wx.StaticText(pnl, label="n (if needed, default is 6)")
-        self.experiments_names=['Demag (AF and/or Thermal)','Paleointensity-IZZI/ZI/ZI','ATRM n positions','AARM n positions','cooling rate','TRM']
+        self.experiments_names=['Demag (AF and/or Thermal)','Paleointensity-IZZI/ZI/ZI','ATRM 6 positions','AARM 6 positions','cooling rate','TRM']
         self.protocol_info = wx.ComboBox(self.panel, -1, self.experiments_names[0], size=(300,25),choices=self.experiments_names, style=wx.CB_READONLY)
-        self.n = wx.TextCtrl(pnl, id=-1, size=(40, 25))
         self.gridBSizer.Add(self.label1, (0, 0))
-        self.gridBSizer.Add(self.label2, (0, 1))
         self.gridBSizer.Add(self.protocol_info, (1, 0))
-        self.gridBSizer.Add(self.n, (1, 1))
         self.bSizer2.Add(self.gridBSizer, wx.ALIGN_LEFT)
-        
+        #
+        self.Bind(wx.EVT_COMBOBOX, self.on_select_protocol, self.protocol_info)
+        self.bSizer2a = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY, "" ), wx.HORIZONTAL )
+        text = 'Cooling Rate, format xxx, yyy, zzz'
+        self.cooling_rate = wx.TextCtrl(pnl)
+        self.bSizer2a.AddMany([wx.StaticText(pnl, label=text), self.cooling_rate])
         
 
         #---sizer 3 ----
@@ -234,6 +235,8 @@ class convert_generic_files_to_MagIC(wx.Frame):
         vbox.Add(self.bSizer0, flag=wx.ALIGN_LEFT|wx.TOP, border=5)
         vbox.Add(self.bSizer1, flag=wx.ALIGN_LEFT|wx.TOP, border=5)
         vbox.Add(self.bSizer2, flag=wx.ALIGN_LEFT|wx.TOP, border=5)
+        vbox.Add(self.bSizer2a, flag=wx.ALIGN_LEFT|wx.TOP, border=5)
+
         vbox.Add(self.bSizer3, flag=wx.ALIGN_LEFT|wx.TOP, border=5)
         vbox.Add(self.bSizer4, flag=wx.ALIGN_LEFT|wx.TOP, border=5)
         vbox.Add(self.bSizer5, flag=wx.ALIGN_LEFT|wx.TOP, border=5)
@@ -243,15 +246,25 @@ class convert_generic_files_to_MagIC(wx.Frame):
         vbox.Add(hboxok, flag=wx.ALIGN_CENTER)        
         vbox.AddSpacer(5)
 
-        hbox_all= wx.BoxSizer(wx.HORIZONTAL)
-        hbox_all.AddSpacer(20)
-        hbox_all.AddSpacer(vbox)
-        hbox_all.AddSpacer(20)
+
+        self.hbox_all= wx.BoxSizer(wx.HORIZONTAL)
+        self.hbox_all.AddSpacer(20)
+        self.hbox_all.AddSpacer(vbox)
+        self.hbox_all.AddSpacer(20)
         
-        self.panel.SetSizer(hbox_all)
-        hbox_all.Fit(self)
+        self.panel.SetSizer(self.hbox_all)
+        self.bSizer2a.ShowItems(False)
+        self.hbox_all.Fit(self)
         self.Show()
         self.Centre()
+
+
+    def on_select_protocol(self, event):
+        if self.protocol_info.GetValue() == "cooling rate":
+            self.bSizer2a.ShowItems(True)
+        else:
+            self.bSizer2a.ShowItems(False)
+        self.hbox_all.Fit(self)
 
 
     def on_add_file_button(self,event):
@@ -280,18 +293,13 @@ class convert_generic_files_to_MagIC(wx.Frame):
             EXP='Demag'
         elif exp=='Paleointensity-IZZI/ZI/ZI': 
             EXP='PI'
-        elif exp=='ATRM n positions': 
-            if self.n.GetValue():
-                EXP = 'ATRM {}'.format(self.n.GetValue())
-            else:
-                EXP='ATRM 6'
-        elif exp=='AARM n positions': 
-            if self.n.GetValue():
-                EXP = 'AARM {}'.format(self.n.GetValue())
-            else:
-                EXP='AARM 6'
+        elif exp=='ATRM 6 positions': 
+            EXP='ATRM 6'
+        elif exp=='AARM 6 positions': 
+            EXP = 'AARM 6'
         elif exp=='cooling rate': 
-            EXP='CR'
+            cooling = self.cooling_rate.GetValue()
+            EXP='CR {}'.format(cooling)
         #-----------
         SAMP="1 0" #default
         
