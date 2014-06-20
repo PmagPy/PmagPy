@@ -268,12 +268,13 @@ class MagMainFrame(wx.Frame):
         dia.Center()
         
         if self.first_time_messsage==False:
-            TXT="Press OK on 'Earth-Ref Magic Builder' frame and follow the instructions listed in the help window.\n(if you dont see the help window it might be hidden behind the main frame)"
+            TXT="Press OK on 'Earth-Ref Magic Builder' frame and follow the instructions listed in the help window."#\n(if you dont see the help window it might be hidden behind the main frame)"
             dlg = wx.MessageDialog(self, caption="Earth-Ref Magic Builder is opened for the first time",message=TXT,style=wx.OK)
             result = dlg.ShowModal()
             if result == wx.ID_OK:            
                 dlg.Destroy()
                 self.first_time_messsage=True
+                self.help_window.Raise()
             
             
 
