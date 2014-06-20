@@ -170,11 +170,19 @@ class convert_generic_files_to_MagIC(wx.Frame):
         # unique because only accepts 1 experiment type
         TEXT="Experiment:"
         self.bSizer2 = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY, "" ), wx.HORIZONTAL )
-        self.experiments_names=['Demag (AF and/or Thermal)','Paleointensity-IZZI/ZI/ZI','ATRM 6 positions','AARM 6 positions','cooling rate','TRM']
+        self.gridBSizer = wx.GridBagSizer(5, 10)
+        self.label1 = wx.StaticText(pnl, label=TEXT)
+        self.label2 = wx.StaticText(pnl, label="n (if needed, default is 6)")
+        self.experiments_names=['Demag (AF and/or Thermal)','Paleointensity-IZZI/ZI/ZI','ATRM n positions','AARM n positions','cooling rate','TRM']
         self.protocol_info = wx.ComboBox(self.panel, -1, self.experiments_names[0], size=(300,25),choices=self.experiments_names, style=wx.CB_READONLY)
-        self.bSizer2.Add(wx.StaticText(pnl,label=TEXT),wx.ALIGN_LEFT)
-        self.bSizer2.AddSpacer(5)
-        self.bSizer2.Add(self.protocol_info,wx.ALIGN_LEFT)
+        self.n = wx.TextCtrl(pnl, id=-1, size=(40, 25))
+        self.gridBSizer.Add(self.label1, (0, 0))
+        self.gridBSizer.Add(self.label2, (0, 1))
+        self.gridBSizer.Add(self.protocol_info, (1, 0))
+        self.gridBSizer.Add(self.n, (1, 1))
+        self.bSizer2.Add(self.gridBSizer, wx.ALIGN_LEFT)
+        
+        
 
         #---sizer 3 ----
         self.bSizer3 = pw.lab_field(pnl)
@@ -272,10 +280,16 @@ class convert_generic_files_to_MagIC(wx.Frame):
             EXP='Demag'
         elif exp=='Paleointensity-IZZI/ZI/ZI': 
             EXP='PI'
-        elif exp=='ATRM 6 positions': 
-            EXP='ATRM 6'
-        elif exp=='AARM 6 positions': 
-            EXP='AARM 6'
+        elif exp=='ATRM n positions': 
+            if self.n.GetValue():
+                EXP = 'ATRM {}'.format(self.n.GetValue())
+            else:
+                EXP='ATRM 6'
+        elif exp=='AARM n positions': 
+            if self.n.GetValue():
+                EXP = 'AARM {}'.format(self.n.GetValue())
+            else:
+                EXP='AARM 6'
         elif exp=='cooling rate': 
             EXP='CR'
         #-----------
