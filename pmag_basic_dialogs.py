@@ -13,7 +13,7 @@ import subprocess
 
 class import_magnetometer_data(wx.Dialog):
     def __init__(self,parent,id,title,WD):
-        wx.Dialog.__init__(self, parent, id, title)#, size=(300, 300))
+        wx.Dialog.__init__(self, parent, id, title)
         self.WD=WD
         self.InitUI()
         self.SetTitle(title)
@@ -86,9 +86,10 @@ class import_magnetometer_data(wx.Dialog):
 
         self.panel.SetSizer(hbox1)
         hbox1.Fit(self)
+
     def on_cancelButton(self,event):
-        #print 'canceling select file type import dialogue'
         self.Destroy()
+
     def on_okButton(self,event):
         file_type = self.checked_rb.Label.split()[0] # extracts name of the checked radio button
         if file_type == 'generic':
@@ -111,17 +112,13 @@ class import_magnetometer_data(wx.Dialog):
             COMMAND = "TDT_magic.py -WD {}".format(self.WD)
             os.system(COMMAND)
             return True
-        #print 'dia', dia, file_type
         dia.Center()
         dia.Show()
-        #print 'showed dia'
 
 
     def OnRadioButtonSelect(self, event):
-        #print 'calling OnRadioButtonSelect'
         self.checked_rb = event.GetEventObject()
-        #print 'current self.checked_rb', self.checked_rb.Label
-#        print '-------------'
+
 
     def on_nextButton(self,event):
         self.Destroy()
@@ -140,13 +137,11 @@ class convert_generic_files_to_MagIC(wx.Frame):
 
     def __init__(self,parent,WD):
         wx.Frame.__init__(self, parent, wx.ID_ANY, self.title)
-#        self.panel = wx.Panel(self)
         self.panel = wx.ScrolledWindow(self)
         self.panel.SetScrollbars(20, 20, 50, 50)
         self.max_files=1
         self.WD=WD
         self.parent=parent
-        ##print 'self.WD on init generic files', self.WD
         self.InitUI()
 
     def InitUI(self):
@@ -169,12 +164,21 @@ class convert_generic_files_to_MagIC(wx.Frame):
         #---sizer 2 ----
         # unique because only accepts 1 experiment type
         TEXT="Experiment:"
-        self.bSizer2 = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY, "" ), wx.HORIZONTAL )
+        self.bSizer2 = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY, "" ), wx.HORIZONTAL)
+        self.gridBSizer = wx.GridBagSizer(5, 10)
+        self.label1 = wx.StaticText(pnl, label=TEXT)
         self.experiments_names=['Demag (AF and/or Thermal)','Paleointensity-IZZI/ZI/ZI','ATRM 6 positions','AARM 6 positions','cooling rate','TRM']
         self.protocol_info = wx.ComboBox(self.panel, -1, self.experiments_names[0], size=(300,25),choices=self.experiments_names, style=wx.CB_READONLY)
-        self.bSizer2.Add(wx.StaticText(pnl,label=TEXT),wx.ALIGN_LEFT)
-        self.bSizer2.AddSpacer(5)
-        self.bSizer2.Add(self.protocol_info,wx.ALIGN_LEFT)
+        self.gridBSizer.Add(self.label1, (0, 0))
+        self.gridBSizer.Add(self.protocol_info, (1, 0))
+        self.bSizer2.Add(self.gridBSizer, wx.ALIGN_LEFT)
+        #
+        self.Bind(wx.EVT_COMBOBOX, self.on_select_protocol, self.protocol_info)
+        self.bSizer2a = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY, "" ), wx.HORIZONTAL )
+        text = 'Cooling Rate, format is xxx,yyy,zzz with no spaces  '
+        self.cooling_rate = wx.TextCtrl(pnl)
+        self.bSizer2a.AddMany([wx.StaticText(pnl, label=text), self.cooling_rate])
+        
 
         #---sizer 3 ----
         self.bSizer3 = pw.lab_field(pnl)
@@ -226,6 +230,8 @@ class convert_generic_files_to_MagIC(wx.Frame):
         vbox.Add(self.bSizer0, flag=wx.ALIGN_LEFT|wx.TOP, border=5)
         vbox.Add(self.bSizer1, flag=wx.ALIGN_LEFT|wx.TOP, border=5)
         vbox.Add(self.bSizer2, flag=wx.ALIGN_LEFT|wx.TOP, border=5)
+        vbox.Add(self.bSizer2a, flag=wx.ALIGN_LEFT|wx.TOP, border=5)
+
         vbox.Add(self.bSizer3, flag=wx.ALIGN_LEFT|wx.TOP, border=5)
         vbox.Add(self.bSizer4, flag=wx.ALIGN_LEFT|wx.TOP, border=5)
         vbox.Add(self.bSizer5, flag=wx.ALIGN_LEFT|wx.TOP, border=5)
@@ -235,15 +241,25 @@ class convert_generic_files_to_MagIC(wx.Frame):
         vbox.Add(hboxok, flag=wx.ALIGN_CENTER)        
         vbox.AddSpacer(5)
 
-        hbox_all= wx.BoxSizer(wx.HORIZONTAL)
-        hbox_all.AddSpacer(20)
-        hbox_all.AddSpacer(vbox)
-        hbox_all.AddSpacer(20)
+
+        self.hbox_all= wx.BoxSizer(wx.HORIZONTAL)
+        self.hbox_all.AddSpacer(20)
+        self.hbox_all.AddSpacer(vbox)
+        self.hbox_all.AddSpacer(20)
         
-        self.panel.SetSizer(hbox_all)
-        hbox_all.Fit(self)
+        self.panel.SetSizer(self.hbox_all)
+        self.bSizer2a.ShowItems(False)
+        self.hbox_all.Fit(self)
         self.Show()
         self.Centre()
+
+
+    def on_select_protocol(self, event):
+        if self.protocol_info.GetValue() == "cooling rate":
+            self.bSizer2a.ShowItems(True)
+        else:
+            self.bSizer2a.ShowItems(False)
+        self.hbox_all.Fit(self)
 
 
     def on_add_file_button(self,event):
@@ -275,9 +291,10 @@ class convert_generic_files_to_MagIC(wx.Frame):
         elif exp=='ATRM 6 positions': 
             EXP='ATRM 6'
         elif exp=='AARM 6 positions': 
-            EXP='AARM 6'
+            EXP = 'AARM 6'
         elif exp=='cooling rate': 
-            EXP='CR'
+            cooling = self.cooling_rate.GetValue()
+            EXP='CR {}'.format(cooling)
         #-----------
         SAMP="1 0" #default
         
@@ -518,7 +535,6 @@ class combine_magic_dialog(wx.Frame):
         files=files_text.strip('\n').replace(" ","").split('\n')
         COMMAND="combine_magic.py -F magic_measurements.txt -f %s"%(" ".join(files) )       
         print "-I- Running Python command:\n %s"%COMMAND
-        #subprocess.call(COMMAND, shell=True)   
         os.chdir(self.WD)     
         os.system(COMMAND)                                          
         
@@ -535,7 +551,6 @@ class convert_SIO_files_to_MagIC(wx.Frame):
     title = "PmagPy SIO file conversion"
 
     def __init__(self, parent, WD):
-        #print 'init SIO conversion'
         wx.Frame.__init__(self, parent, wx.ID_ANY, self.title)
         self.panel = wx.ScrolledWindow(self)
         self.panel.SetScrollbars(20, 20, 50, 50)
@@ -659,9 +674,7 @@ class convert_SIO_files_to_MagIC(wx.Frame):
         loc_name = self.bSizer5.return_value()
         if loc_name:
             loc_name = "-loc " + loc_name
-        #print "loc_name", loc_name
         instrument = self.bSizer6.return_value()
-        #print "instrument", instrument
         if instrument:
             instrument = "-ins " + instrument
         replicate = self.bSizer7.return_value()
@@ -672,7 +685,6 @@ class convert_SIO_files_to_MagIC(wx.Frame):
         peak_AF = self.bSizer8.return_value()
         if peak_AF:
             peak_AF = "-ac " + peak_AF
-        #print "peak_AF", peak_AF
         coil_number = self.bSizer9.return_value()
         if coil_number:
             coil_number = "-V " + coil_number
@@ -706,7 +718,6 @@ class convert_CIT_files_to_MagIC(wx.Frame):
 
 
     def InitUI(self):
-        #print 'initializing UI for CIT file conversion'
         pnl = self.panel
 
         TEXT = "CIT Format file"
@@ -924,15 +935,12 @@ class convert_HUJI_files_to_MagIC(wx.Frame):
         HUJI_file = self.bSizer0.return_value()
         magicoutfile=os.path.split(HUJI_file)[1]+".magic"
         outfile=os.path.join(self.WD,magicoutfile)
-        
-        #outfile = HUJI_file + '.magic'
         user = self.bSizer1.return_value()
         if user:
             user = '-usr ' + user
         experiment_type = self.bSizer2.return_value()
         lab_field = self.bSizer3.return_value()
         if lab_field:
-            #print 'lab field', lab_field
             lab_field = '-dc ' + lab_field
         ncn = self.bSizer4.return_value()
         spc = self.bSizer5.return_value()
@@ -945,7 +953,6 @@ class convert_HUJI_files_to_MagIC(wx.Frame):
             loc_name = '-loc ' + loc_name
         peak_AF = self.bSizer7.return_value()
         COMMAND = "HUJI_magic.py -f {} -F {} -LP {} {} {} -ncn {} {} {} {}".format(HUJI_file, outfile, user, experiment_type, loc_name, ncn, lab_field, spc, peak_AF)
-        #print 'COMMAND', COMMAND
         pw.run_command_and_close_window(self, COMMAND, outfile)
 
     def on_cancelButton(self,event):
@@ -1197,12 +1204,10 @@ class convert_LDEO_files_to_MagIC(wx.Frame):
         LDEO_file = self.bSizer0.return_value()
         magicoutfile=os.path.split(LDEO_file)[1]+".magic"
         outfile=os.path.join(self.WD,magicoutfile)
-        #outfile = LDEO_file + ".magic"
         user = self.bSizer1.return_value()
         if user:
             user = "-usr " + user
         experiment_type = self.bSizer2.return_value()
-        #print experiment_type
         lab_field = self.bSizer3.return_value()
         if lab_field:
             lab_field = "-dc " + lab_field
@@ -1459,15 +1464,6 @@ class convert_PMD_files_to_MagIC(wx.Frame):
 
 
 
-
-
-#if __name__ == '__main__':
-#    print "Hi"
-#    app = wx.PySimpleApp()
-#    app.frame = combine_magic_dialog( "./")
-#    app.frame.Show()
-#    app.frame.Center()
-#    app.MainLoop()
 
 
 # template for an import window

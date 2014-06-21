@@ -9,7 +9,6 @@ import wx
 class choose_file(wx.StaticBoxSizer):
 
     def __init__(self, parent, orient=wx.VERTICAL, btn_text='add', method=None):
-        #__init__ (self, box, orient=HORIZONTAL)
         box = wx.StaticBox( parent, wx.ID_ANY, "" )
         super(choose_file, self).__init__(box, orient=wx.VERTICAL)
         self.btn_text = btn_text
@@ -176,8 +175,6 @@ class select_declination(wx.StaticBoxSizer):
         gridSizer = wx.GridSizer(2, 2, 5, 10)
         gridSizer.AddMany( [label1, label2, self.select_dcn, self.dec_box])
         self.Add(gridSizer, wx.ALIGN_LEFT)
-        #self.Add(label, flag=wx.ALIGN_LEFT|wx.BOTTOM, border=5)
-        #self.Add(select_dcn, wx.ALIGN_LEFT)
         self.AddSpacer(10)
         
         
@@ -244,7 +241,6 @@ class sampling_particulars(check_boxes):
         gridsize = (5, 2, 0, 0)
         TEXT = "Sampling Particulars (select all that apply):"
         particulars = ["FS-FD: field sampling done with a drill", "FS-H: field sampling done with hand samples", "FS-LOC-GPS: field location done with GPS", "FS-LOC-MAP:  field location done with map", "SO-POM:  a Pomeroy orientation device was used", "SO-ASC:  an ASC orientation device was used", "SO-MAG: magnetic compass used for all orientations", "SO-SUN: sun compass used for all orientations", "SO-SM: either magnetic or sun used on all orientations", "SO-SIGHT: orientation from sighting"]
-        #self.bSizer1 = pw.check_boxes(pnl, (6, 2, 0, 0), particulars, TEXT)
         super(sampling_particulars, self).__init__(parent, gridsize, particulars, TEXT)
 
 
@@ -353,7 +349,6 @@ class btn_panel(wx.BoxSizer):
 
 
 def on_add_dir_button(SELF, WD, event, text):
-#    print "on add dir button"
     dlg = wx.DirDialog(
             None, message=text,
             defaultPath=".",

@@ -44,7 +44,7 @@ def main():
                 where xx, yyy,zzz...xxx  are cooling rates in [K/minutes], seperated by comma, ordered at the same order as XXX.10,XXX.20 ...XX.70
                 
                 No need to specify the cooling rate for the zerofield
-                It is important to add to the command line the -A option so the measurements will not be evraged.
+                It is important to add to the command line the -A option so the measurements will not be averaged.
                 But users need to make sure that there are no duplicate meaurements in the file
             
             NLT:
