@@ -34,8 +34,8 @@ class MagMainFrame(wx.Frame):
 
     def InitUI(self):
 
-        menubar = pmag_menu.MagICMenu(self)
-        self.SetMenuBar(menubar)
+        #menubar = pmag_menu.MagICMenu(self)
+        #self.SetMenuBar(menubar)
 
 
         #pnl = self.panel
@@ -365,6 +365,7 @@ class MagMainFrame(wx.Frame):
        
            
     def on_menu_exit(self, event):
+        self.help_window.Destroy()
         exit()
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
 #==============================================================
