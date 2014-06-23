@@ -70,13 +70,13 @@ class MagICMenu(wx.MenuBar):
         orient3 = pmag_menu_dialogs.ImportODPCoreSummary(self.parent, self.parent.WD)
 
     def orient_import4(self, event):
-        print 'you clicked item4'
+        orient4 = pmag_menu_dialogs.ImportODPSampleSummary(self.parent, self.parent.WD)
 
     def orient_import5(self, event):
-        print 'you clicked item5'
+        orient5 = pmag_menu_dialogs.ImportModelLatitude(self.parent, self.parent.WD)
 
     def anisotropy_import1(self, event):
-        print "aniso1"
+        aniso1 = pmag_menu_dialogs.ImportKly4s(self.parent, self.parent.WD)
 
     def anisotropy_import2(self, event):
         print "aniso2"
