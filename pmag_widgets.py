@@ -14,8 +14,8 @@ class choose_file(wx.StaticBoxSizer):
         self.btn_text = btn_text
         self.method = method
         self.parent = parent
-        self.parent.file_path = wx.TextCtrl(self.parent, id=-1, size=(400,25), style=wx.TE_READONLY)
-        self.add_file_button = wx.Button(self.parent, id=-1, label=btn_text,name='add')
+        self.file_path = wx.TextCtrl(self.parent, id=-1, size=(400,25), style=wx.TE_READONLY)
+        self.add_file_button = wx.Button(self.parent, id=-1, label=btn_text,name=btn_text)
         if method:
             self.parent.Bind(wx.EVT_BUTTON, method, self.add_file_button)
         TEXT="Choose file (no spaces are allowed in path):"
@@ -24,11 +24,11 @@ class choose_file(wx.StaticBoxSizer):
         bSizer0_1=wx.BoxSizer(wx.HORIZONTAL)
         bSizer0_1.Add(self.add_file_button, wx.ALIGN_LEFT)
         bSizer0_1.AddSpacer(4)
-        bSizer0_1.Add(self.parent.file_path, wx.ALIGN_LEFT)
+        bSizer0_1.Add(self.file_path, wx.ALIGN_LEFT)
         self.Add(bSizer0_1, wx.ALIGN_LEFT)
 
     def return_value(self):
-        return self.parent.file_path.GetValue()
+        return self.file_path.GetValue()
 
 
 class choose_dir(wx.StaticBoxSizer):
@@ -366,7 +366,8 @@ def on_add_file_button(SELF, WD, event, text):
         style=wx.OPEN | wx.CHANGE_DIR
             )
     if dlg.ShowModal() == wx.ID_OK:
-            SELF.file_path.SetValue(str(dlg.GetPath()))
+        SELF.file_path.SetValue(str(dlg.GetPath()))
+
 
 
 def on_helpButton(command):

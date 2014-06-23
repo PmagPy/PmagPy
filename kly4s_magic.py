@@ -75,6 +75,12 @@ def main():
     if '-WD' in sys.argv:
         ind=sys.argv.index('-WD')
         dir_path=sys.argv[ind+1] 
+    if '-ID' in sys.argv:
+        ind = sys.argv.index('-ID')
+        input_dir_path = sys.argv[ind+1]
+    else:
+        input_dir_path = dir_path
+    output_dir_path = dir_path
     if '-h' in sys.argv:
         print main.__doc__
         sys.exit()
@@ -119,7 +125,7 @@ def main():
         AppSpec=1
     if '-fad' in sys.argv:
         ind=sys.argv.index('-fad')
-        azdipfile=dir_path+"/"+sys.argv[ind+1]
+        azdipfile = input_dir_path+"/"+sys.argv[ind+1]
         azfile=open(azdipfile,'rU')
         AzDipDat=azfile.readlines() 
     if '-loc' in sys.argv:
@@ -129,11 +135,11 @@ def main():
         ind=sys.argv.index('-spc')
         specnum=-(int(sys.argv[ind+1]))
         #if specnum!=0:specnum=-specnum
-    specfile=dir_path+'/'+specfile
-    sampfile=dir_path+'/'+sampfile
-    measfile=dir_path+'/'+measfile
-    anisfile=dir_path+'/'+anisfile
-    amsfile=dir_path+'/'+amsfile
+    specfile = output_dir_path+'/'+specfile
+    sampfile = output_dir_path+'/'+sampfile
+    measfile = output_dir_path+'/'+measfile
+    anisfile = output_dir_path+'/'+anisfile
+    amsfile = input_dir_path+'/'+amsfile
     try:
         input=open(amsfile,'rU')
     except:
@@ -150,7 +156,7 @@ def main():
             print 'trouble opening ',specfile 
     Data=input.readlines()
     samps=[]
-    if sampfile!=dir_path+'/': 
+    if sampfile!=output_dir_path+'/': 
         samps,file_type=pmag.magic_read(sampfile)
         SO_methods=[]
         for rec in samps:
@@ -208,7 +214,7 @@ def main():
                 SampRec['sample_bed_dip_direction']='%7.1f'%(bed_dip_direction)
                 SampRec['sample_bed_dip']='%7.1f'%(bed_dip)
                 SampRecs.append(SampRec)
-        elif sampfile!=dir_path+'/':
+        elif sampfile!=output_dir_path+'/':
            redo,p=1,0
            orient={}
            if len(SO_methods)==1:

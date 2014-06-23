@@ -111,7 +111,7 @@ class ImportOrientFile(wx.Frame):
 
     def on_add_file_button(self,event):
         text = "choose file to convert to MagIC"
-        pw.on_add_file_button(self.panel, self.WD, event, text)
+        pw.on_add_file_button(self.bSizer0, self.WD, event, text)
 
     def on_okButton(self, event):
         WD = self.WD
@@ -214,7 +214,7 @@ class ImportAzDipFile(wx.Frame):
 
     def on_add_file_button(self,event):
         text = "choose file to convert to MagIC"
-        pw.on_add_file_button(self.panel, self.WD, event, text)
+        pw.on_add_file_button(self.bSizer0, self.WD, event, text)
 
     def on_okButton(self, event):
         WD = self.WD
@@ -304,7 +304,7 @@ class ImportODPCoreSummary(wx.Frame):
 
     def on_add_file_button(self,event):
         text = "choose file to convert to MagIC"
-        pw.on_add_file_button(self.panel, self.WD, event, text)
+        pw.on_add_file_button(self.bSizer0, self.WD, event, text)
 
     def on_okButton(self, event):
         WD = self.WD
@@ -390,7 +390,7 @@ class ImportODPSampleSummary(wx.Frame):
 
     def on_add_file_button(self,event):
         text = "choose file to convert to MagIC"
-        pw.on_add_file_button(self.panel, self.WD, event, text)
+        pw.on_add_file_button(self.bSizer0, self.WD, event, text)
 
     def on_okButton(self, event):
         WD = self.WD
@@ -458,7 +458,7 @@ class ImportModelLatitude(wx.Frame):
 
     def on_add_file_button(self,event):
         text = "choose file to convert to MagIC"
-        pw.on_add_file_button(self.panel, self.WD, event, text)
+        pw.on_add_file_button(self.bSizer0, self.WD, event, text)
 
     def on_okButton(self, event):
         infile = self.bSizer0.return_value()
@@ -492,7 +492,7 @@ class ImportKly4s(wx.Frame):
         bSizer_info.Add(wx.StaticText(pnl, label=TEXT), wx.ALIGN_LEFT)
 
         #---sizer 0 ----
-        self.bSizer0 = pw.choose_file(pnl, 'add', method = self.on_add_file_button)
+        self.bSizer0 = pw.choose_file(pnl, btn_text="Add kly4s format file", method = self.on_add_file_button)
         """
         -fad AZDIP: specify AZDIP file with orientations, will create er_samples.txt file                                           
         -fsa SFILE: specify existing er_samples.txt file with orientation information                                             
@@ -507,45 +507,46 @@ class ImportKly4s(wx.Frame):
         -ncn NCON:  specify naming convention: default is #1 below 
         """
 
-        #---sizer 1 ----
-        self.bSizer1 = pw.labeled_text_field(pnl)
+        #---sizer 1 ---
+        self.bSizer1 = pw.choose_file(pnl, btn_text='add AZDIP file (optional)', method = self.on_add_AZDIP_file_button)
+        self.bSizer1a = pw.select_specimen_ocn(pnl)
+        
 
-        #---sizer 2 ---
-        self.bSizer2 = pw.specimen_n(pnl)
+        #---sizer 2 ----
+        self.bSizer2 = pw.labeled_text_field(pnl)
 
         #---sizer 3 ---
-        self.bSizer3 = pw.select_specimen_ncn(pnl)
+        self.bSizer3 = pw.specimen_n(pnl)
 
         #---sizer 4 ---
-        self.bSizer4 = pw.select_specimen_ocn(pnl)
+        self.bSizer4 = pw.select_specimen_ncn(pnl)
 
         #---sizer 5 ---
-        self.bSizer5 = pw.labeled_text_field(pnl, "Location name:")
+        self.bSizer5 = pw.select_specimen_ocn(pnl)
+        self.bSizer5.select_orientation_convention.SetSelection(2)
 
         #---sizer 6 ---
-        self.bSizer6 = pw.labeled_text_field(pnl, "Instrument name (optional):")
+        self.bSizer6 = pw.labeled_text_field(pnl, "Location name:")
 
-        #---sizer 4 ----
-        #try:
-        #    open(self.WD + "/er_samples.txt", "rU")
-        #except Exception as ex:
-        #    er_samples_file_present = False
-        #if er_samples_file_present:
-        #    self.bSizer4 = pw.labeled_yes_or_no(pnl, TEXT, label1, label2)
+        #---sizer 7 ---
+        self.bSizer7 = pw.labeled_text_field(pnl, "Instrument name (optional):")
+
 
         #---buttons ---
         hboxok = pw.btn_panel(self, pnl)
 
         vbox = wx.BoxSizer(wx.VERTICAL)
         hbox1 = wx.BoxSizer(wx.HORIZONTAL)
-        hbox1.Add(self.bSizer5, flag=wx.ALIGN_LEFT|wx.RIGHT, border=5)
-        hbox1.Add(self.bSizer6, flag=wx.ALIGN_LEFT)
+        hbox1.Add(self.bSizer6, flag=wx.ALIGN_LEFT|wx.RIGHT, border=5)
+        hbox1.Add(self.bSizer7, flag=wx.ALIGN_LEFT)
         vbox.Add(bSizer_info, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(self.bSizer0, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(self.bSizer1, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        vbox.Add(self.bSizer1a, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(self.bSizer2, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(self.bSizer3, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(self.bSizer4, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        vbox.Add(self.bSizer5, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(hbox1, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         #vbox.Add(self.bSizer5, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         #vbox.Add(self.bSizer6, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
@@ -556,39 +557,57 @@ class ImportKly4s(wx.Frame):
         vbox.Add(hboxok, flag=wx.ALIGN_CENTER)        
         vbox.AddSpacer(20)
 
-        hbox_all = wx.BoxSizer(wx.HORIZONTAL)
-        hbox_all.AddSpacer(20)
-        hbox_all.AddSpacer(vbox)
+        self.hbox_all = wx.BoxSizer(wx.HORIZONTAL)
+        self.hbox_all.AddSpacer(20)
+        self.hbox_all.AddSpacer(vbox)
 
-        self.panel.SetSizer(hbox_all)
+        self.panel.SetSizer(self.hbox_all)
         self.panel.SetScrollbars(20, 20, 50, 50)
-        hbox_all.Fit(self)
+        self.bSizer1a.ShowItems(False)
+        self.hbox_all.Fit(self)
         self.Show()
         self.Centre()
 
     def on_add_file_button(self,event):
         text = "choose file to convert to MagIC"
-        pw.on_add_file_button(self.panel, self.WD, event, text)
+        #pw.on_add_file_button(self.panel, self.WD, event, text)
+        pw.on_add_file_button(self.bSizer0, self.WD, event, text)
+
+    def on_add_AZDIP_file_button(self,event):
+        text = "choose AZDIP file (optional)"
+        pw.on_add_file_button(self.bSizer1, self.WD, event, text)
+        # show ocn widget
+
 
     def on_okButton(self, event):
+        WD = self.WD
         full_infile = self.bSizer0.return_value()
-        infile = full_infile[full_infile.rfind('/'):]
+        infile = full_infile[full_infile.rfind('/')+1:]
         outfile = infile + ".magic"
-        user = self.bSizer1.return_value()
+        full_azdip_file = self.bSizer1.return_value()
+        azdip_file = full_azdip_file[full_azdip_file.rfind('/')+1:]
+        ID = full_infile[:full_infile.rfind('/')+1]
+        if azdip_file:
+            azdip_file = "-fad " + azdip_file
+        try:
+            ocn = "-ocn" + self.bSizer1a.return_value()
+        except:
+            ocn = ""
+        user = self.bSizer2.return_value()
         if user:
             user = "-usr " + user
-        n = self.bSizer2.return_value()
+        n = self.bSizer3.return_value()
         if n:
             n = "-spc " + str(n)
-        ncn = self.bSizer3.return_value()
-        ocn = self.bSizer4.return_value()
-        loc = self.bSizer5.return_value()
+        ncn = self.bSizer4.return_value()
+        #
+        loc = self.bSizer6.return_value()
         if loc:
             loc = "-loc " + loc
-        ins = self.bSizer6.return_value()
+        ins = self.bSizer7.return_value()
         if ins:
             ins = "-ins " + ins
-        COMMAND = "kly4s_magic.py -WD {} -f {} -F {} {} -ncn {} {} {}".format(self.WD, infile, outfile, user, n, ncn, loc, ins)
+        COMMAND = "kly4s_magic.py -WD {} -f {} -F {} {} -ncn {} -ocn {} {} {} {} {} -ID {}".format(self.WD, infile, outfile, azdip_file, ncn, ocn, user, n, loc, ins, ID)
         print COMMAND
         pw.run_command_and_close_window(self, COMMAND, outfile)
 
@@ -664,7 +683,7 @@ class something(wx.Frame):
 
     def on_add_file_button(self,event):
         text = "choose file to convert to MagIC"
-        pw.on_add_file_button(self.panel, self.WD, event, text)
+        pw.on_add_file_button(self.bSizer0, self.WD, event, text)
 
     def on_okButton(self, event):
         COMMAND = ""

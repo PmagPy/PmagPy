@@ -264,7 +264,7 @@ class convert_generic_files_to_MagIC(wx.Frame):
 
     def on_add_file_button(self,event):
         text = "choose file to convert to MagIC"
-        pw.on_add_file_button(self.panel, self.WD, event, text)
+        pw.on_add_file_button(self.bSizer0, self.WD, event, text)
 
 
     def on_okButton(self,event):
@@ -655,7 +655,7 @@ class convert_SIO_files_to_MagIC(wx.Frame):
 
     def on_add_file_button(self,event):
         text = "choose file to convert to MagIC"
-        pw.on_add_file_button(self.panel, self.WD, event, text)
+        pw.on_add_file_button(self.bSizer0, self.WD, event, text)
 
     def on_okButton(self, event):
         SIO_file = self.bSizer0.return_value()
@@ -787,7 +787,7 @@ class convert_CIT_files_to_MagIC(wx.Frame):
 
     def on_add_file_button(self,event):
         text = "choose file to convert to MagIC"
-        pw.on_add_file_button(self.panel, self.WD, event, text)
+        pw.on_add_file_button(self.bSizer0, self.WD, event, text)
 
     def on_okButton(self, event):
         wd = self.WD
@@ -926,7 +926,7 @@ class convert_HUJI_files_to_MagIC(wx.Frame):
 
     def on_add_file_button(self,event):
         text = "choose file to convert to MagIC"
-        pw.on_add_file_button(self.panel, self.WD, event, text)
+        pw.on_add_file_button(self.bSizer0, self.WD, event, text)
 
     def on_okButton(self, event):
         """
@@ -1198,7 +1198,7 @@ class convert_LDEO_files_to_MagIC(wx.Frame):
 
     def on_add_file_button(self,event):
         text = "choose file to convert to MagIC"
-        pw.on_add_file_button(self.panel, self.WD, event, text)
+        pw.on_add_file_button(self.bSizer0, self.WD, event, text)
 
     def on_okButton(self, event):
         LDEO_file = self.bSizer0.return_value()
@@ -1313,7 +1313,7 @@ class convert_IODP_csv_files_to_MagIC(wx.Frame):
 
     def on_add_file_button(self,event):
         text = "choose file to convert to MagIC"
-        pw.on_add_file_button(self.panel, self.WD, event, text)
+        pw.on_add_file_button(self.bSizer0, self.WD, event, text)
 
     def on_okButton(self, event):
         wd = self.WD
@@ -1540,7 +1540,7 @@ class something(wx.Frame):
 
     def on_add_file_button(self,event):
         text = "choose file to convert to MagIC"
-        pw.on_add_file_button(self.panel, self.WD, event, text)
+        pw.on_add_file_button(self.bSizer0, self.WD, event, text)
 
     def on_okButton(self, event):
         COMMAND = ""
