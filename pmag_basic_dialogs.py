@@ -273,7 +273,7 @@ class convert_generic_files_to_MagIC(wx.Frame):
         
         ErrorMessage=""
         #-----------
-        FILE=str(self.panel.file_path.GetValue())
+        FILE=str(self.bSizer0.file_path.GetValue())
         #-----------
         # WD="/".join(FILE.split("/")[:-1])
         WD=self.WD
