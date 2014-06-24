@@ -65,6 +65,12 @@ def main():
     if '-WD' in sys.argv:
         ind=sys.argv.index('-WD')
         dir_path=sys.argv[ind+1]
+    if '-ID' in sys.argv:
+        ind = sys.argv.index('-ID')
+        input_dir_path = sys.argv[ind+1]
+    else:
+        input_dir_path = dir_path
+    output_dir_path = dir_path
 # pick off stuff from command line
     if '-h' in sys.argv:
         print main.__doc__
@@ -100,10 +106,10 @@ def main():
                 samp_con="4"
         if samp_con=='6':
             Samps,filetype=pmag.magic_read(dirpath+'/er_samples.txt')
-    sampfile, measfile=dir_path+'/'+sampfile,dir_path+'/'+measfile
-    anisfile=dir_path+'/'+anisfile
-    resfile=dir_path+'/'+resfile
-    k15file=dir_path+'/'+k15file
+    sampfile, measfile = output_dir_path+'/'+sampfile, output_dir_path+'/'+measfile
+    anisfile= output_dir_path+'/'+anisfile
+    resfile= output_dir_path+'/'+resfile
+    k15file = input_dir_path + '/' + k15file
     try:
         SampRecs,filetype=pmag.magic_read(sampfile) # append new records to existing
         samplist=[]

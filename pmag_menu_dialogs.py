@@ -619,6 +619,101 @@ class ImportKly4s(wx.Frame):
         pw.on_helpButton("kly4s_magic.py -h")
 
 
+class ImportK15(wx.Frame):
+
+    title = "Import K15 format file"
+    
+    def __init__(self, parent, WD):
+        wx.Frame.__init__(self, parent, wx.ID_ANY, self.title)
+        self.panel = wx.ScrolledWindow(self)
+        self.WD = WD
+        self.InitUI()
+
+    def InitUI(self):
+        pnl = self.panel
+        TEXT = "Import K15 format file"
+        bSizer_info = wx.BoxSizer(wx.HORIZONTAL)
+        bSizer_info.Add(wx.StaticText(pnl, label=TEXT), wx.ALIGN_LEFT)
+
+
+        #---sizer 0 ----
+        self.bSizer0 = pw.choose_file(pnl, 'add', method = self.on_add_file_button)
+
+        #---sizer 1 ----
+        self.bSizer1 = pw.specimen_n(pnl)
+
+        #---sizer 2 ---
+        self.bSizer2 = pw.select_specimen_ncn(pnl)
+
+        #---sizer 3 ---
+        self.bSizer3 = pw.labeled_text_field(pnl, label="Location name:")
+
+        #---sizer 4 ---
+        self.bSizer4 = pw.labeled_text_field(pnl, label="Instrument name (optional):")
+
+
+        #---sizer 4 ----
+        #try:
+        #    open(self.WD + "/er_samples.txt", "rU")
+        #except Exception as ex:
+        #    er_samples_file_present = False
+        #if er_samples_file_present:
+        #    self.bSizer4 = pw.labeled_yes_or_no(pnl, TEXT, label1, label2)
+
+        #---buttons ---
+        hboxok = pw.btn_panel(self, pnl)
+
+        vbox = wx.BoxSizer(wx.VERTICAL)
+        hbox = wx.BoxSizer(wx.HORIZONTAL)
+        hbox.Add(self.bSizer3, flag=wx.ALIGN_LEFT|wx.LEFT, border=5)
+        hbox.Add(self.bSizer4, flag=wx.ALIGN_LEFT)
+        vbox.Add(bSizer_info, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        vbox.Add(self.bSizer0, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        vbox.Add(self.bSizer1, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        vbox.Add(self.bSizer2, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        vbox.Add(hbox, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        vbox.Add(hboxok, flag=wx.ALIGN_CENTER)        
+        vbox.AddSpacer(20)
+
+        hbox_all = wx.BoxSizer(wx.HORIZONTAL)
+        hbox_all.AddSpacer(20)
+        hbox_all.AddSpacer(vbox)
+
+        self.panel.SetSizer(hbox_all)
+        self.panel.SetScrollbars(20, 20, 50, 50)
+        hbox_all.Fit(self)
+        self.Show()
+        self.Centre()
+
+    def on_add_file_button(self,event):
+        text = "choose file to convert to MagIC"
+        pw.on_add_file_button(self.bSizer0, self.WD, event, text)
+
+    def on_okButton(self, event):
+        full_infile = self.bSizer0.return_value()
+        infile = full_infile[full_infile.rfind('/')+1:]
+        ID = full_infile[:full_infile.rfind('/')+1]
+        WD = self.WD
+        spc = self.bSizer1.return_value()
+        ncn = self.bSizer2.return_value()
+        loc = self.bSizer3.return_value()
+        if loc:
+            loc = "-loc " + loc
+        ins = self.bSizer4.return_value()
+        if ins:
+            ins = "-ins " + ins
+        COMMAND = "k15_magic.py -WD {} -f {} -ncn {} -spc {} {} {} -ID {}".format(WD, infile, ncn, spc, loc, ins, ID)
+        #print COMMAND
+        pw.run_command_and_close_window(self, COMMAND, "er_samples.txt")
+
+    def on_cancelButton(self,event):
+        self.Destroy()
+        self.Parent.Raise()
+
+    def on_helpButton(self, event):
+        pw.on_helpButton("k15_magic.py -h")
+
+
 class something(wx.Frame):
 
     title = ""
@@ -639,12 +734,16 @@ class something(wx.Frame):
         self.bSizer0 = pw.choose_file(pnl, 'add', method = self.on_add_file_button)
 
         #---sizer 1 ----
-
+        self.bSizer1 = pw.specimen_n(pnl)
 
         #---sizer 2 ---
-
+        self.bSizer2 = pw.select_specimen_ncn(pnl)
 
         #---sizer 3 ---
+        self.bSizer3 = pw.labeled_text_field(pnl, label="Location name:")
+
+        #---sizer 4 ---
+        self.bSizer4 = pw.labeled_text_field(pnl, label="Instrument name (optional):")
 
 
         #---sizer 4 ----
@@ -659,10 +758,14 @@ class something(wx.Frame):
         hboxok = pw.btn_panel(self, pnl)
 
         vbox = wx.BoxSizer(wx.VERTICAL)
+        hbox = wx.BoxSizer(wx.HORIZONTAL)
+        hbox.Add(self.bSizer3, flag=wx.ALIGN_LEFT|wx.LEFT, border=5)
+        hbox.Add(self.bSizer4, flag=wx.ALIGN_LEFT)
         vbox.Add(bSizer_info, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(self.bSizer0, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
-        #vbox.Add(self.bSizer1, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
-        #vbox.Add(self.bSizer2, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        vbox.Add(self.bSizer1, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        vbox.Add(self.bSizer2, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        vbox.Add(hbox, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         #vbox.Add(self.bSizer3, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         #try:
         #    vbox.Add(self.bSizer4, flag=wx.ALIGN_LEFT|wx.TOP, border=10)

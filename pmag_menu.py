@@ -79,7 +79,7 @@ class MagICMenu(wx.MenuBar):
         aniso1 = pmag_menu_dialogs.ImportKly4s(self.parent, self.parent.WD)
 
     def anisotropy_import2(self, event):
-        print "aniso2"
+        aniso2 = pmag_menu_dialogs.ImportK15(self.parent, self.parent.WD)
     
     def anisotropy_import3(self, event):
         print "aniso3"
