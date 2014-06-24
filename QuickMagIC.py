@@ -365,7 +365,10 @@ class MagMainFrame(wx.Frame):
        
            
     def on_menu_exit(self, event):
-        self.help_window.Destroy()
+        try:
+            self.help_window.Destroy()
+        except:
+            pass
         exit()
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
 #==============================================================
