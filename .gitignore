@@ -9,9 +9,11 @@ Command_line_Tests/
 *.*#
 */*.*#
 */*/.#*
+.#*
+*.log
+
 
 IPmag.py
-rmag_anisotropy.log
 rmag_anisotropy.txt
 rmag_results.txt
 consistency_test/pmag_fixed_criteria.txt
@@ -21,13 +23,12 @@ extra_out_full_output.txt
 random_full_output.txt
 rename_me_full_output.txt
 
-new-test-output/.scripttest-test-dir.txt
+new-test-output/*
 
 SPD_consistency_tests/*
 pmag_criteria.txt
 
 
-thellier_GUI.log
 SPD_consistency_tests/*
 new-test-output/*
 rename_me_errors_list.txt
@@ -56,26 +57,8 @@ demag_gui copy.py
 
 demag_dialog_boxes.py
 
-thellier_consistency_test.pyc
 
-thellier_consistency_test.pyc
-
-thellier_consistency_test.pyc
-
-check_updates.pyc
-
-check_updates.pyc
-
-pmag.pyc
-
-pmag.pyc
-
-thellier_interpreter/thellier_interpreter.log
-thellier_interpreter/thellier_interpreter_STDEV-OPT_redo
-thellier_interpreter/thellier_interpreter_STDEV-OPT_samples.txt
-thellier_interpreter/thellier_interpreter_STDEV-OPT_specimens.txt
-thellier_interpreter/thellier_interpreter_all.txt
-thellier_interpreter/thellier_interpreter_specimens_bounds.txt
+thellier_interpreter/*
 thellier_GUI.redo
 
 pmag_criteria.txt
@@ -90,9 +73,6 @@ sio_thellier_example.dat
 er_samples.txt
 er_sites.txt
 er_specimens.txt
-measurements.log
-orient.log
-.#bugs.txt
 MP18-1
 MP18-2
 MP18-3
@@ -107,17 +87,12 @@ bugs.txt
 example.py
 wx_log.out
 magic_measurements.txt
-beta_log.log
 bugs.txt
-demag_gui.log
 er_samples.txt
 er_sites.txt
 er_specimens.txt
 example.py
-measurements.log
-orient.log
 sio_thellier_example.dat
-wx_log.out
 wxpython_demo.py
 wxpython_log.out
 
