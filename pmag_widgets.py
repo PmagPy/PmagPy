@@ -213,6 +213,19 @@ class replicate_measurements(wx.StaticBoxSizer):
         else:
             return False
 
+
+class check_box(wx.StaticBoxSizer):
+    
+    def __init__(self, parent, text):
+        box = wx.StaticBox(parent, wx.ID_ANY, "")
+        super(check_box, self).__init__(box, orient=wx.VERTICAL)
+        
+        self.cb = wx.CheckBox(parent, -1, text)
+        self.Add(self.cb, flag=wx.TOP|wx.BOTTOM, border=8)
+
+    def return_value(self):
+        return self.cb.GetValue()
+        
 class check_boxes(wx.StaticBoxSizer):
     
     def __init__(self, parent, gridsize, choices, text):

@@ -92,7 +92,7 @@ class MagICMenu(wx.MenuBar):
         aniso3 = pmag_menu_dialogs.ImportSufarAscii(self.parent, self.parent.WD)
 
     def hysteresis_import1(self, event):
-        print "hysteresis1"
+        hyst1 = pmag_menu_dialogs.ImportAgmFile(self.parent, self.parent.WD)
 
     def hysteresis_import2(self, event):
         print "hysteresis2"
