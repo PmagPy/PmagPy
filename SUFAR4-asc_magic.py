@@ -63,7 +63,13 @@ def main():
     if '-WD' in sys.argv:
         ind=sys.argv.index('-WD')
         dir_path=sys.argv[ind+1] 
-    aoutput,routput,moutput=dir_path+'/rmag_anisotropy.txt',dir_path+'/rmag_results.txt',dir_path+'/magic_measurements.txt'
+    if '-ID' in sys.argv:
+        ind = sys.argv.index('-ID')
+        input_dir_path = sys.argv[ind+1]
+    else:
+        input_dir_path = dir_path
+    output_dir_path = dir_path
+    aoutput,routput,moutput= output_dir_path+'/rmag_anisotropy.txt', output_dir_path+'/rmag_results.txt', output_dir_path+'/magic_measurements.txt'
     if '-h' in sys.argv:
         print main.__doc__
         sys.exit()
@@ -93,19 +99,19 @@ def main():
         inst=sys.argv[ind+1] 
     if '-f' in sys.argv:
         ind=sys.argv.index('-f')
-        ascfile=dir_path+'/'+sys.argv[ind+1] 
+        ascfile = input_dir_path+'/'+sys.argv[ind+1] 
     if '-F' in sys.argv:
         ind=sys.argv.index('-F')
-        moutput=dir_path+'/'+sys.argv[ind+1] 
+        moutput = output_dir_path+'/'+sys.argv[ind+1] 
     if '-Fa' in sys.argv:
         ind=sys.argv.index('-Fa')
-        aoutput=dir_path+'/'+sys.argv[ind+1] 
+        aoutput = output_dir_path+'/'+sys.argv[ind+1] 
     if '-Fr' in sys.argv:
         ind=sys.argv.index('-Fr')
-        routput=dir_path+'/'+sys.argv[ind+1] 
+        routput = output_dir_path+'/'+sys.argv[ind+1] 
     if '-Fs' in sys.argv:
         ind=sys.argv.index('-Fs')
-        specfile=dir_path+'/'+sys.argv[ind+1] 
+        specfile = output_dir_path+'/'+sys.argv[ind+1] 
         isspec='1'
     elif '-loc' in sys.argv:
         ind=sys.argv.index('-loc')
@@ -119,19 +125,19 @@ def main():
     specnames,sampnames,sitenames=[],[],[]
     if '-new' not in sys.argv: # see if there are already specimen,sample, site files lying around
         try:
-            SpecRecs,file_type=pmag.magic_read(dir_path+'/er_specimens.txt')
+            SpecRecs,file_type=pmag.magic_read(input_dir_path+'/er_specimens.txt')
             for spec in SpecRecs:
                 if spec['er_specimen_name'] not in specnames:specnames.append(samp['er_specimen_name'])
         except:
             SpecRecs,specs=[],[]
         try:
-            SampRecs,file_type=pmag.magic_read(dir_path+'/er_samples.txt')
+            SampRecs,file_type=pmag.magic_read(input_dir_path+'/er_samples.txt')
             for samp in SampRecs:
                 if samp['er_sample_name'] not in sampnames:sampnames.append(samp['er_sample_name'])
         except:
             sampnames,SampRecs=[],[]
         try:
-            SiteRecs,file_type=pmag.magic_read(dir_path+'/er_sites.txt')
+            SiteRecs,file_type=pmag.magic_read(input_dir_path+'/er_sites.txt')
             for site in SiteRecs:
                 if site['er_site_names'] not in sitenames:sitenames.append(site['er_site_name'])
         except:
@@ -293,14 +299,14 @@ def main():
     print "bulk measurements put in ",moutput
     if isspec=="0":
         SpecOut,keys=pmag.fillkeys(SpecRecs)
-        output=dir_path+"/er_specimens.txt"
+        output = output_dir_path+"/er_specimens.txt"
         pmag.magic_write(output,SpecOut,'er_specimens')
         print "specimen info put in ",output
-        output=dir_path+"/er_samples.txt"
+        output = output_dir_path+"/er_samples.txt"
         SampOut,keys=pmag.fillkeys(SampRecs)
         pmag.magic_write(output,SampOut,'er_samples')
         print "sample info put in ",output
-        output=dir_path+"/er_sites.txt"
+        output = output_dir_path+"/er_sites.txt"
         SiteOut,keys=pmag.fillkeys(SiteRecs)
         pmag.magic_write(output,SiteOut,'er_sites')
         print "site info put in ",output

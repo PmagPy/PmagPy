@@ -76,6 +76,7 @@ class labeled_yes_or_no(wx.StaticBoxSizer):
         super(labeled_yes_or_no, self).__init__(box, orient=wx.VERTICAL)
         hbox = wx.BoxSizer(wx.HORIZONTAL)
         self.rb1 = wx.RadioButton(parent, label=label1, style=wx.RB_GROUP)
+        self.rb1.SetValue(True)
         self.rb2 = wx.RadioButton(parent, label=label2)
         hbox.Add(self.rb1, wx.ALIGN_LEFT)
         hbox.AddSpacer(5)

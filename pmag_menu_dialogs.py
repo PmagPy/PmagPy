@@ -749,9 +749,9 @@ class ImportSufarAscii(wx.Frame):
         self.bSizer5 = pw.labeled_text_field(pnl, label="Instrument name (optional):")
 
         #---sizer 6 ---
-        TEXT = "mode"
-        label1 = "static 15 position mode"
-        label2 = "spinning (default)"
+        TEXT = "Use default mode?"
+        label1 = "spinning (default)"
+        label2 = "static 15 position mode"
         self.bSizer6 = pw.labeled_yes_or_no(pnl, TEXT, label1, label2)
 
 
@@ -800,10 +800,30 @@ class ImportSufarAscii(wx.Frame):
         pw.on_add_file_button(self.bSizer0, self.WD, event, text)
 
     def on_okButton(self, event):
-        infile = self.bSizer0.return_value()
-        COMMAND = ""
+        WD = self.WD
+        full_infile = self.bSizer0.return_value()
+        infile = full_infile[full_infile.rfind('/')+1:]
+        outfile = infile + ".magic"
+        ID = full_infile[:full_infile.rfind('/')+1]
+        usr = self.bSizer1.return_value()
+        if usr:
+            usr = "-usr " + usr
+        spc = self.bSizer2.return_value()
+        ncn = self.bSizer3.return_value()
+        loc = self.bSizer4.return_value()
+        if loc:
+            loc = "-loc " + loc
+        ins = self.bSizer5.return_value()
+        if ins:
+            ins = "-ins " + ins
+        k15 = self.bSizer6.return_value()
+        if k15:
+            k15 = ""
+        else:
+            k15 = "-k15"
+        COMMAND = "SUFAR4-asc_magic.py -WD {} -f {} -F {} {} -spc {} -ncn {} {} {} {} -ID {}".format(WD, infile, outfile, usr, spc, ncn, loc, ins, k15, ID)
         print COMMAND
-        #pw.run_command_and_close_window(self, COMMAND, "er_samples.txt")
+        pw.run_command_and_close_window(self, COMMAND, outfile)
 
     def on_cancelButton(self,event):
         self.Destroy()
