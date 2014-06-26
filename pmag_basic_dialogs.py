@@ -1210,6 +1210,8 @@ class convert_LDEO_files_to_MagIC(wx.Frame):
         LDEO_file = self.bSizer0.return_value()
         magicoutfile=os.path.split(LDEO_file)[1]+".magic"
         outfile=os.path.join(self.WD,magicoutfile)
+        samp_outfile = os.path.join(self.WD, magicoutfile[:magicoutfile.find('.')] + '_er_samples.txt')
+        synthetic_outfile = os.path.join(self.WD, magicoutfile[:magicoutfile.find('.')] + '_er_synthetics.txt')
         user = self.bSizer1.return_value()
         if user:
             user = "-usr " + user
@@ -1245,7 +1247,7 @@ class convert_LDEO_files_to_MagIC(wx.Frame):
             synthetic = '-syn ' + synthetic
         else:
             synthetic = ''
-        COMMAND = "LDEO_magic.py -f {0} -F {1} {2} -LP {3} {4} -ncn {5} {6} {7} {8} {9} {10} {11} {12}".format(LDEO_file, outfile, user, experiment_type, lab_field, ncn, spc, loc_name, instrument, replicate, AF_field, coil_number, synthetic)
+        COMMAND = "LDEO_magic.py -f {0} -F {1} {2} -LP {3} {4} -ncn {5} {6} {7} {8} {9} {10} {11} {12} -Fsa {13} -Fsy {14}".format(LDEO_file, outfile, user, experiment_type, lab_field, ncn, spc, loc_name, instrument, replicate, AF_field, coil_number, synthetic, samp_outfile, synthetic_outfile)
         #print COMMAND
         pw.run_command_and_close_window(self, COMMAND, outfile)
 
