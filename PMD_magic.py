@@ -85,13 +85,13 @@ def main():
     if '-Fsa' in args:
         ind = args.index("-Fsa")
         samp_file = output_dir_path+'/'+args[ind+1]
-        try:
-            open(samp_file,'rU')
-            ErSamps,file_type=pmag.magic_read(samp_file)
-            print 'sample information will be appended to ', samp_file 
-        except:
-            print samp_file,' not found: sample information will be stored in new er_samples.txt file'
-            samp_file = output_dir_path+'/er_samples.txt'
+        #try:
+        #    open(samp_file,'rU')
+        #    ErSamps,file_type=pmag.magic_read(samp_file)
+        #    print 'sample information will be appended to ', samp_file 
+        #except:
+        #    print samp_file,' not found: sample information will be stored in new er_samples.txt file'
+        #    samp_file = output_dir_path+'/er_samples.txt'
     if '-f' in args:
         ind = args.index("-f")
         mag_file= input_dir_path+'/'+args[ind+1]

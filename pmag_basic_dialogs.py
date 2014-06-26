@@ -1381,8 +1381,9 @@ class convert_PMD_files_to_MagIC(wx.Frame):
         self.bSizer2 = pw.select_specimen_ncn(pnl)
 
         #---sizer 3 ---
-        TEXT = "specify number of characters to designate a specimen, default = 0"
-        self.bSizer3 = pw.labeled_text_field(pnl, TEXT)
+        #        TEXT = "specify number of characters to designate a specimen, default = 0"
+        #        self.bSizer3 = pw.labeled_text_field(pnl, TEXT)
+        self.bSizer3 = pw.specimen_n(pnl)
 
 
         #---sizer 4 ----
@@ -1438,11 +1439,15 @@ class convert_PMD_files_to_MagIC(wx.Frame):
         directory = self.bSizer0.return_value()
         files = os.listdir(directory)
         files = [str(f) for f in files if str(f).endswith('.pmd')]
+        samp_outfile = files[0][:files[0].find('.')] + files[-1][:files[-1].find('.')] + "_er_samples.txt"
         ID = "-ID " + directory
         user = self.bSizer1.return_value()
         if user:
             user = "-usr " + user
         ncn = self.bSizer2.return_value()
+        print "this is ncn", ncn
+        print "-"
+        print "-"
         spc = self.bSizer3.return_value() or 0
         loc_name = self.bSizer4.return_value()
         if loc_name:
@@ -1456,7 +1461,9 @@ class convert_PMD_files_to_MagIC(wx.Frame):
             replicate = '-A'
         for f in files:
             outfile = f + ".magic"
-            COMMAND = "PMD_magic.py -WD {} -f {} -F {} {} -ncn {} -mcd {} -spc {} {} {}".format(WD, f, outfile, user, ncn, particulars, spc, replicate, ID)
+            samp_outfile = f[:f.find('.')] + "_er_samples.txt"
+            COMMAND = "PMD_magic.py -WD {} -f {} -F {} -Fsa {} {} -ncn {} -mcd {} -spc {} {} {}".format(WD, f, outfile, samp_outfile, user, ncn, particulars, spc, replicate, ID)
+            #COMMAND = "PMD_magic.py -WD {} -f {} -F {} {} -ncn {} -mcd {} -spc {} {} {}".format(WD, f, outfile, user, ncn, particulars, spc, replicate, ID)
             if files.index(f) == len(files) -1:
                 pw.run_command_and_close_window(self, COMMAND, outfile)
             else:
