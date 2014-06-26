@@ -799,16 +799,15 @@ class convert_CIT_files_to_MagIC(wx.Frame):
         full_file = self.bSizer0.return_value()
         ind = full_file.rfind('/')
         CIT_file = full_file[ind+1:] 
-        # new
         input_directory = full_file[:ind+1]
         if input_directory:
             ID = "-ID " + input_directory
         else:
             ID = ''
-        # end new
-        #magicoutfile = os.path.split(CIT_file)[1]+".magic"
-        #outfile = os.path.join(self.WD,magicoutfile)
         outfile = CIT_file + ".magic"
+        samp_outfile = CIT_file[:CIT_file.find('.')] + "_er_samples.txt"
+        spec_outfile = CIT_file[:CIT_file.find('.')] + "_er_specimens.txt"
+        site_outfile = CIT_file[:CIT_file.find('.')] + "_er_sites.txt"
         user = self.bSizer1.return_value()
         if user:
             user = "-usr " + user
@@ -829,7 +828,7 @@ class convert_CIT_files_to_MagIC(wx.Frame):
         peak_AF = self.bSizer7.return_value()
         if peak_AF:
             peak_AF = "-ac " + peak_AF
-        COMMAND = "CIT_magic.py -WD {} -f {} -F {}  -mcd {} {} {} {} -ncn {} {} {} {}".format(wd, CIT_file, outfile, particulars, spec_num, loc_name, user, ncn, peak_AF, lab_field, ID)
+        COMMAND = "CIT_magic.py -WD {} -f {} -F {}  -mcd {} {} {} {} -ncn {} {} {} {} -Fsp {} -Fsi {} -Fsa {}".format(wd, CIT_file, outfile, particulars, spec_num, loc_name, user, ncn, peak_AF, lab_field, ID, spec_outfile, site_outfile, samp_outfile)
         #print COMMAND
         pw.run_command_and_close_window(self, COMMAND, outfile)
 

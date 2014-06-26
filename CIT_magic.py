@@ -78,7 +78,7 @@ def main():
     if '-Fsa' in args:
         ind=args.index("-Fsa")
         samp_file=args[ind+1]
-    if 'Fsi' in args:   # LORI addition
+    if '-Fsi' in args:   # LORI addition
         ind=args.index("-Fsi")
         site_file=args[ind+1]
     if '-loc' in args:
@@ -274,6 +274,7 @@ def main():
     pmag.magic_write(samp_file,ErSamps,'er_samples')
     print 'samples stored in ',samp_file
     pmag.magic_write(site_file,ErSites,'er_sites')
+    print 'sites stored in ', site_file
     Fixed=pmag.measurements_methods(MeasRecs,0)
     pmag.magic_write(meas_file,Fixed,'magic_measurements')
     print 'data stored in ',meas_file
