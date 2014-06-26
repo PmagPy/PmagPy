@@ -273,11 +273,13 @@ class convert_generic_files_to_MagIC(wx.Frame):
         
         ErrorMessage=""
         #-----------
-        FILE=str(self.bSizer0.file_path.GetValue())
+        FILE = str(self.bSizer0.file_path.GetValue())
+
         #-----------
         # WD="/".join(FILE.split("/")[:-1])
         WD=self.WD
         magicoutfile=os.path.split(FILE)[1]+".magic"
+        print "magicoutfile", magicoutfile
         OUTFILE=os.path.join(self.WD,magicoutfile)
         #-----------
         #OUTFILE=self.WD+"/"+FILE.split('/')[-1]+".magic"
@@ -459,14 +461,14 @@ class combine_magic_dialog(wx.Frame):
         #------------------
 
         bSizer1 =  wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY, "" ), wx.VERTICAL )
-        self.file_pathes = wx.TextCtrl(self.panel, id=-1, size=(500,200), style=wx.TE_MULTILINE)
+        self.file_paths = wx.TextCtrl(self.panel, id=-1, size=(500,200), style=wx.TE_MULTILINE)
         #self.add_file_button = wx.Button(self.panel, id=-1, label='add',name='add')
         #self.Bind(wx.EVT_BUTTON, self.on_add_file_button, self.add_file_button)    
         TEXT="files list:"
         bSizer1.AddSpacer(5)
         bSizer1.Add(wx.StaticText(pnl,label=TEXT),wx.ALIGN_LEFT)        
         bSizer1.AddSpacer(5)
-        bSizer1.Add(self.file_pathes,wx.ALIGN_LEFT)
+        bSizer1.Add(self.file_paths,wx.ALIGN_LEFT)
         bSizer1.AddSpacer(5)
                 
         #------------------
@@ -514,8 +516,9 @@ class combine_magic_dialog(wx.Frame):
             style=wx.OPEN | wx.CHANGE_DIR 
             )
         if dlg.ShowModal() == wx.ID_OK:
-            #self.box_sizer_high_level_text.Add(self.high_level_text_box, 0, wx.ALIGN_LEFT, 0 )  
-            self.file_pathes.AppendText(str(dlg.GetPath())+"\n")
+            full_path = dlg.GetPath()
+            infile = full_path[full_path.rfind('/')+1:]
+            self.file_paths.AppendText(infile + "\n")
 
     def on_add_all_files_button(self,event):
         all_files=os.listdir(self.WD)
@@ -523,7 +526,7 @@ class combine_magic_dialog(wx.Frame):
             F=str(F)
             if len(F)>6:
                 if F[-6:]==".magic":
-                    self.file_pathes.AppendText(F+"\n")
+                    self.file_paths.AppendText(F+"\n")
                      
         
         
@@ -531,7 +534,7 @@ class combine_magic_dialog(wx.Frame):
         self.Destroy()
 
     def on_okButton(self,event):
-        files_text=self.file_pathes.GetValue()
+        files_text=self.file_paths.GetValue()
         files=files_text.strip('\n').replace(" ","").split('\n')
         COMMAND="combine_magic.py -F magic_measurements.txt -f %s"%(" ".join(files) )       
         print "-I- Running Python command:\n %s"%COMMAND
