@@ -666,6 +666,7 @@ class convert_SIO_files_to_MagIC(wx.Frame):
         #outfile = SIO_file + '.magic'
         magicoutfile=os.path.split(SIO_file)[1]+".magic"
         outfile =os.path.join(self.WD,magicoutfile)
+        samp_outfile = magicoutfile[:magicoutfile.find('.')] + "_er_samples.txt"
         user = self.bSizer1.return_value()
         if user:
             user = "-usr " + user
@@ -697,7 +698,7 @@ class convert_SIO_files_to_MagIC(wx.Frame):
             synthetic = '-syn ' + synthetic
         else:
             synthetic = ''
-        COMMAND = "sio_magic.py -F {0} -f {1} {2} -LP {3} {4} -spc {5} -ncn {6} {7} {8} {9} {10} {11} {12}".format(outfile, SIO_file, user, experiment_type, loc_name,spc, ncn, lab_field, peak_AF, coil_number, instrument, replicate, synthetic)
+        COMMAND = "sio_magic.py -F {0} -f {1} {2} -LP {3} {4} -spc {5} -ncn {6} {7} {8} {9} {10} {11} {12} -Fsa {13}".format(outfile, SIO_file, user, experiment_type, loc_name,spc, ncn, lab_field, peak_AF, coil_number, instrument, replicate, synthetic, samp_outfile)
         pw.run_command_and_close_window(self, COMMAND, outfile)
 
     def on_cancelButton(self,event):
