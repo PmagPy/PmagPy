@@ -122,7 +122,8 @@ class import_magnetometer_data(wx.Dialog):
 
     def on_nextButton(self,event):
         self.Destroy()
-        combine_dia = combine_magic_dialog(self.WD)
+        #combine_dia = combine_magic_dialog(self.WD)
+        combine_dia = combine_everything_dialog(self.WD)
         combine_dia.Show()
         combine_dia.Center()
         
@@ -547,6 +548,117 @@ class combine_magic_dialog(wx.Frame):
         dlg1.ShowModal()
         dlg1.Destroy()
         self.Destroy()
+
+
+
+
+class combine_everything_dialog(wx.Frame):
+    """"""
+    title = "Combine er_* files"
+
+    def __init__(self,WD):
+        wx.Frame.__init__(self, None, wx.ID_ANY, self.title)
+        self.panel =  wx.ScrolledWindow(self) #wx.Panel(self)
+        self.panel.SetScrollbars(20, 20, 50, 50)
+        self.max_files = 1
+        self.WD=WD
+        self.InitUI()
+
+    def InitUI(self):
+
+        pnl = self.panel
+
+        #---sizer infor ----
+
+        TEXT="Step 2: \nCombine different MagIC formatted files to one file name"
+        bSizer_info = wx.BoxSizer(wx.HORIZONTAL)
+        bSizer_info.Add(wx.StaticText(pnl,label=TEXT),wx.ALIGN_LEFT)
+            
+        bSizer0 = pw.combine_files(self)
+        bSizer1 = pw.combine_files(self)
+        bSizer2 = pw.combine_files(self)
+        
+        #------------------
+                     
+        self.okButton = wx.Button(self.panel, wx.ID_OK, "&OK")
+        self.Bind(wx.EVT_BUTTON, self.on_okButton, self.okButton)
+
+        self.cancelButton = wx.Button(self.panel, wx.ID_CANCEL, '&Cancel')
+        self.Bind(wx.EVT_BUTTON, self.on_cancelButton, self.cancelButton)
+
+        hboxok = wx.BoxSizer(wx.HORIZONTAL)
+        hboxok.Add(self.okButton)
+        hboxok.Add(self.cancelButton )
+
+        hboxfiles = wx.BoxSizer(wx.HORIZONTAL)
+        hboxfiles.AddMany([bSizer0, bSizer1, bSizer2])
+
+        #------
+        vbox=wx.BoxSizer(wx.VERTICAL)
+        vbox.AddSpacer(10)
+        vbox.Add(bSizer_info, flag=wx.ALIGN_LEFT)
+        vbox.AddSpacer(10)
+        vbox.Add(hboxfiles, flag=wx.ALIGN_LEFT)
+        #vbox.Add(bSizer0, flag=wx.ALIGN_LEFT)
+        vbox.AddSpacer(10)
+        #vbox.Add(bSizer1, flag=wx.ALIGN_LEFT)
+        vbox.AddSpacer(10)
+        vbox.Add(wx.StaticLine(self.panel), 0, wx.ALL|wx.EXPAND, 5)
+        vbox.Add(hboxok, flag=wx.ALIGN_CENTER)        
+        vbox.AddSpacer(5)
+
+        hbox_all= wx.BoxSizer(wx.HORIZONTAL)
+        hbox_all.AddSpacer(20)
+        hbox_all.AddSpacer(vbox)
+        hbox_all.AddSpacer(20)
+        
+        self.panel.SetSizer(hbox_all)
+        hbox_all.Fit(self)
+        self.Show()
+        self.Centre()
+                        
+    
+    def on_add_file_button(self,event):
+
+        dlg = wx.FileDialog(
+            None,message="choose MagIC formatted measurement file",
+            defaultDir=self.WD,
+            defaultFile="",
+            style=wx.OPEN | wx.CHANGE_DIR 
+            )
+        if dlg.ShowModal() == wx.ID_OK:
+            full_path = dlg.GetPath()
+            infile = full_path[full_path.rfind('/')+1:]
+            self.file_paths.AppendText(infile + "\n")
+
+    def on_add_all_files_button(self,event):
+        all_files=os.listdir(self.WD)
+        for F in all_files:
+            F=str(F)
+            if len(F)>6:
+                if F[-6:]==".magic":
+                    self.file_paths.AppendText(F+"\n")
+                     
+        
+        
+    def on_cancelButton(self,event):
+        self.Destroy()
+
+    def on_okButton(self,event):
+        files_text=self.file_paths.GetValue()
+        files=files_text.strip('\n').replace(" ","").split('\n')
+        COMMAND="combine_magic.py -F magic_measurements.txt -f %s"%(" ".join(files) )       
+        print "-I- Running Python command:\n %s"%COMMAND
+        os.chdir(self.WD)     
+        os.system(COMMAND)                                          
+        
+        MSG="%i file are merged to one MagIC format file:\n magic_measurements.txt.\n\n See Termimal (Mac) or command prompt (windows) for errors"%(len(files))
+        dlg1 = wx.MessageDialog(None,caption="Message:", message=MSG ,style=wx.OK|wx.ICON_INFORMATION)
+        dlg1.ShowModal()
+        dlg1.Destroy()
+        self.Destroy()
+
+
 
 
 

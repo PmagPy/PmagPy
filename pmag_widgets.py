@@ -358,6 +358,39 @@ class btn_panel(wx.BoxSizer):
         self.Add(SELF.helpButton, 0, wx.ALL, 5)
 
 
+class combine_files(wx.BoxSizer):
+    
+    def __init__(self, parent):
+        super(combine_files, self).__init__(wx.VERTICAL)
+        self.parent = parent
+
+        bSizer0a =  wx.StaticBoxSizer( wx.StaticBox( self.parent.panel, wx.ID_ANY, "" ), wx.HORIZONTAL )
+        self.add_file_button = wx.Button(self.parent.panel, id=-1, label='add file',name='add')
+        #self.parent.Bind(wx.EVT_BUTTON, self.parent.on_add_file_button, self.parent.add_file_button)    
+        self.add_all_files_button = wx.Button(self.parent.panel, id=-1, label="add all files with '.magic' suffix",name='add_all')
+        #self.parent.Bind(wx.EVT_BUTTON, self.parent.on_add_all_files_button, self.parent.add_all_files_button)    
+        bSizer0a.AddSpacer(5)
+        bSizer0a.Add(self.add_file_button,wx.ALIGN_LEFT)
+        bSizer0a.AddSpacer(5)
+        bSizer0a.Add(self.add_all_files_button,wx.ALIGN_LEFT)
+        bSizer0a.AddSpacer(5)
+                
+        bSizer0b =  wx.StaticBoxSizer( wx.StaticBox( self.parent.panel, wx.ID_ANY, "" ), wx.VERTICAL )
+        self.file_paths = wx.TextCtrl(self.parent.panel, id=-1, size=(400,200), style=wx.TE_MULTILINE)
+        #self.add_file_button = wx.Button(self.parent, id=-1, label='add',name='add')
+        #self.Bind(wx.EVT_BUTTON, self.on_add_file_button, self.add_file_button)    
+        TEXT="files list:"
+        bSizer0b.AddSpacer(5)
+        bSizer0b.Add(wx.StaticText(self.parent.panel,label=TEXT),wx.ALIGN_LEFT)        
+        bSizer0b.AddSpacer(5)
+        bSizer0b.Add(self.file_paths,wx.ALIGN_LEFT)
+        bSizer0b.AddSpacer(5)
+
+        self.Add(bSizer0a, wx.ALIGN_LEFT)
+        self.Add(bSizer0b, wx.ALIGN_LEFT)
+                
+ 
+
 
 # methods!
 
