@@ -1330,16 +1330,15 @@ class convert_IODP_csv_files_to_MagIC(wx.Frame):
         IODP_file = full_file[index+1:]
         outfile = IODP_file + ".magic"
         ID = full_file[:index+1] 
-        #IODP_file = full_file[index+1:]
-        #outfile = IODP_file + ".magic"
-        #magicoutfile=os.path.split(IODP_file)[1]+".magic"
-        #outfile=os.path.join(self.WD,magicoutfile)
+        spec_outfile = IODP_file[:IODP_file.find('.')] + "_er_specimens.txt" 
+        samp_outfile = IODP_file[:IODP_file.find('.')] + "_er_samples.txt" 
+        site_outfile = IODP_file[:IODP_file.find('.')] + "_er_sites.txt"
         replicate = self.bSizer1.return_value()
         if replicate:
             replicate = ''
         else:
             replicate = "-A"
-        COMMAND = "IODP_csv_magic.py -WD {0} -f {1} -F {2} {3} -ID {4}".format(wd, IODP_file, outfile, replicate, ID)
+        COMMAND = "IODP_csv_magic.py -WD {0} -f {1} -F {2} {3} -ID {4} -Fsp {5} -Fsa {6} -Fsi {7}".format(wd, IODP_file, outfile, replicate, ID, spec_outfile, samp_outfile, site_outfile)
         #print COMMAND
         pw.run_command_and_close_window(self, COMMAND, outfile)
 
