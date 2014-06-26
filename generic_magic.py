@@ -25,7 +25,10 @@ def main():
             specify er_samples.txt file for sample orientation data. default is er_samples.txt
         -F FILE
             specify output file, default is magic_measurements.txt
-                       
+
+        -Fsa FILE
+            specify output file, default is er_samples.txt
+
         -exp EXPERIMENT-TYPE 
             Demag:
                 AF and/or Thermal
@@ -952,6 +955,6 @@ def main():
     for sample in samples:
         ErSamplesRecs.append(er_sample_data[sample])
     ErSamplesRecs_fixed=merge_pmag_recs(ErSamplesRecs)
-    pmag.magic_write("er_samples.txt",ErSamplesRecs_fixed,'er_samples')
+    pmag.magic_write(samp_file,ErSamplesRecs_fixed,'er_samples')
 
 main()

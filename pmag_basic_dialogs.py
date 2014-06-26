@@ -359,10 +359,11 @@ class convert_generic_files_to_MagIC(wx.Frame):
 
         #-----------   
         # some special  
-                
-        COMMAND="generic_magic.py -WD %s -f %s -fsa er_samples.txt -F %s -exp %s  -samp %s -site %s %s %s %s"\
-        %(WD,FILE,OUTFILE,EXP,SAMP,SITE,LOC,LABFIELD,DONT_AVERAGE)
-       
+        
+        SAMP_OUTFILE = magicoutfile[:magicoutfile.find('.')] + "_er_samples.txt"
+        COMMAND="generic_magic.py -WD %s -f %s -fsa er_samples.txt -F %s -exp %s  -samp %s -site %s %s %s %s -Fsa %s"\
+        %(WD,FILE,OUTFILE,EXP,SAMP,SITE,LOC,LABFIELD,DONT_AVERAGE, SAMP_OUTFILE)
+
         print "-I- Running Python command:\n %s"%COMMAND
 
         #subprocess.call(COMMAND, shell=True)        
