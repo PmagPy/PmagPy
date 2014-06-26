@@ -1080,10 +1080,12 @@ class convert_2G_binary_files_to_MagIC(wx.Frame):
             replicate = '-a'
         else:
             replicate = ''
+        samp_outfile = files[0][:files[0].find('.')] + "_" + files[-1][:files[-1].find('.')] + "_er_samples.txt"
+        sites_outfile = files[0][:files[0].find('.')] + "_" + files[-1][:files[-1].find('.')] + "_er_sites.txt"
         for f in files:
             file_2G_bin = f
             outfile = file_2G_bin + ".magic"
-            COMMAND = "2G_bin_magic.py -WD {} -f {} -F {} -ncn {} -mcd {} {} -ocn {} {} {} {}".format(WD, file_2G_bin, outfile, ncn, mcd, spc, ocn, loc_name, replicate, ID)
+            COMMAND = "2G_bin_magic.py -WD {} -f {} -F {} -Fsa {} -Fsi {} -ncn {} -mcd {} {} -ocn {} {} {} {}".format(WD, file_2G_bin, outfile, samp_outfile, sites_outfile, ncn, mcd, spc, ocn, loc_name, replicate, ID)
             if files.index(f) == (len(files) - 1): # terminate process on last file call
                 pw.run_command_and_close_window(self, COMMAND, outfile)
             else:

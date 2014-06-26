@@ -24,7 +24,7 @@ def main():
         -f FILE: specify input 2G (binary) file
         -F FILE: specify magic_measurements output file, default is: magic_measurements.txt
         -Fsa FILE: specify output file, default is: er_samples.txt 
-        -Fsi FILE: specify output file, default is: er_sies.txt 
+        -Fsi FILE: specify output file, default is: er_sites.txt 
         -ncn NCON:  specify naming convention: default is #2 below
         -ocn OCON:  specify orientation convention, default is #5 below
         -mcd: specify sampling method codes as a colon delimited string:  [default is: FS-FD:SO-POM]
