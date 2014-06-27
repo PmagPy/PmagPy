@@ -122,8 +122,7 @@ class import_magnetometer_data(wx.Dialog):
 
     def on_nextButton(self,event):
         self.Destroy()
-        #combine_dia = combine_magic_dialog(self.WD)
-        combine_dia = combine_everything_dialog(self.WD)
+        combine_dia = combine_magic_dialog(self.WD)
         combine_dia.Show()
         combine_dia.Center()
         
@@ -481,9 +480,13 @@ class combine_magic_dialog(wx.Frame):
         self.cancelButton = wx.Button(self.panel, wx.ID_CANCEL, '&Cancel')
         self.Bind(wx.EVT_BUTTON, self.on_cancelButton, self.cancelButton)
 
+        self.nextButton = wx.Button(self.panel, id=-1, label='Last step')
+        self.Bind(wx.EVT_BUTTON, self.on_nextButton, self.nextButton)
+
         hboxok = wx.BoxSizer(wx.HORIZONTAL)
         hboxok.Add(self.okButton)
         hboxok.Add(self.cancelButton )
+        hboxok.Add(self.nextButton )
 
         #------
         vbox=wx.BoxSizer(wx.VERTICAL)
@@ -535,6 +538,12 @@ class combine_magic_dialog(wx.Frame):
     def on_cancelButton(self,event):
         self.Destroy()
 
+    def on_nextButton(self, event):
+        combine_dia = combine_everything_dialog(self.WD)
+        combine_dia.Show()
+        combine_dia.Center()
+        self.Destroy()
+
     def on_okButton(self,event):
         files_text=self.file_paths.GetValue()
         files=files_text.strip('\n').replace(" ","").split('\n')
@@ -542,11 +551,11 @@ class combine_magic_dialog(wx.Frame):
         print "-I- Running Python command:\n %s"%COMMAND
         os.chdir(self.WD)     
         os.system(COMMAND)                                          
-        
         MSG="%i file are merged to one MagIC format file:\n magic_measurements.txt.\n\n See Termimal (Mac) or command prompt (windows) for errors"%(len(files))
         dlg1 = wx.MessageDialog(None,caption="Message:", message=MSG ,style=wx.OK|wx.ICON_INFORMATION)
         dlg1.ShowModal()
         dlg1.Destroy()
+        self.on_nextButton(event)
         self.Destroy()
 
 
@@ -570,7 +579,7 @@ class combine_everything_dialog(wx.Frame):
 
         #---sizer infor ----
 
-        TEXT="Step 2: \nCombine different MagIC formatted files to one file name"
+        TEXT="Step 3: \nCombine different MagIC formatted files to one file name (if necessary).  All files should be from the working directory."
         bSizer_info = wx.BoxSizer(wx.HORIZONTAL)
         bSizer_info.Add(wx.StaticText(pnl,label=TEXT),wx.ALIGN_LEFT)
             
@@ -596,7 +605,7 @@ class combine_everything_dialog(wx.Frame):
         #------
         vbox=wx.BoxSizer(wx.VERTICAL)
         vbox.AddSpacer(10)
-        vbox.Add(bSizer_info, flag=wx.ALIGN_LEFT)
+        vbox.Add(bSizer_info, flag=wx.ALIGN_LEFT|wx.BOTTOM, border=5)
         vbox.AddSpacer(10)
         vbox.Add(hboxfiles, flag=wx.ALIGN_LEFT)
         vbox.AddSpacer(10)
