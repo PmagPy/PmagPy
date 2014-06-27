@@ -221,9 +221,8 @@ class ImportAzDipFile(wx.Frame):
     def on_okButton(self, event):
         WD = self.WD
         full_infile = self.bSizer0.return_value()
-        #ind = full_infile.rfind('/')
-        #infile = full_infile[ind+1:]
-        #ID = full_infile[:ind+1]
+        infile = full_infile[full_infile.rfind('/')+1:full_infile.rfind('.')]
+        Fsa = WD + infile + "_er_samples.txt"
         particulars = [p.split(':')[0] for p in self.bSizer1.return_value()]
         mcd = ':'.join(particulars)
         ncn = self.bSizer2.return_value()
@@ -238,9 +237,8 @@ class ImportAzDipFile(wx.Frame):
                 app = "-app" # overwrite is False, append instead
         except AttributeError:
             app = ""
-        COMMAND = "azdip_magic.py -f {} -ncn {} {} -mcd {} {}".format(full_infile, ncn, loc, mcd, app)
-        #print COMMAND
-        pw.run_command_and_close_window(self, COMMAND, "er_samples.txt")
+        COMMAND = "azdip_magic.py -f {} -Fsa {} -ncn {} {} -mcd {} {}".format(full_infile, Fsa, ncn, loc, mcd, app)
+        pw.run_command_and_close_window(self, COMMAND, Fsa)
 
     def on_cancelButton(self,event):
         self.Destroy()
