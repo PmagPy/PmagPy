@@ -574,9 +574,9 @@ class combine_everything_dialog(wx.Frame):
         bSizer_info = wx.BoxSizer(wx.HORIZONTAL)
         bSizer_info.Add(wx.StaticText(pnl,label=TEXT),wx.ALIGN_LEFT)
             
-        bSizer0 = pw.combine_files(self)
-        bSizer1 = pw.combine_files(self)
-        bSizer2 = pw.combine_files(self)
+        self.bSizer0 = pw.combine_files(self, "er_specimens.txt")
+        self.bSizer1 = pw.combine_files(self, "er_samples.txt")
+        self.bSizer2 = pw.combine_files(self, "er_sites.txt")
         
         #------------------
                      
@@ -591,7 +591,7 @@ class combine_everything_dialog(wx.Frame):
         hboxok.Add(self.cancelButton )
 
         hboxfiles = wx.BoxSizer(wx.HORIZONTAL)
-        hboxfiles.AddMany([bSizer0, bSizer1, bSizer2])
+        hboxfiles.AddMany([self.bSizer0, self.bSizer1, self.bSizer2])
 
         #------
         vbox=wx.BoxSizer(wx.VERTICAL)
@@ -618,7 +618,7 @@ class combine_everything_dialog(wx.Frame):
         self.Centre()
                         
     
-    def on_add_file_button(self,event):
+    def on_add_file_button(self,event, bSizer):
 
         dlg = wx.FileDialog(
             None,message="choose MagIC formatted measurement file",
@@ -629,7 +629,7 @@ class combine_everything_dialog(wx.Frame):
         if dlg.ShowModal() == wx.ID_OK:
             full_path = dlg.GetPath()
             infile = full_path[full_path.rfind('/')+1:]
-            self.file_paths.AppendText(infile + "\n")
+            bSizer.file_paths.AppendText(infile + "\n")
 
     def on_add_all_files_button(self,event):
         all_files=os.listdir(self.WD)
