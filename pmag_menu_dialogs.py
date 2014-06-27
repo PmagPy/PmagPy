@@ -119,6 +119,8 @@ class ImportOrientFile(wx.Frame):
         #os.system('cp {} {}'.format(full_infile, WD))
         ind = full_infile.rfind('/')
         infile = full_infile[ind+1:]
+        Fsa = infile[:infile.find('.')] + "_er_samples.txt"
+        Fsi = infile[:infile.find('.')] + "_er_sites.txt"
         ID = full_infile[:ind+1]
         particulars = [p.split(':')[0] for p in self.bSizer1.return_value()]
         mcd = ':'.join(particulars)
@@ -134,7 +136,7 @@ class ImportOrientFile(wx.Frame):
                 app = "-app" # overwrite is False, append instead
         except AttributeError:
             app = ""
-        COMMAND = "orientation_magic.py -WD {} -f {} -ncn {} -ocn {} -dcn {} -gmt {} -mcd {} {} -ID {}".format(WD, infile, ncn, ocn, dcn, gmt, mcd, app, ID)
+        COMMAND = "orientation_magic.py -WD {} -f {} -ncn {} -ocn {} -dcn {} -gmt {} -mcd {} {} -ID {} -Fsa {} -Fsi {}".format(WD, infile, ncn, ocn, dcn, gmt, mcd, app, ID, Fsa, Fsi)
         pw.run_command_and_close_window(self, COMMAND, None)
 
     def on_cancelButton(self,event):
