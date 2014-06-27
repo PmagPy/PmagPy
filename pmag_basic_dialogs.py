@@ -599,9 +599,7 @@ class combine_everything_dialog(wx.Frame):
         vbox.Add(bSizer_info, flag=wx.ALIGN_LEFT)
         vbox.AddSpacer(10)
         vbox.Add(hboxfiles, flag=wx.ALIGN_LEFT)
-        #vbox.Add(bSizer0, flag=wx.ALIGN_LEFT)
         vbox.AddSpacer(10)
-        #vbox.Add(bSizer1, flag=wx.ALIGN_LEFT)
         vbox.AddSpacer(10)
         vbox.Add(wx.StaticLine(self.panel), 0, wx.ALL|wx.EXPAND, 5)
         vbox.Add(hboxok, flag=wx.ALIGN_CENTER)        
@@ -617,42 +615,36 @@ class combine_everything_dialog(wx.Frame):
         self.Show()
         self.Centre()
                         
-    
-    def on_add_file_button(self,event, bSizer):
 
-        dlg = wx.FileDialog(
-            None,message="choose MagIC formatted measurement file",
-            defaultDir=self.WD,
-            defaultFile="",
-            style=wx.OPEN | wx.CHANGE_DIR 
-            )
-        if dlg.ShowModal() == wx.ID_OK:
-            full_path = dlg.GetPath()
-            infile = full_path[full_path.rfind('/')+1:]
-            bSizer.file_paths.AppendText(infile + "\n")
-
-    def on_add_all_files_button(self,event):
-        all_files=os.listdir(self.WD)
-        for F in all_files:
-            F=str(F)
-            if len(F)>6:
-                if F[-6:]==".magic":
-                    self.file_paths.AppendText(F+"\n")
-                     
-        
-        
     def on_cancelButton(self,event):
         self.Destroy()
 
     def on_okButton(self,event):
-        files_text=self.file_paths.GetValue()
-        files=files_text.strip('\n').replace(" ","").split('\n')
-        COMMAND="combine_magic.py -F magic_measurements.txt -f %s"%(" ".join(files) )       
-        print "-I- Running Python command:\n %s"%COMMAND
-        os.chdir(self.WD)     
-        os.system(COMMAND)                                          
-        
-        MSG="%i file are merged to one MagIC format file:\n magic_measurements.txt.\n\n See Termimal (Mac) or command prompt (windows) for errors"%(len(files))
+        er_specimens = self.bSizer0.file_paths.GetValue()
+        er_samples = self.bSizer1.file_paths.GetValue()
+        er_sites = self.bSizer2.file_paths.GetValue()
+        print er_specimens, er_samples, er_sites
+        spec_files = " ".join(er_specimens.split('\n'))
+        samp_files = " ".join(er_samples.split('\n'))
+        site_files = " ".join(er_sites.split('\n'))
+        new_files = []
+        if spec_files:
+            COMMAND0="combine_magic.py -F er_specimens.txt -f %s"%(spec_files)
+            print "-I- Running Python command:\n %s"%COMMAND0
+            os.system(COMMAND0) 
+            new_files.append("er_specimens.txt")
+        if samp_files:
+            COMMAND1="combine_magic.py -F er_samples.txt -f %s"%(samp_files)
+            print "-I- Running Python command:\n %s"%COMMAND1
+            os.system(COMMAND1) 
+            new_files.append("er_samples.txt")
+        if site_files:
+            COMMAND2="combine_magic.py -F er_sites.txt -f %s"%(site_files)
+            print "-I- Running Python command:\n %s"%COMMAND2
+            os.system(COMMAND2)
+            new_files.append("er_sites.txt")
+        new = '\n' + '\n'.join(new_files)
+        MSG = "Created new file(s): {} \nSee Termimal (Mac) or command prompt (windows) for details and errors".format(new)
         dlg1 = wx.MessageDialog(None,caption="Message:", message=MSG ,style=wx.OK|wx.ICON_INFORMATION)
         dlg1.ShowModal()
         dlg1.Destroy()
@@ -1551,7 +1543,10 @@ class convert_PMD_files_to_MagIC(wx.Frame):
         directory = self.bSizer0.return_value()
         files = os.listdir(directory)
         files = [str(f) for f in files if str(f).endswith('.pmd')]
-        samp_outfile = files[0][:files[0].find('.')] + files[-1][:files[-1].find('.')] + "_er_samples.txt"
+        if files:
+            samp_outfile = files[0][:files[0].find('.')] + files[-1][:files[-1].find('.')] + "_er_samples.txt"
+        else:
+            raise Exception("No pmd files found in {}, try a different directory".format(WD))
         ID = "-ID " + directory
         user = self.bSizer1.return_value()
         if user:

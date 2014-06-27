@@ -363,12 +363,14 @@ class combine_files(wx.BoxSizer):
     def __init__(self, parent, text):
         super(combine_files, self).__init__(wx.VERTICAL)
         self.parent = parent
+        self.WD = self.parent.WD
+        self.text = text
 
         bSizer0a =  wx.StaticBoxSizer( wx.StaticBox( self.parent.panel, wx.ID_ANY, "" ), wx.HORIZONTAL )
         self.add_file_button = wx.Button(self.parent.panel, id=-1, label='add file',name='add')
-        self.parent.Bind(wx.EVT_BUTTON, lambda event: self.parent.on_add_file_button(event, self), self.add_file_button)    
+        self.parent.Bind(wx.EVT_BUTTON, self.on_add_file_button, self.add_file_button)    
         self.add_all_files_button = wx.Button(self.parent.panel, id=-1, label="add all *_" + text + " files",name='add_all')
-        self.parent.Bind(wx.EVT_BUTTON, self.parent.on_add_all_files_button, self.add_all_files_button)    
+        self.parent.Bind(wx.EVT_BUTTON, self.on_add_all_files_button, self.add_all_files_button)    
         bSizer0a.AddSpacer(5)
         bSizer0a.Add(self.add_file_button,wx.ALIGN_LEFT)
         bSizer0a.AddSpacer(5)
@@ -377,8 +379,6 @@ class combine_files(wx.BoxSizer):
                 
         bSizer0b =  wx.StaticBoxSizer( wx.StaticBox( self.parent.panel, wx.ID_ANY, "" ), wx.VERTICAL )
         self.file_paths = wx.TextCtrl(self.parent.panel, id=-1, size=(400,200), style=wx.TE_MULTILINE)
-        print "self.file_paths", self.file_paths
-        print self.file_paths.GetName()
         TEXT="files list:"
         bSizer0b.AddSpacer(5)
         bSizer0b.Add(wx.StaticText(self.parent.panel,label=TEXT),wx.ALIGN_LEFT)        
@@ -390,7 +390,7 @@ class combine_files(wx.BoxSizer):
         self.Add(bSizer0a, wx.ALIGN_LEFT)
         self.Add(bSizer0b, wx.ALIGN_LEFT)
 
-    def on_add_file_button(self,event, bSizer):
+    def on_add_file_button(self,event):
 
         dlg = wx.FileDialog(
             None,message="choose MagIC formatted measurement file",
@@ -401,9 +401,16 @@ class combine_files(wx.BoxSizer):
         if dlg.ShowModal() == wx.ID_OK:
             full_path = dlg.GetPath()
             infile = full_path[full_path.rfind('/')+1:]
-            bSizer.file_paths.AppendText(infile + "\n")
+            self.file_paths.AppendText(infile + "\n")
 
-                
+    def on_add_all_files_button(self,event):
+        all_files=os.listdir(self.WD)
+        for F in all_files:
+            F=str(F)
+            if len(F)>6:
+                if self.text in F:
+                    self.file_paths.AppendText(F+"\n")
+
  
 
 
