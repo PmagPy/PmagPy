@@ -536,6 +536,7 @@ class ImportKly4s(wx.Frame):
         full_infile = self.bSizer0.return_value()
         infile = full_infile[full_infile.rfind('/')+1:]
         outfile = infile + ".magic"
+        spec_outfile = infile[:infile.find('.')] + "_er_specimens.txt"
         full_azdip_file = self.bSizer1.return_value()
         azdip_file = full_azdip_file[full_azdip_file.rfind('/')+1:]
         ID = full_infile[:full_infile.rfind('/')+1]
@@ -559,7 +560,7 @@ class ImportKly4s(wx.Frame):
         ins = self.bSizer7.return_value()
         if ins:
             ins = "-ins " + ins
-        COMMAND = "kly4s_magic.py -WD {} -f {} -F {} {} -ncn {} -ocn {} {} {} {} {} -ID {}".format(self.WD, infile, outfile, azdip_file, ncn, ocn, user, n, loc, ins, ID)
+        COMMAND = "kly4s_magic.py -WD {} -f {} -F {} {} -ncn {} -ocn {} {} {} {} {} -ID {} -fsp {}".format(self.WD, infile, outfile, azdip_file, ncn, ocn, user, n, loc, ins, ID, spec_outfile)
         print COMMAND
         pw.run_command_and_close_window(self, COMMAND, outfile)
 

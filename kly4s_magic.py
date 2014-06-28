@@ -31,7 +31,7 @@ def main():
     DEFAULTS
         MFILE: magic_measurements.txt
         AFILE: rmag_anisotropy.txt
-        SPFILE: create new er_specimen.txt file
+        SPFILE: create new er_specimens.txt file
         USER: ""
         LOC: "unknown" 
         INST: "SIO-KLY4S"
