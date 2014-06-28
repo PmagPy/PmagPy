@@ -637,6 +637,7 @@ class ImportK15(wx.Frame):
         full_infile = self.bSizer0.return_value()
         infile = full_infile[full_infile.rfind('/')+1:]
         outfile = infile + ".magic"
+        samp_outfile = infile[:infile.find('.')] + "_er_samples.txt"
         ID = full_infile[:full_infile.rfind('/')+1]
         WD = self.WD
         spc = self.bSizer1.return_value()
@@ -647,9 +648,9 @@ class ImportK15(wx.Frame):
         ins = self.bSizer4.return_value()
         if ins:
             ins = "-ins " + ins
-        COMMAND = "k15_magic.py -WD {} -f {} -F {} -ncn {} -spc {} {} {} -ID {}".format(WD, infile, outfile, ncn, spc, loc, ins, ID)
+        COMMAND = "k15_magic.py -WD {} -f {} -F {} -ncn {} -spc {} {} {} -ID {} -Fsa {}".format(WD, infile, outfile, ncn, spc, loc, ins, ID, samp_outfile)
         #print COMMAND
-        pw.run_command_and_close_window(self, COMMAND, "er_samples.txt")
+        pw.run_command_and_close_window(self, COMMAND, outfile)
 
     def on_cancelButton(self,event):
         self.Destroy()
@@ -740,6 +741,7 @@ class ImportSufarAscii(wx.Frame):
         full_infile = self.bSizer0.return_value()
         infile = full_infile[full_infile.rfind('/')+1:]
         outfile = infile + ".magic"
+        spec_outfile = infile[:infile.find('.')] + "_er_specimens.txt"
         ID = full_infile[:full_infile.rfind('/')+1]
         usr = self.bSizer1.return_value()
         if usr:
