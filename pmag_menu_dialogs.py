@@ -742,6 +742,8 @@ class ImportSufarAscii(wx.Frame):
         infile = full_infile[full_infile.rfind('/')+1:]
         outfile = infile + ".magic"
         spec_outfile = infile[:infile.find('.')] + "_er_specimens.txt"
+        samp_outfile = infile[:infile.find('.')] + "_er_samples.txt"
+        site_outfile = infile[:infile.find('.')] + "_er_sites.txt"
         ID = full_infile[:full_infile.rfind('/')+1]
         usr = self.bSizer1.return_value()
         if usr:
@@ -760,8 +762,17 @@ class ImportSufarAscii(wx.Frame):
         else:
             k15 = "-k15"
         COMMAND = "SUFAR4-asc_magic.py -WD {} -f {} -F {} {} -spc {} -ncn {} {} {} {} -ID {}".format(WD, infile, outfile, usr, spc, ncn, loc, ins, k15, ID)
-        print COMMAND
+        #print COMMAND
         pw.run_command_and_close_window(self, COMMAND, outfile)
+        command = 'mv er_specimens.txt {}'.format(spec_outfile)
+        print "Renaming er_specimens.txt file: \n", command
+        os.system(command)
+        command = 'mv er_samples.txt {}'.format(samp_outfile)
+        print "Renaming er_samples.txt file: \n", command
+        os.system(command)
+        command = 'mv er_sites.txt {}'.format(site_outfile)
+        print "Renaming er_sites.txt file: \n", command
+        os.system(command)
 
     def on_cancelButton(self,event):
         self.Destroy()
@@ -829,11 +840,6 @@ class ImportAgmFile(wx.Frame):
         vbox.Add(self.bSizer3, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(hbox1, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(hbox2, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
-        #vbox.Add(self.bSizer3, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
-        #try:
-        #    vbox.Add(self.bSizer4, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
-        #except AttributeError:
-        #    pass
         vbox.Add(hboxok, flag=wx.ALIGN_CENTER)        
         vbox.AddSpacer(20)
 

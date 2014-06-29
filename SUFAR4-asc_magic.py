@@ -18,7 +18,7 @@ def main():
         -F MFILE: specify magic_measurements output file
         -Fa AFILE: specify rmag_anisotropy output file
         -Fr RFILE: specify rmag_results output file
-        -Fs SFILE: specify er_specimens output file with location, sample, site, etc. information
+        -Fsi SFILE: specify er_specimens output file with location, sample, site, etc. information
         -usr USER: specify who made the measurements
         -loc LOC: specify location name for study 
         -ins INST: specify instrument used
@@ -109,8 +109,11 @@ def main():
     if '-Fr' in sys.argv:
         ind=sys.argv.index('-Fr')
         routput = output_dir_path+'/'+sys.argv[ind+1] 
-    if '-Fs' in sys.argv:
-        ind=sys.argv.index('-Fs')
+    if '-Fsi' in sys.argv or '-Fs' in sys.argv:
+        try:
+            ind = sys.argv.index('-Fsi')
+        except:
+            ind=sys.argv.index('-Fs')
         specfile = output_dir_path+'/'+sys.argv[ind+1] 
         isspec='1'
     elif '-loc' in sys.argv:
