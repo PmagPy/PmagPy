@@ -23,6 +23,7 @@ def main():
         -Fsi FILE: specify output er_sites.txt file, default is er_sites.txt
         -Fsa FILE: specify output er_samples.txt file, default is er_samples.txt  # LORI
         -n [gm,kg,cc,m3]: specify normalization
+        -noAvg: don't average replicate measurements
         -spc NUM : specify number of characters to designate a  specimen, default = 0
         -ncn NCON: specify naming convention
         -loc LOCNAME : specify location/study name, must have either LOCNAME or SITEFILE or be a synthetic
@@ -95,6 +96,10 @@ def main():
     if '-n' in args:
         ind=args.index("-n")
         norm=args[ind+1]
+    if "-noAvg" in args:
+        avg=1
+    else:
+        avg=0
     if "-ncn" in args:
         ind=args.index("-ncn")
         samp_con=sys.argv[ind+1]
@@ -274,7 +279,7 @@ def main():
     pmag.magic_write(samp_file,ErSamps,'er_samples')
     print 'samples stored in ',samp_file
     pmag.magic_write(site_file,ErSites,'er_sites')
-    Fixed=pmag.measurements_methods(MeasRecs,0)
+    Fixed=pmag.measurements_methods(MeasRecs,avg)
     pmag.magic_write(meas_file,Fixed,'magic_measurements')
     print 'data stored in ',meas_file
 main()
