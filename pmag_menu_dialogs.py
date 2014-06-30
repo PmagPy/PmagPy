@@ -896,6 +896,209 @@ class ImportAgmFile(wx.Frame):
 
 
 
+class ImportAgmFolder(wx.Frame):
+
+    title = "Import folder of Micromag agm files"
+    
+    def __init__(self, parent, WD):
+        wx.Frame.__init__(self, parent, wx.ID_ANY, self.title)
+        self.panel = wx.ScrolledWindow(self)
+        self.WD = WD
+        self.InitUI()
+
+    def InitUI(self):
+        pnl = self.panel
+        TEXT = "Folder of agm files"
+        bSizer_info = wx.BoxSizer(wx.HORIZONTAL)
+        bSizer_info.Add(wx.StaticText(pnl, label=TEXT), wx.ALIGN_LEFT)
+
+        #---sizer 0 ----
+        self.bSizer0 = pw.choose_dir(pnl, 'add', method = self.on_add_dir_button)
+
+        #---sizer 0a ----
+        text = "Note on input directory:\nAll file names must be SPECIMEN_NAME.AGM for hysteresis\nor SPECIMEN_NAME.IRM for backfield (case insensitive)"
+        self.bSizer0a = pw.simple_text(pnl, text)
+
+        #---sizer 1 ----
+        self.bSizer1 = pw.labeled_text_field(pnl)
+
+        #---sizer 2 ----
+        self.bSizer2 = pw.specimen_n(pnl)
+
+        #---sizer 3 ---
+        self.bSizer3 = pw.select_specimen_ncn(pnl)
+
+        #---sizer 4 ---
+        self.bSizer4 = pw.labeled_text_field(pnl, label="Location name:")
+
+        #---sizer 5 ---
+        self.bSizer5 = pw.labeled_text_field(pnl, label="Instrument name (optional):")
+
+        #---sizer 6---
+        self.bSizer6 = pw.labeled_yes_or_no(pnl, "Units", "CGS units (default)", "SI units")
+
+
+        #---buttons ---
+        hboxok = pw.btn_panel(self, pnl)
+
+        vbox = wx.BoxSizer(wx.VERTICAL)
+        hbox = wx.BoxSizer(wx.HORIZONTAL)
+        hbox.Add(self.bSizer4, flag=wx.ALIGN_LEFT|wx.LEFT, border=5)
+        hbox.Add(self.bSizer5, flag=wx.ALIGN_LEFT)
+        vbox.Add(bSizer_info, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        vbox.Add(self.bSizer0, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        vbox.Add(self.bSizer0a, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        vbox.Add(self.bSizer1, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        vbox.Add(self.bSizer2, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        vbox.Add(self.bSizer3, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        vbox.Add(hbox, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        vbox.Add(self.bSizer6, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        vbox.Add(hboxok, flag=wx.ALIGN_CENTER)        
+        vbox.AddSpacer(20)
+
+        hbox_all = wx.BoxSizer(wx.HORIZONTAL)
+        hbox_all.AddSpacer(20)
+        hbox_all.AddSpacer(vbox)
+
+        self.panel.SetSizer(hbox_all)
+        self.panel.SetScrollbars(20, 20, 50, 50)
+        hbox_all.Fit(self)
+        self.Show()
+        self.Centre()
+
+    def on_add_dir_button(self,event):
+        text = "choose directory of files to convert to MagIC"
+        pw.on_add_dir_button(self.panel, self.WD, event, text)
+
+    def on_okButton(self, event):
+        WD = self.WD
+        ID = self.bSizer0.return_value()
+        files = os.listdir(ID)
+        files = [str(f) for f in files if str(f).endswith('.agm') or str(f).endswith('.irm')]
+        usr = self.bSizer1.return_value()
+        if usr:
+            usr = "-usr " + usr
+        spc = self.bSizer2.return_value()
+        ncn = self.bSizer3.return_value()
+        loc = self.bSizer4.return_value()
+        if loc:
+            loc = "-loc " + loc
+        ins = self.bSizer5.return_value()
+        if ins:
+            ins = "-ins " + ins
+        units = self.bSizer5.return_value()
+        if units:
+            units = 'cgs'
+        else:
+            units = 'SI'
+        # loop through all .agm and .irm files
+        for f in files:
+            if f.endswith('.irm'):
+                bak = "-bak"
+            else:
+                bak = ""
+            outfile = f + ".magic"
+            COMMAND = "agm_magic.py -WD {} -ID {} -f {} -F {} {} -spc {} -ncn {} {} {} -u {} {}".format(WD, ID, f, outfile, usr, spc, ncn, loc, ins, units, bak)
+            if files.index(f) == (len(files) - 1): # terminate process on last file call
+                pw.run_command_and_close_window(self, COMMAND, outfile)
+            else:
+                pw.run_command(self, COMMAND, outfile)
+                
+
+    def on_cancelButton(self,event):
+        self.Destroy()
+        self.Parent.Raise()
+
+    def on_helpButton(self, event):
+        pw.on_helpButton(".py -h")
+
+
+class something(wx.Frame):
+
+    title = ""
+    
+    def __init__(self, parent, WD):
+        wx.Frame.__init__(self, parent, wx.ID_ANY, self.title)
+        self.panel = wx.ScrolledWindow(self)
+        self.WD = WD
+        self.InitUI()
+
+    def InitUI(self):
+        pnl = self.panel
+        TEXT = "some text"
+        bSizer_info = wx.BoxSizer(wx.HORIZONTAL)
+        bSizer_info.Add(wx.StaticText(pnl, label=TEXT), wx.ALIGN_LEFT)
+
+        #---sizer 0 ----
+        self.bSizer0 = pw.choose_file(pnl, 'add', method = self.on_add_file_button)
+
+        #---sizer 1 ----
+        self.bSizer1 = pw.specimen_n(pnl)
+
+        #---sizer 2 ---
+        self.bSizer2 = pw.select_specimen_ncn(pnl)
+
+        #---sizer 3 ---
+        self.bSizer3 = pw.labeled_text_field(pnl, label="Location name:")
+
+        #---sizer 4 ---
+        self.bSizer4 = pw.labeled_text_field(pnl, label="Instrument name (optional):")
+
+
+        #---sizer 4 ----
+        #try:
+        #    open(self.WD + "/er_samples.txt", "rU")
+        #except Exception as ex:
+        #    er_samples_file_present = False
+        #if er_samples_file_present:
+        #    self.bSizer4 = pw.labeled_yes_or_no(pnl, TEXT, label1, label2)
+
+        #---buttons ---
+        hboxok = pw.btn_panel(self, pnl)
+
+        vbox = wx.BoxSizer(wx.VERTICAL)
+        hbox = wx.BoxSizer(wx.HORIZONTAL)
+        hbox.Add(self.bSizer3, flag=wx.ALIGN_LEFT|wx.LEFT, border=5)
+        hbox.Add(self.bSizer4, flag=wx.ALIGN_LEFT)
+        vbox.Add(bSizer_info, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        vbox.Add(self.bSizer0, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        vbox.Add(self.bSizer1, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        vbox.Add(self.bSizer2, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        vbox.Add(hbox, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        #vbox.Add(self.bSizer3, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        #try:
+        #    vbox.Add(self.bSizer4, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        #except AttributeError:
+        #    pass
+        vbox.Add(hboxok, flag=wx.ALIGN_CENTER)        
+        vbox.AddSpacer(20)
+
+        hbox_all = wx.BoxSizer(wx.HORIZONTAL)
+        hbox_all.AddSpacer(20)
+        hbox_all.AddSpacer(vbox)
+
+        self.panel.SetSizer(hbox_all)
+        self.panel.SetScrollbars(20, 20, 50, 50)
+        hbox_all.Fit(self)
+        self.Show()
+        self.Centre()
+
+    def on_add_file_button(self,event):
+        text = "choose file to convert to MagIC"
+        pw.on_add_file_button(self.bSizer0, self.WD, event, text)
+
+    def on_okButton(self, event):
+        COMMAND = ""
+        print COMMAND
+        #pw.run_command_and_close_window(self, COMMAND, "er_samples.txt")
+
+    def on_cancelButton(self,event):
+        self.Destroy()
+        self.Parent.Raise()
+
+    def on_helpButton(self, event):
+        pw.on_helpButton(".py -h")
+
 class something(wx.Frame):
 
     title = ""

@@ -94,7 +94,7 @@ class MagICMenu(wx.MenuBar):
         hyst1 = pmag_menu_dialogs.ImportAgmFile(self.parent, self.parent.WD)
 
     def hysteresis_import2(self, event):
-        print "hysteresis2"
+        hyst2 = pmag_menu_dialogs.ImportAgmFolder(self.parent, self.parent.WD)
 
 
     

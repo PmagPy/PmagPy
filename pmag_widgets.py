@@ -55,6 +55,15 @@ class choose_dir(wx.StaticBoxSizer):
         return self.parent.dir_path.GetValue()
 
 
+class simple_text(wx.StaticBoxSizer):
+    def __init__(self, parent, TEXT):
+        self.parent = parent
+        box = wx.StaticBox( self.parent, wx.ID_ANY, "" )
+        super(simple_text, self).__init__(box, orient=wx.HORIZONTAL)
+        self.Add(wx.StaticText(self.parent, label=TEXT),wx.ALIGN_LEFT)
+        
+
+
 class labeled_text_field(wx.StaticBoxSizer):
     def __init__(self, parent, label="User name (optional)"):
         self.parent = parent
