@@ -983,3 +983,17 @@ class something(wx.Frame):
         pw.on_helpButton(".py -h")
 
 
+# File
+
+class ClearWD(wx.MessageDialog):
+
+    def __init__(self, parent, WD):
+        msg = "Are you sure you want to delete the contents of:\n{} ?\nThis action cannot be undone".format(WD)
+        super(ClearWD, self).__init__(None, caption="Not so fast", message=msg, style=wx.YES_NO|wx.NO_DEFAULT|wx.ICON_EXCLAMATION)
+        result = self.ShowModal()
+        self.Destroy()
+        if result == wx.ID_YES:
+            os.system('rm *')
+            print "{} has been emptied".format(WD)
+        else:
+            print "{} has not been emptied".format(WD)

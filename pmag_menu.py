@@ -64,8 +64,7 @@ class MagICMenu(wx.MenuBar):
         self.parent.Close()
 
     def on_clear(self, event):
-        print 'clearing WD'
-        os.system("rm *")
+        clear = pmag_menu_dialogs.ClearWD(self.parent, self.parent.WD)
 
     def orient_import1(self, event): 
         orient1 = pmag_menu_dialogs.ImportOrientFile(self.parent, self.parent.WD)
