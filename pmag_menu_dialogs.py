@@ -795,7 +795,7 @@ class ImportAgmFile(wx.Frame):
 
     def InitUI(self):
         pnl = self.panel
-        TEXT = ".agm format file"
+        TEXT = "Micromag agm format file"
         bSizer_info = wx.BoxSizer(wx.HORIZONTAL)
         bSizer_info.Add(wx.StaticText(pnl, label=TEXT), wx.ALIGN_LEFT)
 
@@ -858,16 +858,41 @@ class ImportAgmFile(wx.Frame):
         pw.on_add_file_button(self.bSizer0, self.WD, event, text)
 
     def on_okButton(self, event):
-        COMMAND = ""
+        WD = self.WD
+        full_infile = self.bSizer0.return_value()
+        infile = full_infile[full_infile.rfind('/')+1:]
+        ID = full_infile[:full_infile.rfind('/')+1]
+        outfile = infile + ".magic"
+        spec_outfile = infile[:infile.find('.')] + "_er_specimens.txt"
+        user = self.bSizer1.return_value()
+        if user:
+            user = "-usr " + user
+        spc = self.bSizer2.return_value()
+        ncn = self.bSizer3.return_value()
+        loc = self.bSizer4.return_value()
+        if loc:
+            loc = "-loc " + loc
+        ins = self.bSizer5.return_value()
+        if ins:
+            ins = "-ins " + ins
+        units = self.bSizer6.return_value()
+        if units:
+            units = 'cgs'
+        else:
+            units = 'SI'
+        bak = ''
+        if self.bSizer7.return_value():
+            bak = "-bak"
+        COMMAND = "agm_magic.py -WD {} -ID {} -f {} -F {} -Fsp {} {} -spc {} -ncn {} {} {} -u {} {}".format(WD, ID, infile, outfile, spec_outfile, user, spc, ncn, loc, ins, units, bak)
         print COMMAND
-        #pw.run_command_and_close_window(self, COMMAND, "er_samples.txt")
+        pw.run_command_and_close_window(self, COMMAND, outfile)
 
     def on_cancelButton(self,event):
         self.Destroy()
         self.Parent.Raise()
 
     def on_helpButton(self, event):
-        pw.on_helpButton(".py -h")
+        pw.on_helpButton("agm_magic.py -h")
 
 
 
