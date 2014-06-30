@@ -65,7 +65,7 @@ def main():
         ind = args.index("-ID")
         input_dir_path = args[ind+1]
     else:
-        input_dir_path = output_dir_path
+        input_dir_path = dir_path
     output_dir_path = dir_path
     specfile = output_dir_path+'/er_specimens.txt'
     output = output_dir_path+"/agm_measurements.txt"
