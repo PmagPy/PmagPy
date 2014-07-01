@@ -439,7 +439,7 @@ class combine_magic_dialog(wx.Frame):
 
         #---sizer infor ----
 
-        TEXT="Step 2: \nCombine different MagIC formatted files to one file name 'magic_measurements.txt'"
+        TEXT="Step 2: \nCombine different MagIC formatted files to one file named 'magic_measurements.txt'"
         bSizer_info = wx.BoxSizer(wx.HORIZONTAL)
         bSizer_info.Add(wx.StaticText(pnl,label=TEXT),wx.ALIGN_LEFT)
             
