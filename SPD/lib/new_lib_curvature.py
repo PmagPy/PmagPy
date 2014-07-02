@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import numpy
+import lib_curvature as lib_k
 
 x = [0.0107, 0.0332, 0.0662, 0.0528, 0.1053, 0.1069, 0.1609, 0.1805, 0.2539, 0.3199, 0.4802, 0.5701, 0.6840, 0.7544, 0.8833]
 y = [0.9926, 0.9682, 0.8972, 0.7998, 0.7511,0.6740, 0.5238, 0.4447, 0.4142, 0.3229, 0.2457, 0.1625, 0.1178, 0.0772, 0.0508]
@@ -50,7 +51,14 @@ c IEEE Transactions on Instrumentation and Measurement."""
     for z in range(n):
         r = r + numpy.sqrt( (x[z]-xo)**2 + (y[z]-yo)**2 ) / n
 
-    return r, xo, yo
+    if xo <= numpy.mean(x) and yo <= numpy.mean(y):
+        k = -1./r
+    else:
+        k = 1./r
+
+    SSE = lib_k.get_SSE(xo, yo, r, x, y)
+    return k, xo, yo, SSE
+    #return r, xo, yo
 
 
 
