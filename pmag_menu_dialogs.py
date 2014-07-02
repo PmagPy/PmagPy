@@ -137,7 +137,7 @@ class ImportOrientFile(wx.Frame):
         except AttributeError:
             app = ""
         COMMAND = "orientation_magic.py -WD {} -f {} -ncn {} -ocn {} -dcn {} -gmt {} -mcd {} {} -ID {} -Fsa {} -Fsi {}".format(WD, infile, ncn, ocn, dcn, gmt, mcd, app, ID, Fsa, Fsi)
-        pw.run_command_and_close_window(self, COMMAND, None)
+        pw.run_command_and_close_window(self, COMMAND, "er_samples.txt\ner_sites.txt")
 
     def on_cancelButton(self,event):
         self.Destroy()

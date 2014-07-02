@@ -1793,7 +1793,7 @@ class OrientFrameGrid(wx.Frame):
                  ]
 
         #--------------------------------
-        # creat the grid
+        # create the grid
         #--------------------------------
         
         samples_list=self.orient_data.keys()
@@ -2367,5 +2367,66 @@ class method_code_dialog(wx.Dialog):
         self.bedding_codes_flags=" ".join(bedding_codes)   
         self.EndModal(wx.ID_OK) 
         #self.Close()
+
+
+class check(wx.Frame):
+
+    def __init__(self, parent, id, title, WD):#, size):
+        wx.Frame.__init__(self, parent, -1, title)#, size=size)
+        self.WD = WD
+        self.InitUI()
+
+    def InitUI(self):
+        self.get_data()
+        #print "Data hierarchy", self.Parent.get_data()[1]
+        specimens = self.orient_data.keys()
+        rows = range(1, len(specimens)+1)
+        cols = ['specimen', '', 'sample']
+        self.grid = wx.grid.Grid(self, -1)
+        self.grid.ClearGrid()
+        self.grid.CreateGrid(len(rows), len(cols))
+        self.grid.SetCellBackgroundColour(0, 0, "LIGHT GREY")
+        self.grid.SetCellBackgroundColour(1, 1, "LIGHT GREY")
+        
+        for n, row in enumerate(rows):
+            self.grid.SetRowLabelValue(n, str(row))
+            self.grid.SetCellValue(n, 0, specimens[n])
+            self.grid.SetCellValue(n, 1, "belongs to")
+            self.grid.SetCellValue(n, 2, 'some sample')
+            sample = self.orient_data[specimens[n]]['sample_name']
+            self.grid.SetCellValue(n, 2, sample)
+
+
+        for n, col in enumerate(cols):
+            self.grid.SetColLabelValue(n, col)
+
+
+
+        self.grid.AutoSize()# doesn't clearly do anything......?
+        
+        self.Centre()
+        self.Show()
+
+    def get_data(self):
+        try:
+            self.Data, self.Data_hierarchy = self.Parent.Data
+        except:
+            self.Data, self.Data_hierarchy = self.Parent.get_data()
+        self.samples_list=self.Data_hierarchy['samples']         
+        self.orient_data={}
+        try:
+            self.orient_data=self.read_magic_file(self.WD+"/demag_orient.txt",1,"sample_name")  
+        except:
+            pass
+        for sample in self.samples_list:
+            if sample not in self.orient_data.keys():
+               self.orient_data[sample]={} 
+               self.orient_data[sample]["sample_name"]=sample
+               
+            if sample in self.Data_hierarchy['site_of_sample'].keys():
+                self.orient_data[sample]["site_name"]=self.Data_hierarchy['site_of_sample'][sample]
+            else:
+                self.orient_data[sample]["site_name"]=""
+        print "self.orient_data", self.orient_data
 
 
