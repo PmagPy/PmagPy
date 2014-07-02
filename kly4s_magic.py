@@ -113,9 +113,6 @@ def main():
     if '-Fa' in sys.argv:
         ind=sys.argv.index('-Fa')
         anisfile=sys.argv[ind+1] 
-    if '-Fr' in sys.argv:
-        ind=sys.argv.index('-Fr')
-        routput=sys.argv[ind+1] 
     if '-fsa' in sys.argv:
         ind=sys.argv.index('-fsa')
         sampfile=sys.argv[ind+1] 
