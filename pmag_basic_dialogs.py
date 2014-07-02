@@ -1793,7 +1793,7 @@ class OrientFrameGrid(wx.Frame):
                  ]
 
         #--------------------------------
-        # creat the grid
+        # create the grid
         #--------------------------------
         
         samples_list=self.orient_data.keys()
@@ -2369,3 +2369,48 @@ class method_code_dialog(wx.Dialog):
         #self.Close()
 
 
+class check(wx.Frame):
+
+    def __init__(self, parent, id, title, WD, size):
+        wx.Frame.__init__(self, parent, -1, title, size=size)
+        self.panel = wx.ScrolledWindow(self)
+        self.panel.SetScrollbars(20, 20, 50, 50)
+        self.WD = WD
+        self.InitUI()
+
+    def InitUI(self):
+        pnl = self.panel
+
+        print self.Parent.get_data()[0].keys()
+        rows = self.Parent.Data.keys() or self.Parent.get_data()[0].keys()
+
+        text = wx.StaticText(pnl,label="life is ok",style=wx.TE_CENTER)
+        cols = ['specimen', 'sample']
+        self.grid = wx.grid.Grid(self, -1)
+        self.grid.ClearGrid()
+        self.grid.CreateGrid(len(rows), len(cols))
+        self.grid.SetCellBackgroundColour(0, 0, "LIGHT GREY")
+        self.grid.SetCellBackgroundColour(1, 1, "LIGHT GREY")
+        
+        for n, row in enumerate(rows):
+            self.grid.SetRowLabelValue(n, row)
+
+        for n, col in enumerate(cols):
+            self.grid.SetColLabelValue(n, col)
+
+        #self.grid.AutoSize()
+        #self.grid.AutoSizeColumns(100)
+        
+        vbox = wx.BoxSizer(wx.VERTICAL)
+        vbox.Add(text)
+        vbox.Add(self.grid)
+        
+        hbox_all = wx.BoxSizer(wx.HORIZONTAL)
+        hbox_all.AddSpacer(vbox)
+        self.panel.SetSizer(hbox_all)
+        self.panel.SetScrollbars(20, 20, 50, 50)
+        hbox_all.Fit(self)
+        print 'initing!'
+        
+        self.Centre()
+        self.Show()

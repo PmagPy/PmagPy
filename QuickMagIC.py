@@ -30,6 +30,7 @@ class MagMainFrame(wx.Frame):
         self.HtmlIsOpen=False
         self.first_time_messsage=False
         self.Bind(wx.EVT_CLOSE, self.on_menu_exit)
+        self.Data, self.Data_hierarchy = {}, {}
 
 
     def InitUI(self):
@@ -189,22 +190,6 @@ class MagMainFrame(wx.Frame):
             self.WD=sys.argv[ind+1]            
         
         else:
-            ignore = """
-            TEXT1="Set or create MagIC Project Directory.\nPath should have NO SPACES.\n This Directory is to be used by this program ONLY"               
-            dlg1 = wx.MessageDialog(None, caption="First step",message=TEXT1,style=wx.OK|wx.ICON_EXCLAMATION)
-            result1 = dlg1.ShowModal()            
-            if result1 == wx.ID_OK:            
-                dlg1.Destroy()
-            #self.WD="/Users/ronshaar/Academy/Litratures/misc_documents/MagIC_workshop_2014/Wednesday_workhops/step_by_step_tutorial/MagIC/"
-            
-            #TEXT="choose directory. No spaces are allowed in path!"
-            #dia = wx.DirDialog(self, message=TEXT,defaultPath = os.getcwd() ,style=wx.DD_DEFAULT_STYLE )
-            #result=dia.ShowModal()
-            #if result == wx.ID_OK:
-            #  self.WD=str(dia.GetPath())
-            #print 'dia', dia
-            #dia.Destroy()
-            """
             self.WD = os.getcwd() + '/'
             
         os.chdir(self.WD)
@@ -245,7 +230,11 @@ class MagMainFrame(wx.Frame):
         pmag_dialogs_dia.Center()
 
 
-                                    
+
+    def on_er_data(self, event):
+        dia = pmag_basic_dialogs.check(self, -1, 'This', self.WD, (6, 6))
+        
+    """
     def on_er_data(self,event):
 
         import ErMagicBuilder
@@ -275,7 +264,7 @@ class MagMainFrame(wx.Frame):
                 dlg.Destroy()
                 self.first_time_messsage=True
                 self.help_window.Raise()
-            
+    """        
             
 
     def OnCloseHtml(self,event):
@@ -322,6 +311,8 @@ class MagMainFrame(wx.Frame):
           Data_hierarchy['sample_of_specimen'][s]=sample  
           Data_hierarchy['site_of_specimen'][s]=site  
           Data_hierarchy['site_of_sample'][sample]=site
+      self.Data = Data
+      self.Data_hierarchy = Data_hierarchy
       return(Data,Data_hierarchy)
                                                                                                                                                                                                                                
     def on_orientation_button(self,event):
@@ -366,51 +357,9 @@ class MagMainFrame(wx.Frame):
            
     def on_menu_exit(self, event):
         exit()
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           
-#==============================================================
-# Menu Bar functions
-#==============================================================
+    
 
-    #----------------------------------------------------------------------
-        
-    '''def create_menu(self):
-        """ Create menu
-        """
-        self.menubar = wx.MenuBar()
 
-        menu_file = wx.Menu()
-        
-        m_change_working_directory = menu_file.Append(-1, "&Change MagIC project directory", "")
-        #self.Bind(wx.EVT_MENU, self.on_menu_change_working_directory, m_change_working_directory)
-
-        m_clear_working_directory = menu_file.Append(-1, "&Clear MagIC project directory", "")
-        #self.Bind(wx.EVT_MENU, self.on_menu_change_working_directory, m_change_working_directory)
-
-        m_exit = menu_file.Append(-1, "E&xit\tCtrl-X", "Exit")
-        #self.Bind(wx.EVT_MENU, self.on_menu_exit, m_exit)
-                                                                                                                                                                                                           
-        #-----------------                            
-
-        menu_import = wx.Menu()
-
-        #-----------------                            
-
-        menu_analysis_and_plots = wx.Menu()
-
-        #-------------------
-
-        menu_utilities = wx.Menu()
-
-        #-------------------
-       
-        self.menubar.Append(menu_file, "&File")
-        self.menubar.Append(menu_import, "&Import")
-        self.menubar.Append(menu_analysis_and_plots, "&Analysis and Plots")
-        self.menubar.Append(menu_utilities, "&Utilities")        
-        self.SetMenuBar(self.menubar)'''
-
-    #============================================
-        
 
 
 if __name__ == "__main__":
