@@ -232,7 +232,9 @@ class MagMainFrame(wx.Frame):
 
 
     def on_er_data(self, event):
-        dia = pmag_basic_dialogs.check(self, -1, 'This', self.WD, (6, 6))
+        SIZE=wx.DisplaySize()
+        SIZE=(SIZE[0]-0.3*SIZE[0],SIZE[1]-0.3*SIZE[1]) # gets total available screen space - 10%
+        dia = pmag_basic_dialogs.check(self, -1, 'This', self.WD)#, SIZE)
         
     """
     def on_er_data(self,event):

@@ -2371,21 +2371,17 @@ class method_code_dialog(wx.Dialog):
 
 class check(wx.Frame):
 
-    def __init__(self, parent, id, title, WD, size):
-        wx.Frame.__init__(self, parent, -1, title, size=size)
-        self.panel = wx.ScrolledWindow(self)
-        self.panel.SetScrollbars(20, 20, 50, 50)
+    def __init__(self, parent, id, title, WD):#, size):
+        wx.Frame.__init__(self, parent, -1, title)#, size=size)
         self.WD = WD
         self.InitUI()
 
     def InitUI(self):
-        pnl = self.panel
-
-        print self.Parent.get_data()[0].keys()
-        rows = self.Parent.Data.keys() or self.Parent.get_data()[0].keys()
-
-        text = wx.StaticText(pnl,label="life is ok",style=wx.TE_CENTER)
-        cols = ['specimen', 'sample']
+        self.get_data()
+        #print "Data hierarchy", self.Parent.get_data()[1]
+        specimens = self.orient_data.keys()
+        rows = range(1, len(specimens)+1)
+        cols = ['specimen', '', 'sample']
         self.grid = wx.grid.Grid(self, -1)
         self.grid.ClearGrid()
         self.grid.CreateGrid(len(rows), len(cols))
@@ -2393,24 +2389,44 @@ class check(wx.Frame):
         self.grid.SetCellBackgroundColour(1, 1, "LIGHT GREY")
         
         for n, row in enumerate(rows):
-            self.grid.SetRowLabelValue(n, row)
+            self.grid.SetRowLabelValue(n, str(row))
+            self.grid.SetCellValue(n, 0, specimens[n])
+            self.grid.SetCellValue(n, 1, "belongs to")
+            self.grid.SetCellValue(n, 2, 'some sample')
+            sample = self.orient_data[specimens[n]]['sample_name']
+            self.grid.SetCellValue(n, 2, sample)
+
 
         for n, col in enumerate(cols):
             self.grid.SetColLabelValue(n, col)
 
-        #self.grid.AutoSize()
-        #self.grid.AutoSizeColumns(100)
-        
-        vbox = wx.BoxSizer(wx.VERTICAL)
-        vbox.Add(text)
-        vbox.Add(self.grid)
-        
-        hbox_all = wx.BoxSizer(wx.HORIZONTAL)
-        hbox_all.AddSpacer(vbox)
-        self.panel.SetSizer(hbox_all)
-        self.panel.SetScrollbars(20, 20, 50, 50)
-        hbox_all.Fit(self)
-        print 'initing!'
+
+
+        self.grid.AutoSize()# doesn't clearly do anything......?
         
         self.Centre()
         self.Show()
+
+    def get_data(self):
+        try:
+            self.Data, self.Data_hierarchy = self.Parent.Data
+        except:
+            self.Data, self.Data_hierarchy = self.Parent.get_data()
+        self.samples_list=self.Data_hierarchy['samples']         
+        self.orient_data={}
+        try:
+            self.orient_data=self.read_magic_file(self.WD+"/demag_orient.txt",1,"sample_name")  
+        except:
+            pass
+        for sample in self.samples_list:
+            if sample not in self.orient_data.keys():
+               self.orient_data[sample]={} 
+               self.orient_data[sample]["sample_name"]=sample
+               
+            if sample in self.Data_hierarchy['site_of_sample'].keys():
+                self.orient_data[sample]["site_name"]=self.Data_hierarchy['site_of_sample'][sample]
+            else:
+                self.orient_data[sample]["site_name"]=""
+        print "self.orient_data", self.orient_data
+
+
