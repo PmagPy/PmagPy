@@ -2377,10 +2377,10 @@ class check(wx.Frame):
         self.InitUI()
 
     def InitUI(self):
-        self.get_data()
+        self.get_orient_data()
         #print "Data hierarchy", self.Parent.get_data()[1]
-        specimens = self.orient_data.keys()
-        rows = range(1, len(specimens)+1)
+        self.specimens = self.orient_data.keys()
+        rows = range(1, len(self.specimens)+1)
         cols = ['specimen', '', 'sample']
         self.grid = wx.grid.Grid(self, -1)
         self.grid.ClearGrid()
@@ -2390,24 +2390,24 @@ class check(wx.Frame):
         
         for n, row in enumerate(rows):
             self.grid.SetRowLabelValue(n, str(row))
-            self.grid.SetCellValue(n, 0, specimens[n])
+            self.grid.SetCellValue(n, 0, self.specimens[n])
             self.grid.SetCellValue(n, 1, "belongs to")
             self.grid.SetCellValue(n, 2, 'some sample')
-            sample = self.orient_data[specimens[n]]['sample_name']
+            sample = self.orient_data[self.specimens[n]]['sample_name']
             self.grid.SetCellValue(n, 2, sample)
 
 
         for n, col in enumerate(cols):
             self.grid.SetColLabelValue(n, col)
 
-
-
+            
         self.grid.AutoSize()# doesn't clearly do anything......?
         
         self.Centre()
         self.Show()
+        self.update_orient_data()
 
-    def get_data(self):
+    def get_orient_data(self):
         try:
             self.Data, self.Data_hierarchy = self.Parent.Data
         except:
@@ -2428,5 +2428,72 @@ class check(wx.Frame):
             else:
                 self.orient_data[sample]["site_name"]=""
         print "self.orient_data", self.orient_data
+
+
+    def update_orient_data(self):
+        # check each value in the specimen column for changes
+        # check each value in the samples column for changes
+        for row in range(self.grid.GetNumberRows()):
+            print self.grid.GetCellValue(row, 0)
+            print self.specimens[row]
+
+    def get_data(self):
+      # get_data from ErMagicBuilder.  Returns a more comprehensive Data hierarchy than the get_data in QuickMagic.  oy.
+      Data={}
+      Data_hierarchy={}
+      Data_hierarchy['locations']={}
+      Data_hierarchy['sites']={}
+      Data_hierarchy['samples']={}
+      Data_hierarchy['specimens']={}
+      Data_hierarchy['sample_of_specimen']={} 
+      Data_hierarchy['site_of_specimen']={}   
+      Data_hierarchy['site_of_sample']={}   
+      Data_hierarchy['location_of_specimen']={}   
+      Data_hierarchy['location_of_sample']={}   
+      Data_hierarchy['location_of_site']={}   
+      try:
+          meas_data,file_type=pmag.magic_read(self.WD+"/magic_measurements.txt")
+      except:
+          print "-E- ERROR: Cant read magic_measurement.txt file. File is corrupted."
+          return {},{}
+         
+      sids=pmag.get_specs(meas_data) # samples ID's
+      
+      for s in sids:
+          if s not in Data.keys():
+              Data[s]={}
+      for rec in meas_data:
+          s=rec["er_specimen_name"]
+          sample=rec["er_sample_name"]
+          site=rec["er_site_name"]
+          location=rec["er_location_name"]
+          if sample not in Data_hierarchy['samples'].keys():
+              Data_hierarchy['samples'][sample]=[]
+
+          if site not in Data_hierarchy['sites'].keys():
+              Data_hierarchy['sites'][site]=[]         
+
+          if location not in Data_hierarchy['locations'].keys():
+              Data_hierarchy['locations'][location]=[]         
+          
+          if s not in Data_hierarchy['samples'][sample]:
+              Data_hierarchy['samples'][sample].append(s)
+
+          if sample not in Data_hierarchy['sites'][site]:
+              Data_hierarchy['sites'][site].append(sample)
+
+          if site not in Data_hierarchy['locations'][location]:
+              Data_hierarchy['locations'][location].append(site)
+
+          Data_hierarchy['specimens'][s]=sample
+          Data_hierarchy['sample_of_specimen'][s]=sample  
+          Data_hierarchy['site_of_specimen'][s]=site  
+          Data_hierarchy['site_of_sample'][sample]=site
+          Data_hierarchy['location_of_specimen'][s]=location 
+          Data_hierarchy['location_of_sample'][sample]=location 
+          Data_hierarchy['location_of_site'][site]=location 
+          
+      return(Data,Data_hierarchy)
+
 
 
