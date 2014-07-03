@@ -3,8 +3,8 @@
 import numpy
 import lib_curvature as lib_k
 
-x = [0.0107, 0.0332, 0.0662, 0.0528, 0.1053, 0.1069, 0.1609, 0.1805, 0.2539, 0.3199, 0.4802, 0.5701, 0.6840, 0.7544, 0.8833]
-y = [0.9926, 0.9682, 0.8972, 0.7998, 0.7511,0.6740, 0.5238, 0.4447, 0.4142, 0.3229, 0.2457, 0.1625, 0.1178, 0.0772, 0.0508]
+old_x = [0.0107, 0.0332, 0.0662, 0.0528, 0.1053, 0.1069, 0.1609, 0.1805, 0.2539, 0.3199, 0.4802, 0.5701, 0.6840, 0.7544, 0.8833]
+old_y = [0.9926, 0.9682, 0.8972, 0.7998, 0.7511,0.6740, 0.5238, 0.4447, 0.4142, 0.3229, 0.2457, 0.1625, 0.1178, 0.0772, 0.0508]
 
 
 x = [0.0107, 0.0332, 0.0662, 0.0528, 0.1053, 
@@ -16,11 +16,16 @@ y = [0.9926, 0.9682, 0.8972, 0.7998, 0.7511,
      0.2457, 0.1625, 0.1178, 0.0772, 0.0508]
 
 
+
 def fitcircle(n, x, y): 
 # n points, x points, y points
     """c Fit circle to arbitrary number of x,y pairs, based on the
 c modified least squares method of Umback and Jones (2000),
 c IEEE Transactions on Instrumentation and Measurement."""
+    # adding in normalize vectors step
+    x = numpy.array(x) / max(x)
+    y = numpy.array(y) / max(y)
+    #
     
     sx, sx2, sx3, sy, sy2, sy3, sxy, sxy2, syx2 = (0,) * 9
     print type(sx), sx
