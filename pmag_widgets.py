@@ -266,6 +266,12 @@ class sampling_particulars(check_boxes):
         particulars = ["FS-FD: field sampling done with a drill", "FS-H: field sampling done with hand samples", "FS-LOC-GPS: field location done with GPS", "FS-LOC-MAP:  field location done with map", "SO-POM:  a Pomeroy orientation device was used", "SO-ASC:  an ASC orientation device was used", "SO-MAG: magnetic compass used for all orientations", "SO-SUN: sun compass used for all orientations", "SO-SM: either magnetic or sun used on all orientations", "SO-SIGHT: orientation from sighting"]
         super(sampling_particulars, self).__init__(parent, gridsize, particulars, TEXT)
 
+    def return_value(self):
+        checked = super(sampling_particulars, self).return_value()
+        particulars = [p.split(':')[0] for p in checked]
+        particulars = ':'.join(particulars)
+        return particulars
+
 
 class lab_field(wx.StaticBoxSizer):
     

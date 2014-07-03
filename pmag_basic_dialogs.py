@@ -784,6 +784,8 @@ class convert_SIO_files_to_MagIC(wx.Frame):
         if user:
             user = "-usr " + user
         experiment_type = self.bSizer2.return_value()
+        if experiment_type:
+            experiment_type = "-LP " + experiment_type
         lab_field = self.bSizer3.return_value()
         if lab_field:
             lab_field = "-dc " + lab_field
@@ -811,7 +813,7 @@ class convert_SIO_files_to_MagIC(wx.Frame):
             synthetic = '-syn ' + synthetic
         else:
             synthetic = ''
-        COMMAND = "sio_magic.py -F {0} -f {1} {2} -LP {3} {4} -spc {5} -ncn {6} {7} {8} {9} {10} {11} {12} -Fsa {13}".format(outfile, SIO_file, user, experiment_type, loc_name,spc, ncn, lab_field, peak_AF, coil_number, instrument, replicate, synthetic, samp_outfile)
+        COMMAND = "sio_magic.py -F {0} -f {1} {2} {3} {4} -spc {5} -ncn {6} {7} {8} {9} {10} {11} {12} -Fsa {13}".format(outfile, SIO_file, user, experiment_type, loc_name,spc, ncn, lab_field, peak_AF, coil_number, instrument, replicate, synthetic, samp_outfile)
         pw.run_command_and_close_window(self, COMMAND, outfile)
 
     def on_cancelButton(self,event):
@@ -933,15 +935,16 @@ class convert_CIT_files_to_MagIC(wx.Frame):
         if loc_name:
             loc_name = "-loc " + loc_name
         ncn = self.bSizer4.return_value()
-        particulars = [p.split(':')[0] for p in self.bSizer2.return_value()]
-        particulars = ':'.join(particulars)
+        particulars = self.bSizer2.return_value()
+        if particulars:
+            particulars = "-mcd " + particulars
         lab_field = self.bSizer3.return_value()
         if lab_field:
             lab_field = "-dc " + lab_field
         peak_AF = self.bSizer7.return_value()
         if peak_AF:
             peak_AF = "-ac " + peak_AF
-        COMMAND = "CIT_magic.py -WD {} -f {} -F {}  -mcd {} {} {} {} -ncn {} {} {} {} -Fsp {} -Fsi {} -Fsa {}".format(wd, CIT_file, outfile, particulars, spec_num, loc_name, user, ncn, peak_AF, lab_field, ID, spec_outfile, site_outfile, samp_outfile)
+        COMMAND = "CIT_magic.py -WD {} -f {} -F {} {} {} {} {} -ncn {} {} {} {} -Fsp {} -Fsi {} -Fsa {}".format(wd, CIT_file, outfile, particulars, spec_num, loc_name, user, ncn, peak_AF, lab_field, ID, spec_outfile, site_outfile, samp_outfile)
         #print COMMAND
         pw.run_command_and_close_window(self, COMMAND, outfile)
 
