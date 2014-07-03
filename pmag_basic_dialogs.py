@@ -1009,25 +1009,15 @@ class convert_HUJI_files_to_MagIC(wx.Frame):
         #------
         vbox=wx.BoxSizer(wx.VERTICAL)
 
-        #vbox.AddSpacer(10)
         vbox.Add(bSizer_info, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
-        #vbox.AddSpacer(10)
         vbox.Add(self.bSizer0, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
-        #vbox.AddSpacer(10)
         vbox.Add(self.bSizer1, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
-        #vbox.AddSpacer(10)
         vbox.Add(self.bSizer2, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
-        #vbox.AddSpacer(10)
         vbox.Add(self.bSizer3, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
-        #vbox.AddSpacer(10)
         vbox.Add(self.bSizer4, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
-        #vbox.AddSpacer(10)
         vbox.Add(self.bSizer5, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
-        #vbox.AddSpacer(10)
         vbox.Add(self.bSizer6, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
-        #vbox.AddSpacer(10)
         vbox.Add(self.bSizer7, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
-        #vbox.AddSpacer(10)
         vbox.Add(wx.StaticLine(pnl), 0, wx.ALL|wx.EXPAND, 5)
         vbox.Add(hboxok, flag=wx.ALIGN_CENTER)        
         vbox.AddSpacer(20)
@@ -1059,6 +1049,9 @@ class convert_HUJI_files_to_MagIC(wx.Frame):
         if user:
             user = '-usr ' + user
         experiment_type = self.bSizer2.return_value()
+        if not experiment_type:
+            pw.simple_warning("You must select an experiment type")
+            return False
         lab_field = self.bSizer3.return_value()
         if lab_field:
             lab_field = '-dc ' + lab_field
@@ -1072,7 +1065,7 @@ class convert_HUJI_files_to_MagIC(wx.Frame):
         if loc_name:
             loc_name = '-loc ' + loc_name
         peak_AF = self.bSizer7.return_value()
-        COMMAND = "HUJI_magic.py -f {} -F {} -LP {} {} {} -ncn {} {} {} {}".format(HUJI_file, outfile, user, experiment_type, loc_name, ncn, lab_field, spc, peak_AF)
+        COMMAND = "HUJI_magic.py -f {} -F {} {} -LP {} {} -ncn {} {} {} {}".format(HUJI_file, outfile, user, experiment_type, loc_name, ncn, lab_field, spc, peak_AF)
         pw.run_command_and_close_window(self, COMMAND, outfile)
 
     def on_cancelButton(self,event):
@@ -1174,10 +1167,10 @@ class convert_2G_binary_files_to_MagIC(wx.Frame):
         files = [str(f) for f in files if str(f).endswith('.dat')]
         ID = "-ID " + directory
         if self.bSizer1.return_value():
-            particulars = [p.split(':')[0] for p in self.bSizer1.return_value()]
-            mcd = ':'.join(particulars)
+            particulars = self.bSizer1.return_value()
+            mcd = '-mcd ' + particulars
         else:
-            mcd = 'FS-FD:SO-POM'
+            mcd = ''
         ncn = self.bSizer2.return_value()
         spc = self.bSizer3.return_value()
         if not spc:
@@ -1201,7 +1194,7 @@ class convert_2G_binary_files_to_MagIC(wx.Frame):
         for f in files:
             file_2G_bin = f
             outfile = file_2G_bin + ".magic"
-            COMMAND = "2G_bin_magic.py -WD {} -f {} -F {} -Fsa {} -Fsi {} -ncn {} -mcd {} {} -ocn {} {} {} {}".format(WD, file_2G_bin, outfile, samp_outfile, sites_outfile, ncn, mcd, spc, ocn, loc_name, replicate, ID)
+            COMMAND = "2G_bin_magic.py -WD {} -f {} -F {} -Fsa {} -Fsi {} -ncn {} {} {} -ocn {} {} {} {}".format(WD, file_2G_bin, outfile, samp_outfile, sites_outfile, ncn, mcd, spc, ocn, loc_name, replicate, ID)
             if files.index(f) == (len(files) - 1): # terminate process on last file call
                 pw.run_command_and_close_window(self, COMMAND, outfile)
             else:

@@ -331,7 +331,7 @@ class experiment_type(wx.StaticBoxSizer):
         gridSizer2 = wx.GridSizer(5, 3, 0, 0)
         self.boxes = []
         experiment_names=['AF Demag', 'Thermal (includes thellier but not trm)', 'Shaw method', 'IRM (acquisition)', '3D IRM experiment', 'NRM only', 'TRM acquisition', 'double AF demag', 'triple AF demag (GRM protocol)', 'Cooling rate experiment']
-        TEXT = "Experiment type (required, select all that apply):"
+        TEXT = "Experiment type (select all that apply):"
         for n, experiment in enumerate(experiment_names):
             cb = wx.CheckBox(parent, -1, experiment)
             self.boxes.append(cb)
@@ -453,6 +453,11 @@ def on_add_file_button(SELF, WD, event, text):
         SELF.file_path.SetValue(str(dlg.GetPath()))
 
 
+def simple_warning(text):
+    dlg = wx.MessageDialog(None, message=text, caption="warning", style=wx.ICON_ERROR|wx.OK)
+    dlg.ShowModal()
+    dlg.Destroy()
+    
 
 def on_helpButton(command):
     import subprocess
