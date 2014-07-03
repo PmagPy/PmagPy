@@ -220,8 +220,9 @@ class ImportAzDipFile(wx.Frame):
         full_infile = self.bSizer0.return_value()
         infile = full_infile[full_infile.rfind('/')+1:full_infile.rfind('.')]
         Fsa = WD + infile + "_er_samples.txt"
-        particulars = [p.split(':')[0] for p in self.bSizer1.return_value()]
-        mcd = ':'.join(particulars)
+        mcd = self.bSizer1.return_value()
+        if mcd:
+            mcd = "-mcd " + mcd
         ncn = self.bSizer2.return_value()
         loc = self.bSizer3.return_value()
         if loc:
@@ -234,7 +235,7 @@ class ImportAzDipFile(wx.Frame):
                 app = "-app" # overwrite is False, append instead
         except AttributeError:
             app = ""
-        COMMAND = "azdip_magic.py -f {} -Fsa {} -ncn {} {} -mcd {} {}".format(full_infile, Fsa, ncn, loc, mcd, app)
+        COMMAND = "azdip_magic.py -f {} -Fsa {} -ncn {} {} {} {}".format(full_infile, Fsa, ncn, loc, mcd, app)
 
         pw.run_command_and_close_window(self, COMMAND, Fsa)
 
@@ -442,19 +443,6 @@ class ImportKly4s(wx.Frame):
 
         #---sizer 0 ----
         self.bSizer0 = pw.choose_file(pnl, btn_text="Add kly4s format file", method = self.on_add_file_button)
-        """
-        -fad AZDIP: specify AZDIP file with orientations, will create er_samples.txt file                                           
-        -fsa SFILE: specify existing er_samples.txt file with orientation information                                             
-        -fsp SPFILE: specify existing er_specimens.txt file for appending                                                         
-        -F MFILE: specify magic_measurements output file                                                                             
-        -Fa AFILE: specify rmag_anisotropy output file                                                                                
-        -ocn ORCON:  specify orientation convention: default is #3 below -only with AZDIP file                                     
-        -usr USER: specify who made the measurements                                                                                    
-        -loc LOC: specify location name for study                                                                                      
-        -ins INST: specify instrument used                                                                                      
-        -spc SPEC: specify number of characters to specify specimen from sample   
-        -ncn NCON:  specify naming convention: default is #1 below 
-        """
 
         #---sizer 1 ---
         self.bSizer1 = pw.choose_file(pnl, btn_text='add AZDIP file (optional)', method = self.on_add_AZDIP_file_button)
@@ -497,12 +485,6 @@ class ImportKly4s(wx.Frame):
         vbox.Add(self.bSizer4, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(self.bSizer5, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(hbox1, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
-        #vbox.Add(self.bSizer5, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
-        #vbox.Add(self.bSizer6, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
-        #try:
-        #    vbox.Add(self.bSizer4, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
-        #except AttributeError:
-        #    pass
         vbox.Add(hboxok, flag=wx.ALIGN_CENTER)        
         vbox.AddSpacer(20)
 
@@ -519,13 +501,11 @@ class ImportKly4s(wx.Frame):
 
     def on_add_file_button(self,event):
         text = "choose file to convert to MagIC"
-        #pw.on_add_file_button(self.panel, self.WD, event, text)
         pw.on_add_file_button(self.bSizer0, self.WD, event, text)
 
     def on_add_AZDIP_file_button(self,event):
         text = "choose AZDIP file (optional)"
         pw.on_add_file_button(self.bSizer1, self.WD, event, text)
-        # show ocn widget
 
 
     def on_okButton(self, event):
@@ -547,8 +527,7 @@ class ImportKly4s(wx.Frame):
         if user:
             user = "-usr " + user
         n = self.bSizer3.return_value()
-        if n:
-            n = "-spc " + str(n)
+        n = "-spc " + str(n)
         ncn = self.bSizer4.return_value()
         #
         loc = self.bSizer6.return_value()
@@ -557,7 +536,7 @@ class ImportKly4s(wx.Frame):
         ins = self.bSizer7.return_value()
         if ins:
             ins = "-ins " + ins
-        COMMAND = "kly4s_magic.py -WD {} -f {} -F {} {} -ncn {} -ocn {} {} {} {} {} -ID {} -fsp {}".format(self.WD, infile, outfile, azdip_file, ncn, ocn, user, n, loc, ins, ID, spec_outfile)
+        COMMAND = "kly4s_magic.py -WD {} -f {} -F {} {} -ncn {} {} {} {} {} {} -ID {} -fsp {}".format(self.WD, infile, outfile, azdip_file, ncn, ocn, user, n, loc, ins, ID, spec_outfile)
         print COMMAND
         pw.run_command_and_close_window(self, COMMAND, outfile)
 
