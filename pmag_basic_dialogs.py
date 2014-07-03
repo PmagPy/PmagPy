@@ -1325,6 +1325,8 @@ class convert_LDEO_files_to_MagIC(wx.Frame):
         if user:
             user = "-usr " + user
         experiment_type = self.bSizer2.return_value()
+        if experiment_type:
+            experiment_type = "-LP " + experiment_type
         lab_field = self.bSizer3.return_value()
         if lab_field:
             lab_field = "-dc " + lab_field
@@ -1356,7 +1358,7 @@ class convert_LDEO_files_to_MagIC(wx.Frame):
             synthetic = '-syn ' + synthetic
         else:
             synthetic = ''
-        COMMAND = "LDEO_magic.py -f {0} -F {1} {2} -LP {3} {4} -ncn {5} {6} {7} {8} {9} {10} {11} {12} -Fsa {13} -Fsy {14}".format(LDEO_file, outfile, user, experiment_type, lab_field, ncn, spc, loc_name, instrument, replicate, AF_field, coil_number, synthetic, samp_outfile, synthetic_outfile)
+        COMMAND = "LDEO_magic.py -f {0} -F {1} {2} {3} {4} -ncn {5} {6} {7} {8} {9} {10} {11} {12} -Fsa {13} -Fsy {14}".format(LDEO_file, outfile, user, experiment_type, lab_field, ncn, spc, loc_name, instrument, replicate, AF_field, coil_number, synthetic, samp_outfile, synthetic_outfile)
         #print COMMAND
         pw.run_command_and_close_window(self, COMMAND, outfile)
 
@@ -1564,8 +1566,9 @@ class convert_PMD_files_to_MagIC(wx.Frame):
         loc_name = self.bSizer4.return_value()
         if loc_name:
             loc_name = "-loc " + loc_name
-        particulars = [p.split(':')[0] for p in self.bSizer5.return_value()]
-        particulars = ':'.join(particulars)
+        particulars = self.bSizer5.return_value()
+        if particulars:
+            particulars = "-mcd " + particulars
         replicate = self.bSizer6.return_value()
         if replicate:
             replicate = ''
@@ -1574,8 +1577,7 @@ class convert_PMD_files_to_MagIC(wx.Frame):
         for f in files:
             outfile = f + ".magic"
             samp_outfile = f[:f.find('.')] + "_er_samples.txt"
-            COMMAND = "PMD_magic.py -WD {} -f {} -F {} -Fsa {} {} -ncn {} -mcd {} -spc {} {} {}".format(WD, f, outfile, samp_outfile, user, ncn, particulars, spc, replicate, ID)
-            #COMMAND = "PMD_magic.py -WD {} -f {} -F {} {} -ncn {} -mcd {} -spc {} {} {}".format(WD, f, outfile, user, ncn, particulars, spc, replicate, ID)
+            COMMAND = "PMD_magic.py -WD {} -f {} -F {} -Fsa {} {} -ncn {} {} -spc {} {} {}".format(WD, f, outfile, samp_outfile, user, ncn, particulars, spc, replicate, ID)
             if files.index(f) == len(files) -1:
                 pw.run_command_and_close_window(self, COMMAND, outfile)
             else:
