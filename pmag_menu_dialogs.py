@@ -35,9 +35,7 @@ class ImportOrientFile(wx.Frame):
         self.bSizer0 = pw.choose_file(pnl, 'add', method = self.on_add_file_button)
 
         #---sizer 1 ----                                   
-        TEXT = "Sampling Particulars (select all that apply):"
-        particulars = ["FS-FD: field sampling done with a drill", "FS-H: field sampling done with hand samples", "FS-LOC-GPS: field location done with GPS", "FS-LOC-MAP:  field location done with map", "SO-POM:  a Pomeroy orientation device was used", "SO-ASC:  an ASC orientation device was used", "SO-MAG: magnetic compass used for all orientations", "SO-SUN: sun compass used for all orientations", "SO-SM: either magnetic or sun used on all orientations", "SO-SIGHT: orientation from sighting"]
-        self.bSizer1 = pw.check_boxes(pnl, (6, 2, 0, 0), particulars, TEXT)
+        self.bSizer1 = pw.sampling_particulars(pnl)
 
         #---sizer 2 ----
         self.bSizer2 = pw.select_specimen_ncn(pnl)
@@ -108,7 +106,6 @@ class ImportOrientFile(wx.Frame):
         self.Show()
         self.Centre()
 
-
     def on_add_file_button(self,event):
         text = "choose file to convert to MagIC"
         pw.on_add_file_button(self.bSizer0, self.WD, event, text)
@@ -116,14 +113,14 @@ class ImportOrientFile(wx.Frame):
     def on_okButton(self, event):
         WD = self.WD
         full_infile = self.bSizer0.return_value()
-        #os.system('cp {} {}'.format(full_infile, WD))
         ind = full_infile.rfind('/')
         infile = full_infile[ind+1:]
         Fsa = infile[:infile.find('.')] + "_er_samples.txt"
         Fsi = infile[:infile.find('.')] + "_er_sites.txt"
         ID = full_infile[:ind+1]
-        particulars = [p.split(':')[0] for p in self.bSizer1.return_value()]
-        mcd = ':'.join(particulars)
+        mcd = self.bSizer1.return_value()
+        if mcd:
+            mcd = "-mcd " + mcd
         ncn = self.bSizer2.return_value()
         ocn = self.bSizer3.return_value()
         dcn = self.bSizer4.return_value()
@@ -136,7 +133,7 @@ class ImportOrientFile(wx.Frame):
                 app = "-app" # overwrite is False, append instead
         except AttributeError:
             app = ""
-        COMMAND = "orientation_magic.py -WD {} -f {} -ncn {} -ocn {} -dcn {} -gmt {} -mcd {} {} -ID {} -Fsa {} -Fsi {}".format(WD, infile, ncn, ocn, dcn, gmt, mcd, app, ID, Fsa, Fsi)
+        COMMAND = "orientation_magic.py -WD {} -f {} -ncn {} -ocn {} -dcn {} -gmt {} {} {} -ID {} -Fsa {} -Fsi {}".format(WD, infile, ncn, ocn, dcn, gmt, mcd, app, ID, Fsa, Fsi)
         pw.run_command_and_close_window(self, COMMAND, "er_samples.txt\ner_sites.txt")
 
     def on_cancelButton(self,event):
