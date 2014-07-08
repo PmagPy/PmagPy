@@ -23,7 +23,8 @@ import os
 #from scipy import * 
 #import os
 import SPD.lib.lib_arai_plot_statistics as lib_arai
-import SPD.lib.lib_curvature as lib_k
+#import SPD.lib.lib_curvature as lib_k
+import SPD.lib.leastsq_jacobian as lib_k
 import SPD.lib.lib_directional_statistics as lib_direct
 import SPD.lib.lib_ptrm_statistics as lib_ptrm
 import SPD.lib.lib_tail_check_statistics as lib_tail

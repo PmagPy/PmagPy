@@ -1598,7 +1598,7 @@ class Arai_GUI(wx.Frame):
                     if my_acceptance_criteria[crit]['value']!=-999:
                         short_crit=crit.split('specimen_')[-1]
                         if short_crit not in preferences['show_statistics_on_gui']:
-                            preferences['show_statistics_on_gui'].append(short_crit)
+                            #preferences['show_statistics_on_gui'].append(short_crit)
                             print "-IIII-",short_crit, " was added to list"
         except:
             pass     
