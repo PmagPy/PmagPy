@@ -1,10 +1,17 @@
 #!/usr/bin/env python 
 
 import numpy
+from numpy import *
 
+
+
+x = r_[  9., 35., -13.,  10.,  23.,   0.]
+y = r_[ 34., 10.,   6., -14.,  27., -10.]
+#x = x / max(x)
+#y = y / max(y)
 
 # this is the main function which performs the entire curve fitting sequence using algebraic and geometric fitting
-def AraiCurvature(x,y):
+def AraiCurvature(x=x,y=y):
     """
     input: list of x points, list of y points
     output: k, a, b, SSE.  curvature, circle center, and SSE
@@ -15,16 +22,12 @@ def AraiCurvature(x,y):
     doi: 10.1029/2011JB008369
 
     """
-
-    XY = []
-    for num, X in enumerate(x):
-        XY.append([X, y[num]])
-    XY = numpy.array(XY)
-    # Normalizevectors
-    XY[:,0] = XY[:,0] / max(XY[:,0]) # 
-    XY[:,1] = XY[:,1] / max(XY[:,1]) # norms y values  
-    X = XY[:,0]
-    Y = XY[:,1]
+    # makes sure all values are floats, then norms them by largest value
+    X = numpy.array(map(float, x))
+    X = X / max(X)
+    Y = numpy.array(map(float, y))
+    Y = Y / max(Y)
+    XY = numpy.array(zip(X, Y))
                   
     #Provide the intitial estimate
     E1=TaubinSVD(XY);
@@ -304,3 +307,7 @@ def get_SSE(a,b,r,x,y):
 
 
 
+if __name__ == "__main__":
+    x = numpy.array([  9, 35, -13,  10,  23,   0])
+    y = numpy.array([ 34, 10,   6, -14,  27, -10])
+    AraiCurvature(x, y)

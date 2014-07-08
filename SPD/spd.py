@@ -90,7 +90,8 @@ class PintPars(object):
                     new_stat = map_magic.spd[ind]
                     self.calculate.append(new_stat)
                 except ValueError:
-                    self.calculate.append(stat)
+                    print 'doesn\'t start with \'specimen\'', stat
+                    #self.calculate.append(stat)
         ####
         self.specimen_Data = Data[self.s]
         self.datablock = self.specimen_Data['datablock']
