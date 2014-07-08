@@ -194,6 +194,11 @@ def main():
     accept={}
     for critrec in crit_data:
         for key in critrec.keys():
+# need to migrate specimen_dang to specimen_int_dang for intensity data using old format
+            if 'IE-SPEC' in critrec.keys() and 'specimen_dang' in critrec.keys() and 'specimen_int_dang' not in critrec.keys():
+                critrec['specimen_int_dang']=critrec['specimen_dang']
+                del critrec['specimen_dang']   
+# need to get rid of ron shaars sample_int_sigma_uT
             if 'sample_int_sigma_uT' in critrec.keys():
                 critrec['sample_int_sigma']='%10.3e'%(eval(critrec['sample_int_sigma_uT'])*1e-6)
             if key not in accept.keys() and critrec[key]!='':
