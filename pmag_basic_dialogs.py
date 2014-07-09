@@ -1490,7 +1490,8 @@ class convert_PMD_files_to_MagIC(wx.Frame):
         self.bSizer1 = pw.labeled_text_field(pnl)
         
         #---sizer 2 ----
-        self.bSizer2 = pw.select_specimen_ncn(pnl)
+        ncn_keys = ['XXXXY', 'XXXX-YY', 'XXXX.YY', 'XXXX[YYY] where YYY is sample designation, enter number of Y', 'sample name=site name', 'Site is entered under a separate column', '[XXXX]YYY where XXXX is the site name, enter number of X']
+        self.bSizer2 = pw.select_specimen_ncn(pnl, ncn_keys)
 
         #---sizer 3 ---
         #        TEXT = "specify number of characters to designate a specimen, default = 0"
