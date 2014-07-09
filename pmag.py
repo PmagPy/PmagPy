@@ -19,7 +19,8 @@ def get_dictitem(In,k,v,flag):
     # returns a list of dictionaries from list In with key,k  = value, v . CASE INSENSITIVE # allowed keywords:
     try:
         if flag=="T":return [dict for dict in In if dict[k].lower()==v.lower()] # return that which is
-        if flag=="F":return [dict for dict in In if dict[k].lower()!=v.lower()] # return that which is not
+        if flag=="F":
+            return [dict for dict in In if dict[k].lower()!=v.lower()] # return that which is not
         if flag=="has":return [dict for dict in In if v.lower() in dict[k].lower()] # return that which is contained
         if flag=="not":return [dict for dict in In if v.lower() not in dict[k].lower()] # return that which is not contained
         if flag=="eval":
@@ -415,7 +416,7 @@ def get_Sb(data):
     return numpy.sqrt( Sb/float(N-1.) )
 def default_criteria(nocrit):
     Crits={}
-    critkeys=['magic_experiment_names', 'measurement_step_min', 'measurement_step_max', 'measurement_step_unit', 'specimen_polarity', 'specimen_nrm', 'specimen_direction_type', 'specimen_comp_nmb', 'specimen_mad', 'specimen_alpha95', 'specimen_n', 'specimen_int_sigma', 'specimen_int_sigma_perc', 'specimen_int_rel_sigma', 'specimen_int_rel_sigma_perc', 'specimen_int_mad', 'specimen_int_n', 'specimen_w', 'specimen_q', 'specimen_f', 'specimen_fvds', 'specimen_b_sigma', 'specimen_b_beta', 'specimen_g', 'specimen_dang', 'specimen_md', 'specimen_ptrm', 'specimen_drat', 'specimen_drats', 'specimen_rsc', 'specimen_viscosity_index', 'specimen_magn_moment', 'specimen_magn_volume', 'specimen_magn_mass', 'specimen_int_ptrm_n', 'specimen_delta', 'specimen_theta', 'specimen_gamma', 'specimen_frac','specimen_gmax','specimen_scat','sample_polarity', 'sample_nrm', 'sample_direction_type', 'sample_comp_nmb', 'sample_sigma', 'sample_alpha95', 'sample_n', 'sample_n_lines', 'sample_n_planes', 'sample_k', 'sample_r', 'sample_tilt_correction', 'sample_int_sigma', 'sample_int_sigma_perc', 'sample_int_rel_sigma', 'sample_int_rel_sigma_perc', 'sample_int_n', 'sample_magn_moment', 'sample_magn_volume', 'sample_magn_mass', 'site_polarity', 'site_nrm', 'site_direction_type', 'site_comp_nmb', 'site_sigma', 'site_alpha95', 'site_n', 'site_n_lines', 'site_n_planes', 'site_k', 'site_r', 'site_tilt_correction', 'site_int_sigma', 'site_int_sigma_perc', 'site_int_rel_sigma', 'site_int_rel_sigma_perc', 'site_int_n', 'site_magn_moment', 'site_magn_volume', 'site_magn_mass', 'average_age_min', 'average_age_max', 'average_age_sigma', 'average_age_unit', 'average_sigma', 'average_alpha95', 'average_n', 'average_nn', 'average_k', 'average_r', 'average_int_sigma', 'average_int_rel_sigma', 'average_int_rel_sigma_perc', 'average_int_n', 'average_int_nn', 'vgp_dp', 'vgp_dm', 'vgp_sigma', 'vgp_alpha95', 'vgp_n', 'vdm_sigma', 'vdm_n', 'vadm_sigma', 'vadm_n', 'criteria_description', 'er_citation_names']
+    critkeys=['magic_experiment_names', 'measurement_step_min', 'measurement_step_max', 'measurement_step_unit', 'specimen_polarity', 'specimen_nrm', 'specimen_direction_type', 'specimen_comp_nmb', 'specimen_mad', 'specimen_alpha95', 'specimen_n', 'specimen_int_sigma', 'specimen_int_sigma_perc', 'specimen_int_rel_sigma', 'specimen_int_rel_sigma_perc', 'specimen_int_mad', 'specimen_int_n', 'specimen_w', 'specimen_q', 'specimen_f', 'specimen_fvds', 'specimen_b_sigma', 'specimen_b_beta', 'specimen_g', 'specimen_dang', 'specimen_md', 'specimen_ptrm', 'specimen_drat', 'specimen_drats', 'specimen_rsc', 'specimen_viscosity_index', 'specimen_magn_moment', 'specimen_magn_volume', 'specimen_magn_mass', 'specimen_int_dang','specimen_int_ptrm_n', 'specimen_delta', 'specimen_theta', 'specimen_gamma', 'specimen_frac','specimen_gmax','specimen_scat','sample_polarity', 'sample_nrm', 'sample_direction_type', 'sample_comp_nmb', 'sample_sigma', 'sample_alpha95', 'sample_n', 'sample_n_lines', 'sample_n_planes', 'sample_k', 'sample_r', 'sample_tilt_correction', 'sample_int_sigma', 'sample_int_sigma_perc', 'sample_int_rel_sigma', 'sample_int_rel_sigma_perc', 'sample_int_n', 'sample_magn_moment', 'sample_magn_volume', 'sample_magn_mass', 'site_polarity', 'site_nrm', 'site_direction_type', 'site_comp_nmb', 'site_sigma', 'site_alpha95', 'site_n', 'site_n_lines', 'site_n_planes', 'site_k', 'site_r', 'site_tilt_correction', 'site_int_sigma', 'site_int_sigma_perc', 'site_int_rel_sigma', 'site_int_rel_sigma_perc', 'site_int_n', 'site_magn_moment', 'site_magn_volume', 'site_magn_mass', 'average_age_min', 'average_age_max', 'average_age_sigma', 'average_age_unit', 'average_sigma', 'average_alpha95', 'average_n', 'average_nn', 'average_k', 'average_r', 'average_int_sigma', 'average_int_rel_sigma', 'average_int_rel_sigma_perc', 'average_int_n', 'average_int_nn', 'vgp_dp', 'vgp_dm', 'vgp_sigma', 'vgp_alpha95', 'vgp_n', 'vdm_sigma', 'vdm_n', 'vadm_sigma', 'vadm_n', 'criteria_description', 'er_citation_names']
     for key in critkeys:Crits[key]='' # set up dictionary with all possible
     Crits['pmag_criteria_code']='ACCEPT'
     Crits['criteria_definition']='acceptance criteria for study'
@@ -425,6 +426,7 @@ def default_criteria(nocrit):
 # set some sort of quasi-reasonable default criteria
 #   
         Crits['specimen_mad']='5'
+        Crits['specimen_dang']='10'
         Crits['specimen_int_n']='4'
         Crits['specimen_int_ptrm_n']='2'
         Crits['specimen_drats']='20'
@@ -432,7 +434,7 @@ def default_criteria(nocrit):
         Crits['specimen_md']='15'
         Crits['specimen_fvds']='0.7'
         Crits['specimen_q']='1.0'
-        Crits['specimen_dang']='10'
+        Crits['specimen_int_dang']='10'
         Crits['specimen_int_mad']='10'
         Crits['sample_alpha95']='5'
         Crits['site_int_n']='2'
@@ -454,7 +456,7 @@ def grade(PmagRec,ACCEPT,type):
     sigmas=[]
     accept={}
     if type=='specimen_int': 
-        USEKEYS=['specimen_q','measurement_step_min','measurement_step_max','specimen_int_ptrm_n','specimen_fvds','specimen_frac','specimen_f','specimen_int_n','specimen_magn_moment','specimen_magn_volumn','specimen_rsc','specimen_scat','specimen_drats','specimen_int_mad','specimen_dang','specimen_md','specimen_b_beta','specimen_w','specimen_gmax'] 
+        USEKEYS=['specimen_q','measurement_step_min','measurement_step_max','specimen_int_ptrm_n','specimen_fvds','specimen_frac','specimen_f','specimen_int_n','specimen_magn_moment','specimen_magn_volumn','specimen_rsc','specimen_scat','specimen_drats','specimen_int_mad','specimen_int_dang','specimen_md','specimen_b_beta','specimen_w','specimen_gmax'] 
     elif type=='specimen_dir':
         USEKEYS=['measurement_step_min','measurement_step_max','specimen_mad','specimen_n','specimen_magn_moment','specimen_magn_volumn']
     elif type=='sample_int':
@@ -1688,7 +1690,7 @@ def PintPars(datablock,araiblock,zijdblock,start,end,accept):
     pars["specimen_dec"]=PCA["specimen_dec"]
     pars["specimen_inc"]=PCA["specimen_inc"]
     pars["specimen_int_mad"]=PCA["specimen_mad"]
-    pars["specimen_dang"]=PCA["specimen_dang"]
+    pars["specimen_int_dang"]=PCA["specimen_dang"]
     #pars["specimen_int_ptrm_n"]=len(ptrm_check) # this is WRONG!
     pars["specimen_int_ptrm_n"]=Nptrm
 # and the ThetaChecks
@@ -2907,7 +2909,7 @@ def scoreit(pars,PmagSpecRec,accept,text,verbose):
     PmagSpecRec["specimen_int_mad"]='%7.1f'%(pars["specimen_int_mad"])
     PmagSpecRec["specimen_dec"]='%7.1f'%(pars["specimen_dec"])
     PmagSpecRec["specimen_inc"]='%7.1f'%(pars["specimen_inc"])
-    PmagSpecRec["specimen_dang"]='%7.1f '%(pars["specimen_dang"])
+    PmagSpecRec["specimen_int_dang"]='%7.1f '%(pars["specimen_int_dang"])
     PmagSpecRec["specimen_drats"]='%7.1f '%(pars["specimen_drats"])
     PmagSpecRec["specimen_int_ptrm_n"]='%i '%(pars["specimen_int_ptrm_n"])
     PmagSpecRec["specimen_rsc"]='%6.4f '%(pars["specimen_rsc"])
@@ -2931,15 +2933,16 @@ def scoreit(pars,PmagSpecRec,accept,text,verbose):
     diffcum=0
     if pars['measurement_step_unit']=='K':
         outstr= "specimen     Tmin  Tmax  N  lab_field  B_anc  b  q  f(coe)  Fvds  beta  MAD  Dang  Drats  Nptrm  Grade  R  MD%  sigma  Gamma_max \n"
-        pars_out= (s,(pars["measurement_step_min"]-273),(pars["measurement_step_max"]-273),(pars["specimen_int_n"]),1e6*(pars["specimen_lab_field_dc"]),1e6*(pars["specimen_int"]),pars["specimen_b"],pars["specimen_q"],pars["specimen_f"],pars["specimen_fvds"],pars["specimen_b_beta"],pars["specimen_int_mad"],pars["specimen_dang"],pars["specimen_drats"],pars["specimen_int_ptrm_n"],pars["specimen_grade"],numpy.sqrt(pars["specimen_rsc"]),int(pars["specimen_md"]), pars["specimen_b_sigma"],pars['specimen_gamma'])
+        pars_out= (s,(pars["measurement_step_min"]-273),(pars["measurement_step_max"]-273),(pars["specimen_int_n"]),1e6*(pars["specimen_lab_field_dc"]),1e6*(pars["specimen_int"]),pars["specimen_b"],pars["specimen_q"],pars["specimen_f"],pars["specimen_fvds"],pars["specimen_b_beta"],pars["specimen_int_mad"],pars["specimen_int_dang"],pars["specimen_drats"],pars["specimen_int_ptrm_n"],pars["specimen_grade"],numpy.sqrt(pars["specimen_rsc"]),int(pars["specimen_md"]), pars["specimen_b_sigma"],pars['specimen_gamma'])
         outstring= '%s %4.0f %4.0f %i %4.1f %4.1f %5.3f %5.1f %5.3f %5.3f %5.3f  %7.1f %7.1f %7.1f %s %s %6.3f %i %5.3f %7.1f' % pars_out +'\n'
     elif pars['measurement_step_unit']=='J':
         outstr= "specimen     Wmin  Wmax  N  lab_field  B_anc  b  q  f(coe)  Fvds  beta  MAD  Dang  Drats  Nptrm  Grade  R  MD%  sigma  ThetaMax DeltaMax GammaMax\n"
-        pars_out= (s,(pars["measurement_step_min"]),(pars["measurement_step_max"]),(pars["specimen_int_n"]),1e6*(pars["specimen_lab_field_dc"]),1e6*(pars["specimen_int"]),pars["specimen_b"],pars["specimen_q"],pars["specimen_f"],pars["specimen_fvds"],pars["specimen_b_beta"],pars["specimen_int_mad"],pars["specimen_dang"],pars["specimen_drats"],pars["specimen_int_ptrm_n"],pars["specimen_grade"],numpy.sqrt(pars["specimen_rsc"]),int(pars["specimen_md"]), pars["specimen_b_sigma"],pars["specimen_theta"],pars["specimen_delta"],pars["specimen_gamma"])
+        pars_out= (s,(pars["measurement_step_min"]),(pars["measurement_step_max"]),(pars["specimen_int_n"]),1e6*(pars["specimen_lab_field_dc"]),1e6*(pars["specimen_int"]),pars["specimen_b"],pars["specimen_q"],pars["specimen_f"],pars["specimen_fvds"],pars["specimen_b_beta"],pars["specimen_int_mad"],pars["specimen_int_dang"],pars["specimen_drats"],pars["specimen_int_ptrm_n"],pars["specimen_grade"],numpy.sqrt(pars["specimen_rsc"]),int(pars["specimen_md"]), pars["specimen_b_sigma"],pars["specimen_theta"],pars["specimen_delta"],pars["specimen_gamma"])
         outstring= '%s %4.0f %4.0f %i %4.1f %4.1f %5.3f %5.1f %5.3f %5.3f %5.3f  %7.1f %7.1f %7.1f %s %s %6.3f %i %5.3f %7.1f %7.1f %7.1f' % pars_out +'\n'               
     if pars["specimen_grade"]!="A":
         print '\n killed by:'
-        print kill
+        for k in kill:
+            print k,':, criterion set to: ',accept[k],', specimen value: ',pars[k]
         print '\n'
     print outstr
     print outstring
