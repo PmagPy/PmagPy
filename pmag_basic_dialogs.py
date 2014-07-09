@@ -480,7 +480,7 @@ class combine_magic_dialog(wx.Frame):
         self.cancelButton = wx.Button(self.panel, wx.ID_CANCEL, '&Cancel')
         self.Bind(wx.EVT_BUTTON, self.on_cancelButton, self.cancelButton)
 
-        self.nextButton = wx.Button(self.panel, id=-1, label='Last step')
+        self.nextButton = wx.Button(self.panel, id=-1, label='Skip')
         self.Bind(wx.EVT_BUTTON, self.on_nextButton, self.nextButton)
 
         hboxok = wx.BoxSizer(wx.HORIZONTAL)
@@ -632,7 +632,6 @@ class combine_everything_dialog(wx.Frame):
         er_specimens = self.bSizer0.file_paths.GetValue()
         er_samples = self.bSizer1.file_paths.GetValue()
         er_sites = self.bSizer2.file_paths.GetValue()
-        print er_specimens, er_samples, er_sites
         spec_files = " ".join(er_specimens.split('\n'))
         samp_files = " ".join(er_samples.split('\n'))
         site_files = " ".join(er_sites.split('\n'))
@@ -1561,9 +1560,6 @@ class convert_PMD_files_to_MagIC(wx.Frame):
         if user:
             user = "-usr " + user
         ncn = self.bSizer2.return_value()
-        print "this is ncn", ncn
-        print "-"
-        print "-"
         spc = self.bSizer3.return_value() or 0
         loc_name = self.bSizer4.return_value()
         if loc_name:
@@ -2368,7 +2364,7 @@ class method_code_dialog(wx.Dialog):
         self.EndModal(wx.ID_OK) 
         #self.Close()
 
-
+"""
 class check(wx.Frame):
 
     def __init__(self, parent, id, title, WD):#, size):
@@ -2427,15 +2423,16 @@ class check(wx.Frame):
                 self.orient_data[sample]["site_name"]=self.Data_hierarchy['site_of_sample'][sample]
             else:
                 self.orient_data[sample]["site_name"]=""
-        print "self.orient_data", self.orient_data
+        #print "self.orient_data", self.orient_data
 
 
     def update_orient_data(self):
         # check each value in the specimen column for changes
         # check each value in the samples column for changes
         for row in range(self.grid.GetNumberRows()):
-            print self.grid.GetCellValue(row, 0)
-            print self.specimens[row]
+            pass
+            #print self.grid.GetCellValue(row, 0)
+            #print self.specimens[row]
 
     def get_data(self):
       # get_data from ErMagicBuilder.  Returns a more comprehensive Data hierarchy than the get_data in QuickMagic.  oy.
@@ -2494,6 +2491,6 @@ class check(wx.Frame):
           Data_hierarchy['location_of_site'][site]=location 
           
       return(Data,Data_hierarchy)
-
+"""
 
 
