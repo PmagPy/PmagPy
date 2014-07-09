@@ -126,7 +126,7 @@ class select_specimen_ncn(wx.StaticBoxSizer):
         super(select_specimen_ncn, self).__init__(box, orient=wx.VERTICAL)
         ncn_values = range(1,9)
         self.sample_naming_conventions = dict(zip(ncn_keys, ncn_values))
-        self.select_naming_convention = wx.ComboBox(parent, -1, ncn_keys[0], size=(430,25), choices=ncn_keys, style=wx.CB_READONLY)
+        self.select_naming_convention = wx.ComboBox(parent, -1, ncn_keys[0], size=(440,25), choices=ncn_keys, style=wx.CB_READONLY)
         self.sample_naming_convention_char = wx.TextCtrl(parent, id=-1, size=(40,25))
         label1 = wx.StaticText(parent,label="specimen-sample naming convention:",style=wx.TE_CENTER)
         label2 = wx.StaticText(parent, label="delimiter (if necessary):", style=wx.TE_CENTER)

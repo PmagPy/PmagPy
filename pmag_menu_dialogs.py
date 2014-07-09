@@ -38,7 +38,8 @@ class ImportOrientFile(wx.Frame):
         self.bSizer1 = pw.sampling_particulars(pnl)
 
         #---sizer 2 ----
-        self.bSizer2 = pw.select_specimen_ncn(pnl)
+        ncn_keys = ['XXXXY', 'XXXX-YY', 'XXXX.YY', 'XXXX[YYY] where YYY is sample designation, enter number of Y', 'sample name=site name', 'site name in site_name column in orient.txt format input file', '[XXXX]YYY where XXXX is the site name, enter number of X']
+        self.bSizer2 = pw.select_specimen_ncn(pnl, ncn_keys)
         
         #---sizer 3 ----
         self.bSizer3 = pw.select_specimen_ocn(pnl)
