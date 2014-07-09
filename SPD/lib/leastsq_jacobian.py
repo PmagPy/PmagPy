@@ -14,6 +14,7 @@ def AraiCurvature(x=X, y=Y):
     y = numpy.array(map(float, y))
     y =y / max(y)
     best_a, best_b, r = do_circlefit(x, y)
+    #print "best_a, best_b, r", best_a, best_b, r
     SSE = get_SSE(best_a, best_b, r, x, y)
     if best_a <= numpy.mean(x) and best_b <= numpy.mean(y):
         k = -1. / r

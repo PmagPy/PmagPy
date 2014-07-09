@@ -1208,7 +1208,8 @@ class Arai_GUI(wx.Frame):
 
             
             return()
-            
+
+        #print "B is this:", B # shows that the problem happens when B array contains 1 or 2
         N=len(B)
         B_mean=mean(B)
         B_std=std(B,ddof=1)
@@ -4199,7 +4200,9 @@ class Arai_GUI(wx.Frame):
         # display the interpretation of the current specimen:
         self.pars=self.Data[self.s]['pars']
         self.clear_boxes()
+        #print "about to draw figure" # this is where trouble happens when 1 or 2 specimens are accepted
         self.draw_figure(self.s)
+        #print "just drew figure"
         self.update_GUI_with_new_interpretation()
 
         dlg1.ShowModal()
