@@ -230,14 +230,14 @@ class MagMainFrame(wx.Frame):
         pmag_dialogs_dia.Center()
 
 
-    """
+    
     def on_er_data(self, event):
         SIZE=wx.DisplaySize()
         SIZE=(SIZE[0]-0.3*SIZE[0],SIZE[1]-0.3*SIZE[1]) # gets total available screen space - 10%
         dia = pmag_basic_dialogs.check(self, -1, 'This', self.WD)#, SIZE)
-    """
+    
 
-    def on_er_data(self,event):
+    def old_on_er_data(self,event):
         import ErMagicBuilder
         foundHTML=False
         try:

@@ -2364,44 +2364,94 @@ class method_code_dialog(wx.Dialog):
         self.EndModal(wx.ID_OK) 
         #self.Close()
 
-"""
+
 class check(wx.Frame):
 
     def __init__(self, parent, id, title, WD):#, size):
+        print "start initing"
         wx.Frame.__init__(self, parent, -1, title)#, size=size)
         self.WD = WD
+        self.panel = wx.ScrolledWindow(self)
         self.InitUI()
 
     def InitUI(self):
-        self.get_orient_data()
-        #print "Data hierarchy", self.Parent.get_data()[1]
-        self.specimens = self.orient_data.keys()
-        rows = range(1, len(self.specimens)+1)
-        cols = ['specimen', '', 'sample']
-        self.grid = wx.grid.Grid(self, -1)
-        self.grid.ClearGrid()
-        self.grid.CreateGrid(len(rows), len(cols))
-        self.grid.SetCellBackgroundColour(0, 0, "LIGHT GREY")
-        self.grid.SetCellBackgroundColour(1, 1, "LIGHT GREY")
-        
-        for n, row in enumerate(rows):
-            self.grid.SetRowLabelValue(n, str(row))
-            self.grid.SetCellValue(n, 0, self.specimens[n])
-            self.grid.SetCellValue(n, 1, "belongs to")
-            self.grid.SetCellValue(n, 2, 'some sample')
-            sample = self.orient_data[self.specimens[n]]['sample_name']
-            self.grid.SetCellValue(n, 2, sample)
+        #print "orient_data", self.get_orient_data()
+        #Data, data_hierarchy = self.Parent.get_data()
+        self.Data, self.Data_hierarchy  = self.get_data()
+        #print "Data", self.Data
+        #print "Data_hierarchy", self.Data_hierarchy
+        self.specimens = self.Data.keys()
+        self.make_table(['specimen', '', 'sample'], self.specimens, self.Data_hierarchy, 'sample_of_specimen')
+        #self.grid.SetCellBackgroundColour(0, 0, "LIGHT GREY")
+        #self.grid.SetCellBackgroundColour(1, 1, "LIGHT GREY")
 
 
-        for n, col in enumerate(cols):
-            self.grid.SetColLabelValue(n, col)
+        hboxok = wx.BoxSizer(wx.HORIZONTAL)
+        self.okButton =  wx.Button(self.panel, id=-1, label='Import file')
+        #self.Bind(wx.EVT_BUTTON, self.on_okButton, self.okButton)
+        self.cancelButton = wx.Button(self.panel, wx.ID_CANCEL, '&Cancel')
+        #self.Bind(wx.EVT_BUTTON, self.on_cancelButton, self.cancelButton)
+        self.nextButton = wx.Button(self.panel, id=-1, label='Next step')
+        #self.Bind(wx.EVT_BUTTON, self.on_nextButton, self.nextButton)
+        hboxok.Add(self.okButton)
+        hboxok.AddSpacer(20)
+        hboxok.Add(self.cancelButton )
+        hboxok.AddSpacer(20)
+        hboxok.Add(self.nextButton )
+
+        vbox = wx.BoxSizer(wx.VERTICAL)
+        vbox.Add(self.grid, border=10)
+        vbox.Add(hboxok, border=10)
+
+        hbox_all= wx.BoxSizer(wx.HORIZONTAL)
+        hbox_all.AddSpacer(20)
+        hbox_all.AddSpacer(vbox)
+        hbox_all.AddSpacer(20)
+
+        self.panel.SetSizer(hbox_all)
+        self.panel.SetScrollbars(20, 20, 50, 50)
+        vbox.Fit(self)
+        self.Show()
+        self.Centre()
+
 
             
+        self.update_orient_data()
+        
+    # 
+    def make_table(self, column_labels, row_values, column_indexing, ind):
+        """ takes a list of row values (i.e., specimens, samples, locations, etc.) 
+        and a data structure (column_indexing) to index them against.  for example, 
+        to show the sample to specimen relationship, you would have:
+        column_labels: ["specimen", " ", "samples""]
+        row_values: list of specimens
+        column_indexing: Data_hierarchy object containing various data mappings
+        ind: ['sample_of_specimen'], indicating which data mapping to use """
+        #print "column_labels", column_labels
+        #print "row_values", row_values
+        #print "column_indexing", column_indexing
+        #print "ind", ind
+        self.grid = wx.grid.Grid(self, -1)
+        self.grid.ClearGrid()
+        self.grid.CreateGrid(len(row_values), len(column_labels))
+
+        for n, row in enumerate(row_values):
+            self.grid.SetRowLabelValue(n, str(n+1))
+            self.grid.SetCellValue(n, 0, row)
+            self.grid.SetCellValue(n, 1, "belongs to")
+            col = column_indexing[ind][row]
+            self.grid.SetCellValue(n, 2, col)
+
+        for n, label in enumerate(column_labels):
+            self.grid.SetColLabelValue(n, label)
+
         self.grid.AutoSize()# doesn't clearly do anything......?
         
-        self.Centre()
-        self.Show()
-        self.update_orient_data()
+        #self.Centre()
+        #self.Show()
+
+
+
 
     def get_orient_data(self):
         try:
@@ -2423,6 +2473,7 @@ class check(wx.Frame):
                 self.orient_data[sample]["site_name"]=self.Data_hierarchy['site_of_sample'][sample]
             else:
                 self.orient_data[sample]["site_name"]=""
+            return self.orient_data
         #print "self.orient_data", self.orient_data
 
 
@@ -2491,6 +2542,6 @@ class check(wx.Frame):
           Data_hierarchy['location_of_site'][site]=location 
           
       return(Data,Data_hierarchy)
-"""
+
 
 
