@@ -2368,13 +2368,15 @@ class method_code_dialog(wx.Dialog):
 class check(wx.Frame):
 
     def __init__(self, parent, id, title, WD):#, size):
-        print "start initing"
         wx.Frame.__init__(self, parent, -1, title)#, size=size)
         self.WD = WD
-        self.panel = wx.ScrolledWindow(self)
-        self.InitUI()
+        self.InitSpecCheck()
 
-    def InitUI(self):
+    def InitSpecCheck(self):
+        self.panel = wx.ScrolledWindow(self, style=wx.SIMPLE_BORDER)
+        TEXT = """Check that all specimens are correctly named,
+        and that they belong to the correct sample"""
+        label = wx.StaticText(self.panel,label=TEXT)
         #print "orient_data", self.get_orient_data()
         #Data, data_hierarchy = self.Parent.get_data()
         self.Data, self.Data_hierarchy  = self.get_data()
@@ -2387,21 +2389,22 @@ class check(wx.Frame):
 
 
         hboxok = wx.BoxSizer(wx.HORIZONTAL)
-        self.okButton =  wx.Button(self.panel, id=-1, label='Import file')
-        #self.Bind(wx.EVT_BUTTON, self.on_okButton, self.okButton)
+        self.saveButton =  wx.Button(self.panel, id=-1, label='Save')
+        self.Bind(wx.EVT_BUTTON, self.on_saveButton, self.saveButton)
         self.cancelButton = wx.Button(self.panel, wx.ID_CANCEL, '&Cancel')
-        #self.Bind(wx.EVT_BUTTON, self.on_cancelButton, self.cancelButton)
-        self.nextButton = wx.Button(self.panel, id=-1, label='Next step')
-        #self.Bind(wx.EVT_BUTTON, self.on_nextButton, self.nextButton)
-        hboxok.Add(self.okButton)
+        self.Bind(wx.EVT_BUTTON, self.on_cancelButton, self.cancelButton)
+        self.continueButton = wx.Button(self.panel, id=-1, label='Save and continue')
+        self.Bind(wx.EVT_BUTTON, self.on_continueButton, self.continueButton)
+        hboxok.Add(self.saveButton)
         hboxok.AddSpacer(20)
         hboxok.Add(self.cancelButton )
         hboxok.AddSpacer(20)
-        hboxok.Add(self.nextButton )
+        hboxok.Add(self.continueButton )
 
         vbox = wx.BoxSizer(wx.VERTICAL)
-        vbox.Add(self.grid, border=10)
-        vbox.Add(hboxok, border=10)
+        vbox.Add(label, flag=wx.ALIGN_LEFT|wx.BOTTOM, border=20)
+        vbox.Add(self.grid, flag=wx.BOTTOM, border=20)
+        vbox.Add(hboxok, flag=wx.BOTTOM, border=20)
 
         hbox_all= wx.BoxSizer(wx.HORIZONTAL)
         hbox_all.AddSpacer(20)
@@ -2410,11 +2413,9 @@ class check(wx.Frame):
 
         self.panel.SetSizer(hbox_all)
         self.panel.SetScrollbars(20, 20, 50, 50)
-        vbox.Fit(self)
+        hbox_all.Fit(self)  # or hbox_all.fit(self.panel))
         self.Show()
         self.Centre()
-
-
             
         self.update_orient_data()
         
@@ -2431,7 +2432,7 @@ class check(wx.Frame):
         #print "row_values", row_values
         #print "column_indexing", column_indexing
         #print "ind", ind
-        self.grid = wx.grid.Grid(self, -1)
+        self.grid = wx.grid.Grid(self.panel, -1)
         self.grid.ClearGrid()
         self.grid.CreateGrid(len(row_values), len(column_labels))
 
@@ -2449,7 +2450,14 @@ class check(wx.Frame):
         
         #self.Centre()
         #self.Show()
+    def on_continueButton(self, event):
+        print "NEXT!"
 
+    def on_saveButton(self, event):
+        print "SAVE!"
+
+    def on_cancelButton(self, event):
+        self.Destroy()
 
 
 
