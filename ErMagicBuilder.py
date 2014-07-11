@@ -17,6 +17,7 @@ import wx
 import wx.html
 import wx.grid
 import pmag
+import pmag_basic_dialogs
 #from pylab import *
 #from scipy.optimize import curve_fit
 #import wx.lib.agw.floatspin as FS
@@ -37,7 +38,7 @@ class MagIC_model_builder(wx.Frame):
     """"""
  
     #----------------------------------------------------------------------
-    def __init__(self,WD):
+    def __init__(self, WD):
         SIZE=wx.DisplaySize()
         SIZE=(SIZE[0]-0.05*SIZE[0],SIZE[1]-0.05*SIZE[1])
 
@@ -638,7 +639,9 @@ class MagIC_model_builder(wx.Frame):
         dlg1 = wx.MessageDialog(self,caption="Saved", message="MagIC Earth-Ref tables are saved in MagIC Project Directory.\nCleaning up MagIC pmag tables:\n All MagIC pmag tables are deleted!" ,style=wx.OK|wx.ICON_INFORMATION)
         dlg1.ShowModal()
         dlg1.Destroy()
-        self.Destroy()
+        #self.Destroy()
+        self.Hide()
+
 
     def on_cancelButton(self,event):
         self.Destroy()

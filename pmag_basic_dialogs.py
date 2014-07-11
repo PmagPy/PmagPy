@@ -10,6 +10,7 @@ import subprocess
 import pmag_widgets as pw
 import wx.grid
 import subprocess
+import ErMagicBuilder
 
 class import_magnetometer_data(wx.Dialog):
     def __init__(self,parent,id,title,WD):
@@ -2367,26 +2368,24 @@ class method_code_dialog(wx.Dialog):
 
 class check(wx.Frame):
 
-    def __init__(self, parent, id, title, WD):#, size):
+    def __init__(self, parent, id, title, WD, ErMagic):#, size):
         wx.Frame.__init__(self, parent, -1, title)#, size=size)
         self.WD = WD
+        self.ErMagic = ErMagic
         self.InitSpecCheck()
 
     def InitSpecCheck(self):
         self.panel = wx.ScrolledWindow(self, style=wx.SIMPLE_BORDER)
         TEXT = """Check that all specimens are correctly named,
-        and that they belong to the correct sample"""
+        and that they belong to the correct sample
+        (if sample name is simply wrong, that will be fixed in step 2)"""
         label = wx.StaticText(self.panel,label=TEXT)
-        #print "orient_data", self.get_orient_data()
-        #Data, data_hierarchy = self.Parent.get_data()
-        self.Data, self.Data_hierarchy  = self.get_data()
-        #print "Data", self.Data
-        #print "Data_hierarchy", self.Data_hierarchy
+        #self.Data, self.Data_hierarchy = self.get_data()
+        self.Data, self.Data_hierarchy = self.ErMagic.Data, self.ErMagic.Data_hierarchy
         self.specimens = self.Data.keys()
-        self.make_table(['specimen', '', 'sample'], self.specimens, self.Data_hierarchy, 'sample_of_specimen')
+        self.spec_grid = self.make_table(['specimen', '', 'sample'], self.specimens, self.Data_hierarchy, 'sample_of_specimen')
         #self.grid.SetCellBackgroundColour(0, 0, "LIGHT GREY")
         #self.grid.SetCellBackgroundColour(1, 1, "LIGHT GREY")
-
 
         hboxok = wx.BoxSizer(wx.HORIZONTAL)
         self.saveButton =  wx.Button(self.panel, id=-1, label='Save')
@@ -2394,7 +2393,7 @@ class check(wx.Frame):
         self.cancelButton = wx.Button(self.panel, wx.ID_CANCEL, '&Cancel')
         self.Bind(wx.EVT_BUTTON, self.on_cancelButton, self.cancelButton)
         self.continueButton = wx.Button(self.panel, id=-1, label='Save and continue')
-        self.Bind(wx.EVT_BUTTON, self.on_continueButton, self.continueButton)
+        self.Bind(wx.EVT_BUTTON, lambda event: self.on_continueButton(event, next_dia=self.InitSampCheck), self.continueButton)
         hboxok.Add(self.saveButton)
         hboxok.AddSpacer(20)
         hboxok.Add(self.cancelButton )
@@ -2403,7 +2402,7 @@ class check(wx.Frame):
 
         vbox = wx.BoxSizer(wx.VERTICAL)
         vbox.Add(label, flag=wx.ALIGN_LEFT|wx.BOTTOM, border=20)
-        vbox.Add(self.grid, flag=wx.BOTTOM, border=20)
+        vbox.Add(self.spec_grid, flag=wx.BOTTOM, border=20)
         vbox.Add(hboxok, flag=wx.BOTTOM, border=20)
 
         hbox_all= wx.BoxSizer(wx.HORIZONTAL)
@@ -2420,6 +2419,44 @@ class check(wx.Frame):
         self.update_orient_data()
         
     # 
+    def InitSampCheck(self):
+        self.panel = wx.ScrolledWindow(self, style=wx.SIMPLE_BORDER)
+        TEXT = """Check that all samples are correctly named,
+        and that they belong to the correct site
+        (if site name is simply wrong, that will be fixed in step 2)"""
+        label = wx.StaticText(self.panel,label=TEXT)
+        self.Data, self.Data_hierarchy = self.ErMagic.Data, self.ErMagic.Data_hierarchy
+        print self.Data_hierarchy
+        self.samples = self.Data_hierarchy['samples'].keys()
+        self.grid = self.make_table(['sample', '', 'site'], self.samples, self.Data_hierarchy, 'site_of_sample')
+        hboxok = wx.BoxSizer(wx.HORIZONTAL)
+        self.saveButton =  wx.Button(self.panel, id=-1, label='Save')
+        self.Bind(wx.EVT_BUTTON, self.on_saveButton, self.saveButton)
+        self.cancelButton = wx.Button(self.panel, wx.ID_CANCEL, '&Cancel')
+        self.Bind(wx.EVT_BUTTON, self.on_cancelButton, self.cancelButton)
+        self.continueButton = wx.Button(self.panel, id=-1, label='Save and continue')
+        self.Bind(wx.EVT_BUTTON, lambda event: self.on_continueButton(event, next_dia="this jazzy one"), self.continueButton)
+        hboxok.Add(self.saveButton, flag=wx.BOTTOM, border=20)
+        hboxok.Add(self.cancelButton, flag=wx.BOTTOM, border=20 )
+        hboxok.Add(self.continueButton, flag=wx.BOTTOM, border=20 )
+
+        vbox = wx.BoxSizer(wx.VERTICAL)
+        vbox.Add(label, flag=wx.ALIGN_LEFT|wx.BOTTOM, border=20)
+        vbox.Add(self.grid, flag=wx.BOTTOM, border=20)
+        vbox.Add(hboxok, flag=wx.BOTTOM, border=20)
+
+        hbox_all= wx.BoxSizer(wx.HORIZONTAL)
+        hbox_all.AddSpacer(20)
+        hbox_all.AddSpacer(vbox)
+        hbox_all.AddSpacer(20)
+
+        self.panel.SetSizer(hbox_all)
+        self.panel.SetScrollbars(20, 20, 50, 50)
+        hbox_all.Fit(self)  # or hbox_all.fit(self.panel))
+        self.Show()
+        self.Centre()
+
+    
     def make_table(self, column_labels, row_values, column_indexing, ind):
         """ takes a list of row values (i.e., specimens, samples, locations, etc.) 
         and a data structure (column_indexing) to index them against.  for example, 
@@ -2432,29 +2469,39 @@ class check(wx.Frame):
         #print "row_values", row_values
         #print "column_indexing", column_indexing
         #print "ind", ind
-        self.grid = wx.grid.Grid(self.panel, -1)
-        self.grid.ClearGrid()
-        self.grid.CreateGrid(len(row_values), len(column_labels))
+        grid = wx.grid.Grid(self.panel, -1)
+        grid.ClearGrid()
+        grid.CreateGrid(len(row_values), len(column_labels))
 
         for n, row in enumerate(row_values):
-            self.grid.SetRowLabelValue(n, str(n+1))
-            self.grid.SetCellValue(n, 0, row)
-            self.grid.SetCellValue(n, 1, "belongs to")
+            grid.SetRowLabelValue(n, str(n+1))
+            grid.SetCellValue(n, 0, row)
+            grid.SetCellValue(n, 1, "belongs to")
             col = column_indexing[ind][row]
-            self.grid.SetCellValue(n, 2, col)
+            grid.SetCellValue(n, 2, col)
 
         for n, label in enumerate(column_labels):
-            self.grid.SetColLabelValue(n, label)
+            grid.SetColLabelValue(n, label)
 
-        self.grid.AutoSize()# doesn't clearly do anything......?
+        grid.AutoSize()# doesn't clearly do anything......?
+        return grid
         
         #self.Centre()
         #self.Show()
-    def on_continueButton(self, event):
+    def on_continueButton(self, event, next_dia=None, changes=True):
         print "NEXT!"
+        if changes:
+            # need to call function here for getting the changes from the edited field
+            # actually into Data, or whatever on_ok_Button uses
+            self.ErMagic.on_okButton(None)
+        self.panel.Destroy()
+        next_dia()
 
-    def on_saveButton(self, event):
+
+    def on_saveButton(self, event, changes=True):
         print "SAVE!"
+        if changes:
+            self.ErMagic.on_okButton(None)
 
     def on_cancelButton(self, event):
         self.Destroy()
@@ -2486,13 +2533,15 @@ class check(wx.Frame):
 
 
     def update_orient_data(self):
+        pass
         # check each value in the specimen column for changes
         # check each value in the samples column for changes
-        for row in range(self.grid.GetNumberRows()):
-            pass
+        #for row in range(self.grid.GetNumberRows()):
+            #pass
             #print self.grid.GetCellValue(row, 0)
             #print self.specimens[row]
 
+    """
     def get_data(self):
       # get_data from ErMagicBuilder.  Returns a more comprehensive Data hierarchy than the get_data in QuickMagic.  oy.
       Data={}
@@ -2550,6 +2599,7 @@ class check(wx.Frame):
           Data_hierarchy['location_of_site'][site]=location 
           
       return(Data,Data_hierarchy)
+    """
 
 
 
