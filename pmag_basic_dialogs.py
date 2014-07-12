@@ -2384,6 +2384,12 @@ class check(wx.Frame):
         self.Data, self.Data_hierarchy = self.ErMagic.Data, self.ErMagic.Data_hierarchy
         self.specimens = self.Data.keys()
         self.spec_grid = self.make_table(['specimen', '', 'sample'], self.specimens, self.Data_hierarchy, 'sample_of_specimen')
+        self.changes = False
+
+        #self.Bind(wx.grid.EVT_GRID_CELL_CHANGE, self.on_edit_grid, self.spec_grid) # this works, but ONLY if the user clicks somewhere else between the edited cell and the ok button
+        self.Bind(wx.grid.EVT_GRID_SELECT_CELL, self.on_edit_grid, self.spec_grid) # this works, but is overly general.  
+
+
         #self.grid.SetCellBackgroundColour(0, 0, "LIGHT GREY")
         #self.grid.SetCellBackgroundColour(1, 1, "LIGHT GREY")
 
@@ -2393,12 +2399,10 @@ class check(wx.Frame):
         self.cancelButton = wx.Button(self.panel, wx.ID_CANCEL, '&Cancel')
         self.Bind(wx.EVT_BUTTON, self.on_cancelButton, self.cancelButton)
         self.continueButton = wx.Button(self.panel, id=-1, label='Save and continue')
-        self.Bind(wx.EVT_BUTTON, lambda event: self.on_continueButton(event, next_dia=self.InitSampCheck), self.continueButton)
-        hboxok.Add(self.saveButton)
-        hboxok.AddSpacer(20)
-        hboxok.Add(self.cancelButton )
-        hboxok.AddSpacer(20)
-        hboxok.Add(self.continueButton )
+        self.Bind(wx.EVT_BUTTON, lambda event: self.on_continueButton(event, self.spec_grid, next_dia=self.InitSampCheck), self.continueButton)
+        hboxok.Add(self.saveButton, flag=wx.ALIGN_LEFT|wx.RIGHT, border=20)
+        hboxok.Add(self.cancelButton, flag=wx.ALIGN_LEFT|wx.RIGHT, border=20) 
+        hboxok.Add(self.continueButton, flag=wx.ALIGN_LEFT )
 
         vbox = wx.BoxSizer(wx.VERTICAL)
         vbox.Add(label, flag=wx.ALIGN_LEFT|wx.BOTTOM, border=20)
@@ -2416,7 +2420,7 @@ class check(wx.Frame):
         self.Show()
         self.Centre()
             
-        self.update_orient_data()
+
         
     # 
     def InitSampCheck(self):
@@ -2426,16 +2430,19 @@ class check(wx.Frame):
         (if site name is simply wrong, that will be fixed in step 2)"""
         label = wx.StaticText(self.panel,label=TEXT)
         self.Data, self.Data_hierarchy = self.ErMagic.Data, self.ErMagic.Data_hierarchy
-        print self.Data_hierarchy
         self.samples = self.Data_hierarchy['samples'].keys()
         self.grid = self.make_table(['sample', '', 'site'], self.samples, self.Data_hierarchy, 'site_of_sample')
+        self.changes = False
+
         hboxok = wx.BoxSizer(wx.HORIZONTAL)
         self.saveButton =  wx.Button(self.panel, id=-1, label='Save')
         self.Bind(wx.EVT_BUTTON, self.on_saveButton, self.saveButton)
         self.cancelButton = wx.Button(self.panel, wx.ID_CANCEL, '&Cancel')
         self.Bind(wx.EVT_BUTTON, self.on_cancelButton, self.cancelButton)
         self.continueButton = wx.Button(self.panel, id=-1, label='Save and continue')
-        self.Bind(wx.EVT_BUTTON, lambda event: self.on_continueButton(event, next_dia="this jazzy one"), self.continueButton)
+        self.Bind(wx.EVT_BUTTON, lambda event: self.on_continueButton(event, self.grid), self.continueButton)
+        self.Bind(wx.grid.EVT_GRID_SELECT_CELL, self.on_edit_grid, self.grid) # this works, but is overly general.  
+
         hboxok.Add(self.saveButton, flag=wx.BOTTOM, border=20)
         hboxok.Add(self.cancelButton, flag=wx.BOTTOM, border=20 )
         hboxok.Add(self.continueButton, flag=wx.BOTTOM, border=20 )
@@ -2488,14 +2495,25 @@ class check(wx.Frame):
         
         #self.Centre()
         #self.Show()
-    def on_continueButton(self, event, next_dia=None, changes=True):
+
+    def on_edit_grid(self, event):
+        print "CHANGES, bitches"
+        self.changes = True
+
+
+    def on_continueButton(self, event, grid, next_dia=None):
+        """pulls up next dialog, if there is one.
+        gets any updated information from the current grid and runs ErMagicBuilder"""
         print "NEXT!"
-        if changes:
-            # need to call function here for getting the changes from the edited field
-            # actually into Data, or whatever on_ok_Button uses
+        if self.changes:
+            print "there were changes, so we are updating the data"
+            self.update_orient_data(grid)
             self.ErMagic.on_okButton(None)
         self.panel.Destroy()
-        next_dia()
+        if next_dia:
+            next_dia()
+        else:
+            self.Destroy()
 
 
     def on_saveButton(self, event, changes=True):
@@ -2508,6 +2526,32 @@ class check(wx.Frame):
 
 
 
+    def update_orient_data(self, grid, edited=True):
+        # maybe have make_table return also the original specs/samps or samps/sites, or whatever.  
+        # then I'd have that to compare them against.
+        # or, on the other hand, just over-write every time
+        # or , if there is a way to detect the first typing 
+        # wx.grid.EVT_GRID_CELL_CHANGE(func)
+        #print "current self.Data_hierarchy", self.Data_hierarchy
+        cols = grid.GetNumberCols()
+        rows = grid.GetNumberRows()
+        for c in range(cols):
+            for r in range(rows):
+                pass
+                #print "cell {} {}: ".format(r, c), grid.GetCellValue(r, c)
+        if edited:
+            pass
+        # all this function needs to do is capture the changes specimens/samples (or whatever) in self.Data_hierarchy
+        # the function in ErMagicBuilder will do the rest
+        # check each value in the specimen column for changes
+        # check each value in the samples column for changes
+        #for row in range(self.grid.GetNumberRows()):
+            #pass
+            #print self.grid.GetCellValue(row, 0)
+            #print self.specimens[row]
+
+
+    """
     def get_orient_data(self):
         try:
             self.Data, self.Data_hierarchy = self.Parent.Data
@@ -2530,16 +2574,9 @@ class check(wx.Frame):
                 self.orient_data[sample]["site_name"]=""
             return self.orient_data
         #print "self.orient_data", self.orient_data
+    """
 
 
-    def update_orient_data(self):
-        pass
-        # check each value in the specimen column for changes
-        # check each value in the samples column for changes
-        #for row in range(self.grid.GetNumberRows()):
-            #pass
-            #print self.grid.GetCellValue(row, 0)
-            #print self.specimens[row]
 
     """
     def get_data(self):
