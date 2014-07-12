@@ -698,7 +698,7 @@ class convert_SIO_files_to_MagIC(wx.Frame):
         self.bSizer4 = pw.specimen_n(pnl)
 
         #---sizer 4a ----
-        self.bSizer4a = pw.select_specimen_ncn(pnl)
+        self.bSizer4a = pw.select_ncn(pnl)
 
         #---sizer 5 ----
         TEXT="Location name:"
@@ -857,7 +857,7 @@ class convert_CIT_files_to_MagIC(wx.Frame):
         self.bSizer3 = pw.lab_field(pnl)
 
         #---sizer 4 ----
-        self.bSizer4 = pw.select_specimen_ncn(pnl)
+        self.bSizer4 = pw.select_ncn(pnl)
 
         #---sizer 5 ---
         TEXT = "specify number of characters to designate a specimen, default = 0"
@@ -988,7 +988,7 @@ class convert_HUJI_files_to_MagIC(wx.Frame):
         self.bSizer3 = pw.lab_field(pnl)
 
         #---sizer 4 ----
-        self.bSizer4 = pw.select_specimen_ncn(pnl)
+        self.bSizer4 = pw.select_ncn(pnl)
 
         #---sizer 5 ---
         TEXT = "specify number of characters to designate a specimen, default = 0"
@@ -1103,7 +1103,7 @@ class convert_2G_binary_files_to_MagIC(wx.Frame):
 
         #---sizer 2 ----
         ncn_keys = ['XXXXY', 'XXXX-YY', 'XXXX.YY', 'XXXX[YYY] where YYY is sample designation, enter number of Y', 'sample name=site name', 'Site is entered under a separate column', '[XXXX]YYY where XXXX is the site name, enter number of X']
-        self.bSizer2 = pw.select_specimen_ncn(pnl, ncn_keys)
+        self.bSizer2 = pw.select_ncn(pnl, ncn_keys)
 
         #---sizer 3 ----
         TEXT = "specify number of characters to designate a specimen, default = 1"
@@ -1243,7 +1243,7 @@ class convert_LDEO_files_to_MagIC(wx.Frame):
         self.bSizer3 = pw.lab_field(pnl)
 
         #---sizer 4 ----
-        self.bSizer4 = pw.select_specimen_ncn(pnl)
+        self.bSizer4 = pw.select_ncn(pnl)
 
         #---sizer 5 ----
         TEXT = "specify number of characters to designate a specimen, default = 0"
@@ -1490,7 +1490,7 @@ class convert_PMD_files_to_MagIC(wx.Frame):
         
         #---sizer 2 ----
         ncn_keys = ['XXXXY', 'XXXX-YY', 'XXXX.YY', 'XXXX[YYY] where YYY is sample designation, enter number of Y', 'sample name=site name', 'Site is entered under a separate column', '[XXXX]YYY where XXXX is the site name, enter number of X']
-        self.bSizer2 = pw.select_specimen_ncn(pnl, ncn_keys)
+        self.bSizer2 = pw.select_ncn(pnl, ncn_keys)
 
         #---sizer 3 ---
         #        TEXT = "specify number of characters to designate a specimen, default = 0"
