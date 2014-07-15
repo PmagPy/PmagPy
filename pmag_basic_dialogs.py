@@ -2386,8 +2386,8 @@ class check(wx.Frame):
         self.spec_grid = self.make_table(['specimen', '', 'sample'], self.specimens, self.Data_hierarchy, 'sample_of_specimen')
         self.changes = False
 
-        #self.Bind(wx.grid.EVT_GRID_CELL_CHANGE, self.on_edit_grid, self.spec_grid) # this works, but ONLY if the user clicks somewhere else between the edited cell and the ok button
-        self.Bind(wx.grid.EVT_GRID_SELECT_CELL, self.on_edit_grid, self.spec_grid) # this works, but is overly general.  
+        self.Bind(wx.grid.EVT_GRID_EDITOR_SHOWN, self.on_edit_grid, self.spec_grid) 
+
 
 
         #self.grid.SetCellBackgroundColour(0, 0, "LIGHT GREY")
@@ -2395,7 +2395,7 @@ class check(wx.Frame):
 
         hboxok = wx.BoxSizer(wx.HORIZONTAL)
         self.saveButton =  wx.Button(self.panel, id=-1, label='Save')
-        self.Bind(wx.EVT_BUTTON, self.on_saveButton, self.saveButton)
+        self.Bind(wx.EVT_BUTTON, lambda event: self.on_saveButton(event, self.spec_grid), self.saveButton)
         self.cancelButton = wx.Button(self.panel, wx.ID_CANCEL, '&Cancel')
         self.Bind(wx.EVT_BUTTON, self.on_cancelButton, self.cancelButton)
         self.continueButton = wx.Button(self.panel, id=-1, label='Save and continue')
@@ -2406,7 +2406,7 @@ class check(wx.Frame):
 
         vbox = wx.BoxSizer(wx.VERTICAL)
         vbox.Add(label, flag=wx.ALIGN_LEFT|wx.BOTTOM, border=20)
-        vbox.Add(self.spec_grid, flag=wx.BOTTOM, border=20)
+        vbox.Add(self.spec_grid, flag=wx.BOTTOM|wx.EXPAND, border=20)
         vbox.Add(hboxok, flag=wx.BOTTOM, border=20)
 
         hbox_all= wx.BoxSizer(wx.HORIZONTAL)
@@ -2433,15 +2433,15 @@ class check(wx.Frame):
         self.samples = self.Data_hierarchy['samples'].keys()
         self.grid = self.make_table(['sample', '', 'site'], self.samples, self.Data_hierarchy, 'site_of_sample')
         self.changes = False
+        self.Bind(wx.grid.EVT_GRID_EDITOR_SHOWN, self.on_edit_grid, self.grid) 
 
         hboxok = wx.BoxSizer(wx.HORIZONTAL)
         self.saveButton =  wx.Button(self.panel, id=-1, label='Save')
-        self.Bind(wx.EVT_BUTTON, self.on_saveButton, self.saveButton)
+        self.Bind(wx.EVT_BUTTON, lambda event: self.on_saveButton(event, self.grid), self.saveButton)
         self.cancelButton = wx.Button(self.panel, wx.ID_CANCEL, '&Cancel')
         self.Bind(wx.EVT_BUTTON, self.on_cancelButton, self.cancelButton)
         self.continueButton = wx.Button(self.panel, id=-1, label='Save and continue')
         self.Bind(wx.EVT_BUTTON, lambda event: self.on_continueButton(event, self.grid), self.continueButton)
-        self.Bind(wx.grid.EVT_GRID_SELECT_CELL, self.on_edit_grid, self.grid) # this works, but is overly general.  
 
         hboxok.Add(self.saveButton, flag=wx.BOTTOM, border=20)
         hboxok.Add(self.cancelButton, flag=wx.BOTTOM, border=20 )
@@ -2449,7 +2449,7 @@ class check(wx.Frame):
 
         vbox = wx.BoxSizer(wx.VERTICAL)
         vbox.Add(label, flag=wx.ALIGN_LEFT|wx.BOTTOM, border=20)
-        vbox.Add(self.grid, flag=wx.BOTTOM, border=20)
+        vbox.Add(self.grid, flag=wx.BOTTOM|wx.EXPAND, border=20) # EXPAND ??
         vbox.Add(hboxok, flag=wx.BOTTOM, border=20)
 
         hbox_all= wx.BoxSizer(wx.HORIZONTAL)
@@ -2459,7 +2459,7 @@ class check(wx.Frame):
 
         self.panel.SetSizer(hbox_all)
         self.panel.SetScrollbars(20, 20, 50, 50)
-        hbox_all.Fit(self)  # or hbox_all.fit(self.panel))
+        hbox_all.Fit(self)
         self.Show()
         self.Centre()
 
@@ -2480,35 +2480,49 @@ class check(wx.Frame):
         grid.ClearGrid()
         grid.CreateGrid(len(row_values), len(column_labels))
 
+        # how to set attributes for an entire row or column
+        #attr = gridlib.GridCellAttr()
+        #attr.SetReadOnly(True)
+        #myGrid.SetRowAttr(0, attr)
+        list_values = []
+
         for n, row in enumerate(row_values):
             grid.SetRowLabelValue(n, str(n+1))
             grid.SetCellValue(n, 0, row)
             grid.SetCellValue(n, 1, "belongs to")
+            grid.SetReadOnly(n, 1, True) # could do this for entire column, but doesn't save space
             col = column_indexing[ind][row]
             grid.SetCellValue(n, 2, col)
+            list_values.append(col)
 
         for n, label in enumerate(column_labels):
             grid.SetColLabelValue(n, label)
 
         grid.AutoSize()# doesn't clearly do anything......?
+        list_values = set(list_values)
+        print "list_values", list_values
         return grid
         
         #self.Centre()
         #self.Show()
 
     def on_edit_grid(self, event):
-        print "CHANGES, bitches"
+        print "EDITED"
         self.changes = True
 
 
     def on_continueButton(self, event, grid, next_dia=None):
         """pulls up next dialog, if there is one.
         gets any updated information from the current grid and runs ErMagicBuilder"""
+        # need to add something here that "seals in" the value that's been typed, even if the user hasn't yet typed somewhere else, too
         print "NEXT!"
+        print grid.SaveEditControlValue() # locks in value in cell currently edited
+
         if self.changes:
             print "there were changes, so we are updating the data"
             self.update_orient_data(grid)
             self.ErMagic.on_okButton(None)
+            self.changes = False # resets
         self.panel.Destroy()
         if next_dia:
             next_dia()
@@ -2516,31 +2530,41 @@ class check(wx.Frame):
             self.Destroy()
 
 
-    def on_saveButton(self, event, changes=True):
+    def on_saveButton(self, event, grid):
         print "SAVE!"
-        if changes:
+        print grid.SaveEditControlValue() # locks in value in cell currently edited
+
+        if self.changes:
+            print "there were changes, so we are updating the data"
+            self.update_orient_data(grid)
             self.ErMagic.on_okButton(None)
+            self.changes = False
 
     def on_cancelButton(self, event):
         self.Destroy()
 
 
 
-    def update_orient_data(self, grid, edited=True):
+    def update_orient_data(self, grid):
         # maybe have make_table return also the original specs/samps or samps/sites, or whatever.  
         # then I'd have that to compare them against.
         # or, on the other hand, just over-write every time
         # or , if there is a way to detect the first typing 
         # wx.grid.EVT_GRID_CELL_CHANGE(func)
-        #print "current self.Data_hierarchy", self.Data_hierarchy
+        print "current self.Data_hierarchy", self.Data_hierarchy
         cols = grid.GetNumberCols()
         rows = grid.GetNumberRows()
-        for c in range(cols):
-            for r in range(rows):
-                pass
-                #print "cell {} {}: ".format(r, c), grid.GetCellValue(r, c)
-        if edited:
-            pass
+        #for c in range(cols):
+        #    for r in range(rows):
+                #pass
+        #        print "cell {} {}: ".format(r, c), grid.GetCellValue(r, c)
+        specs = []
+        for r in range(rows):
+            spec = grid.GetCellValue(r, 0)
+            specs.append(str(spec))
+        print "specs", specs
+
+
         # all this function needs to do is capture the changes specimens/samples (or whatever) in self.Data_hierarchy
         # the function in ErMagicBuilder will do the rest
         # check each value in the specimen column for changes
