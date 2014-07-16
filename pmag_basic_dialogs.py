@@ -2383,15 +2383,12 @@ class check(wx.Frame):
         and that they belong to the correct sample
         (if sample name is simply wrong, that will be fixed in step 2)"""
         label = wx.StaticText(self.panel,label=TEXT)
-        #self.Data, self.Data_hierarchy = self.get_data()
         self.Data, self.Data_hierarchy = self.ErMagic.Data, self.ErMagic.Data_hierarchy
         self.specimens = self.Data.keys()
         self.spec_grid, self.temp_data['specimens'], self.temp_data['samples'] = self.make_table(['specimens', '', 'samples'], self.specimens, self.Data_hierarchy, 'sample_of_specimen')
         self.changes = False
 
         self.Bind(wx.grid.EVT_GRID_EDITOR_SHOWN, self.on_edit_grid, self.spec_grid) 
-
-
 
         #self.grid.SetCellBackgroundColour(0, 0, "LIGHT GREY")
         #self.grid.SetCellBackgroundColour(1, 1, "LIGHT GREY")
@@ -2483,10 +2480,6 @@ class check(wx.Frame):
         grid.ClearGrid()
         grid.CreateGrid(len(row_values), len(column_labels))
 
-        # how to set attributes for an entire row or column
-        #attr = gridlib.GridCellAttr()
-        #attr.SetReadOnly(True)
-        #myGrid.SetRowAttr(0, attr)
         list_values = []
         original_1 = [] # specs (in first dia)
         original_2 = [] # samps (in first dia)
@@ -2500,32 +2493,23 @@ class check(wx.Frame):
             col = column_indexing[ind][row]
             original_2.append(col)
             grid.SetCellValue(n, 2, col)
-            list_values.append(col)
 
         for n, label in enumerate(column_labels):
             grid.SetColLabelValue(n, label)
 
         grid.AutoSize()# doesn't clearly do anything......?
-        list_values = set(list_values)
-        #print "list_values", list_values
-        print "original_1", original_1
-        print "original_2", original_2
         return grid, original_1, original_2
         
-        #self.Centre()
-        #self.Show()
-
     def on_edit_grid(self, event):
         print "EDITED"
         self.changes = True
-
 
     def on_continueButton(self, event, grid, next_dia=None):
         """pulls up next dialog, if there is one.
         gets any updated information from the current grid and runs ErMagicBuilder"""
         # need to add something here that "seals in" the value that's been typed, even if the user hasn't yet typed somewhere else, too
         print "NEXT!"
-        print grid.SaveEditControlValue() # locks in value in cell currently edited
+        grid.SaveEditControlValue() # locks in value in cell currently edited
 
         if self.changes:
             print "there were changes, so we are updating the data"
@@ -2555,39 +2539,38 @@ class check(wx.Frame):
 
 
     def update_orient_data(self, grid):
-        # maybe have make_table return also the original specs/samps or samps/sites, or whatever.  
-        # then I'd have that to compare them against.
-        # or, on the other hand, just over-write every time
-        # or , if there is a way to detect the first typing 
-        # wx.grid.EVT_GRID_CELL_CHANGE(func)
-        #print "current self.Data_hierarchy", self.Data_hierarchy
-        print "---"
-        for i in self.Data_hierarchy.items():
-            print i
-            print "----"
+        col1_updated, col2_updated, col1_old, col2_old, type1, type2 = self.get_old_and_new_data(grid)
+        print "updated:", col1_updated
+        print "old    :", col1_old
+        changed = [(i, col1_updated[num]) for (num, i) in enumerate(col1_old) if i != col1_updated[num]]
+        print "changed: ", changed
+        for k, v in self.Data_hierarchy.items():
+            if type1[:-1] in k:
+                for change in changed:
+                    print change
+
+
+                
+
+
+
+    def get_old_and_new_data(self, grid):
         cols = grid.GetNumberCols()
         rows = grid.GetNumberRows()
         type1 = grid.GetColLabelValue(0)
         type2 = grid.GetColLabelValue(2)
-        print "self.temp_data['type1']", self.temp_data[type1]
-        #print "self.temp_data['type2']", self.temp_data[type2]
-
-        list1 = []
-        list2 = []
+        old_1 = self.temp_data[type1]
+        old_2 = self.temp_data[type2]
+        update_1 = []
+        update_2 = []
         for r in range(rows):
             # gets edited values from grid
             one = grid.GetCellValue(r, 0)
-            list1.append(str(one))
+            update_1.append(str(one))
             two = grid.GetCellValue(r, 2)
-            list2.append(str(two))
-        print "list1               ", list1
-        for k, v in self.Data_hierarchy.items():
-            if 'specimen' in k:
-                print k
-                print v
-                print "---"
-        #print "list2     ", list2
-        # check edited values (list1 and list2) against previous values (stored in temp_data)
+            update_2.append(str(two))
+        return update_1, update_2, old_1, old_2, type1, type2
+
 
 
         # all this function needs to do is capture the changes specimens/samples (or whatever) in self.Data_hierarchy
