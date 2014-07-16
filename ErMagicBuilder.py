@@ -17,6 +17,7 @@ import wx
 import wx.html
 import wx.grid
 import pmag
+import copy
 #from pylab import *
 #from scipy.optimize import curve_fit
 #import wx.lib.agw.floatspin as FS
@@ -299,6 +300,7 @@ class MagIC_model_builder(wx.Frame):
             
             if key=="er_citation_names":
               string=string+"This study"+"\t"
+            
             elif key=="er_sample_name":
               string=string+sample+"\t"
               
@@ -311,19 +313,8 @@ class MagIC_model_builder(wx.Frame):
                 else:
                     string=string+self.Data_hierarchy['location_of_sample'][sample]+"\t"
                                           
-            ## try to take location name from er_sites table 
-            ## if not: take it from hierachy dictionary                    
-            #elif key in ['er_location_name']:
-            #    if site in self.data_er_sites.keys() and key in self.data_er_sites[site].keys():
-            #        string=string+self.data_er_sites[site][key]+"\t"
-            #    else:
-            #        string=string+self.Data_hierarchy['location_of_sample'][sample]+"\t"
-           
-            #elif (key in ['er_location_name'] and sample in self.data_er_samples.keys()\
-            #      and "er_site_name" in self.data_er_samples[sample].keys()\
-            #      and self.data_er_samples[sample]['er_site_name'] in self.data_er_sites.keys()\
-            #      and key in self.data_er_sites[self.data_er_samples[sample]['er_site_name']].keys()):
-            #  string=string+self.data_er_sites[self.data_er_samples[sample]['er_site_name']][key]+"\t"
+            elif sample in self.data_er_samples.keys() and key in self.data_er_samples[sample].keys() and self.data_er_samples[sample][key]!="":
+                string=string+self.data_er_samples[sample][key]+"\t"
 
             # try to take lat/lon from er_sites table
             elif (key in ['sample_lon','sample_lat'] and sample in self.data_er_samples.keys()\
@@ -338,11 +329,7 @@ class MagIC_model_builder(wx.Frame):
                     string=string+self.data_er_sites[site][site_key]+"\t"
                     continue
               else:
-                    string=string+'\t'
-                        
-            # take information from the existing er_sitestable 
-            elif sample in self.data_er_samples.keys() and key in self.data_er_samples[sample].keys() and self.data_er_samples[sample][key]!="":
-                string=string+self.data_er_samples[sample][key]+"\t"
+                    string=string+'\t'                        
             else:
               string=string+"\t"
           er_samples_file.write(string[:-1]+"\n")
@@ -386,12 +373,6 @@ class MagIC_model_builder(wx.Frame):
                 else:
                     string=string+self.Data_hierarchy['site_of_specimen'][specimen]+"\t"
 
-            #
-            #
-            #
-            #elif (key in ['er_location_name','er_site_name'] and sample in self.data_er_samples.keys() \
-            #     and  key in self.data_er_samples[sample] and self.data_er_samples[sample][key]!=""):
-            #  string=string+self.data_er_samples[sample][key]+"\t"
             elif key in ['specimen_class','specimen_lithology','specimen_type']:
               sample_key="sample_"+key.split('specimen_')[1]
               if (sample in self.data_er_samples.keys() and sample_key in self.data_er_samples[sample] and self.data_er_samples[sample][sample_key]!=""):
@@ -444,6 +425,8 @@ class MagIC_model_builder(wx.Frame):
         site_lons=[]     
         site_lats=[]     
         for site in sites_list:
+          if site ==""  or site==" ":
+              continue
           string=""    
           for key in self.er_sites_header:
             if key=="er_citation_names":
@@ -649,20 +632,40 @@ class MagIC_model_builder(wx.Frame):
         fin.readline()
         line=fin.readline()
         header=line.strip('\n').split('\t')
+        print path,header
         counter=0
         for line in fin.readlines():
             tmp_data={}
             tmp_line=line.strip('\n').split('\t')
-            for i in range(len(tmp_line)):
-                tmp_data[header[i]]=tmp_line[i]
+            for i in range(len(header)):
+                if i < len(tmp_line):
+                    tmp_data[header[i]]=tmp_line[i]
+                else:
+                    print header[i]
+                    tmp_data[header[i]]=""
             if sort_by_this_name=="by_line_number":
               DATA[counter]=tmp_data
               counter+=1
             else:
-              DATA[tmp_data[sort_by_this_name]]=tmp_data
-        fin.close()        
+              if tmp_data[sort_by_this_name]!="":  
+                DATA[tmp_data[sort_by_this_name]]=tmp_data
+        fin.close()   
         return(DATA)
 
+    def converge_headers(self,old_recs):
+        # fix the headers of pmag recs
+        recs={}
+        recs=copy.deepcopy(old_recs)
+        headers=[]
+        for rec in recs:
+            for key in rec.keys():
+                if key not in headers:
+                    headers.append(key)
+        for rec in recs:
+            for header in headers:
+                if header not in rec.keys():
+                    rec[header]=""
+        return recs
 
     def read_MagIC_info(self):
         Data_info={}
@@ -720,10 +723,12 @@ class MagIC_model_builder(wx.Frame):
       sids=pmag.get_specs(meas_data) # samples ID's
       
       for s in sids:
-          if s not in Data.keys():
+          if s not in Data.keys() and s!="" and s!=" ":
               Data[s]={}
       for rec in meas_data:
           s=rec["er_specimen_name"]
+          if s=="" or s== " ":
+              continue
           sample=rec["er_sample_name"]
           site=rec["er_site_name"]
           location=rec["er_location_name"]
