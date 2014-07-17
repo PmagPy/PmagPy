@@ -2530,7 +2530,8 @@ class check(wx.Frame):
         if self.changes:
             print "there were changes, so we are updating the data"
             self.update_orient_data(grid)
-            self.ErMagic.on_okButton(None)
+            #self.ErMagic.Data_hierarchy = self.Data_hierarchy # passes in updated Data_hierarchy to ErMagic Data_hierarchy
+            #self.ErMagic.on_okButton(None) # add this back in, it was messing up testing
             self.changes = False
 
     def on_cancelButton(self, event):
@@ -2540,14 +2541,52 @@ class check(wx.Frame):
 
     def update_orient_data(self, grid):
         col1_updated, col2_updated, col1_old, col2_old, type1, type2 = self.get_old_and_new_data(grid)
-        print "updated:", col1_updated
-        print "old    :", col1_old
-        changed = [(i, col1_updated[num]) for (num, i) in enumerate(col1_old) if i != col1_updated[num]]
-        print "changed: ", changed
-        for k, v in self.Data_hierarchy.items():
-            if type1[:-1] in k:
-                for change in changed:
-                    print change
+        changed_1 = [(i, col1_updated[num]) for (num, i) in enumerate(col1_old) if i != col1_updated[num]]
+        print "self.Data_hierarchy['specimens']", self.Data_hierarchy['specimens']
+        print "self.Data_hierarchy['sample_of_specimen']",self.Data_hierarchy['sample_of_specimen']
+        print "self.Data_hierarchy['site_of_specimen']", self.Data_hierarchy['site_of_specimen']
+        print "self.Data_hierarchy['location_of_specimen']", self.Data_hierarchy['location_of_specimen']
+        print "self.Data_hierarchy['samples']", self.Data_hierarchy['samples']
+        if type1 == "specimens":
+            #print self.Data_hierarchy['sample_of_specimen']
+            #print self.Data_hierarchy['site_of_specimen']
+            #print self.Data_hierarchy['location_of_specimen']
+            #print self.Data_hierarchy['specimens']
+            #print self.Data_hierarchy['samples']
+            for change in changed_1:
+                print "change", change
+                old, new = change
+                #print "old", old
+                #print "new", new
+                sample = self.Data_hierarchy['specimens'].pop(old)
+                #print "sample", sample
+                #
+                self.Data_hierarchy['specimens'][new] = sample
+                #
+                sample = self.Data_hierarchy['sample_of_specimen'].pop(old)
+                self.Data_hierarchy['sample_of_specimen'][new] = sample
+                #
+                site = self.Data_hierarchy['site_of_specimen'].pop(old)
+                self.Data_hierarchy['site_of_specimen'][new] = site
+                #
+                loc = self.Data_hierarchy['location_of_specimen'].pop(old)
+                self.Data_hierarchy['location_of_specimen'][new] = loc
+                #
+                print "self.Data_hierarchy['samples']", self.Data_hierarchy['samples']
+                print "self.Data_hierarchy['samples'][sample]", self.Data_hierarchy['samples'][sample]
+                ind = self.Data_hierarchy['samples'][sample].index(old)
+                print "ind:", ind
+                #self.Data_hierarchy['samples'][sample].pop(ind)
+                self.Data_hierarchy['samples'][sample][ind] = new
+
+        print "NEW AND IMPROVED"
+        print "self.Data_hierarchy['specimens']", self.Data_hierarchy['specimens']
+        print "self.Data_hierarchy['sample_of_specimen']",self.Data_hierarchy['sample_of_specimen']
+        print "self.Data_hierarchy['site_of_specimen']", self.Data_hierarchy['site_of_specimen']
+        print "self.Data_hierarchy['location_of_specimen']", self.Data_hierarchy['location_of_specimen']
+        print "self.Data_hierarchy['samples']", self.Data_hierarchy['samples']
+
+        keys = ['sample_of_specimen', 'site_of_sample', 'location_of_specimen', 'locations', 'sites', 'site_of_specimen', 'samples', 'location_of_sample', 'location_of_site', 'specimens']
 
 
                 
