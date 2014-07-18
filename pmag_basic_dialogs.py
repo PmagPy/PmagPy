@@ -2368,9 +2368,8 @@ class method_code_dialog(wx.Dialog):
 
 class check(wx.Frame):
 
-    def __init__(self, parent, id, title, WD, ErMagic):#, size):
-        print "init"
-        wx.Frame.__init__(self, parent, -1, title)#, size=size)
+    def __init__(self, parent, id, title, WD, ErMagic):
+        wx.Frame.__init__(self, parent, -1, title)
         self.WD = WD
         self.ErMagic = ErMagic
         self.temp_data = {}
@@ -2378,21 +2377,28 @@ class check(wx.Frame):
 
 
     def InitSpecCheck(self):
+        """make an interactive grid in which users can edit specimen names
+        as well as which sample a specimen belongs to"""
+
         self.panel = wx.ScrolledWindow(self, style=wx.SIMPLE_BORDER)
         TEXT = """Check that all specimens are correctly named,
         and that they belong to the correct sample
-        (if sample name is simply wrong, that will be fixed in step 2)"""
+        (if sample name is simply wrong, that will be fixed in step 2)
+        note: if you need to do a comprehensive edit,
+        consider opening your documents with Excel or Open Office"""
         label = wx.StaticText(self.panel,label=TEXT)
         self.Data, self.Data_hierarchy = self.ErMagic.Data, self.ErMagic.Data_hierarchy
         self.specimens = self.Data.keys()
+        samples = self.Data_hierarchy['samples'].keys()
+        # create the grid and also a record of the initial values for specimens/samples as a reference
+        # to tell if we've had any changes
         self.spec_grid, self.temp_data['specimens'], self.temp_data['samples'] = self.make_table(['specimens', '', 'samples'], self.specimens, self.Data_hierarchy, 'sample_of_specimen')
         self.changes = False
 
-        self.Bind(wx.grid.EVT_GRID_EDITOR_SHOWN, self.on_edit_grid, self.spec_grid) 
+        self.Bind(wx.grid.EVT_GRID_EDITOR_SHOWN, self.on_edit_grid, self.spec_grid) # if user begins to edit, self.changes will be set to True
+        self.Bind(wx.grid.EVT_GRID_SELECT_CELL, lambda event: self.on_left_click(event, self.spec_grid, samples), self.spec_grid) 
 
-        #self.grid.SetCellBackgroundColour(0, 0, "LIGHT GREY")
-        #self.grid.SetCellBackgroundColour(1, 1, "LIGHT GREY")
-
+        #### Create Buttons ####
         hboxok = wx.BoxSizer(wx.HORIZONTAL)
         self.saveButton =  wx.Button(self.panel, id=-1, label='Save')
         self.Bind(wx.EVT_BUTTON, lambda event: self.on_saveButton(event, self.spec_grid), self.saveButton)
@@ -2404,6 +2410,7 @@ class check(wx.Frame):
         hboxok.Add(self.cancelButton, flag=wx.ALIGN_LEFT|wx.RIGHT, border=20) 
         hboxok.Add(self.continueButton, flag=wx.ALIGN_LEFT )
 
+        ### Create Containers ###
         vbox = wx.BoxSizer(wx.VERTICAL)
         vbox.Add(label, flag=wx.ALIGN_LEFT|wx.BOTTOM, border=20)
         vbox.Add(self.spec_grid, flag=wx.BOTTOM|wx.EXPAND, border=20)
@@ -2416,14 +2423,15 @@ class check(wx.Frame):
 
         self.panel.SetSizer(hbox_all)
         self.panel.SetScrollbars(20, 20, 50, 50)
-        hbox_all.Fit(self)  # or hbox_all.fit(self.panel))
+        hbox_all.Fit(self)  
         self.Show()
         self.Centre()
             
 
-        
-    # 
+
     def InitSampCheck(self):
+        """make an interactive grid in which users can edit sample names
+        as well as which site a sample belongs to"""
         self.panel = wx.ScrolledWindow(self, style=wx.SIMPLE_BORDER)
         TEXT = """Check that all samples are correctly named,
         and that they belong to the correct site
@@ -2431,25 +2439,30 @@ class check(wx.Frame):
         label = wx.StaticText(self.panel,label=TEXT)
         self.Data, self.Data_hierarchy = self.ErMagic.Data, self.ErMagic.Data_hierarchy
         self.samples = self.Data_hierarchy['samples'].keys()
-        self.grid, self.samples, self.sites = self.make_table(['samples', '', 'sites'], self.samples, self.Data_hierarchy, 'site_of_sample')
+        sites = self.Data_hierarchy['sites'].keys()
+        self.samp_grid, self.samples, self.sites = self.make_table(['samples', '', 'sites'], self.samples, self.Data_hierarchy, 'site_of_sample')
         self.changes = False
-        self.Bind(wx.grid.EVT_GRID_EDITOR_SHOWN, self.on_edit_grid, self.grid) 
+        self.Bind(wx.grid.EVT_GRID_EDITOR_SHOWN, self.on_edit_grid, self.samp_grid) 
+        self.Bind(wx.grid.EVT_GRID_SELECT_CELL, lambda event: self.on_left_click(event, self.samp_grid, sites), self.samp_grid) 
 
+
+        ### Create Buttons ###
         hboxok = wx.BoxSizer(wx.HORIZONTAL)
         self.saveButton =  wx.Button(self.panel, id=-1, label='Save')
-        self.Bind(wx.EVT_BUTTON, lambda event: self.on_saveButton(event, self.grid), self.saveButton)
+        self.Bind(wx.EVT_BUTTON, lambda event: self.on_saveButton(event, self.samp_grid), self.saveButton)
         self.cancelButton = wx.Button(self.panel, wx.ID_CANCEL, '&Cancel')
         self.Bind(wx.EVT_BUTTON, self.on_cancelButton, self.cancelButton)
         self.continueButton = wx.Button(self.panel, id=-1, label='Save and continue')
-        self.Bind(wx.EVT_BUTTON, lambda event: self.on_continueButton(event, self.grid), self.continueButton)
+        self.Bind(wx.EVT_BUTTON, lambda event: self.on_continueButton(event, self.samp_grid), self.continueButton)
 
         hboxok.Add(self.saveButton, flag=wx.BOTTOM, border=20)
         hboxok.Add(self.cancelButton, flag=wx.BOTTOM, border=20 )
         hboxok.Add(self.continueButton, flag=wx.BOTTOM, border=20 )
 
+        ### Make Containers ###
         vbox = wx.BoxSizer(wx.VERTICAL)
         vbox.Add(label, flag=wx.ALIGN_LEFT|wx.BOTTOM, border=20)
-        vbox.Add(self.grid, flag=wx.BOTTOM|wx.EXPAND, border=20) # EXPAND ??
+        vbox.Add(self.samp_grid, flag=wx.BOTTOM|wx.EXPAND, border=20) # EXPAND ??
         vbox.Add(hboxok, flag=wx.BOTTOM, border=20)
 
         hbox_all= wx.BoxSizer(wx.HORIZONTAL)
@@ -2463,7 +2476,8 @@ class check(wx.Frame):
         self.Show()
         self.Centre()
 
-    
+
+    ### Grid methods ###
     def make_table(self, column_labels, row_values, column_indexing, ind):
         """ takes a list of row values (i.e., specimens, samples, locations, etc.) 
         and a data structure (column_indexing) to index them against.  for example, 
@@ -2472,10 +2486,6 @@ class check(wx.Frame):
         row_values: list of specimens
         column_indexing: Data_hierarchy object containing various data mappings
         ind: ['sample_of_specimen'], indicating which data mapping to use """
-        #print "column_labels", column_labels
-        #print "row_values", row_values
-        #print "column_indexing", column_indexing
-        #print "ind", ind
         grid = wx.grid.Grid(self.panel, -1)
         grid.ClearGrid()
         grid.CreateGrid(len(row_values), len(column_labels))
@@ -2489,7 +2499,7 @@ class check(wx.Frame):
             original_1.append(row)
             grid.SetCellValue(n, 0, row)
             grid.SetCellValue(n, 1, "belongs to")
-            grid.SetReadOnly(n, 1, True) # could do this for entire column, but doesn't save space
+            grid.SetReadOnly(n, 1, True) 
             col = column_indexing[ind][row]
             original_2.append(col)
             grid.SetCellValue(n, 2, col)
@@ -2501,8 +2511,31 @@ class check(wx.Frame):
         return grid, original_1, original_2
         
     def on_edit_grid(self, event):
-        print "EDITED"
+        """sets self.changes to true when user edits the grid"""
         self.changes = True
+
+    def on_left_click(self, event, grid, choices):
+        """creates popup menu when user clicks on the third column
+        allows user to edit third column, but only from available values"""
+        row, col = event.GetRow(), event.GetCol()
+        if col == 2:
+            menu = wx.Menu()
+            for choice in choices:
+                menuitem = menu.Append(wx.ID_ANY, choice)
+                self.Bind(wx.EVT_MENU, lambda event: self.on_select_menuitem(event, grid, row), menuitem)
+            self.PopupMenu(menu)
+            menu.Destroy()
+
+    def on_select_menuitem(self, event, grid, row):
+        """sets value of selected cell to value selected from menu
+        (doesn't require column info because only third column works this way"""
+        item_id =  event.GetId()
+        item = event.EventObject.FindItemById(item_id)
+        label= item.Label
+        grid.SetCellValue(row, 2, label)
+
+
+    ### Button methods ###
 
     def on_continueButton(self, event, grid, next_dia=None):
         """pulls up next dialog, if there is one.
@@ -2522,7 +2555,6 @@ class check(wx.Frame):
         else:
             self.Destroy()
 
-
     def on_saveButton(self, event, grid):
         print "SAVE!"
         print grid.SaveEditControlValue() # locks in value in cell currently edited
@@ -2537,22 +2569,20 @@ class check(wx.Frame):
     def on_cancelButton(self, event):
         self.Destroy()
 
-
+        
+    ### Manage data methods ###
 
     def update_orient_data(self, grid):
         col1_updated, col2_updated, col1_old, col2_old, type1, type2 = self.get_old_and_new_data(grid)
-        changed_1 = [(i, col1_updated[num]) for (num, i) in enumerate(col1_old) if i != col1_updated[num]]
+        # creates a list that looks like [(old_value1, new_value1), (old_value_2, new_value2)] etc.  
+        # ONLY if old and new values are different
+        changed_1 = [(i, col1_updated[num]) for (num, i) in enumerate(col1_old) if i != col1_updated[num]]  
         print "self.Data_hierarchy['specimens']", self.Data_hierarchy['specimens']
         print "self.Data_hierarchy['sample_of_specimen']",self.Data_hierarchy['sample_of_specimen']
         print "self.Data_hierarchy['site_of_specimen']", self.Data_hierarchy['site_of_specimen']
         print "self.Data_hierarchy['location_of_specimen']", self.Data_hierarchy['location_of_specimen']
         print "self.Data_hierarchy['samples']", self.Data_hierarchy['samples']
         if type1 == "specimens":
-            #print self.Data_hierarchy['sample_of_specimen']
-            #print self.Data_hierarchy['site_of_specimen']
-            #print self.Data_hierarchy['location_of_specimen']
-            #print self.Data_hierarchy['specimens']
-            #print self.Data_hierarchy['samples']
             for change in changed_1:
                 print "change", change
                 old, new = change
@@ -2589,10 +2619,6 @@ class check(wx.Frame):
         keys = ['sample_of_specimen', 'site_of_sample', 'location_of_specimen', 'locations', 'sites', 'site_of_specimen', 'samples', 'location_of_sample', 'location_of_site', 'specimens']
 
 
-                
-
-
-
     def get_old_and_new_data(self, grid):
         cols = grid.GetNumberCols()
         rows = grid.GetNumberRows()
@@ -2612,14 +2638,7 @@ class check(wx.Frame):
 
 
 
-        # all this function needs to do is capture the changes specimens/samples (or whatever) in self.Data_hierarchy
-        # the function in ErMagicBuilder will do the rest
-        # check each value in the specimen column for changes
-        # check each value in the samples column for changes
-        #for row in range(self.grid.GetNumberRows()):
-            #pass
-            #print self.grid.GetCellValue(row, 0)
-            #print self.specimens[row]
+
 
 
     """
