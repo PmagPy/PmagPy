@@ -2529,6 +2529,7 @@ class check(wx.Frame):
     def on_select_menuitem(self, event, grid, row):
         """sets value of selected cell to value selected from menu
         (doesn't require column info because only third column works this way"""
+        self.changes = True # if user selects a menuitem, that is an edit
         item_id =  event.GetId()
         item = event.EventObject.FindItemById(item_id)
         label= item.Label
@@ -2573,41 +2574,78 @@ class check(wx.Frame):
     ### Manage data methods ###
 
     def update_orient_data(self, grid):
+        """ """
         col1_updated, col2_updated, col1_old, col2_old, type1, type2 = self.get_old_and_new_data(grid)
+        if type1 == 'specimens':
+            self.update_specimens(col1_updated, col1_old)
+        if type2 == 'samples':
+            self.update_samples(col2_updated, col2_old, col1_updated)
+        print "NEW AND IMPROVED"
+        print self.Data_hierarchy
+        
         # creates a list that looks like [(old_value1, new_value1), (old_value_2, new_value2)] etc.  
         # ONLY if old and new values are different
-        changed_1 = [(i, col1_updated[num]) for (num, i) in enumerate(col1_old) if i != col1_updated[num]]  
-        print "self.Data_hierarchy['specimens']", self.Data_hierarchy['specimens']
-        print "self.Data_hierarchy['sample_of_specimen']",self.Data_hierarchy['sample_of_specimen']
-        print "self.Data_hierarchy['site_of_specimen']", self.Data_hierarchy['site_of_specimen']
-        print "self.Data_hierarchy['location_of_specimen']", self.Data_hierarchy['location_of_specimen']
-        print "self.Data_hierarchy['samples']", self.Data_hierarchy['samples']
-        if type1 == "specimens":
-            for change in changed_1:
-                print "change", change
-                old, new = change
-                #print "old", old
-                #print "new", new
-                sample = self.Data_hierarchy['specimens'].pop(old)
-                #print "sample", sample
+
+    def update_samples(self, col_updated, col_old, specimens):
+        print "UPDATE SAMPLES"
+        keys = ['sample_of_specimen', 'site_of_sample', 'sites', 'samples', 'location_of_sample', 'specimens']
+        for k in keys:
+            print "self.Data_hierarchy[{}]".format(k), self.Data_hierarchy[k]
+        print "updated:", col_updated
+        print "old:    ", col_old
+        #  ALSO should check for whether or not a sample still "exists"  
+        # maybe
+        for num, value in enumerate(col_updated):
+            # find where changes have occurred
+            if value != col_old[num]:
+                old_samp = col_old[num]
+                samp = value
+                spec = specimens[num]
+                # find the site and location of the sample and apply it to the specimen (which now belongs to that sample
+                site = self.Data_hierarchy['site_of_sample'][samp] 
+                location = self.Data_hierarchy['location_of_sample'][samp] 
+                self.Data_hierarchy['specimens'][spec] = samp
+                self.Data_hierarchy['sample_of_specimen'][spec] = samp
+                self.Data_hierarchy['site_of_specimen'][spec] = site
+                self.Data_hierarchy['location_of_specimen'][spec] = location
                 #
-                self.Data_hierarchy['specimens'][new] = sample
-                #
-                sample = self.Data_hierarchy['sample_of_specimen'].pop(old)
-                self.Data_hierarchy['sample_of_specimen'][new] = sample
-                #
-                site = self.Data_hierarchy['site_of_specimen'].pop(old)
-                self.Data_hierarchy['site_of_specimen'][new] = site
-                #
-                loc = self.Data_hierarchy['location_of_specimen'].pop(old)
-                self.Data_hierarchy['location_of_specimen'][new] = loc
-                #
-                print "self.Data_hierarchy['samples']", self.Data_hierarchy['samples']
-                print "self.Data_hierarchy['samples'][sample]", self.Data_hierarchy['samples'][sample]
-                ind = self.Data_hierarchy['samples'][sample].index(old)
-                print "ind:", ind
-                #self.Data_hierarchy['samples'][sample].pop(ind)
-                self.Data_hierarchy['samples'][sample][ind] = new
+                self.Data_hierarchy['samples'][samp].append(spec)
+                self.Data_hierarchy['samples'][old_samp].remove(spec)
+                # NEED TO UPDATE self.Data_hierarchy['samples']
+                # it is this:
+                #  samples': {'MP18': ['MP18-1', 'MP18-2', 'MP18-3', 'MP18-4', 'MP18-5', 'MP18-6'], 'm': ['mgf10a1'], 'ag1-6': ['ag1-6a', 'ELEPHANT']}
+      
+
+
+    def update_specimens(self, col_updated, col_old):
+        changed = [(i, col_updated[num]) for (num, i) in enumerate(col_old) if i != col_updated[num]]  
+        #print "self.Data_hierarchy['specimens']", self.Data_hierarchy['specimens']
+        #print "self.Data_hierarchy['sample_of_specimen']",self.Data_hierarchy['sample_of_specimen']
+        #print "self.Data_hierarchy['site_of_specimen']", self.Data_hierarchy['site_of_specimen']
+        #print "self.Data_hierarchy['location_of_specimen']", self.Data_hierarchy['location_of_specimen']
+        #print "self.Data_hierarchy['samples']", self.Data_hierarchy['samples']
+        for change in changed:
+            print "change", change
+            old, new = change
+            sample = self.Data_hierarchy['specimens'].pop(old)
+            #
+            self.Data_hierarchy['specimens'][new] = sample
+            #
+            sample = self.Data_hierarchy['sample_of_specimen'].pop(old)
+            self.Data_hierarchy['sample_of_specimen'][new] = sample
+            #
+            site = self.Data_hierarchy['site_of_specimen'].pop(old)
+            self.Data_hierarchy['site_of_specimen'][new] = site
+            #
+            loc = self.Data_hierarchy['location_of_specimen'].pop(old)
+            self.Data_hierarchy['location_of_specimen'][new] = loc
+            #
+            print "self.Data_hierarchy['samples']", self.Data_hierarchy['samples']
+            print "self.Data_hierarchy['samples'][sample]", self.Data_hierarchy['samples'][sample]
+            ind = self.Data_hierarchy['samples'][sample].index(old)
+            print "ind:", ind
+            #self.Data_hierarchy['samples'][sample].pop(ind)
+            self.Data_hierarchy['samples'][sample][ind] = new
 
         print "NEW AND IMPROVED"
         print "self.Data_hierarchy['specimens']", self.Data_hierarchy['specimens']
