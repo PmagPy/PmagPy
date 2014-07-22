@@ -2440,7 +2440,7 @@ class check(wx.Frame):
         self.Data, self.Data_hierarchy = self.ErMagic.Data, self.ErMagic.Data_hierarchy
         self.samples = self.Data_hierarchy['samples'].keys()
         sites = self.Data_hierarchy['sites'].keys()
-        self.samp_grid, self.samples, self.sites = self.make_table(['samples', '', 'sites'], self.samples, self.Data_hierarchy, 'site_of_sample')
+        self.samp_grid, self.temp_data['samples'], self.temp_data['sites'] = self.make_table(['samples', '', 'sites'], self.samples, self.Data_hierarchy, 'site_of_sample')
         self.changes = False
         self.Bind(wx.grid.EVT_GRID_EDITOR_SHOWN, self.on_edit_grid, self.samp_grid) 
         self.Bind(wx.grid.EVT_GRID_SELECT_CELL, lambda event: self.on_left_click(event, self.samp_grid, sites), self.samp_grid) 
@@ -2575,50 +2575,103 @@ class check(wx.Frame):
 
     def update_orient_data(self, grid):
         """ """
+        # WHAT SHOULD HAPPEN IF TWO SPECIMENS ARE GIVEN IDENTICAL NAMES??
         col1_updated, col2_updated, col1_old, col2_old, type1, type2 = self.get_old_and_new_data(grid)
+        if len(set(col1_updated)) != len(col1_updated):
+            print "Duplicate {} detected.  Please ensure that all {} names are unique".format(type1, type1[:-1])
+            return 0
         if type1 == 'specimens':
-            self.update_specimens(col1_updated, col1_old)
-        if type2 == 'samples':
-            self.update_samples(col2_updated, col2_old, col1_updated)
+            self.update_specimens(col1_updated, col1_old, col2_updated, col2_old, type1, type2)
+            #self.update_samples(col2_updated, col2_old, col1_updated)
+        if type1 == 'samples':
+            self.update_samples(col1_updated, col1_old, col2_updated, col2_old)
+            print "type1", type1
+            print "type2", type2
         print "NEW AND IMPROVED"
-        print self.Data_hierarchy
-        
-        # creates a list that looks like [(old_value1, new_value1), (old_value_2, new_value2)] etc.  
-        # ONLY if old and new values are different
+        for k, v in self.Data_hierarchy.items():
+            print k
+            print v
 
-    def update_samples(self, col_updated, col_old, specimens):
-        print "UPDATE SAMPLES"
-        keys = ['sample_of_specimen', 'site_of_sample', 'sites', 'samples', 'location_of_sample', 'specimens']
-        for k in keys:
-            print "self.Data_hierarchy[{}]".format(k), self.Data_hierarchy[k]
-        print "updated:", col_updated
-        print "old:    ", col_old
-        #  ALSO should check for whether or not a sample still "exists"  
-        # maybe
-        for num, value in enumerate(col_updated):
+        # updates the holder data so that when we save again, we will only update what is new as of the last save
+
+        self.temp_data[type1] = col1_updated 
+        self.temp_data[type2] = col2_updated
+        print "Updated temp_data"
+        
+
+    def update_samples(self, col1_updated, col1_old, col2_updated, col2_old):
+        changed = [(old_value, col1_updated[num]) for (num, old_value) in enumerate(col1_old) if old_value != col1_updated[num]]  
+        #for k, v in self.Data_hierarchy.items():
+            #print k
+            #print v
+            #print "---"
+        for change in changed:
+            print "change!!!!!!", change
+            old_sample, new_sample = change
+            specimens = self.Data_hierarchy['samples'].pop(old_sample)
+            site = self.Data_hierarchy['site_of_sample'].pop(old_sample)
+            location = self.Data_hierarchy['location_of_sample'].pop(old_sample)
+            
+            self.Data_hierarchy['samples'][new_sample] = specimens
+            
+            for spec in specimens:
+                self.Data_hierarchy['sample_of_specimen'][spec] = new_sample
+                self.Data_hierarchy['specimens'][spec] = new_sample
+            #
+            self.Data_hierarchy['site_of_sample'][new_sample] = site
+            #
+            self.Data_hierarchy['location_of_sample'][new] = location
+            #
+            ind = self.Data_hierarchy['sites'][site].index(old_sample)
+            self.Data_hierarchy['sites'][site][ind] = new_sample
+        
+        # now do the site changes
+        for num, value in enumerate(col2_updated):
             # find where changes have occurred
-            if value != col_old[num]:
-                old_samp = col_old[num]
-                samp = value
-                spec = specimens[num]
-                # find the site and location of the sample and apply it to the specimen (which now belongs to that sample
-                site = self.Data_hierarchy['site_of_sample'][samp] 
-                location = self.Data_hierarchy['location_of_sample'][samp] 
-                self.Data_hierarchy['specimens'][spec] = samp
-                self.Data_hierarchy['sample_of_specimen'][spec] = samp
-                self.Data_hierarchy['site_of_specimen'][spec] = site
-                self.Data_hierarchy['location_of_specimen'][spec] = location
+            if value != col2_old[num]:
+                print "CHANGE!", "new", value, "old", col2_old[num]
+                sample = col1_updated[num]
+                specimens = self.Data_hierarchy['samples'][sample]
+                old_site = col2_old[num]
+                new_site = value
+                loc = self.Data_hierarchy['location_of_site'][new_site]
+                samples = self.Data_hierarchy['sites'][old_site]
                 #
-                self.Data_hierarchy['samples'][samp].append(spec)
-                self.Data_hierarchy['samples'][old_samp].remove(spec)
-                # NEED TO UPDATE self.Data_hierarchy['samples']
-                # it is this:
-                #  samples': {'MP18': ['MP18-1', 'MP18-2', 'MP18-3', 'MP18-4', 'MP18-5', 'MP18-6'], 'm': ['mgf10a1'], 'ag1-6': ['ag1-6a', 'ELEPHANT']}
+                self.Data_hierarchy['site_of_sample'][sample] = new_site
+                #
+                self.Data_hierarchy['location_of_sample'][sample] = loc
+                #
+                #print "self.Data_hierarchy['sites']", self.Data_hierarchy['sites']
+                #print "samp", sample, "new_site", new_site, "old site", old_site
+                #print "new site ({}) before:".format(new_site), self.Data_hierarchy['sites'][new_site]
+                #print "old site ({}) before:".format(old_site), self.Data_hierarchy['sites'][old_site]
+                self.Data_hierarchy['sites'][new_site].append(sample)
+                self.Data_hierarchy['sites'][old_site].remove(sample)
+                #print "new site after", self.Data_hierarchy['sites'][new_site]
+                #print "old site after:", self.Data_hierarchy['sites'][old_site]
+                for spec in specimens:
+                    # specimens belonging to a sample which has been reassigned to a different site correspondingly must change site and location
+                    self.Data_hierarchy['site_of_specimen'][spec] = new_site
+                    self.Data_hierarchy['location_of_specimen'][spec] = loc
+                # NEED TO SAVE CHANGES
+                #
+
+
+                
+                
+                
+                # 1: update site name everywhere
+                # 2: update site and loc for all specimens belonging to the sample
+
+
+
+
+
       
 
 
-    def update_specimens(self, col_updated, col_old):
-        changed = [(i, col_updated[num]) for (num, i) in enumerate(col_old) if i != col_updated[num]]  
+    def update_specimens(self, col1_updated, col1_old, col2_updated, col2_old, type1, type2):
+        changed = [(i, col1_updated[num]) for (num, i) in enumerate(col1_old) if i != col1_updated[num]]  
         #print "self.Data_hierarchy['specimens']", self.Data_hierarchy['specimens']
         #print "self.Data_hierarchy['sample_of_specimen']",self.Data_hierarchy['sample_of_specimen']
         #print "self.Data_hierarchy['site_of_specimen']", self.Data_hierarchy['site_of_specimen']
@@ -2627,9 +2680,9 @@ class check(wx.Frame):
         for change in changed:
             print "change", change
             old, new = change
-            sample = self.Data_hierarchy['specimens'].pop(old)
+            sample = self.Data_hierarchy[type1].pop(old)
             #
-            self.Data_hierarchy['specimens'][new] = sample
+            self.Data_hierarchy[type1][new] = sample
             #
             sample = self.Data_hierarchy['sample_of_specimen'].pop(old)
             self.Data_hierarchy['sample_of_specimen'][new] = sample
@@ -2653,6 +2706,31 @@ class check(wx.Frame):
         print "self.Data_hierarchy['site_of_specimen']", self.Data_hierarchy['site_of_specimen']
         print "self.Data_hierarchy['location_of_specimen']", self.Data_hierarchy['location_of_specimen']
         print "self.Data_hierarchy['samples']", self.Data_hierarchy['samples']
+        
+        # update samples portion of updating specimens
+        print "UPDATE SAMPLES"
+        #  ALSO should check for whether or not a sample still "exists"  
+        # maybe
+        for num, value in enumerate(col2_updated):
+            # find where changes have occurred
+            if value != col2_old[num]:
+                old_samp = col2_old[num]
+                samp = value
+                spec = col1_updated[num]
+                # find the site and location of the sample and apply it to the specimen (which now belongs to that sample
+                site = self.Data_hierarchy['site_of_sample'][samp] 
+                location = self.Data_hierarchy['location_of_sample'][samp] 
+                self.Data_hierarchy['specimens'][spec] = samp
+                self.Data_hierarchy['sample_of_specimen'][spec] = samp
+                self.Data_hierarchy['site_of_specimen'][spec] = site
+                self.Data_hierarchy['location_of_specimen'][spec] = location
+                #
+                self.Data_hierarchy['samples'][samp].append(spec)
+                self.Data_hierarchy['samples'][old_samp].remove(spec)
+                # NEED TO UPDATE self.Data_hierarchy['samples']
+                # it is this:
+                #  samples': {'MP18': ['MP18-1', 'MP18-2', 'MP18-3', 'MP18-4', 'MP18-5', 'MP18-6'], 'm': ['mgf10a1'], 'ag1-6': ['ag1-6a', 'ELEPHANT']}
+
 
         keys = ['sample_of_specimen', 'site_of_sample', 'location_of_specimen', 'locations', 'sites', 'site_of_specimen', 'samples', 'location_of_sample', 'location_of_site', 'specimens']
 
