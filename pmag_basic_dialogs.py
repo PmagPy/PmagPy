@@ -2453,7 +2453,8 @@ class check(wx.Frame):
         self.cancelButton = wx.Button(self.panel, wx.ID_CANCEL, '&Cancel')
         self.Bind(wx.EVT_BUTTON, self.on_cancelButton, self.cancelButton)
         self.continueButton = wx.Button(self.panel, id=-1, label='Save and continue')
-        self.Bind(wx.EVT_BUTTON, lambda event: self.on_continueButton(event, self.samp_grid), self.continueButton)
+        self.Bind(wx.EVT_BUTTON, lambda event: self.on_continueButton(event, self.samp_grid, next_dia=self.InitSiteCheck), self.continueButton)
+
 
         hboxok.Add(self.saveButton, flag=wx.BOTTOM, border=20)
         hboxok.Add(self.cancelButton, flag=wx.BOTTOM, border=20 )
@@ -2475,6 +2476,58 @@ class check(wx.Frame):
         hbox_all.Fit(self)
         self.Show()
         self.Centre()
+
+
+    def InitSiteCheck(self):
+        """make an interactive grid in which users can edit site names
+        as well as which location a site belongs to"""
+        self.panel = wx.ScrolledWindow(self, style=wx.SIMPLE_BORDER)
+        TEXT = """Check that all sites are correctly named,
+        and that they belong to the correct site
+        (if site name is simply wrong, that will be fixed in step 2)"""
+        #label = wx.StaticText(self.panel,label=TEXT)
+        self.Data, self.Data_hierarchy = self.ErMagic.Data, self.ErMagic.Data_hierarchy
+        self.sites = self.Data_hierarchy['sites'].keys()
+        print "self.sites", self.sites
+        self.site_grid, self.temp_data['sites'], self.temp_data['locations'] = self.make_table(['sites', '', 'locations'], self.sites, self.Data_hierarchy, 'location_of_site')
+        print self.site_grid
+        locations = self.temp_data['locations']
+        self.changes = False
+        self.Bind(wx.grid.EVT_GRID_EDITOR_SHOWN, self.on_edit_grid, self.site_grid) 
+        self.Bind(wx.grid.EVT_GRID_SELECT_CELL, lambda event: self.on_left_click(event, self.site_grid, locations), self.site_grid) 
+
+
+        ### Create Buttons ###
+        hboxok = wx.BoxSizer(wx.HORIZONTAL)
+        self.saveButton =  wx.Button(self.panel, id=-1, label='Save')
+        self.Bind(wx.EVT_BUTTON, lambda event: self.on_saveButton(event, self.site_grid), self.saveButton)
+        self.cancelButton = wx.Button(self.panel, wx.ID_CANCEL, '&Cancel')
+        self.Bind(wx.EVT_BUTTON, self.on_cancelButton, self.cancelButton)
+        self.continueButton = wx.Button(self.panel, id=-1, label='Save and continue')
+        self.Bind(wx.EVT_BUTTON, lambda event: self.on_continueButton(event, self.site_grid), self.continueButton)
+
+        hboxok.Add(self.saveButton, flag=wx.BOTTOM, border=20)
+        hboxok.Add(self.cancelButton, flag=wx.BOTTOM, border=20 )
+        hboxok.Add(self.continueButton, flag=wx.BOTTOM, border=20 )
+
+        ### Make Containers ###
+        vbox = wx.BoxSizer(wx.VERTICAL)
+        #vbox.Add(label, flag=wx.ALIGN_LEFT|wx.BOTTOM, border=20)
+        vbox.Add(self.site_grid, flag=wx.BOTTOM|wx.EXPAND, border=20) # EXPAND ??
+        vbox.Add(hboxok, flag=wx.BOTTOM, border=20)
+
+        hbox_all= wx.BoxSizer(wx.HORIZONTAL)
+        hbox_all.AddSpacer(20)
+        hbox_all.AddSpacer(vbox)
+        hbox_all.AddSpacer(20)
+
+        self.panel.SetSizer(hbox_all)
+        self.panel.SetScrollbars(20, 20, 50, 50)
+        hbox_all.Fit(self)
+        self.Show()
+        self.Centre()
+
+
 
 
     ### Grid methods ###
@@ -2503,6 +2556,7 @@ class check(wx.Frame):
             col = column_indexing[ind][row]
             original_2.append(col)
             grid.SetCellValue(n, 2, col)
+            print "col", col
 
         for n, label in enumerate(column_labels):
             grid.SetColLabelValue(n, label)
@@ -2597,6 +2651,11 @@ class check(wx.Frame):
         self.temp_data[type1] = col1_updated 
         self.temp_data[type2] = col2_updated
         print "Updated temp_data"
+
+
+    def update_sites(*args):
+        pass
+
         
 
     def update_samples(self, col1_updated, col1_old, col2_updated, col2_old):
@@ -2653,22 +2712,7 @@ class check(wx.Frame):
                     # specimens belonging to a sample which has been reassigned to a different site correspondingly must change site and location
                     self.Data_hierarchy['site_of_specimen'][spec] = new_site
                     self.Data_hierarchy['location_of_specimen'][spec] = loc
-                # NEED TO SAVE CHANGES
-                #
-
-
-                
-                
-                
-                # 1: update site name everywhere
-                # 2: update site and loc for all specimens belonging to the sample
-
-
-
-
-
       
-
 
     def update_specimens(self, col1_updated, col1_old, col2_updated, col2_old, type1, type2):
         changed = [(i, col1_updated[num]) for (num, i) in enumerate(col1_old) if i != col1_updated[num]]  
