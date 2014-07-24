@@ -2442,6 +2442,7 @@ class check(wx.Frame):
         sites = self.Data_hierarchy['sites'].keys()
         self.samp_grid, self.temp_data['samples'], self.temp_data['sites'] = self.make_table(['samples', '', 'sites'], self.samples, self.Data_hierarchy, 'site_of_sample')
         self.changes = False
+
         self.Bind(wx.grid.EVT_GRID_EDITOR_SHOWN, self.on_edit_grid, self.samp_grid) 
         self.Bind(wx.grid.EVT_GRID_SELECT_CELL, lambda event: self.on_left_click(event, self.samp_grid, sites), self.samp_grid) 
 
@@ -2485,14 +2486,14 @@ class check(wx.Frame):
         TEXT = """Check that all sites are correctly named,
         and that they belong to the correct site
         (if site name is simply wrong, that will be fixed in step 2)"""
-        #label = wx.StaticText(self.panel,label=TEXT)
+        label = wx.StaticText(self.panel,label=TEXT)
         self.Data, self.Data_hierarchy = self.ErMagic.Data, self.ErMagic.Data_hierarchy
         self.sites = self.Data_hierarchy['sites'].keys()
-        print "self.sites", self.sites
-        self.site_grid, self.temp_data['sites'], self.temp_data['locations'] = self.make_table(['sites', '', 'locations'], self.sites, self.Data_hierarchy, 'location_of_site')
-        print self.site_grid
+        self.site_grid, self.temp_data['sites'], self.temp_data['locations'] = self.make_table(['sites', '', 'locations', 'site_class', 'site_lithology', 'site_type', 'site_definition', 'site_lon', 'site_lat'], self.sites, self.Data_hierarchy, 'location_of_site')
+        # additional options: 
         locations = self.temp_data['locations']
         self.changes = False
+
         self.Bind(wx.grid.EVT_GRID_EDITOR_SHOWN, self.on_edit_grid, self.site_grid) 
         self.Bind(wx.grid.EVT_GRID_SELECT_CELL, lambda event: self.on_left_click(event, self.site_grid, locations), self.site_grid) 
 
@@ -2512,7 +2513,7 @@ class check(wx.Frame):
 
         ### Make Containers ###
         vbox = wx.BoxSizer(wx.VERTICAL)
-        #vbox.Add(label, flag=wx.ALIGN_LEFT|wx.BOTTOM, border=20)
+        vbox.Add(label, flag=wx.ALIGN_LEFT|wx.BOTTOM)#, flag=wx.ALIGN_LEFT|wx.BOTTOM, border=20)
         vbox.Add(self.site_grid, flag=wx.BOTTOM|wx.EXPAND, border=20) # EXPAND ??
         vbox.Add(hboxok, flag=wx.BOTTOM, border=20)
 
@@ -2531,7 +2532,7 @@ class check(wx.Frame):
 
 
     ### Grid methods ###
-    def make_table(self, column_labels, row_values, column_indexing, ind):
+    def make_table(self, column_labels, row_values, column_indexing, ind, *args):
         """ takes a list of row values (i.e., specimens, samples, locations, etc.) 
         and a data structure (column_indexing) to index them against.  for example, 
         to show the sample to specimen relationship, you would have:
@@ -2556,12 +2557,24 @@ class check(wx.Frame):
             col = column_indexing[ind][row]
             original_2.append(col)
             grid.SetCellValue(n, 2, col)
-            print "col", col
+
+        grid.AppendRows(1) # prevents site_grid from looking really stupid when editing bottom row.  not a good permanent solution, thoug
+        
+        grid.SetRowLabelValue(len(row_values), " ")
+        
 
         for n, label in enumerate(column_labels):
             grid.SetColLabelValue(n, label)
 
-        grid.AutoSize()# doesn't clearly do anything......?
+        grid.AutoSize()
+
+        for n, col in enumerate(column_labels):
+            # adjust column widths to be a little larger then auto for nicer editing
+            if n != 1:
+            #if True:
+                size = grid.GetColSize(n) * 1.75
+                grid.SetColSize(n, size)
+
         return grid, original_1, original_2
         
     def on_edit_grid(self, event):
@@ -2574,7 +2587,8 @@ class check(wx.Frame):
         row, col = event.GetRow(), event.GetCol()
         if col == 2:
             menu = wx.Menu()
-            for choice in choices:
+            for choice in set(choices):
+                if not choice: choice = " " # prevents error if choice is an empty string
                 menuitem = menu.Append(wx.ID_ANY, choice)
                 self.Bind(wx.EVT_MENU, lambda event: self.on_select_menuitem(event, grid, row), menuitem)
             self.PopupMenu(menu)
