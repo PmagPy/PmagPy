@@ -757,23 +757,27 @@ class PintPars(object):
 
 
 
-ignore = """
 
-cwd = os.getcwd()
-main_dir = cwd + '/SPD'
-try:
-    gui = tgs.Arai_GUI('/magic_measurements.txt', main_dir)
-    specimens = gui.Data.keys()
-    thing = PintPars(gui.Data, '0238x6011044', 473., 623.)
-    thing.calculate_all_statistics()
-    new_thing = PintPars(gui.Data, '0238x5721062', 100. + 273., 525. + 273.)
-    new_thing.calculate_all_statistics()
-    gui2 = tgs.Arai_GUI('/consistency_tests/Yamamoto_Hushi_2008_magic_measurements.txt', cwd)
-    thing2 = PintPars(gui2.Data, 'SW01-01A-2', 100. + 273., 480. + 273.)
-except Exception as ex:
-    print 'could not make standard specimen objects'
-    print ex
-"""
+def make_thing():
+    """ makes example PintPars object """
+    cwd = os.getcwd()
+    main_dir = cwd + '/SPD'
+    try:
+        import new_lj_thellier_gui_spd as tgs
+        gui = tgs.Arai_GUI('/magic_measurements.txt', main_dir)
+        specimens = gui.Data.keys()
+        thing = PintPars(gui.Data, '0238x6011044', 473., 623.)
+        thing.calculate_all_statistics()
+        #new_thing = PintPars(gui.Data, '0238x5721062', 100. + 273., 525. + 273.)
+        #new_thing.calculate_all_statistics()
+        #gui2 = tgs.Arai_GUI('/consistency_tests/Yamamoto_Hushi_2008_magic_measurements.txt', cwd)
+        #thing2 = PintPars(gui2.Data, 'SW01-01A-2', 100. + 273., 480. + 273.)
+        return thing
+    except Exception as ex:
+        print 'could not make standard specimen objects'
+        print ex
+    
+
 #thing2 = PintPars(gui.Data, specimens[0], 473., 623.)
 #thing2.calculate_all_statistics()
 #thing3 = PintPars(gui.Data, specimens[1], 473., 623.)
