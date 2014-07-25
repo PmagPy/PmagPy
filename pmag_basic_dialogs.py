@@ -2529,8 +2529,6 @@ class check(wx.Frame):
         self.Centre()
 
 
-
-
     ### Grid methods ###
     def make_table(self, column_labels, row_values, column_indexing, ind, *args):
         """ takes a list of row values (i.e., specimens, samples, locations, etc.) 
@@ -2558,9 +2556,8 @@ class check(wx.Frame):
             original_2.append(col)
             grid.SetCellValue(n, 2, col)
 
-        grid.AppendRows(1) # prevents site_grid from looking really stupid when editing bottom row.  not a good permanent solution, thoug
-        
-        grid.SetRowLabelValue(len(row_values), " ")
+        #grid.AppendRows(1) # prevents site_grid from looking really stupid when editing bottom row.  not a good permanent solution, thoug
+        #grid.SetRowLabelValue(len(row_values), " ")
         
 
         for n, label in enumerate(column_labels):
@@ -2631,8 +2628,10 @@ class check(wx.Frame):
         if self.changes:
             print "there were changes, so we are updating the data"
             self.update_orient_data(grid)
-            #self.ErMagic.Data_hierarchy = self.Data_hierarchy # passes in updated Data_hierarchy to ErMagic Data_hierarchy
-            #self.ErMagic.on_okButton(None) # add this back in, it was messing up testing
+            print "self.ErMagic.Data_hierarchy['specimens']", self.ErMagic.Data_hierarchy['specimens']
+            print "self.Data_hierarchy['specimens']", self.Data_hierarchy['specimens']
+            self.ErMagic.Data_hierarchy = self.Data_hierarchy # passes in updated Data_hierarchy to ErMagic Data_hierarchy
+            self.ErMagic.on_okButton(None) # add this back in, it was messing up testing
             self.changes = False
 
     def on_cancelButton(self, event):
@@ -2653,12 +2652,10 @@ class check(wx.Frame):
             #self.update_samples(col2_updated, col2_old, col1_updated)
         if type1 == 'samples':
             self.update_samples(col1_updated, col1_old, col2_updated, col2_old)
-            print "type1", type1
-            print "type2", type2
         print "NEW AND IMPROVED"
-        for k, v in self.Data_hierarchy.items():
-            print k
-            print v
+        #for k, v in self.Data_hierarchy.items():
+            #print k
+            #print v
 
         # updates the holder data so that when we save again, we will only update what is new as of the last save
 
@@ -2679,7 +2676,7 @@ class check(wx.Frame):
             #print v
             #print "---"
         for change in changed:
-            print "change!!!!!!", change
+            #print "change!!!!!!", change
             old_sample, new_sample = change
             specimens = self.Data_hierarchy['samples'].pop(old_sample)
             site = self.Data_hierarchy['site_of_sample'].pop(old_sample)
@@ -2702,7 +2699,7 @@ class check(wx.Frame):
         for num, value in enumerate(col2_updated):
             # find where changes have occurred
             if value != col2_old[num]:
-                print "CHANGE!", "new", value, "old", col2_old[num]
+                #print "CHANGE!", "new", value, "old", col2_old[num]
                 sample = col1_updated[num]
                 specimens = self.Data_hierarchy['samples'][sample]
                 old_site = col2_old[num]
@@ -2736,7 +2733,7 @@ class check(wx.Frame):
         #print "self.Data_hierarchy['location_of_specimen']", self.Data_hierarchy['location_of_specimen']
         #print "self.Data_hierarchy['samples']", self.Data_hierarchy['samples']
         for change in changed:
-            print "change", change
+            #print "change", change
             old, new = change
             sample = self.Data_hierarchy[type1].pop(old)
             #
@@ -2751,19 +2748,19 @@ class check(wx.Frame):
             loc = self.Data_hierarchy['location_of_specimen'].pop(old)
             self.Data_hierarchy['location_of_specimen'][new] = loc
             #
-            print "self.Data_hierarchy['samples']", self.Data_hierarchy['samples']
-            print "self.Data_hierarchy['samples'][sample]", self.Data_hierarchy['samples'][sample]
+            #print "self.Data_hierarchy['samples']", self.Data_hierarchy['samples']
+            #print "self.Data_hierarchy['samples'][sample]", self.Data_hierarchy['samples'][sample]
             ind = self.Data_hierarchy['samples'][sample].index(old)
-            print "ind:", ind
+            #print "ind:", ind
             #self.Data_hierarchy['samples'][sample].pop(ind)
             self.Data_hierarchy['samples'][sample][ind] = new
 
-        print "NEW AND IMPROVED"
-        print "self.Data_hierarchy['specimens']", self.Data_hierarchy['specimens']
-        print "self.Data_hierarchy['sample_of_specimen']",self.Data_hierarchy['sample_of_specimen']
-        print "self.Data_hierarchy['site_of_specimen']", self.Data_hierarchy['site_of_specimen']
-        print "self.Data_hierarchy['location_of_specimen']", self.Data_hierarchy['location_of_specimen']
-        print "self.Data_hierarchy['samples']", self.Data_hierarchy['samples']
+        #print "NEW AND IMPROVED"
+        #print "self.Data_hierarchy['specimens']", self.Data_hierarchy['specimens']
+        #print "self.Data_hierarchy['sample_of_specimen']",self.Data_hierarchy['sample_of_specimen']
+        #print "self.Data_hierarchy['site_of_specimen']", self.Data_hierarchy['site_of_specimen']
+        #print "self.Data_hierarchy['location_of_specimen']", self.Data_hierarchy['location_of_specimen']
+        #print "self.Data_hierarchy['samples']", self.Data_hierarchy['samples']
         
         # update samples portion of updating specimens
         print "UPDATE SAMPLES"
