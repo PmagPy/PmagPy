@@ -568,6 +568,9 @@ class MagIC_model_builder(wx.Frame):
             sample=tmp["er_sample_name"]
             if specimen in  self.data_er_specimens.keys() and "er_sample_name" in self.data_er_specimens[specimen].keys():
                 if sample != self.data_er_specimens[specimen]["er_sample_name"]:
+                    print "--"
+                    print "CHANGING SAMPLE NAME ELEPHANT"
+                    print "--"
                     sample=self.data_er_specimens[specimen]["er_sample_name"]
                     tmp["er_sample_name"]=sample
                                     
@@ -630,14 +633,16 @@ class MagIC_model_builder(wx.Frame):
         self.Destroy()
       
     def read_magic_file(self,path,sort_by_this_name):
+        print "doing ErMagic read_magic_file"
         DATA={}
         fin=open(path,'rU')
         fin.readline()
         line=fin.readline()
         header=line.strip('\n').split('\t')
-        print path,header
+        print "path, header", path#,header
         counter=0
         for line in fin.readlines():
+            print "line", line
             tmp_data={}
             tmp_line=line.strip('\n').split('\t')
             for i in range(len(header)):
@@ -671,20 +676,23 @@ class MagIC_model_builder(wx.Frame):
         return recs
 
     def read_MagIC_info(self):
+        print "doing read_MagIC_info"
         Data_info={}
-        #print "-I- read existing MagIC model files"
+        print "-I- read existing MagIC model files"
         self.data_er_specimens,self.data_er_samples,self.data_er_sites,self.data_er_locations,self.data_er_ages={},{},{},{},{}
+        print "self.data_er_specimens: ".format(self.data_er_specimens.keys())
 
         try:
             self.data_er_specimens=self.read_magic_file(self.WD+"/er_specimens.txt",'er_specimen_name')
+            print "self.data_er_specimens: ".format(self.data_er_specimens.keys())
         except:
-            #self.GUI_log.write ("-W- Cant find er_sample.txt in project directory")
-            pass
+            self.GUI_log.write ("-W- Cant find er_sample.txt in project directory")
+            print "-W- Cant find er_sample.txt in project directory"
         try:
             self.data_er_samples=self.read_magic_file(self.WD+"/er_samples.txt",'er_sample_name')
         except:
-            #self.GUI_log.write ("-W- Cant find er_sample.txt in project directory")
-            pass
+            self.GUI_log.write ("-W- Cant find er_sample.txt in project directory")
+            print "-W- Cant find er_sample.txt in project directory"
         try:
             self.data_er_sites=self.read_magic_file(self.WD+"/er_sites.txt",'er_site_name')
         except:
@@ -692,7 +700,7 @@ class MagIC_model_builder(wx.Frame):
         try:
             self.data_er_locations=self.read_magic_file(self.WD+"/er_locations.txt",'er_location_name')
         except:
-            #self.GUI_log.write ("-W- Cant find er_sites.txt in project directory")
+            self.GUI_log.write ("-W- Cant find er_sites.txt in project directory")
             pass
         try:
             self.data_er_ages=self.read_magic_file(self.WD+"/er_ages.txt","er_site_name")
@@ -704,7 +712,7 @@ class MagIC_model_builder(wx.Frame):
 
 
     def get_data(self):
-        
+      print "doing get_data"
       Data={}
       Data_hierarchy={}
       Data_hierarchy['locations']={}

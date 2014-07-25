@@ -2365,7 +2365,7 @@ class method_code_dialog(wx.Dialog):
         self.EndModal(wx.ID_OK) 
         #self.Close()
 
-"""
+
 class check(wx.Frame):
 
     def __init__(self, parent, id, title, WD, ErMagic):
@@ -2606,7 +2606,6 @@ class check(wx.Frame):
     def on_continueButton(self, event, grid, next_dia=None):
         """pulls up next dialog, if there is one.
         gets any updated information from the current grid and runs ErMagicBuilder"""
-        # need to add something here that "seals in" the value that's been typed, even if the user hasn't yet typed somewhere else, too
         print "NEXT!"
         grid.SaveEditControlValue() # locks in value in cell currently edited
 
@@ -2628,11 +2627,21 @@ class check(wx.Frame):
         if self.changes:
             print "there were changes, so we are updating the data"
             self.update_orient_data(grid)
-            print "self.ErMagic.Data_hierarchy['specimens']", self.ErMagic.Data_hierarchy['specimens']
-            print "self.Data_hierarchy['specimens']", self.Data_hierarchy['specimens']
-            self.ErMagic.Data_hierarchy = self.Data_hierarchy # passes in updated Data_hierarchy to ErMagic Data_hierarchy
+            print "self.ErMagic.Data_hierarchy['specimens']", self.ErMagic.Data_hierarchy['specimens'].keys()
+            print "self.Data_hierarchy['specimens']", self.Data_hierarchy['specimens'].keys()
+            print "ErMagic.data_er_specimens before read_MagIC_info", self.ErMagic.data_er_specimens.keys()
+            #
+            # this is what erases the changes in self.ErMagic.data_er_specimens !!!!
+            # then, the next time ErMagic.data_er_specimens is called upon, it is wrong
+            self.ErMagic.read_MagIC_info() # updates ErMagic.data_er_specimens, etc.
+            #
+            print "ErMagic.data_er_specimens after read_MagIC_info", self.ErMagic.data_er_specimens.keys()
+
+            #
             self.ErMagic.on_okButton(None) # add this back in, it was messing up testing
             self.changes = False
+
+
 
     def on_cancelButton(self, event):
         self.Destroy()
@@ -2642,7 +2651,6 @@ class check(wx.Frame):
 
     def update_orient_data(self, grid):
         """ """
-        # WHAT SHOULD HAPPEN IF TWO SPECIMENS ARE GIVEN IDENTICAL NAMES??
         col1_updated, col2_updated, col1_old, col2_old, type1, type2 = self.get_old_and_new_data(grid)
         if len(set(col1_updated)) != len(col1_updated):
             print "Duplicate {} detected.  Please ensure that all {} names are unique".format(type1, type1[:-1])
@@ -2656,6 +2664,14 @@ class check(wx.Frame):
         #for k, v in self.Data_hierarchy.items():
             #print k
             #print v
+            
+        # NEED TO UPDATE SELF.DATA AS WELL AS SELF.DATA_HIERARCHY
+        print "self.ErMagic.Data", self.ErMagic.Data
+        print "self.Data", self.Data
+        #
+        # may or may not need this:
+
+        # need to update magic_measurements.txt file.....?
 
         # updates the holder data so that when we save again, we will only update what is new as of the last save
 
@@ -2690,7 +2706,7 @@ class check(wx.Frame):
             #
             self.Data_hierarchy['site_of_sample'][new_sample] = site
             #
-            self.Data_hierarchy['location_of_sample'][new] = location
+            self.Data_hierarchy['location_of_sample'][new_sample] = location
             #
             ind = self.Data_hierarchy['sites'][site].index(old_sample)
             self.Data_hierarchy['sites'][site][ind] = new_sample
@@ -2782,9 +2798,7 @@ class check(wx.Frame):
                 #
                 self.Data_hierarchy['samples'][samp].append(spec)
                 self.Data_hierarchy['samples'][old_samp].remove(spec)
-                # NEED TO UPDATE self.Data_hierarchy['samples']
-                # it is this:
-                #  samples': {'MP18': ['MP18-1', 'MP18-2', 'MP18-3', 'MP18-4', 'MP18-5', 'MP18-6'], 'm': ['mgf10a1'], 'ag1-6': ['ag1-6a', 'ELEPHANT']}
+
 
 
         keys = ['sample_of_specimen', 'site_of_sample', 'location_of_specimen', 'locations', 'sites', 'site_of_specimen', 'samples', 'location_of_sample', 'location_of_site', 'specimens']
