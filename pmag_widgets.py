@@ -102,7 +102,7 @@ class labeled_yes_or_no(wx.StaticBoxSizer):
 
 class specimen_n(wx.StaticBoxSizer):
     """-spc option (number of characters defining specimen from sample"""
-    def __init__(self, parent, label="number of characters to designate a specimen"):
+    def __init__(self, parent, label="number of terminal characters that distinguish specimen from sample"):
         self.parent = parent
         box = wx.StaticBox( self.parent, wx.ID_ANY, "" )
         super(specimen_n, self).__init__(box, orient=wx.HORIZONTAL)
