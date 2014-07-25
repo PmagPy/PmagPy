@@ -1034,8 +1034,8 @@ class Arai_GUI(wx.Frame):
         self.T_list=["%.0f"%T for T in self.temperatures]
         self.tmin_box.SetItems(self.T_list)
         self.tmax_box.SetItems(self.T_list)
-        self.tmin_box.SetStringSelection("")
-        self.tmax_box.SetStringSelection("")
+        self.tmin_box.SetValue("")
+        self.tmax_box.SetValue("")
         self.Blab_window.SetValue("%.0f"%(float(self.Data[self.s]['pars']['lab_dc_field'])*1e6))
         if "saved" in self.Data[self.s]['pars']:
             self.pars=self.Data[self.s]['pars']

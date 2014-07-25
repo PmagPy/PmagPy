@@ -481,7 +481,7 @@ class combine_magic_dialog(wx.Frame):
         self.cancelButton = wx.Button(self.panel, wx.ID_CANCEL, '&Cancel')
         self.Bind(wx.EVT_BUTTON, self.on_cancelButton, self.cancelButton)
 
-        self.nextButton = wx.Button(self.panel, id=-1, label='Last step')
+        self.nextButton = wx.Button(self.panel, id=-1, label='Skip')
         self.Bind(wx.EVT_BUTTON, self.on_nextButton, self.nextButton)
 
         hboxok = wx.BoxSizer(wx.HORIZONTAL)
@@ -699,7 +699,7 @@ class convert_SIO_files_to_MagIC(wx.Frame):
         self.bSizer4 = pw.specimen_n(pnl)
 
         #---sizer 4a ----
-        self.bSizer4a = pw.select_specimen_ncn(pnl)
+        self.bSizer4a = pw.select_ncn(pnl)
 
         #---sizer 5 ----
         TEXT="Location name:"
@@ -858,7 +858,7 @@ class convert_CIT_files_to_MagIC(wx.Frame):
         self.bSizer3 = pw.lab_field(pnl)
 
         #---sizer 4 ----
-        self.bSizer4 = pw.select_specimen_ncn(pnl)
+        self.bSizer4 = pw.select_ncn(pnl)
 
         #---sizer 5 ---
         TEXT = "specify number of characters to designate a specimen, default = 0"
@@ -989,7 +989,7 @@ class convert_HUJI_files_to_MagIC(wx.Frame):
         self.bSizer3 = pw.lab_field(pnl)
 
         #---sizer 4 ----
-        self.bSizer4 = pw.select_specimen_ncn(pnl)
+        self.bSizer4 = pw.select_ncn(pnl)
 
         #---sizer 5 ---
         TEXT = "specify number of characters to designate a specimen, default = 0"
@@ -1104,7 +1104,7 @@ class convert_2G_binary_files_to_MagIC(wx.Frame):
 
         #---sizer 2 ----
         ncn_keys = ['XXXXY', 'XXXX-YY', 'XXXX.YY', 'XXXX[YYY] where YYY is sample designation, enter number of Y', 'sample name=site name', 'Site is entered under a separate column', '[XXXX]YYY where XXXX is the site name, enter number of X']
-        self.bSizer2 = pw.select_specimen_ncn(pnl, ncn_keys)
+        self.bSizer2 = pw.select_ncn(pnl, ncn_keys)
 
         #---sizer 3 ----
         TEXT = "specify number of characters to designate a specimen, default = 1"
@@ -1244,7 +1244,7 @@ class convert_LDEO_files_to_MagIC(wx.Frame):
         self.bSizer3 = pw.lab_field(pnl)
 
         #---sizer 4 ----
-        self.bSizer4 = pw.select_specimen_ncn(pnl)
+        self.bSizer4 = pw.select_ncn(pnl)
 
         #---sizer 5 ----
         TEXT = "specify number of characters to designate a specimen, default = 0"
@@ -1491,7 +1491,7 @@ class convert_PMD_files_to_MagIC(wx.Frame):
         
         #---sizer 2 ----
         ncn_keys = ['XXXXY', 'XXXX-YY', 'XXXX.YY', 'XXXX[YYY] where YYY is sample designation, enter number of Y', 'sample name=site name', 'Site is entered under a separate column', '[XXXX]YYY where XXXX is the site name, enter number of X']
-        self.bSizer2 = pw.select_specimen_ncn(pnl, ncn_keys)
+        self.bSizer2 = pw.select_ncn(pnl, ncn_keys)
 
         #---sizer 3 ---
         #        TEXT = "specify number of characters to designate a specimen, default = 0"
@@ -2365,7 +2365,7 @@ class method_code_dialog(wx.Dialog):
         self.EndModal(wx.ID_OK) 
         #self.Close()
 
-
+"""
 class check(wx.Frame):
 
     def __init__(self, parent, id, title, WD, ErMagic):
@@ -2833,13 +2833,18 @@ class check(wx.Frame):
                 self.orient_data[sample]["site_name"]=self.Data_hierarchy['site_of_sample'][sample]
             else:
                 self.orient_data[sample]["site_name"]=""
-            return self.orient_data
+
         #print "self.orient_data", self.orient_data
-    """
 
 
+    def update_orient_data(self):
+        # check each value in the specimen column for changes
+        # check each value in the samples column for changes
+        for row in range(self.grid.GetNumberRows()):
+            pass
+            #print self.grid.GetCellValue(row, 0)
+            #print self.specimens[row]
 
-    """
     def get_data(self):
       # get_data from ErMagicBuilder.  Returns a more comprehensive Data hierarchy than the get_data in QuickMagic.  oy.
       Data={}
@@ -2897,7 +2902,6 @@ class check(wx.Frame):
           Data_hierarchy['location_of_site'][site]=location 
           
       return(Data,Data_hierarchy)
-    """
-
+"""
 
 

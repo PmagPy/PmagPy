@@ -39,7 +39,7 @@ class ImportOrientFile(wx.Frame):
 
         #---sizer 2 ----
         ncn_keys = ['XXXXY', 'XXXX-YY', 'XXXX.YY', 'XXXX[YYY] where YYY is sample designation, enter number of Y', 'sample name=site name', 'site name in site_name column in orient.txt format input file', '[XXXX]YYY where XXXX is the site name, enter number of X']
-        self.bSizer2 = pw.select_specimen_ncn(pnl, ncn_keys)
+        self.bSizer2 = pw.select_ncn(pnl, ncn_keys)
         
         #---sizer 3 ----
         self.bSizer3 = pw.select_specimen_ocn(pnl)
@@ -168,7 +168,7 @@ class ImportAzDipFile(wx.Frame):
         self.bSizer1 = pw.sampling_particulars(pnl)
 
         #---sizer 2 ---
-        self.bSizer2 = pw.select_specimen_ncn(pnl)
+        self.bSizer2 = pw.select_ncn(pnl)
 
         #---sizer 3 ---
         self.bSizer3 = pw.labeled_text_field(pnl, "Location:")
@@ -457,7 +457,7 @@ class ImportKly4s(wx.Frame):
         self.bSizer3 = pw.specimen_n(pnl)
 
         #---sizer 4 ---
-        self.bSizer4 = pw.select_specimen_ncn(pnl)
+        self.bSizer4 = pw.select_ncn(pnl)
 
         #---sizer 5 ---
         self.bSizer5 = pw.select_specimen_ocn(pnl)
@@ -572,7 +572,7 @@ class ImportK15(wx.Frame):
         self.bSizer1 = pw.specimen_n(pnl)
 
         #---sizer 2 ---
-        self.bSizer2 = pw.select_specimen_ncn(pnl)
+        self.bSizer2 = pw.select_ncn(pnl)
 
         #---sizer 3 ---
         self.bSizer3 = pw.labeled_text_field(pnl, label="Location name:")
@@ -662,7 +662,7 @@ class ImportSufarAscii(wx.Frame):
         self.bSizer2 = pw.specimen_n(pnl)
 
         #---sizer 3 ---
-        self.bSizer3 = pw.select_specimen_ncn(pnl)
+        self.bSizer3 = pw.select_ncn(pnl)
 
         #---sizer 4 ---
         self.bSizer4 = pw.labeled_text_field(pnl, label="Location name:")
@@ -785,7 +785,7 @@ class ImportAgmFile(wx.Frame):
         self.bSizer2 = pw.specimen_n(pnl)
 
         #---sizer 3 ---
-        self.bSizer3 = pw.select_specimen_ncn(pnl)
+        self.bSizer3 = pw.select_ncn(pnl)
 
         #---sizer 4 ---
         self.bSizer4 = pw.labeled_text_field(pnl, label="Location name:")
@@ -901,7 +901,7 @@ class ImportAgmFolder(wx.Frame):
         self.bSizer2 = pw.specimen_n(pnl)
 
         #---sizer 3 ---
-        self.bSizer3 = pw.select_specimen_ncn(pnl)
+        self.bSizer3 = pw.select_ncn(pnl)
 
         #---sizer 4 ---
         self.bSizer4 = pw.labeled_text_field(pnl, label="Location name:")
@@ -1011,7 +1011,7 @@ class something(wx.Frame):
         self.bSizer1 = pw.specimen_n(pnl)
 
         #---sizer 2 ---
-        self.bSizer2 = pw.select_specimen_ncn(pnl)
+        self.bSizer2 = pw.select_ncn(pnl)
 
         #---sizer 3 ---
         self.bSizer3 = pw.labeled_text_field(pnl, label="Location name:")
@@ -1097,7 +1097,7 @@ class something(wx.Frame):
         self.bSizer1 = pw.specimen_n(pnl)
 
         #---sizer 2 ---
-        self.bSizer2 = pw.select_specimen_ncn(pnl)
+        self.bSizer2 = pw.select_ncn(pnl)
 
         #---sizer 3 ---
         self.bSizer3 = pw.labeled_text_field(pnl, label="Location name:")
