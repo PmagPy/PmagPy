@@ -269,12 +269,21 @@ class MagIC_model_builder(wx.Frame):
           self.er_ages_header.remove(selName)
         self.update_text_box('er_ages')
 
-    def on_okButton(self, event):
+    def on_okButton(self, event, data_hierarchy_update=None):
         #specimens_list=self.Data.keys()
         #print "specimens_list",specimens_list
         #specimens_list.sort()
+        #
+        print "doing OK button"
+        print "in ErMagicBuilder on_okButton, self.data_er_samples", self.data_er_samples.keys()
+        print "-"
+        #print "self.er_samples_data", self.data_er_samples
+        #
         samples_list=self.Data_hierarchy['samples'].keys()
         samples_list.sort()
+        print "samples_list from Data_hierarchy at beginning of ErMagicBuilder on_okButton",
+        print samples_list
+        print "--"
 
         specimens_list=self.Data_hierarchy['sample_of_specimen'].keys()
         specimens_list.sort()
@@ -549,6 +558,7 @@ class MagIC_model_builder(wx.Frame):
         # Fix magic_measurement with samples, sites and locations  
         #-----------------------------------------------------
 
+        print "in ErMagicBuilder on_okButton udpating magic_measurements.txt"
         f_old=open(self.WD+"/magic_measurements.txt",'rU')
         f_new=open(self.WD+"/magic_measurements.new.tmp.txt",'w')
              
@@ -568,9 +578,6 @@ class MagIC_model_builder(wx.Frame):
             sample=tmp["er_sample_name"]
             if specimen in  self.data_er_specimens.keys() and "er_sample_name" in self.data_er_specimens[specimen].keys():
                 if sample != self.data_er_specimens[specimen]["er_sample_name"]:
-                    print "--"
-                    print "CHANGING SAMPLE NAME ELEPHANT"
-                    print "--"
                     sample=self.data_er_specimens[specimen]["er_sample_name"]
                     tmp["er_sample_name"]=sample
                                     
@@ -587,6 +594,7 @@ class MagIC_model_builder(wx.Frame):
             f_new.write(new_line[:-1]+"\n")
         f_new.close()
         f_old.close()
+
         os.remove(self.WD+"/magic_measurements.txt")
         os.rename(self.WD+"/magic_measurements.new.tmp.txt",self.WD+"/magic_measurements.txt")
         
@@ -627,22 +635,22 @@ class MagIC_model_builder(wx.Frame):
         dlg1.Destroy()
         #self.Destroy()
         self.Hide()
+        print "done on_ok_Button in ErMagicBuilder"
 
 
     def on_cancelButton(self,event):
         self.Destroy()
       
     def read_magic_file(self,path,sort_by_this_name):
-        print "doing ErMagic read_magic_file"
+        #print "doing ErMagic read_magic_file"
         DATA={}
         fin=open(path,'rU')
         fin.readline()
         line=fin.readline()
         header=line.strip('\n').split('\t')
-        print "path, header", path#,header
+        #print "path, header", path#,header
         counter=0
         for line in fin.readlines():
-            print "line", line
             tmp_data={}
             tmp_line=line.strip('\n').split('\t')
             for i in range(len(header)):
@@ -680,11 +688,10 @@ class MagIC_model_builder(wx.Frame):
         Data_info={}
         print "-I- read existing MagIC model files"
         self.data_er_specimens,self.data_er_samples,self.data_er_sites,self.data_er_locations,self.data_er_ages={},{},{},{},{}
-        print "self.data_er_specimens: ".format(self.data_er_specimens.keys())
 
         try:
             self.data_er_specimens=self.read_magic_file(self.WD+"/er_specimens.txt",'er_specimen_name')
-            print "self.data_er_specimens: ".format(self.data_er_specimens.keys())
+            print "in read_MagIC info!!! self.data_er_specimens: \n".format(self.data_er_specimens)
         except:
             self.GUI_log.write ("-W- Cant find er_sample.txt in project directory")
             print "-W- Cant find er_sample.txt in project directory"

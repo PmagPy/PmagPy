@@ -2622,20 +2622,19 @@ class check(wx.Frame):
 
     def on_saveButton(self, event, grid):
         print "SAVE!"
-        print grid.SaveEditControlValue() # locks in value in cell currently edited
+        grid.SaveEditControlValue() # locks in value in cell currently edited
 
         if self.changes:
             print "there were changes, so we are updating the data"
             self.update_orient_data(grid)
-            print "self.ErMagic.Data_hierarchy['specimens']", self.ErMagic.Data_hierarchy['specimens'].keys()
-            print "self.Data_hierarchy['specimens']", self.Data_hierarchy['specimens'].keys()
-            print "ErMagic.data_er_specimens before read_MagIC_info", self.ErMagic.data_er_specimens.keys()
+            print "update_orient_data done"
+            print "self.ErMagic.Data_hierarchy['samples']", self.ErMagic.Data_hierarchy['samples'].keys()
+            print "self.Data_hierarchy['samples']", self.Data_hierarchy['samples'].keys()
+            #print "ErMagic.data_er_specimens before read_MagIC_info", self.ErMagic.data_er_specimens.keys()
             #
-            # this is what erases the changes in self.ErMagic.data_er_specimens !!!!
-            # then, the next time ErMagic.data_er_specimens is called upon, it is wrong
-            self.ErMagic.read_MagIC_info() # updates ErMagic.data_er_specimens, etc.
+            #self.ErMagic.read_MagIC_info() # updates ErMagic.data_er_specimens, etc.
             #
-            print "ErMagic.data_er_specimens after read_MagIC_info", self.ErMagic.data_er_specimens.keys()
+            #print "ErMagic.data_er_specimens after read_MagIC_info", self.ErMagic.data_er_specimens.keys()
 
             #
             self.ErMagic.on_okButton(None) # add this back in, it was messing up testing
@@ -2664,15 +2663,13 @@ class check(wx.Frame):
         #for k, v in self.Data_hierarchy.items():
             #print k
             #print v
-            
-        # NEED TO UPDATE SELF.DATA AS WELL AS SELF.DATA_HIERARCHY
+
+
+        # NEED TO UPDATE SELF.data_er_specimens, etc. AS WELL AS SELF.DATA_HIERARCHY
         print "self.ErMagic.Data", self.ErMagic.Data
         print "self.Data", self.Data
         #
-        # may or may not need this:
-
-        # need to update magic_measurements.txt file.....?
-
+        
         # updates the holder data so that when we save again, we will only update what is new as of the last save
 
         self.temp_data[type1] = col1_updated 
@@ -2686,6 +2683,9 @@ class check(wx.Frame):
         
 
     def update_samples(self, col1_updated, col1_old, col2_updated, col2_old):
+        print "data_er_samples at beginning of update_samples"
+        print self.ErMagic.data_er_samples.keys()
+        print "-"
         changed = [(old_value, col1_updated[num]) for (num, old_value) in enumerate(col1_old) if old_value != col1_updated[num]]  
         #for k, v in self.Data_hierarchy.items():
             #print k
@@ -2710,6 +2710,19 @@ class check(wx.Frame):
             #
             ind = self.Data_hierarchy['sites'][site].index(old_sample)
             self.Data_hierarchy['sites'][site][ind] = new_sample
+            # updating self.ErMagic.data_er_samples
+            print "in update_samples, self.ErMagic.data_er_specimens", self.ErMagic.data_er_specimens
+            print "in update_samples, self.ErMagic.data_er_samples.keys()", self.ErMagic.data_er_samples
+            print "-"
+            sample_data = self.ErMagic.data_er_samples.pop(old_sample)
+            self.ErMagic.data_er_samples[new_sample] = sample_data
+            self.ErMagic.data_er_samples[new_sample]['er_sample_name'] = new_sample
+            for spec in self.ErMagic.data_er_specimens:
+                if self.ErMagic.data_er_specimens[spec]['er_sample_name'] == old_sample:
+                    self.ErMagic.data_er_specimens[spec]['er_sample_name'] = new_sample
+            print "self.ErMagic.data_er_samples[new_sample]", self.ErMagic.data_er_samples[new_sample]
+            print "self.ErMagic.data_er_specimens", self.ErMagic.data_er_specimens
+            #done with ErMagic.data_er_samples
         
         # now do the site changes
         for num, value in enumerate(col2_updated):
@@ -2743,33 +2756,43 @@ class check(wx.Frame):
 
     def update_specimens(self, col1_updated, col1_old, col2_updated, col2_old, type1, type2):
         changed = [(i, col1_updated[num]) for (num, i) in enumerate(col1_old) if i != col1_updated[num]]  
-        #print "self.Data_hierarchy['specimens']", self.Data_hierarchy['specimens']
-        #print "self.Data_hierarchy['sample_of_specimen']",self.Data_hierarchy['sample_of_specimen']
-        #print "self.Data_hierarchy['site_of_specimen']", self.Data_hierarchy['site_of_specimen']
-        #print "self.Data_hierarchy['location_of_specimen']", self.Data_hierarchy['location_of_specimen']
-        #print "self.Data_hierarchy['samples']", self.Data_hierarchy['samples']
+        # update self.ErMagic.data_er_specimens as below:
+        #'mgf10a1': {'er_citation_names': 'This study', 'er_location_name': '', 'er_site_name': 'm', 'er_sample_name': 'm', 'specimen_class': '', 'er_specimen_name': 'mgf10a1', 'specimen_lithology': '', 'er_citation_name': '', 'specimen_type': ''}
+        # also update data_er_samples and so on all the way up as needed
+        
+        
         for change in changed:
             #print "change", change
-            old, new = change
-            sample = self.Data_hierarchy[type1].pop(old)
+            old_spec, new_spec = change
+            sample = self.Data_hierarchy[type1].pop(old_spec)
             #
-            self.Data_hierarchy[type1][new] = sample
+            self.Data_hierarchy[type1][new_spec] = sample
             #
-            sample = self.Data_hierarchy['sample_of_specimen'].pop(old)
-            self.Data_hierarchy['sample_of_specimen'][new] = sample
+            sample = self.Data_hierarchy['sample_of_specimen'].pop(old_spec)
+            self.Data_hierarchy['sample_of_specimen'][new_spec] = sample
             #
-            site = self.Data_hierarchy['site_of_specimen'].pop(old)
-            self.Data_hierarchy['site_of_specimen'][new] = site
+            site = self.Data_hierarchy['site_of_specimen'].pop(old_spec)
+            self.Data_hierarchy['site_of_specimen'][new_spec] = site
             #
-            loc = self.Data_hierarchy['location_of_specimen'].pop(old)
-            self.Data_hierarchy['location_of_specimen'][new] = loc
+            loc = self.Data_hierarchy['location_of_specimen'].pop(old_spec)
+            self.Data_hierarchy['location_of_specimen'][new_spec] = loc
             #
             #print "self.Data_hierarchy['samples']", self.Data_hierarchy['samples']
             #print "self.Data_hierarchy['samples'][sample]", self.Data_hierarchy['samples'][sample]
-            ind = self.Data_hierarchy['samples'][sample].index(old)
+            ind = self.Data_hierarchy['samples'][sample].index(old_spec)
             #print "ind:", ind
             #self.Data_hierarchy['samples'][sample].pop(ind)
-            self.Data_hierarchy['samples'][sample][ind] = new
+            self.Data_hierarchy['samples'][sample][ind] = new_spec
+            # doing data_er_specimens thing
+            spec_data = self.ErMagic.data_er_specimens.pop(old_spec)
+            self.ErMagic.data_er_specimens[new_spec] = spec_data
+            self.ErMagic.data_er_specimens[new_spec]['er_specimen_name'] = new_spec
+            self.ErMagic.data_er_specimens[new_spec]['er_sample_name'] = sample
+            self.ErMagic.data_er_specimens[new_spec]['er_site_name'] = site
+            self.ErMagic.data_er_specimens[new_spec]['er_locations_name'] = loc
+            # there are some other things in the dictionary that might need to be updated, but I'm not sure
+            # done data_er_specimens thing
+
 
         #print "NEW AND IMPROVED"
         #print "self.Data_hierarchy['specimens']", self.Data_hierarchy['specimens']
