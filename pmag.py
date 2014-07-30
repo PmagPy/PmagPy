@@ -8452,6 +8452,8 @@ def read_criteria_from_file(path,acceptance_criteria):
                 acceptance_criteria[crit]['value']=rec[crit]
                 acceptance_criteria[crit]['threshold_type']="inherited"
                 acceptance_criteria[crit]['decimal_points']=-999
+                # LJ add:
+                acceptance_criteria[crit]['category'] = None
                 
             # bollean flag
             elif acceptance_criteria[crit]['threshold_type']=='bool':
