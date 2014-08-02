@@ -770,9 +770,9 @@ def make_thing():
         thing.calculate_all_statistics()
         #new_thing = PintPars(gui.Data, '0238x5721062', 100. + 273., 525. + 273.)
         #new_thing.calculate_all_statistics()
-        #gui2 = tgs.Arai_GUI('/consistency_tests/Yamamoto_Hushi_2008_magic_measurements.txt', cwd)
-        #thing2 = PintPars(gui2.Data, 'SW01-01A-2', 100. + 273., 480. + 273.)
-        return thing
+        gui2 = tgs.Arai_GUI('/magic_measurements.txt', '/Users/nebula/Desktop/MagIC_experiments/ODP-SBG_1')
+        thing2 = PintPars(gui2.Data, '0335x1031411', 273., 743.)
+        return thing, thing2
     except Exception as ex:
         print 'could not make standard specimen objects'
         print ex

@@ -3552,6 +3552,11 @@ class Arai_GUI(wx.Frame):
                     tmin=temperatures[tmin_i]
                     tmax=temperatures[tmax_i]
                     pars=self.get_PI_parameters(s,tmin,tmax)
+                    if 'NLT_specimen_correction_factor' not in pars.keys():
+                        # problem in get_PI_parameters (probably with tmin/zdata).  can't run specimen
+                        message_string = '-W- Could not get parameters for {}. Check data for typos, etc.'.format(s)
+                        thellier_interpreter_log.write(message_string+"\n")        
+                        break
                     pars=self.check_specimen_PI_criteria(pars)
                     #-------------------------------------------------            
                     # check if pass the criteria
