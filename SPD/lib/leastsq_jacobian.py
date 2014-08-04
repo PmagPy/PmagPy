@@ -13,6 +13,9 @@ def AraiCurvature(x=X, y=Y):
     x =x / max(x)
     y = numpy.array(map(float, y))
     y =y / max(y)
+    # if all x or all y values are identical, there is no curvature (it is a line)
+    if len(set(x)) == 1 or len(set(y)) == 1:
+        return -999., None, None, -999.
     best_a, best_b, r = do_circlefit(x, y)
     #print "best_a, best_b, r", best_a, best_b, r
     SSE = get_SSE(best_a, best_b, r, x, y)
