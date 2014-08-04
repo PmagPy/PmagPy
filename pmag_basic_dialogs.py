@@ -2381,8 +2381,7 @@ class check(wx.Frame):
         as well as which sample a specimen belongs to"""
 
         self.panel = wx.ScrolledWindow(self, style=wx.SIMPLE_BORDER)
-        TEXT = """Check that all specimens are correctly named,
-        and that they belong to the correct sample
+        TEXT = """Check that all specimens belong to the correct sample
         (if sample name is simply wrong, that will be fixed in step 2)
         note: if you need to do a comprehensive edit,
         consider opening your documents with Excel or Open Office"""
@@ -2546,10 +2545,17 @@ class check(wx.Frame):
         original_1 = [] # specs (in first dia)
         original_2 = [] # samps (in first dia)
 
+        col1_editable = True
+        if column_labels[0] == 'specimens':
+            col1_editable = False
+
+        # comment this so it is understandable to you
         for n, row in enumerate(row_values):
             grid.SetRowLabelValue(n, str(n+1))
             original_1.append(row)
             grid.SetCellValue(n, 0, row)
+            if not col1_editable:
+                grid.SetReadOnly(n, 0, True)
             grid.SetCellValue(n, 1, "belongs to")
             grid.SetReadOnly(n, 1, True) 
             col = column_indexing[ind][row]
@@ -2752,51 +2758,7 @@ class check(wx.Frame):
       
 
     def update_specimens(self, col1_updated, col1_old, col2_updated, col2_old, type1, type2):
-        changed = [(i, col1_updated[num]) for (num, i) in enumerate(col1_old) if i != col1_updated[num]]  
-        
-        
-        for change in changed:
-            #print "change", change
-            old_spec, new_spec = change
-            sample = self.Data_hierarchy[type1].pop(old_spec)
-            #
-            self.Data_hierarchy[type1][new_spec] = sample
-            #
-            sample = self.Data_hierarchy['sample_of_specimen'].pop(old_spec)
-            self.Data_hierarchy['sample_of_specimen'][new_spec] = sample
-            #
-            site = self.Data_hierarchy['site_of_specimen'].pop(old_spec)
-            self.Data_hierarchy['site_of_specimen'][new_spec] = site
-            #
-            loc = self.Data_hierarchy['location_of_specimen'].pop(old_spec)
-            self.Data_hierarchy['location_of_specimen'][new_spec] = loc
-            #
-            #print "self.Data_hierarchy['samples']", self.Data_hierarchy['samples']
-            #print "self.Data_hierarchy['samples'][sample]", self.Data_hierarchy['samples'][sample]
-            ind = self.Data_hierarchy['samples'][sample].index(old_spec)
-            #print "ind:", ind
-            #self.Data_hierarchy['samples'][sample].pop(ind)
-            self.Data_hierarchy['samples'][sample][ind] = new_spec
-            # doing data_er_specimens thing
-            print "self.ErMagic.data_er_specimens.keys()", self.ErMagic.data_er_specimens.keys()
-            spec_data = self.ErMagic.data_er_specimens.pop(old_spec)
-            self.ErMagic.data_er_specimens[new_spec] = spec_data
-            self.ErMagic.data_er_specimens[new_spec]['er_specimen_name'] = new_spec
-            #self.ErMagic.data_er_specimens[new_spec]['er_sample_name'] = sample
-            #self.ErMagic.data_er_specimens[new_spec]['er_site_name'] = site
-            #self.ErMagic.data_er_specimens[new_spec]['er_locations_name'] = loc
 
-            # there are some other things in the dictionary that might need to be updated, but I'm not sure
-            # done data_er_specimens thing
-
-
-        # update self.ErMagic.data_er_specimens as below:
-        #'mgf10a1': {'er_citation_names': 'This study', 'er_location_name': '', 'er_site_name': 'm', 'er_sample_name': 'm', 'specimen_class': '', 'er_specimen_name': 'mgf10a1', 'specimen_lithology': '', 'er_citation_name': '', 'specimen_type': ''}
-        # also update data_er_samples and so on all the way up as needed
-        #self.ErMagic.data_er_samples[new_sample] {'sample_bed_dip_direction': '', 'er_citation_names': 'This study', 'sample_lithology': '', 'sample_azimuth': '', 'er_site_name': 'm', 'er_sample_name': 'MARTHS', 'specimen_weight': '', 'sample_type': '', 'sample_bed_dip': '', 'er_location_name': '', 'sample_height': '', 'sample_declination_correction': '', 'sample_lat': '', 'magic_method_codes': '', 'specimen_volume': '', 'er_citation_name': '', 'sample_dip': '', 'sample_lon': '', 'sample_class': ''}
-
-
-        # update samples portion of updating specimens
         print "UPDATE SAMPLES"
         #  ALSO should check for whether or not a sample still "exists"  
         # maybe
@@ -2825,7 +2787,7 @@ class check(wx.Frame):
 
 
 
-        keys = ['sample_of_specimen', 'site_of_sample', 'location_of_specimen', 'locations', 'sites', 'site_of_specimen', 'samples', 'location_of_sample', 'location_of_site', 'specimens']
+        #keys = ['sample_of_specimen', 'site_of_sample', 'location_of_specimen', 'locations', 'sites', 'site_of_specimen', 'samples', 'location_of_sample', 'location_of_site', 'specimens']
 
 
     def get_old_and_new_data(self, grid):
@@ -2942,4 +2904,48 @@ class check(wx.Frame):
       return(Data,Data_hierarchy)
 """
 
+# code that would update specimens in update_specimens
+        """
+        changed = [(i, col1_updated[num]) for (num, i) in enumerate(col1_old) if i != col1_updated[num]]  
+        
+        
+        for change in changed:
+            #print "change", change
+            old_spec, new_spec = change
+            sample = self.Data_hierarchy[type1].pop(old_spec)
+            #
+            self.Data_hierarchy[type1][new_spec] = sample
+            #
+            sample = self.Data_hierarchy['sample_of_specimen'].pop(old_spec)
+            self.Data_hierarchy['sample_of_specimen'][new_spec] = sample
+            #
+            site = self.Data_hierarchy['site_of_specimen'].pop(old_spec)
+            self.Data_hierarchy['site_of_specimen'][new_spec] = site
+            #
+            loc = self.Data_hierarchy['location_of_specimen'].pop(old_spec)
+            self.Data_hierarchy['location_of_specimen'][new_spec] = loc
+            #
+            #print "self.Data_hierarchy['samples']", self.Data_hierarchy['samples']
+            #print "self.Data_hierarchy['samples'][sample]", self.Data_hierarchy['samples'][sample]
+            ind = self.Data_hierarchy['samples'][sample].index(old_spec)
+            #print "ind:", ind
+            #self.Data_hierarchy['samples'][sample].pop(ind)
+            self.Data_hierarchy['samples'][sample][ind] = new_spec
+            # doing data_er_specimens thing
+            print "self.ErMagic.data_er_specimens.keys()", self.ErMagic.data_er_specimens.keys()
+            spec_data = self.ErMagic.data_er_specimens.pop(old_spec)
+            self.ErMagic.data_er_specimens[new_spec] = spec_data
+            self.ErMagic.data_er_specimens[new_spec]['er_specimen_name'] = new_spec
+            #self.ErMagic.data_er_specimens[new_spec]['er_sample_name'] = sample
+            #self.ErMagic.data_er_specimens[new_spec]['er_site_name'] = site
+            #self.ErMagic.data_er_specimens[new_spec]['er_locations_name'] = loc
 
+            # there are some other things in the dictionary that might need to be updated, but I'm not sure
+            # done data_er_specimens thing
+
+
+        # update self.ErMagic.data_er_specimens as below:
+        #'mgf10a1': {'er_citation_names': 'This study', 'er_location_name': '', 'er_site_name': 'm', 'er_sample_name': 'm', 'specimen_class': '', 'er_specimen_name': 'mgf10a1', 'specimen_lithology': '', 'er_citation_name': '', 'specimen_type': ''}
+        # also update data_er_samples and so on all the way up as needed
+        #self.ErMagic.data_er_samples[new_sample] {'sample_bed_dip_direction': '', 'er_citation_names': 'This study', 'sample_lithology': '', 'sample_azimuth': '', 'er_site_name': 'm', 'er_sample_name': 'MARTHS', 'specimen_weight': '', 'sample_type': '', 'sample_bed_dip': '', 'er_location_name': '', 'sample_height': '', 'sample_declination_correction': '', 'sample_lat': '', 'magic_method_codes': '', 'specimen_volume': '', 'er_citation_name': '', 'sample_dip': '', 'sample_lon': '', 'sample_class': ''}
+        """
