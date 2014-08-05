@@ -2662,7 +2662,7 @@ Fill site longitude (under the header site_lon):Decimal degrees between 0 and 36
 
 Fill site latitude (under the header site_lat): Decimal degrees between -90 and 90"""
         #pw.on_helpButton(text=TEXT)
-        html = HtmlFrame(None)
+        html = pw.HtmlFrame(self, page="/Users/nebula/Python/PmagPy/ErMagicSiteHelp.html")
         html.Show()
 
         
@@ -2868,19 +2868,6 @@ Fill site latitude (under the header site_lat): Decimal degrees between -90 and 
             two = grid.GetCellValue(r, 2)
             update_2.append(str(two))
         return update_1, update_2, old_1, old_2, type1, type2
-
-class HtmlFrame(wx.Frame):
-    """ This window displays a HtmlWindow """
-    def __init__(self, *args, **kwargs):
-        wx.Frame.__init__(self, *args, **kwargs)
-        page = "/Users/nebula/Python/PmagPy/ErMagicSiteHelp.html"
-        #page = "/Users/nebula/Python/PmagPy/ErMagicBuilderHelp.html"
-        htmlwin = wx.html.HtmlWindow(self)
-        htmlwin.LoadPage(page)
-        htmlwin.Fit()
-        #htmlwin.SetPage(page)
-
-
 
 
     """

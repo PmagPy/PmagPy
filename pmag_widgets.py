@@ -2,6 +2,7 @@
 
 import os
 import wx
+import wx.html
 
 
 # library for commonly used widgets.  
@@ -426,6 +427,24 @@ class combine_files(wx.BoxSizer):
                 if self.text in F:
                     self.file_paths.AppendText(F+"\n")
 
+
+
+class LinkEnabledHtmlWindow(wx.html.HtmlWindow):
+    def OnLinkClicked(self, link):
+        wx.LaunchDefaultBrowser(link.GetHref())
+
+class HtmlFrame(wx.Frame):
+    """ This window displays a HtmlWindow """
+    def __init__(self, *args, **kwargs):
+        wx.Frame.__init__(self, None, wx.ID_ANY, title="Help Window", size=(600,400))
+        page = kwargs.get('page', 'http://earthref.org/MAGIC/')
+        print "page:", page
+        #page = "/Users/nebula/Python/PmagPy/ErMagicSiteHelp.html"
+        print "page", page
+        htmlwin = LinkEnabledHtmlWindow(self)
+        htmlwin.LoadPage(page)
+        htmlwin.Fit()
+        #htmlwin.SetPage(page)
  
 
 
