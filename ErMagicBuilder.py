@@ -270,26 +270,12 @@ class MagIC_model_builder(wx.Frame):
         self.update_text_box('er_ages')
 
     def on_okButton(self, event, data_hierarchy_update=None):
-        #specimens_list=self.Data.keys()
-        #print "specimens_list",specimens_list
-        #specimens_list.sort()
-        #
-        print "doing OK button"
-        print "in ErMagicBuilder on_okButton, self.data_er_samples", self.data_er_samples.keys()
-        print "-"
-        #print "self.er_samples_data", self.data_er_samples
-        #
         samples_list=self.Data_hierarchy['samples'].keys()
         samples_list.sort()
-        print "samples_list from Data_hierarchy at beginning of ErMagicBuilder on_okButton",
-        print samples_list
-        print "--"
 
         specimens_list=self.Data_hierarchy['sample_of_specimen'].keys()
         specimens_list.sort()
-        print "specimens_list (from Data_hierarchy['sample_of_specimen']) in on_okButton"
-        # correct specimens ARE here, and they get written into er_specimens.txt, but NOT magic_measurements.txt
-        print specimens_list
+
         #---------------------------------------------
         # make er_samples.txt
         #---------------------------------------------
@@ -561,7 +547,7 @@ class MagIC_model_builder(wx.Frame):
         # Fix magic_measurement with samples, sites and locations  
         #-----------------------------------------------------
 
-        print "in ErMagicBuilder on_okButton udpating magic_measurements.txt"
+        #print "in ErMagicBuilder on_okButton udpating magic_measurements.txt"
         f_old=open(self.WD+"/magic_measurements.txt",'rU')
         f_new=open(self.WD+"/magic_measurements.new.tmp.txt",'w')
              
@@ -573,8 +559,8 @@ class MagIC_model_builder(wx.Frame):
         f_new.write(line)
 
         # if you want to make it possible to change specimen names, add that into this for loop
-        print "self.data_er_specimens.keys()", self.data_er_specimens.keys()
-        print "self.Data_hierarchy['specimens'].keys()", self.Data_hierarchy['specimens'].keys()
+        #print "self.data_er_specimens.keys()", self.data_er_specimens.keys()
+        #print "self.Data_hierarchy['specimens'].keys()", self.Data_hierarchy['specimens'].keys()
         for line in f_old.readlines():
             tmp_line=line.strip('\n').split('\t')
             tmp={}

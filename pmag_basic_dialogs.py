@@ -2506,7 +2506,6 @@ class check(wx.Frame):
         self.sites = self.Data_hierarchy['sites'].keys()
         self.site_grid, self.temp_data['sites'], self.temp_data['locations'] = self.make_table(['sites', '', 'locations', 'site_class', 'site_lithology', 'site_type', 'site_definition', 'site_lon', 'site_lat'], self.sites, self.Data_hierarchy, 'location_of_site')
 
-        # 3 - 8 need Help icons.  or, one help button
         self.site_grid.SetCellValue(1, 1, "HEYO")
         print self.site_grid.GetColLabelValue(3)
         self.site_grid.SetColLabelValue(3, "HI")
@@ -2643,27 +2642,8 @@ class check(wx.Frame):
         print "add site"
 
     def on_helpButton(self, event, msg=None):
-        #dlg = wx.MessageDialog(self,caption="Message:", message="help is here" ,style=wx.OK)
-        #dlg.ShowModal()
-        TEXT =  """Check location name (under the header er_location_name).
-
-Fill site class (under the header site_class).
-Use controlled vocabularies from: site class controlled vocabularies
-
-Fill site lithology (under the header site_lithology).
-Use controlled vocabularies from site lithology controlled vocabularies. If you cant find any appropriate definition use: Not Specified.
-
-Fill site type (under the header site_type). 
-Use controlled vocabularies from site type controlled vocabularies. If you cant find any appropriate definition use: Not Specified.
-
-Fill site definition (under the header site_definition: the letter "s" for single site or the letter "c" for composite site (including various units).
-
-Fill site longitude (under the header site_lon):Decimal degrees between 0 and 360.
-
-Fill site latitude (under the header site_lat): Decimal degrees between -90 and 90"""
-        #pw.on_helpButton(text=TEXT)
-        html = pw.HtmlFrame(self, page="/Users/nebula/Python/PmagPy/ErMagicSiteHelp.html")
-        html.Show()
+        html_frame = pw.HtmlFrame(self, page="/Users/nebula/Python/PmagPy/ErMagicSiteHelp.html")
+        html_frame.Show()
 
         
 
@@ -2695,9 +2675,6 @@ Fill site latitude (under the header site_lat): Decimal degrees between -90 and 
         if self.changes:
             print "there were changes, so we are updating the data"
             self.update_orient_data(grid)
-            print "update_orient_data done"
-            print "self.ErMagic.Data_hierarchy['samples']", self.ErMagic.Data_hierarchy['samples'].keys()
-            print "self.Data_hierarchy['samples']", self.Data_hierarchy['samples'].keys()
             #print "ErMagic.data_er_specimens before read_MagIC_info", self.ErMagic.data_er_specimens.keys()
             #
             #self.ErMagic.read_MagIC_info() # updates ErMagic.data_er_specimens, etc.
@@ -2705,7 +2682,7 @@ Fill site latitude (under the header site_lat): Decimal degrees between -90 and 
             #print "ErMagic.data_er_specimens after read_MagIC_info", self.ErMagic.data_er_specimens.keys()
 
             #
-            self.ErMagic.on_okButton(None) # add this back in, it was messing up testing
+            #self.ErMagic.on_okButton(None) # add this back in, it was messing up testing
             self.changes = False
 
 
@@ -2724,19 +2701,16 @@ Fill site latitude (under the header site_lat): Decimal degrees between -90 and 
             return 0
         if type1 == 'specimens':
             self.update_specimens(col1_updated, col1_old, col2_updated, col2_old, type1, type2)
-            #self.update_samples(col2_updated, col2_old, col1_updated)
         if type1 == 'samples':
             self.update_samples(col1_updated, col1_old, col2_updated, col2_old)
+        if type1 == 'sites':
+            self.update_sites(col1_updated, col1_old, col2_updated, col2_old)
         print "NEW AND IMPROVED"
         #for k, v in self.Data_hierarchy.items():
             #print k
             #print v
 
 
-        # NEED TO UPDATE SELF.data_er_specimens, etc. AS WELL AS SELF.DATA_HIERARCHY
-        print "self.ErMagic.Data", self.ErMagic.Data
-        print "self.Data", self.Data
-        #
         
         # updates the holder data so that when we save again, we will only update what is new as of the last save
 
@@ -2745,20 +2719,44 @@ Fill site latitude (under the header site_lat): Decimal degrees between -90 and 
         print "Updated temp_data"
 
 
-    def update_sites(*args):
-        pass
+    def update_sites(self, col1_updated, col1_old, col2_updated, col2_old, *args):
+        print "updating sites"
+        changed = [(old_value, col1_updated[num]) for (num, old_value) in enumerate(col1_old) if old_value != col1_updated[num]]
+        for change in changed:
+            old_site, new_site = change
+            samples = self.Data_hierarchy['sites'].pop(old_site)
+            location = self.Data_hierarchy['location_of_site'].pop(old_site)
+            self.Data_hierarchy['sites'][new_site] = samples
+            ind = self.Data_hierarchy['locations'][location].index(old_site)
+            self.Data_hierarchy['locations'][location][ind] = new_site
+            self.Data_hierarchy['location_of_site'][new_site] = location
+            for samp in samples:
+                specimens = self.Data_hierarchy['samples'][samp]
+                self.Data_hierarchy['site_of_sample'][samp] = new_site
+                self.ErMagic.data_er_samples[samp]['er_site_name'] = new_site
+                for spec in specimens:
+                    self.Data_hierarchy['site_of_specimen'][spec] = new_site
+                    self.ErMagic.data_er_specimens[spec]['er_site_name'] = new_site
+            data = self.ErMagic.data_er_sites.pop(old_site)
+            self.ErMagic.data_er_sites[new_site] = data
+            self.ErMagic.data_er_sites[new_site]['er_site_name'] = new_site
+        #for k, v in self.Data_hierarchy.items():
+        #    print k
+        #    print v
+        #    print "--"
+        #print "self.ErMagic.data_er_sites", self.ErMagic.data_er_sites
+        #print "self.ErMagic.data_er_samples", self.ErMagic.data_er_samples
+        #print "self.ErMagic.data_er_specimens", self.ErMagic.data_er_specimens
+
+        # now do the "which site belongs to which location" part
+        
+
+
 
         
 
     def update_samples(self, col1_updated, col1_old, col2_updated, col2_old):
-        print "data_er_samples at beginning of update_samples"
-        print self.ErMagic.data_er_samples.keys()
-        print "-"
         changed = [(old_value, col1_updated[num]) for (num, old_value) in enumerate(col1_old) if old_value != col1_updated[num]]  
-        #for k, v in self.Data_hierarchy.items():
-            #print k
-            #print v
-            #print "---"
         for change in changed:
             #print "change!!!!!!", change
             old_sample, new_sample = change
@@ -2779,17 +2777,17 @@ Fill site latitude (under the header site_lat): Decimal degrees between -90 and 
             ind = self.Data_hierarchy['sites'][site].index(old_sample)
             self.Data_hierarchy['sites'][site][ind] = new_sample
             # updating self.ErMagic.data_er_samples
-            print "in update_samples, self.ErMagic.data_er_specimens", self.ErMagic.data_er_specimens
-            print "in update_samples, self.ErMagic.data_er_samples.keys()", self.ErMagic.data_er_samples
-            print "-"
+            #print "in update_samples, self.ErMagic.data_er_specimens", self.ErMagic.data_er_specimens
+            #print "in update_samples, self.ErMagic.data_er_samples.keys()", self.ErMagic.data_er_samples
+            #print "-"
             sample_data = self.ErMagic.data_er_samples.pop(old_sample)
             self.ErMagic.data_er_samples[new_sample] = sample_data
             self.ErMagic.data_er_samples[new_sample]['er_sample_name'] = new_sample
             for spec in self.ErMagic.data_er_specimens:
                 if self.ErMagic.data_er_specimens[spec]['er_sample_name'] == old_sample:
                     self.ErMagic.data_er_specimens[spec]['er_sample_name'] = new_sample
-            print "self.ErMagic.data_er_samples[new_sample]", self.ErMagic.data_er_samples[new_sample]
-            print "self.ErMagic.data_er_specimens", self.ErMagic.data_er_specimens
+            #print "self.ErMagic.data_er_samples[new_sample]", self.ErMagic.data_er_samples[new_sample]
+            #print "self.ErMagic.data_er_specimens", self.ErMagic.data_er_specimens
             #done with ErMagic.data_er_samples
         
         # now do the site changes
