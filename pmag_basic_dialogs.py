@@ -2380,6 +2380,7 @@ class check(wx.Frame):
         """make an interactive grid in which users can edit specimen names
         as well as which sample a specimen belongs to"""
 
+        # ADD A BUTTON to add an additional sample.  maybe will have a popup window to select what site/location etc. this sample belongs to 
         self.panel = wx.ScrolledWindow(self, style=wx.SIMPLE_BORDER)
         TEXT = """Check that all specimens belong to the correct sample
         (if sample name is simply wrong, that will be fixed in step 2)
@@ -2398,6 +2399,11 @@ class check(wx.Frame):
         self.Bind(wx.grid.EVT_GRID_SELECT_CELL, lambda event: self.on_left_click(event, self.spec_grid, samples), self.spec_grid) 
 
         #### Create Buttons ####
+        hbox_one = wx.BoxSizer(wx.HORIZONTAL)
+        self.addSampleButton = wx.Button(self.panel, label="Add a new sample")
+        self.Bind(wx.EVT_BUTTON, self.on_addSampleButton, self.addSampleButton)
+        hbox_one.Add(self.addSampleButton)
+        #
         hboxok = wx.BoxSizer(wx.HORIZONTAL)
         self.saveButton =  wx.Button(self.panel, id=-1, label='Save')
         self.Bind(wx.EVT_BUTTON, lambda event: self.on_saveButton(event, self.spec_grid), self.saveButton)
@@ -2413,7 +2419,11 @@ class check(wx.Frame):
         vbox = wx.BoxSizer(wx.VERTICAL)
         vbox.Add(label, flag=wx.ALIGN_LEFT|wx.BOTTOM, border=20)
         vbox.Add(self.spec_grid, flag=wx.BOTTOM|wx.EXPAND, border=20)
+        vbox.Add(hbox_one, flag=wx.BOTTOM, border=20)
         vbox.Add(hboxok, flag=wx.BOTTOM, border=20)
+        
+        #for child in vbox.Children:
+        #    print "child", type(child.GetWindow())
 
         hbox_all= wx.BoxSizer(wx.HORIZONTAL)
         hbox_all.AddSpacer(20)
@@ -2447,6 +2457,11 @@ class check(wx.Frame):
 
 
         ### Create Buttons ###
+        hbox_one = wx.BoxSizer(wx.HORIZONTAL)
+        self.addSiteButton = wx.Button(self.panel, label="Add a new site")
+        self.Bind(wx.EVT_BUTTON, self.on_addSiteButton, self.addSiteButton)
+        hbox_one.Add(self.addSiteButton)
+
         hboxok = wx.BoxSizer(wx.HORIZONTAL)
         self.saveButton =  wx.Button(self.panel, id=-1, label='Save')
         self.Bind(wx.EVT_BUTTON, lambda event: self.on_saveButton(event, self.samp_grid), self.saveButton)
@@ -2464,6 +2479,7 @@ class check(wx.Frame):
         vbox = wx.BoxSizer(wx.VERTICAL)
         vbox.Add(label, flag=wx.ALIGN_LEFT|wx.BOTTOM, border=20)
         vbox.Add(self.samp_grid, flag=wx.BOTTOM|wx.EXPAND, border=20) # EXPAND ??
+        vbox.Add(hbox_one, flag=wx.BOTTOM, border=20)
         vbox.Add(hboxok, flag=wx.BOTTOM, border=20)
 
         hbox_all= wx.BoxSizer(wx.HORIZONTAL)
@@ -2489,6 +2505,11 @@ class check(wx.Frame):
         self.Data, self.Data_hierarchy = self.ErMagic.Data, self.ErMagic.Data_hierarchy
         self.sites = self.Data_hierarchy['sites'].keys()
         self.site_grid, self.temp_data['sites'], self.temp_data['locations'] = self.make_table(['sites', '', 'locations', 'site_class', 'site_lithology', 'site_type', 'site_definition', 'site_lon', 'site_lat'], self.sites, self.Data_hierarchy, 'location_of_site')
+
+        # 3 - 8 need Help icons.  or, one help button
+        self.site_grid.SetCellValue(1, 1, "HEYO")
+        print self.site_grid.GetColLabelValue(3)
+        self.site_grid.SetColLabelValue(3, "HI")
         # additional options: 
         locations = self.temp_data['locations']
         self.changes = False
@@ -2498,6 +2519,11 @@ class check(wx.Frame):
 
 
         ### Create Buttons ###
+        hbox_one = wx.BoxSizer(wx.HORIZONTAL)
+        self.helpButton = wx.Button(self.panel, label="Help")
+        self.Bind(wx.EVT_BUTTON, self.on_helpButton, self.helpButton)
+        hbox_one.Add(self.helpButton)
+
         hboxok = wx.BoxSizer(wx.HORIZONTAL)
         self.saveButton =  wx.Button(self.panel, id=-1, label='Save')
         self.Bind(wx.EVT_BUTTON, lambda event: self.on_saveButton(event, self.site_grid), self.saveButton)
@@ -2514,6 +2540,7 @@ class check(wx.Frame):
         vbox = wx.BoxSizer(wx.VERTICAL)
         vbox.Add(label, flag=wx.ALIGN_LEFT|wx.BOTTOM)#, flag=wx.ALIGN_LEFT|wx.BOTTOM, border=20)
         vbox.Add(self.site_grid, flag=wx.BOTTOM|wx.EXPAND, border=20) # EXPAND ??
+        vbox.Add(hbox_one, flag=wx.BOTTOM, border=20)
         vbox.Add(hboxok, flag=wx.BOTTOM, border=20)
 
         hbox_all= wx.BoxSizer(wx.HORIZONTAL)
@@ -2608,6 +2635,41 @@ class check(wx.Frame):
 
 
     ### Button methods ###
+
+    def on_addSampleButton(self, event):
+        print "add sample"
+
+    def on_addSiteButton(self, event):
+        print "add site"
+
+    def on_helpButton(self, event, msg=None):
+        #dlg = wx.MessageDialog(self,caption="Message:", message="help is here" ,style=wx.OK)
+        #dlg.ShowModal()
+        TEXT =  """Check location name (under the header er_location_name).
+
+Fill site class (under the header site_class).
+Use controlled vocabularies from: site class controlled vocabularies
+
+Fill site lithology (under the header site_lithology).
+Use controlled vocabularies from site lithology controlled vocabularies. If you cant find any appropriate definition use: Not Specified.
+
+Fill site type (under the header site_type). 
+Use controlled vocabularies from site type controlled vocabularies. If you cant find any appropriate definition use: Not Specified.
+
+Fill site definition (under the header site_definition: the letter "s" for single site or the letter "c" for composite site (including various units).
+
+Fill site longitude (under the header site_lon):Decimal degrees between 0 and 360.
+
+Fill site latitude (under the header site_lat): Decimal degrees between -90 and 90"""
+        #pw.on_helpButton(text=TEXT)
+        html = HtmlFrame(None)
+        html.Show()
+
+        
+
+
+
+
 
     def on_continueButton(self, event, grid, next_dia=None):
         """pulls up next dialog, if there is one.
@@ -2807,7 +2869,16 @@ class check(wx.Frame):
             update_2.append(str(two))
         return update_1, update_2, old_1, old_2, type1, type2
 
-
+class HtmlFrame(wx.Frame):
+    """ This window displays a HtmlWindow """
+    def __init__(self, *args, **kwargs):
+        wx.Frame.__init__(self, *args, **kwargs)
+        page = "/Users/nebula/Python/PmagPy/ErMagicSiteHelp.html"
+        #page = "/Users/nebula/Python/PmagPy/ErMagicBuilderHelp.html"
+        htmlwin = wx.html.HtmlWindow(self)
+        htmlwin.LoadPage(page)
+        htmlwin.Fit()
+        #htmlwin.SetPage(page)
 
 
 
@@ -2904,8 +2975,9 @@ class check(wx.Frame):
       return(Data,Data_hierarchy)
 """
 
-# code that would update specimens in update_specimens
-        """
+
+"""
+        # code that would update specimens in update_specimens
         changed = [(i, col1_updated[num]) for (num, i) in enumerate(col1_old) if i != col1_updated[num]]  
         
         
@@ -2948,4 +3020,4 @@ class check(wx.Frame):
         #'mgf10a1': {'er_citation_names': 'This study', 'er_location_name': '', 'er_site_name': 'm', 'er_sample_name': 'm', 'specimen_class': '', 'er_specimen_name': 'mgf10a1', 'specimen_lithology': '', 'er_citation_name': '', 'specimen_type': ''}
         # also update data_er_samples and so on all the way up as needed
         #self.ErMagic.data_er_samples[new_sample] {'sample_bed_dip_direction': '', 'er_citation_names': 'This study', 'sample_lithology': '', 'sample_azimuth': '', 'er_site_name': 'm', 'er_sample_name': 'MARTHS', 'specimen_weight': '', 'sample_type': '', 'sample_bed_dip': '', 'er_location_name': '', 'sample_height': '', 'sample_declination_correction': '', 'sample_lat': '', 'magic_method_codes': '', 'specimen_volume': '', 'er_citation_name': '', 'sample_dip': '', 'sample_lon': '', 'sample_class': ''}
-        """
+"""

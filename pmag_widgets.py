@@ -459,9 +459,12 @@ def simple_warning(text):
     dlg.Destroy()
     
 
-def on_helpButton(command):
+def on_helpButton(command=None, text=None):
     import subprocess
-    result = subprocess.check_output(command, shell=True)
+    if text:
+        result = text
+    else:
+        result = subprocess.check_output(command, shell=True)
     dlg = wx.Dialog(None, title="help")
     text = wx.TextCtrl(dlg, -1, result, size=(620,540), style=wx.TE_MULTILINE | wx.TE_READONLY)
     sizer = wx.BoxSizer(wx.VERTICAL)
