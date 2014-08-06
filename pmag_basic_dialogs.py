@@ -2749,7 +2749,43 @@ class check(wx.Frame):
         #print "self.ErMagic.data_er_specimens", self.ErMagic.data_er_specimens
 
         # now do the "which site belongs to which location" part
-        
+        for num, value in enumerate(col2_updated):
+            # find where changes have occurred
+            if value != col2_old[num]:
+                print "CHANGE!", "new", value, "old", col2_old[num]
+                old_loc = col2_old[num]
+                new_loc = col2_updated[num]
+                site = col1_updated[num]
+                #
+                self.Data_hierarchy['location_of_site'][site] = new_loc
+                #
+                self.Data_hierarchy['locations'][old_loc].remove(site)
+                self.Data_hierarchy['locations'][new_loc].append(site)
+                #
+                for samp in self.Data_hierarchy['sites'][site]:
+                    self.Data_hierarchy['location_of_sample'][samp] = new_loc
+                    self.ErMagic.data_er_samples[samp]['er_location_name'] = new_loc
+                    for spec in self.Data_hierarchy['samples'][samp]:
+                        self.Data_hierarchy['location_of_specimen'][spec] = new_loc
+                        self.ErMagic.data_er_specimens[spec]['er_location_name'] = new_loc
+                #
+                self.ErMagic.data_er_sites[site]['er_location_name'] = new_loc
+                #
+        print "self.ErMagic.data_er_sites", self.ErMagic.data_er_sites
+        print "-"
+        print "self.ErMagic.data_er_samples", self.ErMagic.data_er_samples
+        print "-"
+        print "self.ErMagic.data_er_specimens", self.ErMagic.data_er_specimens
+        print "-"
+
+        for k, v in self.Data_hierarchy.items():
+            print k
+            print v
+            print "--"
+
+                
+                
+                
 
 
 

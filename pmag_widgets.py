@@ -425,7 +425,7 @@ class combine_files(wx.BoxSizer):
             F=str(F)
             if len(F)>6:
                 if self.text in F:
-                    if "#" not in F and "~" not in F: # prevents binary files from going into the mix
+                    if "#" not in F and "~" not in F and not F.endswith('.pyc'): # prevents binary files from going into the mix, as well as misc saved stuff
                         self.file_paths.AppendText(F+"\n")
 
 
