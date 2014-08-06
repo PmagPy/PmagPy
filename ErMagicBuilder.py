@@ -683,14 +683,13 @@ class MagIC_model_builder(wx.Frame):
 
         try:
             self.data_er_specimens=self.read_magic_file(self.WD+"/er_specimens.txt",'er_specimen_name')
-            print "in read_MagIC info!!! self.data_er_specimens: \n".format(self.data_er_specimens)
         except:
-            self.GUI_log.write ("-W- Cant find er_sample.txt in project directory")
-            print "-W- Cant find er_sample.txt in project directory"
+            #self.GUI_log.write ("-W- Cant find er_samples.txt in project directory")
+            print "-W- Cant find er_samples.txt in project directory"
         try:
             self.data_er_samples=self.read_magic_file(self.WD+"/er_samples.txt",'er_sample_name')
         except:
-            self.GUI_log.write ("-W- Cant find er_sample.txt in project directory")
+            #self.GUI_log.write ("-W- Cant find er_sample.txt in project directory")
             print "-W- Cant find er_sample.txt in project directory"
         try:
             self.data_er_sites=self.read_magic_file(self.WD+"/er_sites.txt",'er_site_name')
@@ -699,8 +698,8 @@ class MagIC_model_builder(wx.Frame):
         try:
             self.data_er_locations=self.read_magic_file(self.WD+"/er_locations.txt",'er_location_name')
         except:
-            self.GUI_log.write ("-W- Cant find er_sites.txt in project directory")
-            pass
+            #self.GUI_log.write ("-W- Cant find er_sites.txt in project directory")
+            print "-W- Cant find er_sites.txt in project directory"
         try:
             self.data_er_ages=self.read_magic_file(self.WD+"/er_ages.txt","er_site_name")
         except:
