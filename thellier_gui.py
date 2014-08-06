@@ -3555,7 +3555,7 @@ class Arai_GUI(wx.Frame):
                     if 'NLT_specimen_correction_factor' not in pars.keys():
                         # problem in get_PI_parameters (probably with tmin/zdata).  can't run specimen
                         message_string = '-W- Could not get parameters for {}. Check data for typos, etc.'.format(s)
-                        thellier_interpreter_log.write(message_string+"\n")        
+                        thellier_interpreter_log.write(message_string+"\n")
                         break
                     pars=self.check_specimen_PI_criteria(pars)
                     #-------------------------------------------------            
