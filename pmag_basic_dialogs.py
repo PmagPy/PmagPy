@@ -2506,9 +2506,9 @@ class check(wx.Frame):
         self.sites = self.Data_hierarchy['sites'].keys()
         self.site_grid, self.temp_data['sites'], self.temp_data['locations'] = self.make_table(['sites', '', 'locations', 'site_class', 'site_lithology', 'site_type', 'site_definition', 'site_lon', 'site_lat'], self.sites, self.Data_hierarchy, 'location_of_site')
 
-        self.site_grid.SetCellValue(1, 1, "HEYO")
-        print self.site_grid.GetColLabelValue(3)
-        self.site_grid.SetColLabelValue(3, "HI")
+        #self.site_grid.SetCellValue(1, 1, "HEYO")
+        #print self.site_grid.GetColLabelValue(3)
+        #self.site_grid.SetColLabelValue(3, "HI")
         # additional options: 
         locations = self.temp_data['locations']
         self.changes = False
@@ -2704,7 +2704,11 @@ class check(wx.Frame):
         if type1 == 'samples':
             self.update_samples(col1_updated, col1_old, col2_updated, col2_old)
         if type1 == 'sites':
-            self.update_sites(col1_updated, col1_old, col2_updated, col2_old)
+            cols = range(3, grid.GetNumberCols())
+            col_labels = []
+            for col in cols:
+                col_labels.append(grid.GetColLabelValue(col))
+            self.update_sites(grid, col1_updated, col1_old, col2_updated, col2_old, *col_labels)
         print "NEW AND IMPROVED"
         #for k, v in self.Data_hierarchy.items():
             #print k
@@ -2719,7 +2723,7 @@ class check(wx.Frame):
         print "Updated temp_data"
 
 
-    def update_sites(self, col1_updated, col1_old, col2_updated, col2_old, *args):
+    def update_sites(self, grid, col1_updated, col1_old, col2_updated, col2_old, *args):
         print "updating sites"
         changed = [(old_value, col1_updated[num]) for (num, old_value) in enumerate(col1_old) if old_value != col1_updated[num]]
         for change in changed:
@@ -2778,17 +2782,30 @@ class check(wx.Frame):
                 #
                 self.ErMagic.data_er_sites[site]['er_location_name'] = new_loc
                 #
-        print "self.ErMagic.data_er_sites", self.ErMagic.data_er_sites
-        print "-"
-        print "self.ErMagic.data_er_samples", self.ErMagic.data_er_samples
-        print "-"
-        print "self.ErMagic.data_er_specimens", self.ErMagic.data_er_specimens
-        print "-"
+        #print "self.ErMagic.data_er_sites", self.ErMagic.data_er_sites
+        #print "-"
+        #print "self.ErMagic.data_er_samples", self.ErMagic.data_er_samples
+        #print "-"
+        #print "self.ErMagic.data_er_specimens", self.ErMagic.data_er_specimens
+        #print "-"
 
-        for k, v in self.Data_hierarchy.items():
-            print k
-            print v
-            print "--"
+        #for k, v in self.Data_hierarchy.items():
+        #    print k
+        #    print v
+        #    print "--"
+        
+        # now fill in all the other columns
+        for num_site, site in enumerate(col1_updated):
+            for num, arg in enumerate(args):
+                num += 3
+                value = str(grid.GetCellValue(num_site, num))
+                self.ErMagic.data_er_sites[site][arg] = value
+
+        print "self.ErMagic.data_er_sites", self.ErMagic.data_er_sites
+
+
+
+        
 
                 
                 

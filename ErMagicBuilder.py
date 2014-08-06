@@ -446,12 +446,14 @@ class MagIC_model_builder(wx.Frame):
               try:
                     site_lons.append(float(self.data_er_sites[site]['site_lon']))
               except:
-                  pass
+                  print "failed at longitude"
+                  #pass
           if site in self.data_er_sites.keys() and 'site_lat' in self.data_er_sites[site].keys() and self.data_er_sites[site]['site_lat']!="":
               try:
                     site_lats.append(float(self.data_er_sites[site]['site_lat']))
               except:
-                  pass
+                  print "failed at latitude"
+                  #pass
                 
                
           er_sites_file.write(string[:-1]+"\n")

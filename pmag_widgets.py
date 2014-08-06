@@ -438,7 +438,7 @@ class HtmlFrame(wx.Frame):
     """ This window displays a HtmlWindow """
     def __init__(self, *args, **kwargs):
         wx.Frame.__init__(self, None, wx.ID_ANY, title="Help Window", size=(600,400))
-        page = kwargs.get('page', 'http://earthref.org/MAGIC/')
+        page = kwargs.get('page', 'http://earthref.org/MAGIC/shortlists/')
         print "page:", page
         #page = "/Users/nebula/Python/PmagPy/ErMagicSiteHelp.html"
         print "page", page
