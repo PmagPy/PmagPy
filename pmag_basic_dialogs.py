@@ -2726,6 +2726,8 @@ class check(wx.Frame):
             old_site, new_site = change
             samples = self.Data_hierarchy['sites'].pop(old_site)
             location = self.Data_hierarchy['location_of_site'].pop(old_site)
+            if location == " ": # prevents error
+                location = ""
             self.Data_hierarchy['sites'][new_site] = samples
             ind = self.Data_hierarchy['locations'][location].index(old_site)
             self.Data_hierarchy['locations'][location][ind] = new_site
@@ -2753,8 +2755,13 @@ class check(wx.Frame):
             # find where changes have occurred
             if value != col2_old[num]:
                 print "CHANGE!", "new", value, "old", col2_old[num]
+                print "len(value)", len(value)
                 old_loc = col2_old[num]
                 new_loc = col2_updated[num]
+                if old_loc == " ": 
+                    old_loc = ""
+                if new_loc == " ":
+                    new_loc = ""
                 site = col1_updated[num]
                 #
                 self.Data_hierarchy['location_of_site'][site] = new_loc
