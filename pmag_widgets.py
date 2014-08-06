@@ -425,7 +425,8 @@ class combine_files(wx.BoxSizer):
             F=str(F)
             if len(F)>6:
                 if self.text in F:
-                    self.file_paths.AppendText(F+"\n")
+                    if "#" not in F and "~" not in F: # prevents binary files from going into the mix
+                        self.file_paths.AppendText(F+"\n")
 
 
 
