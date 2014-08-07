@@ -2504,12 +2504,15 @@ class check(wx.Frame):
         label = wx.StaticText(self.panel,label=TEXT)
         self.Data, self.Data_hierarchy = self.ErMagic.Data, self.ErMagic.Data_hierarchy
         self.sites = self.Data_hierarchy['sites'].keys()
-        self.site_grid, self.temp_data['sites'], self.temp_data['locations'] = self.make_table(['sites', '', 'locations', 'site_class', 'site_lithology', 'site_type', 'site_definition', 'site_lon', 'site_lat'], self.sites, self.Data_hierarchy, 'location_of_site')
+        # if you wanted to have all the headers show up as editable fields
+        #args = self.ErMagic.data_er_sites[self.ErMagic.data_er_sites.keys()[0]].keys()
+        #col_labels = ['sites', '', 'locations']
+        #col_labels.extend(args)
+        # end that thing
+        col_labels = ['sites', '', 'locations', 'site_class', 'site_lithology', 'site_type', 'site_definition', 'site_lon', 'site_lat']
+        self.site_grid, self.temp_data['sites'], self.temp_data['locations'] = self.make_table(col_labels, self.sites, self.Data_hierarchy, 'location_of_site')
+        self.add_extra_grid_data(self.site_grid, self.sites, col_labels, self.ErMagic.data_er_sites)
 
-        #self.site_grid.SetCellValue(1, 1, "HEYO")
-        #print self.site_grid.GetColLabelValue(3)
-        #self.site_grid.SetColLabelValue(3, "HI")
-        # additional options: 
         locations = self.temp_data['locations']
         self.changes = False
 
@@ -2529,7 +2532,7 @@ class check(wx.Frame):
         self.cancelButton = wx.Button(self.panel, wx.ID_CANCEL, '&Cancel')
         self.Bind(wx.EVT_BUTTON, self.on_cancelButton, self.cancelButton)
         self.continueButton = wx.Button(self.panel, id=-1, label='Save and continue')
-        self.Bind(wx.EVT_BUTTON, lambda event: self.on_continueButton(event, self.site_grid), self.continueButton)
+        self.Bind(wx.EVT_BUTTON, lambda event: self.on_continueButton(event, self.site_grid, next_dia=self.InitSampCheck), self.continueButton)
 
         hboxok.Add(self.saveButton, flag=wx.BOTTOM, border=20)
         hboxok.Add(self.cancelButton, flag=wx.BOTTOM, border=20 )
@@ -2591,7 +2594,6 @@ class check(wx.Frame):
         #grid.AppendRows(1) # prevents site_grid from looking really stupid when editing bottom row.  not a good permanent solution, thoug
         #grid.SetRowLabelValue(len(row_values), " ")
         
-
         for n, label in enumerate(column_labels):
             grid.SetColLabelValue(n, label)
 
@@ -2605,6 +2607,13 @@ class check(wx.Frame):
                 grid.SetColSize(n, size)
 
         return grid, original_1, original_2
+    
+    def add_extra_grid_data(self, grid, row_labels, col_labels, data_dict):
+        for num, row in enumerate(row_labels):
+            for n, col in enumerate(col_labels[3:]):
+                if data_dict[row][col]:
+                    grid.SetCellValue(num, n+3, data_dict[row][col])
+            
         
     def on_edit_grid(self, event):
         """sets self.changes to true when user edits the grid"""
@@ -2645,10 +2654,6 @@ class check(wx.Frame):
         html_frame = pw.HtmlFrame(self, page="/Users/nebula/Python/PmagPy/ErMagicSiteHelp.html")
         html_frame.Show()
 
-        
-
-
-
 
 
     def on_continueButton(self, event, grid, next_dia=None):
@@ -2682,7 +2687,7 @@ class check(wx.Frame):
             #print "ErMagic.data_er_specimens after read_MagIC_info", self.ErMagic.data_er_specimens.keys()
 
             #
-            #self.ErMagic.on_okButton(None) # add this back in, it was messing up testing
+            self.ErMagic.on_okButton(None) # add this back in, it was messing up testing
             self.changes = False
 
 
@@ -2713,7 +2718,6 @@ class check(wx.Frame):
         #for k, v in self.Data_hierarchy.items():
             #print k
             #print v
-
 
         
         # updates the holder data so that when we save again, we will only update what is new as of the last save

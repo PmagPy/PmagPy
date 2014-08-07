@@ -270,6 +270,8 @@ class MagIC_model_builder(wx.Frame):
         self.update_text_box('er_ages')
 
     def on_okButton(self, event, data_hierarchy_update=None):
+
+        print "self.data_er_sites", self.data_er_sites
         samples_list=self.Data_hierarchy['samples'].keys()
         samples_list.sort()
 
@@ -401,6 +403,7 @@ class MagIC_model_builder(wx.Frame):
         # make er_sites.txt
         #---------------------------------------------
 
+
         #header
         er_sites_file=open(self.WD+"er_sites.txt",'w')
         er_sites_file.write("tab\ter_sites\n")
@@ -434,6 +437,7 @@ class MagIC_model_builder(wx.Frame):
               string=string+site+"\t"            
             # take information from the existing er_samples table             
             elif (site in self.data_er_sites.keys() and key in self.data_er_sites[site].keys() and self.data_er_sites[site][key]!=""):
+                #print "site: {}, key: {}, data {}".format(site, key, self.data_er_sites[site][key])
                 string=string+self.data_er_sites[site][key]+"\t"
 
             elif key in ['er_location_name']:
@@ -446,18 +450,15 @@ class MagIC_model_builder(wx.Frame):
               try:
                     site_lons.append(float(self.data_er_sites[site]['site_lon']))
               except:
-                  print "failed at longitude"
-                  #pass
+                  pass
           if site in self.data_er_sites.keys() and 'site_lat' in self.data_er_sites[site].keys() and self.data_er_sites[site]['site_lat']!="":
               try:
                     site_lats.append(float(self.data_er_sites[site]['site_lat']))
               except:
-                  print "failed at latitude"
-                  #pass
-                
-               
+                  pass
           er_sites_file.write(string[:-1]+"\n")
         er_sites_file.close()
+
         #---------------------------------------------
         # make er_locations.txt
         #---------------------------------------------
