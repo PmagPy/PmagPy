@@ -3,6 +3,12 @@
 #============================================================================================
 # LOG HEADER:
 #============================================================================================
+# Thellier_GUI Version 2.25 08/08/2014
+# Bug fixes:
+# deal with old foramt pmag_criteria.txt when specimen_dang is used as specimen_int_dang; 
+# deal with import pmag_criteria.txt file with statistics that do not appear in original pmag_criteria.txt
+#  
+#
 # Thellier_GUI Version 2.24 05/11/2014
 # Fix Pmag results tables issues
 #
@@ -111,7 +117,7 @@
 global CURRENT_VRSION
 global MICROWAVE
 global THERMAL
-CURRENT_VRSION = "v.2.23"
+CURRENT_VRSION = "v.2.25"
 MICROWAVE=False
 THERMAL=True
 
@@ -2030,12 +2036,41 @@ class Arai_GUI(wx.Frame):
         
         self.acceptance_criteria=pmag.initialize_acceptance_criteria()
         self.add_thelier_gui_criteria()
-        self.read_criteria_file(criteria_file)            
-            
+        self.read_criteria_file(criteria_file)     
+        # check if some statistics are in the new pmag_criteria_file but not in old. If yes, add to  self.preferences['show_statistics_on_gui']
+        crit_list_not_in_pref=[]
+        for crit in   self.acceptance_criteria.keys():
+            if  self.acceptance_criteria[crit]['category']=="IE-SPEC":
+                if self.acceptance_criteria[crit]['value']!=-999:
+                    short_crit=crit.split('specimen_')[-1]
+                    if short_crit not in self.preferences['show_statistics_on_gui']:
+                        print "-I- statitics %s is not in your preferences"%crit
+                        self.preferences['show_statistics_on_gui'].append(short_crit)
+                        crit_list_not_in_pref.append(crit)
+        if  len(crit_list_not_in_pref)>0:
+            stat_list=":".join(crit_list_not_in_pref)
+            dlg1 = wx.MessageDialog(self,caption="WARNING:", 
+            message="statistics '%s' is in the imported pmag_criteria.txt but not in your appearence preferences.\nThis statistic will not appear on the gui panel.\n The program will exit after saving new acceptance criteria, and it will be added automatically the next time you open it "%stat_list ,
+            style=wx.OK|wx.ICON_INFORMATION)
+            dlg1.ShowModal()
+            dlg1.Destroy()
+           
         dia = thellier_gui_dialogs.Criteria_Dialog(None, self.acceptance_criteria,self.preferences,title='Acceptance Criteria')
         dia.Center()
         if dia.ShowModal() == wx.ID_OK: # Until the user clicks OK, show the message            
             self.On_close_criteria_box(dia)
+            if len(crit_list_not_in_pref)>0:
+                dlg1 = wx.MessageDialog(self,caption="WARNING:", 
+                message="Exiting now! When you restart the gui all the new statistics will be added." ,
+                style=wx.OK|wx.ICON_INFORMATION)
+                dlg1.ShowModal()
+                dlg1.Destroy()
+                exit()
+                
+        if dia.ShowModal() == wx.ID_CANCEL: # Until the user clicks OK, show the message                        
+            for crit in crit_list_not_in_pref:
+               short_crit=crit.split('specimen_')[-1] 
+               self.preferences['show_statistics_on_gui'].remove(short_crit) 
 
     #----------------------------------------------------------------------        
 
@@ -2164,13 +2199,22 @@ class Arai_GUI(wx.Frame):
         dlg1 = wx.MessageDialog(self,caption="Warning:", message="changes are saved to pmag_criteria.txt\n " ,style=wx.OK)
         result = dlg1.ShowModal()
         if result == wx.ID_OK:
-            self.clear_boxes()
-            self.write_acceptance_criteria_to_boxes()
+            try:
+                self.clear_boxes()
+            except:
+                pass
+            try:
+                self.write_acceptance_criteria_to_boxes()
+            except:
+                pass
             pmag.write_criteria_to_file(self.WD+"/pmag_criteria.txt",self.acceptance_criteria)
             dlg1.Destroy()    
             dia.Destroy()
         self.recaclulate_satistics()
-        self.update_GUI_with_new_interpretation()
+        try:
+            self.update_GUI_with_new_interpretation()
+        except:
+            pass
         
     # only valid naumber can be entered to boxes
     # used by On_close_criteria_box         
@@ -4199,7 +4243,10 @@ class Arai_GUI(wx.Frame):
             Fout_BS_samples.close()
         if self.acceptance_criteria['interpreter_method']['value']=='bs_par':
             Fout_BS_PAR_samples.close()
-        os.system('\a')
+        #try:
+        #    os.system('\a')
+        #except:
+        #    pass
         dlg1 = wx.MessageDialog(self,caption="Message:", message="Interpreter finished sucsessfuly\nCheck output files in folder /thellier_interpreter in the current project directory" ,style=wx.OK|wx.ICON_INFORMATION)
 
 
