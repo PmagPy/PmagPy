@@ -144,7 +144,10 @@ def get_MAD(tau):
     output: Maximum Angular Deviation
     """
     # tau is ordered so that tau[0] > tau[1] > tau[2]
-    MAD = math.degrees(numpy.arctan(numpy.sqrt((tau[1] + tau[2]) / tau[0])) )# / rad # should work, AND DOES!!
+    for t in tau:
+        if isinstance(t, complex):
+            return -999
+    MAD = math.degrees(numpy.arctan(numpy.sqrt((tau[1] + tau[2]) / tau[0])) )
     return MAD
 
 def dir2cart(d): # from pmag.py
