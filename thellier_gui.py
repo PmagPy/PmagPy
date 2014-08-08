@@ -1599,8 +1599,8 @@ class Arai_GUI(wx.Frame):
                     if my_acceptance_criteria[crit]['value']!=-999:
                         short_crit=crit.split('specimen_')[-1]
                         if short_crit not in preferences['show_statistics_on_gui']:
-                            #preferences['show_statistics_on_gui'].append(short_crit)
-                            print "-IIII-",short_crit, " was added to list"
+                            preferences['show_statistics_on_gui'].append(short_crit)
+                            print "-I-",short_crit, " was added to criteria list and will be displayed on screen"
         except:
             pass     
         return(preferences)
@@ -3568,6 +3568,7 @@ class Arai_GUI(wx.Frame):
                     #    print "fail pars"
                     #    continue
                     #print "pass pars"
+                    #print pars.keys()
                     if  'specimen_fail_criteria' in pars.keys() and len(pars['specimen_fail_criteria'])>0:
                         # Fail:
                         message_string= "-I- specimen %s (%.0f-%.0f) FAIL on: "%(s,float(pars["measurement_step_min"])-273, float(pars["measurement_step_max"])-273)
@@ -6775,7 +6776,8 @@ class Arai_GUI(wx.Frame):
         Pint_pars = spd.PintPars(self.Data, str(s), tmin, tmax, 'magic', self.preferences['show_statistics_on_gui'])
         Pint_pars.reqd_stats() # calculate only statistics indicated in self.preferences
         #Pint_pars.calculate_all_statistics() # calculate every statistic available
-
+        #print "-D- Debag"
+        #print Pint_pars.keys()
         pars.update(Pint_pars.pars) # 
 
         t_Arai=self.Data[s]['t_Arai']
@@ -7109,9 +7111,7 @@ class Arai_GUI(wx.Frame):
             elif self.acceptance_criteria[crit]['threshold_type']=="low":
                 if pars[crit]<cutoff_value:
                     pars['specimen_fail_criteria'].append(crit)
-        
         return pars                                                                                     
-
                 
     def  draw_interpretation(self):
 
