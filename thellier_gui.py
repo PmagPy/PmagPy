@@ -5670,7 +5670,7 @@ class Arai_GUI(wx.Frame):
                 data2plot=copy.deepcopy(self.Data_samples)   
             else:
                 data2plot=copy.deepcopy(self.Data_sites)
-                data2plot=copy.deepcopy(Data_samples_or_sites)
+                #data2plot=copy.deepcopy(Data_samples_or_sites)
 
        
         show_map=dia.show_map.GetValue()
