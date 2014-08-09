@@ -2374,6 +2374,7 @@ class check(wx.Frame):
         self.ErMagic = ErMagic
         self.temp_data = {}
         self.InitSpecCheck()
+        self.sample_window = 0
 
 
     def InitSpecCheck(self):
@@ -2441,6 +2442,8 @@ class check(wx.Frame):
     def InitSampCheck(self):
         """make an interactive grid in which users can edit sample names
         as well as which site a sample belongs to"""
+        self.sample_window += 1 
+        print "init-ing Sample Check for the {}th time".format(self.sample_window)
         self.panel = wx.ScrolledWindow(self, style=wx.SIMPLE_BORDER)
         TEXT = """Check that all samples are correctly named,
         and that they belong to the correct site
@@ -2449,7 +2452,14 @@ class check(wx.Frame):
         self.Data, self.Data_hierarchy = self.ErMagic.Data, self.ErMagic.Data_hierarchy
         self.samples = self.Data_hierarchy['samples'].keys()
         sites = self.Data_hierarchy['sites'].keys()
-        self.samp_grid, self.temp_data['samples'], self.temp_data['sites'] = self.make_table(['samples', '', 'sites'], self.samples, self.Data_hierarchy, 'site_of_sample')
+        if self.sample_window == 1:
+            self.samp_grid, self.temp_data['samples'], self.temp_data['sites'] = self.make_table(['samples', '', 'sites'], self.samples, self.Data_hierarchy, 'site_of_sample')
+        if self.sample_window > 1:
+            print "ADD DATA THIS TIME"
+            col_labels = ['samples', '', 'sites', 'sample_class', 'sample_lithology', 'sample_type']
+            self.samp_grid, self.temp_data['samples'], self.temp_data['sites'] = self.make_table(col_labels, self.samples, self.Data_hierarchy, 'site_of_sample')
+            #self.add_extra_grid_data(self.site_grid, self.sites, col_labels, self.ErMagic.data_er_sites)
+            self.add_extra_grid_data(self.samp_grid, self.samples, col_labels, self.ErMagic.data_er_samples)
         self.changes = False
 
         self.Bind(wx.grid.EVT_GRID_EDITOR_SHOWN, self.on_edit_grid, self.samp_grid) 
@@ -2461,6 +2471,11 @@ class check(wx.Frame):
         self.addSiteButton = wx.Button(self.panel, label="Add a new site")
         self.Bind(wx.EVT_BUTTON, self.on_addSiteButton, self.addSiteButton)
         hbox_one.Add(self.addSiteButton)
+        if self.sample_window > 1:
+            self.helpButton = wx.Button(self.panel, label="Help")
+            self.Bind(wx.EVT_BUTTON, lambda event: self.on_helpButton(event, "/Users/nebula/Python/PmagPy/ErMagicSampleHelp.html"), self.helpButton)
+            hbox_one.Add(self.helpButton)
+
 
         hboxok = wx.BoxSizer(wx.HORIZONTAL)
         self.saveButton =  wx.Button(self.panel, id=-1, label='Save')
@@ -2523,7 +2538,7 @@ class check(wx.Frame):
         ### Create Buttons ###
         hbox_one = wx.BoxSizer(wx.HORIZONTAL)
         self.helpButton = wx.Button(self.panel, label="Help")
-        self.Bind(wx.EVT_BUTTON, self.on_helpButton, self.helpButton)
+        self.Bind(wx.EVT_BUTTON, lambda event: self.on_helpButton(event, "/Users/nebula/Python/PmagPy/ErMagicSiteHelp.html"), self.helpButton)
         hbox_one.Add(self.helpButton)
 
         hboxok = wx.BoxSizer(wx.HORIZONTAL)
@@ -2650,8 +2665,8 @@ class check(wx.Frame):
     def on_addSiteButton(self, event):
         print "add site"
 
-    def on_helpButton(self, event, msg=None):
-        html_frame = pw.HtmlFrame(self, page="/Users/nebula/Python/PmagPy/ErMagicSiteHelp.html")
+    def on_helpButton(self, event, page=None):
+        html_frame = pw.HtmlFrame(self, page=page)
         html_frame.Show()
 
 
@@ -2809,15 +2824,6 @@ class check(wx.Frame):
 
 
 
-        
-
-                
-                
-                
-
-
-
-        
 
     def update_samples(self, col1_updated, col1_old, col2_updated, col2_old):
         changed = [(old_value, col1_updated[num]) for (num, old_value) in enumerate(col1_old) if old_value != col1_updated[num]]  
