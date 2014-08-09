@@ -3596,11 +3596,15 @@ class Arai_GUI(wx.Frame):
                     tmin=temperatures[tmin_i]
                     tmax=temperatures[tmax_i]
                     pars=self.get_PI_parameters(s,tmin,tmax)
+                    if not pars: # error with getting pars
+                        message_string = '-W- Problem in SPD. Could not calculate any parameters for {} with tmin: {} and tmax {}. Check data for typos, make sure temperatures are correct, etc.'.format(s, tmin, tmax)
+                        thellier_interpreter_log.write(message_string+"\n")
+                        continue
                     if 'NLT_specimen_correction_factor' not in pars.keys():
                         # problem in get_PI_parameters (probably with tmin/zdata).  can't run specimen
-                        message_string = '-W- Could not get parameters for {}. Check data for typos, etc.'.format(s)
+                        message_string = '-W- Problem in get_PI_parameters. Could not get all parameters for {} with tmin: {} and tmax: {}. Check data for typos, make sure temperatures are correct, etc.'.format(s, tmin, tmax)
                         thellier_interpreter_log.write(message_string+"\n")
-                        break
+                        continue
                     pars=self.check_specimen_PI_criteria(pars)
                     #-------------------------------------------------            
                     # check if pass the criteria
@@ -6822,6 +6826,9 @@ class Arai_GUI(wx.Frame):
         import SPD.spd as spd
         Pint_pars = spd.PintPars(self.Data, str(s), tmin, tmax, 'magic', self.preferences['show_statistics_on_gui'])
         Pint_pars.reqd_stats() # calculate only statistics indicated in self.preferences
+        if not Pint_pars.pars:
+            print "Could not get any parameters for {}".format(Pint_pars)
+            return 0
         #Pint_pars.calculate_all_statistics() # calculate every statistic available
         #print "-D- Debag"
         #print Pint_pars.keys()
