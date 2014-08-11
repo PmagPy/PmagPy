@@ -975,6 +975,14 @@ class convert_HUJI_files_to_MagIC(wx.Frame):
         bSizer_info = wx.BoxSizer(wx.HORIZONTAL)
         bSizer_info.Add(wx.StaticText(pnl, label=TEXT), wx.ALIGN_LEFT)
 
+
+        #---sizer 0a ----
+
+        TEXT = "HUJI file Type"
+        label1 = "Old"
+        label2 = "New"
+        self.bSizer0a = pw.labeled_yes_or_no(pnl, TEXT, label1, label2)
+        
         #---sizer 0 ----
         self.bSizer0 = pw.choose_file(pnl, 'add', method = self.on_add_file_button)
 
@@ -987,12 +995,12 @@ class convert_HUJI_files_to_MagIC(wx.Frame):
         #---sizer 3 ----
         self.bSizer3 = pw.lab_field(pnl)
 
-        #---sizer 4 ----
-        self.bSizer4 = pw.select_ncn(pnl)
-
-        #---sizer 5 ---
+        #---sizer 4 ---
         TEXT = "specify number of characters to designate a specimen, default = 0"
-        self.bSizer5 = pw.labeled_text_field(pnl, TEXT)
+        self.bSizer4 = pw.labeled_text_field(pnl, TEXT)
+
+        #---sizer 5 ----
+        self.bSizer5 = pw.select_ncn(pnl)
 
         #---sizer 6 ----
         TEXT="Location name:"
@@ -1009,6 +1017,7 @@ class convert_HUJI_files_to_MagIC(wx.Frame):
         vbox=wx.BoxSizer(wx.VERTICAL)
 
         vbox.Add(bSizer_info, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        vbox.Add(self.bSizer0a, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(self.bSizer0, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(self.bSizer1, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(self.bSizer2, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
@@ -1054,17 +1063,22 @@ class convert_HUJI_files_to_MagIC(wx.Frame):
         lab_field = self.bSizer3.return_value()
         if lab_field:
             lab_field = '-dc ' + lab_field
-        ncn = self.bSizer4.return_value()
-        spc = self.bSizer5.return_value()
-        if not spc:
+        spc = self.bSizer4.return_value()
+        if not spc or spc=="" or spc==None:
             spc = '-spc 0'
         else:
             spc = '-spc ' + spc
+        ncn = self.bSizer5.return_value()
         loc_name = self.bSizer6.return_value()
         if loc_name:
             loc_name = '-loc ' + loc_name
         peak_AF = self.bSizer7.return_value()
-        COMMAND = "HUJI_magic.py -f {} -F {} {} -LP {} {} -ncn {} {} {} {}".format(HUJI_file, outfile, user, experiment_type, loc_name, ncn, lab_field, spc, peak_AF)
+        #YES_NO=self.bSizer0a.return_value() 
+        old_format= self.bSizer0a.return_value()
+        if old_format:
+            COMMAND = "HUJI_magic.py -f {} -F {} {} -LP {} {} -ncn {} {} {} {}".format(HUJI_file, outfile, user, experiment_type, loc_name, ncn, lab_field, spc, peak_AF)
+        else:
+            COMMAND = "HUJI_magic_new.py -f {} -F {} {} -LP {} {} -ncn {} {} {} {}".format(HUJI_file, outfile, user, experiment_type, loc_name, ncn, lab_field, spc, peak_AF)
         pw.run_command_and_close_window(self, COMMAND, outfile)
 
     def on_cancelButton(self,event):

@@ -318,7 +318,7 @@ is the percent cooling rate factor to apply to specimens from this sample, DA-CR
             MagRec["sample_dip"]='%7.1f'%labdip
         else:
             MagRec["sample_dip"]=""
-        if "date" in OrRec.keys():
+        if "date" in OrRec.keys() and OrRec["date"]!="":
             newdate=OrRec["date"]
             if newdate!="":date=newdate
             mmddyy=date.split('/')
