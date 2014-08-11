@@ -2374,7 +2374,8 @@ class check(wx.Frame):
         self.ErMagic = ErMagic
         self.temp_data = {}
         self.InitSpecCheck()
-        self.sample_window = 0
+        self.sample_window = 0 # sample window must be displayed (differently) twice, so it is useful to keep track
+
 
 
     def InitSpecCheck(self):
@@ -2383,7 +2384,9 @@ class check(wx.Frame):
 
         # ADD A BUTTON to add an additional sample.  maybe will have a popup window to select what site/location etc. this sample belongs to 
         self.panel = wx.ScrolledWindow(self, style=wx.SIMPLE_BORDER)
-        TEXT = """Check that all specimens belong to the correct sample
+        TEXT = """
+        Step 1:
+        Check that all specimens belong to the correct sample
         (if sample name is simply wrong, that will be fixed in step 2)
         note: if you need to do a comprehensive edit,
         consider opening your documents with Excel or Open Office"""
@@ -2438,16 +2441,24 @@ class check(wx.Frame):
         self.Centre()
             
 
-
     def InitSampCheck(self):
         """make an interactive grid in which users can edit sample names
         as well as which site a sample belongs to"""
         self.sample_window += 1 
         print "init-ing Sample Check for the {}th time".format(self.sample_window)
         self.panel = wx.ScrolledWindow(self, style=wx.SIMPLE_BORDER)
-        TEXT = """Check that all samples are correctly named,
-        and that they belong to the correct site
-        (if site name is simply wrong, that will be fixed in step 2)"""
+        if self.sample_window == 1:
+            TEXT = """
+            Step 2:
+            Check that all samples are correctly named,
+            and that they belong to the correct site
+            (if site name is simply wrong, that will be fixed in step 3)"""
+        else:
+            TEXT = """
+            Step 4:
+            Some of the data from the er_sites table has propogated into er_samples.
+            Check that this data is correct, and fill in missing cells using controlled vocabularies.
+            (see Help button for more details)"""
         label = wx.StaticText(self.panel,label=TEXT)
         self.Data, self.Data_hierarchy = self.ErMagic.Data, self.ErMagic.Data_hierarchy
         self.samples = self.Data_hierarchy['samples'].keys()
@@ -2458,8 +2469,8 @@ class check(wx.Frame):
             print "ADD DATA THIS TIME"
             col_labels = ['samples', '', 'sites', 'sample_class', 'sample_lithology', 'sample_type']
             self.samp_grid, self.temp_data['samples'], self.temp_data['sites'] = self.make_table(col_labels, self.samples, self.Data_hierarchy, 'site_of_sample')
-            #self.add_extra_grid_data(self.site_grid, self.sites, col_labels, self.ErMagic.data_er_sites)
             self.add_extra_grid_data(self.samp_grid, self.samples, col_labels, self.ErMagic.data_er_samples)
+
         self.changes = False
 
         self.Bind(wx.grid.EVT_GRID_EDITOR_SHOWN, self.on_edit_grid, self.samp_grid) 
@@ -2483,8 +2494,8 @@ class check(wx.Frame):
         self.cancelButton = wx.Button(self.panel, wx.ID_CANCEL, '&Cancel')
         self.Bind(wx.EVT_BUTTON, self.on_cancelButton, self.cancelButton)
         self.continueButton = wx.Button(self.panel, id=-1, label='Save and continue')
-        self.Bind(wx.EVT_BUTTON, lambda event: self.on_continueButton(event, self.samp_grid, next_dia=self.InitSiteCheck), self.continueButton)
-
+        next_dia = self.InitSiteCheck if self.sample_window < 2 else self.InitLocCheck #None # 
+        self.Bind(wx.EVT_BUTTON, lambda event: self.on_continueButton(event, self.samp_grid, next_dia=next_dia), self.continueButton)
 
         hboxok.Add(self.saveButton, flag=wx.BOTTOM, border=20)
         hboxok.Add(self.cancelButton, flag=wx.BOTTOM, border=20 )
@@ -2513,9 +2524,11 @@ class check(wx.Frame):
         """make an interactive grid in which users can edit site names
         as well as which location a site belongs to"""
         self.panel = wx.ScrolledWindow(self, style=wx.SIMPLE_BORDER)
-        TEXT = """Check that all sites are correctly named,
-        and that they belong to the correct site
-        (if site name is simply wrong, that will be fixed in step 2)"""
+        TEXT = """
+        Step 3:
+        Check that all sites are correctly named,
+        and that they belong to the correct location.
+        Fill in the additional columns with controlled vocabularies (see Help button for details)"""
         label = wx.StaticText(self.panel,label=TEXT)
         self.Data, self.Data_hierarchy = self.ErMagic.Data, self.ErMagic.Data_hierarchy
         self.sites = self.Data_hierarchy['sites'].keys()
@@ -2572,7 +2585,89 @@ class check(wx.Frame):
         self.Centre()
 
 
+    def InitLocCheck(self):
+        """make an interactive grid in which users can edit specimen names
+        as well as which sample a specimen belongs to"""
+        self.panel = wx.ScrolledWindow(self, style=wx.SIMPLE_BORDER)
+        TEXT = """
+        Step 5:
+        Check that locations are correctly named.
+        Fill in any blank cells using controlled vocabuliaries.
+        (See Help button for details)"""
+        label = wx.StaticText(self.panel,label=TEXT)
+        self.Data, self.Data_hierarchy = self.ErMagic.Data, self.ErMagic.Data_hierarchy
+        self.locations = self.Data_hierarchy['locations']
+        #
+        col_labels = ['locations', 'location_type']
+        self.loc_grid = self.make_simple_table(col_labels, self.ErMagic.data_er_locations)
+        self.Bind(wx.grid.EVT_GRID_EDITOR_SHOWN, self.on_edit_grid, self.loc_grid) 
+
+        ### Create Buttons ###
+        hbox_one = wx.BoxSizer(wx.HORIZONTAL)
+        self.helpButton = wx.Button(self.panel, label="Help")
+        self.Bind(wx.EVT_BUTTON, lambda event: self.on_helpButton(event, "/Users/nebula/Python/PmagPy/ErMagicLocationHelp.html"), self.helpButton)
+        hbox_one.Add(self.helpButton)
+
+        hboxok = wx.BoxSizer(wx.HORIZONTAL)
+        self.saveButton =  wx.Button(self.panel, id=-1, label='Save')
+        self.Bind(wx.EVT_BUTTON, lambda event: self.on_saveButton(event, self.loc_grid), self.saveButton)
+        self.cancelButton = wx.Button(self.panel, wx.ID_CANCEL, '&Cancel')
+        self.Bind(wx.EVT_BUTTON, self.on_cancelButton, self.cancelButton)
+        self.continueButton = wx.Button(self.panel, id=-1, label='Save and continue')
+        self.Bind(wx.EVT_BUTTON, lambda event: self.on_continueButton(event, self.loc_grid, next_dia=None), self.continueButton)
+
+        hboxok.Add(self.saveButton, flag=wx.BOTTOM, border=20)
+        hboxok.Add(self.cancelButton, flag=wx.BOTTOM, border=20 )
+        hboxok.Add(self.continueButton, flag=wx.BOTTOM, border=20 )
+
+        ### Make Containers ###
+        vbox = wx.BoxSizer(wx.VERTICAL)
+        vbox.Add(label, flag=wx.ALIGN_LEFT|wx.BOTTOM)#, flag=wx.ALIGN_LEFT|wx.BOTTOM, border=20)
+        vbox.Add(self.loc_grid, flag=wx.BOTTOM|wx.EXPAND, border=20) # EXPAND ??
+        vbox.Add(hbox_one, flag=wx.BOTTOM, border=20)
+        vbox.Add(hboxok, flag=wx.BOTTOM, border=20)
+
+        hbox_all= wx.BoxSizer(wx.HORIZONTAL)
+        hbox_all.AddSpacer(20)
+        hbox_all.AddSpacer(vbox)
+        hbox_all.AddSpacer(20)
+
+        self.panel.SetSizer(hbox_all)
+        self.panel.SetScrollbars(20, 20, 50, 50)
+        hbox_all.Fit(self)
+        self.Show()
+        self.Centre()
+
+
+
+
+
+
     ### Grid methods ###
+    def make_simple_table(self, column_labels, data_dict):
+        grid = wx.grid.Grid(self.panel, -1)
+        grid.ClearGrid()
+        row_labels = data_dict.keys()
+        grid.CreateGrid(len(row_labels), len(column_labels))
+        # set row labels
+        for n, row in enumerate(row_labels):
+            grid.SetRowLabelValue(n, str(n+1))
+            grid.SetCellValue(n, 0, row)
+        # set column labels
+        for n, col in enumerate(column_labels):
+            grid.SetColLabelValue(n, col)
+        # set values in each cell (other than 1st column)
+        for num, row in enumerate(row_labels):
+            for n, col in enumerate(column_labels[1:]):
+                print "data_dict[{}][{}]".format(row, col), data_dict[row][col]
+                value = data_dict[row][col]
+                if value:
+                    grid.SetCellValue(num, n+1, value)
+                else:
+                    grid.SetCellValue(num, n+1, 'hi {}'.format((num, n+1)))
+        return grid
+        
+
     def make_table(self, column_labels, row_values, column_indexing, ind, *args):
         """ takes a list of row values (i.e., specimens, samples, locations, etc.) 
         and a data structure (column_indexing) to index them against.  for example, 
@@ -2624,6 +2719,9 @@ class check(wx.Frame):
         return grid, original_1, original_2
     
     def add_extra_grid_data(self, grid, row_labels, col_labels, data_dict):
+        print "running add_extra_grid_data"
+        print "grid", grid
+        print "data_dict", data_dict
         for num, row in enumerate(row_labels):
             for n, col in enumerate(col_labels[3:]):
                 if data_dict[row][col]:
@@ -2722,7 +2820,11 @@ class check(wx.Frame):
         if type1 == 'specimens':
             self.update_specimens(col1_updated, col1_old, col2_updated, col2_old, type1, type2)
         if type1 == 'samples':
-            self.update_samples(col1_updated, col1_old, col2_updated, col2_old)
+            cols = range(3, grid.GetNumberCols())
+            col_labels = []
+            for col in cols:
+                col_labels.append(grid.GetColLabelValue(col))
+            self.update_samples(grid, col1_updated, col1_old, col2_updated, col2_old, *col_labels)
         if type1 == 'sites':
             cols = range(3, grid.GetNumberCols())
             col_labels = []
@@ -2734,9 +2836,7 @@ class check(wx.Frame):
             #print k
             #print v
 
-        
         # updates the holder data so that when we save again, we will only update what is new as of the last save
-
         self.temp_data[type1] = col1_updated 
         self.temp_data[type2] = col2_updated
         print "Updated temp_data"
@@ -2825,7 +2925,7 @@ class check(wx.Frame):
 
 
 
-    def update_samples(self, col1_updated, col1_old, col2_updated, col2_old):
+    def update_samples(self, grid, col1_updated, col1_old, col2_updated, col2_old, *args):
         changed = [(old_value, col1_updated[num]) for (num, old_value) in enumerate(col1_old) if old_value != col1_updated[num]]  
         for change in changed:
             #print "change!!!!!!", change
@@ -2885,6 +2985,15 @@ class check(wx.Frame):
                 # insert here: updating ErMagic.data_er_samples or whatever based on site change
                 self.ErMagic.data_er_samples[sample]['er_site_name'] = new_site
                 self.ErMagic.data_er_samples[sample]['er_location_name'] = loc
+
+        # now fill in all the other columns
+        for num_sample, sample in enumerate(col1_updated):
+            for num, arg in enumerate(args):
+                num += 3
+                value = str(grid.GetCellValue(num_sample, num))
+                self.ErMagic.data_er_samples[sample][arg] = value
+                print "sample: {}, arg: {}, value {}".format(sample, arg, value)
+
       
 
     def update_specimens(self, col1_updated, col1_old, col2_updated, col2_old, type1, type2):
