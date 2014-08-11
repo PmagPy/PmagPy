@@ -2539,6 +2539,11 @@ class check(wx.Frame):
         # end that thing
         col_labels = ['sites', '', 'locations', 'site_class', 'site_lithology', 'site_type', 'site_definition', 'site_lon', 'site_lat']
         self.site_grid, self.temp_data['sites'], self.temp_data['locations'] = self.make_table(col_labels, self.sites, self.Data_hierarchy, 'location_of_site')
+
+        # get data_er_* dictionaries into the ErMagic object, if they didn't already exist
+        if not self.ErMagic.data_er_sites:
+            self.ErMagic.read_MagIC_info()
+
         self.add_extra_grid_data(self.site_grid, self.sites, col_labels, self.ErMagic.data_er_sites)
 
         locations = self.temp_data['locations']
