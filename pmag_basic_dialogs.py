@@ -2650,7 +2650,7 @@ class check(wx.Frame):
 
     ### Grid methods ###
     def make_simple_table(self, column_labels, data_dict):
-        grid = wx.grid.Grid(self.panel, -1)
+        grid = wx.grid.Grid(self.panel, -1, name=column_labels[0])
         grid.ClearGrid()
         row_labels = data_dict.keys()
         grid.CreateGrid(len(row_labels), len(column_labels))
@@ -2664,7 +2664,6 @@ class check(wx.Frame):
         # set values in each cell (other than 1st column)
         for num, row in enumerate(row_labels):
             for n, col in enumerate(column_labels[1:]):
-                print "data_dict[{}][{}]".format(row, col), data_dict[row][col]
                 value = data_dict[row][col]
                 if value:
                     grid.SetCellValue(num, n+1, value)
@@ -2681,7 +2680,7 @@ class check(wx.Frame):
         row_values: list of specimens
         column_indexing: Data_hierarchy object containing various data mappings
         ind: ['sample_of_specimen'], indicating which data mapping to use """
-        grid = wx.grid.Grid(self.panel, -1)
+        grid = wx.grid.Grid(self.panel, -1, name=column_labels[0])
         grid.ClearGrid()
         grid.CreateGrid(len(row_values), len(column_labels))
 
@@ -2725,8 +2724,8 @@ class check(wx.Frame):
     
     def add_extra_grid_data(self, grid, row_labels, col_labels, data_dict):
         print "running add_extra_grid_data"
-        print "grid", grid
-        print "data_dict", data_dict
+        #print "grid", grid
+        #print "data_dict", data_dict
         for num, row in enumerate(row_labels):
             for n, col in enumerate(col_labels[3:]):
                 if data_dict[row][col]:
@@ -2777,7 +2776,6 @@ class check(wx.Frame):
     def on_continueButton(self, event, grid, next_dia=None):
         """pulls up next dialog, if there is one.
         gets any updated information from the current grid and runs ErMagicBuilder"""
-        print "NEXT!"
         grid.SaveEditControlValue() # locks in value in cell currently edited
 
         if self.changes:
@@ -2794,17 +2792,19 @@ class check(wx.Frame):
     def on_saveButton(self, event, grid):
         print "SAVE!"
         grid.SaveEditControlValue() # locks in value in cell currently edited
+        simple_grids = {"locations": self.ErMagic.data_er_locations}
+        grid_name = grid.GetName()
 
         if self.changes:
             print "there were changes, so we are updating the data"
-            self.update_orient_data(grid)
-            #print "ErMagic.data_er_specimens before read_MagIC_info", self.ErMagic.data_er_specimens.keys()
-            #
-            #self.ErMagic.read_MagIC_info() # updates ErMagic.data_er_specimens, etc.
-            #
-            #print "ErMagic.data_er_specimens after read_MagIC_info", self.ErMagic.data_er_specimens.keys()
+            if grid_name in simple_grids:
+                self.update_simple_grid_data(grid, simple_grids[grid_name])
+            else:
+                self.update_orient_data(grid)
+            ## ADD IN OPTION FOR updating simple grid
+            # self.update_simple_grid_data
+            ## END
 
-            #
             self.ErMagic.on_okButton(None) # add this back in, it was messing up testing
             self.changes = False
 
@@ -2816,9 +2816,21 @@ class check(wx.Frame):
         
     ### Manage data methods ###
 
+    def update_simple_grid_data(self, grid, data=None):
+        # method that 
+        print "doing update_simple_grid_data"
+        print "data", data
+        rows = range(grid.GetNumberRows())
+        cols = range(grid.GetNumberCols())
+        for row in rows:
+            for col in cols:
+                print row, col
+                print grid.GetCellValue(row, col)
+
+
     def update_orient_data(self, grid):
         """ """
-        col1_updated, col2_updated, col1_old, col2_old, type1, type2 = self.get_old_and_new_data(grid)
+        col1_updated, col2_updated, col1_old, col2_old, type1, type2 = self.get_old_and_new_data(grid, 0, 2)
         if len(set(col1_updated)) != len(col1_updated):
             print "Duplicate {} detected.  Please ensure that all {} names are unique".format(type1, type1[:-1])
             return 0
@@ -2870,13 +2882,6 @@ class check(wx.Frame):
             data = self.ErMagic.data_er_sites.pop(old_site)
             self.ErMagic.data_er_sites[new_site] = data
             self.ErMagic.data_er_sites[new_site]['er_site_name'] = new_site
-        #for k, v in self.Data_hierarchy.items():
-        #    print k
-        #    print v
-        #    print "--"
-        #print "self.ErMagic.data_er_sites", self.ErMagic.data_er_sites
-        #print "self.ErMagic.data_er_samples", self.ErMagic.data_er_samples
-        #print "self.ErMagic.data_er_specimens", self.ErMagic.data_er_specimens
 
         # now do the "which site belongs to which location" part
         for num, value in enumerate(col2_updated):
@@ -2906,17 +2911,6 @@ class check(wx.Frame):
                 #
                 self.ErMagic.data_er_sites[site]['er_location_name'] = new_loc
                 #
-        #print "self.ErMagic.data_er_sites", self.ErMagic.data_er_sites
-        #print "-"
-        #print "self.ErMagic.data_er_samples", self.ErMagic.data_er_samples
-        #print "-"
-        #print "self.ErMagic.data_er_specimens", self.ErMagic.data_er_specimens
-        #print "-"
-
-        #for k, v in self.Data_hierarchy.items():
-        #    print k
-        #    print v
-        #    print "--"
         
         # now fill in all the other columns
         for num_site, site in enumerate(col1_updated):
@@ -3034,11 +3028,11 @@ class check(wx.Frame):
         #keys = ['sample_of_specimen', 'site_of_sample', 'location_of_specimen', 'locations', 'sites', 'site_of_specimen', 'samples', 'location_of_sample', 'location_of_site', 'specimens']
 
 
-    def get_old_and_new_data(self, grid):
+    def get_old_and_new_data(self, grid, col1_num, col2_num):
         cols = grid.GetNumberCols()
         rows = grid.GetNumberRows()
-        type1 = grid.GetColLabelValue(0)
-        type2 = grid.GetColLabelValue(2)
+        type1 = grid.GetColLabelValue(col1_num)
+        type2 = grid.GetColLabelValue(col2_num)
         old_1 = self.temp_data[type1]
         old_2 = self.temp_data[type2]
         update_1 = []

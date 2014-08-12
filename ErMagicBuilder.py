@@ -271,7 +271,6 @@ class MagIC_model_builder(wx.Frame):
 
     def on_okButton(self, event, data_hierarchy_update=None):
 
-        print "self.data_er_sites", self.data_er_sites
         samples_list=self.Data_hierarchy['samples'].keys()
         samples_list.sort()
 
