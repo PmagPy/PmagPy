@@ -678,7 +678,6 @@ class MagIC_model_builder(wx.Frame):
         return recs
 
     def read_MagIC_info(self):
-        print "doing read_MagIC_info"
         Data_info={}
         print "-I- read existing MagIC model files"
         self.data_er_specimens,self.data_er_samples,self.data_er_sites,self.data_er_locations,self.data_er_ages={},{},{},{},{}
@@ -712,7 +711,6 @@ class MagIC_model_builder(wx.Frame):
 
 
     def get_data(self):
-      print "doing get_data"
       Data={}
       Data_hierarchy={}
       Data_hierarchy['locations']={}

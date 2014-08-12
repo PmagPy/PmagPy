@@ -2445,7 +2445,7 @@ class check(wx.Frame):
         """make an interactive grid in which users can edit sample names
         as well as which site a sample belongs to"""
         self.sample_window += 1 
-        print "init-ing Sample Check for the {}th time".format(self.sample_window)
+        #print "init-ing Sample Check for the {}th time".format(self.sample_window)
         self.panel = wx.ScrolledWindow(self, style=wx.SIMPLE_BORDER)
         if self.sample_window == 1:
             TEXT = """
@@ -2645,19 +2645,18 @@ class check(wx.Frame):
 
 
 
-
-
-
     ### Grid methods ###
     def make_simple_table(self, column_labels, data_dict):
         grid = wx.grid.Grid(self.panel, -1, name=column_labels[0])
         grid.ClearGrid()
         row_labels = data_dict.keys()
         grid.CreateGrid(len(row_labels), len(column_labels))
+        self.temp_data[column_labels[0]] = []
         # set row labels
         for n, row in enumerate(row_labels):
             grid.SetRowLabelValue(n, str(n+1))
             grid.SetCellValue(n, 0, row)
+            self.temp_data[column_labels[0]].append(row)
         # set column labels
         for n, col in enumerate(column_labels):
             grid.SetColLabelValue(n, col)
@@ -2667,8 +2666,9 @@ class check(wx.Frame):
                 value = data_dict[row][col]
                 if value:
                     grid.SetCellValue(num, n+1, value)
-                else:
-                    grid.SetCellValue(num, n+1, 'hi {}'.format((num, n+1)))
+                #else:
+                #    grid.SetCellValue(num, n+1, 'hi {}'.format((num, n+1)))
+
         return grid
         
 
@@ -2768,19 +2768,23 @@ class check(wx.Frame):
         print "add site"
 
     def on_helpButton(self, event, page=None):
+        """shows html help page"""
         html_frame = pw.HtmlFrame(self, page=page)
         html_frame.Show()
-
 
 
     def on_continueButton(self, event, grid, next_dia=None):
         """pulls up next dialog, if there is one.
         gets any updated information from the current grid and runs ErMagicBuilder"""
         grid.SaveEditControlValue() # locks in value in cell currently edited
+        simple_grids = {"locations": self.ErMagic.data_er_locations}
+        grid_name = grid.GetName()
 
         if self.changes:
-            print "there were changes, so we are updating the data"
-            self.update_orient_data(grid)
+            if grid_name in simple_grids:
+                self.update_simple_grid_data(grid, simple_grids[grid_name])
+            else:
+                self.update_orient_data(grid)
             self.ErMagic.on_okButton(None)
             self.changes = False # resets
         self.panel.Destroy()
@@ -2790,6 +2794,7 @@ class check(wx.Frame):
             self.Destroy()
 
     def on_saveButton(self, event, grid):
+        """saves any editing of the grid but does not continue to the next window"""
         print "SAVE!"
         grid.SaveEditControlValue() # locks in value in cell currently edited
         simple_grids = {"locations": self.ErMagic.data_er_locations}
@@ -2801,9 +2806,6 @@ class check(wx.Frame):
                 self.update_simple_grid_data(grid, simple_grids[grid_name])
             else:
                 self.update_orient_data(grid)
-            ## ADD IN OPTION FOR updating simple grid
-            # self.update_simple_grid_data
-            ## END
 
             self.ErMagic.on_okButton(None) # add this back in, it was messing up testing
             self.changes = False
@@ -2819,13 +2821,32 @@ class check(wx.Frame):
     def update_simple_grid_data(self, grid, data=None):
         # method that 
         print "doing update_simple_grid_data"
-        print "data", data
+        print "data before", data
+        grid_name = grid.GetName()
+        #if grid_name == "locations":
+        #    self.update_locations()
         rows = range(grid.GetNumberRows())
         cols = range(grid.GetNumberCols())
+        updated_items = []
         for row in rows:
-            for col in cols:
-                print row, col
-                print grid.GetCellValue(row, col)
+            item = grid.GetCellValue(row, 0)
+            updated_items.append(str(item))
+        if grid_name == "locations":
+            self.update_locations(updated_items)
+        for row in rows: 
+            item = grid.GetCellValue(row, 0)
+            #updated_items.append(str(item))
+            for col in cols[1:]:
+                category = grid.GetColLabelValue(col)
+                value = str(grid.GetCellValue(row, col))
+                data[item][category] = value
+        #print "data after", data
+        #print "temp_data", self.temp_data['locations']
+        #print "updated_items", updated_items
+        #for k, v in self.Data_hierarchy.items():
+        #    if 'location' in k:
+        #        print k
+        #        print v
 
 
     def update_orient_data(self, grid):
@@ -2848,15 +2869,49 @@ class check(wx.Frame):
             for col in cols:
                 col_labels.append(grid.GetColLabelValue(col))
             self.update_sites(grid, col1_updated, col1_old, col2_updated, col2_old, *col_labels)
-        print "NEW AND IMPROVED"
-        #for k, v in self.Data_hierarchy.items():
-            #print k
-            #print v
 
         # updates the holder data so that when we save again, we will only update what is new as of the last save
         self.temp_data[type1] = col1_updated 
         self.temp_data[type2] = col2_updated
-        print "Updated temp_data"
+
+
+    def update_locations(self, updated_locations):
+        print "calling update_locations"
+        print self.ErMagic.data_er_specimens
+        print self.ErMagic.data_er_samples
+        print self.ErMagic.data_er_sites
+        original_locations = self.temp_data['locations']
+        changed = [(original_locations[num], new_loc) for (num, new_loc) in enumerate(updated_locations) if new_loc != original_locations[num]]
+        for change in changed:
+            print "change", change
+            old_loc, new_loc = change
+            sites = self.Data_hierarchy['locations'].pop(old_loc)
+            self.Data_hierarchy['locations'][new_loc] = sites
+            #
+            data = self.ErMagic.data_er_locations.pop(old_loc)
+            self.ErMagic.data_er_locations[new_loc] = data
+            self.ErMagic.data_er_locations[new_loc]['er_location_name'] = new_loc
+            #
+            for site in sites:
+                self.Data_hierarchy['location_of_site'][site] = new_loc
+                self.ErMagic.data_er_sites[site]['er_location_name'] = new_loc
+                samples = self.Data_hierarchy['sites'][site]
+                for sample in samples:
+                    self.Data_hierarchy['location_of_sample'][sample] = new_loc
+                    self.ErMagic.data_er_samples[sample]['er_location_name'] = new_loc
+                    specimens = self.Data_hierarchy['samples'][sample]
+                    for spec in specimens:
+                        self.Data_hierarchy['location_of_specimen'][spec] = new_loc
+                        self.ErMagic.data_er_specimens[spec]['er_location_name'] = new_loc
+
+            #
+            #location_of_specimen ( {'sc12b1': 'Xanadu', 'ag1-6b': 'HERE', 'ag1-6a': 'HERE'} )
+            #location_of_sample
+            #location_of_site
+            #locations ( {'Xanadu': ['sc12'], 'HERE': ['ag1-']} )
+            
+        
+
 
 
     def update_sites(self, grid, col1_updated, col1_old, col2_updated, col2_old, *args):
@@ -2955,9 +3010,6 @@ class check(wx.Frame):
             for spec in self.ErMagic.data_er_specimens:
                 if self.ErMagic.data_er_specimens[spec]['er_sample_name'] == old_sample:
                     self.ErMagic.data_er_specimens[spec]['er_sample_name'] = new_sample
-            #print "self.ErMagic.data_er_samples[new_sample]", self.ErMagic.data_er_samples[new_sample]
-            #print "self.ErMagic.data_er_specimens", self.ErMagic.data_er_specimens
-            #done with ErMagic.data_er_samples
         
         # now do the site changes
         for num, value in enumerate(col2_updated):
