@@ -522,7 +522,10 @@ class MagIC_model_builder(wx.Frame):
 
         #data
         sites_list=self.data_er_sites.keys()
-        sites_list.sort()        
+        for site in self.Data_hierarchy['sites'].keys():
+            if site not in sites_list:
+                sites_list.append(site)
+        sites_list.sort() 
         for site in sites_list:
           string=""
           for key in self.er_ages_header:
@@ -539,6 +542,7 @@ class MagIC_model_builder(wx.Frame):
             # take information from the existing er_samples table             
             elif (site in self.data_er_ages.keys() and key in self.data_er_ages[site].keys() and self.data_er_ages[site][key]!=""):
                 string=string+self.data_er_ages[site][key]+"\t"
+
             else:
               string=string+"\t"
           er_ages_file.write(string[:-1]+"\n")
@@ -707,6 +711,7 @@ class MagIC_model_builder(wx.Frame):
             try:
                 self.data_er_ages=self.read_magic_file(self.WD+"/er_ages.txt","er_sample_name")
             except:
+                print "-W- Cant find er_ages.txt in project directory"
                 pass
 
 

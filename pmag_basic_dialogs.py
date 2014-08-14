@@ -2603,7 +2603,7 @@ class check(wx.Frame):
         self.locations = self.Data_hierarchy['locations']
         #
         col_labels = ['locations', 'location_type']
-        self.loc_grid = self.make_simple_table(col_labels, self.ErMagic.data_er_locations)
+        self.loc_grid = self.make_simple_table(col_labels, self.ErMagic.data_er_locations, "locations")
         self.Bind(wx.grid.EVT_GRID_EDITOR_SHOWN, self.on_edit_grid, self.loc_grid) 
 
         ### Create Buttons ###
@@ -2618,7 +2618,7 @@ class check(wx.Frame):
         self.cancelButton = wx.Button(self.panel, wx.ID_CANCEL, '&Cancel')
         self.Bind(wx.EVT_BUTTON, self.on_cancelButton, self.cancelButton)
         self.continueButton = wx.Button(self.panel, id=-1, label='Save and continue')
-        self.Bind(wx.EVT_BUTTON, lambda event: self.on_continueButton(event, self.loc_grid, next_dia=None), self.continueButton)
+        self.Bind(wx.EVT_BUTTON, lambda event: self.on_continueButton(event, self.loc_grid, next_dia=self.InitAgeCheck), self.continueButton)
 
         hboxok.Add(self.saveButton, flag=wx.BOTTOM, border=20)
         hboxok.Add(self.cancelButton, flag=wx.BOTTOM, border=20 )
@@ -2644,9 +2644,76 @@ class check(wx.Frame):
 
 
 
+    def InitAgeCheck(self):
+        """make an interactive grid in which users can edit ages"""
+        self.panel = wx.ScrolledWindow(self, style=wx.SIMPLE_BORDER)
+        TEXT = """
+        Step 6:
+        Check ages.
+        (See Help button for details)"""
+        label = wx.StaticText(self.panel,label=TEXT, size=(1200,100))
+        self.Data, self.Data_hierarchy = self.ErMagic.Data, self.ErMagic.Data_hierarchy
+        self.sites = self.Data_hierarchy['sites']
+        #
+        print "self.ErMagic.data_er_ages", self.ErMagic.data_er_ages
+        print "self.ErMagic.data_er_sites", self.ErMagic.data_er_locations
+        print "self.ErMagic.data_er_ages", self.ErMagic.data_er_ages
+        key1 = self.ErMagic.data_er_ages.keys()[0]
+        col_labels = self.ErMagic.data_er_ages[key1].keys()
+        try:
+            col_labels.remove('er_site_name')
+            col_labels.remove('er_location_name')
+            col_labels.remove('er_citation_names')
+            col_labels[:0] = ['er_citation_names', 'er_site_name', 'er_location_name']
+        except:
+            pass
+        self.age_grid = self.make_simple_table(col_labels, self.ErMagic.data_er_ages, "age")
+        self.Bind(wx.grid.EVT_GRID_EDITOR_SHOWN, self.on_edit_grid, self.age_grid) 
+
+        ### Create Buttons ###
+        hbox_one = wx.BoxSizer(wx.HORIZONTAL)
+        self.helpButton = wx.Button(self.panel, label="Help")
+        self.Bind(wx.EVT_BUTTON, lambda event: self.on_helpButton(event, "/Users/nebula/Python/PmagPy/ErMagicAgeHelp.html"), self.helpButton)
+        hbox_one.Add(self.helpButton)
+
+        hboxok = wx.BoxSizer(wx.HORIZONTAL)
+        self.saveButton =  wx.Button(self.panel, id=-1, label='Save')
+        self.Bind(wx.EVT_BUTTON, lambda event: self.on_saveButton(event, self.age_grid), self.saveButton)
+        self.cancelButton = wx.Button(self.panel, wx.ID_CANCEL, '&Cancel')
+        self.Bind(wx.EVT_BUTTON, self.on_cancelButton, self.cancelButton)
+        self.continueButton = wx.Button(self.panel, id=-1, label='Save and continue')
+        self.Bind(wx.EVT_BUTTON, lambda event: self.on_continueButton(event, self.age_grid, next_dia=None), self.continueButton)
+
+        hboxok.Add(self.saveButton, flag=wx.BOTTOM, border=20)
+        hboxok.Add(self.cancelButton, flag=wx.BOTTOM, border=20 )
+        hboxok.Add(self.continueButton, flag=wx.BOTTOM, border=20 )
+
+        ### Make Containers ###
+        vbox = wx.BoxSizer(wx.VERTICAL)
+        vbox.Add(label, flag=wx.ALIGN_LEFT|wx.BOTTOM)#, flag=wx.ALIGN_LEFT|wx.BOTTOM, border=20)
+        vbox.Add(self.age_grid, flag=wx.BOTTOM|wx.EXPAND, border=20) # EXPAND ??
+        vbox.Add(hbox_one, flag=wx.BOTTOM, border=20)
+        vbox.Add(hboxok, flag=wx.BOTTOM, border=20)
+
+        hbox_all= wx.BoxSizer(wx.HORIZONTAL)
+        hbox_all.AddSpacer(20)
+        hbox_all.AddSpacer(vbox)
+        hbox_all.AddSpacer(20)
+
+        self.panel.SetSizer(hbox_all)
+        self.panel.SetScrollbars(20, 20, 50, 50)
+        hbox_all.Fit(self)
+        self.Show()
+        self.Centre()
+
+
+
+
     ### Grid methods ###
-    def make_simple_table(self, column_labels, data_dict):
-        grid = wx.grid.Grid(self.panel, -1, name=column_labels[0])
+    def make_simple_table(self, column_labels, data_dict, grid_name):
+        print "calling make simple table", column_labels
+        grid = wx.grid.Grid(self.panel, -1, name=grid_name)
+        #grid = wx.grid.Grid(self.panel, -1, name=column_labels[0])            
         grid.ClearGrid()
         row_labels = data_dict.keys()
         grid.CreateGrid(len(row_labels), len(column_labels))
@@ -2667,6 +2734,13 @@ class check(wx.Frame):
                     grid.SetCellValue(num, n+1, value)
                 #else:
                 #    grid.SetCellValue(num, n+1, 'hi {}'.format((num, n+1)))
+        for n, col in enumerate(column_labels):
+            # adjust column widths to be a little larger then auto for nicer editing
+            if n != 1:
+            #if True:
+                size = grid.GetColSize(n) * 1.75
+                grid.SetColSize(n, size)
+
 
         return grid
         
@@ -2733,7 +2807,6 @@ class check(wx.Frame):
         
     def on_edit_grid(self, event):
         """sets self.changes to true when user edits the grid"""
-        print "edited grid"
         self.changes = True
 
     def on_left_click(self, event, grid, choices):
@@ -2786,6 +2859,9 @@ class check(wx.Frame):
             else:
                 self.update_orient_data(grid)
             self.ErMagic.on_okButton(None)
+            # 
+            #self.ErMagic.read_MagIC_info() # trying: should populate data_er_ages (doesn't work
+            #
             self.changes = False # resets
         self.panel.Destroy()
         if next_dia:
@@ -2798,7 +2874,7 @@ class check(wx.Frame):
         print "SAVE!"
         grid.SaveEditControlValue() # locks in value in cell currently edited
         grid.HideCellEditControl() # removes focus from cell that was being edited
-        simple_grids = {"locations": self.ErMagic.data_er_locations}
+        simple_grids = {"locations": self.ErMagic.data_er_locations, "age": self.ErMagic.data_er_ages}
         grid_name = grid.GetName()
         if self.changes:
             print "there were changes, so we are updating the data"
@@ -2809,7 +2885,6 @@ class check(wx.Frame):
 
             self.ErMagic.on_okButton(None) # add this back in, it was messing up testing
             self.changes = False
-
 
 
     def on_cancelButton(self, event):
