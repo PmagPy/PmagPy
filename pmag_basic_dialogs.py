@@ -2466,7 +2466,6 @@ class check(wx.Frame):
         if self.sample_window == 1:
             self.samp_grid, self.temp_data['samples'], self.temp_data['sites'] = self.make_table(['samples', '', 'sites'], self.samples, self.Data_hierarchy, 'site_of_sample')
         if self.sample_window > 1:
-            print "ADD DATA THIS TIME"
             col_labels = ['samples', '', 'sites', 'sample_class', 'sample_lithology', 'sample_type']
             self.samp_grid, self.temp_data['samples'], self.temp_data['sites'] = self.make_table(col_labels, self.samples, self.Data_hierarchy, 'site_of_sample')
             self.add_extra_grid_data(self.samp_grid, self.samples, col_labels, self.ErMagic.data_er_samples)
@@ -2665,6 +2664,12 @@ class check(wx.Frame):
         except:
             pass
         self.age_grid = self.make_simple_table(col_labels, self.ErMagic.data_er_ages, "age")
+        #
+        # make it impossible to edit the 1st 3 columns
+        for row in range(self.age_grid.GetNumberRows()):
+            for col in range(3):
+                self.age_grid.SetReadOnly(row, col, True)
+        #
         self.Bind(wx.grid.EVT_GRID_EDITOR_SHOWN, self.on_edit_grid, self.age_grid) 
 
         ### Create Buttons ###
@@ -2708,7 +2713,6 @@ class check(wx.Frame):
 
     ### Grid methods ###
     def make_simple_table(self, column_labels, data_dict, grid_name):
-        print "calling make simple table", column_labels
         grid = wx.grid.Grid(self.panel, -1, name=grid_name)
         grid.ClearGrid()
         row_labels = data_dict.keys()
@@ -2789,7 +2793,6 @@ class check(wx.Frame):
         return grid, original_1, original_2
     
     def add_extra_grid_data(self, grid, row_labels, col_labels, data_dict):
-        print "running add_extra_grid_data"
         #print "grid", grid
         #print "data_dict", data_dict
         for num, row in enumerate(row_labels):
@@ -2887,7 +2890,6 @@ class check(wx.Frame):
     ### Manage data methods ###
 
     def update_simple_grid_data(self, grid, data):
-        print "doing update_simple_grid_data"
         grid_name = grid.GetName()
         rows = range(grid.GetNumberRows())
         cols = range(grid.GetNumberCols())
@@ -2906,14 +2908,6 @@ class check(wx.Frame):
                 data[item][category] = value
         self.temp_data[grid_name] = updated_items
         
-
-        #print "data after", data
-        #print "temp_data", self.temp_data['locations']
-        #print "updated_items", updated_items
-        #for k, v in self.Data_hierarchy.items():
-        #    if 'location' in k:
-        #        print k
-        #        print v
 
 
     def update_orient_data(self, grid):
@@ -2943,11 +2937,9 @@ class check(wx.Frame):
 
 
     def update_locations(self, updated_locations):
-        print "calling update_locations"
         original_locations = self.temp_data['locations']
         changed = [(original_locations[num], new_loc) for (num, new_loc) in enumerate(updated_locations) if new_loc != original_locations[num]]
         for change in changed:
-            print "change", change
             old_loc, new_loc = change
             sites = self.Data_hierarchy['locations'].pop(old_loc)
             self.Data_hierarchy['locations'][new_loc] = sites
@@ -2980,7 +2972,7 @@ class check(wx.Frame):
 
 
     def update_sites(self, grid, col1_updated, col1_old, col2_updated, col2_old, *args):
-        print "updating sites"
+        print " calling update_sites"
         changed = [(old_value, col1_updated[num]) for (num, old_value) in enumerate(col1_old) if old_value != col1_updated[num]]
         for change in changed:
             old_site, new_site = change
@@ -3008,7 +3000,6 @@ class check(wx.Frame):
             # find where changes have occurred
             if value != col2_old[num]:
                 print "CHANGE!", "new", value, "old", col2_old[num]
-                print "len(value)", len(value)
                 old_loc = col2_old[num]
                 new_loc = col2_updated[num]
                 if old_loc == " ": 
@@ -3045,6 +3036,7 @@ class check(wx.Frame):
 
 
     def update_samples(self, grid, col1_updated, col1_old, col2_updated, col2_old, *args):
+        print "calling update_samples"
         changed = [(old_value, col1_updated[num]) for (num, old_value) in enumerate(col1_old) if old_value != col1_updated[num]]  
         for change in changed:
             #print "change!!!!!!", change
@@ -3113,8 +3105,7 @@ class check(wx.Frame):
       
 
     def update_specimens(self, col1_updated, col1_old, col2_updated, col2_old, type1, type2):
-
-        print "UPDATE SAMPLES"
+        print "calling update specimens"
         #  ALSO should check for whether or not a sample still "exists"  
         # maybe
         for num, value in enumerate(col2_updated):
