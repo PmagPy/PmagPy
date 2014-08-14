@@ -2526,10 +2526,9 @@ class check(wx.Frame):
         self.panel = wx.ScrolledWindow(self, style=wx.SIMPLE_BORDER)
         TEXT = """
         Step 3:
-        Check that all sites are correctly named,
-        and that they belong to the correct location.
+        Check that all sites are correctly named, and that they belong to the correct location.
         Fill in the additional columns with controlled vocabularies (see Help button for details)"""
-        label = wx.StaticText(self.panel,label=TEXT)
+        label = wx.StaticText(self.panel,label=TEXT,size=(1200, 100)) # manually sizing the label to be longer than the grid means that the scrollbars display correctly.  hack-y but effective fix
         self.Data, self.Data_hierarchy = self.ErMagic.Data, self.ErMagic.Data_hierarchy
         self.sites = self.Data_hierarchy['sites'].keys()
         # if you wanted to have all the headers show up as editable fields
@@ -2711,7 +2710,7 @@ class check(wx.Frame):
         for n, label in enumerate(column_labels):
             grid.SetColLabelValue(n, label)
 
-        grid.AutoSize()
+        grid.AutoSize() # if I take this out, then all of the grids have the nasty spacing problem
 
         for n, col in enumerate(column_labels):
             # adjust column widths to be a little larger then auto for nicer editing
@@ -2734,6 +2733,7 @@ class check(wx.Frame):
         
     def on_edit_grid(self, event):
         """sets self.changes to true when user edits the grid"""
+        print "edited grid"
         self.changes = True
 
     def on_left_click(self, event, grid, choices):
@@ -2797,9 +2797,9 @@ class check(wx.Frame):
         """saves any editing of the grid but does not continue to the next window"""
         print "SAVE!"
         grid.SaveEditControlValue() # locks in value in cell currently edited
+        grid.HideCellEditControl() # removes focus from cell that was being edited
         simple_grids = {"locations": self.ErMagic.data_er_locations}
         grid_name = grid.GetName()
-
         if self.changes:
             print "there were changes, so we are updating the data"
             if grid_name in simple_grids:
@@ -2818,13 +2818,9 @@ class check(wx.Frame):
         
     ### Manage data methods ###
 
-    def update_simple_grid_data(self, grid, data=None):
-        # method that 
+    def update_simple_grid_data(self, grid, data):
         print "doing update_simple_grid_data"
-        print "data before", data
         grid_name = grid.GetName()
-        #if grid_name == "locations":
-        #    self.update_locations()
         rows = range(grid.GetNumberRows())
         cols = range(grid.GetNumberCols())
         updated_items = []
@@ -2840,6 +2836,9 @@ class check(wx.Frame):
                 category = grid.GetColLabelValue(col)
                 value = str(grid.GetCellValue(row, col))
                 data[item][category] = value
+        self.temp_data[grid_name] = updated_items
+        
+
         #print "data after", data
         #print "temp_data", self.temp_data['locations']
         #print "updated_items", updated_items
@@ -2877,9 +2876,6 @@ class check(wx.Frame):
 
     def update_locations(self, updated_locations):
         print "calling update_locations"
-        print self.ErMagic.data_er_specimens
-        print self.ErMagic.data_er_samples
-        print self.ErMagic.data_er_sites
         original_locations = self.temp_data['locations']
         changed = [(original_locations[num], new_loc) for (num, new_loc) in enumerate(updated_locations) if new_loc != original_locations[num]]
         for change in changed:
@@ -2903,6 +2899,7 @@ class check(wx.Frame):
                     for spec in specimens:
                         self.Data_hierarchy['location_of_specimen'][spec] = new_loc
                         self.ErMagic.data_er_specimens[spec]['er_location_name'] = new_loc
+
 
             #
             #location_of_specimen ( {'sc12b1': 'Xanadu', 'ag1-6b': 'HERE', 'ag1-6a': 'HERE'} )
