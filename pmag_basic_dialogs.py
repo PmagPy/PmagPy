@@ -2649,22 +2649,19 @@ class check(wx.Frame):
         self.panel = wx.ScrolledWindow(self, style=wx.SIMPLE_BORDER)
         TEXT = """
         Step 6:
-        Check ages.
+        Fill in or correct cell values.
         (See Help button for details)"""
         label = wx.StaticText(self.panel,label=TEXT, size=(1200,100))
         self.Data, self.Data_hierarchy = self.ErMagic.Data, self.ErMagic.Data_hierarchy
         self.sites = self.Data_hierarchy['sites']
         #
-        print "self.ErMagic.data_er_ages", self.ErMagic.data_er_ages
-        print "self.ErMagic.data_er_sites", self.ErMagic.data_er_locations
-        print "self.ErMagic.data_er_ages", self.ErMagic.data_er_ages
         key1 = self.ErMagic.data_er_ages.keys()[0]
         col_labels = self.ErMagic.data_er_ages[key1].keys()
         try:
             col_labels.remove('er_site_name')
             col_labels.remove('er_location_name')
             col_labels.remove('er_citation_names')
-            col_labels[:0] = ['er_citation_names', 'er_site_name', 'er_location_name']
+            col_labels[:0] = ['er_site_name', 'er_citation_names', 'er_location_name']
         except:
             pass
         self.age_grid = self.make_simple_table(col_labels, self.ErMagic.data_er_ages, "age")
@@ -2713,7 +2710,6 @@ class check(wx.Frame):
     def make_simple_table(self, column_labels, data_dict, grid_name):
         print "calling make simple table", column_labels
         grid = wx.grid.Grid(self.panel, -1, name=grid_name)
-        #grid = wx.grid.Grid(self.panel, -1, name=column_labels[0])            
         grid.ClearGrid()
         row_labels = data_dict.keys()
         grid.CreateGrid(len(row_labels), len(column_labels))
@@ -2732,12 +2728,9 @@ class check(wx.Frame):
                 value = data_dict[row][col]
                 if value:
                     grid.SetCellValue(num, n+1, value)
-                #else:
-                #    grid.SetCellValue(num, n+1, 'hi {}'.format((num, n+1)))
         for n, col in enumerate(column_labels):
             # adjust column widths to be a little larger then auto for nicer editing
             if n != 1:
-            #if True:
                 size = grid.GetColSize(n) * 1.75
                 grid.SetColSize(n, size)
 
