@@ -429,7 +429,7 @@ class combine_files(wx.BoxSizer):
                         self.file_paths.AppendText(F+"\n")
 
 
-
+# NEED TO MAKE THIS ABLE TO FIND HTML FILES IN USER's path.  sigh.
 class LinkEnabledHtmlWindow(wx.html.HtmlWindow):
     def OnLinkClicked(self, link):
         wx.LaunchDefaultBrowser(link.GetHref())

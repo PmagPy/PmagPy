@@ -2444,6 +2444,9 @@ class check(wx.Frame):
     def InitSampCheck(self):
         """make an interactive grid in which users can edit sample names
         as well as which site a sample belongs to"""
+
+
+        
         self.sample_window += 1 
         #print "init-ing Sample Check for the {}th time".format(self.sample_window)
         self.panel = wx.ScrolledWindow(self, style=wx.SIMPLE_BORDER)
@@ -2454,6 +2457,7 @@ class check(wx.Frame):
             and that they belong to the correct site
             (if site name is simply wrong, that will be fixed in step 3)"""
         else:
+            self.ErMagic.read_MagIC_info() # ensures that changes from step 3 propagate
             TEXT = """
             Step 4:
             Some of the data from the er_sites table has propogated into er_samples.
@@ -2846,7 +2850,7 @@ class check(wx.Frame):
         """pulls up next dialog, if there is one.
         gets any updated information from the current grid and runs ErMagicBuilder"""
         grid.SaveEditControlValue() # locks in value in cell currently edited
-        simple_grids = {"locations": self.ErMagic.data_er_locations}
+        simple_grids = {"locations": self.ErMagic.data_er_locations, "age": self.ErMagic.data_er_ages}
         grid_name = grid.GetName()
 
         if self.changes:

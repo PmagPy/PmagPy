@@ -7,6 +7,7 @@
 import matplotlib
 matplotlib.use('WXAgg')
 import  wx.html
+import pmag_widgets as pw
 
 #from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigCanvas \
 import os
@@ -166,8 +167,12 @@ class MagIC_model_builder(wx.Frame):
         self.cancelButton = wx.Button(self.panel, wx.ID_CANCEL, '&Cancel')
         self.Bind(wx.EVT_BUTTON, self.on_cancelButton, self.cancelButton)
 
+        self.helpButton = wx.Button(self.panel, wx.ID_ANY, '&Help')
+        self.Bind(wx.EVT_BUTTON, self.on_helpButton, self.helpButton)
+
         hbox1.Add(self.okButton)
         hbox1.Add(self.cancelButton )
+        hbox1.Add(self.helpButton)
 
         #------
         vbox=wx.BoxSizer(wx.VERTICAL)
@@ -638,6 +643,12 @@ class MagIC_model_builder(wx.Frame):
 
     def on_cancelButton(self,event):
         self.Destroy()
+
+    def on_helpButton(self, event):
+        html_frame = pw.HtmlFrame(self, page='/Users/nebula/Python/PmagPy/ErMagicHeadersHelp.html')
+        html_frame.Center()
+        html_frame.Show()
+
       
     def read_magic_file(self,path,sort_by_this_name):
         #print "doing ErMagic read_magic_file"
