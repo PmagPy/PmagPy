@@ -2487,7 +2487,7 @@ class check(wx.Frame):
         hbox_one.Add(self.addSiteButton)
         if self.sample_window > 1:
             self.helpButton = wx.Button(self.panel, label="Help")
-            self.Bind(wx.EVT_BUTTON, lambda event: self.on_helpButton(event, "/Users/nebula/Python/PmagPy/ErMagicSampleHelp.html"), self.helpButton)
+            self.Bind(wx.EVT_BUTTON, lambda event: self.on_helpButton(event, "ErMagicSampleHelp.html"), self.helpButton)
             hbox_one.Add(self.helpButton)
 
 
@@ -2558,7 +2558,7 @@ class check(wx.Frame):
         ### Create Buttons ###
         hbox_one = wx.BoxSizer(wx.HORIZONTAL)
         self.helpButton = wx.Button(self.panel, label="Help")
-        self.Bind(wx.EVT_BUTTON, lambda event: self.on_helpButton(event, "/Users/nebula/Python/PmagPy/ErMagicSiteHelp.html"), self.helpButton)
+        self.Bind(wx.EVT_BUTTON, lambda event: self.on_helpButton(event, "ErMagicSiteHelp.html"), self.helpButton)
         hbox_one.Add(self.helpButton)
 
         hboxok = wx.BoxSizer(wx.HORIZONTAL)
@@ -2612,7 +2612,7 @@ class check(wx.Frame):
         ### Create Buttons ###
         hbox_one = wx.BoxSizer(wx.HORIZONTAL)
         self.helpButton = wx.Button(self.panel, label="Help")
-        self.Bind(wx.EVT_BUTTON, lambda event: self.on_helpButton(event, "/Users/nebula/Python/PmagPy/ErMagicLocationHelp.html"), self.helpButton)
+        self.Bind(wx.EVT_BUTTON, lambda event: self.on_helpButton(event, "ErMagicLocationHelp.html"), self.helpButton)
         hbox_one.Add(self.helpButton)
 
         hboxok = wx.BoxSizer(wx.HORIZONTAL)
@@ -2679,7 +2679,7 @@ class check(wx.Frame):
         ### Create Buttons ###
         hbox_one = wx.BoxSizer(wx.HORIZONTAL)
         self.helpButton = wx.Button(self.panel, label="Help")
-        self.Bind(wx.EVT_BUTTON, lambda event: self.on_helpButton(event, "/Users/nebula/Python/PmagPy/ErMagicAgeHelp.html"), self.helpButton)
+        self.Bind(wx.EVT_BUTTON, lambda event: self.on_helpButton(event, "ErMagicAgeHelp.html"), self.helpButton)
         hbox_one.Add(self.helpButton)
 
         hboxok = wx.BoxSizer(wx.HORIZONTAL)
@@ -2842,7 +2842,13 @@ class check(wx.Frame):
 
     def on_helpButton(self, event, page=None):
         """shows html help page"""
-        html_frame = pw.HtmlFrame(self, page=page)
+        path = ''
+        for p in os.environ['PATH'].split(':'):
+            print "p", p
+            if 'Pmag' in p:
+                path = p + '/'
+        print "path + page", path+page
+        html_frame = pw.HtmlFrame(self, page=(path+page))
         html_frame.Show()
 
 
