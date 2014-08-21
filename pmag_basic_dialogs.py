@@ -2392,8 +2392,8 @@ class check(wx.Frame):
         consider opening your documents with Excel or Open Office"""
         label = wx.StaticText(self.panel,label=TEXT)
         self.Data, self.Data_hierarchy = self.ErMagic.Data, self.ErMagic.Data_hierarchy
-        self.specimens = self.Data.keys()
-        samples = self.Data_hierarchy['samples'].keys()
+        self.specimens = sorted(self.Data.keys())
+        samples = sorted(self.Data_hierarchy['samples'].keys())
         # create the grid and also a record of the initial values for specimens/samples as a reference
         # to tell if we've had any changes
         self.spec_grid, self.temp_data['specimens'], self.temp_data['samples'] = self.make_table(['specimens', '', 'samples'], self.specimens, self.Data_hierarchy, 'sample_of_specimen')
@@ -2444,8 +2444,6 @@ class check(wx.Frame):
     def InitSampCheck(self):
         """make an interactive grid in which users can edit sample names
         as well as which site a sample belongs to"""
-
-
         
         self.sample_window += 1 
         #print "init-ing Sample Check for the {}th time".format(self.sample_window)
@@ -2465,8 +2463,8 @@ class check(wx.Frame):
             (see Help button for more details)"""
         label = wx.StaticText(self.panel,label=TEXT)
         self.Data, self.Data_hierarchy = self.ErMagic.Data, self.ErMagic.Data_hierarchy
-        self.samples = self.Data_hierarchy['samples'].keys()
-        sites = self.Data_hierarchy['sites'].keys()
+        self.samples = sorted(self.Data_hierarchy['samples'].keys())
+        sites = sorted(self.Data_hierarchy['sites'].keys())
         if self.sample_window == 1:
             self.samp_grid, self.temp_data['samples'], self.temp_data['sites'] = self.make_table(['samples', '', 'sites'], self.samples, self.Data_hierarchy, 'site_of_sample')
         if self.sample_window > 1:
@@ -2533,7 +2531,7 @@ class check(wx.Frame):
         Fill in the additional columns with controlled vocabularies (see Help button for details)"""
         label = wx.StaticText(self.panel,label=TEXT,size=(1200, 100)) # manually sizing the label to be longer than the grid means that the scrollbars display correctly.  hack-y but effective fix
         self.Data, self.Data_hierarchy = self.ErMagic.Data, self.ErMagic.Data_hierarchy
-        self.sites = self.Data_hierarchy['sites'].keys()
+        self.sites = sorted(self.Data_hierarchy['sites'].keys())
         # if you wanted to have all the headers show up as editable fields
         #args = self.ErMagic.data_er_sites[self.ErMagic.data_er_sites.keys()[0]].keys()
         #col_labels = ['sites', '', 'locations']
@@ -2548,7 +2546,7 @@ class check(wx.Frame):
 
         self.add_extra_grid_data(self.site_grid, self.sites, col_labels, self.ErMagic.data_er_sites)
 
-        locations = self.temp_data['locations']
+        locations = sorted(self.temp_data['locations'])
         self.changes = False
 
         self.Bind(wx.grid.EVT_GRID_EDITOR_SHOWN, self.on_edit_grid, self.site_grid) 
@@ -2605,7 +2603,14 @@ class check(wx.Frame):
         self.Data, self.Data_hierarchy = self.ErMagic.Data, self.ErMagic.Data_hierarchy
         self.locations = self.Data_hierarchy['locations']
         #
-        col_labels = ['locations', 'location_type']
+        #col_labels = ['locations', 'location_type']
+        key1 = self.ErMagic.data_er_locations.keys()[0]
+        col_labels = self.ErMagic.data_er_locations[key1].keys()
+        try:
+            col_labels.remove('er_location_name')
+            col_labels[:0] = ['er_location_name']
+        except:
+            pass
         self.loc_grid = self.make_simple_table(col_labels, self.ErMagic.data_er_locations, "locations")
         self.Bind(wx.grid.EVT_GRID_EDITOR_SHOWN, self.on_edit_grid, self.loc_grid) 
 
@@ -2719,7 +2724,7 @@ class check(wx.Frame):
     def make_simple_table(self, column_labels, data_dict, grid_name):
         grid = wx.grid.Grid(self.panel, -1, name=grid_name)
         grid.ClearGrid()
-        row_labels = data_dict.keys()
+        row_labels = sorted(data_dict.keys())
         grid.CreateGrid(len(row_labels), len(column_labels))
         self.temp_data[column_labels[0]] = []
         # set row labels
@@ -2815,7 +2820,7 @@ class check(wx.Frame):
         row, col = event.GetRow(), event.GetCol()
         if col == 2:
             menu = wx.Menu()
-            for choice in set(choices):
+            for choice in sorted(set(choices)): # NOT OPTIMAL to run this every time
                 if not choice: choice = " " # prevents error if choice is an empty string
                 menuitem = menu.Append(wx.ID_ANY, choice)
                 self.Bind(wx.EVT_MENU, lambda event: self.on_select_menuitem(event, grid, row), menuitem)
