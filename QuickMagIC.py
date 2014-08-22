@@ -230,15 +230,25 @@ class MagMainFrame(wx.Frame):
         pmag_dialogs_dia.Center()
 
 
-
+    
     def on_er_data(self, event):
+        import ErMagicBuilder
+        ErMagic = ErMagicBuilder.MagIC_model_builder(self.WD)#,self.Data,self.Data_hierarchy)
+        ErMagic.Show()
+        ErMagic.Center()
+
         SIZE=wx.DisplaySize()
         SIZE=(SIZE[0]-0.3*SIZE[0],SIZE[1]-0.3*SIZE[1]) # gets total available screen space - 10%
-        dia = pmag_basic_dialogs.check(self, -1, 'This', self.WD)#, SIZE)
-        
-    """
-    def on_er_data(self,event):
+        dia = pmag_basic_dialogs.check(self, -1, 'Check', self.WD, ErMagic)#, SIZE)
+        #dia.Hide()
+        ErMagic.Raise()
 
+
+
+        
+    
+    """
+    def old_on_er_data(self,event):
         import ErMagicBuilder
         foundHTML=False
         try:
@@ -266,12 +276,14 @@ class MagMainFrame(wx.Frame):
                 dlg.Destroy()
                 self.first_time_messsage=True
                 self.help_window.Raise()
-    """        
+            
             
 
     def OnCloseHtml(self,event):
         self.HtmlIsOpen=False
         self.help_window.Destroy()
+    """
+
     def get_data(self):
         
       Data={}
@@ -358,6 +370,10 @@ class MagMainFrame(wx.Frame):
        
            
     def on_menu_exit(self, event):
+        try:
+            self.help_window.Destroy()
+        except:
+            pass
         exit()
     
 

@@ -35,12 +35,11 @@ class ImportOrientFile(wx.Frame):
         self.bSizer0 = pw.choose_file(pnl, 'add', method = self.on_add_file_button)
 
         #---sizer 1 ----                                   
-        TEXT = "Sampling Particulars (select all that apply):"
-        particulars = ["FS-FD: field sampling done with a drill", "FS-H: field sampling done with hand samples", "FS-LOC-GPS: field location done with GPS", "FS-LOC-MAP:  field location done with map", "SO-POM:  a Pomeroy orientation device was used", "SO-ASC:  an ASC orientation device was used", "SO-MAG: magnetic compass used for all orientations", "SO-SUN: sun compass used for all orientations", "SO-SM: either magnetic or sun used on all orientations", "SO-SIGHT: orientation from sighting"]
-        self.bSizer1 = pw.check_boxes(pnl, (6, 2, 0, 0), particulars, TEXT)
+        self.bSizer1 = pw.sampling_particulars(pnl)
 
         #---sizer 2 ----
-        self.bSizer2 = pw.select_specimen_ncn(pnl)
+        ncn_keys = ['XXXXY', 'XXXX-YY', 'XXXX.YY', 'XXXX[YYY] where YYY is sample designation, enter number of Y', 'sample name=site name', 'site name in site_name column in orient.txt format input file', '[XXXX]YYY where XXXX is the site name, enter number of X']
+        self.bSizer2 = pw.select_ncn(pnl, ncn_keys)
         
         #---sizer 3 ----
         self.bSizer3 = pw.select_specimen_ocn(pnl)
@@ -108,7 +107,6 @@ class ImportOrientFile(wx.Frame):
         self.Show()
         self.Centre()
 
-
     def on_add_file_button(self,event):
         text = "choose file to convert to MagIC"
         pw.on_add_file_button(self.bSizer0, self.WD, event, text)
@@ -116,14 +114,14 @@ class ImportOrientFile(wx.Frame):
     def on_okButton(self, event):
         WD = self.WD
         full_infile = self.bSizer0.return_value()
-        #os.system('cp {} {}'.format(full_infile, WD))
         ind = full_infile.rfind('/')
         infile = full_infile[ind+1:]
         Fsa = infile[:infile.find('.')] + "_er_samples.txt"
         Fsi = infile[:infile.find('.')] + "_er_sites.txt"
         ID = full_infile[:ind+1]
-        particulars = [p.split(':')[0] for p in self.bSizer1.return_value()]
-        mcd = ':'.join(particulars)
+        mcd = self.bSizer1.return_value()
+        if mcd:
+            mcd = "-mcd " + mcd
         ncn = self.bSizer2.return_value()
         ocn = self.bSizer3.return_value()
         dcn = self.bSizer4.return_value()
@@ -136,7 +134,7 @@ class ImportOrientFile(wx.Frame):
                 app = "-app" # overwrite is False, append instead
         except AttributeError:
             app = ""
-        COMMAND = "orientation_magic.py -WD {} -f {} -ncn {} -ocn {} -dcn {} -gmt {} -mcd {} {} -ID {} -Fsa {} -Fsi {}".format(WD, infile, ncn, ocn, dcn, gmt, mcd, app, ID, Fsa, Fsi)
+        COMMAND = "orientation_magic.py -WD {} -f {} -ncn {} -ocn {} -dcn {} -gmt {} {} {} -ID {} -Fsa {} -Fsi {}".format(WD, infile, ncn, ocn, dcn, gmt, mcd, app, ID, Fsa, Fsi)
         pw.run_command_and_close_window(self, COMMAND, "er_samples.txt\ner_sites.txt")
 
     def on_cancelButton(self,event):
@@ -170,7 +168,7 @@ class ImportAzDipFile(wx.Frame):
         self.bSizer1 = pw.sampling_particulars(pnl)
 
         #---sizer 2 ---
-        self.bSizer2 = pw.select_specimen_ncn(pnl)
+        self.bSizer2 = pw.select_ncn(pnl)
 
         #---sizer 3 ---
         self.bSizer3 = pw.labeled_text_field(pnl, "Location:")
@@ -223,8 +221,9 @@ class ImportAzDipFile(wx.Frame):
         full_infile = self.bSizer0.return_value()
         infile = full_infile[full_infile.rfind('/')+1:full_infile.rfind('.')]
         Fsa = WD + infile + "_er_samples.txt"
-        particulars = [p.split(':')[0] for p in self.bSizer1.return_value()]
-        mcd = ':'.join(particulars)
+        mcd = self.bSizer1.return_value()
+        if mcd:
+            mcd = "-mcd " + mcd
         ncn = self.bSizer2.return_value()
         loc = self.bSizer3.return_value()
         if loc:
@@ -237,7 +236,7 @@ class ImportAzDipFile(wx.Frame):
                 app = "-app" # overwrite is False, append instead
         except AttributeError:
             app = ""
-        COMMAND = "azdip_magic.py -f {} -Fsa {} -ncn {} {} -mcd {} {}".format(full_infile, Fsa, ncn, loc, mcd, app)
+        COMMAND = "azdip_magic.py -f {} -Fsa {} -ncn {} {} {} {}".format(full_infile, Fsa, ncn, loc, mcd, app)
 
         pw.run_command_and_close_window(self, COMMAND, Fsa)
 
@@ -445,19 +444,6 @@ class ImportKly4s(wx.Frame):
 
         #---sizer 0 ----
         self.bSizer0 = pw.choose_file(pnl, btn_text="Add kly4s format file", method = self.on_add_file_button)
-        """
-        -fad AZDIP: specify AZDIP file with orientations, will create er_samples.txt file                                           
-        -fsa SFILE: specify existing er_samples.txt file with orientation information                                             
-        -fsp SPFILE: specify existing er_specimens.txt file for appending                                                         
-        -F MFILE: specify magic_measurements output file                                                                             
-        -Fa AFILE: specify rmag_anisotropy output file                                                                                
-        -ocn ORCON:  specify orientation convention: default is #3 below -only with AZDIP file                                     
-        -usr USER: specify who made the measurements                                                                                    
-        -loc LOC: specify location name for study                                                                                      
-        -ins INST: specify instrument used                                                                                      
-        -spc SPEC: specify number of characters to specify specimen from sample   
-        -ncn NCON:  specify naming convention: default is #1 below 
-        """
 
         #---sizer 1 ---
         self.bSizer1 = pw.choose_file(pnl, btn_text='add AZDIP file (optional)', method = self.on_add_AZDIP_file_button)
@@ -471,7 +457,7 @@ class ImportKly4s(wx.Frame):
         self.bSizer3 = pw.specimen_n(pnl)
 
         #---sizer 4 ---
-        self.bSizer4 = pw.select_specimen_ncn(pnl)
+        self.bSizer4 = pw.select_ncn(pnl)
 
         #---sizer 5 ---
         self.bSizer5 = pw.select_specimen_ocn(pnl)
@@ -500,12 +486,6 @@ class ImportKly4s(wx.Frame):
         vbox.Add(self.bSizer4, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(self.bSizer5, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(hbox1, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
-        #vbox.Add(self.bSizer5, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
-        #vbox.Add(self.bSizer6, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
-        #try:
-        #    vbox.Add(self.bSizer4, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
-        #except AttributeError:
-        #    pass
         vbox.Add(hboxok, flag=wx.ALIGN_CENTER)        
         vbox.AddSpacer(20)
 
@@ -522,13 +502,11 @@ class ImportKly4s(wx.Frame):
 
     def on_add_file_button(self,event):
         text = "choose file to convert to MagIC"
-        #pw.on_add_file_button(self.panel, self.WD, event, text)
         pw.on_add_file_button(self.bSizer0, self.WD, event, text)
 
     def on_add_AZDIP_file_button(self,event):
         text = "choose AZDIP file (optional)"
         pw.on_add_file_button(self.bSizer1, self.WD, event, text)
-        # show ocn widget
 
 
     def on_okButton(self, event):
@@ -550,8 +528,7 @@ class ImportKly4s(wx.Frame):
         if user:
             user = "-usr " + user
         n = self.bSizer3.return_value()
-        if n:
-            n = "-spc " + str(n)
+        n = "-spc " + str(n)
         ncn = self.bSizer4.return_value()
         #
         loc = self.bSizer6.return_value()
@@ -560,8 +537,7 @@ class ImportKly4s(wx.Frame):
         ins = self.bSizer7.return_value()
         if ins:
             ins = "-ins " + ins
-        COMMAND = "kly4s_magic.py -WD {} -f {} -F {} {} -ncn {} -ocn {} {} {} {} {} -ID {} -fsp {}".format(self.WD, infile, outfile, azdip_file, ncn, ocn, user, n, loc, ins, ID, spec_outfile)
-        print COMMAND
+        COMMAND = "kly4s_magic.py -WD {} -f {} -F {} {} -ncn {} {} {} {} {} {} -ID {} -fsp {}".format(self.WD, infile, outfile, azdip_file, ncn, ocn, user, n, loc, ins, ID, spec_outfile)
         pw.run_command_and_close_window(self, COMMAND, outfile)
 
     def on_cancelButton(self,event):
@@ -596,7 +572,7 @@ class ImportK15(wx.Frame):
         self.bSizer1 = pw.specimen_n(pnl)
 
         #---sizer 2 ---
-        self.bSizer2 = pw.select_specimen_ncn(pnl)
+        self.bSizer2 = pw.select_ncn(pnl)
 
         #---sizer 3 ---
         self.bSizer3 = pw.labeled_text_field(pnl, label="Location name:")
@@ -686,7 +662,7 @@ class ImportSufarAscii(wx.Frame):
         self.bSizer2 = pw.specimen_n(pnl)
 
         #---sizer 3 ---
-        self.bSizer3 = pw.select_specimen_ncn(pnl)
+        self.bSizer3 = pw.select_ncn(pnl)
 
         #---sizer 4 ---
         self.bSizer4 = pw.labeled_text_field(pnl, label="Location name:")
@@ -809,7 +785,7 @@ class ImportAgmFile(wx.Frame):
         self.bSizer2 = pw.specimen_n(pnl)
 
         #---sizer 3 ---
-        self.bSizer3 = pw.select_specimen_ncn(pnl)
+        self.bSizer3 = pw.select_ncn(pnl)
 
         #---sizer 4 ---
         self.bSizer4 = pw.labeled_text_field(pnl, label="Location name:")
@@ -884,7 +860,6 @@ class ImportAgmFile(wx.Frame):
         if self.bSizer7.return_value():
             bak = "-bak"
         COMMAND = "agm_magic.py -WD {} -ID {} -f {} -F {} -Fsp {} {} -spc {} -ncn {} {} {} -u {} {}".format(WD, ID, infile, outfile, spec_outfile, user, spc, ncn, loc, ins, units, bak)
-        print COMMAND
         pw.run_command_and_close_window(self, COMMAND, outfile)
 
     def on_cancelButton(self,event):
@@ -926,7 +901,7 @@ class ImportAgmFolder(wx.Frame):
         self.bSizer2 = pw.specimen_n(pnl)
 
         #---sizer 3 ---
-        self.bSizer3 = pw.select_specimen_ncn(pnl)
+        self.bSizer3 = pw.select_ncn(pnl)
 
         #---sizer 4 ---
         self.bSizer4 = pw.labeled_text_field(pnl, label="Location name:")
@@ -1036,7 +1011,7 @@ class something(wx.Frame):
         self.bSizer1 = pw.specimen_n(pnl)
 
         #---sizer 2 ---
-        self.bSizer2 = pw.select_specimen_ncn(pnl)
+        self.bSizer2 = pw.select_ncn(pnl)
 
         #---sizer 3 ---
         self.bSizer3 = pw.labeled_text_field(pnl, label="Location name:")
@@ -1122,7 +1097,7 @@ class something(wx.Frame):
         self.bSizer1 = pw.specimen_n(pnl)
 
         #---sizer 2 ---
-        self.bSizer2 = pw.select_specimen_ncn(pnl)
+        self.bSizer2 = pw.select_ncn(pnl)
 
         #---sizer 3 ---
         self.bSizer3 = pw.labeled_text_field(pnl, label="Location name:")

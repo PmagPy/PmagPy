@@ -364,6 +364,7 @@ def main():
                     MagRec['magic_method_codes']=meas_type
                     MagRecs.append(MagRec) 
     MagOuts=pmag.measurements_methods(MagRecs,noave)
+    MagOuts, keylist = pmag.fillkeys(MagOuts) 
     pmag.magic_write(meas_file,MagOuts,'magic_measurements')
     print "Measurements put in ",meas_file
     SampsOut,sampkeys=pmag.fillkeys(Samps)

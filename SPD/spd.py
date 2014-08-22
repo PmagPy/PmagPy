@@ -23,7 +23,8 @@ import os
 #from scipy import * 
 #import os
 import SPD.lib.lib_arai_plot_statistics as lib_arai
-import SPD.lib.lib_curvature as lib_k
+#import SPD.lib.lib_curvature as lib_k
+import SPD.lib.leastsq_jacobian as lib_k
 import SPD.lib.lib_directional_statistics as lib_direct
 import SPD.lib.lib_ptrm_statistics as lib_ptrm
 import SPD.lib.lib_tail_check_statistics as lib_tail
@@ -90,7 +91,8 @@ class PintPars(object):
                     new_stat = map_magic.spd[ind]
                     self.calculate.append(new_stat)
                 except ValueError:
-                    self.calculate.append(stat)
+                    print 'doesn\'t start with \'specimen\'', stat
+                    #self.calculate.append(stat)
         ####
         self.specimen_Data = Data[self.s]
         self.datablock = self.specimen_Data['datablock']
@@ -755,23 +757,27 @@ class PintPars(object):
 
 
 
-ignore = """
 
-cwd = os.getcwd()
-main_dir = cwd + '/SPD'
-try:
-    gui = tgs.Arai_GUI('/magic_measurements.txt', main_dir)
-    specimens = gui.Data.keys()
-    thing = PintPars(gui.Data, '0238x6011044', 473., 623.)
-    thing.calculate_all_statistics()
-    new_thing = PintPars(gui.Data, '0238x5721062', 100. + 273., 525. + 273.)
-    new_thing.calculate_all_statistics()
-    gui2 = tgs.Arai_GUI('/consistency_tests/Yamamoto_Hushi_2008_magic_measurements.txt', cwd)
-    thing2 = PintPars(gui2.Data, 'SW01-01A-2', 100. + 273., 480. + 273.)
-except Exception as ex:
-    print 'could not make standard specimen objects'
-    print ex
-"""
+def make_thing():
+    """ makes example PintPars object """
+    cwd = os.getcwd()
+    main_dir = cwd + '/SPD'
+    try:
+        import new_lj_thellier_gui_spd as tgs
+        gui = tgs.Arai_GUI('/magic_measurements.txt', main_dir)
+        specimens = gui.Data.keys()
+        thing = PintPars(gui.Data, '0238x6011044', 473., 623.)
+        thing.calculate_all_statistics()
+        #new_thing = PintPars(gui.Data, '0238x5721062', 100. + 273., 525. + 273.)
+        #new_thing.calculate_all_statistics()
+        gui2 = tgs.Arai_GUI('/magic_measurements.txt', '/Users/nebula/Desktop/MagIC_experiments/ODP-SBG_1')
+        thing2 = PintPars(gui2.Data, '0335x1031411', 273., 743.)
+        return thing, thing2
+    except Exception as ex:
+        print 'could not make standard specimen objects'
+        print ex
+    
+
 #thing2 = PintPars(gui.Data, specimens[0], 473., 623.)
 #thing2.calculate_all_statistics()
 #thing3 = PintPars(gui.Data, specimens[1], 473., 623.)

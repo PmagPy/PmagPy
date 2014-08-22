@@ -158,7 +158,7 @@ def get_diffs(ptrms_vectors, ptrm_checks_vectors, ptrms_orig, checks_orig):
     index = numpy.zeros(len(ptrm_temps))
     for num, temp in enumerate(ptrm_temps):
         if len(numpy.where(check_temps == temp)[0]):
-            index[num] = numpy.where(check_temps == temp)[0]
+            index[num] = numpy.where(check_temps == temp)[0][0]
         else:
             index[num] = float('nan')
     diffs = numpy.zeros((len(ptrms_vectors), 3))

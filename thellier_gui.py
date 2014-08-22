@@ -1034,8 +1034,8 @@ class Arai_GUI(wx.Frame):
         self.T_list=["%.0f"%T for T in self.temperatures]
         self.tmin_box.SetItems(self.T_list)
         self.tmax_box.SetItems(self.T_list)
-        self.tmin_box.SetStringSelection("")
-        self.tmax_box.SetStringSelection("")
+        self.tmin_box.SetValue("")
+        self.tmax_box.SetValue("")
         self.Blab_window.SetValue("%.0f"%(float(self.Data[self.s]['pars']['lab_dc_field'])*1e6))
         if "saved" in self.Data[self.s]['pars']:
             self.pars=self.Data[self.s]['pars']
@@ -1208,7 +1208,8 @@ class Arai_GUI(wx.Frame):
 
             
             return()
-            
+
+        #print "B is this:", B # shows that the problem happens when B array contains 1 or 2
         N=len(B)
         B_mean=mean(B)
         B_std=std(B,ddof=1)
@@ -1598,7 +1599,7 @@ class Arai_GUI(wx.Frame):
                     if my_acceptance_criteria[crit]['value']!=-999:
                         short_crit=crit.split('specimen_')[-1]
                         if short_crit not in preferences['show_statistics_on_gui']:
-                            preferences['show_statistics_on_gui'].append(short_crit)
+                            #preferences['show_statistics_on_gui'].append(short_crit)
                             print "-IIII-",short_crit, " was added to list"
         except:
             pass     
@@ -3551,6 +3552,11 @@ class Arai_GUI(wx.Frame):
                     tmin=temperatures[tmin_i]
                     tmax=temperatures[tmax_i]
                     pars=self.get_PI_parameters(s,tmin,tmax)
+                    if 'NLT_specimen_correction_factor' not in pars.keys():
+                        # problem in get_PI_parameters (probably with tmin/zdata).  can't run specimen
+                        message_string = '-W- Could not get parameters for {}. Check data for typos, etc.'.format(s)
+                        thellier_interpreter_log.write(message_string+"\n")
+                        break
                     pars=self.check_specimen_PI_criteria(pars)
                     #-------------------------------------------------            
                     # check if pass the criteria
@@ -4199,7 +4205,9 @@ class Arai_GUI(wx.Frame):
         # display the interpretation of the current specimen:
         self.pars=self.Data[self.s]['pars']
         self.clear_boxes()
+        #print "about to draw figure" # this is where trouble happens when 1 or 2 specimens are accepted
         self.draw_figure(self.s)
+        #print "just drew figure"
         self.update_GUI_with_new_interpretation()
 
         dlg1.ShowModal()

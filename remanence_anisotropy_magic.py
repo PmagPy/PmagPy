@@ -471,7 +471,7 @@ def main():
                         M_1=sqrt(sum((array(M[i])**2)))
                         M_2=sqrt(sum(Alteration_check**2))
                         diff=abs(M_1-M_2)
-                        diff_ratio=diff/max(M_1,M_2)
+                        diff_ratio=diff/mean([M_1,M_2])
                         diff_ratio_perc=100*diff_ratio
                         if diff_ratio_perc > anisotropy_alt:
                             anisotropy_alt=diff_ratio_perc

@@ -2,6 +2,7 @@
 
 import os
 import wx
+import wx.html
 
 
 # library for commonly used widgets.  
@@ -102,7 +103,7 @@ class labeled_yes_or_no(wx.StaticBoxSizer):
 
 class specimen_n(wx.StaticBoxSizer):
     """-spc option (number of characters defining specimen from sample"""
-    def __init__(self, parent, label="number of characters to designate a specimen"):
+    def __init__(self, parent, label="number of terminal characters that distinguish specimen from sample"):
         self.parent = parent
         box = wx.StaticBox( self.parent, wx.ID_ANY, "" )
         super(specimen_n, self).__init__(box, orient=wx.HORIZONTAL)
@@ -117,18 +118,18 @@ class specimen_n(wx.StaticBoxSizer):
         return self.spc.GetValue()
 
 
-class select_specimen_ncn(wx.StaticBoxSizer):  
-    """provides box sizer with a drop down menu for the standard specimen naming conventions"""
-    def __init__(self, parent):
+class select_ncn(wx.StaticBoxSizer):  
+    """provides box sizer with a drop down menu for the standard naming conventions"""
+    ncn_keys = ['XXXXY', 'XXXX-YY', 'XXXX.YY', 'XXXX[YYY] where YYY is sample designation, enter number of Y', 'sample name=site name', 'Site names in orient.txt file', '[XXXX]YYY where XXXX is the site name, enter number of X', 'this is a synthetic and has no site name']
+    def __init__(self, parent, ncn_keys=ncn_keys):
         self.parent = parent
         box = wx.StaticBox( parent, wx.ID_ANY, "" )
-        super(select_specimen_ncn, self).__init__(box, orient=wx.VERTICAL)
-        ncn_keys = ['XXXXY', 'XXXX-YY', 'XXXX.YY', 'XXXX[YYY] where YYY is sample designation, enter number of Y', 'sample name=site name', 'Site names in orient.txt file', '[XXXX]YYY where XXXX is the site name, enter number of X', 'this is a synthetic and has no site name']
+        super(select_ncn, self).__init__(box, orient=wx.VERTICAL)
         ncn_values = range(1,9)
         self.sample_naming_conventions = dict(zip(ncn_keys, ncn_values))
-        self.select_naming_convention = wx.ComboBox(parent, -1, ncn_keys[0], size=(430,25), choices=ncn_keys, style=wx.CB_READONLY)
+        self.select_naming_convention = wx.ComboBox(parent, -1, ncn_keys[0], size=(440,25), choices=ncn_keys, style=wx.CB_READONLY)
         self.sample_naming_convention_char = wx.TextCtrl(parent, id=-1, size=(40,25))
-        label1 = wx.StaticText(parent,label="specimen-sample naming convention:",style=wx.TE_CENTER)
+        label1 = wx.StaticText(parent,label="sample-site naming convention:",style=wx.TE_CENTER)
         label2 = wx.StaticText(parent, label="delimiter (if necessary):", style=wx.TE_CENTER)
         gridbSizer = wx.GridBagSizer(5, 10)
         gridbSizer.Add(label1, (0, 0))
@@ -266,6 +267,12 @@ class sampling_particulars(check_boxes):
         particulars = ["FS-FD: field sampling done with a drill", "FS-H: field sampling done with hand samples", "FS-LOC-GPS: field location done with GPS", "FS-LOC-MAP:  field location done with map", "SO-POM:  a Pomeroy orientation device was used", "SO-ASC:  an ASC orientation device was used", "SO-MAG: magnetic compass used for all orientations", "SO-SUN: sun compass used for all orientations", "SO-SM: either magnetic or sun used on all orientations", "SO-SIGHT: orientation from sighting"]
         super(sampling_particulars, self).__init__(parent, gridsize, particulars, TEXT)
 
+    def return_value(self):
+        checked = super(sampling_particulars, self).return_value()
+        particulars = [p.split(':')[0] for p in checked]
+        particulars = ':'.join(particulars)
+        return particulars
+
 
 class lab_field(wx.StaticBoxSizer):
     
@@ -325,7 +332,7 @@ class experiment_type(wx.StaticBoxSizer):
         gridSizer2 = wx.GridSizer(5, 3, 0, 0)
         self.boxes = []
         experiment_names=['AF Demag', 'Thermal (includes thellier but not trm)', 'Shaw method', 'IRM (acquisition)', '3D IRM experiment', 'NRM only', 'TRM acquisition', 'double AF demag', 'triple AF demag (GRM protocol)', 'Cooling rate experiment']
-        TEXT = "Experiment type (required, select all that apply):"
+        TEXT = "Experiment type (select all that apply):"
         for n, experiment in enumerate(experiment_names):
             cb = wx.CheckBox(parent, -1, experiment)
             self.boxes.append(cb)
@@ -418,7 +425,23 @@ class combine_files(wx.BoxSizer):
             F=str(F)
             if len(F)>6:
                 if self.text in F:
-                    self.file_paths.AppendText(F+"\n")
+                    if "#" not in F and "~" not in F and not F.endswith('.pyc'): # prevents binary files from going into the mix, as well as misc saved stuff
+                        self.file_paths.AppendText(F+"\n")
+
+
+# NEED TO MAKE THIS ABLE TO FIND HTML FILES IN USER's path.  sigh.
+class LinkEnabledHtmlWindow(wx.html.HtmlWindow):
+    def OnLinkClicked(self, link):
+        wx.LaunchDefaultBrowser(link.GetHref())
+
+class HtmlFrame(wx.Frame):
+    """ This window displays a HtmlWindow """
+    def __init__(self, *args, **kwargs):
+        wx.Frame.__init__(self, None, wx.ID_ANY, title="Help Window", size=(600,400))
+        page = kwargs.get('page', 'http://earthref.org/MAGIC/shortlists/')
+        htmlwin = LinkEnabledHtmlWindow(self)
+        htmlwin.LoadPage(page)
+        htmlwin.Fit()
 
  
 
@@ -447,10 +470,18 @@ def on_add_file_button(SELF, WD, event, text):
         SELF.file_path.SetValue(str(dlg.GetPath()))
 
 
+def simple_warning(text):
+    dlg = wx.MessageDialog(None, message=text, caption="warning", style=wx.ICON_ERROR|wx.OK)
+    dlg.ShowModal()
+    dlg.Destroy()
+    
 
-def on_helpButton(command):
+def on_helpButton(command=None, text=None):
     import subprocess
-    result = subprocess.check_output(command, shell=True)
+    if text:
+        result = text
+    else:
+        result = subprocess.check_output(command, shell=True)
     dlg = wx.Dialog(None, title="help")
     text = wx.TextCtrl(dlg, -1, result, size=(620,540), style=wx.TE_MULTILINE | wx.TE_READONLY)
     sizer = wx.BoxSizer(wx.VERTICAL)
