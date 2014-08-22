@@ -2773,14 +2773,17 @@ class check(wx.Frame):
 
         # comment this so it is understandable to you
         for n, row in enumerate(row_values):
-            grid.SetRowLabelValue(n, str(n+1))
+            grid.SetRowLabelValue(n, str(n+1)) # row labels will be simply numbers 1 - n
             original_1.append(row)
-            grid.SetCellValue(n, 0, row)
+            grid.SetCellValue(n, 0, row) # sets first column values
             if not col1_editable:
                 grid.SetReadOnly(n, 0, True)
-            grid.SetCellValue(n, 1, "belongs to")
+            grid.SetCellValue(n, 1, "belongs to") # sets second column (placeholder)
             grid.SetReadOnly(n, 1, True) 
-            col = column_indexing[ind][row]
+            #
+            grid.SetReadOnly(n, 2, True) # prevents column 2 from being cell editing (but will be able to edit with dropdown menu)
+            # uses data structure to take get data, for example: sample_of_specimen[spec1].  
+            col = column_indexing[ind][row] 
             original_2.append(col)
             grid.SetCellValue(n, 2, col)
 
@@ -2910,15 +2913,15 @@ class check(wx.Frame):
         cols = range(grid.GetNumberCols())
         updated_items = []
         for row in rows:
-            item = grid.GetCellValue(row, 0)
-            updated_items.append(str(item))
+            item = str(grid.GetCellValue(row, 0))
+            updated_items.append(item)
         if grid_name == "locations":
             self.update_locations(updated_items)
         for row in rows: 
-            item = grid.GetCellValue(row, 0)
-            #updated_items.append(str(item))
+            item = str(grid.GetCellValue(row, 0))
+            updated_items.append(item) # should this be commented out?  I think it was before
             for col in cols[1:]:
-                category = grid.GetColLabelValue(col)
+                category = str(grid.GetColLabelValue(col))
                 value = str(grid.GetCellValue(row, col))
                 data[item][category] = value
         self.temp_data[grid_name] = updated_items
@@ -2952,7 +2955,7 @@ class check(wx.Frame):
 
 
     def update_locations(self, updated_locations):
-        original_locations = self.temp_data['locations']
+        original_locations = self.temp_data['er_location_name']
         changed = [(original_locations[num], new_loc) for (num, new_loc) in enumerate(updated_locations) if new_loc != original_locations[num]]
         for change in changed:
             old_loc, new_loc = change
@@ -2966,6 +2969,7 @@ class check(wx.Frame):
             for site in sites:
                 self.Data_hierarchy['location_of_site'][site] = new_loc
                 self.ErMagic.data_er_sites[site]['er_location_name'] = new_loc
+                self.ErMagic.data_er_ages[site]['er_location_name'] = new_loc
                 samples = self.Data_hierarchy['sites'][site]
                 for sample in samples:
                     self.Data_hierarchy['location_of_sample'][sample] = new_loc
