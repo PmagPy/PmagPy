@@ -2863,6 +2863,11 @@ class check(wx.Frame):
     def on_continueButton(self, event, grid, next_dia=None):
         """pulls up next dialog, if there is one.
         gets any updated information from the current grid and runs ErMagicBuilder"""
+        if self.ErMagic.data_er_specimens:
+            pass
+        else:
+            print "reading MagIC info"
+            self.ErMagic.read_MagIC_info()
         grid.SaveEditControlValue() # locks in value in cell currently edited
         simple_grids = {"locations": self.ErMagic.data_er_locations, "age": self.ErMagic.data_er_ages}
         grid_name = grid.GetName()
@@ -2886,6 +2891,11 @@ class check(wx.Frame):
     def on_saveButton(self, event, grid):
         """saves any editing of the grid but does not continue to the next window"""
         print "SAVE!"
+        if self.ErMagic.data_er_specimens:
+            pass
+        else:
+            print "reading MagIC info"
+            self.ErMagic.read_MagIC_info()
         grid.SaveEditControlValue() # locks in value in cell currently edited
         grid.HideCellEditControl() # removes focus from cell that was being edited
         simple_grids = {"locations": self.ErMagic.data_er_locations, "age": self.ErMagic.data_er_ages}
@@ -3113,20 +3123,26 @@ class check(wx.Frame):
                 self.ErMagic.data_er_samples[sample]['er_site_name'] = new_site
                 self.ErMagic.data_er_samples[sample]['er_location_name'] = loc
 
+        # check if any sites no longer have any sample assigned to them, and destroy them if so
+        sites = self.ErMagic.data_er_sites.keys()
+        for site in sites:
+            #print self.Data_hierarchy['sites'][site]
+            if not self.Data_hierarchy['sites'][site]:
+                self.Data_hierarchy['sites'].pop(site)
+                self.ErMagic.data_er_sites.pop(site)
+                print "site {} is empty".format(site)
+
         # now fill in all the other columns
         for num_sample, sample in enumerate(col1_updated):
             for num, arg in enumerate(args):
                 num += 3
                 value = str(grid.GetCellValue(num_sample, num))
                 self.ErMagic.data_er_samples[sample][arg] = value
-                print "sample: {}, arg: {}, value {}".format(sample, arg, value)
-
+                #print "sample: {}, arg: {}, value {}".format(sample, arg, value)
+                
       
 
     def update_specimens(self, col1_updated, col1_old, col2_updated, col2_old, type1, type2):
-        print "calling update specimens"
-        #  ALSO should check for whether or not a sample still "exists"  
-        # maybe
         for num, value in enumerate(col2_updated):
             # find where changes have occurred
             if value != col2_old[num]:
@@ -3135,6 +3151,7 @@ class check(wx.Frame):
                 spec = col1_updated[num]
                 # find the site and location of the sample and apply it to the specimen (which now belongs to that sample
                 site = self.Data_hierarchy['site_of_sample'][samp] 
+                old_site = self.Data_hierarchy['site_of_sample'][old_samp]
                 location = self.Data_hierarchy['location_of_sample'][samp] 
                 self.Data_hierarchy['specimens'][spec] = samp
                 self.Data_hierarchy['sample_of_specimen'][spec] = samp
@@ -3143,14 +3160,34 @@ class check(wx.Frame):
                 #
                 self.Data_hierarchy['samples'][samp].append(spec)
                 self.Data_hierarchy['samples'][old_samp].remove(spec)
+                #
+                # 
+                # delete any samples which no longer have specimens from Data_hierarchy['sites'] list
+                if not self.Data_hierarchy['samples'][old_samp]:
+                    print "removing {} from {}".format(old_samp, old_site)
+                    self.Data_hierarchy['sites'][old_site].remove(old_samp)
+
+                #
                 # do the ErMagic.data_er_samples part
-                #????
                 self.ErMagic.data_er_specimens[spec]['er_sample_name'] = samp
                 self.ErMagic.data_er_specimens[spec]['er_site_name'] = site
                 self.ErMagic.data_er_specimens[spec]['er_locations_name'] = location
 
 
+        # if (through editing) a sample no longer has any specimens, remove it
+        samples = self.ErMagic.data_er_samples.keys()
+        for sample in samples:
+            if not self.Data_hierarchy['samples'][sample]:
+                #print "removing sample: {}", sample
+                self.Data_hierarchy['samples'].pop(sample)
+                self.ErMagic.data_er_samples.pop(sample)
 
+        # check if any sites no longer have any sample assigned to them, and destroy them if so
+        sites = self.ErMagic.data_er_sites.keys()
+        for site in sites:
+            if not self.Data_hierarchy['sites'][site]:
+                self.Data_hierarchy['sites'].pop(site)
+                self.ErMagic.data_er_sites.pop(site)
 
         #keys = ['sample_of_specimen', 'site_of_sample', 'location_of_specimen', 'locations', 'sites', 'site_of_specimen', 'samples', 'location_of_sample', 'location_of_site', 'specimens']
 
