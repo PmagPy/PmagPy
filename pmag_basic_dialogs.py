@@ -3184,7 +3184,8 @@ class check(wx.Frame):
 
         # check if any sites no longer have any sample assigned to them, and destroy them if so
         sites = self.ErMagic.data_er_sites.keys()
-        for site in sites:
+        if False:
+        #for site in sites:
             if not self.Data_hierarchy['sites'][site]:
                 self.Data_hierarchy['sites'].pop(site)
                 self.ErMagic.data_er_sites.pop(site)
