@@ -2194,6 +2194,16 @@ class Arai_GUI(wx.Frame):
                self.acceptance_criteria[crit]['value']=float(value)         
             else:  
                 self.show_messege(crit)
+        #---------
+        # thellier interpreter calculation type
+        if dia.set_stdev_opt.GetValue()==True:
+            self.acceptance_criteria['interpreter_method']['value']='stdev_opt'
+        elif  dia.set_bs.GetValue()==True:
+            self.acceptance_criteria['interpreter_method']['value']='bs'            
+        elif  dia.set_bs_par.GetValue()==True:
+            self.acceptance_criteria['interpreter_method']['value']='bs_par'            
+            
+                
             
         #  message dialog
         dlg1 = wx.MessageDialog(self,caption="Warning:", message="changes are saved to pmag_criteria.txt\n " ,style=wx.OK)
@@ -4170,31 +4180,41 @@ class Arai_GUI(wx.Frame):
         # calcuate Bootstarp and write results to files
         #--------------------------------------------------------------
             if self.acceptance_criteria['interpreter_method']['value']=='bs' or self.acceptance_criteria['interpreter_method']['value']=='bs_par':
-               BOOTSTRAP_N=self.preferences['BOOTSTRAP_N']
+               if self.acceptance_criteria['interpreter_method']['value']=='bs':
+                    #logfile=thellier_interpreter_log
+                    results_file=Fout_BS_samples
+               if self.acceptance_criteria['interpreter_method']['value']=='bs_par':
+                    #logfile=thellier_interpreter_log
+                    results_file=Fout_BS_PAR_samples
+               BOOTSTRAP_N=int(self.preferences['BOOTSTRAP_N'])
+               String="-I- caclulating bootstrap statistics for sample %s (N=%i)"%(sample,int(BOOTSTRAP_N))
+               #print String
+               thellier_interpreter_log.write(String)
+               
                Grade_A_samples_BS={} 
-               if len(Grade_A_sorted[sample_or_site].keys()) >= self.acceptance_criteria['sample_int_n']:
+               if len(Grade_A_sorted[sample_or_site].keys()) >= self.acceptance_criteria['sample_int_n']['value']:
                    for specimen in Grade_A_sorted[sample_or_site].keys():
                         if specimen not in Grade_A_samples_BS.keys() and len(Grade_A_sorted[sample_or_site][specimen])>0:
                            Grade_A_samples_BS[specimen]=[]
-                        for B in Grade_A_samples_BS[sample][specimen]:
+                        #for B in Grade_A_samples_BS[sample][specimen]:
+                        for B in Grade_A_sorted[sample_or_site][specimen]:
                            Grade_A_samples_BS[specimen].append(B)
                         Grade_A_samples_BS[specimen].sort()
                         specimen_int_max_slope_diff=max(Grade_A_samples_BS[specimen])/min(Grade_A_samples_BS[specimen])
                         if specimen_int_max_slope_diff>self.acceptance_criteria['specimen_int_max_slope_diff']:
                            thellier_interpreter_log.write( "-I- specimen %s Failed specimen_int_max_slope_diff\n"%specimen,Grade_A_samples_BS[specimen])
                            del Grade_A_samples_BS[specimen]
-                
-               if len(Grade_A_samples_BS.keys())>=self.acceptance_criteria['sample_int_n']:
-        
+ 
+               if len(Grade_A_samples_BS.keys())>=self.acceptance_criteria['sample_int_n']['value']:        
                    BS_means_collection=[]
                    for i in range(BOOTSTRAP_N):
                        B_BS=[]
                        for j in range(len(Grade_A_samples_BS.keys())):
                            LIST=list(Grade_A_samples_BS.keys())
                            specimen=random.choice(LIST)
-                           if self.acceptance_criteria['sample_int_bs']:
+                           if self.acceptance_criteria['interpreter_method']['value']=='bs':
                                B=random.choice(Grade_A_samples_BS[specimen])
-                           if self.acceptance_criteria['sample_int_bs_par']:
+                           if self.acceptance_criteria['interpreter_method']['value']=='bs_par':
                                B=random.uniform(min(Grade_A_samples_BS[specimen]),max(Grade_A_samples_BS[specimen]))
                            B_BS.append(B)
                        BS_means_collection.append(mean(B_BS))
@@ -4209,12 +4229,17 @@ class Arai_GUI(wx.Frame):
 
                    thellier_interpreter_log.write( "-I-  bootstrap mean sample %s: median=%f, std=%f\n"%(sample,sample_median,sample_std))
                    String="%s\t%i\t%.1f\t%.1f\t%.1f\t%.1f\t%.1f\t%.1f\t%.1f\t%s\n"%\
-                           (sample,len(Grade_A_samples_BS[sample].keys()),sample_median,sample_68[0],sample_68[1],sample_95[0],sample_95[1],sample_std,100*(sample_std/sample_median),WARNING)
-                   if self.acceptance_criteria['sample_int_bs']:
-                       Fout_BS_samples.write(String)
-                   if self.acceptance_criteria['sample_int_bs_par']:
-                       Fout_BS_PAR_samples.write(String)
-
+                           (sample,len(Grade_A_samples_BS.keys()),sample_median,sample_68[0],sample_68[1],sample_95[0],sample_95[1],sample_std,100*(sample_std/sample_median),WARNING)
+                   #print String
+                   #if self.acceptance_criteria['sample_int_bs']:
+                   #    Fout_BS_samples.write(String)
+                   #if self.acceptance_criteria['sample_int_bs_par']:
+                   #    Fout_BS_PAR_samples.write(String)
+                   results_file.write(String)
+               else:
+                   String="-I- sample %s FAIL: not enough specimen int_n= %i < %i "%(sample,len(Grade_A_samples_BS.keys()),int(self.acceptance_criteria['sample_int_n']['value']))
+                   #print String
+                   thellier_interpreter_log.write(String)
 
                                                   
         
@@ -4238,13 +4263,15 @@ class Arai_GUI(wx.Frame):
         if self.acceptance_criteria['interpreter_method']['value']=='stdev_opt': 
             Fout_STDEV_OPT_redo.close()
             Fout_STDEV_OPT_specimens.close()
-        if self.acceptance_criteria['average_by_sample_or_site']['value']=='sample':
-            Fout_STDEV_OPT_samples.close()
-        else:
-             Fout_STDEV_OPT_sites.close()
+        if  self.acceptance_criteria['interpreter_method']['value']=='stdev_opt':
+            if self.acceptance_criteria['average_by_sample_or_site']['value']=='sample':
+                Fout_STDEV_OPT_samples.close()
+            else:
+                Fout_STDEV_OPT_sites.close()
            
         if self.acceptance_criteria['interpreter_method']['value']=='bs':
             Fout_BS_samples.close()
+
         if self.acceptance_criteria['interpreter_method']['value']=='bs_par':
             Fout_BS_PAR_samples.close()
         #try:
