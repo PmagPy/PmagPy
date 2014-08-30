@@ -28,8 +28,8 @@ def main():
        -alt ALT;  specify altitude in km, default is sealevel (0)
        -plt; make a plot of the time series
        -fmt [pdf,jpg,eps,svg]  specify format for output figure  (default is svg)
-       -mod [arch3k,cals3k] specify model for 3ka to 1900 AD, default is cals3k.4b
-    
+       -mod [arch3k,cals3k,cals10k] specify model for 3ka to 1900 AD, default is cals10k
+       -dip; plot dipole moment variations only    (only for last 3k years)
     INPUT FORMAT 
       interactive entry:
            date: decimal year
@@ -42,7 +42,7 @@ def main():
     OUTPUT  FORMAT
         Declination Inclination Intensity (nT) date alt lat long
     """
-    plt,fmt=0,'svg'
+    dip,plt,fmt=0,0,'svg'
     if '-fmt' in sys.argv:
         ind=sys.argv.index('-fmt')
         fmt=sys.argv[ind+1]
@@ -51,9 +51,10 @@ def main():
         sys.exit()
     if '-mod' in sys.argv:
         ind=sys.argv.index('-mod')
-        mod3k=sys.argv[ind+1]
-    else: mod3k=''
-    if '-f' in sys.argv:
+        mod=sys.argv[ind+1]
+    else: mod=''
+    if '-dip' in sys.argv: dip=1
+    elif '-f' in sys.argv:
         ind=sys.argv.index('-f')
         file=sys.argv[ind+1]
         input=numpy.loadtxt(file)
@@ -67,10 +68,10 @@ def main():
             line.append(float(alt))
             line.append(float(raw_input("Latitude (positive north) ")))
             line.append(float(raw_input("Longitude (positive east) ")))
-            if mod3k=='':
+            if mod=='':
                 x,y,z,f=pmag.doigrf(line[3]%360.,line[2],line[1],line[0])
             else:
-                x,y,z,f=pmag.doigrf(line[3]%360.,line[2],line[1],line[0],mod3k=mod3k)
+                x,y,z,f=pmag.doigrf(line[3]%360.,line[2],line[1],line[0],mod=mod)
             Dir=pmag.cart2dir((x,y,z))
             print '%8.2 %8.2 %8.0f'%(Dir[0],Dir[1],f)           
           except EOFError:
@@ -104,18 +105,41 @@ def main():
         outfile=sys.argv[ind+1]
         out=open(outfile,'w')
     else:outfile=""
-    if '-plt' in sys.argv:
+    if '-plt' in sys.argv or '-dip' in sys.argv:
         plt=1
         import matplotlib
         matplotlib.use("TkAgg")
         import pylab
         pylab.ion()
+        if '-M' not in sys.argv:
+            fig=pylab.figure(num=1,figsize=(7,9))
+        else:
+            fig=pylab.figure(num=1,figsize=(7,3))
         Ages,Decs,Incs,Ints,VADMs=[],[],[],[],[]
+    if dip:
+        if mod=="":
+            years,models=pmag.doigrf(0,0,0,0,models=1) # gets igrf11 coefficients
+            years=years[0:-2] # peel off sec variation
+            models=models[0:-2] # peel off sec variation
+        #elif mod!='cals10k':
+        else:
+            years,models=pmag.doigrf(0,0,0,0,models=1,mod=mod)
+        #else:
+        #    print 'option not available yet'
+        #    sys.exit()
+        Bs=models.transpose()[0]
+        VADMs=pmag.b_vdm(abs(Bs*1e-9),0)*1e-21
+        pylab.plot(years,VADMs)
+        pylab.ylabel('Dipole Moment (ZAm$^2$)')
+        pylab.xlabel('Years')
+        pylab.draw()
+        raw_input()
+        sys.exit()
     for line in input:
-        if mod3k=='':
+        if mod=='':
             x,y,z,f=pmag.doigrf(line[3]%360.,line[2],line[1],line[0])
         else:
-            x,y,z,f=pmag.doigrf(line[3]%360.,line[2],line[1],line[0],mod3k=mod3k)
+            x,y,z,f=pmag.doigrf(line[3]%360.,line[2],line[1],line[0],mod=mod)
         Dir=pmag.cart2dir((x,y,z))
         if outfile!="":
             out.write('%8.2 %8.2 %8.0f %7.1f %7.1f %7.1f %7.1f\n'%(Dir[0],Dir[1],f,line[0],line[1],line[2],line[3]))           
@@ -129,7 +153,6 @@ def main():
         else:
             print '%8.2f %8.2f %8.0f %7.1f %7.1f %7.1f %7.1f'%(Dir[0],Dir[1],f,line[0],line[1],line[2],line[3])           
     if plt:
-        fig=pylab.figure(num=1,figsize=(7,9))
         fig.add_subplot(411)
         pylab.plot(Ages,Decs)
         pylab.ylabel('Declination ($^{\circ}$)')
