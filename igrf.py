@@ -42,7 +42,7 @@ def main():
     OUTPUT  FORMAT
         Declination Inclination Intensity (nT) date alt lat long
     """
-    dip,plt,fmt=0,0,'svg'
+    lat,lon,agemin,agemax,dip,plt,fmt=0,0,'','',0,0,'svg'
     if '-fmt' in sys.argv:
         ind=sys.argv.index('-fmt')
         fmt=sys.argv[ind+1]
@@ -77,29 +77,30 @@ def main():
           except EOFError:
             print "\n Good-bye\n"
             sys.exit()
-    elif '-ages' in sys.argv:
+    else:
+        input=numpy.loadtxt(sys.stdin,dtype=numpy.float)
+    if '-ages' in sys.argv:
         ind=sys.argv.index('-ages')
         agemin=float(sys.argv[ind+1])
         agemax=float(sys.argv[ind+2])
         ageincr=float(sys.argv[ind+3])
-        if '-loc' in sys.argv:
-            ind=sys.argv.index('-loc')
-            lat=float(sys.argv[ind+1])
-            lon=float(sys.argv[ind+2])
-        else: 
-            print "must specify lat/lon if using age range option"
-            sys.exit()
-        if '-alt' in sys.argv:
-            ind=sys.argv.index('-alt')
-            alt=float(sys.argv[ind+1])
-        else: alt=0
-        ages=numpy.arange(agemin,agemax,ageincr)
-        lats=numpy.ones(len(ages))*lat
-        lons=numpy.ones(len(ages))*lon
-        alts=numpy.ones(len(ages))*alt
-        input=numpy.array([ages,alts,lats,lons]).transpose()
-    else:
-        input=numpy.loadtxt(sys.stdin,dtype=numpy.float)
+        if '-dip' not in sys.argv: 
+            if '-loc' in sys.argv:
+                ind=sys.argv.index('-loc')
+                lat=float(sys.argv[ind+1])
+                lon=float(sys.argv[ind+2])
+            else:
+                print "must specify lat/lon if using age range option"
+                sys.exit()
+            if '-alt' in sys.argv:
+                ind=sys.argv.index('-alt')
+                alt=float(sys.argv[ind+1])
+            else: alt=0
+            ages=numpy.arange(agemin,agemax,ageincr)
+            lats=numpy.ones(len(ages))*lat
+            lons=numpy.ones(len(ages))*lon
+            alts=numpy.ones(len(ages))*alt
+            input=numpy.array([ages,alts,lats,lons]).transpose()
     if '-F' in sys.argv:
         ind=sys.argv.index('-F')
         outfile=sys.argv[ind+1]
@@ -121,17 +122,22 @@ def main():
             years,models=pmag.doigrf(0,0,0,0,models=1) # gets igrf11 coefficients
             years=years[0:-2] # peel off sec variation
             models=models[0:-2] # peel off sec variation
-        #elif mod!='cals10k':
         else:
             years,models=pmag.doigrf(0,0,0,0,models=1,mod=mod)
-        #else:
-        #    print 'option not available yet'
-        #    sys.exit()
         Bs=models.transpose()[0]
         VADMs=pmag.b_vdm(abs(Bs*1e-9),0)*1e-21
-        pylab.plot(years,VADMs)
+        Ys,Ms=[],[]
+        if agemin=="":
+            agemin,agemax=years[0],years[-1]
+            if mod=='cals10k':agemin=-8000 
+        for k in range(len(years)):
+            if float(years[k])>float(agemin) and float(years[k])<float(agemax):
+                Ys.append(years[k])
+                Ms.append(VADMs[k])
+        pylab.plot(Ys,Ms)
         pylab.ylabel('Dipole Moment (ZAm$^2$)')
         pylab.xlabel('Years')
+        pylab.title(mod)
         pylab.draw()
         raw_input()
         sys.exit()
