@@ -2475,6 +2475,7 @@ class check(wx.Frame):
         self.changes = False
 
         self.Bind(wx.grid.EVT_GRID_EDITOR_SHOWN, self.on_edit_grid, self.samp_grid) 
+        sites = list(set(sites).union(self.ErMagic.data_er_sites.keys())) # adds in any additional sets we might have information about (from er_sites.txt file) even if currently that site does not show up in the magic_measurements file
         self.Bind(wx.grid.EVT_GRID_SELECT_CELL, lambda event: self.on_left_click(event, self.samp_grid, sites), self.samp_grid) 
 
 
@@ -2539,10 +2540,6 @@ class check(wx.Frame):
         # end that thing
         col_labels = ['sites', '', 'locations', 'site_class', 'site_lithology', 'site_type', 'site_definition', 'site_lon', 'site_lat']
         self.site_grid, self.temp_data['sites'], self.temp_data['locations'] = self.make_table(col_labels, self.sites, self.Data_hierarchy, 'location_of_site')
-
-        # get data_er_* dictionaries into the ErMagic object, if they didn't already exist
-        if not self.ErMagic.data_er_sites:
-            self.ErMagic.read_MagIC_info()
 
         self.add_extra_grid_data(self.site_grid, self.sites, col_labels, self.ErMagic.data_er_sites)
 
@@ -2751,7 +2748,7 @@ class check(wx.Frame):
         return grid
         
 
-    def make_table(self, column_labels, row_values, column_indexing, ind, *args):
+    def make_table(self, column_labels, row_values, column_indexing, ind):
         """ takes a list of row values (i.e., specimens, samples, locations, etc.) 
         and a data structure (column_indexing) to index them against.  for example, 
         to show the sample to specimen relationship, you would have:
@@ -2805,13 +2802,11 @@ class check(wx.Frame):
         return grid, original_1, original_2
     
     def add_extra_grid_data(self, grid, row_labels, col_labels, data_dict):
-        #print "grid", grid
-        #print "data_dict", data_dict
         for num, row in enumerate(row_labels):
             for n, col in enumerate(col_labels[3:]):
+                #if row in data_dict.keys(): # accounts for potential difference between er_sites.txt and magic_measurements.txt  # don't seem to need this
                 if data_dict[row][col]:
                     grid.SetCellValue(num, n+3, data_dict[row][col])
-            
         
     def on_edit_grid(self, event):
         """sets self.changes to true when user edits the grid"""
@@ -2863,11 +2858,7 @@ class check(wx.Frame):
     def on_continueButton(self, event, grid, next_dia=None):
         """pulls up next dialog, if there is one.
         gets any updated information from the current grid and runs ErMagicBuilder"""
-        if self.ErMagic.data_er_specimens:
-            pass
-        else:
-            print "reading MagIC info"
-            self.ErMagic.read_MagIC_info()
+        self.ErMagic.read_MagIC_info()
         grid.SaveEditControlValue() # locks in value in cell currently edited
         simple_grids = {"locations": self.ErMagic.data_er_locations, "age": self.ErMagic.data_er_ages}
         grid_name = grid.GetName()
@@ -3106,13 +3097,19 @@ class check(wx.Frame):
                 specimens = self.Data_hierarchy['samples'][sample]
                 old_site = col2_old[num]
                 new_site = value
-                loc = self.Data_hierarchy['location_of_site'][new_site]
+                try:
+                    loc = self.Data_hierarchy['location_of_site'][new_site]
+                except:
+                    loc = self.ErMagic.data_er_sites[new_site]['er_location_name']
+                    self.Data_hierarchy['location_of_site'][new_site] = loc
                 samples = self.Data_hierarchy['sites'][old_site]
                 #
                 self.Data_hierarchy['site_of_sample'][sample] = new_site
                 #
                 self.Data_hierarchy['location_of_sample'][sample] = loc
                 #
+                if new_site not in self.Data_hierarchy['sites'].keys():
+                    self.Data_hierarchy['sites'][new_site] = []
                 self.Data_hierarchy['sites'][new_site].append(sample)
                 self.Data_hierarchy['sites'][old_site].remove(sample)
                 for spec in specimens:
@@ -3127,10 +3124,11 @@ class check(wx.Frame):
         sites = self.ErMagic.data_er_sites.keys()
         for site in sites:
             #print self.Data_hierarchy['sites'][site]
-            if not self.Data_hierarchy['sites'][site]:
-                self.Data_hierarchy['sites'].pop(site)
-                self.ErMagic.data_er_sites.pop(site)
-                print "site {} is empty".format(site)
+            if site in self.Data_hierarchy['sites'].keys():
+                if not self.Data_hierarchy['sites'][site]:
+                    self.Data_hierarchy['sites'].pop(site)
+                    #self.ErMagic.data_er_sites.pop(site) # DON'T do this.  we want to leave all the original information in data_er_sites
+                    print "site {} is empty".format(site)
 
         # now fill in all the other columns
         for num_sample, sample in enumerate(col1_updated):
