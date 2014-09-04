@@ -52,8 +52,10 @@ def main():
             filenum+=1 
         LN+=1
         line=File[LN]
-        keys=line.replace('\n','').replace('.','').split('\t')
-        keys.append('RecNo')
+        keys=line.replace('\n','').split('\t')
+        if keys[0][0]=='.':
+            keys=line.replace('\n','').replace('.','').split('\t')
+            keys.append('RecNo') # cludge for new MagIC download format
         LN+=1
         Recs=[]
         while LN<len(File):
