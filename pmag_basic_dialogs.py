@@ -2669,7 +2669,9 @@ class check(wx.Frame):
             col_labels[:0] = ['er_site_name', 'er_citation_names', 'er_location_name']
         except:
             pass
-        self.age_grid = self.make_simple_table(col_labels, self.ErMagic.data_er_ages, "age")
+        # only use sites that are associated with actual samples/specimens
+        ages_data_dict = {k: v for k, v in self.ErMagic.data_er_ages.items() if k in self.sites}
+        self.age_grid = self.make_simple_table(col_labels, ages_data_dict, "age")
         #
         # make it impossible to edit the 1st 3 columns
         for row in range(self.age_grid.GetNumberRows()):
