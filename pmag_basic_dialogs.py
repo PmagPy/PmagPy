@@ -2392,7 +2392,8 @@ class check(wx.Frame):
         consider opening your documents with Excel or Open Office"""
         label = wx.StaticText(self.panel,label=TEXT)
         self.Data, self.Data_hierarchy = self.ErMagic.Data, self.ErMagic.Data_hierarchy
-        self.specimens = sorted(self.Data.keys())
+        #self.specimens = sorted(self.Data.keys())
+        self.specimens = sorted(self.Data_hierarchy['specimens'].keys())
         samples = sorted(self.Data_hierarchy['samples'].keys())
         # create the grid and also a record of the initial values for specimens/samples as a reference
         # to tell if we've had any changes

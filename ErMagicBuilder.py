@@ -633,7 +633,7 @@ class MagIC_model_builder(wx.Frame):
 
 
         
-        dlg1 = wx.MessageDialog(self,caption="Saved", message="MagIC Earth-Ref tables are saved in MagIC Project Directory.\nCleaning up MagIC pmag tables:\n All MagIC pmag tables are deleted!" ,style=wx.OK|wx.ICON_INFORMATION)
+        dlg1 = wx.MessageDialog(self,caption="Saved", message="MagIC Earth-Ref tables are saved in MagIC Project Directory!" ,style=wx.OK|wx.ICON_INFORMATION)
         dlg1.ShowModal()
         dlg1.Destroy()
         #self.Destroy()
