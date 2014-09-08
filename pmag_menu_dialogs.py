@@ -1171,7 +1171,18 @@ class ClearWD(wx.MessageDialog):
         result = self.ShowModal()
         self.Destroy()
         if result == wx.ID_YES:
-            os.system('rm *')
+            os.system('rm -r {}'.format(WD))
+            os.mkdir(WD)
             print "{} has been emptied".format(WD)
         else:
             print "{} has not been emptied".format(WD)
+
+#consider using this instead (will preserve permissions of directory, but this may or may not be crucial)
+#def emptydir(top):
+#    if(top == '/' or top == "\\"): return
+#    else:
+#        for root, dirs, files in os.walk(top, topdown=False):
+#            for name in files:
+#                os.remove(os.path.join(root, name))
+#            for name in dirs:
+#                os.rmdir(os.path.join(root, name))
