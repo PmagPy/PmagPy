@@ -2594,7 +2594,7 @@ class check(wx.Frame):
         TEXT = """
         Step 5:
         Check that locations are correctly named.
-        Fill in any blank cells using controlled vocabuliaries.
+        Fill in any blank cells using controlled vocabularies.
         (See Help button for details)"""
         label = wx.StaticText(self.panel,label=TEXT)
         self.Data, self.Data_hierarchy = self.ErMagic.Data, self.ErMagic.Data_hierarchy
@@ -2745,8 +2745,6 @@ class check(wx.Frame):
             if n != 1:
                 size = grid.GetColSize(n) * 1.75
                 grid.SetColSize(n, size)
-
-
         return grid
         
 
@@ -2879,6 +2877,7 @@ class check(wx.Frame):
         if next_dia:
             next_dia()
         else:
+            #self.final_update()
             self.Destroy()
 
     def on_saveButton(self, event, grid):
@@ -2996,6 +2995,7 @@ class check(wx.Frame):
     def update_sites(self, grid, col1_updated, col1_old, col2_updated, col2_old, *args):
         print " calling update_sites"
         changed = [(old_value, col1_updated[num]) for (num, old_value) in enumerate(col1_old) if old_value != col1_updated[num]]
+        # find where changes have occurred
         for change in changed:
             old_site, new_site = change
             samples = self.Data_hierarchy['sites'].pop(old_site)
@@ -3006,6 +3006,7 @@ class check(wx.Frame):
             ind = self.Data_hierarchy['locations'][location].index(old_site)
             self.Data_hierarchy['locations'][location][ind] = new_site
             self.Data_hierarchy['location_of_site'][new_site] = location
+            # adjust for renamed sites
             for samp in samples:
                 specimens = self.Data_hierarchy['samples'][samp]
                 self.Data_hierarchy['site_of_sample'][samp] = new_site
@@ -3053,6 +3054,8 @@ class check(wx.Frame):
                 self.ErMagic.data_er_sites[site][arg] = value
 
         print "self.ErMagic.data_er_sites", self.ErMagic.data_er_sites
+        
+
 
 
 
@@ -3209,6 +3212,36 @@ class check(wx.Frame):
             two = grid.GetCellValue(r, 2)
             update_2.append(str(two))
         return update_1, update_2, old_1, old_2, type1, type2
+
+    def final_update(self):
+        """
+        Updates er_*.txt files to delete any specimens, samples, or sites that are no longer included
+        """
+
+        def remove_extras(long_dict, short_dict):
+            """
+            remove any key/value pairs from the long_dictionary if that key is not present in the short_dictionary
+            """
+            for dict_item in long_dict.keys():
+                if dict_item not in short_dict.keys():
+                    long_dict.pop(dict_item)
+            return long_dict
+        ignore = """
+        print [method for method in dir(self) if method[0].islower()]
+        print "specimens", sorted(self.Data_hierarchy['specimens'].keys())
+        print "samples", sorted(self.Data_hierarchy['samples'].keys())
+        print "sites  ", sorted(self.Data_hierarchy['sites'].keys())
+        print "locations", self.Data_hierarchy['locations'].keys()
+        print "before:", sorted(self.ErMagic.data_er_sites.keys())
+        to_do = [(self.ErMagic.data_er_specimens, self.Data_hierarchy['specimens'])]
+        """
+        remove_extras(self.ErMagic.data_er_specimens, self.Data_hierarchy['specimens'])
+        remove_extras(self.ErMagic.data_er_samples, self.Data_hierarchy['samples'])
+        remove_extras(self.ErMagic.data_er_sites, self.Data_hierarchy['sites'])
+        remove_extras(self.ErMagic.data_er_locations, self.Data_hierarchy['locations'])
+        remove_extras(self.ErMagic.data_er_ages, self.Data_hierarchy['sites'])
+        self.ErMagic.on_okButton(None)
+        
 
 
     """
