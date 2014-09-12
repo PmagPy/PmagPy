@@ -53,12 +53,36 @@ def main():
         ind=sys.argv.index('-mod')
         mod=sys.argv[ind+1]
     else: mod=''
+    if '-loc' not in sys.argv and '-f' not in sys.argv and '-ages' not in sys.argv: input=numpy.loadtxt(sys.stdin,dtype=numpy.float)
     if '-dip' in sys.argv: dip=1
-    elif '-f' in sys.argv:
+    if '-loc' in sys.argv:
+        ind=sys.argv.index('-loc')
+        lat=float(sys.argv[ind+1])
+        lon=float(sys.argv[ind+2])
+    if '-alt' in sys.argv:
+        ind=sys.argv.index('-alt')
+        alt=float(sys.argv[ind+1])
+    else: alt=0
+    if '-f' in sys.argv:
         ind=sys.argv.index('-f')
         file=sys.argv[ind+1]
         input=numpy.loadtxt(file)
-    elif '-i' in sys.argv:
+        print file,' read in'
+    if '-ages' in sys.argv:
+        ind=sys.argv.index('-ages')
+        agemin=float(sys.argv[ind+1])
+        agemax=float(sys.argv[ind+2])
+        ageincr=float(sys.argv[ind+3])
+        if '-dip' not in sys.argv: 
+            if '-loc' not in sys.argv:
+                print "must specify lat/lon if using age range option and not -dip"
+                sys.exit()
+            ages=numpy.arange(agemin,agemax,ageincr)
+            lats=numpy.ones(len(ages))*lat
+            lons=numpy.ones(len(ages))*lon
+            alts=numpy.ones(len(ages))*alt
+            input=numpy.array([ages,alts,lats,lons]).transpose()
+    if '-i' in sys.argv:
         while 1:
           try:
             line=[]
@@ -77,30 +101,6 @@ def main():
           except EOFError:
             print "\n Good-bye\n"
             sys.exit()
-    else:
-        input=numpy.loadtxt(sys.stdin,dtype=numpy.float)
-    if '-ages' in sys.argv:
-        ind=sys.argv.index('-ages')
-        agemin=float(sys.argv[ind+1])
-        agemax=float(sys.argv[ind+2])
-        ageincr=float(sys.argv[ind+3])
-        if '-dip' not in sys.argv: 
-            if '-loc' in sys.argv:
-                ind=sys.argv.index('-loc')
-                lat=float(sys.argv[ind+1])
-                lon=float(sys.argv[ind+2])
-            else:
-                print "must specify lat/lon if using age range option"
-                sys.exit()
-            if '-alt' in sys.argv:
-                ind=sys.argv.index('-alt')
-                alt=float(sys.argv[ind+1])
-            else: alt=0
-            ages=numpy.arange(agemin,agemax,ageincr)
-            lats=numpy.ones(len(ages))*lat
-            lons=numpy.ones(len(ages))*lon
-            alts=numpy.ones(len(ages))*alt
-            input=numpy.array([ages,alts,lats,lons]).transpose()
     if '-F' in sys.argv:
         ind=sys.argv.index('-F')
         outfile=sys.argv[ind+1]
@@ -148,7 +148,7 @@ def main():
             x,y,z,f=pmag.doigrf(line[3]%360.,line[2],line[1],line[0],mod=mod)
         Dir=pmag.cart2dir((x,y,z))
         if outfile!="":
-            out.write('%8.2 %8.2 %8.0f %7.1f %7.1f %7.1f %7.1f\n'%(Dir[0],Dir[1],f,line[0],line[1],line[2],line[3]))           
+            out.write('%8.2f %8.2f %8.0f %7.1f %7.1f %7.1f %7.1f\n'%(Dir[0],Dir[1],f,line[0],line[1],line[2],line[3]))           
         elif plt:
             Ages.append(line[0])
             if Dir[0]>180: Dir[0]=Dir[0]-360.0
