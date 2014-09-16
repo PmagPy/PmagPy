@@ -41,7 +41,7 @@ def main():
                 f.write('\t %s \t %s'%('Z',str(t)+'.'+str(iz)))
                 f.write(vline)
                 f.write(hline)
-                if len(Tzero)>2:
+                if len(Tzero)>1:
                    f.write('\t %s \t %s'%('P',str(Tzero[-2])+'.'+str(2)))
                    f.write(vline)
                    f.write(hline)
@@ -49,9 +49,9 @@ def main():
                 f.write('\t %s \t %s'%('I',str(t)+'.'+str(iz))) # infield after zero field first
                 f.write(vline)
                 f.write(hline)
-                f.write('\t %s \t %s'%('T',str(t)+'.'+str(3))) # print second zero field (tail check)
-                f.write(vline)
-                f.write(hline)
+#                f.write('\t %s \t %s'%('T',str(t)+'.'+str(3))) # print second zero field (tail check)
+#                f.write(vline)
+#                f.write(hline)
             elif iz==1:
                 f.write('\t %s \t %s'%('I',str(t)+'.'+str(iz))) # infield first step
                 f.write(vline)
