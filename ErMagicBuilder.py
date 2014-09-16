@@ -275,7 +275,7 @@ class MagIC_model_builder(wx.Frame):
         self.update_text_box('er_ages')
 
     def on_okButton(self, event, data_hierarchy_update=None):
-
+        #print "doing on_ok_Button in ErMagicBuilder"
         samples_list=self.Data_hierarchy['samples'].keys()
         samples_list.sort()
 
@@ -317,7 +317,8 @@ class MagIC_model_builder(wx.Frame):
                     string=string+self.data_er_sites[site][key]+"\t"
                 else:
                     string=string+self.Data_hierarchy['location_of_sample'][sample]+"\t"
-                                          
+
+            # if er_samples.txt already has a value in a column, don't try to get it from er_sites.txt
             elif sample in self.data_er_samples.keys() and key in self.data_er_samples[sample].keys() and self.data_er_samples[sample][key]!="":
                 string=string+self.data_er_samples[sample][key]+"\t"
 
@@ -693,6 +694,7 @@ class MagIC_model_builder(wx.Frame):
         return recs
 
     def read_MagIC_info(self):
+        #print "read_MagIC_info in ErMagicBuilder.py"
         Data_info={}
         print "-I- read existing MagIC model files"
         self.data_er_specimens,self.data_er_samples,self.data_er_sites,self.data_er_locations,self.data_er_ages={},{},{},{},{}

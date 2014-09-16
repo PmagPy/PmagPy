@@ -2530,8 +2530,10 @@ class check(wx.Frame):
         TEXT = """
         Step 3:
         Check that all sites are correctly named, and that they belong to the correct location.
-        Fill in the additional columns with controlled vocabularies (see Help button for details)"""
-        label = wx.StaticText(self.panel,label=TEXT,size=(1200, 100)) # manually sizing the label to be longer than the grid means that the scrollbars display correctly.  hack-y but effective fix
+        Fill in the additional columns with controlled vocabularies (see Help button for details)
+        note: Changes to site_class, site_lithology, or site_type will overwrite er_samples.txt
+        However, you will be able to edit sample_class, sample_lithology, and sample_type in step 4"""
+        label = wx.StaticText(self.panel,label=TEXT,size=(1200, 150)) # manually sizing the label to be longer than the grid means that the scrollbars display correctly.  hack-y but effective fix
         self.Data, self.Data_hierarchy = self.ErMagic.Data, self.ErMagic.Data_hierarchy
         self.sites = sorted(self.Data_hierarchy['sites'].keys())
         # if you wanted to have all the headers show up as editable fields
@@ -2542,7 +2544,7 @@ class check(wx.Frame):
         col_labels = ['sites', '', 'locations', 'site_class', 'site_lithology', 'site_type', 'site_definition', 'site_lon', 'site_lat']
         self.site_grid, self.temp_data['sites'], self.temp_data['locations'] = self.make_table(col_labels, self.sites, self.Data_hierarchy, 'location_of_site')
 
-        self.add_extra_grid_data(self.site_grid, self.sites, col_labels, self.ErMagic.data_er_sites)
+        self.extra_site_temp_data = self.add_extra_grid_data(self.site_grid, self.sites, col_labels, self.ErMagic.data_er_sites)
 
         locations = sorted(self.temp_data['locations'])
         self.changes = False
@@ -2803,11 +2805,16 @@ class check(wx.Frame):
         return grid, original_1, original_2
     
     def add_extra_grid_data(self, grid, row_labels, col_labels, data_dict):
+        temp_data = {}
         for num, row in enumerate(row_labels):
+            new_list = []
             for n, col in enumerate(col_labels[3:]):
                 #if row in data_dict.keys(): # accounts for potential difference between er_sites.txt and magic_measurements.txt  # don't seem to need this
+                new_list.append(data_dict[row][col])
                 if data_dict[row][col]:
                     grid.SetCellValue(num, n+3, data_dict[row][col])
+            temp_data[row] = new_list
+        return temp_data
         
     def on_edit_grid(self, event):
         """sets self.changes to true when user edits the grid"""
@@ -2878,7 +2885,7 @@ class check(wx.Frame):
         if next_dia:
             next_dia()
         else:
-            #self.final_update()
+            self.final_update()
             self.Destroy()
 
     def on_saveButton(self, event, grid):
@@ -2887,7 +2894,6 @@ class check(wx.Frame):
         if self.ErMagic.data_er_specimens:
             pass
         else:
-            print "reading MagIC info"
             self.ErMagic.read_MagIC_info()
         grid.SaveEditControlValue() # locks in value in cell currently edited
         grid.HideCellEditControl() # removes focus from cell that was being edited
@@ -2900,7 +2906,7 @@ class check(wx.Frame):
             else:
                 self.update_orient_data(grid)
 
-            self.ErMagic.on_okButton(None) # add this back in, it was messing up testing
+            self.ErMagic.on_okButton(None)
             self.changes = False
 
 
@@ -2946,11 +2952,7 @@ class check(wx.Frame):
                 col_labels.append(grid.GetColLabelValue(col))
             self.update_samples(grid, col1_updated, col1_old, col2_updated, col2_old, *col_labels)
         if type1 == 'sites':
-            cols = range(3, grid.GetNumberCols())
-            col_labels = []
-            for col in cols:
-                col_labels.append(grid.GetColLabelValue(col))
-            self.update_sites(grid, col1_updated, col1_old, col2_updated, col2_old, *col_labels)
+            self.update_sites(grid, col1_updated, col1_old, col2_updated, col2_old)#, *col_labels)
 
         # updates the holder data so that when we save again, we will only update what is new as of the last save
         self.temp_data[type1] = col1_updated 
@@ -2989,11 +2991,8 @@ class check(wx.Frame):
             #location_of_site
             #locations ( {'Xanadu': ['sc12'], 'HERE': ['ag1-']} )
             
-        
 
-
-
-    def update_sites(self, grid, col1_updated, col1_old, col2_updated, col2_old, *args):
+    def update_sites(self, grid, col1_updated, col1_old, col2_updated, col2_old):#, *args):
         print " calling update_sites"
         changed = [(old_value, col1_updated[num]) for (num, old_value) in enumerate(col1_old) if old_value != col1_updated[num]]
         # find where changes have occurred
@@ -3004,6 +3003,10 @@ class check(wx.Frame):
             if location == " ": # prevents error
                 location = ""
             self.Data_hierarchy['sites'][new_site] = samples
+            # fix extra temp_data to have updated site names
+            info = self.extra_site_temp_data.pop(old_site)
+            self.extra_site_temp_data[new_site] = info
+            # do locations
             ind = self.Data_hierarchy['locations'][location].index(old_site)
             self.Data_hierarchy['locations'][location][ind] = new_site
             self.Data_hierarchy['location_of_site'][new_site] = location
@@ -3023,7 +3026,7 @@ class check(wx.Frame):
         for num, value in enumerate(col2_updated):
             # find where changes have occurred
             if value != col2_old[num]:
-                print "CHANGE!", "new", value, "old", col2_old[num]
+                #print "CHANGE!", "new", value, "old", col2_old[num]
                 old_loc = col2_old[num]
                 new_loc = col2_updated[num]
                 if old_loc == " ": 
@@ -3047,20 +3050,28 @@ class check(wx.Frame):
                 self.ErMagic.data_er_sites[site]['er_location_name'] = new_loc
                 #
         
-        # now fill in all the other columns
+        # now fill in all the other columns, using extra temp_data to update only
+        # data for cells that have been changed
+        columns = grid.GetNumberCols()
+        col_labels = []
+        for col in range(columns):
+            col_labels.append(grid.GetColLabelValue(col))
         for num_site, site in enumerate(col1_updated):
-            for num, arg in enumerate(args):
-                num += 3
+            for num, arg in enumerate(col_labels[3:]):
+                old_value = self.extra_site_temp_data[site][num]
+                num += 3 # ignore first 3 rows
                 value = str(grid.GetCellValue(num_site, num))
+                if old_value == value:
+                    continue
                 self.ErMagic.data_er_sites[site][arg] = value
+                # update data_er_samples where appropriate 
+                # (i.e., change er_sample_type if er_site_type is changed here)
+                samples = self.Data_hierarchy['sites'][site]
+                for sample in samples:
+                    arg = arg.replace('site', 'sample')
+                    self.ErMagic.data_er_samples[sample][arg] = value
 
-        print "self.ErMagic.data_er_sites", self.ErMagic.data_er_sites
-        
-
-
-
-
-
+    
     def update_samples(self, grid, col1_updated, col1_old, col2_updated, col2_old, *args):
         print "calling update_samples"
         changed = [(old_value, col1_updated[num]) for (num, old_value) in enumerate(col1_old) if old_value != col1_updated[num]]  
