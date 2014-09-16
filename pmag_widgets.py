@@ -445,6 +445,51 @@ class HtmlFrame(wx.Frame):
 
  
 
+class AddSample(wx.Frame):
+    """This window allows user to add a sample"""
+    def __init__(self, *args, **kwargs): 
+        self.sites = kwargs.get('sites')
+        self.onAdd = kwargs.get('onAdd') # data parsing method passed in by pmag_basic_dialogs
+        wx.Frame.__init__(self, args[0], wx.ID_ANY, title="Add Sample")
+        self.InitUI()
+
+    def InitUI(self):
+        panel = wx.Panel(self)
+        vbox = wx.BoxSizer(wx.VERTICAL)
+        self.samp_name = labeled_text_field(panel, label="Sample Name: ")
+        site_box = wx.StaticBox(panel, wx.ID_ANY, "" )
+        site_boxSizer = wx.StaticBoxSizer(site_box)
+        sites = self.sites
+        site_label = wx.StaticText(panel, label="Belongs to site: ", style=wx.TE_CENTER)
+        self.site_name = wx.ComboBox(panel, -1, sites[0], choices=sites, style=wx.CB_READONLY)
+        site_boxSizer.Add(site_label, flag=wx.RIGHT, border=5)
+        site_boxSizer.Add(self.site_name)
+        vbox.Add(self.samp_name)
+        vbox.Add(site_boxSizer)
+        btn_panel = wx.BoxSizer(wx.HORIZONTAL)
+        okButton = wx.Button(panel, wx.ID_ANY, '&Add Sample')
+        cancelButton = wx.Button(panel, wx.ID_ANY, '&Cancel')
+        self.Bind(wx.EVT_BUTTON, self.on_okButton, okButton)
+        self.Bind(wx.EVT_BUTTON, self.on_cancelButton, cancelButton)
+        btn_panel.AddMany([okButton, cancelButton])
+        vbox.Add(btn_panel)
+        vbox.AddSpacer(10)
+
+        panel.SetSizer(vbox)
+        vbox.Fit(self)
+        self.Show()
+
+    def on_cancelButton(self, event):
+        self.Destroy()
+        
+    def on_okButton(self, event):
+        print "doing on_okButton"
+        sample = str(self.samp_name.return_value())
+        site = str(self.site_name.GetValue())
+        self.onAdd(sample, site)
+        self.Destroy()
+        
+
 
 # methods!
 

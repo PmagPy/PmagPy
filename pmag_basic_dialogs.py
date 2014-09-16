@@ -2395,6 +2395,9 @@ class check(wx.Frame):
         #self.specimens = sorted(self.Data.keys())
         self.specimens = sorted(self.Data_hierarchy['specimens'].keys())
         samples = sorted(self.Data_hierarchy['samples'].keys())
+
+        samples = list(set(samples).union(self.ErMagic.data_er_samples.keys())) # adds in any additional samples we might have information about (from er_sites.txt file) even if currently that sample does not show up in the magic_measurements file
+
         # create the grid and also a record of the initial values for specimens/samples as a reference
         # to tell if we've had any changes
         self.spec_grid, self.temp_data['specimens'], self.temp_data['samples'] = self.make_table(['specimens', '', 'samples'], self.specimens, self.Data_hierarchy, 'sample_of_specimen')
@@ -2406,6 +2409,7 @@ class check(wx.Frame):
         #### Create Buttons ####
         hbox_one = wx.BoxSizer(wx.HORIZONTAL)
         self.addSampleButton = wx.Button(self.panel, label="Add a new sample")
+        self.sites =list(set(self.Data_hierarchy['sites'].keys()).union(self.ErMagic.data_er_sites.keys())) # adds in any additional samples we might have information about (from er_sites.txt file) even if currently that sample does not show up in the magic_measurements file
         self.Bind(wx.EVT_BUTTON, self.on_addSampleButton, self.addSampleButton)
         hbox_one.Add(self.addSampleButton)
         #
@@ -2427,9 +2431,6 @@ class check(wx.Frame):
         vbox.Add(hbox_one, flag=wx.BOTTOM, border=20)
         vbox.Add(hboxok, flag=wx.BOTTOM, border=20)
         
-        #for child in vbox.Children:
-        #    print "child", type(child.GetWindow())
-
         hbox_all= wx.BoxSizer(wx.HORIZONTAL)
         hbox_all.AddSpacer(20)
         hbox_all.AddSpacer(vbox)
@@ -2846,7 +2847,28 @@ class check(wx.Frame):
     ### Button methods ###
 
     def on_addSampleButton(self, event):
-        print "add sample"
+
+        def add_sample(sample, site):
+            add_sample_data(sample, site)
+
+        pw.AddSample(self, sites = self.sites, onAdd = add_sample)
+
+        def add_sample_data(sample, site):
+            key = self.ErMagic.data_er_samples.keys()[0]
+            keys = self.ErMagic.data_er_samples[key].keys()
+            self.ErMagic.data_er_samples[sample] = dict(zip(keys, ["" for key in keys]))
+            self.ErMagic.data_er_samples[sample]['er_sample_name'] = sample
+            self.ErMagic.data_er_samples[sample]['er_site_name'] = site
+
+            self.Data_hierarchy['samples'][sample] = []
+            self.Data_hierarchy['site_of_sample'][sample] = site
+            self.Data_hierarchy['location_of_sample'][sample] = ''
+
+            # re-Bind so that the updated samples list shows up on a left click
+            samples = sorted(self.Data_hierarchy['samples'].keys())
+            samples = sorted(list(set(samples).union(self.ErMagic.data_er_samples.keys())))
+            self.Bind(wx.grid.EVT_GRID_SELECT_CELL, lambda event: self.on_left_click(event, self.spec_grid, samples), self.spec_grid) 
+
 
     def on_addSiteButton(self, event):
         print "add site"

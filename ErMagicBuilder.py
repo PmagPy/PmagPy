@@ -658,9 +658,10 @@ class MagIC_model_builder(wx.Frame):
         fin.readline()
         line=fin.readline()
         header=line.strip('\n').split('\t')
-        #print "path, header", path#,header
+        #print "path", path#,header
         counter=0
         for line in fin.readlines():
+            #print "line:", line
             tmp_data={}
             tmp_line=line.strip('\n').split('\t')
             for i in range(len(header)):
