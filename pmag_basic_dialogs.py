@@ -2466,6 +2466,7 @@ class check(wx.Frame):
         self.Data, self.Data_hierarchy = self.ErMagic.Data, self.ErMagic.Data_hierarchy
         self.samples = sorted(self.Data_hierarchy['samples'].keys())
         sites = sorted(self.Data_hierarchy['sites'].keys())
+        self.locations = sorted(list(set(self.Data_hierarchy['locations'].keys()).union(self.ErMagic.data_er_locations.keys())))
         if self.sample_window == 1:
             self.samp_grid, self.temp_data['samples'], self.temp_data['sites'] = self.make_table(['samples', '', 'sites'], self.samples, self.Data_hierarchy, 'site_of_sample')
         if self.sample_window > 1:
@@ -2850,8 +2851,11 @@ class check(wx.Frame):
         def add_sample(sample, site):
             add_sample_data(sample, site)
 
-        #pw.AddSample(self, sites = self.sites, onAdd = add_sample)
         #def __init__(self, parent, title, data_items, data_method):
+
+        if not self.ErMagic.data_er_samples:
+            self.ErMagic.read_MagIC_info()
+
         pw.AddItem(self, 'Sample', 'site', self.sites, add_sample)
 
         def add_sample_data(sample, site):
@@ -2864,6 +2868,10 @@ class check(wx.Frame):
             self.Data_hierarchy['samples'][sample] = []
             self.Data_hierarchy['site_of_sample'][sample] = site
             self.Data_hierarchy['location_of_sample'][sample] = ''
+            # if that site didn't already exist in Data_hierarchy:
+            if not site in self.Data_hierarchy['sites'].keys():
+                self.Data_hierarchy['sites'][site] = []
+            self.Data_hierarchy['sites'][site].append(sample)
 
             # re-Bind so that the updated samples list shows up on a left click
             samples = sorted(self.Data_hierarchy['samples'].keys())
@@ -2872,8 +2880,29 @@ class check(wx.Frame):
 
 
     def on_addSiteButton(self, event):
-        print "add site"
+        
+        def add_site(site, location):
+            add_site_data(site, location)
 
+        pw.AddItem(self, 'Site', 'location', self.locations, add_site)
+
+        def add_site_data(site, location):
+            key = self.ErMagic.data_er_sites.keys()[0]
+            keys = self.ErMagic.data_er_sites[key].keys()
+            self.ErMagic.data_er_sites[site] = dict(zip(keys, ["" for key in keys]))
+            self.ErMagic.data_er_sites[site]['er_site_name'] = site
+            self.ErMagic.data_er_sites[site]['er_location_name'] = location
+
+            self.Data_hierarchy['sites'][site] = []
+            self.Data_hierarchy['location_of_site'][site] = location
+            
+            # re-Bind so that the updated sites list shows up on a left click
+            sites = sorted(self.Data_hierarchy['sites'].keys())
+            sites = sorted(list(set(sites).union(self.ErMagic.data_er_sites.keys())))
+            self.Bind(wx.grid.EVT_GRID_SELECT_CELL, lambda event: self.on_left_click(event, self.samp_grid, sites), self.samp_grid) 
+
+
+            
     def on_helpButton(self, event, page=None):
         """shows html help page"""
         path = ''
@@ -2889,7 +2918,11 @@ class check(wx.Frame):
     def on_continueButton(self, event, grid, next_dia=None):
         """pulls up next dialog, if there is one.
         gets any updated information from the current grid and runs ErMagicBuilder"""
-        self.ErMagic.read_MagIC_info()
+        #self.ErMagic.read_MagIC_info()
+        if self.ErMagic.data_er_specimens:
+            pass
+        else:
+            self.ErMagic.read_MagIC_info()
         grid.SaveEditControlValue() # locks in value in cell currently edited
         simple_grids = {"locations": self.ErMagic.data_er_locations, "age": self.ErMagic.data_er_ages}
         grid_name = grid.GetName()
