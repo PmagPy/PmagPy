@@ -444,30 +444,33 @@ class HtmlFrame(wx.Frame):
         htmlwin.Fit()
 
  
+        
+class AddItem(wx.Frame):
+    """This window allows user to add a new item (sample or specimen)"""
 
-class AddSample(wx.Frame):
-    """This window allows user to add a sample"""
-    def __init__(self, *args, **kwargs): 
-        self.sites = kwargs.get('sites')
-        self.onAdd = kwargs.get('onAdd') # data parsing method passed in by pmag_basic_dialogs
-        wx.Frame.__init__(self, args[0], wx.ID_ANY, title="Add Sample")
+    def __init__(self, parent, title, belongs_to, owner_items, data_method): 
+        self.title = title
+        self.owner_items = owner_items
+        self.belongs_to = belongs_to
+        self.onAdd = data_method# data parsing method passed in by pmag_basic_dialogs
+        wx.Frame.__init__(self, parent, wx.ID_ANY, title=self.title)
         self.InitUI()
 
     def InitUI(self):
         panel = wx.Panel(self)
         vbox = wx.BoxSizer(wx.VERTICAL)
-        self.samp_name = labeled_text_field(panel, label="Sample Name: ")
-        site_box = wx.StaticBox(panel, wx.ID_ANY, "" )
-        site_boxSizer = wx.StaticBoxSizer(site_box)
-        sites = self.sites
-        site_label = wx.StaticText(panel, label="Belongs to site: ", style=wx.TE_CENTER)
-        self.site_name = wx.ComboBox(panel, -1, sites[0], choices=sites, style=wx.CB_READONLY)
-        site_boxSizer.Add(site_label, flag=wx.RIGHT, border=5)
-        site_boxSizer.Add(self.site_name)
-        vbox.Add(self.samp_name)
-        vbox.Add(site_boxSizer)
+        self.item_name = labeled_text_field(panel, label="{} Name: ".format(self.title))
+        owner_box = wx.StaticBox(panel, wx.ID_ANY, "" )
+        owner_boxSizer = wx.StaticBoxSizer(owner_box)
+        items = self.owner_items
+        owner_label = wx.StaticText(panel, label="Belongs to {}: ".format(self.belongs_to), style=wx.TE_CENTER)
+        self.owner_name = wx.ComboBox(panel, -1, items[0], choices=items, style=wx.CB_READONLY)
+        owner_boxSizer.Add(owner_label, flag=wx.RIGHT, border=5)
+        owner_boxSizer.Add(self.owner_name)
+        vbox.Add(self.item_name)
+        vbox.Add(owner_boxSizer)
         btn_panel = wx.BoxSizer(wx.HORIZONTAL)
-        okButton = wx.Button(panel, wx.ID_ANY, '&Add Sample')
+        okButton = wx.Button(panel, wx.ID_ANY, '&Add {}'.format(self.title))
         cancelButton = wx.Button(panel, wx.ID_ANY, '&Cancel')
         self.Bind(wx.EVT_BUTTON, self.on_okButton, okButton)
         self.Bind(wx.EVT_BUTTON, self.on_cancelButton, cancelButton)
@@ -484,9 +487,9 @@ class AddSample(wx.Frame):
         
     def on_okButton(self, event):
         print "doing on_okButton"
-        sample = str(self.samp_name.return_value())
-        site = str(self.site_name.GetValue())
-        self.onAdd(sample, site)
+        item = str(self.item_name.return_value())
+        owner = str(self.owner_name.GetValue())
+        self.onAdd(item, owner)
         self.Destroy()
         
 

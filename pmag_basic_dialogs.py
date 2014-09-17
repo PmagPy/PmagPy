@@ -2850,7 +2850,9 @@ class check(wx.Frame):
         def add_sample(sample, site):
             add_sample_data(sample, site)
 
-        pw.AddSample(self, sites = self.sites, onAdd = add_sample)
+        #pw.AddSample(self, sites = self.sites, onAdd = add_sample)
+        #def __init__(self, parent, title, data_items, data_method):
+        pw.AddItem(self, 'Sample', 'site', self.sites, add_sample)
 
         def add_sample_data(sample, site):
             key = self.ErMagic.data_er_samples.keys()[0]
@@ -3149,7 +3151,10 @@ class check(wx.Frame):
                 if new_site not in self.Data_hierarchy['sites'].keys():
                     self.Data_hierarchy['sites'][new_site] = []
                 self.Data_hierarchy['sites'][new_site].append(sample)
-                self.Data_hierarchy['sites'][old_site].remove(sample)
+                try:
+                    self.Data_hierarchy['sites'][old_site].remove(sample)
+                except ValueError: # if sample was not already in old_site, don't worry about it
+                    pass
                 for spec in specimens:
                     # specimens belonging to a sample which has been reassigned to a different site correspondingly must change site and location
                     self.Data_hierarchy['site_of_specimen'][spec] = new_site
