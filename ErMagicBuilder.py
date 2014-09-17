@@ -275,8 +275,8 @@ class MagIC_model_builder(wx.Frame):
         self.update_text_box('er_ages')
 
     def on_okButton(self, event, data_hierarchy_update=None):
-        #print "doing on_ok_Button in ErMagicBuilder"
         samples_list=self.Data_hierarchy['samples'].keys()
+        samples_list = list(set(samples_list).union(self.data_er_samples.keys())) # uses samples from er_samples.txt even if they are not in the magic_measurements file
         samples_list.sort()
 
         specimens_list=self.Data_hierarchy['sample_of_specimen'].keys()
@@ -300,8 +300,10 @@ class MagIC_model_builder(wx.Frame):
 
             if sample in self.data_er_samples.keys() and "er_site_name" in self.data_er_samples[sample].keys() and self.data_er_samples[sample]["er_site_name"] != "":
                 site=self.data_er_samples[sample]["er_site_name"]
-            else:
+            elif sample in self.Data_hierarchy['site_of_sample'].keys():
                 site=self.Data_hierarchy['site_of_sample'][sample]
+            else:
+                site = "unknown"
             
             if key=="er_citation_names":
               string=string+"This study"+"\t"

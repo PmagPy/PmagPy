@@ -2395,7 +2395,6 @@ class check(wx.Frame):
         #self.specimens = sorted(self.Data.keys())
         self.specimens = sorted(self.Data_hierarchy['specimens'].keys())
         samples = sorted(self.Data_hierarchy['samples'].keys())
-
         samples = list(set(samples).union(self.ErMagic.data_er_samples.keys())) # adds in any additional samples we might have information about (from er_sites.txt file) even if currently that sample does not show up in the magic_measurements file
 
         # create the grid and also a record of the initial values for specimens/samples as a reference
@@ -3186,17 +3185,29 @@ class check(wx.Frame):
                 old_samp = col2_old[num]
                 samp = value
                 spec = col1_updated[num]
-                # find the site and location of the sample and apply it to the specimen (which now belongs to that sample
-                site = self.Data_hierarchy['site_of_sample'][samp] 
+                # some of the sample data could exist only in the er_samples.txt file (so in data_er_samples and not Data_hierarchy)
+                # if the user selects a sample that does not exist in Data_hierarchy, we will propagate it in (below)
+                try:
+                    site = self.Data_hierarchy['site_of_sample'][samp] 
+                except KeyError:
+                    site = self.ErMagic.data_er_samples[samp]['er_site_name']
+                    self.Data_hierarchy['site_of_sample'][samp] = site
                 old_site = self.Data_hierarchy['site_of_sample'][old_samp]
-                location = self.Data_hierarchy['location_of_sample'][samp] 
+                try:
+                    location = self.Data_hierarchy['location_of_sample'][samp] 
+                except KeyError:
+                    location = ""
+                    self.Data_hierarchy['location_of_sample'][samp] = location
                 self.Data_hierarchy['specimens'][spec] = samp
                 self.Data_hierarchy['sample_of_specimen'][spec] = samp
                 self.Data_hierarchy['site_of_specimen'][spec] = site
                 self.Data_hierarchy['location_of_specimen'][spec] = location
                 #
+                if samp not in self.Data_hierarchy['samples'].keys():
+                    self.Data_hierarchy['samples'][samp] = []
                 self.Data_hierarchy['samples'][samp].append(spec)
                 self.Data_hierarchy['samples'][old_samp].remove(spec)
+
                 #
                 # 
                 # delete any samples which no longer have specimens from Data_hierarchy['sites'] list
