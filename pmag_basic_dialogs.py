@@ -3192,7 +3192,12 @@ class check(wx.Frame):
                     # specimens belonging to a sample which has been reassigned to a different site correspondingly must change site and location
                     self.Data_hierarchy['site_of_specimen'][spec] = new_site
                     self.Data_hierarchy['location_of_specimen'][spec] = loc
-                # insert here: updating ErMagic.data_er_samples or whatever based on site change
+                
+                if not sample in self.ErMagic.data_er_samples.keys():
+                    key = self.ErMagic.data_er_samples.keys()[0]
+                    keys = self.ErMagic.data_er_samples[key].keys()
+                    self.ErMagic.data_er_samples[sample] = dict(zip(keys, ["" for key in keys]))
+                    self.ErMagic.data_er_samples[sample]['er_sample_name'] = sample
                 self.ErMagic.data_er_samples[sample]['er_site_name'] = new_site
                 self.ErMagic.data_er_samples[sample]['er_location_name'] = loc
 
@@ -3249,9 +3254,10 @@ class check(wx.Frame):
                 #
                 # 
                 # delete any samples which no longer have specimens from Data_hierarchy['sites'] list
-                if not self.Data_hierarchy['samples'][old_samp]:
-                    print "removing {} from {}".format(old_samp, old_site)
-                    self.Data_hierarchy['sites'][old_site].remove(old_samp)
+                if old_samp in self.Data_hierarchy['samples'].keys(): # if old_samp is in Data_hierarchy
+                    if not self.Data_hierarchy['samples'][old_samp]: # but it is empty (having no specimens)
+                        print "removing {} from {}".format(old_samp, old_site) 
+                        self.Data_hierarchy['sites'][old_site].remove(old_samp) # get rid of it
 
                 #
                 # do the ErMagic.data_er_samples part
@@ -3263,10 +3269,11 @@ class check(wx.Frame):
         # if (through editing) a sample no longer has any specimens, remove it
         samples = self.ErMagic.data_er_samples.keys()
         for sample in samples:
-            if not self.Data_hierarchy['samples'][sample]:
-                #print "removing sample: {}", sample
-                self.Data_hierarchy['samples'].pop(sample)
-                self.ErMagic.data_er_samples.pop(sample)
+            if sample in self.Data_hierarchy['samples'].keys():
+                if not self.Data_hierarchy['samples'][sample]:
+                    #print "removing sample: {}", sample
+                    self.Data_hierarchy['samples'].pop(sample)
+                    self.ErMagic.data_er_samples.pop(sample)
 
         # check if any sites no longer have any sample assigned to them, and destroy them if so
         sites = self.ErMagic.data_er_sites.keys()
