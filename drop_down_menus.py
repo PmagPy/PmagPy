@@ -23,34 +23,47 @@ class Menus():
         belongs_to = self.belongs_to
         print "self.data_type", self.data_type
         if self.data_type == 'sample' or self.data_type == 'site':
-            for vocabulary in [vocab.site_class, vocab.site_lithology, vocab.site_type]:
+            for vocabulary in [vocab.site_class, vocab.site_type]:#, vocab.site_lithology]:
                 if 'CLEAR cell of all values' not in vocabulary:
                     vocabulary.insert(0, 'CLEAR cell of all values')
-            choices = {2: belongs_to, 3: vocab.site_class, 4: vocab.site_lithology, 5: vocab.site_type, 6: vocab.site_definition}
+            choices = {2: (belongs_to, False), 3: (vocab.site_class, False), 4: (vocab.site_lithology, True), 5: (vocab.site_type, False), 6: (vocab.site_definition, False)}
         if self.data_type == 'location':
             #if 'CLEAR cell of all values' not in vocab.location_type:  # not needed UNLESS this should be colon-delimited list
                 #vocab.location_type.insert(0, 'CLEAR cell of all values')
-            choices = {1: vocab.location_type}
+            choices = {1: (vocab.location_type, False)}
         if self.data_type == 'age':
             if 'CLEAR cell of all values' not in vocab.geochronology_method_codes:
                 vocab.geochronology_method_codes.insert(0, 'CLEAR cell of all values')
-            choices = {3: vocab.geochronology_method_codes, 5: vocab.age_units}
+            choices = {3: (vocab.geochronology_method_codes, False), 5: (vocab.age_units, False)}
         self.window.Bind(wx.grid.EVT_GRID_SELECT_CELL, lambda event: self.on_left_click(event, self.grid, choices), self.grid) 
 
     def on_left_click(self, event, grid, choices):
         """creates popup menu when user clicks on the third column
         allows user to edit third column, but only from available values"""
         col = event.GetCol()
-        if col in choices.keys():
+        if col in choices.keys(): # column should have a pop-up menu
             row = event.GetRow()
             menu = wx.Menu()
-            choices = choices[col]
-            for choice in choices:
-                if not choice: choice = " " # prevents error if choice is an empty string
-                menuitem = menu.Append(wx.ID_ANY, choice)
-                self.window.Bind(wx.EVT_MENU, lambda event: self.on_select_menuitem(event, grid, row, col), menuitem)
-            self.window.PopupMenu(menu)
-            menu.Destroy()
+            two_tiered = choices[col][1]
+            choices = choices[col][0]
+            if not two_tiered:
+                for choice in choices:
+                    if not choice: choice = " " # prevents error if choice is an empty string
+                    menuitem = menu.Append(wx.ID_ANY, choice)
+                    self.window.Bind(wx.EVT_MENU, lambda event: self.on_select_menuitem(event, grid, row, col), menuitem)
+                self.window.PopupMenu(menu)
+                menu.Destroy()
+            else: # menu is two_tiered
+                for choice in choices.items():
+                    submenu = wx.Menu()
+                    for item in choice[1]:
+                        menuitem = submenu.Append(-1, item)
+                        self.window.Bind(wx.EVT_MENU, lambda event: self.on_select_menuitem(event, grid, row, col), menuitem)
+                    menu.AppendMenu(-1, choice[0], submenu)
+                self.window.PopupMenu(menu)
+                menu.Destroy()
+
+            
 
     def on_select_menuitem(self, event, grid, row, col):
         """sets value of selected cell to value selected from menu
