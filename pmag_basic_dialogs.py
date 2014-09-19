@@ -11,6 +11,7 @@ import pmag_widgets as pw
 import wx.grid
 import subprocess
 import ErMagicBuilder
+import drop_down_menus
 
 class import_magnetometer_data(wx.Dialog):
     def __init__(self,parent,id,title,WD):
@@ -2455,6 +2456,7 @@ class check(wx.Frame):
             Check that all samples are correctly named,
             and that they belong to the correct site
             (if site name is simply wrong, that will be fixed in step 3)"""
+            label = wx.StaticText(self.panel,label=TEXT)
         else:
             self.ErMagic.read_MagIC_info() # ensures that changes from step 3 propagate
             TEXT = """
@@ -2462,7 +2464,7 @@ class check(wx.Frame):
             Some of the data from the er_sites table has propogated into er_samples.
             Check that this data is correct, and fill in missing cells using controlled vocabularies.
             (see Help button for more details)"""
-        label = wx.StaticText(self.panel,label=TEXT)
+            label = wx.StaticText(self.panel,label=TEXT, size=(900, 100))
         self.Data, self.Data_hierarchy = self.ErMagic.Data, self.ErMagic.Data_hierarchy
         self.samples = sorted(self.Data_hierarchy['samples'].keys())
         sites = sorted(self.Data_hierarchy['sites'].keys())
@@ -2478,7 +2480,8 @@ class check(wx.Frame):
 
         self.Bind(wx.grid.EVT_GRID_EDITOR_SHOWN, self.on_edit_grid, self.samp_grid) 
         sites = list(set(sites).union(self.ErMagic.data_er_sites.keys())) # adds in any additional sets we might have information about (from er_sites.txt file) even if currently that site does not show up in the magic_measurements file
-        self.Bind(wx.grid.EVT_GRID_SELECT_CELL, lambda event: self.on_left_click(event, self.samp_grid, sites), self.samp_grid) 
+        #self.Bind(wx.grid.EVT_GRID_SELECT_CELL, lambda event: self.on_left_click(event, self.samp_grid, sites), self.samp_grid) 
+        drop_down_menus.Menus("sample", self, self.samp_grid, sites) # initialize all needed drop-down menus
 
 
         ### Create Buttons ###
@@ -2537,11 +2540,6 @@ class check(wx.Frame):
         label = wx.StaticText(self.panel,label=TEXT,size=(1200, 150)) # manually sizing the label to be longer than the grid means that the scrollbars display correctly.  hack-y but effective fix
         self.Data, self.Data_hierarchy = self.ErMagic.Data, self.ErMagic.Data_hierarchy
         self.sites = sorted(self.Data_hierarchy['sites'].keys())
-        # if you wanted to have all the headers show up as editable fields
-        #args = self.ErMagic.data_er_sites[self.ErMagic.data_er_sites.keys()[0]].keys()
-        #col_labels = ['sites', '', 'locations']
-        #col_labels.extend(args)
-        # end that thing
         col_labels = ['sites', '', 'locations', 'site_class', 'site_lithology', 'site_type', 'site_definition', 'site_lon', 'site_lat']
         self.site_grid, self.temp_data['sites'], self.temp_data['locations'] = self.make_table(col_labels, self.sites, self.Data_hierarchy, 'location_of_site')
 
@@ -2551,7 +2549,9 @@ class check(wx.Frame):
         self.changes = False
 
         self.Bind(wx.grid.EVT_GRID_EDITOR_SHOWN, self.on_edit_grid, self.site_grid) 
-        self.Bind(wx.grid.EVT_GRID_SELECT_CELL, lambda event: self.on_left_click(event, self.site_grid, locations), self.site_grid) 
+        #self.Bind(wx.grid.EVT_GRID_SELECT_CELL, lambda event: self.on_left_click(event, self.site_grid, locations), self.site_grid) 
+        
+        drop_down_menus.Menus("site", self, self.site_grid, locations) # initialize all needed drop-down menus
 
 
         ### Create Buttons ###
@@ -2600,7 +2600,7 @@ class check(wx.Frame):
         Check that locations are correctly named.
         Fill in any blank cells using controlled vocabularies.
         (See Help button for details)"""
-        label = wx.StaticText(self.panel,label=TEXT)
+        label = wx.StaticText(self.panel,label=TEXT, size=(1200, 100))
         self.Data, self.Data_hierarchy = self.ErMagic.Data, self.ErMagic.Data_hierarchy
         self.locations = self.Data_hierarchy['locations']
         #
@@ -2821,6 +2821,7 @@ class check(wx.Frame):
         """sets self.changes to true when user edits the grid"""
         self.changes = True
 
+
     def on_left_click(self, event, grid, choices):
         """creates popup menu when user clicks on the third column
         allows user to edit third column, but only from available values"""
@@ -2842,6 +2843,7 @@ class check(wx.Frame):
         item = event.EventObject.FindItemById(item_id)
         label= item.Label
         grid.SetCellValue(row, 2, label)
+
 
 
     ### Button methods ###
