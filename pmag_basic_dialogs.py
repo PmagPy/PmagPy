@@ -2480,7 +2480,6 @@ class check(wx.Frame):
 
         self.Bind(wx.grid.EVT_GRID_EDITOR_SHOWN, self.on_edit_grid, self.samp_grid) 
         sites = list(set(sites).union(self.ErMagic.data_er_sites.keys())) # adds in any additional sets we might have information about (from er_sites.txt file) even if currently that site does not show up in the magic_measurements file
-        #self.Bind(wx.grid.EVT_GRID_SELECT_CELL, lambda event: self.on_left_click(event, self.samp_grid, sites), self.samp_grid) 
         drop_down_menus.Menus("sample", self, self.samp_grid, sites) # initialize all needed drop-down menus
 
 
@@ -2549,7 +2548,6 @@ class check(wx.Frame):
         self.changes = False
 
         self.Bind(wx.grid.EVT_GRID_EDITOR_SHOWN, self.on_edit_grid, self.site_grid) 
-        #self.Bind(wx.grid.EVT_GRID_SELECT_CELL, lambda event: self.on_left_click(event, self.site_grid, locations), self.site_grid) 
         
         drop_down_menus.Menus("site", self, self.site_grid, locations) # initialize all needed drop-down menus
 
@@ -2614,6 +2612,7 @@ class check(wx.Frame):
             pass
         self.loc_grid = self.make_simple_table(col_labels, self.ErMagic.data_er_locations, "locations")
         self.Bind(wx.grid.EVT_GRID_EDITOR_SHOWN, self.on_edit_grid, self.loc_grid) 
+        drop_down_menus.Menus("location", self, self.loc_grid, None) # initialize all needed drop-down menus
 
         ### Create Buttons ###
         hbox_one = wx.BoxSizer(wx.HORIZONTAL)
@@ -2683,6 +2682,7 @@ class check(wx.Frame):
                 self.age_grid.SetReadOnly(row, col, True)
         #
         self.Bind(wx.grid.EVT_GRID_EDITOR_SHOWN, self.on_edit_grid, self.age_grid) 
+        drop_down_menus.Menus("age", self, self.age_grid, None) # initialize all needed drop-down menus
 
         ### Create Buttons ###
         hbox_one = wx.BoxSizer(wx.HORIZONTAL)

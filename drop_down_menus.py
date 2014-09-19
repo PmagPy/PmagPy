@@ -23,19 +23,28 @@ class Menus():
         belongs_to = self.belongs_to
         print "self.data_type", self.data_type
         if self.data_type == 'sample' or self.data_type == 'site':
+            for vocabulary in [vocab.site_class, vocab.site_lithology, vocab.site_type]:
+                if 'CLEAR cell of all values' not in vocabulary:
+                    vocabulary.insert(0, 'CLEAR cell of all values')
             choices = {2: belongs_to, 3: vocab.site_class, 4: vocab.site_lithology, 5: vocab.site_type, 6: vocab.site_definition}
+        if self.data_type == 'location':
+            #if 'CLEAR cell of all values' not in vocab.location_type:  # not needed UNLESS this should be colon-delimited list
+                #vocab.location_type.insert(0, 'CLEAR cell of all values')
+            choices = {1: vocab.location_type}
+        if self.data_type == 'age':
+            if 'CLEAR cell of all values' not in vocab.geochronology_method_codes:
+                vocab.geochronology_method_codes.insert(0, 'CLEAR cell of all values')
+            choices = {3: vocab.geochronology_method_codes, 5: vocab.age_units}
         self.window.Bind(wx.grid.EVT_GRID_SELECT_CELL, lambda event: self.on_left_click(event, self.grid, choices), self.grid) 
 
     def on_left_click(self, event, grid, choices):
         """creates popup menu when user clicks on the third column
         allows user to edit third column, but only from available values"""
         col = event.GetCol()
-        if col in range(2, 7):
+        if col in choices.keys():
             row = event.GetRow()
             menu = wx.Menu()
-            choices = sorted(set(choices[col]))
-            if col in range(3, 6):
-                choices.insert(0, 'CLEAR cell of all values')
+            choices = choices[col]
             for choice in choices:
                 if not choice: choice = " " # prevents error if choice is an empty string
                 menuitem = menu.Append(wx.ID_ANY, choice)
@@ -52,9 +61,8 @@ class Menus():
         item = event.EventObject.FindItemById(item_id)
         label = item.Label
         cell_value = grid.GetCellValue(row, col)
-        if col in range(3, 6):
+        if (col in range(3, 6) and self.data_type in ['site', 'sample']) or (col == 3 and self.data_type == 'age'):
             if str(label) == "CLEAR cell of all values":
-                print "clear"
                 label = ""
             elif not label in cell_value:
                 label += (":" + cell_value).rstrip(':')
