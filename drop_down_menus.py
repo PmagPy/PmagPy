@@ -21,19 +21,11 @@ class Menus():
 
     def InitUI(self):
         belongs_to = self.belongs_to
-        print "self.data_type", self.data_type
         if self.data_type == 'sample' or self.data_type == 'site':
-            for vocabulary in [vocab.site_class, vocab.site_type]:#, vocab.site_lithology]:
-                if 'CLEAR cell of all values' not in vocabulary:
-                    vocabulary.insert(0, 'CLEAR cell of all values')
             choices = {2: (belongs_to, False), 3: (vocab.site_class, False), 4: (vocab.site_lithology, True), 5: (vocab.site_type, False), 6: (vocab.site_definition, False)}
         if self.data_type == 'location':
-            #if 'CLEAR cell of all values' not in vocab.location_type:  # not needed UNLESS this should be colon-delimited list
-                #vocab.location_type.insert(0, 'CLEAR cell of all values')
             choices = {1: (vocab.location_type, False)}
         if self.data_type == 'age':
-            if 'CLEAR cell of all values' not in vocab.geochronology_method_codes:
-                vocab.geochronology_method_codes.insert(0, 'CLEAR cell of all values')
             choices = {3: (vocab.geochronology_method_codes, False), 5: (vocab.age_units, False)}
         self.window.Bind(wx.grid.EVT_GRID_SELECT_CELL, lambda event: self.on_left_click(event, self.grid, choices), self.grid) 
 
@@ -46,7 +38,10 @@ class Menus():
             menu = wx.Menu()
             two_tiered = choices[col][1]
             choices = choices[col][0]
-            if not two_tiered:
+            if not two_tiered: # menu is one tiered
+                # insert CLEAR option as first choice
+                if 'CLEAR cell of all values' not in choices:
+                    choices.insert(0, 'CLEAR cell of all values')
                 for choice in choices:
                     if not choice: choice = " " # prevents error if choice is an empty string
                     menuitem = menu.Append(wx.ID_ANY, choice)
@@ -54,7 +49,10 @@ class Menus():
                 self.window.PopupMenu(menu)
                 menu.Destroy()
             else: # menu is two_tiered
-                for choice in choices.items():
+                # insert CLEAR option as first menuitem
+                clear = menu.Append(-1, 'CLEAR cell of all values')
+                self.window.Bind(wx.EVT_MENU, lambda event: self.on_select_menuitem(event, grid, row, col), clear)
+                for choice in sorted(choices.items()):
                     submenu = wx.Menu()
                     for item in choice[1]:
                         menuitem = submenu.Append(-1, item)
@@ -74,10 +72,11 @@ class Menus():
         item = event.EventObject.FindItemById(item_id)
         label = item.Label
         cell_value = grid.GetCellValue(row, col)
-        if (col in range(3, 6) and self.data_type in ['site', 'sample']) or (col == 3 and self.data_type == 'age'):
-            if str(label) == "CLEAR cell of all values":
-                label = ""
-            elif not label in cell_value:
+        if str(label) == "CLEAR cell of all values":
+            label = ""
+        elif (col in range(3, 6) and self.data_type in ['site', 'sample']) or (col == 3 and self.data_type == 'age'):
+        #if True:
+            if not label in cell_value:
                 label += (":" + cell_value).rstrip(':')
             else:
                 label = cell_value
