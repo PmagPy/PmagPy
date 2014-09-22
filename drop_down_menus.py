@@ -21,6 +21,8 @@ class Menus():
 
     def InitUI(self):
         belongs_to = self.belongs_to
+        if self.data_type == 'specimen':
+            choices = {2: (belongs_to, False)}
         if self.data_type == 'sample' or self.data_type == 'site':
             choices = {2: (belongs_to, False), 3: (vocab.site_class, False), 4: (vocab.site_lithology, True), 5: (vocab.site_type, False), 6: (vocab.site_definition, False)}
         if self.data_type == 'location':

@@ -2383,7 +2383,6 @@ class check(wx.Frame):
         """make an interactive grid in which users can edit specimen names
         as well as which sample a specimen belongs to"""
 
-        # ADD A BUTTON to add an additional sample.  maybe will have a popup window to select what site/location etc. this sample belongs to 
         self.panel = wx.ScrolledWindow(self, style=wx.SIMPLE_BORDER)
         TEXT = """
         Step 1:
@@ -2404,7 +2403,8 @@ class check(wx.Frame):
         self.changes = False
 
         self.Bind(wx.grid.EVT_GRID_EDITOR_SHOWN, self.on_edit_grid, self.spec_grid) # if user begins to edit, self.changes will be set to True
-        self.Bind(wx.grid.EVT_GRID_SELECT_CELL, lambda event: self.on_left_click(event, self.spec_grid, samples), self.spec_grid) 
+        drop_down_menus.Menus("specimen", self, self.spec_grid, samples) # initialize all needed drop-down menus
+
 
         #### Create Buttons ####
         hbox_one = wx.BoxSizer(wx.HORIZONTAL)
@@ -2820,29 +2820,6 @@ class check(wx.Frame):
     def on_edit_grid(self, event):
         """sets self.changes to true when user edits the grid"""
         self.changes = True
-
-
-    def on_left_click(self, event, grid, choices):
-        """creates popup menu when user clicks on the third column
-        allows user to edit third column, but only from available values"""
-        row, col = event.GetRow(), event.GetCol()
-        if col == 2:
-            menu = wx.Menu()
-            for choice in sorted(set(choices)): # NOT OPTIMAL to run this every time
-                if not choice: choice = " " # prevents error if choice is an empty string
-                menuitem = menu.Append(wx.ID_ANY, choice)
-                self.Bind(wx.EVT_MENU, lambda event: self.on_select_menuitem(event, grid, row), menuitem)
-            self.PopupMenu(menu)
-            menu.Destroy()
-
-    def on_select_menuitem(self, event, grid, row):
-        """sets value of selected cell to value selected from menu
-        (doesn't require column info because only third column works this way"""
-        self.changes = True # if user selects a menuitem, that is an edit
-        item_id =  event.GetId()
-        item = event.EventObject.FindItemById(item_id)
-        label= item.Label
-        grid.SetCellValue(row, 2, label)
 
 
 
