@@ -17,6 +17,7 @@ class Menus():
         self.window = grid.Parent
         self.belongs_to = belongs_to
         self.headers = headers
+        self.selected_col = None
         self.InitUI()
 
     def InitUI(self):
@@ -30,6 +31,29 @@ class Menus():
         if self.data_type == 'age':
             choices = {3: (vocab.geochronology_method_codes, False), 5: (vocab.age_units, False)}
         self.window.Bind(wx.grid.EVT_GRID_SELECT_CELL, lambda event: self.on_left_click(event, self.grid, choices), self.grid) 
+        self.window.Bind(wx.grid.EVT_GRID_LABEL_LEFT_CLICK, self.on_label_click, self.grid)
+
+    def on_label_click(self, event):
+        col = event.GetCol()
+        if not (col in range(3, 6) and self.data_type in ['site', 'sample']) or (col == 3 and self.data_type == 'age'):
+            return 0
+            # put something in here that allows you to edit those without a drop-down menu
+            # i.e., latitude is 100 for all sites
+        if self.selected_col != None:
+            for row in range(self.grid.GetNumberRows()):
+                self.grid.SetCellBackgroundColour(row, self.selected_col, 'white')
+        if col == self.selected_col:
+            for row in range(self.grid.GetNumberRows()):
+                self.grid.SetCellBackgroundColour(row, col, 'white')
+            self.grid.ForceRefresh()
+            self.selected_col = None
+        else:
+            self.selected_col = col
+            for row in range(self.grid.GetNumberRows()):
+                self.grid.SetCellBackgroundColour(row, col, 'light blue')
+            self.grid.ForceRefresh()
+            
+
 
     def on_left_click(self, event, grid, choices):
         """creates popup menu when user clicks on the third column
@@ -82,7 +106,12 @@ class Menus():
                 label += (":" + cell_value).rstrip(':')
             else:
                 label = cell_value
-        grid.SetCellValue(row, col, label)
+        if self.selected_col:
+            for row in range(self.grid.GetNumberRows()):
+                grid.SetCellValue(row, col, label)
+                #self.selected_col = None
+        else:
+            grid.SetCellValue(row, col, label)
 
 
 
