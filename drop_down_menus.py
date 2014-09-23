@@ -14,7 +14,7 @@ class Menus():
         self.data_type = data_type
         self.check = check # check is top level class object for entire ErMagic steps 1-6
         self.grid = grid
-        self.window = grid.Parent
+        self.window = grid.Parent # parent window in which grid resides
         self.belongs_to = belongs_to
         self.headers = headers
         self.selected_col = None
@@ -33,9 +33,13 @@ class Menus():
         self.window.Bind(wx.grid.EVT_GRID_SELECT_CELL, lambda event: self.on_left_click(event, self.grid, choices), self.grid) 
         self.window.Bind(wx.grid.EVT_GRID_LABEL_LEFT_CLICK, self.on_label_click, self.grid)
 
+
     def on_label_click(self, event):
+        #print "on label click"
         col = event.GetCol()
-        if not (col in range(3, 6) and self.data_type in ['site', 'sample']) or (col == 3 and self.data_type == 'age'):
+        edit_column = (col in range(2, 7) and self.data_type in ['site', 'sample']) or (col in (3, 5) and self.data_type == 'age') or (col == 1 and self.data_type == 'location')
+        #print "edit column:", edit_column, "col:", col
+        if not edit_column:
             return 0
             # put something in here that allows you to edit those without a drop-down menu
             # i.e., latitude is 100 for all sites
@@ -60,6 +64,15 @@ class Menus():
                 self.grid.SetCellBackgroundColour(row, col, 'light blue')
             self.grid.ForceRefresh()
             
+    def clean_up(self, grid):
+        if self.selected_col:
+            col_label_value = self.grid.GetColLabelValue(self.selected_col)
+            self.grid.SetColLabelValue(self.selected_col, col_label_value[:-10])
+            for row in range(self.grid.GetNumberRows()):
+                self.grid.SetCellBackgroundColour(row, self.selected_col, 'white')
+        self.grid.ForceRefresh()
+
+
 
 
     def on_left_click(self, event, grid, choices):

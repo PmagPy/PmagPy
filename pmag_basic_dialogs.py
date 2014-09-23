@@ -2374,6 +2374,7 @@ class check(wx.Frame):
         self.WD = WD
         self.ErMagic = ErMagic
         self.temp_data = {}
+        self.drop_down_menu = None
         self.InitSpecCheck()
         self.sample_window = 0 # sample window must be displayed (differently) twice, so it is useful to keep track
 
@@ -2403,7 +2404,7 @@ class check(wx.Frame):
         self.changes = False
 
         self.Bind(wx.grid.EVT_GRID_EDITOR_SHOWN, self.on_edit_grid, self.spec_grid) # if user begins to edit, self.changes will be set to True
-        drop_down_menus.Menus("specimen", self, self.spec_grid, samples) # initialize all needed drop-down menus
+        self.drop_down_menu = drop_down_menus.Menus("specimen", self, self.spec_grid, samples) # initialize all needed drop-down menus
 
 
         #### Create Buttons ####
@@ -2480,7 +2481,7 @@ class check(wx.Frame):
 
         self.Bind(wx.grid.EVT_GRID_EDITOR_SHOWN, self.on_edit_grid, self.samp_grid) 
         sites = list(set(sites).union(self.ErMagic.data_er_sites.keys())) # adds in any additional sets we might have information about (from er_sites.txt file) even if currently that site does not show up in the magic_measurements file
-        drop_down_menus.Menus("sample", self, self.samp_grid, sites) # initialize all needed drop-down menus
+        self.drop_down_menu = drop_down_menus.Menus("sample", self, self.samp_grid, sites) # initialize all needed drop-down menus
 
 
         ### Create Buttons ###
@@ -2544,12 +2545,12 @@ class check(wx.Frame):
 
         self.extra_site_temp_data = self.add_extra_grid_data(self.site_grid, self.sites, col_labels, self.ErMagic.data_er_sites)
 
-        locations = sorted(self.temp_data['locations'])
+        locations = sorted(set(self.temp_data['locations']))
         self.changes = False
 
         self.Bind(wx.grid.EVT_GRID_EDITOR_SHOWN, self.on_edit_grid, self.site_grid) 
         
-        drop_down_menus.Menus("site", self, self.site_grid, locations) # initialize all needed drop-down menus
+        self.drop_down_menu = drop_down_menus.Menus("site", self, self.site_grid, locations) # initialize all needed drop-down menus
 
 
         ### Create Buttons ###
@@ -2612,7 +2613,7 @@ class check(wx.Frame):
             pass
         self.loc_grid = self.make_simple_table(col_labels, self.ErMagic.data_er_locations, "locations")
         self.Bind(wx.grid.EVT_GRID_EDITOR_SHOWN, self.on_edit_grid, self.loc_grid) 
-        drop_down_menus.Menus("location", self, self.loc_grid, None) # initialize all needed drop-down menus
+        self.drop_down_menu = drop_down_menus.Menus("location", self, self.loc_grid, None) # initialize all needed drop-down menus
 
         ### Create Buttons ###
         hbox_one = wx.BoxSizer(wx.HORIZONTAL)
@@ -2682,7 +2683,7 @@ class check(wx.Frame):
                 self.age_grid.SetReadOnly(row, col, True)
         #
         self.Bind(wx.grid.EVT_GRID_EDITOR_SHOWN, self.on_edit_grid, self.age_grid) 
-        drop_down_menus.Menus("age", self, self.age_grid, None) # initialize all needed drop-down menus
+        self.drop_down_menu = drop_down_menus.Menus("age", self, self.age_grid, None) # initialize all needed drop-down menus
 
         ### Create Buttons ###
         hbox_one = wx.BoxSizer(wx.HORIZONTAL)
@@ -2886,10 +2887,10 @@ class check(wx.Frame):
         """shows html help page"""
         path = ''
         for p in os.environ['PATH'].split(':'):
-            print "p", p
+            #print "p", p
             if 'Pmag' in p:
                 path = p + '/'
-        print "path + page", path+page
+        #print "path + page", path+page
         html_frame = pw.HtmlFrame(self, page=(path+page))
         html_frame.Show()
 
@@ -2898,6 +2899,9 @@ class check(wx.Frame):
         """pulls up next dialog, if there is one.
         gets any updated information from the current grid and runs ErMagicBuilder"""
         #self.ErMagic.read_MagIC_info()
+        if self.drop_down_menu:  # unhighlight selected columns, etc.
+            self.drop_down_menu.clean_up(grid)
+
         if self.ErMagic.data_er_specimens:
             pass
         else:
@@ -2912,10 +2916,8 @@ class check(wx.Frame):
             else:
                 self.update_orient_data(grid)
             self.ErMagic.on_okButton(None)
-            # 
-            #self.ErMagic.read_MagIC_info() # trying: should populate data_er_ages (doesn't work
-            #
             self.changes = False # resets
+
         self.panel.Destroy()
         if next_dia:
             next_dia()
@@ -2925,7 +2927,6 @@ class check(wx.Frame):
 
     def on_saveButton(self, event, grid):
         """saves any editing of the grid but does not continue to the next window"""
-        print "SAVE!"
         if self.ErMagic.data_er_specimens:
             pass
         else:
