@@ -39,16 +39,23 @@ class Menus():
             return 0
             # put something in here that allows you to edit those without a drop-down menu
             # i.e., latitude is 100 for all sites
-        if self.selected_col != None:
+        if self.selected_col != None and self.selected_col != col: # first deselect the old column
+            col_label_value = self.grid.GetColLabelValue(self.selected_col)
+            self.grid.SetColLabelValue(self.selected_col, col_label_value[:-10])
             for row in range(self.grid.GetNumberRows()):
                 self.grid.SetCellBackgroundColour(row, self.selected_col, 'white')
-        if col == self.selected_col:
+            self.grid.ForceRefresh()
+        if col == self.selected_col: # deselect column
+            col_label_value = self.grid.GetColLabelValue(col)
+            self.grid.SetColLabelValue(col, col_label_value[:-10])
             for row in range(self.grid.GetNumberRows()):
                 self.grid.SetCellBackgroundColour(row, col, 'white')
             self.grid.ForceRefresh()
             self.selected_col = None
         else:
             self.selected_col = col
+            col_label_value = self.grid.GetColLabelValue(col)
+            self.grid.SetColLabelValue(col, col_label_value + " \nEDIT ALL")
             for row in range(self.grid.GetNumberRows()):
                 self.grid.SetCellBackgroundColour(row, col, 'light blue')
             self.grid.ForceRefresh()
