@@ -491,7 +491,8 @@ class MagIC_model_builder(wx.Frame):
           string=""
           for key in self.er_locations_header:
             if key=="er_citation_names":
-              string=string+"This study"+"\t"
+              value = self.data_er_locations[location][key] or "This study"
+              string=string+ value + "\t"
             elif key=="er_location_name":
               string=string+location+"\t"
             # take information from the existing er_location table             
@@ -541,7 +542,8 @@ class MagIC_model_builder(wx.Frame):
               string=string+site+"\t"
 
             elif key=="er_citation_names":
-              string=string+"This study"+"\t"
+              value = self.data_er_ages[site][key] or "This study"
+              string=string + value + "\t"
 
             elif (key in ['er_location_name'] and site in self.data_er_sites.keys() \
                  and  key in self.data_er_sites[site] and self.data_er_sites[site][key]!=""):

@@ -2611,7 +2611,7 @@ class check(wx.Frame):
             col_labels[:0] = ['er_location_name']
         except:
             pass
-        self.loc_grid = self.make_simple_table(col_labels, self.ErMagic.data_er_locations, "locations")
+        self.loc_grid = self.make_simple_table(col_labels, self.ErMagic.data_er_locations, "location")
         self.Bind(wx.grid.EVT_GRID_EDITOR_SHOWN, self.on_edit_grid, self.loc_grid) 
         self.drop_down_menu = drop_down_menus.Menus("location", self, self.loc_grid, None) # initialize all needed drop-down menus
 
@@ -2658,7 +2658,7 @@ class check(wx.Frame):
         self.panel = wx.ScrolledWindow(self, style=wx.SIMPLE_BORDER)
         TEXT = """
         Step 6:
-        Fill in or correct cell values.
+        Fill in or correct any cells with information about ages.
         (See Help button for details)"""
         label = wx.StaticText(self.panel,label=TEXT, size=(1200,100))
         self.Data, self.Data_hierarchy = self.ErMagic.Data, self.ErMagic.Data_hierarchy
@@ -2677,9 +2677,9 @@ class check(wx.Frame):
         ages_data_dict = {k: v for k, v in self.ErMagic.data_er_ages.items() if k in self.sites}
         self.age_grid = self.make_simple_table(col_labels, ages_data_dict, "age")
         #
-        # make it impossible to edit the 1st 3 columns
+        # make it impossible to edit the 1st and 3rd columns
         for row in range(self.age_grid.GetNumberRows()):
-            for col in range(3):
+            for col in (0, 2):
                 self.age_grid.SetReadOnly(row, col, True)
         #
         self.Bind(wx.grid.EVT_GRID_EDITOR_SHOWN, self.on_edit_grid, self.age_grid) 
@@ -2747,9 +2747,8 @@ class check(wx.Frame):
                     grid.SetCellValue(num, n+1, value)
         for n, col in enumerate(column_labels):
             # adjust column widths to be a little larger then auto for nicer editing
-            if n != 1:
-                size = grid.GetColSize(n) * 1.75
-                grid.SetColSize(n, size)
+            size = grid.GetColSize(n) * 1.75
+            grid.SetColSize(n, size)
         return grid
         
 
@@ -2907,7 +2906,7 @@ class check(wx.Frame):
         else:
             self.ErMagic.read_MagIC_info()
         grid.SaveEditControlValue() # locks in value in cell currently edited
-        simple_grids = {"locations": self.ErMagic.data_er_locations, "age": self.ErMagic.data_er_ages}
+        simple_grids = {"location": self.ErMagic.data_er_locations, "age": self.ErMagic.data_er_ages}
         grid_name = grid.GetName()
 
         if self.changes:
@@ -2927,13 +2926,15 @@ class check(wx.Frame):
 
     def on_saveButton(self, event, grid):
         """saves any editing of the grid but does not continue to the next window"""
+        if self.drop_down_menu:  # unhighlight selected columns, etc.
+            self.drop_down_menu.clean_up(grid)
         if self.ErMagic.data_er_specimens:
             pass
         else:
             self.ErMagic.read_MagIC_info()
         grid.SaveEditControlValue() # locks in value in cell currently edited
         grid.HideCellEditControl() # removes focus from cell that was being edited
-        simple_grids = {"locations": self.ErMagic.data_er_locations, "age": self.ErMagic.data_er_ages}
+        simple_grids = {"location": self.ErMagic.data_er_locations, "age": self.ErMagic.data_er_ages}
         grid_name = grid.GetName()
         if self.changes:
             print "there were changes, so we are updating the data"
@@ -2960,11 +2961,10 @@ class check(wx.Frame):
         for row in rows:
             item = str(grid.GetCellValue(row, 0))
             updated_items.append(item)
-        if grid_name == "locations":
+        if grid_name == "location":
             self.update_locations(updated_items)
-        for row in rows: 
+        for row in rows:
             item = str(grid.GetCellValue(row, 0))
-            updated_items.append(item) # should this be commented out?  I think it was before
             for col in cols[1:]:
                 category = str(grid.GetColLabelValue(col))
                 value = str(grid.GetCellValue(row, col))
