@@ -2457,7 +2457,7 @@ class check(wx.Frame):
             Check that all samples are correctly named,
             and that they belong to the correct site
             (if site name is simply wrong, that will be fixed in step 3)"""
-            label = wx.StaticText(self.panel,label=TEXT)
+            label = wx.StaticText(self.panel,label=TEXT, size=(900, 100))
         else:
             self.ErMagic.read_MagIC_info() # ensures that changes from step 3 propagate
             TEXT = """
@@ -2898,6 +2898,7 @@ class check(wx.Frame):
         """pulls up next dialog, if there is one.
         gets any updated information from the current grid and runs ErMagicBuilder"""
         #self.ErMagic.read_MagIC_info()
+        wait = wx.BusyInfo("Please wait, working...")
         if self.drop_down_menu:  # unhighlight selected columns, etc.
             self.drop_down_menu.clean_up(grid)
 
@@ -2920,12 +2921,16 @@ class check(wx.Frame):
         self.panel.Destroy()
         if next_dia:
             next_dia()
+            del wait
         else:
             self.final_update()
             self.Destroy()
+            del wait
+        
 
     def on_saveButton(self, event, grid):
         """saves any editing of the grid but does not continue to the next window"""
+        wait = wx.BusyInfo("Please wait, working...")
         if self.drop_down_menu:  # unhighlight selected columns, etc.
             self.drop_down_menu.clean_up(grid)
         if self.ErMagic.data_er_specimens:
@@ -2945,6 +2950,7 @@ class check(wx.Frame):
 
             self.ErMagic.on_okButton(None)
             self.changes = False
+        del wait
 
 
     def on_cancelButton(self, event):

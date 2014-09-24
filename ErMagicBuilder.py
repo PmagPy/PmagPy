@@ -190,6 +190,8 @@ class MagIC_model_builder(wx.Frame):
         hbox.Add(bSizer4, flag=wx.ALIGN_LEFT)
         hbox.AddSpacer(5)
 
+        text = wx.StaticText(self.panel, label="Step 0:\nChoose the headers for your er_specimens, er_samples, er_sites, er_locations and er_ages text files.\nOnce you have selected all necessary headers, click the OK button to move on to step 1.\nFor more information, click the help button below.")
+        vbox.Add(text, flag=wx.ALIGN_LEFT|wx.ALL, border=20)
         vbox.AddSpacer(20)
         vbox.Add(hbox)
         vbox.AddSpacer(20)
@@ -275,6 +277,7 @@ class MagIC_model_builder(wx.Frame):
         self.update_text_box('er_ages')
 
     def on_okButton(self, event, data_hierarchy_update=None):
+        wait = wx.BusyInfo("Please wait, working...")
         samples_list=self.Data_hierarchy['samples'].keys()
         samples_list = list(set(samples_list).union(self.data_er_samples.keys())) # uses samples from er_samples.txt even if they are not in the magic_measurements file
         samples_list.sort()
@@ -644,10 +647,12 @@ class MagIC_model_builder(wx.Frame):
 
         
         dlg1 = wx.MessageDialog(self,caption="Saved", message="MagIC Earth-Ref tables are saved in MagIC Project Directory!" ,style=wx.OK|wx.ICON_INFORMATION)
+        # is this dialog actually useful??
         dlg1.ShowModal()
         dlg1.Destroy()
         #self.Destroy()
         self.Hide()
+        del wait
         print "done on_ok_Button in ErMagicBuilder"
 
 
