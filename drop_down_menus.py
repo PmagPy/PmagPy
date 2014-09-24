@@ -126,7 +126,7 @@ class Menus():
                 label += (":" + cell_value).rstrip(':')
             else:
                 label = cell_value
-        if self.selected_col:
+        if self.selected_col and self.selected_col == col:
             for row in range(self.grid.GetNumberRows()):
                 grid.SetCellValue(row, col, label)
                 #self.selected_col = None
