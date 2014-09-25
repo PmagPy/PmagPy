@@ -2503,10 +2503,12 @@ class check(wx.Frame):
         self.continueButton = wx.Button(self.panel, id=-1, label='Save and continue')
         next_dia = self.InitSiteCheck if self.sample_window < 2 else self.InitLocCheck #None # 
         self.Bind(wx.EVT_BUTTON, lambda event: self.on_continueButton(event, self.samp_grid, next_dia=next_dia), self.continueButton)
+        self.back_btn = wx.Button(self.panel, wx.ID_ANY, "&Back")
 
         hboxok.Add(self.saveButton, flag=wx.BOTTOM, border=20)
         hboxok.Add(self.cancelButton, flag=wx.BOTTOM, border=20 )
         hboxok.Add(self.continueButton, flag=wx.BOTTOM, border=20 )
+        hboxok.Add(self.back_btn,flag=wx.BOTTOM, border=20 )
 
         ### Make Containers ###
         vbox = wx.BoxSizer(wx.VERTICAL)
@@ -2915,7 +2917,7 @@ class check(wx.Frame):
                 self.update_simple_grid_data(grid, simple_grids[grid_name])
             else:
                 self.update_orient_data(grid)
-            self.ErMagic.on_okButton(None)
+            self.ErMagic.update_ErMagic()
             self.changes = False # resets
 
         self.panel.Destroy()
@@ -2948,7 +2950,7 @@ class check(wx.Frame):
             else:
                 self.update_orient_data(grid)
 
-            self.ErMagic.on_okButton(None)
+            self.ErMagic.update_ErMagic()
             self.changes = False
         del wait
 
@@ -3316,7 +3318,7 @@ class check(wx.Frame):
         remove_extras(self.ErMagic.data_er_sites, self.Data_hierarchy['sites'])
         remove_extras(self.ErMagic.data_er_locations, self.Data_hierarchy['locations'])
         remove_extras(self.ErMagic.data_er_ages, self.Data_hierarchy['sites'])
-        self.ErMagic.on_okButton(None)
+        self.ErMagic.update_ErMagic()
         
 
 

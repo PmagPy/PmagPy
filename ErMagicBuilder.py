@@ -50,7 +50,9 @@ class MagIC_model_builder(wx.Frame):
         #print "-------------"
         #print Data_hierarchy
         wx.Frame.__init__(self, None, wx.ID_ANY,size=SIZE)
-        self.panel = wx.Panel(self)
+        #self.panel = wx.Panel(self)
+        self.panel = wx.ScrolledWindow(self)
+        self.panel.SetScrollbars(1, 1, 1, 1)
         self.er_specimens_header=['er_citation_names','er_specimen_name','er_sample_name','er_site_name','er_location_name','specimen_class','specimen_lithology','specimen_type']
         self.er_samples_header=['er_citation_names','er_sample_name','er_site_name','er_location_name','sample_class','sample_lithology','sample_type','sample_lat','sample_lon']
         self.er_sites_header=['er_citation_names','er_site_name','er_location_name','site_class','site_lithology','site_type','site_definition','site_lon','site_lat']
@@ -192,7 +194,7 @@ class MagIC_model_builder(wx.Frame):
 
         text = wx.StaticText(self.panel, label="Step 0:\nChoose the headers for your er_specimens, er_samples, er_sites, er_locations and er_ages text files.\nOnce you have selected all necessary headers, click the OK button to move on to step 1.\nFor more information, click the help button below.")
         vbox.Add(text, flag=wx.ALIGN_LEFT|wx.ALL, border=20)
-        vbox.AddSpacer(20)
+        #vbox.AddSpacer(20)
         vbox.Add(hbox)
         vbox.AddSpacer(20)
         vbox.Add(hbox1,flag=wx.ALIGN_CENTER_HORIZONTAL)
@@ -276,7 +278,14 @@ class MagIC_model_builder(wx.Frame):
           self.er_ages_header.remove(selName)
         self.update_text_box('er_ages')
 
-    def on_okButton(self, event, data_hierarchy_update=None):
+
+    def on_okButton(self, event):
+        print "ok"
+        self.update_ErMagic()
+        import pmag_basic_dialogs
+        dia = pmag_basic_dialogs.check(None, -1, 'Check', self.WD, self)# initiates the object that will control steps 1-6 of checking headers, filling in cell values, etc.
+
+    def update_ErMagic(self):
         wait = wx.BusyInfo("Please wait, working...")
         samples_list=self.Data_hierarchy['samples'].keys()
         samples_list = list(set(samples_list).union(self.data_er_samples.keys())) # uses samples from er_samples.txt even if they are not in the magic_measurements file

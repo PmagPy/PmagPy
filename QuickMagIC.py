@@ -239,50 +239,9 @@ class MagMainFrame(wx.Frame):
 
         SIZE=wx.DisplaySize()
         SIZE=(SIZE[0]-0.3*SIZE[0],SIZE[1]-0.3*SIZE[1]) # gets total available screen space - 10%
-        dia = pmag_basic_dialogs.check(self, -1, 'Check', self.WD, ErMagic)#, SIZE)
-        #dia.Hide()
         ErMagic.Raise()
 
 
-
-        
-    
-    """
-    def old_on_er_data(self,event):
-        import ErMagicBuilder
-        foundHTML=False
-        try:
-            PATH= sys.modules['ErMagicBuilder'].__file__
-            PmagPyPath=os.path.split(PATH)[0]
-            HTML_PATH=os.path.join(PmagPyPath,"ErMagicBuilderHelp.html")
-            #HTML_PATH="/".join(PATH.split("/")[:-1]+["ErMagicBuilderHelp.html"])
-            foundHTML=True
-        except:
-            pass
-        if foundHTML and not self.HtmlIsOpen:
-            self.HtmlIsOpen=True
-            self.help_window=ErMagicBuilder.MyHtmlPanel(None,HTML_PATH)
-            self.help_window.Show()
-            self.help_window.Bind(wx.EVT_CLOSE, self.OnCloseHtml)
-        dia = ErMagicBuilder.MagIC_model_builder(self.WD)#,self.Data,self.Data_hierarchy)
-        dia.Show()
-        dia.Center()
-        
-        if self.first_time_messsage==False:
-            TXT="Press OK on 'Earth-Ref Magic Builder' frame and follow the instructions listed in the help window."#\n(if you dont see the help window it might be hidden behind the main frame)"
-            dlg = wx.MessageDialog(self, caption="Earth-Ref Magic Builder is opened for the first time",message=TXT,style=wx.OK)
-            result = dlg.ShowModal()
-            if result == wx.ID_OK:            
-                dlg.Destroy()
-                self.first_time_messsage=True
-                self.help_window.Raise()
-            
-            
-
-    def OnCloseHtml(self,event):
-        self.HtmlIsOpen=False
-        self.help_window.Destroy()
-    """
 
     def get_data(self):
         
