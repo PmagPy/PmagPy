@@ -280,12 +280,12 @@ class MagIC_model_builder(wx.Frame):
 
 
     def on_okButton(self, event):
-        print "ok"
         self.update_ErMagic()
         import pmag_basic_dialogs
         dia = pmag_basic_dialogs.check(None, -1, 'Check', self.WD, self)# initiates the object that will control steps 1-6 of checking headers, filling in cell values, etc.
 
     def update_ErMagic(self):
+        """check for changes and write (or re-write) er_specimens.txt, er_samples.txt, etc."""
         wait = wx.BusyInfo("Please wait, working...")
         samples_list=self.Data_hierarchy['samples'].keys()
         samples_list = list(set(samples_list).union(self.data_er_samples.keys())) # uses samples from er_samples.txt even if they are not in the magic_measurements file

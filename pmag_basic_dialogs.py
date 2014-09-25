@@ -2503,12 +2503,14 @@ class check(wx.Frame):
         self.continueButton = wx.Button(self.panel, id=-1, label='Save and continue')
         next_dia = self.InitSiteCheck if self.sample_window < 2 else self.InitLocCheck #None # 
         self.Bind(wx.EVT_BUTTON, lambda event: self.on_continueButton(event, self.samp_grid, next_dia=next_dia), self.continueButton)
-        self.back_btn = wx.Button(self.panel, wx.ID_ANY, "&Back")
+        self.backButton = wx.Button(self.panel, wx.ID_ANY, "&Back")
+        previous_dia = self.InitSpecCheck if self.sample_window < 2 else self.InitSiteCheck
+        self.Bind(wx.EVT_BUTTON, lambda event: self.on_backButton(event, previous_dia=previous_dia), self.backButton)
 
         hboxok.Add(self.saveButton, flag=wx.BOTTOM, border=20)
         hboxok.Add(self.cancelButton, flag=wx.BOTTOM, border=20 )
         hboxok.Add(self.continueButton, flag=wx.BOTTOM, border=20 )
-        hboxok.Add(self.back_btn,flag=wx.BOTTOM, border=20 )
+        hboxok.Add(self.backButton,flag=wx.BOTTOM, border=20 )
 
         ### Make Containers ###
         vbox = wx.BoxSizer(wx.VERTICAL)
@@ -2568,10 +2570,15 @@ class check(wx.Frame):
         self.Bind(wx.EVT_BUTTON, self.on_cancelButton, self.cancelButton)
         self.continueButton = wx.Button(self.panel, id=-1, label='Save and continue')
         self.Bind(wx.EVT_BUTTON, lambda event: self.on_continueButton(event, self.site_grid, next_dia=self.InitSampCheck), self.continueButton)
+        self.backButton = wx.Button(self.panel, wx.ID_ANY, "&Back")
+        previous_dia = self.InitSampCheck
+        self.Bind(wx.EVT_BUTTON, lambda event: self.on_backButton(event, previous_dia=previous_dia), self.backButton)
+
 
         hboxok.Add(self.saveButton, flag=wx.BOTTOM, border=20)
         hboxok.Add(self.cancelButton, flag=wx.BOTTOM, border=20 )
         hboxok.Add(self.continueButton, flag=wx.BOTTOM, border=20 )
+        hboxok.Add(self.backButton, flag=wx.BOTTOM, border=20 )
 
         ### Make Containers ###
         vbox = wx.BoxSizer(wx.VERTICAL)
@@ -2630,10 +2637,15 @@ class check(wx.Frame):
         self.Bind(wx.EVT_BUTTON, self.on_cancelButton, self.cancelButton)
         self.continueButton = wx.Button(self.panel, id=-1, label='Save and continue')
         self.Bind(wx.EVT_BUTTON, lambda event: self.on_continueButton(event, self.loc_grid, next_dia=self.InitAgeCheck), self.continueButton)
+        self.backButton = wx.Button(self.panel, wx.ID_ANY, "&Back")
+        previous_dia = self.InitSampCheck
+        self.Bind(wx.EVT_BUTTON, lambda event: self.on_backButton(event, previous_dia, current_dia = self.InitLocCheck), self.backButton)
+
 
         hboxok.Add(self.saveButton, flag=wx.BOTTOM, border=20)
         hboxok.Add(self.cancelButton, flag=wx.BOTTOM, border=20 )
         hboxok.Add(self.continueButton, flag=wx.BOTTOM, border=20 )
+        hboxok.Add(self.backButton, flag=wx.BOTTOM, border=20 )
 
         ### Make Containers ###
         vbox = wx.BoxSizer(wx.VERTICAL)
@@ -2700,10 +2712,14 @@ class check(wx.Frame):
         self.Bind(wx.EVT_BUTTON, self.on_cancelButton, self.cancelButton)
         self.continueButton = wx.Button(self.panel, id=-1, label='Save and continue')
         self.Bind(wx.EVT_BUTTON, lambda event: self.on_continueButton(event, self.age_grid, next_dia=None), self.continueButton)
+        self.backButton = wx.Button(self.panel, wx.ID_ANY, "&Back")
+        previous_dia = self.InitLocCheck
+        self.Bind(wx.EVT_BUTTON, lambda event: self.on_backButton(event, previous_dia), self.backButton)
 
         hboxok.Add(self.saveButton, flag=wx.BOTTOM, border=20)
         hboxok.Add(self.cancelButton, flag=wx.BOTTOM, border=20 )
         hboxok.Add(self.continueButton, flag=wx.BOTTOM, border=20 )
+        hboxok.Add(self.backButton, flag=wx.BOTTOM, border=20 )
 
         ### Make Containers ###
         vbox = wx.BoxSizer(wx.VERTICAL)
@@ -2957,6 +2973,14 @@ class check(wx.Frame):
 
     def on_cancelButton(self, event):
         self.Destroy()
+
+    def on_backButton(self, event, previous_dia, current_dia = None):
+        if current_dia == self.InitLocCheck:
+            pass
+        elif previous_dia == self.InitSpecCheck or previous_dia == self.InitSampCheck:
+            self.sample_window = 0
+        self.panel.Destroy()
+        previous_dia()
 
         
     ### Manage data methods ###
