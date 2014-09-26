@@ -333,7 +333,18 @@ class MagMainFrame(wx.Frame):
             self.help_window.Destroy()
         except:
             pass
-        exit()
+        if '-i' in sys.argv:
+            self.Destroy()
+        try:
+            exit() # can raise TypeError if wx inspector was used
+        except Exception as ex:
+            if type(ex) == TypeError:  # suppress that TypeError, but raise others
+                pass
+            else:
+                raise(ex)
+            
+
+
     
 
 
@@ -345,4 +356,8 @@ if __name__ == "__main__":
     app.frame = MagMainFrame()
     app.frame.Show()
     app.frame.Center()
+    if '-i' in sys.argv:
+        import wx.lib.inspection
+        wx.lib.inspection.InspectionTool().Show()
+    print "doing app"
     app.MainLoop()
