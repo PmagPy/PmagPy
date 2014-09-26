@@ -2744,9 +2744,13 @@ class check(wx.Frame):
 
     ### Grid methods ###
     def make_simple_table(self, column_labels, data_dict, grid_name):
-        grid = wx.grid.Grid(self.panel, -1, name=grid_name)
-        grid.ClearGrid()
         row_labels = sorted(data_dict.keys())
+        if len(row_labels) == 1:
+            grid = wx.grid.Grid(self.panel, -1, name=grid_name, size=(1100, 60))
+        else:
+            grid = wx.grid.Grid(self.panel, -1, name=grid_name)
+        grid.ClearGrid()
+
         grid.CreateGrid(len(row_labels), len(column_labels))
         self.temp_data[column_labels[0]] = []
         # set row labels
@@ -2778,7 +2782,10 @@ class check(wx.Frame):
         row_values: list of specimens
         column_indexing: Data_hierarchy object containing various data mappings
         ind: ['sample_of_specimen'], indicating which data mapping to use """
-        grid = wx.grid.Grid(self.panel, -1, name=column_labels[0])
+        if len(row_values) == 1:
+            grid = wx.grid.Grid(self.panel, -1, name=column_labels[0], size=(110, 60))
+        else:
+            grid = wx.grid.Grid(self.panel, -1, name=column_labels[0])
         grid.ClearGrid()
         grid.CreateGrid(len(row_values), len(column_labels))
 
@@ -2806,13 +2813,11 @@ class check(wx.Frame):
             original_2.append(col)
             grid.SetCellValue(n, 2, col)
 
-        #grid.AppendRows(1) # prevents site_grid from looking really stupid when editing bottom row.  not a good permanent solution, thoug
-        #grid.SetRowLabelValue(len(row_values), " ")
         
         for n, label in enumerate(column_labels):
             grid.SetColLabelValue(n, label)
 
-        grid.AutoSize() # if I take this out, then all of the grids have the nasty spacing problem
+        #grid.AutoSize() # doesn't seem to matter....
 
         for n, col in enumerate(column_labels):
             # adjust column widths to be a little larger then auto for nicer editing

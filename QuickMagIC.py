@@ -359,5 +359,4 @@ if __name__ == "__main__":
     if '-i' in sys.argv:
         import wx.lib.inspection
         wx.lib.inspection.InspectionTool().Show()
-    print "doing app"
     app.MainLoop()
