@@ -2393,7 +2393,6 @@ class check(wx.Frame):
         consider opening your documents with Excel or Open Office"""
         label = wx.StaticText(self.panel,label=TEXT)
         self.Data, self.Data_hierarchy = self.ErMagic.Data, self.ErMagic.Data_hierarchy
-        #self.specimens = sorted(self.Data.keys())
         self.specimens = sorted(self.Data_hierarchy['specimens'].keys())
         samples = sorted(self.Data_hierarchy['samples'].keys())
         samples = list(set(samples).union(self.ErMagic.data_er_samples.keys())) # adds in any additional samples we might have information about (from er_sites.txt file) even if currently that sample does not show up in the magic_measurements file
@@ -2427,8 +2426,8 @@ class check(wx.Frame):
 
         ### Create Containers ###
         vbox = wx.BoxSizer(wx.VERTICAL)
-        vbox.Add(label, flag=wx.ALIGN_LEFT|wx.BOTTOM, border=20)
-        vbox.Add(self.spec_grid, flag=wx.BOTTOM|wx.EXPAND, border=20)
+        vbox.Add(label, flag=wx.ALIGN_LEFT, border=20)
+        vbox.Add(self.spec_grid, flag=wx.ALL|wx.EXPAND, border=30)
         vbox.Add(hbox_one, flag=wx.BOTTOM, border=20)
         vbox.Add(hboxok, flag=wx.BOTTOM, border=20)
         
@@ -2457,7 +2456,7 @@ class check(wx.Frame):
             Check that all samples are correctly named,
             and that they belong to the correct site
             (if site name is simply wrong, that will be fixed in step 3)"""
-            label = wx.StaticText(self.panel,label=TEXT, size=(900, 100))
+            label = wx.StaticText(self.panel,label=TEXT)#, size=(900, 100))
         else:
             self.ErMagic.read_MagIC_info() # ensures that changes from step 3 propagate
             TEXT = """
@@ -2465,7 +2464,7 @@ class check(wx.Frame):
             Some of the data from the er_sites table has propogated into er_samples.
             Check that this data is correct, and fill in missing cells using controlled vocabularies.
             (see Help button for more details)"""
-            label = wx.StaticText(self.panel,label=TEXT, size=(900, 100))
+            label = wx.StaticText(self.panel,label=TEXT)#, size=(900, 100))
         self.Data, self.Data_hierarchy = self.ErMagic.Data, self.ErMagic.Data_hierarchy
         self.samples = sorted(self.Data_hierarchy['samples'].keys())
         sites = sorted(self.Data_hierarchy['sites'].keys())
@@ -2514,8 +2513,11 @@ class check(wx.Frame):
 
         ### Make Containers ###
         vbox = wx.BoxSizer(wx.VERTICAL)
-        vbox.Add(label, flag=wx.ALIGN_LEFT|wx.BOTTOM, border=20)
-        vbox.Add(self.samp_grid, flag=wx.BOTTOM|wx.EXPAND, border=20) # EXPAND ??
+        vbox.Add(label, flag=wx.ALIGN_LEFT)
+
+        #vbox.Add(self.samp_grid, flag=wx.BOTTOM|wx.EXPAND, border=20) # EXPAND ??
+        vbox.Add(self.samp_grid, flag=wx.ALL, border=20) # EXPAND ??
+
         vbox.Add(hbox_one, flag=wx.BOTTOM, border=20)
         vbox.Add(hboxok, flag=wx.BOTTOM, border=20)
 
@@ -2541,7 +2543,7 @@ class check(wx.Frame):
         Fill in the additional columns with controlled vocabularies (see Help button for details)
         note: Changes to site_class, site_lithology, or site_type will overwrite er_samples.txt
         However, you will be able to edit sample_class, sample_lithology, and sample_type in step 4"""
-        label = wx.StaticText(self.panel,label=TEXT,size=(1200, 150)) # manually sizing the label to be longer than the grid means that the scrollbars display correctly.  hack-y but effective fix
+        label = wx.StaticText(self.panel,label=TEXT)#,size=(1200, 100)) # manually sizing the label to be longer than the grid means that the scrollbars display correctly.  hack-y but effective fix
         self.Data, self.Data_hierarchy = self.ErMagic.Data, self.ErMagic.Data_hierarchy
         self.sites = sorted(self.Data_hierarchy['sites'].keys())
         col_labels = ['sites', '', 'locations', 'site_class', 'site_lithology', 'site_type', 'site_definition', 'site_lon', 'site_lat']
@@ -2574,7 +2576,6 @@ class check(wx.Frame):
         previous_dia = self.InitSampCheck
         self.Bind(wx.EVT_BUTTON, lambda event: self.on_backButton(event, previous_dia=previous_dia), self.backButton)
 
-
         hboxok.Add(self.saveButton, flag=wx.BOTTOM, border=20)
         hboxok.Add(self.cancelButton, flag=wx.BOTTOM, border=20 )
         hboxok.Add(self.continueButton, flag=wx.BOTTOM, border=20 )
@@ -2583,7 +2584,7 @@ class check(wx.Frame):
         ### Make Containers ###
         vbox = wx.BoxSizer(wx.VERTICAL)
         vbox.Add(label, flag=wx.ALIGN_LEFT|wx.BOTTOM)#, flag=wx.ALIGN_LEFT|wx.BOTTOM, border=20)
-        vbox.Add(self.site_grid, flag=wx.BOTTOM|wx.EXPAND, border=20) # EXPAND ??
+        vbox.Add(self.site_grid, flag=wx.ALL|wx.EXPAND, border=20) # EXPAND ??
         vbox.Add(hbox_one, flag=wx.BOTTOM, border=20)
         vbox.Add(hboxok, flag=wx.BOTTOM, border=20)
 
@@ -2608,11 +2609,10 @@ class check(wx.Frame):
         Check that locations are correctly named.
         Fill in any blank cells using controlled vocabularies.
         (See Help button for details)"""
-        label = wx.StaticText(self.panel,label=TEXT, size=(1200, 100))
+        label = wx.StaticText(self.panel,label=TEXT)# size=(1200, 100))
         self.Data, self.Data_hierarchy = self.ErMagic.Data, self.ErMagic.Data_hierarchy
         self.locations = self.Data_hierarchy['locations']
         #
-        #col_labels = ['locations', 'location_type']
         key1 = self.ErMagic.data_er_locations.keys()[0]
         col_labels = self.ErMagic.data_er_locations[key1].keys()
         try:
@@ -2649,8 +2649,8 @@ class check(wx.Frame):
 
         ### Make Containers ###
         vbox = wx.BoxSizer(wx.VERTICAL)
-        vbox.Add(label, flag=wx.ALIGN_LEFT|wx.BOTTOM)#, flag=wx.ALIGN_LEFT|wx.BOTTOM, border=20)
-        vbox.Add(self.loc_grid, flag=wx.BOTTOM|wx.EXPAND, border=20) # EXPAND ??
+        vbox.Add(label, flag=wx.ALIGN_LEFT)#, flag=wx.ALIGN_LEFT|wx.BOTTOM, border=20)
+        vbox.Add(self.loc_grid, flag=wx.ALL|wx.EXPAND, border=20) # EXPAND ??
         vbox.Add(hbox_one, flag=wx.BOTTOM, border=20)
         vbox.Add(hboxok, flag=wx.BOTTOM, border=20)
 
@@ -2674,7 +2674,7 @@ class check(wx.Frame):
         Step 6:
         Fill in or correct any cells with information about ages.
         (See Help button for details)"""
-        label = wx.StaticText(self.panel,label=TEXT, size=(1200,100))
+        label = wx.StaticText(self.panel,label=TEXT)#, size=(1200,100))
         self.Data, self.Data_hierarchy = self.ErMagic.Data, self.ErMagic.Data_hierarchy
         self.sites = self.Data_hierarchy['sites']
         #
@@ -2723,8 +2723,8 @@ class check(wx.Frame):
 
         ### Make Containers ###
         vbox = wx.BoxSizer(wx.VERTICAL)
-        vbox.Add(label, flag=wx.ALIGN_LEFT|wx.BOTTOM)#, flag=wx.ALIGN_LEFT|wx.BOTTOM, border=20)
-        vbox.Add(self.age_grid, flag=wx.BOTTOM|wx.EXPAND, border=20) # EXPAND ??
+        vbox.Add(label, flag=wx.ALIGN_LEFT)#, flag=wx.ALIGN_LEFT|wx.BOTTOM, border=20)
+        vbox.Add(self.age_grid, flag=wx.ALL|wx.EXPAND, border=20) # EXPAND ??
         vbox.Add(hbox_one, flag=wx.BOTTOM, border=20)
         vbox.Add(hboxok, flag=wx.BOTTOM, border=20)
 
