@@ -31,7 +31,7 @@ class MagMainFrame(wx.Frame):
         self.HtmlIsOpen=False
         self.first_time_messsage=False
         self.Bind(wx.EVT_CLOSE, self.on_menu_exit)
-        self.Data, self.Data_hierarchy = {}, {}
+        self.Data, self.Data_hierarchy = {}, {}p
 
 
     def InitUI(self):
@@ -68,18 +68,19 @@ class MagMainFrame(wx.Frame):
         # last saved: []
         bSizer0_1 = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY, "Save MagIC project directory in current state or revert to last-saved state" ), wx.HORIZONTAL ) 
         saved_label = wx.StaticText(self.panel, -1, "Last saved:", (20, 120))
-        self.last_saved= wx.TextCtrl(self.panel, id=-1, size=(100,25), style=wx.TE_READONLY)
+        self.last_saved_time = wx.TextCtrl(self.panel, id=-1, size=(100,25), style=wx.TE_READONLY)
         now = datetime.datetime.now()
         now_string = "{}:{}:{}".format(now.hour, now.minute, now.second)
-        self.last_saved.write(now_string)
+        self.last_saved_time.write(now_string)
         self.save_dir_button = buttons.GenButton(self.panel, id=-1, label = "save dir", size=(-1, -1))
         self.revert_dir_button = buttons.GenButton(self.panel, id=-1, label = "revert dir", size=(-1, -1))
 
         self.Bind(wx.EVT_BUTTON, self.on_revert_dir_button, self.revert_dir_button)
         self.Bind(wx.EVT_BUTTON, self.on_save_dir_button, self.save_dir_button)
+        
 
         bSizer0_1.Add(saved_label, flag=wx.RIGHT, border=10)
-        bSizer0_1.Add(self.last_saved, flag=wx.RIGHT, border=10)
+        bSizer0_1.Add(self.last_saved_time, flag=wx.RIGHT, border=10)
         bSizer0_1.Add(self.save_dir_button,flag=wx.ALIGN_LEFT|wx.RIGHT, border=10)
         bSizer0_1.Add(self.revert_dir_button,wx.ALIGN_LEFT)
 
@@ -220,6 +221,7 @@ class MagMainFrame(wx.Frame):
         self.WD=str(os.getcwd())+"/"
         self.dir_path.SetValue(self.WD)
         self.FIRST_RUN=False
+        self.on_save_dir_button(None)
 
 
     #----------------------------------------------------------------------
@@ -240,11 +242,39 @@ class MagMainFrame(wx.Frame):
 
 
     def on_revert_dir_button(self, event):
-        print "REVERT!"
+        dia = wx.MessageDialog(self.panel, "Are you sure you want to revert to the last saved state?  All changes since {} will be lost".format(self.last_saved_time.GetLineText(0)), "Not so fast", wx.YES_NO|wx.NO_DEFAULT)
+        ok = dia.ShowModal()
+        if ok == wx.ID_YES:
+            os.chdir('..')
+            wd = self.WD
+            outstring = "rm -r {}".format(wd)
+            outstring = "mv {} {}".format(self.saved_dir, self.WD)
+            os.chdir(self.WD)
+            self.on_save_dir_button(None)
+        else:
+            print "-I Don't revert"
+
 
     def on_save_dir_button(self, event):
-        print "SAVE!"
+        os.chdir('..')
+        wd = self.WD
+        wd = wd.rstrip('/')
+        ind = wd.rfind('/') + 1
+        saved_prefix, saved_folder = wd[:ind], wd[ind:]
+        self.saved_dir = saved_prefix + "copy_" + saved_folder
+        os.system('mkdir {}'.format(self.saved_dir))
+        #for root, dirs, files in os.walk(self.WD):
+        #    pass
+            # could use this syntax to copy over dirs, etc. 
+                
+        outstring = "cp {}/* {}".format(wd, self.saved_dir)
+        os.system(outstring)
 
+        self.last_saved_time.Clear()
+        now = datetime.datetime.now()
+        now_string = "{}:{}:{}".format(now.hour, now.minute, now.second)
+        self.last_saved_time.write(now_string)
+        os.chdir(self.WD)
 
     def on_run_thellier_gui(self,event):
         outstring="thellier_gui.py -WD %s"%self.WD
