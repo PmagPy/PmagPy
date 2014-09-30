@@ -31,7 +31,7 @@ class MagMainFrame(wx.Frame):
         self.HtmlIsOpen=False
         self.first_time_messsage=False
         self.Bind(wx.EVT_CLOSE, self.on_menu_exit)
-        self.Data, self.Data_hierarchy = {}, {}p
+        self.Data, self.Data_hierarchy = {}, {}
 
 
     def InitUI(self):
