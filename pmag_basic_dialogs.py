@@ -2372,12 +2372,12 @@ class check(wx.Frame):
     def __init__(self, parent, id, title, WD, ErMagic):
         wx.Frame.__init__(self, parent, -1, title)
         self.WD = WD
+        self.main_frame = self.Parent
         self.ErMagic = ErMagic
         self.temp_data = {}
         self.drop_down_menu = None
         self.InitSpecCheck()
         self.sample_window = 0 # sample window must be displayed (differently) twice, so it is useful to keep track
-
 
 
     def InitSpecCheck(self):
@@ -3007,7 +3007,6 @@ class check(wx.Frame):
                 value = str(grid.GetCellValue(row, col))
                 data[item][category] = value
         self.temp_data[grid_name] = updated_items
-        
 
 
     def update_orient_data(self, grid):
@@ -3350,142 +3349,3 @@ class check(wx.Frame):
         self.ErMagic.update_ErMagic()
         
 
-
-    """
-    def get_orient_data(self):
-        try:
-            self.Data, self.Data_hierarchy = self.Parent.Data
-        except:
-            self.Data, self.Data_hierarchy = self.Parent.get_data()
-        self.samples_list=self.Data_hierarchy['samples']         
-        self.orient_data={}
-        try:
-            self.orient_data=self.read_magic_file(self.WD+"/demag_orient.txt",1,"sample_name")  
-        except:
-            pass
-        for sample in self.samples_list:
-            if sample not in self.orient_data.keys():
-               self.orient_data[sample]={} 
-               self.orient_data[sample]["sample_name"]=sample
-               
-            if sample in self.Data_hierarchy['site_of_sample'].keys():
-                self.orient_data[sample]["site_name"]=self.Data_hierarchy['site_of_sample'][sample]
-            else:
-                self.orient_data[sample]["site_name"]=""
-
-        #print "self.orient_data", self.orient_data
-
-
-    def update_orient_data(self):
-        # check each value in the specimen column for changes
-        # check each value in the samples column for changes
-        for row in range(self.grid.GetNumberRows()):
-            pass
-            #print self.grid.GetCellValue(row, 0)
-            #print self.specimens[row]
-
-    def get_data(self):
-      # get_data from ErMagicBuilder.  Returns a more comprehensive Data hierarchy than the get_data in QuickMagic.  oy.
-      Data={}
-      Data_hierarchy={}
-      Data_hierarchy['locations']={}
-      Data_hierarchy['sites']={}
-      Data_hierarchy['samples']={}
-      Data_hierarchy['specimens']={}
-      Data_hierarchy['sample_of_specimen']={} 
-      Data_hierarchy['site_of_specimen']={}   
-      Data_hierarchy['site_of_sample']={}   
-      Data_hierarchy['location_of_specimen']={}   
-      Data_hierarchy['location_of_sample']={}   
-      Data_hierarchy['location_of_site']={}   
-      try:
-          meas_data,file_type=pmag.magic_read(self.WD+"/magic_measurements.txt")
-      except:
-          print "-E- ERROR: Cant read magic_measurement.txt file. File is corrupted."
-          return {},{}
-         
-      sids=pmag.get_specs(meas_data) # samples ID's
-      
-      for s in sids:
-          if s not in Data.keys():
-              Data[s]={}
-      for rec in meas_data:
-          s=rec["er_specimen_name"]
-          sample=rec["er_sample_name"]
-          site=rec["er_site_name"]
-          location=rec["er_location_name"]
-          if sample not in Data_hierarchy['samples'].keys():
-              Data_hierarchy['samples'][sample]=[]
-
-          if site not in Data_hierarchy['sites'].keys():
-              Data_hierarchy['sites'][site]=[]         
-
-          if location not in Data_hierarchy['locations'].keys():
-              Data_hierarchy['locations'][location]=[]         
-          
-          if s not in Data_hierarchy['samples'][sample]:
-              Data_hierarchy['samples'][sample].append(s)
-
-          if sample not in Data_hierarchy['sites'][site]:
-              Data_hierarchy['sites'][site].append(sample)
-
-          if site not in Data_hierarchy['locations'][location]:
-              Data_hierarchy['locations'][location].append(site)
-
-          Data_hierarchy['specimens'][s]=sample
-          Data_hierarchy['sample_of_specimen'][s]=sample  
-          Data_hierarchy['site_of_specimen'][s]=site  
-          Data_hierarchy['site_of_sample'][sample]=site
-          Data_hierarchy['location_of_specimen'][s]=location 
-          Data_hierarchy['location_of_sample'][sample]=location 
-          Data_hierarchy['location_of_site'][site]=location 
-          
-      return(Data,Data_hierarchy)
-"""
-
-
-"""
-        # code that would update specimens in update_specimens
-        changed = [(i, col1_updated[num]) for (num, i) in enumerate(col1_old) if i != col1_updated[num]]  
-        
-        
-        for change in changed:
-            #print "change", change
-            old_spec, new_spec = change
-            sample = self.Data_hierarchy[type1].pop(old_spec)
-            #
-            self.Data_hierarchy[type1][new_spec] = sample
-            #
-            sample = self.Data_hierarchy['sample_of_specimen'].pop(old_spec)
-            self.Data_hierarchy['sample_of_specimen'][new_spec] = sample
-            #
-            site = self.Data_hierarchy['site_of_specimen'].pop(old_spec)
-            self.Data_hierarchy['site_of_specimen'][new_spec] = site
-            #
-            loc = self.Data_hierarchy['location_of_specimen'].pop(old_spec)
-            self.Data_hierarchy['location_of_specimen'][new_spec] = loc
-            #
-            #print "self.Data_hierarchy['samples']", self.Data_hierarchy['samples']
-            #print "self.Data_hierarchy['samples'][sample]", self.Data_hierarchy['samples'][sample]
-            ind = self.Data_hierarchy['samples'][sample].index(old_spec)
-            #print "ind:", ind
-            #self.Data_hierarchy['samples'][sample].pop(ind)
-            self.Data_hierarchy['samples'][sample][ind] = new_spec
-            # doing data_er_specimens thing
-            print "self.ErMagic.data_er_specimens.keys()", self.ErMagic.data_er_specimens.keys()
-            spec_data = self.ErMagic.data_er_specimens.pop(old_spec)
-            self.ErMagic.data_er_specimens[new_spec] = spec_data
-            self.ErMagic.data_er_specimens[new_spec]['er_specimen_name'] = new_spec
-            #self.ErMagic.data_er_specimens[new_spec]['er_sample_name'] = sample
-            #self.ErMagic.data_er_specimens[new_spec]['er_site_name'] = site
-            #self.ErMagic.data_er_specimens[new_spec]['er_locations_name'] = loc
-
-            # there are some other things in the dictionary that might need to be updated, but I'm not sure
-            # done data_er_specimens thing
-
-
-        # update self.ErMagic.data_er_specimens as below:
-        #'mgf10a1': {'er_citation_names': 'This study', 'er_location_name': '', 'er_site_name': 'm', 'er_sample_name': 'm', 'specimen_class': '', 'er_specimen_name': 'mgf10a1', 'specimen_lithology': '', 'er_citation_name': '', 'specimen_type': ''}
-        # also update data_er_samples and so on all the way up as needed
-        #self.ErMagic.data_er_samples[new_sample] {'sample_bed_dip_direction': '', 'er_citation_names': 'This study', 'sample_lithology': '', 'sample_azimuth': '', 'er_site_name': 'm', 'er_sample_name': 'MARTHS', 'specimen_weight': '', 'sample_type': '', 'sample_bed_dip': '', 'er_location_name': '', 'sample_height': '', 'sample_declination_correction': '', 'sample_lat': '', 'magic_method_codes': '', 'specimen_volume': '', 'er_citation_name': '', 'sample_dip': '', 'sample_lon': '', 'sample_class': ''}
-"""

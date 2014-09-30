@@ -265,14 +265,17 @@ class MagMainFrame(wx.Frame):
     
     def on_er_data(self, event):
         import ErMagicBuilder
-        ErMagic = ErMagicBuilder.MagIC_model_builder(self.WD)#,self.Data,self.Data_hierarchy)
-        ErMagic.Show()
-        ErMagic.Center()
+        self.ErMagic = ErMagicBuilder.MagIC_model_builder(self.WD, self)#,self.Data,self.Data_hierarchy)
+        self.ErMagic.Show()
+        self.ErMagic.Center()
 
         SIZE=wx.DisplaySize()
         SIZE=(SIZE[0]-0.3*SIZE[0],SIZE[1]-0.3*SIZE[1]) # gets total available screen space - 10%
-        ErMagic.Raise()
+        self.ErMagic.Raise()
 
+    def init_check_window(self):
+        import pmag_basic_dialogs
+        self.check_dia = pmag_basic_dialogs.check(self, -1, 'Check', self.WD, self.ErMagic)# initiates the object that will control steps 1-6 of checking headers, filling in cell values, etc.
 
 
     def get_data(self):

@@ -40,7 +40,7 @@ class MagIC_model_builder(wx.Frame):
     """"""
  
     #----------------------------------------------------------------------
-    def __init__(self, WD):
+    def __init__(self, WD, parent):
         SIZE=wx.DisplaySize()
         SIZE=(SIZE[0]-0.05*SIZE[0],SIZE[1]-0.05*SIZE[1])
 
@@ -49,8 +49,9 @@ class MagIC_model_builder(wx.Frame):
         #print Data
         #print "-------------"
         #print Data_hierarchy
-        wx.Frame.__init__(self, None, wx.ID_ANY,size=SIZE)
+        wx.Frame.__init__(self, parent, wx.ID_ANY,size=SIZE)
         #self.panel = wx.Panel(self)
+        self.main_frame = self.Parent
         self.panel = wx.ScrolledWindow(self)
         self.panel.SetScrollbars(1, 1, 1, 1)
         self.er_specimens_header=['er_citation_names','er_specimen_name','er_sample_name','er_site_name','er_location_name','specimen_class','specimen_lithology','specimen_type']
@@ -281,8 +282,7 @@ class MagIC_model_builder(wx.Frame):
 
     def on_okButton(self, event):
         self.update_ErMagic()
-        import pmag_basic_dialogs
-        dia = pmag_basic_dialogs.check(None, -1, 'Check', self.WD, self)# initiates the object that will control steps 1-6 of checking headers, filling in cell values, etc.
+        self.main_frame.init_check_window()
 
     def update_ErMagic(self):
         """check for changes and write (or re-write) er_specimens.txt, er_samples.txt, etc."""
