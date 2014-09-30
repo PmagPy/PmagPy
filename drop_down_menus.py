@@ -73,8 +73,6 @@ class Menus():
         self.grid.ForceRefresh()
 
 
-
-
     def on_left_click(self, event, grid, choices):
         """creates popup menu when user clicks on the third column
         allows user to edit third column, but only from available values"""
@@ -107,7 +105,9 @@ class Menus():
                 self.window.PopupMenu(menu)
                 menu.Destroy()
 
-            
+    def update_drop_down_menu(self, grid, choices):
+        self.window.Bind(wx.grid.EVT_GRID_SELECT_CELL, lambda event: self.on_left_click(event, grid, choices), grid) 
+
 
     def on_select_menuitem(self, event, grid, row, col):
         """sets value of selected cell to value selected from menu

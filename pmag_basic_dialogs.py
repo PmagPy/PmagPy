@@ -2878,7 +2878,7 @@ class check(wx.Frame):
             # re-Bind so that the updated samples list shows up on a left click
             samples = sorted(self.Data_hierarchy['samples'].keys())
             samples = sorted(list(set(samples).union(self.ErMagic.data_er_samples.keys())))
-            self.Bind(wx.grid.EVT_GRID_SELECT_CELL, lambda event: self.on_left_click(event, self.spec_grid, samples), self.spec_grid) 
+            self.drop_down_menu.update_drop_down_menu(self.spec_grid, {2: (samples, False)})
 
 
     def on_addSiteButton(self, event):
@@ -2902,6 +2902,7 @@ class check(wx.Frame):
             sites = sorted(self.Data_hierarchy['sites'].keys())
             sites = sorted(list(set(sites).union(self.ErMagic.data_er_sites.keys())))
             self.Bind(wx.grid.EVT_GRID_SELECT_CELL, lambda event: self.on_left_click(event, self.samp_grid, sites), self.samp_grid) 
+            self.drop_down_menu.update_drop_down_menu(self.samp_grid, {2: (sites, False)})
 
 
             
