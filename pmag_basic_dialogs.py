@@ -2775,9 +2775,14 @@ class check(wx.Frame):
                 value = data_dict[row][col]
                 if value:
                     grid.SetCellValue(num, n+1, value)
+        grid.AutoSizeColumns(True)
         for n, col in enumerate(column_labels):
             # adjust column widths to be a little larger then auto for nicer editing
-            size = grid.GetColSize(n) * 1.75
+            orig_size = grid.GetColSize(n)
+            if orig_size > 110:
+                size = orig_size * 1.1
+            else:
+                size = orig_size * 1.6
             grid.SetColSize(n, size)
         return grid
         
@@ -2805,7 +2810,6 @@ class check(wx.Frame):
         if column_labels[0] == 'specimens':
             col1_editable = False
 
-        # comment this so it is understandable to you
         for n, row in enumerate(row_values):
             grid.SetRowLabelValue(n, str(n+1)) # row labels will be simply numbers 1 - n
             original_1.append(row)
@@ -2815,26 +2819,25 @@ class check(wx.Frame):
             grid.SetCellValue(n, 1, "belongs to") # sets second column (placeholder)
             grid.SetReadOnly(n, 1, True) 
             #
-            grid.SetReadOnly(n, 2, True) # prevents column 2 from being cell editing (but will be able to edit with dropdown menu)
-            # uses data structure to take get data, for example: sample_of_specimen[spec1].  
-            col = column_indexing[ind][row] 
+            grid.SetReadOnly(n, 2, True) # prevents column 2 from cell editing (but will be able to edit with dropdown menu)
+            col = column_indexing[ind][row] # uses data structure to take get data, e.g.: sample_of_specimen[spec1].  
             original_2.append(col)
             grid.SetCellValue(n, 2, col)
-
         
         for n, label in enumerate(column_labels):
             grid.SetColLabelValue(n, label)
 
-        #grid.AutoSize() # doesn't seem to matter....
-
+        grid.AutoSizeColumns(True)
         for n, col in enumerate(column_labels):
             # adjust column widths to be a little larger then auto for nicer editing
-            if n != 1:
-            #if True:
-                size = grid.GetColSize(n) * 1.75
-                grid.SetColSize(n, size)
-
+            orig_size = grid.GetColSize(n)
+            if orig_size > 110:
+                size = orig_size * 1.1
+            else:
+                size = orig_size * 1.6
+            grid.SetColSize(n, size)
         return grid, original_1, original_2
+
     
     def add_extra_grid_data(self, grid, row_labels, col_labels, data_dict):
         temp_data = {}
