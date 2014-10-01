@@ -5,6 +5,7 @@ import wx.lib.buttons as buttons
 import os
 import sys
 import datetime
+import shutil
 import pmag
 import pmag_basic_dialogs
 import pmag_menu
@@ -247,8 +248,8 @@ class MagMainFrame(wx.Frame):
         if ok == wx.ID_YES:
             os.chdir('..')
             wd = self.WD
-            outstring = "rm -r {}".format(wd)
-            outstring = "mv {} {}".format(self.saved_dir, self.WD)
+            shutil.rmtree(wd)
+            shutil.move(self.saved_dir, self.WD)
             os.chdir(self.WD)
             self.on_save_dir_button(None)
         else:
@@ -262,14 +263,9 @@ class MagMainFrame(wx.Frame):
         ind = wd.rfind('/') + 1
         saved_prefix, saved_folder = wd[:ind], wd[ind:]
         self.saved_dir = saved_prefix + "copy_" + saved_folder
-        os.system('mkdir {}'.format(self.saved_dir))
-        #for root, dirs, files in os.walk(self.WD):
-        #    pass
-            # could use this syntax to copy over dirs, etc. 
-                
-        outstring = "cp {}/* {}".format(wd, self.saved_dir)
-        os.system(outstring)
-
+        if "copy_" + saved_folder in os.listdir(saved_prefix):
+            shutil.rmtree(self.saved_dir)
+        shutil.copytree(self.WD, self.saved_dir)
         self.last_saved_time.Clear()
         now = datetime.datetime.now()
         now_string = "{}:{}:{}".format(now.hour, now.minute, now.second)
@@ -394,6 +390,7 @@ class MagMainFrame(wx.Frame):
        
            
     def on_menu_exit(self, event):
+        # also delete appropriate copy file
         try:
             self.help_window.Destroy()
         except:
