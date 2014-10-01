@@ -252,8 +252,8 @@ class convert_generic_files_to_MagIC(wx.Frame):
         self.panel.SetSizer(self.hbox_all)
         self.bSizer2a.ShowItems(False)
         self.hbox_all.Fit(self)
-        self.Show()
         self.Centre()
+        self.Show()
 
 
     def on_select_protocol(self, event):
@@ -510,8 +510,9 @@ class combine_magic_dialog(wx.Frame):
         
         self.panel.SetSizer(hbox_all)
         hbox_all.Fit(self)
-        self.Show()
         self.Centre()
+        self.Show()
+
                         
     
     def on_add_file_button(self,event):
@@ -623,8 +624,9 @@ class combine_everything_dialog(wx.Frame):
         
         self.panel.SetSizer(hbox_all)
         hbox_all.Fit(self)
-        self.Show()
         self.Centre()
+        self.Show()
+
                         
 
     def on_cancelButton(self,event):
@@ -767,8 +769,9 @@ class convert_SIO_files_to_MagIC(wx.Frame):
         self.panel.SetSizer(hbox_all)
         self.panel.SetScrollbars(20, 20, 50, 50)
         hbox_all.Fit(self)
-        self.Show()
         self.Centre()
+        self.Show()
+
         
 
     def on_add_file_button(self,event):
@@ -902,8 +905,9 @@ class convert_CIT_files_to_MagIC(wx.Frame):
         self.panel.SetSizer(hbox_all)
         self.panel.SetScrollbars(20, 20, 50, 50)
         hbox_all.Fit(self)
-        self.Show()
         self.Centre()
+        self.Show()
+
 
 
     def on_add_file_button(self,event):
@@ -1031,8 +1035,9 @@ class convert_HUJI_files_to_MagIC(wx.Frame):
         self.panel.SetSizer(hbox_all)
         self.panel.SetScrollbars(20, 20, 50, 50)
         hbox_all.Fit(self)
-        self.Show()
         self.Centre()
+        self.Show()
+
 
 
     def on_add_file_button(self,event):
@@ -1153,8 +1158,9 @@ class convert_2G_binary_files_to_MagIC(wx.Frame):
         self.panel.SetSizer(hbox_all)
         self.panel.SetScrollbars(20, 20, 50, 50)
         hbox_all.Fit(self)
-        self.Show()
         self.Centre()
+        self.Show()
+
 
     #---button methods ---
 
@@ -1309,8 +1315,9 @@ class convert_LDEO_files_to_MagIC(wx.Frame):
         self.panel.SetSizer(hbox_all)
         self.panel.SetScrollbars(20, 20, 50, 50)
         hbox_all.Fit(self)
-        self.Show()
         self.Centre()
+        self.Show()
+
 
 
     def on_add_file_button(self,event):
@@ -1428,8 +1435,9 @@ class convert_IODP_csv_files_to_MagIC(wx.Frame):
         self.panel.SetSizer(hbox_all)
         self.panel.SetScrollbars(20, 20, 50, 50)
         hbox_all.Fit(self)
-        self.Show()
         self.Centre()
+        self.Show()
+
 
 
     def on_add_file_button(self,event):
@@ -1540,8 +1548,9 @@ class convert_PMD_files_to_MagIC(wx.Frame):
         self.panel.SetSizer(hbox_all)
         self.panel.SetScrollbars(20, 20, 50, 50)
         hbox_all.Fit(self)
-        self.Show()
         self.Centre()
+        self.Show()
+
 
 
     def on_add_dir_button(self,event):
@@ -1662,8 +1671,8 @@ class something(wx.Frame):
         self.panel.SetSizer(hbox_all)
         self.panel.SetScrollbars(20, 20, 50, 50)
         hbox_all.Fit(self)
-        self.Show()
         self.Centre()
+        self.Show()
 
 
     def on_add_file_button(self,event):
@@ -2439,8 +2448,9 @@ class check(wx.Frame):
         self.panel.SetSizer(hbox_all)
         self.panel.SetScrollbars(20, 20, 50, 50)
         hbox_all.Fit(self)  
-        self.Show()
         self.Centre()
+        self.Show()
+
             
 
     def InitSampCheck(self):
@@ -2529,8 +2539,9 @@ class check(wx.Frame):
         self.panel.SetSizer(hbox_all)
         self.panel.SetScrollbars(20, 20, 50, 50)
         hbox_all.Fit(self)
-        self.Show()
         self.Centre()
+        self.Show()
+
 
 
     def InitSiteCheck(self):
@@ -2596,8 +2607,9 @@ class check(wx.Frame):
         self.panel.SetSizer(hbox_all)
         self.panel.SetScrollbars(20, 20, 50, 50)
         hbox_all.Fit(self)
-        self.Show()
         self.Centre()
+        self.Show()
+
 
 
     def InitLocCheck(self):
@@ -2662,8 +2674,9 @@ class check(wx.Frame):
         self.panel.SetSizer(hbox_all)
         self.panel.SetScrollbars(20, 20, 50, 50)
         hbox_all.Fit(self)
-        self.Show()
         self.Centre()
+        self.Show()
+
 
 
 
@@ -2735,10 +2748,8 @@ class check(wx.Frame):
         self.panel.SetSizer(hbox_all)
         self.panel.SetScrollbars(20, 20, 50, 50)
         hbox_all.Fit(self)
-        self.Show()
         self.Centre()
-
-
+        self.Show()
 
 
     ### Grid methods ###
