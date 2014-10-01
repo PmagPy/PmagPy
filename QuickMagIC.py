@@ -301,7 +301,7 @@ class MagMainFrame(wx.Frame):
 
     def init_check_window(self):
         import pmag_basic_dialogs
-        self.check_dia = pmag_basic_dialogs.check(self, -1, 'Check', self.WD, self.ErMagic)# initiates the object that will control steps 1-6 of checking headers, filling in cell values, etc.
+        self.check_dia = pmag_basic_dialogs.check(self, -1, 'Check Data', self.WD, self.ErMagic)# initiates the object that will control steps 1-6 of checking headers, filling in cell values, etc.
 
 
     def get_data(self):

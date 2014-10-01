@@ -2611,7 +2611,6 @@ class check(wx.Frame):
         self.Show()
 
 
-
     def InitLocCheck(self):
         """make an interactive grid in which users can edit specimen names
         as well as which sample a specimen belongs to"""
@@ -2629,7 +2628,8 @@ class check(wx.Frame):
         col_labels = self.ErMagic.data_er_locations[key1].keys()
         try:
             col_labels.remove('er_location_name')
-            col_labels[:0] = ['er_location_name']
+            col_labels.remove('location_type')
+            col_labels[:0] = ['er_location_name', 'location_type']
         except:
             pass
         self.loc_grid = self.make_simple_table(col_labels, self.ErMagic.data_er_locations, "location")
@@ -2676,8 +2676,6 @@ class check(wx.Frame):
         hbox_all.Fit(self)
         self.Centre()
         self.Show()
-
-
 
 
     def InitAgeCheck(self):
@@ -2756,7 +2754,7 @@ class check(wx.Frame):
     def make_simple_table(self, column_labels, data_dict, grid_name):
         row_labels = sorted(data_dict.keys())
         if len(row_labels) == 1:
-            grid = wx.grid.Grid(self.panel, -1, name=grid_name, size=(1100, 60))
+            grid = wx.grid.Grid(self.panel, -1, name=grid_name, size=(1100, 70))
         else:
             grid = wx.grid.Grid(self.panel, -1, name=grid_name)
         grid.ClearGrid()
@@ -2793,7 +2791,7 @@ class check(wx.Frame):
         column_indexing: Data_hierarchy object containing various data mappings
         ind: ['sample_of_specimen'], indicating which data mapping to use """
         if len(row_values) == 1:
-            grid = wx.grid.Grid(self.panel, -1, name=column_labels[0], size=(110, 60))
+            grid = wx.grid.Grid(self.panel, -1, name=column_labels[0], size=(1100, 70))
         else:
             grid = wx.grid.Grid(self.panel, -1, name=column_labels[0])
         grid.ClearGrid()
