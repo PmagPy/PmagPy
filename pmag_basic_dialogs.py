@@ -2844,10 +2844,10 @@ class check(wx.Frame):
         for num, row in enumerate(row_labels):
             new_list = []
             for n, col in enumerate(col_labels[3:]):
-                #if row in data_dict.keys(): # accounts for potential difference between er_sites.txt and magic_measurements.txt  # don't seem to need this
-                new_list.append(data_dict[row][col])
-                if data_dict[row][col]:
-                    grid.SetCellValue(num, n+3, data_dict[row][col])
+                if row in data_dict.keys(): # accounts for potential difference between er_sites.txt and magic_measurements.txt
+                    new_list.append(data_dict[row][col])
+                    if data_dict[row][col]:
+                        grid.SetCellValue(num, n+3, data_dict[row][col])
             temp_data[row] = new_list
         return temp_data
         
