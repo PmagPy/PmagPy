@@ -7,10 +7,11 @@ import wx
 import os
 import pmag
 import subprocess
-import pmag_widgets as pw
 import wx.grid
 import subprocess
-
+import pmag_widgets as pw
+import thellier_gui_dialogs
+import thellier_gui
 
 class ImportOrientFile(wx.Frame):
 
@@ -986,6 +987,191 @@ class ImportAgmFolder(wx.Frame):
 
     def on_helpButton(self, event):
         pw.on_helpButton(".py -h")
+
+
+### Analysis and plots
+
+class CustomizeCriteria(wx.Frame):
+
+    title = "Customize Criteria"
+    
+    def __init__(self, parent, WD):
+        wx.Frame.__init__(self, parent, wx.ID_ANY, self.title)
+        self.panel = wx.ScrolledWindow(self)
+        self.WD = WD
+        self.InitUI()
+
+    def InitUI(self):
+        pnl = self.panel
+        TEXT = "Update your criteria"
+        bSizer_info = wx.BoxSizer(wx.HORIZONTAL)
+        bSizer_info.Add(wx.StaticText(pnl, label=TEXT), wx.ALIGN_LEFT)
+
+        #---sizer 0 ----
+        choices = ['Use default criteria', 'Update default criteria', 'Use no criteria', 'Update existing criteria']
+        self.bSizer0 = pw.radio_buttons(pnl, choices)
+
+        #---sizer 1 ----
+        #self.bSizer1 = pw.specimen_n(pnl)
+
+        #---sizer 2 ---
+        #self.bSizer2 = pw.select_ncn(pnl)
+
+        #---sizer 3 ---
+        #self.bSizer3 = pw.labeled_text_field(pnl, label="Location name:")
+
+        #---sizer 4 ---
+        #self.bSizer4 = pw.labeled_text_field(pnl, label="Instrument name (optional):")
+
+
+        #---sizer 4 ----
+        #try:
+        #    open(self.WD + "/er_samples.txt", "rU")
+        #except Exception as ex:
+        #    er_samples_file_present = False
+        #if er_samples_file_present:
+        #    self.bSizer4 = pw.labeled_yes_or_no(pnl, TEXT, label1, label2)
+
+        #---buttons ---
+        hboxok = pw.btn_panel(self, pnl)
+
+        vbox = wx.BoxSizer(wx.VERTICAL)
+        vbox.Add(bSizer_info, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        vbox.Add(self.bSizer0, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        #vbox.Add(self.bSizer1, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        #vbox.Add(self.bSizer2, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        #vbox.Add(hbox, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        #vbox.Add(self.bSizer3, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        #try:
+        #    vbox.Add(self.bSizer4, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        #except AttributeError:
+        #    pass
+        vbox.Add(hboxok, flag=wx.ALIGN_CENTER)        
+        vbox.AddSpacer(20)
+
+        hbox_all = wx.BoxSizer(wx.HORIZONTAL)
+        hbox_all.AddSpacer(20)
+        hbox_all.AddSpacer(vbox)
+
+        self.panel.SetSizer(hbox_all)
+        self.panel.SetScrollbars(20, 20, 50, 50)
+        hbox_all.Fit(self)
+        self.Show()
+        self.Centre()
+
+    def on_add_file_button(self,event):
+        text = "choose file to convert to MagIC"
+        pw.on_add_file_button(self.bSizer0, self.WD, event, text)
+
+    def on_okButton(self, event):
+        choice = self.bSizer0.return_value()
+        #choices = ['Use default criteria', 'Update default criteria', 'Use no criteria', 'Update existing criteria']
+        critout = self.WD+'/pmag_criteria.txt'
+        if choice == 'Use default criteria':
+            crit_data=pmag.default_criteria(0)
+            crit_data,critkeys=pmag.fillkeys(crit_data)
+            pmag.magic_write(critout,crit_data,'pmag_criteria')
+            # pop up instead of print
+            MSG="Default criteria saved in {}pmag_criteria.txt".format(self.WD)
+        elif choice == 'Use no criteria':
+            crit_data = pmag.default_criteria(1)
+            pmag.magic_write(critout,crit_data,'pmag_criteria')
+            MSG="Extremely loose criteria saved in {}pmag_criteria.txt".format(self.WD)
+        elif choice == "Update existing criteria":
+            #window_list_specimens=self.preferences['show_statistics_on_gui']
+            #['int_n', 'frac', 'fvds', 'b_beta', 'scat', 'g', 'k', 'k_sse', 'k_prime', 'k_prime_sse', 'q', 'int_mad', 'int_dang', 'gamma', 'int_ptrm_n', 'ptrm', 'drats', 'maxdev', 'dpal', 'int_ptrm_tail_n', 'md', 'tail_drat', 'dang', 'mad']
+            preferences = {'show_statistics_on_gui': ['int_n', 'frac', 'fvds', 'b_beta', 'scat', 'g', 'k', 'k_sse', 'k_prime', 'k_prime_sse', 'q', 'int_mad', 'int_dang', 'gamma', 'int_ptrm_n', 'ptrm', 'drats', 'maxdev', 'dpal', 'int_ptrm_tail_n', 'md', 'tail_drat', 'dang', 'mad']} # except make this fully inclusive
+            acceptance_criteria=pmag.initialize_acceptance_criteria()
+            add_thellier_gui_criteria(acceptance_criteria)
+            title = "Hello"
+            crit_dia = thellier_gui_dialogs.Criteria_Dialog(self, acceptance_criteria, preferences, title)
+            crit_dia.Centre()
+            crit_dia.ShowModal()
+        elif choice == "Update default criteria":
+            pass
+        MSG = "blah"
+        dia = wx.MessageDialog(None,caption="Message:", message=MSG ,style=wx.OK|wx.ICON_INFORMATION)
+        dia.ShowModal()
+        dia.Destroy()
+        self.Parent.Raise()
+        self.Destroy()
+        return
+ 
+
+    def on_cancelButton(self,event):
+        self.Destroy()
+        self.Parent.Raise()
+
+    def on_helpButton(self, event):
+        pw.on_helpButton(".py -h")
+
+
+
+
+
+def add_thellier_gui_criteria(acceptance_criteria):
+    '''criteria used only in thellier gui
+    these criteria are not written to pmag_criteria.txt
+    '''
+    category="thellier_gui"      
+    for crit in ['sample_int_n_outlier_check','site_int_n_outlier_check']:
+        acceptance_criteria[crit]={} 
+        acceptance_criteria[crit]['category']=category
+        acceptance_criteria[crit]['criterion_name']=crit
+        acceptance_criteria[crit]['value']=-999
+        acceptance_criteria[crit]['threshold_type']="low"
+        acceptance_criteria[crit]['decimal_points']=0
+
+    for crit in ['sample_int_interval_uT','sample_int_interval_perc',\
+    'site_int_interval_uT','site_int_interval_perc',\
+    'sample_int_BS_68_uT','sample_int_BS_95_uT','sample_int_BS_68_perc','sample_int_BS_95_perc','specimen_int_max_slope_diff']:
+        acceptance_criteria[crit]={} 
+        acceptance_criteria[crit]['category']=category
+        acceptance_criteria[crit]['criterion_name']=crit
+        acceptance_criteria[crit]['value']=-999
+        acceptance_criteria[crit]['threshold_type']="high"
+        if crit in ['specimen_int_max_slope_diff']:
+            acceptance_criteria[crit]['decimal_points']=-999
+        else:        
+            acceptance_criteria[crit]['decimal_points']=1
+        acceptance_criteria[crit]['comments']="thellier_gui_only"
+
+    for crit in ['average_by_sample_or_site','interpreter_method']:
+        acceptance_criteria[crit]={} 
+        acceptance_criteria[crit]['category']=category
+        acceptance_criteria[crit]['criterion_name']=crit
+        if crit in ['average_by_sample_or_site']:
+            acceptance_criteria[crit]['value']='sample'
+        if crit in ['interpreter_method']:
+            acceptance_criteria[crit]['value']='stdev_opt'
+        acceptance_criteria[crit]['threshold_type']="flag"
+        acceptance_criteria[crit]['decimal_points']=-999
+
+    for crit in ['include_nrm']:
+        acceptance_criteria[crit]={} 
+        acceptance_criteria[crit]['category']=category
+        acceptance_criteria[crit]['criterion_name']=crit
+        acceptance_criteria[crit]['value']=True
+        acceptance_criteria[crit]['threshold_type']="bool"
+        acceptance_criteria[crit]['decimal_points']=-999
+
+
+    # define internal Thellier-GUI definitions:
+    #self.average_by_sample_or_site='sample'
+    #self.stdev_opt=True
+    #self.bs=False
+    #self.bs_par=False
+
+
+
+
+
+
+
+
+
+
+
 
 
 class something(wx.Frame):

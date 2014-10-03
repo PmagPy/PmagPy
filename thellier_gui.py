@@ -198,7 +198,7 @@ class Arai_GUI(wx.Frame):
          
         # inialize selecting criteria
         self.acceptance_criteria=pmag.initialize_acceptance_criteria()
-        self.add_thelier_gui_criteria()
+        self.add_thellier_gui_criteria()
         self.read_criteria_file(self.WD+"/pmag_criteria.txt")  
         # preferences
 
@@ -2029,7 +2029,7 @@ class Arai_GUI(wx.Frame):
                 return
         
         self.acceptance_criteria=pmag.initialize_acceptance_criteria()
-        self.add_thelier_gui_criteria()
+        self.add_thellier_gui_criteria()
         self.read_criteria_file(criteria_file)            
             
         dia = thellier_gui_dialogs.Criteria_Dialog(None, self.acceptance_criteria,self.preferences,title='Acceptance Criteria')
@@ -7416,7 +7416,7 @@ class Arai_GUI(wx.Frame):
         dlg.Destroy()        
     
 
-    def add_thelier_gui_criteria(self):
+    def add_thellier_gui_criteria(self):
         '''criteria used only in thellier gui
         these criteria are not written to pmag_criteria.txt
         '''
