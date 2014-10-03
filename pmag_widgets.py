@@ -257,6 +257,14 @@ class radio_buttons(wx.StaticBoxSizer):
                 return rb.Label
 
 
+class name_me(wx.StaticBoxSizer):
+
+    def __init__(self, parent, choices, text):
+        box = wx.StaticBox(parent, wx.ID_ANY, "")
+        super(name_me, self).__init__(box, orient=wx.VERTICAL)
+
+
+
 class check_boxes(wx.StaticBoxSizer):
     
     def __init__(self, parent, gridsize, choices, text):
@@ -279,6 +287,8 @@ class check_boxes(wx.StaticBoxSizer):
             if cb.GetValue():
                 checked.append(str(cb.Label))
         return checked
+
+
 
 class sampling_particulars(check_boxes):
 

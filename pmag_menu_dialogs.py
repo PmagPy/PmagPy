@@ -1011,27 +1011,6 @@ class CustomizeCriteria(wx.Frame):
         choices = ['Use default criteria', 'Update default criteria', 'Use no criteria', 'Update existing criteria']
         self.bSizer0 = pw.radio_buttons(pnl, choices)
 
-        #---sizer 1 ----
-        #self.bSizer1 = pw.specimen_n(pnl)
-
-        #---sizer 2 ---
-        #self.bSizer2 = pw.select_ncn(pnl)
-
-        #---sizer 3 ---
-        #self.bSizer3 = pw.labeled_text_field(pnl, label="Location name:")
-
-        #---sizer 4 ---
-        #self.bSizer4 = pw.labeled_text_field(pnl, label="Instrument name (optional):")
-
-
-        #---sizer 4 ----
-        #try:
-        #    open(self.WD + "/er_samples.txt", "rU")
-        #except Exception as ex:
-        #    er_samples_file_present = False
-        #if er_samples_file_present:
-        #    self.bSizer4 = pw.labeled_yes_or_no(pnl, TEXT, label1, label2)
-
         #---buttons ---
         hboxok = pw.btn_panel(self, pnl)
 
@@ -1078,15 +1057,41 @@ class CustomizeCriteria(wx.Frame):
             pmag.magic_write(critout,crit_data,'pmag_criteria')
             MSG="Extremely loose criteria saved in {}pmag_criteria.txt".format(self.WD)
         elif choice == "Update existing criteria":
-            #window_list_specimens=self.preferences['show_statistics_on_gui']
-            #['int_n', 'frac', 'fvds', 'b_beta', 'scat', 'g', 'k', 'k_sse', 'k_prime', 'k_prime_sse', 'q', 'int_mad', 'int_dang', 'gamma', 'int_ptrm_n', 'ptrm', 'drats', 'maxdev', 'dpal', 'int_ptrm_tail_n', 'md', 'tail_drat', 'dang', 'mad']
-            preferences = {'show_statistics_on_gui': ['int_n', 'frac', 'fvds', 'b_beta', 'scat', 'g', 'k', 'k_sse', 'k_prime', 'k_prime_sse', 'q', 'int_mad', 'int_dang', 'gamma', 'int_ptrm_n', 'ptrm', 'drats', 'maxdev', 'dpal', 'int_ptrm_tail_n', 'md', 'tail_drat', 'dang', 'mad']} # except make this fully inclusive
-            acceptance_criteria=pmag.initialize_acceptance_criteria()
-            add_thellier_gui_criteria(acceptance_criteria)
-            title = "Hello"
-            crit_dia = thellier_gui_dialogs.Criteria_Dialog(self, acceptance_criteria, preferences, title)
-            crit_dia.Centre()
-            crit_dia.ShowModal()
+            try:
+                crit_data, file_type = pmag.magic_read(self.WD + "pmag_criteria.txt")
+                if file_type != "pmag_criteria":
+                    raise Exception
+            except Exception as ex:
+                print "exception", ex
+                MSG = "No pmag_criteria.txt file found in working directory ({})".format(self.WD)
+                dia = wx.MessageDialog(None,caption="Message:", message=MSG ,style=wx.OK|wx.ICON_INFORMATION)
+                return 0
+            # MAKE acceptance criteria dialog here
+            print "crit_data", len(crit_data[0].keys())
+            frame = wx.Frame(self.Parent)
+            boxes = pw.check_boxes(frame, (22, 5, 1, 1), crit_data[0].keys(), "HI")
+            bSizer = wx.BoxSizer(wx.VERTICAL)
+            bSizer.Add(boxes)
+            frame.SetSizer(bSizer)
+            bSizer.Fit(frame)
+            frame.Show()
+            print "crit_data", crit_data
+            MSG = "Acceptance criteria read in from "
+            return 0
+        elif choice == "Update default criteria":
+            crit_data = pmag.default_criteria(0)
+            # MAKE acceptance criteria dialog here, too
+            
+
+                
+            # BELOW works but grabs lots of unneeded stats
+            #acceptance_criteria=pmag.initialize_acceptance_criteria()
+            #preferences = {'show_statistics_on_gui': ['int_n', 'frac', 'fvds', 'b_beta', 'scat', 'g', 'k', 'k_sse', 'k_prime', 'k_prime_sse', 'q', 'int_mad', 'int_dang', 'gamma', 'int_ptrm_n', 'ptrm', 'drats', 'maxdev', 'dpal', 'int_ptrm_tail_n', 'md', 'tail_drat', 'dang', 'mad']} # except make this fully inclusive
+            #add_thellier_gui_criteria(acceptance_criteria)
+            #title = "Hello"
+            #crit_dia = thellier_gui_dialogs.Criteria_Dialog(self, acceptance_criteria, preferences, title)
+            #crit_dia.Centre()
+            #crit_dia.ShowModal()
         elif choice == "Update default criteria":
             pass
         MSG = "blah"
