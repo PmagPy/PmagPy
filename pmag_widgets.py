@@ -257,11 +257,21 @@ class radio_buttons(wx.StaticBoxSizer):
                 return rb.Label
 
 
-class name_me(wx.StaticBoxSizer):
+class large_checkbox_window(wx.StaticBoxSizer):
 
     def __init__(self, parent, choices, text):
         box = wx.StaticBox(parent, wx.ID_ANY, "")
-        super(name_me, self).__init__(box, orient=wx.VERTICAL)
+        super(large_checkbox_window, self).__init__(box, orient=wx.VERTICAL)
+        
+        gridSizer = wx.FlexGridSizer(22, 10, 9, 10)
+        labels = [wx.StaticText(parent, label=choice) for choice in choices]
+        for label in labels:
+            gridSizer.Add(label, wx.EXPAND)
+            text_control = wx.TextCtrl(parent)
+            text_sizer = gridSizer.Add(text_control)
+            if choices[label.Label]:
+                text_control.SetValue(choices[label.Label])
+        self.Add(gridSizer, wx.ALIGN_LEFT)
 
 
 

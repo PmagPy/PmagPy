@@ -1046,17 +1046,25 @@ class CustomizeCriteria(wx.Frame):
         choice = self.bSizer0.return_value()
         #choices = ['Use default criteria', 'Update default criteria', 'Use no criteria', 'Update existing criteria']
         critout = self.WD+'/pmag_criteria.txt'
-        if choice == 'Use default criteria':
-            crit_data=pmag.default_criteria(0)
-            crit_data,critkeys=pmag.fillkeys(crit_data)
-            pmag.magic_write(critout,crit_data,'pmag_criteria')
-            # pop up instead of print
-            MSG="Default criteria saved in {}pmag_criteria.txt".format(self.WD)
-        elif choice == 'Use no criteria':
-            crit_data = pmag.default_criteria(1)
-            pmag.magic_write(critout,crit_data,'pmag_criteria')
-            MSG="Extremely loose criteria saved in {}pmag_criteria.txt".format(self.WD)
-        elif choice == "Update existing criteria":
+        if choice == 'Use default criteria' or choice == 'Use no criteria':
+            if choice == 'Use default criteria':
+                crit_data=pmag.default_criteria(0)
+                crit_data,critkeys=pmag.fillkeys(crit_data)
+                pmag.magic_write(critout,crit_data,'pmag_criteria')
+                # pop up instead of print
+                MSG="Default criteria saved in {}pmag_criteria.txt".format(self.WD)
+            elif choice == 'Use no criteria':
+                crit_data = pmag.default_criteria(1)
+                pmag.magic_write(critout,crit_data,'pmag_criteria')
+                MSG="Extremely loose criteria saved in {}pmag_criteria.txt".format(self.WD)
+
+            dia = wx.MessageDialog(None,caption="Message:", message=MSG ,style=wx.OK|wx.ICON_INFORMATION)
+            dia.ShowModal()
+            dia.Destroy()
+            self.Parent.Raise()
+            self.Destroy()
+            return
+        if choice == "Update existing criteria":
             try:
                 crit_data, file_type = pmag.magic_read(self.WD + "pmag_criteria.txt")
                 if file_type != "pmag_criteria":
@@ -1066,48 +1074,47 @@ class CustomizeCriteria(wx.Frame):
                 MSG = "No pmag_criteria.txt file found in working directory ({})".format(self.WD)
                 dia = wx.MessageDialog(None,caption="Message:", message=MSG ,style=wx.OK|wx.ICON_INFORMATION)
                 return 0
-            # MAKE acceptance criteria dialog here
-            print "crit_data", len(crit_data[0].keys())
-            frame = wx.Frame(self.Parent)
-            boxes = pw.check_boxes(frame, (22, 5, 1, 1), crit_data[0].keys(), "HI")
-            bSizer = wx.BoxSizer(wx.VERTICAL)
-            bSizer.Add(boxes)
-            frame.SetSizer(bSizer)
-            bSizer.Fit(frame)
-            frame.Show()
-            print "crit_data", crit_data
-            MSG = "Acceptance criteria read in from "
-            return 0
+            # Acceptance criteria dialog here
+            crit_data = crit_data[0]
         elif choice == "Update default criteria":
-            crit_data = pmag.default_criteria(0)
-            # MAKE acceptance criteria dialog here, too
-            
+            crit_data = pmag.default_criteria(0)[0]
 
-                
-            # BELOW works but grabs lots of unneeded stats
-            #acceptance_criteria=pmag.initialize_acceptance_criteria()
-            #preferences = {'show_statistics_on_gui': ['int_n', 'frac', 'fvds', 'b_beta', 'scat', 'g', 'k', 'k_sse', 'k_prime', 'k_prime_sse', 'q', 'int_mad', 'int_dang', 'gamma', 'int_ptrm_n', 'ptrm', 'drats', 'maxdev', 'dpal', 'int_ptrm_tail_n', 'md', 'tail_drat', 'dang', 'mad']} # except make this fully inclusive
-            #add_thellier_gui_criteria(acceptance_criteria)
-            #title = "Hello"
-            #crit_dia = thellier_gui_dialogs.Criteria_Dialog(self, acceptance_criteria, preferences, title)
-            #crit_dia.Centre()
-            #crit_dia.ShowModal()
-        elif choice == "Update default criteria":
-            pass
-        MSG = "blah"
-        dia = wx.MessageDialog(None,caption="Message:", message=MSG ,style=wx.OK|wx.ICON_INFORMATION)
-        dia.ShowModal()
-        dia.Destroy()
-        self.Parent.Raise()
-        self.Destroy()
-        return
+        frame = wx.Frame(self)
+        window = wx.ScrolledWindow(frame)
+        boxes = pw.large_checkbox_window(window, crit_data, "Update Acceptance Criteria")
+        bSizer = wx.BoxSizer(wx.VERTICAL)
+        bSizer.Add(boxes)
+
+        hboxok = wx.BoxSizer(wx.HORIZONTAL)
+        edit_okButton = wx.Button(window, wx.ID_ANY, "&OK")
+        edit_cancelButton = wx.Button(window, wx.ID_ANY, '&Cancel')
+        hboxok.Add(edit_okButton, 0, wx.ALL, 5)
+        hboxok.Add(edit_cancelButton, 0, wx.ALL, 5 )
+        window.Bind(wx.EVT_BUTTON, self.on_cancelButton, edit_cancelButton)
+        window.Bind(wx.EVT_BUTTON, self.on_edit_okButton, edit_okButton)
+
+        
+        bSizer.Add(hboxok)
+        window.SetSizer(bSizer)
+        bSizer.Fit(frame)
+        window.SetScrollbars(20, 20, 50, 50)
+        frame.Centre()
+        frame.Show()
  
 
-    def on_cancelButton(self,event):
+    def on_edit_okButton(self, event):
+        print "processing 'ok'"
+
+    def on_cancelButton(self, event):
+        for child in self.GetChildren():
+            child.Destroy()
+            #child_window = child.GetWindow()
+            #print child_window
         self.Destroy()
         self.Parent.Raise()
 
     def on_helpButton(self, event):
+        print "do help button"
         pw.on_helpButton(".py -h")
 
 
