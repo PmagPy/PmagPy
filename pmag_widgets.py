@@ -243,6 +243,7 @@ class radio_buttons(wx.StaticBoxSizer):
         box = wx.StaticBox(parent, -1, "")
         super(radio_buttons, self).__init__(box, orient=wx.VERTICAL)
         rb1 = wx.RadioButton(parent, label=choices[0], style=wx.RB_GROUP)
+        rb1.SetValue(True)
         self.Add(rb1)
         self.radio_buttons = [rb1]
         for choice in choices[1:]:
@@ -263,15 +264,26 @@ class large_checkbox_window(wx.StaticBoxSizer):
         box = wx.StaticBox(parent, wx.ID_ANY, "")
         super(large_checkbox_window, self).__init__(box, orient=wx.VERTICAL)
         
-        gridSizer = wx.FlexGridSizer(22, 10, 9, 10)
-        labels = [wx.StaticText(parent, label=choice) for choice in choices]
+        self.gridSizer = wx.FlexGridSizer(23, 10, 9, 10)
+        labels = [wx.StaticText(parent, label=choice) for choice in sorted(choices)]
         for label in labels:
-            gridSizer.Add(label, wx.EXPAND)
+            self.gridSizer.Add(label, flag=wx.ALIGN_RIGHT|wx.LEFT, border=30) # WHY WON'T THIS ALIGN RIGHT????.  not working.  
             text_control = wx.TextCtrl(parent)
-            text_sizer = gridSizer.Add(text_control)
+            text_sizer = self.gridSizer.Add(text_control)
             if choices[label.Label]:
                 text_control.SetValue(choices[label.Label])
-        self.Add(gridSizer, wx.ALIGN_LEFT)
+        self.Add(self.gridSizer, wx.ALIGN_LEFT)
+
+    def return_value(self):
+        keys = []
+        values = []
+        for sizer in self.gridSizer.Children:
+            if isinstance(sizer.GetWindow(), wx._controls.TextCtrl):
+                values.append(str(sizer.GetWindow().GetValue())) 
+            else:
+                keys.append(str(sizer.GetWindow().Label))
+        data_dict = dict(zip(keys, values))
+        return [data_dict]
 
 
 

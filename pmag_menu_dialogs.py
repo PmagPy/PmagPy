@@ -1044,7 +1044,6 @@ class CustomizeCriteria(wx.Frame):
 
     def on_okButton(self, event):
         choice = self.bSizer0.return_value()
-        #choices = ['Use default criteria', 'Update default criteria', 'Use no criteria', 'Update existing criteria']
         critout = self.WD+'/pmag_criteria.txt'
         if choice == 'Use default criteria' or choice == 'Use no criteria':
             if choice == 'Use default criteria':
@@ -1074,16 +1073,17 @@ class CustomizeCriteria(wx.Frame):
                 MSG = "No pmag_criteria.txt file found in working directory ({})".format(self.WD)
                 dia = wx.MessageDialog(None,caption="Message:", message=MSG ,style=wx.OK|wx.ICON_INFORMATION)
                 return 0
-            # Acceptance criteria dialog here
+            default_criteria = pmag.default_criteria(1)[0]
             crit_data = crit_data[0]
+            crit_data = dict(default_criteria, **crit_data)
         elif choice == "Update default criteria":
             crit_data = pmag.default_criteria(0)[0]
 
         frame = wx.Frame(self)
         window = wx.ScrolledWindow(frame)
-        boxes = pw.large_checkbox_window(window, crit_data, "Update Acceptance Criteria")
+        self.boxes = pw.large_checkbox_window(window, crit_data, "Update Acceptance Criteria")
         bSizer = wx.BoxSizer(wx.VERTICAL)
-        bSizer.Add(boxes)
+        bSizer.Add(self.boxes)
 
         hboxok = wx.BoxSizer(wx.HORIZONTAL)
         edit_okButton = wx.Button(window, wx.ID_ANY, "&OK")
@@ -1093,7 +1093,6 @@ class CustomizeCriteria(wx.Frame):
         window.Bind(wx.EVT_BUTTON, self.on_cancelButton, edit_cancelButton)
         window.Bind(wx.EVT_BUTTON, self.on_edit_okButton, edit_okButton)
 
-        
         bSizer.Add(hboxok)
         window.SetSizer(bSizer)
         bSizer.Fit(frame)
@@ -1103,7 +1102,15 @@ class CustomizeCriteria(wx.Frame):
  
 
     def on_edit_okButton(self, event):
-        print "processing 'ok'"
+        print self.boxes.return_value()
+        crit_data = self.boxes.return_value()
+        critout = self.WD+'/pmag_criteria.txt'
+        pmag.magic_write(critout, crit_data, 'pmag_criteria')
+        MSG = "pmag_criteria.txt file has been updated"
+        dia = wx.MessageDialog(None,caption="Message:", message=MSG ,style=wx.OK|wx.ICON_INFORMATION)
+        dia.ShowModal()
+        dia.Destroy()
+        self.on_cancelButton(None)
 
     def on_cancelButton(self, event):
         for child in self.GetChildren():
