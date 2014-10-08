@@ -2397,9 +2397,7 @@ class check(wx.Frame):
         TEXT = """
         Step 1:
         Check that all specimens belong to the correct sample
-        (if sample name is simply wrong, that will be fixed in step 2)
-        note: if you need to do a comprehensive edit,
-        consider opening your documents with Excel or Open Office"""
+        (if sample name is simply wrong, that will be fixed in step 2)"""
         label = wx.StaticText(self.panel,label=TEXT)
         self.Data, self.Data_hierarchy = self.ErMagic.Data, self.ErMagic.Data_hierarchy
         self.specimens = sorted(self.Data_hierarchy['specimens'].keys())
@@ -2488,7 +2486,10 @@ class check(wx.Frame):
 
         self.changes = False
 
-        self.Bind(wx.grid.EVT_GRID_EDITOR_SHOWN, self.on_edit_grid, self.samp_grid) 
+        #self.Bind(wx.grid.EVT_GRID_EDITOR_SHOWN, self.on_edit_grid, self.samp_grid) 
+        self.Bind(wx.grid.EVT_GRID_EDITOR_CREATED, lambda event: self.on_edit_grid(event, self.samp_grid), self.samp_grid)
+
+
         sites = list(set(sites).union(self.ErMagic.data_er_sites.keys())) # adds in any additional sets we might have information about (from er_sites.txt file) even if currently that site does not show up in the magic_measurements file
         self.drop_down_menu = drop_down_menus.Menus("sample", self, self.samp_grid, sites) # initialize all needed drop-down menus
 
@@ -2565,7 +2566,8 @@ class check(wx.Frame):
         locations = sorted(set(self.temp_data['locations']))
         self.changes = False
 
-        self.Bind(wx.grid.EVT_GRID_EDITOR_SHOWN, self.on_edit_grid, self.site_grid) 
+        self.Bind(wx.grid.EVT_GRID_EDITOR_CREATED, lambda event: self.on_edit_grid(event, self.site_grid), self.site_grid)
+        #self.Bind(wx.grid.EVT_GRID_EDITOR_SHOWN, self.on_edit_grid, self.site_grid) 
         
         self.drop_down_menu = drop_down_menus.Menus("site", self, self.site_grid, locations) # initialize all needed drop-down menus
 
@@ -2633,7 +2635,10 @@ class check(wx.Frame):
         except:
             pass
         self.loc_grid = self.make_simple_table(col_labels, self.ErMagic.data_er_locations, "location")
-        self.Bind(wx.grid.EVT_GRID_EDITOR_SHOWN, self.on_edit_grid, self.loc_grid) 
+
+        #self.Bind(wx.grid.EVT_GRID_EDITOR_SHOWN, self.on_edit_grid, self.loc_grid) 
+        self.Bind(wx.grid.EVT_GRID_EDITOR_CREATED, lambda event: self.on_edit_grid(event, self.loc_grid), self.loc_grid)
+
         self.drop_down_menu = drop_down_menus.Menus("location", self, self.loc_grid, None) # initialize all needed drop-down menus
 
         ### Create Buttons ###
@@ -2706,7 +2711,8 @@ class check(wx.Frame):
             for col in (0, 2):
                 self.age_grid.SetReadOnly(row, col, True)
         #
-        self.Bind(wx.grid.EVT_GRID_EDITOR_SHOWN, self.on_edit_grid, self.age_grid) 
+        #self.Bind(wx.grid.EVT_GRID_EDITOR_SHOWN, self.on_edit_grid, self.age_grid) 
+        self.Bind(wx.grid.EVT_GRID_EDITOR_CREATED, lambda event: self.on_edit_grid(event, self.age_grid), self.age_grid)
         self.drop_down_menu = drop_down_menus.Menus("age", self, self.age_grid, None) # initialize all needed drop-down menus
 
         ### Create Buttons ###
@@ -2851,9 +2857,28 @@ class check(wx.Frame):
             temp_data[row] = new_list
         return temp_data
         
-    def on_edit_grid(self, event):
-        """sets self.changes to true when user edits the grid"""
+    def on_edit_grid(self, event, grid):
+        """sets self.changes to true when user edits the grid.
+        provides down and up key functionality for exiting the editor"""
         self.changes = True
+        editor = event.GetControl()
+        editor.Bind(wx.EVT_KEY_DOWN, lambda event: self.onEditorKey(event, grid))
+
+    def onEditorKey(self, event, grid):
+        keycode = event.GetKeyCode()
+        if keycode == wx.WXK_UP:
+            grid.MoveCursorUp(False)
+            grid.MoveCursorDown(False)# have this in because otherwise cursor moves up 2 rows
+        elif keycode == wx.WXK_DOWN:
+            grid.MoveCursorDown(False)
+            grid.MoveCursorUp(False) # have this in because otherwise cursor moves down 2 rows
+        #elif keycode == wx.WXK_LEFT:
+        #    grid.MoveCursorLeft(False)
+        #elif keycode == wx.WXK_RIGHT:
+        #    grid.MoveCursorRight(False)
+        else:
+            pass
+        event.Skip()
 
 
 
