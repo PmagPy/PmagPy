@@ -1122,7 +1122,7 @@ class CustomizeCriteria(wx.Frame):
 
     def on_helpButton(self, event):
         print "do help button"
-        pw.on_helpButton(".py -h")
+        # have a little info thing pop up
 
 
 
@@ -1187,15 +1187,9 @@ def add_thellier_gui_criteria(acceptance_criteria):
 
 
 
+class ZeqMagic(wx.Frame):
 
-
-
-
-
-
-class something(wx.Frame):
-
-    title = ""
+    title = "Zeq Magic"
     
     def __init__(self, parent, WD):
         wx.Frame.__init__(self, parent, wx.ID_ANY, self.title)
@@ -1213,16 +1207,16 @@ class something(wx.Frame):
         self.bSizer0 = pw.choose_file(pnl, 'add', method = self.on_add_file_button)
 
         #---sizer 1 ----
-        self.bSizer1 = pw.specimen_n(pnl)
+        #self.bSizer1 = pw.specimen_n(pnl)
 
         #---sizer 2 ---
-        self.bSizer2 = pw.select_ncn(pnl)
+        #self.bSizer2 = pw.select_ncn(pnl)
 
         #---sizer 3 ---
-        self.bSizer3 = pw.labeled_text_field(pnl, label="Location name:")
+        #self.bSizer3 = pw.labeled_text_field(pnl, label="Location name:")
 
         #---sizer 4 ---
-        self.bSizer4 = pw.labeled_text_field(pnl, label="Instrument name (optional):")
+        #self.bSizer4 = pw.labeled_text_field(pnl, label="Instrument name (optional):")
 
 
         #---sizer 4 ----
@@ -1237,14 +1231,14 @@ class something(wx.Frame):
         hboxok = pw.btn_panel(self, pnl)
 
         vbox = wx.BoxSizer(wx.VERTICAL)
-        hbox = wx.BoxSizer(wx.HORIZONTAL)
-        hbox.Add(self.bSizer3, flag=wx.ALIGN_LEFT|wx.LEFT, border=5)
-        hbox.Add(self.bSizer4, flag=wx.ALIGN_LEFT)
+        #hbox = wx.BoxSizer(wx.HORIZONTAL)
+        #hbox.Add(self.bSizer3, flag=wx.ALIGN_LEFT|wx.LEFT, border=5)
+        #hbox.Add(self.bSizer4, flag=wx.ALIGN_LEFT)
         vbox.Add(bSizer_info, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(self.bSizer0, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
-        vbox.Add(self.bSizer1, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
-        vbox.Add(self.bSizer2, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
-        vbox.Add(hbox, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        #vbox.Add(self.bSizer1, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        #vbox.Add(self.bSizer2, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        #vbox.Add(hbox, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         #vbox.Add(self.bSizer3, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         #try:
         #    vbox.Add(self.bSizer4, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
@@ -1268,7 +1262,7 @@ class something(wx.Frame):
         pw.on_add_file_button(self.bSizer0, self.WD, event, text)
 
     def on_okButton(self, event):
-        COMMAND = ""
+        COMMAND = "zeq_magic.py -WD {}".format(self.WD)
         print COMMAND
         #pw.run_command_and_close_window(self, COMMAND, "er_samples.txt")
 
@@ -1278,6 +1272,9 @@ class something(wx.Frame):
 
     def on_helpButton(self, event):
         pw.on_helpButton(".py -h")
+
+
+
 
 class something(wx.Frame):
 

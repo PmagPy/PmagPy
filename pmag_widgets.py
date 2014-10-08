@@ -267,7 +267,7 @@ class large_checkbox_window(wx.StaticBoxSizer):
         self.gridSizer = wx.FlexGridSizer(23, 10, 9, 10)
         labels = [wx.StaticText(parent, label=choice) for choice in sorted(choices)]
         for label in labels:
-            self.gridSizer.Add(label, flag=wx.ALIGN_RIGHT|wx.LEFT, border=30) # WHY WON'T THIS ALIGN RIGHT????.  not working.  
+            self.gridSizer.Add(label, flag=wx.ALIGN_RIGHT)
             text_control = wx.TextCtrl(parent)
             text_sizer = self.gridSizer.Add(text_control)
             if choices[label.Label]:
