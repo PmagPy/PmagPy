@@ -35,10 +35,8 @@ class Menus():
 
 
     def on_label_click(self, event):
-        #print "on label click"
         col = event.GetCol()
         edit_column = (col in range(2, 7) and self.data_type in ['site', 'sample']) or (col in (3, 5) and self.data_type == 'age') or (col == 1 and self.data_type == 'location')
-        #print "edit column:", edit_column, "col:", col
         if not edit_column:
             return 0
             # put something in here that allows you to edit those without a drop-down menu
@@ -74,8 +72,9 @@ class Menus():
 
 
     def on_left_click(self, event, grid, choices):
-        """creates popup menu when user clicks on the third column
-        allows user to edit third column, but only from available values"""
+        """creates popup menu when user clicks on the column
+        if that column is in the list of choices that get a drop-down menu.
+        allows user to edit the column, but only from available values"""
         col = event.GetCol()
         if col in choices.keys(): # column should have a pop-up menu
             row = event.GetRow()
@@ -110,9 +109,9 @@ class Menus():
 
 
     def on_select_menuitem(self, event, grid, row, col):
-        """sets value of selected cell to value selected from menu
-        (doesn't require column info because only third column works this way"""
-
+        """
+        sets value of selected cell to value selected from menu
+        """
         self.check.changes = True # if user selects a menuitem, that is an edit
         item_id =  event.GetId()
         item = event.EventObject.FindItemById(item_id)
@@ -122,7 +121,7 @@ class Menus():
             label = ""
         elif (col in range(3, 6) and self.data_type in ['site', 'sample']) or (col == 3 and self.data_type == 'age'):
         #if True:
-            if not label in cell_value:
+            if not label.lower() in cell_value.lower():
                 label += (":" + cell_value).rstrip(':')
             else:
                 label = cell_value
@@ -133,38 +132,4 @@ class Menus():
         else:
             grid.SetCellValue(row, col, label)
 
-
-
-
-    # double clicking brings up cell editor
-    # single click brings up drop-down menu
-    # users should be able to select a bunch of cells and edit them all at once
-
-
-
-def on_edit_grid(self, event):
-    """sets self.changes to true when user edits the grid"""
-    self.changes = True
-
-def on_left_click(self, event, grid, choices):
-    """creates popup menu when user clicks on the third column
-    allows user to edit third column, but only from available values"""
-    row, col = event.GetRow(), event.GetCol()
-    if col == 2:
-        menu = wx.Menu()
-        for choice in sorted(set(choices)): # NOT OPTIMAL to run this every time
-            if not choice: choice = " " # prevents error if choice is an empty string
-            menuitem = menu.Append(wx.ID_ANY, choice)
-            self.Bind(wx.EVT_MENU, lambda event: self.on_select_menuitem(event, grid, row), menuitem)
-        self.PopupMenu(menu)
-        menu.Destroy()
-
-def on_select_menuitem(self, event, grid, row):
-    """sets value of selected cell to value selected from menu
-    (doesn't require column info because only third column works this way"""
-    self.changes = True # if user selects a menuitem, that is an edit
-    item_id =  event.GetId()
-    item = event.EventObject.FindItemById(item_id)
-    label= item.Label
-    grid.SetCellValue(row, 2, label)
 
