@@ -9113,7 +9113,9 @@ def read_criteria_from_file(path,acceptance_criteria):
     to deal with old format this function reads all the lines and ignore empty cells.
     i.e., the program assumes that in each column there is only one value (in one of the lines)   
 
-    
+    special case in the old format:
+        specimen_dang has a value and pmag_criteria_code is IE-specimen. 
+        The program assumes that the user means specimen_int_dang
     # New format for thellier_gui and demag_gui:
     one long line. pmag_criteria_code=ACCEPT
     
@@ -9146,6 +9148,9 @@ def read_criteria_from_file(path,acceptance_criteria):
                 continue
             elif rec[crit]=="":
                 continue
+            if crit=="specimen_dang" and "pmag_criteria_code" in rec.keys() and "IE-SPEC" in rec["pmag_criteria_code"]:
+                crit="specimen_int_dang"
+                print "-W- Found backward compatibility problemw with selection criteria specimen_dang. Cannot be assotiated with IE-SPEC. Program assumes that the statistic is specimen_int_dang"
             elif crit not in acceptance_criteria_list:
                 print "-W- WARNING: criteria code %s is not supported by PmagPy GUI. please check"%crit
                 acceptance_criteria[crit]={}

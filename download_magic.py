@@ -52,7 +52,8 @@ def main():
             filenum+=1 
         LN+=1
         line=File[LN]
-        keys=line.replace('\n','').split('\t')
+        keys=line.replace('\n','').replace('.','').split('\t')
+        keys.append('RecNo')
         LN+=1
         Recs=[]
         while LN<len(File):

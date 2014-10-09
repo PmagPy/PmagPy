@@ -184,6 +184,9 @@ class PintPars(object):
         pass # consider making this a real deal thing.  
         
     def York_Regression(self):
+        if self.n < 3:
+            print "-W- Cannot run statistics with only {} points".format(self.n)
+            return None
         x_segment, y_segment = self.x_Arai_segment, self.y_Arai_segment
         x_mean, y_mean = self.x_Arai_mean, self.y_Arai_mean
         n = self.n
@@ -562,6 +565,10 @@ class PintPars(object):
 
     def calculate_all_statistics(self):
         #print "calling calculate_all_statistics in spd.py"
+        if self.n < 3:
+            print "-W- Cannot run statistics with only {} points".format(self.n)
+            self.pars = {}
+            return None
         self.York_Regression()
         self.get_vds()
         self.get_FRAC()
@@ -718,6 +725,10 @@ class PintPars(object):
 }
 
     def reqd_stats(self):  
+        if self.n < 3:
+            print "-W- Cannot run statistics with only {} points".format(self.n)
+            self.pars = {}
+            return None
         stats_run = []
         #print 'self.calculate: ', self.calculate
         for stat in self.calculate: # iterate through all stats that should be calculated

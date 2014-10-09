@@ -7,6 +7,8 @@
 #
 #============================================================================================
 #
+# 08/08/2014 Version add k_prime description
+#
 # 3/22/2014 Version 1.0 by Ron Shaar
 #
 #
@@ -98,6 +100,8 @@ class PI_Statistics_Dialog(wx.Dialog):
         self.DESC['specimen_ac_n']='The number of additivity checks used to analyze the best-fit segment on an Arai plot'
         self.DESC['specimen_k']='The curvature of the Arai plot as determined by the best-fit circle to all of the data '
         self.DESC['specimen_k_sse']='The quality of the best-fit circle used to determine k'
+        self.DESC['specimen_k_prime']='The curvature of the Arai plot as determined by the best-fit circle to the selected data points'
+        self.DESC['specimen_k_prime_sse']='The quality of the best-fit circle used to determine k_prime'
         self.DESC['specimen_z']='Arai plot zigzag parameter calculated using the scatter around the best-fit slope on an Arai plot'
         self.DESC['specimen_z_md']='Arai plot zigzag parameter calculated by the area bounded by the curve that the ZI points make and the curve that the IZ points make'
         self.DESC['specimen_scat']='All pTRM checks, MD checks, IZ ZI data, etc. are in the box (g = good or b=bad)'

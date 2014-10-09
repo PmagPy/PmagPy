@@ -3,6 +3,12 @@
 #============================================================================================
 # LOG HEADER:
 #============================================================================================
+# Thellier_GUI Version 2.25 08/08/2014
+# Bug fixes:
+# deal with old foramt pmag_criteria.txt when specimen_dang is used as specimen_int_dang; 
+# deal with import pmag_criteria.txt file with statistics that do not appear in original pmag_criteria.txt
+#  
+#
 # Thellier_GUI Version 2.24 05/11/2014
 # Fix Pmag results tables issues
 #
@@ -111,7 +117,7 @@
 global CURRENT_VRSION
 global MICROWAVE
 global THERMAL
-CURRENT_VRSION = "v.2.23"
+CURRENT_VRSION = "v.2.25"
 MICROWAVE=False
 THERMAL=True
 
@@ -1599,8 +1605,8 @@ class Arai_GUI(wx.Frame):
                     if my_acceptance_criteria[crit]['value']!=-999:
                         short_crit=crit.split('specimen_')[-1]
                         if short_crit not in preferences['show_statistics_on_gui']:
-                            #preferences['show_statistics_on_gui'].append(short_crit)
-                            print "-IIII-",short_crit, " was added to list"
+                            preferences['show_statistics_on_gui'].append(short_crit)
+                            print "-I-",short_crit, " was added to criteria list and will be displayed on screen"
         except:
             pass     
         return(preferences)
@@ -2029,13 +2035,42 @@ class Arai_GUI(wx.Frame):
                 return
         
         self.acceptance_criteria=pmag.initialize_acceptance_criteria()
-        self.add_thellier_gui_criteria()
-        self.read_criteria_file(criteria_file)            
-            
+        self.add_thelier_gui_criteria()
+        self.read_criteria_file(criteria_file)     
+        # check if some statistics are in the new pmag_criteria_file but not in old. If yes, add to  self.preferences['show_statistics_on_gui']
+        crit_list_not_in_pref=[]
+        for crit in   self.acceptance_criteria.keys():
+            if  self.acceptance_criteria[crit]['category']=="IE-SPEC":
+                if self.acceptance_criteria[crit]['value']!=-999:
+                    short_crit=crit.split('specimen_')[-1]
+                    if short_crit not in self.preferences['show_statistics_on_gui']:
+                        print "-I- statitics %s is not in your preferences"%crit
+                        self.preferences['show_statistics_on_gui'].append(short_crit)
+                        crit_list_not_in_pref.append(crit)
+        if  len(crit_list_not_in_pref)>0:
+            stat_list=":".join(crit_list_not_in_pref)
+            dlg1 = wx.MessageDialog(self,caption="WARNING:", 
+            message="statistics '%s' is in the imported pmag_criteria.txt but not in your appearence preferences.\nThis statistic will not appear on the gui panel.\n The program will exit after saving new acceptance criteria, and it will be added automatically the next time you open it "%stat_list ,
+            style=wx.OK|wx.ICON_INFORMATION)
+            dlg1.ShowModal()
+            dlg1.Destroy()
+           
         dia = thellier_gui_dialogs.Criteria_Dialog(None, self.acceptance_criteria,self.preferences,title='Acceptance Criteria')
         dia.Center()
         if dia.ShowModal() == wx.ID_OK: # Until the user clicks OK, show the message            
             self.On_close_criteria_box(dia)
+            if len(crit_list_not_in_pref)>0:
+                dlg1 = wx.MessageDialog(self,caption="WARNING:", 
+                message="Exiting now! When you restart the gui all the new statistics will be added." ,
+                style=wx.OK|wx.ICON_INFORMATION)
+                dlg1.ShowModal()
+                dlg1.Destroy()
+                exit()
+                
+        if dia.ShowModal() == wx.ID_CANCEL: # Until the user clicks OK, show the message                        
+            for crit in crit_list_not_in_pref:
+               short_crit=crit.split('specimen_')[-1] 
+               self.preferences['show_statistics_on_gui'].remove(short_crit) 
 
     #----------------------------------------------------------------------        
 
@@ -2159,18 +2194,37 @@ class Arai_GUI(wx.Frame):
                self.acceptance_criteria[crit]['value']=float(value)         
             else:  
                 self.show_messege(crit)
+        #---------
+        # thellier interpreter calculation type
+        if dia.set_stdev_opt.GetValue()==True:
+            self.acceptance_criteria['interpreter_method']['value']='stdev_opt'
+        elif  dia.set_bs.GetValue()==True:
+            self.acceptance_criteria['interpreter_method']['value']='bs'            
+        elif  dia.set_bs_par.GetValue()==True:
+            self.acceptance_criteria['interpreter_method']['value']='bs_par'            
+            
+                
             
         #  message dialog
         dlg1 = wx.MessageDialog(self,caption="Warning:", message="changes are saved to pmag_criteria.txt\n " ,style=wx.OK)
         result = dlg1.ShowModal()
         if result == wx.ID_OK:
-            self.clear_boxes()
-            self.write_acceptance_criteria_to_boxes()
+            try:
+                self.clear_boxes()
+            except:
+                pass
+            try:
+                self.write_acceptance_criteria_to_boxes()
+            except:
+                pass
             pmag.write_criteria_to_file(self.WD+"/pmag_criteria.txt",self.acceptance_criteria)
             dlg1.Destroy()    
             dia.Destroy()
         self.recaclulate_satistics()
-        self.update_GUI_with_new_interpretation()
+        try:
+            self.update_GUI_with_new_interpretation()
+        except:
+            pass
         
     # only valid naumber can be entered to boxes
     # used by On_close_criteria_box         
@@ -3552,11 +3606,15 @@ class Arai_GUI(wx.Frame):
                     tmin=temperatures[tmin_i]
                     tmax=temperatures[tmax_i]
                     pars=self.get_PI_parameters(s,tmin,tmax)
+                    if not pars: # error with getting pars
+                        message_string = '-W- Problem in SPD. Could not calculate any parameters for {} with tmin: {} and tmax {}. Check data for typos, make sure temperatures are correct, etc.'.format(s, tmin, tmax)
+                        thellier_interpreter_log.write(message_string+"\n")
+                        continue
                     if 'NLT_specimen_correction_factor' not in pars.keys():
                         # problem in get_PI_parameters (probably with tmin/zdata).  can't run specimen
-                        message_string = '-W- Could not get parameters for {}. Check data for typos, etc.'.format(s)
+                        message_string = '-W- Problem in get_PI_parameters. Could not get all parameters for {} with tmin: {} and tmax: {}. Check data for typos, make sure temperatures are correct, etc.'.format(s, tmin, tmax)
                         thellier_interpreter_log.write(message_string+"\n")
-                        break
+                        continue
                     pars=self.check_specimen_PI_criteria(pars)
                     #-------------------------------------------------            
                     # check if pass the criteria
@@ -3568,6 +3626,7 @@ class Arai_GUI(wx.Frame):
                     #    print "fail pars"
                     #    continue
                     #print "pass pars"
+                    #print pars.keys()
                     if  'specimen_fail_criteria' in pars.keys() and len(pars['specimen_fail_criteria'])>0:
                         # Fail:
                         message_string= "-I- specimen %s (%.0f-%.0f) FAIL on: "%(s,float(pars["measurement_step_min"])-273, float(pars["measurement_step_max"])-273)
@@ -4121,31 +4180,41 @@ class Arai_GUI(wx.Frame):
         # calcuate Bootstarp and write results to files
         #--------------------------------------------------------------
             if self.acceptance_criteria['interpreter_method']['value']=='bs' or self.acceptance_criteria['interpreter_method']['value']=='bs_par':
-               BOOTSTRAP_N=self.preferences['BOOTSTRAP_N']
+               if self.acceptance_criteria['interpreter_method']['value']=='bs':
+                    #logfile=thellier_interpreter_log
+                    results_file=Fout_BS_samples
+               if self.acceptance_criteria['interpreter_method']['value']=='bs_par':
+                    #logfile=thellier_interpreter_log
+                    results_file=Fout_BS_PAR_samples
+               BOOTSTRAP_N=int(self.preferences['BOOTSTRAP_N'])
+               String="-I- caclulating bootstrap statistics for sample %s (N=%i)"%(sample,int(BOOTSTRAP_N))
+               #print String
+               thellier_interpreter_log.write(String)
+               
                Grade_A_samples_BS={} 
-               if len(Grade_A_sorted[sample_or_site].keys()) >= self.acceptance_criteria['sample_int_n']:
+               if len(Grade_A_sorted[sample_or_site].keys()) >= self.acceptance_criteria['sample_int_n']['value']:
                    for specimen in Grade_A_sorted[sample_or_site].keys():
                         if specimen not in Grade_A_samples_BS.keys() and len(Grade_A_sorted[sample_or_site][specimen])>0:
                            Grade_A_samples_BS[specimen]=[]
-                        for B in Grade_A_samples_BS[sample][specimen]:
+                        #for B in Grade_A_samples_BS[sample][specimen]:
+                        for B in Grade_A_sorted[sample_or_site][specimen]:
                            Grade_A_samples_BS[specimen].append(B)
                         Grade_A_samples_BS[specimen].sort()
                         specimen_int_max_slope_diff=max(Grade_A_samples_BS[specimen])/min(Grade_A_samples_BS[specimen])
                         if specimen_int_max_slope_diff>self.acceptance_criteria['specimen_int_max_slope_diff']:
                            thellier_interpreter_log.write( "-I- specimen %s Failed specimen_int_max_slope_diff\n"%specimen,Grade_A_samples_BS[specimen])
                            del Grade_A_samples_BS[specimen]
-                
-               if len(Grade_A_samples_BS.keys())>=self.acceptance_criteria['sample_int_n']:
-        
+ 
+               if len(Grade_A_samples_BS.keys())>=self.acceptance_criteria['sample_int_n']['value']:        
                    BS_means_collection=[]
                    for i in range(BOOTSTRAP_N):
                        B_BS=[]
                        for j in range(len(Grade_A_samples_BS.keys())):
                            LIST=list(Grade_A_samples_BS.keys())
                            specimen=random.choice(LIST)
-                           if self.acceptance_criteria['sample_int_bs']:
+                           if self.acceptance_criteria['interpreter_method']['value']=='bs':
                                B=random.choice(Grade_A_samples_BS[specimen])
-                           if self.acceptance_criteria['sample_int_bs_par']:
+                           if self.acceptance_criteria['interpreter_method']['value']=='bs_par':
                                B=random.uniform(min(Grade_A_samples_BS[specimen]),max(Grade_A_samples_BS[specimen]))
                            B_BS.append(B)
                        BS_means_collection.append(mean(B_BS))
@@ -4160,12 +4229,17 @@ class Arai_GUI(wx.Frame):
 
                    thellier_interpreter_log.write( "-I-  bootstrap mean sample %s: median=%f, std=%f\n"%(sample,sample_median,sample_std))
                    String="%s\t%i\t%.1f\t%.1f\t%.1f\t%.1f\t%.1f\t%.1f\t%.1f\t%s\n"%\
-                           (sample,len(Grade_A_samples_BS[sample].keys()),sample_median,sample_68[0],sample_68[1],sample_95[0],sample_95[1],sample_std,100*(sample_std/sample_median),WARNING)
-                   if self.acceptance_criteria['sample_int_bs']:
-                       Fout_BS_samples.write(String)
-                   if self.acceptance_criteria['sample_int_bs_par']:
-                       Fout_BS_PAR_samples.write(String)
-
+                           (sample,len(Grade_A_samples_BS.keys()),sample_median,sample_68[0],sample_68[1],sample_95[0],sample_95[1],sample_std,100*(sample_std/sample_median),WARNING)
+                   #print String
+                   #if self.acceptance_criteria['sample_int_bs']:
+                   #    Fout_BS_samples.write(String)
+                   #if self.acceptance_criteria['sample_int_bs_par']:
+                   #    Fout_BS_PAR_samples.write(String)
+                   results_file.write(String)
+               else:
+                   String="-I- sample %s FAIL: not enough specimen int_n= %i < %i "%(sample,len(Grade_A_samples_BS.keys()),int(self.acceptance_criteria['sample_int_n']['value']))
+                   #print String
+                   thellier_interpreter_log.write(String)
 
                                                   
         
@@ -4189,16 +4263,21 @@ class Arai_GUI(wx.Frame):
         if self.acceptance_criteria['interpreter_method']['value']=='stdev_opt': 
             Fout_STDEV_OPT_redo.close()
             Fout_STDEV_OPT_specimens.close()
-        if self.acceptance_criteria['average_by_sample_or_site']['value']=='sample':
-            Fout_STDEV_OPT_samples.close()
-        else:
-             Fout_STDEV_OPT_sites.close()
+        if  self.acceptance_criteria['interpreter_method']['value']=='stdev_opt':
+            if self.acceptance_criteria['average_by_sample_or_site']['value']=='sample':
+                Fout_STDEV_OPT_samples.close()
+            else:
+                Fout_STDEV_OPT_sites.close()
            
         if self.acceptance_criteria['interpreter_method']['value']=='bs':
             Fout_BS_samples.close()
+
         if self.acceptance_criteria['interpreter_method']['value']=='bs_par':
             Fout_BS_PAR_samples.close()
-        os.system('\a')
+        #try:
+        #    os.system('\a')
+        #except:
+        #    pass
         dlg1 = wx.MessageDialog(self,caption="Message:", message="Interpreter finished sucsessfuly\nCheck output files in folder /thellier_interpreter in the current project directory" ,style=wx.OK|wx.ICON_INFORMATION)
 
 
@@ -5622,7 +5701,7 @@ class Arai_GUI(wx.Frame):
                 data2plot=copy.deepcopy(self.Data_samples)   
             else:
                 data2plot=copy.deepcopy(self.Data_sites)
-                data2plot=copy.deepcopy(Data_samples_or_sites)
+                #data2plot=copy.deepcopy(Data_samples_or_sites)
 
        
         show_map=dia.show_map.GetValue()
@@ -6774,8 +6853,12 @@ class Arai_GUI(wx.Frame):
         import SPD.spd as spd
         Pint_pars = spd.PintPars(self.Data, str(s), tmin, tmax, 'magic', self.preferences['show_statistics_on_gui'])
         Pint_pars.reqd_stats() # calculate only statistics indicated in self.preferences
+        if not Pint_pars.pars:
+            print "Could not get any parameters for {}".format(Pint_pars)
+            return 0
         #Pint_pars.calculate_all_statistics() # calculate every statistic available
-
+        #print "-D- Debag"
+        #print Pint_pars.keys()
         pars.update(Pint_pars.pars) # 
 
         t_Arai=self.Data[s]['t_Arai']
@@ -7109,9 +7192,7 @@ class Arai_GUI(wx.Frame):
             elif self.acceptance_criteria[crit]['threshold_type']=="low":
                 if pars[crit]<cutoff_value:
                     pars['specimen_fail_criteria'].append(crit)
-        
         return pars                                                                                     
-
                 
     def  draw_interpretation(self):
 
