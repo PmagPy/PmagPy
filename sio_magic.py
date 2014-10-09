@@ -434,6 +434,7 @@ def main():
                     if MagRec["er_location_name"]=="":
                         print 'no location name for: ',MagRec["er_specimen_name"] 
                 else:
+                    MagRec["er_specimen_name"]=rec[0]
                     if specnum!=0:
                         MagRec["er_sample_name"]=rec[0][:specnum]
                     else:

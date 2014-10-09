@@ -8678,9 +8678,18 @@ def write_criteria_to_file(path,acceptance_criteria):
         # ignore criteria that are not in MagIc model 2.5
         if 'category' in acceptance_criteria[crit].keys():
             if acceptance_criteria[crit]['category']=='thellier_gui':
-                continue        
+                continue   
+
+        # fix True/False typoes
+        if type(acceptance_criteria[crit]['value'])==str:
+            if acceptance_criteria[crit]['value']=="TRUE":
+                 acceptance_criteria[crit]['value']="True"
+            if acceptance_criteria[crit]['value']=="FALSE":
+                 acceptance_criteria[crit]['value']="False"
+                                                        
         if type(acceptance_criteria[crit]['value'])==str:
             if acceptance_criteria[crit]['value'] != "-999" and acceptance_criteria[crit]['value'] != "":
+
                 rec[crit]=acceptance_criteria[crit]['value']
         elif type(acceptance_criteria[crit]['value'])==int:
             if acceptance_criteria[crit]['value'] !=-999:
