@@ -32,6 +32,47 @@ class choose_file(wx.StaticBoxSizer):
         return self.file_path.GetValue()
 
 
+
+
+class NotEmptyValidator(wx.PyValidator): 
+    def __init__(self): 
+        print "initing validator"
+        wx.PyValidator.__init__(self) 
+
+    def Clone(self): 
+        """ 
+        Note that every validator must implement the Clone() method. 
+        """ 
+        print "doing Clone"
+        return NotEmptyValidator() 
+
+    def Validate(self, win): 
+        print "doing Validate"
+        textCtrl = self.GetWindow() 
+        text = textCtrl.GetValue() 
+        if len(text) == 0: 
+            print "textCtrl.Name:", textCtrl.Name
+            wx.MessageBox("{} must contain some text!".format(str(textCtrl.Name)), "Error") 
+            textCtrl.SetBackgroundColour("pink") 
+            textCtrl.SetFocus() 
+            textCtrl.Refresh() 
+            print "win", win
+            return False 
+        else:
+            textCtrl.SetBackgroundColour( 
+                wx.SystemSettings_GetColour(wx.SYS_COLOUR_WINDOW)) 
+            textCtrl.Refresh() 
+            return True 
+            
+    def TransferToWindow(self): 
+        print "doing TransferToWindow"
+        return True 
+
+    def TransferFromWindow(self):
+        print "doing TransferFromWindow"
+        return True
+
+
 class choose_dir(wx.StaticBoxSizer):
     
     def __init__(self, parent, btn_text='add', method=None):
