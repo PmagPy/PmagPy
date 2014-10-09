@@ -2717,7 +2717,14 @@ class check(wx.Frame):
         except:
             pass
         # only use sites that are associated with actual samples/specimens
-        ages_data_dict = {k: v for k, v in self.ErMagic.data_er_ages.items() if k in self.sites}
+        
+
+        #ages_data_dict = {k: v for k, v in self.ErMagic.data_er_ages.items() if k in self.sites} # fails in Python 2.6
+        ages_data_dict = {}
+        for k, v in self.ErMagic.data_er_ages.items():
+            if k in self.sites:
+                ages_data_dict[k] = v
+
         self.age_grid = self.make_simple_table(col_labels, ages_data_dict, "age")
         #
         # make it impossible to edit the 1st and 3rd columns
