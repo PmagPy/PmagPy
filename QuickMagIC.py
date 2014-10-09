@@ -414,7 +414,7 @@ class MagMainFrame(wx.Frame):
 
 if __name__ == "__main__":
     #app = wx.App(redirect=True, filename="beta_log.log")
-    app = wx.PySimpleApp(redirect=True)
+    app = wx.PySimpleApp(redirect=False)# if redirect is true, wxpython makes its own output window for stdout/stderr
     app.frame = MagMainFrame()
     app.frame.Show()
     app.frame.Center()
