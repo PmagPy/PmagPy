@@ -150,13 +150,13 @@ class PintPars(object):
         self.B_lab_cart = lib_direct.dir2cart(self.B_lab_dir)
 
   #      self.pars['magic_method_codes']=Data[self.s]['pars']['magic_method_codes']
-        self.pars['specimen_int_n']=self.end-self.start+1
+        self.pars['specimen_int_n']=int(self.end-self.start+1)
         self.pars['specimen_n_total']=len(self.x_Arai)
 
  
         #LJ ADDING stats:
         self.steps_Arai = self.specimen_Data['steps_Arai']
-        self.n = float(self.end-self.start+1)
+        self.n = int(self.end-self.start+1)
         self.n_max = len(self.t_Arai)
         self.tmin = tmin 
         self.tmax = tmax
