@@ -67,23 +67,23 @@ class MagMainFrame(wx.Frame):
         
         #
         # last saved: []
-        bSizer0_1 = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY, "Save MagIC project directory in current state or revert to last-saved state" ), wx.HORIZONTAL ) 
-        saved_label = wx.StaticText(self.panel, -1, "Last saved:", (20, 120))
-        self.last_saved_time = wx.TextCtrl(self.panel, id=-1, size=(100,25), style=wx.TE_READONLY)
-        now = datetime.datetime.now()
-        now_string = "{}:{}:{}".format(now.hour, now.minute, now.second)
-        self.last_saved_time.write(now_string)
-        self.save_dir_button = buttons.GenButton(self.panel, id=-1, label = "save dir", size=(-1, -1))
-        self.revert_dir_button = buttons.GenButton(self.panel, id=-1, label = "revert dir", size=(-1, -1))
+        #bSizer0_1 = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY, "Save MagIC project directory in current state or revert to last-saved state" ), wx.HORIZONTAL ) 
+        #saved_label = wx.StaticText(self.panel, -1, "Last saved:", (20, 120))
+        #self.last_saved_time = wx.TextCtrl(self.panel, id=-1, size=(100,25), style=wx.TE_READONLY)
+        #now = datetime.datetime.now()
+        #now_string = "{}:{}:{}".format(now.hour, now.minute, now.second)
+        #self.last_saved_time.write(now_string)
+        #self.save_dir_button = buttons.GenButton(self.panel, id=-1, label = "save dir", size=(-1, -1))
+        #self.revert_dir_button = buttons.GenButton(self.panel, id=-1, label = "revert dir", size=(-1, -1))
 
-        self.Bind(wx.EVT_BUTTON, self.on_revert_dir_button, self.revert_dir_button)
-        self.Bind(wx.EVT_BUTTON, self.on_save_dir_button, self.save_dir_button)
+        #self.Bind(wx.EVT_BUTTON, self.on_revert_dir_button, self.revert_dir_button)
+        #self.Bind(wx.EVT_BUTTON, self.on_save_dir_button, self.save_dir_button)
         
 
-        bSizer0_1.Add(saved_label, flag=wx.RIGHT, border=10)
-        bSizer0_1.Add(self.last_saved_time, flag=wx.RIGHT, border=10)
-        bSizer0_1.Add(self.save_dir_button,flag=wx.ALIGN_LEFT|wx.RIGHT, border=10)
-        bSizer0_1.Add(self.revert_dir_button,wx.ALIGN_LEFT)
+        #bSizer0_1.Add(saved_label, flag=wx.RIGHT, border=10)
+        #bSizer0_1.Add(self.last_saved_time, flag=wx.RIGHT, border=10)
+        #bSizer0_1.Add(self.save_dir_button,flag=wx.ALIGN_LEFT|wx.RIGHT, border=10)
+        #bSizer0_1.Add(self.revert_dir_button,wx.ALIGN_LEFT)
 
         #
     
@@ -184,18 +184,14 @@ class MagMainFrame(wx.Frame):
         vbox.AddSpacer(5)        
         vbox.Add(bSizer0,0,wx.ALIGN_CENTER,0)
         vbox.AddSpacer(10)        
-        vbox.Add(bSizer0_1, 0, wx.ALIGN_CENTER, 0)
-        vbox.AddSpacer(10)
+        #vbox.Add(bSizer0_1, 0, wx.ALIGN_CENTER, 0)
+        #vbox.AddSpacer(10)
         vbox.Add(bSizer1,0,wx.ALIGN_CENTER,0)
         vbox.AddSpacer(10)        
         vbox.Add(bSizer2,0,wx.ALIGN_CENTER,0)
         vbox.AddSpacer(10)        
         vbox.Add(bSizer3,0,wx.ALIGN_CENTER,0)
         vbox.AddSpacer(10)        
-        #vbox.Add(bSizer1)
-        #vbox.AddSpacer(20)        
-        #vbox.Add(bSizer2)
-        #vbox.AddSpacer(20)  
         hbox.AddSpacer(10)      
         hbox.Add(vbox,0,wx.ALIGN_CENTER,0)
         hbox.AddSpacer(5)      
@@ -222,7 +218,8 @@ class MagMainFrame(wx.Frame):
         self.WD=str(os.getcwd())+"/"
         self.dir_path.SetValue(self.WD)
         self.FIRST_RUN=False
-        self.on_save_dir_button(None)
+        # this functionality is not fulling working yet, so I've removed it for now
+        #self.on_save_dir_button(None)
 
 
     #----------------------------------------------------------------------
