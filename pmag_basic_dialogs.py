@@ -2401,8 +2401,8 @@ class check(wx.Frame):
         label = wx.StaticText(self.panel,label=TEXT)
         self.Data, self.Data_hierarchy = self.ErMagic.Data, self.ErMagic.Data_hierarchy
         self.specimens = sorted(self.Data_hierarchy['specimens'].keys())
-        samples = sorted(self.Data_hierarchy['samples'].keys())
-        samples = list(set(samples).union(self.ErMagic.data_er_samples.keys())) # adds in any additional samples we might have information about (from er_sites.txt file) even if currently that sample does not show up in the magic_measurements file
+        samples = self.Data_hierarchy['samples'].keys()
+        samples = sorted(list(set(samples).union(self.ErMagic.data_er_samples.keys()))) # adds in any additional samples we might have information about (from er_sites.txt file) even if currently that sample does not show up in the magic_measurements file
 
         # create the grid and also a record of the initial values for specimens/samples as a reference
         # to tell if we've had any changes
@@ -2490,7 +2490,7 @@ class check(wx.Frame):
         self.Bind(wx.grid.EVT_GRID_EDITOR_CREATED, lambda event: self.on_edit_grid(event, self.samp_grid), self.samp_grid)
 
 
-        sites = list(set(sites).union(self.ErMagic.data_er_sites.keys())) # adds in any additional sets we might have information about (from er_sites.txt file) even if currently that site does not show up in the magic_measurements file
+        sites = sorted(list(set(sites).union(self.ErMagic.data_er_sites.keys()))) # adds in any additional sets we might have information about (from er_sites.txt file) even if currently that site does not show up in the magic_measurements file
         self.drop_down_menu = drop_down_menus.Menus("sample", self, self.samp_grid, sites) # initialize all needed drop-down menus
 
 
