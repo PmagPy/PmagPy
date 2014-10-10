@@ -36,7 +36,9 @@ class Menus():
 
     def on_label_click(self, event):
         col = event.GetCol()
-        if col not in (0, 1):
+        if col == -1:
+            return 0
+        if col not in (-1, 0, 1):
         # if a new column was chosen without de-selecting the previous column, deselect the old selected_col
             if self.selected_col != None and self.selected_col != col: 
                 col_label_value = self.grid.GetColLabelValue(self.selected_col)
