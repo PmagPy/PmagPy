@@ -36,31 +36,47 @@ class Menus():
 
     def on_label_click(self, event):
         col = event.GetCol()
-        edit_column = (col in range(2, 7) and self.data_type in ['site', 'sample']) or (col in (3, 5) and self.data_type == 'age') or (col == 1 and self.data_type == 'location')
-        if not edit_column:
-            return 0
-            # put something in here that allows you to edit those without a drop-down menu
-            # i.e., latitude is 100 for all sites
-        if self.selected_col != None and self.selected_col != col: # first deselect the old column
-            col_label_value = self.grid.GetColLabelValue(self.selected_col)
-            self.grid.SetColLabelValue(self.selected_col, col_label_value[:-10])
-            for row in range(self.grid.GetNumberRows()):
-                self.grid.SetCellBackgroundColour(row, self.selected_col, 'white')
-            self.grid.ForceRefresh()
-        if col == self.selected_col: # deselect column
-            col_label_value = self.grid.GetColLabelValue(col)
-            self.grid.SetColLabelValue(col, col_label_value[:-10])
-            for row in range(self.grid.GetNumberRows()):
-                self.grid.SetCellBackgroundColour(row, col, 'white')
-            self.grid.ForceRefresh()
-            self.selected_col = None
-        else:
-            self.selected_col = col
-            col_label_value = self.grid.GetColLabelValue(col)
-            self.grid.SetColLabelValue(col, col_label_value + " \nEDIT ALL")
-            for row in range(self.grid.GetNumberRows()):
-                self.grid.SetCellBackgroundColour(row, col, 'light blue')
-            self.grid.ForceRefresh()
+        if col not in (0, 1):
+        # if a new column was chosen without de-selecting the previous column, deselect the old selected_col
+            if self.selected_col != None and self.selected_col != col: 
+                col_label_value = self.grid.GetColLabelValue(self.selected_col)
+                self.grid.SetColLabelValue(self.selected_col, col_label_value[:-10])
+                for row in range(self.grid.GetNumberRows()):
+                    self.grid.SetCellBackgroundColour(row, self.selected_col, 'white')
+                self.grid.ForceRefresh()
+            # deselect col if user is clicking on it a second time
+            if col == self.selected_col:  
+                col_label_value = self.grid.GetColLabelValue(col)
+                self.grid.SetColLabelValue(col, col_label_value[:-10])
+                for row in range(self.grid.GetNumberRows()):
+                    self.grid.SetCellBackgroundColour(row, col, 'white')
+                self.grid.ForceRefresh()
+                self.selected_col = None
+            else:
+                self.selected_col = col
+                col_label_value = self.grid.GetColLabelValue(col)
+                self.grid.SetColLabelValue(col, col_label_value + " \nEDIT ALL")
+                for row in range(self.grid.GetNumberRows()):
+                    self.grid.SetCellBackgroundColour(row, col, 'light blue')
+                self.grid.ForceRefresh()
+        has_dropdown = (col in range(2, 7) and self.data_type in ['specimen', 'site', 'sample']) or (col in (3, 5) and self.data_type == 'age') or (col == 1 and self.data_type == 'location')
+        if not has_dropdown and col not in (0, 1): 
+            if self.selected_col == col:
+                default_value = self.grid.GetCellValue(0, col)
+                #data = wx.TextEntryDialog(None, "Enter value for all cells in the column", "Edit All", default_value)
+                data = wx.GetTextFromUser("Enter value for all cells in the column\nNote: this will overwrite any existing cell values", "Edit All", default_value)
+                if data:
+                    for row in range(self.grid.GetNumberRows()):
+                        self.grid.SetCellValue(row, col, str(data))
+                # then deselect column
+                col_label_value = self.grid.GetColLabelValue(col)
+                self.grid.SetColLabelValue(col, col_label_value[:-10])
+                for row in range(self.grid.GetNumberRows()):
+                    self.grid.SetCellBackgroundColour(row, col, 'white')
+                self.grid.ForceRefresh()
+                self.selected_col = None
+
+
             
     def clean_up(self, grid):
         if self.selected_col:
