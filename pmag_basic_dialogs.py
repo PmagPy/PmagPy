@@ -2504,7 +2504,13 @@ class check(wx.Frame):
         if self.sample_window == 1:
             self.samp_grid, self.temp_data['samples'], self.temp_data['sites'] = self.make_table(['samples', '', 'sites'], self.samples, self.Data_hierarchy, 'site_of_sample')
         if self.sample_window > 1:
-            col_labels = ['samples', '', 'sites', 'sample_class', 'sample_lithology', 'sample_type']
+            #col_labels = ['samples', '', 'sites', 'sample_class', 'sample_lithology', 'sample_type']
+            col_labels = self.ErMagic.data_er_samples[self.ErMagic.data_er_samples.keys()[0]].keys()
+            for val in ['er_citation_names', 'er_location_name', 'er_site_name', 'er_sample_name', 'sample_class', 'sample_lithology', 'sample_type', 'sample_lat', 'sample_lon']:
+                col_labels.remove(val)
+            col_labels = sorted(col_labels)
+            col_labels[:0] = ['samples', '', 'sites', 'sample_class', 'sample_lithology', 'sample_type', 'sample_lat', 'sample_lon']
+
             self.samp_grid, self.temp_data['samples'], self.temp_data['sites'] = self.make_table(col_labels, self.samples, self.Data_hierarchy, 'site_of_sample')
             self.add_extra_grid_data(self.samp_grid, self.samples,self.ErMagic.data_er_samples, col_labels)
 
