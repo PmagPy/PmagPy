@@ -2428,7 +2428,6 @@ class check(wx.Frame):
         col_labels = sorted(col_labels)
         col_labels[:0] = ['specimens', '', 'samples']
 
-        
         self.spec_grid, self.temp_data['specimens'], self.temp_data['samples'] = self.make_table(col_labels, self.specimens, self.Data_hierarchy, 'sample_of_specimen')
 
         self.extra_specimen_temp_data = self.add_extra_grid_data(self.spec_grid, self.specimens, self.ErMagic.data_er_specimens, col_labels)
@@ -2581,17 +2580,20 @@ class check(wx.Frame):
         label = wx.StaticText(self.panel,label=TEXT)#,size=(1200, 100)) # manually sizing the label to be longer than the grid means that the scrollbars display correctly.  hack-y but effective fix
         self.Data, self.Data_hierarchy = self.ErMagic.Data, self.ErMagic.Data_hierarchy
         self.sites = sorted(self.Data_hierarchy['sites'].keys())
-        col_labels = ['sites', '', 'locations', 'site_class', 'site_lithology', 'site_type', 'site_definition', 'site_lon', 'site_lat']
-        self.site_grid, self.temp_data['sites'], self.temp_data['locations'] = self.make_table(col_labels, self.sites, self.Data_hierarchy, 'location_of_site')
 
+        col_labels = self.ErMagic.data_er_sites[self.ErMagic.data_er_sites.keys()[0]].keys()
+        for val in ['er_citation_names', 'er_location_name', 'er_site_name', 'site_class', 'site_lithology', 'site_type', 'site_definition', 'site_lat', 'site_lon']: #
+            col_labels.remove(val)
+        col_labels = sorted(col_labels)
+        col_labels[:0] = ['sites', '', 'locations', 'site_class', 'site_lithology', 'site_type', 'site_definition', 'site_lon', 'site_lat']
+
+        self.site_grid, self.temp_data['sites'], self.temp_data['locations'] = self.make_table(col_labels, self.sites, self.Data_hierarchy, 'location_of_site')
         self.extra_site_temp_data = self.add_extra_grid_data(self.site_grid, self.sites, self.ErMagic.data_er_sites, col_labels)
 
-        locations = sorted(set(self.temp_data['locations']))
         self.changes = False
-
         self.Bind(wx.grid.EVT_GRID_EDITOR_CREATED, lambda event: self.on_edit_grid(event, self.site_grid), self.site_grid)
-        #self.Bind(wx.grid.EVT_GRID_EDITOR_SHOWN, self.on_edit_grid, self.site_grid) 
-        
+
+        locations = sorted(set(self.temp_data['locations']))        
         self.drop_down_menu = drop_down_menus.Menus("site", self, self.site_grid, locations) # initialize all needed drop-down menus
 
 
