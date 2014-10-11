@@ -2406,6 +2406,7 @@ class check(wx.Frame):
     def InitSpecCheck(self):
         """make an interactive grid in which users can edit specimen names
         as well as which sample a specimen belongs to"""
+        self.ErMagic.read_MagIC_info() # 
 
         self.panel = wx.ScrolledWindow(self, style=wx.SIMPLE_BORDER)
         TEXT = """
@@ -2420,10 +2421,20 @@ class check(wx.Frame):
 
         # create the grid and also a record of the initial values for specimens/samples as a reference
         # to tell if we've had any changes
-        self.spec_grid, self.temp_data['specimens'], self.temp_data['samples'] = self.make_table(['specimens', '', 'samples'], self.specimens, self.Data_hierarchy, 'sample_of_specimen')
+
+        col_labels = self.ErMagic.data_er_specimens[self.ErMagic.data_er_specimens.keys()[0]].keys()
+        for val in ['er_citation_names', 'er_location_name', 'er_site_name', 'er_sample_name', 'er_specimen_name', 'specimen_class', 'specimen_lithology', 'specimen_type']: #
+            col_labels.remove(val)
+        col_labels = sorted(col_labels)
+        col_labels[:0] = ['specimens', '', 'samples']
+
+        
+        self.spec_grid, self.temp_data['specimens'], self.temp_data['samples'] = self.make_table(col_labels, self.specimens, self.Data_hierarchy, 'sample_of_specimen')
+
+        self.extra_specimen_temp_data = self.add_extra_grid_data(self.spec_grid, self.specimens, self.ErMagic.data_er_specimens, col_labels)
         self.changes = False
 
-        self.Bind(wx.grid.EVT_GRID_EDITOR_SHOWN, self.on_edit_grid, self.spec_grid) # if user begins to edit, self.changes will be set to True
+        self.Bind(wx.grid.EVT_GRID_EDITOR_CREATED, lambda event: self.on_edit_grid(event, self.spec_grid), self.spec_grid) # if user begins to edit, self.changes will be set to True
         self.drop_down_menu = drop_down_menus.Menus("specimen", self, self.spec_grid, samples) # initialize all needed drop-down menus
 
 
@@ -2496,13 +2507,11 @@ class check(wx.Frame):
         if self.sample_window > 1:
             col_labels = ['samples', '', 'sites', 'sample_class', 'sample_lithology', 'sample_type']
             self.samp_grid, self.temp_data['samples'], self.temp_data['sites'] = self.make_table(col_labels, self.samples, self.Data_hierarchy, 'site_of_sample')
-            self.add_extra_grid_data(self.samp_grid, self.samples, col_labels, self.ErMagic.data_er_samples)
+            self.add_extra_grid_data(self.samp_grid, self.samples,self.ErMagic.data_er_samples, col_labels)
 
         self.changes = False
 
-        #self.Bind(wx.grid.EVT_GRID_EDITOR_SHOWN, self.on_edit_grid, self.samp_grid) 
         self.Bind(wx.grid.EVT_GRID_EDITOR_CREATED, lambda event: self.on_edit_grid(event, self.samp_grid), self.samp_grid)
-
 
         sites = sorted(list(set(sites).union(self.ErMagic.data_er_sites.keys()))) # adds in any additional sets we might have information about (from er_sites.txt file) even if currently that site does not show up in the magic_measurements file
         self.drop_down_menu = drop_down_menus.Menus("sample", self, self.samp_grid, sites) # initialize all needed drop-down menus
@@ -2575,7 +2584,7 @@ class check(wx.Frame):
         col_labels = ['sites', '', 'locations', 'site_class', 'site_lithology', 'site_type', 'site_definition', 'site_lon', 'site_lat']
         self.site_grid, self.temp_data['sites'], self.temp_data['locations'] = self.make_table(col_labels, self.sites, self.Data_hierarchy, 'location_of_site')
 
-        self.extra_site_temp_data = self.add_extra_grid_data(self.site_grid, self.sites, col_labels, self.ErMagic.data_er_sites)
+        self.extra_site_temp_data = self.add_extra_grid_data(self.site_grid, self.sites, self.ErMagic.data_er_sites, col_labels)
 
         locations = sorted(set(self.temp_data['locations']))
         self.changes = False
@@ -2866,12 +2875,12 @@ class check(wx.Frame):
         return grid, original_1, original_2
 
     
-    def add_extra_grid_data(self, grid, row_labels, col_labels, data_dict):
+    def add_extra_grid_data(self, grid, row_labels, data_dict, col_labels=None):
         temp_data = {}
         for num, row in enumerate(row_labels):
             new_list = []
             for n, col in enumerate(col_labels[3:]):
-                if row in data_dict.keys(): # accounts for potential difference between er_sites.txt and magic_measurements.txt
+                if row in data_dict.keys(): # accounts for potential difference between er_*.txt and magic_measurements.txt
                     new_list.append(data_dict[row][col])
                     if data_dict[row][col]:
                         grid.SetCellValue(num, n+3, data_dict[row][col])
@@ -2978,7 +2987,6 @@ class check(wx.Frame):
     def on_continueButton(self, event, grid, next_dia=None):
         """pulls up next dialog, if there is one.
         gets any updated information from the current grid and runs ErMagicBuilder"""
-        #self.ErMagic.read_MagIC_info()
         wait = wx.BusyInfo("Please wait, working...")
         if self.drop_down_menu:  # unhighlight selected columns, etc.
             self.drop_down_menu.clean_up(grid)
@@ -3074,7 +3082,7 @@ class check(wx.Frame):
             print "Duplicate {} detected.  Please ensure that all {} names are unique".format(type1, type1[:-1])
             return 0
         if type1 == 'specimens':
-            self.update_specimens(col1_updated, col1_old, col2_updated, col2_old, type1, type2)
+            self.update_specimens(self.spec_grid, col1_updated, col1_old, col2_updated, col2_old, type1, type2)
         if type1 == 'samples':
             cols = range(3, grid.GetNumberCols())
             col_labels = []
@@ -3295,7 +3303,7 @@ class check(wx.Frame):
                 
       
 
-    def update_specimens(self, col1_updated, col1_old, col2_updated, col2_old, type1, type2):
+    def update_specimens(self, grid, col1_updated, col1_old, col2_updated, col2_old, type1, type2):
         for num, value in enumerate(col2_updated):
             # find where changes have occurred
             if value != col2_old[num]:
@@ -3338,6 +3346,23 @@ class check(wx.Frame):
                 self.ErMagic.data_er_specimens[spec]['er_sample_name'] = samp
                 self.ErMagic.data_er_specimens[spec]['er_site_name'] = site
                 self.ErMagic.data_er_specimens[spec]['er_locations_name'] = location
+                
+                    
+        columns = grid.GetNumberCols()
+        col_labels = []
+        for col in range(columns):
+            col_labels.append(grid.GetColLabelValue(col))
+        for num_specimen, specimen in enumerate(col1_updated):
+            for num, arg in enumerate(col_labels[3:]):
+                old_value = self.extra_specimen_temp_data[specimen][num]
+                num += 3 # ignore first 3 rows
+                value = str(grid.GetCellValue(num_specimen, num))
+                if old_value == value:
+                    continue
+                self.ErMagic.data_er_specimens[specimen][arg] = value
+                
+                # ADD IN THE REST OF IT HERE
+                
 
 
         # if (through editing) a sample no longer has any specimens, remove it

@@ -61,11 +61,13 @@ class Menus():
                 for row in range(self.grid.GetNumberRows()):
                     self.grid.SetCellBackgroundColour(row, col, 'light blue')
                 self.grid.ForceRefresh()
-        has_dropdown = (col in range(2, 7) and self.data_type in ['specimen', 'site', 'sample']) or (col in (3, 5) and self.data_type == 'age') or (col == 1 and self.data_type == 'location')
-        if not has_dropdown and col not in (0, 1): 
+        has_dropdown = ((col == 2 and self.data_type is 'specimen') or (col in range(2, 7) and self.data_type in ['site', 'sample']) or (col in (3, 5) and self.data_type == 'age') or (col == 1 and self.data_type == 'location'))
+
+        # if the column has no drop-down list, allow user to edit all cells in the column through text entry
+        if not has_dropdown and col not in (0, 1):  
             if self.selected_col == col:
+                self.check.changes = True
                 default_value = self.grid.GetCellValue(0, col)
-                #data = wx.TextEntryDialog(None, "Enter value for all cells in the column", "Edit All", default_value)
                 data = wx.GetTextFromUser("Enter value for all cells in the column\nNote: this will overwrite any existing cell values", "Edit All", default_value)
                 if data:
                     for row in range(self.grid.GetNumberRows()):
