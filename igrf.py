@@ -72,7 +72,7 @@ def main():
             else:
                 x,y,z,f=pmag.doigrf(line[3]%360.,line[2],line[1],line[0],mod3k=mod3k)
             Dir=pmag.cart2dir((x,y,z))
-            print '%8.2 %8.2 %8.0f'%(Dir[0],Dir[1],f)           
+            print '%8.2f %8.2f %8.0f'%(Dir[0],Dir[1],f)           
           except EOFError:
             print "\n Good-bye\n"
             sys.exit()
