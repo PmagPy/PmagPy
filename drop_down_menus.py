@@ -25,7 +25,9 @@ class Menus():
         if self.data_type == 'specimen':
             choices = {2: (belongs_to, False)}
         if self.data_type == 'sample' or self.data_type == 'site':
-            choices = {2: (belongs_to, False), 3: (vocab.site_class, False), 4: (vocab.site_lithology, True), 5: (vocab.site_type, False), 6: (vocab.site_definition, False)}
+            choices = {2: (belongs_to, False), 3: (vocab.site_class, False), 4: (vocab.site_lithology, True), 5: (vocab.site_type, False)}
+        if self.data_type == 'site':
+            choices[6] = (vocab.site_definition, False)
         if self.data_type == 'location':
             choices = {1: (vocab.location_type, False)}
         if self.data_type == 'age':
@@ -61,7 +63,7 @@ class Menus():
                 for row in range(self.grid.GetNumberRows()):
                     self.grid.SetCellBackgroundColour(row, col, 'light blue')
                 self.grid.ForceRefresh()
-        has_dropdown = ((col == 2 and self.data_type is 'specimen') or (col in range(2, 7) and self.data_type in ['site', 'sample']) or (col in (3, 5) and self.data_type == 'age') or (col == 1 and self.data_type == 'location'))
+        has_dropdown = ((col == 2 and self.data_type is 'specimen') or (col in range(2, 6) and self.data_type in ['site', 'sample']) or (col in (3, 5) and self.data_type == 'age') or (col == 6 and self.data_type == 'site') or (col == 1 and self.data_type == 'location'))
 
         # if the column has no drop-down list, allow user to edit all cells in the column through text entry
         if not has_dropdown and col not in (0, 1):  

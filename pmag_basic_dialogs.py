@@ -2658,7 +2658,7 @@ class check(wx.Frame):
         self.locations = self.Data_hierarchy['locations']
         #
         key1 = self.ErMagic.data_er_locations.keys()[0]
-        col_labels = self.ErMagic.data_er_locations[key1].keys()
+        col_labels = sorted(self.ErMagic.data_er_locations[key1].keys())
         try:
             col_labels.remove('er_location_name')
             col_labels.remove('location_type')
@@ -2726,7 +2726,7 @@ class check(wx.Frame):
         self.sites = self.Data_hierarchy['sites']
         #
         key1 = self.ErMagic.data_er_ages.keys()[0]
-        col_labels = self.ErMagic.data_er_ages[key1].keys()
+        col_labels = sorted(self.ErMagic.data_er_ages[key1].keys())
         try:
             for col_label in ['er_site_name', 'er_location_name', 'er_citation_names', 'magic_method_codes', 'age_description', 'age_unit', 'age']:
                 col_labels.remove(col_label)
