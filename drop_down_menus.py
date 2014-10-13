@@ -71,9 +71,9 @@ class Menus():
                 self.check.changes = True
                 default_value = self.grid.GetCellValue(0, col)
                 data = wx.GetTextFromUser("Enter value for all cells in the column\nNote: this will overwrite any existing cell values", "Edit All", default_value)
-                if data:
-                    for row in range(self.grid.GetNumberRows()):
-                        self.grid.SetCellValue(row, col, str(data))
+                #if data:
+                for row in range(self.grid.GetNumberRows()):
+                    self.grid.SetCellValue(row, col, str(data))
                 # then deselect column
                 col_label_value = self.grid.GetColLabelValue(col)
                 self.grid.SetColLabelValue(col, col_label_value[:-10])
