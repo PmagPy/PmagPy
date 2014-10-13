@@ -40,7 +40,9 @@ class Menus():
         col = event.GetCol()
         if col == -1:
             return 0
-        if col not in (-1, 0, 1):
+        if col == 2 and self.data_type == 'age':
+            return 0
+        if (col not in (-1, 0, 1)) or (col == 1 and self.data_type == 'location'):
         # if a new column was chosen without de-selecting the previous column, deselect the old selected_col
             if self.selected_col != None and self.selected_col != col: 
                 col_label_value = self.grid.GetColLabelValue(self.selected_col)
@@ -70,10 +72,15 @@ class Menus():
             if self.selected_col == col:
                 self.check.changes = True
                 default_value = self.grid.GetCellValue(0, col)
-                data = wx.GetTextFromUser("Enter value for all cells in the column\nNote: this will overwrite any existing cell values", "Edit All", default_value)
-                #if data:
-                for row in range(self.grid.GetNumberRows()):
-                    self.grid.SetCellValue(row, col, str(data))
+                #data = wx.GetTextFromUser("Enter value for all cells in the column\nNote: this will overwrite any existing cell values", "Edit All", default_value)
+                
+                data = None
+                dialog = wx.TextEntryDialog(None, "Enter value for all cells in the column\nNote: this will overwrite any existing cell values", "Edit All", default_value, style=wx.OK|wx.CANCEL)
+                if dialog.ShowModal() == wx.ID_OK: 
+                    data = dialog.GetValue() 
+                    for row in range(self.grid.GetNumberRows()):
+                        self.grid.SetCellValue(row, col, str(data))
+                dialog.Destroy()
                 # then deselect column
                 col_label_value = self.grid.GetColLabelValue(col)
                 self.grid.SetColLabelValue(col, col_label_value[:-10])
