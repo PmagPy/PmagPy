@@ -88,10 +88,11 @@ def main():
     if spin==0: # do transformation to pole
         ppars=pmag.doprinc(Pvgps)
         for vgp in Vgps:
-            vlon,vlat=pmag.dodirot(float(vgp['vgp_lon']),float(vgp['vgp_lat']),ppars['dec'],ppars['inc'])
+	    vlon,vlat=pmag.dotilt(float(vgp['vgp_lon']),float(vgp['vgp_lat']),ppars['dec']-180.,90.-ppars['inc'])
             vgp['vgp_lon']=vlon  
             vgp['vgp_lat']=vlat  
             vgp['average_k']="0"
+            print vlon, vlat
     S_B= pmag.get_Sb(Vgps)
     A=cutoff
     if v==1:

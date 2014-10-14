@@ -410,8 +410,8 @@ def get_Sb(data):
                     K=k/(2.*(1.+3.*numpy.sin(L)**2)/(5.-3.*numpy.sin(L)**2))
                     Sw=81./numpy.sqrt(K)
                 else:
-                    Sw,Nsi=0,1
-                Sb+=delta**2-(Sw**2)/Nsi
+                    Sw,Nsi=0,1.
+                Sb+=delta**2.-(Sw**2)/Nsi
                 N+=1.
     return numpy.sqrt( Sb/float(N-1.) )
 def default_criteria(nocrit):
