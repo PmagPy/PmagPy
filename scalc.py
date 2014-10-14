@@ -92,7 +92,6 @@ def main():
             vgp['vgp_lon']=vlon  
             vgp['vgp_lat']=vlat  
             vgp['average_k']="0"
-            print vlon, vlat
     S_B= pmag.get_Sb(Vgps)
     A=cutoff
     if v==1:
