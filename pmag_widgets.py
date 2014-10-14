@@ -2,6 +2,7 @@
 
 import os
 import wx
+import wx.html
 
 
 # library for commonly used widgets.  
@@ -29,6 +30,47 @@ class choose_file(wx.StaticBoxSizer):
 
     def return_value(self):
         return self.file_path.GetValue()
+
+
+
+
+class NotEmptyValidator(wx.PyValidator): 
+    def __init__(self): 
+        print "initing validator"
+        wx.PyValidator.__init__(self) 
+
+    def Clone(self): 
+        """ 
+        Note that every validator must implement the Clone() method. 
+        """ 
+        print "doing Clone"
+        return NotEmptyValidator() 
+
+    def Validate(self, win): 
+        print "doing Validate"
+        textCtrl = self.GetWindow() 
+        text = textCtrl.GetValue() 
+        if len(text) == 0: 
+            print "textCtrl.Name:", textCtrl.Name
+            wx.MessageBox("{} must contain some text!".format(str(textCtrl.Name)), "Error") 
+            textCtrl.SetBackgroundColour("pink") 
+            textCtrl.SetFocus() 
+            textCtrl.Refresh() 
+            print "win", win
+            return False 
+        else:
+            textCtrl.SetBackgroundColour( 
+                wx.SystemSettings_GetColour(wx.SYS_COLOUR_WINDOW)) 
+            textCtrl.Refresh() 
+            return True 
+            
+    def TransferToWindow(self): 
+        print "doing TransferToWindow"
+        return True 
+
+    def TransferFromWindow(self):
+        print "doing TransferFromWindow"
+        return True
 
 
 class choose_dir(wx.StaticBoxSizer):
@@ -235,6 +277,57 @@ class check_box(wx.StaticBoxSizer):
     def return_value(self):
         return self.cb.GetValue()
         
+
+class radio_buttons(wx.StaticBoxSizer):
+    
+    def __init__(self, parent, choices):
+        box = wx.StaticBox(parent, -1, "")
+        super(radio_buttons, self).__init__(box, orient=wx.VERTICAL)
+        rb1 = wx.RadioButton(parent, label=choices[0], style=wx.RB_GROUP)
+        rb1.SetValue(True)
+        self.Add(rb1)
+        self.radio_buttons = [rb1]
+        for choice in choices[1:]:
+            rb = wx.RadioButton(parent, label=choice)
+            self.Add(rb)
+            self.radio_buttons.append(rb)
+
+    def return_value(self):
+        for rb in self.radio_buttons:
+            val = rb.GetValue()
+            if val:
+                return rb.Label
+
+
+class large_checkbox_window(wx.StaticBoxSizer):
+
+    def __init__(self, parent, choices, text):
+        box = wx.StaticBox(parent, wx.ID_ANY, "")
+        super(large_checkbox_window, self).__init__(box, orient=wx.VERTICAL)
+        
+        self.gridSizer = wx.FlexGridSizer(23, 10, 9, 10)
+        labels = [wx.StaticText(parent, label=choice) for choice in sorted(choices)]
+        for label in labels:
+            self.gridSizer.Add(label, flag=wx.ALIGN_RIGHT)
+            text_control = wx.TextCtrl(parent)
+            text_sizer = self.gridSizer.Add(text_control)
+            if choices[label.Label]:
+                text_control.SetValue(choices[label.Label])
+        self.Add(self.gridSizer, wx.ALIGN_LEFT)
+
+    def return_value(self):
+        keys = []
+        values = []
+        for sizer in self.gridSizer.Children:
+            if isinstance(sizer.GetWindow(), wx._controls.TextCtrl):
+                values.append(str(sizer.GetWindow().GetValue())) 
+            else:
+                keys.append(str(sizer.GetWindow().Label))
+        data_dict = dict(zip(keys, values))
+        return [data_dict]
+
+
+
 class check_boxes(wx.StaticBoxSizer):
     
     def __init__(self, parent, gridsize, choices, text):
@@ -257,6 +350,8 @@ class check_boxes(wx.StaticBoxSizer):
             if cb.GetValue():
                 checked.append(str(cb.Label))
         return checked
+
+
 
 class sampling_particulars(check_boxes):
 
@@ -424,9 +519,73 @@ class combine_files(wx.BoxSizer):
             F=str(F)
             if len(F)>6:
                 if self.text in F:
-                    self.file_paths.AppendText(F+"\n")
+                    if "#" not in F and "~" not in F and not F.endswith('.pyc'): # prevents binary files from going into the mix, as well as misc saved stuff
+                        self.file_paths.AppendText(F+"\n")
+
+
+# NEED TO MAKE THIS ABLE TO FIND HTML FILES IN USER's path.  sigh.
+class LinkEnabledHtmlWindow(wx.html.HtmlWindow):
+    def OnLinkClicked(self, link):
+        wx.LaunchDefaultBrowser(link.GetHref())
+
+class HtmlFrame(wx.Frame):
+    """ This window displays a HtmlWindow """
+    def __init__(self, *args, **kwargs):
+        wx.Frame.__init__(self, None, wx.ID_ANY, title="Help Window", size=(600,400))
+        page = kwargs.get('page', 'http://earthref.org/MAGIC/shortlists/')
+        htmlwin = LinkEnabledHtmlWindow(self)
+        htmlwin.LoadPage(page)
+        htmlwin.Fit()
 
  
+        
+class AddItem(wx.Frame):
+    """This window allows user to add a new item (sample or specimen)"""
+
+    def __init__(self, parent, title, belongs_to, owner_items, data_method): 
+        self.title = title
+        self.owner_items = owner_items
+        self.belongs_to = belongs_to
+        self.onAdd = data_method# data parsing method passed in by pmag_basic_dialogs
+        wx.Frame.__init__(self, parent, wx.ID_ANY, title=self.title)
+        self.InitUI()
+
+    def InitUI(self):
+        panel = wx.Panel(self)
+        vbox = wx.BoxSizer(wx.VERTICAL)
+        self.item_name = labeled_text_field(panel, label="{} Name: ".format(self.title))
+        owner_box = wx.StaticBox(panel, wx.ID_ANY, "" )
+        owner_boxSizer = wx.StaticBoxSizer(owner_box)
+        items = self.owner_items
+        owner_label = wx.StaticText(panel, label="Belongs to {}: ".format(self.belongs_to), style=wx.TE_CENTER)
+        self.owner_name = wx.ComboBox(panel, -1, items[0], choices=items, style=wx.CB_READONLY)
+        owner_boxSizer.Add(owner_label, flag=wx.RIGHT, border=5)
+        owner_boxSizer.Add(self.owner_name)
+        vbox.Add(self.item_name)
+        vbox.Add(owner_boxSizer)
+        btn_panel = wx.BoxSizer(wx.HORIZONTAL)
+        okButton = wx.Button(panel, wx.ID_ANY, '&Add {}'.format(self.title))
+        cancelButton = wx.Button(panel, wx.ID_ANY, '&Cancel')
+        self.Bind(wx.EVT_BUTTON, self.on_okButton, okButton)
+        self.Bind(wx.EVT_BUTTON, self.on_cancelButton, cancelButton)
+        btn_panel.AddMany([okButton, cancelButton])
+        vbox.Add(btn_panel)
+        vbox.AddSpacer(10)
+
+        panel.SetSizer(vbox)
+        vbox.Fit(self)
+        self.Show()
+
+    def on_cancelButton(self, event):
+        self.Destroy()
+        
+    def on_okButton(self, event):
+        print "doing on_okButton"
+        item = str(self.item_name.return_value())
+        owner = str(self.owner_name.GetValue())
+        self.onAdd(item, owner)
+        self.Destroy()
+        
 
 
 # methods!
@@ -459,9 +618,12 @@ def simple_warning(text):
     dlg.Destroy()
     
 
-def on_helpButton(command):
+def on_helpButton(command=None, text=None):
     import subprocess
-    result = subprocess.check_output(command, shell=True)
+    if text:
+        result = text
+    else:
+        result = subprocess.check_output(command, shell=True)
     dlg = wx.Dialog(None, title="help")
     text = wx.TextCtrl(dlg, -1, result, size=(620,540), style=wx.TE_MULTILINE | wx.TE_READONLY)
     sizer = wx.BoxSizer(wx.VERTICAL)

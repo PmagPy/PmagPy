@@ -56,8 +56,51 @@ class MagICMenu(wx.MenuBar):
         import_menu.AppendMenu(wx.ID_ANY, "orientation/location/stratigraphic files", orient_submenu)
         import_menu.AppendMenu(wx.ID_ANY, "Anisotropy files", anisotropy_submenu)
         import_menu.AppendMenu(wx.ID_ANY, "Hysteresis files", hysteresis_submenu)
+
+        analysis_menu = wx.Menu()
+        analysis1 = analysis_menu.Append(-1, "Customize Criteria")
+        analysis_menu.AppendSeparator()
+        analysis2 = analysis_menu.Append(-1, "Zeq_magic program")
+        analysis3 = analysis_menu.Append(-1, "Thellier_magic program")
+
+        equal_area_submenu = wx.Menu()
+        equal_area1 = equal_area_submenu.Append(-1, 'Quick Look - NRM directions')
+        equal_area2 = equal_area_submenu.Append(-1, 'General remanence directions')
+        equal_area3 = equal_area_submenu.Append(-1, 'Anisotropy data')
+
+        analysis4 = analysis_menu.AppendMenu(-1, "Equal area plots", equal_area_submenu)
+        analysis5 = analysis_menu.Append(-1, "Hysteresis data")
+        analysis6 = analysis_menu.Append(-1, "Hysteresis ratio plots")
+        analysis7 = analysis_menu.Append(-1, "IRM acquisition")
+        analysis8 = analysis_menu.Append(-1, "3D IRM acquisition")
+        analysis9 = analysis_menu.Append(-1, "Remanence data versus depth/height")
+        analysis10 = analysis_menu.Append(-1, "Anisotropy data versus depth/height")
+        analysis11 = analysis_menu.Append(-1, "Reversals test")
+        analysis12 = analysis_menu.Append(-1, "Fold test")
+        analysis13 = analysis_menu.Append(-1, "Elong/Inc")
+
+        parent.Bind(wx.EVT_MENU, self.analysis1, analysis1)
+        parent.Bind(wx.EVT_MENU, self.analysis2, analysis2)
+        parent.Bind(wx.EVT_MENU, self.analysis3, analysis3)
+
+        parent.Bind(wx.EVT_MENU, self.analysis4, equal_area1)
+        parent.Bind(wx.EVT_MENU, self.analysis4, equal_area2)
+        parent.Bind(wx.EVT_MENU, self.analysis4, equal_area3)
+
+        parent.Bind(wx.EVT_MENU, self.analysis5, analysis5)
+        parent.Bind(wx.EVT_MENU, self.analysis6, analysis6)
+        parent.Bind(wx.EVT_MENU, self.analysis7, analysis7)
+        parent.Bind(wx.EVT_MENU, self.analysis8, analysis8)
+        parent.Bind(wx.EVT_MENU, self.analysis9, analysis9)
+        parent.Bind(wx.EVT_MENU, self.analysis10, analysis10)
+        parent.Bind(wx.EVT_MENU, self.analysis11, analysis11)
+        parent.Bind(wx.EVT_MENU, self.analysis12, analysis12)
+        parent.Bind(wx.EVT_MENU, self.analysis13, analysis13)
+
         self.Append(file_menu, 'File')
         self.Append(import_menu, 'Import')
+        #self.Append(analysis_menu, 'Analysis and Plots') # probably won't use this
+        
 
 
     def on_quit(self, event):
@@ -95,6 +138,46 @@ class MagICMenu(wx.MenuBar):
 
     def hysteresis_import2(self, event):
         hyst2 = pmag_menu_dialogs.ImportAgmFolder(self.parent, self.parent.WD)
+
+    def analysis1(self, event):
+        analysis1 = pmag_menu_dialogs.CustomizeCriteria(self.parent, self.parent.WD)
+
+    def analysis2(self, event):
+        analysis2 = pmag_menu_dialogs.ZeqMagic(self.parent, self.parent.WD)
+
+
+    def analysis3(self, event):
+        pass
+
+    def analysis4(self, event):
+        pass
+
+    def analysis5(self, event):
+        pass
+
+    def analysis6(self, event):
+        pass
+
+    def analysis7(self, event):
+        pass
+
+    def analysis8(self, event):
+        pass
+
+    def analysis9(self, event):
+        pass
+
+    def analysis10(self, event):
+        pass
+
+    def analysis11(self, event):
+        pass
+
+    def analysis12(self, event):
+        pass
+
+    def analysis13(self, event):
+        pass
 
 
     

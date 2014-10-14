@@ -10,6 +10,8 @@ import subprocess
 import pmag_widgets as pw
 import wx.grid
 import subprocess
+import ErMagicBuilder
+import drop_down_menus
 
 class import_magnetometer_data(wx.Dialog):
     def __init__(self,parent,id,title,WD):
@@ -250,8 +252,8 @@ class convert_generic_files_to_MagIC(wx.Frame):
         self.panel.SetSizer(self.hbox_all)
         self.bSizer2a.ShowItems(False)
         self.hbox_all.Fit(self)
-        self.Show()
         self.Centre()
+        self.Show()
 
 
     def on_select_protocol(self, event):
@@ -508,8 +510,9 @@ class combine_magic_dialog(wx.Frame):
         
         self.panel.SetSizer(hbox_all)
         hbox_all.Fit(self)
-        self.Show()
         self.Centre()
+        self.Show()
+
                         
     
     def on_add_file_button(self,event):
@@ -621,8 +624,9 @@ class combine_everything_dialog(wx.Frame):
         
         self.panel.SetSizer(hbox_all)
         hbox_all.Fit(self)
-        self.Show()
         self.Centre()
+        self.Show()
+
                         
 
     def on_cancelButton(self,event):
@@ -765,8 +769,9 @@ class convert_SIO_files_to_MagIC(wx.Frame):
         self.panel.SetSizer(hbox_all)
         self.panel.SetScrollbars(20, 20, 50, 50)
         hbox_all.Fit(self)
-        self.Show()
         self.Centre()
+        self.Show()
+
         
 
     def on_add_file_button(self,event):
@@ -900,8 +905,9 @@ class convert_CIT_files_to_MagIC(wx.Frame):
         self.panel.SetSizer(hbox_all)
         self.panel.SetScrollbars(20, 20, 50, 50)
         hbox_all.Fit(self)
-        self.Show()
         self.Centre()
+        self.Show()
+
 
 
     def on_add_file_button(self,event):
@@ -1038,8 +1044,9 @@ class convert_HUJI_files_to_MagIC(wx.Frame):
         self.panel.SetSizer(hbox_all)
         self.panel.SetScrollbars(20, 20, 50, 50)
         hbox_all.Fit(self)
-        self.Show()
         self.Centre()
+        self.Show()
+
 
 
     def on_add_file_button(self,event):
@@ -1165,8 +1172,9 @@ class convert_2G_binary_files_to_MagIC(wx.Frame):
         self.panel.SetSizer(hbox_all)
         self.panel.SetScrollbars(20, 20, 50, 50)
         hbox_all.Fit(self)
-        self.Show()
         self.Centre()
+        self.Show()
+
 
     #---button methods ---
 
@@ -1321,8 +1329,9 @@ class convert_LDEO_files_to_MagIC(wx.Frame):
         self.panel.SetSizer(hbox_all)
         self.panel.SetScrollbars(20, 20, 50, 50)
         hbox_all.Fit(self)
-        self.Show()
         self.Centre()
+        self.Show()
+
 
 
     def on_add_file_button(self,event):
@@ -1440,8 +1449,9 @@ class convert_IODP_csv_files_to_MagIC(wx.Frame):
         self.panel.SetSizer(hbox_all)
         self.panel.SetScrollbars(20, 20, 50, 50)
         hbox_all.Fit(self)
-        self.Show()
         self.Centre()
+        self.Show()
+
 
 
     def on_add_file_button(self,event):
@@ -1552,8 +1562,9 @@ class convert_PMD_files_to_MagIC(wx.Frame):
         self.panel.SetSizer(hbox_all)
         self.panel.SetScrollbars(20, 20, 50, 50)
         hbox_all.Fit(self)
-        self.Show()
         self.Centre()
+        self.Show()
+
 
 
     def on_add_dir_button(self,event):
@@ -1674,8 +1685,8 @@ class something(wx.Frame):
         self.panel.SetSizer(hbox_all)
         self.panel.SetScrollbars(20, 20, 50, 50)
         hbox_all.Fit(self)
-        self.Show()
         self.Centre()
+        self.Show()
 
 
     def on_add_file_button(self,event):
@@ -2378,133 +2389,1054 @@ class method_code_dialog(wx.Dialog):
         self.EndModal(wx.ID_OK) 
         #self.Close()
 
-"""
+
 class check(wx.Frame):
 
-    def __init__(self, parent, id, title, WD):#, size):
-        wx.Frame.__init__(self, parent, -1, title)#, size=size)
+    def __init__(self, parent, id, title, WD, ErMagic):
+        wx.Frame.__init__(self, parent, -1, title)
         self.WD = WD
-        self.InitUI()
+        self.main_frame = self.Parent
+        self.ErMagic = ErMagic
+        self.temp_data = {}
+        self.drop_down_menu = None
+        self.InitSpecCheck()
+        self.sample_window = 0 # sample window must be displayed (differently) twice, so it is useful to keep track
 
-    def InitUI(self):
-        self.get_orient_data()
-        #print "Data hierarchy", self.Parent.get_data()[1]
-        self.specimens = self.orient_data.keys()
-        rows = range(1, len(self.specimens)+1)
-        cols = ['specimen', '', 'sample']
-        self.grid = wx.grid.Grid(self, -1)
-        self.grid.ClearGrid()
-        self.grid.CreateGrid(len(rows), len(cols))
-        self.grid.SetCellBackgroundColour(0, 0, "LIGHT GREY")
-        self.grid.SetCellBackgroundColour(1, 1, "LIGHT GREY")
+
+    def InitSpecCheck(self):
+        """make an interactive grid in which users can edit specimen names
+        as well as which sample a specimen belongs to"""
+        self.ErMagic.read_MagIC_info() # 
+
+        self.panel = wx.ScrolledWindow(self, style=wx.SIMPLE_BORDER)
+        TEXT = """
+        Step 1:
+        Check that all specimens belong to the correct sample
+        (if sample name is simply wrong, that will be fixed in step 2)"""
+        label = wx.StaticText(self.panel,label=TEXT)
+        self.Data, self.Data_hierarchy = self.ErMagic.Data, self.ErMagic.Data_hierarchy
+        self.specimens = sorted(self.Data_hierarchy['specimens'].keys())
+        samples = self.Data_hierarchy['samples'].keys()
+        samples = sorted(list(set(samples).union(self.ErMagic.data_er_samples.keys()))) # adds in any additional samples we might have information about (from er_sites.txt file) even if currently that sample does not show up in the magic_measurements file
+
+        # create the grid and also a record of the initial values for specimens/samples as a reference
+        # to tell if we've had any changes
+
+        col_labels = self.ErMagic.data_er_specimens[self.ErMagic.data_er_specimens.keys()[0]].keys()
+        for val in ['er_citation_names', 'er_location_name', 'er_site_name', 'er_sample_name', 'er_specimen_name', 'specimen_class', 'specimen_lithology', 'specimen_type']: #
+            col_labels.remove(val)
+        col_labels = sorted(col_labels)
+        col_labels[:0] = ['specimens', '', 'samples']
+
+        self.spec_grid, self.temp_data['specimens'], self.temp_data['samples'] = self.make_table(col_labels, self.specimens, self.Data_hierarchy, 'sample_of_specimen')
+
+        self.extra_specimen_temp_data = self.add_extra_grid_data(self.spec_grid, self.specimens, self.ErMagic.data_er_specimens, col_labels)
+        self.changes = False
+
+        self.Bind(wx.grid.EVT_GRID_EDITOR_CREATED, lambda event: self.on_edit_grid(event, self.spec_grid), self.spec_grid) # if user begins to edit, self.changes will be set to True
+        self.drop_down_menu = drop_down_menus.Menus("specimen", self, self.spec_grid, samples) # initialize all needed drop-down menus
+
+
+        #### Create Buttons ####
+        hbox_one = wx.BoxSizer(wx.HORIZONTAL)
+        self.addSampleButton = wx.Button(self.panel, label="Add a new sample")
+        self.sites =list(set(self.Data_hierarchy['sites'].keys()).union(self.ErMagic.data_er_sites.keys())) # adds in any additional samples we might have information about (from er_sites.txt file) even if currently that sample does not show up in the magic_measurements file
+        self.Bind(wx.EVT_BUTTON, self.on_addSampleButton, self.addSampleButton)
+        hbox_one.Add(self.addSampleButton)
+        #
+        hboxok = wx.BoxSizer(wx.HORIZONTAL)
+        self.saveButton =  wx.Button(self.panel, id=-1, label='Save')
+        self.Bind(wx.EVT_BUTTON, lambda event: self.on_saveButton(event, self.spec_grid), self.saveButton)
+        self.cancelButton = wx.Button(self.panel, wx.ID_CANCEL, '&Cancel')
+        self.Bind(wx.EVT_BUTTON, self.on_cancelButton, self.cancelButton)
+        self.continueButton = wx.Button(self.panel, id=-1, label='Save and continue')
+        self.Bind(wx.EVT_BUTTON, lambda event: self.on_continueButton(event, self.spec_grid, next_dia=self.InitSampCheck), self.continueButton)
+        hboxok.Add(self.saveButton, flag=wx.ALIGN_LEFT|wx.RIGHT, border=20)
+        hboxok.Add(self.cancelButton, flag=wx.ALIGN_LEFT|wx.RIGHT, border=20) 
+        hboxok.Add(self.continueButton, flag=wx.ALIGN_LEFT )
+
+        ### Create Containers ###
+        vbox = wx.BoxSizer(wx.VERTICAL)
+        vbox.Add(label, flag=wx.ALIGN_LEFT, border=20)
+        vbox.Add(self.spec_grid, flag=wx.ALL|wx.EXPAND, border=30)
+        vbox.Add(hbox_one, flag=wx.BOTTOM, border=20)
+        vbox.Add(hboxok, flag=wx.BOTTOM, border=20)
         
-        for n, row in enumerate(rows):
-            self.grid.SetRowLabelValue(n, str(row))
-            self.grid.SetCellValue(n, 0, self.specimens[n])
-            self.grid.SetCellValue(n, 1, "belongs to")
-            self.grid.SetCellValue(n, 2, 'some sample')
-            sample = self.orient_data[self.specimens[n]]['sample_name']
-            self.grid.SetCellValue(n, 2, sample)
+        hbox_all= wx.BoxSizer(wx.HORIZONTAL)
+        hbox_all.AddSpacer(20)
+        hbox_all.AddSpacer(vbox)
+        hbox_all.AddSpacer(20)
 
-
-        for n, col in enumerate(cols):
-            self.grid.SetColLabelValue(n, col)
-
-            
-        self.grid.AutoSize()# doesn't clearly do anything......?
-        
+        self.panel.SetSizer(hbox_all)
+        self.panel.SetScrollbars(20, 20, 50, 50)
+        hbox_all.Fit(self)  
         self.Centre()
         self.Show()
-        self.update_orient_data()
 
-    def get_orient_data(self):
+            
+
+    def InitSampCheck(self):
+        """make an interactive grid in which users can edit sample names
+        as well as which site a sample belongs to"""
+        
+        self.sample_window += 1 
+        #print "init-ing Sample Check for the {}th time".format(self.sample_window)
+        self.panel = wx.ScrolledWindow(self, style=wx.SIMPLE_BORDER)
+        if self.sample_window == 1:
+            TEXT = """
+            Step 2:
+            Check that all samples are correctly named,
+            and that they belong to the correct site
+            (if site name is simply wrong, that will be fixed in step 3)"""
+            label = wx.StaticText(self.panel,label=TEXT)#, size=(900, 100))
+        else:
+            self.ErMagic.read_MagIC_info() # ensures that changes from step 3 propagate
+            TEXT = """
+            Step 4:
+            Some of the data from the er_sites table has propogated into er_samples.
+            Check that this data is correct, and fill in missing cells using controlled vocabularies.
+            (see Help button for more details)"""
+            label = wx.StaticText(self.panel,label=TEXT)#, size=(900, 100))
+        self.Data, self.Data_hierarchy = self.ErMagic.Data, self.ErMagic.Data_hierarchy
+        self.samples = sorted(self.Data_hierarchy['samples'].keys())
+        sites = sorted(self.Data_hierarchy['sites'].keys())
+        self.locations = sorted(list(set(self.Data_hierarchy['locations'].keys()).union(self.ErMagic.data_er_locations.keys())))
+        if self.sample_window == 1:
+            self.samp_grid, self.temp_data['samples'], self.temp_data['sites'] = self.make_table(['samples', '', 'sites'], self.samples, self.Data_hierarchy, 'site_of_sample')
+        if self.sample_window > 1:
+            #col_labels = ['samples', '', 'sites', 'sample_class', 'sample_lithology', 'sample_type']
+            col_labels = self.ErMagic.data_er_samples[self.ErMagic.data_er_samples.keys()[0]].keys()
+            for val in ['er_citation_names', 'er_location_name', 'er_site_name', 'er_sample_name', 'sample_class', 'sample_lithology', 'sample_type', 'sample_lat', 'sample_lon']:
+                col_labels.remove(val)
+            col_labels = sorted(col_labels)
+            col_labels[:0] = ['samples', '', 'sites', 'sample_class', 'sample_lithology', 'sample_type', 'sample_lat', 'sample_lon']
+
+            self.samp_grid, self.temp_data['samples'], self.temp_data['sites'] = self.make_table(col_labels, self.samples, self.Data_hierarchy, 'site_of_sample')
+            self.add_extra_grid_data(self.samp_grid, self.samples,self.ErMagic.data_er_samples, col_labels)
+
+        self.changes = False
+
+        self.Bind(wx.grid.EVT_GRID_EDITOR_CREATED, lambda event: self.on_edit_grid(event, self.samp_grid), self.samp_grid)
+
+        sites = sorted(list(set(sites).union(self.ErMagic.data_er_sites.keys()))) # adds in any additional sets we might have information about (from er_sites.txt file) even if currently that site does not show up in the magic_measurements file
+        self.drop_down_menu = drop_down_menus.Menus("sample", self, self.samp_grid, sites) # initialize all needed drop-down menus
+
+
+        ### Create Buttons ###
+        hbox_one = wx.BoxSizer(wx.HORIZONTAL)
+        self.addSiteButton = wx.Button(self.panel, label="Add a new site")
+        self.Bind(wx.EVT_BUTTON, self.on_addSiteButton, self.addSiteButton)
+        hbox_one.Add(self.addSiteButton)
+        if self.sample_window > 1:
+            self.helpButton = wx.Button(self.panel, label="Help")
+            self.Bind(wx.EVT_BUTTON, lambda event: self.on_helpButton(event, "ErMagicSampleHelp.html"), self.helpButton)
+            hbox_one.Add(self.helpButton)
+
+
+        hboxok = wx.BoxSizer(wx.HORIZONTAL)
+        self.saveButton =  wx.Button(self.panel, id=-1, label='Save')
+        self.Bind(wx.EVT_BUTTON, lambda event: self.on_saveButton(event, self.samp_grid), self.saveButton)
+        self.cancelButton = wx.Button(self.panel, wx.ID_CANCEL, '&Cancel')
+        self.Bind(wx.EVT_BUTTON, self.on_cancelButton, self.cancelButton)
+        self.continueButton = wx.Button(self.panel, id=-1, label='Save and continue')
+        next_dia = self.InitSiteCheck if self.sample_window < 2 else self.InitLocCheck #None # 
+        self.Bind(wx.EVT_BUTTON, lambda event: self.on_continueButton(event, self.samp_grid, next_dia=next_dia), self.continueButton)
+        self.backButton = wx.Button(self.panel, wx.ID_ANY, "&Back")
+        previous_dia = self.InitSpecCheck if self.sample_window < 2 else self.InitSiteCheck
+        self.Bind(wx.EVT_BUTTON, lambda event: self.on_backButton(event, previous_dia=previous_dia), self.backButton)
+
+        hboxok.Add(self.saveButton, flag=wx.BOTTOM, border=20)
+        hboxok.Add(self.cancelButton, flag=wx.BOTTOM, border=20 )
+        hboxok.Add(self.continueButton, flag=wx.BOTTOM, border=20 )
+        hboxok.Add(self.backButton,flag=wx.BOTTOM, border=20 )
+
+        ### Make Containers ###
+        vbox = wx.BoxSizer(wx.VERTICAL)
+        vbox.Add(label, flag=wx.ALIGN_LEFT)
+
+        #vbox.Add(self.samp_grid, flag=wx.BOTTOM|wx.EXPAND, border=20) # EXPAND ??
+        vbox.Add(self.samp_grid, flag=wx.ALL, border=20) # EXPAND ??
+
+        vbox.Add(hbox_one, flag=wx.BOTTOM, border=20)
+        vbox.Add(hboxok, flag=wx.BOTTOM, border=20)
+
+        hbox_all= wx.BoxSizer(wx.HORIZONTAL)
+        hbox_all.AddSpacer(20)
+        hbox_all.AddSpacer(vbox)
+        hbox_all.AddSpacer(20)
+
+        self.panel.SetSizer(hbox_all)
+        self.panel.SetScrollbars(20, 20, 50, 50)
+        hbox_all.Fit(self)
+        self.Centre()
+        self.Show()
+
+
+
+    def InitSiteCheck(self):
+        """make an interactive grid in which users can edit site names
+        as well as which location a site belongs to"""
+        self.panel = wx.ScrolledWindow(self, style=wx.SIMPLE_BORDER)
+        TEXT = """
+        Step 3:
+        Check that all sites are correctly named, and that they belong to the correct location.
+        Fill in the additional columns with controlled vocabularies (see Help button for details)
+        note: Changes to site_class, site_lithology, or site_type will overwrite er_samples.txt
+        However, you will be able to edit sample_class, sample_lithology, and sample_type in step 4"""
+        label = wx.StaticText(self.panel,label=TEXT)#,size=(1200, 100)) # manually sizing the label to be longer than the grid means that the scrollbars display correctly.  hack-y but effective fix
+        self.Data, self.Data_hierarchy = self.ErMagic.Data, self.ErMagic.Data_hierarchy
+        self.sites = sorted(self.Data_hierarchy['sites'].keys())
+
+        col_labels = self.ErMagic.data_er_sites[self.ErMagic.data_er_sites.keys()[0]].keys()
+        for val in ['er_citation_names', 'er_location_name', 'er_site_name', 'site_class', 'site_lithology', 'site_type', 'site_definition', 'site_lat', 'site_lon']: #
+            col_labels.remove(val)
+        col_labels = sorted(col_labels)
+        col_labels[:0] = ['sites', '', 'locations', 'site_class', 'site_lithology', 'site_type', 'site_definition', 'site_lon', 'site_lat']
+
+        self.site_grid, self.temp_data['sites'], self.temp_data['locations'] = self.make_table(col_labels, self.sites, self.Data_hierarchy, 'location_of_site')
+        self.extra_site_temp_data = self.add_extra_grid_data(self.site_grid, self.sites, self.ErMagic.data_er_sites, col_labels)
+
+        self.changes = False
+        self.Bind(wx.grid.EVT_GRID_EDITOR_CREATED, lambda event: self.on_edit_grid(event, self.site_grid), self.site_grid)
+
+        locations = sorted(set(self.temp_data['locations']))        
+        self.drop_down_menu = drop_down_menus.Menus("site", self, self.site_grid, locations) # initialize all needed drop-down menus
+
+
+        ### Create Buttons ###
+        hbox_one = wx.BoxSizer(wx.HORIZONTAL)
+        self.helpButton = wx.Button(self.panel, label="Help")
+        self.Bind(wx.EVT_BUTTON, lambda event: self.on_helpButton(event, "ErMagicSiteHelp.html"), self.helpButton)
+        hbox_one.Add(self.helpButton)
+
+        hboxok = wx.BoxSizer(wx.HORIZONTAL)
+        self.saveButton =  wx.Button(self.panel, id=-1, label='Save')
+        self.Bind(wx.EVT_BUTTON, lambda event: self.on_saveButton(event, self.site_grid), self.saveButton)
+        self.cancelButton = wx.Button(self.panel, wx.ID_CANCEL, '&Cancel')
+        self.Bind(wx.EVT_BUTTON, self.on_cancelButton, self.cancelButton)
+        self.continueButton = wx.Button(self.panel, id=-1, label='Save and continue')
+        self.Bind(wx.EVT_BUTTON, lambda event: self.on_continueButton(event, self.site_grid, next_dia=self.InitSampCheck), self.continueButton)
+        self.backButton = wx.Button(self.panel, wx.ID_ANY, "&Back")
+        previous_dia = self.InitSampCheck
+        self.Bind(wx.EVT_BUTTON, lambda event: self.on_backButton(event, previous_dia=previous_dia), self.backButton)
+
+        hboxok.Add(self.saveButton, flag=wx.BOTTOM, border=20)
+        hboxok.Add(self.cancelButton, flag=wx.BOTTOM, border=20 )
+        hboxok.Add(self.continueButton, flag=wx.BOTTOM, border=20 )
+        hboxok.Add(self.backButton, flag=wx.BOTTOM, border=20 )
+
+        ### Make Containers ###
+        vbox = wx.BoxSizer(wx.VERTICAL)
+        vbox.Add(label, flag=wx.ALIGN_LEFT|wx.BOTTOM)#, flag=wx.ALIGN_LEFT|wx.BOTTOM, border=20)
+        vbox.Add(self.site_grid, flag=wx.ALL|wx.EXPAND, border=20) # EXPAND ??
+        vbox.Add(hbox_one, flag=wx.BOTTOM, border=20)
+        vbox.Add(hboxok, flag=wx.BOTTOM, border=20)
+
+        hbox_all= wx.BoxSizer(wx.HORIZONTAL)
+        hbox_all.AddSpacer(20)
+        hbox_all.AddSpacer(vbox)
+        hbox_all.AddSpacer(20)
+
+        self.panel.SetSizer(hbox_all)
+        self.panel.SetScrollbars(20, 20, 50, 50)
+        hbox_all.Fit(self)
+        self.Centre()
+        self.Show()
+
+
+    def InitLocCheck(self):
+        """make an interactive grid in which users can edit specimen names
+        as well as which sample a specimen belongs to"""
+        self.panel = wx.ScrolledWindow(self, style=wx.SIMPLE_BORDER)
+        TEXT = """
+        Step 5:
+        Check that locations are correctly named.
+        Fill in any blank cells using controlled vocabularies.
+        (See Help button for details)"""
+        label = wx.StaticText(self.panel,label=TEXT)# size=(1200, 100))
+        self.Data, self.Data_hierarchy = self.ErMagic.Data, self.ErMagic.Data_hierarchy
+        self.locations = self.Data_hierarchy['locations']
+        #
+        key1 = self.ErMagic.data_er_locations.keys()[0]
+        col_labels = sorted(self.ErMagic.data_er_locations[key1].keys())
         try:
-            self.Data, self.Data_hierarchy = self.Parent.Data
-        except:
-            self.Data, self.Data_hierarchy = self.Parent.get_data()
-        self.samples_list=self.Data_hierarchy['samples']         
-        self.orient_data={}
-        try:
-            self.orient_data=self.read_magic_file(self.WD+"/demag_orient.txt",1,"sample_name")  
+            col_labels.remove('er_location_name')
+            col_labels.remove('location_type')
+            col_labels[:0] = ['er_location_name', 'location_type']
         except:
             pass
-        for sample in self.samples_list:
-            if sample not in self.orient_data.keys():
-               self.orient_data[sample]={} 
-               self.orient_data[sample]["sample_name"]=sample
-               
-            if sample in self.Data_hierarchy['site_of_sample'].keys():
-                self.orient_data[sample]["site_name"]=self.Data_hierarchy['site_of_sample'][sample]
+        self.loc_grid = self.make_simple_table(col_labels, self.ErMagic.data_er_locations, "location")
+
+        #self.Bind(wx.grid.EVT_GRID_EDITOR_SHOWN, self.on_edit_grid, self.loc_grid) 
+        self.Bind(wx.grid.EVT_GRID_EDITOR_CREATED, lambda event: self.on_edit_grid(event, self.loc_grid), self.loc_grid)
+
+        self.drop_down_menu = drop_down_menus.Menus("location", self, self.loc_grid, None) # initialize all needed drop-down menus
+
+        ### Create Buttons ###
+        hbox_one = wx.BoxSizer(wx.HORIZONTAL)
+        self.helpButton = wx.Button(self.panel, label="Help")
+        self.Bind(wx.EVT_BUTTON, lambda event: self.on_helpButton(event, "ErMagicLocationHelp.html"), self.helpButton)
+        hbox_one.Add(self.helpButton)
+
+        hboxok = wx.BoxSizer(wx.HORIZONTAL)
+        self.saveButton =  wx.Button(self.panel, id=-1, label='Save')
+        self.Bind(wx.EVT_BUTTON, lambda event: self.on_saveButton(event, self.loc_grid), self.saveButton)
+        self.cancelButton = wx.Button(self.panel, wx.ID_CANCEL, '&Cancel')
+        self.Bind(wx.EVT_BUTTON, self.on_cancelButton, self.cancelButton)
+        self.continueButton = wx.Button(self.panel, id=-1, label='Save and continue')
+        self.Bind(wx.EVT_BUTTON, lambda event: self.on_continueButton(event, self.loc_grid, next_dia=self.InitAgeCheck), self.continueButton)
+        self.backButton = wx.Button(self.panel, wx.ID_ANY, "&Back")
+        previous_dia = self.InitSampCheck
+        self.Bind(wx.EVT_BUTTON, lambda event: self.on_backButton(event, previous_dia, current_dia = self.InitLocCheck), self.backButton)
+
+
+        hboxok.Add(self.saveButton, flag=wx.BOTTOM, border=20)
+        hboxok.Add(self.cancelButton, flag=wx.BOTTOM, border=20 )
+        hboxok.Add(self.continueButton, flag=wx.BOTTOM, border=20 )
+        hboxok.Add(self.backButton, flag=wx.BOTTOM, border=20 )
+
+        ### Make Containers ###
+        vbox = wx.BoxSizer(wx.VERTICAL)
+        vbox.Add(label, flag=wx.ALIGN_LEFT)#, flag=wx.ALIGN_LEFT|wx.BOTTOM, border=20)
+        vbox.Add(self.loc_grid, flag=wx.ALL|wx.EXPAND, border=20) # EXPAND ??
+        vbox.Add(hbox_one, flag=wx.BOTTOM, border=20)
+        vbox.Add(hboxok, flag=wx.BOTTOM, border=20)
+
+        hbox_all= wx.BoxSizer(wx.HORIZONTAL)
+        hbox_all.AddSpacer(20)
+        hbox_all.AddSpacer(vbox)
+        hbox_all.AddSpacer(20)
+
+        self.panel.SetSizer(hbox_all)
+        self.panel.SetScrollbars(20, 20, 50, 50)
+        hbox_all.Fit(self)
+        self.Centre()
+        self.Show()
+
+
+    def InitAgeCheck(self):
+        """make an interactive grid in which users can edit ages"""
+        self.panel = wx.ScrolledWindow(self, style=wx.SIMPLE_BORDER)
+        TEXT = """
+        Step 6:
+        Fill in or correct any cells with information about ages.
+        (See Help button for details)"""
+        label = wx.StaticText(self.panel,label=TEXT)#, size=(1200,100))
+        self.Data, self.Data_hierarchy = self.ErMagic.Data, self.ErMagic.Data_hierarchy
+        self.sites = self.Data_hierarchy['sites']
+        #
+        key1 = self.ErMagic.data_er_ages.keys()[0]
+        col_labels = sorted(self.ErMagic.data_er_ages[key1].keys())
+        try:
+            for col_label in ['er_site_name', 'er_location_name', 'er_citation_names', 'magic_method_codes', 'age_description', 'age_unit', 'age']:
+                col_labels.remove(col_label)
+            col_labels[:0] = ['er_site_name', 'er_citation_names', 'er_location_name', 'magic_method_codes', 'age_description', 'age_unit', 'age']
+        except:
+            pass
+        # only use sites that are associated with actual samples/specimens
+        
+
+        #ages_data_dict = {k: v for k, v in self.ErMagic.data_er_ages.items() if k in self.sites} # fails in Python 2.6
+        ages_data_dict = {}
+        for k, v in self.ErMagic.data_er_ages.items():
+            if k in self.sites:
+                ages_data_dict[k] = v
+
+        self.age_grid = self.make_simple_table(col_labels, ages_data_dict, "age")
+        #
+        # make it impossible to edit the 1st and 3rd columns
+        for row in range(self.age_grid.GetNumberRows()):
+            for col in (0, 2):
+                self.age_grid.SetReadOnly(row, col, True)
+        #
+        #self.Bind(wx.grid.EVT_GRID_EDITOR_SHOWN, self.on_edit_grid, self.age_grid) 
+        self.Bind(wx.grid.EVT_GRID_EDITOR_CREATED, lambda event: self.on_edit_grid(event, self.age_grid), self.age_grid)
+        self.drop_down_menu = drop_down_menus.Menus("age", self, self.age_grid, None) # initialize all needed drop-down menus
+
+        ### Create Buttons ###
+        hbox_one = wx.BoxSizer(wx.HORIZONTAL)
+        self.helpButton = wx.Button(self.panel, label="Help")
+        self.Bind(wx.EVT_BUTTON, lambda event: self.on_helpButton(event, "ErMagicAgeHelp.html"), self.helpButton)
+        hbox_one.Add(self.helpButton)
+
+        hboxok = wx.BoxSizer(wx.HORIZONTAL)
+        self.saveButton =  wx.Button(self.panel, id=-1, label='Save')
+        self.Bind(wx.EVT_BUTTON, lambda event: self.on_saveButton(event, self.age_grid), self.saveButton)
+        self.cancelButton = wx.Button(self.panel, wx.ID_CANCEL, '&Cancel')
+        self.Bind(wx.EVT_BUTTON, self.on_cancelButton, self.cancelButton)
+        self.continueButton = wx.Button(self.panel, id=-1, label='Save and continue')
+        self.Bind(wx.EVT_BUTTON, lambda event: self.on_continueButton(event, self.age_grid, next_dia=None), self.continueButton)
+        self.backButton = wx.Button(self.panel, wx.ID_ANY, "&Back")
+        previous_dia = self.InitLocCheck
+        self.Bind(wx.EVT_BUTTON, lambda event: self.on_backButton(event, previous_dia), self.backButton)
+
+        hboxok.Add(self.saveButton, flag=wx.BOTTOM, border=20)
+        hboxok.Add(self.cancelButton, flag=wx.BOTTOM, border=20 )
+        hboxok.Add(self.continueButton, flag=wx.BOTTOM, border=20 )
+        hboxok.Add(self.backButton, flag=wx.BOTTOM, border=20 )
+
+        ### Make Containers ###
+        vbox = wx.BoxSizer(wx.VERTICAL)
+        vbox.Add(label, flag=wx.ALIGN_LEFT)#, flag=wx.ALIGN_LEFT|wx.BOTTOM, border=20)
+        vbox.Add(self.age_grid, flag=wx.ALL|wx.EXPAND, border=20) # EXPAND ??
+        vbox.Add(hbox_one, flag=wx.BOTTOM, border=20)
+        vbox.Add(hboxok, flag=wx.BOTTOM, border=20)
+
+        hbox_all= wx.BoxSizer(wx.HORIZONTAL)
+        hbox_all.AddSpacer(20)
+        hbox_all.AddSpacer(vbox)
+        hbox_all.AddSpacer(20)
+
+        self.panel.SetSizer(hbox_all)
+        self.panel.SetScrollbars(20, 20, 50, 50)
+        hbox_all.Fit(self)
+        self.Centre()
+        self.Show()
+
+
+    ### Grid methods ###
+    def make_simple_table(self, column_labels, data_dict, grid_name):
+        row_labels = sorted(data_dict.keys())
+        if len(row_labels) == 1:
+            grid = wx.grid.Grid(self.panel, -1, name=grid_name, size=(1100, 70))
+        else:
+            grid = wx.grid.Grid(self.panel, -1, name=grid_name)
+        grid.ClearGrid()
+
+        grid.CreateGrid(len(row_labels), len(column_labels))
+        self.temp_data[column_labels[0]] = []
+        # set row labels
+        for n, row in enumerate(row_labels):
+            grid.SetRowLabelValue(n, str(n+1))
+            grid.SetCellValue(n, 0, row)
+            self.temp_data[column_labels[0]].append(row)
+        # set column labels
+        for n, col in enumerate(column_labels):
+            grid.SetColLabelValue(n, col)
+        # set values in each cell (other than 1st column)
+        for num, row in enumerate(row_labels):
+            for n, col in enumerate(column_labels[1:]):
+                value = data_dict[row][col]
+                if value:
+                    grid.SetCellValue(num, n+1, value)
+        grid.AutoSizeColumns(True)
+        for n, col in enumerate(column_labels):
+            # adjust column widths to be a little larger then auto for nicer editing
+            orig_size = grid.GetColSize(n)
+            if orig_size > 110:
+                size = orig_size * 1.1
             else:
-                self.orient_data[sample]["site_name"]=""
-        #print "self.orient_data", self.orient_data
+                size = orig_size * 1.6
+            grid.SetColSize(n, size)
+        return grid
+        
 
+    def make_table(self, column_labels, row_values, column_indexing, ind):
+        """ takes a list of row values (i.e., specimens, samples, locations, etc.) 
+        and a data structure (column_indexing) to index them against.  for example, 
+        to show the sample to specimen relationship, you would have:
+        column_labels: ["specimen", " ", "samples""]
+        row_values: list of specimens
+        column_indexing: Data_hierarchy object containing various data mappings
+        ind: ['sample_of_specimen'], indicating which data mapping to use """
+        if len(row_values) == 1:
+            grid = wx.grid.Grid(self.panel, -1, name=column_labels[0], size=(1100, 70))
+        else:
+            grid = wx.grid.Grid(self.panel, -1, name=column_labels[0])
+        grid.ClearGrid()
+        grid.CreateGrid(len(row_values), len(column_labels))
 
-    def update_orient_data(self):
-        # check each value in the specimen column for changes
-        # check each value in the samples column for changes
-        for row in range(self.grid.GetNumberRows()):
+        list_values = []
+        original_1 = [] # specs (in first dia)
+        original_2 = [] # samps (in first dia)
+
+        col1_editable = True
+        if column_labels[0] == 'specimens':
+            col1_editable = False
+
+        for n, row in enumerate(row_values):
+            grid.SetRowLabelValue(n, str(n+1)) # row labels will be simply numbers 1 - n
+            original_1.append(row)
+            grid.SetCellValue(n, 0, row) # sets first column values
+            if not col1_editable:
+                grid.SetReadOnly(n, 0, True)
+            grid.SetCellValue(n, 1, "belongs to") # sets second column (placeholder)
+            grid.SetReadOnly(n, 1, True) 
+            #
+            grid.SetReadOnly(n, 2, True) # prevents column 2 from cell editing (but will be able to edit with dropdown menu)
+            col = column_indexing[ind][row] # uses data structure to take get data, e.g.: sample_of_specimen[spec1].  
+            original_2.append(col)
+            grid.SetCellValue(n, 2, col)
+        
+        for n, label in enumerate(column_labels):
+            grid.SetColLabelValue(n, label)
+
+        grid.AutoSizeColumns(True)
+        for n, col in enumerate(column_labels):
+            # adjust column widths to be a little larger then auto for nicer editing
+            orig_size = grid.GetColSize(n)
+            if orig_size > 110:
+                size = orig_size * 1.1
+            else:
+                size = orig_size * 1.6
+            grid.SetColSize(n, size)
+        return grid, original_1, original_2
+
+    
+    def add_extra_grid_data(self, grid, row_labels, data_dict, col_labels=None):
+        temp_data = {}
+        for num, row in enumerate(row_labels):
+            new_list = []
+            for n, col in enumerate(col_labels[3:]):
+                if row in data_dict.keys(): # accounts for potential difference between er_*.txt and magic_measurements.txt
+                    new_list.append(data_dict[row][col])
+                    if data_dict[row][col]:
+                        grid.SetCellValue(num, n+3, data_dict[row][col])
+            temp_data[row] = new_list
+        return temp_data
+        
+    def on_edit_grid(self, event, grid):
+        """sets self.changes to true when user edits the grid.
+        provides down and up key functionality for exiting the editor"""
+        self.changes = True
+        editor = event.GetControl()
+        editor.Bind(wx.EVT_KEY_DOWN, lambda event: self.onEditorKey(event, grid))
+
+    def onEditorKey(self, event, grid):
+        keycode = event.GetKeyCode()
+        if keycode == wx.WXK_UP:
+            grid.MoveCursorUp(False)
+            grid.MoveCursorDown(False)# have this in because otherwise cursor moves up 2 rows
+        elif keycode == wx.WXK_DOWN:
+            grid.MoveCursorDown(False)
+            grid.MoveCursorUp(False) # have this in because otherwise cursor moves down 2 rows
+        #elif keycode == wx.WXK_LEFT:
+        #    grid.MoveCursorLeft(False)
+        #elif keycode == wx.WXK_RIGHT:
+        #    grid.MoveCursorRight(False)
+        else:
             pass
-            #print self.grid.GetCellValue(row, 0)
-            #print self.specimens[row]
+        event.Skip()
 
-    def get_data(self):
-      # get_data from ErMagicBuilder.  Returns a more comprehensive Data hierarchy than the get_data in QuickMagic.  oy.
-      Data={}
-      Data_hierarchy={}
-      Data_hierarchy['locations']={}
-      Data_hierarchy['sites']={}
-      Data_hierarchy['samples']={}
-      Data_hierarchy['specimens']={}
-      Data_hierarchy['sample_of_specimen']={} 
-      Data_hierarchy['site_of_specimen']={}   
-      Data_hierarchy['site_of_sample']={}   
-      Data_hierarchy['location_of_specimen']={}   
-      Data_hierarchy['location_of_sample']={}   
-      Data_hierarchy['location_of_site']={}   
-      try:
-          meas_data,file_type=pmag.magic_read(self.WD+"/magic_measurements.txt")
-      except:
-          print "-E- ERROR: Cant read magic_measurement.txt file. File is corrupted."
-          return {},{}
-         
-      sids=pmag.get_specs(meas_data) # samples ID's
+
+
+    ### Button methods ###
+
+    def on_addSampleButton(self, event):
+
+        def add_sample(sample, site):
+            add_sample_data(sample, site)
+
+        #def __init__(self, parent, title, data_items, data_method):
+
+        if not self.ErMagic.data_er_samples:
+            self.ErMagic.read_MagIC_info()
+
+        pw.AddItem(self, 'Sample', 'site', self.sites, add_sample)
+
+        def add_sample_data(sample, site):
+            key = self.ErMagic.data_er_samples.keys()[0]
+            keys = self.ErMagic.data_er_samples[key].keys()
+            self.ErMagic.data_er_samples[sample] = dict(zip(keys, ["" for key in keys]))
+            self.ErMagic.data_er_samples[sample]['er_sample_name'] = sample
+            self.ErMagic.data_er_samples[sample]['er_site_name'] = site
+
+            self.Data_hierarchy['samples'][sample] = []
+            self.Data_hierarchy['site_of_sample'][sample] = site
+            self.Data_hierarchy['location_of_sample'][sample] = ''
+            # if that site didn't already exist in Data_hierarchy:
+            if not site in self.Data_hierarchy['sites'].keys():
+                self.Data_hierarchy['sites'][site] = []
+            self.Data_hierarchy['sites'][site].append(sample)
+
+            # re-Bind so that the updated samples list shows up on a left click
+            samples = sorted(self.Data_hierarchy['samples'].keys())
+            samples = sorted(list(set(samples).union(self.ErMagic.data_er_samples.keys())))
+            self.drop_down_menu.update_drop_down_menu(self.spec_grid, {2: (samples, False)})
+
+
+    def on_addSiteButton(self, event):
+        
+        def add_site(site, location):
+            add_site_data(site, location)
+
+        pw.AddItem(self, 'Site', 'location', self.locations, add_site)
+
+        def add_site_data(site, location):
+            key = self.ErMagic.data_er_sites.keys()[0]
+            keys = self.ErMagic.data_er_sites[key].keys()
+            self.ErMagic.data_er_sites[site] = dict(zip(keys, ["" for key in keys]))
+            self.ErMagic.data_er_sites[site]['er_site_name'] = site
+            self.ErMagic.data_er_sites[site]['er_location_name'] = location
+
+            self.Data_hierarchy['sites'][site] = []
+            self.Data_hierarchy['location_of_site'][site] = location
+            
+            # re-Bind so that the updated sites list shows up on a left click
+            sites = sorted(self.Data_hierarchy['sites'].keys())
+            sites = sorted(list(set(sites).union(self.ErMagic.data_er_sites.keys())))
+            self.Bind(wx.grid.EVT_GRID_SELECT_CELL, lambda event: self.on_left_click(event, self.samp_grid, sites), self.samp_grid) 
+            self.drop_down_menu.update_drop_down_menu(self.samp_grid, {2: (sites, False)})
+
+
+            
+    def on_helpButton(self, event, page=None):
+        """shows html help page"""
+        path = ''
+        for p in os.environ['PATH'].split(':'):
+            #print "p", p
+            if 'Pmag' in p:
+                path = p + '/'
+        #print "path + page", path+page
+        html_frame = pw.HtmlFrame(self, page=(path+page))
+        html_frame.Show()
+
+
+    def on_continueButton(self, event, grid, next_dia=None):
+        """pulls up next dialog, if there is one.
+        gets any updated information from the current grid and runs ErMagicBuilder"""
+        wait = wx.BusyInfo("Please wait, working...")
+        if self.drop_down_menu:  # unhighlight selected columns, etc.
+            self.drop_down_menu.clean_up(grid)
+
+        if self.ErMagic.data_er_specimens:
+            pass
+        else:
+            self.ErMagic.read_MagIC_info()
+        grid.SaveEditControlValue() # locks in value in cell currently edited
+        simple_grids = {"location": self.ErMagic.data_er_locations, "age": self.ErMagic.data_er_ages}
+        grid_name = grid.GetName()
+
+        if self.changes:
+            if grid_name in simple_grids:
+                self.update_simple_grid_data(grid, simple_grids[grid_name])
+            else:
+                self.update_orient_data(grid)
+            self.ErMagic.update_ErMagic()
+            self.changes = False # resets
+
+        self.panel.Destroy()
+        if next_dia:
+            next_dia()
+            del wait
+        else:
+            self.final_update()
+            self.Destroy()
+            del wait
+        
+
+    def on_saveButton(self, event, grid):
+        """saves any editing of the grid but does not continue to the next window"""
+        wait = wx.BusyInfo("Please wait, working...")
+        if self.drop_down_menu:  # unhighlight selected columns, etc.
+            self.drop_down_menu.clean_up(grid)
+        if self.ErMagic.data_er_specimens:
+            pass
+        else:
+            self.ErMagic.read_MagIC_info()
+        grid.SaveEditControlValue() # locks in value in cell currently edited
+        grid.HideCellEditControl() # removes focus from cell that was being edited
+        simple_grids = {"location": self.ErMagic.data_er_locations, "age": self.ErMagic.data_er_ages}
+        grid_name = grid.GetName()
+        if self.changes:
+            print "there were changes, so we are updating the data"
+            if grid_name in simple_grids:
+                self.update_simple_grid_data(grid, simple_grids[grid_name])
+            else:
+                self.update_orient_data(grid)
+
+            self.ErMagic.update_ErMagic()
+            self.changes = False
+        del wait
+
+
+    def on_cancelButton(self, event):
+        self.Destroy()
+
+    def on_backButton(self, event, previous_dia, current_dia = None):
+        if current_dia == self.InitLocCheck:
+            pass
+        elif previous_dia == self.InitSpecCheck or previous_dia == self.InitSampCheck:
+            self.sample_window = 0
+        self.panel.Destroy()
+        previous_dia()
+
+        
+    ### Manage data methods ###
+
+    def update_simple_grid_data(self, grid, data):
+        grid_name = grid.GetName()
+        rows = range(grid.GetNumberRows())
+        cols = range(grid.GetNumberCols())
+        updated_items = []
+        for row in rows:
+            item = str(grid.GetCellValue(row, 0))
+            updated_items.append(item)
+        if grid_name == "location":
+            self.update_locations(updated_items)
+        for row in rows:
+            item = str(grid.GetCellValue(row, 0))
+            for col in cols[1:]:
+                category = str(grid.GetColLabelValue(col))
+                value = str(grid.GetCellValue(row, col))
+                data[item][category] = value
+        self.temp_data[grid_name] = updated_items
+
+
+    def update_orient_data(self, grid):
+        """ """
+        col1_updated, col2_updated, col1_old, col2_old, type1, type2 = self.get_old_and_new_data(grid, 0, 2)
+        if len(set(col1_updated)) != len(col1_updated):
+            print "Duplicate {} detected.  Please ensure that all {} names are unique".format(type1, type1[:-1])
+            return 0
+        if type1 == 'specimens':
+            self.update_specimens(self.spec_grid, col1_updated, col1_old, col2_updated, col2_old, type1, type2)
+        if type1 == 'samples':
+            cols = range(3, grid.GetNumberCols())
+            col_labels = []
+            for col in cols:
+                col_labels.append(grid.GetColLabelValue(col))
+            self.update_samples(grid, col1_updated, col1_old, col2_updated, col2_old, *col_labels)
+        if type1 == 'sites':
+            self.update_sites(grid, col1_updated, col1_old, col2_updated, col2_old)#, *col_labels)
+
+        # updates the holder data so that when we save again, we will only update what is new as of the last save
+        self.temp_data[type1] = col1_updated 
+        self.temp_data[type2] = col2_updated
+
+
+    def update_locations(self, updated_locations):
+        original_locations = self.temp_data['er_location_name']
+        changed = [(original_locations[num], new_loc) for (num, new_loc) in enumerate(updated_locations) if new_loc != original_locations[num]]
+        for change in changed:
+            old_loc, new_loc = change
+            sites = self.Data_hierarchy['locations'].pop(old_loc)
+            self.Data_hierarchy['locations'][new_loc] = sites
+            #
+            data = self.ErMagic.data_er_locations.pop(old_loc)
+            self.ErMagic.data_er_locations[new_loc] = data
+            self.ErMagic.data_er_locations[new_loc]['er_location_name'] = new_loc
+            #
+            for site in sites:
+                self.Data_hierarchy['location_of_site'][site] = new_loc
+                self.ErMagic.data_er_sites[site]['er_location_name'] = new_loc
+                self.ErMagic.data_er_ages[site]['er_location_name'] = new_loc
+                samples = self.Data_hierarchy['sites'][site]
+                for sample in samples:
+                    self.Data_hierarchy['location_of_sample'][sample] = new_loc
+                    self.ErMagic.data_er_samples[sample]['er_location_name'] = new_loc
+                    specimens = self.Data_hierarchy['samples'][sample]
+                    for spec in specimens:
+                        self.Data_hierarchy['location_of_specimen'][spec] = new_loc
+                        self.ErMagic.data_er_specimens[spec]['er_location_name'] = new_loc
+
+
+            #
+            #location_of_specimen ( {'sc12b1': 'Xanadu', 'ag1-6b': 'HERE', 'ag1-6a': 'HERE'} )
+            #location_of_sample
+            #location_of_site
+            #locations ( {'Xanadu': ['sc12'], 'HERE': ['ag1-']} )
+            
+
+    def update_sites(self, grid, col1_updated, col1_old, col2_updated, col2_old):#, *args):
+        print " calling update_sites"
+        changed = [(old_value, col1_updated[num]) for (num, old_value) in enumerate(col1_old) if old_value != col1_updated[num]]
+        # find where changes have occurred
+        for change in changed:
+            old_site, new_site = change
+            samples = self.Data_hierarchy['sites'].pop(old_site)
+            location = self.Data_hierarchy['location_of_site'].pop(old_site)
+            if location == " ": # prevents error
+                location = ""
+            self.Data_hierarchy['sites'][new_site] = samples
+            # fix extra temp_data to have updated site names
+            info = self.extra_site_temp_data.pop(old_site)
+            self.extra_site_temp_data[new_site] = info
+            # do locations
+            ind = self.Data_hierarchy['locations'][location].index(old_site)
+            self.Data_hierarchy['locations'][location][ind] = new_site
+            self.Data_hierarchy['location_of_site'][new_site] = location
+            # adjust for renamed sites
+            for samp in samples:
+                specimens = self.Data_hierarchy['samples'][samp]
+                self.Data_hierarchy['site_of_sample'][samp] = new_site
+                self.ErMagic.data_er_samples[samp]['er_site_name'] = new_site
+                for spec in specimens:
+                    self.Data_hierarchy['site_of_specimen'][spec] = new_site
+                    self.ErMagic.data_er_specimens[spec]['er_site_name'] = new_site
+            data = self.ErMagic.data_er_sites.pop(old_site)
+            self.ErMagic.data_er_sites[new_site] = data
+            self.ErMagic.data_er_sites[new_site]['er_site_name'] = new_site
+
+        # now do the "which site belongs to which location" part
+        for num, value in enumerate(col2_updated):
+            # find where changes have occurred
+            if value != col2_old[num]:
+                #print "CHANGE!", "new", value, "old", col2_old[num]
+                old_loc = col2_old[num]
+                new_loc = col2_updated[num]
+                if old_loc == " ": 
+                    old_loc = ""
+                if new_loc == " ":
+                    new_loc = ""
+                site = col1_updated[num]
+                #
+                self.Data_hierarchy['location_of_site'][site] = new_loc
+                #
+                self.Data_hierarchy['locations'][old_loc].remove(site)
+                self.Data_hierarchy['locations'][new_loc].append(site)
+                #
+                for samp in self.Data_hierarchy['sites'][site]:
+                    self.Data_hierarchy['location_of_sample'][samp] = new_loc
+                    self.ErMagic.data_er_samples[samp]['er_location_name'] = new_loc
+                    for spec in self.Data_hierarchy['samples'][samp]:
+                        self.Data_hierarchy['location_of_specimen'][spec] = new_loc
+                        self.ErMagic.data_er_specimens[spec]['er_location_name'] = new_loc
+                #
+                self.ErMagic.data_er_sites[site]['er_location_name'] = new_loc
+                #
+        
+        # now fill in all the other columns, using extra temp_data to update only
+        # data for cells that have been changed
+        columns = grid.GetNumberCols()
+        col_labels = []
+        for col in range(columns):
+            col_labels.append(grid.GetColLabelValue(col))
+        for num_site, site in enumerate(col1_updated):
+            for num, arg in enumerate(col_labels[3:]):
+                old_value = self.extra_site_temp_data[site][num]
+                num += 3 # ignore first 3 rows
+                value = str(grid.GetCellValue(num_site, num))
+                if old_value == value:
+                    continue
+                self.ErMagic.data_er_sites[site][arg] = value
+                # update data_er_samples where appropriate 
+                # (i.e., change er_sample_type if er_site_type is changed here)
+                samples = self.Data_hierarchy['sites'][site]
+                for sample in samples:
+                    arg = arg.replace('site', 'sample')
+                    self.ErMagic.data_er_samples[sample][arg] = value
+
+    
+    def update_samples(self, grid, col1_updated, col1_old, col2_updated, col2_old, *args):
+        print "calling update_samples"
+        changed = [(old_value, col1_updated[num]) for (num, old_value) in enumerate(col1_old) if old_value != col1_updated[num]]  
+        for change in changed:
+            #print "change!!!!!!", change
+            old_sample, new_sample = change
+            specimens = self.Data_hierarchy['samples'].pop(old_sample)
+            site = self.Data_hierarchy['site_of_sample'].pop(old_sample)
+            location = self.Data_hierarchy['location_of_sample'].pop(old_sample)
+            
+            self.Data_hierarchy['samples'][new_sample] = specimens
+            
+            for spec in specimens:
+                self.Data_hierarchy['sample_of_specimen'][spec] = new_sample
+                self.Data_hierarchy['specimens'][spec] = new_sample
+            #
+            self.Data_hierarchy['site_of_sample'][new_sample] = site
+            #
+            self.Data_hierarchy['location_of_sample'][new_sample] = location
+            #
+            ind = self.Data_hierarchy['sites'][site].index(old_sample)
+            self.Data_hierarchy['sites'][site][ind] = new_sample
+            # updating self.ErMagic.data_er_samples
+            #print "in update_samples, self.ErMagic.data_er_specimens", self.ErMagic.data_er_specimens
+            #print "in update_samples, self.ErMagic.data_er_samples.keys()", self.ErMagic.data_er_samples
+            #print "-"
+            sample_data = self.ErMagic.data_er_samples.pop(old_sample)
+            self.ErMagic.data_er_samples[new_sample] = sample_data
+            self.ErMagic.data_er_samples[new_sample]['er_sample_name'] = new_sample
+            for spec in self.ErMagic.data_er_specimens:
+                if self.ErMagic.data_er_specimens[spec]['er_sample_name'] == old_sample:
+                    self.ErMagic.data_er_specimens[spec]['er_sample_name'] = new_sample
+        
+        # now do the site changes
+        for num, value in enumerate(col2_updated):
+            # find where changes have occurred
+            if value != col2_old[num]:
+                #print "CHANGE!", "new", value, "old", col2_old[num]
+                sample = col1_updated[num]
+                specimens = self.Data_hierarchy['samples'][sample]
+                old_site = col2_old[num]
+                new_site = value
+                try:
+                    loc = self.Data_hierarchy['location_of_site'][new_site]
+                except:
+                    loc = self.ErMagic.data_er_sites[new_site]['er_location_name']
+                    self.Data_hierarchy['location_of_site'][new_site] = loc
+                samples = self.Data_hierarchy['sites'][old_site]
+                #
+                self.Data_hierarchy['site_of_sample'][sample] = new_site
+                #
+                self.Data_hierarchy['location_of_sample'][sample] = loc
+                #
+                if new_site not in self.Data_hierarchy['sites'].keys():
+                    self.Data_hierarchy['sites'][new_site] = []
+                self.Data_hierarchy['sites'][new_site].append(sample)
+                try:
+                    self.Data_hierarchy['sites'][old_site].remove(sample)
+                except ValueError: # if sample was not already in old_site, don't worry about it
+                    pass
+                for spec in specimens:
+                    # specimens belonging to a sample which has been reassigned to a different site correspondingly must change site and location
+                    self.Data_hierarchy['site_of_specimen'][spec] = new_site
+                    self.Data_hierarchy['location_of_specimen'][spec] = loc
+                
+                if not sample in self.ErMagic.data_er_samples.keys():
+                    key = self.ErMagic.data_er_samples.keys()[0]
+                    keys = self.ErMagic.data_er_samples[key].keys()
+                    self.ErMagic.data_er_samples[sample] = dict(zip(keys, ["" for key in keys]))
+                    self.ErMagic.data_er_samples[sample]['er_sample_name'] = sample
+                self.ErMagic.data_er_samples[sample]['er_site_name'] = new_site
+                self.ErMagic.data_er_samples[sample]['er_location_name'] = loc
+
+        # check if any sites no longer have any sample assigned to them, and destroy them if so
+        sites = self.ErMagic.data_er_sites.keys()
+        for site in sites:
+            #print self.Data_hierarchy['sites'][site]
+            if site in self.Data_hierarchy['sites'].keys():
+                if not self.Data_hierarchy['sites'][site]:
+                    self.Data_hierarchy['sites'].pop(site)
+                    #self.ErMagic.data_er_sites.pop(site) # DON'T do this.  we want to leave all the original information in data_er_sites
+                    print "site {} is empty".format(site)
+
+        # now fill in all the other columns
+        for num_sample, sample in enumerate(col1_updated):
+            for num, arg in enumerate(args):
+                num += 3
+                value = str(grid.GetCellValue(num_sample, num))
+                self.ErMagic.data_er_samples[sample][arg] = value
+                #print "sample: {}, arg: {}, value {}".format(sample, arg, value)
+                
       
-      for s in sids:
-          if s not in Data.keys():
-              Data[s]={}
-      for rec in meas_data:
-          s=rec["er_specimen_name"]
-          sample=rec["er_sample_name"]
-          site=rec["er_site_name"]
-          location=rec["er_location_name"]
-          if sample not in Data_hierarchy['samples'].keys():
-              Data_hierarchy['samples'][sample]=[]
 
-          if site not in Data_hierarchy['sites'].keys():
-              Data_hierarchy['sites'][site]=[]         
+    def update_specimens(self, grid, col1_updated, col1_old, col2_updated, col2_old, type1, type2):
+        for num, value in enumerate(col2_updated):
+            # find where changes have occurred
+            if value != col2_old[num]:
+                old_samp = col2_old[num]
+                samp = value
+                spec = col1_updated[num]
+                # some of the sample data could exist only in the er_samples.txt file (so in data_er_samples and not Data_hierarchy)
+                # if the user selects a sample that does not exist in Data_hierarchy, we will propagate it in (below)
+                try:
+                    site = self.Data_hierarchy['site_of_sample'][samp] 
+                except KeyError:
+                    site = self.ErMagic.data_er_samples[samp]['er_site_name']
+                    self.Data_hierarchy['site_of_sample'][samp] = site
+                old_site = self.Data_hierarchy['site_of_sample'][old_samp]
+                try:
+                    location = self.Data_hierarchy['location_of_sample'][samp] 
+                except KeyError:
+                    location = ""
+                    self.Data_hierarchy['location_of_sample'][samp] = location
+                self.Data_hierarchy['specimens'][spec] = samp
+                self.Data_hierarchy['sample_of_specimen'][spec] = samp
+                self.Data_hierarchy['site_of_specimen'][spec] = site
+                self.Data_hierarchy['location_of_specimen'][spec] = location
+                #
+                if samp not in self.Data_hierarchy['samples'].keys():
+                    self.Data_hierarchy['samples'][samp] = []
+                self.Data_hierarchy['samples'][samp].append(spec)
+                self.Data_hierarchy['samples'][old_samp].remove(spec)
 
-          if location not in Data_hierarchy['locations'].keys():
-              Data_hierarchy['locations'][location]=[]         
-          
-          if s not in Data_hierarchy['samples'][sample]:
-              Data_hierarchy['samples'][sample].append(s)
+                #
+                # 
+                # delete any samples which no longer have specimens from Data_hierarchy['sites'] list
+                if old_samp in self.Data_hierarchy['samples'].keys(): # if old_samp is in Data_hierarchy
+                    if not self.Data_hierarchy['samples'][old_samp]: # but it is empty (having no specimens)
+                        print "removing {} from {}".format(old_samp, old_site) 
+                        self.Data_hierarchy['sites'][old_site].remove(old_samp) # get rid of it
 
-          if sample not in Data_hierarchy['sites'][site]:
-              Data_hierarchy['sites'][site].append(sample)
+                #
+                # do the ErMagic.data_er_samples part
+                self.ErMagic.data_er_specimens[spec]['er_sample_name'] = samp
+                self.ErMagic.data_er_specimens[spec]['er_site_name'] = site
+                self.ErMagic.data_er_specimens[spec]['er_locations_name'] = location
+                
+                    
+        columns = grid.GetNumberCols()
+        col_labels = []
+        for col in range(columns):
+            col_labels.append(grid.GetColLabelValue(col))
+        for num_specimen, specimen in enumerate(col1_updated):
+            for num, arg in enumerate(col_labels[3:]):
+                old_value = self.extra_specimen_temp_data[specimen][num]
+                num += 3 # ignore first 3 rows
+                value = str(grid.GetCellValue(num_specimen, num))
+                if old_value == value:
+                    continue
+                self.ErMagic.data_er_specimens[specimen][arg] = value
+                
+                # ADD IN THE REST OF IT HERE
+                
 
-          if site not in Data_hierarchy['locations'][location]:
-              Data_hierarchy['locations'][location].append(site)
 
-          Data_hierarchy['specimens'][s]=sample
-          Data_hierarchy['sample_of_specimen'][s]=sample  
-          Data_hierarchy['site_of_specimen'][s]=site  
-          Data_hierarchy['site_of_sample'][sample]=site
-          Data_hierarchy['location_of_specimen'][s]=location 
-          Data_hierarchy['location_of_sample'][sample]=location 
-          Data_hierarchy['location_of_site'][site]=location 
-          
-      return(Data,Data_hierarchy)
-"""
+        # if (through editing) a sample no longer has any specimens, remove it
+        samples = self.ErMagic.data_er_samples.keys()
+        for sample in samples:
+            if sample in self.Data_hierarchy['samples'].keys():
+                if not self.Data_hierarchy['samples'][sample]:
+                    #print "removing sample: {}", sample
+                    self.Data_hierarchy['samples'].pop(sample)
+                    self.ErMagic.data_er_samples.pop(sample)
 
+        # check if any sites no longer have any sample assigned to them, and destroy them if so
+        sites = self.ErMagic.data_er_sites.keys()
+        if False:
+        #for site in sites:
+            if not self.Data_hierarchy['sites'][site]:
+                self.Data_hierarchy['sites'].pop(site)
+                self.ErMagic.data_er_sites.pop(site)
+
+        #keys = ['sample_of_specimen', 'site_of_sample', 'location_of_specimen', 'locations', 'sites', 'site_of_specimen', 'samples', 'location_of_sample', 'location_of_site', 'specimens']
+
+
+    def get_old_and_new_data(self, grid, col1_num, col2_num):
+        cols = grid.GetNumberCols()
+        rows = grid.GetNumberRows()
+        type1 = grid.GetColLabelValue(col1_num)
+        type2 = grid.GetColLabelValue(col2_num)
+        old_1 = self.temp_data[type1]
+        old_2 = self.temp_data[type2]
+        update_1 = []
+        update_2 = []
+        for r in range(rows):
+            # gets edited values from grid
+            one = grid.GetCellValue(r, 0)
+            update_1.append(str(one))
+            two = grid.GetCellValue(r, 2)
+            update_2.append(str(two))
+        return update_1, update_2, old_1, old_2, type1, type2
+
+    def final_update(self):
+        """
+        Updates er_*.txt files to delete any specimens, samples, or sites that are no longer included
+        """
+
+        def remove_extras(long_dict, short_dict):
+            """
+            remove any key/value pairs from the long_dictionary if that key is not present in the short_dictionary
+            """
+            for dict_item in long_dict.keys():
+                if dict_item not in short_dict.keys():
+                    long_dict.pop(dict_item)
+            return long_dict
+        ignore = """
+        print [method for method in dir(self) if method[0].islower()]
+        print "specimens", sorted(self.Data_hierarchy['specimens'].keys())
+        print "samples", sorted(self.Data_hierarchy['samples'].keys())
+        print "sites  ", sorted(self.Data_hierarchy['sites'].keys())
+        print "locations", self.Data_hierarchy['locations'].keys()
+        print "before:", sorted(self.ErMagic.data_er_sites.keys())
+        to_do = [(self.ErMagic.data_er_specimens, self.Data_hierarchy['specimens'])]
+        """
+        remove_extras(self.ErMagic.data_er_specimens, self.Data_hierarchy['specimens'])
+        remove_extras(self.ErMagic.data_er_samples, self.Data_hierarchy['samples'])
+        remove_extras(self.ErMagic.data_er_sites, self.Data_hierarchy['sites'])
+        remove_extras(self.ErMagic.data_er_locations, self.Data_hierarchy['locations'])
+        remove_extras(self.ErMagic.data_er_ages, self.Data_hierarchy['sites'])
+        self.ErMagic.update_ErMagic()
+        
 

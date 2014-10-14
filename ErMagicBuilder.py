@@ -7,6 +7,7 @@
 import matplotlib
 matplotlib.use('WXAgg')
 import  wx.html
+import pmag_widgets as pw
 
 #from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigCanvas \
 import os
@@ -18,6 +19,7 @@ import wx.html
 import wx.grid
 import pmag
 import copy
+
 #from pylab import *
 #from scipy.optimize import curve_fit
 #import wx.lib.agw.floatspin as FS
@@ -38,7 +40,7 @@ class MagIC_model_builder(wx.Frame):
     """"""
  
     #----------------------------------------------------------------------
-    def __init__(self,WD):
+    def __init__(self, WD, parent):
         SIZE=wx.DisplaySize()
         SIZE=(SIZE[0]-0.05*SIZE[0],SIZE[1]-0.05*SIZE[1])
 
@@ -47,8 +49,11 @@ class MagIC_model_builder(wx.Frame):
         #print Data
         #print "-------------"
         #print Data_hierarchy
-        wx.Frame.__init__(self, None, wx.ID_ANY,size=SIZE)
-        self.panel = wx.Panel(self)
+        wx.Frame.__init__(self, parent, wx.ID_ANY,size=SIZE)
+        #self.panel = wx.Panel(self)
+        self.main_frame = self.Parent
+        self.panel = wx.ScrolledWindow(self)
+        self.panel.SetScrollbars(1, 1, 1, 1)
         self.er_specimens_header=['er_citation_names','er_specimen_name','er_sample_name','er_site_name','er_location_name','specimen_class','specimen_lithology','specimen_type']
         self.er_samples_header=['er_citation_names','er_sample_name','er_site_name','er_location_name','sample_class','sample_lithology','sample_type','sample_lat','sample_lon']
         self.er_sites_header=['er_citation_names','er_site_name','er_location_name','site_class','site_lithology','site_type','site_definition','site_lon','site_lat']
@@ -165,8 +170,12 @@ class MagIC_model_builder(wx.Frame):
         self.cancelButton = wx.Button(self.panel, wx.ID_CANCEL, '&Cancel')
         self.Bind(wx.EVT_BUTTON, self.on_cancelButton, self.cancelButton)
 
+        self.helpButton = wx.Button(self.panel, wx.ID_ANY, '&Help')
+        self.Bind(wx.EVT_BUTTON, self.on_helpButton, self.helpButton)
+
         hbox1.Add(self.okButton)
         hbox1.Add(self.cancelButton )
+        hbox1.Add(self.helpButton)
 
         #------
         vbox=wx.BoxSizer(wx.VERTICAL)
@@ -184,7 +193,9 @@ class MagIC_model_builder(wx.Frame):
         hbox.Add(bSizer4, flag=wx.ALIGN_LEFT)
         hbox.AddSpacer(5)
 
-        vbox.AddSpacer(20)
+        text = wx.StaticText(self.panel, label="Step 0:\nChoose the headers for your er_specimens, er_samples, er_sites, er_locations and er_ages text files.\nOnce you have selected all necessary headers, click the OK button to move on to step 1.\nFor more information, click the help button below.")
+        vbox.Add(text, flag=wx.ALIGN_LEFT|wx.ALL, border=20)
+        #vbox.AddSpacer(20)
         vbox.Add(hbox)
         vbox.AddSpacer(20)
         vbox.Add(hbox1,flag=wx.ALIGN_CENTER_HORIZONTAL)
@@ -268,15 +279,21 @@ class MagIC_model_builder(wx.Frame):
           self.er_ages_header.remove(selName)
         self.update_text_box('er_ages')
 
+
     def on_okButton(self, event):
-        #specimens_list=self.Data.keys()
-        #print "specimens_list",specimens_list
-        #specimens_list.sort()
+        self.update_ErMagic()
+        self.main_frame.init_check_window()
+
+    def update_ErMagic(self):
+        """check for changes and write (or re-write) er_specimens.txt, er_samples.txt, etc."""
+        wait = wx.BusyInfo("Please wait, working...")
         samples_list=self.Data_hierarchy['samples'].keys()
+        samples_list = list(set(samples_list).union(self.data_er_samples.keys())) # uses samples from er_samples.txt even if they are not in the magic_measurements file
         samples_list.sort()
 
         specimens_list=self.Data_hierarchy['sample_of_specimen'].keys()
         specimens_list.sort()
+
         #---------------------------------------------
         # make er_samples.txt
         #---------------------------------------------
@@ -295,8 +312,10 @@ class MagIC_model_builder(wx.Frame):
 
             if sample in self.data_er_samples.keys() and "er_site_name" in self.data_er_samples[sample].keys() and self.data_er_samples[sample]["er_site_name"] != "":
                 site=self.data_er_samples[sample]["er_site_name"]
-            else:
+            elif sample in self.Data_hierarchy['site_of_sample'].keys():
                 site=self.Data_hierarchy['site_of_sample'][sample]
+            else:
+                site = "unknown"
             
             if key=="er_citation_names":
               string=string+"This study"+"\t"
@@ -312,7 +331,8 @@ class MagIC_model_builder(wx.Frame):
                     string=string+self.data_er_sites[site][key]+"\t"
                 else:
                     string=string+self.Data_hierarchy['location_of_sample'][sample]+"\t"
-                                          
+
+            # if er_samples.txt already has a value in a column, don't try to get it from er_sites.txt
             elif sample in self.data_er_samples.keys() and key in self.data_er_samples[sample].keys() and self.data_er_samples[sample][key]!="":
                 string=string+self.data_er_samples[sample][key]+"\t"
 
@@ -402,6 +422,7 @@ class MagIC_model_builder(wx.Frame):
         # make er_sites.txt
         #---------------------------------------------
 
+
         #header
         er_sites_file=open(self.WD+"er_sites.txt",'w')
         er_sites_file.write("tab\ter_sites\n")
@@ -435,6 +456,7 @@ class MagIC_model_builder(wx.Frame):
               string=string+site+"\t"            
             # take information from the existing er_samples table             
             elif (site in self.data_er_sites.keys() and key in self.data_er_sites[site].keys() and self.data_er_sites[site][key]!=""):
+                #print "site: {}, key: {}, data {}".format(site, key, self.data_er_sites[site][key])
                 string=string+self.data_er_sites[site][key]+"\t"
 
             elif key in ['er_location_name']:
@@ -453,10 +475,9 @@ class MagIC_model_builder(wx.Frame):
                     site_lats.append(float(self.data_er_sites[site]['site_lat']))
               except:
                   pass
-                
-               
           er_sites_file.write(string[:-1]+"\n")
         er_sites_file.close()
+
         #---------------------------------------------
         # make er_locations.txt
         #---------------------------------------------
@@ -482,7 +503,11 @@ class MagIC_model_builder(wx.Frame):
           string=""
           for key in self.er_locations_header:
             if key=="er_citation_names":
-              string=string+"This study"+"\t"
+              if location in self.data_er_locations.keys():
+                  value = self.data_er_locations[location][key] or "This study"
+              else:
+                  value = "This study"
+              string=string+ value + "\t"
             elif key=="er_location_name":
               string=string+location+"\t"
             # take information from the existing er_location table             
@@ -521,7 +546,10 @@ class MagIC_model_builder(wx.Frame):
 
         #data
         sites_list=self.data_er_sites.keys()
-        sites_list.sort()        
+        for site in self.Data_hierarchy['sites'].keys():
+            if site not in sites_list:
+                sites_list.append(site)
+        sites_list.sort() 
         for site in sites_list:
           string=""
           for key in self.er_ages_header:
@@ -529,7 +557,10 @@ class MagIC_model_builder(wx.Frame):
               string=string+site+"\t"
 
             elif key=="er_citation_names":
-              string=string+"This study"+"\t"
+              if site in self.data_er_ages.keys():
+                  value = self.data_er_ages[site][key] or "This study"
+              else: value = "This study"
+              string=string + value + "\t"
 
             elif (key in ['er_location_name'] and site in self.data_er_sites.keys() \
                  and  key in self.data_er_sites[site] and self.data_er_sites[site][key]!=""):
@@ -538,6 +569,7 @@ class MagIC_model_builder(wx.Frame):
             # take information from the existing er_samples table             
             elif (site in self.data_er_ages.keys() and key in self.data_er_ages[site].keys() and self.data_er_ages[site][key]!=""):
                 string=string+self.data_er_ages[site][key]+"\t"
+
             else:
               string=string+"\t"
           er_ages_file.write(string[:-1]+"\n")
@@ -548,6 +580,7 @@ class MagIC_model_builder(wx.Frame):
         # Fix magic_measurement with samples, sites and locations  
         #-----------------------------------------------------
 
+        #print "in ErMagicBuilder on_okButton udpating magic_measurements.txt"
         f_old=open(self.WD+"/magic_measurements.txt",'rU')
         f_new=open(self.WD+"/magic_measurements.new.tmp.txt",'w')
              
@@ -558,6 +591,9 @@ class MagIC_model_builder(wx.Frame):
         header=line.strip("\n").split('\t')
         f_new.write(line)
 
+        # if you want to make it possible to change specimen names, add that into this for loop
+        #print "self.data_er_specimens.keys()", self.data_er_specimens.keys()
+        #print "self.Data_hierarchy['specimens'].keys()", self.Data_hierarchy['specimens'].keys()
         for line in f_old.readlines():
             tmp_line=line.strip('\n').split('\t')
             tmp={}
@@ -583,6 +619,7 @@ class MagIC_model_builder(wx.Frame):
             f_new.write(new_line[:-1]+"\n")
         f_new.close()
         f_old.close()
+
         os.remove(self.WD+"/magic_measurements.txt")
         os.rename(self.WD+"/magic_measurements.new.tmp.txt",self.WD+"/magic_measurements.txt")
         
@@ -618,23 +655,36 @@ class MagIC_model_builder(wx.Frame):
 
 
         
-        dlg1 = wx.MessageDialog(self,caption="Saved", message="MagIC Earth-Ref tables are saved in MagIC Project Directory.\nCleaning up MagIC pmag tables:\n All MagIC pmag tables are deleted!" ,style=wx.OK|wx.ICON_INFORMATION)
+        dlg1 = wx.MessageDialog(self,caption="Saved", message="MagIC Earth-Ref tables are saved in MagIC Project Directory!" ,style=wx.OK|wx.ICON_INFORMATION)
+        # is this dialog actually useful??
         dlg1.ShowModal()
         dlg1.Destroy()
-        self.Destroy()
+        #self.Destroy()
+        self.Hide()
+        del wait
+        print "done on_ok_Button in ErMagicBuilder"
+
 
     def on_cancelButton(self,event):
         self.Destroy()
+
+    def on_helpButton(self, event):
+        html_frame = pw.HtmlFrame(self, page='/Users/nebula/Python/PmagPy/ErMagicHeadersHelp.html')
+        html_frame.Center()
+        html_frame.Show()
+
       
     def read_magic_file(self,path,sort_by_this_name):
+        #print "doing ErMagic read_magic_file"
         DATA={}
         fin=open(path,'rU')
         fin.readline()
         line=fin.readline()
         header=line.strip('\n').split('\t')
-        print path,header
+        #print "path", path#,header
         counter=0
         for line in fin.readlines():
+            #print "line:", line
             tmp_data={}
             tmp_line=line.strip('\n').split('\t')
             for i in range(len(header)):
@@ -668,20 +718,21 @@ class MagIC_model_builder(wx.Frame):
         return recs
 
     def read_MagIC_info(self):
+        #print "read_MagIC_info in ErMagicBuilder.py"
         Data_info={}
-        #print "-I- read existing MagIC model files"
+        print "-I- read existing MagIC model files"
         self.data_er_specimens,self.data_er_samples,self.data_er_sites,self.data_er_locations,self.data_er_ages={},{},{},{},{}
 
         try:
             self.data_er_specimens=self.read_magic_file(self.WD+"/er_specimens.txt",'er_specimen_name')
         except:
-            #self.GUI_log.write ("-W- Cant find er_sample.txt in project directory")
-            pass
+            #self.GUI_log.write ("-W- Cant find er_samples.txt in project directory")
+            print "-W- Cant find er_samples.txt in project directory"
         try:
             self.data_er_samples=self.read_magic_file(self.WD+"/er_samples.txt",'er_sample_name')
         except:
             #self.GUI_log.write ("-W- Cant find er_sample.txt in project directory")
-            pass
+            print "-W- Cant find er_sample.txt in project directory"
         try:
             self.data_er_sites=self.read_magic_file(self.WD+"/er_sites.txt",'er_site_name')
         except:
@@ -690,18 +741,18 @@ class MagIC_model_builder(wx.Frame):
             self.data_er_locations=self.read_magic_file(self.WD+"/er_locations.txt",'er_location_name')
         except:
             #self.GUI_log.write ("-W- Cant find er_sites.txt in project directory")
-            pass
+            print "-W- Cant find er_sites.txt in project directory"
         try:
             self.data_er_ages=self.read_magic_file(self.WD+"/er_ages.txt","er_site_name")
         except:
             try:
                 self.data_er_ages=self.read_magic_file(self.WD+"/er_ages.txt","er_sample_name")
             except:
+                print "-W- Cant find er_ages.txt in project directory"
                 pass
 
 
     def get_data(self):
-        
       Data={}
       Data_hierarchy={}
       Data_hierarchy['locations']={}

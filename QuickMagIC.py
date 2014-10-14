@@ -4,6 +4,8 @@ import wx.lib.buttons as buttons
 #import thellier_gui_dialogs
 import os
 import sys
+import datetime
+import shutil
 import pmag
 import pmag_basic_dialogs
 import pmag_menu
@@ -62,6 +64,28 @@ class MagMainFrame(wx.Frame):
         bSizer0.Add(self.change_dir_button,wx.ALIGN_LEFT)
         bSizer0.AddSpacer(40)
         bSizer0.Add(self.dir_path,wx.ALIGN_CENTER_VERTICAL)
+        
+        #
+        # last saved: []
+        #bSizer0_1 = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY, "Save MagIC project directory in current state or revert to last-saved state" ), wx.HORIZONTAL ) 
+        #saved_label = wx.StaticText(self.panel, -1, "Last saved:", (20, 120))
+        #self.last_saved_time = wx.TextCtrl(self.panel, id=-1, size=(100,25), style=wx.TE_READONLY)
+        #now = datetime.datetime.now()
+        #now_string = "{}:{}:{}".format(now.hour, now.minute, now.second)
+        #self.last_saved_time.write(now_string)
+        #self.save_dir_button = buttons.GenButton(self.panel, id=-1, label = "save dir", size=(-1, -1))
+        #self.revert_dir_button = buttons.GenButton(self.panel, id=-1, label = "revert dir", size=(-1, -1))
+
+        #self.Bind(wx.EVT_BUTTON, self.on_revert_dir_button, self.revert_dir_button)
+        #self.Bind(wx.EVT_BUTTON, self.on_save_dir_button, self.save_dir_button)
+        
+
+        #bSizer0_1.Add(saved_label, flag=wx.RIGHT, border=10)
+        #bSizer0_1.Add(self.last_saved_time, flag=wx.RIGHT, border=10)
+        #bSizer0_1.Add(self.save_dir_button,flag=wx.ALIGN_LEFT|wx.RIGHT, border=10)
+        #bSizer0_1.Add(self.revert_dir_button,wx.ALIGN_LEFT)
+
+        #
     
                 
                                 
@@ -160,16 +184,14 @@ class MagMainFrame(wx.Frame):
         vbox.AddSpacer(5)        
         vbox.Add(bSizer0,0,wx.ALIGN_CENTER,0)
         vbox.AddSpacer(10)        
+        #vbox.Add(bSizer0_1, 0, wx.ALIGN_CENTER, 0)
+        #vbox.AddSpacer(10)
         vbox.Add(bSizer1,0,wx.ALIGN_CENTER,0)
         vbox.AddSpacer(10)        
         vbox.Add(bSizer2,0,wx.ALIGN_CENTER,0)
         vbox.AddSpacer(10)        
         vbox.Add(bSizer3,0,wx.ALIGN_CENTER,0)
         vbox.AddSpacer(10)        
-        #vbox.Add(bSizer1)
-        #vbox.AddSpacer(20)        
-        #vbox.Add(bSizer2)
-        #vbox.AddSpacer(20)  
         hbox.AddSpacer(10)      
         hbox.Add(vbox,0,wx.ALIGN_CENTER,0)
         hbox.AddSpacer(5)      
@@ -196,6 +218,8 @@ class MagMainFrame(wx.Frame):
         self.WD=str(os.getcwd())+"/"
         self.dir_path.SetValue(self.WD)
         self.FIRST_RUN=False
+        # this functionality is not fulling working yet, so I've removed it for now
+        #self.on_save_dir_button(None)
 
 
     #----------------------------------------------------------------------
@@ -214,6 +238,37 @@ class MagMainFrame(wx.Frame):
             self.dir_path.SetValue(self.WD)
             dialog.Destroy()
 
+
+    def on_revert_dir_button(self, event):
+        dia = wx.MessageDialog(self.panel, "Are you sure you want to revert to the last saved state?  All changes since {} will be lost".format(self.last_saved_time.GetLineText(0)), "Not so fast", wx.YES_NO|wx.NO_DEFAULT)
+        ok = dia.ShowModal()
+        if ok == wx.ID_YES:
+            os.chdir('..')
+            wd = self.WD
+            shutil.rmtree(wd)
+            shutil.move(self.saved_dir, self.WD)
+            os.chdir(self.WD)
+            self.on_save_dir_button(None)
+        else:
+            print "-I Don't revert"
+
+
+    def on_save_dir_button(self, event):
+        os.chdir('..')
+        wd = self.WD
+        wd = wd.rstrip('/')
+        ind = wd.rfind('/') + 1
+        saved_prefix, saved_folder = wd[:ind], wd[ind:]
+        self.saved_dir = saved_prefix + "copy_" + saved_folder
+        if "copy_" + saved_folder in os.listdir(saved_prefix):
+            shutil.rmtree(self.saved_dir)
+        shutil.copytree(self.WD, self.saved_dir)
+        self.last_saved_time.Clear()
+        now = datetime.datetime.now()
+        now_string = "{}:{}:{}".format(now.hour, now.minute, now.second)
+        self.last_saved_time.write(now_string)
+        os.chdir(self.WD)
+
     def on_run_thellier_gui(self,event):
         outstring="thellier_gui.py -WD %s"%self.WD
         print "-I- running python script:\n %s"%(outstring)
@@ -230,47 +285,22 @@ class MagMainFrame(wx.Frame):
         pmag_dialogs_dia.Center()
 
 
-    """
+    
     def on_er_data(self, event):
+        import ErMagicBuilder
+        self.ErMagic = ErMagicBuilder.MagIC_model_builder(self.WD, self)#,self.Data,self.Data_hierarchy)
+        self.ErMagic.Show()
+        self.ErMagic.Center()
+
         SIZE=wx.DisplaySize()
         SIZE=(SIZE[0]-0.3*SIZE[0],SIZE[1]-0.3*SIZE[1]) # gets total available screen space - 10%
-        dia = pmag_basic_dialogs.check(self, -1, 'This', self.WD)#, SIZE)
-    """
+        self.ErMagic.Raise()
 
-    def on_er_data(self,event):
-        import ErMagicBuilder
-        foundHTML=False
-        try:
-            PATH= sys.modules['ErMagicBuilder'].__file__
-            PmagPyPath=os.path.split(PATH)[0]
-            HTML_PATH=os.path.join(PmagPyPath,"ErMagicBuilderHelp.html")
-            #HTML_PATH="/".join(PATH.split("/")[:-1]+["ErMagicBuilderHelp.html"])
-            foundHTML=True
-        except:
-            pass
-        if foundHTML and not self.HtmlIsOpen:
-            self.HtmlIsOpen=True
-            self.help_window=ErMagicBuilder.MyHtmlPanel(None,HTML_PATH)
-            self.help_window.Show()
-            self.help_window.Bind(wx.EVT_CLOSE, self.OnCloseHtml)
-        dia = ErMagicBuilder.MagIC_model_builder(self.WD)#,self.Data,self.Data_hierarchy)
-        dia.Show()
-        dia.Center()
-        
-        if self.first_time_messsage==False:
-            TXT="Press OK on 'Earth-Ref Magic Builder' frame and follow the instructions listed in the help window."#\n(if you dont see the help window it might be hidden behind the main frame)"
-            dlg = wx.MessageDialog(self, caption="Earth-Ref Magic Builder is opened for the first time",message=TXT,style=wx.OK)
-            result = dlg.ShowModal()
-            if result == wx.ID_OK:            
-                dlg.Destroy()
-                self.first_time_messsage=True
-                self.help_window.Raise()
-            
-            
+    def init_check_window(self):
+        import pmag_basic_dialogs
+        self.check_dia = pmag_basic_dialogs.check(self, -1, 'Check Data', self.WD, self.ErMagic)# initiates the object that will control steps 1-6 of checking headers, filling in cell values, etc.
 
-    def OnCloseHtml(self,event):
-        self.HtmlIsOpen=False
-        self.help_window.Destroy()
+
     def get_data(self):
         
       Data={}
@@ -357,11 +387,23 @@ class MagMainFrame(wx.Frame):
        
            
     def on_menu_exit(self, event):
+        # also delete appropriate copy file
         try:
             self.help_window.Destroy()
         except:
             pass
-        exit()
+        if '-i' in sys.argv:
+            self.Destroy()
+        try:
+            exit() # can raise TypeError if wx inspector was used
+        except Exception as ex:
+            if type(ex) == TypeError:  # suppress that TypeError, but raise others
+                pass
+            else:
+                raise(ex)
+            
+
+
     
 
 
@@ -369,8 +411,11 @@ class MagMainFrame(wx.Frame):
 
 if __name__ == "__main__":
     #app = wx.App(redirect=True, filename="beta_log.log")
-    app = wx.PySimpleApp()
+    app = wx.PySimpleApp(redirect=False)# if redirect is true, wxpython makes its own output window for stdout/stderr
     app.frame = MagMainFrame()
     app.frame.Show()
     app.frame.Center()
+    if '-i' in sys.argv:
+        import wx.lib.inspection
+        wx.lib.inspection.InspectionTool().Show()
     app.MainLoop()

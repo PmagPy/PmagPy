@@ -916,7 +916,7 @@ class Zeq_GUI(wx.Frame):
         elif self.ORTHO_PLOT_TYPE=='E-W':
             STRING=""
             #STRING1="E-W orthogonal plot"
-            self.fig1.text(0.01,0.98,"Zijderveld plot:: x = Eest",{'family':'Arial', 'fontsize':10*self.GUI_RESOLUTION, 'style':'normal','va':'center', 'ha':'left' })
+            self.fig1.text(0.01,0.98,"Zijderveld plot:: x = East",{'family':'Arial', 'fontsize':10*self.GUI_RESOLUTION, 'style':'normal','va':'center', 'ha':'left' })
         
         elif self.ORTHO_PLOT_TYPE=='PCA_dec':
             self.fig1.text(0.01,0.98,"Zijderveld plot",{'family':'Arial', 'fontsize':10*self.GUI_RESOLUTION, 'style':'normal','va':'center', 'ha':'left' })
