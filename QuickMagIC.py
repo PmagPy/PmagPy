@@ -67,23 +67,23 @@ class MagMainFrame(wx.Frame):
         
         #
         # last saved: []
-        #bSizer0_1 = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY, "Save MagIC project directory in current state or revert to last-saved state" ), wx.HORIZONTAL ) 
-        #saved_label = wx.StaticText(self.panel, -1, "Last saved:", (20, 120))
-        #self.last_saved_time = wx.TextCtrl(self.panel, id=-1, size=(100,25), style=wx.TE_READONLY)
-        #now = datetime.datetime.now()
-        #now_string = "{}:{}:{}".format(now.hour, now.minute, now.second)
-        #self.last_saved_time.write(now_string)
-        #self.save_dir_button = buttons.GenButton(self.panel, id=-1, label = "save dir", size=(-1, -1))
-        #self.revert_dir_button = buttons.GenButton(self.panel, id=-1, label = "revert dir", size=(-1, -1))
+        bSizer0_1 = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY, "Save MagIC project directory in current state or revert to last-saved state" ), wx.HORIZONTAL ) 
+        saved_label = wx.StaticText(self.panel, -1, "Last saved:", (20, 120))
+        self.last_saved_time = wx.TextCtrl(self.panel, id=-1, size=(100,25), style=wx.TE_READONLY)
+        now = datetime.datetime.now()
+        now_string = "{}:{}:{}".format(now.hour, now.minute, now.second)
+        self.last_saved_time.write(now_string)
+        self.save_dir_button = buttons.GenButton(self.panel, id=-1, label = "save dir", size=(-1, -1))
+        self.revert_dir_button = buttons.GenButton(self.panel, id=-1, label = "revert dir", size=(-1, -1))
 
-        #self.Bind(wx.EVT_BUTTON, self.on_revert_dir_button, self.revert_dir_button)
-        #self.Bind(wx.EVT_BUTTON, self.on_save_dir_button, self.save_dir_button)
+        self.Bind(wx.EVT_BUTTON, self.on_revert_dir_button, self.revert_dir_button)
+        self.Bind(wx.EVT_BUTTON, self.on_save_dir_button, self.save_dir_button)
         
 
-        #bSizer0_1.Add(saved_label, flag=wx.RIGHT, border=10)
-        #bSizer0_1.Add(self.last_saved_time, flag=wx.RIGHT, border=10)
-        #bSizer0_1.Add(self.save_dir_button,flag=wx.ALIGN_LEFT|wx.RIGHT, border=10)
-        #bSizer0_1.Add(self.revert_dir_button,wx.ALIGN_LEFT)
+        bSizer0_1.Add(saved_label, flag=wx.RIGHT, border=10)
+        bSizer0_1.Add(self.last_saved_time, flag=wx.RIGHT, border=10)
+        bSizer0_1.Add(self.save_dir_button,flag=wx.ALIGN_LEFT|wx.RIGHT, border=10)
+        bSizer0_1.Add(self.revert_dir_button,wx.ALIGN_LEFT)
 
         #
     
@@ -184,8 +184,8 @@ class MagMainFrame(wx.Frame):
         vbox.AddSpacer(5)        
         vbox.Add(bSizer0,0,wx.ALIGN_CENTER,0)
         vbox.AddSpacer(10)        
-        #vbox.Add(bSizer0_1, 0, wx.ALIGN_CENTER, 0)
-        #vbox.AddSpacer(10)
+        vbox.Add(bSizer0_1, 0, wx.ALIGN_CENTER, 0)
+        vbox.AddSpacer(10)
         vbox.Add(bSizer1,0,wx.ALIGN_CENTER,0)
         vbox.AddSpacer(10)        
         vbox.Add(bSizer2,0,wx.ALIGN_CENTER,0)
@@ -218,8 +218,18 @@ class MagMainFrame(wx.Frame):
         self.WD=str(os.getcwd())+"/"
         self.dir_path.SetValue(self.WD)
         self.FIRST_RUN=False
-        # this functionality is not fulling working yet, so I've removed it for now
-        #self.on_save_dir_button(None)
+        # this functionality is not fully working yet, so I've removed it for now
+        #try:
+        #    print "trying listdir"
+        #    os.listdir(self.WD)
+        #except Exception as ex:
+        #    print ex
+        #print "self.WD.split('/')", self.WD.split('/')
+        #if len(self.WD.split('/')) <= 4:
+        #    print "no to saving this directory"
+        #else:
+        #    print "do on_save_dir_button"
+        self.on_save_dir_button(None)
 
 
     #----------------------------------------------------------------------
@@ -240,6 +250,10 @@ class MagMainFrame(wx.Frame):
 
 
     def on_revert_dir_button(self, event):
+        if self.last_saved_time.GetLineText(0) == "not saved":
+            dia = wx.MessageDialog(self.panel, "You can't revert, because your working directory has not been saved.  Are you sure you're in the right directory?", "Can't be done", wx.OK)
+            dia.ShowModal()
+            return
         dia = wx.MessageDialog(self.panel, "Are you sure you want to revert to the last saved state?  All changes since {} will be lost".format(self.last_saved_time.GetLineText(0)), "Not so fast", wx.YES_NO|wx.NO_DEFAULT)
         ok = dia.ShowModal()
         if ok == wx.ID_YES:
@@ -254,20 +268,28 @@ class MagMainFrame(wx.Frame):
 
 
     def on_save_dir_button(self, event):
-        os.chdir('..')
-        wd = self.WD
-        wd = wd.rstrip('/')
-        ind = wd.rfind('/') + 1
-        saved_prefix, saved_folder = wd[:ind], wd[ind:]
-        self.saved_dir = saved_prefix + "copy_" + saved_folder
-        if "copy_" + saved_folder in os.listdir(saved_prefix):
-            shutil.rmtree(self.saved_dir)
-        shutil.copytree(self.WD, self.saved_dir)
-        self.last_saved_time.Clear()
-        now = datetime.datetime.now()
-        now_string = "{}:{}:{}".format(now.hour, now.minute, now.second)
-        self.last_saved_time.write(now_string)
-        os.chdir(self.WD)
+        try:
+            if len(self.WD.split('/')) <= 4:
+                self.last_saved_time.Clear()
+                self.last_saved_time.write("not saved")            
+                return
+            os.chdir('..')
+            wd = self.WD
+            wd = wd.rstrip('/')
+            ind = wd.rfind('/') + 1
+            saved_prefix, saved_folder = wd[:ind], wd[ind:]
+            self.saved_dir = saved_prefix + "copy_" + saved_folder
+            if "copy_" + saved_folder in os.listdir(saved_prefix):
+                shutil.rmtree(self.saved_dir)
+            shutil.copytree(self.WD, self.saved_dir)
+            self.last_saved_time.Clear()
+            now = datetime.datetime.now()
+            now_string = "{}:{}:{}".format(now.hour, now.minute, now.second)
+            self.last_saved_time.write(now_string)
+            os.chdir(self.WD)
+        except OSError:
+            self.last_saved_time.Clear()
+            self.last_saved_time.write("not saved")
 
     def on_run_thellier_gui(self,event):
         outstring="thellier_gui.py -WD %s"%self.WD
