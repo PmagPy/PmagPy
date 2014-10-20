@@ -7,6 +7,7 @@
 import matplotlib
 matplotlib.use('WXAgg')
 import  wx.html
+import pmag2
 import pmag_widgets as pw
 
 #from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigCanvas \
@@ -669,7 +670,8 @@ class MagIC_model_builder(wx.Frame):
         self.Destroy()
 
     def on_helpButton(self, event):
-        html_frame = pw.HtmlFrame(self, page='/Users/nebula/Python/PmagPy/ErMagicHeadersHelp.html')
+        path = pmag2.get_pmag_dir()
+        html_frame = pw.HtmlFrame(self, page=(path+"ErMagicHeadersHelp.html"))
         html_frame.Center()
         html_frame.Show()
 

@@ -287,7 +287,8 @@ class MagMainFrame(wx.Frame):
             now_string = "{}:{}:{}".format(now.hour, now.minute, now.second)
             self.last_saved_time.write(now_string)
             os.chdir(self.WD)
-        except OSError:
+        except:# OSError:
+            print "-I Problem copying working directory"
             self.last_saved_time.Clear()
             self.last_saved_time.write("not saved")
 

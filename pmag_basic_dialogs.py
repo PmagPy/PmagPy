@@ -6,6 +6,7 @@
 import wx
 import os
 import pmag
+import pmag2
 import subprocess
 import pmag_widgets as pw
 import wx.grid
@@ -2982,12 +2983,7 @@ class check(wx.Frame):
             
     def on_helpButton(self, event, page=None):
         """shows html help page"""
-        path = ''
-        for p in os.environ['PATH'].split(':'):
-            #print "p", p
-            if 'Pmag' in p:
-                path = p + '/'
-        #print "path + page", path+page
+        path = pmag2.get_pmag_dir()
         html_frame = pw.HtmlFrame(self, page=(path+page))
         html_frame.Show()
 
