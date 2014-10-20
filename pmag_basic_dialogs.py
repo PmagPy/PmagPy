@@ -2443,7 +2443,10 @@ class check(wx.Frame):
         self.addSampleButton = wx.Button(self.panel, label="Add a new sample")
         self.sites =list(set(self.Data_hierarchy['sites'].keys()).union(self.ErMagic.data_er_sites.keys())) # adds in any additional samples we might have information about (from er_sites.txt file) even if currently that sample does not show up in the magic_measurements file
         self.Bind(wx.EVT_BUTTON, self.on_addSampleButton, self.addSampleButton)
+        self.helpButton = wx.Button(self.panel, label="Help")
+        self.Bind(wx.EVT_BUTTON, lambda event: self.on_helpButton(event, "ErMagicSpecimenHelp.html"), self.helpButton)
         hbox_one.Add(self.addSampleButton)
+        hbox_one.Add(self.helpButton)
         #
         hboxok = wx.BoxSizer(wx.HORIZONTAL)
         self.saveButton =  wx.Button(self.panel, id=-1, label='Save')
@@ -2528,10 +2531,13 @@ class check(wx.Frame):
         self.addSiteButton = wx.Button(self.panel, label="Add a new site")
         self.Bind(wx.EVT_BUTTON, self.on_addSiteButton, self.addSiteButton)
         hbox_one.Add(self.addSiteButton)
+        if self.sample_window == 1:
+            self.helpButton = wx.Button(self.panel, label="Help")
+            self.Bind(wx.EVT_BUTTON, lambda event: self.on_helpButton(event, "ErMagicSampleHelp1.html"), self.helpButton)
         if self.sample_window > 1:
             self.helpButton = wx.Button(self.panel, label="Help")
             self.Bind(wx.EVT_BUTTON, lambda event: self.on_helpButton(event, "ErMagicSampleHelp.html"), self.helpButton)
-            hbox_one.Add(self.helpButton)
+        hbox_one.Add(self.helpButton)
 
 
         hboxok = wx.BoxSizer(wx.HORIZONTAL)
@@ -2980,7 +2986,6 @@ class check(wx.Frame):
             self.drop_down_menu.update_drop_down_menu(self.samp_grid, {2: (sites, False)})
 
 
-            
     def on_helpButton(self, event, page=None):
         """shows html help page"""
         path = pmag2.get_pmag_dir()
