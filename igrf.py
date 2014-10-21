@@ -51,8 +51,8 @@ def main():
         sys.exit()
     if '-mod' in sys.argv:
         ind=sys.argv.index('-mod')
-        mod3k=sys.argv[ind+1]
-    else: mod3k=''
+        mod=sys.argv[ind+1]
+    else: mod=''
     if '-f' in sys.argv:
         ind=sys.argv.index('-f')
         file=sys.argv[ind+1]
@@ -67,10 +67,10 @@ def main():
             line.append(float(alt))
             line.append(float(raw_input("Latitude (positive north) ")))
             line.append(float(raw_input("Longitude (positive east) ")))
-            if mod3k=='':
+            if mod=='':
                 x,y,z,f=pmag.doigrf(line[3]%360.,line[2],line[1],line[0])
             else:
-                x,y,z,f=pmag.doigrf(line[3]%360.,line[2],line[1],line[0],mod3k=mod3k)
+                x,y,z,f=pmag.doigrf(line[3]%360.,line[2],line[1],line[0],mod=mod)
             Dir=pmag.cart2dir((x,y,z))
             print '%8.2f %8.2f %8.0f'%(Dir[0],Dir[1],f)           
           except EOFError:
@@ -112,10 +112,10 @@ def main():
         pylab.ion()
         Ages,Decs,Incs,Ints,VADMs=[],[],[],[],[]
     for line in input:
-        if mod3k=='':
+        if mod=='':
             x,y,z,f=pmag.doigrf(line[3]%360.,line[2],line[1],line[0])
         else:
-            x,y,z,f=pmag.doigrf(line[3]%360.,line[2],line[1],line[0],mod3k=mod3k)
+            x,y,z,f=pmag.doigrf(line[3]%360.,line[2],line[1],line[0],mod=mod)
         Dir=pmag.cart2dir((x,y,z))
         if outfile!="":
             out.write('%8.2 %8.2 %8.0f %7.1f %7.1f %7.1f %7.1f\n'%(Dir[0],Dir[1],f,line[0],line[1],line[2],line[3]))           
