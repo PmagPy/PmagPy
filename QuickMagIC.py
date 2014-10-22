@@ -7,6 +7,7 @@ import sys
 import datetime
 import shutil
 import pmag
+import pmag2
 import pmag_basic_dialogs
 import pmag_menu
 
@@ -33,6 +34,18 @@ class MagMainFrame(wx.Frame):
         self.first_time_messsage=False
         self.Bind(wx.EVT_CLOSE, self.on_menu_exit)
         self.Data, self.Data_hierarchy = {}, {}
+        print pmag2.get_pmag_dir()
+        print os.environ['_system_name']#'OSX'
+        print os.environ['_system_version']#'10.9'
+        print os.environ['_system_type']#'Darwin'
+        print "sys.platform", sys.platform # 'darwin'
+        self.call = ""
+        if sys.platform in ['win32', 'win64']:
+            print "windows!"
+            self.call = pmag2.get_pmag_dir()
+            print "call:", call
+        else:
+            print "not windows"
 
 
     def InitUI(self):
@@ -293,12 +306,12 @@ class MagMainFrame(wx.Frame):
             self.last_saved_time.write("not saved")
 
     def on_run_thellier_gui(self,event):
-        outstring="thellier_gui.py -WD %s"%self.WD
+        outstring=self.call+"thellier_gui.py -WD %s"%self.WD
         print "-I- running python script:\n %s"%(outstring)
         os.system(outstring)
 
     def on_run_demag_gui(self,event):
-        outstring="demag_gui.py -WD %s"%self.WD
+        outstring=self.call+"demag_gui.py -WD %s"%self.WD
         print "-I- running python script:\n %s"%(outstring)
         os.system(outstring)
         
@@ -388,7 +401,7 @@ class MagMainFrame(wx.Frame):
             )        
         if dlg.ShowModal() == wx.ID_OK:
             FILE = dlg.GetFilename()                
-        outstring="download_magic.py -f %s"%FILE
+        outstring=self.call+"download_magic.py -f %s"%FILE
         print "-I- running python script:\n %s"%(outstring)
         os.system(outstring)
         TXT="Running download_magic.py program. Check terminal (Mac) or command prompt (windows) for error/warnings\n If no errors occur then MagIC files were save in MagIC Prpject Directory"
@@ -398,7 +411,7 @@ class MagMainFrame(wx.Frame):
             dlg.Destroy()
         
     def on_btn_upload(self,event):
-        outstring="upload_magic.py"
+        outstring=self.call+"upload_magic.py"
         print "-I- running python script:\n %s"%(outstring)
         os.system(outstring)
         TXT="Check terminal (Mac) or command prompt (windows) for error/warnings.\nA file name upload_dos.txt was generated in MagIC Project Directory.\nDrag and drop this file in the MagIC database."
