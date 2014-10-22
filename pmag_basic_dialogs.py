@@ -2669,7 +2669,19 @@ class check(wx.Frame):
         self.Data, self.Data_hierarchy = self.ErMagic.Data, self.ErMagic.Data_hierarchy
         self.locations = self.Data_hierarchy['locations']
         #
-        key1 = self.ErMagic.data_er_locations.keys()[0]
+        try:
+            key1 = self.ErMagic.data_er_locations.keys()[0]
+        except IndexError:
+            MSG = "You have no data in er_locations, so we are skipping step 5.\n Note that location names must be entered at the measurements level,so you may need to re-import or edit the magic_measurements file"
+            dlg = wx.MessageDialog(None,caption="Message:", message=MSG ,style=wx.OK|wx.ICON_INFORMATION)
+            dlg.ShowModal()
+            dlg.Destroy()
+            self.panel.Destroy()
+            self.InitAgeCheck()
+            return
+            
+            #self.ErMagic.data_er_locations = {" ": {"er_citation_names": "This study", "er_location_name": "", "location_begin_lon": "", "location_end_lon": "", "location_begin_lat": "", "location_end_lat": "", "location_type": ""}}
+            #key1 = self.ErMagic.data_er_locations.keys()[0]
         col_labels = sorted(self.ErMagic.data_er_locations[key1].keys())
         try:
             col_labels.remove('er_location_name')
