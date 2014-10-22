@@ -4,15 +4,20 @@
 # converting magnetometer files to MagIC format
 #--------------------------------------------------------------
 import wx
+import wx.grid
 import os
+import subprocess
+import sys
 import pmag
 import pmag2
-import subprocess
 import pmag_widgets as pw
-import wx.grid
-import subprocess
 import ErMagicBuilder
 import drop_down_menus
+
+if sys.platform in ['win32', 'win64']:
+    call = pmag2.get_pmag_dir()
+else:
+    call = ""
 
 class import_magnetometer_data(wx.Dialog):
     def __init__(self,parent,id,title,WD):
@@ -112,7 +117,7 @@ class import_magnetometer_data(wx.Dialog):
         elif file_type == 'PMD':
             dia = convert_PMD_files_to_MagIC(self, self.WD)
         elif file_type == 'TDT':
-            COMMAND = "TDT_magic.py -WD {}".format(self.WD)
+            COMMAND = call+"TDT_magic.py -WD {}".format(self.WD)
             os.system(COMMAND)
             return True
         dia.Center()
@@ -364,7 +369,7 @@ class convert_generic_files_to_MagIC(wx.Frame):
         # some special  
         
         SAMP_OUTFILE = magicoutfile[:magicoutfile.find('.')] + "_er_samples.txt"
-        COMMAND="generic_magic.py -WD %s -f %s -fsa er_samples.txt -F %s -exp %s  -samp %s -site %s %s %s %s -Fsa %s"\
+        COMMAND=call+"generic_magic.py -WD %s -f %s -fsa er_samples.txt -F %s -exp %s  -samp %s -site %s %s %s %s -Fsa %s"\
         %(WD,FILE,OUTFILE,EXP,SAMP,SITE,LOC,LABFIELD,DONT_AVERAGE, SAMP_OUTFILE)
 
         print "-I- Running Python command:\n %s"%COMMAND
@@ -551,7 +556,7 @@ class combine_magic_dialog(wx.Frame):
     def on_okButton(self,event):
         files_text=self.file_paths.GetValue()
         files=files_text.strip('\n').replace(" ","").split('\n')
-        COMMAND="combine_magic.py -F magic_measurements.txt -f %s"%(" ".join(files) )       
+        COMMAND=call+"combine_magic.py -F magic_measurements.txt -f %s"%(" ".join(files) )       
         print "-I- Running Python command:\n %s"%COMMAND
         os.chdir(self.WD)     
         os.system(COMMAND)                                          
@@ -642,17 +647,17 @@ class combine_everything_dialog(wx.Frame):
         site_files = " ".join(er_sites.split('\n'))
         new_files = []
         if spec_files:
-            COMMAND0="combine_magic.py -F er_specimens.txt -f %s"%(spec_files)
+            COMMAND0=call+"combine_magic.py -F er_specimens.txt -f %s"%(spec_files)
             print "-I- Running Python command:\n %s"%COMMAND0
             os.system(COMMAND0) 
             new_files.append("er_specimens.txt")
         if samp_files:
-            COMMAND1="combine_magic.py -F er_samples.txt -f %s"%(samp_files)
+            COMMAND1=call+"combine_magic.py -F er_samples.txt -f %s"%(samp_files)
             print "-I- Running Python command:\n %s"%COMMAND1
             os.system(COMMAND1) 
             new_files.append("er_samples.txt")
         if site_files:
-            COMMAND2="combine_magic.py -F er_sites.txt -f %s"%(site_files)
+            COMMAND2=call+"combine_magic.py -F er_sites.txt -f %s"%(site_files)
             print "-I- Running Python command:\n %s"%COMMAND2
             os.system(COMMAND2)
             new_files.append("er_sites.txt")
@@ -818,7 +823,7 @@ class convert_SIO_files_to_MagIC(wx.Frame):
             synthetic = '-syn ' + synthetic
         else:
             synthetic = ''
-        COMMAND = "sio_magic.py -F {0} -f {1} {2} {3} {4} -spc {5} -ncn {6} {7} {8} {9} {10} {11} {12} -Fsa {13}".format(outfile, SIO_file, user, experiment_type, loc_name,spc, ncn, lab_field, peak_AF, coil_number, instrument, replicate, synthetic, samp_outfile)
+        COMMAND = call+"sio_magic.py -F {0} -f {1} {2} {3} {4} -spc {5} -ncn {6} {7} {8} {9} {10} {11} {12} -Fsa {13}".format(outfile, SIO_file, user, experiment_type, loc_name,spc, ncn, lab_field, peak_AF, coil_number, instrument, replicate, synthetic, samp_outfile)
         pw.run_command_and_close_window(self, COMMAND, outfile)
 
     def on_cancelButton(self,event):
@@ -950,7 +955,7 @@ class convert_CIT_files_to_MagIC(wx.Frame):
         peak_AF = self.bSizer7.return_value()
         if peak_AF:
             peak_AF = "-ac " + peak_AF
-        COMMAND = "CIT_magic.py -WD {} -f {} -F {} {} {} {} {} -ncn {} {} {} {} -Fsp {} -Fsi {} -Fsa {}".format(wd, CIT_file, outfile, particulars, spec_num, loc_name, user, ncn, peak_AF, lab_field, ID, spec_outfile, site_outfile, samp_outfile)
+        COMMAND = call+"CIT_magic.py -WD {} -f {} -F {} {} {} {} {} -ncn {} {} {} {} -Fsp {} -Fsi {} -Fsa {}".format(wd, CIT_file, outfile, particulars, spec_num, loc_name, user, ncn, peak_AF, lab_field, ID, spec_outfile, site_outfile, samp_outfile)
         #print COMMAND
         pw.run_command_and_close_window(self, COMMAND, outfile)
 
@@ -1084,9 +1089,9 @@ class convert_HUJI_files_to_MagIC(wx.Frame):
         #YES_NO=self.bSizer0a.return_value() 
         old_format= self.bSizer0a.return_value()
         if old_format:
-            COMMAND = "HUJI_magic.py -f {} -F {} {} -LP {} {} -ncn {} {} {} {}".format(HUJI_file, outfile, user, experiment_type, loc_name, ncn, lab_field, spc, peak_AF)
+            COMMAND = call+"HUJI_magic.py -f {} -F {} {} -LP {} {} -ncn {} {} {} {}".format(HUJI_file, outfile, user, experiment_type, loc_name, ncn, lab_field, spc, peak_AF)
         else:
-            COMMAND = "HUJI_magic_new.py -f {} -F {} {} -LP {} {} -ncn {} {} {} {}".format(HUJI_file, outfile, user, experiment_type, loc_name, ncn, lab_field, spc, peak_AF)
+            COMMAND = call+"HUJI_magic_new.py -f {} -F {} {} -LP {} {} -ncn {} {} {} {}".format(HUJI_file, outfile, user, experiment_type, loc_name, ncn, lab_field, spc, peak_AF)
         pw.run_command_and_close_window(self, COMMAND, outfile)
 
     def on_cancelButton(self,event):
@@ -1217,7 +1222,7 @@ class convert_2G_binary_files_to_MagIC(wx.Frame):
         for f in files:
             file_2G_bin = f
             outfile = file_2G_bin + ".magic"
-            COMMAND = "2G_bin_magic.py -WD {} -f {} -F {} -Fsa {} -Fsi {} -ncn {} {} {} -ocn {} {} {} {}".format(WD, file_2G_bin, outfile, samp_outfile, sites_outfile, ncn, mcd, spc, ocn, loc_name, replicate, ID)
+            COMMAND = call+"2G_bin_magic.py -WD {} -f {} -F {} -Fsa {} -Fsi {} -ncn {} {} {} -ocn {} {} {} {}".format(WD, file_2G_bin, outfile, samp_outfile, sites_outfile, ncn, mcd, spc, ocn, loc_name, replicate, ID)
             if files.index(f) == (len(files) - 1): # terminate process on last file call
                 pw.run_command_and_close_window(self, COMMAND, outfile)
             else:
@@ -1382,7 +1387,7 @@ class convert_LDEO_files_to_MagIC(wx.Frame):
             synthetic = '-syn ' + synthetic
         else:
             synthetic = ''
-        COMMAND = "LDEO_magic.py -f {0} -F {1} {2} {3} {4} -ncn {5} {6} {7} {8} {9} {10} {11} {12} -Fsa {13} -Fsy {14}".format(LDEO_file, outfile, user, experiment_type, lab_field, ncn, spc, loc_name, instrument, replicate, AF_field, coil_number, synthetic, samp_outfile, synthetic_outfile)
+        COMMAND = call+"LDEO_magic.py -f {0} -F {1} {2} {3} {4} -ncn {5} {6} {7} {8} {9} {10} {11} {12} -Fsa {13} -Fsy {14}".format(LDEO_file, outfile, user, experiment_type, lab_field, ncn, spc, loc_name, instrument, replicate, AF_field, coil_number, synthetic, samp_outfile, synthetic_outfile)
         #print COMMAND
         pw.run_command_and_close_window(self, COMMAND, outfile)
 
@@ -1474,7 +1479,7 @@ class convert_IODP_csv_files_to_MagIC(wx.Frame):
             replicate = ''
         else:
             replicate = "-A"
-        COMMAND = "IODP_csv_magic.py -WD {0} -f {1} -F {2} {3} -ID {4} -Fsp {5} -Fsa {6} -Fsi {7}".format(wd, IODP_file, outfile, replicate, ID, spec_outfile, samp_outfile, site_outfile)
+        COMMAND = call+"IODP_csv_magic.py -WD {0} -f {1} -F {2} {3} -ID {4} -Fsp {5} -Fsa {6} -Fsi {7}".format(wd, IODP_file, outfile, replicate, ID, spec_outfile, samp_outfile, site_outfile)
         #print COMMAND
         pw.run_command_and_close_window(self, COMMAND, outfile)
 
@@ -1601,7 +1606,7 @@ class convert_PMD_files_to_MagIC(wx.Frame):
         for f in files:
             outfile = f + ".magic"
             samp_outfile = f[:f.find('.')] + "_er_samples.txt"
-            COMMAND = "PMD_magic.py -WD {} -f {} -F {} -Fsa {} {} -ncn {} {} -spc {} {} {}".format(WD, f, outfile, samp_outfile, user, ncn, particulars, spc, replicate, ID)
+            COMMAND = call+"PMD_magic.py -WD {} -f {} -F {} -Fsa {} {} -ncn {} {} -spc {} {} {}".format(WD, f, outfile, samp_outfile, user, ncn, particulars, spc, replicate, ID)
             if files.index(f) == len(files) -1:
                 pw.run_command_and_close_window(self, COMMAND, outfile)
             else:
@@ -1695,7 +1700,7 @@ class something(wx.Frame):
         pw.on_add_file_button(self.bSizer0, self.WD, event, text)
 
     def on_okButton(self, event):
-        COMMAND = ""
+        COMMAND = call+""
         pw.run_command_and_close_window(self, COMMAND, outfile)
 
     def on_cancelButton(self,event):
@@ -1978,7 +1983,7 @@ class OrientFrameGrid(wx.Frame):
         command_args.append(gmt_flags)
         command_args.append(bedding_codes_flags)
         command_args.append(methodcodes_flags) 
-        commandline=" ".join(command_args)
+        commandline= call + " ".join(command_args)
         
                  
         #command= "orientation_magic.py -WD %s -Fsa er_samples_orient.txt -Fsi er_sites_orient.txt -f  %s %s %s %s %s %s > ./orientation_magic.log " \
