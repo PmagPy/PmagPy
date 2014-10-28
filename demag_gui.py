@@ -78,7 +78,7 @@ class Zeq_GUI(wx.Frame):
     """
     title = "PmagPy Demag GUI %s (beta)"%CURRENT_VRSION
     
-    def __init__(self):
+    def __init__(self, WD):
         
         TEXT="""
         NAME
@@ -98,7 +98,11 @@ class Zeq_GUI(wx.Frame):
         wx.Frame.__init__(self, None, wx.ID_ANY, self.title)
         self.redo_specimens={}
         self.currentDirectory = os.getcwd() # get the current working directory
-        self.get_DIR()        # choose directory dialog
+        if WD:
+            self.WD = WD
+            self.get_DIR(WD)        # initialize directory variables
+        else:
+            self.get_DIR()        # choose directory dialog, then initialize directory variables
         
         # initialize acceptence criteria with NULL values
         self.acceptance_criteria=pmag.initialize_acceptance_criteria()
@@ -1561,7 +1565,7 @@ class Zeq_GUI(wx.Frame):
     #----------------------------------------------------------------------
 
 
-    def get_DIR(self):
+    def get_DIR(self, WD=None):
         """ Choose a working directory dialog
         """
         if "-WD" in sys.argv and FIRST_RUN:
@@ -1569,7 +1573,7 @@ class Zeq_GUI(wx.Frame):
             self.WD=sys.argv[ind+1]            
             #self.WD=os.getcwd()+"/"
  
-        else:   
+        elif not WD:   
             dialog = wx.DirDialog(None, "Choose a directory:",defaultPath = self.currentDirectory ,style=wx.DD_DEFAULT_STYLE | wx.DD_NEW_DIR_BUTTON | wx.DD_CHANGE_DIR)
             if dialog.ShowModal() == wx.ID_OK:
               self.WD=dialog.GetPath()
@@ -4071,9 +4075,9 @@ def alignToTop(win):
     
 
 
-if __name__ == '__main__':
+def do_main(WD=None):
     app = wx.PySimpleApp()
-    app.frame = Zeq_GUI()
+    app.frame = Zeq_GUI(WD)
     app.frame.Center()
     #alignToTop(app.frame)
     dw, dh = wx.DisplaySize() 
@@ -4083,4 +4087,5 @@ if __name__ == '__main__':
     app.frame.Show()
     app.MainLoop()
 
-        
+if __name__ == '__main__':
+    do_main()
