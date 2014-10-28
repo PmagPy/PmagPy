@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 import string,sys,pmag
-def main():
+def main(command_line=True, **kwargs):
     """
     NAME
         sio_magic.py
@@ -146,6 +146,49 @@ def main():
 #
     meas_file="magic_measurements.txt"
     user=""
+    if not command_line: 
+        user = kwargs.get('user', '')
+        meas_file = kwargs.get('meas_file', '')
+        syn_file = kwargs.get('syn_file', '')
+        samp_file = kwargs.get('samp_outfile', '')
+        mag_file = kwargs.get('mag_file', '')
+        labfield = float(kwargs.get('labfield', ''))
+        phi = float(kwargs.get('phi', 0))
+        theta = float(kwargs.get('theta', 0))
+        peakfield = float(kwargs.get('peakfield', 0))
+        specnum = kwargs.get('specnum', 0)
+        if specnum!=0:specnum=-specnum
+        er_location_name = kwargs.get('er_location_name', '')
+        samp_infile = kwargs.get('samp_infile', '')
+        syn = kwargs.get('syn', 0)
+        institution = kwargs.get('institution', '')
+        syntype = kwargs.get('syntype', '')
+        inst = kwargs.get('inst', '')
+        noave = kwargs.get('noave', 0)
+        samp_con = kwargs.get('samp_con')
+        codelist = kwargs.get('codelist', '')
+        if codelist: # put that at end, too?
+            codes = codelist.split(':')
+        coil = kwargs.get('coil', '')
+        if coil:
+            irmunits = "V"
+        if coil not in ["1","2","3"]:
+            print main.__doc__
+            print 'not a valid coil specification'
+            sys.exit()
+
+        
+
+        # do all this stuff at the end
+        # file stuff
+        # and samp_con splitting, etc.  
+        # and the "if 'AF' in codes" type stuff
+        #check to make sure you get it all
+        if samp_infile:
+            Samps, file_type = pmag.magic_read(samp_infile)
+        
+        
+        
     if "-h" in args:
         print main.__doc__
         sys.exit()
@@ -288,6 +331,9 @@ def main():
         if peakfield==0: peakfield=.180
     SynRecs,MagRecs=[],[]
     version_num=pmag.get_version()
+
+    ##################################
+
     if 1:
     #if infile_type=="SIO format":
         for line in input.readlines():
@@ -631,4 +677,6 @@ def main():
     if len(SynRecs)>0:
         pmag.magic_write(synfile,SynRecs,'er_synthetics')
         print "synthetics put in ",synfile
-main()
+
+if __name__ == "__main__":
+    main()
