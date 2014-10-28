@@ -121,13 +121,14 @@ CURRENT_VRSION = "v.2.25"
 MICROWAVE=False
 THERMAL=True
 
+
 import matplotlib
 matplotlib.use('WXAgg')
-
 from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigCanvas \
 
 import sys,pylab,scipy,os
 import pmag
+print "thellier GUI is using:", sys.version
 ##try:
 ##    import pmag
 ##except:
@@ -179,7 +180,7 @@ class Arai_GUI(wx.Frame):
     """
     title = "PmagPy Thellier GUI %s"%CURRENT_VRSION
     
-    def __init__(self):
+    def __init__(self, WD=None):
 
         TEXT="""
         NAME
@@ -199,7 +200,11 @@ class Arai_GUI(wx.Frame):
         wx.Frame.__init__(self, None, wx.ID_ANY, self.title)
         self.redo_specimens={}
         self.currentDirectory = os.getcwd() # get the current working directory
-        self.get_DIR()        # choose directory dialog        
+        if WD:
+            self.WD = WD
+            self.get_DIR(self.WD)
+        else:
+            self.get_DIR()        # choose directory dialog        
         
          
         # inialize selecting criteria
@@ -245,14 +250,14 @@ class Arai_GUI(wx.Frame):
         self.Bind(wx.EVT_CLOSE, self.on_menu_exit) 
         self.close_warning=False
                       
-    def get_DIR(self):
+    def get_DIR(self, WD=None):
         """ 
         open dialog box for choosing a working directory 
         """
         if "-WD" in sys.argv and FIRST_RUN:
             ind=sys.argv.index('-WD')
             self.WD=sys.argv[ind+1] 
-        else:   
+        elif not WD: # if no arg was passed in for WD, make a dialog to choose one   
             dialog = wx.DirDialog(None, "Choose a directory:",defaultPath = self.currentDirectory ,style=wx.DD_DEFAULT_STYLE | wx.DD_NEW_DIR_BUTTON | wx.DD_CHANGE_DIR)
             if dialog.ShowModal() == wx.ID_OK:
               self.WD=dialog.GetPath()
@@ -1563,7 +1568,7 @@ class Arai_GUI(wx.Frame):
                 dlg3.Destroy()
                 if result == wx.ID_OK:
                     self.Destroy()
-                    exit()
+                    sys.exit()
 
                     
 
@@ -1696,9 +1701,9 @@ class Arai_GUI(wx.Frame):
             if dlg1.ShowModal() == wx.ID_OK:
                 dlg1.Destroy()
                 self.Destroy()
-                exit()
+                sys.exit()
         else:
-            exit()
+            sys.exit()
         #if dlg1.ShowModal() == wx.ID_CANCEL:
         #    dlg1.Destroy()
 
@@ -2065,7 +2070,7 @@ class Arai_GUI(wx.Frame):
                 style=wx.OK|wx.ICON_INFORMATION)
                 dlg1.ShowModal()
                 dlg1.Destroy()
-                exit()
+                sys.exit()
                 
         if dia.ShowModal() == wx.ID_CANCEL: # Until the user clicks OK, show the message                        
             for crit in crit_list_not_in_pref:
@@ -9160,9 +9165,12 @@ class Arai_GUI(wx.Frame):
 #--------------------------------------------------------------
 
 
-if __name__ == '__main__':
+
+
+def do_main(WD=None):
+    print "doing main, WD: ", WD
     app = wx.PySimpleApp()
-    app.frame = Arai_GUI()
+    app.frame = Arai_GUI(WD)
     #dw, dh = wx.DisplaySize() 
     #w, h = app.frame.GetSize()
     #print 'display:', dw, dh
@@ -9171,5 +9179,6 @@ if __name__ == '__main__':
     app.frame.Center()
     app.MainLoop()
 
-    
+if __name__ == '__main__':
+    do_main()
 

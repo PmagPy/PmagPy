@@ -309,7 +309,9 @@ class MagMainFrame(wx.Frame):
     def on_run_thellier_gui(self,event):
         outstring=self.call+"thellier_gui.py -WD %s"%self.WD
         print "-I- running python script:\n %s"%(outstring)
-        os.system(outstring)
+        import thellier_gui
+        thellier_gui.do_main(self.WD)
+        #os.system(outstring)
 
     def on_run_demag_gui(self,event):
         outstring=self.call+"demag_gui.py -WD %s"%self.WD
@@ -432,7 +434,7 @@ class MagMainFrame(wx.Frame):
         if '-i' in sys.argv:
             self.Destroy()
         try:
-            exit() # can raise TypeError if wx inspector was used
+            sys.exit() # can raise TypeError if wx inspector was used
         except Exception as ex:
             if type(ex) == TypeError:  # suppress that TypeError, but raise others
                 pass
@@ -448,7 +450,7 @@ class MagMainFrame(wx.Frame):
 
 if __name__ == "__main__":
     #app = wx.App(redirect=True, filename="beta_log.log")
-    app = wx.PySimpleApp(redirect=False)# if redirect is true, wxpython makes its own output window for stdout/stderr
+    app = wx.PySimpleApp(redirect=True)# if redirect is true, wxpython makes its own output window for stdout/stderr
     app.frame = MagMainFrame()
     app.frame.Show()
     app.frame.Center()
