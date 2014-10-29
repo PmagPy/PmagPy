@@ -659,4 +659,14 @@ def run_command_and_close_window(SELF, command, outfile):
     SELF.Destroy()
     SELF.Parent.Raise()
 
-
+def close_window(SELF, command, outfile):
+    print "-I- Running equivalent to Python command:\n %s"%command
+    if not outfile:
+        outfile = ''
+    MSG="file(s) converted to MagIC format file:\n%s.\n\n See Termimal (Mac) or command prompt (windows) for errors"% outfile
+    dlg = wx.MessageDialog(None,caption="Message:", message=MSG ,style=wx.OK|wx.ICON_INFORMATION)
+    dlg.ShowModal()
+    dlg.Destroy()
+    SELF.Destroy()
+    SELF.Parent.Raise()
+    

@@ -5,15 +5,19 @@ import urllib2
 import pickle
 from Tkinter import *
 
+
+version = 'pmagpy-2.235'
+
 def get_version():
     global pmagpy_path,local_path
     pmagpy_path = os.path.dirname(sys.argv[0])
     local_path  = os.path.join(pmagpy_path, 'version.txt')
     try:
         fh_local = open(local_path, 'r')
+        print "opened local_path"
         local_version = fh_local.read().strip('\n')
     except:
-        return                # if an error occured (e.g. file not found), 
+        return version               # if an error occured (e.g. file not found), 
                               # give up trying to check for an update
     finally:
         try:

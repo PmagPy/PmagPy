@@ -153,11 +153,28 @@ def main(command_line=True, **kwargs):
         syn_file = kwargs.get('syn_file', '')
         samp_outfile = kwargs.get('samp_outfile', '')
         mag_file = kwargs.get('mag_file', '')
-        labfield = float(kwargs.get('labfield', ''))
-        phi = float(kwargs.get('phi', 0))
-        theta = float(kwargs.get('theta', 0))
-        peakfield = float(kwargs.get('peakfield', 0))
+        labfield = kwargs.get('labfield', '')
+        if labfield: 
+            labfield = float(labfield)
+        else:
+            labfield = 0
+        phi = kwargs.get('phi', 0)
+        if phi: 
+            phi = float(phi)
+        else: 
+            phi = 0
+        theta = kwargs.get('theta', 0)
+        if theta: 
+            theta=float(theta)
+        else: 
+            theta = 0
+        peakfield = kwargs.get('peakfield', 0)
+        if peakfield: 
+            peakfield=float(peakfield)
+        else:
+            peakfield = 0 
         specnum = kwargs.get('specnum', 0)
+        samp_con = kwargs.get('samp_con')
         er_location_name = kwargs.get('er_location_name', '')
         samp_infile = kwargs.get('samp_infile', '')
         syn = kwargs.get('syn', 0)
@@ -165,7 +182,6 @@ def main(command_line=True, **kwargs):
         syntype = kwargs.get('syntype', '')
         inst = kwargs.get('inst', '')
         noave = kwargs.get('noave', 0)
-        samp_con = kwargs.get('samp_con')
         codelist = kwargs.get('codelist', '')
         coil = kwargs.get('coil', '')
 
@@ -229,14 +245,7 @@ def main(command_line=True, **kwargs):
             coil=args[ind+1]
 
 
-
-
-
-    # do all this stuff at the end
-    # file stuff
-    # and samp_con splitting, etc.  
-    # and the "if 'AF' in codes" type stuff
-    #check to make sure you get it all
+    # make sure all initial values are correctly set up (whether they come from the command line or a GUI)
     if samp_infile:
         Samps, file_type = pmag.magic_read(samp_infile)
     if coil:
@@ -332,8 +341,6 @@ def main(command_line=True, **kwargs):
         if peakfield==0: peakfield=.180
     SynRecs,MagRecs=[],[]
     version_num=pmag.get_version()
-
-
 
 
     ##################################
@@ -675,7 +682,9 @@ def main(command_line=True, **kwargs):
     MagOuts=pmag.measurements_methods(MagRecs,noave)
     pmag.magic_write(meas_file,MagOuts,'magic_measurements')
     print "results put in ",meas_file
-    if samp_outfile!="":
+    if samp_outfile!="":  # this doesn't work because the ErSamps list isn't built UNLESS you have a pre-existing er_samples.txt file to read in.  not sure what should happen, here
+        print "samp_outfile exists", samp_outfile
+        print "writing to outfile", ErSamps
         pmag.magic_write(samp_outfile,ErSamps,'er_samples')
         print "sample orientations put in ",samp_outfile
     if len(SynRecs)>0:

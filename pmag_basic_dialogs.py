@@ -785,46 +785,73 @@ class convert_SIO_files_to_MagIC(wx.Frame):
         pw.on_add_file_button(self.bSizer0, self.WD, event, text)
 
     def on_okButton(self, event):
+        options_dict = {}
         SIO_file = self.bSizer0.return_value()
+        options_dict['mag_file'] = str(SIO_file)
         #outfile = SIO_file + '.magic'
         magicoutfile=os.path.split(SIO_file)[1]+".magic"
         outfile =os.path.join(self.WD,magicoutfile)
-        samp_outfile = magicoutfile[:magicoutfile.find('.')] + "_er_samples.txt"
+        options_dict['meas_file'] = str(outfile)
+        samp_outfile = self.WD + magicoutfile[:magicoutfile.find('.')] + "_er_samples.txt"
+        options_dict['samp_outfile'] = str(samp_outfile)
         user = self.bSizer1.return_value()
+        options_dict['user'] = str(user)
         if user:
             user = "-usr " + user
         experiment_type = self.bSizer2.return_value()
+        options_dict['codelist'] = str(experiment_type)
         if experiment_type:
             experiment_type = "-LP " + experiment_type
         lab_field = self.bSizer3.return_value()
+        if not lab_field:
+            lab_field = "0 0 0"
+        lab_field_list = str(lab_field).split()
+        options_dict['labfield'] = lab_field_list[0]
+        options_dict['phi'] = lab_field_list[1]
+        options_dict['theta'] = lab_field_list[2]
         if lab_field:
             lab_field = "-dc " + lab_field
         spc = self.bSizer4.return_value()
+        options_dict['specnum'] = spc
         ncn = self.bSizer4a.return_value()
+        options_dict['samp_con'] = ncn
         loc_name = self.bSizer5.return_value()
+        options_dict['er_location_name'] = str(loc_name)
         if loc_name:
             loc_name = "-loc " + loc_name
         instrument = self.bSizer6.return_value()
+        options_dict['inst'] = str(instrument)
         if instrument:
             instrument = "-ins " + instrument
         replicate = self.bSizer7.return_value()
+        if replicate:
+            options_dict['noave'] = False
+        else:
+            options_dict['noave'] = True
         if replicate:
             replicate = ''
         else:
             replicate = '-A'
         peak_AF = self.bSizer8.return_value()
+        options_dict['peakfield'] = peak_AF
         if peak_AF:
             peak_AF = "-ac " + peak_AF
         coil_number = self.bSizer9.return_value()
+        options_dict['coil'] = coil_number
         if coil_number:
             coil_number = "-V " + coil_number
         synthetic = self.bSizer10.return_value()
         if synthetic:
+            options_dict['institution'] = str(synthetic[0])
+            options_dict['syntype'] = str(synthetic[1])
             synthetic = '-syn ' + synthetic
         else:
             synthetic = ''
+        import sio_magic
+        sio_magic.main(command_line=False, **options_dict)
         COMMAND = call+"sio_magic.py -F {0} -f {1} {2} {3} {4} -spc {5} -ncn {6} {7} {8} {9} {10} {11} {12} -Fsa {13}".format(outfile, SIO_file, user, experiment_type, loc_name,spc, ncn, lab_field, peak_AF, coil_number, instrument, replicate, synthetic, samp_outfile)
-        pw.run_command_and_close_window(self, COMMAND, outfile)
+        pw.close_window(self, COMMAND, outfile)
+        #pw.run_command_and_close_window(self, COMMAND, outfile)
 
     def on_cancelButton(self,event):
         self.Destroy()
