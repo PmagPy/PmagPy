@@ -136,11 +136,12 @@ def main(command_line=True, **kwargs):
     fmt='old'
     syn=0
     synfile='er_synthetics.txt'
-    samp_file,ErSamps='',[]
+    samp_infile,ErSamps='',[]
     trm=0
     irm=0
     specnum=0
     coil=""
+    mag_file=""
 #
 # get command line arguments
 #
@@ -150,14 +151,13 @@ def main(command_line=True, **kwargs):
         user = kwargs.get('user', '')
         meas_file = kwargs.get('meas_file', '')
         syn_file = kwargs.get('syn_file', '')
-        samp_file = kwargs.get('samp_outfile', '')
+        samp_outfile = kwargs.get('samp_outfile', '')
         mag_file = kwargs.get('mag_file', '')
         labfield = float(kwargs.get('labfield', ''))
         phi = float(kwargs.get('phi', 0))
         theta = float(kwargs.get('theta', 0))
         peakfield = float(kwargs.get('peakfield', 0))
         specnum = kwargs.get('specnum', 0)
-        if specnum!=0:specnum=-specnum
         er_location_name = kwargs.get('er_location_name', '')
         samp_infile = kwargs.get('samp_infile', '')
         syn = kwargs.get('syn', 0)
@@ -167,94 +167,104 @@ def main(command_line=True, **kwargs):
         noave = kwargs.get('noave', 0)
         samp_con = kwargs.get('samp_con')
         codelist = kwargs.get('codelist', '')
-        if codelist: # put that at end, too?
-            codes = codelist.split(':')
         coil = kwargs.get('coil', '')
-        if coil:
-            irmunits = "V"
+
+    if command_line:
+        if "-h" in args:
+            print main.__doc__
+            sys.exit()
+        if "-usr" in args:
+            ind=args.index("-usr")
+            user=args[ind+1]
+        if '-F' in args:
+            ind=args.index("-F")
+            meas_file=args[ind+1]
+        if '-Fsy' in args:
+            ind=args.index("-Fsy")
+            synfile=args[ind+1]
+        if '-Fsa' in args:
+            ind=args.index("-Fsa")
+            samp_outfile=args[ind+1]
+        if '-f' in args:
+            ind=args.index("-f")
+            mag_file=args[ind+1]
+        if "-dc" in args:
+            ind=args.index("-dc")
+            labfield=float(args[ind+1])*1e-6
+            phi=float(args[ind+2])
+            theta=float(args[ind+3])
+        if "-ac" in args:
+            ind=args.index("-ac")
+            peakfield=float(args[ind+1])*1e-3
+        if "-spc" in args:
+            ind=args.index("-spc")
+            specnum=int(args[ind+1])
+        if "-loc" in args:
+            ind=args.index("-loc")
+            er_location_name=args[ind+1]
+        if "-fsa" in args:
+            ind=args.index("-fsa")
+            samp_infile = args[ind+1]
+        if '-syn' in args:
+            syn=1
+            ind=args.index("-syn")
+            institution=args[ind+1]
+            syntype=args[ind+2]
+            if '-fsy' in args:
+                ind=args.index("-fsy")
+                synfile=args[ind+1]
+        if "-ins" in args:
+            ind=args.index("-ins")
+            inst=args[ind+1]
+        if "-A" in args: noave=1
+        if "-ncn" in args:
+            ind=args.index("-ncn")
+            samp_con=sys.argv[ind+1]
+        if '-LP' in args:
+            ind=args.index("-LP")
+            codelist=args[ind+1]
+
+        if "-V" in args:
+            ind=args.index("-V")
+            coil=args[ind+1]
+
+
+
+
+
+    # do all this stuff at the end
+    # file stuff
+    # and samp_con splitting, etc.  
+    # and the "if 'AF' in codes" type stuff
+    #check to make sure you get it all
+    if samp_infile:
+        Samps, file_type = pmag.magic_read(samp_infile)
+    if coil:
+        methcode="LP-IRM"
+        irmunits = "V"
         if coil not in ["1","2","3"]:
             print main.__doc__
             print 'not a valid coil specification'
             sys.exit()
-
-        
-
-        # do all this stuff at the end
-        # file stuff
-        # and samp_con splitting, etc.  
-        # and the "if 'AF' in codes" type stuff
-        #check to make sure you get it all
-        if samp_infile:
-            Samps, file_type = pmag.magic_read(samp_infile)
-        
-        
-        
-    if "-h" in args:
-        print main.__doc__
-        sys.exit()
-    if "-usr" in args:
-        ind=args.index("-usr")
-        user=args[ind+1]
-    if '-F' in args:
-        ind=args.index("-F")
-        meas_file=args[ind+1]
-    if '-Fsy' in args:
-        ind=args.index("-Fsy")
-        synfile=args[ind+1]
-    if '-Fsa' in args:
-        ind=args.index("-Fsa")
-        samp_file=args[ind+1]
+    if samp_outfile:
         try:
-            open(samp_file,'rU')
-            ErSamps,file_type=pmag.magic_read(samp_file)
+            open(samp_outfile,'rU')
+            ErSamps,file_type=pmag.magic_read(samp_outfile)
             print 'sample information will be appended to new er_samples.txt file'
         except:
             print 'sample information will be stored in new er_samples.txt file'
-    if '-f' in args:
-        ind=args.index("-f")
-        magfile=args[ind+1]
+    if mag_file:
         try:
-            input=open(magfile,'rU')
+            input=open(mag_file,'rU')
         except:
             print "bad mag file name"
             sys.exit()
-    else: 
+    if not mag_file: 
         print "mag_file field is required option"
         print main.__doc__
         sys.exit()
-    if "-dc" in args:
-        ind=args.index("-dc")
-        labfield=float(args[ind+1])*1e-6
-        phi=float(args[ind+2])
-        theta=float(args[ind+3])
-    if "-ac" in args:
-        ind=args.index("-ac")
-        peakfield=float(args[ind+1])*1e-3
-    if "-spc" in args:
-        ind=args.index("-spc")
-        specnum=int(args[ind+1])
-        if specnum!=0:specnum=-specnum
-    if "-loc" in args:
-        ind=args.index("-loc")
-        er_location_name=args[ind+1]
-    if "-fsa" in args:
-        ind=args.index("-fsa")
-        Samps,file_type=pmag.magic_read(args[ind+1])
-    if '-syn' in args:
-        syn=1
-        ind=args.index("-syn")
-        institution=args[ind+1]
-        syntype=args[ind+2]
-        if '-fsy' in args:
-            ind=args.index("-fsy")
-            synfile=args[ind+1]
-    if "-ins" in args:
-        ind=args.index("-ins")
-        inst=args[ind+1]
-    if "-A" in args: noave=1
-    if "-ncn" in args:
-        ind=args.index("-ncn")
-        samp_con=sys.argv[ind+1]
+    if specnum!=0:specnum=-specnum
+    if samp_con:
         if "4-" in samp_con:
             if "-" not in samp_con:
                 print "option [4] must be in form 4-Z where Z is an integer"
@@ -269,9 +279,8 @@ def main(command_line=True, **kwargs):
             else:
                 Z=samp_con.split("-")[1]
                 samp_con="7"
-    if '-LP' in args:
-        ind=args.index("-LP")
-        codelist=args[ind+1]
+
+    if codelist: 
         codes=codelist.split(':')
         if "AF" in codes:
             demag='AF' 
@@ -301,7 +310,7 @@ def main(command_line=True, **kwargs):
             else: 
                 trm_peakT=float(ans)+273 # convert to kelvin
         if "G" in codes: methcode="LT-AF-G"
-	if "D" in codes: methcode="LT-AF-D"
+        if "D" in codes: methcode="LT-AF-D"
         if "TRM" in codes: 
             demag="T"
             trm=1
@@ -311,16 +320,8 @@ def main(command_line=True, **kwargs):
             ind=args.index("CR")
             coolling_times=args[ind+1]
             coolling_times_list=coolling_times.split(',')
-            
-    if "-V" in args:
-        methcode="LP-IRM"
-        ind=args.index("-V")
-        irmunits="V"
-        coil=args[ind+1]
-        if coil not in ["1","2","3"]:
-            print main.__doc__
-            print 'not a valid coil specification'
-            sys.exit()
+
+
     if demag=="T" and "ANI" in codes:
         methcode="LP-AN-TRM"
     if demag=="T" and "CR" in codes:
@@ -331,6 +332,9 @@ def main(command_line=True, **kwargs):
         if peakfield==0: peakfield=.180
     SynRecs,MagRecs=[],[]
     version_num=pmag.get_version()
+
+
+
 
     ##################################
 
@@ -671,9 +675,9 @@ def main(command_line=True, **kwargs):
     MagOuts=pmag.measurements_methods(MagRecs,noave)
     pmag.magic_write(meas_file,MagOuts,'magic_measurements')
     print "results put in ",meas_file
-    if samp_file!="":
-        pmag.magic_write(samp_file,ErSamps,'er_samples')
-        print "sample orientations put in ",samp_file
+    if samp_outfile!="":
+        pmag.magic_write(samp_outfile,ErSamps,'er_samples')
+        print "sample orientations put in ",samp_outfile
     if len(SynRecs)>0:
         pmag.magic_write(synfile,SynRecs,'er_synthetics')
         print "synthetics put in ",synfile
