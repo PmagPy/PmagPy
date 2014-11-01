@@ -905,9 +905,12 @@ class convert_CIT_files_to_MagIC(wx.Frame):
         TEXT="Location name:"
         self.bSizer6 = pw.labeled_text_field(pnl, TEXT)
 
-        #---sizer 7 ---
+        #---sizer 7 ----
+        self.bSizer7 = pw.replicate_measurements(pnl)
+
+        #---sizer 8 ---
         TEXT = "peak AF field (mT) if ARM: "
-        self.bSizer7 = pw.labeled_text_field(pnl, TEXT)
+        self.bSizer8 = pw.labeled_text_field(pnl, TEXT)
 
 
         #---buttons ---
@@ -925,6 +928,7 @@ class convert_CIT_files_to_MagIC(wx.Frame):
         vbox.Add(self.bSizer5, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(self.bSizer6, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(self.bSizer7, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        vbox.Add(self.bSizer8, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.AddSpacer(10)
         vbox.Add(wx.StaticLine(self.panel), 0, wx.ALL|wx.EXPAND, 5)
         vbox.Add(hboxok, flag=wx.ALIGN_CENTER)        
@@ -948,43 +952,70 @@ class convert_CIT_files_to_MagIC(wx.Frame):
         pw.on_add_file_button(self.bSizer0, self.WD, event, text)
 
     def on_okButton(self, event):
+        options_dict = {}
         wd = self.WD
+        options_dict['dir_path'] = wd
         full_file = self.bSizer0.return_value()
         ind = full_file.rfind('/')
         CIT_file = full_file[ind+1:] 
+        options_dict['magfile'] = CIT_file
         input_directory = full_file[:ind+1]
+        options_dict['input_dir_path'] = input_directory
         if input_directory:
             ID = "-ID " + input_directory
         else:
             ID = ''
         outfile = CIT_file + ".magic"
+        options_dict['meas_file'] = outfile
         samp_outfile = CIT_file[:CIT_file.find('.')] + "_er_samples.txt"
+        options_dict['samp_file'] = samp_outfile
         spec_outfile = CIT_file[:CIT_file.find('.')] + "_er_specimens.txt"
+        options_dict['spec_file'] = spec_outfile
         site_outfile = CIT_file[:CIT_file.find('.')] + "_er_sites.txt"
+        options_dict['site_file'] = site_outfile
         user = self.bSizer1.return_value()
+        options_dict['user'] = user
         if user:
             user = "-usr " + user
         spec_num = self.bSizer5.return_value()
+        options_dict['spec_num'] = spec_num
         if spec_num:
             spec_num = "-spc " + spec_num
         else:
             spec_num = "-spc 0" # defaults to 0 if user doesn't choose number
         loc_name = self.bSizer6.return_value()
+        options_dict['locname'] = loc_name
         if loc_name:
             loc_name = "-loc " + loc_name
         ncn = self.bSizer4.return_value()
+        options_dict['samp_con'] = ncn
         particulars = self.bSizer2.return_value()
+        options_dict['methods'] = particulars
         if particulars:
             particulars = "-mcd " + particulars
         lab_field = self.bSizer3.return_value()
+        options_dict['lab_field'] = lab_field
         if lab_field:
             lab_field = "-dc " + lab_field
-        peak_AF = self.bSizer7.return_value()
+        peak_AF = self.bSizer8.return_value()
+        options_dict['peak_AF'] = peak_AF
         if peak_AF:
             peak_AF = "-ac " + peak_AF
-        COMMAND = call+"CIT_magic.py -WD {} -f {} -F {} {} {} {} {} -ncn {} {} {} {} -Fsp {} -Fsi {} -Fsa {}".format(wd, CIT_file, outfile, particulars, spec_num, loc_name, user, ncn, peak_AF, lab_field, ID, spec_outfile, site_outfile, samp_outfile)
+
+        replicate = self.bSizer7.return_value()
+        if replicate:
+            options_dict['avg'] = 0
+            replicate = ''
+        else:
+            options_dict['avg'] = 1
+            replicate = '-A'
+
+        import CIT_magic
+        COMMAND = call+"CIT_magic.py -WD {} -f {} -F {} {} {} {} {} -ncn {} {} {} {} -Fsp {} -Fsi {} -Fsa {} {}".format(wd, CIT_file, outfile, particulars, spec_num, loc_name, user, ncn, peak_AF, lab_field, ID, spec_outfile, site_outfile, samp_outfile, replicate)
+        CIT_magic.main(command_line=False, **options_dict)
+        pw.close_window(self, COMMAND, outfile)
         #print COMMAND
-        pw.run_command_and_close_window(self, COMMAND, outfile)
+        #pw.run_command_and_close_window(self, COMMAND, outfile)
 
     def on_cancelButton(self,event):
         self.Destroy()

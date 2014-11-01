@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import os
 import pmag,sys
-def main():
+def main(command_line=True, **kwargs):
     """
     NAME
         CIT_magic.py
@@ -46,8 +46,8 @@ def main():
                 self or e-mail ltauxe@ucsd.edu for help.
  
     """
-#        
-#
+    #        
+    #initialize variables
     norm='cc'
     samp_con,Z='3',1        
     meas_file='magic_measurements.txt'
@@ -60,66 +60,96 @@ def main():
     citation="This study"
     dir_path='.'
     args=sys.argv
-    if '-WD' in args:
-        ind=args.index("-WD")
-        dir_path=args[ind+1]
-    if "-h" in args:
-        print main.__doc__
-        sys.exit()
-    if "-usr" in args:
-        ind=args.index("-usr")
-        user=args[ind+1]
-    if '-F' in args:
-        ind=args.index("-F")
-        meas_file=args[ind+1]
-    if '-Fsp' in args:
-        ind=args.index("-Fsp")
-        spec_file=args[ind+1]
-    if '-Fsa' in args:
-        ind=args.index("-Fsa")
-        samp_file=args[ind+1]
-    if '-Fsi' in args:   # LORI addition
-        ind=args.index("-Fsi")
-        site_file=args[ind+1]
-    if '-loc' in args:
-        ind=args.index("-loc")
-        locname=args[ind+1]
-    if '-mcd' in args:
-        ind=args.index("-mcd")
-        methods=args[ind+1]
-    else:
-        methods='SO-MAG'
-    if '-spc' in args:
-        ind=args.index("-spc")
-        specnum=-int(args[ind+1])
-    if '-n' in args:
-        ind=args.index("-n")
-        norm=args[ind+1]
-    if "-A" in args:
-        avg=1
-    else:
-        avg=0
-    if "-ncn" in args:
-        ind=args.index("-ncn")
-        samp_con=sys.argv[ind+1]
-        if "4" in samp_con:
-            if "-" not in samp_con:
-                print "option [4] must be in form 3-Z where Z is an integer"
-                sys.exit()
-            else: 
-                Z=samp_con.split("-")[1]
-                samp_con="4"
-    if '-f' in args:
-        ind=args.index("-f")
-        magfile=args[ind+1]
-    # LJ
-    if '-ID' in args:
-        ind = args.index('-ID')
-        input_dir_path = args[ind+1]
-    else:
-        input_dir_path = dir_path
-    output_dir_path = dir_path
-    # LJ
+    if command_line:
+        if '-WD' in args:
+            ind=args.index("-WD")
+            dir_path=args[ind+1]
+        if "-h" in args:
+            print main.__doc__
+            sys.exit()
+        if "-usr" in args:
+            ind=args.index("-usr")
+            user=args[ind+1]
+        if '-F' in args:
+            ind=args.index("-F")
+            meas_file=args[ind+1]
+        if '-Fsp' in args:
+            ind=args.index("-Fsp")
+            spec_file=args[ind+1]
+        if '-Fsa' in args:
+            ind=args.index("-Fsa")
+            samp_file=args[ind+1]
+        if '-Fsi' in args:   # LORI addition
+            ind=args.index("-Fsi")
+            site_file=args[ind+1]
+        if '-loc' in args:
+            ind=args.index("-loc")
+            locname=args[ind+1]
+        if '-mcd' in args:
+            ind=args.index("-mcd")
+            methods=args[ind+1]
+        else:
+            methods='SO-MAG'
+        if '-spc' in args:
+            ind=args.index("-spc")
+            specnum=-int(args[ind+1])
+        if '-n' in args:
+            ind=args.index("-n")
+            norm=args[ind+1]
+        if "-A" in args:
+            avg=1
+        else:
+            avg=0
+        if "-ncn" in args:
+            ind=args.index("-ncn")
+            samp_con=sys.argv[ind+1]
+            if "4" in samp_con:
+                if "-" not in samp_con:
+                    print "option [4] must be in form 3-Z where Z is an integer"
+                    sys.exit()
+                else: 
+                    Z=samp_con.split("-")[1]
+                    samp_con="4"
+        if '-f' in args:
+            ind=args.index("-f")
+            magfile=args[ind+1]
+        # LJ
+        if '-ID' in args:
+            ind = args.index('-ID')
+            input_dir_path = args[ind+1]
+        else:
+            input_dir_path = dir_path
+        output_dir_path = dir_path
+        # LJ
+
+    # if you are running as a module:
+    elif not command_line:
+        dir_path = kwargs.get('dir_path')
+        user = kwargs.get('user', '')
+        meas_file = kwargs.get('meas_file', '') # outfile
+        spec_file = kwargs.get('spec_file', '') # specimen outfile
+        samp_file = kwargs.get('samp_file', '') # sample outfile
+        site_file = kwargs.get('site_file', '') # site outfile
+        locname = kwargs.get('locname', '')
+        methods = kwargs.get('methods', ['SO-MAG'])
+        specnum = kwargs.get('specnum', 0)
+        norm = kwargs.get('norm', 'cc')
+        avg = kwargs.get('avg', 0)  # 0 means do average, 1 means don't
+        samp_con = kwargs.get('samp_con')
+        magfile = kwargs.get('magfile', '')
+        input_dir_path = kwargs.get('input_dir_path', dir_path)
+        output_dir_path = dir_path
+    # done with module-specific stuff
+
+    # formatting and checking variables
+    if "4" in samp_con:
+        if "-" not in samp_con:
+            print "option [4] must be in form 3-Z where Z is an integer"
+            sys.exit()
+        else: 
+            Z=samp_con.split("-")[1]
+            samp_con="4"
+
     magfile = input_dir_path+'/'+magfile
     spec_file = output_dir_path+'/'+spec_file
     samp_file = output_dir_path+'/'+samp_file
@@ -282,4 +312,6 @@ def main():
     Fixed=pmag.measurements_methods(MeasRecs,avg)
     pmag.magic_write(meas_file,Fixed,'magic_measurements')
     print 'data stored in ',meas_file
-main()
+
+if __name__ == "__main__":
+    main()
