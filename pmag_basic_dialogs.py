@@ -32,7 +32,7 @@ class import_magnetometer_data(wx.Dialog):
         self.panel = wx.Panel(self)
         vbox=wx.BoxSizer(wx.VERTICAL)
 
-        formats=['generic format','SIO format','CIT format','2G-binary format','HUJI format','LDEO format','IODP SRM (csv) format','PMD (ascii) format','TDT format']
+        formats=['generic format','SIO format','CIT format','2G-binary format','HUJI format','LDGO format','IODP SRM (csv) format','PMD (ascii) format','TDT format']
         sbs = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY, 'step 1: choose file format' ), wx.VERTICAL )
 
         sbs.AddSpacer(5)
@@ -110,8 +110,8 @@ class import_magnetometer_data(wx.Dialog):
             dia = convert_2G_binary_files_to_MagIC(self, self.WD)
         elif file_type == 'HUJI':
             dia = convert_HUJI_files_to_MagIC(self, self.WD)
-        elif file_type == 'LDEO':
-            dia = convert_LDEO_files_to_MagIC(self, self.WD)
+        elif file_type == 'LDGO':
+            dia = convert_LDGO_files_to_MagIC(self, self.WD)
         elif file_type == 'IODP':
             dia = convert_IODP_csv_files_to_MagIC(self, self.WD)
         elif file_type == 'PMD':
@@ -1317,10 +1317,10 @@ class convert_2G_binary_files_to_MagIC(wx.Frame):
 
 
 
-class convert_LDEO_files_to_MagIC(wx.Frame):
+class convert_LDGO_files_to_MagIC(wx.Frame):
 
     """ """
-    title = "PmagPy LDEO file conversion"
+    title = "PmagPy LDGO file conversion"
 
     def __init__(self, parent, WD):
         wx.Frame.__init__(self, parent, wx.ID_ANY, self.title)
@@ -1332,7 +1332,7 @@ class convert_LDEO_files_to_MagIC(wx.Frame):
 
         pnl = self.panel
 
-        TEXT = "LDEO format file"
+        TEXT = "LDGO format file"
         bSizer_info = wx.BoxSizer(wx.HORIZONTAL)
         bSizer_info.Add(wx.StaticText(pnl, label=TEXT), wx.ALIGN_LEFT)
 
@@ -1423,58 +1423,79 @@ class convert_LDEO_files_to_MagIC(wx.Frame):
         pw.on_add_file_button(self.bSizer0, self.WD, event, text)
 
     def on_okButton(self, event):
-        LDEO_file = self.bSizer0.return_value()
-        magicoutfile=os.path.split(LDEO_file)[1]+".magic"
+        options_dict = {}
+        LDGO_file = self.bSizer0.return_value()
+        options_dict['magfile'] = LDGO_file
+        magicoutfile=os.path.split(LDGO_file)[1]+".magic"
         outfile=os.path.join(self.WD,magicoutfile)
-        samp_outfile = os.path.join(self.WD, magicoutfile[:magicoutfile.find('.')] + '_er_samples.txt')
+        options_dict['meas_file'] = outfile
+        samp_outfile = str(os.path.join(self.WD, magicoutfile[:magicoutfile.find('.')] + '_er_samples.txt'))
+        options_dict['samp_file'] = samp_outfile
         synthetic_outfile = os.path.join(self.WD, magicoutfile[:magicoutfile.find('.')] + '_er_synthetics.txt')
+        options_dict['synfile'] = synthetic_outfile
         user = self.bSizer1.return_value()
+        options_dict['user'] = user
         if user:
             user = "-usr " + user
         experiment_type = self.bSizer2.return_value()
+        options_dict['codelist'] = experiment_type
         if experiment_type:
             experiment_type = "-LP " + experiment_type
         lab_field = self.bSizer3.return_value()
         if lab_field:
+            options_dict['labfield'], options_dict['phi'], options_dict['theta'] = lab_field.split()
             lab_field = "-dc " + lab_field
         ncn = self.bSizer4.return_value()
+        options_dict['samp_con'] = ncn
         spc = self.bSizer5.return_value()
+        specnum = spc or 0
         if spc:
             spc = "-spc " + spc
         else:
             spc = "-spc 0"
         loc_name = self.bSizer6.return_value()
+        options_dict['er_location_name'] = loc_name
         if loc_name:
             loc_name = "-loc " + loc_name
         instrument = self.bSizer7.return_value()
+        options_dict['inst'] = instrument
         if instrument:
             instrument = "-ins " + instrument
         replicate = self.bSizer8.return_value()
         if replicate:
             replicate = ""
+            options_dict['noave'] = 0 # do average
         else:
             replicate = "-A"
+            options_dict['noave'] = 1 # don't average
         AF_field = self.bSizer9.return_value()
+        options_dict['peakfield'] = AF_field or 0
         if AF_field:
             AF_field = "-ac " + AF_field
         coil_number = self.bSizer10.return_value()
+        options_dict['coil'] = coil_number
         if coil_number:
             coil_number = "-V " + coil_number
         synthetic = self.bSizer11.return_value()
         if synthetic:
+            options_dict['institution'] = synthetic[1]
+            options_dict['syntype'] = synthetic[0]
             synthetic = '-syn ' + synthetic
         else:
             synthetic = ''
-        COMMAND = call+"LDEO_magic.py -f {0} -F {1} {2} {3} {4} -ncn {5} {6} {7} {8} {9} {10} {11} {12} -Fsa {13} -Fsy {14}".format(LDEO_file, outfile, user, experiment_type, lab_field, ncn, spc, loc_name, instrument, replicate, AF_field, coil_number, synthetic, samp_outfile, synthetic_outfile)
+        COMMAND = call+"LDGO_magic.py -f {0} -F {1} {2} {3} {4} -ncn {5} {6} {7} {8} {9} {10} {11} {12} -Fsa {13} -Fsy {14}".format(LDGO_file, outfile, user, experiment_type, lab_field, ncn, spc, loc_name, instrument, replicate, AF_field, coil_number, synthetic, samp_outfile, synthetic_outfile)
+        import LDGO_magic
+        LDGO_magic.main(False, **options_dict)
         #print COMMAND
-        pw.run_command_and_close_window(self, COMMAND, outfile)
+        #pw.run_command_and_close_window(self, COMMAND, outfile)
+        pw.close_window(self, COMMAND, outfile)
 
     def on_cancelButton(self,event):
         self.Destroy()
         self.Parent.Raise()
 
     def on_helpButton(self, event):
-        pw.on_helpButton("LDEO_magic.py -h")
+        pw.on_helpButton("LDGO_magic.py -h")
 
 
 
