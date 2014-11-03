@@ -1191,7 +1191,7 @@ class convert_2G_binary_files_to_MagIC(wx.Frame):
         self.bSizer2 = pw.select_ncn(pnl, ncn_keys)
 
         #---sizer 3 ----
-        TEXT = "specify number of characters to designate a specimen, default = 1"
+        TEXT = "specify number of characters to designate a specimen, default = 0"
         self.bSizer3 = pw.labeled_text_field(pnl, TEXT)
 
         #---sizer 4 ----
@@ -1247,8 +1247,11 @@ class convert_2G_binary_files_to_MagIC(wx.Frame):
         pw.on_add_dir_button(self.panel, self.WD, event, text)
 
     def on_okButton(self, event):
+        options_dict = {}
         WD = self.WD
+        options_dict['dir_path'] = WD
         directory = self.bSizer0.return_value()
+        options_dict['ID'] = directory
         files = os.listdir(directory)
         files = [str(f) for f in files if str(f).endswith('.dat')]
         ID = "-ID " + directory
@@ -1257,34 +1260,51 @@ class convert_2G_binary_files_to_MagIC(wx.Frame):
             mcd = '-mcd ' + particulars
         else:
             mcd = ''
+        options_dict['gmeths'] = mcd
         ncn = self.bSizer2.return_value()
+        options_dict['samp_con'] = ncn
         spc = self.bSizer3.return_value()
+        options_dict['specnum'] = spc or 0
         if not spc:
             spc = '-spc 1'
         else:
             spc = '-spc ' + spc
         ocn = self.bSizer4.return_value()
+        options_dict['or_con'] = ocn
         loc_name = self.bSizer5.return_value()
+        options_dict['location_name'] = loc_name
         if loc_name:
             loc_name = "-loc " + loc_name
         instrument = self.bSizer6.return_value()
         if instrument:
             instrument = "-ins " + instrument
+        options_dict['inst'] = instrument
         replicate = self.bSizer7.return_value()
         if replicate:
             replicate = '-a'
+            options_dict['noave'] = 0
         else:
             replicate = ''
+            options_dict['noave'] = 1
         samp_outfile = files[0][:files[0].find('.')] + "_" + files[-1][:files[-1].find('.')] + "_er_samples.txt"
+        options_dict['samp_file'] = samp_outfile
         sites_outfile = files[0][:files[0].find('.')] + "_" + files[-1][:files[-1].find('.')] + "_er_sites.txt"
+        options_dict['site_file'] = sites_outfile
+        import _2G_bin_magic
         for f in files:
             file_2G_bin = f
             outfile = file_2G_bin + ".magic"
+            options_dict['meas_file'] = outfile
+            options_dict['mag_file'] = f
             COMMAND = call+"2G_bin_magic.py -WD {} -f {} -F {} -Fsa {} -Fsi {} -ncn {} {} {} -ocn {} {} {} {}".format(WD, file_2G_bin, outfile, samp_outfile, sites_outfile, ncn, mcd, spc, ocn, loc_name, replicate, ID)
             if files.index(f) == (len(files) - 1): # terminate process on last file call
-                pw.run_command_and_close_window(self, COMMAND, outfile)
+                _2G_bin_magic.main(False, **options_dict)
+                pw.close_window(self, COMMAND, outfile)
+                #pw.run_command_and_close_window(self, COMMAND, outfile)
             else:
-                pw.run_command(self, COMMAND, outfile)
+                print "Running equivalent of python command: ", COMMAND
+                _2G_bin_magic.main(False, **options_dict)
+                #pw.run_command(self, COMMAND, outfile)
 
 
 

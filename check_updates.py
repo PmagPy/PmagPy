@@ -14,7 +14,6 @@ def get_version():
     local_path  = os.path.join(pmagpy_path, 'version.txt')
     try:
         fh_local = open(local_path, 'r')
-        print "opened local_path"
         local_version = fh_local.read().strip('\n')
     except:
         return version               # if an error occured (e.g. file not found), 

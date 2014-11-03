@@ -377,7 +377,7 @@ def orient(mag_azimuth,field_dip,or_con):
     uses specified orientation convention to convert user supplied orientations
     to laboratory azimuth and plunge
     """
-#
+    or_con = str(or_con)
     if mag_azimuth==-999:return "",""
     if or_con=="1": # lab_mag_az=mag_az;  sample_dip = -dip
         return mag_azimuth, -field_dip

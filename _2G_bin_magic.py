@@ -9,7 +9,7 @@ def skip(N,ind,L):
     ind+=1
     while L[ind]=="":ind+=1
     return ind
-def main():
+def main(command_line=True, **kwargs):
     """
     NAME
         2G_bin_magic.py
@@ -88,7 +88,7 @@ def main():
     bed_dip,bed_dip_dir="",""
     samp_con,Z,average_bedding="2",1,"0"
     meths='FS-FD'
-    sclass,lithology,type="","",""
+    sclass,lithology,_type="","",""
     user,inst="",""
     DecCorr=0.
     location_name="unknown"
@@ -97,33 +97,81 @@ def main():
     #
     #
     dir_path='.'
-    if '-WD' in args:
-        ind=args.index("-WD")
-        dir_path=sys.argv[ind+1]
-    if "-h" in args:
-        print main.__doc__
-        sys.exit()
-    if "-f" in args:
-        ind=args.index("-f")
-        mag_file=sys.argv[ind+1]
-    if "-fpos" in args:
-        ind=args.index("-fpos")
-        pos_file=sys.argv[ind+1]
-    if "-F" in args:
-        ind=args.index("-F")
-        meas_file=sys.argv[ind+1]
-    if "-Fsa" in args:
-        ind=args.index("-Fsa")
-        samp_file=sys.argv[ind+1]
-    if "-Fsi" in args:
-        ind=args.index("-Fsi")
-        site_file=sys.argv[ind+1]
-    if "-ocn" in args:
-        ind=args.index("-ocn")
-        or_con=sys.argv[ind+1]
-    if "-ncn" in args:
-        ind=args.index("-ncn")
-        samp_con=sys.argv[ind+1]
+    if command_line:
+        if '-WD' in args:
+            ind=args.index("-WD")
+            dir_path=sys.argv[ind+1]
+        if "-h" in args:
+            print main.__doc__
+            sys.exit()
+        if "-f" in args:
+            ind=args.index("-f")
+            mag_file=sys.argv[ind+1]
+        if "-fpos" in args:
+            ind=args.index("-fpos")
+            pos_file=sys.argv[ind+1]
+        if "-F" in args:
+            ind=args.index("-F")
+            meas_file=sys.argv[ind+1]
+        if "-Fsa" in args:
+            ind=args.index("-Fsa")
+            samp_file=sys.argv[ind+1]
+        if "-Fsi" in args:
+            ind=args.index("-Fsi")
+            site_file=sys.argv[ind+1]
+        if "-ocn" in args:
+            ind=args.index("-ocn")
+            or_con=sys.argv[ind+1]
+        if "-ncn" in args:
+            ind=args.index("-ncn")
+            samp_con=sys.argv[ind+1]
+        if "-mcd" in args:
+            ind=args.index("-mcd")
+            gmeths=(sys.argv[ind+1])
+        if "-loc" in args:
+            ind=args.index("-loc")
+            location_name=(sys.argv[ind+1])
+        if "-spc" in args:
+            ind=args.index("-spc")
+            specnum=int(args[ind+1])
+
+        if "-ins" in args:
+            ind=args.index("-ins")
+            inst=args[ind+1]
+        if "-a" in args:noave=0
+        #
+        ID = False
+        if '-ID' in args:
+            ind = args.index('-ID')
+            ID = args[ind+1]
+        #
+
+    if not command_line:
+        dir_path = kwargs.get('dir_path', '.')
+        mag_file = kwargs.get('mag_file', '')
+        pos_file = kwargs.get('pos_file', '')
+        meas_file = kwargs.get('meas_file', 'magic_measurements.txt')
+        samp_file = kwargs.get('samp_file', 'er_samples.txt')
+        site_file = kwargs.get('site_file', 'er_sites.txt')
+        or_con = kwargs.get('or_con', '3')
+        samp_con = kwargs.get('samp_con', '2')
+        corr = kwargs.get('corr', '1')
+        gmeths = kwargs.get('gmeths', '')
+        location_name = kwargs.get('location_name', '')
+        specnum = int(kwargs.get('specnum', 0))
+        inst = kwargs.get('inst', '')
+        noave = kwargs.get('noave', 1) # default is DO average
+        ID = kwargs.get('ID', '')
+
+    # format and fix variables acquired from command line args or input with **kwargs
+    if specnum!=0:specnum=-specnum
+
+    if ID:
+        input_dir_path = ID
+    else:
+        input_dir_path = dir_path
+
+    if samp_con:
         if "4" in samp_con:
             if "-" not in samp_con:
                 print "option [4] must be in form 4-Z where Z is an integer"
@@ -144,30 +192,7 @@ def main():
             except:
                 print "there is no er_samples.txt file available - you can't use naming convention #6"
                 sys.exit()
-    if "-mcd" in args:
-        ind=args.index("-mcd")
-        gmeths=(sys.argv[ind+1])
-    if "-loc" in args:
-        ind=args.index("-loc")
-        location_name=(sys.argv[ind+1])
-    if "-spc" in args:
-        ind=args.index("-spc")
-        specnum=int(args[ind+1])
-        if specnum!=0:specnum=-specnum
-    if "-ins" in args:
-        ind=args.index("-ins")
-        inst=args[ind+1]
-    if "-a" in args:noave=0
-    #
-    ID = False
-    if '-ID' in args:
-        ind = args.index('-ID')
-        ID = args[ind+1]
-    #
-    if ID:
-        input_dir_path = ID
-    else:
-        input_dir_path = dir_path
+
     output_dir_path = dir_path
     mag_file = input_dir_path+'/'+mag_file
     samp_file = output_dir_path+'/'+samp_file
@@ -268,7 +293,7 @@ def main():
                     SampRec["sample_volume"]='%10.3e'%(vol) # 
                     SampRec["sample_class"]=sclass
                     SampRec["sample_lithology"]=lithology
-                    SampRec["sample_type"]=type
+                    SampRec["sample_type"]=_type
                     SampRec["sample_declination_correction"]='%7.1f'%(deccorr)
                     methods=gmeths.split(':')
                     if deccorr!="0":
@@ -390,4 +415,6 @@ def main():
         if 'sample_height' in samp.keys():SiteRec['site_height']=samp['sample_height']
         Sites.append(SiteRec)
     pmag.magic_write(site_file,Sites,'er_sites')
-main()
+
+if __name__ == "__main__":
+    main()
