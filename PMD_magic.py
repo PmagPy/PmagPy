@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 import string,sys,pmag
-def main():
+def main(command_line=True, **kwargs):
     """
     NAME
         PMD_magic.py
@@ -47,82 +47,108 @@ def main():
     er_location_name="unknown"
     citation='This study'
     args=sys.argv
-    methcode="LP-NO"
+    meth_code="LP-NO"
     specnum=-1
     MagRecs=[]
     version_num=pmag.get_version()
     Samps=[] # keeps track of sample orientations
     DIspec=[]
     MagFiles=[]
-#
-# get command line arguments
-#
+
     user=""
     mag_file=""
     dir_path='.'
     ErSamps=[]
     SampOuts=[]
-    if '-WD' in sys.argv:
-        ind = sys.argv.index('-WD')
-        dir_path=sys.argv[ind+1]
-    if '-ID' in sys.argv:
-        ind = sys.argv.index('-ID')
-        input_dir_path = sys.argv[ind+1]
-    else:
-        input_dir_path = dir_path
-    output_dir_path = dir_path
-    samp_file = output_dir_path+'/er_samples.txt'
-    meas_file = output_dir_path+"/magic_measurements.txt"
-    if "-h" in args:
-        print main.__doc__
-        sys.exit()
-    if "-usr" in args:
-        ind=args.index("-usr")
-        user=args[ind+1]
-    if '-F' in args:
-        ind=args.index("-F")
-        meas_file = output_dir_path+'/'+args[ind+1]
-    if '-Fsa' in args:
-        ind = args.index("-Fsa")
-        samp_file = output_dir_path+'/'+args[ind+1]
-        #try:
-        #    open(samp_file,'rU')
-        #    ErSamps,file_type=pmag.magic_read(samp_file)
-        #    print 'sample information will be appended to ', samp_file 
-        #except:
-        #    print samp_file,' not found: sample information will be stored in new er_samples.txt file'
-        #    samp_file = output_dir_path+'/er_samples.txt'
-    if '-f' in args:
-        ind = args.index("-f")
-        mag_file= input_dir_path+'/'+args[ind+1]
-    if "-spc" in args:
-        ind = args.index("-spc")
-        specnum = int(args[ind+1])
-        if specnum!=0:specnum=-specnum
-    if "-ncn" in args:
-        ind=args.index("-ncn")
-        samp_con=sys.argv[ind+1]
-        if "4" in samp_con:
-            if "-" not in samp_con:
-                print "option [4] must be in form 4-Z where Z is an integer"
-                sys.exit()
-            else:
-                Z=samp_con.split("-")[1]
-                samp_con="4"
-        if "7" in samp_con:
-            if "-" not in samp_con:
-                print "option [7] must be in form 7-Z where Z is an integer"
-                sys.exit()
-            else:
-                Z=samp_con.split("-")[1]
-                samp_con="7"
-    if "-loc" in args:
-        ind=args.index("-loc")
-        er_location_name=args[ind+1]
-    if "-A" in args: noave=1
-    if "-mcd" in args: 
-        ind=args.index("-mcd")
-        meth_code=args[ind+1]
+
+    #
+    # get command line arguments
+    #
+    
+    if command_line:
+        if '-WD' in sys.argv:
+            ind = sys.argv.index('-WD')
+            dir_path=sys.argv[ind+1]
+        if '-ID' in sys.argv:
+            ind = sys.argv.index('-ID')
+            input_dir_path = sys.argv[ind+1]
+        else:
+            input_dir_path = dir_path
+        output_dir_path = dir_path
+        samp_file = output_dir_path+'/er_samples.txt'
+        meas_file = output_dir_path+"/magic_measurements.txt"
+        if "-h" in args:
+            print main.__doc__
+            sys.exit()
+        if "-usr" in args:
+            ind=args.index("-usr")
+            user=args[ind+1]
+        if '-F' in args:
+            ind=args.index("-F")
+            meas_file = args[ind+1]
+        if '-Fsa' in args:
+            ind = args.index("-Fsa")
+            samp_file = args[ind+1]
+            #try:
+            #    open(samp_file,'rU')
+            #    ErSamps,file_type=pmag.magic_read(samp_file)
+            #    print 'sample information will be appended to ', samp_file 
+            #except:
+            #    print samp_file,' not found: sample information will be stored in new er_samples.txt file'
+            #    samp_file = output_dir_path+'/er_samples.txt'
+        if '-f' in args:
+            ind = args.index("-f")
+            mag_file= args[ind+1]
+        if "-spc" in args:
+            ind = args.index("-spc")
+            specnum = int(args[ind+1])
+        if "-ncn" in args:
+            ind=args.index("-ncn")
+            samp_con=sys.argv[ind+1]
+        if "-loc" in args:
+            ind=args.index("-loc")
+            er_location_name=args[ind+1]
+        if "-A" in args: noave=1
+        if "-mcd" in args: 
+            ind=args.index("-mcd")
+            meth_code=args[ind+1]
+
+    if not command_line:
+        dir_path = kwargs.get('dir_path', '.')
+        input_dir_path = kwargs.get('input_dir_path', dir_path)
+        output_dir_path = dir_path
+        user = kwargs.get('user', '')
+        meas_file = kwargs.get('meas_file', 'magic_measurements.txt')
+        mag_file = kwargs.get('mag_file')
+        samp_file = kwargs.get('samp_file', 'er_samples.txt')
+        specnum = kwargs.get('specnum', 0)
+        samp_con = kwargs.get('samp_con', '1')
+        er_location_name = kwargs.get('er_location_name', '')
+        noave = kwargs.get('noave', 0) # default (0) means DO average
+        meth_code = kwargs.get('meth_code', "LP-NO")
+
+
+    # format variables
+    mag_file = input_dir_path+"/" + mag_file
+    meas_file = output_dir_path+"/" + meas_file
+    samp_file = output_dir_path+"/" + samp_file
+    if specnum!=0:specnum=-specnum
+    if "4" in samp_con:
+        if "-" not in samp_con:
+            print "option [4] must be in form 4-Z where Z is an integer"
+            sys.exit()
+        else:
+            Z=samp_con.split("-")[1]
+            samp_con="4"
+    if "7" in samp_con:
+        if "-" not in samp_con:
+            print "option [7] must be in form 7-Z where Z is an integer"
+            sys.exit()
+        else:
+            Z=samp_con.split("-")[1]
+            samp_con="7"
+
+    # parse data
     data=open(mag_file,'rU').readlines() # read in data from file
     comment=data[0]
     line=data[1].strip()
@@ -214,4 +240,6 @@ def main():
     print "results put in ",meas_file
     pmag.magic_write(samp_file,SampOuts,'er_samples')
     print "sample orientations put in ",samp_file
-main()
+
+if __name__ == "__main__":
+    main()

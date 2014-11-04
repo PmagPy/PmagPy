@@ -1701,9 +1701,10 @@ class Arai_GUI(wx.Frame):
             if dlg1.ShowModal() == wx.ID_OK:
                 dlg1.Destroy()
                 self.Destroy()
-                sys.exit()
+                #sys.exit()
         else:
-            sys.exit()
+            #sys.exit()
+            self.Destroy()
         #if dlg1.ShowModal() == wx.ID_CANCEL:
         #    dlg1.Destroy()
 

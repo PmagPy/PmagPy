@@ -1689,24 +1689,33 @@ class convert_PMD_files_to_MagIC(wx.Frame):
         pw.on_add_dir_button(self.panel, self.WD, event, text)
 
     def on_okButton(self, event):
+        options = {}
         WD = self.WD
+        options['dir_path'] = WD
         directory = self.bSizer0.return_value()
+        options['input_dir_path'] = directory
         files = os.listdir(directory)
         files = [str(f) for f in files if str(f).endswith('.pmd')]
         if files:
             samp_outfile = files[0][:files[0].find('.')] + files[-1][:files[-1].find('.')] + "_er_samples.txt"
+            options['samp_file'] = samp_outfile
         else:
             raise Exception("No pmd files found in {}, try a different directory".format(WD))
         ID = "-ID " + directory
         user = self.bSizer1.return_value()
+        options['user'] = user
         if user:
             user = "-usr " + user
         ncn = self.bSizer2.return_value()
+        options['samp_con'] = ncn
         spc = self.bSizer3.return_value() or 0
+        options['specnum'] = spc
         loc_name = self.bSizer4.return_value()
+        options['er_location_name'] = loc_name
         if loc_name:
             loc_name = "-loc " + loc_name
         particulars = self.bSizer5.return_value()
+        options['meth_code'] = particulars
         if particulars:
             particulars = "-mcd " + particulars
         replicate = self.bSizer6.return_value()
@@ -1714,14 +1723,20 @@ class convert_PMD_files_to_MagIC(wx.Frame):
             replicate = ''
         else:
             replicate = '-A'
+            options['noave'] = 1 # don't average
+        import PMD_magic
         for f in files:
+            options['mag_file'] = f
             outfile = f + ".magic"
+            options['meas_file'] = outfile
             samp_outfile = f[:f.find('.')] + "_er_samples.txt"
+            options['samp_file'] = samp_outfile
             COMMAND = call+"PMD_magic.py -WD {} -f {} -F {} -Fsa {} {} -ncn {} {} -spc {} {} {}".format(WD, f, outfile, samp_outfile, user, ncn, particulars, spc, replicate, ID)
+            PMD_magic.main(False, **options)
             if files.index(f) == len(files) -1:
-                pw.run_command_and_close_window(self, COMMAND, outfile)
+                pw.close_window(self, COMMAND, outfile)
             else:
-                pw.run_command(self, COMMAND, outfile)
+                print "Running equivalent of Python command: ", COMMAND
 
     def on_cancelButton(self,event):
         self.Destroy()
