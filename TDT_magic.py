@@ -78,8 +78,9 @@ class convert_tdt_files_to_MagIC(wx.Frame):
         bSizer0.Add(wx.StaticText(self.panel,label=TEXT),wx.ALIGN_LEFT)
         bSizer0.AddSpacer(5)
         self.output_file_path = wx.TextCtrl(self.panel, id=-1, size=(1000,25))
+        #self.output_file_path.SetEditable(False)
         bSizer0.Add(self.output_file_path,wx.ALIGN_LEFT)
-        self.output_file_path.SetValue(self.WD+"/"+"tdt_magic.txt")
+        self.output_file_path.SetValue(self.WD+"/"+"magic_measurements.txt")
         #---sizer 1 ----
         TEXT="\n choose a path\n with no spaces in name"
         bSizer1 = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY, "" ), wx.VERTICAL )
@@ -1012,8 +1013,9 @@ class convert_tdt_files_to_MagIC(wx.Frame):
         #  magic_measurements.txt
         #-------------------------------------------
 
-
-        fout=open("magic_measurements.txt",'w')
+        
+        #fout=open("magic_measurements.txt",'w')
+        fout=open(self.output_file_path.GetValue(), 'w')
         fout.write("tab\tmagic_measurements\n")
         header_string=""
         for i in range(len(magic_measurements_headers)):
@@ -1035,7 +1037,7 @@ class convert_tdt_files_to_MagIC(wx.Frame):
 
 
 
-        dlg1 = wx.MessageDialog(None,caption="Message:", message="file converted to magic_measurements.txt\n you can try running thellier gui...\n" ,style=wx.OK|wx.ICON_INFORMATION)
+        dlg1 = wx.MessageDialog(None,caption="Message:", message="file converted to {}\n you can try running thellier gui...\n".format(self.output_file_path.GetValue()) ,style=wx.OK|wx.ICON_INFORMATION)
         dlg1.ShowModal()
         dlg1.Destroy()
         self.Destroy()
@@ -1118,16 +1120,24 @@ class message_box(wx.Frame):
 
 
 
-if __name__ == '__main__':
-    import sys
-    args=sys.argv
-    if "-WD" in args:
-        ind=args.index("-WD")
-        WD=args[ind+1]
-    else:
-        print "please specify working directory for output file WD"
-        sys.exit()
-            
+
+
+def main(command_line=True, wd=None):
+    if command_line:
+        import sys
+        args=sys.argv
+        if "-WD" in args:
+            ind=args.index("-WD")
+            WD=args[ind+1]
+        else:
+            print "please specify working directory for output file WD"
+            sys.exit()
+    if not command_line:
+        if not wd:
+            import os
+            WD = os.getcwd()
+        else:
+            WD = wd
     
     app = wx.PySimpleApp()
     app.frame = convert_tdt_files_to_MagIC(WD)
@@ -1136,7 +1146,8 @@ if __name__ == '__main__':
     app.MainLoop()
 
 
-
+if __name__ == '__main__':
+    main()
 
 
 

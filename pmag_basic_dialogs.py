@@ -117,8 +117,10 @@ class import_magnetometer_data(wx.Dialog):
         elif file_type == 'PMD':
             dia = convert_PMD_files_to_MagIC(self, self.WD)
         elif file_type == 'TDT':
-            COMMAND = call+"TDT_magic.py -WD {}".format(self.WD)
-            os.system(COMMAND)
+            #COMMAND = call+"TDT_magic.py -WD {}".format(self.WD)
+            #os.system(COMMAND)
+            import TDT_magic
+            TDT_magic.main(False, self.WD)
             return True
         dia.Center()
         dia.Show()
