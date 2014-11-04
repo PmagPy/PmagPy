@@ -1558,29 +1558,41 @@ class convert_IODP_csv_files_to_MagIC(wx.Frame):
         self.Show()
 
 
-
     def on_add_file_button(self,event):
         text = "choose file to convert to MagIC"
         pw.on_add_file_button(self.bSizer0, self.WD, event, text)
 
     def on_okButton(self, event):
+        options = {}
         wd = self.WD
+        options['dir_path'] = wd
         full_file = self.bSizer0.return_value()
         index = full_file.rfind('/')
         IODP_file = full_file[index+1:]
+        options['csv_file'] = IODP_file
         outfile = IODP_file + ".magic"
+        options['meas_file'] = outfile
         ID = full_file[:index+1] 
+        options['input_dir_path'] = ID
         spec_outfile = IODP_file[:IODP_file.find('.')] + "_er_specimens.txt" 
+        options['spec_file'] = spec_outfile
         samp_outfile = IODP_file[:IODP_file.find('.')] + "_er_samples.txt" 
+        options['samp_file'] = samp_outfile
         site_outfile = IODP_file[:IODP_file.find('.')] + "_er_sites.txt"
+        options['site_file'] = site_outfile
         replicate = self.bSizer1.return_value()
-        if replicate:
+        if replicate: # do average
             replicate = ''
-        else:
+            options['noave'] = 0
+        else: # don't average
             replicate = "-A"
+            options['noave'] = 1
+
+        import IODP_csv_magic
+        IODP_csv_magic.main(False, **options)
         COMMAND = call+"IODP_csv_magic.py -WD {0} -f {1} -F {2} {3} -ID {4} -Fsp {5} -Fsa {6} -Fsi {7}".format(wd, IODP_file, outfile, replicate, ID, spec_outfile, samp_outfile, site_outfile)
-        #print COMMAND
-        pw.run_command_and_close_window(self, COMMAND, outfile)
+        pw.close_window(self, COMMAND, outfile)
+        #pw.run_command_and_close_window(self, COMMAND, outfile)
 
     def on_cancelButton(self,event):
         self.Destroy()
