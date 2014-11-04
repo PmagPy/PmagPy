@@ -35,7 +35,9 @@ def main():
             PI:
                 paleointenisty thermal experiment (ZI/IZ/IZZI)
             ATRM n:
-                ATRM in n positions
+                
+                ATRM in n positions (n=6)
+            
             AARM n:
                 AARM in n positions
             CR:
@@ -112,6 +114,22 @@ def main():
                     Y=3: pTRM tail check              
                     Y=4: Additivity check 
                     # Ron, Add also 5 for Thellier protocol            
+                coding for ATRM experiment (6 poitions):
+                    X is temperature in celcsius
+                    Y=0: zerofield baseline to be subtructed            
+                    Y=1: +x              
+                    Y=2: -x              
+                    Y=3: +y              
+                    Y=4: -y 
+                    Y=5: +z              
+                    Y=6: -z 
+                    Y=7: alteration check 
+                coding for NLT experiment:
+                    X is temperature in celcsius
+                    Y=0: zerofield baseline to be subtructed            
+                    Y!=0: oven field  in microT              
+                coding for CR experiment:
+                    see "OPTIONS" list abobe
             
             treatment_type:
                 N: NRM
