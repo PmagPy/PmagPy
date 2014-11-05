@@ -148,15 +148,15 @@ def main(command_line=True, **kwargs):
         user = kwargs.get('user', '')
         meas_file = kwargs.get('meas_file', 'magic_measurements.txt')
         magfile = kwargs.get('magfile', '')
-        labfield = kwargs.get('labfield', 0)
+        labfield = int(kwargs.get('labfield', 0))
         phi = kwargs.get('phi', 0)
         theta = kwargs.get('theta', 0)
         peakfield = kwargs.get('peakfield', 0)
         specnum = int(kwargs.get('specnum', 0))
-        print "specnum:", specnum, "type(specnum)", type(specnum)
         er_location_name = kwargs.get('er_location_name', '')
         samp_con = kwargs.get('samp_con')
         codelist = kwargs.get('codelist')
+        CR_cooling_times = kwargs.get('CR_cooling_times', None)
 
     # format and validate variables:
     if magfile:
@@ -214,8 +214,9 @@ def main(command_line=True, **kwargs):
             exit()
 
         LPcode="LP-TRM-CR" # TRM in different cooling rates
-        ind=args.index("-LP")
-        CR_cooling_times=args[ind+2].split(",")
+        if command_line:
+            ind=args.index("-LP")
+            CR_cooling_times=args[ind+2].split(",")
 
         #print CR_cooling_time ,"CR_cooling_time"
 

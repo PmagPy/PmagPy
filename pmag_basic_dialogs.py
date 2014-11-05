@@ -1034,6 +1034,7 @@ class convert_HUJI_files_to_MagIC(wx.Frame):
     def __init__(self, parent, WD):
         wx.Frame.__init__(self, parent, wx.ID_ANY, self.title)
         self.panel = wx.ScrolledWindow(self)
+        self.panel.SetScrollbars(20, 20, 50, 50)
         self.WD = WD
         self.InitUI()
 
@@ -1061,6 +1062,15 @@ class convert_HUJI_files_to_MagIC(wx.Frame):
 
         #---sizer 2 ----
         self.bSizer2 = pw.experiment_type(pnl)
+
+        #---sizer 2a ---
+        #for box in self.bSizer2.boxes:
+        #    self.Bind(wx.EVT_CHECKBOX, self.on_select_protocol, box)
+        self.bSizer2a = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY, "" ), wx.HORIZONTAL )
+        text = 'Cooling Rate (required only for cooling rate type experiments)\nformat is xxx,yyy,zzz with no spaces  '
+        self.cooling_rate = wx.TextCtrl(pnl)
+        self.bSizer2a.AddMany([wx.StaticText(pnl, label=text), self.cooling_rate])
+
 
         #---sizer 3 ----
         self.bSizer3 = pw.lab_field(pnl)
@@ -1091,6 +1101,7 @@ class convert_HUJI_files_to_MagIC(wx.Frame):
         vbox.Add(self.bSizer0, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(self.bSizer1, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(self.bSizer2, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        vbox.Add(self.bSizer2a, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(self.bSizer3, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(self.bSizer4, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(self.bSizer5, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
@@ -1100,16 +1111,24 @@ class convert_HUJI_files_to_MagIC(wx.Frame):
         vbox.Add(hboxok, flag=wx.ALIGN_CENTER)        
         vbox.AddSpacer(20)
 
-        hbox_all= wx.BoxSizer(wx.HORIZONTAL)
-        hbox_all.AddSpacer(20)
-        hbox_all.AddSpacer(vbox)
-        hbox_all.AddSpacer(20)
+        self.hbox_all= wx.BoxSizer(wx.HORIZONTAL)
+        self.hbox_all.AddSpacer(20)
+        self.hbox_all.AddSpacer(vbox)
+        self.hbox_all.AddSpacer(20)
         
-        self.panel.SetSizer(hbox_all)
-        self.panel.SetScrollbars(20, 20, 50, 50)
-        hbox_all.Fit(self)
+        self.panel.SetSizer(self.hbox_all)
+        self.bSizer2a.ShowItems(True)
+        self.hbox_all.Fit(self)
         self.Centre()
         self.Show()
+
+
+    #def on_select_protocol(self, event):
+    #     if event.GetEventObject().Label == "Cooling rate experiment":
+    #         self.bSizer2a.ShowItems(True)
+    #     else:
+    #         self.bSizer2a.ShowItems(False)
+    #     self.hbox_all.Fit(self)
 
 
     def on_add_file_button(self,event):
@@ -1135,16 +1154,19 @@ class convert_HUJI_files_to_MagIC(wx.Frame):
         if not experiment_type:
             pw.simple_warning("You must select an experiment type")
             return False
+        cooling_rate = self.cooling_rate.GetValue() or 0
+        if cooling_rate:
+            experiment_type = experiment_type + " " + cooling_rate
         lab_field = self.bSizer3.return_value()
         if not lab_field:
             lab_field = "0 0 0"
-        lab_field_list = str(lab_field.split())
+        lab_field_list = lab_field.split()
         options['labfield'] = lab_field_list[0]
         options['phi'] = lab_field_list[1]
         options['theta'] = lab_field_list[2]
         lab_field = '-dc ' + lab_field
         spc = self.bSizer4.return_value()
-        options['specnum'] = int(spc) or 0
+        options['specnum'] = spc or 0
         if not spc or spc=="" or spc==None:
             spc = '-spc 0'
         else:
@@ -1165,8 +1187,10 @@ class convert_HUJI_files_to_MagIC(wx.Frame):
             COMMAND = call+"HUJI_magic.py -f {} -F {} {} -LP {} {} -ncn {} {} {} {}".format(HUJI_file, outfile, user, experiment_type, loc_name, ncn, lab_field, spc, peak_AF)
             pw.close_window(self, COMMAND, outfile)
         else:
+            import HUJI_magic_new
+            HUJI_magic_new.main(False, options)
             COMMAND = call+"HUJI_magic_new.py -f {} -F {} {} -LP {} {} -ncn {} {} {} {}".format(HUJI_file, outfile, user, experiment_type, loc_name, ncn, lab_field, spc, peak_AF)
-            pw.run_command_and_close_window(self, COMMAND, outfile)
+            pw.close_window(self, COMMAND, outfile)
 
     def on_cancelButton(self,event):
         self.Destroy()

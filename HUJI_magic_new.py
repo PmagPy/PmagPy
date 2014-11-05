@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 import string,sys,pmag
-def main():
+def main(command_line=True, **kwargs):
     """
 
     NAME
@@ -101,23 +101,72 @@ def main():
              NMEAS: number of measurements in a single position (1,3,200...)
      
     """
-    args=sys.argv
+
     meas_file="magic_measurements.txt"
     user=""
-    if "-h" in args:
-        print main.__doc__
-        sys.exit()
-    if "-usr" in args:
-        ind=args.index("-usr")
-        user=args[ind+1]
-    else:
-        user=""
-    if '-F' in args:
-        ind=args.index("-F")
-        meas_file=args[ind+1]
-    if '-f' in args:
-        ind=args.index("-f")
-        magfile=args[ind+1]
+    specnum = 0
+    labfield = 0
+
+    # get command line args
+    if command_line:
+        args=sys.argv
+        if "-h" in args:
+            print main.__doc__
+            sys.exit()
+        if "-usr" in args:
+            ind=args.index("-usr")
+            user=args[ind+1]
+        else:
+            user=""
+        if '-F' in args:
+            ind=args.index("-F")
+            meas_file=args[ind+1]
+        if '-f' in args:
+            ind=args.index("-f")
+            magfile=args[ind+1]
+            print "got magfile:", magfile
+        if "-dc" in args:
+            ind=args.index("-dc")
+            labfield=float(args[ind+1])*1e-6
+            phi=float(args[ind+2])
+            theta=float(args[ind+3])
+        if "-ac" in args:
+            ind=args.index("-ac")
+            peakfield=float(args[ind+1])*1e-3
+        if "-spc" in args:
+            ind=args.index("-spc")
+            specnum=int(args[ind+1])
+        if "-loc" in args:
+            ind=args.index("-loc")
+            er_location_name=args[ind+1]
+        if "-ncn" in args:
+            ind=args.index("-ncn")
+            samp_con=sys.argv[ind+1]
+        if '-LP' in args:
+            ind=args.index("-LP")
+            codelist=args[ind+1]
+
+
+
+        # lab process:
+
+    # unpack key-word args if used as module
+    if not command_line:
+        user = kwargs.get('user', '')
+        meas_file = kwargs.get('meas_file', 'magic_measurements.txt')
+        magfile = kwargs.get('magfile', '')
+        specnum = kwargs.get('specnum', 0)
+        labfield = int(kwargs.get('labfield', 0))
+        phi = kwargs.get('phi', 0)
+        theta = kwargs.get('theta', 0)
+        peakfield = kwargs.get('peakfield', 0)
+        er_location_name = kwargs.get('er_location_name', '')
+        samp_con = kwargs.get('samp_con', '1')
+        codelist = kwargs.get('codelist', '')
+        CR_cooling_times=kwargs.get('CR_cooling_times', None)
+
+    # format and validate variables
+    if magfile:
         try:
             input=open(magfile,'rU')
         except:
@@ -127,76 +176,57 @@ def main():
         print "mag_file field is required option"
         print main.__doc__
         sys.exit()
-    if "-dc" in args:
-        ind=args.index("-dc")
-        labfield=float(args[ind+1])*1e-6
-        phi=float(args[ind+2])
-        theta=float(args[ind+3])
-    if "-ac" in args:
-        ind=args.index("-ac")
-        peakfield=float(args[ind+1])*1e-3
-    if "-spc" in args:
-        ind=args.index("-spc")
-        specnum=int(args[ind+1])
-        if specnum!=0:specnum=-specnum
-    if "-loc" in args:
-        ind=args.index("-loc")
-        er_location_name=args[ind+1]
-        
-    if "-ncn" in args:
-        ind=args.index("-ncn")
-        samp_con=sys.argv[ind+1]
-        if "4-" in samp_con:
-            if "-" not in samp_con:
-                print "option [4] must be in form 4-Z where Z is an integer"
-                sys.exit()
-            else:
-                Z=int(samp_con.split("-")[1])
-                samp_con="4"
-        if "7-" in samp_con:
-            if "-" not in samp_con:
-                print "option [7] must be in form 7-Z where Z is an integer"
-                sys.exit()
-            else:
-                Z=int(samp_con.split("-")[1])
-                samp_con="7"
-                
-    # lab process:
-    if '-LP' in args:
-        ind=args.index("-LP")
-        codelist=args[ind+1]
-        codes=codelist.split(':')
-        if "AF" in codes:
-            demag='AF' 
-            LPcode="LP-DIR-AF"
-        if "T" in codes:
-            demag="T"
-            if '-dc' not in args: LPcode="LP-DIR-T"
-            if '-dc' in args: LPcode="LP-PI-TRM"
-            if "ANI" in codes:
-                if '-dc' not in args:
-                    print "missing option -dc exiting"
-                    exit()
+                              
+    if specnum!=0:specnum=-specnum
 
-                LPcode="LP-AN-TRM"
-                
-        if "TRM" in codes: 
-            demag="T"
-            LPcode="LP-TRM"
-            #trm=1
-            
-        if "CR" in codes:
-            demag="T"
-            # dc should be in the code
-            if '-dc' not in args:
+    if "4-" in samp_con:
+        if "-" not in samp_con:
+            print "option [4] must be in form 4-Z where Z is an integer"
+            sys.exit()
+        else:
+            Z=int(samp_con.split("-")[1])
+            samp_con="4"
+    if "7-" in samp_con:
+        if "-" not in samp_con:
+            print "option [7] must be in form 7-Z where Z is an integer"
+            sys.exit()
+        else:
+            Z=int(samp_con.split("-")[1])
+            samp_con="7"
+
+    codes=codelist.split(':')                              
+    if "AF" in codes:
+        demag='AF' 
+        LPcode="LP-DIR-AF"
+    if "T" in codes:
+        demag="T"
+        if not labfield: LPcode="LP-DIR-T"
+        if labfield: LPcode="LP-PI-TRM"
+        if "ANI" in codes:
+            if not labfield:
                 print "missing option -dc exiting"
                 exit()
-            
-            LPcode="LP-TRM-CR" # TRM in different cooling rates
+            LPcode="LP-AN-TRM"
+
+    if "TRM" in codes: 
+        demag="T"
+        LPcode="LP-TRM"
+        #trm=1
+                              
+    if "CR" in codes:
+        demag="T"
+        # dc should be in the code
+        if not labfield:
+            print "missing option -dc exiting"
+            exit()
+
+        LPcode="LP-TRM-CR" # TRM in different cooling rates
+        if command_line:
             ind=args.index("-LP")
             CR_cooling_times=args[ind+2].split(",")
-            
-            #print CR_cooling_time ,"CR_cooling_time"
+
+
+        #print CR_cooling_time ,"CR_cooling_time"
 
     version_num=pmag.get_version()
 
@@ -246,7 +276,7 @@ def main():
         if len(Data[specimen])>0:
             if treatment==Data[specimen][-1]['treatment']:
                 del(Data[specimen][-1])
-                print "-W- Identical treatimens in file %s magfile line %i: specimen %s, treatment %s ignoring the first. " %(magfile, line_no, specimen,".".join(treatment))
+                print "-W- Identical treatments in file %s magfile line %i: specimen %s, treatment %s ignoring the first. " %(magfile, line_no, specimen,".".join(treatment))
 
         this_line_data={}
         this_line_data['specimen']=specimen
@@ -585,5 +615,5 @@ def main():
     print "-I- results put in ",meas_file
                 
                     
-
-main()
+if __name__ == "__main__":
+    main()
