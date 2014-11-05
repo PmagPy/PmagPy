@@ -117,8 +117,6 @@ class import_magnetometer_data(wx.Dialog):
         elif file_type == 'PMD':
             dia = convert_PMD_files_to_MagIC(self, self.WD)
         elif file_type == 'TDT':
-            #COMMAND = call+"TDT_magic.py -WD {}".format(self.WD)
-            #os.system(COMMAND)
             import TDT_magic
             TDT_magic.main(False, self.WD)
             return True
@@ -1114,7 +1112,6 @@ class convert_HUJI_files_to_MagIC(wx.Frame):
         self.Show()
 
 
-
     def on_add_file_button(self,event):
         text = "choose file to convert to MagIC"
         pw.on_add_file_button(self.bSizer0, self.WD, event, text)
@@ -1123,36 +1120,53 @@ class convert_HUJI_files_to_MagIC(wx.Frame):
         """
         grab user input values, format them, and run HUJI_magic.py with the appropriate flags
         """
+        options = {}
         HUJI_file = self.bSizer0.return_value()
+        options['magfile'] = HUJI_file
         magicoutfile=os.path.split(HUJI_file)[1]+".magic"
         outfile=os.path.join(self.WD,magicoutfile)
+        options['meas_file'] = outfile
         user = self.bSizer1.return_value()
+        options['user'] = user
         if user:
             user = '-usr ' + user
         experiment_type = self.bSizer2.return_value()
+        options['codelist'] = experiment_type
         if not experiment_type:
             pw.simple_warning("You must select an experiment type")
             return False
         lab_field = self.bSizer3.return_value()
-        if lab_field:
-            lab_field = '-dc ' + lab_field
+        if not lab_field:
+            lab_field = "0 0 0"
+        lab_field_list = str(lab_field.split())
+        options['labfield'] = lab_field_list[0]
+        options['phi'] = lab_field_list[1]
+        options['theta'] = lab_field_list[2]
+        lab_field = '-dc ' + lab_field
         spc = self.bSizer4.return_value()
+        options['specnum'] = int(spc) or 0
         if not spc or spc=="" or spc==None:
             spc = '-spc 0'
         else:
             spc = '-spc ' + spc
         ncn = self.bSizer5.return_value()
+        options['samp_con'] = ncn
         loc_name = self.bSizer6.return_value()
+        options['er_location_name'] = loc_name
         if loc_name:
             loc_name = '-loc ' + loc_name
         peak_AF = self.bSizer7.return_value()
+        options['peakfield'] = peak_AF
         #YES_NO=self.bSizer0a.return_value() 
         old_format= self.bSizer0a.return_value()
         if old_format:
+            import HUJI_magic
+            HUJI_magic.main(False, **options)
             COMMAND = call+"HUJI_magic.py -f {} -F {} {} -LP {} {} -ncn {} {} {} {}".format(HUJI_file, outfile, user, experiment_type, loc_name, ncn, lab_field, spc, peak_AF)
+            pw.close_window(self, COMMAND, outfile)
         else:
             COMMAND = call+"HUJI_magic_new.py -f {} -F {} {} -LP {} {} -ncn {} {} {} {}".format(HUJI_file, outfile, user, experiment_type, loc_name, ncn, lab_field, spc, peak_AF)
-        pw.run_command_and_close_window(self, COMMAND, outfile)
+            pw.run_command_and_close_window(self, COMMAND, outfile)
 
     def on_cancelButton(self,event):
         self.Destroy()
