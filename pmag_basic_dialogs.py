@@ -404,8 +404,13 @@ class convert_generic_files_to_MagIC(wx.Frame):
 
         
         import generic_magic
-        generic_magic.main(False, **options)
-        pw.close_window(self, COMMAND, OUTFILE)
+        if generic_magic.main(False, **options):
+            pw.close_window(self, COMMAND, OUTFILE)
+        else:
+            msg = "Something went wrong, see warnings in Terminal/Command Prompt and try again"
+            dlg = wx.MessageDialog(None, caption="Oops", message=msg, style=wx.OK|wx.ICON_INFORMATION)
+            dlg.ShowModal()
+                                   
 
         #print "-I- Running Python command:\n %s"%COMMAND
 

@@ -379,6 +379,10 @@ def main(command_line=True, **kwargs):
 
     # initialize some variables
     experiment = ''
+    sample_nc = [1, 0]
+    site_nc = [1, 0]
+    meas_file = "magic_measurements.txt"
+    labfield = 0
 
     #--------------------------------------
     # get command line arguments
@@ -389,7 +393,7 @@ def main(command_line=True, **kwargs):
         user=""
         if "-h" in args:
             print main.__doc__
-            sys.exit()
+            return False
         if "-usr" in args:
             ind=args.index("-usr")
             user=args[ind+1]
@@ -465,16 +469,16 @@ def main(command_line=True, **kwargs):
             input=open(magfile,'rU')
         except:
             print "bad mag file:",magfile
-            sys.exit()
+            return False
     else: 
         print "mag_file field is required option"
         print main.__doc__
-        sys.exit()
+        return False
 
     if not experiment:
         print "-LP is required option"
         print main.__doc__
-        sys.exit()
+        return False
 
     if experiment=='ATRM':
         if command_line:
@@ -586,6 +590,10 @@ def main(command_line=True, **kwargs):
                     MagRec["treatment_dc_field"]="0"
                     MagRec["treatment_dc_field_phi"]="0"
                     MagRec["treatment_dc_field_theta"]="0"
+                elif not labfield:                        
+                    print "-W- WARNING: labfield (-dc) is a required argument for this experiment type"
+                    return False
+
                 else:                        
                     MagRec["treatment_dc_field"]='%8.3e'%(float(labfield))
                     MagRec["treatment_dc_field_phi"]="%.2f"%(float(labfield_phi))
@@ -1006,6 +1014,7 @@ def main(command_line=True, **kwargs):
         ErSamplesRecs.append(er_sample_data[sample])
     ErSamplesRecs_fixed=merge_pmag_recs(ErSamplesRecs)
     pmag.magic_write(samp_file,ErSamplesRecs_fixed,'er_samples')
+    return True
 
 
 if __name__ == '__main__':
