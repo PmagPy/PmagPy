@@ -3,7 +3,7 @@ import string,sys,pmag
 import scipy
 import copy
 import os
-def main():
+def main(command_line=True, **kwargs):
     """
     NAME
         generic_magic.py
@@ -62,7 +62,7 @@ def main():
             X=1 Y=n: specimen is distiguished from sample by n terminate characters.
                      (example: if n=1 then and specimen = mgf13a then sample = mgf13)
             X=2 Y=c: specimen is distiguishing from sample by a delimiter.
-                     (example: if c=- then annd specimen = mgf13-a then sample = mgf13)
+                     (example: if c=- then and specimen = mgf13-a then sample = mgf13)
 
         -site X Y
             sample-site naming convention.
@@ -376,32 +376,91 @@ def main():
                     rec[header]=""
         return recs
     
+
+    # initialize some variables
+    experiment = ''
+
     #--------------------------------------
     # get command line arguments
     #--------------------------------------
-
-    args=sys.argv
-    user=""
-    if "-h" in args:
-        print main.__doc__
-        sys.exit()
-    if "-usr" in args:
-        ind=args.index("-usr")
-        user=args[ind+1]
-    else:
+    
+    if command_line:
+        args=sys.argv
         user=""
-    if '-F' in args:
-        ind=args.index("-F")
-        meas_file=args[ind+1]
-    if '-Fsa' in args:
-        ind=args.index("-Fsa")
-        samp_file=args[ind+1]
-    else:
-        samp_file="er_samples.txt"
+        if "-h" in args:
+            print main.__doc__
+            sys.exit()
+        if "-usr" in args:
+            ind=args.index("-usr")
+            user=args[ind+1]
+        else:
+            user=""
+        if '-F' in args:
+            ind=args.index("-F")
+            meas_file=args[ind+1]
+        if '-Fsa' in args:
+            ind=args.index("-Fsa")
+            samp_file=args[ind+1]
+        else:
+            samp_file="er_samples.txt"
 
-    if '-f' in args:
-        ind=args.index("-f")
-        magfile=args[ind+1]
+        if '-f' in args:
+            ind=args.index("-f")
+            magfile=args[ind+1]
+    
+        if "-dc" in args:
+            ind=args.index("-dc")
+            labfield=float(args[ind+1])*1e-6
+            labfield_phi=float(args[ind+2])
+            labfield_theta=float(args[ind+3])
+        if '-exp' in args:
+            ind=args.index("-exp")
+            experiment=args[ind+1]        
+        if "-samp" in args:
+            ind=args.index("-samp")
+            sample_nc=[]
+            sample_nc.append(args[ind+1])
+            sample_nc.append(args[ind+2])
+        if "-site" in args:
+            ind=args.index("-site")
+            site_nc=[]
+            site_nc.append(args[ind+1])
+            site_nc.append(args[ind+2])
+        if "-loc" in args:
+            ind=args.index("-loc")
+            er_location_name=args[ind+1]
+        else:
+            er_location_name=""
+        if "-A" in args:
+            noave=1 
+        else:
+            noave=0             
+
+        if "-WD" in args:
+            ind=args.index("-WD")
+            WD=args[ind+1]
+            os.chdir(WD)
+
+    # unpack keyword args if using as module
+    if not command_line:
+        user = kwargs.get('user', '')
+        meas_file = kwargs.get('meas_file', 'magic_measurements.txt')
+        samp_file = kwargs.get('samp_file', 'er_samples.txt')
+        magfile = kwargs.get('magfile', '')
+        labfield = int(kwargs.get('labfield', 0))
+        labfield_phi = int(kwargs.get('labfield_phi', 0))
+        labfield_theta = int(kwargs.get('labfield_theta', 0))
+        experiment = kwargs.get('experiment', '')
+        cooling_times_list = kwargs.get('cooling_times_list', [])
+        sample_nc = kwargs.get('sample_nc', [1, 0])
+        site_nc = kwargs.get('site_nc', [1, 0])
+        er_location_name = kwargs.get('er_location_name', '')
+        noave = kwargs.get('noave', 0) # 0 is default, means do average
+        WD = kwargs.get('WD', '.')
+        #os.chdir(WD)
+        
+    # format and validate variables
+    if magfile:
         try:
             input=open(magfile,'rU')
         except:
@@ -411,60 +470,34 @@ def main():
         print "mag_file field is required option"
         print main.__doc__
         sys.exit()
-    
-    if "-dc" in args:
-        ind=args.index("-dc")
-        labfield=float(args[ind+1])*1e-6
-        labfield_phi=float(args[ind+2])
-        labfield_theta=float(args[ind+3])
-    if '-exp' in args:
-        ind=args.index("-exp")
-        experiment=args[ind+1]        
-    else: 
+
+    if not experiment:
         print "-LP is required option"
         print main.__doc__
         sys.exit()
 
     if experiment=='ATRM':
-        ind=args.index("ATRM")
-        atrm_n_pos=int(args[ind+1])    
+        if command_line:
+            ind=args.index("ATRM")
+            atrm_n_pos=int(args[ind+1])    
+        else:
+            atrm_n_pos = 6
             
     if experiment=='AARM':
-        ind=args.index("AARM")
-        aarm_n_pos=int(args[ind+1])        
+        if command_line:
+            ind=args.index("AARM")
+            aarm_n_pos=int(args[ind+1])        
+        else:
+            aarm_n_pos = 6
 
     if  experiment=='CR':
-        ind=args.index("CR")
-        coolling_times=args[ind+1]
-        coolling_times_list=coolling_times.split(',')
-              
-    if "-samp" in args:
-        ind=args.index("-samp")
-        sample_nc=[]
-        sample_nc.append(args[ind+1])
-        sample_nc.append(args[ind+2])
+        if command_line:
+            ind=args.index("CR")
+            cooling_times=args[ind+1]
+            cooling_times_list=cooling_times.split(',')
+        # if not command line, cooling_times_list is already set
 
-    if "-site" in args:
-        ind=args.index("-site")
-        site_nc=[]
-        site_nc.append(args[ind+1])
-        site_nc.append(args[ind+2])
-    if "-loc" in args:
-        ind=args.index("-loc")
-        er_location_name=args[ind+1]
-    else:
-        er_location_name=""
-    if "-A" in args:
-        noave=1 
-    else:
-        noave=0             
 
-    if "-WD" in args:
-        ind=args.index("-WD")
-        WD=args[ind+1]
-        os.chdir(WD)
-
-        
 
 
     #--------------------------------------
@@ -546,7 +579,6 @@ def main():
             #------------------
             #  lab field direction
             #------------------
-
 
             if experiment in ['PI','NLT','CR']:
                 
@@ -729,10 +761,10 @@ def main():
             #---------------------                    
             # Lab treatment and lab protocoal for cooling rate experiment
             #---------------------
-                                                        
+
             elif experiment == "CR":
                 
-                coolling_times_list
+                cooling_times_list
                 LP="LP-CR-TRM"                
                 MagRec["treatment_temp"]='%8.3e' % (float(treatment[0])+273.) # temp in kelvin
                 
@@ -753,9 +785,9 @@ def main():
                     indx=int(treatment[1])-1
                     # alteration check matjed as 0.7 in the measurement file
                     if indx==6:
-                        cooling_time= coolling_times_list[-1]
+                        cooling_time= cooling_times_list[-1]
                     else:
-                        cooling_time=coolling_times_list[indx]
+                        cooling_time=cooling_times_list[indx]
                     MagRec["measurement_description"]="cooling_rate"+":"+cooling_time+":"+"K/min"
     
 
@@ -975,4 +1007,6 @@ def main():
     ErSamplesRecs_fixed=merge_pmag_recs(ErSamplesRecs)
     pmag.magic_write(samp_file,ErSamplesRecs_fixed,'er_samples')
 
-main()
+
+if __name__ == '__main__':
+    main()

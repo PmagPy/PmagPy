@@ -278,15 +278,20 @@ class convert_generic_files_to_MagIC(wx.Frame):
     def on_okButton(self,event):
 
         # generic_magic.py -WD WD - f FILE -fsa er_samples.txt -F OUTFILE.magic -exp [Demag/PI/ATRM 6/AARM 6/CR  -samp X Y -site  X Y -loc LOCNAME -dc B PHI THETA [-A] -WD path 
+        options = {}
         
         ErrorMessage=""
         #-----------
         FILE = str(self.bSizer0.file_path.GetValue())
+        options['magfile'] = FILE
 
         #-----------
         # WD="/".join(FILE.split("/")[:-1])
         WD=self.WD
+        options['WD'] = WD
+        input_dir = os.path.split(FILE)[0]
         magicoutfile=os.path.split(FILE)[1]+".magic"
+        options['meas_file'] = magicoutfile
         print "magicoutfile", magicoutfile
         OUTFILE=os.path.join(self.WD,magicoutfile)
         #-----------
@@ -305,6 +310,14 @@ class convert_generic_files_to_MagIC(wx.Frame):
         elif exp=='cooling rate': 
             cooling = self.cooling_rate.GetValue()
             EXP='CR {}'.format(cooling)
+        if 'CR' in EXP:
+            options['experiment'], options['cooling_times_list'] = EXP.split()
+        elif 'AARM' in EXP:
+            options['experiment'], options['aarm_n_pos'] = EXP.split()
+        elif 'ATRM' in EXP:
+            options['experiment'], options['atrm_n_pos'] = EXP.split()
+        else:
+            options['experiment'] = EXP
         #-----------
         SAMP="1 0" #default
         
@@ -322,7 +335,8 @@ class convert_generic_files_to_MagIC(wx.Frame):
             SAMP="1 %s"%samp_naming_convention_char
         elif samp_naming_convention=='character delimited':
             SAMP="2 %s"%samp_naming_convention_char
-                        
+        
+        options['sample_nc'] = SAMP.split()
         #-----------
         
         SITE="1 0" #default
@@ -341,20 +355,30 @@ class convert_generic_files_to_MagIC(wx.Frame):
             SITE="1 %s"%sit_naming_convention_char
         elif sit_naming_convention=='character delimited':
             SITE="2 %s"%sit_naming_convention_char
+
+        options['site_nc'] = SITE.split()
         
         #-----------        
 
+        LOC = str(self.bSizer6.return_value())
+        options['er_location_name'] = LOC
+        
         if str(self.bSizer6.return_value()) != "":
-            LOC="-loc \"%s\""%str(self.bSizer6.return_value())
+            LOC="-loc \"%s\""%LOC
         else:
             LOC=""
+
+
         #-----------        
         
         LABFIELD=" "
         try:
             B_uT, DEC, INC = self.bSizer3.return_value().split()
         except ValueError:
-            B_uT, DEC, INC = '', '', ''
+            B_uT, DEC, INC = '0', '0', '0'
+
+        print "B_uT, DEC, INC", B_uT, DEC, INC
+        options['labfield'], options['labfield_phi'], options['labfield_theta'] = B_uT, DEC, INC
 
         if EXP != "Demag":
             LABFIELD="-dc "  +B_uT+ " " + DEC + " " + INC
@@ -364,26 +388,36 @@ class convert_generic_files_to_MagIC(wx.Frame):
         DONT_AVERAGE=" "
         if not self.bSizer7.return_value():
             DONT_AVERAGE="-A"   
+            options['noave'] = 1
+        else:
+            options['noave'] = 0
+
 
         #-----------   
         # some special  
         
-        SAMP_OUTFILE = magicoutfile[:magicoutfile.find('.')] + "_er_samples.txt"
+        SAMP_OUTFILE =  magicoutfile[:magicoutfile.find('.')] + "_er_samples.txt"
+        options['samp_file'] = SAMP_OUTFILE
+
         COMMAND=call+"generic_magic.py -WD %s -f %s -fsa er_samples.txt -F %s -exp %s  -samp %s -site %s %s %s %s -Fsa %s"\
         %(WD,FILE,OUTFILE,EXP,SAMP,SITE,LOC,LABFIELD,DONT_AVERAGE, SAMP_OUTFILE)
 
-        print "-I- Running Python command:\n %s"%COMMAND
+        
+        import generic_magic
+        generic_magic.main(False, **options)
+        pw.close_window(self, COMMAND, OUTFILE)
 
-        #subprocess.call(COMMAND, shell=True)        
-        os.system(COMMAND)                                          
+        #print "-I- Running Python command:\n %s"%COMMAND
+
+        #os.system(COMMAND)                                          
         #--
-        MSG="file converted to MagIC format file:\n%s.\n\n See Termimal (Mac) or command prompt (windows) for errors"% OUTFILE
-        dlg1 = wx.MessageDialog(None,caption="Message:", message=MSG ,style=wx.OK|wx.ICON_INFORMATION)
-        dlg1.ShowModal()
-        dlg1.Destroy()
+        #MSG="file converted to MagIC format file:\n%s.\n\n See Termimal (Mac) or command prompt (windows) for errors"% OUTFILE
+        #dlg1 = wx.MessageDialog(None,caption="Message:", message=MSG ,style=wx.OK|wx.ICON_INFORMATION)
+        #dlg1.ShowModal()
+        #dlg1.Destroy()
 
-        self.Destroy()
-        self.parent.Raise()
+        #self.Destroy()
+        #self.parent.Raise()
 
 
     def on_cancelButton(self,event):
