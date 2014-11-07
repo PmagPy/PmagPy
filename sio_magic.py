@@ -118,7 +118,10 @@ def main(command_line=True, **kwargs):
        
      
     """
-# initialize some stuff
+    # initialize some stuff
+    samp_outfile = "er_samples.txt"
+    mag_file = None
+    codelist = None
     infile_type="mag"
     noave=0
     methcode,inst="LP-NO",""
@@ -188,7 +191,7 @@ def main(command_line=True, **kwargs):
     if command_line:
         if "-h" in args:
             print main.__doc__
-            sys.exit()
+            return False
         if "-usr" in args:
             ind=args.index("-usr")
             user=args[ind+1]
@@ -254,7 +257,7 @@ def main(command_line=True, **kwargs):
         if coil not in ["1","2","3"]:
             print main.__doc__
             print 'not a valid coil specification'
-            sys.exit()
+            return False
     if samp_outfile:
         try:
             open(samp_outfile,'rU')
@@ -267,24 +270,24 @@ def main(command_line=True, **kwargs):
             input=open(mag_file,'rU')
         except:
             print "bad mag file name"
-            sys.exit()
+            return False
     if not mag_file: 
-        print "mag_file field is required option"
         print main.__doc__
-        sys.exit()
+        print "mag_file field is required option"
+        return False
     if specnum!=0:specnum=-specnum
     if samp_con:
-        if "4-" in samp_con:
+        if "4" == samp_con[0]:
             if "-" not in samp_con:
                 print "option [4] must be in form 4-Z where Z is an integer"
-                sys.exit()
+                return False
             else:
                 Z=samp_con.split("-")[1]
                 samp_con="4"
-        if "7-" in samp_con:
+        if "7" == samp_con[0]:
             if "-" not in samp_con:
                 print "option [7] must be in form 7-Z where Z is an integer"
-                sys.exit()
+                return False
             else:
                 Z=samp_con.split("-")[1]
                 samp_con="7"
@@ -683,13 +686,12 @@ def main(command_line=True, **kwargs):
     pmag.magic_write(meas_file,MagOuts,'magic_measurements')
     print "results put in ",meas_file
     if samp_outfile!="":  # this doesn't work because the ErSamps list isn't built UNLESS you have a pre-existing er_samples.txt file to read in.  not sure what should happen, here
-        print "samp_outfile exists", samp_outfile
-        print "writing to outfile", ErSamps
         pmag.magic_write(samp_outfile,ErSamps,'er_samples')
         print "sample orientations put in ",samp_outfile
     if len(SynRecs)>0:
         pmag.magic_write(synfile,SynRecs,'er_synthetics')
         print "synthetics put in ",synfile
+    return True
 
 if __name__ == "__main__":
     main()

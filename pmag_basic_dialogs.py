@@ -402,17 +402,15 @@ class convert_generic_files_to_MagIC(wx.Frame):
         COMMAND=call+"generic_magic.py -WD %s -f %s -fsa er_samples.txt -F %s -exp %s  -samp %s -site %s %s %s %s -Fsa %s"\
         %(WD,FILE,OUTFILE,EXP,SAMP,SITE,LOC,LABFIELD,DONT_AVERAGE, SAMP_OUTFILE)
 
-        
+        print "-I- Running Python command:\n %s"%COMMAND        
+
         import generic_magic
         if generic_magic.main(False, **options):
             pw.close_window(self, COMMAND, OUTFILE)
         else:
-            msg = "Something went wrong, see warnings in Terminal/Command Prompt and try again"
-            dlg = wx.MessageDialog(None, caption="Oops", message=msg, style=wx.OK|wx.ICON_INFORMATION)
-            dlg.ShowModal()
-                                   
+            pw.simple_warning()
 
-        #print "-I- Running Python command:\n %s"%COMMAND
+        
 
         #os.system(COMMAND)                                          
         #--
@@ -887,9 +885,12 @@ class convert_SIO_files_to_MagIC(wx.Frame):
         else:
             synthetic = ''
         import sio_magic
-        sio_magic.main(command_line=False, **options_dict)
-        COMMAND = call+"sio_magic.py -F {0} -f {1} {2} {3} {4} -spc {5} -ncn {6} {7} {8} {9} {10} {11} {12} -Fsa {13}".format(outfile, SIO_file, user, experiment_type, loc_name,spc, ncn, lab_field, peak_AF, coil_number, instrument, replicate, synthetic, samp_outfile)
-        pw.close_window(self, COMMAND, outfile)
+        if sio_magic.main(command_line=False, **options_dict):
+            COMMAND = call+"sio_magic.py -F {0} -f {1} {2} {3} {4} -spc {5} -ncn {6} {7} {8} {9} {10} {11} {12} -Fsa {13}".format(outfile, SIO_file, user, experiment_type, loc_name,spc, ncn, lab_field, peak_AF, coil_number, instrument, replicate, synthetic, samp_outfile)
+            pw.close_window(self, COMMAND, outfile)
+        else:
+            pw.simple_warning()
+
         #pw.run_command_and_close_window(self, COMMAND, outfile)
 
     def on_cancelButton(self,event):

@@ -612,7 +612,9 @@ def on_add_file_button(SELF, WD, event, text):
         SELF.file_path.SetValue(str(dlg.GetPath()))
 
 
-def simple_warning(text):
+def simple_warning(text=None):
+    if not text:
+        text = "Something went wrong\nSee warnings in Terminal/Command Prompt and try again\nMake sure you have filled out all required fields"
     dlg = wx.MessageDialog(None, message=text, caption="warning", style=wx.ICON_ERROR|wx.OK)
     dlg.ShowModal()
     dlg.Destroy()
