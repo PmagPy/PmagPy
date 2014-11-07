@@ -102,15 +102,21 @@ def main(command_line=True, **kwargs):
      
     """
     # initialize default values
-    args=sys.argv
+    mag_file = ''
     meas_file="magic_measurements.txt"
     user=""
+    specnum = 0
+    samp_con = '1'
+    labfield = 0
     er_location_name = ""
+    codelist = None
+
     # get command line args
     if command_line:
+        args=sys.argv
         if "-h" in args:
             print main.__doc__
-            sys.exit()
+            return False
         if "-usr" in args:
             ind=args.index("-usr")
             user=args[ind+1]
@@ -164,30 +170,34 @@ def main(command_line=True, **kwargs):
             input=open(magfile,'rU')
         except:
             print "bad mag file name"
-            sys.exit()
+            return False
     else: 
         print "mag_file field is required option"
         print main.__doc__
-        sys.exit()
+        return False
 
     if specnum!=0:specnum=-specnum
 
-    if "4-" in samp_con:
+    if "4" in samp_con:
         if "-" not in samp_con:
             print "option [4] must be in form 4-Z where Z is an integer"
-            sys.exit()
+            return False
         else:
             Z=int(samp_con.split("-")[1])
             samp_con="4"
-    if "7-" in samp_con:
+    if "7" in samp_con:
         if "-" not in samp_con:
             print "option [7] must be in form 7-Z where Z is an integer"
-            sys.exit()
+            return False
         else:
             Z=int(samp_con.split("-")[1])
             samp_con="7"
 
-    codes=codelist.split(':')
+    if codelist:
+        codes=codelist.split(':')
+    else:
+        print "Must select experiment type (-LP option)"
+        return False
     if "AF" in codes:
         demag='AF' 
         LPcode="LP-DIR-AF"
@@ -198,7 +208,7 @@ def main(command_line=True, **kwargs):
         if "ANI" in codes:
             if not labfield:
                 print "missing option -dc exiting"
-                exit()
+                return False
             LPcode="LP-AN-TRM"
 
     if "TRM" in codes: 
@@ -211,7 +221,7 @@ def main(command_line=True, **kwargs):
         # dc should be in the code
         if not labfield:
             print "missing option -dc exiting"
-            exit()
+            return False
 
         LPcode="LP-TRM-CR" # TRM in different cooling rates
         if command_line:
@@ -379,7 +389,7 @@ def main(command_line=True, **kwargs):
                         methcode="LP-DIR-AF:LT-AF-Z"
                     else:
                         print "ERROR in treatment field line %i... exiting until you fix the problem" %line_no
-                        exit()
+                        return False
                                             
                 # AARM experiment    
                 else:
@@ -470,7 +480,7 @@ def main(command_line=True, **kwargs):
 
                     else:
                             print "ERROR in treatment field line %i... exiting until you fix the problem" %line_no
-                            exit()
+                            return False
                     
                     MagRec["magic_method_codes"]=LT_code+":"+methcode
                     MagRec["measurement_number"]="%i"%i            
@@ -609,6 +619,7 @@ def main(command_line=True, **kwargs):
     
     pmag.magic_write(meas_file,MagRecs,'magic_measurements')
     print "-I- results put in ",meas_file
+    return True
                 
                     
 if __name__ == "__main__":

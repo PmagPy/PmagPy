@@ -1209,7 +1209,7 @@ class convert_HUJI_files_to_MagIC(wx.Frame):
         lab_field = '-dc ' + lab_field
         spc = self.bSizer4.return_value()
         options['specnum'] = spc or 0
-        if not spc or spc=="" or spc==None:
+        if not spc:
             spc = '-spc 0'
         else:
             spc = '-spc ' + spc
@@ -1225,14 +1225,18 @@ class convert_HUJI_files_to_MagIC(wx.Frame):
         old_format= self.bSizer0a.return_value()
         if old_format:
             import HUJI_magic
-            HUJI_magic.main(False, **options)
             COMMAND = call+"HUJI_magic.py -f {} -F {} {} -LP {} {} -ncn {} {} {} {}".format(HUJI_file, outfile, user, experiment_type, loc_name, ncn, lab_field, spc, peak_AF)
-            pw.close_window(self, COMMAND, outfile)
+            if HUJI_magic.main(False, **options):
+                pw.close_window(self, COMMAND, outfile)
+            else:
+                pw.simple_warning()
         else:
             import HUJI_magic_new
-            HUJI_magic_new.main(False, options)
             COMMAND = call+"HUJI_magic_new.py -f {} -F {} {} -LP {} {} -ncn {} {} {} {}".format(HUJI_file, outfile, user, experiment_type, loc_name, ncn, lab_field, spc, peak_AF)
-            pw.close_window(self, COMMAND, outfile)
+            if HUJI_magic_new.main(False, **options):
+                pw.close_window(self, COMMAND, outfile)
+            else:
+                pw.simple_warning()
 
     def on_cancelButton(self,event):
         self.Destroy()

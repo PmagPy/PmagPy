@@ -183,7 +183,11 @@ class select_ncn(wx.StaticBoxSizer):
         selected_ncn = str(self.select_naming_convention.GetValue())
         ncn_number = self.sample_naming_conventions[selected_ncn]
         if ncn_number == 4 or ncn_number == 7: # these are the only two that require a delimiter
-            return str(ncn_number) + '-' + str(self.sample_naming_convention_char.GetValue())
+            char = self.sample_naming_convention_char.GetValue()
+            if char:
+                return str(ncn_number) + '-' + str(char)
+            else:
+                return str(ncn_number)
         else:
             return str(ncn_number)
 
