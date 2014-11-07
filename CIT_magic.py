@@ -66,7 +66,7 @@ def main(command_line=True, **kwargs):
             dir_path=args[ind+1]
         if "-h" in args:
             print main.__doc__
-            sys.exit()
+            return False
         if "-usr" in args:
             ind=args.index("-usr")
             user=args[ind+1]
@@ -106,7 +106,7 @@ def main(command_line=True, **kwargs):
             if "4" in samp_con:
                 if "-" not in samp_con:
                     print "option [4] must be in form 3-Z where Z is an integer"
-                    sys.exit()
+                    return False
                 else: 
                     Z=samp_con.split("-")[1]
                     samp_con="4"
@@ -145,7 +145,7 @@ def main(command_line=True, **kwargs):
     if "4" in samp_con:
         if "-" not in samp_con:
             print "option [4] must be in form 3-Z where Z is an integer"
-            sys.exit()
+            return False
         else: 
             Z=samp_con.split("-")[1]
             samp_con="4"
@@ -159,7 +159,7 @@ def main(command_line=True, **kwargs):
         input=open(magfile,'r')
     except Exception as ex:
         print "bad sam file name"
-        sys.exit()
+        return False
     File=input.readlines()
     sids,ln,format=[],0,'CIT'
     formats=['CIT','2G','APP','JRA']
@@ -312,6 +312,7 @@ def main(command_line=True, **kwargs):
     Fixed=pmag.measurements_methods(MeasRecs,avg)
     pmag.magic_write(meas_file,Fixed,'magic_measurements')
     print 'data stored in ',meas_file
+    return True
 
 if __name__ == "__main__":
     main()

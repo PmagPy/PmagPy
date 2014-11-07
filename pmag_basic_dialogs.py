@@ -1052,8 +1052,10 @@ class convert_CIT_files_to_MagIC(wx.Frame):
 
         import CIT_magic
         COMMAND = call+"CIT_magic.py -WD {} -f {} -F {} {} {} {} {} -ncn {} {} {} {} -Fsp {} -Fsi {} -Fsa {} {}".format(wd, CIT_file, outfile, particulars, spec_num, loc_name, user, ncn, peak_AF, lab_field, ID, spec_outfile, site_outfile, samp_outfile, replicate)
-        CIT_magic.main(command_line=False, **options_dict)
-        pw.close_window(self, COMMAND, outfile)
+        if CIT_magic.main(command_line=False, **options_dict):
+            pw.close_window(self, COMMAND, outfile)
+        else:
+            pw.simple_warning()
         #print COMMAND
         #pw.run_command_and_close_window(self, COMMAND, outfile)
 
