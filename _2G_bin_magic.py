@@ -80,6 +80,7 @@ def main(command_line=True, **kwargs):
     #
     # initialize variables
     #
+    mag_file = ''
     specnum=0
     ub_file,samp_file,or_con,corr,meas_file = "","er_samples.txt","3","1","magic_measurements.txt"
     pos_file,site_file="","er_sites.txt"
@@ -103,7 +104,7 @@ def main(command_line=True, **kwargs):
             dir_path=sys.argv[ind+1]
         if "-h" in args:
             print main.__doc__
-            sys.exit()
+            return False
         if "-f" in args:
             ind=args.index("-f")
             mag_file=sys.argv[ind+1]
@@ -175,14 +176,14 @@ def main(command_line=True, **kwargs):
         if "4" in samp_con:
             if "-" not in samp_con:
                 print "option [4] must be in form 4-Z where Z is an integer"
-                sys.exit()
+                return False
             else:
                 Z=samp_con.split("-")[1]
                 samp_con="4"
         if "7" in samp_con:
             if "-" not in samp_con:
                 print "option [7] must be in form 7-Z where Z is an integer"
-                sys.exit()
+                return False
             else:
                 Z=samp_con.split("-")[1]
                 samp_con="7"
@@ -191,8 +192,11 @@ def main(command_line=True, **kwargs):
                 Samps,file_type=pmag.magic_read(dir_path+'/er_samples.txt')
             except:
                 print "there is no er_samples.txt file available - you can't use naming convention #6"
-                sys.exit()
+                return False
 
+    if not mag_file:
+        print "mag file is required input"
+        return False
     output_dir_path = dir_path
     mag_file = input_dir_path+'/'+mag_file
     samp_file = output_dir_path+'/'+samp_file
@@ -206,9 +210,13 @@ def main(command_line=True, **kwargs):
     except:
         Samps=[]
     MagRecs=[]
-    f=open(mag_file,'rU')
-    input=f.read()
-    f.close()
+    try:
+        f=open(mag_file,'rU')
+        input=f.read()
+        f.close()
+    except:
+        print "bad mag file"
+        return False
     firstline,date=1,""
     d=input.split('\xcd')
     for line in d:
@@ -415,6 +423,7 @@ def main(command_line=True, **kwargs):
         if 'sample_height' in samp.keys():SiteRec['site_height']=samp['sample_height']
         Sites.append(SiteRec)
     pmag.magic_write(site_file,Sites,'er_sites')
+    return True
 
 if __name__ == "__main__":
     main()

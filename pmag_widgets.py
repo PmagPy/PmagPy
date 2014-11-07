@@ -662,7 +662,7 @@ def run_command_and_close_window(SELF, command, outfile):
     SELF.Parent.Raise()
 
 def close_window(SELF, command, outfile):
-    print "-I- Running equivalent to Python command:\n %s"%command
+    print "-I- Finished running equivalent to Python command:\n %s"%command
     if not outfile:
         outfile = ''
     MSG="file(s) converted to MagIC format file:\n%s.\n\n See Termimal (Mac) or command prompt (windows) for errors"% outfile

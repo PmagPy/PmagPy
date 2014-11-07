@@ -1334,15 +1334,17 @@ class convert_2G_binary_files_to_MagIC(wx.Frame):
         options_dict['dir_path'] = WD
         directory = self.bSizer0.return_value()
         options_dict['ID'] = directory
+        if not directory:
+            pw.simple_warning('You must select a directory containing 2G binary files')
         files = os.listdir(directory)
         files = [str(f) for f in files if str(f).endswith('.dat')]
         ID = "-ID " + directory
         if self.bSizer1.return_value():
             particulars = self.bSizer1.return_value()
+            options_dict['gmeths'] = particulars
             mcd = '-mcd ' + particulars
         else:
             mcd = ''
-        options_dict['gmeths'] = mcd
         ncn = self.bSizer2.return_value()
         options_dict['samp_con'] = ncn
         spc = self.bSizer3.return_value()
@@ -1358,9 +1360,9 @@ class convert_2G_binary_files_to_MagIC(wx.Frame):
         if loc_name:
             loc_name = "-loc " + loc_name
         instrument = self.bSizer6.return_value()
+        options_dict['inst'] = instrument
         if instrument:
             instrument = "-ins " + instrument
-        options_dict['inst'] = instrument
         replicate = self.bSizer7.return_value()
         if replicate:
             replicate = '-a'
@@ -1380,12 +1382,17 @@ class convert_2G_binary_files_to_MagIC(wx.Frame):
             options_dict['mag_file'] = f
             COMMAND = call+"2G_bin_magic.py -WD {} -f {} -F {} -Fsa {} -Fsi {} -ncn {} {} {} -ocn {} {} {} {}".format(WD, file_2G_bin, outfile, samp_outfile, sites_outfile, ncn, mcd, spc, ocn, loc_name, replicate, ID)
             if files.index(f) == (len(files) - 1): # terminate process on last file call
-                _2G_bin_magic.main(False, **options_dict)
-                pw.close_window(self, COMMAND, outfile)
+                if _2G_bin_magic.main(False, **options_dict):
+                    pw.close_window(self, COMMAND, outfile)
+                else:
+                    pw.simple_warning()
                 #pw.run_command_and_close_window(self, COMMAND, outfile)
             else:
                 print "Running equivalent of python command: ", COMMAND
-                _2G_bin_magic.main(False, **options_dict)
+                if _2G_bin_magic.main(False, **options_dict):
+                    pass # success, continue on to next file
+                else:
+                    pw.simple_warning()
                 #pw.run_command(self, COMMAND, outfile)
 
 
