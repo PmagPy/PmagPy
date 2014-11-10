@@ -423,13 +423,15 @@ class synthetic(wx.StaticBoxSizer):
 
 
 class experiment_type(wx.StaticBoxSizer):
-    
-    def __init__(self, parent):
+    exp_names=['AF Demag', 'Thermal (includes thellier but not trm)', 'Shaw method', 'IRM (acquisition)', '3D IRM experiment', 'NRM only', 'TRM acquisition', 'double AF demag', 'triple AF demag (GRM protocol)', 'Cooling rate experiment']
+
+    def __init__(self, parent, experiment_names=exp_names):
+        print "init-ing"
         box = wx.StaticBox(parent, wx.ID_ANY, "")
         super(experiment_type, self).__init__(box, orient=wx.VERTICAL)
         gridSizer2 = wx.GridSizer(5, 3, 0, 0)
         self.boxes = []
-        experiment_names=['AF Demag', 'Thermal (includes thellier but not trm)', 'Shaw method', 'IRM (acquisition)', '3D IRM experiment', 'NRM only', 'TRM acquisition', 'double AF demag', 'triple AF demag (GRM protocol)', 'Cooling rate experiment']
+
         TEXT = "Experiment type (select all that apply):"
         for n, experiment in enumerate(experiment_names):
             cb = wx.CheckBox(parent, -1, experiment)
@@ -446,7 +448,7 @@ class experiment_type(wx.StaticBoxSizer):
                 checked.append(str(cb.Label))
         if not checked:
             return ''
-        experiment_key = {'AF Demag': 'AF', 'Thermal (includes thellier but not trm)': 'T', 'Shaw method': 'S', 'IRM (acquisition)': 'I', '3D IRM experiment': 'I3d', 'NRM only': 'N', 'TRM acquisition': 'TRM', 'anisotropy experiment': 'ANI', 'double AF demag': 'D', 'triple AF demag (GRM protocol)': 'G', 'Cooling rate experiment': 'CR'}
+        experiment_key = {'AF Demag': 'AF', 'Thermal (includes thellier but not trm)': 'T', 'Shaw method': 'S', 'IRM (acquisition)': 'I', '3D IRM experiment': 'I3d', 'NRM only': 'N', 'TRM acquisition': 'TRM', 'anisotropy experiment': 'ANI', 'double AF demag': 'D', 'triple AF demag (GRM protocol)': 'G', 'Cooling rate experiment': 'CR', 'Anisotropy experiment': 'ANI'}
         experiment_string = ''
         for ex in checked:
             experiment_string += experiment_key[ex] + ':'

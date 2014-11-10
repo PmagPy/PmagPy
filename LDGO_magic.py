@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 import string,sys,pmag
-def main(command_line=False, **kwargs):
+def main(command_line=True, **kwargs):
     """
     NAME
         LDGO_magic.py
@@ -81,6 +81,7 @@ is031c2       .0  SD  0 461.600 163.9  17.5  337.1  74.5  319.1  74.4    .0   .0
     """
 # initialize some stuff
     noave=0
+    codelist = ''
     methcode,inst="LP-NO",""
     phi,theta,peakfield,labfield=0,0,0,0
     pTRM,MD,samp_con,Z=0,0,'1',1
@@ -97,6 +98,7 @@ is031c2       .0  SD  0 461.600 163.9  17.5  337.1  74.5  319.1  74.4    .0   .0
     syn=0
     synfile='er_synthetics.txt'
     samp_file,ErSamps='',[]
+    samp_infile = ''
     magfile = ''
     trm=0
     irm=0
@@ -111,7 +113,7 @@ is031c2       .0  SD  0 461.600 163.9  17.5  337.1  74.5  319.1  74.4    .0   .0
     if command_line:
         if "-h" in args:
             print main.__doc__
-            sys.exit()
+            return False
         if "-usr" in args:
             ind=args.index("-usr")
             user=args[ind+1]
@@ -176,7 +178,7 @@ is031c2       .0  SD  0 461.600 163.9  17.5  337.1  74.5  319.1  74.4    .0   .0
         phi = int(kwargs.get('phi', 0))
         theta = int(kwargs.get('theta', 0))
         peakfield = int(kwargs.get('peakfield', 0))
-        specnum = kwargs.get('specnum', 0)
+        specnum = int(kwargs.get('specnum', 0))
         er_location_name = kwargs.get('er_location_name', '')
         samp_infile = kwargs.get('samp_infile', '')
         syn = kwargs.get('syn', 0)        
@@ -201,11 +203,11 @@ is031c2       .0  SD  0 461.600 163.9  17.5  337.1  74.5  319.1  74.4    .0   .0
             input=open(magfile,'rU')
         except:
             print "bad mag file name"
-            sys.exit()
+            return False
     else: 
         print "mag_file field is required option"
         print main.__doc__
-        sys.exit()
+        return False
         
     if specnum!=0:specnum=-specnum
 
@@ -214,19 +216,18 @@ is031c2       .0  SD  0 461.600 163.9  17.5  337.1  74.5  319.1  74.4    .0   .0
     if "4" in samp_con:
         if "-" not in samp_con:
             print "option [4] must be in form 4-Z where Z is an integer"
-            sys.exit()
+            return False
         else:
             Z=samp_con.split("-")[1]
             samp_con="4"
     if "7" in samp_con:
         if "-" not in samp_con:
             print "option [7] must be in form 7-Z where Z is an integer"
-            sys.exit()
+            return False
         else:
             Z=samp_con.split("-")[1]
             samp_con="4"
 
-    #FIX THIS!!!!!!!!!!! raw input
     codes=codelist.split(':')
     if "AF" in codes:
         demag='AF' 
@@ -259,7 +260,6 @@ is031c2       .0  SD  0 461.600 163.9  17.5  337.1  74.5  319.1  74.4    .0   .0
     if "TRM" in codes: 
         demag="T"
         trm=1
-    # end fix
 
     if coil:
         methcode="LP-IRM"
@@ -267,7 +267,7 @@ is031c2       .0  SD  0 461.600 163.9  17.5  337.1  74.5  319.1  74.4    .0   .0
         if coil not in ["1","2","3"]:
             print main.__doc__
             print 'not a valid coil specification'
-            sys.exit()
+            return False
 
     if demag=="T" and "ANI" in codes:
         methcode="LP-AN-TRM"
@@ -393,6 +393,7 @@ is031c2       .0  SD  0 461.600 163.9  17.5  337.1  74.5  319.1  74.4    .0   .0
     if len(SynRecs)>0:
         pmag.magic_write(synfile,SynRecs,'er_synthetics')
         print "synthetics put in ",synfile
+    return True
 
 if __name__ == '__main__':
     main()

@@ -1436,7 +1436,8 @@ class convert_LDGO_files_to_MagIC(wx.Frame):
         self.bSizer1 = pw.labeled_text_field(pnl)
 
         #---sizer 2 ---
-        self.bSizer2 = pw.experiment_type(pnl)
+        exp_names=['AF Demag', 'Thermal (includes thellier but not trm)', 'Shaw method', 'IRM (acquisition)', 'NRM only', 'TRM acquisition', 'double AF demag', 'triple AF demag (GRM protocol)', 'Anisotropy experiment']
+        self.bSizer2 = pw.experiment_type(pnl, exp_names)
         
         #---sizer 3 ----
         self.bSizer3 = pw.lab_field(pnl)
@@ -1541,7 +1542,7 @@ class convert_LDGO_files_to_MagIC(wx.Frame):
         ncn = self.bSizer4.return_value()
         options_dict['samp_con'] = ncn
         spc = self.bSizer5.return_value()
-        specnum = spc or 0
+        options_dict['specnum'] = spc or 0
         if spc:
             spc = "-spc " + spc
         else:
@@ -1578,10 +1579,13 @@ class convert_LDGO_files_to_MagIC(wx.Frame):
             synthetic = ''
         COMMAND = call+"LDGO_magic.py -f {0} -F {1} {2} {3} {4} -ncn {5} {6} {7} {8} {9} {10} {11} {12} -Fsa {13} -Fsy {14}".format(LDGO_file, outfile, user, experiment_type, lab_field, ncn, spc, loc_name, instrument, replicate, AF_field, coil_number, synthetic, samp_outfile, synthetic_outfile)
         import LDGO_magic
-        LDGO_magic.main(False, **options_dict)
+        if LDGO_magic.main(False, **options_dict):
+            pw.close_window(self, COMMAND, outfile)
+        else:
+            pw.simple_warning()
         #print COMMAND
         #pw.run_command_and_close_window(self, COMMAND, outfile)
-        pw.close_window(self, COMMAND, outfile)
+
 
     def on_cancelButton(self,event):
         self.Destroy()
@@ -1738,6 +1742,7 @@ class convert_PMD_files_to_MagIC(wx.Frame):
 
 
         #---sizer 5 ----
+
         self.bSizer5 = pw.sampling_particulars(pnl)
 
         #---sizer 6 ---
