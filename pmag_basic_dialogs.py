@@ -1662,7 +1662,6 @@ class convert_IODP_csv_files_to_MagIC(wx.Frame):
     def on_okButton(self, event):
         options = {}
         wd = self.WD
-        print "self.WD:", self.WD
         options['dir_path'] = wd
         full_file = self.bSizer0.return_value()
         index = full_file.rfind('/')
@@ -1793,7 +1792,7 @@ class convert_PMD_files_to_MagIC(wx.Frame):
         options = {}
         WD = self.WD
         options['dir_path'] = WD
-        directory = self.bSizer0.return_value()
+        directory = self.bSizer0.return_value() or '.'
         options['input_dir_path'] = directory
         files = os.listdir(directory)
         files = [str(f) for f in files if str(f).endswith('.pmd')]
@@ -1801,7 +1800,8 @@ class convert_PMD_files_to_MagIC(wx.Frame):
             samp_outfile = files[0][:files[0].find('.')] + files[-1][:files[-1].find('.')] + "_er_samples.txt"
             options['samp_file'] = samp_outfile
         else:
-            raise Exception("No pmd files found in {}, try a different directory".format(WD))
+            #raise Exception("No pmd files found in {}, try a different directory".format(WD))
+            pw.simple_warning("No pmd files found in {}, try a different directory".format(WD))
         ID = "-ID " + directory
         user = self.bSizer1.return_value()
         options['user'] = user
@@ -1833,11 +1833,12 @@ class convert_PMD_files_to_MagIC(wx.Frame):
             samp_outfile = f[:f.find('.')] + "_er_samples.txt"
             options['samp_file'] = samp_outfile
             COMMAND = call+"PMD_magic.py -WD {} -f {} -F {} -Fsa {} {} -ncn {} {} -spc {} {} {}".format(WD, f, outfile, samp_outfile, user, ncn, particulars, spc, replicate, ID)
-            PMD_magic.main(False, **options)
-            if files.index(f) == len(files) -1:
+            if not PMD_magic.main(False, **options):
+                pw.simple_warning()
+            elif files.index(f) == len(files) -1:
                 pw.close_window(self, COMMAND, outfile)
             else:
-                print "Running equivalent of Python command: ", COMMAND
+                print "Just ran equivalent of Python command: ", COMMAND
 
     def on_cancelButton(self,event):
         self.Destroy()

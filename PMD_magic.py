@@ -61,6 +61,10 @@ def main(command_line=True, **kwargs):
     ErSamps=[]
     SampOuts=[]
 
+    samp_file = 'er_samples.txt'
+    meas_file = 'magic_measurements.txt'
+
+
     #
     # get command line arguments
     #
@@ -75,11 +79,9 @@ def main(command_line=True, **kwargs):
         else:
             input_dir_path = dir_path
         output_dir_path = dir_path
-        samp_file = output_dir_path+'/er_samples.txt'
-        meas_file = output_dir_path+"/magic_measurements.txt"
         if "-h" in args:
             print main.__doc__
-            sys.exit()
+            return False
         if "-usr" in args:
             ind=args.index("-usr")
             user=args[ind+1]
@@ -136,14 +138,14 @@ def main(command_line=True, **kwargs):
     if "4" in samp_con:
         if "-" not in samp_con:
             print "option [4] must be in form 4-Z where Z is an integer"
-            sys.exit()
+            return False
         else:
             Z=samp_con.split("-")[1]
             samp_con="4"
     if "7" in samp_con:
         if "-" not in samp_con:
             print "option [7] must be in form 7-Z where Z is an integer"
-            sys.exit()
+            return False
         else:
             Z=samp_con.split("-")[1]
             samp_con="7"
@@ -217,7 +219,7 @@ def main(command_line=True, **kwargs):
             meas_type="LT-T-Z"
         else:
             print "measurement type unknown"
-            sys.exit()
+            return False
         X=[float(rec[1]),float(rec[2]),float(rec[3])]
         Vec=pmag.cart2dir(X)
         MagRec["measurement_magn_moment"]='%10.3e'% (Vec[2]) # Am^2 
@@ -240,6 +242,7 @@ def main(command_line=True, **kwargs):
     print "results put in ",meas_file
     pmag.magic_write(samp_file,SampOuts,'er_samples')
     print "sample orientations put in ",samp_file
+    return True
 
 if __name__ == "__main__":
     main()
