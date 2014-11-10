@@ -116,7 +116,7 @@ class convert_tdt_files_to_MagIC(wx.Frame):
         self.experiments_names=['Thellier','ATRM 6 positions','NLT']
         bSizer1a.AddSpacer(5)
         for i in range(self.max_files):
-            command="self.protocol_info_%i = wx.ComboBox(self.panel, -1, self.experiments_names[0], size=(100,25), choices=self.experiments_names, style=wx.CB_DROPDOWN)"%i
+            command="self.protocol_info_%i = wx.ComboBox(self.panel, -1, self.experiments_names[0], size=(100,25), choices=self.experiments_names, style=wx.CB_DROPDOWN|wx.CB_READONLY)"%i
             exec command
             command="bSizer1a.Add(self.protocol_info_%i,wx.ALIGN_TOP)"%i        
             exec command
@@ -159,7 +159,7 @@ class convert_tdt_files_to_MagIC(wx.Frame):
         self.moment_units_names=['mA/m']
         bSizer1c.AddSpacer(5)
         for i in range(self.max_files):
-            command="self.moment_units_%i = wx.ComboBox(self.panel, -1, self.moment_units_names[0], size=(80,25), choices=self.moment_units_names, style=wx.CB_DROPDOWN)"%i
+            command="self.moment_units_%i = wx.ComboBox(self.panel, -1, self.moment_units_names[0], size=(80,25), choices=self.moment_units_names, style=wx.CB_DROPDOWN|wx.CB_READONLY)"%i
             exec command
             command="bSizer1c.Add(self.moment_units_%i,wx.ALIGN_TOP)"%i        
             exec command
@@ -220,7 +220,7 @@ class convert_tdt_files_to_MagIC(wx.Frame):
         self.sample_naming_conventions=['sample=specimen','no. of terminate characters','charceter delimited']
         bSizer4.AddSpacer(5)
         for i in range(self.max_files):
-            command="self.sample_naming_convention_%i = wx.ComboBox(self.panel, -1, self.sample_naming_conventions[0], size=(150,25), choices=self.sample_naming_conventions, style=wx.CB_DROPDOWN)"%i
+            command="self.sample_naming_convention_%i = wx.ComboBox(self.panel, -1, self.sample_naming_conventions[0], size=(150,25), choices=self.sample_naming_conventions, style=wx.CB_DROPDOWN|wx.CB_READONLY)"%i
             exec command
             command="self.sample_naming_convention_char_%i = wx.TextCtrl(self.panel, id=-1, size=(40,25))"%i
             exec command
@@ -245,7 +245,7 @@ class convert_tdt_files_to_MagIC(wx.Frame):
         for i in range(self.max_files):
             command="self.site_naming_convention_char_%i = wx.TextCtrl(self.panel, id=-1, size=(40,25))"%i
             exec command
-            command="self.site_naming_convention_%i = wx.ComboBox(self.panel, -1, self.site_naming_conventions[0], size=(150,25), choices=self.site_naming_conventions, style=wx.CB_DROPDOWN)"%i
+            command="self.site_naming_convention_%i = wx.ComboBox(self.panel, -1, self.site_naming_conventions[0], size=(150,25), choices=self.site_naming_conventions, style=wx.CB_DROPDOWN|wx.CB_READONLY)"%i
             exec command
             command="bSizer5_%i = wx.BoxSizer(wx.HORIZONTAL)"%i
             exec command
@@ -1131,7 +1131,7 @@ def main(command_line=True, wd=None):
             WD=args[ind+1]
         else:
             print "please specify working directory for output file WD"
-            sys.exit()
+            return False
     if not command_line:
         if not wd:
             import os
