@@ -428,7 +428,9 @@ class convert_generic_files_to_MagIC(wx.Frame):
         self.parent.Raise()
         
     def on_helpButton(self, event):
-        pw.on_helpButton("generic_magic.py -h")
+        import generic_magic
+        pw.on_helpButton(text=generic_magic.do_help())
+        #pw.on_helpButton("generic_magic.py -h")
 
     def get_sample_name(self,specimen,sample_naming_convenstion):
         if sample_naming_convenstion[0]=="sample=specimen":
@@ -898,7 +900,9 @@ class convert_SIO_files_to_MagIC(wx.Frame):
         self.Parent.Raise()
 
     def on_helpButton(self, event):
-        pw.on_helpButton("sio_magic.py -h")
+        import sio_magic
+        pw.on_helpButton(text=sio_magic.do_help())
+        #pw.on_helpButton("sio_magic.py -h")
 
 
 
@@ -1064,7 +1068,9 @@ class convert_CIT_files_to_MagIC(wx.Frame):
         self.Parent.Raise()
 
     def on_helpButton(self, event):
-        pw.on_helpButton("CIT_magic.py -h")
+        import CIT_magic
+        pw.on_helpButton(text=CIT_magic.do_help())
+        #pw.on_helpButton("CIT_magic.py -h")
 
 
 
@@ -1243,7 +1249,13 @@ class convert_HUJI_files_to_MagIC(wx.Frame):
         self.Parent.Raise()
 
     def on_helpButton(self, event):
-        pw.on_helpButton("HUJI_magic.py -h")
+        old_format= self.bSizer0a.return_value()
+        if old_format:
+            import HUJI_magic as HUJI
+        else:
+            import HUJI_magic_new as HUJI
+        pw.on_helpButton(text=HUJI.do_help())
+        #pw.on_helpButton("HUJI_magic.py -h")
 
 
 class convert_2G_binary_files_to_MagIC(wx.Frame):
@@ -1406,7 +1418,9 @@ class convert_2G_binary_files_to_MagIC(wx.Frame):
         self.Parent.Raise()
 
     def on_helpButton(self, event):
-        pw.on_helpButton("2G_bin_magic.py -h")
+        import _2G_bin_magic
+        pw.on_helpButton(text=_2G_bin_magic.do_help())
+        #pw.on_helpButton("2G_bin_magic.py -h")
 
 
 
@@ -1592,7 +1606,9 @@ class convert_LDGO_files_to_MagIC(wx.Frame):
         self.Parent.Raise()
 
     def on_helpButton(self, event):
-        pw.on_helpButton("LDGO_magic.py -h")
+        import LDGO_magic
+        pw.on_helpButton(text=LDGO_magic.do_help())
+        #pw.on_helpButton("LDGO_magic.py -h")
 
 
 
@@ -1698,7 +1714,9 @@ class convert_IODP_csv_files_to_MagIC(wx.Frame):
         self.Parent.Raise()
 
     def on_helpButton(self, event):
-        pw.on_helpButton("-h")
+        import IODP_csv_magic
+        pw.on_helpButton(text=IODP_csv_magic.do_help())
+        #pw.on_helpButton("IODP_csv_magic.py -h")
 
 
 
@@ -1845,7 +1863,9 @@ class convert_PMD_files_to_MagIC(wx.Frame):
         self.Parent.Raise()
 
     def on_helpButton(self, event):
-        pw.on_helpButton("PMD_magic.py -h")
+        import PMD_magic
+        pw.on_helpButton(text=PMD_magic.do_help())
+        #pw.on_helpButton("PMD_magic.py -h")
 
 
 

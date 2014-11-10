@@ -244,5 +244,8 @@ def main(command_line=True, **kwargs):
     print "sample orientations put in ",samp_file
     return True
 
+def do_help():
+    return main.__doc__
+
 if __name__ == "__main__":
     main()

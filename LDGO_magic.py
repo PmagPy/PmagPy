@@ -395,5 +395,8 @@ is031c2       .0  SD  0 461.600 163.9  17.5  337.1  74.5  319.1  74.4    .0   .0
         print "synthetics put in ",synfile
     return True
 
+def do_help():
+    return main.__doc__
+
 if __name__ == '__main__':
     main()

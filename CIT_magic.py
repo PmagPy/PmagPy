@@ -314,5 +314,8 @@ def main(command_line=True, **kwargs):
     print 'data stored in ',meas_file
     return True
 
+def do_help():
+    return main.__doc__
+
 if __name__ == "__main__":
     main()

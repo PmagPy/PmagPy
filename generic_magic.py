@@ -1016,6 +1016,8 @@ def main(command_line=True, **kwargs):
     pmag.magic_write(samp_file,ErSamplesRecs_fixed,'er_samples')
     return True
 
+def do_help():
+    return main.__doc__
 
 if __name__ == '__main__':
     main()

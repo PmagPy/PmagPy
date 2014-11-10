@@ -18,7 +18,7 @@ def main(command_line=True, **kwargs):
         takes the binary 2G format magnetometer files and converts them to magic_measurements, er_samples.txt and er_sites.txt file
  
     SYNTAX
-        2G_magic.py [command line options]
+        2G_bin_magic.py [command line options]
 
     OPTIONS
         -f FILE: specify input 2G (binary) file
@@ -424,6 +424,9 @@ def main(command_line=True, **kwargs):
         Sites.append(SiteRec)
     pmag.magic_write(site_file,Sites,'er_sites')
     return True
+
+def do_help():
+    return main.__doc__
 
 if __name__ == "__main__":
     main()

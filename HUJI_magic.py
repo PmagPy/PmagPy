@@ -620,7 +620,9 @@ def main(command_line=True, **kwargs):
     pmag.magic_write(meas_file,MagRecs,'magic_measurements')
     print "-I- results put in ",meas_file
     return True
-                
+
+def do_help():
+    return main.__doc__
                     
 if __name__ == "__main__":
     main()

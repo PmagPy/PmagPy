@@ -693,5 +693,9 @@ def main(command_line=True, **kwargs):
         print "synthetics put in ",synfile
     return True
 
+def do_help():
+    return main.__doc__
+
+
 if __name__ == "__main__":
     main()
