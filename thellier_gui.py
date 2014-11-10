@@ -1568,7 +1568,7 @@ class Arai_GUI(wx.Frame):
                 dlg3.Destroy()
                 if result == wx.ID_OK:
                     self.Destroy()
-                    sys.exit()
+                    #sys.exit()
 
                     
 
@@ -2071,7 +2071,8 @@ class Arai_GUI(wx.Frame):
                 style=wx.OK|wx.ICON_INFORMATION)
                 dlg1.ShowModal()
                 dlg1.Destroy()
-                sys.exit()
+                self.Destroy()
+                #sys.exit()
                 
         if dia.ShowModal() == wx.ID_CANCEL: # Until the user clicks OK, show the message                        
             for crit in crit_list_not_in_pref:
@@ -9169,7 +9170,6 @@ class Arai_GUI(wx.Frame):
 
 
 def do_main(WD=None):
-    print "doing main, WD: ", WD
     app = wx.PySimpleApp()
     app.frame = Arai_GUI(WD)
     #dw, dh = wx.DisplaySize() 
