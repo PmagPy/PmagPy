@@ -51,7 +51,7 @@ def main(command_line=True, **kwargs):
         output_dir_path = dir_path
         if "-h" in args:
             print main.__doc__
-            sys.exit()
+            return False
         if "-A" in args: noave=1
         if '-f' in args:
             ind=args.index("-f")
@@ -70,7 +70,7 @@ def main(command_line=True, **kwargs):
             samp_file = args[ind+1]
 
     if not command_line:
-        dir_path = kwargs.get('dir_path', '')
+        dir_path = kwargs.get('dir_path', '.')
         input_dir_path = kwargs.get('input_dir_path', dir_path)
         output_dir_path = dir_path # rename dir_path after input_dir_path is set
         noave = kwargs.get('noave', 0) # default (0) is DO average
@@ -81,7 +81,7 @@ def main(command_line=True, **kwargs):
         site_file = kwargs.get('site_file', 'er_sites.txt')
 
     # format variables
-    csv_file = input_dir_path + '/' + csv_file
+
     meas_file= output_dir_path +'/'+ meas_file
     spec_file = output_dir_path+'/'+ spec_file
     Specs,file_type=pmag.magic_read(spec_file)
@@ -89,8 +89,9 @@ def main(command_line=True, **kwargs):
     ErSamps,file_type=pmag.magic_read(samp_file)
     site_file = output_dir_path+'/'+site_file
     if csv_file=="":
-        filelist=os.listdir(dir_path) # read in list of files to import
+        filelist=os.listdir(input_dir_path) # read in list of files to import
     else:
+        csv_file = input_dir_path + '/' + csv_file
         filelist=[csv_file]
 
     
@@ -101,8 +102,10 @@ def main(command_line=True, **kwargs):
         if samp['er_sample_name'] not in samples:
             samples.append(samp['er_sample_name'])
             SampRecs.append(samp)
+    file_found = False
     for file in filelist: # parse each file
         if file[-3:].lower()=='csv':
+            file_found = True
             print 'processing: ',file
             input=open(file,'rU').readlines()
             keys=input[0].replace('\n','').split(',') # splits on underscores
@@ -232,6 +235,9 @@ def main(command_line=True, **kwargs):
                     SiteRecs.append(SiteRec)
               except:
                  pass
+    if not file_found:
+        print "No .csv files were found"
+        return False
     if len(SpecRecs)>0:
         pmag.magic_write(spec_file,SpecRecs,'er_specimens')
         print 'specimens stored in ',spec_file
@@ -248,8 +254,12 @@ def main(command_line=True, **kwargs):
        MagRec["treatment_ac_field"]='%8.3e'%(MagRec['treatment_ac_field']) # convert to string
        MagOuts.append(MagRec)
     Fixed=pmag.measurements_methods(MagOuts,noave)
-    pmag.magic_write(meas_file,Fixed,'magic_measurements')
-    print 'data stored in ',meas_file
+    if pmag.magic_write(meas_file,Fixed,'magic_measurements'):
+        print 'data stored in ',meas_file
+        return True
+    else:
+        print 'no data found.  bad magfile?'
+        return False
 
 if __name__ == '__main__':
     main()

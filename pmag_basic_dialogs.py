@@ -1662,6 +1662,7 @@ class convert_IODP_csv_files_to_MagIC(wx.Frame):
     def on_okButton(self, event):
         options = {}
         wd = self.WD
+        print "self.WD:", self.WD
         options['dir_path'] = wd
         full_file = self.bSizer0.return_value()
         index = full_file.rfind('/')
@@ -1669,7 +1670,7 @@ class convert_IODP_csv_files_to_MagIC(wx.Frame):
         options['csv_file'] = IODP_file
         outfile = IODP_file + ".magic"
         options['meas_file'] = outfile
-        ID = full_file[:index+1] 
+        ID = full_file[:index+1] or '.'
         options['input_dir_path'] = ID
         spec_outfile = IODP_file[:IODP_file.find('.')] + "_er_specimens.txt" 
         options['spec_file'] = spec_outfile
@@ -1686,9 +1687,11 @@ class convert_IODP_csv_files_to_MagIC(wx.Frame):
             options['noave'] = 1
 
         import IODP_csv_magic
-        IODP_csv_magic.main(False, **options)
         COMMAND = call+"IODP_csv_magic.py -WD {0} -f {1} -F {2} {3} -ID {4} -Fsp {5} -Fsa {6} -Fsi {7}".format(wd, IODP_file, outfile, replicate, ID, spec_outfile, samp_outfile, site_outfile)
-        pw.close_window(self, COMMAND, outfile)
+        if IODP_csv_magic.main(False, **options):
+            pw.close_window(self, COMMAND, outfile)
+        else:
+            pw.simple_warning()
         #pw.run_command_and_close_window(self, COMMAND, outfile)
 
     def on_cancelButton(self,event):

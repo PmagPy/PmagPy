@@ -997,7 +997,7 @@ def magic_write(ofile,Recs,file_type):
     """
     
     if len(Recs)<1:
-        return
+        return False
     pmag_out=open(ofile,'w')
     outstring="tab \t"+file_type+"\n"
     pmag_out.write(outstring)
@@ -1025,6 +1025,7 @@ def magic_write(ofile,Recs,file_type):
         outstring=outstring+'\n'
         pmag_out.write(outstring[1:])
     pmag_out.close()
+    return True
 
 
 def dotilt(dec,inc,bed_az,bed_dip):
