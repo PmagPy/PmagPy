@@ -19,7 +19,7 @@
 #--------------------------------------------------------------
 
 import matplotlib
-matplotlib.use('WXAgg')
+#matplotlib.use('WXAgg')
 import pmag
 import wx
 import copy
