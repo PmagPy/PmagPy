@@ -24,7 +24,8 @@ import pmag
 import wx
 import copy
 import os
-
+import scipy
+from scipy import arange
 # only this one is nessesary.
 import wx
 from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigCanvas \
@@ -729,33 +730,36 @@ class SaveMyPlot(wx.Frame):
 
 class Consistency_Test(wx.Frame):
     """"""
- 
+    
     #----------------------------------------------------------------------
-    def __init__(self,Data,Data_hierarchy,WD,criteria):
+    def __init__(self,Data,Data_hierarchy,WD,acceptance_criteria,preferences,Thermal,Microwave):
         wx.Frame.__init__(self, parent=None)
-
         """
         """
-        import  thellier_consistency_test        
+        import thellier_consistency_test        
         self.WD=WD
         self.Data=Data
         self.Data_hierarchy=Data_hierarchy
-        self.fixed_criteria=criteria
-
+        self.acceptance_criteria=acceptance_criteria
+        self.preferences=preferences
         self.panel = wx.Panel(self)
         self.make_fixed_criteria()
-        self.init_optimizer_frame()                
+        self.init_optimizer_frame()  
+        global THERMAL
+        global MICROWAVE
+        THERMAL = Thermal
+        MICROWAVE =  Microwave           
 
     def make_fixed_criteria(self):
 
-        Text="Set fixed criteria parameters\n"
+        Text="Choose fixed acceptance criteria"
         
         dlg = wx.MessageDialog(self, Text, caption="First step", style=wx.OK )
         dlg.ShowModal(); dlg.Destroy()
-        self.fixed_criteria['specimen_frac']=0
-        self.fixed_criteria['specimen_b_beta']=10000000
+        #self.fixed_criteria['specimen_frac']=0
+        #self.fixed_criteria['specimen_b_beta']=10000000
         
-        dia = Criteria_Dialog(None, self.fixed_criteria,title='Set fixed_criteria_file')
+        dia = Criteria_Dialog(None, self.acceptance_criteria,self.preferences,title='Set fixed_criteria_file')
         dia.Center()
 
         if dia.ShowModal() == wx.ID_OK: # Until the user clicks OK, show the message            
@@ -764,98 +768,126 @@ class Consistency_Test(wx.Frame):
 
     def On_close_fixed_criteria_box(self,dia):
         
+        """
+        after criteria dialog window is closed. 
+        Take the acceptance criteria values and update
+        self.acceptance_criteria
+        """
+        
+        criteria_list=self.acceptance_criteria.keys()
+        criteria_list.sort()
+        
+        #---------------------------------------
+        # check if averaging by sample or by site
+        # and intialize sample/site criteria
+        #---------------------------------------
+        
+        if dia.set_average_by_sample_or_site.GetValue()=='sample':
+            for crit in ['site_int_n','site_int_sigma','site_int_sigma_perc','site_aniso_mean','site_int_n_outlier_check']:
+                self.acceptance_criteria[crit]['value']=-999
+        if dia.set_average_by_sample_or_site.GetValue()=='site':
+            for crit in ['sample_int_n','sample_int_sigma','sample_int_sigma_perc','sample_aniso_mean','sample_int_n_outlier_check']:
+                self.acceptance_criteria[crit]['value']=-999
 
-        self.high_threshold_velue_list=['specimen_gmax','specimen_b_beta','specimen_int_dang','specimen_drats','specimen_int_mad','specimen_md']
-        self.low_threshold_velue_list=['specimen_int_n','specimen_int_ptrm_n','specimen_f','specimen_fvds','specimen_frac','specimen_g','specimen_q']
-
-        for key in self.high_threshold_velue_list + self.low_threshold_velue_list +['anisotropy_alt']:
-            command="self.fixed_criteria[\"%s\"]=float(dia.set_%s.GetValue())"%(key,key)
+        #---------
+        
+        for i in range(len(criteria_list)):            
+            crit=criteria_list[i]
+            #---------
+            # get the "value" from dialog box
+            #---------
+                # dealing with sample/site
+            if dia.set_average_by_sample_or_site.GetValue()=='sample':
+                if crit in ['site_int_n','site_int_sigma','site_int_sigma_perc','site_aniso_mean','site_int_n_outlier_check']:
+                    continue
+            if dia.set_average_by_sample_or_site.GetValue()=='site':
+                if crit in ['sample_int_n','sample_int_sigma','sample_int_sigma_perc','sample_aniso_mean','sample_int_n_outlier_check']:
+                    continue
+            #------
+            if crit in ['site_int_n','site_int_sigma_perc','site_aniso_mean','site_int_n_outlier_check']:
+                command="value=dia.set_%s.GetValue()"%crit.replace('site','sample')                
+            
+            elif crit=='sample_int_sigma' or crit=='site_int_sigma':
+                #command="value=float(dia.set_sample_int_sigma_uT.GetValue())*1e-6"            
+                command="value=dia.set_%s.GetValue()"%crit
+            else:
+                command="value=dia.set_%s.GetValue()"%crit
+            #------
             try:
                 exec command
             except:
-                command="if dia.set_%s.GetValue() !=\"\" : self.show_messege(\"%s\")  "%(key,key)
-                exec command
+                continue
+            
+            #---------
+            # write the "value" to self.acceptance_criteria
+            #---------
+                        
+            if crit=='average_by_sample_or_site': 
+                self.acceptance_criteria[crit]['value']=str(value)
+                continue 
+            if type(value)==bool and value==True:
+                self.acceptance_criteria[crit]['value']=True
+            elif type(value)==bool and value==False:
+                self.acceptance_criteria[crit]['value']=-999                        
+            elif type(value)==unicode and str(value)=="":
+                self.acceptance_criteria[crit]['value']=-999
+            elif type(value)==unicode and str(value)!="": # should be a number
+                try:
+                    self.acceptance_criteria[crit]['value']=float(value)
+                except:
+                    self.show_messege(crit) 
+            elif type(value)==float or type(value)==int:
+               if  crit=='sample_int_sigma' or crit=='site_int_sigma':
+                    self.acceptance_criteria[crit]['value']=float(value)*1e-6
+               else:
+                    self.acceptance_criteria[crit]['value']=float(value)                             
+            else:  
+                self.show_messege(crit)
+        #---------
+        # thellier interpreter calculation type
+        if dia.set_stdev_opt.GetValue()==True:
+            self.acceptance_criteria['interpreter_method']['value']='stdev_opt'
+        elif  dia.set_bs.GetValue()==True:
+            self.acceptance_criteria['interpreter_method']['value']='bs'            
+        elif  dia.set_bs_par.GetValue()==True:
+            self.acceptance_criteria['interpreter_method']['value']='bs_par'            
+            
                 
-        if dia.set_specimen_scat.GetValue() == True:
-          self.fixed_criteria['specimen_scat']=True
-        else:
-          self.fixed_criteria['specimen_scat']=False
-
-
-        if dia.check_aniso_ftest.GetValue() == True:
-          self.fixed_criteria['check_aniso_ftest']=True
-        else:
-          self.fixed_criteria['check_aniso_ftest']=False
-
-
-
-        # sample ceiteria:            
-        for key in ['sample_int_n','sample_int_sigma_uT','sample_int_sigma_perc','sample_aniso_threshold_perc','sample_int_interval_uT','sample_int_interval_perc','sample_int_n_outlier_check']:
-            command="self.fixed_criteria[\"%s\"]=float(dia.set_%s.GetValue())"%(key,key)            
-            try:
-                exec command
-            except:
-                command="if dia.set_%s.GetValue() !=\"\" : self.show_messege(\"%s\")  "%(key,key)
-                exec command
-
-
+            
         #  message dialog
-        dlg1 = wx.MessageDialog(self,caption="Warning:", message="Canges are save to consistency_test/pmag_fixed_criteria.txt" ,style=wx.OK|wx.CANCEL)
+        dlg1 = wx.MessageDialog(self,caption="Warning:", message="changes are saved to consistency_test/pmag_fixed_criteria.txt\n " ,style=wx.OK)
         result = dlg1.ShowModal()
-        if result == wx.ID_CANCEL:
-
-            dlg1.Destroy()
-
         if result == wx.ID_OK:
 
-            dia.Destroy()
-        
-            # Write new acceptance criteria to pmag_criteria.txt    
             try:
-                #Command_line="mkdir %s" %(self.WD+"/optimizer")
-                #os.system(Command_line)
                 os.mkdir(self.WD+"/consistency_test")
             except:
                 pass
-            fout=open(self.WD+"/consistency_test/pmag_fixed_criteria.txt",'w')
-            String="tab\tpmag_criteria\n"
-            fout.write(String)
-            sample_criteria_list=[key for key in self.fixed_criteria.keys() if "sample" in key]
-            specimen_criteria_list=self.high_threshold_velue_list + self.low_threshold_velue_list + ["specimen_scat"] +['check_aniso_ftest']+['anisotropy_alt']
-            for criteria in specimen_criteria_list:
-                if criteria in (self.high_threshold_velue_list + ['anisotropy_alt']) and float(self.fixed_criteria[criteria])>100:
-                    specimen_criteria_list.remove(criteria)
-                if criteria in self.low_threshold_velue_list and float(self.fixed_criteria[criteria])<0.1:
-                    specimen_criteria_list.remove(criteria)
-            header=""
-            for key in sample_criteria_list:
-                header=header+key+"\t"
-            for key in specimen_criteria_list:                    
-                header=header+key+"\t"
-            fout.write(header[:-1]+"\n")
 
-            line=""
-            for key in sample_criteria_list:
-                line=line+"%f"%self.fixed_criteria[key]+"\t"
-            for key in specimen_criteria_list:
-                if key=="specimen_scat" or key=="check_aniso_ftest":
-                    line=line+"%s"%self.fixed_criteria[key]+"\t"
-                else:
-                    line=line+"%f"%self.fixed_criteria[key]+"\t"
-
-            fout.write(line[:-1]+"\n")
-            fout.close()
-
-
-
-    # only valid naumber can be entered to boxes        
+            #try:
+            #    self.clear_boxes()
+            #except:
+            #    pass
+            #try:
+            #    self.write_acceptance_criteria_to_boxes()
+            #except:
+            #    pass
+            pmag.write_criteria_to_file(self.WD+"consistency_test/pmag_fixed_criteria.txt",self.acceptance_criteria)
+            dlg1.Destroy()    
+            dia.Destroy()
+        #self.recaclulate_satistics()
+        
+    # only valid naumber can be entered to boxes
+    # used by On_close_criteria_box         
     def show_messege(self,key):
         dlg1 = wx.MessageDialog(self,caption="Error:",
-            message="not a vaild value for box %s \n Ignore value"%key ,style=wx.OK)
+            message="non-vaild value for box %s"%key ,style=wx.OK)
+        #dlg1.ShowModal()
         result = dlg1.ShowModal()
         if result == wx.ID_OK:
             dlg1.Destroy()
-        
+
+
         
     def init_optimizer_frame(self):
 
@@ -866,49 +898,43 @@ class Consistency_Test(wx.Frame):
         """ Build main frame od panel: buttons, etc.
             choose the first specimen and display data
         """
+        # import wx.lib.agw.floatspin as FS
 
-        self.beta_start_window=FS.FloatSpin(self.panel, -1, min_val=0.01, max_val=0.5,increment=0.01, value=0.05, extrastyle=FS.FS_LEFT,size=(50,20))
-        self.beta_start_window.SetFormat("%f")
-        self.beta_start_window.SetDigits(2)
+        stat_list=self.preferences['show_statistics_on_gui']
+        if "scat" in stat_list:
+            stat_list.remove("scat")
+        self.stat_1 = wx.ComboBox(self.panel, -1, value="", choices=stat_list, style=wx.CB_DROPDOWN,name="stat_1")
+        self.stat_1_low = wx.TextCtrl(self.panel,style=wx.TE_CENTER,size=(50,20))
+        self.stat_1_high = wx.TextCtrl(self.panel,style=wx.TE_CENTER,size=(50,20))
+        self.stat_1_delta = wx.TextCtrl(self.panel,style=wx.TE_CENTER,size=(50,20))
 
-        self.beta_end_window=FS.FloatSpin(self.panel, -1, min_val=0.01, max_val=0.5,increment=0.01, value=0.2, extrastyle=FS.FS_LEFT,size=(50,20))
-        self.beta_end_window.SetFormat("%f")
-        self.beta_end_window.SetDigits(2)
-
-        self.beta_step_window=FS.FloatSpin(self.panel, -1, min_val=0.01, max_val=0.1,increment=0.01, value=0.01, extrastyle=FS.FS_LEFT,size=(50,20))
-        self.beta_step_window.SetFormat("%f")
-        self.beta_step_window.SetDigits(2)
-       
-
-        self.frac_start_window=FS.FloatSpin(self.panel, -1, min_val=0.1, max_val=1,increment=0.01, value=0.7, extrastyle=FS.FS_LEFT,size=(50,20))
-        self.frac_start_window.SetFormat("%f")
-        self.frac_start_window.SetDigits(2)
-
-        self.frac_end_window=FS.FloatSpin(self.panel, -1, min_val=0.1, max_val=1,increment=0.01, value=0.9, extrastyle=FS.FS_LEFT,size=(50,20))
-        self.frac_end_window.SetFormat("%f")
-        self.frac_end_window.SetDigits(2)
-
-        self.frac_step_window=FS.FloatSpin(self.panel, -1, min_val=0.01, max_val=0.1,increment=0.01, value=0.02, extrastyle=FS.FS_LEFT,size=(50,20))
-        self.frac_step_window.SetFormat("%f")
-        self.frac_step_window.SetDigits(2)
+        self.stat_2 = wx.ComboBox(self.panel, -1, value="", choices=stat_list, style=wx.CB_DROPDOWN,name="stat_2")
+        self.stat_2_low = wx.TextCtrl(self.panel,style=wx.TE_CENTER,size=(50,20))
+        self.stat_2_high = wx.TextCtrl(self.panel,style=wx.TE_CENTER,size=(50,20))
+        self.stat_2_delta = wx.TextCtrl(self.panel,style=wx.TE_CENTER,size=(50,20))
+        
 
         
-        beta_window = wx.GridSizer(2, 3, 5, 50)
-        beta_window.AddMany( [(wx.StaticText(self.panel,label="beta start",style=wx.TE_CENTER), wx.EXPAND),
-            (wx.StaticText(self.panel,label="beta end",style=wx.TE_CENTER), wx.EXPAND),
-            (wx.StaticText(self.panel,label="beta step",style=wx.TE_CENTER), wx.EXPAND),
-            (self.beta_start_window, wx.EXPAND) ,
-            (self.beta_end_window, wx.EXPAND) ,
-            (self.beta_step_window, wx.EXPAND) ])
+        beta_window = wx.GridSizer(2, 4, 5, 10)
+        beta_window.AddMany( [(wx.StaticText(self.panel,label="statistic",style=wx.TE_CENTER), wx.EXPAND),
+            (wx.StaticText(self.panel,label="start value",style=wx.TE_CENTER), wx.EXPAND),
+            (wx.StaticText(self.panel,label="end value",style=wx.TE_CENTER), wx.EXPAND),
+            (wx.StaticText(self.panel,label="delta",style=wx.TE_CENTER), wx.EXPAND),
+            (self.stat_1, wx.EXPAND),
+            (self.stat_1_low, wx.EXPAND) ,
+            (self.stat_1_high, wx.EXPAND) ,
+            (self.stat_1_delta, wx.EXPAND) ])
 
-        scat_window = wx.GridSizer(2, 3, 5, 50)
+        scat_window = wx.GridSizer(2, 4, 5, 10)
         
-        scat_window.AddMany( [(wx.StaticText(self.panel,label="FRAC start",style=wx.TE_CENTER), wx.EXPAND),
-            (wx.StaticText(self.panel,label="FRAC end",style=wx.TE_CENTER), wx.EXPAND),
-            (wx.StaticText(self.panel,label="FRAC step",style=wx.TE_CENTER), wx.EXPAND),
-            (self.frac_start_window, wx.EXPAND) ,
-            (self.frac_end_window, wx.EXPAND) ,
-            (self.frac_step_window, wx.EXPAND) ])
+        scat_window.AddMany( [(wx.StaticText(self.panel,label="statistic",style=wx.TE_CENTER), wx.EXPAND),
+            (wx.StaticText(self.panel,label="start value",style=wx.TE_CENTER), wx.EXPAND),
+            (wx.StaticText(self.panel,label="end value",style=wx.TE_CENTER), wx.EXPAND),
+            (wx.StaticText(self.panel,label="delta",style=wx.TE_CENTER), wx.EXPAND),
+            (self.stat_2, wx.EXPAND) ,
+            (self.stat_2_low, wx.EXPAND) ,
+            (self.stat_2_high, wx.EXPAND) ,
+            (self.stat_2_delta, wx.EXPAND) ])
         Text1="insert functions in the text window below, each function in a seperate line.\n"
         Text2="Use a valid python syntax with logic or arithmetic operators\n (see example functions)\n\n"
         Text3="List of legal operands:\n"
@@ -1074,13 +1100,15 @@ class Consistency_Test(wx.Frame):
             
     def on_run_optimizer_button( self,event):
         if self.optimizer_group_file_window.GetValue() != "" and self.check_status.GetValue()=="PASS":
-            beta_start=float(self.beta_start_window.GetValue())
-            beta_end=float(self.beta_end_window.GetValue())
-            beta_step=float(self.beta_step_window.GetValue())
+            stat1=str("specimen_"+str(self.stat_1.GetValue()))
+            stat1_start=float(self.stat_1_low.GetValue())
+            stat1_end=float(self.stat_1_high.GetValue())
+            stat1_delta=float(self.stat_1_delta.GetValue())
             
-            frac_start=float(self.frac_start_window.GetValue())
-            frac_end=float(self.frac_end_window.GetValue())
-            frac_step=float(self.frac_step_window.GetValue())
+            stat2=str("specimen_"+str(self.stat_2.GetValue()))
+            stat2_start=float(self.stat_2_low.GetValue())
+            stat2_end=float(self.stat_2_high.GetValue())
+            stat2_delta=float(self.stat_2_delta.GetValue())
 
             optimizer_function_file=open(self.WD+"/consistency_test/consistency_test_functions.txt",'w')
             TEXT=self.text_logger.GetValue()
@@ -1091,11 +1119,15 @@ class Consistency_Test(wx.Frame):
 
             optimizer_functions_path="/consistency_test/consistency_test_functions.txt"
             criteria_fixed_paremeters_file="/consistency_test/pmag_fixed_criteria.txt"
-            
-            beta_range=arange(beta_start,beta_end,beta_step)
-            frac_range=arange(frac_start,frac_end,beta_step)
+  
+            stat1_range=[stat1,arange(stat1_start,stat1_end,stat1_delta)]
+            stat2_range=[stat2,arange(stat2_start,stat2_end,stat2_delta)]
+                      
+            #beta_range=arange(beta_start,beta_end,beta_step)
+            #frac_range=arange(frac_start,frac_end,beta_step)
             #try:
-            thellier_consistency_test.Thellier_consistency_test(self.WD, self.Data,self.Data_hierarchy,criteria_fixed_paremeters_file,self.optimizer_group_file_path,optimizer_functions_path,beta_range,frac_range)
+            import thellier_consistency_test
+            thellier_consistency_test.run_thellier_consistency_test(self.WD, self.Data,self.Data_hierarchy,self.acceptance_criteria,self.optimizer_group_file_path,optimizer_functions_path,self.preferences,stat1_range,stat2_range,THERMAL,MICROWAVE)
             #except:
             #    dlg1 = wx.MessageDialog(self,caption="Error:", message="Optimizer finished with Errors" ,style=wx.OK)
                 
