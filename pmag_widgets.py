@@ -426,7 +426,6 @@ class experiment_type(wx.StaticBoxSizer):
     exp_names=['AF Demag', 'Thermal (includes thellier but not trm)', 'Shaw method', 'IRM (acquisition)', '3D IRM experiment', 'NRM only', 'TRM acquisition', 'double AF demag', 'triple AF demag (GRM protocol)', 'Cooling rate experiment']
 
     def __init__(self, parent, experiment_names=exp_names):
-        print "init-ing"
         box = wx.StaticBox(parent, wx.ID_ANY, "")
         super(experiment_type, self).__init__(box, orient=wx.VERTICAL)
         num_rows = len(experiment_names) / 3

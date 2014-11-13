@@ -3,22 +3,20 @@ import string,sys,pmag
 def main(command_line=True, **kwargs):
     """
     NAME
-        LDGO_magic.py
+        LDEO_magic.py
  
     DESCRIPTION
-        converts LDGO  format files to magic_measurements format files
+        converts LDEO  format files to magic_measurements format files
 
     SYNTAX
-        LDGO_magic.py [command line options]
+        LDEO_magic.py [command line options]
 
     OPTIONS
         -h: prints the help message and quits.
         -usr USER:   identify user, default is ""
-        -f FILE: specify .ldgo format input file, required
-        -fsa SAMPFILE : specify er_samples.txt file relating samples, site and locations names,default is none
+        -f FILE: specify .ldeo format input file, required
         -F FILE: specify output file, default is magic_measurements.txt
         -Fsy: specify er_synthetics file, default is er_sythetics.txt
-        -Fsa: specify output er_samples file, default is NONE (only for LDGO formatted files)
         -LP [colon delimited list of protocols, include all that apply]
             AF:  af demag
             T: thermal including thellier but not trm acquisition
@@ -97,8 +95,6 @@ is031c2       .0  SD  0 461.600 163.9  17.5  337.1  74.5  319.1  74.4    .0   .0
     fmt='old'
     syn=0
     synfile='er_synthetics.txt'
-    samp_file,ErSamps='',[]
-    samp_infile = ''
     magfile = ''
     trm=0
     irm=0
@@ -123,9 +119,6 @@ is031c2       .0  SD  0 461.600 163.9  17.5  337.1  74.5  319.1  74.4    .0   .0
         if '-Fsy' in args:
             ind=args.index("-Fsy")
             synfile=args[ind+1]
-        if '-Fsa' in args:
-            ind=args.index("-Fsa")
-            samp_file=args[ind+1]
         if '-f' in args:
             ind=args.index("-f")
             magfile=args[ind+1]
@@ -143,9 +136,6 @@ is031c2       .0  SD  0 461.600 163.9  17.5  337.1  74.5  319.1  74.4    .0   .0
         if "-loc" in args:
             ind=args.index("-loc")
             er_location_name=args[ind+1]
-        if "-fsa" in args:
-            ind=args.index("-fsa")
-            samp_infile = args[ind+1]
         if '-syn' in args:
             syn=1
             ind=args.index("-syn")
@@ -172,7 +162,7 @@ is031c2       .0  SD  0 461.600 163.9  17.5  337.1  74.5  319.1  74.4    .0   .0
         user = kwargs.get('user', '')
         meas_file = kwargs.get('meas_file', 'magic_measurements.txt')
         synfile = kwargs.get('synfile', 'er_synthetics.txt')
-        samp_file = kwargs.get('samp_file', '')
+        # rm samp_file = kwargs.get('samp_file', '')
         magfile = kwargs.get('magfile', '')
         labfield = int(kwargs.get('labfield', 0))
         phi = int(kwargs.get('phi', 0))
@@ -180,7 +170,7 @@ is031c2       .0  SD  0 461.600 163.9  17.5  337.1  74.5  319.1  74.4    .0   .0
         peakfield = int(kwargs.get('peakfield', 0))
         specnum = int(kwargs.get('specnum', 0))
         er_location_name = kwargs.get('er_location_name', '')
-        samp_infile = kwargs.get('samp_infile', '')
+        # rm samp_infile = kwargs.get('samp_infile', '')
         syn = kwargs.get('syn', 0)        
         institution = kwargs.get('institution', '')
         syntype = kwargs.get('syntype', '')
@@ -191,13 +181,6 @@ is031c2       .0  SD  0 461.600 163.9  17.5  337.1  74.5  319.1  74.4    .0   .0
         coil = kwargs.get('coil', '')        
 
     # format/organize variables
-    if samp_file:
-        try:
-            open(samp_file,'rU')
-            ErSamps,file_type=pmag.magic_read(samp_file)
-            print 'sample information will be appended to new er_samples.txt file'
-        except:
-            print 'sample information will be stored in new er_samples.txt file'
     if magfile:
         try:
             input=open(magfile,'rU')
@@ -210,8 +193,6 @@ is031c2       .0  SD  0 461.600 163.9  17.5  337.1  74.5  319.1  74.4    .0   .0
         return False
         
     if specnum!=0:specnum=-specnum
-
-    Samps,file_type=pmag.magic_read(samp_infile)
 
     if "4" in samp_con:
         if "-" not in samp_con:
@@ -277,11 +258,10 @@ is031c2       .0  SD  0 461.600 163.9  17.5  337.1  74.5  319.1  74.4    .0   .0
         if peakfield==0: peakfield=.180
     SynRecs,MagRecs=[],[]
     version_num=pmag.get_version()
-    if 1: # ldgo file format
+    if 1: # ldeo file format
 #
 # find start of data:
 #
-        Samps=[] # keeps track of sample orientations
         DIspec=[]
         Data,k=input.readlines(),0
         for k in range(len(Data)):
@@ -386,10 +366,6 @@ is031c2       .0  SD  0 461.600 163.9  17.5  337.1  74.5  319.1  74.4    .0   .0
     MagOuts=pmag.measurements_methods(MagRecs,noave)
     pmag.magic_write(meas_file,MagOuts,'magic_measurements')
     print "results put in ",meas_file
-    if samp_file!="":
-        print "len(ErSamps)", len(ErSamps)
-        pmag.magic_write(samp_file,ErSamps,'er_samples')
-        print "sample orientations put in ",samp_file
     if len(SynRecs)>0:
         pmag.magic_write(synfile,SynRecs,'er_synthetics')
         print "synthetics put in ",synfile

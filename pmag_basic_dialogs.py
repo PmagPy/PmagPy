@@ -32,7 +32,7 @@ class import_magnetometer_data(wx.Dialog):
         self.panel = wx.Panel(self)
         vbox=wx.BoxSizer(wx.VERTICAL)
 
-        formats=['generic format','SIO format','CIT format','2G-binary format','HUJI format','LDGO format','IODP SRM (csv) format','PMD (ascii) format','TDT format']
+        formats=['generic format','SIO format','CIT format','2G-binary format','HUJI format','LDEO format','IODP SRM (csv) format','PMD (ascii) format','TDT format']
         sbs = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY, 'step 1: choose file format' ), wx.VERTICAL )
 
         sbs.AddSpacer(5)
@@ -110,8 +110,8 @@ class import_magnetometer_data(wx.Dialog):
             dia = convert_2G_binary_files_to_MagIC(self, self.WD)
         elif file_type == 'HUJI':
             dia = convert_HUJI_files_to_MagIC(self, self.WD)
-        elif file_type == 'LDGO':
-            dia = convert_LDGO_files_to_MagIC(self, self.WD)
+        elif file_type == 'LDEO':
+            dia = convert_LDEO_files_to_MagIC(self, self.WD)
         elif file_type == 'IODP':
             dia = convert_IODP_csv_files_to_MagIC(self, self.WD)
         elif file_type == 'PMD':
@@ -1423,10 +1423,10 @@ class convert_2G_binary_files_to_MagIC(wx.Frame):
 
 
 
-class convert_LDGO_files_to_MagIC(wx.Frame):
+class convert_LDEO_files_to_MagIC(wx.Frame):
 
     """ """
-    title = "PmagPy LDGO file conversion"
+    title = "PmagPy LDEO file conversion"
 
     def __init__(self, parent, WD):
         wx.Frame.__init__(self, parent, wx.ID_ANY, self.title)
@@ -1438,7 +1438,7 @@ class convert_LDGO_files_to_MagIC(wx.Frame):
 
         pnl = self.panel
 
-        TEXT = "LDGO format file"
+        TEXT = "LDEO format file"
         bSizer_info = wx.BoxSizer(wx.HORIZONTAL)
         bSizer_info.Add(wx.StaticText(pnl, label=TEXT), wx.ALIGN_LEFT)
 
@@ -1531,13 +1531,13 @@ class convert_LDGO_files_to_MagIC(wx.Frame):
 
     def on_okButton(self, event):
         options_dict = {}
-        LDGO_file = self.bSizer0.return_value()
-        options_dict['magfile'] = LDGO_file
-        magicoutfile=os.path.split(LDGO_file)[1]+".magic"
+        LDEO_file = self.bSizer0.return_value()
+        options_dict['magfile'] = LDEO_file
+        magicoutfile=os.path.split(LDEO_file)[1]+".magic"
         outfile=os.path.join(self.WD,magicoutfile)
         options_dict['meas_file'] = outfile
-        samp_outfile = str(os.path.join(self.WD, magicoutfile[:magicoutfile.find('.')] + '_er_samples.txt'))
-        options_dict['samp_file'] = samp_outfile
+        # rm samp_outfile = str(os.path.join(self.WD, magicoutfile[:magicoutfile.find('.')] + '_er_samples.txt'))
+        # rm options_dict['samp_file'] = samp_outfile
         synthetic_outfile = os.path.join(self.WD, magicoutfile[:magicoutfile.find('.')] + '_er_synthetics.txt')
         options_dict['synfile'] = synthetic_outfile
         user = self.bSizer1.return_value()
@@ -1590,9 +1590,9 @@ class convert_LDGO_files_to_MagIC(wx.Frame):
             synthetic = '-syn ' + synthetic
         else:
             synthetic = ''
-        COMMAND = call+"LDGO_magic.py -f {0} -F {1} {2} {3} {4} -ncn {5} {6} {7} {8} {9} {10} {11} {12} -Fsa {13} -Fsy {14}".format(LDGO_file, outfile, user, experiment_type, lab_field, ncn, spc, loc_name, instrument, replicate, AF_field, coil_number, synthetic, samp_outfile, synthetic_outfile)
-        import LDGO_magic
-        if LDGO_magic.main(False, **options_dict):
+        COMMAND = call+"LDEO_magic.py -f {0} -F {1} {2} {3} {4} -ncn {5} {6} {7} {8} {9} {10} {11} {12} -Fsy {13}".format(LDEO_file, outfile, user, experiment_type, lab_field, ncn, spc, loc_name, instrument, replicate, AF_field, coil_number, synthetic, synthetic_outfile)
+        import LDEO_magic
+        if LDEO_magic.main(False, **options_dict):
             pw.close_window(self, COMMAND, outfile)
         else:
             pw.simple_warning()
@@ -1605,9 +1605,9 @@ class convert_LDGO_files_to_MagIC(wx.Frame):
         self.Parent.Raise()
 
     def on_helpButton(self, event):
-        import LDGO_magic
-        pw.on_helpButton(text=LDGO_magic.do_help())
-        #pw.on_helpButton("LDGO_magic.py -h")
+        import LDEO_magic
+        pw.on_helpButton(text=LDEO_magic.do_help())
+        #pw.on_helpButton("LDEO_magic.py -h")
 
 
 
