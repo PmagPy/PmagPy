@@ -1451,6 +1451,10 @@ class convert_LDEO_files_to_MagIC(wx.Frame):
         #---sizer 2 ---
         exp_names=['AF Demag', 'Thermal (includes thellier but not trm)', 'Shaw method', 'IRM (acquisition)', 'NRM only', 'TRM acquisition', 'double AF demag', 'triple AF demag (GRM protocol)', 'Anisotropy experiment']
         self.bSizer2 = pw.experiment_type(pnl, exp_names)
+
+        #---sizer 2a ---
+        # add conditional boxsizer for Shaw experiments
+        # if arm_labfield and trm_peakT are properly added into LDEO_magic
         
         #---sizer 3 ----
         self.bSizer3 = pw.lab_field(pnl)

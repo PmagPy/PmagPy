@@ -35,6 +35,10 @@ def main(command_line=True, **kwargs):
         -dc B PHI THETA: dc lab field (in micro tesla) and phi,theta, default is none
               NB: use PHI, THETA = -1 -1 to signal that it changes, i.e. in anisotropy experiment
         -ac B : peak AF field (in mT) for ARM acquisition, default is none
+
+        -ARM_dc # default value is 50e-6
+        -ARM_temp # default is 600c
+
         -ncn NCON:  specify naming convention: default is #1 below
         -A: don't average replicate measurements
        Sample naming convention:
@@ -100,6 +104,8 @@ is031c2       .0  SD  0 461.600 163.9  17.5  337.1  74.5  319.1  74.4    .0   .0
     irm=0
     specnum=0
     coil=""
+    arm_labfield = 50e-6
+    trm_peakT = 600+273
     #
     # get command line arguments
     #
@@ -157,6 +163,13 @@ is031c2       .0  SD  0 461.600 163.9  17.5  337.1  74.5  319.1  74.4    .0   .0
         if "-V" in args:
             ind=args.index("-V")
             coil=args[ind+1]
+        if '-ARM_dc' in args:
+            ind = args.index("-ARM_dc")
+            arm_labfield = args[ind+1]
+        if '-ARM_temp' in args:
+            ind = args.index('-ARM_temp')
+            trm_peakT = args[ind+1]
+
 
     if not command_line:
         user = kwargs.get('user', '')
@@ -178,7 +191,10 @@ is031c2       .0  SD  0 461.600 163.9  17.5  337.1  74.5  319.1  74.4    .0   .0
         noave = kwargs.get('noave', 0) # 0 means "do average", is default
         samp_con = kwargs.get('samp_con', '1')
         codelist = kwargs.get('codelist', '')
-        coil = kwargs.get('coil', '')        
+        coil = kwargs.get('coil', '')
+        arm_labfield = kwargs.get('arm_labfield', 50e-6)
+        trm_peakT = kwargs.get('trm_peakT', 600+273)
+
 
     # format/organize variables
     if magfile:
@@ -225,17 +241,7 @@ is031c2       .0  SD  0 461.600 163.9  17.5  337.1  74.5  319.1  74.4    .0   .0
         demag="S"
         methcode="LP-PI-TRM:LP-PI-ALT-AFARM"
         trm_labfield=labfield
-        # DEAL WITH RAW_INPUT.....
-        ans=raw_input("DC lab field for ARM step: [50uT] ")
-        if ans=="":
-            arm_labfield=50e-6
-        else: 
-            arm_labfield=float(ans)*1e-6
-        ans=raw_input("temperature for total trm step: [600 C] ")
-        if ans=="":
-            trm_peakT=600+273 # convert to kelvin
-        else: 
-            trm_peakT=float(ans)+273 # convert to kelvin
+        # should use arm_labfield and trm_peakT as well, but these values are currently never asked for
     if "G" in codes: methcode="LT-AF-G"
     if "D" in codes: methcode="LT-AF-D"
     if "TRM" in codes: 
