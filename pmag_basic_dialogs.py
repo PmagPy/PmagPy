@@ -831,8 +831,6 @@ class convert_SIO_files_to_MagIC(wx.Frame):
         magicoutfile=os.path.split(SIO_file)[1]+".magic"
         outfile =os.path.join(self.WD,magicoutfile)
         options_dict['meas_file'] = str(outfile)
-        samp_outfile = self.WD + magicoutfile[:magicoutfile.find('.')] + "_er_samples.txt"
-        options_dict['samp_outfile'] = str(samp_outfile)
         user = self.bSizer1.return_value()
         options_dict['user'] = str(user)
         if user:
@@ -888,7 +886,7 @@ class convert_SIO_files_to_MagIC(wx.Frame):
             synthetic = ''
         import sio_magic
         if sio_magic.main(command_line=False, **options_dict):
-            COMMAND = call+"sio_magic.py -F {0} -f {1} {2} {3} {4} -spc {5} -ncn {6} {7} {8} {9} {10} {11} {12} -Fsa {13}".format(outfile, SIO_file, user, experiment_type, loc_name,spc, ncn, lab_field, peak_AF, coil_number, instrument, replicate, synthetic, samp_outfile)
+            COMMAND = call+"sio_magic.py -F {0} -f {1} {2} {3} {4} -spc {5} -ncn {6} {7} {8} {9} {10} {11} {12}".format(outfile, SIO_file, user, experiment_type, loc_name,spc, ncn, lab_field, peak_AF, coil_number, instrument, replicate, synthetic)
             pw.close_window(self, COMMAND, outfile)
         else:
             pw.simple_warning()

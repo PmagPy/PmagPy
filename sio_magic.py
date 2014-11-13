@@ -15,10 +15,9 @@ def main(command_line=True, **kwargs):
         -h: prints the help message and quits.
         -usr USER:   identify user, default is ""
         -f FILE: specify .mag format input file, required
-        -fsa SAMPFILE : specify er_samples.txt file relating samples, site and locations names,default is none
+        -fsa SAMPFILE : specify er_samples.txt file relating samples, site and locations names,default is none -- values in SAMPFILE will override selections for -loc (location), -spc (designate specimen), and -ncn (sample-site naming convention)
         -F FILE: specify output file, default is magic_measurements.txt
         -Fsy: specify er_synthetics file, default is er_sythetics.txt
-        -Fsa: specify output er_samples file, default is NONE (only for LDGO formatted files)
         -LP [colon delimited list of protocols, include all that apply]
             AF:  af demag
             T: thermal including thellier but not trm acquisition
@@ -119,7 +118,6 @@ def main(command_line=True, **kwargs):
      
     """
     # initialize some stuff
-    samp_outfile = "er_samples.txt"
     mag_file = None
     codelist = None
     infile_type="mag"
@@ -139,7 +137,7 @@ def main(command_line=True, **kwargs):
     fmt='old'
     syn=0
     synfile='er_synthetics.txt'
-    samp_infile,ErSamps='',[]
+    samp_infile,Samps='',[]
     trm=0
     irm=0
     specnum=0
@@ -154,7 +152,6 @@ def main(command_line=True, **kwargs):
         user = kwargs.get('user', '')
         meas_file = kwargs.get('meas_file', '')
         syn_file = kwargs.get('syn_file', '')
-        samp_outfile = kwargs.get('samp_outfile', '')
         mag_file = kwargs.get('mag_file', '')
         labfield = kwargs.get('labfield', '')
         if labfield: 
@@ -201,9 +198,6 @@ def main(command_line=True, **kwargs):
         if '-Fsy' in args:
             ind=args.index("-Fsy")
             synfile=args[ind+1]
-        if '-Fsa' in args:
-            ind=args.index("-Fsa")
-            samp_outfile=args[ind+1]
         if '-f' in args:
             ind=args.index("-f")
             mag_file=args[ind+1]
@@ -258,13 +252,6 @@ def main(command_line=True, **kwargs):
             print main.__doc__
             print 'not a valid coil specification'
             return False
-    if samp_outfile:
-        try:
-            open(samp_outfile,'rU')
-            ErSamps,file_type=pmag.magic_read(samp_outfile)
-            print 'sample information will be appended to new er_samples.txt file'
-        except:
-            print 'sample information will be stored in new er_samples.txt file'
     if mag_file:
         try:
             input=open(mag_file,'rU')
@@ -478,7 +465,7 @@ def main(command_line=True, **kwargs):
                         MagRec["er_sample_name"]=rec[0][:specnum]
                     else:
                         MagRec["er_sample_name"]=rec[0]
-                    if "-fsa" in args:
+                    if samp_infile and Samps: # if samp_infile was provided AND yielded sample data
                         samp=pmag.get_dictitem(Samps,'er_sample_name',MagRec['er_sample_name'],'T')
                         if len(samp)>0:
                             MagRec["er_location_name"]=samp[0]["er_location_name"]
@@ -685,9 +672,6 @@ def main(command_line=True, **kwargs):
     MagOuts=pmag.measurements_methods(MagRecs,noave)
     pmag.magic_write(meas_file,MagOuts,'magic_measurements')
     print "results put in ",meas_file
-    if samp_outfile!="":  # this doesn't work because the ErSamps list isn't built UNLESS you have a pre-existing er_samples.txt file to read in.  not sure what should happen, here
-        pmag.magic_write(samp_outfile,ErSamps,'er_samples')
-        print "sample orientations put in ",samp_outfile
     if len(SynRecs)>0:
         pmag.magic_write(synfile,SynRecs,'er_synthetics')
         print "synthetics put in ",synfile
