@@ -1107,7 +1107,8 @@ class convert_HUJI_files_to_MagIC(wx.Frame):
         self.bSizer1 = pw.labeled_text_field(pnl)
 
         #---sizer 2 ----
-        self.bSizer2 = pw.experiment_type(pnl)
+        exp_names=['AF Demag', 'Thermal (includes thellier but not trm)', 'NRM only', 'TRM acquisition', 'Anisotropy experiment', 'Cooling rate experiment']
+        self.bSizer2 = pw.experiment_type(pnl, exp_names)
 
         #---sizer 2a ---
         #for box in self.bSizer2.boxes:

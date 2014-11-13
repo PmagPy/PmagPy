@@ -429,7 +429,10 @@ class experiment_type(wx.StaticBoxSizer):
         print "init-ing"
         box = wx.StaticBox(parent, wx.ID_ANY, "")
         super(experiment_type, self).__init__(box, orient=wx.VERTICAL)
-        gridSizer2 = wx.GridSizer(5, 3, 0, 0)
+        num_rows = len(experiment_names) / 3
+        if len(experiment_names) % 3 != 0:
+            num_rows += 1
+        gridSizer2 = wx.GridSizer(num_rows, 3, 0, 0)
         self.boxes = []
 
         TEXT = "Experiment type (select all that apply):"
