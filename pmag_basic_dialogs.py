@@ -1741,9 +1741,6 @@ class convert_PMD_files_to_MagIC(wx.Frame):
         #---sizer 0 ----
         self.bSizer0 = pw.choose_dir(pnl, 'add', method = self.on_add_dir_button)
 
-        #---sizer 1 ----
-        self.bSizer1 = pw.labeled_text_field(pnl)
-        
         #---sizer 2 ----
         ncn_keys = ['XXXXY', 'XXXX-YY', 'XXXX.YY', 'XXXX[YYY] where YYY is sample designation, enter number of Y', 'sample name=site name', 'Site is entered under a separate column', '[XXXX]YYY where XXXX is the site name, enter number of X']
         self.bSizer2 = pw.select_ncn(pnl, ncn_keys)
@@ -1775,15 +1772,11 @@ class convert_PMD_files_to_MagIC(wx.Frame):
         vbox.AddSpacer(10)
         vbox.Add(bSizer_info, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(self.bSizer0, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
-        vbox.Add(self.bSizer1, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(self.bSizer2, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(self.bSizer3, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(self.bSizer4, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(self.bSizer5, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(self.bSizer6, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
-        #vbox.Add(self.bSizer7, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
-        #vbox.AddSpacer(10)
-        #vbox.Add(wx.StaticLine(pnl), 0, wx.ALL|wx.EXPAND, 5)
         vbox.Add(hboxok, flag=wx.ALIGN_CENTER)        
         vbox.AddSpacer(20)
 
@@ -1819,10 +1812,6 @@ class convert_PMD_files_to_MagIC(wx.Frame):
             #raise Exception("No pmd files found in {}, try a different directory".format(WD))
             pw.simple_warning("No pmd files found in {}, try a different directory".format(WD))
         ID = "-ID " + directory
-        user = self.bSizer1.return_value()
-        options['user'] = user
-        if user:
-            user = "-usr " + user
         ncn = self.bSizer2.return_value()
         options['samp_con'] = ncn
         spc = self.bSizer3.return_value() or 0
@@ -1848,7 +1837,7 @@ class convert_PMD_files_to_MagIC(wx.Frame):
             options['meas_file'] = outfile
             samp_outfile = f[:f.find('.')] + "_er_samples.txt"
             options['samp_file'] = samp_outfile
-            COMMAND = call+"PMD_magic.py -WD {} -f {} -F {} -Fsa {} {} -ncn {} {} -spc {} {} {}".format(WD, f, outfile, samp_outfile, user, ncn, particulars, spc, replicate, ID)
+            COMMAND = call+"PMD_magic.py -WD {} -f {} -F {} -Fsa {} -ncn {} {} -spc {} {} {}".format(WD, f, outfile, samp_outfile, ncn, particulars, spc, replicate, ID)
             if not PMD_magic.main(False, **options):
                 pw.simple_warning()
             elif files.index(f) == len(files) -1:

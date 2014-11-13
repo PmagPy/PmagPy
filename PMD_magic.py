@@ -13,7 +13,6 @@ def main(command_line=True, **kwargs):
 
     OPTIONS
         -h: prints the help message and quits.
-        -usr USER:   identify user, default is ""
         -f FILE: specify  input file, or
         -F FILE: specify output file, default is magic_measurements.txt
         -Fsa: specify er_samples format file for appending, default is new er_samples.txt
@@ -82,9 +81,6 @@ def main(command_line=True, **kwargs):
         if "-h" in args:
             print main.__doc__
             return False
-        if "-usr" in args:
-            ind=args.index("-usr")
-            user=args[ind+1]
         if '-F' in args:
             ind=args.index("-F")
             meas_file = args[ind+1]
@@ -119,7 +115,6 @@ def main(command_line=True, **kwargs):
         dir_path = kwargs.get('dir_path', '.')
         input_dir_path = kwargs.get('input_dir_path', dir_path)
         output_dir_path = dir_path
-        user = kwargs.get('user', '')
         meas_file = kwargs.get('meas_file', 'magic_measurements.txt')
         mag_file = kwargs.get('mag_file')
         samp_file = kwargs.get('samp_file', 'er_samples.txt')
