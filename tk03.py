@@ -54,7 +54,7 @@ def main():
             G3=float(sys.argv[ind+1])
     for k in range(N): 
         gh=pmag.mktk03(8,k,G2,G3) # terms and random seed
-        long=random.randint(0,359) # get a random longitude, between 0 and 359
+        long=random.randint(0,360) # get a random longitude, between 0 and 359
         vec= pmag.getvec(gh,L,long)  # send field model and lat to getvec
         if vec[2]>=Imax:
             vec[0]+=D
