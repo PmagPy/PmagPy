@@ -7,6 +7,10 @@
 #
 #============================================================================================
 #
+#  11/16/2014 add some units to criteria dialogs
+#
+# 11/08/2014 Version add k_prime description
+#
 # 08/08/2014 Version add k_prime description
 #
 # 3/22/2014 Version 1.0 by Ron Shaar
@@ -350,7 +354,7 @@ class Criteria_Dialog(wx.Dialog):
         self.set_anisotropy_ftest_flag= wx.CheckBox(pnl1, -1, '', (10, 10))
         criteria_aniso_window = wx.GridSizer(2, 2, 6, 6)
         criteria_aniso_window.AddMany( [(wx.StaticText(pnl1,label="use F test as acceptance criteria",style=wx.TE_CENTER), wx.EXPAND),
-            (wx.StaticText(pnl1,label="alteration check",style=wx.TE_CENTER), wx.EXPAND),
+            (wx.StaticText(pnl1,label="alteration check (%)",style=wx.TE_CENTER), wx.EXPAND),
             (self.set_anisotropy_ftest_flag),
             (self.set_anisotropy_alt)])
 
@@ -423,7 +427,7 @@ class Criteria_Dialog(wx.Dialog):
             (wx.StaticText(pnl1,label="int_sigma_perc",style=wx.TE_CENTER), wx.EXPAND),
             (wx.StaticText(pnl1,label="int_interval",style=wx.TE_CENTER), wx.EXPAND),
             (wx.StaticText(pnl1,label="int_interval_perc",style=wx.TE_CENTER), wx.EXPAND),
-            (wx.StaticText(pnl1,label="sample aniso mean",style=wx.TE_CENTER), wx.EXPAND),
+            (wx.StaticText(pnl1,label="sample aniso mean (%)",style=wx.TE_CENTER), wx.EXPAND),
             (self.set_sample_int_sigma_uT),
             (self.set_sample_int_sigma_perc),
             (self.set_sample_int_interval_uT),

@@ -3,6 +3,11 @@
 #============================================================================================
 # LOG HEADER:
 #============================================================================================
+#
+## Thellier_GUI Version 2.26 11/16/2014
+# modify code for thellier interpreter
+# Add Consistency Check
+#
 # Thellier_GUI Version 2.25 08/08/2014
 # Bug fixes:
 # deal with old foramt pmag_criteria.txt when specimen_dang is used as specimen_int_dang; 
@@ -117,7 +122,7 @@
 global CURRENT_VRSION
 global MICROWAVE
 global THERMAL
-CURRENT_VRSION = "v.2.25"
+CURRENT_VRSION = "v.2.26"
 MICROWAVE=False
 THERMAL=True
 

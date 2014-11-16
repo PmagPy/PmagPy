@@ -380,7 +380,6 @@ def run_thellier_consistency_test(WD, Data,Data_hierarchy,acceptance_criteria,op
           B_specimens[sample][specimen].sort()
  
         if len(B_specimens[sample].keys())<2:
-            print "OOPPS CONTINUE"
             continue    
                                 
         thellier_auto_interpreter=thellier_interpreter.thellier_auto_interpreter(Data,Data_hierarchy,WD,acceptance_criteria,preferences,logfile,THERMAL,MICROWAVE)
@@ -542,14 +541,18 @@ def run_thellier_consistency_test(WD, Data,Data_hierarchy,acceptance_criteria,op
     yticks(stat2_range[1])
     colorbar()
 
-    #stat1_index=0
+    stat1_index=0
     #if "study_sample_n" in function or "test_group_n" in function:
-    #  for stat1_value in stat1_range[1]:
-    #    stat2_index=0
-    #    for stat2_value in stat2_range[1]:
-    #      text(stat1_value,stat2_value,"%i"%int(optimization_functions_matrices[function][stat2_index,stat1_index]),fontsize=8,color='gray',horizontalalignment='center',verticalalignment='center')
-    #      stat2_index+=1
-    #    stat1_index+=1
+    if True:
+      for stat1_value in stat1_range[1]:
+        stat2_index=0
+        for stat2_value in stat2_range[1]:
+          try:  
+            text(stat1_value,stat2_value,"%i"%int(optimization_functions_matrices[function][stat1_index,stat2_index]),fontsize=8,color='gray',horizontalalignment='center',verticalalignment='center')
+          except:
+              pass  
+          stat2_index+=1
+        stat1_index+=1
 
     title("optimization function =\n %s "%function,fontsize=10)
     xlabel(stat1_range[0])
