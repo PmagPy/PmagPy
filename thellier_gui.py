@@ -2889,6 +2889,8 @@ class Arai_GUI(wx.Frame):
         thellier_auto_interpreter.run_interpreter()
         self.Data={}
         self.Data=copy.deepcopy(thellier_auto_interpreter.Data)
+        self.Data_samples=copy.deepcopy(thellier_auto_interpreter.Data_samples)
+        self.Data_sites=copy.deepcopy(thellier_auto_interpreter.Data_sites)
         dlg1 = wx.MessageDialog(self,caption="Message:", message="Interpreter finished sucsessfuly\nCheck output files in folder /thellier_interpreter in the current project directory" ,style=wx.OK|wx.ICON_INFORMATION)
         
         # display the interpretation of the current specimen:
