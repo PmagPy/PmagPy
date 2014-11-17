@@ -465,8 +465,11 @@ class MagIC_model_builder(wx.Frame):
                 string=string+self.data_er_sites[site][key]+"\t"
 
             elif key in ['er_location_name']:
-                string=string+self.Data_hierarchy['location_of_site'][site]+"\t"
-            
+                try:
+                    string=string+self.Data_hierarchy['location_of_site'][site]+"\t"
+                except KeyError:
+                    string = string+"\t"
+                    
             else:
               string=string+"\t"
 

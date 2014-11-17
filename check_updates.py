@@ -6,7 +6,7 @@ import pickle
 from Tkinter import *
 
 
-version = 'pmagpy-2.235'
+version = 'pmagpy-2.236'
 
 def get_version():
         return version
