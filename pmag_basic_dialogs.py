@@ -404,23 +404,24 @@ class convert_generic_files_to_MagIC(wx.Frame):
 
         print "-I- Running Python command:\n %s"%COMMAND        
 
-        import generic_magic
-        if generic_magic.main(False, **options):
-            pw.close_window(self, COMMAND, OUTFILE)
-        else:
-            pw.simple_warning()
+        # to run as module for pyinstaller:
+        #import generic_magic
+        #if generic_magic.main(False, **options):
+        #    pw.close_window(self, COMMAND, OUTFILE)
+        #else:
+        #    pw.simple_warning()
 
         
-
-        #os.system(COMMAND)                                          
+        # to run as command line
+        os.system(COMMAND)                                          
         #--
-        #MSG="file converted to MagIC format file:\n%s.\n\n See Termimal (Mac) or command prompt (windows) for errors"% OUTFILE
-        #dlg1 = wx.MessageDialog(None,caption="Message:", message=MSG ,style=wx.OK|wx.ICON_INFORMATION)
-        #dlg1.ShowModal()
-        #dlg1.Destroy()
+        MSG="file converted to MagIC format file:\n%s.\n\n See Termimal (Mac) or command prompt (windows) for errors"% OUTFILE
+        dlg1 = wx.MessageDialog(None,caption="Message:", message=MSG ,style=wx.OK|wx.ICON_INFORMATION)
+        dlg1.ShowModal()
+        dlg1.Destroy()
 
-        #self.Destroy()
-        #self.parent.Raise()
+        self.Destroy()
+        self.parent.Raise()
 
 
     def on_cancelButton(self,event):
@@ -428,9 +429,10 @@ class convert_generic_files_to_MagIC(wx.Frame):
         self.parent.Raise()
         
     def on_helpButton(self, event):
-        import generic_magic
-        pw.on_helpButton(text=generic_magic.do_help())
-        #pw.on_helpButton("generic_magic.py -h")
+        # to run as module:
+        #import generic_magic
+        #pw.on_helpButton(text=generic_magic.do_help())
+        pw.on_helpButton("generic_magic.py -h")
 
     def get_sample_name(self,specimen,sample_naming_convenstion):
         if sample_naming_convenstion[0]=="sample=specimen":
@@ -884,22 +886,27 @@ class convert_SIO_files_to_MagIC(wx.Frame):
             synthetic = '-syn ' + synthetic
         else:
             synthetic = ''
-        import sio_magic
-        if sio_magic.main(command_line=False, **options_dict):
-            COMMAND = call+"sio_magic.py -F {0} -f {1} {2} {3} {4} -spc {5} -ncn {6} {7} {8} {9} {10} {11} {12}".format(outfile, SIO_file, user, experiment_type, loc_name,spc, ncn, lab_field, peak_AF, coil_number, instrument, replicate, synthetic)
-            pw.close_window(self, COMMAND, outfile)
-        else:
-            pw.simple_warning()
+        # to run as module:
+        #import sio_magic
+        #if sio_magic.main(command_line=False, **options_dict):
+        #    COMMAND = call+"sio_magic.py -F {0} -f {1} {2} {3} {4} -spc {5} -ncn {6} {7} {8} {9} {10} {11} {12}".format(outfile, SIO_file, user, experiment_type, loc_name,spc, ncn, lab_field, peak_AF, coil_number, instrument, replicate, synthetic)
+        #    pw.close_window(self, COMMAND, outfile)
+        #else:
+        #    pw.simple_warning()
 
-        #pw.run_command_and_close_window(self, COMMAND, outfile)
+        # to run as comand line:
+        pw.run_command_and_close_window(self, COMMAND, outfile)
 
     def on_cancelButton(self,event):
         self.Destroy()
         self.Parent.Raise()
 
     def on_helpButton(self, event):
-        import sio_magic
-        pw.on_helpButton(text=sio_magic.do_help())
+        # to run as command line:
+        #import sio_magic
+        #pw.on_helpButton(text=sio_magic.do_help())
+
+        #to run as module:
         #pw.on_helpButton("sio_magic.py -h")
 
 
@@ -1052,23 +1059,28 @@ class convert_CIT_files_to_MagIC(wx.Frame):
             options_dict['avg'] = 1
             replicate = '-A'
 
-        import CIT_magic
-        COMMAND = call+"CIT_magic.py -WD {} -f {} -F {} {} {} {} {} -ncn {} {} {} {} -Fsp {} -Fsi {} -Fsa {} {}".format(wd, CIT_file, outfile, particulars, spec_num, loc_name, user, ncn, peak_AF, lab_field, ID, spec_outfile, site_outfile, samp_outfile, replicate)
-        if CIT_magic.main(command_line=False, **options_dict):
-            pw.close_window(self, COMMAND, outfile)
-        else:
-            pw.simple_warning()
-        #print COMMAND
-        #pw.run_command_and_close_window(self, COMMAND, outfile)
+        # to run as module:
+        #import CIT_magic
+        #COMMAND = call+"CIT_magic.py -WD {} -f {} -F {} {} {} {} {} -ncn {} {} {} {} -Fsp {} -Fsi {} -Fsa {} {}".format(wd, CIT_file, outfile, particulars, spec_num, loc_name, user, ncn, peak_AF, lab_field, ID, spec_outfile, site_outfile, samp_outfile, replicate)
+        #if CIT_magic.main(command_line=False, **options_dict):
+        #    pw.close_window(self, COMMAND, outfile)
+        #else:
+        #    pw.simple_warning()
+
+        # to run as command line:
+        pw.run_command_and_close_window(self, COMMAND, outfile)
 
     def on_cancelButton(self,event):
         self.Destroy()
         self.Parent.Raise()
 
     def on_helpButton(self, event):
-        import CIT_magic
-        pw.on_helpButton(text=CIT_magic.do_help())
-        #pw.on_helpButton("CIT_magic.py -h")
+        # to run as module:
+        #import CIT_magic
+        #pw.on_helpButton(text=CIT_magic.do_help())
+        
+        # to run as command line:
+        pw.on_helpButton("CIT_magic.py -h")
 
 
 
@@ -1229,19 +1241,25 @@ class convert_HUJI_files_to_MagIC(wx.Frame):
         #YES_NO=self.bSizer0a.return_value() 
         old_format= self.bSizer0a.return_value()
         if old_format:
-            import HUJI_magic
+            # to run as command line:
             COMMAND = call+"HUJI_magic.py -f {} -F {} {} -LP {} {} -ncn {} {} {} {}".format(HUJI_file, outfile, user, experiment_type, loc_name, ncn, lab_field, spc, peak_AF)
-            if HUJI_magic.main(False, **options):
-                pw.close_window(self, COMMAND, outfile)
-            else:
-                pw.simple_warning()
+            pw.run_command_and_close_window(self, COMMAND, outfile)
+            # to run as module:
+            #import HUJI_magic
+            #if HUJI_magic.main(False, **options):
+            #    pw.close_window(self, COMMAND, outfile)
+            #else:
+            #    pw.simple_warning()
         else:
-            import HUJI_magic_new
+            # to run as command line:
             COMMAND = call+"HUJI_magic_new.py -f {} -F {} {} -LP {} {} -ncn {} {} {} {}".format(HUJI_file, outfile, user, experiment_type, loc_name, ncn, lab_field, spc, peak_AF)
-            if HUJI_magic_new.main(False, **options):
-                pw.close_window(self, COMMAND, outfile)
-            else:
-                pw.simple_warning()
+            pw.run_command_and_close_window(self, COMMAND, outfile)
+            # to run as module:
+            #import HUJI_magic_new
+            #if HUJI_magic_new.main(False, **options):
+            #    pw.close_window(self, COMMAND, outfile)
+            #else:
+            #    pw.simple_warning()
 
     def on_cancelButton(self,event):
         self.Destroy()
@@ -1249,12 +1267,16 @@ class convert_HUJI_files_to_MagIC(wx.Frame):
 
     def on_helpButton(self, event):
         old_format= self.bSizer0a.return_value()
-        if old_format:
-            import HUJI_magic as HUJI
-        else:
-            import HUJI_magic_new as HUJI
+        # to run as module:
+        #if old_format:
+        #    import HUJI_magic as HUJI
+        #else:
+        #    import HUJI_magic_new as HUJI
         pw.on_helpButton(text=HUJI.do_help())
-        #pw.on_helpButton("HUJI_magic.py -h")
+        if old_format:
+            pw.on_helpButton("HUJI_magic.py -h")
+        else:
+            pw.on_helpButton("HUJI_magic_new.py -h")
 
 
 class convert_2G_binary_files_to_MagIC(wx.Frame):
@@ -1397,18 +1419,24 @@ class convert_2G_binary_files_to_MagIC(wx.Frame):
             options_dict['mag_file'] = f
             COMMAND = call+"2G_bin_magic.py -WD {} -f {} -F {} -Fsa {} -Fsi {} -ncn {} {} {} -ocn {} {} {} {}".format(WD, file_2G_bin, outfile, samp_outfile, sites_outfile, ncn, mcd, spc, ocn, loc_name, replicate, ID)
             if files.index(f) == (len(files) - 1): # terminate process on last file call
-                if _2G_bin_magic.main(False, **options_dict):
-                    pw.close_window(self, COMMAND, outfile)
-                else:
-                    pw.simple_warning()
-                #pw.run_command_and_close_window(self, COMMAND, outfile)
+                # to run as module:
+                #if _2G_bin_magic.main(False, **options_dict):
+                #    pw.close_window(self, COMMAND, outfile)
+                #else:
+                #    pw.simple_warning()
+                
+                # to run as command_line:
+                pw.run_command_and_close_window(self, COMMAND, outfile)
             else:
-                print "Running equivalent of python command: ", COMMAND
-                if _2G_bin_magic.main(False, **options_dict):
-                    pass # success, continue on to next file
-                else:
-                    pw.simple_warning()
-                #pw.run_command(self, COMMAND, outfile)
+                # to run as module:
+                #print "Running equivalent of python command: ", COMMAND
+                #if _2G_bin_magic.main(False, **options_dict):
+                #    pass # success, continue on to next file
+                #else:
+                #    pw.simple_warning()
+                
+                # to run as command line
+                pw.run_command(self, COMMAND, outfile)
 
 
 
@@ -1417,9 +1445,12 @@ class convert_2G_binary_files_to_MagIC(wx.Frame):
         self.Parent.Raise()
 
     def on_helpButton(self, event):
-        import _2G_bin_magic
-        pw.on_helpButton(text=_2G_bin_magic.do_help())
-        #pw.on_helpButton("2G_bin_magic.py -h")
+        # to run as module:
+        #import _2G_bin_magic
+        #pw.on_helpButton(text=_2G_bin_magic.do_help())
+        
+        # to run as command line:
+        pw.on_helpButton("2G_bin_magic.py -h")
 
 
 
@@ -1540,8 +1571,6 @@ class convert_LDEO_files_to_MagIC(wx.Frame):
         magicoutfile=os.path.split(LDEO_file)[1]+".magic"
         outfile=os.path.join(self.WD,magicoutfile)
         options_dict['meas_file'] = outfile
-        # rm samp_outfile = str(os.path.join(self.WD, magicoutfile[:magicoutfile.find('.')] + '_er_samples.txt'))
-        # rm options_dict['samp_file'] = samp_outfile
         synthetic_outfile = os.path.join(self.WD, magicoutfile[:magicoutfile.find('.')] + '_er_synthetics.txt')
         options_dict['synfile'] = synthetic_outfile
         user = self.bSizer1.return_value()
@@ -1595,13 +1624,16 @@ class convert_LDEO_files_to_MagIC(wx.Frame):
         else:
             synthetic = ''
         COMMAND = call+"LDEO_magic.py -f {0} -F {1} {2} {3} {4} -ncn {5} {6} {7} {8} {9} {10} {11} {12} -Fsy {13}".format(LDEO_file, outfile, user, experiment_type, lab_field, ncn, spc, loc_name, instrument, replicate, AF_field, coil_number, synthetic, synthetic_outfile)
-        import LDEO_magic
-        if LDEO_magic.main(False, **options_dict):
-            pw.close_window(self, COMMAND, outfile)
-        else:
-            pw.simple_warning()
+        # to run as module:
+        #import LDEO_magic
+        #if LDEO_magic.main(False, **options_dict):
+        #    pw.close_window(self, COMMAND, outfile)
+        #else:
+        #    pw.simple_warning()
+
+        # to run as command line:
         #print COMMAND
-        #pw.run_command_and_close_window(self, COMMAND, outfile)
+        pw.run_command_and_close_window(self, COMMAND, outfile)
 
 
     def on_cancelButton(self,event):
@@ -1609,9 +1641,12 @@ class convert_LDEO_files_to_MagIC(wx.Frame):
         self.Parent.Raise()
 
     def on_helpButton(self, event):
-        import LDEO_magic
-        pw.on_helpButton(text=LDEO_magic.do_help())
-        #pw.on_helpButton("LDEO_magic.py -h")
+        # to run as module:
+        #import LDEO_magic
+        #pw.on_helpButton(text=LDEO_magic.do_help())
+
+        # to run as command line
+        pw.on_helpButton("LDEO_magic.py -h")
 
 
 
@@ -1704,26 +1739,31 @@ class convert_IODP_csv_files_to_MagIC(wx.Frame):
             replicate = "-A"
             options['noave'] = 1
 
-        import IODP_csv_magic
-        COMMAND = call+"IODP_csv_magic.py -WD {0} -f {1} -F {2} {3} -ID {4} -Fsp {5} -Fsa {6} -Fsi {7}".format(wd, IODP_file, outfile, replicate, ID, spec_outfile, samp_outfile, site_outfile)
-        if IODP_csv_magic.main(False, **options):
-            pw.close_window(self, COMMAND, outfile)
-        else:
-            pw.simple_warning()
-        #pw.run_command_and_close_window(self, COMMAND, outfile)
+        # to run as module:
+        #import IODP_csv_magic
+        #COMMAND = call+"IODP_csv_magic.py -WD {0} -f {1} -F {2} {3} -ID {4} -Fsp {5} -Fsa {6} -Fsi {7}".format(wd, IODP_file, outfile, replicate, ID, spec_outfile, samp_outfile, site_outfile)
+        #if IODP_csv_magic.main(False, **options):
+        #    pw.close_window(self, COMMAND, outfile)
+        #else:
+        #    pw.simple_warning()
+
+        # to run as command line:
+        pw.run_command_and_close_window(self, COMMAND, outfile)
 
     def on_cancelButton(self,event):
         self.Destroy()
         self.Parent.Raise()
 
     def on_helpButton(self, event):
-        import IODP_csv_magic
-        pw.on_helpButton(text=IODP_csv_magic.do_help())
-        #pw.on_helpButton("IODP_csv_magic.py -h")
+        # to run as module:
+        #import IODP_csv_magic
+        #pw.on_helpButton(text=IODP_csv_magic.do_help())
+
+        # to run as command line
+        pw.on_helpButton("IODP_csv_magic.py -h")
 
 
 
-# template for an import window
 class convert_PMD_files_to_MagIC(wx.Frame):
 
     """ """
@@ -1843,22 +1883,32 @@ class convert_PMD_files_to_MagIC(wx.Frame):
             samp_outfile = f[:f.find('.')] + "_er_samples.txt"
             options['samp_file'] = samp_outfile
             COMMAND = call+"PMD_magic.py -WD {} -f {} -F {} -Fsa {} -ncn {} {} -spc {} {} {}".format(WD, f, outfile, samp_outfile, ncn, particulars, spc, replicate, ID)
-            if not PMD_magic.main(False, **options):
-                pw.simple_warning()
-            elif files.index(f) == len(files) -1:
-                pw.close_window(self, COMMAND, outfile)
+            
+            # to run as command_line:
+            if file.index(f) == len(files) -1:
+                pw.run_command_and_close_window(self, COMMAND, outfile)
             else:
-                print "Just ran equivalent of Python command: ", COMMAND
+                pw.run_command(self, COMMAND, outfile)
+
+            # to run as module:
+            #if not PMD_magic.main(False, **options):
+            #    pw.simple_warning()
+            #elif files.index(f) == len(files) -1:
+            #    pw.close_window(self, COMMAND, outfile)
+            #else:
+            #    print "Just ran equivalent of Python command: ", COMMAND
 
     def on_cancelButton(self,event):
         self.Destroy()
         self.Parent.Raise()
 
     def on_helpButton(self, event):
-        import PMD_magic
-        pw.on_helpButton(text=PMD_magic.do_help())
-        #pw.on_helpButton("PMD_magic.py -h")
+        # to run as module:
+        #import PMD_magic
+        #pw.on_helpButton(text=PMD_magic.do_help())
 
+        # to run as command line:
+        pw.on_helpButton("PMD_magic.py -h")
 
 
 
