@@ -9,21 +9,7 @@ from Tkinter import *
 version = 'pmagpy-2.235'
 
 def get_version():
-    global pmagpy_path,local_path
-    pmagpy_path = os.path.dirname(sys.argv[0])
-    local_path  = os.path.join(pmagpy_path, 'version.txt')
-    try:
-        fh_local = open(local_path, 'r')
-        local_version = fh_local.read().strip('\n')
-    except:
-        return version               # if an error occured (e.g. file not found), 
-                              # give up trying to check for an update
-    finally:
-        try:
-            fh_local.close()  # always close the file handle
-        except:
-            pass
-    return local_version
+        return version
     
 def main():
     global pmagpy_path,local_path
