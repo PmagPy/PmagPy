@@ -5,6 +5,7 @@
 # Revision notes
 #
 # Rev 1.0 Initial revision August 2012 
+#
 # Rev 2.0 November 2014
 #---------------------------------------------------------------------------
 import matplotlib
@@ -467,25 +468,25 @@ class thellier_auto_interpreter():
 
                 
         if self.acceptance_criteria['average_by_sample_or_site']['value']=='sample':
-            Grade_A_sorted=copy.deepcopy(Grade_A_samples)
+            self.Grade_A_sorted=copy.deepcopy(Grade_A_samples)
              
         else:
-            Grade_A_sorted=copy.deepcopy(Grade_A_sites)
+            self.Grade_A_sorted=copy.deepcopy(Grade_A_sites)
 
 
         self.clean_workspace()
 
-        samples_or_sites=Grade_A_sorted.keys()
+        samples_or_sites=self.Grade_A_sorted.keys()
         samples_or_sites.sort()
         #print Grade_A_sorted
         for sample_or_site in samples_or_sites:
-            if len(Grade_A_sorted[sample_or_site].keys()) == 1:
-                specimen=Grade_A_sorted[sample_or_site].keys()[0]
+            if len(self.Grade_A_sorted[sample_or_site].keys()) == 1:
+                specimen=self.Grade_A_sorted[sample_or_site].keys()[0]
                 self.choose_interpretation_max_frac(All_grade_A_Recs,specimen)
             else:
-                self.calc_upper_level_mean(Grade_A_sorted,All_grade_A_Recs,sample_or_site)  
-                self.update_data_with_interpreter_pars(Grade_A_sorted,All_grade_A_Recs,sample_or_site,self.thellier_interpreter_pars)
-                self.update_files_with_intrepretation(Grade_A_sorted,All_grade_A_Recs,sample_or_site,self.thellier_interpreter_pars)
+                self.thellier_interpreter_pars=self.calc_upper_level_mean(self.Grade_A_sorted,All_grade_A_Recs,sample_or_site)  
+                self.update_data_with_interpreter_pars(self.Grade_A_sorted,All_grade_A_Recs,sample_or_site,self.thellier_interpreter_pars)
+                self.update_files_with_intrepretation(self.Grade_A_sorted,All_grade_A_Recs,sample_or_site,self.thellier_interpreter_pars)
 
                                                   
         
@@ -531,8 +532,9 @@ class thellier_auto_interpreter():
 
 
     def update_data_with_interpreter_pars(self,Grade_A_sorted,All_grade_A_Recs,sample_or_site,thellier_interpreter_pars):
-        
         for specimen in Grade_A_sorted[sample_or_site].keys():
+            if specimen not in thellier_interpreter_pars['stdev_opt_interpretations'].keys():
+                continue
             for TEMP in All_grade_A_Recs[specimen].keys():
                 if All_grade_A_Recs[specimen][TEMP]['specimen_int_uT']==thellier_interpreter_pars['stdev_opt_interpretations'][specimen]:    #Best_interpretations[specimen]:
                     self.Data[specimen]['pars'].update(All_grade_A_Recs[specimen][TEMP])
@@ -616,7 +618,8 @@ class thellier_auto_interpreter():
             # and there are enough good specimens with anisotropy correction to pass sample's criteria
             # then dont use the uncorrected specimens for sample's calculation. 
             #--------------------------------------------------------------
-        
+            thellier_interpreter_pars={}
+            tmp_Grade_A_sorted=copy.deepcopy(Grade_A_sorted)
             if self.acceptance_criteria['average_by_sample_or_site']['value']=='sample':
                 aniso_mean_cutoff = self.acceptance_criteria['sample_aniso_mean']['value']
             else:
@@ -627,9 +630,9 @@ class thellier_auto_interpreter():
                     int_n = self.acceptance_criteria['sample_int_n']['value']
                 else:
                     int_n = self.acceptance_criteria['site_int_n']['value']
-                if len(Grade_A_sorted[sample_or_site].keys())>int_n:
+                if len(tmp_Grade_A_sorted[sample_or_site].keys())>int_n:
                     aniso_corrections=[]
-                    for specimen in Grade_A_sorted[sample_or_site].keys():
+                    for specimen in tmp_Grade_A_sorted[sample_or_site].keys():
                         AC_correction_factor_1=0
                         for k in All_grade_A_Recs[specimen].keys():
                             pars=All_grade_A_Recs[specimen][k]
@@ -641,14 +644,15 @@ class thellier_auto_interpreter():
                         if AC_correction_factor_1!=0:
                             aniso_corrections.append(AC_correction_factor_1)
                     if aniso_corrections!=[]:
-                        self.thellier_interpreter_log.write("sample_or_site %s have anisotropy factor mean of %f\n"%(sample_or_site,mean(aniso_corrections)))
+                        self.thellier_interpreter_log.write("sample_or_site %s has anisotropy factor mean of %f\n"%(sample_or_site,mean(aniso_corrections)))
 
                     if mean(aniso_corrections) > aniso_mean_cutoff:
-                        tmp_Grade_A_sorted=copy.deepcopy(Grade_A_sorted)
+                        self.thellier_interpreter_log.write("sample_or_site %s has anisotropy factor mean > thershold of %f\n"%(sample_or_site,aniso_mean_cutoff))
+                        
                         warning_messeage=""
                         WARNING_tmp=""
                         #print "sample %s have anisotropy factor mean of %f"%(sample,mean(aniso_corrections))
-                        for specimen in Grade_A_sorted[sample_or_site].keys():
+                        for specimen in tmp_Grade_A_sorted[sample_or_site].keys():
                             ignore_specimen=False
                             intenstities=All_grade_A_Recs[specimen].keys()
                             pars=All_grade_A_Recs[specimen][intenstities[0]]
@@ -666,7 +670,6 @@ class thellier_auto_interpreter():
                                 WARNING_tmp=WARNING_tmp+"excluding specimen %s; "%(specimen)
                                 del tmp_Grade_A_sorted[sample_or_site][specimen]
 
-                                
                         #--------------------------------------------------------------
                         # calculate the STDEV-OPT best mean (after possible ignoring of specimens with bad anisotropy)
                         # and check if pass after ignoring problematic anistopry specimens 
@@ -675,12 +678,14 @@ class thellier_auto_interpreter():
                         
                         thellier_interpreter_pars=self.thellier_interpreter_pars_calc(tmp_Grade_A_sorted[sample_or_site])
                         if thellier_interpreter_pars['pass_or_fail']=='pass':
+                            #self.Grade_A_sorted[sample_or_site]=copy.deepcopy(tmp_Grade_A_sorted[sample_or_site])
                             Grade_A_sorted[sample_or_site]=copy.deepcopy(tmp_Grade_A_sorted[sample_or_site])
                             WARNING=WARNING_tmp
                             self.thellier_interpreter_log.write(warning_messeage)
                         else:
                             #Grade_A_sorted[sample_or_site]=copy.deepcopy(tmp_Grade_A_sorted[sample_or_site])
-                            WARNING=WARNING_tmp + "; sample fail criteria"
+                            #WARNING=WARNING_tmp + "sample fail criteria"
+                            warning_messeage + "-W- WARNING: sample doesnt pass after rejecting specimens with no ansiotropy. The program keeps these specimens\n"
                             self.thellier_interpreter_log.write(warning_messeage)
                             
 
@@ -705,22 +710,23 @@ class thellier_auto_interpreter():
                int_n_outlier_check=self.acceptance_criteria['sample_int_n_outlier_check']['value']
             else:
                int_n_outlier_check=self.acceptance_criteria['site_int_n_outlier_check']['value']
+            
             if int_n_outlier_check==-999:
                  int_n_outlier_check=9999   
                
-            if len(Grade_A_sorted[sample_or_site].keys())>=int_n_outlier_check:
+            if len(tmp_Grade_A_sorted[sample_or_site].keys())>=int_n_outlier_check:
                 self.thellier_interpreter_log.write( "-I- check outlier for sample %s \n"%sample)
-                all_specimens=Grade_A_sorted[sample_or_site].keys()
+                all_specimens=tmp_Grade_A_sorted[sample_or_site].keys()
                 for specimen in all_specimens:
                     B_min_array,B_max_array=[],[]
                     for specimen_b in all_specimens:
                         if specimen_b==specimen: continue
-                        B_min_array.append(min(Grade_A_sorted[sample_or_site][specimen_b]))
-                        B_max_array.append(max(Grade_A_sorted[sample_or_site][specimen_b]))
-                    if max(Grade_A_sorted[sample_or_site][specimen]) < (mean(B_min_array) - 2*std(B_min_array,ddof=1)):# and 2*std(B_min_array,ddof=1) >3.:
+                        B_min_array.append(min(tmp_Grade_A_sorted[sample_or_site][specimen_b]))
+                        B_max_array.append(max(tmp_Grade_A_sorted[sample_or_site][specimen_b]))
+                    if max(tmp_Grade_A_sorted[sample_or_site][specimen]) < (mean(B_min_array) - 2*std(B_min_array,ddof=1)):# and 2*std(B_min_array,ddof=1) >3.:
                         if specimen not in exclude_specimens_list:
                             exclude_specimens_list.append(specimen)
-                    if min(Grade_A_sorted[sample_or_site][specimen]) > (mean(B_max_array) + 2*std(B_max_array,ddof=1)):# and 2*std(B_max_array,ddof=1) >3 :
+                    if min(tmp_Grade_A_sorted[sample_or_site][specimen]) > (mean(B_max_array) + 2*std(B_max_array,ddof=1)):# and 2*std(B_max_array,ddof=1) >3 :
                            if specimen not in exclude_specimens_list:
                             exclude_specimens_list.append(specimen)
                          
@@ -731,19 +737,24 @@ class thellier_auto_interpreter():
                 if len(exclude_specimens_list)==1 :
                     #print exclude_specimens_list
                     exclude_specimen=exclude_specimens_list[0]
-                    del Grade_A_sorted[sample_or_site][exclude_specimen]
+                    del tmp_Grade_A_sorted[sample_or_site][exclude_specimen]
                     self.thellier_interpreter_log.write( "-W- WARNING: specimen %s is exluded from sample %s because of an outlier result.\n"%(exclude_specimens_list[0],sample))
                     WARNING=WARNING+"excluding specimen %s; "%(exclude_specimens_list[0])
 
-           
+            #if len(tmp_Grade_A_sorted[sample_or_site])>1:
+            #    Grade_A_sorted[sample_or_site]=copy.deepcopy(tmp_Grade_A_sorted[sample_or_site])
+            #else:
+            #    Grade_A_sorted[sample_or_site]={}
 
             #--------------------------------------------------------------
             # calculate STDEV
             #--------------------------------------------------------------           
-            if self.acceptance_criteria['interpreter_method']['value']=='stdev_opt' and len(Grade_A_sorted[sample_or_site].keys()) > 1:
-                self.thellier_interpreter_pars=self.thellier_interpreter_pars_calc(Grade_A_sorted[sample_or_site])
+            if self.acceptance_criteria['interpreter_method']['value']=='stdev_opt':
+                thellier_interpreter_pars=self.thellier_interpreter_pars_calc(Grade_A_sorted[sample_or_site])
               #Best_interpretations,best_mean,best_std=self.find_sample_min_std(Grade_A_sorted[sample_or_site])
-                #return( thellier_interpreter_pars)           
+                #return( thellier_interpreter_pars) 
+            #else:
+            #    self.thellier_interpreter_pars={}           
 
 
             
@@ -752,8 +763,9 @@ class thellier_auto_interpreter():
             #--------------------------------------------------------------           
 
             if self.acceptance_criteria['interpreter_method']['value']=='bs' or self.acceptance_criteria['interpreter_method']['value']=='bs_par':
-                self.thellier_interpreter_pars=self.thellier_interpreter_BS_pars_calc(self,Grade_A_sorted[sample_or_site])
+                thellier_interpreter_pars=self.thellier_interpreter_BS_pars_calc(self,Grade_A_sorted[sample_or_site])
                 #return(self.thellier_interpreter_pars)
+            return( thellier_interpreter_pars)
 
     def update_files_with_intrepretation(self,Grade_A_sorted,All_grade_A_Recs,sample_or_site,thellier_interpreter_pars):
                 
@@ -1066,6 +1078,7 @@ class thellier_auto_interpreter():
         ############
 
     def thellier_interpreter_pars_calc(self,Grade_As):
+        
         '''
         calcualte sample or site STDEV-OPT paleointensities
         and statistics 
@@ -1099,7 +1112,7 @@ class thellier_auto_interpreter():
             int_interval_cutoff=self.acceptance_criteria['site_int_interval_uT']['value']
             int_interval_perc_cutoff=self.acceptance_criteria['site_int_interval_perc']['value']
         
-        N= len(Grade_As.keys())                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   
+        N= len(Grade_As.keys())
         if N <= 1:
            thellier_interpreter_pars['pass_or_fail']='fail'
            thellier_interpreter_pars['fail_criteria'].append("int_n")
@@ -1130,7 +1143,7 @@ class thellier_auto_interpreter():
         pass_int_interval,pass_int_interval_perc=True,True
         
 
-        if not (int_sigma_cutoff==-999 and int_sigma_perc_cutoff)==-999:
+        if not (int_sigma_cutoff==-999 and int_sigma_perc_cutoff==-999):
             if  best_std<=int_sigma_cutoff*1e6 and int_sigma_cutoff!=-999:
                 pass_sigma=True
             else:
@@ -1143,7 +1156,7 @@ class thellier_auto_interpreter():
                 thellier_interpreter_pars['pass_or_fail']='fail'
                 thellier_interpreter_pars['fail_criteria'].append("int_sigma")
 
-        if not (int_interval_cutoff==-999 and int_interval_perc_cutoff)==-999:
+        if not (int_interval_cutoff==-999 and int_interval_perc_cutoff==-999):
             if  sample_int_interval_uT<=int_interval_perc_cutoff and int_interval_perc_cutoff!=-999:
                 pass_interval=True
             else:

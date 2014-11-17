@@ -3,6 +3,11 @@
 #============================================================================================
 # LOG HEADER:
 #============================================================================================
+#
+## Thellier_GUI Version 2.26 11/16/2014
+# modify code for thellier interpreter
+# Add Consistency Check
+#
 # Thellier_GUI Version 2.25 08/08/2014
 # Bug fixes:
 # deal with old foramt pmag_criteria.txt when specimen_dang is used as specimen_int_dang; 
@@ -117,7 +122,7 @@
 global CURRENT_VRSION
 global MICROWAVE
 global THERMAL
-CURRENT_VRSION = "v.2.25"
+CURRENT_VRSION = "v.2.26"
 MICROWAVE=False
 THERMAL=True
 
@@ -2891,6 +2896,8 @@ class Arai_GUI(wx.Frame):
         thellier_auto_interpreter.run_interpreter()
         self.Data={}
         self.Data=copy.deepcopy(thellier_auto_interpreter.Data)
+        self.Data_samples=copy.deepcopy(thellier_auto_interpreter.Data_samples)
+        self.Data_sites=copy.deepcopy(thellier_auto_interpreter.Data_sites)
         dlg1 = wx.MessageDialog(self,caption="Message:", message="Interpreter finished sucsessfuly\nCheck output files in folder /thellier_interpreter in the current project directory" ,style=wx.OK|wx.ICON_INFORMATION)
         
         # display the interpretation of the current specimen:
