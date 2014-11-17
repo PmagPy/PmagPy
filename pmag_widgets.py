@@ -626,6 +626,12 @@ def simple_warning(text=None):
     dlg = wx.MessageDialog(None, message=text, caption="warning", style=wx.ICON_ERROR|wx.OK)
     dlg.ShowModal()
     dlg.Destroy()
+
+def warning_with_override(text):
+    dlg = wx.MessageDialog(None, message=text, caption="warning", style=wx.YES_NO|wx.NO_DEFAULT|wx.ICON_ERROR)
+    result = dlg.ShowModal()
+    dlg.Destroy()
+    return result
     
 
 def on_helpButton(command=None, text=None):

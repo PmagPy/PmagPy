@@ -3236,6 +3236,22 @@ class check(wx.Frame):
         event.Skip()
 
 
+    def validate(self, grid):
+        validations = ['specimens', 'samples', 'site_class', 'site_lithology', 'site_type', 'site_definition', 'site_lon', 'site_lat', 'sample_class', 'sample_lithology', 'sample_type', 'sample_lat', 'sample_lon', 'location_type', 'age_unit', 'age']
+        cols = range(grid.GetNumberCols())
+        rows = range(grid.GetNumberRows())
+        data_missing = []
+        for col in cols:
+            col_label = str(grid.GetColLabelValue(col))
+            if col_label in validations:
+                for row in rows:
+                    value = grid.GetCellValue(row, col)
+                    if not value:
+                        data_missing.append(col_label)
+                        break
+        return data_missing
+
+
 
     ### Button methods ###
 
@@ -3298,7 +3314,7 @@ class check(wx.Frame):
 
     def on_helpButton(self, event, page=None):
         """shows html help page"""
-        path = pmag2.get_pmag_dir()
+        path = pmag.get_pmag_dir()
         html_frame = pw.HtmlFrame(self, page=(path+page))
         html_frame.Show()
 
@@ -3317,6 +3333,15 @@ class check(wx.Frame):
         grid.SaveEditControlValue() # locks in value in cell currently edited
         simple_grids = {"location": self.ErMagic.data_er_locations, "age": self.ErMagic.data_er_ages}
         grid_name = grid.GetName()
+
+        # check that all required data is present
+        validation_errors = self.validate(grid)
+        if validation_errors:
+            result = pw.warning_with_override("You are missing required data in these columns: {}\nAre you sure you want to continue without this data?".format(str(validation_errors)))
+            if result == wx.ID_YES:
+                pass
+            else:
+                return False
 
         if self.changes:
             if grid_name in simple_grids:
