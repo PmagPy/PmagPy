@@ -902,12 +902,12 @@ class convert_SIO_files_to_MagIC(wx.Frame):
         self.Parent.Raise()
 
     def on_helpButton(self, event):
-        # to run as command line:
+        # to run as module:
         #import sio_magic
         #pw.on_helpButton(text=sio_magic.do_help())
 
-        #to run as module:
-        #pw.on_helpButton("sio_magic.py -h")
+        #to run as command line:
+        pw.on_helpButton("sio_magic.py -h")
 
 
 
@@ -1059,9 +1059,9 @@ class convert_CIT_files_to_MagIC(wx.Frame):
             options_dict['avg'] = 1
             replicate = '-A'
 
+        COMMAND = call+"CIT_magic.py -WD {} -f {} -F {} {} {} {} {} -ncn {} {} {} {} -Fsp {} -Fsi {} -Fsa {} {}".format(wd, CIT_file, outfile, particulars, spec_num, loc_name, user, ncn, peak_AF, lab_field, ID, spec_outfile, site_outfile, samp_outfile, replicate)
         # to run as module:
         #import CIT_magic
-        #COMMAND = call+"CIT_magic.py -WD {} -f {} -F {} {} {} {} {} -ncn {} {} {} {} -Fsp {} -Fsi {} -Fsa {} {}".format(wd, CIT_file, outfile, particulars, spec_num, loc_name, user, ncn, peak_AF, lab_field, ID, spec_outfile, site_outfile, samp_outfile, replicate)
         #if CIT_magic.main(command_line=False, **options_dict):
         #    pw.close_window(self, COMMAND, outfile)
         #else:
@@ -1272,7 +1272,7 @@ class convert_HUJI_files_to_MagIC(wx.Frame):
         #    import HUJI_magic as HUJI
         #else:
         #    import HUJI_magic_new as HUJI
-        pw.on_helpButton(text=HUJI.do_help())
+        #pw.on_helpButton(text=HUJI.do_help())
         if old_format:
             pw.on_helpButton("HUJI_magic.py -h")
         else:
@@ -1373,8 +1373,12 @@ class convert_2G_binary_files_to_MagIC(wx.Frame):
         options_dict['ID'] = directory
         if not directory:
             pw.simple_warning('You must select a directory containing 2G binary files')
+            return False
         files = os.listdir(directory)
         files = [str(f) for f in files if str(f).endswith('.dat')]
+        if not files:
+            pw.simple_warning('No .dat files found in {}'.format(directory))
+            return False
         ID = "-ID " + directory
         if self.bSizer1.return_value():
             particulars = self.bSizer1.return_value()
@@ -1417,7 +1421,7 @@ class convert_2G_binary_files_to_MagIC(wx.Frame):
             outfile = file_2G_bin + ".magic"
             options_dict['meas_file'] = outfile
             options_dict['mag_file'] = f
-            COMMAND = call+"2G_bin_magic.py -WD {} -f {} -F {} -Fsa {} -Fsi {} -ncn {} {} {} -ocn {} {} {} {}".format(WD, file_2G_bin, outfile, samp_outfile, sites_outfile, ncn, mcd, spc, ocn, loc_name, replicate, ID)
+            COMMAND = call+"_2G_bin_magic.py -WD {} -f {} -F {} -Fsa {} -Fsi {} -ncn {} {} {} -ocn {} {} {} {}".format(WD, file_2G_bin, outfile, samp_outfile, sites_outfile, ncn, mcd, spc, ocn, loc_name, replicate, ID)
             if files.index(f) == (len(files) - 1): # terminate process on last file call
                 # to run as module:
                 #if _2G_bin_magic.main(False, **options_dict):
@@ -1450,7 +1454,7 @@ class convert_2G_binary_files_to_MagIC(wx.Frame):
         #pw.on_helpButton(text=_2G_bin_magic.do_help())
         
         # to run as command line:
-        pw.on_helpButton("2G_bin_magic.py -h")
+        pw.on_helpButton("_2G_bin_magic.py -h")
 
 
 
@@ -1739,9 +1743,9 @@ class convert_IODP_csv_files_to_MagIC(wx.Frame):
             replicate = "-A"
             options['noave'] = 1
 
+        COMMAND = call+"IODP_csv_magic.py -WD {0} -f {1} -F {2} {3} -ID {4} -Fsp {5} -Fsa {6} -Fsi {7}".format(wd, IODP_file, outfile, replicate, ID, spec_outfile, samp_outfile, site_outfile)
         # to run as module:
         #import IODP_csv_magic
-        #COMMAND = call+"IODP_csv_magic.py -WD {0} -f {1} -F {2} {3} -ID {4} -Fsp {5} -Fsa {6} -Fsi {7}".format(wd, IODP_file, outfile, replicate, ID, spec_outfile, samp_outfile, site_outfile)
         #if IODP_csv_magic.main(False, **options):
         #    pw.close_window(self, COMMAND, outfile)
         #else:
@@ -1885,7 +1889,7 @@ class convert_PMD_files_to_MagIC(wx.Frame):
             COMMAND = call+"PMD_magic.py -WD {} -f {} -F {} -Fsa {} -ncn {} {} -spc {} {} {}".format(WD, f, outfile, samp_outfile, ncn, particulars, spc, replicate, ID)
             
             # to run as command_line:
-            if file.index(f) == len(files) -1:
+            if files.index(f) == len(files) -1:
                 pw.run_command_and_close_window(self, COMMAND, outfile)
             else:
                 pw.run_command(self, COMMAND, outfile)

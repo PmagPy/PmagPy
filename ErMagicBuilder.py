@@ -331,7 +331,11 @@ class MagIC_model_builder(wx.Frame):
                 if site in self.data_er_sites.keys() and key in self.data_er_sites[site].keys():
                     string=string+self.data_er_sites[site][key]+"\t"
                 else:
-                    string=string+self.Data_hierarchy['location_of_sample'][sample]+"\t"
+                    try:
+                        string=string+self.Data_hierarchy['location_of_sample'][sample]+"\t"
+                    except KeyError:
+                        string = string + "" + "\t"
+                        
 
             # if er_samples.txt already has a value in a column, don't try to get it from er_sites.txt
             elif sample in self.data_er_samples.keys() and key in self.data_er_samples[sample].keys() and self.data_er_samples[sample][key]!="":

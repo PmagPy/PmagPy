@@ -328,7 +328,7 @@ class convert_tdt_files_to_MagIC(wx.Frame):
         menu_help = menu_about.Append(-1, "&Some notes", "")
         self.Bind(wx.EVT_MENU, self.on_menu_help, menu_help)
 
-        self.menubar.Append(menu_about, "& Instrcutions") 
+        self.menubar.Append(menu_about, "& Instructions") 
 
         self.SetMenuBar(self.menubar)
 
