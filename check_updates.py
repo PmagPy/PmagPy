@@ -9,7 +9,10 @@ from Tkinter import *
 version = 'pmagpy-2.236'
 
 def get_version():
-        return version
+   global pmagpy_path,local_path
+   pmagpy_path = os.path.dirname(sys.argv[0])
+   local_path  = os.path.join(pmagpy_path, 'version.txt')
+   return version
     
 def main():
     global pmagpy_path,local_path
