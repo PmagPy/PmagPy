@@ -1,8 +1,11 @@
 :: -----------------------------------------------------------------------------
 :: Installation test script for Lisa Tauxe's PmagPy Python Package
 :: Written by Rupert C. J. Minnett, Ph.D.
-:: Last updated 8/31/2012
+:: Last updated 11/17/2014
 :: -----------------------------------------------------------------------------
+
+:: Change to the drive's root directory to test outside of the installation directory
+cd \
 
 :: Execute a test of the PmagPy package
 eqarea.py -h
