@@ -12,8 +12,6 @@ Command_line_Tests/
 .#*
 *.log
 
-
-IPmag.py
 rmag_anisotropy.txt
 rmag_results.txt
 consistency_test/pmag_fixed_criteria.txt
@@ -36,9 +34,7 @@ demag_dialog_boxes.py
 tmp.txt
 
 thellier_gui_preferences.py
-
 thellier_gui_new_criteria.py
-
 thellier_gui_lori.py
 
 
