@@ -10,6 +10,20 @@ from scipy import array,sqrt,mean
 def get_version():
     version=check_updates.get_version()
     return version
+
+def get_pmag_dir():
+    """
+    Searches user's path and returns directory in which PmagPy is installed
+    """
+    path = ''
+    for p in os.environ['PATH'].split(':'):
+        #print "p", p
+        if 'Pmag' in p:
+            return p + '/'
+    raise Exception("Can't find PmagPy in path")
+        #print "path + page", path+page
+
+
 def sort_diclist(undecorated,sort_on):
     decorated=[(dict_[sort_on],dict_) for dict_ in undecorated]
     decorated.sort()

@@ -9,13 +9,12 @@ import os
 import subprocess
 import sys
 import pmag
-import pmag2
 import pmag_widgets as pw
 import ErMagicBuilder
 import drop_down_menus
 
-if sys.platform in ['win32', 'win64']:
-    call = pmag2.get_pmag_dir()
+if False:#sys.platform in ['win32', 'win64']:
+    call = pmag.get_pmag_dir()
 else:
     call = ""
 

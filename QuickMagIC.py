@@ -7,7 +7,6 @@ import sys
 import datetime
 import shutil
 import pmag
-import pmag2
 import pmag_basic_dialogs
 import pmag_menu
 
@@ -34,15 +33,15 @@ class MagMainFrame(wx.Frame):
         self.first_time_messsage=False
         self.Bind(wx.EVT_CLOSE, self.on_menu_exit)
         self.Data, self.Data_hierarchy = {}, {}
-        print pmag2.get_pmag_dir()
+        #print pmag.get_pmag_dir()
         # print statments below don't work on windows
         #print os.environ['_system_name']#'OSX'
         #print os.environ['_system_version']#'10.9'
         #print os.environ['_system_type']#'Darwin'
         #print "sys.platform", sys.platform # 'darwin'
         self.call = ""
-        if sys.platform in ['win32', 'win64']:
-            self.call = "python " + pmag2.get_pmag_dir()
+        if False:#sys.platform in ['win32', 'win64']:
+            self.call = "python " + pmag.get_pmag_dir()
         else:
             pass #print "not windows"
 
