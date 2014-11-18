@@ -23,7 +23,6 @@ def get_pmag_dir():
     raise Exception("Can't find PmagPy in path")
         #print "path + page", path+page
 
-
 def sort_diclist(undecorated,sort_on):
     decorated=[(dict_[sort_on],dict_) for dict_ in undecorated]
     decorated.sort()
@@ -64,8 +63,7 @@ def get_dictkey(In,k,dtype):
                 Out.append(0)
             else:
                 Out.append(int(d[k]))
-    return Out 
-        
+    return Out     
 
 def find(f,seq):
     for item in seq:
@@ -247,7 +245,6 @@ def getfield(irmunits,coil,treat):
     if coil=="1": m,b=0.0002,-0.0002 # B=mh+b where B is in T, treat is in Volts
     return float(treat)*m+b 
      
-
 def sortbykeys(input,sort_list):
     Output = []
     List=[] # get a list of what to be sorted by second key
@@ -409,7 +406,6 @@ def orient(mag_azimuth,field_dip,or_con):
         return mag_azimuth-90., 90.-field_dip
     print "Error in orientation convention"
 
-
 def get_Sb(data):
     """
     returns vgp scatter for data set
@@ -428,6 +424,7 @@ def get_Sb(data):
                 Sb+=delta**2.-(Sw**2)/Nsi
                 N+=1.
     return numpy.sqrt( Sb/float(N-1.) )
+
 def default_criteria(nocrit):
     Crits={}
     critkeys=['magic_experiment_names', 'measurement_step_min', 'measurement_step_max', 'measurement_step_unit', 'specimen_polarity', 'specimen_nrm', 'specimen_direction_type', 'specimen_comp_nmb', 'specimen_mad', 'specimen_alpha95', 'specimen_n', 'specimen_int_sigma', 'specimen_int_sigma_perc', 'specimen_int_rel_sigma', 'specimen_int_rel_sigma_perc', 'specimen_int_mad', 'specimen_int_n', 'specimen_w', 'specimen_q', 'specimen_f', 'specimen_fvds', 'specimen_b_sigma', 'specimen_b_beta', 'specimen_g', 'specimen_dang', 'specimen_md', 'specimen_ptrm', 'specimen_drat', 'specimen_drats', 'specimen_rsc', 'specimen_viscosity_index', 'specimen_magn_moment', 'specimen_magn_volume', 'specimen_magn_mass', 'specimen_int_dang','specimen_int_ptrm_n', 'specimen_delta', 'specimen_theta', 'specimen_gamma', 'specimen_frac','specimen_gmax','specimen_scat','sample_polarity', 'sample_nrm', 'sample_direction_type', 'sample_comp_nmb', 'sample_sigma', 'sample_alpha95', 'sample_n', 'sample_n_lines', 'sample_n_planes', 'sample_k', 'sample_r', 'sample_tilt_correction', 'sample_int_sigma', 'sample_int_sigma_perc', 'sample_int_rel_sigma', 'sample_int_rel_sigma_perc', 'sample_int_n', 'sample_magn_moment', 'sample_magn_volume', 'sample_magn_mass', 'site_polarity', 'site_nrm', 'site_direction_type', 'site_comp_nmb', 'site_sigma', 'site_alpha95', 'site_n', 'site_n_lines', 'site_n_planes', 'site_k', 'site_r', 'site_tilt_correction', 'site_int_sigma', 'site_int_sigma_perc', 'site_int_rel_sigma', 'site_int_rel_sigma_perc', 'site_int_n', 'site_magn_moment', 'site_magn_volume', 'site_magn_mass', 'average_age_min', 'average_age_max', 'average_age_sigma', 'average_age_unit', 'average_sigma', 'average_alpha95', 'average_n', 'average_nn', 'average_k', 'average_r', 'average_int_sigma', 'average_int_rel_sigma', 'average_int_rel_sigma_perc', 'average_int_n', 'average_int_nn', 'vgp_dp', 'vgp_dm', 'vgp_sigma', 'vgp_alpha95', 'vgp_n', 'vdm_sigma', 'vdm_n', 'vadm_sigma', 'vadm_n', 'criteria_description', 'er_citation_names']
@@ -679,6 +676,7 @@ def dovds(data):
         vds+=numpy.sqrt(xdif**2+ydif**2+zdif**2)
     vds+=numpy.sqrt(X[-1][0]**2+X[-1][1]**2+X[-1][2]**2)
     return vds
+
 def vspec_magic(data):
     """
    takes average vector of replicate measurements
@@ -742,7 +740,6 @@ def vspec_magic(data):
                 del data[-1]  # get rid of dummy stop sign
                 return vdata,treats # bye-bye
 
-#
 def get_specs(data):
     """
      takes a magic format file and returns a list of unique specimen names
@@ -755,7 +752,6 @@ def get_specs(data):
       if spec not in speclist:speclist.append(spec)
     speclist.sort()
     return speclist
-
 
 def vector_mean(data):
     """
@@ -774,6 +770,7 @@ def vector_mean(data):
         Xbar[c]=Xbar[c]/R    
     dir=cart2dir(Xbar)
     return dir, R 
+
 def mark_dmag_rec(s,ind,data):
     """
     edits demagnetization data to mark "bad" points with measurement_flag
@@ -798,7 +795,6 @@ def mark_dmag_rec(s,ind,data):
                         data[k]['measurement_flag']=flag
                         break
     return data
-
 
 def mark_samp(Samps,data,crd):
 
@@ -869,7 +865,6 @@ def find_dmag_rec(s,data):
         meas_units=meas_units[:-1]
     return datablock,meas_units
  
-
 def magic_read(infile):
     """ 
     reads  a Magic template file, puts data in a list of dictionaries
@@ -928,7 +923,7 @@ def magic_read(infile):
     Types=['er','magic','pmag','rmag']
     if magictype in Types:file_type=file_type.lower()
     return magic_data,file_type
-#
+
 def upload_read(infile,table):
     """
     reads  a table from a MagIC upload (or downloaded) txt file, 
@@ -970,8 +965,7 @@ def upload_read(infile,table):
                 magic_record[magic_keys[k]]=rec[k]
             magic_data.append(magic_record)
     return magic_data
-#
-#
+
 def putout(ofile,keylist,Rec):
     """
     writes out a magic format record to ofile
@@ -1041,7 +1035,6 @@ def magic_write(ofile,Recs,file_type):
     pmag_out.close()
     return True
 
-
 def dotilt(dec,inc,bed_az,bed_dip):
     """
     does a tilt correction on dec,inc using bedding dip direction bed_az and dip bed_dip
@@ -1058,7 +1051,6 @@ def dotilt(dec,inc,bed_az,bed_dip):
 # convert back to direction:
     Dir=cart2dir([xc,yc,-zc])
     return Dir[0],Dir[1] # return declination, inclination of rotated direction
-
 
 def dotilt_V(input):
     """
@@ -1082,7 +1074,6 @@ def dotilt_V(input):
     cart=numpy.array([xc,yc,-zc]).transpose()
     Dir=cart2dir(cart).transpose()
     return Dir[0],Dir[1] # return declination, inclination arrays of rotated direction
-
 
 def dogeo(dec,inc,az,pl):
     """
@@ -1108,6 +1099,7 @@ def dogeo(dec,inc,az,pl):
 #
     Dir_geo=cart2dir([xp,yp,zp])
     return Dir_geo[0],Dir_geo[1]    # send back declination and inclination
+
 def dogeo_V(input):
     """
     rotates dec,in into geographic coordinates using az,pl as azimuth and plunge of X direction
@@ -1268,7 +1260,7 @@ def cart2dir(cart):
 #    Dir.append(I) # append inclination to Dir list
 #    Dir.append(R) # append vector length to Dir list
 #    return Dir # return the directions list
-#
+
 def tauV(T):
     """
     gets the eigenvalues (tau) and eigenvectors (V) from matrix T
@@ -1313,7 +1305,6 @@ def Tmatrix(X):
                 T[k][l] += row[k]*row[l]
     return T
 
-
 def dir2cart(d):
    # converts list or array of vector directions, in degrees, to array of cartesian coordinates, in x,y,z
     ints=numpy.ones(len(d)).transpose() # get an array of ones to plug into dec,inc pairs
@@ -1330,7 +1321,6 @@ def dir2cart(d):
             ints=numpy.array([1.])
     cart= numpy.array([ints*numpy.cos(decs)*numpy.cos(incs),ints*numpy.sin(decs)*numpy.cos(incs),ints*numpy.sin(incs)]).transpose()
     return cart
-
 
 def dms2dd(d):
    # converts list or array of degree, minute, second locations to array of decimal degrees 
@@ -1543,7 +1533,6 @@ def circ(dec,dip,alpha):
         D_out.append(Dir[0])
         I_out.append(Dir[1])
     return D_out,I_out
-
 
 def PintPars(datablock,araiblock,zijdblock,start,end,accept):
     """
@@ -2181,7 +2170,6 @@ def getkeys(table):
         keys.append("measurement_csd")
     return  keys
 
-
 def getnames():
     """
     get mail names
@@ -2577,7 +2565,6 @@ def gha(julian_day,f):
     H=H%360.0
     return H,delta
 
-
 def julian(mon,day,year):
     """
     returns julian day
@@ -2687,7 +2674,6 @@ def weighted_mean(data):
     stdev=numpy.sqrt(d*(1./(float(N-1))))
     return mean,stdev
 
-
 def lnpbykey(data,key0,key1): # calculate a fisher mean of key1 data for a group of key0 
     PmagRec={}
     if len(data)>1:
@@ -2726,7 +2712,7 @@ def lnpbykey(data,key0,key1): # calculate a fisher mean of key1 data for a group
 def fisher_by_pol(data):
     """
     input:    as in dolnp (list of dictionaries with 'dec' and 'inc')
-    description: do fisher mean after splitting data into two polaroties domains.
+    description: do fisher mean after splitting data into two polarity domains.
     output: three dictionaries:
         'A'= polarity 'A'
         'B = polarity 'B'
@@ -2791,7 +2777,6 @@ def fisher_by_pol(data):
             FisherByPoles[mode]=fpars
     return FisherByPoles       
     
-     
 def dolnp(data,direction_type_key):
     """
     returns fisher mean, a95 for data  using method of mcfadden and mcelhinny '88 for lines and planes
@@ -2903,8 +2888,7 @@ def vclose(L,V):
     for k in range(3):
         X.append( ((V[k]-lam*L[k])/beta))
     return X
-
-   
+  
 def scoreit(pars,PmagSpecRec,accept,text,verbose):
     """
     gets a grade for a given set of data, spits out stuff
@@ -3053,7 +3037,6 @@ def dobingham(data):
     sig31,sig32=numpy.sqrt(1./fac1), numpy.sqrt(1./fac2)
     bpars["Zeta"],bpars["Eta"]=2.45*sig31*180./numpy.pi,2.45*sig32*180./numpy.pi
     return  bpars
-
 
 def doflip(dec,inc):
    """
@@ -3226,7 +3209,6 @@ def dokent(data,NN):
     kpars["Eta"]=eta*180./numpy.pi
     return kpars
 
-
 def doprinc(data):
     """
     gets principal components from data
@@ -3264,7 +3246,6 @@ def doprinc(data):
     ppars['V3dec']=dec
     ppars['V3inc']=inc
     return ppars
-
 
 def PTrot(EP,Lats,Lons):
     """ Does rotation of points on a globe  by finite rotations, using method of Cox and Hart 1986, box 7-3. """
