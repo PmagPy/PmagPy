@@ -12,9 +12,10 @@ import pmag
 import pmag_widgets as pw
 import ErMagicBuilder
 import drop_down_menus
+import check_updates
 
 if False:#sys.platform in ['win32', 'win64']:
-    call = pmag.get_pmag_dir()
+    call = check_updates.get_pmag_dir()
 else:
     call = ""
 
@@ -3314,7 +3315,7 @@ class check(wx.Frame):
 
     def on_helpButton(self, event, page=None):
         """shows html help page"""
-        path = pmag.get_pmag_dir()
+        path = check_updates.get_pmag_dir()
         html_frame = pw.HtmlFrame(self, page=(path+page))
         html_frame.Show()
 

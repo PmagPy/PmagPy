@@ -9,6 +9,7 @@ import shutil
 import pmag
 import pmag_basic_dialogs
 import pmag_menu
+import check_updates
 
 
 
@@ -33,7 +34,7 @@ class MagMainFrame(wx.Frame):
         self.first_time_messsage=False
         self.Bind(wx.EVT_CLOSE, self.on_menu_exit)
         self.Data, self.Data_hierarchy = {}, {}
-        #print pmag.get_pmag_dir()
+        #print check_updates.get_pmag_dir()
         # print statments below don't work on windows
         #print os.environ['_system_name']#'OSX'
         #print os.environ['_system_version']#'10.9'
@@ -41,7 +42,7 @@ class MagMainFrame(wx.Frame):
         #print "sys.platform", sys.platform # 'darwin'
         self.call = ""
         if False:#sys.platform in ['win32', 'win64']:
-            self.call = "python " + pmag.get_pmag_dir()
+            self.call = "python " + check_updates.get_pmag_dir()
         else:
             pass #print "not windows"
 

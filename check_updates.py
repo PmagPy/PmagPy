@@ -5,34 +5,54 @@ import urllib2
 import pickle
 from Tkinter import *
 
+def get_pmag_dir():
+    """
+    Searches user's path and returns directory in which PmagPy is installed
+    """
+    path = ''
+    for p in os.environ['PATH'].split(':'):
+        #print "p", p
+        if 'Pmag' in p:
+            return p + '/'
+    raise Exception("Can't find PmagPy in path")
+        #print "path + page", path+page
 
-version = 'pmagpy-2.236'
 
 def get_version():
-   global pmagpy_path,local_path
-   pmagpy_path = os.path.dirname(sys.argv[0])
-   local_path  = os.path.join(pmagpy_path, 'version.txt')
-   return version
+   import version
+   global pmagpy_path
+   pmagpy_path = get_pmag_dir()
+   return version.version
     
 def main():
-    global pmagpy_path,local_path
+    global pmagpy_path
     local_version=get_version()
     last_path   = os.path.join(pmagpy_path, 'version_last_checked.txt')
     # Get the version of the local PmagPy installation
-    # from the version.txt file in the current directory.
+    # from the version.py file in the current directory.
     # Make sure this check for an update hasn't be done in the last 24 hours
     try:
         fh_last = open(last_path, 'r+')
         last_checked = pickle.load(fh_last)
-        if last_checked < time.time() - 24*60*60:
+        if (time.time() - last_checked) < 24*60*60: # if last check was less than a day ago
             return            # stop here because it's been less than 24 hours
         else:
+            fh_last.close()
+            fh_last = open(last_path, 'w') # open it and overwrite previous value
             pickle.dump(time.time(), fh_last)
-    except IOError:
+            fh_last.write('\nThe above is a "pickled" representation of the last time you checked for updates.  Please leave this file alone, it will be updated automatically!')
+            
+    except IOError as io:
+        #print "IOError", io
         fh_last = open(last_path, 'w')
         pickle.dump(time.time(), fh_last)
-    except UnpicklingError:
+        fh_last.write('\nThe above is a "pickled" representation of the last time you checked for updates.  Please leave this file alone, it will be updated automatically!')
+    except pickle.UnpicklingError as ue:
+        #print "UnpicklingError", ue
         pickle.dump(time.time(), fh_last)
+    except EOFError: # if version_last_checked file is empty for some reason
+        pickle.dump(time.time(), fh_last)
+        fh_last.write('\nThe above is a "pickled" representation of the last time you checked for updates.  Please leave this file alone, it will be updated automatically!')
     except:
         pass                  # ignore any other problems opening the file handle
                               # or pickling the time stamp
@@ -46,10 +66,11 @@ def main():
     # Get the version of the latest remote PmagPy repository
     # from the version.txt file on GitHub
     try:
-        uh_remote = urllib2.urlopen('https://raw.github.com/ltauxe/PmagPy/master/version.txt')
-        remote_version = uh_remote.read().strip('\n')
-    except:
-        return                # if an error occured (e.g. not online), 
+       #uh_remote = urllib2.urlopen('https://raw.github.com/ltauxe/PmagPy/master/version.txt')
+       uh_remote = urllib2.urlopen('https://raw.github.com/ltauxe/PmagPy/master/version.py')
+       remote_version = uh_remote.readlines()[0][1:-2] # strips out extra quotation marks
+    except Exception as ex:
+       return                # if an error occured (e.g. not online), 
                               # give up trying to check for an update
     finally:
         try:
@@ -67,5 +88,5 @@ def main():
         l.pack(side=TOP)
         root.wait_window(frame)
 
-
-main()
+if __name__ == '__main__':
+   main()

@@ -9,6 +9,7 @@ matplotlib.use('WXAgg')
 import  wx.html
 import pmag
 import pmag_widgets as pw
+import check_updates
 
 #from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigCanvas \
 import os
@@ -677,7 +678,7 @@ class MagIC_model_builder(wx.Frame):
         self.Destroy()
 
     def on_helpButton(self, event):
-        path = pmag.get_pmag_dir()
+        path = check_updates.get_pmag_dir()
         html_frame = pw.HtmlFrame(self, page=(path+"ErMagicHeadersHelp.html"))
         html_frame.Center()
         html_frame.Show()
