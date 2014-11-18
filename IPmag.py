@@ -59,7 +59,7 @@ def flip(D): #function simplified from PmagPy pmag.flip function
     Dflip=[]
     for rec in D:
         d,i=(rec[0]-180.)%360.,-rec[1]
-        Dflip.append([d,i,1.])
+        Dflip.append([d,i])
     return Dflip
         
 def bootstrap_common_mean(Data1,Data2,NumSims=1000):
