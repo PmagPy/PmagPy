@@ -7,16 +7,9 @@ from Tkinter import *
 
 def get_pmag_dir():
     """
-    Searches user's path and returns directory in which PmagPy is installed
+    Returns directory in which PmagPy is installed
     """
-    path = ''
-    for p in os.environ['PATH'].split(':'):
-        #print "p", p
-        if 'Pmag' in p:
-            return p + '/'
-    raise Exception("Can't find PmagPy in path")
-        #print "path + page", path+page
-
+    return os.path.dirname(os.path.realpath(__file__))
 
 def get_version():
    import version
@@ -40,19 +33,19 @@ def main():
             fh_last.close()
             fh_last = open(last_path, 'w') # open it and overwrite previous value
             pickle.dump(time.time(), fh_last)
-            fh_last.write('\nThe above is a "pickled" representation of the last time you checked for updates.  Please leave this file alone, it will be updated automatically!')
+            fh_last.write('\nThe above is a "pickled" representation of the last time you checked for updates.  Please leave this file alone; it will be updated automatically!')
             
     except IOError as io:
         #print "IOError", io
         fh_last = open(last_path, 'w')
         pickle.dump(time.time(), fh_last)
-        fh_last.write('\nThe above is a "pickled" representation of the last time you checked for updates.  Please leave this file alone, it will be updated automatically!')
+        fh_last.write('\nThe above is a "pickled" representation of the last time you checked for updates.  Please leave this file alone; it will be updated automatically!')
     except pickle.UnpicklingError as ue:
         #print "UnpicklingError", ue
         pickle.dump(time.time(), fh_last)
     except EOFError: # if version_last_checked file is empty for some reason
         pickle.dump(time.time(), fh_last)
-        fh_last.write('\nThe above is a "pickled" representation of the last time you checked for updates.  Please leave this file alone, it will be updated automatically!')
+        fh_last.write('\nThe above is a "pickled" representation of the last time you checked for updates.  Please leave this file alone; it will be updated automatically!')
     except:
         pass                  # ignore any other problems opening the file handle
                               # or pickling the time stamp
