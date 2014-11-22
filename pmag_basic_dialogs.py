@@ -377,7 +377,7 @@ class convert_generic_files_to_MagIC(wx.Frame):
         except ValueError:
             B_uT, DEC, INC = '0', '0', '0'
 
-        print "B_uT, DEC, INC", B_uT, DEC, INC
+        #print "B_uT, DEC, INC", B_uT, DEC, INC
         options['labfield'], options['labfield_phi'], options['labfield_theta'] = B_uT, DEC, INC
 
         if EXP != "Demag":
@@ -3823,15 +3823,6 @@ class check(wx.Frame):
                 if dict_item not in short_dict.keys():
                     long_dict.pop(dict_item)
             return long_dict
-        ignore = """
-        print [method for method in dir(self) if method[0].islower()]
-        print "specimens", sorted(self.Data_hierarchy['specimens'].keys())
-        print "samples", sorted(self.Data_hierarchy['samples'].keys())
-        print "sites  ", sorted(self.Data_hierarchy['sites'].keys())
-        print "locations", self.Data_hierarchy['locations'].keys()
-        print "before:", sorted(self.ErMagic.data_er_sites.keys())
-        to_do = [(self.ErMagic.data_er_specimens, self.Data_hierarchy['specimens'])]
-        """
         remove_extras(self.ErMagic.data_er_specimens, self.Data_hierarchy['specimens'])
         remove_extras(self.ErMagic.data_er_samples, self.Data_hierarchy['samples'])
         remove_extras(self.ErMagic.data_er_sites, self.Data_hierarchy['sites'])

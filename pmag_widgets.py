@@ -589,7 +589,6 @@ class AddItem(wx.Frame):
         self.Destroy()
         
     def on_okButton(self, event):
-        print "doing on_okButton"
         item = str(self.item_name.return_value())
         if self.owner_items:
             owner = str(self.owner_name.GetValue())

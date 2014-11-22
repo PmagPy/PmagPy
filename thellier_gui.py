@@ -133,7 +133,6 @@ from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigCanvas \
 
 import sys,pylab,scipy,os
 import pmag
-print "thellier GUI is using:", sys.version
 ##try:
 ##    import pmag
 ##except:
