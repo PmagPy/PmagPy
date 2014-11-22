@@ -3,13 +3,14 @@ from numpy import random
 import numpy.linalg
 import exceptions
 import os
-import check_updates
+#import check_updates
 import scipy
 from scipy import array,sqrt,mean
 
-check_updates.main() # check for updates
+#check_updates.main() # check for updates
 
 def get_version():
+    import check_updates
     version=check_updates.get_version()
     return version
 
