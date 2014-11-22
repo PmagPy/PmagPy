@@ -82,6 +82,7 @@ def main():
     rivers,boundaries,ocean=1,1,0
     latmin,latmax,lonmin,lonmax,lat_0,lon_0=-90,90,0.,360.,0.,0.
     padlat,padlon,gridspace=0,0,30
+    lat_0,lon_0="",""
     prn_name,prn_loc,names,locs=0,0,[],[]
     if '-WD' in sys.argv:
         ind = sys.argv.index('-WD')
@@ -152,8 +153,9 @@ def main():
         lonmin=numpy.min(Lons)-padlon
         latmax=numpy.max(Lats)+padlat
         lonmax=numpy.max(Lons)+padlon
-        lon_0=0.5*(lonmin+lonmax)
-        lat_0=0.5*(latmin+latmax)
+        if lon_0=="":
+            lon_0=0.5*(lonmin+lonmax)
+            lat_0=0.5*(latmin+latmax)
     else:
         print "input file must be specified"
         sys.exit()

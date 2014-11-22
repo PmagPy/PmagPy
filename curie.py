@@ -259,6 +259,7 @@ def main():
         for key in PLT.keys():
             files[key]=str(key) + ".svg"
         pmagplotlib.saveP(PLT,files)
+    sys.exit()
 
 main()
 

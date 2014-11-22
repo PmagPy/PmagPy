@@ -61,24 +61,30 @@ def main():
     if "-WD" in args:
         ind=args.index("-WD")
         dir_path=args[ind+1]
-    specfile=dir_path+'/er_specimens.txt'
-    output=dir_path+"/agm_measurements.txt"
+    if "-ID" in args:
+        ind = args.index("-ID")
+        input_dir_path = args[ind+1]
+    else:
+        input_dir_path = dir_path
+    output_dir_path = dir_path
+    specfile = output_dir_path+'/er_specimens.txt'
+    output = output_dir_path+"/agm_measurements.txt"
     if "-h" in args:
         print main.__doc__
         sys.exit()
     if "-bak" in args:
         meth="LP-IRM-DCD"
-        output=dir_path+"/irm_measurements.txt"
+        output = output_dir_path+"/irm_measurements.txt"
     if "-new" in args: fmt='new'
     if "-usr" in args:
         ind=args.index("-usr")
         user=args[ind+1]
     if '-F' in args:
         ind=args.index("-F")
-        output=dir_path+'/'+args[ind+1]
+        output = output_dir_path+'/'+args[ind+1]
     if '-f' in args:
         ind=args.index("-f")
-        agm_file=dir_path+'/'+args[ind+1]
+        agm_file= input_dir_path+'/'+args[ind+1]
         er_specimen_name=args[ind+1].split('.')[0]
     else: 
         print "agm_file field is required option"
@@ -86,7 +92,7 @@ def main():
         sys.exit()
     if '-Fsp' in args:
         ind=args.index("-Fsp")
-        specfile=dir_path+'/'+args[ind+1]
+        specfile= output_dir_path+'/'+args[ind+1]
     specnum,samp_con,Z=0,'1',1
     if "-spc" in args:
         ind=args.index("-spc")
@@ -95,9 +101,9 @@ def main():
     if "-spn" in args:
         ind=args.index("-spn")
         er_specimen_name=args[ind+1]
-    elif "-syn" not in args:
-        print "you must specify a specimen name"
-        sys.exit()
+    #elif "-syn" not in args:
+    #    print "you must specify a specimen name"
+    #    sys.exit()
     if "-syn" in args:
         ind=args.index("-syn")
         er_synthetic_name=args[ind+1]
@@ -107,7 +113,7 @@ def main():
         er_location_name=args[ind+1]
     if "-fsa" in args:
         ind=args.index("-fsa")
-        sampfile=dir_path+'/'+args[ind+1]
+        sampfile = input_dir_path+'/'+args[ind+1]
         Samps,file_type=pmag.magic_read(sampfile)
         print 'sample_file successfully read in'
     if "-ncn" in args:

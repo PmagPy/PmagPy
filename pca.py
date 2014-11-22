@@ -16,7 +16,6 @@ def main():
 
     OPTIONS
         -h prints help and quits
-        -i for interactive filename, calculation type, bounds entry 
         -f FILE
         -dir [L,P,F][BEG][END] specify direction type, beginning and end
           (L:line, P:plane or F:fisher mean of unit vectors)

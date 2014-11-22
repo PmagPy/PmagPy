@@ -80,15 +80,15 @@ def main():
                 vgp['vgp_lat']='%7.1f'%(-1*float(vgp['vgp_lat']))
                 vgp['vgp_lon']='%7.1f'%(float(vgp['vgp_lon'])-180.)
         if len(rec)==5:
-            vgp['average_k'],vgp['average_n'],vgp['average_lat']=rec[2],rec[3],rec[4]
+            vgp['average_k'],vgp['average_nn'],vgp['average_lat']=rec[2],rec[3],rec[4]
             slats.append(float(rec[4]))
         else: 
-            vgp['average_k'],vgp['average_n'],vgp['average_lat']="0","0","0"
-        if 90.-(float(vgp['vgp_lat']))<=cutoff and float(vgp['average_k'])>=kappa and int(vgp['average_n'])>=n: Vgps.append(vgp) 
+            vgp['average_k'],vgp['average_nn'],vgp['average_lat']="0","0","0"
+        if 90.-(float(vgp['vgp_lat']))<=cutoff and float(vgp['average_k'])>=kappa and int(vgp['average_nn'])>=n: Vgps.append(vgp) 
     if spin==0: # do transformation to pole
         ppars=pmag.doprinc(Pvgps)
         for vgp in Vgps:
-            vlon,vlat=pmag.dodirot(float(vgp['vgp_lon']),float(vgp['vgp_lat']),ppars['dec'],ppars['inc'])
+	    vlon,vlat=pmag.dotilt(float(vgp['vgp_lon']),float(vgp['vgp_lat']),ppars['dec']-180.,90.-ppars['inc'])
             vgp['vgp_lon']=vlon  
             vgp['vgp_lat']=vlat  
             vgp['average_k']="0"

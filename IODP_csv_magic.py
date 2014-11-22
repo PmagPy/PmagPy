@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 import pmag,sys,os,exceptions
-def main():
+def main(command_line=True, **kwargs):
     """
     NAME
         IODP_csv_magic.py
@@ -23,8 +23,8 @@ def main():
     INPUTS
  	 IODP .csv file format exported from LIMS database
     """
-#        
-#
+    #        
+    # initialize defaults
     version_num=pmag.get_version()
     meas_file='magic_measurements.txt'
     spec_file='er_specimens.txt'
@@ -38,51 +38,74 @@ def main():
     args=sys.argv
     noave=0
     depth_method='a'
-    if '-WD' in args:
-        ind=args.index("-WD")
-        dir_path=args[ind+1]
-        print "dir_path", dir_path
-    if "-h" in args:
-        print main.__doc__
-        sys.exit()
-    if "-A" in args: noave=1
-    if '-f' in args:
-        ind=args.index("-f")
-#        csv_file=args[ind+1] # original
-        csv_file=dir_path + '/' + args[ind+1] # LJ
-    if '-F' in args:
-        ind=args.index("-F")
-        meas_file=args[ind+1]
-    if '-Fsp' in args:
-        ind=args.index("-Fsp")
-        spec_file=dir_path+'/'+args[ind+1]
-        Specs,file_type=pmag.magic_read(spec_file)
-    else:
-        spec_file=dir_path+'/'+spec_file
-    if '-Fsi' in args:
-        ind=args.index("-Fsi")
-        site_file=args[ind+1]
-    if '-Fsa' in args:
-        ind=args.index("-Fsa")
-        samp_file=dir_path+'/'+args[ind+1]
-        ErSamps,file_type=pmag.magic_read(samp_file)
-    else:
-        samp_file=dir_path+'/'+samp_file
-    site_file=dir_path+'/'+site_file
-    meas_file=dir_path+'/'+meas_file
+    # get command line args
+    if command_line:
+        if '-WD' in args:
+            ind=args.index("-WD")
+            dir_path=args[ind+1]
+        if '-ID' in args:
+            ind = args.index('-ID')
+            input_dir_path = args[ind+1]
+        else:
+            input_dir_path = dir_path
+        output_dir_path = dir_path
+        if "-h" in args:
+            print main.__doc__
+            return False
+        if "-A" in args: noave=1
+        if '-f' in args:
+            ind=args.index("-f")
+            csv_file=args[ind+1] 
+        if '-F' in args:
+            ind=args.index("-F")
+            meas_file=args[ind+1]
+        if '-Fsp' in args:
+            ind=args.index("-Fsp")
+            spec_file = args[ind+1]
+        if '-Fsi' in args:
+            ind=args.index("-Fsi")
+            site_file=args[ind+1]
+        if '-Fsa' in args:
+            ind=args.index("-Fsa")
+            samp_file = args[ind+1]
+
+    if not command_line:
+        dir_path = kwargs.get('dir_path', '.')
+        input_dir_path = kwargs.get('input_dir_path', dir_path)
+        output_dir_path = dir_path # rename dir_path after input_dir_path is set
+        noave = kwargs.get('noave', 0) # default (0) is DO average
+        csv_file = kwargs.get('csv_file')
+        meas_file = kwargs.get('meas_file', 'magic_measurements.txt')
+        spec_file = kwargs.get('spec_file', 'er_specimens.txt')
+        samp_file = kwargs.get('samp_file', 'er_samples.txt')
+        site_file = kwargs.get('site_file', 'er_sites.txt')
+
+    # format variables
+
+    meas_file= output_dir_path +'/'+ meas_file
+    spec_file = output_dir_path+'/'+ spec_file
+    Specs,file_type=pmag.magic_read(spec_file)
+    samp_file = output_dir_path+'/'+ samp_file
+    ErSamps,file_type=pmag.magic_read(samp_file)
+    site_file = output_dir_path+'/'+site_file
     if csv_file=="":
-        filelist=os.listdir(dir_path) # read in list of files to import
+        filelist=os.listdir(input_dir_path) # read in list of files to import
     else:
+        csv_file = input_dir_path + '/' + csv_file
         filelist=[csv_file]
+
+    
+    # parsing the data
     specimens,samples,sites=[],[],[]
     MagRecs,SpecRecs,SampRecs,SiteRecs=[],[],[],[]
     for samp in ErSamps:
         if samp['er_sample_name'] not in samples:
             samples.append(samp['er_sample_name'])
             SampRecs.append(samp)
-    print "filelist", filelist # LJ
+    file_found = False
     for file in filelist: # parse each file
         if file[-3:].lower()=='csv':
+            file_found = True
             print 'processing: ',file
             input=open(file,'rU').readlines()
             keys=input[0].replace('\n','').split(',') # splits on underscores
@@ -212,6 +235,9 @@ def main():
                     SiteRecs.append(SiteRec)
               except:
                  pass
+    if not file_found:
+        print "No .csv files were found"
+        return False
     if len(SpecRecs)>0:
         pmag.magic_write(spec_file,SpecRecs,'er_specimens')
         print 'specimens stored in ',spec_file
@@ -228,6 +254,15 @@ def main():
        MagRec["treatment_ac_field"]='%8.3e'%(MagRec['treatment_ac_field']) # convert to string
        MagOuts.append(MagRec)
     Fixed=pmag.measurements_methods(MagOuts,noave)
-    pmag.magic_write(meas_file,Fixed,'magic_measurements')
-    print 'data stored in ',meas_file
-main()
+    if pmag.magic_write(meas_file,Fixed,'magic_measurements'):
+        print 'data stored in ',meas_file
+        return True
+    else:
+        print 'no data found.  bad magfile?'
+        return False
+
+def do_help():
+    return main.__doc__
+
+if __name__ == '__main__':
+    main()

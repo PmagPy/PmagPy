@@ -495,8 +495,8 @@ def main():
                            PmagSpecRec["specimen_inc"]='%7.1f'%(pars["specimen_inc"])
                            PmagSpecRec["specimen_tilt_correction"]='-1'
                            PmagSpecRec["specimen_direction_type"]='l'
-                           PmagSpecRec["direction_type"]='l' # this is redudant, but helpful - won't be imported
-                           PmagSpecRec["specimen_dang"]='%7.1f '%(pars["specimen_dang"])
+                           PmagSpecRec["direction_type"]='l' # this is redundant, but helpful - won't be imported
+                           PmagSpecRec["specimen_int_dang"]='%7.1f '%(pars["specimen_int_dang"])
                            PmagSpecRec["specimen_drats"]='%7.1f '%(pars["specimen_drats"])
                            PmagSpecRec["specimen_drat"]='%7.1f '%(pars["specimen_drat"])
                            PmagSpecRec["specimen_int_ptrm_n"]='%i '%(pars["specimen_int_ptrm_n"])

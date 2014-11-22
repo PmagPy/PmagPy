@@ -60,10 +60,10 @@ def main():
     for line in data:
         PtRec={}
         rec=line.split()
-        PtRec['site_lat']=rec[1]
-        PtRec['site_lon']=rec[0]
+        PtRec['site_lat']=rec[0]
+        PtRec['site_lon']=rec[1]
         if '-ff' in sys.argv:
-            pt_lat,pt_lon=float(rec[1]),float(rec[0])
+            pt_lat,pt_lon=float(rec[0]),float(rec[1])
             for pole in Poles:
                 ptrot= pmag.PTrot(pole,[pt_lat],[pt_lon])
                 pt_lat=ptrot[0][0]

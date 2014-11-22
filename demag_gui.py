@@ -1,8 +1,17 @@
-#!/usr/bin/env python
+#!/usr/bin/env pythonw
 
 #============================================================================================
 # LOG HEADER:
 #============================================================================================
+# Demag_GUI Version 0.26 (version for MagIC workshop) by Ron Shaar 5/8/2014
+
+# Demag_GUI Version 0.25 (beta) by Ron Shaar
+
+# Demag_GUI Version 0.24 (beta) by Ron Shaar
+#
+# Demag_GUI Version 0.23 (beta) by Ron Shaar
+#
+# Demag_GUI Version 0.22 (beta) by Ron Shaar
 #
 # Demag_GUI Version 0.21 (beta) by Ron Shaar
 # 
@@ -17,11 +26,12 @@
 
 
 global CURRENT_VRSION
-CURRENT_VRSION = "v.0.21"
+CURRENT_VRSION = "v.0.26"
 import matplotlib
 matplotlib.use('WXAgg')
 
-from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigCanvas \
+from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigCanvas 
+from matplotlib.backends.backend_wxagg import NavigationToolbar2WxAgg as NavigationToolbar
 
 import sys,pylab,scipy,os
 try:
@@ -68,7 +78,7 @@ class Zeq_GUI(wx.Frame):
     """
     title = "PmagPy Demag GUI %s (beta)"%CURRENT_VRSION
     
-    def __init__(self):
+    def __init__(self, WD):
         
         TEXT="""
         NAME
@@ -88,7 +98,11 @@ class Zeq_GUI(wx.Frame):
         wx.Frame.__init__(self, None, wx.ID_ANY, self.title)
         self.redo_specimens={}
         self.currentDirectory = os.getcwd() # get the current working directory
-        self.get_DIR()        # choose directory dialog
+        if WD:
+            self.WD = WD
+            self.get_DIR(WD)        # initialize directory variables
+        else:
+            self.get_DIR()        # choose directory dialog, then initialize directory variables
         
         # initialize acceptence criteria with NULL values
         self.acceptance_criteria=pmag.initialize_acceptance_criteria()
@@ -142,12 +156,13 @@ class Zeq_GUI(wx.Frame):
         self.panel = wx.Panel(self)          # make the Panel
         self.Main_Frame()                   # build the main frame
         self.create_menu()                  # create manu bar
+        self.Zij_picker()
         self.Zij_zoom()
         self.arrow_keys()
-        self.Zij_picker()
-
+        self.Bind(wx.EVT_CLOSE, self.on_menu_exit)
         #self.get_previous_interpretation() # get interpretations from pmag_specimens.txt
         FIRST_RUN=False
+        self.close_warning=False
 
 
     def Main_Frame(self):
@@ -194,9 +209,17 @@ class Zeq_GUI(wx.Frame):
         #
         self.fig1 = Figure((5.*self.GUI_RESOLUTION, 5.*self.GUI_RESOLUTION), dpi=self.dpi)
         self.canvas1 = FigCanvas(self.panel, -1, self.fig1)
+        self.toolbar1 = NavigationToolbar(self.canvas1)
+        self.toolbar1.Hide()
         #self.fig1.text(0.01,0.98,"Zijderveld plot",{'family':'Arial', 'fontsize':10*self.GUI_RESOLUTION, 'style':'normal','va':'center', 'ha':'left' })
         
         self.fig2 = Figure((2.5*self.GUI_RESOLUTION, 2.5*self.GUI_RESOLUTION), dpi=self.dpi)
+        self.specimen_eqarea_net = self.fig2.add_subplot(111)  
+        self.draw_net(self.specimen_eqarea_net)        
+        self.specimen_eqarea = self.fig2.add_axes(self.specimen_eqarea_net.get_position(), frameon=False,axisbg='None')
+        self.specimen_eqarea_interpretation = self.fig2.add_axes(self.specimen_eqarea_net.get_position(), frameon=False,axisbg='None')
+        self.specimen_eqarea_interpretation.axes.set_aspect('equal')
+        self.specimen_eqarea_interpretation.axis('off')
         self.canvas2 = FigCanvas(self.panel, -1, self.fig2)
 
         self.fig3 = Figure((2.5*self.GUI_RESOLUTION, 2.5*self.GUI_RESOLUTION), dpi=self.dpi)
@@ -214,27 +237,15 @@ class Zeq_GUI(wx.Frame):
         
         #self.high_level_eqarea = self.fig4.add_subplot(111)
         
-        self.specimen_eqarea_net = self.fig2.add_subplot(111)  
-        self.draw_net(self.specimen_eqarea_net)        
-        self.specimen_eqarea = self.fig2.add_axes(self.specimen_eqarea_net.get_position(), frameon=False,axisbg='None')
-        self.specimen_eqarea_interpretation = self.fig2.add_axes(self.specimen_eqarea_net.get_position(), frameon=False,axisbg='None')
-        self.specimen_eqarea_interpretation.xaxis.set_visible(False)
-        self.specimen_eqarea_interpretation.yaxis.set_visible(False)
-        self.specimen_eqarea_interpretation.axes.set_aspect('equal')
-        self.specimen_eqarea_interpretation.axis('off')
           
         
                     
         self.high_level_eqarea_net = self.fig4.add_subplot(111)
         self.draw_net(self.high_level_eqarea_net)        
-        #self.high_level_eqarea = self.high_level_eqarea_net.twinx()        
-        #self.draw_net(self.specimen_eqarea_net)        
         self.high_level_eqarea = self.fig4.add_axes(self.high_level_eqarea_net.get_position(), frameon=False,axisbg='None')
         self.high_level_eqarea_interpretation = self.fig4.add_axes(self.high_level_eqarea_net.get_position(), frameon=False,axisbg='None')
         self.high_level_eqarea_interpretation.axis('equal')
         self.high_level_eqarea_interpretation.axis('off')
-        #self.high_level_eqarea_interpretation.xaxis.set_visible(False)
-        #self.high_level_eqarea_interpretation.yaxis.set_visible(False)
 
 
         #----------------------------------------------------------------------                     
@@ -257,7 +268,7 @@ class Zeq_GUI(wx.Frame):
 
         #self.logger = wx.TextCtrl(self.panel, id=-1, size=(200*self.GUI_RESOLUTION,300*self.GUI_RESOLUTION), style=wx.TE_MULTILINE | wx.TE_READONLY | wx.HSCROLL)
         self.logger = wx.ListCtrl(self.panel, -1, size=(200*self.GUI_RESOLUTION,300*self.GUI_RESOLUTION),style=wx.LC_REPORT)
-        print "res",self.GUI_RESOLUTION
+        #print "res",self.GUI_RESOLUTION
         self.logger.SetFont(font1)
         self.logger.InsertColumn(0, 'i',width=25*self.GUI_RESOLUTION)
         self.logger.InsertColumn(1, 'Step',width=25*self.GUI_RESOLUTION)
@@ -276,9 +287,10 @@ class Zeq_GUI(wx.Frame):
         self.box_sizer_select_specimen = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY), wx.VERTICAL )
 
         # Combo-box with a list of specimen
-        self.specimens_box = wx.ComboBox(self.panel, -1, self.s, (250*self.GUI_RESOLUTION, 25), wx.DefaultSize,self.specimens, wx.CB_DROPDOWN,name="specimen")
-        self.specimens_box.SetFont(font2)
-        self.Bind(wx.EVT_TEXT, self.onSelect_specimen,self.specimens_box)
+        #self.specimens_box = wx.ComboBox(self.panel, -1, self.s, (250*self.GUI_RESOLUTION, 25), wx.DefaultSize,self.specimens, wx.CB_DROPDOWN,name="specimen")
+        self.specimens_box = wx.ComboBox(self.panel, -1, value=self.s,choices=self.specimens, style=wx.CB_DROPDOWN,name="specimen")
+        #self.specimens_box.SetFont(font2)
+        self.Bind(wx.EVT_COMBOBOX, self.onSelect_specimen,self.specimens_box)
         
         # buttons to move forward and backwards from specimens        
         self.nextbutton = wx.Button(self.panel, id=-1, label='next',size=(75*self.GUI_RESOLUTION, 25))#,style=wx.BU_EXACTFIT)#, size=(175, 28))
@@ -299,13 +311,14 @@ class Zeq_GUI(wx.Frame):
         #  select coordinate box
         #----------------------------------------------------------------------                     
         # stopped here
-        # Combo-box with a list of specimen
-        self.coordinates_box = wx.ComboBox(self.panel, -1, 'specimen', (300*self.GUI_RESOLUTION, 25), wx.DefaultSize,['specimen','geographic','tilt-corrected'], wx.CB_DROPDOWN,name="coordinates")
-        self.coordinates_box.SetFont(font2)
+        #self.coordinates_box = wx.ComboBox(self.panel, -1, 'specimen', (350*self.GUI_RESOLUTION, 25), wx.DefaultSize,['specimen','geographic','tilt-corrected'], wx.CB_DROPDOWN,name="coordinates")
+        self.coordinates_box = wx.ComboBox(self.panel, -1, choices=['specimen','geographic','tilt-corrected'], value='specimen',style=wx.CB_DROPDOWN,name="coordinates")
+        #self.coordinates_box.SetFont(font2)
         self.Bind(wx.EVT_COMBOBOX, self.onSelect_coordinates,self.coordinates_box)
         #self.box_sizer_select_coordinate.Add(self.coordinates_box, 0, wx.TOP, 0 )        
-        self.orthogonal_box = wx.ComboBox(self.panel, -1, 'Zijderveld', (300*self.GUI_RESOLUTION, 25), wx.DefaultSize,['Zijderveld','orthogonal E-W','orthogonal N-S'], wx.CB_DROPDOWN,name="orthogonal_plot")
-        self.orthogonal_box.SetFont(font2)
+        #self.orthogonal_box = wx.ComboBox(self.panel, -1, 'X=NRM dec',(350*self.GUI_RESOLUTION, 25), wx.DefaultSize,['X=NRM dec','X=East','X=North','X=best fit line dec'], wx.CB_DROPDOWN,name="orthogonal_plot")
+        self.orthogonal_box = wx.ComboBox(self.panel, -1, value='X=NRM dec', choices=['X=NRM dec','X=East','X=North','X=best fit line dec'], style=wx.CB_DROPDOWN,name="orthogonal_plot")
+        #self.orthogonal_box.SetFont(font2)
         self.Bind(wx.EVT_COMBOBOX, self.onSelect_orthogonal_box,self.orthogonal_box)
 
         self.box_sizer_select_specimen.Add(wx.StaticText(self.panel,label="specimen:",style=wx.TE_CENTER))        
@@ -315,7 +328,7 @@ class Zeq_GUI(wx.Frame):
         self.box_sizer_select_specimen.Add(wx.StaticText(self.panel,label="coordinate system:",style=wx.TE_CENTER))        
         self.box_sizer_select_specimen.Add(self.coordinates_box, 0, wx.TOP, 4 )        
         self.box_sizer_select_specimen.Add(wx.StaticLine(self.panel), 0, wx.ALL|wx.EXPAND, 5)
-        self.box_sizer_select_specimen.Add(wx.StaticText(self.panel,label="orthogonal plot:",style=wx.TE_CENTER))        
+        self.box_sizer_select_specimen.Add(wx.StaticText(self.panel,label="Zijderveld plot:",style=wx.TE_CENTER))        
         self.box_sizer_select_specimen.Add(self.orthogonal_box, 0, wx.TOP, 4 )        
 
         #----------------------------------------------------------------------                     
@@ -324,18 +337,20 @@ class Zeq_GUI(wx.Frame):
 
         self.T_list=[]
         
-        self.box_sizer_select_bounds = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY,"bounds" ), wx.HORIZONTAL )
+        self.box_sizer_select_bounds = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY,"bounds" ), wx.VERTICAL )
+        #self.tmin_box = wx.ComboBox(self.panel, -1 ,size=(100*self.GUI_RESOLUTION, 25),choices=self.T_list, style=wx.CB_DROPDOWN)
         self.tmin_box = wx.ComboBox(self.panel, -1 ,size=(100*self.GUI_RESOLUTION, 25),choices=self.T_list, style=wx.CB_DROPDOWN)
-        self.tmin_box.SetFont(font2)
+        #self.tmin_box.SetFont(font2)
         self.Bind(wx.EVT_COMBOBOX, self.get_new_PCA_parameters,self.tmin_box)
 
+        #self.tmax_box = wx.ComboBox(self.panel, -1 ,size=(100*self.GUI_RESOLUTION, 25),choices=self.T_list, style=wx.CB_DROPDOWN)
         self.tmax_box = wx.ComboBox(self.panel, -1 ,size=(100*self.GUI_RESOLUTION, 25),choices=self.T_list, style=wx.CB_DROPDOWN)
         self.Bind(wx.EVT_COMBOBOX, self.get_new_PCA_parameters,self.tmax_box)
 
-        select_temp_window = wx.GridSizer(2, 1, 10*self.GUI_RESOLUTION, 19*self.GUI_RESOLUTION)
+        select_temp_window = wx.GridSizer(2, 1, 10*self.GUI_RESOLUTION, 0)
         select_temp_window.AddMany( [(self.tmin_box, wx.ALIGN_LEFT),
             (self.tmax_box, wx.ALIGN_LEFT)])
-        self.box_sizer_select_bounds.Add(select_temp_window, 0, wx.TOP, 3.5 )        
+        self.box_sizer_select_bounds.Add(select_temp_window, 0, wx.ALIGN_LEFT, 3.5 )        
         
 
         #----------------------------------------------------------------------                     
@@ -361,66 +376,78 @@ class Zeq_GUI(wx.Frame):
         #----------------------------------------------------------------------                     
         # Specimen interpretation window 
         #----------------------------------------------------------------------                     
-        self.box_sizer_specimen = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY,"PCA type"  ), wx.HORIZONTAL )                        
-        self.PCA_type_box = wx.ComboBox(self.panel, -1, 'line', (100*self.GUI_RESOLUTION, 25), wx.DefaultSize,['line','line-anchored','line-with-origin','plane','Fisher'], wx.CB_DROPDOWN,name="coordinates")
-        self.PCA_type_box.SetFont(font2)
+        self.box_sizer_specimen = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY,"specimen mean type"  ), wx.HORIZONTAL )                        
+#        self.PCA_type_box = wx.ComboBox(self.panel, -1, 'line', size=(100*self.GUI_RESOLUTION, 25),choices=['line','line-anchored','line-with-origin','plane','Fisher'], style=wx.CB_DROPDOWN,name="coordinates")
+        self.PCA_type_box = wx.ComboBox(self.panel, -1, size=(130*self.GUI_RESOLUTION, 25), value='line',choices=['line','line-anchored','line-with-origin','plane','Fisher'], style=wx.CB_DROPDOWN,name="coordinates")
+        #self.tmin_box = wx.ComboBox(self.panel, -1 ,size=(100*self.GUI_RESOLUTION, 25),choices=self.T_list, style=wx.CB_DROPDOWN)
+
+        #self.PCA_type_box.SetFont(font2)
         self.Bind(wx.EVT_COMBOBOX, self.get_new_PCA_parameters,self.PCA_type_box)
 
         specimen_stat_type_window = wx.GridSizer(2, 1, 0, 19*self.GUI_RESOLUTION)
-        specimen_stat_type_window.AddMany( [(wx.StaticText(self.panel,label="\n ",style=wx.TE_CENTER), wx.EXPAND),
-            (self.PCA_type_box, wx.EXPAND)])
+        specimen_stat_type_window.AddMany( [(wx.StaticText(self.panel,label="\n ",style=wx.TE_CENTER), wx.ALIGN_LEFT),
+            (self.PCA_type_box, wx.ALIGN_LEFT)])
         self.box_sizer_specimen.Add( specimen_stat_type_window, 0, wx.ALIGN_LEFT, 0 )        
  
-        self.box_sizer_specimen_stat = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY,"PCA statistics"  ), wx.HORIZONTAL )                        
+        self.box_sizer_specimen_stat = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY,"specimen mean statistics"  ), wx.HORIZONTAL )                        
                
-        for parameter in ['dec','inc','n','MAD','DANG']:
+        for parameter in ['dec','inc','n','mad','dang','alpha95']:
             COMMAND="self.%s_window=wx.TextCtrl(self.panel,style=wx.TE_CENTER|wx.TE_READONLY,size=(50*self.GUI_RESOLUTION,25))"%parameter
+            exec COMMAND
+            COMMAND="self.%s_window.SetBackgroundColour(wx.WHITE)"%parameter
             exec COMMAND
             COMMAND="self.%s_window.SetFont(font2)"%parameter
             exec COMMAND
 
-        specimen_stat_window = wx.GridSizer(2, 5, 0, 19*self.GUI_RESOLUTION)
+        specimen_stat_window = wx.GridSizer(2, 6, 0, 15*self.GUI_RESOLUTION)
         specimen_stat_window.AddMany( [(wx.StaticText(self.panel,label="\ndec",style=wx.TE_CENTER), wx.EXPAND),
             (wx.StaticText(self.panel,label="\ninc",style=wx.TE_CENTER), wx.EXPAND),
-            (wx.StaticText(self.panel,label="\nN",style=wx.TE_CENTER),wx.EXPAND),
-            (wx.StaticText(self.panel,label="\nMAD",style=wx.TE_CENTER),wx.EXPAND),
-            (wx.StaticText(self.panel,label="\nDANG",style=wx.TE_CENTER),wx.TE_CENTER),
+            (wx.StaticText(self.panel,label="\nn",style=wx.TE_CENTER),wx.EXPAND),
+            (wx.StaticText(self.panel,label="\nmad",style=wx.TE_CENTER),wx.EXPAND),
+            #(wx.StaticText(self.panel,label="\nmad-anc",style=wx.TE_CENTER),wx.EXPAND),
+            (wx.StaticText(self.panel,label="\ndang",style=wx.TE_CENTER),wx.TE_CENTER),
+            (wx.StaticText(self.panel,label="\na95",style=wx.TE_CENTER),wx.TE_CENTER),
             (self.dec_window, wx.EXPAND),
             (self.inc_window, wx.EXPAND) ,
             (self.n_window, wx.EXPAND) ,
-            (self.MAD_window, wx.EXPAND),
-            (self.DANG_window, wx.EXPAND)])
+            (self.mad_window, wx.EXPAND),
+            #(self.mad_anc_window, wx.EXPAND),
+            (self.dang_window, wx.EXPAND),
+            (self.alpha95_window, wx.EXPAND)])
         self.box_sizer_specimen_stat.Add( specimen_stat_window, 0, wx.ALIGN_LEFT, 0 )
 
         #----------------------------------------------------------------------                     
         # High level mean window 
         #----------------------------------------------------------------------                     
         self.box_sizer_high_level = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY,"higher level mean"  ), wx.HORIZONTAL )                        
-        self.level_box = wx.ComboBox(self.panel, -1, 'site', (100*self.GUI_RESOLUTION, 25), wx.DefaultSize,['sample','site','location','study'], wx.CB_DROPDOWN,name="high_level")
-        self.level_box.SetFont(font2)
+        #self.level_box = wx.ComboBox(self.panel, -1, 'site', (100*self.GUI_RESOLUTION, 25), wx.DefaultSize,['sample','site','location','study'], wx.CB_DROPDOWN,name="high_level")
+        self.level_box = wx.ComboBox(self.panel, -1, size=(100*self.GUI_RESOLUTION, 25),value='site',  choices=['sample','site','location','study'], style=wx.CB_DROPDOWN,name="high_level")
+        #self.level_box.SetFont(font2)
         self.Bind(wx.EVT_COMBOBOX, self.onSelect_higher_level,self.level_box)
 
-        self.level_names = wx.ComboBox(self.panel, -1,self.site, (100*self.GUI_RESOLUTION, 25), wx.DefaultSize,self.sites, wx.CB_DROPDOWN,name="high_level_names")
-        self.level_names.SetFont(font2)
+        self.level_names = wx.ComboBox(self.panel, -1,size=(100*self.GUI_RESOLUTION, 25), value=self.site,choices=self.sites, style=wx.CB_DROPDOWN,name="high_level_names")
+        #self.level_names.SetFont(font2)
         self.Bind(wx.EVT_COMBOBOX, self.onSelect_level_name,self.level_names)
 
 
-        self.show_box = wx.ComboBox(self.panel, -1, 'specimens', (100*self.GUI_RESOLUTION, 25), wx.DefaultSize,['specimens','samples','sites','sites-VGP'], wx.CB_DROPDOWN,name="high_elements")
-        self.show_box.SetFont(font2)
+        #self.show_box = wx.ComboBox(self.panel, -1, 'specimens', (100*self.GUI_RESOLUTION, 25), wx.DefaultSize,['specimens','samples','sites','sites-VGP'], wx.CB_DROPDOWN,name="high_elements")
+        self.show_box = wx.ComboBox(self.panel, -1, size=(100*self.GUI_RESOLUTION, 25), value='specimens', choices=['specimens','samples','sites','sites-VGP'], style=wx.CB_DROPDOWN,name="high_elements")
+        #self.show_box.SetFont(font2)
         self.Bind(wx.EVT_COMBOBOX, self.onSelect_show_box,self.show_box)
 
-        self.mean_type_box = wx.ComboBox(self.panel, -1, 'None', (100*self.GUI_RESOLUTION, 25), wx.DefaultSize,['Fisher','Fisher by polarity','Bingham','None'], wx.CB_DROPDOWN,name="high_type")
-        self.mean_type_box.SetFont(font2)
+        #self.mean_type_box = wx.ComboBox(self.panel, -1, 'None', (100*self.GUI_RESOLUTION, 25), wx.DefaultSize,['Fisher','Fisher by polarity','Bingham','None'], wx.CB_DROPDOWN,name="high_type")
+        self.mean_type_box = wx.ComboBox(self.panel, -1, size=(120*self.GUI_RESOLUTION, 25), value='None', choices=['Fisher','Fisher by polarity','Bingham','None'], style=wx.CB_DROPDOWN,name="high_type")
+        #self.mean_type_box.SetFont(font2)
         self.Bind(wx.EVT_COMBOBOX, self.onSelect_mean_type_box,self.mean_type_box)
 
                 
-        high_level_window = wx.GridSizer(2, 3, 0, 19*self.GUI_RESOLUTION)
-        high_level_window.AddMany( [(self.level_box, wx.EXPAND),
-            (wx.StaticText(self.panel,label="\nshow",style=wx.TE_CENTER), wx.EXPAND),
-            (wx.StaticText(self.panel,label="\nmean",style=wx.TE_CENTER), wx.EXPAND),
-            (self.level_names, wx.EXPAND),
-            (self.show_box, wx.EXPAND),
-            (self.mean_type_box, wx.EXPAND)])
+        high_level_window = wx.GridSizer(2, 3, 0*self.GUI_RESOLUTION, 2*self.GUI_RESOLUTION)
+        high_level_window.AddMany( [(self.level_box, wx.ALIGN_LEFT),
+            (wx.StaticText(self.panel,label="\nshow",style=wx.TE_CENTER), wx.ALIGN_LEFT),
+            (wx.StaticText(self.panel,label="\nmean",style=wx.TE_CENTER), wx.ALIGN_LEFT),
+            (self.level_names, wx.ALIGN_LEFT),
+            (self.show_box, wx.ALIGN_LEFT),
+            (self.mean_type_box,wx.ALIGN_LEFT)])
         self.box_sizer_high_level.Add( high_level_window, 0, wx.ALIGN_LEFT, 0 )
                        
         #----------------------------------------------------------------------                     
@@ -479,7 +506,7 @@ class Zeq_GUI(wx.Frame):
         vbox1.Fit(self)
 
         self.GUI_SIZE = self.GetSize()
-        print "self.GUI_SIZE",self.GUI_SIZE
+        #print "self.GUI_SIZE",self.GUI_SIZE
         # Draw figures and add  text
         #try:
         #self.draw_figure(self.s)        # draw the figures
@@ -522,8 +549,32 @@ class Zeq_GUI(wx.Frame):
     #----------------------------------------------------------------------
 
     def Zij_zoom(self):
+        #cursur_entry_zij=self.canvas1.mpl_connect('axes_enter_event', self.on_enter_zij_fig_new) 
         cursur_entry_zij=self.canvas1.mpl_connect('axes_enter_event', self.on_enter_zij_fig) 
         cursur_leave_zij=self.canvas1.mpl_connect('axes_leave_event', self.on_leave_zij_fig)
+
+    def on_enter_zij_fig_new(self,event):
+        #self.toolbar1.zoom()        
+        self.curser_in_zij_figure=True
+        self.canvas2.SetCursor(wx.StockCursor(wx.CURSOR_CROSS))
+        cid3=self.canvas1.mpl_connect('button_press_event', self.onclick_z_11)
+        cid4=self.canvas1.mpl_connect('button_release_event', self.onclick_z_22)
+
+
+    def onclick_z_11(self,event):
+        #if self.curser_in_zij_figure:
+        self.tmp_x_press=event.xdata
+        self.tmp_y_press=event.ydata
+        
+    def onclick_z_22(self,event):
+        self.tmp_x_release=event.xdata
+        self.tmp_y_release=event.ydata
+        if abs(self.tmp_x_press-self.tmp_x_release)<0.05 and abs(self.tmp_y_press-self.tmp_y_release)<0.05:
+                self.zijplot.set_xlim(xmin=self.zij_xlim_initial[0],xmax=self.zij_xlim_initial[1])
+                self.zijplot.set_ylim(ymin=self.zij_ylim_initial[0],ymax=self.zij_ylim_initial[1])
+                self.canvas1.draw()
+
+
 
     def on_leave_zij_fig (self,event):
         self.canvas1.mpl_disconnect(self.cid3)
@@ -531,6 +582,7 @@ class Zeq_GUI(wx.Frame):
         self.canvas1.SetCursor(wx.StockCursor(wx.CURSOR_ARROW))
         self.curser_in_zij_figure=False
                 
+                                                
     def on_enter_zij_fig(self,event):
         #AX=gca(label='zig_orig')
         #print AX
@@ -555,20 +607,24 @@ class Zeq_GUI(wx.Frame):
                 delta_y=abs(self.tmp3_y - self.tmp4_y )
             except:
                 return
-            
-            if self.tmp3_x < self.tmp4_x and self.tmp3_y > self.tmp4_y and delta_x >0.05 and delta_y >0.05:
+
+            if self.tmp3_x < self.tmp4_x and self.tmp3_y > self.tmp4_y:
                 self.zijplot.set_xlim(xmin=self.tmp3_x,xmax=self.tmp4_x)
                 self.zijplot.set_ylim(ymin=self.tmp4_y,ymax=self.tmp3_y)
-                #self.zijplot_interpretation.set_xlim(xmin=self.tmp3_x,xmax=self.tmp4_x)
-                #self.zijplot_interpretation.set_ylim(ymin=self.tmp4_y,ymax=self.tmp3_y)
-            elif delta_x < 0.05 and delta_y < 0.05:
-                return
             else:
                 self.zijplot.set_xlim(xmin=self.zij_xlim_initial[0],xmax=self.zij_xlim_initial[1])
                 self.zijplot.set_ylim(ymin=self.zij_ylim_initial[0],ymax=self.zij_ylim_initial[1])
-                #self.zijplot_interpretation.set_xlim(xmin=self.zij_xlim_initial[0],xmax=self.zij_xlim_initial[1])
-                #self.zijplot_interpretation.set_ylim(ymin=self.zij_ylim_initial[0],ymax=self.zij_ylim_initial[1])
-            self.canvas1.draw()
+            
+            self.canvas1.draw()                        
+            #if self.tmp3_x < self.tmp4_x and self.tmp3_y > self.tmp4_y and delta_x >0.05 and delta_y >0.05:
+            #    self.zijplot.set_xlim(xmin=self.tmp3_x,xmax=self.tmp4_x)
+            #    self.zijplot.set_ylim(ymin=self.tmp4_y,ymax=self.tmp3_y)
+            #elif delta_x < 0.05 and delta_y < 0.05:
+            #    return
+            #else:
+            #    self.zijplot.set_xlim(xmin=self.zij_xlim_initial[0],xmax=self.zij_xlim_initial[1])
+            #    self.zijplot.set_ylim(ymin=self.zij_ylim_initial[0],ymax=self.zij_ylim_initial[1])
+            #self.canvas1.draw()
         else:
             return
 
@@ -600,12 +656,12 @@ class Zeq_GUI(wx.Frame):
              del self.zijplot.lines[-1]# green line
              self.green_line_plot=False
 
+        # clear selection in measurement window
         for item in range(self.logger.GetItemCount()):
             self.logger.SetItemBackgroundColour(item,"WHITE")
             self.logger.Select(item, on=0)
-#self.tmin_box.SetValue("")   # tmin box 
-        #self.tmin_box.SetValue("")  # tmax box     
-        
+
+        # clear equal area plot        
         self.specimen_eqarea_interpretation.clear()   # equal area
         self.mplot_interpretation.clear() # M / M0
                 
@@ -615,6 +671,8 @@ class Zeq_GUI(wx.Frame):
         if str(self.tmax_box.GetValue())!="":
             tmax_index=self.tmax_box.GetSelection()
 
+        
+        # set slection in        
         if tmin_index !="" and tmax_index =="":
             if index<tmin_index:
                 self.tmin_box.SetSelection(index)
@@ -662,10 +720,12 @@ class Zeq_GUI(wx.Frame):
         #start_time=time.time() 
         self.s=s
         
-        if self.orthogonal_box.GetValue()=="orthogonal E-W":
+        if self.orthogonal_box.GetValue()=="X=East":
             self.ORTHO_PLOT_TYPE='E-W'
-        elif self.orthogonal_box.GetValue()=="orthogonal N-S":
+        elif self.orthogonal_box.GetValue()=="X=North":
             self.ORTHO_PLOT_TYPE='N-S'
+        elif self.orthogonal_box.GetValue()=="X=best fit line dec":
+            self.ORTHO_PLOT_TYPE='PCA_dec'
         else:
             self.ORTHO_PLOT_TYPE='ZIJ'            
         if self.COORDINATE_SYSTEM=='geographic':
@@ -686,7 +746,12 @@ class Zeq_GUI(wx.Frame):
                 self.CART_rot=self.Rotate_zijderveld(self.Data[self.s]['zdata_geo'],0.)
             elif self.ORTHO_PLOT_TYPE=='E-W':
                 self.CART_rot=self.Rotate_zijderveld(self.Data[self.s]['zdata_geo'],90.)
-            else:#Zijderveld
+            elif self.ORTHO_PLOT_TYPE=='PCA_dec':
+                if 'specimen_dec' in self.pars.keys() and type(self.pars['specimen_dec'])!=str:
+                    self.CART_rot=self.Rotate_zijderveld(self.Data[self.s]['zdata_geo'],self.pars['specimen_dec'])
+                else:
+                    self.CART_rot=self.Rotate_zijderveld(self.Data[self.s]['zdata_geo'],pmag.cart2dir(self.Data[self.s]['zdata_geo'][0])[0])
+            else:
                 self.CART_rot=self.Rotate_zijderveld(self.Data[self.s]['zdata_geo'],pmag.cart2dir(self.Data[self.s]['zdata_geo'][0])[0])
                  
         elif self.COORDINATE_SYSTEM=='tilt-corrected':
@@ -694,13 +759,25 @@ class Zeq_GUI(wx.Frame):
                 self.CART_rot=self.Rotate_zijderveld(self.Data[self.s]['zdata_tilt'],0.)
             elif self.ORTHO_PLOT_TYPE=='E-W':
                 self.CART_rot=self.Rotate_zijderveld(self.Data[self.s]['zdata_tilt'],90)
-            else:#Zijderveld
+            elif self.ORTHO_PLOT_TYPE=='PCA_dec':
+                if 'specimen_dec' in self.pars.keys() and type(self.pars['specimen_dec'])!=str:
+                    self.CART_rot=self.Rotate_zijderveld(self.Data[self.s]['zdata_tilt'],self.pars['specimen_dec'])
+                else:
+                    self.CART_rot=self.Rotate_zijderveld(self.Data[self.s]['zdata_tilt'],pmag.cart2dir(self.Data[self.s]['zdata_tilt'][0])[0])
+            else:
                 self.CART_rot=self.Rotate_zijderveld(self.Data[self.s]['zdata_tilt'],pmag.cart2dir(self.Data[self.s]['zdata_tilt'][0])[0])
         else:
             if self.ORTHO_PLOT_TYPE=='N-S':
                 self.CART_rot=self.Rotate_zijderveld(self.Data[self.s]['zdata'],0.)
             elif self.ORTHO_PLOT_TYPE=='E-W':
                 self.CART_rot=self.Rotate_zijderveld(self.Data[self.s]['zdata'],90)
+            elif self.ORTHO_PLOT_TYPE=='PCA_dec':
+                if 'specimen_dec' in self.pars.keys() and type(self.pars['specimen_dec'])!=str:
+                    print self.pars['specimen_dec']
+                    self.CART_rot=self.Rotate_zijderveld(self.Data[self.s]['zdata'],self.pars['specimen_dec'])
+                else:#Zijderveld
+                    self.CART_rot=self.Rotate_zijderveld(self.Data[self.s]['zdata'],pmag.cart2dir(self.Data[self.s]['zdata'][0])[0])
+
             else:#Zijderveld
                 self.CART_rot=self.Rotate_zijderveld(self.Data[self.s]['zdata'],pmag.cart2dir(self.Data[self.s]['zdata'][0])[0])
 
@@ -839,11 +916,19 @@ class Zeq_GUI(wx.Frame):
         if self.ORTHO_PLOT_TYPE=='N-S':
             STRING=""
             #STRING1="N-S orthogonal plot"
-            self.fig1.text(0.01,0.98,"N-S orthogonal plot",{'family':'Arial', 'fontsize':10*self.GUI_RESOLUTION, 'style':'normal','va':'center', 'ha':'left' })
+            self.fig1.text(0.01,0.98,"Zijderveld plot: x = North",{'family':'Arial', 'fontsize':10*self.GUI_RESOLUTION, 'style':'normal','va':'center', 'ha':'left' })
         elif self.ORTHO_PLOT_TYPE=='E-W':
             STRING=""
             #STRING1="E-W orthogonal plot"
-            self.fig1.text(0.01,0.98,"E-W orthogonal plot",{'family':'Arial', 'fontsize':10*self.GUI_RESOLUTION, 'style':'normal','va':'center', 'ha':'left' })
+            self.fig1.text(0.01,0.98,"Zijderveld plot:: x = East",{'family':'Arial', 'fontsize':10*self.GUI_RESOLUTION, 'style':'normal','va':'center', 'ha':'left' })
+        
+        elif self.ORTHO_PLOT_TYPE=='PCA_dec':
+            self.fig1.text(0.01,0.98,"Zijderveld plot",{'family':'Arial', 'fontsize':10*self.GUI_RESOLUTION, 'style':'normal','va':'center', 'ha':'left' })
+            if 'specimen_dec' in self.pars.keys() and type(self.pars['specimen_dec'])!=str:
+                STRING="X-axis rotated to best fit line declination (%.0f); "%(self.pars['specimen_dec'])
+            else:
+                STRING="X-axis rotated to NRM (%.0f); "%(self.zijblock[0][1])
+                
         else:
             self.fig1.text(0.01,0.98,"Zijderveld plot",{'family':'Arial', 'fontsize':10*self.GUI_RESOLUTION, 'style':'normal','va':'center', 'ha':'left' })
             STRING="X-axis rotated to NRM (%.0f); "%(self.zijblock[0][1])
@@ -933,10 +1018,34 @@ class Zeq_GUI(wx.Frame):
             for i in range(len(self.zijdblock_steps)):
                 self.specimen_eqarea.text(eqarea_data_x[i],eqarea_data_y[i],"%.1f"%float(self.zijdblock_steps[i]),fontsize=8*self.GUI_RESOLUTION,color="0.5")
         
+
+        
+        # add line to show the direction of the x axis in the Zijderveld plot     
+        
+        if str(self.orthogonal_box.GetValue()) in ["X=best fit line dec","X=NRM dec"]:
+            XY=[]
+            if str(self.orthogonal_box.GetValue())=="X=NRM dec":
+                dec_zij=self.zijblock[0][1]
+                XY=pmag.dimap(dec_zij,0)
+            if str(self.orthogonal_box.GetValue())=="X=best fit line dec":
+                if 'specimen_dec' in self.pars.keys() and  type(self.pars['specimen_dec'])!=str:
+                    dec_zij=self.pars['specimen_dec']
+                    XY=pmag.dimap(dec_zij,0)
+            if XY!=[]:
+                self.specimen_eqarea.plot([0,XY[0]],[0,XY[1]],ls='-',c='gray',lw=0.5)#,zorder=0)
+                
+                
+            
         self.specimen_eqarea.set_xlim(-1., 1.)        
         self.specimen_eqarea.set_ylim(-1., 1.)        
         self.specimen_eqarea.axes.set_aspect('equal')
         self.specimen_eqarea.axis('off')
+        
+        self.specimen_eqarea_interpretation.set_xlim(-1., 1.)
+        self.specimen_eqarea_interpretation.set_ylim(-1., 1.)        
+        self.specimen_eqarea_interpretation.axes.set_aspect('equal')
+        self.specimen_eqarea_interpretation.axis('off')
+        
         self.canvas2.draw()
 
         #start_time_2=time.time() 
@@ -1184,7 +1293,7 @@ class Zeq_GUI(wx.Frame):
           methods=lab_treatment.split('-')
           if "NO" in methods:
               Step="N "
-          elif "T" in  methods:
+          elif "T" in  methods or "LT" in methods:
               Step="T"
           elif "AF" in  methods:
               Step="AF"             
@@ -1245,6 +1354,7 @@ class Zeq_GUI(wx.Frame):
         self.clear_boxes() 
         self.Add_text(self.s)
         self.draw_figure(self.s)
+        self.update_selection()
         if self.pars!={}:
             #tmin= "%.0f"%(float(self.pars['measurement_step_min']))       
             #tmax= "%.0f"%(float(self.pars['measurement_step_max']))
@@ -1271,6 +1381,7 @@ class Zeq_GUI(wx.Frame):
       self.s=str(self.specimens[index])
       self.specimens_box.SetStringSelection(str(self.s))      
       self.update_selection()
+      
     #----------------------------------------------------------------------
 
     def on_prev_button(self,event):
@@ -1295,11 +1406,13 @@ class Zeq_GUI(wx.Frame):
 
     #----------------------------------------------------------------------
 
-
+                
     def update_selection(self):
         """ 
         update display (figures, text boxes and statistics windows) with a new selection of specimen 
         """
+
+        self.clear_boxes() 
 
         #--------------------------
         # check if the coordinate system in the window exists (if not change to "specimen" coordinate system)
@@ -1314,14 +1427,6 @@ class Zeq_GUI(wx.Frame):
         self.COORDINATE_SYSTEM=str(self.coordinates_box.GetValue())                           
 
 
-        # clear all boxes
-        self.clear_boxes() 
-
-        # measurements text box
-        self.Add_text(self.s)
-
-        # draw the figures        
-        self.draw_figure(self.s)
 
         #--------------------------                
         # updtaes treatment list
@@ -1405,19 +1510,26 @@ class Zeq_GUI(wx.Frame):
                   
                   found_interpretation=True
                   
+
+
+        # measurements text box
+        self.Add_text(self.s)
         
         # calcuate again self.pars and update the figures and the statistics tables. 
         coordinate_system=self.COORDINATE_SYSTEM
         if found_interpretation:                               
             self.pars=self.get_PCA_parameters(self.s,tmin,tmax,coordinate_system,calculation_type) 
-            #self.pars['zijdblock_step_min']=tmin                    
-            #self.pars['zijdblock_step_max']=tmax                        
+            self.draw_figure(self.s)
             self.update_GUI_with_new_interpretation()
+        else:
+            self.draw_figure(self.s)
+            
 
-        #start_time_5=time.time()        
-        #runtime_sec = start_time_5 - start_time_4
-        #print "-I- update interpretation", runtime_sec,"seconds"
-
+        # draw the figures        
+    
+        if  found_interpretation:                   
+            self.mean_type_box.SetStringSelection(calculation_type)
+        self.plot_higher_levels_data()
 
         # check if high level interpretation exists 
         #--------------------------
@@ -1439,12 +1551,6 @@ class Zeq_GUI(wx.Frame):
                 calculation_type= mpars['calculation_type'] 
                 self.show_higher_levels_pars(mpars)
 
-        #start_time_5a=time.time()        
-        #runtime_sec = start_time_5a - start_time_5
-        #print "-I- higher level", runtime_sec,"seconds"
-              
-        self.mean_type_box.SetStringSelection(calculation_type)
-        self.plot_higher_levels_data()
         
         #start_time_6=time.time()        
         #runtime_sec = start_time_6 - start_time_5
@@ -1453,11 +1559,13 @@ class Zeq_GUI(wx.Frame):
         #start_time_7=time.time()        
         #runtime_sec = start_time_7 - start_time
         #print "-I- total:", runtime_sec,"seconds"
+        # clear all boxes
+
 
     #----------------------------------------------------------------------
 
 
-    def get_DIR(self):
+    def get_DIR(self, WD=None):
         """ Choose a working directory dialog
         """
         if "-WD" in sys.argv and FIRST_RUN:
@@ -1465,7 +1573,7 @@ class Zeq_GUI(wx.Frame):
             self.WD=sys.argv[ind+1]            
             #self.WD=os.getcwd()+"/"
  
-        else:   
+        elif not WD:   
             dialog = wx.DirDialog(None, "Choose a directory:",defaultPath = self.currentDirectory ,style=wx.DD_DEFAULT_STYLE | wx.DD_NEW_DIR_BUTTON | wx.DD_CHANGE_DIR)
             if dialog.ShowModal() == wx.ID_OK:
               self.WD=dialog.GetPath()
@@ -1646,6 +1754,10 @@ class Zeq_GUI(wx.Frame):
                     mpars[k]=0
             except:
                 pass
+        if "DE-BFL" in calculation_type and 'specimen_dang' not in mpars.keys():
+             mpars['specimen_dang']=0
+            
+            
         mpars['zijdblock_step_min']=tmin                    
         mpars['zijdblock_step_max']=tmax
                 
@@ -1661,23 +1773,41 @@ class Zeq_GUI(wx.Frame):
         when selecting new temperature bound
         """
         self.dec_window.SetValue("%.1f"%self.pars['specimen_dec'])
-        self.inc_window.SetValue("%.1f"%self.pars['specimen_inc'])
-        self.n_window.SetValue("%i"%self.pars['specimen_n'])
-        if 'specimen_mad' in self.pars.keys():
-            self.MAD_window.SetValue("%.1f"%self.pars['specimen_mad'])
-        else:
-            self.MAD_window.SetValue("")
-        if 'specimen_dang' in self.pars.keys() and float(self.pars['specimen_dang'])!=-1:
-            self.DANG_window.SetValue("%.1f"%self.pars['specimen_dang'])
-        else:
-            self.DANG_window.SetValue("")
+        self.dec_window.SetBackgroundColour(wx.WHITE)
         
-            
-  
-        # re-draw the figures
-        #self.draw_figure(self.s)
+        self.inc_window.SetValue("%.1f"%self.pars['specimen_inc'])
+        self.inc_window.SetBackgroundColour(wx.WHITE)
 
-        # now draw the interpretation
+        self.n_window.SetValue("%i"%self.pars['specimen_n'])
+        self.n_window.SetBackgroundColour(wx.WHITE)
+
+        if 'specimen_mad' in self.pars.keys():
+            self.mad_window.SetValue("%.1f"%self.pars['specimen_mad'])
+            self.mad_window.SetBackgroundColour(wx.WHITE)
+        else:
+            self.mad_window.SetValue("")
+            self.mad_window.SetBackgroundColour(wx.NullColour)
+
+        if 'specimen_dang' in self.pars.keys() and float(self.pars['specimen_dang'])!=-1:
+            self.dang_window.SetValue("%.1f"%self.pars['specimen_dang'])
+            self.dang_window.SetBackgroundColour(wx.WHITE)
+        else:
+            self.dang_window.SetValue("")
+            self.dang_window.SetBackgroundColour(wx.NullColour)
+
+        if 'specimen_alpha95' in self.pars.keys() and float(self.pars['specimen_alpha95'])!=-1:
+            self.alpha95_window.SetValue("%.1f"%self.pars['specimen_alpha95'])
+            self.alpha95_window.SetBackgroundColour(wx.WHITE)
+        else:
+            self.alpha95_window.SetValue("")
+            self.alpha95_window.SetBackgroundColour(wx.NullColour)
+        
+        if self.orthogonal_box.GetValue()=="X=best fit line dec":                              
+            if  'specimen_dec' in self.pars.keys(): 
+                self.draw_figure(self.s)
+        #else:
+        #    self.draw_figure(self.s)         
+  
         self.draw_interpretation()
 
     #----------------------------------------------------------------------
@@ -1721,6 +1851,11 @@ class Zeq_GUI(wx.Frame):
                 rotation_declination=0. 
             elif self.ORTHO_PLOT_TYPE=='E-W':
                 rotation_declination=90.
+            elif self.ORTHO_PLOT_TYPE=='PCA_dec':
+                if 'specimen_dec' in self.pars.keys() and type(self.pars['specimen_dec'])!=str:
+                    rotation_declination=self.pars['specimen_dec']
+                else:
+                    rotation_declination=pmag.cart2dir(first_data)[0]            
             else:#Zijderveld
                 rotation_declination=pmag.cart2dir(first_data)[0]
                                                                  
@@ -1749,7 +1884,8 @@ class Zeq_GUI(wx.Frame):
             self.zijplot.plot(xx,yy,'-',color='g',lw=3,alpha=0.5,zorder=0)
             self.zijplot.plot(xx,zz,'-',color='g',lw=3,alpha=0.5,zorder=0)
             self.green_line_plot=True  
-            
+        self.zijplot.set_xlim(xmin=self.zij_xlim_initial[0],xmax=self.zij_xlim_initial[1])
+        self.zijplot.set_ylim(ymin=self.zij_ylim_initial[0],ymax=self.zij_ylim_initial[1])
         self.canvas1.draw()       
     
         # Equal Area plot
@@ -1796,8 +1932,12 @@ class Zeq_GUI(wx.Frame):
             self.specimen_eqarea_interpretation.plot(X_c_d,Y_c_d,'b')
             self.specimen_eqarea_interpretation.plot(X_c_up,Y_c_up,'c')
             
-            self.specimen_eqarea_interpretation.set_xlim(xmin, xmax)
-            self.specimen_eqarea_interpretation.set_ylim(ymin, ymax)           
+            #self.specimen_eqarea_interpretation.set_xlim(xmin, xmax)
+            #self.specimen_eqarea_interpretation.set_ylim(ymin, ymax)           
+            self.specimen_eqarea_interpretation.set_xlim(-1., 1.)        
+            self.specimen_eqarea_interpretation.set_ylim(-1., 1.)        
+            self.specimen_eqarea_interpretation.axes.set_aspect('equal')
+            self.specimen_eqarea_interpretation.axis('off')
             self.canvas2.draw()
             
                                         
@@ -1854,6 +1994,7 @@ class Zeq_GUI(wx.Frame):
         self.calculate_higher_levels_data()
         #self.plot_higher_levels_data()
         self.update_selection()
+        self.close_warning=True
         
     #----------------------------------------------------------------------  
    
@@ -1870,6 +2011,7 @@ class Zeq_GUI(wx.Frame):
         self.pars={}
         self.calculate_higher_levels_data()
         self.update_selection()
+        self.close_warning=True
         return
  
     #----------------------------------------------------------------------
@@ -1885,7 +2027,7 @@ class Zeq_GUI(wx.Frame):
         self.tmax_box.SetItems(self.T_list)
         self.tmax_box.SetSelection(-1)
 
-        for parameter in ['dec','inc','n','MAD','DANG']:
+        for parameter in ['dec','inc','n','mad','dang','alpha95']:
             COMMAND="self.%s_window.SetValue('')"%parameter
             exec COMMAND
             COMMAND="self.%s_window.SetBackgroundColour(wx.NullColour)"%parameter
@@ -1916,14 +2058,14 @@ class Zeq_GUI(wx.Frame):
            self.level_names.SetItems(self.sites)
            self.level_names.SetStringSelection(self.Data_hierarchy['site_of_specimen'][self.s])
        if self.UPPER_LEVEL=='location':
-           self.show_box.SetItems(['specimens','samples','sites','sites VGP'])
-           if self.show_box.GetValue() not in ['specimens','samples','sites','sites VGP']:
+           self.show_box.SetItems(['specimens','samples','sites'])#,'sites VGP'])
+           if self.show_box.GetValue() not in ['specimens','samples','sites']:#,'sites VGP']:
                self.show_box.SetStringSelection('sites')
            self.level_names.SetItems(self.locations)
            self.level_names.SetStringSelection(self.Data_hierarchy['location_of_specimen'][self.s])
        if self.UPPER_LEVEL=='study':
-           self.show_box.SetItems(['specimens','samples','sites','sites VGP'])
-           if self.show_box.GetValue() not in ['specimens','samples','sites','sites VGP']:
+           self.show_box.SetItems(['specimens','samples','sites'])#,'sites VGP'])
+           if self.show_box.GetValue() not in ['specimens','samples','sites']:#,'sites VGP']:
                self.show_box.SetStringSelection('sites')
            self.level_names.SetItems(['this study'])
            self.level_names.SetStringSelection('this study')
@@ -2046,16 +2188,24 @@ class Zeq_GUI(wx.Frame):
             mpars=pmag.dolnp(pars_for_mean,'direction_type')
         elif calculation_type=='Fisher by polarity':
             mpars=pmag.fisher_by_pol(pars_for_mean)
-            
+            print "mpars",mpars
         
         # change strigs to floats
         if  calculation_type!='Fisher by polarity':  
             for key in mpars.keys():
-                mpars[key]=float( mpars[key] )                
+                try:
+                    mpars[key]=float( mpars[key] )
+                except:
+                    pass
+                                
         else:
             for mode in ['A','B','All']:
+                print mode
                 for key in mpars[mode].keys():
-                    mpars[mode][key]=float(mpars[mode][key])
+                    try:
+                        mpars[mode][key]=float(mpars[mode][key])
+                    except:
+                        pass
         mpars['calculation_type']=calculation_type
 
         return(mpars)
@@ -2420,19 +2570,23 @@ class Zeq_GUI(wx.Frame):
           
           # list of excluded lab protocols. copied from pmag.find_dmag_rec(s,data)  
           EX=["LP-AN-ARM","LP-AN-TRM","LP-ARM-AFD","LP-ARM2-AFD","LP-TRM-AFD","LP-TRM","LP-TRM-TD","LP-X"] 
-          INC=["LT-NO","LT-AF-Z","LT-T-Z", "LT-M-Z"]
+          INC=["LT-NO","LT-AF-Z","LT-T-Z", "LT-M-Z","LT-LT-Z"]
 
-          methods=rec["magic_method_codes"].split(":")
+          methods=rec["magic_method_codes"].replace(" ","").strip("\n").split(":")
+          LP_methods=[]
+          LT_methods=[]
+          
           for i in range (len(methods)):
                methods[i]=methods[i].strip()
           if 'measurement_flag' not in rec.keys():
               rec['measurement_flag']='g'
           SKIP=True;lab_treatment=""
           for meth in methods:
-               if meth in ["LT-NO","LT-AF-Z","LT-T-Z", "LT-M-Z"]:
+               if meth in ["LT-NO","LT-AF-Z","LT-T-Z", "LT-M-Z","LT-LT-Z"]:
                    lab_treatment=meth
-               if meth in INC:
                    SKIP=False
+               if "LP" in meth:
+                   LP_methods.append(meth) 
           for meth in EX:
                if meth in methods:
                    SKIP=True
@@ -2453,7 +2607,7 @@ class Zeq_GUI(wx.Frame):
                  tr = float(rec["treatment_ac_field"])*1e3 #(mT)
                  measurement_step_unit="mT" # in magic its T in GUI its mT
                  LPcode="LP-DIR-AF"
-             elif  "LT-T-Z" in  methods:
+             elif  "LT-T-Z" in  methods or "LT-LT-Z" in methods:
                  tr = float(rec["treatment_temp"])-273. # celsius
                  measurement_step_unit="C" # in magic its K in GUI its C
                  LPcode="LP-DIR-T"
@@ -2499,7 +2653,11 @@ class Zeq_GUI(wx.Frame):
                  Data[s]['magic_experiment_name']=rec["magic_experiment_name"]
                  if "magic_instrument_codes" in rec.keys():
                      Data[s]['magic_instrument_codes']=rec['magic_instrument_codes']
+                 #if len(LP_methods)==0:
                  Data[s]["magic_method_codes"]=LPcode
+                 #else:
+                 #Data[s]["magic_method_codes"]=":".join(LP_methods)
+                     
 
 
                  #--------------
@@ -2516,9 +2674,14 @@ class Zeq_GUI(wx.Frame):
                                   
                  try:
                     sample_azimuth=float(self.Data_info["er_samples"][sample]['sample_azimuth'])
-                    sample_dip=float(self.Data_info["er_samples"][sample]['sample_dip'])                 
-                    d_geo,i_geo=pmag.dogeo(dec,inc,sample_azimuth,sample_dip)
-                    Data[s]['zijdblock_geo'].append([tr,d_geo,i_geo,intensity,ZI,rec['measurement_flag'],rec['magic_instrument_codes']])
+                    sample_dip=float(self.Data_info["er_samples"][sample]['sample_dip'])
+                    sample_orientation_flag='g'
+                    if 'sample_orientation_flag' in  self.Data_info["er_samples"][sample].keys():
+                        if str(self.Data_info["er_samples"][sample]['sample_orientation_flag'])=='b':
+                            sample_orientation_flag='b'
+                    if sample_orientation_flag!='b':                     
+                        d_geo,i_geo=pmag.dogeo(dec,inc,sample_azimuth,sample_dip)
+                        Data[s]['zijdblock_geo'].append([tr,d_geo,i_geo,intensity,ZI,rec['measurement_flag'],rec['magic_instrument_codes']])
                  except:
                     self.GUI_log.write( "-W- cant find sample_azimuth,sample_dip for sample %s\n"%sample) 
 
@@ -2632,7 +2795,6 @@ class Zeq_GUI(wx.Frame):
         zdata_tilt=[]
         vector_diffs=[]
         NRM=zijdblock[0][3]
-
         for k in range(len(zijdblock)):
             # specimen coordinates
             DIR=[zijdblock[k][1],zijdblock[k][2],zijdblock[k][3]/NRM]
@@ -2949,8 +3111,11 @@ class Zeq_GUI(wx.Frame):
 
         menu_file = wx.Menu()
         
-        m_change_working_directory = menu_file.Append(-1, "&Choose project directory", "")
-        self.Bind(wx.EVT_MENU, self.on_menu_change_working_directory, m_change_working_directory)
+        #m_change_working_directory = menu_file.Append(-1, "&Change MagIC project directory", "")
+        #self.Bind(wx.EVT_MENU, self.on_menu_change_working_directory, m_change_working_directory)
+
+        m_make_MagIC_results_tables= menu_file.Append(-1, "&Save MagIC pmag tables", "")
+        self.Bind(wx.EVT_MENU, self.on_menu_make_MagIC_results_tables, m_make_MagIC_results_tables)
 
         #m_open_magic_file = menu_file.Append(-1, "&Open MagIC measurement file", "")
         #self.Bind(wx.EVT_MENU, self.on_menu_open_magic_file, m_open_magic_file)
@@ -2969,8 +3134,8 @@ class Zeq_GUI(wx.Frame):
         m_save_high_level = submenu_save_plots.Append(-1, "&Save high level plot", "")
         self.Bind(wx.EVT_MENU, self.on_save_high_level, m_save_high_level,"Eq")
 
-        #m_save_all_plots = submenu_save_plots.Append(-1, "&Save all plots", "")
-        #self.Bind(wx.EVT_MENU, self.on_save_all_plots, m_save_all_plots)
+        m_save_all_plots = submenu_save_plots.Append(-1, "&Save all plots", "")
+        self.Bind(wx.EVT_MENU, self.on_save_all_figures, m_save_all_plots)
 
         m_new_sub_plots = menu_file.AppendMenu(-1, "&Save plot", submenu_save_plots)
 
@@ -2997,7 +3162,7 @@ class Zeq_GUI(wx.Frame):
         m_new_sub = menu_Analysis.AppendMenu(-1, "Acceptance criteria", submenu_criteria)
 
 
-        m_previous_interpretation = menu_Analysis.Append(-1, "&Import previous interpretation ('redo' file)", "")
+        m_previous_interpretation = menu_Analysis.Append(-1, "&Import previous interpretation from a redo file", "")
         self.Bind(wx.EVT_MENU, self.on_menu_previous_interpretation, m_previous_interpretation)
 
         m_save_interpretation = menu_Analysis.Append(-1, "&Save current interpretations to a redo file", "")
@@ -3037,16 +3202,16 @@ class Zeq_GUI(wx.Frame):
 
         #-----------------                            
 
-        menu_MagIC= wx.Menu()
-        m_convert_to_magic= menu_MagIC.Append(-1, "&Convert generic files to MagIC format", "")
-        self.Bind(wx.EVT_MENU, self.on_menu_generic_to_magic, m_convert_to_magic)
-        m_samples_orientation= menu_MagIC.Append(-1, "&Sample orientation", "")
-        self.Bind(wx.EVT_MENU, self.on_menu_samples_orientation, m_samples_orientation)
-
-        m_build_magic_model= menu_MagIC.Append(-1, "&Run MagIC model builder", "")
-        self.Bind(wx.EVT_MENU, self.on_menu_MagIC_model_builder, m_build_magic_model)
-        m_make_MagIC_results_tables= menu_MagIC.Append(-1, "&Save MagIC results tables", "")
-        self.Bind(wx.EVT_MENU, self.on_menu_make_MagIC_results_tables, m_make_MagIC_results_tables)
+#        menu_MagIC= wx.Menu()
+#        m_convert_to_magic= menu_MagIC.Append(-1, "&Convert generic files to MagIC format", "")
+#        self.Bind(wx.EVT_MENU, self.on_menu_generic_to_magic, m_convert_to_magic)
+#        m_samples_orientation= menu_MagIC.Append(-1, "&Sample orientation", "")
+#        self.Bind(wx.EVT_MENU, self.on_menu_samples_orientation, m_samples_orientation)
+#
+#        m_build_magic_model= menu_MagIC.Append(-1, "&Run MagIC model builder", "")
+#        self.Bind(wx.EVT_MENU, self.on_menu_MagIC_model_builder, m_build_magic_model)
+#        m_make_MagIC_results_tables= menu_MagIC.Append(-1, "&Save MagIC results tables", "")
+#        self.Bind(wx.EVT_MENU, self.on_menu_make_MagIC_results_tables, m_make_MagIC_results_tables)
 
         #-----------------                            
         
@@ -3056,7 +3221,7 @@ class Zeq_GUI(wx.Frame):
         self.menubar.Append(menu_Tools, "&Tools")
         #self.menubar.Append(menu_Plot, "&Plot")
         #self.menubar.Append(menu_results_table, "&Table")        
-        self.menubar.Append(menu_MagIC, "&MagIC")        
+        #self.menubar.Append(menu_MagIC, "&MagIC")        
         self.SetMenuBar(self.menubar)
 
     #============================================
@@ -3126,7 +3291,7 @@ class Zeq_GUI(wx.Frame):
         #self.get_previous_interpretation() # get interpretations from pmag_specimens.txt
 
         self.specimens_box.SetItems(self.specimens)
-
+        self.specimens_box.SetStringSelection(str(self.s))  
         self.update_pmag_tables()
         # Draw figures and add  text
         try:
@@ -3141,37 +3306,84 @@ class Zeq_GUI(wx.Frame):
     #--------------------------------------------------------------
 
     def on_menu_exit(self, event):
-        self.Destroy()
-        exit()
-
+        
+        if self.close_warning:
+            TEXT="Data is not saved to a file yet!\nTo properly save your data:\n1) Analysis --> Save current interpretations to a redo file.\nor\n1) File --> Save MagIC pmag tables.\n\n Press OK to exit without saving."
+            
+            #Save all interpretation to a 'redo' file or to MagIC specimens result table\n\nPress OK to exit"
+            dlg1 = wx.MessageDialog(None,caption="Warning:", message=TEXT ,style=wx.OK|wx.CANCEL|wx.ICON_EXCLAMATION)
+            if dlg1.ShowModal() == wx.ID_OK:
+                dlg1.Destroy()
+                self.Destroy()
+                exit()
+        else:
+            exit()
+        
+#        dlg1 = wx.MessageDialog(None,caption="Warning:", message="Exiting program.\nSave all interpretation to a 'redo' file or to MagIC specimens result table\n\nPress OK to exit" ,style=wx.OK|wx.CANCEL|wx.ICON_INFORMATION)
+#        if dlg1.ShowModal() == wx.ID_OK:
+#            dlg1.Destroy()
+#            self.Destroy()
+#            exit()
+#
     def on_save_Zij_plot(self, event):
         self.fig1.text(0.9,0.98,'%s'%(self.s),{'family':'Arial', 'fontsize':10, 'style':'normal','va':'center', 'ha':'right' })
-        SaveMyPlot(self.fig1,self.s,"Zij")
+        SaveMyPlot(self.fig1,self.s,"Zij",self.WD)
         self.fig1.clear()
         self.draw_figure(self.s)
         self.update_selection()
 
     def on_save_Eq_plot(self, event):
-        self.fig2.text(0.9,0.96,'%s'%(self.s),{'family':'Arial', 'fontsize':10, 'style':'normal','va':'center', 'ha':'right' })
-        SaveMyPlot(self.fig2,self.s,"EqArea")
-        self.fig2.clear()
-        self.draw_figure(self.s)
-        self.update_selection()
+        #self.fig2.text(0.9,0.96,'%s'%(self.s),{'family':'Arial', 'fontsize':10, 'style':'normal','va':'center', 'ha':'right' })
+        #self.canvas4.print_figure("./tmp.pdf")#, dpi=self.dpi) 
+        SaveMyPlot(self.fig2,self.s,"EqArea",self.WD)
+        #self.fig2.clear()
+        #self.draw_figure(self.s)
+        #self.update_selection()
         
     def on_save_M_t_plot(self, event):
         self.fig3.text(0.9,0.96,'%s'%(self.s),{'family':'Arial', 'fontsize':10, 'style':'normal','va':'center', 'ha':'right' })
-        SaveMyPlot(self.fig3,self.s,"M_M0")
+        SaveMyPlot(self.fig3,self.s,"M_M0",self.WD)
         self.fig3.clear()
         self.draw_figure(self.s)
         self.update_selection()
 
     def on_save_high_level(self, event):
-        #self.fig4.text(0.9,0.96,'%s'%(self.s),{'family':'Arial', 'fontsize':10, 'style':'normal','va':'center', 'ha':'right' })
-        SaveMyPlot(self.fig4,str(self.level_names.GetValue()),str(self.level_box.GetValue())  )
-        self.fig4.clear()
+        SaveMyPlot(self.fig4,str(self.level_names.GetValue()),str(self.level_box.GetValue()),self.WD  )
+        #self.fig4.clear()
+        #self.draw_figure(self.s)
+        #self.update_selection()
+        #self.plot_higher_levels_data()
+
+    def on_save_all_figures(self, event):
+
+        dialog = wx.DirDialog(None, "choose a folder:",defaultPath = self.WD ,style=wx.DD_DEFAULT_STYLE | wx.DD_NEW_DIR_BUTTON | wx.DD_CHANGE_DIR)
+        if dialog.ShowModal() == wx.ID_OK:
+              dir_path=dialog.GetPath()
+              dialog.Destroy()
+       
+        #figs=[self.fig1,self.fig2,self.fig3,self.fig4]
+        plot_types=["Zij","EqArea","M_M0",str(self.level_box.GetValue())]
+        #elements=[self.s,self.s,self.s,str(self.level_names.GetValue())]
+        for i in range(4):
+            try:
+                if plot_types[i]=="Zij":
+                    self.fig1.text(0.9,0.98,'%s'%(self.s),{'family':'Arial', 'fontsize':10, 'style':'normal','va':'center', 'ha':'right' })
+                    SaveMyPlot(self.fig1,self.s,"Zij",dir_path)
+                if plot_types[i]=="EqArea":
+                    SaveMyPlot(self.fig2,self.s,"EqArea",dir_path)                
+                if plot_types[i]=="M_M0":
+                    self.fig3.text(0.9,0.96,'%s'%(self.s),{'family':'Arial', 'fontsize':10, 'style':'normal','va':'center', 'ha':'right' })
+                    SaveMyPlot(self.fig3,self.s,"M_M0",dir_path)
+                if plot_types[i]==str(self.level_box.GetValue()):
+                    SaveMyPlot(self.fig4,str(self.level_names.GetValue()),str(self.level_box.GetValue()),dir_path )
+            except:
+                pass    
+                
+        self.fig1.clear()
+        self.fig3.clear()
         self.draw_figure(self.s)
         self.update_selection()
-
+                              
     def on_menu_change_working_directory(self, event):
         self.reset()
     
@@ -3195,8 +3407,8 @@ class Zeq_GUI(wx.Frame):
         """
         dlg = wx.FileDialog(
             self, message="choose a file in a pmagpy redo format",
-            defaultDir=self.currentDirectory, 
-            defaultFile="",
+            defaultDir=self.WD, 
+            defaultFile="demag_gui.redo",
             style=wx.OPEN | wx.CHANGE_DIR
             )
         if dlg.ShowModal() == wx.ID_OK:
@@ -3224,7 +3436,7 @@ class Zeq_GUI(wx.Frame):
         self.GUI_log.write ("-I- read redo file and processing new bounds")
         self.redo_specimens={}
         # first delete all previous interpretation
-        self.clear_interpretations
+        self.clear_interpretations()
         fin=open(redo_file,'rU')
         
         for Line in fin.readlines():
@@ -3476,7 +3688,10 @@ class Zeq_GUI(wx.Frame):
         #---------------------------------------
         # save pmag_*.txt.tmp without directional data           
         #---------------------------------------  
-        
+        try:
+            self.on_menu_save_interpretation(None)    
+        except:
+            pass    
         self.PmagRecsOld={}
         for FILE in ['pmag_specimens.txt']:
             self.PmagRecsOld[FILE]=[]
@@ -3523,7 +3738,7 @@ class Zeq_GUI(wx.Frame):
                 PmagSpecRec["magic_experiment_names"]=self.Data[specimen]["magic_experiment_name"]
                 if 'magic_instrument_codes' in self.Data[specimen].keys():
                     PmagSpecRec["magic_instrument_codes"]= self.Data[specimen]['magic_instrument_codes']
-                #magic_method_codes=[]
+                #magic_ood_codes=[]
                 #all_methods=self.Data[specimen]['magic_method_codes'].strip('\n').replace(" ","").split(":")
                 #for method in all_methods:
                 #    if "LP" in method:
@@ -3562,12 +3777,12 @@ class Zeq_GUI(wx.Frame):
                 else:
                     PmagSpecRec['measurement_step_max'] = "%8.3e"%(mpars["measurement_step_max"]*1e-3)
                 if "C" in   mpars['zijdblock_step_min']  or "C" in mpars['zijdblock_step_min']:
-                    PmagSpecRec['measurement_step_unit']="C"
+                    PmagSpecRec['measurement_step_unit']="K"
                 else:
                     PmagSpecRec['measurement_step_unit']="T"                                  
                 PmagSpecRec['specimen_n'] = "%.0f"%mpars["specimen_n"]
                 calculation_type=mpars['calculation_type']
-                PmagSpecRec["magic_method_codes"]=self.Data[specimen]['magic_method_codes']+":"+calculation_type+":"+dirtype               
+                PmagSpecRec["magic_method_codes"]=self.Data[specimen]['magic_method_codes']+":"+calculation_type+":"+dirtype
                 if calculation_type in ["DE-BFL","DE-BFL-A","DE-BFL-O"]:
                     PmagSpecRec['specimen_direction_type']='l'
                     PmagSpecRec['specimen_mad']="%.1f"%float(mpars["specimen_mad"])
@@ -3597,7 +3812,7 @@ class Zeq_GUI(wx.Frame):
         pmag.magic_write(self.WD+"/"+"pmag_specimens.txt",PmagSpecs_fixed,'pmag_specimens')
         self.GUI_log.write( "specimen data stored in %s\n"%self.WD+"/"+"pmag_specimens.txt")
         
-        TEXT="specimen results are saved in pmag_specimens.txt.\nPress OK for MagIC results tables options."
+        TEXT="specimens interpretations are saved in pmag_specimens.txt.\nPress OK for pmag_samples/pmag_sites/pmag_results tables."
         dlg = wx.MessageDialog(self, caption="Saved",message=TEXT,style=wx.OK|wx.CANCEL )
         result = dlg.ShowModal()
         if result == wx.ID_OK:            
@@ -3619,7 +3834,12 @@ class Zeq_GUI(wx.Frame):
 
                 
         #-- acceptance criteria
-        run_script_flags=["specimens_results_magic.py","-fsp","pmag_specimens.txt", "-xI", "-WD", str(self.WD)]
+        #AGE_STR=""
+        #if os.path.isfile(self.WD+"/er_ages.txt"):
+        #    AGE_STR="-fa er_ages"
+        #    print "YESS !"
+        
+        run_script_flags=["specimens_results_magic.py","-fsp","pmag_specimens.txt", "-xI",  "-WD", str(self.WD)]
         if dia.cb_acceptance_criteria.GetValue()==True:
             run_script_flags.append("-exc")
         else:
@@ -3633,7 +3853,7 @@ class Zeq_GUI(wx.Frame):
         if dia.rb_tilt_coor.GetValue()==True:
             run_script_flags.append("-crd");  run_script_flags.append("t")       
         if dia.rb_geo_tilt_coor.GetValue()==True:
-            rb_geo_tilt_coor.append("-crd");  run_script_flags.append("b")       
+            run_script_flags.append("-crd");  run_script_flags.append("b")       
         
         #-- default age options 
         if dia.cb_default_age.GetValue()==True:
@@ -3701,14 +3921,23 @@ class Zeq_GUI(wx.Frame):
                 pmag.magic_write(self.WD+"/"+FILE,pmag_data_fixed,FILE.split(".")[0])
                 self.GUI_log.write( "write new interpretations in %s\n"%(self.WD+"/"+FILE))
 
+        # make pmag_criteria.txt if it does not exist
+        if not os.path.isfile(self.WD+"/pmag_criteria.txt"):
+            Fout=open(self.WD+"/pmag_criteria.txt",'w')
+            Fout.write("tab\tpmag_criteria\n")
+            Fout.write("er_citation_names\tpmag_criteria_code\n")
+            Fout.write("This study\tACCEPT\n")
+            
+
         self.update_pmag_tables()
         self.update_selection()
-        TEXT="interpretations are saved in pmag tables\n"
+        TEXT="interpretations are saved in pmag tables.\n"
         dlg = wx.MessageDialog(self, caption="Saved",message=TEXT,style=wx.OK)
         result = dlg.ShowModal()
         if result == wx.ID_OK:            
             dlg.Destroy()
                         
+        self.close_warning=False       
 
     def merge_pmag_recs(self,old_recs):
         # fix the headers of pmag recs
@@ -3744,23 +3973,34 @@ class Zeq_GUI(wx.Frame):
             help_window=MagIC_Model_Builder.MyHtmlPanel(None,HTML_PATH)
             help_window.Show()
             
-        dia = MagIC_Model_Builder.MagIC_model_builder(self.WD,self.Data,self.Data_hierarchy)
+        #dia = MagIC_Model_Builder.MagIC_model_builder(self.WD,self.Data,self.Data_hierarchy)
+        dia = MagIC_Model_Builder.MagIC_model_builder(self.WD)#,self.Data,self.Data_hierarchy)
         dia.Show()
         dia.Center()
+        print "OK"
         #help_window.Close()
         self.Data,self.Data_hierarchy,self.Data_info={},{},{}
-        self.Data,self.Data_hierarchy=self.get_data() # Get data from magic_measurements and rmag_anistropy if exist.
         self.Data_info=self.get_data_info() # get all ages, locations etc. (from er_ages, er_sites, er_locations)
-                                            
+        self.Data,self.Data_hierarchy=self.get_data() # Get data from magic_measurements and rmag_anistropy if exist.
+        self.update_selection()                                    
 
     def on_menu_samples_orientation(self,event):
-        
+        TEXT="A template for file demag_orient.txt, which contains samples orientation data was created in MagIC working directory.\n\n"
+        TEXT=TEXT+"You can view/modify the orientation data using the demag-gui frame, or using Excel.\n\n"
+        TEXT=TEXT+"If you choose to use Excel:\n"
+        TEXT=TEXT+"1) save demag_orient.txt as 'tab delimited'\n"
+        TEXT=TEXT+"2) Import demag_orient.txt to the demag-gui frame by choosing from the menu-bar: File -> Open orientation file\n\n"
+        TEXT=TEXT+"After filling orientation data choose from the menu-bar: File -> Calculate samples orientations"
+              
         SIZE=self.GetSize()
         frame = demag_dialogs.OrientFrameGrid (None, -1, 'demag_orient.txt',self.WD,self.Data_hierarchy,SIZE)
-        #frame=orientation_priorities_dialog(None, -1)        
         
         frame.Show(True)
         frame.Centre()
+        dlg1 = wx.MessageDialog(self,caption="Message:", message=TEXT ,style=wx.OK)
+        result = dlg1.ShowModal()
+        if result == wx.ID_OK:
+            dlg1.Destroy()    
 
                                                                                                                                                                                                         
     def on_menu_generic_to_magic(self,event):
@@ -3788,7 +4028,7 @@ class Zeq_GUI(wx.Frame):
 
 class SaveMyPlot(wx.Frame):
     """"""
-    def __init__(self,fig,name,plot_type):
+    def __init__(self,fig,name,plot_type,dir_path):
         """Constructor"""
         wx.Frame.__init__(self, parent=None, title="")
 
@@ -3797,7 +4037,7 @@ class SaveMyPlot(wx.Frame):
         dlg = wx.FileDialog(
             self, 
             message="Save plot as...",
-            defaultDir=os.getcwd(),
+            defaultDir=dir_path,
             defaultFile=default_fig_name,
             wildcard=file_choices,
             style=wx.SAVE)
@@ -3813,7 +4053,7 @@ class SaveMyPlot(wx.Frame):
         canvas_tmp_1.print_figure(path, dpi=self.dpi)  
 
 
-
+        
 
 #--------------------------------------------------------------    
 # Run the GUI
@@ -3835,9 +4075,9 @@ def alignToTop(win):
     
 
 
-if __name__ == '__main__':
+def do_main(WD=None):
     app = wx.PySimpleApp()
-    app.frame = Zeq_GUI()
+    app.frame = Zeq_GUI(WD)
     app.frame.Center()
     #alignToTop(app.frame)
     dw, dh = wx.DisplaySize() 
@@ -3847,4 +4087,5 @@ if __name__ == '__main__':
     app.frame.Show()
     app.MainLoop()
 
-        
+if __name__ == '__main__':
+    do_main()

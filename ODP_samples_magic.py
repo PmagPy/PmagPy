@@ -12,6 +12,12 @@ def main():
     if "-WD" in sys.argv:
         ind=sys.argv.index("-WD")
         dir_path=sys.argv[ind+1]
+    if "-ID" in sys.argv:
+        ind = sys.argv.index("-ID")
+        input_dir_path = sys.argv[ind+1]
+    else:
+        input_dir_path = dir_path
+    output_dir_path = dir_path
     if "-h" in sys.argv:
         print main.__doc__
         sys.exit()
@@ -21,15 +27,15 @@ def main():
     else:
         print "must specify -f samp_file"
         sys.exit()
-    samp_file=dir_path+'/'+samp_file
+    samp_file = input_dir_path+'/'+samp_file
     Samps=[]
     if '-Fsa' in sys.argv:
         ind=sys.argv.index("-Fsa")
-        samp_out=dir_path+'/'+sys.argv[ind+1]
-        Samps,file_type=pmag.magic_read(samp_out)
+        samp_out = output_dir_path+'/'+sys.argv[ind+1]
+        Samps,file_type = pmag.magic_read(samp_out)
         print len(Samps), ' read in from: ',samp_out
     else:
-        samp_out=dir_path+'/er_samples.txt'
+        samp_out = output_dir_path+'/er_samples.txt'
     input=open(samp_file,"rU").readlines()
     keys=input[0].replace('\n','').split(',')
     if "CSF-B Top (m)" in keys: comp_depth_key="CSF-B Top (m)"

@@ -49,7 +49,7 @@ fig_y_pos=25
 plt_num=0
 def plot_init(fignum,w,h):
     """
-    initializes plot number fignum  with width w and height h
+    initializes plot number fignum with width w and height h
     """
     global fig_x_pos,fig_y_pos,plt_num
     dpi=80
@@ -73,7 +73,6 @@ def plot3d_init(fignum):
     fig=pylab.figure(fignum) 
     ax=fig.add_subplot(111,projection='3d') 
     return ax
-
 
 def plot_square(fignum):
     pylab.figure(num=fignum) 
@@ -1409,6 +1408,7 @@ def plotCDF(fignum,data,xlab,sym,title,**kwargs):
 # plots a CDF of data
     #if len(sym)==1:sym=sym+'-'
     fig=pylab.figure(num=fignum) 
+    #sdata=numpy.array(data).sort()
     sdata=[]
     for d in data:sdata.append(d) # have to copy the data to avoid overwriting it!
     sdata.sort()
@@ -1430,7 +1430,6 @@ def plotCDF(fignum,data,xlab,sym,title,**kwargs):
   
     pylab.xlabel(xlab)
     pylab.ylabel('Cumulative Distribution')
-    pylab.axis([0,numpy.max(X)*1.1,0,1.1])
     pylab.title(title)
     return X,Y
 #
@@ -2239,6 +2238,7 @@ def plotCOM(CDF,BDI1,BDI2,d):
     Z1,y=plotCDF(CDF['Z'],Z1,"Z component",'r',"")
     bounds1=[Z1[min],Z1[max]]
     plotVs(CDF['Z'],bounds1,'r','-')
+    drawFIGS(CDF)
     if d[0]=="": # repeat for second data set
         bounds2=[]
         cart= pmag.dir2cart(BDI2).transpose()
@@ -2349,12 +2349,11 @@ def plotMAP(fignum,lats,lons,Opts):
     fig=pylab.figure(num=fignum) 
     rgba_land=(255,255,150,255)
     rgba_ocean=(200,250,255,255)
-    ExPar=['ortho']
-    ExMer=['sinus','moll','ortho']
+    ExMer=['sinus','moll']
     mlabels=[0,0,0,1]  # draw meridian labels on the bottom [left,right,top,bottom]
     plabels=[1,0,0,0] # draw parallel labels on the left
     if Opts['proj'] in ExMer:mlabels=[0,0,0,0] 
-    if Opts['proj'] in ExPar:
+    if Opts['proj'] not in  ExMer:
         m=Basemap(projection=Opts['proj'],lat_0=Opts['lat_0'],lon_0=Opts['lon_0'],resolution=Opts['res'])
         plabels=[0,0,0,0]
     else:

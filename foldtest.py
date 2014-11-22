@@ -39,8 +39,8 @@ def main():
                    the most clustered result (maximum tau_1).  
         Command line: prints out the bootstrapped iterations and
                    finally the confidence bounds on optimum untilting.
-        If the 95% conf bounds include 0, then a pre-tilt magnetization is indicated
-        If the 95% conf bounds include 100, then a post-tilt magnetization is indicated
+        If the 95% conf bounds include 0, then a post-tilt magnetization is indicated
+        If the 95% conf bounds include 100, then a pre-tilt magnetization is indicated
         If the 95% conf bounds exclude both 0 and 100, syn-tilt magnetization is
                 possible as is vertical axis rotation or other pathologies
         Geographic: is an equal area projection of the input data in 

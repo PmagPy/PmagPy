@@ -1,31 +1,35 @@
-#!/usr/bin/env python
+#!/usr/bin/env pythonw
 # -*- coding: utf-8 -*-
 import wx,string,sys,math,os
 import scipy
 from scipy import *
 
 
+#------------------------------------------------------------------------
+#   def main():
+#------------------------------------------------------------------------
 
-def cart2dir(cart):
-    """
-    converts a direction to cartesian coordinates
-    """
-    cart=array(cart)
-    rad=pi/180. # constant to convert degrees to radians
-    if len(cart.shape)>1:
-        Xs,Ys,Zs=cart[:,0],cart[:,1],cart[:,2]
-    else: #single vector
-        Xs,Ys,Zs=cart[0],cart[1],cart[2]
-    Rs=sqrt(Xs**2+Ys**2+Zs**2) # calculate resultant vector length
-    Decs=(arctan2(Ys,Xs)/rad)%360. # calculate declination taking care of correct quadrants (arctan2) and making modulo 360.
-    try:
-        Incs=arcsin(Zs/Rs)/rad # calculate inclination (converting to degrees) #
-    except:
-        print 'trouble in cart2dir' # most likely division by zero somewhere
-        return zeros(3)
 
-    return array([Decs,Incs,Rs]).transpose() # return the directions list
+"""
+NAME
+    TDT_magic.py.py
 
+DESCRIPTION
+    converts TDT formatted files to magic_measurements format files
+    
+SYNTAX
+    TDT_magic.py -WD <PATH> 
+
+INPUT:
+    TDT formatted files with suffix .tdt 
+        
+OUTPUT:
+    combined measurement file called saved in <PATH> 
+    
+    
+Log:
+    Initial revision 4/24/2014
+"""
 
 
 
@@ -42,7 +46,9 @@ class convert_tdt_files_to_MagIC(wx.Frame):
         wx.Frame.__init__(self, None, wx.ID_ANY, self.title)
         self.panel = wx.Panel(self)
         self.max_files=10
-        self.WD=WD
+        
+        os.chdir(WD)
+        self.WD=os.getcwd()+"/"
         self.create_menu()
         self.InitUI()
 
@@ -54,17 +60,27 @@ class convert_tdt_files_to_MagIC(wx.Frame):
         #---sizer infor ----
 
         TEXT1="Instructions:\n"
-        TEXT2="Put all individual tdt files of the same Location in one folder\n"
-        TEXT3="Each tdt file file should end with '.tdt'\n"
-        TEXT4="If there are more than one location use multiple folders. One folder for each location\n"
-        TEXT5="The conversion script assumes that the naming convension is similar to all specimen in the folder.\n"
-        TEXT6="For information and support contact rshaar@ucsd.edu.\n"
+        TEXT2="1. Put all individual tdt files from the same location in one folder.\n"
+        TEXT3="   Each tdt file file should end with '.tdt'\n"
+        TEXT4="2. If there are more than one location use multiple folders. One folder for each location.\n"
+        TEXT5="3. The program assumes that the moment units are mA/m amd therefore volume is required.\n\n"
+        TEXT6="For more information check the help menubar option.\n"
 
-        TEXT=TEXT1+TEXT2+TEXT3+TEXT4+TEXT5+TEXT6
+        TEXT7="(for support contact rshaar@ucsd.edu)"
+
+        TEXT=TEXT1+TEXT2+TEXT3+TEXT4+TEXT5+TEXT6+TEXT7
         bSizer_info = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY, "" ), wx.HORIZONTAL )
         bSizer_info.Add(wx.StaticText(pnl,label=TEXT),wx.ALIGN_LEFT)
 
-
+        #---sizer 0 ----
+        TEXT="output file:"
+        bSizer0 = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY, "" ), wx.VERTICAL )
+        bSizer0.Add(wx.StaticText(self.panel,label=TEXT),wx.ALIGN_LEFT)
+        bSizer0.AddSpacer(5)
+        self.output_file_path = wx.TextCtrl(self.panel, id=-1, size=(1000,25))
+        #self.output_file_path.SetEditable(False)
+        bSizer0.Add(self.output_file_path,wx.ALIGN_LEFT)
+        self.output_file_path.SetValue(self.WD+"/"+"magic_measurements.txt")
         #---sizer 1 ----
         TEXT="\n choose a path\n with no spaces in name"
         bSizer1 = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY, "" ), wx.VERTICAL )
@@ -97,10 +113,10 @@ class convert_tdt_files_to_MagIC(wx.Frame):
         TEXT="\n\nexperiment:"
         bSizer1a = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY, "" ), wx.VERTICAL )
         bSizer1a.Add(wx.StaticText(pnl,label=TEXT),wx.ALIGN_TOP)
-        self.experiments_names=['Thellier','ATRM 6 positions','cooling rate','NLT']
+        self.experiments_names=['Thellier','ATRM 6 positions','NLT']
         bSizer1a.AddSpacer(5)
         for i in range(self.max_files):
-            command="self.protocol_info_%i = wx.ComboBox(self.panel, -1, self.experiments_names[0], size=(100,25), choices=self.experiments_names, style=wx.CB_DROPDOWN)"%i
+            command="self.protocol_info_%i = wx.ComboBox(self.panel, -1, self.experiments_names[0], size=(100,25), choices=self.experiments_names, style=wx.CB_DROPDOWN|wx.CB_READONLY)"%i
             exec command
             command="bSizer1a.Add(self.protocol_info_%i,wx.ALIGN_TOP)"%i        
             exec command
@@ -143,7 +159,7 @@ class convert_tdt_files_to_MagIC(wx.Frame):
         self.moment_units_names=['mA/m']
         bSizer1c.AddSpacer(5)
         for i in range(self.max_files):
-            command="self.moment_units_%i = wx.ComboBox(self.panel, -1, self.moment_units_names[0], size=(80,25), choices=self.moment_units_names, style=wx.CB_DROPDOWN)"%i
+            command="self.moment_units_%i = wx.ComboBox(self.panel, -1, self.moment_units_names[0], size=(80,25), choices=self.moment_units_names, style=wx.CB_DROPDOWN|wx.CB_READONLY)"%i
             exec command
             command="bSizer1c.Add(self.moment_units_%i,wx.ALIGN_TOP)"%i        
             exec command
@@ -181,7 +197,7 @@ class convert_tdt_files_to_MagIC(wx.Frame):
         #---sizer 2 ----
 
 
-        TEXT="\nlocation\nname:\n"
+        TEXT="\nlocation\nname:"
         bSizer2 = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY, "" ), wx.VERTICAL )
         bSizer2.Add(wx.StaticText(pnl,label=TEXT),wx.ALIGN_TOP)
         bSizer2.AddSpacer(5)
@@ -204,7 +220,7 @@ class convert_tdt_files_to_MagIC(wx.Frame):
         self.sample_naming_conventions=['sample=specimen','no. of terminate characters','charceter delimited']
         bSizer4.AddSpacer(5)
         for i in range(self.max_files):
-            command="self.sample_naming_convention_%i = wx.ComboBox(self.panel, -1, self.sample_naming_conventions[0], size=(150,25), choices=self.sample_naming_conventions, style=wx.CB_DROPDOWN)"%i
+            command="self.sample_naming_convention_%i = wx.ComboBox(self.panel, -1, self.sample_naming_conventions[0], size=(150,25), choices=self.sample_naming_conventions, style=wx.CB_DROPDOWN|wx.CB_READONLY)"%i
             exec command
             command="self.sample_naming_convention_char_%i = wx.TextCtrl(self.panel, id=-1, size=(40,25))"%i
             exec command
@@ -229,7 +245,7 @@ class convert_tdt_files_to_MagIC(wx.Frame):
         for i in range(self.max_files):
             command="self.site_naming_convention_char_%i = wx.TextCtrl(self.panel, id=-1, size=(40,25))"%i
             exec command
-            command="self.site_naming_convention_%i = wx.ComboBox(self.panel, -1, self.site_naming_conventions[0], size=(150,25), choices=self.site_naming_conventions, style=wx.CB_DROPDOWN)"%i
+            command="self.site_naming_convention_%i = wx.ComboBox(self.panel, -1, self.site_naming_conventions[0], size=(150,25), choices=self.site_naming_conventions, style=wx.CB_DROPDOWN|wx.CB_READONLY)"%i
             exec command
             command="bSizer5_%i = wx.BoxSizer(wx.HORIZONTAL)"%i
             exec command
@@ -286,15 +302,17 @@ class convert_tdt_files_to_MagIC(wx.Frame):
 
         #-----
 
-        vbox.AddSpacer(20)
+        vbox.AddSpacer(5)
         vbox.Add(bSizer_info,flag=wx.ALIGN_CENTER_HORIZONTAL)
-        vbox.AddSpacer(20)
+        vbox.AddSpacer(2)
         vbox.Add(hbox)
-        vbox.AddSpacer(20)
+        vbox.AddSpacer(5)
         vbox.Add(hbox1,flag=wx.ALIGN_CENTER_HORIZONTAL)
-        vbox.AddSpacer(20)
+        #vbox.AddSpacer(20)
+        vbox.AddSpacer(5)
+        vbox.Add(bSizer0, flag=wx.ALIGN_CENTER_HORIZONTAL)
         vbox.Add(hbox2,flag=wx.ALIGN_CENTER_HORIZONTAL)
-        vbox.AddSpacer(20)
+        vbox.AddSpacer(5)
 
         self.panel.SetSizer(vbox)
         vbox.Fit(self)
@@ -310,40 +328,18 @@ class convert_tdt_files_to_MagIC(wx.Frame):
         menu_help = menu_about.Append(-1, "&Some notes", "")
         self.Bind(wx.EVT_MENU, self.on_menu_help, menu_help)
 
-        self.menubar.Append(menu_about, "& Instrcutions") 
+        self.menubar.Append(menu_about, "& Instructions") 
 
         self.SetMenuBar(self.menubar)
 
     def on_menu_help (self,event):
 
-        dia = message_box("Instructions")
+        dia = message_box("Help")
         dia.Show()
         dia.Center()
 
             
     
-    def cart2dir(cart):
-        """
-        converts a direction to cartesian coordinates
-        """
-        cart=array(cart)
-        rad=pi/180. # constant to convert degrees to radians
-        if len(cart.shape)>1:
-            Xs,Ys,Zs=cart[:,0],cart[:,1],cart[:,2]
-        else: #single vector
-            Xs,Ys,Zs=cart[0],cart[1],cart[2]
-        Rs=sqrt(Xs**2+Ys**2+Zs**2) # calculate resultant vector length
-        Decs=(arctan2(Ys,Xs)/rad)%360. # calculate declination taking care of correct quadrants (arctan2) and making modulo 360.
-        try:
-            Incs=arcsin(Zs/Rs)/rad # calculate inclination (converting to degrees) #
-        except:
-            print 'trouble in cart2dir' # most likely division by zero somewhere
-            return zeros(3)
-
-        return array([Decs,Incs,Rs]).transpose() # return the directions list
-
-
-
 
     def on_add_dir_button_i(self,event):
 
@@ -819,6 +815,9 @@ class convert_tdt_files_to_MagIC(wx.Frame):
                                 MagRec["treatment_temp"]='%8.3e' % (float(treatments[0])+273.) # temp in kelvin
                                 if "LP-PI-BT-MD" not in methcodes:
                                     methcodes.append("LP-PI-BT-MD")
+                                    MagRec["treatment_dc_field"]="0"
+                                    MagRec["treatment_dc_field_phi"]="0"
+                                    MagRec["treatment_dc_field_theta"]="0"
 
                         # Additivity check step                                            
                         elif float(treatments[1])==4 or float(treatments[1])==40:
@@ -1014,8 +1013,9 @@ class convert_tdt_files_to_MagIC(wx.Frame):
         #  magic_measurements.txt
         #-------------------------------------------
 
-
-        fout=open("magic_measurements.txt",'w')
+        
+        #fout=open("magic_measurements.txt",'w')
+        fout=open(self.output_file_path.GetValue(), 'w')
         fout.write("tab\tmagic_measurements\n")
         header_string=""
         for i in range(len(magic_measurements_headers)):
@@ -1037,7 +1037,7 @@ class convert_tdt_files_to_MagIC(wx.Frame):
 
 
 
-        dlg1 = wx.MessageDialog(None,caption="Message:", message="file converted to magic_measurements.txt\n you can try running thellier gui...\n" ,style=wx.OK|wx.ICON_INFORMATION)
+        dlg1 = wx.MessageDialog(None,caption="Message:", message="file converted to {}\n you can try running thellier gui...\n".format(self.output_file_path.GetValue()) ,style=wx.OK|wx.ICON_INFORMATION)
         dlg1.ShowModal()
         dlg1.Destroy()
         self.Destroy()
@@ -1121,30 +1121,33 @@ class message_box(wx.Frame):
 
 
 
-#------------------------------------------------------------------------
-#   def main():
-#------------------------------------------------------------------------
 
-
-"""
-NAME
-    LIVMW_Ron_magic.py.py
-
-DESCRIPTION
-    converts XXX format files to magic_measurements format files
-
-
-"""
-
-if __name__ == '__main__':
+def main(command_line=True, wd=None):
+    if command_line:
+        import sys
+        args=sys.argv
+        if "-WD" in args:
+            ind=args.index("-WD")
+            WD=args[ind+1]
+        else:
+            print "please specify working directory for output file WD"
+            return False
+    if not command_line:
+        if not wd:
+            import os
+            WD = os.getcwd()
+        else:
+            WD = wd
+    
     app = wx.PySimpleApp()
-    app.frame = convert_tdt_files_to_MagIC("./")
+    app.frame = convert_tdt_files_to_MagIC(WD)
     app.frame.Show()
     app.frame.Center()
     app.MainLoop()
 
 
-
+if __name__ == '__main__':
+    main()
 
 
 
