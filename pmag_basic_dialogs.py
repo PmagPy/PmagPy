@@ -773,7 +773,7 @@ class convert_SIO_files_to_MagIC(wx.Frame):
         self.bSizer9 = pw.labeled_text_field(pnl, TEXT)
 
         #---sizer 10 ---
-        self.bSizer10 = pw.synthetic(pnl)
+        #self.bSizer10 = pw.synthetic(pnl)
 
         #---buttons ----
         hboxok = pw.btn_panel(self, pnl)
@@ -801,7 +801,7 @@ class convert_SIO_files_to_MagIC(wx.Frame):
         vbox.Add(hbox0, flag=wx.ALIGN_LEFT|wx.TOP, border=8)
         vbox.Add(self.bSizer7, flag=wx.ALIGN_LEFT|wx.TOP, border=8)
         vbox.Add(hbox1, flag=wx.ALIGN_LEFT|wx.TOP, border=8)
-        vbox.Add(self.bSizer10, flag=wx.ALIGN_LEFT|wx.TOP, border=8)
+        #vbox.Add(self.bSizer10, flag=wx.ALIGN_LEFT|wx.TOP, border=8)
         vbox.Add(wx.StaticLine(pnl), 0, wx.ALL|wx.EXPAND, 5)
         vbox.Add(hboxok, flag=wx.ALIGN_CENTER)        
         vbox.Add(wx.StaticLine(pnl), 0, wx.ALL|wx.EXPAND, 5)
@@ -843,12 +843,15 @@ class convert_SIO_files_to_MagIC(wx.Frame):
             experiment_type = "-LP " + experiment_type
         lab_field = self.bSizer3.return_value()
         if not lab_field:
-            lab_field = "0 0 0"
-        lab_field_list = str(lab_field).split()
-        options_dict['labfield'] = lab_field_list[0]
-        options_dict['phi'] = lab_field_list[1]
-        options_dict['theta'] = lab_field_list[2]
-        if lab_field:
+            lab_field = ""
+            options_dict['labfield'] = 0
+            options_dict['phi'] = 0
+            options_dict['theta'] = 0
+        else:
+            lab_field_list = str(lab_field).split()
+            options_dict['labfield'] = lab_field_list[0]
+            options_dict['phi'] = lab_field_list[1]
+            options_dict['theta'] = lab_field_list[2]
             lab_field = "-dc " + lab_field
         spc = self.bSizer4.return_value()
         options_dict['specnum'] = spc
@@ -879,17 +882,18 @@ class convert_SIO_files_to_MagIC(wx.Frame):
         options_dict['coil'] = coil_number
         if coil_number:
             coil_number = "-V " + coil_number
-        synthetic = self.bSizer10.return_value()
-        if synthetic:
-            options_dict['institution'] = str(synthetic[0])
-            options_dict['syntype'] = str(synthetic[1])
-            synthetic = '-syn ' + synthetic
-        else:
-            synthetic = ''
+        #synthetic = self.bSizer10.return_value()
+        #if synthetic:
+        #    options_dict['institution'] = str(synthetic[0])
+        #    options_dict['syntype'] = str(synthetic[1])
+        #    synthetic = '-syn ' + synthetic
+        #else:
+        #    synthetic = ''
+
+        COMMAND = call+"sio_magic.py -F {0} -f {1} {2} {3} {4} -spc {5} -ncn {6} {7} {8} {9} {10} {11}".format(outfile, SIO_file, user, experiment_type, loc_name,spc, ncn, lab_field, peak_AF, coil_number, instrument, replicate)
         # to run as module:
         #import sio_magic
         #if sio_magic.main(command_line=False, **options_dict):
-        #    COMMAND = call+"sio_magic.py -F {0} -f {1} {2} {3} {4} -spc {5} -ncn {6} {7} {8} {9} {10} {11} {12}".format(outfile, SIO_file, user, experiment_type, loc_name,spc, ncn, lab_field, peak_AF, coil_number, instrument, replicate, synthetic)
         #    pw.close_window(self, COMMAND, outfile)
         #else:
         #    pw.simple_warning()
@@ -1521,7 +1525,7 @@ class convert_LDEO_files_to_MagIC(wx.Frame):
         self.bSizer10 = pw.labeled_text_field(pnl, TEXT)
 
         #---sizer 11 ---
-        self.bSizer11 = pw.synthetic(pnl)
+        #self.bSizer11 = pw.synthetic(pnl)
         
 
         #---buttons ---
@@ -1546,7 +1550,7 @@ class convert_LDEO_files_to_MagIC(wx.Frame):
         vbox.Add(hbox0, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(self.bSizer8, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(hbox1, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
-        vbox.Add(self.bSizer11, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        #vbox.Add(self.bSizer11, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.AddSpacer(10)
         vbox.Add(wx.StaticLine(pnl), 0, wx.ALL|wx.EXPAND, 5)
         vbox.Add(hboxok, flag=wx.ALIGN_CENTER|wx.BOTTOM, border=20)
@@ -1620,14 +1624,14 @@ class convert_LDEO_files_to_MagIC(wx.Frame):
         options_dict['coil'] = coil_number
         if coil_number:
             coil_number = "-V " + coil_number
-        synthetic = self.bSizer11.return_value()
-        if synthetic:
-            options_dict['institution'] = synthetic[1]
-            options_dict['syntype'] = synthetic[0]
-            synthetic = '-syn ' + synthetic
-        else:
-            synthetic = ''
-        COMMAND = call+"LDEO_magic.py -f {0} -F {1} {2} {3} {4} -ncn {5} {6} {7} {8} {9} {10} {11} {12} -Fsy {13}".format(LDEO_file, outfile, user, experiment_type, lab_field, ncn, spc, loc_name, instrument, replicate, AF_field, coil_number, synthetic, synthetic_outfile)
+        #synthetic = self.bSizer11.return_value()
+        #if synthetic:
+        #    options_dict['institution'] = synthetic[1]
+        #    options_dict['syntype'] = synthetic[0]
+        #    synthetic = '-syn ' + synthetic
+        #else:
+        #    synthetic = ''
+        COMMAND = call+"LDEO_magic.py -f {0} -F {1} {2} {3} {4} -ncn {5} {6} {7} {8} {9} {10} {11}".format(LDEO_file, outfile, user, experiment_type, lab_field, ncn, spc, loc_name, instrument, replicate, AF_field, coil_number)
         # to run as module:
         #import LDEO_magic
         #if LDEO_magic.main(False, **options_dict):

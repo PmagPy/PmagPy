@@ -161,12 +161,12 @@ class specimen_n(wx.StaticBoxSizer):
 
 class select_ncn(wx.StaticBoxSizer):  
     """provides box sizer with a drop down menu for the standard naming conventions"""
-    ncn_keys = ['XXXXY', 'XXXX-YY', 'XXXX.YY', 'XXXX[YYY] where YYY is sample designation, enter number of Y', 'sample name=site name', 'Site names in orient.txt file', '[XXXX]YYY where XXXX is the site name, enter number of X', 'this is a synthetic and has no site name']
+    ncn_keys = ['XXXXY', 'XXXX-YY', 'XXXX.YY', 'XXXX[YYY] where YYY is sample designation, enter number of Y', 'sample name=site name', 'Site names in orient.txt file', '[XXXX]YYY where XXXX is the site name, enter number of X']#, 'this is a synthetic and has no site name']
     def __init__(self, parent, ncn_keys=ncn_keys):
         self.parent = parent
         box = wx.StaticBox( parent, wx.ID_ANY, "" )
         super(select_ncn, self).__init__(box, orient=wx.VERTICAL)
-        ncn_values = range(1,9)
+        ncn_values = range(1,8)
         self.sample_naming_conventions = dict(zip(ncn_keys, ncn_values))
         self.select_naming_convention = wx.ComboBox(parent, -1, ncn_keys[0], size=(440,25), choices=ncn_keys, style=wx.CB_READONLY)
         self.sample_naming_convention_char = wx.TextCtrl(parent, id=-1, size=(40,25))
