@@ -4,13 +4,6 @@
 ' Written by Rupert C. J. Minnett, Ph.D.
 ' Last updated 11/21/2014
 '
-' 11/13/2014 Change Log:
-'
-' - Fixed a bug that allowed the test to run even if No is pressed in the final message box.
-' - The path is set in the registry instead of using the SETX command.
-' - The script now automatically re-executes with elevated permissions if necessary.
-' - If the second command line argument is "elevated", then the script doesn't attempt to re-execute with elevated permissions.
-'
 ' -----------------------------------------------------------------------------
 
 ' Create objects needed in this script
