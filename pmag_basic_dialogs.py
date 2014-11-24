@@ -3288,8 +3288,7 @@ class check(wx.Frame):
         pw.AddItem(self, 'Sample', add_sample, self.sites, 'site') # makes window for adding new data
 
         def add_sample_data(sample, site):
-            key = self.ErMagic.data_er_samples.keys()[0]
-            keys = self.ErMagic.data_er_samples[key].keys()
+            keys = self.ErMagic.er_samples_header
             self.ErMagic.data_er_samples[sample] = dict(zip(keys, ["" for key in keys]))
             self.ErMagic.data_er_samples[sample]['er_sample_name'] = sample
             self.ErMagic.data_er_samples[sample]['er_site_name'] = site
@@ -3316,8 +3315,7 @@ class check(wx.Frame):
         pw.AddItem(self, 'Site', add_site, self.locations, 'location')
 
         def add_site_data(site, location):
-            key = self.ErMagic.data_er_sites.keys()[0]
-            keys = self.ErMagic.data_er_sites[key].keys()
+            keys = self.ErMagic.er_sites_header
             self.ErMagic.data_er_sites[site] = dict(zip(keys, ["" for key in keys]))
             self.ErMagic.data_er_sites[site]['er_site_name'] = site
             self.ErMagic.data_er_sites[site]['er_location_name'] = location
@@ -3347,12 +3345,8 @@ class check(wx.Frame):
 
         def add_loc_data(loc):
             # this is not dialed in yet
-            #print "self.ErMagic.data_er_locations", self.ErMagic.data_er_locations
-            #key = self.ErMagic.data_er_locations.keys()[0]
-            #keys = self.ErMagic.data_er_locations[key].keys()
             keys = self.ErMagic.er_locations_header
             self.ErMagic.data_er_locations[loc] = {key: "" for key in keys}
-            #print "self.ErMagic.data_er_locations:", self.ErMagic.data_er_locations
             self.Data_hierarchy['locations'][loc] = []
 
             # re-Bind so that the updated samples list shows up on a left click
@@ -3360,8 +3354,7 @@ class check(wx.Frame):
             locations = sorted(list(set(locations).union(self.ErMagic.data_er_locations.keys())))
 
             self.drop_down_menu.update_drop_down_menu(self.site_grid, {2: (locations, False)})
-
-
+            
 
 
     def on_helpButton(self, event, page=None):
@@ -3685,8 +3678,7 @@ class check(wx.Frame):
                     self.Data_hierarchy['location_of_specimen'][spec] = loc
                 
                 if not sample in self.ErMagic.data_er_samples.keys():
-                    key = self.ErMagic.data_er_samples.keys()[0]
-                    keys = self.ErMagic.data_er_samples[key].keys()
+                    keys = self.ErMagic.er_samples_header
                     self.ErMagic.data_er_samples[sample] = dict(zip(keys, ["" for key in keys]))
                     self.ErMagic.data_er_samples[sample]['er_sample_name'] = sample
                 self.ErMagic.data_er_samples[sample]['er_site_name'] = new_site

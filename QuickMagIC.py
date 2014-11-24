@@ -221,10 +221,11 @@ class MagMainFrame(wx.Frame):
 
         if "-WD" in sys.argv and self.FIRST_RUN:
             ind=sys.argv.index('-WD')
-            self.WD=sys.argv[ind+1]            
+            self.WD = os.path.abspath(sys.argv[ind+1])
         
         else:
             self.WD = os.getcwd() + '/'
+            
             
         os.chdir(self.WD)
         self.WD=str(os.getcwd())+"/"
@@ -307,16 +308,22 @@ class MagMainFrame(wx.Frame):
     def on_run_thellier_gui(self,event):
         outstring=self.call+"thellier_gui.py -WD %s"%self.WD
         print "-I- running python script:\n %s"%(outstring)
-        import thellier_gui
-        thellier_gui.do_main(self.WD)
-        #os.system(outstring)
+        # to run as module:
+        #import thellier_gui
+        #thellier_gui.do_main(self.WD)
+        
+        # to run as command line:
+        os.system(outstring)
 
     def on_run_demag_gui(self,event):
         outstring=self.call+"demag_gui.py -WD %s"%self.WD
         print "-I- running python script:\n %s"%(outstring)
-        import demag_gui
-        demag_gui.do_main(self.WD)
-        #os.system(outstring)
+        # for use as module:
+        #import demag_gui
+        #demag_gui.do_main(self.WD)
+
+        # for use as command line:
+        os.system(outstring)
         
     def on_convert_file(self,event):
         pmag_dialogs_dia=pmag_basic_dialogs.import_magnetometer_data(self, wx.ID_ANY, '',self.WD)
@@ -417,7 +424,7 @@ class MagMainFrame(wx.Frame):
         outstring=self.call+"upload_magic.py"
         print "-I- running python script:\n %s"%(outstring)
         os.system(outstring)
-        TXT="Check terminal (Mac) or command prompt (windows) for error/warnings.\nA file name upload_dos.txt was generated in MagIC Project Directory.\nDrag and drop this file in the MagIC database."
+        TXT="Check terminal (Mac) or command prompt (windows) for error/warnings.\nIf all went well, a file name upload_dos.txt was generated in MagIC Project Directory.\nDrag and drop this file in the MagIC database."
         dlg = wx.MessageDialog(self, caption="Saved",message=TXT,style=wx.OK)
         result = dlg.ShowModal()
         if result == wx.ID_OK:            
