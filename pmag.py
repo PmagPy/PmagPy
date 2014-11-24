@@ -898,10 +898,10 @@ def magic_read(infile):
     for rec in hold:
         magic_record={}
         if len(magic_keys) != len(rec):
-            
-            print "Warning: Uneven record lengths detected: "
-            print magic_keys
-            print rec
+            if rec != ['>>>>>>>>>>'] and 'delimited' not in rec[0]: # ignores this warning when reading the dividers in an upload.txt composite file
+                print "Warning: Uneven record lengths detected: "
+                print magic_keys
+                print rec
         # modified by Ron Shaar:
         # add a health check:
         # if len(magic_keys) > len(rec): take rec

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 import pmag,sys
-def main():
+def main(command_line=True, **kwargs):
     """
     NAME
         upload_magic.py
@@ -28,14 +28,19 @@ def main():
 #   set up filenames to upload
     concat,All=0,0
     dir_path='.'
-    if '-h' in sys.argv:
-        print main.__doc__
-        sys.exit()
-    if '-cat' in sys.argv: concat=1
-    if '-all' in sys.argv: All=1
-    if '-WD' in sys.argv:
-        ind=sys.argv.index('-WD')
-        dir_path=sys.argv[ind+1]
+    if command_line:
+        if '-h' in sys.argv:
+            print main.__doc__
+            sys.exit()
+        if '-cat' in sys.argv: concat=1
+        if '-all' in sys.argv: All=1
+        if '-WD' in sys.argv:
+            ind=sys.argv.index('-WD')
+            dir_path=sys.argv[ind+1]
+    if not command_line:
+        concat = kwargs.get('concat', 0)
+        All = kwargs.get('All', 0)
+        dir_path = kwargs.get('dir_path', '.')
     file_names=[]
     file_names.append(dir_path+'/'+"er_expeditions.txt")
     file_names.append(dir_path+'/'+"er_locations.txt")
@@ -118,6 +123,7 @@ def main():
                                 if meth.strip()!="LP-DIR-":
                                     methods.append(meth.strip())
                     pmag.putout(up,keystring,rec)
+
     # write out the file separator
             f=open(up,'a')
             f.write('>>>>>>>>>>\n')
@@ -125,6 +131,7 @@ def main():
             print file_type, 'written to ',up
         else:
             print file, 'is bad or non-existent - skipping '
+
     # write out the methods table
     first_rec,MethRec=1,{}
     for meth in methods:
@@ -136,6 +143,12 @@ def main():
         f=open(up,'a')
         f.write('>>>>>>>>>>\n')
         f.close()
+
+    import validate_upload
+    if not validate_upload.read_upload(up):
+        print "Please fix your data then try again"
+        return False
+    # 
     
     print "now converting to dos file 'upload_dos.txt'"
     f=open(up,'rU')
@@ -145,4 +158,6 @@ def main():
         o.write(line)
     
     print "Finished preparing upload file "
-main()
+
+if __name__ == '__main__':
+    main()
