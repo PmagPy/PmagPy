@@ -1,9 +1,9 @@
 import os
-import sys
-import time
-import urllib2
-import pickle
-from Tkinter import *
+#import sys
+#import time
+#import urllib2
+#import pickle
+#from Tkinter import *
 
 def get_pmag_dir():
     """
@@ -16,7 +16,9 @@ def get_version():
    global pmagpy_path
    pmagpy_path = get_pmag_dir()
    return version.version
-    
+
+
+"""    
 def main():
     global pmagpy_path
     local_version=get_version()
@@ -83,3 +85,4 @@ def main():
 
 if __name__ == '__main__':
    main()
+"""

@@ -377,7 +377,7 @@ class convert_generic_files_to_MagIC(wx.Frame):
         except ValueError:
             B_uT, DEC, INC = '0', '0', '0'
 
-        print "B_uT, DEC, INC", B_uT, DEC, INC
+        #print "B_uT, DEC, INC", B_uT, DEC, INC
         options['labfield'], options['labfield_phi'], options['labfield_theta'] = B_uT, DEC, INC
 
         if EXP != "Demag":
@@ -773,7 +773,7 @@ class convert_SIO_files_to_MagIC(wx.Frame):
         self.bSizer9 = pw.labeled_text_field(pnl, TEXT)
 
         #---sizer 10 ---
-        self.bSizer10 = pw.synthetic(pnl)
+        #self.bSizer10 = pw.synthetic(pnl)
 
         #---buttons ----
         hboxok = pw.btn_panel(self, pnl)
@@ -801,7 +801,7 @@ class convert_SIO_files_to_MagIC(wx.Frame):
         vbox.Add(hbox0, flag=wx.ALIGN_LEFT|wx.TOP, border=8)
         vbox.Add(self.bSizer7, flag=wx.ALIGN_LEFT|wx.TOP, border=8)
         vbox.Add(hbox1, flag=wx.ALIGN_LEFT|wx.TOP, border=8)
-        vbox.Add(self.bSizer10, flag=wx.ALIGN_LEFT|wx.TOP, border=8)
+        #vbox.Add(self.bSizer10, flag=wx.ALIGN_LEFT|wx.TOP, border=8)
         vbox.Add(wx.StaticLine(pnl), 0, wx.ALL|wx.EXPAND, 5)
         vbox.Add(hboxok, flag=wx.ALIGN_CENTER)        
         vbox.Add(wx.StaticLine(pnl), 0, wx.ALL|wx.EXPAND, 5)
@@ -843,12 +843,15 @@ class convert_SIO_files_to_MagIC(wx.Frame):
             experiment_type = "-LP " + experiment_type
         lab_field = self.bSizer3.return_value()
         if not lab_field:
-            lab_field = "0 0 0"
-        lab_field_list = str(lab_field).split()
-        options_dict['labfield'] = lab_field_list[0]
-        options_dict['phi'] = lab_field_list[1]
-        options_dict['theta'] = lab_field_list[2]
-        if lab_field:
+            lab_field = ""
+            options_dict['labfield'] = 0
+            options_dict['phi'] = 0
+            options_dict['theta'] = 0
+        else:
+            lab_field_list = str(lab_field).split()
+            options_dict['labfield'] = lab_field_list[0]
+            options_dict['phi'] = lab_field_list[1]
+            options_dict['theta'] = lab_field_list[2]
             lab_field = "-dc " + lab_field
         spc = self.bSizer4.return_value()
         options_dict['specnum'] = spc
@@ -879,17 +882,18 @@ class convert_SIO_files_to_MagIC(wx.Frame):
         options_dict['coil'] = coil_number
         if coil_number:
             coil_number = "-V " + coil_number
-        synthetic = self.bSizer10.return_value()
-        if synthetic:
-            options_dict['institution'] = str(synthetic[0])
-            options_dict['syntype'] = str(synthetic[1])
-            synthetic = '-syn ' + synthetic
-        else:
-            synthetic = ''
+        #synthetic = self.bSizer10.return_value()
+        #if synthetic:
+        #    options_dict['institution'] = str(synthetic[0])
+        #    options_dict['syntype'] = str(synthetic[1])
+        #    synthetic = '-syn ' + synthetic
+        #else:
+        #    synthetic = ''
+
+        COMMAND = call+"sio_magic.py -F {0} -f {1} {2} {3} {4} -spc {5} -ncn {6} {7} {8} {9} {10} {11}".format(outfile, SIO_file, user, experiment_type, loc_name,spc, ncn, lab_field, peak_AF, coil_number, instrument, replicate)
         # to run as module:
         #import sio_magic
         #if sio_magic.main(command_line=False, **options_dict):
-        #    COMMAND = call+"sio_magic.py -F {0} -f {1} {2} {3} {4} -spc {5} -ncn {6} {7} {8} {9} {10} {11} {12}".format(outfile, SIO_file, user, experiment_type, loc_name,spc, ncn, lab_field, peak_AF, coil_number, instrument, replicate, synthetic)
         #    pw.close_window(self, COMMAND, outfile)
         #else:
         #    pw.simple_warning()
@@ -1521,7 +1525,7 @@ class convert_LDEO_files_to_MagIC(wx.Frame):
         self.bSizer10 = pw.labeled_text_field(pnl, TEXT)
 
         #---sizer 11 ---
-        self.bSizer11 = pw.synthetic(pnl)
+        #self.bSizer11 = pw.synthetic(pnl)
         
 
         #---buttons ---
@@ -1546,7 +1550,7 @@ class convert_LDEO_files_to_MagIC(wx.Frame):
         vbox.Add(hbox0, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(self.bSizer8, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(hbox1, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
-        vbox.Add(self.bSizer11, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        #vbox.Add(self.bSizer11, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.AddSpacer(10)
         vbox.Add(wx.StaticLine(pnl), 0, wx.ALL|wx.EXPAND, 5)
         vbox.Add(hboxok, flag=wx.ALIGN_CENTER|wx.BOTTOM, border=20)
@@ -1620,14 +1624,14 @@ class convert_LDEO_files_to_MagIC(wx.Frame):
         options_dict['coil'] = coil_number
         if coil_number:
             coil_number = "-V " + coil_number
-        synthetic = self.bSizer11.return_value()
-        if synthetic:
-            options_dict['institution'] = synthetic[1]
-            options_dict['syntype'] = synthetic[0]
-            synthetic = '-syn ' + synthetic
-        else:
-            synthetic = ''
-        COMMAND = call+"LDEO_magic.py -f {0} -F {1} {2} {3} {4} -ncn {5} {6} {7} {8} {9} {10} {11} {12} -Fsy {13}".format(LDEO_file, outfile, user, experiment_type, lab_field, ncn, spc, loc_name, instrument, replicate, AF_field, coil_number, synthetic, synthetic_outfile)
+        #synthetic = self.bSizer11.return_value()
+        #if synthetic:
+        #    options_dict['institution'] = synthetic[1]
+        #    options_dict['syntype'] = synthetic[0]
+        #    synthetic = '-syn ' + synthetic
+        #else:
+        #    synthetic = ''
+        COMMAND = call+"LDEO_magic.py -f {0} -F {1} {2} {3} {4} -ncn {5} {6} {7} {8} {9} {10} {11}".format(LDEO_file, outfile, user, experiment_type, lab_field, ncn, spc, loc_name, instrument, replicate, AF_field, coil_number)
         # to run as module:
         #import LDEO_magic
         #if LDEO_magic.main(False, **options_dict):
@@ -2911,6 +2915,11 @@ class check(wx.Frame):
 
         ### Create Buttons ###
         hbox_one = wx.BoxSizer(wx.HORIZONTAL)
+        self.addLocButton = wx.Button(self.panel, label="Add a new location")
+        self.locations = list(set(self.Data_hierarchy['sites'].keys()).union(self.ErMagic.data_er_locations.keys()))
+        self.Bind(wx.EVT_BUTTON, self.on_addLocButton, self.addLocButton)
+        hbox_one.Add(self.addLocButton)
+
         self.helpButton = wx.Button(self.panel, label="Help")
         self.Bind(wx.EVT_BUTTON, lambda event: self.on_helpButton(event, "ErMagicSiteHelp.html"), self.helpButton)
         hbox_one.Add(self.helpButton)
@@ -2983,9 +2992,9 @@ class check(wx.Frame):
             col_labels[:0] = ['er_location_name', 'location_type']
         except:
             pass
+
         self.loc_grid = self.make_simple_table(col_labels, self.ErMagic.data_er_locations, "location")
 
-        #self.Bind(wx.grid.EVT_GRID_EDITOR_SHOWN, self.on_edit_grid, self.loc_grid) 
         self.Bind(wx.grid.EVT_GRID_EDITOR_CREATED, lambda event: self.on_edit_grid(event, self.loc_grid), self.loc_grid)
 
         self.drop_down_menu = drop_down_menus.Menus("location", self, self.loc_grid, None) # initialize all needed drop-down menus
@@ -3007,7 +3016,6 @@ class check(wx.Frame):
         previous_dia = self.InitSampCheck
         self.Bind(wx.EVT_BUTTON, lambda event: self.on_backButton(event, previous_dia, current_dia = self.InitLocCheck), self.backButton)
 
-
         hboxok.Add(self.saveButton, flag=wx.BOTTOM, border=20)
         hboxok.Add(self.cancelButton, flag=wx.BOTTOM, border=20 )
         hboxok.Add(self.continueButton, flag=wx.BOTTOM, border=20 )
@@ -3015,8 +3023,8 @@ class check(wx.Frame):
 
         ### Make Containers ###
         vbox = wx.BoxSizer(wx.VERTICAL)
-        vbox.Add(label, flag=wx.ALIGN_LEFT)#, flag=wx.ALIGN_LEFT|wx.BOTTOM, border=20)
-        vbox.Add(self.loc_grid, flag=wx.ALL|wx.EXPAND, border=20) # EXPAND ??
+        vbox.Add(label, flag=wx.ALIGN_LEFT)
+        vbox.Add(self.loc_grid, flag=wx.ALL, border=20) # EXPAND ??
         vbox.Add(hbox_one, flag=wx.BOTTOM, border=20)
         vbox.Add(hboxok, flag=wx.BOTTOM, border=20)
 
@@ -3116,12 +3124,15 @@ class check(wx.Frame):
     def make_simple_table(self, column_labels, data_dict, grid_name):
         row_labels = sorted(data_dict.keys())
         if len(row_labels) == 1:
-            grid = wx.grid.Grid(self.panel, -1, name=grid_name, size=(1100, 70))
+            # setting the size this way causes the window to come up empty until re-sized
+            # experiment with using a wx.Size object instead of just a tuple -- may provide some extra choices
+            grid = wx.grid.Grid(self.panel, -1, name=grid_name, size=(-1, 70))#  autosizes width, but imposes height
         else:
             grid = wx.grid.Grid(self.panel, -1, name=grid_name)
-        grid.ClearGrid()
 
+        grid.ClearGrid()
         grid.CreateGrid(len(row_labels), len(column_labels))
+
         self.temp_data[column_labels[0]] = []
         # set row labels
         for n, row in enumerate(row_labels):
@@ -3138,6 +3149,9 @@ class check(wx.Frame):
                 if value:
                     grid.SetCellValue(num, n+1, value)
         grid.AutoSizeColumns(True)
+
+        grid.AutoSize() # prevents display failure
+
         for n, col in enumerate(column_labels):
             # adjust column widths to be a little larger then auto for nicer editing
             orig_size = grid.GetColSize(n)
@@ -3158,7 +3172,7 @@ class check(wx.Frame):
         column_indexing: Data_hierarchy object containing various data mappings
         ind: ['sample_of_specimen'], indicating which data mapping to use """
         if len(row_values) == 1:
-            grid = wx.grid.Grid(self.panel, -1, name=column_labels[0], size=(1100, 70))
+            grid = wx.grid.Grid(self.panel, -1, name=column_labels[0], size=(-1, 70))# autosizes width, but enforces 70 pxl height to prevent display problems
         else:
             grid = wx.grid.Grid(self.panel, -1, name=column_labels[0])
         grid.ClearGrid()
@@ -3189,7 +3203,9 @@ class check(wx.Frame):
         for n, label in enumerate(column_labels):
             grid.SetColLabelValue(n, label)
 
-        grid.AutoSizeColumns(True)
+        #grid.AutoSizeColumns(True)
+        grid.AutoSize()
+
         for n, col in enumerate(column_labels):
             # adjust column widths to be a little larger then auto for nicer editing
             orig_size = grid.GetColSize(n)
@@ -3198,6 +3214,8 @@ class check(wx.Frame):
             else:
                 size = orig_size * 1.6
             grid.SetColSize(n, size)
+
+
         return grid, original_1, original_2
 
     
@@ -3266,7 +3284,7 @@ class check(wx.Frame):
         if not self.ErMagic.data_er_samples:
             self.ErMagic.read_MagIC_info()
 
-        pw.AddItem(self, 'Sample', 'site', self.sites, add_sample)
+        pw.AddItem(self, 'Sample', add_sample, self.sites, 'site') # makes window for adding new data
 
         def add_sample_data(sample, site):
             key = self.ErMagic.data_er_samples.keys()[0]
@@ -3294,7 +3312,7 @@ class check(wx.Frame):
         def add_site(site, location):
             add_site_data(site, location)
 
-        pw.AddItem(self, 'Site', 'location', self.locations, add_site)
+        pw.AddItem(self, 'Site', add_site, self.locations, 'location')
 
         def add_site_data(site, location):
             key = self.ErMagic.data_er_sites.keys()[0]
@@ -3311,6 +3329,38 @@ class check(wx.Frame):
             sites = sorted(list(set(sites).union(self.ErMagic.data_er_sites.keys())))
             self.Bind(wx.grid.EVT_GRID_SELECT_CELL, lambda event: self.on_left_click(event, self.samp_grid, sites), self.samp_grid) 
             self.drop_down_menu.update_drop_down_menu(self.samp_grid, {2: (sites, False)})
+
+
+    def on_addLocButton(self, event):
+
+        def add_loc(loc):
+            add_loc_data(loc)
+
+        #def __init__(self, parent, title, data_items, data_method):
+
+        if not self.ErMagic.data_er_locations:
+            pass
+            
+
+        pw.AddItem(self, 'Location', add_loc, owner_items=None, belongs_to=None) # makes window for adding new data
+
+        def add_loc_data(loc):
+            # this is not dialed in yet
+            #print "self.ErMagic.data_er_locations", self.ErMagic.data_er_locations
+            #key = self.ErMagic.data_er_locations.keys()[0]
+            #keys = self.ErMagic.data_er_locations[key].keys()
+            keys = self.ErMagic.er_locations_header
+            self.ErMagic.data_er_locations[loc] = {key: "" for key in keys}
+            #print "self.ErMagic.data_er_locations:", self.ErMagic.data_er_locations
+            self.Data_hierarchy['locations'][loc] = []
+
+            # re-Bind so that the updated samples list shows up on a left click
+            locations = sorted(self.Data_hierarchy['locations'].keys())
+            locations = sorted(list(set(locations).union(self.ErMagic.data_er_locations.keys())))
+
+            self.drop_down_menu.update_drop_down_menu(self.site_grid, {2: (locations, False)})
+
+
 
 
     def on_helpButton(self, event, page=None):
@@ -3466,6 +3516,8 @@ class check(wx.Frame):
                     for spec in specimens:
                         self.Data_hierarchy['location_of_specimen'][spec] = new_loc
                         self.ErMagic.data_er_specimens[spec]['er_location_name'] = new_loc
+            
+            
 
 
             #
@@ -3532,7 +3584,18 @@ class check(wx.Frame):
                 #
                 self.ErMagic.data_er_sites[site]['er_location_name'] = new_loc
                 #
-        
+
+
+        # check if any locations no longer have any site assigned to them, and destroy them if so.
+        # this means they won't show up in the check locations grid
+        locations = self.ErMagic.data_er_locations.keys()
+        for loc in locations:
+            #print self.Data_hierarchy['sites'][site]
+            if loc in self.Data_hierarchy['locations'].keys():
+                if not self.Data_hierarchy['locations'][loc]:
+                    self.Data_hierarchy['locations'].pop(loc)
+                    self.ErMagic.data_er_locations.pop(loc)
+         
         # now fill in all the other columns, using extra temp_data to update only
         # data for cells that have been changed
         columns = grid.GetNumberCols()
@@ -3760,15 +3823,6 @@ class check(wx.Frame):
                 if dict_item not in short_dict.keys():
                     long_dict.pop(dict_item)
             return long_dict
-        ignore = """
-        print [method for method in dir(self) if method[0].islower()]
-        print "specimens", sorted(self.Data_hierarchy['specimens'].keys())
-        print "samples", sorted(self.Data_hierarchy['samples'].keys())
-        print "sites  ", sorted(self.Data_hierarchy['sites'].keys())
-        print "locations", self.Data_hierarchy['locations'].keys()
-        print "before:", sorted(self.ErMagic.data_er_sites.keys())
-        to_do = [(self.ErMagic.data_er_specimens, self.Data_hierarchy['specimens'])]
-        """
         remove_extras(self.ErMagic.data_er_specimens, self.Data_hierarchy['specimens'])
         remove_extras(self.ErMagic.data_er_samples, self.Data_hierarchy['samples'])
         remove_extras(self.ErMagic.data_er_sites, self.Data_hierarchy['sites'])
