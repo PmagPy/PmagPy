@@ -2,9 +2,11 @@
 '
 ' Installation script for Lisa Tauxe's PmagPy Python Package
 ' Written by Rupert C. J. Minnett, Ph.D.
-' Last updated 11/21/2014
+' Last updated 11/24/2014
 '
 ' -----------------------------------------------------------------------------
+
+On Error Resume Next
 
 ' Create objects needed in this script
 Set Shell = WScript.CreateObject("WScript.Shell")
@@ -20,7 +22,7 @@ installation_path = my_documents_path & "\PmagPy"
 
 ' Confirm that the default installation path should be used
 installation_path_prompted = False
-While Not installation_path_prompted And Vartype(installation_path) = 0 Or installation_path = ""
+While Not installation_path_prompted Or Vartype(installation_path) = 0 Or installation_path = ""
 
 	installation_path_prompted = True
 	installation_path = InputBox("Install PmagPy to the default directory (your 'My Documents' directory)? " & _ 
@@ -37,7 +39,7 @@ WEnd
 
 ' As long as the requested installation path exists
 overwrite = False
-While FileSystemObject.FolderExists(installation_path) And Not overwrite
+While Not overwrite And FileSystemObject.FolderExists(installation_path)
 
 	' Confirm that the installation path should be overwritten
 	new_installation_path = InputBox("The PmagPy installation directory below already exists. " & _
@@ -56,9 +58,13 @@ WEnd
 
 
 ' Copy the current directory's contents into the installation directory
-Shell.Run "xcopy.exe /K /Y /C /E /H /R """ & Shell.CurrentDirectory & """ """ & installation_path & """", 0, True
+FileSystemObject.CopyFolder Shell.CurrentDirectory, installation_path, True
+If Err.Number <> 0 Then
+	MsgBox "Failed to copy PmagPy into the installation directory: " & Err.Description & vbNewline & vbNewline & "Please restart the the PmagPy installation.", 16, "PmagPy Installation Error"
+	WScript.Quit
+End If
 
-' 
+' Create the command prompt batch script that sets the PATH and prints the welcome message
 Set file = FileSystemObject.CreateTextFile(installation_path & "\pmagpy_prompt.bat", True)
 file.WriteLine("@ECHO OFF")
 file.WriteLine("SET ""PATH=" & installation_path & ";%PATH%""")
@@ -74,23 +80,31 @@ file.WriteLine("ECHO ^| http://earthref.org/PmagPy/cookbook/                    
 file.WriteLine("ECHO ^|                                                                             ^|")
 file.WriteLine("ECHO -------------------------------------------------------------------------------")
 file.Close
+If Err.Number <> 0 Then
+	MsgBox "Failed to create the PmagPy Command Prompt batch script: " & Err.Description & vbNewline & vbNewline & "Please restart the the PmagPy installation.", 16, "PmagPy Installation Error"
+	WScript.Quit
+End If
 
+' Create the shortcut that opens the command prompt and runs the batch script
 Set lnk = Shell.CreateShortcut(installation_path & "\PmagPy Prompt.LNK")
 lnk.TargetPath = "%comspec%"
 lnk.Arguments = " /k """ & installation_path & "\pmagpy_prompt.bat"""
 lnk.IconLocation = installation_path & "\images\PmagPy.ICO, 0"
 lnk.WorkingDirectory = my_documents_path
 lnk.Save
+If Err.Number <> 0 Then
+	MsgBox "Failed to create the PmagPy Command Prompt shortcut: " & Err.Description & vbNewline & vbNewline & "Please restart the the PmagPy installation.", 16, "PmagPy Installation Error"
+	WScript.Quit
+End If
 
+' Check if the user wants to copy the shortcut to the desktop
 If MsgBox("PmagPy installed successfully in """ & installation_path & """!" & _ 
 	      vbNewLine & vbNewline & _ 
           "Would you like to make a shortcut to the PmagPy Command Prompt on the desktop?", _
           vbYesNo, "PmagPy Installed Successfully") = vbYes Then
 	FileSystemObject.CopyFile installation_path & "\PmagPy Prompt.LNK", Shell.SpecialFolders("Desktop") & "\PmagPy Prompt.LNK", True
+	If Err.Number <> 0 Then
+		MsgBox "Failed to copy the PmagPy Command Prompt shortcut to the desktop: " & Err.Description & vbNewline & vbNewline & "Please restart the the PmagPy installation.", 16, "PmagPy Installation Error"
+		WScript.Quit
+	End If
 End If
-
-' Ask if a PmagPy test should be run
-'If MsgBox("PmagPy installed successfully in """ & installation_path & """!" & _ 
-'	      vbNewLine & vbNewline & _ 
-'          "Would you like to run a PmagPy test (equivalent to executing 'eqarea.py -h' on the command line)?", _
-'          vbYesNo, "PmagPy Installed Successfully") = vbYes Then Shell.Run installation_path & "\install_Windows_test.bat", 10, True
