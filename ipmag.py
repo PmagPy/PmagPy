@@ -1,4 +1,5 @@
-import pmag, pmagplotlib
+import pmag
+import pmagplotlib
 import pylab
 import numpy as np
 import random
@@ -485,6 +486,87 @@ def vgp_calc(dataframe,tilt_correction='yes'):
         #but aren't of further use and are deleted
         del dataframe['colatitude']
         del dataframe['beta']
+
+def sb_vgp_calc(dataframe):
+    """
+    This function calculates the angular dispersion of VGPs and corrects
+    for within site dispersion to return a value S_b. The input data
+    needs to be within a pandas Dataframe. The function also plots the
+    VGPs and their associated Fisher mean on a projection centered on
+    the mean.
+    
+    Parameters
+    ----------- 
+    dataframe : the name of the pandas.DataFrame containing the data
+    
+    the data frame needs to contain these columns:
+    dataframe['site_lat'] : latitude of the site
+    dataframe['site_lon'] : longitude of the site
+    dataframe['inc_tc'] : tilt-corrected inclination
+    dataframe['dec_tc'] : tilt-corrected declination
+    dataframe['k'] : fisher precision parameter for directions
+    dataframe['vgp_lat'] : VGP latitude
+    dataframe['vgp_lon'] : VGP longitude
+    """
+
+    # calculate the mean from the directional data
+    dataframe_dirs=[]
+    for n in range(0,len(dataframe)): 
+        dataframe_dirs.append([dataframe['dec_tc'][n],
+                               dataframe['inc_tc'][n],1.])
+    dataframe_dir_mean=pmag.fisher_mean(dataframe_dirs)
+
+    # calculate the mean from the vgp data
+    dataframe_poles=[]
+    dataframe_pole_lats=[]
+    dataframe_pole_lons=[]
+    for n in range(0,len(dataframe)): 
+        dataframe_poles.append([dataframe['vgp_lon'][n],
+                                dataframe['vgp_lat'][n],1.])
+        dataframe_pole_lats.append(dataframe['vgp_lat'][n])
+        dataframe_pole_lons.append(dataframe['vgp_lon'][n])                            
+    dataframe_pole_mean=pmag.fisher_mean(dataframe_poles)
+
+    # calculate mean paleolatitude from the directional data
+    dataframe['paleolatitude']=ipmag.lat_from_inc(dataframe_dir_mean['inc'])
+
+    angle_list=[]
+    for n in range(0,len(dataframe)):
+        angle=pmag.angle([dataframe['vgp_lon'][n],dataframe['vgp_lat'][n]],
+                         [dataframe_pole_mean['dec'],dataframe_pole_mean['inc']])
+        angle_list.append(angle[0])
+    dataframe['delta_mean-pole']=angle_list
+
+    # use eq. 2 of Cox (1970) to translate the directional precision parameter
+    # into pole coordinates using the assumption of a Fisherian distribution in
+    # directional coordinates and the paleolatitude as calculated from mean
+    # inclination using the dipole equation
+    dataframe['K']=dataframe['k']/(0.125*(5+18*np.sin(np.deg2rad(dataframe['paleolatitude']))**2
+                                          +9*np.sin(np.deg2rad(dataframe['paleolatitude']))**4))
+    dataframe['Sw']=81/(dataframe['K']**0.5)
+
+    summation=0
+    N=0
+    for n in range(0,len(dataframe)):
+        quantity=dataframe['delta_mean-pole'][n]**2-dataframe['Sw'][n]**2/dataframe['n'][n]
+        summation+=quantity
+        N+=1
+
+    Sb=((1.0/(N-1.0))*summation)**0.5
+    
+    plt.figure(figsize=(6, 6))
+    m = Basemap(projection='ortho',lat_0=dataframe_pole_mean['inc'],
+                lon_0=dataframe_pole_mean['dec'],resolution='c',area_thresh=50000)
+    m.drawcoastlines(linewidth=0.25)
+    m.fillcontinents(color='bisque',lake_color='white',zorder=1)
+    m.drawmapboundary(fill_color='white')
+    m.drawmeridians(np.arange(0,360,30))
+    m.drawparallels(np.arange(-90,90,30))
+    
+    ipmag.plot_vgp(m,dataframe_pole_lons,dataframe_pole_lats,dataframe_pole_lons)
+    ipmag.plot_pole(m,dataframe_pole_mean['dec'],dataframe_pole_mean['inc'],
+                    dataframe_pole_mean['alpha95'],color='r',marker='s')
+    return Sb
 
 def shoot(lon, lat, azimuth, maxdist=None):
     """
