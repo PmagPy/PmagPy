@@ -3304,7 +3304,9 @@ class check(wx.Frame):
             # re-Bind so that the updated samples list shows up on a left click
             samples = sorted(self.Data_hierarchy['samples'].keys())
             samples = sorted(list(set(samples).union(self.ErMagic.data_er_samples.keys())))
-            self.drop_down_menu.update_drop_down_menu(self.spec_grid, {2: (samples, False)})
+            choices = self.drop_down_menu.choices
+            choices[2] = (samples, False)
+            self.drop_down_menu.update_drop_down_menu(self.spec_grid, choices)
 
 
     def on_addSiteButton(self, event):
@@ -3349,12 +3351,12 @@ class check(wx.Frame):
             self.ErMagic.data_er_locations[loc] = {key: "" for key in keys}
             self.Data_hierarchy['locations'][loc] = []
 
-            # re-Bind so that the updated samples list shows up on a left click
+            # re-Bind so that the updated locations list shows up on a left click
             locations = sorted(self.Data_hierarchy['locations'].keys())
             locations = sorted(list(set(locations).union(self.ErMagic.data_er_locations.keys())))
-
-            self.drop_down_menu.update_drop_down_menu(self.site_grid, {2: (locations, False)})
-            
+            choices = self.drop_down_menu.choices
+            choices[2] = (locations, False)
+            self.drop_down_menu.update_drop_down_menu(self.site_grid, choices)
 
 
     def on_helpButton(self, event, page=None):
