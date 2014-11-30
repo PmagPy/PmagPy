@@ -4,6 +4,11 @@
 # LOG HEADER:
 #============================================================================================
 #
+#
+## Thellier_GUI Version 2.27 11/30/2014
+#
+# Fix in_sigma bug in change criteria dialog box
+#
 ## Thellier_GUI Version 2.26 11/16/2014
 # modify code for thellier interpreter
 # Add Consistency Check
@@ -2163,9 +2168,11 @@ class Arai_GUI(wx.Frame):
                     self.acceptance_criteria[crit]['value']=float(value)         
             else:  
                 self.show_messege(crit)
-            if crit=='sample_int_sigma' or crit=='site_int_sigma':
+            if ( crit=='sample_int_sigma' or crit=='site_int_sigma' ) and str(value)!="":
                 self.acceptance_criteria[crit]['value']=float(value)*1e-6  
-        
+            #print crit
+            #print value
+            #print str(value)==""
         #---------
         # thellier interpreter calculation type
         if dia.set_stdev_opt.GetValue()==True:

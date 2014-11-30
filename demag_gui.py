@@ -3,10 +3,13 @@
 #============================================================================================
 # LOG HEADER:
 #============================================================================================
+#
+# Demag_GUI Version 0.27 some minor bug fix
+
 # Demag_GUI Version 0.26 (version for MagIC workshop) by Ron Shaar 5/8/2014
-
+#
 # Demag_GUI Version 0.25 (beta) by Ron Shaar
-
+#
 # Demag_GUI Version 0.24 (beta) by Ron Shaar
 #
 # Demag_GUI Version 0.23 (beta) by Ron Shaar
@@ -26,7 +29,7 @@
 
 
 global CURRENT_VRSION
-CURRENT_VRSION = "v.0.26"
+CURRENT_VRSION = "v.0.27"
 import matplotlib
 matplotlib.use('WXAgg')
 
@@ -1517,7 +1520,7 @@ class Zeq_GUI(wx.Frame):
         
         # calcuate again self.pars and update the figures and the statistics tables. 
         coordinate_system=self.COORDINATE_SYSTEM
-        if found_interpretation:                               
+        if found_interpretation: 
             self.pars=self.get_PCA_parameters(self.s,tmin,tmax,coordinate_system,calculation_type) 
             self.draw_figure(self.s)
             self.update_GUI_with_new_interpretation()
@@ -1742,12 +1745,10 @@ class Zeq_GUI(wx.Frame):
             block=self.Data[specimen]['zijdblock_tilt']
         else:
             block=self.Data[specimen]['zijdblock']
-        #print "pca"
-        #print "block", block
-        #print "beg_pca",beg_pca
-        #print "end_pca",end_pca
-        
-        mpars=pmag.domean(block,beg_pca,end_pca,calculation_type)
+        if  end_pca>  beg_pca and   end_pca - beg_pca >1: 
+            mpars=pmag.domean(block,beg_pca,end_pca,calculation_type)
+        else:
+            mpars={}
         for k in mpars.keys():
             try:
                 if math.isnan(float(mpars[k])):
@@ -2117,6 +2118,9 @@ class Zeq_GUI(wx.Frame):
         # figure out what level to average,and what elements to average (specimen, samples, sites, vgp)        
         self.high_level_means[high_level_type][high_level_name]={}
         for dirtype in ["DA-DIR","DA-DIR-GEO","DA-DIR-TILT"]:
+            if high_level_name not in self.Data_hierarchy[high_level_type].keys():
+                continue
+                
             elements_list=self.Data_hierarchy[high_level_type][high_level_name][elements_type]
             pars_for_mean=[]              
             for element in elements_list:
@@ -3002,7 +3006,7 @@ class Zeq_GUI(wx.Frame):
                         #print "len(self.Data[specimen][zijdblock_geo]",len(self.Data[specimen]['zijdblock_geo'])
                         #print "len(self.Data[specimen]['zijdblock_tilt'])",len(self.Data[specimen]['zijdblock_tilt'])
                         self.pmag_results_data['specimens'][specimen]['DA-DIR']=self.get_PCA_parameters(specimen,tmin,tmax,'specimen',calculation_type)
-                        if len(self.Data[specimen]['zijdblock_geo'])>0:      
+                        if len(self.Data[specimen]['zijdblock_geo'])>0: 
                             self.pmag_results_data['specimens'][specimen]['DA-DIR-GEO']=self.get_PCA_parameters(specimen,tmin,tmax,'geographic',calculation_type)                
                         if len(self.Data[specimen]['zijdblock_tilt'])>0:      
                             self.pmag_results_data['specimens'][specimen]['DA-DIR-TILT']=self.get_PCA_parameters(specimen,tmin,tmax,'tilt-corrected',calculation_type)                        

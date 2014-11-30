@@ -578,6 +578,7 @@ class combine_magic_dialog(wx.Frame):
     def on_add_all_files_button(self,event):
         all_files=os.listdir(self.WD)
         for F in all_files:
+            str(F) # fix strange Python bug (rshaar)
             F=str(F)
             if len(F)>6:
                 if F[-6:]==".magic":
