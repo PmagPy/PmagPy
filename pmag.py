@@ -857,15 +857,19 @@ def find_dmag_rec(s,data):
         meas_units=meas_units[:-1]
     return datablock,meas_units
  
-def magic_read(infile):
+def magic_read(infile, data=None):
     """ 
-    reads  a Magic template file, puts data in a list of dictionaries
+    reads  a Magic template file, puts data in a list of dictionaries.
     """
     hold,magic_data,magic_record,magic_keys=[],[],{},[]
-    try:
-        f=open(infile,"rU")
-    except:
-        return [],'bad_file'
+    if data: # 
+        f = data
+    else:
+        try:
+            f=open(infile,"rU")
+        except:
+            return [],'bad_file'
+
     d = f.readline()[:-1].strip('\n')
     if d[0]=="s" or d[1]=="s":
         delim='space'

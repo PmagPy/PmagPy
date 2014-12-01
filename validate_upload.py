@@ -2,22 +2,35 @@
 
 #print "this is the right module"
 
+
+import urllib2
 import pmag
-
-doc = '/Users/nebula/Python/PmagPy/MagIC-data-model.txt'
-data = pmag.magic_read(doc)
-ref_dicts = [d for d in data[0] if d['column_nmb'] != '>>>>>>>>>>' and d['column_nmb'] != 'tab delimited']
-complete_ref = {}
-for d in ref_dicts:
-    complete_ref[d['field_name_oracle']] = {'data_type': d['data_type'], 'data_status': d['data_status']}
-
-doc2 = '/Users/nebula/Desktop/MagIC_experiments/Exp5/upload.txt'
+import check_updates
 
 
+def get_data_model():
+    print "getting data model"
+    url = 'http://earthref.org/services/MagIC-data-model.txt'
+    try:
+        data = urllib2.urlopen(url)
+    except urllib2.URLError:
+        try:
+            pmag_dir = check_updates.get_pmag_dir()
+            the_file = pmag_dir + "/MagIC-data-model.txt"
+            data = open(the_file, 'rU')
+        except:
+            print "can't access MagIC-data-model at the moment\nif you are working offline, make sure MagIC-data-model.txt is in your PmagPy directory (or get it from https://github.com/ltauxe/PmagPy)\notherwise, check your internet connection"
+            return False
+
+    data_model = pmag.magic_read(None, data)
+    ref_dicts = [d for d in data_model[0] if d['column_nmb'] != '>>>>>>>>>>' and d['column_nmb'] != 'tab delimited']
+    complete_ref = {}
+    for d in ref_dicts:
+        complete_ref[d['field_name_oracle']] = {'data_type': d['data_type'], 'data_status': d['data_status']}
+    return complete_ref
 
 
 def read_upload(up_file):
-    #pmag.upload_read(up_file, 'er_locations')
     f = open(up_file)
     lines = f.readlines()
     f.close()
@@ -25,19 +38,22 @@ def read_upload(up_file):
     data_dicts = get_dicts(data)
     missing_data = {}
     number_scramble = {}
+    data_model = get_data_model()
+    if not data_model:
+        return False
     for dictionary in data_dicts:
         for k, v in dictionary.items():
             if k == "file_type": # meta data
                 continue
             file_type = dictionary['file_type']
 
-            missing = do_validate(k, v)
+            missing = do_validate(k, v, data_model)
             if missing:
                 if file_type not in missing_data.keys():
                     missing_data[file_type] = set()
                 missing_data[file_type].add(missing)
 
-            number_fail = do_num_validate(k, v)
+            number_fail = do_num_validate(k, v, data_model)
             if number_fail:
                 if file_type not in number_scramble.keys():
                     number_scramble[file_type] = set()
@@ -101,14 +117,14 @@ def get_dicts(data):
     return data_dictionaries
         
         
-def do_validate(key, value):
+def do_validate(key, value, complete_ref):
     reqd = complete_ref[key]['data_status']
     if reqd == 'Required':
         if not value or value == " ":
             return key
     return
 
-def do_num_validate(key, value):
+def do_num_validate(key, value, complete_ref):
     dtype = complete_ref[key]['data_type']
     if value:
         if 'Number' in dtype:
