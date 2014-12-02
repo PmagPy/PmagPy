@@ -91,8 +91,8 @@ def bootstrap_common_mean(Data1,Data2,NumSims=1000):
     print "Here are the results of the bootstrap test for a common mean:"
     
     fignum = 1
-    plt.figure(figsize=(9,3))
-    plt.subplot(1,3,1)
+    fig = plt.figure(figsize=(9,3))
+    fig = plt.subplot(1,3,1)
     
     minimum = int(0.025*len(X1))
     maximum = int(0.975*len(X1))
@@ -104,6 +104,7 @@ def bootstrap_common_mean(Data1,Data2,NumSims=1000):
     X2,y=pmagplotlib.plotCDF(fignum,X2,"X component",'b',"")
     bounds2=[X2[minimum],X2[maximum]]
     pmagplotlib.plotVs(fignum,bounds2,'b','--')
+    plt.ylim(0,1)
     
     plt.subplot(1,3,2)
     
@@ -114,6 +115,7 @@ def bootstrap_common_mean(Data1,Data2,NumSims=1000):
     Y2,y=pmagplotlib.plotCDF(fignum,Y2,"Y component",'b',"")
     bounds2=[Y2[minimum],Y2[maximum]]
     pmagplotlib.plotVs(fignum,bounds2,'b','--')
+    plt.ylim(0,1)
     
     plt.subplot(1,3,3)
     
@@ -124,9 +126,10 @@ def bootstrap_common_mean(Data1,Data2,NumSims=1000):
     Z2,y=pmagplotlib.plotCDF(fignum,Z2,"Z component",'b',"")
     bounds2=[Z2[minimum],Z2[maximum]]
     pmagplotlib.plotVs(fignum,bounds2,'b','--')
+    plt.ylim(0,1)
     
     plt.tight_layout()
-    plt.show()
+    return fig
     
 def watson_common_mean(Data1,Data2,NumSims=5000,plot='no'):
     """
