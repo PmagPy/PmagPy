@@ -82,12 +82,51 @@ def bootstrap_common_mean(Data1,Data2,NumSims=1000):
     counter=0
     BDI1=pmag.di_boot(Data1)
     BDI2=pmag.di_boot(Data2)
+
+    cart1= pmag.dir2cart(BDI1).transpose()
+    X1,Y1,Z1=cart1[0],cart1[1],cart1[2]
+    cart2= pmag.dir2cart(BDI2).transpose()
+    X2,Y2,Z2=cart2[0],cart2[1],cart2[2]
+    
     print "Here are the results of the bootstrap test for a common mean:"
-    CDF={'X':1,'Y':2,'Z':3}
-    pylab.figure(CDF['X'],figsize=(3,3),dpi=160)
-    pylab.figure(CDF['Y'],figsize=(3,3),dpi=160)
-    pylab.figure(CDF['Z'],figsize=(3,3),dpi=160)
-    pmagplotlib.plotCOM(CDF,BDI1,BDI2,["",""])
+    
+    fignum = 1
+    plt.figure(figsize=(9,3))
+    plt.subplot(1,3,1)
+    
+    minimum = int(0.025*len(X1))
+    maximum = int(0.975*len(X1))
+    
+    X1,y=pmagplotlib.plotCDF(fignum,X1,"X component",'r',"")
+    bounds1=[X1[minimum],X1[maximum]]
+    pmagplotlib.plotVs(fignum,bounds1,'r','-')
+
+    X2,y=pmagplotlib.plotCDF(fignum,X2,"X component",'b',"")
+    bounds2=[X2[minimum],X2[maximum]]
+    pmagplotlib.plotVs(fignum,bounds2,'b','--')
+    
+    plt.subplot(1,3,2)
+    
+    Y1,y=pmagplotlib.plotCDF(fignum,Y1,"Y component",'r',"")
+    bounds1=[Y1[minimum],Y1[maximum]]
+    pmagplotlib.plotVs(fignum,bounds1,'r','-')
+    
+    Y2,y=pmagplotlib.plotCDF(fignum,Y2,"Y component",'b',"")
+    bounds2=[Y2[minimum],Y2[maximum]]
+    pmagplotlib.plotVs(fignum,bounds2,'b','--')
+    
+    plt.subplot(1,3,3)
+    
+    Z1,y=pmagplotlib.plotCDF(fignum,Z1,"Z component",'r',"")
+    bounds1=[Z1[minimum],Z1[maximum]]
+    pmagplotlib.plotVs(fignum,bounds1,'r','-')
+    
+    Z2,y=pmagplotlib.plotCDF(fignum,Z2,"Z component",'b',"")
+    bounds2=[Z2[minimum],Z2[maximum]]
+    pmagplotlib.plotVs(fignum,bounds2,'b','--')
+    
+    plt.tight_layout()
+    plt.show()
     
 def watson_common_mean(Data1,Data2,NumSims=5000,plot='no'):
     """
