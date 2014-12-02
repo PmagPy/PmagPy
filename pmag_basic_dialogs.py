@@ -3257,7 +3257,7 @@ class check(wx.Frame):
 
 
     def validate(self, grid):
-        validations = ['specimens', 'samples', 'site_class', 'site_lithology', 'site_type', 'site_definition', 'site_lon', 'site_lat', 'sample_class', 'sample_lithology', 'sample_type', 'sample_lat', 'sample_lon', 'location_type', 'age_unit', 'age']
+        validations = ['specimens', 'samples', 'site_class', 'site_lithology', 'site_type', 'site_definition', 'site_lon', 'site_lat', 'sample_class', 'sample_lithology', 'sample_type', 'sample_lat', 'sample_lon', 'location_type', 'age_unit', 'age', 'magic_method_codes']
         cols = range(grid.GetNumberCols())
         rows = range(grid.GetNumberRows())
         data_missing = []

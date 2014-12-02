@@ -9,7 +9,7 @@ import check_updates
 
 
 def get_data_model():
-    print "getting data model"
+    print "getting data model, please be patient"
     url = 'http://earthref.org/services/MagIC-data-model.txt'
     try:
         data = urllib2.urlopen(url)
@@ -47,12 +47,14 @@ def read_upload(up_file):
                 continue
             file_type = dictionary['file_type']
 
-            missing = do_validate(k, v, data_model)
-            if missing:
+            # make a list of missing, required data
+            missing_item = do_validate(k, v, data_model) 
+            if missing_item:
                 if file_type not in missing_data.keys():
                     missing_data[file_type] = set()
-                missing_data[file_type].add(missing)
+                missing_data[file_type].add(missing_item)
 
+            # make a list of data that should be numeric, but isn't
             number_fail = do_num_validate(k, v, data_model)
             if number_fail:
                 if file_type not in number_scramble.keys():
@@ -95,6 +97,8 @@ def get_dicts(data):
     """
     data_dictionaries = []
     for chunk in data[:-1]:
+        if not chunk:
+            continue
         data1 = data[0]
         file_type = chunk[0].split('\t')[1].strip('\n').strip('\r')
         keys = chunk[1].split('\t')
