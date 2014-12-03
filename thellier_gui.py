@@ -1920,8 +1920,11 @@ class Arai_GUI(wx.Frame):
         if FIRST_RUN and "-tree" in sys.argv:
             new_dir=self.WD
         else:
-            dialog = wx.DirDialog(None, "Choose a path. All magic directories in the pass will be imported:",defaultPath = self.currentDirectory ,style=wx.DD_DEFAULT_STYLE | wx.DD_NEW_DIR_BUTTON | wx.DD_CHANGE_DIR)
-            if dialog.ShowModal() == wx.ID_OK:
+            dialog = wx.DirDialog(None, "Choose a path. All magic directories in the path will be imported:",defaultPath = self.currentDirectory ,style=wx.DD_DEFAULT_STYLE | wx.DD_NEW_DIR_BUTTON | wx.DD_CHANGE_DIR)
+            ok = dialog.ShowModal()
+            if not ok:
+                ok = dialog.ShowModal()
+            if ok == wx.ID_OK:
               new_dir=dialog.GetPath()
             dialog.Destroy()
 
