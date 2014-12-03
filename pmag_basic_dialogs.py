@@ -3821,7 +3821,8 @@ class check(wx.Frame):
         remove_extras(self.ErMagic.data_er_specimens, self.Data_hierarchy['specimens'])
         remove_extras(self.ErMagic.data_er_samples, self.Data_hierarchy['samples'])
         remove_extras(self.ErMagic.data_er_sites, self.Data_hierarchy['sites'])
-        remove_extras(self.ErMagic.data_er_locations, self.Data_hierarchy['locations'])
+        #remove_extras(self.ErMagic.data_er_locations, self.Data_hierarchy['locations'])
+        remove_extras(self.Data_hierarchy['locations'], self.ErMagic.data_er_locations)
         remove_extras(self.ErMagic.data_er_ages, self.Data_hierarchy['sites'])
         self.ErMagic.update_ErMagic()
         

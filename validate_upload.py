@@ -62,10 +62,10 @@ def read_upload(up_file):
                 number_scramble[file_type].add(number_fail)
 
     for file_type, wrong_cols in number_scramble.items():
-        print "In your {} file, you must provide a valid number, in the following columns: {}".format(file_type, ', '.join(wrong_cols))
+        print "-W- In your {} file, you must provide a valid number, in the following columns: {}".format(file_type, ', '.join(wrong_cols))
 
     for file_type, empty_cols in missing_data.items():
-        print "In your {} file, you are missing data in the following required columns: {}".format(file_type, ', '.join(empty_cols))
+        print "-W- In your {} file, you are missing data in the following required columns: {}".format(file_type, ', '.join(empty_cols))
 
     if number_scramble or missing_data:
         return False

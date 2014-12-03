@@ -144,11 +144,19 @@ def main(command_line=True, **kwargs):
         f.write('>>>>>>>>>>\n')
         f.close()
 
-    import validate_upload
-    if not validate_upload.read_upload(up):
-        print "Please fix your data then try again"
-        return False
     # 
+    if up:
+        import validate_upload
+        validated = False
+        if validate_upload.read_upload(up):
+           validated = True
+
+    else:
+        print "no data found, upload file not created"
+        return False
+
+
+
     
     print "now converting to dos file 'upload_dos.txt'"
     f=open(up,'rU')
@@ -158,6 +166,8 @@ def main(command_line=True, **kwargs):
         o.write(line)
     
     print "Finished preparing upload file "
+    if not validated:
+        print "-W- validation of upload file has failed.\nPlease fix above errors and try again.\nYou may run into problems if you try to upload this file to the MagIC database" 
 
 if __name__ == '__main__':
     main()
