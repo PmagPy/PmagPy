@@ -912,7 +912,7 @@ class Arai_GUI(wx.Frame):
 
         
         menu_file.AppendSeparator()
-        m_exit = menu_file.Append(-1, "E&xit\tCtrl-X", "Exit")
+        m_exit = menu_file.Append(wx.ID_EXIT, "Quit", "Quit application")
         self.Bind(wx.EVT_MENU, self.on_menu_exit, m_exit)
 
 
@@ -1552,8 +1552,8 @@ class Arai_GUI(wx.Frame):
                 result = dlg3.ShowModal()
                 dlg3.Destroy()
                 if result == wx.ID_OK:
-                    self.Destroy()
-                    #sys.exit()
+                    #self.Destroy()
+                    sys.exit()
 
                     
 
@@ -1696,11 +1696,11 @@ class Arai_GUI(wx.Frame):
             dlg1 = wx.MessageDialog(None,caption="Warning:", message=TEXT ,style=wx.OK|wx.CANCEL|wx.ICON_EXCLAMATION)
             if dlg1.ShowModal() == wx.ID_OK:
                 dlg1.Destroy()
-                self.Destroy()
-                #sys.exit()
+                #self.Destroy()
+                sys.exit()
         else:
-            #sys.exit()
-            self.Destroy()
+            #self.Destroy()
+            sys.exit()
         #if dlg1.ShowModal() == wx.ID_CANCEL:
         #    dlg1.Destroy()
 
@@ -2070,8 +2070,8 @@ class Arai_GUI(wx.Frame):
                 style=wx.OK|wx.ICON_INFORMATION)
                 dlg1.ShowModal()
                 dlg1.Destroy()
-                self.Destroy()
-                #sys.exit()
+                #self.Destroy()
+                sys.exit()
                 
         if dia.ShowModal() == wx.ID_CANCEL: # Until the user clicks OK, show the message                        
             for crit in crit_list_not_in_pref:
