@@ -269,8 +269,11 @@ class Arai_GUI(wx.Frame):
             self.WD=sys.argv[ind+1] 
         elif not WD: # if no arg was passed in for WD, make a dialog to choose one   
             dialog = wx.DirDialog(None, "Choose a directory:",defaultPath = self.currentDirectory ,style=wx.DD_DEFAULT_STYLE | wx.DD_NEW_DIR_BUTTON | wx.DD_CHANGE_DIR)
-            if dialog.ShowModal() == wx.ID_OK:
-              self.WD=dialog.GetPath()
+            ok = dialog.ShowModal()
+            if ok == wx.ID_OK:
+                self.WD=dialog.GetPath()
+            else:
+                self.WD = os.getcwd()
             dialog.Destroy()
         self.magic_file=self.WD+"/"+"magic_measurements.txt"
             #intialize GUI_log
@@ -1922,8 +1925,6 @@ class Arai_GUI(wx.Frame):
         else:
             dialog = wx.DirDialog(None, "Choose a path. All magic directories in the path will be imported:",defaultPath = self.currentDirectory ,style=wx.DD_DEFAULT_STYLE | wx.DD_NEW_DIR_BUTTON | wx.DD_CHANGE_DIR)
             ok = dialog.ShowModal()
-            if not ok:
-                ok = dialog.ShowModal()
             if ok == wx.ID_OK:
               new_dir=dialog.GetPath()
             dialog.Destroy()
@@ -1932,7 +1933,7 @@ class Arai_GUI(wx.Frame):
         for FILE in os.listdir(new_dir):
             path=new_dir+"/"+FILE
             if os.path.isdir(path):
-                    print "importning from path %s"%path
+                    print "importing from path %s"%path
                 #try:
                     self.WD=path
                     self.magic_file=path+"/"+"magic_measurements.txt"
