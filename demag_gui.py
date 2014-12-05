@@ -1578,8 +1578,11 @@ class Zeq_GUI(wx.Frame):
  
         elif not WD:   
             dialog = wx.DirDialog(None, "Choose a directory:",defaultPath = self.currentDirectory ,style=wx.DD_DEFAULT_STYLE | wx.DD_NEW_DIR_BUTTON | wx.DD_CHANGE_DIR)
-            if dialog.ShowModal() == wx.ID_OK:
-              self.WD=dialog.GetPath()
+            ok = dialog.ShowModal()
+            if ok == wx.ID_OK:
+                self.WD=dialog.GetPath()
+            else:
+                self.WD = os.getcwd()
             dialog.Destroy()
         os.chdir(self.WD)
         self.WD=os.getcwd()+"/"
