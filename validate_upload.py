@@ -9,6 +9,11 @@ import check_updates
 
 
 def get_data_model():
+    """
+    try to grab the up to date data model document from the EarthRef site.
+    if that fails, try to get the data model document from the PmagPy directory on the user's computer.
+    if that fails, return False
+    """
     print "getting data model, please be patient"
     url = 'http://earthref.org/services/MagIC-data-model.txt'
     try:
@@ -19,7 +24,7 @@ def get_data_model():
             the_file = pmag_dir + "/MagIC-data-model.txt"
             data = open(the_file, 'rU')
         except:
-            print "can't access MagIC-data-model at the moment\nif you are working offline, make sure MagIC-data-model.txt is in your PmagPy directory (or get it from https://github.com/ltauxe/PmagPy)\notherwise, check your internet connection"
+            print "can't access MagIC-data-model at the moment\nif you are working offline, make sure MagIC-data-model.txt is in your PmagPy directory (or download it from https://github.com/ltauxe/PmagPy and put it in your PmagPy directory)\notherwise, check your internet connection"
             return False
 
     data_model = pmag.magic_read(None, data)
@@ -31,6 +36,13 @@ def get_data_model():
 
 
 def read_upload(up_file):
+    """
+    take a file that should be ready for upload
+    using the data model, check that all required columns are full,
+    and that all numeric data is in fact numeric.
+    print out any validation problems
+    return True if there were no problems, otherwise return false
+    """
     f = open(up_file)
     lines = f.readlines()
     f.close()
@@ -38,28 +50,45 @@ def read_upload(up_file):
     data_dicts = get_dicts(data)
     missing_data = {}
     number_scramble = {}
+    invalid_col_names = {}
+    missing_file_types = False
     data_model = get_data_model()
+    reqd_file_types = ['magic_measurements', 'er_specimens']
+    provided_file_types = set()
     if not data_model:
         return False
     for dictionary in data_dicts:
         for k, v in dictionary.items():
             if k == "file_type": # meta data
+                provided_file_types.add(v)
                 continue
             file_type = dictionary['file_type']
 
+            # check if column header is in the data model
+            invalid_col_name = validate_for_recognized_column(k, v, data_model)
+            if invalid_col_name:
+                if file_type not in invalid_col_names.keys():
+                    invalid_col_names[file_type] = set()
+                invalid_col_names[file_type].add(invalid_col_name)
+                # skip to next item, as addition validations won't work (key is not in the data model)
+                continue 
+            
             # make a list of missing, required data
-            missing_item = do_validate(k, v, data_model) 
+            missing_item = validate_for_presence(k, v, data_model) 
             if missing_item:
                 if file_type not in missing_data.keys():
                     missing_data[file_type] = set()
                 missing_data[file_type].add(missing_item)
 
             # make a list of data that should be numeric, but isn't
-            number_fail = do_num_validate(k, v, data_model)
+            number_fail = validate_for_numericality(k, v, data_model)
             if number_fail:
                 if file_type not in number_scramble.keys():
                     number_scramble[file_type] = set()
                 number_scramble[file_type].add(number_fail)
+
+    for file_type, invalid_names in invalid_col_names.items():
+        print "-W- In your {} file, you are using the following unrecognized columns: {}".format(file_type, ', '.join(invalid_names))
 
     for file_type, wrong_cols in number_scramble.items():
         print "-W- In your {} file, you must provide a valid number, in the following columns: {}".format(file_type, ', '.join(wrong_cols))
@@ -67,7 +96,13 @@ def read_upload(up_file):
     for file_type, empty_cols in missing_data.items():
         print "-W- In your {} file, you are missing data in the following required columns: {}".format(file_type, ', '.join(empty_cols))
 
-    if number_scramble or missing_data:
+    for file_type in reqd_file_types:
+        if file_type not in provided_file_types:
+            print "-W- You have not provided a {} type file, which is required data".format(file_type)
+            missing_file_type = True
+            
+
+    if invalid_col or number_scramble or missing_data or missing_file_type:
         return False
     else:
         return True
@@ -75,6 +110,10 @@ def read_upload(up_file):
     
 
 def split_lines(lines):
+    """
+    split a MagIC upload format file into lists.
+    the lists are split by the '>>>' lines between file_types.
+    """
     container = []
     new_list = []
     for line in lines:
@@ -120,15 +159,22 @@ def get_dicts(data):
             data_dictionaries.append(data_dict)
     return data_dictionaries
         
+
+
+def validate_for_recognized_column(key, value, complete_ref):
+    if not key in complete_ref:
+        return key
+    return
+
         
-def do_validate(key, value, complete_ref):
+def validate_for_presence(key, value, complete_ref):
     reqd = complete_ref[key]['data_status']
     if reqd == 'Required':
         if not value or value == " ":
             return key
     return
 
-def do_num_validate(key, value, complete_ref):
+def validate_for_numericality(key, value, complete_ref):
     dtype = complete_ref[key]['data_type']
     if value:
         if 'Number' in dtype:
