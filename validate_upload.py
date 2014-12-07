@@ -102,7 +102,7 @@ def read_upload(up_file):
             missing_file_type = True
             
 
-    if invalid_col or number_scramble or missing_data or missing_file_type:
+    if invalid_col_names or number_scramble or missing_data or missing_file_type:
         return False
     else:
         return True
