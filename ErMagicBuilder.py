@@ -671,7 +671,7 @@ class MagIC_model_builder(wx.Frame):
         #self.Destroy()
         self.Hide()
         del wait
-        print "done on_ok_Button in ErMagicBuilder"
+        #print "done on_ok_Button in ErMagicBuilder"
 
 
     def on_cancelButton(self,event):
@@ -679,7 +679,7 @@ class MagIC_model_builder(wx.Frame):
 
     def on_helpButton(self, event):
         path = check_updates.get_pmag_dir()
-        html_frame = pw.HtmlFrame(self, page=(path+"ErMagicHeadersHelp.html"))
+        html_frame = pw.HtmlFrame(self, page=(os.path.join(path, "ErMagicHeadersHelp.html")))
         html_frame.Center()
         html_frame.Show()
 

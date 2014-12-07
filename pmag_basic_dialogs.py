@@ -3328,7 +3328,6 @@ class check(wx.Frame):
             # re-Bind so that the updated sites list shows up on a left click
             sites = sorted(self.Data_hierarchy['sites'].keys())
             sites = sorted(list(set(sites).union(self.ErMagic.data_er_sites.keys())))
-            self.Bind(wx.grid.EVT_GRID_SELECT_CELL, lambda event: self.on_left_click(event, self.samp_grid, sites), self.samp_grid) 
             self.drop_down_menu.update_drop_down_menu(self.samp_grid, {2: (sites, False)})
 
 
@@ -3362,7 +3361,7 @@ class check(wx.Frame):
     def on_helpButton(self, event, page=None):
         """shows html help page"""
         path = check_updates.get_pmag_dir()
-        html_frame = pw.HtmlFrame(self, page=(path+page))
+        html_frame = pw.HtmlFrame(self, page=(os.path.join(path,page)))
         html_frame.Show()
 
 

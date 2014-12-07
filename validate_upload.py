@@ -43,6 +43,7 @@ def read_upload(up_file):
     print out any validation problems
     return True if there were no problems, otherwise return false
     """
+    print "-I- Running validation for your upload file"
     f = open(up_file)
     lines = f.readlines()
     f.close()
@@ -51,7 +52,7 @@ def read_upload(up_file):
     missing_data = {}
     number_scramble = {}
     invalid_col_names = {}
-    missing_file_types = False
+    missing_file_type = False
     data_model = get_data_model()
     reqd_file_types = ['magic_measurements', 'er_specimens']
     provided_file_types = set()
@@ -105,6 +106,7 @@ def read_upload(up_file):
     if invalid_col_names or number_scramble or missing_data or missing_file_type:
         return False
     else:
+        print "-I- validation was successful"
         return True
     
     
