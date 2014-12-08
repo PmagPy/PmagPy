@@ -59,7 +59,7 @@ class ImportOrientFile(wx.Frame):
         label2 = "no, update existing er_samples file"
         er_samples_file_present = True
         try:
-            open(self.WD + "/er_samples.txt", "rU")
+            open(os.path.join(self.WD, "er_samples.txt"), "rU")
         except Exception as ex:
             er_samples_file_present = False
         if er_samples_file_present:
@@ -180,7 +180,7 @@ class ImportAzDipFile(wx.Frame):
         label2 = "no, update existing er_samples file"
         er_samples_file_present = True
         try:
-            open(self.WD + "/er_samples.txt", "rU")
+            open(os.path.join(self.WD, "er_samples.txt"), "rU")
         except Exception as ex:
             er_samples_file_present = False
         if er_samples_file_present:
@@ -412,7 +412,7 @@ class ImportModelLatitude(wx.Frame):
 
     def on_okButton(self, event):
         infile = self.bSizer0.return_value()
-        outfile = self.WD + infile[infile.rfind('/'):]
+        outfile = os.path.join(self.WD, infile[infile.rfind('/'):])
         COMMAND = "cp {} {}".format(infile, self.WD)
         pw.run_command_and_close_window(self, COMMAND, outfile)
 
@@ -1044,18 +1044,18 @@ class CustomizeCriteria(wx.Frame):
 
     def on_okButton(self, event):
         choice = self.bSizer0.return_value()
-        critout = self.WD+'/pmag_criteria.txt'
+        critout = os.path.join(self.WD, 'pmag_criteria.txt')
         if choice == 'Use default criteria' or choice == 'Use no criteria':
             if choice == 'Use default criteria':
                 crit_data=pmag.default_criteria(0)
                 crit_data,critkeys=pmag.fillkeys(crit_data)
                 pmag.magic_write(critout,crit_data,'pmag_criteria')
                 # pop up instead of print
-                MSG="Default criteria saved in {}pmag_criteria.txt".format(self.WD)
+                MSG="Default criteria saved in {}/pmag_criteria.txt".format(self.WD)
             elif choice == 'Use no criteria':
                 crit_data = pmag.default_criteria(1)
                 pmag.magic_write(critout,crit_data,'pmag_criteria')
-                MSG="Extremely loose criteria saved in {}pmag_criteria.txt".format(self.WD)
+                MSG="Extremely loose criteria saved in {}/pmag_criteria.txt".format(self.WD)
 
             dia = wx.MessageDialog(None,caption="Message:", message=MSG ,style=wx.OK|wx.ICON_INFORMATION)
             dia.ShowModal()
@@ -1065,7 +1065,7 @@ class CustomizeCriteria(wx.Frame):
             return
         if choice == "Update existing criteria":
             try:
-                crit_data, file_type = pmag.magic_read(self.WD + "pmag_criteria.txt")
+                crit_data, file_type = pmag.magic_read(os.path.join(self.WD, "pmag_criteria.txt"))
                 if file_type != "pmag_criteria":
                     raise Exception
             except Exception as ex:
@@ -1104,7 +1104,7 @@ class CustomizeCriteria(wx.Frame):
     def on_edit_okButton(self, event):
         print self.boxes.return_value()
         crit_data = self.boxes.return_value()
-        critout = self.WD+'/pmag_criteria.txt'
+        critout = os.path.join(self.WD, '/pmag_criteria.txt')
         pmag.magic_write(critout, crit_data, 'pmag_criteria')
         MSG = "pmag_criteria.txt file has been updated"
         dia = wx.MessageDialog(None,caption="Message:", message=MSG ,style=wx.OK|wx.ICON_INFORMATION)
@@ -1373,7 +1373,9 @@ class ClearWD(wx.MessageDialog):
         result = self.ShowModal()
         self.Destroy()
         if result == wx.ID_YES:
-            os.system('rm -r {}'.format(WD))
+            #os.system('rm -r {}'.format(WD))
+            import shutil
+            shutil.rmtree(WD)
             os.mkdir(WD)
             print "{} has been emptied".format(WD)
         else:

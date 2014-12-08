@@ -832,7 +832,7 @@ class convert_SIO_files_to_MagIC(wx.Frame):
         options_dict['mag_file'] = str(SIO_file)
         #outfile = SIO_file + '.magic'
         magicoutfile=os.path.split(SIO_file)[1]+".magic"
-        outfile =os.path.join(self.WD,magicoutfile)
+        outfile =os.path.join(self.WD, magicoutfile)
         options_dict['meas_file'] = str(outfile)
         user = self.bSizer1.return_value()
         options_dict['user'] = str(user)
@@ -1207,7 +1207,7 @@ class convert_HUJI_files_to_MagIC(wx.Frame):
         HUJI_file = self.bSizer0.return_value()
         options['magfile'] = HUJI_file
         magicoutfile=os.path.split(HUJI_file)[1]+".magic"
-        outfile=os.path.join(self.WD,magicoutfile)
+        outfile=os.path.join(self.WD, magicoutfile)
         options['meas_file'] = outfile
         user = self.bSizer1.return_value()
         options['user'] = user
@@ -1578,7 +1578,7 @@ class convert_LDEO_files_to_MagIC(wx.Frame):
         LDEO_file = self.bSizer0.return_value()
         options_dict['magfile'] = LDEO_file
         magicoutfile=os.path.split(LDEO_file)[1]+".magic"
-        outfile=os.path.join(self.WD,magicoutfile)
+        outfile=os.path.join(self.WD, magicoutfile)
         options_dict['meas_file'] = outfile
         synthetic_outfile = os.path.join(self.WD, magicoutfile[:magicoutfile.find('.')] + '_er_synthetics.txt')
         options_dict['synfile'] = synthetic_outfile
@@ -2053,7 +2053,7 @@ class OrientFrameGrid(wx.Frame):
         self.samples_list=self.Data_hierarchy['samples']         
         self.orient_data={}
         try:
-            self.orient_data=self.read_magic_file(self.WD+"/demag_orient.txt",1,"sample_name")  
+            self.orient_data=self.read_magic_file(os.path.join(self.WD, "demag_orient.txt"),1,"sample_name")  
         except:
             pass
         for sample in self.samples_list:
@@ -2199,7 +2199,7 @@ class OrientFrameGrid(wx.Frame):
         (only the columns that appear on the grid frame)
         '''
         
-        fout=open(self.WD+"/demag_orient.txt",'w')
+        fout=open(os.path.join(self.WD, "demag_orient.txt"),'w')
         STR="tab\tdemag_orient\n"
         fout.write(STR)
         STR="\t".join(self.headers)+"\n"
@@ -2314,7 +2314,7 @@ class OrientFrameGrid(wx.Frame):
  
         # check if orientation_magic.py finished sucsessfuly
         data_saved=False
-        if os.path.isfile(self.WD+"/er_samples_orient.txt"):
+        if os.path.isfile(os.path.join(self.WD, "er_samples_orient.txt")):
             data_saved=True
             #fin=open(self.WD+"/orientation_magic.log",'r')
             #for line in fin.readlines():
@@ -2335,12 +2335,12 @@ class OrientFrameGrid(wx.Frame):
         
         er_samples_data={}
         er_samples_orient_data={}
-        if os.path.isfile(self.WD+"/er_samples.txt"):
-            er_samples_file=self.WD+"/er_samples.txt"
+        if os.path.isfile(os.path.join(self.WD, "er_samples.txt")):
+            er_samples_file=os.path.join(self.WD, "er_samples.txt")
             er_samples_data=self.read_magic_file(er_samples_file,1,"er_sample_name")
         
-        if os.path.isfile(self.WD+"/er_samples_orient.txt"):             
-            er_samples_orient_file=self.WD+"/er_samples_orient.txt"
+        if os.path.isfile(os.path.join(self.WD, "er_samples_orient.txt")):             
+            er_samples_orient_file=os.path.join(self.WD, "er_samples_orient.txt")
             er_samples_orient_data=self.read_magic_file(er_samples_orient_file,1,"er_sample_name")
         new_samples_added=[]
         for sample in er_samples_orient_data.keys():
@@ -2369,7 +2369,7 @@ class OrientFrameGrid(wx.Frame):
         er_recs=[]
         for sample in samples:
             er_recs.append(er_samples_data[sample])
-            pmag.magic_write(self.WD+"/er_samples.txt",er_recs,"er_samples")
+            pmag.magic_write(os.path.join(self.WD, "er_samples.txt"),er_recs,"er_samples")
        
         dlg1 = wx.MessageDialog(None,caption="Message:", message="orientation data is saved/appended to er_samples.txt" ,style=wx.OK|wx.ICON_INFORMATION)
         dlg1.ShowModal()
@@ -3361,6 +3361,10 @@ class check(wx.Frame):
     def on_helpButton(self, event, page=None):
         """shows html help page"""
         path = check_updates.get_pmag_dir()
+        print "DOING HELP bUTTON"
+        print path
+        print page
+        print os.path.join(path,page)
         html_frame = pw.HtmlFrame(self, page=(os.path.join(path,page)))
         html_frame.Show()
 

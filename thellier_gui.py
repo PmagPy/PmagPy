@@ -220,7 +220,7 @@ class Arai_GUI(wx.Frame):
         # inialize selecting criteria
         self.acceptance_criteria=pmag.initialize_acceptance_criteria()
         self.add_thellier_gui_criteria()
-        self.read_criteria_file(self.WD+"/pmag_criteria.txt")  
+        self.read_criteria_file(os.path.join(self.WD,"pmag_criteria.txt"))
         # preferences
 
         preferences=self.get_preferences()
@@ -275,13 +275,13 @@ class Arai_GUI(wx.Frame):
             else:
                 self.WD = os.getcwd()
             dialog.Destroy()
-        self.magic_file=self.WD+"/"+"magic_measurements.txt"
+        self.magic_file=os.path.join(self.WD,"magic_measurements.txt")
             #intialize GUI_log
-        self.GUI_log=open("%s/thellier_GUI.log"%self.WD,'w')
+        self.GUI_log=open(os.path.join(self.WD, "thellier_GUI.log"),'w')
         self.GUI_log.write("starting...\n")
-        self.GUI_log=open("%s/thellier_GUI.log"%self.WD,'a')
+        self.GUI_log=open(os.path.join(self.WD, "thellier_GUI.log"),'a')
         os.chdir(self.WD)
-        self.WD=os.getcwd()+"/"
+        self.WD=os.getcwd()
     def Main_Frame(self):
         """ 
         Build main frame od panel: buttons, etc.
@@ -1884,7 +1884,7 @@ class Arai_GUI(wx.Frame):
         
 
         self.WD=new_magic_dir
-        self.magic_file=new_magic_dir+"/"+"magic_measurements.txt"
+        self.magic_file=os.path.join(new_magic_dir, "magic_measurements.txt")
 
         new_Data,new_Data_hierarchy=self.get_data()
         new_Data_info=self.get_data_info()
@@ -1936,7 +1936,7 @@ class Arai_GUI(wx.Frame):
                     print "importing from path %s"%path
                 #try:
                     self.WD=path
-                    self.magic_file=path+"/"+"magic_measurements.txt"
+                    self.magic_file = os.path.join(path, "magic_measurements.txt")
                     new_Data_info=self.get_data_info()
                     self.Data_info["er_samples"].update(new_Data_info["er_samples"])
                     self.Data_info["er_sites"].update(new_Data_info["er_sites"])
@@ -2200,7 +2200,7 @@ class Arai_GUI(wx.Frame):
                 self.write_acceptance_criteria_to_boxes()
             except:
                 pass
-            pmag.write_criteria_to_file(self.WD+"/pmag_criteria.txt",self.acceptance_criteria)
+            pmag.write_criteria_to_file(os.path.join(self.WD, "pmag_criteria.txt"),self.acceptance_criteria)
             dlg1.Destroy()    
             dia.Destroy()
         self.recaclulate_satistics()
@@ -2284,7 +2284,7 @@ class Arai_GUI(wx.Frame):
         '''
                
         #thellier_gui_specimen_criteria_list=['specimen_int_n','specimen_int_ptrm_n','specimen_f','specimen_fvds','specimen_frac','specimen_gmax','specimen_b_beta','specimen_scat','specimen_drats','specimen_md','specimen_int_mad','specimen_dang','specimen_q','specimen_g']
-        thellier_gui_redo_file=open("%s/thellier_GUI.redo"%(self.WD),'w')
+        thellier_gui_redo_file=open(os.path.join(self.WD, "thellier_GUI.redo"),'w')
         #thellier_gui_specimen_file=open("%s/thellier_GUI.specimens.txt"%(self.WD),'w')
         #thellier_gui_sample_file=open("%s/thellier_GUI.samples.txt"%(self.WD),'w')
 
@@ -2471,7 +2471,7 @@ class Arai_GUI(wx.Frame):
 
 
         
-        aniso_logfile=open(self.WD+"/rmag_anisotropy.log",'w')
+        aniso_logfile=open(os.path.join(self.WD, "rmag_anisotropy.log"),'w')
 
         aniso_logfile.write("------------------------\n")
         aniso_logfile.write( "-I- Start rmag anisrotropy script\n")
@@ -2483,10 +2483,10 @@ class Arai_GUI(wx.Frame):
         # Prepare rmag_anisotropy.txt file for writing
         #-----------------------------------
 
-        rmag_anisotropy_file =open(self.WD+"/rmag_anisotropy.txt",'w')
+        rmag_anisotropy_file =open(os.path.join(self.WD, "rmag_anisotropy.txt"),'w')
         rmag_anisotropy_file.write("tab\trmag_anisotropy\n")
 
-        rmag_results_file =open(self.WD+"/rmag_results.txt",'w')
+        rmag_results_file =open(os.path.join(self.WD, "rmag_results.txt"),'w')
         rmag_results_file.write("tab\trmag_results\n")
         
         rmag_anistropy_header=['er_specimen_name','er_sample_name','er_site_name','anisotropy_type','anisotropy_n','anisotropy_description','anisotropy_s1','anisotropy_s2','anisotropy_s3','anisotropy_s4','anisotropy_s5','anisotropy_s6','anisotropy_sigma','anisotropy_alt','magic_experiment_names','magic_method_codes','rmag_anisotropy_name']
@@ -2900,7 +2900,7 @@ class Arai_GUI(wx.Frame):
     def on_show_anisotropy_errors(self,event):
         
 
-        dia = thellier_gui_dialogs.MyLogFileErrors( "Anistropy calculation errors","%s/rmag_anisotropy.log"%(self.WD))
+        dia = thellier_gui_dialogs.MyLogFileErrors( "Anistropy calculation errors",os.path.join(self.WD, "rmag_anisotropy.log"))
         dia.Show()
         dia.Center()
     
@@ -4107,7 +4107,7 @@ class Arai_GUI(wx.Frame):
     #----------------------------------------------------------------------
       
     def on_menu_open_interpreter_log(self, event):
-        dia = thellier_gui_dialogs.MyLogFileErrors( "Interpreter errors and warnings","%s/thellier_interpreter/thellier_interpreter.log"%(self.WD))
+        dia = thellier_gui_dialogs.MyLogFileErrors("Interpreter errors and warnings", os.path.join(self.WD, "thellier_interpreter/", "thellier_interpreter.log"))
         dia.Show()
         dia.Center()
         
@@ -4498,7 +4498,7 @@ class Arai_GUI(wx.Frame):
         if len(sample_or_site_list) <1:
             return
                         
-        fout=open(self.WD+"/results_table.txt",'w')
+        fout=open(os.path.join(self.WD, "results_table.txt"),'w')
         Keys=["sample/site","Lat","Lon","Age","Age_low","Age_high","Age_units","N","B_uT","B_std_uT","VADM","VADM_sigma"]
         fout.write("\t".join(Keys)+"\n")
         for sample_or_site in sample_or_site_list:
@@ -4564,11 +4564,11 @@ class Arai_GUI(wx.Frame):
         for FILE in ['pmag_specimens.txt','pmag_samples.txt','pmag_sites.txt','pmag_results.txt']:
             PmagRecsOld[FILE],meas_data=[],[]
             try: 
-                meas_data,file_type=pmag.magic_read(self.WD+"/"+FILE)
-                self.GUI_log.write("-I- Read old magic file  %s\n"%(self.WD+"/"+FILE))
+                meas_data,file_type=pmag.magic_read(os.path.join(self.WD, FILE))
+                self.GUI_log.write("-I- Read old magic file  %s\n"%(os.path.join(self.WD, FILE)))
                 #if FILE !='pmag_specimens.txt':
-                os.rename(self.WD+"/"+FILE,self.WD+"/"+FILE+".backup")
-                self.GUI_log.write("-I- rename old magic file  %s.backup\n"%(self.WD+"/"+FILE))
+                os.rename(os.path.join(self.WD, FILE), os.path.join(self.WD, FILE+".backup"))
+                self.GUI_log.write("-I- rename old magic file  %s.backup\n"%(os.path.join(self.WD, FILE)))
             except:
                 continue                                                                           
             for rec in meas_data:
@@ -4664,7 +4664,7 @@ class Arai_GUI(wx.Frame):
                     MagIC_results_data['pmag_specimens'][specimen]['specimen_int_corr_cooling_rate']=""
                     
         # wrire pmag_specimens.txt
-        fout=open(self.WD+"/pmag_specimens.txt",'w')
+        fout=open(os.path.join(self.WD, "pmag_specimens.txt"),'w')
         fout.write("tab\tpmag_specimens\n")
         headers=pmag_specimens_header_1+pmag_specimens_header_2+pmag_specimens_header_3+pmag_specimens_header_4+pmag_specimens_header_5+pmag_specimens_header_6
         String=""
@@ -4682,13 +4682,13 @@ class Arai_GUI(wx.Frame):
         
         
         # merge with non-intensity data
-        meas_data,file_type=pmag.magic_read(self.WD+"/pmag_specimens.txt")
+        meas_data,file_type=pmag.magic_read(os.path.join(self.WD, "pmag_specimens.txt"))
         for rec in PmagRecsOld["pmag_specimens.txt"]:
             meas_data.append(rec)
         meas_data=self.converge_pmag_rec_headers(meas_data)
-        pmag.magic_write(self.WD+"/"+"pmag_specimens.txt",meas_data,'pmag_specimens')
+        pmag.magic_write(os.path.join(self.WD, "pmag_specimens.txt"),meas_data,'pmag_specimens')
         try:
-            os.remove(self.WD+"/pmag_specimens.txt.backup") 
+            os.remove(os.path.join(self.WD, "pmag_specimens.txt.backup"))
         except:
             pass 
         #-------------
@@ -4782,10 +4782,10 @@ class Arai_GUI(wx.Frame):
                     
         # wrire pmag_samples.txt
         if BY_SAMPLES:
-            fout=open(self.WD+"/pmag_samples.txt",'w')
+            fout=open(os.path.join(self.WD, "pmag_samples.txt"),'w')
             fout.write("tab\tpmag_samples\n")
         else:
-            fout=open(self.WD+"/pmag_sites.txt",'w')
+            fout=open(os.path.join(self.WD, "pmag_sites.txt"),'w')
             fout.write("tab\tpmag_sites\n")
             
         headers=pmag_samples_header_1+pmag_samples_header_2+pmag_samples_header_3+pmag_samples_header_4
@@ -4804,18 +4804,18 @@ class Arai_GUI(wx.Frame):
             
         # merge with non-intensity data
         if BY_SAMPLES:
-            meas_data,file_type=pmag.magic_read(self.WD+"/pmag_samples.txt")
+            meas_data,file_type=pmag.magic_read(os.path.join(self.WD, "pmag_samples.txt"))
             for rec in PmagRecsOld["pmag_samples.txt"]:
                 meas_data.append(rec)
             meas_data=self.converge_pmag_rec_headers(meas_data)
-            pmag.magic_write(self.WD+"/"+"pmag_samples.txt",meas_data,'pmag_samples')
+            pmag.magic_write(os.path.join(self.WD, "pmag_samples.txt"), meas_data,'pmag_samples')
             try:
-                os.remove(self.WD+"/pmag_samples.txt.backup") 
+                os.remove(os.path.join(self.WD, "pmag_samples.txt.backup")) 
             except:
                 pass     
-            pmag.magic_write(self.WD+"/"+"pmag_sites.txt",PmagRecsOld["pmag_sites.txt"],'pmag_sites')
+            pmag.magic_write(os.path.join(self.WD, "pmag_sites.txt"), PmagRecsOld["pmag_sites.txt"],'pmag_sites')
             try:
-                os.remove(self.WD+"/"+"pmag_sites.txt.backup")
+                os.remove(os.path.join(self.WD, "pmag_sites.txt.backup"))
             except:
                 pass
                   
@@ -4825,18 +4825,18 @@ class Arai_GUI(wx.Frame):
             #except:
             #    pass
         else:
-            meas_data,file_type=pmag.magic_read(self.WD+"/pmag_sites.txt")
+            meas_data,file_type=pmag.magic_read(os.path.join(self.WD, "pmag_sites.txt"))
             for rec in PmagRecsOld["pmag_sites.txt"]:
                 meas_data.append(rec)
             meas_data=self.converge_pmag_rec_headers(meas_data)
-            pmag.magic_write(self.WD+"/"+"pmag_sites.txt",meas_data,'pmag_sites')
+            pmag.magic_write(os.path.join(self.WD, "pmag_sites.txt"),meas_data,'pmag_sites')
             try:
-                os.remove(self.WD+"/pmag_sites.txt.backup") 
+                os.remove(os.path.join(self.WD, "pmag_sites.txt.backup")) 
             except:
                 pass 
-            pmag.magic_write(self.WD+"/"+"pmag_samples.txt",PmagRecsOld["pmag_samples.txt"],'pmag_samples')
+            pmag.magic_write(os.path.join(self.WD, "pmag_samples.txt"),PmagRecsOld["pmag_samples.txt"],'pmag_samples')
             try:
-                os.remove(self.WD+"/"+"pmag_samples.txt.backup")
+                os.remove(os.path.join(self.WD, "pmag_samples.txt.backup"))
             except:
                 pass
                   
@@ -5000,7 +5000,7 @@ class Arai_GUI(wx.Frame):
                              
                            
         # wrire pmag_results.txt
-        fout=open(self.WD+"/pmag_results.txt",'w')
+        fout=open(os.path.join(self.WD, "pmag_results.txt"),'w')
         fout.write("tab\tpmag_results\n")
         headers=pmag_results_header_1+pmag_results_header_2+pmag_results_header_3+pmag_results_header_4+pmag_results_header_5
         String=""
@@ -5021,13 +5021,13 @@ class Arai_GUI(wx.Frame):
         
         #print "self.WD",self.WD
         # merge with non-intensity data
-        meas_data,file_type=pmag.magic_read(self.WD+"/pmag_results.txt")
+        meas_data,file_type=pmag.magic_read(os.path.join(self.WD, "pmag_results.txt"))
         for rec in PmagRecsOld["pmag_results.txt"]:
             meas_data.append(rec)
         meas_data=self.converge_pmag_rec_headers(meas_data)
-        pmag.magic_write(self.WD+"/"+"pmag_results.txt",meas_data,'pmag_results')
+        pmag.magic_write(os.path.join(self.WD, "pmag_results.txt"),meas_data,'pmag_results')
         try:
-            os.remove(self.WD+"/pmag_results.txt.backup") 
+            os.remove(os.path.join(self.WD, "pmag_results.txt.backup")) 
         except:
             pass     
 
@@ -5040,7 +5040,7 @@ class Arai_GUI(wx.Frame):
         magic_method_codes=[]
         for F in ["magic_measurements.txt","rmag_anisotropy.txt","rmag_results.txt","rmag_results.txt","pmag_samples.txt","pmag_specimens.txt","pmag_sites.txt","er_ages.txt"]:
             try:
-                fin=open(self.WD+"/"+F,'rU')
+                fin=open(os.path.join(self.WD, F),'rU')
             except:
                 continue
             line=fin.readline()
@@ -5062,7 +5062,7 @@ class Arai_GUI(wx.Frame):
         magic_method_codes.sort()
         #print magic_method_codes
         magic_methods_header_1=["magic_method_code"]
-        fout=open(self.WD+"/magic_methods.txt",'w')
+        fout=open(os.path.join(self.WD, "magic_methods.txt"),'w')
         fout.write("tab\tmagic_methods\n")
         fout.write("magic_method_code\n")
         for code in magic_method_codes:
@@ -5070,8 +5070,8 @@ class Arai_GUI(wx.Frame):
         fout.close
                 
         # make pmag_criteria.txt if it does not exist
-        if not os.path.isfile(self.WD+"/pmag_criteria.txt"):
-            Fout=open(self.WD+"/pmag_criteria.txt",'w')
+        if not os.path.isfile(os.path.join(self.WD, "pmag_criteria.txt")):
+            Fout=open(os.path.join(self.WD, "pmag_criteria.txt"),'w')
             Fout.write("tab\tpmag_criteria\n")
             Fout.write("er_citation_names\tpmag_criteria_code\n")
             Fout.write("This study\tACCEPT\n")
@@ -5106,34 +5106,34 @@ class Arai_GUI(wx.Frame):
         self.MagIC_model["er_locations"]={}
         self.MagIC_model["er_ages"]={}
         fail=[]
-        self.MagIC_model["specimens"]=self.read_magic_file(self.WD+"/er_specimens.txt",1,'er_specimen_name')
+        self.MagIC_model["specimens"]=self.read_magic_file(os.path.join(self.WD, "er_specimens.txt"),1,'er_specimen_name')
         try:
-            self.MagIC_model["specimens"]=self.read_magic_file(self.WD+"/er_specimens.txt",1,'er_specimen_name')
+            self.MagIC_model["specimens"]=self.read_magic_file(os.path.join(self.WD, "er_specimens.txt"),1,'er_specimen_name')
         except:
             self.GUI_log.write ("-W- Cant find er_specimens.txt in project directory")
             fail.append("er_specimens.txt")
             pass
         try:
-            self.MagIC_model["er_samples"]=self.read_magic_file(self.WD+"/er_samples.txt",1,'er_sample_name')
+            self.MagIC_model["er_samples"]=self.read_magic_file(os.path.join(self.WD, "er_samples.txt"),1,'er_sample_name')
         except:
             self.GUI_log.write ("-W- Cant find er_sample.txt in project directory")
             fail.append("er_sample.txt")
             pass
         try:
-            self.MagIC_model["er_sites"]=self.read_magic_file(self.WD+"/er_sites.txt",1,'er_site_name')
+            self.MagIC_model["er_sites"]=self.read_magic_file(os.path.join(self.WD, "er_sites.txt"),1,'er_site_name')
         except:
             self.GUI_log.write ("-W- Cant find er_sites.txt in project directory")
             fail.append("er_sites.txt")
             pass
         try:
-            self.MagIC_model["er_locations"]=self.read_magic_file(self.WD+"/er_locations.txt",1,'er_location_name')
+            self.MagIC_model["er_locations"]=self.read_magic_file(os.path.join(self.WD, "er_locations.txt"),1,'er_location_name')
         except:
             self.GUI_log.write ("-W- Cant find er_locations.txt in project directory")
             fail.append("er_locations.txt")
             pass
 
         try:
-            self.MagIC_model["er_ages"]=self.read_magic_file(self.WD+"/er_ages",1,'er_site_name')
+            self.MagIC_model["er_ages"]=self.read_magic_file(os.path.join(self.WD, "er_ages"),1,'er_site_name')
         except:
             self.GUI_log.write ("-W- Cant find er_ages.txt in project directory")
             pass
@@ -5231,7 +5231,7 @@ class Arai_GUI(wx.Frame):
         dia = thellier_gui_dialogs.convert_generic_files_to_MagIC(self.WD)
         dia.Show()
         dia.Center()
-        self.magic_file=self.WD+"/"+"magic_measurements.txt"
+        self.magic_file = os.path.join(self.WD, "magic_measurements.txt")
         self.GUI_log=open("%s/Thellier_GUI.log"%self.WD,'w')
         self.Data,self.Data_hierarchy={},{}
         self.Data,self.Data_hierarchy=self.get_data() # Get data from magic_measurements and rmag_anistropy if exist.
@@ -5468,10 +5468,10 @@ class Arai_GUI(wx.Frame):
         if show_STDEVOPT:
             data2plot={}
             if self.acceptance_criteria['average_by_sample_or_site']['value']=='sample':
-                FILE=os.path.join(self.WD,'thellier_interpreter','thellier_interpreter_STDEV-OPT_samples.txt')
+                FILE=os.path.join(self.WD, 'thellier_interpreter', 'thellier_interpreter_STDEV-OPT_samples.txt')
                 NAME="er_sample_name"
             else:
-                FILE=os.path.join(self.WD,'thellier_interpreter','thellier_interpreter_STDEV-OPT_sites.txt')
+                FILE=os.path.join(self.WD, 'thellier_interpreter', 'thellier_interpreter_STDEV-OPT_sites.txt')
                 NAME="er_site_name"
             try:
                 data2plot=self.read_magic_file(FILE,4,NAME)
@@ -7655,13 +7655,13 @@ class Arai_GUI(wx.Frame):
       rmag_anis_data=[]
       results_anis_data=[]
       try:
-          rmag_anis_data,file_type=pmag.magic_read(self.WD+'/rmag_anisotropy.txt')
+          rmag_anis_data,file_type=pmag.magic_read(os.path.join(self.WD, 'rmag_anisotropy.txt'))
           self.GUI_log.write( "-I- Anisotropy data read  %s/from rmag_anisotropy.txt\n"%self.WD)
       except:
           self.GUI_log.write("-W- WARNING cant find rmag_anisotropy in working directory\n")
 
       try:
-          results_anis_data,file_type=pmag.magic_read(self.WD+'/rmag_results.txt')
+          results_anis_data,file_type=pmag.magic_read(os.path.join(self.WD, 'rmag_results.txt'))
           self.GUI_log.write( "-I- Anisotropy data read  %s/from rmag_anisotropy.txt\n"%self.WD)
           
       except:
@@ -8436,17 +8436,17 @@ class Arai_GUI(wx.Frame):
         data_er_sites={}
 
         try:
-            data_er_samples=self.read_magic_file(self.WD+"/er_samples.txt",1,'er_sample_name')
+            data_er_samples=self.read_magic_file(os.path.join(self.WD, "er_samples.txt"),1,'er_sample_name')
         except:
             self.GUI_log.write ("-W- Cant find er_sample.txt in project directory\n")
 
         try:
-            data_er_sites=self.read_magic_file(self.WD+"/er_sites.txt",1,'er_site_name')
+            data_er_sites=self.read_magic_file(os.path.join(self.WD, "er_sites.txt"),1,'er_site_name')
         except:
             self.GUI_log.write ("-W- Cant find er_sites.txt in project directory\n")
 
         try:
-            data_er_ages=self.read_er_ages_file(self.WD+"/er_ages.txt",1,["er_site_name","er_sample_name"])
+            data_er_ages=self.read_er_ages_file(os.path.join(self.WD, "er_ages.txt"),1,["er_site_name","er_sample_name"])
         except:
             self.GUI_log.write ("-W- Cant find er_ages.txt in project directory\n")
 
@@ -8481,7 +8481,7 @@ class Arai_GUI(wx.Frame):
     def get_previous_interpretation(self):
         prev_pmag_specimen=[]
         try:
-            prev_pmag_specimen,file_type=pmag.magic_read(self.WD+"/pmag_specimens.txt")
+            prev_pmag_specimen,file_type=pmag.magic_read(os.path.join(self.WD, "pmag_specimens.txt"))
             self.GUI_log.write ("-I- Read pmag_specimens.txt for previous interpretation")
             print "-I- Read pmag_specimens.txt for previous interpretation"
         except:
