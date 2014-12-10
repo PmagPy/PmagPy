@@ -115,11 +115,9 @@ class ImportOrientFile(wx.Frame):
     def on_okButton(self, event):
         WD = self.WD
         full_infile = self.bSizer0.return_value()
-        ind = full_infile.rfind('/')
-        infile = full_infile[ind+1:]
+        ID, infile = os.path.split(full_infile)
         Fsa = infile[:infile.find('.')] + "_er_samples.txt"
         Fsi = infile[:infile.find('.')] + "_er_sites.txt"
-        ID = full_infile[:ind+1]
         mcd = self.bSizer1.return_value()
         if mcd:
             mcd = "-mcd " + mcd
@@ -220,7 +218,7 @@ class ImportAzDipFile(wx.Frame):
     def on_okButton(self, event):
         WD = self.WD
         full_infile = self.bSizer0.return_value()
-        infile = full_infile[full_infile.rfind('/')+1:full_infile.rfind('.')]
+        infile = os.path.split(full_infile)[1]
         Fsa = WD + infile + "_er_samples.txt"
         mcd = self.bSizer1.return_value()
         if mcd:
@@ -294,7 +292,7 @@ class ImportODPCoreSummary(wx.Frame):
     def on_okButton(self, event):
         WD = self.WD
         full_infile = self.bSizer0.return_value()
-        infile = WD + full_infile[full_infile.rfind('/')+1:]
+        infile = WD + os.path.split(full_infile)[1]
         COMMAND = "cp {} ./".format(full_infile)
         pw.run_command_and_close_window(self, COMMAND, infile)
 
@@ -353,9 +351,7 @@ class ImportODPSampleSummary(wx.Frame):
     def on_okButton(self, event):
         WD = self.WD
         full_infile = self.bSizer0.return_value()
-        index = full_infile.rfind('/')
-        infile = full_infile[index+1:]
-        ID = full_infile[:index+1]
+        ID, infile = os.path.split(full_infile)
         Fsa = infile[:infile.find('.')] + "_er_samples.txt"
         COMMAND = "ODP_samples_magic.py -WD {} -f {} -Fsa {} -ID {}".format(WD, infile, Fsa, ID)
         pw.run_command_and_close_window(self, COMMAND, Fsa)
@@ -411,8 +407,8 @@ class ImportModelLatitude(wx.Frame):
         pw.on_add_file_button(self.bSizer0, self.WD, event, text)
 
     def on_okButton(self, event):
-        infile = self.bSizer0.return_value()
-        outfile = os.path.join(self.WD, infile[infile.rfind('/'):])
+        infile = os.path.split(self.bSizer0.return_value())[1]
+        outfile = os.path.join(self.WD, infile)
         COMMAND = "cp {} {}".format(infile, self.WD)
         pw.run_command_and_close_window(self, COMMAND, outfile)
 
@@ -513,12 +509,11 @@ class ImportKly4s(wx.Frame):
     def on_okButton(self, event):
         WD = self.WD
         full_infile = self.bSizer0.return_value()
-        infile = full_infile[full_infile.rfind('/')+1:]
+        ID, infile = os.path.split(full_infile)
         outfile = infile + ".magic"
         spec_outfile = infile[:infile.find('.')] + "_er_specimens.txt"
         full_azdip_file = self.bSizer1.return_value()
-        azdip_file = full_azdip_file[full_azdip_file.rfind('/')+1:]
-        ID = full_infile[:full_infile.rfind('/')+1]
+        azdip_file = os.path.split(full_azdip_file)[1]
         if azdip_file:
             azdip_file = "-fad " + azdip_file
         try:
@@ -612,10 +607,9 @@ class ImportK15(wx.Frame):
 
     def on_okButton(self, event):
         full_infile = self.bSizer0.return_value()
-        infile = full_infile[full_infile.rfind('/')+1:]
+        ID, infile = os.path.split(full_infile)
         outfile = infile + ".magic"
         samp_outfile = infile[:infile.find('.')] + "_er_samples.txt"
-        ID = full_infile[:full_infile.rfind('/')+1]
         WD = self.WD
         spc = self.bSizer1.return_value()
         ncn = self.bSizer2.return_value()
@@ -716,12 +710,11 @@ class ImportSufarAscii(wx.Frame):
     def on_okButton(self, event):
         WD = self.WD
         full_infile = self.bSizer0.return_value()
-        infile = full_infile[full_infile.rfind('/')+1:]
+        ID, infile = os.path.split(full_infile)
         outfile = infile + ".magic"
         spec_outfile = infile[:infile.find('.')] + "_er_specimens.txt"
         samp_outfile = infile[:infile.find('.')] + "_er_samples.txt"
         site_outfile = infile[:infile.find('.')] + "_er_sites.txt"
-        ID = full_infile[:full_infile.rfind('/')+1]
         usr = self.bSizer1.return_value()
         if usr:
             usr = "-usr " + usr
@@ -837,8 +830,7 @@ class ImportAgmFile(wx.Frame):
     def on_okButton(self, event):
         WD = self.WD
         full_infile = self.bSizer0.return_value()
-        infile = full_infile[full_infile.rfind('/')+1:]
-        ID = full_infile[:full_infile.rfind('/')+1]
+        ID, infile = os.path.split(full_infile)
         outfile = infile + ".magic"
         spec_outfile = infile[:infile.find('.')] + "_er_specimens.txt"
         user = self.bSizer1.return_value()

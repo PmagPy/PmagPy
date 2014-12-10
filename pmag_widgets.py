@@ -518,7 +518,7 @@ class combine_files(wx.BoxSizer):
             )
         if dlg.ShowModal() == wx.ID_OK:
             full_path = dlg.GetPath()
-            infile = full_path[full_path.rfind('/')+1:]
+            infile = os.path.split(full_path)[1]
             self.file_paths.AppendText(infile + "\n")
 
     def on_add_all_files_button(self,event):
