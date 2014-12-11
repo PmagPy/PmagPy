@@ -857,15 +857,19 @@ def find_dmag_rec(s,data):
         meas_units=meas_units[:-1]
     return datablock,meas_units
  
-def magic_read(infile):
+def magic_read(infile, data=None):
     """ 
-    reads  a Magic template file, puts data in a list of dictionaries
+    reads  a Magic template file, puts data in a list of dictionaries.
     """
     hold,magic_data,magic_record,magic_keys=[],[],{},[]
-    try:
-        f=open(infile,"rU")
-    except:
-        return [],'bad_file'
+    if data: # 
+        f = data
+    else:
+        try:
+            f=open(infile,"rU")
+        except:
+            return [],'bad_file'
+
     d = f.readline()[:-1].strip('\n')
     if d[0]=="s" or d[1]=="s":
         delim='space'
@@ -898,10 +902,10 @@ def magic_read(infile):
     for rec in hold:
         magic_record={}
         if len(magic_keys) != len(rec):
-            
-            print "Warning: Uneven record lengths detected: "
-            print magic_keys
-            print rec
+            if rec != ['>>>>>>>>>>'] and 'delimited' not in rec[0]: # ignores this warning when reading the dividers in an upload.txt composite file
+                print "Warning: Uneven record lengths detected: "
+                print magic_keys
+                print rec
         # modified by Ron Shaar:
         # add a health check:
         # if len(magic_keys) > len(rec): take rec
@@ -8660,7 +8664,7 @@ def write_criteria_to_file(path,acceptance_criteria):
     crit_list.sort()
     rec={}
     rec['pmag_criteria_code']="ACCEPT"
-    rec['criteria_definition']=""
+    rec['criteria_definition']="acceptance criteria for study" 
     rec['er_citation_names']="This study"
             
     for crit in crit_list:

@@ -13,7 +13,6 @@ import check_updates
 
 
 
-
 class MagMainFrame(wx.Frame):
     """"""
     try:
@@ -221,13 +220,14 @@ class MagMainFrame(wx.Frame):
 
         if "-WD" in sys.argv and self.FIRST_RUN:
             ind=sys.argv.index('-WD')
-            self.WD=sys.argv[ind+1]            
+            self.WD = os.path.abspath(sys.argv[ind+1])
         
         else:
-            self.WD = os.getcwd() + '/'
+            self.WD = os.getcwd()
+            
             
         os.chdir(self.WD)
-        self.WD=str(os.getcwd())+"/"
+        self.WD=os.getcwd()
         self.dir_path.SetValue(self.WD)
         self.FIRST_RUN=False
         # this functionality is not fully working yet, so I've removed it for now
@@ -255,68 +255,74 @@ class MagMainFrame(wx.Frame):
         currentDirectory=os.getcwd()
         dialog = wx.DirDialog(None, "choose directory:",defaultPath = currentDirectory ,style=wx.DD_DEFAULT_STYLE | wx.DD_NEW_DIR_BUTTON | wx.DD_CHANGE_DIR)
         if dialog.ShowModal() == wx.ID_OK:
-            self.WD=dialog.GetPath()
+            self.WD = dialog.GetPath()
             os.chdir(self.WD)
             self.dir_path.SetValue(self.WD)
             dialog.Destroy()
 
 
-    def on_revert_dir_button(self, event):
-        if self.last_saved_time.GetLineText(0) == "not saved":
-            dia = wx.MessageDialog(self.panel, "You can't revert, because your working directory has not been saved.  Are you sure you're in the right directory?", "Can't be done", wx.OK)
-            dia.ShowModal()
-            return
-        dia = wx.MessageDialog(self.panel, "Are you sure you want to revert to the last saved state?  All changes since {} will be lost".format(self.last_saved_time.GetLineText(0)), "Not so fast", wx.YES_NO|wx.NO_DEFAULT)
-        ok = dia.ShowModal()
-        if ok == wx.ID_YES:
-            os.chdir('..')
-            wd = self.WD
-            shutil.rmtree(wd)
-            shutil.move(self.saved_dir, self.WD)
-            os.chdir(self.WD)
-            self.on_save_dir_button(None)
-        else:
-            print "-I Don't revert"
+#    def on_revert_dir_button(self, event):
+#        if self.last_saved_time.GetLineText(0) == "not saved":
+#            dia = wx.MessageDialog(self.panel, "You can't revert, because your working directory has not been saved.  Are you sure you're in the right directory?", "Can't be done", wx.OK)
+#            dia.ShowModal()
+#            return
+#        dia = wx.MessageDialog(self.panel, "Are you sure you want to revert to the last saved state?  All changes since {} will be lost".format(self.last_saved_time.GetLineText(0)), "Not so fast", wx.YES_NO|wx.NO_DEFAULT)
+#        ok = dia.ShowModal()
+#        if ok == wx.ID_YES:
+#            os.chdir('..')
+#            wd = self.WD
+#            shutil.rmtree(wd)
+#            shutil.move(self.saved_dir, self.WD)
+#            os.chdir(self.WD)
+#            self.on_save_dir_button(None)
+#        else:
+#            print "-I Don't revert"
 
 
-    def on_save_dir_button(self, event):
-        try:
-            if len(self.WD.split('/')) <= 4:
-                self.last_saved_time.Clear()
-                self.last_saved_time.write("not saved")            
-                return
-            os.chdir('..')
-            wd = self.WD
-            wd = wd.rstrip('/')
-            ind = wd.rfind('/') + 1
-            saved_prefix, saved_folder = wd[:ind], wd[ind:]
-            self.saved_dir = saved_prefix + "copy_" + saved_folder
-            if "copy_" + saved_folder in os.listdir(saved_prefix):
-                shutil.rmtree(self.saved_dir)
-            shutil.copytree(self.WD, self.saved_dir)
-            self.last_saved_time.Clear()
-            now = datetime.datetime.now()
-            now_string = "{}:{}:{}".format(now.hour, now.minute, now.second)
-            self.last_saved_time.write(now_string)
-            os.chdir(self.WD)
-        except:# OSError:
-            print "-I Problem copying working directory"
-            self.last_saved_time.Clear()
-            self.last_saved_time.write("not saved")
+#    def on_save_dir_button(self, event):
+#        try:
+#            if len(self.WD.split('/')) <= 4:
+#                self.last_saved_time.Clear()
+#                self.last_saved_time.write("not saved")            
+#                return
+#            os.chdir('..')
+#            wd = self.WD
+#            wd = wd.rstrip('/')
+#            ind = wd.rfind('/') + 1
+#            saved_prefix, saved_folder = wd[:ind], wd[ind:]
+#            self.saved_dir = saved_prefix + "copy_" + saved_folder
+#            if "copy_" + saved_folder in os.listdir(saved_prefix):
+#                shutil.rmtree(self.saved_dir)
+#            shutil.copytree(self.WD, self.saved_dir)
+#            self.last_saved_time.Clear()
+#            now = datetime.datetime.now()
+#            now_string = "{}:{}:{}".format(now.hour, now.minute, now.second)
+#            self.last_saved_time.write(now_string)
+#            os.chdir(self.WD)
+#        except:# OSError:
+#            print "-I Problem copying working directory"
+#            self.last_saved_time.Clear()
+#            self.last_saved_time.write("not saved")
 
     def on_run_thellier_gui(self,event):
         outstring=self.call+"thellier_gui.py -WD %s"%self.WD
         print "-I- running python script:\n %s"%(outstring)
-        import thellier_gui
-        thellier_gui.do_main(self.WD)
-        #os.system(outstring)
+        # to run as module:
+        #import thellier_gui
+        #thellier_gui.do_main(self.WD)
+        
+        # to run as command line:
+        os.system(outstring)
 
     def on_run_demag_gui(self,event):
         outstring=self.call+"demag_gui.py -WD %s"%self.WD
         print "-I- running python script:\n %s"%(outstring)
-        import demag_gui
-        demag_gui.do_main(self.WD)
-        #os.system(outstring)
+        # for use as module:
+        #import demag_gui
+        #demag_gui.do_main(self.WD)
+
+        # for use as command line:
+        os.system(outstring)
         
     def on_convert_file(self,event):
         pmag_dialogs_dia=pmag_basic_dialogs.import_magnetometer_data(self, wx.ID_ANY, '',self.WD)
@@ -351,7 +357,7 @@ class MagMainFrame(wx.Frame):
       Data_hierarchy['site_of_specimen']={}   
       Data_hierarchy['site_of_sample']={}   
       try:
-          meas_data,file_type=pmag.magic_read(self.WD+"/magic_measurements.txt")
+          meas_data,file_type=pmag.magic_read(os.path.join(self.WD, "magic_measurements.txt"))
       except:
           print "-E- ERROR: Cant read magic_measurement.txt file. File is corrupted."
           return {},{}
@@ -417,7 +423,7 @@ class MagMainFrame(wx.Frame):
         outstring=self.call+"upload_magic.py"
         print "-I- running python script:\n %s"%(outstring)
         os.system(outstring)
-        TXT="Check terminal (Mac) or command prompt (windows) for error/warnings.\nA file name upload_dos.txt was generated in MagIC Project Directory.\nDrag and drop this file in the MagIC database."
+        TXT="Check terminal (Mac) or command prompt (windows) for error/warnings.\nIf all went well, a file name upload_dos.txt was generated in MagIC Project Directory.\nDrag and drop this file in the MagIC database."
         dlg = wx.MessageDialog(self, caption="Saved",message=TXT,style=wx.OK)
         result = dlg.ShowModal()
         if result == wx.ID_OK:            

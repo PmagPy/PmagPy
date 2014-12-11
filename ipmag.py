@@ -82,15 +82,54 @@ def bootstrap_common_mean(Data1,Data2,NumSims=1000):
     counter=0
     BDI1=pmag.di_boot(Data1)
     BDI2=pmag.di_boot(Data2)
-    print ""
-    print "==============="
-    print ""
-    print "Here are the results of the bootstrap test for a common mean"
-    CDF={'X':1,'Y':2,'Z':3}
-    pylab.figure(CDF['X'],figsize=(3,3),dpi=160)
-    pylab.figure(CDF['Y'],figsize=(3,3),dpi=160)
-    pylab.figure(CDF['Z'],figsize=(3,3),dpi=160)
-    pmagplotlib.plotCOM(CDF,BDI1,BDI2,["",""])
+
+    cart1= pmag.dir2cart(BDI1).transpose()
+    X1,Y1,Z1=cart1[0],cart1[1],cart1[2]
+    cart2= pmag.dir2cart(BDI2).transpose()
+    X2,Y2,Z2=cart2[0],cart2[1],cart2[2]
+    
+    print "Here are the results of the bootstrap test for a common mean:"
+    
+    fignum = 1
+    fig = plt.figure(figsize=(9,3))
+    fig = plt.subplot(1,3,1)
+    
+    minimum = int(0.025*len(X1))
+    maximum = int(0.975*len(X1))
+    
+    X1,y=pmagplotlib.plotCDF(fignum,X1,"X component",'r',"")
+    bounds1=[X1[minimum],X1[maximum]]
+    pmagplotlib.plotVs(fignum,bounds1,'r','-')
+
+    X2,y=pmagplotlib.plotCDF(fignum,X2,"X component",'b',"")
+    bounds2=[X2[minimum],X2[maximum]]
+    pmagplotlib.plotVs(fignum,bounds2,'b','--')
+    plt.ylim(0,1)
+    
+    plt.subplot(1,3,2)
+    
+    Y1,y=pmagplotlib.plotCDF(fignum,Y1,"Y component",'r',"")
+    bounds1=[Y1[minimum],Y1[maximum]]
+    pmagplotlib.plotVs(fignum,bounds1,'r','-')
+    
+    Y2,y=pmagplotlib.plotCDF(fignum,Y2,"Y component",'b',"")
+    bounds2=[Y2[minimum],Y2[maximum]]
+    pmagplotlib.plotVs(fignum,bounds2,'b','--')
+    plt.ylim(0,1)
+    
+    plt.subplot(1,3,3)
+    
+    Z1,y=pmagplotlib.plotCDF(fignum,Z1,"Z component",'r',"")
+    bounds1=[Z1[minimum],Z1[maximum]]
+    pmagplotlib.plotVs(fignum,bounds1,'r','-')
+    
+    Z2,y=pmagplotlib.plotCDF(fignum,Z2,"Z component",'b',"")
+    bounds2=[Z2[minimum],Z2[maximum]]
+    pmagplotlib.plotVs(fignum,bounds2,'b','--')
+    plt.ylim(0,1)
+    
+    plt.tight_layout()
+    return fig
     
 def watson_common_mean(Data1,Data2,NumSims=5000,plot='no'):
     """
@@ -245,9 +284,8 @@ def plot_net(fignum):
     """
     draws circle and tick marks for equal area projection
     """
-#
+
 # make the perimeter
-#
     pylab.figure(num=fignum)
     pylab.clf()
     pylab.axis("off")
@@ -259,7 +297,7 @@ def plot_net(fignum):
         Xcirc.append(XY[0])
         Ycirc.append(XY[1])
     pylab.plot(Xcirc,Ycirc,'k')
-#
+
 # put on the tick marks
     Xsym,Ysym=[],[]
     for I in range(10,100,10):
@@ -295,29 +333,36 @@ def plot_net(fignum):
     pylab.axis("equal")
     pylab.tight_layout()
 
-def plot_di(DIblock,color='k',marker='o',legend='no',label=''):
+def plot_di(dec,inc,color='k',marker='o',markersize=20,legend='no',label=''):
     """
-    Plot declination, inclination data on an equal area plot
+    Plot declination, inclination data on an equal area plot.
 
-    This function modifies the plotDI function of PmagPy for use in the IPython notebook environment
+    Before this function is called a plot needs to be initialized with code that looks 
+    something like:
+    >fignum = 1
+    >plt.figure(num=fignum,figsize=(10,10),dpi=160)
+    >ipmag.plot_net(fignum)
 
     Required Parameters
     -----------
-    DIblock : a DIblock is comprised of a list of unit vectors [dec,inc,1.]
+    dec : declination being plotted
+    inc : inclination being plotted
 
     Optional Parameters
     -----------
     color : the default color is black. Other colors can be chosen (e.g. 'r')
     marker : the default marker is a circle ('o')
+    markersize : default size is 20
     label : the default label is blank ('')
     legend : the default is no legend ('no'). Putting 'yes' will plot a legend.
     """
-    # initialize the variables
-    X_down,X_up,Y_down,Y_up=[],[],[],[]
-    for rec in DIblock:
-        Up,Down=0,0
-        XY=pmag.dimap(rec[0],rec[1])
-        if rec[1] >= 0:         
+    X_down = []
+    X_up = []
+    Y_down = []
+    Y_up = []
+    for n in range(0,len(dec)):
+        XY=pmag.dimap(dec[n],inc[n])
+        if inc[n] >= 0:         
             X_down.append(XY[0])
             Y_down.append(XY[1])
         else:
@@ -325,15 +370,17 @@ def plot_di(DIblock,color='k',marker='o',legend='no',label=''):
             Y_up.append(XY[1])
 
     if len(X_up)>0:
-        pylab.scatter(X_up,Y_up,facecolors='none', edgecolors=color, marker=marker, label=label)
+        plt.scatter(X_up,Y_up,facecolors='none', edgecolors=color, 
+                    s=markersize, marker=marker, label=label)
 
     if len(X_down)>0: 
-        pylab.scatter(X_down,Y_down,facecolors=color, edgecolors=color, marker=marker, label=label)
+        plt.scatter(X_down,Y_down,facecolors=color, edgecolors=color, 
+                    s=markersize, marker=marker, label=label)
     if legend=='yes':
-        pylab.legend(loc=2)
-    pylab.tight_layout()
+        plt.legend(loc=2)
+    plt.tight_layout()
 
-def plot_di_mean(Dec,Inc,a95,color='k',marker='o',label='',legend='no'):
+def plot_di_mean(Dec,Inc,a95,color='k',marker='o',markersize=20,label='',legend='no'):
     """
     Plot a mean declination, inclination with alpha_95 ellipse on an equal area plot.
 
@@ -341,7 +388,7 @@ def plot_di_mean(Dec,Inc,a95,color='k',marker='o',label='',legend='no'):
     something like:
     >fignum = 1
     >plt.figure(num=fignum,figsize=(10,10),dpi=160)
-    >IPmag.iplotNET(fignum)
+    >ipmag.plot_net(fignum)
 
     Required Parameters
     -----------
@@ -358,9 +405,9 @@ def plot_di_mean(Dec,Inc,a95,color='k',marker='o',label='',legend='no'):
     """
     DI_dimap=pmag.dimap(Dec,Inc)
     if Inc < 0:
-        pylab.plot(DI_dimap[0],DI_dimap[1],markeredgecolor=color , markerfacecolor='white', marker=marker,label=label)
+        plt.scatter(DI_dimap[0],DI_dimap[1],markeredgecolor=color , markerfacecolor='white', marker=marker,s=markersize,label=label)
     if Inc >= 0:
-        pylab.plot(DI_dimap[0],DI_dimap[1],color=color,marker=marker,label=label)
+        plt.scatter(DI_dimap[0],DI_dimap[1],color=color,marker=marker,s=markersize,label=label)
     Xcirc,Ycirc=[],[]
     Da95,Ia95=pmag.circ(Dec,Inc,a95)
     if legend=='yes':
@@ -436,6 +483,7 @@ def vgp_calc(dataframe,tilt_correction='yes'):
     dataframe['inc_is'] : the insitu inclination (used when tilt-correction='no')
     dataframe['dec_is'] : the insitu declination (used when tilt-correction='no')
     """
+    dataframe.is_copy = False
     if tilt_correction=='yes':
         #calculate the paleolatitude/colatitude
         dataframe['paleolatitude']=np.degrees(np.arctan(0.5*np.tan(np.radians(dataframe['inc_tc']))))
@@ -567,6 +615,16 @@ def sb_vgp_calc(dataframe):
     ipmag.plot_pole(m,dataframe_pole_mean['dec'],dataframe_pole_mean['inc'],
                     dataframe_pole_mean['alpha95'],color='r',marker='s')
     return Sb
+
+def make_di_block(dec,inc):
+    """
+    Some pmag.py functions require a list of unit vectors [dec,inc,1.] as input. This
+    function takes declination and inclination data and make it into such a list
+    """
+    di_block=[]
+    for n in range(0,len(dec)):
+        di_block.append([dec[n],inc[n],1.0])
+    return di_block
 
 def shoot(lon, lat, azimuth, maxdist=None):
     """

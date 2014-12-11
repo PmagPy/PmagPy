@@ -572,7 +572,7 @@ class combine_magic_dialog(wx.Frame):
             )
         if dlg.ShowModal() == wx.ID_OK:
             full_path = dlg.GetPath()
-            infile = full_path[full_path.rfind('/')+1:]
+            infile = os.path.split(full_path)[1]
             self.file_paths.AppendText(infile + "\n")
 
     def on_add_all_files_button(self,event):
@@ -832,7 +832,7 @@ class convert_SIO_files_to_MagIC(wx.Frame):
         options_dict['mag_file'] = str(SIO_file)
         #outfile = SIO_file + '.magic'
         magicoutfile=os.path.split(SIO_file)[1]+".magic"
-        outfile =os.path.join(self.WD,magicoutfile)
+        outfile =os.path.join(self.WD, magicoutfile)
         options_dict['meas_file'] = str(outfile)
         user = self.bSizer1.return_value()
         options_dict['user'] = str(user)
@@ -1010,10 +1010,8 @@ class convert_CIT_files_to_MagIC(wx.Frame):
         wd = self.WD
         options_dict['dir_path'] = wd
         full_file = self.bSizer0.return_value()
-        ind = full_file.rfind('/')
-        CIT_file = full_file[ind+1:] 
+        input_directory, CIT_file = os.path.split(full_file)
         options_dict['magfile'] = CIT_file
-        input_directory = full_file[:ind+1]
         options_dict['input_dir_path'] = input_directory
         if input_directory:
             ID = "-ID " + input_directory
@@ -1207,7 +1205,7 @@ class convert_HUJI_files_to_MagIC(wx.Frame):
         HUJI_file = self.bSizer0.return_value()
         options['magfile'] = HUJI_file
         magicoutfile=os.path.split(HUJI_file)[1]+".magic"
-        outfile=os.path.join(self.WD,magicoutfile)
+        outfile=os.path.join(self.WD, magicoutfile)
         options['meas_file'] = outfile
         user = self.bSizer1.return_value()
         options['user'] = user
@@ -1578,7 +1576,7 @@ class convert_LDEO_files_to_MagIC(wx.Frame):
         LDEO_file = self.bSizer0.return_value()
         options_dict['magfile'] = LDEO_file
         magicoutfile=os.path.split(LDEO_file)[1]+".magic"
-        outfile=os.path.join(self.WD,magicoutfile)
+        outfile=os.path.join(self.WD, magicoutfile)
         options_dict['meas_file'] = outfile
         synthetic_outfile = os.path.join(self.WD, magicoutfile[:magicoutfile.find('.')] + '_er_synthetics.txt')
         options_dict['synfile'] = synthetic_outfile
@@ -1727,13 +1725,13 @@ class convert_IODP_csv_files_to_MagIC(wx.Frame):
         wd = self.WD
         options['dir_path'] = wd
         full_file = self.bSizer0.return_value()
-        index = full_file.rfind('/')
-        IODP_file = full_file[index+1:]
+        ID, IODP_file = os.path.split(full_file)
+        if not ID:
+            ID = '.'
         options['csv_file'] = IODP_file
+        options['input_dir_path'] = ID
         outfile = IODP_file + ".magic"
         options['meas_file'] = outfile
-        ID = full_file[:index+1] or '.'
-        options['input_dir_path'] = ID
         spec_outfile = IODP_file[:IODP_file.find('.')] + "_er_specimens.txt" 
         options['spec_file'] = spec_outfile
         samp_outfile = IODP_file[:IODP_file.find('.')] + "_er_samples.txt" 
@@ -2053,7 +2051,7 @@ class OrientFrameGrid(wx.Frame):
         self.samples_list=self.Data_hierarchy['samples']         
         self.orient_data={}
         try:
-            self.orient_data=self.read_magic_file(self.WD+"/demag_orient.txt",1,"sample_name")  
+            self.orient_data=self.read_magic_file(os.path.join(self.WD, "demag_orient.txt"),1,"sample_name")  
         except:
             pass
         for sample in self.samples_list:
@@ -2199,7 +2197,7 @@ class OrientFrameGrid(wx.Frame):
         (only the columns that appear on the grid frame)
         '''
         
-        fout=open(self.WD+"/demag_orient.txt",'w')
+        fout=open(os.path.join(self.WD, "demag_orient.txt"),'w')
         STR="tab\tdemag_orient\n"
         fout.write(STR)
         STR="\t".join(self.headers)+"\n"
@@ -2314,7 +2312,7 @@ class OrientFrameGrid(wx.Frame):
  
         # check if orientation_magic.py finished sucsessfuly
         data_saved=False
-        if os.path.isfile(self.WD+"/er_samples_orient.txt"):
+        if os.path.isfile(os.path.join(self.WD, "er_samples_orient.txt")):
             data_saved=True
             #fin=open(self.WD+"/orientation_magic.log",'r')
             #for line in fin.readlines():
@@ -2335,12 +2333,12 @@ class OrientFrameGrid(wx.Frame):
         
         er_samples_data={}
         er_samples_orient_data={}
-        if os.path.isfile(self.WD+"/er_samples.txt"):
-            er_samples_file=self.WD+"/er_samples.txt"
+        if os.path.isfile(os.path.join(self.WD, "er_samples.txt")):
+            er_samples_file=os.path.join(self.WD, "er_samples.txt")
             er_samples_data=self.read_magic_file(er_samples_file,1,"er_sample_name")
         
-        if os.path.isfile(self.WD+"/er_samples_orient.txt"):             
-            er_samples_orient_file=self.WD+"/er_samples_orient.txt"
+        if os.path.isfile(os.path.join(self.WD, "er_samples_orient.txt")):             
+            er_samples_orient_file=os.path.join(self.WD, "er_samples_orient.txt")
             er_samples_orient_data=self.read_magic_file(er_samples_orient_file,1,"er_sample_name")
         new_samples_added=[]
         for sample in er_samples_orient_data.keys():
@@ -2399,6 +2397,9 @@ class OrientFrameGrid(wx.Frame):
         
                 
                                                  
+=======
+            pmag.magic_write(os.path.join(self.WD, "er_samples.txt"),er_recs,"er_samples")
+       
         dlg1 = wx.MessageDialog(None,caption="Message:", message="orientation data is saved/appended to er_samples.txt" ,style=wx.OK|wx.ICON_INFORMATION)
         dlg1.ShowModal()
         dlg1.Destroy()
@@ -3285,7 +3286,7 @@ class check(wx.Frame):
 
 
     def validate(self, grid):
-        validations = ['specimens', 'samples', 'site_class', 'site_lithology', 'site_type', 'site_definition', 'site_lon', 'site_lat', 'sample_class', 'sample_lithology', 'sample_type', 'sample_lat', 'sample_lon', 'location_type', 'age_unit', 'age']
+        validations = ['specimens', 'samples', 'site_class', 'site_lithology', 'site_type', 'site_definition', 'site_lon', 'site_lat', 'sample_class', 'sample_lithology', 'sample_type', 'sample_lat', 'sample_lon', 'location_type', 'age_unit', 'age']#, 'magic_method_codes']
         cols = range(grid.GetNumberCols())
         rows = range(grid.GetNumberRows())
         data_missing = []
@@ -3316,8 +3317,7 @@ class check(wx.Frame):
         pw.AddItem(self, 'Sample', add_sample, self.sites, 'site') # makes window for adding new data
 
         def add_sample_data(sample, site):
-            key = self.ErMagic.data_er_samples.keys()[0]
-            keys = self.ErMagic.data_er_samples[key].keys()
+            keys = self.ErMagic.er_samples_header
             self.ErMagic.data_er_samples[sample] = dict(zip(keys, ["" for key in keys]))
             self.ErMagic.data_er_samples[sample]['er_sample_name'] = sample
             self.ErMagic.data_er_samples[sample]['er_site_name'] = site
@@ -3333,7 +3333,9 @@ class check(wx.Frame):
             # re-Bind so that the updated samples list shows up on a left click
             samples = sorted(self.Data_hierarchy['samples'].keys())
             samples = sorted(list(set(samples).union(self.ErMagic.data_er_samples.keys())))
-            self.drop_down_menu.update_drop_down_menu(self.spec_grid, {2: (samples, False)})
+            choices = self.drop_down_menu.choices
+            choices[2] = (samples, False)
+            self.drop_down_menu.update_drop_down_menu(self.spec_grid, choices)
 
 
     def on_addSiteButton(self, event):
@@ -3344,8 +3346,7 @@ class check(wx.Frame):
         pw.AddItem(self, 'Site', add_site, self.locations, 'location')
 
         def add_site_data(site, location):
-            key = self.ErMagic.data_er_sites.keys()[0]
-            keys = self.ErMagic.data_er_sites[key].keys()
+            keys = self.ErMagic.er_sites_header
             self.ErMagic.data_er_sites[site] = dict(zip(keys, ["" for key in keys]))
             self.ErMagic.data_er_sites[site]['er_site_name'] = site
             self.ErMagic.data_er_sites[site]['er_location_name'] = location
@@ -3356,7 +3357,6 @@ class check(wx.Frame):
             # re-Bind so that the updated sites list shows up on a left click
             sites = sorted(self.Data_hierarchy['sites'].keys())
             sites = sorted(list(set(sites).union(self.ErMagic.data_er_sites.keys())))
-            self.Bind(wx.grid.EVT_GRID_SELECT_CELL, lambda event: self.on_left_click(event, self.samp_grid, sites), self.samp_grid) 
             self.drop_down_menu.update_drop_down_menu(self.samp_grid, {2: (sites, False)})
 
 
@@ -3375,27 +3375,22 @@ class check(wx.Frame):
 
         def add_loc_data(loc):
             # this is not dialed in yet
-            #print "self.ErMagic.data_er_locations", self.ErMagic.data_er_locations
-            #key = self.ErMagic.data_er_locations.keys()[0]
-            #keys = self.ErMagic.data_er_locations[key].keys()
             keys = self.ErMagic.er_locations_header
             self.ErMagic.data_er_locations[loc] = {key: "" for key in keys}
-            #print "self.ErMagic.data_er_locations:", self.ErMagic.data_er_locations
             self.Data_hierarchy['locations'][loc] = []
 
-            # re-Bind so that the updated samples list shows up on a left click
+            # re-Bind so that the updated locations list shows up on a left click
             locations = sorted(self.Data_hierarchy['locations'].keys())
             locations = sorted(list(set(locations).union(self.ErMagic.data_er_locations.keys())))
-
-            self.drop_down_menu.update_drop_down_menu(self.site_grid, {2: (locations, False)})
-
-
+            choices = self.drop_down_menu.choices
+            choices[2] = (locations, False)
+            self.drop_down_menu.update_drop_down_menu(self.site_grid, choices)
 
 
     def on_helpButton(self, event, page=None):
         """shows html help page"""
         path = check_updates.get_pmag_dir()
-        html_frame = pw.HtmlFrame(self, page=(path+page))
+        html_frame = pw.HtmlFrame(self, page=(os.path.join(path,page)))
         html_frame.Show()
 
 
@@ -3601,7 +3596,8 @@ class check(wx.Frame):
                 #
                 self.Data_hierarchy['location_of_site'][site] = new_loc
                 #
-                self.Data_hierarchy['locations'][old_loc].remove(site)
+                if old_loc in self.Data_hierarchy['locations']:
+                    self.Data_hierarchy['locations'][old_loc].remove(site)
                 self.Data_hierarchy['locations'][new_loc].append(site)
                 #
                 for samp in self.Data_hierarchy['sites'][site]:
@@ -3713,8 +3709,7 @@ class check(wx.Frame):
                     self.Data_hierarchy['location_of_specimen'][spec] = loc
                 
                 if not sample in self.ErMagic.data_er_samples.keys():
-                    key = self.ErMagic.data_er_samples.keys()[0]
-                    keys = self.ErMagic.data_er_samples[key].keys()
+                    keys = self.ErMagic.er_samples_header
                     self.ErMagic.data_er_samples[sample] = dict(zip(keys, ["" for key in keys]))
                     self.ErMagic.data_er_samples[sample]['er_sample_name'] = sample
                 self.ErMagic.data_er_samples[sample]['er_site_name'] = new_site
@@ -3855,7 +3850,8 @@ class check(wx.Frame):
         remove_extras(self.ErMagic.data_er_specimens, self.Data_hierarchy['specimens'])
         remove_extras(self.ErMagic.data_er_samples, self.Data_hierarchy['samples'])
         remove_extras(self.ErMagic.data_er_sites, self.Data_hierarchy['sites'])
-        remove_extras(self.ErMagic.data_er_locations, self.Data_hierarchy['locations'])
+        #remove_extras(self.ErMagic.data_er_locations, self.Data_hierarchy['locations'])
+        remove_extras(self.Data_hierarchy['locations'], self.ErMagic.data_er_locations)
         remove_extras(self.ErMagic.data_er_ages, self.Data_hierarchy['sites'])
         self.ErMagic.update_ErMagic()
         

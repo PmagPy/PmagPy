@@ -112,7 +112,7 @@ class Zeq_GUI(wx.Frame):
         # initialize acceptence criteria with NULL values
         self.acceptance_criteria=pmag.initialize_acceptance_criteria()
         try:
-            self.acceptance_criteria=pmag.read_criteria_from_file(self.WD+"/pmag_criteria.txt",self.acceptance_criteria)
+            self.acceptance_criteria=pmag.read_criteria_from_file(os.path.join(self.WD, "pmag_criteria.txt"), self.acceptance_criteria)
         except:
             print "-I- Cant find/read file  pmag_criteria.txt"          
         
@@ -1580,16 +1580,19 @@ class Zeq_GUI(wx.Frame):
  
         elif not WD:   
             dialog = wx.DirDialog(None, "Choose a directory:",defaultPath = self.currentDirectory ,style=wx.DD_DEFAULT_STYLE | wx.DD_NEW_DIR_BUTTON | wx.DD_CHANGE_DIR)
-            if dialog.ShowModal() == wx.ID_OK:
-              self.WD=dialog.GetPath()
+            ok = dialog.ShowModal()
+            if ok == wx.ID_OK:
+                self.WD=dialog.GetPath()
+            else:
+                self.WD = os.getcwd()
             dialog.Destroy()
         os.chdir(self.WD)
-        self.WD=os.getcwd()+"/"
-        self.magic_file=self.WD+"/"+"magic_measurements.txt"
-        self.GUI_log=open("%s/demag_gui.log"%self.WD,'w')
+        self.WD=os.getcwd()
+        self.magic_file=os.path.join(self.WD, "magic_measurements.txt")
+        self.GUI_log=open(os.path.join(self.WD, "demag_gui.log"),'w')
         self.GUI_log.write("start gui\n")
         self.GUI_log.close()
-        self.GUI_log=open("%s/demag_gui.log"%self.WD,'a')
+        self.GUI_log=open(os.path.join(self.WD, "demag_gui.log"),'a')
 
     #----------------------------------------------------------------------
 
@@ -2902,25 +2905,25 @@ class Zeq_GUI(wx.Frame):
         data_er_ages={}
 
         try:
-            data_er_samples=self.read_magic_file(self.WD+"/er_samples.txt",'er_sample_name')
+            data_er_samples=self.read_magic_file(os.path.join(self.WD, "er_samples.txt"),'er_sample_name')
         except:
             self.GUI_log.write ("-W- Cant find er_sample.txt in project directory")
 
         try:
-            data_er_sites=self.read_magic_file(self.WD+"/er_sites.txt",'er_site_name')
+            data_er_sites=self.read_magic_file(os.path.join(self.WD, "er_sites.txt"),'er_site_name')
         except:
             self.GUI_log.write ("-W- Cant find er_sites.txt in project directory")
 
         try:
-            data_er_locations=self.read_magic_file(self.WD+"/er_locations.txt",'er_location_name')
+            data_er_locations=self.read_magic_file(os.path.join(self.WD, "er_locations.txt"), 'er_location_name')
         except:
             self.GUI_log.write ("-W- Cant find er_locations.txt in project directory")
 
         try:
-            data_er_ages=self.read_magic_file(self.WD+"/er_ages.txt",'er_sample_name')
+            data_er_ages=self.read_magic_file(os.path.join(self.WD, "er_ages.txt"),'er_sample_name')
         except:
             try:
-                data_er_ages=self.read_magic_file(self.WD+"/er_ages.txt",'er_site_name')
+                data_er_ages=self.read_magic_file(os.path.join(self.WD, "er_ages.txt"),'er_site_name')
             except:    
                 self.GUI_log.write ("-W- Cant find er_ages in project directory")
 
@@ -2949,15 +2952,15 @@ class Zeq_GUI(wx.Frame):
         #print "run update_pmag_tables"
         pmag_specimens,pmag_samples,pmag_sites=[],[],[]
         try:
-            pmag_specimens,file_type=pmag.magic_read(self.WD+"/"+"pmag_specimens.txt")
+            pmag_specimens,file_type=pmag.magic_read(os.path.join(self.WD, "pmag_specimens.txt"))
         except:
             print "-I- Cant read pmag_specimens.txt"
         try:
-            pmag_samples,file_type=pmag.magic_read(self.WD+"/"+"pmag_samples.txt")
+            pmag_samples,file_type=pmag.magic_read(os.path.join(self.WD, "pmag_samples.txt"))
         except:
             print "-I- Cant read pmag_samples.txt"
         try:
-            pmag_sites,file_type=pmag.magic_read(self.WD+"/"+"pmag_sites.txt")
+            pmag_sites,file_type=pmag.magic_read(os.path.join(self.WD+"/"+"pmag_sites.txt"))
         except:
             print "-I- Cant read pmag_sites.txt"
         self.GUI_log.write ("-I- Reading previous interpretations from pmag* tables\n")        
@@ -3600,7 +3603,8 @@ class Zeq_GUI(wx.Frame):
         crit_list.sort()
         rec={}
         rec['pmag_criteria_code']="ACCEPT"
-        rec['criteria_definition']=""
+        #rec['criteria_definition']=""
+        rec['criteria_definition']="acceptance criteria for study"
         rec['er_citation_names']="This study"
                 
         for crit in crit_list:
@@ -3619,7 +3623,7 @@ class Zeq_GUI(wx.Frame):
                     exec command
                 else:
                     rec[crit]="%e"%(self.acceptance_criteria[crit]['value'])
-        pmag.magic_write(self.WD+"/pmag_criteria.txt",[rec],"pmag_criteria")
+        pmag.magic_write(os.path.join(self.WD, "pmag_criteria.txt"),[rec],"pmag_criteria")
                 
                 
     #--------------------------------------------------------------
@@ -3702,11 +3706,11 @@ class Zeq_GUI(wx.Frame):
         for FILE in ['pmag_specimens.txt']:
             self.PmagRecsOld[FILE]=[]
             try: 
-                meas_data,file_type=pmag.magic_read(self.WD+"/"+FILE)
-                self.GUI_log.write("-I- Read old magic file  %s\n"%self.WD+"/"+FILE)
+                meas_data,file_type=pmag.magic_read(os.path.join(self.WD, FILE))
+                self.GUI_log.write("-I- Read old magic file  %s\n"%os.path.join(self.WD, FILE))
                 if FILE !='pmag_specimens.txt':
                     os.remove(self.WD+"/"+FILE)
-                    self.GUI_log.write("-I- Delete old magic file  %s\n"%self.WD+"/"+FILE)
+                    self.GUI_log.write("-I- Delete old magic file  %s\n"%os.path.join(self.WD,FILE))
                                
             except:
                 continue                                                                           
@@ -3815,8 +3819,8 @@ class Zeq_GUI(wx.Frame):
         for rec in self.PmagRecsOld['pmag_specimens.txt']:
             PmagSpecs.append(rec)
         PmagSpecs_fixed=self.merge_pmag_recs(PmagSpecs)
-        pmag.magic_write(self.WD+"/"+"pmag_specimens.txt",PmagSpecs_fixed,'pmag_specimens')
-        self.GUI_log.write( "specimen data stored in %s\n"%self.WD+"/"+"pmag_specimens.txt")
+        pmag.magic_write(os.path.join(self.WD, "pmag_specimens.txt"),PmagSpecs_fixed,'pmag_specimens')
+        self.GUI_log.write( "specimen data stored in %s\n"%os.path.join(self.WD, "pmag_specimens.txt"))
         
         TEXT="specimens interpretations are saved in pmag_specimens.txt.\nPress OK for pmag_samples/pmag_sites/pmag_results tables."
         dlg = wx.MessageDialog(self, caption="Saved",message=TEXT,style=wx.OK|wx.CANCEL )
@@ -3892,11 +3896,11 @@ class Zeq_GUI(wx.Frame):
         for FILE in ['pmag_samples.txt','pmag_sites.txt','pmag_results.txt']:
             self.PmagRecsOld[FILE]=[]
             try: 
-                meas_data,file_type=pmag.magic_read(self.WD+"/"+FILE)
-                self.GUI_log.write("-I- Read old magic file  %s\n"%self.WD+"/"+FILE)
+                meas_data,file_type=pmag.magic_read(os.path.join(self.WD, FILE))
+                self.GUI_log.write("-I- Read old magic file  %s\n"%os.path.join(self.WD, FILE))
                 if FILE !='pmag_specimens.txt':
                     os.remove(self.WD+"/"+FILE)
-                    self.GUI_log.write("-I- Delete old magic file  %s\n"%self.WD+"/"+FILE)
+                    self.GUI_log.write("-I- Delete old magic file  %s\n"%os.path.join(self.WD,FILE))
                                
             except:
                 continue                                                                           
@@ -3916,7 +3920,7 @@ class Zeq_GUI(wx.Frame):
         for FILE in ['pmag_samples.txt','pmag_sites.txt','pmag_results.txt']:
             pmag_data=[]
             try:
-                pmag_data,file_type=pmag.magic_read(self.WD+"/"+FILE)
+                pmag_data,file_type=pmag.magic_read(os.path.join(self.WD,FILE))
             except:
                 pass
             if FILE in self.PmagRecsOld.keys():
@@ -3924,12 +3928,12 @@ class Zeq_GUI(wx.Frame):
                     pmag_data.append(rec)
             if len(pmag_data) >0:
                 pmag_data_fixed=self.merge_pmag_recs(pmag_data)
-                pmag.magic_write(self.WD+"/"+FILE,pmag_data_fixed,FILE.split(".")[0])
-                self.GUI_log.write( "write new interpretations in %s\n"%(self.WD+"/"+FILE))
+                pmag.magic_write(os.path.join(self.WD, FILE), pmag_data_fixed, FILE.split(".")[0])
+                self.GUI_log.write( "write new interpretations in %s\n"%(os.path.join(self.WD, FILE)))
 
         # make pmag_criteria.txt if it does not exist
-        if not os.path.isfile(self.WD+"/pmag_criteria.txt"):
-            Fout=open(self.WD+"/pmag_criteria.txt",'w')
+        if not os.path.isfile(os.path.join(self.WD, "pmag_criteria.txt")):
+            Fout=open(os.path.join(self.WD, "pmag_criteria.txt"),'w')
             Fout.write("tab\tpmag_criteria\n")
             Fout.write("er_citation_names\tpmag_criteria_code\n")
             Fout.write("This study\tACCEPT\n")

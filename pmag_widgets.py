@@ -518,7 +518,7 @@ class combine_files(wx.BoxSizer):
             )
         if dlg.ShowModal() == wx.ID_OK:
             full_path = dlg.GetPath()
-            infile = full_path[full_path.rfind('/')+1:]
+            infile = os.path.split(full_path)[1]
             self.file_paths.AppendText(infile + "\n")
 
     def on_add_all_files_button(self,event):
@@ -548,13 +548,13 @@ class HtmlFrame(wx.Frame):
  
         
 class AddItem(wx.Frame):
-    """This window allows user to add a new item (sample or specimen)"""
+    """This window allows user to add a new item (sample, site, or location)"""
 
     def __init__(self, parent, title, data_method, owner_items=None, belongs_to=None): 
         self.title = title
         self.owner_items = owner_items
         self.belongs_to = belongs_to
-        self.onAdd = data_method# data parsing method passed in by pmag_basic_dialogs
+        self.onAdd = data_method # data parsing method passed in by pmag_basic_dialogs
         wx.Frame.__init__(self, parent, wx.ID_ANY, title=self.title)
         self.InitUI()
 
@@ -583,6 +583,7 @@ class AddItem(wx.Frame):
 
         panel.SetSizer(vbox)
         vbox.Fit(self)
+        self.Centre()
         self.Show()
 
     def on_cancelButton(self, event):
@@ -610,6 +611,9 @@ def on_add_dir_button(SELF, WD, event, text):
             )
     if dlg.ShowModal() == wx.ID_OK:
         SELF.dir_path.SetValue(str(dlg.GetPath()))
+    # make sure the frame that called up this dialog ends up in front once the dialog is gone
+    # otherwise in Windows the top-level frame ends up in front instead
+    SELF.parent.Parent.Raise() 
 
 
 def on_add_file_button(SELF, WD, event, text):
@@ -621,6 +625,9 @@ def on_add_file_button(SELF, WD, event, text):
             )
     if dlg.ShowModal() == wx.ID_OK:
         SELF.file_path.SetValue(str(dlg.GetPath()))
+    # make sure the frame that called up this dialog ends up in front once the dialog is gone
+    # otherwise in Windows the top-level frame ends up in front instead
+    SELF.parent.Parent.Raise()
 
 
 def simple_warning(text=None):

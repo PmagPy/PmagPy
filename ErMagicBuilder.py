@@ -62,7 +62,7 @@ class MagIC_model_builder(wx.Frame):
         self.er_locations_header=['er_citation_names','er_location_name','location_begin_lon','location_end_lon','location_begin_lat','location_end_lat','location_type']
         self.er_ages_header=['er_citation_names','er_site_name','er_location_name','age_description','magic_method_codes','age','age_unit']
         os.chdir(WD)
-        self.WD=os.getcwd()+"/"  
+        self.WD=os.getcwd()  
         #self.WD=WD
         self.Data,self.Data_hierarchy=self.get_data()
         self.read_MagIC_info()
@@ -301,7 +301,7 @@ class MagIC_model_builder(wx.Frame):
         #---------------------------------------------
 
         #header
-        er_samples_file=open(self.WD+"er_samples.txt",'w')
+        er_samples_file=open(os.path.join(self.WD, "er_samples.txt"),'w')
         er_samples_file.write("tab\ter_samples\n")
         string=""
         for key in self.er_samples_header:
@@ -365,7 +365,7 @@ class MagIC_model_builder(wx.Frame):
         #---------------------------------------------
 
         #header
-        er_specimens_file=open(self.WD+"er_specimens.txt",'w')
+        er_specimens_file=open(os.path.join(self.WD, "er_specimens.txt"),'w')
         er_specimens_file.write("tab\ter_specimens\n")
         string=""
         for key in self.er_specimens_header:
@@ -430,7 +430,7 @@ class MagIC_model_builder(wx.Frame):
 
 
         #header
-        er_sites_file=open(self.WD+"er_sites.txt",'w')
+        er_sites_file=open(os.path.join(self.WD, "er_sites.txt"),'w')
         er_sites_file.write("tab\ter_sites\n")
         string=""
         for key in self.er_sites_header:
@@ -492,7 +492,7 @@ class MagIC_model_builder(wx.Frame):
         #---------------------------------------------
 
         #header
-        er_locations_file=open(self.WD+"er_locations.txt",'w')
+        er_locations_file=open(os.path.join(self.WD, "er_locations.txt"),'w')
         er_locations_file.write("tab\ter_locations\n")
         string=""
         for key in self.er_locations_header:
@@ -546,7 +546,7 @@ class MagIC_model_builder(wx.Frame):
         #---------------------------------------------
 
         #header
-        er_ages_file=open(self.WD+"er_ages.txt",'w')
+        er_ages_file=open(os.path.join(self.WD, "er_ages.txt"),'w')
         er_ages_file.write("tab\ter_ages\n")
         string=""
         for key in self.er_ages_header:
@@ -590,8 +590,8 @@ class MagIC_model_builder(wx.Frame):
         #-----------------------------------------------------
 
         #print "in ErMagicBuilder on_okButton udpating magic_measurements.txt"
-        f_old=open(self.WD+"/magic_measurements.txt",'rU')
-        f_new=open(self.WD+"/magic_measurements.new.tmp.txt",'w')
+        f_old=open(os.path.join(self.WD, "magic_measurements.txt"),'rU')
+        f_new=open(os.path.join(self.WD, "magic_measurements.new.tmp.txt"),'w')
              
         line=f_old.readline()
         f_new.write(line)
@@ -629,8 +629,8 @@ class MagIC_model_builder(wx.Frame):
         f_new.close()
         f_old.close()
 
-        os.remove(self.WD+"/magic_measurements.txt")
-        os.rename(self.WD+"/magic_measurements.new.tmp.txt",self.WD+"/magic_measurements.txt")
+        os.remove(os.path.join(self.WD, "magic_measurements.txt"))
+        os.rename(os.path.join(self.WD, "magic_measurements.new.tmp.txt"),os.path.join(self.WD, "magic_measurements.txt"))
         
 
                 
@@ -671,7 +671,7 @@ class MagIC_model_builder(wx.Frame):
         #self.Destroy()
         self.Hide()
         del wait
-        print "done on_ok_Button in ErMagicBuilder"
+        #print "done on_ok_Button in ErMagicBuilder"
 
 
     def on_cancelButton(self,event):
@@ -679,7 +679,7 @@ class MagIC_model_builder(wx.Frame):
 
     def on_helpButton(self, event):
         path = check_updates.get_pmag_dir()
-        html_frame = pw.HtmlFrame(self, page=(path+"ErMagicHeadersHelp.html"))
+        html_frame = pw.HtmlFrame(self, page=(os.path.join(path, "ErMagicHeadersHelp.html")))
         html_frame.Center()
         html_frame.Show()
 
@@ -734,29 +734,29 @@ class MagIC_model_builder(wx.Frame):
         self.data_er_specimens,self.data_er_samples,self.data_er_sites,self.data_er_locations,self.data_er_ages={},{},{},{},{}
 
         try:
-            self.data_er_specimens=self.read_magic_file(self.WD+"/er_specimens.txt",'er_specimen_name')
+            self.data_er_specimens=self.read_magic_file(os.path.join(self.WD, "er_specimens.txt"),'er_specimen_name')
         except:
             #self.GUI_log.write ("-W- Cant find er_samples.txt in project directory")
             print "-W- Cant find er_samples.txt in project directory"
         try:
-            self.data_er_samples=self.read_magic_file(self.WD+"/er_samples.txt",'er_sample_name')
+            self.data_er_samples=self.read_magic_file(os.path.join(self.WD, "er_samples.txt"),'er_sample_name')
         except:
             #self.GUI_log.write ("-W- Cant find er_sample.txt in project directory")
             print "-W- Cant find er_sample.txt in project directory"
         try:
-            self.data_er_sites=self.read_magic_file(self.WD+"/er_sites.txt",'er_site_name')
+            self.data_er_sites=self.read_magic_file(os.path.join(self.WD, "er_sites.txt"),'er_site_name')
         except:
             pass
         try:
-            self.data_er_locations=self.read_magic_file(self.WD+"/er_locations.txt",'er_location_name')
+            self.data_er_locations=self.read_magic_file(os.path.join(self.WD, "er_locations.txt"),'er_location_name')
         except:
             #self.GUI_log.write ("-W- Cant find er_sites.txt in project directory")
             print "-W- Cant find er_sites.txt in project directory"
         try:
-            self.data_er_ages=self.read_magic_file(self.WD+"/er_ages.txt","er_site_name")
+            self.data_er_ages=self.read_magic_file(os.path.join(self.WD, "er_ages.txt"),"er_site_name")
         except:
             try:
-                self.data_er_ages=self.read_magic_file(self.WD+"/er_ages.txt","er_sample_name")
+                self.data_er_ages=self.read_magic_file(os.path.join(self.WD, "er_ages.txt"),"er_sample_name")
             except:
                 print "-W- Cant find er_ages.txt in project directory"
                 pass
@@ -776,7 +776,7 @@ class MagIC_model_builder(wx.Frame):
       Data_hierarchy['location_of_sample']={}   
       Data_hierarchy['location_of_site']={}   
       try:
-          meas_data,file_type=pmag.magic_read(self.WD+"/magic_measurements.txt")
+          meas_data,file_type=pmag.magic_read(os.path.join(self.WD, "magic_measurements.txt"))
       except:
           print "-E- ERROR: Cant read magic_measurement.txt file. File is corrupted."
           return {},{}

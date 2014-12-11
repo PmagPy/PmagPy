@@ -59,7 +59,7 @@ class ImportOrientFile(wx.Frame):
         label2 = "no, update existing er_samples file"
         er_samples_file_present = True
         try:
-            open(self.WD + "/er_samples.txt", "rU")
+            open(os.path.join(self.WD, "er_samples.txt"), "rU")
         except Exception as ex:
             er_samples_file_present = False
         if er_samples_file_present:
@@ -115,11 +115,9 @@ class ImportOrientFile(wx.Frame):
     def on_okButton(self, event):
         WD = self.WD
         full_infile = self.bSizer0.return_value()
-        ind = full_infile.rfind('/')
-        infile = full_infile[ind+1:]
+        ID, infile = os.path.split(full_infile)
         Fsa = infile[:infile.find('.')] + "_er_samples.txt"
         Fsi = infile[:infile.find('.')] + "_er_sites.txt"
-        ID = full_infile[:ind+1]
         mcd = self.bSizer1.return_value()
         if mcd:
             mcd = "-mcd " + mcd
@@ -180,7 +178,7 @@ class ImportAzDipFile(wx.Frame):
         label2 = "no, update existing er_samples file"
         er_samples_file_present = True
         try:
-            open(self.WD + "/er_samples.txt", "rU")
+            open(os.path.join(self.WD, "er_samples.txt"), "rU")
         except Exception as ex:
             er_samples_file_present = False
         if er_samples_file_present:
@@ -220,7 +218,7 @@ class ImportAzDipFile(wx.Frame):
     def on_okButton(self, event):
         WD = self.WD
         full_infile = self.bSizer0.return_value()
-        infile = full_infile[full_infile.rfind('/')+1:full_infile.rfind('.')]
+        infile = os.path.split(full_infile)[1]
         Fsa = WD + infile + "_er_samples.txt"
         mcd = self.bSizer1.return_value()
         if mcd:
@@ -294,7 +292,7 @@ class ImportODPCoreSummary(wx.Frame):
     def on_okButton(self, event):
         WD = self.WD
         full_infile = self.bSizer0.return_value()
-        infile = WD + full_infile[full_infile.rfind('/')+1:]
+        infile = WD + os.path.split(full_infile)[1]
         COMMAND = "cp {} ./".format(full_infile)
         pw.run_command_and_close_window(self, COMMAND, infile)
 
@@ -353,9 +351,7 @@ class ImportODPSampleSummary(wx.Frame):
     def on_okButton(self, event):
         WD = self.WD
         full_infile = self.bSizer0.return_value()
-        index = full_infile.rfind('/')
-        infile = full_infile[index+1:]
-        ID = full_infile[:index+1]
+        ID, infile = os.path.split(full_infile)
         Fsa = infile[:infile.find('.')] + "_er_samples.txt"
         COMMAND = "ODP_samples_magic.py -WD {} -f {} -Fsa {} -ID {}".format(WD, infile, Fsa, ID)
         pw.run_command_and_close_window(self, COMMAND, Fsa)
@@ -411,8 +407,8 @@ class ImportModelLatitude(wx.Frame):
         pw.on_add_file_button(self.bSizer0, self.WD, event, text)
 
     def on_okButton(self, event):
-        infile = self.bSizer0.return_value()
-        outfile = self.WD + infile[infile.rfind('/'):]
+        infile = os.path.split(self.bSizer0.return_value())[1]
+        outfile = os.path.join(self.WD, infile)
         COMMAND = "cp {} {}".format(infile, self.WD)
         pw.run_command_and_close_window(self, COMMAND, outfile)
 
@@ -513,12 +509,11 @@ class ImportKly4s(wx.Frame):
     def on_okButton(self, event):
         WD = self.WD
         full_infile = self.bSizer0.return_value()
-        infile = full_infile[full_infile.rfind('/')+1:]
+        ID, infile = os.path.split(full_infile)
         outfile = infile + ".magic"
         spec_outfile = infile[:infile.find('.')] + "_er_specimens.txt"
         full_azdip_file = self.bSizer1.return_value()
-        azdip_file = full_azdip_file[full_azdip_file.rfind('/')+1:]
-        ID = full_infile[:full_infile.rfind('/')+1]
+        azdip_file = os.path.split(full_azdip_file)[1]
         if azdip_file:
             azdip_file = "-fad " + azdip_file
         try:
@@ -612,10 +607,9 @@ class ImportK15(wx.Frame):
 
     def on_okButton(self, event):
         full_infile = self.bSizer0.return_value()
-        infile = full_infile[full_infile.rfind('/')+1:]
+        ID, infile = os.path.split(full_infile)
         outfile = infile + ".magic"
         samp_outfile = infile[:infile.find('.')] + "_er_samples.txt"
-        ID = full_infile[:full_infile.rfind('/')+1]
         WD = self.WD
         spc = self.bSizer1.return_value()
         ncn = self.bSizer2.return_value()
@@ -716,12 +710,11 @@ class ImportSufarAscii(wx.Frame):
     def on_okButton(self, event):
         WD = self.WD
         full_infile = self.bSizer0.return_value()
-        infile = full_infile[full_infile.rfind('/')+1:]
+        ID, infile = os.path.split(full_infile)
         outfile = infile + ".magic"
         spec_outfile = infile[:infile.find('.')] + "_er_specimens.txt"
         samp_outfile = infile[:infile.find('.')] + "_er_samples.txt"
         site_outfile = infile[:infile.find('.')] + "_er_sites.txt"
-        ID = full_infile[:full_infile.rfind('/')+1]
         usr = self.bSizer1.return_value()
         if usr:
             usr = "-usr " + usr
@@ -837,8 +830,7 @@ class ImportAgmFile(wx.Frame):
     def on_okButton(self, event):
         WD = self.WD
         full_infile = self.bSizer0.return_value()
-        infile = full_infile[full_infile.rfind('/')+1:]
-        ID = full_infile[:full_infile.rfind('/')+1]
+        ID, infile = os.path.split(full_infile)
         outfile = infile + ".magic"
         spec_outfile = infile[:infile.find('.')] + "_er_specimens.txt"
         user = self.bSizer1.return_value()
@@ -1044,18 +1036,18 @@ class CustomizeCriteria(wx.Frame):
 
     def on_okButton(self, event):
         choice = self.bSizer0.return_value()
-        critout = self.WD+'/pmag_criteria.txt'
+        critout = os.path.join(self.WD, 'pmag_criteria.txt')
         if choice == 'Use default criteria' or choice == 'Use no criteria':
             if choice == 'Use default criteria':
                 crit_data=pmag.default_criteria(0)
                 crit_data,critkeys=pmag.fillkeys(crit_data)
                 pmag.magic_write(critout,crit_data,'pmag_criteria')
                 # pop up instead of print
-                MSG="Default criteria saved in {}pmag_criteria.txt".format(self.WD)
+                MSG="Default criteria saved in {}/pmag_criteria.txt".format(self.WD)
             elif choice == 'Use no criteria':
                 crit_data = pmag.default_criteria(1)
                 pmag.magic_write(critout,crit_data,'pmag_criteria')
-                MSG="Extremely loose criteria saved in {}pmag_criteria.txt".format(self.WD)
+                MSG="Extremely loose criteria saved in {}/pmag_criteria.txt".format(self.WD)
 
             dia = wx.MessageDialog(None,caption="Message:", message=MSG ,style=wx.OK|wx.ICON_INFORMATION)
             dia.ShowModal()
@@ -1065,7 +1057,7 @@ class CustomizeCriteria(wx.Frame):
             return
         if choice == "Update existing criteria":
             try:
-                crit_data, file_type = pmag.magic_read(self.WD + "pmag_criteria.txt")
+                crit_data, file_type = pmag.magic_read(os.path.join(self.WD, "pmag_criteria.txt"))
                 if file_type != "pmag_criteria":
                     raise Exception
             except Exception as ex:
@@ -1104,7 +1096,7 @@ class CustomizeCriteria(wx.Frame):
     def on_edit_okButton(self, event):
         print self.boxes.return_value()
         crit_data = self.boxes.return_value()
-        critout = self.WD+'/pmag_criteria.txt'
+        critout = os.path.join(self.WD, '/pmag_criteria.txt')
         pmag.magic_write(critout, crit_data, 'pmag_criteria')
         MSG = "pmag_criteria.txt file has been updated"
         dia = wx.MessageDialog(None,caption="Message:", message=MSG ,style=wx.OK|wx.ICON_INFORMATION)
@@ -1373,7 +1365,9 @@ class ClearWD(wx.MessageDialog):
         result = self.ShowModal()
         self.Destroy()
         if result == wx.ID_YES:
-            os.system('rm -r {}'.format(WD))
+            #os.system('rm -r {}'.format(WD))
+            import shutil
+            shutil.rmtree(WD)
             os.mkdir(WD)
             print "{} has been emptied".format(WD)
         else:
