@@ -4,6 +4,8 @@
 # LOG HEADER:
 #============================================================================================
 #
+# Demag_GUI Version 0.28 fix on_close_event 12/12/2014
+
 # Demag_GUI Version 0.27 some minor bug fix
 
 # Demag_GUI Version 0.26 (version for MagIC workshop) by Ron Shaar 5/8/2014
@@ -3319,9 +3321,9 @@ class Zeq_GUI(wx.Frame):
             if dlg1.ShowModal() == wx.ID_OK:
                 dlg1.Destroy()
                 self.Destroy()
-                exit()
+                #exit()
         else:
-            exit()
+            self.Destroy()
         
 #        dlg1 = wx.MessageDialog(None,caption="Warning:", message="Exiting program.\nSave all interpretation to a 'redo' file or to MagIC specimens result table\n\nPress OK to exit" ,style=wx.OK|wx.CANCEL|wx.ICON_INFORMATION)
 #        if dlg1.ShowModal() == wx.ID_OK:
