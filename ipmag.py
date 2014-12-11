@@ -333,7 +333,7 @@ def plot_net(fignum):
     pylab.axis("equal")
     pylab.tight_layout()
 
-def plot_di(dec,inc,color='k',marker='o',legend='no',label=''):
+def plot_di(dec,inc,color='k',marker='o',markersize=20,legend='no',label=''):
     """
     Plot declination, inclination data on an equal area plot.
 
@@ -352,6 +352,7 @@ def plot_di(dec,inc,color='k',marker='o',legend='no',label=''):
     -----------
     color : the default color is black. Other colors can be chosen (e.g. 'r')
     marker : the default marker is a circle ('o')
+    markersize : default size is 20
     label : the default label is blank ('')
     legend : the default is no legend ('no'). Putting 'yes' will plot a legend.
     """
@@ -369,15 +370,17 @@ def plot_di(dec,inc,color='k',marker='o',legend='no',label=''):
             Y_up.append(XY[1])
 
     if len(X_up)>0:
-        plt.scatter(X_up,Y_up,facecolors='none', edgecolors=color, marker=marker, label=label)
+        plt.scatter(X_up,Y_up,facecolors='none', edgecolors=color, 
+                    s=markersize, marker=marker, label=label)
 
     if len(X_down)>0: 
-        plt.scatter(X_down,Y_down,facecolors=color, edgecolors=color, marker=marker, label=label)
+        plt.scatter(X_down,Y_down,facecolors=color, edgecolors=color, 
+                    s=markersize, marker=marker, label=label)
     if legend=='yes':
         plt.legend(loc=2)
     plt.tight_layout()
 
-def plot_di_mean(Dec,Inc,a95,color='k',marker='o',label='',legend='no'):
+def plot_di_mean(Dec,Inc,a95,color='k',marker='o',markersize=20,label='',legend='no'):
     """
     Plot a mean declination, inclination with alpha_95 ellipse on an equal area plot.
 
@@ -402,9 +405,9 @@ def plot_di_mean(Dec,Inc,a95,color='k',marker='o',label='',legend='no'):
     """
     DI_dimap=pmag.dimap(Dec,Inc)
     if Inc < 0:
-        pylab.plot(DI_dimap[0],DI_dimap[1],markeredgecolor=color , markerfacecolor='white', marker=marker,label=label)
+        plt.scatter(DI_dimap[0],DI_dimap[1],markeredgecolor=color , markerfacecolor='white', marker=marker,s=markersize,label=label)
     if Inc >= 0:
-        pylab.plot(DI_dimap[0],DI_dimap[1],color=color,marker=marker,label=label)
+        plt.scatter(DI_dimap[0],DI_dimap[1],color=color,marker=marker,s=markersize,label=label)
     Xcirc,Ycirc=[],[]
     Da95,Ia95=pmag.circ(Dec,Inc,a95)
     if legend=='yes':
