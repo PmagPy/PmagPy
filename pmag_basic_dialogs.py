@@ -3359,10 +3359,6 @@ class check(wx.Frame):
     def on_helpButton(self, event, page=None):
         """shows html help page"""
         path = check_updates.get_pmag_dir()
-        print "DOING HELP bUTTON"
-        print path
-        print page
-        print os.path.join(path,page)
         html_frame = pw.HtmlFrame(self, page=(os.path.join(path,page)))
         html_frame.Show()
 
@@ -3569,7 +3565,8 @@ class check(wx.Frame):
                 #
                 self.Data_hierarchy['location_of_site'][site] = new_loc
                 #
-                self.Data_hierarchy['locations'][old_loc].remove(site)
+                if old_loc in self.Data_hierarchy['locations']:
+                    self.Data_hierarchy['locations'][old_loc].remove(site)
                 self.Data_hierarchy['locations'][new_loc].append(site)
                 #
                 for samp in self.Data_hierarchy['sites'][site]:

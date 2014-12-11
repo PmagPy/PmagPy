@@ -78,6 +78,7 @@ class Menus():
                 data = None
                 dialog = wx.TextEntryDialog(None, "Enter value for all cells in the column\nNote: this will overwrite any existing cell values", "Edit All", default_value, style=wx.OK|wx.CANCEL)
                 dialog.Centre()
+                self.check.Raise() # prevents top-level window from coming into focus here
                 if dialog.ShowModal() == wx.ID_OK: 
                     data = dialog.GetValue() 
                     for row in range(self.grid.GetNumberRows()):
