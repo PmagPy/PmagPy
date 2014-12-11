@@ -13,7 +13,6 @@ import check_updates
 
 
 
-
 class MagMainFrame(wx.Frame):
     """"""
     try:

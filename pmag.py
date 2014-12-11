@@ -8664,7 +8664,7 @@ def write_criteria_to_file(path,acceptance_criteria):
     crit_list.sort()
     rec={}
     rec['pmag_criteria_code']="ACCEPT"
-    rec['criteria_definition']=""
+    rec['criteria_definition']="acceptance criteria for study" 
     rec['er_citation_names']="This study"
             
     for crit in crit_list:

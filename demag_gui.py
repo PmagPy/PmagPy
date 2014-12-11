@@ -3601,7 +3601,8 @@ class Zeq_GUI(wx.Frame):
         crit_list.sort()
         rec={}
         rec['pmag_criteria_code']="ACCEPT"
-        rec['criteria_definition']=""
+        #rec['criteria_definition']=""
+        rec['criteria_definition']="acceptance criteria for study"
         rec['er_citation_names']="This study"
                 
         for crit in crit_list:
