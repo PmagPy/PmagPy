@@ -49,7 +49,7 @@ class ImportOrientFile(wx.Frame):
         self.bSizer4 = pw.select_declination(pnl)
         
         #---sizer 5 ----
-        TEXT = "Hours to SUBTRACT from local time for GMT, default is 0:"
+        TEXT = "Hours to ADD to local time for GMT, default is 0:"
         self.bSizer5 = pw.labeled_text_field(pnl, TEXT)
 
         #---sizer 6 ----
