@@ -572,7 +572,7 @@ class combine_magic_dialog(wx.Frame):
             )
         if dlg.ShowModal() == wx.ID_OK:
             full_path = dlg.GetPath()
-            infile = full_path[full_path.rfind('/')+1:]
+            infile = os.path.split(full_path)[1]
             self.file_paths.AppendText(infile + "\n")
 
     def on_add_all_files_button(self,event):
@@ -1010,10 +1010,8 @@ class convert_CIT_files_to_MagIC(wx.Frame):
         wd = self.WD
         options_dict['dir_path'] = wd
         full_file = self.bSizer0.return_value()
-        ind = full_file.rfind('/')
-        CIT_file = full_file[ind+1:] 
+        input_directory, CIT_file = os.path.split(full_file)
         options_dict['magfile'] = CIT_file
-        input_directory = full_file[:ind+1]
         options_dict['input_dir_path'] = input_directory
         if input_directory:
             ID = "-ID " + input_directory
@@ -1727,13 +1725,13 @@ class convert_IODP_csv_files_to_MagIC(wx.Frame):
         wd = self.WD
         options['dir_path'] = wd
         full_file = self.bSizer0.return_value()
-        index = full_file.rfind('/')
-        IODP_file = full_file[index+1:]
+        ID, IODP_file = os.path.split(full_file)
+        if not ID:
+            ID = '.'
         options['csv_file'] = IODP_file
+        options['input_dir_path'] = ID
         outfile = IODP_file + ".magic"
         options['meas_file'] = outfile
-        ID = full_file[:index+1] or '.'
-        options['input_dir_path'] = ID
         spec_outfile = IODP_file[:IODP_file.find('.')] + "_er_specimens.txt" 
         options['spec_file'] = spec_outfile
         samp_outfile = IODP_file[:IODP_file.find('.')] + "_er_samples.txt" 
