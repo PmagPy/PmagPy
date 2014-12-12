@@ -221,19 +221,19 @@ def main(command_line=True, **kwargs):
         if vol!=1.0:
             if norm=='cc':units="1"
             if norm=='m3':units="2"
-            ErSampRec['specimen_weight']=""
+            ErSpecRec['specimen_weight']=""
             if units=="1" or "":
-                ErSampRec['specimen_volume']='%10.3e'%(vol*1e-6)
+                ErSpecRec['specimen_volume']='%10.3e'%(vol*1e-6)
             else: 
-                ErSampRec['specimen_volume']='%10.3e'%(vol)
+                ErSpecRec['specimen_volume']='%10.3e'%(vol)
         else:
             if norm=='cc':units="1"
             if norm=='m3':units="2"
-            ErSampRec['specimen_volume']=""
+            ErSpecRec['specimen_volume']=""
             if units=="1" or "":
-                ErSampRec['specimen_weight']='%10.3e'%(vol*1e-3)
+                ErSpecRec['specimen_weight']='%10.3e'%(vol*1e-3)
             else: 
-                ErSampRec['specimen_weight']='%10.3e'%(vol)
+                ErSpecRec['specimen_weight']='%10.3e'%(vol)
         dip=float(info[-2])
         dip_direction=float(info[-3])+Cdec+90.
         sample_dip=-float(info[-4])
@@ -255,6 +255,11 @@ def main(command_line=True, **kwargs):
             ErSampRec['magic_method_codes']='SO-MAG'
         for line in Lines[2:len(Lines)-1]:
             MeasRec=ErSpecRec.copy()
+
+#           Remove specimen_volume and specimen_weight as they do not exits in the magic_measurement table
+            del MeasRec["specimen_volume"]
+            del MeasRec["specimen_weight"]
+
             treat_type=line[0:3]
             treat=line[3:6]
             if treat_type.strip()=='NRM' or treat == '   ': # reverting back.  otherwise breaks examples.
@@ -287,9 +292,9 @@ def main(command_line=True, **kwargs):
             MeasRec['measurement_inc']=line[52:58]
             M='%8.2e'%(float(line[31:39])*vol*1e-3) # convert to Am2
             MeasRec['measurement_magn_moment']=M
-            MeasRec['measurement_x_sd']='%8.2e'%(float(line[58:67])*1e-8) #(convert e-5emu to Am2)
-            MeasRec['measurement_y_sd']='%8.2e'%(float(line[67:76])*1e-8)
-            MeasRec['measurement_z_sd']='%8.2e'%(float(line[76:85])*1e-8)
+            MeasRec['measurement_sd_x']='%8.2e'%(float(line[58:67])*1e-8) #(convert e-5emu to Am2)
+            MeasRec['measurement_sd_y']='%8.2e'%(float(line[67:76])*1e-8)
+            MeasRec['measurement_sd_z']='%8.2e'%(float(line[76:85])*1e-8)
             MeasRec['measurement_csd']='%7.1f'%(eval(line[41:46]))
             MeasRec['magic_instrument_codes']=line[85:]
             MeasRec["measurement_positions"]='1'
