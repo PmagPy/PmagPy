@@ -2776,24 +2776,55 @@ class check(wx.Frame):
         self.Bind(wx.EVT_BUTTON, lambda event: self.on_helpButton(event, "ErMagicSpecimenHelp.html"), self.helpButton)
         hbox_one.Add(self.addSampleButton)
         hbox_one.Add(self.helpButton)
+
+
         #
-        hboxok = wx.BoxSizer(wx.HORIZONTAL)
+        hboxok_bottom = wx.BoxSizer(wx.HORIZONTAL)
         self.saveButton =  wx.Button(self.panel, id=-1, label='Save')
         self.Bind(wx.EVT_BUTTON, lambda event: self.on_saveButton(event, self.spec_grid), self.saveButton)
         self.cancelButton = wx.Button(self.panel, wx.ID_CANCEL, '&Cancel')
         self.Bind(wx.EVT_BUTTON, self.on_cancelButton, self.cancelButton)
         self.continueButton = wx.Button(self.panel, id=-1, label='Save and continue')
         self.Bind(wx.EVT_BUTTON, lambda event: self.on_continueButton(event, self.spec_grid, next_dia=self.InitSampCheck), self.continueButton)
-        hboxok.Add(self.saveButton, flag=wx.ALIGN_LEFT|wx.RIGHT, border=20)
-        hboxok.Add(self.cancelButton, flag=wx.ALIGN_LEFT|wx.RIGHT, border=20) 
-        hboxok.Add(self.continueButton, flag=wx.ALIGN_LEFT )
+        hboxok_bottom.Add(self.saveButton, flag=wx.ALIGN_LEFT|wx.RIGHT, border=20)
+        hboxok_bottom.Add(self.cancelButton, flag=wx.ALIGN_LEFT|wx.RIGHT, border=20) 
+        hboxok_bottom.Add(self.continueButton, flag=wx.ALIGN_LEFT )
+
+
+        #
+        if self.spec_grid.GetNumberRows() > 20:
+            hbox_two = wx.BoxSizer(wx.HORIZONTAL)
+            self.addSampleButton_top = wx.Button(self.panel, label="Add a new sample")
+            self.sites =list(set(self.Data_hierarchy['sites'].keys()).union(self.ErMagic.data_er_sites.keys())) # adds in any additional samples we might have information about (from er_sites.txt file) even if currently that sample does not show up in the magic_measurements file
+            self.Bind(wx.EVT_BUTTON, self.on_addSampleButton, self.addSampleButton_top)
+            self.helpButton_top = wx.Button(self.panel, label="Help")
+            self.Bind(wx.EVT_BUTTON, lambda event: self.on_helpButton(event, "ErMagicSpecimenHelp.html"), self.helpButton_top)
+            hbox_two.Add(self.addSampleButton_top)
+            hbox_two.Add(self.helpButton_top)
+
+
+            hboxok_top = wx.BoxSizer(wx.HORIZONTAL)
+            self.saveButton_top =  wx.Button(self.panel, id=-1, label='Save')
+            self.Bind(wx.EVT_BUTTON, lambda event: self.on_saveButton(event, self.spec_grid), self.saveButton_top)
+            self.cancelButton_top = wx.Button(self.panel, wx.ID_CANCEL, '&Cancel')
+            self.Bind(wx.EVT_BUTTON, self.on_cancelButton, self.cancelButton_top)
+            self.continueButton_top = wx.Button(self.panel, id=-1, label='Save and continue')
+            self.Bind(wx.EVT_BUTTON, lambda event: self.on_continueButton(event, self.spec_grid, next_dia=self.InitSampCheck), self.continueButton_top)
+            hboxok_top.Add(self.saveButton_top, flag=wx.ALIGN_LEFT|wx.RIGHT, border=20)
+            hboxok_top.Add(self.cancelButton_top, flag=wx.ALIGN_LEFT|wx.RIGHT, border=20) 
+            hboxok_top.Add(self.continueButton_top, flag=wx.ALIGN_LEFT )
+
+
 
         ### Create Containers ###
         vbox = wx.BoxSizer(wx.VERTICAL)
         vbox.Add(label, flag=wx.ALIGN_LEFT, border=20)
+        if self.spec_grid.GetNumberRows() > 20:
+            vbox.Add(hbox_two, flag=wx.TOP|wx.BOTTOM, border=10)
+            vbox.Add(hboxok_top, flag=wx.TOP, border=10)
         vbox.Add(self.spec_grid, flag=wx.ALL|wx.EXPAND, border=30)
         vbox.Add(hbox_one, flag=wx.BOTTOM, border=20)
-        vbox.Add(hboxok, flag=wx.BOTTOM, border=20)
+        vbox.Add(hboxok_bottom, flag=wx.BOTTOM, border=20)
         
         hbox_all= wx.BoxSizer(wx.HORIZONTAL)
         hbox_all.AddSpacer(20)
@@ -2861,11 +2892,11 @@ class check(wx.Frame):
         self.Bind(wx.EVT_BUTTON, self.on_addSiteButton, self.addSiteButton)
         hbox_one.Add(self.addSiteButton)
         if self.sample_window == 1:
-            self.helpButton = wx.Button(self.panel, label="Help")
-            self.Bind(wx.EVT_BUTTON, lambda event: self.on_helpButton(event, "ErMagicSampleHelp1.html"), self.helpButton)
+            html_help = "ErMagicSampleHelp1.html"
         if self.sample_window > 1:
-            self.helpButton = wx.Button(self.panel, label="Help")
-            self.Bind(wx.EVT_BUTTON, lambda event: self.on_helpButton(event, "ErMagicSampleHelp.html"), self.helpButton)
+            html_help = "ErMagicSampleHelp.html"
+        self.helpButton = wx.Button(self.panel, label="Help")
+        self.Bind(wx.EVT_BUTTON, lambda event: self.on_helpButton(event, html_help), self.helpButton)
         hbox_one.Add(self.helpButton)
 
 
@@ -2886,11 +2917,38 @@ class check(wx.Frame):
         hboxok.Add(self.continueButton, flag=wx.BOTTOM, border=20 )
         hboxok.Add(self.backButton,flag=wx.BOTTOM, border=20 )
 
+        if self.samp_grid.GetNumberRows() > 20:
+
+            hbox_two = wx.BoxSizer(wx.HORIZONTAL)
+            self.addSiteButton_top = wx.Button(self.panel, label="Add a new site")
+            self.Bind(wx.EVT_BUTTON, self.on_addSiteButton, self.addSiteButton_top)
+            self.helpButton_top = wx.Button(self.panel, label="Help")
+            self.Bind(wx.EVT_BUTTON, lambda event: self.on_helpButton(event, html_help), self.helpButton_top)
+            hbox_two.Add(self.addSiteButton_top)
+            hbox_two.Add(self.helpButton_top)
+
+            hboxok_top = wx.BoxSizer(wx.HORIZONTAL)
+            self.saveButton_top =  wx.Button(self.panel, id=-1, label='Save')
+            self.Bind(wx.EVT_BUTTON, lambda event: self.on_saveButton(event, self.samp_grid), self.saveButton_top)
+            self.cancelButton_top = wx.Button(self.panel, wx.ID_CANCEL, '&Cancel')
+            self.Bind(wx.EVT_BUTTON, self.on_cancelButton, self.cancelButton_top)
+            self.continueButton_top = wx.Button(self.panel, id=-1, label='Save and continue')
+            self.Bind(wx.EVT_BUTTON, lambda event: self.on_continueButton(event, self.samp_grid, next_dia=next_dia), self.continueButton_top)
+            self.backButton_top = wx.Button(self.panel, wx.ID_ANY, "&Back")
+            self.Bind(wx.EVT_BUTTON, lambda event: self.on_backButton(event, previous_dia=previous_dia), self.backButton_top)
+            hboxok_top.Add(self.saveButton_top, flag=wx.ALIGN_LEFT|wx.RIGHT, border=20)
+            hboxok_top.Add(self.cancelButton_top, flag=wx.ALIGN_LEFT|wx.RIGHT, border=20) 
+            hboxok_top.Add(self.continueButton_top, flag=wx.ALIGN_LEFT|wx.RIGHT, border=20 )
+            hboxok_top.Add(self.backButton_top, flag=wx.ALIGN_LEFT )
+
+
         ### Make Containers ###
         vbox = wx.BoxSizer(wx.VERTICAL)
         vbox.Add(label, flag=wx.ALIGN_LEFT)
 
-        #vbox.Add(self.samp_grid, flag=wx.BOTTOM|wx.EXPAND, border=20) # EXPAND ??
+        if self.samp_grid.GetNumberRows() > 20:
+            vbox.Add(hbox_two, flag=wx.TOP, border=10)
+            vbox.Add(hboxok_top, flag=wx.TOP, border=10)
         vbox.Add(self.samp_grid, flag=wx.ALL, border=20) # EXPAND ??
 
         vbox.Add(hbox_one, flag=wx.BOTTOM, border=20)
@@ -2966,9 +3024,36 @@ class check(wx.Frame):
         hboxok.Add(self.continueButton, flag=wx.BOTTOM, border=20 )
         hboxok.Add(self.backButton, flag=wx.BOTTOM, border=20 )
 
+        if self.site_grid.GetNumberRows() > 20:
+            hbox_two = wx.BoxSizer(wx.HORIZONTAL)
+            self.addLocButton_top = wx.Button(self.panel, label="Add a new location")
+            self.Bind(wx.EVT_BUTTON, self.on_addLocButton, self.addLocButton_top)
+            self.helpButton_top = wx.Button(self.panel, label="Help")
+            self.Bind(wx.EVT_BUTTON, lambda event: self.on_helpButton(event, "ErMagicSiteHelp.html"), self.helpButton_top)
+            hbox_two.Add(self.addLocButton_top)
+            hbox_two.Add(self.helpButton_top)
+
+            hboxok_top = wx.BoxSizer(wx.HORIZONTAL)
+            self.saveButton_top =  wx.Button(self.panel, id=-1, label='Save')
+            self.Bind(wx.EVT_BUTTON, lambda event: self.on_saveButton(event, self.site_grid), self.saveButton_top)
+            self.cancelButton_top = wx.Button(self.panel, wx.ID_CANCEL, '&Cancel')
+            self.Bind(wx.EVT_BUTTON, self.on_cancelButton, self.cancelButton_top)
+            self.continueButton_top = wx.Button(self.panel, id=-1, label='Save and continue')
+            self.Bind(wx.EVT_BUTTON, lambda event: self.on_continueButton(event, self.site_grid, next_dia=self.InitSampCheck), self.continueButton_top)
+            self.backButton_top = wx.Button(self.panel, wx.ID_ANY, "&Back")
+            self.Bind(wx.EVT_BUTTON, lambda event: self.on_backButton(event, previous_dia=previous_dia), self.backButton_top)
+            hboxok_top.Add(self.saveButton_top, flag=wx.ALIGN_LEFT|wx.RIGHT, border=20)
+            hboxok_top.Add(self.cancelButton_top, flag=wx.ALIGN_LEFT|wx.RIGHT, border=20) 
+            hboxok_top.Add(self.continueButton_top, flag=wx.ALIGN_LEFT|wx.RIGHT, border=20 )
+            hboxok_top.Add(self.backButton_top, flag=wx.ALIGN_LEFT )
+
+
         ### Make Containers ###
         vbox = wx.BoxSizer(wx.VERTICAL)
         vbox.Add(label, flag=wx.ALIGN_LEFT|wx.BOTTOM)#, flag=wx.ALIGN_LEFT|wx.BOTTOM, border=20)
+        if self.site_grid.GetNumberRows() > 20:
+            vbox.Add(hbox_two, flag=wx.TOP, border=10)
+            vbox.Add(hboxok_top, flag=wx.TOP, border=10)
         vbox.Add(self.site_grid, flag=wx.ALL|wx.EXPAND, border=20) # EXPAND ??
         vbox.Add(hbox_one, flag=wx.BOTTOM, border=20)
         vbox.Add(hboxok, flag=wx.BOTTOM, border=20)
@@ -3127,9 +3212,33 @@ class check(wx.Frame):
         hboxok.Add(self.continueButton, flag=wx.BOTTOM, border=20 )
         hboxok.Add(self.backButton, flag=wx.BOTTOM, border=20 )
 
+        if self.age_grid.GetNumberRows() > 20:
+            hbox_two = wx.BoxSizer(wx.HORIZONTAL)
+            self.helpButton_top = wx.Button(self.panel, label="Help")
+            self.Bind(wx.EVT_BUTTON, lambda event: self.on_helpButton(event, "ErMagicAgeHelp.html"), self.helpButton_top)
+            hbox_two.Add(self.helpButton_top)
+
+            hboxok_top = wx.BoxSizer(wx.HORIZONTAL)
+            self.saveButton_top =  wx.Button(self.panel, id=-1, label='Save')
+            self.Bind(wx.EVT_BUTTON, lambda event: self.on_saveButton(event, self.age_grid), self.saveButton_top)
+            self.cancelButton_top = wx.Button(self.panel, wx.ID_CANCEL, '&Cancel')
+            self.Bind(wx.EVT_BUTTON, self.on_cancelButton, self.cancelButton_top)
+            self.continueButton_top = wx.Button(self.panel, id=-1, label='Save and continue')
+            self.Bind(wx.EVT_BUTTON, lambda event: self.on_continueButton(event, self.age_grid, next_dia=None), self.continueButton_top)
+            self.backButton_top = wx.Button(self.panel, wx.ID_ANY, "&Back")
+            self.Bind(wx.EVT_BUTTON, lambda event: self.on_backButton(event, previous_dia=previous_dia), self.backButton_top)
+            hboxok_top.Add(self.saveButton_top, flag=wx.ALIGN_LEFT|wx.RIGHT, border=20)
+            hboxok_top.Add(self.cancelButton_top, flag=wx.ALIGN_LEFT|wx.RIGHT, border=20) 
+            hboxok_top.Add(self.continueButton_top, flag=wx.ALIGN_LEFT|wx.RIGHT, border=20 )
+            hboxok_top.Add(self.backButton_top, flag=wx.ALIGN_LEFT )
+
+
         ### Make Containers ###
         vbox = wx.BoxSizer(wx.VERTICAL)
         vbox.Add(label, flag=wx.ALIGN_LEFT)#, flag=wx.ALIGN_LEFT|wx.BOTTOM, border=20)
+        if self.age_grid.GetNumberRows() > 20:
+            vbox.Add(hbox_two, flag=wx.TOP, border=10)
+            vbox.Add(hboxok_top, flag=wx.TOP, border=10)
         vbox.Add(self.age_grid, flag=wx.ALL|wx.EXPAND, border=20) # EXPAND ??
         vbox.Add(hbox_one, flag=wx.BOTTOM, border=20)
         vbox.Add(hboxok, flag=wx.BOTTOM, border=20)
