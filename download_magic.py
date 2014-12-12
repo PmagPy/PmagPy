@@ -26,6 +26,11 @@ def main():
     if '-WD' in sys.argv:
         ind=sys.argv.index('-WD')
         dir_path=sys.argv[ind+1]
+    if '-ID' in sys.argv:
+        ind = sys.argv.index('-ID')
+        input_dir_path = sys.argv[ind+1]
+    else:
+        input_dir_path = dir_path
     if '-i' in sys.argv:
         file=raw_input("Magic txt file for unpacking? ")
     elif '-f' in sys.argv:
@@ -34,7 +39,7 @@ def main():
     else:
         print main.__doc__
         sys.exit()
-    f=open(dir_path+'/'+file,'rU')
+    f=open(input_dir_path+'/'+file,'rU')
     File=f.readlines()
     LN=0
     type_list=[]

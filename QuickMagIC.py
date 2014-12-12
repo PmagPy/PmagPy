@@ -409,8 +409,9 @@ class MagMainFrame(wx.Frame):
             style=wx.OPEN #| wx.CHANGE_DIR
             )        
         if dlg.ShowModal() == wx.ID_OK:
-            FILE = dlg.GetFilename()                
-        outstring=self.call+"download_magic.py -f %s"%FILE
+            FILE = dlg.Path()                
+        input_dir, f = os.path.split(FILE)
+        outstring=self.call+"download_magic.py -f {} -WD {} -ID {}".format(FILE, self.WD, input_dir)
         print "-I- running python script:\n %s"%(outstring)
         os.system(outstring)
         TXT="Running download_magic.py program. Check terminal (Mac) or command prompt (windows) for error/warnings\n If no errors occur then MagIC files were save in MagIC Project Directory"
