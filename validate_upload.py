@@ -84,6 +84,8 @@ def read_upload(up_file):
                 provided_file_types.add(v)
                 continue
             file_type = dictionary['file_type']
+            if file_type not in data_model.keys():
+                continue
             specific_data_model = data_model[file_type]
 
             # check if column header is in the data model
