@@ -507,6 +507,7 @@ class combine_files(wx.BoxSizer):
 
         self.Add(bSizer0a, wx.ALIGN_LEFT)
         self.Add(bSizer0b, wx.ALIGN_LEFT)
+        self.on_add_all_files_button(None)
 
     def on_add_file_button(self,event):
 

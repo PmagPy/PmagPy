@@ -494,33 +494,7 @@ class combine_magic_dialog(wx.Frame):
             
 
         #---sizer 0 ----
-        bSizer0 =  wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY, "" ), wx.HORIZONTAL )
-        #self.file_path = wx.TextCtrl(self.panel, id=-1, size=(400,25), style=wx.TE_READONLY)
-        self.add_file_button = wx.Button(self.panel, id=-1, label='add file',name='add')
-        self.Bind(wx.EVT_BUTTON, self.on_add_file_button, self.add_file_button)    
-        self.add_all_files_button = wx.Button(self.panel, id=-1, label="add all files with '.magic' suffix",name='add_all')
-        self.Bind(wx.EVT_BUTTON, self.on_add_all_files_button, self.add_all_files_button)    
-        #TEXT="Choose file (no spaces are alowd in path):"
-        #bSizer0.Add(wx.StaticText(pnl,label=TEXT),wx.ALIGN_CENTER)
-        bSizer0.AddSpacer(5)
-        bSizer0.Add(self.add_file_button,wx.ALIGN_LEFT)
-        bSizer0.AddSpacer(5)
-        bSizer0.Add(self.add_all_files_button,wx.ALIGN_LEFT)
-        bSizer0.AddSpacer(5)
-                
-        #------------------
-
-        bSizer1 =  wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY, "" ), wx.VERTICAL )
-        self.file_paths = wx.TextCtrl(self.panel, id=-1, size=(500,200), style=wx.TE_MULTILINE)
-        #self.add_file_button = wx.Button(self.panel, id=-1, label='add',name='add')
-        #self.Bind(wx.EVT_BUTTON, self.on_add_file_button, self.add_file_button)    
-        TEXT="files list:"
-        bSizer1.AddSpacer(5)
-        bSizer1.Add(wx.StaticText(pnl,label=TEXT),wx.ALIGN_LEFT)        
-        bSizer1.AddSpacer(5)
-        bSizer1.Add(self.file_paths,wx.ALIGN_LEFT)
-        bSizer1.AddSpacer(5)
-                
+        self.bSizer0 = pw.combine_files(self, ".magic")
         #------------------
                      
         self.okButton = wx.Button(self.panel, wx.ID_OK, "&OK")
@@ -542,9 +516,8 @@ class combine_magic_dialog(wx.Frame):
         vbox.AddSpacer(10)
         vbox.Add(bSizer_info, flag=wx.ALIGN_LEFT)
         vbox.AddSpacer(10)
-        vbox.Add(bSizer0, flag=wx.ALIGN_LEFT)
+        vbox.Add(self.bSizer0, flag=wx.ALIGN_LEFT)
         vbox.AddSpacer(10)
-        vbox.Add(bSizer1, flag=wx.ALIGN_LEFT)
         vbox.AddSpacer(10)
         vbox.Add(wx.StaticLine(self.panel), 0, wx.ALL|wx.EXPAND, 5)
         vbox.Add(hboxok, flag=wx.ALIGN_CENTER)        
@@ -560,7 +533,6 @@ class combine_magic_dialog(wx.Frame):
         self.Centre()
         self.Show()
 
-                        
     
     def on_add_file_button(self,event):
 
@@ -596,7 +568,7 @@ class combine_magic_dialog(wx.Frame):
         self.Destroy()
 
     def on_okButton(self,event):
-        files_text=self.file_paths.GetValue()
+        files_text=self.bSizer0.file_paths.GetValue()
         files=files_text.strip('\n').replace(" ","").split('\n')
         COMMAND=call+"combine_magic.py -F magic_measurements.txt -f %s"%(" ".join(files) )       
         print "-I- Running Python command:\n %s"%COMMAND
