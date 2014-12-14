@@ -99,7 +99,7 @@ def main(command_line=True, **kwargs):
                 a number with one or two decimal point (X.Y)
                 coding for thermal demagnetization: 
                     0.0 or 0 is NRM.
-                    X is temperature in celcsius
+                    X is temperature in celsius
                     Y is always 0
                 coding for AF demagnetization:
                     0.0 or 0 is NRM.
@@ -116,7 +116,7 @@ def main(command_line=True, **kwargs):
                     # Ron, Add also 5 for Thellier protocol            
                 coding for ATRM experiment (6 poitions):
                     X is temperature in celcsius
-                    Y=0: zerofield baseline to be subtructed            
+                    Y=0: zerofield baseline to be subtracted            
                     Y=1: +x              
                     Y=2: -x              
                     Y=3: +y              
@@ -125,8 +125,8 @@ def main(command_line=True, **kwargs):
                     Y=6: -z 
                     Y=7: alteration check 
                 coding for NLT experiment:
-                    X is temperature in celcsius
-                    Y=0: zerofield baseline to be subtructed            
+                    X is temperature in celsius
+                    Y=0: zerofield baseline to be subtracted            
                     Y!=0: oven field  in microT              
                 coding for CR experiment:
                     see "OPTIONS" list abobe
