@@ -21,8 +21,7 @@ def main(command_line=True, **kwargs):
         -all include all the measurement data, default is only those used in interpretations
 
     OUTPUT
-        upload.txt:  Unix formatted file (on Macs, Dos on PCs)
-        upload_dos.txt: Dos formated file ready for importing to MagIC Console (v2.2) for checking. 
+        upload.txt:  file for uploading to MagIC database
     
     """
 #   set up filenames to upload
@@ -156,16 +155,14 @@ def main(command_line=True, **kwargs):
         return False
 
 
-
+    #print "now converting to dos file 'upload_dos.txt'"
+    #f=open(up,'rU')
+    #o=open(dir_path+'/'+"upload_dos.txt",'w')
+    #for line in f.readlines():
+    #    line=line[:-1]+'\r\n'
+    #    o.write(line)
     
-    print "now converting to dos file 'upload_dos.txt'"
-    f=open(up,'rU')
-    o=open(dir_path+'/'+"upload_dos.txt",'w')
-    for line in f.readlines():
-        line=line[:-1]+'\r\n'
-        o.write(line)
-    
-    print "Finished preparing upload file "
+    print "Finished preparing upload.txt file "
     if not validated:
         print "-W- validation of upload file has failed.\nPlease fix above errors and try again.\nYou may run into problems if you try to upload this file to the MagIC database" 
 
