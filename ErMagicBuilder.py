@@ -663,14 +663,14 @@ class MagIC_model_builder(wx.Frame):
 ##          er_locations_file.write(string[:-1]+"\n")
 
 
-        
+        del wait
         dlg1 = wx.MessageDialog(self,caption="Saved", message="MagIC Earth-Ref tables are saved in MagIC Project Directory!" ,style=wx.OK|wx.ICON_INFORMATION)
         # is this dialog actually useful??
         dlg1.ShowModal()
         dlg1.Destroy()
         #self.Destroy()
         self.Hide()
-        del wait
+
         #print "done on_ok_Button in ErMagicBuilder"
 
 

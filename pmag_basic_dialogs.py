@@ -3381,7 +3381,7 @@ class check(wx.Frame):
     def on_continueButton(self, event, grid, next_dia=None):
         """pulls up next dialog, if there is one.
         gets any updated information from the current grid and runs ErMagicBuilder"""
-        wait = wx.BusyInfo("Please wait, working...")
+        #wait = wx.BusyInfo("Please wait, working...")
         if self.drop_down_menu:  # unhighlight selected columns, etc.
             self.drop_down_menu.clean_up(grid)
 
@@ -3412,6 +3412,7 @@ class check(wx.Frame):
 
         self.panel.Destroy()
         if next_dia:
+            wait = wx.BusyInfo("Please wait, working...")
             next_dia()
             del wait
         else:
