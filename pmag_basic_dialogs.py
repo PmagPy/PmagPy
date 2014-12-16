@@ -2710,7 +2710,12 @@ class check(wx.Frame):
         as well as which sample a specimen belongs to"""
         self.ErMagic.read_MagIC_info() # 
 
-        self.panel = wx.ScrolledWindow(self, style=wx.SIMPLE_BORDER)
+        #self.panel = wx.ScrolledWindow(self, style=wx.SIMPLE_BORDER)
+        self.panel = wx.Panel(self, style=wx.SIMPLE_BORDER)
+
+        #import wx.lib.scrolledpanel as libpanel # does not work well
+        #self.panel = libpanel.ScrolledPanel(self, style=wx.SIMPLE_BORDER)
+
         TEXT = """
         Step 1:
         Check that all specimens belong to the correct sample
@@ -2751,52 +2756,26 @@ class check(wx.Frame):
 
 
         #
-        hboxok_bottom = wx.BoxSizer(wx.HORIZONTAL)
+        hboxok = wx.BoxSizer(wx.HORIZONTAL)
         self.saveButton =  wx.Button(self.panel, id=-1, label='Save')
         self.Bind(wx.EVT_BUTTON, lambda event: self.on_saveButton(event, self.spec_grid), self.saveButton)
         self.cancelButton = wx.Button(self.panel, wx.ID_CANCEL, '&Cancel')
         self.Bind(wx.EVT_BUTTON, self.on_cancelButton, self.cancelButton)
         self.continueButton = wx.Button(self.panel, id=-1, label='Save and continue')
         self.Bind(wx.EVT_BUTTON, lambda event: self.on_continueButton(event, self.spec_grid, next_dia=self.InitSampCheck), self.continueButton)
-        hboxok_bottom.Add(self.saveButton, flag=wx.ALIGN_LEFT|wx.RIGHT, border=20)
-        hboxok_bottom.Add(self.cancelButton, flag=wx.ALIGN_LEFT|wx.RIGHT, border=20) 
-        hboxok_bottom.Add(self.continueButton, flag=wx.ALIGN_LEFT )
-
-
-        #
-        if self.spec_grid.GetNumberRows() > 20:
-            hbox_two = wx.BoxSizer(wx.HORIZONTAL)
-            self.addSampleButton_top = wx.Button(self.panel, label="Add a new sample")
-            self.sites =list(set(self.Data_hierarchy['sites'].keys()).union(self.ErMagic.data_er_sites.keys())) # adds in any additional samples we might have information about (from er_sites.txt file) even if currently that sample does not show up in the magic_measurements file
-            self.Bind(wx.EVT_BUTTON, self.on_addSampleButton, self.addSampleButton_top)
-            self.helpButton_top = wx.Button(self.panel, label="Help")
-            self.Bind(wx.EVT_BUTTON, lambda event: self.on_helpButton(event, "ErMagicSpecimenHelp.html"), self.helpButton_top)
-            hbox_two.Add(self.addSampleButton_top)
-            hbox_two.Add(self.helpButton_top)
-
-
-            hboxok_top = wx.BoxSizer(wx.HORIZONTAL)
-            self.saveButton_top =  wx.Button(self.panel, id=-1, label='Save')
-            self.Bind(wx.EVT_BUTTON, lambda event: self.on_saveButton(event, self.spec_grid), self.saveButton_top)
-            self.cancelButton_top = wx.Button(self.panel, wx.ID_CANCEL, '&Cancel')
-            self.Bind(wx.EVT_BUTTON, self.on_cancelButton, self.cancelButton_top)
-            self.continueButton_top = wx.Button(self.panel, id=-1, label='Save and continue')
-            self.Bind(wx.EVT_BUTTON, lambda event: self.on_continueButton(event, self.spec_grid, next_dia=self.InitSampCheck), self.continueButton_top)
-            hboxok_top.Add(self.saveButton_top, flag=wx.ALIGN_LEFT|wx.RIGHT, border=20)
-            hboxok_top.Add(self.cancelButton_top, flag=wx.ALIGN_LEFT|wx.RIGHT, border=20) 
-            hboxok_top.Add(self.continueButton_top, flag=wx.ALIGN_LEFT )
-
+        hboxok.Add(self.saveButton, flag=wx.ALIGN_LEFT|wx.RIGHT, border=20)
+        hboxok.Add(self.cancelButton, flag=wx.ALIGN_LEFT|wx.RIGHT, border=20) 
+        hboxok.Add(self.continueButton, flag=wx.ALIGN_LEFT )
 
 
         ### Create Containers ###
         vbox = wx.BoxSizer(wx.VERTICAL)
         vbox.Add(label, flag=wx.ALIGN_LEFT, border=20)
-        if self.spec_grid.GetNumberRows() > 20:
-            vbox.Add(hbox_two, flag=wx.TOP|wx.BOTTOM, border=10)
-            vbox.Add(hboxok_top, flag=wx.TOP, border=10)
-        vbox.Add(self.spec_grid, flag=wx.ALL|wx.EXPAND, border=30)
+
+        #vbox.Add(self.spec_grid, flag=wx.ALL|wx.EXPAND, border=30)
         vbox.Add(hbox_one, flag=wx.BOTTOM, border=20)
-        vbox.Add(hboxok_bottom, flag=wx.BOTTOM, border=20)
+        vbox.Add(hboxok, flag=wx.BOTTOM, border=20)
+        vbox.Add(self.spec_grid, flag=wx.ALL)#|wx.EXPAND, border=30)
         
         hbox_all= wx.BoxSizer(wx.HORIZONTAL)
         hbox_all.AddSpacer(20)
@@ -2804,7 +2783,7 @@ class check(wx.Frame):
         hbox_all.AddSpacer(20)
 
         self.panel.SetSizer(hbox_all)
-        self.panel.SetScrollbars(20, 20, 50, 50)
+        #self.panel.SetScrollbars(20, 20, 50, 50)
         hbox_all.Fit(self)  
         self.Centre()
         self.Show()
@@ -2817,7 +2796,8 @@ class check(wx.Frame):
         
         self.sample_window += 1 
         #print "init-ing Sample Check for the {}th time".format(self.sample_window)
-        self.panel = wx.ScrolledWindow(self, style=wx.SIMPLE_BORDER)
+        #self.panel = wx.ScrolledWindow(self, style=wx.SIMPLE_BORDER)
+        self.panel = wx.Panel(self, style=wx.SIMPLE_BORDER)
         if self.sample_window == 1:
             TEXT = """
             Step 2:
@@ -2848,7 +2828,7 @@ class check(wx.Frame):
             col_labels[:0] = ['samples', '', 'sites', 'sample_class', 'sample_lithology', 'sample_type', 'sample_lat', 'sample_lon']
 
             self.samp_grid, self.temp_data['samples'], self.temp_data['sites'] = self.make_table(col_labels, self.samples, self.Data_hierarchy, 'site_of_sample')
-            self.add_extra_grid_data(self.samp_grid, self.samples,self.ErMagic.data_er_samples, col_labels)
+            #self.add_extra_grid_data(self.samp_grid, self.samples,self.ErMagic.data_er_samples, col_labels)
 
         self.changes = False
 
@@ -2889,42 +2869,14 @@ class check(wx.Frame):
         hboxok.Add(self.continueButton, flag=wx.BOTTOM, border=20 )
         hboxok.Add(self.backButton,flag=wx.BOTTOM, border=20 )
 
-        if self.samp_grid.GetNumberRows() > 20:
-
-            hbox_two = wx.BoxSizer(wx.HORIZONTAL)
-            self.addSiteButton_top = wx.Button(self.panel, label="Add a new site")
-            self.Bind(wx.EVT_BUTTON, self.on_addSiteButton, self.addSiteButton_top)
-            self.helpButton_top = wx.Button(self.panel, label="Help")
-            self.Bind(wx.EVT_BUTTON, lambda event: self.on_helpButton(event, html_help), self.helpButton_top)
-            hbox_two.Add(self.addSiteButton_top)
-            hbox_two.Add(self.helpButton_top)
-
-            hboxok_top = wx.BoxSizer(wx.HORIZONTAL)
-            self.saveButton_top =  wx.Button(self.panel, id=-1, label='Save')
-            self.Bind(wx.EVT_BUTTON, lambda event: self.on_saveButton(event, self.samp_grid), self.saveButton_top)
-            self.cancelButton_top = wx.Button(self.panel, wx.ID_CANCEL, '&Cancel')
-            self.Bind(wx.EVT_BUTTON, self.on_cancelButton, self.cancelButton_top)
-            self.continueButton_top = wx.Button(self.panel, id=-1, label='Save and continue')
-            self.Bind(wx.EVT_BUTTON, lambda event: self.on_continueButton(event, self.samp_grid, next_dia=next_dia), self.continueButton_top)
-            self.backButton_top = wx.Button(self.panel, wx.ID_ANY, "&Back")
-            self.Bind(wx.EVT_BUTTON, lambda event: self.on_backButton(event, previous_dia=previous_dia), self.backButton_top)
-            hboxok_top.Add(self.saveButton_top, flag=wx.ALIGN_LEFT|wx.RIGHT, border=20)
-            hboxok_top.Add(self.cancelButton_top, flag=wx.ALIGN_LEFT|wx.RIGHT, border=20) 
-            hboxok_top.Add(self.continueButton_top, flag=wx.ALIGN_LEFT|wx.RIGHT, border=20 )
-            hboxok_top.Add(self.backButton_top, flag=wx.ALIGN_LEFT )
-
 
         ### Make Containers ###
         vbox = wx.BoxSizer(wx.VERTICAL)
         vbox.Add(label, flag=wx.ALIGN_LEFT)
 
-        if self.samp_grid.GetNumberRows() > 20:
-            vbox.Add(hbox_two, flag=wx.TOP, border=10)
-            vbox.Add(hboxok_top, flag=wx.TOP, border=10)
-        vbox.Add(self.samp_grid, flag=wx.ALL, border=20) # EXPAND ??
-
         vbox.Add(hbox_one, flag=wx.BOTTOM, border=20)
         vbox.Add(hboxok, flag=wx.BOTTOM, border=20)
+        vbox.Add(self.samp_grid, flag=wx.ALL|wx.EXPAND, border=20) # EXPAND ??
 
         hbox_all= wx.BoxSizer(wx.HORIZONTAL)
         hbox_all.AddSpacer(20)
@@ -2932,7 +2884,7 @@ class check(wx.Frame):
         hbox_all.AddSpacer(20)
 
         self.panel.SetSizer(hbox_all)
-        self.panel.SetScrollbars(20, 20, 50, 50)
+        #self.panel.SetScrollbars(20, 20, 50, 50)
         hbox_all.Fit(self)
         self.Centre()
         self.Show()
@@ -2942,7 +2894,8 @@ class check(wx.Frame):
     def InitSiteCheck(self):
         """make an interactive grid in which users can edit site names
         as well as which location a site belongs to"""
-        self.panel = wx.ScrolledWindow(self, style=wx.SIMPLE_BORDER)
+        #self.panel = wx.ScrolledWindow(self, style=wx.SIMPLE_BORDER)
+        self.panel = wx.Panel(self, style=wx.SIMPLE_BORDER)
         TEXT = """
         Step 3:
         Check that all sites are correctly named, and that they belong to the correct location.
@@ -2996,39 +2949,13 @@ class check(wx.Frame):
         hboxok.Add(self.continueButton, flag=wx.BOTTOM, border=20 )
         hboxok.Add(self.backButton, flag=wx.BOTTOM, border=20 )
 
-        if self.site_grid.GetNumberRows() > 20:
-            hbox_two = wx.BoxSizer(wx.HORIZONTAL)
-            self.addLocButton_top = wx.Button(self.panel, label="Add a new location")
-            self.Bind(wx.EVT_BUTTON, self.on_addLocButton, self.addLocButton_top)
-            self.helpButton_top = wx.Button(self.panel, label="Help")
-            self.Bind(wx.EVT_BUTTON, lambda event: self.on_helpButton(event, "ErMagicSiteHelp.html"), self.helpButton_top)
-            hbox_two.Add(self.addLocButton_top)
-            hbox_two.Add(self.helpButton_top)
-
-            hboxok_top = wx.BoxSizer(wx.HORIZONTAL)
-            self.saveButton_top =  wx.Button(self.panel, id=-1, label='Save')
-            self.Bind(wx.EVT_BUTTON, lambda event: self.on_saveButton(event, self.site_grid), self.saveButton_top)
-            self.cancelButton_top = wx.Button(self.panel, wx.ID_CANCEL, '&Cancel')
-            self.Bind(wx.EVT_BUTTON, self.on_cancelButton, self.cancelButton_top)
-            self.continueButton_top = wx.Button(self.panel, id=-1, label='Save and continue')
-            self.Bind(wx.EVT_BUTTON, lambda event: self.on_continueButton(event, self.site_grid, next_dia=self.InitSampCheck), self.continueButton_top)
-            self.backButton_top = wx.Button(self.panel, wx.ID_ANY, "&Back")
-            self.Bind(wx.EVT_BUTTON, lambda event: self.on_backButton(event, previous_dia=previous_dia), self.backButton_top)
-            hboxok_top.Add(self.saveButton_top, flag=wx.ALIGN_LEFT|wx.RIGHT, border=20)
-            hboxok_top.Add(self.cancelButton_top, flag=wx.ALIGN_LEFT|wx.RIGHT, border=20) 
-            hboxok_top.Add(self.continueButton_top, flag=wx.ALIGN_LEFT|wx.RIGHT, border=20 )
-            hboxok_top.Add(self.backButton_top, flag=wx.ALIGN_LEFT )
-
 
         ### Make Containers ###
         vbox = wx.BoxSizer(wx.VERTICAL)
         vbox.Add(label, flag=wx.ALIGN_LEFT|wx.BOTTOM)#, flag=wx.ALIGN_LEFT|wx.BOTTOM, border=20)
-        if self.site_grid.GetNumberRows() > 20:
-            vbox.Add(hbox_two, flag=wx.TOP, border=10)
-            vbox.Add(hboxok_top, flag=wx.TOP, border=10)
-        vbox.Add(self.site_grid, flag=wx.ALL|wx.EXPAND, border=20) # EXPAND ??
         vbox.Add(hbox_one, flag=wx.BOTTOM, border=20)
         vbox.Add(hboxok, flag=wx.BOTTOM, border=20)
+        vbox.Add(self.site_grid, flag=wx.ALL|wx.EXPAND, border=20) # EXPAND ??
 
         hbox_all= wx.BoxSizer(wx.HORIZONTAL)
         hbox_all.AddSpacer(20)
@@ -3036,7 +2963,7 @@ class check(wx.Frame):
         hbox_all.AddSpacer(20)
 
         self.panel.SetSizer(hbox_all)
-        self.panel.SetScrollbars(20, 20, 50, 50)
+        #self.panel.SetScrollbars(20, 20, 50, 50)
         hbox_all.Fit(self)
         self.Centre()
         self.Show()
@@ -3045,7 +2972,8 @@ class check(wx.Frame):
     def InitLocCheck(self):
         """make an interactive grid in which users can edit specimen names
         as well as which sample a specimen belongs to"""
-        self.panel = wx.ScrolledWindow(self, style=wx.SIMPLE_BORDER)
+        #self.panel = wx.ScrolledWindow(self, style=wx.SIMPLE_BORDER)
+        self.panel = wx.Panel(self, style=wx.SIMPLE_BORDER)
         TEXT = """
         Step 5:
         Check that locations are correctly named.
@@ -3107,9 +3035,9 @@ class check(wx.Frame):
         ### Make Containers ###
         vbox = wx.BoxSizer(wx.VERTICAL)
         vbox.Add(label, flag=wx.ALIGN_LEFT)
-        vbox.Add(self.loc_grid, flag=wx.ALL, border=20) # EXPAND ??
         vbox.Add(hbox_one, flag=wx.BOTTOM, border=20)
         vbox.Add(hboxok, flag=wx.BOTTOM, border=20)
+        vbox.Add(self.loc_grid, flag=wx.ALL, border=20) # EXPAND ??
 
         hbox_all= wx.BoxSizer(wx.HORIZONTAL)
         hbox_all.AddSpacer(20)
@@ -3117,7 +3045,7 @@ class check(wx.Frame):
         hbox_all.AddSpacer(20)
 
         self.panel.SetSizer(hbox_all)
-        self.panel.SetScrollbars(20, 20, 50, 50)
+        #self.panel.SetScrollbars(20, 20, 50, 50)
         hbox_all.Fit(self)
         self.Centre()
         self.Show()
@@ -3125,7 +3053,8 @@ class check(wx.Frame):
 
     def InitAgeCheck(self):
         """make an interactive grid in which users can edit ages"""
-        self.panel = wx.ScrolledWindow(self, style=wx.SIMPLE_BORDER)
+        #self.panel = wx.ScrolledWindow(self, style=wx.SIMPLE_BORDER)
+        self.panel = wx.Panel(self, style=wx.SIMPLE_BORDER)
         TEXT = """
         Step 6:
         Fill in or correct any cells with information about ages.
@@ -3184,36 +3113,12 @@ class check(wx.Frame):
         hboxok.Add(self.continueButton, flag=wx.BOTTOM, border=20 )
         hboxok.Add(self.backButton, flag=wx.BOTTOM, border=20 )
 
-        if self.age_grid.GetNumberRows() > 20:
-            hbox_two = wx.BoxSizer(wx.HORIZONTAL)
-            self.helpButton_top = wx.Button(self.panel, label="Help")
-            self.Bind(wx.EVT_BUTTON, lambda event: self.on_helpButton(event, "ErMagicAgeHelp.html"), self.helpButton_top)
-            hbox_two.Add(self.helpButton_top)
-
-            hboxok_top = wx.BoxSizer(wx.HORIZONTAL)
-            self.saveButton_top =  wx.Button(self.panel, id=-1, label='Save')
-            self.Bind(wx.EVT_BUTTON, lambda event: self.on_saveButton(event, self.age_grid), self.saveButton_top)
-            self.cancelButton_top = wx.Button(self.panel, wx.ID_CANCEL, '&Cancel')
-            self.Bind(wx.EVT_BUTTON, self.on_cancelButton, self.cancelButton_top)
-            self.continueButton_top = wx.Button(self.panel, id=-1, label='Save and continue')
-            self.Bind(wx.EVT_BUTTON, lambda event: self.on_continueButton(event, self.age_grid, next_dia=None), self.continueButton_top)
-            self.backButton_top = wx.Button(self.panel, wx.ID_ANY, "&Back")
-            self.Bind(wx.EVT_BUTTON, lambda event: self.on_backButton(event, previous_dia=previous_dia), self.backButton_top)
-            hboxok_top.Add(self.saveButton_top, flag=wx.ALIGN_LEFT|wx.RIGHT, border=20)
-            hboxok_top.Add(self.cancelButton_top, flag=wx.ALIGN_LEFT|wx.RIGHT, border=20) 
-            hboxok_top.Add(self.continueButton_top, flag=wx.ALIGN_LEFT|wx.RIGHT, border=20 )
-            hboxok_top.Add(self.backButton_top, flag=wx.ALIGN_LEFT )
-
-
         ### Make Containers ###
         vbox = wx.BoxSizer(wx.VERTICAL)
         vbox.Add(label, flag=wx.ALIGN_LEFT)#, flag=wx.ALIGN_LEFT|wx.BOTTOM, border=20)
-        if self.age_grid.GetNumberRows() > 20:
-            vbox.Add(hbox_two, flag=wx.TOP, border=10)
-            vbox.Add(hboxok_top, flag=wx.TOP, border=10)
-        vbox.Add(self.age_grid, flag=wx.ALL|wx.EXPAND, border=20) # EXPAND ??
         vbox.Add(hbox_one, flag=wx.BOTTOM, border=20)
         vbox.Add(hboxok, flag=wx.BOTTOM, border=20)
+        vbox.Add(self.age_grid, flag=wx.ALL|wx.EXPAND, border=20) # EXPAND ??
 
         hbox_all= wx.BoxSizer(wx.HORIZONTAL)
         hbox_all.AddSpacer(20)
@@ -3221,7 +3126,7 @@ class check(wx.Frame):
         hbox_all.AddSpacer(20)
 
         self.panel.SetSizer(hbox_all)
-        self.panel.SetScrollbars(20, 20, 50, 50)
+        #self.panel.SetScrollbars(20, 20, 50, 50)
         hbox_all.Fit(self)
         self.Centre()
         self.Show()
@@ -3311,7 +3216,8 @@ class check(wx.Frame):
             grid.SetColLabelValue(n, label)
 
         #grid.AutoSizeColumns(True)
-        grid.AutoSize()
+
+        #grid.AutoSize()
 
         for n, col in enumerate(column_labels):
             # adjust column widths to be a little larger then auto for nicer editing
@@ -3336,6 +3242,7 @@ class check(wx.Frame):
                     if data_dict[row][col]:
                         grid.SetCellValue(num, n+3, data_dict[row][col])
             temp_data[row] = new_list
+            # grid.ForceRefresh() # DOESN'T SOLVE failure to resize problem
         return temp_data
         
     def on_edit_grid(self, event, grid):
