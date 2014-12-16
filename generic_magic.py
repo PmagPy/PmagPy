@@ -57,11 +57,11 @@ def main(command_line=True, **kwargs):
                 
         -samp X Y
             specimen-sample naming convention.
-            X=0 Y=n: specimen is distiguished from sample by n initial characters.
+            X=0 Y=n: specimen is distinguished from sample by n initial characters.
                      (example: if n=4 then and specimen = mgf13a then sample = mgf13)
             X=1 Y=n: specimen is distiguished from sample by n terminate characters.
                      (example: if n=1 then and specimen = mgf13a then sample = mgf13)
-            X=2 Y=c: specimen is distiguishing from sample by a delimiter.
+            X=2 Y=c: specimen is distinguishing from sample by a delimiter.
                      (example: if c=- then and specimen = mgf13-a then sample = mgf13)
 
         -site X Y
@@ -107,7 +107,7 @@ def main(command_line=True, **kwargs):
                     Y is always 0
                 coding for Thellier-type experiment:
                     0.0 or 0 is NRM
-                    X is temperature in celcsius
+                    X is temperature in celsius
                     Y=0: zerofield              
                     Y=1: infield              
                     Y=2: pTRM check              
@@ -115,7 +115,7 @@ def main(command_line=True, **kwargs):
                     Y=4: Additivity check 
                     # Ron, Add also 5 for Thellier protocol            
                 coding for ATRM experiment (6 poitions):
-                    X is temperature in celcsius
+                    X is temperature in celsius
                     Y=0: zerofield baseline to be subtracted            
                     Y=1: +x              
                     Y=2: -x              
@@ -129,7 +129,7 @@ def main(command_line=True, **kwargs):
                     Y=0: zerofield baseline to be subtracted            
                     Y!=0: oven field  in microT              
                 coding for CR experiment:
-                    see "OPTIONS" list abobe
+                    see "OPTIONS" list above
             
             treatment_type:
                 N: NRM
