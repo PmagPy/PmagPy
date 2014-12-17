@@ -1,0 +1,105 @@
+tab 	pmag_specimens
+er_analyst_mail_names	er_citation_names	er_location_name	er_sample_name	er_site_name	er_specimen_name	magic_instrument_codes	magic_method_codes	measurement_step_max	measurement_step_min	measurement_step_unit	specimen_correction	specimen_dec	specimen_description	specimen_direction_type	specimen_flag	specimen_inc	specimen_inferred_age	specimen_inferred_age_sigma	specimen_inferred_age_unit	specimen_mad	specimen_n	specimen_nrm	specimen_tilt_correction
+Peter C. Lippert	This study	Nading Co	07ND100	NDC-11	07ND100a	IPGP-2GH : SIO-SUZY	DE-BFL:LP-DIR-AF	140	60	mT	u	14.5		p	g	49.8	35.4	2.4	Ma	3.9	5	l	100
+Peter C. Lippert	This study	Nading Co	07ND101	NDC-11	07ND101a	IPGP-2GH : SIO-SUZY	DE-BFL:LP-DIR-AF	100	50	mT	u	8.2		p	g	46	35.4	2.4	Ma	3.1	4	l	100
+Peter C. Lippert	This study	Nading Co	07ND102	NDC-11	07ND102a	IPGP-2GH : SIO-SUZY	DE-BFL:LP-DIR-AF	180	80	mT	u	2.3		p	g	50.3	35.4	2.4	Ma	2.9	5	l	100
+Peter C. Lippert	This study	Nading Co	07ND104	NDC-11	07ND104a	IPGP-2GH : SIO-SUZY	DE-BFL:LP-DIR-AF	100	50	mT	u	1.3		p	g	43.1	35.4	2.4	Ma	1.8	4	l	100
+Peter C. Lippert	This study	Nading Co	07ND104	NDC-11	07ND104b	IPGP-2GH	DE-BFL:LP-DIR-T	685	450	°C	u	8.3	Specimen not used to calculate site mean direction.	p	g	51.1	35.4	2.4	Ma	0.4	5	l	100
+Peter C. Lippert	This study	Nading Co	07ND105	NDC-11	07ND105a	IPGP-2GH : SIO-SUZY	DE-BFL:LP-DIR-AF	80	40	mT	u	4.3		p	g	45.7	35.4	2.4	Ma	1.6	4	l	100
+Peter C. Lippert	This study	Nading Co	07ND106	NDC-11	07ND106a	IPGP-2GH : SIO-SUZY	DE-BFL:LP-DIR-AF	80	40	mT	u	2.4		p	g	31.2	35.4	2.4	Ma	2.7	4	l	100
+Peter C. Lippert	This study	Nading Co	07ND107	NDC-12	07ND107a	IPGP-2GH : SIO-SUZY	DE-BFL:LP-DIR-AF	150	50	mT	u	10.2		p	g	41.9	35.4	2.4	Ma	3.7	6	l	100
+Peter C. Lippert	This study	Nading Co	07ND107	NDC-12	07ND107b	IPGP-2GH	DE-BFL:LP-DIR-T	685	450	°C	u	11.5	Specimen not used to calculate site mean direction.	p	g	45.1	35.4	2.4	Ma	0.6	5	l	100
+Peter C. Lippert	This study	Nading Co	07ND108	NDC-12	07ND108a	IPGP-2GH : SIO-SUZY	DE-BFL:LP-DIR-AF	100	50	mT	u	3.1		p	g	28.9	35.4	2.4	Ma	2.6	4	l	100
+Peter C. Lippert	This study	Nading Co	07ND109	NDC-12	07ND109a	IPGP-2GH : SIO-SUZY	DE-BFL:LP-DIR-AF	100	50	mT	u	31.7		p	g	50.3	35.4	2.4	Ma	2.7	4	l	100
+Peter C. Lippert	This study	Nading Co	07ND110	NDC-12	07ND110a	IPGP-2GH : SIO-SUZY	DE-BFL:LP-DIR-AF	100	50	mT	u	1.6		p	g	39.4	35.4	2.4	Ma	1.5	4	l	100
+Peter C. Lippert	This study	Nading Co	07ND111	NDC-12	07ND111a	IPGP-2GH : SIO-SUZY	DE-BFL:LP-DIR-AF	150	50	mT	u	18.4		p	g	51.9	35.4	2.4	Ma	1.8	6	l	100
+Peter C. Lippert	This study	Nading Co	07ND112	NDC-12	07ND112a	IPGP-2GH : SIO-SUZY	DE-BFL:LP-DIR-AF	150	50	mT	u	4.4		p	g	49.2	35.4	2.4	Ma	1.4	6	l	100
+Peter C. Lippert	This study	Nading Co	07ND113	NDC-12	07ND113a	IPGP-2GH : SIO-SUZY	DE-BFL:LP-DIR-AF	150	60	mT	u	353.6		p	g	50.3	35.4	2.4	Ma	3.3	5	l	100
+Peter C. Lippert	This study	Nading Co	07ND114	NDC-13	07ND114a	IPGP-2GH : SIO-SUZY	DE-BFL:LP-DIR-AF	120	50	mT	u	13.7		p	g	48.6	35.4	2.4	Ma	2.8	5	l	100
+Peter C. Lippert	This study	Nading Co	07ND114	NDC-13	07ND114b	IPGP-2GH	DE-BFL:LP-DIR-T	685	450	°C	u	20.6	Specimen not used to calculate site mean direction.	p	g	51.2	35.4	2.4	Ma	0.9	5	l	100
+Peter C. Lippert	This study	Nading Co	07ND115	NDC-13	07ND115a	IPGP-2GH : SIO-SUZY	DE-BFL:LP-DIR-AF	120	50	mT	u	10.5		p	g	56.9	35.4	2.4	Ma	2	5	l	100
+Peter C. Lippert	This study	Nading Co	07ND116	NDC-13	07ND116a	IPGP-2GH : SIO-SUZY	DE-BFL:LP-DIR-AF	120	50	mT	u	12.6		p	g	62.4	35.4	2.4	Ma	0.9	5	l	100
+Peter C. Lippert	This study	Nading Co	07ND117	NDC-13	07ND117a	IPGP-2GH : SIO-SUZY	DE-BFL:LP-DIR-AF	120	50	mT	u	12.4		p	g	53.8	35.4	2.4	Ma	1.7	5	l	100
+Peter C. Lippert	This study	Nading Co	07ND118	NDC-13	07ND118a	IPGP-2GH : SIO-SUZY	DE-BFL:LP-DIR-AF	100	50	mT	u	349.8		p	g	43.2	35.4	2.4	Ma	2	4	l	100
+Peter C. Lippert	This study	Nading Co	07ND119	NDC-13	07ND119a	IPGP-2GH : SIO-SUZY	DE-BFL:LP-DIR-AF	150	50	mT	u	22.6		p	g	48.8	35.4	2.4	Ma	3.3	6	l	100
+Peter C. Lippert	This study	Nading Co	07ND120	NDC-13	07ND120a	IPGP-2GH : SIO-SUZY	DE-BFL:LP-DIR-AF	100	50	mT	u	7.1		p	g	64.3	35.4	2.4	Ma	3.1	4	l	100
+Peter C. Lippert	This study	Nading Co	07ND121	NDC-14	07ND121a	IPGP-2GH : SIO-SUZY	DE-BFL:LP-DIR-AF	80	40	mT	u	32		p	g	51	35.4	2.4	Ma	3.1	4	l	100
+Peter C. Lippert	This study	Nading Co	07ND122	NDC-14	07ND122a	IPGP-2GH : SIO-SUZY	DE-BFL:LP-DIR-AF	100	50	mT	u	11.5	Specimen not used to calculate site mean direction.	p	g	36.2	35.4	2.4	Ma	5.1	4	l	100
+Peter C. Lippert	This study	Nading Co	07ND123	NDC-14	07ND123a	IPGP-2GH : SIO-SUZY	DE-BFL:LP-DIR-AF	100	50	mT	u	15.5		p	g	44.2	35.4	2.4	Ma	5.2	4	l	100
+Peter C. Lippert	This study	Nading Co	07ND124	NDC-14	07ND124a	IPGP-2GH : SIO-SUZY	DE-BFL:LP-DIR-AF	100	40	mT	u	27.1		p	g	47.4	35.4	2.4	Ma	3.1	5	l	100
+Peter C. Lippert	This study	Nading Co	07ND125	NDC-14	07ND125a	IPGP-2GH : SIO-SUZY	DE-BFL:LP-DIR-AF	100	40	mT	u	23.4		p	g	45.1	35.4	2.4	Ma	2.2	4	l	100
+Peter C. Lippert	This study	Nading Co	07ND126	NDC-14	07ND126a	IPGP-2GH : SIO-SUZY	DE-BFL:LP-DIR-AF	120	50	mT	u	41.1	Specimen not used to calculate site mean direction.	p	g	64.8	35.4	2.4	Ma	4.1	5	l	100
+Peter C. Lippert	This study	Nading Co	07ND127	NDC-14	07ND127a	IPGP-2GH : SIO-SUZY	DE-BFL:LP-DIR-AF	100	50	mT	u	13.4		p	g	42.9	35.4	2.4	Ma	4.2	4	l	100
+Peter C. Lippert	This study	Nading Co	07ND128	NDC-14	07ND128a	IPGP-2GH : SIO-SUZY	DE-BFL:LP-DIR-AF	120	50	mT	u	34.2	Specimen not used to calculate site mean direction.	p	g	60.8	35.4	2.4	Ma	4.9	5	l	100
+Peter C. Lippert	This study	Nading Co	07ND129	NDC-15	07ND129a	IPGP-2GH : SIO-SUZY	DE-BFL:LP-DIR-AF	100	50	mT	u	30.1		p	g	32.3	35.4	2.4	Ma	1.3	4	l	100
+Peter C. Lippert	This study	Nading Co	07ND130	NDC-15	07ND130a	IPGP-2GH : SIO-SUZY	DE-BFL:LP-DIR-AF	100	50	mT	u	27.8		p	g	23.9	35.4	2.4	Ma	1.4	4	l	100
+Peter C. Lippert	This study	Nading Co	07ND131	NDC-15	07ND131a	IPGP-2GH : SIO-SUZY	DE-BFL:LP-DIR-AF	100	50	mT	u	25.2		p	g	32.6	35.4	2.4	Ma	0.9	4	l	100
+Peter C. Lippert	This study	Nading Co	07ND132	NDC-15	07ND132a	IPGP-2GH : SIO-SUZY	DE-BFL:LP-DIR-AF	120	50	mT	u	29.7		p	g	23.1	35.4	2.4	Ma	2.5	5	l	100
+Peter C. Lippert	This study	Nading Co	07ND133	NDC-15	07ND133a	IPGP-2GH : SIO-SUZY	DE-BFL:LP-DIR-AF	100	50	mT	u	22.3		p	g	37.4	35.4	2.4	Ma	1.4	4	l	100
+Peter C. Lippert	This study	Nading Co	07ND134	NDC-15	07ND134a	IPGP-2GH : SIO-SUZY	DE-BFL:LP-DIR-AF	150	50	mT	u	25.9		p	g	49.4	35.4	2.4	Ma	1.2	6	l	100
+Peter C. Lippert	This study	Nading Co	07ND135	NDC-15	07ND135a	IPGP-2GH : SIO-SUZY	DE-BFL:LP-DIR-AF	120	50	mT	u	22.9		p	g	40.2	35.4	2.4	Ma	1.1	5	l	100
+Peter C. Lippert	This study	Nading Co	07ND136	NDC-15	07ND136a	IPGP-2GH : SIO-SUZY	DE-BFL:LP-DIR-AF	120	50	mT	u	14.4		p	g	35.3	35.4	2.4	Ma	1.9	5	l	100
+Peter C. Lippert	This study	Nading Co	07ND136	NDC-15	07ND136b	IPGP-2GH	DE-BFL:LP-DIR-T	685	500	°C	u	8.9	Specimen not used to calculate site mean direction.	p	g	33	35.4	2.4	Ma	0.8	4	l	100
+Peter C. Lippert	This study	Nading Co	07ND137	NDC-16	07ND137a	IPGP-2GH : SIO-SUZY	DE-BFL:LP-DIR-AF	120	50	mT	u	10.9		p	g	30.5	35.4	2.4	Ma	1.5	5	l	100
+Peter C. Lippert	This study	Nading Co	07ND138	NDC-16	07ND138a	IPGP-2GH : SIO-SUZY	DE-BFL:LP-DIR-AF	120	50	mT	u	23.9		p	g	43.6	35.4	2.4	Ma	2.3	5	l	100
+Peter C. Lippert	This study	Nading Co	07ND139	NDC-16	07ND139a	IPGP-2GH : SIO-SUZY	DE-BFL:LP-DIR-AF	120	50	mT	u	17.8		p	g	38.7	35.4	2.4	Ma	2.1	5	l	100
+Peter C. Lippert	This study	Nading Co	07ND140	NDC-16	07ND140a	IPGP-2GH : SIO-SUZY	DE-BFL:LP-DIR-AF	120	50	mT	u	24.8		p	g	44.7	35.4	2.4	Ma	0.9	5	l	100
+Peter C. Lippert	This study	Nading Co	07ND141	NDC-16	07ND141a	IPGP-2GH : SIO-SUZY	DE-BFL:LP-DIR-AF	120	50	mT	u	18.9		p	g	40.2	35.4	2.4	Ma	1.9	5	l	100
+Peter C. Lippert	This study	Nading Co	07ND141	NDC-16	07ND141b	IPGP-2GH	DE-BFL:LP-DIR-T	685	450	°C	u	16		p	g	35.7	35.4	2.4	Ma	0.8	5	l	100
+Peter C. Lippert	This study	Nading Co	07ND142	NDC-16	07ND142a	IPGP-2GH : SIO-SUZY	DE-BFL:LP-DIR-AF	110	60	mT	u	12.6		p	g	36	35.4	2.4	Ma	4	5	l	100
+Peter C. Lippert	This study	Nading Co	07ND143	NDC-16	07ND143a	IPGP-2GH : SIO-SUZY	DE-BFL:LP-DIR-AF	120	60	mT	u	16.7		p	g	34.8	35.4	2.4	Ma	2.9	6	l	100
+Peter C. Lippert	This study	Nading Co	07ND144	NDC-17	07ND144a	IPGP-2GH : SIO-SUZY	DE-BFL:LP-DIR-AF	120	60	mT	u	21.3		p	g	44.5	35.4	2.4	Ma	6.2	6	l	100
+Peter C. Lippert	This study	Nading Co	07ND145	NDC-17	07ND145a	IPGP-2GH : SIO-SUZY	DE-BFL:LP-DIR-AF	150	60	mT	u	13.9		p	g	49.9	35.4	2.4	Ma	2.2	7	l	100
+Peter C. Lippert	This study	Nading Co	07ND146	NDC-17	07ND146a	IPGP-2GH : SIO-SUZY	DE-BFL:LP-DIR-AF	120	60	mT	u	4.4		p	g	41.4	35.4	2.4	Ma	1.7	6	l	100
+Peter C. Lippert	This study	Nading Co	07ND147	NDC-17	07ND147a	IPGP-2GH : SIO-SUZY	DE-BFL:LP-DIR-AF	120	60	mT	u	15.4		p	g	43.9	35.4	2.4	Ma	3.3	6	l	100
+Peter C. Lippert	This study	Nading Co	07ND148	NDC-17	07ND148a	IPGP-2GH : SIO-SUZY	DE-BFL:LP-DIR-AF	120	50	mT	u	14.8		p	g	46.7	35.4	2.4	Ma	2.4	7	l	100
+Peter C. Lippert	This study	Nading Co	07ND149	NDC-17	07ND149a	IPGP-2GH : SIO-SUZY	DE-BFL:LP-DIR-AF	120	60	mT	u	105.8	Specimen not used to calculate site mean direction.	p	g	54.3	35.4	2.4	Ma	5.1	6	l	100
+Peter C. Lippert	This study	Nading Co	07ND150	NDC-17	07ND150a	IPGP-2GH : SIO-SUZY	DE-BFL:LP-DIR-AF	110	50	mT	u	15.6		p	g	40.5	35.4	2.4	Ma	3.9	6	l	100
+Peter C. Lippert	This study	Nading Co	07ND151	NDC-17	07ND151a	IPGP-2GH : SIO-SUZY	DE-BFL:LP-DIR-AF	120	60	mT	u	18.6		p	g	48.6	35.4	2.4	Ma	4.4	6	l	100
+Peter C. Lippert	This study	Nading Co	07ND152	NDC-18	07ND152a	IPGP-2GH : SIO-SUZY	DE-BFL:LP-DIR-AF	110	60	mT	u	349.9		p	g	37.5	35.4	2.4	Ma	1.5	5	l	100
+Peter C. Lippert	This study	Nading Co	07ND153	NDC-18	07ND153a	IPGP-2GH : SIO-SUZY	DE-BFL:LP-DIR-AF	120	60	mT	u	347.6		p	g	44	35.4	2.4	Ma	1.6	6	l	100
+Peter C. Lippert	This study	Nading Co	07ND155	NDC-18	07ND155a	IPGP-2GH : SIO-SUZY	DE-BFL:LP-DIR-AF	120	80	mT	u	349.1		p	g	41.3	35.4	2.4	Ma	2.3	5	l	100
+Peter C. Lippert	This study	Nading Co	07ND156	NDC-18	07ND156a	IPGP-2GH : SIO-SUZY	DE-BFL:LP-DIR-AF	120	80	mT	u	351		p	g	34.6	35.4	2.4	Ma	3.3	5	l	100
+Peter C. Lippert	This study	Nading Co	07ND157	NDC-18	07ND157a	IPGP-2GH : SIO-SUZY	DE-BFL:LP-DIR-AF	120	80	mT	u	348.6		p	g	38.8	35.4	2.4	Ma	2.5	5	l	100
+Peter C. Lippert	This study	Nading Co	07ND158	NDC-18	07ND158a	IPGP-2GH : SIO-SUZY	DE-BFL:LP-DIR-AF	120	80	mT	u	345		p	g	53.7	35.4	2.4	Ma	6.6	5	l	100
+Peter C. Lippert	This study	Nading Co	07ND166	NDC-20	07ND166a	IPGP-2GH : SIO-SUZY	DE-BFL:LP-DIR-AF	100	50	mT	u	15.5		p	g	29.5	35.4	2.4	Ma	2.9	4	l	100
+Peter C. Lippert	This study	Nading Co	07ND167	NDC-20	07ND167a	IPGP-2GH : SIO-SUZY	DE-BFL:LP-DIR-AF	120	80	mT	u	24.6		p	g	34.2	35.4	2.4	Ma	11	5	l	100
+Peter C. Lippert	This study	Nading Co	07ND168	NDC-20	07ND168a	IPGP-2GH : SIO-SUZY	DE-BFL:LP-DIR-AF	100	60	mT	u	22.2		p	g	31.6	35.4	2.4	Ma	4.8	4	l	100
+Peter C. Lippert	This study	Nading Co	07ND169	NDC-20	07ND169a	IPGP-2GH : SIO-SUZY	DE-BFL:LP-DIR-AF	110	60	mT	u	26.7		p	g	36.5	35.4	2.4	Ma	6.5	5	l	100
+Peter C. Lippert	This study	Nading Co	07ND170	NDC-20	07ND170a	IPGP-2GH : SIO-SUZY	DE-BFL:LP-DIR-AF	120	60	mT	u	22.3		p	g	36.5	35.4	2.4	Ma	5.9	6	l	100
+Peter C. Lippert	This study	Nading Co	07ND171	NDC-20	07ND171a	IPGP-2GH : SIO-SUZY	DE-BFL:LP-DIR-AF	100	60	mT	u	24.3		p	g	33.9	35.4	2.4	Ma	3.7	4	l	100
+Peter C. Lippert	This study	Nading Co	07ND172	NDC-20	07ND172a	IPGP-2GH : SIO-SUZY	DE-BFL:LP-DIR-AF	100	50	mT	u	20.4		p	g	23.2	35.4	2.4	Ma	2.7	4	l	100
+Peter C. Lippert	This study	Nading Co	07ND173	NDC-21	07ND173a	IPGP-2GH : SIO-SUZY	DE-BFL:LP-DIR-AF	90	40	mT	u	35.5		p	g	23.4	35.4	2.4	Ma	5.5	5	l	100
+Peter C. Lippert	This study	Nading Co	07ND174	NDC-21	07ND174a	IPGP-2GH : SIO-SUZY	DE-BFL:LP-DIR-AF	150	50	mT	u	18.5		p	g	28.3	35.4	2.4	Ma	3.6	6	l	100
+Peter C. Lippert	This study	Nading Co	07ND175	NDC-21	07ND175a	IPGP-2GH : SIO-SUZY	DE-BFL:LP-DIR-AF	120	60	mT	u	20.5		p	g	31.3	35.4	2.4	Ma	2.7	6	l	100
+Peter C. Lippert	This study	Nading Co	07ND176	NDC-21	07ND176a	IPGP-2GH : SIO-SUZY	DE-BFL:LP-DIR-AF	110	60	mT	u	16.5		p	g	32.5	35.4	2.4	Ma	12.9	5	l	100
+Peter C. Lippert	This study	Nading Co	07ND177	NDC-21	07ND177a	IPGP-2GH : SIO-SUZY	DE-BFL:LP-DIR-AF	120	50	mT	u	26.8		p	g	28.6	35.4	2.4	Ma	9.3	5	l	100
+Peter C. Lippert	This study	Nading Co	07ND177	NDC-21	07ND177b	IPGP-2GH	DE-BFL:LP-DIR-T	560	450	°C	u	27.2	Specimen not used to calculate site mean direction.	p	g	31.2	35.4	2.4	Ma	0.9	4	l	100
+Peter C. Lippert	This study	Nading Co	07ND178	NDC-21	07ND178a	IPGP-2GH : SIO-SUZY	DE-BFL:LP-DIR-AF	180	80	mT	u	33.8		p	g	23.6	35.4	2.4	Ma	6.5	8	l	100
+Peter C. Lippert	This study	Nading Co	07ND179	NDC-21	07ND179a	IPGP-2GH : SIO-SUZY	DE-BFL:LP-DIR-AF	110	60	mT	u	30.4		p	g	30.2	35.4	2.4	Ma	6.7	5	l	100
+Peter C. Lippert	This study	Nading Co	07ND180	NDC-21	07ND180a	IPGP-2GH : SIO-SUZY	DE-BFL:LP-DIR-AF	100	50	mT	u	23.6		p	g	25.4	35.4	2.4	Ma	7.1	5	l	100
+Peter C. Lippert	This study	Nading Co	07ND181	NDC-22	07ND181a	IPGP-2GH : SIO-SUZY	DE-BFL:LP-DIR-AF	120	60	mT	u	55.7	Specimen not used to calculate site mean direction.	p	g	30.8	35.4	2.4	Ma	5.5	6	l	100
+Peter C. Lippert	This study	Nading Co	07ND182	NDC-22	07ND182a	IPGP-2GH : SIO-SUZY	DE-BFP-G:LP-DIR-AF	120	0	mT	u	138.2		p	g	35.3	35.4	2.4	Ma	6.4	16	p	100
+Peter C. Lippert	This study	Nading Co	07ND183	NDC-22	07ND183a	IPGP-2GH : SIO-SUZY	DE-BFL:LP-DIR-AF	120	40	mT	u	48.4	Specimen not used to calculate site mean direction.	p	g	28.2	35.4	2.4	Ma	2.7	8	l	100
+Peter C. Lippert	This study	Nading Co	07ND184	NDC-22	07ND184a	IPGP-2GH : SIO-SUZY	DE-BFL:LP-DIR-AF	110	60	mT	u	23.2		p	g	35.1	35.4	2.4	Ma	7.7	5	l	100
+Peter C. Lippert	This study	Nading Co	07ND185	NDC-22	07ND185a	IPGP-2GH : SIO-SUZY	DE-BFL:LP-DIR-AF	100	40	mT	u	37		p	g	29.1	35.4	2.4	Ma	4.3	6	l	100
+Peter C. Lippert	This study	Nading Co	07ND187	NDC-22	07ND187a	IPGP-2GH : SIO-SUZY	DE-BFL:LP-DIR-AF	90	40	mT	u	27.5		p	g	40.4	35.4	2.4	Ma	7.8	5	l	100
+Peter C. Lippert	This study	Nading Co	07ND188	NDC-22	07ND188a	IPGP-2GH : SIO-SUZY	DE-BFL:LP-DIR-AF	100	60	mT	u	23		p	g	26.9	35.4	2.4	Ma	4.5	4	l	100
+Peter C. Lippert	This study	Nading Co	07ND189	NDC-23	07ND189a	IPGP-2GH : SIO-SUZY	DE-BFP-G:LP-DIR-AF	120	0	mT	u	248.5		p	g	47.1	35.4	2.4	Ma	2.4	16	p	100
+Peter C. Lippert	This study	Nading Co	07ND190	NDC-23	07ND190a	IPGP-2GH : SIO-SUZY	DE-BFL:LP-DIR-AF	100	40	mT	u	27.8		p	g	32.2	35.4	2.4	Ma	2.1	6	l	100
+Peter C. Lippert	This study	Nading Co	07ND191	NDC-23	07ND191a	IPGP-2GH : SIO-SUZY	DE-BFP-G:LP-DIR-AF	140	0	mT	u	287		p	g	33.2	35.4	2.4	Ma	7.4	18	p	100
+Peter C. Lippert	This study	Nading Co	07ND193	NDC-23	07ND193a	IPGP-2GH : SIO-SUZY	DE-BFL:LP-DIR-AF	90	50	mT	u	38.9		p	g	21	35.4	2.4	Ma	2.1	4	l	100
+Peter C. Lippert	This study	Nading Co	07ND194	NDC-23	07ND194a	IPGP-2GH : SIO-SUZY	DE-BFL:LP-DIR-AF	100	40	mT	u	32.1		p	g	23.2	35.4	2.4	Ma	2.4	6	l	100
+Peter C. Lippert	This study	Nading Co	07ND195	NDC-24	07ND195a	IPGP-2GH : SIO-SUZY	DE-BFL:LP-DIR-AF	100	40	mT	u	27.6		p	g	23.3	35.4	2.4	Ma	3.2	6	l	100
+Peter C. Lippert	This study	Nading Co	07ND196	NDC-24	07ND196a	IPGP-2GH : SIO-SUZY	DE-BFL:LP-DIR-AF	90	40	mT	u	29.9		p	g	21.4	35.4	2.4	Ma	5.9	5	l	100
+Peter C. Lippert	This study	Nading Co	07ND197	NDC-24	07ND197a	IPGP-2GH : SIO-SUZY	DE-BFL:LP-DIR-AF	90	30	mT	u	24.3		p	g	27.1	35.4	2.4	Ma	3.8	6	l	100
+Peter C. Lippert	This study	Nading Co	07ND198	NDC-24	07ND198a	IPGP-2GH : SIO-SUZY	DE-BFL:LP-DIR-AF	100	30	mT	u	27.7		p	g	24	35.4	2.4	Ma	2.2	6	l	100
+Peter C. Lippert	This study	Nading Co	07ND199	NDC-24	07ND199a	IPGP-2GH : SIO-SUZY	DE-BFL:LP-DIR-AF	100	50	mT	u	27.1		p	g	19.3	35.4	2.4	Ma	2.6	5	l	100
+Peter C. Lippert	This study	Nading Co	07ND200	NDC-24	07ND200a	IPGP-2GH : SIO-SUZY	DE-BFL:LP-DIR-AF	80	40	mT	u	29.5		p	g	21.3	35.4	2.4	Ma	6	4	l	100
+Peter C. Lippert	This study	Nading Co	07ND201	NDC-25	07ND201a	IPGP-2GH : SIO-SUZY	DE-BFL:LP-DIR-AF	100	50	mT	u	23.3		p	g	13.2	35.4	2.4	Ma	3.7	5	l	100
+Peter C. Lippert	This study	Nading Co	07ND202	NDC-25	07ND202a	IPGP-2GH : SIO-SUZY	DE-BFL:LP-DIR-AF	100	50	mT	u	21		p	g	12.2	35.4	2.4	Ma	3.5	5	l	100
+Peter C. Lippert	This study	Nading Co	07ND203	NDC-25	07ND203a	IPGP-2GH : SIO-SUZY	DE-BFL:LP-DIR-AF	100	50	mT	u	22.4		p	g	14.3	35.4	2.4	Ma	3.2	4	l	100
+Peter C. Lippert	This study	Nading Co	07ND204	NDC-25	07ND204a	IPGP-2GH : SIO-SUZY	DE-BFL:LP-DIR-AF	100	50	mT	u	19.6		p	g	20	35.4	2.4	Ma	3.7	5	l	100
+Peter C. Lippert	This study	Nading Co	07ND205	NDC-25	07ND205a	IPGP-2GH : SIO-SUZY	DE-BFL:LP-DIR-AF	90	50	mT	u	20.7		p	g	17.3	35.4	2.4	Ma	4.2	4	l	100
+Peter C. Lippert	This study	Nading Co	07ND206	NDC-25	07ND206a	IPGP-2GH : SIO-SUZY	DE-BFL:LP-DIR-AF	120	50	mT	u	17.5		p	g	22.9	35.4	2.4	Ma	3.7	5	l	100
+Peter C. Lippert	This study	Nading Co	07ND206	NDC-25	07ND206b	IPGP-2GH	DE-BFL:LP-DIR-T	560	450	°C	u	13	Specimen not used to calculate site mean direction.	p	g	23.8	35.4	2.4	Ma	2.1	4	l	100

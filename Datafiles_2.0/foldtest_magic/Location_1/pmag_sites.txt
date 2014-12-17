@@ -1,0 +1,22 @@
+tab 	pmag_sites
+er_analyst_mail_names	er_citation_names	er_location_name	er_site_name	er_specimen_names	magic_instrument_codes	magic_method_codes	site_alpha95	site_dec	site_inc	site_inferred_age	site_inferred_age_sigma	site_inferred_age_unit	site_k	site_n	site_n_lines	site_n_planes	site_n_total	site_polarity	site_tilt_correction
+Peter C. Lippert	This study	Wulan Wula Hu	WWH-1	06X034b : 06X035b : 06X036b : 06X037b : 06X038a : 06X039b : 06X041b : 06X042b : 06X043b	IPGP-2GH : SIO-SUZY	DE-FM-LP:LP-DIR-AF	8.1	28.1	19.9	38.6	0.5	Ma	39.1	10	4	5	11	n	100
+Peter C. Lippert	This study	Wulan Wula Hu	WWH-2	06X054a : 06X055c : 06X056b : 06X057b : 06X058b : 06X059b : 06X060b	IPGP-2GH : SIO-SUZY	DE-FM-LP:LP-DIR-AF	18.9	360	40.6	38.6	0.5	Ma	11.3	7	6	1	7	n	100
+Peter C. Lippert	This study	Wulan Wula Hu	WWH-3	06X044b : 06X045b : 06X046b : 06X047b : 06X048b : 06X049b : 06X051b : 06X052b : 06X053b	IPGP-2GH : SIO-SUZY	DE-FM-LP:LP-DIR-AF	10	352.3	39.1	38.6	0.5	Ma	28.2	9	8	2	10	n	100
+Peter C. Lippert	This study	Wulan Wula Hu	WWH-4	06X061b : 06X062b : 06X063b : 06X064b : 06X065a : 06X079b : 06X080c : 06X081c : 06X082b : 06X083a : 06X084b	IPGP-2GH : SIO-SUZY	DE-FM:LP-DIR-AF	5	355.5	42.7	38.6	0.5	Ma	83.6	11	11	0	11	n	100
+Peter C. Lippert	This study	Wulan Wula Hu	WWH-5	06X072b : 06X073b : 06X074b : 06X075b : 06X076b : 06X077b : 06X078b	IPGP-2GH : SIO-SUZY	DE-FM:LP-DIR-AF	4.6	346.1	49.3	38.6	0.5	Ma	170.6	7	7	0	7	n	100
+Peter C. Lippert	This study	Wulan Wula Hu	WWH-6	06X066b : 06X067b : 06X068b : 06X069b : 06X070b : 06X071b	IPGP-2GH : SIO-SUZY	DE-FM:LP-DIR-AF	2.9	3.8	46.1	38.6	0.5	Ma	543.5	6	6	0	6	n	100
+Peter C. Lippert	This study	Wulan Wula Hu	WWH-7	06X085b : 06X086a : 06X087b : 06X088'b : 06X088b : 06X106b : 06X107b	IPGP-2GH : SIO-SUZY	DE-FM:LP-DIR-AF	3.4	353.4	46.8	38.6	0.5	Ma	322	7	7	0	7	n	100
+Peter C. Lippert	This study	Wulan Wula Hu	WWH-8	06X089b : 06X090b : 06X091b : 06X092b : 06X093b : 06X104b : 06X105a	IPGP-2GH : SIO-SUZY	DE-FM:LP-DIR-AF	5.5	359.2	46.2	38.6	0.5	Ma	120.5	7	7	0	7	n	100
+Peter C. Lippert	This study	Wulan Wula Hu	WWH-9	06X094b : 06X096a : 06X098a : 06X099b : 06X100b : 06X101b : 06X102a	IPGP-2GH : SIO-SUZY	DE-FM:LP-DIR-AF	5	358.4	47.4	38.6	0.5	Ma	152.8	7	6	2	10	n	100
+Peter C. Lippert	This study	Wulan Wula Hu	WWH-10	06X108a : 06X109a : 06X110b : 06X111b : 06X112b : 06X113b : 06X114b : 06X115b	IPGP-2GH : SIO-SUZY	DE-FM:LP-DIR-AF	4.3	358.8	42.1	38.6	0.5	Ma	164.4	8	8	0	8	n	100
+Peter C. Lippert	This study	Wulan Wula Hu	WWH-1	06X034b : 06X035b : 06X036b : 06X037b : 06X038a : 06X039b : 06X041b : 06X042b : 06X043b	IPGP-2GH : SIO-SUZY	DE-FM-LP:LP-DIR-AF	8.1	28.1	19.9	38.6	0.5	Ma	39.1	10	4	5	11	n	0
+Peter C. Lippert	This study	Wulan Wula Hu	WWH-2	06X054a : 06X055c : 06X056b : 06X057b : 06X058b : 06X059b : 06X060b	IPGP-2GH : SIO-SUZY	DE-FM-LP:LP-DIR-AF	18.9	360	40.6	38.6	0.5	Ma	11.3	7	6	1	7	n	0
+Peter C. Lippert	This study	Wulan Wula Hu	WWH-3	06X044b : 06X045b : 06X046b : 06X047b : 06X048b : 06X049b : 06X051b : 06X052b : 06X053b	IPGP-2GH : SIO-SUZY	DE-FM-LP:LP-DIR-AF	10	352.3	39.1	38.6	0.5	Ma	28.2	9	8	2	10	n	0
+Peter C. Lippert	This study	Wulan Wula Hu	WWH-4	06X061b : 06X062b : 06X063b : 06X064b : 06X065a : 06X079b : 06X080c : 06X081c : 06X082b : 06X083a : 06X084b	IPGP-2GH : SIO-SUZY	DE-FM:LP-DIR-AF	5	355.5	42.7	38.6	0.5	Ma	83.6	11	11	0	11	n	0
+Peter C. Lippert	This study	Wulan Wula Hu	WWH-5	06X072b : 06X073b : 06X074b : 06X075b : 06X076b : 06X077b : 06X078b	IPGP-2GH : SIO-SUZY	DE-FM:LP-DIR-AF	4.6	346.1	49.3	38.6	0.5	Ma	170.6	7	7	0	7	n	0
+Peter C. Lippert	This study	Wulan Wula Hu	WWH-6	06X066b : 06X067b : 06X068b : 06X069b : 06X070b : 06X071b	IPGP-2GH : SIO-SUZY	DE-FM:LP-DIR-AF	2.9	3.8	46.1	38.6	0.5	Ma	543.5	6	6	0	6	n	0
+Peter C. Lippert	This study	Wulan Wula Hu	WWH-7	06X085b : 06X086a : 06X087b : 06X088'b : 06X088b : 06X106b : 06X107b	IPGP-2GH : SIO-SUZY	DE-FM:LP-DIR-AF	3.4	353.4	46.8	38.6	0.5	Ma	322	7	7	0	7	n	0
+Peter C. Lippert	This study	Wulan Wula Hu	WWH-8	06X089b : 06X090b : 06X091b : 06X092b : 06X093b : 06X104b : 06X105a	IPGP-2GH : SIO-SUZY	DE-FM:LP-DIR-AF	5.5	359.2	46.2	38.6	0.5	Ma	120.5	7	7	0	7	n	0
+Peter C. Lippert	This study	Wulan Wula Hu	WWH-9	06X094b : 06X096a : 06X098a : 06X099b : 06X100b : 06X101b : 06X102a	IPGP-2GH : SIO-SUZY	DE-FM:LP-DIR-AF	5	358.4	47.4	38.6	0.5	Ma	152.8	7	6	2	10	n	0
+Peter C. Lippert	This study	Wulan Wula Hu	WWH-10	06X108a : 06X109a : 06X110b : 06X111b : 06X112b : 06X113b : 06X114b : 06X115b	IPGP-2GH : SIO-SUZY	DE-FM:LP-DIR-AF	4.3	358.8	42.1	38.6	0.5	Ma	164.4	8	8	0	8	n	0

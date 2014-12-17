@@ -1,0 +1,14 @@
+tab 	magic_methods
+er_citation_names	magic_method_code	method_definition	method_description	method_iaga7	method_type	method_url_tauxe
+	FS-C-DRILL-DSDP	Coring: DSDP drilling			Field Sampling	
+	FS-C-DRILL-IODP	Coring: IODP drilling			Field Sampling	
+	FS-C-PISTON-H	Coring: Hydraulic piston coring			Field Sampling	
+	GM-PMAG-POL	Paleomagnetic age determination: Polarities			Geochronology Method	
+Levi & Banerjee 1976	LP-PI-IRM	Paleointensity experiment: Using a laboratory IRM to normalize NRM for paleofield estimation	Use of a laboratory IRM to normalize NRM for paleofield estimation.		Lab Protocol	
+	LP-PI-REL	Paleointensity experiment: Normalized NRM for relative paleofield estimation			Lab Protocol	
+	LP-X	Susceptibility measurement			Lab Protocol	
+	LT-AF-I	Alternating field: In laboratory field	AF demagnetization in a small DC field offset to produce an ARM.	A	Lab Treatment	http://earthref.org/MAGIC/books/Tauxe/2005/lecture.05.htm#LT-AFI
+As & Zijderveld 1958 : Collinson 1983	LT-AF-Z	Alternating field: In zero field	A specimen is subject to a decaying and alternating magnetic field such that the magnetic moments with coercivities below the peak field are aligned in opposed directions, and thus cancel. Specimens are typically reoriented in three or more orthogonal axes.	A	Lab Treatment	http://earthref.org/MAGIC/books/Tauxe/2005/lecture.09.htm#LT-AFZ
+	LT-IRM	IRM imparted to specimen prior to measurement			Lab Treatment	
+	SO-V	Vertical orientation of sample only (in drill core for example)			Sample Orientation	
+Collinson 1983	SP-SS-C	Sub sampling: Core			Sample Preparation	http://earthref.org/MAGIC/books/Tauxe/2005/lecture.09.htm#SP-SSC

@@ -1,0 +1,11 @@
+tab 	pmag_results
+average_age	average_age_sigma	average_age_unit	average_alpha95	average_dec	average_inc	average_k	average_lat	average_lon	average_n	average_nn	data_type	er_analyst_mail_names	er_citation_names	er_location_names	er_site_names	er_specimen_names	magic_method_codes	pmag_result_name	tilt_correction
+35.4	2.4	Ma	6.5	5.3	44.5	108.1	32.685	85.604	1	6	a	Peter C. Lippert	This study	Nading Co	NDC-11	07ND100a : 07ND101a : 07ND102a : 07ND104a : 07ND105a : 07ND106a	DE-FM	NDC-N1	100
+35.4	2.4	Ma	6	13.7	55.9	124.3	32.685	85.604	1	6	a	Peter C. Lippert	This study	Nading Co	NDC-13	07ND114a : 07ND115a : 07ND116a : 07ND117a : 07ND119a : 07ND120a	DE-FM	NDC-N2	100
+35.4	2.4	Ma	5.9	21.9	46.3	168	32.685	85.604	1	5	a	Peter C. Lippert	This study	Nading Co	NDC-14	07ND122a : 07ND123a : 07ND124a : 07ND125a : 07ND127a	DE-FM	NDC-N3	100
+35.4	2.4	Ma	4.2	21.6	36.3	85.8	32.685	85.604	2	15	a	Peter C. Lippert	This study	Nading Co	NDC-15 : NDC-16	07ND129a : 07ND130a : 07ND131a : 07ND132a : 07ND133a : 07ND134a : 07ND135a : 07ND136a : 07ND137a : 07ND138a : 07ND139a : 07ND140a : 07ND141a : 07ND142a : 07ND143a	DE-FM	NDC-N4	100
+35.4	2.4	Ma	3.8	14.8	45.2	247	32.685	85.604	1	7	a	Peter C. Lippert	This study	Nading Co	NDC-17	07ND144a : 07ND145a : 07ND146a : 07ND147a : 07ND148a : 07ND150a : 07ND151a	DE-FM	NDC-N5	100
+35.4	2.4	Ma	5.7	348.7	41.7	140.2	32.685	85.604	1	6	a	Peter C. Lippert	This study	Nading Co	NDC-18	07ND152a : 07ND153a : 07ND155a : 07ND156a : 07ND157a : 07ND158a	DE-FM	NDC-N6	100
+35.4	2.4	Ma	4.2	22.2	32.2	208.9	32.685	85.604	1	7	a	Peter C. Lippert	This study	Nading Co	NDC-20	07ND166a : 07ND167a : 07ND168a : 07ND169a : 07ND170a : 07ND171a : 07ND172a	DE-FM	NDC-N7	100
+35.4	2.4	Ma	2.7	27.9	27.2	118.9	32.737	85.575	4	24	a	Peter C. Lippert	This study	Nading Co	NDC-21 : NDC-22 : NDC-23 : NDC-24	07ND173a : 07ND174a : 07ND175a : 07ND176a : 07ND177a : 07ND178a : 07ND179a : 07ND180a : 07ND182a : 07ND184a : 07ND185a : 07ND187a : 07ND188a : 07ND189a : 07ND190a : 07ND191a : 07ND193a : 07ND194a : 07ND195a : 07ND196a : 07ND197a : 07ND198a : 07ND199a : 07ND200a	DE-FM-LP	NDC-N8	100
+35.4	2.4	Ma	4.1	20.7	17.2	269.9	32.737	85.575	1	6	a	Peter C. Lippert	This study	Nading Co	NDC-25	07ND201a : 07ND202a : 07ND203a : 07ND204a : 07ND205a : 07ND206a	DE-FM	NDC-N9	100

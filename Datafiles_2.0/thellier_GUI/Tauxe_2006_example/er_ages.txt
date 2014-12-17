@@ -1,0 +1,72 @@
+tab 	er_ages
+age	age_description	age_sigma	age_unit	biostrat_zone	er_citation_names	er_location_name	er_site_name	er_timescale_citation_names	magic_method_codes	magnetic_reversal_chron	timescale_stage
+148		2	Ma		This study	169	0169x	Nakanishi et al. 1992 : Gradstein et al. 1995	GM-PMAG-ANOM	M21	
+30.7		0.5	Ma		This study	205	0205x	Berggren et al. 1995	GM-PMAG-ANOM	C12n	
+13		1	Ma	N12	This study	231	0231x	Berggren et al. 1995	GM-FOSSIL		
+32		2	Ma	P19	This study	238	0238x	Berggren et al. 1995	GM-FOSSIL		
+48		2	Ma		This study	322	0322x	Berggren et al. 1995	GM-PMAG-ANOM	C21-C22	
+3.6		0.1	Ma		This study	332	0332a	Berggren et al. 1995	GM-PMAG-ANOM	C2Ar	
+3.6		0.1	Ma		This study	332	0332b	Berggren et al. 1995	GM-PMAG-ANOM	C2Ar	
+9.8		0.5	Ma		This study	334	0334x	Berggren et al. 1995	GM-PMAG-ANOM	C5n.1n	
+13.8		2	Ma		This study	335	0335x	Berggren et al. 1995	GM-PMAG-ANOM	C5A-C5B	
+8		1	Ma		This study	395	0395x	Berggren et al. 1995	GM-PMAG-ANOM	C4n	
+8		1	Ma		This study	395	0395a	Berggren et al. 1995	GM-PMAG-ANOM	C4n	
+10.3		0.5	Ma		This study	396	0396b	Berggren et al. 1995	GM-PMAG-ANOM	C5n	
+33.3		0.1	Ma		This study	407	0407x	Berggren et al. 1995	GM-PMAG-ANOM	C13n	
+10.3		0.7	Ma		This study	410	0410a	Berggren et al. 1995	GM-PMAG-ANOM	C5n	
+121		1	Ma		This study	417	0417d	Gradstein et al. 1995	GM-PMAG-ANOM	M0	
+121		1	Ma		This study	418	0418a	Gradstein et al. 1995	GM-PMAG-ANOM	M0	
+3.4		0.2	Ma		This study	420	0420x	Berggren et al. 1995	GM-PMAG-ANOM	C2A	
+1.7		0.2	Ma		This study	423	0423x	Berggren et al. 1995	GM-PMAG-ANOM	C2	
+43		2	Ma		This study	447	0447a	Berggren et al. 1995	GM-PMAG-ANOM	C20	
+31		1	Ma	NP23	This study	448	0448a	Berggren et al. 1995	GM-FOSSIL		
+3.7		0.2	Ma		This study	456	0456a	Berggren et al. 1995	GM-PMAG-ANOM	C2Ar	
+32		1	Ma	WPN-15 (lower NP23)	This study	458	0458x	Berggren et al. 1995	GM-FOSSIL		
+111		1	Ma		This study	462	0462a	Castillo et al. 1994	GM-ARAR		
+18.7		0.2	Ma		This study	469	0469x	Berggren et al. 1995	GM-PMAG-ANOM	C5E	
+15.2		0.5	Ma		This study	470	0470a	Berggren et al. 1995	GM-PMAG-ANOM	C5B	
+16		1	Ma		This study	472	0472x	Berggren et al. 1995	GM-PMAG-ANOM		
+3.1		0.2	Ma		This study	474	0474a	Berggren et al. 1995	GM-PMAG-ANOM	C2A	
+0.3		0.3	Ma		This study	482	0482d	Berggren et al. 1995	GM-PMAG-ANOM	C1	
+2		0.2	Ma		This study	483	0483x	Berggren et al. 1995	GM-PMAG-ANOM	C2-C2A	
+2		0.2	Ma		This study	483	0483b	Berggren et al. 1995	GM-PMAG-ANOM	C2-C2A	
+20.7		0.2	Ma		This study	495	0495x	Berggren et al. 1995	GM-PMAG-ANOM	C6A	
+7.25		0.2	Ma		This study	504	0504b	Berggren et al. 1995	GM-PMAG-ANOM	C3B	
+3.1		0.4	Ma		This study	510	0510x	Berggren et al. 1995	GM-PMAG-ANOM	C2A	
+15.2		0.2	Ma		This study	520	0520x	Berggren et al. 1995	GM-PMAG-ANOM	CBr	
+35.7		1.3	Ma		This study	522	0522b	Berggren et al. 1995	GM-PMAG-ANOM	C16n	
+72		1	Ma		This study	525	0525a	Gradstein et al. 1995	GM-PMAG-ANOM	C32n	
+97	Late Albian-early Cenomanian.	5	Ma		This study	530	0530a	Gradstein et al. 1995	GM-FOSSIL		Albian:Cenomanian
+156.5		0.1	Ma		This study	534	0534a	Gradstein et al. 1995	GM-PMAG-ANOM	M28	
+84		1	Ma		This study	543	0543a	Gradstein et al. 1995	GM-PMAG-ANOM	C34n : C34r	
+30.7		0.2	Ma		This study	556	0556x	Berggren et al. 1995	GM-PMAG-ANOM	C12n	
+34		0.5	Ma		This study	558	0558x	Berggren et al. 1995	GM-PMAG-ANOM	C13r	
+32		1.1	Ma		This study	559	0559x	Berggren et al. 1995	GM-PMAG-ANOM	C12r	
+32		1.1	Ma		This study	559	0559a	Berggren et al. 1995	GM-PMAG-ANOM	C12r	
+17.4		0.2	Ma		This study	562	0562x	Berggren et al. 1995	GM-PMAG-ANOM	C5Dn	
+33.2		0.1	Ma		This study	563	0563x	Berggren et al. 1995	GM-PMAG-ANOM	C13n	
+33.2		0.1	Ma		This study	564	0564x	Berggren et al. 1995	GM-PMAG-ANOM	C13n	
+15		0.2	Ma	N9	This study	572	0572d	Berggren et al. 1995	GM-FOSSIL		
+34.5		0.5	Ma	P16	This study	573	0573b	Berggren et al. 1995	GM-FOSSIL		
+82	Lower Campanian.	2	Ma		This study	758	0758a	Gradstein et al. 1995	GM-FOSSIL		Campanian
+32		2	Ma	P19	This study	706	0706c	Gradstein et al. 1995	GM-FOSSIL		
+155.7		0.3	Ma		This study	765	0765c	Gradstein et al. 1995	GM-PMAG-ANOM	M26	
+155.7		0.3	Ma		This study	765	0765d	Gradstein et al. 1995	GM-PMAG-ANOM	M26	
+38.9		1	Ma	P14	This study	770	0770b	Berggren et al. 1995	GM-FOSSIL		
+38.9		1	Ma	P14	This study	770	0770c	Berggren et al. 1995	GM-FOSSIL		
+2.6		0.1	Ma	CN12b	This study	781	0781a	Berggren et al. 1995	GM-PMAG-ANOM		
+164.4	Late Bathonian-early Berriasian.	3	Ma		This study	801	0801c	Gradstein et al. 1995	GM-FOSSIL		Bathonian:Berriasian
+114.6		3.2	Ma	CC9	This study	802	0802a	Gradstein et al. 1995	GM-PMAG-ANOM		
+88		6	Ma		This study	803	0803d	Gradstein et al. 1995	GM-FOSSIL		
+122.4		0.8	Ma		This study	807	0807c	Mahoney et al. 1993	GM-ARAR		
+4.5		0.5	Ma	N19	This study	833	0833b	Berggren et al. 1995	GM-FOSSIL		
+6		0.2	Ma		This study	834	0834b	Berggren et al. 1995	GM-PMAG-ANOM	C3An	
+2.8		1	Ma		This study	835	0835b	Berggren et al. 1995	GM-PMAG-ANOM	CN12	
+1		0.3	Ma		This study	836	0836a	Berggren et al. 1995	GM-PMAG-ANOM	C14a	
+1		0.3	Ma		This study	836	0836b	Berggren et al. 1995	GM-PMAG-ANOM	C14a	
+97	Late Albian-early Cenomanian.	5	Ma		This study	843	0843a	Gradstein et al. 1995	GM-FOSSIL		Albian:Cenomanian
+2.8		1	Ma	NN16-18	This study	862	0862a	Berggren et al. 1995	GM-FOSSIL		
+2.8		1	Ma	NN16-18	This study	862	0862b	Berggren et al. 1995	GM-FOSSIL		
+0		0.1	Ma		This study	864	0864a		GM-PMAG-ANOM		
+19.5		1	Ma		This study	907	0907a	Berggren et al. 1995	GM-PMAG-ANOM	C6	
+77.6		3.8	Ma	CC21	This study	1001	1001a	Gradstein et al. 1995	GM-FOSSIL		

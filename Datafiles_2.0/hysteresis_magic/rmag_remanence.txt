@@ -1,0 +1,10 @@
+tab 	rmag_remanence
+er_citation_names	er_sample_name	er_site_name	er_specimen_name	magic_experiment_names	magic_method_codes	remanence_bcr	remanence_mr_moment
+This study	IS06a	IS06	IS06a-1	IS06a-1:LP-IRM-DCD	LP-IRM-DCD	5.684e-02	1.004e+01
+This study	IS06a	IS06	IS06a-2	IS06a-2:LP-IRM-DCD	LP-IRM-DCD	1.185e-01	1.513e-06
+This study	IS06a	IS06	IS06a-3	IS06a-3:LP-IRM-DCD	LP-IRM-DCD	1.200e-01	5.770e-07
+This study	IS06a	IS06	IS06a-4	IS06a-4:LP-IRM-DCD	LP-IRM-DCD	1.016e-01	6.753e-06
+This study	IS06a	IS06	IS06a-5	IS06a-5:LP-IRM-DCD	LP-IRM-DCD	8.118e-02	6.133e-06
+This study	IS06a	IS06	IS06a-6	IS06a-6:LP-IRM-DCD	LP-IRM-DCD	6.083e-02	1.678e-06
+This study	IS06a	IS06	IS06a-8	IS06a-8:LP-IRM-DCD	LP-IRM-DCD	7.915e-02	3.431e-06
+This study	IS06a	IS06	IS06a-9	IS06a-9:LP-IRM-DCD	LP-IRM-DCD	6.749e-02	7.520e-07

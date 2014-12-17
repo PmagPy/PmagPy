@@ -1,0 +1,232 @@
+tab	er_ages
+er_citation_names	er_location_name	er_site_name	er_sample_name	age	age_range_low	age_range_high	age_unit	age_description
+This study	Agrokipia;	ak2l0201	ak2l0201	-900	-1100	-700	Years Cal AD (+/-)	archaeological estimate?
+This study	Agrokipia;	ak2l0202	ak2l0202	-900	-1100	-700	Years Cal AD (+/-)	archaeological estimate?
+This study	Mitsero Kokkinoyia	mk100401	mk100401	-600	-800	-400	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Mitsero Kokkinoyia	mk100402	mk100402	-600	-800	-400	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Mitsero Kokkinoyia	mk100501	mk100501	-600	-800	-400	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Mitsero Kokkinoyia	mk100502	mk100502	-600	-800	-400	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Mitsero Kokkinoyia	mk100601	mk100601	-600	-800	-400	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Mitsero Kokkinoyia	mk100701	mk100701	-600	-800	-400	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Mitsero Kokkinoyia	mk100702	mk100702	-600	-800	-400	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Mitsero Kokkinoyia	mk100703	mk100703	-600	-800	-400	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Mitsero Kokkinoyia	mk100801	mk100801	-600	-800	-400	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Mitsero Kokkinoyia	mk100802	mk100802	-600	-800	-400	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Mitsero Kokkinoyia	mk101001	mk101001	-600	-800	-400	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Mitsero Kokkinoyia	mk101301	mk101301	-600	-800	-400	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Mitsero Kokkinoyia	mk101401	mk101401	-600	-800	-400	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Mitsero Kokkinoyia	mk101402	mk101402	-600	-800	-400	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Mitsero Kokkinoyia	mk101501	mk101501	-600	-800	-400	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Mitsero Kokkinoyia	mk101601	mk101601	-600	-800	-400	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Mitsero Kokkinoyia	mk101602	mk101602	-600	-800	-400	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Mitsero Kokkinoyia	mk101701	mk101701	-600	-800	-400	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Mitsero Kokkinoyia	mk101801	mk101801	-600	-800	-400	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Mitsero Kokkinoyia	mk101901	mk101901	-600	-800	-400	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Mitsero Kokkinoyia	mk102101	mk102101	-600	-800	-400	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Mitsero Kokkinoyia	mk102201	mk102201	-600	-800	-400	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Mitsero Kokkinoyia	mk102301	mk102301	-600	-800	-400	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Mitsero Kokkinoyia	mk102401	mk102401	-600	-800	-400	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Mitsero Kokkinoyia	mk102501	mk102501	-600	-800	-400	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Mitsero Kokkinoyia	mk102502	mk102502	-600	-800	-400	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Mitsero Kokkinoyia	mk102503	mk102503	-600	-800	-400	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Mitsero Kokkinoyia	mk102601	mk102601	-600	-800	-400	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Mitsero Kokkinoyia	mk102701	mk102701	-600	-800	-400	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Mitsero Kokkinoyia	mk102801	mk102801	-600	-800	-400	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Mitsero Kokkinoyia	mk102901	mk102901	-600	-800	-400	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Mitsero Kokkinoyia	mk103001	mk103001	-600	-800	-400	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Mitsero Kokkinoyia	mk103002	mk103002	-600	-800	-400	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Mitsero Kokkinoyia	mk103101	mk103101	-600	-800	-400	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Mitsero Kokkinoyia	mk103301	mk103301	-600	-800	-400	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Mitsero Kokkinoyia	mk103302	mk103302	-600	-800	-400	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Mitsero Kokkinoyia	mk103501	mk103501	-600	-800	-400	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Mitsero Kokkinoyia	mk103502	mk103502	-600	-800	-400	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Mitsero Kokkinoyia	mk104101	mk104101	-600	-800	-400	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Mitsero Kokkinoyia	mk104301	mk104301	-600	-800	-400	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Mitsero Kokkinoyia	mk104701	mk104701	-600	-800	-400	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Mitsero Kokkinoyia	mk104801	mk104801	-600	-800	-400	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Mitsero Kokkinoyia	mk105101	mk105101	-600	-800	-400	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Mitsero Kokkinoyia	mk105201	mk105201	-600	-800	-400	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Mitsero Kokkinoyia	mk105202	mk105202	-600	-800	-400	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Mitsero Kokkinoyia	mk105301	mk105301	-600	-800	-400	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Mitsero Kokkinoyia	mk105601	mk105601	-600	-800	-400	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Mitsero Kokkinoyia	mk105701	mk105701	-600	-800	-400	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Mitsero Kokkinoyia	mk105702	mk105702	-600	-800	-400	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Mitsero Kokkinoyia	mk105703	mk105703	-600	-800	-400	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Mitsero Kokkinoyia	mk105901	mk105901	-600	-800	-400	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Mitsero Kokkinoyia	mk106101	mk106101	-600	-800	-400	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Mitsero Kokkinoyia	mk106102	mk106102	-600	-800	-400	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Mitsero Kokkinoyia	mk106103	mk106103	-600	-800	-400	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Mitsero Kokkinoyia	mk106301	mk106301	-600	-800	-400	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Mitsero Kokkinoyia	mk106402	mk106402	-600	-800	-400	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Mitsero Kokkinoyia	mk106701	mk106701	-600	-800	-400	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Mitsero Kokkinoyia	mk106801	mk106801	-600	-800	-400	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Mitsero Kokkinoyia	mk106901	mk106901	-600	-800	-400	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Mitsero Kokkinoyia	mk107001	mk107001	-600	-800	-400	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Mitsero Kokkinoyia	mk107101	mk107101	-600	-800	-400	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Mitsero Kokkinoyia	mk107102	mk107102	-600	-800	-400	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Mitsero Kokkinoyia	mk107501	mk107501	-600	-800	-400	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Mitsero Kokkinoyia	mk107502	mk107502	-600	-800	-400	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Mitsero Kokkinoyia	mk107601	mk107601	-600	-800	-400	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Mitsero Kokkinoyia	mk107701	mk107701	-600	-800	-400	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Mitsero Kokkinoyia	mk107801	mk107801	-600	-800	-400	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Mitsero Kokkinoyia	mk107901	mk107901	-600	-800	-400	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Mitsero Kokkinoyia	mk107902	mk107902	-600	-800	-400	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Mitsero Kokkinoyia	mk108001	mk108001	-600	-800	-400	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Mitsero Kokkinoyia	mk108101	mk108101	-600	-800	-400	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Mitsero Kokkinoyia	mk108102	mk108102	-600	-800	-400	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Mitsero Kokkinoyia	mk108401	mk108401	-600	-800	-400	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Mitsero Kokkinoyia	mk108402	mk108402	-600	-800	-400	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Mitsero Kokkinoyia	mk108501	mk108501	-600	-800	-400	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Mitsero Kokkinoyia	mk108502	mk108502	-600	-800	-400	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Mitsero Kokkinoyia	mk108801	mk108801	-600	-800	-400	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Mitsero Kokkinoyia	mk108802	mk108802	-600	-800	-400	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Mitsero Kokkinoyia	mk109301	mk109301	-600	-800	-400	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Mitsero Kokkinoyia	mk1l3901	mk1l3901	-600	-800	-400	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Mitsero Kokkinoyia	mk1l3902	mk1l3902	-600	-800	-400	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Politiko Kokinorotsos	pk1l0102	pk1l0102	-633	-767	-546	Years Cal AD (+/-)	68% interval of Oxcal calibration. see Shaar et al. (2012) for details
+This study	Politiko Kokinorotsos	pk1l0103	pk1l0103	-633	-767	-546	Years Cal AD (+/-)	68% interval of Oxcal calibration. see Shaar et al. (2012) for details
+This study	Politiko Kokinorotsos	pk1l0104	pk1l0104	-633	-767	-546	Years Cal AD (+/-)	68% interval of Oxcal calibration. see Shaar et al. (2012) for details
+This study	Politiko Kokinorotsos	pk1l0105	pk1l0105	-633	-767	-546	Years Cal AD (+/-)	68% interval of Oxcal calibration. see Shaar et al. (2012) for details
+This study	Politiko Phorades	pp1l0001	pp1l0001	-1550	-1500	-1400	Years Cal AD (+/-)	archaeological estimate?
+This study	Politiko Phorades	pp1l0002	pp1l0002	-1550	-1500	-1400	Years Cal AD (+/-)	archaeological estimate?
+This study	Skouriotissa Phoenix 1	sp100101	sp100101	-972	-1118	-826	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Skouriotissa Phoenix 1	sp100102	sp100102	-972	-1118	-826	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Skouriotissa Phoenix 1	sp100103	sp100103	-972	-1118	-826	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Skouriotissa Phoenix 1	sp100201	sp100201	-972	-1118	-826	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Skouriotissa Phoenix 1	sp100301	sp100301	-972	-1118	-826	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Skouriotissa Phoenix 1	sp100302	sp100302	-972	-1118	-826	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Skouriotissa Phoenix 1	sp100303	sp100303	-972	-1118	-826	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Skouriotissa Phoenix 1	sp100501	sp100501	-972	-1118	-826	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Skouriotissa Phoenix 1	sp100502	sp100502	-972	-1118	-826	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Skouriotissa Phoenix 1	sp100601	sp100601	-972	-1118	-826	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Skouriotissa Phoenix 1	sp100602	sp100602	-972	-1118	-826	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Skouriotissa Phoenix 1	sp100603	sp100603	-972	-1118	-826	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Skouriotissa Phoenix 1	sp100701	sp100701	-972	-1118	-826	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Skouriotissa Phoenix 1	sp100702	sp100702	-972	-1118	-826	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Skouriotissa Phoenix 1	sp100801	sp100801	-972	-1118	-826	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Skouriotissa Phoenix 1	sp100802	sp100802	-972	-1118	-826	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Skouriotissa Phoenix 1	sp100803	sp100803	-972	-1118	-826	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Skouriotissa Phoenix 1	sp100804	sp100804	-972	-1118	-826	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Skouriotissa Phoenix 1	sp100901	sp100901	-972	-1118	-826	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Skouriotissa Phoenix 1	sp100902	sp100902	-972	-1118	-826	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Skouriotissa Phoenix 1	sp100903	sp100903	-972	-1118	-826	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Skouriotissa Phoenix 1	sp100904	sp100904	-972	-1118	-826	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Skouriotissa Phoenix 1	sp101001	sp101001	-972	-1118	-826	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Skouriotissa Phoenix 1	sp101002	sp101002	-972	-1118	-826	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Skouriotissa Phoenix 1	sp101003	sp101003	-972	-1118	-826	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Skouriotissa Phoenix 1	sp101101	sp101101	-972	-1118	-826	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Skouriotissa Phoenix 1	sp101102	sp101102	-972	-1118	-826	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Skouriotissa Phoenix 1	sp101103	sp101103	-972	-1118	-826	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Skouriotissa Phoenix 1	sp101104	sp101104	-972	-1118	-826	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Skouriotissa Phoenix 1	sp101201	sp101201	-972	-1118	-826	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Skouriotissa Phoenix 1	sp101202	sp101202	-972	-1118	-826	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Skouriotissa Phoenix 1	sp101203	sp101203	-972	-1118	-826	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Skouriotissa Phoenix 1	sp101301	sp101301	-972	-1118	-826	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Skouriotissa Phoenix 1	sp101302	sp101302	-972	-1118	-826	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Skouriotissa Phoenix 1	sp101901	sp101901	-972	-1118	-826	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Skouriotissa Phoenix 1	sp101902	sp101902	-972	-1118	-826	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Skouriotissa Phoenix 1	sp101903	sp101903	-972	-1118	-826	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Skouriotissa Phoenix 1	sp102001	sp102001	-972	-1118	-826	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Skouriotissa Phoenix 1	sp102002	sp102002	-972	-1118	-826	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Skouriotissa Phoenix 1	sp102101	sp102101	-972	-1118	-826	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Skouriotissa Phoenix 1	sp102105	sp102105	-972	-1118	-826	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Skouriotissa Phoenix 1	sp102201	sp102201	-972	-1118	-826	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Skouriotissa Phoenix 1	sp102202	sp102202	-972	-1118	-826	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Skouriotissa Phoenix 1	sp102203	sp102203	-972	-1118	-826	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Skouriotissa Phoenix 1	sp102204	sp102204	-972	-1118	-826	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Skouriotissa Phoenix 1	sp102301	sp102301	-972	-1118	-826	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Skouriotissa Phoenix 1	sp102302	sp102302	-972	-1118	-826	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Skouriotissa Phoenix 1	sp102303	sp102303	-972	-1118	-826	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Skouriotissa Phoenix 1	sp102304	sp102304	-972	-1118	-826	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Skouriotissa Phoenix 1	sp102305	sp102305	-972	-1118	-826	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Skouriotissa Phoenix 1	sp102601	sp102601	-972	-1118	-826	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Skouriotissa Phoenix 1	sp102602	sp102602	-972	-1118	-826	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Skouriotissa Phoenix 1	sp102701	sp102701	-972	-1118	-826	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Skouriotissa Phoenix 1	sp102702	sp102702	-972	-1118	-826	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Skouriotissa Phoenix 1	sp102703	sp102703	-972	-1118	-826	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Skouriotissa Phoenix 1	sp102704	sp102704	-972	-1118	-826	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Skouriotissa Phoenix 1	sp103001	sp103001	-972	-1118	-826	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Skouriotissa Phoenix 1	sp103002	sp103002	-972	-1118	-826	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Skouriotissa Phoenix 1	sp103003	sp103003	-972	-1118	-826	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Skouriotissa Phoenix 1	sp103004	sp103004	-972	-1118	-826	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Skouriotissa Phoenix 1	sp103101	sp103101	-972	-1118	-826	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Skouriotissa Phoenix 1	sp103102	sp103102	-972	-1118	-826	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Skouriotissa Phoenix 1	sp103201	sp103201	-972	-1118	-826	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Skouriotissa Phoenix 1	sp103202	sp103202	-972	-1118	-826	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Skouriotissa Phoenix 1	sp103301	sp103301	-972	-1118	-826	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Skouriotissa Phoenix 1	sp103302	sp103302	-972	-1118	-826	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Skouriotissa Phoenix 1	sp103303	sp103303	-972	-1118	-826	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Skouriotissa Phoenix 1	sp103401	sp103401	-972	-1118	-826	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Skouriotissa Phoenix 1	sp103402	sp103402	-972	-1118	-826	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Skouriotissa Phoenix 2	sp200101	sp200101	-369	-402	-258	Years Cal AD (+/-)	68% interval of Oxcal calibration. see Shaar et al. (2012) for details
+This study	Skouriotissa Phoenix 2	sp200301	sp200301	-369	-402	-258	Years Cal AD (+/-)	68% interval of Oxcal calibration. see Shaar et al. (2012) for details
+This study	Skouriotissa Vouppes	su100201	su100201	445	440	450	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Skouriotissa Vouppes	su100202	su100202	445	440	450	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Skouriotissa Vouppes	su100203	su100203	445	440	450	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Skouriotissa Vouppes	su100301	su100301	445	440	450	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Skouriotissa Vouppes	su100501	su100501	442	437	447	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Skouriotissa Vouppes	su100601	su100601	442	437	447	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Skouriotissa Vouppes	su100901	su100901	441	436	446	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Skouriotissa Vouppes	su100902	su100902	441	436	446	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Skouriotissa Vouppes	su101001	su101001	442	437	447	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Skouriotissa Vouppes	su101201	su101201	440	435	445	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Skouriotissa Vouppes	su101501	su101501	374	369	379	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Skouriotissa Vouppes	su101701	su101701	374	369	379	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Skouriotissa Vouppes	su101801	su101801	374	369	379	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Skouriotissa Vouppes	su102201	su102201	379	374	384	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Skouriotissa Vouppes	su102301	su102301	378	373	383	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Skouriotissa Vouppes	su102401	su102401	379	374	384	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Skouriotissa Vouppes	su102501	su102501	379	374	384	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Skouriotissa Vouppes	su102801	su102801	382	377	387	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Skouriotissa Vouppes	su102901	su102901	383	378	388	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Skouriotissa Vouppes	su102902	su102902	383	378	388	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Skouriotissa Vouppes	su103201	su103201	362	357	367	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Skouriotissa Vouppes	su103502	su103502	368	363	373	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Skouriotissa Vouppes	su103503	su103503	368	363	373	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Skouriotissa Vouppes	su104101	su104101	370	365	375	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Skouriotissa Vouppes	su104701	su104701	374	369	379	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Skouriotissa Vouppes	su105001	su105001	382	377	387	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Skouriotissa Vouppes	su105101	su105101	384	379	389	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Skouriotissa Vouppes	su105301	su105301	384	379	389	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Skouriotissa Vouppes	su105501	su105501	389	384	394	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Skouriotissa Vouppes	su106801	su106801	350	345	355	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Skouriotissa Vouppes	su106802	su106802	350	345	355	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Skouriotissa Vouppes	su106901	su106901	435	430	440	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Skouriotissa Vouppes	su107101	su107101	433	428	438	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Skouriotissa Vouppes	su107103	su107103	433	428	438	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Skouriotissa Vouppes	su107201	su107201	432	427	437	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Skouriotissa Vouppes	su107202	su107202	432	427	437	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Skouriotissa Vouppes	su107501	su107501	429	424	434	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Skouriotissa Vouppes	su107502	su107502	429	424	434	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Skouriotissa Vouppes	su107601	su107601	430	425	435	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Skouriotissa Vouppes	su107602	su107602	430	425	435	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Skouriotissa Vouppes	su108402	su108402	342	337	347	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Skouriotissa Vouppes	su108801	su108801	340	335	345	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Skouriotissa Vouppes	su108901	su108901	349	344	354	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Skouriotissa Vouppes	su109001	su109001	350	345	355	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Skouriotissa Vouppes	su109101	su109101	426	421	431	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Skouriotissa Vouppes	su109102	su109102	426	421	431	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Skouriotissa Vouppes	su109201	su109201	425	420	430	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Skouriotissa Vouppes	su109301	su109301	422	417	427	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Skouriotissa Vouppes	su109302	su109302	422	417	427	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Skouriotissa Vouppes	su109401	su109401	421	416	426	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Skouriotissa Vouppes	su109501	su109501	419	414	424	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Skouriotissa Vouppes	su109701	su109701	418	413	423	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Skouriotissa Vouppes	su109702	su109702	418	413	423	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Skouriotissa Vouppes	su109801	su109801	410	405	415	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Skouriotissa Vouppes	su110001	su110001	407	402	412	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Skouriotissa Vouppes	su110002	su110002	407	402	412	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Skouriotissa Vouppes	su110101	su110101	406	401	411	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Skouriotissa Vouppes	su110201	su110201	410	405	415	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Skouriotissa Vouppes	su110301	su110301	413	408	418	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Skouriotissa Vouppes	su110401	su110401	412	407	417	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Skouriotissa Vouppes	su110402	su110402	412	407	417	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Skouriotissa Vouppes	su110501	su110501	400	395	405	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Skouriotissa Vouppes	su110502	su110502	400	395	405	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Skouriotissa Vouppes	su110701	su110701	398	393	403	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Skouriotissa Vouppes	su110801	su110801	396	391	401	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Skouriotissa Vouppes	su111401	su111401	389	384	394	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Skouriotissa Vouppes	su111501	su111501	388	383	393	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Skouriotissa Vouppes	su111601	su111601	388	383	393	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Skouriotissa Vouppes	su111702	su111702	387	382	392	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details
+This study	Skouriotissa Vouppes	su111801	su111801	386	381	391	Years Cal AD (+/-)	68% interval of 14C Bayesian model. See Shaar et al. (2012) for details

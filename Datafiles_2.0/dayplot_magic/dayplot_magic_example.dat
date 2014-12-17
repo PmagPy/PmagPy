@@ -1,0 +1,10 @@
+tab 	rmag_hysteresis
+hysteresis_bcr	magic_experiment_names	er_site_name	er_sample_name	hysteresis_bc	hysteresis_ms_moment	hysteresis_mr_moment	er_location_name	er_citation_names	er_specimen_name	magic_method_codes
+5.500e-02	IS06a-1:LP-HYS			2.817e-02	3.751e+01	9.241e+00	unknown	This study	IS06a-1	LP-HYS:LP-BCR-HDM
+1.050e-01	IS06a-2:LP-HYS			6.863e-02	4.185e-06	1.702e-06	unknown	This study	IS06a-2	LP-HYS:LP-BCR-HDM
+1.150e-01	IS06a-3:LP-HYS			5.394e-02	1.557e-06	4.926e-07	unknown	This study	IS06a-3	LP-HYS:LP-BCR-HDM
+9.500e-02	IS06a-4:LP-HYS			6.787e-02	1.429e-05	6.438e-06	unknown	This study	IS06a-4	LP-HYS:LP-BCR-HDM
+7.500e-02	IS06a-5:LP-HYS			3.745e-02	1.833e-05	5.564e-06	unknown	This study	IS06a-5	LP-HYS:LP-BCR-HDM
+6.500e-02	IS06a-6:LP-HYS			2.719e-02	6.329e-06	1.533e-06	unknown	This study	IS06a-6	LP-HYS:LP-BCR-HDM
+7.500e-02	IS06a-8:LP-HYS			4.159e-02	1.087e-05	3.185e-06	unknown	This study	IS06a-8	LP-HYS:LP-BCR-HDM
+6.500e-02	IS06a-9:LP-HYS			2.839e-02	2.685e-06	6.777e-07	unknown	This study	IS06a-9	LP-HYS:LP-BCR-HDM

@@ -1,0 +1,9 @@
+tab 	rmag_anisotropy
+anisotropy_description	anisotropy_mean	anisotropy_n	anisotropy_s1	anisotropy_s2	anisotropy_s3	anisotropy_s4	anisotropy_s5	anisotropy_s6	anisotropy_sigma	anisotropy_tilt_correction	anisotropy_type	anisotropy_unit	er_citation_names	er_location_name	er_sample_name	er_site_name	er_specimen_name	magic_experiment_names	magic_instrument_codes	magic_method_codes	magic_software_packages	rmag_anisotropy_name
+Hext statistics adapted to AARM	2.108e-05	9	0.332247	0.302233	0.365520	0.015696	0.010975	0.041089	0.013383	-1	AARM	Am^2	This study	Bushveld	bg2.01	bg2	bg2.01	bg2.01:AARM		LP-AN-ARM:AE-H	pmagpy-2.129	bg2.01
+Hext statistics adapted to AARM	1.814e-05	9	0.331119	0.327058	0.341823	0.017774	-0.000675	0.040700	0.007963	-1	AARM	Am^2	This study	Bushveld	bg2.03	bg2	bg2.03	bg2.03:AARM		LP-AN-ARM:AE-H	pmagpy-2.129	bg2.03
+Hext statistics adapted to AARM	1.598e-05	9	0.307437	0.316737	0.375826	-0.013998	0.011727	0.039843	0.040176	-1	AARM	Am^2	This study	Bushveld	bg2.06	bg2	bg2.06	bg2.06:AARM		LP-AN-ARM:AE-H	pmagpy-2.129	bg2.06
+Hext statistics adapted to AARM	1.754e-05	9	0.319743	0.285420	0.394837	0.004911	-0.006778	0.086509	0.029195	-1	AARM	Am^2	This study	Bushveld	bg2.07	bg2	bg2.07	bg2.07:AARM		LP-AN-ARM:AE-H	pmagpy-2.129	bg2.07
+Hext statistics adapted to AARM	1.735e-05	9	0.338109	0.353508	0.308383	-0.004783	-0.013922	0.108382	0.078675	-1	AARM	Am^2	This study	Bushveld	bg2.08	bg2	bg2.08	bg2.08:AARM		LP-AN-ARM:AE-H	pmagpy-2.129	bg2.08
+Hext statistics adapted to AARM	2.179e-05	9	0.299866	0.314276	0.385859	0.020949	0.015140	0.003175	0.011228	-1	AARM	Am^2	This study	Bushveld	bg2.09	bg2	bg2.09	bg2.09:AARM		LP-AN-ARM:AE-H	pmagpy-2.129	bg2.09
+Hext statistics adapted to AARM	1.796e-05	9	0.324454	0.328738	0.346808	-0.006912	-0.003913	-0.045767	0.016370	-1	AARM	Am^2	This study	Bushveld	bg2.12	bg2	bg2.12	bg2.12:AARM		LP-AN-ARM:AE-H	pmagpy-2.129	bg2.12

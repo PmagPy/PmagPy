@@ -1,0 +1,10 @@
+tab	McMurdo													
+sample_name	date	lat	long	site_class	site_lithology	site_type	bedding_dip_direction	bedding_dip	sample_flag	magic_method_codes	mag_azimuth	field_dip	shadow_angle	hhmm
+mc123a	1/15/04	-78.25435	163.72913	igneous:extrusive	basalt	lava flow	12	4	g		258	38	260.5	16:58
+mc123b									g		242	30	243.5	17:00
+mc123c									g		266	39	270	17:01
+mc123d									g		227	35	231	17:02
+mc123e									g		7	29.5	11	17:04
+mc137a	1/19/04	-78.26133	163.25737						b	SO-GT5	28	77.5	55	17:52
+mc137b									g		10	76	36	17:53
+mc137c											15	74	42	17:55

@@ -1,0 +1,16 @@
+tab 	magic_measurements
+er_analyst_mail_names	er_citation_names	er_location_name	er_sample_name	er_site_name	er_specimen_name	er_synthetic_name	magic_experiment_name	magic_instrument_codes	magic_method_codes	magic_software_packages	measurement_csd	measurement_dec	measurement_description	measurement_flag	measurement_inc	measurement_magn_moment	measurement_number	measurement_standard	measurement_temp	treatment_ac_field	treatment_dc_field	treatment_dc_field_phi	treatment_dc_field_theta	treatment_temp
+	This study	Socorro	sc12b	sc12	sc12b1		sc12b1:LP-DIR-AF		LT-NO:LP-DIR-AF	pmagpy-2.130	0.3	185.0		g	9.3	2.878e-05	1	u	2.730e+02	0	0	0	0	2.730e+02
+	This study	Socorro	sc12b	sc12	sc12b1		sc12b1:LP-DIR-AF		LT-AF-Z:LP-DIR-AF	pmagpy-2.130	0.3	187.7		g	9.6	2.864e-05	2	u	2.730e+02	5.000e-03	0	0	0	2.730e+02
+	This study	Socorro	sc12b	sc12	sc12b1		sc12b1:LP-DIR-AF		LT-AF-Z:LP-DIR-AF	pmagpy-2.130	0.3	185.5		g	10.0	2.833e-05	3	u	2.730e+02	1.000e-02	0	0	0	2.730e+02
+	This study	Socorro	sc12b	sc12	sc12b1		sc12b1:LP-DIR-AF		LT-AF-Z:LP-DIR-AF	pmagpy-2.130	0.2	188.2		g	10.0	2.771e-05	4	u	2.730e+02	1.500e-02	0	0	0	2.730e+02
+	This study	Socorro	sc12b	sc12	sc12b1		sc12b1:LP-DIR-AF		LT-AF-Z:LP-DIR-AF	pmagpy-2.130	0.4	187.6		g	10.1	2.644e-05	5	u	2.730e+02	2.000e-02	0	0	0	2.730e+02
+	This study	Socorro	sc12b	sc12	sc12b1		sc12b1:LP-DIR-AF		LT-AF-Z:LP-DIR-AF	pmagpy-2.130	0.2	186.0		g	9.9	2.182e-05	6	u	2.730e+02	3.000e-02	0	0	0	2.730e+02
+	This study	Socorro	sc12b	sc12	sc12b1		sc12b1:LP-DIR-AF		LT-AF-Z:LP-DIR-AF	pmagpy-2.130	0.4	185.3		g	9.9	1.799e-05	7	u	2.730e+02	4.000e-02	0	0	0	2.730e+02
+	This study	Socorro	sc12b	sc12	sc12b1		sc12b1:LP-DIR-AF		LT-AF-Z:LP-DIR-AF	pmagpy-2.130	0.2	187.9		g	9.6	1.570e-05	8	u	2.730e+02	5.000e-02	0	0	0	2.730e+02
+	This study	Socorro	sc12b	sc12	sc12b1		sc12b1:LP-DIR-AF		LT-AF-Z:LP-DIR-AF	pmagpy-2.130	0.2	185.6		g	10.0	1.423e-05	9	u	2.730e+02	6.000e-02	0	0	0	2.730e+02
+	This study	Socorro	sc12b	sc12	sc12b1		sc12b1:LP-DIR-AF		LT-AF-Z:LP-DIR-AF	pmagpy-2.130	0.1	187.4		g	9.5	1.275e-05	10	u	2.730e+02	8.000e-02	0	0	0	2.730e+02
+	This study	Socorro	sc12b	sc12	sc12b1		sc12b1:LP-DIR-AF		LT-AF-Z:DE-VM:LP-DIR-AF	pmagpy-2.130	99.2	187.2	average of multiple measurements	g	10.0	1.185e-05	11	u	2.730e+02	1.000e-01	0	0	0	2.730e+02
+	This study	Socorro	sc12b	sc12	sc12b1		sc12b1:LP-DIR-AF		LT-AF-Z:DE-VM:LP-DIR-AF	pmagpy-2.130	99.2	186.2	average of multiple measurements	g	9.6	1.135e-05	12	u	2.730e+02	1.200e-01	0	0	0	2.730e+02
+	This study	Socorro	sc12b	sc12	sc12b1		sc12b1:LP-DIR-AF		LT-AF-Z:DE-VM:LP-DIR-AF	pmagpy-2.130	99.2	185.7	average of multiple measurements	g	9.7	1.083e-05	13	u	2.730e+02	1.500e-01	0	0	0	2.730e+02
+	This study	Socorro	sc12b	sc12	sc12b1		sc12b1:LP-DIR-AF		LT-AF-Z:DE-VM:LP-DIR-AF	pmagpy-2.130	99.2	186.4	average of multiple measurements	g	9.8	1.046e-05	14	u	2.730e+02	1.800e-01	0	0	0	2.730e+02

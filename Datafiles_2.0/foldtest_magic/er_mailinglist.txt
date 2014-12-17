@@ -1,0 +1,3 @@
+tab 	er_mailinglist
+city	country	department	email	er_mail_name	organization	state
+Santa Cruz	United States of America	Earth & Planetary Sciences	pete.lippert@gmail.com	Peter C. Lippert	University of California, Santa Cruz	CA

@@ -1,0 +1,64 @@
+tab 	er_locations
+er_citation_names	er_location_alternatives	er_location_name	location_begin_lat	location_begin_lon	location_description	location_type	plate_block	tectonic_setting
+This study : This study	DSDP Site 169	169	11	174		Drill Site	Pacific	
+This study : This study	DSDP Site 205	205	-25	178		Drill Site	Fiji Basin	
+This study : This study	DSDP Site 231	231	11.8902	48.2452		Drill Site	Gulf of Aden	
+This study : This study	DSDP Site 238	238	-11	71		Drill Site	Indian	
+This study : This study	DSDP Site 322	322	-60	281		Drill Site	Antarctic	
+This study : This study	DSDP Site 332	332	37	326		Drill Site	North American	
+This study : This study	DSDP Site 334	334	37	326		Drill Site	North American	
+This study : This study	DSDP Site 335	335	37	325		Drill Site	North American	
+This study : This study	DSDP Site 395	395	23	314		Drill Site	North American	
+This study : This study	DSDP Site 396	396	22.5	316.5		Drill Site	African	
+This study : This study	DSDP Site 407	407	64	329		Drill Site	North American	
+This study : This study	DSDP Site 410	410	46	330		Drill Site	North American	
+This study : This study	DSDP Site 417	417	25	292		Drill Site	North American	
+This study : This study	DSDP Site 418	418	25	292		Drill Site	North American	
+This study : This study	DSDP Site 420	420	9	254		Drill Site	Pacific	
+This study : This study	DSDP Site 423	423	9	255		Drill Site	Pacific	
+This study : This study	DSDP Site 447	447	18	133	North Philippine Basin.	Drill Site	Philippine	
+This study : This study	DSDP Site 448	448	16	135	North Philippine Basin.	Drill Site	Philippine	
+This study : This study	DSDP Site 456	456	17.9113	145.1795	Mariana Trough.	Drill Site	Pacific	
+This study : This study	DSDP Site 458	458	17.8642	146.9343	Mariana Trough.	Drill Site	Pacific	
+This study : This study	DSDP Site 462	462	7	165		Drill Site	Pacific	
+This study : This study	DSDP Site 469	469	33	239		Drill Site	North American	
+This study : This study	DSDP Site 470	470	29	242		Drill Site	North American	
+This study : This study	DSDP Site 472	472	23.0058	246.0048		Drill Site	Pacific	
+This study : This study	DSDP Site 474	474	23	251		Drill Site	North American	
+This study : This study	DSDP Site 482	482	23	252		Drill Site	North American	
+This study : This study	DSDP Site 483	483	23	252		Drill Site	North American	
+This study : This study	DSDP Site 495	495	12.5	269		Drill Site	Cocos	
+This study : This study	DSDP Site 504	504	1	276		Drill Site	Nazca	
+This study : This study	DSDP Site 510	510	2	274		Drill Site	Cocos	
+This study : This study	DSDP Site 520	520	-26	349		Drill Site	African	
+This study : This study	DSDP Site 522	522	-27	355		Drill Site	African	
+This study : This study	DSDP Site 525	525	-29	3		Drill Site	African	
+This study : This study	DSDP Site 530	530	-19.1877	9.3858		Drill Site	African	
+This study : This study	DSDP Site 534	534	28	285		Drill Site	North American	
+This study : This study	DSDP Site 543	543	16	301		Drill Site	North American	
+This study : This study	DSDP Site 556	556	39	325		Drill Site	North American	
+This study : This study	DSDP Site 558	558	37.77	322.6565		Drill Site	North American	
+This study : This study	DSDP Site 559	559	35	319		Drill Site	North American	
+This study : This study	DSDP Site 562	562	33	318		Drill Site	North American	
+This study : This study	DSDP Site 563	563	34	316		Drill Site	North American	
+This study : This study	DSDP Site 564	564	34	316		Drill Site	North American	
+This study : This study	DSDP Site 572	572	1.4348	246.158		Drill Site	Pacific	
+This study : This study	DSDP Site 573	573	0.4985	226.6905		Drill Site	Pacific	
+This study : This study	ODP Site 706	706	-13	61		Drill Site	African	
+This study : This study	ODP Site 758	758	5	90	90E Rise.	Drill Site	Indian	
+This study : This study	ODP Site 765	765	-16	118		Drill Site	Australian	
+This study : This study	ODP Site 770	770	5	124	Celebes Sea.	Drill Site	Philippine	
+This study : This study	ODP Site 781	781	20	147	Conical seamount.	Drill Site	Pacific	
+This study : This study	ODP Site 801	801	19	156		Drill Site	Pacific	
+This study : This study	ODP Site 802	802	12	153	Mariana Basin.	Drill Site	Pacific	
+This study : This study	ODP Site 803	803	2	161	Ontong-Java Plateau.	Drill Site	Pacific	
+This study : This study	ODP Site 807	807	4	157	Ontong-Java Plateau.	Drill Site	Pacific	
+This study : This study	ODP Site 833	833	15	168		Drill Site	Pacific	
+This study : This study	ODP Site 834	834	-19	182		Drill Site	Lau Basin	Back-Arc Basin
+This study : This study	ODP Site 835	835	-19	183		Drill Site	Lau Basin	Back-Arc Basin
+This study : This study	ODP Site 836	836	-20	183		Drill Site	Lau Basin	Back-Arc Basin
+This study : This study	ODP Site 843	843	19	201		Drill Site	Pacific	
+This study : This study	ODP Site 862	862	-47	284	Taitao Ridge.	Drill Site	South American	
+This study : This study	ODP Site 864	864	10	256	Axial Summit Caldera.	Drill Site	EPR	
+This study : This study	ODP Site 907	907	69	347		Drill Site	Eurasian	
+This study : This study	ODP Site 1001	1001	16	284		Drill Site	Caribbean	

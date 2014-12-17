@@ -1,0 +1,707 @@
+
+% Default to the notebook output style
+
+    
+
+
+% Inherit from the specified cell style.
+
+
+
+
+    
+\documentclass{article}
+
+    
+    
+    \usepackage{graphicx} % Used to insert images
+    \usepackage{adjustbox} % Used to constrain images to a maximum size 
+    \usepackage{color} % Allow colors to be defined
+    \usepackage{enumerate} % Needed for markdown enumerations to work
+    \usepackage{geometry} % Used to adjust the document margins
+    \usepackage{amsmath} % Equations
+    \usepackage{amssymb} % Equations
+    \usepackage[mathletters]{ucs} % Extended unicode (utf-8) support
+    \usepackage[utf8x]{inputenc} % Allow utf-8 characters in the tex document
+    \usepackage{fancyvrb} % verbatim replacement that allows latex
+    \usepackage{grffile} % extends the file name processing of package graphics 
+                         % to support a larger range 
+    % The hyperref package gives us a pdf with properly built
+    % internal navigation ('pdf bookmarks' for the table of contents,
+    % internal cross-reference links, web links for URLs, etc.)
+    \usepackage{hyperref}
+    \usepackage{longtable} % longtable support required by pandoc >1.10
+    \usepackage{booktabs}  % table support for pandoc > 1.12.2
+    
+
+    
+    
+    \definecolor{orange}{cmyk}{0,0.4,0.8,0.2}
+    \definecolor{darkorange}{rgb}{.71,0.21,0.01}
+    \definecolor{darkgreen}{rgb}{.12,.54,.11}
+    \definecolor{myteal}{rgb}{.26, .44, .56}
+    \definecolor{gray}{gray}{0.45}
+    \definecolor{lightgray}{gray}{.95}
+    \definecolor{mediumgray}{gray}{.8}
+    \definecolor{inputbackground}{rgb}{.95, .95, .85}
+    \definecolor{outputbackground}{rgb}{.95, .95, .95}
+    \definecolor{traceback}{rgb}{1, .95, .95}
+    % ansi colors
+    \definecolor{red}{rgb}{.6,0,0}
+    \definecolor{green}{rgb}{0,.65,0}
+    \definecolor{brown}{rgb}{0.6,0.6,0}
+    \definecolor{blue}{rgb}{0,.145,.698}
+    \definecolor{purple}{rgb}{.698,.145,.698}
+    \definecolor{cyan}{rgb}{0,.698,.698}
+    \definecolor{lightgray}{gray}{0.5}
+    
+    % bright ansi colors
+    \definecolor{darkgray}{gray}{0.25}
+    \definecolor{lightred}{rgb}{1.0,0.39,0.28}
+    \definecolor{lightgreen}{rgb}{0.48,0.99,0.0}
+    \definecolor{lightblue}{rgb}{0.53,0.81,0.92}
+    \definecolor{lightpurple}{rgb}{0.87,0.63,0.87}
+    \definecolor{lightcyan}{rgb}{0.5,1.0,0.83}
+    
+    % commands and environments needed by pandoc snippets
+    % extracted from the output of `pandoc -s`
+    \DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+    % Add ',fontsize=\small' for more characters per line
+    \newenvironment{Shaded}{}{}
+    \newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{{#1}}}}
+    \newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.56,0.13,0.00}{{#1}}}
+    \newcommand{\DecValTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{{#1}}}
+    \newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{{#1}}}
+    \newcommand{\FloatTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{{#1}}}
+    \newcommand{\CharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{{#1}}}
+    \newcommand{\StringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{{#1}}}
+    \newcommand{\CommentTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textit{{#1}}}}
+    \newcommand{\OtherTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{{#1}}}
+    \newcommand{\AlertTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{{#1}}}}
+    \newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.02,0.16,0.49}{{#1}}}
+    \newcommand{\RegionMarkerTok}[1]{{#1}}
+    \newcommand{\ErrorTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{{#1}}}}
+    \newcommand{\NormalTok}[1]{{#1}}
+    
+    % Define a nice break command that doesn't care if a line doesn't already
+    % exist.
+    \def\br{\hspace*{\fill} \\* }
+    % Math Jax compatability definitions
+    \def\gt{>}
+    \def\lt{<}
+    % Document parameters
+    \title{PmagPy\_notebook}
+    
+    
+    
+
+    % Pygments definitions
+    
+\makeatletter
+\def\PY@reset{\let\PY@it=\relax \let\PY@bf=\relax%
+    \let\PY@ul=\relax \let\PY@tc=\relax%
+    \let\PY@bc=\relax \let\PY@ff=\relax}
+\def\PY@tok#1{\csname PY@tok@#1\endcsname}
+\def\PY@toks#1+{\ifx\relax#1\empty\else%
+    \PY@tok{#1}\expandafter\PY@toks\fi}
+\def\PY@do#1{\PY@bc{\PY@tc{\PY@ul{%
+    \PY@it{\PY@bf{\PY@ff{#1}}}}}}}
+\def\PY#1#2{\PY@reset\PY@toks#1+\relax+\PY@do{#2}}
+
+\expandafter\def\csname PY@tok@gd\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.63,0.00,0.00}{##1}}}
+\expandafter\def\csname PY@tok@gu\endcsname{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.50,0.00,0.50}{##1}}}
+\expandafter\def\csname PY@tok@gt\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.00,0.27,0.87}{##1}}}
+\expandafter\def\csname PY@tok@gs\endcsname{\let\PY@bf=\textbf}
+\expandafter\def\csname PY@tok@gr\endcsname{\def\PY@tc##1{\textcolor[rgb]{1.00,0.00,0.00}{##1}}}
+\expandafter\def\csname PY@tok@cm\endcsname{\let\PY@it=\textit\def\PY@tc##1{\textcolor[rgb]{0.25,0.50,0.50}{##1}}}
+\expandafter\def\csname PY@tok@vg\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.10,0.09,0.49}{##1}}}
+\expandafter\def\csname PY@tok@m\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.40,0.40,0.40}{##1}}}
+\expandafter\def\csname PY@tok@mh\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.40,0.40,0.40}{##1}}}
+\expandafter\def\csname PY@tok@go\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.53,0.53,0.53}{##1}}}
+\expandafter\def\csname PY@tok@ge\endcsname{\let\PY@it=\textit}
+\expandafter\def\csname PY@tok@vc\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.10,0.09,0.49}{##1}}}
+\expandafter\def\csname PY@tok@il\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.40,0.40,0.40}{##1}}}
+\expandafter\def\csname PY@tok@cs\endcsname{\let\PY@it=\textit\def\PY@tc##1{\textcolor[rgb]{0.25,0.50,0.50}{##1}}}
+\expandafter\def\csname PY@tok@cp\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.74,0.48,0.00}{##1}}}
+\expandafter\def\csname PY@tok@gi\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.00,0.63,0.00}{##1}}}
+\expandafter\def\csname PY@tok@gh\endcsname{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.00,0.50}{##1}}}
+\expandafter\def\csname PY@tok@ni\endcsname{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.60,0.60,0.60}{##1}}}
+\expandafter\def\csname PY@tok@nl\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.63,0.63,0.00}{##1}}}
+\expandafter\def\csname PY@tok@nn\endcsname{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.00,1.00}{##1}}}
+\expandafter\def\csname PY@tok@no\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.53,0.00,0.00}{##1}}}
+\expandafter\def\csname PY@tok@na\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.49,0.56,0.16}{##1}}}
+\expandafter\def\csname PY@tok@nb\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\expandafter\def\csname PY@tok@nc\endcsname{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.00,1.00}{##1}}}
+\expandafter\def\csname PY@tok@nd\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.67,0.13,1.00}{##1}}}
+\expandafter\def\csname PY@tok@ne\endcsname{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.82,0.25,0.23}{##1}}}
+\expandafter\def\csname PY@tok@nf\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.00,0.00,1.00}{##1}}}
+\expandafter\def\csname PY@tok@si\endcsname{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.73,0.40,0.53}{##1}}}
+\expandafter\def\csname PY@tok@s2\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.73,0.13,0.13}{##1}}}
+\expandafter\def\csname PY@tok@vi\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.10,0.09,0.49}{##1}}}
+\expandafter\def\csname PY@tok@nt\endcsname{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\expandafter\def\csname PY@tok@nv\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.10,0.09,0.49}{##1}}}
+\expandafter\def\csname PY@tok@s1\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.73,0.13,0.13}{##1}}}
+\expandafter\def\csname PY@tok@kd\endcsname{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\expandafter\def\csname PY@tok@sh\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.73,0.13,0.13}{##1}}}
+\expandafter\def\csname PY@tok@sc\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.73,0.13,0.13}{##1}}}
+\expandafter\def\csname PY@tok@sx\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\expandafter\def\csname PY@tok@bp\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\expandafter\def\csname PY@tok@c1\endcsname{\let\PY@it=\textit\def\PY@tc##1{\textcolor[rgb]{0.25,0.50,0.50}{##1}}}
+\expandafter\def\csname PY@tok@kc\endcsname{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\expandafter\def\csname PY@tok@c\endcsname{\let\PY@it=\textit\def\PY@tc##1{\textcolor[rgb]{0.25,0.50,0.50}{##1}}}
+\expandafter\def\csname PY@tok@mf\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.40,0.40,0.40}{##1}}}
+\expandafter\def\csname PY@tok@err\endcsname{\def\PY@bc##1{\setlength{\fboxsep}{0pt}\fcolorbox[rgb]{1.00,0.00,0.00}{1,1,1}{\strut ##1}}}
+\expandafter\def\csname PY@tok@mb\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.40,0.40,0.40}{##1}}}
+\expandafter\def\csname PY@tok@ss\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.10,0.09,0.49}{##1}}}
+\expandafter\def\csname PY@tok@sr\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.73,0.40,0.53}{##1}}}
+\expandafter\def\csname PY@tok@mo\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.40,0.40,0.40}{##1}}}
+\expandafter\def\csname PY@tok@kn\endcsname{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\expandafter\def\csname PY@tok@mi\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.40,0.40,0.40}{##1}}}
+\expandafter\def\csname PY@tok@gp\endcsname{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.00,0.50}{##1}}}
+\expandafter\def\csname PY@tok@o\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.40,0.40,0.40}{##1}}}
+\expandafter\def\csname PY@tok@kr\endcsname{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\expandafter\def\csname PY@tok@s\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.73,0.13,0.13}{##1}}}
+\expandafter\def\csname PY@tok@kp\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\expandafter\def\csname PY@tok@w\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.73,0.73,0.73}{##1}}}
+\expandafter\def\csname PY@tok@kt\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.69,0.00,0.25}{##1}}}
+\expandafter\def\csname PY@tok@ow\endcsname{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.67,0.13,1.00}{##1}}}
+\expandafter\def\csname PY@tok@sb\endcsname{\def\PY@tc##1{\textcolor[rgb]{0.73,0.13,0.13}{##1}}}
+\expandafter\def\csname PY@tok@k\endcsname{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.00,0.50,0.00}{##1}}}
+\expandafter\def\csname PY@tok@se\endcsname{\let\PY@bf=\textbf\def\PY@tc##1{\textcolor[rgb]{0.73,0.40,0.13}{##1}}}
+\expandafter\def\csname PY@tok@sd\endcsname{\let\PY@it=\textit\def\PY@tc##1{\textcolor[rgb]{0.73,0.13,0.13}{##1}}}
+
+\def\PYZbs{\char`\\}
+\def\PYZus{\char`\_}
+\def\PYZob{\char`\{}
+\def\PYZcb{\char`\}}
+\def\PYZca{\char`\^}
+\def\PYZam{\char`\&}
+\def\PYZlt{\char`\<}
+\def\PYZgt{\char`\>}
+\def\PYZsh{\char`\#}
+\def\PYZpc{\char`\%}
+\def\PYZdl{\char`\$}
+\def\PYZhy{\char`\-}
+\def\PYZsq{\char`\'}
+\def\PYZdq{\char`\"}
+\def\PYZti{\char`\~}
+% for compatibility with earlier versions
+\def\PYZat{@}
+\def\PYZlb{[}
+\def\PYZrb{]}
+\makeatother
+
+
+    % Exact colors from NB
+    \definecolor{incolor}{rgb}{0.0, 0.0, 0.5}
+    \definecolor{outcolor}{rgb}{0.545, 0.0, 0.0}
+
+
+
+    
+    % Prevent overflowing lines due to hard-to-break entities
+    \sloppy 
+    % Setup hyperref package
+    \hypersetup{
+      breaklinks=true,  % so long urls are correctly broken across lines
+      colorlinks=true,
+      urlcolor=blue,
+      linkcolor=darkorange,
+      citecolor=darkgreen,
+      }
+    % Slightly bigger margins than the latex defaults
+    
+    \geometry{verbose,tmargin=1in,bmargin=1in,lmargin=1in,rmargin=1in}
+    
+    
+
+    \begin{document}
+    
+    
+    \maketitle
+    
+    
+
+    
+
+    \section{An example IPython (Jupyter) notebook for paleomagnetic data analysis}
+
+
+    This notebook demonstrates some of the functionality that is possible
+when using PmagPy functions in an interactive notebook environment
+
+
+    \subsection{Import necessary function libraries for the data analysis}
+
+
+    The code block below imports necessary libraries from PmagPy that define
+functions that will be used in the data analysis. Using
+`sys.path.insert' allows you to point to the directory where you keep
+PmagPy in order to import it. \textbf{You will need to change the path
+to match where the PmagPy folder is on your computer.}
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+{\color{incolor}In [{\color{incolor}1}]:} \PY{k+kn}{import} \PY{n+nn}{sys}
+        \PY{c}{\PYZsh{}change to match where the PmagPy folder is on your computer}
+        \PY{n}{sys}\PY{o}{.}\PY{n}{path}\PY{o}{.}\PY{n}{insert}\PY{p}{(}\PY{l+m+mi}{0}\PY{p}{,} \PY{l+s}{\PYZsq{}}\PY{l+s}{/Users/ltauxe/PmagPy}\PY{l+s}{\PYZsq{}}\PY{p}{)}
+        \PY{k+kn}{import} \PY{n+nn}{pmag}\PY{o}{,}\PY{n+nn}{pmagplotlib}\PY{o}{,}\PY{n+nn}{ipmag} \PY{c}{\PYZsh{} import PmagPy functions}
+        \PY{k+kn}{import} \PY{n+nn}{numpy}\PY{o}{,} \PY{n+nn}{pandas}\PY{o}{,} \PY{n+nn}{matplotlib.pylot} \PY{c}{\PYZsh{} import scientic python functions}
+        \PY{o}{\PYZpc{}}\PY{k}{matplotlib} \PY{n}{inline} \PY{c}{\PYZsh{} allow plots to be generated in the notebook }
+\end{Verbatim}
+
+
+    \subsubsection{Scientific Python functions}
+
+
+    The numpy, scipy, matplotlib and pandas libraries are standard libraries
+for scientific python (see http://www.scipy.org). `\%matplotlib inline'
+is necessary to allow the plots to be generated within the notebook
+instead of in an external window.
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+{\color{incolor}In [{\color{incolor}2}]:} \PY{k+kn}{import} \PY{n+nn}{numpy} \PY{k+kn}{as} \PY{n+nn}{np}
+        \PY{k+kn}{import} \PY{n+nn}{pandas} \PY{k+kn}{as} \PY{n+nn}{pd}
+        \PY{k+kn}{import} \PY{n+nn}{matplotlib.pyplot} \PY{k+kn}{as} \PY{n+nn}{plt}
+        \PY{o}{\PYZpc{}}\PY{k}{matplotlib} \PY{n}{inline}
+\end{Verbatim}
+
+
+    \subsection{Analyzing data from McMurdo Sound}
+
+
+    Let's look at data from this study
+(http://earthref.org/doi/10.1029/2008GC002072):
+
+Lawrence, K.P., Tauxe, L., Staudigel, H., Constable, C.G., Koppers, A.,
+McIntosh, W., Johnson, C.L., Paleomagnetic field properties near the
+southern hemisphere tangent cylinder, Geochem. Geophys. Geosys., 10,
+Q01005, doi:10.1029/2008GC002072, 2009
+http://onlinelibrary.wiley.com/doi/10.1029/2008GC002072/abstract
+
+
+    \subsubsection{Reading data from MagIC format results files}
+
+
+    First, the data needs to be imported into the notebook environment.
+
+These data were downloaded from the MagIC database
+(http://earthref.org/doi/10.1029/2008GC002072) as a .txt file. The data
+were then unpacked on the command line using the
+\texttt{download\_magic.py} program (which could also be done using the
+\texttt{unpack download file} button in QuickMagIC.py). We will
+concentrate on importing and using the resulting
+\texttt{pmag\_results.txt} file below. The code below relies on the
+pandas (pd) dataframe structure which is a useful and user friendly way
+to wrangle data.
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+{\color{incolor}In [{\color{incolor}3}]:} 
+\end{Verbatim}
+
+            \begin{Verbatim}[commandchars=\\\{\}]
+{\color{outcolor}Out[{\color{outcolor}3}]:}    antipodal  average\_age  average\_age\_sigma average\_age\_unit  \textbackslash{}
+        0        NaN        1.180              0.005               Ma   
+        1        NaN        0.330              0.010               Ma   
+        2        NaN        0.348              0.004               Ma   
+        3        NaN        0.340              0.003               Ma   
+        4        NaN        4.000              4.000               Ma   
+        
+           average\_alpha95  average\_dec  average\_inc  average\_int  average\_int\_n  \textbackslash{}
+        0              4.2        258.6         78.6          NaN            NaN   
+        1              2.1        328.6        -80.0          NaN            NaN   
+        2              2.3        352.0        -82.7          NaN            NaN   
+        3              4.6        352.1        -86.8          NaN            NaN   
+        4              4.8         13.6        -78.8          NaN            NaN   
+        
+           average\_int\_sigma  \ldots   vadm\_sigma  vdm  vdm\_n  vdm\_sigma  vgp\_alpha95  \textbackslash{}
+        0                NaN  \ldots          NaN  NaN    NaN        NaN          NaN   
+        1                NaN  \ldots          NaN  NaN    NaN        NaN          NaN   
+        2                NaN  \ldots          NaN  NaN    NaN        NaN          NaN   
+        3                NaN  \ldots          NaN  NaN    NaN        NaN          NaN   
+        4                NaN  \ldots          NaN  NaN    NaN        NaN          NaN   
+        
+           vgp\_dm  vgp\_dp  vgp\_lat  vgp\_lon vgp\_n  
+        0     4.5     8.1    -67.3     95.2     7  
+        1     2.5     4.1     79.0    101.2     6  
+        2     3.8     4.4     87.1    123.1     6  
+        3    17.4     8.9     84.1    355.2     5  
+        4     5.2     9.3     79.8    196.0     5  
+        
+        [5 rows x 47 columns]
+\end{Verbatim}
+        
+
+    \subsubsection{Plotting site mean directions}
+
+
+    First, the data needs to be imported into the notebook environment.
+These data were downloaded from the MagIC database
+(http://earthref.org/doi/10.1029/2008GC002072) as a .txt file. The data
+were then unpacked on the command line using the download\_magic.py
+program (which could also be done using the unpack download file button
+in QuickMagIC.py). We will concentrate on importing and using the
+resulting pmag\_results.txt file below. The code below relies on the
+pandas (pd) dataframe structure which is a useful and user friendly way
+to wrangle data. Now we can {]} plot it using \texttt{ipmag.plot\_di}.
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+{\color{incolor}In [{\color{incolor}4}]:} \PY{n}{data} \PY{o}{=} \PY{n}{pd}\PY{o}{.}\PY{n}{read\PYZus{}csv}\PY{p}{(}\PY{l+s}{\PYZsq{}}\PY{l+s}{Lawrence09\PYZus{}MagIC/pmag\PYZus{}results.txt}\PY{l+s}{\PYZsq{}}\PY{p}{,}\PY{n}{sep}\PY{o}{=}\PY{l+s}{\PYZsq{}}\PY{l+s}{	}\PY{l+s}{\PYZsq{}}\PY{p}{,}\PY{n}{header}\PY{o}{=}\PY{l+m+mi}{1}\PY{p}{)}
+        \PY{c}{\PYZsh{} screen out records with no directional data}
+        \PY{n}{DI\PYZus{}results} \PY{o}{=} \PY{n}{data}\PY{o}{.}\PY{n}{dropna}\PY{p}{(}\PY{n}{subset} \PY{o}{=} \PY{p}{[}\PY{l+s}{\PYZsq{}}\PY{l+s}{average\PYZus{}dec}\PY{l+s}{\PYZsq{}}\PY{p}{]}\PY{p}{)}
+        \PY{n}{fignum} \PY{o}{=} \PY{l+m+mi}{1}
+        \PY{n}{plt}\PY{o}{.}\PY{n}{figure}\PY{p}{(}\PY{n}{num}\PY{o}{=}\PY{n}{fignum}\PY{p}{,}\PY{n}{figsize}\PY{o}{=}\PY{p}{(}\PY{l+m+mi}{6}\PY{p}{,}\PY{l+m+mi}{6}\PY{p}{)}\PY{p}{,}\PY{n}{dpi}\PY{o}{=}\PY{l+m+mi}{160}\PY{p}{)}
+        \PY{n}{ipmag}\PY{o}{.}\PY{n}{plot\PYZus{}net}\PY{p}{(}\PY{n}{fignum}\PY{p}{)}
+        \PY{n}{plt}\PY{o}{.}\PY{n}{title}\PY{p}{(}\PY{l+s}{\PYZsq{}}\PY{l+s}{McMurdo site mean equal area plot}\PY{l+s}{\PYZsq{}}\PY{p}{)}
+        \PY{n}{ipmag}\PY{o}{.}\PY{n}{plot\PYZus{}di}\PY{p}{(}\PY{n}{DI\PYZus{}results}\PY{p}{[}\PY{l+s}{\PYZsq{}}\PY{l+s}{average\PYZus{}dec}\PY{l+s}{\PYZsq{}}\PY{p}{]}\PY{p}{,}\PY{n}{DI\PYZus{}results}\PY{p}{[}\PY{l+s}{\PYZsq{}}\PY{l+s}{average\PYZus{}inc}\PY{l+s}{\PYZsq{}}\PY{p}{]}\PY{p}{)}
+\end{Verbatim}
+
+    \begin{center}
+    \adjustimage{max size={0.9\linewidth}{0.9\paperheight}}{PmagPy_notebook_files/PmagPy_notebook_15_0.png}
+    \end{center}
+    { \hspace*{\fill} \\}
+    
+
+    \subsubsection{Calculating and plotting Fisher means from the data}
+
+
+    It can be seen in the plot above that the data are of dual polarity. To
+split the data by polarity, the function \texttt{pmag.doprinc} can be
+used to calculate the principal direction of the data set. This function
+takes a DIblock which is an array of {[}dec, inc{]} values. Results
+within 90º of the principal direction are of one polarity (reverse in
+this case), while results greater than 90º from that direction are of
+the other. This angle can be calculated using the \texttt{pmag.angle}
+function. This \texttt{pmag.angle} function can accept single values or
+arrays of values as is done here.
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+{\color{incolor}In [{\color{incolor}5}]:} \PY{c}{\PYZsh{}make an 2xn array with all the declinations and inclinations}
+        \PY{n}{DIblock}\PY{o}{=}\PY{n}{np}\PY{o}{.}\PY{n}{array}\PY{p}{(}\PY{p}{[}\PY{n}{DI\PYZus{}results}\PY{o}{.}\PY{n}{average\PYZus{}dec}\PY{p}{,}\PY{n}{DI\PYZus{}results}\PY{o}{.}\PY{n}{average\PYZus{}inc}\PY{p}{]}\PY{p}{)}\PY{o}{.}\PY{n}{transpose}\PY{p}{(}\PY{p}{)}
+        \PY{c}{\PYZsh{} calculate the principle direction for the data set}
+        \PY{n}{principal}\PY{o}{=}\PY{n}{pmag}\PY{o}{.}\PY{n}{doprinc}\PY{p}{(}\PY{n}{DIblock}\PY{p}{)}
+        \PY{k}{print} \PY{l+s}{\PYZsq{}}\PY{l+s}{Principal direction declination: }\PY{l+s}{\PYZsq{}} \PY{o}{+} \PY{n+nb}{str}\PY{p}{(}\PY{n}{principal}\PY{p}{[}\PY{l+s}{\PYZsq{}}\PY{l+s}{dec}\PY{l+s}{\PYZsq{}}\PY{p}{]}\PY{p}{)}
+        \PY{k}{print} \PY{l+s}{\PYZsq{}}\PY{l+s}{Principal direction inclination: }\PY{l+s}{\PYZsq{}} \PY{o}{+} \PY{n+nb}{str}\PY{p}{(}\PY{n}{principal}\PY{p}{[}\PY{l+s}{\PYZsq{}}\PY{l+s}{inc}\PY{l+s}{\PYZsq{}}\PY{p}{]}\PY{p}{)}
+\end{Verbatim}
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+Principal direction declination: 189.094639423
+Principal direction inclination: 80.8584727976
+    \end{Verbatim}
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+{\color{incolor}In [{\color{incolor}6}]:} \PY{n}{DI\PYZus{}results}\PY{p}{[}\PY{l+s}{\PYZsq{}}\PY{l+s}{principal\PYZus{}dec}\PY{l+s}{\PYZsq{}}\PY{p}{]} \PY{o}{=} \PY{n}{principal}\PY{p}{[}\PY{l+s}{\PYZsq{}}\PY{l+s}{dec}\PY{l+s}{\PYZsq{}}\PY{p}{]}
+        \PY{n}{DI\PYZus{}results}\PY{p}{[}\PY{l+s}{\PYZsq{}}\PY{l+s}{principal\PYZus{}inc}\PY{l+s}{\PYZsq{}}\PY{p}{]} \PY{o}{=} \PY{n}{principal}\PY{p}{[}\PY{l+s}{\PYZsq{}}\PY{l+s}{inc}\PY{l+s}{\PYZsq{}}\PY{p}{]}
+        \PY{n}{principal\PYZus{}block}\PY{o}{=}\PY{n}{np}\PY{o}{.}\PY{n}{array}\PY{p}{(}\PY{p}{[}\PY{n}{DI\PYZus{}results}\PY{o}{.}\PY{n}{principal\PYZus{}dec}\PY{p}{,}\PY{n}{DI\PYZus{}results}\PY{o}{.}\PY{n}{principal\PYZus{}inc}\PY{p}{]}\PY{p}{)}\PY{o}{.}\PY{n}{transpose}\PY{p}{(}\PY{p}{)}
+        \PY{n}{DI\PYZus{}results}\PY{p}{[}\PY{l+s}{\PYZsq{}}\PY{l+s}{angle}\PY{l+s}{\PYZsq{}}\PY{p}{]} \PY{o}{=} \PY{n}{pmag}\PY{o}{.}\PY{n}{angle}\PY{p}{(}\PY{n}{DIblock}\PY{p}{,}\PY{n}{principal\PYZus{}block}\PY{p}{)}
+        \PY{n}{DI\PYZus{}results}\PY{o}{.}\PY{n}{ix}\PY{p}{[}\PY{n}{DI\PYZus{}results}\PY{o}{.}\PY{n}{angle}\PY{o}{\PYZlt{}}\PY{o}{=}\PY{l+m+mi}{90}\PY{p}{,}\PY{l+s}{\PYZsq{}}\PY{l+s}{polarity}\PY{l+s}{\PYZsq{}}\PY{p}{]} \PY{o}{=} \PY{l+s}{\PYZsq{}}\PY{l+s}{Reverse}\PY{l+s}{\PYZsq{}}
+        \PY{n}{DI\PYZus{}results}\PY{o}{.}\PY{n}{ix}\PY{p}{[}\PY{n}{DI\PYZus{}results}\PY{o}{.}\PY{n}{angle}\PY{o}{\PYZgt{}}\PY{l+m+mi}{90}\PY{p}{,}\PY{l+s}{\PYZsq{}}\PY{l+s}{polarity}\PY{l+s}{\PYZsq{}}\PY{p}{]} \PY{o}{=} \PY{l+s}{\PYZsq{}}\PY{l+s}{Normal}\PY{l+s}{\PYZsq{}}
+        \PY{n}{DI\PYZus{}results}\PY{o}{.}\PY{n}{head}\PY{p}{(}\PY{p}{)}
+\end{Verbatim}
+
+            \begin{Verbatim}[commandchars=\\\{\}]
+{\color{outcolor}Out[{\color{outcolor}6}]:}    antipodal  average\_age  average\_age\_sigma average\_age\_unit  \textbackslash{}
+        0        NaN        1.180              0.005               Ma   
+        1        NaN        0.330              0.010               Ma   
+        2        NaN        0.348              0.004               Ma   
+        3        NaN        0.340              0.003               Ma   
+        4        NaN        4.000              4.000               Ma   
+        
+           average\_alpha95  average\_dec  average\_inc  average\_int  average\_int\_n  \textbackslash{}
+        0              4.2        258.6         78.6          NaN            NaN   
+        1              2.1        328.6        -80.0          NaN            NaN   
+        2              2.3        352.0        -82.7          NaN            NaN   
+        3              4.6        352.1        -86.8          NaN            NaN   
+        4              4.8         13.6        -78.8          NaN            NaN   
+        
+           average\_int\_sigma   \ldots     vgp\_alpha95  vgp\_dm  vgp\_dp  vgp\_lat  vgp\_lon  \textbackslash{}
+        0                NaN   \ldots             NaN     4.5     8.1    -67.3     95.2   
+        1                NaN   \ldots             NaN     2.5     4.1     79.0    101.2   
+        2                NaN   \ldots             NaN     3.8     4.4     87.1    123.1   
+        3                NaN   \ldots             NaN    17.4     8.9     84.1    355.2   
+        4                NaN   \ldots             NaN     5.2     9.3     79.8    196.0   
+        
+           vgp\_n  principal\_dec  principal\_inc       angle polarity  
+        0      7     189.094639      80.858473   11.814579  Reverse  
+        1      6     189.094639      80.858473  173.353659   Normal  
+        2      6     189.094639      80.858473  176.958830   Normal  
+        3      5     189.094639      80.858473  173.847834   Normal  
+        4      5     189.094639      80.858473  177.794663   Normal  
+        
+        [5 rows x 51 columns]
+\end{Verbatim}
+        
+    Now that polarity is assigned using the angle from the principal
+component, let's filter the data by polarity and then plot using
+different colors in order to visually inspect the polarity assignments.
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+{\color{incolor}In [{\color{incolor}7}]:} \PY{n}{normal\PYZus{}data} \PY{o}{=} \PY{n}{DI\PYZus{}results}\PY{o}{.}\PY{n}{ix}\PY{p}{[}\PY{n}{DI\PYZus{}results}\PY{o}{.}\PY{n}{polarity}\PY{o}{==}\PY{l+s}{\PYZsq{}}\PY{l+s}{Normal}\PY{l+s}{\PYZsq{}}\PY{p}{]}\PY{o}{.}\PY{n}{reset\PYZus{}index}\PY{p}{(}\PY{n}{drop}\PY{o}{=}\PY{n+nb+bp}{True}\PY{p}{)}
+        \PY{n}{reverse\PYZus{}data} \PY{o}{=} \PY{n}{DI\PYZus{}results}\PY{o}{.}\PY{n}{ix}\PY{p}{[}\PY{n}{DI\PYZus{}results}\PY{o}{.}\PY{n}{polarity}\PY{o}{==}\PY{l+s}{\PYZsq{}}\PY{l+s}{Reverse}\PY{l+s}{\PYZsq{}}\PY{p}{]}\PY{o}{.}\PY{n}{reset\PYZus{}index}\PY{p}{(}\PY{n}{drop}\PY{o}{=}\PY{n+nb+bp}{True}\PY{p}{)}
+        
+        \PY{n}{fignum} \PY{o}{=} \PY{l+m+mi}{1}
+        \PY{n}{plt}\PY{o}{.}\PY{n}{figure}\PY{p}{(}\PY{n}{num}\PY{o}{=}\PY{n}{fignum}\PY{p}{,}\PY{n}{figsize}\PY{o}{=}\PY{p}{(}\PY{l+m+mi}{6}\PY{p}{,}\PY{l+m+mi}{6}\PY{p}{)}\PY{p}{,}\PY{n}{dpi}\PY{o}{=}\PY{l+m+mi}{160}\PY{p}{)}
+        \PY{n}{ipmag}\PY{o}{.}\PY{n}{plot\PYZus{}net}\PY{p}{(}\PY{n}{fignum}\PY{p}{)}
+        \PY{n}{plt}\PY{o}{.}\PY{n}{title}\PY{p}{(}\PY{l+s}{\PYZsq{}}\PY{l+s}{McMurdo site mean equal area plot}\PY{l+s}{\PYZsq{}}\PY{p}{)}
+        \PY{n}{ipmag}\PY{o}{.}\PY{n}{plot\PYZus{}di}\PY{p}{(}\PY{n}{normal\PYZus{}data}\PY{p}{[}\PY{l+s}{\PYZsq{}}\PY{l+s}{average\PYZus{}dec}\PY{l+s}{\PYZsq{}}\PY{p}{]}\PY{p}{,}\PY{n}{normal\PYZus{}data}\PY{p}{[}\PY{l+s}{\PYZsq{}}\PY{l+s}{average\PYZus{}inc}\PY{l+s}{\PYZsq{}}\PY{p}{]}\PY{p}{,}\PY{n}{color}\PY{o}{=}\PY{l+s}{\PYZsq{}}\PY{l+s}{b}\PY{l+s}{\PYZsq{}}\PY{p}{,}\PY{n}{label}\PY{o}{=}\PY{l+s}{\PYZsq{}}\PY{l+s}{normal data}\PY{l+s}{\PYZsq{}}\PY{p}{)}
+        \PY{n}{ipmag}\PY{o}{.}\PY{n}{plot\PYZus{}di}\PY{p}{(}\PY{n}{reverse\PYZus{}data}\PY{p}{[}\PY{l+s}{\PYZsq{}}\PY{l+s}{average\PYZus{}dec}\PY{l+s}{\PYZsq{}}\PY{p}{]}\PY{p}{,}\PY{n}{reverse\PYZus{}data}\PY{p}{[}\PY{l+s}{\PYZsq{}}\PY{l+s}{average\PYZus{}inc}\PY{l+s}{\PYZsq{}}\PY{p}{]}\PY{p}{,}\PY{n}{color}\PY{o}{=}\PY{l+s}{\PYZsq{}}\PY{l+s}{r}\PY{l+s}{\PYZsq{}}\PY{p}{,}\PY{n}{label}\PY{o}{=}\PY{l+s}{\PYZsq{}}\PY{l+s}{reverse data}\PY{l+s}{\PYZsq{}}\PY{p}{)}
+        \PY{n}{plt}\PY{o}{.}\PY{n}{legend}\PY{p}{(}\PY{n}{loc}\PY{o}{=}\PY{l+m+mi}{4}\PY{p}{)}
+        \PY{n}{plt}\PY{o}{.}\PY{n}{show}\PY{p}{(}\PY{p}{)}
+\end{Verbatim}
+
+    \begin{center}
+    \adjustimage{max size={0.9\linewidth}{0.9\paperheight}}{PmagPy_notebook_files/PmagPy_notebook_21_0.png}
+    \end{center}
+    { \hspace*{\fill} \\}
+    
+    Because these data are from a study in the sourthern hemisphere the
+normal direction is up. Fisher means for each polarity can be calculated
+using the Fisher mean pmag.py function (\texttt{pmag.fisher\_mean}).
+This function returns a dictionary that gives the parameters associated
+with calculating a Fisher mean. These individual values can be called
+upon (e.g.~normal\_mean{[}`dec'{]}). A plot can be made of these
+calculate means along with their α95 confidence ellipses using
+ipmag.plot\_di\_mean.
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+{\color{incolor}In [{\color{incolor}8}]:} \PY{n}{normal\PYZus{}directions} \PY{o}{=} \PY{n}{normal\PYZus{}data}\PY{p}{[}\PY{p}{[}\PY{l+s}{\PYZsq{}}\PY{l+s}{average\PYZus{}dec}\PY{l+s}{\PYZsq{}}\PY{p}{,}\PY{l+s}{\PYZsq{}}\PY{l+s}{average\PYZus{}inc}\PY{l+s}{\PYZsq{}}\PY{p}{]}\PY{p}{]}\PY{o}{.}\PY{n}{values}
+        \PY{n}{reverse\PYZus{}directions} \PY{o}{=} \PY{n}{reverse\PYZus{}data}\PY{p}{[}\PY{p}{[}\PY{l+s}{\PYZsq{}}\PY{l+s}{average\PYZus{}dec}\PY{l+s}{\PYZsq{}}\PY{p}{,}\PY{l+s}{\PYZsq{}}\PY{l+s}{average\PYZus{}inc}\PY{l+s}{\PYZsq{}}\PY{p}{]}\PY{p}{]}\PY{o}{.}\PY{n}{values}
+        
+        \PY{n}{normal\PYZus{}mean} \PY{o}{=} \PY{n}{pmag}\PY{o}{.}\PY{n}{fisher\PYZus{}mean}\PY{p}{(}\PY{n}{normal\PYZus{}directions}\PY{p}{)}
+        \PY{n}{reverse\PYZus{}mean} \PY{o}{=} \PY{n}{pmag}\PY{o}{.}\PY{n}{fisher\PYZus{}mean}\PY{p}{(}\PY{n}{reverse\PYZus{}directions}\PY{p}{)}
+        
+        \PY{n}{fignum} \PY{o}{=} \PY{l+m+mi}{1}
+        \PY{n}{plt}\PY{o}{.}\PY{n}{figure}\PY{p}{(}\PY{n}{num}\PY{o}{=}\PY{n}{fignum}\PY{p}{,}\PY{n}{figsize}\PY{o}{=}\PY{p}{(}\PY{l+m+mi}{5}\PY{p}{,}\PY{l+m+mi}{5}\PY{p}{)}\PY{p}{)}
+        \PY{n}{ipmag}\PY{o}{.}\PY{n}{plot\PYZus{}net}\PY{p}{(}\PY{n}{fignum}\PY{p}{)}
+        \PY{n}{ipmag}\PY{o}{.}\PY{n}{plot\PYZus{}di\PYZus{}mean}\PY{p}{(}\PY{n}{normal\PYZus{}mean}\PY{p}{[}\PY{l+s}{\PYZsq{}}\PY{l+s}{dec}\PY{l+s}{\PYZsq{}}\PY{p}{]}\PY{p}{,}\PY{n}{normal\PYZus{}mean}\PY{p}{[}\PY{l+s}{\PYZsq{}}\PY{l+s}{inc}\PY{l+s}{\PYZsq{}}\PY{p}{]}\PY{p}{,}\PY{n}{normal\PYZus{}mean}\PY{p}{[}\PY{l+s}{\PYZsq{}}\PY{l+s}{alpha95}\PY{l+s}{\PYZsq{}}\PY{p}{]}\PY{p}{,}
+                          \PY{n}{color}\PY{o}{=}\PY{l+s}{\PYZsq{}}\PY{l+s}{b}\PY{l+s}{\PYZsq{}}\PY{p}{,}\PY{n}{marker}\PY{o}{=}\PY{l+s}{\PYZsq{}}\PY{l+s}{s}\PY{l+s}{\PYZsq{}}\PY{p}{,}\PY{n}{label}\PY{o}{=}\PY{l+s}{\PYZsq{}}\PY{l+s}{mean of normal directions}\PY{l+s}{\PYZsq{}}\PY{p}{,}\PY{n}{legend}\PY{o}{=}\PY{l+s}{\PYZsq{}}\PY{l+s}{yes}\PY{l+s}{\PYZsq{}}\PY{p}{)}
+        \PY{n}{ipmag}\PY{o}{.}\PY{n}{plot\PYZus{}di\PYZus{}mean}\PY{p}{(}\PY{n}{reverse\PYZus{}mean}\PY{p}{[}\PY{l+s}{\PYZsq{}}\PY{l+s}{dec}\PY{l+s}{\PYZsq{}}\PY{p}{]}\PY{p}{,}\PY{n}{reverse\PYZus{}mean}\PY{p}{[}\PY{l+s}{\PYZsq{}}\PY{l+s}{inc}\PY{l+s}{\PYZsq{}}\PY{p}{]}\PY{p}{,}\PY{n}{reverse\PYZus{}mean}\PY{p}{[}\PY{l+s}{\PYZsq{}}\PY{l+s}{alpha95}\PY{l+s}{\PYZsq{}}\PY{p}{]}\PY{p}{,}
+                          \PY{n}{color}\PY{o}{=}\PY{l+s}{\PYZsq{}}\PY{l+s}{r}\PY{l+s}{\PYZsq{}}\PY{p}{,}\PY{n}{marker}\PY{o}{=}\PY{l+s}{\PYZsq{}}\PY{l+s}{s}\PY{l+s}{\PYZsq{}}\PY{p}{,}\PY{n}{label}\PY{o}{=}\PY{l+s}{\PYZsq{}}\PY{l+s}{mean of reverse directions}\PY{l+s}{\PYZsq{}}\PY{p}{,}\PY{n}{legend}\PY{o}{=}\PY{l+s}{\PYZsq{}}\PY{l+s}{yes}\PY{l+s}{\PYZsq{}}\PY{p}{)}
+\end{Verbatim}
+
+    \begin{center}
+    \adjustimage{max size={0.9\linewidth}{0.9\paperheight}}{PmagPy_notebook_files/PmagPy_notebook_23_0.png}
+    \end{center}
+    { \hspace*{\fill} \\}
+    
+
+    \subsubsection{Conducting reversal tests on the data}
+
+
+    Reversal tests are tests for a common mean between two data sets wherein
+the antipode vectors from one population are compared to the vectors of
+another population. The code below conducts the Watson V test (also
+returning the McFadden and McEllhinny (1990) reversal test
+classification) and conducts a bootstrap reversal test. In order to
+conduct the test, the antipode of one of the directional populations
+needs to be taken. The \texttt{ipmag.flip} function is used below to
+return the antipode of the reverse directions in order to conduct the
+tests.
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+{\color{incolor}In [{\color{incolor}9}]:} \PY{n}{ipmag}\PY{o}{.}\PY{n}{watson\PYZus{}common\PYZus{}mean}\PY{p}{(}\PY{n}{normal\PYZus{}directions}\PY{p}{,}\PY{n}{ipmag}\PY{o}{.}\PY{n}{flip}\PY{p}{(}\PY{n}{reverse\PYZus{}directions}\PY{p}{)}\PY{p}{,}\PY{n}{NumSims}\PY{o}{=}\PY{l+m+mi}{1000}\PY{p}{,}\PY{n}{plot}\PY{o}{=}\PY{l+s}{\PYZsq{}}\PY{l+s}{yes}\PY{l+s}{\PYZsq{}}\PY{p}{)}
+\end{Verbatim}
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+Results of Watson V test: 
+
+Watson's V:           0.8
+Critical value of V:  5.6
+"Pass": Since V is less than Vcrit, the null hypothesis
+that the two populations are drawn from distributions
+that share a common mean direction can not be rejected.
+
+M\&M1990 classification:
+
+Angle between data set means: 2.6
+Critical angle for M\&M1990:   6.9
+The McFadden and McElhinny (1990) classification for
+this test is: 'B'
+    \end{Verbatim}
+
+    \begin{center}
+    \adjustimage{max size={0.9\linewidth}{0.9\paperheight}}{PmagPy_notebook_files/PmagPy_notebook_26_1.png}
+    \end{center}
+    { \hspace*{\fill} \\}
+    
+    \begin{Verbatim}[commandchars=\\\{\}]
+{\color{incolor}In [{\color{incolor}10}]:} \PY{n}{ipmag}\PY{o}{.}\PY{n}{bootstrap\PYZus{}common\PYZus{}mean}\PY{p}{(}\PY{n}{normal\PYZus{}directions}\PY{p}{,}\PY{n}{ipmag}\PY{o}{.}\PY{n}{flip}\PY{p}{(}\PY{n}{reverse\PYZus{}directions}\PY{p}{)}\PY{p}{,}\PY{n}{NumSims}\PY{o}{=}\PY{l+m+mi}{1000}\PY{p}{)}
+\end{Verbatim}
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+Here are the results of the bootstrap test for a common mean:
+    \end{Verbatim}
+
+            \begin{Verbatim}[commandchars=\\\{\}]
+{\color{outcolor}Out[{\color{outcolor}10}]:} <matplotlib.axes.\_subplots.AxesSubplot at 0x112001190>
+\end{Verbatim}
+        
+    \begin{center}
+    \adjustimage{max size={0.9\linewidth}{0.9\paperheight}}{PmagPy_notebook_files/PmagPy_notebook_27_2.png}
+    \end{center}
+    { \hspace*{\fill} \\}
+    
+
+    \subsubsection{Plotting virtual geomagnetic and mean poles}
+
+
+    Now we can use the reverse\_data and normal\_data dataframes again to
+look at and analyze the virtual geomagnetic poles (VGPs). After taking
+the antipode of the reverse VGPs, a \texttt{combined\_VGP\_mean} is
+calculated using \texttt{pmag.fisher\_mean}.
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+{\color{incolor}In [{\color{incolor}11}]:} \PY{c}{\PYZsh{} let\PYZsq{}s take the antipode of the reverse VGPs}
+         \PY{n}{reverse\PYZus{}data}\PY{p}{[}\PY{l+s}{\PYZsq{}}\PY{l+s}{vgp\PYZus{}lon\PYZus{}flip}\PY{l+s}{\PYZsq{}}\PY{p}{]} \PY{o}{=} \PY{n}{reverse\PYZus{}data}\PY{p}{[}\PY{l+s}{\PYZsq{}}\PY{l+s}{vgp\PYZus{}lon}\PY{l+s}{\PYZsq{}}\PY{p}{]}\PY{o}{\PYZhy{}}\PY{l+m+mf}{180.}
+         \PY{n}{reverse\PYZus{}data}\PY{p}{[}\PY{l+s}{\PYZsq{}}\PY{l+s}{vgp\PYZus{}lat\PYZus{}flip}\PY{l+s}{\PYZsq{}}\PY{p}{]} \PY{o}{=} \PY{o}{\PYZhy{}}\PY{n}{reverse\PYZus{}data}\PY{p}{[}\PY{l+s}{\PYZsq{}}\PY{l+s}{vgp\PYZus{}lat}\PY{l+s}{\PYZsq{}}\PY{p}{]}
+         \PY{c}{\PYZsh{} here we combine the two sets of VGPs into one 2XN array}
+         \PY{n}{combined\PYZus{}vgps} \PY{o}{=} \PY{n}{np}\PY{o}{.}\PY{n}{concatenate}\PY{p}{(}\PY{p}{(}\PY{n}{normal\PYZus{}data}\PY{p}{[}\PY{p}{[}\PY{l+s}{\PYZsq{}}\PY{l+s}{vgp\PYZus{}lon}\PY{l+s}{\PYZsq{}}\PY{p}{,}\PY{l+s}{\PYZsq{}}\PY{l+s}{vgp\PYZus{}lat}\PY{l+s}{\PYZsq{}}\PY{p}{]}\PY{p}{]}\PY{o}{.}\PY{n}{values}\PY{p}{,}
+                                         \PY{n}{reverse\PYZus{}data}\PY{p}{[}\PY{p}{[}\PY{l+s}{\PYZsq{}}\PY{l+s}{vgp\PYZus{}lon\PYZus{}flip}\PY{l+s}{\PYZsq{}}\PY{p}{,}\PY{l+s}{\PYZsq{}}\PY{l+s}{vgp\PYZus{}lat\PYZus{}flip}\PY{l+s}{\PYZsq{}}\PY{p}{]}\PY{p}{]}\PY{o}{.}\PY{n}{values}\PY{p}{)}\PY{p}{)}
+         \PY{c}{\PYZsh{} and calculate the mean}
+         \PY{n}{combined\PYZus{}VGP\PYZus{}mean} \PY{o}{=} \PY{n}{pmag}\PY{o}{.}\PY{n}{fisher\PYZus{}mean}\PY{p}{(}\PY{n}{combined\PYZus{}vgps}\PY{p}{)}
+         \PY{k}{print} \PY{l+s}{\PYZsq{}}\PY{l+s}{Mean pole longitude: }\PY{l+s}{\PYZsq{}} \PY{o}{+} \PY{n+nb}{str}\PY{p}{(}\PY{n}{combined\PYZus{}VGP\PYZus{}mean}\PY{p}{[}\PY{l+s}{\PYZsq{}}\PY{l+s}{dec}\PY{l+s}{\PYZsq{}}\PY{p}{]}\PY{p}{)}
+         \PY{k}{print} \PY{l+s}{\PYZsq{}}\PY{l+s}{Mean pole latitude: }\PY{l+s}{\PYZsq{}} \PY{o}{+} \PY{n+nb}{str}\PY{p}{(}\PY{n}{combined\PYZus{}VGP\PYZus{}mean}\PY{p}{[}\PY{l+s}{\PYZsq{}}\PY{l+s}{inc}\PY{l+s}{\PYZsq{}}\PY{p}{]}\PY{p}{)}
+         \PY{k}{print} \PY{l+s}{\PYZsq{}}\PY{l+s}{A\PYZus{}95: }\PY{l+s}{\PYZsq{}} \PY{o}{+} \PY{n+nb}{str}\PY{p}{(}\PY{n}{combined\PYZus{}VGP\PYZus{}mean}\PY{p}{[}\PY{l+s}{\PYZsq{}}\PY{l+s}{alpha95}\PY{l+s}{\PYZsq{}}\PY{p}{]}\PY{p}{)}
+\end{Verbatim}
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+Mean pole longitude: 190.633317978
+Mean pole latitude: 85.2294312198
+A\_95: 5.05059654685
+    \end{Verbatim}
+
+    To plot poles we first need a map projection. The matplotlib basemap
+package does a nice job of that, so let's import it below. Note that not
+all installations of python will have the basemap package so you may
+need to download it. It is an availible package through Enthought
+Canopy.
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+{\color{incolor}In [{\color{incolor}12}]:} \PY{k+kn}{from} \PY{n+nn}{mpl\PYZus{}toolkits.basemap} \PY{k+kn}{import} \PY{n}{Basemap}
+\end{Verbatim}
+
+    The basemap is highly customizable. A view from space type projection
+(`ortho') is a nice way to view data on a sphere so let's use that one
+for this example. We will define an object (`m') that is a map
+projection and then draw additional things on the map such as continents
+and lat/long lines. Then the VGPs from the study can be plotted using
+the \texttt{ipmag.plot\_vgp} function and the mean pole can be plotted
+using \texttt{ipmag.plot\_pole}.
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+{\color{incolor}In [{\color{incolor}13}]:} \PY{n}{m} \PY{o}{=} \PY{n}{Basemap}\PY{p}{(}\PY{n}{projection}\PY{o}{=}\PY{l+s}{\PYZsq{}}\PY{l+s}{ortho}\PY{l+s}{\PYZsq{}}\PY{p}{,}\PY{n}{lat\PYZus{}0}\PY{o}{=}\PY{l+m+mi}{70}\PY{p}{,}\PY{n}{lon\PYZus{}0}\PY{o}{=}\PY{l+m+mi}{230}\PY{p}{,}\PY{n}{resolution}\PY{o}{=}\PY{l+s}{\PYZsq{}}\PY{l+s}{c}\PY{l+s}{\PYZsq{}}\PY{p}{,}\PY{n}{area\PYZus{}thresh}\PY{o}{=}\PY{l+m+mi}{50000}\PY{p}{)}
+         \PY{n}{plt}\PY{o}{.}\PY{n}{figure}\PY{p}{(}\PY{n}{figsize}\PY{o}{=}\PY{p}{(}\PY{l+m+mi}{8}\PY{p}{,} \PY{l+m+mi}{8}\PY{p}{)}\PY{p}{)}
+         \PY{n}{m}\PY{o}{.}\PY{n}{drawcoastlines}\PY{p}{(}\PY{n}{linewidth}\PY{o}{=}\PY{l+m+mf}{0.25}\PY{p}{)}
+         \PY{n}{m}\PY{o}{.}\PY{n}{fillcontinents}\PY{p}{(}\PY{n}{color}\PY{o}{=}\PY{l+s}{\PYZsq{}}\PY{l+s}{bisque}\PY{l+s}{\PYZsq{}}\PY{p}{,}\PY{n}{lake\PYZus{}color}\PY{o}{=}\PY{l+s}{\PYZsq{}}\PY{l+s}{white}\PY{l+s}{\PYZsq{}}\PY{p}{,}\PY{n}{zorder}\PY{o}{=}\PY{l+m+mi}{1}\PY{p}{)}
+         \PY{n}{m}\PY{o}{.}\PY{n}{drawmapboundary}\PY{p}{(}\PY{n}{fill\PYZus{}color}\PY{o}{=}\PY{l+s}{\PYZsq{}}\PY{l+s}{white}\PY{l+s}{\PYZsq{}}\PY{p}{)}
+         \PY{n}{m}\PY{o}{.}\PY{n}{drawmeridians}\PY{p}{(}\PY{n}{np}\PY{o}{.}\PY{n}{arange}\PY{p}{(}\PY{l+m+mi}{0}\PY{p}{,}\PY{l+m+mi}{360}\PY{p}{,}\PY{l+m+mi}{30}\PY{p}{)}\PY{p}{)}
+         \PY{n}{m}\PY{o}{.}\PY{n}{drawparallels}\PY{p}{(}\PY{n}{np}\PY{o}{.}\PY{n}{arange}\PY{p}{(}\PY{o}{\PYZhy{}}\PY{l+m+mi}{90}\PY{p}{,}\PY{l+m+mi}{90}\PY{p}{,}\PY{l+m+mi}{30}\PY{p}{)}\PY{p}{)}
+         
+         \PY{n}{ipmag}\PY{o}{.}\PY{n}{plot\PYZus{}vgp}\PY{p}{(}\PY{n}{m}\PY{p}{,}\PY{n}{normal\PYZus{}data}\PY{p}{[}\PY{l+s}{\PYZsq{}}\PY{l+s}{vgp\PYZus{}lon}\PY{l+s}{\PYZsq{}}\PY{p}{]}\PY{o}{.}\PY{n}{tolist}\PY{p}{(}\PY{p}{)}\PY{p}{,}
+                        \PY{n}{normal\PYZus{}data}\PY{p}{[}\PY{l+s}{\PYZsq{}}\PY{l+s}{vgp\PYZus{}lat}\PY{l+s}{\PYZsq{}}\PY{p}{]}\PY{o}{.}\PY{n}{tolist}\PY{p}{(}\PY{p}{)}\PY{p}{,}
+                        \PY{n}{color}\PY{o}{=}\PY{l+s}{\PYZsq{}}\PY{l+s}{b}\PY{l+s}{\PYZsq{}}\PY{p}{,}\PY{n}{label}\PY{o}{=}\PY{l+s}{\PYZsq{}}\PY{l+s}{normal VGPs}\PY{l+s}{\PYZsq{}}\PY{p}{)}
+         \PY{n}{ipmag}\PY{o}{.}\PY{n}{plot\PYZus{}vgp}\PY{p}{(}\PY{n}{m}\PY{p}{,}\PY{n}{reverse\PYZus{}data}\PY{p}{[}\PY{l+s}{\PYZsq{}}\PY{l+s}{vgp\PYZus{}lon\PYZus{}flip}\PY{l+s}{\PYZsq{}}\PY{p}{]}\PY{o}{.}\PY{n}{tolist}\PY{p}{(}\PY{p}{)}\PY{p}{,}
+                        \PY{n}{reverse\PYZus{}data}\PY{p}{[}\PY{l+s}{\PYZsq{}}\PY{l+s}{vgp\PYZus{}lat\PYZus{}flip}\PY{l+s}{\PYZsq{}}\PY{p}{]}\PY{o}{.}\PY{n}{tolist}\PY{p}{(}\PY{p}{)}\PY{p}{,}
+                        \PY{n}{color}\PY{o}{=}\PY{l+s}{\PYZsq{}}\PY{l+s}{r}\PY{l+s}{\PYZsq{}}\PY{p}{,}\PY{n}{label}\PY{o}{=}\PY{l+s}{\PYZsq{}}\PY{l+s}{reverse VGPs}\PY{l+s}{\PYZsq{}}\PY{p}{)}
+         \PY{n}{ipmag}\PY{o}{.}\PY{n}{plot\PYZus{}pole}\PY{p}{(}\PY{n}{m}\PY{p}{,}\PY{n}{combined\PYZus{}VGP\PYZus{}mean}\PY{p}{[}\PY{l+s}{\PYZsq{}}\PY{l+s}{dec}\PY{l+s}{\PYZsq{}}\PY{p}{]}\PY{p}{,}\PY{n}{combined\PYZus{}VGP\PYZus{}mean}\PY{p}{[}\PY{l+s}{\PYZsq{}}\PY{l+s}{inc}\PY{l+s}{\PYZsq{}}\PY{p}{]}\PY{p}{,}
+                        \PY{n}{combined\PYZus{}VGP\PYZus{}mean}\PY{p}{[}\PY{l+s}{\PYZsq{}}\PY{l+s}{alpha95}\PY{l+s}{\PYZsq{}}\PY{p}{]}\PY{p}{,}\PY{n}{marker}\PY{o}{=}\PY{l+s}{\PYZsq{}}\PY{l+s}{d}\PY{l+s}{\PYZsq{}}\PY{p}{,}\PY{n}{label}\PY{o}{=}\PY{l+s}{\PYZsq{}}\PY{l+s}{mean pole}\PY{l+s}{\PYZsq{}}\PY{p}{)}
+         \PY{n}{plt}\PY{o}{.}\PY{n}{legend}\PY{p}{(}\PY{p}{)}
+         \PY{n}{plt}\PY{o}{.}\PY{n}{title}\PY{p}{(}\PY{l+s}{\PYZsq{}}\PY{l+s}{McMurdo  VGPs}\PY{l+s}{\PYZsq{}}\PY{p}{)}
+         \PY{n}{plt}\PY{o}{.}\PY{n}{show}\PY{p}{(}\PY{p}{)}
+\end{Verbatim}
+
+    \begin{center}
+    \adjustimage{max size={0.9\linewidth}{0.9\paperheight}}{PmagPy_notebook_files/PmagPy_notebook_34_0.png}
+    \end{center}
+    { \hspace*{\fill} \\}
+    
+
+    \subsubsection{Previous code for reading in the data}
+
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+{\color{incolor}In [{\color{incolor}14}]:} \PY{c}{\PYZsh{}read in the data}
+         \PY{n}{data}\PY{p}{,}\PY{n}{file\PYZus{}type}\PY{o}{=}\PY{n}{pmag}\PY{o}{.}\PY{n}{magic\PYZus{}read}\PY{p}{(}\PY{l+s}{\PYZsq{}}\PY{l+s}{Lawrence09\PYZus{}MagIC/pmag\PYZus{}results.txt}\PY{l+s}{\PYZsq{}}\PY{p}{)}
+         \PY{c}{\PYZsh{} screen out records with no directional data}
+         \PY{n}{directions}\PY{o}{=}\PY{n}{pmag}\PY{o}{.}\PY{n}{get\PYZus{}dictitem}\PY{p}{(}\PY{n}{data}\PY{p}{,}\PY{l+s}{\PYZsq{}}\PY{l+s}{average\PYZus{}dec}\PY{l+s}{\PYZsq{}}\PY{p}{,}\PY{l+s}{\PYZdq{}}\PY{l+s}{\PYZdq{}}\PY{p}{,}\PY{l+s}{\PYZsq{}}\PY{l+s}{F}\PY{l+s}{\PYZsq{}}\PY{p}{)}
+         \PY{n}{directions}\PY{o}{=}\PY{n}{pmag}\PY{o}{.}\PY{n}{get\PYZus{}dictitem}\PY{p}{(}\PY{n}{directions}\PY{p}{,}\PY{l+s}{\PYZsq{}}\PY{l+s}{average\PYZus{}inc}\PY{l+s}{\PYZsq{}}\PY{p}{,}\PY{l+s}{\PYZdq{}}\PY{l+s}{\PYZdq{}}\PY{p}{,}\PY{l+s}{\PYZsq{}}\PY{l+s}{F}\PY{l+s}{\PYZsq{}}\PY{p}{)}
+         \PY{c}{\PYZsh{}create a pandas dataframe}
+         \PY{n}{results} \PY{o}{=} \PY{n}{pd}\PY{o}{.}\PY{n}{DataFrame}\PY{p}{(}\PY{n}{directions}\PY{p}{)}
+         \PY{c}{\PYZsh{}the data come in as strings so need to be defined as floating point numbers}
+         \PY{n}{results}\PY{o}{.}\PY{n}{average\PYZus{}dec} \PY{o}{=} \PY{n}{results}\PY{o}{.}\PY{n}{average\PYZus{}dec}\PY{o}{.}\PY{n}{astype}\PY{p}{(}\PY{n+nb}{float}\PY{p}{)}
+         \PY{n}{results}\PY{o}{.}\PY{n}{average\PYZus{}inc} \PY{o}{=} \PY{n}{results}\PY{o}{.}\PY{n}{average\PYZus{}inc}\PY{o}{.}\PY{n}{astype}\PY{p}{(}\PY{n+nb}{float}\PY{p}{)}
+         \PY{c}{\PYZsh{} while we are at it, lets do the same on the VGPs because we will need them later}
+         \PY{n}{results}\PY{o}{.}\PY{n}{vgp\PYZus{}lat} \PY{o}{=} \PY{n}{results}\PY{o}{.}\PY{n}{vgp\PYZus{}lat}\PY{o}{.}\PY{n}{astype}\PY{p}{(}\PY{n+nb}{float}\PY{p}{)}
+         \PY{n}{results}\PY{o}{.}\PY{n}{vgp\PYZus{}lon}\PY{o}{=} \PY{n}{results}\PY{o}{.}\PY{n}{vgp\PYZus{}lon}\PY{o}{.}\PY{n}{astype}\PY{p}{(}\PY{n+nb}{float}\PY{p}{)}
+         \PY{c}{\PYZsh{}display the first 5 rows of the results dataframe}
+         \PY{n}{results}\PY{o}{.}\PY{n}{head}\PY{p}{(}\PY{p}{)}
+\end{Verbatim}
+
+            \begin{Verbatim}[commandchars=\\\{\}]
+{\color{outcolor}Out[{\color{outcolor}14}]:}   antipodal average\_age average\_age\_sigma average\_age\_unit average\_alpha95  \textbackslash{}
+         0                  1.18             0.005               Ma             4.2   
+         1                  0.33              0.01               Ma             2.1   
+         2                 0.348             0.004               Ma             2.3   
+         3                  0.34             0.003               Ma             4.6   
+         4                     4                 4               Ma             4.8   
+         
+            average\_dec  average\_inc average\_int average\_int\_n average\_int\_sigma  \ldots   \textbackslash{}
+         0        258.6         78.6                                              \ldots    
+         1        328.6        -80.0                                              \ldots    
+         2        352.0        -82.7                                              \ldots    
+         3        352.1        -86.8                                              \ldots    
+         4         13.6        -78.8                                              \ldots    
+         
+           vadm\_sigma vdm vdm\_n vdm\_sigma vgp\_alpha95 vgp\_dm vgp\_dp vgp\_lat vgp\_lon  \textbackslash{}
+         0                                               4.5    8.1   -67.3    95.2   
+         1                                               2.5    4.1    79.0   101.2   
+         2                                               3.8    4.4    87.1   123.1   
+         3                                              17.4    8.9    84.1   355.2   
+         4                                               5.2    9.3    79.8   196.0   
+         
+           vgp\_n  
+         0     7  
+         1     6  
+         2     6  
+         3     5  
+         4     5  
+         
+         [5 rows x 47 columns]
+\end{Verbatim}
+        
+
+    \subsubsection{Previous code for assigning polarity}
+
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+{\color{incolor}In [{\color{incolor}15}]:} \PY{c}{\PYZsh{}make an 2xn array with all the declinations and inclinations}
+         \PY{n}{DIblock}\PY{o}{=}\PY{n}{np}\PY{o}{.}\PY{n}{array}\PY{p}{(}\PY{p}{[}\PY{n}{DI\PYZus{}results}\PY{o}{.}\PY{n}{average\PYZus{}dec}\PY{p}{,}\PY{n}{DI\PYZus{}results}\PY{o}{.}\PY{n}{average\PYZus{}inc}\PY{p}{]}\PY{p}{)}\PY{o}{.}\PY{n}{transpose}\PY{p}{(}\PY{p}{)}
+         \PY{c}{\PYZsh{} calculate the principle direction for the data set}
+         \PY{n}{principle}\PY{o}{=}\PY{n}{pmag}\PY{o}{.}\PY{n}{doprinc}\PY{p}{(}\PY{n}{DIblock}\PY{p}{)}
+         \PY{c}{\PYZsh{} initialize arrays of length N with zeros}
+         \PY{n}{V1\PYZus{}dec}\PY{p}{,}\PY{n}{V1\PYZus{}inc}\PY{o}{=}\PY{n}{np}\PY{o}{.}\PY{n}{zeros}\PY{p}{(}\PY{n+nb}{len}\PY{p}{(}\PY{n}{DIblock}\PY{p}{)}\PY{p}{)}\PY{p}{,}\PY{n}{np}\PY{o}{.}\PY{n}{zeros}\PY{p}{(}\PY{n+nb}{len}\PY{p}{(}\PY{n}{DIblock}\PY{p}{)}\PY{p}{)}
+         \PY{c}{\PYZsh{} fill arrays with declination and inclination of principal direction (V1)}
+         \PY{n}{V1\PYZus{}dec}\PY{o}{.}\PY{n}{fill}\PY{p}{(}\PY{n}{principle}\PY{p}{[}\PY{l+s}{\PYZsq{}}\PY{l+s}{dec}\PY{l+s}{\PYZsq{}}\PY{p}{]}\PY{p}{)}
+         \PY{n}{V1\PYZus{}inc}\PY{o}{.}\PY{n}{fill}\PY{p}{(}\PY{n}{principle}\PY{p}{[}\PY{l+s}{\PYZsq{}}\PY{l+s}{inc}\PY{l+s}{\PYZsq{}}\PY{p}{]}\PY{p}{)}
+         \PY{c}{\PYZsh{} create array of length N, }
+         \PY{n}{V1}\PY{o}{=}\PY{n}{np}\PY{o}{.}\PY{n}{array}\PY{p}{(}\PY{p}{[}\PY{n}{V1\PYZus{}dec}\PY{p}{,}\PY{n}{V1\PYZus{}inc}\PY{p}{]}\PY{p}{)}\PY{o}{.}\PY{n}{transpose}\PY{p}{(}\PY{p}{)}
+         \PY{n}{results}\PY{o}{.}\PY{n}{angle}\PY{o}{=}\PY{n}{pmag}\PY{o}{.}\PY{n}{angle}\PY{p}{(}\PY{n}{DIblock}\PY{p}{,}\PY{n}{V1}\PY{p}{)}
+         \PY{k}{print} \PY{l+s}{\PYZsq{}}\PY{l+s}{dec =}\PY{l+s}{\PYZsq{}}\PY{p}{,} \PY{n}{principle}\PY{p}{[}\PY{l+s}{\PYZsq{}}\PY{l+s}{dec}\PY{l+s}{\PYZsq{}}\PY{p}{]}\PY{p}{,}\PY{l+s}{\PYZsq{}}\PY{l+s}{inc = }\PY{l+s}{\PYZsq{}}\PY{p}{,} \PY{n}{principle}\PY{p}{[}\PY{l+s}{\PYZsq{}}\PY{l+s}{inc}\PY{l+s}{\PYZsq{}}\PY{p}{]}
+         
+         \PY{c}{\PYZsh{}separate into normal and reverse, based on  principle direction printed out above}
+         \PY{n}{NormalRecords}\PY{o}{=}\PY{n}{results}\PY{p}{[}\PY{n}{results}\PY{o}{.}\PY{n}{angle}\PY{o}{\PYZgt{}}\PY{l+m+mi}{90}\PY{p}{]}
+         \PY{n}{ReverseRecords}\PY{o}{=}\PY{n}{results}\PY{p}{[}\PY{n}{results}\PY{o}{.}\PY{n}{angle}\PY{o}{\PYZlt{}}\PY{o}{=}\PY{l+m+mi}{90}\PY{p}{]}
+         \PY{n}{normal\PYZus{}directions} \PY{o}{=} \PY{n}{NormalRecords}\PY{p}{[}\PY{p}{[}\PY{l+s}{\PYZsq{}}\PY{l+s}{average\PYZus{}dec}\PY{l+s}{\PYZsq{}}\PY{p}{,}\PY{l+s}{\PYZsq{}}\PY{l+s}{average\PYZus{}inc}\PY{l+s}{\PYZsq{}}\PY{p}{]}\PY{p}{]}\PY{o}{.}\PY{n}{values}
+         \PY{n}{reverse\PYZus{}directions} \PY{o}{=} \PY{n}{ReverseRecords}\PY{p}{[}\PY{p}{[}\PY{l+s}{\PYZsq{}}\PY{l+s}{average\PYZus{}dec}\PY{l+s}{\PYZsq{}}\PY{p}{,}\PY{l+s}{\PYZsq{}}\PY{l+s}{average\PYZus{}inc}\PY{l+s}{\PYZsq{}}\PY{p}{]}\PY{p}{]}\PY{o}{.}\PY{n}{values}
+         \PY{c}{\PYZsh{} calculate the normal and reverse means with pmag.fisher\PYZus{}mean  }
+\end{Verbatim}
+
+    \begin{Verbatim}[commandchars=\\\{\}]
+dec = 189.094639423 inc =  80.8584727976
+    \end{Verbatim}
+
+
+    % Add a bibliography block to the postdoc
+    
+    
+    
+    \end{document}

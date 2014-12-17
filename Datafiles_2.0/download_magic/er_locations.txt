@@ -1,0 +1,3 @@
+tab 	er_locations
+continent_ocean	country	er_citation_names	er_location_name	location_begin_lat	location_begin_lon	location_class	location_end_lat	location_end_lon	location_lithology	location_type	plate_block	region	tectonic_setting
+North America	United States	This study	Snake River	40	245	Extrusive : Igneous	45	248	Basalt	Outcrop	North American Plate	Pacific Northwest	Continental Volcanics

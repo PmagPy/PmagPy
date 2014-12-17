@@ -1,0 +1,15 @@
+tab 	magic_methods
+er_citation_names	magic_method_code	method_definition	method_iaga7	method_type	method_url_tauxe
+Kirschvink 1980	DE-BFL	Best fit line		Direction Estimation	http://earthref.org/MAGIC/books/Tauxe/2005/lecture.09.htm#DE-BFL
+	DE-BFP-G	Best fit plane: Great circle		Direction Estimation	
+Fisher 1953	DE-FM	Fisher mean		Direction Estimation	
+McFadden & McElhinny 1988	DE-FM-LP	Fisher mean: Line and planes		Direction Estimation	
+Collinson 1983	FS-FD	Field drilling using a hand-held portable drill		Field Sampling	http://earthref.org/MAGIC/books/Tauxe/2005/lecture.09.htm#FS-FD
+	FS-LOC-GPS	Location determination: Latitude and longitude by GPS measurement		Field Sampling	
+	GM-ARAR-II	40Ar/39Ar age determination: Inverse isochron		Geochronology Method	
+McElhinny & McFadden 2000	LP-DC3	Vector diagrams or stereoplots with M/Mo justify demagnetization procedures used	DC3	Lab Protocol	http://earthref.org/MAGIC/books/Tauxe/2005/lecture.16.htm#IAGA7
+McElhinny & McFadden 2000	LP-DC4	Principal component analysis carried out from analysis of Zijderveld diagrams	DC4	Lab Protocol	http://earthref.org/MAGIC/books/Tauxe/2005/lecture.16.htm#IAGA7
+	LP-DIR-AF	Directional data: Step-wise alternating field demagnetization		Lab Protocol	
+	LP-DIR-T	Directional data: Step-wise thermal demagnetization		Lab Protocol	
+Collinson 1983	SO-MAG	Magnetic compass		Sample Orientation	http://earthref.org/MAGIC/books/Tauxe/2005/lecture.09.htm#SO-MAG
+Collinson 1983	SO-SUN	Sun compass		Sample Orientation	http://earthref.org/MAGIC/books/Tauxe/2005/lecture.09.htm#SO-SUN

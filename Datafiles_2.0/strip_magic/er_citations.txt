@@ -1,0 +1,7 @@
+tab 	er_citations
+book_title	citation_type	city	er_citation_name	journal	long_authors	pages	publisher	title	volume	year
+	Journal		This study	Geophysical Journal International	Tauxe, L. and Hartl, P.	217-229		11 million years of Oligocene geomagnetic field behaviour	128	1997
+	Journal		As & Zijderveld 1958	Geophysical Journal International	As, J.A. and Zijderveld, J.D.A.	308-319		Magnetic cleaning of rocks in paleomagnetic research	1	1958
+	Journal		Cande & Kent 1995	Journal of Geophysical Research, Solid Earth	Cande, S.C. and Kent, D.V.	6,093-6,095		Revised calibration of the geomagnetic polarity timescale for the late Cretaceous and Cenozoic	100	1995
+Methods in rock magnetism and Paleomagnetism: Techniques and instrumentation	Book	London	Collinson 1983		Collinson, D.W.	503	Chapman and Hall			1983
+	Journal		Levi & Banerjee 1976	Earth and Planetary Science Letters	Levi, L. and Banerjee, S.K.	219-226		On the possibility of obtaining relative paleointensities from lake sediments	29	1976

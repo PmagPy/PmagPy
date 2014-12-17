@@ -1,0 +1,168 @@
+tab 	pmag_samples
+er_citation_names	er_location_name	er_sample_name	er_site_name	er_specimen_names	magic_method_codes	pmag_criteria_codes	sample_dec	sample_description	sample_direction_type	sample_inc	sample_inferred_age	sample_inferred_age_sigma	sample_inferred_age_unit	sample_int	sample_int_n	sample_int_sigma	sample_int_sigma_perc	sample_n	sample_n_lines	sample_n_planes	sample_tilt_correction
+This study	Snake River	sr01a	sr01	sr01a1	LP-DIR-T:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	331	sample direction.	l	64.4	3.4	0.03	Ma					1	1	0	0
+This study	Snake River	sr01a	sr01	sr01a2	LP-DIR-T:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	325.9	sample direction.	l	62.1	3.4	0.03	Ma					1	1	0	0
+This study	Snake River	sr01c	sr01	sr01c2	LP-DIR-T:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	345	sample direction.	l	64.3	3.4	0.03	Ma					1	1	0	0
+This study	Snake River	sr01d	sr01	sr01d1	LP-DIR-T:SO-CMD-NORTH:DE-BFL:DA-DIR-GEO	DE-SPEC	326.9	sample direction.	l	65.2	3.4	0.03	Ma					1	1	0	0
+This study	Snake River	sr01e	sr01	sr01e2	LP-DIR-AF:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	333	sample direction.	l	67.1	3.4	0.03	Ma					1	1	0	0
+This study	Snake River	sr01f	sr01	sr01f2	LP-DIR-T:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	325.9	sample direction.	l	66.1	3.4	0.03	Ma					1	1	0	0
+This study	Snake River	sr01g	sr01	sr01g2	LP-DIR-AF:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	324.4	sample direction.	l	66.7	3.4	0.03	Ma					1	1	0	0
+This study	Snake River	sr01i	sr01	sr01i1	LP-DIR-T:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	328.5	sample direction.	l	62.5	3.4	0.03	Ma					1	1	0	0
+This study	Snake River	sr03a	sr03	sr03a1	LP-DIR-T:SO-CMD-NORTH:DE-BFL:DA-DIR-GEO	DE-SPEC	146.5	sample direction.	l	-54.2	1	1	Ma					1	1	0	0
+This study	Snake River	sr03c	sr03	sr03c1	LP-DIR-T:SO-CMD-NORTH:DE-BFL:DA-DIR-GEO	DE-SPEC	159.8	sample direction.	l	-60.3	1	1	Ma					1	1	0	0
+This study	Snake River	sr03e	sr03	sr03e1	LP-DIR-T:SO-CMD-NORTH:DE-BFL:DA-DIR-GEO	DE-SPEC	150.9	sample direction.	l	-61.2	1	1	Ma					1	1	0	0
+This study	Snake River	sr03f	sr03	sr03f1	LP-DIR-AF:SO-CMD-NORTH:DE-BFL:DA-DIR-GEO	DE-SPEC	147.2	sample direction.	l	-55.8	1	1	Ma					1	1	0	0
+This study	Snake River	sr03g	sr03	sr03g1	LP-DIR-T:SO-CMD-NORTH:DE-BFL:DA-DIR-GEO	DE-SPEC	147.2	sample direction.	l	-57.3	1	1	Ma					1	1	0	0
+This study	Snake River	sr03h	sr03	sr03h2	LP-DIR-AF:SO-CMD-NORTH:DE-BFL:DA-DIR-GEO	DE-SPEC	152.1	sample direction.	l	-57	1	1	Ma					1	1	0	0
+This study	Snake River	sr03k	sr03	sr03k1	LP-DIR-AF:SO-CMD-NORTH:DE-BFL:DA-DIR-GEO	DE-SPEC	159.8	sample direction.	l	-55.8	1	1	Ma					1	1	0	0
+This study	Snake River	sr04d	sr04	sr04d2	LP-DIR-T:SO-CMD-NORTH:DE-BFL:DA-DIR-GEO	DE-SPEC	10.8	sample direction.	l	55.9	2	0.05	Ma					1	1	0	0
+This study	Snake River	sr04e	sr04	sr04e1	LP-DIR-AF:SO-CMD-NORTH:DE-BFL:DA-DIR-GEO	DE-SPEC	27.9	sample direction.	l	53.2	2	0.05	Ma					1	1	0	0
+This study	Snake River	sr04f	sr04	sr04f2	LP-DIR-AF:SO-CMD-NORTH:DE-BFL:DA-DIR-GEO	DE-SPEC	20.5	sample direction.	l	54.8	2	0.05	Ma					1	1	0	0
+This study	Snake River	sr04g	sr04	sr04g1	LP-DIR-T:SO-CMD-NORTH:DE-BFL:DA-DIR-GEO	DE-SPEC	11.4	sample direction.	l	54.8	2	0.05	Ma					1	1	0	0
+This study	Snake River	sr04h	sr04	sr04h3	LP-DIR-T:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	11.5	sample direction.	l	53.2	2	0.05	Ma					1	1	0	0
+This study	Snake River	sr09b	sr09	sr09b2	LP-DIR-AF:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	18.3	sample direction.	l	81.7	0.095	0.05	Ma					1	1	0	0
+This study	Snake River	sr09c	sr09	sr09c3	LP-DIR-T:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	13.5	sample direction.	l	76.5	0.095	0.05	Ma					1	1	0	0
+This study	Snake River	sr09e	sr09	sr09e2	LP-DIR-AF:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	5.4	sample direction.	l	75.4	0.095	0.05	Ma					1	1	0	0
+This study	Snake River	sr09f	sr09	sr09f2	LP-DIR-AF:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	22	sample direction.	l	75.9	0.095	0.05	Ma					1	1	0	0
+This study	Snake River	sr09g	sr09	sr09g1	LP-DIR-T:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	5.6	sample direction.	l	81.2	0.095	0.05	Ma					1	1	0	0
+This study	Snake River	sr09i	sr09	sr09i1	LP-DIR-T:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	10.9	sample direction.	l	81.2	0.095	0.05	Ma					1	1	0	0
+This study	Snake River	sr11a	sr11	sr11a1	LP-DIR-AF:SO-CMD-NORTH:DE-BFL:DA-DIR-GEO	DE-SPEC	340.5	sample direction.	l	74.1	0.395	0.01	Ma					1	1	0	0
+This study	Snake River	sr11b	sr11	sr11b1	LP-DIR-AF:SO-CMD-NORTH:DE-BFL:DA-DIR-GEO	DE-SPEC	354	sample direction.	l	70.3	0.395	0.01	Ma					1	1	0	0
+This study	Snake River	sr11c	sr11	sr11c1	LP-DIR-AF:SO-CMD-NORTH:DE-BFL:DA-DIR-GEO	DE-SPEC	342.7	sample direction.	l	69.4	0.395	0.01	Ma					1	1	0	0
+This study	Snake River	sr11e	sr11	sr11e2	LP-DIR-AF:SO-CMD-NORTH:DE-BFL:DA-DIR-GEO	DE-SPEC	341.4	sample direction.	l	73.4	0.395	0.01	Ma					1	1	0	0
+This study	Snake River	sr11g	sr11	sr11g2	LP-DIR-AF:SO-CMD-NORTH:DE-BFL:DA-DIR-GEO	DE-SPEC	345.4	sample direction.	l	77.1	0.395	0.01	Ma					1	1	0	0
+This study	Snake River	sr12a	sr12	sr12a3	LP-DIR-T:SO-CMD-NORTH:DE-BFL:DA-DIR-GEO	DE-SPEC	15.4	sample direction.	l	46.8	0.373	0.06	Ma					1	1	0	0
+This study	Snake River	sr12b	sr12	sr12b1	LP-DIR-T:SO-CMD-NORTH:DE-BFL:DA-DIR-GEO	DE-SPEC	14.9	sample direction.	l	45	0.373	0.06	Ma					1	1	0	0
+This study	Snake River	sr12c	sr12	sr12c1	LP-DIR-AF:SO-CMD-NORTH:DE-BFL:DA-DIR-GEO	DE-SPEC	16.2	sample direction.	l	47.9	0.373	0.06	Ma					1	1	0	0
+This study	Snake River	sr12e	sr12	sr12e1	LP-DIR-T:SO-CMD-NORTH:DE-BFL:DA-DIR-GEO	DE-SPEC	18.2	sample direction.	l	48.5	0.373	0.06	Ma					1	1	0	0
+This study	Snake River	sr12h	sr12	sr12h1	LP-DIR-AF:SO-CMD-NORTH:DE-BFL:DA-DIR-GEO	DE-SPEC	12.5	sample direction.	l	35.9	0.373	0.06	Ma					1	1	0	0
+This study	Snake River	sr16a	sr16	sr16a1	LP-DIR-T:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	339	sample direction.	l	60.6	0.404	0.07	Ma					1	1	0	0
+This study	Snake River	sr16b	sr16	sr16b1	LP-DIR-T:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	356.9	sample direction.	l	67.5	0.404	0.07	Ma					1	1	0	0
+This study	Snake River	sr16c	sr16	sr16c1	LP-DIR-T:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	332.9	sample direction.	l	65.6	0.404	0.07	Ma					1	1	0	0
+This study	Snake River	sr16d	sr16	sr16d1	LP-DIR-T:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	347	sample direction.	l	67.4	0.404	0.07	Ma					1	1	0	0
+This study	Snake River	sr16e	sr16	sr16e1	LP-DIR-AF:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	7.7	sample direction.	l	65.3	0.404	0.07	Ma					1	1	0	0
+This study	Snake River	sr16f	sr16	sr16f1	LP-DIR-T:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	342.2	sample direction.	l	65.5	0.404	0.07	Ma					1	1	0	0
+This study	Snake River	sr16g	sr16	sr16g2	LP-DIR-AF:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	348.4	sample direction.	l	64.7	0.404	0.07	Ma					1	1	0	0
+This study	Snake River	sr19b	sr19	sr19b3	LP-DIR-AF:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	169.6	sample direction.	l	-64	1	1	Ma					1	1	0	0
+This study	Snake River	sr19e	sr19	sr19e2	LP-DIR-T:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	190.8	sample direction.	l	-34.8	1	1	Ma					1	1	0	0
+This study	Snake River	sr19h	sr19	sr19h2	LP-DIR-AF:SO-CMD-NORTH:DE-BFL:DA-DIR-GEO	DE-SPEC	168.4	sample direction.	l	-65	1	1	Ma					1	1	0	0
+This study	Snake River	sr20c	sr20	sr20c1	LP-DIR-T:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	339.1	sample direction.	l	56.2	0.052	0.012	Ma					1	1	0	0
+This study	Snake River	sr20d	sr20	sr20d2	LP-DIR-AF:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	342	sample direction.	l	60.3	0.052	0.012	Ma					1	1	0	0
+This study	Snake River	sr20e	sr20	sr20e1	LP-DIR-AF:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	332	sample direction.	l	55.3	0.052	0.012	Ma					1	1	0	0
+This study	Snake River	sr20f	sr20	sr20f1	LP-DIR-T:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	337.1	sample direction.	l	54	0.052	0.012	Ma					1	1	0	0
+This study	Snake River	sr20g	sr20	sr20g1	LP-DIR-T:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	340.1	sample direction.	l	60.1	0.052	0.012	Ma					1	1	0	0
+This study	Snake River	sr20i	sr20	sr20i1	LP-DIR-AF:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	330.4	sample direction.	l	31.9	0.052	0.012	Ma					1	1	0	0
+This study	Snake River	sr20i	sr20	sr20i2	LP-DIR-T:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	330.8	sample direction.	l	31.1	0.052	0.012	Ma					1	1	0	0
+This study	Snake River	sr20j	sr20	sr20j2	LP-DIR-T:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	328.3	sample direction.	l	57.4	0.052	0.012	Ma					1	1	0	0
+This study	Snake River	sr21b	sr21	sr21b2	LP-DIR-T:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	174.5	sample direction.	l	-67.2	1.76	0.016	Ma					1	1	0	0
+This study	Snake River	sr21d	sr21	sr21d1	LP-DIR-AF:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	176.1	sample direction.	l	-69.2	1.76	0.016	Ma					1	1	0	0
+This study	Snake River	sr21g	sr21	sr21g2	LP-DIR-T:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	165.2	sample direction.	l	-67.3	1.76	0.016	Ma					1	1	0	0
+This study	Snake River	sr21h	sr21	sr21h1	LP-DIR-T:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	176.5	sample direction.	l	-63.8	1.76	0.016	Ma					1	1	0	0
+This study	Snake River	sr21j	sr21	sr21j2	LP-DIR-T:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	170.1	sample direction.	l	-66.5	1.76	0.016	Ma					1	1	0	0
+This study	Snake River	sr22b	sr22	sr22b2	LP-DIR-AF:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	12.7	sample direction.	l	29.9	2.26	0.05	Ma					1	1	0	0
+This study	Snake River	sr22d	sr22	sr22d3	LP-DIR-AF:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	5.4	sample direction.	l	35.7	2.26	0.05	Ma					1	1	0	0
+This study	Snake River	sr22e	sr22	sr22e1	LP-DIR-AF:SO-CMD-NORTH:DE-BFL:DA-DIR-GEO	DE-SPEC	1.8	sample direction.	l	28.4	2.26	0.05	Ma					1	1	0	0
+This study	Snake River	sr22f	sr22	sr22f1	LP-DIR-AF:SO-CMD-NORTH:DE-BFL:DA-DIR-GEO	DE-SPEC	5.9	sample direction.	l	30.1	2.26	0.05	Ma					1	1	0	0
+This study	Snake River	sr22g	sr22	sr22g1	LP-DIR-T:SO-CMD-NORTH:DE-BFL:DA-DIR-GEO	DE-SPEC	5	sample direction.	l	29.9	2.26	0.05	Ma					1	1	0	0
+This study	Snake River	sr22i	sr22	sr22i2	LP-DIR-T:SO-CMD-NORTH:DE-BFL:DA-DIR-GEO	DE-SPEC	4.7	sample direction.	l	26.9	2.26	0.05	Ma					1	1	0	0
+This study	Snake River	sr23a	sr23	sr23a1	LP-DIR-AF:SO-CMD-NORTH:DE-BFL:DA-DIR-GEO	DE-SPEC	12.8	sample direction.	l	45.8	1.69	0.02	Ma					1	1	0	0
+This study	Snake River	sr23b	sr23	sr23b2	LP-DIR-AF:SO-CMD-NORTH:DE-BFL:DA-DIR-GEO	DE-SPEC	17.7	sample direction.	l	43.7	1.69	0.02	Ma					1	1	0	0
+This study	Snake River	sr23d	sr23	sr23d3	LP-DIR-AF:SO-CMD-NORTH:DE-BFL:DA-DIR-GEO	DE-SPEC	12.9	sample direction.	l	48.4	1.69	0.02	Ma					1	1	0	0
+This study	Snake River	sr23g	sr23	sr23g1	LP-DIR-AF:SO-CMD-NORTH:DE-BFL:DA-DIR-GEO	DE-SPEC	14.1	sample direction.	l	45.9	1.69	0.02	Ma					1	1	0	0
+This study	Snake River	sr24a	sr24	sr24a1	LP-DIR-AF:SO-CMD-NORTH:DE-BFL:DA-DIR-GEO	DE-SPEC	158.7	sample direction.	l	-60.5	0.591	0.015	Ma					1	1	0	0
+This study	Snake River	sr24b	sr24	sr24b3	LP-DIR-AF:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	159.9	sample direction.	l	-61	0.591	0.015	Ma					1	1	0	0
+This study	Snake River	sr24c	sr24	sr24c2	LP-DIR-AF:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	156.9	sample direction.	l	-62.4	0.591	0.015	Ma					1	1	0	0
+This study	Snake River	sr24d	sr24	sr24d1	LP-DIR-AF:SO-CMD-NORTH:DE-BFL:DA-DIR-GEO	DE-SPEC	167.3	sample direction.	l	-66.9	0.591	0.015	Ma					1	1	0	0
+This study	Snake River	sr24i	sr24	sr24i2	LP-DIR-T:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	174	sample direction.	l	-59.4	0.591	0.015	Ma					1	1	0	0
+This study	Snake River	sr25b	sr25	sr25b2	LP-DIR-AF:SO-CMD-NORTH:DE-BFL:DA-DIR-GEO	DE-SPEC	1.5	sample direction.	l	59.6	0.291	0.016	Ma					1	1	0	0
+This study	Snake River	sr25d	sr25	sr25d2	LP-DIR-AF:SO-CMD-NORTH:DE-BFL:DA-DIR-GEO	DE-SPEC	10.3	sample direction.	l	64.1	0.291	0.016	Ma					1	1	0	0
+This study	Snake River	sr25e	sr25	sr25e2	LP-DIR-AF:SO-CMD-NORTH:DE-BFL:DA-DIR-GEO	DE-SPEC	0.1	sample direction.	l	60.8	0.291	0.016	Ma					1	1	0	0
+This study	Snake River	sr25f	sr25	sr25f3	LP-DIR-AF:SO-CMD-NORTH:DE-BFL:DA-DIR-GEO	DE-SPEC	1.5	sample direction.	l	63.8	0.291	0.016	Ma					1	1	0	0
+This study	Snake River	sr25h	sr25	sr25h1	LP-DIR-AF:SO-CMD-NORTH:DE-BFL:DA-DIR-GEO	DE-SPEC	1.9	sample direction.	l	60.9	0.291	0.016	Ma					1	1	0	0
+This study	Snake River	sr26a	sr26	sr26a3	LP-DIR-AF:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	2.6	sample direction.	l	60.1	1.73	0.01	Ma					1	1	0	0
+This study	Snake River	sr26b	sr26	sr26b2	LP-DIR-T:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	359.5	sample direction.	l	57.4	1.73	0.01	Ma					1	1	0	0
+This study	Snake River	sr26c	sr26	sr26c3	LP-DIR-AF:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	17.5	sample direction.	l	66	1.73	0.01	Ma					1	1	0	0
+This study	Snake River	sr26e	sr26	sr26e3	LP-DIR-AF:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	356.5	sample direction.	l	62.8	1.73	0.01	Ma					1	1	0	0
+This study	Snake River	sr26f	sr26	sr26f1	LP-DIR-AF:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	341.3	sample direction.	l	65.6	1.73	0.01	Ma					1	1	0	0
+This study	Snake River	sr26i	sr26	sr26i1	LP-DIR-AF:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	353.1	sample direction.	l	56.9	1.73	0.01	Ma					1	1	0	0
+This study	Snake River	sr27c	sr27	sr27c2	LP-DIR-T:SO-CMD-NORTH:DE-BFL:DA-DIR-GEO	DE-SPEC	229.6	sample direction.	l	72.5	2.89	0.02	Ma					1	1	0	0
+This study	Snake River	sr27d	sr27	sr27d1	LP-DIR-T:SO-CMD-NORTH:DE-BFL:DA-DIR-GEO	DE-SPEC	218.6	sample direction.	l	70.4	2.89	0.02	Ma					1	1	0	0
+This study	Snake River	sr28a	sr28	sr28a1	LP-DIR-AF:SO-CMD-NORTH:DE-BFL:DA-DIR-GEO	DE-SPEC	194.5	sample direction.	l	-51.9	2.94	0.025	Ma					1	1	0	0
+This study	Snake River	sr28b	sr28	sr28b1	LP-DIR-T:SO-CMD-NORTH:DE-BFL:DA-DIR-GEO	DE-SPEC	210	sample direction.	l	-55	2.94	0.025	Ma					1	1	0	0
+This study	Snake River	sr28c	sr28	sr28c1	LP-DIR-T:SO-CMD-NORTH:DE-BFL:DA-DIR-GEO	DE-SPEC	195.1	sample direction.	l	-51.5	2.94	0.025	Ma					1	1	0	0
+This study	Snake River	sr28c	sr28	sr28c2	LP-DIR-T:SO-CMD-NORTH:DE-BFL:DA-DIR-GEO	DE-SPEC	192.9	sample direction.	l	-54.1	2.94	0.025	Ma					1	1	0	0
+This study	Snake River	sr28e	sr28	sr28e1	LP-DIR-T:SO-CMD-NORTH:DE-BFL:DA-DIR-GEO	DE-SPEC	200.9	sample direction.	l	-46.8	2.94	0.025	Ma					1	1	0	0
+This study	Snake River	sr28f	sr28	sr28f1	LP-DIR-T:SO-CMD-NORTH:DE-BFL:DA-DIR-GEO	DE-SPEC	197.2	sample direction.	l	-47.5	2.94	0.025	Ma					1	1	0	0
+This study	Snake River	sr28g	sr28	sr28g2	LP-DIR-AF:SO-CMD-NORTH:DE-BFL:DA-DIR-GEO	DE-SPEC	193	sample direction.	l	-53.9	2.94	0.025	Ma					1	1	0	0
+This study	Snake River	sr28h	sr28	sr28h1	LP-DIR-T:SO-CMD-NORTH:DE-BFL:DA-DIR-GEO	DE-SPEC	196.3	sample direction.	l	-48.2	2.94	0.025	Ma					1	1	0	0
+This study	Snake River	sr29a	sr29	sr29a1	LP-DIR-T:SO-CMD-NORTH:DE-BFL:DA-DIR-GEO	DE-SPEC	6.3	sample direction.	l	62.8	1	1	Ma					1	1	0	0
+This study	Snake River	sr29a	sr29	sr29a2	LP-DIR-T:SO-CMD-NORTH:DE-BFL:DA-DIR-GEO	DE-SPEC	4	sample direction.	l	61.7	1	1	Ma					1	1	0	0
+This study	Snake River	sr29b	sr29	sr29b1	LP-DIR-T:SO-CMD-NORTH:DE-BFL:DA-DIR-GEO	DE-SPEC	5.8	sample direction.	l	61.9	1	1	Ma					1	1	0	0
+This study	Snake River	sr29c	sr29	sr29c1	LP-DIR-T:SO-CMD-NORTH:DE-BFL:DA-DIR-GEO	DE-SPEC	11.6	sample direction.	l	61.3	1	1	Ma					1	1	0	0
+This study	Snake River	sr29e	sr29	sr29e3	LP-DIR-T:SO-CMD-NORTH:DE-BFL:DA-DIR-GEO	DE-SPEC	16.4	sample direction.	l	64.4	1	1	Ma					1	1	0	0
+This study	Snake River	sr29g	sr29	sr29g1	LP-DIR-T:SO-CMD-NORTH:DE-BFL:DA-DIR-GEO	DE-SPEC	9.4	sample direction.	l	61.8	1	1	Ma					1	1	0	0
+This study	Snake River	sr29g	sr29	sr29g2	LP-DIR-AF:SO-CMD-NORTH:DE-BFL:DA-DIR-GEO	DE-SPEC	12.9	sample direction.	l	62.9	1	1	Ma					1	1	0	0
+This study	Snake River	sr29h	sr29	sr29h1	LP-DIR-T:SO-CMD-NORTH:DE-BFL:DA-DIR-GEO	DE-SPEC	9.9	sample direction.	l	64.9	1	1	Ma					1	1	0	0
+This study	Snake River	sr30a	sr30	sr30a1	LP-DIR-T:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	14.2	sample direction.	l	64.3	5.75	0.125	Ma					1	1	0	0
+This study	Snake River	sr30a	sr30	sr30a2	LP-DIR-T:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	9.9	sample direction.	l	62.1	5.75	0.125	Ma					1	1	0	0
+This study	Snake River	sr30b	sr30	sr30b2	LP-DIR-AF:SO-CMD-NORTH:DE-BFL:DA-DIR-GEO	DE-SPEC	7.5	sample direction.	l	67.4	5.75	0.125	Ma					1	1	0	0
+This study	Snake River	sr30c	sr30	sr30c1	LP-DIR-T:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	359.4	sample direction.	l	65.9	5.75	0.125	Ma					1	1	0	0
+This study	Snake River	sr30d	sr30	sr30d2	LP-DIR-T:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	9.4	sample direction.	l	70.7	5.75	0.125	Ma					1	1	0	0
+This study	Snake River	sr30e	sr30	sr30e1	LP-DIR-T:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	4.2	sample direction.	l	70.5	5.75	0.125	Ma					1	1	0	0
+This study	Snake River	sr30i	sr30	sr30i1	LP-DIR-T:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	6.7	sample direction.	l	65.8	5.75	0.125	Ma					1	1	0	0
+This study	Snake River	sr31a	sr31	sr31a1	LP-DIR-T:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	23.9	sample direction.	l	54	0.184	0.014	Ma					1	1	0	0
+This study	Snake River	sr31a	sr31	sr31a2	LP-DIR-T:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	24.8	sample direction.	l	54.9	0.184	0.014	Ma					1	1	0	0
+This study	Snake River	sr31b	sr31	sr31b1	LP-DIR-T:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	19.5	sample direction.	l	54.2	0.184	0.014	Ma					1	1	0	0
+This study	Snake River	sr31b	sr31	sr31b3	LP-DIR-T:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	21.7	sample direction.	l	53.8	0.184	0.014	Ma					1	1	0	0
+This study	Snake River	sr31c	sr31	sr31c1	LP-DIR-T:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	25.2	sample direction.	l	55.1	0.184	0.014	Ma					1	1	0	0
+This study	Snake River	sr31d	sr31	sr31d1	LP-DIR-T:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	24.3	sample direction.	l	52.5	0.184	0.014	Ma					1	1	0	0
+This study	Snake River	sr31f	sr31	sr31f1	LP-DIR-T:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	26.8	sample direction.	l	52.4	0.184	0.014	Ma					1	1	0	0
+This study	Snake River	sr31h	sr31	sr31h2	LP-DIR-AF:SO-CMD-NORTH:DE-BFL:DA-DIR-GEO	DE-SPEC	19.4	sample direction.	l	54.7	0.184	0.014	Ma					1	1	0	0
+This study	Snake River	sr34a	sr34	sr34a1	LP-DIR-T:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	209.5	sample direction.	l	-47.9	0.191	0.008	Ma					1	1	0	0
+This study	Snake River	sr34c	sr34	sr34c1	LP-DIR-T:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	201.4	sample direction.	l	-50.4	0.191	0.008	Ma					1	1	0	0
+This study	Snake River	sr34f	sr34	sr34f2	LP-DIR-AF:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	206.6	sample direction.	l	-48.7	0.191	0.008	Ma					1	1	0	0
+This study	Snake River	sr34i	sr34	sr34i3	LP-DIR-AF:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	200.7	sample direction.	l	-52.8	0.191	0.008	Ma					1	1	0	0
+This study	Snake River	sr34j	sr34	sr34j1	LP-DIR-T:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	205.3	sample direction.	l	-50.9	0.191	0.008	Ma					1	1	0	0
+This study	Snake River	sr34k	sr34	sr34k1	LP-DIR-T:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	208.6	sample direction.	l	-48.5	0.191	0.008	Ma					1	1	0	0
+This study	Snake River	sr36a	sr36	sr36a2	LP-DIR-AF:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	199.7	sample direction.	l	-64	0.124	0.039	Ma					1	1	0	0
+This study	Snake River	sr36b	sr36	sr36b1	LP-DIR-AF:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	194.7	sample direction.	l	-60	0.124	0.039	Ma					1	1	0	0
+This study	Snake River	sr36c	sr36	sr36c1	LP-DIR-AF:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	215.5	sample direction.	l	-61	0.124	0.039	Ma					1	1	0	0
+This study	Snake River	sr36d	sr36	sr36d1	LP-DIR-AF:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	185	sample direction.	l	-73.7	0.124	0.039	Ma					1	1	0	0
+This study	Snake River	sr36e	sr36	sr36e1	LP-DIR-AF:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	193.4	sample direction.	l	-69.4	0.124	0.039	Ma					1	1	0	0
+This study	Snake River	sr36i	sr36	sr36i2	LP-DIR-AF:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	191	sample direction.	l	-63.1	0.124	0.039	Ma					1	1	0	0
+This study	Snake River	sr37a	sr37	sr37a2	LP-DIR-T:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	177.4	sample direction.	l	-50.9	0.945	0.03	Ma					1	1	0	0
+This study	Snake River	sr37i	sr37	sr37i2	LP-DIR-T:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	166.5	sample direction.	l	-56.9	0.945	0.03	Ma					1	1	0	0
+This study	Snake River	sr37j	sr37	sr37j1	LP-DIR-T:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	170.4	sample direction.	l	-54.4	0.945	0.03	Ma					1	1	0	0
+This study	Snake River	sr39a	sr39	sr39a1	LP-DIR-T:SO-CMD-NORTH:DE-BFL:DA-DIR-GEO	DE-SPEC	188	sample direction.	l	-43.4	1	1	Ma					1	1	0	0
+This study	Snake River	sr39b	sr39	sr39b1	LP-DIR-T:SO-CMD-NORTH:DE-BFL:DA-DIR-GEO	DE-SPEC	190.3	sample direction.	l	-43.5	1	1	Ma					1	1	0	0
+This study	Snake River	sr39g	sr39	sr39g3	LP-DIR-AF:SO-CMD-NORTH:DE-BFL:DA-DIR-GEO	DE-SPEC	185.1	sample direction.	l	-51	1	1	Ma					1	1	0	0
+This study	Snake River	sr39h	sr39	sr39h3	LP-DIR-AF:SO-CMD-NORTH:DE-BFL:DA-DIR-GEO	DE-SPEC	178	sample direction.	l	-51.8	1	1	Ma					1	1	0	0
+This study	Snake River	sr39i	sr39	sr39i1	LP-DIR-T:SO-CMD-NORTH:DE-BFL:DA-DIR-GEO	DE-SPEC	200.8	sample direction.	l	-46.2	1	1	Ma					1	1	0	0
+This study	Snake River	sr39j	sr39	sr39j2	LP-DIR-T:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	185.1	sample direction.	l	-45.9	1	1	Ma					1	1	0	0
+This study	Snake River	sr40a	sr40	sr40a1	LP-DIR-T:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	190.3	sample direction.	l	-60.3	1	1	Ma					1	1	0	0
+This study	Snake River	sr40c	sr40	sr40c2	LP-DIR-T:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	194.4	sample direction.	l	-62.7	1	1	Ma					1	1	0	0
+This study	Snake River	sr40e	sr40	sr40e1	LP-DIR-T:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	190.7	sample direction.	l	-62.7	1	1	Ma					1	1	0	0
+This study	Snake River	sr40f	sr40	sr40f3	LP-DIR-AF:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	192.9	sample direction.	l	-64.3	1	1	Ma					1	1	0	0
+This study	Snake River	sr40g	sr40	sr40g1	LP-DIR-T:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	195.7	sample direction.	l	-53.5	1	1	Ma					1	1	0	0
+This study	Snake River	sr42b	sr42	sr42b1	LP-DIR-T:SO-CMD-NORTH:DE-BFL:DA-DIR-GEO	DE-SPEC	14.6	sample direction.	l	51.5	1	1	Ma					1	1	0	0
+This study	Snake River	sr42c	sr42	sr42c3	LP-DIR-AF:SO-CMD-NORTH:DE-BFL:DA-DIR-GEO	DE-SPEC	24.1	sample direction.	l	54.4	1	1	Ma					1	1	0	0
+This study	Snake River	sr42f	sr42	sr42f2	LP-DIR-AF:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	108.7	sample direction.	l	45.6	1	1	Ma					1	1	0	0
+This study	Snake River	sr42h	sr42	sr42h2	LP-DIR-AF:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	9.1	sample direction.	l	15.7	1	1	Ma					1	1	0	0
+This study	Snake River	sr42j	sr42	sr42j2	LP-DIR-AF:SO-SUN:DE-BFL:DA-DIR-GEO	DE-SPEC	333.9	sample direction.	l	53.5	1	1	Ma					1	1	0	0
+This study	Snake River	sr09f	sr09	sr09f1	LP-DIR-T:SO-SUN:DE-BFP:DA-DIR-GEO		39	sample direction.	p	-16.5	0.095	0.05	Ma					1	0	1	0
+This study	Snake River	sr11f	sr11	sr11f1	LP-DIR-T:SO-CMD-NORTH:DE-BFP:DA-DIR-GEO		136.6	sample direction.	p	9.4	0.395	0.01	Ma					1	0	1	0
+This study	Snake River	sr11i	sr11	sr11i1	LP-DIR-AF:SO-CMD-NORTH:DE-BFP:DA-DIR-GEO		77.1	sample direction.	p	0.8	0.395	0.01	Ma					1	0	1	0
+This study	Snake River	sr19a	sr19	sr19a3	LP-DIR-AF:SO-SUN:DE-BFP:DA-DIR-GEO		71.9	sample direction.	p	-0.9	1	1	Ma					1	0	1	0
+This study	Snake River	sr22a	sr22	sr22a1	LP-DIR-T:SO-SUN:DE-BFP:DA-DIR-GEO		248.2	sample direction.	p	45	2.26	0.05	Ma					1	0	1	0
+This study	Snake River	sr23f	sr23	sr23f1	LP-DIR-T:SO-CMD-NORTH:DE-BFP:DA-DIR-GEO		198.9	sample direction.	p	46.4	1.69	0.02	Ma					1	0	1	0
+This study	Snake River	sr26e	sr26	sr26e2	LP-DIR-T:SO-SUN:DE-BFP:DA-DIR-GEO		340.9	sample direction.	p	-22.6	1.73	0.01	Ma					1	0	1	0
+This study	Snake River	sr27a	sr27	sr27a2	LP-DIR-AF:SO-CMD-NORTH:DE-BFP:DA-DIR-GEO		288.8	sample direction.	p	-15.6	2.89	0.02	Ma					1	0	1	0
+This study	Snake River	sr27c	sr27	sr27c1	LP-DIR-AF:SO-CMD-NORTH:DE-BFP:DA-DIR-GEO		191.7	sample direction.	p	-16.8	2.89	0.02	Ma					1	0	1	0
+This study	Snake River	sr27e	sr27	sr27e2	LP-DIR-AF:SO-CMD-NORTH:DE-BFP:DA-DIR-GEO		210.6	sample direction.	p	-16.9	2.89	0.02	Ma					1	0	1	0
+This study	Snake River	sr34f	sr34	sr34f3	LP-DIR-T:SO-SUN:DE-BFP:DA-DIR-GEO		234.3	sample direction.	p	40.3	0.191	0.008	Ma					1	0	1	0
+This study	Snake River	sr37j	sr37	sr37j2	LP-DIR-AF:SO-SUN:DE-BFP:DA-DIR-GEO		56.9	sample direction.	p	-17.1	0.945	0.03	Ma					1	0	1	0
+This study	Snake River	sr01a	sr01	sr01a2	LP-PI-TRM:LP-PI-ALT-PTRM:LP-PI-BT-MD:LP-PI-ZI:IE-TT	IE-SPEC		sample intensity.			3.4	0.03	Ma	3.939e-05	1	0	0				
+This study	Snake River	sr01d	sr01	sr01d1	LP-PI-TRM:LP-PI-ALT-PTRM:LP-PI-ZI:IE-TT	IE-SPEC		sample intensity.			3.4	0.03	Ma	3.727e-05	1	0	0				
+This study	Snake River	sr30a	sr30	sr30a2	LP-PI-TRM:LP-PI-ALT-PTRM:LP-PI-BT-MD:LP-PI-ZI:IE-TT	IE-SPEC		sample intensity.			5.75	0.125	Ma	4.845e-05	1	0	0				
+This study	Snake River	sr34k	sr34	sr34k1	LP-PI-TRM:LP-PI-ALT-PTRM:LP-PI-ZI:IE-TT	IE-SPEC		sample intensity.			0.191	0.008	Ma	8.51e-05	1	0	0				
+This study	Snake River	sr37j	sr37	sr37j1	LP-PI-TRM:LP-PI-ALT-PTRM:LP-PI-ZI:IE-TT	IE-SPEC		sample intensity.			0.945	0.03	Ma	3.957e-05	1	0	0				

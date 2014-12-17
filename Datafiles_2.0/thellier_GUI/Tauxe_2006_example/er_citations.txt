@@ -1,0 +1,75 @@
+tab 	er_citations
+book_editors	book_title	citation_type	city	doi	er_citation_name	journal	long_authors	pages	publisher	title	volume	year
+		Journal		10.1016/j.pepi.2005.03.022	This study	Physics of the Earth and Planetary Interiors	Tauxe, L.			Long term trends in paleointensity: The contribution of DSDP/ODP submarine basaltic glass collections		2006
+	Initial Reports of the Deep Sea Drilling Project	Edited Book	Washington		Audobin & Von huene 1982		Audobin, J. and Von huene, R.		U.S. Government Printing Office		67	1982
+	Initial Reports of the Deep Sea Drilling Project	Edited Book	Washington		Aumento & Melson 1977		Aumento, F. and Melson, W.G.		U.S. Government Printing Office		47	1977
+	Proceedings of the Ocean Drilling Program, Scientific Results	Edited Book	College Station, TX		Backman & Duncan 1988		Backman, J. and Duncan, R.A.		Ocean Drilling Program		115	1988
+	Proceedings of the Ocean Drilling Program, Scientific Results	Edited Book	College Station, TX		Behrmann et al. 1992		Behrmann, J.H., Lewis, S.D. and Musgrave, R.J.		Ocean Drilling Program		141	1992
+Berggren, W.A., Kent, D.V., Aubry, M.-P. and Hardenbol, J.	Geochronology Time Scales and global Stratigraphic Correlation	Edited Book	Tulsa, Oklahoma		Berggren et al. 1995		Berggren, W.A., Kent, D.V., Swisher III, C.C. and Aubry, M.-P.	129-212	SEPM	A Revised Cenozoic Gochronology and Chronostratigraphy		1995
+		Journal		10.1029/2000JB000050	Besse & Courtillot 2002	Journal of Geophysical Research	Besse, J. and Courtillot, V.			Apparent and true polar wander and the geometry of the geomagnetic field over the last 200 Myr	107	2004
+	Initial Reports of the Deep Sea Drilling Project	Edited Book	Washington		Biju-Duval et al. 1984		Biju-Duval Moore Hyndman, Salisburyetal.		U.S. Government Printing Office		78	1984
+	Initial Reports of the Deep Sea Drilling Project	Edited Book	Washington		Bougault & Cande 1985		Bougault, H. and Cande, S.C.		U.S. Government Printing Office		82	1985
+	Initial Reports of the Deep Sea Drilling Project	Edited Book	Washington		Burns & Andrews 1973		Burns, R.E. and Andrews, J.E.		U.S. Government Printing Office		21	1973
+		Journal			Cande & Kent 1995	Journal of Geophysical Research - Solid Earth	Cande, S.C. and Kent, D.V.	6,093-6,095		Revised calibration of the geomagnetic polarity timescale for the late Cretaceous and Cenozoic	100	1995
+	Initial Reports of the Deep Sea Drilling Project	Edited Book	Washington		Cann et al. 1983		Cann, J.R., Langseth, M.G., Honnorez, J., Von Herzen, R.P. and White, S.M.		U.S. Government Printing Office		69	1983
+		Journal			Castillo et al. 1994	Earth and Planetary Science Letters	Castillo, P., Pringle, M. and Carlson, R.	139-154		East Mariana Basin tholeiites: Cretaceous intraplate basalts or rift basalts related to the Ontong Java plume?	123	1994
+		Journal			Coe 1967	Journal of Geomagnetism and Geoelectricity	Coe, R.S.	157-178		The determination of paleo-intensities of the Earth's magnetic field with emphasis on mechanisms which could cause non-ideal behavior in Thellier's method	19	1967
+		Journal			Coe et al. 1978	Journal of Geophysical Research	Coe, R.S., Gromme, S. and Mankinen, E.A.	1,740-1,756		Geomagnetic paleointensities from radiocarbon-dated lava flows on Hawaii and the question of the Pacific non-dipole low	83	1978
+	Methods in rock magnetism and Paleomagnetism: Techniques and instrumentation	Book	London		Collinson 1983		Collinson, D.W.	503	Chapman and Hall			1983
+					Collot & Greene 1992		Collot, J.Y., Greene, H.G. and Stokking, L.B.					1992
+	Initial Reports of the Deep Sea Drilling Project	Edited Book	Washington		Curray & Moore 1982		Curray, J.R. and Moore, D.G.		U.S. Government Printing Office		64	1982
+		Journal			DeMets et al.1990	Geophysical Journal International	DeMets, C., Gordon, R.G., Argus, D.F. and Stein, S.	425-478		Current plate motions	101	1990
+	Initial Reports of the Deep Sea Drilling Project	Edited Book	Washington		Donelly et al. 1979		Donelly, T., Francheteau, J., Bryan, W., Robinson, P., Flower, M. and Salisbury, M.		U.S. Government Printing Office		51-53	1979
+	Proceedings of the Ocean Drilling Program, Scientific Results	Edited Book	College Station, TX		Dziewonski et al. 1992		Dziewonski, A., Wilkens, R. and Firth, J.		Ocean Drilling Program		136	1992
+	Initial Reports of the Deep Sea Drilling Project	Edited Book	Washington		Fisher & Bunce 1974		Fisher, R.L. and Bunce, E.T.		U.S. Government Printing Office		35	1974
+Lewis, S.D.	Proceedings of the Ocean Drilling Program, Scientific Results	Report	College Station, TX		Forsythe 1995		Forsythe, R.D.	421-426	Ocean Drilling Program		141	1995
+	Proceedings of the Ocean Drilling Program, Scientific Results	Edited Book	College Station, TX		Fryer et al. 1990		Fryer, P., Pearce, J.A. and Stokking, L.B.		Ocean Drilling Program		125	1990
+Storms, M.A.	Proceedings of the Ocean Drilling Program, Scientific Results	Edited Book	College Station, TX		Goldstein 1995		Goldstein, S.J.	37-39	Ocean Drilling Program	Uranium-series chronology of subsurface basalts, 9o31' N East Pacific Rise	142	1995
+	Proceedings of the Ocean Drilling Program, Scientific Results	Edited Book	College Station, TX		Gradstein & Ludden 1990		Gradstein, F.M. and Ludden, J.N.		Ocean Drilling Program		123	1990
+Berggren, W.A., Kent, D.V., Aubry, M.-P. and Hardenbol, J.	Geochronology Time Scales and global Stratigraphic Correlation	Edited Book	Tulsa, Oklahoma		Gradstein et al. 1995		Gradstein, F.M., Agterberg, F.P., Ogg, J.G., Hardenbol, J., Van Veen, P., Thierry, J. and Huang, Z.	95-126	SEPM	A Triassic, Jurassic and Cretaceous time scale		1995
+					Hay & Sibuet 1984		Hay, W.W. and Sibuet, J.C.					1984
+	Initial Reports of the Deep Sea Drilling Project	Edited Book	Washington		Hollister & Craddoc 1976		Hollister, C.D. and Craddoc, C.		U.S. Government Printing Office		37	1976
+	Initial Reports of the Deep Sea Drilling Project	Edited Book	Washington		Honnorez & Von Herzen 1983		Honnorez, J. and Von Herzen, R.P.		U.S. Government Printing Office		70	1983
+	Initial Reports of the Deep Sea Drilling Project	Edited Book	Washington		Hsu & LaBrecque 1984		Hsu, K.J. and LaBrecque, J.		U.S. Government Printing Office		73	1984
+					Hussong & Uyeda 1981		Hussong, D.M. and Uyeda, S.					1982
+		Journal			Juarez et al. 1998	Nature	Juarez, M.T., Tauxe, L., Gee, J. and Pick, T.	878-881		The intensity of the Earth's magnetic field over the past 160 million years	394	1998
+		Journal			Kirschvink 1980	Geophysical Journal of the Royal Astronomical Society	Kirschvink, J.L.	699-718		The least squares line and plane and the analysis of palaeomagnetic data	62	1980
+		Journal			Koenigsberger 1938a	Terrestrial Magnetism and Atmospheric Electricity	Koenigsberger, J.G.	119-127		Natural residual magnetism of eruptive rocks, Part I	43	1938
+		Journal			Koenigsberger 1938b	Terrestrial Magnetism and Atmospheric Electricity	Koenigsberger, J.G.	299-320		Natural residual magnetism of eruptive rocks, Part II	43	1938
+	Initial Reports of the Deep Sea Drilling Project	Edited Book	Washington		Kroenke & Scott 1980		Kroenke, L. and Scott, R.		U.S. Government Printing Office		61	1980
+					Kroenke & Scott 1980		Kroenke, L. and Scott, R.					1981
+	Proceedings of the Ocean Drilling Program, Scientific Results	Edited Book	College Station, TX		Kroenke et al. 1991		Kroenke, J.W., Berger, W.H. and Janecek, T.R.		Ocean Drilling Program		130	1991
+	Proceedings of the Ocean Drilling Program, Scientific Results	Edited Book	College Station, TX		Lancelot & Larson 1990		Lancelot, Y. and Larson, R.		Ocean Drilling Program		129	1990
+	Initial Reports of the Deep Sea Drilling Project	Edited Book	Washington		Larson & Schlanger 1981		Larson, R.L. and Schlanger, S.O.		U.S. Government Printing Office		62	1981
+		Journal			Lee & Lawver 1995	Tectonophysics	Lee, T.-Y. and Lawver, L.	85-138		Cenozoic plate reconstruction of Southeast Asia	251	1995
+	Initial Reports of the Deep Sea Drilling Project	Edited Book	Washington		Lewis & Robinson 1983		Lewis, B.T.R. and Robinson, P.		U.S. Government Printing Office		65	1983
+	Initial Reports of the Deep Sea Drilling Project	Edited Book	Washington		Luyendyk & Cann 1978		Luyendyk, B.P. and Cann, J.R.		U.S. Government Printing Office		49	1978
+Pringle, M., Sager, W., Sliter, W. and Stein, S.	The Mesozoic Pacific: geology tectonics and volcanism	Edited Book	Washington, D.C.		Mahoney et al. 1993		Mahoney, J., Storey, M., Duncan, R.A., Spencer, K. and Pringle, M.	233-262	American Geophysical Union	Geochemistry and age of the Ontong-Java Plateau		1993
+					Mayer & Theyer 1985		Mayer, L. and Theyer, F.					1985
+					Melson & Rabinowitz 1979		Melson, W.G. and Rabinowitz, P.D.					1979
+	The magnetic Field of the Earth: Paleomagnetism, the Core, and the Deep Mantle	Book	San Diego		Merrill et al. 1996		Merrill, R.T., McElhinny, M.W. and McFadden, P.L.	531	Academic Press			1996
+					Moore T. C. 1984		Moore, T.C. and Rabinwitz, P.D.					1984
+	Proceedings of the Ocean Drilling Program, Scientific Results	Edited Book	College Station, TX		Myhre & Thiede 1995		Myhre, A.M. and Thiede, J.		Ocean Drilling Program		151	1995
+		Journal			Nakanishi et al. 1992	Geophysical Journal International	Nakanishi, M.K., Tamaki, K. and Kobayashi, Y.	701-719		Magnetic anomaly lineations from Late Jurassic to Early Cretaceous in the west-central Pacific Ocean	109	1992
+	Proceedings of the Ocean Drilling Program, Scientific Results	Edited Book	College Station, TX		Parson et al. 1992		Parson, L., Hawkins, J. and Allan, J.		Ocean Drilling Program		135	1992
+					Pick & Tauxe 1993	Nature	Pick, T. and Tauxe, L.	238-242		Geomagnetic paleointensities during the Cretaceous normal superchron meausred using submarine basaltic glass	366	1993
+	Proceedings of the Ocean Drilling Program, Scientific Results	Edited Book	College Station, TX		Pierce & Weissel 1989		Pierce, J. and Weissel, J.		Ocean Drilling Program		121	1989
+		Journal			Riisager & Riisager 2001	Physics of the Earth and Planetary Interiors	Riisager, P. and Riisager, J.	111-117		Detecting multidomain magnetic grains in Thellier palaeointensity experiments	125	2001
+	Initial Reports of the Deep Sea Drilling Project	Edited Book	Washington		Roshendahl & Hekinian 1980		Roshendahl, B.R. and Hekinian, R.		U.S. Government Printing Office		54	1980
+Kanazawa, T. and Escutia, C.	Proceedings of the Ocean Drilling Program, Scientific Results	Edited Book	College Station, TX		Sager 2004		Sager, W.	38,379	Ocean Drilling Program	Data report: Paleomagnetism of basaltic rocks cored from Western Pacific DSDP and ODP boreholes	191	2004
+		Journal			Scherbakov et al. 1993	Journal of Geophysical Research	Scherbakov, V.P., McClelland, E. and Scherbakova, V.V.	6,201-6,216		A model of multidomain thermoremanent magnetization incorporating temperature-variable domain structure	98	1993
+		Journal			Selkin & Tauxe 2000	Philosophical Transactions of the Royal Society of London	Selkin, P. and Tauxe, L.	1,065-1,088		Long term variations in geomagnetic field intensity	358	2000
+	Initial Reports of the Deep Sea Drilling Project	Edited Book	Washington		Sheridan & Gradstein 1983		Sheridan, R.E. and Gradstein, F.M.		U.S. Government Printing Office		76	1983
+	Proceedings of the Ocean Drilling Program, Scientific Results	Edited Book	College Station, TX		Sigurdsson & Leckie 1997		Sigurdsson, H. and Leckie, R.M.		Ocean Drilling Program		165	1997
+	Proceedings of the Ocean Drilling Program, Scientific Results	Edited Book	College Station, TX		Silver et al. 1991		Silver, E.A., Rangin, C. and Von Breyman, M.T.		Ocean Drilling Program		124	1991
+	Initial Reports of the Deep Sea Drilling Project	Edited Book	Washington		Steiner 1981		Steiner, M.	711-716	U.S. Government Printing Office	Paleomagnetism of the Cretaceous section, Site 462	61	1981
+	Proceedings of the Ocean Drilling Program, Scientific Results	Edited Book	College Station, TX		Storms & Batiza 1993		Storms, M.A. and Batiza, R.		Ocean Drilling Program		143	1993
+Kono, M.	Treatise on Geophysics	Edited Book	Amsterdam		Tauxe & Yamazaki 2007		Tauxe, L. and Yamazaki, T.		Elsevier	Paleointensity	5	2007
+	Treatise in Geophysics	Edited Book			Tauxe & Yamazaki 2007		Tauxe, L. and Yamazaki, T.	In press		Paleointensity	5	2007
+		Journal			Thellier & Thellier 1959	Annales de GŽophysique	Thellier, E. and Thellier, O.	285-378		Sur l'intensite du champ magnetique terrestre dans le passe historique et geologique	15	1959
+		Journal			Thellier 1938	Annales Institut Physique du Globe de Paris	Thellier, E.	157-302		Sur l'aimantationdes terres cuites et ses applications geophysique	16	1938
+Larson, R.	Proceedings of the Ocean Drilling Program, Scientific Results	Edited Book	College Station, TX		Wallick & Steiner 1992		Wallick, B. and Steiner, M.B.		Ocean Drilling Program	Paleomagnetism of Cretaceous basalts from the East Mariana Basin, Western Pacific Ocean	129	1992
+		Journal			Wilson 1961	Geophysical Journal London	Wilson, R.L.	45-58		Palaeomagnetism in Northern Ireland, Part I. The thermal demagnetization of natural magnetic moments in rocks	5	1961
+	Initial Reports of the Deep Sea Drilling Project	Edited Book	Washington		Winterer & Ewing 1973		Winterer, E.L. and Ewing, J.I.		U.S. Government Printing Office		17	1973
+Berger, W.	Proceedings of the Ocean Drilling Program, Scientific Results	Edited Book	College Station, TX		Yan & Kroenke 1993		Yan, C. and Kroenke, L.		Ocean Drilling Program	A plate tectonic reconstruction of the Southwest Pacific 0-100 Ma	130	1993
+	Initial Reports of the Deep Sea Drilling Project	Edited Book	Washington		Yeats & Haq 1981		Yeats, R.S. and Haq, B.U.		U.S. Government Printing Office		63	1981

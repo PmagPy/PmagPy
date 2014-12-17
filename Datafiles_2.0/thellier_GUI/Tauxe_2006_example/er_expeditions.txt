@@ -1,0 +1,41 @@
+tab 	er_expeditions
+er_citation_names	er_expedition_name	expedition_ship	expedition_sponsor
+Winterer & Ewing 1973	Leg 17	Glomar Challenger	DSDP
+Burns & Andrews 1973	Leg 21	Glomar Challenger	DSDP
+Fisher & Bunce 1974	Leg 24	Glomar Challenger	DSDP
+Hollister & Craddoc 1976	Leg 35	Glomar Challenger	DSDP
+Aumento & Melson 1977	Leg 37	Glomar Challenger	DSDP
+Melson & Rabinowitz 1979	Leg 45	Glomar Challenger	DSDP
+Luyendyk & Cann 1978	Leg 49	Glomar Challenger	DSDP
+Donelly et al. 1979	Legs 51-53	Glomar Challenger	DSDP
+Roshendahl & Hekinian 1980	Leg 54	Glomar Challenger	DSDP
+Kroenke & Scott 1980	Leg 59	Glomar Challenger	DSDP
+Hussong & Uyeda 1981	Leg 60	Glomar Challenger	DSDP
+Kroenke & Scott 1980	Leg 61	Glomar Challenger	DSDP
+Larson & Schlanger 1981	Leg 63	Glomar Challenger	DSDP
+Curray & Moore 1982	Leg 64	Glomar Challenger	DSDP
+Lewis & Robinson 1983	Leg 65	Glomar Challenger	DSDP
+Audobin & Von huene 1982	Leg 67	Glomar Challenger	DSDP
+Cann et al. 1983	Leg 69	Glomar Challenger	DSDP
+Honnorez & Von Herzen 1983	Leg 70	Glomar Challenger	DSDP
+Sheridan & Gradstein 1983	Leg 76	Glomar Challenger	DSDP
+Hsu & LaBrecque 1984	Leg 73	Glomar Challenger	DSDP
+Moore T. C. 1984	Leg 74	Glomar Challenger	DSDP
+Hay & Sibuet 1984	Leg 75	Glomar Challenger	DSDP
+Biju-Duval et al. 1984	Leg 78	Glomar Challenger	DSDP
+Bougault & Cande 1985	Leg 82	Glomar Challenger	DSDP
+Mayer & Theyer 1985	Leg 85	Glomar Challenger	DSDP
+Backman & Duncan 1988	Leg 115	Joides Resolution	ODP
+Pierce & Weissel 1989	Leg 121	Joides Resolution	ODP
+Gradstein et al. 1995	Leg 123	Joides Resolution	ODP
+Silver et al. 1991	Leg 124	Joides Resolution	ODP
+Fryer et al. 1990	Leg 125	Joides Resolution	ODP
+Lancelot & Larson 1990	Leg 129	Joides Resolution	ODP
+Kroenke et al. 1991	Leg 130	Joides Resolution	ODP
+Collot & Greene 1992	Leg 134	Joides Resolution	ODP
+Parson et al. 1992	Leg 135	Joides Resolution	ODP
+Dziewonski et al. 1992	Leg 136	Joides Resolution	ODP
+Behrmann et al. 1992	Leg 141	Joides Resolution	ODP
+Storms & Batiza 1993	Leg 142	Joides Resolution	ODP
+Myhre & Thiede 1995	Leg 151	Joides Resolution	ODP
+Sigurdsson & Leckie 1997	Leg 165	Joides Resolution	ODP

@@ -1,0 +1,31 @@
+tab 	er_ages
+age	age_unit	er_citation_names	er_location_name	er_timescale_citation_names	magic_method_codes	tiepoint_height	tiepoint_name	tiepoint_type	timescale_epoch
+22.75	Ma	This study	DSDP Site 522	Cande & Kent 1995	GM-PMAG-POL	-55.27	6bn.1n(o)	magnetic reversal	Oligocene
+22.804	Ma	This study	DSDP Site 522	Cande & Kent 1995	GM-PMAG-POL	-55.49	6bn.2n(y)	magnetic reversal	Oligocene
+23.069	Ma	This study	DSDP Site 522	Cande & Kent 1995	GM-PMAG-POL	-56.17	6bn.2n(o)	magnetic reversal	Oligocene
+23.353	Ma	This study	DSDP Site 522	Cande & Kent 1995	GM-PMAG-POL	-57.07	6cn.1n(y)	magnetic reversal	Oligocene
+23.535	Ma	This study	DSDP Site 522	Cande & Kent 1995	GM-PMAG-POL	-57.52	6cn.1n(o)	magnetic reversal	Oligocene
+23.677	Ma	This study	DSDP Site 522	Cande & Kent 1995	GM-PMAG-POL	-58.55	6cn.2n(y)	magnetic reversal	Oligocene
+23.8	Ma	This study	DSDP Site 522	Cande & Kent 1995	GM-PMAG-POL	-59.01	6cn.2n(o)	magnetic reversal	Oligocene
+24.118	Ma	This study	DSDP Site 522	Cande & Kent 1995	GM-PMAG-POL	-60.49	6cn.3n(o)	magnetic reversal	Oligocene
+24.835	Ma	This study	DSDP Site 522	Cande & Kent 1995	GM-PMAG-POL	-63.99	7n.2n(y)	magnetic reversal	Oligocene
+25.183	Ma	This study	DSDP Site 522	Cande & Kent 1995	GM-PMAG-POL	-65.71	7n.2n(o)	magnetic reversal	Oligocene
+25.496	Ma	This study	DSDP Site 522	Cande & Kent 1995	GM-PMAG-POL	-68.07	7an(y)	magnetic reversal	Oligocene
+25.823	Ma	This study	DSDP Site 522	Cande & Kent 1995	GM-PMAG-POL	-69.73	8n.1n(y)	magnetic reversal	Oligocene
+25.951	Ma	This study	DSDP Site 522	Cande & Kent 1995	GM-PMAG-POL	-70.35	8n.1n(o)	magnetic reversal	Oligocene
+25.992	Ma	This study	DSDP Site 522	Cande & Kent 1995	GM-PMAG-POL	-70.57	8n.2n(y)	magnetic reversal	Oligocene
+26.554	Ma	This study	DSDP Site 522	Cande & Kent 1995	GM-PMAG-POL	-76.06	8n.2n(o)	magnetic reversal	Oligocene
+27.027	Ma	This study	DSDP Site 522	Cande & Kent 1995	GM-PMAG-POL	-78.56	9n(y)	magnetic reversal	Oligocene
+27.972	Ma	This study	DSDP Site 522	Cande & Kent 1995	GM-PMAG-POL	-84.06	9n(o)	magnetic reversal	Oligocene
+28.283	Ma	This study	DSDP Site 522	Cande & Kent 1995	GM-PMAG-POL	-86.55	10n.1n(y)	magnetic reversal	Oligocene
+28.512	Ma	This study	DSDP Site 522	Cande & Kent 1995	GM-PMAG-POL	-87.96	10n.1n(o)	magnetic reversal	Oligocene
+28.578	Ma	This study	DSDP Site 522	Cande & Kent 1995	GM-PMAG-POL	-88.26	10n.2n(y)	magnetic reversal	Oligocene
+28.745	Ma	This study	DSDP Site 522	Cande & Kent 1995	GM-PMAG-POL	-89.5	10n.2n(o)	magnetic reversal	Oligocene
+29.401	Ma	This study	DSDP Site 522	Cande & Kent 1995	GM-PMAG-POL	-95.98	11n.1n(y)	magnetic reversal	Oligocene
+29.662	Ma	This study	DSDP Site 522	Cande & Kent 1995	GM-PMAG-POL	-98.33	11n.1n(o)	magnetic reversal	Oligocene
+29.765	Ma	This study	DSDP Site 522	Cande & Kent 1995	GM-PMAG-POL	-98.96	11n.2n(y)	magnetic reversal	Oligocene
+30.098	Ma	This study	DSDP Site 522	Cande & Kent 1995	GM-PMAG-POL	-100.83	11n.2n(o)	magnetic reversal	Oligocene
+30.479	Ma	This study	DSDP Site 522	Cande & Kent 1995	GM-PMAG-POL	-104.12	12n(y)	magnetic reversal	Oligocene
+30.939	Ma	This study	DSDP Site 522	Cande & Kent 1995	GM-PMAG-POL	-108.07	12n(o)	magnetic reversal	Oligocene
+33.058	Ma	This study	DSDP Site 522	Cande & Kent 1995	GM-PMAG-POL	-128.54	13n(y)	magnetic reversal	Oligocene
+33.545	Ma	This study	DSDP Site 522	Cande & Kent 1995	GM-PMAG-POL	-133.8	13n(o)	magnetic reversal	Oligocene

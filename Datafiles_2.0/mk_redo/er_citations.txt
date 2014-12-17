@@ -1,0 +1,19 @@
+tab 	er_citations
+book_editors	book_title	citation_type	city	doi	er_citation_name	issn	journal	long_authors	pages	publisher	title	volume	year
+		Journal		10.1029/2003GC000661	This study	1525-2027	Geochemistry, Geophysics, Geosystems	Tauxe, L., Luskin, C., Selkin, P., Gans, P. and Calvert, A.	19		Paleomagnetic results from the Snake River Plain: Contribution to the time-averaged field global database	5	2004
+		Journal			As & Zijderveld 1958		Geophysical Journal International	As, J.A. and Zijderveld, J.D.A.	308-319		Magnetic cleaning of rocks in paleomagnetic research	1	1958
+		Journal			Coe 1967		Journal of Geomagnetism and Geoelectricity	Coe, R.S.	157-178		The determination of paleo-intensities of the Earth's magnetic field with emphasis on mechanisms which could cause non-ideal behavior in Thellier's method	19	1967
+	Methods in rock magnetism and Paleomagnetism: Techniques and instrumentation	Book	London		Collinson 1983			Collinson, D.W.	503	Chapman and Hall			1983
+		Journal			Cox & Doell 1960		Geological Society of America, Bulletin	Cox, A. and Doell, R.R.	645		Review of paleomagnetism	71	1960
+		Journal			Fisher 1953		Proceedings of the Royal Society of London	Fisher, R.A.	295-305		Dispersion on a sphere	A217	1953
+		Journal			Kirschvink 1980		Geophysical Journal of the Royal Astronomical Society	Kirschvink, J.L.	699-718		The least squares line and plane and the analysis of palaeomagnetic data	62	1980
+		Journal			Koenigsberger 1938a		Terrestrial Magnetism and Atmospheric Electricity	Koenigsberger, J.G.	119-127		Natural residual magnetism of eruptive rocks, Part I	43	1938
+		Journal			Koenigsberger 1938b		Terrestrial Magnetism and Atmospheric Electricity	Koenigsberger, J.G.	299-320		Natural residual magnetism of eruptive rocks, Part II	43	1938
+Dmowska, R., Holton, J.R. and Rossby, H.T.	Paleomagnetism: continents and oceans	Serial Book	San Diego		McElhinny & McFadden 2000		International Geophysics Series	McElhinny, M.W. and McFadden, P.L.	1-1	Academic Press		73	2000
+		Journal			McFadden & McElhinny 1988		Earth and Planetary Science Letters	McFadden, P.L. and McElhinny, M.W.	163-189		The combined analysis of remagnetization circles and direct observations in palaeomagnetism	87	1988
+		Journal			McFadden & McElhinny 1990		Geophysical Journal International	McFadden, P.L. and McElhinny, M.W.	725-729		Classification of the reversal test in palaeomagnetism	103	1990
+		Journal			Riisager & Riisager 2001		Physics of the Earth and Planetary Interiors	Riisager, P. and Riisager, J.	111-117		Detecting multidomain magnetic grains in Thellier palaeointensity experiments	125	2001
+		Journal			Scherbakov et al. 1993		Journal of Geophysical Research	Scherbakov, V.P., McClelland, E. and Scherbakova, V.V.	6,201-6,216		A model of multidomain thermoremanent magnetization incorporating temperature-variable domain structure	98	1993
+		Journal			Thellier & Thellier 1959		Annales de Geophysique	Thellier, E. and Thellier, O.	285-378		Sur l'intensite du champ magnetique terrestre dans le passe historique et geologique	15	1959
+		Journal			Thellier 1938		Annales Institut Physique du Globe de Paris	Thellier, E.	157-302		Sur l'aimantationdes terres cuites et ses applications geophysique	16	1938
+		Journal			Wilson 1961		Geophysical Journal of the Royal Astronomical Society	Wilson, R.L.	45-58		Palaeomagnetism in Northern Ireland, Part I. The thermal demagnetization of natural magnetic moments in rocks	5	1961
