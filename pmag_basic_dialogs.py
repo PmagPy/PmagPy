@@ -2812,23 +2812,21 @@ Check that this data is correct, and fill in missing cells using controlled voca
         self.samples = sorted(self.Data_hierarchy['samples'].keys())
         sites = sorted(self.Data_hierarchy['sites'].keys())
         self.locations = sorted(list(set(self.Data_hierarchy['locations'].keys()).union(self.ErMagic.data_er_locations.keys())))
+
         if self.sample_window == 1:
             self.samp_grid, self.temp_data['samples'], self.temp_data['sites'] = self.make_table(['samples', '', 'sites'], self.samples, self.Data_hierarchy, 'site_of_sample')
+
         if self.sample_window > 1:
-            #col_labels = ['samples', '', 'sites', 'sample_class', 'sample_lithology', 'sample_type']
             col_labels = self.ErMagic.data_er_samples[self.ErMagic.data_er_samples.keys()[0]].keys()
             for val in ['er_citation_names', 'er_location_name', 'er_site_name', 'er_sample_name', 'sample_class', 'sample_lithology', 'sample_type', 'sample_lat', 'sample_lon']:
                 col_labels.remove(val)
             col_labels = sorted(col_labels)
             col_labels[:0] = ['samples', '', 'sites', 'sample_class', 'sample_lithology', 'sample_type', 'sample_lat', 'sample_lon']
-
             self.samp_grid, self.temp_data['samples'], self.temp_data['sites'] = self.make_table(col_labels, self.samples, self.Data_hierarchy, 'site_of_sample')
-            #self.add_extra_grid_data(self.samp_grid, self.samples,self.ErMagic.data_er_samples, col_labels)
+            self.add_extra_grid_data(self.samp_grid, self.samples,self.ErMagic.data_er_samples, col_labels)
 
         self.changes = False
-
         self.Bind(wx.grid.EVT_GRID_EDITOR_CREATED, lambda event: self.on_edit_grid(event, self.samp_grid), self.samp_grid)
-
         sites = sorted(list(set(sites).union(self.ErMagic.data_er_sites.keys()))) # adds in any additional sets we might have information about (from er_sites.txt file) even if currently that site does not show up in the magic_measurements file
         self.drop_down_menu = drop_down_menus.Menus("sample", self, self.samp_grid, sites) # initialize all needed drop-down menus
 
@@ -2852,7 +2850,7 @@ Check that this data is correct, and fill in missing cells using controlled voca
         self.cancelButton = wx.Button(self.panel, wx.ID_CANCEL, '&Cancel')
         self.Bind(wx.EVT_BUTTON, self.on_cancelButton, self.cancelButton)
         self.continueButton = wx.Button(self.panel, id=-1, label='Save and continue')
-        next_dia = self.InitSiteCheck if self.sample_window < 2 else self.InitLocCheck #None # 
+        next_dia = self.InitSiteCheck if self.sample_window < 2 else self.InitLocCheck 
         self.Bind(wx.EVT_BUTTON, lambda event: self.on_continueButton(event, self.samp_grid, next_dia=next_dia), self.continueButton)
         self.backButton = wx.Button(self.panel, wx.ID_ANY, "&Back")
         previous_dia = self.InitSpecCheck if self.sample_window < 2 else self.InitSiteCheck
@@ -2882,7 +2880,9 @@ Check that this data is correct, and fill in missing cells using controlled voca
         hbox_all.Fit(self)
         self.Centre()
         self.Show()
-
+        # this combination prevents a display error that (without the fix) only resolves on manually resizing the window
+        self.samp_grid.ForceRefresh()
+        self.panel.Refresh()
 
 
     def InitSiteCheck(self):
@@ -3409,7 +3409,6 @@ Fill in or correct any cells with information about ages.
         else:
             self.final_update()
             self.Destroy()
-            del wait
         
 
     def on_saveButton(self, event, grid):
