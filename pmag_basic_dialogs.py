@@ -3365,9 +3365,8 @@ Fill in or correct any cells with information about ages.
     def on_helpButton(self, event, page=None):
         """shows html help page"""
         path = check_updates.get_pmag_dir()
-        html_frame = pw.HtmlFrame(self, page=(os.path.join(path,page)))
+        html_frame = pw.HtmlFrame(self, page=(os.path.join(path, 'help_files', page)))
         html_frame.Show()
-
 
     def on_continueButton(self, event, grid, next_dia=None):
         """pulls up next dialog, if there is one.
