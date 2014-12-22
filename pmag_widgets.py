@@ -611,7 +611,7 @@ def on_add_dir_button(SELF, WD, event, text):
         style=wx.OPEN | wx.DD_DEFAULT_STYLE
             )
     if dlg.ShowModal() == wx.ID_OK:
-        SELF.dir_path.SetValue(str(dlg.GetPath()))
+        SELF.parent.dir_path.SetValue(str(dlg.GetPath()))
     # make sure the frame that called up this dialog ends up in front once the dialog is gone
     # otherwise in Windows the top-level frame ends up in front instead
     SELF.parent.Parent.Raise() 

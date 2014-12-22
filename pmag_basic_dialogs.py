@@ -1338,7 +1338,7 @@ class convert_2G_binary_files_to_MagIC(wx.Frame):
 
     def on_add_dir_button(self,event):
         text = "choose directory of files to convert to MagIC"
-        pw.on_add_dir_button(self.panel, self.WD, event, text)
+        pw.on_add_dir_button(self.bSizer0, self.WD, event, text)
 
     def on_okButton(self, event):
         options_dict = {}
@@ -1819,7 +1819,7 @@ class convert_PMD_files_to_MagIC(wx.Frame):
 
     def on_add_dir_button(self,event):
         text = "choose directory of files to convert to MagIC"
-        pw.on_add_dir_button(self.panel, self.WD, event, text)
+        pw.on_add_dir_button(self.bSizer0, self.WD, event, text)
 
     def on_okButton(self, event):
         options = {}
@@ -2960,6 +2960,10 @@ However, you will be able to edit sample_class, sample_lithology, and sample_typ
         hbox_all.Fit(self)
         self.Centre()
         self.Show()
+        # this combination prevents a display error that (without the fix) only resolves on manually resizing the window
+        self.site_grid.ForceRefresh()
+        self.panel.Refresh()
+
 
 
     def InitLocCheck(self):
@@ -3126,10 +3130,10 @@ Fill in or correct any cells with information about ages.
     ### Grid methods ###
     def make_simple_table(self, column_labels, data_dict, grid_name):
         row_labels = sorted(data_dict.keys())
-        if len(row_labels) == 1:
-            # setting the size this way causes the window to come up empty until re-sized
-            # experiment with using a wx.Size object instead of just a tuple -- may provide some extra choices
-            grid = wx.grid.Grid(self.panel, -1, name=grid_name, size=(-1, 70))#  autosizes width, but imposes height
+        if len(row_labels) in range(1,4):
+            num_rows = len(row_labels)
+            height = {1: 70, 2: 90, 3: 110, 4: 130}
+            grid = wx.grid.Grid(self.panel, -1, name=grid_name, size=(-1, height[num_rows]))# autosizes width, but enforces fixed pxl height to prevent display problems
         else:
             grid = wx.grid.Grid(self.panel, -1, name=grid_name)
 
@@ -3174,8 +3178,10 @@ Fill in or correct any cells with information about ages.
         row_values: list of specimens
         column_indexing: Data_hierarchy object containing various data mappings
         ind: ['sample_of_specimen'], indicating which data mapping to use """
-        if len(row_values) == 1:
-            grid = wx.grid.Grid(self.panel, -1, name=column_labels[0], size=(-1, 70))# autosizes width, but enforces 70 pxl height to prevent display problems
+        if len(row_values) in range(1,4):
+            num_rows = len(row_values)
+            height = {1: 70, 2: 90, 3: 110, 4: 130}
+            grid = wx.grid.Grid(self.panel, -1, name=column_labels[0], size=(-1, height[num_rows]))# autosizes width, but enforces fixed pxl height to prevent display problems
         else:
             grid = wx.grid.Grid(self.panel, -1, name=column_labels[0])
         grid.ClearGrid()
@@ -3618,7 +3624,6 @@ Fill in or correct any cells with information about ages.
 
     
     def update_samples(self, grid, col1_updated, col1_old, col2_updated, col2_old, *args):
-        print "calling update_samples"
         changed = [(old_value, col1_updated[num]) for (num, old_value) in enumerate(col1_old) if old_value != col1_updated[num]]  
         for change in changed:
             #print "change!!!!!!", change

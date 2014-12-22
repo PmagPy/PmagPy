@@ -329,9 +329,12 @@ class MagMainFrame(wx.Frame):
         pmag_dialogs_dia.Show()
         pmag_dialogs_dia.Center()
 
-
     
     def on_er_data(self, event):
+        if not os.path.isfile(os.path.join(self.WD, 'magic_measurements.txt')):
+            import pmag_widgets as pw
+            pw.simple_warning("Your working directory must have a magic_measurements.txt file to run this step.  Make sure you have fully completed step 1 (import magnetometer file), by combining all imported magnetometer files into one magic_measurements file.")
+            return False
         import ErMagicBuilder
         self.ErMagic = ErMagicBuilder.MagIC_model_builder(self.WD, self)#,self.Data,self.Data_hierarchy)
         self.ErMagic.Show()
