@@ -10,7 +10,7 @@ def fishrot(k=20,n=100,Dec=0,Inc=90):
     Generates Fisher distributed unit vectors from a specified distribution 
     using the pmag.py fshdev and dodirot functions
     
-    Parameters
+    Arguments
     ----------
     k kappa precision parameter (default is 20) 
     n number of vectors to determine (default is 100)
@@ -30,7 +30,7 @@ def tk03(n=100,dec=0,lat=0,rev='no',G2=0,G3=0):
     secular variation at given latitude and rotated about vertical 
     axis by given declination 
 
-    Parameters
+    Arguments
     ----------
     n number of vectors to determine (default is 100)
     dec mean declination of data set (default is 0)
@@ -73,7 +73,7 @@ def bootstrap_common_mean(Data1,Data2,NumSims=1000):
     one for z). If the 95 percent confidence bounds for each component overlap
     each other, the two directions are not significantly different.
 
-    Parameters
+    Arguments
     ----------
     Data1 : a list of directional data [dec,inc]
     Data2 : a list of directional data [dec,inc]
@@ -141,12 +141,12 @@ def watson_common_mean(Data1,Data2,NumSims=5000,plot='no'):
     directions and the corresponding McFadden and McElhinny (1990) classification is printed.
 
 
-    Required parameters
+    Required Arguments
     ----------
     Data1 : a list of directional data [dec,inc]
     Data2 : a list of directional data [dec,inc]
     
-    Optional parameters
+    Optional Arguments
     ----------
     NumSims : number of Monte Carlo simulations (default is 5000)
     plot : the default is no plot ('no'). Putting 'yes' will the plot the CDF from
@@ -343,12 +343,12 @@ def plot_di(dec,inc,color='k',marker='o',markersize=20,legend='no',label=''):
     >plt.figure(num=fignum,figsize=(10,10),dpi=160)
     >ipmag.plot_net(fignum)
 
-    Required Parameters
+    Required Arguments
     -----------
     dec : declination being plotted
     inc : inclination being plotted
 
-    Optional Parameters
+    Optional Arguments
     -----------
     color : the default color is black. Other colors can be chosen (e.g. 'r')
     marker : the default marker is a circle ('o')
