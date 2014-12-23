@@ -1,0 +1,7 @@
+tab 	pmag_specimens
+er_citation_names	measurement_step_unit	measurement_step_max	magic_software_packages	er_sample_name	er_location_name	specimen_direction_type	specimen_inc	er_specimen_name	specimen_description	magic_instrument_codes	specimen_mad	specimen_dec	specimen_alpha95	er_analyst_mail_names	specimen_correction	magic_experiment_names	specimen_tilt_correction	er_site_name	specimen_n	measurement_step_min	magic_method_codes
+This study	T	1.800e-01	pmagpy-1.82b	ns034a	North Shore Volcanics	l	42.3	ns034a1			0.8	293.5			u	ns034a1:LP-DIR-AF	0	ns034	12	1.000e-02	LP-DIR-AF:SO-SUN:DE-BFL:DA-DIR-GEO
+This study	K	9.480e+02	pmagpy-1.82b	ns034b	North Shore Volcanics	l	38.7	ns034b1			1.5	299.8			u	ns034b1:LP-DIR-T	0	ns034	12	4.730e+02	LP-DIR-T:SO-SUN:DE-BFL:DA-DIR-GEO
+This study	K	9.480e+02	pmagpy-1.82b	ns034c	North Shore Volcanics	l	38.6	ns034c1			1.4	304.8			u	ns034c1:LP-DIR-T	0	ns034	7	4.730e+02	LP-DIR-T:SO-SUN:DE-BFL:DA-DIR-GEO
+This study	K	9.230e+02	pmagpy-1.82b	ns034d	North Shore Volcanics	l	40.0	ns034d1			3.2	301.6			u	ns034d1:LP-DIR-T	0	ns034	8	4.730e+02	LP-DIR-T:SO-SUN:DE-BFL:DA-DIR-GEO
+This study	K	9.480e+02	pmagpy-1.82b	ns034g	North Shore Volcanics	l	46.3	ns034g1			0.3	294.3			u	ns034g1:LP-DIR-T	0	ns034	9	4.730e+02	LP-DIR-T:SO-SUN:DE-BFL:DA-DIR-GEO
