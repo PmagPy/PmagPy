@@ -4,6 +4,9 @@
 # LOG HEADER:
 #============================================================================================
 #
+#
+# Demag_GUI Version 0.29 fix on_close_event 23/12/2014
+
 # Demag_GUI Version 0.28 fix on_close_event 12/12/2014
 
 # Demag_GUI Version 0.27 some minor bug fix
@@ -31,7 +34,7 @@
 
 
 global CURRENT_VRSION
-CURRENT_VRSION = "v.0.27"
+CURRENT_VRSION = "v.0.29"
 import matplotlib
 matplotlib.use('WXAgg')
 
@@ -3323,10 +3326,10 @@ class Zeq_GUI(wx.Frame):
             dlg1 = wx.MessageDialog(None,caption="Warning:", message=TEXT ,style=wx.OK|wx.CANCEL|wx.ICON_EXCLAMATION)
             if dlg1.ShowModal() == wx.ID_OK:
                 dlg1.Destroy()
-                self.Destroy()
-                #exit()
+                #self.Destroy()
+                sys.exit()
         else:
-            self.Destroy()
+            sys.exit()
         
 #        dlg1 = wx.MessageDialog(None,caption="Warning:", message="Exiting program.\nSave all interpretation to a 'redo' file or to MagIC specimens result table\n\nPress OK to exit" ,style=wx.OK|wx.CANCEL|wx.ICON_INFORMATION)
 #        if dlg1.ShowModal() == wx.ID_OK:
