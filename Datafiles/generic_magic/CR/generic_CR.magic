@@ -1,0 +1,5 @@
+tab 	magic_measurements
+er_analyst_mail_names	er_citation_names	er_location_name	er_sample_name	er_site_name	er_specimen_name	magic_experiment_name	magic_instrument_codes	magic_method_codes	measurement_dec	measurement_description	measurement_flag	measurement_inc	measurement_magn_moment	measurement_number	measurement_temp	treatment_ac_field	treatment_dc_field	treatment_dc_field_phi	treatment_dc_field_theta	treatment_temp
+rshaar	This study	Tel-Megiddo	mgf10a	mgf10	mgf10a1	mgf10a1:LP-CR-TRM		LT-T-I:LP-CR-TRM	174.2	cooling_rate:43.6:K/min	g	-88.4	3.020e-07	0	273.		6.000e-05	-1.0	-1.0	8.730e+02
+rshaar	This study	Tel-Megiddo	mgf10a	mgf10	mgf10a1	mgf10a1:LP-CR-TRM		LT-T-I:LP-CR-TRM	77.9	cooling_rate:1.3:K/min	g	-80.8	3.290e-07	1	273.		6.000e-05	-1.0	-1.0	8.730e+02
+rshaar	This study	Tel-Megiddo	mgf10a	mgf10	mgf10a1	mgf10a1:LP-CR-TRM		LT-PTRM-I:LP-CR-TRM	207.7	cooling_rate:43.6:K/min	g	87.4	3.030e-07	2	273.		6.000e-05	-1.0	-1.0	8.730e+02

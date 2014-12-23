@@ -1,0 +1,1 @@
+specimen	treatment	treatment_type	moment	dec_s	inc_smgf10a1	600.1	T	3.02E-04	174.2	-88.4mgf10a1	600.2	T	3.29E-04	77.9	-80.8mgf10a1	600.7	T	3.03E-04	207.7	87.4

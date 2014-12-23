@@ -1,0 +1,9 @@
+tab 	magic_measurements
+er_analyst_mail_names	er_citation_names	er_location_name	er_sample_name	er_site_name	er_specimen_name	magic_experiment_name	magic_instrument_codes	magic_method_codes	measurement_dec	measurement_flag	measurement_inc	measurement_magn_moment	measurement_number	measurement_temp	treatment_ac_field	treatment_dc_field	treatment_dc_field_phi	treatment_dc_field_theta	treatment_temp
+	This study	Megiddo	mgf10a	mgf1	mgf10a1	mgf10a1:LP-AN-TRM		LT-T-I:LP-AN-TRM	357.1	g	-2.1	2.690e-07	0	273.		4.000e-05	0.0	0.0	873.00
+	This study	Megiddo	mgf10a	mgf1	mgf10a1	mgf10a1:LP-AN-TRM		LT-T-I:LP-AN-TRM	90.4	g	-0.2	2.720e-07	1	273.		4.000e-05	90.0	0.0	873.00
+	This study	Megiddo	mgf10a	mgf1	mgf10a1	mgf10a1:LP-AN-TRM		LT-T-I:LP-AN-TRM	184.2	g	86.3	2.930e-07	2	273.		4.000e-05	0.0	90.0	873.00
+	This study	Megiddo	mgf10a	mgf1	mgf10a1	mgf10a1:LP-AN-TRM		LT-T-I:LP-AN-TRM	174	g	2.6	2.790e-07	3	273.		4.000e-05	180.0	0.0	873.00
+	This study	Megiddo	mgf10a	mgf1	mgf10a1	mgf10a1:LP-AN-TRM		LT-T-I:LP-AN-TRM	269	g	4.7	2.680e-07	4	273.		4.000e-05	270.0	0.0	873.00
+	This study	Megiddo	mgf10a	mgf1	mgf10a1	mgf10a1:LP-AN-TRM		LT-T-I:LP-AN-TRM	334.8	g	-87.8	2.920e-07	5	273.		4.000e-05	0.0	-90.0	873.00
+	This study	Megiddo	mgf10a	mgf1	mgf10a1	mgf10a1:LP-AN-TRM		LT-PTRM-I:LP-AN-TRM	264.3	g	86.7	3.080e-07	6	273.		4.000e-05	0.0	90.0	873.00

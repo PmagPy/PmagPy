@@ -1,0 +1,3 @@
+# To convert this cooling rate measurement file to magic use:
+generic_magic.py -f generic_CR.txt -F generic_CR.magic -usr rshaar -exp CR 43.6,1.3,43.6 -samp 1 1 -site 1 1 -loc Tel-Megiddo -dc 60 -1 -1
+

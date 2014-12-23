@@ -1,0 +1,2 @@
+# To convert this measurement file to magic run:
+generic_magic.py -f generic_izzi.txt -F generic_izzi.magic -usr rshaar -exp PI -samp 1 1 -site 1 1 -loc Tel-Megiddo -dc 70 0 -90

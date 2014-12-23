@@ -1,0 +1,1 @@
+tab	er_locations					er_citation_names	er_location_name	location_begin_lon	location_end_lon	location_begin_lat	location_end_lat	location_typeThis study	Megiddo	35.185	35.185	32.585	32.585	
