@@ -4916,6 +4916,7 @@ def sortmwarai(datablock,exp_type):
     #
 def doigrf(long,lat,alt,date,**kwargs):
     """
+    called with doigrf(long,lat,alt,date,**kwargs)
 #       calculates the interpolated (<2010) or extrapolated (>2010) main field and
 #       secular variation coefficients and passes these to the Malin and Barraclough
 #       routine to calculate the IGRF field. dgrf coefficients for 1945 to 2005, igrf for pre 1945 and post 2010 
@@ -4926,10 +4927,10 @@ def doigrf(long,lat,alt,date,**kwargs):
 #    
 #
 #       input:
-#       date  = Required date in years and decimals of a year (A.D.)
-#       alt   = height above mean sea level in km (itype = 1 assumed)
-#       lat   = latitude in degrees (-90 to 90)
 #       long  = east longitude in degrees (0 to 360 or -180 to 180)
+#       lat   = latitude in degrees (-90 to 90)
+#       alt   = height above mean sea level in km (itype = 1 assumed)
+#       date  = Required date in years and decimals of a year (A.D.)
 # Output:
 #       x     = north component of the magnetic force in nT
 #       y     = east component of the magnetic force in nT
