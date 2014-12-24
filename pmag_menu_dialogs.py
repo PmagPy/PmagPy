@@ -1366,9 +1366,11 @@ class ClearWD(wx.MessageDialog):
         self.Destroy()
         if result == wx.ID_YES:
             #os.system('rm -r {}'.format(WD))
+            os.chdir('..')
             import shutil
             shutil.rmtree(WD)
             os.mkdir(WD)
+            os.chdir(WD)
             print "{} has been emptied".format(WD)
         else:
             print "{} has not been emptied".format(WD)
