@@ -1693,6 +1693,7 @@ class convert_IODP_csv_files_to_MagIC(wx.Frame):
         pw.on_add_file_button(self.bSizer0, self.WD, event, text)
 
     def on_okButton(self, event):
+        wait = wx.BusyInfo("Please wait, working...")
         options = {}
         wd = self.WD
         options['dir_path'] = wd
@@ -1727,7 +1728,9 @@ class convert_IODP_csv_files_to_MagIC(wx.Frame):
         #    pw.simple_warning()
 
         # to run as command line:
+        
         pw.run_command_and_close_window(self, COMMAND, outfile)
+        del wait
 
     def on_cancelButton(self,event):
         self.Destroy()
@@ -3445,12 +3448,14 @@ Fill in or correct any cells with information about ages.
         self.Destroy()
 
     def on_backButton(self, event, previous_dia, current_dia = None):
+        wait = wx.BusyInfo("Please wait, working...")
         if current_dia == self.InitLocCheck:
             pass
         elif previous_dia == self.InitSpecCheck or previous_dia == self.InitSampCheck:
             self.sample_window = 0
         self.panel.Destroy()
         previous_dia()
+        del wait
 
         
     ### Manage data methods ###
