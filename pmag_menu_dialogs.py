@@ -936,7 +936,7 @@ class ImportAgmFolder(wx.Frame):
 
     def on_add_dir_button(self,event):
         text = "choose directory of files to convert to MagIC"
-        pw.on_add_dir_button(self.panel, self.WD, event, text)
+        pw.on_add_dir_button(self.bSizer0, self.WD, event, text)
 
     def on_okButton(self, event):
         WD = self.WD
