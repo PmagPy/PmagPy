@@ -527,6 +527,8 @@ def flip(D):
 def dia_vgp(*args): # new function interface by J.Holmes, SIO, 6/1/2011
     """
     converts declination, inclination, alpha95 to VGP, dp, dm
+    takes input as (Decs, Incs, a95, Site latitudes, Site Longitudes).  
+    These can be lists or individual values.
     """
     # test whether arguments are one 2-D list or 5 floats 
     if len(args) == 1: # args comes in as a tuple of multi-dim lists.
@@ -3689,9 +3691,11 @@ def gaussdev(mean,sigma):
     return random.normal(mean,sigma) # return gaussian deviate
 #
 def get_unf(N):
-#
-# subroutine to retrieve N uniformly distributed directions
-# using Fisher et al. (1987) way.
+    """
+    Called with get_unf(N).
+ subroutine to retrieve N uniformly distributed directions
+ using the way described in Fisher et al. (1987).
+    """
 #
 # get uniform directions  [dec,inc]
     z=random.uniform(-1.,1.,size=N)
@@ -3700,9 +3704,9 @@ def get_unf(N):
     return numpy.array([t,i]).transpose()
 
 #def get_unf(N): #Jeff's way
-#    """
-#     subroutine to retrieve N uniformly distributed directions
-#    """
+    """
+     subroutine to retrieve N uniformly distributed directions
+    """
 #    nmax,k=5550,66   # initialize stuff for uniform distribution
 #    di,xn,yn,zn=[],[],[],[]
 ##

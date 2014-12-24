@@ -5,6 +5,16 @@ import numpy as np
 import random
 import matplotlib.pyplot as plt
 
+
+def igrf(input):
+    """
+    prints out Declination, Inclination, Intensity data from an input with format: Date, Altitude, Latitude, Longitude
+    """
+    x,y,z,f=pmag.doigrf(input[3]%360.,input[2],input[1],input[0])
+    Dir=pmag.cart2dir((x,y,z))
+    print Dir
+    return Dir
+
 def fishrot(k=20,n=100,Dec=0,Inc=90):
     """
     Generates Fisher distributed unit vectors from a specified distribution 
