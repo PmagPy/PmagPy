@@ -167,7 +167,7 @@ def main():
     #
         if len(B)>0: 
             hmeths=[]
-            for meth in meths: hmeths.append(meth)
+            for meth in meths: hmeths.append(meth)  
             hpars=pmagplotlib.plotHDD(HDD,B,M,e) 
             if verbose and PLT:pmagplotlib.drawFIGS(HDD)
     #
