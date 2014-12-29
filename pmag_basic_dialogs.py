@@ -2704,9 +2704,9 @@ class check(wx.Frame):
         self.ErMagic = ErMagic
         self.temp_data = {}
         self.drop_down_menu = None
-        self.InitSpecCheck()
         self.sample_window = 0 # sample window must be displayed (differently) twice, so it is useful to keep track
-
+        self.InitSpecCheck()
+        
 
     def InitSpecCheck(self):
         """make an interactive grid in which users can edit specimen names
@@ -2788,6 +2788,15 @@ Check that all specimens belong to the correct sample
         hbox_all.Fit(self)  
         self.Centre()
         self.Show()
+        ## this combination prevents a display error that (without the fix) only resolves on manually resizing the window
+        #print "about to refresh spec_grid"
+        #print self.panel
+        #print self.spec_grid
+        #self.panel.Refresh()
+        #self.spec_grid.ForceRefresh()
+        #self.panel.Refresh()
+        #print "refreshed spec_grid"
+
 
 
     def InitSampCheck(self):
@@ -2883,9 +2892,12 @@ Check that this data is correct, and fill in missing cells using controlled voca
         hbox_all.Fit(self)
         self.Centre()
         self.Show()
-        # this combination prevents a display error that (without the fix) only resolves on manually resizing the window
-        self.samp_grid.ForceRefresh()
-        self.panel.Refresh()
+        ## this combination prevents a display error that (without the fix) only resolves on manually resizing the window
+        #print "about to refresh samp_grid"
+        #self.panel.Refresh()
+        #self.samp_grid.ForceRefresh()
+        #self.panel.Refresh()
+        #print "refreshed samp_grid"
 
 
     def InitSiteCheck(self):
@@ -3217,7 +3229,7 @@ Fill in or correct any cells with information about ages.
 
         #grid.AutoSizeColumns(True)
 
-        #grid.AutoSize()
+        grid.AutoSize() # this prevents a re-size error that can occur
 
         for n, col in enumerate(column_labels):
             # adjust column widths to be a little larger then auto for nicer editing
@@ -3227,7 +3239,6 @@ Fill in or correct any cells with information about ages.
             else:
                 size = orig_size * 1.6
             grid.SetColSize(n, size)
-
 
         return grid, original_1, original_2
 
