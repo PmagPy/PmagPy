@@ -1035,7 +1035,7 @@ def magic_write(ofile,Recs,file_type):
 
 def dotilt(dec,inc,bed_az,bed_dip):
     """
-    does a tilt correction on dec,inc using bedding dip direction bed_az and dip bed_dip
+    does a tilt correction on dec,inc using bedding dip direction bed_az and dip bed_dip.  called with syntax:  dotilt(dec,inc,bed_az,bed_dip).
     """
     rad=numpy.pi/180. # converts from degrees to radians
     X=dir2cart([dec,inc,1.]) # get cartesian coordinates of dec,inc
@@ -2491,6 +2491,14 @@ def magic_help(keyhelp):
 def dosundec(sundata):
     """
     returns the declination for a given set of suncompass data
+    INPUT:
+      sundata={'date':'yyyy:mm:dd:hr:min','delta_u':DU,'lat':LAT,'lon':LON,'shadow_angle':SHADAZ}
+      where:
+         DU is the hours to subtract from local time to get Greenwich Mean Time
+         LAT,LON are the site latitude,longitude (negative for south and west respectively)
+         SHADAZ is the shadow angle of the desired direction with respect to the sun.
+    OUTPUT:
+      the declination of the desired direction wrt true north. 
     """
     rad=numpy.pi/180.
     iday=0

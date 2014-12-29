@@ -26,6 +26,7 @@ def main():
 
     INPUT FORMAT
        GMT_offset, lat,long,year,month,day,hours,minutes,shadow_angle
+       where GMT_offset is the hours to subtract from local time for GMT.
 
     SYNTAX
        sundec.py [-i][-f FILE] [< filename ]
@@ -51,7 +52,7 @@ def main():
     if '-i' in sys.argv:
         while 1: # repeat this block until program killed
             sundata={}  # dictionary with sundata in it
-            print ("Time difference between Greenwich Mean Time (hrs to ADD to GMT for local time): ")
+            print ("Time difference between Greenwich Mean Time (hrs to SUBTRACT from local time to get GMT): ")
             try:
                 sundata["delta_u"]=raw_input("<cntl-D> to quit ")
             except:
