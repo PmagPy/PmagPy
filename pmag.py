@@ -1125,6 +1125,9 @@ def dogeo_V(input):
     return Dir_geo[0],Dir_geo[1]    # send back declination and inclination arrays
 
 def dodirot(D,I,Dbar,Ibar):
+    """
+    This function is called by dodirot(D,I,Dbar,Ibar) where D=declination, I = inclination and Dbar/Ibar are the desired mean direction.  It returns the rotated Dec/Inc pair.
+    """
     d,irot=dogeo(D,I,Dbar,90.-Ibar)
     drot=d-180.
 #    drot,irot=dogeo(D,I,Dbar,Ibar)
@@ -1200,7 +1203,7 @@ def Vdiff(D1,D2):
 
 def angle(D1,D2):
     """
-    finds the angle between lists of two directions D1,D2
+    call to angle(D1,D2) returns array of angles between lists of two directions D1,D2 where D1 is for example, [[Dec1,Inc1],[Dec2,Inc2],etc.]
     """
     D1=numpy.array(D1)
     if len(D1.shape)>1:
@@ -2611,7 +2614,7 @@ def fillkeys(Recs):
 
 def fisher_mean(data):
     """
-    calculates fisher parameters for data
+    call to fisher_mean(data) calculates fisher statistics for data, which is a list of [dec,inc] pairs.  
     """
 
     R,Xbar,X,fpars=0,[0,0,0],[],{}
@@ -2619,8 +2622,6 @@ def fisher_mean(data):
     if N <2:
        return fpars
     X=dir2cart(data)
-    #for rec in data:
-    #    X.append(dir2cart([rec[0],rec[1],1.]))
     for i in range(len(X)):
         for c in range(3):
            Xbar[c]+=X[i][c]
@@ -3217,7 +3218,7 @@ def dokent(data,NN):
 
 def doprinc(data):
     """
-    gets principal components from data
+    gets principal components from data in form of [dec1,inc1,dec2,inc2]
     """
     ppars={}
     rad=numpy.pi/180.
@@ -3304,7 +3305,7 @@ def dread(infile,cols):
 
 def fshdev(k):
     """
-    returns a direction from distribution with mean declination of 0, inclination of 90 and kappa of k
+    a call to fshdev(k), where k is kappa, returns a direction from distribution with mean declination of 0, inclination of 90 and kappa of k
     """
     R1=random.random()
     R2=random.random()
