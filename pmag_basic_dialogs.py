@@ -2926,6 +2926,14 @@ However, you will be able to edit sample_class, sample_lithology, and sample_typ
         self.changes = False
         self.Bind(wx.grid.EVT_GRID_EDITOR_CREATED, lambda event: self.on_edit_grid(event, self.site_grid), self.site_grid)
 
+        # populate site_definition as 's' by default if no value is provided (indicates that site is single, not composite)
+        rows = self.site_grid.GetNumberRows()
+        col = 6
+        for row in range(rows):
+            cell = self.site_grid.GetCellValue(row, col)
+            if not cell:
+                self.site_grid.SetCellValue(row, col, 's')
+
         locations = sorted(set(self.temp_data['locations']))        
         self.drop_down_menu = drop_down_menus.Menus("site", self, self.site_grid, locations) # initialize all needed drop-down menus
 
