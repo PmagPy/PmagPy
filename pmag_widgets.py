@@ -520,7 +520,8 @@ class combine_files(wx.BoxSizer):
         if dlg.ShowModal() == wx.ID_OK:
             full_path = dlg.GetPath()
             infile = os.path.split(full_path)[1]
-            self.file_paths.AppendText(infile + "\n")
+            if infile not in [self.file_paths.GetLineText(line) for line in range(self.file_paths.GetNumberOfLines())]:
+                self.file_paths.AppendText(infile + "\n")
 
     def on_add_all_files_button(self,event):
         all_files=os.listdir(self.WD)
@@ -529,10 +530,11 @@ class combine_files(wx.BoxSizer):
             if len(F)>6:
                 if self.text in F:
                     if "#" not in F and "~" not in F and not F.endswith('.pyc'): # prevents binary files from going into the mix, as well as misc saved stuff
-                        self.file_paths.AppendText(F+"\n")
+                        if F not in [self.file_paths.GetLineText(line) for line in range(self.file_paths.GetNumberOfLines())]:
+                            self.file_paths.AppendText(F+"\n")
 
 
-# NEED TO MAKE THIS ABLE TO FIND HTML FILES IN USER's path.  sigh.
+
 class LinkEnabledHtmlWindow(wx.html.HtmlWindow):
     def OnLinkClicked(self, link):
         wx.LaunchDefaultBrowser(link.GetHref())
