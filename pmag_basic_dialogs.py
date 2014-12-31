@@ -3271,7 +3271,7 @@ Fill in or correct any cells with information about ages.
         # note: this works with EPD for windows, and modern wxPython, but not with Canopy Python
         msg = grid.GetCellValue(row, col)
         if len(msg) > 15:
-            event.GetEventObject().Parent.SetToolTipString(msg)
+            event.GetEventObject().SetToolTipString(msg)
         else:
             event.GetEventObject().SetToolTipString('')
 
