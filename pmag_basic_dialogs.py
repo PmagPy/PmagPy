@@ -2818,6 +2818,8 @@ and that they belong to the correct site
             TEXT = """Step 4:
 Some of the data from the er_sites table has propogated into er_samples.
 Check that this data is correct, and fill in missing cells using controlled vocabularies.
+The columns for class, lithology, and type can take multiple values in the form of a colon-delimited list.
+You may use the drop-down menus to add as many values as needed in these columns.  
 (see Help button for more details)"""
             label = wx.StaticText(self.panel,label=TEXT)#, size=(900, 100))
         self.Data, self.Data_hierarchy = self.ErMagic.Data, self.ErMagic.Data_hierarchy
@@ -2907,7 +2909,10 @@ Check that this data is correct, and fill in missing cells using controlled voca
         self.panel = wx.Panel(self, style=wx.SIMPLE_BORDER)
         TEXT = """Step 3:
 Check that all sites are correctly named, and that they belong to the correct location.
-Fill in the additional columns with controlled vocabularies (see Help button for details)
+Fill in the additional columns with controlled vocabularies.
+The columns for class, lithology, and type can take multiple values in the form of a colon-delimited list.
+You may use the drop-down menus to add as many values as needed in these columns.  
+(see the help button for more details)
 note: Changes to site_class, site_lithology, or site_type will overwrite er_samples.txt
 However, you will be able to edit sample_class, sample_lithology, and sample_type in step 4"""
         label = wx.StaticText(self.panel,label=TEXT)
@@ -3243,12 +3248,32 @@ Fill in or correct any cells with information about ages.
             # adjust column widths to be a little larger then auto for nicer editing
             orig_size = grid.GetColSize(n)
             if orig_size > 110:
-                size = orig_size * 1.1
+                size = orig_size * 1.3
             else:
-                size = orig_size * 1.6
+                size = orig_size * 1.8
             grid.SetColSize(n, size)
 
+        grid.GetGridWindow().Bind(wx.EVT_MOTION, lambda event: self.onMouseOver(event, grid))
+
         return grid, original_1, original_2
+
+
+    def onMouseOver(self, event, grid):
+        """
+        Displays a tooltip over any cell in a certain column
+        """
+        x, y = grid.CalcUnscrolledPosition(event.GetX(),event.GetY())
+        coords = grid.XYToCell(x, y)
+        col = coords[1]
+        row = coords[0]
+        
+        # creates tooltip message for cells with long values
+        # note: this works with EPD for windows, and modern wxPython, but not with Canopy Python
+        msg = grid.GetCellValue(row, col)
+        if len(msg) > 15:
+            event.GetEventObject().Parent.SetToolTipString(msg)
+        else:
+            event.GetEventObject().SetToolTipString('')
 
     
     def add_extra_grid_data(self, grid, row_labels, data_dict, col_labels=None):
