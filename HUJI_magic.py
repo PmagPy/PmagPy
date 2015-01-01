@@ -37,7 +37,7 @@ def main(command_line=True, **kwargs):
               NB: use PHI, THETA = -1 -1 to signal that it changes, i.e. in anisotropy experiment
         # to do! -ac B : peak AF field (in mT) for ARM acquisition, default is none
         -ncn NCON:  specify naming convention: default is #1 below
-        
+        -A: don't average replicate measurements        
        Sample naming convention:
             [1] XXXXY: where XXXX is an arbitrary length site designation and Y
                 is the single character sample designation.  e.g., TG001a is the
@@ -149,7 +149,11 @@ def main(command_line=True, **kwargs):
         if '-LP' in args:
             ind=args.index("-LP")
             codelist=args[ind+1]
-
+        if "-A" in args:
+            noave=1
+        else:
+            noave=0
+            
     if not command_line:
         user = kwargs.get('user', '')
         meas_file = kwargs.get('meas_file', 'magic_measurements.txt')
@@ -278,11 +282,11 @@ def main(command_line=True, **kwargs):
             
         # check duplicate treatments:
         # if yes, delete the first and use the second
-
-        if len(Data[specimen])>0:
-            if treatment==Data[specimen][-1]['treatment']:
-                del(Data[specimen][-1])
-                print "-W- Identical treatments in file %s magfile line %i: specimen %s, treatment %s deleting the first. " %(magfile, line_no, specimen,".".join(treatment))
+        if noave==1:
+            if len(Data[specimen])>0:
+                if treatment==Data[specimen][-1]['treatment']:
+                    del(Data[specimen][-1])
+                    print "-W- Identical treatments in file %s magfile line %i: specimen %s, treatment %s deleting the first. " %(magfile, line_no, specimen,".".join(treatment))
 
         this_line_data={}
         this_line_data['specimen']=specimen

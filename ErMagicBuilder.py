@@ -607,7 +607,10 @@ class MagIC_model_builder(wx.Frame):
             tmp_line=line.strip('\n').split('\t')
             tmp={}
             for i in range(len(header)):
-                tmp[header[i]]=tmp_line[i]
+                if i>= len(tmp_line):
+                    tmp[header[i]]=""
+                else:
+                    tmp[header[i]]=tmp_line[i]
             specimen=tmp["er_specimen_name"]
             sample=tmp["er_sample_name"]
             if specimen in  self.data_er_specimens.keys() and "er_sample_name" in self.data_er_specimens[specimen].keys():

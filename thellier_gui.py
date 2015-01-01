@@ -5,6 +5,9 @@
 #============================================================================================
 #
 #
+# hellier_GUI Version 2.28 12/31/2014
+# Fix minor bug in delete interpretation buttonn
+#
 ## Thellier_GUI Version 2.27 11/30/2014
 #
 # Fix in_sigma bug in change criteria dialog box
@@ -2489,7 +2492,7 @@ class Arai_GUI(wx.Frame):
         rmag_results_file =open(os.path.join(self.WD, "rmag_results.txt"),'w')
         rmag_results_file.write("tab\trmag_results\n")
         
-        rmag_anistropy_header=['er_specimen_name','er_sample_name','er_site_name','anisotropy_type','anisotropy_n','anisotropy_description','anisotropy_s1','anisotropy_s2','anisotropy_s3','anisotropy_s4','anisotropy_s5','anisotropy_s6','anisotropy_sigma','anisotropy_alt','magic_experiment_names','magic_method_codes','rmag_anisotropy_name']
+        rmag_anistropy_header=['er_specimen_name','er_sample_name','er_site_name','anisotropy_type','anisotropy_n','anisotropy_description','anisotropy_s1','anisotropy_s2','anisotropy_s3','anisotropy_s4','anisotropy_s5','anisotropy_s6','anisotropy_sigma','anisotropy_alt','magic_experiment_names','magic_method_codes']
 
         String=""
         for i in range (len(rmag_anistropy_header)):
@@ -2774,7 +2777,7 @@ class Arai_GUI(wx.Frame):
                     Data_anisotropy[specimen]['ATRM']['anisotropy_description']='Hext statistics adapted to ATRM'
                     Data_anisotropy[specimen]['ATRM']['magic_experiment_names']=specimen+";ATRM"
                     Data_anisotropy[specimen]['ATRM']['magic_method_codes']="LP-AN-TRM:AE-H"
-                    Data_anisotropy[specimen]['ATRM']['rmag_anisotropy_name']=specimen
+                    #Data_anisotropy[specimen]['ATRM']['rmag_anisotropy_name']=specimen
 
 
             if 'aarmblock' in self.Data[specimen].keys():    
@@ -2842,7 +2845,7 @@ class Arai_GUI(wx.Frame):
                 Data_anisotropy[specimen]['AARM']['anisotropy_description']='Hext statistics adapted to AARM'
                 Data_anisotropy[specimen]['AARM']['magic_experiment_names']=specimen+";AARM"
                 Data_anisotropy[specimen]['AARM']['magic_method_codes']="LP-AN-ARM:AE-H"
-                Data_anisotropy[specimen]['AARM']['rmag_anisotropy_name']=specimen
+                #Data_anisotropy[specimen]['AARM']['rmag_anisotropy_name']=specimen
                 
 
         #-----------------------------------   
@@ -4963,6 +4966,10 @@ class Arai_GUI(wx.Frame):
                         if self.Data_info["er_ages"][sample_or_site_with_age][header]!="":
                             value=self.Data_info["er_ages"][sample_or_site_with_age][header]
                             header_result="average_"+header
+                            if header_result == "average_age_range_high":
+                                header_result="average_age_high"
+                            if header_result == "average_age_range_low":
+                                header_result="average_age_low"
                             MagIC_results_data['pmag_results'][sample_or_site][header_result]=value
                                 
                             if header_result not in pmag_results_header_4:
@@ -5570,16 +5577,40 @@ class Arai_GUI(wx.Frame):
             er_sites_rec={}
             if site_name in self.Data_info["er_sites"].keys():
                 er_sites_rec=self.Data_info["er_sites"][site_name]
-                if "site_lat" and er_sites_rec.keys() and er_sites_rec["site_lat"] != "":
-                    found_lat=True 
+                if "site_lat" in er_sites_rec.keys() and er_sites_rec["site_lat"] != "":
+                    found_lat=True
                     lat=float(er_sites_rec["site_lat"])
-                if "site_lon" and er_sites_rec.keys() and er_sites_rec["site_lon"] != "":
+                else:
+                    found_lat=False                     
+                if "site_lon" in er_sites_rec.keys() and er_sites_rec["site_lon"] != "":
                     found_lon=True 
                     lon=float(er_sites_rec["site_lon"])
+                    if lon >180:
+                        lon=lon-360.
+
+                else:
+                    found_lon=False
                 # convert lon to -180 to +180
-                if lon >180:
-                    lon=lon-360.
             
+            # tru searchinh latitude in er_samples.txt
+             
+            if found_lat==False:
+                if sample_or_site in self.Data_info["er_samples"].keys():
+                    er_samples_rec=self.Data_info["er_samples"][sample_or_site]
+                    if "sample_lat" in er_samples_rec.keys() and er_samples_rec["sample_lat"] != "":
+                        found_lat=True
+                        lat=float(er_samples_rec["sample_lat"])
+                    else:
+                        found_lat=False                     
+                    if "sample_lon" in er_samples_rec.keys() and er_samples_rec["sample_lon"] != "":
+                        found_lon=True 
+                        lon=float(er_samples_rec["sample_lon"])
+                        if lon >180:
+                            lon=lon-360.
+    
+                    else:
+                        found_lon=False
+                
             #-----  
             # search for latitude data
             # sort by locations
@@ -5768,7 +5799,7 @@ class Arai_GUI(wx.Frame):
                 Yerr=[Y_data_minus,Y_data_plus]
 
             errorbar(X_data,Y_data,xerr=Xerr,yerr=Yerr,fmt=SYMBOLS[cnt%len(SYMBOLS)],color=COLORS[cnt%len(COLORS)],label=location)
-            if show_STDEVOPT_extended:
+            if show_STDEVOPT:
                 errorbar(X_data,Y_data,xerr=None,yerr=[Y_data_minus_extended,Y_data_plus_extended],fmt='.',ms=0,ecolor='red',label="extended error-bar",zorder=0)
                 
 

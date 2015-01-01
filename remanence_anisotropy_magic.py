@@ -258,7 +258,7 @@ def main():
     rmag_results_file =open(WD+"/rmag_results.txt",'w')
     rmag_results_file.write("tab\trmag_results\n")
     
-    rmag_anistropy_header=['er_specimen_name','er_sample_name','er_site_name','anisotropy_type','anisotropy_n','anisotropy_description','anisotropy_s1','anisotropy_s2','anisotropy_s3','anisotropy_s4','anisotropy_s5','anisotropy_s6','anisotropy_sigma','anisotropy_alt','magic_experiment_names','magic_method_codes','rmag_anisotropy_name']
+    rmag_anistropy_header=['er_specimen_name','er_sample_name','er_site_name','anisotropy_type','anisotropy_n','anisotropy_description','anisotropy_s1','anisotropy_s2','anisotropy_s3','anisotropy_s4','anisotropy_s5','anisotropy_s6','anisotropy_sigma','anisotropy_alt','magic_experiment_names','magic_method_codes']
     
     String=""
     for i in range (len(rmag_anistropy_header)):
@@ -518,7 +518,7 @@ def main():
                 Data_anisotropy[specimen]['ATRM']['anisotropy_description']='Hext statistics adapted to ATRM'
                 Data_anisotropy[specimen]['ATRM']['magic_experiment_names']=specimen+";ATRM"
                 Data_anisotropy[specimen]['ATRM']['magic_method_codes']="LP-AN-TRM:AE-H"
-                Data_anisotropy[specimen]['ATRM']['rmag_anisotropy_name']=specimen
+                #Data_anisotropy[specimen]['ATRM']['rmag_anisotropy_name']=specimen
     
     
         if 'aarmblock' in Data[specimen].keys():    
@@ -586,7 +586,7 @@ def main():
             Data_anisotropy[specimen]['AARM']['anisotropy_description']='Hext statistics adapted to AARM'
             Data_anisotropy[specimen]['AARM']['magic_experiment_names']=specimen+";AARM"
             Data_anisotropy[specimen]['AARM']['magic_method_codes']="LP-AN-ARM:AE-H"
-            Data_anisotropy[specimen]['AARM']['rmag_anisotropy_name']=specimen
+            #Data_anisotropy[specimen]['AARM']['rmag_anisotropy_name']=specimen
             
     
     #-----------------------------------   
