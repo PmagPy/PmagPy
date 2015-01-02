@@ -3255,7 +3255,8 @@ You may use the drop-down menus to add as many values as needed in these columns
                 size = orig_size * 1.8
             grid.SetColSize(n, size)
 
-        grid.GetGridWindow().Bind(wx.EVT_MOTION, lambda event: self.onMouseOver(event, grid))
+        # leave out tooltip binding for now, as it seems to be crashing on Windows
+        #grid.GetGridWindow().Bind(wx.EVT_MOTION, lambda event: self.onMouseOver(event, grid))
 
         return grid, original_1, original_2
 
