@@ -3081,6 +3081,8 @@ Fill in any blank cells using controlled vocabularies.
         self.panel = wx.Panel(self, style=wx.SIMPLE_BORDER)
         TEXT = """Step 6:
 Fill in or correct any cells with information about ages.
+The column for magic_method_codes can take multiple values in the form of a colon-delimited list.
+You may use the drop-down menus to add as many values as needed in these columns.  
 (See Help button for details)"""
         label = wx.StaticText(self.panel,label=TEXT)
         self.Data, self.Data_hierarchy = self.ErMagic.Data, self.ErMagic.Data_hierarchy
