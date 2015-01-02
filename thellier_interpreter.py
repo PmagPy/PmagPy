@@ -59,12 +59,12 @@ class thellier_auto_interpreter():
 
         #self.write_acceptance_criteria_to_file()
         try:
-            shutil.rmtree(self.WD+"/thellier_interpreter")
+            shutil.rmtree(os.path.join(self.WD, "thellier_interpreter"))
         except:
             pass
 
         try:
-            os.mkdir(self.WD+"/thellier_interpreter")
+            os.mkdir(os.path.join(self.WD, "thellier_interpreter"))
         except:
             pass
 

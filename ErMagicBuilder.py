@@ -642,7 +642,7 @@ class MagIC_model_builder(wx.Frame):
 ##        #---------------------------------------------
 ##
 ##        #header
-##        er_qges_file=open(self.WD+"er_ages.txt",'w')
+##        er_qges_file=open(os.path.join(self.WD, "er_ages.txt"),'w')
 ##        er_ages_file.write("tab\ter_ages\n")
 ##        string=""
 ##        for key in self.er_ages_header:

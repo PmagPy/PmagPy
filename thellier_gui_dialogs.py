@@ -864,7 +864,8 @@ class Consistency_Test(wx.Frame):
         if result == wx.ID_OK:
 
             try:
-                os.mkdir(self.WD+"/consistency_test")
+                new_dir = os.path.join(self.WD, "consistency_test")
+                os.mkdir(new_dir)
             except:
                 pass
 
@@ -876,7 +877,8 @@ class Consistency_Test(wx.Frame):
             #    self.write_acceptance_criteria_to_boxes()
             #except:
             #    pass
-            pmag.write_criteria_to_file(self.WD+"consistency_test/pmag_fixed_criteria.txt",self.acceptance_criteria)
+            ofile = os.path.join(self.WD, "consistency_test/pmag_fixed_criteria.txt")
+            pmag.write_criteria_to_file(ofile, self.acceptance_criteria)
             dlg1.Destroy()    
             dia.Destroy()
         #self.recaclulate_satistics()
@@ -981,7 +983,8 @@ class Consistency_Test(wx.Frame):
 
         # put an example
         try:
-            function_in=open(self.WD+"/consistency_test/consistency_test_functions.txt",'rU')
+            ofile = os.path.join(self.WD, "consistency_test", "consistency_test_functions.txt")
+            function_in=open(ofile, 'rU')
             TEXT=""
             for line in function_in.readlines():
                 TEXT=TEXT+line
@@ -1114,7 +1117,8 @@ class Consistency_Test(wx.Frame):
             stat2_end=float(self.stat_2_high.GetValue())
             stat2_delta=float(self.stat_2_delta.GetValue())
 
-            optimizer_function_file=open(self.WD+"/consistency_test/consistency_test_functions.txt",'w')
+            FILE = os.path.join(self.WD, "consistency_test", "consistency_test_functions.txt")
+            optimizer_function_file=open(FILE, 'w')
             TEXT=self.text_logger.GetValue()
             optimizer_function_file.write(TEXT)
             optimizer_function_file.close()

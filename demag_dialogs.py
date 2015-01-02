@@ -576,7 +576,7 @@ class convert_generic_files_to_MagIC(wx.Frame):
         MagRecs=[]
         self.er_sample_data={}
         try:
-            self.er_sample_data=self.read_magic_file(self.WD+"/er_samples.txt",'er_sample_name')
+            self.er_sample_data=self.read_magic_file(os.path.join(self.WD, "er_samples.txt"), 'er_sample_name')
         except:
             print "-W- WARNING: Cant find er_samples.txt table"
             
@@ -837,7 +837,7 @@ class convert_generic_files_to_MagIC(wx.Frame):
         # write magic_measurements.txt
         #--
         MagRecs_fixed=self.merge_pmag_recs(MagRecs)
-        pmag.magic_write(self.WD+"/"+"magic_measurements.txt",MagRecs_fixed,'magic_measurements')
+        pmag.magic_write(os.path.join(self.WD, "magic_measurements.txt"), MagRecs_fixed, 'magic_measurements')
 
         #--
         # write er_samples.txt
@@ -847,7 +847,7 @@ class convert_generic_files_to_MagIC(wx.Frame):
         for sample in samples:
             ErSamplesRecs.append(self.er_sample_data[sample])
         ErSamplesRecs_fixed=self.merge_pmag_recs(ErSamplesRecs)
-        pmag.magic_write(self.WD+"/"+"er_samples.txt",ErSamplesRecs_fixed,'er_samples')
+        pmag.magic_write(os.path.join(self.WD, "er_samples.txt"), ErSamplesRecs_fixed, 'er_samples')
         
                     
                         

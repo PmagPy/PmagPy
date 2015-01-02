@@ -2963,7 +2963,7 @@ class Zeq_GUI(wx.Frame):
         except:
             print "-I- Cant read pmag_samples.txt"
         try:
-            pmag_sites,file_type=pmag.magic_read(os.path.join(self.WD+"/"+"pmag_sites.txt"))
+            pmag_sites,file_type=pmag.magic_read(os.path.join(self.WD, "pmag_sites.txt"))
         except:
             print "-I- Cant read pmag_sites.txt"
         self.GUI_log.write ("-I- Reading previous interpretations from pmag* tables\n")        
@@ -3360,7 +3360,7 @@ class Zeq_GUI(wx.Frame):
         self.update_selection()
 
     def on_save_high_level(self, event):
-        SaveMyPlot(self.fig4,str(self.level_names.GetValue()),str(self.level_box.GetValue()),self.WD  )
+        SaveMyPlot(self.fig4,str(self.level_names.GetValue()),str(self.level_box.GetValue()), self.WD )
         #self.fig4.clear()
         #self.draw_figure(self.s)
         #self.update_selection()
@@ -3712,7 +3712,7 @@ class Zeq_GUI(wx.Frame):
                 meas_data,file_type=pmag.magic_read(os.path.join(self.WD, FILE))
                 self.GUI_log.write("-I- Read old magic file  %s\n"%os.path.join(self.WD, FILE))
                 if FILE !='pmag_specimens.txt':
-                    os.remove(self.WD+"/"+FILE)
+                    os.remove(os.path.join(self.WD,FILE))
                     self.GUI_log.write("-I- Delete old magic file  %s\n"%os.path.join(self.WD,FILE))
                                
             except:
@@ -3902,7 +3902,7 @@ class Zeq_GUI(wx.Frame):
                 meas_data,file_type=pmag.magic_read(os.path.join(self.WD, FILE))
                 self.GUI_log.write("-I- Read old magic file  %s\n"%os.path.join(self.WD, FILE))
                 if FILE !='pmag_specimens.txt':
-                    os.remove(self.WD+"/"+FILE)
+                    os.remove(os.path.join(self.WD, FILE))
                     self.GUI_log.write("-I- Delete old magic file  %s\n"%os.path.join(self.WD,FILE))
                                
             except:
