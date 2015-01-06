@@ -2709,8 +2709,12 @@ class check(wx.Frame):
         as well as which sample a specimen belongs to"""
         self.ErMagic.read_MagIC_info() # 
 
-        #self.panel = wx.ScrolledWindow(self, style=wx.SIMPLE_BORDER)
-        self.panel = wx.Panel(self, style=wx.SIMPLE_BORDER)
+        # using ScrolledWindow works on up to date wxPython and is necessary for windows
+        # it breaks with Canopy wxPython, so for Mac we just use Panel
+        if sys.platform in ['win32', 'win64']:
+            self.panel = wx.ScrolledWindow(self, style=wx.SIMPLE_BORDER)
+        else:
+            self.panel = wx.Panel(self, style=wx.SIMPLE_BORDER)
 
         #import wx.lib.scrolledpanel as libpanel # does not work well
         #self.panel = libpanel.ScrolledPanel(self, style=wx.SIMPLE_BORDER)
@@ -2800,9 +2804,14 @@ Check that all specimens belong to the correct sample
         as well as which site a sample belongs to"""
         
         self.sample_window += 1 
-        #print "init-ing Sample Check for the {}th time".format(self.sample_window)
-        #self.panel = wx.ScrolledWindow(self, style=wx.SIMPLE_BORDER)
-        self.panel = wx.Panel(self, style=wx.SIMPLE_BORDER)
+
+        # using ScrolledWindow works on up to date wxPython and is necessary for windows
+        # it breaks with Canopy wxPython, so for Mac we just use Panel
+        if sys.platform in ['win32', 'win64']:
+            self.panel = wx.ScrolledWindow(self, style=wx.SIMPLE_BORDER)
+        else:
+            self.panel = wx.Panel(self, style=wx.SIMPLE_BORDER)
+
         if self.sample_window == 1:
             TEXT = """Step 2:
 Check that all samples are correctly named,
@@ -2886,7 +2895,8 @@ You may use the drop-down menus to add as many values as needed in these columns
         hbox_all.AddSpacer(20)
 
         self.panel.SetSizer(hbox_all)
-        #self.panel.SetScrollbars(20, 20, 50, 50)
+        if sys.platform in ['win32', 'win64']:
+            self.panel.SetScrollbars(20, 20, 50, 50)
         hbox_all.Fit(self)
         self.Centre()
         self.Show()
@@ -2901,8 +2911,14 @@ You may use the drop-down menus to add as many values as needed in these columns
     def InitSiteCheck(self):
         """make an interactive grid in which users can edit site names
         as well as which location a site belongs to"""
-        #self.panel = wx.ScrolledWindow(self, style=wx.SIMPLE_BORDER)
-        self.panel = wx.Panel(self, style=wx.SIMPLE_BORDER)
+
+        # using ScrolledWindow works on up to date wxPython and is necessary for windows
+        # it breaks with Canopy wxPython, so for Mac we just use Panel
+        if sys.platform in ['win32', 'win64']:
+            self.panel = wx.ScrolledWindow(self, style=wx.SIMPLE_BORDER)
+        else:
+            self.panel = wx.Panel(self, style=wx.SIMPLE_BORDER)
+
         TEXT = """Step 3:
 Check that all sites are correctly named, and that they belong to the correct location.
 Fill in the additional columns with controlled vocabularies.
@@ -2980,7 +2996,8 @@ However, you will be able to edit sample_class, sample_lithology, and sample_typ
         hbox_all.AddSpacer(20)
 
         self.panel.SetSizer(hbox_all)
-        #self.panel.SetScrollbars(20, 20, 50, 50)
+        if sys.platform in ['win32', 'win64']:                
+            self.panel.SetScrollbars(20, 20, 50, 50)
         hbox_all.Fit(self)
         self.Centre()
         self.Show()
@@ -2993,8 +3010,14 @@ However, you will be able to edit sample_class, sample_lithology, and sample_typ
     def InitLocCheck(self):
         """make an interactive grid in which users can edit specimen names
         as well as which sample a specimen belongs to"""
-        #self.panel = wx.ScrolledWindow(self, style=wx.SIMPLE_BORDER)
-        self.panel = wx.Panel(self, style=wx.SIMPLE_BORDER)
+
+        # using ScrolledWindow works on up to date wxPython and is necessary for windows
+        # it breaks with Canopy wxPython, so for Mac we just use Panel
+        if sys.platform in ['win32', 'win64']:
+            self.panel = wx.ScrolledWindow(self, style=wx.SIMPLE_BORDER)
+        else:
+            self.panel = wx.Panel(self, style=wx.SIMPLE_BORDER)
+
         TEXT = """Step 5:
 Check that locations are correctly named.
 Fill in any blank cells using controlled vocabularies.
@@ -3065,7 +3088,8 @@ Fill in any blank cells using controlled vocabularies.
         hbox_all.AddSpacer(20)
 
         self.panel.SetSizer(hbox_all)
-        #self.panel.SetScrollbars(20, 20, 50, 50)
+        if sys.platform in ['win32', 'win64']:
+            self.panel.SetScrollbars(20, 20, 50, 50)
         hbox_all.Fit(self)
         self.Centre()
         self.Show()
@@ -3073,8 +3097,14 @@ Fill in any blank cells using controlled vocabularies.
 
     def InitAgeCheck(self):
         """make an interactive grid in which users can edit ages"""
-        #self.panel = wx.ScrolledWindow(self, style=wx.SIMPLE_BORDER)
-        self.panel = wx.Panel(self, style=wx.SIMPLE_BORDER)
+
+        # using ScrolledWindow works on up to date wxPython and is necessary for windows
+        # it breaks with Canopy wxPython, so for Mac we just use Panel
+        if sys.platform in ['win32', 'win64']:
+            self.panel = wx.ScrolledWindow(self, style=wx.SIMPLE_BORDER)
+        else:
+            self.panel = wx.Panel(self, style=wx.SIMPLE_BORDER)
+
         TEXT = """Step 6:
 Fill in or correct any cells with information about ages.
 The column for magic_method_codes can take multiple values in the form of a colon-delimited list.
@@ -3147,7 +3177,8 @@ You may use the drop-down menus to add as many values as needed in these columns
         hbox_all.AddSpacer(20)
 
         self.panel.SetSizer(hbox_all)
-        #self.panel.SetScrollbars(20, 20, 50, 50)
+        if sys.platform in ['win32', 'win64']:
+            self.panel.SetScrollbars(20, 20, 50, 50)
         hbox_all.Fit(self)
         self.Centre()
         self.Show()
@@ -3580,7 +3611,6 @@ You may use the drop-down menus to add as many values as needed in these columns
             
 
     def update_sites(self, grid, col1_updated, col1_old, col2_updated, col2_old):#, *args):
-        print " calling update_sites"
         changed = [(old_value, col1_updated[num]) for (num, old_value) in enumerate(col1_old) if old_value != col1_updated[num]]
         # find where changes have occurred
         for change in changed:
