@@ -14,10 +14,6 @@ import ErMagicBuilder
 import drop_down_menus
 import check_updates
 
-if False:#sys.platform in ['win32', 'win64']:
-    call = check_updates.get_pmag_dir()
-else:
-    call = ""
 
 class import_magnetometer_data(wx.Dialog):
     def __init__(self,parent,id,title,WD):
@@ -399,7 +395,7 @@ class convert_generic_files_to_MagIC(wx.Frame):
         SAMP_OUTFILE =  magicoutfile[:magicoutfile.find('.')] + "_er_samples.txt"
         options['samp_file'] = SAMP_OUTFILE
 
-        COMMAND=call+"generic_magic.py -WD %s -f %s -fsa er_samples.txt -F %s -exp %s  -samp %s -site %s %s %s %s -Fsa %s"\
+        COMMAND="generic_magic.py -WD %s -f %s -fsa er_samples.txt -F %s -exp %s  -samp %s -site %s %s %s %s -Fsa %s"\
         %(WD,FILE,OUTFILE,EXP,SAMP,SITE,LOC,LABFIELD,DONT_AVERAGE, SAMP_OUTFILE)
 
         print "-I- Running Python command:\n %s"%COMMAND        
@@ -570,7 +566,7 @@ class combine_magic_dialog(wx.Frame):
     def on_okButton(self,event):
         files_text=self.bSizer0.file_paths.GetValue()
         files=files_text.strip('\n').replace(" ","").split('\n')
-        COMMAND=call+"combine_magic.py -F magic_measurements.txt -f %s"%(" ".join(files) )       
+        COMMAND="combine_magic.py -F magic_measurements.txt -f %s"%(" ".join(files) )       
         print "-I- Running Python command:\n %s"%COMMAND
         os.chdir(self.WD)     
         os.system(COMMAND)                                          
@@ -661,17 +657,17 @@ class combine_everything_dialog(wx.Frame):
         site_files = " ".join(er_sites.split('\n'))
         new_files = []
         if spec_files:
-            COMMAND0=call+"combine_magic.py -F er_specimens.txt -f %s"%(spec_files)
+            COMMAND0="combine_magic.py -F er_specimens.txt -f %s"%(spec_files)
             print "-I- Running Python command:\n %s"%COMMAND0
             os.system(COMMAND0) 
             new_files.append("er_specimens.txt")
         if samp_files:
-            COMMAND1=call+"combine_magic.py -F er_samples.txt -f %s"%(samp_files)
+            COMMAND1="combine_magic.py -F er_samples.txt -f %s"%(samp_files)
             print "-I- Running Python command:\n %s"%COMMAND1
             os.system(COMMAND1) 
             new_files.append("er_samples.txt")
         if site_files:
-            COMMAND2=call+"combine_magic.py -F er_sites.txt -f %s"%(site_files)
+            COMMAND2="combine_magic.py -F er_sites.txt -f %s"%(site_files)
             print "-I- Running Python command:\n %s"%COMMAND2
             os.system(COMMAND2)
             new_files.append("er_sites.txt")
@@ -863,7 +859,7 @@ class convert_SIO_files_to_MagIC(wx.Frame):
         #else:
         #    synthetic = ''
 
-        COMMAND = call+"sio_magic.py -F {0} -f {1} {2} {3} {4} -spc {5} -ncn {6} {7} {8} {9} {10} {11}".format(outfile, SIO_file, user, experiment_type, loc_name,spc, ncn, lab_field, peak_AF, coil_number, instrument, replicate)
+        COMMAND = "sio_magic.py -F {0} -f {1} {2} {3} {4} -spc {5} -ncn {6} {7} {8} {9} {10} {11}".format(outfile, SIO_file, user, experiment_type, loc_name,spc, ncn, lab_field, peak_AF, coil_number, instrument, replicate)
         # to run as module:
         #import sio_magic
         #if sio_magic.main(command_line=False, **options_dict):
@@ -1034,7 +1030,7 @@ class convert_CIT_files_to_MagIC(wx.Frame):
             options_dict['avg'] = 1
             replicate = '-A'
 
-        COMMAND = call+"CIT_magic.py -WD {} -f {} -F {} {} {} {} {} -ncn {} {} {} {} -Fsp {} -Fsi {} -Fsa {} {}".format(wd, CIT_file, outfile, particulars, spec_num, loc_name, user, ncn, peak_AF, lab_field, ID, spec_outfile, site_outfile, samp_outfile, replicate)
+        COMMAND = "CIT_magic.py -WD {} -f {} -F {} {} {} {} {} -ncn {} {} {} {} -Fsp {} -Fsi {} -Fsa {} {}".format(wd, CIT_file, outfile, particulars, spec_num, loc_name, user, ncn, peak_AF, lab_field, ID, spec_outfile, site_outfile, samp_outfile, replicate)
         # to run as module:
         #import CIT_magic
         #if CIT_magic.main(command_line=False, **options_dict):
@@ -1217,7 +1213,7 @@ class convert_HUJI_files_to_MagIC(wx.Frame):
         old_format= self.bSizer0a.return_value()
         if old_format:
             # to run as command line:
-            COMMAND = call+"HUJI_magic.py -f {} -F {} {} -LP {} {} -ncn {} {} {} {}".format(HUJI_file, outfile, user, experiment_type, loc_name, ncn, lab_field, spc, peak_AF)
+            COMMAND = "HUJI_magic.py -f {} -F {} {} -LP {} {} -ncn {} {} {} {}".format(HUJI_file, outfile, user, experiment_type, loc_name, ncn, lab_field, spc, peak_AF)
             pw.run_command_and_close_window(self, COMMAND, outfile)
             # to run as module:
             #import HUJI_magic
@@ -1227,7 +1223,7 @@ class convert_HUJI_files_to_MagIC(wx.Frame):
             #    pw.simple_warning()
         else:
             # to run as command line:
-            COMMAND = call+"HUJI_magic_new.py -f {} -F {} {} -LP {} {} -ncn {} {} {} {}".format(HUJI_file, outfile, user, experiment_type, loc_name, ncn, lab_field, spc, peak_AF)
+            COMMAND = "HUJI_magic_new.py -f {} -F {} {} -LP {} {} -ncn {} {} {} {}".format(HUJI_file, outfile, user, experiment_type, loc_name, ncn, lab_field, spc, peak_AF)
             pw.run_command_and_close_window(self, COMMAND, outfile)
             # to run as module:
             #import HUJI_magic_new
@@ -1396,7 +1392,7 @@ class convert_2G_binary_files_to_MagIC(wx.Frame):
             outfile = file_2G_bin + ".magic"
             options_dict['meas_file'] = outfile
             options_dict['mag_file'] = f
-            COMMAND = call+"_2G_bin_magic.py -WD {} -f {} -F {} -Fsa {} -Fsi {} -ncn {} {} {} -ocn {} {} {} {}".format(WD, file_2G_bin, outfile, samp_outfile, sites_outfile, ncn, mcd, spc, ocn, loc_name, replicate, ID)
+            COMMAND = "_2G_bin_magic.py -WD {} -f {} -F {} -Fsa {} -Fsi {} -ncn {} {} {} -ocn {} {} {} {}".format(WD, file_2G_bin, outfile, samp_outfile, sites_outfile, ncn, mcd, spc, ocn, loc_name, replicate, ID)
             if files.index(f) == (len(files) - 1): # terminate process on last file call
                 # to run as module:
                 #if _2G_bin_magic.main(False, **options_dict):
@@ -1602,7 +1598,7 @@ class convert_LDEO_files_to_MagIC(wx.Frame):
         #    synthetic = '-syn ' + synthetic
         #else:
         #    synthetic = ''
-        COMMAND = call+"LDEO_magic.py -f {0} -F {1} {2} {3} {4} -ncn {5} {6} {7} {8} {9} {10} {11}".format(LDEO_file, outfile, user, experiment_type, lab_field, ncn, spc, loc_name, instrument, replicate, AF_field, coil_number)
+        COMMAND = "LDEO_magic.py -f {0} -F {1} {2} {3} {4} -ncn {5} {6} {7} {8} {9} {10} {11}".format(LDEO_file, outfile, user, experiment_type, lab_field, ncn, spc, loc_name, instrument, replicate, AF_field, coil_number)
         # to run as module:
         #import LDEO_magic
         #if LDEO_magic.main(False, **options_dict):
@@ -1719,7 +1715,7 @@ class convert_IODP_csv_files_to_MagIC(wx.Frame):
             replicate = "-A"
             options['noave'] = 1
 
-        COMMAND = call+"IODP_csv_magic.py -WD {0} -f {1} -F {2} {3} -ID {4} -Fsp {5} -Fsa {6} -Fsi {7}".format(wd, IODP_file, outfile, replicate, ID, spec_outfile, samp_outfile, site_outfile)
+        COMMAND = "IODP_csv_magic.py -WD {0} -f {1} -F {2} {3} -ID {4} -Fsp {5} -Fsa {6} -Fsi {7}".format(wd, IODP_file, outfile, replicate, ID, spec_outfile, samp_outfile, site_outfile)
         # to run as module:
         #import IODP_csv_magic
         #if IODP_csv_magic.main(False, **options):
@@ -1864,7 +1860,7 @@ class convert_PMD_files_to_MagIC(wx.Frame):
             options['meas_file'] = outfile
             samp_outfile = f[:f.find('.')] + "_er_samples.txt"
             options['samp_file'] = samp_outfile
-            COMMAND = call+"PMD_magic.py -WD {} -f {} -F {} -Fsa {} -ncn {} {} -spc {} {} {}".format(WD, f, outfile, samp_outfile, ncn, particulars, spc, replicate, ID)
+            COMMAND = "PMD_magic.py -WD {} -f {} -F {} -Fsa {} -ncn {} {} -spc {} {} {}".format(WD, f, outfile, samp_outfile, ncn, particulars, spc, replicate, ID)
             
             # to run as command_line:
             if files.index(f) == len(files) -1:
@@ -1972,7 +1968,7 @@ class something(wx.Frame):
         pw.on_add_file_button(self.bSizer0, self.WD, event, text)
 
     def on_okButton(self, event):
-        COMMAND = call+""
+        COMMAND = ""
         pw.run_command_and_close_window(self, COMMAND, outfile)
 
     def on_cancelButton(self,event):
@@ -2224,7 +2220,7 @@ class OrientFrameGrid(wx.Frame):
     def on_m_calc_orient(self,event):    
         '''
         This fucntion does exactly what the 'import orientation' fuction does in MagIC.py 
-        after some dialog boxes the fucntio calls orientation_magic.py 
+        after some dialog boxes the function calls orientation_magic.py 
         '''
         
         # first see if demag_orient.txt
@@ -2255,7 +2251,7 @@ class OrientFrameGrid(wx.Frame):
         command_args.append(gmt_flags)
         command_args.append(bedding_codes_flags)
         command_args.append(methodcodes_flags) 
-        commandline= call + " ".join(command_args)
+        commandline= " ".join(command_args)
         
                  
         #command= "orientation_magic.py -WD %s -Fsa er_samples_orient.txt -Fsi er_sites_orient.txt -f  %s %s %s %s %s %s > ./orientation_magic.log " \
