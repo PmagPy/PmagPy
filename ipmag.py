@@ -415,7 +415,7 @@ def plot_di_mean(Dec,Inc,a95,color='k',marker='o',markersize=20,label='',legend=
     """
     DI_dimap=pmag.dimap(Dec,Inc)
     if Inc < 0:
-        plt.scatter(DI_dimap[0],DI_dimap[1],markeredgecolor=color , markerfacecolor='white', marker=marker,s=markersize,label=label)
+        plt.scatter(DI_dimap[0],DI_dimap[1],edgecolor=color ,facecolor='white', marker=marker,s=markersize,label=label)
     if Inc >= 0:
         plt.scatter(DI_dimap[0],DI_dimap[1],color=color,marker=marker,s=markersize,label=label)
     Xcirc,Ycirc=[],[]
