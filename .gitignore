@@ -25,8 +25,9 @@ new-test-output/*
 SPD_consistency_tests/*
 pmag_criteria.txt
 
-
+*.DS_Store
 SPD_consistency_tests/*
+Command_line_Tests/*
 new-test-output/*
 rename_me_errors_list.txt
 demag_dialog_boxes.py
