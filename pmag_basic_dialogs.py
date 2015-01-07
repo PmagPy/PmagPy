@@ -2711,6 +2711,7 @@ class check(wx.Frame):
 
         # using ScrolledWindow works on up to date wxPython and is necessary for windows
         # it breaks with Canopy wxPython, so for Mac we just use Panel
+
         if sys.platform in ['win32', 'win64']:
             self.panel = wx.ScrolledWindow(self, style=wx.SIMPLE_BORDER)
         else:
@@ -2788,6 +2789,9 @@ Check that all specimens belong to the correct sample
         hbox_all.Fit(self)  
         self.Centre()
         self.Show()
+        self.Hide()
+        self.Show()
+        
         ## this combination prevents a display error that (without the fix) only resolves on manually resizing the window
         #print "about to refresh spec_grid"
         #print self.panel
@@ -2898,14 +2902,28 @@ You may use the drop-down menus to add as many values as needed in these columns
         if sys.platform in ['win32', 'win64']:
             self.panel.SetScrollbars(20, 20, 50, 50)
         hbox_all.Fit(self)
+
+
+        
         self.Centre()
         self.Show()
-        ## this combination prevents a display error that (without the fix) only resolves on manually resizing the window
-        #print "about to refresh samp_grid"
-        #self.panel.Refresh()
-        #self.samp_grid.ForceRefresh()
-        #self.panel.Refresh()
-        #print "refreshed samp_grid"
+
+        ## this combination may prevent a display error that (without the fix) only resolves on manually resizing the window
+        self.panel.Refresh()
+        self.samp_grid.ForceRefresh()
+        self.panel.Refresh()
+        self.Refresh()
+
+        # this prevents display errors
+        self.Hide()
+        self.Show()
+
+
+        #self.Fit() # this make it worse!
+        #self.Layout() # doesn't fix display resize error
+
+        #self.panel.Layout() # doesn't fix display resize error
+        #self.main_frame.Layout()# doesn't fix display resize error
 
 
     def InitSiteCheck(self):
@@ -3004,7 +3022,8 @@ However, you will be able to edit sample_class, sample_lithology, and sample_typ
         # this combination prevents a display error that (without the fix) only resolves on manually resizing the window
         self.site_grid.ForceRefresh()
         self.panel.Refresh()
-
+        self.Hide()
+        self.Show()
 
 
     def InitLocCheck(self):
@@ -3092,6 +3111,8 @@ Fill in any blank cells using controlled vocabularies.
             self.panel.SetScrollbars(20, 20, 50, 50)
         hbox_all.Fit(self)
         self.Centre()
+        self.Show()
+        self.Hide()
         self.Show()
 
 
@@ -3182,6 +3203,8 @@ You may use the drop-down menus to add as many values as needed in these columns
         hbox_all.Fit(self)
         self.Centre()
         self.Show()
+        self.Hide()
+        self.Show()
 
 
     ### Grid methods ###
@@ -3270,7 +3293,6 @@ You may use the drop-down menus to add as many values as needed in these columns
             grid.SetColLabelValue(n, label)
 
         #grid.AutoSizeColumns(True)
-
         grid.AutoSize() # this prevents a re-size error that can occur
 
         for n, col in enumerate(column_labels):
