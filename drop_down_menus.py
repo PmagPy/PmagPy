@@ -9,17 +9,18 @@ import controlled_vocabularies as vocab
 
 class Menus():
 
-    def __init__(self, data_type, check, grid, belongs_to, headers=['site_class', 'site_lithology', 'site_type', 'site_definition']):
+    def __init__(self, data_type, check, grid, belongs_to):
         """take: data_type (string), check (top level class object for ErMagic steps 1-6), grid (grid object), belongs_to (options for data object to belong to, i.e. locations for the site Menus)"""
         self.data_type = data_type
         self.check = check # check is top level class object for entire ErMagic steps 1-6
         self.grid = grid
         self.window = grid.Parent # parent window in which grid resides
         self.belongs_to = belongs_to
-        self.headers = headers
+        #self.headers = headers
         self.selected_col = None
         self.selection = [] # [(row, col), (row, col)], sequentially down a column
         self.dispersed_selection = [] # [(row, col), (row, col)], not sequential
+        self.col_color = None
         self.InitUI()
 
     def InitUI(self):
@@ -34,6 +35,8 @@ class Menus():
             self.choices = {1: (vocab.location_type, False)}
         if self.data_type == 'age':
             self.choices = {3: (vocab.geochronology_method_codes, False), 5: (vocab.age_units, False)}
+        if self.data_type == 'orient':
+            self.choices = {0: (['g', 'b'], False)}
         #self.window.Bind(wx.grid.EVT_GRID_SELECT_CELL, lambda event: self.on_left_click(event, self.grid, self.choices), self.grid) 
         self.window.Bind(wx.grid.EVT_GRID_CELL_LEFT_CLICK, lambda event: self.on_left_click(event, self.grid, self.choices), self.grid) 
         self.window.Bind(wx.grid.EVT_GRID_LABEL_LEFT_CLICK, self.on_label_click, self.grid)
@@ -41,6 +44,9 @@ class Menus():
 
     def on_label_click(self, event):
         col = event.GetCol()
+        color = self.grid.GetCellBackgroundColour(0, col)
+        if color != (191, 216, 216, 255): # light blue
+            self.col_color = color
         if col == -1:
             return 0
         if col == 2 and self.data_type == 'age':
@@ -51,16 +57,17 @@ class Menus():
                 col_label_value = self.grid.GetColLabelValue(self.selected_col)
                 self.grid.SetColLabelValue(self.selected_col, col_label_value[:-10])
                 for row in range(self.grid.GetNumberRows()):
-                    self.grid.SetCellBackgroundColour(row, self.selected_col, 'white')
+                    self.grid.SetCellBackgroundColour(row, self.selected_col, self.col_color)# 'white'
                 self.grid.ForceRefresh()
             # deselect col if user is clicking on it a second time
             if col == self.selected_col:  
                 col_label_value = self.grid.GetColLabelValue(col)
                 self.grid.SetColLabelValue(col, col_label_value[:-10])
                 for row in range(self.grid.GetNumberRows()):
-                    self.grid.SetCellBackgroundColour(row, col, 'white')
+                    self.grid.SetCellBackgroundColour(row, col, self.col_color) # 'white'
                 self.grid.ForceRefresh()
                 self.selected_col = None
+            # otherwise, select (highlight) col
             else:
                 self.selected_col = col
                 col_label_value = self.grid.GetColLabelValue(col)
@@ -88,12 +95,13 @@ class Menus():
                 col_label_value = self.grid.GetColLabelValue(col)
                 self.grid.SetColLabelValue(col, col_label_value[:-10])
                 for row in range(self.grid.GetNumberRows()):
-                    self.grid.SetCellBackgroundColour(row, col, 'white')
+                    self.grid.SetCellBackgroundColour(row, col, self.col_color) # 'white'
                 self.grid.ForceRefresh()
                 self.selected_col = None
 
             
     def clean_up(self, grid):
+        print "doing clean_up"
         if self.selected_col:
             col_label_value = self.grid.GetColLabelValue(self.selected_col)
             self.grid.SetColLabelValue(self.selected_col, col_label_value[:-10])
@@ -106,6 +114,7 @@ class Menus():
         """creates popup menu when user clicks on the column
         if that column is in the list of choices that get a drop-down menu.
         allows user to edit the column, but only from available values"""
+        color = self.grid.GetCellBackgroundColour(event.GetRow(), event.GetCol())
         if event.CmdDown(): # allow user to cherry-pick cells for editing.  gets selection of meta key for mac, ctrl key for pc
             row, col = event.GetRow(), event.GetCol()
             if (row, col) not in self.dispersed_selection:
@@ -113,7 +122,7 @@ class Menus():
                 self.grid.SetCellBackgroundColour(row, col, 'light blue')
             else:
                 self.dispersed_selection.remove((row, col))
-                self.grid.SetCellBackgroundColour(row, col, 'white')
+                self.grid.SetCellBackgroundColour(row, col, color)# 'white'
             self.grid.ForceRefresh()
             return
         if event.ShiftDown(): # allow user to highlight multiple cells in a column
@@ -180,7 +189,7 @@ class Menus():
         if selection:
             # re-whiten the cells that were previously highlighted
             for row, col in selection:
-                self.grid.SetCellBackgroundColour(row, col, 'white')
+                self.grid.SetCellBackgroundColour(row, col, self.col_color)
             self.dispersed_selection = []
             self.selection = []
             self.grid.ForceRefresh()

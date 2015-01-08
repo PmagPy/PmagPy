@@ -2040,9 +2040,39 @@ class OrientFrameGrid(wx.Frame):
         #--------------------
                                     
         self.create_sheet()
+
+        TEXT = """
+        A template for a file named 'demag_orient.txt', which contains samples orientation data, was created in MagIC working directory.
+        You can view/modify demag_orient.txt using this Python frame, or you can use Excel/Open Office.  
+        If you use Excel, save the file as 'tab delimited' and then use the 'Import Orientation File' button below to import the data into QuickMagIC.  
+        If you use the Python frame, you can edit all the values in a column by clicking on the column header and then entering your desired value.
+        After orientation data is filled in, you can Calculate sample orientations.
+"""
+        label = wx.StaticText(self, label=TEXT)
+        btn_box = wx.BoxSizer(wx.HORIZONTAL)
+        save_btn = wx.Button(self, wx.ID_ANY, "Save Orientation File")
+        self.Bind(wx.EVT_BUTTON, self.on_m_save_file, save_btn)
+        import_btn = wx.Button(self, wx.ID_ANY, "Import Orientation File")
+        self.Bind(wx.EVT_BUTTON, self.on_m_open_file, import_btn)
+        calculate_btn = wx.Button(self, wx.ID_ANY, "Calculate Sample Orientations")
+        self.Bind(wx.EVT_BUTTON, self.on_m_calc_orient, calculate_btn)
+        btn_box.Add(save_btn)
+        btn_box.Add(import_btn, flag=wx.LEFT, border=5)
+        btn_box.Add(calculate_btn, flag=wx.LEFT, border=5)
+        vbox = wx.BoxSizer(wx.VERTICAL)
+        vbox.Add(label, flag=wx.CENTRE)
+        vbox.Add(btn_box, flag=wx.CENTRE)
+        vbox.Add(self.grid, flag=wx.ALL, border=20)
+        hbox_all = wx.BoxSizer(wx.HORIZONTAL)
+        hbox_all.Add(vbox)
+        self.SetSizer(hbox_all)
+        hbox_all.Fit(self)
+
+        
         self.Bind(wx.EVT_CLOSE, self.OnCloseWindow)
         # save the template
         self.on_m_save_file(None)
+        self.Centre()
         self.Show()                
 
         TEXT="A template for a file named 'demag_orient.txt', which contains samples orientation data was created in MagIC working directory.\n\n"
@@ -2052,10 +2082,10 @@ class OrientFrameGrid(wx.Frame):
         TEXT=TEXT+"2) Save file as 'tab delimited'\n"
         TEXT=TEXT+"3) Import demag_orient.txt to the Python frame by choosing from the menu-bar: File -> Open orientation file\n\n"
         TEXT=TEXT+"After orientation data is filled in the Python frame choose from the menu-bar: File -> Calculate samples orientations"
-        dlg1 = wx.MessageDialog(self,caption="Message:", message=TEXT ,style=wx.OK)
-        result = dlg1.ShowModal()
-        if result == wx.ID_OK:
-            dlg1.Destroy()    
+        #dlg1 = wx.MessageDialog(self,caption="Message:", message=TEXT ,style=wx.OK)
+        #result = dlg1.ShowModal()
+        #if result == wx.ID_OK:
+        #    dlg1.Destroy()    
     
             
     def create_sheet(self):    
@@ -2063,7 +2093,7 @@ class OrientFrameGrid(wx.Frame):
         creat an editable grid showing deamg_orient.txt 
         '''
         #--------------------------------
-        # orient.tx support many other headers
+        # orient.txt support many other headers
         # but here I put only 
         # the essential headers for 
         # sample orientation
@@ -2077,14 +2107,14 @@ class OrientFrameGrid(wx.Frame):
                  "bedding_dip_direction",
                  "bedding_dip",
                  "shadow_angle",
-                 "lat",
-                 "long",
-                 "date",
-                 "hhmm",
+                 "latitude", # changed
+                 "longitude", # changed
+                 "mm/dd/yy", # changed
+                 "hh:mm", # changed
                  "GPS_baseline",
                  "GPS_Az",
                  #"participants",
-                 #"magic_method_codes"
+                 "magic_method_codes"
                  ]
 
         #--------------------------------
@@ -2109,11 +2139,11 @@ class OrientFrameGrid(wx.Frame):
             self.grid.SetCellBackgroundColour(i, 3, "YELLOW")
             self.grid.SetCellBackgroundColour(i, 4, "PALE GREEN")
             self.grid.SetCellBackgroundColour(i, 5, "PALE GREEN")
-            self.grid.SetCellBackgroundColour(i, 6, "LIGHT BLUE")
-            self.grid.SetCellBackgroundColour(i, 7, "LIGHT BLUE")
-            self.grid.SetCellBackgroundColour(i, 8, "LIGHT BLUE")
-            self.grid.SetCellBackgroundColour(i, 9, "LIGHT BLUE")
-            self.grid.SetCellBackgroundColour(i, 10, "LIGHT BLUE")
+            self.grid.SetCellBackgroundColour(i, 6, "KHAKI")
+            self.grid.SetCellBackgroundColour(i, 7, "KHAKI")
+            self.grid.SetCellBackgroundColour(i, 8, "KHAKI")
+            self.grid.SetCellBackgroundColour(i, 9, "KHAKI")
+            self.grid.SetCellBackgroundColour(i, 10, "KHAKI")
             self.grid.SetCellBackgroundColour(i, 11, "LIGHT MAGENTA")
             self.grid.SetCellBackgroundColour(i, 12, "LIGHT MAGENTA")
         
@@ -2137,7 +2167,20 @@ class OrientFrameGrid(wx.Frame):
                         
         #--------------------------------
 
+        #--------------------------------
+        # fill in some default values
+        #--------------------------------
+        for row in range(self.grid.GetNumberRows()):
+            col = 0
+            if not self.grid.GetCellValue(row, col):
+                self.grid.SetCellValue(row, col, 'g')
+
+        #--------------------------------
+
+
         self.grid.AutoSize()
+        self.drop_down_menu = drop_down_menus.Menus("orient", self, self.grid, None)
+        
         
                 
     def on_m_open_file(self,event):
@@ -3306,6 +3349,7 @@ You may use the drop-down menus to add as many values as needed in these columns
 
         # leave out tooltip binding for now, as it seems to be crashing on Windows
         #grid.GetGridWindow().Bind(wx.EVT_MOTION, lambda event: self.onMouseOver(event, grid))
+        #grid.GetGridWindow().Bind(wx.EVT_ENTER_WINDOW, lambda event: self.onMouseOver(event, grid))
 
         return grid, original_1, original_2
 
@@ -3314,6 +3358,7 @@ You may use the drop-down menus to add as many values as needed in these columns
         """
         Displays a tooltip over any cell in a certain column
         """
+        print "doing onMouseOver"
         x, y = grid.CalcUnscrolledPosition(event.GetX(),event.GetY())
         coords = grid.XYToCell(x, y)
         col = coords[1]
