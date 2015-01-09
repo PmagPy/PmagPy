@@ -2072,7 +2072,7 @@ class OrientFrameGrid(wx.Frame):
         self.hbox_all = wx.BoxSizer(wx.HORIZONTAL)
         self.hbox_all.Add(self.vbox)
         if sys.platform in ['win32', 'win64']:
-            self.panel.SetScrollbars(1, 1, 1, 1)
+            self.panel.SetScrollbars(20, 20, 50, 50)
         self.panel.SetSizer(self.hbox_all)
         self.hbox_all.Fit(self)
         
@@ -2082,17 +2082,6 @@ class OrientFrameGrid(wx.Frame):
         self.Centre()
         self.Show()                
 
-        TEXT="A template for a file named 'demag_orient.txt', which contains samples orientation data was created in MagIC working directory.\n\n"
-        TEXT=TEXT+"You can view/modify demag_orient.txt using this Python frame, or using Excel.\n\n"
-        TEXT=TEXT+"If you choose to use Excel:\n"
-        TEXT=TEXT+"1) Fill in data.\n"        
-        TEXT=TEXT+"2) Save file as 'tab delimited'\n"
-        TEXT=TEXT+"3) Import demag_orient.txt to the Python frame by choosing from the menu-bar: File -> Open orientation file\n\n"
-        TEXT=TEXT+"After orientation data is filled in the Python frame choose from the menu-bar: File -> Calculate samples orientations"
-        #dlg1 = wx.MessageDialog(self,caption="Message:", message=TEXT ,style=wx.OK)
-        #result = dlg1.ShowModal()
-        #if result == wx.ID_OK:
-        #    dlg1.Destroy()    
     
             
     def create_sheet(self):    
