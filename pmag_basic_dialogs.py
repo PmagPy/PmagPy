@@ -1994,7 +1994,7 @@ class OrientFrameGrid(wx.Frame):
         # initialize stuff
         #--------------------
         if sys.platform in ['win32', 'win64']:
-            self.panel = wx.ScrolledWindow(self, style=wx.SIMPLE_BORDER)
+            self.panel = wx.ScrolledWindow(self, style=wx.SIMPLE_BORDER|wx.ALWAYS_SHOW_SB)
         else:
             self.panel = wx.Panel(self, style=wx.SIMPLE_BORDER)
 
@@ -2071,6 +2071,8 @@ class OrientFrameGrid(wx.Frame):
         self.vbox.Add(self.grid, flag=wx.ALL, border=20)
         self.hbox_all = wx.BoxSizer(wx.HORIZONTAL)
         self.hbox_all.Add(self.vbox)
+        if sys.platform in ['win32', 'win64']:
+            self.panel.SetScrollbars(1, 1, 1, 1)
         self.panel.SetSizer(self.hbox_all)
         self.hbox_all.Fit(self)
         
