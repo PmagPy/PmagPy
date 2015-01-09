@@ -1996,6 +1996,7 @@ class OrientFrameGrid(wx.Frame):
         
         self.WD=WD
         self.Data_hierarchy=Data_hierarchy
+        self.grid = None
         
         #--------------------
         # menu bar
@@ -2059,12 +2060,12 @@ class OrientFrameGrid(wx.Frame):
         btn_box.Add(save_btn)
         btn_box.Add(import_btn, flag=wx.LEFT, border=5)
         btn_box.Add(calculate_btn, flag=wx.LEFT, border=5)
-        vbox = wx.BoxSizer(wx.VERTICAL)
-        vbox.Add(label, flag=wx.CENTRE)
-        vbox.Add(btn_box, flag=wx.CENTRE)
-        vbox.Add(self.grid, flag=wx.ALL, border=20)
+        self.vbox = wx.BoxSizer(wx.VERTICAL)
+        self.vbox.Add(label, flag=wx.CENTRE)
+        self.vbox.Add(btn_box, flag=wx.CENTRE)
+        self.vbox.Add(self.grid, flag=wx.ALL, border=20)
         hbox_all = wx.BoxSizer(wx.HORIZONTAL)
-        hbox_all.Add(vbox)
+        hbox_all.Add(self.vbox)
         self.SetSizer(hbox_all)
         hbox_all.Fit(self)
 
@@ -2098,23 +2099,26 @@ class OrientFrameGrid(wx.Frame):
         # the essential headers for 
         # sample orientation
         #--------------------------------
-        
-        self.headers=["sample_orientation_flag",
-                 "sample_name",
+
+        # self.headers is a list of two-item tuples.
+        #the first is the proper column name as understood by orientation_magic.py
+        # the second is the name for display in the GUI
+        self.headers=[("sample_orientation_flag","sample_orientation_flag"),
+                ("sample_name","sample_name"),
                  #"site_name",
-                 "mag_azimuth",
-                 "field_dip",
-                 "bedding_dip_direction",
-                 "bedding_dip",
-                 "shadow_angle",
-                 "latitude", # changed
-                 "longitude", # changed
-                 "mm/dd/yy", # changed
-                 "hh:mm", # changed
-                 "GPS_baseline",
-                 "GPS_Az",
+                ("mag_azimuth","mag_azimuth"),
+                ("field_dip","field_dip"),
+                ("bedding_dip_direction", "bedding_dip_direction"),
+                ("bedding_dip", "bedding_dip"),
+                ("shadow_angle", "shadow_angle"),
+                ("lat", "latitude"), 
+                ("long", "longitude"), 
+                ("date", "mm/dd/yy"), 
+                ("hhmm", "hh:mm"), 
+                ("GPS_baseline","GPS_baseline"),
+                ("GPS_Az", "GPS_Az"),
                  #"participants",
-                 "magic_method_codes"
+                ("magic_method_codes", "magic_method_codes")
                  ]
 
         #--------------------------------
@@ -2152,17 +2156,19 @@ class OrientFrameGrid(wx.Frame):
         #--------------------------------
         
         for i in range(len(self.headers)):
-            self.grid.SetColLabelValue(i, self.headers[i])
+            self.grid.SetColLabelValue(i, self.headers[i][1])
 
         #--------------------------------
         # fill data from self.orient_data
         #--------------------------------
-        
+
+        headers = [header[0] for header in self.headers]
         for sample in self.samples_list:
             for key in self.orient_data[sample].keys():
-                if key in self.headers:
+                if key in headers:
                     sample_index=self.samples_list.index(sample)
-                    i=self.headers.index(key)
+                    #i=self.headers.index(key)
+                    i=headers.index(key)
                     self.grid.SetCellValue(sample_index,i, self.orient_data[sample][key])
                         
         #--------------------------------
@@ -2181,7 +2187,14 @@ class OrientFrameGrid(wx.Frame):
         self.grid.AutoSize()
         self.drop_down_menu = drop_down_menus.Menus("orient", self, self.grid, None)
         
-        
+
+
+    def update_sheet(self):
+        self.grid.Destroy()
+        self.create_sheet()
+        self.vbox.Add(self.grid, flag=wx.ALL, border=20)
+        self.Hide()
+        self.Show()
                 
     def on_m_open_file(self,event):
         '''
@@ -2202,7 +2215,8 @@ class OrientFrameGrid(wx.Frame):
             if len(new_data)>0:
                 self.orient_data={}
                 self.orient_data=new_data
-            self.create_sheet()
+            #self.create_sheet()
+            self.update_sheet()
 
     def on_m_save_file(self,event):
         
@@ -2214,13 +2228,14 @@ class OrientFrameGrid(wx.Frame):
         fout=open(os.path.join(self.WD, "demag_orient.txt"),'w')
         STR="tab\tdemag_orient\n"
         fout.write(STR)
-        STR="\t".join(self.headers)+"\n"
+        headers = [header[0] for header in self.headers]
+        STR="\t".join(headers)+"\n"
         fout.write(STR)
         for sample in self.samples_list:
             STR=""
-            for header in self.headers:                
+            for header in headers:                
                 sample_index=self.samples_list.index(sample)
-                i=self.headers.index(header)
+                i=headers.index(header)
                 value=self.grid.GetCellValue(sample_index,i)
                 STR=STR+value+"\t"
             fout.write(STR[:-1]+"\n")
