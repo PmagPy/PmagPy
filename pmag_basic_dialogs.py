@@ -1993,7 +1993,11 @@ class OrientFrameGrid(wx.Frame):
         #--------------------
         # initialize stuff
         #--------------------
-        
+        if sys.platform in ['win32', 'win64']:
+            self.panel = wx.ScrolledWindow(self, style=wx.SIMPLE_BORDER)
+        else:
+            self.panel = wx.Panel(self, style=wx.SIMPLE_BORDER)
+
         self.WD=WD
         self.Data_hierarchy=Data_hierarchy
         self.grid = None
@@ -2049,13 +2053,14 @@ class OrientFrameGrid(wx.Frame):
         If you use the Python frame, you can edit all the values in a column by clicking on the column header and then entering your desired value.
         After orientation data is filled in, you can Calculate sample orientations.
 """
-        label = wx.StaticText(self, label=TEXT)
+
+        label = wx.StaticText(self.panel, label=TEXT)
         btn_box = wx.BoxSizer(wx.HORIZONTAL)
-        save_btn = wx.Button(self, wx.ID_ANY, "Save Orientation File")
+        save_btn = wx.Button(self.panel, wx.ID_ANY, "Save Orientation File")
         self.Bind(wx.EVT_BUTTON, self.on_m_save_file, save_btn)
-        import_btn = wx.Button(self, wx.ID_ANY, "Import Orientation File")
+        import_btn = wx.Button(self.panel, wx.ID_ANY, "Import Orientation File")
         self.Bind(wx.EVT_BUTTON, self.on_m_open_file, import_btn)
-        calculate_btn = wx.Button(self, wx.ID_ANY, "Calculate Sample Orientations")
+        calculate_btn = wx.Button(self.panel, wx.ID_ANY, "Calculate Sample Orientations")
         self.Bind(wx.EVT_BUTTON, self.on_m_calc_orient, calculate_btn)
         btn_box.Add(save_btn)
         btn_box.Add(import_btn, flag=wx.LEFT, border=5)
@@ -2064,11 +2069,10 @@ class OrientFrameGrid(wx.Frame):
         self.vbox.Add(label, flag=wx.CENTRE)
         self.vbox.Add(btn_box, flag=wx.CENTRE)
         self.vbox.Add(self.grid, flag=wx.ALL, border=20)
-        hbox_all = wx.BoxSizer(wx.HORIZONTAL)
-        hbox_all.Add(self.vbox)
-        self.SetSizer(hbox_all)
-        hbox_all.Fit(self)
-
+        self.hbox_all = wx.BoxSizer(wx.HORIZONTAL)
+        self.hbox_all.Add(self.vbox)
+        self.panel.SetSizer(self.hbox_all)
+        self.hbox_all.Fit(self)
         
         self.Bind(wx.EVT_CLOSE, self.OnCloseWindow)
         # save the template
@@ -2128,7 +2132,7 @@ class OrientFrameGrid(wx.Frame):
         samples_list=self.orient_data.keys()
         samples_list.sort()
         self.samples_list = [ sample for sample in samples_list if sample is not "" ] 
-        self.grid = wx.grid.Grid(self, -1)        
+        self.grid = wx.grid.Grid(self.panel, -1)        
         self.grid.ClearGrid()
         self.grid.CreateGrid(len(self.samples_list), len(self.headers))
 
@@ -2193,6 +2197,10 @@ class OrientFrameGrid(wx.Frame):
         self.grid.Destroy()
         self.create_sheet()
         self.vbox.Add(self.grid, flag=wx.ALL, border=20)
+        #self.Hide()
+        #self.Show()
+        self.hbox_all.Fit(self.panel)
+        #self.panel.Refresh()
         self.Hide()
         self.Show()
                 
