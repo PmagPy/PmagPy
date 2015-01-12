@@ -8716,3 +8716,21 @@ def write_criteria_to_file(path,acceptance_criteria):
             print "-W- WARNING: statistic %s not written to file:",acceptance_criteria[crit]['value']
     magic_write(path,[rec],"pmag_criteria")
     
+
+def get_named_arg_from_sys(name, default_val=None, reqd=False):
+    import sys
+    if name in sys.argv:
+        ind = sys.argv.index(name)
+        return sys.argv[ind+1]
+    if reqd:
+        raise MissingCommandLineArgException(name)
+    return default_val
+
+
+class MissingCommandLineArgException(Exception):
+
+    def __init__(self, message):
+        self.message = "{} is a required option! Please provide this information and try again".format(message)
+
+    def __str__(self):
+        return self.message

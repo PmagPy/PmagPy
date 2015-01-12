@@ -1,5 +1,7 @@
 #!/usr/bin/env python
-import sys,pmag
+import sys,os
+import pmag,ipmag
+
 def main():
     """
     NAME
@@ -16,7 +18,64 @@ def main():
         -i allows interactive  entry of input and output filenames
         -F specify output file name [must come BEFORE input file names]
         -f specify input file names [ must come last]
-    """ 
+    """
+    dir_path = '.'
+    filenames = []
+    if "-h" in sys.argv:
+        print main.__doc__
+        sys.exit()
+    if "-i" in sys.argv: # interactive
+        dataset,datasets=[],[]
+        while True:
+            infile=raw_input('\n\n Enter magic files for combining, <return>  when done: ')
+            if infile=='':
+                break
+            if os.path.isfile(infile):
+                filenames.append(infile)
+            else:
+                print "-W- You have not provided a valid filename.\nIf the file is not in your current working directory, you will need to provide the full path to the file"
+        outfile=raw_input('\n\n Enter name for new combined file')
+        if not outfile:
+            return False
+            
+    else: # non-interactive
+        dir_path = pmag.get_named_arg_from_sys("-WD", ".")
+        outfile = pmag.get_named_arg_from_sys("-F", reqd=True)
+        if "-f" in sys.argv:
+            ind=sys.argv.index("-f")
+            for k in range(ind+1,len(sys.argv)):
+                filenames.append(os.path.join(dir_path, sys.argv[k]))
+        else:
+            raise pmag.MissingCommandLineArgException("-f")
+                
+    ipmag.combine_magic(filenames, outfile)
+
+    
+main()
+
+
+
+
+
+
+
+"""def old_main():
+
+    NAME
+        combine_magic.py
+
+    DESCRIPTION
+        Combines magic format files of the same type together.
+
+    SYNTAX
+        combine_magic.py [-h] [-i] -out filename -in file1 file2 ....
+
+    OPTIONS
+        -h prints help message
+        -i allows interactive  entry of input and output filenames
+        -F specify output file name [must come BEFORE input file names]
+        -f specify input file names [ must come last]
+
     #
     #  set up magic meta data type requirements
     #
@@ -62,4 +121,5 @@ def main():
     #
     pmag.magic_write(output,Recs,file_type)
     print "All records stored in ",output
-main()
+#main()
+"""

@@ -4,6 +4,7 @@ import pylab
 import numpy as np
 import random
 import matplotlib.pyplot as plt
+import os
 
 
 def igrf(input):
@@ -723,3 +724,24 @@ def equi(m, centerlon, centerlat, radius, color):
  
     X,Y = m(X,Y)
     plt.plot(X,Y,color)
+
+def combine_magic(filenames, outfile):
+    """
+    Takes a list of magic-formatted files, concatenates them, and creates a single file.
+    Returns true if the operation was successful.
+    
+    """
+    datasets = []
+    for infile in filenames:
+        if not os.path.isfile(infile):
+            raise Exception("{} is not a valid file name".format(infile))
+        dataset, file_type = pmag.magic_read(infile)
+        print "File ",infile," read in with ",len(dataset), " records"
+        for rec in dataset:
+            datasets.append(rec)
+
+    Recs, keys = pmag.fillkeys(datasets)
+    pmag.magic_write(outfile,Recs,file_type)
+    print "All records stored in ",outfile
+    return True
+
