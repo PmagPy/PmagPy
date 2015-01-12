@@ -825,7 +825,8 @@ def combine_magic(filenames, outfile):
     datasets = []
     for infile in filenames:
         if not os.path.isfile(infile):
-            raise Exception("{} is not a valid file name".format(infile))
+            print "{} is not a valid file name".format(infile)
+            return False
         dataset, file_type = pmag.magic_read(infile)
         print "File ",infile," read in with ",len(dataset), " records"
         for rec in dataset:

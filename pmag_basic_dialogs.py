@@ -9,6 +9,7 @@ import os
 import subprocess
 import sys
 import pmag
+import ipmag
 import pmag_widgets as pw
 import ErMagicBuilder
 import drop_down_menus
@@ -407,7 +408,6 @@ class convert_generic_files_to_MagIC(wx.Frame):
         else:
             pw.simple_warning()
 
-        
         # to run as command line
         #os.system(COMMAND)                                          
         #--
@@ -428,7 +428,7 @@ class convert_generic_files_to_MagIC(wx.Frame):
         # to run as module:
         import generic_magic
         pw.on_helpButton(text=generic_magic.do_help())
-        # to run as command line
+        # to run as command line:
         #pw.on_helpButton("generic_magic.py -h")
 
     def get_sample_name(self,specimen,sample_naming_convenstion):
@@ -567,14 +567,30 @@ class combine_magic_dialog(wx.Frame):
     def on_okButton(self,event):
         files_text=self.bSizer0.file_paths.GetValue()
         files=files_text.strip('\n').replace(" ","").split('\n')
-        COMMAND="combine_magic.py -F magic_measurements.txt -f %s"%(" ".join(files) )       
-        print "-I- Running Python command:\n %s"%COMMAND
-        os.chdir(self.WD)     
-        os.system(COMMAND)                                          
-        MSG="%i file are merged to one MagIC format file:\n magic_measurements.txt.\n\n See Terminal (Mac) or command prompt (windows) for errors"%(len(files))
-        dlg1 = wx.MessageDialog(None,caption="Message:", message=MSG ,style=wx.OK|wx.ICON_INFORMATION)
-        dlg1.ShowModal()
-        dlg1.Destroy()
+        COMMAND="combine_magic.py -F magic_measurements.txt -f %s"%(" ".join(files) )
+
+        # to run as module:
+        #print "-I- Running equivalent of Python command:\n %s"%COMMAND
+        if ipmag.combine_magic(files, 'magic_measurements.txt'):
+            #pw.close_window(self.panel, COMMAND, 'magic_measurements.txt')
+            MSG="%i file are merged to one MagIC format file:\n magic_measurements.txt.\n\n See Termimal (Mac) or command prompt (windows) for errors"%(len(files))
+            dlg1 = wx.MessageDialog(None,caption="Message:", message=MSG ,style=wx.OK|wx.ICON_INFORMATION)
+            dlg1.ShowModal()
+            dlg1.Destroy()
+        else:
+            pw.simple_warning()
+            return
+            
+        # to run as command line:
+        #print "-I- Running Python command:\n %s"%COMMAND
+        #os.chdir(self.WD)     
+        #os.system(COMMAND)
+        
+        #MSG="%i file are merged to one MagIC format file:\n magic_measurements.txt.\n\n See Termimal (Mac) or command prompt (windows) for errors"%(len(files))
+        #dlg1 = wx.MessageDialog(None,caption="Message:", message=MSG ,style=wx.OK|wx.ICON_INFORMATION)
+        #dlg1.ShowModal()
+        #dlg1.Destroy()
+        
         self.on_nextButton(event)
         self.Destroy()
 
@@ -653,31 +669,53 @@ class combine_everything_dialog(wx.Frame):
         er_specimens = self.bSizer0.file_paths.GetValue()
         er_samples = self.bSizer1.file_paths.GetValue()
         er_sites = self.bSizer2.file_paths.GetValue()
-        spec_files = " ".join(er_specimens.split('\n'))
-        samp_files = " ".join(er_samples.split('\n'))
-        site_files = " ".join(er_sites.split('\n'))
+        spec_files = er_specimens.strip('\n').replace(" ","").split('\n')
+        samp_files = er_samples.strip('\n').replace(" ","").split('\n')
+        site_files = er_sites.strip('\n').replace(" ","").split('\n')
         new_files = []
+        success = True
         if spec_files:
-            COMMAND0="combine_magic.py -F er_specimens.txt -f %s"%(spec_files)
+            COMMAND0="combine_magic.py -F er_specimens.txt -f %s"%(" ".join(spec_files))
             print "-I- Running Python command:\n %s"%COMMAND0
-            os.system(COMMAND0) 
+            # to run as module:
+            if not ipmag.combine_magic(spec_files, 'er_speciments.txt'):
+                success = False
+            
+            # to run as command line:
+            #os.system(COMMAND0)
+            
             new_files.append("er_specimens.txt")
         if samp_files:
-            COMMAND1="combine_magic.py -F er_samples.txt -f %s"%(samp_files)
+            COMMAND1="combine_magic.py -F er_samples.txt -f %s"%(" ".join(samp_files))
             print "-I- Running Python command:\n %s"%COMMAND1
-            os.system(COMMAND1) 
+            # to run as module:
+            if not ipmag.combine_magic(samp_files, 'er_samples.txt'):
+                success = False
+            
+            # to run as command line:
+            #os.system(COMMAND1)
+            
             new_files.append("er_samples.txt")
         if site_files:
-            COMMAND2="combine_magic.py -F er_sites.txt -f %s"%(site_files)
+            COMMAND2="combine_magic.py -F er_sites.txt -f %s"%(" ".join(site_files))
             print "-I- Running Python command:\n %s"%COMMAND2
-            os.system(COMMAND2)
+            
+            # to run as module:
+            if not ipmag.combine_magic(site_files, 'er_sites.txt'):
+                success = False
+            
+            # to run as command line:
+            #os.system(COMMAND2)
             new_files.append("er_sites.txt")
         new = '\n' + '\n'.join(new_files)
-        MSG = "Created new file(s): {} \nSee Termimal (Mac) or command prompt (windows) for details and errors".format(new)
-        dlg1 = wx.MessageDialog(None,caption="Message:", message=MSG ,style=wx.OK|wx.ICON_INFORMATION)
-        dlg1.ShowModal()
-        dlg1.Destroy()
-        self.Destroy()
+        if success:
+            MSG = "Created new file(s): {} \nSee Termimal (Mac) or command prompt (windows) for details and errors".format(new)
+            dlg1 = wx.MessageDialog(None,caption="Message:", message=MSG ,style=wx.OK|wx.ICON_INFORMATION)
+            dlg1.ShowModal()
+            dlg1.Destroy()
+            self.Destroy()
+        else:
+            pw.simple_warning()
 
 
 
@@ -1216,16 +1254,18 @@ class convert_HUJI_files_to_MagIC(wx.Frame):
             # to run as command line:
             #COMMAND = "HUJI_magic.py -f {} -F {} {} -LP {} {} -ncn {} {} {} {}".format(HUJI_file, outfile, user, experiment_type, loc_name, ncn, lab_field, spc, peak_AF)
             #pw.run_command_and_close_window(self, COMMAND, outfile)
+            
             # to run as module:
             import HUJI_magic
             if HUJI_magic.main(False, **options):
                 pw.close_window(self, COMMAND, outfile)
             else:
                 pw.simple_warning()
-        else:
+        else: # new format
             # to run as command line:
             #COMMAND = "HUJI_magic_new.py -f {} -F {} {} -LP {} {} -ncn {} {} {} {}".format(HUJI_file, outfile, user, experiment_type, loc_name, ncn, lab_field, spc, peak_AF)
             #pw.run_command_and_close_window(self, COMMAND, outfile)
+            
             # to run as module:
             import HUJI_magic_new
             if HUJI_magic_new.main(False, **options):
@@ -1239,12 +1279,13 @@ class convert_HUJI_files_to_MagIC(wx.Frame):
 
     def on_helpButton(self, event):
         old_format= self.bSizer0a.return_value()
-        # to run as module:
         if old_format:
             import HUJI_magic as HUJI
         else:
             import HUJI_magic_new as HUJI
         pw.on_helpButton(text=HUJI.do_help())
+
+        # to run as command_line:
         #if old_format:
         #    pw.on_helpButton("HUJI_magic.py -h")
         #else:
@@ -1724,10 +1765,10 @@ class convert_IODP_csv_files_to_MagIC(wx.Frame):
         else:
             pw.simple_warning()
 
-        del wait
         # to run as command line:
         #pw.run_command_and_close_window(self, COMMAND, outfile)
 
+        del wait
 
     def on_cancelButton(self,event):
         self.Destroy()
