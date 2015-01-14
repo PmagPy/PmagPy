@@ -570,7 +570,7 @@ class combine_magic_dialog(wx.Frame):
         print "-I- Running Python command:\n %s"%COMMAND
         os.chdir(self.WD)     
         os.system(COMMAND)                                          
-        MSG="%i file are merged to one MagIC format file:\n magic_measurements.txt.\n\n See Termimal (Mac) or command prompt (windows) for errors"%(len(files))
+        MSG="%i file are merged to one MagIC format file:\n magic_measurements.txt.\n\n See Terminal (Mac) or command prompt (windows) for errors"%(len(files))
         dlg1 = wx.MessageDialog(None,caption="Message:", message=MSG ,style=wx.OK|wx.ICON_INFORMATION)
         dlg1.ShowModal()
         dlg1.Destroy()
@@ -2002,20 +2002,6 @@ class OrientFrameGrid(wx.Frame):
         self.Data_hierarchy=Data_hierarchy
         self.grid = None
         
-        #--------------------
-        # menu bar
-        #--------------------
-        
-        self.menubar = wx.MenuBar()
-        menu_file = wx.Menu()
-        m_open_file = menu_file.Append(-1, "&Open orientation file", "")
-        self.Bind(wx.EVT_MENU, self.on_m_open_file, m_open_file)
-        m_save_file = menu_file.Append(-1, "&Save orientation file", "")
-        self.Bind(wx.EVT_MENU, self.on_m_save_file, m_save_file)
-        m_calc_orient = menu_file.Append(-1, "&Calculate samples orientation", "")
-        self.Bind(wx.EVT_MENU, self.on_m_calc_orient, m_calc_orient)
-        self.menubar.Append(menu_file, "&File")
-        self.SetMenuBar(self.menubar)
 
         #--------------------
         # get the orientation data
@@ -2279,7 +2265,6 @@ class OrientFrameGrid(wx.Frame):
         This fucntion does exactly what the 'import orientation' fuction does in MagIC.py 
         after some dialog boxes the function calls orientation_magic.py 
         '''
-        
         # first see if demag_orient.txt
         self.on_m_save_file(None)
         orient_convention_dia=orient_convention(None)
@@ -2290,7 +2275,7 @@ class OrientFrameGrid(wx.Frame):
             dcn_flag=orient_convention_dia.dcn_flag
             gmt_flags=orient_convention_dia.gmt_flags
             orient_convention_dia.Destroy()
-        
+
         method_code_dia=method_code_dialog(None)
         method_code_dia.Center()
         if method_code_dia.ShowModal()== wx.ID_OK:
@@ -2309,8 +2294,8 @@ class OrientFrameGrid(wx.Frame):
         command_args.append(bedding_codes_flags)
         command_args.append(methodcodes_flags) 
         commandline= " ".join(command_args)
-        
-                 
+
+
         #command= "orientation_magic.py -WD %s -Fsa er_samples_orient.txt -Fsi er_sites_orient.txt -f  %s %s %s %s %s %s > ./orientation_magic.log " \
         #%(self.WD,\
         #"demag_orient.txt",\
@@ -2319,25 +2304,23 @@ class OrientFrameGrid(wx.Frame):
         #gmt_flags,\
         #bedding_codes_flags,\
         #methodcodes_flags)
-        
+
         #orient_convention_dia.Destroy()
         #method_code_dia.Destroy()  
-        
-        fail_comamnd=False
-        
+
         print "-I- executing command: %s" %commandline
         os.chdir(self.WD)
-        try:
-             os.system(commandline)
-             #subprocess.call(command_args,shell=True,stdout=logfile)
-             #logfile.close()
-        except:
-            fail_comamnd=True
-        
-        if fail_comamnd:
+
+        exit_code = os.system(commandline)
+
+        if exit_code is not 0:
+            dlg1 = wx.MessageDialog(None,caption="Message:", message="-E- ERROR: Error in running orientation_magic.py\nSee Terminal (Mac) or command prompt (windows) for errors" ,style=wx.OK|wx.ICON_INFORMATION)
+            dlg1.ShowModal()
+            dlg1.Destroy()
+
             print "-E- ERROR: Error in running orientation_magic.py"
             return
- 
+
         # check if orientation_magic.py finished sucsessfuly
         data_saved=False
         if os.path.isfile(os.path.join(self.WD, "er_samples_orient.txt")):
@@ -2347,10 +2330,10 @@ class OrientFrameGrid(wx.Frame):
             #    if "Data saved in" in line:
             #        data_saved=True
             #        break 
-        
+
         if not data_saved:
             return
-        
+
         # check if er_samples.txt exists. 
         # If yes add/change the following columns:
         # 1) sample_azimuth,sample_dip
@@ -2358,13 +2341,13 @@ class OrientFrameGrid(wx.Frame):
         # 3) sample_date,
         # 4) sample_declination_correction
         # 5) add magic_method_codes
-        
+
         er_samples_data={}
         er_samples_orient_data={}
         if os.path.isfile(os.path.join(self.WD, "er_samples.txt")):
             er_samples_file=os.path.join(self.WD, "er_samples.txt")
             er_samples_data=self.read_magic_file(er_samples_file,1,"er_sample_name")
-        
+
         if os.path.isfile(os.path.join(self.WD, "er_samples_orient.txt")):             
             er_samples_orient_file=os.path.join(self.WD, "er_samples_orient.txt")
             er_samples_orient_data=self.read_magic_file(er_samples_orient_file,1,"er_sample_name")
@@ -2423,17 +2406,19 @@ class OrientFrameGrid(wx.Frame):
             er_recs.append(er_sites_data[site])
             pmag.magic_write(os.path.join(self.WD, "er_sites.txt"),er_recs,"er_sites")
             #pmag.magic_write(os.path.join(self.WD, "er_samples.txt"),er_recs,"er_samples")
-       
+
         dlg1 = wx.MessageDialog(None,caption="Message:", message="orientation data is saved/appended to er_samples.txt" ,style=wx.OK|wx.ICON_INFORMATION)
         dlg1.ShowModal()
         dlg1.Destroy()
-        
+
         if len(new_samples_added)>0:
             dlg1 = wx.MessageDialog(None,caption="Warning:", message="The following samples were added to er_samples.txt:\n %s "%(" , ".join(new_samples_added)) ,style=wx.OK|wx.ICON_INFORMATION)
             dlg1.ShowModal()
             dlg1.Destroy()
-            
-        self.Destroy()    
+
+        self.Destroy()
+
+
                     
         
     def OnCloseWindow(self,event):   
