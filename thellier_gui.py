@@ -140,8 +140,9 @@ THERMAL=True
 
 
 import matplotlib
-matplotlib.use('WXAgg')
-from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigCanvas \
+#matplotlib.use('WXAgg')
+from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigCanvas 
+
 
 import sys,pylab,scipy,os
 import pmag
@@ -158,6 +159,7 @@ import subprocess
 import shutil
 import time
 import wx
+import wx.lib.inspection
 import wx.grid
 import random
 from pylab import *
@@ -1706,13 +1708,15 @@ class Arai_GUI(wx.Frame):
             dlg1 = wx.MessageDialog(None,caption="Warning:", message=TEXT ,style=wx.OK|wx.CANCEL|wx.ICON_EXCLAMATION)
             if dlg1.ShowModal() == wx.ID_OK:
                 dlg1.Destroy()
-                #self.Destroy()
-                sys.exit()
+                self.Destroy()
+                #sys.exit()
         else:
-            #self.Destroy()
-            sys.exit()
-        #if dlg1.ShowModal() == wx.ID_CANCEL:
-        #    dlg1.Destroy()
+            self.Destroy()
+            #self.Destroy() # works if I comment out matplotlib.use('WXAgg'), otherwise doesn't quit fully
+            #wx.Exit() # works by itself, but if called in conjunction with self.Destroy you get a seg error
+            # wx.Exit() # forces the program to exit, with no clean up.  works, but not an ideal solution
+            #sys.exit() # program closes, but with segmentation error
+            #self.Close()  # creates infinite recursion error, because we have a binding to wx.EVT_CLOSE
 
 
     def on_save_Arai_plot(self, event):
@@ -6292,7 +6296,7 @@ class Arai_GUI(wx.Frame):
               self.mplot.get_xaxis().tick_bottom()
               self.mplot.get_yaxis().tick_left()
               
-              xt=xticks()
+              #xt=xticks()
 
             #start_time_6=time.time() 
             #runtime_sec6 = start_time_6 - start_time_5
@@ -8966,14 +8970,12 @@ class Arai_GUI(wx.Frame):
 
 
 def do_main(WD=None):
-    app = wx.PySimpleApp()
+    app = wx.PySimpleApp(redirect=False)#, #filename='py2app_log.log')
     app.frame = Arai_GUI(WD)
-    #dw, dh = wx.DisplaySize() 
-    #w, h = app.frame.GetSize()
-    #print 'display:', dw, dh
-    #print "gui:", w, h
     app.frame.Show()
     app.frame.Center()
+    if '-i' in sys.argv:
+        wx.lib.inspection.InspectionTool().Show()
     app.MainLoop()
 
 if __name__ == '__main__':

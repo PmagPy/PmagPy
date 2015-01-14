@@ -12,7 +12,6 @@ import pmag_menu
 import check_updates
 
 
-
 class MagMainFrame(wx.Frame):
     """"""
     try:
@@ -39,11 +38,6 @@ class MagMainFrame(wx.Frame):
         #print os.environ['_system_version']#'10.9'
         #print os.environ['_system_type']#'Darwin'
         #print "sys.platform", sys.platform # 'darwin'
-        self.call = ""
-        if False:#sys.platform in ['win32', 'win64']:
-            self.call = "python " + check_updates.get_pmag_dir()
-        else:
-            pass #print "not windows"
 
 
     def InitUI(self):
@@ -305,7 +299,7 @@ class MagMainFrame(wx.Frame):
 #            self.last_saved_time.write("not saved")
 
     def on_run_thellier_gui(self,event):
-        outstring=self.call+"thellier_gui.py -WD %s"%self.WD
+        outstring="thellier_gui.py -WD %s"%self.WD
         print "-I- running python script:\n %s"%(outstring)
         # to run as module:
         import thellier_gui
@@ -315,7 +309,7 @@ class MagMainFrame(wx.Frame):
         #os.system(outstring)
 
     def on_run_demag_gui(self,event):
-        outstring=self.call+"demag_gui.py -WD %s"%self.WD
+        outstring="demag_gui.py -WD %s"%self.WD
         print "-I- running python script:\n %s"%(outstring)
         # to run as module:
         import demag_gui
@@ -414,7 +408,7 @@ class MagMainFrame(wx.Frame):
         if dlg.ShowModal() == wx.ID_OK:
             FILE = dlg.GetPath()                
         input_dir, f = os.path.split(FILE)
-        outstring=self.call+"download_magic.py -f {} -WD {} -ID {}".format(f, self.WD, input_dir)
+        outstring="download_magic.py -f {} -WD {} -ID {}".format(f, self.WD, input_dir)
         print "-I- running python script:\n %s"%(outstring)
         os.system(outstring)
         TXT="Running download_magic.py program. Check terminal (Mac) or command prompt (windows) for error/warnings\n If no errors occur then MagIC files were save in MagIC Project Directory"
@@ -424,7 +418,7 @@ class MagMainFrame(wx.Frame):
             dlg.Destroy()
         
     def on_btn_upload(self,event):
-        outstring=self.call+"upload_magic.py"
+        outstring="upload_magic.py"
         print "-I- running python script:\n %s"%(outstring)
         os.system(outstring)
         TXT="Check terminal (Mac) or command prompt (windows) for error/warnings.\nIf all went well, a file name upload_dos.txt was generated in MagIC Project Directory.\nDrag and drop this file in the MagIC database."
@@ -460,7 +454,8 @@ class MagMainFrame(wx.Frame):
 
 if __name__ == "__main__":
     #app = wx.App(redirect=True, filename="beta_log.log")
-    app = wx.PySimpleApp(redirect=False)# if redirect is true, wxpython makes its own output window for stdout/stderr
+    # if redirect is true, wxpython makes its own output window for stdout/stderr
+    app = wx.PySimpleApp(redirect=False)
     app.frame = MagMainFrame()
     app.frame.Show()
     app.frame.Center()
