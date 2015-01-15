@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-import string,sys,pmag,exceptions
+import string,sys,os,pmag,exceptions
 #
 #
 def main():
