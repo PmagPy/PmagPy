@@ -142,13 +142,13 @@ is the percent cooling rate factor to apply to specimens from this sample, DA-CR
         sys.exit()
     if "-f" in args:
         ind=args.index("-f")
-        orient_file = input_dir_path+'/'+sys.argv[ind+1]
+        orient_file = os.path.join(input_dir_path, sys.argv[ind+1])
     if "-Fsa" in args:
         ind=args.index("-Fsa")
-        samp_file = output_dir_path+'/'+sys.argv[ind+1]
+        samp_file = os.path.join(output_dir_path, sys.argv[ind+1])
     if "-Fsi" in args:
         ind=args.index("-Fsi")
-        site_file= output_dir_path+'/'+sys.argv[ind+1]
+        site_file= os.path.join(output_dir_path, sys.argv[ind+1])
     if '-app' in args:
         AddTo=1
         try:
