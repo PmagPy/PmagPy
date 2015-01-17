@@ -8719,12 +8719,12 @@ def write_criteria_to_file(path,acceptance_criteria):
 
 def get_named_arg_from_sys(name, default_val=None, reqd=False):
     import sys
-    if name in sys.argv:
+    if name in sys.argv: # if the command line flag is found in sys.argv
         ind = sys.argv.index(name)
         return sys.argv[ind+1]
-    if reqd:
+    if reqd: # if arg is required but not present
         raise MissingCommandLineArgException(name)
-    return default_val
+    return default_val # if arg is not provided but has a default value, return that value
 
 
 class MissingCommandLineArgException(Exception):
