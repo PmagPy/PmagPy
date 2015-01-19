@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import sys,os
 import pmag,ipmag
+import command_line_extractor as extractor
 
 def main():
     """
@@ -19,8 +20,6 @@ def main():
         -F specify output file name [must come BEFORE input file names]
         -f specify input file names [ must come last]
     """
-    dir_path = '.'
-    filenames = []
     if "-h" in sys.argv:
         print main.__doc__
         sys.exit()
@@ -39,7 +38,7 @@ def main():
             return False
             
     else: # non-interactive
-        import commmand_line_extractor as extractor
+
         dataframe = extractor.command_line_dataframe(["F", True, ''])
         args = extractor.extract_and_check_args(sys.argv, dataframe)
         dir_path, outfile, filenames = extractor.get_vars(["WD", "F", "f"])
