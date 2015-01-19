@@ -39,14 +39,18 @@ def main():
             return False
             
     else: # non-interactive
-        dir_path = pmag.get_named_arg_from_sys("-WD", ".")
-        outfile = pmag.get_named_arg_from_sys("-F", reqd=True)
-        if "-f" in sys.argv:
-            ind=sys.argv.index("-f")
-            for k in range(ind+1,len(sys.argv)):
-                filenames.append(os.path.join(dir_path, sys.argv[k]))
-        else:
-            raise pmag.MissingCommandLineArgException("-f")
+        import commmand_line_extractor as extractor
+        dataframe = extractor.command_line_dataframe(["F", True, ''])
+        args = extractor.extract_and_check_args(sys.argv, dataframe)
+        dir_path, outfile, filenames = extractor.get_vars(["WD", "F", "f"])
+        #dir_path = pmag.get_named_arg_from_sys("-WD", ".")
+        #outfile = pmag.get_named_arg_from_sys("-F", reqd=True)
+        #if "-f" in sys.argv:
+        #    ind=sys.argv.index("-f")
+        #    for k in range(ind+1,len(sys.argv)):
+        #        filenames.append(os.path.join(dir_path, sys.argv[k]))
+        #else:
+        #    raise pmag.MissingCommandLineArgException("-f")
                 
     ipmag.combine_magic(filenames, outfile)
 
