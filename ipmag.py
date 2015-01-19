@@ -7,11 +7,12 @@ import matplotlib.pyplot as plt
 import os
 
 
-def igrf(input):
+def igrf(input_list):
     """
-    prints out Declination, Inclination, Intensity data from an input with format: Date, Altitude, Latitude, Longitude
+    prints out Declination, Inclination, Intensity data from an input list with format: [Date, Altitude, Latitude, Longitude]
+    Date must be in format XXXX.XXXX with years and decimals of a year (A.D.)
     """
-    x,y,z,f=pmag.doigrf(input[3]%360.,input[2],input[1],input[0])
+    x,y,z,f=pmag.doigrf(input_list[3]%360.,input_list[2],input_list[1],input_list[0])
     Dir=pmag.cart2dir((x,y,z))
     print Dir
     return Dir
