@@ -93,6 +93,8 @@ magic_measurements.txt
 
 thellier_gui_preferences.py.backup
 
+build/*
+dist/*
 
 
 plot_geomagia_ron.py
