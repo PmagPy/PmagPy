@@ -17,7 +17,7 @@ class command_line_dataframe():
     """
 
     def __init__(self, changes=None):
-        self.default_dict = {'arg_name': ['f', 'F', 'A', 'WD'], 'reqd': [True, False, False, False], 'default': ['', '', '', '.']}
+        self.default_dict = {'arg_name': ['f', 'F', 'A', 'WD', 'ID'], 'reqd': [True, False, False, False, False], 'default': ['', '', '', '.', '.']}
         self.df = pd.DataFrame(self.default_dict, index=['f', 'F', 'A', 'WD'])
         change_df = None
         arg_names = self.df['arg_name']

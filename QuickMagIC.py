@@ -7,6 +7,7 @@ import sys
 import datetime
 import shutil
 import pmag
+import ipmag
 import pmag_basic_dialogs
 import pmag_menu
 import check_updates
@@ -408,14 +409,37 @@ class MagMainFrame(wx.Frame):
         if dlg.ShowModal() == wx.ID_OK:
             FILE = dlg.GetPath()                
         input_dir, f = os.path.split(FILE)
+
         outstring="download_magic.py -f {} -WD {} -ID {}".format(f, self.WD, input_dir)
+        
+        # run as module:
         print "-I- running python script:\n %s"%(outstring)
-        os.system(outstring)
-        TXT="Running download_magic.py program. Check terminal (Mac) or command prompt (windows) for error/warnings\n If no errors occur then MagIC files were save in MagIC Project Directory"
+        try:
+            ipmag.download_magic(f, self.WD, input_dir)
+
+            TXT="Successfully ran download_magic.py program. MagIC files were saved in your working directory."
+
+        except Exception as ex:
+            TXT = "Something went wrong.  Make sure you chose a valid file downloaded from the MagIC database and try again."
+            print ex
+            print dir(ex)
+            
         dlg = wx.MessageDialog(self, caption="Saved",message=TXT,style=wx.OK)
         result = dlg.ShowModal()
         if result == wx.ID_OK:            
             dlg.Destroy()
+        raise(ex)
+
+        
+        # run as command_line:
+        #print "-I- running python script:\n %s"%(outstring)
+        #os.system(outstring)
+        
+        #TXT="Running download_magic.py program. Check terminal (Mac) or command prompt (windows) for error/warnings\n If no errors occur then MagIC files were save in MagIC Project Directory"
+        #dlg = wx.MessageDialog(self, caption="Saved",message=TXT,style=wx.OK)
+        #result = dlg.ShowModal()
+        #if result == wx.ID_OK:            
+        #    dlg.Destroy()
         
     def on_btn_upload(self,event):
         outstring="upload_magic.py"
@@ -445,11 +469,6 @@ class MagMainFrame(wx.Frame):
             else:
                 raise(ex)
             
-
-
-    
-
-
 
 
 if __name__ == "__main__":
