@@ -7,7 +7,9 @@ def main():
 
     DESCRIPTION
         makes 'day plots' (Day et al. 1977) and squareness/coercivity, 
-          squareness coercivity of remanence (Neel, 1955) plots
+        plots 'linear mixing' curve from Dunlop and Carter-Stiglitz (2006).
+          squareness coercivity of remanence (Neel, 1955) plots after
+          Tauxe et al. (2002)
 
     SYNTAX
         dayplot_magic.py [command line options]

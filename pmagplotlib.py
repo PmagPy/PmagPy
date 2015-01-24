@@ -1667,6 +1667,27 @@ def plotDay(fignum,BcrBc,S,sym):
     pylab.title('Day Plot')
     bounds= pylab.axis()
     pylab.axis([0, bounds[1],0, 1])
+    mu_o=4.*numpy.pi*1e-7
+    Bc_sd=46e-3 #  # (MV1H) dunlop and carter-stiglitz 2006 (in T)
+    Bc_md=5.56e-3 #  # (041183) dunlop and carter-stiglitz 2006 (in T)
+    chi_sd=5.20e6*mu_o # now in T
+    chi_md=4.14e6*mu_o # now in T
+    chi_r_sd=4.55e6*mu_o # now in T
+    chi_r_md=0.88e6*mu_o # now in T
+    Bcr_sd,Bcr_md=52.5e-3,26.1e-3 # (MV1H and 041183 in DC06 in tesla)
+    Ms=480e3 # A/m
+    p=.1 # from Dunlop 2002
+    N=1./3. # demagnetizing factor
+    f_sd=numpy.arange(1.,0.,-.01) # fraction of sd
+    f_md=1.-f_sd # fraction of md
+    f_sp=1.-f_sd # fraction of sp
+    sdrat,mdrat,cbrat=0.498,0.048,0.6 # Mr/Ms ratios for USD,MD and Jax shaped
+    Mrat=f_sd*sdrat+f_md*mdrat # linear mixing - eq. 9 in Dunlop 2002
+    Bc=(f_sd*chi_sd*Bc_sd+f_md*chi_md*Bc_md)/(f_sd*chi_sd+f_md*chi_md) # eq. 10 in Dunlop 2002
+    Bcr=(f_sd*chi_r_sd*Bcr_sd+f_md*chi_r_md*Bcr_md)/(f_sd*chi_r_sd+f_md*chi_r_md) #  eq. 11 in Dunlop 2002
+    chi_sps=numpy.arange(1,5)*chi_sd
+    pylab.plot(Bcr/Bc,Mrat,'r-')
+
 #
 def plotSBc(fignum,Bc,S,sym):
     """
