@@ -14,14 +14,14 @@ Click on "Source code (zip)" or "Source code (tar.gz)" to download. To install t
 PmagPy is comprised of:
   - Command line programs for all sorts of paleomagnetic data analysis and wrangling
   - GUI programs for getting data into MagIC database format (QuickMaGIC), analyzing demagnetization data (demag_gui) and analyzing paleointensity data (thellier_gui)
-  - A function module for utilizing PmagPy functions within an IPython/Jupyter notebook environment
+  - A function module (ipmag.py) for utilizing PmagPy functions within an IPython/Jupyter notebook environment
   - Example data files that are used in the examples provided in the PmagPy cookbook http://earthref.org/PmagPy/cookbook
   
 Use of all these features is described in the cookbook and the underlying science behind the data and code can be explored in the book Essentials of Paleomagnetism: Third Web Edition (http://earthref.org/MAGIC/books/Tauxe/Essentials/).
 
 ## Background and support
 
-The code base for the PmagPy project has been built up over many years by Lisa Tauxe (Distinguished Professor of Geophysics at the Scripps Institution of Oceanography) supported by grants from the National Science Foundation. Ron Shaar (Senior Lecture at the Hebrew University of Jerusalem), Lori Jonestrask and Nick Swanson-Hysell (Assistant Professor at UC Berkeley) have also made contributions to the project.
+The code base for the PmagPy project has been built up over many years by Lisa Tauxe (Distinguished Professor of Geophysics at the Scripps Institution of Oceanography) supported by grants from the National Science Foundation. Ron Shaar (Senior Lecturer at the Hebrew University of Jerusalem), Lori Jonestrask and Nick Swanson-Hysell (Assistant Professor at UC Berkeley) have also made contributions to the project.
 
 ## More information
 
