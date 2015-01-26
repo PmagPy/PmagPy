@@ -3555,7 +3555,12 @@ You may use the drop-down menus to add as many values as needed in these columns
 
     def on_helpButton(self, event, page=None):
         """shows html help page"""
-        path = check_updates.get_pmag_dir()
+        # for use on the command line:
+        #path = check_updates.get_pmag_dir()
+
+        # for use as module:
+        path = self.main_frame.resource_dir
+        
         html_frame = pw.HtmlFrame(self, page=(os.path.join(path, 'help_files', page)))
         html_frame.Show()
 

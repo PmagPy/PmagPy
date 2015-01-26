@@ -27,12 +27,16 @@ class MagMainFrame(wx.Frame):
         wx.Frame.__init__(self, None, wx.ID_ANY, self.title)
         self.panel = wx.Panel(self)
         self.InitUI()
-        #self.create_menu()
+        
+        # for use as module:
+        self.resource_dir = os.getcwd()
+        
         self.get_DIR()        # choose directory dialog                    
         self.HtmlIsOpen=False
         self.first_time_messsage=False
         self.Bind(wx.EVT_CLOSE, self.on_menu_exit)
         self.Data, self.Data_hierarchy = {}, {}
+        
         #print check_updates.get_pmag_dir()
         # print statments below don't work on windows
         #print os.environ['_system_name']#'OSX'
