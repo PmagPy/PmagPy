@@ -162,7 +162,7 @@ import wx
 import wx.lib.inspection
 import wx.grid
 import random
-from pylab import *
+from pylab import * # keep this line for now, but I've tried to add pylab to any pylab functions for better namespacing
 from scipy.optimize import curve_fit
 import wx.lib.agw.floatspin as FS
 try:
@@ -184,8 +184,8 @@ matplotlib.rc('ytick', labelsize=10)
 matplotlib.rc('axes', labelsize=8) 
 matplotlib.rcParams['savefig.dpi'] = 300.
 
-rcParams.update({"svg.embed_char_paths":False})
-rcParams.update({"svg.fonttype":'none'})
+pylab.rcParams.update({"svg.embed_char_paths":False})
+pylab.rcParams.update({"svg.fonttype":'none'})
 
 
 
@@ -357,19 +357,19 @@ class Arai_GUI(wx.Frame):
         # Create Figures and FigCanvas objects. 
         #----------------------------------------------------------------------                     
 
-        self.fig1 = Figure((5.*self.GUI_RESOLUTION, 5.*self.GUI_RESOLUTION), dpi=self.dpi)
+        self.fig1 = pylab.Figure((5.*self.GUI_RESOLUTION, 5.*self.GUI_RESOLUTION), dpi=self.dpi)
         self.canvas1 = FigCanvas(self.panel, -1, self.fig1)
         self.fig1.text(0.01,0.98,"Arai plot",{'family':'Arial', 'fontsize':10, 'style':'normal','va':'center', 'ha':'left' })
         
-        self.fig2 = Figure((2.5*self.GUI_RESOLUTION, 2.5*self.GUI_RESOLUTION), dpi=self.dpi)
+        self.fig2 = pylab.Figure((2.5*self.GUI_RESOLUTION, 2.5*self.GUI_RESOLUTION), dpi=self.dpi)
         self.canvas2 = FigCanvas(self.panel, -1, self.fig2)
         self.fig2.text(0.02,0.96,"Zijderveld",{'family':'Arial', 'fontsize':10, 'style':'normal','va':'center', 'ha':'left' })
 
-        self.fig3 = Figure((2.5*self.GUI_RESOLUTION, 2.5*self.GUI_RESOLUTION), dpi=self.dpi)
+        self.fig3 = pylab.Figure((2.5*self.GUI_RESOLUTION, 2.5*self.GUI_RESOLUTION), dpi=self.dpi)
         self.canvas3 = FigCanvas(self.panel, -1, self.fig3)
         #self.fig3.text(0.02,0.96,"Equal area",{'family':'Arial', 'fontsize':10*self.GUI_RESOLUTION, 'style':'normal','va':'center', 'ha':'left' })
 
-        self.fig4 = Figure((2.5*self.GUI_RESOLUTION, 2.5*self.GUI_RESOLUTION), dpi=self.dpi)
+        self.fig4 = pylab.Figure((2.5*self.GUI_RESOLUTION, 2.5*self.GUI_RESOLUTION), dpi=self.dpi)
         self.canvas4 = FigCanvas(self.panel, -1, self.fig4)
         if self.acceptance_criteria['average_by_sample_or_site']['value']=='site':
             TEXT="Site data"
@@ -377,7 +377,7 @@ class Arai_GUI(wx.Frame):
             TEXT="Sample data"            
         self.fig4.text(0.02,0.96,TEXT,{'family':'Arial', 'fontsize':10, 'style':'normal','va':'center', 'ha':'left' })
 
-        self.fig5 = Figure((2.5*self.GUI_RESOLUTION, 2.5*self.GUI_RESOLUTION), dpi=self.dpi)
+        self.fig5 = pylab.Figure((2.5*self.GUI_RESOLUTION, 2.5*self.GUI_RESOLUTION), dpi=self.dpi)
         self.canvas5 = FigCanvas(self.panel, -1, self.fig5)
         #self.fig5.text(0.02,0.96,"M/M0",{'family':'Arial', 'fontsize':10, 'style':'normal','va':'center', 'ha':'left' })
 
@@ -437,10 +437,10 @@ class Arai_GUI(wx.Frame):
 
         try:
             if  self.Data[self.s]['T_or_MW']=="T": 
-                self.temperatures=array(self.Data[self.s]['t_Arai'])-273.
+                self.temperatures=scipy.array(self.Data[self.s]['t_Arai'])-273.
                 self.T_list=["%.0f"%T for T in self.temperatures]
             elif  self.Data[self.s]['T_or_MW']=="MW":
-                self.temperatures=array(self.Data[self.s]['t_Arai'])
+                self.temperatures=scipy.array(self.Data[self.s]['t_Arai'])
                 self.T_list=["%.0f"%T for T in self.temperatures]
         except:
             self.T_list=[]
@@ -1035,9 +1035,9 @@ class Arai_GUI(wx.Frame):
         
         # update temperature list
         if self.Data[self.s]['T_or_MW']=="T":
-            self.temperatures=array(self.Data[self.s]['t_Arai'])-273.
+            self.temperatures=scipy.array(self.Data[self.s]['t_Arai'])-273.
         else:
-            self.temperatures=array(self.Data[self.s]['t_Arai'])
+            self.temperatures=scipy.array(self.Data[self.s]['t_Arai'])
             
         self.T_list=["%.0f"%T for T in self.temperatures]
         self.tmin_box.SetItems(self.T_list)
@@ -1219,8 +1219,8 @@ class Arai_GUI(wx.Frame):
 
         #print "B is this:", B # shows that the problem happens when B array contains 1 or 2
         N=len(B)
-        B_mean=mean(B)
-        B_std=std(B,ddof=1)
+        B_mean=scipy.mean(B)
+        B_std=scipy.std(B,ddof=1)
         B_std_perc=100*(B_std/B_mean)
         
         self.sample_int_n_window.SetValue("%i"%(N))
@@ -2466,7 +2466,7 @@ class Arai_GUI(wx.Frame):
                     S+=d*d
                 nf=float(n_pos*3-6) # number of degrees of freedom
                 if S >0: 
-                    sigma=math.sqrt(S/nf)
+                    sigma=pylab.math.sqrt(S/nf)
                 hpars=pmag.dohext(nf,sigma,[s1,s2,s3,s4,s5,s6])
                 
                 aniso_parameters['anisotropy_sigma']="%f"%sigma
@@ -2639,7 +2639,7 @@ class Arai_GUI(wx.Frame):
                         atrm_temperature=float(rec['treatment_temp'])
                     # find baseline
                     if float(rec['treatment_dc_field'])==0 and float(rec['treatment_temp'])!=273:
-                        baselines.append(array(pmag.dir2cart([dec,inc,moment])))
+                        baselines.append(scipy.array(pmag.dir2cart([dec,inc,moment])))
                     # Find alteration check
                     #print rec['measurement_number']
                 
@@ -2655,14 +2655,14 @@ class Arai_GUI(wx.Frame):
                                 dec=float(rec[1])
                                 inc=float(rec[2])
                                 moment=float(rec[3])
-                                baselines.append(array(pmag.dir2cart([dec,inc,moment])))
+                                baselines.append(scipy.array(pmag.dir2cart([dec,inc,moment])))
                                 aniso_logfile.write( "-I- Found %i ATRM baselines for specimen %s in Zijderveld block. Averaging measurements\n"%(len(baselines),specimen))
                 if  len(baselines)==0:
                     baseline=zeros(3,'f')
                     aniso_logfile.write( "-I- No aTRM baseline for specimen %s\n"%specimen)
                 else:
-                    baselines=array(baselines)
-                    baseline=array([mean(baselines[:,0]),mean(baselines[:,1]),mean(baselines[:,2])])                                 
+                    baselines=scipy.array(baselines)
+                    baseline=scipy.array([scipy.mean(baselines[:,0]),scipy.mean(baselines[:,1]),scipy.mean(baselines[:,2])])                                 
                            
                 # sort measurements
                 
@@ -2673,7 +2673,7 @@ class Arai_GUI(wx.Frame):
                     dec=float(rec['measurement_dec'])
                     inc=float(rec['measurement_inc'])
                     moment=float(rec['measurement_magn_moment'])
-                    CART=array(pmag.dir2cart([dec,inc,moment]))-baseline
+                    CART=scipy.array(pmag.dir2cart([dec,inc,moment]))-baseline
                     
                     if float(rec['treatment_dc_field'])==0: # Ignore zero field steps
                         continue
@@ -2731,14 +2731,14 @@ class Arai_GUI(wx.Frame):
                 if Alteration_check!="":
                     for i in range(len(M)):
                         if Alteration_check_index==i:
-                            M_1=sqrt(sum((array(M[i])**2)))
-                            M_2=sqrt(sum(Alteration_check**2))
+                            M_1=scipy.sqrt(sum((scipy.array(M[i])**2)))
+                            M_2=scipy.sqrt(sum(Alteration_check**2))
                             #print specimen
                             #print "M_1,M_2",M_1,M_2
                             diff=abs(M_1-M_2)
                             #print "diff",diff
-                            #print "mean([M_1,M_2])",mean([M_1,M_2])
-                            diff_ratio=diff/mean([M_1,M_2])
+                            #print "scipy.mean([M_1,M_2])",scipy.mean([M_1,M_2])
+                            diff_ratio=diff/scipy.mean([M_1,M_2])
                             diff_ratio_perc=100*diff_ratio
                             if diff_ratio_perc > anisotropy_alt:
                                 anisotropy_alt=diff_ratio_perc
@@ -2752,11 +2752,11 @@ class Arai_GUI(wx.Frame):
                 # i.e. +x versus -x, +y versus -y, etc.s
 
                 for i in range(3):
-                    M_1=sqrt(sum(array(M[i])**2))
-                    M_2=sqrt(sum(array(M[i+3])**2))
+                    M_1=scipy.sqrt(sum(scipy.array(M[i])**2))
+                    M_2=scipy.sqrt(sum(scipy.array(M[i+3])**2))
                     
                     diff=abs(M_1-M_2)
-                    diff_ratio=diff/mean([M_1,M_2])
+                    diff_ratio=diff/scipy.mean([M_1,M_2])
                     diff_ratio_perc=100*diff_ratio
                     
                     if diff_ratio_perc>anisotropy_alt:
@@ -2825,13 +2825,13 @@ class Arai_GUI(wx.Frame):
                             dec=float(rec['measurement_dec'])
                             inc=float(rec['measurement_inc'])
                             moment=float(rec['measurement_magn_moment'])                    
-                            M_baseline=array(pmag.dir2cart([dec,inc,moment]))
+                            M_baseline=scipy.array(pmag.dir2cart([dec,inc,moment]))
                             
                         if float(rec['measurement_number'])==i*2+2:
                             dec=float(rec['measurement_dec'])
                             inc=float(rec['measurement_inc'])
                             moment=float(rec['measurement_magn_moment'])                    
-                            M_arm=array(pmag.dir2cart([dec,inc,moment]))
+                            M_arm=scipy.array(pmag.dir2cart([dec,inc,moment]))
                     M[i]=M_arm-M_baseline
 
                     
@@ -2983,16 +2983,16 @@ class Arai_GUI(wx.Frame):
 #                        Best_array_tmp.append(closest_value)
 #                        Best_interpretations_tmp[other_specimen]=closest_value                   
 #
-#                    if std(Best_array_tmp,ddof=1)/mean(Best_array_tmp)<best_array_std_perc:
+#                    if std(Best_array_tmp,ddof=1)/scipy.mean(Best_array_tmp)<best_array_std_perc:
 #                        Best_array=Best_array_tmp
-#                        best_array_std_perc=std(Best_array,ddof=1)/mean(Best_array_tmp)
+#                        best_array_std_perc=std(Best_array,ddof=1)/scipy.mean(Best_array_tmp)
 #                        Best_interpretations=copy.deepcopy(Best_interpretations_tmp)
 #                        Best_interpretations_tmp={}
-#            return Best_interpretations,mean(Best_array),std(Best_array,ddof=1)
+#            return Best_interpretations,scipy.mean(Best_array),std(Best_array,ddof=1)
 #                                                               
 #    def pass_or_fail_sigma(self,B,int_sigma_cutoff,int_sigma_perc_cutoff):
 #        #pass_or_fail='fail'
-#        B_mean=mean(B)
+#        B_mean=scipy.mean(B)
 #        B_sigma=std(B,ddof=1)
 #        B_sigma_perc=100*(B_sigma/B_mean)
 #        
@@ -3055,9 +3055,9 @@ class Arai_GUI(wx.Frame):
 #                      B_tmp_min=min(tmp_Intensities[specimen])
 #              pass_or_fail=self.pass_or_fail_sigma(B_tmp,int_sigma_cutoff,int_sigma_perc_cutoff)
 #              if pass_or_fail=='pass':
-#                  Acceptable_sample_min_mean=mean(B_tmp)
+#                  Acceptable_sample_min_mean=scipy.mean(B_tmp)
 #                  Acceptable_sample_min_std=std(B_tmp,ddof=1)
-#                  #print "min value,std,",mean(B_tmp),std(B_tmp),100*(std(B_tmp)/mean(B_tmp))
+#                  #print "min value,std,",scipy.mean(B_tmp),std(B_tmp),100*(std(B_tmp)/scipy.mean(B_tmp))
 #                  break
 #              else:
 #                  tmp_Intensities[specimen_to_remove].remove(B_tmp_min)
@@ -3083,10 +3083,10 @@ class Arai_GUI(wx.Frame):
 #
 #              pass_or_fail=self.pass_or_fail_sigma(B_tmp,int_sigma_cutoff,int_sigma_perc_cutoff)
 #              if pass_or_fail=='pass':                                            
-#              #if std(B_tmp,ddof=1)<=int_sigma_cutoff*1e6 or 100*(std(B_tmp,ddof=1)/mean(B_tmp))<=int_sigma_perc_cutoff:
-#                  Acceptable_sample_max_mean=mean(B_tmp)
+#              #if std(B_tmp,ddof=1)<=int_sigma_cutoff*1e6 or 100*(std(B_tmp,ddof=1)/scipy.mean(B_tmp))<=int_sigma_perc_cutoff:
+#                  Acceptable_sample_max_mean=scipy.mean(B_tmp)
 #                  Acceptable_sample_max_std=std(B_tmp,ddof=1)
-#                  #print "max value,std,",mean(B_tmp),std(B_tmp),100*(std(B_tmp)/mean(B_tmp))
+#                  #print "max value,std,",scipy.mean(B_tmp),std(B_tmp),100*(std(B_tmp)/scipy.mean(B_tmp))
 #
 #                  break
 #              else:
@@ -3681,13 +3681,13 @@ class Arai_GUI(wx.Frame):
 #                        if AC_correction_factor_1!=0:
 #                            aniso_corrections.append(AC_correction_factor_1)
 #                    if aniso_corrections!=[]:
-#                        thellier_interpreter_log.write("sample_or_site %s have anisotropy factor mean of %f\n"%(sample_or_site,mean(aniso_corrections)))
+#                        thellier_interpreter_log.write("sample_or_site %s have anisotropy factor mean of %f\n"%(sample_or_site,scipy.mean(aniso_corrections)))
 #
-#                    if mean(aniso_corrections) > aniso_mean_cutoff:
+#                    if scipy.mean(aniso_corrections) > aniso_mean_cutoff:
 #                        tmp_Grade_A_sorted=copy.deepcopy(Grade_A_sorted)
 #                        warning_messeage=""
 #                        WARNING_tmp=""
-#                        #print "sample %s have anisotropy factor mean of %f"%(sample,mean(aniso_corrections))
+#                        #print "sample %s have anisotropy factor mean of %f"%(sample,scipy.mean(aniso_corrections))
 #                        for specimen in Grade_A_sorted[sample_or_site].keys():
 #                            ignore_specimen=False
 #                            intenstities=All_grade_A_Recs[specimen].keys()
@@ -3757,10 +3757,10 @@ class Arai_GUI(wx.Frame):
 #                        if specimen_b==specimen: continue
 #                        B_min_array.append(min(Grade_A_sorted[sample_or_site][specimen_b]))
 #                        B_max_array.append(max(Grade_A_sorted[sample_or_site][specimen_b]))
-#                    if max(Grade_A_sorted[sample_or_site][specimen]) < (mean(B_min_array) - 2*std(B_min_array,ddof=1)):# and 2*std(B_min_array,ddof=1) >3.:
+#                    if max(Grade_A_sorted[sample_or_site][specimen]) < (scipy.mean(B_min_array) - 2*std(B_min_array,ddof=1)):# and 2*std(B_min_array,ddof=1) >3.:
 #                        if specimen not in exclude_specimens_list:
 #                            exclude_specimens_list.append(specimen)
-#                    if min(Grade_A_sorted[sample_or_site][specimen]) > (mean(B_max_array) + 2*std(B_max_array,ddof=1)):# and 2*std(B_max_array,ddof=1) >3 :
+#                    if min(Grade_A_sorted[sample_or_site][specimen]) > (scipy.mean(B_max_array) + 2*std(B_max_array,ddof=1)):# and 2*std(B_max_array,ddof=1) >3 :
 #                           if specimen not in exclude_specimens_list:
 #                            exclude_specimens_list.append(specimen)
 #                         
@@ -4007,7 +4007,7 @@ class Arai_GUI(wx.Frame):
 #                           if self.acceptance_criteria['interpreter_method']['value']=='bs_par':
 #                               B=random.uniform(min(Grade_A_samples_BS[specimen]),max(Grade_A_samples_BS[specimen]))
 #                           B_BS.append(B)
-#                       BS_means_collection.append(mean(B_BS))
+#                       BS_means_collection.append(scipy.mean(B_BS))
 #                       
 #                   BS_means=array(BS_means_collection)
 #                   BS_means.sort()
@@ -4757,7 +4757,7 @@ class Arai_GUI(wx.Frame):
                     B_std_perc=sample_or_site_pars['B_std_perc']
                     #if len(B)>=self.acceptance_criteria['sample_int_n']:
                     #    B_std_uT=std(B,ddof=1)
-                    #    B_std_perc=std(B,ddof=1)/mean(B)*100
+                    #    B_std_perc=std(B,ddof=1)/scipy.mean(B)*100
                     #    if (self.acceptance_criteria['sample_int_sigma_uT']==0 and self.acceptance_criteria['sample_int_sigma_perc']==0) or\
                     #       ( B_std_uT <=self.acceptance_criteria['sample_int_sigma_uT'] or B_std_perc <= self.acceptance_criteria['sample_int_sigma_perc']):
                     #        if ( (max(B)-min(B)) <= self.acceptance_criteria['sample_int_interval_uT'] or 100*((max(B)-min(B))/mean((B))) <= self.acceptance_criteria['sample_int_interval_perc']):
@@ -5275,12 +5275,12 @@ class Arai_GUI(wx.Frame):
             pars['pass_or_fail']='fail'
             return pars
         
-        tmp_B=array(tmp_B)
+        tmp_B=scipy.array(tmp_B)
         pars['pass_or_fail']='pass'
         pars['N']=len(tmp_B)
-        pars['B_uT']=mean(tmp_B)
+        pars['B_uT']=scipy.mean(tmp_B)
         if len(tmp_B)>1:
-            pars['B_std_uT']=std(tmp_B,ddof=1)
+            pars['B_std_uT'] = scipy.std(tmp_B,ddof=1)
             pars['B_std_perc']=100*(pars['B_std_uT']/pars['B_uT'])    
         else:
             pars['B_std_uT']=0
@@ -5386,7 +5386,7 @@ class Arai_GUI(wx.Frame):
         if  er_ages_rec["age"]=="":
             if "age_range_high" in er_ages_rec.keys() and "age_range_low" in er_ages_rec.keys():
                 if er_ages_rec["age_range_high"] != "" and  er_ages_rec["age_range_low"] != "":
-                 er_ages_rec["age"]=mean([float(er_ages_rec["age_range_high"]),float(er_ages_rec["age_range_low"])])
+                 er_ages_rec["age"]=scipy.mean([float(er_ages_rec["age_range_high"]),float(er_ages_rec["age_range_low"])])
         if  er_ages_rec["age"]=="":
             return(er_ages_rec)
 
@@ -5799,7 +5799,7 @@ class Arai_GUI(wx.Frame):
             if not show_x_error_bar:
                 Xerr=None
             else:
-                Xerr=[array(X_data_minus),array(X_data_plus)]
+                Xerr=[scipy.array(X_data_minus),scipy.array(X_data_plus)]
 
             if not show_y_error_bar:
                 Yerr=None
@@ -6040,8 +6040,8 @@ class Arai_GUI(wx.Frame):
         self.zijplot.axis('equal')
 
         #title(Data[s]['pars']['er_specimen_name']+"\nrotated Zijderveld plot",fontsize=12)
-        last_cart_1=array([self.CART_rot[0][0],self.CART_rot[0][1]])
-        last_cart_2=array([self.CART_rot[0][0],self.CART_rot[0][2]])
+        last_cart_1=scipy.array([self.CART_rot[0][0],self.CART_rot[0][1]])
+        last_cart_2=scipy.array([self.CART_rot[0][0],self.CART_rot[0][2]])
         if self.Data[self.s]['T_or_MW']!="T":
             K_diff=0
         else:
@@ -6065,7 +6065,7 @@ class Arai_GUI(wx.Frame):
 
         #xlocs = [loc for loc in self.zijplot.xaxis.get_majorticklocs()
         #        if loc>=xmin and loc<=xmax]
-        xlocs=arange(xmin,xmax,0.2)
+        xlocs = scipy.arange(xmin,xmax,0.2)
         xtickline, = self.zijplot.plot(xlocs, [0]*len(xlocs),linestyle='',
                 marker='+', **props)
 
@@ -6084,7 +6084,7 @@ class Arai_GUI(wx.Frame):
         
         ylocs = [loc for loc in self.zijplot.yaxis.get_majorticklocs()
                 if loc>=ymin and loc<=ymax]
-        ylocs=arange(ymin,ymax,0.2)
+        ylocs = scipy.arange(ymin,ymax,0.2)
 
         ytickline, = self.zijplot.plot([0]*len(ylocs),ylocs,linestyle='',
                 marker='+', **props)
@@ -6119,14 +6119,14 @@ class Arai_GUI(wx.Frame):
 
             self.draw_net()
 
-            self.zij=array(self.Data[self.s]['zdata'])
-            self.zij_norm=array([row/sqrt(sum(row**2)) for row in self.zij])
+            self.zij=scipy.array(self.Data[self.s]['zdata'])
+            self.zij_norm=scipy.array([row/scipy.sqrt(sum(row**2)) for row in self.zij])
 
-            x_eq=array([row[0] for row in self.zij_norm])
-            y_eq=array([row[1] for row in self.zij_norm])
-            z_eq=abs(array([row[2] for row in self.zij_norm]))
+            x_eq=scipy.array([row[0] for row in self.zij_norm])
+            y_eq=scipy.array([row[1] for row in self.zij_norm])
+            z_eq=abs(scipy.array([row[2] for row in self.zij_norm]))
 
-            R=array(sqrt(1-z_eq)/sqrt(x_eq**2+y_eq**2)) # from Collinson 1983
+            R=scipy.array(scipy.sqrt(1-z_eq)/scipy.sqrt(x_eq**2+y_eq**2)) # from Collinson 1983
             eqarea_data_x=y_eq*R
             eqarea_data_y=x_eq*R
             self.eqplot.plot(eqarea_data_x,eqarea_data_y,lw=0.5,color='gray',clip_on=False)
@@ -6134,12 +6134,12 @@ class Arai_GUI(wx.Frame):
 
 
             x_eq_dn,y_eq_dn,z_eq_dn,eq_dn_temperatures=[],[],[],[]
-            x_eq_dn=array([row[0] for row in self.zij_norm if row[2]>0])
-            y_eq_dn=array([row[1] for row in self.zij_norm if row[2]>0])
-            z_eq_dn=abs(array([row[2] for row in self.zij_norm if row[2]>0]))
+            x_eq_dn=scipy.array([row[0] for row in self.zij_norm if row[2]>0])
+            y_eq_dn=scipy.array([row[1] for row in self.zij_norm if row[2]>0])
+            z_eq_dn=abs(scipy.array([row[2] for row in self.zij_norm if row[2]>0]))
             
             if len(x_eq_dn)>0:
-                R=array(sqrt(1-z_eq_dn)/sqrt(x_eq_dn**2+y_eq_dn**2)) # from Collinson 1983
+                R=scipy.array(scipy.sqrt(1-z_eq_dn)/scipy.sqrt(x_eq_dn**2+y_eq_dn**2)) # from Collinson 1983
                 eqarea_data_x_dn=y_eq_dn*R
                 eqarea_data_y_dn=x_eq_dn*R
                 self.eqplot.scatter([eqarea_data_x_dn],[eqarea_data_y_dn],marker='o',edgecolor='gray', facecolor='black',s=15*self.GUI_RESOLUTION,lw=1,clip_on=False)
@@ -6147,11 +6147,11 @@ class Arai_GUI(wx.Frame):
                 
 
             x_eq_up,y_eq_up,z_eq_up=[],[],[]
-            x_eq_up=array([row[0] for row in self.zij_norm if row[2]<=0])
-            y_eq_up=array([row[1] for row in self.zij_norm if row[2]<=0])
-            z_eq_up=abs(array([row[2] for row in self.zij_norm if row[2]<=0]))
+            x_eq_up=scipy.array([row[0] for row in self.zij_norm if row[2]<=0])
+            y_eq_up=scipy.array([row[1] for row in self.zij_norm if row[2]<=0])
+            z_eq_up=abs(scipy.array([row[2] for row in self.zij_norm if row[2]<=0]))
             if len(x_eq_up)>0:
-                R=array(sqrt(1-z_eq_up)/sqrt(x_eq_up**2+y_eq_up**2)) # from Collinson 1983
+                R=scipy.array(scipy.sqrt(1-z_eq_up)/scipy.sqrt(x_eq_up**2+y_eq_up**2)) # from Collinson 1983
                 eqarea_data_x_up=y_eq_up*R
                 eqarea_data_y_up=x_eq_up*R
                 self.eqplot.scatter([eqarea_data_x_up],[eqarea_data_y_up],marker='o',edgecolor='black', facecolor='white',s=15*self.GUI_RESOLUTION,lw=1,clip_on=False)        
@@ -6180,16 +6180,16 @@ class Arai_GUI(wx.Frame):
                 eqarea_data_x_up,eqarea_data_y_up=[],[]
                 eqarea_data_x_dn,eqarea_data_y_dn=[],[]
                 PTRMS=self.Data[self.s]['PTRMS'][1:]
-                CART_pTRMS_orig=array([pmag.dir2cart(row[1:4]) for row in PTRMS])
-                CART_pTRMS=[row/sqrt(sum((array(row)**2))) for row in CART_pTRMS_orig]
+                CART_pTRMS_orig=scipy.array([pmag.dir2cart(row[1:4]) for row in PTRMS])
+                CART_pTRMS=[row/scipy.sqrt(sum((scipy.array(row)**2))) for row in CART_pTRMS_orig]
                                  
                 for i in range(1,len(CART_pTRMS)):
                     if CART_pTRMS[i][2]<=0:
-                        R=sqrt(1.-abs(CART_pTRMS[i][2]))/sqrt(CART_pTRMS[i][0]**2+CART_pTRMS[i][1]**2)
+                        R=scipy.sqrt(1.-abs(CART_pTRMS[i][2]))/scipy.sqrt(CART_pTRMS[i][0]**2+CART_pTRMS[i][1]**2)
                         eqarea_data_x_up.append(CART_pTRMS[i][1]*R)
                         eqarea_data_y_up.append(CART_pTRMS[i][0]*R)
                     else:
-                        R=sqrt(1.-abs(CART_pTRMS[i][2]))/sqrt(CART_pTRMS[i][0]**2+CART_pTRMS[i][1]**2)
+                        R=scipy.sqrt(1.-abs(CART_pTRMS[i][2]))/scipy.sqrt(CART_pTRMS[i][0]**2+CART_pTRMS[i][1]**2)
                         eqarea_data_x_dn.append(CART_pTRMS[i][1]*R)
                         eqarea_data_y_dn.append(CART_pTRMS[i][0]*R)
                 if len(eqarea_data_x_up)>0:
@@ -6209,7 +6209,7 @@ class Arai_GUI(wx.Frame):
             'lab_cooling_rate' in self.Data[self.s]['cooling_rate_data'].keys():
                 ancient_cooling_rate=self.Data[self.s]['cooling_rate_data']['ancient_cooling_rate']
                 lab_cooling_rate=self.Data[self.s]['cooling_rate_data']['lab_cooling_rate']
-                x0=math.log(lab_cooling_rate/ancient_cooling_rate)
+                x0=scipy.math.log(lab_cooling_rate/ancient_cooling_rate)
                 y0=1./self.Data[self.s]['cooling_rate_data']['CR_correction_factor']
                 lan_cooling_rates=self.Data[self.s]['cooling_rate_data']['lan_cooling_rates']
                 moment_norm=self.Data[self.s]['cooling_rate_data']['moment_norm']
@@ -6263,19 +6263,19 @@ class Arai_GUI(wx.Frame):
             PTRMS=self.Data[self.s]['PTRMS']
 
             if self.Data[self.s]['T_or_MW']!="MW":
-                temperatures_NRMS=array([row[0]-273. for row in NRMS])
-                temperatures_PTRMS=array([row[0]-273. for row in PTRMS])
+                temperatures_NRMS=scipy.array([row[0]-273. for row in NRMS])
+                temperatures_PTRMS=scipy.array([row[0]-273. for row in PTRMS])
                 temperatures_NRMS[0]=21
                 temperatures_PTRMS[0]=21
             else:
-                temperatures_NRMS=array([row[0] for row in NRMS])
-                temperatures_PTRMS=array([row[0] for row in PTRMS])
+                temperatures_NRMS=scipy.array([row[0] for row in NRMS])
+                temperatures_PTRMS=scipy.array([row[0] for row in PTRMS])
             
             if len(temperatures_NRMS)!=len(temperatures_PTRMS):
               self.GUI_log.write("-E- ERROR: NRMS and pTRMS are not equal in specimen %s. Check\n."%self.s)
             else:
-              M_NRMS=array([row[3] for row in NRMS])/NRMS[0][3]
-              M_pTRMS=array([row[3] for row in PTRMS])/NRMS[0][3]
+              M_NRMS=scipy.array([row[3] for row in NRMS])/NRMS[0][3]
+              M_pTRMS=scipy.array([row[3] for row in PTRMS])/NRMS[0][3]
 
               self.mplot.clear()
               self.mplot.plot(temperatures_NRMS,M_NRMS,'bo-',mec='0.2',markersize=5*self.GUI_RESOLUTION,lw=1,clip_on=False)
@@ -6316,7 +6316,7 @@ class Arai_GUI(wx.Frame):
             self.fig5.text(0.02,0.96,"Non-linear TRM check",{'family':'Arial', 'fontsize':10, 'style':'normal','va':'center', 'ha':'left' })
             self.mplot = self.fig5.add_axes([0.2,0.15,0.7,0.7],frameon=True,axisbg='None')
             #self.mplot.clear()
-            self.mplot.scatter(array(self.Data[self.s]['NLT_parameters']['B_NLT'])*1e6,self.Data[self.s]['NLT_parameters']['M_NLT_norm'],marker='o',facecolor='b',edgecolor ='k',s=15,clip_on=False)
+            self.mplot.scatter(scipy.array(self.Data[self.s]['NLT_parameters']['B_NLT'])*1e6,self.Data[self.s]['NLT_parameters']['M_NLT_norm'],marker='o',facecolor='b',edgecolor ='k',s=15,clip_on=False)
             self.mplot.set_xlabel("$\mu$ T",fontsize=8)
             self.mplot.set_ylabel("M / M[%.0f]"%(self.Data[self.s]['lab_dc_field']*1e6),fontsize=8)
             try:
@@ -6330,9 +6330,9 @@ class Arai_GUI(wx.Frame):
             x=linspace(xmin+0.1,xmax,100)
             alpha=self.Data[self.s]['NLT_parameters']['tanh_parameters'][0][0]
             beta=self.Data[self.s]['NLT_parameters']['tanh_parameters'][0][1]
-            y=alpha*(tanh(x*1e-6*beta))
+            y=alpha*(scipy.tanh(x*1e-6*beta))
             labfiled=self.Data[self.s]['lab_dc_field']
-            self.mplot.plot(x,x*1e-6*(alpha*(tanh(labfiled*beta))/labfiled),'--',color='black',linewidth=0.7,clip_on=False)
+            self.mplot.plot(x,x*1e-6*(alpha*(scipy.tanh(labfiled*beta))/labfiled),'--',color='black',linewidth=0.7,clip_on=False)
             self.mplot.plot(x,y,'-',color='green',linewidth=1)
             
             #self.mplot.spines["right"].set_visible(False)
@@ -6350,8 +6350,8 @@ class Arai_GUI(wx.Frame):
         eq=self.eqplot
         eq.axis((-1,1,-1,1))
         eq.axis('off')
-        theta=arange(0.,2*pi,2*pi/1000)
-        eq.plot(cos(theta),sin(theta),'k',clip_on=False)
+        theta = scipy.arange(0.,2 * scipy.pi, 2 * scipy.pi/1000)
+        eq.plot(scipy.cos(theta),scipy.sin(theta),'k',clip_on=False)
         eq.vlines((0,0),(0.9,-0.9),(1.0,-1.0),'k')
         eq.hlines((0,0),(0.9,-0.9),(1.0,-1.0),'k')
         eq.plot([0.0],[0.0],'+k',clip_on=False)
@@ -6875,9 +6875,9 @@ class Arai_GUI(wx.Frame):
 #                   TYPE=='AARM'
 #           S_matrix= self.Data[s]['AniSpec'][TYPE]['S_matrix']
 #           #---------------------------        
-#           TRM_anc_unit=array(pars['specimen_PCA_v1'])/sqrt(pars['specimen_PCA_v1'][0]**2+pars['specimen_PCA_v1'][1]**2+pars['specimen_PCA_v1'][2]**2)
+#           TRM_anc_unit=array(pars['specimen_PCA_v1'])/scipy.sqrt(pars['specimen_PCA_v1'][0]**2+pars['specimen_PCA_v1'][1]**2+pars['specimen_PCA_v1'][2]**2)
 #           B_lab_unit=pmag.dir2cart([ self.Data[s]['Thellier_dc_field_phi'], self.Data[s]['Thellier_dc_field_theta'],1])
-#           #B_lab_unit=array([0,0,-1])
+#           #B_lab_unit=scipy.array([0,0,-1])
 #           Anisotropy_correction_factor=linalg.norm(dot(inv(S_matrix),TRM_anc_unit.transpose()))*norm(dot(S_matrix,B_lab_unit))
 #           pars["Anisotropy_correction_factor"]=Anisotropy_correction_factor
 #           pars["AC_specimen_int"]= pars["Anisotropy_correction_factor"] * float(pars["specimen_int"])
@@ -7039,8 +7039,8 @@ class Arai_GUI(wx.Frame):
 
         self.araiplot.scatter([x_Arai_segment[0],x_Arai_segment[-1]],[y_Arai_segment[0],y_Arai_segment[-1]],marker='o',facecolor='g',edgecolor ='k',s=30)
         b=pars["specimen_b"]
-        a=mean(y_Arai_segment) - b* mean(x_Arai_segment)
-        xx=array([x_Arai_segment[0],x_Arai_segment[-1]])
+        a=scipy.mean(y_Arai_segment) - b* scipy.mean(x_Arai_segment)
+        xx=scipy.array([x_Arai_segment[0],x_Arai_segment[-1]])
         yy=b*xx+a
         self.araiplot.plot(xx,yy,'g-',lw=2,alpha=0.5)
         if self.acceptance_criteria['specimen_scat']['value'] in [True,"True","TRUE",'1','g']:
@@ -7054,15 +7054,15 @@ class Arai_GUI(wx.Frame):
         self.araiplot.set_xlim(xmin=0)
         self.araiplot.set_ylim(ymin=0)
         
-        draw()
+        pylab.draw()
         self.canvas1.draw()
 
         # plot best fit direction on Equal Area plot
-        CART=array(pars["specimen_PCA_v1"])/sqrt(sum(array(pars["specimen_PCA_v1"])**2))
+        CART=scipy.array(pars["specimen_PCA_v1"])/scipy.sqrt(sum(scipy.array(pars["specimen_PCA_v1"])**2))
         x=CART[0]
         y=CART[1]
         z=abs(CART[2])
-        R=array(sqrt(1-z)/sqrt(x**2+y**2))
+        R=scipy.array(scipy.sqrt(1-z)/scipy.sqrt(x**2+y**2))
         eqarea_x=y*R
         eqarea_y=x*R
 
@@ -7101,16 +7101,16 @@ class Arai_GUI(wx.Frame):
 
         # Center of mass rotated
         
-        CM_x=mean(self.CART_rot[:,0][tmin_index:tmax_index+1])
-        CM_y=mean(self.CART_rot[:,1][tmin_index:tmax_index+1])
-        CM_z=mean(self.CART_rot[:,2][tmin_index:tmax_index+1])
+        CM_x=scipy.mean(self.CART_rot[:,0][tmin_index:tmax_index+1])
+        CM_y=scipy.mean(self.CART_rot[:,1][tmin_index:tmax_index+1])
+        CM_z=scipy.mean(self.CART_rot[:,2][tmin_index:tmax_index+1])
 
         # intercpet from the center of mass
         intercept_xy_PCA=-1*CM_y - slop_xy_PCA*CM_x
         intercept_xz_PCA=-1*CM_z - slop_xz_PCA*CM_x
 
-        xmin_zij, xmax_zij = xlim()
-        xx=array([0,self.CART_rot[:,0][tmin_index]])
+        xmin_zij, xmax_zij = pylab.xlim()
+        xx=scipy.array([0,self.CART_rot[:,0][tmin_index]])
         yy=slop_xy_PCA*xx+intercept_xy_PCA
         self.zijplot.plot(xx,yy,'-',color='g',lw=1.5,alpha=0.5)
         zz=slop_xz_PCA*xx+intercept_xz_PCA
@@ -7129,7 +7129,7 @@ class Arai_GUI(wx.Frame):
 ##            if self.acceptance_criteria['specimen_mad_scat']==True or self.acceptance_criteria['specimen_mad_scat'] in [1,"True","TRUE",'1']:
 ##
 ##                # center of mass 
-##                CM=array([CM_x,CM_y,CM_z])
+##                CM=scipy.array([CM_x,CM_y,CM_z])
 ##
 ##                # threshold value for the distance of the point from a line:
 ##                # this is depends of MAD
@@ -7143,13 +7143,13 @@ class Arai_GUI(wx.Frame):
 ##                mad_box_xz_y1,mad_box_xz_y2=[],[]                
 ##
 ##                for i in range(len(xx)):
-##                    #xy_x_plus=array(xx[i],yy[i])
+##                    #xy_x_plus=scipy.array(xx[i],yy[i])
 ##                                        
 ##                    # X-Y projectoin
-##                    x_y_projection=cross(array(PCA_CART_rotated),array([0,0,1]))
-##                    x_y_projection=x_y_projection/sqrt(sum(x_y_projection**2))
-##                    new_vector1=array([xx[i],yy[i]])+2*sigma_perpendicular_threshold*array([x_y_projection[0],x_y_projection[1]])
-##                    new_vector2=array([xx[i],yy[i]])-2*sigma_perpendicular_threshold*array([x_y_projection[0],x_y_projection[1]])
+##                    x_y_projection=cross(scipy.array(PCA_CART_rotated),scipy.array([0,0,1]))
+##                    x_y_projection=x_y_projection/scipy.sqrt(sum(x_y_projection**2))
+##                    new_vector1=scipy.array([xx[i],yy[i]])+2*sigma_perpendicular_threshold*scipy.array([x_y_projection[0],x_y_projection[1]])
+##                    new_vector2=scipy.array([xx[i],yy[i]])-2*sigma_perpendicular_threshold*scipy.array([x_y_projection[0],x_y_projection[1]])
 ##                    mad_box_xy_x1.append(new_vector1[0])
 ##                    mad_box_xy_y1.append(new_vector1[1])
 ##                    mad_box_xy_x2.append(new_vector2[0])
@@ -7157,10 +7157,10 @@ class Arai_GUI(wx.Frame):
 ##                                                            
 ##
 ##                    # X-Z projectoin
-##                    x_z_projection=cross(array(PCA_CARTated),array([0,1,0]))
-##                    x_z_projection=x_z_projection/sqrt(sum(x_z_projection**2))
-##                    new_vector1=array([xx[i],zz[i]])+2*sigma_perpendicular_threshold*array([x_z_projection[0],x_z_projection[2]])
-##                    new_vector2=array([xx[i],zz[i]])-2*sigma_perpendicular_threshold*array([x_z_projection[0],x_z_projection[2]])
+##                    x_z_projection=cross(scipy.array(PCA_CARTated),scipy.array([0,1,0]))
+##                    x_z_projection=x_z_projection/scipy.sqrt(sum(x_z_projection**2))
+##                    new_vector1=scipy.array([xx[i],zz[i]])+2*sigma_perpendicular_threshold*scipy.array([x_z_projection[0],x_z_projection[2]])
+##                    new_vector2=scipy.array([xx[i],zz[i]])-2*sigma_perpendicular_threshold*scipy.array([x_z_projection[0],x_z_projection[2]])
 ##                    mad_box_xz_x1.append(new_vector1[0])
 ##                    mad_box_xz_y1.append(new_vector1[1])
 ##                    mad_box_xz_x2.append(new_vector2[0])
@@ -7187,10 +7187,10 @@ class Arai_GUI(wx.Frame):
            beta=self.Data[self.s]['NLT_parameters']['tanh_parameters'][0][1]
            #labfiled=self.Data[self.s]['lab_dc_field']
            Banc=self.pars["specimen_int_uT"]
-           self.mplot.scatter([Banc],[alpha*(tanh(beta*Banc*1e-6))],marker='o',s=30,facecolor='g',edgecolor ='k')
+           self.mplot.scatter([Banc],[alpha*(scipy.tanh(beta*Banc*1e-6))],marker='o',s=30,facecolor='g',edgecolor ='k')
 
         self.canvas5.draw()
-        draw()
+        pylab.draw()
 
         #------
         # Drow sample mean
@@ -7249,36 +7249,36 @@ class Arai_GUI(wx.Frame):
                     specimens_B=[self.pars['specimen_int_uT']]
             
         if len(specimens_id)>=1:
-            self.sampleplot.scatter(arange(len(specimens_id)),specimens_B ,marker='s',edgecolor='0.2', facecolor='b',s=40*self.GUI_RESOLUTION,lw=1)
-            self.sampleplot.axhline(y=mean(specimens_B)+std(specimens_B,ddof=1),color='0.2',ls="--",lw=0.75)
-            self.sampleplot.axhline(y=mean(specimens_B)-std(specimens_B,ddof=1),color='0.2',ls="--",lw=0.75)
-            self.sampleplot.axhline(y=mean(specimens_B),color='0.2',ls="-",lw=0.75,alpha=0.5)
+            self.sampleplot.scatter(scipy.arange(len(specimens_id)),specimens_B ,marker='s',edgecolor='0.2', facecolor='b',s=40*self.GUI_RESOLUTION,lw=1)
+            self.sampleplot.axhline(y=scipy.mean(specimens_B)+scipy.std(specimens_B,ddof=1),color='0.2',ls="--",lw=0.75)
+            self.sampleplot.axhline(y=scipy.mean(specimens_B)-scipy.std(specimens_B,ddof=1),color='0.2',ls="--",lw=0.75)
+            self.sampleplot.axhline(y=scipy.mean(specimens_B),color='0.2',ls="-",lw=0.75,alpha=0.5)
             
             if self.s in specimens_id:
                 self.sampleplot.scatter([specimens_id.index(self.s)],[specimens_B[specimens_id.index(self.s)]] ,marker='s',edgecolor='0.2', facecolor='g',s=40*self.GUI_RESOLUTION,lw=1)
 
-            self.sampleplot.set_xticks(arange(len(specimens_id)))
+            self.sampleplot.set_xticks(scipy.arange(len(specimens_id)))
             self.sampleplot.set_xlim(-0.5,len(specimens_id)-0.5)
             self.sampleplot.set_xticklabels(specimens_id,rotation=90,fontsize=8)
             #ymin,ymax=self.sampleplot.ylim()
             
             #if "sample_int_sigma" in self.acceptance_criteria.keys() and "sample_int_sigma_perc" in self.acceptance_criteria.keys():
             sigma_threshold_for_plot_1,sigma_threshold_for_plot_2=0,0                 
-            #    sigma_threshold_for_plot=max(self.acceptance_criteria["sample_int_sigma"]*,0.01*self.acceptance_criteria["sample_int_sigma_perc"]*mean(specimens_B))
+            #    sigma_threshold_for_plot=max(self.acceptance_criteria["sample_int_sigma"]*,0.01*self.acceptance_criteria["sample_int_sigma_perc"]*scipy.mean(specimens_B))
             if self.acceptance_criteria["sample_int_sigma"]["value"]!=-999 and type(self.acceptance_criteria["sample_int_sigma"]["value"])==float:
                 sigma_threshold_for_plot_1=self.acceptance_criteria["sample_int_sigma"]["value"]*1e6               
             if self.acceptance_criteria["sample_int_sigma_perc"]["value"]!=-999 and type(self.acceptance_criteria["sample_int_sigma_perc"]["value"])==float:
-                sigma_threshold_for_plot_2=mean(specimens_B)*0.01*self.acceptance_criteria["sample_int_sigma_perc"]['value']
+                sigma_threshold_for_plot_2=scipy.mean(specimens_B)*0.01*self.acceptance_criteria["sample_int_sigma_perc"]['value']
             #sigma_threshold_for_plot 100000
             sigma_threshold_for_plot=max(sigma_threshold_for_plot_1,sigma_threshold_for_plot_2)
             if sigma_threshold_for_plot < 20 and sigma_threshold_for_plot!=0:
-                self.sampleplot.axhline(y=mean(specimens_B)+sigma_threshold_for_plot,color='r',ls="--",lw=0.75)
-                self.sampleplot.axhline(y=mean(specimens_B)-sigma_threshold_for_plot,color='r',ls="--",lw=0.75)
-                y_axis_limit=max(sigma_threshold_for_plot,std(specimens_B,ddof=1),abs(max(specimens_B)-mean(specimens_B)),abs((min(specimens_B)-mean(specimens_B))))
+                self.sampleplot.axhline(y=scipy.mean(specimens_B)+sigma_threshold_for_plot,color='r',ls="--",lw=0.75)
+                self.sampleplot.axhline(y=scipy.mean(specimens_B)-sigma_threshold_for_plot,color='r',ls="--",lw=0.75)
+                y_axis_limit=max(sigma_threshold_for_plot,scipy.std(specimens_B,ddof=1),abs(max(specimens_B)-scipy.mean(specimens_B)),abs((min(specimens_B)-scipy.mean(specimens_B))))
             else:
-                y_axis_limit=max(std(specimens_B,ddof=1),abs(max(specimens_B)-mean(specimens_B)),abs((min(specimens_B)-mean(specimens_B))))
+                y_axis_limit=max(scipy.std(specimens_B,ddof=1),abs(max(specimens_B)-scipy.mean(specimens_B)),abs((min(specimens_B)-scipy.mean(specimens_B))))
                 
-            self.sampleplot.set_ylim(mean(specimens_B)-y_axis_limit-1,mean(specimens_B)+y_axis_limit+1)
+            self.sampleplot.set_ylim(scipy.mean(specimens_B)-y_axis_limit-1,scipy.mean(specimens_B)+y_axis_limit+1)
             self.sampleplot.set_ylabel('uT',fontsize=8)
             try:
                 self.sampleplot.tick_params(axis='both', which='major', labelsize=8)
@@ -7464,7 +7464,7 @@ class Arai_GUI(wx.Frame):
       
 
       def tan_h(x, a, b):
-            return a*tanh(b*x)
+            return a*scipy.tanh(b*x)
 
       def cart2dir(cart): # OLD ONE
             """
@@ -7472,7 +7472,7 @@ class Arai_GUI(wx.Frame):
             """
             Dir=[] # establish a list to put directions in
             rad=pi/180. # constant to convert degrees to radians
-            R=sqrt(cart[0]**2+cart[1]**2+cart[2]**2) # calculate resultant vector length
+            R=scipy.sqrt(cart[0]**2+cart[1]**2+cart[2]**2) # calculate resultant vector length
             if R==0:
                #print 'trouble in cart2dir'
                #print cart
@@ -7481,7 +7481,7 @@ class Arai_GUI(wx.Frame):
             if D<0:D=D+360. # put declination between 0 and 360.
             if D>360.:D=D-360.
             Dir.append(D)  # append declination to Dir list
-            I=arcsin(cart[2]/R)/rad # calculate inclination (converting to degrees)
+            I=scipy.arcsin(cart[2]/R)/rad # calculate inclination (converting to degrees)
             Dir.append(I) # append inclination to Dir list
             Dir.append(R) # append vector length to Dir list
             return Dir # return the directions list
@@ -7490,18 +7490,18 @@ class Arai_GUI(wx.Frame):
       def dir2cart(d):
        # converts list or array of vector directions, in degrees, to array of cartesian coordinates, in x,y,z
         ints=ones(len(d)).transpose() # get an array of ones to plug into dec,inc pairs
-        d=array(d)
+        d=scipy.array(d)
         rad=pi/180.
         if len(d.shape)>1: # array of vectors
             decs,incs=d[:,0]*rad,d[:,1]*rad
             if d.shape[1]==3: ints=d[:,2] # take the given lengths
         else: # single vector
-            decs,incs=array(d[0])*rad,array(d[1])*rad
+            decs,incs=scipy.array(d[0])*rad,scipy.array(d[1])*rad
             if len(d)==3: 
-                ints=array(d[2])
+                ints=scipy.array(d[2])
             else:
-                ints=array([1.])
-        cart= array([ints*cos(decs)*cos(incs),ints*sin(decs)*cos(incs),ints*sin(incs)]).transpose()
+                ints=scipy.array([1.])
+        cart= scipy.array([ints*scipy.cos(decs)*scipy.cos(incs),ints*scipy.sin(decs)*scipy.cos(incs),ints*scipy.sin(incs)]).transpose()
         return cart
 
       #self.dir_pathes=self.WD
@@ -7823,14 +7823,14 @@ class Arai_GUI(wx.Frame):
                      m_tmp.append(float(rec['measurement_magn_moment']))
                      self.GUI_log.write("-I- Found basleine for NLT measurements in datablock, specimen %s\n"%s)         
               if len(m_tmp)>0:
-                  M_baseline=mean(m_tmp)
+                  M_baseline = scipy.mean(m_tmp)
               
 
           ####  Ron dont delete it ### print "-I- Found %i NLT datapoints for specimen %s: B="%(len(B_NLT),s),array(B_NLT)*1e6
 
           #substitute baseline
-          M_NLT=array(M_NLT)-M_baseline
-          B_NLT=array(B_NLT)  
+          M_NLT=scipy.array(M_NLT)-M_baseline
+          B_NLT=scipy.array(B_NLT)  
           # calculate M/B ratio for each step, and compare them
           # If cant do NLT correction: check a difference in M/B ratio
           # > 5% : WARNING
@@ -7864,16 +7864,16 @@ class Arai_GUI(wx.Frame):
                   for i in range(len(B_NLT)):
                       if B_NLT[i]==B:
                           M.append(M_NLT[i])
-                  if (max(M)-min(M))/mean(M) > 0.05:
-                    self.GUI_log.write("-E- ERROR: NLT for specimen %s does not pass 5 perc alteration check: %.3f \n" %(s,(max(M)-min(M))/mean(M)))
+                  if (max(M)-min(M))/scipy.mean(M) > 0.05:
+                    self.GUI_log.write("-E- ERROR: NLT for specimen %s does not pass 5 perc alteration check: %.3f \n" %(s,(max(M)-min(M))/scipy.mean(M)))
                     red_flag=True
                     
                       
                   
           if len(trmblock)>2 and not red_flag:
            
-              B_NLT=append([0.],B_NLT)
-              M_NLT=append([0.],M_NLT)
+              B_NLT = pylab.append([0.],B_NLT)
+              M_NLT = pylab.append([0.],M_NLT)
               
               try:
                   #print s,B_NLT, M_NLT    
@@ -7881,7 +7881,7 @@ class Arai_GUI(wx.Frame):
                   alpha_0=max(M_NLT)
                   beta_0=2e4
                   popt, pcov = curve_fit(tan_h, B_NLT, M_NLT,p0=(alpha_0,beta_0))
-                  M_lab=popt[0]*math.tanh(labfield*popt[1])
+                  M_lab=popt[0]*scipy.math.tanh(labfield*popt[1])
 
                   # Now  fit tanh function to the normalized curve
                   M_NLT_norm=M_NLT/M_lab
@@ -7974,31 +7974,31 @@ class Arai_GUI(wx.Frame):
               lab_fast_cr_moments=[]
               lan_cooling_rates=[]
               for pair in cooling_rate_data['pairs']:
-                    lan_cooling_rates.append(math.log(cooling_rate_data['lab_cooling_rate']/pair[0]))
+                    lan_cooling_rates.append(scipy.math.log(cooling_rate_data['lab_cooling_rate']/pair[0]))
                     moments.append(pair[1])
                     if pair[0]==cooling_rate_data['lab_cooling_rate']:
                         lab_fast_cr_moments.append(pair[1])
               #print s, cooling_rate_data['alteration_check']
-              lan_cooling_rates.append(math.log(cooling_rate_data['lab_cooling_rate']/cooling_rate_data['alteration_check'][0]))
+              lan_cooling_rates.append(scipy.math.log(cooling_rate_data['lab_cooling_rate']/cooling_rate_data['alteration_check'][0]))
               lab_fast_cr_moments.append(cooling_rate_data['alteration_check'][1])
               moments.append(cooling_rate_data['alteration_check'][1])        
 
-              lab_fast_cr_moment=mean(lab_fast_cr_moments)
-              moment_norm=array(moments)/lab_fast_cr_moment
+              lab_fast_cr_moment=scipy.mean(lab_fast_cr_moments)
+              moment_norm=scipy.array(moments)/lab_fast_cr_moment
               (a,b)=polyfit(lan_cooling_rates, moment_norm, 1)
               #ancient_cooling_rate=0.41
-              x0=math.log(cooling_rate_data['lab_cooling_rate']/ancient_cooling_rate)
+              x0=scipy.math.log(cooling_rate_data['lab_cooling_rate']/ancient_cooling_rate)
               y0=a*x0+b
               MAX=max(lab_fast_cr_moments)
               MIN=min(lab_fast_cr_moments)
               
               #print MAX,MIN
-              #print (MAX-MIN)/mean(MAX,MIN)
-              #print abs((MAX-MIN)/mean(MAX,MIN))
-              if  mean([MAX,MIN])==0:
+              #print (MAX-MIN)/scipy.mean(MAX,MIN)
+              #print abs((MAX-MIN)/scipy.mean(MAX,MIN))
+              if  scipy.mean([MAX,MIN])==0:
                   alteration_check_perc=0
               else:
-                  alteration_check_perc=100*abs((MAX-MIN)/mean([MAX,MIN]))
+                  alteration_check_perc=100*abs((MAX-MIN)/scipy.mean([MAX,MIN]))
               #print s,alteration_check_perc
               #print "--"
               cooling_rate_data['ancient_cooling_rate']=ancient_cooling_rate
@@ -8038,7 +8038,7 @@ class Arai_GUI(wx.Frame):
                           if Data[s]['cooling_rate_data']['CR_correction_factor_flag']=='calculated':
                               CR_corrections.append(Data[s]['cooling_rate_data']['CR_correction_factor'])
           if len(CR_corrections) > 0:
-              mean_CR_correction=mean(CR_corrections)
+              mean_CR_correction=scipy.mean(CR_corrections)
           else:
               mean_CR_correction=-1
           if mean_CR_correction != -1:
@@ -8138,16 +8138,16 @@ class Arai_GUI(wx.Frame):
             #if "AFD" not in str(zijdblock[i][0]):
         NRM=zijdblock[0][3]
         for k in range(len(zijdblock)):
-            DIR=[zijdblock[k][1],zijdblock[k][2],zijdblock[k][3]/NRM]
-            cart=pmag.dir2cart(DIR)
-            zdata.append(array([cart[0],cart[1],cart[2]]))
+            DIR = [zijdblock[k][1],zijdblock[k][2],zijdblock[k][3]/NRM]
+            cart = pmag.dir2cart(DIR)
+            zdata.append(scipy.array([cart[0],cart[1],cart[2]]))
             if k>0:
-                vector_diffs.append(sqrt(sum((array(zdata[-2])-array(zdata[-1]))**2)))
-        vector_diffs.append(sqrt(sum(array(zdata[-1])**2))) # last vector of the vds
-        vds=sum(vector_diffs)  # vds calculation       
-        zdata=array(zdata)
+                vector_diffs.append(scipy.sqrt(sum((scipy.array(zdata[-2])-scipy.array(zdata[-1]))**2)))
+        vector_diffs.append(scipy.sqrt(sum(scipy.array(zdata[-1])**2))) # last vector of the vds
+        vds = sum(vector_diffs)  # vds calculation       
+        zdata = scipy.array(zdata)
 
-        Data[s]['vector_diffs']=array(vector_diffs)
+        Data[s]['vector_diffs']=scipy.array(vector_diffs)
         Data[s]['vds']=vds
         Data[s]['zdata']=zdata
         Data[s]['z_temp']=z_temperatures
@@ -8170,10 +8170,10 @@ class Arai_GUI(wx.Frame):
         for i in range(1,len(Data[s]['zdata'])):
           DIR=pmag.cart2dir(Data[s]['zdata'][i])
           DIR[0]=DIR[0]-NRM_dec
-          CART_rot.append(array(pmag.dir2cart(DIR)))
+          CART_rot.append(scipy.array(pmag.dir2cart(DIR)))
           #print array(dir2cart(DIR))
           
-        CART_rot=array(CART_rot)
+        CART_rot=scipy.array(CART_rot)
         Data[s]['zij_rotated']=CART_rot
         #--------------------------------------------------------------
         # collect all Arai plot data points to array 
@@ -8201,8 +8201,8 @@ class Arai_GUI(wx.Frame):
             steps_Arai.append('ZI')
           else:
             steps_Arai.append('IZ')        
-        x_Arai=array(x_Arai)
-        y_Arai=array(y_Arai)
+        x_Arai=scipy.array(x_Arai)
+        y_Arai=scipy.array(y_Arai)
         #else:
         #    Data[s]['pars']['magic_method_codes']=""
         Data[s]['x_Arai']=x_Arai
@@ -8260,7 +8260,7 @@ class Arai_GUI(wx.Frame):
                     index_infield=infield_temperatures.index(ptrm_checks[k][0])
                     infield_cart=dir2cart([infields[index_infield][1],infields[index_infield][2],infields[index_infield][3]])
                     ptrm_check_cart=dir2cart([ptrm_checks[k][1],ptrm_checks[k][2],ptrm_checks[k][3]])
-                    ptrm_check=cart2dir(array(infield_cart)-array(ptrm_check_cart))
+                    ptrm_check=cart2dir(scipy.array(infield_cart)-scipy.array(ptrm_check_cart))
                     x_ptrm_check.append(ptrm_check[2]/NRM)
                     y_ptrm_check.append(zerofields[index_zerofield][3]/NRM)
                     ptrm_checks_temperatures.append(ptrm_checks[k][0])
@@ -8274,16 +8274,16 @@ class Arai_GUI(wx.Frame):
                 pass
                     
                     
-        x_ptrm_check=array(x_ptrm_check)  
-        ptrm_check=array(y_ptrm_check)
-        ptrm_checks_temperatures=array(ptrm_checks_temperatures)
+        x_ptrm_check=scipy.array(x_ptrm_check)  
+        ptrm_check=scipy.array(y_ptrm_check)
+        ptrm_checks_temperatures=scipy.array(ptrm_checks_temperatures)
         Data[s]['PTRM_Checks']=ptrm_checks
         Data[s]['x_ptrm_check']=x_ptrm_check
         Data[s]['y_ptrm_check']=y_ptrm_check        
         Data[s]['ptrm_checks_temperatures']=ptrm_checks_temperatures
-        Data[s]['x_ptrm_check_starting_point']=array(x_ptrm_check_starting_point)
-        Data[s]['y_ptrm_check_starting_point']=array(y_ptrm_check_starting_point)               
-        Data[s]['ptrm_checks_starting_temperatures']=array(ptrm_checks_starting_temperatures)
+        Data[s]['x_ptrm_check_starting_point']=scipy.array(x_ptrm_check_starting_point)
+        Data[s]['y_ptrm_check_starting_point']=scipy.array(y_ptrm_check_starting_point)               
+        Data[s]['ptrm_checks_starting_temperatures']=scipy.array(ptrm_checks_starting_temperatures)
 ##        if len(ptrm_checks_starting_temperatures) != len(ptrm_checks_temperatures):
 ##            print s
 ##            print Data[s]['ptrm_checks_temperatures']
@@ -8336,12 +8336,12 @@ class Arai_GUI(wx.Frame):
                         pass
 
 
-        x_tail_check=array(x_tail_check)  
-        y_tail_check=array(y_tail_check)
-        tail_check_temperatures=array(tail_check_temperatures)
-        x_tail_check_starting_point=array(x_tail_check_starting_point)
-        y_tail_check_starting_point=array(y_tail_check_starting_point)
-        tail_checks_starting_temperatures=array(tail_checks_starting_temperatures)
+        x_tail_check=scipy.array(x_tail_check)  
+        y_tail_check=scipy.array(y_tail_check)
+        tail_check_temperatures=scipy.array(tail_check_temperatures)
+        x_tail_check_starting_point=scipy.array(x_tail_check_starting_point)
+        y_tail_check_starting_point=scipy.array(y_tail_check_starting_point)
+        tail_checks_starting_temperatures=scipy.array(tail_checks_starting_temperatures)
 
         Data[s]['TAIL_Checks']=ptrm_tail        
         Data[s]['x_tail_check']=x_tail_check
@@ -8414,13 +8414,13 @@ class Arai_GUI(wx.Frame):
 
                 
 
-        x_AC=array(x_AC)  
-        y_AC=array(y_AC)
-        AC_temperatures=array(AC_temperatures)
-        x_AC_starting_point=array(x_AC_starting_point)
-        y_AC_starting_point=array(y_AC_starting_point)
-        AC_starting_temperatures=array(AC_starting_temperatures)
-        AC=array(AC)
+        x_AC=scipy.array(x_AC)  
+        y_AC=scipy.array(y_AC)
+        AC_temperatures=scipy.array(AC_temperatures)
+        x_AC_starting_point=scipy.array(x_AC_starting_point)
+        y_AC_starting_point=scipy.array(y_AC_starting_point)
+        AC_starting_temperatures=scipy.array(AC_starting_temperatures)
+        AC=scipy.array(AC)
 
         Data[s]['AC']=AC
         #print s
@@ -8452,8 +8452,8 @@ class Arai_GUI(wx.Frame):
 ##          y_tail_check.append(ptrm_tail[k][3]/NRM + zerofields[index_infield][3]/NRM)
 ##          
 ##
-##        x_tail_check=array(x_tail_check)  
-##        y_tail_check=array(y_tail_check)
+##        x_tail_check=scipy.array(x_tail_check)  
+##        y_tail_check=scipy.array(y_tail_check)
 ##
 ##        Data[s]['x_tail_check']=x_tail_check
 ##        Data[s]['y_tail_check']=y_tail_check
@@ -8790,12 +8790,12 @@ class Arai_GUI(wx.Frame):
                     moment1=float(irec1["measurement_magn_moment"])
                     if len(first_I)<2:
                         dec_initial=dec1;inc_initial=inc1
-                    cart1=array(pmag.dir2cart([dec1,inc1,moment1]))
+                    cart1=scipy.array(pmag.dir2cart([dec1,inc1,moment1]))
                     irec2=datablock[ISteps[i]]
                     dec2=float(irec2["measurement_dec"])
                     inc2=float(irec2["measurement_inc"])
                     moment2=float(irec2["measurement_magn_moment"])
-                    cart2=array(pmag.dir2cart([dec2,inc2,moment2]))
+                    cart2=scipy.array(pmag.dir2cart([dec2,inc2,moment2]))
 
                     # check if its in the same treatment
                     if Treat_I[i] == Treat_I[i-2] and dec2!=dec_initial and inc2!=inc_initial:
@@ -8825,7 +8825,7 @@ class Arai_GUI(wx.Frame):
             moment=float(rec["measurement_magn_moment"])
             phi=float(rec["treatment_dc_field_phi"])
             theta=float(rec["treatment_dc_field_theta"])
-            M=array(pmag.dir2cart([dec,inc,moment]))
+            M=scipy.array(pmag.dir2cart([dec,inc,moment]))
 
             foundit=False
             if 'LP-PI-II' not in methcodes:
@@ -8855,7 +8855,7 @@ class Arai_GUI(wx.Frame):
                 prev_moment=float(prev_rec["measurement_magn_moment"])
                 prev_phi=float(prev_rec["treatment_dc_field_phi"])
                 prev_theta=float(prev_rec["treatment_dc_field_theta"])
-                prev_M=array(pmag.dir2cart([prev_dec,prev_inc,prev_moment]))
+                prev_M=scipy.array(pmag.dir2cart([prev_dec,prev_inc,prev_moment]))
             
                 if  'LP-PI-II' not in methcodes:   
                     diff_cart=M-prev_M
@@ -8950,9 +8950,9 @@ class Arai_GUI(wx.Frame):
                 for c in range(3): I.append(V1[c]-V0[c])
                 dir1=pmag.cart2dir(I)
                 additivity_check.append([temp,dir1[0],dir1[1],dir1[2]])
-                #print "I",array(I)/float(datablock[0]["measurement_magn_moment"]),dir1,"(dir1 unnormalized)"
-                X=array(I)/float(datablock[0]["measurement_magn_moment"])
-                #print "I",sqrt(sum(X**2))
+                #print "I",scipy.array(I)/float(datablock[0]["measurement_magn_moment"]),dir1,"(dir1 unnormalized)"
+                X=scipy.array(I)/float(datablock[0]["measurement_magn_moment"])
+                #print "I",scipy.sqrt(sum(X**2))
         araiblock=(first_Z,first_I,ptrm_check,ptrm_tail,zptrm_check,GammaChecks,additivity_check)
 
         
