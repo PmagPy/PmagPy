@@ -28,14 +28,16 @@ def main():
         sys.exit()
     # interactive entry
     if '-i' in sys.argv:
-        file=raw_input("Magic txt file for unpacking? ")
+        infile=raw_input("Magic txt file for unpacking? ")
+        dir_path = '.'
+        input_dir_path = '.'
     # non-interactive
     else:
         dataframe = extractor.command_line_dataframe()
         checked_args = extractor.extract_and_check_args(sys.argv, dataframe)
         infile, dir_path, input_dir_path = extractor.get_vars(['f', 'WD', 'ID'], checked_args)
 
-    ipmag.download_magic(infile, dir_path, input_dir_path)
+    ipmag.download_magic(str(infile), str(dir_path), str(input_dir_path))
 
 
                         

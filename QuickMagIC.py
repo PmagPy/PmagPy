@@ -451,12 +451,17 @@ class MagMainFrame(wx.Frame):
     def on_btn_upload(self,event):
         outstring="upload_magic.py"
         print "-I- running python script:\n %s"%(outstring)
-        os.system(outstring)
-        TXT="Check terminal (Mac) or command prompt (windows) for error/warnings.\nIf all went well, a file name upload_dos.txt was generated in MagIC Project Directory.\nDrag and drop this file in the MagIC database."
-        dlg = wx.MessageDialog(self, caption="Saved",message=TXT,style=wx.OK)
-        result = dlg.ShowModal()
-        if result == wx.ID_OK:            
-            dlg.Destroy()
+        
+        # to run as command line:
+        #os.system(outstring)
+        #TXT="Check terminal (Mac) or command prompt (windows) for error/warnings.\nIf all went well, a file name upload_dos.txt was generated in MagIC Project Directory.\nDrag and drop this file in the MagIC database."
+        #dlg = wx.MessageDialog(self, caption="Saved",message=TXT,style=wx.OK)
+        #result = dlg.ShowModal()
+        #if result == wx.ID_OK:            
+        #    dlg.Destroy()
+
+        # to run as module:
+        ipmag.upload_magic()
         
        
            
@@ -481,7 +486,7 @@ class MagMainFrame(wx.Frame):
 if __name__ == "__main__":
     #app = wx.App(redirect=True, filename="beta_log.log")
     # if redirect is true, wxpython makes its own output window for stdout/stderr
-    app = wx.PySimpleApp(redirect=False)
+    app = wx.PySimpleApp(redirect=True)
     app.frame = MagMainFrame()
     app.frame.Show()
     app.frame.Center()
