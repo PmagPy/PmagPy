@@ -421,6 +421,8 @@ class MagMainFrame(wx.Frame):
         
         # run as module:
         print "-I- running python script:\n %s"%(outstring)
+        wait = wx.BusyInfo("Please wait, working...")
+        ex = None 
         try:
             ipmag.download_magic(f, self.WD, input_dir)
 
@@ -428,14 +430,13 @@ class MagMainFrame(wx.Frame):
 
         except Exception as ex:
             TXT = "Something went wrong.  Make sure you chose a valid file downloaded from the MagIC database and try again."
-            print ex
-            print dir(ex)
-            
+        del wait    
         dlg = wx.MessageDialog(self, caption="Saved",message=TXT,style=wx.OK)
         result = dlg.ShowModal()
         if result == wx.ID_OK:            
             dlg.Destroy()
-        raise(ex)
+        if ex:
+            raise(ex)
 
         
         # run as command_line:
@@ -451,6 +452,7 @@ class MagMainFrame(wx.Frame):
     def on_btn_upload(self,event):
         outstring="upload_magic.py"
         print "-I- running python script:\n %s"%(outstring)
+        wait = wx.BusyInfo("Please wait, working...")
         
         # to run as command line:
         #os.system(outstring)
@@ -462,6 +464,13 @@ class MagMainFrame(wx.Frame):
 
         # to run as module:
         ipmag.upload_magic()
+        del wait
+        TXT="Check terminal (Mac) or command prompt (windows) for error/warnings.\nIf all went well, a file name upload_dos.txt was generated in MagIC Project Directory.\nDrag and drop this file in the MagIC database."
+        dlg = wx.MessageDialog(self, caption="Saved",message=TXT,style=wx.OK)
+        result = dlg.ShowModal()
+        if result == wx.ID_OK:            
+            dlg.Destroy()
+
         
        
            
