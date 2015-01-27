@@ -304,21 +304,24 @@ class MagMainFrame(wx.Frame):
 #            self.last_saved_time.write("not saved")
 
     def on_run_thellier_gui(self,event):
+
         outstring="thellier_gui.py -WD %s"%self.WD
         print "-I- running python script:\n %s"%(outstring)
+        
         # to run as module:
         import thellier_gui
-        thellier_gui.do_main(self.WD)
+        thellier_gui.do_main(self.WD, standalone_app=False)
         
         # to run as command line:
         #os.system(outstring)
 
+
     def on_run_demag_gui(self,event):
         outstring="demag_gui.py -WD %s"%self.WD
         print "-I- running python script:\n %s"%(outstring)
-        # to run as module:
+        # for use as module:
         import demag_gui
-        demag_gui.do_main(self.WD)
+        demag_gui.do_main(self.WD, standalone_app=False)
 
         # for use as command line:
         #os.system(outstring)

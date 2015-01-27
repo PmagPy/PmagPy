@@ -3333,10 +3333,11 @@ class Zeq_GUI(wx.Frame):
             dlg1 = wx.MessageDialog(None,caption="Warning:", message=TEXT ,style=wx.OK|wx.CANCEL|wx.ICON_EXCLAMATION)
             if dlg1.ShowModal() == wx.ID_OK:
                 dlg1.Destroy()
-                #self.Destroy()
-                sys.exit()
+                self.Destroy()
+                #sys.exit()
         else:
-            sys.exit()
+            self.Destroy()
+            #sys.exit()
         
 #        dlg1 = wx.MessageDialog(None,caption="Warning:", message="Exiting program.\nSave all interpretation to a 'redo' file or to MagIC specimens result table\n\nPress OK to exit" ,style=wx.OK|wx.CANCEL|wx.ICON_INFORMATION)
 #        if dlg1.ShowModal() == wx.ID_OK:
@@ -4095,17 +4096,25 @@ def alignToTop(win):
     
 
 
-def do_main(WD=None):
-    app = wx.PySimpleApp()
-    app.frame = Zeq_GUI(WD)
-    app.frame.Center()
-    #alignToTop(app.frame)
-    dw, dh = wx.DisplaySize() 
-    w, h = app.frame.GetSize()
-    #print 'display 2', dw, dh
-    #print "gui 2", w, h
-    app.frame.Show()
-    app.MainLoop()
+def do_main(WD=None, standalone_app=True):
+    # to run as module:
+    if not standalone_app:
+        frame = Zeq_GUI(WD)
+        frame.Center()
+        frame.Show()
+
+    # to run as command_line:
+    else:
+        app = wx.PySimpleApp()
+        app.frame = Zeq_GUI(WD)
+        app.frame.Center()
+        #alignToTop(app.frame)
+        dw, dh = wx.DisplaySize() 
+        w, h = app.frame.GetSize()
+        #print 'display 2', dw, dh
+        #print "gui 2", w, h
+        app.frame.Show()
+        app.MainLoop()
 
 if __name__ == '__main__':
     do_main()

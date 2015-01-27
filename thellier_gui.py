@@ -8969,14 +8969,25 @@ class Arai_GUI(wx.Frame):
 
 
 
-def do_main(WD=None):
-    app = wx.PySimpleApp(redirect=False)#, #filename='py2app_log.log')
-    app.frame = Arai_GUI(WD)
-    app.frame.Show()
-    app.frame.Center()
+def do_main(WD=None, standalone_app=True):
+    # to run as module:
+    if not standalone_app:
+        frame = Arai_GUI(WD)
+        frame.Centre()
+        frame.Show()
+        
+    # to run as command line:
+    else:
+        app = wx.PySimpleApp(redirect=False)#, #filename='py2app_log.log')
+        app.frame = Arai_GUI(WD)
+        app.frame.Show()
+        app.frame.Center()
+        app.MainLoop()
+        
     if '-i' in sys.argv:
         wx.lib.inspection.InspectionTool().Show()
-    app.MainLoop()
+        
+    #app.MainLoop()
 
 if __name__ == '__main__':
     do_main()
