@@ -681,7 +681,9 @@ class MagIC_model_builder(wx.Frame):
         self.Destroy()
 
     def on_helpButton(self, event):
-        path = check_updates.get_pmag_dir()
+        #path = check_updates.get_pmag_dir()
+        # for running as module:
+        path = self.Parent.resource_dir
         html_frame = pw.HtmlFrame(self, page=(os.path.join(path, "help_files", "ErMagicHeadersHelp.html")))
         html_frame.Center()
         html_frame.Show()
