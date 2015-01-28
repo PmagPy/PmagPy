@@ -99,7 +99,7 @@ class MagICMenu(wx.MenuBar):
 
         self.Append(file_menu, 'File')
         self.Append(import_menu, 'Import')
-        self.Append(analysis_menu, 'Analysis and Plots') # probably won't use this
+        self.Append(analysis_menu, 'Analysis and Plots (Coming soon!)') # probably won't use this
         
 
 
