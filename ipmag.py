@@ -746,3 +746,5 @@ def combine_magic(filenames, outfile):
     print "All records stored in ",outfile
     return True
 
+
+
