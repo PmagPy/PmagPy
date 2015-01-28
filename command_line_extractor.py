@@ -19,6 +19,7 @@ class command_line_dataframe():
     def __init__(self, changes=None):
         self.default_dict = {'arg_name': ['f', 'F', 'A', 'WD'], 'reqd': [True, False, False, False], 'default': ['', '', '', '.']}
         self.df = pd.DataFrame(self.default_dict, index=['f', 'F', 'A', 'WD'])
+        change_df = None
         arg_names = self.df['arg_name']
         if changes:
             for change in changes:
@@ -28,8 +29,9 @@ class command_line_dataframe():
                     self.df.loc[change[0], 'default'] = change[2]
                 else:
                     #print 'putting in:', change
-                    d = pd.DataFrame({'arg_name': [change[0]], 'reqd': [change[1]], 'default': [change[2]]}, index=[change[0]])
-        self.df = pd.concat([self.df, d])
+                    change_df = pd.DataFrame({'arg_name': [change[0]], 'reqd': [change[1]], 'default': [change[2]]}, index=[change[0]])
+        if change_df:
+            self.df = pd.concat([self.df, d])
             
 def extract_args(argv):
     """
@@ -51,9 +53,10 @@ def check_args(arguments, data_frame):
     default values are used where needed
     """
     stripped_args = [a[0] for a in arguments]
+    df = data_frame.df
     # first make sure all args are valid
     for a in arguments:
-        if a[0] not in data_frame.index:
+        if a[0] not in df.index:
             print "-I- ignoring invalid argument: {}".format(a[0])
             print "-"
     # next make sure required arguments are present

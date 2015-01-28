@@ -39,9 +39,9 @@ def main():
             
     else: # non-interactive
 
-        dataframe = extractor.command_line_dataframe(["F", True, ''])
+        dataframe = extractor.command_line_dataframe([["F", True, '']])
         args = extractor.extract_and_check_args(sys.argv, dataframe)
-        dir_path, outfile, filenames = extractor.get_vars(["WD", "F", "f"])
+        dir_path, outfile, filenames = extractor.get_vars(["WD", "F", "f"], args)
         #dir_path = pmag.get_named_arg_from_sys("-WD", ".")
         #outfile = pmag.get_named_arg_from_sys("-F", reqd=True)
         #if "-f" in sys.argv:
@@ -51,7 +51,7 @@ def main():
         #else:
         #    raise pmag.MissingCommandLineArgException("-f")
                 
-    ipmag.combine_magic(filenames, outfile)
+    ipmag.combine_magic(filenames, outfile[0])
 
     
 main()
