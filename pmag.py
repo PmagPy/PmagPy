@@ -529,6 +529,7 @@ def dia_vgp(*args): # new function interface by J.Holmes, SIO, 6/1/2011
     converts declination, inclination, alpha95 to VGP, dp, dm
     takes input as (Decs, Incs, a95, Site latitudes, Site Longitudes).  
     These can be lists or individual values.
+    Returns longitude, latitude, dp, dm
     """
     # test whether arguments are one 2-D list or 5 floats 
     if len(args) == 1: # args comes in as a tuple of multi-dim lists.

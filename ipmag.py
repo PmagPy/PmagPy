@@ -14,7 +14,6 @@ def igrf(input_list):
     """
     x,y,z,f=pmag.doigrf(input_list[3]%360.,input_list[2],input_list[1],input_list[0])
     Dir=pmag.cart2dir((x,y,z))
-    print Dir
     return Dir
 
 def fishrot(k=20,n=100,Dec=0,Inc=90):
