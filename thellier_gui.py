@@ -4,8 +4,12 @@
 # LOG HEADER:
 #============================================================================================
 #
-#
-# hellier_GUI Version 2.28 12/31/2014
+# Thellier_GUI Version 2.29 01/29/2015
+# 1) fix STDEV-OPT extended error bar plor display bug 
+# 2) fix paleointensity plot legend when using extended error bars
+# 3) fix non-thellier pmag_specimen competability issue
+
+# Thellier_GUI Version 2.28 12/31/2014
 # Fix minor bug in delete interpretation buttonn
 #
 ## Thellier_GUI Version 2.27 11/30/2014
@@ -130,7 +134,7 @@
 global CURRENT_VRSION
 global MICROWAVE
 global THERMAL
-CURRENT_VRSION = "v.2.26"
+CURRENT_VRSION = "v.2.29"
 MICROWAVE=False
 THERMAL=True
 
@@ -5656,8 +5660,8 @@ class Arai_GUI(wx.Frame):
                 plot_by_locations[location]['samples_names'].append(sample_or_site)
                 
                 if show_STDEVOPT:
-                    plot_by_locations[location]['Y_data_plus_extended'].append(B_max_extended-B)
-                    plot_by_locations[location]['Y_data_minus_extended'].append(B-B_min_extended)
+                    plot_by_locations[location]['Y_data_plus_extended'].append(B_max_extended-B_uT)
+                    plot_by_locations[location]['Y_data_minus_extended'].append(B_uT-B_min_extended)
                                                                         
             elif plt_VADM and found_lat: # units of ZAm^2
                 VADM=pmag.b_vdm(B_uT*1e-6,lat)*1e-21
@@ -5779,7 +5783,7 @@ class Arai_GUI(wx.Frame):
         ax = axes([0.3,0.1,0.6,0.8])
         locations =plot_by_locations.keys()
         locations.sort()
-
+        handles_list=[]
         for location in locations:
             figure(1)
             X_data,X_data_minus,X_data_plus=plot_by_locations[location]['X_data'],plot_by_locations[location]['X_data_minus'],plot_by_locations[location]['X_data_plus']
@@ -5798,7 +5802,8 @@ class Arai_GUI(wx.Frame):
             else:
                 Yerr=[Y_data_minus,Y_data_plus]
 
-            errorbar(X_data,Y_data,xerr=Xerr,yerr=Yerr,fmt=SYMBOLS[cnt%len(SYMBOLS)],color=COLORS[cnt%len(COLORS)],label=location)
+            erplot=errorbar(X_data,Y_data,xerr=Xerr,yerr=Yerr,fmt=SYMBOLS[cnt%len(SYMBOLS)],color=COLORS[cnt%len(COLORS)],label=location)
+            handles_list.append(erplot)
             if show_STDEVOPT:
                 errorbar(X_data,Y_data,xerr=None,yerr=[Y_data_minus_extended,Y_data_plus_extended],fmt='.',ms=0,ecolor='red',label="extended error-bar",zorder=0)
                 
@@ -5816,8 +5821,8 @@ class Arai_GUI(wx.Frame):
         legend_font_props = matplotlib.font_manager.FontProperties()
         legend_font_props.set_size(12)
 
-        h,l = ax.get_legend_handles_labels()
-        legend(h,l,loc='center left', bbox_to_anchor=[0, 0, 1, 1],bbox_transform=Fig.transFigure,numpoints=1,prop=legend_font_props)
+        #h,l = ax.get_legend_handles_labels()
+        legend(handles=handles_list,loc='center left', bbox_to_anchor=[0, 0, 1, 1],bbox_transform=Fig.transFigure,numpoints=1,prop=legend_font_props)
 
         #Fig.legend(h,l,loc='center left',fancybox="True",numpoints=1,prop=legend_font_props)
         y_min,y_max=ylim()
@@ -8533,6 +8538,11 @@ class Arai_GUI(wx.Frame):
         for rec in prev_pmag_specimen:
             if "LP-PI" not in rec["magic_method_codes"]:
                 continue
+            if "measurement_step_min" not in rec.keys() or rec['measurement_step_min']=="":
+                continue
+            if "measurement_step_max" not in rec.keys() or rec['measurement_step_max']=="":
+                continue
+                
             specimen=rec['er_specimen_name']
             tmin_kelvin=float(rec['measurement_step_min'])
             tmax_kelvin=float(rec['measurement_step_max'])

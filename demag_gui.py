@@ -4,6 +4,7 @@
 # LOG HEADER:
 #============================================================================================
 #
+# Demag_GUI Version 0.30 fix backward compatibility with strange pmag_speciemns.txt 01/29/2015
 #
 # Demag_GUI Version 0.29 fix on_close_event 23/12/2014
 
@@ -34,7 +35,7 @@
 
 
 global CURRENT_VRSION
-CURRENT_VRSION = "v.0.29"
+CURRENT_VRSION = "v.0.30"
 import matplotlib
 matplotlib.use('WXAgg')
 
@@ -2646,10 +2647,16 @@ class Zeq_GUI(wx.Frame):
                  dec,inc,int = "","",""
                  if "measurement_dec" in rec.keys() and rec["measurement_dec"] != "":
                      dec=float(rec["measurement_dec"])
+                 else:
+                     continue
                  if "measurement_inc" in rec.keys() and rec["measurement_inc"] != "":
                      inc=float(rec["measurement_inc"])
+                 else:
+                     continue
                  if "measurement_magn_moment" in rec.keys() and rec["measurement_magn_moment"] != "":
                      intensity=float(rec["measurement_magn_moment"])
+                 else:
+                     continue
                  if 'magic_instrument_codes' not in rec.keys():
                      rec['magic_instrument_codes']=''
                  Data[s]['zijdblock'].append([tr,dec,inc,intensity,ZI,rec['measurement_flag'],rec['magic_instrument_codes']])
