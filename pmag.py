@@ -1000,7 +1000,9 @@ def first_rec(ofile,Rec,file_type):
 
 def magic_write(ofile,Recs,file_type):
     """
+    called by magic_write(outputfile,records_list,magic_file_type)
     writes out a magic format list of dictionaries to ofile
+
     """
     
     if len(Recs)<1:
