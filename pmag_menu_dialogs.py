@@ -1287,48 +1287,160 @@ class Core_depthplot(wx.Frame):
         bSizer_info.Add(wx.StaticText(pnl, label=TEXT), wx.ALIGN_LEFT)
 
         #---sizer 0 ----
-        self.bSizer0 = pw.choose_file(pnl, 'add', method = self.on_add_file_button)
+        self.bSizer0 = pw.choose_file(pnl, btn_text='add measurements file', method = self.on_add_file_button)
+        measfile = os.path.join(self.WD, 'magic_measurements.txt')
+        self.check_and_add_file(measfile, self.bSizer0.file_path)
 
-        #---sizer 1 ----
-        self.bSizer1 = pw.choose_file(pnl, 'add IODP core summary csv file (optional)', self.on_add_csv_button)
-        
         #---sizer 2 ---
-        # check boxes:  plot declination?  plot magnetization?  plot magnetization on log scale?  connect dots?  plot inclination?
-
-        # range to plot min, max in meters
-
-        # radio buttons: symbol, size for continuous oints
-
+        self.bSizer1a = pw.labeled_yes_or_no(pnl, "Choose file to provide sample data", "er_samples", "er_ages")
+        self.Bind(wx.EVT_RADIOBUTTON, self.on_sample_or_age, self.bSizer1a.rb1)
+        self.Bind(wx.EVT_RADIOBUTTON, self.on_sample_or_age, self.bSizer1a.rb2)
         
-        self.bSizer2 = pw.select_ncn(pnl)
+        self.bSizer1 = pw.choose_file(pnl, btn_text='add er_samples file', method = self.on_add_samples_button)
+        sampfile = os.path.join(self.WD, 'er_samples.txt')
+        self.check_and_add_file(sampfile, self.bSizer1.file_path)
 
+
+        #---sizer 2 ----
+        self.bSizer2 = pw.choose_file(pnl, btn_text='add IODP core summary csv file (optional)', method = self.on_add_csv_button)
+        
+        
         #---sizer 3 ---
-        self.bSizer3 = pw.labeled_text_field(pnl, label="Location name:")
+        plot_choices = ['Plot declination', 'Plot inclination', 'Plot magnetization', 'Plot magnetization on log scale', "Plot expected inclination at latitude"]
+        self.bSizer3 = pw.check_boxes(pnl, (5, 1, 0, 0), plot_choices, "Choose what to plot:")
 
         #---sizer 4 ---
-        self.bSizer4 = pw.labeled_text_field(pnl, label="Instrument name (optional):")
+        #-sym SYM SIZE, symbol, size for continuous points (e.g., ro 5, bs 10, g^ 10 for red dot, blue square, green triangle), default is blue dot at 5 pt
+        color_choices = ['blue', 'green','red','cyan','magenta', 'yellow', 'black','white']
+        self.bSizer4 = pw.radio_buttons(pnl, color_choices, "choose color for plot points")
+
+        #---sizer 5 ---
+        shape_choices = ['circle', 'triangle_down','triangle_up','triangle_right','triangle_left', 'square', 'pentagon','star','hexagon','+','x','diamond','|','-']
+        self.bSizer5 = pw.radio_buttons(pnl, shape_choices, "choose shape for plot points")
+
+        #---sizer 5a---
+        #self.bSizer5a = pw.labeled_text_field(pnl, "point size (default is 5)")
+        self.bSizer5a = pw.labeled_spin_ctrl(pnl, "point size (default is 5): ")
+
+        self.bSizer5b = pw.check_box(pnl, "No lines connecting points")
+        #self.bSizer5c = pw.check_box(pnl, "Plot expected inclination at latitude\nThis is only available for results with latitude information in input file")
+        
+        #-L do not connect dots with a line
+        #-Iex: plot the expected inc at lat - only available for results with lat info in file
+
+        
+
+        #---sizer 6 ---
+        # range to plot min, max in meters
+        self.bSizer6 = pw.labeled_text_field(pnl, label="minimum depth to plot (in meters)")
+
+        #---sizer  7---
+        self.bSizer7 = pw.labeled_text_field(pnl, label="maximum depth to plot (in meters)")
 
 
-        #---sizer 4 ----
-        #try:
-        #    open(self.WD + "/er_samples.txt", "rU")
-        #except Exception as ex:
-        #    er_samples_file_present = False
-        #if er_samples_file_present:
-        #    self.bSizer4 = pw.labeled_yes_or_no(pnl, TEXT, label1, label2)
+        #---sizer 8 ---
+        self.bSizer8 = pw.labeled_yes_or_no(pnl, "Depth scale", "Meters below sea floor (mbsf)", "Meters composite depth (mcd)")
 
+        #---sizer 9 ---
+        # geomagnetic polarity time scale
+        #-ts TS amin amax: plot the GPTS for the time interval between amin and amax (numbers in Ma)
+        #TS: [ck95, gts04]
+
+        # plot or no?
+        self.bSizer9 = pw.check_box(pnl, "Plot GPTS?")
+        self.Bind(wx.EVT_CHECKBOX, self.on_checkbox, self.bSizer9.cb)
+        # if plot, then give time interval
+
+        self.bSizer10 = pw.labeled_yes_or_no(pnl, "Time scale", "gts04", "ck95")
+
+        self.bSizer11 = pw.labeled_text_field(pnl, label="Lower bound (in Ma)")
+
+        self.bSizer12 = pw.labeled_text_field(pnl, label="Upper bound (in Ma)")
+
+        #---sizer 13---
+        protocol_choices = ['AF', 'T', 'ARM', 'IRM', 'X']
+        #-LP  step [in mT,C,mT,mT, mass/vol] to plot
+        #-S do not plot blanket treatment data (if this is set, you don't need the -LP)
+        
+        self.bSizer13 = pw.radio_buttons(pnl, protocol_choices, "Lab Protocol:  ", orientation=wx.HORIZONTAL)
+
+        self.bSizer14 = pw.labeled_text_field(pnl, "Step:  ")
+
+        self.bSizer15 = pw.check_box(pnl, "Do not plot blanket treatment data")
+
+        #-fmt [svg, eps, pdf, png] specify output format for plot (default: svg)
+        #-sav save plot silently
+
+
+        
         #---buttons ---
         hboxok = pw.btn_panel(self, pnl)
 
+        #---make all the smaller container boxes---
         vbox = wx.BoxSizer(wx.VERTICAL)
-        hbox = wx.BoxSizer(wx.HORIZONTAL)
-        hbox.Add(self.bSizer3, flag=wx.ALIGN_LEFT|wx.LEFT, border=5)
-        hbox.Add(self.bSizer4, flag=wx.ALIGN_LEFT)
+        box1 = wx.StaticBox(pnl)
+        box2 = wx.StaticBox(pnl)
+        box3 = wx.StaticBox(pnl)
+        box4 = wx.StaticBox(pnl)
+        vbox1 = wx.StaticBoxSizer(box1, wx.VERTICAL)
+        vbox2 = wx.StaticBoxSizer(box2, wx.VERTICAL)
+        vbox3 = wx.StaticBoxSizer(box3, wx.VERTICAL)
+        vbox4 = wx.StaticBoxSizer(box4, wx.VERTICAL)
+        mini_vbox1 = wx.BoxSizer(wx.VERTICAL)
+        mini_vbox2 = wx.BoxSizer(wx.VERTICAL)
+        hbox1 = wx.BoxSizer(wx.HORIZONTAL)
+        hbox2 = wx.BoxSizer(wx.HORIZONTAL)
+        hbox3 = wx.BoxSizer(wx.HORIZONTAL)
+        hbox4 = wx.BoxSizer(wx.HORIZONTAL)
+
+        #mini_vbox1.AddMany([self.bSizer4])
+        mini_vbox2.AddMany([self.bSizer5a, self.bSizer5b])
+        #hbox1.Add(self.bSizer3, flag=wx.ALIGN_LEFT)
+        #hbox1.Add(self.bSizer4, flag=wx.ALIGN_LEFT)
+        hbox1.Add(self.bSizer4)
+        hbox1.Add(self.bSizer5, flag=wx.ALIGN_LEFT)
+        hbox1.Add(mini_vbox2, flag=wx.ALIGN_LEFT)
+        
+        hbox2.Add(self.bSizer6, flag=wx.ALIGN_LEFT)#|wx.LEFT, border=5)
+        hbox2.Add(self.bSizer7, flag=wx.ALIGN_LEFT)
+
+        hbox3.Add(self.bSizer9, flag=wx.ALIGN_LEFT)
+        hbox3.Add(self.bSizer10, flag=wx.ALIGN_LEFT)#|wx.LEFT, border=5)
+        hbox3.Add(self.bSizer11, flag=wx.ALIGN_LEFT)
+        hbox3.Add(self.bSizer12, flag=wx.ALIGN_LEFT)
+
+        hbox4.Add(self.bSizer13, flag=wx.ALIGN_LEFT)
+        hbox4.Add(self.bSizer14, flag=wx.ALIGN_LEFT)
+        
+        
+        vbox1.Add(wx.StaticText(pnl, label="Plot display options"))
+        vbox1.Add(hbox1, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+
+        vbox2.Add(wx.StaticText(pnl, label="Specify depths to plot (optional)"))
+        vbox2.Add(hbox2, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+
+        vbox3.Add(wx.StaticText(pnl, label="Specify time scale to plot (optional)"))
+        vbox3.Add(hbox3)
+
+        vbox4.Add(wx.StaticText(pnl, label="Experiment type"))
+        vbox4.Add(hbox4)
+        vbox4.Add(self.bSizer15)
+
+        #---add all widgets to main container---
         vbox.Add(bSizer_info, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(self.bSizer0, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        vbox.Add(self.bSizer1a, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(self.bSizer1, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(self.bSizer2, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
-        vbox.Add(hbox, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        vbox.Add(self.bSizer3, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        vbox.Add(vbox1, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        vbox.Add(vbox4, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        vbox.Add(self.bSizer8, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        vbox.Add(vbox2, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        vbox.Add(vbox3, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+
+
+        
         #vbox.Add(self.bSizer3, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         #try:
         #    vbox.Add(self.bSizer4, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
@@ -1344,13 +1456,62 @@ class Core_depthplot(wx.Frame):
         self.panel.SetSizer(hbox_all)
         self.panel.SetScrollbars(20, 20, 50, 50)
         hbox_all.Fit(self)
+        self.bSizer10.ShowItems(False)
+        self.bSizer11.ShowItems(False)
+        self.bSizer12.ShowItems(False)
         self.Show()
         self.Centre()
 
-    def on_add_file_button(self,event):
+    def on_add_file_button(self, event):
         text = "choose file to convert to MagIC"
         pw.on_add_file_button(self.bSizer0, self.WD, event, text)
 
+
+    def on_sample_or_age(self, event):
+        if event.GetId() == self.bSizer1a.rb1.GetId():
+            self.bSizer1.add_file_button.SetLabel('add er_samples_file')
+            self.check_and_add_file(os.path.join(self.WD, 'er_samples.txt'), self.bSizer1.file_path)
+        else:
+            self.bSizer1.add_file_button.SetLabel('add er_ages_file')
+            self.check_and_add_file(os.path.join(self.WD, 'er_ages.txt'), self.bSizer1.file_path)
+
+    def check_and_add_file(self, infile, add_here):
+        if os.path.isfile(infile):
+            add_here.SetValue(infile)
+
+        
+    def on_add_samples_button(self, event):
+        text = "provide er_samples file"
+        pw.on_add_file_button(self.bSizer1, self.WD, event, text)
+
+
+    def on_add_csv_button(self, event):
+        text = "provide csv file (optional)"
+        pw.on_add_file_button(self.bSizer2, self.WD, event, text)
+
+
+
+
+#    def on_select_protocol(self, event):
+#        if self.protocol_info.GetValue() == "cooling rate":
+#            self.bSizer2a.ShowItems(True)
+#        else:
+#            self.bSizer2a.ShowItems(False)
+#        self.hbox_all.Fit(self)
+
+        
+    def on_checkbox(self, event):
+        if event.Checked():
+            self.bSizer10.ShowItems(True)
+            self.bSizer11.ShowItems(True)
+            self.bSizer12.ShowItems(True)
+        else:
+            self.bSizer10.ShowItems(False)
+            self.bSizer11.ShowItems(False)
+            self.bSizer12.ShowItems(False)
+
+
+        
     def on_okButton(self, event):
         COMMAND = ""
         print COMMAND

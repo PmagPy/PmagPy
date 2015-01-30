@@ -15,7 +15,7 @@ class choose_file(wx.StaticBoxSizer):
         self.btn_text = btn_text
         self.method = method
         self.parent = parent
-        self.file_path = wx.TextCtrl(self.parent, id=-1, size=(400,25), style=wx.TE_READONLY)
+        self.file_path = wx.TextCtrl(self.parent, id=-1, size=(450,25), style=wx.TE_READONLY)
         self.add_file_button = wx.Button(self.parent, id=-1, label=btn_text,name=btn_text)
         if method:
             self.parent.Bind(wx.EVT_BUTTON, method, self.add_file_button)
@@ -120,6 +120,22 @@ class labeled_text_field(wx.StaticBoxSizer):
     def return_value(self):
         return self.text_field.GetValue()
 
+class labeled_spin_ctrl(wx.StaticBoxSizer):
+    def __init__(self, parent, TEXT):
+        self.parent = parent
+        box = wx.StaticBox(self.parent, wx.ID_ANY, "")
+        super(labeled_spin_ctrl, self).__init__(box, orient=wx.HORIZONTAL)
+        #hbox = wx.BoxSizer(wx.HORIZONTAL)
+        text = wx.StaticText(self.parent, label=TEXT)
+        self.spin_ctrl = wx.SpinCtrl(parent, value='5', initial=5)
+        self.Add(text, flag=wx.RIGHT, border=5)
+        self.Add(self.spin_ctrl)
+
+    def return_value(self):
+        return self.spin_ctrl.GetValue()
+        
+        
+    
 class labeled_yes_or_no(wx.StaticBoxSizer):
     def __init__(self, parent, TEXT, label1, label2):
         self.parent = parent
@@ -284,11 +300,13 @@ class check_box(wx.StaticBoxSizer):
 
 class radio_buttons(wx.StaticBoxSizer):
     
-    def __init__(self, parent, choices):
+    def __init__(self, parent, choices, label=None, orientation=wx.VERTICAL):
         box = wx.StaticBox(parent, -1, "")
-        super(radio_buttons, self).__init__(box, orient=wx.VERTICAL)
+        super(radio_buttons, self).__init__(box, orient=orientation)
         rb1 = wx.RadioButton(parent, label=choices[0], style=wx.RB_GROUP)
         rb1.SetValue(True)
+        if label:
+            self.Add(wx.StaticText(parent, label=label))
         self.Add(rb1)
         self.radio_buttons = [rb1]
         for choice in choices[1:]:
@@ -335,6 +353,10 @@ class large_checkbox_window(wx.StaticBoxSizer):
 class check_boxes(wx.StaticBoxSizer):
     
     def __init__(self, parent, gridsize, choices, text):
+        """
+        __init__(self, parent, gridsize, choices, text)
+        gridsize is a tuple in form of (rows, cols, vertical_gap, horizontal_gap)
+        """
         box = wx.StaticBox(parent, wx.ID_ANY, "")
         super(check_boxes, self).__init__(box, orient=wx.VERTICAL)
         
