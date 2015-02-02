@@ -1460,7 +1460,7 @@ class Core_depthplot(wx.Frame):
 
         
     def on_add_samples_button(self, event):
-        text = "provide er_samples file"
+        text = "provide er_samples/er_ages file"
         pw.on_add_file_button(self.bSizer1, self.WD, event, text)
 
 
@@ -1565,6 +1565,161 @@ class Core_depthplot(wx.Frame):
 
         
 
+class Ani_depthplot(wx.Frame):
+
+    title = "Plot anisotropoy vs. depth"
+    
+    def __init__(self, parent, WD):
+        wx.Frame.__init__(self, parent, wx.ID_ANY, self.title)
+        self.panel = wx.ScrolledWindow(self)
+        self.WD = WD
+        self.InitUI()
+
+    def InitUI(self):
+        pnl = self.panel
+        TEXT = "Anisotropy data can be plotted versus depth.\nThe program ANI_depthplot.py uses MagIC formatted data tables of the rmag_anisotropy.txt and er_samples.txt types.\nrmag_anisotropy.txt stores the tensor elements and measurement meta-data while er_samples.txt stores the depths, location and other information.\nBulk susceptibility measurements can also be plotted if they are available in a magic_measurements.txt formatted file."
+        bSizer_info = wx.BoxSizer(wx.HORIZONTAL)
+        bSizer_info.Add(wx.StaticText(pnl, label=TEXT), wx.ALIGN_LEFT)
+
+        #---sizer 0 ----
+        self.bSizer0 = pw.choose_file(pnl, 'add rmag_anisotropy file', method = self.on_add_rmag_button)
+        self.check_and_add_file(os.path.join(self.WD, 'rmag_anisotropy.txt'), self.bSizer0.file_path)
+
+        #---sizer 1 ----
+        self.bSizer1 = pw.choose_file(pnl, 'add magic_measurements file', method = self.on_add_measurements_button)
+        self.check_and_add_file(os.path.join(self.WD, 'magic_measurements.txt'), self.bSizer1.file_path)
+
+        #---sizer 2 ---
+        self.bSizer2a = pw.labeled_yes_or_no(pnl, "Choose file to provide sample data", "er_samples", "er_ages")
+        self.Bind(wx.EVT_RADIOBUTTON, self.on_sample_or_age, self.bSizer2a.rb1)
+        self.Bind(wx.EVT_RADIOBUTTON, self.on_sample_or_age, self.bSizer2a.rb2)
+        
+        self.bSizer2 = pw.choose_file(pnl, btn_text='add er_samples file', method = self.on_add_samples_button)
+        sampfile = os.path.join(self.WD, 'er_samples.txt')
+        self.check_and_add_file(sampfile, self.bSizer2.file_path)
+
+
+        #---sizer 3---
+        self.bSizer3 = pw.radio_buttons(pnl, ['svg', 'eps', 'pdf', 'png'], "Save plot in this format:")
+        
+        #---sizer 4 ---
+        self.bSizer4 = pw.labeled_yes_or_no(pnl, "Depth scale", "Meters below sea floor (mbsf)", "Meters composite depth (mcd)")
+
+        #---sizer 5 ---
+        self.bSizer5 = pw.labeled_text_field(pnl, label="minimum depth to plot (in meters)")
+
+        #---sizer  6---
+        self.bSizer6 = pw.labeled_text_field(pnl, label="maximum depth to plot (in meters)")
+
+
+        #---buttons ---
+        hboxok = pw.btn_panel(self, pnl)
+
+        vbox = wx.BoxSizer(wx.VERTICAL)
+        vbox.Add(bSizer_info, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        vbox.Add(self.bSizer0, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        vbox.Add(self.bSizer1, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        vbox.Add(self.bSizer2a, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        vbox.Add(self.bSizer2, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        vbox.Add(self.bSizer3, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        vbox.Add(self.bSizer4, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        hbox1 = wx.BoxSizer(wx.HORIZONTAL)
+        hbox1.AddMany([self.bSizer5, self.bSizer6])
+        vbox.Add(hbox1, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        
+        vbox.Add(hboxok, flag=wx.ALIGN_CENTER)        
+        vbox.AddSpacer(20)
+
+        hbox_all = wx.BoxSizer(wx.HORIZONTAL)
+        hbox_all.AddSpacer(20)
+        hbox_all.AddSpacer(vbox)
+
+        self.panel.SetSizer(hbox_all)
+        self.panel.SetScrollbars(20, 20, 50, 50)
+        hbox_all.Fit(self)
+        self.Show()
+        self.Centre()
+
+    def on_add_rmag_button(self,event):
+        text = "choose rmag_anisotropy file"
+        pw.on_add_rmag_button(self.bSizer0, self.WD, event, text)
+    
+    def on_add_measurements_button(self,event):
+        text = "choose magic_measurements file"
+        pw.on_add_rmag_button(self.bSizer1, self.WD, event, text)
+
+    def on_add_samples_button(self, event):
+        text = "provide er_samples/er_ages file"
+        pw.on_add_file_button(self.bSizer2, self.WD, event, text)
+
+    #def on_add_ages_button(self, event):
+    #    text = "provide er_ages file"
+    #    pw.on_add_file_button(self.bSizer3, self.WD, event, text)
+
+    def on_sample_or_age(self, event):
+        if event.GetId() == self.bSizer2a.rb1.GetId():
+            self.bSizer2.add_file_button.SetLabel('add er_samples_file')
+            self.check_and_add_file(os.path.join(self.WD, 'er_samples.txt'), self.bSizer2.file_path)
+        else:
+            self.bSizer2.add_file_button.SetLabel('add er_ages_file')
+            self.check_and_add_file(os.path.join(self.WD, 'er_ages.txt'), self.bSizer2.file_path)
+
+    def check_and_add_file(self, infile, add_here):
+        if os.path.isfile(infile):
+            add_here.SetValue(infile)
+
+
+    def on_okButton(self, event):
+        ani_file = self.bSizer0.return_value()
+        meas_file = self.bSizer1.return_value()
+        use_sampfile = self.bSizer2a.return_value()
+        samp_file, age_file = None, None
+        if use_sampfile:
+            samp_file = self.bSizer2.return_value()
+        else:
+            age_file = self.bSizer2.return_value()
+        fmt = self.bSizer3.return_value()
+        depth_scale = self.bSizer4.return_value()
+        if depth_scale:
+            depth_scale = 'mbsf'
+        else:
+            depth_scale = 'mcd'
+        dmin = self.bSizer5.return_value()
+        dmax = self.bSizer6.return_value()
+
+
+        # for use as module:
+        ani_file = "-f " + os.path.basename(ani_file)
+        meas_file = "-fb " + os.path.basename(meas_file)
+        if use_sampfile:
+            samp_file = "-fsa " + os.path.basename(samp_file)
+            age_file = ''
+        else:
+            age_file = "-fa " + os.path.basename(age_file)
+            samp_file = ''
+        if dmin and dmax:
+            depth = "-d " + dmin + " " + dmax
+        else:
+            depth = ''
+        depth_scale = "-ds " + depth_scale
+        fmt = "-fmt " + fmt
+        WD = "-WD " + self.WD
+
+        COMMAND = "ANI_depthplot.py {} {} {} {} {} {} {} {}".format(WD, ani_file, meas_file, samp_file, age_file, depth, depth_scale, fmt)
+        print COMMAND
+        #pw.run_command_and_close_window(self, COMMAND, "er_samples.txt")
+        pw.run_command(self, COMMAND, "??")
+
+    def on_cancelButton(self,event):
+        self.Destroy()
+        self.Parent.Raise()
+
+    def on_helpButton(self, event):
+        pw.on_helpButton(".py -h")
+
+
+
+
 class something(wx.Frame):
 
     title = ""
@@ -1594,7 +1749,7 @@ class something(wx.Frame):
         self.bSizer3 = pw.labeled_text_field(pnl, label="Location name:")
 
         #---sizer 4 ---
-        self.bSizer4 = pw.labeled_text_field(pnl, label="Instrument name (optional):")
+        
 
 
         #---sizer 4 ----
@@ -1652,6 +1807,10 @@ class something(wx.Frame):
         pw.on_helpButton(".py -h")
 
 
+
+
+
+        
 # File
 
 class ClearWD(wx.MessageDialog):

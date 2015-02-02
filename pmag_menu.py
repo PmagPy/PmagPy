@@ -168,7 +168,8 @@ class MagICMenu(wx.MenuBar):
         analysis9 = pmag_menu_dialogs.Core_depthplot(self.parent, self.parent.WD)
 
     def analysis10(self, event):
-        pass
+        analysis10 = pmag_menu_dialogs.Ani_depthplot(self.parent, self.parent.WD)
+
 
     def analysis11(self, event):
         pass

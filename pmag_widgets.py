@@ -15,7 +15,7 @@ class choose_file(wx.StaticBoxSizer):
         self.btn_text = btn_text
         self.method = method
         self.parent = parent
-        self.file_path = wx.TextCtrl(self.parent, id=-1, size=(450,25), style=wx.TE_READONLY)
+        self.file_path = wx.TextCtrl(self.parent, id=-1, size=(525,25), style=wx.TE_READONLY)
         self.add_file_button = wx.Button(self.parent, id=-1, label=btn_text,name=btn_text)
         if method:
             self.parent.Bind(wx.EVT_BUTTON, method, self.add_file_button)
