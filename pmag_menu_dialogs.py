@@ -1268,8 +1268,6 @@ class ZeqMagic(wx.Frame):
 
 
 
-
-
 class Core_depthplot(wx.Frame):
 
     title = "Remanence data versus depth/height"
@@ -1282,7 +1280,7 @@ class Core_depthplot(wx.Frame):
 
     def InitUI(self):
         pnl = self.panel
-        TEXT = "some text"
+        TEXT = "This program allows you to plot various measurement data versus sample depth."
         bSizer_info = wx.BoxSizer(wx.HORIZONTAL)
         bSizer_info.Add(wx.StaticText(pnl, label=TEXT), wx.ALIGN_LEFT)
 
@@ -1300,57 +1298,42 @@ class Core_depthplot(wx.Frame):
         sampfile = os.path.join(self.WD, 'er_samples.txt')
         self.check_and_add_file(sampfile, self.bSizer1.file_path)
 
-
         #---sizer 2 ----
         self.bSizer2 = pw.choose_file(pnl, btn_text='add IODP core summary csv file (optional)', method = self.on_add_csv_button)
         
-        
         #---sizer 3 ---
-        plot_choices = ['Plot declination', 'Plot inclination', 'Plot magnetization', 'Plot magnetization on log scale', "Plot expected inclination at latitude"]
+        plot_choices = ['Plot declination', 'Plot inclination', 'Plot magnetization', 'Plot magnetization on log scale']
         self.bSizer3 = pw.check_boxes(pnl, (5, 1, 0, 0), plot_choices, "Choose what to plot:")
 
         #---sizer 4 ---
-        #-sym SYM SIZE, symbol, size for continuous points (e.g., ro 5, bs 10, g^ 10 for red dot, blue square, green triangle), default is blue dot at 5 pt
         color_choices = ['blue', 'green','red','cyan','magenta', 'yellow', 'black','white']
         self.bSizer4 = pw.radio_buttons(pnl, color_choices, "choose color for plot points")
 
         #---sizer 5 ---
         shape_choices = ['circle', 'triangle_down','triangle_up','triangle_right','triangle_left', 'square', 'pentagon','star','hexagon','+','x','diamond','|','-']
+        shape_symbols =['o', 'v', '^', '>', '<', 's', 'p', '*', 'h', '+', 'x', 'd', '|', '_']
+        self.shape_choices_dict = dict(zip(shape_choices, shape_symbols))
         self.bSizer5 = pw.radio_buttons(pnl, shape_choices, "choose shape for plot points")
 
         #---sizer 5a---
         #self.bSizer5a = pw.labeled_text_field(pnl, "point size (default is 5)")
         self.bSizer5a = pw.labeled_spin_ctrl(pnl, "point size (default is 5): ")
-
         self.bSizer5b = pw.check_box(pnl, "No lines connecting points")
-        #self.bSizer5c = pw.check_box(pnl, "Plot expected inclination at latitude\nThis is only available for results with latitude information in input file")
         
-        #-L do not connect dots with a line
-        #-Iex: plot the expected inc at lat - only available for results with lat info in file
-
-        
-
         #---sizer 6 ---
-        # range to plot min, max in meters
         self.bSizer6 = pw.labeled_text_field(pnl, label="minimum depth to plot (in meters)")
 
         #---sizer  7---
         self.bSizer7 = pw.labeled_text_field(pnl, label="maximum depth to plot (in meters)")
 
-
         #---sizer 8 ---
         self.bSizer8 = pw.labeled_yes_or_no(pnl, "Depth scale", "Meters below sea floor (mbsf)", "Meters composite depth (mcd)")
 
         #---sizer 9 ---
-        # geomagnetic polarity time scale
-        #-ts TS amin amax: plot the GPTS for the time interval between amin and amax (numbers in Ma)
-        #TS: [ck95, gts04]
-
-        # plot or no?
         self.bSizer9 = pw.check_box(pnl, "Plot GPTS?")
         self.Bind(wx.EVT_CHECKBOX, self.on_checkbox, self.bSizer9.cb)
-        # if plot, then give time interval
 
+        # if plotting GPTS, these sizers will be shown:
         self.bSizer10 = pw.labeled_yes_or_no(pnl, "Time scale", "gts04", "ck95")
 
         self.bSizer11 = pw.labeled_text_field(pnl, label="Lower bound (in Ma)")
@@ -1359,14 +1342,13 @@ class Core_depthplot(wx.Frame):
 
         #---sizer 13---
         protocol_choices = ['AF', 'T', 'ARM', 'IRM', 'X']
-        #-LP  step [in mT,C,mT,mT, mass/vol] to plot
-        #-S do not plot blanket treatment data (if this is set, you don't need the -LP)
-        
         self.bSizer13 = pw.radio_buttons(pnl, protocol_choices, "Lab Protocol:  ", orientation=wx.HORIZONTAL)
 
         self.bSizer14 = pw.labeled_text_field(pnl, "Step:  ")
 
         self.bSizer15 = pw.check_box(pnl, "Do not plot blanket treatment data")
+
+        self.bSizer16 = pw.radio_buttons(pnl, ['svg', 'eps', 'pdf', 'png'], "Save plot in this format:")
 
         #-fmt [svg, eps, pdf, png] specify output format for plot (default: svg)
         #-sav save plot silently
@@ -1386,45 +1368,48 @@ class Core_depthplot(wx.Frame):
         vbox2 = wx.StaticBoxSizer(box2, wx.VERTICAL)
         vbox3 = wx.StaticBoxSizer(box3, wx.VERTICAL)
         vbox4 = wx.StaticBoxSizer(box4, wx.VERTICAL)
-        mini_vbox1 = wx.BoxSizer(wx.VERTICAL)
-        mini_vbox2 = wx.BoxSizer(wx.VERTICAL)
+        mini_vbox = wx.BoxSizer(wx.VERTICAL)
+        hbox0 = wx.BoxSizer(wx.HORIZONTAL)
         hbox1 = wx.BoxSizer(wx.HORIZONTAL)
         hbox2 = wx.BoxSizer(wx.HORIZONTAL)
         hbox3 = wx.BoxSizer(wx.HORIZONTAL)
         hbox4 = wx.BoxSizer(wx.HORIZONTAL)
 
-        #mini_vbox1.AddMany([self.bSizer4])
-        mini_vbox2.AddMany([self.bSizer5a, self.bSizer5b])
-        #hbox1.Add(self.bSizer3, flag=wx.ALIGN_LEFT)
-        #hbox1.Add(self.bSizer4, flag=wx.ALIGN_LEFT)
+        #---Plot type and format ---
+        hbox0.AddMany([self.bSizer3, self.bSizer16])
+
+        #---Plot display options---
+        mini_vbox.AddMany([self.bSizer5a, self.bSizer5b])
         hbox1.Add(self.bSizer4)
         hbox1.Add(self.bSizer5, flag=wx.ALIGN_LEFT)
-        hbox1.Add(mini_vbox2, flag=wx.ALIGN_LEFT)
-        
+        hbox1.Add(mini_vbox, flag=wx.ALIGN_LEFT)
+        vbox1.Add(wx.StaticText(pnl, label="Plot display options"))
+        vbox1.Add(hbox1, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+
+
+        #---depths to plot ---
         hbox2.Add(self.bSizer6, flag=wx.ALIGN_LEFT)#|wx.LEFT, border=5)
         hbox2.Add(self.bSizer7, flag=wx.ALIGN_LEFT)
+        vbox2.Add(wx.StaticText(pnl, label="Specify depths to plot (optional)"))
+        vbox2.Add(hbox2, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
 
+
+        #---time scale ----
         hbox3.Add(self.bSizer9, flag=wx.ALIGN_LEFT)
         hbox3.Add(self.bSizer10, flag=wx.ALIGN_LEFT)#|wx.LEFT, border=5)
         hbox3.Add(self.bSizer11, flag=wx.ALIGN_LEFT)
         hbox3.Add(self.bSizer12, flag=wx.ALIGN_LEFT)
-
-        hbox4.Add(self.bSizer13, flag=wx.ALIGN_LEFT)
-        hbox4.Add(self.bSizer14, flag=wx.ALIGN_LEFT)
-        
-        
-        vbox1.Add(wx.StaticText(pnl, label="Plot display options"))
-        vbox1.Add(hbox1, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
-
-        vbox2.Add(wx.StaticText(pnl, label="Specify depths to plot (optional)"))
-        vbox2.Add(hbox2, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
-
         vbox3.Add(wx.StaticText(pnl, label="Specify time scale to plot (optional)"))
         vbox3.Add(hbox3)
 
+
+        #---experiment type and step
+        hbox4.Add(self.bSizer13, flag=wx.ALIGN_LEFT)
+        hbox4.Add(self.bSizer14, flag=wx.ALIGN_LEFT)
         vbox4.Add(wx.StaticText(pnl, label="Experiment type"))
         vbox4.Add(hbox4)
         vbox4.Add(self.bSizer15)
+
 
         #---add all widgets to main container---
         vbox.Add(bSizer_info, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
@@ -1432,20 +1417,14 @@ class Core_depthplot(wx.Frame):
         vbox.Add(self.bSizer1a, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(self.bSizer1, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(self.bSizer2, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
-        vbox.Add(self.bSizer3, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        vbox.Add(hbox0)
         vbox.Add(vbox1, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(vbox4, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(self.bSizer8, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(vbox2, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(vbox3, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
 
-
-        
-        #vbox.Add(self.bSizer3, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
-        #try:
-        #    vbox.Add(self.bSizer4, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
-        #except AttributeError:
-        #    pass
+        #--- add buttons ---
         vbox.Add(hboxok, flag=wx.ALIGN_CENTER)        
         vbox.AddSpacer(20)
 
@@ -1489,17 +1468,6 @@ class Core_depthplot(wx.Frame):
         text = "provide csv file (optional)"
         pw.on_add_file_button(self.bSizer2, self.WD, event, text)
 
-
-
-
-#    def on_select_protocol(self, event):
-#        if self.protocol_info.GetValue() == "cooling rate":
-#            self.bSizer2a.ShowItems(True)
-#        else:
-#            self.bSizer2a.ShowItems(False)
-#        self.hbox_all.Fit(self)
-
-        
     def on_checkbox(self, event):
         if event.Checked():
             self.bSizer10.ShowItems(True)
@@ -1513,6 +1481,77 @@ class Core_depthplot(wx.Frame):
 
         
     def on_okButton(self, event):
+        """
+        meas_file # -f magic_measurements_file
+        samp_file #-fsa er_samples_file
+        age_file # -fa er_ages_file
+        depth_scale # -ds scale
+        dmin, dmax # -d 1 50  # depth to plot
+        ts, amin, amax (also sets pTS, pcol, width) =  # -ts scale min max        
+        sym, size # -sym symbol size
+        method, step (also may set suc_key) # -LP protocol step
+        pltD (also sets pcol, pel, width)# -D (don't plot dec)
+        pltI (also sets pcol, pel, width)# -I (don't plot inc)
+        pltM (also sets pcol, pel, width)# -M (don't plot intensity)
+        logit # -log ( plot log scale)
+        fmt # -fmt format
+        """
+        meas_file = self.bSizer0.return_value()
+        use_sampfile = self.bSizer1a.return_value()
+        if use_sampfile:
+            samp_file = self.bSizer1.return_value()
+            age_file = None
+        else:
+            samp_file = None
+            age_file = self.bSizer1.return_value()
+        depth_scale = self.bSizer8.return_value()
+        if depth_scale:
+            depth_scale = 'mbsf'
+        else:
+            depth_scale = 'mcd'
+        dmin = self.bSizer6.return_value()
+        dmax = self.bSizer7.return_value()
+        if self.bSizer9.return_value():
+            if self.bSizer10.return_value():
+                ts = 'gts04'
+            else:
+                ts = 'ck95'
+            amin = self.bSizer11.return_value()
+            amax = self.bSizer12.return_value()
+        else:
+            ts, amin, amax = None, None, None
+        sym_shape = self.shape_choices_dict[self.bSizer5.return_value()]
+        sym_color = self.bSizer4.return_value()[0]
+        sym = sym_color + sym_shape
+        size = self.bSizer5a.return_value()
+        method = self.bSizer13.return_value()
+        step = self.bSizer14.return_value()
+        pltD, pltI, pltM, logit = 0, 0, 0, 0
+        for val in self.bSizer3.return_value():
+            if 'declination' in val:
+                pltD = 1
+            if 'inclination' in val:
+                pltI = 1
+            if 'magnetization' in val:
+                pltM = 1
+            if 'log' in val:
+                logit = 1
+                
+        fmt = self.bSizer16.return_value()
+        print "meas_file", meas_file, "samp_file", samp_file, "age_file", age_file, "depth_scale", depth_scale, "dmin", dmin, "dmax", dmax, "ts", ts, "amin", amin, "amax", amax, "sym", sym, "size", size, "method", method, "step", step, "pltD", pltD, "pltI", pltI, "pltM", pltM, "logit", logit, "fmt", fmt
+
+        """
+        haven't done these options yet
+        wt_file (also sets norm)# -n specimen_filename
+        spc_file, spc_sym, spc_size # -fsp spec_file symbol_shape symbol_size
+        res_file, res_sym, res_size # -fres pmag_results_file symbol_shape symbol_size
+        wig_file (also sets pcol, width) # -fwig wiggle_file(???)
+        sum_file # -fsum IODP_core_summary_csv_file
+
+        (sets plots & verbose) # -sav
+        """
+        
+        
         COMMAND = ""
         print COMMAND
         #pw.run_command_and_close_window(self, COMMAND, "er_samples.txt")
@@ -1522,7 +1561,7 @@ class Core_depthplot(wx.Frame):
         self.Parent.Raise()
 
     def on_helpButton(self, event):
-        pw.on_helpButton(".py -h")
+        pw.on_helpButton("core_depthplot.py -h")
 
         
 
