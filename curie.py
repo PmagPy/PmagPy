@@ -105,11 +105,13 @@ def main():
         -f FILE, sets M,T input file (required)
         -w size of sliding window in degrees (default - 3 degrees)
         -t <min> <max> temperature range (optional)
+        -sav save figures and quit
 
     example:
     curie.py -f ex2.1 -w 30 -t 300 700
 
     """
+    plot=0
     if '-h' in sys.argv:
         print main.__doc__
         sys.exit()
@@ -131,6 +133,8 @@ def main():
     else:
         t_begin=''      
         t_end=''
+    if '-sav' in sys.argv:plot=1
+   
 
 
     # read data from file
@@ -251,14 +255,14 @@ def main():
     #plot Curie temp for different sliding window length
     pmagplotlib.plot_init(PLT['Curie'],5,5)
     pmagplotlib.plotXY(PLT['Curie'],wn,curie,sym='.',xlab='Sliding Window Width (degrees)',ylab='Curie Temp',title='Curie Statistics')    
-    pmagplotlib.drawFIGS(PLT)
-    ans=raw_input(" S[a]ve to save plot, [q]uit, Return to continue:  ")
-    if ans=="q": sys.exit()
-    if ans=="a":
-        files = {}
-        for key in PLT.keys():
-            files[key]=str(key) + ".svg"
-        pmagplotlib.saveP(PLT,files)
+    files = {}
+    for key in PLT.keys(): files[key]=str(key) + ".png"
+    if plot==0:
+        pmagplotlib.drawFIGS(PLT)
+        ans=raw_input(" S[a]ve to save plot, [q]uit, Return to continue:  ")
+        if ans=="q": sys.exit()
+        if ans=="a": pmagplotlib.saveP(PLT,files)
+    else: pmagplotlib.saveP(PLT,files)
     sys.exit()
 
 main()
