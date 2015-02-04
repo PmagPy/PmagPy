@@ -2,7 +2,10 @@
 import pmag,sys,exceptions,matplotlib,string,numpy
 import pmagplotlib
 import pylab
+# turn interactive mode on
 pylab.ion()
+
+
 def main():
     """
     NAME 
@@ -147,7 +150,7 @@ def main():
         P_min=min(P)
         #dmax=dmax+.05*dmax
         #dmin=dmin-.05*dmax
-        pylab.figure(1,figsize=(10,8)) # make the figure
+        main_plot = pylab.figure(1,figsize=(10,8)) # make the figure
         version_num=pmag.get_version()
         pylab.figtext(.02,.01,version_num) # attach the pmagpy version number
         ax=pylab.subplot(1,pcol,1) # make the first column

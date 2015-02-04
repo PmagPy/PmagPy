@@ -1705,7 +1705,7 @@ class Ani_depthplot(wx.Frame):
         fmt = "-fmt " + fmt
         WD = "-WD " + self.WD
 
-        COMMAND = "ANI_depthplot.py {} {} {} {} {} {} {} {}".format(WD, ani_file, meas_file, samp_file, age_file, depth, depth_scale, fmt)
+        COMMAND = "ANI_depthplot.py {} {} {} {} {} {} {} {} -sav".format(WD, ani_file, meas_file, samp_file, age_file, depth, depth_scale, fmt)
         print COMMAND
         #pw.run_command_and_close_window(self, COMMAND, "er_samples.txt")
         pw.run_command(self, COMMAND, "??")
