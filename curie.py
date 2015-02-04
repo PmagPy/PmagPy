@@ -141,6 +141,8 @@ def main():
     Data=numpy.loadtxt(meas_file,dtype=numpy.float)
     T=Data.transpose()[0]
     M=Data.transpose()[1]
+    T=list(T)
+    M=list(M)
     # cut the data if -t is one of the flags
     if t_begin:
         while T[0]<t_begin:
