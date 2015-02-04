@@ -1,4 +1,5 @@
-Depth	chi	sIRM # Depth is in meters, chi is micro m^3/kg, sIRM is milli Am^2/kg
+# Depth is in meters, chi is micro m^3/kg, sIRM is milli Am^2/kg
+Depth	chi	sIRM
 0.76	0.559	37.419
 0.86	0.541	46.962
 1.03	0.510	39.167
