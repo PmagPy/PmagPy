@@ -760,9 +760,10 @@ def make_aniso_depthplot(ani_file, meas_file, samp_file, age_file=None, fmt='svg
     returns matplotlib figure with anisotropy data plotted against depth
     """
     print ani_file, meas_file, samp_file, age_file
-    print "depth_scale", depth_scale
-    print "dmin", dmin, "dmax", dmax
-    print "fmt", fmt
+    print 'age_file', age_file, 'default_is', None
+    print "depth_scale", depth_scale, "default is:", 'sample_composite_depth'
+    print "dmin", dmin, "dmax", dmax, 'default is', -1, -1
+    print "fmt", fmt, 'default is', 'svg'
 
     pcol=3
     isbulk=0 # tests if there are bulk susceptibility measurements
@@ -805,7 +806,8 @@ def make_aniso_depthplot(ani_file, meas_file, samp_file, age_file=None, fmt='svg
         location=Data[0]['er_location_name']
     else:
         print 'no data to plot'
-        sys.exit()
+        return False
+        #sys.exit()
     # collect the data for plotting tau and V3_inc
     Depths,Tau1,Tau2,Tau3,V3Incs,P=[],[],[],[],[],[]
     Axs=[] # collect the plot ids
@@ -880,6 +882,7 @@ def make_aniso_depthplot(ani_file, meas_file, samp_file, age_file=None, fmt='svg
         if True:
             #print main_plot
             print 'done'
+            print "main_plot", main_plot
             return main_plot
         """
         if verbose:

@@ -8,7 +8,7 @@ import os
 import pmag
 import subprocess
 import wx.grid
-import subprocess
+from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigureCanvas
 import pmag_widgets as pw
 import thellier_gui_dialogs
 import thellier_gui
@@ -1582,11 +1582,11 @@ class Ani_depthplot(wx.Frame):
         bSizer_info.Add(wx.StaticText(pnl, label=TEXT), wx.ALIGN_LEFT)
 
         #---sizer 0 ----
-        self.bSizer0 = pw.choose_file(pnl, 'add rmag_anisotropy file', method = self.on_add_rmag_button)
+        self.bSizer0 = pw.choose_file(pnl, btn_text='add rmag_anisotropy file', method = self.on_add_rmag_button)
         self.check_and_add_file(os.path.join(self.WD, 'rmag_anisotropy.txt'), self.bSizer0.file_path)
 
         #---sizer 1 ----
-        self.bSizer1 = pw.choose_file(pnl, 'add magic_measurements file', method = self.on_add_measurements_button)
+        self.bSizer1 = pw.choose_file(pnl, btn_text='add magic_measurements file', method = self.on_add_measurements_button)
         self.check_and_add_file(os.path.join(self.WD, 'magic_measurements.txt'), self.bSizer1.file_path)
 
         #---sizer 2 ---
@@ -1642,11 +1642,11 @@ class Ani_depthplot(wx.Frame):
 
     def on_add_rmag_button(self,event):
         text = "choose rmag_anisotropy file"
-        pw.on_add_rmag_button(self.bSizer0, self.WD, event, text)
+        pw.on_add_file_button(self.bSizer0, self.WD, event, text)
     
     def on_add_measurements_button(self,event):
         text = "choose magic_measurements file"
-        pw.on_add_rmag_button(self.bSizer1, self.WD, event, text)
+        pw.on_add_file_button(self.bSizer1, self.WD, event, text)
 
     def on_add_samples_button(self, event):
         text = "provide er_samples/er_ages file"
@@ -1684,31 +1684,56 @@ class Ani_depthplot(wx.Frame):
             depth_scale = 'mbsf'
         else:
             depth_scale = 'mcd'
-        dmin = self.bSizer5.return_value()
-        dmax = self.bSizer6.return_value()
+        dmin = self.bSizer5.return_value() or -1
+        dmax = self.bSizer6.return_value() or -1
+
 
 
         # for use as module:
-        ani_file = "-f " + os.path.basename(ani_file)
-        meas_file = "-fb " + os.path.basename(meas_file)
-        if use_sampfile:
-            samp_file = "-fsa " + os.path.basename(samp_file)
-            age_file = ''
-        else:
-            age_file = "-fa " + os.path.basename(age_file)
-            samp_file = ''
-        if dmin and dmax:
-            depth = "-d " + dmin + " " + dmax
-        else:
-            depth = ''
-        depth_scale = "-ds " + depth_scale
-        fmt = "-fmt " + fmt
-        WD = "-WD " + self.WD
+        import ipmag
+        fig = ipmag.make_aniso_depthplot(ani_file, meas_file, samp_file)#, age_file, fmt, dmin, dmax, depth_scale)
+        print 'age_file', age_file
+        print 'fmt', fmt
+        print "dmin", dmin, "dmax", dmax
+        print 'depth_scale', depth_scale
+        
+        print "fig made!", fig
+        if fig:
+            plot_frame = wx.Frame(None, -1, size=(800, 500))
+            plot_panel = wx.Panel(plot_frame, -1)
+            canvas = FigureCanvas(plot_panel, -1, fig)
+            sizer = wx.BoxSizer(wx.VERTICAL)
+            sizer.Add(canvas, 1, wx.LEFT | wx.TOP | wx.GROW) # having/removing wx.GROW doesn't matter
+            plot_panel.SetSizer(sizer)
+            #sizer.Fit(plot_panel)
+            
+            #plot_panel.Centre()
+            #plot_panel.Show()
+            plot_frame.Centre()
+            plot_frame.Show()
 
-        COMMAND = "ANI_depthplot.py {} {} {} {} {} {} {} {} -sav".format(WD, ani_file, meas_file, samp_file, age_file, depth, depth_scale, fmt)
-        print COMMAND
-        #pw.run_command_and_close_window(self, COMMAND, "er_samples.txt")
-        pw.run_command(self, COMMAND, "??")
+
+        ## for use as command_line:
+        #ani_file = "-f " + os.path.basename(ani_file)
+        #meas_file = "-fb " + os.path.basename(meas_file)
+        #if use_sampfile:
+        #    samp_file = "-fsa " + os.path.basename(samp_file)
+        #    age_file = ''
+        #else:
+        #    age_file = "-fa " + os.path.basename(age_file)
+        #    samp_file = ''
+        #if dmin and dmax:
+        #    depth = "-d " + dmin + " " + dmax
+        #else:
+        #    depth = ''
+        #depth_scale = "-ds " + depth_scale
+        #fmt = "-fmt " + fmt
+        #WD = "-WD " + self.WD
+
+        #COMMAND = "ANI_depthplot.py {} {} {} {} {} {} {} {} -sav".format(WD, ani_file, meas_file, samp_file, age_file, depth, depth_scale, fmt)
+        #print COMMAND
+        ##pw.run_command_and_close_window(self, COMMAND, "er_samples.txt")
+        #pw.run_command(self, COMMAND, "??")
 
     def on_cancelButton(self,event):
         self.Destroy()
