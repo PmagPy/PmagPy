@@ -759,27 +759,18 @@ def make_aniso_depthplot(ani_file, meas_file, samp_file, age_file=None, fmt='svg
     """
     returns matplotlib figure with anisotropy data plotted against depth
     """
-    print ani_file, meas_file, samp_file, age_file
-    print 'age_file', age_file, 'default_is', None
-    print "depth_scale", depth_scale, "default is:", 'sample_composite_depth'
-    print "dmin", dmin, "dmax", dmax, 'default is', -1, -1
-    print "fmt", fmt, 'default is', 'svg'
-
+    dmin, dmax = float(dmin), float(dmax)
     pcol=3
     isbulk=0 # tests if there are bulk susceptibility measurements
     AniData,file_type=pmag.magic_read(ani_file)  # read in tensor elements
-    print "AniData", len(AniData)
     if not age_file:
         Samps,file_type=pmag.magic_read(samp_file)  # read in sample depth info from er_sample.txt format file
     else:
         Samps,file_type=pmag.magic_read(age_file)  # read in sample age info from er_ages.txt format file
         age_unit=Samps[0]['age_unit']
     for s in Samps:s['er_sample_name']=s['er_sample_name'].upper() # change to upper case for every sample name
-    print "Samps", len(Samps)
     Meas,file_type=pmag.magic_read(meas_file)
-    print "Meas", len(Meas)
     if file_type=='magic_measurements':isbulk=1
-    print "isbulk", isbulk
     Data=[]
     Bulks=[]
     BulkDepths=[]
@@ -806,7 +797,7 @@ def make_aniso_depthplot(ani_file, meas_file, samp_file, age_file=None, fmt='svg
         location=Data[0]['er_location_name']
     else:
         print 'no data to plot'
-        return False
+        return False, False
         #sys.exit()
     # collect the data for plotting tau and V3_inc
     Depths,Tau1,Tau2,Tau3,V3Incs,P=[],[],[],[],[],[]
@@ -846,9 +837,8 @@ def make_aniso_depthplot(ani_file, meas_file, samp_file, age_file=None, fmt='svg
         Axs.append(ax)
         ax.plot(Tau1,Depths,'rs') 
         ax.plot(Tau2,Depths,'b^') 
-        ax.plot(Tau3,Depths,'ko') 
+        ax.plot(Tau3,Depths,'ko')
         ax.axis([tau_min,tau_max,dmax,dmin])
-        print "ax", ax
         ax.set_xlabel('Eigenvalues')
         if depth_scale=='sample_core_depth':
             ax.set_ylabel('Depth (mbsf)')
@@ -874,67 +864,8 @@ def make_aniso_depthplot(ani_file, meas_file, samp_file, age_file=None, fmt='svg
             ax4.axis([bmin-1,bmax+1,dmax,dmin])
             ax4.set_xlabel('Bulk Susc. (uSI)')
         for x in Axs:pmagplotlib.delticks(x) # this makes the x-tick labels more reasonable - they were overcrowded using the defaults
-        figname=location+'_ani-depthplot'+fmt
-        print "Axs", Axs
-        for ax in Axs:
-            print ax.get_visible()
-
-        if True:
-            #print main_plot
-            print 'done'
-            print "main_plot", main_plot
-            return main_plot
-        """
-        if verbose:
-            pylab.draw()
-            ans=raw_input("S[a]ve plot? Return to quit ")
-            if ans=='a':
-                pylab.savefig(figname)
-                print 'Plot saved as ',figname
-        elif plots:
-            pylab.savefig(figname)
-            print 'Plot saved as ',figname
-            print 'MAIN PLOT', main_plot
-            print type(main_plot)
-            return main_plot
-        sys.exit()
-           
-    else:
-        print "No data points met your criteria - try again"
-        """
+        fig_name = location + '_ani_depthplot.' + fmt
+        return main_plot, fig_name
 
 
-    """
 
-    
-    fig = Figure()
-    axes = fig.add_subplot(111)
-
-    Axs = []
-    pcol = 2
-    Tau1, Tau2, Tau3 = range(1, 10), range(2, 11), range(3, 12)
-    print Tau1, Tau2, Tau3
-    Depths = [r*2.5 for r in range(1, 10)]
-    tau_min = 0
-    tau_max = 30
-    dmax, dmin = 0, 60
-    main_plot = plt.figure(1,figsize=(10,8)) # make the figure
-    version_num='hello'
-    P = range(4, 13)
-    P_min = 0
-    P_max = 50
-    location = 'here'
-    fmt = 'format'
-    plt.figtext(.02,.01,version_num) # attach the pmagpy version number
-    ax=plt.subplot(1,pcol,1) # make the first column
-    Axs.append(ax)
-    axes.plot(Tau1,Depths,'rs') 
-    axes.plot(Tau2,Depths,'b^') 
-    axes.plot(Tau3,Depths,'ko') 
-    axes.axis([tau_min,tau_max,dmax,dmin])
-    axes.set_xlabel('Eigenvalues')
-    axes.set_ylabel('Depth (mbsf)')
-    print "fig", fig
-    return fig
-
-    """

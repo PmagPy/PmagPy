@@ -9,6 +9,7 @@ import pmag
 import subprocess
 import wx.grid
 from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigureCanvas
+from matplotlib import pyplot as plt
 import pmag_widgets as pw
 import thellier_gui_dialogs
 import thellier_gui
@@ -1598,7 +1599,6 @@ class Ani_depthplot(wx.Frame):
         sampfile = os.path.join(self.WD, 'er_samples.txt')
         self.check_and_add_file(sampfile, self.bSizer2.file_path)
 
-
         #---sizer 3---
         self.bSizer3 = pw.radio_buttons(pnl, ['svg', 'eps', 'pdf', 'png'], "Save plot in this format:")
         
@@ -1610,7 +1610,6 @@ class Ani_depthplot(wx.Frame):
 
         #---sizer  6---
         self.bSizer6 = pw.labeled_text_field(pnl, label="maximum depth to plot (in meters)")
-
 
         #---buttons ---
         hboxok = pw.btn_panel(self, pnl)
@@ -1652,10 +1651,6 @@ class Ani_depthplot(wx.Frame):
         text = "provide er_samples/er_ages file"
         pw.on_add_file_button(self.bSizer2, self.WD, event, text)
 
-    #def on_add_ages_button(self, event):
-    #    text = "provide er_ages file"
-    #    pw.on_add_file_button(self.bSizer3, self.WD, event, text)
-
     def on_sample_or_age(self, event):
         if event.GetId() == self.bSizer2a.rb1.GetId():
             self.bSizer2.add_file_button.SetLabel('add er_samples_file')
@@ -1668,7 +1663,6 @@ class Ani_depthplot(wx.Frame):
         if os.path.isfile(infile):
             add_here.SetValue(infile)
 
-
     def on_okButton(self, event):
         ani_file = self.bSizer0.return_value()
         meas_file = self.bSizer1.return_value()
@@ -1680,38 +1674,26 @@ class Ani_depthplot(wx.Frame):
             age_file = self.bSizer2.return_value()
         fmt = self.bSizer3.return_value()
         depth_scale = self.bSizer4.return_value()
-        if depth_scale:
-            depth_scale = 'mbsf'
+        if age_file:
+            depth_scale='age'
+        elif depth_scale:
+            depth_scale = 'sample_core_depth' #'mbsf'
         else:
-            depth_scale = 'mcd'
+            depth_scale = 'sample_composite_depth' #'mcd'
         dmin = self.bSizer5.return_value() or -1
         dmax = self.bSizer6.return_value() or -1
 
-
-
         # for use as module:
         import ipmag
-        fig = ipmag.make_aniso_depthplot(ani_file, meas_file, samp_file)#, age_file, fmt, dmin, dmax, depth_scale)
-        print 'age_file', age_file
-        print 'fmt', fmt
-        print "dmin", dmin, "dmax", dmax
-        print 'depth_scale', depth_scale
-        
-        print "fig made!", fig
+        fig, figname = ipmag.make_aniso_depthplot(ani_file, meas_file, samp_file, age_file, fmt, float(dmin), float(dmax), depth_scale)
         if fig:
-            plot_frame = wx.Frame(None, -1, size=(800, 500))
-            plot_panel = wx.Panel(plot_frame, -1)
-            canvas = FigureCanvas(plot_panel, -1, fig)
-            sizer = wx.BoxSizer(wx.VERTICAL)
-            sizer.Add(canvas, 1, wx.LEFT | wx.TOP | wx.GROW) # having/removing wx.GROW doesn't matter
-            plot_panel.SetSizer(sizer)
-            #sizer.Fit(plot_panel)
-            
-            #plot_panel.Centre()
-            #plot_panel.Show()
-            plot_frame.Centre()
-            plot_frame.Show()
-
+            self.Destroy()
+            dpi = fig.get_dpi()
+            pixel_width = dpi * fig.get_figwidth()
+            pixel_height = dpi * fig.get_figheight()
+            plot_frame = PlotFrame((pixel_width, pixel_height + 50), fig, figname)
+        else:
+            pw.simple_warning("No data points met your criteria - try again")
 
         ## for use as command_line:
         #ani_file = "-f " + os.path.basename(ani_file)
@@ -1856,6 +1838,9 @@ class ClearWD(wx.MessageDialog):
         else:
             print "{} has not been emptied".format(WD)
 
+
+            
+
 #consider using this instead (will preserve permissions of directory, but this may or may not be crucial)
 #def emptydir(top):
 #    if(top == '/' or top == "\\"): return
@@ -1865,3 +1850,47 @@ class ClearWD(wx.MessageDialog):
 #                os.remove(os.path.join(root, name))
 #            for name in dirs:
 #                os.rmdir(os.path.join(root, name))
+
+
+class PlotFrame(wx.Frame):
+    def __init__(self, size, figure, figname):
+        super(PlotFrame, self).__init__(None, -1, size=size)
+        self.figure = figure
+        self.figname = figname
+        panel = wx.Panel(self, -1)
+        canvas = FigureCanvas(panel, -1, self.figure)
+        btn_panel = self.make_btn_panel()
+        sizer = wx.BoxSizer(wx.VERTICAL)
+        sizer.Add(canvas, 1, wx.LEFT | wx.TOP | wx.GROW) # having/removing wx.GROW doesn't matter
+        sizer.Add(btn_panel, flag=wx.CENTRE|wx.ALL, border=5)
+        panel.SetSizer(sizer)
+        sizer.Fit(panel) # MIGHT HAVE TO TAKE THIS LINE OUT!!!
+        self.Centre()
+        self.Show()
+
+
+    def make_btn_panel(self):
+        hbox = wx.BoxSizer(wx.HORIZONTAL)
+        btn_save = wx.Button(self, -1, "Save plot")
+        self.Bind(wx.EVT_BUTTON, self.on_save, btn_save)
+        btn_discard = wx.Button(self, -1, "Discard plot")
+        self.Bind(wx.EVT_BUTTON, self.on_discard, btn_discard)
+        hbox.AddMany([(btn_save, 1, wx.RIGHT, 5), (btn_discard)])
+        return hbox
+
+    def on_save(self, event):
+        print 'saving plot'
+        plt.savefig(self.figname)
+        dlg = wx.MessageDialog(None, message="Plot saved as {}".format(self.figname), style=wx.OK)
+        dlg.ShowModal()
+        dlg.Destroy()
+        self.Destroy()
+
+    def on_discard(self, event):
+        dlg = wx.MessageDialog(self, "Are you sure you want to delete this plot?", "Not so fast", style=wx.YES_NO|wx.NO_DEFAULT|wx.ICON_EXCLAMATION)
+        response = dlg.ShowModal()
+        if response == wx.ID_YES:
+            dlg.Destroy()
+            self.Destroy()
+        
+
