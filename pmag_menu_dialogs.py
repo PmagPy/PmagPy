@@ -1879,7 +1879,6 @@ class PlotFrame(wx.Frame):
         return hbox
 
     def on_save(self, event):
-        print 'saving plot'
         plt.savefig(self.figname)
         dlg = wx.MessageDialog(None, message="Plot saved as {}".format(self.figname), style=wx.OK)
         dlg.ShowModal()

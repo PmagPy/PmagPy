@@ -3,6 +3,7 @@ import pmagplotlib
 import pylab
 import numpy as np
 import random
+import matplotlib
 import matplotlib.pyplot as plt
 import os
 import sys
@@ -830,10 +831,12 @@ def make_aniso_depthplot(ani_file, meas_file, samp_file, age_file=None, fmt='svg
         P_min=min(P)
         #dmax=dmax+.05*dmax
         #dmin=dmin-.05*dmax
-        main_plot = pylab.figure(1,figsize=(10,8)) # make the figure
+
+        main_plot = plt.figure(1,figsize=(10,8)) # make the figure
+        
         version_num=pmag.get_version()
-        pylab.figtext(.02,.01,version_num) # attach the pmagpy version number
-        ax=pylab.subplot(1,pcol,1) # make the first column
+        plt.figtext(.02,.01,version_num) # attach the pmagpy version number
+        ax=plt.subplot(1,pcol,1) # make the first column
         Axs.append(ax)
         ax.plot(Tau1,Depths,'rs') 
         ax.plot(Tau2,Depths,'b^') 
@@ -846,19 +849,19 @@ def make_aniso_depthplot(ani_file, meas_file, samp_file, age_file=None, fmt='svg
             ax.set_ylabel('Age ('+age_unit+')')
         else:
             ax.set_ylabel('Depth (mcd)')
-        ax2=pylab.subplot(1,pcol,2) # make the second column
+        ax2=plt.subplot(1,pcol,2) # make the second column
         ax2.plot(P,Depths,'rs') 
         ax2.axis([P_min,P_max,dmax,dmin])
         ax2.set_xlabel('P')
         ax2.set_title(location)
         Axs.append(ax2)
-        ax3=pylab.subplot(1,pcol,3)
+        ax3=plt.subplot(1,pcol,3)
         Axs.append(ax3)
         ax3.plot(V3Incs,Depths,'ko') 
         ax3.axis([0,90,dmax,dmin])
         ax3.set_xlabel('V3 Inclination')
         if pcol==4:
-            ax4=pylab.subplot(1,pcol,4)
+            ax4=plt.subplot(1,pcol,4)
             Axs.append(ax4)
             ax4.plot(Bulks,BulkDepths,'bo') 
             ax4.axis([bmin-1,bmax+1,dmax,dmin])
