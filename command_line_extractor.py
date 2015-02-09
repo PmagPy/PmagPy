@@ -91,17 +91,3 @@ def get_vars(arg_names, args_list):
         islower = arg.islower()
         vals.append(values or islower)
     return vals
-    
-
-##example usage
-#import command_line_extractor as extractor
-## make a dataframe with 3 columns: the command-line flag (minus the ‘-‘), a boolean for whether it is required, and a default value
-## the command_line_dataframe object has some defaults (which I will be adding to soon), so you only need to specify these things if they are different from or in addition to the defaults
-#dataframe = extractor.command_line_dataframe(['sav', False, 0], ['fmt', False, 'svg'], ['s', False, 20]].df
-## get the args from the command line
-#args = sys.argv
-## check through the args to make sure the required ones are present, the defaults are applied where needed
-#checked_args = extractor.extract_and_check_args(args, dataframe)
-## assign variables based on their command line flag
-#fmt, size, plot = extractor.get_vars(['fmt', 's', 'sav'], args)
-#print 'fmt', fmt, 'size', size', 'plot', plot
