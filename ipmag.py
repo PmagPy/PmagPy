@@ -1297,24 +1297,21 @@ def make_aniso_depthplot(ani_file, meas_file, samp_file, age_file=None, fmt='svg
 
 
 
-def specimens_results_magic(infile='pmag_specimens.txt', measfile='magic_measurements.txt', sampfile='er_samples.txt', sitefile='er_sites.txt', agefile='er_ages.txt', sampout='pmag_samples.txt', siteout='pmag_sites.txt', resout='pmag_results.txt', critout='pmag_criteria.txt', instout='magic_instruments.txt', fmt='svg', dir_path='.', cors=[], priorities=['DA-AC-ARM','DA-AC-TRM'], fmt='svg', dir_path='.', coord='g', user='', use_criteria=True, vgps_level='site', do_site_intensity=True, DefaultAge=["none"], avg_directions_by_sample=False, average_intensities_by_sample=False, avg_all_components=False, avg_by_polarity=False, skip_directions=False, skip_intensities=False, use_sample_latitude=False, use_paleolatitude=False):
+def specimens_results_magic(infile='pmag_specimens.txt', measfile='magic_measurements.txt', sampfile='er_samples.txt', sitefile='er_sites.txt', agefile='er_ages.txt', specout='er_specimens.txt', sampout='pmag_samples.txt', siteout='pmag_sites.txt', resout='pmag_results.txt', critout='pmag_criteria.txt', instout='magic_instruments.txt', plotsites = False, fmt='svg', dir_path='.', cors=[], priorities=['DA-AC-ARM','DA-AC-TRM'], coord='g', user='', vgps_level='site', do_site_intensity=True, DefaultAge=["none"], avg_directions_by_sample=False, avg_intensities_by_sample=False, avg_all_components=False, avg_by_polarity=False, skip_directions=False, skip_intensities=False, use_sample_latitude=False, use_paleolatitude=False, use_criteria='default'):
     """
     cors is 'corrections' 
     long docstring goes here
     DefaultAge should be [min, max, units]
+    use_criteria may be 'default', 'existing', or 'none'
     """
     # initialize some variables
     Comps=[] # list of components
     version_num=pmag.get_version()
     args=sys.argv
-    skipdirs,excrit,custom,average,plotsites,opt=1,0,0,0,0,0,0
-    get_model_lat=0 # this skips VADM calculation altogether, when get_model_lat=1, uses present day
     model_lat_file=""
-    sigcutoff,OBJ="",""
     Dcrit,Icrit,nocrit=0,0,0
     corrections=[]
     nocorrection=['DA-NL','DA-AC','DA-CR']
-    priorities=['DA-AC-ARM','DA-AC-TRM'] # priorities for anisotropy correction
 
     # do some data adjustments
     for cor in cors:
@@ -1330,10 +1327,6 @@ def specimens_results_magic(infile='pmag_specimens.txt', measfile='magic_measure
     if coord=='g':coords=['0']
     if coord=='t':coords=['100']
     if coord=='b':coords=['0','100']
-
-    if not use_criteria:
-        Dcrit,Icrit,nocrit=1,1,1 # no selection criteria
-
 
     if vgps_level == 'sample':
         vgps=1 # save sample level VGPS/VADMs
@@ -1351,86 +1344,60 @@ def specimens_results_magic(infile='pmag_specimens.txt', measfile='magic_measure
         # set model lat and
         if use_sample_latitude and use_paleolatitude:
             print "you should set a paleolatitude file OR use present day lat - not both"
+            return False
         elif use_sample_latitude:
             get_model_lat = 1
-        if use_paleolatitude:
+        elif use_paleolatitude:
             get_model_lat = 2
             try:
                 model_lat_file=dir_path+'/'+args[ind+1]
-	get_model_lat=2
-	mlat=open(model_lat_file,'rU')
-	ModelLats=[]
-	for line in mlat.readlines():
-	    ModelLat={}
-	    tmp=line.split()
-	    ModelLat["er_site_name"]=tmp[0]
-	    ModelLat["site_model_lat"]=tmp[1]
-	    ModelLat["er_sample_name"]=tmp[0] 
-	    ModelLat["sample_lat"]=tmp[1]
-	    ModelLats.append(ModelLat)
-
+                get_model_lat=2
+                mlat=open(model_lat_file,'rU')
+                ModelLats=[]
+                for line in mlat.readlines():
+                    ModelLat={}
+                    tmp=line.split()
+                    ModelLat["er_site_name"]=tmp[0]
+                    ModelLat["site_model_lat"]=tmp[1]
+                    ModelLat["er_sample_name"]=tmp[0] 
+                    ModelLat["sample_lat"]=tmp[1]
+                    ModelLats.append(ModelLat)
             except:
                 print "use_paleolatitude option requires a valid paleolatitude file"
+        else:
+            get_model_lat = 0 # skips VADM calculation entirely
                 
+                
+    if plotsites and not skip_directions: # plot by site - set up plot window
+        import pmagplotlib
+        EQ={}
+        EQ['eqarea']=1
+        pmagplotlib.plot_init(EQ['eqarea'],5,5) # define figure 1 as equal area projection
+        pmagplotlib.plotNET(EQ['eqarea']) # I don't know why this has to be here, but otherwise the first plot never plots...
+        pmagplotlib.drawFIGS(EQ)
             
-    
-    elif "-fla" in args: 
-	if '-lat' in args:
-	    print "you should set a paleolatitude file OR use present day lat - not both"
-	    sys.exit()
-	ind=args.index("-fla")
-	model_lat_file=dir_path+'/'+args[ind+1]
-	get_model_lat=2
-	mlat=open(model_lat_file,'rU')
-	ModelLats=[]
-	for line in mlat.readlines():
-	    ModelLat={}
-	    tmp=line.split()
-	    ModelLat["er_site_name"]=tmp[0]
-	    ModelLat["site_model_lat"]=tmp[1]
-	    ModelLat["er_sample_name"]=tmp[0] 
-	    ModelLat["sample_lat"]=tmp[1]
-	    ModelLats.append(ModelLat)
-	get_model_lat=2
-    elif '-lat' in args:
-	get_model_lat=1
-    if "-p" in args: 
-	plotsites=1
-	if "-fmt" in args: 
-	    ind=args.index("-fmt")
-	    fmt=args[ind+1]
-	if not skip_directions: # plot by site - set up plot window
-	    import pmagplotlib
-	    EQ={}
-	    EQ['eqarea']=1
-	    pmagplotlib.plot_init(EQ['eqarea'],5,5) # define figure 1 as equal area projection
-            pmagplotlib.plotNET(EQ['eqarea']) # I don't know why this has to be here, but otherwise the first plot never plots...
-            pmagplotlib.drawFIGS(EQ)
-            
-	infile = os.path.join(dir_path, infile)
-	measfile = os.path.join(dir_path, measfile)
-	instout = os.path.join(dir_path, instout)
-	sampfile = os.path.join(dir_path, sampfile)
-	sitefile = os.path.join(dir_path, sitefile)
-	agefile = os.path.join(dir_path, agefile)
-	specout = os.path.join(dir_path, specout)
-	sampout = os.path.join(dir_path, sampout)
-	siteout = os.path.join(dir_path, siteout)
-	resout = os.path.join(dir_path, resout)
-	critout = os.path.join(dir_path, critout)
-        
-    if "-exc" in args: # use existing pmag_criteria file 
-	if "-C" in args:
-	    print 'you can not use both existing and no criteria - choose either -exc OR -C OR neither (for default)'
-	    sys.exit()
-	crit_data,file_type=pmag.magic_read(critout)
+    infile = os.path.join(dir_path, infile)
+    measfile = os.path.join(dir_path, measfile)
+    instout = os.path.join(dir_path, instout)
+    sampfile = os.path.join(dir_path, sampfile)
+    sitefile = os.path.join(dir_path, sitefile)
+    agefile = os.path.join(dir_path, agefile)
+    specout = os.path.join(dir_path, specout)
+    sampout = os.path.join(dir_path, sampout)
+    siteout = os.path.join(dir_path, siteout)
+    resout = os.path.join(dir_path, resout)
+    critout = os.path.join(dir_path, critout)
+
+
+
+    if use_criteria == 'none':
+        Dcrit,Icrit,nocrit=1,1,1 # no selection criteria
+        crit_data=pmag.default_criteria(nocrit)
+    elif use_criteria == 'default':
+        crit_data=pmag.default_criteria(nocrit) # use default criteria
+    elif use_criteria == 'existing':
+	crit_data,file_type=pmag.magic_read(critout) # use pmag_criteria file
 	print "Acceptance criteria read in from ", critout
-    else  : # use default criteria (if nocrit set, then get really loose criteria as default)
-	crit_data=pmag.default_criteria(nocrit)
-	if nocrit==0:
-	    print "Acceptance criteria are defaults"
-	else:
-	    print "No acceptance criteria used "
     accept={}
     for critrec in crit_data:
         for key in critrec.keys():
@@ -1444,12 +1411,11 @@ def specimens_results_magic(infile='pmag_specimens.txt', measfile='magic_measure
             if key not in accept.keys() and critrec[key]!='':
                 accept[key]=critrec[key]
     #
-    #
-    if "-exc" not in args and "-C" not in args:
-        print "args",args
+    if use_criteria == 'default':
         pmag.magic_write(critout,[accept],'pmag_criteria')
         print "\n Pmag Criteria stored in ",critout,'\n'
-#
+
+        #
 # now we're done slow dancing
 #
     SiteNFO,file_type=pmag.magic_read(sitefile) # read in site data - has the lats and lons
@@ -1677,7 +1643,7 @@ def specimens_results_magic(infile='pmag_specimens.txt', measfile='magic_measure
 			if Tnum>0:DC+=1
 			PmagSiteRec['magic_method_codes']= pmag.get_list(siteD,'magic_method_codes')+':'+ 'LP-DC'+str(DC)
 			PmagSiteRec['magic_method_codes'].strip(":")
-			if plotsites==1:
+			if plotsites:
                             print PmagSiteRec['er_site_name']
                             pmagplotlib.plotSITE(EQ['eqarea'],PmagSiteRec,siteD,key) # plot and list the data
                             pmagplotlib.drawFIGS(EQ)
@@ -1701,7 +1667,7 @@ def specimens_results_magic(infile='pmag_specimens.txt', measfile='magic_measure
 		    PmagSiteRec['magic_method_codes']= pmag.get_list(siteD,'magic_method_codes')+':'+ 'LP-DC'+str(DC)
 		    PmagSiteRec['magic_method_codes'].strip(":")
 		    if not avg_directions_by_sample:PmagSiteRec['site_comp_name']= pmag.get_list(siteD,key+'_comp_name')
-	    	    if plotsites==1:
+	    	    if plotsites:
                         pmagplotlib.plotSITE(EQ['eqarea'],PmagSiteRec,siteD,key)
                         pmagplotlib.drawFIGS(EQ)
 		    PmagSites.append(PmagSiteRec)
@@ -1806,14 +1772,14 @@ def specimens_results_magic(infile='pmag_specimens.txt', measfile='magic_measure
          
     if not skip_intensities and nositeints!=1:
       for site in sites: # now do intensities for each site
-        if plotsites==1:print site
+        if plotsites:print site
         if not avg_intensities_by_sample: key,intlist='specimen',SpecInts # if using specimen level data
         if avg_intensities_by_sample: key,intlist='sample',PmagSamps # if using sample level data
         Ints=pmag.get_dictitem(intlist,'er_site_name',site,'T') # get all the intensities  for this site
         if len(Ints)>0: # there are some
             PmagSiteRec=pmag.average_int(Ints,key,'site') # get average intensity stuff for site table
             PmagResRec=pmag.average_int(Ints,key,'average') # get average intensity stuff for results table
-            if plotsites==1: # if site by site examination requested - print this site out to the screen
+            if plotsites: # if site by site examination requested - print this site out to the screen
                 for rec in Ints:print rec['er_'+key+'_name'],' %7.1f'%(1e6*float(rec[key+'_int']))
                 if len(Ints)>1:
                     print 'Average: ','%7.1f'%(1e6*float(PmagResRec['average_int'])),'N: ',len(Ints)
@@ -1894,4 +1860,4 @@ def specimens_results_magic(infile='pmag_specimens.txt', measfile='magic_measure
         pmag.magic_write(resout,TmpRes,'pmag_results')
         print ' results written to ',resout
     else: print "No Results level table"
-main()
+
