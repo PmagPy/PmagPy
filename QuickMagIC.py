@@ -308,21 +308,21 @@ class MagMainFrame(wx.Frame):
         outstring=self.call+"thellier_gui.py -WD %s"%self.WD
         print "-I- running python script:\n %s"%(outstring)
         # to run as module:
-        #import thellier_gui
-        #thellier_gui.do_main(self.WD)
+        import thellier_gui
+        thellier_gui.do_main(self.WD)
         
         # to run as command line:
-        os.system(outstring)
+        #os.system(outstring)
 
     def on_run_demag_gui(self,event):
         outstring=self.call+"demag_gui.py -WD %s"%self.WD
         print "-I- running python script:\n %s"%(outstring)
-        # for use as module:
-        #import demag_gui
-        #demag_gui.do_main(self.WD)
+        # to run as module:
+        import demag_gui
+        demag_gui.do_main(self.WD)
 
         # for use as command line:
-        os.system(outstring)
+        #os.system(outstring)
         
     def on_convert_file(self,event):
         pmag_dialogs_dia=pmag_basic_dialogs.import_magnetometer_data(self, wx.ID_ANY, '',self.WD)
