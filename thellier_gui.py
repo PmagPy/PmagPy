@@ -155,7 +155,6 @@ try:
 except:
     pass
 import stat
-import subprocess
 import shutil
 import time
 import wx
