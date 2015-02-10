@@ -81,6 +81,89 @@ def flip(D): #function simplified from PmagPy pmag.flip function
         d,i=(rec[0]-180.)%360.,-rec[1]
         Dflip.append([d,i])
     return Dflip
+
+
+def bootstrap_fold_test(Data,num_sims=100,min_untilt=-10,max_untilt=120,bedding_error=0):
+    """
+    Conduct a bootstrap fold test (Tauxe and Watson, 1994)
+    
+    Three plots are generated: 1) equal area plot of uncorrected data; 2) tilt-corrected equal area plot; 
+    3) bootstrap results showing the trend of the largest eigenvalues for a selection of the 
+    pseudo-samples (red dashed lines), the cumulative distribution of the eigenvalue maximum (green line)
+    and the confidence bounds that enclose 95% of the pseudo-sample maxima. If the confidence bounds enclose
+    100% unfolding, the data "pass" the fold test.
+    
+    Arguments
+    ----------
+    Data : a numpy array of directional data [dec,inc,dip_direction,dip]
+    NumSims : number of bootstrap samples (default is 1000)
+    min_untilt : minimum percent untilting applied to the data (default is -10%)
+    max_untilt : maximum percent untilting applied to the data (default is 120%)
+    bedding_error : (circular standard deviation) for uncertainty on bedding poles
+    """   
+    
+    print 'doing ',num_sims,' iterations...please be patient.....'
+
+    if bedding_error!=0:
+        kappa=(81./bedding_error)**2
+    else:
+        kappa=0
+            
+    plt.figure(figsize=[5,5])
+    plot_net(1)
+    pmagplotlib.plotDI(1,Data)  # plot directions
+    plt.text(-1.1,1.15,'Geographic')
+
+    D,I=pmag.dotilt_V(Data)
+    TCs=np.array([D,I]).transpose()
+
+    plt.figure(figsize=[5,5])
+    plot_net(2)
+    pmagplotlib.plotDI(2,TCs)  # plot directions
+    plt.text(-1.1,1.15,'Tilt-corrected')
+    plt.show()
+    
+    Percs = range(min_untilt,max_untilt)
+    Cdf = []
+    Untilt = []
+    plt.figure()
+    
+    for n in range(num_sims): # do bootstrap data sets - plot first 25 as dashed red line
+            #if n%50==0:print n
+            Taus=[] # set up lists for taus
+            PDs=pmag.pseudo(Data)
+            if kappa!=0:
+                for k in range(len(PDs)):
+                    d,i=pmag.fshdev(kappa)
+                    dipdir,dip=pmag.dodirot(d,i,PDs[k][2],PDs[k][3])
+                    PDs[k][2]=dipdir            
+                    PDs[k][3]=dip
+            for perc in Percs:
+                tilt=np.array([1.,1.,1.,0.01*perc])
+                D,I=pmag.dotilt_V(PDs*tilt)
+                TCs=np.array([D,I]).transpose()
+                ppars=pmag.doprinc(TCs) # get principal directions
+                Taus.append(ppars['tau1'])
+            if n<25:plt.plot(Percs,Taus,'r--')
+            Untilt.append(Percs[Taus.index(np.max(Taus))]) # tilt that gives maximum tau
+            Cdf.append(float(n)/float(num_sims))
+    plt.plot(Percs,Taus,'k')
+    plt.xlabel('% Untilting')
+    plt.ylabel('tau_1 (red), CDF (green)')
+    Untilt.sort() # now for CDF of tilt of maximum tau
+    plt.plot(Untilt,Cdf,'g')
+    lower=int(.025*num_sims)     
+    upper=int(.975*num_sims)
+    plt.axvline(x=Untilt[lower],ymin=0,ymax=1,linewidth=1,linestyle='--')
+    plt.axvline(x=Untilt[upper],ymin=0,ymax=1,linewidth=1,linestyle='--')
+    title = '%i - %i %s'%(Untilt[lower],Untilt[upper],'percent unfolding')
+    print ""
+    print 'tightest grouping of vectors obtained at (95% confidence bounds):'
+    print title
+    print 'range of all bootstrap samples: '
+    print Untilt[0], ' - ', Untilt[-1],'percent unfolding'
+    plt.title(title)
+    plt.show()
         
 def bootstrap_common_mean(Data1,Data2,NumSims=1000):
     """
