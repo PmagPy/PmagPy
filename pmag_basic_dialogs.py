@@ -566,7 +566,9 @@ class combine_magic_dialog(wx.Frame):
 
     def on_okButton(self,event):
         files_text=self.bSizer0.file_paths.GetValue()
-        files=files_text.strip('\n').replace(" ","").split('\n')
+        files=files_text.strip('\n').replace(" ","")
+        if files:
+            files = files.split('\n')
         COMMAND="combine_magic.py -F magic_measurements.txt -f %s"%(" ".join(files) )
 
         # to run as module:
@@ -659,7 +661,6 @@ class combine_everything_dialog(wx.Frame):
         hbox_all.Fit(self)
         self.Centre()
         self.Show()
-
                         
 
     def on_cancelButton(self,event):
@@ -669,9 +670,16 @@ class combine_everything_dialog(wx.Frame):
         er_specimens = self.bSizer0.file_paths.GetValue()
         er_samples = self.bSizer1.file_paths.GetValue()
         er_sites = self.bSizer2.file_paths.GetValue()
-        spec_files = er_specimens.strip('\n').replace(" ","").split('\n')
-        samp_files = er_samples.strip('\n').replace(" ","").split('\n')
-        site_files = er_sites.strip('\n').replace(" ","").split('\n')
+        print "er_specimens", er_specimens
+        spec_files = er_specimens.strip('\n').replace(" ","")
+        if spec_files:
+            spec_files = spec_files.split('\n')
+        samp_files = er_samples.strip('\n').replace(" ","")
+        if samp_files:
+            samp_files = samp_files.split('\n')
+        site_files = er_sites.strip('\n').replace(" ","")
+        if site_files:
+            site_files.split('\n')
         new_files = []
         success = True
         if spec_files:

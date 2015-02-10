@@ -823,6 +823,9 @@ def combine_magic(filenames, outfile):
     
     """
     datasets = []
+    if not filenames:
+        print "You must provide at least one file"
+        return False
     for infile in filenames:
         if not os.path.isfile(infile):
             print "{} is not a valid file name".format(infile)
