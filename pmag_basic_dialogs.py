@@ -670,7 +670,6 @@ class combine_everything_dialog(wx.Frame):
         er_specimens = self.bSizer0.file_paths.GetValue()
         er_samples = self.bSizer1.file_paths.GetValue()
         er_sites = self.bSizer2.file_paths.GetValue()
-        print "er_specimens", er_specimens
         spec_files = er_specimens.strip('\n').replace(" ","")
         if spec_files:
             spec_files = spec_files.split('\n')
@@ -679,7 +678,7 @@ class combine_everything_dialog(wx.Frame):
             samp_files = samp_files.split('\n')
         site_files = er_sites.strip('\n').replace(" ","")
         if site_files:
-            site_files.split('\n')
+            site_files = site_files.split('\n')
         new_files = []
         success = True
         if spec_files:
