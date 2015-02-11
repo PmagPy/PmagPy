@@ -447,10 +447,12 @@ column_nmb	field_name	field_name_oracle	data_type	data_unit	data_status	field_ty
 70	Measurement Standard Deviation Z	measurement_sd_z	Number	Number in Degrees	Recommended		Standard deviation in measurements, Z	Uncertainty = 1xSD	
 71	Measurement Description	measurement_description	String(1000)	Text	Optional		Detailed description		type:description
 72	MagIC Software Packages	magic_software_packages	List(500)	Text	Recommended		Colon-delimited list of software used for data reduction	PmagPy v1.67b : FORCinel v1.11 	
-73	Method Codes	magic_method_codes	List(500)	Text	Required	R	Colon-delimited list of method codes	DE-DC0 : FT-F1 : LP-DCDMAG	in:magic_methods.magic_method_code
-74	Instrument Code	magic_instrument_codes	List(500)	Text	Required	R	Colon-delimited list of instrument codes	SIO-Bubba : IRM-OldBlue	in:magic_instruments.magic_instrument_code
-75	Analyst Names	er_analyst_mail_names	List(500)	Text	Required	R	Colon-delimited list of names for analysts	Jim R.D. Hart : Alexis Heard : Bob McIntire	in:er_mailinglist.er_mail_name
-76	Citation Names	er_citation_names	List(500)	Text	Required	R	Colon-delimited list of citations	Smith et al. 2003 : Hart & Heard 1967 : This study	in:er_citations.er_citation_name
+73	External Database Names	external_database_names	List	Text	Optional	E	Colon-delimited list of external databases where data are used	GEOMAGIA50 : CALS7K.2 : ARCHEO00	cv:database_name
+74	External Database ID Numbers	external_database_ids	List	Text	Optional		Colon-delimited list of ID numbers linking to external database records	1435 : 23 : 2329	
+75	Method Codes	magic_method_codes	List(500)	Text	Required	R	Colon-delimited list of method codes	DE-DC0 : FT-F1 : LP-DCDMAG	in:magic_methods.magic_method_code
+76	Instrument Code	magic_instrument_codes	List(500)	Text	Required	R	Colon-delimited list of instrument codes	SIO-Bubba : IRM-OldBlue	in:magic_instruments.magic_instrument_code
+77	Analyst Names	er_analyst_mail_names	List(500)	Text	Recommended	R	Colon-delimited list of names for analysts	Jim R.D. Hart : Alexis Heard : Bob McIntire	in:er_mailinglist.er_mail_name
+78	Citation Names	er_citation_names	List(500)	Text	Required	R	Colon-delimited list of citations	Smith et al. 2003 : Hart & Heard 1967 : This study	in:er_citations.er_citation_name
 >>>>>>>>>>
 tab delimited	magic_calibrations
 column_nmb	field_name	field_name_oracle	data_type	data_unit	data_status	field_type	field_description	field_examples	field_validation_rule
@@ -463,7 +465,7 @@ column_nmb	field_name	field_name_oracle	data_type	data_unit	data_status	field_ty
 7	Calibration Description	calibration_description	String(1000)	Text	Optional		Detailed description		type:description
 8	Method Codes	magic_method_codes	List(500)	Text	Required	R	Colon-delimited list of method codes	DE-DC0 : FT-F1 : LP-DCDMAG	in:magic_methods.magic_method_code
 9	Instrument Codes	magic_instrument_codes	List(500)	Text	Required	R	Colon-delimited list of instrument codes	SIO-Bubba : IRM-OldBlue	in:magic_instruments.magic_instrument_code
-10	Analyst Names	er_analyst_mail_names	List(500)	Text	Required	R	Colon-delimited list of names for analysts	Jim R.D. Hart : Alexis Heard : Bob McIntire	in:er_mailinglist.er_mail_name
+10	Analyst Names	er_analyst_mail_names	List(500)	Text	Recommended	R	Colon-delimited list of names for analysts	Jim R.D. Hart : Alexis Heard : Bob McIntire	in:er_mailinglist.er_mail_name
 11	Citation Names	er_citation_names	List(500)	Text	Required	R	Colon-delimited list of citations	Smith et al. 2003 : Hart & Heard 1967 : This study	in:er_citations.er_citation_name
 >>>>>>>>>>
 tab delimited	pmag_specimens
@@ -573,7 +575,7 @@ column_nmb	field_name	field_name_oracle	data_type	data_unit	data_status	field_ty
 103	Rotation Codes	pmag_rotation_codes	List(500)	Text	Optional	R	Colon-delimited list of rotation codes	MY-TILT1 : MY-TILT2 : MY-TRANS1	in:pmag_rotations.pmag_rotation_code
 104	Method Codes	magic_method_codes	List(500)	Text	Required	R	Colon-delimited list of method codes	DE-DC0 : FT-F1 : LP-DCDMAG	in:magic_methods.magic_method_code
 105	Instrument Codes	magic_instrument_codes	List(500)	Text	Required	R	Colon-delimited list of instrument codes	SIO-Bubba : IRM-OldBlue	in:magic_instruments.magic_instrument_code
-106	Analyst Names	er_analyst_mail_names	List(500)	Text	Required	R	Colon-delimited list of names for analysts	Jim R.D. Hart : Alexis Heard : Bob McIntire	in:er_mailinglist.er_mail_name
+106	Analyst Names	er_analyst_mail_names	List(500)	Text	Recommended	R	Colon-delimited list of names for analysts	Jim R.D. Hart : Alexis Heard : Bob McIntire	in:er_mailinglist.er_mail_name
 107	Citation Names	er_citation_names	List(500)	Text	Required	R	Colon-delimited list of citations	Smith et al. 2003 : Hart & Heard 1967 : This study	in:er_citations.er_citation_name
 >>>>>>>>>>
 tab delimited	pmag_samples
@@ -633,7 +635,7 @@ column_nmb	field_name	field_name_oracle	data_type	data_unit	data_status	field_ty
 53	Rotation Codes	pmag_rotation_codes	List(500)	Text	Optional	R	Colon-delimited list of rotation codes	MY-TILT1 : MY-TILT2 : MY-TRANS1	in:pmag_rotations.pmag_rotation_code
 54	Method Codes	magic_method_codes	List(500)	Text	Required	R	Colon-delimited list of method codes	DE-DC0 : FT-F1 : LP-DCDMAG	in:magic_methods.magic_method_code
 55	Instrument Codes	magic_instrument_codes	List(500)	Text	Required	R	Colon-delimited list of instrument codes	SIO-Bubba : IRM-OldBlue	in:magic_instruments.magic_instrument_code
-56	Analyst Names	er_analyst_mail_names	List(500)	Text	Required	R	Colon-delimited list of names for analysts	Jim R.D. Hart : Alexis Heard : Bob McIntire	in:er_mailinglist.er_mail_name
+56	Analyst Names	er_analyst_mail_names	List(500)	Text	Recommended	R	Colon-delimited list of names for analysts	Jim R.D. Hart : Alexis Heard : Bob McIntire	in:er_mailinglist.er_mail_name
 57	Citation Names	er_citation_names	List(500)	Text	Required	R	Colon-delimited list of citations	Smith et al. 2003 : Hart & Heard 1967 : This study	in:er_citations.er_citation_name
 >>>>>>>>>>
 tab delimited	pmag_sites
@@ -693,7 +695,7 @@ column_nmb	field_name	field_name_oracle	data_type	data_unit	data_status	field_ty
 53	Rotation Codes	pmag_rotation_codes	List(500)	Text	Optional	R	Colon-delimited list of rotation codes	MY-TILT1 : MY-TILT2 : MY-TRANS1	in:pmag_rotations.pmag_rotation_code
 54	Method Codes	magic_method_codes	List(500)	Text	Required	R	Colon-delimited list of method codes	DE-DC0 : FT-F1 : LP-DCDMAG	in:magic_methods.magic_method_code
 55	Instrument Codes	magic_instrument_codes	List(500)	Text	Required	R	Colon-delimited list of instrument codes	SIO-Bubba : IRM-OldBlue	in:magic_instruments.magic_instrument_code
-56	Analyst Names	er_analyst_mail_names	List(500)	Text	Required	R	Colon-delimited list of names for analysts	Jim R.D. Hart : Alexis Heard : Bob McIntire	in:er_mailinglist.er_mail_name
+56	Analyst Names	er_analyst_mail_names	List(500)	Text	Recommended	R	Colon-delimited list of names for analysts	Jim R.D. Hart : Alexis Heard : Bob McIntire	in:er_mailinglist.er_mail_name
 57	Citation Names	er_citation_names	List(500)	Text	Required	R	Colon-delimited list of citations	Smith et al. 2003 : Hart & Heard 1967 : This study	in:er_citations.er_citation_name
 >>>>>>>>>>
 tab delimited	pmag_results
@@ -798,7 +800,7 @@ column_nmb	field_name	field_name_oracle	data_type	data_unit	data_status	field_ty
 98	Criteria Codes	pmag_criteria_codes	List(500)	Text	Optional	R	Colon-delimited list of criteria codes	MY-MAD : MY-APLHA95	in:pmag_criteria.pmag_criteria_code
 99	Rotation Codes	pmag_rotation_codes	List(500)	Text	Optional	R	Colon-delimited list of rotation codes	MY-TILT1 : MY-TILT2 : MY-TRANS1	in:pmag_rotations.pmag_rotation_code
 100	Method Codes	magic_method_codes	List(500)	Text	Required	R	Colon-delimited list of method codes	DE-DC0 : FT-F1 : LP-DCDMAG	in:magic_methods.magic_method_code
-101	Analyst Names	er_analyst_mail_names	List(500)	Text	Required	R	Colon-delimited list of names for analysts	Jim R.D. Hart : Alexis Heard : Bob McIntire	in:er_mailinglist.er_mail_name
+101	Analyst Names	er_analyst_mail_names	List(500)	Text	Recommended	R	Colon-delimited list of names for analysts	Jim R.D. Hart : Alexis Heard : Bob McIntire	in:er_mailinglist.er_mail_name
 102	Citation Names	er_citation_names	List(500)	Text	Required	R	Colon-delimited list of citations	Smith et al. 2003 : Hart & Heard 1967 : This study	in:er_citations.er_citation_name
 >>>>>>>>>>
 tab delimited	pmag_rotations
@@ -986,7 +988,7 @@ column_nmb	field_name	field_name_oracle	data_type	data_unit	data_status	field_ty
 26	Criteria Codes	rmag_criteria_codes	List(500)	Text	Recommended	R	Colon-delimited list of criteria codes	MY-MAD : MY-APLHA95	in:rmag_criteria.rmag_criteria_code
 27	Method Codes	magic_method_codes	List(500)	Text	Required	R	Colon-delimited list of method codes	DE-DC0 : FT-F1 : LP-DCDMAG	in:magic_methods.magic_method_code
 28	Instrument Codes	magic_instrument_codes	List(500)	Text	Required	R	Colon-delimited list of instrument codes	SIO-Bubba : IRM-OldBlue	in:magic_instruments.magic_instrument_code
-29	Analyst Names	er_analyst_mail_names	List(500)	Text	Required	R	Colon-delimited list of names for analysts	Jim R.D. Hart : Alexis Heard : Bob McIntire	in:er_mailinglist.er_mail_name
+29	Analyst Names	er_analyst_mail_names	List(500)	Text	Recommended	R	Colon-delimited list of names for analysts	Jim R.D. Hart : Alexis Heard : Bob McIntire	in:er_mailinglist.er_mail_name
 30	Citation Names	er_citation_names	List(500)	Text	Required	R	Colon-delimited list of citations	Smith et al. 2003 : Hart & Heard 1967 : This study	in:er_citations.er_citation_name
 >>>>>>>>>>
 tab delimited	rmag_remanence
@@ -1043,7 +1045,7 @@ column_nmb	field_name	field_name_oracle	data_type	data_unit	data_status	field_ty
 50	Criteria Codes	rmag_criteria_codes	List(500)	Text	Recommended	R	Colon-delimited list of criteria codes	MY-MAD : MY-APLHA95	in:rmag_criteria.rmag_criteria_code
 51	Method Codes	magic_method_codes	List(500)	Text	Required	R	Colon-delimited list of method codes	DE-DC0 : FT-F1 : LP-DCDMAG	in:magic_methods.magic_method_code
 52	Instrument Codes	magic_instrument_codes	List(500)	Text	Required	R	Colon-delimited list of instrument codes	SIO-Bubba : IRM-OldBlue	in:magic_instruments.magic_instrument_code
-53	Analyst Names	er_analyst_mail_names	List(500)	Text	Required	R	Colon-delimited list of names for analysts	Jim R.D. Hart : Alexis Heard : Bob McIntire	in:er_mailinglist.er_mail_name
+53	Analyst Names	er_analyst_mail_names	List(500)	Text	Recommended	R	Colon-delimited list of names for analysts	Jim R.D. Hart : Alexis Heard : Bob McIntire	in:er_mailinglist.er_mail_name
 54	Citation Names	er_citation_names	List(500)	Text	Required	R	Colon-delimited list of citations	Smith et al. 2003 : Hart & Heard 1967 : This study	in:er_citations.er_citation_name
 >>>>>>>>>>
 tab delimited	rmag_hysteresis
@@ -1085,7 +1087,7 @@ column_nmb	field_name	field_name_oracle	data_type	data_unit	data_status	field_ty
 35	Criteria Codes	rmag_criteria_codes	List(500)	Text	Recommended	R	Colon-delimited list of criteria codes	MY-MAD : MY-APLHA95	in:rmag_criteria.rmag_criteria_code
 36	Method Codes	magic_method_codes	List(500)	Text	Required	R	Colon-delimited list of method codes	DE-DC0 : FT-F1 : LP-DCDMAG	in:magic_methods.magic_method_code
 37	Instrument Codes	magic_instrument_codes	List(500)	Text	Required	R	Colon-delimited list of instrument codes	SIO-Bubba : IRM-OldBlue	in:magic_instruments.magic_instrument_code
-38	Analyst Names	er_analyst_mail_names	List(500)	Text	Required	R	Colon-delimited list of names for analysts	Jim R.D. Hart : Alexis Heard : Bob McIntire	in:er_mailinglist.er_mail_name
+38	Analyst Names	er_analyst_mail_names	List(500)	Text	Recommended	R	Colon-delimited list of names for analysts	Jim R.D. Hart : Alexis Heard : Bob McIntire	in:er_mailinglist.er_mail_name
 39	Citation Names	er_citation_names	List(500)	Text	Required	R	Colon-delimited list of citations	Smith et al. 2003 : Hart & Heard 1967 : This study	in:er_citations.er_citation_name
 >>>>>>>>>>
 tab delimited	rmag_anisotropy
@@ -1122,7 +1124,7 @@ column_nmb	field_name	field_name_oracle	data_type	data_unit	data_status	field_ty
 30	Criteria Codes	rmag_criteria_codes	List(500)	Text	Recommended	R	Colon-delimited list of criteria codes	MY-MAD : MY-APLHA95	in:rmag_criteria.rmag_criteria_code
 31	Method Codes	magic_method_codes	List(500)	Text	Required	R	Colon-delimited list of method codes	DE-DC0 : FT-F1 : LP-DCDMAG	in:magic_methods.magic_method_code
 32	Instrument Codes	magic_instrument_codes	List(500)	Text	Required	R	Colon-delimited list of instrument codes	SIO-Bubba : IRM-OldBlue	in:magic_instruments.magic_instrument_code
-33	Analyst Names	er_analyst_mail_names	List(500)	Text	Required	R	Colon-delimited list of names for analysts	Jim R.D. Hart : Alexis Heard : Bob McIntire	in:er_mailinglist.er_mail_name
+33	Analyst Names	er_analyst_mail_names	List(500)	Text	Recommended	R	Colon-delimited list of names for analysts	Jim R.D. Hart : Alexis Heard : Bob McIntire	in:er_mailinglist.er_mail_name
 34	Citation Names	er_citation_names	List(500)	Text	Required	R	Colon-delimited list of citations	Smith et al. 2003 : Hart & Heard 1967 : This study	in:er_citations.er_citation_name
 >>>>>>>>>>
 tab delimited	rmag_results
@@ -1193,7 +1195,7 @@ column_nmb	field_name	field_name_oracle	data_type	data_unit	data_status	field_ty
 64	Criteria Codes	rmag_criteria_codes	List(500)	Text	Optional	R	Colon-delimited list of criteria codes	MY-MAD : MY-APLHA95	in:rmag_criteria.rmag_criteria_code
 65	Method Codes	magic_method_codes	List(500)	Text	Required	R	Colon-delimited list of method codes	DE-DC0 : FT-F1 : LP-DCDMAG	in:magic_methods.magic_method_code
 66	Instrument Codes	magic_instrument_codes	List(500)	Text	Required	R	Colon-delimited list of instrument codes	SIO-Bubba : IRM-OldBlue	in:magic_instruments.magic_instrument_code
-67	Analyst Names	er_analyst_mail_names	List(500)	Text	Required	R	Colon-delimited list of names for analysts	Jim R.D. Hart : Alexis Heard : Bob McIntire	in:er_mailinglist.er_mail_name
+67	Analyst Names	er_analyst_mail_names	List(500)	Text	Recommended	R	Colon-delimited list of names for analysts	Jim R.D. Hart : Alexis Heard : Bob McIntire	in:er_mailinglist.er_mail_name
 68	Citation Names	er_citation_names	List(500)	Text	Required	R	Colon-delimited list of citations	Smith et al. 2003 : Hart & Heard 1967 : This study	in:er_citations.er_citation_name
 >>>>>>>>>>
 tab delimited	rmag_criteria
