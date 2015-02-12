@@ -23,7 +23,11 @@ class choose_file(wx.StaticBoxSizer):
         self.Add(wx.StaticText(self.parent, label=TEXT),flag=wx.ALIGN_LEFT)
         self.AddSpacer(4)
         if remove_button:
-            rm_button = wx.Button(self.parent, id=-1, label="remove file", name="remove file")
+            if isinstance(remove_button, str):
+                label = remove_button
+            else:
+                label = "remove file"
+            rm_button = wx.Button(self.parent, id=-1, label=label, name="remove file")
             self.Add(rm_button, flag=wx.BOTTOM, border=4)
             self.parent.Bind(wx.EVT_BUTTON, self.on_remove_button, rm_button)
         bSizer0_1=wx.BoxSizer(wx.HORIZONTAL)
@@ -132,7 +136,6 @@ class labeled_spin_ctrl(wx.StaticBoxSizer):
         self.parent = parent
         box = wx.StaticBox(self.parent, wx.ID_ANY, "")
         super(labeled_spin_ctrl, self).__init__(box, orient=wx.HORIZONTAL)
-        #hbox = wx.BoxSizer(wx.HORIZONTAL)
         text = wx.StaticText(self.parent, label=TEXT)
         self.spin_ctrl = wx.SpinCtrl(parent, value='5', initial=5)
         self.Add(text, flag=wx.RIGHT, border=5)
