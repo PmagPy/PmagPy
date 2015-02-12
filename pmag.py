@@ -3117,7 +3117,7 @@ def doincfish(inc):
 
 def dokent(data,NN):
     """
-    gets Kent  parameters for data
+    gets Kent  parameters for data ([D,I],N)
     """
     X,kpars=[],{}
     N=len(data)
@@ -3152,7 +3152,7 @@ def dokent(data,NN):
     T=Tmatrix(X)
     for i in range(3):
         for j in range(3):
-            T[i][j]=T[i][j]/float(N)
+            T[i][j]=T[i][j]/float(NN)
 #
 # compute B=H'TH
 #
@@ -3221,7 +3221,7 @@ def dokent(data,NN):
 
 def doprinc(data):
     """
-    gets principal components from data in form of [dec1,inc1,dec2,inc2]
+    gets principal components from data in form of an array of [dec,inc] data.
     """
     ppars={}
     rad=numpy.pi/180.

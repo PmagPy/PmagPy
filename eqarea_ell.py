@@ -19,17 +19,19 @@ def main():
         -h prints help message and quits
         -f FILE
         -fmt [svg,png,jpg] format for output plots
+        -sav  saves figures and quits
         -ell [F,K,B,Be,Bv] plot Fisher, Kent, Bingham, Bootstrap ellipses or Boostrap eigenvectors
     """
     FIG={} # plot dictionary
     FIG['eq']=1 # eqarea is figure 1
-    fmt,dist,mode='svg','F',1
+    fmt,dist,mode,plot='svg','F',1,0
     sym={'lower':['o','r'],'upper':['o','w'],'size':10}
     plotE=0
     if '-h' in sys.argv:
         print main.__doc__
         sys.exit()
     pmagplotlib.plot_init(FIG['eq'],5,5)
+    if '-sav' in sys.argv:plot=1
     if '-f' in sys.argv:
         ind=sys.argv.index("-f")
         title=sys.argv[ind+1]
@@ -52,7 +54,7 @@ def main():
     DIblock=numpy.array([data[0],data[1]]).transpose()
     if len(DIblock)>0: 
         pmagplotlib.plotEQsym(FIG['eq'],DIblock,title,sym)
-        pmagplotlib.drawFIGS(FIG)
+        if plot==0:pmagplotlib.drawFIGS(FIG)
     else:
         print "no data to plot"
         sys.exit()
@@ -203,8 +205,8 @@ def main():
                 pmagplotlib.plotCONF(FIG['eq'],etitle,[],rpars,0)
         elif len(rDIs)>3 and dist!='BV':
             pmagplotlib.plotCONF(FIG['eq'],etitle,[],rpars,0)
-        pmagplotlib.drawFIGS(FIG)
-    pmagplotlib.drawFIGS(FIG)
+        if plot==0:pmagplotlib.drawFIGS(FIG)
+    if plot==0:pmagplotlib.drawFIGS(FIG)
         #
     files={}
     for key in FIG.keys():
@@ -216,9 +218,11 @@ def main():
         titles['eq']='Equal Area Plot'
         FIG = pmagplotlib.addBorders(FIG,titles,black,purple)
         pmagplotlib.saveP(FIG,files)
-    else:
+    elif plot==0:
         ans=raw_input(" S[a]ve to save plot, [q]uit, Return to continue:  ")
         if ans=="q": sys.exit()
         if ans=="a": 
             pmagplotlib.saveP(FIG,files) 
+    else:
+        pmagplotlib.saveP(FIG,files)
 main() 

@@ -24,6 +24,7 @@ def main():
         -b MIN MAX bounds for quick search of percent untilting [default is -10 to 150%]
         -n NB  number of bootstrap samples [default is 1000]
         -fmt FMT, specify format - default is svg
+        -sav  save figures and quit
     
     OUTPUT PLOTS
         Geographic: is an equal area projection of the input data in 
@@ -50,7 +51,7 @@ def main():
 nd the number of bootstrap samples
     """
     kappa=0
-    fmt='svg'
+    fmt,plot='svg',0
     nb=1000 # number of bootstraps
     min,max=-10,150
     if '-h' in sys.argv: # check if help is needed
@@ -71,6 +72,7 @@ nd the number of bootstrap samples
     if '-fmt' in sys.argv:
         ind=sys.argv.index('-fmt')
         fmt=sys.argv[ind+1]
+    if '-sav' in sys.argv:plot=1
     if '-b' in sys.argv:
         ind=sys.argv.index('-b')
         min=float(sys.argv[ind+1])
@@ -93,7 +95,7 @@ nd the number of bootstrap samples
     D,I=pmag.dotilt_V(DIDDs)
     TCs=numpy.array([D,I]).transpose()
     pmagplotlib.plotEQ(PLTS['strat'],TCs,'Stratigraphic')
-    pmagplotlib.drawFIGS(PLTS)
+    if plot==0:pmagplotlib.drawFIGS(PLTS)
     Percs=range(min,max)
     Cdf,Untilt=[],[]
     pylab.figure(num=PLTS['taus'])
@@ -132,14 +134,14 @@ nd the number of bootstrap samples
     pylab.title(tit)
     outstring= '%i - %i; %i\n'%(Untilt[lower],Untilt[upper],nb)
     if outfile!="":outfile.write(outstring)
-    pmagplotlib.drawFIGS(PLTS)
-    ans= raw_input('S[a]ve all figures, <Return> to quit   ')
-    if ans!='a':
-        print "Good bye"
-        sys.exit()
-    else:
-        files={}
-        for key in PLTS.keys():
-            files[key]=('foldtest_'+'%s'%(key.strip()[:2])+'.'+fmt)
-        pmagplotlib.saveP(PLTS,files)
+    files={}
+    for key in PLTS.keys():
+        files[key]=('foldtest_'+'%s'%(key.strip()[:2])+'.'+fmt)
+    if plot==0:
+        pmagplotlib.drawFIGS(PLTS)
+        ans= raw_input('S[a]ve all figures, <Return> to quit   ')
+        if ans!='a':
+            print "Good bye"
+            sys.exit()
+    pmagplotlib.saveP(PLTS,files)
 main()

@@ -18,6 +18,8 @@ def main():
         -h help message
         -f FILE, specify file on command line
         -F FILE, specify output file for statistics
+        -sav save and quit [saves as input file name plus fmt extension]
+        -fmt specify format for output [png, eps, svg, pdf] 
 
     OUTPUT:
         Dec Inc N Mu Mu_crit Me Me_crit Y/N
@@ -37,6 +39,10 @@ def main():
     if '-F' in sys.argv:
         ind=sys.argv.index('-F')
         outfile=open(sys.argv[ind+1],'w') # open output file
+    if '-sav' in sys.argv: plot=1
+    if '-fmt' in sys.argv:
+        ind=sys.argv.index('-fmt')
+        fmt=sys.argv[ind+1]
     DIs,nDIs,rDIs= [],[],[] # set up list for data
     for line in data:   # read in the data from standard input
         if '\t' in line:
@@ -123,10 +129,9 @@ def main():
                F='N'
             outstring='%7.1f %7.1f %i %5.3f %5.3f %5.3f %5.3f %s \n'%(Drbar,Irbar,Nr,Mu_r,Mu_rcr,Me_r,Me_rcr,F)
             outfile.write(outstring)
-    pmagplotlib.drawFIGS(QQ) 
     files={}
     for key in QQ.keys():
-        files[key]=key+'.'+fmt 
+        files[key]=file+'_'+key+'.'+fmt 
     if pmagplotlib.isServer:
         black     = '#000000'
         purple    = '#800080'
@@ -135,9 +140,9 @@ def main():
         EQ = pmagplotlib.addBorders(EQ,titles,black,purple)
         pmagplotlib.saveP(QQ,files)
     elif plot==1:
-        files['qq']=file+'.'+fmt 
         pmagplotlib.saveP(QQ,files)
     else:
+        pmagplotlib.drawFIGS(QQ) 
         ans=raw_input(" S[a]ve to save plot, [q]uit without saving:  ")
         if ans=="a": pmagplotlib.saveP(QQ,files) 
 main()
