@@ -155,7 +155,7 @@ def main(command_line=True, **kwargs):
         mag_file = kwargs.get('mag_file', '')
         labfield = kwargs.get('labfield', '')
         if labfield: 
-            labfield = float(labfield)
+            labfield = float(labfield) *1e-6
         else:
             labfield = 0
         phi = kwargs.get('phi', 0)
@@ -170,7 +170,7 @@ def main(command_line=True, **kwargs):
             theta = 0
         peakfield = kwargs.get('peakfield', 0)
         if peakfield: 
-            peakfield=float(peakfield)
+            peakfield=float(peakfield) *1e-3
         else:
             peakfield = 0 
         specnum = kwargs.get('specnum', 0)

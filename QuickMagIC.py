@@ -465,7 +465,7 @@ class MagMainFrame(wx.Frame):
         # to run as module:
         ipmag.upload_magic()
         del wait
-        TXT="Check terminal (Mac) or command prompt (windows) for error/warnings.\nIf all went well, a file name upload_dos.txt was generated in MagIC Project Directory.\nDrag and drop this file in the MagIC database."
+        TXT="Check terminal (Mac) or command prompt (windows) for error/warnings.\nIf all went well, a file name upload.txt was generated in MagIC Project Directory.\nDrag and drop this file in the MagIC database."
         dlg = wx.MessageDialog(self, caption="Saved",message=TXT,style=wx.OK)
         result = dlg.ShowModal()
         if result == wx.ID_OK:            

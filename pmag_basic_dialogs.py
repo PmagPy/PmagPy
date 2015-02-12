@@ -1259,7 +1259,7 @@ class convert_HUJI_files_to_MagIC(wx.Frame):
         old_format= self.bSizer0a.return_value()
         if old_format:
             # to run as command line:
-            #COMMAND = "HUJI_magic.py -f {} -F {} {} -LP {} {} -ncn {} {} {} {}".format(HUJI_file, outfile, user, experiment_type, loc_name, ncn, lab_field, spc, peak_AF)
+            COMMAND = "HUJI_magic.py -f {} -F {} {} -LP {} {} -ncn {} {} {} {}".format(HUJI_file, outfile, user, experiment_type, loc_name, ncn, lab_field, spc, peak_AF)
             #pw.run_command_and_close_window(self, COMMAND, outfile)
             
             # to run as module:
@@ -1270,7 +1270,7 @@ class convert_HUJI_files_to_MagIC(wx.Frame):
                 pw.simple_warning()
         else: # new format
             # to run as command line:
-            #COMMAND = "HUJI_magic_new.py -f {} -F {} {} -LP {} {} -ncn {} {} {} {}".format(HUJI_file, outfile, user, experiment_type, loc_name, ncn, lab_field, spc, peak_AF)
+            COMMAND = "HUJI_magic_new.py -f {} -F {} {} -LP {} {} -ncn {} {} {} {}".format(HUJI_file, outfile, user, experiment_type, loc_name, ncn, lab_field, spc, peak_AF)
             #pw.run_command_and_close_window(self, COMMAND, outfile)
             
             # to run as module:
