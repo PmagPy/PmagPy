@@ -82,8 +82,7 @@ def flip(D): #function simplified from PmagPy pmag.flip function
         Dflip.append([d,i])
     return Dflip
 
-
-def bootstrap_fold_test(Data,num_sims=100,min_untilt=-10,max_untilt=120,bedding_error=0):
+def bootstrap_fold_test(Data,num_sims=1000,min_untilt=-10,max_untilt=120,bedding_error=0):
     """
     Conduct a bootstrap fold test (Tauxe and Watson, 1994)
     
