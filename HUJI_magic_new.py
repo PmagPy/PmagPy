@@ -163,7 +163,9 @@ def main(command_line=True, **kwargs):
         labfield = int(kwargs.get('labfield', 0)) *1e-3
         phi = kwargs.get('phi', 0)
         theta = kwargs.get('theta', 0)
-        peakfield = kwargs.get('peakfield', 0) *1e-3
+        peakfield = kwargs.get('peakfield', 0)
+        if peakfield:
+            peakfield = float(peakfield)*1e-3
         er_location_name = kwargs.get('er_location_name', '')
         samp_con = kwargs.get('samp_con', '1')
         codelist = kwargs.get('codelist', '')
