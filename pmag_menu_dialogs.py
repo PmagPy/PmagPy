@@ -1281,16 +1281,52 @@ class Core_depthplot(wx.Frame):
 
     def InitUI(self):
         pnl = self.panel
-        TEXT = "This program allows you to plot various measurement data versus sample depth."
+        TEXT = "This program allows you to plot various measurement data versus sample depth.\nYou must provide either a magic_measurements file or a pmag_results file (or, you can use both)."
         bSizer_info = wx.BoxSizer(wx.HORIZONTAL)
         bSizer_info.Add(wx.StaticText(pnl, label=TEXT), wx.ALIGN_LEFT)
 
         #---sizer 0 ----
-        self.bSizer0 = pw.choose_file(pnl, btn_text='add measurements file', method = self.on_add_file_button)
-        measfile = os.path.join(self.WD, 'magic_measurements.txt')
-        self.check_and_add_file(measfile, self.bSizer0.file_path)
+        self.bSizer0 = pw.choose_file(pnl, btn_text='add measurements file', method = self.on_add_measurements_button, remove_button="Don't use measurements file")
 
-        #---sizer 2 ---
+        meas_file = os.path.join(self.WD, 'magic_measurements.txt')
+        self.check_and_add_file(meas_file, self.bSizer0.file_path)
+
+
+        #---sizer 4 ---
+        color_choices = ['blue', 'green','red','cyan','magenta', 'yellow', 'black','white']
+        self.bSizer4 = pw.radio_buttons(pnl, color_choices, "choose color for plot points")
+
+        #---sizer 5 ---
+        shape_choices = ['circle', 'triangle_down','triangle_up','square', 'star','hexagon','+','x','diamond']
+        shape_symbols =['o', 'v', '^', 's', '*', 'h', '+', 'x', 'd']
+        self.shape_choices_dict = dict(zip(shape_choices, shape_symbols))
+        self.bSizer5 = pw.radio_buttons(pnl, shape_choices, "choose shape for plot points")
+
+        #---sizer 5a---
+        #self.bSizer5a = pw.labeled_text_field(pnl, "point size (default is 5)")
+        self.bSizer5a = pw.labeled_spin_ctrl(pnl, "point size (default is 5): ")
+        self.bSizer5b = pw.check_box(pnl, "No lines connecting points")
+
+
+        self.Bind(wx.EVT_TEXT, self.change_file_path, self.bSizer0.file_path)
+
+
+        
+
+        #---sizer 0a---
+        self.bSizer0a = pw.choose_file(pnl, btn_text='add pmag_results file', method = self.on_add_pmag_results_button, remove_button="Don't use pmag results file")
+        res_file = os.path.join(self.WD, 'pmag_results.txt')
+        self.check_and_add_file(res_file, self.bSizer0a.file_path)
+
+        #--- plotting stuff for pmag_results
+        self.bSizer0a1 = pw.radio_buttons(pnl, color_choices, "choose color for plot points")
+        self.bSizer0a2 = pw.radio_buttons(pnl, shape_choices, "choose shape for plot points")
+        self.bSizer0a3 = pw.labeled_spin_ctrl(pnl, "point size (default is 5): ")
+        
+        self.Bind(wx.EVT_TEXT, self.change_results_path, self.bSizer0a.file_path)
+
+        
+        #---sizer 1 ---
         self.bSizer1a = pw.labeled_yes_or_no(pnl, "Choose file to provide sample data", "er_samples", "er_ages")
         self.Bind(wx.EVT_RADIOBUTTON, self.on_sample_or_age, self.bSizer1a.rb1)
         self.Bind(wx.EVT_RADIOBUTTON, self.on_sample_or_age, self.bSizer1a.rb2)
@@ -1306,29 +1342,26 @@ class Core_depthplot(wx.Frame):
         plot_choices = ['Plot declination', 'Plot inclination', 'Plot magnetization', 'Plot magnetization on log scale']
         self.bSizer3 = pw.check_boxes(pnl, (5, 1, 0, 0), plot_choices, "Choose what to plot:")
 
-        #---sizer 4 ---
-        color_choices = ['blue', 'green','red','cyan','magenta', 'yellow', 'black','white']
-        self.bSizer4 = pw.radio_buttons(pnl, color_choices, "choose color for plot points")
 
-        #---sizer 5 ---
-        shape_choices = ['circle', 'triangle_down','triangle_up','triangle_right','triangle_left', 'square', 'pentagon','star','hexagon','+','x','diamond','|','-']
-        shape_symbols =['o', 'v', '^', '>', '<', 's', 'p', '*', 'h', '+', 'x', 'd', '|', '_']
-        self.shape_choices_dict = dict(zip(shape_choices, shape_symbols))
-        self.bSizer5 = pw.radio_buttons(pnl, shape_choices, "choose shape for plot points")
+        #---sizer 13---
+        protocol_choices = ['AF', 'T', 'ARM', 'IRM', 'X']
+        self.bSizer13 = pw.radio_buttons(pnl, protocol_choices, "Lab Protocol:  ", orientation=wx.HORIZONTAL)
 
-        #---sizer 5a---
-        #self.bSizer5a = pw.labeled_text_field(pnl, "point size (default is 5)")
-        self.bSizer5a = pw.labeled_spin_ctrl(pnl, "point size (default is 5): ")
-        self.bSizer5b = pw.check_box(pnl, "No lines connecting points")
-        
+        self.bSizer14 = pw.labeled_text_field(pnl, "Step:  ")
+
+        self.bSizer15 = pw.check_box(pnl, "Do not plot blanket treatment data")
+
+        self.bSizer16 = pw.radio_buttons(pnl, ['svg', 'eps', 'pdf', 'png'], "Save plot in this format:")
+
+        #---sizer 8 ---
+        self.bSizer8 = pw.labeled_yes_or_no(pnl, "Depth scale", "Meters below sea floor (mbsf)", "Meters composite depth (mcd)")
+
+
         #---sizer 6 ---
         self.bSizer6 = pw.labeled_text_field(pnl, label="minimum depth to plot (in meters)")
 
         #---sizer  7---
         self.bSizer7 = pw.labeled_text_field(pnl, label="maximum depth to plot (in meters)")
-
-        #---sizer 8 ---
-        self.bSizer8 = pw.labeled_yes_or_no(pnl, "Depth scale", "Meters below sea floor (mbsf)", "Meters composite depth (mcd)")
 
         #---sizer 9 ---
         self.bSizer9 = pw.check_box(pnl, "Plot GPTS?")
@@ -1341,19 +1374,8 @@ class Core_depthplot(wx.Frame):
 
         self.bSizer12 = pw.labeled_text_field(pnl, label="Upper bound (in Ma)")
 
-        #---sizer 13---
-        protocol_choices = ['AF', 'T', 'ARM', 'IRM', 'X']
-        self.bSizer13 = pw.radio_buttons(pnl, protocol_choices, "Lab Protocol:  ", orientation=wx.HORIZONTAL)
 
-        self.bSizer14 = pw.labeled_text_field(pnl, "Step:  ")
-
-        self.bSizer15 = pw.check_box(pnl, "Do not plot blanket treatment data")
-
-        self.bSizer16 = pw.radio_buttons(pnl, ['svg', 'eps', 'pdf', 'png'], "Save plot in this format:")
-
-        #-fmt [svg, eps, pdf, png] specify output format for plot (default: svg)
         #-sav save plot silently
-
 
         
         #---buttons ---
@@ -1365,16 +1387,19 @@ class Core_depthplot(wx.Frame):
         box2 = wx.StaticBox(pnl)
         box3 = wx.StaticBox(pnl)
         box4 = wx.StaticBox(pnl)
-        vbox1 = wx.StaticBoxSizer(box1, wx.VERTICAL)
+        box5 = wx.StaticBox(pnl)
+        self.vbox1 = wx.StaticBoxSizer(box1, wx.VERTICAL)
         vbox2 = wx.StaticBoxSizer(box2, wx.VERTICAL)
         vbox3 = wx.StaticBoxSizer(box3, wx.VERTICAL)
         vbox4 = wx.StaticBoxSizer(box4, wx.VERTICAL)
+        self.vbox5 = wx.StaticBoxSizer(box5, wx.VERTICAL)
         mini_vbox = wx.BoxSizer(wx.VERTICAL)
         hbox0 = wx.BoxSizer(wx.HORIZONTAL)
         hbox1 = wx.BoxSizer(wx.HORIZONTAL)
         hbox2 = wx.BoxSizer(wx.HORIZONTAL)
         hbox3 = wx.BoxSizer(wx.HORIZONTAL)
         hbox4 = wx.BoxSizer(wx.HORIZONTAL)
+        hbox5 = wx.BoxSizer(wx.HORIZONTAL)
 
         #---Plot type and format ---
         hbox0.AddMany([self.bSizer3, self.bSizer16])
@@ -1384,8 +1409,14 @@ class Core_depthplot(wx.Frame):
         hbox1.Add(self.bSizer4)
         hbox1.Add(self.bSizer5, flag=wx.ALIGN_LEFT)
         hbox1.Add(mini_vbox, flag=wx.ALIGN_LEFT)
-        vbox1.Add(wx.StaticText(pnl, label="Plot display options"))
-        vbox1.Add(hbox1, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        self.vbox1.Add(wx.StaticText(pnl, label="Plot display options for measurements data"))
+        self.vbox1.Add(hbox1, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+
+        # more plot display options
+
+        hbox5.AddMany([self.bSizer0a1, self.bSizer0a2, self.bSizer0a3])
+        self.vbox5.Add(wx.StaticText(pnl, label="Plot display options for results data"))
+        self.vbox5.Add(hbox5)
 
 
         #---depths to plot ---
@@ -1415,11 +1446,16 @@ class Core_depthplot(wx.Frame):
         #---add all widgets to main container---
         vbox.Add(bSizer_info, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(self.bSizer0, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        vbox.Add(self.vbox1, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        
+        vbox.Add(self.bSizer0a, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        vbox.Add(self.vbox5, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        
         vbox.Add(self.bSizer1a, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(self.bSizer1, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(self.bSizer2, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(hbox0)
-        vbox.Add(vbox1, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+
         vbox.Add(vbox4, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(self.bSizer8, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(vbox2, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
@@ -1429,23 +1465,62 @@ class Core_depthplot(wx.Frame):
         vbox.Add(hboxok, flag=wx.ALIGN_CENTER)        
         vbox.AddSpacer(20)
 
-        hbox_all = wx.BoxSizer(wx.HORIZONTAL)
-        hbox_all.AddSpacer(20)
-        hbox_all.AddSpacer(vbox)
+        self.hbox_all = wx.BoxSizer(wx.HORIZONTAL)
+        self.hbox_all.AddSpacer(20)
+        self.hbox_all.AddSpacer(vbox)
 
-        self.panel.SetSizer(hbox_all)
+        self.panel.SetSizer(self.hbox_all)
         self.panel.SetScrollbars(20, 20, 50, 50)
-        hbox_all.Fit(self)
+
+        
+        # hide plotting stuff
+        # no longer hiding this initially -- it causes a sizing nightmare
+        #if not self.bSizer0.file_path.GetValue():
+            #self.vbox1.ShowItems(False)
+
+        #if not self.bSizer0a.file_path.GetValue():
+            #self.vbox5.ShowItems(False)
+
+
+        self.hbox_all.Fit(self)
+
+        # hide gpts stuff
         self.bSizer10.ShowItems(False)
         self.bSizer11.ShowItems(False)
         self.bSizer12.ShowItems(False)
         self.Show()
         self.Centre()
 
-    def on_add_file_button(self, event):
+
+    def change_results_path(self, event):
+        txt_ctrl = event.GetEventObject()
+        if txt_ctrl.GetValue():
+            self.vbox5.ShowItems(True)
+            self.panel.Layout() # resizes scrolled window
+            #self.hbox_all.Fit(self) # resizes entire frame
+        else:
+            self.vbox5.ShowItems(False)
+            self.panel.Layout()
+
+    def change_file_path(self, event):
+        txt_ctrl = event.GetEventObject()
+        if txt_ctrl.GetValue():
+            self.vbox1.ShowItems(True)
+            self.panel.Layout() # resizes scrolled window
+            #self.hbox_all.Fit(self) # resizes entire frame
+
+        else:
+            self.vbox1.ShowItems(False)
+            self.panel.Layout()
+
+
+    def on_add_measurements_button(self, event):
         text = "choose file to convert to MagIC"
         pw.on_add_file_button(self.bSizer0, self.WD, event, text)
 
+    def on_add_pmag_results_button(self, event):
+        text = "choose file to convert to MagIC"
+        pw.on_add_file_button(self.bSizer0a, self.WD, event, text)
 
     def on_sample_or_age(self, event):
         if event.GetId() == self.bSizer1a.rb1.GetId():
@@ -1459,11 +1534,9 @@ class Core_depthplot(wx.Frame):
         if os.path.isfile(infile):
             add_here.SetValue(infile)
 
-        
     def on_add_samples_button(self, event):
         text = "provide er_samples/er_ages file"
         pw.on_add_file_button(self.bSizer1, self.WD, event, text)
-
 
     def on_add_csv_button(self, event):
         text = "provide csv file (optional)"
@@ -1478,9 +1551,9 @@ class Core_depthplot(wx.Frame):
             self.bSizer10.ShowItems(False)
             self.bSizer11.ShowItems(False)
             self.bSizer12.ShowItems(False)
+        self.panel.Layout()
+        #self.hbox_all.Fit(self)
 
-
-        
     def on_okButton(self, event):
         """
         meas_file # -f magic_measurements_file
@@ -1498,6 +1571,16 @@ class Core_depthplot(wx.Frame):
         fmt # -fmt format
         """
         meas_file = self.bSizer0.return_value()
+        res_file = self.bSizer0a.return_value()
+        res_sym_shape, res_sym_color, res_sym_size = "", "", ""
+
+        if res_file:
+            # get symbol/size for dots
+            res_sym_shape = self.shape_choices_dict[self.bSizer0a2.return_value()]
+            res_sym_color = self.bSizer0a1.return_value()[0]
+            res_sym_size = self.bSizer0a3.return_value()
+            #print res_sym_shape, res_sym_color, res_sym_size
+    
         use_sampfile = self.bSizer1a.return_value()
         if use_sampfile:
             samp_file = self.bSizer1.return_value()
@@ -1539,7 +1622,7 @@ class Core_depthplot(wx.Frame):
                 logit = 1
                 
         fmt = self.bSizer16.return_value()
-        print "meas_file", meas_file, "samp_file", samp_file, "age_file", age_file, "depth_scale", depth_scale, "dmin", dmin, "dmax", dmax, "ts", ts, "amin", amin, "amax", amax, "sym", sym, "size", size, "method", method, "step", step, "pltD", pltD, "pltI", pltI, "pltM", pltM, "logit", logit, "fmt", fmt
+        print "meas_file", meas_file, "res_file", res_file, "res_sym_shape", res_sym_shape, "res_sym_color", res_sym_color, "res_sym_size", res_sym_size, "samp_file", samp_file, "age_file", age_file, "depth_scale", depth_scale, "dmin", dmin, "dmax", dmax, "ts", ts, "amin", amin, "amax", amax, "sym", sym, "size", size, "method", method, "step", step, "pltD", pltD, "pltI", pltI, "pltM", pltM, "logit", logit, "fmt", fmt
 
         """
         haven't done these options yet
@@ -1722,7 +1805,7 @@ class Ani_depthplot(wx.Frame):
         self.Parent.Raise()
 
     def on_helpButton(self, event):
-        pw.on_helpButton(".py -h")
+        pw.on_helpButton("ANI_depthplot.py -h")
 
 
 

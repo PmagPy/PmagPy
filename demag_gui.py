@@ -37,7 +37,7 @@
 global CURRENT_VRSION
 CURRENT_VRSION = "v.0.30"
 import matplotlib
-matplotlib.use('WXAgg')
+#matplotlib.use('WXAgg')
 
 from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigCanvas 
 from matplotlib.backends.backend_wxagg import NavigationToolbar2WxAgg as NavigationToolbar
@@ -3333,10 +3333,11 @@ class Zeq_GUI(wx.Frame):
             dlg1 = wx.MessageDialog(None,caption="Warning:", message=TEXT ,style=wx.OK|wx.CANCEL|wx.ICON_EXCLAMATION)
             if dlg1.ShowModal() == wx.ID_OK:
                 dlg1.Destroy()
-                #self.Destroy()
-                sys.exit()
+                self.Destroy()
+                #sys.exit()
         else:
-            sys.exit()
+            self.Destroy()
+            #sys.exit()
         
 #        dlg1 = wx.MessageDialog(None,caption="Warning:", message="Exiting program.\nSave all interpretation to a 'redo' file or to MagIC specimens result table\n\nPress OK to exit" ,style=wx.OK|wx.CANCEL|wx.ICON_INFORMATION)
 #        if dlg1.ShowModal() == wx.ID_OK:
@@ -3862,20 +3863,27 @@ class Zeq_GUI(wx.Frame):
         run_script_flags=["specimens_results_magic.py","-fsp","pmag_specimens.txt", "-xI",  "-WD", str(self.WD)]
         if dia.cb_acceptance_criteria.GetValue()==True:
             run_script_flags.append("-exc")
+            use_criteria='existing'
         else:
             run_script_flags.append("-C")
+            use_criteria='none'
 
         #-- coordinate system
         if dia.rb_spec_coor.GetValue()==True:
-            run_script_flags.append("-crd");  run_script_flags.append("s")       
+            run_script_flags.append("-crd");  run_script_flags.append("s")
+            coord = "s"
         if dia.rb_geo_coor.GetValue()==True:
-            run_script_flags.append("-crd");  run_script_flags.append("g")       
+            run_script_flags.append("-crd");  run_script_flags.append("g")
+            coord = "g"
         if dia.rb_tilt_coor.GetValue()==True:
-            run_script_flags.append("-crd");  run_script_flags.append("t")       
+            run_script_flags.append("-crd");  run_script_flags.append("t")
+            coord = "t"
         if dia.rb_geo_tilt_coor.GetValue()==True:
-            run_script_flags.append("-crd");  run_script_flags.append("b")       
+            run_script_flags.append("-crd");  run_script_flags.append("b")
+            coord = "b"
         
-        #-- default age options 
+        #-- default age options
+        DefaultAge= ["none"]
         if dia.cb_default_age.GetValue()==True:
             try:
                 min_age="%f"%float(dia.default_age_min.GetValue()) 
@@ -3885,13 +3893,18 @@ class Zeq_GUI(wx.Frame):
             age_units= dia.default_age_unit.GetValue()       
             run_script_flags.append("-age"); run_script_flags.append(min_age)
             run_script_flags.append(max_age); run_script_flags.append(age_units)
+            DefaultAge=[min_age, max_age, age_units]
 
-        #-- sample mean 
+        #-- sample mean
+        avg_directions_by_sample = False
         if dia.cb_sample_mean.GetValue()==True:
-            run_script_flags.append("-aD") 
-                
+            run_script_flags.append("-aD")
+            avg_directions_by_sample = True
+            
+        vgps_level = 'site'
         if dia.cb_sample_mean_VGP.GetValue()==True:
-            run_script_flags.append("-sam") 
+            run_script_flags.append("-sam")
+            vgps_level = 'sample'
 
         #-- site mean
          
@@ -3899,9 +3912,10 @@ class Zeq_GUI(wx.Frame):
             pass
             
         #-- location mean
-         
+        avg_by_polarity=False
         if dia.cb_location_mean.GetValue()==True:
             run_script_flags.append("-pol")
+            avg_by_polarity=True
 
         for FILE in ['pmag_samples.txt','pmag_sites.txt','pmag_results.txt']:
             self.PmagRecsOld[FILE]=[]
@@ -3924,7 +3938,13 @@ class Zeq_GUI(wx.Frame):
         #print  run_script_flags
         outstring=" ".join(run_script_flags)
         print "-I- running python script:\n %s"%(outstring)
-        os.system(outstring)
+        #os.system(outstring)
+
+        import ipmag
+        print 'coord', coord, 'vgps_level', vgps_level, 'DefaultAge', DefaultAge, 'avg_directions_by_sample', avg_directions_by_sample, 'avg_by_polarity', avg_by_polarity, 'use_criteria', use_criteria
+        ipmag.specimens_results_magic(coord=coord, vgps_level=vgps_level, DefaultAge=DefaultAge, avg_directions_by_sample=avg_directions_by_sample, avg_by_polarity=avg_by_polarity, use_criteria=use_criteria)
+
+        
         #    subprocess.call(run_script_flags, shell=True)                
         # reads new pmag tables, and merge the old lines:
         for FILE in ['pmag_samples.txt','pmag_sites.txt','pmag_results.txt']:
@@ -4095,17 +4115,25 @@ def alignToTop(win):
     
 
 
-def do_main(WD=None):
-    app = wx.PySimpleApp()
-    app.frame = Zeq_GUI(WD)
-    app.frame.Center()
-    #alignToTop(app.frame)
-    dw, dh = wx.DisplaySize() 
-    w, h = app.frame.GetSize()
-    #print 'display 2', dw, dh
-    #print "gui 2", w, h
-    app.frame.Show()
-    app.MainLoop()
+def do_main(WD=None, standalone_app=True):
+    # to run as module:
+    if not standalone_app:
+        frame = Zeq_GUI(WD)
+        frame.Center()
+        frame.Show()
+
+    # to run as command_line:
+    else:
+        app = wx.PySimpleApp()
+        app.frame = Zeq_GUI(WD)
+        app.frame.Center()
+        #alignToTop(app.frame)
+        dw, dh = wx.DisplaySize() 
+        w, h = app.frame.GetSize()
+        #print 'display 2', dw, dh
+        #print "gui 2", w, h
+        app.frame.Show()
+        app.MainLoop()
 
 if __name__ == '__main__':
     do_main()

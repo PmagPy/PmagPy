@@ -9,7 +9,7 @@ import wx.html
 
 class choose_file(wx.StaticBoxSizer):
 
-    def __init__(self, parent, orient=wx.VERTICAL, btn_text='add', method=None):
+    def __init__(self, parent, orient=wx.VERTICAL, btn_text='add', method=None, remove_button=False):
         box = wx.StaticBox( parent, wx.ID_ANY, "" )
         super(choose_file, self).__init__(box, orient=wx.VERTICAL)
         self.btn_text = btn_text
@@ -20,14 +20,25 @@ class choose_file(wx.StaticBoxSizer):
         if method:
             self.parent.Bind(wx.EVT_BUTTON, method, self.add_file_button)
         TEXT="Choose file (no spaces are allowed in path):"
-        self.Add(wx.StaticText(self.parent, label=TEXT),wx.ALIGN_LEFT)
+        self.Add(wx.StaticText(self.parent, label=TEXT),flag=wx.ALIGN_LEFT)
         self.AddSpacer(4)
+        if remove_button:
+            if isinstance(remove_button, str):
+                label = remove_button
+            else:
+                label = "remove file"
+            rm_button = wx.Button(self.parent, id=-1, label=label, name="remove file")
+            self.Add(rm_button, flag=wx.BOTTOM, border=4)
+            self.parent.Bind(wx.EVT_BUTTON, self.on_remove_button, rm_button)
         bSizer0_1=wx.BoxSizer(wx.HORIZONTAL)
         bSizer0_1.Add(self.add_file_button, wx.ALIGN_LEFT)
         bSizer0_1.AddSpacer(4)
         bSizer0_1.Add(self.file_path, wx.ALIGN_LEFT)
         self.Add(bSizer0_1, wx.ALIGN_LEFT)
 
+    def on_remove_button(self, event):
+        self.file_path.SetValue("")
+        
     def return_value(self):
         return self.file_path.GetValue()
 
@@ -125,7 +136,6 @@ class labeled_spin_ctrl(wx.StaticBoxSizer):
         self.parent = parent
         box = wx.StaticBox(self.parent, wx.ID_ANY, "")
         super(labeled_spin_ctrl, self).__init__(box, orient=wx.HORIZONTAL)
-        #hbox = wx.BoxSizer(wx.HORIZONTAL)
         text = wx.StaticText(self.parent, label=TEXT)
         self.spin_ctrl = wx.SpinCtrl(parent, value='5', initial=5)
         self.Add(text, flag=wx.RIGHT, border=5)

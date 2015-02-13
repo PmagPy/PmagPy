@@ -723,7 +723,7 @@ class convert_tdt_files_to_MagIC(wx.Frame):
                                                                 
                         MagRec={}
                         MagRec['er_citation_names']="This study"
-                        labfield=float(header_line['labfield'])*1e-6 # convert from microT to Tesal
+                        labfield=float(header_line['labfield'])*1e-6 # convert from microT to Tesla
                         MagRec["magic_experiment_name"]=""
                         #------------------
                         # Body data

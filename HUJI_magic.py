@@ -110,6 +110,7 @@ def main(command_line=True, **kwargs):
     labfield = 0
     er_location_name = ""
     codelist = None
+    noave = 0
 
     # get command line args
     if command_line:
@@ -151,17 +152,22 @@ def main(command_line=True, **kwargs):
             codelist=args[ind+1]
         if "-A" in args:
             noave=1
-        else:
-            noave=0
+
             
     if not command_line:
         user = kwargs.get('user', '')
         meas_file = kwargs.get('meas_file', 'magic_measurements.txt')
         magfile = kwargs.get('magfile', '')
-        labfield = int(kwargs.get('labfield', 0))
+        labfield = int(kwargs.get('labfield', 0))*1e-6
         phi = kwargs.get('phi', 0)
         theta = kwargs.get('theta', 0)
+        print kwargs.get('peakfield')
+        print len(kwargs.get('peakfield'))
         peakfield = kwargs.get('peakfield', 0)
+        if peakfield:
+            peakfield = float(peakfield) *1e-3
+        else:
+            peakfield = 0
         specnum = int(kwargs.get('specnum', 0))
         er_location_name = kwargs.get('er_location_name', '')
         samp_con = kwargs.get('samp_con')

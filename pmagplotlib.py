@@ -2,7 +2,15 @@
 import sys,os
 sys.path.insert(0,os.getcwd())
 import numpy
-from pmagpyrc import *
+
+#from pmagpyrc import *
+# stuff to replace above line:
+import matplotlib
+#matplotlib.use("TkAgg")
+isServer = False
+verbose = True
+
+
 #wmpl_version=matplotlib.__version__
 import pmag,pylab,exceptions,sys
 globals = 0
@@ -11,6 +19,8 @@ global version_num
 version_num=pmag.get_version()
 #matplotlib.ticker_Formatter.xaxis.set_powerlimits((-3,4))
 #matplotlib.ticker_Formatter.yaxis.set_powerlimits((-3,4))
+
+
 def poly(X,Y,deg):
     return pylab.polyfit(X,Y,deg)
 def showFIG(fig):
@@ -57,7 +67,8 @@ def plot_init(fignum,w,h):
     plt_num+=1
     pylab.figure(num=fignum,figsize=(w,h),dpi=dpi)
     if not isServer:
-        pylab.get_current_fig_manager().window.wm_geometry('+%d+%d' % (fig_x_pos,fig_y_pos))
+        pylab.get_current_fig_manager().show()
+        #pylab.get_current_fig_manager().window.wm_geometry('+%d+%d' % (fig_x_pos,fig_y_pos)) # this only works with matplotlib.use('TKAgg')
         fig_x_pos = fig_x_pos + dpi*(w) + 25
         if plt_num==3:
             plt_num=0

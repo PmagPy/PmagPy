@@ -1,6 +1,9 @@
 #!/usr/bin/env python
 import pmag,sys
-def main(command_line=True, **kwargs):
+import ipmag
+import command_line_extractor as extractor
+
+def main():
     """
     NAME
         upload_magic.py
@@ -22,8 +25,43 @@ def main(command_line=True, **kwargs):
 
     OUTPUT
         upload.txt:  file for uploading to MagIC database
+    """    
+    if '-h' in sys.argv:
+        print main.__doc__
+        sys.exit()
+    else:
+        dataframe = extractor.command_line_dataframe([['all', False, 0], ['cat', False, 0], ['F', False, ''], ['f', False, '']])
+        checked_args = extractor.extract_and_check_args(sys.argv, dataframe)
+        All, dir_path, concat = extractor.get_vars(['all', 'WD', 'cat'], checked_args)
+        ipmag.upload_magic(int(concat), int(All), dir_path[0])
+        
+
+
+"""
+def main(command_line=True, **kwargs):
+
+    NAME
+        upload_magic.py
+   
+    DESCRIPTION
+        This program will prepare your PMAG text files created by the programs nfo_magic.py, 
+        zeq_magic.py, thellier_magic.py, mag_magic, specimens_results_magic.py and so on.  
+        it will check for all the MagIC text files and skip the missing ones
     
-    """
+    SYNTAX
+        upload_magic.py 
+
+    INPUT
+        MagIC txt files
+
+    OPTIONS
+        -h prints help message and quits
+        -all include all the measurement data, default is only those used in interpretations
+
+    OUTPUT
+        upload.txt:  file for uploading to MagIC database
+    
+
 #   set up filenames to upload
     concat,All=0,0
     dir_path='.'
@@ -165,6 +203,7 @@ def main(command_line=True, **kwargs):
     print "Finished preparing upload.txt file "
     if not validated:
         print "-W- validation of upload file has failed.\nPlease fix above errors and try again.\nYou may run into problems if you try to upload this file to the MagIC database" 
+"""
 
 if __name__ == '__main__':
     main()

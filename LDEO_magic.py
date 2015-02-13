@@ -177,10 +177,10 @@ is031c2       .0  SD  0 461.600 163.9  17.5  337.1  74.5  319.1  74.4    .0   .0
         synfile = kwargs.get('synfile', 'er_synthetics.txt')
         # rm samp_file = kwargs.get('samp_file', '')
         magfile = kwargs.get('magfile', '')
-        labfield = int(kwargs.get('labfield', 0))
+        labfield = int(kwargs.get('labfield', 0)) *1e-6
         phi = int(kwargs.get('phi', 0))
         theta = int(kwargs.get('theta', 0))
-        peakfield = int(kwargs.get('peakfield', 0))
+        peakfield = int(kwargs.get('peakfield', 0))*1e-3
         specnum = int(kwargs.get('specnum', 0))
         er_location_name = kwargs.get('er_location_name', '')
         # rm samp_infile = kwargs.get('samp_infile', '')

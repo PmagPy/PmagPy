@@ -17,9 +17,8 @@ class command_line_dataframe():
     """
 
     def __init__(self, changes=None):
-        self.default_dict = {'arg_name': ['f', 'F', 'A', 'WD'], 'reqd': [True, False, False, False], 'default': ['', '', '', '.']}
-        self.df = pd.DataFrame(self.default_dict, index=['f', 'F', 'A', 'WD'])
-        change_df = None
+        self.default_dict = {'arg_name': ['f', 'F', 'A', 'WD', 'ID'], 'reqd': [True, False, False, False, False], 'default': ['', '', '', '.', '.']}
+        self.df = pd.DataFrame(self.default_dict, index=['f', 'F', 'A', 'WD', 'ID'])
         arg_names = self.df['arg_name']
         if changes:
             for change in changes:
@@ -29,9 +28,8 @@ class command_line_dataframe():
                     self.df.loc[change[0], 'default'] = change[2]
                 else:
                     #print 'putting in:', change
-                    change_df = pd.DataFrame({'arg_name': [change[0]], 'reqd': [change[1]], 'default': [change[2]]}, index=[change[0]])
-        if change_df:
-            self.df = pd.concat([self.df, d])
+                    d = pd.DataFrame({'arg_name': [change[0]], 'reqd': [change[1]], 'default': [change[2]]}, index=[change[0]])
+                    self.df = pd.concat([self.df, d])
             
 def extract_args(argv):
     """
