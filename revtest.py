@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 import sys,pmagplotlib,pmag,exceptions
-import matplotlib
+import numpy
 def main():
     """
     NAME
@@ -13,39 +13,33 @@ def main():
        takes dec/inc as first two columns in space delimited file
    
     SYNTAX
-       revtest.py [-h] [-i] [command line options]
+       revtest.py [-h] [command line options]
     
     OPTION
        -h prints help message and quits
-       -i for interactive entry of file names from command line
        -f FILE, sets input filename on command line
        -fmt [svg,png,jpg], sets format for image output
+       -sav saves the figures silently and quits
                
 
     """
-    D,fmt=[],'svg'
+    fmt,plot='svg',0
     if '-h' in sys.argv: # check if help is needed
         print main.__doc__
         sys.exit() # graceful quit
-    if '-i' in sys.argv: # ask for filename
-        file=raw_input("Enter file name with dec, inc data: ")
-        f=open(file,'rU')
-        data=f.readlines()
-    elif '-f' in sys.argv:
+    if '-f' in sys.argv:
         ind=sys.argv.index('-f')
         file=sys.argv[ind+1]
-        f=open(file,'rU')
-        data=f.readlines()
-        if '-fmt' in sys.argv:
-            ind=sys.argv.index('-fmt')
-            fmt=sys.argv[ind+1]
-    for line in data:
-        if '\t' in line:
-            rec=line.split('\t') # split each line on space to get records
-        else:
-            rec=line.split() # split each line on space to get records
-        Dec,Inc=float(rec[0]),float(rec[1]) 
-        D.append([Dec,Inc,1.])
+        data=numpy.loadtxt(file).transpose()
+        D=numpy.array([data[0],data[1]]).transpose()
+    else: 
+        print '-f is a required switch'
+        print main.__doc__
+        print sys.exit()
+    if '-fmt' in sys.argv:
+        ind=sys.argv.index('-fmt')
+        fmt=sys.argv[ind+1]
+    if '-sav' in sys.argv:plot=1
 # set up plots
     d=""
     CDF={'X':1,'Y':2,'Z':3}
@@ -65,15 +59,17 @@ def main():
     print 'doing second mode, be patient'
     BDI2=pmag.di_boot(D2)
     pmagplotlib.plotCOM(CDF,BDI1,BDI2,[""])
-    pmagplotlib.drawFIGS(CDF)
-    ans=  raw_input("s[a]ve plots, [q]uit: ")
-    if ans=='a':
-        files={}
-        for key in CDF.keys():
-            files[key]='REV'+'_'+key+'.'+fmt 
-        pmagplotlib.saveP(CDF,files)
-    else:
+    files={}
+    for key in CDF.keys():
+        files[key]='REV'+'_'+key+'.'+fmt 
+    if plot==0:
+        pmagplotlib.drawFIGS(CDF)
+        ans=  raw_input("s[a]ve plots, [q]uit: ")
+        if ans=='a':
+            pmagplotlib.saveP(CDF,files)
         print 'good bye'
         sys.exit()
+    else:
+        pmagplotlib.saveP(CDF,files)
 main()
 

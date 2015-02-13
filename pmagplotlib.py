@@ -2259,7 +2259,7 @@ def plotCOM(CDF,BDI1,BDI2,d):
     Z1,y=plotCDF(CDF['Z'],Z1,"Z component",'r',"")
     bounds1=[Z1[min],Z1[max]]
     plotVs(CDF['Z'],bounds1,'r','-')
-    drawFIGS(CDF)
+    #drawFIGS(CDF)
     if d[0]=="": # repeat for second data set
         bounds2=[]
         cart= pmag.dir2cart(BDI2).transpose()

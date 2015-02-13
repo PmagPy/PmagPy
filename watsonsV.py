@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import sys,pmagplotlib,pmag
+import numpy
 def main():
     """
     NAME
@@ -18,48 +19,48 @@ def main():
         -h prints help message and quits
         -f FILE (with optional second)
         -f2 FILE (second file) 
-        -ant,  flip antipodal directions in FILE to opposite direction
-        -P  (don't plot)
+        -ant,  flip antipodal directions to opposite direction
+           in first file if only one file or flip all in second, if two files 
+        -P  (don't save or show plot)
+        -sav save figure and quit silently
+        -fmt [png,svg,eps,pdf,jpg] format for saved figure
 
     OUTPUT
         Watson's V and the Monte Carlo Critical Value Vc.
         in plot, V is solid and Vc is dashed.
 
     """
-    D1,D2=[],[]
     Flip=0
-    plot=1
+    show,plot=1,0
+    fmt='svg'
+    file2=""
     if '-h' in sys.argv: # check if help is needed
         print main.__doc__
         sys.exit() # graceful quit
     if '-ant' in  sys.argv: Flip=1
-    if '-P' in  sys.argv: plot=0
+    if '-sav' in sys.argv: show,plot=0,1 # don't display, but do save plot
+    if '-fmt' in sys.argv: 
+        ind=sys.argv.index('-fmt')
+        fmt=sys.argv[ind+1]
+    if '-P' in  sys.argv: show=0 # don't display or save plot
     if '-f' in sys.argv:
         ind=sys.argv.index('-f')
         file1=sys.argv[ind+1]
-    f=open(file1,'rU')
-    for line in f.readlines():
-        rec=line.split()
-        Dec,Inc=float(rec[0]),float(rec[1]) 
-        D1.append([Dec,Inc,1.])
-    f.close()
+        data=numpy.loadtxt(file1).transpose()
+        D1=numpy.array([data[0],data[1]]).transpose()
+    else:
+        print "-f is required"
+        print main.__doc__
+        sys.exit()
     if '-f2' in sys.argv:
         ind=sys.argv.index('-f2')
         file2=sys.argv[ind+1]
-        f=open(file2,'rU')
-        for line in f.readlines():
-            if '\t' in line:
-                rec=line.split('\t') # split each line on space to get records
-            else:
-                rec=line.split() # split each line on space to get records
-            Dec,Inc=float(rec[0]),float(rec[1]) 
-            if Flip==0:
-                D2.append([Dec,Inc,1.])
-            else:
-                D1.append([Dec,Inc,1.])
-        f.close()
+        data2=numpy.loadtxt(file2).transpose()
+        D2=numpy.array([data2[0],data2[1]]).transpose()
         if Flip==1:
-            D1,D2=pmag.flip(D1)
+            D2,D=pmag.flip(D2) # D2 are now flipped
+            D2=numpy.concatenate(D,D2) # put all in D2
+    elif Flip==1:D2,D1=pmag.flip(D1) # peel out antipodal directions, put in D2
 #
     counter,NumSims=0,5000
 #
@@ -75,11 +76,11 @@ def main():
 # do monte carlo simulation of datasets with same kappas, but common mean
 # 
     Vp=[] # set of Vs from simulations
-    if plot==1:print "Doing ",NumSims," simulations"
+    if show==1:print "Doing ",NumSims," simulations"
     for k in range(NumSims):
         counter+=1
         if counter==50:
-            if plot==1:print k+1
+            if show==1:print k+1
             counter=0
         Dirp=[]
 # get a set of N1 fisher distributed vectors with k1, calculate fisher stats
@@ -99,16 +100,17 @@ def main():
 #
     Vp.sort()
     k=int(.95*NumSims)
-    print "Watson's V,  Vcrit: " 
-    print '   %10.1f %10.1f'%(V,Vp[k])
-    if plot==1:
+    if show==1:
+        print "Watson's V,  Vcrit: " 
+        print '   %10.1f %10.1f'%(V,Vp[k])
+    if show==1 or plot==1:
         CDF={'cdf':1}
         pmagplotlib.plot_init(CDF['cdf'],5,5)
         pmagplotlib.plotCDF(CDF['cdf'],Vp,"Watson's V",'r',"")
         pmagplotlib.plotVs(CDF['cdf'],[V],'g','-')
         pmagplotlib.plotVs(CDF['cdf'],[Vp[k]],'b','--')
-        pmagplotlib.drawFIGS(CDF)
-        files,fmt={},'svg'
+        if plot==0:pmagplotlib.drawFIGS(CDF)
+        files={}
         if file2!="":
             files['cdf']='WatsonsV_'+file1+'_'+file2+'.'+fmt
         else:
@@ -120,8 +122,10 @@ def main():
             titles['cdf']='Cumulative Distribution'
             CDF = pmagplotlib.addBorders(CDF,titles,black,purple)
             pmagplotlib.saveP(CDF,files)
-        else:
+        elif plot==0:
             ans=raw_input(" S[a]ve to save plot, [q]uit without saving:  ")
             if ans=="a": pmagplotlib.saveP(CDF,files) 
+        if plot==1: # save and quit silently
+            pmagplotlib.saveP(CDF,files)
 main()
 
