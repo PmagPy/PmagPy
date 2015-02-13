@@ -8,12 +8,9 @@ import matplotlib.pyplot as plt
 import os
 import sys
 
-
 #from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigureCanvas
 #from matplotlib.backends.backend_wx import NavigationToolbar2Wx
 from matplotlib.figure import Figure
-
-
 
 def igrf(input_list):
     """
@@ -46,8 +43,8 @@ def fishrot(k=20,n=100,Dec=0,Inc=90):
 def tk03(n=100,dec=0,lat=0,rev='no',G2=0,G3=0):
     """
     generates set of vectors drawn from the TK03.gad model of 
-    secular variation at given latitude and rotated about vertical 
-    axis by given declination 
+    secular variation (Tauxe and Kent, 2004) at given latitude and rotated 
+    about a vertical axis by the given declination 
 
     Arguments
     ----------
@@ -230,7 +227,7 @@ def bootstrap_common_mean(Data1,Data2,NumSims=1000):
     plt.ylim(0,1)
     
     plt.tight_layout()
-    return fig
+    plt.show()
     
 def watson_common_mean(Data1,Data2,NumSims=5000,plot='no'):
     """
@@ -512,13 +509,13 @@ def plot_di_mean(Dec,Inc,a95,color='k',marker='o',markersize=20,label='',legend=
     Xcirc,Ycirc=[],[]
     Da95,Ia95=pmag.circ(Dec,Inc,a95)
     if legend=='yes':
-        pylab.legend(loc=2)
+        plt.legend(loc=2)
     for k in  range(len(Da95)):
         XY=pmag.dimap(Da95[k],Ia95[k])
         Xcirc.append(XY[0])
         Ycirc.append(XY[1])
-    pylab.plot(Xcirc,Ycirc,color)
-    pylab.tight_layout()
+    plt.plot(Xcirc,Ycirc,color)
+    plt.tight_layout()
 
 def plot_pole(mapname,plong,plat,A95,label='',color='k',marker='o',legend='no'):
     """
@@ -838,8 +835,6 @@ def combine_magic(filenames, outfile):
     pmag.magic_write(outfile,Recs,file_type)
     print "All records stored in ",outfile
     return True
-
-
 
 def make_aniso_depthplot(ani_file, meas_file, samp_file, age_file=None, fmt='svg', dmin=-1, dmax=-1, depth_scale='sample_composite_depth'):
     
@@ -1294,10 +1289,6 @@ def make_aniso_depthplot(ani_file, meas_file, samp_file, age_file=None, fmt='svg
         for x in Axs:pmagplotlib.delticks(x) # this makes the x-tick labels more reasonable - they were overcrowded using the defaults
         fig_name = location + '_ani_depthplot.' + fmt
         return main_plot, fig_name
-
-
-
-
 
 def specimens_results_magic(infile='pmag_specimens.txt', measfile='magic_measurements.txt', sampfile='er_samples.txt', sitefile='er_sites.txt', agefile='er_ages.txt', specout='er_specimens.txt', sampout='pmag_samples.txt', siteout='pmag_sites.txt', resout='pmag_results.txt', critout='pmag_criteria.txt', instout='magic_instruments.txt', plotsites = False, fmt='svg', dir_path='.', cors=[], priorities=['DA-AC-ARM','DA-AC-TRM'], coord='g', user='', vgps_level='site', do_site_intensity=True, DefaultAge=["none"], avg_directions_by_sample=False, avg_intensities_by_sample=False, avg_all_components=False, avg_by_polarity=False, skip_directions=False, skip_intensities=False, use_sample_latitude=False, use_paleolatitude=False, use_criteria='default'):
     """
