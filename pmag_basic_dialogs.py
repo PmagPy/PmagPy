@@ -1044,7 +1044,7 @@ class convert_CIT_files_to_MagIC(wx.Frame):
         if user:
             user = "-usr " + user
         spec_num = self.bSizer5.return_value()
-        options_dict['spec_num'] = spec_num
+        options_dict['specnum'] = spec_num
         if spec_num:
             spec_num = "-spc " + spec_num
         else:
@@ -1441,7 +1441,7 @@ class convert_2G_binary_files_to_MagIC(wx.Frame):
             outfile = file_2G_bin + ".magic"
             options_dict['meas_file'] = outfile
             options_dict['mag_file'] = f
-            COMMAND = "_2G_bin_magic.py -WD {} -f {} -F {} -Fsa {} -Fsi {} -ncn {} {} {} -ocn {} {} {} {}".format(WD, file_2G_bin, outfile, samp_outfile, sites_outfile, ncn, mcd, spc, ocn, loc_name, replicate, ID)
+            COMMAND = "_2G_bin_magic.py -WD {} -f {} -F {} -Fsa {} -Fsi {} -ncn {} {} {} -ocn {} {} {} {} {}".format(WD, file_2G_bin, outfile, samp_outfile, sites_outfile, ncn, mcd, spc, ocn, loc_name, replicate, ID, instrument)
             if files.index(f) == (len(files) - 1): # terminate process on last file call
                 # to run as module:
                 if _2G_bin_magic.main(False, **options_dict):
@@ -1909,7 +1909,7 @@ class convert_PMD_files_to_MagIC(wx.Frame):
             options['meas_file'] = outfile
             samp_outfile = f[:f.find('.')] + "_er_samples.txt"
             options['samp_file'] = samp_outfile
-            COMMAND = "PMD_magic.py -WD {} -f {} -F {} -Fsa {} -ncn {} {} -spc {} {} {}".format(WD, f, outfile, samp_outfile, ncn, particulars, spc, replicate, ID)
+            COMMAND = "PMD_magic.py -WD {} -f {} -F {} -Fsa {} -ncn {} {} -spc {} {} {} {}".format(WD, f, outfile, samp_outfile, ncn, particulars, spc, replicate, ID, loc_name)
             
             # to run as command_line:
             #if files.index(f) == len(files) -1:
