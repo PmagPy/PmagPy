@@ -745,12 +745,12 @@ class MagIC_model_builder(wx.Frame):
             self.data_er_specimens=self.read_magic_file(os.path.join(self.WD, "er_specimens.txt"),'er_specimen_name')
         except:
             #self.GUI_log.write ("-W- Cant find er_samples.txt in project directory")
-            print "-W- Cant find er_samples.txt in project directory"
+            print "-W- Can't find er_samples.txt in project directory"
         try:
             self.data_er_samples=self.read_magic_file(os.path.join(self.WD, "er_samples.txt"),'er_sample_name')
         except:
             #self.GUI_log.write ("-W- Cant find er_sample.txt in project directory")
-            print "-W- Cant find er_sample.txt in project directory"
+            print "-W- Can't find er_sample.txt in project directory"
         try:
             self.data_er_sites=self.read_magic_file(os.path.join(self.WD, "er_sites.txt"),'er_site_name')
         except:
@@ -759,14 +759,14 @@ class MagIC_model_builder(wx.Frame):
             self.data_er_locations=self.read_magic_file(os.path.join(self.WD, "er_locations.txt"),'er_location_name')
         except:
             #self.GUI_log.write ("-W- Cant find er_sites.txt in project directory")
-            print "-W- Cant find er_sites.txt in project directory"
+            print "-W- Can't find er_sites.txt in project directory"
         try:
             self.data_er_ages=self.read_magic_file(os.path.join(self.WD, "er_ages.txt"),"er_site_name")
         except:
             try:
                 self.data_er_ages=self.read_magic_file(os.path.join(self.WD, "er_ages.txt"),"er_sample_name")
             except:
-                print "-W- Cant find er_ages.txt in project directory"
+                print "-W- Can't find er_ages.txt in project directory"
                 pass
 
 
@@ -786,7 +786,7 @@ class MagIC_model_builder(wx.Frame):
       try:
           meas_data,file_type=pmag.magic_read(os.path.join(self.WD, "magic_measurements.txt"))
       except:
-          print "-E- ERROR: Cant read magic_measurement.txt file. File is corrupted."
+          print "-E- ERROR: Cant read magic_measurements.txt file. File is corrupted."
           return {},{}
          
       sids=pmag.get_specs(meas_data) # samples ID's

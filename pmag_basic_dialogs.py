@@ -3719,16 +3719,6 @@ You may use the drop-down menus to add as many values as needed in these columns
                     for spec in specimens:
                         self.Data_hierarchy['location_of_specimen'][spec] = new_loc
                         self.ErMagic.data_er_specimens[spec]['er_location_name'] = new_loc
-            
-            
-
-
-            #
-            #location_of_specimen ( {'sc12b1': 'Xanadu', 'ag1-6b': 'HERE', 'ag1-6a': 'HERE'} )
-            #location_of_sample
-            #location_of_site
-            #locations ( {'Xanadu': ['sc12'], 'HERE': ['ag1-']} )
-            
 
     def update_sites(self, grid, col1_updated, col1_old, col2_updated, col2_old):#, *args):
         changed = [(old_value, col1_updated[num]) for (num, old_value) in enumerate(col1_old) if old_value != col1_updated[num]]

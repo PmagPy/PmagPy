@@ -1776,7 +1776,7 @@ class Ani_depthplot(wx.Frame):
             pixel_height = dpi * fig.get_figheight()
             plot_frame = PlotFrame((pixel_width, pixel_height + 50), fig, figname)
         else:
-            pw.simple_warning("No data points met your criteria - try again")
+            pw.simple_warning("No data points met your criteria - try again\nError message: {}".format(figname))
 
         ## for use as command_line:
         #ani_file = "-f " + os.path.basename(ani_file)

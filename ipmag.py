@@ -846,10 +846,18 @@ def make_aniso_depthplot(ani_file, meas_file, samp_file, age_file=None, fmt='svg
     isbulk=0 # tests if there are bulk susceptibility measurements
     AniData,file_type=pmag.magic_read(ani_file)  # read in tensor elements
     if not age_file:
-        Samps,file_type=pmag.magic_read(samp_file)  # read in sample depth info from er_sample.txt format file
+        try:
+            Samps,file_type=pmag.magic_read(samp_file)  # read in sample depth info from er_samples.txt format file
+        except:
+            print "You must provide a valid er_samples file"
+            return False, "You must provide a valid er_samples file"
     else:
-        Samps,file_type=pmag.magic_read(age_file)  # read in sample age info from er_ages.txt format file
-        age_unit=Samps[0]['age_unit']
+        try:
+            Samps,file_type=pmag.magic_read(age_file)  # read in sample age info from er_ages.txt format file
+            age_unit=Samps[0]['age_unit']
+        except:
+            print "You must provide a valid er_ages file"
+            return False, "You must provide a valid er_ages file"
     for s in Samps:s['er_sample_name']=s['er_sample_name'].upper() # change to upper case for every sample name
     Meas,file_type=pmag.magic_read(meas_file)
     if file_type=='magic_measurements':isbulk=1
@@ -879,7 +887,7 @@ def make_aniso_depthplot(ani_file, meas_file, samp_file, age_file=None, fmt='svg
         location=Data[0]['er_location_name']
     else:
         print 'no data to plot'
-        return False, False
+        return False, 'no data to plot'
         #sys.exit()
     # collect the data for plotting tau and V3_inc
     Depths,Tau1,Tau2,Tau3,V3Incs,P=[],[],[],[],[],[]
@@ -1175,120 +1183,6 @@ def upload_magic(concat=0, All=0, dir_path='.'):
         print "-W- validation of upload file has failed.\nPlease fix above errors and try again.\nYou may run into problems if you try to upload this file to the MagIC database" 
 
 
-def make_aniso_depthplot(ani_file, meas_file, samp_file, age_file=None, fmt='svg', dmin=-1, dmax=-1, depth_scale='sample_composite_depth'):
-    
-    """
-    returns matplotlib figure with anisotropy data plotted against depth
-    """
-    dmin, dmax = float(dmin), float(dmax)
-    pcol=3
-    isbulk=0 # tests if there are bulk susceptibility measurements
-    AniData,file_type=pmag.magic_read(ani_file)  # read in tensor elements
-    if not age_file:
-        Samps,file_type=pmag.magic_read(samp_file)  # read in sample depth info from er_sample.txt format file
-    else:
-        Samps,file_type=pmag.magic_read(age_file)  # read in sample age info from er_ages.txt format file
-        age_unit=Samps[0]['age_unit']
-    for s in Samps:s['er_sample_name']=s['er_sample_name'].upper() # change to upper case for every sample name
-    Meas,file_type=pmag.magic_read(meas_file)
-    if file_type=='magic_measurements':isbulk=1
-    Data=[]
-    Bulks=[]
-    BulkDepths=[]
-    for rec in AniData:
-        samprecs=pmag.get_dictitem(Samps,'er_sample_name',rec['er_sample_name'].upper(),'T') # look for depth record for this sample
-        sampdepths=pmag.get_dictitem(samprecs,depth_scale,'','F') # see if there are non-blank depth data
-        if dmax!=-1:
-            sampdepths=pmag.get_dictitem(sampdepths,depth_scale,dmax,'max') # fishes out records within depth bounds
-            sampdepths=pmag.get_dictitem(sampdepths,depth_scale,dmin,'min')
-        if len(sampdepths)>0: # if there are any....
-            rec['core_depth'] = sampdepths[0][depth_scale] # set the core depth of this record
-            Data.append(rec) # fish out data with core_depth
-            if isbulk:  # if there are bulk data
-                chis=pmag.get_dictitem(Meas,'er_specimen_name',rec['er_specimen_name'],'T')
-                chis=pmag.get_dictitem(chis,'measurement_chi_volume','','F') # get the non-zero values for this specimen
-                if len(chis)>0: # if there are any....
-                    Bulks.append(1e6*float(chis[0]['measurement_chi_volume'])) # put in microSI
-                    BulkDepths.append(float(sampdepths[0][depth_scale]))
-    if len(Bulks)>0: # set min and max bulk values
-        bmin=min(Bulks)
-        bmax=max(Bulks)
-    xlab="Depth (m)"
-    if len(Data)>0:
-        location=Data[0]['er_location_name']
-    else:
-        print 'no data to plot'
-        return False, False
-        #sys.exit()
-    # collect the data for plotting tau and V3_inc
-    Depths,Tau1,Tau2,Tau3,V3Incs,P=[],[],[],[],[],[]
-    Axs=[] # collect the plot ids
-    if len(Bulks)>0: pcol+=1
-    s1=pmag.get_dictkey(Data,'anisotropy_s1','f') # get all the s1 values from Data as floats
-    s2=pmag.get_dictkey(Data,'anisotropy_s2','f')
-    s3=pmag.get_dictkey(Data,'anisotropy_s3','f')
-    s4=pmag.get_dictkey(Data,'anisotropy_s4','f')
-    s5=pmag.get_dictkey(Data,'anisotropy_s5','f')
-    s6=pmag.get_dictkey(Data,'anisotropy_s6','f')
-    Depths=pmag.get_dictkey(Data,'core_depth','f')
-    Ss=np.array([s1,s4,s5,s4,s2,s6,s5,s6,s3]).transpose() # make an array
-    Ts=np.reshape(Ss,(len(Ss),3,-1)) # and re-shape to be n-length array of 3x3 sub-arrays
-    for k in range(len(Depths)):
-        tau,Evecs= pmag.tauV(Ts[k]) # get the sorted eigenvalues and eigenvectors
-        v3=pmag.cart2dir(Evecs[2])[1] # convert to inclination of the minimum eigenvector
-        V3Incs.append(v3)
-        Tau1.append(tau[0])
-        Tau2.append(tau[1])
-        Tau3.append(tau[2])
-        P.append(tau[0]/tau[2])
-    if len(Depths)>0:
-        if dmax==-1:
-            dmax=max(Depths)
-            dmin=min(Depths)
-        tau_max=max(Tau1)
-        tau_min=min(Tau3)
-        P_max=max(P)
-        P_min=min(P)
-        #dmax=dmax+.05*dmax
-        #dmin=dmin-.05*dmax
-
-        main_plot = plt.figure(1,figsize=(10,8)) # make the figure
-        
-        version_num=pmag.get_version()
-        plt.figtext(.02,.01,version_num) # attach the pmagpy version number
-        ax=plt.subplot(1,pcol,1) # make the first column
-        Axs.append(ax)
-        ax.plot(Tau1,Depths,'rs') 
-        ax.plot(Tau2,Depths,'b^') 
-        ax.plot(Tau3,Depths,'ko')
-        ax.axis([tau_min,tau_max,dmax,dmin])
-        ax.set_xlabel('Eigenvalues')
-        if depth_scale=='sample_core_depth':
-            ax.set_ylabel('Depth (mbsf)')
-        elif depth_scale=='age':
-            ax.set_ylabel('Age ('+age_unit+')')
-        else:
-            ax.set_ylabel('Depth (mcd)')
-        ax2=plt.subplot(1,pcol,2) # make the second column
-        ax2.plot(P,Depths,'rs') 
-        ax2.axis([P_min,P_max,dmax,dmin])
-        ax2.set_xlabel('P')
-        ax2.set_title(location)
-        Axs.append(ax2)
-        ax3=plt.subplot(1,pcol,3)
-        Axs.append(ax3)
-        ax3.plot(V3Incs,Depths,'ko') 
-        ax3.axis([0,90,dmax,dmin])
-        ax3.set_xlabel('V3 Inclination')
-        if pcol==4:
-            ax4=plt.subplot(1,pcol,4)
-            Axs.append(ax4)
-            ax4.plot(Bulks,BulkDepths,'bo') 
-            ax4.axis([bmin-1,bmax+1,dmax,dmin])
-            ax4.set_xlabel('Bulk Susc. (uSI)')
-        for x in Axs:pmagplotlib.delticks(x) # this makes the x-tick labels more reasonable - they were overcrowded using the defaults
-        fig_name = location + '_ani_depthplot.' + fmt
-        return main_plot, fig_name
 
 def specimens_results_magic(infile='pmag_specimens.txt', measfile='magic_measurements.txt', sampfile='er_samples.txt', sitefile='er_sites.txt', agefile='er_ages.txt', specout='er_specimens.txt', sampout='pmag_samples.txt', siteout='pmag_sites.txt', resout='pmag_results.txt', critout='pmag_criteria.txt', instout='magic_instruments.txt', plotsites = False, fmt='svg', dir_path='.', cors=[], priorities=['DA-AC-ARM','DA-AC-TRM'], coord='g', user='', vgps_level='site', do_site_intensity=True, DefaultAge=["none"], avg_directions_by_sample=False, avg_intensities_by_sample=False, avg_all_components=False, avg_by_polarity=False, skip_directions=False, skip_intensities=False, use_sample_latitude=False, use_paleolatitude=False, use_criteria='default'):
     """
