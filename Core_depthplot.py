@@ -237,9 +237,9 @@ def main():
         print len(Meas), ' measurements read in from ',meas_file
         for m in intlist: # find the intensity key with data
             meas_data=pmag.get_dictitem(Meas,m,'','F') # get all non-blank data for this specimen
-        if len(meas_data)>0: 
-            meas_key=m
-            break
+            if len(meas_data)>0: 
+                meas_key=m
+                break
         m1=pmag.get_dictitem(Meas,'magic_method_codes',method,'has') # fish out the desired method code
         if method=='LT-T-Z': 
             m2=pmag.get_dictitem(m1,'treatment_temp',str(step),'eval') # fish out the desired step
