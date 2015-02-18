@@ -201,14 +201,6 @@ def main():
         age_file=dir_path+'/'+age_file
         Samps,file_type=pmag.magic_read(age_file) 
         age_unit=""
-    Meas,file_type=pmag.magic_read(meas_file) 
-    meas_key='measurement_magn_moment'
-    print len(Meas), ' measurements read in from ',meas_file
-    for m in intlist: # find the intensity key with data
-        meas_data=pmag.get_dictitem(Meas,m,'','F') # get all non-blank data for this specimen
-        if len(meas_data)>0: 
-            meas_key=m
-            break
     if spc_file!="":Specs,file_type=pmag.magic_read(spc_file)
     if res_file!="":Results,file_type=pmag.magic_read(res_file)
     if norm==1:
@@ -240,6 +232,14 @@ def main():
     samples=[]
     methods,steps,m2=[],[],[]
     if pltS: # plot the bulk measurement data
+        Meas,file_type=pmag.magic_read(meas_file) 
+        meas_key='measurement_magn_moment'
+        print len(Meas), ' measurements read in from ',meas_file
+        for m in intlist: # find the intensity key with data
+        meas_data=pmag.get_dictitem(Meas,m,'','F') # get all non-blank data for this specimen
+        if len(meas_data)>0: 
+            meas_key=m
+            break
         m1=pmag.get_dictitem(Meas,'magic_method_codes',method,'has') # fish out the desired method code
         if method=='LT-T-Z': 
             m2=pmag.get_dictitem(m1,'treatment_temp',str(step),'eval') # fish out the desired step
