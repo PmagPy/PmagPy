@@ -236,7 +236,7 @@ def main():
         meas_key='measurement_magn_moment'
         print len(Meas), ' measurements read in from ',meas_file
         for m in intlist: # find the intensity key with data
-        meas_data=pmag.get_dictitem(Meas,m,'','F') # get all non-blank data for this specimen
+            meas_data=pmag.get_dictitem(Meas,m,'','F') # get all non-blank data for this specimen
         if len(meas_data)>0: 
             meas_key=m
             break
