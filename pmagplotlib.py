@@ -1380,7 +1380,6 @@ def plotELL(fignum,pars,col,lower,plot):
     if plot==1:
         if X_ell!=[]:pylab.plot(X_ell,Y_ell,col)
         if X_up!=[]:pylab.plot(X_up,Y_up,'g-')
-        pylab.draw()
     else: 
         return PTS
 #
@@ -2132,7 +2131,6 @@ def plotANIS(ANIS,Ss,iboot,ihext,ivec,ipar,title,plt,comp,vec,Dir,nb):
         plotELL(ANIS['conf'],ellpars,'b,',1,1)
         ellpars=[hpars["v3_dec"],hpars["v3_inc"],hpars["e13"],hpars["v1_dec"],hpars["v1_inc"],hpars["e23"],hpars["v2_dec"],hpars["v2_inc"]]
         plotELL(ANIS['conf'],ellpars,'k,',1,1) 
-
     return bpars,hpars
 ####
 def plotPIE(fig,fracs,labels,title):
