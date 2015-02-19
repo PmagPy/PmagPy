@@ -37,7 +37,7 @@ def main():
         checked_args = extractor.extract_and_check_args(sys.argv, dataframe)
         infile, dir_path, input_dir_path = extractor.get_vars(['f', 'WD', 'ID'], checked_args)
 
-    ipmag.download_magic(str(infile), str(dir_path), str(input_dir_path))
+    ipmag.download_magic(infile[0], dir_path[0], input_dir_path[0])
 
 
                         

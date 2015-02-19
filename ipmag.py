@@ -1424,7 +1424,7 @@ def download_magic(infile, dir_path='.', input_dir_path='.'):
     by default, download_magic assumes that you are doing everything in your current directory.
     if not, you may provide optional arguments dir_path (where you want the results to go) and input_dir_path (where the dowloaded file is).
     """
-    f=open(input_dir_path+'/'+infile,'rU')
+    f=open(os.path.join(input_dir_path, infile),'rU')
     File=f.readlines()
     LN=0
     type_list=[]
