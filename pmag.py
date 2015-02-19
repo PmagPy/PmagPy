@@ -8724,6 +8724,18 @@ def write_criteria_to_file(path,acceptance_criteria):
     magic_write(path,[rec],"pmag_criteria")
     
 
+
+def add_flag(var, flag):
+    """
+    for use when calling command-line scripts from withing a program.
+    if a variable is present, add its proper command_line flag.
+    return a string.
+    """
+    if var:
+        var = flag + " " + str(var)
+    return var
+
+    
 def get_named_arg_from_sys(name, default_val=None, reqd=False):
     import sys
     if name in sys.argv: # if the command line flag is found in sys.argv

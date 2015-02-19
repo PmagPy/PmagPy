@@ -3600,7 +3600,9 @@ You may use the drop-down menus to add as many values as needed in these columns
                 self.update_simple_grid_data(grid, simple_grids[grid_name])
             else:
                 self.update_orient_data(grid)
+            
             self.ErMagic.update_ErMagic()
+            
             self.changes = False # resets
 
         self.panel.Destroy()

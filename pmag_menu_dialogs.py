@@ -1281,7 +1281,7 @@ class Core_depthplot(wx.Frame):
 
     def InitUI(self):
         pnl = self.panel
-        TEXT = "This program allows you to plot various measurement data versus sample depth.\nYou must provide either a magic_measurements file or a pmag_results file (or, you can use both)."
+        TEXT = "This program allows you to plot various measurement data versus sample depth.\nYou must provide either a magic_measurements file or a pmag_specimens file (or, you can use both)."
         bSizer_info = wx.BoxSizer(wx.HORIZONTAL)
         bSizer_info.Add(wx.StaticText(pnl, label=TEXT), wx.ALIGN_LEFT)
 
@@ -1311,14 +1311,12 @@ class Core_depthplot(wx.Frame):
         self.Bind(wx.EVT_TEXT, self.change_file_path, self.bSizer0.file_path)
 
 
-        
-
         #---sizer 0a---
-        self.bSizer0a = pw.choose_file(pnl, btn_text='add pmag_results file', method = self.on_add_pmag_results_button, remove_button="Don't use pmag results file")
-        res_file = os.path.join(self.WD, 'pmag_results.txt')
-        self.check_and_add_file(res_file, self.bSizer0a.file_path)
+        self.bSizer0a = pw.choose_file(pnl, btn_text='add pmag_specimens file', method = self.on_add_pmag_specimens_button, remove_button="Don't use pmag specimens file")
+        pmag_spec_file = os.path.join(self.WD, 'pmag_specimens.txt')
+        self.check_and_add_file(pmag_spec_file, self.bSizer0a.file_path)
 
-        #--- plotting stuff for pmag_results
+        #--- plotting stuff for pmag_specimens
         self.bSizer0a1 = pw.radio_buttons(pnl, color_choices, "choose color for plot points")
         self.bSizer0a2 = pw.radio_buttons(pnl, shape_choices, "choose shape for plot points")
         self.bSizer0a3 = pw.labeled_spin_ctrl(pnl, "point size (default is 5): ")
@@ -1373,9 +1371,6 @@ class Core_depthplot(wx.Frame):
         self.bSizer11 = pw.labeled_text_field(pnl, label="Lower bound (in Ma)")
 
         self.bSizer12 = pw.labeled_text_field(pnl, label="Upper bound (in Ma)")
-
-
-        #-sav save plot silently
 
         
         #---buttons ---
@@ -1518,7 +1513,7 @@ class Core_depthplot(wx.Frame):
         text = "choose file to convert to MagIC"
         pw.on_add_file_button(self.bSizer0, self.WD, event, text)
 
-    def on_add_pmag_results_button(self, event):
+    def on_add_pmag_specimens_button(self, event):
         text = "choose file to convert to MagIC"
         pw.on_add_file_button(self.bSizer0a, self.WD, event, text)
 
@@ -1571,22 +1566,21 @@ class Core_depthplot(wx.Frame):
         fmt # -fmt format
         """
         meas_file = self.bSizer0.return_value()
-        res_file = self.bSizer0a.return_value()
-        res_sym_shape, res_sym_color, res_sym_size = "", "", ""
+        pmag_spec_file = self.bSizer0a.return_value()
+        spec_sym_shape, spec_sym_color, spec_sym_size = "", "", ""
 
-        if res_file:
+        if pmag_spec_file:
             # get symbol/size for dots
-            res_sym_shape = self.shape_choices_dict[self.bSizer0a2.return_value()]
-            res_sym_color = self.bSizer0a1.return_value()[0]
-            res_sym_size = self.bSizer0a3.return_value()
-            #print res_sym_shape, res_sym_color, res_sym_size
+            spec_sym_shape = self.shape_choices_dict[self.bSizer0a2.return_value()]
+            spec_sym_color = self.bSizer0a1.return_value()[0]
+            spec_sym_size = self.bSizer0a3.return_value()
     
         use_sampfile = self.bSizer1a.return_value()
         if use_sampfile:
             samp_file = self.bSizer1.return_value()
-            age_file = None
+            age_file = ''
         else:
-            samp_file = None
+            samp_file = ''
             age_file = self.bSizer1.return_value()
         depth_scale = self.bSizer8.return_value()
         if depth_scale:
@@ -1603,11 +1597,12 @@ class Core_depthplot(wx.Frame):
             amin = self.bSizer11.return_value()
             amax = self.bSizer12.return_value()
         else:
-            ts, amin, amax = None, None, None
+            ts, amin, amax = '', '', ''
         sym_shape = self.shape_choices_dict[self.bSizer5.return_value()]
         sym_color = self.bSizer4.return_value()[0]
         sym = sym_color + sym_shape
         size = self.bSizer5a.return_value()
+        no_connect_points = self.bSizer5b.return_value()
         method = self.bSizer13.return_value()
         step = self.bSizer14.return_value()
         pltD, pltI, pltM, logit = 0, 0, 0, 0
@@ -1622,7 +1617,62 @@ class Core_depthplot(wx.Frame):
                 logit = 1
                 
         fmt = self.bSizer16.return_value()
-        print "meas_file", meas_file, "res_file", res_file, "res_sym_shape", res_sym_shape, "res_sym_color", res_sym_color, "res_sym_size", res_sym_size, "samp_file", samp_file, "age_file", age_file, "depth_scale", depth_scale, "dmin", dmin, "dmax", dmax, "ts", ts, "amin", amin, "amax", amax, "sym", sym, "size", size, "method", method, "step", step, "pltD", pltD, "pltI", pltI, "pltM", pltM, "logit", logit, "fmt", fmt
+        print "meas_file", meas_file, "pmag_spec_file", pmag_spec_file, "spec_sym_shape", spec_sym_shape, "spec_sym_color", spec_sym_color, "spec_sym_size", spec_sym_size, "samp_file", samp_file, "age_file", age_file, "depth_scale", depth_scale, "dmin", dmin, "dmax", dmax, "ts", ts, "amin", amin, "amax", amax, "sym", sym, "size", size, "method", method, "step", step, "pltD", pltD, "pltI", pltI, "pltM", pltM, "logit", logit, "fmt", fmt
+
+
+
+
+        # for use as command_line:
+        if meas_file:
+            meas_file = os.path.split(meas_file)[1]
+        meas_file = pmag.add_flag(meas_file, '-f')
+        if pmag_spec_file:
+            pmag_spec_file = os.path.split(pmag_spec_file)[1]
+        pmag_spec_file = pmag.add_flag(pmag_spec_file, '-fsp')
+        pmag_spec_file = pmag_spec_file + ' ' + spec_sym_color + spec_sym_shape + ' ' + str(spec_sym_size)
+        sym = '-sym ' + sym + ' ' + str(size)
+        if samp_file:
+            samp_file = os.path.split(samp_file)[1]
+        samp_file = pmag.add_flag(samp_file, '-fsa')
+        if age_file:
+            age_file = os.path.split(age_file)[1]
+        age_file = pmag.add_flag(age_file, '-fa')
+        depth_scale = pmag.add_flag(depth_scale, '-ds')
+        depth_range = ''
+        if dmin and dmax:
+            depth_range = '-d ' + str(dmin) + ' ' + str(dmax)
+        timescale = ''
+        if ts and amin and amax:
+            timescale = '-ts ' + ts + ' ' + str(amin) + ' ' + str(amax)
+        method = pmag.add_flag(method, '-LP') + ' ' + str(step)
+        if not pltD:
+            pltD = "-D"
+        else:
+            pltD = ''
+        if not pltI:
+            pltI = "-I"
+        else:
+            pltI = ''
+        if not pltM:
+            pltM = "-M"
+        else:
+            pltM = ''
+        if logit:
+            logit = "-log"
+        else:
+            logit = ''
+        fmt = pmag.add_flag(fmt, '-fmt')
+        if no_connect_points:
+            no_connect_points = "-L"
+        else:
+            no_connect_points = ''
+
+        
+
+        COMMAND = "core_depthplot.py {meas_file} {pmag_spec_file} {sym} {samp_file} {age_file} {depth_scale} {depth_range} {timescale} {method} {pltD} {pltI} {pltM} {logit} {fmt} {no_connect_points} -WD {WD}".format(meas_file=meas_file, pmag_spec_file=pmag_spec_file, sym=sym, samp_file=samp_file, age_file=age_file, depth_scale=depth_scale, depth_range=depth_range, timescale=timescale, method=method, pltD=pltD, pltI=pltI, pltM=pltM, logit=logit, fmt=fmt, no_connect_points=no_connect_points, WD=self.WD)
+        print COMMAND
+        os.system(COMMAND)
+
 
         """
         haven't done these options yet
