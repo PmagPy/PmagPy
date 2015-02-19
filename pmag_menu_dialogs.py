@@ -620,7 +620,9 @@ class ImportK15(wx.Frame):
         ins = self.bSizer4.return_value()
         if ins:
             ins = "-ins " + ins
-        COMMAND = "k15_magic.py -WD {} -f {} -F {} -ncn {} -spc {} {} {} -ID {} -Fsa {}".format(WD, infile, outfile, ncn, spc, loc, ins, ID, samp_outfile)
+        aniso_outfile = infile + '_rmag_anisotropy.txt'
+        aniso_results_file = infile + '_rmag_results.txt'
+        COMMAND = "k15_magic.py -WD {} -f {} -F {} -ncn {} -spc {} {} {} -ID {} -Fsa {} -Fa {} -Fr {}".format(WD, infile, outfile, ncn, spc, loc, ins, ID, samp_outfile, aniso_outfile, aniso_results_file)
         #print COMMAND
         pw.run_command_and_close_window(self, COMMAND, outfile)
 
