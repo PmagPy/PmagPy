@@ -58,7 +58,8 @@ class MagIC_model_builder(wx.Frame):
         self.er_ages_header=['er_citation_names','er_site_name','er_location_name','age_description','magic_method_codes','age','age_unit']
         os.chdir(WD)
         self.WD=os.getcwd()  
-        #self.WD=WD
+        self.site_lons=[]     
+        self.site_lats=[]     
         self.Data,self.Data_hierarchy=self.get_data()
         self.read_MagIC_info()
         self.SetTitle("Earth-Ref Magic Builder" )
@@ -118,7 +119,7 @@ class MagIC_model_builder(wx.Frame):
                 if key not in self.er_ages_header:
                     self.er_ages_header.append(key)
                   
-        
+
         pnl1 = self.panel
 
         table_list=["er_specimens","er_samples","er_sites","er_locations","er_ages"]
@@ -390,7 +391,6 @@ class MagIC_model_builder(wx.Frame):
                 if i < len(tmp_line):
                     tmp_data[header[i]]=tmp_line[i]
                 else:
-                    print 'lj', header[i]
                     tmp_data[header[i]]=""
             if sort_by_this_name=="by_line_number":
               DATA[counter]=tmp_data
@@ -452,7 +452,7 @@ class MagIC_model_builder(wx.Frame):
 
 
     def get_data(self):
-        #print 'calling get_data()'
+        print 'calling get_data()'
         #start_time = time.time()
         Data={}
         Data_hierarchy={}
@@ -529,6 +529,7 @@ class MagIC_model_builder(wx.Frame):
         # if you want to make it possible to change specimen names, add that into this for loop
         #print "self.data_er_specimens.keys()", self.data_er_specimens.keys()
         #print "self.Data_hierarchy['specimens'].keys()", self.Data_hierarchy['specimens'].keys()
+
         for line in f_old.readlines():
             tmp_line=line.strip('\n').split('\t')
             tmp={}
@@ -574,6 +575,7 @@ class MagIC_model_builder(wx.Frame):
 
         specimens_list=self.Data_hierarchy['sample_of_specimen'].keys()
         specimens_list.sort()
+        #print "number of specimens", len(specimens_list)
         
         for specimen in specimens_list:
           if  specimen in self.data_er_specimens.keys() and  "er_sample_name" in self.data_er_specimens[specimen].keys() and self.data_er_specimens[specimen]["er_sample_name"] != "":
@@ -640,6 +642,8 @@ class MagIC_model_builder(wx.Frame):
         samples_list=self.Data_hierarchy['samples'].keys()
         samples_list = list(set(samples_list).union(self.data_er_samples.keys())) # uses samples from er_samples.txt even if they are not in the magic_measurements file
         samples_list.sort()
+
+        #print "number of samples", len(samples_list)
 
 
         for sample in samples_list:
@@ -712,14 +716,13 @@ class MagIC_model_builder(wx.Frame):
             if site not in sites_list:
                 sites_list.append(site)
 
+        #print "number of sites", len(sites_list)
         
         #for sample in self.data_er_samples.keys():
         #  if "er_site_name" in self.data_er_samples[sample].keys() and self.data_er_samples[sample]["er_site_name"] not in sites_list and self.data_er_samples[sample]["er_site_name"]!="":
         #    sites_list.append(self.data_er_samples[sample]["er_site_name"])
         sites_list.sort() 
         string=""  
-        site_lons=[]     
-        site_lats=[]     
         for site in sites_list:
           if site ==""  or site==" ":
               continue
@@ -745,12 +748,12 @@ class MagIC_model_builder(wx.Frame):
 
           if site in self.data_er_sites.keys() and 'site_lon' in self.data_er_sites[site].keys() and self.data_er_sites[site]['site_lon']!="":
               try:
-                    site_lons.append(float(self.data_er_sites[site]['site_lon']))
+                    self.site_lons.append(float(self.data_er_sites[site]['site_lon']))
               except:
                   pass
           if site in self.data_er_sites.keys() and 'site_lat' in self.data_er_sites[site].keys() and self.data_er_sites[site]['site_lat']!="":
               try:
-                    site_lats.append(float(self.data_er_sites[site]['site_lat']))
+                    self.site_lats.append(float(self.data_er_sites[site]['site_lat']))
               except:
                   pass
           er_sites_file.write(string[:-1]+"\n")
@@ -767,9 +770,18 @@ class MagIC_model_builder(wx.Frame):
 
         #data
         locations_list=self.data_er_locations.keys()
+        #print self.data_er_locations
+        #print "Number of locations", len(locations_list)
+
+        # these two methods are equally fast:
+        #locations_list = set(locations_list)
+        #locations_list.update(self.Data_hierarchy['locations'].keys())
+        #locations_list = list(locations_list)
+
         for location in self.Data_hierarchy['locations'].keys():
             if location not in locations_list:
                 locations_list.append(location)
+                
         #for site in self.data_er_sites.keys():
         #  if "er_location_name" in self.data_er_sites[site].keys() and self.data_er_sites[site]["er_location_name"] not in locations_list:
         #    locations_list.append(self.data_er_sites[site]["er_location_name"])
@@ -789,14 +801,14 @@ class MagIC_model_builder(wx.Frame):
             elif (location in self.data_er_locations.keys() and key in self.data_er_locations[location].keys() and self.data_er_locations[location][key]!=""):
                 string=string+self.data_er_locations[location][key]+"\t"
             elif key in ['location_begin_lon','location_end_lon','location_begin_lat','location_end_lat']:
-                if len(site_lons)>0 and key=='location_begin_lon':
-                    value="%f"%min(site_lons)
-                elif len(site_lons)>0 and key=='location_end_lon':
-                    value="%f"%max(site_lons)
-                elif len(site_lats)>0 and key=='location_begin_lat':
-                    value="%f"%min(site_lats)
-                elif len(site_lats)>0 and key=='location_end_lat':
-                    value="%f"%max(site_lats)
+                if len(self.site_lons)>0 and key=='location_begin_lon':
+                    value="%f"%min(self.site_lons)
+                elif len(self.site_lons)>0 and key=='location_end_lon':
+                    value="%f"%max(self.site_lons)
+                elif len(self.site_lats)>0 and key=='location_begin_lat':
+                    value="%f"%min(self.site_lats)
+                elif len(self.site_lats)>0 and key=='location_end_lat':
+                    value="%f"%max(self.site_lats)
                 else:
                     value=""
                 string=string+value+"\t"
@@ -820,7 +832,9 @@ class MagIC_model_builder(wx.Frame):
         for site in self.Data_hierarchy['sites'].keys():
             if site not in sites_list:
                 sites_list.append(site)
-        sites_list.sort() 
+        sites_list.sort()
+
+        #print "number of site ages", len(sites_list)
         for site in sites_list:
           string=""
           for key in self.er_ages_header:
