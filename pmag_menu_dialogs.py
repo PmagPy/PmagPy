@@ -1305,7 +1305,7 @@ class Core_depthplot(wx.Frame):
         #---sizer 5a---
         #self.bSizer5a = pw.labeled_text_field(pnl, "point size (default is 5)")
         self.bSizer5a = pw.labeled_spin_ctrl(pnl, "point size (default is 5): ")
-        self.bSizer5b = pw.check_box(pnl, "No lines connecting points")
+        self.bSizer5b = pw.check_box(pnl, "Show lines connecting points")
 
 
         self.Bind(wx.EVT_TEXT, self.change_file_path, self.bSizer0.file_path)
@@ -1556,32 +1556,37 @@ class Core_depthplot(wx.Frame):
         age_file # -fa er_ages_file
         depth_scale # -ds scale
         dmin, dmax # -d 1 50  # depth to plot
-        ts, amin, amax (also sets pTS, pcol, width) =  # -ts scale min max        
+        timescale, amin, amax (also sets pTS, pcol, width) =  # -ts scale min max        
         sym, size # -sym symbol size
         method, step (also may set suc_key) # -LP protocol step
-        pltD (also sets pcol, pel, width)# -D (don't plot dec)
-        pltI (also sets pcol, pel, width)# -I (don't plot inc)
-        pltM (also sets pcol, pel, width)# -M (don't plot intensity)
+        pltDec (also sets pcol, pel, width)# -D (don't plot dec)
+        pltInc (also sets pcol, pel, width)# -I (don't plot inc)
+        pltMag (also sets pcol, pel, width)# -M (don't plot intensity)
         logit # -log ( plot log scale)
         fmt # -fmt format
         """
         meas_file = self.bSizer0.return_value()
+        if meas_file:
+            meas_file = os.path.split(meas_file)[1]
         pmag_spec_file = self.bSizer0a.return_value()
-        spec_sym_shape, spec_sym_color, spec_sym_size = "", "", ""
+        if pmag_spec_file:
+            pmag_spec_file = os.path.split(pmag_spec_file)[1]
+        spec_sym, spec_sym_shape, spec_sym_color, spec_sym_size = "", "", "", ""
 
         if pmag_spec_file:
             # get symbol/size for dots
             spec_sym_shape = self.shape_choices_dict[self.bSizer0a2.return_value()]
             spec_sym_color = self.bSizer0a1.return_value()[0]
             spec_sym_size = self.bSizer0a3.return_value()
+            spec_sym = str(spec_sym_color) + str(spec_sym_shape)
     
         use_sampfile = self.bSizer1a.return_value()
         if use_sampfile:
-            samp_file = self.bSizer1.return_value()
+            samp_file = os.path.split(str(self.bSizer1.return_value()))[1]
             age_file = ''
         else:
             samp_file = ''
-            age_file = self.bSizer1.return_value()
+            age_file = os.path.split(self.bSizer1.return_value())[1]
         depth_scale = self.bSizer8.return_value()
         if depth_scale:
             depth_scale = 'mbsf'
@@ -1590,36 +1595,48 @@ class Core_depthplot(wx.Frame):
         dmin = self.bSizer6.return_value()
         dmax = self.bSizer7.return_value()
         if self.bSizer9.return_value():
+            pltTime = 1
             if self.bSizer10.return_value():
-                ts = 'gts04'
+                timescale = 'gts04'
             else:
-                ts = 'ck95'
+                timescale = 'ck95'
             amin = self.bSizer11.return_value()
             amax = self.bSizer12.return_value()
         else:
-            ts, amin, amax = '', '', ''
+            pltTime, timescale, amin, amax = 0, '', '', ''
         sym_shape = self.shape_choices_dict[self.bSizer5.return_value()]
         sym_color = self.bSizer4.return_value()[0]
         sym = sym_color + sym_shape
         size = self.bSizer5a.return_value()
-        no_connect_points = self.bSizer5b.return_value()
-        method = self.bSizer13.return_value()
+        pltLine = self.bSizer5b.return_value()
+        if pltLine:
+            pltLine = 0
+        else:
+            pltLine = 1
+        method = str(self.bSizer13.return_value())
         step = self.bSizer14.return_value()
-        pltD, pltI, pltM, logit = 0, 0, 0, 0
+        pltDec, pltInc, pltMag, logit = 0, 0, 0, 0
         for val in self.bSizer3.return_value():
             if 'declination' in val:
-                pltD = 1
+                pltDec = 1
             if 'inclination' in val:
-                pltI = 1
+                pltInc = 1
             if 'magnetization' in val:
-                pltM = 1
+                pltMag = 1
             if 'log' in val:
                 logit = 1
-                
+
+        pltS = self.bSizer15.return_value()
+        if pltS:
+            pltS = 0
+        else:
+            pltS = 1
         fmt = self.bSizer16.return_value()
-        print "meas_file", meas_file, "pmag_spec_file", pmag_spec_file, "spec_sym_shape", spec_sym_shape, "spec_sym_color", spec_sym_color, "spec_sym_size", spec_sym_size, "samp_file", samp_file, "age_file", age_file, "depth_scale", depth_scale, "dmin", dmin, "dmax", dmax, "ts", ts, "amin", amin, "amax", amax, "sym", sym, "size", size, "method", method, "step", step, "pltD", pltD, "pltI", pltI, "pltM", pltM, "logit", logit, "fmt", fmt
+        print "meas_file", meas_file, "pmag_spec_file", pmag_spec_file, "spec_sym_shape", spec_sym_shape, "spec_sym_color", spec_sym_color, "spec_sym_size", spec_sym_size, "samp_file", samp_file, "age_file", age_file, "depth_scale", depth_scale, "dmin", dmin, "dmax", dmax, "timescale", timescale, "amin", amin, "amax", amax, "sym", sym, "size", size, "method", method, "step", step, "pltDec", pltDec, "pltInc", pltInc, "pltMag", pltMag, "pltTime", pltTime, "logit", logit, "fmt", fmt
 
-
+        # for use as module:
+        import ipmag
+        ipmag.core_depthplot(self.WD, meas_file, pmag_spec_file, samp_file, age_file, depth_scale, dmin, dmax, sym, size, spec_sym, spec_sym_size, method, step, fmt, pltDec, pltInc, pltMag, pltLine, pltS, timescale, amin, amax)
 
 
         # for use as command_line:
@@ -1642,36 +1659,40 @@ class Core_depthplot(wx.Frame):
         if dmin and dmax:
             depth_range = '-d ' + str(dmin) + ' ' + str(dmax)
         timescale = ''
-        if ts and amin and amax:
+        if pltTime and amin and amax:
             timescale = '-ts ' + ts + ' ' + str(amin) + ' ' + str(amax)
         method = pmag.add_flag(method, '-LP') + ' ' + str(step)
-        if not pltD:
-            pltD = "-D"
+        if not pltDec:
+            pltDec = "-D"
         else:
-            pltD = ''
-        if not pltI:
-            pltI = "-I"
+            pltDec = ''
+        if not pltInc:
+            pltInc = "-I"
         else:
-            pltI = ''
-        if not pltM:
-            pltM = "-M"
+            pltInc = ''
+        if not pltMag:
+            pltMag = "-M"
         else:
-            pltM = ''
+            pltMag = ''
+        if not pltLine:
+            pltLine = "-L"
+        else:
+            pltLine = ''
         if logit:
             logit = "-log"
         else:
             logit = ''
         fmt = pmag.add_flag(fmt, '-fmt')
-        if no_connect_points:
+        if not pltLine:
             no_connect_points = "-L"
         else:
             no_connect_points = ''
 
         
 
-        COMMAND = "core_depthplot.py {meas_file} {pmag_spec_file} {sym} {samp_file} {age_file} {depth_scale} {depth_range} {timescale} {method} {pltD} {pltI} {pltM} {logit} {fmt} {no_connect_points} -WD {WD}".format(meas_file=meas_file, pmag_spec_file=pmag_spec_file, sym=sym, samp_file=samp_file, age_file=age_file, depth_scale=depth_scale, depth_range=depth_range, timescale=timescale, method=method, pltD=pltD, pltI=pltI, pltM=pltM, logit=logit, fmt=fmt, no_connect_points=no_connect_points, WD=self.WD)
+        COMMAND = "core_depthplot.py {meas_file} {pmag_spec_file} {sym} {samp_file} {age_file} {depth_scale} {depth_range} {timescale} {method} {pltDec} {pltInc} {pltMag} {logit} {fmt} {no_connect_points} -WD {WD}".format(meas_file=meas_file, pmag_spec_file=pmag_spec_file, sym=sym, samp_file=samp_file, age_file=age_file, depth_scale=depth_scale, depth_range=depth_range, timescale=timescale, method=method, pltDec=pltDec, pltInc=pltInc, pltMag=pltMag, logit=logit, fmt=fmt, no_connect_points=no_connect_points, WD=self.WD)
         print COMMAND
-        os.system(COMMAND)
+        #os.system(COMMAND)
 
 
         """

@@ -4,7 +4,7 @@ import pylab
 import numpy as np
 import random
 import matplotlib
-import matplotlib.pyplot as plt
+import matplotlib.pyplot as pyplot
 import os
 import sys
 
@@ -105,24 +105,24 @@ def bootstrap_fold_test(Data,num_sims=1000,min_untilt=-10,max_untilt=120,bedding
     else:
         kappa=0
             
-    plt.figure(figsize=[5,5])
+    pyplot.figure(figsize=[5,5])
     plot_net(1)
     pmagplotlib.plotDI(1,Data)  # plot directions
-    plt.text(-1.1,1.15,'Geographic')
+    pyplot.text(-1.1,1.15,'Geographic')
 
     D,I=pmag.dotilt_V(Data)
     TCs=np.array([D,I]).transpose()
 
-    plt.figure(figsize=[5,5])
+    pyplot.figure(figsize=[5,5])
     plot_net(2)
     pmagplotlib.plotDI(2,TCs)  # plot directions
-    plt.text(-1.1,1.15,'Tilt-corrected')
-    plt.show()
+    pyplot.text(-1.1,1.15,'Tilt-corrected')
+    pyplot.show()
     
     Percs = range(min_untilt,max_untilt)
     Cdf = []
     Untilt = []
-    plt.figure()
+    pyplot.figure()
     
     for n in range(num_sims): # do bootstrap data sets - plot first 25 as dashed red line
             #if n%50==0:print n
@@ -140,26 +140,26 @@ def bootstrap_fold_test(Data,num_sims=1000,min_untilt=-10,max_untilt=120,bedding
                 TCs=np.array([D,I]).transpose()
                 ppars=pmag.doprinc(TCs) # get principal directions
                 Taus.append(ppars['tau1'])
-            if n<25:plt.plot(Percs,Taus,'r--')
+            if n<25:pyplot.plot(Percs,Taus,'r--')
             Untilt.append(Percs[Taus.index(np.max(Taus))]) # tilt that gives maximum tau
             Cdf.append(float(n)/float(num_sims))
-    plt.plot(Percs,Taus,'k')
-    plt.xlabel('% Untilting')
-    plt.ylabel('tau_1 (red), CDF (green)')
+    pyplot.plot(Percs,Taus,'k')
+    pyplot.xlabel('% Untilting')
+    pyplot.ylabel('tau_1 (red), CDF (green)')
     Untilt.sort() # now for CDF of tilt of maximum tau
-    plt.plot(Untilt,Cdf,'g')
+    pyplot.plot(Untilt,Cdf,'g')
     lower=int(.025*num_sims)     
     upper=int(.975*num_sims)
-    plt.axvline(x=Untilt[lower],ymin=0,ymax=1,linewidth=1,linestyle='--')
-    plt.axvline(x=Untilt[upper],ymin=0,ymax=1,linewidth=1,linestyle='--')
+    pyplot.axvline(x=Untilt[lower],ymin=0,ymax=1,linewidth=1,linestyle='--')
+    pyplot.axvline(x=Untilt[upper],ymin=0,ymax=1,linewidth=1,linestyle='--')
     title = '%i - %i %s'%(Untilt[lower],Untilt[upper],'percent unfolding')
     print ""
     print 'tightest grouping of vectors obtained at (95% confidence bounds):'
     print title
     print 'range of all bootstrap samples: '
     print Untilt[0], ' - ', Untilt[-1],'percent unfolding'
-    plt.title(title)
-    plt.show()
+    pyplot.title(title)
+    pyplot.show()
         
 def bootstrap_common_mean(Data1,Data2,NumSims=1000):
     """
@@ -189,8 +189,8 @@ def bootstrap_common_mean(Data1,Data2,NumSims=1000):
     print "Here are the results of the bootstrap test for a common mean:"
     
     fignum = 1
-    fig = plt.figure(figsize=(9,3))
-    fig = plt.subplot(1,3,1)
+    fig = pyplot.figure(figsize=(9,3))
+    fig = pyplot.subplot(1,3,1)
     
     minimum = int(0.025*len(X1))
     maximum = int(0.975*len(X1))
@@ -202,9 +202,9 @@ def bootstrap_common_mean(Data1,Data2,NumSims=1000):
     X2,y=pmagplotlib.plotCDF(fignum,X2,"X component",'b',"")
     bounds2=[X2[minimum],X2[maximum]]
     pmagplotlib.plotVs(fignum,bounds2,'b','--')
-    plt.ylim(0,1)
+    pyplot.ylim(0,1)
     
-    plt.subplot(1,3,2)
+    pyplot.subplot(1,3,2)
     
     Y1,y=pmagplotlib.plotCDF(fignum,Y1,"Y component",'r',"")
     bounds1=[Y1[minimum],Y1[maximum]]
@@ -213,9 +213,9 @@ def bootstrap_common_mean(Data1,Data2,NumSims=1000):
     Y2,y=pmagplotlib.plotCDF(fignum,Y2,"Y component",'b',"")
     bounds2=[Y2[minimum],Y2[maximum]]
     pmagplotlib.plotVs(fignum,bounds2,'b','--')
-    plt.ylim(0,1)
+    pyplot.ylim(0,1)
     
-    plt.subplot(1,3,3)
+    pyplot.subplot(1,3,3)
     
     Z1,y=pmagplotlib.plotCDF(fignum,Z1,"Z component",'r',"")
     bounds1=[Z1[minimum],Z1[maximum]]
@@ -224,10 +224,10 @@ def bootstrap_common_mean(Data1,Data2,NumSims=1000):
     Z2,y=pmagplotlib.plotCDF(fignum,Z2,"Z component",'b',"")
     bounds2=[Z2[minimum],Z2[maximum]]
     pmagplotlib.plotVs(fignum,bounds2,'b','--')
-    plt.ylim(0,1)
+    pyplot.ylim(0,1)
     
-    plt.tight_layout()
-    plt.show()
+    pyplot.tight_layout()
+    pyplot.show()
     
 def watson_common_mean(Data1,Data2,NumSims=5000,plot='no'):
     """
@@ -438,7 +438,7 @@ def plot_di(dec,inc,color='k',marker='o',markersize=20,legend='no',label=''):
     Before this function is called a plot needs to be initialized with code that looks 
     something like:
     >fignum = 1
-    >plt.figure(num=fignum,figsize=(10,10),dpi=160)
+    >pyplot.figure(num=fignum,figsize=(10,10),dpi=160)
     >ipmag.plot_net(fignum)
 
     Required Arguments
@@ -468,15 +468,15 @@ def plot_di(dec,inc,color='k',marker='o',markersize=20,legend='no',label=''):
             Y_up.append(XY[1])
 
     if len(X_up)>0:
-        plt.scatter(X_up,Y_up,facecolors='none', edgecolors=color, 
+        pyplot.scatter(X_up,Y_up,facecolors='none', edgecolors=color, 
                     s=markersize, marker=marker, label=label)
 
     if len(X_down)>0: 
-        plt.scatter(X_down,Y_down,facecolors=color, edgecolors=color, 
+        pyplot.scatter(X_down,Y_down,facecolors=color, edgecolors=color, 
                     s=markersize, marker=marker, label=label)
     if legend=='yes':
-        plt.legend(loc=2)
-    plt.tight_layout()
+        pyplot.legend(loc=2)
+    pyplot.tight_layout()
 
 def plot_di_mean(Dec,Inc,a95,color='k',marker='o',markersize=20,label='',legend='no'):
     """
@@ -485,7 +485,7 @@ def plot_di_mean(Dec,Inc,a95,color='k',marker='o',markersize=20,label='',legend=
     Before this function is called a plot needs to be initialized with code that looks 
     something like:
     >fignum = 1
-    >plt.figure(num=fignum,figsize=(10,10),dpi=160)
+    >pyplot.figure(num=fignum,figsize=(10,10),dpi=160)
     >ipmag.plot_net(fignum)
 
     Required Parameters
@@ -503,19 +503,19 @@ def plot_di_mean(Dec,Inc,a95,color='k',marker='o',markersize=20,label='',legend=
     """
     DI_dimap=pmag.dimap(Dec,Inc)
     if Inc < 0:
-        plt.scatter(DI_dimap[0],DI_dimap[1],edgecolor=color ,facecolor='white', marker=marker,s=markersize,label=label)
+        pyplot.scatter(DI_dimap[0],DI_dimap[1],edgecolor=color ,facecolor='white', marker=marker,s=markersize,label=label)
     if Inc >= 0:
-        plt.scatter(DI_dimap[0],DI_dimap[1],color=color,marker=marker,s=markersize,label=label)
+        pyplot.scatter(DI_dimap[0],DI_dimap[1],color=color,marker=marker,s=markersize,label=label)
     Xcirc,Ycirc=[],[]
     Da95,Ia95=pmag.circ(Dec,Inc,a95)
     if legend=='yes':
-        plt.legend(loc=2)
+        pyplot.legend(loc=2)
     for k in  range(len(Da95)):
         XY=pmag.dimap(Da95[k],Ia95[k])
         Xcirc.append(XY[0])
         Ycirc.append(XY[1])
-    plt.plot(Xcirc,Ycirc,color)
-    plt.tight_layout()
+    pyplot.plot(Xcirc,Ycirc,color)
+    pyplot.tight_layout()
 
 def plot_pole(mapname,plong,plat,A95,label='',color='k',marker='o',legend='no'):
     """
@@ -700,7 +700,7 @@ def sb_vgp_calc(dataframe):
 
     Sb=((1.0/(N-1.0))*summation)**0.5
     
-    plt.figure(figsize=(6, 6))
+    pyplot.figure(figsize=(6, 6))
     m = Basemap(projection='ortho',lat_0=dataframe_pole_mean['inc'],
                 lon_0=dataframe_pole_mean['dec'],resolution='c',area_thresh=50000)
     m.drawcoastlines(linewidth=0.25)
@@ -810,7 +810,7 @@ def equi(m, centerlon, centerlat, radius, color):
     Y.append(Y[0])
  
     X,Y = m(X,Y)
-    plt.plot(X,Y,color)
+    pyplot.plot(X,Y,color)
 
 def combine_magic(filenames, outfile):
     """
@@ -921,11 +921,11 @@ def make_aniso_depthplot(ani_file, meas_file, samp_file, age_file=None, fmt='svg
         #dmax=dmax+.05*dmax
         #dmin=dmin-.05*dmax
 
-        main_plot = plt.figure(1,figsize=(10,8)) # make the figure
+        main_plot = pyplot.figure(1,figsize=(10,8)) # make the figure
         
         version_num=pmag.get_version()
-        plt.figtext(.02,.01,version_num) # attach the pmagpy version number
-        ax=plt.subplot(1,pcol,1) # make the first column
+        pyplot.figtext(.02,.01,version_num) # attach the pmagpy version number
+        ax=pyplot.subplot(1,pcol,1) # make the first column
         Axs.append(ax)
         ax.plot(Tau1,Depths,'rs') 
         ax.plot(Tau2,Depths,'b^') 
@@ -938,19 +938,19 @@ def make_aniso_depthplot(ani_file, meas_file, samp_file, age_file=None, fmt='svg
             ax.set_ylabel('Age ('+age_unit+')')
         else:
             ax.set_ylabel('Depth (mcd)')
-        ax2=plt.subplot(1,pcol,2) # make the second column
+        ax2=pyplot.subplot(1,pcol,2) # make the second column
         ax2.plot(P,Depths,'rs') 
         ax2.axis([P_min,P_max,dmax,dmin])
         ax2.set_xlabel('P')
         ax2.set_title(location)
         Axs.append(ax2)
-        ax3=plt.subplot(1,pcol,3)
+        ax3=pyplot.subplot(1,pcol,3)
         Axs.append(ax3)
         ax3.plot(V3Incs,Depths,'ko') 
         ax3.axis([0,90,dmax,dmin])
         ax3.set_xlabel('V3 Inclination')
         if pcol==4:
-            ax4=plt.subplot(1,pcol,4)
+            ax4=pyplot.subplot(1,pcol,4)
             Axs.append(ax4)
             ax4.plot(Bulks,BulkDepths,'bo') 
             ax4.axis([bmin-1,bmax+1,dmax,dmin])
@@ -963,7 +963,17 @@ def make_aniso_depthplot(ani_file, meas_file, samp_file, age_file=None, fmt='svg
 
 
 
-def core_depthplot(meas_file='magic_measurements.txt', samp_file='er_samples.txt', depth_scale='sample_core_depth', sym='bo', size=5, method='LT-NO', fmt='svg', step=0, pltD=1, pltI=1, pltM=1, pltL=1, pltS=1):
+def core_depthplot(dir_path='.', meas_file='magic_measurements.txt', spc_file='', samp_file='', age_file='', depth_scale='sample_core_depth', dmin=-1, dmax=-1, sym='bo',  size=5, spc_sym='ro', spc_size=5, meth='', step=0, fmt='svg',  pltDec=1, pltInc=1, pltMag=1, pltLine=1, pltSus=1, logit=0, pltTime=0, timescale=None, amin=-1, amax=-1):
+    """
+    depth scale can be 'sample_core_depth' or 'sample_composite_depth'
+    if age file is provided, depth_scale will be set to 'age' by default
+    """
+    pyplot.ion()
+    print 'dir_path', dir_path, 'meas_file', meas_file, 'spc_file', spc_file
+    print 'samp_file', samp_file, 'age_file', age_file, 'depth_scale', depth_scale
+    print 'dmin', dmin, 'dmax', dmax, 'sym', sym, 'size', size, 'spc_sym', spc_sym, 'spc_size', spc_size,
+    print 'meth', meth, 'step', step, 'fmt', fmt, 'pltDec', pltDec, 'pltInc', pltInc, 'pltMag', pltMag,
+    print 'pltLine', pltLine, 'pltSus', pltSus, 'logit', logit, 'timescale', timescale, 'amin', amin, 'amax', amax
     intlist=['measurement_magnitude','measurement_magn_moment','measurement_magn_volume','measurement_magn_mass']
     wt_file=''
     verbose=pmagplotlib.verbose
@@ -971,133 +981,85 @@ def core_depthplot(meas_file='magic_measurements.txt', samp_file='er_samples.txt
     Ssym,Ssize='cs',5
     pcol=3
     pel=3
-    logit=0
     maxInt=-1000
     minInt=1e10
     maxSuc=-1000
     minSuc=10000
-    plotexp,pTS=0,0
-    dir_path="."
-    sum_file=""
-    # LJ removed
-    #suc_file=""
-    age_file=""
-    spc_file=""
-    res_file=""
 
-    wig_file=""
+    # files not supported for the moment
+    sum_file="" # nothing else needed 
+    suc_file="" # nothing else needed, also was not implemented in original script
+    res_file="" # need also res_sym, res_size
+    wig_file=""#  if wig_file: pcol+=1; width+=2
+
     title,location="",""
-    if '-WD' in sys.argv: 
-        ind=sys.argv.index('-WD')
-        dir_path=sys.argv[ind+1]
+
     norm=0
-    if '-h' in sys.argv:
-        print main.__doc__
-        sys.exit()
-    if '-L' in sys.argv:
-        pltL=0
-    if '-S' in sys.argv: pltS=0 # don't plot the bulk measurements at all
-    if '-D' in sys.argv:
-        pltD=0
+
+    if not pltDec:
         pcol-=1
         pel-=1
         width-=2
-    if '-I' in sys.argv:
-        pltI=0
+    if not pltInc:
         pcol-=1
         pel-=1
         width-=2
-    if '-M' in sys.argv:
-        pltM=0
+    if not pltMag:
         pcol-=1
         pel-=1
         width-=2
-    if '-log' in sys.argv:logit=1
-    if '-ds' in sys.argv and 'mcd' in sys.argv:depth_scale='sample_composite_depth'
-    if '-sym' in sys.argv:
-        ind=sys.argv.index('-sym')
-        sym=sys.argv[ind+1]
-        size=float(sys.argv[ind+2])
-    if '-f' in sys.argv:
-        ind=sys.argv.index('-f')
-        meas_file=sys.argv[ind+1]
-    if '-fsa' in sys.argv:
-        ind=sys.argv.index('-fsa')
-        samp_file=sys.argv[ind+1]
-        if '-fa' in sys.argv:
-            print main.__doc__
-            print 'only -fsa OR -fa - not both'
-            sys.exit()
-    elif '-fa' in sys.argv:
-        ind=sys.argv.index('-fa')
-        age_file=sys.argv[ind+1]
-    if '-fsp' in sys.argv:
-        ind=sys.argv.index('-fsp')
-        spc_file=dir_path+'/'+sys.argv[ind+1]
-        spc_sym=sys.argv[ind+2]
-        spc_size=float(sys.argv[ind+3])
-    if '-fres' in sys.argv:
-        ind=sys.argv.index('-fres')
-        res_file=dir_path+'/'+sys.argv[ind+1]
-        res_sym=sys.argv[ind+2]
-        res_size=float(sys.argv[ind+3])
-    if '-fwig' in sys.argv:
-        ind=sys.argv.index('-fwig')
-        wig_file=dir_path+'/'+sys.argv[ind+1]
-        pcol+=1
-        width+=2
-    if '-fsum' in sys.argv:
-        ind=sys.argv.index('-fsum')
-        sum_file=dir_path+'/'+sys.argv[ind+1]
-    if '-fmt' in sys.argv:
-        ind=sys.argv.index('-fmt')
-        fmt='.'+sys.argv[ind+1]
-    if '-sav' in sys.argv:
-        plots=1
-        verbose=0
-    if '-LP' in sys.argv:
-        ind=sys.argv.index('-LP')
-        meth=sys.argv[ind+1]
-        if meth=="AF":
-            step=round(float(sys.argv[ind+2])*1e-3,6)
-            method='LT-AF-Z'
-        elif meth== 'T':
-            step=round(float(sys.argv[ind+2])+273,6)
-            method='LT-T-Z'
-        elif meth== 'ARM':
-            method='LT-AF-I'
-            step=round(float(sys.argv[ind+2])*1e-3,6)
-        elif meth== 'IRM':
-            method='LT-IRM'
-            step=round(float(sys.argv[ind+2])*1e-3,6)
-        elif meth== 'X':
-            method='LP-X'
-            pcol+=1
-            if sys.argv[ind+2]=='mass':
-                suc_key='measurement_chi_mass'
-            elif sys.argv[ind+2]=='vol':
-                suc_key='measurement_chi_volume'
-            else:
-                print 'error in susceptibility units'
-                sys.exit()
-        else:
-           print 'method not supported'
-           sys.exit()
-    if '-n' in sys.argv: 
-        ind=sys.argv.index('-n')
-        wt_file=dir_path+'/'+sys.argv[ind+1]
-        norm=1
-    dmin,dmax=-1,-1
-    if '-d' in sys.argv:
-        ind=sys.argv.index('-d')
-        dmin=float(sys.argv[ind+1])
-        dmax=float(sys.argv[ind+2])
-    if '-ts' in sys.argv:
+
+
+    #if '-sav' in sys.argv:
+    #    plots=1
+    #    verbose=0
+    print 'meth', type(meth)
+    if not meth:
+        method = 'LT-NO'
+    if not step:
+        step = 0    
+    if meth=="AF":
+        step=round(float(step)*1e-3,6)
+        method='LT-AF-Z'
+    elif meth== 'T':
+        step=round(float(step)+273,6)
+        method='LT-T-Z'
+    elif meth== 'ARM':
+        method='LT-AF-I'
+        step=round(float(step)*1e-3,6)
+    elif meth== 'IRM':
+        method='LT-IRM'
+        step=round(float(step)*1e-3,6)
+    # not supporting susceptibility at the moment
+    #elif meth== 'X':
+    #    method='LP-X'
+    #    pcol+=1
+    #    if sys.argv[ind+2]=='mass':
+    #        suc_key='measurement_chi_mass'
+    #    elif sys.argv[ind+2]=='vol':
+    #        suc_key='measurement_chi_volume'
+    #    else:
+    #        print 'error in susceptibility units'
+    #        return False, 'error in susceptibility units'
+    else:
+       print 'method not supported'
+       return False, 'method not supported'
+    print 'method', method
+   
+    if wt_file:
+       norm=1
+
+    if dmin and dmax:
+        dmin, dmax = float(dmin), float(dmax)
+    else:
+        dmin, dmax = -1, -1
+    
+    if pltTime:
         ind=sys.argv.index('-ts')
         ts=sys.argv[ind+1]
         amin=float(sys.argv[ind+2])
         amax=float(sys.argv[ind+3])
-        pTS=1
+        pltTime=1
         pcol+=1
         width+=2
     #
@@ -1112,14 +1074,6 @@ def core_depthplot(meas_file='magic_measurements.txt', samp_file='er_samples.txt
         age_file=dir_path+'/'+age_file
         Samps,file_type=pmag.magic_read(age_file) 
         age_unit=""
-    Meas,file_type=pmag.magic_read(meas_file) 
-    meas_key='measurement_magn_moment'
-    print len(Meas), ' measurements read in from ',meas_file
-    for m in intlist: # find the intensity key with data
-        meas_data=pmag.get_dictitem(Meas,m,'','F') # get all non-blank data for this specimen
-        if len(meas_data)>0: 
-            meas_key=m
-            break
     if spc_file!="":Specs,file_type=pmag.magic_read(spc_file)
     if res_file!="":Results,file_type=pmag.magic_read(res_file)
     if norm==1:
@@ -1150,7 +1104,15 @@ def core_depthplot(meas_file='magic_measurements.txt', samp_file='er_samples.txt
     SSucs=[]
     samples=[]
     methods,steps,m2=[],[],[]
-    if pltS: # plot the bulk measurement data
+    if pltSus: # plot the bulk measurement data
+        Meas,file_type=pmag.magic_read(meas_file) 
+        meas_key='measurement_magn_moment'
+        print len(Meas), ' measurements read in from ',meas_file
+        for m in intlist: # find the intensity key with data
+            meas_data=pmag.get_dictitem(Meas,m,'','F') # get all non-blank data for this specimen
+            if len(meas_data)>0: 
+                meas_key=m
+                break
         m1=pmag.get_dictitem(Meas,'magic_method_codes',method,'has') # fish out the desired method code
         if method=='LT-T-Z': 
             m2=pmag.get_dictitem(m1,'treatment_temp',str(step),'eval') # fish out the desired step
@@ -1183,16 +1145,18 @@ def core_depthplot(meas_file='magic_measurements.txt', samp_file='er_samples.txt
                    title=location
                    
         SData=pmag.sort_diclist(Data,'core_depth')
+        print "len(Data)", len(Data)
+        print "len(SData)", len(SData)
         for rec in SData: # fish out bulk measurement data from desired depths
             if dmax==-1 or float(rec['core_depth'])<dmax and float(rec['core_depth'])>dmin:
                 Depths.append((rec['core_depth']))
                 if method=="LP-X": 
                     SSucs.append(float(rec[suc_key]))
                 else:
-                   if pltD==1:Decs.append(float(rec['measurement_dec']))
-                   if pltI==1:Incs.append(float(rec['measurement_inc']))
-                   if norm==0 and pltM==1:Ints.append(float(rec[meas_key]))
-                   if norm==1 and pltM==1:Ints.append(float(rec[meas_key])/float(rec['specimen_weight']))
+                   if pltDec==1:Decs.append(float(rec['measurement_dec']))
+                   if pltInc==1:Incs.append(float(rec['measurement_inc']))
+                   if norm==0 and pltMag==1:Ints.append(float(rec[meas_key]))
+                   if norm==1 and pltMag==1:Ints.append(float(rec[meas_key])/float(rec['specimen_weight']))
             if len(SSucs)>0:  
                 maxSuc=max(SSucs)
                 minSuc=min(SSucs)
@@ -1247,7 +1211,7 @@ def core_depthplot(meas_file='magic_measurements.txt', samp_file='er_samples.txt
                 Susc,Sus_depths=[],[]
     if dmin==-1:
         if len(Depths)>0: dmin,dmax=Depths[0],Depths[-1]
-        if pltS==1 and len(SDepths)>0:
+        if pltSus==1 and len(SDepths)>0:
             if SDepths[0]<dmin:dmin=SDepths[0]
             if SDepths[-1]>dmax:dmax=SDepths[-1]
         if len(SpecDepths)>0:
@@ -1255,8 +1219,7 @@ def core_depthplot(meas_file='magic_measurements.txt', samp_file='er_samples.txt
             if max(SpecDepths)>dmax:dmax=max(SpecDepths)
         if len(ResDepths)>0:
             if min(ResDepths)<dmin:dmin=min(ResDepths)
-            if max(ResDepths)>dmax:dmax=max(ResDepths)
-            
+            if max(ResDepths)>dmax:dmax=max(ResDepths)            
     #LJ removed
     #if suc_file!="":
     #    sucdat=open(suc_file,'rU').readlines()
@@ -1286,57 +1249,57 @@ def core_depthplot(meas_file='magic_measurements.txt', samp_file='er_samples.txt
     tint=4.5
     plt=1
     if len(Decs)>0 and len(Depths)>0 or (len(SpecDecs)>0 and len(SpecDepths)>0) or (len(ResDecs)>0 and len(ResDepths)>0) or (len(SDecs)>0 and len(SDepths)>0) or (len(SInts)>0 and len(SDepths)>0) or (len(SIncs)>0 and len(SDepths)>0):
-        pylab.figure(1,figsize=(width,8))
+        main_plot = pyplot.figure(1,figsize=(width,8))
         version_num=pmag.get_version()
-        pylab.figtext(.02,.01,version_num)
-        if pltD==1:
-            ax=pylab.subplot(1,pcol,plt)
-            if pltL==1:pylab.plot(Decs,Depths,'k') 
-            if len(Decs)>0:pylab.plot(Decs,Depths,sym,markersize=size) 
-            if len(Decs)==0 and pltL==1 and len(SDecs)>0:pylab.plot(SDecs,SDepths,'k')
-            if len(SDecs)>0:pylab.plot(SDecs,SDepths,Ssym,markersize=Ssize) 
-            if spc_file!="":pylab.plot(SpecDecs,SpecDepths,spc_sym,markersize=spc_size) 
-            if spc_file!="" and len(FDepths)>0:pylab.scatter(FDecs,FDepths,marker=spc_sym[-1],edgecolor=spc_sym[0],facecolor='white',s=spc_size**2) 
-            if res_file!="":pylab.plot(ResDecs,ResDepths,res_sym,markersize=res_size) 
+        pyplot.figtext(.02,.01,version_num)
+        if pltDec==1:
+            ax=pyplot.subplot(1,pcol,plt)
+            if pltLine==1:pyplot.plot(Decs,Depths,'k') 
+            if len(Decs)>0:pyplot.plot(Decs,Depths,sym,markersize=size) 
+            if len(Decs)==0 and pltLine==1 and len(SDecs)>0:pyplot.plot(SDecs,SDepths,'k')
+            if len(SDecs)>0:pyplot.plot(SDecs,SDepths,Ssym,markersize=Ssize) 
+            if spc_file!="":pyplot.plot(SpecDecs,SpecDepths,spc_sym,markersize=spc_size) 
+            if spc_file!="" and len(FDepths)>0:pyplot.scatter(FDecs,FDepths,marker=spc_sym[-1],edgecolor=spc_sym[0],facecolor='white',s=spc_size**2) 
+            if res_file!="":pyplot.plot(ResDecs,ResDepths,res_sym,markersize=res_size) 
             if sum_file!="":
                 for core in Cores:
                      depth=float(core['Core Top (m)']) 
                      if depth>dmin and depth<dmax:
-                        pylab.plot([0,360.],[depth,depth],'b--')
-                        if pel==plt:pylab.text(360,depth+tint,core['Core Label'])
+                        pyplot.plot([0,360.],[depth,depth],'b--')
+                        if pel==plt:pyplot.text(360,depth+tint,core['Core Label'])
             if pel==plt:
-                pylab.axis([0,400,dmax,dmin])
+                pyplot.axis([0,400,dmax,dmin])
             else:
-                pylab.axis([0,360.,dmax,dmin])
-            pylab.xlabel('Declination')
-            pylab.ylabel(ylab)
+                pyplot.axis([0,360.,dmax,dmin])
+            pyplot.xlabel('Declination')
+            pyplot.ylabel(ylab)
             plt+=1 
             pmagplotlib.delticks(ax) # dec xticks are too crowded otherwise
-    if pltI==1:
-            pylab.subplot(1,pcol,plt)
-            if pltL==1:pylab.plot(Incs,Depths,'k') 
-            if len(Incs)>0:pylab.plot(Incs,Depths,sym,markersize=size) 
-            if len(Incs)==0 and pltL==1 and len(SIncs)>0:pylab.plot(SIncs,SDepths,'k')
-            if len(SIncs)>0:pylab.plot(SIncs,SDepths,Ssym,markersize=Ssize) 
-            if spc_file!="" and len(SpecDepths)>0:pylab.plot(SpecIncs,SpecDepths,spc_sym,markersize=spc_size) 
-            if spc_file!="" and len(FDepths)>0:pylab.scatter(FIncs,FDepths,marker=spc_sym[-1],edgecolor=spc_sym[0],facecolor='white',s=spc_size**2)
-            if res_file!="":pylab.plot(ResIncs,ResDepths,res_sym,markersize=res_size) 
+    if pltInc==1:
+            pyplot.subplot(1,pcol,plt)
+            if pltLine==1:pyplot.plot(Incs,Depths,'k') 
+            if len(Incs)>0:pyplot.plot(Incs,Depths,sym,markersize=size) 
+            if len(Incs)==0 and pltLine==1 and len(SIncs)>0:pyplot.plot(SIncs,SDepths,'k')
+            if len(SIncs)>0:pyplot.plot(SIncs,SDepths,Ssym,markersize=Ssize) 
+            if spc_file!="" and len(SpecDepths)>0:pyplot.plot(SpecIncs,SpecDepths,spc_sym,markersize=spc_size) 
+            if spc_file!="" and len(FDepths)>0:pyplot.scatter(FIncs,FDepths,marker=spc_sym[-1],edgecolor=spc_sym[0],facecolor='white',s=spc_size**2)
+            if res_file!="":pyplot.plot(ResIncs,ResDepths,res_sym,markersize=res_size) 
             if sum_file!="":
                 for core in Cores:
                      depth=float(core['Core Top (m)']) 
                      if depth>dmin and depth<dmax:
-                         if pel==plt:pylab.text(90,depth+tint,core['Core Label'])
-                         pylab.plot([-90,90],[depth,depth],'b--')
-            pylab.plot([0,0],[dmax,dmin],'k-') 
+                         if pel==plt:pyplot.text(90,depth+tint,core['Core Label'])
+                         pyplot.plot([-90,90],[depth,depth],'b--')
+            pyplot.plot([0,0],[dmax,dmin],'k-') 
             if pel==plt:
-                pylab.axis([-90,110,dmax,dmin])
+                pyplot.axis([-90,110,dmax,dmin])
             else:
-                pylab.axis([-90,90,dmax,dmin])
-            pylab.xlabel('Inclination')
-            pylab.ylabel('')
+                pyplot.axis([-90,90,dmax,dmin])
+            pyplot.xlabel('Inclination')
+            pyplot.ylabel('')
             plt+=1
-    if pltM==1 and len(Ints)>0 or len(SInts)>0:
-            pylab.subplot(1,pcol,plt)
+    if pltMag==1 and len(Ints)>0 or len(SInts)>0:
+            pyplot.subplot(1,pcol,plt)
             for pow in range(-10,10):
                 if maxInt*10**pow>1:break
             if logit==0:
@@ -1344,69 +1307,69 @@ def core_depthplot(meas_file='magic_measurements.txt', samp_file='er_samples.txt
                     Ints[k]=Ints[k]*10**pow
                 for k in range(len(SInts)):
                     SInts[k]=SInts[k]*10**pow
-                if pltL==1 and len(Ints)>0: pylab.plot(Ints,Depths,'k') 
-                if len(Ints)>0:pylab.plot(Ints,Depths,sym,markersize=size) 
-                if len(Ints)==0 and pltL==1 and len(SInts)>0:pylab.plot(SInts,SDepths,'k-')
-                if len(SInts)>0:pylab.plot(SInts,SDepths,Ssym,markersize=Ssize) 
+                if pltLine==1 and len(Ints)>0: pyplot.plot(Ints,Depths,'k') 
+                if len(Ints)>0:pyplot.plot(Ints,Depths,sym,markersize=size) 
+                if len(Ints)==0 and pltLine==1 and len(SInts)>0:pyplot.plot(SInts,SDepths,'k-')
+                if len(SInts)>0:pyplot.plot(SInts,SDepths,Ssym,markersize=Ssize) 
                 if sum_file!="":
                     for core in Cores:
                          depth=float(core['Core Top (m)']) 
-                         pylab.plot([0,maxInt*10**pow+.1],[depth,depth],'b--')
-                         if depth>dmin and depth<dmax:pylab.text(maxInt*10**pow-.2*maxInt*10**pow,depth+tint,core['Core Label'])
-                pylab.axis([0,maxInt*10**pow+.1,dmax,dmin])
+                         pyplot.plot([0,maxInt*10**pow+.1],[depth,depth],'b--')
+                         if depth>dmin and depth<dmax:pyplot.text(maxInt*10**pow-.2*maxInt*10**pow,depth+tint,core['Core Label'])
+                pyplot.axis([0,maxInt*10**pow+.1,dmax,dmin])
                 if norm==0:
-                    pylab.xlabel('%s %i %s'%('Intensity (10^-',pow,' Am^2)'))
+                    pyplot.xlabel('%s %i %s'%('Intensity (10^-',pow,' Am^2)'))
                 else:
-                    pylab.xlabel('%s %i %s'%('Intensity (10^-',pow,' Am^2/kg)'))
+                    pyplot.xlabel('%s %i %s'%('Intensity (10^-',pow,' Am^2/kg)'))
             else:
-                if pltL==1: pylab.semilogx(Ints,Depths,'k') 
-                if len(Ints)>0:pylab.semilogx(Ints,Depths,sym,markersize=size) 
-                if len(Ints)==0 and pltL==1 and len(SInts)>0:pylab.semilogx(SInts,SDepths,'k')
-                if len(Ints)==0 and pltL==1 and len(SInts)>0:pylab.semilogx(SInts,SDepths,'k')
-                if len(SInts)>0:pylab.semilogx(SInts,SDepths,Ssym,markersize=Ssize) 
+                if pltLine==1: pyplot.semilogx(Ints,Depths,'k') 
+                if len(Ints)>0:pyplot.semilogx(Ints,Depths,sym,markersize=size) 
+                if len(Ints)==0 and pltLine==1 and len(SInts)>0:pyplot.semilogx(SInts,SDepths,'k')
+                if len(Ints)==0 and pltLine==1 and len(SInts)>0:pyplot.semilogx(SInts,SDepths,'k')
+                if len(SInts)>0:pyplot.semilogx(SInts,SDepths,Ssym,markersize=Ssize) 
                 if sum_file!="":
                     for core in Cores:
                          depth=float(core['Core Top (m)']) 
-                         pylab.semilogx([minInt,maxInt],[depth,depth],'b--')
-                         if depth>dmin and depth<dmax:pylab.text(maxInt-.2*maxInt,depth+tint,core['Core Label'])
-                pylab.axis([0,maxInt,dmax,dmin])
+                         pyplot.semilogx([minInt,maxInt],[depth,depth],'b--')
+                         if depth>dmin and depth<dmax:pyplot.text(maxInt-.2*maxInt,depth+tint,core['Core Label'])
+                pyplot.axis([0,maxInt,dmax,dmin])
                 if norm==0:
-                    pylab.xlabel('Intensity (Am^2)')
+                    pyplot.xlabel('Intensity (Am^2)')
                 else:
-                    pylab.xlabel('Intensity (Am^2/kg)')
+                    pyplot.xlabel('Intensity (Am^2/kg)')
             plt+=1
 
     #LJ removed
-    #if suc_file!="" or len(SSucs)>0:
-    #        pylab.subplot(1,pcol,plt)
-    #        if len(Susc)>0:
-    #            if pltL==1:pylab.plot(Susc,Sus_depths,'k') 
-    #            if logit==0:pylab.plot(Susc,Sus_depths,sym,markersize=size) 
-    #            if logit==1:pylab.semilogx(Susc,Sus_depths,sym,markersize=size) 
-    #        if len(SSucs)>0:
-    #            if logit==0:pylab.plot(SSucs,SDepths,sym,markersize=size) 
-    #            if logit==1:pylab.semilogx(SSucs,SDepths,sym,markersize=size) 
-    #        if sum_file!="":
-    #            for core in Cores:
-    #                 depth=float(core['Core Top (m)']) 
-    #                 if logit==0:pylab.plot([minSuc,maxSuc],[depth,depth],'b--')
-    #                 if logit==1:pylab.semilogx([minSuc,maxSuc],[depth,depth],'b--')
-    #        pylab.axis([minSuc,maxSuc,dmax,dmin])
-    #        pylab.xlabel('Susceptibility')
-    #        plt+=1
-    
-    if wig_file!="":
-            pylab.subplot(1,pcol,plt)
-            pylab.plot(WIG,WIG_depths,'k') 
+    if suc_file!="" or len(SSucs)>0:
+            pyplot.subplot(1,pcol,plt)
+            if len(Susc)>0:
+                if pltLine==1:pyplot.plot(Susc,Sus_depths,'k') 
+                if logit==0:pyplot.plot(Susc,Sus_depths,sym,markersize=size) 
+                if logit==1:pyplot.semilogx(Susc,Sus_depths,sym,markersize=size) 
+            if len(SSucs)>0:
+                if logit==0:pyplot.plot(SSucs,SDepths,sym,markersize=size) 
+                if logit==1:pyplot.semilogx(SSucs,SDepths,sym,markersize=size) 
             if sum_file!="":
                 for core in Cores:
                      depth=float(core['Core Top (m)']) 
-                     pylab.plot([WIG[0],WIG[-1]],[depth,depth],'b--')
-            pylab.axis([min(WIG),max(WIG),dmax,dmin])
-            pylab.xlabel(plt_key)
+                     if logit==0:pyplot.plot([minSuc,maxSuc],[depth,depth],'b--')
+                     if logit==1:pyplot.semilogx([minSuc,maxSuc],[depth,depth],'b--')
+            pyplot.axis([minSuc,maxSuc,dmax,dmin])
+            pyplot.xlabel('Susceptibility')
             plt+=1
-    if pTS==1:
-            ax1=pylab.subplot(1,pcol,plt)
+    
+    if wig_file!="":
+            pyplot.subplot(1,pcol,plt)
+            pyplot.plot(WIG,WIG_depths,'k') 
+            if sum_file!="":
+                for core in Cores:
+                     depth=float(core['Core Top (m)']) 
+                     pyplot.plot([WIG[0],WIG[-1]],[depth,depth],'b--')
+            pyplot.axis([min(WIG),max(WIG),dmax,dmin])
+            pyplot.xlabel(plt_key)
+            plt+=1
+    if pltTime==1:
+            ax1=pyplot.subplot(1,pcol,plt)
             ax1.axis([-.25,1.5,amax,amin])
             plt+=1
             TS,Chrons=pmag.get_TS(ts)
@@ -1426,7 +1389,7 @@ def core_depthplot(meas_file='magic_measurements.txt', samp_file='er_samples.txt
                    if pol: ax1.fill_between(X,Y,Y1,facecolor='black') # fill in every other time
             ax1.plot([0,1,1,0,0],[amin,amin,amax,amax,amin],'k-')
             ax2=ax1.twinx()
-            pylab.ylabel("Age (Ma): "+ts) 
+            pyplot.ylabel("Age (Ma): "+ts) 
             for k in range(len(Chrons)-1):
                 c=Chrons[k]  
                 cnext=Chrons[k+1]
@@ -1435,18 +1398,19 @@ def core_depthplot(meas_file='magic_measurements.txt', samp_file='er_samples.txt
                     ax2.plot([1,1.5],[c[1],c[1]],'k-') # make the Chron boundary tick
                     ax2.text(1.05,d,c[0]) # 
             ax2.axis([-.25,1.5,amax,amin])
+    print location, method, fmt
     figname=location+'_m:_'+method+'_core-depthplot.'+fmt
-    pylab.title(location)
+    pyplot.title(location)
     if verbose:
-        pylab.draw()
-        ans=raw_input("S[a]ve plot? ")
-        if ans=='a':
-            pylab.savefig(figname)
-            print 'Plot saved as ',figname
-    elif plots:
-        pylab.savefig(figname)
-        print 'Plot saved as ',figname
-    sys.exit()
+        pyplot.draw()
+        #ans=raw_input("S[a]ve plot? ")
+        #if ans=='a':
+        #    pyplot.savefig(figname)
+        #    print 'Plot saved as ',figname
+    #elif plots:
+    #    pyplot.savefig(figname)
+    #    print 'Plot saved as ',figname
+    #sys.exit()
 
 
 
