@@ -144,12 +144,10 @@ def qsnorm(p):
 def plotNOTES(fignum,Notes):
     for note in Notes:
         pylab.text(note['X'],note['Y'],note['text'])
-    pylab.draw()
 
 def plotPTS(fignum,PTs,x,y):
     for pt in PTs:
         pylab.scatter(pt[x],pt[y],marker=pt['marker'],c=pt['color'],s=pt['size'])
-    pylab.draw()
 
 def show(fig):
     pylab.figure(fig)
@@ -177,7 +175,6 @@ def plotLINES(fignum,line,sym,x,y):
         X.append(l[x])
         Y.append(l[y])
     pylab.plot(X,Y,sym)
-    pylab.draw()
 
 def plotXY(fignum,X,Y,**kwargs):
     pylab.figure(num=fignum)
@@ -263,7 +260,6 @@ def plotQQnorm(fignum,Y,title):
     pylab.text(-.9*bounds[1],.6*bounds[3],notestr)
     notestr='Dc: '+'%8.3e'%(dc)
     pylab.text(-.9*bounds[1],.5*bounds[3],notestr)
-    pylab.draw()
 
 #
 def plotQQunf(fignum,D,title):
@@ -304,7 +300,6 @@ def plotQQunf(fignum,D,title):
     pylab.title(title)
     pylab.xlabel('Uniform Quantile')
     pylab.ylabel('Data Quantile')
-    pylab.draw()
     return Mu, 1.207
 
 def plotQQexp(fignum,I,title):
@@ -351,7 +346,6 @@ def plotQQexp(fignum,I,title):
     pylab.title(title)
     pylab.xlabel('Exponential Quantile')
     pylab.ylabel('Data Quantile')
-    pylab.draw()
     return Me, 1.094
 
 def plotNET(fignum):
@@ -1154,9 +1148,6 @@ def plotSLNP(fignum,SiteRec,datablock,key):
         Xcirc.append(XY[0])
         Ycirc.append(XY[1])
     pylab.plot(Xcirc,Ycirc,'g')
-    pylab.ion()
-    pylab.draw()
-    pylab.ioff()
    
 def plotLNP(fignum,s,datablock,fpars,direction_type_key):
     """
@@ -1202,9 +1193,6 @@ def plotLNP(fignum,s,datablock,fpars,direction_type_key):
         Xcirc.append(XY[0])
         Ycirc.append(XY[1])
     pylab.plot(Xcirc,Ycirc,'g')
-    pylab.ion()
-    pylab.draw()
-    pylab.ioff()
    
 
 
@@ -1867,9 +1855,6 @@ def plotXTB(fignum,XTB,Bs,e,f):
         k+=1 
     pylab.title(e+': f = '+'%i'%(int(f))+' Hz')
     pylab.legend(Blab,'upper left')
-    pylab.ion()
-    pylab.draw()
-    pylab.ioff()
 #
 def plotXFT(fignum,XF,T,e,b):
     """ function to plot series of chi measurements as a function of temperature, holding field constant and varying frequency
@@ -1890,9 +1875,6 @@ def plotXFT(fignum,XF,T,e,b):
     pylab.title(e+': B = '+'%8.1e'%(b)+' T')
       
     pylab.legend(['%i'%(int(T))+' K'])
-    pylab.ion()
-    pylab.draw()
-    pylab.ioff()
 #
 def plotXBT(fignum,XB,T,e,b):
     """ function to plot series of chi measurements as a function of temperature, holding field constant and varying frequency
@@ -1911,9 +1893,6 @@ def plotXBT(fignum,XB,T,e,b):
     pylab.plot(B,X)
     pylab.legend(['%i'%(int(T))+' K'])
     pylab.title(e+': f = '+'%i'%(int(f))+' Hz')
-    pylab.ion()
-    pylab.draw()
-    pylab.ioff()
 #
 def plotzfcfc(MT,e):
     """
@@ -1959,9 +1938,6 @@ def plotltc(LTC_CM,LTC_CT,LTC_WM,LTC_WT,e):
         if len(LTC_CM)>2: pylab.plot(LTC_CT,LTC_CM,'bo')
         if len(LTC_WM)>2: pylab.plot(LTC_WT,LTC_WM,'ro')
         pylab.title(e)
-	pylab.ion()
-	pylab.draw()
-	pylab.ioff()
 
 def plot_close(plot):
 	pylab.ion()

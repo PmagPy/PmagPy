@@ -213,7 +213,6 @@ def main():
           ResRec['er_location_names']=pmag.makelist(Locs)
           if plots==1:
               save(ANIS,fmt,title)
-              sys.exit()
           ResRec={}
           ResRec['er_citation_names']=pmag.makelist(Cits)
           ResRec['er_location_names']=pmag.makelist(Locs)
