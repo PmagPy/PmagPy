@@ -491,8 +491,8 @@ def plotC(fignum,pole,ang,col):
         else:
             X_c_d.append(XY[0])
             Y_c_d.append(XY[1])
-    pylab.plot(X_c_d,Y_c_d,col+',')
-    pylab.plot(X_c_up,Y_c_up,'c,')
+    pylab.plot(X_c_d,Y_c_d,col+'.',ms=5)
+    pylab.plot(X_c_up,Y_c_up,'c.',ms=2)
 
 
 

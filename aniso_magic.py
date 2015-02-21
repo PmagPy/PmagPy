@@ -31,7 +31,7 @@ def main():
         -P don't make any plots - just make rmag_results table
         -sav don't make the rmag_results table - just save all the plots
         -fmt [svg, jpg, eps] format for output images, pdf default
-        -gtc DEC INC  dec,inc of pole to great circle 
+        -gtc DEC INC  dec,inc of pole to great circle [down(up) in green (cyan)
         -d Vi DEC INC; Vi (1,2,3) to compare to direction DEC INC
         -nb N; specifies the number of bootstraps - default is 1000
     DEFAULTS  

@@ -84,7 +84,7 @@ def main():
     if '-Fsa' in sys.argv:
         ind=sys.argv.index('-Fsa')
         sampfile=sys.argv[ind+1]
-    resfile = pmag.get_named_arg_from_sys('-Fr', 'rmag_anisotropy.txt')
+    resfile = pmag.get_named_arg_from_sys('-Fr', 'rmag_results.txt')
     if '-Fa' in sys.argv:
         ind=sys.argv.index('-Fa')
         anisfile=sys.argv[ind+1] 
