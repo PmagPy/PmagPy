@@ -1308,7 +1308,7 @@ class Core_depthplot(wx.Frame):
         #self.bSizer5a = pw.labeled_text_field(pnl, "point size (default is 5)")
         self.bSizer5a = pw.labeled_spin_ctrl(pnl, "point size (default is 5): ")
         self.bSizer5b = pw.check_box(pnl, "Show lines connecting points")
-
+        self.bSizer5b.cb.SetValue(True)
 
         self.Bind(wx.EVT_TEXT, self.change_file_path, self.bSizer0.file_path)
 
@@ -1341,6 +1341,10 @@ class Core_depthplot(wx.Frame):
         #---sizer 3 ---
         plot_choices = ['Plot declination', 'Plot inclination', 'Plot magnetization', 'Plot magnetization on log scale']
         self.bSizer3 = pw.check_boxes(pnl, (5, 1, 0, 0), plot_choices, "Choose what to plot:")
+        self.bSizer3.boxes[0].SetValue(True)
+        self.bSizer3.boxes[1].SetValue(True)
+        self.bSizer3.boxes[2].SetValue(True)
+        self.bSizer3.boxes[3].SetValue(True)
 
 
         #---sizer 13---
@@ -1412,7 +1416,7 @@ class Core_depthplot(wx.Frame):
         # more plot display options
 
         hbox5.AddMany([self.bSizer0a1, self.bSizer0a2, self.bSizer0a3])
-        self.vbox5.Add(wx.StaticText(pnl, label="Plot display options for results data"))
+        self.vbox5.Add(wx.StaticText(pnl, label="Plot display options for specimens data"))
         self.vbox5.Add(hbox5)
 
 
@@ -1590,10 +1594,12 @@ class Core_depthplot(wx.Frame):
             samp_file = ''
             age_file = os.path.split(self.bSizer1.return_value())[1]
         depth_scale = self.bSizer8.return_value()
-        if depth_scale:
-            depth_scale = 'mbsf'
+        if age_file:
+            depth_scale='age'
+        elif depth_scale:
+            depth_scale = 'sample_core_depth' #'mbsf'
         else:
-            depth_scale = 'mcd'
+            depth_scale = 'sample_composite_depth' #'mcd'
         dmin = self.bSizer6.return_value()
         dmax = self.bSizer7.return_value()
         if self.bSizer9.return_value():
@@ -1612,9 +1618,9 @@ class Core_depthplot(wx.Frame):
         size = self.bSizer5a.return_value()
         pltLine = self.bSizer5b.return_value()
         if pltLine:
-            pltLine = 0
-        else:
             pltLine = 1
+        else:
+            pltLine = 0
         method = str(self.bSizer13.return_value())
         step = self.bSizer14.return_value()
         pltDec, pltInc, pltMag, logit = 0, 0, 0, 0
@@ -1634,11 +1640,19 @@ class Core_depthplot(wx.Frame):
         else:
             pltS = 1
         fmt = self.bSizer16.return_value()
-        print "meas_file", meas_file, "pmag_spec_file", pmag_spec_file, "spec_sym_shape", spec_sym_shape, "spec_sym_color", spec_sym_color, "spec_sym_size", spec_sym_size, "samp_file", samp_file, "age_file", age_file, "depth_scale", depth_scale, "dmin", dmin, "dmax", dmax, "timescale", timescale, "amin", amin, "amax", amax, "sym", sym, "size", size, "method", method, "step", step, "pltDec", pltDec, "pltInc", pltInc, "pltMag", pltMag, "pltTime", pltTime, "logit", logit, "fmt", fmt
+        #print "meas_file", meas_file, "pmag_spec_file", pmag_spec_file, "spec_sym_shape", spec_sym_shape, "spec_sym_color", spec_sym_color, "spec_sym_size", spec_sym_size, "samp_file", samp_file, "age_file", age_file, "depth_scale", depth_scale, "dmin", dmin, "dmax", dmax, "timescale", timescale, "amin", amin, "amax", amax, "sym", sym, "size", size, "method", method, "step", step, "pltDec", pltDec, "pltInc", pltInc, "pltMag", pltMag, "pltTime", pltTime, "logit", logit, "fmt", fmt
 
         # for use as module:
         import ipmag
-        ipmag.core_depthplot(self.WD, meas_file, pmag_spec_file, samp_file, age_file, depth_scale, dmin, dmax, sym, size, spec_sym, spec_sym_size, method, step, fmt, pltDec, pltInc, pltMag, pltLine, pltS, timescale, amin, amax)
+        fig, figname = ipmag.core_depthplot(self.WD, meas_file, pmag_spec_file, samp_file, age_file, depth_scale, dmin, dmax, sym, size, spec_sym, spec_sym_size, method, step, fmt, pltDec, pltInc, pltMag, pltLine, pltS, logit, pltTime, timescale, amin, amax)
+        if fig:
+            self.Destroy()
+            dpi = fig.get_dpi()
+            pixel_width = dpi * fig.get_figwidth()
+            pixel_height = dpi * fig.get_figheight()
+            plot_frame = PlotFrame((pixel_width, pixel_height + 50), fig, figname)
+        else:
+            pw.simple_warning("No data points met your criteria - try again\nError message: {}".format(figname))
 
 
         # for use as command_line:
@@ -1660,9 +1674,10 @@ class Core_depthplot(wx.Frame):
         depth_range = ''
         if dmin and dmax:
             depth_range = '-d ' + str(dmin) + ' ' + str(dmax)
-        timescale = ''
         if pltTime and amin and amax:
-            timescale = '-ts ' + ts + ' ' + str(amin) + ' ' + str(amax)
+            timescale = '-ts ' + timescale + ' ' + str(amin) + ' ' + str(amax)
+        else:
+            timescale = ''
         method = pmag.add_flag(method, '-LP') + ' ' + str(step)
         if not pltDec:
             pltDec = "-D"
@@ -1690,8 +1705,6 @@ class Core_depthplot(wx.Frame):
         else:
             no_connect_points = ''
 
-        
-
         COMMAND = "core_depthplot.py {meas_file} {pmag_spec_file} {sym} {samp_file} {age_file} {depth_scale} {depth_range} {timescale} {method} {pltDec} {pltInc} {pltMag} {logit} {fmt} {no_connect_points} -WD {WD}".format(meas_file=meas_file, pmag_spec_file=pmag_spec_file, sym=sym, samp_file=samp_file, age_file=age_file, depth_scale=depth_scale, depth_range=depth_range, timescale=timescale, method=method, pltDec=pltDec, pltInc=pltInc, pltMag=pltMag, logit=logit, fmt=fmt, no_connect_points=no_connect_points, WD=self.WD)
         print COMMAND
         #os.system(COMMAND)
@@ -1708,9 +1721,6 @@ class Core_depthplot(wx.Frame):
         (sets plots & verbose) # -sav
         """
         
-        
-        COMMAND = ""
-        print COMMAND
         #pw.run_command_and_close_window(self, COMMAND, "er_samples.txt")
 
     def on_cancelButton(self,event):
@@ -1843,7 +1853,7 @@ class Ani_depthplot(wx.Frame):
         import ipmag
         fig, figname = ipmag.make_aniso_depthplot(ani_file, meas_file, samp_file, age_file, fmt, float(dmin), float(dmax), depth_scale)
         if fig:
-            self.Destroy()
+            self.Destroy() 
             dpi = fig.get_dpi()
             pixel_width = dpi * fig.get_figwidth()
             pixel_height = dpi * fig.get_figheight()

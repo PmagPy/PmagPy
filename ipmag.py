@@ -968,15 +968,14 @@ def core_depthplot(dir_path='.', meas_file='magic_measurements.txt', spc_file=''
     depth scale can be 'sample_core_depth' or 'sample_composite_depth'
     if age file is provided, depth_scale will be set to 'age' by default
     """
-    pyplot.ion()
-    print 'dir_path', dir_path, 'meas_file', meas_file, 'spc_file', spc_file
-    print 'samp_file', samp_file, 'age_file', age_file, 'depth_scale', depth_scale
-    print 'dmin', dmin, 'dmax', dmax, 'sym', sym, 'size', size, 'spc_sym', spc_sym, 'spc_size', spc_size,
-    print 'meth', meth, 'step', step, 'fmt', fmt, 'pltDec', pltDec, 'pltInc', pltInc, 'pltMag', pltMag,
-    print 'pltLine', pltLine, 'pltSus', pltSus, 'logit', logit, 'timescale', timescale, 'amin', amin, 'amax', amax
+    #print 'dir_path', dir_path, 'meas_file', meas_file, 'spc_file', spc_file
+    #print 'samp_file', samp_file, 'age_file', age_file, 'depth_scale', depth_scale
+    #print 'dmin', dmin, 'dmax', dmax, 'sym', sym, 'size', size, 'spc_sym', spc_sym, 'spc_size', spc_size,
+    #print 'meth', meth, 'step', step, 'fmt', fmt, 'pltDec', pltDec, 'pltInc', pltInc, 'pltMag', pltMag,
+    #print 'pltLine', pltLine, 'pltSus', pltSus, 'logit', logit, 'timescale', timescale, 'amin', amin, 'amax', amax
+    #print 'pltTime', pltTime
     intlist=['measurement_magnitude','measurement_magn_moment','measurement_magn_volume','measurement_magn_mass']
     wt_file=''
-    verbose=pmagplotlib.verbose
     width=10
     Ssym,Ssize='cs',5
     pcol=3
@@ -1009,11 +1008,6 @@ def core_depthplot(dir_path='.', meas_file='magic_measurements.txt', spc_file=''
         pel-=1
         width-=2
 
-
-    #if '-sav' in sys.argv:
-    #    plots=1
-    #    verbose=0
-    print 'meth', type(meth)
     if not meth:
         method = 'LT-NO'
     if not step:
@@ -1044,7 +1038,6 @@ def core_depthplot(dir_path='.', meas_file='magic_measurements.txt', spc_file=''
     else:
        print 'method not supported'
        return False, 'method not supported'
-    print 'method', method
    
     if wt_file:
        norm=1
@@ -1055,13 +1048,11 @@ def core_depthplot(dir_path='.', meas_file='magic_measurements.txt', spc_file=''
         dmin, dmax = -1, -1
     
     if pltTime:
-        ind=sys.argv.index('-ts')
-        ts=sys.argv[ind+1]
-        amin=float(sys.argv[ind+2])
-        amax=float(sys.argv[ind+3])
-        pltTime=1
+        amin=float(amin)
+        amax=float(amax)
         pcol+=1
         width+=2
+    
     #
     #
     # get data read in
@@ -1117,11 +1108,11 @@ def core_depthplot(dir_path='.', meas_file='magic_measurements.txt', spc_file=''
         if method=='LT-T-Z': 
             m2=pmag.get_dictitem(m1,'treatment_temp',str(step),'eval') # fish out the desired step
         elif 'LT-AF' in method:
-            m2=pmag.get_dictitem(m1,'treatment_ac_field',str(step),'eval')    
+            m2=pmag.get_dictitem(m1,'treatment_ac_field',str(step),'eval')
         elif 'LT-IRM' in method:
             m2=pmag.get_dictitem(m1,'treatment_dc_field',str(step),'eval')    
         elif 'LT-X' in method:
-            m2=pmag.get_dictitem(m1,suc_key,'','F')    
+            m2=pmag.get_dictitem(m1,suc_key,'','F')
         if len(m2)>0:
           for rec in m2: # fish out depths and weights
             D=pmag.get_dictitem(Samps,'er_sample_name',rec['er_sample_name'],'T')
@@ -1145,8 +1136,6 @@ def core_depthplot(dir_path='.', meas_file='magic_measurements.txt', spc_file=''
                    title=location
                    
         SData=pmag.sort_diclist(Data,'core_depth')
-        print "len(Data)", len(Data)
-        print "len(SData)", len(SData)
         for rec in SData: # fish out bulk measurement data from desired depths
             if dmax==-1 or float(rec['core_depth'])<dmax and float(rec['core_depth'])>dmin:
                 Depths.append((rec['core_depth']))
@@ -1170,6 +1159,7 @@ def core_depthplot(dir_path='.', meas_file='magic_measurements.txt', spc_file=''
     if spc_file!="": # add depths to spec data
         print 'spec file found'
         BFLs=pmag.get_dictitem(Specs,'magic_method_codes','DE-BFL','has')  # get all the discrete data with best fit lines
+        #print "len(BFLs)", len(BFLs)
         for spec in BFLs:
             if location=="":
                location=spec['er_location_name']
@@ -1249,18 +1239,26 @@ def core_depthplot(dir_path='.', meas_file='magic_measurements.txt', spc_file=''
     tint=4.5
     plt=1
     if len(Decs)>0 and len(Depths)>0 or (len(SpecDecs)>0 and len(SpecDepths)>0) or (len(ResDecs)>0 and len(ResDepths)>0) or (len(SDecs)>0 and len(SDepths)>0) or (len(SInts)>0 and len(SDepths)>0) or (len(SIncs)>0 and len(SDepths)>0):
-        main_plot = pyplot.figure(1,figsize=(width,8))
+        main_plot = pyplot.figure(1,figsize=(width,8)) # this works
+        #main_plot = matplotlib.figure.Figure(figsize=(width,8)) # maybe convert into this format eventually
         version_num=pmag.get_version()
         pyplot.figtext(.02,.01,version_num)
         if pltDec==1:
             ax=pyplot.subplot(1,pcol,plt)
-            if pltLine==1:pyplot.plot(Decs,Depths,'k') 
-            if len(Decs)>0:pyplot.plot(Decs,Depths,sym,markersize=size) 
-            if len(Decs)==0 and pltLine==1 and len(SDecs)>0:pyplot.plot(SDecs,SDepths,'k')
-            if len(SDecs)>0:pyplot.plot(SDecs,SDepths,Ssym,markersize=Ssize) 
-            if spc_file!="":pyplot.plot(SpecDecs,SpecDepths,spc_sym,markersize=spc_size) 
-            if spc_file!="" and len(FDepths)>0:pyplot.scatter(FDecs,FDepths,marker=spc_sym[-1],edgecolor=spc_sym[0],facecolor='white',s=spc_size**2) 
-            if res_file!="":pyplot.plot(ResDecs,ResDepths,res_sym,markersize=res_size) 
+            if pltLine==1:
+                pyplot.plot(Decs,Depths,'k') 
+            if len(Decs)>0:
+                pyplot.plot(Decs,Depths,sym,markersize=size) 
+            if len(Decs)==0 and pltLine==1 and len(SDecs)>0:
+                pyplot.plot(SDecs,SDepths,'k')
+            if len(SDecs)>0:
+                pyplot.plot(SDecs,SDepths,Ssym,markersize=Ssize) 
+            if spc_file!="":
+                pyplot.plot(SpecDecs,SpecDepths,spc_sym,markersize=spc_size) 
+            if spc_file!="" and len(FDepths)>0:
+                pyplot.scatter(FDecs,FDepths,marker=spc_sym[-1],edgecolor=spc_sym[0],facecolor='white',s=spc_size**2) 
+            if res_file!="":
+                pyplot.plot(ResDecs,ResDepths,res_sym,markersize=res_size) 
             if sum_file!="":
                 for core in Cores:
                      depth=float(core['Core Top (m)']) 
@@ -1268,36 +1266,51 @@ def core_depthplot(dir_path='.', meas_file='magic_measurements.txt', spc_file=''
                         pyplot.plot([0,360.],[depth,depth],'b--')
                         if pel==plt:pyplot.text(360,depth+tint,core['Core Label'])
             if pel==plt:
+                #print 'set axis 0, 400'
                 pyplot.axis([0,400,dmax,dmin])
             else:
+                #print 'set axis 0, 360'
                 pyplot.axis([0,360.,dmax,dmin])
             pyplot.xlabel('Declination')
             pyplot.ylabel(ylab)
             plt+=1 
             pmagplotlib.delticks(ax) # dec xticks are too crowded otherwise
+    else:
+        main_plot = pyplot.figure(1,figsize=(width,8)) # this works
+        #main_plot = matplotlib.figure.Figure(figsize=(width,8)) # ??
     if pltInc==1:
-            pyplot.subplot(1,pcol,plt)
-            if pltLine==1:pyplot.plot(Incs,Depths,'k') 
-            if len(Incs)>0:pyplot.plot(Incs,Depths,sym,markersize=size) 
-            if len(Incs)==0 and pltLine==1 and len(SIncs)>0:pyplot.plot(SIncs,SDepths,'k')
-            if len(SIncs)>0:pyplot.plot(SIncs,SDepths,Ssym,markersize=Ssize) 
-            if spc_file!="" and len(SpecDepths)>0:pyplot.plot(SpecIncs,SpecDepths,spc_sym,markersize=spc_size) 
-            if spc_file!="" and len(FDepths)>0:pyplot.scatter(FIncs,FDepths,marker=spc_sym[-1],edgecolor=spc_sym[0],facecolor='white',s=spc_size**2)
-            if res_file!="":pyplot.plot(ResIncs,ResDepths,res_sym,markersize=res_size) 
-            if sum_file!="":
-                for core in Cores:
-                     depth=float(core['Core Top (m)']) 
-                     if depth>dmin and depth<dmax:
-                         if pel==plt:pyplot.text(90,depth+tint,core['Core Label'])
-                         pyplot.plot([-90,90],[depth,depth],'b--')
-            pyplot.plot([0,0],[dmax,dmin],'k-') 
-            if pel==plt:
-                pyplot.axis([-90,110,dmax,dmin])
-            else:
-                pyplot.axis([-90,90,dmax,dmin])
-            pyplot.xlabel('Inclination')
-            pyplot.ylabel('')
-            plt+=1
+        pyplot.subplot(1,pcol,plt) # THIS WORKS
+        #inc_plot = main_plot.add_subplot(1, pcol, plt) # maybe switching to this format
+        #
+        if pltLine==1:
+            pyplot.plot(Incs,Depths,'k') 
+        if len(Incs)>0:
+            pyplot.plot(Incs,Depths,sym,markersize=size)
+            #inc_plot.plot(Incs,Depths,sym,markersize=size) # may switch to this format
+        if len(Incs)==0 and pltLine==1 and len(SIncs)>0:
+            pyplot.plot(SIncs,SDepths,'k')
+        if len(SIncs)>0:
+            pyplot.plot(SIncs,SDepths,Ssym,markersize=Ssize) 
+        if spc_file!="" and len(SpecDepths)>0:
+            pyplot.plot(SpecIncs,SpecDepths,spc_sym,markersize=spc_size) 
+        if spc_file!="" and len(FDepths)>0:
+            pyplot.scatter(FIncs,FDepths,marker=spc_sym[-1],edgecolor=spc_sym[0],facecolor='white',s=spc_size**2)
+        if res_file!="":
+            pyplot.plot(ResIncs,ResDepths,res_sym,markersize=res_size) 
+        if sum_file!="":
+            for core in Cores:
+                 depth=float(core['Core Top (m)']) 
+                 if depth>dmin and depth<dmax:
+                     if pel==plt:pyplot.text(90,depth+tint,core['Core Label'])
+                     pyplot.plot([-90,90],[depth,depth],'b--')
+        pyplot.plot([0,0],[dmax,dmin],'k-') 
+        if pel==plt:
+            pyplot.axis([-90,110,dmax,dmin])
+        else:
+            pyplot.axis([-90,90,dmax,dmin])
+        pyplot.xlabel('Inclination')
+        pyplot.ylabel('')
+        plt+=1
     if pltMag==1 and len(Ints)>0 or len(SInts)>0:
             pyplot.subplot(1,pcol,plt)
             for pow in range(-10,10):
@@ -1372,7 +1385,7 @@ def core_depthplot(dir_path='.', meas_file='magic_measurements.txt', spc_file=''
             ax1=pyplot.subplot(1,pcol,plt)
             ax1.axis([-.25,1.5,amax,amin])
             plt+=1
-            TS,Chrons=pmag.get_TS(ts)
+            TS,Chrons=pmag.get_TS(timescale)
             X,Y,Y2=[0,1],[],[]
             cnt=0
             if amin<TS[1]: # in the Brunhes 
@@ -1389,7 +1402,7 @@ def core_depthplot(dir_path='.', meas_file='magic_measurements.txt', spc_file=''
                    if pol: ax1.fill_between(X,Y,Y1,facecolor='black') # fill in every other time
             ax1.plot([0,1,1,0,0],[amin,amin,amax,amax,amin],'k-')
             ax2=ax1.twinx()
-            pyplot.ylabel("Age (Ma): "+ts) 
+            pyplot.ylabel("Age (Ma): "+timescale) 
             for k in range(len(Chrons)-1):
                 c=Chrons[k]  
                 cnext=Chrons[k+1]
@@ -1398,22 +1411,10 @@ def core_depthplot(dir_path='.', meas_file='magic_measurements.txt', spc_file=''
                     ax2.plot([1,1.5],[c[1],c[1]],'k-') # make the Chron boundary tick
                     ax2.text(1.05,d,c[0]) # 
             ax2.axis([-.25,1.5,amax,amin])
-    print location, method, fmt
     figname=location+'_m:_'+method+'_core-depthplot.'+fmt
     pyplot.title(location)
-    if verbose:
-        pyplot.draw()
-        #ans=raw_input("S[a]ve plot? ")
-        #if ans=='a':
-        #    pyplot.savefig(figname)
-        #    print 'Plot saved as ',figname
-    #elif plots:
-    #    pyplot.savefig(figname)
-    #    print 'Plot saved as ',figname
-    #sys.exit()
-
-
-
+    #pyplot.draw()
+    return main_plot, figname
 
 
 
