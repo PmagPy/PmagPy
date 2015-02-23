@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import pandas as pd
+import sys
 import pmag
 
 class command_line_dataframe():
@@ -88,4 +89,27 @@ def get_vars(arg_names, args_list):
         values = args_list[ind][1:]
         islower = arg.islower()
         vals.append(values or islower)
-    return vals
+    clean_vals = []
+    for val in vals:  # transform vals into a list of strings, int/floats, and booleans (instead of lists and booleans)
+        if len(val) == 1 and (isinstance(val[0], int) or isinstance(val[0], float)): 
+            clean_vals.append(val[0])
+        elif not isinstance(val, bool):
+            clean_vals.append(' '.join(val))
+        else:
+            clean_vals.append(val)
+    return clean_vals
+
+##example use:
+##make a pandas dataframe with three columns:
+## col 1 is the command-line flag (minus the '-'), common ones include f, F, fsa, Fsa, etc.
+## col 2 is a boolean for if the flag is required or not
+## col 3 is a default value to use if the flag is not provided
+#dataframe = command_line_dataframe([['sav', False, 0], ['fmt', False, 'svg'], ['s', False, 20]])
+## get the args from the command line:
+#args = sys.argv
+## check through the args to make sure that reqd args are present, defaults are used as needed, and invalid args are ignored
+#checked_args = extract_and_check_args(args, dataframe)
+## assign values to variables based on their associated command-line flag
+#fmt, size, plot = get_vars(['fmt', 's', 'sav'], checked_args)
+#print "fmt:", fmt, "size:", size, "plot:", plot
+

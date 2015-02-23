@@ -1541,6 +1541,7 @@ def upload_magic(concat=0, All=0, dir_path='.'):
     """
     Finds all magic files in a given directory, and compiles them into an upload.txt file which can be uploaded into the MagIC database.  
     """
+    concat, All = int(concat), int(All)
     files_list = ["er_expeditions.txt", "er_locations.txt", "er_samples.txt", "er_specimens.txt", "er_sites.txt", "er_ages.txt", "er_citations.txt", "er_mailinglist.txt", "magic_measurements.txt", "rmag_hysteresis.txt", "rmag_anisotropy.txt", "rmag_remanence.txt", "rmag_results.txt", "pmag_specimens.txt", "pmag_samples.txt", "pmag_sites.txt", "pmag_results.txt", "pmag_criteria.txt", "magic_instruments.txt"]
     file_names = [os.path.join(dir_path, f) for f in files_list]
     
