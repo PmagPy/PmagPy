@@ -960,14 +960,14 @@ class convert_CIT_files_to_MagIC(wx.Frame):
         self.bSizer2 = pw.sampling_particulars(pnl)
 
         #---sizer 3 ----
-        self.bSizer3 = pw.lab_field(pnl)
+        #self.bSizer3 = pw.lab_field(pnl)
 
         #---sizer 4 ----
         self.bSizer4 = pw.select_ncn(pnl)
 
         #---sizer 5 ---
         TEXT = "specify number of characters to designate a specimen, default = 0"
-        self.bSizer5 = pw.labeled_text_field(pnl, TEXT)
+        self.bSizer5 = pw.specimen_n(pnl)
 
         #---sizer 6 ----
         TEXT="Location name:"
@@ -991,7 +991,7 @@ class convert_CIT_files_to_MagIC(wx.Frame):
         vbox.Add(self.bSizer0, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(self.bSizer1, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(self.bSizer2, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
-        vbox.Add(self.bSizer3, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        #vbox.Add(self.bSizer3, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(self.bSizer4, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(self.bSizer5, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(self.bSizer6, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
@@ -1059,10 +1059,10 @@ class convert_CIT_files_to_MagIC(wx.Frame):
         options_dict['methods'] = particulars
         if particulars:
             particulars = "-mcd " + particulars
-        lab_field = self.bSizer3.return_value()
-        options_dict['lab_field'] = lab_field
-        if lab_field:
-            lab_field = "-dc " + lab_field
+        #lab_field = self.bSizer3.return_value()
+        #options_dict['lab_field'] = lab_field
+        #if lab_field:
+        #    lab_field = "-dc " + lab_field
         peak_AF = self.bSizer8.return_value()
         options_dict['peak_AF'] = peak_AF
         if peak_AF:
@@ -1076,7 +1076,7 @@ class convert_CIT_files_to_MagIC(wx.Frame):
             options_dict['avg'] = 1
             replicate = '-A'
 
-        COMMAND = "CIT_magic.py -WD {} -f {} -F {} {} {} {} {} -ncn {} {} {} {} -Fsp {} -Fsi {} -Fsa {} {}".format(wd, CIT_file, outfile, particulars, spec_num, loc_name, user, ncn, peak_AF, lab_field, ID, spec_outfile, site_outfile, samp_outfile, replicate)
+        COMMAND = "CIT_magic.py -WD {} -f {} -F {} {} {} {} {} -ncn {} {} {} -Fsp {} -Fsi {} -Fsa {} {}".format(wd, CIT_file, outfile, particulars, spec_num, loc_name, user, ncn, peak_AF, ID, spec_outfile, site_outfile, samp_outfile, replicate)
         # to run as module:
         import CIT_magic
         if CIT_magic.main(command_line=False, **options_dict):
