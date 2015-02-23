@@ -23,20 +23,20 @@ def sort_diclist(undecorated,sort_on):
 def get_dictitem(In,k,v,flag):  
     # returns a list of dictionaries from list In with key,k  = value, v . CASE INSENSITIVE # allowed keywords:
     try:
-        if flag=="T":return [dict for dict in In if dict[k].lower()==v.lower()] # return that which is
+        if flag=="T":return [dictionary for dictionary in In if dictionary[k].lower()==v.lower()] # return that which is
         if flag=="F":
-            return [dict for dict in In if dict[k].lower()!=v.lower()] # return that which is not
-        if flag=="has":return [dict for dict in In if v.lower() in dict[k].lower()] # return that which is contained
-        if flag=="not":return [dict for dict in In if v.lower() not in dict[k].lower()] # return that which is not contained
+            return [dictionary for dictionary in In if dictionary[k].lower()!=v.lower()] # return that which is not
+        if flag=="has":return [dictionary for dictionary in In if v.lower() in dictionary[k].lower()] # return that which is contained
+        if flag=="not":return [dictionary for dictionary in In if v.lower() not in dictionary[k].lower()] # return that which is not contained
         if flag=="eval":
-            A=[dict for dict in In if dict[k]!=''] # find records with no blank values for key
-            return [dict for dict in A if float(dict[k])==float(v)] # return that which is
+            A=[dictionary for dictionary in In if dictionary[k]!=''] # find records with no blank values for key
+            return [dictionary for dictionary in A if float(dictionary[k])==float(v)] # return that which is
         if flag=="min":
-            A=[dict for dict in In if dict[k]!=''] # find records with no blank values for key
-            return [dict for dict in A if float(dict[k])>=float(v)] # return that which is greater than
+            A=[dictionary for dictionary in In if dictionary[k]!=''] # find records with no blank values for key
+            return [dictionary for dictionary in A if float(dictionary[k])>=float(v)] # return that which is greater than
         if flag=="max":
-            A=[dict for dict in In if dict[k]!=''] # find records with no blank values for key
-            return [dict for dict in A if float(dict[k])<=float(v)] # return that which is less than
+            A=[dictionary for dictionary in In if dictionary[k]!=''] # find records with no blank values for key
+            return [dictionary for dictionary in A if float(dictionary[k])<=float(v)] # return that which is less than
     except Exception, err:
         return []
 
