@@ -968,7 +968,6 @@ def core_depthplot(dir_path='.', meas_file='magic_measurements.txt', spc_file=''
     depth scale can be 'sample_core_depth' or 'sample_composite_depth'
     if age file is provided, depth_scale will be set to 'age' by default
     """
-    print 'amax:', amax
     #print 'dir_path', dir_path, 'meas_file', meas_file, 'spc_file', spc_file
     #print 'samp_file', samp_file, 'age_file', age_file, 'depth_scale', depth_scale
     #print 'dmin', dmin, 'dmax', dmax, 'sym', sym, 'size', size, 'spc_sym', spc_sym, 'spc_size', spc_size,
@@ -1117,6 +1116,8 @@ def core_depthplot(dir_path='.', meas_file='magic_measurements.txt', spc_file=''
         if len(m2)>0:
           for rec in m2: # fish out depths and weights
             D=pmag.get_dictitem(Samps,'er_sample_name',rec['er_sample_name'],'T')
+            if not D:  # if using an age_file, you may need to sort by site
+                D=pmag.get_dictitem(Samps,'er_site_name',rec['er_site_name'],'T')
             depth=pmag.get_dictitem(D,depth_scale,'','F')
             if len(depth)>0:
                 if ylab=='Age': ylab=ylab+' ('+depth[0]['age_unit']+')' # get units of ages - assume they are all the same!
