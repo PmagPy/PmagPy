@@ -1692,9 +1692,9 @@ class Core_depthplot(wx.Frame):
         else:
             pltMag = ''
         if not pltLine:
-            pltLine = "-L"
+            pltLine = ""
         else:
-            pltLine = ''
+            pltLine = '-L' # suppress line
         if logit:
             logit = "-log"
         else:

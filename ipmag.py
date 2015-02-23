@@ -1056,17 +1056,19 @@ def core_depthplot(dir_path='.', meas_file='magic_measurements.txt', spc_file=''
     #
     #
     # get data read in
-    meas_file=dir_path+'/'+meas_file
+    meas_file = os.path.join(dir_path, meas_file)
     if age_file=="":
-        samp_file=dir_path+'/'+samp_file
-        Samps,file_type=pmag.magic_read(samp_file) 
+        samp_file = os.path.join(dir_path, samp_file)
+        Samps,file_type = pmag.magic_read(samp_file) 
     else:
         depth_scale='age'
-        age_file=dir_path+'/'+age_file
-        Samps,file_type=pmag.magic_read(age_file) 
-        age_unit=""
-    if spc_file!="":Specs,file_type=pmag.magic_read(spc_file)
-    if res_file!="":Results,file_type=pmag.magic_read(res_file)
+        age_file = os.path.join(dir_path, age_file)
+        Samps,file_type = pmag.magic_read(age_file) 
+        age_unit = ""
+    if spc_file != "":
+        Specs,file_type=pmag.magic_read(spc_file)
+    if res_file!="":
+        Results,file_type=pmag.magic_read(res_file)
     if norm==1:
         ErSpecs,file_type=pmag.magic_read(wt_file) 
         print len(ErSpecs), ' specimens read in from ',wt_file
