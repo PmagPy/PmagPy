@@ -968,6 +968,7 @@ def core_depthplot(dir_path='.', meas_file='magic_measurements.txt', spc_file=''
     depth scale can be 'sample_core_depth' or 'sample_composite_depth'
     if age file is provided, depth_scale will be set to 'age' by default
     """
+    print 'amax:', amax
     #print 'dir_path', dir_path, 'meas_file', meas_file, 'spc_file', spc_file
     #print 'samp_file', samp_file, 'age_file', age_file, 'depth_scale', depth_scale
     #print 'dmin', dmin, 'dmax', dmax, 'sym', sym, 'size', size, 'spc_sym', spc_sym, 'spc_size', spc_size,
