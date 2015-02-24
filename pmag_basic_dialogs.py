@@ -66,7 +66,7 @@ class import_magnetometer_data(wx.Dialog):
         self.Bind(wx.EVT_BUTTON, self.on_okButton, self.okButton)
         self.cancelButton = wx.Button(self.panel, wx.ID_CANCEL, '&Cancel')
         self.Bind(wx.EVT_BUTTON, self.on_cancelButton, self.cancelButton)
-        self.nextButton = wx.Button(self.panel, id=-1, label='Next step')
+        self.nextButton = wx.Button(self.panel, id=-1, label='Skip to next step')
         self.Bind(wx.EVT_BUTTON, self.on_nextButton, self.nextButton)
         hboxok.Add(self.okButton)
         hboxok.AddSpacer(20)
@@ -500,13 +500,13 @@ class combine_magic_dialog(wx.Frame):
         self.cancelButton = wx.Button(self.panel, wx.ID_CANCEL, '&Cancel')
         self.Bind(wx.EVT_BUTTON, self.on_cancelButton, self.cancelButton)
 
-        self.nextButton = wx.Button(self.panel, id=-1, label='Skip')
+        self.nextButton = wx.Button(self.panel, id=-1, label='Skip to last step')
         self.Bind(wx.EVT_BUTTON, self.on_nextButton, self.nextButton)
 
         hboxok = wx.BoxSizer(wx.HORIZONTAL)
         hboxok.Add(self.okButton)
-        hboxok.Add(self.cancelButton )
-        hboxok.Add(self.nextButton )
+        hboxok.Add(self.cancelButton, flag=wx.LEFT, border=5)
+        hboxok.Add(self.nextButton, flag=wx.LEFT, border=5)
 
         #------
         vbox=wx.BoxSizer(wx.VERTICAL)
@@ -601,7 +601,7 @@ class combine_magic_dialog(wx.Frame):
 
 class combine_everything_dialog(wx.Frame):
     """"""
-    title = "Combine er_* files"
+    title = "Combine MagIC files"
 
     def __init__(self,WD):
         wx.Frame.__init__(self, None, wx.ID_ANY, self.title)
@@ -620,11 +620,25 @@ class combine_everything_dialog(wx.Frame):
         TEXT="Step 3: \nCombine different MagIC formatted files to one file name (if necessary).  All files should be from the working directory."
         bSizer_info = wx.BoxSizer(wx.HORIZONTAL)
         bSizer_info.Add(wx.StaticText(pnl,label=TEXT),wx.ALIGN_LEFT)
-            
-        self.bSizer0 = pw.combine_files(self, "er_specimens.txt")
-        self.bSizer1 = pw.combine_files(self, "er_samples.txt")
-        self.bSizer2 = pw.combine_files(self, "er_sites.txt")
-        
+
+        possible_file_dias = ['er_specimens.txt', 'er_samples.txt', 'er_sites.txt', 'rmag_anisotropy.txt', 'rmag_results.txt', 'rmag_hysteresis.txt']
+        self.file_dias = []
+        all_files = os.listdir(self.WD)
+        for dia in possible_file_dias:
+            for f in all_files:
+                if dia in f:
+                    bSizer = pw.combine_files(self, dia)
+                    self.file_dias.append(bSizer)
+                    break
+        if not self.file_dias:
+            file_string = ', '.join(possible_file_dias)
+            MSG = "You have no more files that can be combined.\nFile types that can be combined are:\n{}\nNote that your file name must end with the file type, i.e.:\nsomething_something_er_specimens.txt".format(file_string)
+            dlg = wx.MessageDialog(None,caption="Message:", message=MSG ,style=wx.OK|wx.ICON_INFORMATION)
+            dlg.ShowModal()
+            dlg.Destroy()
+            self.Destroy()
+
+
         #------------------
                      
         self.okButton = wx.Button(self.panel, wx.ID_OK, "&OK")
@@ -635,10 +649,16 @@ class combine_everything_dialog(wx.Frame):
 
         hboxok = wx.BoxSizer(wx.HORIZONTAL)
         hboxok.Add(self.okButton)
-        hboxok.Add(self.cancelButton )
+        hboxok.Add(self.cancelButton, flag=wx.LEFT, border=5 )
 
-        hboxfiles = wx.BoxSizer(wx.HORIZONTAL)
-        hboxfiles.AddMany([self.bSizer0, self.bSizer1, self.bSizer2])
+        #file_dias = [self.bSizer0, self.bSizer1, self.bSizer2]
+        num_cols = min(len(self.file_dias), 3)
+        num_rows = 2 if len(self.file_dias) > 3 else 1
+        hboxfiles = wx.GridSizer(num_rows, num_cols, 1, 1)
+        hboxfiles.AddMany(self.file_dias)
+        
+        #hboxfiles = wx.BoxSizer(wx.HORIZONTAL)
+        #hboxfiles.AddMany([self.bSizer0, self.bSizer1, self.bSizer2])
 
         #------
         vbox=wx.BoxSizer(wx.VERTICAL)
@@ -662,60 +682,25 @@ class combine_everything_dialog(wx.Frame):
         self.Centre()
         self.Show()
                         
-
     def on_cancelButton(self,event):
         self.Destroy()
 
     def on_okButton(self,event):
-        er_specimens = self.bSizer0.file_paths.GetValue()
-        er_samples = self.bSizer1.file_paths.GetValue()
-        er_sites = self.bSizer2.file_paths.GetValue()
-        spec_files = er_specimens.strip('\n').replace(" ","")
-        if spec_files:
-            spec_files = spec_files.split('\n')
-        samp_files = er_samples.strip('\n').replace(" ","")
-        if samp_files:
-            samp_files = samp_files.split('\n')
-        site_files = er_sites.strip('\n').replace(" ","")
-        if site_files:
-            site_files = site_files.split('\n')
-        new_files = []
         success = True
-        if spec_files:
-            COMMAND0="combine_magic.py -F er_specimens.txt -f %s"%(" ".join(spec_files))
-            print "-I- Running Python command:\n %s"%COMMAND0
-            # to run as module:
-            if not ipmag.combine_magic(spec_files, 'er_speciments.txt'):
-                success = False
-            
-            # to run as command line:
-            #os.system(COMMAND0)
-            
-            new_files.append("er_specimens.txt")
-        if samp_files:
-            COMMAND1="combine_magic.py -F er_samples.txt -f %s"%(" ".join(samp_files))
-            print "-I- Running Python command:\n %s"%COMMAND1
-            # to run as module:
-            if not ipmag.combine_magic(samp_files, 'er_samples.txt'):
-                success = False
-            
-            # to run as command line:
-            #os.system(COMMAND1)
-            
-            new_files.append("er_samples.txt")
-        if site_files:
-            COMMAND2="combine_magic.py -F er_sites.txt -f %s"%(" ".join(site_files))
-            print "-I- Running Python command:\n %s"%COMMAND2
-            
-            # to run as module:
-            if not ipmag.combine_magic(site_files, 'er_sites.txt'):
-                success = False
-            
-            # to run as command line:
-            #os.system(COMMAND2)
-            new_files.append("er_sites.txt")
-        new = '\n' + '\n'.join(new_files)
+        new_files = []
+        # go through each pw.combine_files sizer, extract the files, try to combine them into one:
+        for bSizer in self.file_dias:  
+            full_list = bSizer.file_paths.GetValue()
+            file_name = bSizer.text
+            files = full_list.strip('\n').replace(" ", "")
+            if files:
+                files = files.split('\n')
+            if ipmag.combine_magic(files, file_name):
+                new_files.append(file_name)  # add to the list of successfully combined files
+            else:
+                success = False                
         if success:
+            new = '\n' + '\n'.join(new_files)
             MSG = "Created new file(s): {} \nSee Termimal (Mac) or command prompt (windows) for details and errors".format(new)
             dlg1 = wx.MessageDialog(None,caption="Message:", message=MSG ,style=wx.OK|wx.ICON_INFORMATION)
             dlg1.ShowModal()
@@ -723,8 +708,6 @@ class combine_everything_dialog(wx.Frame):
             self.Destroy()
         else:
             pw.simple_warning()
-
-
 
 
 
