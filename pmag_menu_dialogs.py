@@ -1602,7 +1602,7 @@ class Core_depthplot(wx.Frame):
             depth_scale = 'sample_composite_depth' #'mcd'
         dmin = self.bSizer6.return_value()
         dmax = self.bSizer7.return_value()
-        if self.bSizer9.return_value():
+        if self.bSizer9.return_value(): # if plot GPTS is checked
             pltTime = 1
             if self.bSizer10.return_value():
                 timescale = 'gts04'
@@ -1610,8 +1610,11 @@ class Core_depthplot(wx.Frame):
                 timescale = 'ck95'
             amin = self.bSizer11.return_value()
             amax = self.bSizer12.return_value()
-        else:
-            pltTime, timescale, amin, amax = 0, '', '', ''
+            if not amin or not amax:
+                pw.simple_warning("If plotting timescale, you must provide both a lower and an upper bound.\nIf you don't want to plot timescale, uncheck the 'Plot GPTS' checkbox")
+                return False
+        else: # if plot GPTS is not checked
+            pltTime, timescale, amin, amax = 0, '', -1, -1
         sym_shape = self.shape_choices_dict[self.bSizer5.return_value()]
         sym_color = self.bSizer4.return_value()[0]
         sym = sym_color + sym_shape
@@ -1623,6 +1626,9 @@ class Core_depthplot(wx.Frame):
             pltLine = 0
         method = str(self.bSizer13.return_value())
         step = self.bSizer14.return_value()
+        if not step:
+            pw.simple_warning("You must provide the step in microtesla (??)")
+            return False
         pltDec, pltInc, pltMag, logit = 0, 0, 0, 0
         for val in self.bSizer3.return_value():
             if 'declination' in val:
@@ -1634,17 +1640,19 @@ class Core_depthplot(wx.Frame):
             if 'log' in val:
                 logit = 1
 
-        pltS = self.bSizer15.return_value()
-        if pltS:
-            pltS = 0
+        pltSus = self.bSizer15.return_value()
+        if pltSus:
+            pltSus = 0
         else:
-            pltS = 1
+            pltSus = 1
         fmt = self.bSizer16.return_value()
         #print "meas_file", meas_file, "pmag_spec_file", pmag_spec_file, "spec_sym_shape", spec_sym_shape, "spec_sym_color", spec_sym_color, "spec_sym_size", spec_sym_size, "samp_file", samp_file, "age_file", age_file, "depth_scale", depth_scale, "dmin", dmin, "dmax", dmax, "timescale", timescale, "amin", amin, "amax", amax, "sym", sym, "size", size, "method", method, "step", step, "pltDec", pltDec, "pltInc", pltInc, "pltMag", pltMag, "pltTime", pltTime, "logit", logit, "fmt", fmt
 
         # for use as module:
         import ipmag
-        fig, figname = ipmag.core_depthplot(self.WD, meas_file, pmag_spec_file, samp_file, age_file, depth_scale, dmin, dmax, sym, size, spec_sym, spec_sym_size, method, step, fmt, pltDec, pltInc, pltMag, pltLine, pltS, logit, pltTime, timescale, amin, amax)
+        #print "pltLine:", pltLine
+        #print "pltSus:", pltSus
+        fig, figname = ipmag.core_depthplot(self.WD, meas_file, pmag_spec_file, samp_file, age_file, depth_scale, dmin, dmax, sym, size, spec_sym, spec_sym_size, method, step, fmt, pltDec, pltInc, pltMag, pltLine, pltSus, logit, pltTime, timescale, amin, amax)
         if fig:
             self.Destroy()
             dpi = fig.get_dpi()
@@ -1679,6 +1687,10 @@ class Core_depthplot(wx.Frame):
         else:
             timescale = ''
         method = pmag.add_flag(method, '-LP') + ' ' + str(step)
+        if not pltSus:
+            pltSus = "-L"
+        else:
+            pltSus = ''
         if not pltDec:
             pltDec = "-D"
         else:
@@ -1691,7 +1703,7 @@ class Core_depthplot(wx.Frame):
             pltMag = "-M"
         else:
             pltMag = ''
-        if not pltLine:
+        if pltLine:
             pltLine = ""
         else:
             pltLine = '-L' # suppress line
@@ -1705,7 +1717,7 @@ class Core_depthplot(wx.Frame):
         else:
             no_connect_points = ''
 
-        COMMAND = "core_depthplot.py {meas_file} {pmag_spec_file} {sym} {samp_file} {age_file} {depth_scale} {depth_range} {timescale} {method} {pltDec} {pltInc} {pltMag} {logit} {fmt} {no_connect_points} -WD {WD}".format(meas_file=meas_file, pmag_spec_file=pmag_spec_file, sym=sym, samp_file=samp_file, age_file=age_file, depth_scale=depth_scale, depth_range=depth_range, timescale=timescale, method=method, pltDec=pltDec, pltInc=pltInc, pltMag=pltMag, logit=logit, fmt=fmt, no_connect_points=no_connect_points, WD=self.WD)
+        COMMAND = "core_depthplot.py {meas_file} {pmag_spec_file} {sym} {samp_file} {age_file} {depth_scale} {depth_range} {timescale} {method} {pltDec} {pltInc} {pltMag} {pltSus}  {logit} {fmt} {no_connect_points} -WD {WD}".format(meas_file=meas_file, pmag_spec_file=pmag_spec_file, sym=sym, samp_file=samp_file, age_file=age_file, depth_scale=depth_scale, depth_range=depth_range, timescale=timescale, method=method, pltDec=pltDec, pltInc=pltInc, pltMag=pltMag, pltSus=pltSus, logit=logit, fmt=fmt, no_connect_points=no_connect_points, WD=self.WD)
         print COMMAND
         #os.system(COMMAND)
 

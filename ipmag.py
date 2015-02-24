@@ -1097,6 +1097,7 @@ def core_depthplot(dir_path='.', meas_file='magic_measurements.txt', spc_file=''
     SSucs=[]
     samples=[]
     methods,steps,m2=[],[],[]
+    #print "pltSus?", pltSus
     if pltSus: # plot the bulk measurement data
         Meas,file_type=pmag.magic_read(meas_file) 
         meas_key='measurement_magn_moment'
@@ -1140,6 +1141,7 @@ def core_depthplot(dir_path='.', meas_file='magic_measurements.txt', spc_file=''
                    title=location
                    
         SData=pmag.sort_diclist(Data,'core_depth')
+        #print "len(SData)", len(SData)
         for rec in SData: # fish out bulk measurement data from desired depths
             if dmax==-1 or float(rec['core_depth'])<dmax and float(rec['core_depth'])>dmin:
                 Depths.append((rec['core_depth']))
@@ -1158,6 +1160,7 @@ def core_depthplot(dir_path='.', meas_file='magic_measurements.txt', spc_file=''
                 minInt=min(Ints)
         if len(Depths)==0:
             print 'no bulk measurement data matched your request'
+    #print "len(Depths)", len(Depths) # only collected if pltSus
     SpecDepths,SpecDecs,SpecIncs=[],[],[]
     FDepths,FDecs,FIncs=[],[],[]
     if spc_file!="": # add depths to spec data
