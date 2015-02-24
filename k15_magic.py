@@ -140,7 +140,7 @@ def main():
                 SampRec["magic_method_codes"]=""
                 AnisRec["magic_method_codes"]=""
                 SiteRec["magic_method_codes"]=""
-                ResRec["magic_smethod_codes"]=""
+                ResRec["magic_method_codes"]=""
                 MeasRec["magic_software_packages"]=version_num
                 SpecRec["magic_software_packages"]=version_num
                 SampRec["magic_software_packages"]=version_num
