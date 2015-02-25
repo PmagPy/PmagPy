@@ -34,11 +34,11 @@ def main():
         input_dir_path = '.'
     # non-interactive
     else:
-        dataframe = extractor.command_line_dataframe([['O', False, 0]])
+        dataframe = extractor.command_line_dataframe([['O', False, True]])
         checked_args = extractor.extract_and_check_args(sys.argv, dataframe)
         infile, dir_path, input_dir_path, overwrite = extractor.get_vars(['f', 'WD', 'ID', 'O'], checked_args)
 
-    ipmag.download_magic(infile, dir_path, input_dir_path)
+    ipmag.download_magic(infile, dir_path, input_dir_path, overwrite)
 
 
                         

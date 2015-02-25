@@ -91,12 +91,19 @@ def get_vars(arg_names, args_list):
         vals.append(values or islower)
     clean_vals = []
     for val in vals:  # transform vals into a list of strings, int/floats, and booleans (instead of lists and booleans)
-        if len(val) == 1 and (isinstance(val[0], int) or isinstance(val[0], float)): 
-            clean_vals.append(val[0])
-        elif not isinstance(val, bool):
-            clean_vals.append(' '.join(val))
-        else:
+        # deal with booleans
+        if isinstance(val, bool):
             clean_vals.append(val)
+        else:
+            # deal with numbers
+            if len(val) == 1 and (isinstance(val[0], int) or isinstance(val[0], float)): 
+                clean_vals.append(val[0])
+            # deal with lists
+            elif not isinstance(val, bool):
+                clean_vals.append(' '.join(val))
+            # deal with strings
+            else: 
+                clean_vals.append(val)
     return clean_vals
 
 ##example use:
