@@ -379,13 +379,20 @@ def main():
         pylab.figtext(.02,.01,version_num)
         if pltD==1:
             ax=pylab.subplot(1,pcol,plt)
-            if pltL==1:pylab.plot(Decs,Depths,'k') 
-            if len(Decs)>0:pylab.plot(Decs,Depths,sym,markersize=size) 
-            if len(Decs)==0 and pltL==1 and len(SDecs)>0:pylab.plot(SDecs,SDepths,'k')
-            if len(SDecs)>0:pylab.plot(SDecs,SDepths,Ssym,markersize=Ssize) 
-            if spc_file!="":pylab.plot(SpecDecs,SpecDepths,spc_sym,markersize=spc_size) 
-            if spc_file!="" and len(FDepths)>0:pylab.scatter(FDecs,FDepths,marker=spc_sym[-1],edgecolor=spc_sym[0],facecolor='white',s=spc_size**2) 
-            if res_file!="":pylab.plot(ResDecs,ResDepths,res_sym,markersize=res_size) 
+            if pltL==1:
+                pylab.plot(Decs,Depths,'k') 
+            if len(Decs)>0:
+                pylab.plot(Decs,Depths,sym,markersize=size) 
+            if len(Decs)==0 and pltL==1 and len(SDecs)>0:
+                pylab.plot(SDecs,SDepths,'k')
+            if len(SDecs)>0:
+                pylab.plot(SDecs,SDepths,Ssym,markersize=Ssize) 
+            if spc_file!="":
+                pylab.plot(SpecDecs,SpecDepths,spc_sym,markersize=spc_size) 
+            if spc_file!="" and len(FDepths)>0:
+                pylab.scatter(FDecs,FDepths,marker=spc_sym[-1],edgecolor=spc_sym[0],facecolor='white',s=spc_size**2) 
+            if res_file!="":
+                pylab.plot(ResDecs,ResDepths,res_sym,markersize=res_size) 
             if sum_file!="":
                 for core in Cores:
                      depth=float(core['Core Top (m)']) 
