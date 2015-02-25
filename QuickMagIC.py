@@ -424,9 +424,10 @@ class MagMainFrame(wx.Frame):
         wait = wx.BusyInfo("Please wait, working...")
         ex = None 
         try:
-            ipmag.download_magic(f, self.WD, input_dir)
-
-            TXT="Successfully ran download_magic.py program. MagIC files were saved in your working directory."
+            if ipmag.download_magic(f, self.WD, input_dir, overwrite=True):
+                TXT="Successfully ran download_magic.py program.\nMagIC files were saved in your working directory.\nSee Terminal/Command Prompt for details."
+            else:
+                TXT = "Something went wrong.  Make sure you chose a valid file downloaded from the MagIC database and try again."
 
         except Exception as ex:
             TXT = "Something went wrong.  Make sure you chose a valid file downloaded from the MagIC database and try again."

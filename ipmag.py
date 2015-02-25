@@ -1426,7 +1426,7 @@ def core_depthplot(dir_path='.', meas_file='magic_measurements.txt', spc_file=''
 
 
     
-def download_magic(infile, dir_path='.', input_dir_path='.'):
+def download_magic(infile, dir_path='.', input_dir_path='.', overwrite=False):
     """
     takes the name of a text file downloaded from the MagIC database and unpacks it into magic-formatted files.
     by default, download_magic assumes that you are doing everything in your current directory.
@@ -1523,9 +1523,10 @@ def download_magic(infile, dir_path='.', input_dir_path='.'):
             try:
                 os.mkdir(lpath)
             except:
-                print 'directory ',lpath,' already exists - overwrite everything [y/n]?'
-                ans=raw_input()
-                if ans=='n':sys.exit()
+                print 'directory ',lpath,' already exists - overwriting everything: {}'.format(overwrite)
+                if not overwrite:
+                    print "-W- download_magic encountered a duplicate subdirectory ({}) and could not finish.\nRerun with overwrite=True, or unpack this file in a different directory.".format(lpath)
+                    return False
             for f in type_list:
                 print 'unpacking: ',dir_path+'/'+f+'.txt'
                 recs,file_type=pmag.magic_read(dir_path+'/'+f+'.txt')
