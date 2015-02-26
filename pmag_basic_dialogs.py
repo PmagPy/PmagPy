@@ -652,8 +652,11 @@ class combine_everything_dialog(wx.Frame):
         hboxok.Add(self.cancelButton, flag=wx.LEFT, border=5 )
 
         #file_dias = [self.bSizer0, self.bSizer1, self.bSizer2]
-        num_cols = min(len(self.file_dias), 3)
-        num_rows = 2 if len(self.file_dias) > 3 else 1
+        if len(self.file_dias) == 4:
+            num_cols, num_rows = 2, 2
+        else:
+            num_cols = min(len(self.file_dias), 3)
+            num_rows = 2 if len(self.file_dias) > 3 else 1
         hboxfiles = wx.GridSizer(num_rows, num_cols, 1, 1)
         hboxfiles.AddMany(self.file_dias)
         
