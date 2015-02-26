@@ -960,9 +960,6 @@ def make_aniso_depthplot(ani_file, meas_file, samp_file, age_file=None, fmt='svg
         return main_plot, fig_name
 
 
-
-
-
 def core_depthplot(dir_path='.', meas_file='magic_measurements.txt', spc_file='', samp_file='', age_file='', depth_scale='sample_core_depth', dmin=-1, dmax=-1, sym='bo',  size=5, spc_sym='ro', spc_size=5, meth='', step=0, fmt='svg',  pltDec=1, pltInc=1, pltMag=1, pltLine=1, pltSus=1, logit=0, pltTime=0, timescale=None, amin=-1, amax=-1):
     """
     depth scale can be 'sample_core_depth' or 'sample_composite_depth'
@@ -1024,7 +1021,7 @@ def core_depthplot(dir_path='.', meas_file='magic_measurements.txt', spc_file=''
     elif meth== 'IRM':
         method='LT-IRM'
         step=round(float(step)*1e-3,6)
-    # not supporting susceptibility at the moment
+    # not supporting susceptibility at the moment LJ
     #elif meth== 'X':
     #    method='LP-X'
     #    pcol+=1
@@ -1093,11 +1090,13 @@ def core_depthplot(dir_path='.', meas_file='magic_measurements.txt', spc_file=''
         ylab="Depth (mcd)"
     # collect the data for plotting declination
     Depths,Decs,Incs,Ints=[],[],[],[]
-    SDepths,SDecs,SIncs,SInts=[],[],[],[]
+
+    # these values are never populated -- commented out all references to them LJ
+    #SDepths,SDecs,SIncs,SInts=[],[],[],[]
+    
     SSucs=[]
     samples=[]
     methods,steps,m2=[],[],[]
-    #print "pltSus?", pltSus
     if pltSus: # plot the bulk measurement data
         Meas,file_type=pmag.magic_read(meas_file) 
         meas_key='measurement_magn_moment'
@@ -1207,10 +1206,11 @@ def core_depthplot(dir_path='.', meas_file='magic_measurements.txt', spc_file=''
                 ResIncs.append(float(res['average_inc'])) # fish out data with core_depth
                 Susc,Sus_depths=[],[]
     if dmin==-1:
-        if len(Depths)>0: dmin,dmax=Depths[0],Depths[-1]
-        if pltSus==1 and len(SDepths)>0:
-            if SDepths[0]<dmin:dmin=SDepths[0]
-            if SDepths[-1]>dmax:dmax=SDepths[-1]
+        if len(Depths)>0:
+            dmin,dmax=Depths[0],Depths[-1]
+        #if pltSus==1 and len(SDepths)>0:
+        #    if SDepths[0]<dmin:dmin=SDepths[0]
+        #    if SDepths[-1]>dmax:dmax=SDepths[-1]
         if len(SpecDepths)>0:
             if min(SpecDepths)<dmin:dmin=min(SpecDepths)
             if max(SpecDepths)>dmax:dmax=max(SpecDepths)
@@ -1245,7 +1245,9 @@ def core_depthplot(dir_path='.', meas_file='magic_measurements.txt', spc_file=''
                 WIG_depths.append(float(wig[depth_scale]))
     tint=4.5
     plt=1
-    if len(Decs)>0 and len(Depths)>0 or (len(SpecDecs)>0 and len(SpecDepths)>0) or (len(ResDecs)>0 and len(ResDepths)>0) or (len(SDecs)>0 and len(SDepths)>0) or (len(SInts)>0 and len(SDepths)>0) or (len(SIncs)>0 and len(SDepths)>0):
+    if len(Decs)>0 and len(Depths)>0 or (len(SpecDecs)>0 and len(SpecDepths)>0) or (len(ResDecs)>0 and len(ResDepths)>0):
+        #or (len(SDecs)>0 and len(SDepths)>0) or (len(SInts)>0 and len(SDepths)>0) or (len(SIncs)>0 and len(SDepths)>0):
+        
         main_plot = pyplot.figure(1,figsize=(width,8)) # this works
         #main_plot = matplotlib.figure.Figure(figsize=(width,8)) # maybe convert into this format eventually
         version_num=pmag.get_version()
@@ -1256,10 +1258,10 @@ def core_depthplot(dir_path='.', meas_file='magic_measurements.txt', spc_file=''
                 pyplot.plot(Decs,Depths,'k') 
             if len(Decs)>0:
                 pyplot.plot(Decs,Depths,sym,markersize=size) 
-            if len(Decs)==0 and pltLine==1 and len(SDecs)>0:
-                pyplot.plot(SDecs,SDepths,'k')
-            if len(SDecs)>0:
-                pyplot.plot(SDecs,SDepths,Ssym,markersize=Ssize) 
+            #if len(Decs)==0 and pltLine==1 and len(SDecs)>0:
+            #    pyplot.plot(SDecs,SDepths,'k')
+            #if len(SDecs)>0:
+            #    pyplot.plot(SDecs,SDepths,Ssym,markersize=Ssize) 
             if spc_file!="":
                 pyplot.plot(SpecDecs,SpecDepths,spc_sym,markersize=spc_size) 
             if spc_file!="" and len(FDepths)>0:
@@ -1294,10 +1296,10 @@ def core_depthplot(dir_path='.', meas_file='magic_measurements.txt', spc_file=''
         if len(Incs)>0:
             pyplot.plot(Incs,Depths,sym,markersize=size)
             #inc_plot.plot(Incs,Depths,sym,markersize=size) # may switch to this format
-        if len(Incs)==0 and pltLine==1 and len(SIncs)>0:
-            pyplot.plot(SIncs,SDepths,'k')
-        if len(SIncs)>0:
-            pyplot.plot(SIncs,SDepths,Ssym,markersize=Ssize) 
+        #if len(Incs)==0 and pltLine==1 and len(SIncs)>0:
+        #    pyplot.plot(SIncs,SDepths,'k')
+        #if len(SIncs)>0:
+        #    pyplot.plot(SIncs,SDepths,Ssym,markersize=Ssize) 
         if spc_file!="" and len(SpecDepths)>0:
             pyplot.plot(SpecIncs,SpecDepths,spc_sym,markersize=spc_size) 
         if spc_file!="" and len(FDepths)>0:
@@ -1318,19 +1320,23 @@ def core_depthplot(dir_path='.', meas_file='magic_measurements.txt', spc_file=''
         pyplot.xlabel('Inclination')
         pyplot.ylabel('')
         plt+=1
-    if pltMag==1 and len(Ints)>0 or len(SInts)>0:
+    if pltMag==1 and len(Ints)>0:# or len(SInts)>0:
             pyplot.subplot(1,pcol,plt)
             for pow in range(-10,10):
                 if maxInt*10**pow>1:break
             if logit==0:
                 for k in range(len(Ints)):
                     Ints[k]=Ints[k]*10**pow
-                for k in range(len(SInts)):
-                    SInts[k]=SInts[k]*10**pow
-                if pltLine==1 and len(Ints)>0: pyplot.plot(Ints,Depths,'k') 
-                if len(Ints)>0:pyplot.plot(Ints,Depths,sym,markersize=size) 
-                if len(Ints)==0 and pltLine==1 and len(SInts)>0:pyplot.plot(SInts,SDepths,'k-')
-                if len(SInts)>0:pyplot.plot(SInts,SDepths,Ssym,markersize=Ssize) 
+                #for k in range(len(SInts)):
+                #    SInts[k]=SInts[k]*10**pow
+                if pltLine==1 and len(Ints)>0:
+                    pyplot.plot(Ints,Depths,'k') 
+                if len(Ints)>0:
+                    pyplot.plot(Ints,Depths,sym,markersize=size) 
+                #if len(Ints)==0 and pltLine==1 and len(SInts)>0:
+                #    pyplot.plot(SInts,SDepths,'k-')
+                #if len(SInts)>0:
+                #    pyplot.plot(SInts,SDepths,Ssym,markersize=Ssize) 
                 if sum_file!="":
                     for core in Cores:
                          depth=float(core['Core Top (m)']) 
@@ -1342,11 +1348,16 @@ def core_depthplot(dir_path='.', meas_file='magic_measurements.txt', spc_file=''
                 else:
                     pyplot.xlabel('%s %i %s'%('Intensity (10^-',pow,' Am^2/kg)'))
             else:
-                if pltLine==1: pyplot.semilogx(Ints,Depths,'k') 
-                if len(Ints)>0:pyplot.semilogx(Ints,Depths,sym,markersize=size) 
-                if len(Ints)==0 and pltLine==1 and len(SInts)>0:pyplot.semilogx(SInts,SDepths,'k')
-                if len(Ints)==0 and pltLine==1 and len(SInts)>0:pyplot.semilogx(SInts,SDepths,'k')
-                if len(SInts)>0:pyplot.semilogx(SInts,SDepths,Ssym,markersize=Ssize) 
+                if pltLine==1:
+                    pyplot.semilogx(Ints,Depths,'k') 
+                if len(Ints)>0:
+                    pyplot.semilogx(Ints,Depths,sym,markersize=size) 
+                #if len(Ints)==0 and pltLine==1 and len(SInts)>0:
+                #    pyplot.semilogx(SInts,SDepths,'k')
+                #if len(Ints)==0 and pltLine==1 and len(SInts)>0:
+                #    pyplot.semilogx(SInts,SDepths,'k')
+                #if len(SInts)>0:
+                #    pyplot.semilogx(SInts,SDepths,Ssym,markersize=Ssize) 
                 if sum_file!="":
                     for core in Cores:
                          depth=float(core['Core Top (m)']) 
@@ -1363,12 +1374,18 @@ def core_depthplot(dir_path='.', meas_file='magic_measurements.txt', spc_file=''
     if suc_file!="" or len(SSucs)>0:
             pyplot.subplot(1,pcol,plt)
             if len(Susc)>0:
-                if pltLine==1:pyplot.plot(Susc,Sus_depths,'k') 
-                if logit==0:pyplot.plot(Susc,Sus_depths,sym,markersize=size) 
-                if logit==1:pyplot.semilogx(Susc,Sus_depths,sym,markersize=size) 
+                if pltLine==1:
+                    pyplot.plot(Susc,Sus_depths,'k') 
+                if logit==0:
+                    pyplot.plot(Susc,Sus_depths,sym,markersize=size) 
+                if logit==1:
+                    pyplot.semilogx(Susc,Sus_depths,sym,markersize=size) 
             if len(SSucs)>0:
-                if logit==0:pyplot.plot(SSucs,SDepths,sym,markersize=size) 
-                if logit==1:pyplot.semilogx(SSucs,SDepths,sym,markersize=size) 
+                pass
+                #if logit==0:
+                #    pyplot.plot(SSucs,SDepths,sym,markersize=size) 
+                #if logit==1:
+                #    pyplot.semilogx(SSucs,SDepths,sym,markersize=size) 
             if sum_file!="":
                 for core in Cores:
                      depth=float(core['Core Top (m)']) 

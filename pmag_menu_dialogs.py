@@ -1273,7 +1273,7 @@ class ZeqMagic(wx.Frame):
 
 class Core_depthplot(wx.Frame):
 
-    title = "Remanence data versus depth/height"
+    title = "Remanence data vs. depth/height/age"
     
     def __init__(self, parent, WD):
         wx.Frame.__init__(self, parent, wx.ID_ANY, self.title)
@@ -1320,7 +1320,15 @@ class Core_depthplot(wx.Frame):
 
         #--- plotting stuff for pmag_specimens
         self.bSizer0a1 = pw.radio_buttons(pnl, color_choices, "choose color for plot points")
+
+        # set default color to red
+        self.bSizer0a1.radio_buttons[2].SetValue(True)
+        
         self.bSizer0a2 = pw.radio_buttons(pnl, shape_choices, "choose shape for plot points")
+
+        # set default symbol:
+        self.bSizer0a2.radio_buttons[2].SetValue(True)
+        
         self.bSizer0a3 = pw.labeled_spin_ctrl(pnl, "point size (default is 5): ")
         
         self.Bind(wx.EVT_TEXT, self.change_results_path, self.bSizer0a.file_path)
@@ -1348,12 +1356,12 @@ class Core_depthplot(wx.Frame):
 
 
         #---sizer 13---
-        protocol_choices = ['AF', 'T', 'ARM', 'IRM', 'X']
+        protocol_choices = ['AF', 'T', 'ARM', 'IRM']#, 'X'] not supporting susceptibility at the moment
         self.bSizer13 = pw.radio_buttons(pnl, protocol_choices, "Lab Protocol:  ", orientation=wx.HORIZONTAL)
 
         self.bSizer14 = pw.labeled_text_field(pnl, "Step:  ")
 
-        self.bSizer15 = pw.check_box(pnl, "Do not plot blanket treatment data")
+        #self.bSizer15 = pw.check_box(pnl, "Do not plot blanket treatment data")
 
         self.bSizer16 = pw.radio_buttons(pnl, ['svg', 'eps', 'pdf', 'png'], "Save plot in this format:")
 
@@ -1374,9 +1382,9 @@ class Core_depthplot(wx.Frame):
         # if plotting GPTS, these sizers will be shown:
         self.bSizer10 = pw.labeled_yes_or_no(pnl, "Time scale", "gts04", "ck95")
 
-        self.bSizer11 = pw.labeled_text_field(pnl, label="Lower bound (in Ma)")
+        self.bSizer11 = pw.labeled_text_field(pnl, label="Minimum age (in Ma)")
 
-        self.bSizer12 = pw.labeled_text_field(pnl, label="Upper bound (in Ma)")
+        self.bSizer12 = pw.labeled_text_field(pnl, label="Maximum age (in Ma)")
 
         
         #---buttons ---
@@ -1441,7 +1449,7 @@ class Core_depthplot(wx.Frame):
         hbox4.Add(self.bSizer14, flag=wx.ALIGN_LEFT)
         vbox4.Add(wx.StaticText(pnl, label="Experiment type"))
         vbox4.Add(hbox4)
-        vbox4.Add(self.bSizer15)
+        #vbox4.Add(self.bSizer15)
 
 
         #---add all widgets to main container---
@@ -1627,7 +1635,10 @@ class Core_depthplot(wx.Frame):
         method = str(self.bSizer13.return_value())
         step = self.bSizer14.return_value()
         if not step:
-            pw.simple_warning("You must provide the step in microtesla (??)")
+            #-LP [AF,T,ARM,IRM, X] step [in mT,C,mT,mT, mass/vol] to plot
+            units_dict = {'AF': 'millitesla', 'T': 'degrees C', 'ARM': 'millitesla', 'IRM': 'millitesla', 'X': 'mass/vol'}
+            unit = units_dict[method]
+            pw.simple_warning("You must provide the experiment step in {}".format(unit))
             return False
         pltDec, pltInc, pltMag, logit = 0, 0, 0, 0
         for val in self.bSizer3.return_value():
@@ -1640,11 +1651,12 @@ class Core_depthplot(wx.Frame):
             if 'log' in val:
                 logit = 1
 
-        pltSus = self.bSizer15.return_value()
-        if pltSus:
-            pltSus = 0
-        else:
-            pltSus = 1
+        #pltSus = self.bSizer15.return_value()
+        #if pltSus:
+        #    pltSus = 0
+        #else:
+        #    pltSus = 1
+        
         fmt = self.bSizer16.return_value()
         #print "meas_file", meas_file, "pmag_spec_file", pmag_spec_file, "spec_sym_shape", spec_sym_shape, "spec_sym_color", spec_sym_color, "spec_sym_size", spec_sym_size, "samp_file", samp_file, "age_file", age_file, "depth_scale", depth_scale, "dmin", dmin, "dmax", dmax, "timescale", timescale, "amin", amin, "amax", amax, "sym", sym, "size", size, "method", method, "step", step, "pltDec", pltDec, "pltInc", pltInc, "pltMag", pltMag, "pltTime", pltTime, "logit", logit, "fmt", fmt
 
@@ -1652,7 +1664,8 @@ class Core_depthplot(wx.Frame):
         import ipmag
         #print "pltLine:", pltLine
         #print "pltSus:", pltSus
-        fig, figname = ipmag.core_depthplot(self.WD, meas_file, pmag_spec_file, samp_file, age_file, depth_scale, dmin, dmax, sym, size, spec_sym, spec_sym_size, method, step, fmt, pltDec, pltInc, pltMag, pltLine, pltSus, logit, pltTime, timescale, amin, amax)
+        
+        fig, figname = ipmag.core_depthplot(self.WD, meas_file, pmag_spec_file, samp_file, age_file, depth_scale, dmin, dmax, sym, size, spec_sym, spec_sym_size, method, step, fmt, pltDec, pltInc, pltMag, pltLine, 1, logit, pltTime, timescale, amin, amax)
         if fig:
             self.Destroy()
             dpi = fig.get_dpi()
@@ -1687,10 +1700,10 @@ class Core_depthplot(wx.Frame):
         else:
             timescale = ''
         method = pmag.add_flag(method, '-LP') + ' ' + str(step)
-        if not pltSus:
-            pltSus = "-L"
-        else:
-            pltSus = ''
+        #if not pltSus:
+        #    pltSus = "-L"
+        #else:
+        #    pltSus = ''
         if not pltDec:
             pltDec = "-D"
         else:
@@ -1712,12 +1725,8 @@ class Core_depthplot(wx.Frame):
         else:
             logit = ''
         fmt = pmag.add_flag(fmt, '-fmt')
-        if not pltLine:
-            no_connect_points = "-L"
-        else:
-            no_connect_points = ''
 
-        COMMAND = "core_depthplot.py {meas_file} {pmag_spec_file} {sym} {samp_file} {age_file} {depth_scale} {depth_range} {timescale} {method} {pltDec} {pltInc} {pltMag} {pltSus}  {logit} {fmt} {no_connect_points} -WD {WD}".format(meas_file=meas_file, pmag_spec_file=pmag_spec_file, sym=sym, samp_file=samp_file, age_file=age_file, depth_scale=depth_scale, depth_range=depth_range, timescale=timescale, method=method, pltDec=pltDec, pltInc=pltInc, pltMag=pltMag, pltSus=pltSus, logit=logit, fmt=fmt, no_connect_points=no_connect_points, WD=self.WD)
+        COMMAND = "core_depthplot.py {meas_file} {pmag_spec_file} {sym} {samp_file} {age_file} {depth_scale} {depth_range} {timescale} {method} {pltDec} {pltInc} {pltMag} {logit} {fmt} {pltLine} -WD {WD}".format(meas_file=meas_file, pmag_spec_file=pmag_spec_file, sym=sym, samp_file=samp_file, age_file=age_file, depth_scale=depth_scale, depth_range=depth_range, timescale=timescale, method=method, pltDec=pltDec, pltInc=pltInc, pltMag=pltMag, logit=logit, fmt=fmt, pltLine=pltLine, WD=self.WD)
         print COMMAND
         #os.system(COMMAND)
 
@@ -1746,7 +1755,7 @@ class Core_depthplot(wx.Frame):
 
 class Ani_depthplot(wx.Frame):
 
-    title = "Plot anisotropoy vs. depth"
+    title = "Plot anisotropoy vs. depth/height/age"
     
     def __init__(self, parent, WD):
         wx.Frame.__init__(self, parent, wx.ID_ANY, self.title)
