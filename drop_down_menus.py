@@ -1,7 +1,9 @@
 #!/usr/bin/env python
 
 import wx
-import controlled_vocabularies as vocab
+from controlled_vocabularies import vocabularies as vocab
+import controlled_vocabularies as vocabulary
+
 
 # this module will provide all the functionality for the drop-down controlled vocabulary menus
 # ideally, these classes should take in a grid item and then provide the functionality
@@ -10,7 +12,9 @@ import controlled_vocabularies as vocab
 class Menus():
 
     def __init__(self, data_type, check, grid, belongs_to):
-        """take: data_type (string), check (top level class object for ErMagic steps 1-6), grid (grid object), belongs_to (options for data object to belong to, i.e. locations for the site Menus)"""
+        """
+        take: data_type (string), check (top level class object for ErMagic steps 1-6), grid (grid object), belongs_to (options for data object to belong to, i.e. locations for the site Menus)
+        """
         self.data_type = data_type
         self.check = check # check is top level class object for entire ErMagic steps 1-6
         self.grid = grid
@@ -28,18 +32,38 @@ class Menus():
         if self.data_type == 'specimen':
             self.choices = {2: (belongs_to, False)}
         if self.data_type == 'sample' or self.data_type == 'site':
-            self.choices = {2: (belongs_to, False), 3: (vocab.site_class, False), 4: (vocab.site_lithology, True), 5: (vocab.site_type, False)}
+            self.choices = {2: (belongs_to, False), 3: (vocab['class'], False), 4: (vocab['lithology'], True), 5: (vocab['type'], False)}
         if self.data_type == 'site':
-            self.choices[6] = (vocab.site_definition, False)
+            self.choices[6] = (vocabulary.site_definition, False)
         if self.data_type == 'location':
-            self.choices = {1: (vocab.location_type, False)}
+            self.choices = {1: (vocab['location_type'], False)}
         if self.data_type == 'age':
-            self.choices = {3: (vocab.geochronology_method_codes, False), 5: (vocab.age_units, False)}
+            self.choices = {3: (vocabulary.geochronology_method_codes, False), 5: (vocab['age_unit'], False)}
         if self.data_type == 'orient':
             self.choices = {0: (['g', 'b'], False)}
         #self.window.Bind(wx.grid.EVT_GRID_SELECT_CELL, lambda event: self.on_left_click(event, self.grid, self.choices), self.grid) 
         self.window.Bind(wx.grid.EVT_GRID_CELL_LEFT_CLICK, lambda event: self.on_left_click(event, self.grid, self.choices), self.grid) 
         self.window.Bind(wx.grid.EVT_GRID_LABEL_LEFT_CLICK, self.on_label_click, self.grid)
+
+
+        #
+        cols = self.grid.GetNumberCols()
+        col_labels = map(self.grid.GetColLabelValue, range(cols))
+        
+        # for some of these col_labels, we need to remove sample_ or site_
+        
+        for label in col_labels:
+            if label in vocabulary.possible_vocabularies:
+                print 'this col: {} has a list of controlled vocabularies'.format(label)
+                col_number = '???'
+                url = 'http://api.earthref.org/MAGIC/vocabularies/{}.json'.format(label)
+                controlled_vocabulary = pd.io.json.read_json(url)# get with pd.io.json.read_json
+                stripped_list = [item['item'] for item in controlled_vocabulary]
+                self.choices[col_number] = (controlled_vocabulary, False)
+            
+        # check to see if controlled vocabularies exist in the API
+        # probably use urllib2 to see if the site exists... or, maybe just try to pandas.io.json.parse_json...?
+        # if so, create a drop-down menu with those values
 
 
     def on_label_click(self, event):
@@ -111,9 +135,11 @@ class Menus():
 
 
     def on_left_click(self, event, grid, choices):
-        """creates popup menu when user clicks on the column
+        """
+        creates popup menu when user clicks on the column
         if that column is in the list of choices that get a drop-down menu.
-        allows user to edit the column, but only from available values"""
+        allows user to edit the column, but only from available values
+        """
         color = self.grid.GetCellBackgroundColour(event.GetRow(), event.GetCol())
         if event.CmdDown(): # allow user to cherry-pick cells for editing.  gets selection of meta key for mac, ctrl key for pc
             row, col = event.GetRow(), event.GetCol()
