@@ -5,24 +5,43 @@ import pandas as pd
 #'http://api.earthref.org/MAGIC/vocabularies.json'
 # then, use that list to determine whether or not any given column has a controlled vocabulary list
 
-controlled_vocabularies = []
-vocab_types = ['lithology', 'class', 'type', 'location_type', 'age_unit']
+
+vocab_types = ['lithology', 'class', 'type', 'location_type', 'age_unit', 'site_definition']
 
 try:
+    controlled_vocabularies = []
     
     for vocab in vocab_types:
 
+        url = 'http://api.earthref.org/MAGIC/vocabularies.json'
+        data = pd.io.json.read_json(url)
+        possible_vocabularies = data.columns
+        
         url = 'http://api.earthref.org/MAGIC/vocabularies/{}.json'.format(vocab)
         data = pd.io.json.read_json(url)
         stripped_list = [item['item'] for item in data[vocab][0]]
+
+
+        if len(stripped_list) > 100:
+        # split out the list alphabetically, into a dict of lists {'A': ['alpha', 'artist'], 'B': ['beta', 'beggar']...}
+            dictionary = {}
+            for item in stripped_list:
+                letter = item[0].upper()
+                if letter not in dictionary.keys():
+                    dictionary[letter] = []
+                dictionary[letter].append(item)
+                
+            stripped_list = dictionary
+
         controlled_vocabularies.append(stripped_list)
 
-    
     vocabularies = pd.Series(controlled_vocabularies, index=vocab_types)
 
-except Exception as ex:
-    print ex
+except:# Exception as ex:
+    #print ex
 
+    possible_vocabularies = []
+    
     site_class = ['Archeologic', 'Extraterrestrial', 'Extrusive', 'Igneous', 'Intrusive', 'Lunar', 'Martian', 'Metamorphic', 'Meteorite', 'Not Specified', 'Sedimentary', 'Subaerial', 'Submarine', 'Synthetic']
 
     site_type = ['Baked Clay', 'Baked Contact', 'Baked Mud', 'Baked Rock', 'Bath', 'Bell Mould', 'Brick', 'Burnt Floor', 'Burnt Pit', 'Burnt Structure', 'Ceramic', 'Chilled Margin', 'Concretion', 'Conglomerate', 'Delta', 'Diabase', 'Drift', 'Flow Top', 'Fresco', 'Funeral Pyre', 'Furnace', 'Furnace Slag', 'Glassy Margin', 'Hearth', 'Hypocaust', 'Impact Melt', 'Kiln', 'Laccolith', 'Lacustrine', 'Lava', 'Lava Flow', 'Metallurgical Slag', 'Mixed Archeological Objects', 'Mosaic', 'Not Specified', 'Oven', 'Pluton', 'Porcelain', 'Pot Rim', 'Pot Sherd', 'Pottery', 'Pyroclastite', 'Roof', 'Sediment Dike', 'Sediment Layer', 'Sill', 'Single Crystal', 'Slag', 'Smoking Chamber', 'Sun-Dried Object', 'Synthetic', 'Tapping Slag', 'Temple', 'Tile', 'Volcanic Ash', 'Volcanic Dike', 'Volcanic Dome', 'Volcanic Pillow', 'Volcanic Vent', 'Wall']
@@ -53,21 +72,17 @@ except Exception as ex:
 
     location_type = ['Archeological Site', 'Core', 'Drill Site', 'Lake Core', 'Land Section', 'Lunar', 'Martian', 'Outcrop', 'Region', 'Stratigraphic Section', 'Submarine Site']
 
-    age_units = ['Ga', 'Ka', 'Ma', 'Years AD (+/-)', 'Years BP', 'Years Cal AD (+/-)', 'Years Cal BP']
+    age_unit = ['Ga', 'Ka', 'Ma', 'Years AD (+/-)', 'Years BP', 'Years Cal AD (+/-)', 'Years Cal BP']
 
     geochronology_method_codes = ['GM-ALPHA', 'GM-ARAR', 'GM-ARAR-AP', 'GM-ARAR-II', 'GM-ARAR-IS', 'GM-ARAR-NI', 'GM-ARAR-SC', 'GM-ARAR-SC-10', 'GM-ARAR-SC-1050', 'GM-ARAR-SC-50', 'GM-ARAR-TF', 'GM-C14', 'GM-C14-AMS', 'GM-C14-BETA', 'GM-C14-CAL', 'GM-CC', 'GM-CC-ARCH', 'GM-CC-ARM', 'GM-CC-ASTRO', 'GM-CC-CACO3', 'GM-CC-COLOR', 'GM-CC-GRAPE', 'GM-CC-IRM', 'GM-CC-ISO', 'GM-CC-REL', 'GM-CC-S', 'GM-CC-STRAT', 'GM-CC-TECT', 'GM-CC-TEPH', 'GM-CC-X', 'GM-CHEM', 'GM-CHEM-AAR', 'GM-CHEM-OH', 'GM-CHEM-SC', 'GM-CHEM-TH', 'GM-COSMO', 'GM-COSMO-AL26', 'GM-COSMO-AR39', 'GM-COSMO-BE10', 'GM-COSMO-C14', 'GM-COSMO-CL36', 'GM-COSMO-HE3', 'GM-COSMO-KR81', 'GM-COSMO-NE21', 'GM-COSMO-NI59', 'GM-COSMO-SI32', 'GM-DENDRO', 'GM-ESR', 'GM-FOSSIL', 'GM-FT', 'GM-HIST', 'GM-INT', 'GM-INT-L', 'GM-INT-S', 'GM-ISO', 'GM-KAR', 'GM-KAR-C', 'GM-KAR-I', 'GM-KAR-MA', 'GM-KCA', 'GM-KCA-I', 'GM-KCA-MA', 'GM-LABA', 'GM-LABA-I', 'GM-LABA-MA', 'GM-LACE', 'GM-LACE-I', 'GM-LACE-MA', 'GM-LICHE', 'GM-LUHF', 'GM-LUHF-I', 'GM-LUHF-MA', 'GM-LUM', 'GM-LUM-IRS', 'GM-LUM-OS', 'GM-LUM-TH', 'GM-MOD', 'GM-MOD-L', 'GM-MOD-S', 'GM-MORPH', 'GM-MORPH-DEF', 'GM-MORPH-DEP', 'GM-MORPH-POS', 'GM-MORPH-WEATH', 'GM-NO', 'GM-O18', 'GM-PBPB', 'GM-PBPB-C', 'GM-PBPB-I', 'GM-PLEO', 'GM-PMAG-ANOM', 'GM-PMAG-APWP', 'GM-PMAG-ARCH', 'GM-PMAG-DIR', 'GM-PMAG-POL', 'GM-PMAG-REGSV', 'GM-PMAG-RPI', 'GM-PMAG-VEC', 'GM-RATH', 'GM-RBSR', 'GM-RBSR-I', 'GM-RBSR-MA', 'GM-REOS', 'GM-REOS-I', 'GM-REOS-MA', 'GM-REOS-PT', 'GM-SCLERO', 'GM-SHRIMP', 'GM-SMND', 'GM-SMND-I', 'GM-SMND-MA', 'GM-THPB', 'GM-THPB-I', 'GM-THPB-MA', 'GM-UPA', 'GM-UPB', 'GM-UPB-CC-T0', 'GM-UPB-CC-T1', 'GM-UPB-I-206', 'GM-UPB-I-207', 'GM-UPB-MA-206', 'GM-UPB-MA-207', 'GM-USD', 'GM-USD-PA231-TH230', 'GM-USD-PA231-U235', 'GM-USD-PB210', 'GM-USD-RA226-TH230', 'GM-USD-RA228-TH232', 'GM-USD-TH228-TH232', 'GM-USD-TH230', 'GM-USD-TH230-TH232', 'GM-USD-TH230-U234', 'GM-USD-TH230-U238', 'GM-USD-U234-U238', 'GM-UTH', 'GM-UTHHE', 'GM-UTHPB', 'GM-UTHPB-CC-T0', 'GM-UTHPB-CC-T1', 'GM-VARV']
 
-    vocabularies = pd.Series([site_lithology, site_class, site_type], index=vocab_types)
+    site_definition = ['s', 'c']
+    #vocab_types = ['lithology', 'class', 'type', 'location_type', 'age_unit', 'site_definition']
+    vocabularies = pd.Series([site_lithology, site_class, site_type, location_type, age_unit, site_definition], index=vocab_types)
 
+    
 site_definition = ['s', 'c']
-
-
 
 geochronology_method_codes = ['GM-ALPHA', 'GM-ARAR', 'GM-ARAR-AP', 'GM-ARAR-II', 'GM-ARAR-IS', 'GM-ARAR-NI', 'GM-ARAR-SC', 'GM-ARAR-SC-10', 'GM-ARAR-SC-1050', 'GM-ARAR-SC-50', 'GM-ARAR-TF', 'GM-C14', 'GM-C14-AMS', 'GM-C14-BETA', 'GM-C14-CAL', 'GM-CC', 'GM-CC-ARCH', 'GM-CC-ARM', 'GM-CC-ASTRO', 'GM-CC-CACO3', 'GM-CC-COLOR', 'GM-CC-GRAPE', 'GM-CC-IRM', 'GM-CC-ISO', 'GM-CC-REL', 'GM-CC-S', 'GM-CC-STRAT', 'GM-CC-TECT', 'GM-CC-TEPH', 'GM-CC-X', 'GM-CHEM', 'GM-CHEM-AAR', 'GM-CHEM-OH', 'GM-CHEM-SC', 'GM-CHEM-TH', 'GM-COSMO', 'GM-COSMO-AL26', 'GM-COSMO-AR39', 'GM-COSMO-BE10', 'GM-COSMO-C14', 'GM-COSMO-CL36', 'GM-COSMO-HE3', 'GM-COSMO-KR81', 'GM-COSMO-NE21', 'GM-COSMO-NI59', 'GM-COSMO-SI32', 'GM-DENDRO', 'GM-ESR', 'GM-FOSSIL', 'GM-FT', 'GM-HIST', 'GM-INT', 'GM-INT-L', 'GM-INT-S', 'GM-ISO', 'GM-KAR', 'GM-KAR-C', 'GM-KAR-I', 'GM-KAR-MA', 'GM-KCA', 'GM-KCA-I', 'GM-KCA-MA', 'GM-LABA', 'GM-LABA-I', 'GM-LABA-MA', 'GM-LACE', 'GM-LACE-I', 'GM-LACE-MA', 'GM-LICHE', 'GM-LUHF', 'GM-LUHF-I', 'GM-LUHF-MA', 'GM-LUM', 'GM-LUM-IRS', 'GM-LUM-OS', 'GM-LUM-TH', 'GM-MOD', 'GM-MOD-L', 'GM-MOD-S', 'GM-MORPH', 'GM-MORPH-DEF', 'GM-MORPH-DEP', 'GM-MORPH-POS', 'GM-MORPH-WEATH', 'GM-NO', 'GM-O18', 'GM-PBPB', 'GM-PBPB-C', 'GM-PBPB-I', 'GM-PLEO', 'GM-PMAG-ANOM', 'GM-PMAG-APWP', 'GM-PMAG-ARCH', 'GM-PMAG-DIR', 'GM-PMAG-POL', 'GM-PMAG-REGSV', 'GM-PMAG-RPI', 'GM-PMAG-VEC', 'GM-RATH', 'GM-RBSR', 'GM-RBSR-I', 'GM-RBSR-MA', 'GM-REOS', 'GM-REOS-I', 'GM-REOS-MA', 'GM-REOS-PT', 'GM-SCLERO', 'GM-SHRIMP', 'GM-SMND', 'GM-SMND-I', 'GM-SMND-MA', 'GM-THPB', 'GM-THPB-I', 'GM-THPB-MA', 'GM-UPA', 'GM-UPB', 'GM-UPB-CC-T0', 'GM-UPB-CC-T1', 'GM-UPB-I-206', 'GM-UPB-I-207', 'GM-UPB-MA-206', 'GM-UPB-MA-207', 'GM-USD', 'GM-USD-PA231-TH230', 'GM-USD-PA231-U235', 'GM-USD-PB210', 'GM-USD-RA226-TH230', 'GM-USD-RA228-TH232', 'GM-USD-TH228-TH232', 'GM-USD-TH230', 'GM-USD-TH230-TH232', 'GM-USD-TH230-U234', 'GM-USD-TH230-U238', 'GM-USD-U234-U238', 'GM-UTH', 'GM-UTHHE', 'GM-UTHPB', 'GM-UTHPB-CC-T0', 'GM-UTHPB-CC-T1', 'GM-VARV']
 
 
-url = 'http://api.earthref.org/MAGIC/vocabularies.json'
-data = pd.io.json.read_json(url)
-
-possible_vocabularies = data.columns
-print 'possible_vocabularies:', possible_vocabularies
