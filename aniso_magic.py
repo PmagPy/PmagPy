@@ -111,8 +111,8 @@ def main():
 #
 # set up plots
 #
-    infile=dir_path+'/'+infile
-    outfile=dir_path+'/'+outfile
+    if infile[0]!='/':infile=dir_path+'/'+infile
+    if outfile[0]!='/':outfile=dir_path+'/'+outfile
     ANIS={}
     initcdf,inittcdf=0,0
     ANIS['data'],ANIS['conf']=1,2

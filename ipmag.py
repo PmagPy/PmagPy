@@ -1475,7 +1475,7 @@ def download_magic(infile, dir_path='.', input_dir_path='.', overwrite=False):
         Recs=[]
         while LN<len(File):
             line=File[LN]
-            if line[:4]==">>>>" and len(Recs)>0:
+            if ">>>>" in line and len(Recs)>0:
                 if filenum==0:
                     outfile=dir_path+"/"+file_type.strip()+'.txt'
                 else:
