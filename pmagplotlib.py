@@ -1995,11 +1995,11 @@ def plotANIS(ANIS,Ss,iboot,ihext,ivec,ipar,title,plt,comp,vec,Dir,nb):
                 plotEVEC(ANIS['conf'],BVs,5,'') # put on the data eigenvectors
             else:
                 ellpars=[bpars["v1_dec"],bpars["v1_inc"],bpars["v1_zeta"],bpars["v1_zeta_dec"],bpars["v1_zeta_inc"],bpars["v1_eta"],bpars["v1_eta_dec"],bpars["v1_eta_inc"]]
-                plotELL(ANIS['conf'],ellpars,'r,',1,1)
+                plotELL(ANIS['conf'],ellpars,'r-,',1,1)
                 ellpars=[bpars["v2_dec"],bpars["v2_inc"],bpars["v2_zeta"],bpars["v2_zeta_dec"],bpars["v2_zeta_inc"],bpars["v2_eta"],bpars["v2_eta_dec"],bpars["v2_eta_inc"]]
-                plotELL(ANIS['conf'],ellpars,'b,',1,1)
+                plotELL(ANIS['conf'],ellpars,'b-,',1,1)
                 ellpars=[bpars["v3_dec"],bpars["v3_inc"],bpars["v3_zeta"],bpars["v3_zeta_dec"],bpars["v3_zeta_inc"],bpars["v3_eta"],bpars["v3_eta_dec"],bpars["v3_eta_inc"]]
-                plotELL(ANIS['conf'],ellpars,'k,',1,1)
+                plotELL(ANIS['conf'],ellpars,'k-,',1,1)
             pylab.figure(num=ANIS['tcdf'])
             pylab.clf()
             if not isServer:
@@ -2102,11 +2102,11 @@ def plotANIS(ANIS,Ss,iboot,ihext,ivec,ipar,title,plt,comp,vec,Dir,nb):
         bpars['v3_inc']=hpars['v3_inc'] 
     if ihext==1 and plt==1:
         ellpars=[hpars["v1_dec"],hpars["v1_inc"],hpars["e12"],hpars["v2_dec"],hpars["v2_inc"],hpars["e13"],hpars["v3_dec"],hpars["v3_inc"]]
-        plotELL(ANIS['conf'],ellpars,'r,',1,1)
+        plotELL(ANIS['conf'],ellpars,'r-,',1,1)
         ellpars=[hpars["v2_dec"],hpars["v2_inc"],hpars["e23"],hpars["v3_dec"],hpars["v3_inc"],hpars["e12"],hpars["v1_dec"],hpars["v1_inc"]]
-        plotELL(ANIS['conf'],ellpars,'b,',1,1)
+        plotELL(ANIS['conf'],ellpars,'b-,',1,1)
         ellpars=[hpars["v3_dec"],hpars["v3_inc"],hpars["e13"],hpars["v1_dec"],hpars["v1_inc"],hpars["e23"],hpars["v2_dec"],hpars["v2_inc"]]
-        plotELL(ANIS['conf'],ellpars,'k,',1,1) 
+        plotELL(ANIS['conf'],ellpars,'k-,',1,1) 
     return bpars,hpars
 ####
 def plotPIE(fig,fracs,labels,title):
@@ -2194,7 +2194,7 @@ def plotCONF(fignum,s,datablock,pars,new):
 #
 # plot the ellipse
 #
-    plotELL(fignum,pars,'b,',0,1)
+    plotELL(fignum,pars,'b-,',0,1)
 
 EI_plot_num=0
 maxE,minE,maxI,minI=0,10,0,90
