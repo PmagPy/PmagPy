@@ -565,10 +565,12 @@ class combine_magic_dialog(wx.Frame):
         self.Destroy()
 
     def on_okButton(self,event):
+        os.chdir(self.WD) # make sure OS is working in self.WD (Windows issue)
         files_text=self.bSizer0.file_paths.GetValue()
         files=files_text.strip('\n').replace(" ","")
         if files:
             files = files.split('\n')
+            files = [os.path.join(self.WD, f) for f in files]
         COMMAND="combine_magic.py -F magic_measurements.txt -f %s"%(" ".join(files) )
 
         # to run as module:
