@@ -30,10 +30,10 @@ def main():
         print main.__doc__
         sys.exit()
     else:
-        dataframe = extractor.command_line_dataframe([['all', False, 0], ['cat', False, 0], ['F', False, ''], ['f', False, '']])
+        dataframe = extractor.command_line_dataframe([['cat', False, 0], ['F', False, ''], ['f', False, '']])
         checked_args = extractor.extract_and_check_args(sys.argv, dataframe)
-        All, dir_path, concat = extractor.get_vars(['all', 'WD', 'cat'], checked_args)
-        ipmag.upload_magic(concat, All, dir_path)
+        dir_path, concat = extractor.get_vars(['WD', 'cat'], checked_args)
+        ipmag.upload_magic(concat, dir_path)
         
 
 if __name__ == '__main__':
