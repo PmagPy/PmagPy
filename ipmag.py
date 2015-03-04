@@ -7,6 +7,7 @@ import matplotlib
 import matplotlib.pyplot as pyplot
 import os
 import sys
+import time
 
 #from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigureCanvas
 #from matplotlib.backends.backend_wx import NavigationToolbar2Wx
@@ -1561,11 +1562,13 @@ def download_magic(infile, dir_path='.', input_dir_path='.', overwrite=False):
     return True
 
 
-def upload_magic(concat=0, All=0, dir_path='.'):
+def upload_magic(concat=0, dir_path='.'):
     """
     Finds all magic files in a given directory, and compiles them into an upload.txt file which can be uploaded into the MagIC database.  
+    returns a tuple of either: (False, error_message) if there was a problem creating/validating the upload file
+    or: (filename, '') if the upload was fully successful
     """
-    concat, All = int(concat), int(All)
+    concat = int(concat)
     files_list = ["er_expeditions.txt", "er_locations.txt", "er_samples.txt", "er_specimens.txt", "er_sites.txt", "er_ages.txt", "er_citations.txt", "er_mailinglist.txt", "magic_measurements.txt", "rmag_hysteresis.txt", "rmag_anisotropy.txt", "rmag_remanence.txt", "rmag_results.txt", "pmag_specimens.txt", "pmag_samples.txt", "pmag_sites.txt", "pmag_results.txt", "pmag_criteria.txt", "magic_instruments.txt"]
     file_names = [os.path.join(dir_path, f) for f in files_list]
     
@@ -1585,7 +1588,12 @@ def upload_magic(concat=0, All=0, dir_path='.'):
                     for key in RmKeys: 
                         if key=='specimen_Z' and key in rec.keys():
                             rec[key]='specimen_z' # change  # change this to lower case
-                        if key in rec.keys():del rec[key] # get rid of unwanted keys
+                        if key in rec.keys():
+                            del rec[key] # get rid of unwanted keys
+            if file_type=='er_locations':
+                locations = []
+                for rec in Data:
+                    locations.append(rec['er_location_name'])
             if file_type=='er_samples': # check to only upload top priority orientation record!
                 NewSamps,Done=[],[]
                 for rec in Data:
@@ -1652,8 +1660,8 @@ def upload_magic(concat=0, All=0, dir_path='.'):
         f.write('>>>>>>>>>>\n')
         f.close()
 
-    # 
-    if up:
+
+    if os.path.isfile(up):
         import validate_upload
         validated = False
         if validate_upload.read_upload(up):
@@ -1661,11 +1669,23 @@ def upload_magic(concat=0, All=0, dir_path='.'):
 
     else:
         print "no data found, upload file not created"
-        return False
+        return False, "no data found, upload file not created"
 
-    print "Finished preparing upload.txt file "
+    #rename upload.txt according to location + timestamp
+    format_string = "%d.%b.%Y"
+    if locations:
+        location = locations[0].replace(' ', '_')
+        new_up = location + '_' + time.strftime(format_string) + '.txt'
+    else:
+        new_up = 'unknown_location_' + time.strftime(format_string) + '.txt'
+    new_up = os.path.join(dir_path, new_up)
+    
+    os.rename(up, new_up)
+    print "Finished preparing upload file: {} ".format(new_up)
     if not validated:
-        print "-W- validation of upload file has failed.\nPlease fix above errors and try again.\nYou may run into problems if you try to upload this file to the MagIC database" 
+        print "-W- validation of upload file has failed.\nPlease fix above errors and try again.\nYou may run into problems if you try to upload this file to the MagIC database"
+        return False, "file validation has failed.  You may run into problems if you try to upload this file."
+    return new_up, ''
 
 
 

@@ -464,10 +464,14 @@ class MagMainFrame(wx.Frame):
         #    dlg.Destroy()
 
         # to run as module:
-        ipmag.upload_magic()
+        upfile, error_message = ipmag.upload_magic(dir_path=self.WD)
         del wait
-        TXT="Check terminal (Mac) or command prompt (windows) for error/warnings.\nIf all went well, a file name upload.txt was generated in MagIC Project Directory.\nDrag and drop this file in the MagIC database."
-        dlg = wx.MessageDialog(self, caption="Saved",message=TXT,style=wx.OK)
+        if upfile:
+            TXT="You are ready to upload.\n Your file: {}  was generated in MagIC Project Directory.\nDrag and drop this file in the MagIC database.".format(os.path.split(upfile)[1])
+            dlg = wx.MessageDialog(self, caption="Saved",message=TXT,style=wx.OK)
+        else:
+            TXT="There were some problems with the creation of your upload file.\nError message: {}\nSee Terminal/Command Prompt for details".format(error_message)
+            dlg = wx.MessageDialog(self, caption="Error",message=TXT,style=wx.OK)
         result = dlg.ShowModal()
         if result == wx.ID_OK:            
             dlg.Destroy()
