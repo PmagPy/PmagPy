@@ -1508,6 +1508,11 @@ def download_magic(infile, dir_path='.', input_dir_path='.', overwrite=False):
                     for k in range(len(rec)):
                        Rec[keys[k]]=rec[k]
                     Recs.append(Rec)
+                # in case of magic_search_results.txt, which has an extra column:
+                elif len(rec) - len(keys) == 1:
+                    for k in range(len(rec))[:-1]:
+                        Rec[keys[k]]=rec[k]
+                        Recs.append(Rec)
                 else:
                     print 'WARNING:  problem in file with line: '
                     print line
