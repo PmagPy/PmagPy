@@ -498,7 +498,8 @@ def plot_di_mean(Dec,Inc,a95,color='k',marker='o',markersize=20,label='',legend=
     Optional Parameters
     -----------
     color : the default color is black. Other colors can be chosen (e.g. 'r')
-    marker : the default is a circle. Other symbols can be chose (e.g. 's')
+    marker : the default is a circle. Other symbols can be chosen (e.g. 's')
+    markersize : the default is 20. Other size can be chosen
     label : the default is no label. Labels can be assigned.
     legend : the default is no legend ('no'). Putting 'yes' will plot a legend.
     """
@@ -518,7 +519,7 @@ def plot_di_mean(Dec,Inc,a95,color='k',marker='o',markersize=20,label='',legend=
     pyplot.plot(Xcirc,Ycirc,color)
     pyplot.tight_layout()
 
-def plot_pole(mapname,plong,plat,A95,label='',color='k',marker='o',legend='no'):
+def plot_pole(mapname,plong,plat,A95,label='',color='k',marker='o',markersize=20,legend='no'):
     """
     This function plots a paleomagnetic pole and A95 error ellipse on whatever 
     current map projection has been set using the basemap plotting library.
@@ -532,14 +533,15 @@ def plot_pole(mapname,plong,plat,A95,label='',color='k',marker='o',legend='no'):
     
     Optional Parameters
     -----------
-    label : a string that is the label for the paleomagnetic pole being plotted
-    color : the color desired for the symbol and its A95 ellipse (default is 'k' aka black)
-    marker : the marker shape desired for the pole mean symbol (default is 'o' aka a circle)
+    color : the default color is black. Other colors can be chosen (e.g. 'r')
+    marker : the default is a circle. Other symbols can be chosen (e.g. 's')
+    markersize : the default is 20. Other size can be chosen
+    label : the default is no label. Labels can be assigned.
     legend : the default is no legend ('no'). Putting 'yes' will plot a legend.
     """
     centerlon, centerlat = mapname(plong,plat)
     A95_km=A95*111.32
-    mapname.scatter(centerlon,centerlat,20,marker=marker,color=color,label=label,zorder=101)
+    mapname.scatter(centerlon,centerlat,marker=marker,color=color,s=markersize,label=label,zorder=101)
     equi(mapname, plong, plat, A95_km,color)
     if legend=='yes':
         pylab.legend(loc=2)
