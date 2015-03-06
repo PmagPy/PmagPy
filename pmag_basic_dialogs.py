@@ -2900,7 +2900,7 @@ Check that all specimens belong to the correct sample
 Check that all samples are correctly named,
 and that they belong to the correct site
 (if site name is simply wrong, that will be fixed in step 3)"""
-            label = wx.StaticText(self.panel,label=TEXT)#, size=(900, 100))
+            step_label = wx.StaticText(self.panel,label=TEXT)#, size=(900, 100))
         else:
             self.ErMagic.read_MagIC_info() # ensures that changes from step 3 propagate
             TEXT = """Step 4:
@@ -2909,7 +2909,7 @@ Check that this data is correct, and fill in missing cells using controlled voca
 The columns for class, lithology, and type can take multiple values in the form of a colon-delimited list.
 You may use the drop-down menus to add as many values as needed in these columns.  
 (see Help button for more details)"""
-            label = wx.StaticText(self.panel,label=TEXT)#, size=(900, 100))
+            step_label = wx.StaticText(self.panel,label=TEXT)#, size=(900, 100))
         self.Data, self.Data_hierarchy = self.ErMagic.Data, self.ErMagic.Data_hierarchy
         self.samples = sorted(self.Data_hierarchy['samples'].keys())
         sites = sorted(self.Data_hierarchy['sites'].keys())
@@ -2966,7 +2966,8 @@ You may use the drop-down menus to add as many values as needed in these columns
 
         ### Make Containers ###
         vbox = wx.BoxSizer(wx.VERTICAL)
-        vbox.Add(label, flag=wx.ALIGN_CENTER|wx.TOP|wx.BOTTOM, border=20)
+        #vbox.Add(step_label, flag=wx.ALIGN_CENTER|wx.TOP|wx.BOTTOM, border=20)
+        vbox.Add(step_label, flag=wx.ALIGN_LEFT|wx.TOP|wx.BOTTOM, border=20)
 
         vbox.Add(hbox_one, flag=wx.BOTTOM|wx.LEFT, border=10)
         vbox.Add(hboxok, flag=wx.BOTTOM|wx.LEFT, border=10)
