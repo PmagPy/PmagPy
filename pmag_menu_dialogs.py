@@ -14,6 +14,11 @@ import pmag_widgets as pw
 import thellier_gui_dialogs
 import thellier_gui
 
+import threading
+print threading.Thread
+from threading import Thread
+
+
 class ImportOrientFile(wx.Frame):
 
     """ """
@@ -1270,6 +1275,43 @@ class ZeqMagic(wx.Frame):
 
 
 
+class TestThread(Thread):
+    """Test Worker Thread Class."""
+
+    #----------------------------------------------------------------------
+    def __init__(self, core_window, plot_function, args, after_function):
+        """Init Worker Thread Class."""
+        Thread.__init__(self)
+        print 'start thread'
+        self.core_window = core_window
+        self.plot_function = plot_function
+        self.after_function = after_function
+        self.args = args
+        self.start()    # start the thread
+    
+    #----------------------------------------------------------------------
+    def run(self):
+        """Run Worker Thread."""
+        print 'run thread'
+        import time
+        time.sleep(10)
+        import ipmag
+
+        fig, figname = self.plot_function(*self.args)
+        print 'finished fig, figname'
+        print fig, figname
+        if fig:
+            self.core_window.Destroy()
+            dpi = fig.get_dpi()
+            pixel_width = dpi * fig.get_figwidth()
+            pixel_height = dpi * fig.get_figheight()
+            wx.CallAfter(self.after_function, (pixel_width, pixel_height+50), fig, figname)
+        else:
+            pw.simple_warning("No data points met your criteria - try again\nError message: {}".format(figname))
+            self.core_window.okButton.Enable()
+
+
+        
 
 class Core_depthplot(wx.Frame):
 
@@ -1563,6 +1605,10 @@ class Core_depthplot(wx.Frame):
         self.panel.Layout()
         #self.hbox_all.Fit(self)
 
+    def make_plot_frame(self, (pixel_width, pixel_height), fig, figname):
+        PlotFrame((pixel_width, pixel_height), fig, figname)
+        print 'hiyo'
+        
     def on_okButton(self, event):
         """
         meas_file # -f magic_measurements_file
@@ -1664,18 +1710,25 @@ class Core_depthplot(wx.Frame):
         import ipmag
         #print "pltLine:", pltLine
         #print "pltSus:", pltSus
+
+        print 'run testThread'
+        import ipmag
+        self.okButton.Disable()
+        args = [self.WD, meas_file, pmag_spec_file, samp_file, age_file, depth_scale, dmin, dmax, sym, size, spec_sym, spec_sym_size, method, step, fmt, pltDec, pltInc, pltMag, pltLine, 1, logit, pltTime, timescale, amin, amax]
+        TestThread(self, ipmag.core_depthplot, args, self.make_plot_frame)
+
         
-        fig, figname = ipmag.core_depthplot(self.WD, meas_file, pmag_spec_file, samp_file, age_file, depth_scale, dmin, dmax, sym, size, spec_sym, spec_sym_size, method, step, fmt, pltDec, pltInc, pltMag, pltLine, 1, logit, pltTime, timescale, amin, amax)
-        if fig:
-            self.Destroy()
-            dpi = fig.get_dpi()
-            pixel_width = dpi * fig.get_figwidth()
-            pixel_height = dpi * fig.get_figheight()
-            plot_frame = PlotFrame((pixel_width, pixel_height + 50), fig, figname)
-        else:
-            pw.simple_warning("No data points met your criteria - try again\nError message: {}".format(figname))
-
-
+        #fig, figname = ipmag.core_depthplot(self.WD, meas_file, pmag_spec_file, samp_file, age_file, depth_scale, dmin, dmax, sym, size, spec_sym, spec_sym_size, method, step, fmt, pltDec, pltInc, pltMag, pltLine, 1, logit, pltTime, timescale, amin, amax)
+        #if fig:
+        #    self.Destroy()
+        #    dpi = fig.get_dpi()
+        #    pixel_width = dpi * fig.get_figwidth()
+        #    pixel_height = dpi * fig.get_figheight()
+        #    plot_frame = PlotFrame((pixel_width, pixel_height + 50), fig, figname)
+        #else:
+        #    pw.simple_warning("No data points met your criteria - try again\nError message: {}".format(figname))
+        #    self.okButton.Enable()
+            
         # for use as command_line:
         if meas_file:
             meas_file = os.path.split(meas_file)[1]
