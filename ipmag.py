@@ -1458,6 +1458,7 @@ def core_depthplot(dir_path='.', meas_file='magic_measurements.txt', spc_file=''
                     ax2.plot([1,1.5],[c[1],c[1]],'k-') # make the Chron boundary tick
                     ax2.text(1.05,d,c[0]) # 
             ax2.axis([-.25,1.5,amax,amin])
+    location = location.replace(' ', '_')
     figname=location+'_m:_'+method+'_core-depthplot.'+fmt
     pyplot.title(location)
     #pyplot.draw()
