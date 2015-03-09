@@ -79,7 +79,7 @@ def main():
             recnum += 1
         end_pca=len(datablock)-1 # initialize end_pca, beg_pca to first and last measurement
         beg_pca=0
-        ans=raw_input(" s[a]ve plot, [b]ounds for best-fit line and calculate, change [h]orizontal projection angle, [q]uit:   ")
+        ans=raw_input(" s[a]ve plot, [b]ounds for pca and calculate, change [h]orizontal projection angle, [q]uit:   ")
         if ans =='q':
             sys.exit() 
         if  ans=='a':

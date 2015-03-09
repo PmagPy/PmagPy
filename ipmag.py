@@ -70,6 +70,26 @@ def tk03(n=100,dec=0,lat=0,rev='no',G2=0,G3=0):
         tk_03_output.append([vec[0],vec[1],vec[2]])    
     return tk_03_output
 
+
+def unsquish(f,incs):
+    """
+    unsquish(f, incs) applies an unflattening factor, f to the inclination data and returns unsquished values.
+    """
+    incs=incs*np.pi/180. # convert to radians
+    tincnew=(1./f)*np.tan(incs)
+    incnew=np.arctan(tincnew)*180./np.pi # convert back to degrees
+    return incnew
+
+def squish(f,incs):
+    """
+    squish(f, incs) appliesa flattening factor, f, to the inclination data and returns the 'squished' values.
+    """
+    incs=incs*np.pi/180. # convert to radians
+    tincnew=f*np.tan(incs)
+    incnew=np.arctan(tincnew)*180./np.pi # convert back to degrees
+    return incnew
+
+
 def flip(D): #function simplified from PmagPy pmag.flip function
     """
     This function returns the antipode (flips) of the unit vectors in D (dec,inc,length).
@@ -1438,6 +1458,7 @@ def core_depthplot(dir_path='.', meas_file='magic_measurements.txt', spc_file=''
                     ax2.plot([1,1.5],[c[1],c[1]],'k-') # make the Chron boundary tick
                     ax2.text(1.05,d,c[0]) # 
             ax2.axis([-.25,1.5,amax,amin])
+    location = location.replace(' ', '_')
     figname=location+'_m:_'+method+'_core-depthplot.'+fmt
     pyplot.title(location)
     #pyplot.draw()

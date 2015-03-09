@@ -61,6 +61,7 @@ def main():
         -f FILE specify input file name
         -nb N specify number of bootstraps - the more the better, but slower!, default is 1000
         -fmt [svg,png,eps,pdf..] change plot format, default is svg
+        -sav  saves the figures and quits
 
     INPUT
         dec/inc pairs, delimited with space or tabs
@@ -76,6 +77,7 @@ def main():
 
     """
     fmt,nb='svg',1000
+    plot=0
     if '-i' in sys.argv:
         file=raw_input("Enter file name for processing: ")
     elif '-f' in sys.argv:
@@ -90,6 +92,7 @@ def main():
     if '-fmt' in sys.argv:
         ind=sys.argv.index('-fmt')
         fmt=sys.argv[ind+1]
+    if '-sav' in sys.argv:plot=1
     data=numpy.loadtxt(file)
     upper,lower=int(round(.975*nb)),int(round(.025*nb))
     E,I=[],[]
@@ -99,7 +102,7 @@ def main():
     pmagplotlib.plot_init(PLTS['cdf'],5,5) 
     pmagplotlib.plot_init(PLTS['v2'],5,5) 
     pmagplotlib.plotEQ(PLTS['eq'],data,'Data')
-    pmagplotlib.drawFIGS(PLTS)
+    if plot==0:pmagplotlib.drawFIGS(PLTS)
     ppars=pmag.doprinc(data)
     Io=ppars['inc']
     n=ppars["N"]
@@ -134,13 +137,14 @@ def main():
     pmagplotlib.plotVs(PLTS['cdf'],[I[lower],I[upper]],'b','--')
     pmagplotlib.plotVs(PLTS['cdf'],[Inc],'g','-')
     pmagplotlib.plotVs(PLTS['cdf'],[Io],'k','-')
-    pmagplotlib.drawFIGS(PLTS)
-    print "Io Inc  I_lower, I_upper, Elon, E_lower, E_upper"
-    print '%7.1f %s %7.1f _ %7.1f ^ %7.1f:  %6.4f _ %6.4f ^ %6.4f' %(Io, " => ", Inc, I[lower],I[upper], Elong, E[lower],E[upper])
-    ans= raw_input("S[a]ve plots - <return> to quit:  ")
-    if ans!='a':
-       print "\n Good bye\n"
-       sys.exit()
+    if plot==0:
+        drawFIGS(PLTS)
+        print "Io Inc  I_lower, I_upper, Elon, E_lower, E_upper"
+        print '%7.1f %s %7.1f _ %7.1f ^ %7.1f:  %6.4f _ %6.4f ^ %6.4f' %(Io, " => ", Inc, I[lower],I[upper], Elong, E[lower],E[upper])
+        ans= raw_input("S[a]ve plots - <return> to quit:  ")
+        if ans!='a':
+           print "\n Good bye\n"
+           sys.exit()
     files={}
     files['eq']='findEI_eq.'+fmt
     files['ei']='findEI_ei.'+fmt

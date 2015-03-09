@@ -356,7 +356,7 @@ def plotNET(fignum):
 # make the perimeter
 #
     pylab.figure(num=fignum)
-    pylab.clf()
+#    pylab.clf()
     if not isServer: pylab.figtext(.02,.01,version_num)
     pylab.axis("off")
     Dcirc=numpy.arange(0,361.)
@@ -1203,7 +1203,7 @@ def plotEQ(fignum,DIblock,s):
 # make the stereonet
     pylab.figure(num=fignum) 
     if len(DIblock) <1: return
-    pylab.clf()
+    #pylab.clf()
     if not isServer:
         pylab.figtext(.02,.01,version_num)
     plotNET(fignum)
@@ -1221,7 +1221,7 @@ def plotEQsym(fignum,DIblock,s,sym):
 # make the stereonet
     pylab.figure(num=fignum) 
     if len(DIblock) <1: return
-    pylab.clf()
+    #pylab.clf()
     if not isServer:
         pylab.figtext(.02,.01,version_num)
     plotNET(fignum)
@@ -1402,6 +1402,12 @@ def plotSTRAT(fignum,data,labels):
 #
 #
 def plotCDF(fignum,data,xlab,sym,title,**kwargs):
+    """ Makes a plot of the cumulative distribution function.  Uses the call:
+x,y=plotCDF(fignum,data,xlab,sym,title,**kwargs) where fignum is the figure number.
+data is a list of data to be plotted, xlab is the label for the x axis.
+sym is the desired line style and color, title is the plot title 
+and **kwargs is a dictionary: {'color': color, 'linewidth':linewidth} 
+this function returns x and y"""
 #
 # plots a CDF of data
     #if len(sym)==1:sym=sym+'-'
@@ -1810,7 +1816,7 @@ def plotIRM(fignum,B,M,title):
             pylab.figtext(.2,.45,n2)
     elif fignum!=0:
         pylab.figure(num=fignum)
-        pylab.clf()
+        #pylab.clf()
         if not isServer:
             pylab.figtext(.02,.01,version_num)
         print 'M[0]=0,  skipping specimen'
