@@ -70,6 +70,26 @@ def tk03(n=100,dec=0,lat=0,rev='no',G2=0,G3=0):
         tk_03_output.append([vec[0],vec[1],vec[2]])    
     return tk_03_output
 
+
+def unsquish(f,incs):
+    """
+    unsquish(f, incs) applies an unflattening factor, f to the inclination data and returns unsquished values.
+    """
+    incs=incs*np.pi/180. # convert to radians
+    tincnew=(1./f)*np.tan(incs)
+    incnew=np.arctan(tincnew)*180./np.pi # convert back to degrees
+    return incnew
+
+def squish(f,incs):
+    """
+    squish(f, incs) appliesa flattening factor, f, to the inclination data and returns the 'squished' values.
+    """
+    incs=incs*np.pi/180. # convert to radians
+    tincnew=f*np.tan(incs)
+    incnew=np.arctan(tincnew)*180./np.pi # convert back to degrees
+    return incnew
+
+
 def flip(D): #function simplified from PmagPy pmag.flip function
     """
     This function returns the antipode (flips) of the unit vectors in D (dec,inc,length).
