@@ -13,6 +13,7 @@ from matplotlib import pyplot as plt
 import pmag_widgets as pw
 import thellier_gui_dialogs
 import thellier_gui
+import ipmag
 
 import threading
 print threading.Thread
@@ -1275,14 +1276,15 @@ class ZeqMagic(wx.Frame):
 
 
 
-class TestThread(Thread):
-    """Test Worker Thread Class."""
+class PlotThread(Thread):
+    """Plot Thread Class."""
 
     #----------------------------------------------------------------------
     def __init__(self, core_window, plot_function, args, after_function):
-        """Init Worker Thread Class."""
+        """
+        Init Worker Thread Class.
+        Takes as arguments a wxpython window, a long running plotting function, its arguments, and a function to call on completion"""
         Thread.__init__(self)
-        print 'start thread'
         self.core_window = core_window
         self.plot_function = plot_function
         self.after_function = after_function
@@ -1292,14 +1294,7 @@ class TestThread(Thread):
     #----------------------------------------------------------------------
     def run(self):
         """Run Worker Thread."""
-        print 'run thread'
-        import time
-        time.sleep(10)
-        import ipmag
-
         fig, figname = self.plot_function(*self.args)
-        print 'finished fig, figname'
-        print fig, figname
         if fig:
             self.core_window.Destroy()
             dpi = fig.get_dpi()
@@ -1607,23 +1602,11 @@ class Core_depthplot(wx.Frame):
 
     def make_plot_frame(self, (pixel_width, pixel_height), fig, figname):
         PlotFrame((pixel_width, pixel_height), fig, figname)
-        print 'hiyo'
+        del self.wait
         
     def on_okButton(self, event):
         """
-        meas_file # -f magic_measurements_file
-        samp_file #-fsa er_samples_file
-        age_file # -fa er_ages_file
-        depth_scale # -ds scale
-        dmin, dmax # -d 1 50  # depth to plot
-        timescale, amin, amax (also sets pTS, pcol, width) =  # -ts scale min max        
-        sym, size # -sym symbol size
-        method, step (also may set suc_key) # -LP protocol step
-        pltDec (also sets pcol, pel, width)# -D (don't plot dec)
-        pltInc (also sets pcol, pel, width)# -I (don't plot inc)
-        pltMag (also sets pcol, pel, width)# -M (don't plot intensity)
-        logit # -log ( plot log scale)
-        fmt # -fmt format
+        get required variables from the interface, then call a worker thread to do the computations.
         """
         meas_file = self.bSizer0.return_value()
         if meas_file:
@@ -1697,25 +1680,16 @@ class Core_depthplot(wx.Frame):
             if 'log' in val:
                 logit = 1
 
-        #pltSus = self.bSizer15.return_value()
-        #if pltSus:
-        #    pltSus = 0
-        #else:
-        #    pltSus = 1
         
         fmt = self.bSizer16.return_value()
-        #print "meas_file", meas_file, "pmag_spec_file", pmag_spec_file, "spec_sym_shape", spec_sym_shape, "spec_sym_color", spec_sym_color, "spec_sym_size", spec_sym_size, "samp_file", samp_file, "age_file", age_file, "depth_scale", depth_scale, "dmin", dmin, "dmax", dmax, "timescale", timescale, "amin", amin, "amax", amax, "sym", sym, "size", size, "method", method, "step", step, "pltDec", pltDec, "pltInc", pltInc, "pltMag", pltMag, "pltTime", pltTime, "logit", logit, "fmt", fmt
+
 
         # for use as module:
-        import ipmag
-        #print "pltLine:", pltLine
-        #print "pltSus:", pltSus
 
-        print 'run testThread'
-        import ipmag
         self.okButton.Disable()
+        self.wait = wx.BusyInfo("Please wait, generating plot...")
         args = [self.WD, meas_file, pmag_spec_file, samp_file, age_file, depth_scale, dmin, dmax, sym, size, spec_sym, spec_sym_size, method, step, fmt, pltDec, pltInc, pltMag, pltLine, 1, logit, pltTime, timescale, amin, amax]
-        TestThread(self, ipmag.core_depthplot, args, self.make_plot_frame)
+        PlotThread(self, ipmag.core_depthplot, args, self.make_plot_frame)
 
         
         #fig, figname = ipmag.core_depthplot(self.WD, meas_file, pmag_spec_file, samp_file, age_file, depth_scale, dmin, dmax, sym, size, spec_sym, spec_sym_size, method, step, fmt, pltDec, pltInc, pltMag, pltLine, 1, logit, pltTime, timescale, amin, amax)
@@ -1780,7 +1754,7 @@ class Core_depthplot(wx.Frame):
         fmt = pmag.add_flag(fmt, '-fmt')
 
         COMMAND = "core_depthplot.py {meas_file} {pmag_spec_file} {sym} {samp_file} {age_file} {depth_scale} {depth_range} {timescale} {method} {pltDec} {pltInc} {pltMag} {logit} {fmt} {pltLine} -WD {WD}".format(meas_file=meas_file, pmag_spec_file=pmag_spec_file, sym=sym, samp_file=samp_file, age_file=age_file, depth_scale=depth_scale, depth_range=depth_range, timescale=timescale, method=method, pltDec=pltDec, pltInc=pltInc, pltMag=pltMag, logit=logit, fmt=fmt, pltLine=pltLine, WD=self.WD)
-        print COMMAND
+        print 'running equivalent to:', COMMAND
         #os.system(COMMAND)
 
 
