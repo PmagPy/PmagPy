@@ -2415,7 +2415,8 @@ class OrientFrameGrid(wx.Frame):
         er_recs=[]
         for sample in samples:
             er_recs.append(er_samples_data[sample])
-            pmag.magic_write(os.path.join(self.WD, "er_samples.txt"),er_recs,"er_samples")
+        er_recs=pmag.merge_recs_headers(er_recs)  
+        pmag.magic_write(os.path.join(self.WD, "er_samples.txt"),er_recs,"er_samples")
 
         #------------
         # now er_sites.txt
@@ -2441,7 +2442,9 @@ class OrientFrameGrid(wx.Frame):
         er_recs=[]
         for site in sites:
             er_recs.append(er_sites_data[site])
-            pmag.magic_write(os.path.join(self.WD, "er_sites.txt"),er_recs,"er_sites")
+        er_recs=pmag.merge_recs_headers(er_recs)  
+        pmag.magic_write(os.path.join(self.WD, "er_sites.txt"),er_recs,"er_sites")
+        
             #pmag.magic_write(os.path.join(self.WD, "er_samples.txt"),er_recs,"er_samples")
 
         dlg1 = wx.MessageDialog(None,caption="Message:", message="orientation data is saved/appended to er_samples.txt" ,style=wx.OK|wx.ICON_INFORMATION)

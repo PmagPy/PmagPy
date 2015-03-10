@@ -8746,6 +8746,22 @@ def get_named_arg_from_sys(name, default_val=None, reqd=False):
     return default_val # if arg is not provided but has a default value, return that value
 
 
+def merge_recs_headers(recs):
+    '''
+    take a list of recs [rec1,rec2,rec3....], each rec is a dictionary.
+    make sure that all recs have the same headers.
+    '''
+    headers=[]
+    for rec in recs:
+        keys=rec.keys()
+        for key in keys:
+            if key not in headers:
+                    headers.append(key)
+    for rec in recs:
+        for header in headers:
+            if header not in rec.keys():
+                rec[header]=""
+    return recs
 class MissingCommandLineArgException(Exception):
 
     def __init__(self, message):
