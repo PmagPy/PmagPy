@@ -1296,6 +1296,7 @@ class PlotThread(Thread):
         """Run Worker Thread."""
         fig, figname = self.plot_function(*self.args)
         if fig:
+            del self.core_window.wait
             self.core_window.Destroy()
             dpi = fig.get_dpi()
             pixel_width = dpi * fig.get_figwidth()
@@ -1316,6 +1317,7 @@ class Core_depthplot(wx.Frame):
         wx.Frame.__init__(self, parent, wx.ID_ANY, self.title)
         self.panel = wx.ScrolledWindow(self)
         self.WD = WD
+        self.wait = None
         self.InitUI()
 
     def InitUI(self):
@@ -1602,7 +1604,6 @@ class Core_depthplot(wx.Frame):
 
     def make_plot_frame(self, (pixel_width, pixel_height), fig, figname):
         PlotFrame((pixel_width, pixel_height), fig, figname)
-        del self.wait
         
     def on_okButton(self, event):
         """
@@ -1683,11 +1684,12 @@ class Core_depthplot(wx.Frame):
         
         fmt = self.bSizer16.return_value()
 
-
         # for use as module:
 
         self.okButton.Disable()
         self.wait = wx.BusyInfo("Please wait, generating plot...")
+        #self.wait = wx.ProgressDialog('Plotting', 'Please wait, generating plot', style=wx.PD_CAN_ABORT)
+        
         args = [self.WD, meas_file, pmag_spec_file, samp_file, age_file, depth_scale, dmin, dmax, sym, size, spec_sym, spec_sym_size, method, step, fmt, pltDec, pltInc, pltMag, pltLine, 1, logit, pltTime, timescale, amin, amax]
         PlotThread(self, ipmag.core_depthplot, args, self.make_plot_frame)
 
@@ -1788,6 +1790,7 @@ class Ani_depthplot(wx.Frame):
         wx.Frame.__init__(self, parent, wx.ID_ANY, self.title)
         self.panel = wx.ScrolledWindow(self)
         self.WD = WD
+        self.wait = None
         self.InitUI()
 
     def InitUI(self):
@@ -1877,6 +1880,9 @@ class Ani_depthplot(wx.Frame):
         if os.path.isfile(infile):
             add_here.SetValue(infile)
 
+    def make_plot_frame(self, (pixel_width, pixel_height), fig, figname):
+        PlotFrame((pixel_width, pixel_height), fig, figname)
+            
     def on_okButton(self, event):
         ani_file = self.bSizer0.return_value()
         meas_file = self.bSizer1.return_value()
@@ -1898,17 +1904,21 @@ class Ani_depthplot(wx.Frame):
         dmax = self.bSizer6.return_value() or -1
 
         # for use as module:
-        import ipmag
-        fig, figname = ipmag.make_aniso_depthplot(ani_file, meas_file, samp_file, age_file, fmt, float(dmin), float(dmax), depth_scale)
-        if fig:
-            self.Destroy() 
-            dpi = fig.get_dpi()
-            pixel_width = dpi * fig.get_figwidth()
-            pixel_height = dpi * fig.get_figheight()
-            plot_frame = PlotFrame((pixel_width, pixel_height + 50), fig, figname)
-        else:
-            pw.simple_warning("No data points met your criteria - try again\nError message: {}".format(figname))
+        self.okButton.Disable()
+        self.wait = wx.BusyInfo("Please wait, generating plot...")
+        args = [ani_file, meas_file, samp_file, age_file, fmt, float(dmin), float(dmax), depth_scale]
+        PlotThread(self, ipmag.make_aniso_depthplot, args, self.make_plot_frame)
+        #fig, figname = ipmag.make_aniso_depthplot(ani_file, meas_file, samp_file, age_file, fmt, float(dmin), float(dmax), depth_scale)
+        #if fig:
+        #    self.Destroy() 
+        #    dpi = fig.get_dpi()
+        #    pixel_width = dpi * fig.get_figwidth()
+        #    pixel_height = dpi * fig.get_figheight()
+        #    plot_frame = PlotFrame((pixel_width, pixel_height + 50), fig, figname)
+        #else:
+        #    pw.simple_warning("No data points met your criteria - try again\nError message: {}".format(figname))
 
+        
         ## for use as command_line:
         #ani_file = "-f " + os.path.basename(ani_file)
         #meas_file = "-fb " + os.path.basename(meas_file)
@@ -1931,6 +1941,8 @@ class Ani_depthplot(wx.Frame):
         ##pw.run_command_and_close_window(self, COMMAND, "er_samples.txt")
         #pw.run_command(self, COMMAND, "??")
 
+
+        
     def on_cancelButton(self,event):
         self.Destroy()
         self.Parent.Raise()
