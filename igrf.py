@@ -52,7 +52,7 @@ def main():
     if '-mod' in sys.argv:
         ind=sys.argv.index('-mod')
         mod=sys.argv[ind+1]
-    else: mod=''
+    else: mod='cals3k'
     if '-f' in sys.argv:
         ind=sys.argv.index('-f')
         file=sys.argv[ind+1]
