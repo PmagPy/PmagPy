@@ -6,7 +6,7 @@ def main(command_line=True, **kwargs):
         JR6_magic.py
  
     DESCRIPTION
-        converts JR6 format files to magic_measurements format files
+        converts JR6 .txt format files to magic_measurements format files
 
     SYNTAX
         JR6_magic.py [command line options]
@@ -39,7 +39,6 @@ def main(command_line=True, **kwargs):
     """
 # initialize some stuff
     noave=0
-    volume=10
     inst=""
     samp_con,Z='1',""
     missing=1
@@ -51,7 +50,6 @@ def main(command_line=True, **kwargs):
     specnum=-1
     MagRecs=[]
     version_num=pmag.get_version()
-    Samps=[] # keeps track of sample orientations
 
     user=""
     mag_file=""
