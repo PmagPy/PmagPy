@@ -1276,6 +1276,22 @@ class ZeqMagic(wx.Frame):
 
 
 
+EVT_RESULT_ID = wx.NewId()
+
+def EVT_RESULT(win, func):
+    """Define Result Event."""
+    win.Connect(-1, -1, EVT_RESULT_ID, func)
+
+class ResultEvent(wx.PyEvent):
+    """Simple event to carry arbitrary result data."""
+    def __init__(self, data):
+        """Init Result Event."""
+        wx.PyEvent.__init__(self)
+        self.SetEventType(EVT_RESULT_ID)
+        self.data = data
+        
+
+
 class PlotThread(Thread):
     """Plot Thread Class."""
 
@@ -1301,7 +1317,13 @@ class PlotThread(Thread):
             dpi = fig.get_dpi()
             pixel_width = dpi * fig.get_figwidth()
             pixel_height = dpi * fig.get_figheight()
-            wx.CallAfter(self.after_function, (pixel_width, pixel_height+50), fig, figname)
+            # this one works (but sometimes crashes):
+            #wx.CallAfter(self.after_function, (pixel_width, pixel_height+50), fig, figname)
+            # this one doesn't work:
+            #wx.CallLater(100, self.after_function, (pixel_width, pixel_height+50), fig, figname)
+            # trying this one:
+            print 'core_window:', self.core_window, 'resultevent', ResultEvent
+            wx.PostEvent(self.core_window, ResultEvent(None))
         else:
             pw.simple_warning("No data points met your criteria - try again\nError message: {}".format(figname))
             self.core_window.okButton.Enable()
@@ -1321,11 +1343,14 @@ class Core_depthplot(wx.Frame):
         self.InitUI()
 
     def InitUI(self):
+
         pnl = self.panel
         TEXT = "This program allows you to plot various measurement data versus sample depth.\nYou must provide either a magic_measurements file or a pmag_specimens file (or, you can use both)."
         bSizer_info = wx.BoxSizer(wx.HORIZONTAL)
         bSizer_info.Add(wx.StaticText(pnl, label=TEXT), wx.ALIGN_LEFT)
 
+        EVT_RESULT(self, self.do_thing)
+        
         #---sizer 0 ----
         self.bSizer0 = pw.choose_file(pnl, btn_text='add measurements file', method = self.on_add_measurements_button, remove_button="Don't use measurements file")
 
@@ -1539,7 +1564,9 @@ class Core_depthplot(wx.Frame):
         self.Show()
         self.Centre()
 
-
+    def do_thing(self):
+        print 'doing the thing!!'
+        
     def change_results_path(self, event):
         txt_ctrl = event.GetEventObject()
         if txt_ctrl.GetValue():
