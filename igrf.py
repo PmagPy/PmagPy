@@ -118,7 +118,7 @@ def main():
             x,y,z,f=pmag.doigrf(line[3]%360.,line[2],line[1],line[0],mod=mod)
         Dir=pmag.cart2dir((x,y,z))
         if outfile!="":
-            out.write('%8.2 %8.2 %8.0f %7.1f %7.1f %7.1f %7.1f\n'%(Dir[0],Dir[1],f,line[0],line[1],line[2],line[3]))           
+            out.write('%8.2f %8.2f %8.0f %7.1f %7.1f %7.1f %7.1f\n'%(Dir[0],Dir[1],f,line[0],line[1],line[2],line[3]))           
         elif plt:
             Ages.append(line[0])
             if Dir[0]>180: Dir[0]=Dir[0]-360.0
