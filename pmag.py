@@ -1078,7 +1078,8 @@ def dotilt_V(input):
 
 def dogeo(dec,inc,az,pl):
     """
-    rotates dec,in into geographic coordinates using az,pl as azimuth and plunge of X direction
+    called as:  dogeo(dec,inc,az,pl)
+    rotates dec,inc into geographic coordinates using az,pl as azimuth and plunge of X direction
     """
     A1,A2,A3=[],[],[] # set up lists for rotation vector
     Dir=[dec,inc,1.] # put dec inc in direction list and set  length to unity
@@ -1227,7 +1228,7 @@ def angle(D1,D2):
 
 def cart2dir(cart):
     """
-    converts a direction to cartesian coordinates
+    converts a direction to cartesian coordinates.  takes an array of [x,y,z])
     """
     cart=numpy.array(cart)
     rad=numpy.pi/180. # constant to convert degrees to radians
