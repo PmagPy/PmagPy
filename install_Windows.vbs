@@ -32,7 +32,7 @@ While Not installation_path_prompted Or Vartype(installation_path) = 0 Or instal
 
 	'Warn that the installation path is invalid
 	If Vartype(installation_path) = 0 Or installation_path = "" Then 
-		x = MsgBox("The installation path is invalid. Please restart the the PmagPy installation.", 16, "Invalid Installation Path")
+		x = MsgBox("The installation path is invalid. Please restart the PmagPy installation.", 16, "Invalid Installation Path")
 	End If
 
 WEnd
