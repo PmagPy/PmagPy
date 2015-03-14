@@ -6059,7 +6059,7 @@ def parse_site(sample,convention,Z):
 # Sample is XXXXYYY where XXX is site desgnation and YYY is Z long integer
 #
     if convention=="4":
-       k=int(Z)
+       k=int(Z)-1
        return sample[0:-k]  # peel off Z characters from site
     
     if convention=="5": # sample == site

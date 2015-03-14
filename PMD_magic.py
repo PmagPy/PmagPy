@@ -124,7 +124,7 @@ def main(command_line=True, **kwargs):
         noave = kwargs.get('noave', 0) # default (0) means DO average
         meth_code = kwargs.get('meth_code', "LP-NO")
 
-
+    print samp_con
     # format variables
     mag_file = input_dir_path+"/" + mag_file
     meas_file = output_dir_path+"/" + meas_file
