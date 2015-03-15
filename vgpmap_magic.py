@@ -112,7 +112,6 @@ def main():
         Results=data
     Results=pmag.get_dictitem(Results,'vgp_lat','','F') # get all non-blank latitudes
     Results=pmag.get_dictitem(Results,'vgp_lon','','F') # get all non-blank longitudes
-    print Results
     if coord!="":Results=pmag.get_dictitem(Results,'tilt_correction',coord,'T') # get specified coordinate system
     for rec in Results:
             if 'average_age' in rec.keys() and rec['average_age']!="" and ages==1:
