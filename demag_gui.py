@@ -37,6 +37,20 @@
 global CURRENT_VRSION
 CURRENT_VRSION = "v.0.30"
 import matplotlib
+import matplotlib.font_manager as font_manager
+
+print font_manager.findfont(matplotlib.rcParams['font.family'])
+print font_manager.findfont("Arial")
+
+print 'default font:', matplotlib.rcParams['font.family']
+
+matplotlib.rcParams['font.size'] = 10.
+matplotlib.rcParams['font.family'] = 'Comic Sans MS'
+matplotlib.rcParams['axes.labelsize'] = 8.
+matplotlib.rcParams['xtick.labelsize'] = 6.
+matplotlib.rcParams['ytick.labelsize'] = 6.
+
+print 'changed font:', matplotlib.rcParams['font.family']
 #matplotlib.use('WXAgg')
 
 from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigCanvas 
