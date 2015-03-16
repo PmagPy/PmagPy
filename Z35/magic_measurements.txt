@@ -1,0 +1,86 @@
+tab 	magic_measurements
+er_citation_name	er_citation_names	er_location_name	er_sample_name	er_site_name	er_specimen_name	magic_experiment_name	magic_instrument_codes	magic_method_codes	magic_software_packages	measurement_csd	measurement_dec	measurement_description	measurement_flag	measurement_inc	measurement_magn_moment	measurement_number	measurement_positions	measurement_temp	measurement_x_sd	measurement_y_sd	measurement_z_sd	treatment_ac_field	treatment_dc_field	treatment_temp
+This study	This study	unknown	Z35.1a	Z35	Z35.1a	Z35.1a:LP-DIR-T		LT-NO:LP-DIR-T	pmagpy-2.235	2.3	37.2		g	-53.2	3.93e-07	1	1	273	1.35e-08	8.63e-09	2.14e-09	0	0	273
+This study	This study	unknown	Z35.1a	Z35	Z35.1a	Z35.1a:LP-DIR-T		LT-NO:LP-DIR-T	pmagpy-2.235	2.0	36.7		g	-50.9	4.29e-07	2	1	273	1.25e-08	7.51e-09	2.78e-09	0	0	273
+This study	This study	unknown	Z35.1a	Z35	Z35.1a	Z35.1a:LP-DIR-T		LT-T-Z:LP-DIR-T	pmagpy-2.235	2.3	34.8		g	-48.5	5.32e-07	3	1	273	1.65e-08	1.28e-08	3.42e-09	0	0	373.0
+This study	This study	unknown	Z35.1a	Z35	Z35.1a	Z35.1a:LP-DIR-T	hargrave 2014-10-22 15:53:24	LT-T-Z:LP-DIR-T	pmagpy-2.235	3.0	029.3		g	-47.6	6.71e-07	4	1	273	2.39e-08	2.34e-08	1.04e-08	0	0	423.0
+This study	This study	unknown	Z35.1a	Z35	Z35.1a	Z35.1a:LP-DIR-T	hargrave 2014-10-27 16:19:50	LT-T-Z:LP-DIR-T	pmagpy-2.235	2.2	028.6		g	-47.3	6.55e-07	5	1	273	2.00e-08	1.31e-08	7.42e-09	0	0	473.0
+This study	This study	unknown	Z35.1a	Z35	Z35.1a	Z35.1a:LP-DIR-T	hargrave 2014-10-28 13:42:19	LT-T-Z:LP-DIR-T	pmagpy-2.235	3.1	028.5		g	-49.3	5.27e-07	6	1	273	1.81e-08	2.17e-08	4.18e-09	0	0	523.0
+This study	This study	unknown	Z35.1a	Z35	Z35.1a	Z35.1a:LP-DIR-T	hargrave 2014-10-28 20:40:03	LT-T-Z:LP-DIR-T	pmagpy-2.235	3.0	034.0		g	-52.8	3.81e-07	7	1	273	1.42e-08	1.36e-08	2.98e-09	0	0	573.0
+This study	This study	unknown	Z35.1a	Z35	Z35.1a	Z35.1a:LP-DIR-T	hargrave 2014-10-29 20:53:02	LT-T-Z:LP-DIR-T	pmagpy-2.235	2.0	040.3		g	-57.3	2.40e-07	8	1	273	7.58e-09	3.67e-09	1.87e-09	0	0	623.0
+This study	This study	unknown	Z35.1a	Z35	Z35.1a	Z35.1a:LP-DIR-T	hargrave 2014-11-03 17:13:00	LT-T-Z:LP-DIR-T	pmagpy-2.235	3.2	043.8		g	-58.4	1.97e-07	9	1	273	9.19e-09	5.83e-09	1.36e-09	0	0	673.0
+This study	This study	unknown	Z35.1a	Z35	Z35.1a	Z35.1a:LP-DIR-T	hargrave 2014-11-04 12:03:42	LT-T-Z:LP-DIR-T	pmagpy-2.235	2.1	046.8		g	-59.9	1.78e-07	10	1	273	5.82e-09	2.86e-09	1.36e-09	0	0	698.0
+This study	This study	unknown	Z35.1a	Z35	Z35.1a	Z35.1a:LP-DIR-T	hargrave 2014-11-10 12:53:05	LT-T-Z:LP-DIR-T	pmagpy-2.235	2.3	049.9		g	-61.0	1.64e-07	11	1	273	5.48e-09	3.62e-09	8.90e-10	0	0	723.0
+This study	This study	unknown	Z35.1a	Z35	Z35.1a	Z35.1a:LP-DIR-T	hargrave 2014-11-10 22:11:56	LT-T-Z:LP-DIR-T	pmagpy-2.235	1.7	053.3		g	-63.2	1.52e-07	12	1	273	3.62e-09	2.88e-09	5.24e-10	0	0	748.0
+This study	This study	unknown	Z35.2a	Z35	Z35.2a	Z35.2a:LP-DIR-T		LT-NO:LP-DIR-T	pmagpy-2.235	2.6	46.5		g	-50.4	1.12e-06	1	1	273	3.14e-08	4.00e-08	9.82e-09	0	0	273
+This study	This study	unknown	Z35.2a	Z35	Z35.2a	Z35.2a:LP-DIR-T		LT-NO:LP-DIR-T	pmagpy-2.235	2.0	46.3		g	-50.9	1.16e-06	2	1	273	2.20e-08	3.25e-08	1.09e-08	0	0	273
+This study	This study	unknown	Z35.2a	Z35	Z35.2a	Z35.2a:LP-DIR-T		LT-T-Z:LP-DIR-T	pmagpy-2.235	1.0	44.8		g	-51.6	1.33e-06	3	1	273	8.96e-09	1.88e-08	1.11e-08	0	0	373.0
+This study	This study	unknown	Z35.2a	Z35	Z35.2a	Z35.2a:LP-DIR-T	hargrave 2014-10-22 15:54:56	LT-T-Z:LP-DIR-T	pmagpy-2.235	2.6	043.8		g	-51.8	1.16e-06	4	1	273	2.83e-08	4.26e-08	9.49e-09	0	0	423.0
+This study	This study	unknown	Z35.2a	Z35	Z35.2a	Z35.2a:LP-DIR-T	hargrave 2014-10-27 16:21:23	LT-T-Z:LP-DIR-T	pmagpy-2.235	1.9	043.6		g	-51.0	1.05e-06	5	1	273	1.89e-08	2.78e-08	7.43e-09	0	0	473.0
+This study	This study	unknown	Z35.2a	Z35	Z35.2a	Z35.2a:LP-DIR-T	hargrave 2014-10-28 13:44:04	LT-T-Z:LP-DIR-T	pmagpy-2.235	3.7	045.6		g	-51.0	7.52e-07	6	1	273	3.14e-08	3.76e-08	6.48e-09	0	0	523.0
+This study	This study	unknown	Z35.2a	Z35	Z35.2a	Z35.2a:LP-DIR-T	hargrave 2014-10-28 20:41:45	LT-T-Z:LP-DIR-T	pmagpy-2.235	2.5	050.3		g	-50.2	4.57e-07	7	1	273	1.28e-08	1.47e-08	3.34e-09	0	0	573.0
+This study	This study	unknown	Z35.2a	Z35	Z35.2a	Z35.2a:LP-DIR-T	hargrave 2014-10-29 20:54:34	LT-T-Z:LP-DIR-T	pmagpy-2.235	2.4	051.3		g	-48.8	2.19e-07	8	1	273	6.51e-09	6.53e-09	1.26e-09	0	0	623.0
+This study	This study	unknown	Z35.2a	Z35	Z35.2a	Z35.2a:LP-DIR-T	hargrave 2014-11-03 17:14:38	LT-T-Z:LP-DIR-T	pmagpy-2.235	2.5	053.2		g	-48.1	1.67e-07	9	1	273	5.32e-09	4.98e-09	1.13e-09	0	0	673.0
+This study	This study	unknown	Z35.2a	Z35	Z35.2a	Z35.2a:LP-DIR-T	hargrave 2014-11-04 12:05:10	LT-T-Z:LP-DIR-T	pmagpy-2.235	0.8	053.9		g	-47.3	1.38e-07	10	1	273	1.25e-09	1.53e-09	7.89e-10	0	0	698.0
+This study	This study	unknown	Z35.2a	Z35	Z35.2a	Z35.2a:LP-DIR-T	hargrave 2014-11-10 12:54:47	LT-T-Z:LP-DIR-T	pmagpy-2.235	1.7	057.1		g	-45.6	1.18e-07	11	1	273	2.22e-09	2.76e-09	7.35e-10	0	0	723.0
+This study	This study	unknown	Z35.2a	Z35	Z35.2a	Z35.2a:LP-DIR-T	hargrave 2014-11-10 22:13:28	LT-T-Z:LP-DIR-T	pmagpy-2.235	1.9	059.6		g	-42.6	9.94e-08	12	1	273	2.09e-09	2.36e-09	9.36e-10	0	0	748.0
+This study	This study	unknown	Z35.3a	Z35	Z35.3a	Z35.3a:LP-DIR-T		LT-NO:LP-DIR-T	pmagpy-2.235	0.8	200.8		g	-72.0	1.20e-06	1	1	273	1.31e-08	1.04e-08	6.25e-09	0	0	273
+This study	This study	unknown	Z35.3a	Z35	Z35.3a	Z35.3a:LP-DIR-T		LT-NO:LP-DIR-T	pmagpy-2.235	0.8	204.4		g	-71.7	1.24e-06	2	1	273	1.64e-08	6.09e-09	7.00e-09	0	0	273
+This study	This study	unknown	Z35.3a	Z35	Z35.3a	Z35.3a:LP-DIR-T		LT-T-Z:LP-DIR-T	pmagpy-2.235	1.4	204.2		g	-71.4	1.41e-06	3	1	273	2.89e-08	1.53e-08	9.78e-09	0	0	373.0
+This study	This study	unknown	Z35.3a	Z35	Z35.3a	Z35.3a:LP-DIR-T	hargrave 2014-10-22 15:56:39	LT-T-Z:LP-DIR-T	pmagpy-2.235	0.8	203.4		g	-71.2	1.20e-06	4	1	273	1.59e-08	6.67e-09	4.70e-09	0	0	423.0
+This study	This study	unknown	Z35.3a	Z35	Z35.3a	Z35.3a:LP-DIR-T	hargrave 2014-10-27 16:23:12	LT-T-Z:LP-DIR-T	pmagpy-2.235	0.8	204.3		g	-71.6	1.09e-06	5	1	273	1.43e-08	6.07e-09	5.22e-09	0	0	473.0
+This study	This study	unknown	Z35.3a	Z35	Z35.3a	Z35.3a:LP-DIR-T	hargrave 2014-10-28 13:46:02	LT-T-Z:LP-DIR-T	pmagpy-2.235	1.9	206.4		g	-70.9	8.29e-07	6	1	273	3.76e-09	2.68e-08	4.05e-09	0	0	523.0
+This study	This study	unknown	Z35.3a	Z35	Z35.3a	Z35.3a:LP-DIR-T	hargrave 2014-10-28 20:43:28	LT-T-Z:LP-DIR-T	pmagpy-2.235	0.6	216.7		g	-71.1	4.91e-07	7	1	273	1.91e-09	4.95e-09	1.42e-09	0	0	573.0
+This study	This study	unknown	Z35.3a	Z35	Z35.3a	Z35.3a:LP-DIR-T	hargrave 2014-10-29 20:56:10	LT-T-Z:LP-DIR-T	pmagpy-2.235	0.5	220.4		g	-70.3	2.37e-07	8	1	273	1.74e-09	1.44e-09	6.53e-10	0	0	623.0
+This study	This study	unknown	Z35.3a	Z35	Z35.3a	Z35.3a:LP-DIR-T	hargrave 2014-11-03 17:16:16	LT-T-Z:LP-DIR-T	pmagpy-2.235	0.4	223.1		g	-69.3	1.75e-07	9	1	273	1.13e-09	9.03e-10	4.59e-10	0	0	673.0
+This study	This study	unknown	Z35.3a	Z35	Z35.3a	Z35.3a:LP-DIR-T	hargrave 2014-11-04 12:06:45	LT-T-Z:LP-DIR-T	pmagpy-2.235	0.5	226.1		g	-67.9	1.47e-07	10	1	273	6.97e-10	1.14e-09	4.77e-10	0	0	698.0
+This study	This study	unknown	Z35.3a	Z35	Z35.3a	Z35.3a:LP-DIR-T	hargrave 2014-11-10 12:56:31	LT-T-Z:LP-DIR-T	pmagpy-2.235	0.4	232.2		g	-67.4	1.27e-07	11	1	273	6.41e-10	6.21e-10	6.52e-10	0	0	723.0
+This study	This study	unknown	Z35.3a	Z35	Z35.3a	Z35.3a:LP-DIR-T	hargrave 2014-11-10 22:15:06	LT-T-Z:LP-DIR-T	pmagpy-2.235	1.6	237.0		g	-66.4	1.08e-07	12	1	273	2.75e-09	5.24e-10	9.05e-10	0	0	748.0
+This study	This study	unknown	Z35.4a	Z35	Z35.4a	Z35.4a:LP-DIR-T		LT-NO:LP-DIR-T	pmagpy-2.235	3.0	77.2		g	-44.9	2.46e-07	1	1	273	1.26e-08	1.06e-09	2.46e-09	0	0	273
+This study	This study	unknown	Z35.4a	Z35	Z35.4a	Z35.4a:LP-DIR-T		LT-NO:LP-DIR-T	pmagpy-2.235	2.5	73.1		g	-46.1	2.72e-07	2	1	273	1.12e-08	1.30e-09	3.48e-09	0	0	273
+This study	This study	unknown	Z35.4a	Z35	Z35.4a	Z35.4a:LP-DIR-T		LT-T-Z:LP-DIR-T	pmagpy-2.235	2.0	66.0		g	-49.3	3.68e-07	3	1	273	1.03e-08	4.82e-09	6.14e-09	0	0	373.0
+This study	This study	unknown	Z35.4a	Z35	Z35.4a	Z35.4a:LP-DIR-T	hargrave 2014-10-22 15:58:15	LT-T-Z:LP-DIR-T	pmagpy-2.235	2.5	057.3		g	-51.8	5.06e-07	4	1	273	2.08e-08	2.52e-09	7.78e-09	0	0	423.0
+This study	This study	unknown	Z35.4a	Z35	Z35.4a	Z35.4a:LP-DIR-T	hargrave 2014-10-27 16:24:50	LT-T-Z:LP-DIR-T	pmagpy-2.235	3.8	061.1		g	-52.1	5.02e-07	5	1	273	3.17e-08	2.75e-09	1.03e-08	0	0	473.0
+This study	This study	unknown	Z35.4a	Z35	Z35.4a	Z35.4a:LP-DIR-T	hargrave 2014-10-28 13:47:48	LT-T-Z:LP-DIR-T	pmagpy-2.235	5.4	066.0		g	-51.9	4.01e-07	6	1	273	3.67e-08	5.43e-09	7.43e-09	0	0	523.0
+This study	This study	unknown	Z35.4a	Z35	Z35.4a	Z35.4a:LP-DIR-T	hargrave 2014-10-28 20:45:11	LT-T-Z:LP-DIR-T	pmagpy-2.235	4.9	069.5		g	-50.3	2.63e-07	7	1	273	2.20e-08	3.27e-09	3.89e-09	0	0	573.0
+This study	This study	unknown	Z35.4a	Z35	Z35.4a	Z35.4a:LP-DIR-T	hargrave 2014-10-29 20:57:46	LT-T-Z:LP-DIR-T	pmagpy-2.235	3.5	077.3		g	-51.0	1.59e-07	8	1	273	9.67e-09	5.81e-10	1.56e-09	0	0	623.0
+This study	This study	unknown	Z35.4a	Z35	Z35.4a	Z35.4a:LP-DIR-T	hargrave 2014-11-03 17:17:53	LT-T-Z:LP-DIR-T	pmagpy-2.235	4.1	081.7		g	-49.9	1.25e-07	9	1	273	8.78e-09	5.86e-10	1.49e-09	0	0	673.0
+This study	This study	unknown	Z35.4a	Z35	Z35.4a	Z35.4a:LP-DIR-T	hargrave 2014-11-04 12:08:13	LT-T-Z:LP-DIR-T	pmagpy-2.235	3.7	083.5		g	-49.3	1.13e-07	10	1	273	7.17e-09	5.18e-10	1.12e-09	0	0	698.0
+This study	This study	unknown	Z35.4a	Z35	Z35.4a	Z35.4a:LP-DIR-T	hargrave 2014-11-10 12:58:13	LT-T-Z:LP-DIR-T	pmagpy-2.235	4.6	089.4		g	-47.8	1.01e-07	11	1	273	8.02e-09	6.20e-10	9.47e-10	0	0	723.0
+This study	This study	unknown	Z35.4a	Z35	Z35.4a	Z35.4a:LP-DIR-T	hargrave 2014-11-10 22:16:43	LT-T-Z:LP-DIR-T	pmagpy-2.235	2.3	092.2		g	-46.9	9.23e-08	12	1	273	3.65e-09	4.97e-10	7.45e-10	0	0	748.0
+This study	This study	unknown	Z35.5a	Z35	Z35.5a	Z35.5a:LP-DIR-T		LT-NO:LP-DIR-T	pmagpy-2.235	3.0	15.6		g	-38.2	4.09e-07	1	1	273	7.33e-09	2.01e-08	1.49e-09	0	0	273
+This study	This study	unknown	Z35.5a	Z35	Z35.5a	Z35.5a:LP-DIR-T		LT-NO:LP-DIR-T	pmagpy-2.235	1.7	14.5		g	-37.5	4.63e-07	2	1	273	5.05e-09	1.25e-08	1.64e-09	0	0	273
+This study	This study	unknown	Z35.5a	Z35	Z35.5a	Z35.5a:LP-DIR-T		LT-T-Z:LP-DIR-T	pmagpy-2.235	0.4	7.1		g	-38.2	6.21e-07	3	1	273	3.61e-09	3.58e-09	2.55e-09	0	0	373.0
+This study	This study	unknown	Z35.5a	Z35	Z35.5a	Z35.5a:LP-DIR-T	hargrave 2014-10-22 15:59:53	LT-T-Z:LP-DIR-T	pmagpy-2.235	2.1	003.2		g	-38.7	7.92e-07	4	1	273	4.56e-09	2.75e-08	6.47e-09	0	0	423.0
+This study	This study	unknown	Z35.5a	Z35	Z35.5a	Z35.5a:LP-DIR-T	hargrave 2014-10-27 16:26:22	LT-T-Z:LP-DIR-T	pmagpy-2.235	1.4	002.7		g	-39.1	7.70e-07	5	1	273	4.90e-09	1.87e-08	4.23e-09	0	0	473.0
+This study	This study	unknown	Z35.5a	Z35	Z35.5a	Z35.5a:LP-DIR-T	hargrave 2014-10-28 13:49:35	LT-T-Z:LP-DIR-T	pmagpy-2.235	3.2	004.0		g	-41.2	5.77e-07	6	1	273	5.53e-09	3.21e-08	3.25e-09	0	0	523.0
+This study	This study	unknown	Z35.5a	Z35	Z35.5a	Z35.5a:LP-DIR-T	hargrave 2014-10-28 20:46:49	LT-T-Z:LP-DIR-T	pmagpy-2.235	2.6	009.1		g	-43.6	3.38e-07	7	1	273	3.92e-09	1.46e-08	1.64e-09	0	0	573.0
+This study	This study	unknown	Z35.5a	Z35	Z35.5a	Z35.5a:LP-DIR-T	hargrave 2014-10-29 20:59:18	LT-T-Z:LP-DIR-T	pmagpy-2.235	1.8	003.1		g	-47.7	2.10e-07	8	1	273	1.44e-09	6.33e-09	7.48e-10	0	0	623.0
+This study	This study	unknown	Z35.5a	Z35	Z35.5a	Z35.5a:LP-DIR-T	hargrave 2014-11-03 17:19:27	LT-T-Z:LP-DIR-T	pmagpy-2.235	2.3	004.7		g	-48.9	1.86e-07	9	1	273	1.47e-09	7.30e-09	7.48e-10	0	0	673.0
+This study	This study	unknown	Z35.5a	Z35	Z35.5a	Z35.5a:LP-DIR-T	hargrave 2014-11-04 12:09:44	LT-T-Z:LP-DIR-T	pmagpy-2.235	1.5	003.4		g	-51.2	1.70e-07	10	1	273	8.53e-10	4.39e-09	9.38e-10	0	0	698.0
+This study	This study	unknown	Z35.5a	Z35	Z35.5a	Z35.5a:LP-DIR-T	hargrave 2014-11-10 12:59:52	LT-T-Z:LP-DIR-T	pmagpy-2.235	1.6	006.6		g	-52.6	1.56e-07	11	1	273	7.23e-10	4.41e-09	7.23e-10	0	0	723.0
+This study	This study	unknown	Z35.5a	Z35	Z35.5a	Z35.5a:LP-DIR-T	hargrave 2014-11-10 22:18:21	LT-T-Z:LP-DIR-T	pmagpy-2.235	1.6	005.0		g	-54.3	1.40e-07	12	1	273	1.48e-09	3.73e-09	7.26e-10	0	0	748.0
+This study	This study	unknown	Z35.6a	Z35	Z35.6a	Z35.6a:LP-DIR-T		LT-NO:LP-DIR-T	pmagpy-2.235	1.6	169.5		g	-65.1	2.87e-07	1	1	273	3.49e-09	7.03e-09	9.09e-10	0	0	273
+This study	This study	unknown	Z35.6a	Z35	Z35.6a	Z35.6a:LP-DIR-T		LT-NO:LP-DIR-T	pmagpy-2.235	1.4	170.7		g	-66.4	3.30e-07	2	1	273	3.37e-09	7.33e-09	9.45e-10	0	0	273
+This study	This study	unknown	Z35.6a	Z35	Z35.6a	Z35.6a:LP-DIR-T		LT-T-Z:LP-DIR-T	pmagpy-2.235	0.9	173.3		g	-71.4	4.62e-07	3	1	273	5.21e-09	5.49e-09	2.26e-09	0	0	373.0
+This study	This study	unknown	Z35.6a	Z35	Z35.6a	Z35.6a:LP-DIR-T	hargrave 2014-10-22 16:01:25	LT-T-Z:LP-DIR-T	pmagpy-2.235	1.3	175.4		g	-73.4	6.26e-07	4	1	273	4.16e-09	1.37e-08	8.78e-10	0	0	423.0
+This study	This study	unknown	Z35.6a	Z35	Z35.6a	Z35.6a:LP-DIR-T	hargrave 2014-10-27 16:28:07	LT-T-Z:LP-DIR-T	pmagpy-2.235	1.3	172.6		g	-72.5	6.10e-07	5	1	273	5.71e-09	1.23e-08	1.66e-09	0	0	473.0
+This study	This study	unknown	Z35.6a	Z35	Z35.6a	Z35.6a:LP-DIR-T	hargrave 2014-10-28 13:51:20	LT-T-Z:LP-DIR-T	pmagpy-2.235	1.7	179.4		g	-71.2	4.71e-07	6	1	273	4.84e-09	1.31e-08	2.29e-09	0	0	523.0
+This study	This study	unknown	Z35.6a	Z35	Z35.6a	Z35.6a:LP-DIR-T	hargrave 2014-10-28 20:48:26	LT-T-Z:LP-DIR-T	pmagpy-2.235	1.0	183.5		g	-65.3	2.75e-07	7	1	273	2.58e-09	4.08e-09	1.48e-09	0	0	573.0
+This study	This study	unknown	Z35.6a	Z35	Z35.6a	Z35.6a:LP-DIR-T	hargrave 2014-10-29 21:00:50	LT-T-Z:LP-DIR-T	pmagpy-2.235	1.5	184.8		g	-59.0	1.59e-07	8	1	273	1.01e-09	4.15e-09	5.44e-10	0	0	623.0
+This study	This study	unknown	Z35.6a	Z35	Z35.6a	Z35.6a:LP-DIR-T	hargrave 2014-11-03 17:20:59	LT-T-Z:LP-DIR-T	pmagpy-2.235	1.7	181.4		g	-57.3	1.23e-07	9	1	273	9.70e-10	3.49e-09	4.01e-10	0	0	673.0
+This study	This study	unknown	Z35.6a	Z35	Z35.6a	Z35.6a:LP-DIR-T	hargrave 2014-11-04 12:11:18	LT-T-Z:LP-DIR-T	pmagpy-2.235	2.2	183.7		g	-54.9	1.09e-07	10	1	273	5.55e-10	4.11e-09	3.93e-10	0	0	698.0
+This study	This study	unknown	Z35.6a	Z35	Z35.6a	Z35.6a:LP-DIR-T	hargrave 2014-11-10 13:01:28	LT-T-Z:LP-DIR-T	pmagpy-2.235	1.8	183.6		g	-52.2	9.41e-08	11	1	273	4.74e-10	2.98e-09	6.19e-10	0	0	723.0
+This study	This study	unknown	Z35.6a	Z35	Z35.6a	Z35.6a:LP-DIR-T	hargrave 2014-11-10 22:19:54	LT-T-Z:LP-DIR-T	pmagpy-2.235	1.3	183.8		g	-49.9	8.32e-08	12	1	273	1.05e-09	1.39e-09	9.71e-10	0	0	748.0
+This study	This study	unknown	Z35.7a	Z35	Z35.7a	Z35.7a:LP-DIR-T		LT-NO:LP-DIR-T	pmagpy-2.235	2.3	97.9		g	-75.3	4.90e-07	1	1	273	1.31e-08	1.46e-08	3.00e-09	0	0	273
+This study	This study	unknown	Z35.7a	Z35	Z35.7a	Z35.7a:LP-DIR-T		LT-NO:LP-DIR-T	pmagpy-2.235	2.2	99.4		g	-76.9	5.30e-07	2	1	273	1.06e-08	1.67e-08	2.94e-09	0	0	273
+This study	This study	unknown	Z35.7a	Z35	Z35.7a	Z35.7a:LP-DIR-T		LT-T-Z:LP-DIR-T	pmagpy-2.235	2.2	102.5		g	-79.2	6.93e-07	3	1	273	1.62e-08	2.08e-08	3.50e-09	0	0	373.0
+This study	This study	unknown	Z35.7a	Z35	Z35.7a	Z35.7a:LP-DIR-T	hargrave 2014-10-22 16:03:00	LT-T-Z:LP-DIR-T	pmagpy-2.235	2.0	109.8		g	-80.9	8.13e-07	4	1	273	9.83e-09	2.67e-08	4.51e-09	0	0	423.0
+This study	This study	unknown	Z35.7a	Z35	Z35.7a	Z35.7a:LP-DIR-T	hargrave 2014-10-27 16:29:43	LT-T-Z:LP-DIR-T	pmagpy-2.235	2.6	110.5		g	-79.9	7.81e-07	5	1	273	2.34e-08	2.60e-08	3.87e-09	0	0	473.0
+This study	This study	unknown	Z35.7a	Z35	Z35.7a	Z35.7a:LP-DIR-T	hargrave 2014-10-28 13:53:01	LT-T-Z:LP-DIR-T	pmagpy-2.235	2.7	116.6		g	-80.5	6.36e-07	6	1	273	2.00e-08	2.29e-08	2.82e-09	0	0	523.0
+This study	This study	unknown	Z35.7a	Z35	Z35.7a	Z35.7a:LP-DIR-T	hargrave 2014-10-28 20:50:09	LT-T-Z:LP-DIR-T	pmagpy-2.235	2.5	126.4		g	-78.6	3.98e-07	7	1	273	1.15e-08	1.29e-08	2.20e-09	0	0	573.0
+This study	This study	unknown	Z35.7a	Z35	Z35.7a	Z35.7a:LP-DIR-T	hargrave 2014-10-29 21:02:25	LT-T-Z:LP-DIR-T	pmagpy-2.235	2.6	130.7		g	-76.6	2.17e-07	8	1	273	4.73e-09	8.46e-09	1.10e-09	0	0	623.0
+This study	This study	unknown	Z35.7a	Z35	Z35.7a	Z35.7a:LP-DIR-T	hargrave 2014-11-03 17:22:35	LT-T-Z:LP-DIR-T	pmagpy-2.235	2.9	131.6		g	-74.1	1.60e-07	9	1	273	4.43e-09	6.73e-09	8.69e-10	0	0	673.0
+This study	This study	unknown	Z35.7a	Z35	Z35.7a	Z35.7a:LP-DIR-T	hargrave 2014-11-04 12:12:56	LT-T-Z:LP-DIR-T	pmagpy-2.235	2.4	137.9		g	-72.0	1.32e-07	10	1	273	2.36e-09	4.90e-09	7.78e-10	0	0	698.0
+This study	This study	unknown	Z35.7a	Z35	Z35.7a	Z35.7a:LP-DIR-T	hargrave 2014-11-10 13:03:06	LT-T-Z:LP-DIR-T	pmagpy-2.235	3.0	143.0		g	-70.1	1.09e-07	11	1	273	2.31e-09	5.14e-09	7.31e-10	0	0	723.0
+This study	This study	unknown	Z35.7a	Z35	Z35.7a	Z35.7a:LP-DIR-T	hargrave 2014-11-10 22:21:30	LT-T-Z:LP-DIR-T	pmagpy-2.235	2.5	146.4		g	-67.3	9.24e-08	12	1	273	3.73e-10	3.91e-09	1.10e-09	0	0	748.0

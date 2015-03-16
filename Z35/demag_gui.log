@@ -1,0 +1,5 @@
+start gui
+ -I- cant find zeq_gui_preferences file, using defualt default 
+-W- Cant find er_locations.txt in project directory-W- Cant find er_ages in project directory-I- Read magic file  /home/kevin/Code/Paleomag/magic_test/Z35/magic_measurements.txt
+-I- Reading previous interpretations from pmag* tables
+-I- read redo file and processing new bounds

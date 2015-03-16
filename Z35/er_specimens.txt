@@ -1,0 +1,9 @@
+tab 	er_specimens
+er_citation_name	er_location_name	er_sample_name	er_site_name	er_specimen_name
+This study	unknown	Z35.1a	Z35	Z35.1a
+This study	unknown	Z35.2a	Z35	Z35.2a
+This study	unknown	Z35.3a	Z35	Z35.3a
+This study	unknown	Z35.4a	Z35	Z35.4a
+This study	unknown	Z35.5a	Z35	Z35.5a
+This study	unknown	Z35.6a	Z35	Z35.6a
+This study	unknown	Z35.7a	Z35	Z35.7a

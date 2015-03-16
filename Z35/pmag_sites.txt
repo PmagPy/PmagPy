@@ -1,0 +1,3 @@
+tab 	pmag_sites
+er_analyst_mail_names	er_citation_names	er_location_name	er_site_name	er_specimen_names	magic_method_codes	magic_software_packages	pmag_criteria_codes	site_alpha95	site_comp_name	site_dec	site_description	site_inc	site_k	site_n	site_n_lines	site_n_planes	site_polarity	site_r	site_tilt_correction
+	This study	unknown	Z35	Z35.1a:Z35.2a:Z35.3a:Z35.4a:Z35.5a:Z35.6a:Z35.7a	LP-DIR-T:DE-BFL:DA-DIR-GEO:LP-DC4:DE-FM:DA-DIR-GEO	pmagpy-3.1.4	ACCEPT	48.1	A	183.8	Site direction included in results table	-54.0	1	21	21	0		6.8774	0

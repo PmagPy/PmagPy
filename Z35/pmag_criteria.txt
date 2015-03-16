@@ -1,0 +1,3 @@
+tab	pmag_criteria
+er_citation_names	pmag_criteria_code
+This study	ACCEPT
