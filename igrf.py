@@ -28,7 +28,8 @@ def main():
        -alt ALT;  specify altitude in km, default is sealevel (0)
        -plt; make a plot of the time series
        -fmt [pdf,jpg,eps,svg]  specify format for output figure  (default is svg)
-       -mod [arch3k,cals3k] specify model for 3ka to 1900 AD, default is cals3k.4b
+       -mod [arch3k,cals3k,pfm9k] specify model for 3ka to 1900 AD, default is cals3k.4b
+             NB:  program uses IGRF12 for dates 1900 to 2015.
     
     INPUT FORMAT 
       interactive entry:
