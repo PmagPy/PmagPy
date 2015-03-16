@@ -16,7 +16,7 @@ import thellier_gui
 import ipmag
 
 import threading
-print threading.Thread
+#print threading.Thread
 from threading import Thread
 
 
@@ -1280,7 +1280,11 @@ EVT_RESULT_ID = wx.NewId()
 
 def EVT_RESULT(win, func):
     """Define Result Event."""
+    #print 'in EVT_RESULT'
+    #print 'EVT_RESULT_ID', EVT_RESULT_ID
+    #print 'func', func
     win.Connect(-1, -1, EVT_RESULT_ID, func)
+    #print 'win connected'
 
 class ResultEvent(wx.PyEvent):
     """Simple event to carry arbitrary result data."""
@@ -1289,6 +1293,8 @@ class ResultEvent(wx.PyEvent):
         wx.PyEvent.__init__(self)
         self.SetEventType(EVT_RESULT_ID)
         self.data = data
+        #print 'doing ResultEvent'
+        #print 'data:', data
         
 
 
@@ -1300,8 +1306,10 @@ class PlotThread(Thread):
         """
         Init Worker Thread Class.
         Takes as arguments a wxpython window, a long running plotting function, its arguments, and a function to call on completion"""
+      
         Thread.__init__(self)
         self.core_window = core_window
+        #print "self.core_window:", self.core_window
         self.plot_function = plot_function
         self.after_function = after_function
         self.args = args
@@ -1313,7 +1321,7 @@ class PlotThread(Thread):
         fig, figname = self.plot_function(*self.args)
         if fig:
             del self.core_window.wait
-            self.core_window.Destroy()
+            #self.core_window.Destroy()
             dpi = fig.get_dpi()
             pixel_width = dpi * fig.get_figwidth()
             pixel_height = dpi * fig.get_figheight()
@@ -1322,8 +1330,10 @@ class PlotThread(Thread):
             # this one doesn't work:
             #wx.CallLater(100, self.after_function, (pixel_width, pixel_height+50), fig, figname)
             # trying this one:
-            print 'core_window:', self.core_window, 'resultevent', ResultEvent
-            wx.PostEvent(self.core_window, ResultEvent(None))
+            #print 'core_window:', self.core_window, 'resultevent', ResultEvent(1)
+
+            data = [self.after_function, (pixel_width, pixel_height+50), fig, figname]
+            wx.PostEvent(self.core_window, ResultEvent(data))
         else:
             pw.simple_warning("No data points met your criteria - try again\nError message: {}".format(figname))
             self.core_window.okButton.Enable()
@@ -1349,7 +1359,7 @@ class Core_depthplot(wx.Frame):
         bSizer_info = wx.BoxSizer(wx.HORIZONTAL)
         bSizer_info.Add(wx.StaticText(pnl, label=TEXT), wx.ALIGN_LEFT)
 
-        EVT_RESULT(self, self.do_thing)
+        EVT_RESULT(self, self.make_plot_frame)
         
         #---sizer 0 ----
         self.bSizer0 = pw.choose_file(pnl, btn_text='add measurements file', method = self.on_add_measurements_button, remove_button="Don't use measurements file")
@@ -1718,7 +1728,7 @@ class Core_depthplot(wx.Frame):
         #self.wait = wx.ProgressDialog('Plotting', 'Please wait, generating plot', style=wx.PD_CAN_ABORT)
         
         args = [self.WD, meas_file, pmag_spec_file, samp_file, age_file, depth_scale, dmin, dmax, sym, size, spec_sym, spec_sym_size, method, step, fmt, pltDec, pltInc, pltMag, pltLine, 1, logit, pltTime, timescale, amin, amax]
-        PlotThread(self, ipmag.core_depthplot, args, self.make_plot_frame)
+        PlotThread(self.GetEventHandler(), ipmag.core_depthplot, args, self.make_plot_frame)
 
         
         #fig, figname = ipmag.core_depthplot(self.WD, meas_file, pmag_spec_file, samp_file, age_file, depth_scale, dmin, dmax, sym, size, spec_sym, spec_sym_size, method, step, fmt, pltDec, pltInc, pltMag, pltLine, 1, logit, pltTime, timescale, amin, amax)
@@ -1819,6 +1829,12 @@ class Ani_depthplot(wx.Frame):
         self.WD = WD
         self.wait = None
         self.InitUI()
+        #print 'do evt_result'
+        EVT_RESULT(self, self.make_plot_frame)
+        #print 'done evt_result'
+
+    def do_thing(self, event):
+        print 'doing the thing!!!!!!'
 
     def InitUI(self):
         pnl = self.panel
@@ -1907,8 +1923,12 @@ class Ani_depthplot(wx.Frame):
         if os.path.isfile(infile):
             add_here.SetValue(infile)
 
-    def make_plot_frame(self, (pixel_width, pixel_height), fig, figname):
-        PlotFrame((pixel_width, pixel_height), fig, figname)
+    def make_plot_frame(self, event):#, (pixel_width, pixel_height), fig, figname):
+        #print event.data
+        #print 'doing make plot_frame'
+        PlotFrame(*event.data)
+        self.Destroy()
+        #PlotFrame((pixel_width, pixel_height), fig, figname)
             
     def on_okButton(self, event):
         ani_file = self.bSizer0.return_value()
@@ -1934,7 +1954,9 @@ class Ani_depthplot(wx.Frame):
         self.okButton.Disable()
         self.wait = wx.BusyInfo("Please wait, generating plot...")
         args = [ani_file, meas_file, samp_file, age_file, fmt, float(dmin), float(dmax), depth_scale]
-        PlotThread(self, ipmag.make_aniso_depthplot, args, self.make_plot_frame)
+        #print 'self:', self
+        #print 'self.GetEventHandler()', self.GetEventHandler()
+        PlotThread(self.GetEventHandler(), ipmag.make_aniso_depthplot, args, self.make_plot_frame)
         #fig, figname = ipmag.make_aniso_depthplot(ani_file, meas_file, samp_file, age_file, fmt, float(dmin), float(dmax), depth_scale)
         #if fig:
         #    self.Destroy() 
