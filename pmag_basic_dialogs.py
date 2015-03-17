@@ -96,6 +96,7 @@ class import_magnetometer_data(wx.Dialog):
         self.Destroy()
 
     def on_okButton(self,event):
+        os.chdir(self.WD)
         file_type = self.checked_rb.Label.split()[0] # extracts name of the checked radio button
         if file_type == 'generic':
             dia = convert_generic_files_to_MagIC(self,self.WD)
@@ -273,7 +274,7 @@ class convert_generic_files_to_MagIC(wx.Frame):
 
 
     def on_okButton(self,event):
-
+        os.chdir(self.WD)
         # generic_magic.py -WD WD - f FILE -fsa er_samples.txt -F OUTFILE.magic -exp [Demag/PI/ATRM 6/AARM 6/CR  -samp X Y -site  X Y -loc LOCNAME -dc B PHI THETA [-A] -WD path 
         options = {}
         
@@ -575,6 +576,7 @@ class combine_magic_dialog(wx.Frame):
 
         # to run as module:
         #print "-I- Running equivalent of Python command:\n %s"%COMMAND
+
         if ipmag.combine_magic(files, 'magic_measurements.txt'):
             #pw.close_window(self.panel, COMMAND, 'magic_measurements.txt')
             MSG="%i file are merged to one MagIC format file:\n magic_measurements.txt.\n\n See Termimal (Mac) or command prompt (windows) for errors"%(len(files))
@@ -617,7 +619,7 @@ class combine_everything_dialog(wx.Frame):
 
         pnl = self.panel
 
-        #---sizer infor ----
+        #---sizer information ----
 
         TEXT="Step 3: \nCombine different MagIC formatted files to one file name (if necessary).  All files should be from the working directory."
         bSizer_info = wx.BoxSizer(wx.HORIZONTAL)
@@ -691,6 +693,7 @@ class combine_everything_dialog(wx.Frame):
         self.Destroy()
 
     def on_okButton(self,event):
+        os.chdir(self.WD)
         success = True
         new_files = []
         # go through each pw.combine_files sizer, extract the files, try to combine them into one:
@@ -829,6 +832,7 @@ class convert_SIO_files_to_MagIC(wx.Frame):
         pw.on_add_file_button(self.bSizer0, self.WD, event, text)
 
     def on_okButton(self, event):
+        os.chdir(self.WD)
         options_dict = {}
         SIO_file = self.bSizer0.return_value()
         options_dict['mag_file'] = str(SIO_file)
@@ -1008,6 +1012,7 @@ class convert_CIT_files_to_MagIC(wx.Frame):
         pw.on_add_file_button(self.bSizer0, self.WD, event, text)
 
     def on_okButton(self, event):
+        os.chdir(self.WD)
         options_dict = {}
         wd = self.WD
         options_dict['dir_path'] = wd
@@ -1203,6 +1208,7 @@ class convert_HUJI_files_to_MagIC(wx.Frame):
         """
         grab user input values, format them, and run HUJI_magic.py with the appropriate flags
         """
+        os.chdir(self.WD)
         options = {}
         HUJI_file = self.bSizer0.return_value()
         options['magfile'] = HUJI_file
@@ -1374,6 +1380,7 @@ class convert_2G_binary_files_to_MagIC(wx.Frame):
         pw.on_add_dir_button(self.bSizer0, self.WD, event, text)
 
     def on_okButton(self, event):
+        os.chdir(self.WD)
         options_dict = {}
         WD = self.WD
         options_dict['dir_path'] = WD
@@ -1577,6 +1584,7 @@ class convert_LDEO_files_to_MagIC(wx.Frame):
         pw.on_add_file_button(self.bSizer0, self.WD, event, text)
 
     def on_okButton(self, event):
+        os.chdir(self.WD)
         options_dict = {}
         LDEO_file = self.bSizer0.return_value()
         options_dict['magfile'] = LDEO_file
@@ -1726,6 +1734,7 @@ class convert_IODP_csv_files_to_MagIC(wx.Frame):
         pw.on_add_file_button(self.bSizer0, self.WD, event, text)
 
     def on_okButton(self, event):
+        os.chdir(self.WD)
         wait = wx.BusyInfo("Please wait, working...")
         options = {}
         wd = self.WD
@@ -1858,6 +1867,7 @@ class convert_PMD_files_to_MagIC(wx.Frame):
         pw.on_add_dir_button(self.bSizer0, self.WD, event, text)
 
     def on_okButton(self, event):
+        os.chdir(self.WD)
         options = {}
         WD = self.WD
         options['dir_path'] = WD
@@ -2005,6 +2015,7 @@ class something(wx.Frame):
         pw.on_add_file_button(self.bSizer0, self.WD, event, text)
 
     def on_okButton(self, event):
+        os.chdir(self.WD)
         COMMAND = ""
         pw.run_command_and_close_window(self, COMMAND, outfile)
 

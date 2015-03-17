@@ -1684,7 +1684,7 @@ class convert_generic_files_to_MagIC(wx.Frame):
         return(Data)               
 
     def on_okButton(self,event):
-
+        os.chdir(self.WD)
 
         #-----------------------------------
         # Prepare MagIC measurement file

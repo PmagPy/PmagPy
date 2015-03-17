@@ -568,7 +568,7 @@ class convert_generic_files_to_MagIC(wx.Frame):
         #fout.write(header_string[:-1]+"\n")
 
         #-----------------------------------
-            
+        os.chdir(self.WD)
         Data={}
         header_codes=[]
         ERROR=""

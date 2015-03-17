@@ -114,6 +114,7 @@ class ImportOrientFile(wx.Frame):
         pw.on_add_file_button(self.bSizer0, self.WD, event, text)
 
     def on_okButton(self, event):
+        os.chdir(self.WD)
         WD = self.WD
         full_infile = self.bSizer0.return_value()
         ID, infile = os.path.split(full_infile)
@@ -217,6 +218,7 @@ class ImportAzDipFile(wx.Frame):
         pw.on_add_file_button(self.bSizer0, self.WD, event, text)
 
     def on_okButton(self, event):
+        os.chdir(self.WD)
         WD = self.WD
         full_infile = self.bSizer0.return_value()
         infile = os.path.split(full_infile)[1]
@@ -291,6 +293,7 @@ class ImportODPCoreSummary(wx.Frame):
         pw.on_add_file_button(self.bSizer0, self.WD, event, text)
 
     def on_okButton(self, event):
+        os.chdir(self.WD)
         WD = self.WD
         full_infile = self.bSizer0.return_value()
         infile = WD + os.path.split(full_infile)[1]
@@ -350,6 +353,7 @@ class ImportODPSampleSummary(wx.Frame):
         pw.on_add_file_button(self.bSizer0, self.WD, event, text)
 
     def on_okButton(self, event):
+        os.chdir(self.WD)
         WD = self.WD
         full_infile = self.bSizer0.return_value()
         ID, infile = os.path.split(full_infile)
@@ -408,6 +412,7 @@ class ImportModelLatitude(wx.Frame):
         pw.on_add_file_button(self.bSizer0, self.WD, event, text)
 
     def on_okButton(self, event):
+        os.chdir(self.WD)
         infile = os.path.split(self.bSizer0.return_value())[1]
         outfile = os.path.join(self.WD, infile)
         COMMAND = "cp {} {}".format(infile, self.WD)
@@ -508,6 +513,7 @@ class ImportKly4s(wx.Frame):
 
 
     def on_okButton(self, event):
+        os.chdir(self.WD)
         WD = self.WD
         full_infile = self.bSizer0.return_value()
         ID, infile = os.path.split(full_infile)
@@ -607,6 +613,7 @@ class ImportK15(wx.Frame):
         pw.on_add_file_button(self.bSizer0, self.WD, event, text)
 
     def on_okButton(self, event):
+        os.chdir(self.WD)
         full_infile = self.bSizer0.return_value()
         ID, infile = os.path.split(full_infile)
         outfile = infile + ".magic"
@@ -711,6 +718,7 @@ class ImportSufarAscii(wx.Frame):
         pw.on_add_file_button(self.bSizer0, self.WD, event, text)
 
     def on_okButton(self, event):
+        os.chdir(self.WD)
         WD = self.WD
         full_infile = self.bSizer0.return_value()
         ID, infile = os.path.split(full_infile)
@@ -831,6 +839,7 @@ class ImportAgmFile(wx.Frame):
         pw.on_add_file_button(self.bSizer0, self.WD, event, text)
 
     def on_okButton(self, event):
+        os.chdir(self.WD)
         WD = self.WD
         full_infile = self.bSizer0.return_value()
         ID, infile = os.path.split(full_infile)
@@ -942,6 +951,7 @@ class ImportAgmFolder(wx.Frame):
         pw.on_add_dir_button(self.bSizer0, self.WD, event, text)
 
     def on_okButton(self, event):
+        os.chdir(self.WD)
         WD = self.WD
         ID = self.bSizer0.return_value()
         files = os.listdir(ID)
@@ -1038,6 +1048,7 @@ class CustomizeCriteria(wx.Frame):
         pw.on_add_file_button(self.bSizer0, self.WD, event, text)
 
     def on_okButton(self, event):
+        os.chdir(self.WD)
         choice = self.bSizer0.return_value()
         critout = os.path.join(self.WD, 'pmag_criteria.txt')
         if choice == 'Use default criteria' or choice == 'Use no criteria':
@@ -1257,6 +1268,7 @@ class ZeqMagic(wx.Frame):
         pw.on_add_file_button(self.bSizer0, self.WD, event, text)
 
     def on_okButton(self, event):
+        os.chdir(self.WD)
         COMMAND = "zeq_magic.py -WD {}".format(self.WD)
         print COMMAND
         #pw.run_command_and_close_window(self, COMMAND, "er_samples.txt")
@@ -1579,6 +1591,7 @@ class Core_depthplot(wx.Frame):
         logit # -log ( plot log scale)
         fmt # -fmt format
         """
+        os.chdir(self.WD)
         meas_file = self.bSizer0.return_value()
         if meas_file:
             meas_file = os.path.split(meas_file)[1]
@@ -1851,6 +1864,7 @@ class Ani_depthplot(wx.Frame):
             add_here.SetValue(infile)
 
     def on_okButton(self, event):
+        os.chdir(self.WD)
         ani_file = self.bSizer0.return_value()
         meas_file = self.bSizer1.return_value()
         use_sampfile = self.bSizer2a.return_value()
@@ -1989,6 +2003,7 @@ class something(wx.Frame):
         pw.on_add_file_button(self.bSizer0, self.WD, event, text)
 
     def on_okButton(self, event):
+        os.chdir(self.WD)
         COMMAND = ""
         print COMMAND
         #pw.run_command_and_close_window(self, COMMAND, "er_samples.txt")
