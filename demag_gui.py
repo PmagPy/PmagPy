@@ -37,20 +37,7 @@
 global CURRENT_VRSION
 CURRENT_VRSION = "v.0.30"
 import matplotlib
-import matplotlib.font_manager as font_manager
-
-print font_manager.findfont(matplotlib.rcParams['font.family'])
-print font_manager.findfont("Arial")
-
-print 'default font:', matplotlib.rcParams['font.family']
-
-matplotlib.rcParams['font.size'] = 10.
-matplotlib.rcParams['font.family'] = 'Comic Sans MS'
-matplotlib.rcParams['axes.labelsize'] = 8.
-matplotlib.rcParams['xtick.labelsize'] = 6.
-matplotlib.rcParams['ytick.labelsize'] = 6.
-
-print 'changed font:', matplotlib.rcParams['font.family']
+#import matplotlib.font_manager as font_manager
 #matplotlib.use('WXAgg')
 
 from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigCanvas 
@@ -958,8 +945,8 @@ class Zeq_GUI(wx.Frame):
             #STRING1="Zijderveld plot"
          
         
-        STRING=STRING+"NRM=%.2e "%(self.zijblock[0][3])+ '$Am^2$'        
-        self.fig1.text(0.01,0.95,STRING,{'family':'Arial', 'fontsize':8*self.GUI_RESOLUTION, 'style':'normal','va':'center', 'ha':'left' })
+        STRING=STRING+"NRM=%.2e "%(self.zijblock[0][3])+ 'Am^2'        
+        self.fig1.text(0.01,0.95,STRING, {'family':'Arial', 'fontsize':8*self.GUI_RESOLUTION, 'style':'normal','va':'center', 'ha':'left' })
         
         xmin, xmax = self.zijplot.get_xlim()
         ymin, ymax = self.zijplot.get_ylim()
@@ -1177,7 +1164,7 @@ class Zeq_GUI(wx.Frame):
             for i in range(len(x_data_bad)):
                 self.mplot.plot([x_data_bad[i]], [y_data_bad[i]],'o',mfc='None',mec='k',markersize=self.MS,clip_on=False)
             self.mplot.set_xlabel("Treatment",fontsize=8*self.GUI_RESOLUTION)                  
-            self.mplot.set_ylabel("M / NRM$_0$",fontsize=8*self.GUI_RESOLUTION)
+            self.mplot.set_ylabel("M / NRM_0",fontsize=8*self.GUI_RESOLUTION)
             try:
                 self.mplot.tick_params(axis='both', which='major', labelsize=7)
             except:
