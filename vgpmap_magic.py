@@ -33,11 +33,11 @@ def main():
         -age : plot the ages next to the poles
         -crd [g,t] : choose coordinate system, default is to plot all site VGPs
         -fmt [pdf, png, eps...] specify output format, default is pdf
-    
+        -sav  save and quit    
     DEFAULTS
         FILE: pmag_results.txt
         res:  c
-        prj: mercator 
+        prj: ortho 
         ELAT,ELON = 0,0
         SYM SIZE: ro 8
         RSYM RSIZE: g^ 8
@@ -45,7 +45,8 @@ def main():
     """
     dir_path='.'
     res,ages='c',0
-    proj='npstere'
+    plot=0
+    proj='ortho'
     results_file='pmag_results.txt'
     ell,flip=0,0
     lat_0,lon_0=90.,0.
@@ -65,6 +66,7 @@ def main():
     if '-fmt' in sys.argv:
         ind = sys.argv.index('-fmt')
         fmt=sys.argv[ind+1]
+    if '-sav' in sys.argv:plot=1
     if '-res' in sys.argv:
         ind = sys.argv.index('-res')
         res=sys.argv[ind+1]
@@ -167,7 +169,7 @@ def main():
         Opts['sym']=rsym
         Opts['symsize']=rsize
         pmagplotlib.plotMAP(FIG['map'],rlats,rlons,Opts) # add the lats and lons of the poles
-    pmagplotlib.drawFIGS(FIG)
+    if save==0:pmagplotlib.drawFIGS(FIG)
     if ell==1: # add ellipses if desired.
         Opts['details']={'coasts':0,'rivers':0, 'states':0, 'countries':0,'ocean':0}
         Opts['pltgrid']=-1 # turn off meridian replotting
@@ -181,7 +183,7 @@ def main():
                     elons.append(pt[0])
                     elats.append(pt[1])
                 pmagplotlib.plotMAP(FIG['map'],elats,elons,Opts) # make the base map with a blue triangle at the pole`
-                pmagplotlib.drawFIGS(FIG)
+                if save==0:pmagplotlib.drawFIGS(FIG)
     files={}
     for key in FIG.keys():
         files[key]='VGP_map'+'.'+fmt
@@ -192,11 +194,14 @@ def main():
         titles['eq']='VGP Map'
         FIG = pmagplotlib.addBorders(FIG,titles,black,purple)
         pmagplotlib.saveP(FIG,files)
-    else:
+    elif plot==0:
+        drawFIGS(FIG)
         ans=raw_input(" S[a]ve to save plot, Return to quit:  ")
         if ans=="a":
             pmagplotlib.saveP(FIG,files)
         else:
             print "Good bye"
             sys.exit()
+    else:
+        pmagplotlib.saveP(FIG,files)
 main()
