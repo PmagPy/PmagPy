@@ -1,0 +1,26 @@
+language: python
+python:
+    - "2.7"
+    #  - "2.6" # fails because of discover
+    # command to install dependencies, e.g. pip install -r requirements.txt --use-mirrors
+before_install:
+  - sudo apt-get install python-scipy python-tk python-matplotlib # python-mpl_basemap doesn't work
+  - "export DISPLAY=:99.0"
+  - "sh -e /etc/init.d/xvfb start"
+  # - echo $DISPLAY
+  # - export DISPLAY=unix:0.0
+  # - export DISPLAY=localhost:0
+  # - echo $DISPLAY
+virtualenv:
+  system_site_packages: true
+install:
+  - pip install scripttest
+  # command to run tests, e.g. python setup.py test
+script:
+  python fake_test.py
+  #- ./tester.sh # now edited so that it fails if any exit code is > 0
+  #- python Command_line_Tests/fake_test.py
+  #- python Command_line_Tests/Rename_me.py -r igrf # causes build to fail
+  #- echo igrf $?
+  #- python Command_line_Tests/Rename_me.py # works! but need to fix and figure out tests (doesn't fail appropriately)
+  #- python -m unittest discover # works! 
