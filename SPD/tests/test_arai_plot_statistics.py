@@ -39,7 +39,8 @@ class CheckParams(unittest.TestCase):
     ref = "reference"
     obj = copy.deepcopy(spec)
     obj_pars = obj.pars.copy()
-    obj.arai_plot_statistics()
+    #obj.arai_plot_statistics()
+    obj.calculate_all_statistics()
     obj_new_pars = obj.pars
     pre_calculation_pars = ['specimen_n', 'lab_dc_field']
     post_calculation_pars = ['tmin', 'tmax', 'B_lab', 'R_corr2', 'vector_diffs_segment', 'delta_x_prime', 'partial_vds', 'V_Free', 'zdata_mass_center', 'B_anc', 'count_IZ', 'NRM_dev', 'SCAT', 'count_ZI', 'specimen_int', 'x_err', 'Z', 'specimen_b_sigma', 'vector_diffs', 'specimen_YT', 'specimen_vds', 'Inc_Anc', 'Inc_Free', 'specimen_n', 'Zstar', 'max_diff', 'tau_Anc', 'MAD_Free', 'R_det2', 'Dec_Anc', 'FRAC', 'GAP-MAX', 'y_prime', 'best_fit_vector_Free', 'delta_y_prime', 'Dec_Free', 'tau_Free', 'x_tag', 'B_anc_sigma', 'alpha', 'best_fit_vector_Anc', 'specimen_fvds', 'specimen_b_beta', 'MAD_Anc', 'V_Anc', 'specimen_b', 'specimen_g', 'specimen_XT', 'specimen_f', 'y_tag', 'specimen_k', 'specimen_q', 'DANG', 'lab_dc_field', 'specimen_w', 'x_prime', 'SSE', 'specimen_g_lim', 'y_err', 'max_ptrm_check_percent', 'max_ptrm_check', 'sum_ptrm_checks', 'sum_abs_ptrm_checks', 'delta_CK', 'DRAT', 'length_best_fit_line', 'max_DEV', 'CDRAT', 'CDRAT_prime', 'DRATS', 'DRATS_prime', 'mean_DRAT', 'mean_DRAT_prime', 'mean_DEV', 'mean_DEV_prime', 'delta_pal', 'n_tail', 'tail_check_max', 'tail_check_diffs', 'delta_TR', 'DRAT_tail', 'MD_VDS', 'theta', 'gamma', 'n_ptrm', 'IZZI_MD', 'ptrm_checks_included_temps', 'n_add', 'delta_AC', 'AC_Checks_segment', 'ptrm_checks', 'fail_arai_beta_box_scatter', "fail_ptrm_beta_box_scatter", "fail_tail_beta_box_scatter", 'scat_bounding_line_high', 'scat_bounding_line_low', 'y_Arai_mean', 'x_Arai_mean', 'ptrms_tau_Free', 'pTRM_MAD_Free', 'ptrms_angle_Free', 'PCA_sigma_min_Free', 'PCA_sigma_int_Free', 'PCA_sigma_max_Free', 'ptrms_inc_Free', 'ptrms_dec_Free', 'ptrm_dir', 'ptrm_cart']
