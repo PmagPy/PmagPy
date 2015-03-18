@@ -526,7 +526,7 @@ class combine_files(wx.BoxSizer):
         bSizer0a.AddSpacer(5)
         bSizer0a.Add(self.add_all_files_button,wx.ALIGN_LEFT)
         bSizer0a.AddSpacer(5)
-                
+
         bSizer0b =  wx.StaticBoxSizer( wx.StaticBox( self.parent.panel, wx.ID_ANY, "" ), wx.VERTICAL )
         self.file_paths = wx.TextCtrl(self.parent.panel, id=-1, size=(400,200), style=wx.TE_MULTILINE)
         TEXT="files list:"
@@ -557,15 +557,17 @@ class combine_files(wx.BoxSizer):
 
     def on_add_all_files_button(self,event):
         all_files=os.listdir(self.WD)
+        include_files = []
         for F in all_files:
             F=str(F)
             if len(F)>6:
                 if self.text in F:
                     if "#" not in F and "~" not in F and not F.endswith('.pyc'): # prevents binary files from going into the mix, as well as misc saved stuff
-                        if F not in [self.file_paths.GetLineText(line) for line in range(self.file_paths.GetNumberOfLines())]:
-                            self.file_paths.AppendText(F+"\n")
-
-
+                        if F not in include_files:
+                            include_files.append(F)
+        for f in include_files:
+            self.file_paths.AppendText(f+"\n")
+                            
 
 class LinkEnabledHtmlWindow(wx.html.HtmlWindow):
     def OnLinkClicked(self, link):

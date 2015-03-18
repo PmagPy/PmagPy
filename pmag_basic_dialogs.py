@@ -481,7 +481,6 @@ class combine_magic_dialog(wx.Frame):
         self.InitUI()
 
     def InitUI(self):
-
         pnl = self.panel
 
         #---sizer infor ----
