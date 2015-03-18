@@ -278,6 +278,7 @@ class MagIC_model_builder(wx.Frame):
 
 
     def on_okButton(self, event):
+        os.chdir(self.WD)
         self.update_ErMagic()
         self.main_frame.init_check_window()
 
@@ -425,13 +426,13 @@ class MagIC_model_builder(wx.Frame):
         try:
             self.data_er_specimens=self.read_magic_file(os.path.join(self.WD, "er_specimens.txt"),'er_specimen_name')
         except:
-            #self.GUI_log.write ("-W- Cant find er_samples.txt in project directory")
-            print "-W- Can't find er_samples.txt in project directory"
+            #self.GUI_log.write ("-W- Cant find er_specimens.txt in project directory")
+            print "-W- Can't find er_specimens.txt in project directory"
         try:
             self.data_er_samples=self.read_magic_file(os.path.join(self.WD, "er_samples.txt"),'er_sample_name')
         except:
-            #self.GUI_log.write ("-W- Cant find er_sample.txt in project directory")
-            print "-W- Can't find er_sample.txt in project directory"
+            #self.GUI_log.write ("-W- Cant find er_samples.txt in project directory")
+            print "-W- Can't find er_samples.txt in project directory"
         try:
             self.data_er_sites=self.read_magic_file(os.path.join(self.WD, "er_sites.txt"),'er_site_name')
         except:
