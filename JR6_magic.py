@@ -6,7 +6,7 @@ def main(command_line=True, **kwargs):
         JR6_magic.py
  
     DESCRIPTION
-        converts JR6 .txt format files to magic_measurements format files
+        converts JR6 format files to magic_measurements format files
 
     SYNTAX
         JR6_magic.py [command line options]
@@ -39,6 +39,7 @@ def main(command_line=True, **kwargs):
     """
 # initialize some stuff
     noave=0
+    volume=10
     inst=""
     samp_con,Z='1',""
     missing=1
@@ -50,6 +51,7 @@ def main(command_line=True, **kwargs):
     specnum=-1
     MagRecs=[]
     version_num=pmag.get_version()
+    Samps=[] # keeps track of sample orientations
 
     user=""
     mag_file=""
@@ -147,9 +149,9 @@ def main(command_line=True, **kwargs):
     # parse data
     data=open(mag_file,'rU')
     line=data.readline()
+    line=data.readline()
+    line=data.readline()
     while line !='':
-        line=data.readline()
-        line=data.readline()
         parsedLine=line.split()
         sampleName=parsedLine[0]
         demagLevel=parsedLine[2]
@@ -175,7 +177,14 @@ def main(command_line=True, **kwargs):
         splitExp = parsedLine[2].split('A')
         intensityStr=parsedLine[1] + splitExp[0]
         intensity = float(intensityStr)
-        precisionStr=parsedLine[5][0:-1]
+
+        # check and see if Prec is too big and messes with the parcing.
+        precisionStr=''
+        if len(parsedLine) == 6:  #normal line
+            precisionStr=parsedLine[5][0:-1]
+        else:
+            precisionStr=parsedLine[4][0:-1]
+            
         precisionPer = float(precisionStr)
         precision=intensity*precisionPer/100
 
@@ -267,10 +276,11 @@ def main(command_line=True, **kwargs):
         line=data.readline()
         line=data.readline()
         line=data.readline()
-        line=data.readline()
-        line=data.readline()
-        line=data.readline()
 
+        # read all the rest of the special characters. Some data files not consistantly formatted.
+        while (len(line) <=3 and line!=''):
+            line=data.readline()
+            
         #end of data while loop
 
     MagOuts=pmag.measurements_methods(MagRecs,noave)
