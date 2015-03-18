@@ -169,7 +169,7 @@ def main():
         Opts['sym']=rsym
         Opts['symsize']=rsize
         pmagplotlib.plotMAP(FIG['map'],rlats,rlons,Opts) # add the lats and lons of the poles
-    if save==0:pmagplotlib.drawFIGS(FIG)
+    if plot==0:pmagplotlib.drawFIGS(FIG)
     if ell==1: # add ellipses if desired.
         Opts['details']={'coasts':0,'rivers':0, 'states':0, 'countries':0,'ocean':0}
         Opts['pltgrid']=-1 # turn off meridian replotting
@@ -183,7 +183,7 @@ def main():
                     elons.append(pt[0])
                     elats.append(pt[1])
                 pmagplotlib.plotMAP(FIG['map'],elats,elons,Opts) # make the base map with a blue triangle at the pole`
-                if save==0:pmagplotlib.drawFIGS(FIG)
+                if plot==0:pmagplotlib.drawFIGS(FIG)
     files={}
     for key in FIG.keys():
         files[key]='VGP_map'+'.'+fmt
@@ -195,7 +195,7 @@ def main():
         FIG = pmagplotlib.addBorders(FIG,titles,black,purple)
         pmagplotlib.saveP(FIG,files)
     elif plot==0:
-        drawFIGS(FIG)
+        pmagplotlib.drawFIGS(FIG)
         ans=raw_input(" S[a]ve to save plot, Return to quit:  ")
         if ans=="a":
             pmagplotlib.saveP(FIG,files)
