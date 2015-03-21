@@ -1604,6 +1604,8 @@ def upload_magic(concat=0, dir_path='.'):
     up = os.path.join(dir_path, "upload.txt")
     RmKeys=['citation_label','compilation','calculation_type','average_n_lines','average_n_planes','specimen_grade','site_vgp_lat','site_vgp_lon','direction_type','specimen_Z','magic_instrument_codes','cooling_rate_corr','cooling_rate_mcd','anisotropy_atrm_alt','anisotropy_apar_perc','anisotropy_F','anisotropy_F_crit','specimen_scat','specimen_gmax','specimen_frac','site_vadm','site_lon','site_vdm','site_lat', 'measurement_chi','specimen_k_prime','external_database_names','external_database_ids']
     print "Removing: ",RmKeys
+    CheckDec=['_dec','_lon','_azimuth','dip_direction']
+    CheckSign=['specimen_b_beta']
     last=file_names[-1]
     methods,first_file=[],1
     for file in file_names:
@@ -1618,6 +1620,15 @@ def upload_magic(concat=0, dir_path='.'):
                             rec[key]='specimen_z' # change  # change this to lower case
                         if key in rec.keys():
                             del rec[key] # get rid of unwanted keys
+                    if 'specimen_b_beta' in rec.keys() and rec['specimen_b_beta']!="": # ignore blanks 
+                        if float(rec['specimen_b_beta'])< 0:
+                            rec['specimen_b_beta']=str(-float(rec['specimen_b_beta']))  # make sure value is positive
+                            print 'adjusted to positive: ','specimen_b_beta',rec['specimen_b_beta']
+                    for key in CheckDec: # check all declinations/azimuths/longitudes in range 0=>360.
+                        for k in rec.keys():
+                            if key in k and rec[k]!="": # ignore blanks 
+                                rec[k]='%8.2f'%(float(rec[k])%360)  # make sure value is between 0 and 360. 
+                                print 'adjusted to 0=>360.: ',rec[k]
             if file_type=='er_locations':
                 locations = []
                 for rec in Data:

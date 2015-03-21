@@ -265,6 +265,7 @@ def plotQQnorm(fignum,Y,title):
 def plotQQunf(fignum,D,title):
     """
     plots data against a uniform distribution in 0=>360.
+    called with plotQQunf(fignum,D,title).  
     """
     pylab.figure(num=fignum) 
     X,Y,dpos,dneg=[],[],0.,0.
