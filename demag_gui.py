@@ -450,7 +450,7 @@ class Zeq_GUI(wx.Frame):
         #----------------------------------------------------------------------                     
         # High level mean window 
         #----------------------------------------------------------------------                     
-        self.box_sizer_high_level = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY,"higher level mean"  ), wx.HORIZONTAL )                        
+        self.box_sizer_high_level = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY,"higher level mean"  ), wx.HORIZONTAL )
         #self.level_box = wx.ComboBox(self.panel, -1, 'site', (100*self.GUI_RESOLUTION, 25), wx.DefaultSize,['sample','site','location','study'], wx.CB_DROPDOWN,name="high_level")
         self.level_box = wx.ComboBox(self.panel, -1, size=(100*self.GUI_RESOLUTION, 25),value='site',  choices=['sample','site','location','study'], style=wx.CB_DROPDOWN,name="high_level")
         #self.level_box.SetFont(font2)
@@ -460,26 +460,41 @@ class Zeq_GUI(wx.Frame):
         #self.level_names.SetFont(font2)
         self.Bind(wx.EVT_COMBOBOX, self.onSelect_level_name,self.level_names)
 
+        high_level_window = wx.GridSizer(2, 1, 10*self.GUI_RESOLUTION, 19*self.GUI_RESOLUTION)
+        high_level_window.AddMany( [(self.level_box, wx.ALIGN_LEFT),
+            (self.level_names, wx.ALIGN_LEFT)])
+        self.box_sizer_high_level.Add( high_level_window, 0, wx.TOP, 5.5 )
 
-        #self.show_box = wx.ComboBox(self.panel, -1, 'specimens', (100*self.GUI_RESOLUTION, 25), wx.DefaultSize,['specimens','samples','sites','sites-VGP'], wx.CB_DROPDOWN,name="high_elements")
+#----------------------------------------------------------------------                     
+        # show box
+        #----------------------------------------------------------------------                     
+
+        self.box_sizer_show = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY, "show" ), wx.VERTICAL )
+
         self.show_box = wx.ComboBox(self.panel, -1, size=(100*self.GUI_RESOLUTION, 25), value='specimens', choices=['specimens','samples','sites','sites-VGP'], style=wx.CB_DROPDOWN,name="high_elements")
-        #self.show_box.SetFont(font2)
         self.Bind(wx.EVT_COMBOBOX, self.onSelect_show_box,self.show_box)
 
-        #self.mean_type_box = wx.ComboBox(self.panel, -1, 'None', (100*self.GUI_RESOLUTION, 25), wx.DefaultSize,['Fisher','Fisher by polarity','Bingham','None'], wx.CB_DROPDOWN,name="high_type")
+        show_window = wx.GridSizer(2, 1, 10*self.GUI_RESOLUTION, 19*self.GUI_RESOLUTION)
+        show_window.Add(self.show_box, wx.ALIGN_LEFT)
+        self.box_sizer_show.Add(show_window, 0, wx.TOP, 5.5 )
+
+#----------------------------------------------------------------------                     
+        # mean types box
+        #----------------------------------------------------------------------                     
+
+        self.box_sizer_mean_types = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY, "mean" ), wx.VERTICAL )
+
         self.mean_type_box = wx.ComboBox(self.panel, -1, size=(120*self.GUI_RESOLUTION, 25), value='None', choices=['Fisher','Fisher by polarity','Bingham','None'], style=wx.CB_DROPDOWN,name="high_type")
-        #self.mean_type_box.SetFont(font2)
         self.Bind(wx.EVT_COMBOBOX, self.onSelect_mean_type_box,self.mean_type_box)
 
-                
-        high_level_window = wx.GridSizer(2, 3, 0*self.GUI_RESOLUTION, 2*self.GUI_RESOLUTION)
-        high_level_window.AddMany( [(self.level_box, wx.ALIGN_LEFT),
-            (wx.StaticText(self.panel,label="\nshow",style=wx.TE_CENTER), wx.ALIGN_LEFT),
-            (wx.StaticText(self.panel,label="\nmean",style=wx.TE_CENTER), wx.ALIGN_LEFT),
-            (self.level_names, wx.ALIGN_LEFT),
-            (self.show_box, wx.ALIGN_LEFT),
-            (self.mean_type_box,wx.ALIGN_LEFT)])
-        self.box_sizer_high_level.Add( high_level_window, 0, wx.ALIGN_LEFT, 0 )
+        self.mean_fit_box = wx.ComboBox(self.panel, -1, size=(120*self.GUI_RESOLUTION, 25), value='None', choices=['All'] + list_fits, style=wx.CB_DROPDOWN,name="high_type")
+        self.Bind(wx.EVT_COMBOBOX, self.onSelect_mean_fit_box,self.mean_fit_box)
+        self.mean_fit = 'None'
+
+        mean_types_window = wx.GridSizer(2, 1, 10*self.GUI_RESOLUTION, 19*self.GUI_RESOLUTION)
+        mean_types_window.AddMany([(self.mean_type_box,wx.ALIGN_LEFT),
+            (self.mean_fit_box,wx.ALIGN_LEFT)])
+        self.box_sizer_mean_types.Add(mean_types_window, 0, wx.TOP, 5.5 )
                        
         #----------------------------------------------------------------------                     
         # High level text box
@@ -510,6 +525,8 @@ class Zeq_GUI(wx.Frame):
         hbox1.Add(self.box_sizer_specimen_stat, flag=wx.ALIGN_LEFT|wx.ALIGN_BOTTOM)
         hbox1.AddSpacer(2)
         hbox1.Add(self.box_sizer_high_level, flag=wx.ALIGN_LEFT|wx.ALIGN_BOTTOM)
+        hbox1.Add(self.box_sizer_show, flag=wx.ALIGN_LEFT|wx.ALIGN_BOTTOM)
+        hbox1.Add(self.box_sizer_mean_types, flag=wx.ALIGN_LEFT|wx.ALIGN_BOTTOM)
 
         vbox2a=wx.BoxSizer(wx.VERTICAL)
         vbox2a.Add(self.box_sizer_select_specimen,flag=wx.ALIGN_CENTER_HORIZONTAL|wx.EXPAND,border=8)
@@ -2029,8 +2046,15 @@ class Zeq_GUI(wx.Frame):
     def onSelect_mean_type_box(self,event):
         # calculate higher level data
         self.calculate_higher_levels_data()
-        self.update_selection()        
+        self.update_selection()
 
+    def onSelect_mean_fit_box(self,event):
+        #get new fit to display
+        new_fit = self.mean_fit_box.GetValue()
+        self.mean_fit = new_fit
+        # calculate higher level data
+        self.calculate_higher_levels_data()
+        self.update_selection()
         
     #----------------------------------------------------------------------
         
@@ -2116,9 +2140,13 @@ class Zeq_GUI(wx.Frame):
 
             for element in elements_list:
                 if elements_type=='specimens':
-                   try: 
-                        for fit in self.pmag_results_data['specimens'][element]:
-                            pars = fit.get(dirtype)
+                    for fit in self.pmag_results_data['specimens'][element]:
+                        try:
+                            #is this fit to be included in mean
+                            if self.mean_fit == 'All' or self.mean_fit == fit.name:
+                                pars = fit.get(dirtype)
+                            else:
+                                continue
                             if "calculation_type" in pars.keys() and pars["calculation_type"] == 'DE-BFP':
                                 dec,inc,direction_type=pars["specimen_dec"],pars["specimen_inc"],'p'
                             elif "specimen_dec" in pars.keys() and "specimen_inc" in pars.keys():
@@ -2128,8 +2156,10 @@ class Zeq_GUI(wx.Frame):
                             else:
                                 print "-E- ERROR: cant find mean for element %s"%element
                                 continue
-                   except KeyError:
-                        continue
+                            #add for calculation
+                            pars_for_mean.append({'dec':float(dec),'inc':float(inc),'direction_type':direction_type,'element_name':element})
+                        except KeyError:
+                            continue
                 else:
                     try:
                             pars=self.high_level_means[elements_type][element][dirtype]
@@ -2141,8 +2171,6 @@ class Zeq_GUI(wx.Frame):
                     except KeyError:
                         continue
 
-                pars_for_mean.append({'dec':float(dec),'inc':float(inc),'direction_type':direction_type,'element_name':element})
-                                                                                                                                                       
             if len(pars_for_mean)  > 0 and calculation_type !="None":
                 self.high_level_means[high_level_type][high_level_name][dirtype]=self.calculate_mean(pars_for_mean,calculation_type)
                 
@@ -2278,8 +2306,15 @@ class Zeq_GUI(wx.Frame):
        self.high_level_eqarea.axis('off')
        self.canvas4.draw()
 
-    def plot_higher_level_equalarea(self,specimen):
-        fits = self.pmag_results_data['specimens'][specimen]
+    def plot_higher_level_equalarea(self,specimen): #BLARGE
+        if self.mean_fit == 'All':
+            fits = self.pmag_results_data['specimens'][specimen]
+        elif self.mean_fit != 'None' and self.mean_fit != None:
+            fit_index = int(self.mean_fit.split()[-1]) - 1
+            try: fits = [self.pmag_results_data['specimens'][specimen][fit_index]]
+            except IndexError: print('-W- Not all specimens have this fit'); fits = []
+        else:
+            fits = []
         fig = self.high_level_eqarea
         if fits:
             for fit in fits:
@@ -4069,10 +4104,12 @@ class Zeq_GUI(wx.Frame):
 
     def update_fit_box(self):
         self.fit_box.Clear()
+        self.mean_fit_box.Clear()
         if self.s in self.pmag_results_data['specimens'].keys(): fit_list=list(map(lambda x: x.name, self.pmag_results_data['specimens'][self.s]))
         else: fit_list = []
         self.fit_box.SetItems(fit_list)
         self.fit_box.SetSelection(len(fit_list)-1)
+        self.mean_fit_box.SetItems(['All'] + fit_list)
         if fit_list: self.on_select_fit(-1)
 
 
