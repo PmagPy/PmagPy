@@ -199,16 +199,8 @@ def main():
     else:
         depth_scale='age'
         age_file=dir_path+'/'+age_file
-        Samps,file_type=pmag.magic_read(age_file) 
+        Samps,file_type=pmag.magic_read(age_file)
         age_unit=""
-    Meas,file_type=pmag.magic_read(meas_file) 
-    meas_key='measurement_magn_moment'
-    print len(Meas), ' measurements read in from ',meas_file
-    for m in intlist: # find the intensity key with data
-        meas_data=pmag.get_dictitem(Meas,m,'','F') # get all non-blank data for this specimen
-        if len(meas_data)>0: 
-            meas_key=m
-            break
     if spc_file!="":Specs,file_type=pmag.magic_read(spc_file)
     if res_file!="":Results,file_type=pmag.magic_read(res_file)
     if norm==1:
@@ -240,6 +232,14 @@ def main():
     samples=[]
     methods,steps,m2=[],[],[]
     if pltS: # plot the bulk measurement data
+        Meas,file_type=pmag.magic_read(meas_file) 
+        meas_key='measurement_magn_moment'
+        print len(Meas), ' measurements read in from ',meas_file
+        for m in intlist: # find the intensity key with data
+            meas_data=pmag.get_dictitem(Meas,m,'','F') # get all non-blank data for this specimen
+            if len(meas_data)>0: 
+                meas_key=m
+                break
         m1=pmag.get_dictitem(Meas,'magic_method_codes',method,'has') # fish out the desired method code
         if method=='LT-T-Z': 
             m2=pmag.get_dictitem(m1,'treatment_temp',str(step),'eval') # fish out the desired step
@@ -252,6 +252,8 @@ def main():
         if len(m2)>0:
           for rec in m2: # fish out depths and weights
             D=pmag.get_dictitem(Samps,'er_sample_name',rec['er_sample_name'],'T')
+            if not D:  # if using an age_file, you may need to sort by site
+                D=pmag.get_dictitem(Samps,'er_site_name',rec['er_site_name'],'T')
             depth=pmag.get_dictitem(D,depth_scale,'','F')
             if len(depth)>0:
                 if ylab=='Age': ylab=ylab+' ('+depth[0]['age_unit']+')' # get units of ages - assume they are all the same!
@@ -377,13 +379,20 @@ def main():
         pylab.figtext(.02,.01,version_num)
         if pltD==1:
             ax=pylab.subplot(1,pcol,plt)
-            if pltL==1:pylab.plot(Decs,Depths,'k') 
-            if len(Decs)>0:pylab.plot(Decs,Depths,sym,markersize=size) 
-            if len(Decs)==0 and pltL==1 and len(SDecs)>0:pylab.plot(SDecs,SDepths,'k')
-            if len(SDecs)>0:pylab.plot(SDecs,SDepths,Ssym,markersize=Ssize) 
-            if spc_file!="":pylab.plot(SpecDecs,SpecDepths,spc_sym,markersize=spc_size) 
-            if spc_file!="" and len(FDepths)>0:pylab.scatter(FDecs,FDepths,marker=spc_sym[-1],edgecolor=spc_sym[0],facecolor='white',s=spc_size**2) 
-            if res_file!="":pylab.plot(ResDecs,ResDepths,res_sym,markersize=res_size) 
+            if pltL==1:
+                pylab.plot(Decs,Depths,'k') 
+            if len(Decs)>0:
+                pylab.plot(Decs,Depths,sym,markersize=size) 
+            if len(Decs)==0 and pltL==1 and len(SDecs)>0:
+                pylab.plot(SDecs,SDepths,'k')
+            if len(SDecs)>0:
+                pylab.plot(SDecs,SDepths,Ssym,markersize=Ssize) 
+            if spc_file!="":
+                pylab.plot(SpecDecs,SpecDepths,spc_sym,markersize=spc_size) 
+            if spc_file!="" and len(FDepths)>0:
+                pylab.scatter(FDecs,FDepths,marker=spc_sym[-1],edgecolor=spc_sym[0],facecolor='white',s=spc_size**2) 
+            if res_file!="":
+                pylab.plot(ResDecs,ResDepths,res_sym,markersize=res_size) 
             if sum_file!="":
                 for core in Cores:
                      depth=float(core['Core Top (m)']) 

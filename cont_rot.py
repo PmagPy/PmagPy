@@ -33,6 +33,8 @@ def main():
         -pt LAT LON,  specify a point to rotate along with continent
         -fpt PTFILE, specifies file with a series of points to be plotted
         -res [c,l,i,h] specify resolution (crude, low, intermediate, high]
+        -fmt [png,jpg,svg,pdf] format for saved figure - pdf is default
+        -sav saves plots and quits
         -prj PROJ,  specify one of the supported projections: (see basemap.py online documentation)
             aeqd = Azimuthal Equidistant
             poly = Polyconic
@@ -80,6 +82,7 @@ def main():
     fmt='pdf'
     sym='r.'
     symsize=5
+    plot=0
     SEQ,age,SAC=0,0,0
     rconts=['af','congo','kala','aus','eur','ind','sam','ant','grn','nam']
     if '-WD' in sys.argv:
@@ -88,6 +91,9 @@ def main():
     if '-h' in sys.argv:
         print main.__doc__
         sys.exit()
+    if '-fmt' in sys.argv:
+        ind = sys.argv.index('-fmt')
+        fmt=sys.argv[ind+1]
     if '-con' in sys.argv:
         ind = sys.argv.index('-con')
         Conts=sys.argv[ind+1].split(':')
@@ -107,6 +113,7 @@ def main():
     if '-prj' in sys.argv:
         ind = sys.argv.index('-prj')
         proj=sys.argv[ind+1]
+    if '-sav' in sys.argv: plot=1
     if '-eye' in sys.argv:
         ind = sys.argv.index('-eye')
         lat_0=float(sys.argv[ind+1])
@@ -174,7 +181,7 @@ def main():
         Opts['sym']=sym
         Opts['symsize']=symsize
         pmagplotlib.plotMAP(FIG['map'],[pt_lat],[pt_lon],Opts)
-        pmagplotlib.drawFIGS(FIG)
+        if plot==0:pmagplotlib.drawFIGS(FIG)
     for cont in Conts: 
         Opts['sym']=sym
         lats,lons=[],[]
@@ -212,7 +219,7 @@ def main():
             cnt+=1
         if len(lats)>0 and len(Poles)==0:
             pmagplotlib.plotMAP(FIG['map'],lats,lons,Opts)
-            pmagplotlib.drawFIGS(FIG)
+            if plot==0:pmagplotlib.drawFIGS(FIG)
         newlats,newlons=[],[]
         for lat in lats:newlats.append(lat)
         for lon in lons:newlons.append(lon)
@@ -225,7 +232,7 @@ def main():
                  pmagplotlib.plotMAP(FIG['map'],Rlats,Rlons,Opts)
              elif pole==Poles[-1]: # plot only last pole for sequential rotations
                  pmagplotlib.plotMAP(FIG['map'],Rlats,Rlons,Opts)
-             pmagplotlib.drawFIGS(FIG)
+             if plot==0:pmagplotlib.drawFIGS(FIG)
              if SEQ==1: # treat poles as sequential rotations
                  newlats,newlons=[],[]
                  for lat in Rlats:newlats.append(lat)
@@ -236,7 +243,7 @@ def main():
         Opts['sym']='r*'
         Opts['symsize']=5
         pmagplotlib.plotMAP(FIG['map'],[pt[0]],[pt[1]],Opts)
-        pmagplotlib.drawFIGS(FIG)
+        if plot==0:pmagplotlib.drawFIGS(FIG)
         Opts['pltgrid']=-1 # turns off replotting of meridians and parallels
         for pole in Poles:
             Opts['sym']=sym
@@ -244,14 +251,17 @@ def main():
             Rlats,Rlons=pmag.PTrot(pole,[pt_lat],[pt_lon])
             print Rlats,Rlons
             pmagplotlib.plotMAP(FIG['map'],Rlats,Rlons,Opts)
-            pmagplotlib.drawFIGS(FIG)
+            if plot==0:pmagplotlib.drawFIGS(FIG)
         Opts['sym']='g^'
         Opts['symsize']=5
         pmagplotlib.plotMAP(FIG['map'],[pole[0]],[pole[1]],Opts)
-        pmagplotlib.drawFIGS(FIG)
+        if plot==0:pmagplotlib.drawFIGS(FIG)
     files={}
     for key in FIG.keys():
         files[key]='Cont_rot'+'.'+fmt
+    if plot==1:
+        pmagplotlib.saveP(FIG,files)
+        sys.exit()
     if pmagplotlib.isServer:
         black     = '#000000'
         purple    = '#800080'
@@ -260,6 +270,7 @@ def main():
         FIG = pmagplotlib.addBorders(FIG,titles,black,purple)
         pmagplotlib.saveP(FIG,files)
     else:
+        pmagplotlib.drawFIGS(FIG)
         ans=raw_input(" S[a]ve to save plot, Return to quit:  ")
         if ans=="a":
             pmagplotlib.saveP(FIG,files)

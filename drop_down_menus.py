@@ -1,16 +1,20 @@
 #!/usr/bin/env python
 
 import wx
-import controlled_vocabularies as vocab
+import pandas as pd
+from controlled_vocabularies import vocabularies as vocab
+import controlled_vocabularies as vocabulary
+
 
 # this module will provide all the functionality for the drop-down controlled vocabulary menus
-# ideally, these classes should take in a grid item and then provide the functionality
 
 
 class Menus():
 
     def __init__(self, data_type, check, grid, belongs_to):
-        """take: data_type (string), check (top level class object for ErMagic steps 1-6), grid (grid object), belongs_to (options for data object to belong to, i.e. locations for the site Menus)"""
+        """
+        take: data_type (string), check (top level class object for ErMagic steps 1-6), grid (grid object), belongs_to (options for data object to belong to, i.e. locations for the site Menus)
+        """
         self.data_type = data_type
         self.check = check # check is top level class object for entire ErMagic steps 1-6
         self.grid = grid
@@ -28,20 +32,54 @@ class Menus():
         if self.data_type == 'specimen':
             self.choices = {2: (belongs_to, False)}
         if self.data_type == 'sample' or self.data_type == 'site':
-            self.choices = {2: (belongs_to, False), 3: (vocab.site_class, False), 4: (vocab.site_lithology, True), 5: (vocab.site_type, False)}
+            self.choices = {2: (belongs_to, False), 3: (vocab['class'], False), 4: (vocab['lithology'], True), 5: (vocab['type'], False)}
         if self.data_type == 'site':
-            self.choices[6] = (vocab.site_definition, False)
+            self.choices[6] = (vocab['site_definition'], False)
         if self.data_type == 'location':
-            self.choices = {1: (vocab.location_type, False)}
+            self.choices = {1: (vocab['location_type'], False)}
         if self.data_type == 'age':
-            self.choices = {3: (vocab.geochronology_method_codes, False), 5: (vocab.age_units, False)}
+            self.choices = {3: (vocabulary.geochronology_method_codes, False), 5: (vocab['age_unit'], False)}
         if self.data_type == 'orient':
             self.choices = {0: (['g', 'b'], False)}
-        #self.window.Bind(wx.grid.EVT_GRID_SELECT_CELL, lambda event: self.on_left_click(event, self.grid, self.choices), self.grid) 
         self.window.Bind(wx.grid.EVT_GRID_CELL_LEFT_CLICK, lambda event: self.on_left_click(event, self.grid, self.choices), self.grid) 
         self.window.Bind(wx.grid.EVT_GRID_LABEL_LEFT_CLICK, self.on_label_click, self.grid)
 
 
+        #
+        cols = self.grid.GetNumberCols()
+        col_labels = map(self.grid.GetColLabelValue, range(cols))
+        
+        # check if any additional columns have associated controlled vocabularies
+        # if so, get the vocabulary list from the MagIC API
+        for col_number, label in enumerate(col_labels):
+            if label in vocabulary.possible_vocabularies:
+                if col_number not in self.choices.keys(): # if not already assigned above                    
+                    url = 'http://api.earthref.org/MAGIC/vocabularies/{}.json'.format(label)
+                    controlled_vocabulary = pd.io.json.read_json(url)
+                    stripped_list = []
+                    for item in controlled_vocabulary[label][0]:
+                        try:
+                            stripped_list.append(str(item['item']))
+                        except UnicodeEncodeError:
+                            # skips items with non ASCII characters
+                            pass
+                    #stripped_list = [item['item'] for item in controlled_vocabulary[label][0]]
+                    
+                    if len(stripped_list) > 100:
+                    # split out the list alphabetically, into a dict of lists {'A': ['alpha', 'artist'], 'B': ['beta', 'beggar']...}
+                        dictionary = {}
+                        for item in stripped_list:
+                            letter = item[0].upper()
+                            if letter not in dictionary.keys():
+                                dictionary[letter] = []
+                            dictionary[letter].append(item)
+
+                        stripped_list = dictionary
+
+                    two_tiered = True if isinstance(stripped_list, dict) else False
+                    self.choices[col_number] = (stripped_list, two_tiered)
+
+                    
     def on_label_click(self, event):
         col = event.GetCol()
         color = self.grid.GetCellBackgroundColour(0, col)
@@ -75,7 +113,10 @@ class Menus():
                 for row in range(self.grid.GetNumberRows()):
                     self.grid.SetCellBackgroundColour(row, col, 'light blue')
                 self.grid.ForceRefresh()
-        has_dropdown = ((col == 2 and self.data_type is 'specimen') or (col in range(2, 6) and self.data_type in ['site', 'sample']) or (col in (3, 5) and self.data_type == 'age') or (col == 6 and self.data_type == 'site') or (col == 1 and self.data_type in ['location']))
+        #has_dropdown = ((col == 2 and self.data_type is 'specimen') or (col in range(2, 6) and self.data_type in ['site', 'sample']) or (col in (3, 5) and self.data_type == 'age') or (col == 6 and self.data_type == 'site') or (col == 1 and self.data_type in ['location']))
+        has_dropdown = False
+        if col in self.choices.keys():
+            has_dropdown = True
 
         # if the column has no drop-down list, allow user to edit all cells in the column through text entry
         if (not has_dropdown and col not in (0, 1)) or (col == 1 and self.data_type in ['age']):  
@@ -85,7 +126,6 @@ class Menus():
                 data = None
                 dialog = wx.TextEntryDialog(None, "Enter value for all cells in the column\nNote: this will overwrite any existing cell values", "Edit All", default_value, style=wx.OK|wx.CANCEL)
                 dialog.Centre()
-                #self.check.Raise() # supposed to top-level window from coming into focus here. but does not work
                 if dialog.ShowModal() == wx.ID_OK: 
                     data = dialog.GetValue() 
                     for row in range(self.grid.GetNumberRows()):
@@ -101,7 +141,10 @@ class Menus():
 
             
     def clean_up(self, grid):
-        print "doing clean_up"
+        """
+        de-select grid cols, refresh grid
+        """
+        #print "doing clean_up"
         if self.selected_col:
             col_label_value = self.grid.GetColLabelValue(self.selected_col)
             self.grid.SetColLabelValue(self.selected_col, col_label_value[:-10])
@@ -111,9 +154,11 @@ class Menus():
 
 
     def on_left_click(self, event, grid, choices):
-        """creates popup menu when user clicks on the column
+        """
+        creates popup menu when user clicks on the column
         if that column is in the list of choices that get a drop-down menu.
-        allows user to edit the column, but only from available values"""
+        allows user to edit the column, but only from available values
+        """
         color = self.grid.GetCellBackgroundColour(event.GetRow(), event.GetCol())
         if event.CmdDown(): # allow user to cherry-pick cells for editing.  gets selection of meta key for mac, ctrl key for pc
             row, col = event.GetRow(), event.GetCol()
@@ -175,6 +220,7 @@ class Menus():
                 self.window.PopupMenu(menu)
                 menu.Destroy()
             else: # menu is two_tiered
+                
                 clear = menu.Append(-1, 'CLEAR cell of all values')
                 self.window.Bind(wx.EVT_MENU, lambda event: self.on_select_menuitem(event, grid, row, col, selection), clear)
                 for choice in sorted(choices.items()):

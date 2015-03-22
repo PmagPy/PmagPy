@@ -51,7 +51,7 @@ def main():
         #else:
         #    raise pmag.MissingCommandLineArgException("-f")
                 
-    ipmag.combine_magic(filenames, outfile[0])
+    ipmag.combine_magic(filenames.split(), outfile)
 
     
 main()

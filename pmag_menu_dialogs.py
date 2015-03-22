@@ -114,6 +114,7 @@ class ImportOrientFile(wx.Frame):
         pw.on_add_file_button(self.bSizer0, self.WD, event, text)
 
     def on_okButton(self, event):
+        os.chdir(self.WD)
         WD = self.WD
         full_infile = self.bSizer0.return_value()
         ID, infile = os.path.split(full_infile)
@@ -217,6 +218,7 @@ class ImportAzDipFile(wx.Frame):
         pw.on_add_file_button(self.bSizer0, self.WD, event, text)
 
     def on_okButton(self, event):
+        os.chdir(self.WD)
         WD = self.WD
         full_infile = self.bSizer0.return_value()
         infile = os.path.split(full_infile)[1]
@@ -291,6 +293,7 @@ class ImportODPCoreSummary(wx.Frame):
         pw.on_add_file_button(self.bSizer0, self.WD, event, text)
 
     def on_okButton(self, event):
+        os.chdir(self.WD)
         WD = self.WD
         full_infile = self.bSizer0.return_value()
         infile = WD + os.path.split(full_infile)[1]
@@ -350,6 +353,7 @@ class ImportODPSampleSummary(wx.Frame):
         pw.on_add_file_button(self.bSizer0, self.WD, event, text)
 
     def on_okButton(self, event):
+        os.chdir(self.WD)
         WD = self.WD
         full_infile = self.bSizer0.return_value()
         ID, infile = os.path.split(full_infile)
@@ -408,6 +412,7 @@ class ImportModelLatitude(wx.Frame):
         pw.on_add_file_button(self.bSizer0, self.WD, event, text)
 
     def on_okButton(self, event):
+        os.chdir(self.WD)
         infile = os.path.split(self.bSizer0.return_value())[1]
         outfile = os.path.join(self.WD, infile)
         COMMAND = "cp {} {}".format(infile, self.WD)
@@ -508,6 +513,7 @@ class ImportKly4s(wx.Frame):
 
 
     def on_okButton(self, event):
+        os.chdir(self.WD)
         WD = self.WD
         full_infile = self.bSizer0.return_value()
         ID, infile = os.path.split(full_infile)
@@ -607,6 +613,7 @@ class ImportK15(wx.Frame):
         pw.on_add_file_button(self.bSizer0, self.WD, event, text)
 
     def on_okButton(self, event):
+        os.chdir(self.WD)
         full_infile = self.bSizer0.return_value()
         ID, infile = os.path.split(full_infile)
         outfile = infile + ".magic"
@@ -620,7 +627,9 @@ class ImportK15(wx.Frame):
         ins = self.bSizer4.return_value()
         if ins:
             ins = "-ins " + ins
-        COMMAND = "k15_magic.py -WD {} -f {} -F {} -ncn {} -spc {} {} {} -ID {} -Fsa {}".format(WD, infile, outfile, ncn, spc, loc, ins, ID, samp_outfile)
+        aniso_outfile = infile + '_rmag_anisotropy.txt'
+        aniso_results_file = infile + '_rmag_results.txt'
+        COMMAND = "k15_magic.py -WD {} -f {} -F {} -ncn {} -spc {} {} {} -ID {} -Fsa {} -Fa {} -Fr {}".format(WD, infile, outfile, ncn, spc, loc, ins, ID, samp_outfile, aniso_outfile, aniso_results_file)
         #print COMMAND
         pw.run_command_and_close_window(self, COMMAND, outfile)
 
@@ -709,6 +718,7 @@ class ImportSufarAscii(wx.Frame):
         pw.on_add_file_button(self.bSizer0, self.WD, event, text)
 
     def on_okButton(self, event):
+        os.chdir(self.WD)
         WD = self.WD
         full_infile = self.bSizer0.return_value()
         ID, infile = os.path.split(full_infile)
@@ -829,6 +839,7 @@ class ImportAgmFile(wx.Frame):
         pw.on_add_file_button(self.bSizer0, self.WD, event, text)
 
     def on_okButton(self, event):
+        os.chdir(self.WD)
         WD = self.WD
         full_infile = self.bSizer0.return_value()
         ID, infile = os.path.split(full_infile)
@@ -940,6 +951,7 @@ class ImportAgmFolder(wx.Frame):
         pw.on_add_dir_button(self.bSizer0, self.WD, event, text)
 
     def on_okButton(self, event):
+        os.chdir(self.WD)
         WD = self.WD
         ID = self.bSizer0.return_value()
         files = os.listdir(ID)
@@ -1036,6 +1048,7 @@ class CustomizeCriteria(wx.Frame):
         pw.on_add_file_button(self.bSizer0, self.WD, event, text)
 
     def on_okButton(self, event):
+        os.chdir(self.WD)
         choice = self.bSizer0.return_value()
         critout = os.path.join(self.WD, 'pmag_criteria.txt')
         if choice == 'Use default criteria' or choice == 'Use no criteria':
@@ -1255,6 +1268,7 @@ class ZeqMagic(wx.Frame):
         pw.on_add_file_button(self.bSizer0, self.WD, event, text)
 
     def on_okButton(self, event):
+        os.chdir(self.WD)
         COMMAND = "zeq_magic.py -WD {}".format(self.WD)
         print COMMAND
         #pw.run_command_and_close_window(self, COMMAND, "er_samples.txt")
@@ -1271,7 +1285,7 @@ class ZeqMagic(wx.Frame):
 
 class Core_depthplot(wx.Frame):
 
-    title = "Remanence data versus depth/height"
+    title = "Remanence data vs. depth/height/age"
     
     def __init__(self, parent, WD):
         wx.Frame.__init__(self, parent, wx.ID_ANY, self.title)
@@ -1281,7 +1295,7 @@ class Core_depthplot(wx.Frame):
 
     def InitUI(self):
         pnl = self.panel
-        TEXT = "This program allows you to plot various measurement data versus sample depth.\nYou must provide either a magic_measurements file or a pmag_results file (or, you can use both)."
+        TEXT = "This program allows you to plot various measurement data versus sample depth.\nYou must provide either a magic_measurements file or a pmag_specimens file (or, you can use both)."
         bSizer_info = wx.BoxSizer(wx.HORIZONTAL)
         bSizer_info.Add(wx.StaticText(pnl, label=TEXT), wx.ALIGN_LEFT)
 
@@ -1305,22 +1319,28 @@ class Core_depthplot(wx.Frame):
         #---sizer 5a---
         #self.bSizer5a = pw.labeled_text_field(pnl, "point size (default is 5)")
         self.bSizer5a = pw.labeled_spin_ctrl(pnl, "point size (default is 5): ")
-        self.bSizer5b = pw.check_box(pnl, "No lines connecting points")
-
+        self.bSizer5b = pw.check_box(pnl, "Show lines connecting points")
+        self.bSizer5b.cb.SetValue(True)
 
         self.Bind(wx.EVT_TEXT, self.change_file_path, self.bSizer0.file_path)
 
 
-        
-
         #---sizer 0a---
-        self.bSizer0a = pw.choose_file(pnl, btn_text='add pmag_results file', method = self.on_add_pmag_results_button, remove_button="Don't use pmag results file")
-        res_file = os.path.join(self.WD, 'pmag_results.txt')
-        self.check_and_add_file(res_file, self.bSizer0a.file_path)
+        self.bSizer0a = pw.choose_file(pnl, btn_text='add pmag_specimens file', method = self.on_add_pmag_specimens_button, remove_button="Don't use pmag specimens file")
+        pmag_spec_file = os.path.join(self.WD, 'pmag_specimens.txt')
+        self.check_and_add_file(pmag_spec_file, self.bSizer0a.file_path)
 
-        #--- plotting stuff for pmag_results
+        #--- plotting stuff for pmag_specimens
         self.bSizer0a1 = pw.radio_buttons(pnl, color_choices, "choose color for plot points")
+
+        # set default color to red
+        self.bSizer0a1.radio_buttons[2].SetValue(True)
+        
         self.bSizer0a2 = pw.radio_buttons(pnl, shape_choices, "choose shape for plot points")
+
+        # set default symbol:
+        self.bSizer0a2.radio_buttons[2].SetValue(True)
+        
         self.bSizer0a3 = pw.labeled_spin_ctrl(pnl, "point size (default is 5): ")
         
         self.Bind(wx.EVT_TEXT, self.change_results_path, self.bSizer0a.file_path)
@@ -1341,15 +1361,19 @@ class Core_depthplot(wx.Frame):
         #---sizer 3 ---
         plot_choices = ['Plot declination', 'Plot inclination', 'Plot magnetization', 'Plot magnetization on log scale']
         self.bSizer3 = pw.check_boxes(pnl, (5, 1, 0, 0), plot_choices, "Choose what to plot:")
+        self.bSizer3.boxes[0].SetValue(True)
+        self.bSizer3.boxes[1].SetValue(True)
+        self.bSizer3.boxes[2].SetValue(True)
+        self.bSizer3.boxes[3].SetValue(True)
 
 
         #---sizer 13---
-        protocol_choices = ['AF', 'T', 'ARM', 'IRM', 'X']
+        protocol_choices = ['AF', 'T', 'ARM', 'IRM']#, 'X'] not supporting susceptibility at the moment
         self.bSizer13 = pw.radio_buttons(pnl, protocol_choices, "Lab Protocol:  ", orientation=wx.HORIZONTAL)
 
         self.bSizer14 = pw.labeled_text_field(pnl, "Step:  ")
 
-        self.bSizer15 = pw.check_box(pnl, "Do not plot blanket treatment data")
+        #self.bSizer15 = pw.check_box(pnl, "Do not plot blanket treatment data")
 
         self.bSizer16 = pw.radio_buttons(pnl, ['svg', 'eps', 'pdf', 'png'], "Save plot in this format:")
 
@@ -1370,12 +1394,9 @@ class Core_depthplot(wx.Frame):
         # if plotting GPTS, these sizers will be shown:
         self.bSizer10 = pw.labeled_yes_or_no(pnl, "Time scale", "gts04", "ck95")
 
-        self.bSizer11 = pw.labeled_text_field(pnl, label="Lower bound (in Ma)")
+        self.bSizer11 = pw.labeled_text_field(pnl, label="Minimum age (in Ma)")
 
-        self.bSizer12 = pw.labeled_text_field(pnl, label="Upper bound (in Ma)")
-
-
-        #-sav save plot silently
+        self.bSizer12 = pw.labeled_text_field(pnl, label="Maximum age (in Ma)")
 
         
         #---buttons ---
@@ -1415,7 +1436,7 @@ class Core_depthplot(wx.Frame):
         # more plot display options
 
         hbox5.AddMany([self.bSizer0a1, self.bSizer0a2, self.bSizer0a3])
-        self.vbox5.Add(wx.StaticText(pnl, label="Plot display options for results data"))
+        self.vbox5.Add(wx.StaticText(pnl, label="Plot display options for specimens data"))
         self.vbox5.Add(hbox5)
 
 
@@ -1440,7 +1461,7 @@ class Core_depthplot(wx.Frame):
         hbox4.Add(self.bSizer14, flag=wx.ALIGN_LEFT)
         vbox4.Add(wx.StaticText(pnl, label="Experiment type"))
         vbox4.Add(hbox4)
-        vbox4.Add(self.bSizer15)
+        #vbox4.Add(self.bSizer15)
 
 
         #---add all widgets to main container---
@@ -1518,7 +1539,7 @@ class Core_depthplot(wx.Frame):
         text = "choose file to convert to MagIC"
         pw.on_add_file_button(self.bSizer0, self.WD, event, text)
 
-    def on_add_pmag_results_button(self, event):
+    def on_add_pmag_specimens_button(self, event):
         text = "choose file to convert to MagIC"
         pw.on_add_file_button(self.bSizer0a, self.WD, event, text)
 
@@ -1561,68 +1582,167 @@ class Core_depthplot(wx.Frame):
         age_file # -fa er_ages_file
         depth_scale # -ds scale
         dmin, dmax # -d 1 50  # depth to plot
-        ts, amin, amax (also sets pTS, pcol, width) =  # -ts scale min max        
+        timescale, amin, amax (also sets pTS, pcol, width) =  # -ts scale min max        
         sym, size # -sym symbol size
         method, step (also may set suc_key) # -LP protocol step
-        pltD (also sets pcol, pel, width)# -D (don't plot dec)
-        pltI (also sets pcol, pel, width)# -I (don't plot inc)
-        pltM (also sets pcol, pel, width)# -M (don't plot intensity)
+        pltDec (also sets pcol, pel, width)# -D (don't plot dec)
+        pltInc (also sets pcol, pel, width)# -I (don't plot inc)
+        pltMag (also sets pcol, pel, width)# -M (don't plot intensity)
         logit # -log ( plot log scale)
         fmt # -fmt format
         """
+        os.chdir(self.WD)
         meas_file = self.bSizer0.return_value()
-        res_file = self.bSizer0a.return_value()
-        res_sym_shape, res_sym_color, res_sym_size = "", "", ""
+        if meas_file:
+            meas_file = os.path.split(meas_file)[1]
+        pmag_spec_file = self.bSizer0a.return_value()
+        if pmag_spec_file:
+            pmag_spec_file = os.path.split(pmag_spec_file)[1]
+        spec_sym, spec_sym_shape, spec_sym_color, spec_sym_size = "", "", "", ""
 
-        if res_file:
+        if pmag_spec_file:
             # get symbol/size for dots
-            res_sym_shape = self.shape_choices_dict[self.bSizer0a2.return_value()]
-            res_sym_color = self.bSizer0a1.return_value()[0]
-            res_sym_size = self.bSizer0a3.return_value()
-            #print res_sym_shape, res_sym_color, res_sym_size
+            spec_sym_shape = self.shape_choices_dict[self.bSizer0a2.return_value()]
+            spec_sym_color = self.bSizer0a1.return_value()[0]
+            spec_sym_size = self.bSizer0a3.return_value()
+            spec_sym = str(spec_sym_color) + str(spec_sym_shape)
     
         use_sampfile = self.bSizer1a.return_value()
         if use_sampfile:
-            samp_file = self.bSizer1.return_value()
-            age_file = None
+            samp_file = os.path.split(str(self.bSizer1.return_value()))[1]
+            age_file = ''
         else:
-            samp_file = None
-            age_file = self.bSizer1.return_value()
+            samp_file = ''
+            age_file = os.path.split(self.bSizer1.return_value())[1]
         depth_scale = self.bSizer8.return_value()
-        if depth_scale:
-            depth_scale = 'mbsf'
+        if age_file:
+            depth_scale='age'
+        elif depth_scale:
+            depth_scale = 'sample_core_depth' #'mbsf'
         else:
-            depth_scale = 'mcd'
+            depth_scale = 'sample_composite_depth' #'mcd'
         dmin = self.bSizer6.return_value()
         dmax = self.bSizer7.return_value()
-        if self.bSizer9.return_value():
+        if self.bSizer9.return_value(): # if plot GPTS is checked
+            pltTime = 1
             if self.bSizer10.return_value():
-                ts = 'gts04'
+                timescale = 'gts04'
             else:
-                ts = 'ck95'
+                timescale = 'ck95'
             amin = self.bSizer11.return_value()
             amax = self.bSizer12.return_value()
-        else:
-            ts, amin, amax = None, None, None
+            if not amin or not amax:
+                pw.simple_warning("If plotting timescale, you must provide both a lower and an upper bound.\nIf you don't want to plot timescale, uncheck the 'Plot GPTS' checkbox")
+                return False
+        else: # if plot GPTS is not checked
+            pltTime, timescale, amin, amax = 0, '', -1, -1
         sym_shape = self.shape_choices_dict[self.bSizer5.return_value()]
         sym_color = self.bSizer4.return_value()[0]
         sym = sym_color + sym_shape
         size = self.bSizer5a.return_value()
-        method = self.bSizer13.return_value()
+        pltLine = self.bSizer5b.return_value()
+        if pltLine:
+            pltLine = 1
+        else:
+            pltLine = 0
+        method = str(self.bSizer13.return_value())
         step = self.bSizer14.return_value()
-        pltD, pltI, pltM, logit = 0, 0, 0, 0
+        if not step:
+            #-LP [AF,T,ARM,IRM, X] step [in mT,C,mT,mT, mass/vol] to plot
+            units_dict = {'AF': 'millitesla', 'T': 'degrees C', 'ARM': 'millitesla', 'IRM': 'millitesla', 'X': 'mass/vol'}
+            unit = units_dict[method]
+            pw.simple_warning("You must provide the experiment step in {}".format(unit))
+            return False
+        pltDec, pltInc, pltMag, logit = 0, 0, 0, 0
         for val in self.bSizer3.return_value():
             if 'declination' in val:
-                pltD = 1
+                pltDec = 1
             if 'inclination' in val:
-                pltI = 1
+                pltInc = 1
             if 'magnetization' in val:
-                pltM = 1
+                pltMag = 1
             if 'log' in val:
                 logit = 1
-                
+
+        #pltSus = self.bSizer15.return_value()
+        #if pltSus:
+        #    pltSus = 0
+        #else:
+        #    pltSus = 1
+        
         fmt = self.bSizer16.return_value()
-        print "meas_file", meas_file, "res_file", res_file, "res_sym_shape", res_sym_shape, "res_sym_color", res_sym_color, "res_sym_size", res_sym_size, "samp_file", samp_file, "age_file", age_file, "depth_scale", depth_scale, "dmin", dmin, "dmax", dmax, "ts", ts, "amin", amin, "amax", amax, "sym", sym, "size", size, "method", method, "step", step, "pltD", pltD, "pltI", pltI, "pltM", pltM, "logit", logit, "fmt", fmt
+        #print "meas_file", meas_file, "pmag_spec_file", pmag_spec_file, "spec_sym_shape", spec_sym_shape, "spec_sym_color", spec_sym_color, "spec_sym_size", spec_sym_size, "samp_file", samp_file, "age_file", age_file, "depth_scale", depth_scale, "dmin", dmin, "dmax", dmax, "timescale", timescale, "amin", amin, "amax", amax, "sym", sym, "size", size, "method", method, "step", step, "pltDec", pltDec, "pltInc", pltInc, "pltMag", pltMag, "pltTime", pltTime, "logit", logit, "fmt", fmt
+
+        # for use as module:
+        import ipmag
+        #print "pltLine:", pltLine
+        #print "pltSus:", pltSus
+        
+        fig, figname = ipmag.core_depthplot(self.WD, meas_file, pmag_spec_file, samp_file, age_file, depth_scale, dmin, dmax, sym, size, spec_sym, spec_sym_size, method, step, fmt, pltDec, pltInc, pltMag, pltLine, 1, logit, pltTime, timescale, amin, amax)
+        if fig:
+            self.Destroy()
+            dpi = fig.get_dpi()
+            pixel_width = dpi * fig.get_figwidth()
+            pixel_height = dpi * fig.get_figheight()
+            plot_frame = PlotFrame((pixel_width, pixel_height + 50), fig, figname)
+        else:
+            pw.simple_warning("No data points met your criteria - try again\nError message: {}".format(figname))
+
+
+        # for use as command_line:
+        if meas_file:
+            meas_file = os.path.split(meas_file)[1]
+        meas_file = pmag.add_flag(meas_file, '-f')
+        if pmag_spec_file:
+            pmag_spec_file = os.path.split(pmag_spec_file)[1]
+        pmag_spec_file = pmag.add_flag(pmag_spec_file, '-fsp')
+        pmag_spec_file = pmag_spec_file + ' ' + spec_sym_color + spec_sym_shape + ' ' + str(spec_sym_size)
+        sym = '-sym ' + sym + ' ' + str(size)
+        if samp_file:
+            samp_file = os.path.split(samp_file)[1]
+        samp_file = pmag.add_flag(samp_file, '-fsa')
+        if age_file:
+            age_file = os.path.split(age_file)[1]
+        age_file = pmag.add_flag(age_file, '-fa')
+        depth_scale = pmag.add_flag(depth_scale, '-ds')
+        depth_range = ''
+        if dmin and dmax:
+            depth_range = '-d ' + str(dmin) + ' ' + str(dmax)
+        if pltTime and amin and amax:
+            timescale = '-ts ' + timescale + ' ' + str(amin) + ' ' + str(amax)
+        else:
+            timescale = ''
+        method = pmag.add_flag(method, '-LP') + ' ' + str(step)
+        #if not pltSus:
+        #    pltSus = "-L"
+        #else:
+        #    pltSus = ''
+        if not pltDec:
+            pltDec = "-D"
+        else:
+            pltDec = ''
+        if not pltInc:
+            pltInc = "-I"
+        else:
+            pltInc = ''
+        if not pltMag:
+            pltMag = "-M"
+        else:
+            pltMag = ''
+        if pltLine:
+            pltLine = ""
+        else:
+            pltLine = '-L' # suppress line
+        if logit:
+            logit = "-log"
+        else:
+            logit = ''
+        fmt = pmag.add_flag(fmt, '-fmt')
+
+        COMMAND = "core_depthplot.py {meas_file} {pmag_spec_file} {sym} {samp_file} {age_file} {depth_scale} {depth_range} {timescale} {method} {pltDec} {pltInc} {pltMag} {logit} {fmt} {pltLine} -WD {WD}".format(meas_file=meas_file, pmag_spec_file=pmag_spec_file, sym=sym, samp_file=samp_file, age_file=age_file, depth_scale=depth_scale, depth_range=depth_range, timescale=timescale, method=method, pltDec=pltDec, pltInc=pltInc, pltMag=pltMag, logit=logit, fmt=fmt, pltLine=pltLine, WD=self.WD)
+        print COMMAND
+        #os.system(COMMAND)
+
 
         """
         haven't done these options yet
@@ -1635,9 +1755,6 @@ class Core_depthplot(wx.Frame):
         (sets plots & verbose) # -sav
         """
         
-        
-        COMMAND = ""
-        print COMMAND
         #pw.run_command_and_close_window(self, COMMAND, "er_samples.txt")
 
     def on_cancelButton(self,event):
@@ -1651,7 +1768,7 @@ class Core_depthplot(wx.Frame):
 
 class Ani_depthplot(wx.Frame):
 
-    title = "Plot anisotropoy vs. depth"
+    title = "Plot anisotropoy vs. depth/height/age"
     
     def __init__(self, parent, WD):
         wx.Frame.__init__(self, parent, wx.ID_ANY, self.title)
@@ -1666,11 +1783,11 @@ class Ani_depthplot(wx.Frame):
         bSizer_info.Add(wx.StaticText(pnl, label=TEXT), wx.ALIGN_LEFT)
 
         #---sizer 0 ----
-        self.bSizer0 = pw.choose_file(pnl, btn_text='add rmag_anisotropy file', method = self.on_add_rmag_button)
+        self.bSizer0 = pw.choose_file(pnl, btn_text='add rmag_anisotropy file', method = self.on_add_rmag_button, remove_button='remove rmag_anisotropy file')
         self.check_and_add_file(os.path.join(self.WD, 'rmag_anisotropy.txt'), self.bSizer0.file_path)
 
         #---sizer 1 ----
-        self.bSizer1 = pw.choose_file(pnl, btn_text='add magic_measurements file', method = self.on_add_measurements_button)
+        self.bSizer1 = pw.choose_file(pnl, btn_text='add magic_measurements file', method = self.on_add_measurements_button, remove_button='remove magic_measurements file')
         self.check_and_add_file(os.path.join(self.WD, 'magic_measurements.txt'), self.bSizer1.file_path)
 
         #---sizer 2 ---
@@ -1747,6 +1864,7 @@ class Ani_depthplot(wx.Frame):
             add_here.SetValue(infile)
 
     def on_okButton(self, event):
+        os.chdir(self.WD)
         ani_file = self.bSizer0.return_value()
         meas_file = self.bSizer1.return_value()
         use_sampfile = self.bSizer2a.return_value()
@@ -1770,13 +1888,13 @@ class Ani_depthplot(wx.Frame):
         import ipmag
         fig, figname = ipmag.make_aniso_depthplot(ani_file, meas_file, samp_file, age_file, fmt, float(dmin), float(dmax), depth_scale)
         if fig:
-            self.Destroy()
+            self.Destroy() 
             dpi = fig.get_dpi()
             pixel_width = dpi * fig.get_figwidth()
             pixel_height = dpi * fig.get_figheight()
             plot_frame = PlotFrame((pixel_width, pixel_height + 50), fig, figname)
         else:
-            pw.simple_warning("No data points met your criteria - try again")
+            pw.simple_warning("No data points met your criteria - try again\nError message: {}".format(figname))
 
         ## for use as command_line:
         #ani_file = "-f " + os.path.basename(ani_file)
@@ -1885,6 +2003,7 @@ class something(wx.Frame):
         pw.on_add_file_button(self.bSizer0, self.WD, event, text)
 
     def on_okButton(self, event):
+        os.chdir(self.WD)
         COMMAND = ""
         print COMMAND
         #pw.run_command_and_close_window(self, COMMAND, "er_samples.txt")

@@ -66,7 +66,7 @@ class import_magnetometer_data(wx.Dialog):
         self.Bind(wx.EVT_BUTTON, self.on_okButton, self.okButton)
         self.cancelButton = wx.Button(self.panel, wx.ID_CANCEL, '&Cancel')
         self.Bind(wx.EVT_BUTTON, self.on_cancelButton, self.cancelButton)
-        self.nextButton = wx.Button(self.panel, id=-1, label='Next step')
+        self.nextButton = wx.Button(self.panel, id=-1, label='Skip to next step')
         self.Bind(wx.EVT_BUTTON, self.on_nextButton, self.nextButton)
         hboxok.Add(self.okButton)
         hboxok.AddSpacer(20)
@@ -96,6 +96,7 @@ class import_magnetometer_data(wx.Dialog):
         self.Destroy()
 
     def on_okButton(self,event):
+        os.chdir(self.WD)
         file_type = self.checked_rb.Label.split()[0] # extracts name of the checked radio button
         if file_type == 'generic':
             dia = convert_generic_files_to_MagIC(self,self.WD)
@@ -273,7 +274,7 @@ class convert_generic_files_to_MagIC(wx.Frame):
 
 
     def on_okButton(self,event):
-
+        os.chdir(self.WD)
         # generic_magic.py -WD WD - f FILE -fsa er_samples.txt -F OUTFILE.magic -exp [Demag/PI/ATRM 6/AARM 6/CR  -samp X Y -site  X Y -loc LOCNAME -dc B PHI THETA [-A] -WD path 
         options = {}
         
@@ -480,7 +481,6 @@ class combine_magic_dialog(wx.Frame):
         self.InitUI()
 
     def InitUI(self):
-
         pnl = self.panel
 
         #---sizer infor ----
@@ -500,13 +500,13 @@ class combine_magic_dialog(wx.Frame):
         self.cancelButton = wx.Button(self.panel, wx.ID_CANCEL, '&Cancel')
         self.Bind(wx.EVT_BUTTON, self.on_cancelButton, self.cancelButton)
 
-        self.nextButton = wx.Button(self.panel, id=-1, label='Skip')
+        self.nextButton = wx.Button(self.panel, id=-1, label='Skip to last step')
         self.Bind(wx.EVT_BUTTON, self.on_nextButton, self.nextButton)
 
         hboxok = wx.BoxSizer(wx.HORIZONTAL)
         hboxok.Add(self.okButton)
-        hboxok.Add(self.cancelButton )
-        hboxok.Add(self.nextButton )
+        hboxok.Add(self.cancelButton, flag=wx.LEFT, border=5)
+        hboxok.Add(self.nextButton, flag=wx.LEFT, border=5)
 
         #------
         vbox=wx.BoxSizer(wx.VERTICAL)
@@ -565,14 +565,17 @@ class combine_magic_dialog(wx.Frame):
         self.Destroy()
 
     def on_okButton(self,event):
+        os.chdir(self.WD) # make sure OS is working in self.WD (Windows issue)
         files_text=self.bSizer0.file_paths.GetValue()
         files=files_text.strip('\n').replace(" ","")
         if files:
             files = files.split('\n')
+            files = [os.path.join(self.WD, f) for f in files]
         COMMAND="combine_magic.py -F magic_measurements.txt -f %s"%(" ".join(files) )
 
         # to run as module:
         #print "-I- Running equivalent of Python command:\n %s"%COMMAND
+
         if ipmag.combine_magic(files, 'magic_measurements.txt'):
             #pw.close_window(self.panel, COMMAND, 'magic_measurements.txt')
             MSG="%i file are merged to one MagIC format file:\n magic_measurements.txt.\n\n See Termimal (Mac) or command prompt (windows) for errors"%(len(files))
@@ -601,7 +604,7 @@ class combine_magic_dialog(wx.Frame):
 
 class combine_everything_dialog(wx.Frame):
     """"""
-    title = "Combine er_* files"
+    title = "Combine MagIC files"
 
     def __init__(self,WD):
         wx.Frame.__init__(self, None, wx.ID_ANY, self.title)
@@ -615,16 +618,30 @@ class combine_everything_dialog(wx.Frame):
 
         pnl = self.panel
 
-        #---sizer infor ----
+        #---sizer information ----
 
         TEXT="Step 3: \nCombine different MagIC formatted files to one file name (if necessary).  All files should be from the working directory."
         bSizer_info = wx.BoxSizer(wx.HORIZONTAL)
         bSizer_info.Add(wx.StaticText(pnl,label=TEXT),wx.ALIGN_LEFT)
-            
-        self.bSizer0 = pw.combine_files(self, "er_specimens.txt")
-        self.bSizer1 = pw.combine_files(self, "er_samples.txt")
-        self.bSizer2 = pw.combine_files(self, "er_sites.txt")
-        
+
+        possible_file_dias = ['er_specimens.txt', 'er_samples.txt', 'er_sites.txt', 'rmag_anisotropy.txt', 'rmag_results.txt', 'rmag_hysteresis.txt']
+        self.file_dias = []
+        all_files = os.listdir(self.WD)
+        for dia in possible_file_dias:
+            for f in all_files:
+                if dia in f:
+                    bSizer = pw.combine_files(self, dia)
+                    self.file_dias.append(bSizer)
+                    break
+        if not self.file_dias:
+            file_string = ', '.join(possible_file_dias)
+            MSG = "You have no more files that can be combined.\nFile types that can be combined are:\n{}\nNote that your file name must end with the file type, i.e.:\nsomething_something_er_specimens.txt".format(file_string)
+            dlg = wx.MessageDialog(None,caption="Message:", message=MSG ,style=wx.OK|wx.ICON_INFORMATION)
+            dlg.ShowModal()
+            dlg.Destroy()
+            self.Destroy()
+
+
         #------------------
                      
         self.okButton = wx.Button(self.panel, wx.ID_OK, "&OK")
@@ -635,10 +652,19 @@ class combine_everything_dialog(wx.Frame):
 
         hboxok = wx.BoxSizer(wx.HORIZONTAL)
         hboxok.Add(self.okButton)
-        hboxok.Add(self.cancelButton )
+        hboxok.Add(self.cancelButton, flag=wx.LEFT, border=5 )
 
-        hboxfiles = wx.BoxSizer(wx.HORIZONTAL)
-        hboxfiles.AddMany([self.bSizer0, self.bSizer1, self.bSizer2])
+        #file_dias = [self.bSizer0, self.bSizer1, self.bSizer2]
+        if len(self.file_dias) == 4:
+            num_cols, num_rows = 2, 2
+        else:
+            num_cols = min(len(self.file_dias), 3)
+            num_rows = 2 if len(self.file_dias) > 3 else 1
+        hboxfiles = wx.GridSizer(num_rows, num_cols, 1, 1)
+        hboxfiles.AddMany(self.file_dias)
+        
+        #hboxfiles = wx.BoxSizer(wx.HORIZONTAL)
+        #hboxfiles.AddMany([self.bSizer0, self.bSizer1, self.bSizer2])
 
         #------
         vbox=wx.BoxSizer(wx.VERTICAL)
@@ -662,60 +688,26 @@ class combine_everything_dialog(wx.Frame):
         self.Centre()
         self.Show()
                         
-
     def on_cancelButton(self,event):
         self.Destroy()
 
     def on_okButton(self,event):
-        er_specimens = self.bSizer0.file_paths.GetValue()
-        er_samples = self.bSizer1.file_paths.GetValue()
-        er_sites = self.bSizer2.file_paths.GetValue()
-        spec_files = er_specimens.strip('\n').replace(" ","")
-        if spec_files:
-            spec_files = spec_files.split('\n')
-        samp_files = er_samples.strip('\n').replace(" ","")
-        if samp_files:
-            samp_files = samp_files.split('\n')
-        site_files = er_sites.strip('\n').replace(" ","")
-        if site_files:
-            site_files = site_files.split('\n')
-        new_files = []
+        os.chdir(self.WD)
         success = True
-        if spec_files:
-            COMMAND0="combine_magic.py -F er_specimens.txt -f %s"%(" ".join(spec_files))
-            print "-I- Running Python command:\n %s"%COMMAND0
-            # to run as module:
-            if not ipmag.combine_magic(spec_files, 'er_speciments.txt'):
-                success = False
-            
-            # to run as command line:
-            #os.system(COMMAND0)
-            
-            new_files.append("er_specimens.txt")
-        if samp_files:
-            COMMAND1="combine_magic.py -F er_samples.txt -f %s"%(" ".join(samp_files))
-            print "-I- Running Python command:\n %s"%COMMAND1
-            # to run as module:
-            if not ipmag.combine_magic(samp_files, 'er_samples.txt'):
-                success = False
-            
-            # to run as command line:
-            #os.system(COMMAND1)
-            
-            new_files.append("er_samples.txt")
-        if site_files:
-            COMMAND2="combine_magic.py -F er_sites.txt -f %s"%(" ".join(site_files))
-            print "-I- Running Python command:\n %s"%COMMAND2
-            
-            # to run as module:
-            if not ipmag.combine_magic(site_files, 'er_sites.txt'):
-                success = False
-            
-            # to run as command line:
-            #os.system(COMMAND2)
-            new_files.append("er_sites.txt")
-        new = '\n' + '\n'.join(new_files)
+        new_files = []
+        # go through each pw.combine_files sizer, extract the files, try to combine them into one:
+        for bSizer in self.file_dias:  
+            full_list = bSizer.file_paths.GetValue()
+            file_name = bSizer.text
+            files = full_list.strip('\n').replace(" ", "")
+            if files:
+                files = files.split('\n')
+            if ipmag.combine_magic(files, file_name):
+                new_files.append(file_name)  # add to the list of successfully combined files
+            else:
+                success = False                
         if success:
+            new = '\n' + '\n'.join(new_files)
             MSG = "Created new file(s): {} \nSee Termimal (Mac) or command prompt (windows) for details and errors".format(new)
             dlg1 = wx.MessageDialog(None,caption="Message:", message=MSG ,style=wx.OK|wx.ICON_INFORMATION)
             dlg1.ShowModal()
@@ -723,8 +715,6 @@ class combine_everything_dialog(wx.Frame):
             self.Destroy()
         else:
             pw.simple_warning()
-
-
 
 
 
@@ -841,6 +831,7 @@ class convert_SIO_files_to_MagIC(wx.Frame):
         pw.on_add_file_button(self.bSizer0, self.WD, event, text)
 
     def on_okButton(self, event):
+        os.chdir(self.WD)
         options_dict = {}
         SIO_file = self.bSizer0.return_value()
         options_dict['mag_file'] = str(SIO_file)
@@ -960,14 +951,14 @@ class convert_CIT_files_to_MagIC(wx.Frame):
         self.bSizer2 = pw.sampling_particulars(pnl)
 
         #---sizer 3 ----
-        self.bSizer3 = pw.lab_field(pnl)
+        #self.bSizer3 = pw.lab_field(pnl)
 
         #---sizer 4 ----
         self.bSizer4 = pw.select_ncn(pnl)
 
         #---sizer 5 ---
         TEXT = "specify number of characters to designate a specimen, default = 0"
-        self.bSizer5 = pw.labeled_text_field(pnl, TEXT)
+        self.bSizer5 = pw.specimen_n(pnl)
 
         #---sizer 6 ----
         TEXT="Location name:"
@@ -991,7 +982,7 @@ class convert_CIT_files_to_MagIC(wx.Frame):
         vbox.Add(self.bSizer0, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(self.bSizer1, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(self.bSizer2, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
-        vbox.Add(self.bSizer3, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        #vbox.Add(self.bSizer3, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(self.bSizer4, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(self.bSizer5, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(self.bSizer6, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
@@ -1020,6 +1011,7 @@ class convert_CIT_files_to_MagIC(wx.Frame):
         pw.on_add_file_button(self.bSizer0, self.WD, event, text)
 
     def on_okButton(self, event):
+        os.chdir(self.WD)
         options_dict = {}
         wd = self.WD
         options_dict['dir_path'] = wd
@@ -1059,10 +1051,10 @@ class convert_CIT_files_to_MagIC(wx.Frame):
         options_dict['methods'] = particulars
         if particulars:
             particulars = "-mcd " + particulars
-        lab_field = self.bSizer3.return_value()
-        options_dict['lab_field'] = lab_field
-        if lab_field:
-            lab_field = "-dc " + lab_field
+        #lab_field = self.bSizer3.return_value()
+        #options_dict['lab_field'] = lab_field
+        #if lab_field:
+        #    lab_field = "-dc " + lab_field
         peak_AF = self.bSizer8.return_value()
         options_dict['peak_AF'] = peak_AF
         if peak_AF:
@@ -1076,7 +1068,7 @@ class convert_CIT_files_to_MagIC(wx.Frame):
             options_dict['avg'] = 1
             replicate = '-A'
 
-        COMMAND = "CIT_magic.py -WD {} -f {} -F {} {} {} {} {} -ncn {} {} {} {} -Fsp {} -Fsi {} -Fsa {} {}".format(wd, CIT_file, outfile, particulars, spec_num, loc_name, user, ncn, peak_AF, lab_field, ID, spec_outfile, site_outfile, samp_outfile, replicate)
+        COMMAND = "CIT_magic.py -WD {} -f {} -F {} {} {} {} {} -ncn {} {} {} -Fsp {} -Fsi {} -Fsa {} {}".format(wd, CIT_file, outfile, particulars, spec_num, loc_name, user, ncn, peak_AF, ID, spec_outfile, site_outfile, samp_outfile, replicate)
         # to run as module:
         import CIT_magic
         if CIT_magic.main(command_line=False, **options_dict):
@@ -1215,6 +1207,7 @@ class convert_HUJI_files_to_MagIC(wx.Frame):
         """
         grab user input values, format them, and run HUJI_magic.py with the appropriate flags
         """
+        os.chdir(self.WD)
         options = {}
         HUJI_file = self.bSizer0.return_value()
         options['magfile'] = HUJI_file
@@ -1386,6 +1379,7 @@ class convert_2G_binary_files_to_MagIC(wx.Frame):
         pw.on_add_dir_button(self.bSizer0, self.WD, event, text)
 
     def on_okButton(self, event):
+        os.chdir(self.WD)
         options_dict = {}
         WD = self.WD
         options_dict['dir_path'] = WD
@@ -1589,6 +1583,7 @@ class convert_LDEO_files_to_MagIC(wx.Frame):
         pw.on_add_file_button(self.bSizer0, self.WD, event, text)
 
     def on_okButton(self, event):
+        os.chdir(self.WD)
         options_dict = {}
         LDEO_file = self.bSizer0.return_value()
         options_dict['magfile'] = LDEO_file
@@ -1738,6 +1733,7 @@ class convert_IODP_csv_files_to_MagIC(wx.Frame):
         pw.on_add_file_button(self.bSizer0, self.WD, event, text)
 
     def on_okButton(self, event):
+        os.chdir(self.WD)
         wait = wx.BusyInfo("Please wait, working...")
         options = {}
         wd = self.WD
@@ -1870,6 +1866,7 @@ class convert_PMD_files_to_MagIC(wx.Frame):
         pw.on_add_dir_button(self.bSizer0, self.WD, event, text)
 
     def on_okButton(self, event):
+        os.chdir(self.WD)
         options = {}
         WD = self.WD
         options['dir_path'] = WD
@@ -2017,6 +2014,7 @@ class something(wx.Frame):
         pw.on_add_file_button(self.bSizer0, self.WD, event, text)
 
     def on_okButton(self, event):
+        os.chdir(self.WD)
         COMMAND = ""
         pw.run_command_and_close_window(self, COMMAND, outfile)
 
@@ -2427,7 +2425,8 @@ class OrientFrameGrid(wx.Frame):
         er_recs=[]
         for sample in samples:
             er_recs.append(er_samples_data[sample])
-            pmag.magic_write(os.path.join(self.WD, "er_samples.txt"),er_recs,"er_samples")
+        er_recs=pmag.merge_recs_headers(er_recs)  
+        pmag.magic_write(os.path.join(self.WD, "er_samples.txt"),er_recs,"er_samples")
 
         #------------
         # now er_sites.txt
@@ -2453,7 +2452,9 @@ class OrientFrameGrid(wx.Frame):
         er_recs=[]
         for site in sites:
             er_recs.append(er_sites_data[site])
-            pmag.magic_write(os.path.join(self.WD, "er_sites.txt"),er_recs,"er_sites")
+        er_recs=pmag.merge_recs_headers(er_recs)  
+        pmag.magic_write(os.path.join(self.WD, "er_sites.txt"),er_recs,"er_sites")
+        
             #pmag.magic_write(os.path.join(self.WD, "er_samples.txt"),er_recs,"er_samples")
 
         dlg1 = wx.MessageDialog(None,caption="Message:", message="orientation data is saved/appended to er_samples.txt" ,style=wx.OK|wx.ICON_INFORMATION)
@@ -2912,7 +2913,7 @@ Check that all specimens belong to the correct sample
 Check that all samples are correctly named,
 and that they belong to the correct site
 (if site name is simply wrong, that will be fixed in step 3)"""
-            label = wx.StaticText(self.panel,label=TEXT)#, size=(900, 100))
+            step_label = wx.StaticText(self.panel,label=TEXT)#, size=(900, 100))
         else:
             self.ErMagic.read_MagIC_info() # ensures that changes from step 3 propagate
             TEXT = """Step 4:
@@ -2921,7 +2922,7 @@ Check that this data is correct, and fill in missing cells using controlled voca
 The columns for class, lithology, and type can take multiple values in the form of a colon-delimited list.
 You may use the drop-down menus to add as many values as needed in these columns.  
 (see Help button for more details)"""
-            label = wx.StaticText(self.panel,label=TEXT)#, size=(900, 100))
+            step_label = wx.StaticText(self.panel,label=TEXT)#, size=(900, 100))
         self.Data, self.Data_hierarchy = self.ErMagic.Data, self.ErMagic.Data_hierarchy
         self.samples = sorted(self.Data_hierarchy['samples'].keys())
         sites = sorted(self.Data_hierarchy['sites'].keys())
@@ -2978,7 +2979,8 @@ You may use the drop-down menus to add as many values as needed in these columns
 
         ### Make Containers ###
         vbox = wx.BoxSizer(wx.VERTICAL)
-        vbox.Add(label, flag=wx.ALIGN_CENTER|wx.TOP|wx.BOTTOM, border=20)
+        #vbox.Add(step_label, flag=wx.ALIGN_CENTER|wx.TOP|wx.BOTTOM, border=20)
+        vbox.Add(step_label, flag=wx.ALIGN_LEFT|wx.TOP|wx.BOTTOM, border=20)
 
         vbox.Add(hbox_one, flag=wx.BOTTOM|wx.LEFT, border=10)
         vbox.Add(hboxok, flag=wx.BOTTOM|wx.LEFT, border=10)
@@ -3600,7 +3602,9 @@ You may use the drop-down menus to add as many values as needed in these columns
                 self.update_simple_grid_data(grid, simple_grids[grid_name])
             else:
                 self.update_orient_data(grid)
+            
             self.ErMagic.update_ErMagic()
+            
             self.changes = False # resets
 
         self.panel.Destroy()
@@ -3719,16 +3723,6 @@ You may use the drop-down menus to add as many values as needed in these columns
                     for spec in specimens:
                         self.Data_hierarchy['location_of_specimen'][spec] = new_loc
                         self.ErMagic.data_er_specimens[spec]['er_location_name'] = new_loc
-            
-            
-
-
-            #
-            #location_of_specimen ( {'sc12b1': 'Xanadu', 'ag1-6b': 'HERE', 'ag1-6a': 'HERE'} )
-            #location_of_sample
-            #location_of_site
-            #locations ( {'Xanadu': ['sc12'], 'HERE': ['ag1-']} )
-            
 
     def update_sites(self, grid, col1_updated, col1_old, col2_updated, col2_old):#, *args):
         changed = [(old_value, col1_updated[num]) for (num, old_value) in enumerate(col1_old) if old_value != col1_updated[num]]

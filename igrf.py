@@ -28,7 +28,8 @@ def main():
        -alt ALT;  specify altitude in km, default is sealevel (0)
        -plt; make a plot of the time series
        -fmt [pdf,jpg,eps,svg]  specify format for output figure  (default is svg)
-       -mod [arch3k,cals3k] specify model for 3ka to 1900 AD, default is cals3k.4b
+       -mod [arch3k,cals3k,pfm9k] specify model for 3ka to 1900 AD, default is cals3k.4b
+             NB:  program uses IGRF12 for dates 1900 to 2015.
     
     INPUT FORMAT 
       interactive entry:
@@ -52,7 +53,7 @@ def main():
     if '-mod' in sys.argv:
         ind=sys.argv.index('-mod')
         mod=sys.argv[ind+1]
-    else: mod=''
+    else: mod='cals3k'
     if '-f' in sys.argv:
         ind=sys.argv.index('-f')
         file=sys.argv[ind+1]
@@ -118,7 +119,7 @@ def main():
             x,y,z,f=pmag.doigrf(line[3]%360.,line[2],line[1],line[0],mod=mod)
         Dir=pmag.cart2dir((x,y,z))
         if outfile!="":
-            out.write('%8.2 %8.2 %8.0f %7.1f %7.1f %7.1f %7.1f\n'%(Dir[0],Dir[1],f,line[0],line[1],line[2],line[3]))           
+            out.write('%8.2f %8.2f %8.0f %7.1f %7.1f %7.1f %7.1f\n'%(Dir[0],Dir[1],f,line[0],line[1],line[2],line[3]))           
         elif plt:
             Ages.append(line[0])
             if Dir[0]>180: Dir[0]=Dir[0]-360.0

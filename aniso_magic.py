@@ -30,8 +30,8 @@ def main():
         -crd [s,g,t] coordinate system, default is specimen (g=geographic, t=tilt corrected)
         -P don't make any plots - just make rmag_results table
         -sav don't make the rmag_results table - just save all the plots
-        -fmt [svg, png, jpg] format for output images, pdf default
-        -gtc DEC INC  dec,inc of pole to great circle 
+        -fmt [svg, jpg, eps] format for output images, pdf default
+        -gtc DEC INC  dec,inc of pole to great circle [down(up) in green (cyan)
         -d Vi DEC INC; Vi (1,2,3) to compare to direction DEC INC
         -nb N; specifies the number of bootstraps - default is 1000
     DEFAULTS  
@@ -54,7 +54,7 @@ def main():
     hpars,bpars,PDir=[],[],[]
     CS,crd='-1','s'
     nb=1000
-    fmt='eps'
+    fmt='pdf'
     ResRecs=[]
     orlist=[]
     outfile,comp,Dir,gtcirc,PDir='rmag_results.txt',0,[],0,[]
@@ -111,8 +111,8 @@ def main():
 #
 # set up plots
 #
-    infile=dir_path+'/'+infile
-    outfile=dir_path+'/'+outfile
+    if infile[0]!='/':infile=dir_path+'/'+infile
+    if outfile[0]!='/':outfile=dir_path+'/'+outfile
     ANIS={}
     initcdf,inittcdf=0,0
     ANIS['data'],ANIS['conf']=1,2
@@ -209,11 +209,10 @@ def main():
           if len(PDir)>0:
               pmagplotlib.plotC(ANIS['data'],PDir,90.,'g')
               pmagplotlib.plotC(ANIS['conf'],PDir,90.,'g')
-          if verbose:pmagplotlib.drawFIGS(ANIS)
+          if verbose and plots==0:pmagplotlib.drawFIGS(ANIS)
           ResRec['er_location_names']=pmag.makelist(Locs)
           if plots==1:
               save(ANIS,fmt,title)
-              sys.exit()
           ResRec={}
           ResRec['er_citation_names']=pmag.makelist(Cits)
           ResRec['er_location_names']=pmag.makelist(Locs)
@@ -337,7 +336,7 @@ def main():
                              pmagplotlib.plot_init(ANIS['tcdf'],5,5)
                              inittcdf=1
                  bpars,hpars=pmagplotlib.plotANIS(ANIS,Ss,iboot,ihext,ivec,ipar,title,iplot,comp,vec,Dir,nb)
-                 pmagplotlib.drawFIGS(ANIS)
+                 if verbose and plots==0:pmagplotlib.drawFIGS(ANIS)
               if ans=="c":
                   print "Current Coordinate system is: "
                   if CS=='-1':print " Specimen"
@@ -408,7 +407,7 @@ def main():
                               sys.exit()
                   pmagplotlib.plotC(ANIS['data'],PDir,90.,'g')
                   pmagplotlib.plotC(ANIS['conf'],PDir,90.,'g')
-                  if verbose:pmagplotlib.drawFIGS(ANIS)
+                  if verbose and plots==0:pmagplotlib.drawFIGS(ANIS)
               if ans=="p": 
                   k-=2
                   goon=0

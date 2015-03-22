@@ -28,6 +28,7 @@ def main():
         -B don't plot national/state boundaries, etc.
         -pad [LAT LON] pad bounding box by LAT/LON (default is not)
         -grd SPACE specify grid spacing
+        -sav  save plot and quit
         -prj PROJ,  specify one of the supported projections: (see basemap.py online documentation)
             aeqd = Azimuthal Equidistant
             poly = Polyconic
@@ -71,6 +72,7 @@ def main():
     
     """
     dir_path='.'
+    plot=0
     ocean=0
     res='c'
     proj='moll'
@@ -99,6 +101,7 @@ def main():
         if res!= 'c' and res!='l':
             print 'this resolution will take a while - be patient'
     if '-etp' in sys.argv: fancy=1
+    if '-sav' in sys.argv: plot=1
     if '-R' in sys.argv:rivers=0
     if '-B' in sys.argv:boundaries=0
     if '-o' in sys.argv:ocean=1
@@ -188,11 +191,10 @@ def main():
     Opts['sym']=sym
     Opts['symsize']=symsize
     pmagplotlib.plotMAP(FIG['map'],Lats,Lons,Opts)
-    pmagplotlib.drawFIGS(FIG)
     files={}
     for key in FIG.keys():
         files[key]='Map_PTS'+'.'+fmt
-    if pmagplotlib.isServer:
+    if pmagplotlib.isServer or plot:
         black     = '#000000'
         purple    = '#800080'
         titles={}
@@ -200,8 +202,7 @@ def main():
         FIG = pmagplotlib.addBorders(FIG,titles,black,purple)
         pmagplotlib.saveP(FIG,files)
     else:
+        pmagplotlib.drawFIGS(FIG)
         ans=raw_input(" S[a]ve to save plot, Return to quit:  ")
-        if ans=="a":
-            pmagplotlib.saveP(FIG,files)
-
+        if ans=="a": pmagplotlib.saveP(FIG,files)
 main()

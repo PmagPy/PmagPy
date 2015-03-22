@@ -24,12 +24,14 @@ def main():
         -ts TS amin amax: plot the GPTS for the time interval between amin and amax (numbers in Ma)
            TS: [ck95, gts04] 
         -mcd method_code, specify method code, default is first one encountered
+        -sav  save plot and quit
     NOTES
         when x and/or y are not specified, a list of possibilities will be presented to the user for choosing
 
     """
     xaxis,xplotind,yplotind="",0,0 # (0 for strat pos)
     yaxis,Xinc="", "" 
+    plot=0
     obj='all'
     supported=['pmag_specimens', 'pmag_samples', 'pmag_sites', 'pmag_results','magic_web']
     Depth_keys=['specimen_core_depth','specimen_height','specimen_elevation','specimen_composite_depth', 'sample_core_depth','sample_height','sample_elevation','sample_composite_depth', 'site_core_depth','site_height','site_elevation','site_composite_depth','average_height']
@@ -90,6 +92,7 @@ def main():
         amax=float(sys.argv[ind+3])
         pTS=1
     if '-Iex' in sys.argv: plotexp=1
+    if '-sav' in sys.argv: plot=1
     #
     #
     # get data read in
@@ -278,7 +281,10 @@ def main():
         titles['ts']='Time Series Plot'
         FIG = pmagplotlib.addBorders(FIG,titles,black,purple)
         pmagplotlib.saveP(FIG,files)
+    elif plot==1:
+        pmagplotlib.saveP(FIG,files)
     else:
+        pmagplotlib.drawFIGS(FIG)
         ans=raw_input(" S[a]ve to save plot, [q]uit without saving:  ")
         if ans=="a": pmagplotlib.saveP(FIG,files) 
 main()

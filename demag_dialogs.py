@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 import matplotlib
-matplotlib.use('WXAgg')
+#matplotlib.use('WXAgg')
 import pmag
 import wx
 import copy
@@ -568,7 +568,7 @@ class convert_generic_files_to_MagIC(wx.Frame):
         #fout.write(header_string[:-1]+"\n")
 
         #-----------------------------------
-            
+        os.chdir(self.WD)
         Data={}
         header_codes=[]
         ERROR=""

@@ -59,7 +59,14 @@ def main():
         D2=numpy.array([data2[0],data2[1]]).transpose()
         if Flip==1:
             D2,D=pmag.flip(D2) # D2 are now flipped
-            D2=numpy.concatenate(D,D2) # put all in D2
+            if len(D2)!=0:
+                if len(D)!=0: 
+                    D2=numpy.concatenate(D,D2) # put all in D2
+            elif len(D)!=0:
+                D2=D
+            else: 
+                print 'length of second file is zero'
+                sys.exit()
     elif Flip==1:D2,D1=pmag.flip(D1) # peel out antipodal directions, put in D2
 #
     counter,NumSims=0,5000

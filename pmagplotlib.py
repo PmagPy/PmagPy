@@ -144,12 +144,10 @@ def qsnorm(p):
 def plotNOTES(fignum,Notes):
     for note in Notes:
         pylab.text(note['X'],note['Y'],note['text'])
-    pylab.draw()
 
 def plotPTS(fignum,PTs,x,y):
     for pt in PTs:
         pylab.scatter(pt[x],pt[y],marker=pt['marker'],c=pt['color'],s=pt['size'])
-    pylab.draw()
 
 def show(fig):
     pylab.figure(fig)
@@ -177,7 +175,6 @@ def plotLINES(fignum,line,sym,x,y):
         X.append(l[x])
         Y.append(l[y])
     pylab.plot(X,Y,sym)
-    pylab.draw()
 
 def plotXY(fignum,X,Y,**kwargs):
     pylab.figure(num=fignum)
@@ -263,12 +260,12 @@ def plotQQnorm(fignum,Y,title):
     pylab.text(-.9*bounds[1],.6*bounds[3],notestr)
     notestr='Dc: '+'%8.3e'%(dc)
     pylab.text(-.9*bounds[1],.5*bounds[3],notestr)
-    pylab.draw()
 
 #
 def plotQQunf(fignum,D,title):
     """
     plots data against a uniform distribution in 0=>360.
+    called with plotQQunf(fignum,D,title).  
     """
     pylab.figure(num=fignum) 
     X,Y,dpos,dneg=[],[],0.,0.
@@ -304,7 +301,6 @@ def plotQQunf(fignum,D,title):
     pylab.title(title)
     pylab.xlabel('Uniform Quantile')
     pylab.ylabel('Data Quantile')
-    pylab.draw()
     return Mu, 1.207
 
 def plotQQexp(fignum,I,title):
@@ -351,7 +347,6 @@ def plotQQexp(fignum,I,title):
     pylab.title(title)
     pylab.xlabel('Exponential Quantile')
     pylab.ylabel('Data Quantile')
-    pylab.draw()
     return Me, 1.094
 
 def plotNET(fignum):
@@ -362,7 +357,7 @@ def plotNET(fignum):
 # make the perimeter
 #
     pylab.figure(num=fignum)
-    pylab.clf()
+#    pylab.clf()
     if not isServer: pylab.figtext(.02,.01,version_num)
     pylab.axis("off")
     Dcirc=numpy.arange(0,361.)
@@ -497,8 +492,8 @@ def plotC(fignum,pole,ang,col):
         else:
             X_c_d.append(XY[0])
             Y_c_d.append(XY[1])
-    pylab.plot(X_c_d,Y_c_d,col+',')
-    pylab.plot(X_c_up,Y_c_up,'c,')
+    pylab.plot(X_c_d,Y_c_d,col+'.',ms=5)
+    pylab.plot(X_c_up,Y_c_up,'c.',ms=2)
 
 
 
@@ -1154,9 +1149,6 @@ def plotSLNP(fignum,SiteRec,datablock,key):
         Xcirc.append(XY[0])
         Ycirc.append(XY[1])
     pylab.plot(Xcirc,Ycirc,'g')
-    pylab.ion()
-    pylab.draw()
-    pylab.ioff()
    
 def plotLNP(fignum,s,datablock,fpars,direction_type_key):
     """
@@ -1202,9 +1194,6 @@ def plotLNP(fignum,s,datablock,fpars,direction_type_key):
         Xcirc.append(XY[0])
         Ycirc.append(XY[1])
     pylab.plot(Xcirc,Ycirc,'g')
-    pylab.ion()
-    pylab.draw()
-    pylab.ioff()
    
 
 
@@ -1215,7 +1204,7 @@ def plotEQ(fignum,DIblock,s):
 # make the stereonet
     pylab.figure(num=fignum) 
     if len(DIblock) <1: return
-    pylab.clf()
+    #pylab.clf()
     if not isServer:
         pylab.figtext(.02,.01,version_num)
     plotNET(fignum)
@@ -1233,7 +1222,7 @@ def plotEQsym(fignum,DIblock,s,sym):
 # make the stereonet
     pylab.figure(num=fignum) 
     if len(DIblock) <1: return
-    pylab.clf()
+    #pylab.clf()
     if not isServer:
         pylab.figtext(.02,.01,version_num)
     plotNET(fignum)
@@ -1380,7 +1369,6 @@ def plotELL(fignum,pars,col,lower,plot):
     if plot==1:
         if X_ell!=[]:pylab.plot(X_ell,Y_ell,col)
         if X_up!=[]:pylab.plot(X_up,Y_up,'g-')
-        pylab.draw()
     else: 
         return PTS
 #
@@ -1415,6 +1403,12 @@ def plotSTRAT(fignum,data,labels):
 #
 #
 def plotCDF(fignum,data,xlab,sym,title,**kwargs):
+    """ Makes a plot of the cumulative distribution function.  Uses the call:
+x,y=plotCDF(fignum,data,xlab,sym,title,**kwargs) where fignum is the figure number.
+data is a list of data to be plotted, xlab is the label for the x axis.
+sym is the desired line style and color, title is the plot title 
+and **kwargs is a dictionary: {'color': color, 'linewidth':linewidth} 
+this function returns x and y"""
 #
 # plots a CDF of data
     #if len(sym)==1:sym=sym+'-'
@@ -1823,7 +1817,7 @@ def plotIRM(fignum,B,M,title):
             pylab.figtext(.2,.45,n2)
     elif fignum!=0:
         pylab.figure(num=fignum)
-        pylab.clf()
+        #pylab.clf()
         if not isServer:
             pylab.figtext(.02,.01,version_num)
         print 'M[0]=0,  skipping specimen'
@@ -1868,9 +1862,6 @@ def plotXTB(fignum,XTB,Bs,e,f):
         k+=1 
     pylab.title(e+': f = '+'%i'%(int(f))+' Hz')
     pylab.legend(Blab,'upper left')
-    pylab.ion()
-    pylab.draw()
-    pylab.ioff()
 #
 def plotXFT(fignum,XF,T,e,b):
     """ function to plot series of chi measurements as a function of temperature, holding field constant and varying frequency
@@ -1891,9 +1882,6 @@ def plotXFT(fignum,XF,T,e,b):
     pylab.title(e+': B = '+'%8.1e'%(b)+' T')
       
     pylab.legend(['%i'%(int(T))+' K'])
-    pylab.ion()
-    pylab.draw()
-    pylab.ioff()
 #
 def plotXBT(fignum,XB,T,e,b):
     """ function to plot series of chi measurements as a function of temperature, holding field constant and varying frequency
@@ -1912,9 +1900,6 @@ def plotXBT(fignum,XB,T,e,b):
     pylab.plot(B,X)
     pylab.legend(['%i'%(int(T))+' K'])
     pylab.title(e+': f = '+'%i'%(int(f))+' Hz')
-    pylab.ion()
-    pylab.draw()
-    pylab.ioff()
 #
 def plotzfcfc(MT,e):
     """
@@ -1960,9 +1945,6 @@ def plotltc(LTC_CM,LTC_CT,LTC_WM,LTC_WT,e):
         if len(LTC_CM)>2: pylab.plot(LTC_CT,LTC_CM,'bo')
         if len(LTC_WM)>2: pylab.plot(LTC_WT,LTC_WM,'ro')
         pylab.title(e)
-	pylab.ion()
-	pylab.draw()
-	pylab.ioff()
 
 def plot_close(plot):
 	pylab.ion()
@@ -2020,11 +2002,11 @@ def plotANIS(ANIS,Ss,iboot,ihext,ivec,ipar,title,plt,comp,vec,Dir,nb):
                 plotEVEC(ANIS['conf'],BVs,5,'') # put on the data eigenvectors
             else:
                 ellpars=[bpars["v1_dec"],bpars["v1_inc"],bpars["v1_zeta"],bpars["v1_zeta_dec"],bpars["v1_zeta_inc"],bpars["v1_eta"],bpars["v1_eta_dec"],bpars["v1_eta_inc"]]
-                plotELL(ANIS['conf'],ellpars,'r,',1,1)
+                plotELL(ANIS['conf'],ellpars,'r-,',1,1)
                 ellpars=[bpars["v2_dec"],bpars["v2_inc"],bpars["v2_zeta"],bpars["v2_zeta_dec"],bpars["v2_zeta_inc"],bpars["v2_eta"],bpars["v2_eta_dec"],bpars["v2_eta_inc"]]
-                plotELL(ANIS['conf'],ellpars,'b,',1,1)
+                plotELL(ANIS['conf'],ellpars,'b-,',1,1)
                 ellpars=[bpars["v3_dec"],bpars["v3_inc"],bpars["v3_zeta"],bpars["v3_zeta_dec"],bpars["v3_zeta_inc"],bpars["v3_eta"],bpars["v3_eta_dec"],bpars["v3_eta_inc"]]
-                plotELL(ANIS['conf'],ellpars,'k,',1,1)
+                plotELL(ANIS['conf'],ellpars,'k-,',1,1)
             pylab.figure(num=ANIS['tcdf'])
             pylab.clf()
             if not isServer:
@@ -2127,12 +2109,11 @@ def plotANIS(ANIS,Ss,iboot,ihext,ivec,ipar,title,plt,comp,vec,Dir,nb):
         bpars['v3_inc']=hpars['v3_inc'] 
     if ihext==1 and plt==1:
         ellpars=[hpars["v1_dec"],hpars["v1_inc"],hpars["e12"],hpars["v2_dec"],hpars["v2_inc"],hpars["e13"],hpars["v3_dec"],hpars["v3_inc"]]
-        plotELL(ANIS['conf'],ellpars,'r,',1,1)
+        plotELL(ANIS['conf'],ellpars,'r-,',1,1)
         ellpars=[hpars["v2_dec"],hpars["v2_inc"],hpars["e23"],hpars["v3_dec"],hpars["v3_inc"],hpars["e12"],hpars["v1_dec"],hpars["v1_inc"]]
-        plotELL(ANIS['conf'],ellpars,'b,',1,1)
+        plotELL(ANIS['conf'],ellpars,'b-,',1,1)
         ellpars=[hpars["v3_dec"],hpars["v3_inc"],hpars["e13"],hpars["v1_dec"],hpars["v1_inc"],hpars["e23"],hpars["v2_dec"],hpars["v2_inc"]]
-        plotELL(ANIS['conf'],ellpars,'k,',1,1) 
-
+        plotELL(ANIS['conf'],ellpars,'k-,',1,1) 
     return bpars,hpars
 ####
 def plotPIE(fig,fracs,labels,title):
@@ -2220,7 +2201,7 @@ def plotCONF(fignum,s,datablock,pars,new):
 #
 # plot the ellipse
 #
-    plotELL(fignum,pars,'b,',0,1)
+    plotELL(fignum,pars,'b-,',0,1)
 
 EI_plot_num=0
 maxE,minE,maxI,minI=0,10,0,90

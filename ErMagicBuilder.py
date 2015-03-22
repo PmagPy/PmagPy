@@ -46,11 +46,6 @@ class MagIC_model_builder(wx.Frame):
         SIZE=wx.DisplaySize()
         SIZE=(SIZE[0]-0.05*SIZE[0],SIZE[1]-0.05*SIZE[1])
 
-        #print WD
-        #print ".............."
-        #print Data
-        #print "-------------"
-        #print Data_hierarchy
         wx.Frame.__init__(self, parent, wx.ID_ANY,size=SIZE)
         #self.panel = wx.Panel(self)
         self.main_frame = self.Parent
@@ -63,7 +58,8 @@ class MagIC_model_builder(wx.Frame):
         self.er_ages_header=['er_citation_names','er_site_name','er_location_name','age_description','magic_method_codes','age','age_unit']
         os.chdir(WD)
         self.WD=os.getcwd()  
-        #self.WD=WD
+        self.site_lons=[]     
+        self.site_lats=[]     
         self.Data,self.Data_hierarchy=self.get_data()
         self.read_MagIC_info()
         self.SetTitle("Earth-Ref Magic Builder" )
@@ -119,12 +115,11 @@ class MagIC_model_builder(wx.Frame):
                     self.er_locations_header.append(key)
 
         if len(self.data_er_ages.keys())>0:
-            #print self.data_er_ages.keys()
             for key in self.data_er_ages[self.data_er_ages.keys()[0]].keys():
                 if key not in self.er_ages_header:
                     self.er_ages_header.append(key)
                   
-        
+
         pnl1 = self.panel
 
         table_list=["er_specimens","er_samples","er_sites","er_locations","er_ages"]
@@ -283,88 +278,295 @@ class MagIC_model_builder(wx.Frame):
 
 
     def on_okButton(self, event):
+        os.chdir(self.WD)
         self.update_ErMagic()
         self.main_frame.init_check_window()
 
-    def update_ErMagic(self):
+    def update_ErMagic(self, update="all"):
         """check for changes and write (or re-write) er_specimens.txt, er_samples.txt, etc."""
+        #print 'doing update ErMagic'
+        #import time
         wait = wx.BusyInfo("Please wait, working...")
-        samples_list=self.Data_hierarchy['samples'].keys()
-        samples_list = list(set(samples_list).union(self.data_er_samples.keys())) # uses samples from er_samples.txt even if they are not in the magic_measurements file
-        samples_list.sort()
 
-        specimens_list=self.Data_hierarchy['sample_of_specimen'].keys()
-        specimens_list.sort()
 
         #---------------------------------------------
         # make er_samples.txt
         #---------------------------------------------
 
-        #header
-        er_samples_file=open(os.path.join(self.WD, "er_samples.txt"),'w')
-        er_samples_file.write("tab\ter_samples\n")
-        string=""
-        for key in self.er_samples_header:
-          string=string+key+"\t"
-        er_samples_file.write(string[:-1]+"\n")
-
-        for sample in samples_list:
-          string=""
-          for key in self.er_samples_header:
-
-            if sample in self.data_er_samples.keys() and "er_site_name" in self.data_er_samples[sample].keys() and self.data_er_samples[sample]["er_site_name"] != "":
-                site=self.data_er_samples[sample]["er_site_name"]
-            elif sample in self.Data_hierarchy['site_of_sample'].keys():
-                site=self.Data_hierarchy['site_of_sample'][sample]
-            else:
-                site = "unknown"
-            
-            if key=="er_citation_names":
-              string=string+"This study"+"\t"
-            
-            elif key=="er_sample_name":
-              string=string+sample+"\t"
-              
-            elif key in ['er_site_name']:
-                string=string+site+"\t"
-
-            elif key in ['er_location_name']:
-                if site in self.data_er_sites.keys() and key in self.data_er_sites[site].keys():
-                    string=string+self.data_er_sites[site][key]+"\t"
-                else:
-                    try:
-                        string=string+self.Data_hierarchy['location_of_sample'][sample]+"\t"
-                    except KeyError:
-                        string = string + "" + "\t"
-                        
-
-            # if er_samples.txt already has a value in a column, don't try to get it from er_sites.txt
-            elif sample in self.data_er_samples.keys() and key in self.data_er_samples[sample].keys() and self.data_er_samples[sample][key]!="":
-                string=string+self.data_er_samples[sample][key]+"\t"
-
-            # try to take lat/lon from er_sites table
-            elif (key in ['sample_lon','sample_lat'] and sample in self.data_er_samples.keys()\
-                  and "er_site_name" in self.data_er_samples[sample].keys()\
-                  and self.data_er_samples[sample]['er_site_name'] in self.data_er_sites.keys()\
-                  and "site_"+key.split("_")[1] in self.data_er_sites[self.data_er_samples[sample]['er_site_name']].keys()):
-              string=string+self.data_er_sites[self.data_er_samples[sample]['er_site_name']]["site_"+key.split("_")[1]]+"\t"
-
-            elif key in ['sample_class','sample_lithology','sample_type']:
-              site_key="site_"+key.split('sample_')[1]
-              if (site in self.data_er_sites.keys() and site_key in self.data_er_sites[site] and self.data_er_sites[site][site_key]!=""):
-                    string=string+self.data_er_sites[site][site_key]+"\t"
-                    continue
-              else:
-                    string=string+'\t'                        
-            else:
-              string=string+"\t"
-          er_samples_file.write(string[:-1]+"\n")
-        er_samples_file.close()
+        #last_time = time.time()
+        #print 'about to do er_samples'
+        if update=='all' or 'samples' in update:
+            self.do_er_samples()
+        #print "samples took:", time.time() - last_time
+        #last_time = time.time()
+        
         #---------------------------------------------
         # make er_specimens.txt
         #---------------------------------------------
+        if update=='all' or 'specimens' in update:
+            self.do_er_specimens()
+        #print "specimens took:", time.time() - last_time
+        #last_time = time.time()
 
-        #header
+
+        #---------------------------------------------
+        # make er_sites.txt
+        #---------------------------------------------
+        if update=='all' or 'sites' in update:
+            self.do_er_sites()
+        #print "sites took:", time.time() - last_time
+        #last_time = time.time()
+        
+
+        #---------------------------------------------
+        # make er_locations.txt
+        #---------------------------------------------
+
+        if update=='all' or 'locations' in update:
+            self.do_er_locations()
+        #print "locations took:", time.time() - last_time
+        #last_time = time.time()
+
+
+
+        #---------------------------------------------
+        # make er_ages.txt
+        #---------------------------------------------
+        if update=='all' or 'ages' in update:
+            self.do_er_ages()
+        #print "ages took:", time.time() - last_time
+        #last_time = time.time()
+
+        
+        #-----------------------------------------------------
+        # Fix magic_measurement with samples, sites and locations  
+        #-----------------------------------------------------
+
+        #print "in ErMagicBuilder on_okButton udpating magic_measurements.txt"
+        if update=='all' or 'measurements' in update:
+            self.do_magic_measurements()
+
+        #print "measurements took:", time.time() - last_time
+        #last_time = time.time()
+
+        
+        del wait
+        dlg1 = wx.MessageDialog(self,caption="Saved", message="MagIC Earth-Ref tables are saved in MagIC Project Directory!" ,style=wx.OK|wx.ICON_INFORMATION)
+        # is this dialog actually useful??
+        dlg1.ShowModal()
+        dlg1.Destroy()
+        #self.Destroy()
+        self.Hide()
+        #print "done on_ok_Button in ErMagicBuilder"
+
+
+    def on_cancelButton(self,event):
+        self.Destroy()
+
+    def on_helpButton(self, event):
+        #for use on the command line
+        path = check_updates.get_pmag_dir()
+        
+        # for use with pyinstaller:
+        #path = self.Parent.resource_dir
+        
+        html_frame = pw.HtmlFrame(self, page=(os.path.join(path, "help_files", "ErMagicHeadersHelp.html")))
+        html_frame.Center()
+        html_frame.Show()
+
+      
+    def read_magic_file(self,path,sort_by_this_name):
+        #print "doing ErMagic read_magic_file"
+        DATA={}
+        fin=open(path,'rU')
+        fin.readline()
+        line=fin.readline()
+        header=line.strip('\n').split('\t')
+        #print "path", path#,header
+        counter=0
+        for line in fin.readlines():
+            #print "line:", line
+            tmp_data={}
+            tmp_line=line.strip('\n').split('\t')
+            for i in range(len(header)):
+                if i < len(tmp_line):
+                    tmp_data[header[i]]=tmp_line[i]
+                else:
+                    tmp_data[header[i]]=""
+            if sort_by_this_name=="by_line_number":
+              DATA[counter]=tmp_data
+              counter+=1
+            else:
+              if tmp_data[sort_by_this_name]!="":  
+                DATA[tmp_data[sort_by_this_name]]=tmp_data
+        fin.close()   
+        return(DATA)
+
+    def converge_headers(self,old_recs):
+        # fix the headers of pmag recs
+        recs={}
+        recs=copy.deepcopy(old_recs)
+        headers=[]
+        for rec in recs:
+            for key in rec.keys():
+                if key not in headers:
+                    headers.append(key)
+        for rec in recs:
+            for header in headers:
+                if header not in rec.keys():
+                    rec[header]=""
+        return recs
+
+    def read_MagIC_info(self):
+        #print "read_MagIC_info in ErMagicBuilder.py"
+        Data_info={}
+        print "-I- read existing MagIC model files"
+        self.data_er_specimens,self.data_er_samples,self.data_er_sites,self.data_er_locations,self.data_er_ages={},{},{},{},{}
+
+        try:
+            self.data_er_specimens=self.read_magic_file(os.path.join(self.WD, "er_specimens.txt"),'er_specimen_name')
+        except:
+            #self.GUI_log.write ("-W- Cant find er_specimens.txt in project directory")
+            print "-W- Can't find er_specimens.txt in project directory"
+        try:
+            self.data_er_samples=self.read_magic_file(os.path.join(self.WD, "er_samples.txt"),'er_sample_name')
+        except:
+            #self.GUI_log.write ("-W- Cant find er_samples.txt in project directory")
+            print "-W- Can't find er_samples.txt in project directory"
+        try:
+            self.data_er_sites=self.read_magic_file(os.path.join(self.WD, "er_sites.txt"),'er_site_name')
+        except:
+            pass
+        try:
+            self.data_er_locations=self.read_magic_file(os.path.join(self.WD, "er_locations.txt"),'er_location_name')
+        except:
+            #self.GUI_log.write ("-W- Cant find er_sites.txt in project directory")
+            print "-W- Can't find er_sites.txt in project directory"
+        try:
+            self.data_er_ages=self.read_magic_file(os.path.join(self.WD, "er_ages.txt"),"er_site_name")
+        except:
+            try:
+                self.data_er_ages=self.read_magic_file(os.path.join(self.WD, "er_ages.txt"),"er_sample_name")
+            except:
+                print "-W- Can't find er_ages.txt in project directory"
+                pass
+
+
+    def get_data(self):
+        print 'calling get_data()'
+        #start_time = time.time()
+        Data={}
+        Data_hierarchy={}
+        Data_hierarchy['locations']={}
+        Data_hierarchy['sites']={}
+        Data_hierarchy['samples']={}
+        Data_hierarchy['specimens']={}
+        Data_hierarchy['sample_of_specimen']={} 
+        Data_hierarchy['site_of_specimen']={}   
+        Data_hierarchy['site_of_sample']={}   
+        Data_hierarchy['location_of_specimen']={}   
+        Data_hierarchy['location_of_sample']={}   
+        Data_hierarchy['location_of_site']={}   
+        try:
+            meas_data,file_type=pmag.magic_read(os.path.join(self.WD, "magic_measurements.txt"))
+        except:
+            print "-E- ERROR: Cant read magic_measurements.txt file. File is corrupted."
+            return {},{}
+
+        sids=pmag.get_specs(meas_data) # samples ID's
+
+        for s in sids:
+            if s not in Data.keys() and s!="" and s!=" ":
+                Data[s]={}
+        for rec in meas_data:
+            s=rec["er_specimen_name"]
+            if s=="" or s== " ":
+                continue
+            sample=rec["er_sample_name"]
+            site=rec["er_site_name"]
+            location=rec["er_location_name"]
+            if sample not in Data_hierarchy['samples'].keys():
+                Data_hierarchy['samples'][sample]=[]
+
+            if site not in Data_hierarchy['sites'].keys():
+                Data_hierarchy['sites'][site]=[]         
+
+            if location not in Data_hierarchy['locations'].keys():
+                Data_hierarchy['locations'][location]=[]         
+
+            if s not in Data_hierarchy['samples'][sample]:
+                Data_hierarchy['samples'][sample].append(s)
+
+            if sample not in Data_hierarchy['sites'][site]:
+                Data_hierarchy['sites'][site].append(sample)
+
+            if site not in Data_hierarchy['locations'][location]:
+                Data_hierarchy['locations'][location].append(site)
+
+            Data_hierarchy['specimens'][s]=sample
+            Data_hierarchy['sample_of_specimen'][s]=sample  
+            Data_hierarchy['site_of_specimen'][s]=site  
+            Data_hierarchy['site_of_sample'][sample]=site
+            Data_hierarchy['location_of_specimen'][s]=location 
+            Data_hierarchy['location_of_sample'][sample]=location 
+            Data_hierarchy['location_of_site'][site]=location 
+
+        #print 'get_data took:', time.time() - start_time
+        return(Data,Data_hierarchy)
+
+
+
+    def do_magic_measurements(self):
+        f_old=open(os.path.join(self.WD, "magic_measurements.txt"),'rU')
+        f_new=open(os.path.join(self.WD, "magic_measurements.new.tmp.txt"),'w')
+             
+        line=f_old.readline()
+        f_new.write(line)
+
+        line=f_old.readline()
+        header=line.strip("\n").split('\t')
+        f_new.write(line)
+
+        # if you want to make it possible to change specimen names, add that into this for loop
+        #print "self.data_er_specimens.keys()", self.data_er_specimens.keys()
+        #print "self.Data_hierarchy['specimens'].keys()", self.Data_hierarchy['specimens'].keys()
+
+        for line in f_old.readlines():
+            tmp_line=line.strip('\n').split('\t')
+            tmp={}
+            for i in range(len(header)):
+                if i>= len(tmp_line):
+                    tmp[header[i]]=""
+                else:
+                    tmp[header[i]]=tmp_line[i]
+            specimen=tmp["er_specimen_name"]
+            sample=tmp["er_sample_name"]
+            if specimen in  self.data_er_specimens.keys() and "er_sample_name" in self.data_er_specimens[specimen].keys():
+                if sample != self.data_er_specimens[specimen]["er_sample_name"]:
+                    sample=self.data_er_specimens[specimen]["er_sample_name"]
+                    tmp["er_sample_name"]=sample
+                                    
+            if sample in self.data_er_samples.keys() and "er_site_name" in self.data_er_samples[sample].keys() and self.data_er_samples[sample]["er_site_name"]!="":
+                tmp["er_site_name"]=self.data_er_samples[sample]["er_site_name"]
+            site=tmp["er_site_name"]
+            if site in self.data_er_sites.keys() and "er_location_name" in self.data_er_sites[site].keys() and self.data_er_sites[site]["er_location_name"]!="":
+                tmp["er_location_name"]=self.data_er_sites[site]["er_location_name"]
+
+            new_line=""
+            for i in range(len(header)):
+                new_line=new_line+tmp[header[i]]+"\t"
+            #print new_line
+            f_new.write(new_line[:-1]+"\n")
+        f_new.close()
+        f_old.close()
+
+        os.remove(os.path.join(self.WD, "magic_measurements.txt"))
+        os.rename(os.path.join(self.WD, "magic_measurements.new.tmp.txt"),os.path.join(self.WD, "magic_measurements.txt"))
+
+        
+    
+    def do_er_specimens(self):
+        # header
         er_specimens_file=open(os.path.join(self.WD, "er_specimens.txt"),'w')
         er_specimens_file.write("tab\ter_specimens\n")
         string=""
@@ -372,6 +574,10 @@ class MagIC_model_builder(wx.Frame):
           string=string+key+"\t"
         er_specimens_file.write(string[:-1]+"\n")
 
+        specimens_list=self.Data_hierarchy['sample_of_specimen'].keys()
+        specimens_list.sort()
+        #print "number of specimens", len(specimens_list)
+        
         for specimen in specimens_list:
           if  specimen in self.data_er_specimens.keys() and  "er_sample_name" in self.data_er_specimens[specimen].keys() and self.data_er_specimens[specimen]["er_sample_name"] != "":
                 sample=self.data_er_specimens[specimen]["er_sample_name"]   
@@ -423,12 +629,80 @@ class MagIC_model_builder(wx.Frame):
               string=string+"\t"
           er_specimens_file.write(string[:-1]+"\n")
         er_specimens_file.close()  
+    
+    def do_er_samples(self):
+        #header
+        #print 'do_er_samples'
+        er_samples_file=open(os.path.join(self.WD, "er_samples.txt"),'w')
+        er_samples_file.write("tab\ter_samples\n")
+        string=""
+        for key in self.er_samples_header:
+          string=string+key+"\t"
+        er_samples_file.write(string[:-1]+"\n")
 
-        #---------------------------------------------
-        # make er_sites.txt
-        #---------------------------------------------
+        samples_list=self.Data_hierarchy['samples'].keys()
+        samples_list = list(set(samples_list).union(self.data_er_samples.keys())) # uses samples from er_samples.txt even if they are not in the magic_measurements file
+        samples_list.sort()
+
+        #print "number of samples", len(samples_list)
 
 
+        for sample in samples_list:
+          #print sample,
+            if sample in self.data_er_samples.keys() and "er_site_name" in self.data_er_samples[sample].keys() and self.data_er_samples[sample]["er_site_name"] != "":
+                site=self.data_er_samples[sample]["er_site_name"]
+            elif sample in self.Data_hierarchy['site_of_sample'].keys():
+                site=self.Data_hierarchy['site_of_sample'][sample]
+            else:
+                site = "unknown"
+
+            string=""
+            for key in self.er_samples_header:
+
+
+              if key=="er_citation_names":
+                string=string+"This study"+"\t"
+
+              elif key=="er_sample_name":
+                string=string+sample+"\t"
+
+              elif key in ['er_site_name']:
+                  string=string+site+"\t"
+
+              elif key in ['er_location_name']:
+                  if site in self.data_er_sites.keys() and key in self.data_er_sites[site].keys():
+                      string=string+self.data_er_sites[site][key]+"\t"
+                  else:
+                      try:
+                          string=string+self.Data_hierarchy['location_of_sample'][sample]+"\t"
+                      except KeyError:
+                          string = string + "" + "\t"
+
+
+              # if er_samples.txt already has a value in a column, don't try to get it from er_sites.txt
+              elif sample in self.data_er_samples.keys() and key in self.data_er_samples[sample].keys() and self.data_er_samples[sample][key]!="":
+                  string=string+self.data_er_samples[sample][key]+"\t"
+
+              # try to take lat/lon from er_sites table
+              elif (key in ['sample_lon','sample_lat'] and sample in self.data_er_samples.keys()\
+                    and "er_site_name" in self.data_er_samples[sample].keys()\
+                    and self.data_er_samples[sample]['er_site_name'] in self.data_er_sites.keys()\
+                    and "site_"+key.split("_")[1] in self.data_er_sites[self.data_er_samples[sample]['er_site_name']].keys()):
+                string=string+self.data_er_sites[self.data_er_samples[sample]['er_site_name']]["site_"+key.split("_")[1]]+"\t"
+
+              elif key in ['sample_class','sample_lithology','sample_type']:
+                site_key="site_"+key.split('sample_')[1]
+                if (site in self.data_er_sites.keys() and site_key in self.data_er_sites[site] and self.data_er_sites[site][site_key]!=""):
+                      string=string+self.data_er_sites[site][site_key]+"\t"
+                      continue
+                else:
+                      string=string+'\t'                        
+              else:
+                string=string+"\t"
+            er_samples_file.write(string[:-1]+"\n")
+        er_samples_file.close()
+
+    def do_er_sites(self):
         #header
         er_sites_file=open(os.path.join(self.WD, "er_sites.txt"),'w')
         er_sites_file.write("tab\ter_sites\n")
@@ -443,14 +717,13 @@ class MagIC_model_builder(wx.Frame):
             if site not in sites_list:
                 sites_list.append(site)
 
+        #print "number of sites", len(sites_list)
         
         #for sample in self.data_er_samples.keys():
         #  if "er_site_name" in self.data_er_samples[sample].keys() and self.data_er_samples[sample]["er_site_name"] not in sites_list and self.data_er_samples[sample]["er_site_name"]!="":
         #    sites_list.append(self.data_er_samples[sample]["er_site_name"])
         sites_list.sort() 
         string=""  
-        site_lons=[]     
-        site_lats=[]     
         for site in sites_list:
           if site ==""  or site==" ":
               continue
@@ -476,21 +749,18 @@ class MagIC_model_builder(wx.Frame):
 
           if site in self.data_er_sites.keys() and 'site_lon' in self.data_er_sites[site].keys() and self.data_er_sites[site]['site_lon']!="":
               try:
-                    site_lons.append(float(self.data_er_sites[site]['site_lon']))
+                    self.site_lons.append(float(self.data_er_sites[site]['site_lon']))
               except:
                   pass
           if site in self.data_er_sites.keys() and 'site_lat' in self.data_er_sites[site].keys() and self.data_er_sites[site]['site_lat']!="":
               try:
-                    site_lats.append(float(self.data_er_sites[site]['site_lat']))
+                    self.site_lats.append(float(self.data_er_sites[site]['site_lat']))
               except:
                   pass
           er_sites_file.write(string[:-1]+"\n")
         er_sites_file.close()
-
-        #---------------------------------------------
-        # make er_locations.txt
-        #---------------------------------------------
-
+    
+    def do_er_locations(self):
         #header
         er_locations_file=open(os.path.join(self.WD, "er_locations.txt"),'w')
         er_locations_file.write("tab\ter_locations\n")
@@ -501,9 +771,18 @@ class MagIC_model_builder(wx.Frame):
 
         #data
         locations_list=self.data_er_locations.keys()
+        #print self.data_er_locations
+        #print "Number of locations", len(locations_list)
+
+        # these two methods are equally fast:
+        #locations_list = set(locations_list)
+        #locations_list.update(self.Data_hierarchy['locations'].keys())
+        #locations_list = list(locations_list)
+
         for location in self.Data_hierarchy['locations'].keys():
             if location not in locations_list:
                 locations_list.append(location)
+                
         #for site in self.data_er_sites.keys():
         #  if "er_location_name" in self.data_er_sites[site].keys() and self.data_er_sites[site]["er_location_name"] not in locations_list:
         #    locations_list.append(self.data_er_sites[site]["er_location_name"])
@@ -523,14 +802,14 @@ class MagIC_model_builder(wx.Frame):
             elif (location in self.data_er_locations.keys() and key in self.data_er_locations[location].keys() and self.data_er_locations[location][key]!=""):
                 string=string+self.data_er_locations[location][key]+"\t"
             elif key in ['location_begin_lon','location_end_lon','location_begin_lat','location_end_lat']:
-                if len(site_lons)>0 and key=='location_begin_lon':
-                    value="%f"%min(site_lons)
-                elif len(site_lons)>0 and key=='location_end_lon':
-                    value="%f"%max(site_lons)
-                elif len(site_lats)>0 and key=='location_begin_lat':
-                    value="%f"%min(site_lats)
-                elif len(site_lats)>0 and key=='location_end_lat':
-                    value="%f"%max(site_lats)
+                if len(self.site_lons)>0 and key=='location_begin_lon':
+                    value="%f"%min(self.site_lons)
+                elif len(self.site_lons)>0 and key=='location_end_lon':
+                    value="%f"%max(self.site_lons)
+                elif len(self.site_lats)>0 and key=='location_begin_lat':
+                    value="%f"%min(self.site_lats)
+                elif len(self.site_lats)>0 and key=='location_end_lat':
+                    value="%f"%max(self.site_lats)
                 else:
                     value=""
                 string=string+value+"\t"
@@ -539,12 +818,8 @@ class MagIC_model_builder(wx.Frame):
               string=string+"\t"
           er_locations_file.write(string[:-1]+"\n")
         er_locations_file.close()
-
-
-        #---------------------------------------------
-        # make er_ages.txt
-        #---------------------------------------------
-
+        
+    def do_er_ages(self):
         #header
         er_ages_file=open(os.path.join(self.WD, "er_ages.txt"),'w')
         er_ages_file.write("tab\ter_ages\n")
@@ -558,7 +833,9 @@ class MagIC_model_builder(wx.Frame):
         for site in self.Data_hierarchy['sites'].keys():
             if site not in sites_list:
                 sites_list.append(site)
-        sites_list.sort() 
+        sites_list.sort()
+
+        #print "number of site ages", len(sites_list)
         for site in sites_list:
           string=""
           for key in self.er_ages_header:
@@ -574,7 +851,7 @@ class MagIC_model_builder(wx.Frame):
             elif (key in ['er_location_name'] and site in self.data_er_sites.keys() \
                  and  key in self.data_er_sites[site] and self.data_er_sites[site][key]!=""):
               string=string+self.data_er_sites[site][key]+"\t"
-              
+
             # take information from the existing er_samples table             
             elif (site in self.data_er_ages.keys() and key in self.data_er_ages[site].keys() and self.data_er_ages[site][key]!=""):
                 string=string+self.data_er_ages[site][key]+"\t"
@@ -584,252 +861,9 @@ class MagIC_model_builder(wx.Frame):
           er_ages_file.write(string[:-1]+"\n")
 
         er_ages_file.close()
-        
-        #-----------------------------------------------------
-        # Fix magic_measurement with samples, sites and locations  
-        #-----------------------------------------------------
-
-        #print "in ErMagicBuilder on_okButton udpating magic_measurements.txt"
-        f_old=open(os.path.join(self.WD, "magic_measurements.txt"),'rU')
-        f_new=open(os.path.join(self.WD, "magic_measurements.new.tmp.txt"),'w')
-             
-        line=f_old.readline()
-        f_new.write(line)
-
-        line=f_old.readline()
-        header=line.strip("\n").split('\t')
-        f_new.write(line)
-
-        # if you want to make it possible to change specimen names, add that into this for loop
-        #print "self.data_er_specimens.keys()", self.data_er_specimens.keys()
-        #print "self.Data_hierarchy['specimens'].keys()", self.Data_hierarchy['specimens'].keys()
-        for line in f_old.readlines():
-            tmp_line=line.strip('\n').split('\t')
-            tmp={}
-            for i in range(len(header)):
-                if i>= len(tmp_line):
-                    tmp[header[i]]=""
-                else:
-                    tmp[header[i]]=tmp_line[i]
-            specimen=tmp["er_specimen_name"]
-            sample=tmp["er_sample_name"]
-            if specimen in  self.data_er_specimens.keys() and "er_sample_name" in self.data_er_specimens[specimen].keys():
-                if sample != self.data_er_specimens[specimen]["er_sample_name"]:
-                    sample=self.data_er_specimens[specimen]["er_sample_name"]
-                    tmp["er_sample_name"]=sample
-                                    
-            if sample in self.data_er_samples.keys() and "er_site_name" in self.data_er_samples[sample].keys() and self.data_er_samples[sample]["er_site_name"]!="":
-                tmp["er_site_name"]=self.data_er_samples[sample]["er_site_name"]
-            site=tmp["er_site_name"]
-            if site in self.data_er_sites.keys() and "er_location_name" in self.data_er_sites[site].keys() and self.data_er_sites[site]["er_location_name"]!="":
-                tmp["er_location_name"]=self.data_er_sites[site]["er_location_name"]
-
-            new_line=""
-            for i in range(len(header)):
-                new_line=new_line+tmp[header[i]]+"\t"
-            #print new_line
-            f_new.write(new_line[:-1]+"\n")
-        f_new.close()
-        f_old.close()
-
-        os.remove(os.path.join(self.WD, "magic_measurements.txt"))
-        os.rename(os.path.join(self.WD, "magic_measurements.new.tmp.txt"),os.path.join(self.WD, "magic_measurements.txt"))
-        
-
-                
-##        #---------------------------------------------
-##        # make er_locations.txt
-##        #---------------------------------------------
-##
-##        #header
-##        er_qges_file=open(os.path.join(self.WD, "er_ages.txt"),'w')
-##        er_ages_file.write("tab\ter_ages\n")
-##        string=""
-##        for key in self.er_ages_header:
-##          string=string+key+"\t"
-##        er_ages_file.write(string[:-1]+"\n")
-##
-##        #data
-##        ages_list=self.data_er_ages.keys()
-##        ages_list.sort()        
-##        for age in ages_list:
-##          string=""
-##          for key in self.er_locations_header:
-##            if key=="er_citation_names":
-##              string=string+"This study"+"\t"
-##            elif key=="er_location_name":
-##              string=string+location+"\t"
-##            elif (location in self.data_er_locations.keys() and key in self.data_er_locations[location].keys() and self.data_er_locations[location][key]!=""):
-##                string=string+self.data_er_locations[location][key]+"\t"
-##            else:
-##              string=string+"\t"
-##          er_locations_file.write(string[:-1]+"\n")
 
 
-        del wait
-        dlg1 = wx.MessageDialog(self,caption="Saved", message="MagIC Earth-Ref tables are saved in MagIC Project Directory!" ,style=wx.OK|wx.ICON_INFORMATION)
-        # is this dialog actually useful??
-        dlg1.ShowModal()
-        dlg1.Destroy()
-        #self.Destroy()
-        self.Hide()
-
-        #print "done on_ok_Button in ErMagicBuilder"
-
-
-    def on_cancelButton(self,event):
-        self.Destroy()
-
-    def on_helpButton(self, event):
-        #for use on the command line
-        path = check_updates.get_pmag_dir()
-        
-        # for use with pyinstaller:
-        #path = self.Parent.resource_dir
-        
-        html_frame = pw.HtmlFrame(self, page=(os.path.join(path, "help_files", "ErMagicHeadersHelp.html")))
-        html_frame.Center()
-        html_frame.Show()
-
-      
-    def read_magic_file(self,path,sort_by_this_name):
-        #print "doing ErMagic read_magic_file"
-        DATA={}
-        fin=open(path,'rU')
-        fin.readline()
-        line=fin.readline()
-        header=line.strip('\n').split('\t')
-        #print "path", path#,header
-        counter=0
-        for line in fin.readlines():
-            #print "line:", line
-            tmp_data={}
-            tmp_line=line.strip('\n').split('\t')
-            for i in range(len(header)):
-                if i < len(tmp_line):
-                    tmp_data[header[i]]=tmp_line[i]
-                else:
-                    print header[i]
-                    tmp_data[header[i]]=""
-            if sort_by_this_name=="by_line_number":
-              DATA[counter]=tmp_data
-              counter+=1
-            else:
-              if tmp_data[sort_by_this_name]!="":  
-                DATA[tmp_data[sort_by_this_name]]=tmp_data
-        fin.close()   
-        return(DATA)
-
-    def converge_headers(self,old_recs):
-        # fix the headers of pmag recs
-        recs={}
-        recs=copy.deepcopy(old_recs)
-        headers=[]
-        for rec in recs:
-            for key in rec.keys():
-                if key not in headers:
-                    headers.append(key)
-        for rec in recs:
-            for header in headers:
-                if header not in rec.keys():
-                    rec[header]=""
-        return recs
-
-    def read_MagIC_info(self):
-        #print "read_MagIC_info in ErMagicBuilder.py"
-        Data_info={}
-        print "-I- read existing MagIC model files"
-        self.data_er_specimens,self.data_er_samples,self.data_er_sites,self.data_er_locations,self.data_er_ages={},{},{},{},{}
-
-        try:
-            self.data_er_specimens=self.read_magic_file(os.path.join(self.WD, "er_specimens.txt"),'er_specimen_name')
-        except:
-            #self.GUI_log.write ("-W- Cant find er_samples.txt in project directory")
-            print "-W- Cant find er_samples.txt in project directory"
-        try:
-            self.data_er_samples=self.read_magic_file(os.path.join(self.WD, "er_samples.txt"),'er_sample_name')
-        except:
-            #self.GUI_log.write ("-W- Cant find er_sample.txt in project directory")
-            print "-W- Cant find er_sample.txt in project directory"
-        try:
-            self.data_er_sites=self.read_magic_file(os.path.join(self.WD, "er_sites.txt"),'er_site_name')
-        except:
-            pass
-        try:
-            self.data_er_locations=self.read_magic_file(os.path.join(self.WD, "er_locations.txt"),'er_location_name')
-        except:
-            #self.GUI_log.write ("-W- Cant find er_sites.txt in project directory")
-            print "-W- Cant find er_sites.txt in project directory"
-        try:
-            self.data_er_ages=self.read_magic_file(os.path.join(self.WD, "er_ages.txt"),"er_site_name")
-        except:
-            try:
-                self.data_er_ages=self.read_magic_file(os.path.join(self.WD, "er_ages.txt"),"er_sample_name")
-            except:
-                print "-W- Cant find er_ages.txt in project directory"
-                pass
-
-
-    def get_data(self):
-      Data={}
-      Data_hierarchy={}
-      Data_hierarchy['locations']={}
-      Data_hierarchy['sites']={}
-      Data_hierarchy['samples']={}
-      Data_hierarchy['specimens']={}
-      Data_hierarchy['sample_of_specimen']={} 
-      Data_hierarchy['site_of_specimen']={}   
-      Data_hierarchy['site_of_sample']={}   
-      Data_hierarchy['location_of_specimen']={}   
-      Data_hierarchy['location_of_sample']={}   
-      Data_hierarchy['location_of_site']={}   
-      try:
-          meas_data,file_type=pmag.magic_read(os.path.join(self.WD, "magic_measurements.txt"))
-      except:
-          print "-E- ERROR: Cant read magic_measurement.txt file. File is corrupted."
-          return {},{}
-         
-      sids=pmag.get_specs(meas_data) # samples ID's
-      
-      for s in sids:
-          if s not in Data.keys() and s!="" and s!=" ":
-              Data[s]={}
-      for rec in meas_data:
-          s=rec["er_specimen_name"]
-          if s=="" or s== " ":
-              continue
-          sample=rec["er_sample_name"]
-          site=rec["er_site_name"]
-          location=rec["er_location_name"]
-          if sample not in Data_hierarchy['samples'].keys():
-              Data_hierarchy['samples'][sample]=[]
-
-          if site not in Data_hierarchy['sites'].keys():
-              Data_hierarchy['sites'][site]=[]         
-
-          if location not in Data_hierarchy['locations'].keys():
-              Data_hierarchy['locations'][location]=[]         
-          
-          if s not in Data_hierarchy['samples'][sample]:
-              Data_hierarchy['samples'][sample].append(s)
-
-          if sample not in Data_hierarchy['sites'][site]:
-              Data_hierarchy['sites'][site].append(sample)
-
-          if site not in Data_hierarchy['locations'][location]:
-              Data_hierarchy['locations'][location].append(site)
-
-          Data_hierarchy['specimens'][s]=sample
-          Data_hierarchy['sample_of_specimen'][s]=sample  
-          Data_hierarchy['site_of_specimen'][s]=site  
-          Data_hierarchy['site_of_sample'][sample]=site
-          Data_hierarchy['location_of_specimen'][s]=location 
-          Data_hierarchy['location_of_sample'][sample]=location 
-          Data_hierarchy['location_of_site'][site]=location 
-          
-      return(Data,Data_hierarchy)
-
-    
+  
             
 class HtmlWindow(wx.html.HtmlWindow):
     def OnLinkClicked(self, link):
@@ -842,6 +876,10 @@ class MyHtmlPanel(wx.Frame):
         html.LoadPage(HTML)  
         #self.Show()
 
+
+
+
+        
 
 #class HtmlWindow(wx.html.HtmlWindow,id):
 #    def __init__(self, parent):
@@ -865,3 +903,4 @@ class MyHtmlPanel(wx.Frame):
 #        sizer.Fit(self)
 #        panel.SetSizer(sizer)
                
+

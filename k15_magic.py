@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 #
 import sys,pmag,copy
+import os
 def main():
     """
     NAME
@@ -53,7 +54,6 @@ def main():
     specnum=0
     sampfile, measfile="er_samples.txt","k15_measurements.txt"
     anisfile='rmag_anisotropy.txt'
-    resfile='rmag_results.txt'
     syn=0
     er_location_name="unknown"
     inst="unknown"
@@ -83,7 +83,8 @@ def main():
         measfile=sys.argv[ind+1] 
     if '-Fsa' in sys.argv:
         ind=sys.argv.index('-Fsa')
-        sampfile=sys.argv[ind+1] 
+        sampfile=sys.argv[ind+1]
+    resfile = pmag.get_named_arg_from_sys('-Fr', 'rmag_results.txt')
     if '-Fa' in sys.argv:
         ind=sys.argv.index('-Fa')
         anisfile=sys.argv[ind+1] 
@@ -106,10 +107,11 @@ def main():
                 samp_con="4"
         if samp_con=='6':
             Samps,filetype=pmag.magic_read(dirpath+'/er_samples.txt')
-    sampfile, measfile = output_dir_path+'/'+sampfile, output_dir_path+'/'+measfile
-    anisfile= output_dir_path+'/'+anisfile
-    resfile= output_dir_path+'/'+resfile
-    k15file = input_dir_path + '/' + k15file
+    sampfile = os.path.join(output_dir_path, sampfile)
+    measfile= os.path.join(output_dir_path, measfile)
+    anisfile= os.path.join(output_dir_path, anisfile)
+    resfile= os.path.join(output_dir_path, resfile)
+    k15file = os.path.join(input_dir_path, k15file)
     try:
         SampRecs,filetype=pmag.magic_read(sampfile) # append new records to existing
         samplist=[]
@@ -138,7 +140,7 @@ def main():
                 SampRec["magic_method_codes"]=""
                 AnisRec["magic_method_codes"]=""
                 SiteRec["magic_method_codes"]=""
-                ResRec["magic_smethod_codes"]=""
+                ResRec["magic_method_codes"]=""
                 MeasRec["magic_software_packages"]=version_num
                 SpecRec["magic_software_packages"]=version_num
                 SampRec["magic_software_packages"]=version_num
