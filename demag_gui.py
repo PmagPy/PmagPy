@@ -4,6 +4,8 @@
 # LOG HEADER:
 #============================================================================================
 #
+#Demag_GUI Version 0.31 added multiple fits and fisher stats by Kevin Gaastra (03/22/2015)
+
 # Demag_GUI Version 0.30 fix backward compatibility with strange pmag_speciemns.txt 01/29/2015
 #
 # Demag_GUI Version 0.29 fix on_close_event 23/12/2014
@@ -783,7 +785,7 @@ class Zeq_GUI(wx.Frame):
             self.zijblock=self.Data[self.s]['zijdblock_tilt']
         else:
             #self.CART_rot=self.Data[self.s]['zij_rotated']
-            self.zij=array(self.Data[self.s]['zdata'])        
+            self.zij=array(self.Data[self.s]['zdata'])
             self.zijblock=self.Data[self.s]['zijdblock']
 
         if self.COORDINATE_SYSTEM=='geographic':
@@ -832,8 +834,8 @@ class Zeq_GUI(wx.Frame):
         # remove bad data from plotting:     
         #-----------------------------------------------------------
         
-        self.CART_rot_good=[]   
-        self.CART_rot_bad=[]   
+        self.CART_rot_good=[]
+        self.CART_rot_bad=[]
         for i in range(len(list(self.CART_rot))):
             if self.Data[self.s]['measurement_flag'][i]=='g':
                 self.CART_rot_good.append(list(self.CART_rot[i]))
@@ -1669,15 +1671,15 @@ class Zeq_GUI(wx.Frame):
         TXT="measurement good or bad data is saved in magic_measurements.txt file"
         dlg = wx.MessageDialog(self, caption="Saved",message=TXT,style=wx.OK)
         result = dlg.ShowModal()
-        if result == wx.ID_OK:            
+        if result == wx.ID_OK:
             dlg.Destroy()
 
         if 'specimens' in self.pmag_results_data.keys() and str(self.s) in self.pmag_results_data['specimens'].keys():
-            del(self.pmag_results_data['specimens'][str(self.s)])
+            self.pmag_results_data['specimens'][str(self.s)] = []
 
         self.current_fit.pars={}
         # read again the data
-        self.Data,self.Data_hierarchy=self.get_data() #
+        self.Data,self.Data_hierarchy=self.get_data()
         self.calculate_higher_levels_data()
         self.update_pmag_tables()
         self.update_selection()
@@ -1888,8 +1890,25 @@ class Zeq_GUI(wx.Frame):
                 # intercpet from the center of mass
                 intercept_xy_PCA=-1*CM_y - slop_xy_PCA*CM_x
                 intercept_xz_PCA=-1*CM_z - slop_xz_PCA*CM_x
-        
-                xx=array([self.CART_rot_good[:,0][tmax_index],self.CART_rot_good[:,0][tmin_index]])
+
+                #Work around to prevent indexing error due to the removal of items from self.CART_rot_good and not from self.Data[self.s]['zijdblock_steps']
+#                if self.CART_rot_bad.any() and tmax_index >= len(self.CART_rot_good[:,0]):
+#                    gmax_index = tmax_index - len(self.CART_rot_bad[:,0])
+#                    gmin_index = tmin_index - len(self.CART_rot_bad[:,0])
+#                else:
+#                    gmax_index = tmax_index
+#                    gmin_index = tmin_index
+
+#                try:
+#                    print(self.CART_rot[:,0][tmax_index] == self.CART_rot_good[:,0][tmax_index])
+#                    print(self.CART_rot[:,0][tmin_index] == self.CART_rot_good[:,0][tmin_index])
+#                except IndexError: print('out of bounds')
+
+#                if not self.CART_rot_good[:,0][tmax_index]:
+#                    print('-W- Invalid bounds skipping plotting ' + fit.names)
+#                    continue
+
+                xx=array([self.CART_rot[:,0][tmax_index],self.CART_rot[:,0][tmin_index]])
                 yy=slop_xy_PCA*xx+intercept_xy_PCA
                 zz=slop_xz_PCA*xx+intercept_xz_PCA
 
@@ -4187,6 +4206,7 @@ class Fit():
     def put(self,coordinate_system,new_pars):
         if 'measurement_step_min' not in new_pars.keys() or 'measurement_step_max' not in new_pars.keys():
             print("-E- invalid parameters cannot assign to fit")
+            return
         self.tmin = new_pars['measurement_step_min']
         self.tmax = new_pars['measurement_step_max']
         if self.tmin == 0:
