@@ -138,7 +138,7 @@ def main():
     pmagplotlib.plotVs(PLTS['cdf'],[Inc],'g','-')
     pmagplotlib.plotVs(PLTS['cdf'],[Io],'k','-')
     if plot==0:
-        drawFIGS(PLTS)
+        pmatplotlib.drawFIGS(PLTS)
         print "Io Inc  I_lower, I_upper, Elon, E_lower, E_upper"
         print '%7.1f %s %7.1f _ %7.1f ^ %7.1f:  %6.4f _ %6.4f ^ %6.4f' %(Io, " => ", Inc, I[lower],I[upper], Elong, E[lower],E[upper])
         ans= raw_input("S[a]ve plots - <return> to quit:  ")
