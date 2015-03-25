@@ -4,11 +4,12 @@ python:
     #  - "2.6" # fails because of discover
     # command to install dependencies, e.g. pip install -r requirements.txt --use-mirrors
 before_install:
-  - sudo apt-get install python-scipy python-tk python-matplotlib # python-mpl_basemap doesn't work
+  - sudo apt-get update -qq  # make sure package indexes are up to date
+  - sudo apt-get install -y python-scipy python-tk python-matplotlib # python-mpl_basemap doesn't work
 
   # try to install brew:
   #- ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
-  - mkdir homebrew && curl -L https://github.com/Homebrew/homebrew/tarball/master | tar xz --strip 1 -C homebrew  
+  #- mkdir homebrew && curl -L https://github.com/Homebrew/homebrew/tarball/master | tar xz --strip 1 -C homebrew  
   - brew install wxpython
 
   
