@@ -25,7 +25,7 @@ class MagMainFrame(wx.Frame):
         
         self.FIRST_RUN=True
         wx.Frame.__init__(self, None, wx.ID_ANY, self.title)
-        self.panel = wx.Panel(self)
+        self.panel = wx.Panel(self, name='main_panel')
         self.InitUI()
         
         # for use as module:

@@ -18,16 +18,22 @@ class TestBasic(unittest.TestCase):
         self.frame.Destroy()
 
     def test_fake(self):
-        print self.frame
         self.assertEqual(1, 1)
 
     def test_next(self):
         self.assertFalse(False)
 
     def test_event(self):
-        for each in self.frame.GetChildren():
-            for child in each.GetChildren():
-                print 'child', child
+        print 'self.frame:', self.frame
+        pnl = self.frame.GetChildren()[0]
+        print 'pnl.GetName', pnl.GetName()
+        print 'pnl.IsEnabled', pnl.IsEnabled()
+        print 'pnl.GetId', pnl.GetId()
+        children = pnl.GetChildren()
+        print 'types of children'
+        for child in children:
+            print type(child)
+        self.assertTrue(pnl.IsEnabled)
 
 
 

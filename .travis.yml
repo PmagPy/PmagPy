@@ -6,6 +6,12 @@ python:
 before_install:
   - sudo apt-get install python-scipy python-tk python-matplotlib # python-mpl_basemap doesn't work
   # try to get wxpython
+
+  - sudo apt-get update -qq
+  - sudo apt-get install -qq libgtk2.0-dev libgtkglextmm-x11-1.2-dev libgtkmm-2.4-dev
+  - sudo apt-get install python-dev
+  - sudo apt-get install libboost-python-dev libboost-signals-dev
+  - sudo apt-get install libgstreamer0.10-dev libgstreamer-plugins-base0.10-dev
   - wget http://sourceforge.net/projects/wxpython/files/wxPython/2.9.4.0/wxPython-src-2.9.4.0.tar.bz2
   - tar xf wxPython-src-2.9.4.0.tar.bz2
   - cd wxPython-src-2.9.4.0/
