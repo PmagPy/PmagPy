@@ -9,7 +9,11 @@ import ipmag
 class TestIGRF(unittest.TestCase):
 
     def setUp(self):
-        pass
+        print '!!!', os.listdir(os.getcwd())
+        print os.path.join(os.getcwd(), 'unittests')
+        print 'exits?', os.path.exists(os.path.join(os.getcwd(), 'unittests'))
+        print '!!!', os.listdir(os.path.join(os.getcwd(), 'unittests'))
+
         #print 'setting up'
 
     def test_igrf_output(self):
@@ -31,7 +35,6 @@ class TestUploadMagic(unittest.TestCase):
 
     def test_with_invalid_files(self):
         outfile, error_message = ipmag.upload_magic(dir_path=os.path.join(self.dir_path, 'my_project_with_errors'))
-        print '!!', os.getcwd()
         self.assertFalse(outfile)
         self.assertEqual(error_message, "file validation has failed.  You may run into problems if you try to upload this file.")
 
