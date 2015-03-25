@@ -3,5 +3,28 @@
 import unittest
 import sys
 import os
+import wx
 import numpy as np
 import ipmag
+import QuickMagIC as qm
+
+class TestBasic(unittest.TestCase):
+
+    def setUp(self):
+        self.app = wx.PySimpleApp()
+        self.frame = qm.MagMainFrame()
+
+    def tearDown(self):
+        self.frame.Destroy()
+
+    def test_fake(self):
+        print self.frame
+        self.assertEqual(1, 1)
+
+    def test_next(self):
+        self.assertFalse(False)
+
+
+if __name__ == '__main__':
+    unittest.main()
+            
