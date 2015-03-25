@@ -34,10 +34,10 @@ class Arai_GUI():
     """
     title = "PmagPy Thellier GUI %s"%CURRENT_VRSION
     
-    def __init__(self, magic_file = "magic_measurements.txt", WD = "/Users/nebula/Python/SPD_project"):
+    def __init__(self, magic_file = "magic_measurements.txt", WD = "."):
 #        print " calling __init__ Arai_gui instance"
 #        self.redo_specimens={}
-        self.currentDirectory = "/Users/nebula/Python/SPD_project"
+
         self.WD = WD
  #       accept_new_parameters_default,accept_new_parameters_null=self.get_default_criteria()    # inialize Null selecting criteria
 #        self.accept_new_parameters_null=accept_new_parameters_null

@@ -11,7 +11,7 @@ import sys
 #from SPD_project import spd
 import SPD.lib.lib_arai_plot_statistics as lib_arai
 import SPD.spd as spd
-from SPD.test_instance import spec, SCAT_spec, SCAT_spec2 # pre-made, ready to go PintPars object
+from SPD.test_instance import example, SCAT_spec, SCAT_spec2 # pre-made, ready to go PintPars object
 
 import known_values
 
@@ -69,7 +69,7 @@ import known_values
 #            self.assertIsNotNone(value)
             
 class CheckInitialAttributeValues(unittest.TestCase):
-    obj = copy.deepcopy(spec)
+    obj = copy.deepcopy(example)
     obj_attributes = {'s':obj.s, 'datablock': obj.datablock, 'x_Arai': obj.x_Arai, 'y_Arai': obj.y_Arai, 't_Arai': obj.t_Arai, 'x_Arai_segment': obj.x_Arai_segment, 'y_Arai_segment': obj.y_Arai_segment, "x_Arai_mean": obj.x_Arai_mean, "y_Arai_mean": obj.y_Arai_mean, "x_tail_check": obj.x_tail_check, 'y_tail_check': obj.y_tail_check, 'tail_checks_temperatures': obj.tail_checks_temperatures, 'tail_checks_starting_temperatures': obj.tail_checks_starting_temperatures, 'x_ptrm_check': obj.x_ptrm_check, 'y_ptrm_check': obj.y_ptrm_check, 'ptrm_checks_temperatures': obj.ptrm_checks_temperatures, 'ptrm_checks_starting_temperatures': obj.ptrm_checks_starting_temperatures, 'zijdblock': obj.zijdblock, 'z_temperatures': obj.z_temperatures, 'start': obj.start, 'end': obj.end, 'pars': obj.pars, 'specimen_Data': obj.specimen_Data, 'tmin': obj.tmin, 'tmax': obj.tmax, 'tmin_K': obj.tmin_K, 'tmax_K': obj.tmax_K} 
     known_values = known_values.initial_values
 
@@ -94,7 +94,7 @@ class CheckInitialAttributeValues(unittest.TestCase):
 
 class CheckYorkRegression(unittest.TestCase):
     
-    obj = copy.deepcopy(spec)
+    obj = copy.deepcopy(example)
     obj.York_Regression()
     known_values = known_values.York_Regression_values
     obj_pars = obj.pars
@@ -119,7 +119,7 @@ class CheckYorkRegression(unittest.TestCase):
 
 class CheckVDSsequence(unittest.TestCase): # adequate
 
-    obj = copy.deepcopy(spec)
+    obj = copy.deepcopy(example)
     obj.York_Regression()
     result = obj.get_vds()
 #    stuff['vds'] = -.1
@@ -149,7 +149,7 @@ class CheckVDSsequence(unittest.TestCase): # adequate
 
 
 class CheckSCAT(unittest.TestCase): # NOT DONE
-    obj = copy.deepcopy(spec)
+    obj = copy.deepcopy(example)
     b = -1.
     slope_err_threshold = .25
     x_mean, y_mean = 3, 2
@@ -242,8 +242,8 @@ class CheckSCAT(unittest.TestCase): # NOT DONE
 
 class CheckFrac(unittest.TestCase): # basically good to go
 
-    #print spec.pars
-    obj = copy.deepcopy(spec)
+    #print example.pars
+    obj = copy.deepcopy(example)
     obj.pars['specimen_vds'] = 2
     obj.pars['vector_diffs_segment'] = [1., 1.5, 3.]
     # trying it a little differently:
@@ -270,7 +270,7 @@ class CheckFrac(unittest.TestCase): # basically good to go
     
 
 class CheckR_corr2(unittest.TestCase):
-    obj = copy.deepcopy(spec)
+    obj = copy.deepcopy(example)
     R_corr2 = obj.get_R_corr2()
     x_segment, y_segment = numpy.array([1., 5., 9.]), numpy.array([0., 2., 7.])
     x_avg = sum(x_segment) / len(x_segment)
@@ -317,7 +317,7 @@ class CheckZigzag(unittest.TestCase):
 
     Z_star = 113.33333333333333
 #    Z_star = 88.
-    obj = copy.deepcopy(spec)
+    obj = copy.deepcopy(example)
     obj.x_Arai, obj.y_Arai = x, y
     obj.pars['specimen_YT'], obj.pars['specimen_XT'] = y_int, x_int
     obj.pars['specimen_b'], obj.n = slope, n

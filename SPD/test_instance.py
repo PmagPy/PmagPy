@@ -18,9 +18,9 @@ calculate = ['int_n', 'frac', 'fvds', 'b_sigma', 'b_beta', 'scat', 'g', 'k', 'k_
 
 gui = tgs.Arai_GUI('/magic_measurements.txt', main_dir)
 specimens = gui.Data.keys()
-spec = spd.PintPars(gui.Data, '0238x6011044', 473., 623., 'magic', calculate)
-spec.calculate_all_statistics()
-PintPars_example = spec
+example = spd.PintPars(gui.Data, '0238x6011044', 473., 623., 'magic', calculate)
+example.calculate_all_statistics()
+PintPars_example = example
 
 def make_specimens(calculate=calculate):
     for stat in calculate:
