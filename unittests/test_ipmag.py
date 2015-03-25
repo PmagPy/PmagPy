@@ -13,6 +13,10 @@ class TestIGRF(unittest.TestCase):
         print os.path.join(os.getcwd(), 'unittests')
         print 'exits?', os.path.exists(os.path.join(os.getcwd(), 'unittests'))
         print '!!!', os.listdir(os.path.join(os.getcwd(), 'unittests'))
+        print os.path.join(os.getcwd(), 'unittests', 'examples')
+        print 'exists?', os.path.exists(os.path.join(os.getcwd(), 'unittests', 'examples'))
+        print os.path.join(os.getcwd(), 'unittests', 'examples', 'empty_dir')
+        print 'exists?', os.path.exists(os.path.join(os.getcwd(), 'unittests', 'examples', 'empty_dir'))
 
         #print 'setting up'
 
