@@ -24,6 +24,12 @@ class TestBasic(unittest.TestCase):
     def test_next(self):
         self.assertFalse(False)
 
+    def test_event(self):
+        for each in self.frame.GetChildren():
+            for child in each.GetChildren():
+                print 'child', child
+
+
 
 if __name__ == '__main__':
     unittest.main()
