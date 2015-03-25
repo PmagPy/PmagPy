@@ -23,17 +23,17 @@ class TestBasic(unittest.TestCase):
     def test_next(self):
         self.assertFalse(False)
 
-    def test_event(self):
-        print 'self.frame:', self.frame
+    def test_main_panel_is_created(self):
         pnl = self.frame.GetChildren()[0]
-        print 'pnl.GetName', pnl.GetName()
-        print 'pnl.IsEnabled', pnl.IsEnabled()
-        print 'pnl.GetId', pnl.GetId()
         children = pnl.GetChildren()
         print 'types of children'
         for child in children:
             print type(child)
         self.assertTrue(pnl.IsEnabled)
+        self.assertEqual('quickmagic main panel', pnl.GetName())
+
+    def test_click_import_button(self):
+        pass
 
 
 
