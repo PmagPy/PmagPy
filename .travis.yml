@@ -6,7 +6,7 @@ python:
 before_install:
   - sudo apt-get install python-scipy python-tk python-matplotlib # python-mpl_basemap doesn't work
 
-  # install brew:
+  # try to install brew:
   #- ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
   - mkdir homebrew && curl -L https://github.com/Homebrew/homebrew/tarball/master | tar xz --strip 1 -C homebrew  
   - brew install wxpython
@@ -44,10 +44,4 @@ install:
   - pip install scripttest
   # command to run tests, e.g. python setup.py test
 script:
-  #python fake_test.py
-  #- ./tester.sh # now edited so that it fails if any exit code is > 0
-  #- python Command_line_Tests/fake_test.py
-  #- python Command_line_Tests/Rename_me.py -r igrf # causes build to fail
-  #- echo igrf $?
-  #- python Command_line_Tests/Rename_me.py # works! but need to fix and figure out tests (doesn't fail appropriately)
-  - python -m unittest discover # works! 
+  - python -m unittest discover
