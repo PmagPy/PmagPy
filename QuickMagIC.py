@@ -103,7 +103,7 @@ class MagMainFrame(wx.Frame):
         bSizer1 = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY, "Import MagIC formatted data to working directory" ), wx.HORIZONTAL )
         
         TEXT="1. convert magnetometer files to MagIC format"
-        self.btn1=buttons.GenButton(self.panel, id=-1, label=TEXT,size=(450, 50))        
+        self.btn1=buttons.GenButton(self.panel, id=-1, label=TEXT,size=(450, 50),name='step 1')        
         self.btn1.SetBackgroundColour("#FDC68A")
         self.btn1.InitColours()
         self.Bind(wx.EVT_BUTTON, self.on_convert_file,self.btn1)

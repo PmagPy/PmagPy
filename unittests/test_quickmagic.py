@@ -13,6 +13,7 @@ class TestBasic(unittest.TestCase):
     def setUp(self):
         self.app = wx.PySimpleApp()
         self.frame = qm.MagMainFrame()
+        self.pnl = self.frame.GetChildren()[0]
 
     def tearDown(self):
         self.frame.Destroy()
@@ -24,16 +25,23 @@ class TestBasic(unittest.TestCase):
         self.assertFalse(False)
 
     def test_main_panel_is_created(self):
-        pnl = self.frame.GetChildren()[0]
-        children = pnl.GetChildren()
-        print 'types of children'
-        for child in children:
-            print type(child)
-        self.assertTrue(pnl.IsEnabled)
-        self.assertEqual('quickmagic main panel', pnl.GetName())
+        self.assertTrue(self.pnl.IsEnabled)
+        self.assertEqual('quickmagic main panel', self.pnl.GetName())
 
     def test_click_import_button(self):
-        pass
+        children = self.pnl.GetChildren()
+        print 'types of children'
+        for child in children:
+            print 'type:', type(child)
+            print 'name:', child.GetName()
+            if child.GetName() == 'step 1':
+                import_btn = child
+                break
+        event = wx.CommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, import_btn.GetId())
+        import_btn.GetEventHandler().ProcessEvent(event)
+        # make sure the proper window gets created
+            
+
 
 
 

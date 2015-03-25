@@ -6,9 +6,10 @@ python:
 before_install:
   - sudo apt-get install python-scipy python-tk python-matplotlib # python-mpl_basemap doesn't work
 
-  - brew install wxpython
   # install brew:
-  #- ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+  - ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+  - brew install wxpython
+
   
   # try to get wxpython
 
