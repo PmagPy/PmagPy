@@ -10,6 +10,7 @@ before_install:
   # try to install brew:
   #- ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
   #- mkdir homebrew && curl -L https://github.com/Homebrew/homebrew/tarball/master | tar xz --strip 1 -C homebrew
+  - which brew
   - brew update
   - brew install wxpython
 

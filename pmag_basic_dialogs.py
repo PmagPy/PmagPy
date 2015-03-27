@@ -18,7 +18,7 @@ import check_updates
 
 class import_magnetometer_data(wx.Dialog):
     def __init__(self,parent,id,title,WD):
-        wx.Dialog.__init__(self, parent, id, title)
+        wx.Dialog.__init__(self, parent, id, title, name='import_magnetometer_data')
         self.WD=WD
         self.InitUI()
         self.SetTitle(title)

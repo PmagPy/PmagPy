@@ -8,6 +8,11 @@ import numpy as np
 import ipmag
 import QuickMagIC as qm
 
+
+
+
+
+
 class TestBasic(unittest.TestCase):
 
     def setUp(self):
@@ -16,32 +21,71 @@ class TestBasic(unittest.TestCase):
         self.pnl = self.frame.GetChildren()[0]
 
     def tearDown(self):
-        self.frame.Destroy()
-
-    def test_fake(self):
-        self.assertEqual(1, 1)
-
-    def test_next(self):
-        self.assertFalse(False)
+        #self.frame.Destroy() # this does not work and causes strange errors
+        self.app.Destroy()
 
     def test_main_panel_is_created(self):
+        """
+        test for existence of main panel
+        """
         self.assertTrue(self.pnl.IsEnabled)
         self.assertEqual('quickmagic main panel', self.pnl.GetName())
 
-    def test_click_import_button(self):
-        children = self.pnl.GetChildren()
-        print 'types of children'
-        for child in children:
-            print 'type:', type(child)
-            print 'name:', child.GetName()
-            if child.GetName() == 'step 1':
-                import_btn = child
-                break
-        event = wx.CommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, import_btn.GetId())
-        import_btn.GetEventHandler().ProcessEvent(event)
-        # make sure the proper window gets created
-            
+    def test_click_button_one(self):
+        """
+        make sure import window is created when user clicks btn 1
+        """
+        window = self.does_window_exist('step 1', 'import_magnetometer_data')
+        self.assertTrue(window)
 
+    def test_click_button_two(self):
+        """
+        make sure orientation_magic window is created when user clicks btn 2
+        """
+        window = self.does_window_exist('step 2', 'calculate geographic directions')
+        self.assertTrue(window)
+
+    def test_click_button_three(self):
+        """
+        make sure ErMagicBuilder window is created when user clicks btn 3
+        """
+        window = self.does_window_exist('step 3', 'ErMagicBuilder')
+        self.assertTrue(window)
+
+    def test_click_demag_gui(self):
+        """
+        make sure demag_gui window is created when users clicks btn
+        """
+        window = self.does_window_exist('demag gui', 'demag gui')
+        self.assertTrue(window)
+
+    def test_click_thellier_gui(self):
+        """
+        make sure thellier_gui window is created when users clicks btn
+        """
+        window = self.does_window_exist('thellier gui', 'thellier gui')
+        self.assertTrue(window)
+    
+    def does_window_exist(self, btn_name, window_name):
+        btn, window = None, None
+        pnl_children = self.pnl.GetChildren()
+        for child in pnl_children:
+            if child.GetName() == btn_name:
+                btn = child
+                break
+        if not btn:
+            return None
+        event = wx.CommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, btn.GetId())
+        btn.GetEventHandler().ProcessEvent(event)
+        frame_children = self.frame.GetChildren()
+        for child in frame_children:
+            if child.GetName() == window_name:
+                window = child
+                break
+        if not window:
+            return None
+        else:
+            return window
 
 
 

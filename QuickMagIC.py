@@ -108,12 +108,12 @@ class MagMainFrame(wx.Frame):
         self.btn1.InitColours()
         self.Bind(wx.EVT_BUTTON, self.on_convert_file,self.btn1)
         TEXT="2. (optional) calculate geographic/tilt-corrected directions"
-        self.btn2 =buttons.GenButton(self.panel, id=-1, label=TEXT,size=(450, 50))
+        self.btn2 =buttons.GenButton(self.panel, id=-1, label=TEXT,size=(450, 50), name='step 2')
         self.btn2.SetBackgroundColour("#FDC68A")
         self.btn2.InitColours()
         self.Bind(wx.EVT_BUTTON, self.on_orientation_button,self.btn2)
         TEXT="3. fill Earth-Ref data using EarthRef Magic-Builder "
-        self.btn3 =buttons.GenButton(self.panel, id=-1, label=TEXT,size=(450, 50))
+        self.btn3 =buttons.GenButton(self.panel, id=-1, label=TEXT,size=(450, 50), name='step 3')
         self.btn3.SetBackgroundColour("#FDC68A")
         self.btn3.InitColours()
         self.Bind(wx.EVT_BUTTON, self.on_er_data,self.btn3)
@@ -153,13 +153,13 @@ class MagMainFrame(wx.Frame):
         bSizer2 = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY, "Analysis and plots" ), wx.HORIZONTAL )
         
         TEXT="Demag GUI"
-        self.btn_demag_gui =buttons.GenButton(self.panel, id=-1, label=TEXT,size=(300, 50))
+        self.btn_demag_gui =buttons.GenButton(self.panel, id=-1, label=TEXT,size=(300, 50), name='demag gui')
         self.btn_demag_gui.SetBackgroundColour("#6ECFF6")
         self.btn_demag_gui.InitColours()
         self.Bind(wx.EVT_BUTTON, self.on_run_demag_gui,self.btn_demag_gui)
 
         TEXT="Thellier GUI"
-        self.btn_thellier_gui =buttons.GenButton(self.panel, id=-1, label=TEXT,size=(300, 50))
+        self.btn_thellier_gui =buttons.GenButton(self.panel, id=-1, label=TEXT,size=(300, 50), name='thellier gui')
         self.btn_thellier_gui.SetBackgroundColour("#6ECFF6")
         self.btn_thellier_gui.InitColours()
         self.Bind(wx.EVT_BUTTON, self.on_run_thellier_gui,self.btn_thellier_gui)
