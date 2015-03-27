@@ -153,13 +153,13 @@ class MagMainFrame(wx.Frame):
         bSizer2 = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY, "Analysis and plots" ), wx.HORIZONTAL )
         
         TEXT="Demag GUI"
-        self.btn_demag_gui =buttons.GenButton(self.panel, id=-1, label=TEXT,size=(300, 50), name='demag gui')
+        self.btn_demag_gui = buttons.GenButton(self.panel, id=-1, label=TEXT,size=(300, 50), name='demag gui')
         self.btn_demag_gui.SetBackgroundColour("#6ECFF6")
         self.btn_demag_gui.InitColours()
         self.Bind(wx.EVT_BUTTON, self.on_run_demag_gui,self.btn_demag_gui)
 
         TEXT="Thellier GUI"
-        self.btn_thellier_gui =buttons.GenButton(self.panel, id=-1, label=TEXT,size=(300, 50), name='thellier gui')
+        self.btn_thellier_gui = buttons.GenButton(self.panel, id=-1, label=TEXT,size=(300, 50), name='thellier gui')
         self.btn_thellier_gui.SetBackgroundColour("#6ECFF6")
         self.btn_thellier_gui.InitColours()
         self.Bind(wx.EVT_BUTTON, self.on_run_thellier_gui,self.btn_thellier_gui)
@@ -310,7 +310,7 @@ class MagMainFrame(wx.Frame):
         
         # to run as module:
         import thellier_gui
-        thellier_gui.do_main(self.WD, standalone_app=False)
+        thellier_gui.do_main(self.WD, standalone_app=False, parent=self)
         
         # to run as command line:
         #os.system(outstring)
@@ -321,7 +321,7 @@ class MagMainFrame(wx.Frame):
         print "-I- running python script:\n %s"%(outstring)
         # for use as module:
         import demag_gui
-        demag_gui.do_main(self.WD, standalone_app=False)
+        demag_gui.do_main(self.WD, standalone_app=False, parent=self)
 
         # for use as command line:
         #os.system(outstring)
@@ -401,7 +401,7 @@ class MagMainFrame(wx.Frame):
         SIZE=wx.DisplaySize()
         SIZE=(SIZE[0]-0.1*SIZE[0],SIZE[1]-0.1*SIZE[1])
         Data,Data_hierarchy=self.get_data()
-        frame = pmag_basic_dialogs.OrientFrameGrid (None, -1, 'demag_orient.txt',self.WD,Data_hierarchy,SIZE)        
+        frame = pmag_basic_dialogs.OrientFrameGrid(self, -1, 'demag_orient.txt',self.WD,Data_hierarchy,SIZE)        
         frame.Show(True)
         frame.Centre()
 
@@ -476,8 +476,6 @@ class MagMainFrame(wx.Frame):
         if result == wx.ID_OK:            
             dlg.Destroy()
 
-        
-       
            
     def on_menu_exit(self, event):
         # also delete appropriate copy file

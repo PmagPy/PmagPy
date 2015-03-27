@@ -88,7 +88,7 @@ class Zeq_GUI(wx.Frame):
     """
     title = "PmagPy Demag GUI %s (beta)"%CURRENT_VRSION
     
-    def __init__(self, WD):
+    def __init__(self, WD, parent=None):
         
         TEXT="""
         NAME
@@ -105,7 +105,7 @@ class Zeq_GUI(wx.Frame):
 
         global FIRST_RUN
         FIRST_RUN=True
-        wx.Frame.__init__(self, None, wx.ID_ANY, self.title)
+        wx.Frame.__init__(self, parent, wx.ID_ANY, self.title, name='demag gui')
         self.redo_specimens={}
         self.currentDirectory = os.getcwd() # get the current working directory
         if WD:
@@ -4116,10 +4116,10 @@ def alignToTop(win):
     
 
 
-def do_main(WD=None, standalone_app=True):
+def do_main(WD=None, standalone_app=True, parent=None):
     # to run as module:
     if not standalone_app:
-        frame = Zeq_GUI(WD)
+        frame = Zeq_GUI(WD, parent)
         frame.Center()
         frame.Show()
 

@@ -198,7 +198,7 @@ class Arai_GUI(wx.Frame):
     """
     title = "PmagPy Thellier GUI %s"%CURRENT_VRSION
     
-    def __init__(self, WD=None):
+    def __init__(self, WD=None, parent=None):
 
         TEXT="""
         NAME
@@ -215,7 +215,7 @@ class Arai_GUI(wx.Frame):
               
         global FIRST_RUN
         FIRST_RUN=True
-        wx.Frame.__init__(self, None, wx.ID_ANY, self.title)
+        wx.Frame.__init__(self, parent, wx.ID_ANY, self.title, name='thellier gui')
         self.redo_specimens={}
         self.currentDirectory = os.getcwd() # get the current working directory
         if WD:
@@ -8968,10 +8968,10 @@ class Arai_GUI(wx.Frame):
 
 
 
-def do_main(WD=None, standalone_app=True):
-    # to run as module:
+def do_main(WD=None, standalone_app=True, parent=None):
+    # to run as module, i.e. with QuickMagIC:
     if not standalone_app:
-        frame = Arai_GUI(WD)
+        frame = Arai_GUI(WD, parent)
         frame.Centre()
         frame.Show()
         

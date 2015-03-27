@@ -2205,7 +2205,7 @@ class something(wx.Frame):
 class OrientFrameGrid(wx.Frame):
 
     def __init__(self,parent,id,title,WD,Data_hierarchy,size):
-        wx.Frame.__init__(self, parent, -1, title, size=size)
+        wx.Frame.__init__(self, parent, -1, title, size=size, name='calculate geographic directions')
         
         #--------------------
         # initialize stuff
