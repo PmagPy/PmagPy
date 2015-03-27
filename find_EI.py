@@ -80,6 +80,9 @@ def main():
     plot=0
     if '-i' in sys.argv:
         file=raw_input("Enter file name for processing: ")
+    if '-h' in sys.argv:
+        print main.__doc__
+        sys.exit() # graceful quit
     elif '-f' in sys.argv:
         ind=sys.argv.index('-f')
         file=sys.argv[ind+1]
