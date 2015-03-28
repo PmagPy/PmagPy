@@ -74,12 +74,19 @@ class TestMainFrame(unittest.TestCase):
         pass
 
     def test_click_change_dir(self):
-        btn = self.frame.change_dir_button
-        event = wx.CommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, btn.GetId())
-        print 'event', event
-        #btn.GetEventHandler().ProcessEvent(event)
-        
-        # the problem is that this creates a modal event..
+        pass
+        #print 'test_click_change_dir'
+        #btn = self.frame.change_dir_button
+        #event = wx.CommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, btn.GetId())
+        #def do_event():
+        #    print 'zebra'
+        #    btn.GetEventHandler().ProcessEvent(event)
+        #    print 'processed event!!!!:', event
+        #called = wx.CallAfter(do_event)
+        #print 'called:', called
+        #self.frame.Show()
+        #print 'finished test'
+        ## the problem is that this creates a modal event..
         
     
     def does_window_exist(self, btn_name, window_name):

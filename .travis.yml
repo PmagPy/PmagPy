@@ -6,6 +6,7 @@ python:
 before_install:
   - sudo apt-get update -qq  # make sure package indexes are up to date
   - sudo apt-get install -y python-scipy python-tk python-matplotlib # python-mpl_basemap doesn't work
+  - sudo apt-get install python-wxgtk2.8
 
   # try to install brew:
   #- ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
@@ -37,9 +38,6 @@ before_install:
   
   - "export DISPLAY=:99.0"
   - "sh -e /etc/init.d/xvfb start"
-  - which brew
-  - brew update
-  - brew install wxpython
 
   # - echo $DISPLAY
   # - export DISPLAY=unix:0.0
