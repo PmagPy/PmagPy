@@ -8,6 +8,11 @@ before_install:
   - sudo apt-get install -y python-scipy python-tk python-matplotlib # python-mpl_basemap doesn't work
   - sudo apt-get install -y python-wxgtk2.8
 
+
+  #- sudo apt-get install python-pip
+  #- sudo pip install numpy
+  #- sudo pip install pandas
+
   # try to install brew:
   #- ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
   #- mkdir homebrew && curl -L https://github.com/Homebrew/homebrew/tarball/master | tar xz --strip 1 -C homebrew
@@ -50,4 +55,4 @@ install:
   - pip install pandas
   # command to run tests, e.g. python setup.py test
 script:
-  - python -m unittests.test_quickmagic
+  - python -m unittests.test_simple_example
