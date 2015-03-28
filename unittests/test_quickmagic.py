@@ -13,7 +13,7 @@ import QuickMagIC as qm
 
 
 
-class TestBasic(unittest.TestCase):
+class TestMainFrame(unittest.TestCase):
 
     def setUp(self):
         self.app = wx.PySimpleApp()
@@ -65,6 +65,22 @@ class TestBasic(unittest.TestCase):
         """
         window = self.does_window_exist('thellier gui', 'thellier gui')
         self.assertTrue(window)
+
+
+    def test_click_download_magic(self):
+        pass
+
+    def test_click_upload_magic(self):
+        pass
+
+    def test_click_change_dir(self):
+        btn = self.frame.change_dir_button
+        event = wx.CommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, btn.GetId())
+        print 'event', event
+        #btn.GetEventHandler().ProcessEvent(event)
+        
+        # the problem is that this creates a modal event..
+        
     
     def does_window_exist(self, btn_name, window_name):
         btn, window = None, None
