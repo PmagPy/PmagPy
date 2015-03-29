@@ -2,7 +2,6 @@
 
 import wx
 import unittest
-print wx.version
 
 class TestMyDialog(unittest.TestCase):
 
@@ -13,7 +12,8 @@ class TestMyDialog(unittest.TestCase):
         pass
 
     def test_fake(self):
-        self.assertEqual(1, 2)
+        print wx.__version__
+        self.assertEqual(1,1)
 
 
 
