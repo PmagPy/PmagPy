@@ -6,10 +6,11 @@ import unittest
 class TestMyDialog(unittest.TestCase):
 
     def setUp(self):
-        pass
+        self.app = wx.App()
+        self.frame = wx.Frame(None)
 
     def tearDown(self):
-        pass
+        self.app.Exit()
 
     def test_fake(self):
         print wx.__version__
