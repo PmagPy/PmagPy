@@ -148,6 +148,7 @@ class Zeq_GUI(wx.Frame):
         self.colors = ['g','y','m','c','k','w'] #for fits
         self.current_fit = None
         self.dirtypes = ['DA-DIR','DA-DIR-GEO','DA-DIR-TILT']
+        self.bad_fits = []
 
         self.Data_samples={}
         self.last_saved_pars={}
@@ -356,7 +357,7 @@ class Zeq_GUI(wx.Frame):
         self.fit_box = wx.ComboBox(self.panel, -1 ,size=(100*self.GUI_RESOLUTION, 25),choices=list_fits, style=wx.CB_DROPDOWN)
         self.Bind(wx.EVT_COMBOBOX, self.on_select_fit,self.fit_box)
 
-        self.add_fit_button = wx.Button(self.panel, id=-1, label='add fit',size=(75*self.GUI_RESOLUTION,25))
+        self.add_fit_button = wx.Button(self.panel, id=-1, label='add fit',size=(100*self.GUI_RESOLUTION,25))
         self.add_fit_button.SetFont(font2)
         self.Bind(wx.EVT_BUTTON, self.add_fit, self.add_fit_button)
 
@@ -399,7 +400,7 @@ class Zeq_GUI(wx.Frame):
         self.delete_interpretation_button = wx.Button(self.panel, id=-1, label='delete',size=(75*self.GUI_RESOLUTION,25))#,style=wx.BU_EXACTFIT)#, size=(175, 28))
         self.delete_interpretation_button.SetFont(font2)
         self.Bind(wx.EVT_BUTTON, self.on_save_interpretation_button, self.save_interpretation_button)
-        self.Bind(wx.EVT_BUTTON, self.on_delete_interpretation_button, self.delete_interpretation_button)
+        self.Bind(wx.EVT_BUTTON, self.delete_fit, self.delete_interpretation_button)
         
         save_delete_window = wx.GridSizer(2, 1, 10*self.GUI_RESOLUTION, 19*self.GUI_RESOLUTION)
         save_delete_window.AddMany( [(self.save_interpretation_button, wx.ALIGN_LEFT),
@@ -477,8 +478,12 @@ class Zeq_GUI(wx.Frame):
         self.show_box = wx.ComboBox(self.panel, -1, size=(100*self.GUI_RESOLUTION, 25), value='specimens', choices=['specimens','samples','sites','sites-VGP'], style=wx.CB_DROPDOWN,name="high_elements")
         self.Bind(wx.EVT_COMBOBOX, self.onSelect_show_box,self.show_box)
 
+        self.remove_replace_fit_button = wx.Button(self.panel, id=-1, label='remove/replace fit',size=(100*self.GUI_RESOLUTION,25))
+        self.Bind(wx.EVT_BUTTON, self.remove_replace_fit, self.remove_replace_fit_button)
+
         show_window = wx.GridSizer(2, 1, 10*self.GUI_RESOLUTION, 19*self.GUI_RESOLUTION)
-        show_window.Add(self.show_box, wx.ALIGN_LEFT)
+        show_window.AddMany([(self.show_box, wx.ALIGN_LEFT),
+                             (self.remove_replace_fit_button, wx.ALIGN_LEFT)])
         self.box_sizer_show.Add(show_window, 0, wx.TOP, 5.5 )
 
 #----------------------------------------------------------------------                     
@@ -566,7 +571,7 @@ class Zeq_GUI(wx.Frame):
         #except:
         #    pass
         
-        # get previous interpretations from spmag tables
+        # get previous interpretations from pmag tables
         self.update_pmag_tables()
         # Draw figures and add  text
         self.update_selection()
@@ -2028,17 +2033,6 @@ class Zeq_GUI(wx.Frame):
         self.close_warning=True
         
     #----------------------------------------------------------------------  
-   
-    #----------------------------------------------------------------------
-
-    def on_delete_interpretation_button(self,event):
-        
-        if 'specimens' in self.pmag_results_data.keys() and str(self.s) in self.pmag_results_data['specimens'].keys():
-            del(self.pmag_results_data['specimens'][str(self.s)])
-        self.calculate_higher_levels_data()
-        self.update_selection()
-        self.close_warning=True
-        return
  
     #----------------------------------------------------------------------
            
@@ -2161,6 +2155,8 @@ class Zeq_GUI(wx.Frame):
             for element in elements_list:
                 if elements_type=='specimens':
                     for fit in self.pmag_results_data['specimens'][element]:
+                        if fit in self.bad_fits:
+                            continue
                         try:
                             #is this fit to be included in mean
                             if self.mean_fit == 'All' or self.mean_fit == fit.name:
@@ -2221,7 +2217,7 @@ class Zeq_GUI(wx.Frame):
             mpars=pmag.dolnp(pars_for_mean,'direction_type')
         elif calculation_type=='Fisher by polarity':
             mpars=pmag.fisher_by_pol(pars_for_mean)
-            print "mpars",mpars
+#            print "mpars",mpars
         
         # change strigs to floats
         if  calculation_type!='Fisher by polarity':  
@@ -2332,13 +2328,16 @@ class Zeq_GUI(wx.Frame):
         elif self.mean_fit != 'None' and self.mean_fit != None:
             fit_index = int(self.mean_fit.split()[-1]) - 1
             try: fits = [self.pmag_results_data['specimens'][specimen][fit_index]]
-            except IndexError: print('-W- Not all specimens have this fit'); fits = []
+            except IndexError: #print('-W- Not all specimens have this fit');
+                fits = []
         else:
             fits = []
         fig = self.high_level_eqarea
         if fits:
             for fit in fits:
-                pars = fit.pars
+                if fit in self.bad_fits:
+                    continue
+                pars = fit.get(self.COORDINATE_SYSTEM)
                 if "specimen_dec" in pars.keys() and "specimen_inc" in pars.keys():
                     dec=pars["specimen_dec"];inc=pars["specimen_inc"]
                 elif "dec" in pars.keys() and "inc" in pars.keys():
@@ -3003,7 +3002,7 @@ class Zeq_GUI(wx.Frame):
 #        return(data_pmag_table)
         
     def update_pmag_tables(self):
-        #print "run update_pmag_tables"
+
         pmag_specimens,pmag_samples,pmag_sites=[],[],[]
         try:
             pmag_specimens,file_type=pmag.magic_read(os.path.join(self.WD, "pmag_specimens.txt"))
@@ -3024,19 +3023,36 @@ class Zeq_GUI(wx.Frame):
         # with the new interpertation
         #--------------------------
 
-        run_speci = []        
+        self.pmag_results_data['specimens'] = {}
         for rec in pmag_specimens:
             specimen=rec['er_specimen_name']
-            if specimen in run_speci:
-                continue
-            run_speci.append(specimen)
+
+            #initialize list of interpertations
+            if specimen in self.pmag_results_data['specimens'].keys():
+                pass
+            else:
+                self.pmag_results_data['specimens'][specimen] = []
+
+            self.s = specimen
+
+            #if interpertation doesn't exsist create it.
+            if 'specimen_comp_name' in rec.keys() and (ord(rec['specimen_comp_name'])-64) > len(self.pmag_results_data['specimens'][specimen]):
+                self.add_fit(-1)
+                fit = self.pmag_results_data['specimens'][specimen][-1]
+
+            if 'specimen_flag' in rec and rec['specimen_flag'] == 'b':
+                self.bad_fits.append(fit);
+                
+
             methods=rec['magic_method_codes'].strip("\n").replace(" ","").split(":")
             LPDIR=False;calculation_type=""
+
             for method in methods:
                 if "LP-DIR" in method:
                     LPDIR=True
                 if "DE-" in method:
                     calculation_type=method
+
             if LPDIR: # this a mean of directions
                 if float(rec['measurement_step_min'])==0 or float(rec['measurement_step_min'])==273.:
                     tmin="0"
@@ -3054,15 +3070,9 @@ class Zeq_GUI(wx.Frame):
                 
                 if calculation_type !="":
 
-                    self.pmag_results_data['specimens'][specimen] = []
-
                     if specimen in self.Data.keys() and 'zijdblock_steps' in self.Data[specimen]\
                     and tmin in self.Data[specimen]['zijdblock_steps']\
                     and tmax in self.Data[specimen]['zijdblock_steps']:
-
-                        #make a first fit
-                        fit = Fit("Fit 1", None, None, self.colors[0], self)
-                        self.current_fit = fit #making initial fits
 
                         fit.put('specimen',self.get_PCA_parameters(specimen,tmin,tmax,'specimen',calculation_type))
 
@@ -3072,12 +3082,11 @@ class Zeq_GUI(wx.Frame):
                         if len(self.Data[specimen]['zijdblock_tilt'])>0:      
                             fit.put('tilt-corrected',self.get_PCA_parameters(specimen,tmin,tmax,'tilt-corrected',calculation_type))
 
-                        self.pmag_results_data['specimens'][specimen] = [fit]
-
                     else:
                         self.GUI_log.write ( "-W- WARNING: Cant find specimen and steps of specimen %s tmin=%s, tmax=%s"%(specimen,tmin,tmax))
-                        
-        self.update_fit_box()
+
+        #BUG FIX-almost replaced first sample with last due to above assignment to self.s
+        self.s = pmag_specimens[0]['er_specimen_name']
 
         #--------------------------
         # reads pmag_sample.txt and 
@@ -3086,7 +3095,7 @@ class Zeq_GUI(wx.Frame):
         # If the program finds a codes "DE-FM","DE-FM-LP","DE-FM-UV"in magic_method_codes
         # then the program repeat teh fisher mean
         #--------------------------
-        
+
         for rec in pmag_samples:
             methods=rec['magic_method_codes'].strip("\n").replace(" ","").split(":")
             sample=rec['er_sample_name'].strip("\n")
@@ -3101,6 +3110,7 @@ class Zeq_GUI(wx.Frame):
                     calculation_type="Fisher"
                     for dirtype in self.dirtypes: 
                         self.calculate_high_level_mean('samples',sample,calculation_type,'specimens')
+
         #--------------------------
         # reads pmag_sites.txt and 
         # if finds a mean in pmag_sites.txt
@@ -3785,17 +3795,16 @@ class Zeq_GUI(wx.Frame):
                                
             except:
                 continue
+
             for rec in meas_data:
                 if "magic_method_codes" in rec.keys():
                     if "LP-DIR" not in rec['magic_method_codes'] and "DE-" not in  rec['magic_method_codes']:
                         self.PmagRecsOld[FILE].append(rec)
-            #pmag.magic_write(self.WD+"/"+FILE+".tmp",PmagRecs,FILE.split(".")[0])
-            #self.GUI_log.write("-I- Write magic file  %s\n"%self.WD+"/"+FILE+".tmp") 
 
         #---------------------------------------
         # write a new pmag_specimens.txt       
         #---------------------------------------  
-                                  
+
         specimens_list=self.pmag_results_data['specimens'].keys()
         specimens_list.sort()
         PmagSpecs=[]
@@ -3818,11 +3827,11 @@ class Zeq_GUI(wx.Frame):
                         PmagSpecRec["magic_instrument_codes"]= self.Data[specimen]['magic_instrument_codes']
 
                     #-------
-                    OK=False
-                    if fit.get(dirtype):
-                        OK=True
-                    if not OK:
-                        continue
+#                    OK=False
+#                    if fit.get(dirtype):
+#                        OK=True
+#                    if not OK:
+#                        continue
 
                     PmagSpecRec['specimen_correction']='u'
                     mpars = fit.get(dirtype)
@@ -3850,6 +3859,12 @@ class Zeq_GUI(wx.Frame):
                     PmagSpecRec['specimen_n'] = "%.0f"%mpars["specimen_n"]
                     calculation_type=mpars['calculation_type']
                     PmagSpecRec["magic_method_codes"]=self.Data[specimen]['magic_method_codes']+":"+calculation_type+":"+dirtype
+                    PmagSpecRec["specimen_comp_n"] = str(len(self.pmag_results_data["specimens"][specimen]))
+                    PmagSpecRec["specimen_comp_name"] = chr(int(fit.name.split()[-1]) + 64)
+                    if fit in self.bad_fits:
+                        PmagSpecRec["specimen_flag"] = "b"
+                    else:
+                        PmagSpecRec["specimen_flag"] = "g"
                     if calculation_type in ["DE-BFL","DE-BFL-A","DE-BFL-O"]:
                         PmagSpecRec['specimen_direction_type']='l'
                         PmagSpecRec['specimen_mad']="%.1f"%float(mpars["specimen_mad"])
@@ -3871,8 +3886,9 @@ class Zeq_GUI(wx.Frame):
                         PmagSpecRec['specimen_tilt_correction']="0"
                     else:
                         PmagSpecRec['specimen_tilt_correction']="-1"
-                    PmagSpecs.append(PmagSpecRec)    
-        # add the 'old' lines with no "LP-DIR" in 
+                    PmagSpecs.append(PmagSpecRec)
+
+        # add the 'old' lines with no "LP-DIR" in
         for rec in self.PmagRecsOld['pmag_specimens.txt']:
             PmagSpecs.append(rec)
         PmagSpecs_fixed=self.merge_pmag_recs(PmagSpecs)
@@ -4112,26 +4128,70 @@ class Zeq_GUI(wx.Frame):
 #        print("New Fit for sample: " + str(self.s) + '\n' + reduce(lambda x,y: x+'\n'+y, map(str,self.pmag_results_data['specimens'][self.s]['fits'])))
         self.new_fit()
 
+    def delete_fit(self,event):
+        self.pmag_results_data['specimens'][self.s].remove(self.current_fit)
+        self.update_fit_box()
+        self.pmag_results_data['specimens'][self.s][-1].select()
+        self.close_warning = True
+        self.calculate_higher_levels_data()
+        self.update_selection()
+
+    def remove_replace_fit(self,event):
+        if self.mean_fit_box.GetValue() == "None":
+            return
+        elif self.mean_fit_box.GetValue() == "All":
+            if all([(not (fit in self.bad_fits)) for fit in self.pmag_results_data['specimens'][self.s]]):
+                for fit in self.pmag_results_data['specimens'][self.s]:
+                    self.bad_fits.append(fit)
+            else:
+                for fit in self.pmag_results_data['specimens'][self.s]:
+                    print(fit in self.bad_fits)
+                    if fit in self.bad_fits:
+                        self.bad_fits.remove(fit)
+        else:
+            fit_index = int(self.mean_fit_box.GetValue().split()[-1]) - 1
+            bad_fit = self.pmag_results_data['specimens'][self.s][fit_index]
+            if bad_fit in self.bad_fits:
+                self.bad_fits.remove(bad_fit)
+            else:
+                self.bad_fits.append(bad_fit)
+        self.close_warning = True
+        self.calculate_higher_levels_data()
+        self.update_selection()
+
     def new_fit(self):
 
         fit = self.pmag_results_data['specimens'][self.s][-1]
         self.current_fit = fit #update current fit to new fit
 
-        self.update_fit_box()
+        self.update_fit_box(True)
 
         # Draw figures and add  text
         self.get_new_PCA_parameters(1)
 
-    def update_fit_box(self):
-        self.fit_box.Clear()
-        self.mean_fit_box.Clear()
+    def update_fit_box(self, new_fit = False):
+        #get new fit data
         if self.s in self.pmag_results_data['specimens'].keys(): fit_list=list(map(lambda x: x.name, self.pmag_results_data['specimens'][self.s]))
         else: fit_list = []
+        #find new index to set fit_box to
+        if not fit_list: new_index = 'None'
+        elif new_fit: new_index = len(fit_list) - 1
+        else: new_index = fit_list.index(self.fit_box.GetValue());
+        #clear old boxes
+        self.fit_box.Clear()
+        self.mean_fit_box.Clear()
+        #update fit box
         self.fit_box.SetItems(fit_list)
-        self.fit_box.SetSelection(len(fit_list)-1)
-        self.mean_fit_box.SetItems(['All'] + fit_list)
+        #update higher level mean fit box
+        all_fits_list = []
+        for specimen in self.pmag_results_data['specimens'].keys():
+            if len(self.pmag_results_data['specimens'][specimen]) > len(all_fits_list):
+                all_fits_list = list(map(lambda x: x.name, self.pmag_results_data['specimens'][specimen]))
+        self.mean_fit_box.SetItems(['None','All'] + all_fits_list)
+        #select defaults
+        if new_index == 'None': self.fit_box.SetStringSelection(new_index)
+        else: self.fit_box.SetSelection(new_index)
         if fit_list: self.on_select_fit(-1)
-
 
         
         
