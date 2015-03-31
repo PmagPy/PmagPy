@@ -1474,7 +1474,12 @@ def download_magic(infile, dir_path='.', input_dir_path='.', overwrite=False):
     if not, you may provide optional arguments dir_path (where you want the results to go) and input_dir_path (where the dowloaded file is).
     """
     f=open(os.path.join(input_dir_path, infile),'rU')
-    File=f.readlines()
+    infile=f.readlines()
+    File=[]
+    for line in infile:
+        line=line.replace('\n','')
+        if line[0:4]=='>>>>' or len(line.split('\t'))>1: # skip blank lines
+            File.append(line)
     LN=0
     type_list=[]
     filenum=0
@@ -2291,4 +2296,3 @@ def specimens_results_magic(infile='pmag_specimens.txt', measfile='magic_measure
         pmag.magic_write(resout,TmpRes,'pmag_results')
         print ' results written to ',resout
     else: print "No Results level table"
-
