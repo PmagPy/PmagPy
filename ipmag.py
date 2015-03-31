@@ -2301,6 +2301,8 @@ def specimens_results_magic(infile='pmag_specimens.txt', measfile='magic_measure
 
 def orientation_magic(or_con=1, dec_correction_con=1, dec_correction=0, bed_correction=True, samp_con='1', hours_from_gmt=0, method_codes='', average_bedding=False, orient_file='orient.txt', samp_file='er_samples.txt', site_file='er_sites.txt', output_dir_path='.', input_dir_path='.', append=False):
     """
+    defaults:
+    orientation_magic(or_con=1, dec_correction_con=1, dec_correction=0, bed_correction=True, samp_con='1', hours_from_gmt=0, method_codes='', average_bedding=False, orient_file='orient.txt', samp_file='er_samples.txt', site_file='er_sites.txt', output_dir_path='.', input_dir_path='.', append=False):
     orientation conventions:
         [1] Standard Pomeroy convention of azimuth and hade (degrees from vertical down) 
              of the drill direction (field arrow).  lab arrow azimuth= sample_azimuth = mag_azimuth; 
@@ -2384,7 +2386,7 @@ def orientation_magic(or_con=1, dec_correction_con=1, dec_correction=0, bed_corr
 
         
     
-    if dec_correction_con == "2" and not dec_correction:
+    if dec_correction_con == 2 and not dec_correction:
         raise Exception("If using magnetic declination convention 2, you must also provide a declincation correction in degrees")
     
     SampRecs,SiteRecs,ImageRecs=[],[],[]
@@ -2546,7 +2548,7 @@ def orientation_magic(or_con=1, dec_correction_con=1, dec_correction=0, bed_corr
             else:
                 MagRec["sample_height"]=stratpos   # keep last record if blank
 #
-        if dec_correction_con=="1" and MagRec['sample_azimuth']!="": # get magnetic declination (corrected with igrf value)
+        if dec_correction_con==1 and MagRec['sample_azimuth']!="": # get magnetic declination (corrected with igrf value)
             x,y,z,f=pmag.doigrf(lon,lat,0,decimal_year)
             Dir=pmag.cart2dir( (x,y,z)) 
             dec_correction=Dir[0]
@@ -2637,7 +2639,7 @@ def orientation_magic(or_con=1, dec_correction_con=1, dec_correction=0, bed_corr
                 MagRec['magic_method_codes']=MagRec['magic_method_codes']+':SO-MAG'
                 MagRec['magic_method_codes']=MagRec['magic_method_codes'].strip(":")
             SampOuts.append(MagRec)
-            if MagRec['sample_azimuth']!="" and dec_correction_con!='3':
+            if MagRec['sample_azimuth']!="" and dec_correction_con!=3:
                 az=labaz+dec_correction
                 if az>360.:az=az-360.
                 CMDRec={}
@@ -2647,7 +2649,7 @@ def orientation_magic(or_con=1, dec_correction_con=1, dec_correction=0, bed_corr
                 CMDRec["magic_method_codes"]=methcodes+':SO-CMD-NORTH'
                 CMDRec["magic_method_codes"]=CMDRec['magic_method_codes'].strip(':')
                 CMDRec["sample_declination_correction"]='%7.1f'%(dec_correction)
-                if dec_correction_con=='1':
+                if dec_correction_con==1:
                     CMDRec['sample_description']=sample_description+':Declination correction calculated from IGRF'
                 else:
                     CMDRec['sample_description']=sample_description+':Declination correction supplied by user'
