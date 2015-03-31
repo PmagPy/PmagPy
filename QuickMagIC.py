@@ -250,13 +250,23 @@ class MagMainFrame(wx.Frame):
         return img.ConvertToBitmap()   
                  
                   
-    def on_change_dir_button(self,event):
+    def on_change_dir_button(self,event,show=True):
         currentDirectory=os.getcwd()
-        dialog = wx.DirDialog(None, "choose directory:",defaultPath = currentDirectory ,style=wx.DD_DEFAULT_STYLE | wx.DD_NEW_DIR_BUTTON | wx.DD_CHANGE_DIR)
-        if dialog.ShowModal() == wx.ID_OK:
+        self.change_dir_dialog = wx.DirDialog(self.panel, "choose directory:",defaultPath = currentDirectory ,style=wx.DD_DEFAULT_STYLE | wx.DD_NEW_DIR_BUTTON | wx.DD_CHANGE_DIR)
+        if show:
+            self.on_finish_change_dir(self.change_dir_dialog)
+
+    def on_finish_change_dir(self, dialog, show=True):
+        if not show:
             self.WD = dialog.GetPath()
             os.chdir(self.WD)
             self.dir_path.SetValue(self.WD)
+        elif dialog.ShowModal() == wx.ID_OK:
+            self.WD = dialog.GetPath()
+            os.chdir(self.WD)
+            self.dir_path.SetValue(self.WD)
+            dialog.Destroy()
+        else:
             dialog.Destroy()
 
 

@@ -4,6 +4,7 @@ import unittest
 import sys
 import os
 import wx
+import wx.lib.inspection
 import numpy as np
 import ipmag
 import QuickMagIC as qm
@@ -19,6 +20,8 @@ class TestMainFrame(unittest.TestCase):
         self.app = wx.PySimpleApp()
         self.frame = qm.MagMainFrame()
         self.pnl = self.frame.GetChildren()[0]
+        #wx.lib.inspection.InspectionTool().Show()
+
 
     def tearDown(self):
         #self.frame.Destroy() # this does not work and causes strange errors
@@ -63,6 +66,7 @@ class TestMainFrame(unittest.TestCase):
         """
         make sure thellier_gui window is created when users clicks btn
         """
+
         window = self.does_window_exist('thellier gui', 'thellier gui')
         self.assertTrue(window)
 
@@ -73,21 +77,34 @@ class TestMainFrame(unittest.TestCase):
     def test_click_upload_magic(self):
         pass
 
+
     def test_click_change_dir(self):
-        pass
-        #print 'test_click_change_dir'
-        #btn = self.frame.change_dir_button
-        #event = wx.CommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, btn.GetId())
-        #def do_event():
-        #    print 'zebra'
-        #    btn.GetEventHandler().ProcessEvent(event)
-        #    print 'processed event!!!!:', event
-        #called = wx.CallAfter(do_event)
-        #print 'called:', called
-        #self.frame.Show()
-        #print 'finished test'
-        ## the problem is that this creates a modal event..
+        def do_test():
+            new_WD = self.frame.WD
+            self.assertNotEqual(old_WD, new_WD)
+            
+        old_WD = self.frame.WD
+        self.click_change_dir()
+        wx.CallLater(2000, do_test)
+
         
+    
+    def click_change_dir(self):
+        def cancel_dia():
+            new_path = os.path.split(self.frame.WD)[0]
+            self.frame.change_dir_dialog.SetPath(new_path)
+            self.frame.on_finish_change_dir(self.frame.change_dir_dialog, False)
+            #self.frame.change_dir_dialog.EndModal(wx.ID_CANCEL)
+        btn = self.frame.change_dir_button
+        event = wx.CommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, btn.GetId())
+
+        #btn.GetEventHandler().ProcessEvent(event)
+        self.frame.on_change_dir_button(None, show=False)
+        wx.CallLater(1, cancel_dia)
+        # works if i just leave out this bloody line:
+        # meaning, everything happens as in real operation, just without actually showing the modal dialog
+        # hmph
+        #self.frame.change_dir_dialog.ShowModal()
     
     def does_window_exist(self, btn_name, window_name):
         btn, window = None, None

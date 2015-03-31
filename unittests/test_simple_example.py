@@ -3,7 +3,16 @@
 import wx
 import unittest
 
+btn_id = wx.NewId()
 
+
+
+class MyPanel(wx.Panel):
+    def __init__(self, parent):
+        wx.Panel.__init__(self, parent, -1)
+        #self.btn = wx.Button(self, btn_id, label="OK!!")
+
+        
 class MyDialog(wx.Dialog):
     def __init__(self, parent):
         wx.Dialog.__init__(self, parent, -1, 'Test')
@@ -11,16 +20,8 @@ class MyDialog(wx.Dialog):
         self.btn.Bind(wx.EVT_BUTTON, self.close_dialog)
 
     def close_dialog(self, event):
+        self.EndModal(wx.ID_OK)
         self.Parent.Destroy()
-
-
-class MyPanel(wx.Panel):
-    def __init__(self, parent):
-        print 'initing MyPanel'
-        wx.Panel.__init__(self, parent, -1)
-        print 'halfway through initing MyPanel'
-        #self.btn = wx.Button(self, btn_id, label="OK!!")
-        print 'finished initing MyPanel'
 
 
 class TestMyDialog(unittest.TestCase):
@@ -29,7 +30,35 @@ class TestMyDialog(unittest.TestCase):
         self.app = wx.App()
         self.frame = wx.Frame(None)
         self.frame.Show()
-        print 'self.app set up', self.app
+
+    def tearDown(self):
+        self.app.Destroy()
+
+    def test_true(self):
+        self.assertTrue(True)
+
+    def test_dia(self):
+        result = self.ShowDia()
+        self.assertEqual(result, wx.ID_OK)
+
+    def ShowDia(self):
+        self.dia = MyDialog(self.frame)
+        #wx.CallLater(250, self.dia.EndModal, wx.ID_OK) # works!!
+        wx.CallLater(250, self.DoButtonEvt, self.dia.btn) # also works
+        result = self.dia.ShowModal()
+        return result
+        
+    def DoButtonEvt(self, btn):
+        event = wx.CommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, btn.GetId())
+        btn.GetEventHandler().ProcessEvent(event)
+        
+        
+class TestMyPanel(unittest.TestCase):
+
+    def setUp(self):
+        self.app = wx.App()
+        self.frame = wx.Frame(None)
+        self.frame.Show()
 
     def tearDown(self):
         self.app.Destroy()
@@ -38,22 +67,14 @@ class TestMyDialog(unittest.TestCase):
         self.assertTrue(True)
 
     def test_fake(self):
-        print wx.__version__
         enabled = self.ShowPanel()
-        print 'enabled?', enabled
         self.assertTrue(enabled)
-        print 'done test'
 
     def ShowPanel(self):
-        print 'doing ShowPanel'
         self.pnl = MyPanel(self.frame)
-        print 'made pnl'
         self.pnl.Show()
-        print 'showed pnl'
         enabled = self.pnl.IsEnabled()
-        print 'pnl is enabled?', enabled
         self.pnl.Destroy()
-        print 'done ShowPanel'
         return enabled
 
 
