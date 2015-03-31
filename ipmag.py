@@ -8,6 +8,7 @@ import matplotlib.pyplot as pyplot
 import os
 import sys
 import time
+import re
 
 #from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigureCanvas
 #from matplotlib.backends.backend_wx import NavigationToolbar2Wx
@@ -2296,3 +2297,458 @@ def specimens_results_magic(infile='pmag_specimens.txt', measfile='magic_measure
         pmag.magic_write(resout,TmpRes,'pmag_results')
         print ' results written to ',resout
     else: print "No Results level table"
+
+
+def orientation_magic(or_con=1, dec_correction_con=1, dec_correction=0, bed_correction=True, samp_con='1', hours_from_gmt=0, method_codes='', average_bedding=False, orient_file='orient.txt', samp_file='er_samples.txt', site_file='er_sites.txt', output_dir_path='.', input_dir_path='.', append=False):
+    """
+    orientation conventions:
+        [1] Standard Pomeroy convention of azimuth and hade (degrees from vertical down) 
+             of the drill direction (field arrow).  lab arrow azimuth= sample_azimuth = mag_azimuth; 
+             lab arrow dip = sample_dip =-field_dip. i.e. the lab arrow dip is minus the hade.
+        [2] Field arrow is the strike  of the plane orthogonal to the drill direction,
+             Field dip is the hade of the drill direction.  Lab arrow azimuth = mag_azimuth-90 
+             Lab arrow dip = -field_dip 
+        [3] Lab arrow is the same as the drill direction; 
+             hade was measured in the field.  
+             Lab arrow azimuth = mag_azimuth; Lab arrow dip = 90-field_dip
+        [4] lab azimuth and dip are same as mag_azimuth, field_dip : use this for unoriented samples too
+        [5] Same as AZDIP convention explained below - 
+            azimuth and inclination of the drill direction are mag_azimuth and field_dip; 
+            lab arrow is as in [1] above. 
+            lab azimuth is same as mag_azimuth,lab arrow dip=field_dip-90
+        [6] Lab arrow azimuth = mag_azimuth-90; Lab arrow dip = 90-field_dip
+        [7] see http://earthref.org/PmagPy/cookbook/#field_info for more information.  You can customize other format yourself, or email ltauxe@ucsd.edu for help.  
+
+
+    Magnetic declination convention:
+        [1] Use the IGRF value at the lat/long and date supplied [default]
+        [2] Will supply declination correction
+        [3] mag_az is already corrected in file 
+        [4] Correct mag_az but not bedding_dip_dir
+
+    Sample naming convention:
+        [1] XXXXY: where XXXX is an arbitrary length site designation and Y
+            is the single character sample designation.  e.g., TG001a is the
+            first sample from site TG001.    [default]
+        [2] XXXX-YY: YY sample from site XXXX (XXX, YY of arbitary length)
+        [3] XXXX.YY: YY sample from site XXXX (XXX, YY of arbitary length)
+        [4-Z] XXXX[YYY]:  YYY is sample designation with Z characters from site XXX
+        [5] site name = sample name
+        [6] site name entered in site_name column in the orient.txt format input file  
+        [7-Z] [XXX]YYY:  XXX is site designation with Z characters from samples  XXXYYY
+        NB: all others you will have to either customize your 
+            self or e-mail ltauxe@ucsd.edu for help.  
+
+
+    """
+    # bed_correction used to be BedCorr
+    stratpos=""
+    date,lat,lon="","",""  # date of sampling, latitude (pos North), longitude (pos East)
+    bed_dip,bed_dip_dir="",""
+    participantlist=""
+    Lats,Lons=[],[] # list of latitudes and longitudes
+    SampOuts,SiteOuts,ImageOuts=[],[],[]  # lists of Sample records and Site records
+    samplelist,sitelist,imagelist=[],[],[]
+    Z,average_bedding=1,"0"
+    newbaseline,newbeddir,newbeddip="","",""
+
+    # meths is now method_codes
+    # delta_u is now hours_from_gmt
+    sclass,lithology,type="","",""
+    newclass,newlith,newtype='','',''
+    BPs=[]# bedding pole declinations, bedding pole inclinations
+    #
+    #
+    
+    orient_file,samp_file= os.path.join(input_dir_path,orient_file), os.path.join(output_dir_path,samp_file)
+    site_file = os.path.join(output_dir_path, site_file)
+    image_file= output_dir_path+"/er_images.txt"
+
+    
+    # dec_correction_con used to be corr
+    # dec_correction used to be DecCorr
+
+    
+    # validate input
+    if '4' in samp_con[0]:
+        pattern = re.compile('[4][-]\d')
+        result = pattern.match(samp_con)
+        if not result:
+            raise Exception("If using sample naming convention 4, you must provide the number of characters with which to distinguish sample from site. [4-Z] XXXX[YYY]:  YYY is sample designation with Z characters from site XXX)")
+
+    if '7' in samp_con[0]:
+        pattern = re.compile('[7][-]\d')
+        result = pattern.match(samp_con)
+        if not result:
+            raise Exception("If using sample naming convention 7, you must provide the number of characters with which to distinguish sample from site.  [7-Z] [XXX]YYY:  XXX is site designation with Z characters from samples  XXXYYY")
+
+        
+    
+    if dec_correction_con == "2" and not dec_correction:
+        raise Exception("If using magnetic declination convention 2, you must also provide a declincation correction in degrees")
+    
+    SampRecs,SiteRecs,ImageRecs=[],[],[]
+
+    if append:
+        try:
+            SampRecs,file_type=pmag.magic_read(samp_file)
+            print 'sample data to be appended to: ', samp_file
+        except:
+            print 'problem with existing file: ',samp_file, ' will create new.'
+        try:
+            SiteRecs,file_type=pmag.magic_read(site_file)
+            print 'site data to be appended to: ',site_file
+        except:
+            print 'problem with existing file: ',site_file,' will create new.'
+        try:
+            ImageRecs,file_type=pmag.magic_read(image_file)
+            print 'image data to be appended to: ',image_file
+        except:
+            print 'problem with existing file: ',image_file,' will create new.'
+
+    #
+    # read in file to convert
+    #
+    OrData,location_name=pmag.magic_read(orient_file)
+    #
+    # step through the data sample by sample
+    #
+    for OrRec in OrData:
+        if 'mag_azimuth' not in OrRec.keys():OrRec['mag_azimuth']=""
+        if 'field_dip' not in OrRec.keys():OrRec['field_dip']=""
+        if OrRec['mag_azimuth']==" ":OrRec["mag_azimuth"]=""
+        if OrRec['field_dip']==" ":OrRec["field_dip"]=""
+        if 'sample_description' in OrRec.keys():
+            sample_description=OrRec['sample_description']
+        else:
+            sample_description=""
+        if 'sample_igsn' in OrRec.keys():
+            sample_igsn=OrRec['sample_igsn']
+        else:
+            sample_igsn=""
+        if 'sample_texture' in OrRec.keys():
+            sample_texture=OrRec['sample_texture']
+        else:
+            sample_texture=""
+        if 'sample_cooling_rate' in OrRec.keys():
+            sample_cooling_rate=OrRec['sample_cooling_rate']
+        else:
+            sample_cooling_rate=""
+        if 'cooling_rate_corr' in OrRec.keys():
+            cooling_rate_corr=OrRec['cooling_rate_corr']
+            if 'cooling_rate_mcd' in OrRec.keys():
+                cooling_rate_mcd=OrRec['cooling_rate_mcd']
+            else:
+                cooling_rate_mcd='DA-CR'
+        else:
+            cooling_rate_corr=""
+            cooling_rate_mcd=""
+        sample_orientation_flag='g'
+        if 'sample_orientation_flag' in OrRec.keys():
+            if OrRec['sample_orientation_flag']=='b' or OrRec["mag_azimuth"]=="": 
+                sample_orientation_flag='b'
+        methcodes=method_codes  # initialize method codes
+        if methcodes:
+            if 'method_codes' in OrRec.keys() and OrRec['method_codes'].strip()!="":methcodes=methcodes+":"+OrRec['method_codes'] # add notes 
+        else:
+            if 'method_codes' in OrRec.keys() and OrRec['method_codes'].strip()!="":methcodes=OrRec['method_codes'] # add notes 
+        codes=methcodes.replace(" ","").split(":")
+        MagRec={}
+        MagRec["er_location_name"]=location_name
+        MagRec["er_citation_names"]="This study"
+        MagRec['sample_orientation_flag']=sample_orientation_flag
+        MagRec['sample_igsn']=sample_igsn
+        MagRec['sample_texture']=sample_texture
+        MagRec['sample_cooling_rate']=sample_cooling_rate
+        MagRec['cooling_rate_corr']=cooling_rate_corr
+        MagRec['cooling_rate_mcd']=cooling_rate_mcd
+    #
+    # parse information common to all orientation methods
+    #
+        MagRec["er_sample_name"]=OrRec["sample_name"]
+        if "IGSN" in OrRec.keys():
+            MagRec["sample_igsn"]=OrRec["IGSN"]
+        else:
+            MagRec["sample_igsn"]=""
+        MagRec["sample_height"],MagRec["sample_bed_dip_direction"],MagRec["sample_bed_dip"]="","",""
+        if "er_sample_alternatives" in OrRec.keys():MagRec["er_sample_alternatives"]=OrRec["sample_alternatives"]
+        sample=OrRec["sample_name"]
+        if OrRec['mag_azimuth']=="" and OrRec['field_dip']!="":
+            OrRec['mag_azimuth']='999'
+        if OrRec["mag_azimuth"]!="":
+            labaz,labdip=pmag.orient(float(OrRec["mag_azimuth"]),float(OrRec["field_dip"]),or_con)
+            if labaz<0:labaz+=360.
+        else:
+            labaz,labdip="",""
+        if  OrRec['mag_azimuth']=='999':labaz=""
+        if "GPS_baseline" in OrRec.keys() and OrRec['GPS_baseline']!="":newbaseline=OrRec["GPS_baseline"]
+        if newbaseline!="":baseline=float(newbaseline)
+        if 'participants' in OrRec.keys() and OrRec['participants']!="" and OrRec['participants']!=participantlist: 
+            participantlist=OrRec['participants']
+        MagRec['er_scientist_mail_names']=participantlist
+        newlat=OrRec["lat"]
+        if newlat!="":lat=float(newlat)
+        if lat=="":
+            print "No latitude specified for ! ",sample
+            sys.exit()
+        MagRec["sample_lat"]='%11.5f'%(lat)
+        newlon=OrRec["long"]
+        if newlon!="":lon=float(newlon)
+        if lon=="":
+            print "No longitude specified for ! ",sample
+            sys.exit()
+        MagRec["sample_lon"]='%11.5f'%(lon)
+        if 'bedding_dip_direction' in OrRec.keys(): newbeddir=OrRec["bedding_dip_direction"]
+        if newbeddir!="":bed_dip_dir=OrRec['bedding_dip_direction']
+        if 'bedding_dip' in OrRec.keys(): newbeddip=OrRec["bedding_dip"]
+        if newbeddip!="":bed_dip=OrRec['bedding_dip']
+        MagRec["sample_bed_dip"]=bed_dip
+        MagRec["sample_bed_dip_direction"]=bed_dip_dir
+        if "sample_class" in OrRec.keys():newclass=OrRec["sample_class"]
+        if newclass!="":sclass=newclass
+        if sclass=="": sclass="Not Specified"
+        MagRec["sample_class"]=sclass
+        if "sample_lithology" in OrRec.keys():newlith=OrRec["sample_lithology"]
+        if newlith!="":lithology=newlith
+        if lithology=="": lithology="Not Specified"
+        MagRec["sample_lithology"]=lithology
+        if "sample_type" in OrRec.keys():newtype=OrRec["sample_type"]
+        if newtype!="":type=newtype
+        if type=="": type="Not Specified"
+        MagRec["sample_type"]=type
+        if labdip!="":
+            MagRec["sample_dip"]='%7.1f'%labdip
+        else:
+            MagRec["sample_dip"]=""
+        if "date" in OrRec.keys() and OrRec["date"]!="":
+            print OrRec["date"]
+            newdate=OrRec["date"]
+            if newdate!="":date=newdate
+            mmddyy=date.split('/')
+            yy=int(mmddyy[2])
+            if yy>50: 
+                yy=1900+yy
+            else:
+                yy=2000+yy
+            decimal_year=yy+float(mmddyy[0])/12
+            sample_date='%i:%s:%s'%(yy,mmddyy[0],mmddyy[1])
+            MagRec["sample_date"]=sample_date
+        if labaz!="":
+            MagRec["sample_azimuth"]='%7.1f'%(labaz)
+        else:
+            MagRec["sample_azimuth"]=""
+        if "stratigraphic_height" in OrRec.keys():
+            if OrRec["stratigraphic_height"]!="": 
+                MagRec["sample_height"]=OrRec["stratigraphic_height"]
+                stratpos=OrRec["stratigraphic_height"]
+            elif OrRec["stratigraphic_height"]=='-1':
+                MagRec["sample_height"]=""   # make empty
+            else:
+                MagRec["sample_height"]=stratpos   # keep last record if blank
+#
+        if dec_correction_con=="1" and MagRec['sample_azimuth']!="": # get magnetic declination (corrected with igrf value)
+            x,y,z,f=pmag.doigrf(lon,lat,0,decimal_year)
+            Dir=pmag.cart2dir( (x,y,z)) 
+            dec_correction=Dir[0]
+        if "bedding_dip" in OrRec.keys(): 
+            if OrRec["bedding_dip"]!="":
+                MagRec["sample_bed_dip"]=OrRec["bedding_dip"]
+                bed_dip=OrRec["bedding_dip"]
+            else:
+                MagRec["sample_bed_dip"]=bed_dip
+        else: MagRec["sample_bed_dip"]='0'
+        if "bedding_dip_direction" in OrRec.keys():
+            if OrRec["bedding_dip_direction"]!="" and BedCorr==1: 
+                dd=float(OrRec["bedding_dip_direction"])+dec_correction
+                if dd>360.:dd=dd-360.
+                MagRec["sample_bed_dip_direction"]='%7.1f'%(dd)
+                dip_dir=MagRec["sample_bed_dip_direction"]
+            else: 
+                MagRec["sample_bed_dip_direction"]=OrRec['bedding_dip_direction']
+        else: MagRec["sample_bed_dip_direction"]='0'
+        if average_bedding!="0": BPs.append([float(MagRec["sample_bed_dip_direction"]),float(MagRec["sample_bed_dip"])-90.,1.])
+        if MagRec['sample_azimuth']=="" and MagRec['sample_dip']=="":
+            MagRec["sample_declination_correction"]=''
+            methcodes=methcodes+':SO-NO'
+        MagRec["magic_method_codes"]=methcodes
+        MagRec['sample_description']=sample_description
+    #
+    # work on the site stuff too
+        if 'site_name' in OrRec.keys():
+            site=OrRec['site_name']
+        else:
+            site=pmag.parse_site(OrRec["sample_name"],samp_con,Z) # parse out the site name
+        MagRec["er_site_name"]=site
+        site_description="" # overwrite any prior description
+        if 'site_description' in OrRec.keys() and OrRec['site_description']!="":
+            site_description=OrRec['site_description'].replace(",",";")
+        if "image_name" in OrRec.keys():
+            images=OrRec["image_name"].split(":")
+            if "image_look" in OrRec.keys():
+                looks=OrRec['image_look'].split(":")
+            else:
+                looks=[]
+            if "image_photographer" in OrRec.keys():
+                photographers=OrRec['image_photographer'].split(":")
+            else:
+                photographers=[]
+            for image in images:
+                if image !="" and image not in imagelist:
+                    imagelist.append(image)
+                    ImageRec={}
+                    ImageRec['er_image_name']=image
+                    ImageRec['image_type']="outcrop"
+                    ImageRec['image_date']=sample_date
+                    ImageRec['er_citation_names']="This study"
+                    ImageRec['er_location_name']=location_name
+                    ImageRec['er_site_name']=MagRec['er_site_name']
+                    k=images.index(image)
+                    if len(looks)>k:
+                        ImageRec['er_image_description']="Look direction: "+looks[k]
+                    elif len(looks)>=1:
+                        ImageRec['er_image_description']="Look direction: "+looks[-1]
+                    else:
+                        ImageRec['er_image_description']="Look direction: unknown"
+                    if len(photographers)>k:
+                        ImageRec['er_photographer_mail_names']=photographers[k]
+                    elif len(photographers)>=1:
+                        ImageRec['er_photographer_mail_names']=photographers[-1]
+                    else:
+                        ImageRec['er_photographer_mail_names']="unknown"
+                    ImageOuts.append(ImageRec)
+        if site not in sitelist:
+    	    sitelist.append(site) # collect unique site names
+    	    SiteRec={}
+    	    SiteRec["er_site_name"]=site 
+            SiteRec["site_definition"]="s"
+    	    SiteRec["er_location_name"]=location_name
+    	    SiteRec["er_citation_names"]="This study"
+            SiteRec["site_lat"]=MagRec["sample_lat"]
+            SiteRec["site_lon"]=MagRec["sample_lon"]
+            SiteRec["site_height"]=MagRec["sample_height"]
+            SiteRec["site_class"]=MagRec["sample_class"]
+            SiteRec["site_lithology"]=MagRec["sample_lithology"]
+            SiteRec["site_type"]=MagRec["sample_type"]
+            SiteRec["site_description"]=site_description
+            SiteOuts.append(SiteRec)
+        if sample not in samplelist:
+            samplelist.append(sample)
+            if MagRec['sample_azimuth']!="": # assume magnetic compass only
+                MagRec['magic_method_codes']=MagRec['magic_method_codes']+':SO-MAG'
+                MagRec['magic_method_codes']=MagRec['magic_method_codes'].strip(":")
+            SampOuts.append(MagRec)
+            if MagRec['sample_azimuth']!="" and dec_correction_con!='3':
+                az=labaz+dec_correction
+                if az>360.:az=az-360.
+                CMDRec={}
+                for key in MagRec.keys():
+                    CMDRec[key]=MagRec[key] # make a copy of MagRec
+                CMDRec["sample_azimuth"]='%7.1f'%(az)
+                CMDRec["magic_method_codes"]=methcodes+':SO-CMD-NORTH'
+                CMDRec["magic_method_codes"]=CMDRec['magic_method_codes'].strip(':')
+                CMDRec["sample_declination_correction"]='%7.1f'%(dec_correction)
+                if dec_correction_con=='1':
+                    CMDRec['sample_description']=sample_description+':Declination correction calculated from IGRF'
+                else:
+                    CMDRec['sample_description']=sample_description+':Declination correction supplied by user'
+                CMDRec["sample_description"]=CMDRec['sample_description'].strip(':')
+                SampOuts.append(CMDRec)
+            if "mag_az_bs" in OrRec.keys() and OrRec["mag_az_bs"] !="" and OrRec["mag_az_bs"]!=" ":
+                SRec={}
+                for key in MagRec.keys():
+                    SRec[key]=MagRec[key] # make a copy of MagRec
+                labaz=float(OrRec["mag_az_bs"])
+                az=labaz+dec_correction
+                if az>360.:az=az-360.
+                SRec["sample_azimuth"]='%7.1f'%(az)
+                SRec["sample_declination_correction"]='%7.1f'%(dec_correction)
+                SRec["magic_method_codes"]=methcodes+':SO-SIGHT-BACK:SO-CMD-NORTH'
+                SampOuts.append(SRec)
+    #
+    # check for suncompass data
+    #
+            if "shadow_angle" in OrRec.keys() and OrRec["shadow_angle"]!="":  # there are sun compass data
+                if hours_from_gmt=="":
+                    hours_from_gmt=raw_input("Enter hours to SUBTRACT from time for  GMT: [0] ")
+                    if hours_from_gmt=="":hours_from_gmt="0"
+                SunRec,sundata={},{}
+                shad_az=float(OrRec["shadow_angle"])
+                sundata["date"]='%i:%s:%s:%s'%(yy,mmddyy[0],mmddyy[1],OrRec["hhmm"])
+#                if eval(hours_from_gmt)<0:
+#                        MagRec["sample_time_zone"]='GMT'+hours_from_gmt+' hours'
+#                else:
+#                    MagRec["sample_time_zone"]='GMT+'+hours_from_gmt+' hours'
+                sundata["delta_u"]=hours_from_gmt
+                sundata["lon"]='%7.1f'%(lon)   
+                sundata["lat"]='%7.1f'%(lat)  
+                sundata["shadow_angle"]=OrRec["shadow_angle"]
+                sundec=pmag.dosundec(sundata)
+                for key in MagRec.keys():
+                    SunRec[key]=MagRec[key]  # make a copy of MagRec
+                SunRec["sample_azimuth"]='%7.1f'%(sundec) 
+                SunRec["sample_declination_correction"]=''
+                SunRec["magic_method_codes"]=methcodes+':SO-SUN'
+                SunRec["magic_method_codes"]=SunRec['magic_method_codes'].strip(':')
+                SampOuts.append(SunRec)
+    #
+    # check for differential GPS data
+    #
+            if "prism_angle" in OrRec.keys() and OrRec["prism_angle"]!="":  # there are diff GPS data   
+                GPSRec={}
+                for key in MagRec.keys():
+                    GPSRec[key]=MagRec[key]  # make a copy of MagRec
+                prism_angle=float(OrRec["prism_angle"])
+                laser_angle=float(OrRec["laser_angle"])
+                if OrRec["GPS_baseline"]!="": baseline=float(OrRec["GPS_baseline"]) # new baseline
+                gps_dec=baseline+laser_angle+prism_angle-90.
+                while gps_dec>360.:
+                    gps_dec=gps_dec-360.
+                while gps_dec<0:
+                    gps_dec=gps_dec+360. 
+                for key in MagRec.keys():
+                    GPSRec[key]=MagRec[key]  # make a copy of MagRec
+                GPSRec["sample_azimuth"]='%7.1f'%(gps_dec) 
+                GPSRec["sample_declination_correction"]=''
+                GPSRec["magic_method_codes"]=methcodes+':SO-GPS-DIFF'
+                SampOuts.append(GPSRec)
+            if "GPS_Az" in OrRec.keys() and OrRec["GPS_Az"]!="":  # there are differential GPS Azimuth data   
+                GPSRec={}
+                for key in MagRec.keys():
+                    GPSRec[key]=MagRec[key]  # make a copy of MagRec
+                GPSRec["sample_azimuth"]='%7.1f'%(float(OrRec["GPS_Az"])) 
+                GPSRec["sample_declination_correction"]=''
+                GPSRec["magic_method_codes"]=methcodes+':SO-GPS-DIFF'
+                SampOuts.append(GPSRec)
+        if average_bedding!="0":  
+            fpars=pmag.fisher_mean(BPs)
+            print 'over-writing all bedding with average '
+    Samps=[]
+    for  rec in SampOuts:
+        if average_bedding!="0":
+            rec['sample_bed_dip_direction']='%7.1f'%(fpars['dec'])
+            rec['sample_bed_dip']='%7.1f'%(fpars['inc']+90.)
+            Samps.append(rec)
+        else:
+            Samps.append(rec)
+    for rec in SampRecs:
+        if rec['er_sample_name'] not in samplelist: # overwrite prior for this sample 
+            Samps.append(rec)
+    for rec in SiteRecs:
+        if rec['er_site_name'] not in sitelist: # overwrite prior for this sample
+            SiteOuts.append(rec)
+    for rec in ImageRecs:
+        if rec['er_image_name'] not in imagelist: # overwrite prior for this sample
+            ImageOuts.append(rec)
+    print 'saving data...'
+    SampsOut,keys=pmag.fillkeys(Samps)
+    Sites,keys=pmag.fillkeys(SiteOuts)
+    pmag.magic_write(samp_file,SampsOut,"er_samples")
+    pmag.magic_write(site_file,Sites,"er_sites")
+    print "Data saved in ", samp_file,' and ',site_file
+    if len(ImageOuts)>0:
+        Images,keys=pmag.fillkeys(ImageOuts)
+        pmag.magic_write(image_file,Images,"er_images")
+        print "Image info saved in ",image_file
+
+    
+>>>>>>> orientation_magic function in ipmag is working without errors (not necessarily correct yet)
