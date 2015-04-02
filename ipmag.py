@@ -2299,8 +2299,38 @@ def specimens_results_magic(infile='pmag_specimens.txt', measfile='magic_measure
     else: print "No Results level table"
 
 
-def orientation_magic(or_con=1, dec_correction_con=1, dec_correction=0, bed_correction=True, samp_con='1', hours_from_gmt=0, method_codes='', average_bedding=False, orient_file='orient.txt', samp_file='er_samples.txt', site_file='er_sites.txt', output_dir_path='.', input_dir_path='.', append=False):
+def orientation_magic(or_con=1, dec_correction_con=1, dec_correction=0, bed_correction=True, samp_con='1', hours_from_gmt=0, method_codes='', average_bedding=False, orient_file='orient.txt', samp_file='er_samples.txt', site_file='er_sites.txt', output_dir_path=os.getcwd(), input_dir_path=os.getcwd(), append=False):
     """
+    use this function to convert tab delimited field notebook information to MagIC formatted tables (er_samples and er_sites)
+
+    INPUT FORMAT
+        Input files must be tab delimited and have in the first line:
+tab  location_name
+        Note: The "location_name" will facilitate searching in the MagIC database. Data from different
+            "locations" should be put in separate files.  The definition of a "location" is rather loose.
+             Also this is the word 'tab' not a tab, which will be indicated by '\t'.
+        The second line has the names of the columns (tab delimited), e.g.:
+site_name sample_name mag_azimuth field_dip date lat long sample_lithology sample_type sample_class shadow_angle hhmm stratigraphic_height bedding_dip_direction bedding_dip GPS_baseline image_name image_look image_photographer participants method_codes site_description sample_description GPS_Az, sample_igsn, sample_texture, sample_cooling_rate, cooling_rate_corr, cooling_rate_mcd
+
+    
+      Notes: 
+        1) column order doesn't matter but the NAMES do.   
+        2) sample_name, sample_lithology, sample_type, sample_class, lat and long are required.  all others are optional.
+        3) If subsequent data are the same (e.g., date, bedding orientation, participants, stratigraphic_height), 
+            you can leave the field blank and the program will fill in the last recorded information. BUT if you really want a blank stratigraphic_height, enter a '-1'.    These will not be inherited and must be specified for each entry: image_name, look, photographer or method_codes
+        4) hhmm must be in the format:  hh:mm and the hh must be in 24 hour time.
+    date must be mm/dd/yy (years < 50 will be converted to  20yy and >50 will be assumed 19yy)
+        5) image_name, image_look and image_photographer are colon delimited lists of file name (e.g., IMG_001.jpg) image look direction and the name of the photographer respectively.  If all images had same look and photographer, just enter info once.  The images will be assigned to the site for which they were taken - not at the sample level.  
+        6) participants:  Names of who helped take the samples.  These must be a colon delimited list.
+        7) method_codes:  Special method codes on a sample level, e.g., SO-GT5 which means the orientation is has an uncertainty of >5 degrees
+             for example if it broke off before orienting....
+        8) GPS_Az is the place to put directly determined GPS Azimuths, using, e.g., points along the drill direction.
+        9) sample_cooling_rate is the cooling rate in K per Ma 
+        10) int_corr_cooling_rate
+        11) cooling_rate_mcd:  data adjustment method code for cooling rate correction;  DA-CR-EG is educated guess; DA-CR-PS is percent estimated from pilot samples; DA-CR-TRM is comparison between 2 TRMs acquired with slow and rapid cooling rates.
+is the percent cooling rate factor to apply to specimens from this sample, DA-CR-XX is the method code
+
+
     defaults:
     orientation_magic(or_con=1, dec_correction_con=1, dec_correction=0, bed_correction=True, samp_con='1', hours_from_gmt=0, method_codes='', average_bedding=False, orient_file='orient.txt', samp_file='er_samples.txt', site_file='er_sites.txt', output_dir_path='.', input_dir_path='.', append=False):
     orientation conventions:
@@ -2343,7 +2373,13 @@ def orientation_magic(or_con=1, dec_correction_con=1, dec_correction=0, bed_corr
 
 
     """
+    # initialize some variables
     # bed_correction used to be BedCorr
+    # dec_correction_con used to be corr
+    # dec_correction used to be DecCorr
+    # meths is now method_codes
+    # delta_u is now hours_from_gmt
+
     stratpos=""
     date,lat,lon="","",""  # date of sampling, latitude (pos North), longitude (pos East)
     bed_dip,bed_dip_dir="",""
@@ -2351,11 +2387,9 @@ def orientation_magic(or_con=1, dec_correction_con=1, dec_correction=0, bed_corr
     Lats,Lons=[],[] # list of latitudes and longitudes
     SampOuts,SiteOuts,ImageOuts=[],[],[]  # lists of Sample records and Site records
     samplelist,sitelist,imagelist=[],[],[]
-    Z,average_bedding=1,"0"
+    Z=1
     newbaseline,newbeddir,newbeddip="","",""
-
-    # meths is now method_codes
-    # delta_u is now hours_from_gmt
+    fpars = []
     sclass,lithology,type="","",""
     newclass,newlith,newtype='','',''
     BPs=[]# bedding pole declinations, bedding pole inclinations
@@ -2365,11 +2399,6 @@ def orientation_magic(or_con=1, dec_correction_con=1, dec_correction=0, bed_corr
     orient_file,samp_file= os.path.join(input_dir_path,orient_file), os.path.join(output_dir_path,samp_file)
     site_file = os.path.join(output_dir_path, site_file)
     image_file= output_dir_path+"/er_images.txt"
-
-    
-    # dec_correction_con used to be corr
-    # dec_correction used to be DecCorr
-
     
     # validate input
     if '4' in samp_con[0]:
@@ -2383,8 +2412,6 @@ def orientation_magic(or_con=1, dec_correction_con=1, dec_correction=0, bed_corr
         result = pattern.match(samp_con)
         if not result:
             raise Exception("If using sample naming convention 7, you must provide the number of characters with which to distinguish sample from site.  [7-Z] [XXX]YYY:  XXX is site designation with Z characters from samples  XXXYYY")
-
-        
     
     if dec_correction_con == 2 and not dec_correction:
         raise Exception("If using magnetic declination convention 2, you must also provide a declincation correction in degrees")
@@ -2489,16 +2516,17 @@ def orientation_magic(or_con=1, dec_correction_con=1, dec_correction=0, bed_corr
             participantlist=OrRec['participants']
         MagRec['er_scientist_mail_names']=participantlist
         newlat=OrRec["lat"]
-        if newlat!="":lat=float(newlat)
+        if newlat!="":
+            lat=float(newlat)
         if lat=="":
-            print "No latitude specified for ! ",sample
-            sys.exit()
+            print "No latitude specified for ! ",sample, ". Latitude is required for all samples."
+            return False
         MagRec["sample_lat"]='%11.5f'%(lat)
         newlon=OrRec["long"]
         if newlon!="":lon=float(newlon)
         if lon=="":
-            print "No longitude specified for ! ",sample
-            sys.exit()
+            print "No longitude specified for ! ",sample, ". Longitude is required for all samples."
+            return False
         MagRec["sample_lon"]='%11.5f'%(lon)
         if 'bedding_dip_direction' in OrRec.keys(): newbeddir=OrRec["bedding_dip_direction"]
         if newbeddir!="":bed_dip_dir=OrRec['bedding_dip_direction']
@@ -2523,7 +2551,6 @@ def orientation_magic(or_con=1, dec_correction_con=1, dec_correction=0, bed_corr
         else:
             MagRec["sample_dip"]=""
         if "date" in OrRec.keys() and OrRec["date"]!="":
-            print OrRec["date"]
             newdate=OrRec["date"]
             if newdate!="":date=newdate
             mmddyy=date.split('/')
@@ -2534,7 +2561,10 @@ def orientation_magic(or_con=1, dec_correction_con=1, dec_correction=0, bed_corr
                 yy=2000+yy
             decimal_year=yy+float(mmddyy[0])/12
             sample_date='%i:%s:%s'%(yy,mmddyy[0],mmddyy[1])
-            MagRec["sample_date"]=sample_date
+            time=OrRec['hhmm']
+            if time:
+                sample_date += (':' + time)
+            MagRec["sample_date"]=sample_date.strip(':')
         if labaz!="":
             MagRec["sample_azimuth"]='%7.1f'%(labaz)
         else:
@@ -2568,7 +2598,9 @@ def orientation_magic(or_con=1, dec_correction_con=1, dec_correction=0, bed_corr
             else: 
                 MagRec["sample_bed_dip_direction"]=OrRec['bedding_dip_direction']
         else: MagRec["sample_bed_dip_direction"]='0'
-        if average_bedding!="0": BPs.append([float(MagRec["sample_bed_dip_direction"]),float(MagRec["sample_bed_dip"])-90.,1.])
+        if average_bedding:
+            if str(MagRec["sample_bed_dip_direction"]) and str(MagRec["sample_bed_dip"]):
+                BPs.append([float(MagRec["sample_bed_dip_direction"]),float(MagRec["sample_bed_dip"])-90.,1.])
         if MagRec['sample_azimuth']=="" and MagRec['sample_dip']=="":
             MagRec["sample_declination_correction"]=''
             methcodes=methcodes+':SO-NO'
@@ -2675,23 +2707,26 @@ def orientation_magic(or_con=1, dec_correction_con=1, dec_correction=0, bed_corr
                     if hours_from_gmt=="":hours_from_gmt="0"
                 SunRec,sundata={},{}
                 shad_az=float(OrRec["shadow_angle"])
-                sundata["date"]='%i:%s:%s:%s'%(yy,mmddyy[0],mmddyy[1],OrRec["hhmm"])
-#                if eval(hours_from_gmt)<0:
-#                        MagRec["sample_time_zone"]='GMT'+hours_from_gmt+' hours'
-#                else:
-#                    MagRec["sample_time_zone"]='GMT+'+hours_from_gmt+' hours'
-                sundata["delta_u"]=hours_from_gmt
-                sundata["lon"]='%7.1f'%(lon)   
-                sundata["lat"]='%7.1f'%(lat)  
-                sundata["shadow_angle"]=OrRec["shadow_angle"]
-                sundec=pmag.dosundec(sundata)
-                for key in MagRec.keys():
-                    SunRec[key]=MagRec[key]  # make a copy of MagRec
-                SunRec["sample_azimuth"]='%7.1f'%(sundec) 
-                SunRec["sample_declination_correction"]=''
-                SunRec["magic_method_codes"]=methcodes+':SO-SUN'
-                SunRec["magic_method_codes"]=SunRec['magic_method_codes'].strip(':')
-                SampOuts.append(SunRec)
+                if not OrRec["hhmm"]:
+                    print 'If using the column shadow_angle for sun compass data, you must also provide the time for each sample.  Sample ', sample, ' has shadow_angle but is missing the "hh:mm" column.'
+                else: # calculate sun declination
+                    sundata["date"]='%i:%s:%s:%s'%(yy,mmddyy[0],mmddyy[1],OrRec["hhmm"])
+    #                if eval(hours_from_gmt)<0:
+    #                        MagRec["sample_time_zone"]='GMT'+hours_from_gmt+' hours'
+    #                else:
+    #                    MagRec["sample_time_zone"]='GMT+'+hours_from_gmt+' hours'
+                    sundata["delta_u"]=hours_from_gmt
+                    sundata["lon"]='%7.1f'%(lon)   
+                    sundata["lat"]='%7.1f'%(lat)  
+                    sundata["shadow_angle"]=OrRec["shadow_angle"]
+                    sundec=pmag.dosundec(sundata)
+                    for key in MagRec.keys():
+                        SunRec[key]=MagRec[key]  # make a copy of MagRec
+                    SunRec["sample_azimuth"]='%7.1f'%(sundec) 
+                    SunRec["sample_declination_correction"]=''
+                    SunRec["magic_method_codes"]=methcodes+':SO-SUN'
+                    SunRec["magic_method_codes"]=SunRec['magic_method_codes'].strip(':')
+                    SampOuts.append(SunRec)
     #
     # check for differential GPS data
     #
@@ -2721,12 +2756,12 @@ def orientation_magic(or_con=1, dec_correction_con=1, dec_correction=0, bed_corr
                 GPSRec["sample_declination_correction"]=''
                 GPSRec["magic_method_codes"]=methcodes+':SO-GPS-DIFF'
                 SampOuts.append(GPSRec)
-        if average_bedding!="0":  
+        if average_bedding!="0" and fpars:
             fpars=pmag.fisher_mean(BPs)
             print 'over-writing all bedding with average '
     Samps=[]
     for  rec in SampOuts:
-        if average_bedding!="0":
+        if average_bedding!="0" and fpars:
             rec['sample_bed_dip_direction']='%7.1f'%(fpars['dec'])
             rec['sample_bed_dip']='%7.1f'%(fpars['inc']+90.)
             Samps.append(rec)
@@ -2744,9 +2779,12 @@ def orientation_magic(or_con=1, dec_correction_con=1, dec_correction=0, bed_corr
     print 'saving data...'
     SampsOut,keys=pmag.fillkeys(Samps)
     Sites,keys=pmag.fillkeys(SiteOuts)
-    pmag.magic_write(samp_file,SampsOut,"er_samples")
-    pmag.magic_write(site_file,Sites,"er_sites")
-    print "Data saved in ", samp_file,' and ',site_file
+    wrote_samps = pmag.magic_write(samp_file,SampsOut,"er_samples")
+    wrote_sites = pmag.magic_write(site_file,Sites,"er_sites")
+    if wrote_samps:
+        print "Data saved in ", samp_file,' and ',site_file
+    else:
+        print "No data found"
     if len(ImageOuts)>0:
         Images,keys=pmag.fillkeys(ImageOuts)
         pmag.magic_write(image_file,Images,"er_images")
