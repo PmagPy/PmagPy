@@ -2391,7 +2391,7 @@ is the percent cooling rate factor to apply to specimens from this sample, DA-CR
     Z=1
     newbaseline,newbeddir,newbeddip="","",""
     fpars = []
-    sclass,lithology,type="","",""
+    sclass,lithology,sample_type="","",""
     newclass,newlith,newtype='','',''
     BPs=[]# bedding pole declinations, bedding pole inclinations
     #
@@ -2544,9 +2544,11 @@ is the percent cooling rate factor to apply to specimens from this sample, DA-CR
         if lithology=="": lithology="Not Specified"
         MagRec["sample_lithology"]=lithology
         if "sample_type" in OrRec.keys():newtype=OrRec["sample_type"]
-        if newtype!="":type=newtype
-        if type=="": type="Not Specified"
-        MagRec["sample_type"]=type
+        if newtype!="":
+            sample_type=newtype
+        if sample_type=="":
+            sample_type="Not Specified"
+        MagRec["sample_type"]=sample_type
         if labdip!="":
             MagRec["sample_dip"]='%7.1f'%labdip
         else:
@@ -2728,6 +2730,7 @@ is the percent cooling rate factor to apply to specimens from this sample, DA-CR
                     SunRec["magic_method_codes"]=methcodes+':SO-SUN'
                     SunRec["magic_method_codes"]=SunRec['magic_method_codes'].strip(':')
                     SampOuts.append(SunRec)
+
     #
     # check for differential GPS data
     #

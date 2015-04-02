@@ -2325,8 +2325,11 @@ class OrientFrameGrid(wx.Frame):
 
 
         or_con = orient_convention_dia.ocn
-        dec_correction_con = orient_convention_dia.dcn
-        hours_from_gmt = orient_convention_dia.gmt
+        dec_correction_con = int(orient_convention_dia.dcn)
+        try:
+            hours_from_gmt = float(orient_convention_dia.gmt)
+        except:
+            hours_from_gmt = 0
         try:
             dec_correction = float(orient_convention_dia.correct_dec)
         except:
