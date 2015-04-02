@@ -2323,12 +2323,28 @@ class OrientFrameGrid(wx.Frame):
             gmt_flags=orient_convention_dia.gmt_flags
             orient_convention_dia.Destroy()
 
+
+        or_con = orient_convention_dia.ocn
+        dec_correction_con = orient_convention_dia.dcn
+        hours_from_gmt = orient_convention_dia.gmt
+        try:
+            dec_correction = float(orient_convention_dia.correct_dec)
+        except:
+            dec_correction = 0
+
         method_code_dia=method_code_dialog(None)
         method_code_dia.Center()
         if method_code_dia.ShowModal()== wx.ID_OK:
             bedding_codes_flags=method_code_dia.bedding_codes_flags
             methodcodes_flags=method_code_dia.methodcodes_flags
             method_code_dia.Destroy()
+
+        method_codes = method_code_dia.methodcodes
+        average_bedding = method_code_dia.average_bedding
+        bed_correction = method_code_dia.bed_correction
+
+
+        # to run as command-line:
         #logfile=open(self.WD+"/orientation_magic.log",'w')
         command_args=['orientation_magic.py']
         command_args.append("-WD %s"%self.WD)
@@ -2342,26 +2358,14 @@ class OrientFrameGrid(wx.Frame):
         command_args.append(methodcodes_flags) 
         commandline= " ".join(command_args)
 
-
-        #command= "orientation_magic.py -WD %s -Fsa er_samples_orient.txt -Fsi er_sites_orient.txt -f  %s %s %s %s %s %s > ./orientation_magic.log " \
-        #%(self.WD,\
-        #"demag_orient.txt",\
-        #ocn_flag,\
-        #dcn_flag,\
-        #gmt_flags,\
-        #bedding_codes_flags,\
-        #methodcodes_flags)
-
-        #orient_convention_dia.Destroy()
-        #method_code_dia.Destroy()  
-
         print "-I- executing command: %s" %commandline
         os.chdir(self.WD)
+        
+        #exit_code = os.system(commandline)
+        ran_successfully, error_message = ipmag.orientation_magic(or_con, dec_correction_con, dec_correction, bed_correction, hours_from_gmt=hours_from_gmt, method_codes=method_codes, average_bedding=average_bedding, orient_file='demag_orient.txt', samp_file='er_samples_orient.txt', site_file='er_sites_orient.txt', input_dir_path=self.WD, output_dir_path=self.WD)
 
-        exit_code = os.system(commandline)
-
-        if exit_code is not 0:
-            dlg1 = wx.MessageDialog(None,caption="Message:", message="-E- ERROR: Error in running orientation_magic.py\nSee Terminal (Mac) or command prompt (windows) for errors" ,style=wx.OK|wx.ICON_INFORMATION)
+        if not ran_successfully:
+            dlg1 = wx.MessageDialog(None,caption="Message:", message="-E- ERROR: Error in running orientation_magic.py\n{}".format(error_message) ,style=wx.OK|wx.ICON_INFORMATION)
             dlg1.ShowModal()
             dlg1.Destroy()
 
@@ -2468,8 +2472,6 @@ class OrientFrameGrid(wx.Frame):
 
         self.Destroy()
 
-
-                    
         
     def OnCloseWindow(self,event):   
         dlg1 = wx.MessageDialog(self,caption="Message:", message="Save changes to demag_orient.txt?\n " ,style=wx.OK|wx.CANCEL)
@@ -2483,9 +2485,6 @@ class OrientFrameGrid(wx.Frame):
             self.Destroy()
 
                      
-
-                
-
 
 class orient_convention(wx.Dialog):
     
@@ -2634,11 +2633,12 @@ class orient_convention(wx.Dialog):
         if self.oc_rb6.GetValue()==True:self.ocn="6"
 
         self.dcn=""
+        self.correct_dec = ""
         if self.dc_rb1.GetValue()==True:self.dcn="1"
         if self.dc_rb2.GetValue()==True:
             self.dcn="2"
             try:
-                float(self.dc_tb2.GetValue())
+                self.correct_dec = float(self.dc_tb2.GetValue())
             except:
                 dlg1 = wx.MessageDialog(None,caption="Error:", message="Add declination" ,style=wx.OK|wx.ICON_INFORMATION)
                 dlg1.ShowModal()
@@ -2651,11 +2651,12 @@ class orient_convention(wx.Dialog):
         
         if self.dc_alt.GetValue()!="":
             try:
-                float(self.dc_alt.GetValue())
+                self.gmt = float(self.dc_alt.GetValue())
                 gmt_flags="-gmt " + self.dc_alt.GetValue()
             except:
                 gmt_flags=""
         else:
+            self.gmt = ""
             gmt_flags=""        
         #-------------
         self.ocn_flag="-ocn "+ self.ocn
@@ -2765,19 +2766,26 @@ class method_code_dialog(wx.Dialog):
             methodcodes.append('SO-SM')
         if self.cb10.GetValue() ==True:
             methodcodes.append('SO-SIGHT')
-        
+
         if methodcodes==[]:
             self.methodcodes_flags=""
+            self.methodcodes = ""
         else:
             self.methodcodes_flags="-mcd "+":".join(methodcodes)
+            self.methodcodes = ":".join(methodcodes)
         
         bedding_codes=[]
         
         if self.bed_con1.GetValue() ==True:
             bedding_codes.append("-a")
+            self.average_bedding = True
+        else:
+            self.average_bedding = False
         if self.bed_con2.GetValue() ==True:
             bedding_codes.append("-BCN")
-        
+            self.bed_correction = False
+        else:
+            self.bed_correction = True
         self.bedding_codes_flags=" ".join(bedding_codes)   
         self.EndModal(wx.ID_OK) 
         #self.Close()

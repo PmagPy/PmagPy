@@ -1733,7 +1733,6 @@ def upload_magic(concat=0, dir_path='.'):
     return new_up, ''
 
 
-
 def specimens_results_magic(infile='pmag_specimens.txt', measfile='magic_measurements.txt', sampfile='er_samples.txt', sitefile='er_sites.txt', agefile='er_ages.txt', specout='er_specimens.txt', sampout='pmag_samples.txt', siteout='pmag_sites.txt', resout='pmag_results.txt', critout='pmag_criteria.txt', instout='magic_instruments.txt', plotsites = False, fmt='svg', dir_path='.', cors=[], priorities=['DA-AC-ARM','DA-AC-TRM'], coord='g', user='', vgps_level='site', do_site_intensity=True, DefaultAge=["none"], avg_directions_by_sample=False, avg_intensities_by_sample=False, avg_all_components=False, avg_by_polarity=False, skip_directions=False, skip_intensities=False, use_sample_latitude=False, use_paleolatitude=False, use_criteria='default'):
     """
     cors is 'corrections' 
@@ -2299,7 +2298,7 @@ def specimens_results_magic(infile='pmag_specimens.txt', measfile='magic_measure
     else: print "No Results level table"
 
 
-def orientation_magic(or_con=1, dec_correction_con=1, dec_correction=0, bed_correction=True, samp_con='1', hours_from_gmt=0, method_codes='', average_bedding=False, orient_file='orient.txt', samp_file='er_samples.txt', site_file='er_sites.txt', output_dir_path=os.getcwd(), input_dir_path=os.getcwd(), append=False):
+def orientation_magic(or_con=1, dec_correction_con=1, dec_correction=0, bed_correction=True, samp_con='1', hours_from_gmt=0, method_codes='', average_bedding=False, orient_file='orient.txt', samp_file='er_samples.txt', site_file='er_sites.txt', output_dir_path='.', input_dir_path='.', append=False):
     """
     use this function to convert tab delimited field notebook information to MagIC formatted tables (er_samples and er_sites)
 
@@ -2380,6 +2379,8 @@ is the percent cooling rate factor to apply to specimens from this sample, DA-CR
     # meths is now method_codes
     # delta_u is now hours_from_gmt
 
+
+    print 'input_dir_path', input_dir_path
     stratpos=""
     date,lat,lon="","",""  # date of sampling, latitude (pos North), longitude (pos East)
     bed_dip,bed_dip_dir="",""
@@ -2520,13 +2521,13 @@ is the percent cooling rate factor to apply to specimens from this sample, DA-CR
             lat=float(newlat)
         if lat=="":
             print "No latitude specified for ! ",sample, ". Latitude is required for all samples."
-            return False
+            return False, "No latitude specified for ! " + sample + ". Latitude is required for all samples."
         MagRec["sample_lat"]='%11.5f'%(lat)
         newlon=OrRec["long"]
         if newlon!="":lon=float(newlon)
         if lon=="":
             print "No longitude specified for ! ",sample, ". Longitude is required for all samples."
-            return False
+            return False, str("No longitude specified for ! " + sample + ". Longitude is required for all samples.")
         MagRec["sample_lon"]='%11.5f'%(lon)
         if 'bedding_dip_direction' in OrRec.keys(): newbeddir=OrRec["bedding_dip_direction"]
         if newbeddir!="":bed_dip_dir=OrRec['bedding_dip_direction']
@@ -2703,8 +2704,8 @@ is the percent cooling rate factor to apply to specimens from this sample, DA-CR
     #
             if "shadow_angle" in OrRec.keys() and OrRec["shadow_angle"]!="":  # there are sun compass data
                 if hours_from_gmt=="":
-                    hours_from_gmt=raw_input("Enter hours to SUBTRACT from time for  GMT: [0] ")
-                    if hours_from_gmt=="":hours_from_gmt="0"
+                    #hours_from_gmt=raw_input("Enter hours to SUBTRACT from time for  GMT: [0] ")
+                    hours_from_gmt=0
                 SunRec,sundata={},{}
                 shad_az=float(OrRec["shadow_angle"])
                 if not OrRec["hhmm"]:
@@ -2789,6 +2790,7 @@ is the percent cooling rate factor to apply to specimens from this sample, DA-CR
         Images,keys=pmag.fillkeys(ImageOuts)
         pmag.magic_write(image_file,Images,"er_images")
         print "Image info saved in ",image_file
+    return True, None
 
     
 >>>>>>> orientation_magic function in ipmag is working without errors (not necessarily correct yet)
