@@ -122,7 +122,7 @@ def read_upload(up_file):
 
     for file_type in reqd_file_types:
         if file_type not in provided_file_types:
-            print "-W- You have not provided a {} type file, which is required data".format(file_type)
+            print "-W- You have not provided a(n) {} type file, which is required data".format(file_type)
             missing_file_type = True
             
 

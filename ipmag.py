@@ -1602,6 +1602,7 @@ def upload_magic(concat=0, dir_path='.'):
     returns a tuple of either: (False, error_message) if there was a problem creating/validating the upload file
     or: (filename, '') if the upload was fully successful
     """
+    locations = []
     concat = int(concat)
     files_list = ["er_expeditions.txt", "er_locations.txt", "er_samples.txt", "er_specimens.txt", "er_sites.txt", "er_ages.txt", "er_citations.txt", "er_mailinglist.txt", "magic_measurements.txt", "rmag_hysteresis.txt", "rmag_anisotropy.txt", "rmag_remanence.txt", "rmag_results.txt", "pmag_specimens.txt", "pmag_samples.txt", "pmag_sites.txt", "pmag_results.txt", "pmag_criteria.txt", "magic_instruments.txt"]
     file_names = [os.path.join(dir_path, f) for f in files_list]
@@ -1636,7 +1637,6 @@ def upload_magic(concat=0, dir_path='.'):
                                 rec[k]='%8.2f'%(float(rec[k])%360)  # make sure value is between 0 and 360. 
                                 print 'adjusted to 0=>360.: ',rec[k]
             if file_type=='er_locations':
-                locations = []
                 for rec in Data:
                     locations.append(rec['er_location_name'])
             if file_type=='er_samples': # check to only upload top priority orientation record!
