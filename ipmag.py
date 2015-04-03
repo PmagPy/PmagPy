@@ -2817,4 +2817,3 @@ is the percent cooling rate factor to apply to specimens from this sample, DA-CR
     return True, None
 
     
->>>>>>> orientation_magic function in ipmag is working without errors (not necessarily correct yet)
