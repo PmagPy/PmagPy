@@ -2379,8 +2379,8 @@ is the percent cooling rate factor to apply to specimens from this sample, DA-CR
     # meths is now method_codes
     # delta_u is now hours_from_gmt
 
-
-    print 'input_dir_path', input_dir_path
+    or_con, dec_correction_con, dec_correction = int(or_con), int(dec_correction_con), float(dec_correction)
+    hours_from_gmt = float(hours_from_gmt)
     stratpos=""
     date,lat,lon="","",""  # date of sampling, latitude (pos North), longitude (pos East)
     bed_dip,bed_dip_dir="",""
@@ -2444,10 +2444,14 @@ is the percent cooling rate factor to apply to specimens from this sample, DA-CR
     # step through the data sample by sample
     #
     for OrRec in OrData:
-        if 'mag_azimuth' not in OrRec.keys():OrRec['mag_azimuth']=""
-        if 'field_dip' not in OrRec.keys():OrRec['field_dip']=""
-        if OrRec['mag_azimuth']==" ":OrRec["mag_azimuth"]=""
-        if OrRec['field_dip']==" ":OrRec["field_dip"]=""
+        if 'mag_azimuth' not in OrRec.keys():
+            OrRec['mag_azimuth']=""
+        if 'field_dip' not in OrRec.keys():
+            OrRec['field_dip']=""
+        if OrRec['mag_azimuth']==" ":
+            OrRec["mag_azimuth"]=""
+        if OrRec['field_dip']==" ":
+            OrRec["field_dip"]=""
         if 'sample_description' in OrRec.keys():
             sample_description=OrRec['sample_description']
         else:
@@ -2501,7 +2505,8 @@ is the percent cooling rate factor to apply to specimens from this sample, DA-CR
         else:
             MagRec["sample_igsn"]=""
         MagRec["sample_height"],MagRec["sample_bed_dip_direction"],MagRec["sample_bed_dip"]="","",""
-        if "er_sample_alternatives" in OrRec.keys():MagRec["er_sample_alternatives"]=OrRec["sample_alternatives"]
+        if "er_sample_alternatives" in OrRec.keys():
+            MagRec["er_sample_alternatives"]=OrRec["sample_alternatives"]
         sample=OrRec["sample_name"]
         if OrRec['mag_azimuth']=="" and OrRec['field_dip']!="":
             OrRec['mag_azimuth']='999'
@@ -2511,8 +2516,10 @@ is the percent cooling rate factor to apply to specimens from this sample, DA-CR
         else:
             labaz,labdip="",""
         if  OrRec['mag_azimuth']=='999':labaz=""
-        if "GPS_baseline" in OrRec.keys() and OrRec['GPS_baseline']!="":newbaseline=OrRec["GPS_baseline"]
-        if newbaseline!="":baseline=float(newbaseline)
+        if "GPS_baseline" in OrRec.keys() and OrRec['GPS_baseline']!="":
+            newbaseline=OrRec["GPS_baseline"]
+        if newbaseline!="":
+            baseline=float(newbaseline)
         if 'participants' in OrRec.keys() and OrRec['participants']!="" and OrRec['participants']!=participantlist: 
             participantlist=OrRec['participants']
         MagRec['er_scientist_mail_names']=participantlist
@@ -2524,26 +2531,38 @@ is the percent cooling rate factor to apply to specimens from this sample, DA-CR
             return False, "No latitude specified for ! " + sample + ". Latitude is required for all samples."
         MagRec["sample_lat"]='%11.5f'%(lat)
         newlon=OrRec["long"]
-        if newlon!="":lon=float(newlon)
+        if newlon!="":
+            lon=float(newlon)
         if lon=="":
             print "No longitude specified for ! ",sample, ". Longitude is required for all samples."
             return False, str("No longitude specified for ! " + sample + ". Longitude is required for all samples.")
         MagRec["sample_lon"]='%11.5f'%(lon)
-        if 'bedding_dip_direction' in OrRec.keys(): newbeddir=OrRec["bedding_dip_direction"]
-        if newbeddir!="":bed_dip_dir=OrRec['bedding_dip_direction']
-        if 'bedding_dip' in OrRec.keys(): newbeddip=OrRec["bedding_dip"]
-        if newbeddip!="":bed_dip=OrRec['bedding_dip']
+        if 'bedding_dip_direction' in OrRec.keys():
+            newbeddir=OrRec["bedding_dip_direction"]
+        if newbeddir!="":
+            bed_dip_dir=OrRec['bedding_dip_direction']
+        if 'bedding_dip' in OrRec.keys():
+            newbeddip=OrRec["bedding_dip"]
+        if newbeddip!="":
+            bed_dip=OrRec['bedding_dip']
         MagRec["sample_bed_dip"]=bed_dip
         MagRec["sample_bed_dip_direction"]=bed_dip_dir
-        if "sample_class" in OrRec.keys():newclass=OrRec["sample_class"]
-        if newclass!="":sclass=newclass
-        if sclass=="": sclass="Not Specified"
+        if "sample_class" in OrRec.keys():
+            newclass=OrRec["sample_class"]
+        if newclass!="":
+            sclass=newclass
+        if sclass=="":
+            sclass="Not Specified"
         MagRec["sample_class"]=sclass
-        if "sample_lithology" in OrRec.keys():newlith=OrRec["sample_lithology"]
-        if newlith!="":lithology=newlith
-        if lithology=="": lithology="Not Specified"
+        if "sample_lithology" in OrRec.keys():
+            newlith=OrRec["sample_lithology"]
+        if newlith!="":
+            lithology=newlith
+        if lithology=="":
+            lithology="Not Specified"
         MagRec["sample_lithology"]=lithology
-        if "sample_type" in OrRec.keys():newtype=OrRec["sample_type"]
+        if "sample_type" in OrRec.keys():
+            newtype=OrRec["sample_type"]
         if newtype!="":
             sample_type=newtype
         if sample_type=="":
@@ -2555,7 +2574,8 @@ is the percent cooling rate factor to apply to specimens from this sample, DA-CR
             MagRec["sample_dip"]=""
         if "date" in OrRec.keys() and OrRec["date"]!="":
             newdate=OrRec["date"]
-            if newdate!="":date=newdate
+            if newdate!="":
+                date=newdate
             mmddyy=date.split('/')
             yy=int(mmddyy[2])
             if yy>50: 
@@ -2593,14 +2613,15 @@ is the percent cooling rate factor to apply to specimens from this sample, DA-CR
                 MagRec["sample_bed_dip"]=bed_dip
         else: MagRec["sample_bed_dip"]='0'
         if "bedding_dip_direction" in OrRec.keys():
-            if OrRec["bedding_dip_direction"]!="" and BedCorr==1: 
+            if OrRec["bedding_dip_direction"]!="" and bed_correction==1: 
                 dd=float(OrRec["bedding_dip_direction"])+dec_correction
                 if dd>360.:dd=dd-360.
                 MagRec["sample_bed_dip_direction"]='%7.1f'%(dd)
                 dip_dir=MagRec["sample_bed_dip_direction"]
             else: 
                 MagRec["sample_bed_dip_direction"]=OrRec['bedding_dip_direction']
-        else: MagRec["sample_bed_dip_direction"]='0'
+        else:
+            MagRec["sample_bed_dip_direction"]='0'
         if average_bedding:
             if str(MagRec["sample_bed_dip_direction"]) and str(MagRec["sample_bed_dip"]):
                 BPs.append([float(MagRec["sample_bed_dip_direction"]),float(MagRec["sample_bed_dip"])-90.,1.])

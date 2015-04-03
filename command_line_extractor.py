@@ -18,8 +18,10 @@ class command_line_dataframe():
     """
 
     def __init__(self, changes=None):
-        self.default_dict = {'arg_name': ['f', 'F', 'A', 'WD', 'ID'], 'reqd': [True, False, False, False, False], 'default': ['', '', '', '.', '.']}
-        self.df = pd.DataFrame(self.default_dict, index=['f', 'F', 'A', 'WD', 'ID'])
+        arg_names = ['f', 'F', 'A', 'WD', 'ID', 'Fsa', 'Fsi']
+        self.default_dict = {'arg_name': arg_names, 'reqd': [True, False, False, False, False, False, False], 'default': ['', '', '', '.', '.', 'er_samples.txt', 'er_sites.txt']}
+        print arg_names, len(arg_names)
+        self.df = pd.DataFrame(self.default_dict, index=arg_names)
         arg_names = self.df['arg_name']
         if changes:
             for change in changes:
@@ -39,7 +41,7 @@ def extract_args(argv):
     will return this output: [['f', 'infile'], ['F', 'outfile'], ['A']]
     """
     string = " ".join(argv)
-    string = string.split('-')
+    string = string.split(' -')
     program = string[0]
     arguments = [s.split() for s in string[1:]]
     return arguments
@@ -66,8 +68,9 @@ def check_args(arguments, data_frame):
         if arg not in stripped_args:
             raise pmag.MissingCommandLineArgException("-"+arg)
     #next, assign any default values as needed
-    condition = df['default'] != ''
-    default_args = df[condition]
+    
+    #condition = df['default'] != '' # don't need this, and sometimes the correct default argument IS ''
+    default_args = df #[condition]
     for value in default_args.values:
         arg_name, default = value[0], value[1]
         if arg_name not in stripped_args:
@@ -92,7 +95,7 @@ def get_vars(arg_names, args_list):
     clean_vals = []
     for val in vals:  # transform vals into a list of strings, int/floats, and booleans (instead of lists and booleans)
         # deal with booleans
-        if isinstance(val, bool):
+        if isinstance(val, bool) or isinstance(val, int) or isinstance(val, float):
             clean_vals.append(val)
         else:
             # deal with numbers
@@ -100,7 +103,10 @@ def get_vars(arg_names, args_list):
                 clean_vals.append(val[0])
             # deal with lists
             elif not isinstance(val, bool):
-                clean_vals.append(' '.join(val))
+                try:
+                    clean_vals.append(' '.join(val))
+                except TypeError:
+                    clean_vals.append([])
             # deal with strings
             else: 
                 clean_vals.append(val)

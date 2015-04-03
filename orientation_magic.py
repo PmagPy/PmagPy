@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 import string,sys,os,pmag,exceptions
+import command_line_extractor as extractor
+import ipmag
 #
 #
 def main():
@@ -33,32 +35,6 @@ def main():
              SO-POM   a Pomeroy orientation device was used
              SO-ASC   an ASC orientation device was used
 
-    INPUT FORMAT
-        Input files must be tab delimited and have in the first line:
-tab  location_name
-        Note: The "location_name" will facilitate searching in the MagIC database. Data from different
-            "locations" should be put in separate files.  The definition of a "location" is rather loose.
-             Also this is the word 'tab' not a tab, which will be indicated by '\t'.
-        The second line has the names of the columns (tab delimited), e.g.:
-site_name sample_name mag_azimuth field_dip date lat long sample_lithology sample_type sample_class shadow_angle hhmm stratigraphic_height bedding_dip_direction bedding_dip GPS_baseline image_name image_look image_photographer participants method_codes site_description sample_description GPS_Az, sample_igsn, sample_texture, sample_cooling_rate, cooling_rate_corr, cooling_rate_mcd
-
-    
-      Notes: 
-        1) column order doesn't matter but the NAMES do.   
-        2) sample_name, sample_lithology, sample_type, sample_class, lat and long are required.  all others are optional.
-        3) If subsequent data are the same (e.g., date, bedding orientation, participants, stratigraphic_height), 
-            you can leave the field blank and the program will fill in the last recorded information. BUT if you really want a blank stratigraphic_height, enter a '-1'.    These will not be inherited and must be specified for each entry: image_name, look, photographer or method_codes
-        4) hhmm must be in the format:  hh:mm and the hh must be in 24 hour time.
-    date must be mm/dd/yy (years < 50 will be converted to  20yy and >50 will be assumed 19yy)
-        5) image_name, image_look and image_photographer are colon delimited lists of file name (e.g., IMG_001.jpg) image look direction and the name of the photographer respectively.  If all images had same look and photographer, just enter info once.  The images will be assigned to the site for which they were taken - not at the sample level.  
-        6) participants:  Names of who helped take the samples.  These must be a colon delimited list.
-        7) method_codes:  Special method codes on a sample level, e.g., SO-GT5 which means the orientation is has an uncertainty of >5 degrees
-             for example if it broke off before orienting....
-        8) GPS_Az is the place to put directly determined GPS Azimuths, using, e.g., points along the drill direction.
-        9) sample_cooling_rate is the cooling rate in K per Ma 
-        10) int_corr_cooling_rate
-        11) cooling_rate_mcd:  data adjustment method code for cooling rate correction;  DA-CR-EG is educated guess; DA-CR-PS is percent estimated from pilot samples; DA-CR-TRM is comparison between 2 TRMs acquired with slow and rapid cooling rates.
-is the percent cooling rate factor to apply to specimens from this sample, DA-CR-XX is the method code
     
         Orientation convention:
             Samples are oriented in the field with a "field arrow" and measured in the laboratory with a "lab arrow". The lab arrow is the positive X direction of the right handed coordinate system of the specimen measurements. The lab and field arrows may  not be the same. In the MagIC database, we require the orientation (azimuth and plunge) of the X direction of the measurements (lab arrow). Here are some popular conventions that convert the field arrow azimuth (mag_azimuth in the orient.txt file) and dip (field_dip in orient.txt) to the azimuth and plunge  of the laboratory arrow (sample_azimuth and sample_dip in er_samples.txt). The two angles, mag_azimuth and field_dip are explained below. 
@@ -102,6 +78,50 @@ is the percent cooling rate factor to apply to specimens from this sample, DA-CR
     OUTPUT
             output saved in er_samples.txt and er_sites.txt - will overwrite any existing files 
     """
+    args = sys.argv
+    if "-h" in args:
+        print main.__doc__
+        sys.exit()
+    else:
+        info = [['WD', False, '.'], ['ID', False, '.'], ['f', False, 'orient.txt'], ['app', False, False], ['ocn', False, 1], ['dcn', False, 1], ['BCN', False, True], ['ncn', False, '1'], ['gmt', False, 0], ['mcd', False, ''], ['a', False, False]]
+
+        #output_dir_path, input_dir_path, orient_file, append, or_con, dec_correction_con, samp_con, hours_from_gmt, method_codes, average_bedding
+        # leave off -Fsa, -Fsi b/c defaults in command_line_extractor
+        dataframe = extractor.command_line_dataframe(info)
+        checked_args = extractor.extract_and_check_args(args, dataframe)
+        output_dir_path, input_dir_path, orient_file, append, or_con, dec_correction_con, bed_correction, samp_con, hours_from_gmt, method_codes, average_bedding, samp_file, site_file = extractor.get_vars(['WD', 'ID', 'f', 'app', 'ocn', 'dcn', 'BCN', 'ncn', 'gmt', 'mcd', 'a', 'Fsa', 'Fsi'], checked_args)
+
+        if not isinstance(dec_correction_con, int):
+            if len(dec_correction_con) > 1:
+                dec_correction = int(dec_correction_con.split()[1])
+                dec_correction_con = int(dec_correction_con.split()[0])
+            else:
+                dec_correction = 0
+        else:
+            dec_correction = 0
+
+        ipmag.orientation_magic(or_con, dec_correction_con, dec_correction, bed_correction, samp_con, hours_from_gmt, method_codes, average_bedding, orient_file, samp_file, site_file, output_dir_path, input_dir_path, append)
+
+    #def orientation_magic(or_con=1, dec_correction_con=1, dec_correction=0, bed_correction=True, samp_con='1', hours_from_gmt=0, method_codes='', average_bedding=False, orient_file='orient.txt', samp_file='er_samples.txt', site_file='er_sites.txt', output_dir_path='.', input_dir_path='.', append=False):
+    
+
+##example use:
+##make a pandas dataframe with three columns:
+## col 1 is the command-line flag (minus the '-'), common ones include f, F, fsa, Fsa, etc.
+## col 2 is a boolean for if the flag is required or not
+## col 3 is a default value to use if the flag is not provided
+#dataframe = command_line_dataframe([['sav', False, 0], ['fmt', False, 'svg'], ['s', False, 20]])
+## get the args from the command line:
+#args = sys.argv
+## check through the args to make sure that reqd args are present, defaults are used as needed, and invalid args are ignored
+#checked_args = extract_and_check_args(args, dataframe)
+## assign values to variables based on their associated command-line flag
+#fmt, size, plot = get_vars(['fmt', 's', 'sav'], checked_args)
+#print "fmt:", fmt, "size:", size, "plot:", plot
+
+            
+    
+    ignore="""
     #
     # initialize variables
     #
@@ -546,4 +566,6 @@ is the percent cooling rate factor to apply to specimens from this sample, DA-CR
         Images,keys=pmag.fillkeys(ImageOuts)
         pmag.magic_write(image_file,Images,"er_images")
         print "Image info saved in ",image_file
+"""
 main()
+
