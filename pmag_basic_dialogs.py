@@ -1969,6 +1969,9 @@ class convert_JR6_files_to_MagIC(wx.Frame):
 
         #---sizer 1 ----
         self.bSizer1 = pw.sampling_particulars(pnl)
+
+        #---sizer 1a ---
+        self.bSizer1a = pw.labeled_text_field(pnl, 'Specimen volume, default is 2.5cm^3.\nPlease provide volume in meters cubed.')
         
         #---sizer 2 ---
         self.bSizer2 = pw.specimen_n(pnl)
@@ -1995,6 +1998,7 @@ class convert_JR6_files_to_MagIC(wx.Frame):
         vbox.Add(self.bSizer0a, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(self.bSizer0, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(self.bSizer1, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        vbox.Add(self.bSizer1a, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(self.bSizer2, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(self.bSizer3, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(self.bSizer4, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
@@ -2052,6 +2056,13 @@ class convert_JR6_files_to_MagIC(wx.Frame):
         options['noave'] = noave
         meth_code = self.bSizer1.return_value()
         options['meth_code'] = meth_code
+        volume = self.bSizer1a.return_value()
+        try:
+            volume = float(volume)
+        except:
+            pw.simple_warning("You must provide a valid quanity for volume")
+            return False
+        options['volume'] = volume
         os.chdir(self.WD)
         COMMAND = ""
         if 'jr6' in input_format and 'jr6' not in mag_file.lower():
@@ -2060,7 +2071,6 @@ class convert_JR6_files_to_MagIC(wx.Frame):
         elif 'txt' in input_format and 'txt' not in mag_file.lower():
             pw.simple_warning("You must provide a .txt format file")
             return False
-
         if input_format == 'txt': # .txt format
             import JR6_txt_magic
             if JR6_txt_magic.main(False, **options):
