@@ -177,14 +177,8 @@ def main(command_line=True, **kwargs):
     dir= pmag.cart2dir(cart).transpose()
     data['measurement_dec']=dir[0]
     data['measurement_inc']=dir[1]
-#    data['measurement_magn_moment']=dir[2]**data['expon']*1e-3 # Am^2 -- Fix the magnitude?????
-#    data['measurement_magn_volume']=dir[2]**data['expon']*1e-3/volume # A/m -- Fix the magnitude?????
-#    data['measurement_magn_moment']=np.sqrt(data['x']**2+data['y']**2+data['z']**2)*1e-3 # Am^2 -- Fix the magnitude?????
-#    data['measurement_magn_volume']=np.sqrt(data['x']**2+data['y']**2+data['z']**2)*1e-3/volume # A/m -- Fix the magnitude?????
     data['measurement_magn_moment']=dir[2]*(10.0**data['expon'])*1e-3 # Am^2 -- Fix the magnitude?????
     data['measurement_magn_volume']=dir[2]*(10.0**data['expon'])*1e-3/volume # A/m -- Fix the magnitude?????
-#    data['measurement_magn_moment']=dir[2]*1e-3 # Am^2 -- Fix the magnitude?????
-#    data['measurement_magn_volume']=dir[2]*1e-3/volume # A/m -- Fix the magnitude?????
     data['sample_dip']=data['sample_dip']-90.0
     DGEOs,IGEOs=[],[]
     for ind in range(len(data)):
