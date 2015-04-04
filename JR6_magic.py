@@ -39,8 +39,6 @@ def main(command_line=True, **kwargs):
     """
 # initialize some stuff
     noave=0
-    volume=10
-    inst=""
     samp_con,Z='1',""
     missing=1
     demag="N"
@@ -48,7 +46,7 @@ def main(command_line=True, **kwargs):
     citation='This study'
     args=sys.argv
     meth_code="LP-NO"
-    specnum=-1
+    specnum=1
     MagRecs=[]
     version_num=pmag.get_version()
     Samps=[] # keeps track of sample orientations
@@ -105,7 +103,8 @@ def main(command_line=True, **kwargs):
         if "-loc" in args:
             ind=args.index("-loc")
             er_location_name=args[ind+1]
-        if "-A" in args: noave=1
+        if "-A" in args:
+            noave=1
         if "-mcd" in args: 
             ind=args.index("-mcd")
             meth_code=args[ind+1]
@@ -117,8 +116,9 @@ def main(command_line=True, **kwargs):
         meas_file = kwargs.get('meas_file', 'magic_measurements.txt')
         mag_file = kwargs.get('mag_file')
         samp_file = kwargs.get('samp_file', 'er_samples.txt')
-        specnum = kwargs.get('specnum', 0)
+        specnum = kwargs.get('specnum', 1)
         samp_con = kwargs.get('samp_con', '1')
+        print 'samp_con', samp_con
         er_location_name = kwargs.get('er_location_name', '')
         noave = kwargs.get('noave', 0) # default (0) means DO average
         meth_code = kwargs.get('meth_code', "LP-NO")
@@ -128,7 +128,8 @@ def main(command_line=True, **kwargs):
     mag_file = input_dir_path+"/" + mag_file
     meas_file = output_dir_path+"/" + meas_file
     samp_file = output_dir_path+"/" + samp_file
-    if specnum!=0:specnum=-specnum
+    if specnum!=0:
+        specnum=-specnum
     if "4" in samp_con:
         if "-" not in samp_con:
             print "option [4] must be in form 4-Z where Z is an integer"
@@ -206,13 +207,14 @@ def main(command_line=True, **kwargs):
 
         er_specimen_name = sampleName
 
-        if specnum!=0: 
-            er_sample_name=er_specimen_name[:len(er_specimen_name)-specnum]
+        if specnum!=0:
+            er_sample_name=er_specimen_name[:specnum]
         else:
             er_sample_name=er_specimen_name
 
         if int(samp_con)<6:
             er_site_name=pmag.parse_site(er_sample_name,samp_con,Z)
+
         # else:
         #     if 'er_site_name' in ErSampRec.keys():er_site_name=ErSampRec['er_site_name']
         #     if 'er_location_name' in ErSampRec.keys():er_location_name=ErSampRec['er_location_name']

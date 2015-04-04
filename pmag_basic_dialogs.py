@@ -29,7 +29,7 @@ class import_magnetometer_data(wx.Dialog):
         self.panel = wx.Panel(self)
         vbox=wx.BoxSizer(wx.VERTICAL)
 
-        formats=['generic format','SIO format','CIT format','2G-binary format','HUJI format','LDEO format','IODP SRM (csv) format','PMD (ascii) format','TDT format']
+        formats=['generic format','SIO format','CIT format','2G-binary format','HUJI format','LDEO format','IODP SRM (csv) format','PMD (ascii) format','TDT format', 'JR6 format']
         sbs = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY, 'step 1: choose file format' ), wx.VERTICAL )
 
         sbs.AddSpacer(5)
@@ -118,6 +118,8 @@ class import_magnetometer_data(wx.Dialog):
             import TDT_magic
             TDT_magic.main(False, self.WD)
             return True
+        elif file_type == 'JR6':
+            dia = convert_JR6_files_to_MagIC(self, self.WD)
         dia.Center()
         dia.Show()
 
@@ -1113,7 +1115,6 @@ class convert_HUJI_files_to_MagIC(wx.Frame):
         bSizer_info = wx.BoxSizer(wx.HORIZONTAL)
         bSizer_info.Add(wx.StaticText(pnl, label=TEXT), wx.ALIGN_LEFT)
 
-
         #---sizer 0a ----
 
         TEXT = "HUJI file Type"
@@ -1935,6 +1936,136 @@ class convert_PMD_files_to_MagIC(wx.Frame):
         #pw.on_helpButton("PMD_magic.py -h")
 
 
+
+
+# template for an import window
+class convert_JR6_files_to_MagIC(wx.Frame):
+
+    """ """
+    title = "PmagPy JR6 file conversion"
+
+    def __init__(self, parent, WD):
+        wx.Frame.__init__(self, parent, wx.ID_ANY, self.title)
+        self.panel = wx.ScrolledWindow(self)
+        self.WD = WD
+        self.InitUI()
+
+    def InitUI(self):
+
+        pnl = self.panel
+        TEXT = "JR6 format file (.txt format only)"
+        bSizer_info = wx.BoxSizer(wx.HORIZONTAL)
+        bSizer_info.Add(wx.StaticText(pnl, label=TEXT), wx.ALIGN_LEFT)
+
+
+        #---sizer 0a ----
+        TEXT = "JR6 file Type"
+        label1 = ".txt format"
+        label2 = ".jr6 format"
+        self.bSizer0a = pw.labeled_yes_or_no(pnl, TEXT, label1, label2)
+        
+        #---sizer 0 ----
+        self.bSizer0 = pw.choose_file(pnl, 'add', method = self.on_add_file_button)
+
+        #---sizer 1 ----
+        self.bSizer1 = pw.sampling_particulars(pnl)
+        
+        #---sizer 2 ---
+        self.bSizer2 = pw.specimen_n(pnl)
+        
+        #---sizer 3 ----
+        ncn_keys = ['XXXXY', 'XXXX-YY', 'XXXX.YY', 'XXXX[YYY] where YYY is sample designation, enter number of Y', 'sample name=site name']#, These options are not yet implemented:   'Site names in orient.txt file', '[XXXX]YYY where XXXX is the site name, enter number of X']#, 'this is a synthetic and has no site name']
+        self.bSizer3 = pw.select_ncn(pnl, ncn_keys)
+
+        #---sizer 4 ----
+        TEXT="Location name:"
+        self.bSizer4 = pw.labeled_text_field(pnl, TEXT)
+
+        #---sizer 5 ----
+        self.bSizer5 = pw.replicate_measurements(pnl)
+
+        #---buttons ---
+        hboxok = pw.btn_panel(self, pnl)
+
+        #------
+        vbox=wx.BoxSizer(wx.VERTICAL)
+
+        vbox.AddSpacer(10)
+        vbox.Add(bSizer_info, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        vbox.Add(self.bSizer0a, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        vbox.Add(self.bSizer0, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        vbox.Add(self.bSizer1, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        vbox.Add(self.bSizer2, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        vbox.Add(self.bSizer3, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        vbox.Add(self.bSizer4, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        vbox.Add(self.bSizer5, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        vbox.AddSpacer(10)
+        vbox.Add(wx.StaticLine(pnl), 0, wx.ALL|wx.EXPAND, 5)
+        vbox.Add(hboxok, flag=wx.ALIGN_CENTER)        
+        vbox.AddSpacer(20)
+
+        hbox_all= wx.BoxSizer(wx.HORIZONTAL)
+        hbox_all.AddSpacer(20)
+        hbox_all.AddSpacer(vbox)
+        hbox_all.AddSpacer(20)
+        
+        self.panel.SetSizer(hbox_all)
+        self.panel.SetScrollbars(20, 20, 50, 50)
+        hbox_all.Fit(self)
+        self.Centre()
+        self.Show()
+
+
+    def on_add_file_button(self,event):
+        text = "choose file to convert to MagIC"
+        pw.on_add_file_button(self.bSizer0, self.WD, event, text)
+
+    def on_okButton(self, event):
+        options = {}
+        output_dir_path = self.WD
+        options['dir_path'] = str(output_dir_path)
+        input_dir_path, mag_file = os.path.split(self.bSizer0.return_value())
+        if not mag_file:
+            pw.simple_warning("You must select a JR6 format file")
+            return False
+        options['input_dir_path'], options['mag_file'] = str(input_dir_path), str(mag_file)
+        meas_file = os.path.split(mag_file)[1]+".magic"
+        options['meas_file'] = str(meas_file)
+        samp_file = os.path.splitext(os.path.splitext(meas_file)[0])[0] + "_er_samples.txt"
+        options['samp_file'] = str(samp_file)
+        specnum = self.bSizer2.return_value()
+        options['specnum'] = specnum
+        samp_con = self.bSizer3.return_value()
+        options['samp_con'] = samp_con
+        er_location_name = self.bSizer4.return_value()
+        options['er_location_name'] = str(er_location_name)
+        average = self.bSizer5.return_value()
+        if average:
+            noave = 0
+        else:
+            noave = 1
+        options['noave'] = noave
+        meth_code = self.bSizer1.return_value()
+        options['meth_code'] = meth_code
+        txt_format = self.bSizer0a
+        os.chdir(self.WD)
+        COMMAND = ""
+
+        import JR6_magic
+        if JR6_magic.main(False, **options):
+            pw.close_window(self, COMMAND, meas_file)
+        else:
+            pw.simple_warning()
+
+        #pw.run_command_and_close_window(self, COMMAND, outfile)
+
+    def on_cancelButton(self,event):
+        self.Destroy()
+        self.Parent.Raise()
+
+    def on_helpButton(self, event):
+        import JR6_magic
+        pw.on_helpButton(text=JR6_magic.do_help())
 
 
 # template for an import window
