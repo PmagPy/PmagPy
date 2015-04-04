@@ -114,6 +114,9 @@ def main(command_line=True, **kwargs):
         if "-mcd" in args: 
             ind=args.index("-mcd")
             meth_code=args[ind+1]
+        if "-v" in args: 
+            ind=args.index("-v")
+            volume=args[ind+1]
 
     if not command_line:
         dir_path = kwargs.get('dir_path', '.')
@@ -127,6 +130,7 @@ def main(command_line=True, **kwargs):
         er_location_name = kwargs.get('er_location_name', '')
         noave = kwargs.get('noave', 0) # default (0) means DO average
         meth_code = kwargs.get('meth_code', "LP-NO")
+        volume = kwargs.get('volume', 0.025*0.025*0.025)
 
 
     # format variables
