@@ -6,13 +6,13 @@ import numpy as np
 def main(command_line=True, **kwargs):
     """
     NAME
-        JR6_txt_magic.py
+        JR6_jr6_magic.py
  
     DESCRIPTION
-        converts JR6 .txt format files to magic_measurements format files
+        converts JR6 .jr6 format files to magic_measurements format files
 
     SYNTAX
-        JR6_txt_magic.py [command line options]
+        JR6_jr6_magic.py [command line options]
 
     OPTIONS
         -h: prints the help message and quits.
@@ -39,7 +39,7 @@ def main(command_line=True, **kwargs):
                  or e-mail ltauxe@ucsd.edu for help.
  
     INPUT
-        JR6 .txt format file
+        JR6 .jr6 format file
     """
 # initialize some stuff
     noave=0
@@ -52,7 +52,7 @@ def main(command_line=True, **kwargs):
     citation='This study'
     args=sys.argv
     meth_code="LP-NO"
-    specnum=-1
+    specnum=1
     version_num=pmag.get_version()
     Samps=[] # keeps track of sample orientations
 
@@ -122,7 +122,7 @@ def main(command_line=True, **kwargs):
         meas_file = kwargs.get('meas_file', 'magic_measurements.txt')
         mag_file = kwargs.get('mag_file')
         samp_file = kwargs.get('samp_file', 'er_samples.txt')
-        specnum = kwargs.get('specnum', 0)
+        specnum = kwargs.get('specnum', 1)
         samp_con = kwargs.get('samp_con', '1')
         er_location_name = kwargs.get('er_location_name', '')
         noave = kwargs.get('noave', 0) # default (0) means DO average
@@ -134,7 +134,8 @@ def main(command_line=True, **kwargs):
     meas_file = output_dir_path+"/" + meas_file
     samp_file = output_dir_path+"/" + samp_file
     tmp_file = output_dir_path+"/" + tmp_file
-    if specnum!=0:specnum=-specnum
+    if specnum!=0:
+        specnum=-specnum
     if "4" in samp_con:
         if "-" not in samp_con:
             print "option [4] must be in form 4-Z where Z is an integer"
@@ -191,7 +192,7 @@ def main(command_line=True, **kwargs):
     data['specimen_tilt']='1'
 
     if specnum!=0: 
-        data['er_sample_name']=data['er_specimen_name'][:len(er_specimen_name)-specnum]
+        data['er_sample_name']=data['er_specimen_name'][:specnum]
     else:
         data['er_sample_name']=data['er_specimen_name']
 

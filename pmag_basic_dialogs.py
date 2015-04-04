@@ -2021,6 +2021,11 @@ class convert_JR6_files_to_MagIC(wx.Frame):
         pw.on_add_file_button(self.bSizer0, self.WD, event, text)
 
     def on_okButton(self, event):
+        input_format = self.bSizer0a.return_value()
+        if input_format:
+            input_format = 'txt'
+        else:
+            input_format = 'jr6'
         options = {}
         output_dir_path = self.WD
         options['dir_path'] = str(output_dir_path)
@@ -2047,15 +2052,29 @@ class convert_JR6_files_to_MagIC(wx.Frame):
         options['noave'] = noave
         meth_code = self.bSizer1.return_value()
         options['meth_code'] = meth_code
-        txt_format = self.bSizer0a
         os.chdir(self.WD)
         COMMAND = ""
+        if 'jr6' in input_format and 'jr6' not in mag_file.lower():
+            pw.simple_warning("You must provide a .jr6 format file")
+            return False
+        elif 'txt' in input_format and 'txt' not in mag_file.lower():
+            pw.simple_warning("You must provide a .txt format file")
+            return False
 
-        import JR6_magic
-        if JR6_magic.main(False, **options):
-            pw.close_window(self, COMMAND, meas_file)
+        if input_format == 'txt': # .txt format
+            import JR6_txt_magic
+            if JR6_txt_magic.main(False, **options):
+                COMMAND = "options={}\nJR6_txt_magic.main(False, **options)".format(str(options))
+                pw.close_window(self, COMMAND, meas_file)
+            else:
+                pw.simple_warning()
         else:
-            pw.simple_warning()
+            import JR6_jr6_magic
+            if JR6_jr6_magic.main(False, **options):
+                pw.close_window(self, COMMAND, meas_file)
+            else:
+                pw.simple_warning()
+
 
         #pw.run_command_and_close_window(self, COMMAND, outfile)
 
@@ -2064,8 +2083,18 @@ class convert_JR6_files_to_MagIC(wx.Frame):
         self.Parent.Raise()
 
     def on_helpButton(self, event):
-        import JR6_magic
-        pw.on_helpButton(text=JR6_magic.do_help())
+        input_format = self.bSizer0a.return_value()
+        if input_format:
+            input_format = 'txt'
+        else:
+            input_format = 'jr6'
+        if input_format == 'txt': # .txt format
+            import JR6_txt_magic
+            pw.on_helpButton(text=JR6_txt_magic.do_help())
+        else:
+            import JR6_jr6_magic
+            pw.on_helpButton(text=JR6_jr6_magic.do_help())
+
 
 
 # template for an import window
