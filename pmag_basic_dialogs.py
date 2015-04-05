@@ -2057,11 +2057,12 @@ class convert_JR6_files_to_MagIC(wx.Frame):
         meth_code = self.bSizer1.return_value()
         options['meth_code'] = meth_code
         volume = self.bSizer1a.return_value()
-        try:
-            volume = float(volume)
-        except:
-            pw.simple_warning("You must provide a valid quanity for volume")
-            return False
+        if volume:
+            try:
+                volume = float(volume)
+            except:
+                pw.simple_warning("You must provide a valid quanity for volume")
+                return False
         options['volume'] = volume
         os.chdir(self.WD)
         COMMAND = ""
