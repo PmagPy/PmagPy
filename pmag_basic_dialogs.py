@@ -2063,7 +2063,8 @@ class convert_JR6_files_to_MagIC(wx.Frame):
             except:
                 pw.simple_warning("You must provide a valid quanity for volume")
                 return False
-        options['volume'] = volume
+            else:
+                options['volume'] = volume
         os.chdir(self.WD)
         COMMAND = ""
         if 'jr6' in input_format and 'jr6' not in mag_file.lower():

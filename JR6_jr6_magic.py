@@ -130,9 +130,8 @@ def main(command_line=True, **kwargs):
         er_location_name = kwargs.get('er_location_name', '')
         noave = kwargs.get('noave', 0) # default (0) means DO average
         meth_code = kwargs.get('meth_code', "LP-NO")
-        volume = kwargs.get('volume', 0.025*0.025*0.025)
+        volume = float(kwargs.get('volume', 0.025*0.025*0.025))
 
-    print 'volume', volume, type(volume)
     # format variables
     mag_file = input_dir_path+"/" + mag_file
     meas_file = output_dir_path+"/" + meas_file
