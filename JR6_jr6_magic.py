@@ -132,7 +132,7 @@ def main(command_line=True, **kwargs):
         meth_code = kwargs.get('meth_code', "LP-NO")
         volume = kwargs.get('volume', 0.025*0.025*0.025)
 
-
+    print 'volume', volume, type(volume)
     # format variables
     mag_file = input_dir_path+"/" + mag_file
     meas_file = output_dir_path+"/" + meas_file
