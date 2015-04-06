@@ -9,16 +9,17 @@ import ipmag
 class TestIGRF(unittest.TestCase):
 
     def setUp(self):
-        print '!!!', os.listdir(os.getcwd())
-        print os.path.join(os.getcwd(), 'unittests')
-        print 'exits?', os.path.exists(os.path.join(os.getcwd(), 'unittests'))
-        print '!!!', os.listdir(os.path.join(os.getcwd(), 'unittests'))
+        #print '!!!', os.listdir(os.getcwd())
+        #print os.path.walk.__doc__#(os.path.join(os.getcwd(), 'unittests'))
+        print 'unittest dir', os.path.join(os.getcwd(), 'unittests')
+        print 'unittests exists?', os.path.exists(os.path.join(os.getcwd(), 'unittests'))
+        print '!!!  listdir unittests', os.listdir(os.path.join(os.getcwd(), 'unittests'))
         print os.path.join(os.getcwd(), 'unittests', 'examples')
-        print 'exists?', os.path.exists(os.path.join(os.getcwd(), 'unittests', 'examples'))
+        print 'examples exists?', os.path.exists(os.path.join(os.getcwd(), 'unittests', 'examples'))
         print os.path.join(os.getcwd(), 'unittests', 'examples', 'empty_dir')
-        print 'exists?', os.path.exists(os.path.join(os.getcwd(), 'unittests', 'examples', 'empty_dir'))
+        print 'empty_dir exists?', os.path.exists(os.path.join(os.getcwd(), 'unittests', 'examples', 'empty_dir'))
         print os.path.join(os.getcwd(), 'unittests', 'examples', 'my_project')
-        print 'exists?', os.path.exists(os.path.join(os.getcwd(), 'unittests', 'examples', 'my_project'))
+        print 'my_project exists?', os.path.exists(os.path.join(os.getcwd(), 'unittests', 'examples', 'my_project'))
 
         #print 'setting up'
 
@@ -31,7 +32,6 @@ class TestIGRF(unittest.TestCase):
 class TestUploadMagic(unittest.TestCase):
 
     def setUp(self):
-        
         self.dir_path = os.path.join(os.getcwd(), 'unittests', 'examples')
 
     def test_empty_dir(self):
@@ -45,6 +45,7 @@ class TestUploadMagic(unittest.TestCase):
         self.assertEqual(error_message, "file validation has failed.  You may run into problems if you try to upload this file.")
 
     def test_with_valid_files(self):
+        print os.path.join(self.dir_path, 'my_project')
         outfile, error_message = ipmag.upload_magic(dir_path=os.path.join(self.dir_path, 'my_project'))
         self.assertTrue(outfile)
         self.assertEqual(error_message, '')

@@ -55,4 +55,4 @@ install:
   - pip install pandas
   # command to run tests, e.g. python setup.py test
 script:
-  - python -m unittest unittests.test_ipmag SPD.tests.test_arai_plot_statistics
+  - python -m unittest unittests.test_ipmag #SPD.tests.test_arai_plot_statistics
