@@ -378,130 +378,29 @@ class CheckIZZI_MD(unittest.TestCase):
         xy_array = lib_arai.get_xy_array(self.x, self.y)
         for num, i in enumerate(xy_array):
             self.assertAlmostEqual(i, self.ref_xy[num])
-    ignore = """
-    def test_get_triangles_simple(self): # works
-        x = [0, 1, 2, 3, 4, 5]
-        y = [0, 2, 4, 6, 8, 10]
-        steps_Arai = ['ZI', 'IZ', 'ZI', 'IZ', 'ZI', 'IZ'] 
-        ref_triangles = [((1, 2), (2, 4), (3, 6)), ((2, 4), (3, 6), (4, 8)), ((3,6), (4,8), (5, 10))]
-        ref_midpoints = ['ZI', 'IZ', 'ZI']
-        xy = lib_arai.get_xy_array(x, y)
-        #print "xy", xy
-        reference = { 'triangles': ref_triangles, 'midpoints': ref_midpoints }
-        result = lib_arai.get_triangles(xy, steps_Arai)
-        # return { triangles: [((2, 4), (3, 6), (4, 8) ), ( (4, 8), ....)], midpoints: 'ZI'
-        for key, value in result.items():
-            if type(value) == numpy.ndarray:
-                v = numpy.allclose(value, reference[key]) # assesses two arrays for if they are approximately equal 
-                message = "%s is different from reference %s" %(value, reference[key])
-                self.assertTrue(v, message)
-            else:
-                self.assertEqual(value, reference[key])
-
-    def test_get_triangles_complex(self):# seems to work again, yay.
-        xy_segment = ((1, 2),(3, 4),(5,6),(7,8),(9,10),(11,12),(13,14),(15,16),(17,18))
-        steps = ['ZI',  'ZI',  'IZ', 'IZ', 'IZ', 'ZI','IZ','ZI','ZI']
-        ref_midpoints = ['IZ', 'ZI', 'IZ']
-        ref_triangles = [((3,4),(9,10),(11, 12)),((9,10),(11,12),(13,14)),((11,12),(13,14),(17,18))]
-        reference = {'triangles': ref_triangles, 'midpoints': ref_midpoints}
-        result = lib_arai.get_triangles(xy_segment, steps)
-        #print "reference triangles:", reference['triangles']
-        for key, value in result.items():
-            if type(value) == numpy.ndarray:
-                v = numpy.allclose(value, reference[key]) # assesses two arrays for if they are approximately equal 
-                message = "%s is different from reference %s" %(value, reference[key])
-                self.assertTrue(v, message)
-            else:
-                self.assertEqual(value, reference[key])
-
-    def testTriangleSides(self): # still seems to work
-        result = lib_arai.get_triangle_sides(self.norm_x, self.norm_y)
-        line1, line2, line3 = result['L1'], result['L2'], result['L3']
-        lines = [line1, line2, line3]
-        ref_lines = [self.L1, self.L2, self.L3]
-        for num, line in enumerate(lines):
-            self.assertAlmostEqual(line, ref_lines[num])
-
-    def testTriangle(self): # still seems fine
-        results = lib_arai.get_triangle(self.L1, self.L2, self.L3)
-       # print "results", results
-        #print "triangle", self.triangle
-        for key, value in results.items():
-            self.assertAlmostEqual(self.triangle[key], value)
 
 
-    def testSign(self):# working
-        triangle = ((1.,3.), (2.,2.5), (3.,1.))
-        ref_slope = -1.
-        ref_first_y_int = 4.
-        ref_second_y_int = 4.5
-        reference1 = {'sign': 1., 'slope': ref_slope, 'first_y_int': ref_first_y_int, 'second_y_int': ref_second_y_int}
-        midpoint1 = 'ZI'
-        midpoint2 = 'IZ'
-        result1 = lib_arai.get_sign(triangle, midpoint1)
-        result2 = lib_arai.get_sign(triangle, midpoint2)
-        self.assertEqual(result1['sign'], 1.)
-        self.assertEqual(result2['sign'], -1.)
-        keys = ['sign', 'slope', 'first_y_int', 'second_y_int']
-        #print "reference1:", reference1
-        #print "result1", result1
-        for key in keys:
-            if type(reference1[key]) == list:
-                #pass
-                for num, i in enumerate(reference1[key]):
-                    self.assertAlmostEqual(result1[key][num], i)
-            else:
-                self.assertEqual(result1[key], reference1[key])
+suite = []
+suite.append(unittest.TestLoader().loadTestsFromTestCase(CheckInitialAttributeValues))
+suite.append(unittest.TestLoader().loadTestsFromTestCase(CheckR_corr2))
+suite.append(unittest.TestLoader().loadTestsFromTestCase(CheckR_det2))
+suite.append(unittest.TestLoader().loadTestsFromTestCase(CheckSCAT))
+suite.append(unittest.TestLoader().loadTestsFromTestCase(CheckVDSsequence))
+suite.append(unittest.TestLoader().loadTestsFromTestCase(CheckYorkRegression))
+suite.append(unittest.TestLoader().loadTestsFromTestCase(CheckZigzag))
+suite.append(unittest.TestLoader().loadTestsFromTestCase(CheckIZZI_MD))
 
-    def testZI_Line(self):
-        xy_segment = [(1, 2), (2, 4), (5, 7), (7, 7), (9,10), (11, 12), (13, 14), (15, 16)] # using full set of points, not truncated
-        steps =       ['IZ',   'ZI',    'IZ',  'ZI',    'IZ',   'ZI',   'ZI',  'IZ']
-        ref_ZI_points = [(2, 4), (7, 7), (11, 12), (13, 14)]
-        ref_ZI_line = 15.062503257024339
-        # test both of these values
-        result = lib_arai.get_ZI_line(xy_segment, steps)
-        self.assertAlmostEqual(result['ZI_line'], ref_ZI_line)
-        self.assertAlmostEqual(result['ZI_points'], ref_ZI_points)
-        
+full_suite = unittest.TestLoader().loadTestsFromTestCase(CheckFrac)
 
+for s in suite[1:]:
+    full_suite.addTests(s)
 
-    def test_get_IZZI_MD(self):
-        pass
-        # inputs:  Area of each triangle with their signs.  L_ZI
-        # list of triangle areas, list of signs
-#        A = '???'
-#        L_ZI = 1.
-#        ref_IZZI_MD = 0
-#        result = lib_arai.get_IZZI_MD(A, L_ZI)
-#        self.assertEqual(result, ref_IZZI_MD)
-        """
-
-        
-        
-                                                                             
-#  get actual points, make them triangles
-#  sum the areas, return IZZI_MD
-
-
-#print unittest.TestLoader().loadTestsFromTestCase.__doc__
-
-ignore = """
-suite = unittest.TestLoader().loadTestsFromTestCase(CheckParams)
-suite2 = unittest.TestLoader().loadTestsFromTestCase(CheckFrac)
-suite3 = unittest.TestLoader().loadTestsFromTestCase(CheckInitialAttributeValues)
-suite4 = unittest.TestLoader().loadTestsFromTestCase(CheckR_corr2)
-suite5 = unittest.TestLoader().loadTestsFromTestCase(CheckR_det2)
-suite6 = unittest.TestLoader().loadTestsFromTestCase(CheckSCAT)
-suite7 = unittest.TestLoader().loadTestsFromTestCase(CheckVDSsequence)
-suite8 = unittest.TestLoader().loadTestsFromTestCase(CheckYorkRegression)
-suite9 = unittest.TestLoader().loadTestsFromTestCase(CheckZigzag)
-suite10 = unittest.TestLoader().loadTestsFromTestCase(CheckIZZI_MD) 
-suite.addTests(suite2)
-suite.addTests(suite3)
-"""
-
-#unittest.TextTestRunner(verbosity=2).run(suite)
-
+def run_all_tests():
+    unittest.TextTestRunner(verbosity=2).run(full_suite)
+    
 if __name__ == "__main__":
+    #unittest.TextTestRunner(verbosity=2).run(full_suite)
     unittest.main()
+
+
 

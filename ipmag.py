@@ -1634,8 +1634,9 @@ def upload_magic(concat=0, dir_path='.'):
                     for key in CheckDec: # check all declinations/azimuths/longitudes in range 0=>360.
                         for k in rec.keys():
                             if key in k and rec[k]!="": # ignore blanks 
-                                rec[k]='%8.2f'%(float(rec[k])%360)  # make sure value is between 0 and 360. 
-                                print 'adjusted to 0=>360.: ',rec[k]
+                                rec[k]='%8.2f'%(float(rec[k])%360)  # make sure value is between 0 and 360.
+                                # PUT ME BACK IN
+                                #print 'adjusted to 0=>360.: ',rec[k]
             if file_type=='er_locations':
                 for rec in Data:
                     locations.append(rec['er_location_name'])
