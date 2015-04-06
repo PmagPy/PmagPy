@@ -657,14 +657,12 @@ def vgp_calc(dataframe,tilt_correction='yes'):
         del dataframe['colatitude']
         del dataframe['beta']
 
-def sb_vgp_calc(dataframe):
+def sb_vgp_calc(dataframe,site_correction = 'yes'):
     """
     This function calculates the angular dispersion of VGPs and corrects
-    for within site dispersion to return a value S_b. The input data
-    needs to be within a pandas Dataframe. The function also plots the
-    VGPs and their associated Fisher mean on a projection centered on
-    the mean.
-    
+    for within site dispersion (unless site_correction = 'no') to return
+    a value S_b. The input data needs to be within a pandas Dataframe.
+
     Parameters
     ----------- 
     dataframe : the name of the pandas.DataFrame containing the data
@@ -677,6 +675,8 @@ def sb_vgp_calc(dataframe):
     dataframe['k'] : fisher precision parameter for directions
     dataframe['vgp_lat'] : VGP latitude
     dataframe['vgp_lon'] : VGP longitude
+
+    plot : default is 'no', will make a plot of poles if 'yes'
     """
 
     # calculate the mean from the directional data
@@ -698,44 +698,44 @@ def sb_vgp_calc(dataframe):
     dataframe_pole_mean=pmag.fisher_mean(dataframe_poles)
 
     # calculate mean paleolatitude from the directional data
-    dataframe['paleolatitude']=ipmag.lat_from_inc(dataframe_dir_mean['inc'])
+    dataframe['paleolatitude']=lat_from_inc(dataframe_dir_mean['inc'])
 
     angle_list=[]
     for n in range(0,len(dataframe)):
         angle=pmag.angle([dataframe['vgp_lon'][n],dataframe['vgp_lat'][n]],
                          [dataframe_pole_mean['dec'],dataframe_pole_mean['inc']])
         angle_list.append(angle[0])
-    dataframe['delta_mean-pole']=angle_list
+    dataframe['delta_mean_pole']=angle_list
 
-    # use eq. 2 of Cox (1970) to translate the directional precision parameter
-    # into pole coordinates using the assumption of a Fisherian distribution in
-    # directional coordinates and the paleolatitude as calculated from mean
-    # inclination using the dipole equation
-    dataframe['K']=dataframe['k']/(0.125*(5+18*np.sin(np.deg2rad(dataframe['paleolatitude']))**2
-                                          +9*np.sin(np.deg2rad(dataframe['paleolatitude']))**4))
-    dataframe['Sw']=81/(dataframe['K']**0.5)
+    if site_correction == 'yes':
+        # use eq. 2 of Cox (1970) to translate the directional precision parameter
+        # into pole coordinates using the assumption of a Fisherian distribution in
+        # directional coordinates and the paleolatitude as calculated from mean
+        # inclination using the dipole equation
+        dataframe['K']=dataframe['k']/(0.125*(5+18*np.sin(np.deg2rad(dataframe['paleolatitude']))**2
+                                              +9*np.sin(np.deg2rad(dataframe['paleolatitude']))**4))
+        dataframe['Sw']=81/(dataframe['K']**0.5)
 
-    summation=0
-    N=0
-    for n in range(0,len(dataframe)):
-        quantity=dataframe['delta_mean-pole'][n]**2-dataframe['Sw'][n]**2/dataframe['n'][n]
-        summation+=quantity
-        N+=1
+        summation=0
+        N=0
+        for n in range(0,len(dataframe)):
+            quantity=dataframe['delta_mean_pole'][n]**2-dataframe['Sw'][n]**2/dataframe['n'][n]
+            summation+=quantity
+            N+=1
 
-    Sb=((1.0/(N-1.0))*summation)**0.5
+        Sb=((1.0/(N-1.0))*summation)**0.5
+
+    if site_correction == 'no':
+
+        summation=0
+        N=0
+        for n in range(0,len(dataframe)):
+            quantity=dataframe['delta_mean_pole'][n]**2
+            summation+=quantity
+            N+=1
+
+        Sb=((1.0/(N-1.0))*summation)**0.5
     
-    pyplot.figure(figsize=(6, 6))
-    m = Basemap(projection='ortho',lat_0=dataframe_pole_mean['inc'],
-                lon_0=dataframe_pole_mean['dec'],resolution='c',area_thresh=50000)
-    m.drawcoastlines(linewidth=0.25)
-    m.fillcontinents(color='bisque',lake_color='white',zorder=1)
-    m.drawmapboundary(fill_color='white')
-    m.drawmeridians(np.arange(0,360,30))
-    m.drawparallels(np.arange(-90,90,30))
-    
-    ipmag.plot_vgp(m,dataframe_pole_lons,dataframe_pole_lats,dataframe_pole_lons)
-    ipmag.plot_pole(m,dataframe_pole_mean['dec'],dataframe_pole_mean['inc'],
-                    dataframe_pole_mean['alpha95'],color='r',marker='s')
     return Sb
 
 def make_di_block(dec,inc):
