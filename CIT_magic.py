@@ -262,7 +262,7 @@ def main(command_line=True, **kwargs):
 
             treat_type=line[0:3]
             treat=line[3:6]
-            if treat_type.strip()=='NRM' or treat == '   ': # reverting back.  otherwise breaks examples.
+            if treat_type.strip()=='NRM': # this previously had "or treat == '   '""
                 MeasRec['magic_method_codes']='LT-NO'
                 MeasRec['measurement_temp']='273'
                 MeasRec['treatment_temp']='273'
