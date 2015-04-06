@@ -9,19 +9,17 @@ import numpy as np
 import ipmag
 import QuickMagIC as qm
 
-
-
-
-
+# get WD before all the QuickMagIC stuff starts to happen
+WD = os.path.join(os.getcwd(), 'unittests', 'examples', 'my_project')
 
 class TestMainFrame(unittest.TestCase):
 
     def setUp(self):
         self.app = wx.PySimpleApp()
-        self.frame = qm.MagMainFrame()
+        #WD = os.path.join(os.getcwd(), 'unittests', 'examples', 'my_project')
+        self.frame = qm.MagMainFrame(WD)
         self.pnl = self.frame.GetChildren()[0]
         #wx.lib.inspection.InspectionTool().Show()
-
 
     def tearDown(self):
         #self.frame.Destroy() # this does not work and causes strange errors
@@ -70,15 +68,16 @@ class TestMainFrame(unittest.TestCase):
         window = self.does_window_exist('thellier gui', 'thellier gui')
         self.assertTrue(window)
 
-
     def test_click_download_magic(self):
         pass
 
     def test_click_upload_magic(self):
         pass
 
-
     def test_click_change_dir(self):
+        """
+        test that the change_directory button produces the expected results
+        """
         def do_test():
             new_WD = self.frame.WD
             self.assertNotEqual(old_WD, new_WD)
@@ -87,7 +86,6 @@ class TestMainFrame(unittest.TestCase):
         self.click_change_dir()
         wx.CallLater(2000, do_test)
 
-        
     
     def click_change_dir(self):
         def cancel_dia():
@@ -107,6 +105,9 @@ class TestMainFrame(unittest.TestCase):
         #self.frame.change_dir_dialog.ShowModal()
     
     def does_window_exist(self, btn_name, window_name):
+        """
+        produces a click event on the button called btn_name, see if it produces the window called window_name
+        """
         btn, window = None, None
         pnl_children = self.pnl.GetChildren()
         for child in pnl_children:

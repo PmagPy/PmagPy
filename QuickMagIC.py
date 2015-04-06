@@ -21,7 +21,7 @@ class MagMainFrame(wx.Frame):
         version=""
     title = "QuickMagIC   version: %s"%version
 
-    def __init__(self):
+    def __init__(self, WD=None):
         
         self.FIRST_RUN=True
         wx.Frame.__init__(self, None, wx.ID_ANY, self.title)
@@ -30,8 +30,11 @@ class MagMainFrame(wx.Frame):
         
         # for use as module:
         self.resource_dir = os.getcwd()
-        
-        self.get_DIR()        # choose directory dialog                    
+
+        if not WD:
+            self.get_DIR()        # choose directory dialog
+        else:
+            self.WD = WD
         self.HtmlIsOpen=False
         self.first_time_messsage=False
         self.Bind(wx.EVT_CLOSE, self.on_menu_exit)
