@@ -1,0 +1,3 @@
+tab 	er_sites
+er_citation_names	er_location_name	er_site_name	site_class	site_definition	site_description	site_height	site_lat	site_lithology	site_lon	site_type
+This study	demag_orient	sr01	Not Specified	s			42.60264	Not Specified	245.60200	Not Specified

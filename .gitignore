@@ -1,6 +1,6 @@
 Essentials_Problem_Datafiles
 *.pyc
-*.txt
+
 *.pyc
 */*.pyc
 *.*~
