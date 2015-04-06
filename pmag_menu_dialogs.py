@@ -1288,7 +1288,7 @@ class Core_depthplot(wx.Frame):
     title = "Remanence data vs. depth/height/age"
     
     def __init__(self, parent, WD):
-        wx.Frame.__init__(self, parent, wx.ID_ANY, self.title)
+        wx.Frame.__init__(self, parent, wx.ID_ANY, self.title, name='core_depthplot')
         self.panel = wx.ScrolledWindow(self)
         self.WD = WD
         self.InitUI()

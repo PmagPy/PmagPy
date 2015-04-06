@@ -130,6 +130,90 @@ class TestMainFrame(unittest.TestCase):
 
 
 
+class TestMenus(unittest.TestCase):
+
+    def setUp(self):
+        self.app = wx.PySimpleApp()
+        #WD = os.path.join(os.getcwd(), 'unittests', 'examples', 'my_project')
+        self.frame = qm.MagMainFrame(WD)
+        self.pnl = self.frame.GetChildren()[0]
+        #print dir(self.frame)
+        print self.frame.MenuBar
+        #print 'dir(self.frame.MenuBar)', dir(self.frame.MenuBar)
+        print self.frame.MenuBar.Menus
+        print 'self.frame.MenuBar.MenuCount', self.frame.MenuBar.MenuCount
+        print self.frame.FindItemInMenuBar.__doc__
+
+        
+
+        
+        #wx.lib.inspection.InspectionTool().Show()
+
+    def tearDown(self):
+        #self.frame.Destroy() # this does not work and causes strange errors
+        self.app.Destroy()
+
+        
+    def test_that_all_menus_exist(self):
+        menu_names = ['File', 'Import', 'Analysis and Plots']
+        menus = self.frame.MenuBar.Menus
+        for menu, menu_name in menus:
+            #print dir(menu)
+            self.assertIsInstance(menu, wx.Menu)
+            self.assertTrue(menu.IsEnabled)
+            self.assertIn(menu_name, menu_names)
+
+
+    def test_click_core_depthplot(self):
+        def do_thing():
+            print 'DO THING!!!!!!!!!'
+            print '---'
+            self.assertFalse(True)
+        print 'doing click_core_depthplot'
+        menus = self.frame.MenuBar.Menus
+        for menu, menu_name in menus:
+            print 'menu_name', menu_name
+            #print dir(menu)
+            print menu.MenuItems
+            item_id = menu.FindItem("Remanence data vs. depth/height/age")
+            print 'doc', menu.FindItem.__doc__
+            item = menu.FindItemById(item_id)
+            #print 'ITEM:', dir(item)
+        print item.GetText()
+        print item.Label
+        #event = wx.CommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, btn.GetId())
+        print 'wx.EVT_MENU', wx.EVT_MENU
+        print 'dir(wx.EVT_MENU)', dir(wx.EVT_MENU)
+        print 'wx.EVT_MENU.evtType', wx.EVT_MENU.evtType
+        event = wx.CommandEvent(wx.EVT_MENU.evtType[0], item_id)
+        print 'event!', event
+        self.frame.GetEventHandler().ProcessEvent(event)
+        # parent of Core_depthplot frame should be self.frame (I believe)
+        core_window = None
+        for window in self.frame.Children:
+            if window.GetName() == 'core_depthplot':
+                core_window = window
+                break
+        self.assertTrue(core_window.IsEnabled())
+        print 'type(core_window)', type(core_window)
+        print core_window.bSizer2 # choose_file
+        print core_window.bSizer13  # radio_buttons (lab protocol)
+        print core_window.bSizer14 # labeled_Text_field (step)
+        
+        call = wx.CallLater(1, do_thing)
+        print do_thing
+        wx.CallAfter(do_thing, 'arg')
+        #do_thing()
+        print 'call.HasRun()', call.HasRun()
+        print 'after CallLater'
+
+
+
+
+
+
+        
+
 if __name__ == '__main__':
     unittest.main()
             
