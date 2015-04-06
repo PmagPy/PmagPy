@@ -567,7 +567,7 @@ class Zeq_GUI(wx.Frame):
         # Draw figures and add  text
         #try:
         #self.draw_figure(self.s)        # draw the figures
-        #self.Add_text(self.s)           # write measurement data to text box
+        #self.Add_text()           # write measurement data to text box
         #except:
         #    pass
         
@@ -841,7 +841,7 @@ class Zeq_GUI(wx.Frame):
         
         self.CART_rot_good=[]
         self.CART_rot_bad=[]
-        for i in range(len(list(self.CART_rot))):
+        for i in range(len(self.CART_rot)):
             if self.Data[self.s]['measurement_flag'][i]=='g':
                 self.CART_rot_good.append(list(self.CART_rot[i]))
             else:
@@ -1323,7 +1323,7 @@ class Zeq_GUI(wx.Frame):
     #----------------------------------------------------------------------
        
         
-    def Add_text(self,s):
+    def Add_text(self):
         
       """ Add measurement data lines to the text window.
       """
@@ -1366,9 +1366,15 @@ class Zeq_GUI(wx.Frame):
       
     def onSelect_specimen(self, event):
         """ update figures and text when a new specimen is selected
-        """        
+        """
+        try: fit_index = self.pmag_results_data['specimens'][self.s].index(self.current_fit)
+        except KeyError: fit_index = None
+        except ValueError: fit_index = None
         self.s=str(self.specimens_box.GetValue())
-        self.current_fit = self.pmag_results_data['specimens'][self.s][0]
+        if fit_index != None and self.s in self.pmag_results_data['specimens']:
+          try: self.current_fit = self.pmag_results_data['specimens'][self.s][fit_index]
+          except IndexError: self.current_fit = None
+        else: self.current_fit = None
         #self.pars=self.Data[self.s]['pars'] 
         self.update_selection()
 
@@ -1392,8 +1398,8 @@ class Zeq_GUI(wx.Frame):
     #----------------------------------------------------------------------
 
     def onSelect_orthogonal_box(self, event):
-        self.clear_boxes() 
-        self.Add_text(self.s)
+        self.clear_boxes()
+        self.Add_text()
         self.draw_figure(self.s)
         self.update_selection()
         if self.current_fit.pars!={}:
@@ -1411,12 +1417,19 @@ class Zeq_GUI(wx.Frame):
       """ update figures and text when a next button is selected
       """
       index=self.specimens.index(self.s)
+      try: fit_index = self.pmag_results_data['specimens'][self.s].index(self.current_fit)
+      except KeyError: fit_index = None
+      except ValueError: fit_index = None
       if index==len(self.specimens)-1:
         index=0
       else:
         index+=1
       self.s=str(self.specimens[index])
       self.specimens_box.SetStringSelection(str(self.s))
+      if fit_index != None and self.s in self.pmag_results_data['specimens']:
+        try: self.current_fit = self.pmag_results_data['specimens'][self.s][fit_index]
+        except IndexError: self.current_fit = None
+      else: self.current_fit = None
       self.update_selection()
       
     #----------------------------------------------------------------------
@@ -1425,10 +1438,17 @@ class Zeq_GUI(wx.Frame):
       """ update figures and text when a next button is selected
       """                      
       index=self.specimens.index(self.s)
+      try: fit_index = self.pmag_results_data['specimens'][self.s].index(self.current_fit)
+      except KeyError: fit_index = None
+      except ValueError: fit_index = None
       if index==0: index=len(self.specimens)
       index-=1
       self.s=str(self.specimens[index])
       self.specimens_box.SetStringSelection(str(self.s))
+      if fit_index != None and self.s in self.pmag_results_data['specimens']:
+        try: self.current_fit = self.pmag_results_data['specimens'][self.s][fit_index]
+        except IndexError: self.current_fit = None
+      else: self.current_fit = None
       self.update_selection()
 
     #----------------------------------------------------------------------
@@ -1436,7 +1456,7 @@ class Zeq_GUI(wx.Frame):
                 
     def update_selection(self):
         """ 
-        update display (figures, text boxes and statistics windows) with a new selection of specimen 
+        update display (figures, text boxes and statistics windows) with a new selection of specimen
         """
 
         self.clear_boxes() 
@@ -1459,10 +1479,11 @@ class Zeq_GUI(wx.Frame):
         # updtaes treatment list
         #--------------------------
         self.T_list=self.Data[self.s]['zijdblock_steps']
-        self.tmin_box.SetItems(self.T_list)
-        self.tmax_box.SetItems(self.T_list)
-        self.tmin_box.SetSelection(-1) #made an edit from SetStringSelection("")
-        self.tmax_box.SetSelection(-1) #made an edit from SetStringSelection("")
+        if self.current_fit:
+            self.tmin_box.SetItems(self.T_list)
+            self.tmax_box.SetItems(self.T_list)
+            self.tmin_box.SetSelection(-1) #made an edit from SetStringSelection("")
+            self.tmax_box.SetSelection(-1) #made an edit from SetStringSelection("")
 
         #--------------------------
         # update high level boxes and figures (if needed)
@@ -1517,12 +1538,16 @@ class Zeq_GUI(wx.Frame):
 #                                                                    
 #                  self.current_fit.tmin = tmin
 #                  self.current_fit.tmax = tmax
-                  
-                  tmin = self.current_fit.tmin
-                  tmax = self.current_fit.tmax
+
+                  if self.current_fit:
+                      tmin = self.current_fit.tmin
+                      tmax = self.current_fit.tmax
 
                   # update calculation type windows                                
-                  calculation_type=self.current_fit.PCA_type
+                  if self.current_fit: calculation_type=self.current_fit.PCA_type
+                  else:
+                    calculation_type=self.PCA_type_box.GetValue()
+                    PCA_type = "None"
                   if calculation_type=="DE-BFL": PCA_type="line"
                   elif calculation_type=="DE-BFL-A": PCA_type="line-anchored"
                   elif calculation_type=="DE-BFL-O": PCA_type="line-with-origin"
@@ -1535,11 +1560,12 @@ class Zeq_GUI(wx.Frame):
 
 
         # measurements text box
-        self.Add_text(self.s)
+        self.Add_text()
 
         # calcuate again self.pars and update the figures and the statistics tables. 
-        if found_interpretation: 
-            self.current_fit.put(coordinate_system,self.get_PCA_parameters(self.s,tmin,tmax,coordinate_system,calculation_type))
+        if found_interpretation:
+            if self.current_fit:
+                self.current_fit.put(coordinate_system,self.get_PCA_parameters(self.s,tmin,tmax,coordinate_system,calculation_type))
             self.draw_figure(self.s)
             self.update_GUI_with_new_interpretation()
         else:
@@ -1682,7 +1708,9 @@ class Zeq_GUI(wx.Frame):
         if 'specimens' in self.pmag_results_data.keys() and str(self.s) in self.pmag_results_data['specimens'].keys():
             self.pmag_results_data['specimens'][str(self.s)] = []
 
-        self.current_fit.pars={}
+        if self.current_fit:
+            for dirtype in self.dirtypes:
+                self.current_fit.put({},dirtype)
         # read again the data
         self.Data,self.Data_hierarchy=self.get_data()
         self.calculate_higher_levels_data()
@@ -1725,7 +1753,8 @@ class Zeq_GUI(wx.Frame):
         elif PCA_type=="Fisher":calculation_type="DE-FM"
         elif PCA_type=="plane":calculation_type="DE-BFP"
         coordinate_system=self.COORDINATE_SYSTEM
-        self.current_fit.put(coordinate_system,self.get_PCA_parameters(self.s,tmin,tmax,coordinate_system,calculation_type))
+        if self.current_fit:
+            self.current_fit.put(coordinate_system,self.get_PCA_parameters(self.s,tmin,tmax,coordinate_system,calculation_type))
         self.update_GUI_with_new_interpretation()
 
     #----------------------------------------------------------------------
@@ -1777,42 +1806,64 @@ class Zeq_GUI(wx.Frame):
         when selecting new temperature bound
         """
 
-        self.dec_window.SetValue("%.1f"%self.current_fit.pars['specimen_dec'])
-        self.dec_window.SetBackgroundColour(wx.WHITE)
-        
-        self.inc_window.SetValue("%.1f"%self.current_fit.pars['specimen_inc'])
-        self.inc_window.SetBackgroundColour(wx.WHITE)
+        if self.current_fit:
+            mpars = self.current_fit.get(self.COORDINATE_SYSTEM)
+            if self.current_fit.tmin and self.current_fit.tmax:
+                self.tmin_box.SetStringSelection(self.current_fit.tmin)
+                self.tmax_box.SetStringSelection(self.current_fit.tmax)
+            else:
+                self.tmin_box.SetStringSelection('None')
+                self.tmax_box.SetStringSelection('None')
+        else:
+            mpars = {}
+            self.tmin_box.SetStringSelection('None')
+            self.tmax_box.SetStringSelection('None')
 
-        self.n_window.SetValue("%i"%self.current_fit.pars['specimen_n'])
-        self.n_window.SetBackgroundColour(wx.WHITE)
+        if 'specimen_dec' in mpars.keys():
+            self.dec_window.SetValue("%.1f"%mpars['specimen_dec'])
+            self.dec_window.SetBackgroundColour(wx.WHITE)
+        else:
+            self.dec_window.SetValue("")
+            self.dec_window.SetBackgroundColour(wx.NullColour)
 
-        if 'specimen_mad' in self.current_fit.pars.keys():
-            self.mad_window.SetValue("%.1f"%self.current_fit.pars['specimen_mad'])
+        if 'specimen_inc' in mpars.keys():
+            self.inc_window.SetValue("%.1f"%mpars['specimen_inc'])
+            self.inc_window.SetBackgroundColour(wx.WHITE)
+        else:
+            self.inc_window.SetValue("")
+            self.inc_window.SetBackgroundColour(wx.NullColour)
+
+        if 'specimen_n' in mpars.keys():
+            self.n_window.SetValue("%i"%mpars['specimen_n'])
+            self.n_window.SetBackgroundColour(wx.WHITE)
+        else:
+            self.n_window.SetValue("")
+            self.n_window.SetBackgroundColour(wx.NullColour)
+
+        if 'specimen_mad' in mpars.keys():
+            self.mad_window.SetValue("%.1f"%mpars['specimen_mad'])
             self.mad_window.SetBackgroundColour(wx.WHITE)
         else:
             self.mad_window.SetValue("")
             self.mad_window.SetBackgroundColour(wx.NullColour)
 
-        if 'specimen_dang' in self.current_fit.pars.keys() and float(self.current_fit.pars['specimen_dang'])!=-1:
-            self.dang_window.SetValue("%.1f"%self.current_fit.pars['specimen_dang'])
+        if 'specimen_dang' in mpars.keys() and float(mpars['specimen_dang'])!=-1:
+            self.dang_window.SetValue("%.1f"%mpars['specimen_dang'])
             self.dang_window.SetBackgroundColour(wx.WHITE)
         else:
             self.dang_window.SetValue("")
             self.dang_window.SetBackgroundColour(wx.NullColour)
 
-        if 'specimen_alpha95' in self.current_fit.pars.keys() and float(self.current_fit.pars['specimen_alpha95'])!=-1:
-            self.alpha95_window.SetValue("%.1f"%self.current_fit.pars['specimen_alpha95'])
+        if 'specimen_alpha95' in mpars.keys() and float(mpars['specimen_alpha95'])!=-1:
+            self.alpha95_window.SetValue("%.1f"%mpars['specimen_alpha95'])
             self.alpha95_window.SetBackgroundColour(wx.WHITE)
         else:
             self.alpha95_window.SetValue("")
             self.alpha95_window.SetBackgroundColour(wx.NullColour)
         
         if self.orthogonal_box.GetValue()=="X=best fit line dec":                              
-            if  'specimen_dec' in self.current_fit.pars.keys(): 
+            if  'specimen_dec' in mpars.keys(): 
                 self.draw_figure(self.s)
-
-        self.tmin_box.SetStringSelection(self.current_fit.tmin)
-        self.tmax_box.SetStringSelection(self.current_fit.tmax)
   
         self.draw_interpretation()
 
@@ -1987,13 +2038,20 @@ class Zeq_GUI(wx.Frame):
             
             # logger
             #self.logger.SetBackgroundColour('red')
-            for item in range(self.logger.GetItemCount()):
-                if item >= tmin_index and item <= tmax_index:
-                    self.logger.SetItemBackgroundColour(item,"LIGHT BLUE") # gray
-                else:
-                    self.logger.SetItemBackgroundColour(item,"WHITE")
-                if self.Data[self.s]['measurement_flag'][item]=='b':
-                    self.logger.SetItemBackgroundColour(item,"YELLOW")
+            if fit == self.current_fit:
+                for item in range(self.logger.GetItemCount()):
+                    if item >= tmin_index and item <= tmax_index:
+                        self.logger.SetItemBackgroundColour(item,"LIGHT BLUE") # gray
+                    else:
+                        self.logger.SetItemBackgroundColour(item,"WHITE")
+                    try:
+                        relability = self.Data[self.s]['measurement_flag'][item]
+                    except IndexError:
+                        relability = 'b'
+                        print('-E- IndexError in bad data')
+                        print(item, len(self.Data[self.s]['measurement_flag']))
+                    if relability=='b':
+                        self.logger.SetItemBackgroundColour(item,"YELLOW")
 
         self.canvas1.draw()
         self.canvas2.draw()
@@ -2040,14 +2098,21 @@ class Zeq_GUI(wx.Frame):
         """ Clear all boxes
         """        
         self.tmin_box.Clear()
-        self.tmin_box.SetItems(self.T_list)
-        self.tmin_box.SetSelection(-1)
+        self.tmin_box.SetStringSelection("")
+        if self.current_fit:
+            self.tmin_box.SetItems(self.T_list)
+            self.tmin_box.SetSelection(-1)
 
         self.tmax_box.Clear()
-        self.tmax_box.SetItems(self.T_list)
-        self.tmax_box.SetSelection(-1)
+        self.tmax_box.SetStringSelection("")
+        if self.current_fit:
+            self.tmax_box.SetItems(self.T_list)
+            self.tmax_box.SetSelection(-1)
 
         self.fit_box.Clear()
+        self.fit_box.SetStringSelection("")
+        if self.s in self.pmag_results_data['specimens'] and self.pmag_results_data['specimens'][self.s]:
+            self.fit_box.SetItems(list(map(lambda x: x.name, self.pmag_results_data['specimens'][self.s])))
 
         for parameter in ['dec','inc','n','mad','dang','alpha95']:
             COMMAND="self.%s_window.SetValue('')"%parameter
@@ -2153,7 +2218,7 @@ class Zeq_GUI(wx.Frame):
             pars_for_mean=[]
 
             for element in elements_list:
-                if elements_type=='specimens':
+                if elements_type=='specimens' and element in self.pmag_results_data['specimens']:
                     for fit in self.pmag_results_data['specimens'][element]:
                         if fit in self.bad_fits:
                             continue
@@ -3086,7 +3151,11 @@ class Zeq_GUI(wx.Frame):
                         self.GUI_log.write ( "-W- WARNING: Cant find specimen and steps of specimen %s tmin=%s, tmax=%s"%(specimen,tmin,tmax))
 
         #BUG FIX-almost replaced first sample with last due to above assignment to self.s
-        self.s = pmag_specimens[0]['er_specimen_name']
+        if pmag_specimens:
+            self.s = pmag_specimens[0]['er_specimen_name']
+        if self.s in self.pmag_results_data['specimens'] and self.pmag_results_data['specimens'][self.s]:
+            self.pmag_results_data['specimens'][self.s][-1].select()
+
 
         #--------------------------
         # reads pmag_sample.txt and 
@@ -3495,9 +3564,12 @@ class Zeq_GUI(wx.Frame):
             )
         if dlg.ShowModal() == wx.ID_OK:
             redo_file = dlg.GetPath()
+        else:
+            redo_file = None
         dlg.Destroy()
 
-        self.read_redo_file(redo_file)    
+        if redo_file:
+            self.read_redo_file(redo_file)
     
 
     #----------------------------------------------------------------------
@@ -3810,7 +3882,12 @@ class Zeq_GUI(wx.Frame):
         PmagSpecs=[]
         for specimen in specimens_list:
             for dirtype in self.dirtypes:
+                i = 0
                 for fit in self.pmag_results_data['specimens'][specimen]:
+
+                    mpars = fit.get(dirtype)
+                    if not mpars: continue
+
                     PmagSpecRec={}
                     user="" # Todo
                     PmagSpecRec["er_analyst_mail_names"]=user
@@ -3834,7 +3911,6 @@ class Zeq_GUI(wx.Frame):
 #                        continue
 
                     PmagSpecRec['specimen_correction']='u'
-                    mpars = fit.get(dirtype)
                     PmagSpecRec['specimen_direction_type'] = mpars["specimen_direction_type"]
                     PmagSpecRec['specimen_dec'] = "%.1f"%mpars["specimen_dec"]
                     PmagSpecRec['specimen_inc'] = "%.1f"%mpars["specimen_inc"]
@@ -3860,7 +3936,7 @@ class Zeq_GUI(wx.Frame):
                     calculation_type=mpars['calculation_type']
                     PmagSpecRec["magic_method_codes"]=self.Data[specimen]['magic_method_codes']+":"+calculation_type+":"+dirtype
                     PmagSpecRec["specimen_comp_n"] = str(len(self.pmag_results_data["specimens"][specimen]))
-                    PmagSpecRec["specimen_comp_name"] = chr(int(fit.name.split()[-1]) + 64)
+                    PmagSpecRec["specimen_comp_name"] = chr(i + 65)
                     if fit in self.bad_fits:
                         PmagSpecRec["specimen_flag"] = "b"
                     else:
@@ -3887,6 +3963,7 @@ class Zeq_GUI(wx.Frame):
                     else:
                         PmagSpecRec['specimen_tilt_correction']="-1"
                     PmagSpecs.append(PmagSpecRec)
+                    i += 1
 
         # add the 'old' lines with no "LP-DIR" in
         for rec in self.PmagRecsOld['pmag_specimens.txt']:
@@ -4116,7 +4193,9 @@ class Zeq_GUI(wx.Frame):
    #     print WD    
 
     def on_select_fit(self,event):
-        fit_num = int(self.fit_box.GetValue().split()[-1]) - 1
+        fit_val = self.fit_box.GetValue()
+        if  fit_val == 'None' or fit_val == '': fit_num = -1
+        else: fit_num = int(fit_val.split()[-1]) - 1
         self.pmag_results_data['specimens'][self.s][fit_num].select()
 
 
@@ -4129,9 +4208,12 @@ class Zeq_GUI(wx.Frame):
         self.new_fit()
 
     def delete_fit(self,event):
-        self.pmag_results_data['specimens'][self.s].remove(self.current_fit)
-        self.update_fit_box()
-        self.pmag_results_data['specimens'][self.s][-1].select()
+        if not self.s in self.pmag_results_data['specimens']: return
+        if self.current_fit in self.pmag_results_data['specimens'][self.s]:
+            self.pmag_results_data['specimens'][self.s].remove(self.current_fit)
+            self.update_fit_box(True)
+        if self.pmag_results_data['specimens'][self.s]:
+            self.pmag_results_data['specimens'][self.s][-1].select()
         self.close_warning = True
         self.calculate_higher_levels_data()
         self.update_selection()
@@ -4170,13 +4252,19 @@ class Zeq_GUI(wx.Frame):
         self.get_new_PCA_parameters(1)
 
     def update_fit_box(self, new_fit = False):
+        self.clear_boxes()
         #get new fit data
+#        if self.fit_box.GetValue() == '': return
         if self.s in self.pmag_results_data['specimens'].keys(): fit_list=list(map(lambda x: x.name, self.pmag_results_data['specimens'][self.s]))
         else: fit_list = []
         #find new index to set fit_box to
         if not fit_list: new_index = 'None'
         elif new_fit: new_index = len(fit_list) - 1
-        else: new_index = fit_list.index(self.fit_box.GetValue());
+        else:
+            if self.fit_box.GetValue() in fit_list: 
+                new_index = fit_list.index(self.fit_box.GetValue());
+            else:
+                new_index = 'None'
         #clear old boxes
         self.fit_box.Clear()
         self.mean_fit_box.Clear()
@@ -4189,7 +4277,7 @@ class Zeq_GUI(wx.Frame):
                 all_fits_list = list(map(lambda x: x.name, self.pmag_results_data['specimens'][specimen]))
         self.mean_fit_box.SetItems(['None','All'] + all_fits_list)
         #select defaults
-        if new_index == 'None': self.fit_box.SetStringSelection(new_index)
+        if new_index == 'None': self.fit_box.SetStringSelection('None')
         else: self.fit_box.SetSelection(new_index)
         if fit_list: self.on_select_fit(-1)
 
@@ -4243,6 +4331,11 @@ class Fit():
         self.PCA_type = PCA_type
         self.lines = [None,None]
         self.GUI = GUI
+        self.tmin_index = None
+        self.tmax_index = None
+        if self.tmin in self.GUI.T_list and self.tmax in self.GUI.T_list:
+            self.tmin_index = self.GUI.T_list.index(self.tmin)
+            self.tmax_index = self.GUI.T_list.index(self.tmax)
         self.pars = {}
         self.geopars = {}
         self.tiltpars = {}
@@ -4252,6 +4345,7 @@ class Fit():
         if self.tmax != None and self.tmin != None:
             self.GUI.tmin_box.SetStringSelection(self.tmin)
             self.GUI.tmax_box.SetStringSelection(self.tmax)
+        self.GUI.get_new_PCA_parameters(-1)
 
     def get(self,coordinate_system):
         if coordinate_system == 'DA-DIR' or coordinate_system == 'specimen':
@@ -4264,11 +4358,15 @@ class Fit():
             print("-E- no such parameters to fetch in fit " + self.name)
 
     def put(self,coordinate_system,new_pars):
+        if type(new_pars) != dict: return {}
         if 'measurement_step_min' not in new_pars.keys() or 'measurement_step_max' not in new_pars.keys():
             print("-E- invalid parameters cannot assign to fit")
             return
         self.tmin = new_pars['measurement_step_min']
         self.tmax = new_pars['measurement_step_max']
+        self.tmin_index = self.GUI.tmin_box.GetCurrentSelection()
+        self.tmax_index = self.GUI.tmax_box.GetCurrentSelection()
+
         if self.tmin == 0:
             self.tmin = '0'
         elif 'C' in self.GUI.Data[self.GUI.s]['measurement_step_unit']:
