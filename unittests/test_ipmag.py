@@ -56,6 +56,7 @@ class TestUploadMagic(unittest.TestCase):
         print 'run test_with_valid_files'
         print "os.path.join(self.dir_path, 'my_project')", os.path.join(self.dir_path, 'my_project')
         print 'os.getcwd()', os.getcwd()
+        print "os.listdir(os.path.join(self.dir_path, 'my_project')", os.listdir(os.path.join(self.dir_path, 'my_project'))
 
         print os.path.join(self.dir_path, 'my_project')
         outfile, error_message = ipmag.upload_magic(dir_path=os.path.join(self.dir_path, 'my_project'))
