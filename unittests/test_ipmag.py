@@ -35,16 +35,28 @@ class TestUploadMagic(unittest.TestCase):
         self.dir_path = os.path.join(os.getcwd(), 'unittests', 'examples')
 
     def test_empty_dir(self):
+        print 'run test_empty_dir'
+        print "os.path.join(self.dir_path, 'empty_dir')", os.path.join(self.dir_path, 'empty_dir')
+        print 'os.getcwd()', os.getcwd()
         outfile, error_message = ipmag.upload_magic(dir_path=os.path.join(self.dir_path, 'empty_dir'))
         self.assertFalse(outfile)
         self.assertEqual(error_message, "no data found, upload file not created")
 
     def test_with_invalid_files(self):
+        print 'run test_with_invalid_files'
+        print "os.path.join(self.dir_path, 'my_project_with_errors')", os.path.join(self.dir_path, 'my_project_with_errors')
+        print 'os.getcwd()', os.getcwd()
+        print "os.listdir(os.path.join(self.dir_path, 'my_project_with_errors')", os.listdir(os.path.join(self.dir_path, 'my_project_with_errors'))
+
         outfile, error_message = ipmag.upload_magic(dir_path=os.path.join(self.dir_path, 'my_project_with_errors'))
         self.assertFalse(outfile)
         self.assertEqual(error_message, "file validation has failed.  You may run into problems if you try to upload this file.")
 
     def test_with_valid_files(self):
+        print 'run test_with_valid_files'
+        print "os.path.join(self.dir_path, 'my_project')", os.path.join(self.dir_path, 'my_project')
+        print 'os.getcwd()', os.getcwd()
+
         print os.path.join(self.dir_path, 'my_project')
         outfile, error_message = ipmag.upload_magic(dir_path=os.path.join(self.dir_path, 'my_project'))
         self.assertTrue(outfile)
