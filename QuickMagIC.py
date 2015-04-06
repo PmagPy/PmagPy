@@ -21,17 +21,20 @@ class MagMainFrame(wx.Frame):
         version=""
     title = "QuickMagIC   version: %s"%version
 
-    def __init__(self):
+    def __init__(self, WD=None):
         
         self.FIRST_RUN=True
         wx.Frame.__init__(self, None, wx.ID_ANY, self.title)
-        self.panel = wx.Panel(self)
+        self.panel = wx.Panel(self, name='quickmagic main panel')
         self.InitUI()
         
         # for use as module:
         self.resource_dir = os.getcwd()
-        
-        self.get_DIR()        # choose directory dialog                    
+
+        if not WD:
+            self.get_DIR()        # choose directory dialog
+        else:
+            self.WD = WD
         self.HtmlIsOpen=False
         self.first_time_messsage=False
         self.Bind(wx.EVT_CLOSE, self.on_menu_exit)
@@ -103,17 +106,17 @@ class MagMainFrame(wx.Frame):
         bSizer1 = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY, "Import MagIC formatted data to working directory" ), wx.HORIZONTAL )
         
         TEXT="1. convert magnetometer files to MagIC format"
-        self.btn1=buttons.GenButton(self.panel, id=-1, label=TEXT,size=(450, 50))        
+        self.btn1=buttons.GenButton(self.panel, id=-1, label=TEXT,size=(450, 50),name='step 1')        
         self.btn1.SetBackgroundColour("#FDC68A")
         self.btn1.InitColours()
         self.Bind(wx.EVT_BUTTON, self.on_convert_file,self.btn1)
         TEXT="2. (optional) calculate geographic/tilt-corrected directions"
-        self.btn2 =buttons.GenButton(self.panel, id=-1, label=TEXT,size=(450, 50))
+        self.btn2 =buttons.GenButton(self.panel, id=-1, label=TEXT,size=(450, 50), name='step 2')
         self.btn2.SetBackgroundColour("#FDC68A")
         self.btn2.InitColours()
         self.Bind(wx.EVT_BUTTON, self.on_orientation_button,self.btn2)
         TEXT="3. fill Earth-Ref data using EarthRef Magic-Builder "
-        self.btn3 =buttons.GenButton(self.panel, id=-1, label=TEXT,size=(450, 50))
+        self.btn3 =buttons.GenButton(self.panel, id=-1, label=TEXT,size=(450, 50), name='step 3')
         self.btn3.SetBackgroundColour("#FDC68A")
         self.btn3.InitColours()
         self.Bind(wx.EVT_BUTTON, self.on_er_data,self.btn3)
@@ -153,13 +156,13 @@ class MagMainFrame(wx.Frame):
         bSizer2 = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY, "Analysis and plots" ), wx.HORIZONTAL )
         
         TEXT="Demag GUI"
-        self.btn_demag_gui =buttons.GenButton(self.panel, id=-1, label=TEXT,size=(300, 50))
+        self.btn_demag_gui = buttons.GenButton(self.panel, id=-1, label=TEXT,size=(300, 50), name='demag gui')
         self.btn_demag_gui.SetBackgroundColour("#6ECFF6")
         self.btn_demag_gui.InitColours()
         self.Bind(wx.EVT_BUTTON, self.on_run_demag_gui,self.btn_demag_gui)
 
         TEXT="Thellier GUI"
-        self.btn_thellier_gui =buttons.GenButton(self.panel, id=-1, label=TEXT,size=(300, 50))
+        self.btn_thellier_gui = buttons.GenButton(self.panel, id=-1, label=TEXT,size=(300, 50), name='thellier gui')
         self.btn_thellier_gui.SetBackgroundColour("#6ECFF6")
         self.btn_thellier_gui.InitColours()
         self.Bind(wx.EVT_BUTTON, self.on_run_thellier_gui,self.btn_thellier_gui)
@@ -250,13 +253,23 @@ class MagMainFrame(wx.Frame):
         return img.ConvertToBitmap()   
                  
                   
-    def on_change_dir_button(self,event):
+    def on_change_dir_button(self,event,show=True):
         currentDirectory=os.getcwd()
-        dialog = wx.DirDialog(None, "choose directory:",defaultPath = currentDirectory ,style=wx.DD_DEFAULT_STYLE | wx.DD_NEW_DIR_BUTTON | wx.DD_CHANGE_DIR)
-        if dialog.ShowModal() == wx.ID_OK:
+        self.change_dir_dialog = wx.DirDialog(self.panel, "choose directory:",defaultPath = currentDirectory ,style=wx.DD_DEFAULT_STYLE | wx.DD_NEW_DIR_BUTTON | wx.DD_CHANGE_DIR)
+        if show:
+            self.on_finish_change_dir(self.change_dir_dialog)
+
+    def on_finish_change_dir(self, dialog, show=True):
+        if not show:
             self.WD = dialog.GetPath()
             os.chdir(self.WD)
             self.dir_path.SetValue(self.WD)
+        elif dialog.ShowModal() == wx.ID_OK:
+            self.WD = dialog.GetPath()
+            os.chdir(self.WD)
+            self.dir_path.SetValue(self.WD)
+            dialog.Destroy()
+        else:
             dialog.Destroy()
 
 
@@ -310,7 +323,7 @@ class MagMainFrame(wx.Frame):
         
         # to run as module:
         import thellier_gui
-        thellier_gui.do_main(self.WD, standalone_app=False)
+        thellier_gui.do_main(self.WD, standalone_app=False, parent=self)
         
         # to run as command line:
         #os.system(outstring)
@@ -321,7 +334,7 @@ class MagMainFrame(wx.Frame):
         print "-I- running python script:\n %s"%(outstring)
         # for use as module:
         import demag_gui
-        demag_gui.do_main(self.WD, standalone_app=False)
+        demag_gui.do_main(self.WD, standalone_app=False, parent=self)
 
         # for use as command line:
         #os.system(outstring)
@@ -401,7 +414,7 @@ class MagMainFrame(wx.Frame):
         SIZE=wx.DisplaySize()
         SIZE=(SIZE[0]-0.1*SIZE[0],SIZE[1]-0.1*SIZE[1])
         Data,Data_hierarchy=self.get_data()
-        frame = pmag_basic_dialogs.OrientFrameGrid (None, -1, 'demag_orient.txt',self.WD,Data_hierarchy,SIZE)        
+        frame = pmag_basic_dialogs.OrientFrameGrid(self, -1, 'demag_orient.txt',self.WD,Data_hierarchy,SIZE)        
         frame.Show(True)
         frame.Centre()
 
@@ -476,8 +489,6 @@ class MagMainFrame(wx.Frame):
         if result == wx.ID_OK:            
             dlg.Destroy()
 
-        
-       
            
     def on_menu_exit(self, event):
         # also delete appropriate copy file

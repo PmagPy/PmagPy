@@ -46,7 +46,7 @@ class MagIC_model_builder(wx.Frame):
         SIZE=wx.DisplaySize()
         SIZE=(SIZE[0]-0.05*SIZE[0],SIZE[1]-0.05*SIZE[1])
 
-        wx.Frame.__init__(self, parent, wx.ID_ANY,size=SIZE)
+        wx.Frame.__init__(self, parent, wx.ID_ANY,size=SIZE, name='ErMagicBuilder')
         #self.panel = wx.Panel(self)
         self.main_frame = self.Parent
         self.panel = wx.ScrolledWindow(self)

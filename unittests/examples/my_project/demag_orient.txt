@@ -1,0 +1,9 @@
+tab	demag_orient
+sample_orientation_flag	sample_name	mag_azimuth	field_dip	bedding_dip_direction	bedding_dip	shadow_angle	lat	long	date	hhmm	GPS_baseline	GPS_Az	magic_method_codes
+g	sr01a	295	87			016	42.60264	245.602	09/18/99	9:54			
+g	sr01c	285	82			000	42.60264	245.602	09/18/99	10:22			
+g	sr01d	325	76				42.60264	245.602	09/18/99	10:25			
+g	sr01e	009	75			084	42.60264	245.602	09/18/99	10:29			
+g	sr01f	007	80			081	42.60264	245.602	09/18/99	10:31			
+g	sr01g	305	75			019	42.60264	245.602	09/18/99	10:35			
+g	sr01i	350	56			061	42.60264	245.602	09/18/99	10:44			

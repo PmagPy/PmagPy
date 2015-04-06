@@ -55,9 +55,16 @@ def main():
     else:
         input = numpy.loadtxt(sys.stdin,dtype=numpy.float)  # read from standard input
     dir=pmag.cart2dir(input)
-    for line in dir:
+    if len(dir.shape)==1:
+        line=dir 
         print '%7.1f %7.1f %10.3e'%(line[0],line[1],line[2])
         if ofile!="":
            outstring='%7.1f %7.1f %10.8e\n' %(line[0],line[1],line[2]) 
            outfile.write(outstring)
+    else: 
+        for line in dir:
+            print '%7.1f %7.1f %10.3e'%(line[0],line[1],line[2])
+            if ofile!="":
+               outstring='%7.1f %7.1f %10.8e\n' %(line[0],line[1],line[2]) 
+               outfile.write(outstring)
 main() 

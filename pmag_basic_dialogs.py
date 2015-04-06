@@ -18,7 +18,7 @@ import check_updates
 
 class import_magnetometer_data(wx.Dialog):
     def __init__(self,parent,id,title,WD):
-        wx.Dialog.__init__(self, parent, id, title)
+        wx.Dialog.__init__(self, parent, id, title, name='import_magnetometer_data')
         self.WD=WD
         self.InitUI()
         self.SetTitle(title)
@@ -29,7 +29,7 @@ class import_magnetometer_data(wx.Dialog):
         self.panel = wx.Panel(self)
         vbox=wx.BoxSizer(wx.VERTICAL)
 
-        formats=['generic format','SIO format','CIT format','2G-binary format','HUJI format','LDEO format','IODP SRM (csv) format','PMD (ascii) format','TDT format']
+        formats=['generic format','SIO format','CIT format','2G-binary format','HUJI format','LDEO format','IODP SRM (csv) format','PMD (ascii) format','TDT format', 'JR6 format']
         sbs = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY, 'step 1: choose file format' ), wx.VERTICAL )
 
         sbs.AddSpacer(5)
@@ -118,6 +118,8 @@ class import_magnetometer_data(wx.Dialog):
             import TDT_magic
             TDT_magic.main(False, self.WD)
             return True
+        elif file_type == 'JR6':
+            dia = convert_JR6_files_to_MagIC(self, self.WD)
         dia.Center()
         dia.Show()
 
@@ -1113,7 +1115,6 @@ class convert_HUJI_files_to_MagIC(wx.Frame):
         bSizer_info = wx.BoxSizer(wx.HORIZONTAL)
         bSizer_info.Add(wx.StaticText(pnl, label=TEXT), wx.ALIGN_LEFT)
 
-
         #---sizer 0a ----
 
         TEXT = "HUJI file Type"
@@ -1938,6 +1939,177 @@ class convert_PMD_files_to_MagIC(wx.Frame):
 
 
 # template for an import window
+class convert_JR6_files_to_MagIC(wx.Frame):
+
+    """ """
+    title = "PmagPy JR6 file conversion"
+
+    def __init__(self, parent, WD):
+        wx.Frame.__init__(self, parent, wx.ID_ANY, self.title)
+        self.panel = wx.ScrolledWindow(self)
+        self.WD = WD
+        self.InitUI()
+
+    def InitUI(self):
+
+        pnl = self.panel
+        TEXT = "JR6 format file (.txt format only)"
+        bSizer_info = wx.BoxSizer(wx.HORIZONTAL)
+        bSizer_info.Add(wx.StaticText(pnl, label=TEXT), wx.ALIGN_LEFT)
+
+
+        #---sizer 0a ----
+        TEXT = "JR6 file Type"
+        label1 = ".txt format"
+        label2 = ".jr6 format"
+        self.bSizer0a = pw.labeled_yes_or_no(pnl, TEXT, label1, label2)
+        
+        #---sizer 0 ----
+        self.bSizer0 = pw.choose_file(pnl, 'add', method = self.on_add_file_button)
+
+        #---sizer 1 ----
+        self.bSizer1 = pw.sampling_particulars(pnl)
+
+        #---sizer 1a ---
+        self.bSizer1a = pw.labeled_text_field(pnl, 'Specimen volume, default is 2.5cm^3.\nPlease provide volume in meters cubed.')
+        
+        #---sizer 2 ---
+        self.bSizer2 = pw.specimen_n(pnl)
+        
+        #---sizer 3 ----
+        ncn_keys = ['XXXXY', 'XXXX-YY', 'XXXX.YY', 'XXXX[YYY] where YYY is sample designation, enter number of Y', 'sample name=site name']#, These options are not yet implemented:   'Site names in orient.txt file', '[XXXX]YYY where XXXX is the site name, enter number of X']#, 'this is a synthetic and has no site name']
+        self.bSizer3 = pw.select_ncn(pnl, ncn_keys)
+
+        #---sizer 4 ----
+        TEXT="Location name:"
+        self.bSizer4 = pw.labeled_text_field(pnl, TEXT)
+
+        #---sizer 5 ----
+        self.bSizer5 = pw.replicate_measurements(pnl)
+
+        #---buttons ---
+        hboxok = pw.btn_panel(self, pnl)
+
+        #------
+        vbox=wx.BoxSizer(wx.VERTICAL)
+
+        vbox.AddSpacer(10)
+        vbox.Add(bSizer_info, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        vbox.Add(self.bSizer0a, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        vbox.Add(self.bSizer0, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        vbox.Add(self.bSizer1, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        vbox.Add(self.bSizer1a, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        vbox.Add(self.bSizer2, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        vbox.Add(self.bSizer3, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        vbox.Add(self.bSizer4, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        vbox.Add(self.bSizer5, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        vbox.AddSpacer(10)
+        vbox.Add(wx.StaticLine(pnl), 0, wx.ALL|wx.EXPAND, 5)
+        vbox.Add(hboxok, flag=wx.ALIGN_CENTER)        
+        vbox.AddSpacer(20)
+
+        hbox_all= wx.BoxSizer(wx.HORIZONTAL)
+        hbox_all.AddSpacer(20)
+        hbox_all.AddSpacer(vbox)
+        hbox_all.AddSpacer(20)
+        
+        self.panel.SetSizer(hbox_all)
+        self.panel.SetScrollbars(20, 20, 50, 50)
+        hbox_all.Fit(self)
+        self.Centre()
+        self.Show()
+
+
+    def on_add_file_button(self,event):
+        text = "choose file to convert to MagIC"
+        pw.on_add_file_button(self.bSizer0, self.WD, event, text)
+
+    def on_okButton(self, event):
+        input_format = self.bSizer0a.return_value()
+        if input_format:
+            input_format = 'txt'
+        else:
+            input_format = 'jr6'
+        options = {}
+        output_dir_path = self.WD
+        options['dir_path'] = str(output_dir_path)
+        input_dir_path, mag_file = os.path.split(self.bSizer0.return_value())
+        if not mag_file:
+            pw.simple_warning("You must select a JR6 format file")
+            return False
+        options['input_dir_path'], options['mag_file'] = str(input_dir_path), str(mag_file)
+        meas_file = os.path.split(mag_file)[1]+".magic"
+        options['meas_file'] = str(meas_file)
+        samp_file = os.path.splitext(os.path.splitext(meas_file)[0])[0] + "_er_samples.txt"
+        options['samp_file'] = str(samp_file)
+        specnum = self.bSizer2.return_value()
+        options['specnum'] = specnum
+        samp_con = self.bSizer3.return_value()
+        options['samp_con'] = samp_con
+        er_location_name = self.bSizer4.return_value()
+        options['er_location_name'] = str(er_location_name)
+        average = self.bSizer5.return_value()
+        if average:
+            noave = 0
+        else:
+            noave = 1
+        options['noave'] = noave
+        meth_code = self.bSizer1.return_value()
+        options['meth_code'] = meth_code
+        volume = self.bSizer1a.return_value()
+        if volume:
+            try:
+                volume = float(volume)
+            except:
+                pw.simple_warning("You must provide a valid quanity for volume")
+                return False
+            else:
+                options['volume'] = volume
+        os.chdir(self.WD)
+        COMMAND = ""
+        if 'jr6' in input_format and 'jr6' not in mag_file.lower():
+            pw.simple_warning("You must provide a .jr6 format file")
+            return False
+        elif 'txt' in input_format and 'txt' not in mag_file.lower():
+            pw.simple_warning("You must provide a .txt format file")
+            return False
+        if input_format == 'txt': # .txt format
+            import JR6_txt_magic
+            if JR6_txt_magic.main(False, **options):
+                COMMAND = "options={}\nJR6_txt_magic.main(False, **options)".format(str(options))
+                pw.close_window(self, COMMAND, meas_file)
+            else:
+                pw.simple_warning()
+        else:
+            import JR6_jr6_magic
+            if JR6_jr6_magic.main(False, **options):
+                pw.close_window(self, COMMAND, meas_file)
+            else:
+                pw.simple_warning()
+
+
+        #pw.run_command_and_close_window(self, COMMAND, outfile)
+
+    def on_cancelButton(self,event):
+        self.Destroy()
+        self.Parent.Raise()
+
+    def on_helpButton(self, event):
+        input_format = self.bSizer0a.return_value()
+        if input_format:
+            input_format = 'txt'
+        else:
+            input_format = 'jr6'
+        if input_format == 'txt': # .txt format
+            import JR6_txt_magic
+            pw.on_helpButton(text=JR6_txt_magic.do_help())
+        else:
+            import JR6_jr6_magic
+            pw.on_helpButton(text=JR6_jr6_magic.do_help())
+
+
+
+# template for an import window
 class something(wx.Frame):
 
     """ """
@@ -2035,7 +2207,7 @@ class something(wx.Frame):
 class OrientFrameGrid(wx.Frame):
 
     def __init__(self,parent,id,title,WD,Data_hierarchy,size):
-        wx.Frame.__init__(self, parent, -1, title, size=size)
+        wx.Frame.__init__(self, parent, -1, title, size=size, name='calculate geographic directions')
         
         #--------------------
         # initialize stuff
@@ -2323,12 +2495,31 @@ class OrientFrameGrid(wx.Frame):
             gmt_flags=orient_convention_dia.gmt_flags
             orient_convention_dia.Destroy()
 
+
+        or_con = orient_convention_dia.ocn
+        dec_correction_con = int(orient_convention_dia.dcn)
+        try:
+            hours_from_gmt = float(orient_convention_dia.gmt)
+        except:
+            hours_from_gmt = 0
+        try:
+            dec_correction = float(orient_convention_dia.correct_dec)
+        except:
+            dec_correction = 0
+
         method_code_dia=method_code_dialog(None)
         method_code_dia.Center()
         if method_code_dia.ShowModal()== wx.ID_OK:
             bedding_codes_flags=method_code_dia.bedding_codes_flags
             methodcodes_flags=method_code_dia.methodcodes_flags
             method_code_dia.Destroy()
+
+        method_codes = method_code_dia.methodcodes
+        average_bedding = method_code_dia.average_bedding
+        bed_correction = method_code_dia.bed_correction
+
+
+        # to run as command-line:
         #logfile=open(self.WD+"/orientation_magic.log",'w')
         command_args=['orientation_magic.py']
         command_args.append("-WD %s"%self.WD)
@@ -2342,26 +2533,14 @@ class OrientFrameGrid(wx.Frame):
         command_args.append(methodcodes_flags) 
         commandline= " ".join(command_args)
 
-
-        #command= "orientation_magic.py -WD %s -Fsa er_samples_orient.txt -Fsi er_sites_orient.txt -f  %s %s %s %s %s %s > ./orientation_magic.log " \
-        #%(self.WD,\
-        #"demag_orient.txt",\
-        #ocn_flag,\
-        #dcn_flag,\
-        #gmt_flags,\
-        #bedding_codes_flags,\
-        #methodcodes_flags)
-
-        #orient_convention_dia.Destroy()
-        #method_code_dia.Destroy()  
-
         print "-I- executing command: %s" %commandline
         os.chdir(self.WD)
+        
+        #exit_code = os.system(commandline)
+        ran_successfully, error_message = ipmag.orientation_magic(or_con, dec_correction_con, dec_correction, bed_correction, hours_from_gmt=hours_from_gmt, method_codes=method_codes, average_bedding=average_bedding, orient_file='demag_orient.txt', samp_file='er_samples_orient.txt', site_file='er_sites_orient.txt', input_dir_path=self.WD, output_dir_path=self.WD)
 
-        exit_code = os.system(commandline)
-
-        if exit_code is not 0:
-            dlg1 = wx.MessageDialog(None,caption="Message:", message="-E- ERROR: Error in running orientation_magic.py\nSee Terminal (Mac) or command prompt (windows) for errors" ,style=wx.OK|wx.ICON_INFORMATION)
+        if not ran_successfully:
+            dlg1 = wx.MessageDialog(None,caption="Message:", message="-E- ERROR: Error in running orientation_magic.py\n{}".format(error_message) ,style=wx.OK|wx.ICON_INFORMATION)
             dlg1.ShowModal()
             dlg1.Destroy()
 
@@ -2468,8 +2647,6 @@ class OrientFrameGrid(wx.Frame):
 
         self.Destroy()
 
-
-                    
         
     def OnCloseWindow(self,event):   
         dlg1 = wx.MessageDialog(self,caption="Message:", message="Save changes to demag_orient.txt?\n " ,style=wx.OK|wx.CANCEL)
@@ -2483,9 +2660,6 @@ class OrientFrameGrid(wx.Frame):
             self.Destroy()
 
                      
-
-                
-
 
 class orient_convention(wx.Dialog):
     
@@ -2634,11 +2808,12 @@ class orient_convention(wx.Dialog):
         if self.oc_rb6.GetValue()==True:self.ocn="6"
 
         self.dcn=""
+        self.correct_dec = ""
         if self.dc_rb1.GetValue()==True:self.dcn="1"
         if self.dc_rb2.GetValue()==True:
             self.dcn="2"
             try:
-                float(self.dc_tb2.GetValue())
+                self.correct_dec = float(self.dc_tb2.GetValue())
             except:
                 dlg1 = wx.MessageDialog(None,caption="Error:", message="Add declination" ,style=wx.OK|wx.ICON_INFORMATION)
                 dlg1.ShowModal()
@@ -2651,11 +2826,12 @@ class orient_convention(wx.Dialog):
         
         if self.dc_alt.GetValue()!="":
             try:
-                float(self.dc_alt.GetValue())
+                self.gmt = float(self.dc_alt.GetValue())
                 gmt_flags="-gmt " + self.dc_alt.GetValue()
             except:
                 gmt_flags=""
         else:
+            self.gmt = ""
             gmt_flags=""        
         #-------------
         self.ocn_flag="-ocn "+ self.ocn
@@ -2765,19 +2941,26 @@ class method_code_dialog(wx.Dialog):
             methodcodes.append('SO-SM')
         if self.cb10.GetValue() ==True:
             methodcodes.append('SO-SIGHT')
-        
+
         if methodcodes==[]:
             self.methodcodes_flags=""
+            self.methodcodes = ""
         else:
             self.methodcodes_flags="-mcd "+":".join(methodcodes)
+            self.methodcodes = ":".join(methodcodes)
         
         bedding_codes=[]
         
         if self.bed_con1.GetValue() ==True:
             bedding_codes.append("-a")
+            self.average_bedding = True
+        else:
+            self.average_bedding = False
         if self.bed_con2.GetValue() ==True:
             bedding_codes.append("-BCN")
-        
+            self.bed_correction = False
+        else:
+            self.bed_correction = True
         self.bedding_codes_flags=" ".join(bedding_codes)   
         self.EndModal(wx.ID_OK) 
         #self.Close()

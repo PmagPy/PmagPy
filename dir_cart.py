@@ -58,7 +58,12 @@ def main():
     else:
         input=numpy.loadtxt(sys.stdin,dtype=numpy.float)
     cart= pmag.dir2cart(input)
-    for line in cart:
+    if len(cart.shape)==1:
+        line=cart
         print '%8.4e %8.4e %8.4e'%(line[0],line[1],line[2])
         if out!="":out.write('%8.4e %8.4e %8.4e\n'%(line[0],line[1],line[2]))
+    else:
+        for line in cart:
+            print '%8.4e %8.4e %8.4e'%(line[0],line[1],line[2])
+            if out!="":out.write('%8.4e %8.4e %8.4e\n'%(line[0],line[1],line[2]))
 main() 

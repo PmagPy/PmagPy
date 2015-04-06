@@ -869,8 +869,10 @@ def magic_read(infile, data=None):
         f = data
     else:
         try:
+            print 'infile:', infile
             f=open(infile,"rU")
-        except:
+        except Exception as ex:
+            #print 'ex:', ex
             return [],'bad_file'
 
     d = f.readline()[:-1].strip('\n')

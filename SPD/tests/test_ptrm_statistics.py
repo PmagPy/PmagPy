@@ -9,7 +9,7 @@ import unittest
 #from SPD_project.lib import lib_ptrm_statistics as lib_ptrm
 #from SPD_project import spd
 #import SPD.spd as spd
-from SPD.test_instance import spec
+from SPD.test_instance import example
 import SPD.lib.lib_ptrm_statistics as lib_ptrm
 import SPD.lib.lib_directional_statistics as lib_direct
 
@@ -95,7 +95,7 @@ class CheckpTRMparams(unittest.TestCase):
         
     def test_DRATS_real_data(self):
         ref_drats = 0.928840447566
-        DRATS = spec.get_DRATS()
+        DRATS = example.get_DRATS()
         self.assertAlmostEqual(ref_drats, DRATS)
 
     def test_mean_DRAT(self):

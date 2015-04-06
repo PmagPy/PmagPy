@@ -1,0 +1,58 @@
+language: python
+python:
+    - "2.7"
+    #  - "2.6" # fails because of discover
+    # command to install dependencies, e.g. pip install -r requirements.txt --use-mirrors
+before_install:
+  - sudo apt-get update -qq  # make sure package indexes are up to date
+  - sudo apt-get install -y python-scipy python-tk python-matplotlib # python-mpl_basemap doesn't work
+  - sudo apt-get install -y python-wxgtk2.8
+
+
+  #- sudo apt-get install python-pip
+  #- sudo pip install numpy
+  #- sudo pip install pandas
+
+  # try to install brew:
+  #- ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+  #- mkdir homebrew && curl -L https://github.com/Homebrew/homebrew/tarball/master | tar xz --strip 1 -C homebrew
+  #- which brew
+  #- brew update
+  #- brew install wxpython
+
+  
+  # try to get wxpython
+
+  #- sudo apt-get update -qq
+  #- sudo apt-get install -qq libgtk2.0-dev libgtkglextmm-x11-1.2-dev libgtkmm-2.4-dev
+  #- sudo apt-get install python-dev
+  #- sudo apt-get install libboost-python-dev libboost-signals-dev
+  #- sudo apt-get install libgstreamer0.10-dev libgstreamer-plugins-base0.10-dev
+  #- wget http://sourceforge.net/projects/wxpython/files/wxPython/2.9.4.0/wxPython-src-2.9.4.0.tar.bz2
+  #- tar xf wxPython-src-2.9.4.0.tar.bz2
+  #- cd wxPython-src-2.9.4.0/
+  #- wget http://sourceforge.net/projects/wxpython/files/wxPython/2.9.4.0/wxPython-src-2.9.4.1.patch
+  #- patch -p0 < wxPython-src-2.9.4.1.patch
+  #- cd wxPython/
+  ## fails here::
+  #- python build-wxpython.py --build_dir=../bld
+  #- cd ..
+  #- export PYTHONPATH="$PWD/wxPython"
+  #- export LD_LIBRARY_PATH="$PWD/bld/lib"
+  #- cd ..
+  
+  - "export DISPLAY=:99.0"
+  - "sh -e /etc/init.d/xvfb start"
+
+  # - echo $DISPLAY
+  # - export DISPLAY=unix:0.0
+  # - export DISPLAY=localhost:0
+  # - echo $DISPLAY
+virtualenv:
+  system_site_packages: true
+install:
+  - pip install scripttest
+  - pip install pandas
+  # command to run tests, e.g. python setup.py test
+script:
+  - python -m unittest unittests.test_ipmag SPD.tests.test_arai_plot_statistics SPD.tests.test_curvature SPD.tests.test_directional_statistics SPD.tests.test_ptrm_statistics SPD.tests.test_tail_check_statistics SPD.tests.test_additivity_check_statistics

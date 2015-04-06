@@ -1,7 +1,5 @@
 #! /usr/bin/env python
 
-print "my name", __name__
-
 import unittest
 import numpy
 import copy
@@ -11,12 +9,10 @@ import sys
 #    sys.path.append('/Users/nebula/Python')
 import SPD.lib.lib_directional_statistics as lib_direct
 import SPD.spd as spd
-from SPD.test_instance import spec
+from SPD.test_instance import PintPars_example
 #import known_values
 #import lib_directional_statistics as lib_direct
-
-
-thing = spec
+PintPars_example.calculate_all_statistics()
 #thing1 = spd.thing1
 
 class CheckDecInc(unittest.TestCase):
@@ -96,7 +92,7 @@ class CheckDecInc(unittest.TestCase):
 
 
     def test_get_dec_and_inc(self): # testing full thing with real data
-        dec, inc, intenstiy, tau, V, means, PCA_sigma = lib_direct.get_dec_and_inc(spec.zdata, spec.t_Arai, spec.tmin, spec.tmax, anchored=False)
+        dec, inc, intenstiy, tau, V, means, PCA_sigma = lib_direct.get_dec_and_inc(PintPars_example.zdata, PintPars_example.t_Arai, PintPars_example.tmin, PintPars_example.tmax, anchored=False)
         self.assertAlmostEqual(dec, 267.4620127216387)
         self.assertAlmostEqual(inc, 86.349431762792364)
         self.assertGreaterEqual(tau[0], tau[1]) 
@@ -130,7 +126,7 @@ class CheckAlpha(unittest.TestCase):
         self.assertAlmostEqual(self.ref_alpha_degrees, result)
 
     def test_alpha_real_data(self):
-        self.assertAlmostEqual(thing.pars['alpha'], self.ref_real_alpha)
+        self.assertAlmostEqual(PintPars_example.pars['specimen_int_alpha'], self.ref_real_alpha)
 
 #    1*3 + 2 * 4
 
@@ -151,8 +147,12 @@ class CheckDang(unittest.TestCase):
         self.assertAlmostEqual(result, self.ref_Dang)
     
     def test_DANG_real_values(self):
-        thing.get_DANG()
-        self.assertAlmostEqual(thing.pars['DANG'], self.ref_real_DANG)
+        # with SPD naming scheme:
+        #PintPars_example.get_dec_and_inc()
+        #PintPars_example.get_DANG()
+        #self.assertAlmostEqual(PintPars_example.pars['DANG'], self.ref_real_DANG)
+        # with Magic naming scheme:
+        self.assertAlmostEqual(PintPars_example.pars['specimen_int_dang'], self.ref_real_DANG)
 
 
 class CheckNRMdev(unittest.TestCase):
@@ -173,10 +173,8 @@ class CheckTheta(unittest.TestCase):  # need to understand dir2cart, cart2dir be
     B_lab_dir = [0.0, 90.0, 1.] # different from B_lab_vector... ignore last value
 
     def test_theta(self):  # FINISH ME!!!!!
-        #print "testing with, B_lab_dir", self.B_lab_dir, "ChRM", self.ChRM
         result = lib_direct.get_theta(self.B_lab_dir, self.ChRM)
-        #print "test theta result", result
-        self.assertAlmostEqual(result, thing.pars['theta'])
+        self.assertAlmostEqual(result, PintPars_example.pars['specimen_theta'])
 
 
     

@@ -1,6 +1,6 @@
 Essentials_Problem_Datafiles
 *.pyc
-*.txt
+
 *.pyc
 */*.pyc
 *.*~
@@ -66,20 +66,17 @@ images/logo.eps
 images/logo2.ai
 
 sio_thellier_example.dat
-er_samples.txt
-er_sites.txt
-er_specimens.txt
+#er_samples.txt
+#er_sites.txt
+#er_specimens.txt
 bMP.sam.magic
 wxpython_demo.py
 wxpython_log.out
 bugs.txt
 example.py
 wx_log.out
-magic_measurements.txt
+#magic_measurements.txt
 bugs.txt
-er_samples.txt
-er_sites.txt
-er_specimens.txt
 example.py
 sio_thellier_example.dat
 wxpython_demo.py
@@ -102,8 +99,10 @@ plot_geomagia_ron.py
 
 TDT_brown_magic.py
 .ipynb_checkpoints/*
-er_ages.txt
-er_locations.txt
+#er_ages.txt
+#er_locations.txt
 MyFunctions.py
 
 Datafiles/thellier_GUI.zip
+plot_example.py
+simple_show_hide.py

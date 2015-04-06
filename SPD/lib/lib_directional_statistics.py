@@ -72,16 +72,11 @@ def tauV(T):
     t.append(t1)
     t.append(t2)
     t.append(t3)
-    #print 'tau', t
-    #print 'V', V
     return t,V
 
 def get_PD_direction(X1_prime, X2_prime, X3_prime, PD):
     """takes arrays of X1_prime, X2_prime, X3_prime, and the PD.  
     checks that the PD vector direction is correct"""
-    # problem is here!!!!!!  
-    #print 'PD before get direction', PD
-    #print 'X1_prime', X1_prime
     n = len(X1_prime) - 1
     X1 = X1_prime[0] - X1_prime[n]
     X2 = X2_prime[0] - X2_prime[n]
@@ -131,7 +126,7 @@ def get_dec_and_inc(zdata, t_Arai, tmin, tmax, anchored=True):
     PCA_sigma_min = numpy.sqrt(abs(tau[2]))
     PCA_sigma = [PCA_sigma_max, PCA_sigma_int, PCA_sigma_min]
     PD = get_PD_direction(data['X1_prime'], data['X2_prime'], data['X3_prime'], V[0]) # makes PD + or -
-    PDir=cart2dir(PD) # PDir is direction
+    PDir = cart2dir(PD) # PDir is direction
     vector = PD # best fit vector / ChRM is cartesian
     dec = PDir[0]
     inc = PDir[1]

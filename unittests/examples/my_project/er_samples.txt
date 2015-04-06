@@ -1,0 +1,9 @@
+tab	er_samples
+er_citation_names	er_sample_name	er_site_name	er_location_name	sample_class	sample_lithology	sample_type	sample_lat	sample_lon	sample_dip	sample_orientation_flag	sample_bed_dip_direction	sample_bed_dip	sample_declination_correction	magic_method_codes	sample_date	sample_location_precision	sample_azimuth
+This study	sr01a	site	Snake River	Extraterrestrial	Foid-Bearing-Monzodiorite:Foid-Bearing-Microsyenite	Burnt Floor:Bell Mould	42.60264	245.602	-87.0	g				SO-SM:SO-POM:SO-SUN:FS-FD:FS-LOC-GPS	1999:09:18		310.6
+This study	sr01c	sr01	Snake River	Igneous:Extrusive	Foid-Bearing-Microsyenite	Lava Flow	42.60264	245.60200	-82.0	g				SO-SM:SO-POM:SO-SUN:FS-FD:FS-LOC-GPS	1999:09:18		300.7
+This study	sr01d	sr01	Snake River	Igneous:Extrusive	Foid-Bearing-Microsyenite	Lava Flow	42.60264	245.60200	-76.0	g			15.0	SO-SM:SO-CMD-NORTH:SO-POM:FS-FD:FS-LOC-GPS	1999:09:18		340.0
+This study	sr01e	sr01	Snake River	Igneous:Extrusive	Foid-Bearing-Microsyenite	Lava Flow	42.60264	245.60200	-75.0	g				SO-SM:SO-POM:SO-SUN:FS-FD:FS-LOC-GPS	1999:09:18		26.3
+This study	sr01f	sr01	Snake River	Igneous:Extrusive	Foid-Bearing-Microsyenite	Lava Flow	42.60264	245.60200	-80.0	g				SO-SM:SO-POM:SO-SUN:FS-FD:FS-LOC-GPS	1999:09:18		23.7
+This study	sr01g	sr01	Snake River	Igneous:Extrusive	Foid-Bearing-Microsyenite	Lava Flow	42.60264	245.60200	-75.0	g				SO-SM:SO-POM:SO-SUN:FS-FD:FS-LOC-GPS	1999:09:18		322.7
+This study	sr01i	sr01	Snake River	Igneous:Extrusive	Foid-Bearing-Microsyenite	Lava Flow	42.60264	245.60200	-56.0	g				SO-SM:SO-POM:SO-SUN:FS-FD:FS-LOC-GPS	1999:09:18		6.8

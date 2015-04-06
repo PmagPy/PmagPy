@@ -349,13 +349,15 @@ class PintPars(object):
                 self.t_Arai, self.tmin, self.tmax, anchored=False)
         self.pars['Dec_Anc'], self.pars['Dec_Free'] = Dec_Anc, Dec_Free
         self.pars['Inc_Anc'], self.pars['Inc_Free'] = Inc_Anc, Inc_Free
-        self.pars['best_fit_vector_Anc'], self.pars['best_fit_vector_Free'] = best_fit_Anc, best_fit_Free
+        self.pars['best_fit_vector_Anc'] = best_fit_Anc
+        self.pars['best_fit_vector_Free'] = best_fit_Free
         self.pars['tau_Anc'], self.pars['tau_Free'] = tau_Anc, tau_Free
         self.pars['V_Anc'], self.pars['V_Free'] = V_Anc, V_Free
         self.pars['zdata_mass_center'] = mass_center
         self.pars['PCA_sigma_max_Free'] = PCA_sigma_Free[0]
         self.pars['PCA_sigma_int_Free'] = PCA_sigma_Free[1]
         self.pars['PCA_sigma_min_Free'] = PCA_sigma_Free[2]
+        
 
     def get_ptrm_dec_and_inc(self):
         """not included in spd."""
@@ -724,7 +726,8 @@ class PintPars(object):
         'get_delta_AC': (York_Regression, get_n_add,),
 }
 
-    def reqd_stats(self):  
+    def reqd_stats(self):
+        #print 'do REQD STATS'
         if self.n < 3:
             print "-W- Cannot run statistics with only {} points".format(self.n)
             self.pars = {}
@@ -763,10 +766,6 @@ class PintPars(object):
             self.pars = map_magic.mapping(self.pars, map_magic.spd2magic_map)
         if len(stats_run) != len(set(stats_run)):
             raise Exception('lengths were off')
-        
-
-
-
 
 
 def make_thing():
