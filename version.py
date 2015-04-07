@@ -1,2 +1,2 @@
-"pmagpy-3.1.19"
-version = 'pmagpy-3.1.19'
+"pmagpy-3.2.0"
+version = 'pmagpy-3.2.0'
