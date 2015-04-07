@@ -1685,8 +1685,10 @@ class Core_depthplot(wx.Frame):
             pixel_width = dpi * fig.get_figwidth()
             pixel_height = dpi * fig.get_figheight()
             plot_frame = PlotFrame((pixel_width, pixel_height + 50), fig, figname)
+            return plot_frame
         else:
             pw.simple_warning("No data points met your criteria - try again\nError message: {}".format(figname))
+            return False
 
 
         # for use as command_line:
@@ -1771,7 +1773,7 @@ class Ani_depthplot(wx.Frame):
     title = "Plot anisotropoy vs. depth/height/age"
     
     def __init__(self, parent, WD):
-        wx.Frame.__init__(self, parent, wx.ID_ANY, self.title)
+        wx.Frame.__init__(self, parent, wx.ID_ANY, self.title, name='aniso_depthplot')
         self.panel = wx.ScrolledWindow(self)
         self.WD = WD
         self.InitUI()
