@@ -411,14 +411,6 @@ class convert_generic_files_to_MagIC(wx.Frame):
         else:
             pw.simple_warning()
 
-        # to run as command line
-        #os.system(COMMAND)                                          
-        #--
-        #MSG="file converted to MagIC format file:\n%s.\n\n See Termimal (Mac) or command prompt (windows) for errors"% OUTFILE
-        #dlg1 = wx.MessageDialog(None,caption="Message:", message=MSG ,style=wx.OK|wx.ICON_INFORMATION)
-        #dlg1.ShowModal()
-        #dlg1.Destroy()
-
         self.Destroy()
         self.parent.Raise()
 
@@ -587,16 +579,6 @@ class combine_magic_dialog(wx.Frame):
         else:
             pw.simple_warning()
             return
-            
-        # to run as command line:
-        #print "-I- Running Python command:\n %s"%COMMAND
-        #os.chdir(self.WD)     
-        #os.system(COMMAND)
-        
-        #MSG="%i file are merged to one MagIC format file:\n magic_measurements.txt.\n\n See Termimal (Mac) or command prompt (windows) for errors"%(len(files))
-        #dlg1 = wx.MessageDialog(None,caption="Message:", message=MSG ,style=wx.OK|wx.ICON_INFORMATION)
-        #dlg1.ShowModal()
-        #dlg1.Destroy()
         
         self.on_nextButton(event)
         self.Destroy()
@@ -1971,7 +1953,7 @@ class convert_JR6_files_to_MagIC(wx.Frame):
         self.bSizer1 = pw.sampling_particulars(pnl)
 
         #---sizer 1a ---
-        self.bSizer1a = pw.labeled_text_field(pnl, 'Specimen volume, default is 2.5cm^3.\nPlease provide volume in meters cubed.')
+        self.bSizer1a = pw.labeled_text_field(pnl, 'Specimen volume, default is 1 cm^3.\nPlease provide volume in centimeters cubed.')
         
         #---sizer 2 ---
         self.bSizer2 = pw.specimen_n(pnl)
@@ -2536,7 +2518,6 @@ class OrientFrameGrid(wx.Frame):
         print "-I- executing command: %s" %commandline
         os.chdir(self.WD)
         
-        #exit_code = os.system(commandline)
         ran_successfully, error_message = ipmag.orientation_magic(or_con, dec_correction_con, dec_correction, bed_correction, hours_from_gmt=hours_from_gmt, method_codes=method_codes, average_bedding=average_bedding, orient_file='demag_orient.txt', samp_file='er_samples_orient.txt', site_file='er_sites_orient.txt', input_dir_path=self.WD, output_dir_path=self.WD)
 
         if not ran_successfully:
