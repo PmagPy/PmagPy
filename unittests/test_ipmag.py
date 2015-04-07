@@ -31,6 +31,9 @@ class TestUploadMagic(unittest.TestCase):
         outfile, error_message = ipmag.upload_magic(dir_path=os.path.join(self.dir_path, 'my_project_with_errors'))
         self.assertFalse(outfile)
         self.assertEqual(error_message, "file validation has failed.  You may run into problems if you try to upload this file.")
+        directory = os.path.join(self.dir_path, 'my_project_with_errors')
+        string = directory + '/' + '*.20*.txt'
+        os.system('rm ' + string)
 
     def test_with_valid_files(self):
         print os.path.join(self.dir_path, 'my_project')
@@ -38,6 +41,8 @@ class TestUploadMagic(unittest.TestCase):
         self.assertTrue(outfile)
         self.assertEqual(error_message, '')
         assert os.path.isfile(outfile)
+        directory = os.path.join(self.dir_path, 'my_project_with_errors')
+        os.system('rm {}'.format(os.path.join(directory, outfile)))
 
 
 if __name__ == '__main__':
