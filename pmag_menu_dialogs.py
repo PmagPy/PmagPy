@@ -1392,7 +1392,9 @@ class Core_depthplot(wx.Frame):
         self.Bind(wx.EVT_CHECKBOX, self.on_checkbox, self.bSizer9.cb)
 
         # if plotting GPTS, these sizers will be shown:
-        self.bSizer10 = pw.labeled_yes_or_no(pnl, "Time scale", "gts04", "ck95")
+        #self.bSizer10 = pw.labeled_yes_or_no(pnl, "Time scale", "gts04", "ck95")
+        choices = ["gts12", "gts04", "ck95"]
+        self.bSizer10 = pw.radio_buttons(pnl, choices, label="Time scale")
 
         self.bSizer11 = pw.labeled_text_field(pnl, label="Minimum age (in Ma)")
 
@@ -1446,7 +1448,6 @@ class Core_depthplot(wx.Frame):
         vbox2.Add(wx.StaticText(pnl, label="Specify depths to plot (optional)"))
         vbox2.Add(hbox2, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
 
-
         #---time scale ----
         hbox3.Add(self.bSizer9, flag=wx.ALIGN_LEFT)
         hbox3.Add(self.bSizer10, flag=wx.ALIGN_LEFT)#|wx.LEFT, border=5)
@@ -1455,14 +1456,12 @@ class Core_depthplot(wx.Frame):
         vbox3.Add(wx.StaticText(pnl, label="Specify time scale to plot (optional)"))
         vbox3.Add(hbox3)
 
-
         #---experiment type and step
         hbox4.Add(self.bSizer13, flag=wx.ALIGN_LEFT)
         hbox4.Add(self.bSizer14, flag=wx.ALIGN_LEFT)
         vbox4.Add(wx.StaticText(pnl, label="Experiment type"))
         vbox4.Add(hbox4)
         #vbox4.Add(self.bSizer15)
-
 
         #---add all widgets to main container---
         vbox.Add(bSizer_info, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
@@ -1625,10 +1624,7 @@ class Core_depthplot(wx.Frame):
         dmax = self.bSizer7.return_value()
         if self.bSizer9.return_value(): # if plot GPTS is checked
             pltTime = 1
-            if self.bSizer10.return_value():
-                timescale = 'gts04'
-            else:
-                timescale = 'ck95'
+            timescale = self.bSizer10.return_value()
             amin = self.bSizer11.return_value()
             amax = self.bSizer12.return_value()
             if not amin or not amax:
