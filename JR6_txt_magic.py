@@ -40,7 +40,7 @@ def main(command_line=True, **kwargs):
     """
 # initialize some stuff
     noave=0
-    volume = 1e-6 # default volume is 1 cm^3 (1e-6 meters^3)
+    volume = 2.5 * 1e-6 # default volume is 2.5 cm^3 (2.5 * 1e-6 meters^3)
     inst=""
     samp_con,Z='1',""
     missing=1
@@ -128,7 +128,7 @@ def main(command_line=True, **kwargs):
         meth_code = kwargs.get('meth_code', "LP-NO")
         volume = float(kwargs.get('volume', 0))
         if not volume:
-            volume = 1e-6
+            volume = 2.5 * 1e-6 #default volume is a 2.5 cm cube, translated to meters cubed
         else:
             #convert cm^3 to m^3
             volume *= 1e-6
