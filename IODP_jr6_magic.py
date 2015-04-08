@@ -100,7 +100,6 @@ def main(command_line=True, **kwargs):
     meth_code=meth_code.strip(":")
     mag_file = input_dir_path+"/" + mag_file
     meas_file = output_dir_path+"/" + meas_file
-    #tmp_file = output_dir_path+"/" + tmp_file
     # parse data
     data=pd.read_csv(mag_file,delim_whitespace=True,header=None)
     samples,filetype=pmag.magic_read(samp_file)
@@ -118,11 +117,11 @@ def main(command_line=True, **kwargs):
     for rowNum, row in data.iterrows():
         MagRec={}
         spec_text_id=row['specname'].split('_')[1]
-        SampRecs=pmag.get_dictitem(samples,'er_sample_alternatives',spec_text,'has') # retrieve sample record for this specimen
+        SampRecs=pmag.get_dictitem(samples,'er_sample_alternatives',spec_text_id,'has') # retrieve sample record for this specimen
         if len(SampRecs)>0: # found one
-            MagRec['er_specimen_name']=SampRecs[0]['er_specimen_name']
-            MagRec['er_sample_name']=MagRec['er_sample_name']
-            MagRec['er_site_name']=MagRec['er_sample_name']
+            MagRec['er_specimen_name']=SampRecs[0]['er_sample_name']
+            MagRec['er_sample_name']=MagRec['er_specimen_name']
+            MagRec['er_site_name']=MagRec['er_specimen_name']
             MagRec["er_citation_names"]="This study"
             MagRec['er_location_name']=er_location_name
             MagRec['magic_software_packages']=version_num
@@ -136,8 +135,8 @@ def main(command_line=True, **kwargs):
             moment=row['measurement_magn_volume'] * volume 
             MagRec["measurement_magn_moment"]=str(moment)
             MagRec["measurement_magn_volume"]=str(row['measurement_magn_volume'])
-            MagRec["measurement_dec"]=str(row['measurement_dec'])
-            MagRec["measurement_inc"]=str(row['measurement_inc'])
+            MagRec["measurement_dec"]='%7.1f'%(row['measurement_dec'])
+            MagRec["measurement_inc"]='%7.1f'%(row['measurement_inc'])
             if row['step'] == 'NRM':
                 meas_type="LT-NO"
             elif row['step'][0:2] == 'AD':

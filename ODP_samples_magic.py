@@ -38,7 +38,10 @@ def main():
         samp_out = output_dir_path+'/er_samples.txt'
     input=open(samp_file,"rU").readlines()
     keys=input[0].replace('\n','').split(',')
-    if "CSF-B Top (m)" in keys: comp_depth_key="CSF-B Top (m)"
+    if "CSF-B Top (m)" in keys: 
+        comp_depth_key="CSF-B Top (m)"
+    elif "Top depth CSF-B (m)" in keys: 
+        comp_depth_key="Top depth CSF-B (m)"
     if "Top Depth (m)" in keys:  # incorporate changes to LIMS data model, while maintaining backward compatibility
         depth_key="Top Depth (m)"
     elif "CSF-A Top (m)" in keys:
@@ -53,6 +56,8 @@ def main():
         date_key="Sample Date Logged"
     elif "Sample date logged" in keys:
         date_key="Sample date logged"
+    elif "Date sample logged" in keys:
+        date_key="Date sample logged"
     ErSamples,samples,format=[],[],'old'
     for line in input[1:]:
         ODPRec,SampRec={},{}
@@ -86,7 +91,10 @@ def main():
             SampRec['sample_dip']="0"
             SampRec['sample_azimuth']="0"
             SampRec['sample_core_depth']=ODPRec[depth_key]
-            SampRec['sample_volume']=str(float(ODPRec['Volume (cc)'])*1e-6)
+            if ODPRec['Volume (cc)']!="":
+                SampRec['sample_volume']=str(float(ODPRec['Volume (cc)'])*1e-6)
+            else:
+                SampRec['sample_volume']='1'
             if comp_depth_key!="":
                 SampRec['sample_composite_depth']=ODPRec[comp_depth_key]
             dates=ODPRec[date_key].split()
