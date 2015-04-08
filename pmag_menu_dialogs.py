@@ -86,29 +86,32 @@ class ImportAzDipFile(wx.Frame):
         pw.on_add_file_button(self.bSizer0, self.WD, event, text)
 
     def on_okButton(self, event):
+        options = {}
         os.chdir(self.WD)
         WD = self.WD
         full_infile = self.bSizer0.return_value()
         infile = os.path.split(full_infile)[1]
         Fsa = WD + infile + "_er_samples.txt"
         mcd = self.bSizer1.return_value()
-        if mcd:
-            mcd = "-mcd " + mcd
         ncn = self.bSizer2.return_value()
         loc = self.bSizer3.return_value()
-        if loc:
-            loc = "-loc " + loc
         try:
             app = self.bSizer4.return_value()
             if app:
-                app = "" # overwrite is True
+                app = False#"" # overwrite is True
             else:
-                app = "-app" # overwrite is False, append instead
+                app = True#"-app" # overwrite is False, append instead
         except AttributeError:
             app = ""
-        COMMAND = "azdip_magic.py -f {} -Fsa {} -ncn {} {} {} {}".format(full_infile, Fsa, ncn, loc, mcd, app)
+        #COMMAND = "azdip_magic.py -f {} -Fsa {} -ncn {} {} {} {}".format(full_infile, Fsa, ncn, loc, mcd, app)
 
-        pw.run_command_and_close_window(self, COMMAND, Fsa)
+        if len(str(ncn)) > 1:
+            ncn, Z = ncn.split()
+        else:
+            Z = 1
+        
+        ipmag.azdip_magic(infile, Fsa, ncn, Z, mcd, loc, app)
+        #pw.run_command_and_close_window(self, COMMAND, Fsa)
 
     def on_cancelButton(self,event):
         self.Destroy()

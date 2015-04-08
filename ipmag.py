@@ -2820,20 +2820,10 @@ is the percent cooling rate factor to apply to specimens from this sample, DA-CR
     
 def azdip_magic(orient_file='orient.txt', samp_file="er_samples.txt", samp_con="1", Z=1, method_codes='FS-FD', location_name='unknown', append=False):
     """
-    NAME
-        azdip_magic.py
-   
-    DESCRIPTION
-        takes space delimited AzDip file and converts to MagIC formatted tables
+    azdip_magic(orient_file='orient.txt', samp_file="er_samples.txt", samp_con="1", Z=1, method_codes='FS-FD', location_name='unknown', append=False):
+    takes space delimited AzDip file and converts to MagIC formatted tables
  
-    SYNTAX
-        azdip_magic.py [command line options]
-
-    OPTIONS
-        -f FILE: specify input file
-        -Fsa FILE: specify output file, default is: er_samples.txt 
-        -ncn NCON:  specify naming convention: default is #1 below
-        -mcd: specify sampling method codes as a colon delimited string:  [default is: FS-FD]
+    specify sampling method codes as a colon delimited string:  [default is: FS-FD]
              FS-FD field sampling done with a drill
              FS-H field sampling done with hand samples
              FS-LOC-GPS  field location done with GPS
@@ -2841,8 +2831,6 @@ def azdip_magic(orient_file='orient.txt', samp_file="er_samples.txt", samp_con="
              SO-POM   a Pomeroy orientation device was used
              SO-ASC   an ASC orientation device was used
              SO-MAG   orientation with magnetic compass
-        -loc: location name, default="unknown"
-        -app appends to existing er_samples.txt file, default is to overwrite
 
     INPUT FORMAT
         Input files must be space delimited:
@@ -2866,14 +2854,11 @@ def azdip_magic(orient_file='orient.txt', samp_file="er_samples.txt", samp_con="
             [7-Z] [XXXX]YYY:  XXXX is site designation with Z characters with sample name XXXXYYYY
             NB: all others you will have to customize your self
                  or e-mail ltauxe@ucsd.edu for help.
- 
-    OUTPUT
-            output saved in er_samples.txt  will overwrite any existing files 
+
     """
     #
     # initialize variables
     #
-    #def azdip_magic(infile, output_file="er_samples.txt", samp_con="1", method_codes="", location_name, append=False):
     DEBUG=0
     version_num=pmag.get_version()
     or_con,corr = "3","1"
@@ -2894,7 +2879,7 @@ def azdip_magic(orient_file='orient.txt', samp_file="er_samples.txt", samp_con="
     DecCorr=0.
     #
     #
-    if '-app' in args:
+    if append:
         try:
             SampRecs,file_type=pmag.magic_read(samp_file)
             print "sample data to be appended to: ",samp_file
@@ -2940,9 +2925,11 @@ def azdip_magic(orient_file='orient.txt', samp_file="er_samples.txt", samp_con="
             MagRec["er_site_name"]=site
             MagRec['magic_software_packages']=version_num
             SampOut.append(MagRec)
-            if MagRec['er_sample_name'] not in samplist:samplist.append(MagRec['er_sample_name'])
+            if MagRec['er_sample_name'] not in samplist:
+                samplist.append(MagRec['er_sample_name'])
     for samp in SampRecs:
-        if samp not in samplist:SampOut.append(samp)
+        if samp not in samplist:
+            SampOut.append(samp)
     Samps,keys=pmag.fillkeys(SampOut)
     pmag.magic_write(samp_file,Samps,"er_samples")
     print "Data saved in ", samp_file
