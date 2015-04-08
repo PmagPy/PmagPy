@@ -1949,6 +1949,11 @@ class convert_JR6_files_to_MagIC(wx.Frame):
         #---sizer 0b ---
         self.bSizer0b = pw.check_box(pnl, 'Joides Resolution')
         self.Bind(wx.EVT_CHECKBOX, self.on_check_joides, self.bSizer0b.cb)
+
+        #---sizer 0c ---
+        self.bSizer0c = pw.check_box(pnl, 'IODP JR6')
+        self.Bind(wx.EVT_CHECKBOX, self.on_check_iodp, self.bSizer0c.cb)
+        
         
         #---sizer 0 ----
         self.bSizer0 = pw.choose_file(pnl, 'add', method = self.on_add_file_button)
@@ -1979,7 +1984,7 @@ class convert_JR6_files_to_MagIC(wx.Frame):
         #------
         vbox=wx.BoxSizer(wx.VERTICAL)
         hbox0 = wx.BoxSizer(wx.HORIZONTAL)
-        hbox0.AddMany([self.bSizer0a, self.bSizer0b])
+        hbox0.AddMany([self.bSizer0a, self.bSizer0b, self.bSizer0c])
 
         vbox.AddSpacer(10)
         vbox.Add(bSizer_info, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
@@ -2008,12 +2013,30 @@ class convert_JR6_files_to_MagIC(wx.Frame):
         self.Centre()
         self.Show()
 
+    def on_check_iodp(self, event):
+        if self.bSizer0c.cb.IsChecked():
+            self.bSizer0a.ShowItems(False)
+            self.bSizer0b.ShowItems(False)
+            self.bSizer1a.ShowItems(False)
+            #self.bSizer2.ShowItems(False)
+            #self.bSizer3.ShowItems(False)
+        else:
+            self.bSizer0a.ShowItems(True)
+            self.bSizer0b.ShowItems(True)
+            self.bSizer1a.ShowItems(True)
+            #self.bSizer2.ShowItems(True)
+            #self.bSizer3.ShowItems(True)
+        self.panel.Layout()
+
+        
     def on_check_joides(self, event):
         if self.bSizer0b.cb.IsChecked():
+            self.bSizer0c.ShowItems(False)
             self.bSizer1.ShowItems(False)
             self.bSizer2.ShowItems(False)
             self.bSizer3.ShowItems(False)
         else:
+            self.bSizer0c.ShowItems(True)
             self.bSizer1.ShowItems(True)
             self.bSizer2.ShowItems(True)
             self.bSizer3.ShowItems(True)
@@ -2065,6 +2088,12 @@ class convert_JR6_files_to_MagIC(wx.Frame):
         meth_code = self.bSizer1.return_value()
         options['meth_code'] = meth_code
         volume = self.bSizer1a.return_value()
+        iodp = self.bSizer0c.return_value()
+        os.chdir(self.WD)
+        COMMAND = ""
+
+
+        # validate arguments;
         if volume:
             try:
                 volume = float(volume)
@@ -2073,27 +2102,35 @@ class convert_JR6_files_to_MagIC(wx.Frame):
                 return False
             else:
                 options['volume'] = volume
-        os.chdir(self.WD)
-        COMMAND = ""
-        if 'jr6' in input_format and 'jr6' not in mag_file.lower():
-            pw.simple_warning("You must provide a .jr6 format file")
-            return False
-        elif 'txt' in input_format and 'txt' not in mag_file.lower():
-            pw.simple_warning("You must provide a .txt format file")
-            return False
-        if input_format == 'txt': # .txt format
-            import JR6_txt_magic
-            if JR6_txt_magic.main(False, **options):
-                COMMAND = "options={}\nJR6_txt_magic.main(False, **options)".format(str(options))
-                pw.close_window(self, COMMAND, meas_file)
+
+
+        print 'iodp', iodp
+        # validate file type and run jr6_magic:
+        if not iodp:
+            if 'jr6' in input_format and 'jr6' not in mag_file.lower():
+                pw.simple_warning("You must provide a .jr6 format file")
+                return False
+            elif 'txt' in input_format and 'txt' not in mag_file.lower():
+                pw.simple_warning("You must provide a .txt format file")
+                return False
+            if input_format == 'txt': # .txt format
+                import JR6_txt_magic
+                if JR6_txt_magic.main(False, **options):
+                    COMMAND = "options={}\nJR6_txt_magic.main(False, **options)".format(str(options))
+                    pw.close_window(self, COMMAND, meas_file)
+                else:
+                    pw.simple_warning()
             else:
-                pw.simple_warning()
-        else:
-            import JR6_jr6_magic
-            if JR6_jr6_magic.main(False, **options):
-                pw.close_window(self, COMMAND, meas_file)
-            else:
-                pw.simple_warning()
+                import JR6_jr6_magic
+                if JR6_jr6_magic.main(False, **options):
+                    pw.close_window(self, COMMAND, meas_file)
+                else:
+                    pw.simple_warning()
+        if iodp:
+            if not mag_file:
+                pw.simple_warning('You must provide a valid IODP JR6 file')
+            import IODP_jr6_magic
+            IODP_jr6_magic.main(False, **options)
 
         #pw.run_command_and_close_window(self, COMMAND, outfile)
 

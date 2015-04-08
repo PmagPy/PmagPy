@@ -86,6 +86,7 @@ def main():
             SampRec['sample_dip']="0"
             SampRec['sample_azimuth']="0"
             SampRec['sample_core_depth']=ODPRec[depth_key]
+            SampRec['sample_volume']=str(float(ODPRec['Volume (cc)'])*1e-6)
             if comp_depth_key!="":
                 SampRec['sample_composite_depth']=ODPRec[comp_depth_key]
             dates=ODPRec[date_key].split()
