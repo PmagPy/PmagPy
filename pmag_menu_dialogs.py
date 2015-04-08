@@ -13,6 +13,7 @@ from matplotlib import pyplot as plt
 import pmag_widgets as pw
 import thellier_gui_dialogs
 import thellier_gui
+import ipmag
 
 class ImportAzDipFile(wx.Frame):
 
@@ -88,10 +89,10 @@ class ImportAzDipFile(wx.Frame):
     def on_okButton(self, event):
         options = {}
         os.chdir(self.WD)
-        WD = self.WD
+        output_dir = self.WD
         full_infile = self.bSizer0.return_value()
-        infile = os.path.split(full_infile)[1]
-        Fsa = WD + infile + "_er_samples.txt"
+        input_dir, infile = os.path.split(full_infile)
+        Fsa = os.path.splitext(infile)[0] + "_er_samples.txt"
         mcd = self.bSizer1.return_value()
         ncn = self.bSizer2.return_value()
         loc = self.bSizer3.return_value()
@@ -106,11 +107,15 @@ class ImportAzDipFile(wx.Frame):
         #COMMAND = "azdip_magic.py -f {} -Fsa {} -ncn {} {} {} {}".format(full_infile, Fsa, ncn, loc, mcd, app)
 
         if len(str(ncn)) > 1:
-            ncn, Z = ncn.split()
+            ncn, Z = ncn.split('-')
         else:
             Z = 1
-        
-        ipmag.azdip_magic(infile, Fsa, ncn, Z, mcd, loc, app)
+
+        program_completed, error_message = ipmag.azdip_magic(infile, Fsa, ncn, Z, mcd, loc, app, output_dir, input_dir)
+        if program_completed:
+            pw.close_window(self, 'ipmag.azdip_magic(infile, Fsa, ncn, Z, mcd, loc, app)', Fsa)
+        else:
+            pw.simple_warning(error_message)
         #pw.run_command_and_close_window(self, COMMAND, Fsa)
 
     def on_cancelButton(self,event):

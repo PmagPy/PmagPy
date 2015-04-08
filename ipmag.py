@@ -2818,7 +2818,7 @@ is the percent cooling rate factor to apply to specimens from this sample, DA-CR
     return True, None
 
     
-def azdip_magic(orient_file='orient.txt', samp_file="er_samples.txt", samp_con="1", Z=1, method_codes='FS-FD', location_name='unknown', append=False):
+def azdip_magic(orient_file='orient.txt', samp_file="er_samples.txt", samp_con="1", Z=1, method_codes='FS-FD', location_name='unknown', append=False, output_dir='.', input_dir='.'):
     """
     azdip_magic(orient_file='orient.txt', samp_file="er_samples.txt", samp_con="1", Z=1, method_codes='FS-FD', location_name='unknown', append=False):
     takes space delimited AzDip file and converts to MagIC formatted tables
@@ -2877,6 +2877,8 @@ def azdip_magic(orient_file='orient.txt', samp_file="er_samples.txt", samp_con="
     user=""
     corr=="3"
     DecCorr=0.
+    samp_file = os.path.join(output_dir, samp_file)
+    orient_file = os.path.join(input_dir, orient_file)
     #
     #
     if append:
@@ -2890,6 +2892,8 @@ def azdip_magic(orient_file='orient.txt', samp_file="er_samples.txt", samp_con="
     #
     azfile=open(orient_file,'rU')
     AzDipDat=azfile.readlines()
+    if not AzDipDat:
+        return False, 'No data in orientation file, please try again'
     azfile.close()
     SampOut,samplist=[],[]
     for line in AzDipDat: 
@@ -2933,4 +2937,5 @@ def azdip_magic(orient_file='orient.txt', samp_file="er_samples.txt", samp_con="
     Samps,keys=pmag.fillkeys(SampOut)
     pmag.magic_write(samp_file,Samps,"er_samples")
     print "Data saved in ", samp_file
+    return True, None
 
