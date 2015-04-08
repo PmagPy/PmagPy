@@ -141,7 +141,13 @@ def main(command_line=True, **kwargs):
         else:
             #convert cm^3 to m^3
             volume *= 1e-6
-
+        JR = kwargs.get('JR', 0)
+        if JR:
+            if meth_code == "LP-NO":
+                meth_code = ""
+            meth_code=meth_code+":FS-C-DRILL-IODP:SP-SS-C:SO-V"
+            meth_code=meth_code.strip(":")
+            samp_con='5'
 
     # format variables
     mag_file = input_dir_path+"/" + mag_file
@@ -175,7 +181,7 @@ def main(command_line=True, **kwargs):
     line=pre_data.readline()
     while line !='':
         line=line.replace('-',' -')
-        print "line=", line
+        #print "line=", line
         tmp_data.write(line)
         line=pre_data.readline()
     tmp_data.close()

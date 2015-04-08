@@ -1945,6 +1945,10 @@ class convert_JR6_files_to_MagIC(wx.Frame):
         label1 = ".txt format"
         label2 = ".jr6 format"
         self.bSizer0a = pw.labeled_yes_or_no(pnl, TEXT, label1, label2)
+
+        #---sizer 0b ---
+        self.bSizer0b = pw.check_box(pnl, 'Joides Resolution')
+        self.Bind(wx.EVT_CHECKBOX, self.on_check_joides, self.bSizer0b.cb)
         
         #---sizer 0 ----
         self.bSizer0 = pw.choose_file(pnl, 'add', method = self.on_add_file_button)
@@ -1974,10 +1978,13 @@ class convert_JR6_files_to_MagIC(wx.Frame):
 
         #------
         vbox=wx.BoxSizer(wx.VERTICAL)
+        hbox0 = wx.BoxSizer(wx.HORIZONTAL)
+        hbox0.AddMany([self.bSizer0a, self.bSizer0b])
 
         vbox.AddSpacer(10)
         vbox.Add(bSizer_info, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
-        vbox.Add(self.bSizer0a, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        #vbox.Add(self.bSizer0a, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        vbox.Add(hbox0, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(self.bSizer0, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(self.bSizer1, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(self.bSizer1a, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
@@ -2001,18 +2008,37 @@ class convert_JR6_files_to_MagIC(wx.Frame):
         self.Centre()
         self.Show()
 
-
+    def on_check_joides(self, event):
+        if self.bSizer0b.cb.IsChecked():
+            self.bSizer1.ShowItems(False)
+            self.bSizer2.ShowItems(False)
+            self.bSizer3.ShowItems(False)
+        else:
+            self.bSizer1.ShowItems(True)
+            self.bSizer2.ShowItems(True)
+            self.bSizer3.ShowItems(True)
+        self.panel.Layout()
+        #self.panel.ForceRefresh()
+        #self.bSizer4.ShowItems(False)
+        
     def on_add_file_button(self,event):
         text = "choose file to convert to MagIC"
         pw.on_add_file_button(self.bSizer0, self.WD, event, text)
 
     def on_okButton(self, event):
+        options = {}
         input_format = self.bSizer0a.return_value()
+        JR = self.bSizer0b.return_value()
+        if JR:
+            JR = 1
+        else:
+            JR = 0
+        options['JR'] = JR
         if input_format:
             input_format = 'txt'
         else:
             input_format = 'jr6'
-        options = {}
+
         output_dir_path = self.WD
         options['dir_path'] = str(output_dir_path)
         input_dir_path, mag_file = os.path.split(self.bSizer0.return_value())
@@ -2068,7 +2094,6 @@ class convert_JR6_files_to_MagIC(wx.Frame):
                 pw.close_window(self, COMMAND, meas_file)
             else:
                 pw.simple_warning()
-
 
         #pw.run_command_and_close_window(self, COMMAND, outfile)
 
