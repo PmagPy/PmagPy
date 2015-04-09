@@ -174,7 +174,7 @@ def main(command_line=True, **kwargs):
         else:
             peakfield = 0 
         specnum = kwargs.get('specnum', 0)
-        samp_con = kwargs.get('samp_con')
+        samp_con = kwargs.get('samp_con', '1')
         er_location_name = kwargs.get('er_location_name', '')
         samp_infile = kwargs.get('samp_infile', '')
         syn = kwargs.get('syn', 0)
@@ -246,35 +246,39 @@ def main(command_line=True, **kwargs):
     if samp_infile:
         Samps, file_type = pmag.magic_read(samp_infile)
     if coil:
+        coil = str(coil)
         methcode="LP-IRM"
         irmunits = "V"
         if coil not in ["1","2","3"]:
             print main.__doc__
             print 'not a valid coil specification'
-            return False
+            return False, '{} is not a valid coil specification'.format(coil)
     if mag_file:
         try:
             input=open(mag_file,'rU')
         except:
             print "bad mag file name"
-            return False
+            return False, "bad mag file name"
     if not mag_file: 
         print main.__doc__
         print "mag_file field is required option"
-        return False
-    if specnum!=0:specnum=-specnum
+        return False, "mag_file field is required option"
+    if specnum!=0:
+        specnum=-specnum
+    print 'samp_con:', samp_con
     if samp_con:
         if "4" == samp_con[0]:
             if "-" not in samp_con:
-                print "option [4] must be in form 4-Z where Z is an integer"
-                return False
+                print "naming convention option [4] must be in form 4-Z where Z is an integer"
+                print '---------------'
+                return False, "naming convention option [4] must be in form 4-Z where Z is an integer"
             else:
                 Z=samp_con.split("-")[1]
                 samp_con="4"
         if "7" == samp_con[0]:
             if "-" not in samp_con:
                 print "option [7] must be in form 7-Z where Z is an integer"
-                return False
+                return False, "option [7] must be in form 7-Z where Z is an integer"
             else:
                 Z=samp_con.split("-")[1]
                 samp_con="7"
@@ -678,7 +682,7 @@ def main(command_line=True, **kwargs):
     if len(SynRecs)>0:
         pmag.magic_write(synfile,SynRecs,'er_synthetics')
         print "synthetics put in ",synfile
-    return True
+    return True, meas_file
 
 def do_help():
     return main.__doc__
