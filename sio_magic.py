@@ -427,12 +427,15 @@ def main(command_line=True, **kwargs):
                     min=int(time[1])
                     if min<10:
                        min= "0"+str(min)
-                    else: min=str(min)
+                    else:
+                        min=str(min)
                     MagRec["measurement_date"]=yyyy+":"+mm+":"+dd+":"+hh+":"+min+":00.00"
                     MagRec["measurement_time_zone"]='SAN'
                     if inst=="":
-                        if code1[6][0]=='C':instcode='SIO-bubba'
-                        if code1[6][0]=='G':instcode='SIO-flo'
+                        if code1[6][0]=='C':
+                            instcode='SIO-bubba'
+                        if code1[6][0]=='G':
+                            instcode='SIO-flo'
                     else:
                         instcode=''
                     if len(code1)>1:

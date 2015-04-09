@@ -282,6 +282,9 @@ class convert_generic_files_to_MagIC(wx.Frame):
         
         ErrorMessage=""
         #-----------
+        if not self.bSizer0.file_path.GetValue():
+            pw.simple_warning('You must provide a generic format file')
+            return False
         FILE = str(self.bSizer0.file_path.GetValue())
         options['magfile'] = FILE
 
@@ -309,6 +312,10 @@ class convert_generic_files_to_MagIC(wx.Frame):
             EXP = 'AARM 6'
         elif exp=='cooling rate': 
             cooling = self.cooling_rate.GetValue()
+            if not cooling:
+                text = "You must provide cooling rate for this experiment type!\nThe format is: xxx, yyy,zzz...\nThis should be cooling rates in [K/minutes], seperated by comma, ordered at the same order as XXX.10,XXX.20 ...XX.70"
+                pw.simple_warning(text)
+                return False
             EXP='CR {}'.format(cooling)
         if 'CR' in EXP:
             options['experiment'], options['cooling_times_list'] = EXP.split()
@@ -392,7 +399,6 @@ class convert_generic_files_to_MagIC(wx.Frame):
         else:
             options['noave'] = 0
 
-
         #-----------   
         # some special  
         
@@ -403,13 +409,14 @@ class convert_generic_files_to_MagIC(wx.Frame):
         %(WD,FILE,OUTFILE,EXP,SAMP,SITE,LOC,LABFIELD,DONT_AVERAGE, SAMP_OUTFILE)
 
         print "-I- Running Python command:\n %s"%COMMAND        
-
-        # to run as module for pyinstaller:
         import generic_magic
-        if generic_magic.main(False, **options):
+        program_run, error_message = generic_magic.main(False, **options)
+        
+        if program_run:
             pw.close_window(self, COMMAND, OUTFILE)
         else:
-            pw.simple_warning()
+            pw.simple_warning(error_message)
+            return False
 
         self.Destroy()
         self.parent.Raise()
@@ -818,6 +825,9 @@ class convert_SIO_files_to_MagIC(wx.Frame):
         os.chdir(self.WD)
         options_dict = {}
         SIO_file = self.bSizer0.return_value()
+        if not SIO_file:
+            pw.simple_warning('You must provide a SIO format file')
+            return False
         options_dict['mag_file'] = str(SIO_file)
         #outfile = SIO_file + '.magic'
         magicoutfile=os.path.split(SIO_file)[1]+".magic"
