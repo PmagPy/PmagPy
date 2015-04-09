@@ -106,7 +106,7 @@ def main(command_line=True, **kwargs):
             if "4" in samp_con:
                 if "-" not in samp_con:
                     print "option [4] must be in form 3-Z where Z is an integer"
-                    return False
+                    return False, "naming convention option [4] must be in form 3-Z where Z is an integer"
                 else: 
                     Z=samp_con.split("-")[1]
                     samp_con="4"
@@ -145,7 +145,7 @@ def main(command_line=True, **kwargs):
     if "4" in samp_con:
         if "-" not in samp_con:
             print "option [4] must be in form 3-Z where Z is an integer"
-            return False
+            return False, "naming convention option [4] must be in form 3-Z where Z is an integer"
         else: 
             Z=samp_con.split("-")[1]
             samp_con="4"
@@ -159,7 +159,7 @@ def main(command_line=True, **kwargs):
         input=open(magfile,'r')
     except Exception as ex:
         print "bad sam file name"
-        return False
+        return False, "bad sam file name"
     File=input.readlines()
     sids,ln,format=[],0,'CIT'
     formats=['CIT','2G','APP','JRA']
@@ -215,7 +215,8 @@ def main(command_line=True, **kwargs):
         Lines=f.readlines()
         comment=""
         line=Lines[0].split()
-        if len(line)>2:comment=line[2]
+        if len(line)>2:
+            comment=line[2]
         info=Lines[1].split()
         vol=float(info[-1])
         if vol!=1.0:
@@ -254,6 +255,7 @@ def main(command_line=True, **kwargs):
         else:
             ErSampRec['magic_method_codes']='SO-MAG'
         for line in Lines[2:len(Lines)-1]:
+            print 'line:', line
             MeasRec=ErSpecRec.copy()
 
 #           Remove specimen_volume and specimen_weight as they do not exits in the magic_measurement table
@@ -262,6 +264,7 @@ def main(command_line=True, **kwargs):
 
             treat_type=line[0:3]
             treat=line[3:6]
+            print 'treat:', treat
             if treat_type.strip()=='NRM': # this previously had "or treat == '   '""
                 MeasRec['magic_method_codes']='LT-NO'
                 MeasRec['measurement_temp']='273'
@@ -317,7 +320,7 @@ def main(command_line=True, **kwargs):
     Fixed=pmag.measurements_methods(MeasRecs,avg)
     pmag.magic_write(meas_file,Fixed,'magic_measurements')
     print 'data stored in ',meas_file
-    return True
+    return True, meas_file
 
 def do_help():
     return main.__doc__

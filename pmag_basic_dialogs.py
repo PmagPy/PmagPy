@@ -1010,6 +1010,9 @@ class convert_CIT_files_to_MagIC(wx.Frame):
         wd = self.WD
         options_dict['dir_path'] = wd
         full_file = self.bSizer0.return_value()
+        if not full_file:
+            pw.simple_warning('You must provide a CIT format file')
+            return False
         input_directory, CIT_file = os.path.split(full_file)
         options_dict['magfile'] = CIT_file
         options_dict['input_dir_path'] = input_directory
@@ -1065,10 +1068,11 @@ class convert_CIT_files_to_MagIC(wx.Frame):
         COMMAND = "CIT_magic.py -WD {} -f {} -F {} {} {} {} {} -ncn {} {} {} -Fsp {} -Fsi {} -Fsa {} {}".format(wd, CIT_file, outfile, particulars, spec_num, loc_name, user, ncn, peak_AF, ID, spec_outfile, site_outfile, samp_outfile, replicate)
         # to run as module:
         import CIT_magic
-        if CIT_magic.main(command_line=False, **options_dict):
+        program_ran, error_message = CIT_magic.main(command_line=False, **options_dict)
+        if program_ran:
             pw.close_window(self, COMMAND, outfile)
         else:
-            pw.simple_warning()
+            pw.simple_warning(error_message)
 
         # to run as command line:
         #pw.run_command_and_close_window(self, COMMAND, outfile)
