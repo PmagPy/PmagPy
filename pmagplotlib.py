@@ -357,7 +357,7 @@ def plotNET(fignum):
 # make the perimeter
 #
     pylab.figure(num=fignum)
-#    pylab.clf()
+    pylab.clf()
     if not isServer: pylab.figtext(.02,.01,version_num)
     pylab.axis("off")
     Dcirc=numpy.arange(0,361.)

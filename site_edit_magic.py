@@ -7,7 +7,7 @@ def main():
 
     DESCRIPTION
        makes equal area projections site by site
-         from zeq_specimens_g.txt file with
+         from pmag_specimens.txt file with
          Fisher confidence ellipse using McFadden and McElhinny (1988)
          technique for combining lines and planes
          allows testing and reject specimens for bad orientations
@@ -17,7 +17,7 @@ def main():
 
     OPTIONS
        -h: prints help and quits
-       -f: specify pmag_specimen format file, default is zeq_specimens_s.txt
+       -f: specify pmag_specimen format file, default is pmag_specimens.txt
        -fsa: specify er_samples.txt file
        -exc: use existing pmag_criteria.txt file
        -N: reset all sample flags to good
@@ -29,7 +29,7 @@ def main():
     dir_path='.'
     FIG={} # plot dictionary
     FIG['eqarea']=1 # eqarea is figure 1
-    in_file='zeq_specimens_s.txt'
+    in_file='pmag_specimens.txt'
     sampfile='er_samples.txt'
     out_file=""
     fmt,plot='svg',1
@@ -60,8 +60,8 @@ def main():
         fmt=sys.argv[ind+1]
     if '-N' in sys.argv: renew=1
 # 
-    in_file=dir_path+'/'+in_file
-    sampfile=dir_path+'/'+sampfile
+    if in_file[0]!="/":in_file=dir_path+'/'+in_file
+    if sampfile[0]!="/":sampfile=dir_path+'/'+sampfile
     crd='s'
     Specs,file_type=pmag.magic_read(in_file)
     if file_type!='pmag_specimens':
@@ -111,8 +111,9 @@ def main():
         site=sitelist[k]
         print site
         data=[]
-        for spec in Specs:
-            if spec['er_site_name']==site:
+        ThisSiteSpecs=pmag.get_dictitem(Specs,'er_site_name',site,'T')
+        ThisSiteSpecs=pmag.get_dictitem(ThisSiteSpecs,'specimen_tilt_correction','-1','T') # get all the unoriented data
+        for spec in ThisSiteSpecs:
                 if spec['specimen_mad']!="" and spec['specimen_n']!="" and float(spec['specimen_mad'])<=M and float(spec['specimen_n'])>=N: 
 # good spec, now get orientation....
                     redo,p=1,0
