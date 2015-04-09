@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 import string,sys,pmag,exceptions
+import command_line_extractor as extractor
+import ipmag
 #
 #
 def main():
@@ -54,111 +56,24 @@ def main():
     OUTPUT
             output saved in er_samples.txt  will overwrite any existing files 
     """
-    #
-    # initialize variables
-    #
-    DEBUG=0
-    version_num=pmag.get_version()
-    orient_file,samp_file,or_con,corr = "orient.txt","er_samples.txt","3","1"
-    args=sys.argv
-    date,lat,lon="","",""  # date of sampling, latitude (pos North), longitude (pos East)
-    bed_dip,bed_dip_dir="",""
-    participantlist=""
-    sites=[]   # list of site names
-    Lats,Lons=[],[] # list of latitudes and longitudes
-    SampRecs,SiteRecs,ImageRecs,imagelist=[],[],[],[]  # lists of Sample records and Site records
-    samp_con,Z,average_bedding="1",1,"0"
-    newbaseline,newbeddir,newbeddip="","",""
-    meths='FS-FD'
-    delta_u="0"
-    sclass,lithology,type="","",""
-    newclass,newlith,newtype='','',''
-    user=""
-    corr=="3"
-    DecCorr=0.
-    location_name="unknown"
-    #
-    #
+
+    args = sys.argv
     if "-h" in args:
         print main.__doc__
         sys.exit()
-    if "-f" in args:
-        ind=args.index("-f")
-        orient_file=sys.argv[ind+1]
-    if "-Fsa" in args:
-        ind=args.index("-Fsa")
-        samp_file=sys.argv[ind+1]
-    if "-ncn" in args:
-        ind=args.index("-ncn")
-        samp_con=sys.argv[ind+1]
-        if "4" in samp_con:
-            if "-" not in samp_con:
-                print "option [4] must be in form 4-Z where Z is an integer"
-                sys.exit()
-            else:
-                Z=samp_con.split("-")[1]
-                samp_con="4"
-        if "7" in samp_con:
-            if "-" not in samp_con:
-                print "option [7] must be in form 7-Z where Z is an integer"
-                sys.exit()
-            else:
-                Z=samp_con.split("-")[1]
-                samp_con="7"
-    if "-mcd" in args:
-        ind=args.index("-mcd")
-        meths=(sys.argv[ind+1])
-    if "-loc" in args:
-        ind=args.index("-loc")
-        location_name=(sys.argv[ind+1])
-    if '-app' in args:
-        try:
-            SampRecs,file_type=pmag.magic_read(samp_file)
-            print "sample data to be appended to: ",samp_file
-        except:
-            print 'problem with existing samp file: ',samp_file,' will create new'
-    #
-    # read in file to convert
-    #
-    azfile=open(orient_file,'rU')
-    AzDipDat=azfile.readlines()
-    azfile.close()
-    SampOut,samplist=[],[]
-    for line in AzDipDat: 
-        orec=line.split()
-        if len(orec)>2:
-            labaz,labdip=pmag.orient(float(orec[1]),float(orec[2]),or_con)
-            bed_dip=float(orec[4])
-            if bed_dip!=0:
-                bed_dip_dir=float(orec[3])-90. # assume dip to right of strike
-            else: 
-                bed_dip_dir=float(orec[3]) # assume dip to right of strike
-            MagRec={}
-            MagRec["er_location_name"]=location_name
-            MagRec["er_citation_names"]="This study"
-    #
-    # parse information common to all orientation methods
-    #
-            MagRec["er_sample_name"]=orec[0]
-            MagRec["sample_bed_dip"]='%7.1f'%(bed_dip)
-            MagRec["sample_bed_dip_direction"]='%7.1f'%(bed_dip_dir)
-            MagRec["sample_dip"]='%7.1f'%(labdip)
-            MagRec["sample_azimuth"]='%7.1f'%(labaz)
-            methods=meths.replace(" ","").split(":")
-            OR=0
-            for method in methods:
-                type=method.split("-")
-                if "SO" in type: OR=1
-            if OR==0:meths=meths+":SO-NO"
-            MagRec["magic_method_codes"]=meths
-            site=pmag.parse_site(orec[0],samp_con,Z) # parse out the site name
-            MagRec["er_site_name"]=site
-            MagRec['magic_software_packages']=version_num
-            SampOut.append(MagRec)
-            if MagRec['er_sample_name'] not in samplist:samplist.append(MagRec['er_sample_name'])
-    for samp in SampRecs:
-        if samp not in samplist:SampOut.append(samp)
-    Samps,keys=pmag.fillkeys(SampOut)
-    pmag.magic_write(samp_file,Samps,"er_samples")
-    print "Data saved in ", samp_file
-main()
+        
+    dataframe = extractor.command_line_dataframe([['f', False, 'orient.txt'], ['Fsa', False, 'er_samples.txt'], ['ncn', False, "1"], ['mcd', False, 'FS-FD'], ['loc', False, 'unknown'], ['app', False, False], ['WD', False, '.'], ['ID', False, '.']])
+    checked_args = extractor.extract_and_check_args(args, dataframe)
+    print 'checked_args:', checked_args
+    orient_file, samp_file, samp_con, method_codes, location_name, append, output_dir, input_dir = extractor.get_vars(['f', 'Fsa', 'ncn', 'mcd', 'loc', 'app', 'WD', 'ID'], checked_args)
+
+    if len(str(samp_con)) > 1:
+        samp_con, Z = samp_con.split('-')
+        Z = float(Z)
+    else:
+        Z = 1
+        
+    ipmag.azdip_magic(orient_file, samp_file, samp_con, Z, method_codes, location_name, append, output_dir, input_dir)
+
+if __name__ == "__main__":
+    main()
