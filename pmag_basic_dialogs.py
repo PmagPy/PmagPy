@@ -1207,6 +1207,9 @@ class convert_HUJI_files_to_MagIC(wx.Frame):
         os.chdir(self.WD)
         options = {}
         HUJI_file = self.bSizer0.return_value()
+        if not HUJI_file:
+            pw.simple_warning("You must select a HUJI format file")
+            return False
         options['magfile'] = HUJI_file
         magicoutfile=os.path.split(HUJI_file)[1]+".magic"
         outfile=os.path.join(self.WD, magicoutfile)
@@ -1223,6 +1226,8 @@ class convert_HUJI_files_to_MagIC(wx.Frame):
         cooling_rate = self.cooling_rate.GetValue() or 0
         if cooling_rate:
             experiment_type = experiment_type + " " + cooling_rate
+        print 'experiment_type', experiment_type
+        print 'cooling_rate', cooling_rate
         lab_field = self.bSizer3.return_value()
         if not lab_field:
             lab_field = "0 0 0"
@@ -1254,10 +1259,11 @@ class convert_HUJI_files_to_MagIC(wx.Frame):
             
             # to run as module:
             import HUJI_magic
-            if HUJI_magic.main(False, **options):
+            program_ran, error_message = HUJI_magic.main(False, **options)
+            if program_ran:
                 pw.close_window(self, COMMAND, outfile)
             else:
-                pw.simple_warning()
+                pw.simple_warning(error_message)
         else: # new format
             # to run as command line:
             COMMAND = "HUJI_magic_new.py -f {} -F {} {} -LP {} {} -ncn {} {} {} {}".format(HUJI_file, outfile, user, experiment_type, loc_name, ncn, lab_field, spc, peak_AF)
@@ -1265,10 +1271,11 @@ class convert_HUJI_files_to_MagIC(wx.Frame):
             
             # to run as module:
             import HUJI_magic_new
-            if HUJI_magic_new.main(False, **options):
+            program_ran, error_message = HUJI_magic_new.main(False, **options)
+            if program_ran:
                 pw.close_window(self, COMMAND, outfile)
             else:
-                pw.simple_warning()
+                pw.simple_warning(error_message)
 
     def on_cancelButton(self,event):
         self.Destroy()
