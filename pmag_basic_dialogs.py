@@ -1590,6 +1590,9 @@ class convert_LDEO_files_to_MagIC(wx.Frame):
         os.chdir(self.WD)
         options_dict = {}
         LDEO_file = self.bSizer0.return_value()
+        if not LDEO_file:
+            pw.simple_warning("You must provide a LDEO format file")
+            return False
         options_dict['magfile'] = LDEO_file
         magicoutfile=os.path.split(LDEO_file)[1]+".magic"
         outfile=os.path.join(self.WD, magicoutfile)
@@ -1649,10 +1652,11 @@ class convert_LDEO_files_to_MagIC(wx.Frame):
         COMMAND = "LDEO_magic.py -f {0} -F {1} {2} {3} {4} -ncn {5} {6} {7} {8} {9} {10} {11}".format(LDEO_file, outfile, user, experiment_type, lab_field, ncn, spc, loc_name, instrument, replicate, AF_field, coil_number)
         # to run as module:
         import LDEO_magic
-        if LDEO_magic.main(False, **options_dict):
+        program_ran, error_message = LDEO_magic.main(False, **options_dict)
+        if program_ran:
             pw.close_window(self, COMMAND, outfile)
         else:
-            pw.simple_warning()
+            pw.simple_warning(error_message)
 
         # to run as command line:
         #print COMMAND
