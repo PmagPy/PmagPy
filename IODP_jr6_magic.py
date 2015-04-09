@@ -2,6 +2,7 @@
 import pandas as pd
 import string,sys,pmag
 import numpy as np
+import os
 
 def main(command_line=True, **kwargs):
     """
@@ -98,11 +99,12 @@ def main(command_line=True, **kwargs):
     # format variables
     meth_code=meth_code+":FS-C-DRILL-IODP:SP-SS-C:SO-V"
     meth_code=meth_code.strip(":")
-    mag_file = input_dir_path+"/" + mag_file
-    meas_file = output_dir_path+"/" + meas_file
+    mag_file = os.path.join(input_dir_path, mag_file)
+    samp_file = os.path.join(input_dir_path, samp_file)
+    meas_file = os.path.join(output_dir_path, meas_file)
     # parse data
     data=pd.read_csv(mag_file,delim_whitespace=True,header=None)
-    samples,filetype=pmag.magic_read(samp_file)
+    samples,filetype = pmag.magic_read(samp_file)
     data.columns=['specname','step','negz','y','x','expon','sample_azimuth','sample_dip','sample_bed_dip_direction','sample_bed_dip','bed_dip_dir2','bed_dip2','param1','param2','param3','param4','measurement_csd']
     cart=np.array([data['x'],data['y'],-data['negz']]).transpose()
     dir= pmag.cart2dir(cart).transpose()
@@ -165,8 +167,10 @@ def main(command_line=True, **kwargs):
         else:
             print 'sample name not found: ',row['specname']
     MagOuts=pmag.measurements_methods(MagRecs,noave)
-    pmag.magic_write(meas_file,MagOuts,'magic_measurements')
-    print "results put in ",meas_file
+    if pmag.magic_write(meas_file,MagOuts,'magic_measurements'):
+        return True, None
+    else:
+        return False, 'Results not written to file'
 
 if __name__ == '__main__':
     main()

@@ -880,7 +880,8 @@ def magic_read(infile, data=None):
         delim='tab'
     else: 
         print 'error reading ', infile
-        sys.exit()
+        #sys.exit()
+        return [], 'bad file'
     if delim=='space':file_type=d.split()[1]
     if delim=='tab':file_type=d.split('\t')[1]
     if file_type=='delimited':
@@ -1004,9 +1005,10 @@ def magic_write(ofile,Recs,file_type):
     writes out a magic format list of dictionaries to ofile
 
     """
-    
     if len(Recs)<1:
-        return False
+        return False, 'No records to write to file {}'.format(ofile)
+    else:
+        print 'len(Recs)', len(Recs)
     pmag_out=open(ofile,'w')
     outstring="tab \t"+file_type+"\n"
     pmag_out.write(outstring)
@@ -1034,7 +1036,7 @@ def magic_write(ofile,Recs,file_type):
         outstring=outstring+'\n'
         pmag_out.write(outstring[1:])
     pmag_out.close()
-    return True
+    return True, ofile
 
 def dotilt(dec,inc,bed_az,bed_dip):
     """

@@ -1951,7 +1951,7 @@ class convert_JR6_files_to_MagIC(wx.Frame):
         self.Bind(wx.EVT_CHECKBOX, self.on_check_joides, self.bSizer0b.cb)
 
         #---sizer 0c ---
-        self.bSizer0c = pw.check_box(pnl, 'IODP JR6')
+        self.bSizer0c = pw.check_box(pnl, 'IODP JR6\n(requires er_samples.txt file in input directory)')
         self.Bind(wx.EVT_CHECKBOX, self.on_check_iodp, self.bSizer0c.cb)
         
         
@@ -2071,8 +2071,8 @@ class convert_JR6_files_to_MagIC(wx.Frame):
         options['input_dir_path'], options['mag_file'] = str(input_dir_path), str(mag_file)
         meas_file = os.path.split(mag_file)[1]+".magic"
         options['meas_file'] = str(meas_file)
-        samp_file = os.path.splitext(os.path.splitext(meas_file)[0])[0] + "_er_samples.txt"
-        options['samp_file'] = str(samp_file)
+        #samp_file = os.path.splitext(os.path.splitext(meas_file)[0])[0] + "_er_samples.txt"
+        options['samp_file'] = 'er_samples.txt'
         specnum = self.bSizer2.return_value()
         options['specnum'] = specnum
         samp_con = self.bSizer3.return_value()
@@ -2104,7 +2104,6 @@ class convert_JR6_files_to_MagIC(wx.Frame):
                 options['volume'] = volume
 
 
-        print 'iodp', iodp
         # validate file type and run jr6_magic:
         if not iodp:
             if 'jr6' in input_format and 'jr6' not in mag_file.lower():
@@ -2130,7 +2129,12 @@ class convert_JR6_files_to_MagIC(wx.Frame):
             if not mag_file:
                 pw.simple_warning('You must provide a valid IODP JR6 file')
             import IODP_jr6_magic
-            IODP_jr6_magic.main(False, **options)
+            program_ran, error_message = IODP_jr6_magic.main(False, **options)
+            if program_ran:
+                COMMAND = "options={}\nIODP_jr6_magic.main(False, **options)".format(str(options))
+                pw.close_window(self, COMMAND, meas_file)
+            else:
+                pw.simple_warning(error_message)
 
         #pw.run_command_and_close_window(self, COMMAND, outfile)
 
