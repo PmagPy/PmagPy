@@ -13,7 +13,7 @@ def main(command_line=True, **kwargs):
         converts shipboard .jr6 format files to magic_measurements format files
 
     SYNTAX
-        IDOP_jr6_magic.py [command line options]
+        IODP_jr6_magic.py [command line options]
 
     OPTIONS
         -h: prints the help message and quits.
