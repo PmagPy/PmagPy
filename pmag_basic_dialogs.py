@@ -1923,8 +1923,10 @@ class convert_PMD_files_to_MagIC(wx.Frame):
             #    pw.run_command(self, COMMAND, outfile)
 
             # to run as module:
-            if not PMD_magic.main(False, **options):
-                pw.simple_warning()
+            program_ran, error_message = PMD_magic.main(False, **options)
+            if not program_ran:
+                pw.simple_warning(error_message)
+                return False
             elif files.index(f) == len(files) -1:
                 pw.close_window(self, COMMAND, outfile)
             else:

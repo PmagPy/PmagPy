@@ -65,7 +65,6 @@ class TestSIO_magic(unittest.TestCase):
         self.assertFalse(program_ran)
         self.assertEqual(error_message, '4 is not a valid coil specification')
 
-
     def test_SIO_magic_succeed_with_coil(self):
         options = {}
         options['mag_file'] = os.path.join(WD, 'Datafiles', 'Measurement_Import', 'sio_magic', 'sio_af_example.dat')
