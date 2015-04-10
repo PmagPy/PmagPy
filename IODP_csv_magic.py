@@ -74,7 +74,7 @@ def main(command_line=True, **kwargs):
         input_dir_path = kwargs.get('input_dir_path', dir_path)
         output_dir_path = dir_path # rename dir_path after input_dir_path is set
         noave = kwargs.get('noave', 0) # default (0) is DO average
-        csv_file = kwargs.get('csv_file')
+        csv_file = kwargs.get('csv_file', '')
         meas_file = kwargs.get('meas_file', 'magic_measurements.txt')
         spec_file = kwargs.get('spec_file', 'er_specimens.txt')
         samp_file = kwargs.get('samp_file', 'er_samples.txt')
@@ -82,16 +82,16 @@ def main(command_line=True, **kwargs):
 
     # format variables
 
-    meas_file= output_dir_path +'/'+ meas_file
-    spec_file = output_dir_path+'/'+ spec_file
-    Specs,file_type=pmag.magic_read(spec_file)
-    samp_file = output_dir_path+'/'+ samp_file
-    ErSamps,file_type=pmag.magic_read(samp_file)
-    site_file = output_dir_path+'/'+site_file
+    meas_file = os.path.join(output_dir_path, meas_file)
+    spec_file = (output_dir_path, spec_file)
+    Specs,file_type = pmag.magic_read(spec_file)
+    samp_file = os.path.join(output_dir_path, samp_file)
+    ErSamps,file_type = pmag.magic_read(samp_file)
+    site_file = os.path.join(output_dir_path, site_file)
     if csv_file=="":
         filelist=os.listdir(input_dir_path) # read in list of files to import
     else:
-        csv_file = input_dir_path + '/' + csv_file
+        csv_file = os.path.join(input_dir_path, csv_file)
         filelist=[csv_file]
 
     
@@ -103,18 +103,23 @@ def main(command_line=True, **kwargs):
             samples.append(samp['er_sample_name'])
             SampRecs.append(samp)
     file_found = False
-    for file in filelist: # parse each file
-        if file[-3:].lower()=='csv':
+    for f in filelist: # parse each file
+        if f[-3:].lower()=='csv':
             file_found = True
-            print 'processing: ',file
-            input=open(file,'rU').readlines()
-            keys=input[0].replace('\n','').split(',') # splits on underscores
+            print 'processing: ',f
+            full_file = os.path.join(input_dir_path, f)
+            file_input=open(full_file,'rU').readlines()
+            keys=file_input[0].replace('\n','').split(',') # splits on underscores
             if "Interval Top (cm) on SHLF" in keys:interval_key="Interval Top (cm) on SHLF"
             if " Interval Bot (cm) on SECT" in keys:interval_key=" Interval Bot (cm) on SECT"
+            if "Offset (cm)" in keys: interval_key="Offset (cm)"
             if "Top Depth (m)" in keys:depth_key="Top Depth (m)"
             if "CSF-A Top (m)" in keys:depth_key="CSF-A Top (m)" 
+            if "Depth CSF-A (m)" in keys:depth_key="Depth CSF-A (m)"
             if "CSF-B Top (m)" in keys: 
                 comp_depth_key="CSF-B Top (m)" # use this model if available 
+            elif "Depth CSF-B (m)" in keys:
+                comp_depth_key="Depth CSF-B (m)"
             else:
                 comp_depth_key=""
             if "Demag level (mT)" in keys:demag_key="Demag level (mT)"
@@ -122,20 +127,34 @@ def main(command_line=True, **kwargs):
             if "Inclination (Tray- and Bkgrd-Corrected) (deg)" in keys:inc_key="Inclination (Tray- and Bkgrd-Corrected) (deg)"
             if "Inclination background + tray corrected  (deg)" in keys:inc_key="Inclination background + tray corrected  (deg)"
             if "Inclination background + tray corrected  (\xc2\xb0)" in keys:inc_key="Inclination background + tray corrected  (\xc2\xb0)"
+            if "Inclination background &amp; tray corrected (deg)" in keys:inc_key="Inclination background &amp; tray corrected (deg)"
             if "Declination (Tray- and Bkgrd-Corrected) (deg)" in keys:dec_key="Declination (Tray- and Bkgrd-Corrected) (deg)"
             if "Declination background + tray corrected (deg)" in keys:dec_key="Declination background + tray corrected (deg)"
             if "Declination background + tray corrected (\xc2\xb0)" in keys:dec_key="Declination background + tray corrected (\xc2\xb0)"
+            if "Declination background &amp; tray corrected (deg)" in keys:dec_key="Declination background &amp; tray corrected (deg)"
             if "Intensity (Tray- and Bkgrd-Corrected) (A/m)" in keys:int_key="Intensity (Tray- and Bkgrd-Corrected) (A/m)"
             if "Intensity background + tray corrected  (A/m)" in keys:int_key="Intensity background + tray corrected  (A/m)"
+            if "Intensity background &amp; tray corrected (A/m)" in keys:int_key="Intensity background &amp; tray corrected (A/m)"
             if "Core Type" in keys:
                 type="Core Type"
             else: type="Type" 
-            for line in input[1:]:
+            if 'Run Number' in keys: run_number_key='Run Number'
+            if 'Test No.' in keys: run_number_key='Test No.'
+            if 'Test Changed On' in keys: date_key='Test Changed On'
+            if "Timestamp (UTC)" in keys: date_key="Timestamp (UTC)"
+            if "Section" in keys: sect_key="Section"
+            if "Sect" in keys: sect_key="Sect"
+            if 'Section Half' in keys: half_key='Section Half'
+            if "A/W" in keys: half_key="A/W"
+            if "Text ID" in keys: text_id="Text ID"
+            if "Text Id" in keys: text_id="Text Id"
+            for line in file_input[1:]:
               InRec={}
               for k in range(len(keys)):InRec[keys[k]]=line.split(',')[k]
-              try:
+              #try:
+              if 1:
                 run_number=""
-                inst="ODP-SRM"
+                inst="IODP-SRM"
                 volume='15.59' # set default volume to this
                 MagRec,SpecRec,SampRec,SiteRec={},{},{},{}
                 expedition=InRec['Exp']
@@ -143,10 +162,10 @@ def main(command_line=True, **kwargs):
 # Maintain backward compatibility for the ever-changing LIMS format (Argh!)
                 while len(InRec['Core'])<3:
                     InRec['Core']='0'+InRec['Core']
-                if "Last Tray Measurment" in InRec.keys() and "Discrete" in InRec['Last Tray Measurement'] or 'dscr' in csv_file :  # assume discrete sample
-                    specimen=expedition+'-'+location+'-'+InRec['Core']+InRec[type]+"-"+InRec['Section']+'-'+InRec['Section Half']+'-'+InRec[interval_key]
+                if "Last Tray Measurment" in InRec.keys() and "SHLF" not in InRec[text_id] or 'dscr' in csv_file :  # assume discrete sample
+                    specimen=expedition+'-'+location+'-'+InRec['Core']+InRec[type]+"-"+InRec[sect_key]+'-'+InRec[half_key]+'-'+InRec[interval_key]
                 else: # mark as continuous measurements
-                    specimen=expedition+'-'+location+'-'+InRec['Core']+InRec[type]+"_"+InRec['Section']+InRec['Section Half']+'-'+InRec[interval_key]
+                    specimen=expedition+'-'+location+'-'+InRec['Core']+InRec[type]+"_"+InRec[sect_key]+InRec[half_key]+'-'+InRec[interval_key]
                 SpecRec['er_expedition_name']=expedition
                 SpecRec['er_location_name']=location
                 SpecRec['er_site_name']=specimen
@@ -158,7 +177,7 @@ def main(command_line=True, **kwargs):
                 SampRec['sample_core_depth']=InRec[depth_key]
                 if comp_depth_key!='':
                     SampRec['sample_composite_depth']=InRec[comp_depth_key]
-                if "Discrete" in InRec['Last Tray Measurement']: 
+                if "SHLF" not in InRec[text_id]: 
                     SampRec['magic_method_codes']='FS-C-DRILL-IODP:SP-SS-C:SO-V'
                 else:
                     SampRec['magic_method_codes']='FS-C-DRILL-IODP:SO-V'
@@ -170,7 +189,7 @@ def main(command_line=True, **kwargs):
 
                 for key in SpecRec.keys():MagRec[key]=SpecRec[key]
 # set up measurement record - default is NRM 
-                MagRec['er_analyst_mail_names']=InRec['Test Entered By']
+                #MagRec['er_analyst_mail_names']=InRec['Test Entered By']
                 MagRec['magic_software_packages']=version_num
                 MagRec["treatment_temp"]='%8.3e' % (273) # room temp in kelvin
                 MagRec["measurement_temp"]='%8.3e' % (273) # room temp in kelvin
@@ -180,31 +199,35 @@ def main(command_line=True, **kwargs):
                 MagRec["treatment_dc_field_theta"]='0'
                 MagRec["measurement_flag"]='g' # assume all data are "good"
                 MagRec["measurement_standard"]='u' # assume all data are "good"
-                SpecRec['er_specimen_alternatives']=InRec['Text Id']
+                SpecRec['er_specimen_alternatives']=InRec[text_id]
                 if 'Sample Area (cm?)' in InRec.keys() and  InRec['Sample Area (cm?)']!= "": volume=InRec['Sample Area (cm?)']
-                if InRec['Run Number']!= "": run_number=InRec['Run Number']
-                datestamp=InRec['Test Changed On'].split() # date time is second line of file
-                mmddyy=datestamp[0].split('/') # break into month day year
-                if len(mmddyy[0])==1: mmddyy[0]='0'+mmddyy[0] # make 2 characters
-                if len(mmddyy[1])==1: mmddyy[1]='0'+mmddyy[1] # make 2 characters
-                if len(datestamp[1])==1: datestamp[1]='0'+datestamp[1] # make 2 characters
-                date='20'+mmddyy[2]+':'+mmddyy[0]+":"+mmddyy[1] +':' +datestamp[1]+":00.00"
+                if InRec[run_number_key]!= "": run_number=InRec[run_number_key]
+                datestamp=InRec[date_key].split() # date time is second line of file
+                if '/' in datestamp[0]:
+                    mmddyy=datestamp[0].split('/') # break into month day year
+                    if len(mmddyy[0])==1: mmddyy[0]='0'+mmddyy[0] # make 2 characters
+                    if len(mmddyy[1])==1: mmddyy[1]='0'+mmddyy[1] # make 2 characters
+                    if len(datestamp[1])==1: datestamp[1]='0'+datestamp[1] # make 2 characters
+                    date='20'+mmddyy[2]+':'+mmddyy[0]+":"+mmddyy[1] +':' +datestamp[1]+":00.00"
+                if '-' in datestamp[0]:
+                    mmddyy=datestamp[0].split('-') # break into month day year
+                    date=mmddyy[0]+':'+mmddyy[1]+":"+mmddyy[2] +':' +datestamp[1]+":00.00"
                 MagRec["measurement_date"]=date
                 MagRec["magic_method_codes"]='LT-NO'
                 if InRec[demag_key]!="0":
                     MagRec['magic_method_codes'] = 'LT-AF-Z'
-                    inst=inst+':ODP-SRM-AF' # measured on shipboard in-line 2G AF
+                    inst=inst+':IODP-SRM-AF' # measured on shipboard in-line 2G AF
                     treatment_value=float(InRec[demag_key].strip('"'))*1e-3 # convert mT => T
                     MagRec["treatment_ac_field"]=treatment_value # AF demag in treat mT => T
-                if InRec['Treatment Type']!="":
+                if 'Treatment Type' in InRec.keys() and InRec['Treatment Type']!="":
                     if 'Alternating Frequency' in InRec['Treatment Type']:
                         MagRec['magic_method_codes'] = 'LT-AF-Z'
-                        inst=inst+':ODP-DTECH' # measured on shipboard Dtech D2000
+                        inst=inst+':I`ODP-DTECH' # measured on shipboard Dtech D2000
                         treatment_value=float(InRec['Treatment Value'])*1e-3 # convert mT => T
                         MagRec["treatment_ac_field"]=treatment_value # AF demag in treat mT => T
                     elif 'Thermal' in InRec['Treatment Type']:
                         MagRec['magic_method_codes'] = 'LT-T-Z'
-                        inst=inst+':ODP-TDS' # measured on shipboard Schonstedt thermal demagnetizer
+                        inst=inst+':IODP-TDS' # measured on shipboard Schonstedt thermal demagnetizer
                         treatment_value=float(InRec['Treatment Value'])+273 # convert C => K
                         MagRec["treatment_temp"]='%8.3e'%(treatment_value) # 
                 MagRec["measurement_standard"]='u' # assume all data are "good"
@@ -233,11 +256,11 @@ def main(command_line=True, **kwargs):
                 if MagRec['er_site_name']  not in sites:
                     sites.append(MagRec['er_site_name'])
                     SiteRecs.append(SiteRec)
-              except:
-                 pass
+              #except:
+              #   print 'Boo-boo somewhere - no idea where'
     if not file_found:
         print "No .csv files were found"
-        return False
+        return False, "No .csv files were found"
     if len(SpecRecs)>0:
         pmag.magic_write(spec_file,SpecRecs,'er_specimens')
         print 'specimens stored in ',spec_file
@@ -256,10 +279,10 @@ def main(command_line=True, **kwargs):
     Fixed=pmag.measurements_methods(MagOuts,noave)
     if pmag.magic_write(meas_file,Fixed,'magic_measurements'):
         print 'data stored in ',meas_file
-        return True
+        return True, meas_file
     else:
         print 'no data found.  bad magfile?'
-        return False
+        return False, 'no data found.  bad magfile?'
 
 def do_help():
     return main.__doc__
