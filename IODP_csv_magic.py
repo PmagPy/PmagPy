@@ -136,8 +136,8 @@ def main(command_line=True, **kwargs):
             if "Intensity background + tray corrected  (A/m)" in keys:int_key="Intensity background + tray corrected  (A/m)"
             if "Intensity background &amp; tray corrected (A/m)" in keys:int_key="Intensity background &amp; tray corrected (A/m)"
             if "Core Type" in keys:
-                type="Core Type"
-            else: type="Type" 
+                core_type="Core Type"
+            else: core_type="Type" 
             if 'Run Number' in keys: run_number_key='Run Number'
             if 'Test No.' in keys: run_number_key='Test No.'
             if 'Test Changed On' in keys: date_key='Test Changed On'
@@ -163,9 +163,9 @@ def main(command_line=True, **kwargs):
                 while len(InRec['Core'])<3:
                     InRec['Core']='0'+InRec['Core']
                 if "Last Tray Measurment" in InRec.keys() and "SHLF" not in InRec[text_id] or 'dscr' in csv_file :  # assume discrete sample
-                    specimen=expedition+'-'+location+'-'+InRec['Core']+InRec[type]+"-"+InRec[sect_key]+'-'+InRec[half_key]+'-'+InRec[interval_key]
+                    specimen=expedition+'-'+location+'-'+InRec['Core']+InRec[core_type]+"-"+InRec[sect_key]+'-'+InRec[half_key]+'-'+InRec[interval_key]
                 else: # mark as continuous measurements
-                    specimen=expedition+'-'+location+'-'+InRec['Core']+InRec[type]+"_"+InRec[sect_key]+InRec[half_key]+'-'+InRec[interval_key]
+                    specimen=expedition+'-'+location+'-'+InRec['Core']+InRec[core_type]+"_"+InRec[sect_key]+InRec[half_key]+'-'+InRec[interval_key]
                 SpecRec['er_expedition_name']=expedition
                 SpecRec['er_location_name']=location
                 SpecRec['er_site_name']=specimen
