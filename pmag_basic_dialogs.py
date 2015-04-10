@@ -1945,9 +1945,6 @@ class convert_PMD_files_to_MagIC(wx.Frame):
         #pw.on_helpButton("PMD_magic.py -h")
 
 
-
-
-# template for an import window
 class convert_JR6_files_to_MagIC(wx.Frame):
 
     """ """
@@ -2130,6 +2127,10 @@ class convert_JR6_files_to_MagIC(wx.Frame):
         if JR: # Joides Resolution
             if not mag_file:
                 pw.simple_warning('You must provide a valid IODP JR6 file')
+            samp_file = os.path.join(input_dir_path, 'er_samples.txt')
+            if not os.path.isfile(samp_file):
+                pw.simple_warning("No 'er_samples.txt' file found in your input directory:\n{}\nYou can download the csv sample file and import it to MagIC with ODP_samples_magic.py".format(input_dir_path))
+                return False
             import IODP_jr6_magic
             program_ran, error_message = IODP_jr6_magic.main(False, **options)
             if program_ran:

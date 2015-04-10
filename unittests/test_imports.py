@@ -7,6 +7,7 @@ import numpy as np
 import ipmag
 import sio_magic
 import IODP_csv_magic
+import IODP_jr6_magic
 WD = os.getcwd()
 
 class TestSIO_magic(unittest.TestCase):
@@ -77,10 +78,6 @@ class TestSIO_magic(unittest.TestCase):
         self.assertEqual(file_name, meas_file)
 
     
-
-    
-
-
 class TestIODP_csv_magic(unittest.TestCase):
 
     def setUp(self):
@@ -115,3 +112,48 @@ class TestIODP_csv_magic(unittest.TestCase):
         program_ran, outfile = IODP_csv_magic.main(False, **options)
         self.assertTrue(program_ran)
         self.assertEqual(outfile, 'SRM_318_U1359_B_A.csv.magic')
+
+
+class TestIODP_jr6_magic(unittest.TestCase):
+
+    def setUp(self):
+        os.chdir(WD)
+
+    def tearDown(self):
+        input_dir = os.path.join(WD, 'Datafiles', 'Measurement_Import', 'IODP_jr6_magic')
+        outfile = os.path.join(input_dir, 'test.magic')
+        if os.path.isfile(outfile):
+            os.system('rm {}'.format(outfile))
+
+    def test_IODP_jr6_with_no_files(self):
+        options = {}
+        program_ran, error_message = IODP_jr6_magic.main(False, **options)
+        self.assertFalse(program_ran)
+        self.assertEqual(error_message, "You must provide an IODP_jr6 format file")
+
+    def test_IODP_jr6_with_magfile(self):
+        options = {}
+        input_dir = os.path.join(WD, 'Datafiles', 'Measurement_Import', 'IODP_jr6_magic')
+        options['input_dir_path'] = input_dir
+        mag_file = 'test.jr6'
+        options['mag_file'] = 'test.jr6'
+        meas_file = 'test.magic'
+        options['meas_file'] = meas_file
+        program_ran, outfile = IODP_jr6_magic.main(False, **options)
+        self.assertTrue(program_ran)
+        self.assertEqual(outfile, os.path.join('.', meas_file))
+
+    def test_IODP_jr6_with_magfile_but_hidden_sampfile(self):
+        options = {}
+        input_dir = os.path.join(WD, 'Datafiles', 'Measurement_Import', 'IODP_jr6_magic')
+        samp_file = os.path.join(input_dir, 'er_samples.txt')
+        hidden_samp_file = os.path.join(input_dir, 'hidden_er_samples.txt')
+        os.system('mv {} {}'.format(samp_file, hidden_samp_file))
+        options['input_dir_path'] = input_dir
+        mag_file = 'test.jr6'
+        options['mag_file'] = mag_file
+        program_ran, error_message = IODP_jr6_magic.main(False, **options)
+        msg = "Your input directory:\n{}\nmust contain an er_samples.txt file".format(input_dir)
+        self.assertFalse(program_ran)
+        self.assertEqual(error_message, msg)
+        os.system('mv {} {}'.format(hidden_samp_file, samp_file))

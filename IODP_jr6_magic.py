@@ -43,6 +43,7 @@ def main(command_line=True, **kwargs):
     MagRecs=[]
     samp_file = 'er_samples.txt'
     meas_file = 'magic_measurements.txt'
+    mag_file = ''
     #
     # get command line arguments
     #
@@ -65,7 +66,8 @@ def main(command_line=True, **kwargs):
         if '-fsa' in args:
             ind = args.index("-fsa")
             samp_file = args[ind+1]
-            if samp_file[0]!='/':samp_file = input_dir_path+'/'+samp_file
+            if samp_file[0]!='/':
+                samp_file = os.path.join(input_dir_path, samp_file)
             try:
                 open(samp_file,'rU')
                 ErSamps,file_type=pmag.magic_read(samp_file)
@@ -96,6 +98,13 @@ def main(command_line=True, **kwargs):
         er_location_name = kwargs.get('er_location_name', '')
         noave = kwargs.get('noave', 0) # default (0) means DO average
         meth_code = kwargs.get('meth_code', "LP-NO")
+    # validate variables
+    if not mag_file:
+        print "You must provide an IODP_jr6 format file"
+        return False, "You must provide an IODP_jr6 format file"
+    if not os.path.exists(os.path.join(input_dir_path, samp_file)):
+        print "Your input directory:\n{}\nmust contain an er_samples.txt file".format(input_dir_path)
+        return False, "Your input directory:\n{}\nmust contain an er_samples.txt file".format(input_dir_path)
     # format variables
     meth_code=meth_code+":FS-C-DRILL-IODP:SP-SS-C:SO-V"
     meth_code=meth_code.strip(":")
@@ -167,8 +176,9 @@ def main(command_line=True, **kwargs):
         else:
             print 'sample name not found: ',row['specname']
     MagOuts=pmag.measurements_methods(MagRecs,noave)
-    if pmag.magic_write(meas_file,MagOuts,'magic_measurements'):
-        return True, None
+    file_created, error_message = pmag.magic_write(meas_file,MagOuts,'magic_measurements')
+    if file_created:
+        return True, meas_file
     else:
         return False, 'Results not written to file'
 
