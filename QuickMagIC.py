@@ -428,7 +428,9 @@ class MagMainFrame(wx.Frame):
             )        
         if dlg.ShowModal() == wx.ID_OK:
             FILE = dlg.GetPath()                
-        input_dir, f = os.path.split(FILE)
+            input_dir, f = os.path.split(FILE)
+        else:
+            return False
 
         outstring="download_magic.py -f {} -WD {} -ID {}".format(f, self.WD, input_dir)
         
