@@ -6,6 +6,7 @@ import os
 import numpy as np
 import ipmag
 import sio_magic
+import IODP_csv_magic
 WD = os.getcwd()
 
 class TestSIO_magic(unittest.TestCase):
@@ -80,6 +81,37 @@ class TestSIO_magic(unittest.TestCase):
     
 
 
-    
+class TestIODP_csv_magic(unittest.TestCase):
+
+    def setUp(self):
+        os.chdir(WD)
+
+    def tearDown(self):
+        pass
+        #meas_file = os.path.join(WD, 'Datafiles', 'Measurement_Import', 'sio_magic', 'sio_af_example.magic')
+        #if os.path.isfile(meas_file):
+        #    os.system('rm {}'.format(meas_file))
 
 
+    def test_IODP_with_no_files(self):
+        program_ran, error_message = IODP_csv_magic.main(False)
+        self.assertFalse(program_ran)
+        self.assertEqual(error_message, 'No .csv files were found')
+
+    @unittest.skip("IODP_csv_magic must be fixed to accomodate old format, or the test must be changed to use the new format")
+    def test_IODP_with_files(self):
+        options = {}
+        dir_path = os.path.join(WD, 'Datafiles', 'Measurement_Import', 'IODP_csv_magic')
+        options['dir_path'] = dir_path
+        program_ran, outfile = IODP_csv_magic.main(False, **options)
+        self.assertTrue(program_ran)
+
+    @unittest.skip("IODP_csv_magic must be fixed to accomodate old format, or the test must be changed to use the new format")
+    def test_IODP_with_one_file(self):
+        options = {}
+        dir_path = os.path.join(WD, 'Datafiles', 'Measurement_Import', 'IODP_csv_magic')
+        options['dir_path'] = dir_path
+        options['csv_file'] = 'SRM_318_U1359_B_A.csv'
+        program_ran, outfile = IODP_csv_magic.main(False, **options)
+        self.assertTrue(program_ran)
+        self.assertEqual(outfile, 'SRM_318_U1359_B_A.csv.magic')
