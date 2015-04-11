@@ -276,11 +276,17 @@ def main(command_line=True, **kwargs):
                 MeasRec['measurement_temp']='273'
                 MeasRec['treatment_temp']='273'
                 MeasRec['treatment_dc_field']='0'
-                MeasRec['treatment_ac_field']='%10.3e'%(float(treat)*1e-3)
+                if treat == '   ':
+                    MeasRec['treatment_ac_field']='0'
+                else:
+                    MeasRec['treatment_ac_field']='%10.3e'%(float(treat)*1e-3)
             elif treat_type.strip()=='TT':
                 MeasRec['magic_method_codes']='LT-T-Z'
                 MeasRec['measurement_temp']='273'
-                MeasRec['treatment_temp']='%7.1f'%(float(treat)+273)
+                if treat == '   ':
+                    MeasRec['treatment_temp']='273'
+                else:
+                    MeasRec['treatment_temp']='%7.1f'%(float(treat)+273)
                 MeasRec['treatment_dc_field']='0'
                 MeasRec['treatment_ac_field']='0'
             elif treat_type.strip()=='LT' or treat_type.strip()=='LN2':
