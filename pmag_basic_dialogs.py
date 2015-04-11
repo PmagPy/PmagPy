@@ -3715,6 +3715,16 @@ You may use the drop-down menus to add as many values as needed in these columns
 
 
 
+    def remove_starred_labels(self, grid):
+        cols_with_stars = []
+        for col in range(grid.GetNumberCols()):
+            label = grid.GetColLabelValue(col)
+            if '**' in label:
+                grid.SetColLabelValue(col, label.strip('**'))
+                cols_with_stars.append(col)
+        return cols_with_stars
+
+
     ### Button methods ###
 
     def on_addSampleButton(self, event):
@@ -3815,8 +3825,15 @@ You may use the drop-down menus to add as many values as needed in these columns
         """pulls up next dialog, if there is one.
         gets any updated information from the current grid and runs ErMagicBuilder"""
         #wait = wx.BusyInfo("Please wait, working...")
-        if self.drop_down_menu:  # unhighlight selected columns, etc.
+
+
+        # unhighlight selected columns, etc.
+        if self.drop_down_menu:  
             self.drop_down_menu.clean_up(grid)
+
+        # remove '**' from col names
+        self.remove_starred_labels(grid)
+
 
         if self.ErMagic.data_er_specimens:
             pass
@@ -3840,7 +3857,7 @@ You may use the drop-down menus to add as many values as needed in these columns
                 self.update_simple_grid_data(grid, simple_grids[grid_name])
             else:
                 self.update_orient_data(grid)
-            
+
             self.ErMagic.update_ErMagic()
             
             self.changes = False # resets
@@ -3858,8 +3875,14 @@ You may use the drop-down menus to add as many values as needed in these columns
     def on_saveButton(self, event, grid):
         """saves any editing of the grid but does not continue to the next window"""
         wait = wx.BusyInfo("Please wait, working...")
+
+        
         if self.drop_down_menu:  # unhighlight selected columns, etc.
             self.drop_down_menu.clean_up(grid)
+            
+        # remove '**' from col labels
+        starred_cols = self.remove_starred_labels(grid)
+            
         if self.ErMagic.data_er_specimens:
             pass
         else:
@@ -3877,6 +3900,10 @@ You may use the drop-down menus to add as many values as needed in these columns
 
             self.ErMagic.update_ErMagic()
             self.changes = False
+
+        for col in starred_cols:
+            label = grid.GetColLabelValue(col)
+            grid.SetColLabelValue(col, label+'**')
         del wait
 
 

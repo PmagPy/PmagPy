@@ -33,7 +33,7 @@ class Menus():
             self.choices = {2: (belongs_to, False)}
         if self.data_type == 'sample' or self.data_type == 'site':
             self.choices = {2: (belongs_to, False), 3: (vocab['class'], False), 4: (vocab['lithology'], True), 5: (vocab['type'], False)}
-            map(lambda (x, y): self.grid.SetColLabelValue(x, y), [(3, 'site_class**'), (4, 'site lithology**'), (5, 'site type**')])
+            map(lambda (x, y): self.grid.SetColLabelValue(x, y), [(3, 'site_class**'), (4, 'site_lithology**'), (5, 'site_type**')])
             #self.grid.SetColLabelValue(3, 'site_class**')
             #self.grid.
         if self.data_type == 'site':
