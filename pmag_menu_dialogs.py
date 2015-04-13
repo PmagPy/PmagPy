@@ -126,9 +126,10 @@ class ImportAzDipFile(wx.Frame):
         pw.on_helpButton("azdip_magic.py -h")
 
 
-class ImportODPCoreSummary(wx.Frame):
+#class ImportODPCoreSummary(wx.Frame):
+class MoveFileIntoWD(wx.Frame):
 
-    title = "Import ODP Core Summary csv file"
+    title = "Import any file into your working directory"
     
     def __init__(self, parent, WD):
         wx.Frame.__init__(self, parent, wx.ID_ANY, self.title)
@@ -138,7 +139,7 @@ class ImportODPCoreSummary(wx.Frame):
 
     def InitUI(self):
         pnl = self.panel
-        TEXT = "ODP Core Summary csv file"
+        TEXT = "Any file type"
         bSizer_info = wx.BoxSizer(wx.HORIZONTAL)
         bSizer_info.Add(wx.StaticText(pnl, label=TEXT), wx.ALIGN_LEFT)
 
