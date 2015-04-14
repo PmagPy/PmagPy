@@ -36,8 +36,8 @@ def main():
         print len(Samps), ' read in from: ',samp_out
     else:
         samp_out = output_dir_path+'/er_samples.txt'
-    input=open(samp_file,"rU").readlines()
-    keys=input[0].replace('\n','').split(',')
+    file_input = open(samp_file,"rU").readlines()
+    keys = file_input[0].replace('\n','').split(',')
     if "CSF-B Top (m)" in keys: 
         comp_depth_key="CSF-B Top (m)"
     elif "Top depth CSF-B (m)" in keys: 
@@ -58,8 +58,8 @@ def main():
         date_key="Sample date logged"
     elif "Date sample logged" in keys:
         date_key="Date sample logged"
-    ErSamples,samples,format=[],[],'old'
-    for line in input[1:]:
+    ErSamples,samples,file_format=[],[],'old'
+    for line in file_input[1:]:
         ODPRec,SampRec={},{}
         interval,core="",""
         rec=line.replace('\n','').split(',')
@@ -73,13 +73,13 @@ def main():
                 core=pieces[2]
             while len(core)<4:core='0'+core # my way
         else: # new format
-            format='new'
+            file_format='new'
             pieces=[ODPRec['Exp'],ODPRec['Site']+ODPRec['Hole'],ODPRec['Core']+ODPRec['Type'],ODPRec['Sect'],ODPRec['A/W']]
             interval=ODPRec['Top offset (cm)'].split('.')[0].strip() # only integers allowed!
             core=ODPRec['Core']+ODPRec['Type']
         if core!="" and interval!="":   
             SampRec['magic_method_codes']='FS-C-DRILL-IODP:SP-SS-C:SO-V'
-            if format=='old':
+            if file_format=='old':
                 SampRec['er_sample_name']=pieces[0]+'-'+pieces[1]+'-'+core+'-'+pieces[3]+'-'+pieces[4]+'-'+interval
             else:
                 SampRec['er_sample_name']=pieces[0]+'-'+pieces[1]+'-'+core+'-'+pieces[3]+'_'+pieces[4]+'_'+interval # change in sample name convention
@@ -117,5 +117,7 @@ def main():
                ErSamples.append(samp)
     Recs,keys=pmag.fillkeys(ErSamples)
     pmag.magic_write(samp_out,Recs,'er_samples')
-    print 'sample information written to: ',samp_out  
-main()
+    print 'sample information written to: ',samp_out
+
+if __name__ == "__main__":
+    main()

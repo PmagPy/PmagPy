@@ -235,8 +235,13 @@ class ImportODPSampleSummary(wx.Frame):
         full_infile = self.bSizer0.return_value()
         ID, infile = os.path.split(full_infile)
         Fsa = infile[:infile.find('.')] + "_er_samples.txt"
-        COMMAND = "ODP_samples_magic.py -WD {} -f {} -Fsa {} -ID {}".format(WD, infile, Fsa, ID)
-        pw.run_command_and_close_window(self, COMMAND, Fsa)
+        program_ran, error_message = ipmag.ODP_samples_magic(infile, Fsa, WD, ID)
+        if not program_ran:
+            pw.simple_warning(error_message)
+        else:
+            COMMAND = "ODP_samples_magic.py -WD {} -f {} -Fsa {} -ID {}".format(WD, infile, Fsa, ID)
+            pw.close_window(self, COMMAND, Fsa)
+        #pw.run_command_and_close_window(self, COMMAND, Fsa)
 
     def on_cancelButton(self,event):
         self.Destroy()
