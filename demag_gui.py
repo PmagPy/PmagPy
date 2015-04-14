@@ -763,20 +763,15 @@ class Zeq_GUI(wx.Frame):
         self.canvas1.draw()
         self.canvas2.draw()
         self.canvas3.draw()
-        
-    #----------------------------------------------------------------------
-    # Draw plots
-    #----------------------------------------------------------------------
-       
-        
-    def draw_figure(self,s):
-        
+
+    def initialize_CART_rot(self,s):
+
         #-----------------------------------------------------------
         #  initialization
         #-----------------------------------------------------------
-        #start_time=time.time() 
-        self.s=s
-        
+
+        self.s = s
+
         if self.orthogonal_box.GetValue()=="X=East":
             self.ORTHO_PLOT_TYPE='E-W'
         elif self.orthogonal_box.GetValue()=="X=North":
@@ -852,9 +847,18 @@ class Zeq_GUI(wx.Frame):
             else:
                 self.CART_rot_bad.append(list(self.CART_rot[i]))
         
-        self.CART_rot_good= array(self.CART_rot_good)
-        self.CART_rot_bad= array(self.CART_rot_bad)
-            
+        self.CART_rot_good=array(self.CART_rot_good)
+        self.CART_rot_bad=array(self.CART_rot_bad)
+
+        
+    #----------------------------------------------------------------------
+    # Draw plots
+    #----------------------------------------------------------------------
+
+
+    def draw_figure(self,s):
+
+        self.initialize_CART_rot(s)
         
         #-----------------------------------------------------------
         # Draw Zij plot
@@ -865,7 +869,6 @@ class Zeq_GUI(wx.Frame):
         self.zijplot.axis('equal')
         self.zijplot.xaxis.set_visible(False)
         self.zijplot.yaxis.set_visible(False)
-        self.green_line_plot=False
         #self.zijplot_interpretation = self.fig1.add_axes(self.zijplot.get_position(), frameon=False,axisbg='None',label='zij_interpretation',zorder=1)
         #self.zijplot_interpretation.clear()
         #self.zijplot_interpretation.axis('equal')
@@ -1339,8 +1342,8 @@ class Zeq_GUI(wx.Frame):
           zijdblock=self.Data[self.s]['zijdblock_tilt']
       else:
           zijdblock=self.Data[self.s]['zijdblock']
-            
-          
+
+
       TEXT=""
       self.logger.DeleteAllItems()
       for i in range(len(zijdblock)):
@@ -1375,7 +1378,7 @@ class Zeq_GUI(wx.Frame):
         try: fit_index = self.pmag_results_data['specimens'][self.s].index(self.current_fit)
         except KeyError: fit_index = None
         except ValueError: fit_index = None
-        self.s=str(self.specimens_box.GetValue())
+        self.initialize_CART_rot(str(self.specimens_box.GetValue())) #sets self.s calculates params etc.
         if fit_index != None and self.s in self.pmag_results_data['specimens']:
           try: self.current_fit = self.pmag_results_data['specimens'][self.s][fit_index]
           except IndexError: self.current_fit = None
@@ -1429,7 +1432,7 @@ class Zeq_GUI(wx.Frame):
         index=0
       else:
         index+=1
-      self.s=str(self.specimens[index])
+      self.initialize_CART_rot(str(self.specimens[index])) #sets self.s calculates params etc.
       self.specimens_box.SetStringSelection(str(self.s))
       if fit_index != None and self.s in self.pmag_results_data['specimens']:
         try: self.current_fit = self.pmag_results_data['specimens'][self.s][fit_index]
@@ -1448,7 +1451,7 @@ class Zeq_GUI(wx.Frame):
       except ValueError: fit_index = None
       if index==0: index=len(self.specimens)
       index-=1
-      self.s=str(self.specimens[index])
+      self.initialize_CART_rot(str(self.specimens[index])) #sets self.s calculates params etc.
       self.specimens_box.SetStringSelection(str(self.s))
       if fit_index != None and self.s in self.pmag_results_data['specimens']:
         try: self.current_fit = self.pmag_results_data['specimens'][self.s][fit_index]
@@ -1464,21 +1467,21 @@ class Zeq_GUI(wx.Frame):
         update display (figures, text boxes and statistics windows) with a new selection of specimen
         """
 
-        self.clear_boxes() 
+        self.clear_boxes()
 
         self.update_fit_box()
 
         #--------------------------
         # check if the coordinate system in the window exists (if not change to "specimen" coordinate system)
         #--------------------------
-        
+
         coordinate_system=self.coordinates_box.GetValue()
         if coordinate_system=='tilt-corrected' and len(self.Data[self.s]['zijdblock_tilt'])==0:
             self.coordinates_box.SetStringSelection('specimen')
         elif coordinate_system=='geographic' and len(self.Data[self.s]['zijdblock_geo'])==0:
             self.coordinates_box.SetStringSelection("specimen")
         coordinate_system=self.coordinates_box.GetValue()
-        self.COORDINATE_SYSTEM=coordinate_system                           
+        self.COORDINATE_SYSTEM=coordinate_system
 
         #--------------------------                
         # updtaes treatment list
@@ -1510,39 +1513,6 @@ class Zeq_GUI(wx.Frame):
         #--------------------------
         found_interpretation=False
         if self.s in self.pmag_results_data['specimens'].keys() and found_interpretation==False:
-#          for dirtype in self.dirtypes:
-#                  
-#                  # update tmin/tmax windows
-#                  measurement_step_min= float(self.current_fit.tmin)
-#                  measurement_step_max= float(self.current_fit.tmax)
-#                  if measurement_step_min==0:
-#                      tmin="0"
-#                  elif self.Data[self.s]['measurement_step_unit']=="C":
-#                      tmin="%.0fC"%(measurement_step_min)
-#                  elif self.Data[self.s]['measurement_step_unit']=="mT":
-#                      tmin="%.1fmT"%(measurement_step_min)
-#                  else: # combimned experiment T:AF
-#                    if "%.0fC"%(measurement_step_min) in self.Data[self.s]['zijdblock_steps']:
-#                        tmin="%.0fC"%(measurement_step_min)
-#                    elif "%.1fmT"%(measurement_step_min) in self.Data[self.s]['zijdblock_steps']:
-#                        tmin="%.1fmT"%(measurement_step_min)
-#                    else:
-#                        continue
-#                        
-#                  if self.Data[self.s]['measurement_step_unit']=="C":
-#                      tmax="%.0fC"%(measurement_step_max)
-#                  elif self.Data[self.s]['measurement_step_unit']=="mT":
-#                      tmax="%.1fmT"%(measurement_step_max)
-#                  else: # combimned experiment T:AF
-#                    if "%.0fC"%(measurement_step_max) in self.Data[self.s]['zijdblock_steps']:
-#                        tmax="%.0fC"%(measurement_step_max)
-#                    elif "%.1fmT"%(measurement_step_max) in self.Data[self.s]['zijdblock_steps']:
-#                        tmax="%.1fmT"%(measurement_step_max)
-#                    else:
-#                        continue
-#                                                                    
-#                  self.current_fit.tmin = tmin
-#                  self.current_fit.tmax = tmax
 
                   if self.current_fit:
                       tmin = self.current_fit.tmin
@@ -1577,9 +1547,9 @@ class Zeq_GUI(wx.Frame):
             self.draw_figure(self.s)
             
 
-        # draw the figures        
+        # draw the figures
     
-        if  found_interpretation:                   
+        if  found_interpretation:
             self.mean_type_box.SetStringSelection(calculation_type)
         self.plot_higher_levels_data()
 
@@ -1673,7 +1643,7 @@ class Zeq_GUI(wx.Frame):
             return
           
              
-    def OnRightClickListctrl(self,event):
+    def OnRightClickListctrl(self,event): #BLARGE FIX
         '''
         right click on the listctrl opens a popup menu for 
         changing the measurement line from "g" to "b"
@@ -1686,7 +1656,7 @@ class Zeq_GUI(wx.Frame):
         position=event.GetPosition()
         position[1]=position[1]+300*self.GUI_RESOLUTION
         #print position
-        g_index =event.GetIndex()
+        g_index=event.GetIndex()
 
         GBpopupmenu=self.PopupMenu(demag_dialogs.GBPopupMenu(self.Data,self.magic_file,self.mag_meas_data,self.s,g_index,position))
         #print "OK"
@@ -1709,14 +1679,25 @@ class Zeq_GUI(wx.Frame):
         result = dlg.ShowModal()
         if result == wx.ID_OK:
             dlg.Destroy()
+        else:
+            return
 
-        if 'specimens' in self.pmag_results_data.keys() and str(self.s) in self.pmag_results_data['specimens'].keys():
+#        if 'specimens' in self.pmag_results_data.keys() and str(self.s) in self.pmag_results_data['specimens'].keys():
+#            self.pmag_results_data['specimens'][str(self.s)] = []
+
+        # read again the data, um no change flag
+#        if self.Data[self.s]['measurement_flag'][g_index] == 'g':
+#            self.Data[self.s]['measurement_flag'][g_index] = 'b'
+#        if self.Data[self.s]['measurement_flag'][g_index] == 'b':
+#            self.Data[self.s]['measurement_flag'][g_index] = 'g'
+#        #update the fits
+#        if str(self.s) in self.pmag_results_data['specimens']:
+#            for fit in self.pmag_results_data['specimens'][str(self.s)]:
+#                fit.put(self.COORDINATE_SYSTEM,self.get_PCA_parameters(self.s,fit.tmin,fit.tmax,self.COORDINATE_SYSTEM,fit.get(self.COORDINATE_SYSTEM)['calculation_type']))
+
+        if str(self.s) in self.pmag_results_data['specimens']:
             self.pmag_results_data['specimens'][str(self.s)] = []
 
-        if self.current_fit:
-            for dirtype in self.dirtypes:
-                self.current_fit.put({},dirtype)
-        # read again the data
         self.Data,self.Data_hierarchy=self.get_data()
         self.calculate_higher_levels_data()
         self.update_pmag_tables()
@@ -1780,15 +1761,15 @@ class Zeq_GUI(wx.Frame):
         """
         calcualte statisics 
         """
-        beg_pca=self.Data[specimen]['zijdblock_steps'].index(tmin)
-        end_pca=self.Data[specimen]['zijdblock_steps'].index(tmax)
+
+        beg_pca,end_pca = self.get_temp_indecies(None, tmin, tmax)
         if coordinate_system=='geographic':
             block=self.Data[specimen]['zijdblock_geo']
         elif coordinate_system=='tilt-corrected':
             block=self.Data[specimen]['zijdblock_tilt']
         else:
             block=self.Data[specimen]['zijdblock']
-        if  end_pca>  beg_pca and   end_pca - beg_pca >1: 
+        if  end_pca > beg_pca and   end_pca - beg_pca > 1: 
             mpars=pmag.domean(block,beg_pca,end_pca,calculation_type) #preformes regression
         else:
             mpars={}
@@ -1882,7 +1863,7 @@ class Zeq_GUI(wx.Frame):
 
         #check to see if there's a results log or not
         if not (self.s in self.pmag_results_data['specimens'].keys()):
-            self.pmag_results_data['specimens'][self.s] = {}
+            self.pmag_results_data['specimens'][self.s] = []
 
         for fit in self.pmag_results_data['specimens'][self.s]:
 
@@ -1893,27 +1874,36 @@ class Zeq_GUI(wx.Frame):
 #                if self.current_fit in self.pmag_results_data['specimens'][key]:
 #                    print("current_fit is " + self.current_fit.name + " of " + str(key))
 
+            pars = fit.get(self.COORDINATE_SYSTEM)
+
+            if (fit.tmin == None or fit.tmax == None or not pars):
+                print(fit.tmin,fit.tmax,len(fit.pars))
+                continue
+
             for line in fit.lines:
                 if line in self.zijplot.lines:
                     self.zijplot.lines.remove(line)
 
             PCA_type=fit.PCA_type
             
-            tmin_index=self.Data[self.s]['zijdblock_steps'].index(fit.tmin)
-            tmax_index=self.Data[self.s]['zijdblock_steps'].index(fit.tmax)
+            tmin_index,tmax_index = self.get_temp_indecies(fit);
 
             # Zijderveld plot
                                 
             ymin, ymax = self.zijplot.get_ylim()
             xmin, xmax = self.zijplot.get_xlim()
 
+            for i in range(1):
+                if (len(self.CART_rot[:,i]) <= tmin_index or \
+                    len(self.CART_rot[:,i]) <= tmax_index):
+                    self.Add_text()
+
             self.zijplot.scatter([self.CART_rot[:,0][tmin_index],self.CART_rot[:,0][tmax_index]],[-1* self.CART_rot[:,1][tmin_index],-1* self.CART_rot[:,1][tmax_index]],marker='o',s=40,facecolor=fit.color,edgecolor ='k',zorder=100,clip_on=False)
             self.zijplot.scatter([self.CART_rot[:,0][tmin_index],self.CART_rot[:,0][tmax_index]],[-1* self.CART_rot[:,2][tmin_index],-1* self.CART_rot[:,2][tmax_index]],marker='s',s=50,facecolor=fit.color,edgecolor ='k',zorder=100,clip_on=False)
             
-            if fit.pars['calculation_type'] in ['DE-BFL','DE-BFL-A','DE-BFL-O']:
+            if pars['calculation_type'] in ['DE-BFL','DE-BFL-A','DE-BFL-O']:
                 
                 #rotated zijderveld
-                pars = fit.get(self.COORDINATE_SYSTEM)
                 if self.COORDINATE_SYSTEM=='geographic':
                     first_data=self.Data[self.s]['zdata_geo'][0]
                 elif self.COORDINATE_SYSTEM=='tilt-corrected':
@@ -2044,7 +2034,7 @@ class Zeq_GUI(wx.Frame):
             # logger
             #self.logger.SetBackgroundColour('red')
             if fit == self.current_fit:
-                for item in range(self.logger.GetItemCount()):
+                for item in range(len(self.Data[self.s]['measurement_flag'])): #self.logger.GetItemCount()):
                     if item >= tmin_index and item <= tmax_index:
                         self.logger.SetItemBackgroundColour(item,"LIGHT BLUE") # gray
                     else:
@@ -2054,7 +2044,6 @@ class Zeq_GUI(wx.Frame):
                     except IndexError:
                         relability = 'b'
                         print('-E- IndexError in bad data')
-                        print(item, len(self.Data[self.s]['measurement_flag']))
                     if relability=='b':
                         self.logger.SetItemBackgroundColour(item,"YELLOW")
 
@@ -2077,9 +2066,10 @@ class Zeq_GUI(wx.Frame):
         the interpretation is saved to pmag_results_table data 
         in all coordinate systems
         """
-        calculation_type=self.current_fit.pars['calculation_type']
-        tmin_index=str(self.tmin_box.GetSelection())
-        tmax_index=str(self.tmax_box.GetSelection())
+
+        calculation_type=self.current_fit.get(self.COORDINATE_SYSTEM)['calculation_type']
+#        tmin_index=str(self.tmin_box.GetSelection())
+#        tmax_index=str(self.tmax_box.GetSelection())
         tmin=str(self.tmin_box.GetValue())
         tmax=str(self.tmax_box.GetValue())
 
@@ -3158,8 +3148,10 @@ class Zeq_GUI(wx.Frame):
         #BUG FIX-almost replaced first sample with last due to above assignment to self.s
         if pmag_specimens:
             self.s = pmag_specimens[0]['er_specimen_name']
+            self.specimens_box.SetSelection(0)
         if self.s in self.pmag_results_data['specimens'] and self.pmag_results_data['specimens'][self.s]:
             self.pmag_results_data['specimens'][self.s][-1].select()
+
 
 
         #--------------------------
@@ -4195,7 +4187,46 @@ class Zeq_GUI(wx.Frame):
         #self.on_close_generic_file(self.WD)
    # def on_close_generic_file(self,WD):
    #     print "Closed"
-   #     print WD    
+   #     print WD
+
+    def get_temp_indecies(self, fit = None, tmin = None, tmax = None):
+
+        if tmin and tmax:
+            tmin_index=self.Data[self.s]['zijdblock_steps'].index(tmin)
+            tmax_index=self.Data[self.s]['zijdblock_steps'].index(tmax)
+        elif fit:
+            tmin = fit.tmin
+            tmax = fit.tmax
+            tmin_index=self.Data[self.s]['zijdblock_steps'].index(fit.tmin)
+            tmax_index=self.Data[self.s]['zijdblock_steps'].index(fit.tmax)
+        else:
+            tmin_index=self.tmin_box.GetSelection()
+            tmax_index=self.tmax_box.GetSelection()
+
+        max_index = len(self.Data[self.s]['zijdblock_steps'])-1
+
+        while (self.Data[self.s]['measurement_flag'][tmin_index] == 'b'):
+#            if (self.Data[self.s]['zijdblock_steps'][tmin_index-1] == tmin):
+#                tmin_index -= 1
+            if (self.Data[self.s]['zijdblock_steps'][tmin_index+1] == tmin):
+                tmin_index += 1
+            else:
+                print("No good measurement steps with value - " + tmin)
+                break
+
+        while (self.Data[self.s]['measurement_flag'][tmax_index] == 'b'):
+#            if (self.Data[self.s]['zijdblock_steps'][tmax_index-1] == tmax):
+#                tmax_index -= 1
+            if (self.Data[self.s]['zijdblock_steps'][tmax_index+1] == tmax):
+                tmax_index += 1
+            else:
+                print("No good measurement steps with value - " + tmax)
+                break
+
+        if (tmin_index < 0): tmin_index = 0
+        if (tmax_index > max_index): tmax_index = max_index
+
+        return (tmin_index,tmax_index)
 
     def on_select_fit(self,event):
         fit_val = self.fit_box.GetValue()
@@ -4336,11 +4367,6 @@ class Fit():
         self.PCA_type = PCA_type
         self.lines = [None,None]
         self.GUI = GUI
-        self.tmin_index = None
-        self.tmax_index = None
-        if self.tmin in self.GUI.T_list and self.tmax in self.GUI.T_list:
-            self.tmin_index = self.GUI.T_list.index(self.tmin)
-            self.tmax_index = self.GUI.T_list.index(self.tmax)
         self.pars = {}
         self.geopars = {}
         self.tiltpars = {}
@@ -4363,14 +4389,11 @@ class Fit():
             print("-E- no such parameters to fetch in fit " + self.name)
 
     def put(self,coordinate_system,new_pars):
-        if type(new_pars) != dict: return {}
-        if 'measurement_step_min' not in new_pars.keys() or 'measurement_step_max' not in new_pars.keys():
-            print("-E- invalid parameters cannot assign to fit")
-            return
+        if type(new_pars) != dict or 'measurement_step_min' not in new_pars.keys() or 'measurement_step_max' not in new_pars.keys():
+            print("-E- invalid parameters cannot assign to fit - was given:\n"+new_pars)
+            return {}
         self.tmin = new_pars['measurement_step_min']
         self.tmax = new_pars['measurement_step_max']
-        self.tmin_index = self.GUI.tmin_box.GetCurrentSelection()
-        self.tmax_index = self.GUI.tmax_box.GetCurrentSelection()
 
         if self.tmin == 0:
             self.tmin = '0'
