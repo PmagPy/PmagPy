@@ -6,6 +6,7 @@ import os
 import numpy as np
 import ipmag
 import sio_magic
+import CIT_magic
 import IODP_csv_magic
 import IODP_jr6_magic
 WD = os.getcwd()
@@ -77,6 +78,77 @@ class TestSIO_magic(unittest.TestCase):
         self.assertTrue(program_ran)
         self.assertEqual(file_name, meas_file)
 
+
+
+class TestCIT_magic(unittest.TestCase):
+
+    def setUp(self):
+        pass
+
+    def tearDown(self):
+        for f in ['magic_measurements.txt', 'er_specimens.txt', 'er_samples.txt', 'er_sites.txt']:
+            full_file = os.path.join(WD, f)
+            if os.path.isfile(full_file):
+                os.system('rm {}'.format(full_file))
+
+    def test_CIT_with_no_files(self):
+        program_ran, error_message = CIT_magic.main(False)
+        self.assertFalse(program_ran)
+        self.assertEqual(error_message, 'bad sam file name')
+
+    def test_CIT_magic_with_file(self):
+        options = {}
+        options['input_dir_path'] = os.path.join(WD, 'Datafiles', 'Measurement_Import', 'CIT_magic', 'MP18')
+        options['magfile'] = 'bMP.sam'
+        program_ran, outfile = CIT_magic.main(False, **options)
+        self.assertTrue(program_ran)
+        self.assertEqual(outfile, './magic_measurements.txt')
+
+    def test_CIT_magic_fail_option4(self):
+        options = {}
+        options['input_dir_path'] = os.path.join(WD, 'Datafiles', 'Measurement_Import', 'CIT_magic', 'MP18')
+        options['magfile'] = 'bMP.sam'
+        options['samp_con'] = '4'
+        program_ran, error_message = CIT_magic.main(False, **options)
+        self.assertFalse(program_ran)
+        self.assertEqual(error_message, "naming convention option [4] must be in form 4-Z where Z is an integer")
+
+    def test_CIT_magic_succeed_option4(self):
+        options = {}
+        options['input_dir_path'] = os.path.join(WD, 'Datafiles', 'Measurement_Import', 'CIT_magic', 'MP18')
+        options['magfile'] = 'bMP.sam'
+        options['samp_con'] = '4-3'
+        program_ran, outfile = CIT_magic.main(False, **options)
+        self.assertTrue(program_ran)
+        self.assertEqual(outfile, './magic_measurements.txt')
+
+    def test_CIT_magic_with_options(self):
+        options = {}
+        options['input_dir_path'] = os.path.join(WD, 'Datafiles', 'Measurement_Import', 'CIT_magic', 'MP18')
+        options['magfile'] = 'bMP.sam'
+        options['samp_con'] = '2'
+        options['methods'] = ['SO-SM:SO-MAG']
+        options['locname'] = 'location'
+        options['avg'] = 1
+        options['specnum'] = 2
+        program_ran, outfile = CIT_magic.main(False, **options)
+        self.assertTrue(program_ran)
+        self.assertEqual(outfile, './magic_measurements.txt')
+
+    def test_CIT_magic_with_other_data(self):
+        options = {}
+        options['input_dir_path'] = os.path.join(WD, 'Datafiles', 'Measurement_Import', 'CIT_magic', 'Z35')
+        options['magfile'] = 'Z35.sam'
+        options['samp_con'] = '1'
+        options['methods'] = ['SO-SM:SO-MAG']
+        options['locname'] = 'location'
+        options['avg'] = 1
+        options['specnum'] = 2
+        program_ran, outfile = CIT_magic.main(False, **options)
+        self.assertTrue(program_ran)
+        self.assertEqual(outfile, './magic_measurements.txt')
+
+        
     
 class TestIODP_csv_magic(unittest.TestCase):
 
