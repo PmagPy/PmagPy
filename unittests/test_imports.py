@@ -121,7 +121,7 @@ class TestIODP_jr6_magic(unittest.TestCase):
 
     def tearDown(self):
         input_dir = os.path.join(WD, 'Datafiles', 'Measurement_Import', 'IODP_jr6_magic')
-        outfile = os.path.join(input_dir, 'test.magic')
+        outfile = os.path.join(WD, 'test.magic')
         if os.path.isfile(outfile):
             os.system('rm {}'.format(outfile))
 
