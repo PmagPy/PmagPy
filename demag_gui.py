@@ -3134,7 +3134,8 @@ class Zeq_GUI(wx.Frame):
                     and tmin in self.Data[specimen]['zijdblock_steps']\
                     and tmax in self.Data[specimen]['zijdblock_steps']:
 
-                        fit.put('specimen',self.get_PCA_parameters(specimen,tmin,tmax,'specimen',calculation_type))
+                        if fit:
+                            fit.put('specimen',self.get_PCA_parameters(specimen,tmin,tmax,'specimen',calculation_type))
 
                         if len(self.Data[specimen]['zijdblock_geo'])>0: 
                             fit.put('geographic',self.get_PCA_parameters(specimen,tmin,tmax,'geographic',calculation_type))
