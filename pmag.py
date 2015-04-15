@@ -20,8 +20,8 @@ def sort_diclist(undecorated,sort_on):
     decorated.sort()
     return[dict_ for (key, dict_) in decorated]
 
-def get_dictitem(In,k,v,flag):  
-    # returns a list of dictionaries from list In with key,k  = value, v . CASE INSENSITIVE # allowed keywords:
+def get_dictitem(In,k,v,flag):
+    """ returns a list of dictionaries from list In with key,k  = value, v . CASE INSENSITIVE # allowed keywords:"""
     try:
         if flag=="T":return [dictionary for dictionary in In if dictionary[k].lower()==v.lower()] # return that which is
         if flag=="F":
@@ -698,7 +698,7 @@ def vspec_magic(data):
         DataState0[key]=data[0][key] # set beginning treatment
     k,R=1,0
     for i in range(k,len(data)):
-        Dirdata,DataStateCurr,newstate=[],{},0
+        FDirdata,Dirdata,DataStateCurr,newstate=[],[],{},0
         for key in treats:  # check if anything changed
 	    DataStateCurr[key]=data[i][key] 
             if DataStateCurr[key].strip() !=  DataState0[key].strip(): newstate=1 # something changed
@@ -706,11 +706,14 @@ def vspec_magic(data):
             if i==k: # sample is unique 
                 vdata.append(data[i-1])
             else: # measurement is not unique
-                print "averaging: records " ,k,i
+                #print "averaging: records " ,k,i
                 for l in range(k-1,i):
+                    if 'orientation' in data[l]['measurement_description']:
+                        data[l]['measurement_description']=""
                     Dirdata.append([float(data[l]['measurement_dec']),float(data[l]['measurement_inc']),float(data[l]['measurement_magn_moment'])])
+                    FDirdata.append([float(data[l]['measurement_dec']),float(data[l]['measurement_inc'])])
                 dir,R=vector_mean(Dirdata)
-                Fpars=fisher_mean(Dirdata)
+                Fpars=fisher_mean(FDirdata)
                 vrec=data[i-1]
                 vrec['measurement_dec']='%7.1f'%(dir[0])
                 vrec['measurement_inc']='%7.1f'%(dir[1])
@@ -1008,7 +1011,7 @@ def magic_write(ofile,Recs,file_type):
     if len(Recs)<1:
         return False, 'No records to write to file {}'.format(ofile)
     else:
-        print 'len(Recs)', len(Recs)
+        print len(Recs),' records written to file ',ofile
     pmag_out=open(ofile,'w')
     outstring="tab \t"+file_type+"\n"
     pmag_out.write(outstring)
@@ -2622,7 +2625,6 @@ def fisher_mean(data):
     """
     call to fisher_mean(data) calculates fisher statistics for data, which is a list of [dec,inc] pairs.  
     """
-
     R,Xbar,X,fpars=0,[0,0,0],[],{}
     N=len(data)
     if N <2:
@@ -5312,9 +5314,9 @@ def measurements_methods(meas_data,noave):
         if noave!=1:
             vdata,treatkeys=vspec_magic(NewSpecs) # averages replicate measurements, returns treatment keys that are being used
             if len(vdata)!=len(NewSpecs):
-                print spec,'started with ',Ninit,' ending with ',len(vdata)
+                #print spec,'started with ',Ninit,' ending with ',len(vdata)
                 NewSpecs=vdata
-                print "Averaged replicate measurements"
+                #print "Averaged replicate measurements"
 #
 # now look through this specimen's records - try to figure out what experiment it is
 #
