@@ -11,20 +11,23 @@ import QuickMagIC as qm
 import pmag_menu_dialogs
 
 # get WD before all the QuickMagIC stuff starts to happen
-WD = os.path.join(os.getcwd(), 'unittests', 'examples', 'my_project')
+WD = os.getcwd()
+project_WD = os.path.join(os.getcwd(), 'unittests', 'examples', 'my_project')
 core_depthplot_WD = os.path.join(os.getcwd(), 'Datafiles', 'core_depthplot')
+
 class TestMainFrame(unittest.TestCase):
 
     def setUp(self):
         self.app = wx.PySimpleApp()
         #WD = os.path.join(os.getcwd(), 'unittests', 'examples', 'my_project')
-        self.frame = qm.MagMainFrame(WD)
+        self.frame = qm.MagMainFrame(project_WD)
         self.pnl = self.frame.GetChildren()[0]
         #wx.lib.inspection.InspectionTool().Show()
 
     def tearDown(self):
         #self.frame.Destroy() # this does not work and causes strange errors
         self.app.Destroy()
+        os.chdir(WD)
 
     def test_main_panel_is_created(self):
         """
@@ -136,14 +139,14 @@ class TestMenus(unittest.TestCase):
     def setUp(self):
         self.app = wx.PySimpleApp()
         #WD = os.path.join(os.getcwd(), 'unittests', 'examples', 'my_project')
-        self.frame = qm.MagMainFrame(WD)
+        self.frame = qm.MagMainFrame(project_WD)
         self.pnl = self.frame.GetChildren()[0]
         #print dir(self.frame)
-        print self.frame.MenuBar
+        #print self.frame.MenuBar
         #print 'dir(self.frame.MenuBar)', dir(self.frame.MenuBar)
-        print self.frame.MenuBar.Menus
-        print 'self.frame.MenuBar.MenuCount', self.frame.MenuBar.MenuCount
-        print self.frame.FindItemInMenuBar.__doc__
+        #print self.frame.MenuBar.Menus
+        #print 'self.frame.MenuBar.MenuCount', self.frame.MenuBar.MenuCount
+        #print self.frame.FindItemInMenuBar.__doc__
 
         
         #wx.lib.inspection.InspectionTool().Show()
@@ -151,13 +154,13 @@ class TestMenus(unittest.TestCase):
     def tearDown(self):
         #self.frame.Destroy() # this does not work and causes strange errors
         self.app.Destroy()
+        os.chdir(WD)
 
         
     def test_that_all_menus_exist(self):
         menu_names = ['File', 'Import', 'Analysis and Plots']
         menus = self.frame.MenuBar.Menus
         for menu, menu_name in menus:
-            #print dir(menu)
             self.assertIsInstance(menu, wx.Menu)
             self.assertTrue(menu.IsEnabled)
             self.assertIn(menu_name, menu_names)
@@ -182,10 +185,10 @@ class TestMenus(unittest.TestCase):
                 break
         if not item:
             return None        
-        print item.GetText()
-        print item.Label
+        #print item.GetText()
+        #print item.Label
         event = wx.CommandEvent(wx.EVT_MENU.evtType[0], item_id)
-        print 'event!', event
+        #print 'event!', event
         self.frame.GetEventHandler().ProcessEvent(event)
         window = None
         for w in self.frame.Children:
@@ -202,8 +205,6 @@ class TestCoreDepthplot(unittest.TestCase):
 
     def setUp(self):
         self.app = wx.PySimpleApp()
-        print 'self.app', self.app
-
         self.frame = qm.MagMainFrame(core_depthplot_WD)
         self.pnl = self.frame.GetChildren()[0]
         self.core_window = pmag_menu_dialogs.Core_depthplot(self.frame, self.frame.WD)
@@ -212,12 +213,12 @@ class TestCoreDepthplot(unittest.TestCase):
     def tearDown(self):
         #self.frame.Destroy() # this does not work and causes strange errors
         self.app.Destroy()
+        os.chdir(WD)
 
     def test_core_depthplot_window_initializes(self):
         self.assertTrue(self.core_window.IsEnabled())
 
     def test_run_core_depthplot_with_no_info(self):
-        print 'do run_core_depthplot_with_no_info'
         #print 'self.app', self.app
         def do_thing():
             pass
@@ -248,9 +249,9 @@ class TestCoreDepthplot(unittest.TestCase):
         #print 'about to destroy!'
         #dlg.Destroy()
 
-        print self.core_window.bSizer2 # choose_file
-        print self.core_window.bSizer13  # radio_buttons (lab protocol)
-        print self.core_window.bSizer14 # labeled_Text_field (step)
+        #print self.core_window.bSizer2 # choose_file
+        #print self.core_window.bSizer13  # radio_buttons (lab protocol)
+        #print self.core_window.bSizer14 # labeled_Text_field (step)
 
     def test_run_core_depthplot_with_correct_info(self):
         """
@@ -262,7 +263,6 @@ class TestCoreDepthplot(unittest.TestCase):
                 rb.SetValue(True)
         self.core_window.bSizer14.text_field.SetValue('20')
         plot_frame = self.core_window.on_okButton(None)
-        print plot_frame
         self.assertIsInstance(plot_frame, pmag_menu_dialogs.PlotFrame)
 
 if __name__ == '__main__':
