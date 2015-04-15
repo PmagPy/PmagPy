@@ -1697,6 +1697,12 @@ class convert_IODP_csv_files_to_MagIC(wx.Frame):
         bSizer_info = wx.BoxSizer(wx.HORIZONTAL)
         bSizer_info.Add(wx.StaticText(pnl, label=TEXT), wx.ALIGN_LEFT)
 
+        #---sizer 0a ---
+        TEXT = "IODP file type"
+        label1 = "Old"
+        label2 = "New"
+        self.bSizer0a = pw.labeled_yes_or_no(pnl, TEXT, label1, label2)
+
         #---sizer 0 ----
         self.bSizer0 = pw.choose_file(pnl, 'add', method = self.on_add_file_button)
 
@@ -1711,6 +1717,7 @@ class convert_IODP_csv_files_to_MagIC(wx.Frame):
 
         vbox.AddSpacer(10)
         vbox.Add(bSizer_info, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        vbox.Add(self.bSizer0a, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(self.bSizer0, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(self.bSizer1, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         #vbox.Add(self.bSizer2, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
@@ -1746,6 +1753,8 @@ class convert_IODP_csv_files_to_MagIC(wx.Frame):
         options = {}
         wd = self.WD
         options['dir_path'] = wd
+        old_format = self.bSizer0a.return_value()
+        print 'old format:', old_format
         full_file = self.bSizer0.return_value()
         ID, IODP_file = os.path.split(full_file)
         if not ID:
@@ -1769,15 +1778,21 @@ class convert_IODP_csv_files_to_MagIC(wx.Frame):
             options['noave'] = 1
 
         COMMAND = "IODP_csv_magic.py -WD {0} -f {1} -F {2} {3} -ID {4} -Fsp {5} -Fsa {6} -Fsi {7}".format(wd, IODP_file, outfile, replicate, ID, spec_outfile, samp_outfile, site_outfile)
-        # to run as module:
-        import IODP_csv_magic
-        if IODP_csv_magic.main(False, **options):
-            pw.close_window(self, COMMAND, outfile)
-        else:
-            pw.simple_warning()
 
-        # to run as command line:
-        #pw.run_command_and_close_window(self, COMMAND, outfile)
+        if old_format:
+            import old_IODP_csv_magic
+            program_ran, error_message = old_IODP_csv_magic.main(False, **options)
+            if program_ran:
+                pw.close_window(self, COMMAND, outfile)
+            else:
+                pw.simple_warning(error_message)
+        else:
+            import IODP_csv_magic
+            program_ran, error_message = IODP_csv_magic.main(False, **options)
+            if program_ran:
+                pw.close_window(self, COMMAND, outfile)
+            else:
+                pw.simple_warning(error_message)
 
         del wait
 
