@@ -46,10 +46,10 @@ class TestUploadMagic(unittest.TestCase):
         os.system('rm {}'.format(os.path.join(directory, outfile)))
 
 
-class TestODP_samples_magic(unittest.TestCase):
+class TestIODP_samples_magic(unittest.TestCase):
 
     def setUp(self):
-        self.input_dir = os.path.join(WD, 'Datafiles', 'Measurement_Import', 'IODP_csv_magic')
+        self.input_dir = os.path.join(WD, 'Datafiles', 'Measurement_Import', 'IODP_srm_magic')
 
     def tearDown(self):
         os.chdir(WD)
@@ -58,7 +58,7 @@ class TestODP_samples_magic(unittest.TestCase):
         
     def test_with_wrong_format(self):
         infile = os.path.join(self.input_dir, 'GCR_U1359_B_coresummary.csv')
-        program_ran, error_message = ipmag.ODP_samples_magic(infile)
+        program_ran, error_message = ipmag.IODP_samples_magic(infile)
         self.assertFalse(program_ran)
         expected_error = 'Could not extract the necessary data from your input file.\nPlease make sure you are providing a correctly formated ODP samples csv file.'
         self.assertEqual(error_message, expected_error)
@@ -67,7 +67,7 @@ class TestODP_samples_magic(unittest.TestCase):
     def test_with_right_format(self):
         reference_file = os.path.join(WD, 'unittests', 'examples', 'ODP_magic_er_samples.txt')
         infile = os.path.join(self.input_dir, 'samples_318_U1359_B.csv')
-        program_ran, outfile = ipmag.ODP_samples_magic(infile)
+        program_ran, outfile = ipmag.IODP_samples_magic(infile)
         self.assertTrue(program_ran)
         self.assertEqual(outfile, './er_samples.txt')
         self.assertTrue(os.path.isfile(outfile))
@@ -76,7 +76,7 @@ class TestODP_samples_magic(unittest.TestCase):
     def test_content_with_right_format(self):
         reference_file = os.path.join(WD, 'unittests', 'examples', 'ODP_magic_er_samples.txt')
         infile = os.path.join(self.input_dir, 'samples_318_U1359_B.csv')
-        program_ran, outfile = ipmag.ODP_samples_magic(infile)
+        program_ran, outfile = ipmag.IODP_samples_magic(infile)
         self.assertEqual(open(reference_file).readlines(), open(outfile).readlines())
         
         

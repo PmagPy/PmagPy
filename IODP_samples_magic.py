@@ -5,7 +5,7 @@ import command_line_extractor as extractor
 
 def main():
     """ 
-    ODP_samples_magic.py
+    IODP_samples_magic.py
     OPTIONS:
         -f FILE, input csv file
         -Fsa FILE, output er_samples.txt file for updating, default is to overwrite er_samples.txt
@@ -18,7 +18,7 @@ def main():
     args = sys.argv
     checked_args = extractor.extract_and_check_args(args, dataframe)
     samp_file, output_samp_file, output_dir_path, input_dir_path = extractor.get_vars(['f', 'Fsa', 'WD', 'ID'], checked_args)
-    ipmag.ODP_samples_magic(samp_file, output_samp_file, output_dir_path, input_dir_path)
+    ipmag.IODP_samples_magic(samp_file, output_samp_file, output_dir_path, input_dir_path)
     
 
 if __name__ == "__main__":

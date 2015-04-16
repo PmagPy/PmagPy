@@ -111,7 +111,7 @@ class import_magnetometer_data(wx.Dialog):
         elif file_type == 'LDEO':
             dia = convert_LDEO_files_to_MagIC(self, self.WD)
         elif file_type == 'IODP':
-            dia = convert_IODP_csv_files_to_MagIC(self, self.WD)
+            dia = convert_IODP_srm_files_to_MagIC(self, self.WD)
         elif file_type == 'PMD':
             dia = convert_PMD_files_to_MagIC(self, self.WD)
         elif file_type == 'TDT':
@@ -1678,7 +1678,7 @@ class convert_LDEO_files_to_MagIC(wx.Frame):
 
 
 
-class convert_IODP_csv_files_to_MagIC(wx.Frame):
+class convert_IODP_srm_files_to_MagIC(wx.Frame):
 
     """ """
     title = "PmagPy IODP csv conversion"
@@ -1781,18 +1781,18 @@ class convert_IODP_csv_files_to_MagIC(wx.Frame):
             replicate = "-A"
             options['noave'] = 1
 
-        COMMAND = "IODP_csv_magic.py -WD {0} -f {1} -F {2} {3} -ID {4} -Fsp {5} -Fsa {6} -Fsi {7}".format(wd, IODP_file, outfile, replicate, ID, spec_outfile, samp_outfile, site_outfile)
+        COMMAND = "IODP_srm_magic.py -WD {0} -f {1} -F {2} {3} -ID {4} -Fsp {5} -Fsa {6} -Fsi {7}".format(wd, IODP_file, outfile, replicate, ID, spec_outfile, samp_outfile, site_outfile)
 
         if old_format:
-            import old_IODP_csv_magic
-            program_ran, error_message = old_IODP_csv_magic.main(False, **options)
+            import old_IODP_srm_magic
+            program_ran, error_message = old_IODP_srm_magic.main(False, **options)
             if program_ran:
                 pw.close_window(self, COMMAND, outfile)
             else:
                 pw.simple_warning(error_message)
         else:
-            import IODP_csv_magic
-            program_ran, error_message = IODP_csv_magic.main(False, **options)
+            import IODP_srm_magic
+            program_ran, error_message = IODP_srm_magic.main(False, **options)
             if program_ran:
                 pw.close_window(self, COMMAND, outfile)
             else:
@@ -1806,11 +1806,11 @@ class convert_IODP_csv_files_to_MagIC(wx.Frame):
 
     def on_helpButton(self, event):
         # to run as module:
-        import IODP_csv_magic
-        pw.on_helpButton(text=IODP_csv_magic.do_help())
+        import IODP_srm_magic
+        pw.on_helpButton(text=IODP_srm_magic.do_help())
 
         # to run as command line
-        #pw.on_helpButton("IODP_csv_magic.py -h")
+        #pw.on_helpButton("IODP_srm_magic.py -h")
 
 
 

@@ -7,8 +7,8 @@ import numpy as np
 import ipmag
 import sio_magic
 import CIT_magic
-import IODP_csv_magic
-import old_IODP_csv_magic
+import IODP_srm_magic
+import old_IODP_srm_magic
 import IODP_jr6_magic
 WD = os.getcwd()
 
@@ -147,7 +147,7 @@ class TestCIT_magic(unittest.TestCase):
         self.assertEqual(outfile, './magic_measurements.txt')
 
         
-class TestIODP_csv_magic(unittest.TestCase):
+class TestIODP_srm_magic(unittest.TestCase):
 
     def setUp(self):
         os.chdir(WD)
@@ -160,30 +160,30 @@ class TestIODP_csv_magic(unittest.TestCase):
 
 
     def test_IODP_with_no_files(self):
-        program_ran, error_message = IODP_csv_magic.main(False)
+        program_ran, error_message = IODP_srm_magic.main(False)
         self.assertFalse(program_ran)
         self.assertEqual(error_message, 'No .csv files were found')
 
-    @unittest.skip("IODP_csv_magic is missing an example datafile")
+    @unittest.skip("IODP_srm_magic is missing an example datafile")
     def test_IODP_with_files(self):
         options = {}
-        dir_path = os.path.join(WD, 'Datafiles', 'Measurement_Import', 'IODP_csv_magic')
+        dir_path = os.path.join(WD, 'Datafiles', 'Measurement_Import', 'IODP_srm_magic')
         options['dir_path'] = dir_path
-        program_ran, outfile = IODP_csv_magic.main(False, **options)
+        program_ran, outfile = IODP_srm_magic.main(False, **options)
         self.assertTrue(program_ran)
 
-    @unittest.skip("IODP_csv_magic is missing an example datafile")
+    @unittest.skip("IODP_srm_magic is missing an example datafile")
     def test_IODP_with_one_file(self):
         options = {}
-        dir_path = os.path.join(WD, 'Datafiles', 'Measurement_Import', 'IODP_csv_magic')
+        dir_path = os.path.join(WD, 'Datafiles', 'Measurement_Import', 'IODP_srm_magic')
         options['input_dir_path'] = dir_path
         options['csv_file'] = 'SRM_318_U1359_B_A.csv'
-        program_ran, outfile = IODP_csv_magic.main(False, **options)
+        program_ran, outfile = IODP_srm_magic.main(False, **options)
         self.assertTrue(program_ran)
         self.assertEqual(outfile, os.path.join(dir_path, 'SRM_318_U1359_B_A.csv.magic'))
 
 
-class Test_old_IODP_csv_magic(unittest.TestCase):
+class Test_old_IODP_srm_magic(unittest.TestCase):
 
     def setUp(self):
         os.chdir(WD)
@@ -199,24 +199,24 @@ class Test_old_IODP_csv_magic(unittest.TestCase):
 
 
     def test_old_IODP_with_no_files(self):
-        program_ran, error_message = old_IODP_csv_magic.main(False)
+        program_ran, error_message = old_IODP_srm_magic.main(False)
         self.assertFalse(program_ran)
         self.assertEqual(error_message, 'No .csv files were found')
 
     def test_old_IODP_with_files(self):
         options = {}
-        dir_path = os.path.join(WD, 'Datafiles', 'Measurement_Import', 'IODP_csv_magic')
+        dir_path = os.path.join(WD, 'Datafiles', 'Measurement_Import', 'IODP_srm_magic')
         options['input_dir_path'] = dir_path
-        program_ran, outfile = old_IODP_csv_magic.main(False, **options)
+        program_ran, outfile = old_IODP_srm_magic.main(False, **options)
         self.assertTrue(program_ran)
 
     def test_old_IODP_with_one_file(self):
         options = {}
-        input_dir_path = os.path.join(WD, 'Datafiles', 'Measurement_Import', 'IODP_csv_magic')
+        input_dir_path = os.path.join(WD, 'Datafiles', 'Measurement_Import', 'IODP_srm_magic')
         options['input_dir_path'] = input_dir_path
         options['csv_file'] = 'SRM_318_U1359_B_A.csv'
         options['meas_file'] = 'SRM_318_U1359_B_A.csv.magic'
-        program_ran, outfile = old_IODP_csv_magic.main(False, **options)
+        program_ran, outfile = old_IODP_srm_magic.main(False, **options)
         self.assertTrue(program_ran)
         self.assertEqual(outfile, './SRM_318_U1359_B_A.csv.magic')
 

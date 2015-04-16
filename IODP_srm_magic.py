@@ -3,14 +3,14 @@ import pmag,sys,os,exceptions
 def main(command_line=True, **kwargs):
     """
     NAME
-        IODP_csv_magic.py
+        IODP_srm_magic.py
  
     DESCRIPTION
-        converts ODP LIMS sample format files to magic_measurements format files
+        converts ODP LIMS SRM archive half sample format files to magic_measurements format files
 
 
     SYNTAX
-        IODP_csv_magic.py [command line options]
+        IODP_srm_magic.py [command line options]
 
     OPTIONS
         -h: prints the help message and quits.
