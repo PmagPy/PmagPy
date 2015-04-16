@@ -375,7 +375,6 @@ class convert_generic_files_to_MagIC(wx.Frame):
         else:
             LOC=""
 
-
         #-----------        
         
         LABFIELD=" "
@@ -421,17 +420,13 @@ class convert_generic_files_to_MagIC(wx.Frame):
         self.Destroy()
         self.parent.Raise()
 
-
     def on_cancelButton(self,event):
         self.Destroy()
         self.parent.Raise()
         
     def on_helpButton(self, event):
-        # to run as module:
         import generic_magic
         pw.on_helpButton(text=generic_magic.do_help())
-        # to run as command line:
-        #pw.on_helpButton("generic_magic.py -h")
 
     def get_sample_name(self,specimen,sample_naming_convenstion):
         if sample_naming_convenstion[0]=="sample=specimen":
@@ -555,7 +550,6 @@ class combine_magic_dialog(wx.Frame):
                     self.file_paths.AppendText(F+"\n")
                      
         
-        
     def on_cancelButton(self,event):
         self.Destroy()
 
@@ -589,8 +583,6 @@ class combine_magic_dialog(wx.Frame):
         
         self.on_nextButton(event)
         self.Destroy()
-
-
 
 
 class combine_everything_dialog(wx.Frame):
@@ -708,9 +700,10 @@ class combine_everything_dialog(wx.Frame):
             pw.simple_warning()
 
 
-
 class convert_SIO_files_to_MagIC(wx.Frame):
-    """stuff"""
+    """
+    convert SIO formatted measurement file to MagIC formated files
+    """
     title = "PmagPy SIO file conversion"
 
     def __init__(self, parent, WD):
@@ -724,7 +717,6 @@ class convert_SIO_files_to_MagIC(wx.Frame):
 
     def InitUI(self):
         pnl = self.panel
-
         TEXT = "SIO Format file"
         bSizer_info = wx.BoxSizer(wx.HORIZONTAL)
         bSizer_info.Add(wx.StaticText(pnl, label=TEXT), wx.ALIGN_LEFT)
@@ -779,9 +771,6 @@ class convert_SIO_files_to_MagIC(wx.Frame):
         hbox0 = wx.BoxSizer(wx.HORIZONTAL)
         hbox0.Add(self.bSizer5, flag=wx.ALIGN_LEFT)
         hbox0.Add(self.bSizer6, flag=wx.ALIGN_LEFT|wx.LEFT, border=5)
-        #hbox0a = wx.BoxSizer(wx.HORIZONTAL)
-        #hbox0a.Add(self.bSizer4, flag=wx.ALIGN_LEFT)
-        #hbox0a.Add(self.bSizer4a, flag=wx.ALIGN_LEFT|wx.LEFT, border=5)
         hbox1 =wx.BoxSizer(wx.HORIZONTAL)
         hbox1.Add(self.bSizer8, flag=wx.ALIGN_LEFT)
         hbox1.Add(self.bSizer9, flag=wx.ALIGN_LEFT|wx.LEFT, border=5)
@@ -791,18 +780,15 @@ class convert_SIO_files_to_MagIC(wx.Frame):
         vbox.Add(self.bSizer1, flag=wx.ALIGN_LEFT|wx.TOP, border=8)
         vbox.Add(self.bSizer2, flag=wx.ALIGN_LEFT|wx.TOP, border=8)
         vbox.Add(self.bSizer3, flag=wx.ALIGN_LEFT|wx.TOP, border=8)
-        #vbox.Add(hbox0a, flag=wx.ALIGN_LEFT|wx.TOP, border=8)
         vbox.Add(self.bSizer4, flag=wx.ALIGN_LEFT|wx.TOP, border=8)
         vbox.Add(self.bSizer4a, flag=wx.ALIGN_LEFT|wx.TOP, border=8)
         vbox.Add(hbox0, flag=wx.ALIGN_LEFT|wx.TOP, border=8)
         vbox.Add(self.bSizer7, flag=wx.ALIGN_LEFT|wx.TOP, border=8)
         vbox.Add(hbox1, flag=wx.ALIGN_LEFT|wx.TOP, border=8)
-        #vbox.Add(self.bSizer10, flag=wx.ALIGN_LEFT|wx.TOP, border=8)
         vbox.Add(wx.StaticLine(pnl), 0, wx.ALL|wx.EXPAND, 5)
         vbox.Add(hboxok, flag=wx.ALIGN_CENTER)        
         vbox.Add(wx.StaticLine(pnl), 0, wx.ALL|wx.EXPAND, 5)
         vbox.AddSpacer(20)
-
 
         hbox_all= wx.BoxSizer(wx.HORIZONTAL)
         hbox_all.AddSpacer(20)
@@ -814,7 +800,6 @@ class convert_SIO_files_to_MagIC(wx.Frame):
         hbox_all.Fit(self)
         self.Centre()
         self.Show()
-
         
 
     def on_add_file_button(self,event):
@@ -829,7 +814,6 @@ class convert_SIO_files_to_MagIC(wx.Frame):
             pw.simple_warning('You must provide a SIO format file')
             return False
         options_dict['mag_file'] = str(SIO_file)
-        #outfile = SIO_file + '.magic'
         magicoutfile=os.path.split(SIO_file)[1]+".magic"
         outfile =os.path.join(self.WD, magicoutfile)
         options_dict['meas_file'] = str(outfile)
@@ -882,13 +866,6 @@ class convert_SIO_files_to_MagIC(wx.Frame):
         options_dict['coil'] = coil_number
         if coil_number:
             coil_number = "-V " + coil_number
-        #synthetic = self.bSizer10.return_value()
-        #if synthetic:
-        #    options_dict['institution'] = str(synthetic[0])
-        #    options_dict['syntype'] = str(synthetic[1])
-        #    synthetic = '-syn ' + synthetic
-        #else:
-        #    synthetic = ''
 
         COMMAND = "sio_magic.py -F {0} -f {1} {2} {3} {4} -spc {5} -ncn {6} {7} {8} {9} {10} {11}".format(outfile, SIO_file, user, experiment_type, loc_name,spc, ncn, lab_field, peak_AF, coil_number, instrument, replicate)
         # to run as module:
@@ -898,21 +875,13 @@ class convert_SIO_files_to_MagIC(wx.Frame):
         else:
             pw.simple_warning()
 
-        # to run as comand line:
-        #pw.run_command_and_close_window(self, COMMAND, outfile)
-
     def on_cancelButton(self,event):
         self.Destroy()
         self.Parent.Raise()
 
     def on_helpButton(self, event):
-        # to run as module:
         import sio_magic
         pw.on_helpButton(text=sio_magic.do_help())
-
-        #to run as command line:
-        #pw.on_helpButton("sio_magic.py -h")
-
 
 
 class convert_CIT_files_to_MagIC(wx.Frame):
@@ -965,7 +934,6 @@ class convert_CIT_files_to_MagIC(wx.Frame):
         TEXT = "peak AF field (mT) if ARM: "
         self.bSizer8 = pw.labeled_text_field(pnl, TEXT)
 
-
         #---buttons ---
         hboxok = pw.btn_panel(self, pnl)
 
@@ -997,8 +965,6 @@ class convert_CIT_files_to_MagIC(wx.Frame):
         hbox_all.Fit(self)
         self.Centre()
         self.Show()
-
-
 
     def on_add_file_button(self,event):
         text = "choose file to convert to MagIC"
@@ -1048,10 +1014,6 @@ class convert_CIT_files_to_MagIC(wx.Frame):
         options_dict['methods'] = particulars
         if particulars:
             particulars = "-mcd " + particulars
-        #lab_field = self.bSizer3.return_value()
-        #options_dict['lab_field'] = lab_field
-        #if lab_field:
-        #    lab_field = "-dc " + lab_field
         peak_AF = self.bSizer8.return_value()
         options_dict['peak_AF'] = peak_AF
         if peak_AF:
@@ -1074,22 +1036,14 @@ class convert_CIT_files_to_MagIC(wx.Frame):
         else:
             pw.simple_warning(error_message)
 
-        # to run as command line:
-        #pw.run_command_and_close_window(self, COMMAND, outfile)
-
     def on_cancelButton(self,event):
         self.Destroy()
         self.Parent.Raise()
 
     def on_helpButton(self, event):
-        # to run as module:
         import CIT_magic
         pw.on_helpButton(text=CIT_magic.do_help())
         
-        # to run as command line:
-        #pw.on_helpButton("CIT_magic.py -h")
-
-
 
 class convert_HUJI_files_to_MagIC(wx.Frame):
 
@@ -1135,7 +1089,6 @@ class convert_HUJI_files_to_MagIC(wx.Frame):
         text = 'Cooling Rate (required only for cooling rate type experiments)\nformat is xxx,yyy,zzz with no spaces  '
         self.cooling_rate = wx.TextCtrl(pnl)
         self.bSizer2a.AddMany([wx.StaticText(pnl, label=text), self.cooling_rate])
-
 
         #---sizer 3 ----
         self.bSizer3 = pw.lab_field(pnl)
@@ -1195,7 +1148,6 @@ class convert_HUJI_files_to_MagIC(wx.Frame):
     #         self.bSizer2a.ShowItems(False)
     #     self.hbox_all.Fit(self)
 
-
     def on_add_file_button(self,event):
         text = "choose file to convert to MagIC"
         pw.on_add_file_button(self.bSizer0, self.WD, event, text)
@@ -1250,26 +1202,19 @@ class convert_HUJI_files_to_MagIC(wx.Frame):
             loc_name = '-loc ' + loc_name
         peak_AF = self.bSizer7.return_value()
         options['peakfield'] = peak_AF
-        #YES_NO=self.bSizer0a.return_value() 
         old_format= self.bSizer0a.return_value()
+        
         if old_format:
-            # to run as command line:
             COMMAND = "HUJI_magic.py -f {} -F {} {} -LP {} {} -ncn {} {} {} {}".format(HUJI_file, outfile, user, experiment_type, loc_name, ncn, lab_field, spc, peak_AF)
-            #pw.run_command_and_close_window(self, COMMAND, outfile)
-            
-            # to run as module:
             import HUJI_magic
             program_ran, error_message = HUJI_magic.main(False, **options)
             if program_ran:
                 pw.close_window(self, COMMAND, outfile)
             else:
                 pw.simple_warning(error_message)
+                
         else: # new format
-            # to run as command line:
             COMMAND = "HUJI_magic_new.py -f {} -F {} {} -LP {} {} -ncn {} {} {} {}".format(HUJI_file, outfile, user, experiment_type, loc_name, ncn, lab_field, spc, peak_AF)
-            #pw.run_command_and_close_window(self, COMMAND, outfile)
-            
-            # to run as module:
             import HUJI_magic_new
             program_ran, error_message = HUJI_magic_new.main(False, **options)
             if program_ran:
@@ -1288,12 +1233,6 @@ class convert_HUJI_files_to_MagIC(wx.Frame):
         else:
             import HUJI_magic_new as HUJI
         pw.on_helpButton(text=HUJI.do_help())
-
-        # to run as command_line:
-        #if old_format:
-        #    pw.on_helpButton("HUJI_magic.py -h")
-        #else:
-        #    pw.on_helpButton("HUJI_magic_new.py -h")
 
 
 class convert_2G_binary_files_to_MagIC(wx.Frame):
@@ -1343,7 +1282,6 @@ class convert_2G_binary_files_to_MagIC(wx.Frame):
 
         #---sizer 7 ----
         self.bSizer7 = pw.replicate_measurements(pnl)
-
 
         #---buttons ---
         hboxok = pw.btn_panel(self, pnl) # creates ok, cancel, help buttons and binds them to appropriate methods
@@ -1447,20 +1385,12 @@ class convert_2G_binary_files_to_MagIC(wx.Frame):
                 else:
                     pw.simple_warning()
                 
-                # to run as command_line:
-                #pw.run_command_and_close_window(self, COMMAND, outfile)
             else:
-                # to run as module:
                 print "Running equivalent of python command: ", COMMAND
                 if _2G_bin_magic.main(False, **options_dict):
                     pass # success, continue on to next file
                 else:
                     pw.simple_warning()
-                
-                # to run as command line
-                #pw.run_command(self, COMMAND, outfile)
-
-
 
     def on_cancelButton(self,event):
         self.Destroy()
@@ -1540,7 +1470,6 @@ class convert_LDEO_files_to_MagIC(wx.Frame):
 
         #---sizer 11 ---
         #self.bSizer11 = pw.synthetic(pnl)
-        
 
         #---buttons ---
         hboxok = pw.btn_panel(self, pnl)
@@ -1579,8 +1508,6 @@ class convert_LDEO_files_to_MagIC(wx.Frame):
         hbox_all.Fit(self)
         self.Centre()
         self.Show()
-
-
 
     def on_add_file_button(self,event):
         text = "choose file to convert to MagIC"
@@ -1676,8 +1603,6 @@ class convert_LDEO_files_to_MagIC(wx.Frame):
         #pw.on_helpButton("LDEO_magic.py -h")
 
 
-
-
 class convert_IODP_srm_files_to_MagIC(wx.Frame):
 
     """ """
@@ -1701,7 +1626,9 @@ class convert_IODP_srm_files_to_MagIC(wx.Frame):
         TEXT = "IODP file type"
         label1 = "Old"
         label2 = "New"
+        
         self.bSizer0a = pw.labeled_yes_or_no(pnl, TEXT, label1, label2)
+        #self.bSizer0a = pw.radio_buttons(pnl, ['old format', 'srm', 'discrete'], 'IODP file type')
 
         #---sizer 0b ---
         TEXT = "If you don't choose a file, QuickMagIC will try to import any .csv files in your working directory into one MagIC format file"

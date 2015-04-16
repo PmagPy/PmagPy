@@ -227,7 +227,7 @@ class TestIODP_jr6_magic(unittest.TestCase):
         os.chdir(WD)
 
     def tearDown(self):
-        input_dir = os.path.join(WD, 'Datafiles', 'Measurement_Import', 'IODP_jr6_magic')
+        #input_dir = os.path.join(WD, 'Datafiles', 'Measurement_Import', 'IODP_jr6_magic')
         files = ['test.magic', 'other_er_samples.txt']
         for f in files:
             full_file = os.path.join(WD, f)
