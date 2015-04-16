@@ -1703,6 +1703,10 @@ class convert_IODP_csv_files_to_MagIC(wx.Frame):
         label2 = "New"
         self.bSizer0a = pw.labeled_yes_or_no(pnl, TEXT, label1, label2)
 
+        #---sizer 0b ---
+        TEXT = "If you don't choose a file, QuickMagIC will try to import any .csv files in your working directory into one MagIC format file"
+        self.bSizer0b = pw.simple_text(pnl, TEXT)
+
         #---sizer 0 ----
         self.bSizer0 = pw.choose_file(pnl, 'add', method = self.on_add_file_button)
 
@@ -1718,6 +1722,7 @@ class convert_IODP_csv_files_to_MagIC(wx.Frame):
         vbox.AddSpacer(10)
         vbox.Add(bSizer_info, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(self.bSizer0a, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        vbox.Add(self.bSizer0b, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(self.bSizer0, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(self.bSizer1, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         #vbox.Add(self.bSizer2, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
@@ -1754,7 +1759,6 @@ class convert_IODP_csv_files_to_MagIC(wx.Frame):
         wd = self.WD
         options['dir_path'] = wd
         old_format = self.bSizer0a.return_value()
-        print 'old format:', old_format
         full_file = self.bSizer0.return_value()
         ID, IODP_file = os.path.split(full_file)
         if not ID:
