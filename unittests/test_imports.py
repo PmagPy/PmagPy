@@ -16,8 +16,6 @@ class TestSIO_magic(unittest.TestCase):
 
     def setUp(self):
         os.chdir(WD)
-        #import sio_magic
-        #pass
 
     def tearDown(self):
         meas_file = os.path.join(WD, 'Datafiles', 'Measurement_Import', 'sio_magic', 'sio_af_example.magic')
@@ -80,11 +78,10 @@ class TestSIO_magic(unittest.TestCase):
         self.assertEqual(file_name, meas_file)
 
 
-
 class TestCIT_magic(unittest.TestCase):
 
     def setUp(self):
-        pass
+        os.chdir(WD)
 
     def tearDown(self):
         for f in ['magic_measurements.txt', 'er_specimens.txt', 'er_samples.txt', 'er_sites.txt']:
@@ -150,7 +147,6 @@ class TestCIT_magic(unittest.TestCase):
         self.assertEqual(outfile, './magic_measurements.txt')
 
         
-    
 class TestIODP_csv_magic(unittest.TestCase):
 
     def setUp(self):
@@ -187,7 +183,6 @@ class TestIODP_csv_magic(unittest.TestCase):
         self.assertEqual(outfile, os.path.join(dir_path, 'SRM_318_U1359_B_A.csv.magic'))
 
 
-    
 class Test_old_IODP_csv_magic(unittest.TestCase):
 
     def setUp(self):
@@ -226,7 +221,6 @@ class Test_old_IODP_csv_magic(unittest.TestCase):
         self.assertEqual(outfile, './SRM_318_U1359_B_A.csv.magic')
 
         
-
 class TestIODP_jr6_magic(unittest.TestCase):
 
     def setUp(self):
@@ -234,9 +228,11 @@ class TestIODP_jr6_magic(unittest.TestCase):
 
     def tearDown(self):
         input_dir = os.path.join(WD, 'Datafiles', 'Measurement_Import', 'IODP_jr6_magic')
-        outfile = os.path.join(WD, 'test.magic')
-        if os.path.isfile(outfile):
-            os.system('rm {}'.format(outfile))
+        files = ['test.magic', 'other_er_samples.txt']
+        for f in files:
+            full_file = os.path.join(WD, f)
+            if os.path.isfile(full_file):
+                os.system('rm {}'.format(full_file))
 
     def test_IODP_jr6_with_no_files(self):
         options = {}
@@ -255,6 +251,21 @@ class TestIODP_jr6_magic(unittest.TestCase):
         program_ran, outfile = IODP_jr6_magic.main(False, **options)
         self.assertTrue(program_ran)
         self.assertEqual(outfile, os.path.join('.', meas_file))
+        
+    def test_IODP_jr6_with_options(self):
+
+        options = {}
+        input_dir = os.path.join(WD, 'Datafiles', 'Measurement_Import', 'IODP_jr6_magic')
+        options['input_dir_path'] = input_dir
+        mag_file = 'test.jr6'
+        options['mag_file'] = 'test.jr6'
+        meas_file = 'test.magic'
+        options['meas_file'] = meas_file
+        options['noave'] = 1
+        program_ran, outfile = IODP_jr6_magic.main(False, **options)
+        self.assertTrue(program_ran)
+        self.assertEqual(outfile, os.path.join('.', meas_file))
+
 
     def test_IODP_jr6_with_magfile_but_hidden_sampfile(self):
         options = {}
@@ -270,4 +281,6 @@ class TestIODP_jr6_magic(unittest.TestCase):
         self.assertFalse(program_ran)
         self.assertEqual(error_message, msg)
         os.system('mv {} {}'.format(hidden_samp_file, samp_file))
+
+
 
