@@ -1,5 +1,7 @@
 #!/usr/bin/env python
-import string,sys,pmag,math
+import sys,pmag,math
+import command_line_extractor as extractor
+import ipmag
 def main():
     """
     NAME
@@ -57,6 +59,27 @@ def main():
             [5] Lab arrow azimuth = azimuth; Lab arrow dip = 90-dip 
             [6] all others you will have to either customize your
                 self or e-mail ltauxe@ucsd.edu for help.
+
+    """
+
+    #def kly4s_magic(infile, specnum=0, locname="unknown", inst='SIO-KLY4S', samp_con="1", or_con='3' ,user='', measfile='magic_measurements.txt', aniso_outfile='rmag_anisotropy.txt', samp_infile='', spec_infile='', azdip_infile='', output_dir_path='.', input_dir_path='.'):
+    args = sys.argv
+    if '-h' in args:
+        print main.__doc__
+        sys.exit()
+    dataframe = extractor.command_line_dataframe([['f', True, ''], ['fad', False, ''], ['fsa', False, ''], ['fsp', False, ''], ['Fsp', False, 'er_specimens.txt'], ['F', False, 'magic_measurements.txt'], ['Fa', False, 'rmag_anisotropy.txt'], ['ocn', False, '3'], ['usr', False, ''], ['loc', False, ''], ['ins', False, 'SIO-KLY4S'], ['spc', False, 0], ['ncn', False, '1'], ['WD', False, '.'], ['ID', False, '.'] ])
+    checked_args = extractor.extract_and_check_args(args, dataframe)
+    infile, azdip_infile, samp_infile, spec_infile, spec_outfile, measfile, aniso_outfile, or_con, user, locname, inst, specnum, samp_con, output_dir_path, input_dir_path = extractor.get_vars(['f', 'fad', 'fsa', 'fsp', 'Fsp', 'F', 'Fa', 'ocn', 'usr', 'loc', 'ins', 'spc', 'ncn', 'WD', 'ID'], checked_args)
+    ipmag.kly4s_magic(infile, specnum=specnum, locname=locname, inst=inst, user=user, or_con=or_con, samp_con=samp_con, aniso_outfile=aniso_outfile, samp_infile=samp_infile, spec_infile=spec_infile, spec_outfile=spec_outfile, azdip_infile=azdip_infile, output_dir_path=output_dir_path, input_dir_path=input_dir_path)
+
+## get the args from the command line:
+#args = sys.argv
+## check through the args to make sure that reqd args are present, defaults are used as needed, and invalid args are ignored
+#checked_args = extract_and_check_args(args, dataframe)
+## assign values to variables based on their associated command-line flag
+#fmt, size, plot = get_vars(['fmt', 's', 'sav'], checked_args)
+#print "fmt:", fmt, "size:", size, "plot:", plot
+
 
     """
     citation='This study'
@@ -333,5 +356,7 @@ def main():
         sampfile='er_samples.txt'
         pmag.magic_write(sampfile,SampRecs,'er_samples')
         print 'sample data saved in ',sampfile
-main()
+    """
+if __name__ == "__main__":
+    main()
 

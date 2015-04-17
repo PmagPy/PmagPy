@@ -3116,6 +3116,7 @@ def kly4s_magic(infile, specnum=0, locname="unknown", inst='SIO-KLY4S', samp_con
     
 
     # format variables
+    specnum = int(specnum)
     samp_con = str(samp_con)
     or_con = str(or_con)
     if azdip_infile:
