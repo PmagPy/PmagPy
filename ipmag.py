@@ -3043,8 +3043,7 @@ def IODP_samples_magic(samp_file, output_samp_file=None, output_dir_path='.', in
     return True, samp_out
 
 
-def kly4s_magic(infile, specnum=0, locname="unknown", inst='SIO-KLY4S', samp_con="1", or_con='3' ,user='', measfile='magic_measurements.txt', aniso_outfile='rmag_anisotropy.txt', samp_infile='', spec_infile='', azdip_infile='', output_dir_path='.', input_dir_path='.'):
-
+def kly4s_magic(infile, specnum=0, locname="unknown", inst='SIO-KLY4S', samp_con="1", or_con='3' ,user='', measfile='magic_measurements.txt', aniso_outfile='rmag_anisotropy.txt', samp_infile='', spec_infile='', spec_outfile='er_specimens.txt', azdip_infile='', output_dir_path='.', input_dir_path='.'):
     """
     def kly4s_magic(infile, specnum=0, locname="unknown", inst='SIO-KLY4S', samp_con="1", or_con='3' ,user='', measfile='magic_measurements.txt', aniso_outfile='rmag_anisotropy.txt', samp_infile='', spec_infile='', azdip_infile='', output_dir_path='.', input_dir_path='.'):
 
@@ -3128,7 +3127,7 @@ def kly4s_magic(infile, specnum=0, locname="unknown", inst='SIO-KLY4S', samp_con
         spec_infile = os.path.join(input_dir_path, spec_infile)
         AppSpec = 1
     else:
-        spec_outfile = os.path.join(output_dir_path, 'er_specimens.txt')
+        spec_outfile = os.path.join(output_dir_path, spec_outfile)
         AppSpec = 0
     if samp_infile:
         samp_infile = os.path.join(input_dir_path, samp_infile)
@@ -3267,8 +3266,10 @@ def kly4s_magic(infile, specnum=0, locname="unknown", inst='SIO-KLY4S', samp_con
                bed_dip_direction=float(orient['sample_bed_dip_direction'])
            if "sample_bed_dip" in orient.keys() and orient['sample_bed_dip']!="":
                sample_bed_dip=float(orient['sample_bed_dip'])
-        for key in AniRec.keys():SpecRec[key]=AniRec[key]
-        for key in AniRec.keys():MeasRec[key]=AniRec[key]
+        for key in AniRec.keys():
+            SpecRec[key]=AniRec[key]
+        for key in AniRec.keys():
+            MeasRec[key]=AniRec[key]
         AniRec['anisotropy_type']="AMS"
         AniRec['anisotropy_n']="192"
         AniRec['anisotropy_s1']=rec[1]

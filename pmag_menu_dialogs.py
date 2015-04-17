@@ -310,7 +310,6 @@ class ImportModelLatitude(wx.Frame):
         dlg.Destroy()
 
 
-
 class ImportKly4s(wx.Frame):
 
     title = "kly4s format"
@@ -333,8 +332,8 @@ class ImportKly4s(wx.Frame):
         #---sizer 1 ---
         self.bSizer1 = pw.choose_file(pnl, btn_text='add AZDIP file (optional)', method = self.on_add_AZDIP_file_button)
         self.bSizer1a = pw.select_specimen_ocn(pnl)
+        self.bSizer1a.select_orientation_convention.SetSelection(2)
         
-
         #---sizer 2 ----
         self.bSizer2 = pw.labeled_text_field(pnl)
 
@@ -345,15 +344,13 @@ class ImportKly4s(wx.Frame):
         self.bSizer4 = pw.select_ncn(pnl)
 
         #---sizer 5 ---
-        self.bSizer5 = pw.select_specimen_ocn(pnl)
-        self.bSizer5.select_orientation_convention.SetSelection(2)
+        #self.bSizer5 = pw.select_specimen_ocn(pnl)
 
         #---sizer 6 ---
         self.bSizer6 = pw.labeled_text_field(pnl, "Location name:")
 
         #---sizer 7 ---
         self.bSizer7 = pw.labeled_text_field(pnl, "Instrument name (optional):")
-
 
         #---buttons ---
         hboxok = pw.btn_panel(self, pnl)
@@ -369,7 +366,6 @@ class ImportKly4s(wx.Frame):
         vbox.Add(self.bSizer2, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(self.bSizer3, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(self.bSizer4, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
-        vbox.Add(self.bSizer5, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(hbox1, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(hboxok, flag=wx.ALIGN_CENTER)        
         vbox.AddSpacer(20)
@@ -380,7 +376,6 @@ class ImportKly4s(wx.Frame):
 
         self.panel.SetSizer(self.hbox_all)
         self.panel.SetScrollbars(20, 20, 50, 50)
-        self.bSizer1a.ShowItems(False)
         self.hbox_all.Fit(self)
         self.Show()
         self.Centre()
@@ -393,7 +388,6 @@ class ImportKly4s(wx.Frame):
         text = "choose AZDIP file (optional)"
         pw.on_add_file_button(self.bSizer1, self.WD, event, text)
 
-
     def on_okButton(self, event):
         os.chdir(self.WD)
         WD = self.WD
@@ -401,29 +395,37 @@ class ImportKly4s(wx.Frame):
         ID, infile = os.path.split(full_infile)
         outfile = infile + ".magic"
         spec_outfile = infile[:infile.find('.')] + "_er_specimens.txt"
+        ani_outfile = infile[:infile.find('.')] + "_rmag_anisotropy.txt"
         full_azdip_file = self.bSizer1.return_value()
         azdip_file = os.path.split(full_azdip_file)[1]
         if azdip_file:
             azdip_file = "-fad " + azdip_file
-        try:
-            ocn = "-ocn" + self.bSizer1a.return_value()
-        except:
-            ocn = ""
+        orient_con = self.bSizer1a.return_value()
+        ocn = "-ocn " + str(self.bSizer1a.return_value())
         user = self.bSizer2.return_value()
         if user:
             user = "-usr " + user
-        n = self.bSizer3.return_value()
-        n = "-spc " + str(n)
+        specnum = self.bSizer3.return_value()
+        n = "-spc " + str(specnum)
         ncn = self.bSizer4.return_value()
-        #
         loc = self.bSizer6.return_value()
         if loc:
             loc = "-loc " + loc
+            location = loc
+        else:
+            location = ''
         ins = self.bSizer7.return_value()
         if ins:
             ins = "-ins " + ins
+            instrument = ins
+        else:
+            instrument='SIO-KLY4S'
         COMMAND = "kly4s_magic.py -WD {} -f {} -F {} {} -ncn {} {} {} {} {} {} -ID {} -fsp {}".format(self.WD, infile, outfile, azdip_file, ncn, ocn, user, n, loc, ins, ID, spec_outfile)
-        pw.run_command_and_close_window(self, COMMAND, outfile)
+        program_ran, error_message = ipmag.kly4s_magic(infile, specnum=specnum, locname=location, inst=instrument, samp_con=ncn, or_con=orient_con, user=user, measfile=outfile, aniso_outfile=ani_outfile, samp_infile='', spec_infile='', spec_outfile=spec_outfile, output_dir_path=self.WD, input_dir_path=ID)
+        if program_ran:
+            pw.close_window(self, COMMAND, outfile)
+        else:
+            pw.simple_warning(error_message)
 
     def on_cancelButton(self,event):
         self.Destroy()
