@@ -24,14 +24,14 @@ class MagICMenu(wx.MenuBar):
 
         orient_submenu = wx.Menu()
         orient2 = orient_submenu.Append(-1, 'AzDip format')
-        #orient3 = orient_submenu.Append(-1, "ODP Core Summary csv file")
+        #orient3 = orient_submenu.Append(-1, "ODP Core Summary csv file")# just moves file to WD
         orient4 = orient_submenu.Append(-1, "ODP Sample Summary csv file")
-        orient5 = orient_submenu.Append(-1, "Import model latitude data file")
+        #orient5 = orient_submenu.Append(-1, "Import model latitude data file") # just moves file to WD
 
         parent.Bind(wx.EVT_MENU, self.orient_import2, orient2)
         #parent.Bind(wx.EVT_MENU, self.orient_import3, orient3)
         parent.Bind(wx.EVT_MENU, self.orient_import4, orient4)
-        parent.Bind(wx.EVT_MENU, self.orient_import5, orient5)
+        #parent.Bind(wx.EVT_MENU, self.orient_import5, orient5)
 
         anisotropy_submenu = wx.Menu()
         anisotropy1 = anisotropy_submenu.Append(-1, "kly4s format")

@@ -186,7 +186,7 @@ class MoveFileIntoWD(wx.Frame):
         dlg.ShowModal()
         dlg.Destroy()
 
-
+# this is being replaced with 'import any file to WD'
 class ImportODPSampleSummary(wx.Frame):
 
     title = "Import ODP Sample Summary csv file"
@@ -251,7 +251,7 @@ class ImportODPSampleSummary(wx.Frame):
         pw.on_helpButton("ODP_samples_magic.py -h")
 
 
-
+# this is being replaced with 'import any file into your working directory'
 class ImportModelLatitude(wx.Frame):
 
     title = "Import Model Latitude data file"
