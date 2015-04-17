@@ -2034,7 +2034,8 @@ class Zeq_GUI(wx.Frame):
             # logger
             #self.logger.SetBackgroundColour('red')
             if fit == self.current_fit:
-                for item in range(len(self.Data[self.s]['measurement_flag'])): #self.logger.GetItemCount()):
+                for item in range(self.logger.GetItemCount()):
+                #range(len(self.Data[self.s]['measurement_flag'])):
                     if item >= tmin_index and item <= tmax_index:
                         self.logger.SetItemBackgroundColour(item,"LIGHT BLUE") # gray
                     else:
@@ -3099,6 +3100,8 @@ class Zeq_GUI(wx.Frame):
             if 'specimen_comp_name' in rec.keys() and (ord(rec['specimen_comp_name'])-64) > len(self.pmag_results_data['specimens'][specimen]):
                 self.add_fit(-1)
                 fit = self.pmag_results_data['specimens'][specimen][-1]
+            else:
+                fit = None
 
             if 'specimen_flag' in rec and rec['specimen_flag'] == 'b':
                 self.bad_fits.append(fit);
@@ -3137,11 +3140,11 @@ class Zeq_GUI(wx.Frame):
                         if fit:
                             fit.put('specimen',self.get_PCA_parameters(specimen,tmin,tmax,'specimen',calculation_type))
 
-                        if len(self.Data[specimen]['zijdblock_geo'])>0: 
-                            fit.put('geographic',self.get_PCA_parameters(specimen,tmin,tmax,'geographic',calculation_type))
+                            if len(self.Data[specimen]['zijdblock_geo'])>0: 
+                                fit.put('geographic',self.get_PCA_parameters(specimen,tmin,tmax,'geographic',calculation_type))
 
-                        if len(self.Data[specimen]['zijdblock_tilt'])>0:      
-                            fit.put('tilt-corrected',self.get_PCA_parameters(specimen,tmin,tmax,'tilt-corrected',calculation_type))
+                            if len(self.Data[specimen]['zijdblock_tilt'])>0:      
+                                fit.put('tilt-corrected',self.get_PCA_parameters(specimen,tmin,tmax,'tilt-corrected',calculation_type))
 
                     else:
                         self.GUI_log.write ( "-W- WARNING: Cant find specimen and steps of specimen %s tmin=%s, tmax=%s"%(specimen,tmin,tmax))
