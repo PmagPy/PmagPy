@@ -82,12 +82,12 @@ def main(command_line=True, **kwargs):
 
     # format variables
 
-    meas_file= output_dir_path +'/'+ meas_file
-    spec_file = output_dir_path+'/'+ spec_file
+    meas_file= os.path.join(output_dir_path, meas_file)
+    spec_file = os.path.join(output_dir_path, spec_file)
     Specs,file_type=pmag.magic_read(spec_file)
-    samp_file = output_dir_path+'/'+ samp_file
+    samp_file = os.path.join(output_dir_path, samp_file)
     ErSamps,file_type=pmag.magic_read(samp_file)
-    site_file = output_dir_path+'/'+site_file
+    site_file = os.path.join(output_dir_path, site_file)
     if csv_file=="":
         filelist=os.listdir(input_dir_path) # read in list of files to import
     else:
