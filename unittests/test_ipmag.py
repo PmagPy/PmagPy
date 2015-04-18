@@ -69,7 +69,8 @@ class TestIODP_samples_magic(unittest.TestCase):
         infile = os.path.join(self.input_dir, 'samples_318_U1359_B.csv')
         program_ran, outfile = ipmag.IODP_samples_magic(infile)
         self.assertTrue(program_ran)
-        self.assertEqual(outfile, './er_samples.txt')
+        expected_file = os.path.join('.', 'er_samples.txt')
+        self.assertEqual(outfile, expected_file)
         self.assertTrue(os.path.isfile(outfile))
 
 
@@ -98,8 +99,9 @@ class TestKly4s_magic(unittest.TestCase):
 
     def test_kly4s_with_invalid_infile(self):
         program_ran, error_message = ipmag.kly4s_magic('hello.txt')
+        expected_file = os.path.join('.', 'hello.txt')
         self.assertFalse(program_ran)
-        self.assertEqual(error_message, 'Error opening file: ./hello.txt')
+        self.assertEqual(error_message, 'Error opening file: {}'.format(expected_file))
 
     def test_kly4s_with_valid_infile(self):
         in_dir = os.path.join(WD, 'Datafiles', 'Measurement_Import', 'kly4s_magic')

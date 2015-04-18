@@ -101,7 +101,8 @@ class TestCIT_magic(unittest.TestCase):
         options['magfile'] = 'bMP.sam'
         program_ran, outfile = CIT_magic.main(False, **options)
         self.assertTrue(program_ran)
-        self.assertEqual(outfile, './magic_measurements.txt')
+        expected_file = os.path.join('.', 'magic_measurements.txt')
+        self.assertEqual(outfile, expected_file)
 
     def test_CIT_magic_fail_option4(self):
         options = {}
@@ -119,7 +120,8 @@ class TestCIT_magic(unittest.TestCase):
         options['samp_con'] = '4-3'
         program_ran, outfile = CIT_magic.main(False, **options)
         self.assertTrue(program_ran)
-        self.assertEqual(outfile, './magic_measurements.txt')
+        expected_file = os.path.join('.', 'magic_measurements.txt')
+        self.assertEqual(outfile, expected_file)
 
     def test_CIT_magic_with_options(self):
         options = {}
@@ -132,7 +134,8 @@ class TestCIT_magic(unittest.TestCase):
         options['specnum'] = 2
         program_ran, outfile = CIT_magic.main(False, **options)
         self.assertTrue(program_ran)
-        self.assertEqual(outfile, './magic_measurements.txt')
+        expected_file = os.path.join('.', 'magic_measurements.txt')
+        self.assertEqual(outfile, expected_file)
 
     def test_CIT_magic_with_other_data(self):
         options = {}
@@ -145,7 +148,8 @@ class TestCIT_magic(unittest.TestCase):
         options['specnum'] = 2
         program_ran, outfile = CIT_magic.main(False, **options)
         self.assertTrue(program_ran)
-        self.assertEqual(outfile, './magic_measurements.txt')
+        expected_file = os.path.join('.', 'magic_measurements.txt')
+        self.assertEqual(outfile, expected_file)
 
         
 class TestIODP_srm_magic(unittest.TestCase):
@@ -219,7 +223,8 @@ class Test_old_IODP_srm_magic(unittest.TestCase):
         options['meas_file'] = 'SRM_318_U1359_B_A.csv.magic'
         program_ran, outfile = old_IODP_srm_magic.main(False, **options)
         self.assertTrue(program_ran)
-        self.assertEqual(outfile, './SRM_318_U1359_B_A.csv.magic')
+        expected_file = os.path.join('.', 'SRM_318_U1359_B_A.csv.magic')
+        self.assertEqual(outfile, expected_file)
 
         
 class TestIODP_jr6_magic(unittest.TestCase):

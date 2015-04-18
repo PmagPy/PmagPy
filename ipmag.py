@@ -1692,7 +1692,7 @@ def upload_magic(concat=0, dir_path='.'):
             f.close()
             print file_type, 'written to ',up
         else:
-            print file, 'is bad or non-existent - skipping '
+            print file_type, 'is bad or non-existent - skipping '
 
     # write out the methods table
     first_rec,MethRec=1,{}
@@ -1724,7 +1724,11 @@ def upload_magic(concat=0, dir_path='.'):
         new_up = location + '_' + time.strftime(format_string) + '.txt'
     else:
         new_up = 'unknown_location_' + time.strftime(format_string) + '.txt'
+
     new_up = os.path.join(dir_path, new_up)
+    if os.path.isfile(new_up):
+        fname, extension = os.path.splitext(new_up)
+        new_up = fname + "_1" + extension
     
     os.rename(up, new_up)
     print "Finished preparing upload file: {} ".format(new_up)
