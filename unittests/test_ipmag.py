@@ -34,8 +34,16 @@ class TestUploadMagic(unittest.TestCase):
         self.assertFalse(outfile)
         self.assertEqual(error_message, "file validation has failed.  You may run into problems if you try to upload this file.")
         directory = os.path.join(self.dir_path, 'my_project_with_errors')
-        string = directory + '/' + '*.20*.txt'
-        os.system('rm ' + string)
+
+        # delete any upload file that was partially created
+        import re
+        pattern = re.compile('\w*[.]\w*[.]\w*[20]\d{2}\w*.txt$')
+        possible_files = os.listdir(directory)
+        files = []
+        for f in possible_files:
+            if pattern.match(f):
+                files.append(f)
+        pmag.remove_files(files, directory)
 
     def test_with_valid_files(self):
         print os.path.join(self.dir_path, 'my_project')
@@ -44,7 +52,7 @@ class TestUploadMagic(unittest.TestCase):
         self.assertEqual(error_message, '')
         assert os.path.isfile(outfile)
         directory = os.path.join(self.dir_path, 'my_project_with_errors')
-        os.system('rm {}'.format(os.path.join(directory, outfile)))
+        os.remove(os.path.join(directory, outfile))
 
 
 class TestIODP_samples_magic(unittest.TestCase):
@@ -54,8 +62,8 @@ class TestIODP_samples_magic(unittest.TestCase):
 
     def tearDown(self):
         os.chdir(WD)
-        if os.path.isfile('./er_samples.txt'):
-            os.system('rm er_samples.txt')
+        filelist = ['er_samples.txt']
+        pmag.remove_files(filelist, WD)
         
     def test_with_wrong_format(self):
         infile = os.path.join(self.input_dir, 'GCR_U1359_B_coresummary.csv')
@@ -89,10 +97,8 @@ class TestKly4s_magic(unittest.TestCase):
         pass
 
     def tearDown(self):
-        for f in ['magic_measurements.txt', 'my_magic_measurements.txt', 'er_specimens.txt', 'er_samples.txt', 'er_sites.txt', 'rmag_anisotropy.txt', 'my_rmag_anisotropy.txt']:
-            full_file = os.path.join(WD, f)
-            if os.path.isfile(full_file):
-                os.system('rm {}'.format(full_file))
+        filelist= ['magic_measurements.txt', 'my_magic_measurements.txt', 'er_specimens.txt', 'er_samples.txt', 'er_sites.txt', 'rmag_anisotropy.txt', 'my_rmag_anisotropy.txt']
+        pmag.remove_files(filelist, WD)
 
     def test_kly4s_without_infile(self):
         with self.assertRaises(TypeError):

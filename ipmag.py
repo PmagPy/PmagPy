@@ -1616,9 +1616,9 @@ def upload_magic(concat=0, dir_path='.'):
     CheckSign=['specimen_b_beta']
     last=file_names[-1]
     methods,first_file=[],1
-    for file in file_names:
+    for File in file_names:
     # read in the data
-        Data,file_type=pmag.magic_read(file)
+        Data,file_type=pmag.magic_read(File)
         if file_type!="bad_file":
             print "file ",file," successfully read in"
             if len(RmKeys)>0:
@@ -1693,6 +1693,7 @@ def upload_magic(concat=0, dir_path='.'):
             f.close()
             print file_type, 'written to ',up
         else:
+            print 'File:', File
             print file_type, 'is bad or non-existent - skipping '
 
     # write out the methods table

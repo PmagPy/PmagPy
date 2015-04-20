@@ -4,6 +4,7 @@ import unittest
 import sys
 import os
 import numpy as np
+import pmag
 import ipmag
 import sio_magic
 import CIT_magic
@@ -19,9 +20,9 @@ class TestSIO_magic(unittest.TestCase):
         os.chdir(WD)
 
     def tearDown(self):
-        meas_file = os.path.join(WD, 'Datafiles', 'Measurement_Import', 'sio_magic', 'sio_af_example.magic')
-        if os.path.isfile(meas_file):
-            os.system('rm {}'.format(meas_file))
+        filelist = ['sio_af_example.magic']
+        directory = os.path.join(WD, 'Datafiles', 'Measurement_Import', 'sio_magic')
+        pmag.remove_files(filelist, directory)
 
     def test_SIO_magic_no_files(self):
         program_ran, error_message = sio_magic.main(False)
@@ -85,10 +86,8 @@ class TestCIT_magic(unittest.TestCase):
         os.chdir(WD)
 
     def tearDown(self):
-        for f in ['magic_measurements.txt', 'er_specimens.txt', 'er_samples.txt', 'er_sites.txt']:
-            full_file = os.path.join(WD, f)
-            if os.path.isfile(full_file):
-                os.system('rm {}'.format(full_file))
+        filelist= ['magic_measurements.txt', 'er_specimens.txt', 'er_samples.txt', 'er_sites.txt']
+        pmag.remove_files(filelist, WD)
 
     def test_CIT_with_no_files(self):
         program_ran, error_message = CIT_magic.main(False)
@@ -159,10 +158,6 @@ class TestIODP_srm_magic(unittest.TestCase):
 
     def tearDown(self):
         pass
-        #meas_file = os.path.join(WD, 'Datafiles', 'Measurement_Import', 'sio_magic', 'sio_af_example.magic')
-        #if os.path.isfile(meas_file):
-        #    os.system('rm {}'.format(meas_file))
-
 
     def test_IODP_with_no_files(self):
         program_ran, error_message = IODP_srm_magic.main(False)
@@ -194,14 +189,8 @@ class Test_old_IODP_srm_magic(unittest.TestCase):
         os.chdir(WD)
 
     def tearDown(self):
-        for f in ['magic_measurements.txt', 'er_specimens.txt', 'er_samples.txt', 'er_sites.txt', 'SRM_318_U1359_B_A.csv.magic']:
-            full_file = os.path.join(WD, f)
-            if os.path.isfile(full_file):
-                os.system('rm {}'.format(full_file))
-        #meas_file = os.path.join(WD, 'Datafiles', 'Measurement_Import', 'sio_magic', 'sio_af_example.magic')
-        #if os.path.isfile(meas_file):
-        #    os.system('rm {}'.format(meas_file))
-
+        filelist = ['magic_measurements.txt', 'er_specimens.txt', 'er_samples.txt', 'er_sites.txt', 'SRM_318_U1359_B_A.csv.magic']
+        pmag.remove_files(filelist, WD)
 
     def test_old_IODP_with_no_files(self):
         program_ran, error_message = old_IODP_srm_magic.main(False)
@@ -233,12 +222,8 @@ class TestIODP_jr6_magic(unittest.TestCase):
         os.chdir(WD)
 
     def tearDown(self):
-        #input_dir = os.path.join(WD, 'Datafiles', 'Measurement_Import', 'IODP_jr6_magic')
         files = ['test.magic', 'other_er_samples.txt']
-        for f in files:
-            full_file = os.path.join(WD, f)
-            if os.path.isfile(full_file):
-                os.system('rm {}'.format(full_file))
+        pmag.remove_files(files, WD)
 
     def test_IODP_jr6_with_no_files(self):
         options = {}
@@ -299,11 +284,7 @@ class Test2G_bin_magic(unittest.TestCase):
         #input_dir = os.path.join(WD, 'Datafiles', 'Measurement_Import', 'IODP_jr6_magic')
         #files = ['test.magic', 'other_er_samples.txt']
         files = ['mn001-1a.magic', 'er_samples.txt', 'er_sites.txt', 'magic_measurements.txt']
-        for f in files:
-            full_file = os.path.join(WD, f)
-            if os.path.isfile(full_file):
-                print 'rm {}'.format(full_file)
-                os.system('rm {}'.format(full_file))
+        pmag.remove_files(files, WD)
 
     def test_2G_with_no_files(self):
         options = {}
