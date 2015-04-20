@@ -1658,7 +1658,9 @@ class Zeq_GUI(wx.Frame):
         #print position
         g_index=event.GetIndex()
 
-        GBpopupmenu=self.PopupMenu(demag_dialogs.GBPopupMenu(self.Data,self.magic_file,self.mag_meas_data,self.s,g_index,position))
+#        GBpopupmenu=self.PopupMenu(demag_dialogs.GBPopupMenu(self.Data,self.magic_file,self.mag_meas_data,self.s,g_index,position))
+
+
         #print "OK"
         #self.write_good_bad_magic_measurements()
         # write the corrected magic_measurements.txt
@@ -1674,13 +1676,13 @@ class Zeq_GUI(wx.Frame):
     #    self.Data,self.Data_hierarchy=self.get_data()
          
         # delete interpretation
-        TXT="measurement good or bad data is saved in magic_measurements.txt file"
-        dlg = wx.MessageDialog(self, caption="Saved",message=TXT,style=wx.OK)
-        result = dlg.ShowModal()
-        if result == wx.ID_OK:
-            dlg.Destroy()
-        else:
-            return
+#        TXT="measurement good or bad data is saved in magic_measurements.txt file"
+#        dlg = wx.MessageDialog(self, caption="Saved",message=TXT,style=wx.OK)
+#        result = dlg.ShowModal()
+#        if result == wx.ID_OK:
+#            dlg.Destroy()
+#        else:
+#            return
 
 #        if 'specimens' in self.pmag_results_data.keys() and str(self.s) in self.pmag_results_data['specimens'].keys():
 #            self.pmag_results_data['specimens'][str(self.s)] = []
@@ -1695,13 +1697,45 @@ class Zeq_GUI(wx.Frame):
 #            for fit in self.pmag_results_data['specimens'][str(self.s)]:
 #                fit.put(self.COORDINATE_SYSTEM,self.get_PCA_parameters(self.s,fit.tmin,fit.tmax,self.COORDINATE_SYSTEM,fit.get(self.COORDINATE_SYSTEM)['calculation_type']))
 
-        if str(self.s) in self.pmag_results_data['specimens']:
-            self.pmag_results_data['specimens'][str(self.s)] = []
+#        if str(self.s) in self.pmag_results_data['specimens']:
+#            self.pmag_results_data['specimens'][str(self.s)] = []
 
-        self.Data,self.Data_hierarchy=self.get_data()
-        self.calculate_higher_levels_data()
-        self.update_pmag_tables()
+#        print("-----------------------Data-------------------------")
+#        print(pd.DataFrame(self.Data))
+#        print("-----------------------Data Hierarchy-------------------------")
+#        print(pd.DataFrame(self.Data_hierarchy))
+
+#        print('reading')
+#        self.Data,self.Data_hierarchy=self.get_data()
+#        print('calculating higher levels data')
+#        self.calculate_higher_levels_data()
+#        print('updating pmag tables')
+#        self.update_pmag_tables()
+
+        mes_index = self.specimens.index(self.s)*len(self.mag_meas_data)/len(self.specimens) + g_index
+
+        if self.Data[self.s]['measurement_flag'][g_index] == 'g':
+            self.Data[self.s]['measurement_flag'][g_index] = 'b'
+            self.mag_meas_data[mes_index]['measurement_flag'] = 'b'
+        else:
+            self.Data[self.s]['measurement_flag'][g_index] = 'g'
+            self.mag_meas_data[mes_index]['measurement_flag'] = 'g'
+
+        pmag.magic_write(os.path.join(self.WD, "magic_measurements.txt"),self.mag_meas_data,"magic_measurements")
+
         self.update_selection()
+        if str(self.s) in self.pmag_results_data['specimens']:
+            for fit in self.pmag_results_data['specimens'][self.s]:
+                if fit.get('specimen') and 'calculation_type' in fit.get('specimen'):
+                    fit.put('specimen',self.get_PCA_parameters(self.s,fit.tmin,fit.tmax,'specimen',fit.get('specimen')['calculation_type']))
+                if len(self.Data[self.s]['zijdblock_geo'])>0 and fit.get('geographic') and 'calculation_type' in fit.get('geographic'):
+                    fit.put('geographic',self.get_PCA_parameters(self.s,fit.tmin,fit.tmax,'geographic',fit.get('geographic')['calculation_type']))
+                if len(self.Data[self.s]['zijdblock_tilt'])>0 and fit.get('tilt_corrected') and 'calculation_type' in fit.get('tilt_corrected'):
+                    fit.put('tilt-corrected',self.get_PCA_parameters(self.s,fit.tmin,fit.tmax,'tilt-corrected',fit.get('tilt_corrected')['calculation_type']))
+
+        for thing in self.mag_meas_data:
+            if thing['measurement_flag'] == 'b' and thing['er_specimen_name'] == self.s:
+                print(thing['er_specimen_name'],int(float(thing['treatment_temp']))-273)
         
 
     #----------------------------------------------------------------------
@@ -2068,17 +2102,18 @@ class Zeq_GUI(wx.Frame):
         in all coordinate systems
         """
 
-        calculation_type=self.current_fit.get(self.COORDINATE_SYSTEM)['calculation_type']
-#        tmin_index=str(self.tmin_box.GetSelection())
-#        tmax_index=str(self.tmax_box.GetSelection())
-        tmin=str(self.tmin_box.GetValue())
-        tmax=str(self.tmax_box.GetValue())
+        if self.current_fit:
+            calculation_type=self.current_fit.get(self.COORDINATE_SYSTEM)['calculation_type']
+    #        tmin_index=str(self.tmin_box.GetSelection())
+    #        tmax_index=str(self.tmax_box.GetSelection())
+            tmin=str(self.tmin_box.GetValue())
+            tmax=str(self.tmax_box.GetValue())
 
-        self.current_fit.put('specimen',self.get_PCA_parameters(self.s,tmin,tmax,'specimen',calculation_type))
-        if len(self.Data[self.s]['zijdblock_geo'])>0:      
-            self.current_fit.put('geographic',self.get_PCA_parameters(self.s,tmin,tmax,'geographic',calculation_type))
-        if len(self.Data[self.s]['zijdblock_tilt'])>0:      
-            self.current_fit.put('tilt-corrected',self.get_PCA_parameters(self.s,tmin,tmax,'tilt-corrected',calculation_type))
+            self.current_fit.put('specimen',self.get_PCA_parameters(self.s,tmin,tmax,'specimen',calculation_type))
+            if len(self.Data[self.s]['zijdblock_geo'])>0:      
+                self.current_fit.put('geographic',self.get_PCA_parameters(self.s,tmin,tmax,'geographic',calculation_type))
+            if len(self.Data[self.s]['zijdblock_tilt'])>0:      
+                self.current_fit.put('tilt-corrected',self.get_PCA_parameters(self.s,tmin,tmax,'tilt-corrected',calculation_type))
 
         # calculate higher level data
         self.calculate_higher_levels_data()
@@ -2726,6 +2761,7 @@ class Zeq_GUI(wx.Frame):
                  LPcode="LP-DIR-AF"
              elif  "LT-T-Z" in  methods or "LT-LT-Z" in methods:
                  tr = float(rec["treatment_temp"])-273. # celsius
+#                 except ValueError: print("error in treatment_temp: " + str(rec["treatment_temp"])); print("current rec: " + str(rec))
                  measurement_step_unit="C" # in magic its K in GUI its C
                  LPcode="LP-DIR-T"
              elif  "LT-M-Z" in  methods:
@@ -3086,7 +3122,10 @@ class Zeq_GUI(wx.Frame):
 
         self.pmag_results_data['specimens'] = {}
         for rec in pmag_specimens:
-            specimen=rec['er_specimen_name']
+            if 'er_specimen_name' in rec:
+                specimen=rec['er_specimen_name']
+            else:
+                continue
 
             #initialize list of interpertations
             if specimen in self.pmag_results_data['specimens'].keys():
@@ -4267,7 +4306,7 @@ class Zeq_GUI(wx.Frame):
                     self.bad_fits.append(fit)
             else:
                 for fit in self.pmag_results_data['specimens'][self.s]:
-                    print(fit in self.bad_fits)
+#                    print(fit in self.bad_fits)
                     if fit in self.bad_fits:
                         self.bad_fits.remove(fit)
         else:
@@ -4390,11 +4429,12 @@ class Fit():
         elif coordinate_system == 'DA-DIR-TILT' or coordinate_system == 'tilt-corrected':
             return self.tiltpars
         else:
-            print("-E- no such parameters to fetch in fit " + self.name)
+            return None
+#            print("-E- no such parameters to fetch in fit: " + self.name)
 
     def put(self,coordinate_system,new_pars):
         if type(new_pars) != dict or 'measurement_step_min' not in new_pars.keys() or 'measurement_step_max' not in new_pars.keys():
-            print("-E- invalid parameters cannot assign to fit - was given:\n"+new_pars)
+            print("-E- invalid parameters cannot assign to fit - was given:\n"+str(new_pars))
             return {}
         self.tmin = new_pars['measurement_step_min']
         self.tmax = new_pars['measurement_step_max']
