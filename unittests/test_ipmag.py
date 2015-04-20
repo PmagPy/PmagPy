@@ -4,6 +4,7 @@ import unittest
 import sys
 import os
 import numpy as np
+import pmag
 import ipmag
 WD = os.getcwd()
 
@@ -130,8 +131,44 @@ class TestKly4s_magic(unittest.TestCase):
         self.assertTrue(os.path.isfile(os.path.join(WD, 'my_rmag_anisotropy.txt')))
         
 
+class TestK15_magic(unittest.TestCase):
 
-        
+    def setUp(self):
+        os.chdir(WD)
+
+    def tearDown(self):
+        filelist = ['magic_measurements.txt', 'my_magic_measurements.txt', 'er_specimens.txt', 'er_samples.txt', 'my_er_samples.txt', 'er_sites.txt', 'rmag_anisotropy.txt', 'my_rmag_anisotropy.txt', 'rmag_results.txt', 'my_rmag_results.txt']
+        pmag.remove_files(filelist, WD)
+
+    def test_k15_with_no_files(self):
+        with self.assertRaises(TypeError):
+            ipmag.kly4s_magic()
+
+    def test_k15_with_files(self):
+        input_dir = os.path.join('Datafiles', 'Measurement_Import', 'k15_magic')
+        program_ran, outfile  = ipmag.k15_magic('k15_example.dat', input_dir_path=input_dir)
+        self.assertTrue(program_ran)
+        self.assertEqual(outfile, os.path.join('.', 'magic_measurements.txt'))
+
+    def test_k15_fail_option4(self):
+        input_dir = os.path.join('Datafiles', 'Measurement_Import', 'k15_magic')
+        program_ran, error_message = ipmag.k15_magic('k15_example.dat', sample_naming_con="4", input_dir_path=input_dir)
+        self.assertFalse(program_ran)
+        self.assertEqual(error_message, "option [4] must be in form 4-Z where Z is an integer")
+
+    def test_k15_succeed_option4(self):
+        input_dir = os.path.join('Datafiles', 'Measurement_Import', 'k15_magic')
+        program_ran, outfile = ipmag.k15_magic('k15_example.dat', sample_naming_con="4-2", input_dir_path=input_dir)
+        self.assertTrue(program_ran)
+        self.assertEqual(outfile, os.path.join(".", "magic_measurements.txt"))
+
+    def test_k15_with_options(self):
+        input_dir = os.path.join('Datafiles', 'Measurement_Import', 'k15_magic')
+        program_ran, outfile = ipmag.k15_magic('k15_example.dat', specnum=2, sample_naming_con="3", er_location_name="Here", measfile="my_magic_measurements.txt", sampfile="my_er_samples.txt", aniso_outfile="my_rmag_anisotropy.txt", result_file="my_rmag_results.txt", input_dir_path=input_dir)
+        self.assertTrue(program_ran)
+        self.assertEqual(outfile, os.path.join(".", "my_magic_measurements.txt"))
+    
+
     
 
 if __name__ == '__main__':

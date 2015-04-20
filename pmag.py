@@ -6131,7 +6131,7 @@ def pseudosample(x):
 
 def get_plate_data(plate):
     """
-    returns the pole list for a given plate"
+    returns the pole list for a given plate
     """
     if plate=='AF':
        apwp="""
@@ -8473,6 +8473,15 @@ def merge_recs_headers(recs):
             if header not in rec.keys():
                 rec[header]=""
     return recs
+
+
+def remove_files(file_list, WD='.'):
+    for f in file_list:
+        full_file = os.path.join(WD, f)
+        if os.path.isfile(full_file):
+            os.remove(full_file)
+
+
 class MissingCommandLineArgException(Exception):
 
     def __init__(self, message):
