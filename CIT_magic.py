@@ -253,7 +253,7 @@ def main(command_line=True, **kwargs):
             ErSampRec['magic_method_codes']='SO-CMD-NORTH'
         else:
             ErSampRec['magic_method_codes']='SO-MAG'
-        for line in Lines[2:len(Lines)-1]:
+        for line in Lines[2:len(Lines)]:
             #print 'line:', line
             MeasRec=ErSpecRec.copy()
 
