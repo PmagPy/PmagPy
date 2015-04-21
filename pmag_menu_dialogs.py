@@ -186,10 +186,10 @@ class MoveFileIntoWD(wx.Frame):
         dlg.ShowModal()
         dlg.Destroy()
 
-# this is being replaced with 'import any file to WD'
+
 class ImportODPSampleSummary(wx.Frame):
 
-    title = "Import ODP Sample Summary csv file"
+    title = "Import IODP Sample Summary csv file"
     
     def __init__(self, parent, WD):
         wx.Frame.__init__(self, parent, wx.ID_ANY, self.title)
@@ -199,7 +199,7 @@ class ImportODPSampleSummary(wx.Frame):
 
     def InitUI(self):
         pnl = self.panel
-        TEXT = "ODP Sample Summary csv file"
+        TEXT = "IODP Sample Summary csv file"
         bSizer_info = wx.BoxSizer(wx.HORIZONTAL)
         bSizer_info.Add(wx.StaticText(pnl, label=TEXT), wx.ALIGN_LEFT)
 
@@ -235,11 +235,11 @@ class ImportODPSampleSummary(wx.Frame):
         full_infile = self.bSizer0.return_value()
         ID, infile = os.path.split(full_infile)
         Fsa = infile[:infile.find('.')] + "_er_samples.txt"
-        program_ran, error_message = ipmag.ODP_samples_magic(infile, Fsa, WD, ID)
+        program_ran, error_message = ipmag.IODP_samples_magic(infile, Fsa, WD, ID)
         if not program_ran:
             pw.simple_warning(error_message)
         else:
-            COMMAND = "ODP_samples_magic.py -WD {} -f {} -Fsa {} -ID {}".format(WD, infile, Fsa, ID)
+            COMMAND = "IODP_samples_magic.py -WD {} -f {} -Fsa {} -ID {}".format(WD, infile, Fsa, ID)
             pw.close_window(self, COMMAND, Fsa)
         #pw.run_command_and_close_window(self, COMMAND, Fsa)
 
@@ -248,10 +248,10 @@ class ImportODPSampleSummary(wx.Frame):
         self.Parent.Raise()
 
     def on_helpButton(self, event):
-        pw.on_helpButton("ODP_samples_magic.py -h")
+        pw.on_helpButton("IODP_samples_magic.py -h")
 
 
-# this is being replaced with 'import any file into your working directory'
+"""
 class ImportModelLatitude(wx.Frame):
 
     title = "Import Model Latitude data file"
@@ -308,7 +308,7 @@ class ImportModelLatitude(wx.Frame):
         dlg = wx.MessageDialog(self, "Unaltered file will be copied to working directory", "Help", style=wx.OK|wx.ICON_EXCLAMATION)
         dlg.ShowModal()
         dlg.Destroy()
-
+"""
 
 class ImportKly4s(wx.Frame):
 
