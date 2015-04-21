@@ -3388,6 +3388,9 @@ def k15_magic(k15file, specnum=0, sample_naming_con='1', er_location_name="unkno
     aniso_outfile= os.path.join(output_dir_path, aniso_outfile)
     result_file= os.path.join(output_dir_path, result_file)
     k15file = os.path.join(input_dir_path, k15file)
+    if not os.path.exists(k15file):
+        print k15file
+        return False, "You must provide a valid k15 format file"
     try:
         SampRecs,filetype=pmag.magic_read(sampfile) # append new records to existing
         samplist=[]
@@ -3440,8 +3443,10 @@ def k15_magic(k15file, specnum=0, sample_naming_con='1', er_location_name="unkno
                 AnisRec["er_specimen_name"]=rec[0]
                 SampRec["er_specimen_name"]=rec[0]
                 ResRec["rmag_result_name"]=rec[0]
-                if specnum!=0: MeasRec["er_sample_name"]=rec[0][:specnum]
-                if specnum==0: MeasRec["er_sample_name"]=rec[0]
+                if specnum!=0:
+                    MeasRec["er_sample_name"]=rec[0][:specnum]
+                if specnum==0:
+                    MeasRec["er_sample_name"]=rec[0]
                 SampRec["er_sample_name"]=MeasRec["er_sample_name"]
                 SpecRec["er_sample_name"]=MeasRec["er_sample_name"]
                 AnisRec["er_sample_name"]=MeasRec["er_sample_name"]
