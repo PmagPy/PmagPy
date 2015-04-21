@@ -37,7 +37,7 @@
 
 
 global CURRENT_VRSION
-CURRENT_VRSION = "v.0.30"
+CURRENT_VRSION = "v.0.31"
 import matplotlib
 #import matplotlib.font_manager as font_manager
 #matplotlib.use('WXAgg')
@@ -1716,14 +1716,24 @@ class Zeq_GUI(wx.Frame):
 
         if self.Data[self.s]['measurement_flag'][g_index] == 'g':
             self.Data[self.s]['measurement_flag'][g_index] = 'b'
+            self.Data[self.s]['zijdblock'][g_index][5] = 'b'
+            if 'zijdblock_geo' in self.Data[self.s]:
+                self.Data[self.s]['zijdblock_geo'][g_index][5] = 'b'
+            if 'zijdblock_tilt' in self.Data[self.s]:
+                self.Data[self.s]['zijdblock_tilt'][g_index][5] = 'b'
             self.mag_meas_data[mes_index]['measurement_flag'] = 'b'
         else:
             self.Data[self.s]['measurement_flag'][g_index] = 'g'
+            self.Data[self.s]['zijdblock'][g_index][5] = 'g'
+            if 'zijdblock_geo' in self.Data[self.s]:
+                self.Data[self.s]['zijdblock_geo'][g_index][5] = 'g'
+            if 'zijdblock_tilt' in self.Data[self.s]:
+                self.Data[self.s]['zijdblock_tilt'][g_index][5] = 'g'
             self.mag_meas_data[mes_index]['measurement_flag'] = 'g'
 
         pmag.magic_write(os.path.join(self.WD, "magic_measurements.txt"),self.mag_meas_data,"magic_measurements")
 
-        self.update_selection()
+        self.initialize_CART_rot(self.s)
         if str(self.s) in self.pmag_results_data['specimens']:
             for fit in self.pmag_results_data['specimens'][self.s]:
                 if fit.get('specimen') and 'calculation_type' in fit.get('specimen'):
@@ -1732,10 +1742,12 @@ class Zeq_GUI(wx.Frame):
                     fit.put('geographic',self.get_PCA_parameters(self.s,fit.tmin,fit.tmax,'geographic',fit.get('geographic')['calculation_type']))
                 if len(self.Data[self.s]['zijdblock_tilt'])>0 and fit.get('tilt_corrected') and 'calculation_type' in fit.get('tilt_corrected'):
                     fit.put('tilt-corrected',self.get_PCA_parameters(self.s,fit.tmin,fit.tmax,'tilt-corrected',fit.get('tilt_corrected')['calculation_type']))
+        self.calculate_higher_levels_data();
+        self.update_selection();
 
-        for thing in self.mag_meas_data:
-            if thing['measurement_flag'] == 'b' and thing['er_specimen_name'] == self.s:
-                print(thing['er_specimen_name'],int(float(thing['treatment_temp']))-273)
+#        for thing in self.mag_meas_data:
+#            if thing['measurement_flag'] == 'b' and thing['er_specimen_name'] == self.s:
+#                print(thing['er_specimen_name'],int(float(thing['treatment_temp']))-273)
         
 
     #----------------------------------------------------------------------
@@ -1787,7 +1799,7 @@ class Zeq_GUI(wx.Frame):
         blockout=[]
         for i in range(len(blockin)):
             if self.Data[self.s]['measurement_flag'][i]=='g':
-               blockout.append( blockin[i])
+               blockout.append(blockin[i])
         return(blockout)
             
 
@@ -2118,6 +2130,7 @@ class Zeq_GUI(wx.Frame):
         # calculate higher level data
         self.calculate_higher_levels_data()
         #self.plot_higher_levels_data()
+#        self.on_menu_save_interpretation()
         self.update_selection()
         self.close_warning=True
         
@@ -3706,7 +3719,7 @@ class Zeq_GUI(wx.Frame):
         specimens_list=self.pmag_results_data['specimens'].keys()
         specimens_list.sort()
         for specimen in specimens_list:
-            for fit in self.pmag_results_data['specimens'][self.s]:
+            for fit in self.pmag_results_data['specimens'][specimen]:
                 STRING=specimen+"\t"
                 STRING=STRING+fit.PCA_type+"\t"
                 if "C" in fit.tmin:
@@ -3722,7 +3735,7 @@ class Zeq_GUI(wx.Frame):
                 else:
                     tmax="0"
                     
-                STRING=STRING+tmin+"\t"+tmax+"\t"+chr(97+self.pmag_results_data['specimens'][self.s].index(fit))+"\n"
+                STRING=STRING+tmin+"\t"+tmax+"\t"+chr(97+self.pmag_results_data['specimens'][specimen].index(fit))+"\n"
                 fout.write(STRING)
         TEXT="specimens interpretations are saved in demag_gui.redo"                
         dlg = wx.MessageDialog(self, caption="Saved",message=TEXT,style=wx.OK|wx.CANCEL )
