@@ -3,7 +3,7 @@ import pmag,sys,os,exceptions
 def main(command_line=True, **kwargs):
     """
     NAME
-        IODP_descr_magic.py
+        IODP_dscr_magic.py
  
     DESCRIPTION
         converts ODP LIMS discrete sample format files to magic_measurements format files
@@ -62,11 +62,11 @@ def main(command_line=True, **kwargs):
 
     # format variables
 
-    meas_file= output_dir_path +'/'+ meas_file
+    meas_file= os.path.join(output_dir_path, meas_file)
     if csv_file=="":
         filelist=os.listdir(input_dir_path) # read in list of files to import
     else:
-        csv_file = input_dir_path + '/' + csv_file
+        csv_file = os.path.join(input_dir_path, csv_file)
         filelist=[csv_file]
     # parsing the data
     MagRecs=[]
@@ -150,7 +150,7 @@ def main(command_line=True, **kwargs):
                 MagRecs.append(MagRec)
     if not file_found:
         print "No .csv files were found"
-        return False
+        return False, "No .csv files were found"
     MagSort=pmag.sortbykeys(MagRecs,["er_specimen_name","treatment_ac_field"])
     MagOuts=[]
     for MagRec in MagSort:
@@ -159,7 +159,7 @@ def main(command_line=True, **kwargs):
     Fixed=pmag.measurements_methods(MagOuts,noave)
     if pmag.magic_write(meas_file,Fixed,'magic_measurements'):
         print 'data stored in ',meas_file
-        return True
+        return True, meas_file
     else:
         print 'no data found.  bad magfile?'
         return False

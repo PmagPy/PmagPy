@@ -1030,11 +1030,10 @@ def core_depthplot(dir_path='.', meas_file='magic_measurements.txt', spc_file=''
         pel-=1
         width-=2
 
-    if not meth:
+    if not step or meth=='LT-NO':
+        step = 0
         method = 'LT-NO'
-    if not step:
-        step = 0    
-    if meth=="AF":
+    elif meth=="AF":
         step=round(float(step)*1e-3,6)
         method='LT-AF-Z'
     elif meth== 'T':

@@ -410,8 +410,8 @@ class ImportKly4s(wx.Frame):
         ncn = self.bSizer4.return_value()
         loc = self.bSizer6.return_value()
         if loc:
-            loc = "-loc " + loc
             location = loc
+            loc = "-loc " + loc
         else:
             location = ''
         ins = self.bSizer7.return_value()
@@ -1528,11 +1528,14 @@ class Core_depthplot(wx.Frame):
         method = str(self.bSizer13.return_value())
         step = self.bSizer14.return_value()
         if not step:
-            #-LP [AF,T,ARM,IRM, X] step [in mT,C,mT,mT, mass/vol] to plot
-            units_dict = {'AF': 'millitesla', 'T': 'degrees C', 'ARM': 'millitesla', 'IRM': 'millitesla', 'X': 'mass/vol'}
-            unit = units_dict[method]
-            pw.simple_warning("You must provide the experiment step in {}".format(unit))
-            return False
+            step = 0
+            method = 'LT-NO'
+        #if not step:
+        #    #-LP [AF,T,ARM,IRM, X] step [in mT,C,mT,mT, mass/vol] to plot
+        #    units_dict = {'AF': 'millitesla', 'T': 'degrees C', 'ARM': 'millitesla', 'IRM': 'millitesla', 'X': 'mass/vol'}
+            #unit = units_dict[method]
+            #pw.simple_warning("You must provide the experiment step in {}".format(unit))
+            #return False
         pltDec, pltInc, pltMag, logit = 0, 0, 0, 0
         for val in self.bSizer3.return_value():
             if 'declination' in val:

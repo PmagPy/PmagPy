@@ -111,7 +111,7 @@ class import_magnetometer_data(wx.Dialog):
         elif file_type == 'LDEO':
             dia = convert_LDEO_files_to_MagIC(self, self.WD)
         elif file_type == 'IODP':
-            dia = convert_IODP_srm_files_to_MagIC(self, self.WD)
+            dia = convert_IODP_files_to_MagIC(self, self.WD)
         elif file_type == 'PMD':
             dia = convert_PMD_files_to_MagIC(self, self.WD)
         elif file_type == 'TDT':
@@ -1603,7 +1603,7 @@ class convert_LDEO_files_to_MagIC(wx.Frame):
         #pw.on_helpButton("LDEO_magic.py -h")
 
 
-class convert_IODP_srm_files_to_MagIC(wx.Frame):
+class convert_IODP_files_to_MagIC(wx.Frame):
 
     """ """
     title = "PmagPy IODP csv conversion"
@@ -1624,8 +1624,8 @@ class convert_IODP_srm_files_to_MagIC(wx.Frame):
 
         #---sizer 0a ---
         TEXT = "IODP file type"
-        label1 = "Old"
-        label2 = "New"
+        label1 = "SRM section"
+        label2 = "SRM discrete"
         
         self.bSizer0a = pw.labeled_yes_or_no(pnl, TEXT, label1, label2)
         #self.bSizer0a = pw.radio_buttons(pnl, ['old format', 'srm', 'discrete'], 'IODP file type')
@@ -1685,7 +1685,7 @@ class convert_IODP_srm_files_to_MagIC(wx.Frame):
         options = {}
         wd = self.WD
         options['dir_path'] = wd
-        old_format = self.bSizer0a.return_value()
+        is_section = self.bSizer0a.return_value()
         full_file = self.bSizer0.return_value()
         ID, IODP_file = os.path.split(full_file)
         if not ID:
@@ -1710,16 +1710,16 @@ class convert_IODP_srm_files_to_MagIC(wx.Frame):
 
         COMMAND = "IODP_srm_magic.py -WD {0} -f {1} -F {2} {3} -ID {4} -Fsp {5} -Fsa {6} -Fsi {7}".format(wd, IODP_file, outfile, replicate, ID, spec_outfile, samp_outfile, site_outfile)
 
-        if old_format:
-            import old_IODP_srm_magic
-            program_ran, error_message = old_IODP_srm_magic.main(False, **options)
+        if is_section: # SRM section
+            import IODP_srm_magic
+            program_ran, error_message = IODP_srm_magic.main(False, **options)
             if program_ran:
                 pw.close_window(self, COMMAND, outfile)
             else:
                 pw.simple_warning(error_message)
-        else:
-            import IODP_srm_magic
-            program_ran, error_message = IODP_srm_magic.main(False, **options)
+        else: # SRM discrete
+            import IODP_dscr_magic
+            program_ran, error_message = IODP_dscr_magic.main(False, **options)
             if program_ran:
                 pw.close_window(self, COMMAND, outfile)
             else:
@@ -1732,12 +1732,14 @@ class convert_IODP_srm_files_to_MagIC(wx.Frame):
         self.Parent.Raise()
 
     def on_helpButton(self, event):
-        # to run as module:
-        import IODP_srm_magic
-        pw.on_helpButton(text=IODP_srm_magic.do_help())
-
-        # to run as command line
-        #pw.on_helpButton("IODP_srm_magic.py -h")
+        is_section = self.bSizer0a.return_value()
+        if is_section:
+            import IODP_srm_magic
+            pw.on_helpButton(text=IODP_srm_magic.do_help())
+        else:
+            import IODP_dscr_magic
+            pw.on_helpButton(text=IODP_dscr_magic.do_help())
+            
 
 
 
@@ -1842,6 +1844,7 @@ class convert_PMD_files_to_MagIC(wx.Frame):
         loc_name = self.bSizer4.return_value()
         options['er_location_name'] = loc_name
         if loc_name:
+            location = loc_name
             loc_name = "-loc " + loc_name
         particulars = self.bSizer5.return_value()
         options['meth_code'] = particulars
