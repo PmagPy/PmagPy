@@ -1923,11 +1923,13 @@ class convert_JR6_files_to_MagIC(wx.Frame):
         self.Bind(wx.EVT_CHECKBOX, self.on_check_joides, self.bSizer0b.cb)
 
         #---sizer 0c ---
-        self.bSizer0c = pw.simple_text(pnl, "You must have an er_samples.txt file in the same directory as your .jr6 file")
+        #self.bSizer0c = pw.simple_text(pnl, "You must have an er_samples.txt file in the same directory as your .jr6 file")
+        self.bSizer0c = pw.choose_file(pnl, btn_text='add er_samples.txt file', method=self.on_add_sampfile_button)
+        
         self.bSizer0c.ShowItems(False)
         
         #---sizer 0 ----
-        self.bSizer0 = pw.choose_file(pnl, 'add', method = self.on_add_file_button)
+        self.bSizer0 = pw.choose_file(pnl, btn_text='add measurement file', method = self.on_add_file_button)
 
         #---sizer 1 ----
         self.bSizer1 = pw.sampling_particulars(pnl)
@@ -2005,10 +2007,22 @@ class convert_JR6_files_to_MagIC(wx.Frame):
         text = "choose file to convert to MagIC"
         pw.on_add_file_button(self.bSizer0, self.WD, event, text)
 
+    def on_add_sampfile_button(self, event):
+        text = "choose er_samples type file"
+        pw.on_add_file_button(self.bSizer0c, self.WD, event, text)
+
     def on_okButton(self, event):
+        samp_file = ''
         options = {}
         input_format = self.bSizer0a.return_value()
         JR = self.bSizer0b.return_value()
+        if JR:
+            samp_file = self.bSizer0c.return_value()
+            if not samp_file:
+                samp_file = os.path.join(self.WD, 'er_samples.txt')
+                if not os.path.isfile(samp_file):
+                    pw.simple_warning("er_samples file is a required option for Joides Resolution.\nYou must either provide the name of the file, or have a file named 'er_samples.txt' in your working directory.")
+                    return False
         if input_format:
             input_format = 'txt'
         else:
@@ -2023,7 +2037,10 @@ class convert_JR6_files_to_MagIC(wx.Frame):
         meas_file = os.path.split(mag_file)[1]+".magic"
         options['meas_file'] = str(meas_file)
         #samp_file = os.path.splitext(os.path.splitext(meas_file)[0])[0] + "_er_samples.txt"
-        options['samp_file'] = 'er_samples.txt'
+        if not samp_file:
+            options['samp_file'] = 'er_samples.txt'
+        else:
+            options['samp_file'] = samp_file
         specnum = self.bSizer2.return_value()
         options['specnum'] = specnum
         samp_con = self.bSizer3.return_value()
@@ -2076,9 +2093,8 @@ class convert_JR6_files_to_MagIC(wx.Frame):
         if JR: # Joides Resolution
             if not mag_file:
                 pw.simple_warning('You must provide a valid IODP JR6 file')
-            samp_file = os.path.join(input_dir_path, 'er_samples.txt')
-            if not os.path.isfile(samp_file):
-                pw.simple_warning("No 'er_samples.txt' file found in your input directory:\n{}\nYou can download the csv sample file and import it to MagIC.\nIn the menubar, use Import -> orientation/location/stratigraphic files -> ODP sample summary csv file".format(input_dir_path))
+            if not os.path.isfile(options['samp_file']):
+                pw.simple_warning("No 'er_samples.txt' file was provided or found in your input directory:\n{}\nYou can download the csv sample file and import it to MagIC.\nIn the menubar, use Import -> orientation/location/stratigraphic files -> ODP sample summary csv file".format(input_dir_path))
                 return False
             import IODP_jr6_magic
             program_ran, error_message = IODP_jr6_magic.main(False, **options)
