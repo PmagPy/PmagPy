@@ -231,7 +231,7 @@ class TestIODP_jr6_magic(unittest.TestCase):
         input_dir = os.path.join(WD, 'Datafiles', 'Measurement_Import', 'IODP_jr6_magic')
         samp_file = os.path.join(input_dir, 'er_samples.txt')
         hidden_samp_file = os.path.join(input_dir, 'hidden_er_samples.txt')
-        os.system('mv {} {}'.format(samp_file, hidden_samp_file))
+        os.rename(samp_file, hidden_samp_file)
         options['input_dir_path'] = input_dir
         mag_file = 'test.jr6'
         options['mag_file'] = mag_file
@@ -239,7 +239,7 @@ class TestIODP_jr6_magic(unittest.TestCase):
         msg = "Your input directory:\n{}\nmust contain an er_samples.txt file".format(input_dir)
         self.assertFalse(program_ran)
         self.assertEqual(error_message, msg)
-        os.system('mv {} {}'.format(hidden_samp_file, samp_file))
+        os.rename(hidden_samp_file, samp_file)
 
 
 class Test2G_bin_magic(unittest.TestCase):

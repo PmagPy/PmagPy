@@ -1908,7 +1908,7 @@ class convert_JR6_files_to_MagIC(wx.Frame):
     def InitUI(self):
 
         pnl = self.panel
-        TEXT = "JR6 format file (.txt format only)"
+        TEXT = "JR6 format file (currently .txt format only)"
         bSizer_info = wx.BoxSizer(wx.HORIZONTAL)
         bSizer_info.Add(wx.StaticText(pnl, label=TEXT), wx.ALIGN_LEFT)
 

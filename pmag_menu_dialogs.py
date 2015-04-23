@@ -627,17 +627,13 @@ class ImportSufarAscii(wx.Frame):
         else:
             k15 = "-k15"
         COMMAND = "SUFAR4-asc_magic.py -WD {} -f {} -F {} {} -spc {} -ncn {} {} {} {} -ID {}".format(WD, infile, outfile, usr, spc, ncn, loc, ins, k15, ID)
-        #print COMMAND
         pw.run_command_and_close_window(self, COMMAND, outfile)
-        command = 'mv er_specimens.txt {}'.format(spec_outfile)
-        print "Renaming er_specimens.txt file: \n", command
-        os.system(command)
-        command = 'mv er_samples.txt {}'.format(samp_outfile)
-        print "Renaming er_samples.txt file: \n", command
-        os.system(command)
-        command = 'mv er_sites.txt {}'.format(site_outfile)
-        print "Renaming er_sites.txt file: \n", command
-        os.system(command)
+        print "Renaming er_specimens.txt file: {}".format(spec_outfile)
+        os.rename('er_specimens.txt', spec_outfile)
+        print "Renaming er_samples.txt file: {}".format(samp_outfile)
+        os.rename('er_samples.txt', samp_outfile)
+        print "Renaming er_sites.txt file: {}".format(site_outfile)
+        os.rename('er_sites.txt', site_outfile)
 
     def on_cancelButton(self,event):
         self.Destroy()
@@ -1915,7 +1911,6 @@ class ClearWD(wx.MessageDialog):
         result = self.ShowModal()
         self.Destroy()
         if result == wx.ID_YES:
-            #os.system('rm -r {}'.format(WD))
             os.chdir('..')
             import shutil
             shutil.rmtree(WD)
