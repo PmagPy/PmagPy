@@ -88,7 +88,9 @@ def main(command_line=True, **kwargs):
         output_dir_path = dir_path
         meas_file = kwargs.get('meas_file', 'magic_measurements.txt')
         mag_file = kwargs.get('mag_file')
-        samp_file = kwargs.get('samp_file', 'er_samples.txt')
+        samp_file = kwargs.get('samp_file', os.path.join(input_dir_path, 'er_samples.txt'))
+        if not os.path.split(samp_file)[0]:
+            samp_file = os.path.join(input_dir_path, samp_file)
         specnum = kwargs.get('specnum', 1)
         samp_con = kwargs.get('samp_con', '1')
         if len(str(samp_con)) > 1:
@@ -102,9 +104,12 @@ def main(command_line=True, **kwargs):
     if not mag_file:
         print "You must provide an IODP_jr6 format file"
         return False, "You must provide an IODP_jr6 format file"
-    if not os.path.exists(os.path.join(input_dir_path, samp_file)):
-        print "Your input directory:\n{}\nmust contain an er_samples.txt file".format(input_dir_path)
-        return False, "Your input directory:\n{}\nmust contain an er_samples.txt file".format(input_dir_path)
+    if not os.path.exists(os.path.join(input_dir_path, mag_file)):
+        print 'The input file you provided: {} does not exist.\nMake sure you have specified the correct filename AND correct input directory name.'.format(os.path.join(input_dir_path, mag_file))
+        return False, 'The input file you provided: {} does not exist.\nMake sure you have specified the correct filename AND correct input directory name.'.format(os.path.join(input_dir_path, mag_file))
+    if not os.path.exists(samp_file):
+        print "Your input directory:\n{}\nmust contain an er_samples.txt file, or you must explicitly provide one".format(input_dir_path)
+        return False, "Your input directory:\n{}\nmust contain an er_samples.txt file, or you must explicitly provide one".format(input_dir_path)
     # format variables
     meth_code=meth_code+":FS-C-DRILL-IODP:SP-SS-C:SO-V"
     meth_code=meth_code.strip(":")
@@ -112,7 +117,7 @@ def main(command_line=True, **kwargs):
     samp_file = os.path.join(input_dir_path, samp_file)
     meas_file = os.path.join(output_dir_path, meas_file)
     # parse data
-    data=pd.read_csv(mag_file,delim_whitespace=True,header=None)
+    data=pd.read_csv(mag_file,delim_whitespace=True,header=None)    
     samples,filetype = pmag.magic_read(samp_file)
     data.columns=['specname','step','negz','y','x','expon','sample_azimuth','sample_dip','sample_bed_dip_direction','sample_bed_dip','bed_dip_dir2','bed_dip2','param1','param2','param3','param4','measurement_csd']
     cart=np.array([data['x'],data['y'],-data['negz']]).transpose()

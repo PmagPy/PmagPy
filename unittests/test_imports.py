@@ -191,6 +191,12 @@ class TestIODP_jr6_magic(unittest.TestCase):
     def tearDown(self):
         files = ['test.magic', 'other_er_samples.txt']
         pmag.remove_files(files, WD)
+        # then, make sure that hidden_er_samples.txt has been successfully renamed to er_samples.txt
+        input_dir = os.path.join(WD, 'Datafiles', 'Measurement_Import', 'IODP_jr6_magic')
+        hidden_sampfile = os.path.join(input_dir, 'hidden_er_samples.txt')
+        sampfile = os.path.join(input_dir, 'er_samples.txt')
+        if os.path.exists(hidden_sampfile):
+            os.rename(hidden_sampfile, sampfile)
 
     def test_IODP_jr6_with_no_files(self):
         options = {}
@@ -236,7 +242,7 @@ class TestIODP_jr6_magic(unittest.TestCase):
         mag_file = 'test.jr6'
         options['mag_file'] = mag_file
         program_ran, error_message = IODP_jr6_magic.main(False, **options)
-        msg = "Your input directory:\n{}\nmust contain an er_samples.txt file".format(input_dir)
+        msg = "Your input directory:\n{}\nmust contain an er_samples.txt file, or you must explicitly provide one".format(input_dir)
         self.assertFalse(program_ran)
         self.assertEqual(error_message, msg)
         os.rename(hidden_samp_file, samp_file)
