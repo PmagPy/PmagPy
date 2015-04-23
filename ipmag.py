@@ -3618,3 +3618,7 @@ def k15_magic(k15file, specnum=0, sample_naming_con='1', er_location_name="unkno
     pmag.magic_write(measfile,MeasRecs,'magic_measurements')
     print "Data saved to: ",sampfile,aniso_outfile,result_file,measfile
     return True, measfile
+
+def SUFAR4_magic(infile):
+    pass
+    

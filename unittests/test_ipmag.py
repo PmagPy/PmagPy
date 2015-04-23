@@ -173,8 +173,45 @@ class TestK15_magic(unittest.TestCase):
         program_ran, outfile = ipmag.k15_magic('k15_example.dat', specnum=2, sample_naming_con="3", er_location_name="Here", measfile="my_magic_measurements.txt", sampfile="my_er_samples.txt", aniso_outfile="my_rmag_anisotropy.txt", result_file="my_rmag_results.txt", input_dir_path=input_dir)
         self.assertTrue(program_ran)
         self.assertEqual(outfile, os.path.join(".", "my_magic_measurements.txt"))
-    
 
+
+class TestSUFAR_asc_magic(unittest.TestCase):
+
+    def setUp(self):
+        os.chdir(WD)
+
+    def tearDown(self):
+        filelist = ['magic_measurements.txt', 'my_magic_measurements.txt', 'er_specimens.txt', 'er_samples.txt', 'my_er_samples.txt', 'er_sites.txt', 'rmag_anisotropy.txt', 'my_rmag_anisotropy.txt', 'rmag_results.txt', 'my_rmag_results.txt']
+        pmag.remove_files(filelist, WD)
+
+
+    def test_SUFAR4_with_no_files(self):
+        with self.assertRaises(TypeError):
+            ipmag.SUFAR4_magic()
+
+    def test_SUFAR4_with_infile(self):
+        input_dir = os.path.join('Datafiles', 'Measurement_Import', 'SUFAR_asc_magic')
+        infile = 'sufar4-asc_magic_example.txt'
+        program_ran, outfile = ipmag.SUFAR4_magic(infile, input_dir=input_dir)
+        self.assertTrue(program_ran)
+        self.assertEqual(outfile, 'outfile_name.txt')
+
+
+    def test_SUFAR4_fail_option4(self):
+        input_dir = os.path.join('Datafiles', 'Measurement_Import', 'SUFAR_asc_magic')
+        infile = 'sufar4-asc_magic_example.txt'
+        program_ran, error_message = ipmag.SUFAR4_magic(infile, input_dir=input_dir, sample_naming_con='4')
+        self.assertFalse(program_ran)
+        self.assertEqual(error_message, "option [4] must be in form 4-Z where Z is an integer")
+
+    def test_SUFAR4_succeed_option4(self):
+        input_dir = os.path.join('Datafiles', 'Measurement_Import', 'SUFAR_asc_magic')
+        infile = 'sufar4-asc_magic_example.txt'
+        program_ran, outfile = ipmag.SUFAR4_magic(infile, input_dir=input_dir, sample_naming_con='4-2')
+        self.assertTrue(program_ran)
+        self.assertEqual(outfile, "outfile.txt")
+
+        
     
 
 if __name__ == '__main__':
