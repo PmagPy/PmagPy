@@ -1002,6 +1002,41 @@ def first_rec(ofile,Rec,file_type):
     pmag_out.close()
     return keylist
 
+def magic_write_old(ofile,Recs,file_type):
+    """
+    writes out a magic format list of dictionaries to ofile
+    """
+    
+    if len(Recs)<1:
+        return
+    pmag_out=open(ofile,'w')
+    outstring="tab \t"+file_type+"\n"
+    pmag_out.write(outstring)
+    keystring=""
+    keylist=[]
+    for key in Recs[0].keys():
+        keylist.append(key)
+    keylist.sort()
+    for key in keylist:
+        keystring=keystring+'\t'+key.strip()
+    keystring=keystring + '\n'
+    pmag_out.write(keystring[1:])
+    for Rec in Recs:
+        outstring=""
+        for key in keylist:
+           try:
+              outstring=outstring+'\t'+str(Rec[key].strip())
+           except:
+              if 'er_specimen_name' in Rec.keys():
+                  print Rec['er_specimen_name'] 
+              elif 'er_specimen_names' in Rec.keys():
+                  print Rec['er_specimen_names'] 
+              print key,Rec[key]
+              raw_input()
+        outstring=outstring+'\n'
+        pmag_out.write(outstring[1:])
+    pmag_out.close()
+
 def magic_write(ofile,Recs,file_type):
     """
     called by magic_write(outputfile,records_list,magic_file_type)
@@ -5877,7 +5912,7 @@ def set_priorities(SO_methods,ask):
      figure out which sample_azimuth to use, if multiple orientation methods
     """
     # if ask set to 1, then can change priorities
-    SO_defaults=['SO-SUN','SO-GPS-DIFF','SO-SIGHT','SO-SIGHT-BS','SO-CMD-NORTH','SO-MAG','SO-SM','SO-REC','SO-V','SO-NO']
+    SO_defaults=['SO-SUN','SO-GPS-DIFF','SO-SIGHT','SO-SIGHT-BS','SO-CMD-NORTH','SO-MAG','SO-SM','SO-REC','SO-V','SO-CORE','SO-NO']
     SO_priorities,prior_list=[],[]
     if len(SO_methods) >= 1:
         for l in range(len(SO_defaults)):
