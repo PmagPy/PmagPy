@@ -1108,6 +1108,10 @@ class convert_HUJI_files_to_MagIC(wx.Frame):
         TEXT = "peak AF field (mT) if ARM: "
         self.bSizer7 = pw.labeled_text_field(pnl, TEXT)
 
+        #---sizer 8 ---
+        self.bSizer8 = pw.replicate_measurements(pnl)
+        
+
         #---buttons ---
         hboxok = pw.btn_panel(self, pnl)
 
@@ -1125,6 +1129,7 @@ class convert_HUJI_files_to_MagIC(wx.Frame):
         vbox.Add(self.bSizer5, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(self.bSizer6, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(self.bSizer7, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        vbox.Add(self.bSizer8, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(wx.StaticLine(pnl), 0, wx.ALL|wx.EXPAND, 5)
         vbox.Add(hboxok, flag=wx.ALIGN_CENTER)        
         vbox.AddSpacer(20)
@@ -1178,8 +1183,6 @@ class convert_HUJI_files_to_MagIC(wx.Frame):
         cooling_rate = self.cooling_rate.GetValue() or 0
         if cooling_rate:
             experiment_type = experiment_type + " " + cooling_rate
-        print 'experiment_type', experiment_type
-        print 'cooling_rate', cooling_rate
         lab_field = self.bSizer3.return_value()
         if not lab_field:
             lab_field = "0 0 0"
@@ -1202,10 +1205,19 @@ class convert_HUJI_files_to_MagIC(wx.Frame):
             loc_name = '-loc ' + loc_name
         peak_AF = self.bSizer7.return_value()
         options['peakfield'] = peak_AF
+
+        replicate = self.bSizer8.return_value()
+        if replicate:
+            options['noave'] = 0
+            replicate = ''
+        else:
+            options['noave'] = 1
+            replicate = '-A'
+        
         old_format= self.bSizer0a.return_value()
         
         if old_format:
-            COMMAND = "HUJI_magic.py -f {} -F {} {} -LP {} {} -ncn {} {} {} {}".format(HUJI_file, outfile, user, experiment_type, loc_name, ncn, lab_field, spc, peak_AF)
+            COMMAND = "HUJI_magic.py -f {} -F {} {} -LP {} {} -ncn {} {} {} {} {}".format(HUJI_file, outfile, user, experiment_type, loc_name, ncn, lab_field, spc, peak_AF, replicate)
             import HUJI_magic
             program_ran, error_message = HUJI_magic.main(False, **options)
             if program_ran:

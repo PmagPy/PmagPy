@@ -152,7 +152,6 @@ def main(command_line=True, **kwargs):
             codelist=args[ind+1]
         if "-A" in args:
             noave=1
-
             
     if not command_line:
         user = kwargs.get('user', '')
@@ -171,6 +170,7 @@ def main(command_line=True, **kwargs):
         samp_con = kwargs.get('samp_con')
         codelist = kwargs.get('codelist')
         CR_cooling_times = kwargs.get('CR_cooling_times', None)
+        noave = kwargs.get('noave', 0)
 
     # format and validate variables:
     if magfile:
