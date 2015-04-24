@@ -207,9 +207,18 @@ def main():
         ErSpecs,file_type=pmag.magic_read(wt_file) 
         print len(ErSpecs), ' specimens read in from ',wt_file
     Cores=[] 
+    core_depth_key="Top depth cored CSF (m)"
     if sum_file!="":
         input=open(sum_file,'rU').readlines()
-        keys=input[1].replace('\n','').split(',') # splits on underscores
+        if "Core Summary" in input[0]:
+            headline=1
+        else:
+            headline=0
+        keys=input[headline].replace('\n','').split(',')
+        if "Core Top (m)" in keys:core_depth_key="Core Top (m)"
+        if "Top depth cored CSF (m)" in keys: core_dpeth_key="Top depth cored CSF (m)"
+        if "Core Label" in keys:core_label_key="Core Label"
+        if "Core label" in keys:core_label_key="Core label"
         for line in input[2:]:
             if 'TOTALS' not in line:
                 CoreRec={}
@@ -338,6 +347,7 @@ def main():
                 Susc,Sus_depths=[],[]
     if dmin==-1:
         if len(Depths)>0: dmin,dmax=Depths[0],Depths[-1]
+        if len(FDepths)>0: dmin,dmax=Depths[0],Depths[-1]
         if pltS==1 and len(SDepths)>0:
             if SDepths[0]<dmin:dmin=SDepths[0]
             if SDepths[-1]>dmax:dmax=SDepths[-1]
@@ -395,10 +405,10 @@ def main():
                 pylab.plot(ResDecs,ResDepths,res_sym,markersize=res_size) 
             if sum_file!="":
                 for core in Cores:
-                     depth=float(core['Core Top (m)']) 
+                     depth=float(core[core_depth_key]) 
                      if depth>dmin and depth<dmax:
                         pylab.plot([0,360.],[depth,depth],'b--')
-                        if pel==plt:pylab.text(360,depth+tint,core['Core Label'])
+                        if pel==plt:pylab.text(360,depth+tint,core[core_label_key])
             if pel==plt:
                 pylab.axis([0,400,dmax,dmin])
             else:
@@ -414,13 +424,14 @@ def main():
             if len(Incs)==0 and pltL==1 and len(SIncs)>0:pylab.plot(SIncs,SDepths,'k')
             if len(SIncs)>0:pylab.plot(SIncs,SDepths,Ssym,markersize=Ssize) 
             if spc_file!="" and len(SpecDepths)>0:pylab.plot(SpecIncs,SpecDepths,spc_sym,markersize=spc_size) 
-            if spc_file!="" and len(FDepths)>0:pylab.scatter(FIncs,FDepths,marker=spc_sym[-1],edgecolor=spc_sym[0],facecolor='white',s=spc_size**2)
+            if spc_file!="" and len(FDepths)>0:
+                pylab.scatter(FIncs,FDepths,marker=spc_sym[-1],edgecolor=spc_sym[0],facecolor='white',s=spc_size**2)
             if res_file!="":pylab.plot(ResIncs,ResDepths,res_sym,markersize=res_size) 
             if sum_file!="":
                 for core in Cores:
-                     depth=float(core['Core Top (m)']) 
+                     depth=float(core[core_depth_key]) 
                      if depth>dmin and depth<dmax:
-                         if pel==plt:pylab.text(90,depth+tint,core['Core Label'])
+                         if pel==plt:pylab.text(90,depth+tint,core[core_label_key])
                          pylab.plot([-90,90],[depth,depth],'b--')
             pylab.plot([0,0],[dmax,dmin],'k-') 
             if pel==plt:
@@ -445,9 +456,9 @@ def main():
                 if len(SInts)>0:pylab.plot(SInts,SDepths,Ssym,markersize=Ssize) 
                 if sum_file!="":
                     for core in Cores:
-                         depth=float(core['Core Top (m)']) 
+                         depth=float(core[core_depth_key]) 
                          pylab.plot([0,maxInt*10**pow+.1],[depth,depth],'b--')
-                         if depth>dmin and depth<dmax:pylab.text(maxInt*10**pow-.2*maxInt*10**pow,depth+tint,core['Core Label'])
+                         if depth>dmin and depth<dmax:pylab.text(maxInt*10**pow-.2*maxInt*10**pow,depth+tint,core[core_label_key])
                 pylab.axis([0,maxInt*10**pow+.1,dmax,dmin])
                 if norm==0:
                     pylab.xlabel('%s %i %s'%('Intensity (10^-',pow,' Am^2)'))
@@ -461,9 +472,9 @@ def main():
                 if len(SInts)>0:pylab.semilogx(SInts,SDepths,Ssym,markersize=Ssize) 
                 if sum_file!="":
                     for core in Cores:
-                         depth=float(core['Core Top (m)']) 
+                         depth=float(core[core_depth_key]) 
                          pylab.semilogx([minInt,maxInt],[depth,depth],'b--')
-                         if depth>dmin and depth<dmax:pylab.text(maxInt-.2*maxInt,depth+tint,core['Core Label'])
+                         if depth>dmin and depth<dmax:pylab.text(maxInt-.2*maxInt,depth+tint,core[core_label_key])
                 pylab.axis([0,maxInt,dmax,dmin])
                 if norm==0:
                     pylab.xlabel('Intensity (Am^2)')
@@ -481,7 +492,7 @@ def main():
                 if logit==1:pylab.semilogx(SSucs,SDepths,sym,markersize=size) 
             if sum_file!="":
                 for core in Cores:
-                     depth=float(core['Core Top (m)']) 
+                     depth=float(core[core_depth_key]) 
                      if logit==0:pylab.plot([minSuc,maxSuc],[depth,depth],'b--')
                      if logit==1:pylab.semilogx([minSuc,maxSuc],[depth,depth],'b--')
             pylab.axis([minSuc,maxSuc,dmax,dmin])
@@ -492,7 +503,7 @@ def main():
             pylab.plot(WIG,WIG_depths,'k') 
             if sum_file!="":
                 for core in Cores:
-                     depth=float(core['Core Top (m)']) 
+                     depth=float(core[core_depth_key]) 
                      pylab.plot([WIG[0],WIG[-1]],[depth,depth],'b--')
             pylab.axis([min(WIG),max(WIG),dmax,dmin])
             pylab.xlabel(plt_key)
