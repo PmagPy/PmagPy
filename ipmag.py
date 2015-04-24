@@ -2983,6 +2983,8 @@ def IODP_samples_magic(samp_file, output_samp_file=None, output_dir_path='.', in
         date_key="Sample date logged"
     elif "Date sample logged" in keys:
         date_key="Date sample logged"
+    if 'Volume (cc)' in keys:volume_key='Volume (cc)'
+    if 'Volume (cm^3)' in keys:volume_key='Volume (cm^3)'
     if not text_key:
         return False, "Could not extract the necessary data from your input file.\nPlease make sure you are providing a correctly formated ODP samples csv file."    
     ErSamples,samples,file_format=[],[],'old'
@@ -3018,8 +3020,8 @@ def IODP_samples_magic(samp_file, output_samp_file=None, output_dir_path='.', in
             SampRec['sample_dip']="0"
             SampRec['sample_azimuth']="0"
             SampRec['sample_core_depth']=ODPRec[depth_key]
-            if ODPRec['Volume (cc)']!="":
-                SampRec['sample_volume']=str(float(ODPRec['Volume (cc)'])*1e-6)
+            if ODPRec[volume_key]!="":
+                SampRec['sample_volume']=str(float(ODPRec[volume_key])*1e-6)
             else:
                 SampRec['sample_volume']='1'
             if comp_depth_key!="":
