@@ -105,15 +105,14 @@ def main(command_line=True, **kwargs):
             samp_con=sys.argv[ind+1]
             if "4" in samp_con:
                 if "-" not in samp_con:
-                    print "option [4] must be in form 3-Z where Z is an integer"
-                    return False
+                    print "option [4] must be in form 4-Z where Z is an integer"
+                    return False, "naming convention option [4] must be in form 4-Z where Z is an integer"
                 else: 
                     Z=samp_con.split("-")[1]
                     samp_con="4"
         if '-f' in args:
             ind=args.index("-f")
             magfile=args[ind+1]
-        # LJ
         if '-ID' in args:
             ind = args.index('-ID')
             input_dir_path = args[ind+1]
@@ -124,18 +123,18 @@ def main(command_line=True, **kwargs):
 
     # if you are running as a module:
     elif not command_line:
-        dir_path = kwargs.get('dir_path')
+        dir_path = kwargs.get('dir_path', '.')
         user = kwargs.get('user', '')
-        meas_file = kwargs.get('meas_file', '') # outfile
-        spec_file = kwargs.get('spec_file', '') # specimen outfile
-        samp_file = kwargs.get('samp_file', '') # sample outfile
-        site_file = kwargs.get('site_file', '') # site outfile
+        meas_file = kwargs.get('meas_file', 'magic_measurements.txt') # outfile
+        spec_file = kwargs.get('spec_file', 'er_specimens.txt') # specimen outfile
+        samp_file = kwargs.get('samp_file', 'er_samples.txt') # sample outfile
+        site_file = kwargs.get('site_file', 'er_sites.txt') # site outfile
         locname = kwargs.get('locname', '')
         methods = kwargs.get('methods', ['SO-MAG'])
         specnum = -int(kwargs.get('specnum', 0))
         norm = kwargs.get('norm', 'cc')
         avg = kwargs.get('avg', 0)  # 0 means do average, 1 means don't
-        samp_con = kwargs.get('samp_con')
+        samp_con = kwargs.get('samp_con', '3')
         magfile = kwargs.get('magfile', '')
         input_dir_path = kwargs.get('input_dir_path', dir_path)
         output_dir_path = dir_path
@@ -144,23 +143,23 @@ def main(command_line=True, **kwargs):
     # formatting and checking variables
     if "4" in samp_con:
         if "-" not in samp_con:
-            print "option [4] must be in form 3-Z where Z is an integer"
-            return False
+            print "option [4] must be in form 4-Z where Z is an integer"
+            return False, "naming convention option [4] must be in form 4-Z where Z is an integer"
         else: 
             Z=samp_con.split("-")[1]
             samp_con="4"
 
-    magfile = input_dir_path+'/'+magfile
-    spec_file = output_dir_path+'/'+spec_file
-    samp_file = output_dir_path+'/'+samp_file
-    site_file = output_dir_path+'/'+site_file
-    meas_file= output_dir_path+'/'+meas_file
+    magfile = os.path.join(input_dir_path, magfile)
+    spec_file = os.path.join(output_dir_path, spec_file)
+    samp_file = os.path.join(output_dir_path, samp_file)
+    site_file = os.path.join(output_dir_path, site_file)
+    meas_file= os.path.join(output_dir_path, meas_file)
     try:
-        input=open(magfile,'r')
+        file_input=open(magfile,'r')
     except Exception as ex:
-        print "bad sam file name"
-        return False
-    File=input.readlines()
+        print "bad sam file name: ", magfile
+        return False, "bad sam file name"
+    File = file_input.readlines()
     sids,ln,format=[],0,'CIT'
     formats=['CIT','2G','APP','JRA']
     ErLocRec={}
@@ -215,7 +214,8 @@ def main(command_line=True, **kwargs):
         Lines=f.readlines()
         comment=""
         line=Lines[0].split()
-        if len(line)>2:comment=line[2]
+        if len(line)>2:
+            comment=line[2]
         info=Lines[1].split()
         vol=float(info[-1])
         if vol!=1.0:
@@ -253,7 +253,8 @@ def main(command_line=True, **kwargs):
             ErSampRec['magic_method_codes']='SO-CMD-NORTH'
         else:
             ErSampRec['magic_method_codes']='SO-MAG'
-        for line in Lines[2:len(Lines)-1]:
+        for line in Lines[2:len(Lines)]:
+            #print 'line:', line
             MeasRec=ErSpecRec.copy()
 
 #           Remove specimen_volume and specimen_weight as they do not exits in the magic_measurement table
@@ -262,7 +263,8 @@ def main(command_line=True, **kwargs):
 
             treat_type=line[0:3]
             treat=line[3:6]
-            if treat_type.strip()=='NRM': # this previously had "or treat == '   '""
+            #print 'treat:', treat
+            if treat_type.strip()=='NRM':
                 MeasRec['magic_method_codes']='LT-NO'
                 MeasRec['measurement_temp']='273'
                 MeasRec['treatment_temp']='273'
@@ -273,11 +275,17 @@ def main(command_line=True, **kwargs):
                 MeasRec['measurement_temp']='273'
                 MeasRec['treatment_temp']='273'
                 MeasRec['treatment_dc_field']='0'
-                MeasRec['treatment_ac_field']='%10.3e'%(float(treat)*1e-3)
+                if treat == '   ':
+                    MeasRec['treatment_ac_field']='0'
+                else:
+                    MeasRec['treatment_ac_field']='%10.3e'%(float(treat)*1e-3)
             elif treat_type.strip()=='TT':
                 MeasRec['magic_method_codes']='LT-T-Z'
                 MeasRec['measurement_temp']='273'
-                MeasRec['treatment_temp']='%7.1f'%(float(treat)+273)
+                if treat == '   ':
+                    MeasRec['treatment_temp']='273'
+                else:
+                    MeasRec['treatment_temp']='%7.1f'%(float(treat)+273)
                 MeasRec['treatment_dc_field']='0'
                 MeasRec['treatment_ac_field']='0'
             elif treat_type.strip()=='LT' or treat_type.strip()=='LN2':
@@ -317,7 +325,7 @@ def main(command_line=True, **kwargs):
     Fixed=pmag.measurements_methods(MeasRecs,avg)
     pmag.magic_write(meas_file,Fixed,'magic_measurements')
     print 'data stored in ',meas_file
-    return True
+    return True, meas_file
 
 def do_help():
     return main.__doc__

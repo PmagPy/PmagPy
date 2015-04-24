@@ -20,8 +20,8 @@ def sort_diclist(undecorated,sort_on):
     decorated.sort()
     return[dict_ for (key, dict_) in decorated]
 
-def get_dictitem(In,k,v,flag):  
-    # returns a list of dictionaries from list In with key,k  = value, v . CASE INSENSITIVE # allowed keywords:
+def get_dictitem(In,k,v,flag):
+    """ returns a list of dictionaries from list In with key,k  = value, v . CASE INSENSITIVE # allowed keywords:"""
     try:
         if flag=="T":return [dictionary for dictionary in In if dictionary[k].lower()==v.lower()] # return that which is
         if flag=="F":
@@ -698,7 +698,7 @@ def vspec_magic(data):
         DataState0[key]=data[0][key] # set beginning treatment
     k,R=1,0
     for i in range(k,len(data)):
-        Dirdata,DataStateCurr,newstate=[],{},0
+        FDirdata,Dirdata,DataStateCurr,newstate=[],[],{},0
         for key in treats:  # check if anything changed
 	    DataStateCurr[key]=data[i][key] 
             if DataStateCurr[key].strip() !=  DataState0[key].strip(): newstate=1 # something changed
@@ -706,11 +706,14 @@ def vspec_magic(data):
             if i==k: # sample is unique 
                 vdata.append(data[i-1])
             else: # measurement is not unique
-                print "averaging: records " ,k,i
+                #print "averaging: records " ,k,i
                 for l in range(k-1,i):
+                    if 'orientation' in data[l]['measurement_description']:
+                        data[l]['measurement_description']=""
                     Dirdata.append([float(data[l]['measurement_dec']),float(data[l]['measurement_inc']),float(data[l]['measurement_magn_moment'])])
+                    FDirdata.append([float(data[l]['measurement_dec']),float(data[l]['measurement_inc'])])
                 dir,R=vector_mean(Dirdata)
-                Fpars=fisher_mean(Dirdata)
+                Fpars=fisher_mean(FDirdata)
                 vrec=data[i-1]
                 vrec['measurement_dec']='%7.1f'%(dir[0])
                 vrec['measurement_inc']='%7.1f'%(dir[1])
@@ -869,10 +872,8 @@ def magic_read(infile, data=None):
         f = data
     else:
         try:
-            print 'infile:', infile
             f=open(infile,"rU")
-        except Exception as ex:
-            #print 'ex:', ex
+        except:
             return [],'bad_file'
 
     d = f.readline()[:-1].strip('\n')
@@ -882,7 +883,8 @@ def magic_read(infile, data=None):
         delim='tab'
     else: 
         print 'error reading ', infile
-        sys.exit()
+        #sys.exit()
+        return [], 'bad file'
     if delim=='space':file_type=d.split()[1]
     if delim=='tab':file_type=d.split('\t')[1]
     if file_type=='delimited':
@@ -1000,15 +1002,13 @@ def first_rec(ofile,Rec,file_type):
     pmag_out.close()
     return keylist
 
-def magic_write(ofile,Recs,file_type):
+def magic_write_old(ofile,Recs,file_type):
     """
-    called by magic_write(outputfile,records_list,magic_file_type)
     writes out a magic format list of dictionaries to ofile
-
     """
     
     if len(Recs)<1:
-        return False
+        return
     pmag_out=open(ofile,'w')
     outstring="tab \t"+file_type+"\n"
     pmag_out.write(outstring)
@@ -1036,7 +1036,45 @@ def magic_write(ofile,Recs,file_type):
         outstring=outstring+'\n'
         pmag_out.write(outstring[1:])
     pmag_out.close()
-    return True
+
+def magic_write(ofile,Recs,file_type):
+    """
+    called by magic_write(outputfile,records_list,magic_file_type)
+    writes out a magic format list of dictionaries to ofile
+
+    """
+    if len(Recs)<1:
+        return False, 'No records to write to file {}'.format(ofile)
+    else:
+        print len(Recs),' records written to file ',ofile
+    pmag_out=open(ofile,'w')
+    outstring="tab \t"+file_type+"\n"
+    pmag_out.write(outstring)
+    keystring=""
+    keylist=[]
+    for key in Recs[0].keys():
+        keylist.append(key)
+    keylist.sort()
+    for key in keylist:
+        keystring=keystring+'\t'+key.strip()
+    keystring=keystring + '\n'
+    pmag_out.write(keystring[1:])
+    for Rec in Recs:
+        outstring=""
+        for key in keylist:
+           try:
+              outstring=outstring+'\t'+str(Rec[key].strip())
+           except:
+              if 'er_specimen_name' in Rec.keys():
+                  print Rec['er_specimen_name'] 
+              elif 'er_specimen_names' in Rec.keys():
+                  print Rec['er_specimen_names'] 
+              print key,Rec[key]
+              raw_input()
+        outstring=outstring+'\n'
+        pmag_out.write(outstring[1:])
+    pmag_out.close()
+    return True, ofile
 
 def dotilt(dec,inc,bed_az,bed_dip):
     """
@@ -2622,7 +2660,6 @@ def fisher_mean(data):
     """
     call to fisher_mean(data) calculates fisher statistics for data, which is a list of [dec,inc] pairs.  
     """
-
     R,Xbar,X,fpars=0,[0,0,0],[],{}
     N=len(data)
     if N <2:
@@ -5312,9 +5349,9 @@ def measurements_methods(meas_data,noave):
         if noave!=1:
             vdata,treatkeys=vspec_magic(NewSpecs) # averages replicate measurements, returns treatment keys that are being used
             if len(vdata)!=len(NewSpecs):
-                print spec,'started with ',Ninit,' ending with ',len(vdata)
+                #print spec,'started with ',Ninit,' ending with ',len(vdata)
                 NewSpecs=vdata
-                print "Averaged replicate measurements"
+                #print "Averaged replicate measurements"
 #
 # now look through this specimen's records - try to figure out what experiment it is
 #
@@ -5875,7 +5912,7 @@ def set_priorities(SO_methods,ask):
      figure out which sample_azimuth to use, if multiple orientation methods
     """
     # if ask set to 1, then can change priorities
-    SO_defaults=['SO-SUN','SO-GPS-DIFF','SO-SIGHT','SO-SIGHT-BS','SO-CMD-NORTH','SO-MAG','SO-SM','SO-REC','SO-V','SO-NO']
+    SO_defaults=['SO-SUN','SO-GPS-DIFF','SO-SIGHT','SO-SIGHT-BS','SO-CMD-NORTH','SO-MAG','SO-SM','SO-REC','SO-V','SO-CORE','SO-NO']
     SO_priorities,prior_list=[],[]
     if len(SO_methods) >= 1:
         for l in range(len(SO_defaults)):
@@ -6129,7 +6166,7 @@ def pseudosample(x):
 
 def get_plate_data(plate):
     """
-    returns the pole list for a given plate"
+    returns the pole list for a given plate
     """
     if plate=='AF':
        apwp="""
@@ -7825,8 +7862,11 @@ def get_TS(ts):
     if ts=='gts04':
         TS=[0,0.781,0.988,1.072,1.778,1.945,2.128,2.148,2.581,3.032,3.116,3.207,3.33,3.596,4.187,4.3,4.493,4.631,4.799,4.896,4.997,5.235,6.033,6.252,6.436,6.733,7.14,7.212,7.251,7.285,7.454,7.489,7.528,7.642,7.695,8.108,8.254,8.3,8.769,9.098,9.312,9.409,9.656,9.717,9.779,9.934,9.987,11.04,11.118,11.154,11.554,11.614,12.014,12.116,12.207,12.415,12.73,12.765,12.82,12.878,13.015,13.183,13.369,13.605,13.734,14.095,14.194,14.581,14.784,14.877,15.032,15.16,15.974,16.268,16.303,16.472,16.543,16.721,17.235,17.533,17.717,17.74,18.056,18.524,18.748,20,20.04,20.213,20.439,20.709,21.083,21.159,21.403,21.483,21.659,21.688,21.767,21.936,21.992,22.268,22.564,22.754,22.902,23.03,23.249,23.375,24.044,24.102,24.163,24.556,24.915,25.091,25.295,25.444,25.492,26.154,26.714,27.826,28.186,28.45,28.525,28.715,29.451,29.74,29.853,30.217,30.627,31.116,33.266,33.738,34.782,35.043,35.404,35.567,35.707,36.276,36.512,37.235,37.345,37.549,37.61,37.771,38.032,38.975,39.041,39.464,40.439,40.671,41.59,42.774,45.346,47.235,48.599,49.427,50.73,50.932,51.057,51.901,52.648,53.004,53.116,53.167,53.286,53.808,56.665,57.18,58.379,58.737,61.65,61.983,63.104,64.128,64.432,65.118,65.861,67.696,67.809,68.732,70.961,71.225,71.474,72.929,73.231,73.318,73.577,79.543,84]
         Labels=[['C1n',0.000],['C1r',0.781],['C2',1.778],['C2An',2.581],['C2Ar',3.596],['C3n',4.187],['C3r',5.235],['C3An',6.033],['C3Ar',6.733],['C3Bn',7.140],['C3Br',7.212],['C4n',7.528],['C4r',8.108],['C4An',8.769],['C4Ar',9.098],['C5n',9.779],['C5r',11.040],['C5An',12.014],['C5Ar',12.415],['C5AAn',13.015],['C5AAr',13.183],['C5ABn',13.369],['C5ABr',13.605],['C5ACn',13.734],['C5ACr',14.095],['C5ADn',14.194],['C5ADr',14.581],['C5Bn',14.784],['C5Br',15.160],['C5Cn',15.974],['C5Cr',16.721],['C5Dn',17.235],['C5Dr',17.533],['C5En',18.056],['C5Er',18.524],['C6n',18.748],['C6r',19.772],['C6An',20.040],['C6Ar',20.709],['C6AAn',21.083],['C6AAr',21.159],['C6Bn',21.767],['C6Br',22.268],['C6Cn',22.564],['C6Cr',23.375],['C7n',24.044],['C7r',24.556],['C7A',24.919],['C8n',25.295],['C8r',26.154],['C9n',26.714],['C9r',27.826],['C10n',28.186],['C11n',29.451],['C11r',30.217],['C12n',30.627],['C12r',31.116],['C13n',33.266],['C13r',33.738],['C15n',34.782],['C15r',35.043],['C16n',35.404],['C16r',36.276],['C17n',36.512],['C17r',37.771],['C18n',38.032],['C18r',39.464],['C19n',40.439],['C19r',40.671],['C20n',41.590],['C20r',42.774],['C21n',45.346],['C21r',47.235],['C22n',48.599],['C22r',49.427],['C23n',50.730],['C23r',51.901],['C24n',52.648],['C24r',53.808],['C25n',56.665],['C25r',57.180],['C26n',58.379],['C26r',58.737],['C27n',61.650],['C27r',61.938],['C28n',63.104],['C28r',64.128],['C29n',64.432],['C29r',65.118],['C30n',65.861],['C30r',67.696],['C31n',67.809],['C31r',68.732],['C32n',70.961],['C32r',72.929],['C33n',73.577],['C33r',79.543],['C34n',84.000]]
- 
-    return TS,Labels
+        return TS,Labels
+    if ts=='gts12':
+        TS=[0, 0.781, 0.988, 1.072, 1.173, 1.185, 1.778, 1.945, 2.128, 2.148, 2.581, 3.032, 3.116, 3.207, 3.330, 3.596, 4.187, 4.300, 4.493, 4.631, 4.799, 4.896, 4.997, 5.235, 6.033, 6.252, 6.436, 6.733, 7.140, 7.212, 7.251, 7.285, 7.454, 7.489, 7.528, 7.642, 7.695, 8.108, 8.254, 8.300, 8.771, 9.105, 9.311, 9.426, 9.647, 9.721, 9.786, 9.937, 9.984, 11.056, 11.146, 11.188, 11.592, 11.657, 12.049, 12.174, 12.272, 12.474, 12.735, 12.770, 12.829, 12.887, 13.032, 13.183, 13.363, 13.608, 13.739, 14.070, 14.163, 14.609, 14.775, 14.870, 15.032, 15.160, 15.974, 16.268, 16.303, 16.472, 16.543, 16.721, 17.235, 17.533, 17.717, 17.740, 18.056, 18.524, 18.748, 19.722, 20.040, 20.213, 20.439, 20.709, 21.083, 21.159, 21.403, 21.483, 21.659, 21.688, 21.767, 21.936, 21.992, 22.268, 22.564, 22.754, 22.902, 23.030, 23.233, 23.295, 23.962, 24.000, 24.109, 24.474, 24.761, 24.984, 25.099, 25.264, 25.304, 25.987, 26.420, 27.439, 27.859, 28.087, 28.141, 28.278, 29.183, 29.477, 29.527, 29.970, 30.591, 31.034, 33.157, 33.705, 34.999, 35.294, 35.706, 35.892, 36.051, 36.700, 36.969, 37.753, 37.872, 38.093, 38.159, 38.333, 38.615, 39.627, 39.698, 40.145, 41.154, 41.390, 42.301, 43.432, 45.724, 47.349, 48.566, 49.344, 50.628, 50.835, 50.961, 51.833, 52.620, 53.074, 53.199, 53.274, 53.416, 53.983, 57.101, 57.656, 58.959, 59.237, 62.221, 62.517, 63.494, 64.667, 64.958, 65.688, 66.398, 68.196, 68.369, 69.269, 71.449, 71.689, 71.939, 73.649, 73.949, 74.049, 74.309, 79.900, 83.64]
+        Labels=[['C1n',0.000],['C1r',0.781],['C2',1.778],['C2An',2.581],['C2Ar',3.596],['C3n',4.187],['C3r',5.235],['C3An',6.033],['C3Ar',6.733],['C3Bn',7.140],['C3Br',7.212],['C4n',7.528],['C4r',8.108],['C4An',8.771],['C4Ar',9.105],['C5n',9.786],['C5r',11.056],['C5An',12.049],['C5Ar',12.474],['C5AAn',13.032],['C5AAr',13.183],['C5ABn',13.363],['C5ABr',13.608],['C5ACn',13.739],['C5ACr',14.070],['C5ADn',14.163],['C5ADr',14.609],['C5Bn',14.775],['C5Br',15.160],['C5Cn',15.974],['C5Cr',16.721],['C5Dn',17.235],['C5Dr',17.533],['C5En',18.056],['C5Er',18.524],['C6n',18.748],['C6r',19.722],['C6An',20.040],['C6Ar',20.709],['C6AAn',21.083],['C6AAr',21.159],['C6Bn',21.767],['C6Br',22.268],['C6Cn',22.564],['C6Cr',23.295],['C7n',23.962],['C7r',24.474],['C7An',24.761],['C7Ar',24.984],['C8n',25.099],['C8r',25.987],['C9n',26.420],['C9r',27.439],['C10n',27.859],['C10r',28.278],['C11n',29.183],['C11r',29.970],['C12n',30.591],['C12r',31.034],['C13n',33.157],['C13r',33.705],['C15n',34.999],['C15r',35.294],['C16n',35.706],['C16r',36.700],['C17n',36.969],['C17r',38.333],['C18n',38.615],['C18r',40.145],['C19n',41.154],['C19r',41.390],['C20n',42.301],['C20r',43.432],['C21n',45.724],['C21r',47.349],['C22n',48.566],['C22r',49.344],['C23n',50.628],['C23r',51.833],['C24n',52.620],['C24r',53.983],['C25n',57.101],['C25r',57.656],['C26n',58.959],['C26r',59.237],['C27n',62.221],['C27r',62.517],['C28n',63.494],['C28r',64.667],['C29n',64.958],['C29r',65.688],['C30n',66.398],['C30r',68.196],['C31n',68.369],['C31r',69.269],['C32n',71.449],['C32r',73.649],['C33n',74.309],['C33r',79.900],['C34n',83.64]]
+        return TS,Labels
     print "Time Scale Option Not Available"
     sys.exit()
 
@@ -8468,6 +8508,15 @@ def merge_recs_headers(recs):
             if header not in rec.keys():
                 rec[header]=""
     return recs
+
+
+def remove_files(file_list, WD='.'):
+    for f in file_list:
+        full_file = os.path.join(WD, f)
+        if os.path.isfile(full_file):
+            os.remove(full_file)
+
+
 class MissingCommandLineArgException(Exception):
 
     def __init__(self, message):

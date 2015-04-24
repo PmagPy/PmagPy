@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 #
 import sys,pmag,copy
+import ipmag
+import command_line_extractor as extractor
 import os
 def main():
     """
@@ -20,9 +22,10 @@ def main():
         -F MFILE: specify magic_measurements format output file
         -Fsa SFILE, specify er_samples format file for output 
         -Fa AFILE, specify rmag_anisotropy format file for output
+        -Fr RFILE, specify rmag_results format file for output
         -loc LOC: specify location name for study
-        -ins INST: specify instrument that measurements were made on
-        -spc NUM: specify number of digets for specimen ID, default is 0
+    #-ins INST: specify instrument that measurements were made on # not implemented
+        -spc NUM: specify number of digits for specimen ID, default is 0
         -ncn NCOM: specify naming convention (default is #1)
        Sample naming convention:
             [1] XXXXY: where XXXX is an arbitrary length site designation and Y
@@ -39,12 +42,31 @@ def main():
         MFILE: k15_measurements.txt
         SFILE: er_samples.txt
         AFILE: rmag_anisotropy.txt
+        RFILE: rmag_results.txt
         LOC: unknown
         INST: unknown
         
     INPUT
       name [az,pl,strike,dip], followed by
       3 rows of 5 measurements for each specimen
+
+    """
+    args = sys.argv
+    if '-h' in args:
+        print do_help()
+        sys.exit()
+
+    #def k15_magic(k15file, specnum=0, sample_naming_con='1', er_location_name="unknown", measfile='magic_measurements.txt', sampfile="er_samples.txt", aniso_outfile='rmag_anisotropy.txt', result_file="rmag_results.txt", input_dir_path='.', output_dir_path='.'):
+
+    dataframe = extractor.command_line_dataframe([['f', True, ''], ['F', False, 'magic_measurements.txt'], ['Fsa', False, 'er_samples.txt'], ['Fa', False, 'rmag_anisotropy.txt'], ['Fr', False, 'rmag_results.txt'], ['spc', False, 0], ['ncn', False, '1'], ['loc', False, 'unknown'], ['WD', False, '.'], ['ID', False, '.']])
+    checked_args = extractor.extract_and_check_args(args, dataframe)
+    k15file, measfile, sampfile, aniso_outfile, result_file, specnum, sample_naming_con, location_name, output_dir_path, input_dir_path = extractor.get_vars(['f', 'F', 'Fsa', 'Fa', 'Fr', 'spc', 'ncn', 'loc', 'WD', 'ID'], checked_args)
+    program_ran, error_message = ipmag.k15_magic(k15file, specnum=specnum, sample_naming_con=sample_naming_con, er_location_name=location_name, measfile=measfile, sampfile=sampfile, aniso_outfile=aniso_outfile, result_file=result_file, input_dir_path=input_dir_path, output_dir_path=output_dir_path)
+
+## assign values to variables based on their associated command-line flag
+#fmt, size, plot = get_vars(['fmt', 's', 'sav'], checked_args)
+#print "fmt:", fmt, "size:", size, "plot:", plot
+
 
     """
 #
@@ -72,9 +94,8 @@ def main():
         input_dir_path = dir_path
     output_dir_path = dir_path
 # pick off stuff from command line
-    if '-h' in sys.argv:
-        print main.__doc__
-        sys.exit()
+
+        
     if '-f' in sys.argv:
         ind=sys.argv.index('-f')
         k15file=sys.argv[ind+1] 
@@ -336,4 +357,10 @@ def main():
     pmag.magic_write(resfile,ResRecs,'rmag_results')
     pmag.magic_write(measfile,MeasRecs,'magic_measurements')
     print "Data saved to: ",sampfile,anisfile,resfile,measfile
-main() 
+"""
+
+def do_help():
+    return main.__doc__
+
+if __name__ == "__main__":
+    main() 

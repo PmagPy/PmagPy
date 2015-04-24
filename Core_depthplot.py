@@ -36,7 +36,7 @@ def main():
         -n normalize by weight in er_specimen table
         -Iex: plot the expected inc at lat - only available for results with lat info in file
         -ts TS amin amax: plot the GPTS for the time interval between amin and amax (numbers in Ma)
-           TS: [ck95, gts04] 
+           TS: [ck95, gts04, gts12] 
         -ds [mbsf,mcd] specify depth scale, mbsf default 
         -fmt [svg, eps, pdf, png] specify output format for plot (default: svg)
         -sav save plot silently

@@ -40,7 +40,7 @@ def main(command_line=True, **kwargs):
     """
 # initialize some stuff
     noave=0
-    volume=0.025*0.025*0.025 #default volume is a 2.5cm cube
+    volume = 2.5 * 1e-6 # default volume is 2.5 cm^3 (2.5 * 1e-6 meters^3)
     inst=""
     samp_con,Z='1',""
     missing=1
@@ -112,7 +112,7 @@ def main(command_line=True, **kwargs):
             meth_code=args[ind+1]
         if "-v" in args: 
             ind=args.index("-v")
-            volume=float(args[ind+1])
+            volume=float(args[ind+1]) * 1e-6
 
     if not command_line:
         dir_path = kwargs.get('dir_path', '.')
@@ -126,7 +126,13 @@ def main(command_line=True, **kwargs):
         er_location_name = kwargs.get('er_location_name', '')
         noave = kwargs.get('noave', 0) # default (0) means DO average
         meth_code = kwargs.get('meth_code', "LP-NO")
-        volume = float(kwargs.get('volume', 0.025*0.025*0.025))
+        volume = float(kwargs.get('volume', 0))
+        if not volume:
+            volume = 2.5 * 1e-6 #default volume is a 2.5 cm cube, translated to meters cubed
+        else:
+            #convert cm^3 to m^3
+            volume *= 1e-6
+
 
     # format variables
     mag_file = input_dir_path+"/" + mag_file

@@ -1,5 +1,6 @@
 #!/usr/bin/env python
-import string,sys,pmag,exceptions,struct
+import sys,pmag #,exceptions,struct, string
+import os
 #
 #
 def skip(N,ind,L):
@@ -139,7 +140,8 @@ def main(command_line=True, **kwargs):
         if "-ins" in args:
             ind=args.index("-ins")
             inst=args[ind+1]
-        if "-a" in args:noave=0
+        if "-a" in args:
+            noave=0
         #
         ID = False
         if '-ID' in args:
@@ -176,29 +178,33 @@ def main(command_line=True, **kwargs):
         if "4" in samp_con:
             if "-" not in samp_con:
                 print "option [4] must be in form 4-Z where Z is an integer"
-                return False
+                return False, "option [4] must be in form 4-Z where Z is an integer"
             else:
                 Z=samp_con.split("-")[1]
                 samp_con="4"
         if "7" in samp_con:
             if "-" not in samp_con:
                 print "option [7] must be in form 7-Z where Z is an integer"
-                return False
+                return False, "option [7] must be in form 7-Z where Z is an integer"
             else:
                 Z=samp_con.split("-")[1]
                 samp_con="7"
         if "6" in samp_con:
             try:
-                Samps,file_type=pmag.magic_read(dir_path+'/er_samples.txt')
+                Samps,file_type=pmag.magic_read(os.path.join(input_dir_path, 'er_samples.txt'))
             except:
-                print "there is no er_samples.txt file available - you can't use naming convention #6"
-                return False
+                print "there is no er_samples.txt file in your input directory - you can't use naming convention #6"
+                return False, "there is no er_samples.txt file in your input directory - you can't use naming convention #6"
+            if file_type == 'bad_file':
+                print "there is no er_samples.txt file in your input directory - you can't use naming convention #6"
+                return False, "there is no er_samples.txt file in your input directory - you can't use naming convention #6"
+                
 
     if not mag_file:
         print "mag file is required input"
-        return False
+        return False, "mag file is required input"
     output_dir_path = dir_path
-    mag_file = input_dir_path+'/'+mag_file
+    mag_file = os.path.join(input_dir_path, mag_file)
     samp_file = output_dir_path+'/'+samp_file
     site_file = output_dir_path+'/'+site_file
     meas_file= output_dir_path+'/'+meas_file
@@ -214,9 +220,10 @@ def main(command_line=True, **kwargs):
         f=open(mag_file,'rU')
         input=f.read()
         f.close()
-    except:
+    except Exception as ex:
+        print 'ex', ex
         print "bad mag file"
-        return False
+        return False, "bad mag file"
     firstline,date=1,""
     d=input.split('\xcd')
     for line in d:
@@ -311,7 +318,7 @@ def main(command_line=True, **kwargs):
                     for meth in methods:meths=meths+meth+":"
                     meths=meths[:-1]
                     SampRec["magic_method_codes"]=meths
-                    if int(samp_con)<6: 
+                    if int(samp_con)<6 or int(samp_con) == 7: 
                         site=pmag.parse_site(SampRec["er_sample_name"],samp_con,Z) # parse out the site name
                         SampRec["er_site_name"]=site
                     elif len(Samps)>1:
@@ -423,7 +430,7 @@ def main(command_line=True, **kwargs):
         if 'sample_height' in samp.keys():SiteRec['site_height']=samp['sample_height']
         Sites.append(SiteRec)
     pmag.magic_write(site_file,Sites,'er_sites')
-    return True
+    return True, meas_file
 
 def do_help():
     return main.__doc__

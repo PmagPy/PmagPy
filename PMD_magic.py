@@ -132,15 +132,15 @@ def main(command_line=True, **kwargs):
     if specnum!=0:specnum=-specnum
     if "4" in samp_con:
         if "-" not in samp_con:
-            print "option [4] must be in form 4-Z where Z is an integer"
-            return False
+            print "naming convention option [4] must be in form 4-Z where Z is an integer"
+            return False, "naming convention option [4] must be in form 4-Z where Z is an integer"
         else:
             Z=samp_con.split("-")[1]
             samp_con="4"
     if "7" in samp_con:
         if "-" not in samp_con:
             print "option [7] must be in form 7-Z where Z is an integer"
-            return False
+            return False, "naming convention option [7] must be in form 7-Z where Z is an integer"
         else:
             Z=samp_con.split("-")[1]
             samp_con="7"
@@ -214,7 +214,7 @@ def main(command_line=True, **kwargs):
             meas_type="LT-T-Z"
         else:
             print "measurement type unknown"
-            return False
+            return False, "measurement type unknown"
         X=[float(rec[1]),float(rec[2]),float(rec[3])]
         Vec=pmag.cart2dir(X)
         MagRec["measurement_magn_moment"]='%10.3e'% (Vec[2]) # Am^2 
@@ -237,7 +237,7 @@ def main(command_line=True, **kwargs):
     print "results put in ",meas_file
     pmag.magic_write(samp_file,SampOuts,'er_samples')
     print "sample orientations put in ",samp_file
-    return True
+    return True, meas_file
 
 def do_help():
     return main.__doc__

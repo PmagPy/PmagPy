@@ -23,19 +23,15 @@ class MagICMenu(wx.MenuBar):
         import_menu = wx.Menu()
 
         orient_submenu = wx.Menu()
-
-        orient1 = wx.MenuItem(import_menu, -1, "orient.txt format")
-        orient_submenu.AppendItem(orient1)
         orient2 = orient_submenu.Append(-1, 'AzDip format')
-        orient3 = orient_submenu.Append(-1, "ODP Core Summary csv file")
-        orient4 = orient_submenu.Append(-1, "ODP Sample Summary csv file")
-        orient5 = orient_submenu.Append(-1, "Import model latitude data file")
+        #orient3 = orient_submenu.Append(-1, "IODP Core Summary csv file")
+        orient4 = orient_submenu.Append(-1, "IODP Sample Summary csv file")
+        #orient5 = orient_submenu.Append(-1, "Import model latitude data file")
 
-        parent.Bind(wx.EVT_MENU, self.orient_import1, orient1)
         parent.Bind(wx.EVT_MENU, self.orient_import2, orient2)
-        parent.Bind(wx.EVT_MENU, self.orient_import3, orient3)
+        #parent.Bind(wx.EVT_MENU, self.orient_import3, orient3)
         parent.Bind(wx.EVT_MENU, self.orient_import4, orient4)
-        parent.Bind(wx.EVT_MENU, self.orient_import5, orient5)
+        #parent.Bind(wx.EVT_MENU, self.orient_import5, orient5)
 
         anisotropy_submenu = wx.Menu()
         anisotropy1 = anisotropy_submenu.Append(-1, "kly4s format")
@@ -52,10 +48,14 @@ class MagICMenu(wx.MenuBar):
 
         parent.Bind(wx.EVT_MENU, self.hysteresis_import1, hysteresis1)
         parent.Bind(wx.EVT_MENU, self.hysteresis_import2, hysteresis2)
-        
+
+        import1 = import_menu.Append(-1, "Import any file into your working directory")
+        import_menu.AppendSeparator()
         import_menu.AppendMenu(wx.ID_ANY, "orientation/location/stratigraphic files", orient_submenu)
         import_menu.AppendMenu(wx.ID_ANY, "Anisotropy files", anisotropy_submenu)
         import_menu.AppendMenu(wx.ID_ANY, "Hysteresis files", hysteresis_submenu)
+
+        parent.Bind(wx.EVT_MENU, self.on_import1, import1)
 
         analysis_menu = wx.Menu()
         #analysis1 = analysis_menu.Append(-1, "Customize Criteria")
@@ -109,20 +109,21 @@ class MagICMenu(wx.MenuBar):
     def on_clear(self, event):
         clear = pmag_menu_dialogs.ClearWD(self.parent, self.parent.WD)
 
-    def orient_import1(self, event): 
-        orient1 = pmag_menu_dialogs.ImportOrientFile(self.parent, self.parent.WD)
 
+    def on_import1(self, event):
+        import1 = pmag_menu_dialogs.MoveFileIntoWD(self.parent, self.parent.WD)
+        
     def orient_import2(self, event):
         orient2 = pmag_menu_dialogs.ImportAzDipFile(self.parent, self.parent.WD)
 
-    def orient_import3(self, event):
-        orient3 = pmag_menu_dialogs.ImportODPCoreSummary(self.parent, self.parent.WD)
+    #def orient_import3(self, event):
+        #orient3 = pmag_menu_dialogs.ImportODPCoreSummary(self.parent, self.parent.WD)
 
     def orient_import4(self, event):
         orient4 = pmag_menu_dialogs.ImportODPSampleSummary(self.parent, self.parent.WD)
 
-    def orient_import5(self, event):
-        orient5 = pmag_menu_dialogs.ImportModelLatitude(self.parent, self.parent.WD)
+    #def orient_import5(self, event):
+    #    orient5 = pmag_menu_dialogs.ImportModelLatitude(self.parent, self.parent.WD)
 
     def anisotropy_import1(self, event):
         aniso1 = pmag_menu_dialogs.ImportKly4s(self.parent, self.parent.WD)

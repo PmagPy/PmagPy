@@ -152,7 +152,6 @@ def main(command_line=True, **kwargs):
             codelist=args[ind+1]
         if "-A" in args:
             noave=1
-
             
     if not command_line:
         user = kwargs.get('user', '')
@@ -171,6 +170,7 @@ def main(command_line=True, **kwargs):
         samp_con = kwargs.get('samp_con')
         codelist = kwargs.get('codelist')
         CR_cooling_times = kwargs.get('CR_cooling_times', None)
+        noave = kwargs.get('noave', 0)
 
     # format and validate variables:
     if magfile:
@@ -178,25 +178,26 @@ def main(command_line=True, **kwargs):
             input=open(magfile,'rU')
         except:
             print "bad mag file name"
-            return False
+            return False, "bad mag file name"
     else: 
         print "mag_file field is required option"
         print main.__doc__
-        return False
+        return False, "mag_file field is required option"
 
-    if specnum!=0:specnum=-specnum
+    if specnum!=0:
+        specnum=-specnum
 
     if "4" in samp_con:
         if "-" not in samp_con:
             print "option [4] must be in form 4-Z where Z is an integer"
-            return False
+            return False, "option [4] must be in form 4-Z where Z is an integer"
         else:
             Z=int(samp_con.split("-")[1])
             samp_con="4"
     if "7" in samp_con:
         if "-" not in samp_con:
             print "option [7] must be in form 7-Z where Z is an integer"
-            return False
+            return False, "option [7] must be in form 7-Z where Z is an integer"
         else:
             Z=int(samp_con.split("-")[1])
             samp_con="7"
@@ -205,7 +206,7 @@ def main(command_line=True, **kwargs):
         codes=codelist.split(':')
     else:
         print "Must select experiment type (-LP option)"
-        return False
+        return False, "Must select experiment type (-LP option)"
     if "AF" in codes:
         demag='AF' 
         LPcode="LP-DIR-AF"
@@ -215,8 +216,8 @@ def main(command_line=True, **kwargs):
         if labfield: LPcode="LP-PI-TRM"
         if "ANI" in codes:
             if not labfield:
-                print "missing option -dc exiting"
-                return False
+                print "missing labfield option"
+                return False, "missing lab field option"
             LPcode="LP-AN-TRM"
 
     if "TRM" in codes: 
@@ -228,8 +229,8 @@ def main(command_line=True, **kwargs):
         demag="T"
         # dc should be in the code
         if not labfield:
-            print "missing option -dc exiting"
-            return False
+            print "missing lab field option"
+            return False, "missing labfield option"
 
         LPcode="LP-TRM-CR" # TRM in different cooling rates
         if command_line:
@@ -397,7 +398,7 @@ def main(command_line=True, **kwargs):
                         methcode="LP-DIR-AF:LT-AF-Z"
                     else:
                         print "ERROR in treatment field line %i... exiting until you fix the problem" %line_no
-                        return False
+                        return False, "ERROR in treatment field line %i... exiting until you fix the problem" %line_no
                                             
                 # AARM experiment    
                 else:
@@ -488,7 +489,7 @@ def main(command_line=True, **kwargs):
 
                     else:
                             print "ERROR in treatment field line %i... exiting until you fix the problem" %line_no
-                            return False
+                            return False, "ERROR in treatment field line %i... exiting until you fix the problem" %line_no
                     
                     MagRec["magic_method_codes"]=LT_code+":"+methcode
                     MagRec["measurement_number"]="%i"%i            
@@ -604,6 +605,7 @@ def main(command_line=True, **kwargs):
                 #----------------------------------------
                 
                 if  LPcode =="LP-TRM-CR":
+                    print 'treatment', treatment
                     index=int(treatment[1][0])
                     #print index,"index"
                     #print CR_cooling_times,"CR_cooling_times"
@@ -627,7 +629,7 @@ def main(command_line=True, **kwargs):
     
     pmag.magic_write(meas_file,MagRecs,'magic_measurements')
     print "-I- results put in ",meas_file
-    return True
+    return True, meas_file
 
 def do_help():
     return main.__doc__

@@ -451,7 +451,9 @@ def main(command_line=True, **kwargs):
         meas_file = kwargs.get('meas_file', 'magic_measurements.txt')
         samp_file = kwargs.get('samp_file', 'er_samples.txt')
         magfile = kwargs.get('magfile', '')
-        labfield = int(kwargs.get('labfield', 0)) * 1e-6
+        labfield = int(kwargs.get('labfield', 0))
+        if labfield:
+            labfield *= 1e-6
         labfield_phi = int(kwargs.get('labfield_phi', 0))
         labfield_theta = int(kwargs.get('labfield_theta', 0))
         experiment = kwargs.get('experiment', '')
@@ -469,16 +471,16 @@ def main(command_line=True, **kwargs):
             input=open(magfile,'rU')
         except:
             print "bad mag file:",magfile
-            return False
+            return False, "bad mag file"
     else: 
         print "mag_file field is required option"
         print main.__doc__
-        return False
+        return False, "mag_file field is required option"
 
     if not experiment:
         print "-LP is required option"
         print main.__doc__
-        return False
+        return False, "-LP is required option"
 
     if experiment=='ATRM':
         if command_line:
@@ -592,7 +594,7 @@ def main(command_line=True, **kwargs):
                     MagRec["treatment_dc_field_theta"]="0"
                 elif not labfield:                        
                     print "-W- WARNING: labfield (-dc) is a required argument for this experiment type"
-                    return False
+                    return False, "labfield (-dc) is a required argument for this experiment type"
 
                 else:                        
                     MagRec["treatment_dc_field"]='%8.3e'%(float(labfield))
@@ -1014,7 +1016,7 @@ def main(command_line=True, **kwargs):
         ErSamplesRecs.append(er_sample_data[sample])
     ErSamplesRecs_fixed=merge_pmag_recs(ErSamplesRecs)
     pmag.magic_write(samp_file,ErSamplesRecs_fixed,'er_samples')
-    return True
+    return True, meas_file
 
 def do_help():
     return main.__doc__

@@ -24,7 +24,8 @@ def main(command_line=True, **kwargs):
         -A: don't average replicate measurements
         -ncn NCON: specify sample naming convention (6 and 7 not yet implemented)
         -mcd [SO-MAG,SO-SUN,SO-SIGHT...] supply how these samples were oriented
-        -v NUM : specify the volume of the sample, default 2.5cm^3
+        -JR  IODP samples measured on the JOIDES RESOLUTION
+        -v NUM : specify the volume in cc of the sample, default 2.5^3cc
        Sample naming convention:
             [1] XXXXY: where XXXX is an arbitrary length site designation and Y
                 is the single character sample designation.  e.g., TG001a is the
@@ -43,7 +44,8 @@ def main(command_line=True, **kwargs):
     """
 # initialize some stuff
     noave=0
-    volume=0.025*0.025*0.025 #default volume is a 2.5cm cube
+    #volume=2.5**3 #default volume is a 2.5cm cube
+    volume = 2.5 * 1e-6 #default volume is a 2.5 cm cube, translated to meters cubed
     inst=""
     samp_con,Z='1',""
     missing=1
@@ -66,8 +68,7 @@ def main(command_line=True, **kwargs):
     samp_file = 'er_samples.txt'
     meas_file = 'magic_measurements.txt'
     tmp_file= "fixed.jr6"
-
-
+    meth_code,JR="",0
     #
     # get command line arguments
     #
@@ -114,10 +115,14 @@ def main(command_line=True, **kwargs):
         if "-mcd" in args: 
             ind=args.index("-mcd")
             meth_code=args[ind+1]
+        if "-JR" in args: 
+            meth_code=meth_code+":FS-C-DRILL-IODP:SP-SS-C:SO-V"
+            meth_code=meth_code.strip(":")
+            JR=1
+            samp_con='5'
         if "-v" in args: 
             ind=args.index("-v")
-            volume=args[ind+1]
-
+            volume=float(args[ind+1])*1e-6 # enter volume in cc, convert to m^3
     if not command_line:
         dir_path = kwargs.get('dir_path', '.')
         input_dir_path = kwargs.get('input_dir_path', dir_path)
@@ -130,7 +135,19 @@ def main(command_line=True, **kwargs):
         er_location_name = kwargs.get('er_location_name', '')
         noave = kwargs.get('noave', 0) # default (0) means DO average
         meth_code = kwargs.get('meth_code', "LP-NO")
-        volume = float(kwargs.get('volume', 0.025*0.025*0.025))
+        volume = float(kwargs.get('volume', 0))
+        if not volume:
+            volume = 2.5 * 1e-6 #default volume is a 2.5 cm cube, translated to meters cubed
+        else:
+            #convert cm^3 to m^3
+            volume *= 1e-6
+        JR = kwargs.get('JR', 0)
+        if JR:
+            if meth_code == "LP-NO":
+                meth_code = ""
+            meth_code=meth_code+":FS-C-DRILL-IODP:SP-SS-C:SO-V"
+            meth_code=meth_code.strip(":")
+            samp_con='5'
 
     # format variables
     mag_file = input_dir_path+"/" + mag_file
@@ -164,21 +181,26 @@ def main(command_line=True, **kwargs):
     line=pre_data.readline()
     while line !='':
         line=line.replace('-',' -')
-        print "line=", line
+        #print "line=", line
         tmp_data.write(line)
         line=pre_data.readline()
     tmp_data.close()
     pre_data.close()
-        
-    data=pd.read_csv('fixed.jr6',delim_whitespace=True,header=None)
-    data.columns=['er_specimen_name','step','x','y','z','expon','sample_azimuth','sample_dip',              'sample_bed_dip_direction','sample_bed_dip','bed_dip_dir2','bed_dip2','param1','param2','param3','param4','measurement_csd']
-    cart=np.array([data['x'],data['y'],data['z']]).transpose()
+
+    data=pd.read_csv(tmp_file, delim_whitespace=True,header=None)
+
+    if JR==0: #
+        data.columns=['er_specimen_name','step','x','y','z','expon','sample_azimuth','sample_dip',              'sample_bed_dip_direction','sample_bed_dip','bed_dip_dir2','bed_dip2','param1','param2','param3','param4','measurement_csd']
+        cart=np.array([data['x'],data['y'],data['z']]).transpose()
+    else: # measured on the Joides Resolution JR6
+        data.columns=['er_specimen_name','step','negz','y','x','expon','sample_azimuth','sample_dip',              'sample_bed_dip_direction','sample_bed_dip','bed_dip_dir2','bed_dip2','param1','param2','param3','param4','measurement_csd']
+        cart=np.array([data['x'],data['y'],-data['negz']]).transpose()
     dir= pmag.cart2dir(cart).transpose()
     data['measurement_dec']=dir[0]
     data['measurement_inc']=dir[1]
-    data['measurement_magn_moment']=dir[2]*(10.0**data['expon'])*1e-3 # Am^2 -- Fix the magnitude?????
-    data['measurement_magn_volume']=dir[2]*(10.0**data['expon'])*1e-3/volume # A/m -- Fix the magnitude?????
-    data['sample_dip']=data['sample_dip']-90.0
+    data['measurement_magn_moment']=dir[2]*(10.0**data['expon'])*volume # the data are in A/m - this converts to Am^2 
+    data['measurement_magn_volume']=dir[2]*(10.0**data['expon']) # A/m  - data in A/m
+    data['sample_dip']=-data['sample_dip']
     DGEOs,IGEOs=[],[]
     for ind in range(len(data)):
         dgeo,igeo=pmag.dogeo(data.ix[ind]['measurement_dec'],data.ix[ind]['measurement_inc'],data.ix[ind]['sample_azimuth'],data.ix[ind]['sample_dip'])
@@ -187,7 +209,6 @@ def main(command_line=True, **kwargs):
     data['specimen_dec']=DGEOs
     data['specimen_inc']=IGEOs
     data['specimen_tilt']='1'
-
     if specnum!=0: 
         data['er_sample_name']=data['er_specimen_name'][:specnum]
     else:
@@ -236,15 +257,15 @@ def main(command_line=True, **kwargs):
         MagRec["treatment_ac_field"]='0'
         if row['step'] == 'NRM':
             meas_type="LT-NO"
-        elif row['step'][0] == 'A':
+        elif row['step'][0:2] == 'AD':
             meas_type="LT-AF-Z"
-            treat=float(row['step'][1:])
+            treat=float(row['step'][2:])
             MagRec["treatment_ac_field"]='%8.3e' %(treat*1e-3) # convert from mT to tesla
-        elif row['step'][0] == 'T':
+        elif row['step'][0] == 'TD':
             meas_type="LT-T-Z"
-            treat=float(row['step'][1:])
+            treat=float(row['step'][2:])
             MagRec["treatment_temp"]='%8.3e' % (treat+273.) # temp in kelvin
-        else:
+        else: # need to add IRM, and ARM options
             print "measurement type unknown"
             return False
         MagRec["measurement_magn_moment"]=str(row['measurement_magn_moment'])
@@ -253,11 +274,8 @@ def main(command_line=True, **kwargs):
         MagRec["measurement_inc"]=str(row['measurement_inc'])
         MagRec['magic_method_codes']=meas_type
         MagRecs.append(MagRec.copy())
-
-        
     pmag.magic_write(samp_file,SampOuts,'er_samples')
     print "sample orientations put in ",samp_file
-
     MagOuts=pmag.measurements_methods(MagRecs,noave)
     pmag.magic_write(meas_file,MagOuts,'magic_measurements')
     print "results put in ",meas_file

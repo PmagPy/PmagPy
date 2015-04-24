@@ -13,138 +13,7 @@ from matplotlib import pyplot as plt
 import pmag_widgets as pw
 import thellier_gui_dialogs
 import thellier_gui
-
-class ImportOrientFile(wx.Frame):
-
-    """ """
-    title = "Import orient.txt file"
-
-    def __init__(self, parent, WD):
-        wx.Frame.__init__(self, parent, wx.ID_ANY, self.title)
-        self.panel = wx.ScrolledWindow(self)
-        self.WD = WD
-        self.InitUI()
-
-    def InitUI(self):
-
-        pnl = self.panel
-
-        TEXT = "Import an orient.txt file into your working directory"
-        bSizer_info = wx.BoxSizer(wx.HORIZONTAL)
-        bSizer_info.Add(wx.StaticText(pnl, label=TEXT), wx.ALIGN_LEFT)
-
-        #---sizer 0 ----
-        self.bSizer0 = pw.choose_file(pnl, 'add', method = self.on_add_file_button)
-
-        #---sizer 1 ----                                   
-        self.bSizer1 = pw.sampling_particulars(pnl)
-
-        #---sizer 2 ----
-        ncn_keys = ['XXXXY', 'XXXX-YY', 'XXXX.YY', 'XXXX[YYY] where YYY is sample designation, enter number of Y', 'sample name=site name', 'site name in site_name column in orient.txt format input file', '[XXXX]YYY where XXXX is the site name, enter number of X']
-        self.bSizer2 = pw.select_ncn(pnl, ncn_keys)
-        
-        #---sizer 3 ----
-        self.bSizer3 = pw.select_specimen_ocn(pnl)
-
-        #---sizer 4 ----
-        self.bSizer4 = pw.select_declination(pnl)
-        
-        #---sizer 5 ----
-        TEXT = "Hours to SUBTRACT from local time for GMT, default is 0:"
-        self.bSizer5 = pw.labeled_text_field(pnl, TEXT)
-
-        #---sizer 6 ----
-        # figure out proper formatting for this.  maybe 2 radio buttons?  option1: overwrite option2: update and append.
-        TEXT = "Overwrite er_samples.txt file?"
-        label1 = "yes, overwrite file in working directory"
-        label2 = "no, update existing er_samples file"
-        er_samples_file_present = True
-        try:
-            open(os.path.join(self.WD, "er_samples.txt"), "rU")
-        except Exception as ex:
-            er_samples_file_present = False
-        if er_samples_file_present:
-            self.bSizer6 = pw.labeled_yes_or_no(pnl, TEXT, label1, label2)
-
-        #---sizer 7 ---
-        label = "Select bedding conventions (if needed)"
-        gridsize = (1, 2, 0, 5)
-        choices = "averages all bedding poles and uses average for all samples: default is NO", "Don't correct bedding dip with declination -- already correct"
-        self.bSizer7 = pw.check_boxes(pnl, gridsize, choices, label)
-        #def __init__(self, parent, gridsize, choices, text):
-
-
-        #---buttons ---
-        hboxok = pw.btn_panel(self, pnl)
-
-        #------
-        vbox=wx.BoxSizer(wx.VERTICAL)
-
-        vbox.AddSpacer(10)
-        vbox.Add(bSizer_info, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
-        vbox.Add(self.bSizer0, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
-        vbox.Add(self.bSizer1, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
-        vbox.Add(self.bSizer2, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
-        vbox.Add(self.bSizer3, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
-        vbox.Add(self.bSizer4, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
-        vbox.Add(self.bSizer5, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
-        try:
-            vbox.Add(self.bSizer6, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
-        except AttributeError:
-            pass
-        vbox.Add(self.bSizer7, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
-        #vbox.AddSpacer(10)
-        #vbox.Add(wx.StaticLine(pnl), 0, wx.ALL|wx.EXPAND, 5)
-        vbox.Add(hboxok, flag=wx.ALIGN_CENTER)        
-        vbox.AddSpacer(20)
-
-        hbox_all= wx.BoxSizer(wx.HORIZONTAL)
-        hbox_all.AddSpacer(20)
-        hbox_all.AddSpacer(vbox)
-        hbox_all.AddSpacer(20)
-        
-        self.panel.SetSizer(hbox_all)
-        self.panel.SetScrollbars(20, 20, 50, 50)
-        hbox_all.Fit(self)
-        self.Show()
-        self.Centre()
-
-    def on_add_file_button(self,event):
-        text = "choose file to convert to MagIC"
-        pw.on_add_file_button(self.bSizer0, self.WD, event, text)
-
-    def on_okButton(self, event):
-        os.chdir(self.WD)
-        WD = self.WD
-        full_infile = self.bSizer0.return_value()
-        ID, infile = os.path.split(full_infile)
-        Fsa = infile[:infile.find('.')] + "_er_samples.txt"
-        Fsi = infile[:infile.find('.')] + "_er_sites.txt"
-        mcd = self.bSizer1.return_value()
-        if mcd:
-            mcd = "-mcd " + mcd
-        ncn = self.bSizer2.return_value()
-        ocn = self.bSizer3.return_value()
-        dcn = self.bSizer4.return_value()
-        gmt = self.bSizer5.return_value() or 0
-        try:
-            app = self.bSizer6.return_value()
-            if app:
-                app = "" # overwrite is True
-            else:
-                app = "-app" # overwrite is False, append instead
-        except AttributeError:
-            app = ""
-        COMMAND = "orientation_magic.py -WD {} -f {} -ncn {} -ocn {} -dcn {} -gmt {} {} {} -ID {} -Fsa {} -Fsi {}".format(WD, infile, ncn, ocn, dcn, gmt, mcd, app, ID, Fsa, Fsi)
-        pw.run_command_and_close_window(self, COMMAND, "er_samples.txt\ner_sites.txt")
-
-    def on_cancelButton(self,event):
-        self.Destroy()
-        self.Parent.Raise()
-
-    def on_helpButton(self, event):
-        pw.on_helpButton("orientation_magic.py -h")
-
+import ipmag
 
 class ImportAzDipFile(wx.Frame):
 
@@ -218,29 +87,36 @@ class ImportAzDipFile(wx.Frame):
         pw.on_add_file_button(self.bSizer0, self.WD, event, text)
 
     def on_okButton(self, event):
+        options = {}
         os.chdir(self.WD)
-        WD = self.WD
+        output_dir = self.WD
         full_infile = self.bSizer0.return_value()
-        infile = os.path.split(full_infile)[1]
-        Fsa = WD + infile + "_er_samples.txt"
+        input_dir, infile = os.path.split(full_infile)
+        Fsa = os.path.splitext(infile)[0] + "_er_samples.txt"
         mcd = self.bSizer1.return_value()
-        if mcd:
-            mcd = "-mcd " + mcd
         ncn = self.bSizer2.return_value()
         loc = self.bSizer3.return_value()
-        if loc:
-            loc = "-loc " + loc
         try:
             app = self.bSizer4.return_value()
             if app:
-                app = "" # overwrite is True
+                app = False#"" # overwrite is True
             else:
-                app = "-app" # overwrite is False, append instead
+                app = True#"-app" # overwrite is False, append instead
         except AttributeError:
             app = ""
-        COMMAND = "azdip_magic.py -f {} -Fsa {} -ncn {} {} {} {}".format(full_infile, Fsa, ncn, loc, mcd, app)
+        #COMMAND = "azdip_magic.py -f {} -Fsa {} -ncn {} {} {} {}".format(full_infile, Fsa, ncn, loc, mcd, app)
 
-        pw.run_command_and_close_window(self, COMMAND, Fsa)
+        if len(str(ncn)) > 1:
+            ncn, Z = ncn.split('-')
+        else:
+            Z = 1
+
+        program_completed, error_message = ipmag.azdip_magic(infile, Fsa, ncn, Z, mcd, loc, app, output_dir, input_dir)
+        if program_completed:
+            pw.close_window(self, 'ipmag.azdip_magic(infile, Fsa, ncn, Z, mcd, loc, app)', Fsa)
+        else:
+            pw.simple_warning(error_message)
+        #pw.run_command_and_close_window(self, COMMAND, Fsa)
 
     def on_cancelButton(self,event):
         self.Destroy()
@@ -250,9 +126,10 @@ class ImportAzDipFile(wx.Frame):
         pw.on_helpButton("azdip_magic.py -h")
 
 
-class ImportODPCoreSummary(wx.Frame):
+#class ImportODPCoreSummary(wx.Frame):
+class MoveFileIntoWD(wx.Frame):
 
-    title = "Import ODP Core Summary csv file"
+    title = "Import any file into your working directory"
     
     def __init__(self, parent, WD):
         wx.Frame.__init__(self, parent, wx.ID_ANY, self.title)
@@ -262,7 +139,7 @@ class ImportODPCoreSummary(wx.Frame):
 
     def InitUI(self):
         pnl = self.panel
-        TEXT = "ODP Core Summary csv file"
+        TEXT = "Any file type"
         bSizer_info = wx.BoxSizer(wx.HORIZONTAL)
         bSizer_info.Add(wx.StaticText(pnl, label=TEXT), wx.ALIGN_LEFT)
 
@@ -312,7 +189,7 @@ class ImportODPCoreSummary(wx.Frame):
 
 class ImportODPSampleSummary(wx.Frame):
 
-    title = "Import ODP Sample Summary csv file"
+    title = "Import IODP Sample Summary csv file"
     
     def __init__(self, parent, WD):
         wx.Frame.__init__(self, parent, wx.ID_ANY, self.title)
@@ -322,7 +199,7 @@ class ImportODPSampleSummary(wx.Frame):
 
     def InitUI(self):
         pnl = self.panel
-        TEXT = "ODP Sample Summary csv file"
+        TEXT = "IODP Sample Summary csv file"
         bSizer_info = wx.BoxSizer(wx.HORIZONTAL)
         bSizer_info.Add(wx.StaticText(pnl, label=TEXT), wx.ALIGN_LEFT)
 
@@ -358,18 +235,23 @@ class ImportODPSampleSummary(wx.Frame):
         full_infile = self.bSizer0.return_value()
         ID, infile = os.path.split(full_infile)
         Fsa = infile[:infile.find('.')] + "_er_samples.txt"
-        COMMAND = "ODP_samples_magic.py -WD {} -f {} -Fsa {} -ID {}".format(WD, infile, Fsa, ID)
-        pw.run_command_and_close_window(self, COMMAND, Fsa)
+        program_ran, error_message = ipmag.IODP_samples_magic(infile, Fsa, WD, ID)
+        if not program_ran:
+            pw.simple_warning(error_message)
+        else:
+            COMMAND = "IODP_samples_magic.py -WD {} -f {} -Fsa {} -ID {}".format(WD, infile, Fsa, ID)
+            pw.close_window(self, COMMAND, Fsa)
+        #pw.run_command_and_close_window(self, COMMAND, Fsa)
 
     def on_cancelButton(self,event):
         self.Destroy()
         self.Parent.Raise()
 
     def on_helpButton(self, event):
-        pw.on_helpButton("ODP_samples_magic.py -h")
+        pw.on_helpButton("IODP_samples_magic.py -h")
 
 
-
+"""
 class ImportModelLatitude(wx.Frame):
 
     title = "Import Model Latitude data file"
@@ -426,8 +308,7 @@ class ImportModelLatitude(wx.Frame):
         dlg = wx.MessageDialog(self, "Unaltered file will be copied to working directory", "Help", style=wx.OK|wx.ICON_EXCLAMATION)
         dlg.ShowModal()
         dlg.Destroy()
-
-
+"""
 
 class ImportKly4s(wx.Frame):
 
@@ -451,8 +332,8 @@ class ImportKly4s(wx.Frame):
         #---sizer 1 ---
         self.bSizer1 = pw.choose_file(pnl, btn_text='add AZDIP file (optional)', method = self.on_add_AZDIP_file_button)
         self.bSizer1a = pw.select_specimen_ocn(pnl)
+        self.bSizer1a.select_orientation_convention.SetSelection(2)
         
-
         #---sizer 2 ----
         self.bSizer2 = pw.labeled_text_field(pnl)
 
@@ -463,15 +344,13 @@ class ImportKly4s(wx.Frame):
         self.bSizer4 = pw.select_ncn(pnl)
 
         #---sizer 5 ---
-        self.bSizer5 = pw.select_specimen_ocn(pnl)
-        self.bSizer5.select_orientation_convention.SetSelection(2)
+        #self.bSizer5 = pw.select_specimen_ocn(pnl)
 
         #---sizer 6 ---
         self.bSizer6 = pw.labeled_text_field(pnl, "Location name:")
 
         #---sizer 7 ---
         self.bSizer7 = pw.labeled_text_field(pnl, "Instrument name (optional):")
-
 
         #---buttons ---
         hboxok = pw.btn_panel(self, pnl)
@@ -487,7 +366,6 @@ class ImportKly4s(wx.Frame):
         vbox.Add(self.bSizer2, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(self.bSizer3, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(self.bSizer4, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
-        vbox.Add(self.bSizer5, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(hbox1, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(hboxok, flag=wx.ALIGN_CENTER)        
         vbox.AddSpacer(20)
@@ -498,7 +376,6 @@ class ImportKly4s(wx.Frame):
 
         self.panel.SetSizer(self.hbox_all)
         self.panel.SetScrollbars(20, 20, 50, 50)
-        self.bSizer1a.ShowItems(False)
         self.hbox_all.Fit(self)
         self.Show()
         self.Centre()
@@ -511,7 +388,6 @@ class ImportKly4s(wx.Frame):
         text = "choose AZDIP file (optional)"
         pw.on_add_file_button(self.bSizer1, self.WD, event, text)
 
-
     def on_okButton(self, event):
         os.chdir(self.WD)
         WD = self.WD
@@ -519,29 +395,37 @@ class ImportKly4s(wx.Frame):
         ID, infile = os.path.split(full_infile)
         outfile = infile + ".magic"
         spec_outfile = infile[:infile.find('.')] + "_er_specimens.txt"
+        ani_outfile = infile[:infile.find('.')] + "_rmag_anisotropy.txt"
         full_azdip_file = self.bSizer1.return_value()
         azdip_file = os.path.split(full_azdip_file)[1]
         if azdip_file:
             azdip_file = "-fad " + azdip_file
-        try:
-            ocn = "-ocn" + self.bSizer1a.return_value()
-        except:
-            ocn = ""
+        orient_con = self.bSizer1a.return_value()
+        ocn = "-ocn " + str(self.bSizer1a.return_value())
         user = self.bSizer2.return_value()
         if user:
             user = "-usr " + user
-        n = self.bSizer3.return_value()
-        n = "-spc " + str(n)
+        specnum = self.bSizer3.return_value()
+        n = "-spc " + str(specnum)
         ncn = self.bSizer4.return_value()
-        #
         loc = self.bSizer6.return_value()
         if loc:
+            location = loc
             loc = "-loc " + loc
+        else:
+            location = ''
         ins = self.bSizer7.return_value()
         if ins:
             ins = "-ins " + ins
+            instrument = ins
+        else:
+            instrument='SIO-KLY4S'
         COMMAND = "kly4s_magic.py -WD {} -f {} -F {} {} -ncn {} {} {} {} {} {} -ID {} -fsp {}".format(self.WD, infile, outfile, azdip_file, ncn, ocn, user, n, loc, ins, ID, spec_outfile)
-        pw.run_command_and_close_window(self, COMMAND, outfile)
+        program_ran, error_message = ipmag.kly4s_magic(infile, specnum=specnum, locname=location, inst=instrument, samp_con=ncn, or_con=orient_con, user=user, measfile=outfile, aniso_outfile=ani_outfile, samp_infile='', spec_infile='', spec_outfile=spec_outfile, output_dir_path=self.WD, input_dir_path=ID)
+        if program_ran:
+            pw.close_window(self, COMMAND, outfile)
+        else:
+            pw.simple_warning(error_message)
 
     def on_cancelButton(self,event):
         self.Destroy()
@@ -743,17 +627,13 @@ class ImportSufarAscii(wx.Frame):
         else:
             k15 = "-k15"
         COMMAND = "SUFAR4-asc_magic.py -WD {} -f {} -F {} {} -spc {} -ncn {} {} {} {} -ID {}".format(WD, infile, outfile, usr, spc, ncn, loc, ins, k15, ID)
-        #print COMMAND
         pw.run_command_and_close_window(self, COMMAND, outfile)
-        command = 'mv er_specimens.txt {}'.format(spec_outfile)
-        print "Renaming er_specimens.txt file: \n", command
-        os.system(command)
-        command = 'mv er_samples.txt {}'.format(samp_outfile)
-        print "Renaming er_samples.txt file: \n", command
-        os.system(command)
-        command = 'mv er_sites.txt {}'.format(site_outfile)
-        print "Renaming er_sites.txt file: \n", command
-        os.system(command)
+        print "Renaming er_specimens.txt file: {}".format(spec_outfile)
+        os.rename('er_specimens.txt', spec_outfile)
+        print "Renaming er_samples.txt file: {}".format(samp_outfile)
+        os.rename('er_samples.txt', samp_outfile)
+        print "Renaming er_sites.txt file: {}".format(site_outfile)
+        os.rename('er_sites.txt', site_outfile)
 
     def on_cancelButton(self,event):
         self.Destroy()
@@ -1288,7 +1168,7 @@ class Core_depthplot(wx.Frame):
     title = "Remanence data vs. depth/height/age"
     
     def __init__(self, parent, WD):
-        wx.Frame.__init__(self, parent, wx.ID_ANY, self.title)
+        wx.Frame.__init__(self, parent, wx.ID_ANY, self.title, name='core_depthplot')
         self.panel = wx.ScrolledWindow(self)
         self.WD = WD
         self.InitUI()
@@ -1392,7 +1272,9 @@ class Core_depthplot(wx.Frame):
         self.Bind(wx.EVT_CHECKBOX, self.on_checkbox, self.bSizer9.cb)
 
         # if plotting GPTS, these sizers will be shown:
-        self.bSizer10 = pw.labeled_yes_or_no(pnl, "Time scale", "gts04", "ck95")
+        #self.bSizer10 = pw.labeled_yes_or_no(pnl, "Time scale", "gts04", "ck95")
+        choices = ["gts12", "gts04", "ck95"]
+        self.bSizer10 = pw.radio_buttons(pnl, choices, label="Time scale")
 
         self.bSizer11 = pw.labeled_text_field(pnl, label="Minimum age (in Ma)")
 
@@ -1446,7 +1328,6 @@ class Core_depthplot(wx.Frame):
         vbox2.Add(wx.StaticText(pnl, label="Specify depths to plot (optional)"))
         vbox2.Add(hbox2, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
 
-
         #---time scale ----
         hbox3.Add(self.bSizer9, flag=wx.ALIGN_LEFT)
         hbox3.Add(self.bSizer10, flag=wx.ALIGN_LEFT)#|wx.LEFT, border=5)
@@ -1455,14 +1336,12 @@ class Core_depthplot(wx.Frame):
         vbox3.Add(wx.StaticText(pnl, label="Specify time scale to plot (optional)"))
         vbox3.Add(hbox3)
 
-
         #---experiment type and step
         hbox4.Add(self.bSizer13, flag=wx.ALIGN_LEFT)
         hbox4.Add(self.bSizer14, flag=wx.ALIGN_LEFT)
         vbox4.Add(wx.StaticText(pnl, label="Experiment type"))
         vbox4.Add(hbox4)
         #vbox4.Add(self.bSizer15)
-
 
         #---add all widgets to main container---
         vbox.Add(bSizer_info, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
@@ -1625,10 +1504,7 @@ class Core_depthplot(wx.Frame):
         dmax = self.bSizer7.return_value()
         if self.bSizer9.return_value(): # if plot GPTS is checked
             pltTime = 1
-            if self.bSizer10.return_value():
-                timescale = 'gts04'
-            else:
-                timescale = 'ck95'
+            timescale = self.bSizer10.return_value()
             amin = self.bSizer11.return_value()
             amax = self.bSizer12.return_value()
             if not amin or not amax:
@@ -1648,11 +1524,14 @@ class Core_depthplot(wx.Frame):
         method = str(self.bSizer13.return_value())
         step = self.bSizer14.return_value()
         if not step:
-            #-LP [AF,T,ARM,IRM, X] step [in mT,C,mT,mT, mass/vol] to plot
-            units_dict = {'AF': 'millitesla', 'T': 'degrees C', 'ARM': 'millitesla', 'IRM': 'millitesla', 'X': 'mass/vol'}
-            unit = units_dict[method]
-            pw.simple_warning("You must provide the experiment step in {}".format(unit))
-            return False
+            step = 0
+            method = 'LT-NO'
+        #if not step:
+        #    #-LP [AF,T,ARM,IRM, X] step [in mT,C,mT,mT, mass/vol] to plot
+        #    units_dict = {'AF': 'millitesla', 'T': 'degrees C', 'ARM': 'millitesla', 'IRM': 'millitesla', 'X': 'mass/vol'}
+            #unit = units_dict[method]
+            #pw.simple_warning("You must provide the experiment step in {}".format(unit))
+            #return False
         pltDec, pltInc, pltMag, logit = 0, 0, 0, 0
         for val in self.bSizer3.return_value():
             if 'declination' in val:
@@ -1685,8 +1564,10 @@ class Core_depthplot(wx.Frame):
             pixel_width = dpi * fig.get_figwidth()
             pixel_height = dpi * fig.get_figheight()
             plot_frame = PlotFrame((pixel_width, pixel_height + 50), fig, figname)
+            return plot_frame
         else:
             pw.simple_warning("No data points met your criteria - try again\nError message: {}".format(figname))
+            return False
 
 
         # for use as command_line:
@@ -1771,7 +1652,7 @@ class Ani_depthplot(wx.Frame):
     title = "Plot anisotropoy vs. depth/height/age"
     
     def __init__(self, parent, WD):
-        wx.Frame.__init__(self, parent, wx.ID_ANY, self.title)
+        wx.Frame.__init__(self, parent, wx.ID_ANY, self.title, name='aniso_depthplot')
         self.panel = wx.ScrolledWindow(self)
         self.WD = WD
         self.InitUI()
@@ -2030,7 +1911,6 @@ class ClearWD(wx.MessageDialog):
         result = self.ShowModal()
         self.Destroy()
         if result == wx.ID_YES:
-            #os.system('rm -r {}'.format(WD))
             os.chdir('..')
             import shutil
             shutil.rmtree(WD)

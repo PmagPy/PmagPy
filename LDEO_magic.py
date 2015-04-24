@@ -202,25 +202,25 @@ is031c2       .0  SD  0 461.600 163.9  17.5  337.1  74.5  319.1  74.4    .0   .0
             input=open(magfile,'rU')
         except:
             print "bad mag file name"
-            return False
+            return False, "bad mag file name"
     else: 
         print "mag_file field is required option"
         print main.__doc__
-        return False
+        return False, "mag_file field is required option"
         
     if specnum!=0:specnum=-specnum
 
     if "4" in samp_con:
         if "-" not in samp_con:
-            print "option [4] must be in form 4-Z where Z is an integer"
-            return False
+            print "naming convention option [4] must be in form 4-Z where Z is an integer"
+            return False, "naming convention option [4] must be in form 4-Z where Z is an integer"
         else:
             Z=samp_con.split("-")[1]
             samp_con="4"
     if "7" in samp_con:
         if "-" not in samp_con:
-            print "option [7] must be in form 7-Z where Z is an integer"
-            return False
+            print "naming convention option [7] must be in form 7-Z where Z is an integer"
+            return False, "naming convention option [7] must be in form 7-Z where Z is an integer"
         else:
             Z=samp_con.split("-")[1]
             samp_con="4"
@@ -254,7 +254,7 @@ is031c2       .0  SD  0 461.600 163.9  17.5  337.1  74.5  319.1  74.4    .0   .0
         if coil not in ["1","2","3"]:
             print main.__doc__
             print 'not a valid coil specification'
-            return False
+            return False, 'not a valid coil specification'
 
     if demag=="T" and "ANI" in codes:
         methcode="LP-AN-TRM"
@@ -375,7 +375,7 @@ is031c2       .0  SD  0 461.600 163.9  17.5  337.1  74.5  319.1  74.4    .0   .0
     if len(SynRecs)>0:
         pmag.magic_write(synfile,SynRecs,'er_synthetics')
         print "synthetics put in ",synfile
-    return True
+    return True, meas_file
 
 def do_help():
     return main.__doc__

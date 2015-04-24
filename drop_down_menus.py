@@ -33,12 +33,18 @@ class Menus():
             self.choices = {2: (belongs_to, False)}
         if self.data_type == 'sample' or self.data_type == 'site':
             self.choices = {2: (belongs_to, False), 3: (vocab['class'], False), 4: (vocab['lithology'], True), 5: (vocab['type'], False)}
+            map(lambda (x, y): self.grid.SetColLabelValue(x, y), [(3, 'site_class**'), (4, 'site_lithology**'), (5, 'site_type**')])
+            #self.grid.SetColLabelValue(3, 'site_class**')
+            #self.grid.
         if self.data_type == 'site':
             self.choices[6] = (vocab['site_definition'], False)
+            self.grid.SetColLabelValue(6, 'site_definition**')
         if self.data_type == 'location':
             self.choices = {1: (vocab['location_type'], False)}
+            self.grid.SetColLabelValue(1, 'location_type**')
         if self.data_type == 'age':
             self.choices = {3: (vocabulary.geochronology_method_codes, False), 5: (vocab['age_unit'], False)}
+            map(lambda (x, y): self.grid.SetColLabelValue(x, y), [(3, 'magic_method_codes**'), (5, 'age_unit**')])
         if self.data_type == 'orient':
             self.choices = {0: (['g', 'b'], False)}
         self.window.Bind(wx.grid.EVT_GRID_CELL_LEFT_CLICK, lambda event: self.on_left_click(event, self.grid, self.choices), self.grid) 
@@ -53,7 +59,8 @@ class Menus():
         # if so, get the vocabulary list from the MagIC API
         for col_number, label in enumerate(col_labels):
             if label in vocabulary.possible_vocabularies:
-                if col_number not in self.choices.keys(): # if not already assigned above                    
+                if col_number not in self.choices.keys(): # if not already assigned above
+                    self.grid.SetColLabelValue(col_number, label + "**") # mark it as using a controlled vocabulary
                     url = 'http://api.earthref.org/MAGIC/vocabularies/{}.json'.format(label)
                     controlled_vocabulary = pd.io.json.read_json(url)
                     stripped_list = []
@@ -78,6 +85,7 @@ class Menus():
 
                     two_tiered = True if isinstance(stripped_list, dict) else False
                     self.choices[col_number] = (stripped_list, two_tiered)
+            
 
                     
     def on_label_click(self, event):

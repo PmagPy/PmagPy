@@ -72,7 +72,6 @@ def main():
     Selection=pmag.get_dictitem(Data,grab_key,v,flag)
     if len(Selection)>0:
         pmag.magic_write(outfile,Selection,file_type)
-        print len(Selection),' records written to ',outfile
     else:
         print 'no data matched your criteria'
 main()
