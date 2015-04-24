@@ -851,9 +851,9 @@ class convert_SIO_files_to_MagIC(wx.Frame):
             instrument = "-ins " + instrument
         replicate = self.bSizer7.return_value()
         if replicate:
-            options_dict['noave'] = False
+            options_dict['noave'] = 0
         else:
-            options_dict['noave'] = True
+            options_dict['noave'] = 1
         if replicate:
             replicate = ''
         else:
