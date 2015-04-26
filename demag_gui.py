@@ -4,6 +4,8 @@
 # LOG HEADER:
 #============================================================================================
 #
+# Demag_GUI Version 0.31 save MagIC tables option: add dialog box to choose coordinates system for pmag_specimens.txt 04/26/2015
+#
 # Demag_GUI Version 0.30 fix backward compatibility with strange pmag_speciemns.txt 01/29/2015
 #
 # Demag_GUI Version 0.29 fix on_close_event 23/12/2014
@@ -35,7 +37,7 @@
 
 
 global CURRENT_VRSION
-CURRENT_VRSION = "v.0.30"
+CURRENT_VRSION = "v.0.31"
 import matplotlib
 #import matplotlib.font_manager as font_manager
 #matplotlib.use('WXAgg')
@@ -3707,6 +3709,7 @@ class Zeq_GUI(wx.Frame):
         #    if not #6: save pmag_*.txt.tmp as pmag_*.txt
         #---------------------------------------            
 
+
         #---------------------------------------
         # save pmag_*.txt.tmp without directional data           
         #---------------------------------------  
@@ -3714,18 +3717,40 @@ class Zeq_GUI(wx.Frame):
             self.on_menu_save_interpretation(None)    
         except:
             pass    
+
+        #---------------------------------------
+        # dialog box to choose coordinate systems for pmag_specimens.txt           
+        #---------------------------------------  
+        dia = demag_dialogs.magic_pmag_specimens_table_dialog(None)
+        dia.Center()
+
+        CoorTypes=['DA-DIR','DA-DIR-GEO','DA-DIR-TILT']
+        if dia.ShowModal() == wx.ID_OK: # Until the user clicks OK, show the message 
+              
+            CoorTypes=[]
+            if dia.cb_spec_coor.GetValue()==True:
+                CoorTypes.append('DA-DIR')
+            if dia.cb_geo_coor.GetValue()==True:
+                CoorTypes.append('DA-DIR-GEO')
+            if dia.cb_tilt_coor.GetValue()==True:
+                CoorTypes.append('DA-DIR-TILT')
+        #------------------------------        
+        
+        
         self.PmagRecsOld={}
         for FILE in ['pmag_specimens.txt']:
             self.PmagRecsOld[FILE]=[]
+            meas_data=[]
             try: 
                 meas_data,file_type=pmag.magic_read(os.path.join(self.WD, FILE))
                 self.GUI_log.write("-I- Read old magic file  %s\n"%os.path.join(self.WD, FILE))
-                if FILE !='pmag_specimens.txt':
-                    os.remove(os.path.join(self.WD,FILE))
-                    self.GUI_log.write("-I- Delete old magic file  %s\n"%os.path.join(self.WD,FILE))
+                #if FILE !='pmag_specimens.txt':
+                os.remove(os.path.join(self.WD,FILE))
+                self.GUI_log.write("-I- Delete old magic file  %s\n"%os.path.join(self.WD,FILE))
                                
             except:
-                continue                                                                           
+                continue 
+                                                                                          
             for rec in meas_data:
                 if "magic_method_codes" in rec.keys():
                     if "LP-DIR" not in rec['magic_method_codes'] and "DE-" not in  rec['magic_method_codes']:
@@ -3736,14 +3761,16 @@ class Zeq_GUI(wx.Frame):
         #---------------------------------------
         # write a new pmag_specimens.txt       
         #---------------------------------------  
-                                  
+
+                                                                    
         specimens_list=self.pmag_results_data['specimens'].keys()
         specimens_list.sort()
         PmagSpecs=[]
         for specimen in specimens_list:
             if 'DA-DIR' not in self.pmag_results_data['specimens'][specimen].keys() or self.pmag_results_data['specimens'][specimen]['DA-DIR']=={}:
                 continue
-            for dirtype in ['DA-DIR','DA-DIR-GEO','DA-DIR-TILT']:
+            
+            for dirtype in CoorTypes:
                 PmagSpecRec={}
                 user="" # Todo
                 PmagSpecRec["er_analyst_mail_names"]=user
