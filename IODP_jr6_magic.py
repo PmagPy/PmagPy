@@ -27,6 +27,35 @@ def main(command_line=True, **kwargs):
     INPUT
         JR6 .jr6 format file
     """
+
+
+
+    def fix_separation(filename, new_filename):
+        data = open(filename).readlines()
+        new_data = []
+        for line in data:
+            new_line = []
+            for i in line.split():
+                if '-' in i[1:]:
+                    lead_char = '-' if i[0] == '-' else ''
+                    if lead_char:
+                        v = i[1:].split('-')
+                    else:
+                        v = i.split('-')
+                    new_line.append(lead_char + v[0])
+                    new_line.append('-' + v[1])
+                else:
+                    new_line.append(i)
+            new_line = (' '.join(new_line)) + '\n'
+            new_data.append(new_line)
+        new_file = open(new_filename, 'w')
+        for s in new_data:
+            new_file.write(s)
+        new_file.close()
+        return new_filename
+
+
+    
 # initialize some stuff
     noave=0
     volume=2.5**3 #default volume is a 2.5cm cube
@@ -87,7 +116,7 @@ def main(command_line=True, **kwargs):
         input_dir_path = kwargs.get('input_dir_path', dir_path)
         output_dir_path = dir_path
         meas_file = kwargs.get('meas_file', 'magic_measurements.txt')
-        mag_file = kwargs.get('mag_file')
+        mag_file = kwargs.get('mag_file', '')
         samp_file = kwargs.get('samp_file', os.path.join(input_dir_path, 'er_samples.txt'))
         if not os.path.split(samp_file)[0]:
             samp_file = os.path.join(input_dir_path, samp_file)
@@ -117,7 +146,10 @@ def main(command_line=True, **kwargs):
     samp_file = os.path.join(input_dir_path, samp_file)
     meas_file = os.path.join(output_dir_path, meas_file)
     # parse data
-    data=pd.read_csv(mag_file,delim_whitespace=True,header=None)    
+    fix_separation(mag_file, 'temp.txt')
+    os.rename('temp.txt', mag_file)
+    #data = open(mag_file, 'rU').readlines()
+    data=pd.read_csv(mag_file,delim_whitespace=True,header=None)
     samples,filetype = pmag.magic_read(samp_file)
     data.columns=['specname','step','negz','y','x','expon','sample_azimuth','sample_dip','sample_bed_dip_direction','sample_bed_dip','bed_dip_dir2','bed_dip2','param1','param2','param3','param4','measurement_csd']
     cart=np.array([data['x'],data['y'],-data['negz']]).transpose()
