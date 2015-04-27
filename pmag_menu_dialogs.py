@@ -173,7 +173,7 @@ class MoveFileIntoWD(wx.Frame):
         os.chdir(self.WD)
         WD = self.WD
         full_infile = self.bSizer0.return_value()
-        infile = WD + os.path.split(full_infile)[1]
+        infile = os.path.join(WD, os.path.split(full_infile)[1])
         COMMAND = "cp {} ./".format(full_infile)
         pw.run_command_and_close_window(self, COMMAND, infile)
 

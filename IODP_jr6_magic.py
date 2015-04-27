@@ -29,9 +29,25 @@ def main(command_line=True, **kwargs):
     """
 
 
-
     def fix_separation(filename, new_filename):
-        data = open(filename).readlines()
+        old_file = open(filename, 'rU')
+        data = old_file.readlines()
+        new_data = []
+        for line in data:
+            new_line = line.replace('-', ' -')
+            new_line = new_line.replace('  ', ' ')
+            new_data.append(new_line)
+        new_file = open(new_filename, 'w')
+        for s in new_data:
+            new_file.write(s)
+        old_file.close()
+        new_file.close()
+        return new_filename
+        
+
+    def old_fix_separation(filename, new_filename):
+        old_file = open(filename, 'rU')
+        data = old_file.readlines()
         new_data = []
         for line in data:
             new_line = []
@@ -52,6 +68,7 @@ def main(command_line=True, **kwargs):
         for s in new_data:
             new_file.write(s)
         new_file.close()
+        old_file.close()
         return new_filename
 
 
@@ -146,10 +163,12 @@ def main(command_line=True, **kwargs):
     samp_file = os.path.join(input_dir_path, samp_file)
     meas_file = os.path.join(output_dir_path, meas_file)
     # parse data
-    fix_separation(mag_file, 'temp.txt')
-    os.rename('temp.txt', mag_file)
+    temp = os.path.join(output_dir_path, 'temp.txt')
+    fix_separation(mag_file, temp)
+    #os.rename('temp.txt', mag_file)
     #data = open(mag_file, 'rU').readlines()
-    data=pd.read_csv(mag_file,delim_whitespace=True,header=None)
+    data=pd.read_csv(temp, delim_whitespace=True,header=None)
+    os.remove(temp)
     samples,filetype = pmag.magic_read(samp_file)
     data.columns=['specname','step','negz','y','x','expon','sample_azimuth','sample_dip','sample_bed_dip_direction','sample_bed_dip','bed_dip_dir2','bed_dip2','param1','param2','param3','param4','measurement_csd']
     cart=np.array([data['x'],data['y'],-data['negz']]).transpose()
@@ -207,7 +226,7 @@ def main(command_line=True, **kwargs):
                 MagRec["treatment_dc_field"]='%8.3e' %(treat*1e-3) # convert from mT to tesla
             else:
                 print 'unknown treatment type for ',row
-                sys.exit()
+                return False, 'unknown treatment type for ',row
             MagRec['magic_method_codes']=meas_type
             MagRecs.append(MagRec.copy())
         else:
