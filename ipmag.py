@@ -985,7 +985,7 @@ def make_aniso_depthplot(ani_file, meas_file, samp_file, age_file=None, fmt='svg
         return main_plot, fig_name
 
 
-def core_depthplot(dir_path='.', meas_file='magic_measurements.txt', spc_file='', samp_file='', age_file='', depth_scale='sample_core_depth', dmin=-1, dmax=-1, sym='bo',  size=5, spc_sym='ro', spc_size=5, meth='', step=0, fmt='svg',  pltDec=1, pltInc=1, pltMag=1, pltLine=1, pltSus=1, logit=0, pltTime=0, timescale=None, amin=-1, amax=-1):
+def core_depthplot(dir_path='.', meas_file='magic_measurements.txt', spc_file='', samp_file='', age_file='', sum_file='', depth_scale='sample_core_depth', dmin=-1, dmax=-1, sym='bo',  size=5, spc_sym='ro', spc_size=5, meth='', step=0, fmt='svg',  pltDec=1, pltInc=1, pltMag=1, pltLine=1, pltSus=1, logit=0, pltTime=0, timescale=None, amin=-1, amax=-1):
     """
     depth scale can be 'sample_core_depth' or 'sample_composite_depth'
     if age file is provided, depth_scale will be set to 'age' by default
@@ -1007,8 +1007,8 @@ def core_depthplot(dir_path='.', meas_file='magic_measurements.txt', spc_file=''
     maxSuc=-1000
     minSuc=10000
 
+
     # files not supported for the moment
-    sum_file="" # nothing else needed 
     suc_file="" # nothing else needed, also was not implemented in original script
     res_file="" # need also res_sym, res_size
     wig_file=""#  if wig_file: pcol+=1; width+=2
@@ -1093,18 +1093,34 @@ def core_depthplot(dir_path='.', meas_file='magic_measurements.txt', spc_file=''
     if norm==1:
         ErSpecs,file_type=pmag.magic_read(wt_file) 
         print len(ErSpecs), ' specimens read in from ',wt_file
-    Cores=[] 
+    Cores=[]
+    core_depth_key="Top depth cored CSF (m)"
     if sum_file!="":
         input=open(sum_file,'rU').readlines()
-        keys=input[1].replace('\n','').split(',') # splits on underscores
+        if "Core Summary" in input[0]:
+            headline=1
+        else:
+            headline=0
+        keys=input[headline].replace('\n','').split(',')
+        if "Core Top (m)" in keys:
+            core_depth_key="Core Top (m)"
+        if "Top depth cored CSF (m)" in keys:
+            core_depth_key="Top depth cored CSF (m)"
+        if "Core Label" in keys:
+            core_label_key="Core Label"
+        if "Core label" in keys:
+            core_label_key="Core label"
+
         for line in input[2:]:
             if 'TOTALS' not in line:
                 CoreRec={}
-                for k in range(len(keys)):CoreRec[keys[k]]=line.split(',')[k]
+                for k in range(len(keys)):
+                    CoreRec[keys[k]]=line.split(',')[k]
                 Cores.append(CoreRec)
         if len(Cores)==0:
             print 'no Core depth information available: import core summary file'
             sum_file=""
+
     Data=[]
     if depth_scale=='sample_core_depth':
         ylab="Depth (mbsf)"
@@ -1291,13 +1307,16 @@ def core_depthplot(dir_path='.', meas_file='magic_measurements.txt', spc_file=''
             if spc_file!="" and len(FDepths)>0:
                 pyplot.scatter(FDecs,FDepths,marker=spc_sym[-1],edgecolor=spc_sym[0],facecolor='white',s=spc_size**2) 
             if res_file!="":
-                pyplot.plot(ResDecs,ResDepths,res_sym,markersize=res_size) 
+                pyplot.plot(ResDecs,ResDepths,res_sym,markersize=res_size)
+
             if sum_file!="":
                 for core in Cores:
-                     depth=float(core['Core Top (m)']) 
+                     depth=float(core[core_depth_key]) 
                      if depth>dmin and depth<dmax:
-                        pyplot.plot([0,360.],[depth,depth],'b--')
-                        if pel==plt:pyplot.text(360,depth+tint,core['Core Label'])
+                        pylab.plot([0,360.],[depth,depth],'b--')
+                        if pel==plt:
+                            pylab.text(360,depth+tint,core[core_label_key])
+
             if pel==plt:
                 #print 'set axis 0, 400'
                 pyplot.axis([0,400,dmax,dmin])
@@ -1332,10 +1351,12 @@ def core_depthplot(dir_path='.', meas_file='magic_measurements.txt', spc_file=''
             pyplot.plot(ResIncs,ResDepths,res_sym,markersize=res_size) 
         if sum_file!="":
             for core in Cores:
-                 depth=float(core['Core Top (m)']) 
+                 depth=float(core[core_depth_key]) 
                  if depth>dmin and depth<dmax:
-                     if pel==plt:pyplot.text(90,depth+tint,core['Core Label'])
-                     pyplot.plot([-90,90],[depth,depth],'b--')
+                    pylab.plot([0,360.],[depth,depth],'b--')
+                    if pel==plt:
+                        pylab.text(360,depth+tint,core[core_label_key])
+                     
         pyplot.plot([0,0],[dmax,dmin],'k-') 
         if pel==plt:
             pyplot.axis([-90,110,dmax,dmin])
@@ -1363,9 +1384,10 @@ def core_depthplot(dir_path='.', meas_file='magic_measurements.txt', spc_file=''
                 #    pyplot.plot(SInts,SDepths,Ssym,markersize=Ssize) 
                 if sum_file!="":
                     for core in Cores:
-                         depth=float(core['Core Top (m)']) 
-                         pyplot.plot([0,maxInt*10**pow+.1],[depth,depth],'b--')
-                         if depth>dmin and depth<dmax:pyplot.text(maxInt*10**pow-.2*maxInt*10**pow,depth+tint,core['Core Label'])
+                         depth=float(core[core_depth_key]) 
+                         pylab.plot([0,maxInt*10**pow+.1],[depth,depth],'b--')
+                         if depth>dmin and depth<dmax:pylab.text(maxInt*10**pow-.2*maxInt*10**pow,depth+tint,core[core_label_key])
+                         
                 pyplot.axis([0,maxInt*10**pow+.1,dmax,dmin])
                 if norm==0:
                     pyplot.xlabel('%s %i %s'%('Intensity (10^-',pow,' Am^2)'))
@@ -1384,9 +1406,10 @@ def core_depthplot(dir_path='.', meas_file='magic_measurements.txt', spc_file=''
                 #    pyplot.semilogx(SInts,SDepths,Ssym,markersize=Ssize) 
                 if sum_file!="":
                     for core in Cores:
-                         depth=float(core['Core Top (m)']) 
-                         pyplot.semilogx([minInt,maxInt],[depth,depth],'b--')
-                         if depth>dmin and depth<dmax:pyplot.text(maxInt-.2*maxInt,depth+tint,core['Core Label'])
+                         depth=float(core[core_depth_key]) 
+                         pylab.semilogx([minInt,maxInt],[depth,depth],'b--')
+                         if depth>dmin and depth<dmax:pylab.text(maxInt-.2*maxInt,depth+tint,core[core_label_key])
+
                 pyplot.axis([0,maxInt,dmax,dmin])
                 if norm==0:
                     pyplot.xlabel('Intensity (Am^2)')
@@ -1412,9 +1435,11 @@ def core_depthplot(dir_path='.', meas_file='magic_measurements.txt', spc_file=''
                 #    pyplot.semilogx(SSucs,SDepths,sym,markersize=size) 
             if sum_file!="":
                 for core in Cores:
-                     depth=float(core['Core Top (m)']) 
-                     if logit==0:pyplot.plot([minSuc,maxSuc],[depth,depth],'b--')
-                     if logit==1:pyplot.semilogx([minSuc,maxSuc],[depth,depth],'b--')
+                    depth=float(core[core_depth_key]) 
+                    if logit==0:
+                        pylab.plot([minSuc,maxSuc],[depth,depth],'b--')
+                    if logit==1:
+                        pylab.semilogx([minSuc,maxSuc],[depth,depth],'b--')
             pyplot.axis([minSuc,maxSuc,dmax,dmin])
             pyplot.xlabel('Susceptibility')
             plt+=1
@@ -1424,8 +1449,8 @@ def core_depthplot(dir_path='.', meas_file='magic_measurements.txt', spc_file=''
             pyplot.plot(WIG,WIG_depths,'k') 
             if sum_file!="":
                 for core in Cores:
-                     depth=float(core['Core Top (m)']) 
-                     pyplot.plot([WIG[0],WIG[-1]],[depth,depth],'b--')
+                     depth=float(core[core_depth_key]) 
+                     pylab.plot([WIG[0],WIG[-1]],[depth,depth],'b--')
             pyplot.axis([min(WIG),max(WIG),dmax,dmin])
             pyplot.xlabel(plt_key)
             plt+=1
@@ -2986,7 +3011,7 @@ def IODP_samples_magic(samp_file, output_samp_file=None, output_dir_path='.', in
     if 'Volume (cc)' in keys:volume_key='Volume (cc)'
     if 'Volume (cm^3)' in keys:volume_key='Volume (cm^3)'
     if not text_key:
-        return False, "Could not extract the necessary data from your input file.\nPlease make sure you are providing a correctly formated ODP samples csv file."    
+        return False, "Could not extract the necessary data from your input file.\nPlease make sure you are providing a correctly formated IODP samples csv file."    
     ErSamples,samples,file_format=[],[],'old'
     for line in file_input[1:]:
         ODPRec,SampRec={},{}

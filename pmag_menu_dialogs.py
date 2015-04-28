@@ -1477,6 +1477,9 @@ class Core_depthplot(wx.Frame):
         pmag_spec_file = self.bSizer0a.return_value()
         if pmag_spec_file:
             pmag_spec_file = os.path.split(pmag_spec_file)[1]
+        sum_file = self.bSizer2.return_value()
+        if sum_file:
+            sum_File = os.path.split(sum_file)[1]
         spec_sym, spec_sym_shape, spec_sym_color, spec_sym_size = "", "", "", ""
 
         if pmag_spec_file:
@@ -1556,8 +1559,8 @@ class Core_depthplot(wx.Frame):
         import ipmag
         #print "pltLine:", pltLine
         #print "pltSus:", pltSus
-        
-        fig, figname = ipmag.core_depthplot(self.WD, meas_file, pmag_spec_file, samp_file, age_file, depth_scale, dmin, dmax, sym, size, spec_sym, spec_sym_size, method, step, fmt, pltDec, pltInc, pltMag, pltLine, 1, logit, pltTime, timescale, amin, amax)
+
+        fig, figname = ipmag.core_depthplot(self.WD, meas_file, pmag_spec_file, samp_file, age_file, sum_file, depth_scale, dmin, dmax, sym, size, spec_sym, spec_sym_size, method, step, fmt, pltDec, pltInc, pltMag, pltLine, 1, logit, pltTime, timescale, amin, amax)
         if fig:
             self.Destroy()
             dpi = fig.get_dpi()
