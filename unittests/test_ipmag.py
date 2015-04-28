@@ -69,7 +69,7 @@ class TestIODP_samples_magic(unittest.TestCase):
         infile = os.path.join(self.input_dir, 'GCR_U1359_B_coresummary.csv')
         program_ran, error_message = ipmag.IODP_samples_magic(infile)
         self.assertFalse(program_ran)
-        expected_error = 'Could not extract the necessary data from your input file.\nPlease make sure you are providing a correctly formated ODP samples csv file.'
+        expected_error = 'Could not extract the necessary data from your input file.\nPlease make sure you are providing a correctly formated IODP samples csv file.'
         self.assertEqual(error_message, expected_error)
 
 
