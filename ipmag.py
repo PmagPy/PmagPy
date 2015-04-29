@@ -1489,7 +1489,7 @@ def core_depthplot(dir_path='.', meas_file='magic_measurements.txt', spc_file=''
     pyplot.title(location)
     #pyplot.draw()
     return main_plot, figname
-
+    """
 
 
     
@@ -3647,72 +3647,79 @@ def k15_magic(k15file, specnum=0, sample_naming_con='1', er_location_name="unkno
     print "Data saved to: ",sampfile,aniso_outfile,result_file,measfile
     return True, measfile
 
-def SUFAR4_magic(ascfile, meas_output='magic_measurements.txt', aniso_output='rmag_anisotropy.txt', specfile=None, specnum=0, samp_con='1', user="", locname="unknown", instrument='', static_15_position_mode=False, output_dir_path='.', input_dir_path='.'):
+def SUFAR4_magic(ascfile, meas_output='magic_measurements.txt', aniso_output='rmag_anisotropy.txt', spec_infile=None, spec_outfile='er_specimens.txt', samp_outfile='er_samples.txt', site_outfile='er_sites.txt', specnum=0, sample_naming_con='1', user="", locname="unknown", instrument='', static_15_position_mode=False, output_dir_path='.', input_dir_path='.'):
 
     citation='This study'
     cont=0
     Z=1
     AniRecSs,AniRecs,SpecRecs,SampRecs,SiteRecs,MeasRecs=[],[],[],[],[],[]
     isspec='0'
-    spin,new=1,0
+    spin=0
 
+    ascfile = os.path.join(input_dir_path, ascfile)
     aniso_output = os.path.join(output_dir_path, aniso_output)
     #rmag_output = os.path.join(output_dir_path, 'rmag_results.txt') -- initialized but not used
     meas_output = os.path.join(output_dir_path, meas_output)
+
+    spec_outfile = os.path.join(output_dir_path, spec_outfile)
+    samp_outfile = os.path.join(output_dir_path, samp_outfile)
+    site_outfile = os.path.join(output_dir_path, site_outfile)
     
-    if "4" in samp_con:
-        if "-" not in samp_con:
+    if "4" in sample_naming_con:
+        if "-" not in sample_naming_con:
             print "option [4] must be in form 4-Z where Z is an integer"
             return False, "option [4] must be in form 4-Z where Z is an integer"
         else:
-            Z=samp_con.split("-")[1]
-            samp_con="4"
-    if "7" in samp_con:
-        if "-" not in samp_con:
+            Z=sample_naming_con.split("-")[1]
+            sample_naming_con="4"
+    if "7" in sample_naming_con:
+        if "-" not in sample_naming_con:
             print "option [7] must be in form 7-Z where Z is an integer"
             return False, "option [7] must be in form 7-Z where Z is an integer"
         else:
-            Z=samp_con.split("-")[1]
-            samp_con="7"
+            Z=sample_naming_con.split("-")[1]
+            sample_naming_con="7"
 
             
     if static_15_position_mode:
         spin=0
 
-    if os.path.isfile(os.path.join(input_dir_path, specfile)):
+    if os.path.isfile(os.path.join(input_dir_path, str(spec_infile))):
         isspec='1' # means an er_specimens.txt file has been provided with sample, site, location (etc.) info
                       
     specnum=-(int(specnum))
 
     if isspec=="1": 
-        specs,file_type=pmag.magic_read(specfile)
+        specs,file_type=pmag.magic_read(spec_infile)
         
     specnames,sampnames,sitenames=[],[],[]
-    if '-new' not in sys.argv: # see if there are already specimen,sample, site files lying around
-        try:
-            SpecRecs,file_type=pmag.magic_read(input_dir_path+'/er_specimens.txt')
-            for spec in SpecRecs:
-                if spec['er_specimen_name'] not in specnames:
-                    specnames.append(samp['er_specimen_name'])
-        except:
-            SpecRecs,specs=[],[]
-        try:
-            SampRecs,file_type=pmag.magic_read(input_dir_path+'/er_samples.txt')
-            for samp in SampRecs:
-                if samp['er_sample_name'] not in sampnames:sampnames.append(samp['er_sample_name'])
-        except:
-            sampnames,SampRecs=[],[]
-        try:
-            SiteRecs,file_type=pmag.magic_read(input_dir_path+'/er_sites.txt')
-            for site in SiteRecs:
-                if site['er_site_names'] not in sitenames:sitenames.append(site['er_site_name'])
-        except:
-            sitenames,SiteRecs=[],[]
+    #if '-new' not in sys.argv: # see if there are already specimen,sample, site files lying around
+    #    try:
+    #        SpecRecs,file_type=pmag.magic_read(input_dir_path+'/er_specimens.txt')
+    #        for spec in SpecRecs:
+    #            if spec['er_specimen_name'] not in specnames:
+    #                specnames.append(samp['er_specimen_name'])
+    #    except:
+    #        SpecRecs,specs=[],[]
+    #    try:
+    #        SampRecs,file_type=pmag.magic_read(input_dir_path+'/er_samples.txt')
+    #        for samp in SampRecs:
+    #            if samp['er_sample_name'] not in sampnames:sampnames.append(samp['er_sample_name'])
+    #    except:
+    #        sampnames,SampRecs=[],[]
+    #    try:
+    #        SiteRecs,file_type=pmag.magic_read(input_dir_path+'/er_sites.txt')
+    #        for site in SiteRecs:
+    #            if site['er_site_names'] not in sitenames:sitenames.append(site['er_site_name'])
+    #    except:
+    #        sitenames,SiteRecs=[],[]
+    
     try:
-        input=open(ascfile,'rU')
+        file_input=open(ascfile,'rU')
     except:
         print 'Error opening file: ', ascfile
-    Data=input.readlines()
+        return False, 'Error opening file: {}'.format(ascfile)
+    Data=file_input.readlines()
     k=0
     while k<len(Data):
         line = Data[k]
@@ -3739,11 +3746,11 @@ def SUFAR4_magic(ascfile, meas_output='magic_measurements.txt', aniso_output='rm
 		SampRec['er_sample_name']=sampname
 		SiteRec['er_sample_name']=sampname
 		SiteRec['site_description']='s'
-                if samp_con!="9":
-                    AniRec['er_site_name']=pmag.parse_site(AniRec['er_sample_name'],samp_con,Z)
-                    SpecRec['er_site_name']=pmag.parse_site(AniRec['er_sample_name'],samp_con,Z)
-                    SampRec['er_site_name']=pmag.parse_site(AniRec['er_sample_name'],samp_con,Z)
-                    SiteRec['er_site_name']=pmag.parse_site(AniRec['er_sample_name'],samp_con,Z)
+                if sample_naming_con!="9":
+                    AniRec['er_site_name']=pmag.parse_site(AniRec['er_sample_name'],sample_naming_con,Z)
+                    SpecRec['er_site_name']=pmag.parse_site(AniRec['er_sample_name'],sample_naming_con,Z)
+                    SampRec['er_site_name']=pmag.parse_site(AniRec['er_sample_name'],sample_naming_con,Z)
+                    SiteRec['er_site_name']=pmag.parse_site(AniRec['er_sample_name'],sample_naming_con,Z)
                 else:
                     AniRec['er_site_name']=specname
                     SpecRec['er_site_name']=specname
@@ -3863,22 +3870,23 @@ def SUFAR4_magic(ascfile, meas_output='magic_measurements.txt', aniso_output='rm
     print "anisotropy tensors put in ",aniso_output
     pmag.magic_write(meas_output,MeasRecs,'magic_measurements')
     print "bulk measurements put in ",meas_output
-    if isspec=="0":
-        SpecOut,keys=pmag.fillkeys(SpecRecs)
-        output = output_dir_path+"/er_specimens.txt"
-        pmag.magic_write(output,SpecOut,'er_specimens')
-        print "specimen info put in ",output
-        output = output_dir_path+"/er_samples.txt"
-        SampOut,keys=pmag.fillkeys(SampRecs)
-        pmag.magic_write(output,SampOut,'er_samples')
-        print "sample info put in ",output
-        output = output_dir_path+"/er_sites.txt"
-        SiteOut,keys=pmag.fillkeys(SiteRecs)
-        pmag.magic_write(output,SiteOut,'er_sites')
-        print "site info put in ",output
+    #if isspec=="0":
+    SpecOut,keys=pmag.fillkeys(SpecRecs)
+    #output = output_dir_path+"/er_specimens.txt"
+    pmag.magic_write(spec_outfile,SpecOut,'er_specimens')
+    print "specimen info put in ", spec_outfile
+    #output = output_dir_path+"/er_samples.txt"
+    SampOut,keys=pmag.fillkeys(SampRecs)
+    pmag.magic_write(samp_outfile,SampOut,'er_samples')
+    print "sample info put in ", samp_outfile
+    #output = output_dir_path+"/er_sites.txt"
+    SiteOut,keys=pmag.fillkeys(SiteRecs)
+    pmag.magic_write(site_outfile,SiteOut,'er_sites')
+    print "site info put in ", site_outfile
     print """
          You can now import your data into the Magic Console and complete data entry, 
          for example the site locations, lithologies, etc. plotting can be done with aniso_magic.py
     """
+    return True, meas_output
 
     
