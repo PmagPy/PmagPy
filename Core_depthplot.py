@@ -64,15 +64,6 @@ def main():
     checked_args = extractor.extract_and_check_args(args, dataframe)
     meas_file, sum_file, wig_file, samp_file, age_file, spc_file, res_file, fmt, meth, norm, depth, timescale, dir_path, pltLine, pltSus, pltDec, pltInc, pltMag, logit, depth_scale, symbol = extractor.get_vars(['f', 'fsum', 'fwig', 'fsa', 'fa', 'fsp', 'fres', 'fmt',  'LP', 'n', 'd', 'ts', 'WD', 'L', 'S', 'D', 'I', 'M', 'log', 'ds', 'sym' ], checked_args)
 
-
-    #print 'meas_file', meas_file, 'sum_file', sum_file, 'wig_file', wig_file
-    #print 'samp_file', samp_file, 'age_file', age_file, 'spc_file', spc_file
-    #print 'res_file', res_file, 'fmt', fmt, 'meth', meth
-    #print  'norm', norm, 'depth', depth, 'timescale', timescale
-    #print 'dir_path', dir_path, 'pltLine', pltLine, 'pltSUS', pltSus, 'pltDec', pltDec, 'pltInc', pltInc, 'pltMag', pltMag
-    #print 'logit', logit, 'depth_scale', depth_scale, 'symbol', symbol
-
-
     # format some variables
     # format symbol/size
     try:
@@ -114,14 +105,19 @@ def main():
         dmin, dmax = -1, -1
 
     # format timescale, min/max time
-    try:
-        timescale, amin, amax = timescale.split()
-        pltTime = True
-    except:
-        print 'you must provide -ts in this format: -ts timescale minimum_age maximum_age'
-        print 'could not parse {}, defaulting to using no timescale'.format(timescale)
+    if timescale:
+        try:
+            timescale, amin, amax = timescale.split()
+            pltTime = True
+        except:
+            print 'you must provide -ts in this format: -ts timescale minimum_age maximum_age'
+            print 'could not parse {}, defaulting to using no timescale'.format(timescale)
+            timescale, amin, amax = None, -1, -1
+            pltTime = False
+    else:
         timescale, amin, amax = None, -1, -1
         pltTime = False
+            
 
     # format norm and wt_file
     if norm and not isinstance(norm, bool):
@@ -138,15 +134,6 @@ def main():
         print 'To use the -LP flag you must provide both the protocol and the step in this format:\n-LP [AF,T,ARM,IRM, X] step [in mT,C,mT,mT, mass/vol] to plot'
         print 'Defaulting to using no protocol'
         method, step = 'LT-NO', 0
-    
-            
-    print 'sym', sym
-    print 'size', size
-    print 'res_file', res_file, 'res_sym', res_sym, 'res_size', res_size
-    print 'dmin', dmin, 'dmax', dmax
-    print 'timescale', timescale, 'amin', amin, 'amax', amax
-    print 'method', method, 'step', step
-    print 'norm', norm, 'wt_file', wt_file
     
     # list of varnames
     ['f', 'fsum', 'fwig', 'fsa', 'fa', 'fsp', 'fres', 'fmt',  'LP', 'n', 'd', 'ts', 'WD', 'L', 'S', 'D', 'I', 'M', 'log', 'ds', 'sym' ]
