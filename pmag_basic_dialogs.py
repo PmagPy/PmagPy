@@ -2091,17 +2091,19 @@ class convert_JR6_files_to_MagIC(wx.Frame):
                 return False
             if input_format == 'txt': # .txt format
                 import JR6_txt_magic
-                if JR6_txt_magic.main(False, **options):
+                program_ran, error_message = JR6_txt_magic.main(False, **options)
+                if program_ran:
                     COMMAND = "options={}\nJR6_txt_magic.main(False, **options)".format(str(options))
                     pw.close_window(self, COMMAND, meas_file)
                 else:
-                    pw.simple_warning()
+                    pw.simple_warning(error_message)
             else: 
                 import JR6_jr6_magic
-                if JR6_jr6_magic.main(False, **options):
+                program_ran, error_message = JR6_jr6_magic.main(False, **options)
+                if program_ran:
                     pw.close_window(self, COMMAND, meas_file)
                 else:
-                    pw.simple_warning()
+                    pw.simple_warning(error_message)
         if JR: # Joides Resolution
             if not mag_file:
                 pw.simple_warning('You must provide a valid IODP JR6 file')
