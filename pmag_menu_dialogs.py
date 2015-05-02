@@ -1965,7 +1965,10 @@ class PlotFrame(wx.Frame):
 
     def on_save(self, event):
         plt.savefig(self.figname)
-        dlg = wx.MessageDialog(None, message="Plot saved as {}".format(self.figname), style=wx.OK)
+        dir_path, figname = os.path.split(self.figname)
+        if not dir_path:
+            dir_path = os.getcwd()
+        dlg = wx.MessageDialog(None, message="Plot saved in directory:\n{}\nas {}".format(dir_path, figname), style=wx.OK)
         dlg.ShowModal()
         dlg.Destroy()
         self.Destroy()
