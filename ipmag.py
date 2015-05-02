@@ -873,6 +873,27 @@ def make_aniso_depthplot(ani_file, meas_file, samp_file, age_file=None, fmt='svg
     pcol=3
     isbulk=0 # tests if there are bulk susceptibility measurements
     AniData,file_type=pmag.magic_read(ani_file)  # read in tensor elements
+    sum_file=""
+    if sum_file!="":
+        Cores=[]
+        core_depth_key="Top depth cored CSF (m)"
+        input=open(sum_file,'rU').readlines()
+        if "Core Summary" in input[0]:
+            headline=1
+        else:
+            headline=0
+        keys=input[headline].replace('\n','').split(',')
+        if "Core Top (m)" in keys:core_depth_key="Core Top (m)"
+        if "Core Label" in keys:core_label_key="Core Label"
+        if "Core label" in keys:core_label_key="Core label"
+        for line in input[2:]:
+            if 'TOTALS' not in line:
+                CoreRec={}
+                for k in range(len(keys)):CoreRec[keys[k]]=line.split(',')[k]
+                Cores.append(CoreRec)
+        if len(Cores)==0:
+            print 'no Core depth information available: import core summary file'
+            sum_file=""
     if not age_file:
         try:
             Samps,file_type=pmag.magic_read(samp_file)  # read in sample depth info from er_samples.txt format file
@@ -918,6 +939,7 @@ def make_aniso_depthplot(ani_file, meas_file, samp_file, age_file=None, fmt='svg
         return False, 'no data to plot'
     # collect the data for plotting tau and V3_inc
     Depths,Tau1,Tau2,Tau3,V3Incs,P=[],[],[],[],[],[]
+    V1Decs,F23s=[],[]
     Axs=[] # collect the plot ids
     if len(Bulks)>0: pcol+=1
     s1=pmag.get_dictkey(Data,'anisotropy_s1','f') # get all the s1 values from Data as floats
@@ -926,17 +948,23 @@ def make_aniso_depthplot(ani_file, meas_file, samp_file, age_file=None, fmt='svg
     s4=pmag.get_dictkey(Data,'anisotropy_s4','f')
     s5=pmag.get_dictkey(Data,'anisotropy_s5','f')
     s6=pmag.get_dictkey(Data,'anisotropy_s6','f')
+    nmeas=pmag.get_dictkey(Data,'anisotropy_n','int')
+    sigma=pmag.get_dictkey(Data,'anisotropy_sigma','f')
     Depths=pmag.get_dictkey(Data,'core_depth','f')
-    Ss=np.array([s1,s4,s5,s4,s2,s6,s5,s6,s3]).transpose() # make an array
-    Ts=np.reshape(Ss,(len(Ss),3,-1)) # and re-shape to be n-length array of 3x3 sub-arrays
+    #Ss=np.array([s1,s4,s5,s4,s2,s6,s5,s6,s3]).transpose() # make an array
+    Ss=np.array([s1,s2,s3,s4,s5,s6]).transpose() # make an array
+    #Ts=np.reshape(Ss,(len(Ss),3,-1)) # and re-shape to be n-length array of 3x3 sub-arrays
     for k in range(len(Depths)):
-        tau,Evecs= pmag.tauV(Ts[k]) # get the sorted eigenvalues and eigenvectors
-        v3=pmag.cart2dir(Evecs[2])[1] # convert to inclination of the minimum eigenvector
-        V3Incs.append(v3)
-        Tau1.append(tau[0])
-        Tau2.append(tau[1])
-        Tau3.append(tau[2])
-        P.append(tau[0]/tau[2])
+        #tau,Evecs= pmag.tauV(Ts[k]) # get the sorted eigenvalues and eigenvectors
+        #v3=pmag.cart2dir(Evecs[2])[1] # convert to inclination of the minimum eigenvector
+        fpars=pmag.dohext(nmeas[k]-6,sigma[k],Ss[k])
+	V3Incs.append(fpars['v3_inc'])
+	V1Decs.append(fpars['v1_dec'])
+        Tau1.append(fpars['t1'])
+        Tau2.append(fpars['t2'])
+        Tau3.append(fpars['t3'])
+        P.append(Tau1[-1]/Tau3[-1])
+        F23s.append(fpars['F23'])
     if len(Depths)>0:
         if dmax==-1:
             dmax=max(Depths)
@@ -957,6 +985,11 @@ def make_aniso_depthplot(ani_file, meas_file, samp_file, age_file=None, fmt='svg
         ax.plot(Tau1,Depths,'rs') 
         ax.plot(Tau2,Depths,'b^') 
         ax.plot(Tau3,Depths,'ko')
+        if sum_file!="":
+            for core in Cores:
+                 depth=float(core[core_depth_key])
+                 if depth>dmin and depth<dmax:
+                    pyplot.plot([0,90],[depth,depth],'b--')
         ax.axis([tau_min,tau_max,dmax,dmin])
         ax.set_xlabel('Eigenvalues')
         if depth_scale=='sample_core_depth':
@@ -970,18 +1003,61 @@ def make_aniso_depthplot(ani_file, meas_file, samp_file, age_file=None, fmt='svg
         ax2.axis([P_min,P_max,dmax,dmin])
         ax2.set_xlabel('P')
         ax2.set_title(location)
+        if sum_file!="":
+            for core in Cores:
+                 depth=float(core[core_depth_key])
+                 if depth>dmin and depth<dmax:
+                    pyplot.plot([0,90],[depth,depth],'b--')
         Axs.append(ax2)
         ax3=pyplot.subplot(1,pcol,3)
         Axs.append(ax3)
         ax3.plot(V3Incs,Depths,'ko') 
         ax3.axis([0,90,dmax,dmin])
         ax3.set_xlabel('V3 Inclination')
-        if pcol==4:
-            ax4=pyplot.subplot(1,pcol,4)
-            Axs.append(ax4)
-            ax4.plot(Bulks,BulkDepths,'bo') 
-            ax4.axis([bmin-1,bmax+1,dmax,dmin])
-            ax4.set_xlabel('Bulk Susc. (uSI)')
+        if sum_file!="":
+            for core in Cores:
+                 depth=float(core[core_depth_key])
+                 if depth>dmin and depth<dmax:
+                    pyplot.plot([0,90],[depth,depth],'b--')
+        ax4=pyplot.subplot(1,np.abs(pcol),4)
+        Axs.append(ax4)
+        ax4.plot(V1Decs,Depths,'rs') 
+        ax4.axis([0,360,dmax,dmin])
+        ax4.set_xlabel('V1 Declination')
+        if sum_file!="":
+            
+            for core in Cores:
+                 depth=float(core[core_depth_key])
+                 if depth>=dmin and depth<=dmax:
+                    pyplot.plot([0,360],[depth,depth],'b--')
+                    if pcol==4 and label==1:pyplot.text(360,depth+tint,core[core_label_key])
+        #ax5=pyplot.subplot(1,np.abs(pcol),5)
+        #Axs.append(ax5)
+        #ax5.plot(F23s,Depths,'rs') 
+        #bounds=ax5.axis() 
+        #ax5.axis([bounds[0],bounds[1],dmax,dmin])
+        #ax5.set_xlabel('F_23')
+        #ax5.semilogx()
+        #if sum_file!="":
+        #    for core in Cores:
+        #         depth=float(core[core_depth_key])
+        #         if depth>=dmin and depth<=dmax:
+        #            pyplot.plot([bounds[0],bounds[1]],[depth,depth],'b--')
+        #            if pcol==5 and label==1:pyplot.text(bounds[1],depth+tint,core[core_label_key])
+        #if pcol==6:
+        if pcol==5:
+            #ax6=pyplot.subplot(1,pcol,6)
+            ax6=pyplot.subplot(1,pcol,5)
+            Axs.append(ax6)
+            ax6.plot(Bulks,BulkDepths,'bo') 
+            ax6.axis([bmin-1,1.1*bmax,dmax,dmin])
+            ax6.set_xlabel('Bulk Susc. (uSI)')
+            if sum_file!="":
+                for core in Cores:
+                     depth=float(core[core_depth_key])
+                     if depth>=dmin and depth<=dmax:
+                        pyplot.plot([0,bmax],[depth,depth],'b--')
+                        if label==1:pyplot.text(1.1*bmax,depth+tint,core[core_label_key])
         for x in Axs:
             pmagplotlib.delticks(x) # this makes the x-tick labels more reasonable - they were overcrowded using the defaults
         fig_name = location + '_ani_depthplot.' + fmt
@@ -989,7 +1065,6 @@ def make_aniso_depthplot(ani_file, meas_file, samp_file, age_file=None, fmt='svg
 
 
 def core_depthplot(dir_path='.', meas_file='magic_measurements.txt', spc_file='', samp_file='', age_file='', sum_file='', wt_file='', depth_scale='sample_core_depth', dmin=-1, dmax=-1, sym='bo',  size=5, spc_sym='ro', spc_size=5, meth='', step=0, fmt='svg',  pltDec=True, pltInc=True, pltMag=True, pltLine=True, pltSus=True, logit=False, pltTime=False, timescale=None, amin=-1, amax=-1, norm=False):
-    
     """
     depth scale can be 'sample_core_depth' or 'sample_composite_depth'
     if age file is provided, depth_scale will be set to 'age' by default
