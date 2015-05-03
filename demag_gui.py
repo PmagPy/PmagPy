@@ -5,7 +5,7 @@
 #============================================================================================
 #
 
-#Demag_GUI Version 0.32 added multiple fits and fisher stats by Kevin Gaastra (03/22/2015)
+#Demag_GUI Version 0.32 added multiple fits and fisher stats by Kevin Gaastra (05/03/2015)
 
 # Demag_GUI Version 0.31 save MagIC tables option: add dialog box to choose coordinates system for pmag_specimens.txt 04/26/2015
 #
