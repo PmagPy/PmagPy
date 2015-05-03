@@ -980,7 +980,7 @@ def putout(ofile,keylist,Rec):
            outstring=outstring+'\t'+Rec[key].strip()
         except:
            print key,Rec[key]
-           raw_input()
+           #raw_input()
     outstring=outstring+'\n'
     pmag_out.write(outstring[1:])
     pmag_out.close()
@@ -1032,7 +1032,7 @@ def magic_write_old(ofile,Recs,file_type):
               elif 'er_specimen_names' in Rec.keys():
                   print Rec['er_specimen_names'] 
               print key,Rec[key]
-              raw_input()
+              #raw_input()
         outstring=outstring+'\n'
         pmag_out.write(outstring[1:])
     pmag_out.close()
@@ -1070,7 +1070,7 @@ def magic_write(ofile,Recs,file_type):
               elif 'er_specimen_names' in Rec.keys():
                   print Rec['er_specimen_names'] 
               print key,Rec[key]
-              raw_input()
+              #raw_input()
         outstring=outstring+'\n'
         pmag_out.write(outstring[1:])
     pmag_out.close()

@@ -279,7 +279,7 @@ class replicate_measurements(wx.StaticBoxSizer):
         super(replicate_measurements, self).__init__(box, orient=wx.HORIZONTAL)
         TEXT="replicate measurements:"
         replicate_text = wx.StaticText(parent,label=TEXT,style=wx.TE_CENTER)
-        self.replicate_rb1 = wx.RadioButton(parent, -1, 'Average replicate measurements', style=wx.RB_GROUP)
+        self.replicate_rb1 = wx.RadioButton(parent, -1, 'Use all measurements', style=wx.RB_GROUP)
         self.replicate_rb1.SetValue(True)
         self.replicate_rb2 = wx.RadioButton(parent, -1, 'take only last measurement from replicate measurements')
         self.Add(replicate_text,wx.ALIGN_LEFT)

@@ -69,7 +69,7 @@ class TestIODP_samples_magic(unittest.TestCase):
         infile = os.path.join(self.input_dir, 'GCR_U1359_B_coresummary.csv')
         program_ran, error_message = ipmag.IODP_samples_magic(infile)
         self.assertFalse(program_ran)
-        expected_error = 'Could not extract the necessary data from your input file.\nPlease make sure you are providing a correctly formated ODP samples csv file.'
+        expected_error = 'Could not extract the necessary data from your input file.\nPlease make sure you are providing a correctly formated IODP samples csv file.'
         self.assertEqual(error_message, expected_error)
 
 
@@ -188,32 +188,61 @@ class TestSUFAR_asc_magic(unittest.TestCase):
         with self.assertRaises(TypeError):
             ipmag.SUFAR4_magic()
 
-    @unittest.expectedFailure
+    def test_SUFAR4_with_invalid_file(self):
+        input_dir = os.path.join('Datafiles', 'Measurement_Import', 'SUFAR_asc_magic')
+        infile = 'fake_sufar4-asc_magic_example.txt'
+        print ipmag.SUFAR4_magic(infile, input_dir_path=input_dir)
+        program_ran, error_message = ipmag.SUFAR4_magic(infile, input_dir_path=input_dir)
+        self.assertFalse(program_ran)
+        self.assertEqual(error_message, 'Error opening file: {}'.format(os.path.join(input_dir, infile)))
+
+            
     def test_SUFAR4_with_infile(self):
         input_dir = os.path.join('Datafiles', 'Measurement_Import', 'SUFAR_asc_magic')
         infile = 'sufar4-asc_magic_example.txt'
-        program_ran, outfile = ipmag.SUFAR4_magic(infile, input_dir=input_dir)
+        print ipmag.SUFAR4_magic(infile, input_dir_path=input_dir)
+        program_ran, outfile = ipmag.SUFAR4_magic(infile, input_dir_path=input_dir)
         self.assertTrue(program_ran)
-        self.assertEqual(outfile, 'outfile_name.txt')
+        self.assertEqual(outfile, os.path.join('.', 'magic_measurements.txt'))
 
-    @unittest.expectedFailure
     def test_SUFAR4_fail_option4(self):
         input_dir = os.path.join('Datafiles', 'Measurement_Import', 'SUFAR_asc_magic')
         infile = 'sufar4-asc_magic_example.txt'
-        program_ran, error_message = ipmag.SUFAR4_magic(infile, input_dir=input_dir, sample_naming_con='4')
+        program_ran, error_message = ipmag.SUFAR4_magic(infile, input_dir_path=input_dir, sample_naming_con='4')
         self.assertFalse(program_ran)
         self.assertEqual(error_message, "option [4] must be in form 4-Z where Z is an integer")
 
-    @unittest.expectedFailure
     def test_SUFAR4_succeed_option4(self):
         input_dir = os.path.join('Datafiles', 'Measurement_Import', 'SUFAR_asc_magic')
         infile = 'sufar4-asc_magic_example.txt'
-        program_ran, outfile = ipmag.SUFAR4_magic(infile, input_dir=input_dir, sample_naming_con='4-2')
+        program_ran, outfile = ipmag.SUFAR4_magic(infile, meas_output='my_magic_measurements.txt', input_dir_path=input_dir, sample_naming_con='4-2')
         self.assertTrue(program_ran)
-        self.assertEqual(outfile, "outfile.txt")
+        self.assertEqual(outfile, os.path.join('.', 'my_magic_measurements.txt'))
+
+    def test_SUFAR4_with_options(self):
+        input_dir = os.path.join('Datafiles', 'Measurement_Import', 'SUFAR_asc_magic')
+        infile = 'sufar4-asc_magic_example.txt'
+        program_ran, outfile = ipmag.SUFAR4_magic(infile, meas_output='my_magic_measurements.txt', aniso_output="my_rmag_anisotropy.txt", specnum=2, locname="Here", instrument="INST", static_15_position_mode=True, input_dir_path=input_dir, sample_naming_con='5')
+        self.assertTrue(program_ran)
+        self.assertEqual(outfile, os.path.join('.', 'my_magic_measurements.txt'))
+
+
+
+class TestCoreDepthplot(unittest.TestCase):
+
+    def setUp(self):
+        os.chdir(WD)
+
+    def tearDown(self):
+        filelist = ['magic_measurements.txt', 'my_magic_measurements.txt', 'er_specimens.txt', 'er_samples.txt', 'my_er_samples.txt', 'er_sites.txt', 'rmag_anisotropy.txt', 'my_rmag_anisotropy.txt', 'rmag_results.txt', 'my_rmag_results.txt']
+        pmag.remove_files(filelist, WD)
+
+    def test_core_depthplot_with_no_files(self):
+        pass
+
+
 
         
-    
 
 if __name__ == '__main__':
     unittest.main()

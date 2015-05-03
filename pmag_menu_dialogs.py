@@ -173,7 +173,7 @@ class MoveFileIntoWD(wx.Frame):
         os.chdir(self.WD)
         WD = self.WD
         full_infile = self.bSizer0.return_value()
-        infile = WD + os.path.split(full_infile)[1]
+        infile = os.path.join(WD, os.path.split(full_infile)[1])
         COMMAND = "cp {} ./".format(full_infile)
         pw.run_command_and_close_window(self, COMMAND, infile)
 
@@ -1477,6 +1477,9 @@ class Core_depthplot(wx.Frame):
         pmag_spec_file = self.bSizer0a.return_value()
         if pmag_spec_file:
             pmag_spec_file = os.path.split(pmag_spec_file)[1]
+        sum_file = self.bSizer2.return_value()
+        if sum_file:
+            sum_File = os.path.split(sum_file)[1]
         spec_sym, spec_sym_shape, spec_sym_color, spec_sym_size = "", "", "", ""
 
         if pmag_spec_file:
@@ -1556,8 +1559,8 @@ class Core_depthplot(wx.Frame):
         import ipmag
         #print "pltLine:", pltLine
         #print "pltSus:", pltSus
-        
-        fig, figname = ipmag.core_depthplot(self.WD, meas_file, pmag_spec_file, samp_file, age_file, depth_scale, dmin, dmax, sym, size, spec_sym, spec_sym_size, method, step, fmt, pltDec, pltInc, pltMag, pltLine, 1, logit, pltTime, timescale, amin, amax)
+
+        fig, figname = ipmag.core_depthplot(self.WD, meas_file, pmag_spec_file, samp_file, age_file, sum_file, '', depth_scale, dmin, dmax, sym, size, spec_sym, spec_sym_size, method, step, fmt, pltDec, pltInc, pltMag, pltLine, 1, logit, pltTime, timescale, amin, amax)
         if fig:
             self.Destroy()
             dpi = fig.get_dpi()
@@ -1962,7 +1965,10 @@ class PlotFrame(wx.Frame):
 
     def on_save(self, event):
         plt.savefig(self.figname)
-        dlg = wx.MessageDialog(None, message="Plot saved as {}".format(self.figname), style=wx.OK)
+        dir_path, figname = os.path.split(self.figname)
+        if not dir_path:
+            dir_path = os.getcwd()
+        dlg = wx.MessageDialog(None, message="Plot saved in directory:\n{}\nas {}".format(dir_path, figname), style=wx.OK)
         dlg.ShowModal()
         dlg.Destroy()
         self.Destroy()

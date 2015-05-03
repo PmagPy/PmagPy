@@ -150,9 +150,14 @@ def main(command_line=True, **kwargs):
             if "Text Id" in keys: text_id="Text Id"
             for line in file_input[1:]:
               InRec={}
-              for k in range(len(keys)):InRec[keys[k]]=line.split(',')[k]
-              #try:
-              if 1:
+              for k in range(len(keys)):
+                  recs=line.split(',')
+                  if len(recs)==len(keys): 
+                      InRec[keys[k]]=line.split(',')[k]
+                      test=1
+                  else:
+                      test=0
+              if test==1:
                 run_number=""
                 inst="IODP-SRM"
                 volume='15.59' # set default volume to this
@@ -264,14 +269,14 @@ def main(command_line=True, **kwargs):
     if len(SpecRecs)>0:
         print 'spec_file', spec_file
         pmag.magic_write(spec_file,SpecRecs,'er_specimens')
-        print 'specimens stored in ',spec_file
+        #print 'specimens stored in ',spec_file
     if len(SampRecs)>0:
         SampOut,keys=pmag.fillkeys(SampRecs)
         pmag.magic_write(samp_file,SampOut,'er_samples')
-        print 'samples stored in ',samp_file
+        #print 'samples stored in ',samp_file
     if len(SiteRecs)>0:
         pmag.magic_write(site_file,SiteRecs,'er_sites')
-        print 'sites stored in ',site_file
+        #print 'sites stored in ',site_file
     MagSort=pmag.sortbykeys(MagRecs,["er_specimen_name","treatment_ac_field"])
     MagOuts=[]
     for MagRec in MagSort:

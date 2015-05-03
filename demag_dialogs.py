@@ -28,6 +28,88 @@ import os
 # MagIc results tables dialog
 #--------------------------------------------------------------
 
+class magic_pmag_specimens_table_dialog(wx.Dialog):
+    def __init__(self,parent):
+        super(magic_pmag_specimens_table_dialog, self).__init__(parent, title="MagIC pmag specimens table Dialog")
+        self.InitUI()
+        
+
+    def InitUI(self):
+
+        pnl1 = wx.Panel(self)
+        vbox = wx.StaticBoxSizer(wx.StaticBox( pnl1, wx.ID_ANY, "MagIC result tables options" ), wx.VERTICAL)        
+
+        #---------------------
+        # Acceptance criteria
+        #---------------------
+        #self.acceptance_criteria_text=wx.StaticText(pnl1,label="apply acceptance criteria from pmag_criteria.txt:",style=wx.TE_CENTER)        
+        #self.cb_acceptance_criteria= wx.CheckBox(pnl1, -1, 'apply acceptance criteria from pmag_criteria.txt', (10, 30))
+
+        #---------------------
+        # choose coordinate system
+        #---------------------
+        self.coor_text=wx.StaticText(pnl1,label="choose which coordinate systems to save in pmag specimens table:",style=wx.TE_CENTER)
+        #self.rb_spec_coor = wx.RadioButton(pnl1, -1, 'specimen', (10, 10), style=wx.RB_GROUP)
+        #self.rb_geo_coor = wx.RadioButton(pnl1, -1, 'geographic', (10, 30))
+        #self.rb_tilt_coor = wx.RadioButton(pnl1, -1, 'tilt-corrected', (10, 30))
+
+        self.cb_spec_coor = wx.CheckBox(pnl1, -1, label='specimen')
+        self.cb_geo_coor = wx.CheckBox(pnl1, -1, label='geographic')
+        self.cb_tilt_coor = wx.CheckBox(pnl1, -1, label='tilt-corrected')
+        
+        #self.rb_geo_tilt_coor = wx.RadioButton(pnl1, -1, 'geographic and tilt-corrected', (10, 30))
+        
+        self.cb_spec_coor.SetValue(True)
+        self.cb_geo_coor.SetValue(False)
+        self.cb_tilt_coor.SetValue(False)
+
+        #self.rb_geo_coor.SetValue(True)
+        #self.rb_tilt_coor.SetValue(True)
+        #self.rb_geo_tilt_coor.SetValue(True)
+        coordinates_window = wx.GridSizer(1, 3, 6, 6)
+        coordinates_window.AddMany( [(self.cb_spec_coor),            
+            (self.cb_geo_coor),
+            (self.cb_tilt_coor)])
+            #(self.rb_geo_tilt_coor)])
+
+        #---------------------
+        # OK/Cancel buttons 
+        #---------------------
+                
+        hboxok = wx.BoxSizer(wx.HORIZONTAL)
+        self.okButton = wx.Button(pnl1, wx.ID_OK, "&OK")
+        self.cancelButton = wx.Button(pnl1, wx.ID_CANCEL, '&Cancel')
+        hboxok.Add(self.okButton)
+        hboxok.AddSpacer(20)
+        hboxok.Add(self.cancelButton )
+                
+        #---------------------
+
+        vbox.Add(wx.StaticLine(pnl1), 0, wx.ALL|wx.EXPAND, 5)  
+        vbox.AddSpacer(10)
+        
+        vbox.Add(self.coor_text,flag=wx.ALIGN_CENTER_HORIZONTAL, border=100)
+        vbox.AddSpacer(10)
+        vbox.Add(coordinates_window,flag=wx.ALIGN_CENTER_HORIZONTAL)
+        vbox.AddSpacer(10)
+        #-------------
+        vbox1=wx.BoxSizer(wx.VERTICAL)
+        vbox1.AddSpacer(10)
+        vbox1.Add(vbox)
+        vbox1.AddSpacer(10)
+        vbox1.Add(hboxok,flag=wx.ALIGN_CENTER_HORIZONTAL)
+        vbox1.AddSpacer(10)
+
+
+        pnl1.SetSizer(vbox1)
+        vbox1.Fit(self)
+
+
+
+#--------------------------------------------------------------    
+# MagIc results tables dialog
+#--------------------------------------------------------------
+
 class magic_pmag_tables_dialog(wx.Dialog):
     def __init__(self,parent,WD,Data,Data_info):
         super(magic_pmag_tables_dialog, self).__init__(parent, title="MagIC results table Dialog")

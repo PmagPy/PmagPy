@@ -159,14 +159,14 @@ def main(command_line=True, **kwargs):
     if "4" in samp_con:
         if "-" not in samp_con:
             print "option [4] must be in form 4-Z where Z is an integer"
-            return False
+            return False, "option [4] must be in form 4-Z where Z is an integer"
         else:
             Z=samp_con.split("-")[1]
             samp_con="4"
     if "7" in samp_con:
         if "-" not in samp_con:
             print "option [7] must be in form 7-Z where Z is an integer"
-            return False
+            return False, "option [7] must be in form 7-Z where Z is an integer"
         else:
             Z=samp_con.split("-")[1]
             samp_con="7"
@@ -266,8 +266,8 @@ def main(command_line=True, **kwargs):
             treat=float(row['step'][2:])
             MagRec["treatment_temp"]='%8.3e' % (treat+273.) # temp in kelvin
         else: # need to add IRM, and ARM options
-            print "measurement type unknown"
-            return False
+            print "measurement type unknown", row['step']
+            return False, "measurement type unknown"
         MagRec["measurement_magn_moment"]=str(row['measurement_magn_moment'])
         MagRec["measurement_magn_volume"]=str(row['measurement_magn_volume'])
         MagRec["measurement_dec"]=str(row['measurement_dec'])
@@ -279,8 +279,8 @@ def main(command_line=True, **kwargs):
     MagOuts=pmag.measurements_methods(MagRecs,noave)
     pmag.magic_write(meas_file,MagOuts,'magic_measurements')
     print "results put in ",meas_file
-    print "exit"
-    return True
+    print "exit!"
+    return True, meas_file
 
 def do_help():
     return main.__doc__

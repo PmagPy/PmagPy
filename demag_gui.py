@@ -4,7 +4,11 @@
 # LOG HEADER:
 #============================================================================================
 #
-#Demag_GUI Version 0.31 added multiple fits and fisher stats by Kevin Gaastra (03/22/2015)
+
+#Demag_GUI Version 0.32 added multiple fits and fisher stats by Kevin Gaastra (03/22/2015)
+
+# Demag_GUI Version 0.31 save MagIC tables option: add dialog box to choose coordinates system for pmag_specimens.txt 04/26/2015
+#
 
 # Demag_GUI Version 0.30 fix backward compatibility with strange pmag_speciemns.txt 01/29/2015
 #
@@ -37,7 +41,7 @@
 
 
 global CURRENT_VRSION
-CURRENT_VRSION = "v.0.31"
+CURRENT_VRSION = "v.0.32"
 import matplotlib
 #import matplotlib.font_manager as font_manager
 #matplotlib.use('WXAgg')
@@ -3901,6 +3905,7 @@ class Zeq_GUI(wx.Frame):
         #    if not #6: save pmag_*.txt.tmp as pmag_*.txt
         #---------------------------------------
 
+
         #---------------------------------------
         # save pmag_*.txt.tmp without directional data           
         #---------------------------------------
@@ -3908,19 +3913,40 @@ class Zeq_GUI(wx.Frame):
             self.on_menu_save_interpretation(None)
         except:
             pass    
+
+        #---------------------------------------
+        # dialog box to choose coordinate systems for pmag_specimens.txt           
+        #---------------------------------------  
+        dia = demag_dialogs.magic_pmag_specimens_table_dialog(None)
+        dia.Center()
+
+        CoorTypes=['DA-DIR','DA-DIR-GEO','DA-DIR-TILT']
+        if dia.ShowModal() == wx.ID_OK: # Until the user clicks OK, show the message 
+              
+            CoorTypes=[]
+            if dia.cb_spec_coor.GetValue()==True:
+                CoorTypes.append('DA-DIR')
+            if dia.cb_geo_coor.GetValue()==True:
+                CoorTypes.append('DA-DIR-GEO')
+            if dia.cb_tilt_coor.GetValue()==True:
+                CoorTypes.append('DA-DIR-TILT')
+        #------------------------------        
+        
+        
         self.PmagRecsOld={}
         for FILE in ['pmag_specimens.txt']:
             self.PmagRecsOld[FILE]=[]
-            try:
+            meas_data=[]
+            try: 
                 meas_data,file_type=pmag.magic_read(os.path.join(self.WD, FILE))
                 self.GUI_log.write("-I- Read old magic file  %s\n"%os.path.join(self.WD, FILE))
-                if FILE !='pmag_specimens.txt':
-                    os.remove(os.path.join(self.WD,FILE))
-                    self.GUI_log.write("-I- Delete old magic file  %s\n"%os.path.join(self.WD,FILE))
+                #if FILE !='pmag_specimens.txt':
+                os.remove(os.path.join(self.WD,FILE))
+                self.GUI_log.write("-I- Delete old magic file  %s\n"%os.path.join(self.WD,FILE))
                                
             except:
                 continue
-
+                                                                                          
             for rec in meas_data:
                 if "magic_method_codes" in rec.keys():
                     if "LP-DIR" not in rec['magic_method_codes'] and "DE-" not in  rec['magic_method_codes']:
@@ -3929,7 +3955,7 @@ class Zeq_GUI(wx.Frame):
         #---------------------------------------
         # write a new pmag_specimens.txt       
         #---------------------------------------  
-
+        
         specimens_list=self.pmag_results_data['specimens'].keys()
         specimens_list.sort()
         PmagSpecs=[]
@@ -3967,6 +3993,43 @@ class Zeq_GUI(wx.Frame):
                     PmagSpecRec['specimen_direction_type'] = mpars["specimen_direction_type"]
                     PmagSpecRec['specimen_dec'] = "%.1f"%mpars["specimen_dec"]
                     PmagSpecRec['specimen_inc'] = "%.1f"%mpars["specimen_inc"]
+            if 'DA-DIR' not in self.pmag_results_data['specimens'][specimen].keys() or self.pmag_results_data['specimens'][specimen]['DA-DIR']=={}:
+                continue
+            
+            for dirtype in CoorTypes:
+                PmagSpecRec={}
+                user="" # Todo
+                PmagSpecRec["er_analyst_mail_names"]=user
+                PmagSpecRec["magic_software_packages"]=pmag.get_version()
+                PmagSpecRec["er_specimen_name"]=specimen
+                PmagSpecRec["er_sample_name"]=self.Data_hierarchy['sample_of_specimen'][specimen]
+                PmagSpecRec["er_site_name"]=self.Data_hierarchy['site_of_specimen'][specimen]
+                PmagSpecRec["er_location_name"]=self.Data_hierarchy['location_of_specimen'][specimen]
+                if specimen in self.Data_hierarchy['expedition_name_of_specimen'].keys():
+                    PmagSpecRec["er_expedition_name"]=self.Data_hierarchy['expedition_name_of_specimen'][specimen]
+                #else:
+                #    PmagSpecRec["er_expedition_name"]=""
+                PmagSpecRec["er_citation_names"]="This study"
+                PmagSpecRec["magic_experiment_names"]=self.Data[specimen]["magic_experiment_name"]
+                if 'magic_instrument_codes' in self.Data[specimen].keys():
+                    PmagSpecRec["magic_instrument_codes"]= self.Data[specimen]['magic_instrument_codes']
+                #magic_ood_codes=[]
+                #all_methods=self.Data[specimen]['magic_method_codes'].strip('\n').replace(" ","").split(":")
+                #for method in all_methods:
+                #    if "LP" in method:
+                #        magic_method_codes.append(method)
+                #if 
+                #-------
+                OK=False
+                if dirtype in self.pmag_results_data['specimens'][specimen].keys():
+                    if  self.pmag_results_data['specimens'][specimen][dirtype]!={}:
+                        OK=True
+                if not OK:
+                    continue
+                #if self.Data[specimen]['measurement_step_unit']=="C":
+                #     PmagSpecRec['measurement_step_unit']="K"
+                #else:
+                #     PmagSpecRec['measurement_step_unit']="T"
                     
                     if  self.current_fit.tmin =="0":
                          PmagSpecRec['measurement_step_min'] ="0"
