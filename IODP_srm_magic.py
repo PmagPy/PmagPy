@@ -150,13 +150,12 @@ def main(command_line=True, **kwargs):
             if "Text Id" in keys: text_id="Text Id"
             for line in file_input[1:]:
               InRec={}
+              test=0
+              recs=line.split(',')
               for k in range(len(keys)):
-                  recs=line.split(',')
                   if len(recs)==len(keys): 
                       InRec[keys[k]]=line.split(',')[k]
-                      test=1
-                  else:
-                      test=0
+              if InRec['Exp']!="": test=1 # get rid of pesky blank lines
               if test==1:
                 run_number=""
                 inst="IODP-SRM"
@@ -168,9 +167,9 @@ def main(command_line=True, **kwargs):
                 while len(InRec['Core'])<3:
                     InRec['Core']='0'+InRec['Core']
                 if "Last Tray Measurment" in InRec.keys() and "SHLF" not in InRec[text_id] or 'dscr' in csv_file :  # assume discrete sample
-                    specimen=expedition+'-'+location+'-'+InRec['Core']+InRec[core_type]+"-"+InRec[sect_key]+'-'+InRec[half_key]+'-'+InRec[interval_key]
+                    specimen=expedition+'-'+location+'-'+InRec['Core']+InRec[core_type]+"-"+InRec[sect_key]+'-'+InRec[half_key]+'-'+str(InRec[interval_key])
                 else: # mark as continuous measurements
-                    specimen=expedition+'-'+location+'-'+InRec['Core']+InRec[core_type]+"_"+InRec[sect_key]+InRec[half_key]+'-'+InRec[interval_key]
+                    specimen=expedition+'-'+location+'-'+InRec['Core']+InRec[core_type]+"_"+InRec[sect_key]+InRec[half_key]+'-'+str(InRec[interval_key])
                 SpecRec['er_expedition_name']=expedition
                 SpecRec['er_location_name']=location
                 SpecRec['er_site_name']=specimen
