@@ -257,25 +257,25 @@ class TestCoreDepthplot(unittest.TestCase):
 
 
     def test_core_depthplot_success(self):
-        path = os.path.join(WD, 'Datafiles', 'core_depthplot2')
+        path = os.path.join(WD, 'Datafiles', 'core_depthplot')
         program_ran, plot_name = ipmag.core_depthplot(dir_path=path, spc_file='pmag_specimens.txt', samp_file='er_samples.txt', meth='AF', step=15)
         self.assertTrue(program_ran)
         self.assertEqual(plot_name, 'DSDP Site 522_m:_LT-AF-Z_core-depthplot.svg')
 
     def test_core_depthplot_without_full_time_options(self):
-        path = os.path.join(WD, 'Datafiles', 'core_depthplot2')
+        path = os.path.join(WD, 'Datafiles', 'core_depthplot')
         program_ran, error_message = ipmag.core_depthplot(dir_path=path, spc_file='pmag_specimens.txt', samp_file='er_samples.txt', meth='AF', step=15, fmt='png', pltInc=False, logit=True, pltTime=True)#, timescale='gts12', amin=0, amax=3) # pltDec = False causes failure with these data
         self.assertFalse(program_ran)
         self.assertEqual(error_message, "To plot time, you must provide amin, amax, and timescale")
 
     def test_core_depthplot_success_with_options(self):
-        path = os.path.join(WD, 'Datafiles', 'core_depthplot2')
+        path = os.path.join(WD, 'Datafiles', 'core_depthplot')
         program_ran, plot_name = ipmag.core_depthplot(dir_path=path, spc_file='pmag_specimens.txt', samp_file='er_samples.txt', meth='AF', step=15, fmt='png', pltInc=False, logit=True, pltTime=True, timescale='gts12', amin=0, amax=3) # pltDec = False causes failure with these data
         self.assertTrue(program_ran)
         self.assertEqual(plot_name, 'DSDP Site 522_m:_LT-AF-Z_core-depthplot.png')
 
     def test_core_depthplot_success_with_other_options(self):
-        path = os.path.join(WD, 'Datafiles', 'core_depthplot2')
+        path = os.path.join(WD, 'Datafiles', 'core_depthplot')
         program_ran, plot_name = ipmag.core_depthplot(dir_path=path, spc_file='pmag_specimens.txt', age_file='er_ages.txt', meth='AF', step=15, fmt='png', pltInc=False, logit=True, pltTime=True, timescale='gts12', amin=0, amax=3) # pltDec = False causes failure with these data
         self.assertTrue(program_ran)
         self.assertEqual(plot_name, 'DSDP Site 522_m:_LT-AF-Z_core-depthplot.png')
