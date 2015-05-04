@@ -1,0 +1,3 @@
+tab 	er_locations
+continent_ocean	er_citation_names	er_location_name	location_begin_lat	location_begin_lon	location_end_lat	location_end_lon	location_type	plate_block
+Atlantic Ocean	This study	DSDP Site 522	-27	355	-27	355	Drill Site	African Plate

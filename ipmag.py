@@ -1075,6 +1075,7 @@ def core_depthplot(dir_path='.', meas_file='magic_measurements.txt', spc_file=''
     #print 'meth', meth, 'step', step, 'fmt', fmt, 'pltDec', pltDec, 'pltInc', pltInc, 'pltMag', pltMag,
     #print 'pltLine', pltLine, 'pltSus', pltSus, 'logit', logit, 'timescale', timescale, 'amin', amin, 'amax', amax
     #print 'pltTime', pltTime
+    #print 'norm', norm
     intlist=['measurement_magnitude','measurement_magn_moment','measurement_magn_volume','measurement_magn_mass']
     wt_file=''
     width=10
@@ -1090,7 +1091,6 @@ def core_depthplot(dir_path='.', meas_file='magic_measurements.txt', spc_file=''
     spc_size = int(spc_size)
 
 
-
     # files not supported for the moment
     ngr_file="" # nothing needed, not implemented fully in original script
     suc_file="" # nothing else needed, also was not implemented in original script
@@ -1098,8 +1098,6 @@ def core_depthplot(dir_path='.', meas_file='magic_measurements.txt', spc_file=''
     wig_file=""#  if wig_file: pcol+=1; width+=2
 
     title,location="",""
-
-
 
     if not pltDec:
         pcol-=1
@@ -1143,7 +1141,7 @@ def core_depthplot(dir_path='.', meas_file='magic_measurements.txt', spc_file=''
     #        return False, 'error in susceptibility units'
     else:
        print 'method not supported'
-       return False, 'method not supported'
+       return False, 'method: "{}" not supported'.format(meth)
    
     if wt_file:
        norm=True
@@ -1158,12 +1156,15 @@ def core_depthplot(dir_path='.', meas_file='magic_measurements.txt', spc_file=''
         amax=float(amax)
         pcol+=1
         width+=2
-    
+        if not (amax and timescale):
+            return False, "To plot time, you must provide amin, amax, and timescale"
+
     #
     #
     # get data read in
 
     meas_file = os.path.join(dir_path, meas_file)
+    spc_file = os.path.join(dir_path, spc_file)
     if age_file=="":
         samp_file = os.path.join(dir_path, samp_file)
         Samps,file_type=pmag.magic_read(samp_file) 
@@ -1179,6 +1180,11 @@ def core_depthplot(dir_path='.', meas_file='magic_measurements.txt', spc_file=''
     if norm:
         ErSpecs,file_type=pmag.magic_read(wt_file) 
         print len(ErSpecs), ' specimens read in from ',wt_file
+
+    if not os.path.isfile(spc_file):
+        if not os.path.isfile(meas_file):
+            return False, "You must provide either a magic_measurements file or a pmag_specimens file"
+        
     Cores=[] 
     core_depth_key="Top depth cored CSF (m)"
     if sum_file!="":
@@ -1400,6 +1406,8 @@ def core_depthplot(dir_path='.', meas_file='magic_measurements.txt', spc_file=''
             pyplot.ylabel(ylab)
             plt+=1 
             pmagplotlib.delticks(ax) # dec xticks are too crowded otherwise
+    else:
+        return False, 'No data found to plot\nTry again with different parameters'
     if pltInc:
             pyplot.subplot(1,pcol,plt)
             if pltLine:
@@ -2485,7 +2493,7 @@ is the percent cooling rate factor to apply to specimens from this sample, DA-CR
     
     orient_file,samp_file= os.path.join(input_dir_path,orient_file), os.path.join(output_dir_path,samp_file)
     site_file = os.path.join(output_dir_path, site_file)
-    image_file= output_dir_path+"/er_images.txt"
+    image_file= os.path.join(output_dir_path, "er_images.txt")
     
     # validate input
     if '4' in samp_con[0]:
