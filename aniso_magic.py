@@ -180,7 +180,8 @@ def main():
           s.append(float(rec["anisotropy_s5"]))
           s.append(float(rec["anisotropy_s6"]))
           if s[0]<=1.0:Ss.append(s) # protect against crap
-          tau,Vdirs=pmag.doseigs(s)
+          #tau,Vdirs=pmag.doseigs(s)
+          fpars=pmag.dohext(int(rec["anisotropy_n"])-6,float(rec["anisotropy_sigma"]),s)
           ResRec={}
           ResRec['er_location_names']=rec['er_location_name']
           ResRec['er_citation_names']=rec['er_citation_names']
@@ -191,15 +192,19 @@ def main():
           ResRec["er_analyst_mail_names"]=user
           ResRec["tilt_correction"]=CS
           ResRec["anisotropy_type"]=rec['anisotropy_type']
-          ResRec["anisotropy_v1_dec"]='%7.1f'%(Vdirs[0][0])
-          ResRec["anisotropy_v2_dec"]='%7.1f'%(Vdirs[1][0])
-          ResRec["anisotropy_v3_dec"]='%7.1f'%(Vdirs[2][0])
-          ResRec["anisotropy_v1_inc"]='%7.1f'%(Vdirs[0][1])
-          ResRec["anisotropy_v2_inc"]='%7.1f'%(Vdirs[1][1])
-          ResRec["anisotropy_v3_inc"]='%7.1f'%(Vdirs[2][1])
-          ResRec["anisotropy_t1"]='%10.8f'%(tau[0])
-          ResRec["anisotropy_t2"]='%10.8f'%(tau[1])
-          ResRec["anisotropy_t3"]='%10.8f'%(tau[2])
+          ResRec["anisotropy_v1_dec"]='%7.1f'%(fpars['v1_dec'])
+          ResRec["anisotropy_v2_dec"]='%7.1f'%(fpars['v2_dec'])
+          ResRec["anisotropy_v3_dec"]='%7.1f'%(fpars['v3_dec'])
+          ResRec["anisotropy_v1_inc"]='%7.1f'%(fpars['v1_inc'])
+          ResRec["anisotropy_v2_inc"]='%7.1f'%(fpars['v2_inc'])
+          ResRec["anisotropy_v3_inc"]='%7.1f'%(fpars['v3_inc'])
+          ResRec["anisotropy_t1"]='%10.8f'%(fpars['t1'])
+          ResRec["anisotropy_t2"]='%10.8f'%(fpars['t2'])
+          ResRec["anisotropy_t3"]='%10.8f'%(fpars['t3'])
+          ResRec["anisotropy_ftest"]='%10.3f'%(fpars['F'])
+          ResRec["anisotropy_ftest12"]='%10.3f'%(fpars['F12'])
+          ResRec["anisotropy_ftest23"]='%10.3f'%(fpars['F23'])
+          ResRec["result_description"]='F_crit: '+fpars['F_crit']+'; F12,F23_crit: '+fpars['F12_crit']
           ResRec['anisotropy_type']=pmag.makelist(anitypes)
           ResRecs.append(ResRec) 
       if len(Ss)>1:
@@ -441,8 +446,8 @@ def main():
 #   put rmag_results stuff here
     if plots==0:
         if len(ResRecs)>0:
-            pmag.magic_write(outfile,ResRecs,'rmag_results')
-        if verbose:print "Anisotropy results saved in ",outfile
+            ResOut,keylist=pmag.fillkeys(ResRecs)
+            pmag.magic_write(outfile,ResOut,'rmag_results')
     if verbose:
         print " Good bye "
 #
