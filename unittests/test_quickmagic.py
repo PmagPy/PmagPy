@@ -261,7 +261,7 @@ class TestCoreDepthplot(unittest.TestCase):
         for rb in radio_buttons:
             if rb.Label == 'AF':
                 rb.SetValue(True)
-        self.core_window.bSizer14.text_field.SetValue('20')
+        self.core_window.bSizer14.text_field.SetValue('15')
         plot_frame = self.core_window.on_okButton(None)
         self.assertIsInstance(plot_frame, pmag_menu_dialogs.PlotFrame)
 
