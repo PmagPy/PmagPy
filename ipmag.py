@@ -970,7 +970,9 @@ def make_aniso_depthplot(ani_file, meas_file, samp_file, age_file=None, fmt='svg
             dmax=max(Depths)
             dmin=min(Depths)
         tau_max=max(Tau1)
-        tau_min=min(Tau3)
+        tau_min=1
+        for t in Tau3:
+            if t>0 and t<tau_min:tau_min=t
         P_max=max(P)
         P_min=min(P)
         #dmax=dmax+.05*dmax
@@ -3080,6 +3082,9 @@ def IODP_samples_magic(samp_file, output_samp_file=None, output_dir_path='.', in
         ODPRec,SampRec={},{}
         interval,core="",""
         rec=line.replace('\n','').split(',')
+        if len(rec)<2:
+            print "Error in csv file, blank columns"
+            break
         for k in range(len(keys)):
             ODPRec[keys[k]]=rec[k].strip('"')
         SampRec['er_sample_alternatives']=ODPRec[text_key]
