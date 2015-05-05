@@ -1291,7 +1291,6 @@ def core_depthplot(dir_path='.', meas_file='magic_measurements.txt', spc_file=''
     #print 'pltTime', pltTime
     #print 'norm', norm
     intlist=['measurement_magnitude','measurement_magn_moment','measurement_magn_volume','measurement_magn_mass']
-    wt_file=''
     width=10
     Ssym,Ssize='cs',5
     pcol=3
