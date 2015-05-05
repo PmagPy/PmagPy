@@ -57,7 +57,7 @@ def main(command_line=True, **kwargs):
         input_dir_path = kwargs.get('input_dir_path', dir_path)
         output_dir_path = dir_path # rename dir_path after input_dir_path is set
         noave = kwargs.get('noave', 0) # default (0) is DO average
-        csv_file = kwargs.get('csv_file')
+        csv_file = kwargs.get('csv_file', '')
         meas_file = kwargs.get('meas_file', 'magic_measurements.txt')
 
     # format variables
@@ -186,7 +186,7 @@ def main(command_line=True, **kwargs):
         return True, meas_file
     else:
         print 'no data found.  bad magfile?'
-        return False
+        return False, 'no data found.  bad magfile?'
 
 def do_help():
     return main.__doc__

@@ -9,7 +9,7 @@ import ipmag
 import sio_magic
 import CIT_magic
 import IODP_srm_magic
-#import old_IODP_srm_magic
+import IODP_dscr_magic
 import IODP_jr6_magic
 import _2G_bin_magic
 WD = os.getcwd()
@@ -157,7 +157,9 @@ class TestIODP_srm_magic(unittest.TestCase):
         os.chdir(WD)
 
     def tearDown(self):
-        pass
+        filelist = ['magic_measurements.txt', 'er_specimens.txt', 'er_samples.txt', 'er_sites.txt', 'er_locations.txt']
+        #directory = os.path.join(WD)
+        pmag.remove_files(filelist, WD)
 
     def test_IODP_with_no_files(self):
         program_ran, error_message = IODP_srm_magic.main(False)
@@ -172,15 +174,45 @@ class TestIODP_srm_magic(unittest.TestCase):
         program_ran, outfile = IODP_srm_magic.main(False, **options)
         self.assertTrue(program_ran)
 
-    @unittest.skip("IODP_srm_magic is missing an example datafile")
+    #@unittest.skip("IODP_srm_magic is missing an example datafile")
     def test_IODP_with_one_file(self):
         options = {}
-        dir_path = os.path.join(WD, 'Datafiles', 'Measurement_Import', 'IODP_srm_magic')
+        #dir_path = os.path.join(WD, 'Datafiles', 'Measurement_Import', 'IODP_srm_magic')
+        dir_path = os.path.join(WD, 'Datafiles', 'UTESTA', 'SRM_data')
         options['input_dir_path'] = dir_path
-        options['csv_file'] = 'SRM_318_U1359_B_A.csv'
+        options['csv_file'] = 'srmsection-XXX-UTEST-A.csv'
         program_ran, outfile = IODP_srm_magic.main(False, **options)
         self.assertTrue(program_ran)
-        self.assertEqual(outfile, os.path.join(dir_path, 'SRM_318_U1359_B_A.csv.magic'))
+        self.assertEqual(outfile, os.path.join('.', 'magic_measurements.txt'))
+
+
+class TestIODP_dscr_magic(unittest.TestCase):
+
+    def setUp(self):
+        os.chdir(WD)
+
+    def tearDown(self):
+        filelist = ['magic_measurements.txt', 'er_specimens.txt', 'er_samples.txt', 'er_sites.txt', 'er_locations.txt']
+        #directory = os.path.join(WD)
+        pmag.remove_files(filelist, WD)
+
+    def test_IODP_with_no_files(self):
+        program_ran, error_message = IODP_dscr_magic.main(False)
+        self.assertFalse(program_ran)
+        self.assertEqual(error_message, 'No .csv files were found')
+
+    #@unittest.skip("IODP_srm_magic is missing an example datafile")
+    def test_IODP_with_one_file(self):
+        options = {}
+        #dir_path = os.path.join(WD, 'Datafiles', 'Measurement_Import', 'IODP_srm_magic')
+        dir_path = os.path.join(WD, 'Datafiles', 'UTESTA', 'SRM_data')
+        options['input_dir_path'] = dir_path
+        options['csv_file'] = 'srmdiscrete-XXX-UTEST-A.csv'
+        program_ran, outfile = IODP_dscr_magic.main(False, **options)
+        print 'outfile!', outfile
+        self.assertTrue(program_ran)
+        self.assertEqual(outfile, os.path.join('.', 'magic_measurements.txt'))
+
 
 
 class TestIODP_jr6_magic(unittest.TestCase):

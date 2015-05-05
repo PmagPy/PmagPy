@@ -1,0 +1,5 @@
+tab 	pmag_specimens
+er_analyst_mail_names	er_citation_names	er_expedition_name	er_location_name	er_sample_name	er_site_name	er_specimen_name	magic_experiment_names	magic_instrument_codes	magic_method_codes	magic_software_packages	measurement_step_max	measurement_step_min	measurement_step_unit	specimen_alpha95	specimen_correction	specimen_dang	specimen_dec	specimen_direction_type	specimen_inc	specimen_mad	specimen_n	specimen_tilt_correction
+	This study	XXX	UTESTA	XXX-UTESTA-8H-4_W_89	XXX-UTESTA-8H-4_W_89	XXX-UTESTA-8H-4_W_89	XXX-UTESTA-8H-4_W_89:LP-DIR-AF	IODP-SRM:IODP-SRM-AF	LP-DIR-AF:DE-FM:DA-DIR	pmagpy-3.2.1	6.000e-02	4.000e-02	T	18.2	u		351.5	l	-17.5		3	-1
+	This study		UTESTA	XXX-UTESTA-2H-1_W_87	XXX-UTESTA-2H-1_W_87	XXX-UTESTA-2H-1_W_87	XXX-UTESTA-2H-1_W_87:LP-DIR-AF		LP-DIR-AF:DE-BFL:DA-DIR	pmagpy-3.2.1	1.000e-01	1.500e-02	T		u	3.1	259.6	l	32.5	3.6	6	-1
+	This study		UTESTA	XXX-UTESTA-2H-1_W_87	XXX-UTESTA-2H-1_W_87	XXX-UTESTA-2H-1_W_87	XXX-UTESTA-2H-1_W_87:LP-DIR-AF		LP-DIR-AF:DE-BFL:DA-DIR-GEO	pmagpy-3.2.1	1.000e-01	1.500e-02	T		u	3.1	259.6	l	32.5	3.6	6	0
