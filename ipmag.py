@@ -1353,7 +1353,7 @@ def core_depthplot(dir_path='.', meas_file='magic_measurements.txt', spc_file=''
     #        print 'error in susceptibility units'
     #        return False, 'error in susceptibility units'
     else:
-       print 'method not supported'
+       print 'method: {} not supported'.format(meth)
        return False, 'method: "{}" not supported'.format(meth)
    
     if wt_file:

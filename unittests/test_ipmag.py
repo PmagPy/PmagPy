@@ -300,7 +300,9 @@ class TestAnisoDepthplot(unittest.TestCase):
 
     def test_aniso_depthplot_with_files(self):
         main_plot, plot_name = ipmag.aniso_depthplot(dir_path=self.aniso_WD)
-        print '!!', type(main_plot)
+        print 'os.listdir(self.aniso_WD)', os.listdir(self.aniso_WD)
+        print 'plot, plotname', main_plot, plot_name
+        print '!!!', type(main_plot)
         assert(isinstance(main_plot, matplotlib.figure.Figure))
         self.assertEqual(plot_name, 'U1361A_ani_depthplot.svg')
 
