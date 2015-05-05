@@ -1,0 +1,17 @@
+tab 	er_ages
+age	age_description	age_sigma	er_citation_names	er_expedition_name	er_location_name	er_timescale_citation_names	magic_method_codes	tiepoint_height	tiepoint_height_sigma	tiepoint_name	tiepoint_type
+0.535	1H-1, 40 to 1H-1, 130 ; Depth scale in mbsf.	0.035	This study	318	U1359C	Gradstein et al. 2004 : This study	GM-FOSSIL	0.85	0.45	Actinocyclus ingens LO	Diatom event
+1.24	1H-5, 10 to 5H-1-35 ; Depth scale in mbsf.	0.05	This study	318	U1359C	Gradstein et al. 2004 : This study	GM-FOSSIL	21.08	14.98	Fragilariopsis barronii LO	Diatom event
+1.495	1H-5, 10 to 5H-1-35 ; Depth scale in mbsf.	0.015	This study	318	U1359C	Gradstein et al. 2004 : This study	GM-FOSSIL	21.08	14.98	Rouxia antarctica LO	Diatom event
+2.17	1H-5, 10 to 5H-4-15 ; Depth scale in mbsf.	0.015	This study	318	U1359C	Gradstein et al. 2004 : This study	GM-FOSSIL	23.23	17.13	Thalassiosira vulnifica LO	Diatom event
+2.195	5H-1-35 to 5H-2, 140 ; Depth scale in mbsf.		This study	318	U1359C	Gradstein et al. 2004 : This study	GM-FOSSIL	37.33	1.28	Fragilariopsis kerguelensis LO	Diatom event
+2.425	5H-1-35 to 5H-5, 122 ; Depth scale in mbsf.	0.025	This study	318	U1359C	Gradstein et al. 2004 : This study	GM-FOSSIL	39.49	3.44	Fragilariopsis interfrigidaria LO	Diatom event
+2.475	5H-1-35 to 5H-5, 122 ; Depth scale in mbsf.	0.01	This study	318	U1359C	Gradstein et al. 2004 : This study	GM-FOSSIL	39.49	3.44	Thalassiosira insigna LO	Diatom event
+2.54	5H-1-35 to 5H-4, 15 ; Depth scale in mbsf.		This study	318	U1359C	Gradstein et al. 2004 : This study	GM-FOSSIL	38.2	2.15	Thalassiosira inura LO	Diatom event
+2.581	5H-2-75 to 5H-2-80 ; Depth scale in mbsf.		This study	318	U1359C	Gradstein et al. 2004 : This study	GM-PMAG-POL	37.98	0.02	C2An.1n (y)	magnetic reversal boundary
+3.032	7H-1, 20 to 7H-1, 30 ; Depth scale in mbsf.		This study	318	U1359C	Gradstein et al. 2004 : This study	GM-PMAG-POL	54.95	0.05	C2An.1n (o)	magnetic reversal boundary
+2.62	5H-1-35 to 5H-5, 122 ; Depth scale in mbsf.		This study	318	U1359C	Gradstein et al. 2004 : This study	GM-FOSSIL	39.49	3.44	Rouxia diploneides LO	Diatom event
+3.116	7H-2, 95 to 7H-2, 100 ; Depth scale in mbsf.		This study	318	U1359C	Gradstein et al. 2004 : This study	GM-PMAG-POL	57.18	0.03	C2An.2n (y)	magnetic reversal boundary
+4.799	13H-5, 35 to 13H-5, 40 ; Depth scale in mbsf.		This study	318	U1359C	Gradstein et al. 2004 : This study	GM-PMAG-POL	115.08	0.02	C3n.3n (y)	magnetic reversal boundary
+4.997	15H-2, 110 to 15H-2, 115 ; Depth scale in mbsf.		This study	318	U1359C	Gradstein et al. 2004 : This study	GM-PMAG-POL	133.33	0.02	C3n.4n (y)	magnetic reversal boundary
+5.235	16H-3, 30 to 16H-3, 35 ; Depth scale in mbsf.		This study	318	U1359C	Gradstein et al. 2004 : This study	GM-PMAG-POL	143.53	0.03	C3n.4n (o)	magnetic reversal boundary

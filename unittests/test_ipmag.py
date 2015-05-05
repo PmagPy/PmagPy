@@ -6,6 +6,7 @@ import os
 import numpy as np
 import pmag
 import ipmag
+import matplotlib
 WD = os.getcwd()
 
 class TestIGRF(unittest.TestCase):
@@ -228,6 +229,7 @@ class TestSUFAR_asc_magic(unittest.TestCase):
 
 
 
+        
 class TestCoreDepthplot(unittest.TestCase):
 
     def setUp(self):
@@ -242,7 +244,6 @@ class TestCoreDepthplot(unittest.TestCase):
         self.assertFalse(program_ran)
         self.assertEqual("You must provide either a magic_measurements file or a pmag_specimens file", error_message)
 
-    #@unittest.skip('for now')
     def test_core_depthplot_bad_params(self):
         path = os.path.join(WD, 'Datafiles', 'core_depthplot')
         program_ran, error_message = ipmag.core_depthplot(dir_path=path)
@@ -280,6 +281,40 @@ class TestCoreDepthplot(unittest.TestCase):
         self.assertTrue(program_ran)
         self.assertEqual(plot_name, 'DSDP Site 522_m:_LT-AF-Z_core-depthplot.png')
 
+        
+class TestAnisoDepthplot(unittest.TestCase):
+    
+    def setUp(self):
+        os.chdir(WD)
+        self.aniso_WD = os.path.join(WD, 'Datafiles', 'ani_depthplot')
+        
+    def tearDown(self):
+        filelist = ['magic_measurements.txt', 'my_magic_measurements.txt', 'er_specimens.txt', 'er_samples.txt', 'my_er_samples.txt', 'er_sites.txt', 'rmag_anisotropy.txt', 'my_rmag_anisotropy.txt', 'rmag_results.txt', 'my_rmag_results.txt']
+        pmag.remove_files(filelist, WD)
+
+    def test_aniso_depthplot_with_no_files(self):
+        program_ran, error_message = ipmag.aniso_depthplot()
+        expected_file = os.path.join('.', 'rmag_anisotropy.txt')
+        self.assertFalse(program_ran)
+        self.assertEqual(error_message, "Could not find rmag_anisotropy type file: {}.\nPlease provide a valid file path and try again".format(expected_file))
+
+    def test_aniso_depthplot_with_files(self):
+        main_plot, plot_name = ipmag.aniso_depthplot(dir_path=self.aniso_WD)
+        print type(main_plot)
+        assert(isinstance(main_plot, matplotlib.figure.Figure))
+        self.assertEqual(plot_name, 'U1361A_ani_depthplot.svg')
+
+    def test_aniso_depthplot_with_age_option(self):
+        main_plot, plot_name = ipmag.aniso_depthplot(age_file='er_ages.txt', dir_path=self.aniso_WD)
+        print type(main_plot)
+        assert(isinstance(main_plot, matplotlib.figure.Figure))
+        self.assertEqual(plot_name, 'U1361A_ani_depthplot.svg')
+
+    def test_aniso_depthplot_with_options(self):
+        main_plot, plot_name = ipmag.aniso_depthplot(dmin=20, dmax=40, depth_scale='sample_core_depth', fmt='png', dir_path=self.aniso_WD)
+        print type(main_plot)
+        assert(isinstance(main_plot, matplotlib.figure.Figure))
+        self.assertEqual(plot_name, 'U1361A_ani_depthplot.png')
 
 
 

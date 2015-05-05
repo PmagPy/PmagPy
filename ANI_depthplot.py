@@ -181,7 +181,7 @@ def main():
         ax.plot(Tau1,Depths,'rs') 
         ax.plot(Tau2,Depths,'b^') 
         ax.plot(Tau3,Depths,'ko')
-        if sum_file!="":
+        if sum_file:
             for core in Cores:
                  depth=float(core[core_depth_key])
                  if depth>dmin and depth<dmax:
@@ -199,7 +199,7 @@ def main():
         ax2.axis([P_min,P_max,dmax,dmin])
         ax2.set_xlabel('P')
         ax2.set_title(location)
-        if sum_file!="":
+        if sum_file:
             for core in Cores:
                  depth=float(core[core_depth_key])
                  if depth>dmin and depth<dmax:
@@ -210,7 +210,7 @@ def main():
         ax3.plot(V3Incs,Depths,'ko') 
         ax3.axis([0,90,dmax,dmin])
         ax3.set_xlabel('V3 Inclination')
-        if sum_file!="":
+        if sum_file:
             for core in Cores:
                  depth=float(core[core_depth_key])
                  if depth>dmin and depth<dmax:
@@ -220,7 +220,7 @@ def main():
         ax4.plot(V1Decs,Depths,'rs') 
         ax4.axis([0,360,dmax,dmin])
         ax4.set_xlabel('V1 Declination')
-        if sum_file!="":
+        if sum_file:
             
             for core in Cores:
                  depth=float(core[core_depth_key])
@@ -234,7 +234,7 @@ def main():
         #ax5.axis([bounds[0],bounds[1],dmax,dmin])
         #ax5.set_xlabel('F_23')
         #ax5.semilogx()
-        #if sum_file!="":
+        #if sum_file:
         #    for core in Cores:
         #         depth=float(core[core_depth_key])
         #         if depth>=dmin and depth<=dmax:

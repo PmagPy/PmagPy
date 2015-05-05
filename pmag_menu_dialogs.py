@@ -1759,6 +1759,7 @@ class Ani_depthplot(wx.Frame):
             age_file = self.bSizer2.return_value()
         fmt = self.bSizer3.return_value()
         depth_scale = self.bSizer4.return_value()
+        print 'age_file', age_file
         if age_file:
             depth_scale='age'
         elif depth_scale:
@@ -1768,9 +1769,11 @@ class Ani_depthplot(wx.Frame):
         dmin = self.bSizer5.return_value() or -1
         dmax = self.bSizer6.return_value() or -1
 
+        sum_file = None
+
         # for use as module:
         import ipmag
-        fig, figname = ipmag.make_aniso_depthplot(ani_file, meas_file, samp_file, age_file, fmt, float(dmin), float(dmax), depth_scale)
+        fig, figname = ipmag.aniso_depthplot(ani_file, meas_file, samp_file, age_file, sum_file, fmt, float(dmin), float(dmax), depth_scale)
         if fig:
             self.Destroy() 
             dpi = fig.get_dpi()
@@ -1780,27 +1783,6 @@ class Ani_depthplot(wx.Frame):
         else:
             pw.simple_warning("No data points met your criteria - try again\nError message: {}".format(figname))
 
-        ## for use as command_line:
-        #ani_file = "-f " + os.path.basename(ani_file)
-        #meas_file = "-fb " + os.path.basename(meas_file)
-        #if use_sampfile:
-        #    samp_file = "-fsa " + os.path.basename(samp_file)
-        #    age_file = ''
-        #else:
-        #    age_file = "-fa " + os.path.basename(age_file)
-        #    samp_file = ''
-        #if dmin and dmax:
-        #    depth = "-d " + dmin + " " + dmax
-        #else:
-        #    depth = ''
-        #depth_scale = "-ds " + depth_scale
-        #fmt = "-fmt " + fmt
-        #WD = "-WD " + self.WD
-
-        #COMMAND = "ANI_depthplot.py {} {} {} {} {} {} {} {} -sav".format(WD, ani_file, meas_file, samp_file, age_file, depth, depth_scale, fmt)
-        #print COMMAND
-        ##pw.run_command_and_close_window(self, COMMAND, "er_samples.txt")
-        #pw.run_command(self, COMMAND, "??")
 
     def on_cancelButton(self,event):
         self.Destroy()

@@ -1,0 +1,3 @@
+tab 	er_locations
+er_citation_names	er_location_name	location_begin_lat	location_begin_lon	location_end_lat	location_end_lon	location_type	ocean_sea	region	tectonic_setting
+This study	U1359C	-64.8541	143.9604	-64.8541	143.9604	Drill Site	Southern Ocean	Wilkes Land Margin	Continental Shelf
