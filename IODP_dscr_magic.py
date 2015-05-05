@@ -120,7 +120,7 @@ def main(command_line=True, **kwargs):
                 MagRec['magic_software_packages']=version_num
                 MagRec["treatment_temp"]='%8.3e' % (273) # room temp in kelvin
                 MagRec["measurement_temp"]='%8.3e' % (273) # room temp in kelvin
-                MagRec["treatment_ac_field"]=0
+                MagRec["treatment_ac_field"]='0'
                 MagRec["treatment_dc_field"]='0'
                 MagRec["treatment_dc_field_phi"]='0'
                 MagRec["treatment_dc_field_theta"]='0'
@@ -134,7 +134,10 @@ def main(command_line=True, **kwargs):
                     MagRec['magic_method_codes'] = 'LT-AF-Z'
                     inst=inst+':IODP-SRM-AF' # measured on shipboard in-line 2G AF
                     treatment_value=float(InRec[demag_key].strip('"'))*1e-3 # convert mT => T
-                    MagRec["treatment_ac_field"]=treatment_value # AF demag in treat mT => T
+                    if sort_by =="treatment_ac_field":
+                        MagRec["treatment_ac_field"]=treatment_value # AF demag in treat mT => T
+                    else:
+                        MagRec["treatment_ac_field"]=str(treatment_value)# AF demag in treat mT => T
                 elif offline_treatment_type in InRec.keys() and InRec[offline_treatment_type]!="":
                     if "Lowrie" in InRec['Comments']:   
                         MagRec['magic_method_codes'] = 'LP-IRM-3D'
@@ -174,10 +177,11 @@ def main(command_line=True, **kwargs):
         Speclist=pmag.get_dictitem(MagRecs,'er_specimen_name',spec,'T')
         sorted=pmag.sort_diclist(Speclist,sort_by)    
         for rec in sorted:
-            rec[sort_by]=str(rec[sort_by])
+            for key in rec.keys(): rec[key]=str(rec[key])
             MagOuts.append(rec)
     Fixed=pmag.measurements_methods(MagOuts,noave)
-    if pmag.magic_write(meas_file,Fixed,'magic_measurements'):
+    Out,keys=pmag.fillkeys(Fixed)
+    if pmag.magic_write(meas_file,Out,'magic_measurements'):
         print 'data stored in ',meas_file
         return True, meas_file
     else:
