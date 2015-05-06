@@ -243,7 +243,7 @@ class TestCoreDepthplot(unittest.TestCase):
             #print 'finished self.app.Destroy'
         btn = self.core_window.okButton
         event = wx.CommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, btn.GetId())
-        print event
+        #print event
         #wx.CallAfter(do_thing)
         #wx.CallLater(10000, do_thing)
         #btn.GetEventHandler().ProcessEvent(event)

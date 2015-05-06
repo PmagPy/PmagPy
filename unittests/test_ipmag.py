@@ -47,7 +47,7 @@ class TestUploadMagic(unittest.TestCase):
         pmag.remove_files(files, directory)
 
     def test_with_valid_files(self):
-        print os.path.join(self.dir_path, 'my_project')
+        #print os.path.join(self.dir_path, 'my_project')
         outfile, error_message = ipmag.upload_magic(dir_path=os.path.join(self.dir_path, 'my_project'))
         self.assertTrue(outfile)
         self.assertEqual(error_message, '')
@@ -192,7 +192,6 @@ class TestSUFAR_asc_magic(unittest.TestCase):
     def test_SUFAR4_with_invalid_file(self):
         input_dir = os.path.join('Datafiles', 'Measurement_Import', 'SUFAR_asc_magic')
         infile = 'fake_sufar4-asc_magic_example.txt'
-        print ipmag.SUFAR4_magic(infile, input_dir_path=input_dir)
         program_ran, error_message = ipmag.SUFAR4_magic(infile, input_dir_path=input_dir)
         self.assertFalse(program_ran)
         self.assertEqual(error_message, 'Error opening file: {}'.format(os.path.join(input_dir, infile)))
@@ -201,7 +200,6 @@ class TestSUFAR_asc_magic(unittest.TestCase):
     def test_SUFAR4_with_infile(self):
         input_dir = os.path.join('Datafiles', 'Measurement_Import', 'SUFAR_asc_magic')
         infile = 'sufar4-asc_magic_example.txt'
-        print ipmag.SUFAR4_magic(infile, input_dir_path=input_dir)
         program_ran, outfile = ipmag.SUFAR4_magic(infile, input_dir_path=input_dir)
         self.assertTrue(program_ran)
         self.assertEqual(outfile, os.path.join('.', 'magic_measurements.txt'))
@@ -300,21 +298,16 @@ class TestAnisoDepthplot(unittest.TestCase):
 
     def test_aniso_depthplot_with_files(self):
         main_plot, plot_name = ipmag.aniso_depthplot(dir_path=self.aniso_WD)
-        print 'os.listdir(self.aniso_WD)', os.listdir(self.aniso_WD)
-        print 'plot, plotname', main_plot, plot_name
-        print '!!!', type(main_plot)
         assert(isinstance(main_plot, matplotlib.figure.Figure))
         self.assertEqual(plot_name, 'U1361A_ani_depthplot.svg')
 
     def test_aniso_depthplot_with_age_option(self):
         main_plot, plot_name = ipmag.aniso_depthplot(age_file='er_ages.txt', dir_path=self.aniso_WD)
-        print type(main_plot)
         assert(isinstance(main_plot, matplotlib.figure.Figure))
         self.assertEqual(plot_name, 'U1361A_ani_depthplot.svg')
 
     def test_aniso_depthplot_with_options(self):
         main_plot, plot_name = ipmag.aniso_depthplot(dmin=20, dmax=40, depth_scale='sample_core_depth', fmt='png', dir_path=self.aniso_WD)
-        print type(main_plot)
         assert(isinstance(main_plot, matplotlib.figure.Figure))
         self.assertEqual(plot_name, 'U1361A_ani_depthplot.png')
 
