@@ -132,7 +132,7 @@ class MoveFileIntoWD(wx.Frame):
     title = "Import any file into your working directory"
     
     def __init__(self, parent, WD):
-        wx.Frame.__init__(self, parent, wx.ID_ANY, self.title)
+        wx.Frame.__init__(self, parent, wx.ID_ANY, self.title, name='any file')
         self.panel = wx.ScrolledWindow(self)
         self.WD = WD
         self.InitUI()
@@ -187,12 +187,12 @@ class MoveFileIntoWD(wx.Frame):
         dlg.Destroy()
 
 
-class ImportODPSampleSummary(wx.Frame):
+class ImportIODPSampleSummary(wx.Frame):
 
     title = "Import IODP Sample Summary csv file"
     
     def __init__(self, parent, WD):
-        wx.Frame.__init__(self, parent, wx.ID_ANY, self.title)
+        wx.Frame.__init__(self, parent, wx.ID_ANY, self.title, name='IODP_samples')
         self.panel = wx.ScrolledWindow(self)
         self.WD = WD
         self.InitUI()
@@ -315,7 +315,7 @@ class ImportKly4s(wx.Frame):
     title = "kly4s format"
     
     def __init__(self, parent, WD):
-        wx.Frame.__init__(self, parent, wx.ID_ANY, self.title)
+        wx.Frame.__init__(self, parent, wx.ID_ANY, self.title, name='kly4s')
         self.panel = wx.ScrolledWindow(self)
         self.WD = WD
         self.InitUI()
@@ -536,7 +536,7 @@ class ImportSufarAscii(wx.Frame):
     title = "Import Sufar Ascii format file"
     
     def __init__(self, parent, WD):
-        wx.Frame.__init__(self, parent, wx.ID_ANY, self.title)
+        wx.Frame.__init__(self, parent, wx.ID_ANY, self.title, name='Sufar')
         self.panel = wx.ScrolledWindow(self)
         self.WD = WD
         self.InitUI()
@@ -655,7 +655,7 @@ class ImportAgmFile(wx.Frame):
     title = "Import single .agm file"
     
     def __init__(self, parent, WD):
-        wx.Frame.__init__(self, parent, wx.ID_ANY, self.title)
+        wx.Frame.__init__(self, parent, wx.ID_ANY, self.title, name='agm_file')
         self.panel = wx.ScrolledWindow(self)
         self.WD = WD
         self.InitUI()
@@ -767,7 +767,7 @@ class ImportAgmFolder(wx.Frame):
     title = "Import folder of Micromag agm files"
     
     def __init__(self, parent, WD):
-        wx.Frame.__init__(self, parent, wx.ID_ANY, self.title)
+        wx.Frame.__init__(self, parent, wx.ID_ANY, self.title, name='agm_directory')
         self.panel = wx.ScrolledWindow(self)
         self.WD = WD
         self.InitUI()

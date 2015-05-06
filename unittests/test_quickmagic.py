@@ -158,9 +158,33 @@ class TestMenus(unittest.TestCase):
             self.assertTrue(menu.IsEnabled)
             self.assertIn(menu_name, menu_names)
 
+    def test_click_any_file(self):
+        window = self.does_window_exist('Import', "Import any file into your working directory", 'any file')
+        self.assertTrue(window, 'Import any file window was not created')
+
     def test_click_Azdip_format(self):
-        window = self.does_window_exist('Import', 'AzDip format', 'azdip_window', 'orientation/location/stratigraphic files')
+        window = self.does_window_exist('Import', 'AzDip format', 'azdip_window', submenu='orientation/location/stratigraphic files')
         self.assertTrue(window, 'Azdip import window was not created')
+
+    def test_click_IODP_sample_format(self):
+        window = self.does_window_exist('Import', 'IODP Sample Summary csv file', 'IODP_samples', submenu='orientation/location/stratigraphic files')
+        self.assertTrue(window, 'IODP samples import window was not created')
+
+    def test_click_Kly4s_format(self):
+        window = self.does_window_exist('Import', 'kly4s format', 'kly4s', 'Anisotropy files')
+        self.assertTrue(window, 'Kly4s import window was not created')
+
+    def test_click_SUFAR_asc_format(self):
+        window = self.does_window_exist('Import', 'Sufar 4.0 ascii format', 'Sufar', 'Anisotropy files')
+        self.assertTrue(window, 'SUFAR 4 ascii window was not created')
+
+    def test_click_agm_file_format(self):
+        window = self.does_window_exist('Import', 'Import single agm file', 'agm_file', 'Hysteresis files')
+        self.assertTrue(window, 'Import agm file window was not created')
+        
+    def test_click_agm_folder_format(self):
+        window = self.does_window_exist('Import', 'Import entire directory', 'agm_directory', 'Hysteresis files')
+        self.assertTrue(window, 'Import agm folder window was not created')
         
     def test_click_ani_depthplot(self):
         window = self.does_window_exist('Analysis and Plots', "Anisotropy data vs. depth/height/age", 'aniso_depthplot')
