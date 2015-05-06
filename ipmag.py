@@ -3997,10 +3997,11 @@ def SUFAR4_magic(ascfile, meas_output='magic_measurements.txt', aniso_output='rm
     OPTIONS
         -h: prints the help message and quits
         -f FILE: specify .asc input file name
+        -fsi SINFILE: specify er_specimens input file with location, sample, site, etc. information
         -F MFILE: specify magic_measurements output file
         -Fa AFILE: specify rmag_anisotropy output file
         -Fr RFILE: specify rmag_results output file
-        -Fsi SFILE: specify er_specimens output file with location, sample, site, etc. information
+        -Fsi SFILE: specify er_specimens output file 
         -usr USER: specify who made the measurements
         -loc LOC: specify location name for study 
         -ins INST: specify instrument used
