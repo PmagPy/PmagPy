@@ -20,7 +20,7 @@ class ImportAzDipFile(wx.Frame):
     title = "Import AzDip format file"
     
     def __init__(self, parent, WD):
-        wx.Frame.__init__(self, parent, wx.ID_ANY, self.title)
+        wx.Frame.__init__(self, parent, wx.ID_ANY, self.title, name='azdip_window')
         self.panel = wx.ScrolledWindow(self)
         self.WD = WD
         self.InitUI()
