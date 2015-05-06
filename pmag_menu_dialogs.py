@@ -432,7 +432,7 @@ class ImportKly4s(wx.Frame):
         self.Parent.Raise()
 
     def on_helpButton(self, event):
-        pw.on_helpButton("kly4s_magic.py -h")
+        pw.on_helpButton(text=ipmag.kly4s_magic.__doc__)
 
 
 class ImportK15(wx.Frame):
@@ -465,7 +465,7 @@ class ImportK15(wx.Frame):
         self.bSizer3 = pw.labeled_text_field(pnl, label="Location name:")
 
         #---sizer 4 ---
-        self.bSizer4 = pw.labeled_text_field(pnl, label="Instrument name (optional):")
+        #self.bSizer4 = pw.labeled_text_field(pnl, label="Instrument name (optional):")
 
         #---buttons ---
         hboxok = pw.btn_panel(self, pnl)
@@ -473,7 +473,7 @@ class ImportK15(wx.Frame):
         vbox = wx.BoxSizer(wx.VERTICAL)
         hbox = wx.BoxSizer(wx.HORIZONTAL)
         hbox.Add(self.bSizer3, flag=wx.ALIGN_LEFT|wx.LEFT, border=5)
-        hbox.Add(self.bSizer4, flag=wx.ALIGN_LEFT)
+        #hbox.Add(self.bSizer4, flag=wx.ALIGN_LEFT)
         vbox.Add(bSizer_info, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(self.bSizer0, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(self.bSizer1, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
@@ -503,26 +503,32 @@ class ImportK15(wx.Frame):
         outfile = infile + ".magic"
         samp_outfile = infile[:infile.find('.')] + "_er_samples.txt"
         WD = self.WD
-        spc = self.bSizer1.return_value()
+        specnum = self.bSizer1.return_value()
         ncn = self.bSizer2.return_value()
         loc = self.bSizer3.return_value()
         if loc:
+            location = loc
             loc = "-loc " + loc
-        ins = self.bSizer4.return_value()
-        if ins:
-            ins = "-ins " + ins
+        else:
+            location = "unknown"
         aniso_outfile = infile + '_rmag_anisotropy.txt'
         aniso_results_file = infile + '_rmag_results.txt'
-        COMMAND = "k15_magic.py -WD {} -f {} -F {} -ncn {} -spc {} {} {} -ID {} -Fsa {} -Fa {} -Fr {}".format(WD, infile, outfile, ncn, spc, loc, ins, ID, samp_outfile, aniso_outfile, aniso_results_file)
+        COMMAND = "k15_magic.py -WD {} -f {} -F {} -ncn {} -spc {} {} -ID {} -Fsa {} -Fa {} -Fr {}".format(WD, infile, outfile, ncn, specnum, loc, ID, samp_outfile, aniso_outfile, aniso_results_file)
+        program_ran, error_message = ipmag.k15_magic(infile, specnum, ncn, location, outfile, samp_outfile, aniso_outfile, aniso_results_file, ID, WD)
+        print COMMAND
+        if program_ran:
+            pw.close_window(self, COMMAND, outfile)
+        else:
+            pw.simple_warning(error_message)
         #print COMMAND
-        pw.run_command_and_close_window(self, COMMAND, outfile)
+        #pw.run_command_and_close_window(self, COMMAND, outfile)
 
     def on_cancelButton(self,event):
         self.Destroy()
         self.Parent.Raise()
 
     def on_helpButton(self, event):
-        pw.on_helpButton("k15_magic.py -h")
+        pw.on_helpButton(text=ipmag.k15_magic.__doc__)
 
 
 class ImportSufarAscii(wx.Frame):

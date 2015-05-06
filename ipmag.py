@@ -3675,6 +3675,55 @@ def kly4s_magic(infile, specnum=0, locname="unknown", inst='SIO-KLY4S', samp_con
 
 
 def k15_magic(k15file, specnum=0, sample_naming_con='1', er_location_name="unknown", measfile='magic_measurements.txt', sampfile="er_samples.txt", aniso_outfile='rmag_anisotropy.txt', result_file="rmag_results.txt", input_dir_path='.', output_dir_path='.'):
+    """
+    def k15_magic(k15file, specnum=0, sample_naming_con='1', er_location_name="unknown", measfile='magic_measurements.txt', sampfile="er_samples.txt", aniso_outfile='rmag_anisotropy.txt', result_file="rmag_results.txt", input_dir_path='.', output_dir_path='.'):
+
+    NAME
+        k15_magic.py
+
+    DESCRIPTION
+        converts .k15 format data to magic_measurements  format.
+        assums Jelinek Kappabridge measurement scheme
+   
+    SYNTAX 
+        k15_magic.py [-h] [command line options]
+    
+    OPTIONS
+        -h prints help message and quits
+        -f KFILE: specify .k15 format input file
+        -F MFILE: specify magic_measurements format output file
+        -Fsa SFILE, specify er_samples format file for output 
+        -Fa AFILE, specify rmag_anisotropy format file for output
+        -Fr RFILE, specify rmag_results format file for output
+        -loc LOC: specify location name for study
+    #-ins INST: specify instrument that measurements were made on # not implemented
+        -spc NUM: specify number of digits for specimen ID, default is 0
+        -ncn NCOM: specify naming convention (default is #1)
+       Sample naming convention:
+            [1] XXXXY: where XXXX is an arbitrary length site designation and Y
+                is the single character sample designation.  e.g., TG001a is the
+                first sample from site TG001.    [default]
+            [2] XXXX-YY: YY sample from site XXXX (XXX, YY of arbitary length)
+            [3] XXXX.YY: YY sample from site XXXX (XXX, YY of arbitary length)
+            [4-Z] XXXXYYY:  YYY is sample designation with Z characters from site XXX
+            [5] sample = site
+            [6] sample, site, location info in er_samples.txt
+            [7] all others you will have to either customize your
+
+    DEFAULTS
+        MFILE: k15_measurements.txt
+        SFILE: er_samples.txt
+        AFILE: rmag_anisotropy.txt
+        RFILE: rmag_results.txt
+        LOC: unknown
+        INST: unknown
+        
+    INPUT
+      name [az,pl,strike,dip], followed by
+      3 rows of 5 measurements for each specimen
+
+    """
+
     #
     # initialize some variables
     #
@@ -3683,7 +3732,7 @@ def k15_magic(k15file, specnum=0, sample_naming_con='1', er_location_name="unkno
     syn=0
     itilt,igeo,linecnt,key=0,0,0,"" 
     first_save=1
-    k15,specnum=[],0 
+    k15 = []
     citation='This study'
 # pick off stuff from command line
     Z=""
@@ -3757,7 +3806,7 @@ def k15_magic(k15file, specnum=0, sample_naming_con='1', er_location_name="unkno
                 SampRec["er_specimen_name"]=rec[0]
                 ResRec["rmag_result_name"]=rec[0]
                 if specnum!=0:
-                    MeasRec["er_sample_name"]=rec[0][:specnum]
+                    MeasRec["er_sample_name"]=rec[0][:-specnum]
                 if specnum==0:
                     MeasRec["er_sample_name"]=rec[0]
                 SampRec["er_sample_name"]=MeasRec["er_sample_name"]
@@ -3785,7 +3834,7 @@ def k15_magic(k15file, specnum=0, sample_naming_con='1', er_location_name="unkno
                     SampRec["sample_azimuth"],SampRec["sample_dip"]=rec[1],rec[2]
                     az,pl,igeo=float(rec[1]),float(rec[2]),1
                 if len(rec)==5: 
-                    SampRec["sample_bed_dip_direction"],SampRec["sample_bed_dip"]= '(%7.1f)'%(90.+float(rec[3])),(rec[4])
+                    SampRec["sample_bed_dip_direction"],SampRec["sample_bed_dip"]= '%7.1f'%(90.+float(rec[3])),(rec[4])
                     bed_az,bed_dip,itilt,igeo=90.+float(rec[3]),float(rec[4]),1,1
             else: 
                 for i in range(5):
@@ -3973,7 +4022,7 @@ def SUFAR4_magic(ascfile, meas_output='magic_measurements.txt', aniso_output='rm
     if os.path.isfile(os.path.join(input_dir_path, str(spec_infile))):
         isspec='1' # means an er_specimens.txt file has been provided with sample, site, location (etc.) info
                       
-    specnum=-(int(specnum))
+    specnum=int(specnum)
 
     if isspec=="1": 
         specs,file_type=pmag.magic_read(spec_infile)
@@ -4023,7 +4072,7 @@ def SUFAR4_magic(ascfile, meas_output='magic_measurements.txt', aniso_output='rm
                         break
             elif isspec=="0":
                 if specnum!=0:
-                    sampname=specname[:specnum]
+                    sampname=specname[:-specnum]
                 else:
                     sampname=specname
                 AniRec['er_sample_name']=sampname
