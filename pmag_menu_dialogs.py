@@ -612,41 +612,51 @@ class ImportSufarAscii(wx.Frame):
         WD = self.WD
         full_infile = self.bSizer0.return_value()
         ID, infile = os.path.split(full_infile)
-        outfile = infile + ".magic"
+        meas_outfile = infile[:infile.find('.')] + ".magic"
+        aniso_outfile = infile[:infile.find('.')] + "_rmag_anisotropy.txt"
         spec_outfile = infile[:infile.find('.')] + "_er_specimens.txt"
         samp_outfile = infile[:infile.find('.')] + "_er_samples.txt"
         site_outfile = infile[:infile.find('.')] + "_er_sites.txt"
         usr = self.bSizer1.return_value()
         if usr:
+            user = usr
             usr = "-usr " + usr
-        spc = self.bSizer2.return_value()
+        else:
+            user = ""
+
+        specnum = self.bSizer2.return_value()
         ncn = self.bSizer3.return_value()
         loc = self.bSizer4.return_value()
         if loc:
+            location = loc
             loc = "-loc " + loc
+        else:
+            location = "unknown"
         ins = self.bSizer5.return_value()
         if ins:
             ins = "-ins " + ins
         k15 = self.bSizer6.return_value()
         if k15:
             k15 = ""
+            static_15_position_mode = False
         else:
             k15 = "-k15"
-        COMMAND = "SUFAR4-asc_magic.py -WD {} -f {} -F {} {} -spc {} -ncn {} {} {} {} -ID {}".format(WD, infile, outfile, usr, spc, ncn, loc, ins, k15, ID)
-        pw.run_command_and_close_window(self, COMMAND, outfile)
-        print "Renaming er_specimens.txt file: {}".format(spec_outfile)
-        os.rename('er_specimens.txt', spec_outfile)
-        print "Renaming er_samples.txt file: {}".format(samp_outfile)
-        os.rename('er_samples.txt', samp_outfile)
-        print "Renaming er_sites.txt file: {}".format(site_outfile)
-        os.rename('er_sites.txt', site_outfile)
+            static_15_position_mode = True
+        spec_infile = None
+        instrument = ""
+        COMMAND = "SUFAR4-asc_magic.py -WD {} -f {} -F {} {} -spc {} -ncn {} {} {} {} -ID {}".format(WD, infile, meas_outfile, usr, specnum, ncn, loc, ins, k15, ID)
+        program_ran, error_message = ipmag.SUFAR4_magic(infile, meas_outfile, aniso_outfile, spec_infile, spec_outfile, samp_outfile, site_outfile, specnum, ncn, user, location, instrument, static_15_position_mode, WD, ID)
+        if program_ran:
+            pw.close_window(self, COMMAND, meas_outfile)
+        else:
+            pw.simple_warning(error_message)
 
     def on_cancelButton(self,event):
         self.Destroy()
         self.Parent.Raise()
 
     def on_helpButton(self, event):
-        pw.on_helpButton("SUFAR4-asc_magic.py -h")
+        pw.on_helpButton(text=ipmag.SUFAR4_magic.__doc__)
 
 
 

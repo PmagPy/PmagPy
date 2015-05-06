@@ -225,8 +225,6 @@ class TestSUFAR_asc_magic(unittest.TestCase):
         self.assertTrue(program_ran)
         self.assertEqual(outfile, os.path.join('.', 'my_magic_measurements.txt'))
 
-
-
         
 class TestCoreDepthplot(unittest.TestCase):
 
