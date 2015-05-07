@@ -225,6 +225,31 @@ class TestSUFAR_asc_magic(unittest.TestCase):
         self.assertTrue(program_ran)
         self.assertEqual(outfile, os.path.join('.', 'my_magic_measurements.txt'))
 
+
+class TestAgmMagic(unittest.TestCase):
+    def setUp(self):
+        os.chdir(WD)
+
+    def tearDown(self):
+        filelist = ['magic_measurements.txt', 'my_magic_measurements.txt', 'er_specimens.txt', 'er_samples.txt', 'my_er_samples.txt', 'er_sites.txt', 'rmag_anisotropy.txt', 'my_rmag_anisotropy.txt', 'rmag_results.txt', 'my_rmag_results.txt', 'agm_magic_example.magic']
+        pmag.remove_files(filelist, WD)
+
+    def test_agm_with_no_files(self):
+        with self.assertRaises(TypeError):
+            ipmag.agm_magic()
+
+    def test_agm_with_bad_file(self):
+        program_ran, error_message = ipmag.agm_magic('bad_file.txt')
+        self.assertFalse(program_ran)
+        self.assertEqual(error_message, 'You must provide a valid agm file')
+
+    def test_agm_success(self):
+        input_dir = os.path.join(WD, 'Datafiles', 'Measurement_Import', 'agm_magic')
+        program_ran, filename = ipmag.agm_magic('agm_magic_example.agm', outfile='agm_magic_example.magic', input_dir_path=input_dir)
+        self.assertTrue(program_ran)
+        self.assertEqual(filename, os.path.join('.', 'agm_magic_example.magic'))
+
+    
         
 class TestCoreDepthplot(unittest.TestCase):
 
