@@ -741,12 +741,14 @@ class ImportAgmFile(wx.Frame):
         ID, infile = os.path.split(full_infile)
         outfile = infile + ".magic"
         spec_outfile = infile[:infile.find('.')] + "_er_specimens.txt"
-        user = self.bSizer1.return_value()
-        if user:
-            user = "-usr " + user
+        usr = self.bSizer1.return_value()
+        user = usr
+        if usr:
+            usr = "-usr " + usr
         spc = self.bSizer2.return_value()
         ncn = self.bSizer3.return_value()
         loc = self.bSizer4.return_value()
+        location = loc
         if loc:
             loc = "-loc " + loc
         ins = self.bSizer5.return_value()
@@ -758,20 +760,28 @@ class ImportAgmFile(wx.Frame):
         else:
             units = 'SI'
         bak = ''
+        backfield_curve = False
         if self.bSizer7.return_value():
             bak = "-bak"
-        COMMAND = "agm_magic.py -WD {} -ID {} -f {} -F {} -Fsp {} {} -spc {} -ncn {} {} {} -u {} {}".format(WD, ID, infile, outfile, spec_outfile, user, spc, ncn, loc, ins, units, bak)
-        pw.run_command_and_close_window(self, COMMAND, outfile)
+            backfield_curve = True
+
+        COMMAND = "agm_magic.py -WD {} -ID {} -f {} -F {} -Fsp {} {} -spc {} -ncn {} {} {} -u {} {}".format(WD, ID, infile, outfile, spec_outfile, usr, spc, ncn, loc, ins, units, bak)
+        samp_infile = None
+        program_ran, error_message = ipmag.agm_magic(infile, samp_infile, outfile, spec_outfile, user, ID, WD, backfield_curve, spc, ncn, location, units)
+        if program_ran:
+            pw.close_window(self, COMMAND, outfile)
+        else:
+            pw.simple_warning(error_message)
+        #pw.run_command_and_close_window(self, COMMAND, outfile)
 
     def on_cancelButton(self,event):
         self.Destroy()
         self.Parent.Raise()
 
     def on_helpButton(self, event):
-        pw.on_helpButton("agm_magic.py -h")
+        pw.on_helpButton(text=ipmag.agm_mgaic.__doc__)
 
-
-
+                         
 class ImportAgmFolder(wx.Frame):
 
     title = "Import folder of Micromag agm files"

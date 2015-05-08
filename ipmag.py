@@ -4331,7 +4331,6 @@ def agm_magic(agm_file, samp_infile=None, outfile='agm_measurements.txt', spec_o
         outfile = "irm_measurements.txt"
     output = os.path.join(output_dir_path, outfile)
     specfile = os.path.join(output_dir_path, spec_outfile)
-    agm_file = os.path.join(input_dir_path, agm_file)
                             
     # if specimen name is not provided, use the name of the file minus the file extension
     if not er_specimen_name:
