@@ -1547,7 +1547,7 @@ def core_depthplot(dir_path='.', meas_file='magic_measurements.txt', spc_file=''
                 Susc,Sus_depths=[],[]
     if dmin==-1:
         if len(Depths)>0: dmin,dmax=Depths[0],Depths[-1]
-        if len(FDepths)>0: dmin,dmax=Depths[0],Depths[-1]
+        if len(FDepths)>0: dmin,dmax=FDepths[0],FDepths[-1]
         if pltSus and len(SDepths)>0:
             if SDepths[0]<dmin:dmin=SDepths[0]
             if SDepths[-1]>dmax:dmax=SDepths[-1]
