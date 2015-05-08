@@ -236,7 +236,7 @@ class TestIODP_jr6_magic(unittest.TestCase):
         self.assertFalse(program_ran)
         self.assertEqual(error_message, "You must provide an IODP_jr6 format file")
 
-    @unittest.skipIf('win32' in sys.platform or 'win62' in sys.platform, "Requires up to date version of pandas")
+    #@unittest.skipIf('win32' in sys.platform or 'win62' in sys.platform, "Requires up to date version of pandas")
     def test_IODP_jr6_with_magfile(self):
         options = {}
         input_dir = os.path.join(WD, 'Datafiles', 'Measurement_Import', 'IODP_jr6_magic')
@@ -249,7 +249,7 @@ class TestIODP_jr6_magic(unittest.TestCase):
         self.assertTrue(program_ran)
         self.assertEqual(outfile, os.path.join('.', meas_file))
 
-    @unittest.skipIf('win32' in sys.platform or 'win62' in sys.platform, "Requires up to date version of pandas")
+    #@unittest.skipIf('win32' in sys.platform or 'win62' in sys.platform, "Requires up to date version of pandas")
     def test_IODP_jr6_with_options(self):
         options = {}
         input_dir = os.path.join(WD, 'Datafiles', 'Measurement_Import', 'IODP_jr6_magic')
@@ -263,7 +263,7 @@ class TestIODP_jr6_magic(unittest.TestCase):
         self.assertTrue(program_ran)
         self.assertEqual(outfile, os.path.join('.', meas_file))
 
-    @unittest.skipIf('win32' in sys.platform or 'win62' in sys.platform, "Requires up to date version of pandas")
+    #@unittest.skipIf('win32' in sys.platform or 'win62' in sys.platform, "Requires up to date version of pandas")
     def test_IODP_jr6_with_magfile_but_hidden_sampfile(self):
         options = {}
         input_dir = os.path.join(WD, 'Datafiles', 'Measurement_Import', 'IODP_jr6_magic')
