@@ -1424,12 +1424,18 @@ def core_depthplot(dir_path='.', meas_file='magic_measurements.txt', spc_file=''
             print 'no Core depth information available: import core summary file'
             sum_file=""
     Data=[]
-    if depth_scale=='sample_core_depth':
+    if depth_scale=='sample_core_depth' or depth_scale == 'mbsf':
         ylab="Depth (mbsf)"
+        depth_scale='sample_core_depth'
     elif depth_scale=='age':
         ylab="Age"
-    else:
+    elif depth_scale=='sample_composite_depth' or depth_scale=='mcd':
         ylab="Depth (mcd)"
+        depth_scale = 'sample_composite_depth'
+    else:
+        print 'Warning: You have provided unsupported depth scale: {}.\nUsing default (mbsf) instead.'.format(depth_scale)
+        depth_scale = 'sample_core_depth'
+        ylab="Depth (mbsf)"
     # collect the data for plotting declination
     Depths,Decs,Incs,Ints=[],[],[],[]
     SDepths,SDecs,SIncs,SInts=[],[],[],[]
