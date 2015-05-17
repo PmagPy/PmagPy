@@ -1,0 +1,10 @@
+tab 	er_citations
+book_title	citation_type	city	doi	er_citation_name	journal	long_authors	pages	publisher	title	volume	year
+	Journal		10.1029/2012PA002308	This study	Paleoceanography	Tauxe, L., Stickley, C.E., Sugisaki, S., Bijl, P.K., Bohaty, S.M., Brinkhuis, H., Escutia, C., Flores, J.-A., Houben, A.J.P., Iwai, M., Jimenez-Espejo, F., McKay, R., Passchier, S., Pross, J., Riesselman, C.R., Roehl, U., Sangiorgi, F., Welsh, K., Klaus, A., Fehr, A., Bendle, J.A.P., Dunbar, R.B., Gonzalez, J., Hayden, T., Katsuki, K., Olney, M., Pekar, S.F., Shrivastava, P.K., van de Flierdt, T., Williams, T. and Yamane, M.	1-10		Integrated biomagnetostratigraphy of the Wilkes Land Margin for reconstruction of 53 Ma of Antarctic	0	2012
+	Journal			As & Zijderveld 1958	Geophysical Journal International	As, J.A. and Zijderveld, J.D.A.	308-319		Magnetic cleaning of rocks in paleomagnetic research	1	1958
+Methods in rock magnetism and Paleomagnetism: Techniques and instrumentation	Book	London		Collinson 1983		Collinson, D.W.	503	Chapman and Hall			1983
+	Journal			Fisher 1953	Proceedings of the Royal Society of London	Fisher, R.A.	295-305		Dispersion on a sphere	A217	1953
+Geologic Time Scale	Book	Cambridge		Gradstein et al. 2004		Gradstein, F.M., Ogg, J.G. and Smith, A.G.	500	Cambridge University Press			2004
+	Journal			Hext 1963	Biometrika	Hext, G.R.	353-373		The estimation of second-order tensors, with related tests and designs	50	1963
+Paleomagnetism and its application to geological and geophysical problems	Book	New York		Irving 1964		Irving, E.	399	John Wiley and sons			1964
+	Journal			Kirschvink 1980	Geophysical Journal of the Royal Astronomical Society	Kirschvink, J.L.	699-718		The least squares line and plane and the analysis of palaeomagnetic data	62	1980

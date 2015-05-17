@@ -6,6 +6,7 @@ import os
 import numpy as np
 import pmag
 import ipmag
+import matplotlib
 WD = os.getcwd()
 
 class TestIGRF(unittest.TestCase):
@@ -46,7 +47,7 @@ class TestUploadMagic(unittest.TestCase):
         pmag.remove_files(files, directory)
 
     def test_with_valid_files(self):
-        print os.path.join(self.dir_path, 'my_project')
+        #print os.path.join(self.dir_path, 'my_project')
         outfile, error_message = ipmag.upload_magic(dir_path=os.path.join(self.dir_path, 'my_project'))
         self.assertTrue(outfile)
         self.assertEqual(error_message, '')
@@ -191,7 +192,6 @@ class TestSUFAR_asc_magic(unittest.TestCase):
     def test_SUFAR4_with_invalid_file(self):
         input_dir = os.path.join('Datafiles', 'Measurement_Import', 'SUFAR_asc_magic')
         infile = 'fake_sufar4-asc_magic_example.txt'
-        print ipmag.SUFAR4_magic(infile, input_dir_path=input_dir)
         program_ran, error_message = ipmag.SUFAR4_magic(infile, input_dir_path=input_dir)
         self.assertFalse(program_ran)
         self.assertEqual(error_message, 'Error opening file: {}'.format(os.path.join(input_dir, infile)))
@@ -200,7 +200,6 @@ class TestSUFAR_asc_magic(unittest.TestCase):
     def test_SUFAR4_with_infile(self):
         input_dir = os.path.join('Datafiles', 'Measurement_Import', 'SUFAR_asc_magic')
         infile = 'sufar4-asc_magic_example.txt'
-        print ipmag.SUFAR4_magic(infile, input_dir_path=input_dir)
         program_ran, outfile = ipmag.SUFAR4_magic(infile, input_dir_path=input_dir)
         self.assertTrue(program_ran)
         self.assertEqual(outfile, os.path.join('.', 'magic_measurements.txt'))
@@ -227,7 +226,31 @@ class TestSUFAR_asc_magic(unittest.TestCase):
         self.assertEqual(outfile, os.path.join('.', 'my_magic_measurements.txt'))
 
 
+class TestAgmMagic(unittest.TestCase):
+    def setUp(self):
+        os.chdir(WD)
 
+    def tearDown(self):
+        filelist = ['magic_measurements.txt', 'my_magic_measurements.txt', 'er_specimens.txt', 'er_samples.txt', 'my_er_samples.txt', 'er_sites.txt', 'rmag_anisotropy.txt', 'my_rmag_anisotropy.txt', 'rmag_results.txt', 'my_rmag_results.txt', 'agm_magic_example.magic']
+        pmag.remove_files(filelist, WD)
+
+    def test_agm_with_no_files(self):
+        with self.assertRaises(TypeError):
+            ipmag.agm_magic()
+
+    def test_agm_with_bad_file(self):
+        program_ran, error_message = ipmag.agm_magic('bad_file.txt')
+        self.assertFalse(program_ran)
+        self.assertEqual(error_message, 'You must provide a valid agm file')
+
+    def test_agm_success(self):
+        input_dir = os.path.join(WD, 'Datafiles', 'Measurement_Import', 'agm_magic')
+        program_ran, filename = ipmag.agm_magic('agm_magic_example.agm', outfile='agm_magic_example.magic', input_dir_path=input_dir)
+        self.assertTrue(program_ran)
+        self.assertEqual(filename, os.path.join('.', 'agm_magic_example.magic'))
+
+    
+        
 class TestCoreDepthplot(unittest.TestCase):
 
     def setUp(self):
@@ -238,7 +261,78 @@ class TestCoreDepthplot(unittest.TestCase):
         pmag.remove_files(filelist, WD)
 
     def test_core_depthplot_with_no_files(self):
-        pass
+        program_ran, error_message = ipmag.core_depthplot()
+        self.assertFalse(program_ran)
+        self.assertEqual("You must provide either a magic_measurements file or a pmag_specimens file", error_message)
+
+    def test_core_depthplot_bad_params(self):
+        path = os.path.join(WD, 'Datafiles', 'core_depthplot')
+        program_ran, error_message = ipmag.core_depthplot(dir_path=path)
+        self.assertFalse(program_ran)
+        self.assertEqual('No data found to plot\nTry again with different parameters', error_message)
+
+    def test_core_depthplot_bad_method(self):
+        path = os.path.join(WD, 'Datafiles', 'core_depthplot')
+        program_ran, error_message = ipmag.core_depthplot(dir_path=path, step=5, meth='NA')
+        self.assertFalse(program_ran)
+        self.assertEqual(error_message, 'method: "{}" not supported'.format('NA'))
+
+
+    def test_core_depthplot_success(self):
+        path = os.path.join(WD, 'Datafiles', 'core_depthplot')
+        program_ran, plot_name = ipmag.core_depthplot(dir_path=path, spc_file='pmag_specimens.txt', samp_file='er_samples.txt', meth='AF', step=15)
+        self.assertTrue(program_ran)
+        self.assertEqual(plot_name, 'DSDP Site 522_m:_LT-AF-Z_core-depthplot.svg')
+
+    def test_core_depthplot_without_full_time_options(self):
+        path = os.path.join(WD, 'Datafiles', 'core_depthplot')
+        program_ran, error_message = ipmag.core_depthplot(dir_path=path, spc_file='pmag_specimens.txt', samp_file='er_samples.txt', meth='AF', step=15, fmt='png', pltInc=False, logit=True, pltTime=True)#, timescale='gts12', amin=0, amax=3) # pltDec = False causes failure with these data
+        self.assertFalse(program_ran)
+        self.assertEqual(error_message, "To plot time, you must provide amin, amax, and timescale")
+
+    def test_core_depthplot_success_with_options(self):
+        path = os.path.join(WD, 'Datafiles', 'core_depthplot')
+        program_ran, plot_name = ipmag.core_depthplot(dir_path=path, spc_file='pmag_specimens.txt', samp_file='er_samples.txt', meth='AF', step=15, fmt='png', pltInc=False, logit=True, pltTime=True, timescale='gts12', amin=0, amax=3) # pltDec = False causes failure with these data
+        self.assertTrue(program_ran)
+        self.assertEqual(plot_name, 'DSDP Site 522_m:_LT-AF-Z_core-depthplot.png')
+
+    def test_core_depthplot_success_with_other_options(self):
+        path = os.path.join(WD, 'Datafiles', 'core_depthplot')
+        program_ran, plot_name = ipmag.core_depthplot(dir_path=path, spc_file='pmag_specimens.txt', age_file='er_ages.txt', meth='AF', step=15, fmt='png', pltInc=False, logit=True, pltTime=True, timescale='gts12', amin=0, amax=3) # pltDec = False causes failure with these data
+        self.assertTrue(program_ran)
+        self.assertEqual(plot_name, 'DSDP Site 522_m:_LT-AF-Z_core-depthplot.png')
+
+        
+class TestAnisoDepthplot(unittest.TestCase):
+    
+    def setUp(self):
+        os.chdir(WD)
+        self.aniso_WD = os.path.join(WD, 'Datafiles', 'ani_depthplot')
+        
+    def tearDown(self):
+        filelist = ['magic_measurements.txt', 'my_magic_measurements.txt', 'er_specimens.txt', 'er_samples.txt', 'my_er_samples.txt', 'er_sites.txt', 'rmag_anisotropy.txt', 'my_rmag_anisotropy.txt', 'rmag_results.txt', 'my_rmag_results.txt']
+        pmag.remove_files(filelist, WD)
+
+    def test_aniso_depthplot_with_no_files(self):
+        program_ran, error_message = ipmag.aniso_depthplot()
+        expected_file = os.path.join('.', 'rmag_anisotropy.txt')
+        self.assertFalse(program_ran)
+        self.assertEqual(error_message, "Could not find rmag_anisotropy type file: {}.\nPlease provide a valid file path and try again".format(expected_file))
+
+    def test_aniso_depthplot_with_files(self):
+        main_plot, plot_name = ipmag.aniso_depthplot(dir_path=self.aniso_WD)
+        assert(isinstance(main_plot, matplotlib.figure.Figure))
+        self.assertEqual(plot_name, 'U1361A_ani_depthplot.svg')
+
+    def test_aniso_depthplot_with_age_option(self):
+        main_plot, plot_name = ipmag.aniso_depthplot(age_file='er_ages.txt', dir_path=self.aniso_WD)
+        assert(isinstance(main_plot, matplotlib.figure.Figure))
+        self.assertEqual(plot_name, 'U1361A_ani_depthplot.svg')
+
+    def test_aniso_depthplot_with_options(self):
+        main_plot, plot_name = ipmag.aniso_depthplot(dmin=20, dmax=40, depth_scale='sample_core_depth', fmt='png', dir_path=self.aniso_WD)
+        assert(isinstance(main_plot, matplotlib.figure.Figure))
+        self.assertEqual(plot_name, 'U1361A_ani_depthplot.png')
 
 
 

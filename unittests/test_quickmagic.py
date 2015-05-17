@@ -141,13 +141,6 @@ class TestMenus(unittest.TestCase):
         #WD = os.path.join(os.getcwd(), 'unittests', 'examples', 'my_project')
         self.frame = qm.MagMainFrame(project_WD)
         self.pnl = self.frame.GetChildren()[0]
-        #print dir(self.frame)
-        #print self.frame.MenuBar
-        #print 'dir(self.frame.MenuBar)', dir(self.frame.MenuBar)
-        #print self.frame.MenuBar.Menus
-        #print 'self.frame.MenuBar.MenuCount', self.frame.MenuBar.MenuCount
-        #print self.frame.FindItemInMenuBar.__doc__
-
         
         #wx.lib.inspection.InspectionTool().Show()
 
@@ -165,7 +158,34 @@ class TestMenus(unittest.TestCase):
             self.assertTrue(menu.IsEnabled)
             self.assertIn(menu_name, menu_names)
 
+    def test_click_any_file(self):
+        window = self.does_window_exist('Import', "Import any file into your working directory", 'any file')
+        self.assertTrue(window, 'Import any file window was not created')
 
+    def test_click_Azdip_format(self):
+        window = self.does_window_exist('Import', 'AzDip format', 'azdip_window', submenu='orientation/location/stratigraphic files')
+        self.assertTrue(window, 'Azdip import window was not created')
+
+    def test_click_IODP_sample_format(self):
+        window = self.does_window_exist('Import', 'IODP Sample Summary csv file', 'IODP_samples', submenu='orientation/location/stratigraphic files')
+        self.assertTrue(window, 'IODP samples import window was not created')
+
+    def test_click_Kly4s_format(self):
+        window = self.does_window_exist('Import', 'kly4s format', 'kly4s', 'Anisotropy files')
+        self.assertTrue(window, 'Kly4s import window was not created')
+
+    def test_click_SUFAR_asc_format(self):
+        window = self.does_window_exist('Import', 'Sufar 4.0 ascii format', 'Sufar', 'Anisotropy files')
+        self.assertTrue(window, 'SUFAR 4 ascii window was not created')
+
+    def test_click_agm_file_format(self):
+        window = self.does_window_exist('Import', 'Import single agm file', 'agm_file', 'Hysteresis files')
+        self.assertTrue(window, 'Import agm file window was not created')
+        
+    def test_click_agm_folder_format(self):
+        window = self.does_window_exist('Import', 'Import entire directory', 'agm_directory', 'Hysteresis files')
+        self.assertTrue(window, 'Import agm folder window was not created')
+        
     def test_click_ani_depthplot(self):
         window = self.does_window_exist('Analysis and Plots', "Anisotropy data vs. depth/height/age", 'aniso_depthplot')
         self.assertTrue(window, 'Aniso_depthplot window was not created')
@@ -174,23 +194,32 @@ class TestMenus(unittest.TestCase):
         window = self.does_window_exist('Analysis and Plots', "Remanence data vs. depth/height/age", 'core_depthplot')
         self.assertTrue(window, 'Core_depthplot window was not created')
 
-    def does_window_exist(self, menu_name, menuitem_name, window_name):
+    def does_window_exist(self, menu_name, menuitem_name, window_name, submenu=None):
         item = None
         menus = self.frame.MenuBar.Menus
-        for menu, name in menus:
-            if name == menu_name:
-                #items = menu.MenuItems
-                item_id = menu.FindItem(menuitem_name)
-                item = menu.FindItemById(item_id)
-                break
+        if submenu:
+            for m, name in menus:
+                if name == menu_name:
+                    for m_item in m.MenuItems:
+                        if m_item.Label == submenu:
+                            menu = m_item.SubMenu
+                            break
+        else: # no submenu
+            for m, name in menus:
+                if name == menu_name:
+                    menu = m
+                    break
+        # once you have the correct menu
+        item_id = menu.FindItem(menuitem_name)
+        item = menu.FindItemById(item_id)
+        
         if not item:
-            return None        
-        #print item.GetText()
-        #print item.Label
+            return None
+        # generate command event with the relevant menuitem id
         event = wx.CommandEvent(wx.EVT_MENU.evtType[0], item_id)
-        #print 'event!', event
         self.frame.GetEventHandler().ProcessEvent(event)
         window = None
+        # verify that the appropriate window was created
         for w in self.frame.Children:
             if w.GetName() == window_name:
                 window = w
@@ -238,7 +267,7 @@ class TestCoreDepthplot(unittest.TestCase):
             #print 'finished self.app.Destroy'
         btn = self.core_window.okButton
         event = wx.CommandEvent(wx.wxEVT_COMMAND_BUTTON_CLICKED, btn.GetId())
-        print event
+        #print event
         #wx.CallAfter(do_thing)
         #wx.CallLater(10000, do_thing)
         #btn.GetEventHandler().ProcessEvent(event)
@@ -261,7 +290,7 @@ class TestCoreDepthplot(unittest.TestCase):
         for rb in radio_buttons:
             if rb.Label == 'AF':
                 rb.SetValue(True)
-        self.core_window.bSizer14.text_field.SetValue('20')
+        self.core_window.bSizer14.text_field.SetValue('15')
         plot_frame = self.core_window.on_okButton(None)
         self.assertIsInstance(plot_frame, pmag_menu_dialogs.PlotFrame)
 

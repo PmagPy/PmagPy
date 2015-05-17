@@ -1,0 +1,3 @@
+tab 	er_expeditions
+er_citation_names	er_expedition_name	expedition_leg	expedition_location	expedition_ship	expedition_sponsor	expedition_url
+This study	318	318	Wilkes Land Margin	JOIDES Resolution	IODP	http://publications.iodp.org/proceedings/318/318toc.htm

@@ -1,0 +1,22 @@
+tab 	magic_methods
+magic_method_code
+FS-C-DRILL-IODP
+SP-SS-C
+SO-V
+GM-INT
+GM-POL
+GM-FOSSIL
+LT-AF-Z
+LT-AF-I
+DE-VM
+LT-T-Z
+LP-IRM-3D
+LP-X
+LT-IRM
+LP-IRM
+AE-H
+LP-AN-MS
+SO-NO
+LP-DIR-AF
+DE-BFL
+DE-FM

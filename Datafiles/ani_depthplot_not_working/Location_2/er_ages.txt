@@ -1,0 +1,32 @@
+tab 	er_ages
+age	age_description	age_sigma	er_citation_names	er_expedition_name	er_location_name	er_timescale_citation_names	magic_method_codes	tiepoint_height	tiepoint_height_sigma	tiepoint_name	tiepoint_type
+0.535	1H-1, 2 to 1H-CC ; Depth scale in mbsf.	0.035	This study	318	U1359A	Gradstein et al. 2004 : This study	GM-FOSSIL	0.35	0.33	Actinocyclus ingens LO	Diatom event
+0.6	2H-CC to 3H-CC ; Depth scale in mbsf.		This study	318	U1359A	Gradstein et al. 2004 : This study	GM-FOSSIL	14.43	4.89	Antarctissa cylindrica LO	Radiolarian event
+0.675	1H-CC to 2H-CC ; Depth scale in mbsf.	0.035	This study	318	U1359A	Gradstein et al. 2004 : This study	GM-FOSSIL	5.11	4.44	Thalassiosira elliptipora LO	Diatom event
+0.781	3H-5, 10 to 3H-5, 15 ; Depth scale in mbsf.		This study	318	U1359A	Gradstein et al. 2004 : This study	GM-PMAG-POL	16.23	0.03	C1n (o)	magnetic reversal boundary
+0.8	3H-CC to 4H-CC ; Depth scale in mbsf.		This study	318	U1359A	Gradstein et al. 2004 : This study	GM-FOSSIL	23.94	4.62	Pterocanium charybdenum trilobum LO	Radiolarian event
+0.988	4H-3, 40 to 4H-3, 45 ; Depth scale in mbsf.		This study	318	U1359A	Gradstein et al. 2004 : This study	GM-PMAG-POL	23.03	0.03	C1r.1n (y)	magnetic reversal boundary
+1.072	4H-4, 44 to 4H-4, 61 ; Depth scale in mbsf.		This study	318	U1359A	Gradstein et al. 2004 : This study	GM-PMAG-POL	24.63	0.09	C1r.1n (o)	magnetic reversal boundary
+1.24	3H-CC to 5H-CC ; Depth scale in mbsf.	0.05	This study	318	U1359A	Gradstein et al. 2004 : This study	GM-FOSSIL	24.33	5.01	Fragilariopsis barronii LO	Diatom event
+1.495	3H-CC to 6H-2, 132. 5cm ; Depth scale in mbsf.	0.015	This study	318	U1359A	Gradstein et al. 2004 : This study	GM-FOSSIL	30.37	11.05	Rouxia antarctica LO	Diatom event
+1.9	5H-CC to 6H-CC ; Depth scale in mbsf.		This study	318	U1359A	Gradstein et al. 2004 : This study	GM-FOSSIL	38.54	9.2	Eucyrtidium calvertense LO	Radiolarian event
+2.148	6H-1, 140 to 6H-2, 10 ; Depth scale in mbsf.	0.11	This study	318	U1359A	Gradstein et al. 2004 : This study	GM-PMAG-POL	40.1	0.1	C2r.1n (o)	magnetic reversal boundary
+2.16	4H-CC to 6H-2, 132. 5cm ; Depth scale in mbsf.	0.02	This study	318	U1359A	Gradstein et al. 2004 : This study	GM-FOSSIL	34.99	6.43	Actinocyclus fasciculatus LO	Diatom event
+2.195	5H-CC to 6H-CC ; Depth scale in mbsf.		This study	318	U1359A	Gradstein et al. 2004 : This study	GM-FOSSIL	38.54	9.2	Fragilariopsis kerguelensis LO	Diatom event
+2.3	5H-CC to 6H-CC ; Depth scale in mbsf.		This study	318	U1359A	Gradstein et al. 2004 : This study	GM-FOSSIL	38.54	9.2	Helotholus veme LO	Radiolarian event
+2.3	5H-CC to 6H-CC ; Depth scale in mbsf.	0.025	This study	318	U1359A	Gradstein et al. 2004 : This study	GM-FOSSIL	38.54	9.2	Desmospyris spongiosa LO	Radiolarian event
+2.581	6H-4, 95 to 6H-5, 100 ; Depth scale in mbsf.		This study	318	U1359A	Gradstein et al. 2004 : This study	GM-PMAG-POL	44.38	0.33	C2An.1n (y)	magnetic reversal boundary
+2.6	5H-CC to 6H-CC ; Depth scale in mbsf.	0.07	This study	318	U1359A	Gradstein et al. 2004 : This study	GM-FOSSIL	38.54	9.2	Cycladophora davisiana FO	Radiolarian event
+2.581	6H-4, 95 to 6H-5, 100 ; Depth scale in mbsf.		This study	318	U1359A	Gradstein et al. 2004 : This study	GM-PMAG-POL	44.38	0.33	C2An.1r (y)	magnetic reversal boundary
+3.207	8H-5, 50 to 8H-5, 135 ; Depth scale in mbsf.	0.03	This study	318	U1359A	Gradstein et al. 2004 : This study	GM-PMAG-POL	64.53	0.43	C2An.2n (o)	magnetic reversal boundary
+3.33	9H-2, 25 to 9H-2, 30 ; Depth scale in mbsf.	0.11	This study	318	U1359A	Gradstein et al. 2004 : This study	GM-PMAG-POL	68.88	0.03	C2An.3n (y)	magnetic reversal boundary
+3.596	9H-2, 115 to 9H-2, 120 ; Depth scale in mbsf.		This study	318	U1359A	Gradstein et al. 2004 : This study	GM-PMAG-POL	69.78	0.02	C2An.3n (o)	magnetic reversal boundary
+4.2	8H-CC to 12H-CC ; Depth scale in mbsf.		This study	318	U1359A	Gradstein et al. 2004 : This study	GM-FOSSIL	85.75	19.15	Helotholus veme FO	Radiolarian event
+4.2	8H-CC to 12H-CC ; Depth scale in mbsf.	0.12	This study	318	U1359A	Gradstein et al. 2004 : This study	GM-FOSSIL	85.75	19.15	Eucyrtidium pseudoninflatum LO	Radiolarian event
+4.4	13H-3, 90 to 13H-5, 30 ; Depth scale in mbsf.	0.045	This study	318	U1359A	Gradstein et al. 2004 : This study	GM-FOSSIL	110.2	1.2	Fragilariopsis barronii FO	Diatom event
+4.555	16H-CC to 17H-CC ; Depth scale in mbsf.	0.035	This study	318	U1359A	Gradstein et al. 2004 : This study	GM-FOSSIL	140.62	4.82	Fragilariopsis clementia LO	Diatom event
+4.675	17H-CC to 18H-CC ; Depth scale in mbsf.		This study	318	U1359A	Gradstein et al. 2004 : This study	GM-FOSSIL	149.7	4.27	Thalassiosira complicata FO	Diatom event
+4.74	19X-CC to 21X-CC ; Depth scale in mbsf.	0.075	This study	318	U1359A	Gradstein et al. 2004 : This study	GM-FOSSIL	171.98	10.1	Thalassiosira inura FO	Diatom event
+4.875	21X-CC to 22X-CC ; Depth scale in mbsf.		This study	318	U1359A	Gradstein et al. 2004 : This study	GM-FOSSIL	186.17	4.1	Shionodiscus oestrupii FO	Diatom event
+5	12H-CC to 12H-CC ; Depth scale in mbsf.		This study	318	U1359A	Gradstein et al. 2004 : This study	GM-FOSSIL	104.89	0	TC Lychnocanium grande LCO	Radiolarian event
+9.1	22X-CC to 22X-CC ; Depth scale in mbsf.		This study	318	U1359A	Gradstein et al. 2004 : This study	GM-FOSSIL	190.26	0	Cycladophora spongothrax LO	Radiolarian event

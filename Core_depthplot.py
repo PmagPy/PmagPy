@@ -136,8 +136,8 @@ def main():
         method, step = 'LT-NO', 0
     
     # list of varnames
-    ['f', 'fsum', 'fwig', 'fsa', 'fa', 'fsp', 'fres', 'fmt',  'LP', 'n', 'd', 'ts', 'WD', 'L', 'S', 'D', 'I', 'M', 'log', 'ds', 'sym' ]
-    meas_file, sum_file, wig_file, samp_file, age_file, spc_file, res_file, fmt, meth, norm, depth, timescale, dir_path, pltLine, pltSus, pltDec, pltInc, pltMag, logit, depth_scale, symbol
+    #['f', 'fsum', 'fwig', 'fsa', 'fa', 'fsp', 'fres', 'fmt',  'LP', 'n', 'd', 'ts', 'WD', 'L', 'S', 'D', 'I', 'M', 'log', 'ds', 'sym' ]
+    #meas_file, sum_file, wig_file, samp_file, age_file, spc_file, res_file, fmt, meth, norm, depth, timescale, dir_path, pltLine, pltSus, pltDec, pltInc, pltMag, logit, depth_scale, symbol
 
     fig, figname = ipmag.core_depthplot(dir_path, meas_file, spc_file, samp_file, age_file, sum_file, wt_file, depth_scale, dmin, dmax, sym, size, spc_sym, spc_size, method, step, fmt, pltDec, pltInc, pltMag, pltLine, pltSus, logit, pltTime, timescale, amin, amax, norm)
 

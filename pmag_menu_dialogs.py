@@ -20,7 +20,7 @@ class ImportAzDipFile(wx.Frame):
     title = "Import AzDip format file"
     
     def __init__(self, parent, WD):
-        wx.Frame.__init__(self, parent, wx.ID_ANY, self.title)
+        wx.Frame.__init__(self, parent, wx.ID_ANY, self.title, name='azdip_window')
         self.panel = wx.ScrolledWindow(self)
         self.WD = WD
         self.InitUI()
@@ -132,7 +132,7 @@ class MoveFileIntoWD(wx.Frame):
     title = "Import any file into your working directory"
     
     def __init__(self, parent, WD):
-        wx.Frame.__init__(self, parent, wx.ID_ANY, self.title)
+        wx.Frame.__init__(self, parent, wx.ID_ANY, self.title, name='any file')
         self.panel = wx.ScrolledWindow(self)
         self.WD = WD
         self.InitUI()
@@ -187,12 +187,12 @@ class MoveFileIntoWD(wx.Frame):
         dlg.Destroy()
 
 
-class ImportODPSampleSummary(wx.Frame):
+class ImportIODPSampleSummary(wx.Frame):
 
     title = "Import IODP Sample Summary csv file"
     
     def __init__(self, parent, WD):
-        wx.Frame.__init__(self, parent, wx.ID_ANY, self.title)
+        wx.Frame.__init__(self, parent, wx.ID_ANY, self.title, name='IODP_samples')
         self.panel = wx.ScrolledWindow(self)
         self.WD = WD
         self.InitUI()
@@ -315,7 +315,7 @@ class ImportKly4s(wx.Frame):
     title = "kly4s format"
     
     def __init__(self, parent, WD):
-        wx.Frame.__init__(self, parent, wx.ID_ANY, self.title)
+        wx.Frame.__init__(self, parent, wx.ID_ANY, self.title, name='kly4s')
         self.panel = wx.ScrolledWindow(self)
         self.WD = WD
         self.InitUI()
@@ -432,7 +432,7 @@ class ImportKly4s(wx.Frame):
         self.Parent.Raise()
 
     def on_helpButton(self, event):
-        pw.on_helpButton("kly4s_magic.py -h")
+        pw.on_helpButton(text=ipmag.kly4s_magic.__doc__)
 
 
 class ImportK15(wx.Frame):
@@ -465,7 +465,7 @@ class ImportK15(wx.Frame):
         self.bSizer3 = pw.labeled_text_field(pnl, label="Location name:")
 
         #---sizer 4 ---
-        self.bSizer4 = pw.labeled_text_field(pnl, label="Instrument name (optional):")
+        #self.bSizer4 = pw.labeled_text_field(pnl, label="Instrument name (optional):")
 
         #---buttons ---
         hboxok = pw.btn_panel(self, pnl)
@@ -473,7 +473,7 @@ class ImportK15(wx.Frame):
         vbox = wx.BoxSizer(wx.VERTICAL)
         hbox = wx.BoxSizer(wx.HORIZONTAL)
         hbox.Add(self.bSizer3, flag=wx.ALIGN_LEFT|wx.LEFT, border=5)
-        hbox.Add(self.bSizer4, flag=wx.ALIGN_LEFT)
+        #hbox.Add(self.bSizer4, flag=wx.ALIGN_LEFT)
         vbox.Add(bSizer_info, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(self.bSizer0, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(self.bSizer1, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
@@ -503,26 +503,32 @@ class ImportK15(wx.Frame):
         outfile = infile + ".magic"
         samp_outfile = infile[:infile.find('.')] + "_er_samples.txt"
         WD = self.WD
-        spc = self.bSizer1.return_value()
+        specnum = self.bSizer1.return_value()
         ncn = self.bSizer2.return_value()
         loc = self.bSizer3.return_value()
         if loc:
+            location = loc
             loc = "-loc " + loc
-        ins = self.bSizer4.return_value()
-        if ins:
-            ins = "-ins " + ins
+        else:
+            location = "unknown"
         aniso_outfile = infile + '_rmag_anisotropy.txt'
         aniso_results_file = infile + '_rmag_results.txt'
-        COMMAND = "k15_magic.py -WD {} -f {} -F {} -ncn {} -spc {} {} {} -ID {} -Fsa {} -Fa {} -Fr {}".format(WD, infile, outfile, ncn, spc, loc, ins, ID, samp_outfile, aniso_outfile, aniso_results_file)
+        COMMAND = "k15_magic.py -WD {} -f {} -F {} -ncn {} -spc {} {} -ID {} -Fsa {} -Fa {} -Fr {}".format(WD, infile, outfile, ncn, specnum, loc, ID, samp_outfile, aniso_outfile, aniso_results_file)
+        program_ran, error_message = ipmag.k15_magic(infile, specnum, ncn, location, outfile, samp_outfile, aniso_outfile, aniso_results_file, ID, WD)
+        print COMMAND
+        if program_ran:
+            pw.close_window(self, COMMAND, outfile)
+        else:
+            pw.simple_warning(error_message)
         #print COMMAND
-        pw.run_command_and_close_window(self, COMMAND, outfile)
+        #pw.run_command_and_close_window(self, COMMAND, outfile)
 
     def on_cancelButton(self,event):
         self.Destroy()
         self.Parent.Raise()
 
     def on_helpButton(self, event):
-        pw.on_helpButton("k15_magic.py -h")
+        pw.on_helpButton(text=ipmag.k15_magic.__doc__)
 
 
 class ImportSufarAscii(wx.Frame):
@@ -530,7 +536,7 @@ class ImportSufarAscii(wx.Frame):
     title = "Import Sufar Ascii format file"
     
     def __init__(self, parent, WD):
-        wx.Frame.__init__(self, parent, wx.ID_ANY, self.title)
+        wx.Frame.__init__(self, parent, wx.ID_ANY, self.title, name='Sufar')
         self.panel = wx.ScrolledWindow(self)
         self.WD = WD
         self.InitUI()
@@ -606,41 +612,51 @@ class ImportSufarAscii(wx.Frame):
         WD = self.WD
         full_infile = self.bSizer0.return_value()
         ID, infile = os.path.split(full_infile)
-        outfile = infile + ".magic"
+        meas_outfile = infile[:infile.find('.')] + ".magic"
+        aniso_outfile = infile[:infile.find('.')] + "_rmag_anisotropy.txt"
         spec_outfile = infile[:infile.find('.')] + "_er_specimens.txt"
         samp_outfile = infile[:infile.find('.')] + "_er_samples.txt"
         site_outfile = infile[:infile.find('.')] + "_er_sites.txt"
         usr = self.bSizer1.return_value()
         if usr:
+            user = usr
             usr = "-usr " + usr
-        spc = self.bSizer2.return_value()
+        else:
+            user = ""
+
+        specnum = self.bSizer2.return_value()
         ncn = self.bSizer3.return_value()
         loc = self.bSizer4.return_value()
         if loc:
+            location = loc
             loc = "-loc " + loc
+        else:
+            location = "unknown"
         ins = self.bSizer5.return_value()
         if ins:
             ins = "-ins " + ins
         k15 = self.bSizer6.return_value()
         if k15:
             k15 = ""
+            static_15_position_mode = False
         else:
             k15 = "-k15"
-        COMMAND = "SUFAR4-asc_magic.py -WD {} -f {} -F {} {} -spc {} -ncn {} {} {} {} -ID {}".format(WD, infile, outfile, usr, spc, ncn, loc, ins, k15, ID)
-        pw.run_command_and_close_window(self, COMMAND, outfile)
-        print "Renaming er_specimens.txt file: {}".format(spec_outfile)
-        os.rename('er_specimens.txt', spec_outfile)
-        print "Renaming er_samples.txt file: {}".format(samp_outfile)
-        os.rename('er_samples.txt', samp_outfile)
-        print "Renaming er_sites.txt file: {}".format(site_outfile)
-        os.rename('er_sites.txt', site_outfile)
+            static_15_position_mode = True
+        spec_infile = None
+        instrument = ""
+        COMMAND = "SUFAR4-asc_magic.py -WD {} -f {} -F {} {} -spc {} -ncn {} {} {} {} -ID {}".format(WD, infile, meas_outfile, usr, specnum, ncn, loc, ins, k15, ID)
+        program_ran, error_message = ipmag.SUFAR4_magic(infile, meas_outfile, aniso_outfile, spec_infile, spec_outfile, samp_outfile, site_outfile, specnum, ncn, user, location, instrument, static_15_position_mode, WD, ID)
+        if program_ran:
+            pw.close_window(self, COMMAND, meas_outfile)
+        else:
+            pw.simple_warning(error_message)
 
     def on_cancelButton(self,event):
         self.Destroy()
         self.Parent.Raise()
 
     def on_helpButton(self, event):
-        pw.on_helpButton("SUFAR4-asc_magic.py -h")
+        pw.on_helpButton(text=ipmag.SUFAR4_magic.__doc__)
 
 
 
@@ -649,7 +665,7 @@ class ImportAgmFile(wx.Frame):
     title = "Import single .agm file"
     
     def __init__(self, parent, WD):
-        wx.Frame.__init__(self, parent, wx.ID_ANY, self.title)
+        wx.Frame.__init__(self, parent, wx.ID_ANY, self.title, name='agm_file')
         self.panel = wx.ScrolledWindow(self)
         self.WD = WD
         self.InitUI()
@@ -725,12 +741,14 @@ class ImportAgmFile(wx.Frame):
         ID, infile = os.path.split(full_infile)
         outfile = infile + ".magic"
         spec_outfile = infile[:infile.find('.')] + "_er_specimens.txt"
-        user = self.bSizer1.return_value()
-        if user:
-            user = "-usr " + user
+        usr = self.bSizer1.return_value()
+        user = usr
+        if usr:
+            usr = "-usr " + usr
         spc = self.bSizer2.return_value()
         ncn = self.bSizer3.return_value()
         loc = self.bSizer4.return_value()
+        location = loc
         if loc:
             loc = "-loc " + loc
         ins = self.bSizer5.return_value()
@@ -742,26 +760,34 @@ class ImportAgmFile(wx.Frame):
         else:
             units = 'SI'
         bak = ''
+        backfield_curve = False
         if self.bSizer7.return_value():
             bak = "-bak"
-        COMMAND = "agm_magic.py -WD {} -ID {} -f {} -F {} -Fsp {} {} -spc {} -ncn {} {} {} -u {} {}".format(WD, ID, infile, outfile, spec_outfile, user, spc, ncn, loc, ins, units, bak)
-        pw.run_command_and_close_window(self, COMMAND, outfile)
+            backfield_curve = True
+
+        COMMAND = "agm_magic.py -WD {} -ID {} -f {} -F {} -Fsp {} {} -spc {} -ncn {} {} {} -u {} {}".format(WD, ID, infile, outfile, spec_outfile, usr, spc, ncn, loc, ins, units, bak)
+        samp_infile = None
+        program_ran, error_message = ipmag.agm_magic(infile, samp_infile, outfile, spec_outfile, user, ID, WD, backfield_curve, spc, ncn, location, units)
+        if program_ran:
+            pw.close_window(self, COMMAND, outfile)
+        else:
+            pw.simple_warning(error_message)
+        #pw.run_command_and_close_window(self, COMMAND, outfile)
 
     def on_cancelButton(self,event):
         self.Destroy()
         self.Parent.Raise()
 
     def on_helpButton(self, event):
-        pw.on_helpButton("agm_magic.py -h")
+        pw.on_helpButton(text=ipmag.agm_mgaic.__doc__)
 
-
-
+                         
 class ImportAgmFolder(wx.Frame):
 
     title = "Import folder of Micromag agm files"
     
     def __init__(self, parent, WD):
-        wx.Frame.__init__(self, parent, wx.ID_ANY, self.title)
+        wx.Frame.__init__(self, parent, wx.ID_ANY, self.title, name='agm_directory')
         self.panel = wx.ScrolledWindow(self)
         self.WD = WD
         self.InitUI()
@@ -1759,6 +1785,7 @@ class Ani_depthplot(wx.Frame):
             age_file = self.bSizer2.return_value()
         fmt = self.bSizer3.return_value()
         depth_scale = self.bSizer4.return_value()
+        print 'age_file', age_file
         if age_file:
             depth_scale='age'
         elif depth_scale:
@@ -1768,9 +1795,11 @@ class Ani_depthplot(wx.Frame):
         dmin = self.bSizer5.return_value() or -1
         dmax = self.bSizer6.return_value() or -1
 
+        sum_file = None
+
         # for use as module:
         import ipmag
-        fig, figname = ipmag.make_aniso_depthplot(ani_file, meas_file, samp_file, age_file, fmt, float(dmin), float(dmax), depth_scale)
+        fig, figname = ipmag.aniso_depthplot(ani_file, meas_file, samp_file, age_file, sum_file, fmt, float(dmin), float(dmax), depth_scale)
         if fig:
             self.Destroy() 
             dpi = fig.get_dpi()
@@ -1780,27 +1809,6 @@ class Ani_depthplot(wx.Frame):
         else:
             pw.simple_warning("No data points met your criteria - try again\nError message: {}".format(figname))
 
-        ## for use as command_line:
-        #ani_file = "-f " + os.path.basename(ani_file)
-        #meas_file = "-fb " + os.path.basename(meas_file)
-        #if use_sampfile:
-        #    samp_file = "-fsa " + os.path.basename(samp_file)
-        #    age_file = ''
-        #else:
-        #    age_file = "-fa " + os.path.basename(age_file)
-        #    samp_file = ''
-        #if dmin and dmax:
-        #    depth = "-d " + dmin + " " + dmax
-        #else:
-        #    depth = ''
-        #depth_scale = "-ds " + depth_scale
-        #fmt = "-fmt " + fmt
-        #WD = "-WD " + self.WD
-
-        #COMMAND = "ANI_depthplot.py {} {} {} {} {} {} {} {} -sav".format(WD, ani_file, meas_file, samp_file, age_file, depth, depth_scale, fmt)
-        #print COMMAND
-        ##pw.run_command_and_close_window(self, COMMAND, "er_samples.txt")
-        #pw.run_command(self, COMMAND, "??")
 
     def on_cancelButton(self,event):
         self.Destroy()

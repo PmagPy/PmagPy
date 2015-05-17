@@ -120,7 +120,7 @@ class MagICMenu(wx.MenuBar):
         #orient3 = pmag_menu_dialogs.ImportODPCoreSummary(self.parent, self.parent.WD)
 
     def orient_import4(self, event):
-        orient4 = pmag_menu_dialogs.ImportODPSampleSummary(self.parent, self.parent.WD)
+        orient4 = pmag_menu_dialogs.ImportIODPSampleSummary(self.parent, self.parent.WD)
 
     #def orient_import5(self, event):
     #    orient5 = pmag_menu_dialogs.ImportModelLatitude(self.parent, self.parent.WD)

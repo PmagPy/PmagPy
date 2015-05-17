@@ -11,8 +11,6 @@ Essentials_Problem_Datafiles
 .#*
 *.log
 
-rmag_anisotropy.txt
-rmag_results.txt
 consistency_test/pmag_fixed_criteria.txt
 all_errors_list.txt
 bootstrap_full_output.txt

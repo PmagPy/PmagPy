@@ -40,13 +40,6 @@ class MagMainFrame(wx.Frame):
         self.Bind(wx.EVT_CLOSE, self.on_menu_exit)
         self.Data, self.Data_hierarchy = {}, {}
         
-        #print check_updates.get_pmag_dir()
-        # print statments below don't work on windows
-        #print os.environ['_system_name']#'OSX'
-        #print os.environ['_system_version']#'10.9'
-        #print os.environ['_system_type']#'Darwin'
-        #print "sys.platform", sys.platform # 'darwin'
-
 
     def InitUI(self):
 

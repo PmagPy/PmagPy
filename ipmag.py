@@ -864,10 +864,221 @@ def combine_magic(filenames, outfile):
     print "All records stored in ",outfile
     return True
 
-def make_aniso_depthplot(ani_file, meas_file, samp_file, age_file=None, fmt='svg', dmin=-1, dmax=-1, depth_scale='sample_composite_depth'):
+def aniso_depthplot(ani_file='rmag_anisotropy.txt', meas_file='magic_measurements.txt', samp_file='er_samples.txt', age_file=None, sum_file=None, fmt='svg', dmin=-1, dmax=-1, depth_scale='sample_composite_depth', dir_path = '.'):
     
     """
     returns matplotlib figure with anisotropy data plotted against depth
+    available depth scales: 'sample_composite_depth', 'sample_core_depth', or 'age' (you must provide an age file to use this option)
+    
+    """
+    pcol=4
+    tint=9
+    plots = 0
+
+    # format files to use full path
+    ani_file = os.path.join(dir_path, ani_file)
+    if not os.path.isfile(ani_file):
+        return False, "Could not find rmag_anisotropy type file: {}.\nPlease provide a valid file path and try again".format(ani_file)
+    meas_file = os.path.join(dir_path, meas_file)
+
+    if age_file:
+        if not os.path.isfile(age_file):
+            print 'Warning: you have provided an invalid age file.  Attempting to use sample file instead'
+            age_file = None
+            depth_scale = 'sample_core_depth'
+            samp_file = os.path.join(dir_path, samp_file)
+        else:
+            samp_file = os.path.join(dir_path, age_file)
+            depth_scale='age'
+            print 'Warning: you have provided an er_ages format file, which will take precedence over er_samples'
+    else:
+        samp_file = os.path.join(dir_path, samp_file)
+
+    label=1
+
+    if sum_file:
+        sum_file = os.path.join(dir_path, sum_file)
+
+    dmin, dmax = float(dmin), float(dmax)
+
+    # get data read in
+    isbulk=0 # tests if there are bulk susceptibility measurements
+    AniData,file_type=pmag.magic_read(ani_file)  # read in tensor elements
+    if not age_file:
+        Samps,file_type=pmag.magic_read(samp_file)  # read in sample depth info from er_sample.txt format file
+    else:
+        Samps,file_type=pmag.magic_read(samp_file)  # read in sample age info from er_ages.txt format file
+        age_unit=Samps[0]['age_unit']
+    for s in Samps:s['er_sample_name']=s['er_sample_name'].upper() # change to upper case for every sample name
+    Meas,file_type=pmag.magic_read(meas_file) 
+    if file_type=='magic_measurements':isbulk=1
+    Data=[]
+    Bulks=[]
+    BulkDepths=[]
+    for rec in AniData:
+        samprecs=pmag.get_dictitem(Samps,'er_sample_name',rec['er_sample_name'].upper(),'T') # look for depth record for this sample
+        sampdepths=pmag.get_dictitem(samprecs,depth_scale,'','F') # see if there are non-blank depth data
+        if dmax!=-1:
+            sampdepths=pmag.get_dictitem(sampdepths,depth_scale,dmax,'max') # fishes out records within depth bounds
+            sampdepths=pmag.get_dictitem(sampdepths,depth_scale,dmin,'min')
+        if len(sampdepths)>0: # if there are any....
+            rec['core_depth'] = sampdepths[0][depth_scale] # set the core depth of this record
+            Data.append(rec) # fish out data with core_depth
+            if isbulk:  # if there are bulk data
+                chis=pmag.get_dictitem(Meas,'er_specimen_name',rec['er_specimen_name'],'T')
+                chis=pmag.get_dictitem(chis,'measurement_chi_volume','','F') # get the non-zero values for this specimen
+                if len(chis)>0: # if there are any....
+                    Bulks.append(1e6*float(chis[0]['measurement_chi_volume'])) # put in microSI
+                    BulkDepths.append(float(sampdepths[0][depth_scale]))
+    if len(Bulks)>0: # set min and max bulk values
+        bmin=min(Bulks)
+        bmax=max(Bulks)
+    xlab="Depth (m)"
+    if len(Data)>0:
+        location=Data[0]['er_location_name']
+    else:
+        return False, 'no data to plot'
+
+    # collect the data for plotting tau  V3_inc and V1_dec
+    Depths,Tau1,Tau2,Tau3,V3Incs,P,V1Decs=[],[],[],[],[],[],[]
+    F23s=[]
+    Axs=[] # collect the plot ids
+# START HERE
+    if len(Bulks)>0: pcol+=1
+    s1=pmag.get_dictkey(Data,'anisotropy_s1','f') # get all the s1 values from Data as floats
+    s2=pmag.get_dictkey(Data,'anisotropy_s2','f')
+    s3=pmag.get_dictkey(Data,'anisotropy_s3','f')
+    s4=pmag.get_dictkey(Data,'anisotropy_s4','f')
+    s5=pmag.get_dictkey(Data,'anisotropy_s5','f')
+    s6=pmag.get_dictkey(Data,'anisotropy_s6','f')
+    nmeas=pmag.get_dictkey(Data,'anisotropy_n','int')
+    sigma=pmag.get_dictkey(Data,'anisotropy_sigma','f')
+    Depths=pmag.get_dictkey(Data,'core_depth','f')
+    #Ss=np.array([s1,s4,s5,s4,s2,s6,s5,s6,s3]).transpose() # make an array
+    Ss=np.array([s1,s2,s3,s4,s5,s6]).transpose() # make an array
+    #Ts=np.reshape(Ss,(len(Ss),3,-1)) # and re-shape to be n-length array of 3x3 sub-arrays
+    for k in range(len(Depths)):
+        #tau,Evecs= pmag.tauV(Ts[k]) # get the sorted eigenvalues and eigenvectors
+        #v3=pmag.cart2dir(Evecs[2])[1] # convert to inclination of the minimum eigenvector
+        fpars=pmag.dohext(nmeas[k]-6,sigma[k],Ss[k])
+	V3Incs.append(fpars['v3_inc'])
+	V1Decs.append(fpars['v1_dec'])
+        Tau1.append(fpars['t1'])
+        Tau2.append(fpars['t2'])
+        Tau3.append(fpars['t3'])
+        P.append(Tau1[-1]/Tau3[-1])
+        F23s.append(fpars['F23'])
+    if len(Depths)>0:
+        if dmax==-1:
+            dmax=max(Depths)
+            dmin=min(Depths)
+        tau_min=1
+        for t in Tau3:
+            if t>0 and t<tau_min:tau_min=t
+        tau_max=max(Tau1)
+        #tau_min=min(Tau3)
+        P_max=max(P)
+        P_min=min(P)
+        #dmax=dmax+.05*dmax
+        #dmin=dmin-.05*dmax
+
+        main_plot = pyplot.figure(1,figsize=(10,8)) # make the figure
+        
+        version_num=pmag.get_version()
+        pyplot.figtext(.02,.01,version_num) # attach the pmagpy version number
+        ax=pyplot.subplot(1,pcol,1) # make the first column
+        Axs.append(ax)
+        ax.plot(Tau1,Depths,'rs') 
+        ax.plot(Tau2,Depths,'b^') 
+        ax.plot(Tau3,Depths,'ko')
+        if sum_file:
+            for core in Cores:
+                 depth=float(core[core_depth_key])
+                 if depth>dmin and depth<dmax:
+                    pyplot.plot([0,90],[depth,depth],'b--')
+        ax.axis([tau_min,tau_max,dmax,dmin])
+        ax.set_xlabel('Eigenvalues')
+        if depth_scale=='sample_core_depth':
+            ax.set_ylabel('Depth (mbsf)')
+        elif depth_scale=='age':
+            ax.set_ylabel('Age ('+age_unit+')')
+        else:
+            ax.set_ylabel('Depth (mcd)')
+        ax2=pyplot.subplot(1,pcol,2) # make the second column
+        ax2.plot(P,Depths,'rs') 
+        ax2.axis([P_min,P_max,dmax,dmin])
+        ax2.set_xlabel('P')
+        ax2.set_title(location)
+        if sum_file:
+            for core in Cores:
+                 depth=float(core[core_depth_key])
+                 if depth>dmin and depth<dmax:
+                    pyplot.plot([0,90],[depth,depth],'b--')
+        Axs.append(ax2)
+        ax3=pyplot.subplot(1,pcol,3)
+        Axs.append(ax3)
+        ax3.plot(V3Incs,Depths,'ko') 
+        ax3.axis([0,90,dmax,dmin])
+        ax3.set_xlabel('V3 Inclination')
+        if sum_file:
+            for core in Cores:
+                 depth=float(core[core_depth_key])
+                 if depth>dmin and depth<dmax:
+                    pyplot.plot([0,90],[depth,depth],'b--')
+        ax4=pyplot.subplot(1,np.abs(pcol),4)
+        Axs.append(ax4)
+        ax4.plot(V1Decs,Depths,'rs') 
+        ax4.axis([0,360,dmax,dmin])
+        ax4.set_xlabel('V1 Declination')
+        if sum_file:
+            for core in Cores:
+                 depth=float(core[core_depth_key])
+                 if depth>=dmin and depth<=dmax:
+                    pyplot.plot([0,360],[depth,depth],'b--')
+                    if pcol==4 and label==1:pyplot.text(360,depth+tint,core[core_label_key])
+        #ax5=pyplot.subplot(1,np.abs(pcol),5)
+        #Axs.append(ax5)
+        #ax5.plot(F23s,Depths,'rs') 
+        #bounds=ax5.axis() 
+        #ax5.axis([bounds[0],bounds[1],dmax,dmin])
+        #ax5.set_xlabel('F_23')
+        #ax5.semilogx()
+        #if sum_file:
+        #    for core in Cores:
+        #         depth=float(core[core_depth_key])
+        #         if depth>=dmin and depth<=dmax:
+        #            pyplot.plot([bounds[0],bounds[1]],[depth,depth],'b--')
+        #            if pcol==5 and label==1:pyplot.text(bounds[1],depth+tint,core[core_label_key])
+        #if pcol==6:
+        if pcol==5:
+            #ax6=pyplot.subplot(1,pcol,6)
+            ax6=pyplot.subplot(1,pcol,5)
+            Axs.append(ax6)
+            ax6.plot(Bulks,BulkDepths,'bo') 
+            ax6.axis([bmin-1,1.1*bmax,dmax,dmin])
+            ax6.set_xlabel('Bulk Susc. (uSI)')
+            if sum_file:
+                for core in Cores:
+                     depth=float(core[core_depth_key])
+                     if depth>=dmin and depth<=dmax:
+                        pyplot.plot([0,bmax],[depth,depth],'b--')
+                        if label==1:pyplot.text(1.1*bmax,depth+tint,core[core_label_key])
+        for x in Axs:
+            pmagplotlib.delticks(x) # this makes the x-tick labels more reasonable - they were overcrowded using the defaults
+        fig_name = location + '_ani_depthplot.' + fmt
+        return main_plot, fig_name
+    else:
+        return False, "No data to plot"
+
+        
+
+
+
+
+    
+
+
+    
     """
     dmin, dmax = float(dmin), float(dmax)
     pcol=3
@@ -970,7 +1181,9 @@ def make_aniso_depthplot(ani_file, meas_file, samp_file, age_file=None, fmt='svg
             dmax=max(Depths)
             dmin=min(Depths)
         tau_max=max(Tau1)
-        tau_min=min(Tau3)
+        tau_min=1
+        for t in Tau3:
+            if t>0 and t<tau_min:tau_min=t
         P_max=max(P)
         P_min=min(P)
         #dmax=dmax+.05*dmax
@@ -1062,6 +1275,7 @@ def make_aniso_depthplot(ani_file, meas_file, samp_file, age_file=None, fmt='svg
             pmagplotlib.delticks(x) # this makes the x-tick labels more reasonable - they were overcrowded using the defaults
         fig_name = location + '_ani_depthplot.' + fmt
         return main_plot, fig_name
+        """
 
 
 def core_depthplot(dir_path='.', meas_file='magic_measurements.txt', spc_file='', samp_file='', age_file='', sum_file='', wt_file='', depth_scale='sample_core_depth', dmin=-1, dmax=-1, sym='bo',  size=5, spc_sym='ro', spc_size=5, meth='', step=0, fmt='svg',  pltDec=True, pltInc=True, pltMag=True, pltLine=True, pltSus=True, logit=False, pltTime=False, timescale=None, amin=-1, amax=-1, norm=False):
@@ -1075,8 +1289,8 @@ def core_depthplot(dir_path='.', meas_file='magic_measurements.txt', spc_file=''
     #print 'meth', meth, 'step', step, 'fmt', fmt, 'pltDec', pltDec, 'pltInc', pltInc, 'pltMag', pltMag,
     #print 'pltLine', pltLine, 'pltSus', pltSus, 'logit', logit, 'timescale', timescale, 'amin', amin, 'amax', amax
     #print 'pltTime', pltTime
+    #print 'norm', norm
     intlist=['measurement_magnitude','measurement_magn_moment','measurement_magn_volume','measurement_magn_mass']
-    wt_file=''
     width=10
     Ssym,Ssize='cs',5
     pcol=3
@@ -1090,7 +1304,6 @@ def core_depthplot(dir_path='.', meas_file='magic_measurements.txt', spc_file=''
     spc_size = int(spc_size)
 
 
-
     # files not supported for the moment
     ngr_file="" # nothing needed, not implemented fully in original script
     suc_file="" # nothing else needed, also was not implemented in original script
@@ -1098,8 +1311,6 @@ def core_depthplot(dir_path='.', meas_file='magic_measurements.txt', spc_file=''
     wig_file=""#  if wig_file: pcol+=1; width+=2
 
     title,location="",""
-
-
 
     if not pltDec:
         pcol-=1
@@ -1142,8 +1353,8 @@ def core_depthplot(dir_path='.', meas_file='magic_measurements.txt', spc_file=''
     #        print 'error in susceptibility units'
     #        return False, 'error in susceptibility units'
     else:
-       print 'method not supported'
-       return False, 'method not supported'
+       print 'method: {} not supported'.format(meth)
+       return False, 'method: "{}" not supported'.format(meth)
    
     if wt_file:
        norm=True
@@ -1158,12 +1369,15 @@ def core_depthplot(dir_path='.', meas_file='magic_measurements.txt', spc_file=''
         amax=float(amax)
         pcol+=1
         width+=2
-    
+        if not (amax and timescale):
+            return False, "To plot time, you must provide amin, amax, and timescale"
+
     #
     #
     # get data read in
 
     meas_file = os.path.join(dir_path, meas_file)
+    spc_file = os.path.join(dir_path, spc_file)
     if age_file=="":
         samp_file = os.path.join(dir_path, samp_file)
         Samps,file_type=pmag.magic_read(samp_file) 
@@ -1172,16 +1386,21 @@ def core_depthplot(dir_path='.', meas_file='magic_measurements.txt', spc_file=''
         age_file = os.path.join(dir_path, age_file)
         Samps,file_type=pmag.magic_read(age_file)
         age_unit=""
-    if spc_file!="":
+    if spc_file:
         Specs,file_type=pmag.magic_read(spc_file)
-    if res_file!="":
+    if res_file:
         Results,file_type=pmag.magic_read(res_file)
     if norm:
         ErSpecs,file_type=pmag.magic_read(wt_file) 
         print len(ErSpecs), ' specimens read in from ',wt_file
+
+    if not os.path.isfile(spc_file):
+        if not os.path.isfile(meas_file):
+            return False, "You must provide either a magic_measurements file or a pmag_specimens file"
+        
     Cores=[] 
     core_depth_key="Top depth cored CSF (m)"
-    if sum_file!="":
+    if sum_file:
         input=open(sum_file,'rU').readlines()
         if "Core Summary" in input[0]:
             headline=1
@@ -1205,12 +1424,18 @@ def core_depthplot(dir_path='.', meas_file='magic_measurements.txt', spc_file=''
             print 'no Core depth information available: import core summary file'
             sum_file=""
     Data=[]
-    if depth_scale=='sample_core_depth':
+    if depth_scale=='sample_core_depth' or depth_scale == 'mbsf':
         ylab="Depth (mbsf)"
+        depth_scale='sample_core_depth'
     elif depth_scale=='age':
         ylab="Age"
-    else:
+    elif depth_scale=='sample_composite_depth' or depth_scale=='mcd':
         ylab="Depth (mcd)"
+        depth_scale = 'sample_composite_depth'
+    else:
+        print 'Warning: You have provided unsupported depth scale: {}.\nUsing default (mbsf) instead.'.format(depth_scale)
+        depth_scale = 'sample_core_depth'
+        ylab="Depth (mbsf)"
     # collect the data for plotting declination
     Depths,Decs,Incs,Ints=[],[],[],[]
     SDepths,SDecs,SIncs,SInts=[],[],[],[]
@@ -1284,7 +1509,7 @@ def core_depthplot(dir_path='.', meas_file='magic_measurements.txt', spc_file=''
             print 'no bulk measurement data matched your request'
     SpecDepths,SpecDecs,SpecIncs=[],[],[]
     FDepths,FDecs,FIncs=[],[],[]
-    if spc_file!="": # add depths to spec data
+    if spc_file: # add depths to spec data
         print 'spec file found'
         BFLs=pmag.get_dictitem(Specs,'magic_method_codes','DE-BFL','has')  # get all the discrete data with best fit lines
         for spec in BFLs:
@@ -1317,7 +1542,7 @@ def core_depthplot(dir_path='.', meas_file='magic_measurements.txt', spc_file=''
         res_scale='average_age'
     else:
         res_scale='average_height'
-    if res_file!="": #creates lists of Result Data
+    if res_file: #creates lists of Result Data
         for res in Results:
             meths=res['magic_method_codes'].split(":")
             if 'DE-FM' in meths:
@@ -1328,7 +1553,7 @@ def core_depthplot(dir_path='.', meas_file='magic_measurements.txt', spc_file=''
                 Susc,Sus_depths=[],[]
     if dmin==-1:
         if len(Depths)>0: dmin,dmax=Depths[0],Depths[-1]
-        if len(FDepths)>0: dmin,dmax=Depths[0],Depths[-1]
+        if len(FDepths)>0: dmin,dmax=FDepths[0],FDepths[-1]
         if pltSus and len(SDepths)>0:
             if SDepths[0]<dmin:dmin=SDepths[0]
             if SDepths[-1]>dmax:dmax=SDepths[-1]
@@ -1338,7 +1563,7 @@ def core_depthplot(dir_path='.', meas_file='magic_measurements.txt', spc_file=''
         if len(ResDepths)>0:
             if min(ResDepths)<dmin:dmin=min(ResDepths)
             if max(ResDepths)>dmax:dmax=max(ResDepths)
-    if suc_file!="":
+    if suc_file:
         sucdat=open(suc_file,'rU').readlines()
         keys=sucdat[0].replace('\n','').split(',') # splits on underscores
         for line in sucdat[1:]:
@@ -1350,7 +1575,7 @@ def core_depthplot(dir_path='.', meas_file='magic_measurements.txt', spc_file=''
                 if Susc[-1]<minSuc:minSuc=Susc[-1]
                 Sus_depths.append(float(SucRec['Top Depth (m)']))
     WIG,WIG_depths=[],[]
-    if wig_file!="":
+    if wig_file:
         wigdat,file_type=pmag.magic_read(wig_file)
         swigdat=pmag.sort_diclist(wigdat,depth_scale)
         keys=wigdat[0].keys()
@@ -1380,13 +1605,13 @@ def core_depthplot(dir_path='.', meas_file='magic_measurements.txt', spc_file=''
                 pyplot.plot(SDecs,SDepths,'k')
             if len(SDecs)>0:
                 pyplot.plot(SDecs,SDepths,Ssym,markersize=Ssize) 
-            if spc_file!="":
+            if spc_file:
                 pyplot.plot(SpecDecs,SpecDepths,spc_sym,markersize=spc_size) 
-            if spc_file!="" and len(FDepths)>0:
+            if spc_file and len(FDepths)>0:
                 pyplot.scatter(FDecs,FDepths,marker=spc_sym[-1],edgecolor=spc_sym[0],facecolor='white',s=spc_size**2) 
-            if res_file!="":
+            if res_file:
                 pyplot.plot(ResDecs,ResDepths,res_sym,markersize=res_size) 
-            if sum_file!="":
+            if sum_file:
                 for core in Cores:
                      depth=float(core[core_depth_key]) 
                      if depth>dmin and depth<dmax:
@@ -1400,6 +1625,8 @@ def core_depthplot(dir_path='.', meas_file='magic_measurements.txt', spc_file=''
             pyplot.ylabel(ylab)
             plt+=1 
             pmagplotlib.delticks(ax) # dec xticks are too crowded otherwise
+    else:
+        return False, 'No data found to plot\nTry again with different parameters'
     if pltInc:
             pyplot.subplot(1,pcol,plt)
             if pltLine:
@@ -1409,13 +1636,13 @@ def core_depthplot(dir_path='.', meas_file='magic_measurements.txt', spc_file=''
             if len(Incs)==0 and pltLine and len(SIncs)>0:
                 pyplot.plot(SIncs,SDepths,'k')
             if len(SIncs)>0:pyplot.plot(SIncs,SDepths,Ssym,markersize=Ssize) 
-            if spc_file!="" and len(SpecDepths)>0:
+            if spc_file and len(SpecDepths)>0:
                 pyplot.plot(SpecIncs,SpecDepths,spc_sym,markersize=spc_size) 
-            if spc_file!="" and len(FDepths)>0:
+            if spc_file and len(FDepths)>0:
                 pyplot.scatter(FIncs,FDepths,marker=spc_sym[-1],edgecolor=spc_sym[0],facecolor='white',s=spc_size**2)
-            if res_file!="":
+            if res_file:
                 pyplot.plot(ResIncs,ResDepths,res_sym,markersize=res_size) 
-            if sum_file!="":
+            if sum_file:
                 for core in Cores:
                      depth=float(core[core_depth_key]) 
                      if depth>dmin and depth<dmax:
@@ -1446,7 +1673,7 @@ def core_depthplot(dir_path='.', meas_file='magic_measurements.txt', spc_file=''
                     pyplot.plot(SInts,SDepths,'k-')
                 if len(SInts)>0:
                     pyplot.plot(SInts,SDepths,Ssym,markersize=Ssize) 
-                if sum_file!="":
+                if sum_file:
                     for core in Cores:
                          depth=float(core[core_depth_key]) 
                          pyplot.plot([0,maxInt*10**pow+.1],[depth,depth],'b--')
@@ -1468,7 +1695,7 @@ def core_depthplot(dir_path='.', meas_file='magic_measurements.txt', spc_file=''
                     pyplot.semilogx(SInts,SDepths,'k')
                 if len(SInts)>0:
                     pyplot.semilogx(SInts,SDepths,Ssym,markersize=Ssize) 
-                if sum_file!="":
+                if sum_file:
                     for core in Cores:
                          depth=float(core[core_depth_key]) 
                          pyplot.semilogx([minInt,maxInt],[depth,depth],'b--')
@@ -1479,7 +1706,7 @@ def core_depthplot(dir_path='.', meas_file='magic_measurements.txt', spc_file=''
                 else:
                     pyplot.xlabel('Intensity (Am^2/kg)')
             plt+=1
-    if suc_file!="" or len(SSucs)>0:
+    if suc_file or len(SSucs)>0:
             pyplot.subplot(1,pcol,plt)
             if len(Susc)>0:
                 if pltLine:
@@ -1493,7 +1720,7 @@ def core_depthplot(dir_path='.', meas_file='magic_measurements.txt', spc_file=''
                     pyplot.plot(SSucs,SDepths,sym,markersize=size) 
                 if logit:
                     pyplot.semilogx(SSucs,SDepths,sym,markersize=size) 
-            if sum_file!="":
+            if sum_file:
                 for core in Cores:
                      depth=float(core[core_depth_key]) 
                      if not logit:
@@ -1503,10 +1730,10 @@ def core_depthplot(dir_path='.', meas_file='magic_measurements.txt', spc_file=''
             pyplot.axis([minSuc,maxSuc,dmax,dmin])
             pyplot.xlabel('Susceptibility')
             plt+=1
-    if wig_file!="":
+    if wig_file:
             pyplot.subplot(1,pcol,plt)
             pyplot.plot(WIG,WIG_depths,'k') 
-            if sum_file!="":
+            if sum_file:
                 for core in Cores:
                      depth=float(core[core_depth_key]) 
                      pyplot.plot([WIG[0],WIG[-1]],[depth,depth],'b--')
@@ -1943,7 +2170,8 @@ def specimens_results_magic(infile='pmag_specimens.txt', measfile='magic_measure
     SiteNFO,file_type=pmag.magic_read(sitefile) # read in site data - has the lats and lons
     SampNFO,file_type=pmag.magic_read(sampfile) # read in site data - has the lats and lons
     height_nfo=pmag.get_dictitem(SiteNFO,'site_height','','F') # find all the sites with height info.  
-    if agefile !="":AgeNFO,file_type=pmag.magic_read(agefile) # read in the age information
+    if agefile:
+        AgeNFO,file_type=pmag.magic_read(agefile) # read in the age information
     Data,file_type=pmag.magic_read(infile) # read in specimen interpretations
     IntData=pmag.get_dictitem(Data,'specimen_int','','F') # retrieve specimens with intensity data
     comment,orient="",[]
@@ -2052,7 +2280,8 @@ def specimens_results_magic(infile='pmag_specimens.txt', measfile='magic_measure
 					SampDirs.append(PmagSampRec)
 					if vgps==1: # if sample level VGP info desired, do that now
 					    PmagResRec=pmag.getsampVGP(PmagSampRec,SiteNFO)
-					    if PmagResRec!="":PmagResults.append(PmagResRec)
+					    if PmagResRec!="":
+                                                PmagResults.append(PmagResRec)
                                         PmagSamps.append(PmagSampRec)
 		       if avg_all_components: # average all components together  basically same as above
 			   PmagSampRec=pmag.lnpbykey(CoordDir,'sample','specimen')
@@ -2076,12 +2305,14 @@ def specimens_results_magic(infile='pmag_specimens.txt', measfile='magic_measure
 				   SampDirs.append(PmagSampRec)
 				   if vgps==1:
 				       PmagResRec=pmag.getsampVGP(PmagSampRec,SiteNFO)
-				       if PmagResRec!="":PmagResults.append(PmagResRec)
+				       if PmagResRec!="":
+                                           PmagResults.append(PmagResRec)
 			   else: # take everything
 			       SampDirs.append(PmagSampRec)
 			       if vgps==1:
 				   PmagResRec=pmag.getsampVGP(PmagSampRec,SiteNFO)
-				   if PmagResRec!="":PmagResults.append(PmagResRec)
+				   if PmagResRec!="":
+                                       PmagResults.append(PmagResRec)
 			   PmagSamps.append(PmagSampRec)
 	if avg_intensities_by_sample: #  average by sample if desired
 	   SampI=pmag.get_dictitem(SpecInts,'er_sample_name',samp,'T') # get all the intensity data for this sample
@@ -2327,7 +2558,8 @@ def specimens_results_magic(infile='pmag_specimens.txt', measfile='magic_measure
             kill=pmag.grade(PmagSiteRec,accept,'site_int')
             if nocrit==1 or len(kill)==0:
                 b,sig=float(PmagResRec['average_int']),""
-                if(PmagResRec['average_int_sigma'])!="":sig=float(PmagResRec['average_int_sigma'])
+                if(PmagResRec['average_int_sigma'])!="":
+                    sig=float(PmagResRec['average_int_sigma'])
                 sdir=pmag.get_dictitem(PmagResults,'er_site_names',site,'T') # fish out site direction
                 if len(sdir)>0 and  sdir[-1]['average_inc']!="": # get the VDM for this record using last average inclination (hope it is the right one!)
                         inc=float(sdir[0]['average_inc']) # 
@@ -2485,7 +2717,7 @@ is the percent cooling rate factor to apply to specimens from this sample, DA-CR
     
     orient_file,samp_file= os.path.join(input_dir_path,orient_file), os.path.join(output_dir_path,samp_file)
     site_file = os.path.join(output_dir_path, site_file)
-    image_file= output_dir_path+"/er_images.txt"
+    image_file= os.path.join(output_dir_path, "er_images.txt")
     
     # validate input
     if '4' in samp_con[0]:
@@ -2569,9 +2801,11 @@ is the percent cooling rate factor to apply to specimens from this sample, DA-CR
                 sample_orientation_flag='b'
         methcodes=method_codes  # initialize method codes
         if methcodes:
-            if 'method_codes' in OrRec.keys() and OrRec['method_codes'].strip()!="":methcodes=methcodes+":"+OrRec['method_codes'] # add notes 
+            if 'method_codes' in OrRec.keys() and OrRec['method_codes'].strip()!="":
+                methcodes=methcodes+":"+OrRec['method_codes'] # add notes 
         else:
-            if 'method_codes' in OrRec.keys() and OrRec['method_codes'].strip()!="":methcodes=OrRec['method_codes'] # add notes 
+            if 'method_codes' in OrRec.keys() and OrRec['method_codes'].strip()!="":
+                methcodes=OrRec['method_codes'] # add notes 
         codes=methcodes.replace(" ","").split(":")
         MagRec={}
         MagRec["er_location_name"]=location_name
@@ -2947,7 +3181,6 @@ def azdip_magic(orient_file='orient.txt', samp_file="er_samples.txt", samp_con="
     DEBUG=0
     version_num=pmag.get_version()
     or_con,corr = "3","1"
-    args=sys.argv
     date,lat,lon="","",""  # date of sampling, latitude (pos North), longitude (pos East)
     bed_dip,bed_dip_dir="",""
     participantlist=""
@@ -3072,6 +3305,9 @@ def IODP_samples_magic(samp_file, output_samp_file=None, output_dir_path='.', in
         ODPRec,SampRec={},{}
         interval,core="",""
         rec=line.replace('\n','').split(',')
+        if len(rec)<2:
+            print "Error in csv file, blank columns"
+            break
         for k in range(len(keys)):
             ODPRec[keys[k]]=rec[k].strip('"')
         SampRec['er_sample_alternatives']=ODPRec[text_key]
@@ -3444,6 +3680,55 @@ def kly4s_magic(infile, specnum=0, locname="unknown", inst='SIO-KLY4S', samp_con
 
 
 def k15_magic(k15file, specnum=0, sample_naming_con='1', er_location_name="unknown", measfile='magic_measurements.txt', sampfile="er_samples.txt", aniso_outfile='rmag_anisotropy.txt', result_file="rmag_results.txt", input_dir_path='.', output_dir_path='.'):
+    """
+    def k15_magic(k15file, specnum=0, sample_naming_con='1', er_location_name="unknown", measfile='magic_measurements.txt', sampfile="er_samples.txt", aniso_outfile='rmag_anisotropy.txt', result_file="rmag_results.txt", input_dir_path='.', output_dir_path='.'):
+
+    NAME
+        k15_magic.py
+
+    DESCRIPTION
+        converts .k15 format data to magic_measurements  format.
+        assums Jelinek Kappabridge measurement scheme
+   
+    SYNTAX 
+        k15_magic.py [-h] [command line options]
+    
+    OPTIONS
+        -h prints help message and quits
+        -f KFILE: specify .k15 format input file
+        -F MFILE: specify magic_measurements format output file
+        -Fsa SFILE, specify er_samples format file for output 
+        -Fa AFILE, specify rmag_anisotropy format file for output
+        -Fr RFILE, specify rmag_results format file for output
+        -loc LOC: specify location name for study
+    #-ins INST: specify instrument that measurements were made on # not implemented
+        -spc NUM: specify number of digits for specimen ID, default is 0
+        -ncn NCOM: specify naming convention (default is #1)
+       Sample naming convention:
+            [1] XXXXY: where XXXX is an arbitrary length site designation and Y
+                is the single character sample designation.  e.g., TG001a is the
+                first sample from site TG001.    [default]
+            [2] XXXX-YY: YY sample from site XXXX (XXX, YY of arbitary length)
+            [3] XXXX.YY: YY sample from site XXXX (XXX, YY of arbitary length)
+            [4-Z] XXXXYYY:  YYY is sample designation with Z characters from site XXX
+            [5] sample = site
+            [6] sample, site, location info in er_samples.txt
+            [7] all others you will have to either customize your
+
+    DEFAULTS
+        MFILE: k15_measurements.txt
+        SFILE: er_samples.txt
+        AFILE: rmag_anisotropy.txt
+        RFILE: rmag_results.txt
+        LOC: unknown
+        INST: unknown
+        
+    INPUT
+      name [az,pl,strike,dip], followed by
+      3 rows of 5 measurements for each specimen
+
+    """
+
     #
     # initialize some variables
     #
@@ -3452,7 +3737,7 @@ def k15_magic(k15file, specnum=0, sample_naming_con='1', er_location_name="unkno
     syn=0
     itilt,igeo,linecnt,key=0,0,0,"" 
     first_save=1
-    k15,specnum=[],0 
+    k15 = []
     citation='This study'
 # pick off stuff from command line
     Z=""
@@ -3526,7 +3811,7 @@ def k15_magic(k15file, specnum=0, sample_naming_con='1', er_location_name="unkno
                 SampRec["er_specimen_name"]=rec[0]
                 ResRec["rmag_result_name"]=rec[0]
                 if specnum!=0:
-                    MeasRec["er_sample_name"]=rec[0][:specnum]
+                    MeasRec["er_sample_name"]=rec[0][:-specnum]
                 if specnum==0:
                     MeasRec["er_sample_name"]=rec[0]
                 SampRec["er_sample_name"]=MeasRec["er_sample_name"]
@@ -3554,7 +3839,7 @@ def k15_magic(k15file, specnum=0, sample_naming_con='1', er_location_name="unkno
                     SampRec["sample_azimuth"],SampRec["sample_dip"]=rec[1],rec[2]
                     az,pl,igeo=float(rec[1]),float(rec[2]),1
                 if len(rec)==5: 
-                    SampRec["sample_bed_dip_direction"],SampRec["sample_bed_dip"]= '(%7.1f)'%(90.+float(rec[3])),(rec[4])
+                    SampRec["sample_bed_dip_direction"],SampRec["sample_bed_dip"]= '%7.1f'%(90.+float(rec[3])),(rec[4])
                     bed_az,bed_dip,itilt,igeo=90.+float(rec[3]),float(rec[4]),1,1
             else: 
                 for i in range(5):
@@ -3703,6 +3988,58 @@ def k15_magic(k15file, specnum=0, sample_naming_con='1', er_location_name="unkno
     return True, measfile
 
 def SUFAR4_magic(ascfile, meas_output='magic_measurements.txt', aniso_output='rmag_anisotropy.txt', spec_infile=None, spec_outfile='er_specimens.txt', samp_outfile='er_samples.txt', site_outfile='er_sites.txt', specnum=0, sample_naming_con='1', user="", locname="unknown", instrument='', static_15_position_mode=False, output_dir_path='.', input_dir_path='.'):
+    """
+    NAME
+        sufar4-asc_magic.py
+
+    DESCRIPTION
+        converts ascii files generated by SUFAR ver.4.0 to MagIC formated
+        files for use with PmagPy plotting software
+
+    SYNTAX
+        sufar4-asc_magic.py -h [command line options]
+
+    OPTIONS
+        -h: prints the help message and quits
+        -f FILE: specify .asc input file name
+        -fsi SINFILE: specify er_specimens input file with location, sample, site, etc. information
+        -F MFILE: specify magic_measurements output file
+        -Fa AFILE: specify rmag_anisotropy output file
+        -Fr RFILE: specify rmag_results output file
+        -Fsi SFILE: specify er_specimens output file 
+        -usr USER: specify who made the measurements
+        -loc LOC: specify location name for study 
+        -ins INST: specify instrument used
+        -spc SPEC: specify number of characters to specify specimen from sample
+        -ncn NCON:  specify naming convention: default is #2 below
+        -k15 : specify static 15 position mode - default is spinning
+        -new : replace all existing magic files
+
+    DEFAULTS
+        AFILE: rmag_anisotropy.txt
+        RFILE: rmag_results.txt
+        SFILE: default is to create new er_specimen.txt file
+        USER: ""
+        LOC: "unknown"
+        INST: ""
+        SPEC: 0  sample name is same as site (if SPEC is 1, sample is all but last character)
+        appends to  'er_specimens.txt, er_samples.txt, er_sites.txt' files
+       Sample naming convention:
+            [1] XXXXY: where XXXX is an arbitrary length site designation and Y
+                is the single character sample designation.  e.g., TG001a is the
+                first sample from site TG001.    [default]
+            [2] XXXX-YY: YY sample from site XXXX (XXX, YY of arbitary length)
+            [3] XXXX.YY: YY sample from site XXXX (XXX, YY of arbitary length)
+            [4-Z] XXXX[YYY]:  YYY is sample designation with Z characters from site XXX
+            [5] site name same as sample
+            [6] site is entered under a separate column
+            [7-Z] [XXXX]YYY:  XXXX is site designation with Z characters with sample name XXXXYYYY
+            NB: all others you will have to customize your self
+                 or e-mail ltauxe@ucsd.edu for help.
+            [8] This is a synthetic
+            [9] ODP naming convention
+
+    """
 
     citation='This study'
     cont=0
@@ -3739,10 +4076,11 @@ def SUFAR4_magic(ascfile, meas_output='magic_measurements.txt', aniso_output='rm
     if static_15_position_mode:
         spin=0
 
-    if os.path.isfile(os.path.join(input_dir_path, str(spec_infile))):
-        isspec='1' # means an er_specimens.txt file has been provided with sample, site, location (etc.) info
+    if spec_infile:
+        if os.path.isfile(os.path.join(input_dir_path, str(spec_infile))):
+            isspec='1' # means an er_specimens.txt file has been provided with sample, site, location (etc.) info
                       
-    specnum=-(int(specnum))
+    specnum=int(specnum)
 
     if isspec=="1": 
         specs,file_type=pmag.magic_read(spec_infile)
@@ -3792,7 +4130,7 @@ def SUFAR4_magic(ascfile, meas_output='magic_measurements.txt', aniso_output='rm
                         break
             elif isspec=="0":
                 if specnum!=0:
-                    sampname=specname[:specnum]
+                    sampname=specname[:-specnum]
                 else:
                     sampname=specname
                 AniRec['er_sample_name']=sampname
@@ -3938,10 +4276,201 @@ def SUFAR4_magic(ascfile, meas_output='magic_measurements.txt', aniso_output='rm
     SiteOut,keys=pmag.fillkeys(SiteRecs)
     pmag.magic_write(site_outfile,SiteOut,'er_sites')
     print "site info put in ", site_outfile
-    print """
-         You can now import your data into the Magic Console and complete data entry, 
-         for example the site locations, lithologies, etc. plotting can be done with aniso_magic.py
-    """
     return True, meas_output
+
+def agm_magic(agm_file, samp_infile=None, outfile='agm_measurements.txt', spec_outfile='er_specimens.txt', user="", input_dir_path='.', output_dir_path='.', backfield_curve=False, specnum=0, samp_con='1', er_location_name='unknown', units='cgs', er_specimen_name='', fmt='old', inst='', synthetic=False):
+    """
+    NAME
+        agm_magic.py
+    
+    DESCRIPTION
+        converts Micromag agm files to magic format
+
+    SYNTAX
+        agm_magic.py [-h] [command line options]
+
+    OPTIONS
+        -usr USER:   identify user, default is "" - put in quotation marks!
+        -bak:  this is a IRM backfield curve
+        -f FILE, specify input file, required
+        -fsa SAMPFILE, specify er_samples.txt file relating samples, site and locations names,default is none
+        -F MFILE, specify magic measurements formatted output file, default is agm_measurements.txt
+        -spn SPEC, specimen name, default is base of input file name, e.g. SPECNAME.agm
+        -spc NUM, specify number of characters to designate a  specimen, default = 0
+        -Fsp SPECFILE : name of er_specimens.txt file for appending data to
+             [default: er_specimens.txt]
+        -ncn NCON,: specify naming convention: default is #1 below
+        -syn SYN,  synthetic specimen name
+        -loc LOCNAME : specify location/study name, 
+             should have either LOCNAME or SAMPFILE (unless synthetic)
+        -ins INST : specify which instrument was used (e.g, SIO-Maud), default is ""
+        -u units:  [cgs,SI], default is cgs
+       Sample naming convention:
+            [1] XXXXY: where XXXX is an arbitrary length site designation and Y
+                is the single character sample designation.  e.g., TG001a is the
+                first sample from site TG001.    [default]
+            [2] XXXX-YY: YY sample from site XXXX (XXX, YY of arbitary length)
+            [3] XXXX.YY: YY sample from site XXXX (XXX, YY of arbitary length)
+            [4-Z] XXXX[YYY]:  YYY is sample designation with Z characters from site XXX
+            [5] site name same as sample
+            [6] site is entered under a separate column
+            [7-Z] [XXXX]YYY:  XXXX is site designation with Z characters with sample name XXXXYYYY
+            [8] specimen is a synthetic - it has no sample, site, location information
+            NB: all others you will have to customize your self
+                 or e-mail ltauxe@ucsd.edu for help.
+ 
+    OUTPUT
+        MagIC format files: magic_measurements, er_specimens, er_sample, er_site
+    """
+
+    #return False, 'fake error message'
+    citation='This study'
+    MeasRecs=[] 
+    meth="LP-HYS"
+    version_num=pmag.get_version()
+    er_sample_name,er_site_name,er_location_name="","",""
+    Z = 1
+
+    er_site_name=""
+    if backfield_curve:
+        meth="LP-IRM-DCD"
+        outfile = "irm_measurements.txt"
+    output = os.path.join(output_dir_path, outfile)
+    specfile = os.path.join(output_dir_path, spec_outfile)
+                            
+    # if specimen name is not provided, use the name of the file minus the file extension
+    if not er_specimen_name:
+        er_specimen_name = agm_file.split('.')[0]
+    agm_file= os.path.join(input_dir_path, agm_file)
+    if not os.path.isfile(agm_file):
+        return False,  'You must provide a valid agm file'
+
+    if synthetic:
+        er_synthetic_name = synthetic
+        er_specimen_name = ""
+    else:
+        er_synthetic_name = ''
+
+    if samp_infile:
+        samp_infile = os.path.join(input_dir_path, samp_infile)
+        Samps,file_type=pmag.magic_read(samp_infile)
+        print 'sample_file successfully read in'
+
+
+    # validate some things
+    if "4" in samp_con:
+        if "-" not in samp_con:
+            print "option [4] must be in form 4-Z where Z is an integer"
+            return False, "option [4] must be in form 4-Z where Z is an integer"
+        else:
+            Z=samp_con.split("-")[1]
+            samp_con="4"
+    if "7" in samp_con:
+        if "-" not in samp_con:
+            print "option [7] must be in form 7-Z where Z is an integer"
+            return False, "option [7] must be in form 7-Z where Z is an integer"
+        else:
+            Z=samp_con.split("-")[1]
+            samp_con="7"
+
+    # read in the data
+    ErSpecRecs,filetype=pmag.magic_read(specfile)
+    ErSpecRec,MeasRec={},{}
+    ErSpecRec['er_citation_names']="This study"
+    ErSpecRec['er_specimen_name']=er_specimen_name
+    ErSpecRec['er_synthetic_name']=er_synthetic_name
+    if specnum!=0:
+        ErSpecRec["er_sample_name"]=er_specimen_name[:-specnum]
+    else:
+        ErSpecRec["er_sample_name"]=er_specimen_name
+    if samp_infile and er_synthetic_name=="":
+        for samp in Samps:
+            if samp["er_sample_name"] == ErSpecRec["er_sample_name"]:
+                ErSpecRec["er_location_name"]=samp["er_location_name"]
+                ErSpecRec["er_site_name"]=samp["er_site_name"]
+                break
+    elif int(samp_con)!=6 and int(samp_con)!=8:
+        site=pmag.parse_site(ErSpecRec['er_sample_name'],samp_con,Z)
+        ErSpecRec["er_site_name"]=site
+        ErSpecRec["er_location_name"]=er_location_name
+    ErSpecRec['er_scientist_mail_names']=user.strip()
+    insert=1
+    for rec in ErSpecRecs:
+        if rec['er_specimen_name']==er_specimen_name:
+            insert=0
+            break
+    if insert==1:
+        ErSpecRecs.append(ErSpecRec)
+        ErSpecRecs,keylist=pmag.fillkeys(ErSpecRecs)
+        pmag.magic_write(specfile,ErSpecRecs,'er_specimens')
+        print "specimen name put in ",specfile
+    f=open(agm_file,'rU')
+    Data=f.readlines()
+    if "ASCII" not in Data[0]:
+        fmt='new'
+    measnum,start=1,""
+    if fmt=='new': # new Micromag formatted file
+        end=2
+        for skip in range(len(Data)):
+            line=Data[skip]
+            rec=line.split()
+            if 'Units' in line:
+                units=rec[-1]
+            if "Raw" in rec:
+                start=skip+2
+            if "Field" in rec and "Moment" in rec and start=="":
+                start=skip+2
+                break
+    else:
+        start = 2
+        end=1
+    for i in range(start,len(Data)-end): # skip header stuff
+
+        MeasRec={}
+        for key in ErSpecRec.keys():
+            MeasRec[key]=ErSpecRec[key]
+        MeasRec['magic_instrument_codes']=inst
+        MeasRec['magic_method_codes']=meth
+        if 'er_synthetic_name' in MeasRec.keys() and MeasRec['er_synthetic_name']!="":
+            MeasRec['magic_experiment_name']=er_synthetic_name+':'+meth
+        else:
+            MeasRec['magic_experiment_name']=er_specimen_name+':'+meth
+        line=Data[i]
+        rec=line.split(',') # data comma delimited
+        if rec[0]!='\n':
+            if units=='cgs':
+                field =float(rec[0])*1e-4 # convert from oe to tesla
+            else:
+                field =float(rec[0]) # field in tesla
+            if meth=="LP-HYS":
+                MeasRec['measurement_lab_field_dc']='%10.3e'%(field) 
+                MeasRec['treatment_dc_field']=''
+            else:
+                MeasRec['measurement_lab_field_dc']=''
+                MeasRec['treatment_dc_field']='%10.3e'%(field) 
+            if units=='cgs':
+                MeasRec['measurement_magn_moment']='%10.3e'%(float(rec[1])*1e-3) # convert from emu to Am^2
+            else:
+                MeasRec['measurement_magn_moment']='%10.3e'%(float(rec[1])) # Am^2
+            MeasRec['treatment_temp']='273' # temp in kelvin
+            MeasRec['measurement_temp']='273' # temp in kelvin
+            MeasRec['measurement_flag']='g'
+            MeasRec['measurement_standard']='u'
+            MeasRec['measurement_number']='%i'%(measnum)
+            measnum+=1
+            MeasRec['magic_software_packages']=version_num
+            MeasRecs.append(MeasRec) 
+# now we have to relabel LP-HYS method codes.  initial loop is LP-IMT, minor loops are LP-M  - do this in measurements_methods function
+    if meth=='LP-HYS':   
+        recnum=0
+        while float(MeasRecs[recnum]['measurement_lab_field_dc'])<float(MeasRecs[recnum+1]['measurement_lab_field_dc']) and recnum+1<len(MeasRecs): # this is LP-IMAG
+            MeasRecs[recnum]['magic_method_codes']='LP-IMAG'
+            MeasRecs[recnum]['magic_experiment_name']=MeasRecs[recnum]['er_specimen_name']+":"+'LP-IMAG'
+            recnum+=1
+# 
+    pmag.magic_write(output,MeasRecs,'magic_measurements')
+    print "results put in ",output
+    return True, output
+
 
     

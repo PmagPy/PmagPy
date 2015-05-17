@@ -4296,13 +4296,30 @@ def dohext(nf,sigma,s):
     calculates hext parameters for nf, sigma and s
     """
 #
-    if nf==-1:return hextpars 
+    hpars={}
+    hpars['F_crit']='0'
+    hpars['F12_crit']='0'
+    hpars["F"]=0
+    hpars["F12"]=0
+    hpars["F23"]=0
+    hpars["v1_dec"]=-1
+    hpars["v1_inc"]=-1
+    hpars["v2_dec"]=-1
+    hpars["v2_inc"]=-1
+    hpars["v3_dec"]=-1
+    hpars["v3_inc"]=-1
+    hpars["t1"]=-1
+    hpars["t2"]=-1
+    hpars["t3"]=-1
+    hpars["e12"]=-1
+    hpars["e23"]=-1
+    hpars["e13"]=-1
+    if nf<0 or sigma==0:return hpars 
     f=numpy.sqrt(2.*fcalc(2,nf))
     t2sum=0
     tau,Vdir=doseigs(s)
     for i in range(3): t2sum+=tau[i]**2
     chibar=(s[0]+s[1]+s[2])/3.
-    hpars={}
     hpars['F_crit']='%s'%(fcalc(5,nf))
     hpars['F12_crit']='%s'%(fcalc(2,nf))
     hpars["F"]=0.4*(t2sum-3*chibar**2)/(sigma**2)

@@ -1,0 +1,10 @@
+Exp,Site,Hole,Core,Type,Top depth drilled DSF (m),Bottom depth drilled DSF (m),Advanced (m),Recovered length (m),Curated length (m),Top depth cored CSF (m),Bottom depth recovered (m),Core label
+XXX,UTEST,A,1,H,0,4.5,4.5,4.54,4.54,0,4.54,1H
+XXX,UTEST,A,2,H,4.5,14,9.5,5.9,5.9,4.5,10.4,2H
+XXX,UTEST,A,3,H,14,23.5,9.5,9.39,9.39,14,23.39,3H
+XXX,UTEST,A,4,H,23.5,33,9.5,9.41,9.41,23.5,32.91,4H
+XXX,UTEST,A,5,H,33,42.5,9.5,9.3,9.3,33,42.3,5H
+XXX,UTEST,A,6,H,42.5,52,9.5,8.77,8.77,42.5,51.27,6H
+XXX,UTEST,A,7,H,52,61.5,9.5,9.1,9.1,52,61.1,7H
+XXX,UTEST,A,8,H,61.5,71,9.5,8.34,8.34,61.5,69.84,8H
+XXX,UTEST,A,9,H,71,80.5,9.5,9.33,9.33,71,80.33,9H
