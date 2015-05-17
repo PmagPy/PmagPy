@@ -708,62 +708,62 @@ class Zeq_GUI(wx.Frame):
         except:
             self.first_click= self.second_click
             return
-#########This code does nothing the function returns before it ever gets to it###########
-#        index = event.ind[0]
+#Blarge
+        index = event.ind[0]
 
-#        # delete previose interpretation on screen
-#        for fit in self.pmag_results_data['specimens'][self.s]['fits']:
-#            for line in fit.lines:
-#                if line in self.zijplot.lines:
-#                    self.zijplot.lines.remove(line)
+        # delete previose interpretation on screen
+        for fit in self.pmag_results_data['specimens'][self.s]['fits']:
+            for line in fit.lines:
+                if line in self.zijplot.lines:
+                    self.zijplot.lines.remove(line)
 
-#        # clear selection in measurement window
-#        for item in range(self.logger.GetItemCount()):
-#            self.logger.SetItemBackgroundColour(item,"WHITE")
-#            self.logger.Select(item, on=0)
+        # clear selection in measurement window
+        for item in range(self.logger.GetItemCount()):
+            self.logger.SetItemBackgroundColour(item,"WHITE")
+            self.logger.Select(item, on=0)
 
-#        # clear equal area plot        
-#        self.specimen_eqarea_interpretation.clear()   # equal area
-#        self.mplot_interpretation.clear() # M / M0
-#                
-#        tmin_index,tmax_index="",""
-#        if str(self.tmin_box.GetValue())!="":
-#            tmin_index=self.tmin_box.GetSelection()
-#        if str(self.tmax_box.GetValue())!="":
-#            tmax_index=self.tmax_box.GetSelection()
+        # clear equal area plot        
+        self.specimen_eqarea_interpretation.clear()   # equal area
+        self.mplot_interpretation.clear() # M / M0
+                
+        tmin_index,tmax_index="",""
+        if str(self.tmin_box.GetValue())!="":
+            tmin_index=self.tmin_box.GetSelection()
+        if str(self.tmax_box.GetValue())!="":
+            tmax_index=self.tmax_box.GetSelection()
 
-#        
-#        # set slection in        
-#        if tmin_index !="" and tmax_index =="":
-#            if index<tmin_index:
-#                self.tmin_box.SetSelection(index)
-#                self.tmax_box.SetSelection(tmin_index)
-#            else:
-#                self.tmax_box.SetSelection(index)
-#            self.logger.Select(index, on=0)
-#            self.get_new_PCA_parameters(-1)
-#            
-#        elif tmin_index =="" and tmax_index !="":
-#            if index>tmax_index:
-#                self.tmin_box.SetSelection(tmax_index)
-#                self.tmax_box.SetSelection(index)
-#            else:
-#                self.tmin_box.SetSelection(index)
-#            self.logger.Select(index, on=0)
-#            self.get_new_PCA_parameters(-1)
-#        else:
-#            if int(index) > (self.logger.GetItemCount())/2.:
-#                self.tmin_box.SetValue("")
-#                self.tmax_box.SetSelection(int(index))
-#            else:
-#                self.tmin_box.SetSelection(int(index))
-#                self.tmax_box.SetValue("")
+        
+        # set slection in        
+        if tmin_index !="" and tmax_index =="":
+            if index<tmin_index:
+                self.tmin_box.SetSelection(index)
+                self.tmax_box.SetSelection(tmin_index)
+            else:
+                self.tmax_box.SetSelection(index)
+            self.logger.Select(index, on=0)
+            self.get_new_PCA_parameters(-1)
+            
+        elif tmin_index =="" and tmax_index !="":
+            if index>tmax_index:
+                self.tmin_box.SetSelection(tmax_index)
+                self.tmax_box.SetSelection(index)
+            else:
+                self.tmin_box.SetSelection(index)
+            self.logger.Select(index, on=0)
+            self.get_new_PCA_parameters(-1)
+        else:
+            if int(index) > (self.logger.GetItemCount())/2.:
+                self.tmin_box.SetValue("")
+                self.tmax_box.SetSelection(int(index))
+            else:
+                self.tmin_box.SetSelection(int(index))
+                self.tmax_box.SetValue("")
 
-#            self.logger.Select(index, on=1)            
-#            self.zijplot.scatter([self.CART_rot[:,0][index]],[-1* self.CART_rot[:,1][index]],marker='o',s=40,facecolor='g',edgecolor ='k',zorder=100,clip_on=False)
-#            self.zijplot.scatter([self.CART_rot[:,0][index]],[-1* self.CART_rot[:,2][index]],marker='s',s=50,facecolor='g',edgecolor ='k',zorder=100,clip_on=False)
+            self.logger.Select(index, on=1)            
+            self.zijplot.scatter([self.CART_rot[:,0][index]],[-1* self.CART_rot[:,1][index]],marker='o',s=40,facecolor='g',edgecolor ='k',zorder=100,clip_on=False)
+            self.zijplot.scatter([self.CART_rot[:,0][index]],[-1* self.CART_rot[:,2][index]],marker='s',s=50,facecolor='g',edgecolor ='k',zorder=100,clip_on=False)
 
-            #self.mplot_interpretation.scatter([self.Data[self.s]['zijdblock'][index][0]],[self.Data[self.s]['zijdblock'][index][3]/self.Data[self.s]['zijdblock'][0][3]],marker='o',s=30,facecolor='g',edgecolor ='k',zorder=100,clip_on=False)
+            self.mplot_interpretation.scatter([self.Data[self.s]['zijdblock'][index][0]],[self.Data[self.s]['zijdblock'][index][3]/self.Data[self.s]['zijdblock'][0][3]],marker='o',s=30,facecolor='g',edgecolor ='k',zorder=100,clip_on=False)
         self.canvas1.draw()
         self.canvas2.draw()
         self.canvas3.draw()
@@ -1194,11 +1194,6 @@ class Zeq_GUI(wx.Frame):
             self.mplot.set_ylabel("M / NRM0",fontsize=8*self.GUI_RESOLUTION)
         
         else:
-            
- 
-        
-                            
-            #self.mplot = self.fig3.add_axes([0.2,0.15,0.7,0.7],frameon=True,axisbg='None')        
             self.mplot.clear()
             x_data,y_data=[],[]
             x_data_bad,y_data_bad=[],[]
@@ -1772,16 +1767,13 @@ class Zeq_GUI(wx.Frame):
         #            self.last_saved_pars[key]=self.pars[key]
         #self.pars['saved']=False
         tmin=str(self.tmin_box.GetValue())
-        #index_min=self.tmin_box.GetSelection()
         tmax=str(self.tmax_box.GetValue())
-        #index_max=self.tmax_box.GetSelection()
         if tmin=="" or tmax=="":
             return
        
         if (self.T_list.index(tmax) <= self.T_list.index(tmin)):
             return 
                
-        #if (index_2-indparsex_1)+1 >= self.acceptance_criteria['specimen_int_n']:
         PCA_type=self.PCA_type_box.GetValue()
         if PCA_type=="line":calculation_type="DE-BFL"
         elif PCA_type=="line-anchored":calculation_type="DE-BFL-A"
@@ -1917,13 +1909,6 @@ class Zeq_GUI(wx.Frame):
 
         for fit in self.pmag_results_data['specimens'][self.s]:
 
-#            print(self.s + ':' + fit.name + ":" + str(fit.pars['measurement_step_min']) + ' to ' + str(fit.pars['measurement_step_max']) + ' with ' + str(fit.pars['specimen_dec']))
-#            for key in self.pmag_results_data['specimens'].keys():
-#                if fit in self.pmag_results_data['specimens'][key]:
-#                    print(fit.name + " belongs to " + str(key))
-#                if self.current_fit in self.pmag_results_data['specimens'][key]:
-#                    print("current_fit is " + self.current_fit.name + " of " + str(key))
-
             pars = fit.get(self.COORDINATE_SYSTEM)
 
             if (fit.tmin == None or fit.tmax == None or not pars):
@@ -1992,23 +1977,6 @@ class Zeq_GUI(wx.Frame):
                 intercept_xy_PCA=-1*CM_y - slop_xy_PCA*CM_x
                 intercept_xz_PCA=-1*CM_z - slop_xz_PCA*CM_x
 
-                #Work around to prevent indexing error due to the removal of items from self.CART_rot_good and not from self.Data[self.s]['zijdblock_steps']
-#                if self.CART_rot_bad.any() and tmax_index >= len(self.CART_rot_good[:,0]):
-#                    gmax_index = tmax_index - len(self.CART_rot_bad[:,0])
-#                    gmin_index = tmin_index - len(self.CART_rot_bad[:,0])
-#                else:
-#                    gmax_index = tmax_index
-#                    gmin_index = tmin_index
-
-#                try:
-#                    print(self.CART_rot[:,0][tmax_index] == self.CART_rot_good[:,0][tmax_index])
-#                    print(self.CART_rot[:,0][tmin_index] == self.CART_rot_good[:,0][tmin_index])
-#                except IndexError: print('out of bounds')
-
-#                if not self.CART_rot_good[:,0][tmax_index]:
-#                    print('-W- Invalid bounds skipping plotting ' + fit.names)
-#                    continue
-
                 xx=array([self.CART_rot[:,0][tmax_index],self.CART_rot[:,0][tmin_index]])
                 yy=slop_xy_PCA*xx+intercept_xy_PCA
                 zz=slop_xz_PCA*xx+intercept_xz_PCA
@@ -2031,12 +1999,15 @@ class Zeq_GUI(wx.Frame):
                 R=array(sqrt(1-z)/sqrt(x**2+y**2))
                 eqarea_x=y*R
                 eqarea_y=x*R
-        
+
+                marker_shape = 'o'
                 if z>0:
                     FC=fit.color;EC='0.1'
                 else:
                     FC=fit.color;EC='green'
-                self.specimen_eqarea_interpretation.scatter([eqarea_x],[eqarea_y],marker='o',edgecolor=EC, facecolor=FC,s=30,lw=1,clip_on=False)
+                if fit == self.current_fit:
+                    marker_shape = 's'
+                self.specimen_eqarea_interpretation.scatter([eqarea_x],[eqarea_y],marker=marker_shape,edgecolor=EC, facecolor=FC,s=30,lw=1,clip_on=False)
                 self.specimen_eqarea_interpretation.set_xlim(-1., 1.)        
                 self.specimen_eqarea_interpretation.set_ylim(-1., 1.)        
                 self.specimen_eqarea_interpretation.axes.set_aspect('equal')
@@ -2053,7 +2024,6 @@ class Zeq_GUI(wx.Frame):
                 X_c_up,Y_c_up=[],[]
                 X_c_d,Y_c_d=[],[]
                 for k in range(len(D_c)):
-                    #print D_c[k],I_c[k]
                     XY=pmag.dimap(D_c[k],I_c[k])
                     if I_c[k]<0:
                         X_c_up.append(XY[0])
@@ -2063,9 +2033,7 @@ class Zeq_GUI(wx.Frame):
                         Y_c_d.append(XY[1])
                 self.specimen_eqarea_interpretation.plot(X_c_d,Y_c_d,'b')
                 self.specimen_eqarea_interpretation.plot(X_c_up,Y_c_up,'c')
-                
-                #self.specimen_eqarea_interpretation.set_xlim(xmin, xmax)
-                #self.specimen_eqarea_interpretation.set_ylim(ymin, ymax)           
+                        
                 self.specimen_eqarea_interpretation.set_xlim(-1., 1.)        
                 self.specimen_eqarea_interpretation.set_ylim(-1., 1.)        
                 self.specimen_eqarea_interpretation.axes.set_aspect('equal')
@@ -2082,10 +2050,8 @@ class Zeq_GUI(wx.Frame):
                 self.mplot_interpretation.set_ylim(ymin, ymax)
             
             # logger
-            #self.logger.SetBackgroundColour('red')
             if fit == self.current_fit:
                 for item in range(self.logger.GetItemCount()):
-                #range(len(self.Data[self.s]['measurement_flag'])):
                     if item >= tmin_index and item <= tmax_index:
                         self.logger.SetItemBackgroundColour(item,"LIGHT BLUE") # gray
                     else:
@@ -2120,8 +2086,6 @@ class Zeq_GUI(wx.Frame):
 
         if self.current_fit:
             calculation_type=self.current_fit.get(self.COORDINATE_SYSTEM)['calculation_type']
-    #        tmin_index=str(self.tmin_box.GetSelection())
-    #        tmax_index=str(self.tmax_box.GetSelection())
             tmin=str(self.tmin_box.GetValue())
             tmax=str(self.tmax_box.GetValue())
 
@@ -2133,8 +2097,8 @@ class Zeq_GUI(wx.Frame):
 
         # calculate higher level data
         self.calculate_higher_levels_data()
-        #self.plot_higher_levels_data()
-#        self.on_menu_save_interpretation()
+        self.plot_higher_levels_data()
+        self.on_menu_save_interpretation()
         self.update_selection()
         self.close_warning=True
         
@@ -2455,12 +2419,15 @@ class Zeq_GUI(wx.Frame):
                     dec=pars["specimen_dec"];inc=pars["specimen_inc"]
                 elif "dec" in pars.keys() and "inc" in pars.keys():
                     dec=pars["dec"];inc=pars["inc"]                
-                XY=pmag.dimap(dec,inc)                
+                XY=pmag.dimap(dec,inc)
+                marker_shape = 'o'
                 if inc>0:
                     FC=fit.color;SIZE=15*self.GUI_RESOLUTION
                 else:
                     FC='white';SIZE=15*self.GUI_RESOLUTION
-                fig.scatter([XY[0]],[XY[1]],marker='o',edgecolor=fit.color, facecolor=FC,s=SIZE,lw=1,clip_on=False)
+                if specimen == self.s:
+                    marker_shape = 's'
+                fig.scatter([XY[0]],[XY[1]],marker=marker_shape,edgecolor=fit.color, facecolor=FC,s=SIZE,lw=1,clip_on=False)
 
     def plot_eqarea_pars(self,pars,fig):
         # plot best-fit plane
