@@ -416,8 +416,8 @@ class ImportKly4s(wx.Frame):
             location = ''
         ins = self.bSizer7.return_value()
         if ins:
-            ins = "-ins " + ins
             instrument = ins
+            ins = "-ins " + ins
         else:
             instrument='SIO-KLY4S'
         COMMAND = "kly4s_magic.py -WD {} -f {} -F {} {} -ncn {} {} {} {} {} {} -ID {} -fsp {}".format(self.WD, infile, outfile, azdip_file, ncn, ocn, user, n, loc, ins, ID, spec_outfile)
