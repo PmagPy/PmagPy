@@ -106,7 +106,8 @@ def main(command_line=True, **kwargs):
                     offset=int(offsets[0])
                 else:
                     offset=int(offsets[0])-1
-                interval=str(offset+1)# maintain consistency with er_samples convention of using top interval
+                #interval=str(offset+1)# maintain consistency with er_samples convention of using top interval
+                interval=str(offset)# maintain consistency with er_samples convention of using top interval
                 specimen=expedition+'-'+location+'-'+InRec['Core']+InRec[type]+"-"+InRec[sect_key]+'_'+InRec[half_key]+'_'+interval
                 if specimen not in Specs:Specs.append(specimen)
                 MagRec['er_expedition_name']=expedition
