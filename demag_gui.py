@@ -1922,6 +1922,10 @@ class Zeq_GUI(wx.Frame):
             PCA_type=fit.PCA_type
             
             tmin_index,tmax_index = self.get_temp_indecies(fit);
+            
+            marker_shape = 'o'
+            if fit == self.current_fit:
+                marker_shape = 'D'
 
             # Zijderveld plot
                                 
@@ -1933,8 +1937,8 @@ class Zeq_GUI(wx.Frame):
                     len(self.CART_rot[:,i]) <= tmax_index):
                     self.Add_text()
 
-            self.zijplot.scatter([self.CART_rot[:,0][tmin_index],self.CART_rot[:,0][tmax_index]],[-1* self.CART_rot[:,1][tmin_index],-1* self.CART_rot[:,1][tmax_index]],marker='o',s=40,facecolor=fit.color,edgecolor ='k',zorder=100,clip_on=False)
-            self.zijplot.scatter([self.CART_rot[:,0][tmin_index],self.CART_rot[:,0][tmax_index]],[-1* self.CART_rot[:,2][tmin_index],-1* self.CART_rot[:,2][tmax_index]],marker='s',s=50,facecolor=fit.color,edgecolor ='k',zorder=100,clip_on=False)
+            self.zijplot.scatter([self.CART_rot[:,0][tmin_index],self.CART_rot[:,0][tmax_index]],[-1* self.CART_rot[:,1][tmin_index],-1* self.CART_rot[:,1][tmax_index]],marker=marker_shape,s=40,facecolor=fit.color,edgecolor ='k',zorder=100,clip_on=False)
+            self.zijplot.scatter([self.CART_rot[:,0][tmin_index],self.CART_rot[:,0][tmax_index]],[-1* self.CART_rot[:,2][tmin_index],-1* self.CART_rot[:,2][tmax_index]],marker=marker_shape,s=50,facecolor=fit.color,edgecolor ='k',zorder=100,clip_on=False)
             
             if pars['calculation_type'] in ['DE-BFL','DE-BFL-A','DE-BFL-O']:
                 
@@ -2000,13 +2004,10 @@ class Zeq_GUI(wx.Frame):
                 eqarea_x=y*R
                 eqarea_y=x*R
 
-                marker_shape = 'o'
                 if z>0:
                     FC=fit.color;EC='0.1'
                 else:
                     FC=fit.color;EC='green'
-                if fit == self.current_fit:
-                    marker_shape = 's'
                 self.specimen_eqarea_interpretation.scatter([eqarea_x],[eqarea_y],marker=marker_shape,edgecolor=EC, facecolor=FC,s=30,lw=1,clip_on=False)
                 self.specimen_eqarea_interpretation.set_xlim(-1., 1.)        
                 self.specimen_eqarea_interpretation.set_ylim(-1., 1.)        
@@ -2044,8 +2045,8 @@ class Zeq_GUI(wx.Frame):
             if self.Data[self.s]['measurement_step_unit'] !="mT:C" and self.Data[self.s]['measurement_step_unit'] !="C:mT":
                 ymin, ymax = self.mplot.get_ylim()
                 xmin, xmax = self.mplot.get_xlim()
-                self.mplot_interpretation.scatter([self.Data[self.s]['zijdblock'][tmin_index][0]],[self.Data[self.s]['zijdblock'][tmin_index][3]/self.Data[self.s]['zijdblock'][0][3]],marker='o',s=30,facecolor=fit.color,edgecolor ='k',zorder=100,clip_on=False)
-                self.mplot_interpretation.scatter([self.Data[self.s]['zijdblock'][tmax_index][0]],[self.Data[self.s]['zijdblock'][tmax_index][3]/self.Data[self.s]['zijdblock'][0][3]],marker='o',s=30,facecolor=fit.color,edgecolor ='k',zorder=100,clip_on=False)
+                self.mplot_interpretation.scatter([self.Data[self.s]['zijdblock'][tmin_index][0]],[self.Data[self.s]['zijdblock'][tmin_index][3]/self.Data[self.s]['zijdblock'][0][3]],marker=marker_shape,s=30,facecolor=fit.color,edgecolor ='k',zorder=100,clip_on=False)
+                self.mplot_interpretation.scatter([self.Data[self.s]['zijdblock'][tmax_index][0]],[self.Data[self.s]['zijdblock'][tmax_index][3]/self.Data[self.s]['zijdblock'][0][3]],marker=marker_shape,s=30,facecolor=fit.color,edgecolor ='k',zorder=100,clip_on=False)
                 self.mplot_interpretation.set_xlim(xmin, xmax)
                 self.mplot_interpretation.set_ylim(ymin, ymax)
             
@@ -2420,13 +2421,13 @@ class Zeq_GUI(wx.Frame):
                 elif "dec" in pars.keys() and "inc" in pars.keys():
                     dec=pars["dec"];inc=pars["inc"]                
                 XY=pmag.dimap(dec,inc)
-                marker_shape = 'o'
                 if inc>0:
                     FC=fit.color;SIZE=15*self.GUI_RESOLUTION
                 else:
                     FC='white';SIZE=15*self.GUI_RESOLUTION
+                marker_shape = 'o'
                 if specimen == self.s:
-                    marker_shape = 's'
+                    marker_shape = 'D'
                 fig.scatter([XY[0]],[XY[1]],marker=marker_shape,edgecolor=fit.color, facecolor=FC,s=SIZE,lw=1,clip_on=False)
 
     def plot_eqarea_pars(self,pars,fig):
