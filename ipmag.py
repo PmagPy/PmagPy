@@ -1300,8 +1300,10 @@ def core_depthplot(dir_path='.', meas_file='magic_measurements.txt', spc_file=''
     maxSuc=-1000
     minSuc=10000
     main_plot = None
-    size = int(size)
-    spc_size = int(spc_size)
+    if size:
+        size = int(size)
+    if spc_size:
+        spc_size = int(spc_size)
 
 
     # files not supported for the moment
