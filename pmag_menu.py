@@ -1,15 +1,22 @@
 #!/usr/bin/env pythonw
 
-import wx
-import os
-import pmag_basic_dialogs
-import pmag_menu_dialogs
-import pmag_widgets as pw
+"""
+Create QuickMagIC menubar
+"""
 
+import wx
+import pmag_menu_dialogs
 
 
 class MagICMenu(wx.MenuBar):
-    
+    """
+    initialize menu bar for QuickMagIC GUI
+    """
+
+    # prevent error message about too many public methods
+    #pylint: disable=R0904
+    #pylint: disable=R0914
+
     def __init__(self, parent):
         self.parent = parent
         super(MagICMenu, self).__init__()
@@ -104,48 +111,58 @@ class MagICMenu(wx.MenuBar):
 
 
     def on_quit(self, event):
+        """
+        shut down application
+        """
         self.parent.Close()
 
     def on_clear(self, event):
-        clear = pmag_menu_dialogs.ClearWD(self.parent, self.parent.WD)
-
+        """
+        initialize window to allow user to empty the working directory
+        """
+        pmag_menu_dialogs.ClearWD(self.parent, self.parent.WD)
 
     def on_import1(self, event):
-        import1 = pmag_menu_dialogs.MoveFileIntoWD(self.parent, self.parent.WD)
+        """
+        initialize window to import an arbitrary file into the working directory
+        """
+        pmag_menu_dialogs.MoveFileIntoWD(self.parent, self.parent.WD)
         
     def orient_import2(self, event):
-        orient2 = pmag_menu_dialogs.ImportAzDipFile(self.parent, self.parent.WD)
+        """
+        initialize window to import an AzDip format file into the working directory
+        """
+        pmag_menu_dialogs.ImportAzDipFile(self.parent, self.parent.WD)
 
     #def orient_import3(self, event):
         #orient3 = pmag_menu_dialogs.ImportODPCoreSummary(self.parent, self.parent.WD)
 
     def orient_import4(self, event):
-        orient4 = pmag_menu_dialogs.ImportIODPSampleSummary(self.parent, self.parent.WD)
+        pmag_menu_dialogs.ImportIODPSampleSummary(self.parent, self.parent.WD)
 
     #def orient_import5(self, event):
     #    orient5 = pmag_menu_dialogs.ImportModelLatitude(self.parent, self.parent.WD)
 
     def anisotropy_import1(self, event):
-        aniso1 = pmag_menu_dialogs.ImportKly4s(self.parent, self.parent.WD)
+        pmag_menu_dialogs.ImportKly4s(self.parent, self.parent.WD)
 
     def anisotropy_import2(self, event):
-        aniso2 = pmag_menu_dialogs.ImportK15(self.parent, self.parent.WD)
-    
+        pmag_menu_dialogs.ImportK15(self.parent, self.parent.WD)
+        
     def anisotropy_import3(self, event):
-        aniso3 = pmag_menu_dialogs.ImportSufarAscii(self.parent, self.parent.WD)
+        pmag_menu_dialogs.ImportSufarAscii(self.parent, self.parent.WD)
 
     def hysteresis_import1(self, event):
-        hyst1 = pmag_menu_dialogs.ImportAgmFile(self.parent, self.parent.WD)
+        pmag_menu_dialogs.ImportAgmFile(self.parent, self.parent.WD)
 
     def hysteresis_import2(self, event):
-        hyst2 = pmag_menu_dialogs.ImportAgmFolder(self.parent, self.parent.WD)
+        pmag_menu_dialogs.ImportAgmFolder(self.parent, self.parent.WD)
 
     def analysis1(self, event):
-        analysis1 = pmag_menu_dialogs.CustomizeCriteria(self.parent, self.parent.WD)
+        pmag_menu_dialogs.CustomizeCriteria(self.parent, self.parent.WD)
 
     def analysis2(self, event):
-        analysis2 = pmag_menu_dialogs.ZeqMagic(self.parent, self.parent.WD)
-
+        pmag_menu_dialogs.ZeqMagic(self.parent, self.parent.WD)
 
     def analysis3(self, event):
         pass
@@ -166,11 +183,10 @@ class MagICMenu(wx.MenuBar):
         pass
 
     def analysis9(self, event):
-        analysis9 = pmag_menu_dialogs.Core_depthplot(self.parent, self.parent.WD)
+        pmag_menu_dialogs.Core_depthplot(self.parent, self.parent.WD)
 
     def analysis10(self, event):
-        analysis10 = pmag_menu_dialogs.Ani_depthplot(self.parent, self.parent.WD)
-
+        pmag_menu_dialogs.Ani_depthplot(self.parent, self.parent.WD)
 
     def analysis11(self, event):
         pass
@@ -180,6 +196,3 @@ class MagICMenu(wx.MenuBar):
 
     def analysis13(self, event):
         pass
-
-
-    
