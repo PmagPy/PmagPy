@@ -1485,12 +1485,7 @@ class Zeq_GUI(wx.Frame):
         #--------------------------                
         # updtaes treatment list
         #--------------------------
-        self.T_list=self.Data[self.s]['zijdblock_steps']
-        if self.current_fit:
-            self.tmin_box.SetItems(self.T_list)
-            self.tmax_box.SetItems(self.T_list)
-            self.tmin_box.SetSelection(-1) #made an edit from SetStringSelection("")
-            self.tmax_box.SetSelection(-1) #made an edit from SetStringSelection("")
+        self.update_temp_boxes()
 
         #--------------------------
         # update high level boxes and figures (if needed)
@@ -1572,6 +1567,20 @@ class Zeq_GUI(wx.Frame):
                 self.show_higher_levels_pars(mpars)
 
     #----------------------------------------------------------------------
+    
+    #--------------------------                
+    # updtaes treatment list
+    #--------------------------
+    def update_temp_boxes(self):
+        self.T_list=self.Data[self.s]['zijdblock_steps']
+        if self.current_fit:
+            self.tmin_box.SetItems(self.T_list)
+            self.tmax_box.SetItems(self.T_list)
+#            self.tmin_box.SetSelection(-1) #made an edit from SetStringSelection("")
+#            self.tmax_box.SetSelection(-1) #made an edit from SetStringSelection("")
+            self.tmin_box.SetStringSelection(self.current_fit.tmin)
+            self.tmax_box.SetStringSelection(self.current_fit.tmax)
+            
 
 
     def get_DIR(self, WD=None):
@@ -2099,7 +2108,7 @@ class Zeq_GUI(wx.Frame):
         # calculate higher level data
         self.calculate_higher_levels_data()
         self.plot_higher_levels_data()
-        self.on_menu_save_interpretation()
+        self.on_menu_save_interpretation(-1)
         self.update_selection()
         self.close_warning=True
         
@@ -4314,16 +4323,26 @@ class Zeq_GUI(wx.Frame):
 
     def on_select_fit(self,event):
         fit_val = self.fit_box.GetValue()
-        if  fit_val == 'None' or fit_val == '': fit_num = -1
-        else: fit_num = int(fit_val.split()[-1]) - 1
-        self.pmag_results_data['specimens'][self.s][fit_num].select()
-
+        if not self.pmag_results_data['specimens'][self.s]:
+            self.clear_boxes()
+            self.current_fit = None
+            self.fit_box.SetStringSelection('None')
+            self.tmin_box.SetStringSelection('')
+            self.tmax_box.SetStringSelection('')
+        else:
+            try:
+                fit_num = map(lambda x: x.name, self.pmag_results_data['specimens'][self.s]).index(fit_val)
+            except ValueError:
+                fit_num = -1
+                self.fit_box.SetSelection(fit_num)
+                self.fit_box.SetStringSelection(self.pmag_results_data['specimens'][self.s][fit_num].name)
+            self.pmag_results_data['specimens'][self.s][fit_num].select()
 
     def add_fit(self,event):
         if not (self.s in self.pmag_results_data['specimens'].keys()):
             self.pmag_results_data['specimens'][self.s] = []
         next_fit = str(len(self.pmag_results_data['specimens'][self.s]) + 1)
-        self.pmag_results_data['specimens'][self.s].append(Fit('Fit ' + next_fit, None, None, self.colors[(int(next_fit)-1) % len(self.colors)], self))
+        self.pmag_results_data['specimens'][self.s].append(Fit('Fit ' + next_fit, int(next_fit)-1, None, None, self.colors[(int(next_fit)-1) % len(self.colors)], self))
 #        print("New Fit for sample: " + str(self.s) + '\n' + reduce(lambda x,y: x+'\n'+y, map(str,self.pmag_results_data['specimens'][self.s]['fits'])))
         self.new_fit()
 
@@ -4436,8 +4455,9 @@ class SaveMyPlot(wx.Frame):
 
 class Fit():
 
-    def __init__(self, name, tmax, tmin, color, GUI):
+    def __init__(self, name, num, tmax, tmin, color, GUI):
         self.name = name
+        self.num = num
         self.tmax = tmax
         self.tmin = tmin
         self.color = color
@@ -4458,8 +4478,8 @@ class Fit():
     def select(self):
         self.GUI.current_fit = self
         if self.tmax != None and self.tmin != None:
-            self.GUI.tmin_box.SetStringSelection(self.tmin)
-            self.GUI.tmax_box.SetStringSelection(self.tmax)
+            self.GUI.update_temp_boxes()
+        self.GUI.draw_figure(self.GUI.s)
         self.GUI.get_new_PCA_parameters(-1)
 
     def get(self,coordinate_system):
@@ -4502,8 +4522,8 @@ class Fit():
             print('-E- no such coordinate system could not assign those parameters to fit')
 
     def __str__(self):
-        try: return self.name + ": \n" + "Tmax = " + self.tmax + ", Tmin = " + self.tmin + "\n" + "Color = " + self.color
-        except: return self.name + ": \n" + " Color = " + self.color
+        try: return self.name + ", " + str(self.num) + ": \n" + "Tmax = " + self.tmax + ", Tmin = " + self.tmin + "\n" + "Color = " + self.color
+        except: return self.name + ", " + str(self.num) + ": \n" + " Color = " + self.color
 
 #--------------------------------------------------------------    
 # Run the GUI
