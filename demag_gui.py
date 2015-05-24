@@ -1720,7 +1720,7 @@ class Zeq_GUI(wx.Frame):
 #        print('updating pmag tables')
 #        self.update_pmag_tables()
 
-        mes_index = self.specimens.index(self.s)*len(self.mag_meas_data)/len(self.specimens) + g_index - 1
+        meas_index = self.specimens.index(self.s)*len(self.mag_meas_data)/len(self.specimens) + g_index + 1
 
         if self.Data[self.s]['measurement_flag'][g_index] == 'g':
             self.Data[self.s]['measurement_flag'][g_index] = 'b'
@@ -1729,7 +1729,7 @@ class Zeq_GUI(wx.Frame):
                 self.Data[self.s]['zijdblock_geo'][g_index][5] = 'b'
             if 'zijdblock_tilt' in self.Data[self.s]:
                 self.Data[self.s]['zijdblock_tilt'][g_index][5] = 'b'
-            self.mag_meas_data[mes_index]['measurement_flag'] = 'b'
+            self.mag_meas_data[meas_index]['measurement_flag'] = 'b'
         else:
             self.Data[self.s]['measurement_flag'][g_index] = 'g'
             self.Data[self.s]['zijdblock'][g_index][5] = 'g'
@@ -1737,7 +1737,7 @@ class Zeq_GUI(wx.Frame):
                 self.Data[self.s]['zijdblock_geo'][g_index][5] = 'g'
             if 'zijdblock_tilt' in self.Data[self.s]:
                 self.Data[self.s]['zijdblock_tilt'][g_index][5] = 'g'
-            self.mag_meas_data[mes_index]['measurement_flag'] = 'g'
+            self.mag_meas_data[meas_index]['measurement_flag'] = 'g'
 
         pmag.magic_write(os.path.join(self.WD, "magic_measurements.txt"),self.mag_meas_data,"magic_measurements")
 
@@ -1820,7 +1820,7 @@ class Zeq_GUI(wx.Frame):
             block=self.Data[specimen]['zijdblock_tilt']
         else:
             block=self.Data[specimen]['zijdblock']
-        if  end_pca > beg_pca and   end_pca - beg_pca > 1: 
+        if  end_pca > beg_pca and   end_pca - beg_pca > 1:
             mpars=pmag.domean(block,beg_pca,end_pca,calculation_type) #preformes regression
         else:
             mpars={}
@@ -3688,7 +3688,10 @@ class Zeq_GUI(wx.Frame):
 
         fin.close()
         self.s=str(self.specimens_box.GetValue())
-        self.current_fit = self.pmag_results_data['specimens'][self.s][-1]
+        if (self.s not in self.pmag_results_data['specimens']) or (not self.pmag_results_data['specimens'][self.s]):
+            self.current_fit = None
+        else:
+            self.current_fit = self.pmag_results_data['specimens'][self.s][-1]
         self.calculate_higher_levels_data()
         self.update_selection()
 
@@ -4479,7 +4482,8 @@ class Fit():
         self.GUI.current_fit = self
         if self.tmax != None and self.tmin != None:
             self.GUI.update_temp_boxes()
-        self.GUI.draw_figure(self.GUI.s)
+        try: self.GUI.zijplot
+        except AttributeError: self.GUI.draw_figure(self.GUI.s)
         self.GUI.get_new_PCA_parameters(-1)
 
     def get(self,coordinate_system):
