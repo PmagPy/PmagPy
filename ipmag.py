@@ -1591,8 +1591,8 @@ def core_depthplot(dir_path='.', meas_file='magic_measurements.txt', spc_file=''
                 WIG_depths.append(float(wig[depth_scale]))
     tint=4.5
     plt=1
-    #print Decs, Depths, SpecDecs, SpecDepths, ResDecs, ResDepths, SDecs, SDepths, SIncs
-    if len(Decs)>0 and len(Depths)>0 or (len(SpecDecs)>0 and len(SpecDepths)>0) or (len(ResDecs)>0 and len(ResDepths)>0) or (len(SDecs)>0 and len(SDepths)>0) or (len(SInts)>0 and len(SDepths)>0) or (len(SIncs)>0 and len(SDepths)>0):
+    #print 'Decs', len(Decs), 'Depths', len(Depths), 'SpecDecs', len(SpecDecs), 'SpecDepths', len(SpecDepths), 'ResDecs', len(ResDecs), 'ResDepths', len(ResDepths), 'SDecs', len(SDecs), 'SDepths', len(SDepths), 'SIincs', len(SIncs), 'Incs', len(Incs)
+    if (Decs and Depths) or (SpecDecs and SpecDepths) or (ResDecs and ResDepths) or (SDecs and SDepths) or (SInts and SDepths) or (SIncs and SDepths) or (Incs and Depths):
         main_plot = pyplot.figure(1,figsize=(width,8)) # this works
         #pylab.figure(1,figsize=(width,8))
         version_num=pmag.get_version()
