@@ -444,10 +444,9 @@ def main():
           if verbose:print 'skipping plot - not enough data points'
           k+=1 
 #   put rmag_results stuff here
-    if plots==0:
-        if len(ResRecs)>0:
-            ResOut,keylist=pmag.fillkeys(ResRecs)
-            pmag.magic_write(outfile,ResOut,'rmag_results')
+    if len(ResRecs)>0:
+        ResOut,keylist=pmag.fillkeys(ResRecs)
+        pmag.magic_write(outfile,ResOut,'rmag_results')
     if verbose:
         print " Good bye "
 #
