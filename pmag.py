@@ -1395,26 +1395,20 @@ def domean(indata,start,end,calculation_type):
     """
     mpars={}
     datablock=[]
-    ind=0
     start0,end0=start,end
-    for rec in indata:
+    for ind,rec in enumerate(indata):
         if len(rec)<6:rec.append('g')
         if rec[5]=='b' and ind==start: 
             mpars["specimen_direction_type"]="Error"
             print "Can't select 'bad' point as start for PCA"
-            return mpars 
+            return mpars
         if rec[5]=='b' and ind<start: 
             start-=1
             end-=1
-        if rec[5]=='b' and ind>start and ind<end: 
-            end-=1
-        if rec[5]=='b' and ind>start and ind==end: 
+        if rec[5]=='b' and ind>start and ind<=end+1:
             end-=1
         if rec[5]=='g':
             datablock.append(rec) # use only good data
- #       else:
- #           end-=1
-        ind+=1
     mpars["calculation_type"]=calculation_type
     rad=numpy.pi/180.
     if end>len(datablock)-1 or end<start : end=len(datablock)-1

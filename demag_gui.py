@@ -49,7 +49,7 @@ import matplotlib
 from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigCanvas 
 from matplotlib.backends.backend_wxagg import NavigationToolbar2WxAgg as NavigationToolbar
 
-import sys,pylab,scipy,os
+import sys,scipy,os
 try:
     import zeq_gui_preferences
 except:
@@ -64,7 +64,7 @@ import numpy
 from pylab import *
 from scipy.optimize import curve_fit
 import wx.lib.agw.floatspin as FS
-import pandas as pd
+import webbrowser
 try:
     from mpl_toolkits.basemap import Basemap, shiftgrid
 except:
@@ -365,6 +365,7 @@ class Zeq_GUI(wx.Frame):
 
         self.fit_box = wx.ComboBox(self.panel, -1 ,size=(100*self.GUI_RESOLUTION, 25),choices=list_fits, style=wx.CB_DROPDOWN)
         self.Bind(wx.EVT_COMBOBOX, self.on_select_fit,self.fit_box)
+        self.Bind(wx.EVT_TEXT_ENTER, self.on_enter_fit_name, self.fit_box)
 
         self.add_fit_button = wx.Button(self.panel, id=-1, label='add fit',size=(100*self.GUI_RESOLUTION,25))
         self.add_fit_button.SetFont(font2)
@@ -1420,7 +1421,6 @@ class Zeq_GUI(wx.Frame):
     #----------------------------------------------------------------------
 
     def on_next_button(self,event):
-        
       """ update figures and text when a next button is selected
       """
       index=self.specimens.index(self.s)
@@ -1443,7 +1443,7 @@ class Zeq_GUI(wx.Frame):
 
     def on_prev_button(self,event):
       """ update figures and text when a next button is selected
-      """                      
+      """
       index=self.specimens.index(self.s)
       try: fit_index = self.pmag_results_data['specimens'][self.s].index(self.current_fit)
       except KeyError: fit_index = None
@@ -1533,8 +1533,6 @@ class Zeq_GUI(wx.Frame):
 
         # calcuate again self.pars and update the figures and the statistics tables. 
         if found_interpretation:
-            if self.current_fit:
-                self.current_fit.put(coordinate_system,self.get_PCA_parameters(self.s,tmin,tmax,coordinate_system,calculation_type))
             self.draw_figure(self.s)
             self.update_GUI_with_new_interpretation()
         else:
@@ -1720,7 +1718,13 @@ class Zeq_GUI(wx.Frame):
 #        print('updating pmag tables')
 #        self.update_pmag_tables()
 
-        meas_index = self.specimens.index(self.s)*len(self.mag_meas_data)/len(self.specimens) + g_index + 1
+        meas_index = 0
+        for specimen in self.specimens:
+            if specimen == self.s:
+                break
+            else:
+                meas_index += len(self.Data[specimen]['zijdblock'])
+        meas_index += g_index
 
         if self.Data[self.s]['measurement_flag'][g_index] == 'g':
             self.Data[self.s]['measurement_flag'][g_index] = 'b'
@@ -1821,7 +1825,15 @@ class Zeq_GUI(wx.Frame):
         else:
             block=self.Data[specimen]['zijdblock']
         if  end_pca > beg_pca and   end_pca - beg_pca > 1:
+#            print("------------Input Data--------------") #BLARGE
+##            print(beg_pca)
+#            print("start: " + str(block[beg_pca][0]))
+##            print(end_pca)
+#            print("end: " + str(block[end_pca][0]))
+#            print("length: " + str(len(block[beg_pca:end_pca+1])))
+#            print("good steps: " + str(sum(map(lambda x: x[5]=='g', block[beg_pca:end_pca+1]))))
             mpars=pmag.domean(block,beg_pca,end_pca,calculation_type) #preformes regression
+#            print("included steps: " + str(mpars['specimen_n']))
         else:
             mpars={}
         for k in mpars.keys():
@@ -3130,9 +3142,10 @@ class Zeq_GUI(wx.Frame):
             self.s = specimen
 
             #if interpertation doesn't exsist create it.
-            if 'specimen_comp_name' in rec.keys() and (ord(rec['specimen_comp_name'])-64) > len(self.pmag_results_data['specimens'][specimen]):
+            if 'specimen_comp_name' in rec.keys() and rec['specimen_comp_name'] not in map(lambda x: x.name, self.pmag_results_data['specimens'][specimen]):
                 self.add_fit(-1)
                 fit = self.pmag_results_data['specimens'][specimen][-1]
+                fit.name = rec['specimen_comp_name']
             else:
                 fit = None
 
@@ -3363,6 +3376,8 @@ class Zeq_GUI(wx.Frame):
 
         #-------------------
         
+        
+        
         #menu_Plot= wx.Menu()
         #m_plot_data = menu_Plot.Append(-1, "&Plot ...", "")
         #self.Bind(wx.EVT_MENU, self.on_menu_plot_data, m_plot_data)
@@ -3397,12 +3412,25 @@ class Zeq_GUI(wx.Frame):
 #        m_make_MagIC_results_tables= menu_MagIC.Append(-1, "&Save MagIC results tables", "")
 #        self.Bind(wx.EVT_MENU, self.on_menu_make_MagIC_results_tables, m_make_MagIC_results_tables)
 
-        #-----------------                            
+        #-----------------
+        # Help Menu
+        #-----------------
+        
+        menu_Help = wx.Menu()
+        
+        m_docs = menu_Help.Append(-1, "&Usage and Tips", "")
+        self.Bind(wx.EVT_MENU, self.on_menu_docs, m_docs)
+        
+        m_git = menu_Help.Append(-1, "&Github Page", "")
+        self.Bind(wx.EVT_MENU, self.on_menu_git, m_git)
+
+        #-----------------
         
         #self.menubar.Append(menu_preferences, "& Preferences") 
         self.menubar.Append(menu_file, "&File")
         self.menubar.Append(menu_Analysis, "&Analysis")
         self.menubar.Append(menu_Tools, "&Tools")
+        self.menubar.Append(menu_Help, "&Help")
         #self.menubar.Append(menu_Plot, "&Plot")
         #self.menubar.Append(menu_results_table, "&Table")        
         #self.menubar.Append(menu_MagIC, "&MagIC")        
@@ -3625,7 +3653,7 @@ class Zeq_GUI(wx.Frame):
         fin=open(redo_file,'rU')
         
         for Line in fin.readlines():
-            line=Line.strip('\n').split()
+            line=Line.strip('\n').split('\t')
             specimen=line[0]
             self.s = specimen
 
@@ -3669,13 +3697,30 @@ class Zeq_GUI(wx.Frame):
                     continue
             if tmin not in self.Data[specimen]['zijdblock_steps'] or  tmax not in self.Data[specimen]['zijdblock_steps']:
                 print "-E- ERROR in redo file specimen %s. Cant find treatment steps"%specimen      
-                                
-            try: fit = self.pmag_results_data['specimens'][specimen][int(ord(line[-1]))-97]
-            except:
-                self.add_fit(1)
-                fit = self.pmag_results_data['specimens'][specimen][int(ord(line[-1])-97)];
-            self.current_fit = fit
 
+            if len(line) >= 5:
+                fit_index = -1
+                if specimen in self.pmag_results_data['specimens']:
+                    bool_list = map(lambda x: x.has_values(line[4], tmin, tmax), self.pmag_results_data['specimens'][specimen])
+                else:
+                    bool_list = [False]
+                if any(bool_list):
+                    fit_index = bool_list.index(True)
+                else:
+                    self.add_fit(1)
+                fit = self.pmag_results_data['specimens'][specimen][fit_index];
+
+                fit.name = line[4]
+                
+            else:
+                self.add_fit(1)
+                fit = self.pmag_results_data['specimens'][specimen][-1];
+
+            #works better
+#            fit.put(self.COORDINATE_SYSTEM,self.get_PCA_parameters(specimen,tmin,tmax,self.COORDINATE_SYSTEM,calculation_type))
+            #-----------
+
+            #looks cooler
             fit.put('specimen',self.get_PCA_parameters(specimen,tmin,tmax,'specimen',calculation_type))
 
             if len(self.Data[specimen]['zijdblock_geo'])>0: 
@@ -3683,8 +3728,7 @@ class Zeq_GUI(wx.Frame):
 
             if len(self.Data[specimen]['zijdblock_tilt'])>0:      
                 fit.put('tilt-corrected',self.get_PCA_parameters(specimen,tmin,tmax,'tilt-corrected',calculation_type))
-
-            self.current_fit.pars = self.get_PCA_parameters(specimen,tmin,tmax,'specimen',calculation_type)
+            #------------
 
         fin.close()
         self.s=str(self.specimens_box.GetValue())
@@ -3719,7 +3763,7 @@ class Zeq_GUI(wx.Frame):
                 else:
                     tmax="0"
                     
-                STRING=STRING+tmin+"\t"+tmax+"\t"+chr(97+self.pmag_results_data['specimens'][specimen].index(fit))+"\n"
+                STRING=STRING+tmin+"\t"+tmax+"\t"+fit.name+"\n"
                 fout.write(STRING)
         TEXT="specimens interpretations are saved in demag_gui.redo"                
         dlg = wx.MessageDialog(self, caption="Saved",message=TEXT,style=wx.OK|wx.CANCEL )
@@ -4029,7 +4073,7 @@ class Zeq_GUI(wx.Frame):
                         calculation_type=mpars['calculation_type']
                         PmagSpecRec["magic_method_codes"]=self.Data[specimen]['magic_method_codes']+":"+calculation_type+":"+dirtype
                         PmagSpecRec["specimen_comp_n"] = str(len(self.pmag_results_data["specimens"][specimen]))
-                        PmagSpecRec["specimen_comp_name"] = chr(i + 65)
+                        PmagSpecRec["specimen_comp_name"] = fit.name
                         if fit in self.bad_fits:
                             PmagSpecRec["specimen_flag"] = "b"
                         else:
@@ -4284,6 +4328,12 @@ class Zeq_GUI(wx.Frame):
    # def on_close_generic_file(self,WD):
    #     print "Closed"
    #     print WD
+   
+    def on_menu_docs(self,event):
+        webbrowser.open("http://earthref.org/PmagPy/cookbook/#x1-70002.4", new = 2)
+        
+    def on_menu_git(self,event):
+        webbrowser.open("https://github.com/ltauxe/PmagPy", new = 2)
 
     def get_temp_indecies(self, fit = None, tmin = None, tmax = None):
 
@@ -4337,9 +4387,11 @@ class Zeq_GUI(wx.Frame):
                 fit_num = map(lambda x: x.name, self.pmag_results_data['specimens'][self.s]).index(fit_val)
             except ValueError:
                 fit_num = -1
-                self.fit_box.SetSelection(fit_num)
-                self.fit_box.SetStringSelection(self.pmag_results_data['specimens'][self.s][fit_num].name)
             self.pmag_results_data['specimens'][self.s][fit_num].select()
+
+    def on_enter_fit_name(self,event):
+        self.current_fit.name = self.fit_box.GetValue()
+        self.update_fit_box()
 
     def add_fit(self,event):
         if not (self.s in self.pmag_results_data['specimens'].keys()):
@@ -4484,6 +4536,7 @@ class Fit():
             self.GUI.update_temp_boxes()
         try: self.GUI.zijplot
         except AttributeError: self.GUI.draw_figure(self.GUI.s)
+        self.GUI.fit_box.SetStringSelection(self.name)
         self.GUI.get_new_PCA_parameters(-1)
 
     def get(self,coordinate_system):
@@ -4524,6 +4577,9 @@ class Fit():
             self.tiltpars = new_pars
         else:
             print('-E- no such coordinate system could not assign those parameters to fit')
+            
+    def has_values(self, name, tmin, tmax):
+        return str(self.name) == str(name) and str(self.tmin) == str(tmin) and str(self.tmax) == str(tmax)
 
     def __str__(self):
         try: return self.name + ", " + str(self.num) + ": \n" + "Tmax = " + self.tmax + ", Tmin = " + self.tmin + "\n" + "Color = " + self.color
