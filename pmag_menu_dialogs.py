@@ -1709,6 +1709,9 @@ class Ani_depthplot(wx.Frame):
         sampfile = os.path.join(self.WD, 'er_samples.txt')
         self.check_and_add_file(sampfile, self.bSizer2.file_path)
 
+        #---sizer 2b---
+        self.bSizer2b = pw.choose_file(pnl, btn_text="Add core summary file (optional)", method = self.on_add_summary_button)
+
         #---sizer 3---
         self.bSizer3 = pw.radio_buttons(pnl, ['svg', 'eps', 'pdf', 'png'], "Save plot in this format:")
         
@@ -1730,6 +1733,7 @@ class Ani_depthplot(wx.Frame):
         vbox.Add(self.bSizer1, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(self.bSizer2a, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(self.bSizer2, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        vbox.Add(self.bSizer2b, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(self.bSizer3, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(self.bSizer4, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         hbox1 = wx.BoxSizer(wx.HORIZONTAL)
@@ -1769,6 +1773,10 @@ class Ani_depthplot(wx.Frame):
             self.bSizer2.add_file_button.SetLabel('add er_ages_file')
             self.check_and_add_file(os.path.join(self.WD, 'er_ages.txt'), self.bSizer2.file_path)
 
+    def on_add_summary_button(self, event):
+        pw.on_add_file_button(self.bSizer2b, self.WD, event, text="provide csv format core summary file")
+
+
     def check_and_add_file(self, infile, add_here):
         if os.path.isfile(infile):
             add_here.SetValue(infile)
@@ -1783,6 +1791,11 @@ class Ani_depthplot(wx.Frame):
             samp_file = self.bSizer2.return_value()
         else:
             age_file = self.bSizer2.return_value()
+
+        sum_file = self.bSizer2b.return_value()
+        if sum_file:
+            sum_file = os.path.split(sum_file)[1]
+            
         fmt = self.bSizer3.return_value()
         depth_scale = self.bSizer4.return_value()
         print 'age_file', age_file
@@ -1794,8 +1807,6 @@ class Ani_depthplot(wx.Frame):
             depth_scale = 'sample_composite_depth' #'mcd'
         dmin = self.bSizer5.return_value() or -1
         dmax = self.bSizer6.return_value() or -1
-
-        sum_file = None
 
         # for use as module:
         import ipmag
