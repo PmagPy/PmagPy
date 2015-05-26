@@ -363,7 +363,7 @@ class Zeq_GUI(wx.Frame):
 
         self.box_sizer_fit = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY, "Interpretations" ), wx.VERTICAL )
 
-        self.fit_box = wx.ComboBox(self.panel, -1 ,size=(100*self.GUI_RESOLUTION, 25),choices=list_fits, style=wx.CB_DROPDOWN)
+        self.fit_box = wx.ComboBox(self.panel, -1 ,size=(100*self.GUI_RESOLUTION, 25),choices=list_fits, style=wx.CB_DROPDOWN|wx.TE_PROCESS_ENTER)
         self.Bind(wx.EVT_COMBOBOX, self.on_select_fit,self.fit_box)
         self.Bind(wx.EVT_TEXT_ENTER, self.on_enter_fit_name, self.fit_box)
 
@@ -423,7 +423,7 @@ class Zeq_GUI(wx.Frame):
         #----------------------------------------------------------------------                     
         self.box_sizer_specimen = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY,"specimen mean type"  ), wx.HORIZONTAL )                        
 #        self.PCA_type_box = wx.ComboBox(self.panel, -1, 'line', size=(100*self.GUI_RESOLUTION, 25),choices=['line','line-anchored','line-with-origin','plane','Fisher'], style=wx.CB_DROPDOWN,name="coordinates")
-        self.PCA_type_box = wx.ComboBox(self.panel, -1, size=(130*self.GUI_RESOLUTION, 25), value='line',choices=['line','line-anchored','line-with-origin','plane','Fisher'], style=wx.CB_DROPDOWN,name="coordinates")
+        self.PCA_type_box = wx.ComboBox(self.panel, -1, size=(100*self.GUI_RESOLUTION, 25), value='line',choices=['line','line-anchored','line-with-origin','plane','Fisher'], style=wx.CB_DROPDOWN,name="coordinates")
         #self.tmin_box = wx.ComboBox(self.panel, -1 ,size=(100*self.GUI_RESOLUTION, 25),choices=self.T_list, style=wx.CB_DROPDOWN)
 
         #self.PCA_type_box.SetFont(font2)
@@ -459,7 +459,7 @@ class Zeq_GUI(wx.Frame):
             #(self.mad_anc_window, wx.EXPAND),
             (self.dang_window, wx.EXPAND),
             (self.alpha95_window, wx.EXPAND)])
-        self.box_sizer_specimen_stat.Add( specimen_stat_window, 0, wx.ALIGN_LEFT, 0 )
+        self.box_sizer_specimen_stat.Add( specimen_stat_window, 0, wx.ALIGN_LEFT, 0)
 
         #----------------------------------------------------------------------                     
         # High level mean window 
@@ -869,7 +869,7 @@ class Zeq_GUI(wx.Frame):
         # Draw Zij plot
         #-----------------------------------------------------------
         self.fig1.clf()
-        self.zijplot = self.fig1.add_axes([0.1,0.1,0.8,0.8],frameon=False, axisbg='None',label='zig_orig',zorder=0)
+        self.zijplot = self.fig1.add_axes([0,.1,1,.85],frameon=False, axisbg='None',label='zig_orig',zorder=0)
         self.zijplot.clear()
         self.zijplot.axis('equal')
         self.zijplot.xaxis.set_visible(False)
@@ -1007,7 +1007,7 @@ class Zeq_GUI(wx.Frame):
 
         
         self.zij_xlim_initial=(xmin, xmax)
-        self.zij_ylim_initial=(ymin, ymax )
+        self.zij_ylim_initial=(ymin, ymax)
         
                 
         self.canvas1.draw()
