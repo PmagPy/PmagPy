@@ -14,6 +14,7 @@ import pmag_widgets as pw
 import thellier_gui_dialogs
 import thellier_gui
 import ipmag
+import shutil
 
 class ImportAzDipFile(wx.Frame):
 
@@ -174,8 +175,12 @@ class MoveFileIntoWD(wx.Frame):
         WD = self.WD
         full_infile = self.bSizer0.return_value()
         infile = os.path.join(WD, os.path.split(full_infile)[1])
-        COMMAND = "cp {} ./".format(full_infile)
-        pw.run_command_and_close_window(self, COMMAND, infile)
+        shutil.copyfile(full_infile, os.path.join(WD, infile))
+        pw.close_window(self, 'Copy infile to {}'.format(WD), infile)
+        #COMMAND = "cp {} ./".format(full_infile)
+        #pw.run_command_and_close_window(self, COMMAND, infile)
+        
+        
 
     def on_cancelButton(self,event):
         self.Destroy()
