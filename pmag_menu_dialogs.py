@@ -1984,6 +1984,7 @@ class PlotFrame(wx.Frame):
 
     def on_save(self, event):
         plt.savefig(self.figname)
+        plt.clf() # clear figure
         dir_path, figname = os.path.split(self.figname)
         if not dir_path:
             dir_path = os.getcwd()
@@ -1996,6 +1997,7 @@ class PlotFrame(wx.Frame):
         dlg = wx.MessageDialog(self, "Are you sure you want to delete this plot?", "Not so fast", style=wx.YES_NO|wx.NO_DEFAULT|wx.ICON_EXCLAMATION)
         response = dlg.ShowModal()
         if response == wx.ID_YES:
+            plt.clf() # clear figure
             dlg.Destroy()
             self.Destroy()
         
