@@ -1,5 +1,6 @@
 #!/usr/bin/env python
-import pmag,sys,string
+#import pmag,sys,string
+import sys
 import ipmag
 import command_line_extractor as extractor
 

@@ -878,8 +878,11 @@ def aniso_depthplot(ani_file='rmag_anisotropy.txt', meas_file='magic_measurement
     # format files to use full path
     ani_file = os.path.join(dir_path, ani_file)
     if not os.path.isfile(ani_file):
+        print "Could not find rmag_anisotropy type file: {}.\nPlease provide a valid file path and try again".format(ani_file)
         return False, "Could not find rmag_anisotropy type file: {}.\nPlease provide a valid file path and try again".format(ani_file)
+    
     meas_file = os.path.join(dir_path, meas_file)
+    #print 'meas_file', meas_file
 
     if age_file:
         if not os.path.isfile(age_file):
@@ -909,9 +912,13 @@ def aniso_depthplot(ani_file='rmag_anisotropy.txt', meas_file='magic_measurement
     else:
         Samps,file_type=pmag.magic_read(samp_file)  # read in sample age info from er_ages.txt format file
         age_unit=Samps[0]['age_unit']
-    for s in Samps:s['er_sample_name']=s['er_sample_name'].upper() # change to upper case for every sample name
-    Meas,file_type=pmag.magic_read(meas_file) 
-    if file_type=='magic_measurements':isbulk=1
+    for s in Samps:
+        s['er_sample_name']=s['er_sample_name'].upper() # change to upper case for every sample name
+    Meas,file_type=pmag.magic_read(meas_file)
+    #print 'meas_file', meas_file
+    #print 'file_type', file_type
+    if file_type=='magic_measurements':
+        isbulk=1
     Data=[]
     Bulks=[]
     BulkDepths=[]
@@ -992,6 +999,7 @@ def aniso_depthplot(ani_file='rmag_anisotropy.txt', meas_file='magic_measurement
         ax.plot(Tau2,Depths,'b^') 
         ax.plot(Tau3,Depths,'ko')
         if sum_file:
+            core_depth_key, core_label_key, Cores = read_core_csv_file(sum_file)
             for core in Cores:
                  depth=float(core[core_depth_key])
                  if depth>dmin and depth<dmax:
@@ -1403,6 +1411,7 @@ def core_depthplot(dir_path='.', meas_file='magic_measurements.txt', spc_file=''
     Cores=[] 
     core_depth_key="Top depth cored CSF (m)"
     if sum_file:
+        sum_file = os.path.join(dir_path, sum_file)
         input=open(sum_file,'rU').readlines()
         if "Core Summary" in input[0]:
             headline=1
@@ -1615,10 +1624,11 @@ def core_depthplot(dir_path='.', meas_file='magic_measurements.txt', spc_file=''
                 pyplot.plot(ResDecs,ResDepths,res_sym,markersize=res_size) 
             if sum_file:
                 for core in Cores:
-                     depth=float(core[core_depth_key]) 
-                     if depth>dmin and depth<dmax:
+                    depth=float(core[core_depth_key]) 
+                    if depth>dmin and depth<dmax:
                         pyplot.plot([0,360.],[depth,depth],'b--')
-                        if pel==plt:pyplot.text(360,depth+tint,core[core_label_key])
+                        if pel==plt:
+                            pyplot.text(360,depth+tint,core[core_label_key])
             if pel==plt:
                 pyplot.axis([0,400,dmax,dmin])
             else:
@@ -4330,7 +4340,7 @@ def agm_magic(agm_file, samp_infile=None, outfile='agm_measurements.txt', spec_o
     MeasRecs=[] 
     meth="LP-HYS"
     version_num=pmag.get_version()
-    er_sample_name,er_site_name,er_location_name="","",""
+    er_sample_name,er_site_name="",""
     Z = 1
 
     er_site_name=""
@@ -4475,4 +4485,34 @@ def agm_magic(agm_file, samp_infile=None, outfile='agm_measurements.txt', spec_o
     return True, output
 
 
-    
+def read_core_csv_file(sum_file):    
+    Cores=[] 
+    core_depth_key="Top depth cored CSF (m)"
+    if os.path.isfile(sum_file):
+        input=open(sum_file,'rU').readlines()
+        if "Core Summary" in input[0]:
+            headline=1
+        else:
+            headline=0
+        keys=input[headline].replace('\n','').split(',')
+        if "Core Top (m)" in keys:
+            core_depth_key="Core Top (m)"
+        if "Top depth cored CSF (m)" in keys:
+            core_dpeth_key="Top depth cored CSF (m)"
+        if "Core Label" in keys:
+            core_label_key="Core Label"
+        if "Core label" in keys:
+            core_label_key="Core label"
+        for line in input[2:]:
+            if 'TOTALS' not in line:
+                CoreRec={}
+                for k in range(len(keys)):CoreRec[keys[k]]=line.split(',')[k]
+                Cores.append(CoreRec)
+        if len(Cores)==0:
+            print 'no Core depth information available: import core summary file'
+            return False, False, []
+        else:
+            return core_depth_key, core_label_key, Cores
+    else:
+        return False, False, []
+        

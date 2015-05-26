@@ -1,9 +1,7 @@
 #!/usr/bin/env python
 
 import unittest
-import sys
 import os
-import numpy as np
 import pmag
 import ipmag
 import matplotlib
@@ -284,6 +282,15 @@ class TestCoreDepthplot(unittest.TestCase):
         self.assertTrue(program_ran)
         self.assertEqual(plot_name, 'DSDP Site 522_m:_LT-AF-Z_core-depthplot.svg')
 
+    def test_core_depthplot_with_sum_file(self):
+        path = os.path.join(WD, 'Datafiles', 'UTESTA', 'UTESTA_MagIC')
+        sum_file = 'CoreSummary_XXX_UTESTA.csv'
+        program_ran, plot_name = ipmag.core_depthplot(dir_path=path, spc_file='pmag_specimens.txt', samp_file='er_samples.txt', meth='AF', step=15, sum_file=sum_file)
+        self.assertTrue(program_ran)
+        outfile = 'UTESTA_m:_LT-AF-Z_core-depthplot.svg'
+        self.assertEqual(plot_name, outfile)
+
+
     def test_core_depthplot_without_full_time_options(self):
         path = os.path.join(WD, 'Datafiles', 'core_depthplot')
         program_ran, error_message = ipmag.core_depthplot(dir_path=path, spc_file='pmag_specimens.txt', samp_file='er_samples.txt', meth='AF', step=15, fmt='png', pltInc=False, logit=True, pltTime=True)#, timescale='gts12', amin=0, amax=3) # pltDec = False causes failure with these data
@@ -310,7 +317,7 @@ class TestAnisoDepthplot(unittest.TestCase):
         self.aniso_WD = os.path.join(WD, 'Datafiles', 'ani_depthplot')
         
     def tearDown(self):
-        filelist = ['magic_measurements.txt', 'my_magic_measurements.txt', 'er_specimens.txt', 'er_samples.txt', 'my_er_samples.txt', 'er_sites.txt', 'rmag_anisotropy.txt', 'my_rmag_anisotropy.txt', 'rmag_results.txt', 'my_rmag_results.txt']
+        filelist = ['magic_measurements.txt', 'my_magic_measurements.txt', 'er_specimens.txt', 'er_samples.txt', 'my_er_samples.txt', 'er_sites.txt', 'rmag_anisotropy.txt', 'my_rmag_anisotropy.txt', 'rmag_results.txt', 'my_rmag_results.txt', 'my_samples.txt']
         pmag.remove_files(filelist, WD)
 
     def test_aniso_depthplot_with_no_files(self):
@@ -320,9 +327,18 @@ class TestAnisoDepthplot(unittest.TestCase):
         self.assertEqual(error_message, "Could not find rmag_anisotropy type file: {}.\nPlease provide a valid file path and try again".format(expected_file))
 
     def test_aniso_depthplot_with_files(self):
-        main_plot, plot_name = ipmag.aniso_depthplot(dir_path=self.aniso_WD)
+        #dir_path = os.path.join(WD, 'Datafiles', 'UTESTA')
+        main_plot, plot_name = ipmag.aniso_depthplot(dir_path=self.aniso_WD, sum_file='CoreSummary_XXX_UTESTA.csv')
         assert(isinstance(main_plot, matplotlib.figure.Figure))
         self.assertEqual(plot_name, 'U1361A_ani_depthplot.svg')
+
+
+    def test_aniso_depthplot_with_sum_file(self):
+        dir_path = os.path.join(WD, 'Datafiles', 'UTESTA', 'UTESTA_MagIC')
+        sum_file = 'CoreSummary_XXX_UTESTA.csv'
+        main_plot, plot_name = ipmag.aniso_depthplot(dir_path=dir_path, sum_file=sum_file)
+        assert(isinstance(main_plot, matplotlib.figure.Figure))
+        self.assertEqual(plot_name, 'UTESTA_ani_depthplot.svg')
 
     def test_aniso_depthplot_with_age_option(self):
         main_plot, plot_name = ipmag.aniso_depthplot(age_file='er_ages.txt', dir_path=self.aniso_WD)

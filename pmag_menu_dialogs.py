@@ -14,6 +14,7 @@ import pmag_widgets as pw
 import thellier_gui_dialogs
 import thellier_gui
 import ipmag
+import shutil
 
 class ImportAzDipFile(wx.Frame):
 
@@ -174,8 +175,9 @@ class MoveFileIntoWD(wx.Frame):
         WD = self.WD
         full_infile = self.bSizer0.return_value()
         infile = os.path.join(WD, os.path.split(full_infile)[1])
-        COMMAND = "cp {} ./".format(full_infile)
-        pw.run_command_and_close_window(self, COMMAND, infile)
+        shutil.copyfile(full_infile, os.path.join(WD, infile))
+        pw.close_window(self, 'Copy infile to {}'.format(WD), infile)
+        
 
     def on_cancelButton(self,event):
         self.Destroy()
@@ -863,16 +865,16 @@ class ImportAgmFolder(wx.Frame):
         files = os.listdir(ID)
         files = [str(f) for f in files if str(f).endswith('.agm') or str(f).endswith('.irm')]
         usr = self.bSizer1.return_value()
-        if usr:
-            usr = "-usr " + usr
+        #if usr:
+        #    usr = "-usr " + usr
         spc = self.bSizer2.return_value()
         ncn = self.bSizer3.return_value()
         loc = self.bSizer4.return_value()
-        if loc:
-            loc = "-loc " + loc
+        #if loc:
+        #    loc = "-loc " + loc
         ins = self.bSizer5.return_value()
-        if ins:
-            ins = "-ins " + ins
+        #if ins:
+        #    ins = "-ins " + ins
         units = self.bSizer5.return_value()
         if units:
             units = 'cgs'
@@ -882,15 +884,17 @@ class ImportAgmFolder(wx.Frame):
         for f in files:
             if f.endswith('.irm'):
                 bak = "-bak"
+                bak_curve = True
             else:
                 bak = ""
+                bak_curve = False
             outfile = f + ".magic"
             COMMAND = "agm_magic.py -WD {} -ID {} -f {} -F {} {} -spc {} -ncn {} {} {} -u {} {}".format(WD, ID, f, outfile, usr, spc, ncn, loc, ins, units, bak)
             if files.index(f) == (len(files) - 1): # terminate process on last file call
-                pw.run_command_and_close_window(self, COMMAND, outfile)
-            else:
-                pw.run_command(self, COMMAND, outfile)
-                
+                ipmag.agm_magic(f, outfile=outfile, user=usr, input_dir_path=ID, output_dir_path=WD, backfield_curve=bak_curve, specnum=spc, samp_con=ncn, er_location_name=loc, units=units, inst=ins)
+                pw.close_window(self, COMMAND, outfile) # close window
+            else: # continue through
+                ipmag.agm_magic(f, outfile=outfile, user=usr, input_dir_path=ID, output_dir_path=WD, backfield_curve=bak_curve, specnum=spc, samp_con=ncn, er_location_name=loc, units=units, inst=ins)
 
     def on_cancelButton(self,event):
         self.Destroy()
@@ -1709,6 +1713,9 @@ class Ani_depthplot(wx.Frame):
         sampfile = os.path.join(self.WD, 'er_samples.txt')
         self.check_and_add_file(sampfile, self.bSizer2.file_path)
 
+        #---sizer 2b---
+        self.bSizer2b = pw.choose_file(pnl, btn_text="Add core summary file (optional)", method = self.on_add_summary_button)
+
         #---sizer 3---
         self.bSizer3 = pw.radio_buttons(pnl, ['svg', 'eps', 'pdf', 'png'], "Save plot in this format:")
         
@@ -1730,6 +1737,7 @@ class Ani_depthplot(wx.Frame):
         vbox.Add(self.bSizer1, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(self.bSizer2a, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(self.bSizer2, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        vbox.Add(self.bSizer2b, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(self.bSizer3, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(self.bSizer4, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         hbox1 = wx.BoxSizer(wx.HORIZONTAL)
@@ -1769,6 +1777,10 @@ class Ani_depthplot(wx.Frame):
             self.bSizer2.add_file_button.SetLabel('add er_ages_file')
             self.check_and_add_file(os.path.join(self.WD, 'er_ages.txt'), self.bSizer2.file_path)
 
+    def on_add_summary_button(self, event):
+        pw.on_add_file_button(self.bSizer2b, self.WD, event, text="provide csv format core summary file")
+
+
     def check_and_add_file(self, infile, add_here):
         if os.path.isfile(infile):
             add_here.SetValue(infile)
@@ -1783,6 +1795,11 @@ class Ani_depthplot(wx.Frame):
             samp_file = self.bSizer2.return_value()
         else:
             age_file = self.bSizer2.return_value()
+
+        sum_file = self.bSizer2b.return_value()
+        if sum_file:
+            sum_file = os.path.split(sum_file)[1]
+            
         fmt = self.bSizer3.return_value()
         depth_scale = self.bSizer4.return_value()
         print 'age_file', age_file
@@ -1794,8 +1811,6 @@ class Ani_depthplot(wx.Frame):
             depth_scale = 'sample_composite_depth' #'mcd'
         dmin = self.bSizer5.return_value() or -1
         dmax = self.bSizer6.return_value() or -1
-
-        sum_file = None
 
         # for use as module:
         import ipmag
@@ -1973,6 +1988,7 @@ class PlotFrame(wx.Frame):
 
     def on_save(self, event):
         plt.savefig(self.figname)
+        plt.clf() # clear figure
         dir_path, figname = os.path.split(self.figname)
         if not dir_path:
             dir_path = os.getcwd()
@@ -1985,6 +2001,7 @@ class PlotFrame(wx.Frame):
         dlg = wx.MessageDialog(self, "Are you sure you want to delete this plot?", "Not so fast", style=wx.YES_NO|wx.NO_DEFAULT|wx.ICON_EXCLAMATION)
         response = dlg.ShowModal()
         if response == wx.ID_YES:
+            plt.clf() # clear figure
             dlg.Destroy()
             self.Destroy()
         
