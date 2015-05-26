@@ -275,20 +275,25 @@ class select_declination(wx.StaticBoxSizer):
 class replicate_measurements(wx.StaticBoxSizer):
     
     def __init__(self, parent):
-        box = wx.StaticBox( parent, wx.ID_ANY, "" )
+        box = wx.StaticBox(parent, wx.ID_ANY, "")
         super(replicate_measurements, self).__init__(box, orient=wx.HORIZONTAL)
-        TEXT="replicate measurements:"
-        replicate_text = wx.StaticText(parent,label=TEXT,style=wx.TE_CENTER)
-        self.replicate_rb1 = wx.RadioButton(parent, -1, 'Use all measurements', style=wx.RB_GROUP)
+        text = "replicate measurements:"
+        replicate_text = wx.StaticText(parent, label=text, style=wx.TE_CENTER)
+        #self.replicate_rb1 = wx.RadioButton(parent, -1, 'Use all measurements', style=wx.RB_GROUP)
+        self.replicate_rb1 = wx.RadioButton(parent, -1, 'Average replicates', style=wx.RB_GROUP)
         self.replicate_rb1.SetValue(True)
-        self.replicate_rb2 = wx.RadioButton(parent, -1, 'take only last measurement from replicate measurements')
-        self.Add(replicate_text,wx.ALIGN_LEFT)
+        #self.replicate_rb2 = wx.RadioButton(parent, -1, 'take only last measurement from replicate measurements')
+        self.replicate_rb2 = wx.RadioButton(parent, -1, 'Import all replicates')
+        self.Add(replicate_text, wx.ALIGN_LEFT)
         self.AddSpacer(8)
-        self.Add(self.replicate_rb1,wx.ALIGN_LEFT)
+        self.Add(self.replicate_rb1, wx.ALIGN_LEFT)
         self.AddSpacer(8)
-        self.Add(self.replicate_rb2,wx.ALIGN_LEFT)
+        self.Add(self.replicate_rb2, wx.ALIGN_LEFT)
 
     def return_value(self):
+        """
+        return boolean
+        """
         if self.replicate_rb1.GetValue():
             return True
         else:
