@@ -520,7 +520,6 @@ class combine_files(wx.BoxSizer):
 
         bSizer0b = wx.StaticBoxSizer(wx.StaticBox(self.parent.panel, wx.ID_ANY, ""), wx.VERTICAL)
         self.file_paths = wx.TextCtrl(self.parent.panel, id=-1, size=(400, 200), style=wx.TE_MULTILINE)
-        text = "files list:"
         bSizer0b.AddSpacer(5)
         bSizer0b.Add(wx.StaticText(self.parent.panel, label=text), wx.ALIGN_LEFT)
         bSizer0b.AddSpacer(5)
