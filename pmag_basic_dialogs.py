@@ -2224,7 +2224,7 @@ class something(wx.Frame):
         self.Parent.Raise()
 
     def on_helpButton(self, event):
-        pw.on_helpButton("-h")
+        pw.on_helpButton(text='')
 
 
 #=================================================================
@@ -3804,7 +3804,6 @@ You may use the drop-down menus to add as many values as needed in these columns
         """pulls up next dialog, if there is one.
         gets any updated information from the current grid and runs ErMagicBuilder"""
         #wait = wx.BusyInfo("Please wait, working...")
-
 
         # unhighlight selected columns, etc.
         if self.drop_down_menu:  

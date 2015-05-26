@@ -4,13 +4,13 @@ import wx.lib.buttons as buttons
 #import thellier_gui_dialogs
 import os
 import sys
-import datetime
-import shutil
+#import datetime
+#import shutil
 import pmag
 import ipmag
 import pmag_basic_dialogs
 import pmag_menu
-import check_updates
+#import check_updates
 
 
 class MagMainFrame(wx.Frame):
@@ -18,7 +18,7 @@ class MagMainFrame(wx.Frame):
     try:
         version= pmag.get_version()
     except:
-        version=""
+        version = ""
     title = "QuickMagIC   version: %s"%version
 
     def __init__(self, WD=None):
@@ -314,13 +314,8 @@ class MagMainFrame(wx.Frame):
         outstring="thellier_gui.py -WD %s"%self.WD
         print "-I- running python script:\n %s"%(outstring)
         
-        # to run as module:
         import thellier_gui
         thellier_gui.do_main(self.WD, standalone_app=False, parent=self)
-        
-        # to run as command line:
-        #os.system(outstring)
-
 
     def on_run_demag_gui(self,event):
         outstring="demag_gui.py -WD %s"%self.WD
@@ -329,9 +324,6 @@ class MagMainFrame(wx.Frame):
         import demag_gui
         demag_gui.do_main(self.WD, standalone_app=False, parent=self)
 
-        # for use as command line:
-        #os.system(outstring)
-        
     def on_convert_file(self,event):
         pmag_dialogs_dia=pmag_basic_dialogs.import_magnetometer_data(self, wx.ID_ANY, '',self.WD)
         pmag_dialogs_dia.Show()
@@ -433,53 +425,34 @@ class MagMainFrame(wx.Frame):
         ex = None 
         try:
             if ipmag.download_magic(f, self.WD, input_dir, overwrite=True):
-                TXT="Successfully ran download_magic.py program.\nMagIC files were saved in your working directory.\nSee Terminal/Command Prompt for details."
+                text = "Successfully ran download_magic.py program.\nMagIC files were saved in your working directory.\nSee Terminal/Command Prompt for details."
             else:
-                TXT = "Something went wrong.  Make sure you chose a valid file downloaded from the MagIC database and try again."
+                text = "Something went wrong.  Make sure you chose a valid file downloaded from the MagIC database and try again."
 
         except Exception as ex:
-            TXT = "Something went wrong.  Make sure you chose a valid file downloaded from the MagIC database and try again."
+            text = "Something went wrong.  Make sure you chose a valid file downloaded from the MagIC database and try again."
         del wait    
-        dlg = wx.MessageDialog(self, caption="Saved",message=TXT,style=wx.OK)
+        dlg = wx.MessageDialog(self, caption="Saved", message=text, style=wx.OK)
         result = dlg.ShowModal()
-        if result == wx.ID_OK:            
+        if result == wx.ID_OK:
             dlg.Destroy()
         if ex:
             raise(ex)
 
-        
-        # run as command_line:
-        #print "-I- running python script:\n %s"%(outstring)
-        #os.system(outstring)
-        
-        #TXT="Running download_magic.py program. Check terminal (Mac) or command prompt (windows) for error/warnings\n If no errors occur then MagIC files were save in MagIC Project Directory"
-        #dlg = wx.MessageDialog(self, caption="Saved",message=TXT,style=wx.OK)
-        #result = dlg.ShowModal()
-        #if result == wx.ID_OK:            
-        #    dlg.Destroy()
-        
+
     def on_btn_upload(self,event):
         outstring="upload_magic.py"
         print "-I- running python script:\n %s"%(outstring)
         wait = wx.BusyInfo("Please wait, working...")
-        
-        # to run as command line:
-        #os.system(outstring)
-        #TXT="Check terminal (Mac) or command prompt (windows) for error/warnings.\nIf all went well, a file name upload_dos.txt was generated in MagIC Project Directory.\nDrag and drop this file in the MagIC database."
-        #dlg = wx.MessageDialog(self, caption="Saved",message=TXT,style=wx.OK)
-        #result = dlg.ShowModal()
-        #if result == wx.ID_OK:            
-        #    dlg.Destroy()
 
-        # to run as module:
         upfile, error_message = ipmag.upload_magic(dir_path=self.WD)
         del wait
         if upfile:
-            TXT="You are ready to upload.\n Your file: {}  was generated in MagIC Project Directory.\nDrag and drop this file in the MagIC database.".format(os.path.split(upfile)[1])
-            dlg = wx.MessageDialog(self, caption="Saved",message=TXT,style=wx.OK)
+            text = "You are ready to upload.\n Your file: {}  was generated in MagIC Project Directory.\nDrag and drop this file in the MagIC database.".format(os.path.split(upfile)[1])
+            dlg = wx.MessageDialog(self, caption="Saved", message=text, style=wx.OK)
         else:
-            TXT="There were some problems with the creation of your upload file.\nError message: {}\nSee Terminal/Command Prompt for details".format(error_message)
-            dlg = wx.MessageDialog(self, caption="Error",message=TXT,style=wx.OK)
+            text = "There were some problems with the creation of your upload file.\nError message: {}\nSee Terminal/Command Prompt for details".format(error_message)
+            dlg = wx.MessageDialog(self, caption="Error", message=text, style=wx.OK)
         result = dlg.ShowModal()
         if result == wx.ID_OK:            
             dlg.Destroy()
@@ -496,11 +469,11 @@ class MagMainFrame(wx.Frame):
         try:
             sys.exit() # can raise TypeError if wx inspector was used
         except Exception as ex:
-            if type(ex) == TypeError:  # suppress that TypeError, but raise others
+            if isinstance(ex, TypeError):
                 pass
             else:
-                raise(ex)
-            
+                raise ex
+
 
 
 if __name__ == "__main__":
