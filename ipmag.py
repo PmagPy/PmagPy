@@ -4340,7 +4340,7 @@ def agm_magic(agm_file, samp_infile=None, outfile='agm_measurements.txt', spec_o
     MeasRecs=[] 
     meth="LP-HYS"
     version_num=pmag.get_version()
-    er_sample_name,er_site_name,er_location_name="","",""
+    er_sample_name,er_site_name="",""
     Z = 1
 
     er_site_name=""

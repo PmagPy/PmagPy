@@ -177,9 +177,6 @@ class MoveFileIntoWD(wx.Frame):
         infile = os.path.join(WD, os.path.split(full_infile)[1])
         shutil.copyfile(full_infile, os.path.join(WD, infile))
         pw.close_window(self, 'Copy infile to {}'.format(WD), infile)
-        #COMMAND = "cp {} ./".format(full_infile)
-        #pw.run_command_and_close_window(self, COMMAND, infile)
-        
         
 
     def on_cancelButton(self,event):
@@ -868,16 +865,16 @@ class ImportAgmFolder(wx.Frame):
         files = os.listdir(ID)
         files = [str(f) for f in files if str(f).endswith('.agm') or str(f).endswith('.irm')]
         usr = self.bSizer1.return_value()
-        if usr:
-            usr = "-usr " + usr
+        #if usr:
+        #    usr = "-usr " + usr
         spc = self.bSizer2.return_value()
         ncn = self.bSizer3.return_value()
         loc = self.bSizer4.return_value()
-        if loc:
-            loc = "-loc " + loc
+        #if loc:
+        #    loc = "-loc " + loc
         ins = self.bSizer5.return_value()
-        if ins:
-            ins = "-ins " + ins
+        #if ins:
+        #    ins = "-ins " + ins
         units = self.bSizer5.return_value()
         if units:
             units = 'cgs'
@@ -887,15 +884,17 @@ class ImportAgmFolder(wx.Frame):
         for f in files:
             if f.endswith('.irm'):
                 bak = "-bak"
+                bak_curve = True
             else:
                 bak = ""
+                bak_curve = False
             outfile = f + ".magic"
             COMMAND = "agm_magic.py -WD {} -ID {} -f {} -F {} {} -spc {} -ncn {} {} {} -u {} {}".format(WD, ID, f, outfile, usr, spc, ncn, loc, ins, units, bak)
             if files.index(f) == (len(files) - 1): # terminate process on last file call
-                pw.run_command_and_close_window(self, COMMAND, outfile)
-            else:
-                pw.run_command(self, COMMAND, outfile)
-                
+                ipmag.agm_magic(f, outfile=outfile, user=usr, input_dir_path=ID, output_dir_path=WD, backfield_curve=bak_curve, specnum=spc, samp_con=ncn, er_location_name=loc, units=units, inst=ins)
+                pw.close_window(self, COMMAND, outfile) # close window
+            else: # continue through
+                ipmag.agm_magic(f, outfile=outfile, user=usr, input_dir_path=ID, output_dir_path=WD, backfield_curve=bak_curve, specnum=spc, samp_con=ncn, er_location_name=loc, units=units, inst=ins)
 
     def on_cancelButton(self,event):
         self.Destroy()
