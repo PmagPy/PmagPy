@@ -2246,8 +2246,8 @@ class OrientFrameGrid(wx.Frame):
         else:
             self.panel = wx.Panel(self, style=wx.SIMPLE_BORDER)
 
-        self.WD=WD
-        self.Data_hierarchy=Data_hierarchy
+        self.WD = WD
+        self.Data_hierarchy = Data_hierarchy
         self.grid = None
         
 
