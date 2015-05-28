@@ -571,6 +571,32 @@ def plot_pole(mapname,plong,plat,A95,label='',color='k',marker='o',markersize=20
     if legend=='yes':
         pylab.legend(loc=2)
 
+def plot_pole_colorbar(mapname,plong,plat,A95,cmap,vmin,vmax,label='',color='k',marker='o',markersize='20',alpha='1.0',legend='no'):
+    """
+    This function plots a paleomagnetic pole and A95 error ellipse on whatever 
+    current map projection has been set using the basemap plotting library.
+
+    Required Parameters
+    -----------
+    mapname : the name of the current map that has been developed using basemap
+    plong : the longitude of the paleomagnetic pole being plotted (in degrees E)
+    plat : the latitude of the paleomagnetic pole being plotted (in degrees)
+    A95 : the A_95 confidence ellipse of the paleomagnetic pole (in degrees)
+    
+    Optional Parameters
+    -----------
+    label : a string that is the label for the paleomagnetic pole being plotted
+    color : the color desired for the symbol and its A95 ellipse (default is 'k' aka black)
+    marker : the marker shape desired for the pole mean symbol (default is 'o' aka a circle)
+    legend : the default is no legend ('no'). Putting 'yes' will plot a legend.
+    """
+    centerlon, centerlat = mapname(plong,plat)
+    A95_km=A95*111.32
+    mapname.scatter(centerlon,centerlat,c=cmap,vmin=vmin,vmax=vmax,s=markersize,marker=marker,color=color,alpha=alpha,label=label,zorder=101)
+    equi_color(mapname, plong, plat, A95_km, color, alpha)
+    if legend=='yes':
+        pylab.legend(loc=2)
+
 def plot_vgp(mapname,plong,plat,label='',color='k',marker='o',legend='no'):
     """
     This function plots a paleomagnetic pole on whatever current map projection
