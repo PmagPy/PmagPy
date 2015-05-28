@@ -3,6 +3,7 @@
 #--------------------------------------------------------------
 # converting magnetometer files to MagIC format
 #--------------------------------------------------------------
+
 import wx
 import os
 import pmag
@@ -100,9 +101,9 @@ class ImportAzDipFile(wx.Frame):
         try:
             app = self.bSizer4.return_value()
             if app:
-                app = False#"" # overwrite is True
+                app = False #"" # overwrite is True
             else:
-                app = True#"-app" # overwrite is False, append instead
+                app = True #"-app" # overwrite is False, append instead
         except AttributeError:
             app = ""
         #COMMAND = "azdip_magic.py -f {} -Fsa {} -ncn {} {} {} {}".format(full_infile, Fsa, ncn, loc, mcd, app)
@@ -124,7 +125,7 @@ class ImportAzDipFile(wx.Frame):
         self.Parent.Raise()
 
     def on_helpButton(self, event):
-        pw.on_helpButton("azdip_magic.py -h")
+        pw.on_helpButton(text=ipmag.azdip_magic.__doc__)
 
 
 #class ImportODPCoreSummary(wx.Frame):
@@ -250,7 +251,7 @@ class ImportIODPSampleSummary(wx.Frame):
         self.Parent.Raise()
 
     def on_helpButton(self, event):
-        pw.on_helpButton("IODP_samples_magic.py -h")
+        pw.on_helpButton(text=ipmag.IODP_samples_magic.__doc__)
 
 
 """
@@ -781,7 +782,7 @@ class ImportAgmFile(wx.Frame):
         self.Parent.Raise()
 
     def on_helpButton(self, event):
-        pw.on_helpButton(text=ipmag.agm_mgaic.__doc__)
+        pw.on_helpButton(text=ipmag.agm_magic.__doc__)
 
                          
 class ImportAgmFolder(wx.Frame):
@@ -901,7 +902,7 @@ class ImportAgmFolder(wx.Frame):
         self.Parent.Raise()
 
     def on_helpButton(self, event):
-        pw.on_helpButton(".py -h")
+        pw.on_helpButton(text=ipmag.agm_magic.__doc__)
 
 
 ### Analysis and plots
@@ -1188,7 +1189,7 @@ class ZeqMagic(wx.Frame):
         self.Parent.Raise()
 
     def on_helpButton(self, event):
-        pw.on_helpButton(".py -h")
+        pw.on_helpButton(text='')
 
 
 
@@ -1676,7 +1677,7 @@ class Core_depthplot(wx.Frame):
         self.Parent.Raise()
 
     def on_helpButton(self, event):
-        pw.on_helpButton("core_depthplot.py -h")
+        pw.on_helpButton(text=ipmag.core_depthplot.__doc__)
 
         
 
@@ -1830,7 +1831,7 @@ class Ani_depthplot(wx.Frame):
         self.Parent.Raise()
 
     def on_helpButton(self, event):
-        pw.on_helpButton("ANI_depthplot.py -h")
+        pw.on_helpButton(text=ipmag.aniso_depthplot.__doc__)
 
 
 
@@ -1920,7 +1921,7 @@ class something(wx.Frame):
         self.Parent.Raise()
 
     def on_helpButton(self, event):
-        pw.on_helpButton(".py -h")
+        pw.on_helpButton(text='')
 
 
 

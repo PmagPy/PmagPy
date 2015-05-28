@@ -5,22 +5,22 @@ import wx
 import wx.html
 
 
-# library for commonly used widgets.  
+# library for commonly used widgets.
 
 class choose_file(wx.StaticBoxSizer):
 
     def __init__(self, parent, orient=wx.VERTICAL, btn_text='add', method=None, remove_button=False):
-        box = wx.StaticBox( parent, wx.ID_ANY, "" )
+        box = wx.StaticBox(parent, wx.ID_ANY, "")
         super(choose_file, self).__init__(box, orient=wx.VERTICAL)
         self.btn_text = btn_text
         self.method = method
         self.parent = parent
-        self.file_path = wx.TextCtrl(self.parent, id=-1, size=(525,25), style=wx.TE_READONLY)
-        self.add_file_button = wx.Button(self.parent, id=-1, label=btn_text,name=btn_text)
+        self.file_path = wx.TextCtrl(self.parent, id=-1, size=(525, 25), style=wx.TE_READONLY)
+        self.add_file_button = wx.Button(self.parent, id=-1, label=btn_text, name=btn_text)
         if method:
             self.parent.Bind(wx.EVT_BUTTON, method, self.add_file_button)
-        TEXT="Choose file (no spaces are allowed in path):"
-        self.Add(wx.StaticText(self.parent, label=TEXT),flag=wx.ALIGN_LEFT)
+        text = "Choose file (no spaces are allowed in path):"
+        self.Add(wx.StaticText(self.parent, label=text), flag=wx.ALIGN_LEFT)
         self.AddSpacer(4)
         if remove_button:
             if isinstance(remove_button, str):
@@ -30,7 +30,7 @@ class choose_file(wx.StaticBoxSizer):
             rm_button = wx.Button(self.parent, id=-1, label=label, name="remove file")
             self.Add(rm_button, flag=wx.BOTTOM, border=4)
             self.parent.Bind(wx.EVT_BUTTON, self.on_remove_button, rm_button)
-        bSizer0_1=wx.BoxSizer(wx.HORIZONTAL)
+        bSizer0_1 = wx.BoxSizer(wx.HORIZONTAL)
         bSizer0_1.Add(self.add_file_button, wx.ALIGN_LEFT)
         bSizer0_1.AddSpacer(4)
         bSizer0_1.Add(self.file_path, wx.ALIGN_LEFT)
@@ -38,30 +38,27 @@ class choose_file(wx.StaticBoxSizer):
 
     def on_remove_button(self, event):
         self.file_path.SetValue("")
-        
+
     def return_value(self):
         return self.file_path.GetValue()
 
-
-
-
-class NotEmptyValidator(wx.PyValidator): 
+class NotEmptyValidator(wx.PyValidator):
     def __init__(self): 
         print "initing validator"
-        wx.PyValidator.__init__(self) 
+        wx.PyValidator.__init__(self)
 
-    def Clone(self): 
-        """ 
-        Note that every validator must implement the Clone() method. 
-        """ 
+    def Clone(self):
+        """
+        Note that every validator must implement the Clone() method.
+        """
         print "doing Clone"
         return NotEmptyValidator() 
 
-    def Validate(self, win): 
+    def Validate(self, win):
         print "doing Validate"
-        textCtrl = self.GetWindow() 
-        text = textCtrl.GetValue() 
-        if len(text) == 0: 
+        textCtrl = self.GetWindow()
+        text = textCtrl.GetValue()
+        if len(text) == 0:
             print "textCtrl.Name:", textCtrl.Name
             wx.MessageBox("{} must contain some text!".format(str(textCtrl.Name)), "Error") 
             textCtrl.SetBackgroundColour("pink") 
@@ -91,18 +88,18 @@ class choose_dir(wx.StaticBoxSizer):
         super(choose_dir, self).__init__(box, orient=wx.VERTICAL)
         self.btn_text = btn_text
         self.parent = parent
-        self.parent.dir_path = wx.TextCtrl(parent, id=-1, size=(400,25), style=wx.TE_READONLY)
-        self.add_dir_button = wx.Button(parent, id=-1, label=btn_text,name='add')
+        self.parent.dir_path = wx.TextCtrl(parent, id=-1, size=(400, 25), style=wx.TE_READONLY)
+        self.add_dir_button = wx.Button(parent, id=-1, label=btn_text, name='add')
         if method:
             self.parent.Bind(wx.EVT_BUTTON, method, self.add_dir_button)
-        TEXT="Choose folder (no spaces are allowed in path):"
-        self.Add(wx.StaticText(self.parent, label=TEXT),wx.ALIGN_LEFT)
+        text = "Choose folder (no spaces are allowed in path):"
+        self.Add(wx.StaticText(self.parent, label=text), wx.ALIGN_LEFT)
         self.AddSpacer(4)
-        bSizer0_1=wx.BoxSizer(wx.HORIZONTAL)
-        bSizer0_1.Add(self.add_dir_button,wx.ALIGN_LEFT)
+        bSizer0_1 = wx.BoxSizer(wx.HORIZONTAL)
+        bSizer0_1.Add(self.add_dir_button, wx.ALIGN_LEFT)
         bSizer0_1.AddSpacer(4)
-        bSizer0_1.Add(self.parent.dir_path,wx.ALIGN_LEFT)
-        self.Add(bSizer0_1,wx.ALIGN_LEFT)
+        bSizer0_1.Add(self.parent.dir_path, wx.ALIGN_LEFT)
+        self.Add(bSizer0_1, wx.ALIGN_LEFT)
 
     def return_value(self):
         return self.parent.dir_path.GetValue()
@@ -111,23 +108,21 @@ class choose_dir(wx.StaticBoxSizer):
 class simple_text(wx.StaticBoxSizer):
     def __init__(self, parent, TEXT):
         self.parent = parent
-        box = wx.StaticBox( self.parent, wx.ID_ANY, "" )
+        box = wx.StaticBox(self.parent, wx.ID_ANY, "")
         super(simple_text, self).__init__(box, orient=wx.HORIZONTAL)
-        self.Add(wx.StaticText(self.parent, label=TEXT),wx.ALIGN_LEFT)
-        
+        self.Add(wx.StaticText(self.parent, label=TEXT), wx.ALIGN_LEFT)
 
 
 class labeled_text_field(wx.StaticBoxSizer):
     def __init__(self, parent, label="User name (optional)"):
         self.parent = parent
-        box = wx.StaticBox( self.parent, wx.ID_ANY, "" )
+        box = wx.StaticBox(self.parent, wx.ID_ANY, "")
         super(labeled_text_field, self).__init__(box, orient=wx.HORIZONTAL)
-        TEXT= label
-        self.Add(wx.StaticText(self.parent, label=TEXT),wx.ALIGN_LEFT)
+        self.Add(wx.StaticText(self.parent, label=label), wx.ALIGN_LEFT)
         self.AddSpacer(4)
-        self.text_field = wx.TextCtrl(self.parent, id=-1, size=(100,25))
-        self.Add(self.text_field,wx.ALIGN_LEFT)
-        
+        self.text_field = wx.TextCtrl(self.parent, id=-1, size=(100, 25))
+        self.Add(self.text_field, wx.ALIGN_LEFT)
+
     def return_value(self):
         return self.text_field.GetValue()
 
@@ -143,9 +138,8 @@ class labeled_spin_ctrl(wx.StaticBoxSizer):
 
     def return_value(self):
         return self.spin_ctrl.GetValue()
-        
-        
-    
+
+
 class labeled_yes_or_no(wx.StaticBoxSizer):
     def __init__(self, parent, TEXT, label1, label2):
         self.parent = parent
@@ -172,38 +166,37 @@ class specimen_n(wx.StaticBoxSizer):
     """-spc option (number of characters defining specimen from sample"""
     def __init__(self, parent, label="number of terminal characters that distinguish specimen from sample"):
         self.parent = parent
-        box = wx.StaticBox( self.parent, wx.ID_ANY, "" )
+        box = wx.StaticBox(self.parent, wx.ID_ANY, "")
         super(specimen_n, self).__init__(box, orient=wx.HORIZONTAL)
-        TEXT= label
-        self.Add(wx.StaticText(self.parent, label=TEXT),wx.ALIGN_LEFT)
+        self.Add(wx.StaticText(self.parent, label=label), wx.ALIGN_LEFT)
         self.AddSpacer(4)
-        self.spc = wx.SpinCtrl(self.parent, id=-1, size=(100,25),min=0, max=9)
+        self.spc = wx.SpinCtrl(self.parent, id=-1, size=(100, 25), min=0, max=9)
         self.spc.SetValue(0)
-        self.Add(self.spc,wx.ALIGN_LEFT)
-        
+        self.Add(self.spc, wx.ALIGN_LEFT)
+
     def return_value(self):
         return self.spc.GetValue()
 
 
 class select_ncn(wx.StaticBoxSizer):  
     """provides box sizer with a drop down menu for the standard naming conventions"""
-    ncn_keys = ['XXXXY', 'XXXX-YY', 'XXXX.YY', 'XXXX[YYY] where YYY is sample designation, enter number of Y', 'sample name=site name', 'Site names in orient.txt file', '[XXXX]YYY where XXXX is the site name, enter number of X']#, 'this is a synthetic and has no site name']
+    ncn_keys = ('XXXXY', 'XXXX-YY', 'XXXX.YY', 'XXXX[YYY] where YYY is sample designation, enter number of Y', 'sample name=site name', 'Site names in orient.txt file', '[XXXX]YYY where XXXX is the site name, enter number of X')#, 'this is a synthetic and has no site name']
     def __init__(self, parent, ncn_keys=ncn_keys):
         self.parent = parent
-        box = wx.StaticBox( parent, wx.ID_ANY, "" )
+        box = wx.StaticBox(parent, wx.ID_ANY, "")
         super(select_ncn, self).__init__(box, orient=wx.VERTICAL)
-        ncn_values = range(1,8)
+        ncn_values = range(1, 8)
         self.sample_naming_conventions = dict(zip(ncn_keys, ncn_values))
-        self.select_naming_convention = wx.ComboBox(parent, -1, ncn_keys[0], size=(440,25), choices=ncn_keys, style=wx.CB_READONLY)
-        self.sample_naming_convention_char = wx.TextCtrl(parent, id=-1, size=(40,25))
-        label1 = wx.StaticText(parent,label="sample-site naming convention:",style=wx.TE_CENTER)
+        self.select_naming_convention = wx.ComboBox(parent, -1, ncn_keys[0], size=(440, 25), choices=ncn_keys, style=wx.CB_READONLY)
+        self.sample_naming_convention_char = wx.TextCtrl(parent, id=-1, size=(40, 25))
+        label1 = wx.StaticText(parent, label="sample-site naming convention:", style=wx.TE_CENTER)
         label2 = wx.StaticText(parent, label="delimiter (if necessary):", style=wx.TE_CENTER)
         gridbSizer = wx.GridBagSizer(5, 10)
         gridbSizer.Add(label1, (0, 0))
         gridbSizer.Add(label2, (0, 1))
         gridbSizer.Add(self.select_naming_convention, (1, 0))
         gridbSizer.Add(self.sample_naming_convention_char, (1, 1))
-        self.Add(gridbSizer,wx.ALIGN_LEFT)
+        self.Add(gridbSizer, wx.ALIGN_LEFT)
 
     def return_value(self):
         selected_ncn = str(self.select_naming_convention.GetValue())
@@ -225,14 +218,14 @@ class select_specimen_ocn(wx.StaticBoxSizer):
         super(select_specimen_ocn, self).__init__(box, orient=wx.VERTICAL)
         label = wx.StaticText(self.parent, label="Orientation:")
         ocn_keys = ["Lab arrow azimuth= mag_azimuth; Lab arrow dip=-field_dip i.e., field_dip is degrees from vertical down - the hade",
-                "Lab arrow azimuth = mag_azimuth-90; Lab arrow dip = -field_dip i.e., mag_azimuth is strike and field_dip is hade",
-                "Lab arrow azimuth = mag_azimuth; Lab arrow dip = 90-field_dip i.e.,  lab arrow same as field arrow, but field_dip was a hade.",
-                "lab azimuth and dip are same as mag_azimuth, field_dip",
-                "lab azimuth is same as mag_azimuth,lab arrow dip=field_dip-90",
-                "Lab arrow azimuth = mag_azimuth-90; Lab arrow dip = 90-field_dip"]
+                    "Lab arrow azimuth = mag_azimuth-90; Lab arrow dip = -field_dip i.e., mag_azimuth is strike and field_dip is hade",
+                    "Lab arrow azimuth = mag_azimuth; Lab arrow dip = 90-field_dip i.e.,  lab arrow same as field arrow, but field_dip was a hade.",
+                    "lab azimuth and dip are same as mag_azimuth, field_dip",
+                    "lab azimuth is same as mag_azimuth,lab arrow dip=field_dip-90",
+                    "Lab arrow azimuth = mag_azimuth-90; Lab arrow dip = 90-field_dip"]
         ocn_values = range(1, 6)
         self.sample_orientation_conventions = dict(zip(ocn_keys, ocn_values))
-        self.select_orientation_convention = wx.ComboBox(parent, -1, ocn_keys[0], size=(705,25), choices=ocn_keys, style=wx.CB_READONLY)
+        self.select_orientation_convention = wx.ComboBox(parent, -1, ocn_keys[0], size=(705, 25), choices=ocn_keys, style=wx.CB_READONLY)
         self.Add(label, wx.ALIGN_LEFT)
         self.Add(self.select_orientation_convention, wx.ALIGN_LEFT)
         self.AddSpacer(8)
@@ -255,11 +248,11 @@ class select_declination(wx.StaticBoxSizer):
         self.dcn = dict(zip(declination_keys, declination_values))
         self.select_dcn = wx.ComboBox(parent, -1, declination_keys[0], size=(405, 25), choices=declination_keys, style=wx.CB_READONLY)
         gridSizer = wx.GridSizer(2, 2, 5, 10)
-        gridSizer.AddMany( [label1, label2, self.select_dcn, self.dec_box])
+        gridSizer.AddMany([label1, label2, self.select_dcn, self.dec_box])
         self.Add(gridSizer, wx.ALIGN_LEFT)
         self.AddSpacer(10)
-        
-        
+
+
 
     def return_value(self):
         selected_dcn = str(self.select_dcn.GetValue())
@@ -267,28 +260,31 @@ class select_declination(wx.StaticBoxSizer):
         if dcn_number == 2:
             return str(dcn_number) + " " + self.dec_box.GetValue()
         else:
-            return dcn_number            
-        
-
+            return dcn_number
 
 
 class replicate_measurements(wx.StaticBoxSizer):
-    
+
     def __init__(self, parent):
-        box = wx.StaticBox( parent, wx.ID_ANY, "" )
+        box = wx.StaticBox(parent, wx.ID_ANY, "")
         super(replicate_measurements, self).__init__(box, orient=wx.HORIZONTAL)
-        TEXT="replicate measurements:"
-        replicate_text = wx.StaticText(parent,label=TEXT,style=wx.TE_CENTER)
-        self.replicate_rb1 = wx.RadioButton(parent, -1, 'Use all measurements', style=wx.RB_GROUP)
+        text = "replicate measurements:"
+        replicate_text = wx.StaticText(parent, label=text, style=wx.TE_CENTER)
+        #self.replicate_rb1 = wx.RadioButton(parent, -1, 'Use all measurements', style=wx.RB_GROUP)
+        self.replicate_rb1 = wx.RadioButton(parent, -1, 'Average replicates', style=wx.RB_GROUP)
         self.replicate_rb1.SetValue(True)
-        self.replicate_rb2 = wx.RadioButton(parent, -1, 'take only last measurement from replicate measurements')
-        self.Add(replicate_text,wx.ALIGN_LEFT)
+        #self.replicate_rb2 = wx.RadioButton(parent, -1, 'take only last measurement from replicate measurements')
+        self.replicate_rb2 = wx.RadioButton(parent, -1, 'Import all replicates')
+        self.Add(replicate_text, wx.ALIGN_LEFT)
         self.AddSpacer(8)
-        self.Add(self.replicate_rb1,wx.ALIGN_LEFT)
+        self.Add(self.replicate_rb1, wx.ALIGN_LEFT)
         self.AddSpacer(8)
-        self.Add(self.replicate_rb2,wx.ALIGN_LEFT)
+        self.Add(self.replicate_rb2, wx.ALIGN_LEFT)
 
     def return_value(self):
+        """
+        return boolean
+        """
         if self.replicate_rb1.GetValue():
             return True
         else:
@@ -296,20 +292,19 @@ class replicate_measurements(wx.StaticBoxSizer):
 
 
 class check_box(wx.StaticBoxSizer):
-    
+
     def __init__(self, parent, text):
         box = wx.StaticBox(parent, wx.ID_ANY, "")
         super(check_box, self).__init__(box, orient=wx.VERTICAL)
-        
         self.cb = wx.CheckBox(parent, -1, text)
         self.Add(self.cb, flag=wx.TOP|wx.BOTTOM, border=8)
 
     def return_value(self):
         return self.cb.GetValue()
-        
+
 
 class radio_buttons(wx.StaticBoxSizer):
-    
+
     def __init__(self, parent, choices, label=None, orientation=wx.VERTICAL):
         box = wx.StaticBox(parent, -1, "")
         super(radio_buttons, self).__init__(box, orient=orientation)
@@ -336,7 +331,7 @@ class large_checkbox_window(wx.StaticBoxSizer):
     def __init__(self, parent, choices, text):
         box = wx.StaticBox(parent, wx.ID_ANY, "")
         super(large_checkbox_window, self).__init__(box, orient=wx.VERTICAL)
-        
+
         self.gridSizer = wx.FlexGridSizer(23, 10, 9, 10)
         labels = [wx.StaticText(parent, label=choice) for choice in sorted(choices)]
         for label in labels:
@@ -352,16 +347,15 @@ class large_checkbox_window(wx.StaticBoxSizer):
         values = []
         for sizer in self.gridSizer.Children:
             if isinstance(sizer.GetWindow(), wx._controls.TextCtrl):
-                values.append(str(sizer.GetWindow().GetValue())) 
+                values.append(str(sizer.GetWindow().GetValue()))
             else:
                 keys.append(str(sizer.GetWindow().Label))
         data_dict = dict(zip(keys, values))
         return [data_dict]
 
 
-
 class check_boxes(wx.StaticBoxSizer):
-    
+
     def __init__(self, parent, gridsize, choices, text):
         """
         __init__(self, parent, gridsize, choices, text)
@@ -369,14 +363,14 @@ class check_boxes(wx.StaticBoxSizer):
         """
         box = wx.StaticBox(parent, wx.ID_ANY, "")
         super(check_boxes, self).__init__(box, orient=wx.VERTICAL)
-        
+
         gridSizer2 = wx.GridSizer(gridsize[0], gridsize[1], gridsize[2], gridsize[3])
         self.boxes = []
-        for n, choice in enumerate(choices):
+        for choice in choices:
             cb = wx.CheckBox(parent, -1, choice)
             self.boxes.append(cb)
             gridSizer2.Add(cb, wx.ALIGN_RIGHT)
-        self.Add(wx.StaticText(parent, label = text), wx.ALIGN_LEFT)
+        self.Add(wx.StaticText(parent, label=text), wx.ALIGN_LEFT)
         self.Add(gridSizer2, wx.ALIGN_RIGHT)
         self.AddSpacer(4)
 
@@ -388,14 +382,13 @@ class check_boxes(wx.StaticBoxSizer):
         return checked
 
 
-
 class sampling_particulars(check_boxes):
 
     def __init__(self, parent):
         gridsize = (5, 2, 0, 0)
-        TEXT = "Sampling Particulars (select all that apply):"
+        text = "Sampling Particulars (select all that apply):"
         particulars = ["FS-FD: field sampling done with a drill", "FS-H: field sampling done with hand samples", "FS-LOC-GPS: field location done with GPS", "FS-LOC-MAP:  field location done with map", "SO-POM:  a Pomeroy orientation device was used", "SO-ASC:  an ASC orientation device was used", "SO-MAG: magnetic compass used for all orientations", "SO-SUN: sun compass used for all orientations", "SO-SM: either magnetic or sun used on all orientations", "SO-SIGHT: orientation from sighting"]
-        super(sampling_particulars, self).__init__(parent, gridsize, particulars, TEXT)
+        super(sampling_particulars, self).__init__(parent, gridsize, particulars, text)
 
     def return_value(self):
         checked = super(sampling_particulars, self).return_value()
@@ -405,31 +398,31 @@ class sampling_particulars(check_boxes):
 
 
 class lab_field(wx.StaticBoxSizer):
-    
+
     def __init__(self, parent):
-        box = wx.StaticBox( parent, wx.ID_ANY, "", size=(100,100))
+        box = wx.StaticBox(parent, wx.ID_ANY, "", size=(100, 100))
         super(lab_field, self).__init__(box, orient=wx.VERTICAL)
-        TEXT="Lab field (leave blank if unnecessary). Example: 40 0 -90"
-        self.file_info_text = wx.StaticText(parent,label=TEXT,style=wx.TE_CENTER)
-        self.file_info_Blab = wx.TextCtrl(parent, id=-1, size=(40,25))
-        self.file_info_Blab_dec = wx.TextCtrl(parent, id=-1, size=(40,25))
-        self.file_info_Blab_inc = wx.TextCtrl(parent, id=-1, size=(40,25))
+        text = "Lab field (leave blank if unnecessary). Example: 40 0 -90"
+        self.file_info_text = wx.StaticText(parent, label=text, style=wx.TE_CENTER)
+        self.file_info_Blab = wx.TextCtrl(parent, id=-1, size=(40, 25))
+        self.file_info_Blab_dec = wx.TextCtrl(parent, id=-1, size=(40, 25))
+        self.file_info_Blab_inc = wx.TextCtrl(parent, id=-1, size=(40, 25))
         gridbSizer3 = wx.GridSizer(2, 3, 0, 10)
-        gridbSizer3.AddMany( [(wx.StaticText(parent,label="B (uT)",style=wx.TE_CENTER),wx.ALIGN_LEFT),
-            (wx.StaticText(parent,label="dec",style=wx.TE_CENTER),wx.ALIGN_LEFT),
-            (wx.StaticText(parent,label="inc",style=wx.TE_CENTER),wx.ALIGN_LEFT),
-            (self.file_info_Blab,wx.ALIGN_LEFT),
-            (self.file_info_Blab_dec,wx.ALIGN_LEFT),
-            (self.file_info_Blab_inc,wx.ALIGN_LEFT)])
-        self.Add(self.file_info_text,wx.ALIGN_LEFT)
+        gridbSizer3.AddMany([(wx.StaticText(parent, label="B (uT)", style=wx.TE_CENTER), wx.ALIGN_LEFT),
+                             (wx.StaticText(parent, label="dec", style=wx.TE_CENTER), wx.ALIGN_LEFT),
+                             (wx.StaticText(parent, label="inc", style=wx.TE_CENTER), wx.ALIGN_LEFT),
+                             (self.file_info_Blab, wx.ALIGN_LEFT),
+                             (self.file_info_Blab_dec, wx.ALIGN_LEFT),
+                             (self.file_info_Blab_inc, wx.ALIGN_LEFT)])
+        self.Add(self.file_info_text, wx.ALIGN_LEFT)
         self.AddSpacer(8)
-        self.Add(gridbSizer3,wx.ALIGN_LEFT)
+        self.Add(gridbSizer3, wx.ALIGN_LEFT)
 
     def return_value(self):
-        lab_field = "{} {} {}".format(self.file_info_Blab.GetValue(), self.file_info_Blab_dec.GetValue(), self.file_info_Blab_inc.GetValue())
-        if lab_field.isspace():
+        labfield = "{} {} {}".format(self.file_info_Blab.GetValue(), self.file_info_Blab_dec.GetValue(), self.file_info_Blab_inc.GetValue())
+        if labfield.isspace():
             return ''
-        return lab_field
+        return labfield
 
 
 class synthetic(wx.StaticBoxSizer):
@@ -437,12 +430,12 @@ class synthetic(wx.StaticBoxSizer):
         box = wx.StaticBox(parent, wx.ID_ANY, "if synthetic:")
         super(synthetic, self).__init__(box, orient=wx.VERTICAL)
         gridSizer = wx.GridSizer(2, 2, 3, 10)
-        institution_text = wx.StaticText(parent,label="Institution (no spaces)", style=wx.TE_CENTER)
+        institution_text = wx.StaticText(parent, label="Institution (no spaces)", style=wx.TE_CENTER)
         self.institution_field = wx.TextCtrl(parent, id=-1, size=(200, 25))
         type_text = wx.StaticText(parent, label="Type (no spaces)", style=wx.TE_CENTER)
         self.type_field = wx.TextCtrl(parent, id=-1, size=(200, 25))
         gridSizer.AddMany([(institution_text, wx.ALIGN_LEFT),
-                           (type_text, wx.ALIGN_LEFT), 
+                           (type_text, wx.ALIGN_LEFT),
                            (self.institution_field, wx.ALIGN_LEFT),
                            (self.type_field, wx.ALIGN_LEFT)])
         self.Add(gridSizer)
@@ -450,12 +443,10 @@ class synthetic(wx.StaticBoxSizer):
     def return_value(self):
         if self.institution_field.GetValue():
             return str(self.institution_field.GetValue()) + ' ' + str(self.type_field.GetValue())
-                                        
-
 
 
 class experiment_type(wx.StaticBoxSizer):
-    exp_names=['AF Demag', 'Thermal (includes thellier but not trm)', 'Shaw method', 'IRM (acquisition)', '3D IRM experiment', 'NRM only', 'TRM acquisition', 'double AF demag', 'triple AF demag (GRM protocol)', 'Cooling rate experiment']
+    exp_names = ('AF Demag', 'Thermal (includes thellier but not trm)', 'Shaw method', 'IRM (acquisition)', '3D IRM experiment', 'NRM only', 'TRM acquisition', 'double AF demag', 'triple AF demag (GRM protocol)', 'Cooling rate experiment')
 
     def __init__(self, parent, experiment_names=exp_names):
         box = wx.StaticBox(parent, wx.ID_ANY, "")
@@ -466,12 +457,12 @@ class experiment_type(wx.StaticBoxSizer):
         gridSizer2 = wx.GridSizer(num_rows, 3, 0, 0)
         self.boxes = []
 
-        TEXT = "Experiment type (select all that apply):"
-        for n, experiment in enumerate(experiment_names):
+        text = "Experiment type (select all that apply):"
+        for experiment in experiment_names:
             cb = wx.CheckBox(parent, -1, experiment)
             self.boxes.append(cb)
             gridSizer2.Add(cb, wx.ALIGN_RIGHT)
-        self.Add(wx.StaticText(parent, label = TEXT), wx.ALIGN_LEFT)
+        self.Add(wx.StaticText(parent, label=text), wx.ALIGN_LEFT)
         self.Add(gridSizer2, wx.ALIGN_RIGHT)
         self.AddSpacer(4)
 
@@ -487,7 +478,7 @@ class experiment_type(wx.StaticBoxSizer):
         for ex in checked:
             experiment_string += experiment_key[ex] + ':'
         return experiment_string[:-1]
-    
+
 
 class btn_panel(wx.BoxSizer):
 
@@ -504,36 +495,35 @@ class btn_panel(wx.BoxSizer):
         SELF.Bind(wx.EVT_BUTTON, SELF.on_helpButton, SELF.helpButton)
 
         self.Add(SELF.okButton, 0, wx.ALL, 5)
-        self.Add(SELF.cancelButton, 0, wx.ALL, 5 )
+        self.Add(SELF.cancelButton, 0, wx.ALL, 5)
         self.Add(SELF.helpButton, 0, wx.ALL, 5)
 
 
 class combine_files(wx.BoxSizer):
-    
+
     def __init__(self, parent, text):
         super(combine_files, self).__init__(wx.VERTICAL)
         self.parent = parent
         self.WD = self.parent.WD
         self.text = text
 
-        bSizer0a =  wx.StaticBoxSizer( wx.StaticBox( self.parent.panel, wx.ID_ANY, "" ), wx.HORIZONTAL )
-        self.add_file_button = wx.Button(self.parent.panel, id=-1, label='add file',name='add')
-        self.parent.Bind(wx.EVT_BUTTON, self.on_add_file_button, self.add_file_button)    
-        self.add_all_files_button = wx.Button(self.parent.panel, id=-1, label="add all *_" + text + " files",name='add_all')
-        self.parent.Bind(wx.EVT_BUTTON, self.on_add_all_files_button, self.add_all_files_button)    
+        bSizer0a = wx.StaticBoxSizer(wx.StaticBox(self.parent.panel, wx.ID_ANY, ""), wx.HORIZONTAL)
+        self.add_file_button = wx.Button(self.parent.panel, id=-1, label='add file', name='add')
+        self.parent.Bind(wx.EVT_BUTTON, self.on_add_file_button, self.add_file_button)
+        self.add_all_files_button = wx.Button(self.parent.panel, id=-1, label="add all *_" + text + " files", name='add_all')
+        self.parent.Bind(wx.EVT_BUTTON, self.on_add_all_files_button, self.add_all_files_button)
         bSizer0a.AddSpacer(5)
-        bSizer0a.Add(self.add_file_button,wx.ALIGN_LEFT)
+        bSizer0a.Add(self.add_file_button, wx.ALIGN_LEFT)
         bSizer0a.AddSpacer(5)
-        bSizer0a.Add(self.add_all_files_button,wx.ALIGN_LEFT)
+        bSizer0a.Add(self.add_all_files_button, wx.ALIGN_LEFT)
         bSizer0a.AddSpacer(5)
 
-        bSizer0b =  wx.StaticBoxSizer( wx.StaticBox( self.parent.panel, wx.ID_ANY, "" ), wx.VERTICAL )
-        self.file_paths = wx.TextCtrl(self.parent.panel, id=-1, size=(400,200), style=wx.TE_MULTILINE)
-        TEXT="files list:"
+        bSizer0b = wx.StaticBoxSizer(wx.StaticBox(self.parent.panel, wx.ID_ANY, ""), wx.VERTICAL)
+        self.file_paths = wx.TextCtrl(self.parent.panel, id=-1, size=(400, 200), style=wx.TE_MULTILINE)
         bSizer0b.AddSpacer(5)
-        bSizer0b.Add(wx.StaticText(self.parent.panel,label=TEXT),wx.ALIGN_LEFT)        
+        bSizer0b.Add(wx.StaticText(self.parent.panel, label=text), wx.ALIGN_LEFT)
         bSizer0b.AddSpacer(5)
-        bSizer0b.Add(self.file_paths,wx.ALIGN_LEFT)
+        bSizer0b.Add(self.file_paths, wx.ALIGN_LEFT)
         bSizer0b.AddSpacer(5)
         bSizer0b.Add(wx.StaticText(self.parent.panel, label="Will combine into one {} file".format(text)), wx.ALIGN_LEFT)
 
@@ -541,13 +531,13 @@ class combine_files(wx.BoxSizer):
         self.Add(bSizer0b, wx.ALIGN_LEFT)
         self.on_add_all_files_button(None)
 
-    def on_add_file_button(self,event):
+    def on_add_file_button(self, event):
 
         dlg = wx.FileDialog(
-            None,message="choose MagIC formatted measurement file",
+            None, message="choose MagIC formatted measurement file",
             defaultDir=self.WD,
             defaultFile="",
-            style=wx.OPEN | wx.CHANGE_DIR 
+            style=wx.OPEN | wx.CHANGE_DIR
             )
         if dlg.ShowModal() == wx.ID_OK:
             full_path = dlg.GetPath()
@@ -555,12 +545,12 @@ class combine_files(wx.BoxSizer):
             if infile not in [self.file_paths.GetLineText(line) for line in range(self.file_paths.GetNumberOfLines())]:
                 self.file_paths.AppendText(infile + "\n")
 
-    def on_add_all_files_button(self,event):
-        all_files=os.listdir(self.WD)
+    def on_add_all_files_button(self, event):
+        all_files = os.listdir(self.WD)
         include_files = []
         for F in all_files:
-            F=str(F)
-            if len(F)>6:
+            F = str(F)
+            if len(F) > 6:
                 if self.text in F:
                     if "#" not in F and "~" not in F and not F.endswith('.pyc'): # prevents binary files from going into the mix, as well as misc saved stuff
                         if F not in include_files:
@@ -576,18 +566,17 @@ class LinkEnabledHtmlWindow(wx.html.HtmlWindow):
 class HtmlFrame(wx.Frame):
     """ This window displays a HtmlWindow """
     def __init__(self, *args, **kwargs):
-        wx.Frame.__init__(self, None, wx.ID_ANY, title="Help Window", size=(600,400))
+        wx.Frame.__init__(self, None, wx.ID_ANY, title="Help Window", size=(600, 400))
         page = kwargs.get('page', 'http://earthref.org/MAGIC/shortlists/')
         htmlwin = LinkEnabledHtmlWindow(self)
         htmlwin.LoadPage(page)
         htmlwin.Fit()
 
- 
-        
+
 class AddItem(wx.Frame):
     """This window allows user to add a new item (sample, site, or location)"""
 
-    def __init__(self, parent, title, data_method, owner_items=None, belongs_to=None): 
+    def __init__(self, parent, title, data_method, owner_items=None, belongs_to=None):
         self.title = title
         self.owner_items = owner_items
         self.belongs_to = belongs_to
@@ -601,7 +590,7 @@ class AddItem(wx.Frame):
         self.item_name = labeled_text_field(panel, label="{} Name: ".format(self.title))
         vbox.Add(self.item_name)
         if self.owner_items:
-            owner_box = wx.StaticBox(panel, wx.ID_ANY, "" )
+            owner_box = wx.StaticBox(panel, wx.ID_ANY, "")
             owner_boxSizer = wx.StaticBoxSizer(owner_box)
             items = self.owner_items
             owner_label = wx.StaticText(panel, label="Belongs to {}: ".format(self.belongs_to), style=wx.TE_CENTER)
@@ -609,13 +598,13 @@ class AddItem(wx.Frame):
             owner_boxSizer.Add(owner_label, flag=wx.RIGHT, border=5)
             owner_boxSizer.Add(self.owner_name)
             vbox.Add(owner_boxSizer)
-        btn_panel = wx.BoxSizer(wx.HORIZONTAL)
+        button_panel = wx.BoxSizer(wx.HORIZONTAL)
         okButton = wx.Button(panel, wx.ID_ANY, '&Add {}'.format(self.title))
         cancelButton = wx.Button(panel, wx.ID_ANY, '&Cancel')
         self.Bind(wx.EVT_BUTTON, self.on_okButton, okButton)
         self.Bind(wx.EVT_BUTTON, self.on_cancelButton, cancelButton)
-        btn_panel.AddMany([okButton, cancelButton])
-        vbox.Add(btn_panel)
+        button_panel.AddMany([okButton, cancelButton])
+        vbox.Add(button_panel)
         vbox.AddSpacer(10)
 
         panel.SetSizer(vbox)
@@ -625,7 +614,7 @@ class AddItem(wx.Frame):
 
     def on_cancelButton(self, event):
         self.Destroy()
-        
+
     def on_okButton(self, event):
         item = str(self.item_name.return_value())
         if self.owner_items:
@@ -634,32 +623,30 @@ class AddItem(wx.Frame):
         else:
             self.onAdd(item)
         self.Destroy()
-        
 
 
 # methods!
 
-
 def on_add_dir_button(SELF, WD, event, text):
     dlg = wx.DirDialog(
-            None, message=text,
-            defaultPath=".",
+        None, message=text,
+        defaultPath=".",
         style=wx.OPEN | wx.DD_DEFAULT_STYLE
-            )
+    )
     if dlg.ShowModal() == wx.ID_OK:
         SELF.parent.dir_path.SetValue(str(dlg.GetPath()))
     # make sure the frame that called up this dialog ends up in front once the dialog is gone
     # otherwise in Windows the top-level frame ends up in front instead
-    SELF.parent.Parent.Raise() 
+    SELF.parent.Parent.Raise()
 
 
 def on_add_file_button(SELF, WD, event, text):
     dlg = wx.FileDialog(
-            None, message=text,
+        None, message=text,
         defaultDir=WD,
-            defaultFile="",
+        defaultFile="",
         style=wx.OPEN | wx.CHANGE_DIR
-            )
+    )
     if dlg.ShowModal() == wx.ID_OK:
         SELF.file_path.SetValue(str(dlg.GetPath()))
     # make sure the frame that called up this dialog ends up in front once the dialog is gone
@@ -679,7 +666,7 @@ def warning_with_override(text):
     result = dlg.ShowModal()
     dlg.Destroy()
     return result
-    
+
 
 def on_helpButton(command=None, text=None):
     import subprocess
@@ -688,20 +675,18 @@ def on_helpButton(command=None, text=None):
     else:
         result = subprocess.check_output(command, shell=True)
     dlg = wx.Dialog(None, title="help")
-    text = wx.TextCtrl(dlg, -1, result, size=(620,540), style=wx.TE_MULTILINE | wx.TE_READONLY)
+    text = wx.TextCtrl(dlg, -1, result, size=(620, 540), style=wx.TE_MULTILINE | wx.TE_READONLY)
     sizer = wx.BoxSizer(wx.VERTICAL)
     btnsizer = wx.BoxSizer()
     btn = wx.Button(dlg, wx.ID_OK)
     btnsizer.Add(btn, 0, wx.ALL, 5)
-    btnsizer.Add((5,-1), 0, wx.ALL, 5)
-    sizer.Add(text, 0, wx.EXPAND|wx.ALL, 5)    
-    sizer.Add(btnsizer, 0, wx.EXPAND|wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5)    
+    btnsizer.Add((5, -1), 0, wx.ALL, 5)
+    sizer.Add(text, 0, wx.EXPAND|wx.ALL, 5)
+    sizer.Add(btnsizer, 0, wx.EXPAND|wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5)
     dlg.SetSizerAndFit(sizer)
     dlg.Centre()
     dlg.ShowModal()
     dlg.Destroy()
-
-
 
 
 def run_command(SELF, command, outfile):
@@ -715,8 +700,8 @@ def run_command_and_close_window(SELF, command, outfile):
     os.system(command)
     if not outfile:
         outfile = ''
-    MSG="file(s) converted to MagIC format file:\n%s.\n\n See Termimal (Mac) or command prompt (windows) for errors"% outfile
-    dlg = wx.MessageDialog(None,caption="Message:", message=MSG ,style=wx.OK|wx.ICON_INFORMATION)
+    msg = "file(s) converted to MagIC format file:\n%s.\n\n See Termimal (Mac) or command prompt (windows) for errors"% outfile
+    dlg = wx.MessageDialog(None, caption="Message:", message=msg, style=wx.OK|wx.ICON_INFORMATION)
     dlg.ShowModal()
     dlg.Destroy()
     SELF.Destroy()
@@ -726,10 +711,9 @@ def close_window(SELF, command, outfile):
     print "-I- Finished running equivalent to Python command:\n %s"%command
     if not outfile:
         outfile = ''
-    MSG="file(s) converted to MagIC format file:\n%s.\n\n See Termimal (Mac) or command prompt (windows) for errors"% outfile
-    dlg = wx.MessageDialog(None,caption="Message:", message=MSG ,style=wx.OK|wx.ICON_INFORMATION)
+    msg = "file(s) converted to MagIC format file:\n%s.\n\n See Termimal (Mac) or command prompt (windows) for errors"% outfile
+    dlg = wx.MessageDialog(None, caption="Message:", message=msg, style=wx.OK|wx.ICON_INFORMATION)
     dlg.ShowModal()
     dlg.Destroy()
     SELF.Destroy()
     SELF.Parent.Raise()
-    

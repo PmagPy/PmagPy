@@ -1001,7 +1001,7 @@ class convert_CIT_files_to_MagIC(wx.Frame):
         spec_num = self.bSizer5.return_value()
         options_dict['specnum'] = spec_num
         if spec_num:
-            spec_num = "-spc " + spec_num
+            spec_num = "-spc " + str(spec_num)
         else:
             spec_num = "-spc 0" # defaults to 0 if user doesn't choose number
         loc_name = self.bSizer6.return_value()
@@ -2224,7 +2224,7 @@ class something(wx.Frame):
         self.Parent.Raise()
 
     def on_helpButton(self, event):
-        pw.on_helpButton("-h")
+        pw.on_helpButton(text='')
 
 
 #=================================================================
@@ -2246,8 +2246,8 @@ class OrientFrameGrid(wx.Frame):
         else:
             self.panel = wx.Panel(self, style=wx.SIMPLE_BORDER)
 
-        self.WD=WD
-        self.Data_hierarchy=Data_hierarchy
+        self.WD = WD
+        self.Data_hierarchy = Data_hierarchy
         self.grid = None
         
 
@@ -2258,7 +2258,7 @@ class OrientFrameGrid(wx.Frame):
         # and save it to self.orient_data={}
         #--------------------
 
-        self.samples_list=self.Data_hierarchy['samples']         
+        self.samples_list = self.Data_hierarchy['samples']         
         self.orient_data={}
         try:
             self.orient_data=self.read_magic_file(os.path.join(self.WD, "demag_orient.txt"),1,"sample_name")  
@@ -3027,7 +3027,7 @@ class check(wx.Frame):
 Check that all specimens belong to the correct sample
 (if sample name is simply wrong, that will be fixed in step 2)"""
         label = wx.StaticText(self.panel,label=TEXT)
-        self.Data, self.Data_hierarchy = self.ErMagic.Data, self.ErMagic.Data_hierarchy
+        self.Data_hierarchy = self.ErMagic.Data_hierarchy
         self.specimens = sorted(self.Data_hierarchy['specimens'].keys())
         samples = self.Data_hierarchy['samples'].keys()
         samples = sorted(list(set(samples).union(self.ErMagic.data_er_samples.keys()))) # adds in any additional samples we might have information about (from er_sites.txt file) even if currently that sample does not show up in the magic_measurements file
@@ -3134,7 +3134,7 @@ The columns for class, lithology, and type can take multiple values in the form 
 You may use the drop-down menus to add as many values as needed in these columns.  
 (see Help button for more details)\n\n** Denotes controlled vocabulary"""
             step_label = wx.StaticText(self.panel,label=TEXT)#, size=(900, 100))
-        self.Data, self.Data_hierarchy = self.ErMagic.Data, self.ErMagic.Data_hierarchy
+        self.Data_hierarchy = self.ErMagic.Data_hierarchy
         self.samples = sorted(self.Data_hierarchy['samples'].keys())
         sites = sorted(self.Data_hierarchy['sites'].keys())
         self.locations = sorted(list(set(self.Data_hierarchy['locations'].keys()).union(self.ErMagic.data_er_locations.keys())))
@@ -3252,7 +3252,7 @@ However, you will be able to edit sample_class, sample_lithology, and sample_typ
 
 **Denotes controlled vocabulary"""
         label = wx.StaticText(self.panel,label=TEXT)
-        self.Data, self.Data_hierarchy = self.ErMagic.Data, self.ErMagic.Data_hierarchy
+        self.Data_hierarchy = self.ErMagic.Data_hierarchy
         self.sites = sorted(self.Data_hierarchy['sites'].keys())
 
         col_labels = self.ErMagic.data_er_sites[self.ErMagic.data_er_sites.keys()[0]].keys()
@@ -3350,7 +3350,7 @@ Fill in any blank cells using controlled vocabularies.
 
 ** Denotes controlled vocabulary"""
         label = wx.StaticText(self.panel,label=TEXT)
-        self.Data, self.Data_hierarchy = self.ErMagic.Data, self.ErMagic.Data_hierarchy
+        self.Data_hierarchy = self.ErMagic.Data_hierarchy
         self.locations = self.Data_hierarchy['locations']
         #
         try:
@@ -3442,7 +3442,7 @@ You may use the drop-down menus to add as many values as needed in these columns
 
 **Denotes controlled vocabulary """
         label = wx.StaticText(self.panel,label=TEXT)
-        self.Data, self.Data_hierarchy = self.ErMagic.Data, self.ErMagic.Data_hierarchy
+        self.Data_hierarchy = self.ErMagic.Data_hierarchy
         self.sites = self.Data_hierarchy['sites']
         #
         key1 = self.ErMagic.data_er_ages.keys()[0]
@@ -3805,7 +3805,6 @@ You may use the drop-down menus to add as many values as needed in these columns
         gets any updated information from the current grid and runs ErMagicBuilder"""
         #wait = wx.BusyInfo("Please wait, working...")
 
-
         # unhighlight selected columns, etc.
         if self.drop_down_menu:  
             self.drop_down_menu.clean_up(grid)
@@ -4062,7 +4061,6 @@ You may use the drop-down menus to add as many values as needed in these columns
     def update_samples(self, grid, col1_updated, col1_old, col2_updated, col2_old, *args):
         changed = [(old_value, col1_updated[num]) for (num, old_value) in enumerate(col1_old) if old_value != col1_updated[num]]  
         for change in changed:
-            #print "change!!!!!!", change
             old_sample, new_sample = change
             specimens = self.Data_hierarchy['samples'].pop(old_sample)
             site = self.Data_hierarchy['site_of_sample'].pop(old_sample)

@@ -747,7 +747,8 @@ def get_specs(data):
     speclist=[]
     for rec in data:
       spec=rec["er_specimen_name"]
-      if spec not in speclist:speclist.append(spec)
+      if spec not in speclist:
+          speclist.append(spec)
     speclist.sort()
     return speclist
 
