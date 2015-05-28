@@ -1,4 +1,4 @@
-#!/usr/bin/env pythonw
+#!/bin/env pythonw
 
 #============================================================================================
 # LOG HEADER:
@@ -2005,6 +2005,11 @@ class Zeq_GUI(wx.Frame):
                 xx=array([self.CART_rot[:,0][tmax_index],self.CART_rot[:,0][tmin_index]])
                 yy=slop_xy_PCA*xx+intercept_xy_PCA
                 zz=slop_xz_PCA*xx+intercept_xz_PCA
+                
+                if (pars['calculation_type'] in ['DE-BFL-A','DE-BFL-O']): ###CHECK
+                    xx[0] = 0.
+                    yy[0] = 0.
+                    zz[0] = 0.
 
                 self.zijplot.plot(xx,yy,'-',color=fit.color,lw=3,alpha=0.5,zorder=0)
                 self.zijplot.plot(xx,zz,'-',color=fit.color,lw=3,alpha=0.5,zorder=0)
@@ -2091,10 +2096,103 @@ class Zeq_GUI(wx.Frame):
         self.canvas3.draw()
                 
     #----------------------------------------------------------------------
+    
+    def on_menu_autointerpert(self,event):
+        """
+        """
 
-                    
-                                
-                    
+        for specimen in self.specimens:
+            self.initialize_CART_rot(specimen)
+            self.pmag_results_data['specimens'][self.s] = []
+            self.current_fit = None
+            fit_min = 0
+            old_direction = self.CART_rot[:,0][1] - self.CART_rot[:,0][0]
+            denom = self.CART_rot[:,0][1] - self.CART_rot[:,0][0]
+            numer = self.CART_rot[:,1][1] - self.CART_rot[:,1][0]
+            old_slope_xy = numer/denom
+            numer = self.CART_rot[:,2][1] - self.CART_rot[:,2][0]
+            old_slope_xz = numer/denom
+            for fit_max in range(2,len(self.CART_rot)):
+                direction = self.CART_rot[:,0][fit_max] - self.CART_rot[:,0][fit_max-1]
+
+                y_dist = self.CART_rot[:,1][fit_max] - self.CART_rot[:,1][fit_max-1]
+
+                z_dist = self.CART_rot[:,2][fit_max] - self.CART_rot[:,2][fit_max-1]
+
+                denom = self.CART_rot[:,0][fit_max] - self.CART_rot[:,0][fit_max-1]
+                numer = self.CART_rot[:,1][fit_max] - self.CART_rot[:,1][fit_max-1]
+                slope_xy = numer/denom
+                numer = self.CART_rot[:,2][fit_max] - self.CART_rot[:,2][fit_max-1]
+                slope_xz = numer/denom
+
+                old_direction = self.CART_rot[:,0][fit_max] - self.CART_rot[:,0][fit_min]
+
+                denom = self.CART_rot[:,0][fit_max] - self.CART_rot[:,0][fit_min]
+                numer = self.CART_rot[:,1][fit_max] - self.CART_rot[:,1][fit_min]
+                old_slope_xy = numer/denom
+                numer = self.CART_rot[:,2][fit_max] - self.CART_rot[:,2][fit_min]
+                old_slope_xz = numer/denom
+                
+#                print('----------------CALCULATIONS-----------------')
+#                print('fit_max: ' + str(fit_max))
+#                print('slope_xy: ' + str(slope_xy))
+#                print('slope_xz: ' + str(slope_xz))
+#                print('y_dist: ' + str(y_dist))
+#                print('z_dist: ' + str(z_dist))
+
+                if (direction < 0 and old_direction > 0) or \
+                   (direction > 0 and old_direction < 0) or \
+                   (slope_xy < 0 and old_slope_xy > 0) or \
+                   (slope_xy > 0 and old_slope_xy < 0) or \
+                   (slope_xz < 0 and old_slope_xz > 0) or \
+                   (slope_xz > 0 and old_slope_xz < 0) or \
+                   abs(y_dist) > .5 or abs(z_dist) > .5 or \
+                   1e-2 > slope_xy > -1e-2 or 1e-2 > slope_xz > -1e-2 or \
+                   fit_max == len(self.CART_rot)-1:
+
+                    if (slope_xy < 0 and old_slope_xy > 0) or \
+                       (slope_xy > 0 and old_slope_xy < 0) or \
+                       (slope_xz < 0 and old_slope_xz > 0) or \
+                       (slope_xz > 0 and old_slope_xz < 0):
+                        fit_max -= 1
+
+                    length_xy = sqrt((self.CART_rot[:,0][fit_max] - self.CART_rot[:,0][fit_min])**2 + (self.CART_rot[:,1][fit_max] - self.CART_rot[:,1][fit_min])**2)
+                    length_xz = sqrt((self.CART_rot[:,0][fit_max] - self.CART_rot[:,0][fit_min])**2 + (self.CART_rot[:,2][fit_max] - self.CART_rot[:,2][fit_min])**2)
+
+                    if self.Data[self.s]['zijdblock'][fit_max][5] == 'b' or \
+                       self.Data[self.s]['zijdblock_geo'][fit_max][5] == 'b' or \
+                       self.Data[self.s]['zijdblock_tilt'][fit_max][5] == 'b' or \
+                       fit_max - fit_min <= 3 or \
+                       length_xy < .2 or length_xz < .2:
+                            if fit_max - fit_min > 3: fit_min = fit_max
+                            continue
+
+                    next_fit = str(len(self.pmag_results_data['specimens'][self.s]) + 1)
+                    new_fit_name = 'Fit ' + next_fit
+                    new_fit_number = int(next_fit)-1
+                    new_fit_tmin = self.Data[self.s]['zijdblock_steps'][fit_min]
+                    new_fit_tmax = self.Data[self.s]['zijdblock_steps'][fit_max]
+                    new_fit_color = self.colors[(int(next_fit)-1) % len(self.colors)]
+                    new_fit = Fit(new_fit_name, new_fit_number, new_fit_tmin, new_fit_tmax, new_fit_color, self)
+                    self.pmag_results_data['specimens'][self.s].append(new_fit)
+                    PCA_type=self.PCA_type_box.GetValue()
+                    if PCA_type=="line":calculation_type="DE-BFL"
+                    elif PCA_type=="line-anchored":calculation_type="DE-BFL-A"
+                    elif PCA_type=="line-with-origin":calculation_type="DE-BFL-O"
+                    elif PCA_type=="Fisher":calculation_type="DE-FM"
+                    elif PCA_type=="plane":calculation_type="DE-BFP"
+                    coordinate_system=self.COORDINATE_SYSTEM
+                    if new_fit:
+                        new_fit.put(coordinate_system,self.get_PCA_parameters(self.s,new_fit_tmin,new_fit_tmax,coordinate_system,calculation_type))
+                    fit_min = fit_max+1
+
+        self.s = self.specimens[0]
+
+        if self.pmag_results_data['specimens'][self.s]:
+            self.current_fit = self.pmag_results_data['specimens'][self.s][-1]
+
+        self.update_selection()
+
                                                                                                                                                    
     #----------------------------------------------------------------------
                                                                                                                                        
@@ -3371,8 +3469,12 @@ class Zeq_GUI(wx.Frame):
         #-----------------                            
 
         menu_Tools = wx.Menu()
+
         m_bulk_demagnetization = menu_Tools.Append(-1, "&Bulk demagnetization", "")
         self.Bind(wx.EVT_MENU, self.on_menu_bulk_demagnetization, m_bulk_demagnetization)
+
+        m_auto_interpert = menu_Tools.Append(-1, "&Auto Interpert", "")
+        self.Bind(wx.EVT_MENU, self.on_menu_autointerpert, m_auto_interpert)
 
         #-------------------
         
