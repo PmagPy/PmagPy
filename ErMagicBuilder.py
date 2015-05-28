@@ -60,7 +60,7 @@ class MagIC_model_builder(wx.Frame):
         self.WD = os.getcwd()  
         self.site_lons = []     
         self.site_lats = []     
-        self.Data, self.Data_hierarchy = self.get_data()
+        self.Data_hierarchy = self.get_data()
         self.read_MagIC_info()
         self.SetTitle("Earth-Ref Magic Builder" )
         self.InitUI()
@@ -375,12 +375,12 @@ class MagIC_model_builder(wx.Frame):
     def read_magic_file(self,path,sort_by_this_name):
         #print "doing ErMagic read_magic_file"
         DATA={}
-        fin=open(path,'rU')
+        fin = open(path,'rU')
         fin.readline()
-        line=fin.readline()
-        header=line.strip('\n').split('\t')
+        line = fin.readline()
+        header = line.strip('\n').split('\t')
         #print "path", path#,header
-        counter=0
+        counter = 0
         for line in fin.readlines():
             #print "line:", line
             tmp_data={}
@@ -395,11 +395,11 @@ class MagIC_model_builder(wx.Frame):
               counter+=1
             else:
               if tmp_data[sort_by_this_name]!="":  
-                DATA[tmp_data[sort_by_this_name]]=tmp_data
+                DATA[tmp_data[sort_by_this_name]] = tmp_data
         fin.close()   
         return(DATA)
 
-    def converge_headers(self,old_recs):
+    def converge_headers(self, old_recs):
         # fix the headers of pmag recs
         recs={}
         recs=copy.deepcopy(old_recs)
@@ -426,31 +426,44 @@ class MagIC_model_builder(wx.Frame):
 
         try:
             self.data_er_specimens = self.read_magic_file(os.path.join(self.WD, "er_specimens.txt"), 'er_specimen_name')
-        except:
+        except IOError:
             #self.GUI_log.write ("-W- Cant find er_specimens.txt in project directory")
             print "-W- Can't find er_specimens.txt in project directory"
+            
         try:
-            self.data_er_samples=self.read_magic_file(os.path.join(self.WD, "er_samples.txt"),'er_sample_name')
-        except:
+            self.data_er_samples = self.read_magic_file(os.path.join(self.WD, "er_samples.txt"),'er_sample_name')
+        except IOError:
             #self.GUI_log.write ("-W- Cant find er_samples.txt in project directory")
             print "-W- Can't find er_samples.txt in project directory"
+            
         try:
-            self.data_er_sites=self.read_magic_file(os.path.join(self.WD, "er_sites.txt"),'er_site_name')
-        except:
-            pass
+            self.data_er_sites = self.read_magic_file(os.path.join(self.WD, "er_sites.txt"), 'er_site_name')
+        except IOError:
+            print "-W- Can't find er_sites.txt in project directory"
+        
         try:
             self.data_er_locations=self.read_magic_file(os.path.join(self.WD, "er_locations.txt"),'er_location_name')
-        except:
+        except IOError:
             #self.GUI_log.write ("-W- Cant find er_sites.txt in project directory")
-            print "-W- Can't find er_sites.txt in project directory"
+            print "-W- Can't find er_locations.txt in project directory"
+            
         try:
-            self.data_er_ages=self.read_magic_file(os.path.join(self.WD, "er_ages.txt"),"er_site_name")
-        except:
-            try:
-                self.data_er_ages=self.read_magic_file(os.path.join(self.WD, "er_ages.txt"),"er_sample_name")
-            except:
-                print "-W- Can't find er_ages.txt in project directory"
-                pass
+            #print 'trying to read data_er_ages'
+            self.data_er_ages = self.read_magic_file(os.path.join(self.WD, "er_ages.txt"), "er_site_name")
+            #print 'successfully read it on the first try'
+        except IOError:
+            print "-W- Can't find er_ages.txt in project directory"
+        except KeyError:
+            print '-W- There was a problem reading the er_ages.txt file.  No age data found.'
+            ## use below if allowing ages by sample:
+            #print 'we have a key error'
+            #try:
+            #    print 'trying to read it with er_sample_name instead'
+            #    self.data_er_ages = self.read_magic_file(os.path.join(self.WD, "er_ages.txt"), "er_sample_name")
+                 #print 'read it with er_sample_name: self.data_er_ages.keys()', self.data_er_ages.keys()
+            #except:
+            #    print '-W- There was a problem reading the er_ages.txt file.  No age data found.'
+
 
 
     def get_data(self):
@@ -479,13 +492,8 @@ class MagIC_model_builder(wx.Frame):
             meas_data, file_type = pmag.magic_read(os.path.join(self.WD, "magic_measurements.txt"))
         except:
             print "-E- ERROR: Cant read magic_measurements.txt file. File is corrupted."
-            return {},{}
+            return {}
 
-        sids = pmag.get_specs(meas_data) # samples ID's
-
-        for s in sids:
-            if s not in Data.keys() and s !="" and s!=" ":
-                Data[s] = {}
         for rec in meas_data:
             s = rec["er_specimen_name"]
             if s == "" or s == " ":
@@ -520,9 +528,7 @@ class MagIC_model_builder(wx.Frame):
             Data_hierarchy['location_of_site'][site]=location 
 
         #print 'get_data took:', time.time() - start_time
-        print 'Data', Data
-        print 'Data_hierarchy', Data_hierarchy.keys()
-        return(Data, Data_hierarchy)
+        return Data_hierarchy
 
 
     def do_magic_measurements(self):
