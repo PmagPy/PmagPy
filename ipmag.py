@@ -593,7 +593,7 @@ def plot_pole_colorbar(mapname,plong,plat,A95,cmap,vmin,vmax,label='',color='k',
     centerlon, centerlat = mapname(plong,plat)
     A95_km=A95*111.32
     mapname.scatter(centerlon,centerlat,c=cmap,vmin=vmin,vmax=vmax,s=markersize,marker=marker,color=color,alpha=alpha,label=label,zorder=101)
-    equi_color(mapname, plong, plat, A95_km, color, alpha)
+    equi_colormap(mapname, plong, plat, A95_km, color, alpha)
     if legend=='yes':
         pylab.legend(loc=2)
 
@@ -865,6 +865,26 @@ def equi(m, centerlon, centerlat, radius, color):
  
     X,Y = m(X,Y)
     pyplot.plot(X,Y,color)
+
+def equi_colormap(m, centerlon, centerlat, radius, color, alpha='1.0'):
+    """
+    This function enables A95 error ellipses to be drawn in basemap around paleomagnetic poles
+    in conjunction with shoot
+    (from: http://www.geophysique.be/2011/02/20/matplotlib-basemap-tutorial-09-drawing-circles/).
+    """
+    glon1 = centerlon
+    glat1 = centerlat
+    X = []
+    Y = []
+    for azimuth in range(0, 360):
+        glon2, glat2, baz = shoot(glon1, glat1, azimuth, radius)
+        X.append(glon2)
+        Y.append(glat2)
+    X.append(X[0])
+    Y.append(Y[0])
+ 
+    X,Y = m(X,Y)
+    pyplot.plot(X,Y,color,alpha=alpha)
 
 def combine_magic(filenames, outfile):
     """
