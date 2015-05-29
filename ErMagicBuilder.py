@@ -1,5 +1,7 @@
 #!/usr/bin/env pythonw
 
+# pylint: disable=W0612,C0111
+
 #============================================================================================
 # LOG HEADER:
 #============================================================================================
@@ -78,7 +80,6 @@ class ErMagicBuilder(object):
         self.er_ages_header = list(set(['er_citation_names','er_site_name','er_location_name','age_description','magic_method_codes','age','age_unit']).union(self.er_ages_header))
 
 
-
     def read_MagIC_info(self):
         """
         Attempt to open er_specimens, er_samples, er_sites, er_locations, and er_ages files in working directory.
@@ -140,7 +141,6 @@ class ErMagicBuilder(object):
         fin.readline()
         line = fin.readline()
         header = line.strip('\n').split('\t')
-        print 'header', header
         #print "path", path#,header
         counter = 0
         for line in fin.readlines():
@@ -226,6 +226,68 @@ class ErMagicBuilder(object):
         #print 'get_data took:', time.time() - start_time
         return Data_hierarchy
 
+
+    def change_sample(self, new_sample_name, old_sample_name, new_sample_data=None):
+        """
+        update a sample name everywhere it appears in data_er_samples and Data_hierarchy.
+        you also may update a sample's key/value pairs in data_er_samples.
+        """
+        # fix samples
+        specimens = self.change_dict_key(self.Data_hierarchy['samples'], old_sample_name, new_sample_name)
+
+        # fix sample_of_specimen and specimens
+        # key/value pairs are specimens and the sample they belong to
+        for spec in specimens:
+            self.Data_hierarchy['sample_of_specimen'][spec] = new_sample_name
+            self.Data_hierarchy['specimens'][spec] = new_sample_name
+
+        # fix site_of_sample
+        site = self.change_dict_key(self.Data_hierarchy['site_of_sample'], old_sample_name, new_sample_name)
+        
+        # fix sites
+        self.Data_hierarchy['sites'][site].remove(old_sample_name)
+        self.Data_hierarchy['sites'][site].append(new_sample_name)
+
+        # fix location_of_sample
+        location = self.change_dict_key(self.Data_hierarchy['location_of_sample'], old_sample_name, new_sample_name)
+        
+        # fix/add new sample data
+        self.change_dict_key(self.data_er_samples, old_sample_name, new_sample_name)
+        if not new_sample_data: # if no data is provided to update
+            return
+        else:  # if there is data to update
+            old_sample_data = self.data_er_samples.pop(new_sample_name)
+            combined_data_dict = self.combine_dicts(new_sample_data, old_sample_data)
+            self.data_er_samples[new_sample_name] = combined_data_dict
+
+
+
+        
+    def change_dict_key(self, dictionary, old_key, new_key):
+        old_value = dictionary.pop(old_key)
+        dictionary[new_key] = old_value
+        return old_value
+
+    def combine_dicts(self, new_dict, old_dict):
+        """
+        returns a dictionary with all key, value pairs from new_dict.
+        also returns key, value pairs from old_dict, if that key does not exist in new_dict.
+        if a key is present in both new_dict and old_dict, the new_dict value will take precedence.
+        """
+        old_data_keys = old_dict.keys()
+        new_data_keys = new_dict.keys()
+        all_keys = set(old_data_keys).union(new_data_keys)
+        combined_data_dict = {}
+        for k in all_keys:
+            try:
+                combined_data_dict[k] = new_dict[k]
+            except KeyError:
+                combined_data_dict[k] = old_dict[k]
+        return combined_data_dict
+
+
+        
+        
 
     def do_magic_measurements(self):
         """

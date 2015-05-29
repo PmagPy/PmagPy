@@ -1,3 +1,7 @@
+#pylint: skip-file
+#pylint: disable-all
+# causes too many errors and crashes
+
 import  numpy,string,sys
 from numpy import random
 import numpy.linalg

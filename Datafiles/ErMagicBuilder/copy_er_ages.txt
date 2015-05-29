@@ -1,0 +1,9 @@
+tab	er_ages					
+er_citation_names	er_sample_name	er_location_name	age_description	magic_method_codes	age	age_unit
+This study	MGH1					
+This study	Z35.1					
+This study	Z35.2					
+This study	Z35.3					
+This study	Z35.4					
+This study	Z35.5					
+This study	Z35.6					
