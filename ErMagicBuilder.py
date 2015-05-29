@@ -38,6 +38,575 @@ import copy
 #--------------------------------------------------------------
 
 
+
+class ErMagicBuilder(object):
+
+    def __init__(self, WD):
+        self.WD = WD
+        self.Data_hierarchy = {}
+        self.data_er_specimens = {}
+        self.er_specimens_header = []
+        self.data_er_samples = {}
+        self.er_samples_header = []
+        self.data_er_sites = {}
+        self.er_sites_header = []
+        self.data_er_locations = {}
+        self.er_locations_header = []
+        self.data_er_ages = {}
+        self.er_ages_header = []
+        self.read_MagIC_info() # populate data dictionaries, if files are available
+        if os.path.isfile(os.path.join(self.WD, 'magic_measurements.txt')):
+            self.Data_hierarchy = self.get_data()
+        if not self.Data_hierarchy:
+            # possibly put this initialization into get_data instead
+            self.Data_hierarchy = {'sample_of_specimen': {}, 'site_of_sample': {}, 'location_of_specimen': {}, 'locations': {}, 'sites': {}, 'site_of_specimen': {}, 'samples': {}, 'location_of_sample': {}, 'location_of_site': {}, 'specimens': {}}
+
+
+    def __repr__(self):
+        return "{}\nspecimens: {}\nsamples: {}\nsites: {}\nlocations: {}".format(self.WD, self.data_er_specimens.keys(), self.data_er_samples.keys(), self.data_er_sites.keys(), self.data_er_locations.keys())
+
+
+    def init_default_headers(self):
+        """
+        initialize default required headers.
+        if there were any pre-existing headers, keep them also.
+        """
+        self.er_specimens_header = list(set(['er_citation_names','er_specimen_name','er_sample_name','er_site_name','er_location_name','specimen_class','specimen_lithology','specimen_type']).union(self.er_specimens_header))
+        self.er_samples_header = list(set(['er_citation_names','er_sample_name','er_site_name','er_location_name','sample_class','sample_lithology','sample_type','sample_lat','sample_lon']).union(self.er_samples_header))
+        self.er_sites_header = list(set(['er_citation_names','er_site_name','er_location_name','site_class','site_lithology','site_type','site_definition','site_lon','site_lat']).union(self.er_sites_header))
+        self.er_locations_header = list(set(['er_citation_names','er_location_name','location_begin_lon','location_end_lon','location_begin_lat','location_end_lat','location_type']).union(self.er_locations_header))
+        self.er_ages_header = list(set(['er_citation_names','er_site_name','er_location_name','age_description','magic_method_codes','age','age_unit']).union(self.er_ages_header))
+
+
+
+    def read_MagIC_info(self):
+        """
+        Attempt to open er_specimens, er_samples, er_sites, er_locations, and er_ages files in working directory.
+        Initialize or update MagIC_model_builder attributes data_er_specimens, data_er_samples, data_er_sites, data_er_locations, and data_er_ages (dictionaries)
+        """
+        #print "read_MagIC_info in ErMagicBuilder.py"
+        Data_info={}
+        print "-I- read existing MagIC model files"
+        #self.data_er_specimens, self.data_er_samples, self.data_er_sites, self.data_er_locations, self.data_er_ages = {},{},{},{},{}
+
+        try:
+            self.data_er_specimens, self.er_specimens_header = self.read_magic_file(os.path.join(self.WD, "er_specimens.txt"), 'er_specimen_name')
+        except IOError:
+            #self.GUI_log.write ("-W- Cant find er_specimens.txt in project directory")
+            print "-W- Can't find er_specimens.txt in project directory"
+            
+        try:
+            self.data_er_samples, self.er_samples_header = self.read_magic_file(os.path.join(self.WD, "er_samples.txt"),'er_sample_name')
+        except IOError:
+            #self.GUI_log.write ("-W- Cant find er_samples.txt in project directory")
+            print "-W- Can't find er_samples.txt in project directory"
+            
+        try:
+            self.data_er_sites, self.er_sites_header = self.read_magic_file(os.path.join(self.WD, "er_sites.txt"), 'er_site_name')
+        except IOError:
+            print "-W- Can't find er_sites.txt in project directory"
+        
+        try:
+            self.data_er_locations, self.er_locations_header = self.read_magic_file(os.path.join(self.WD, "er_locations.txt"),'er_location_name')
+        except IOError:
+            #self.GUI_log.write ("-W- Cant find er_sites.txt in project directory")
+            print "-W- Can't find er_locations.txt in project directory"
+            
+        try:
+            #print 'trying to read data_er_ages'
+            self.data_er_ages, self.er_ages_header = self.read_magic_file(os.path.join(self.WD, "er_ages.txt"), "er_site_name")
+            #print 'successfully read it on the first try'
+        except IOError:
+            print "-W- Can't find er_ages.txt in project directory"
+        except KeyError:
+            print '-W- There was a problem reading the er_ages.txt file.  No age data found.'
+            ## use below if allowing ages by sample:
+            #print 'we have a key error'
+            #try:
+            #    print 'trying to read it with er_sample_name instead'
+            #    self.data_er_ages = self.read_magic_file(os.path.join(self.WD, "er_ages.txt"), "er_sample_name")
+                 #print 'read it with er_sample_name: self.data_er_ages.keys()', self.data_er_ages.keys()
+            #except:
+            #    print '-W- There was a problem reading the er_ages.txt file.  No age data found.'
+
+    def read_magic_file(self,path,sort_by_this_name):
+        """
+        read a magic-formatted tab-delimited file.
+        return a dictionary of dictionaries, with this format:
+        {'Z35.5a': {'specimen_weight': '1.000e-03', 'er_citation_names': 'This study', 'specimen_volume': '', 'er_location_name': '', 'er_site_name': 'Z35.', 'er_sample_name': 'Z35.5', 'specimen_class': '', 'er_specimen_name': 'Z35.5a', 'specimen_lithology': '', 'specimen_type': ''}, ....}
+        """
+        DATA={}
+        fin = open(path,'rU')
+        fin.readline()
+        line = fin.readline()
+        header = line.strip('\n').split('\t')
+        print 'header', header
+        #print "path", path#,header
+        counter = 0
+        for line in fin.readlines():
+            #print "line:", line
+            tmp_data={}
+            tmp_line=line.strip('\n').split('\t')
+            for i in range(len(header)):
+                if i < len(tmp_line):
+                    tmp_data[header[i]]=tmp_line[i]
+                else:
+                    tmp_data[header[i]]=""
+            if sort_by_this_name=="by_line_number":
+              DATA[counter]=tmp_data
+              counter+=1
+            else:
+              if tmp_data[sort_by_this_name]!="":  
+                DATA[tmp_data[sort_by_this_name]] = tmp_data
+        fin.close()
+        return DATA, header
+
+
+    def get_data(self):
+        """
+        attempt to read measurements file in working directory.
+        If suitable file is found, return two dictionaries.
+        Data looks like this: {specimen_a: {}, specimen_b: {}}
+        Data_hierarchy looks like this: {'sample_of_specimen': {}, 'site_of_sample': {}, 'location_of_specimen', 'locations': {}, 'sites': {}, 'site_of_specimen': {}, 'samples': {}, 'location_of_sample': {}, 'location_of_site': {}, 'specimens': {}}
+        If no measurements file is found, return two empty dictionaries. 
+        """
+        #print 'calling get_data()'
+        #start_time = time.time()
+        Data = {}
+        Data_hierarchy = {}
+        Data_hierarchy['locations'] = {}
+        Data_hierarchy['sites'] = {}
+        Data_hierarchy['samples'] = {}
+        Data_hierarchy['specimens']={}
+        Data_hierarchy['sample_of_specimen']={} 
+        Data_hierarchy['site_of_specimen']={}   
+        Data_hierarchy['site_of_sample']={}   
+        Data_hierarchy['location_of_specimen']={}   
+        Data_hierarchy['location_of_sample']={}   
+        Data_hierarchy['location_of_site']={}   
+        try:
+            meas_data, file_type = pmag.magic_read(os.path.join(self.WD, "magic_measurements.txt"))
+        except:
+            print "-E- ERROR: Cant read magic_measurements.txt file. File is corrupted."
+            return {}
+
+        for rec in meas_data:
+            s = rec["er_specimen_name"]
+            if s == "" or s == " ":
+                continue
+            sample = rec["er_sample_name"]
+            site = rec["er_site_name"]
+            location = rec["er_location_name"]
+            if sample not in Data_hierarchy['samples'].keys():
+                Data_hierarchy['samples'][sample]=[]
+
+            if site not in Data_hierarchy['sites'].keys():
+                Data_hierarchy['sites'][site]=[]         
+
+            if location not in Data_hierarchy['locations'].keys():
+                Data_hierarchy['locations'][location]=[]         
+
+            if s not in Data_hierarchy['samples'][sample]:
+                Data_hierarchy['samples'][sample].append(s)
+
+            if sample not in Data_hierarchy['sites'][site]:
+                Data_hierarchy['sites'][site].append(sample)
+
+            if site not in Data_hierarchy['locations'][location]:
+                Data_hierarchy['locations'][location].append(site)
+
+            Data_hierarchy['specimens'][s]=sample
+            Data_hierarchy['sample_of_specimen'][s]=sample  
+            Data_hierarchy['site_of_specimen'][s]=site  
+            Data_hierarchy['site_of_sample'][sample]=site
+            Data_hierarchy['location_of_specimen'][s]=location 
+            Data_hierarchy['location_of_sample'][sample]=location 
+            Data_hierarchy['location_of_site'][site]=location 
+
+        #print 'get_data took:', time.time() - start_time
+        return Data_hierarchy
+
+
+    def do_magic_measurements(self):
+        """
+        rewrite magic_measurements.txt file based on info in self.er_specimens, self.er_samples, self.er_sites, and self.er_locations
+        """
+        f_old = open(os.path.join(self.WD, "magic_measurements.txt"),'rU')
+        f_new = open(os.path.join(self.WD, "magic_measurements.new.tmp.txt"),'w')
+             
+        line = f_old.readline() 
+        f_new.write(line) # writes first line with file type
+
+        line = f_old.readline() 
+        headers = line.strip("\n").split('\t')
+        f_new.write(line) # writes second line with file header
+
+        # if you want to make it possible to change specimen names, add that into this for loop
+        #print "self.data_er_specimens.keys()", self.data_er_specimens.keys()
+        #print "self.Data_hierarchy['specimens'].keys()", self.Data_hierarchy['specimens'].keys()
+
+        for line in f_old.readlines(): # iterates through the main body of the measurements file
+            tmp_line = line.strip('\n').split('\t')
+            tmp = {}
+            #for i in range(len(headers)):
+            #    if i >= len(tmp_line):
+            #        tmp[headers[i]] = ""
+            #    else:
+            #        tmp[headers[i]] = tmp_line[i]
+            for header in headers:
+                if tmp_line: # populate tmp with values from tmp_line
+                    tmp[header] = tmp_line.pop(0)
+                else: # once you have no more values, fill in with ''
+                    tmp[header] = ''
+            
+            specimen = tmp["er_specimen_name"]
+            sample = tmp["er_sample_name"]
+
+            # update sample name if it has changed for this record
+            if specimen in self.data_er_specimens.keys() and "er_sample_name" in self.data_er_specimens[specimen].keys():  
+                #if sample != self.data_er_specimens[specimen]["er_sample_name"]:
+                sample = self.data_er_specimens[specimen]["er_sample_name"]
+                tmp["er_sample_name"] = sample
+
+            # update site name if it has changed for this record
+            if sample in self.data_er_samples.keys() and "er_site_name" in self.data_er_samples[sample].keys() and self.data_er_samples[sample]["er_site_name"] != "":
+                tmp["er_site_name"] = self.data_er_samples[sample]["er_site_name"]
+            site = tmp["er_site_name"]
+
+            # update location name if it has changed for this record
+            if site in self.data_er_sites.keys() and "er_location_name" in self.data_er_sites[site].keys() and self.data_er_sites[site]["er_location_name"] != "":
+                tmp["er_location_name"] = self.data_er_sites[site]["er_location_name"]
+
+            # write out the line to file with updated info
+            new_line = ""
+            for i in range(len(headers)):
+                new_line = new_line + tmp[headers[i]] + "\t"
+            #print new_line
+            f_new.write(new_line[:-1]+"\n")
+        f_new.close()
+        f_old.close()
+
+        os.remove(os.path.join(self.WD, "magic_measurements.txt"))
+        os.rename(os.path.join(self.WD, "magic_measurements.new.tmp.txt"),os.path.join(self.WD, "magic_measurements.txt"))
+
+        
+    def do_er_specimens(self):
+        """
+        rewrite er_specimens.txt file based on info in self.Data_hierarchy, self.data_er_specimens, and self.data_er_samples
+        """
+        # header
+        er_specimens_file = open(os.path.join(self.WD, "er_specimens.txt"),'w')
+        er_specimens_file.write("tab\ter_specimens\n")
+        string=""
+        for key in self.er_specimens_header:
+            string = string+key+"\t"
+        er_specimens_file.write(string[:-1]+"\n")
+
+        specimens_list = self.Data_hierarchy['sample_of_specimen'].keys()
+        specimens_list.sort()
+        #print "number of specimens", len(specimens_list)
+        
+        for specimen in specimens_list:
+          if  specimen in self.data_er_specimens.keys() and  "er_sample_name" in self.data_er_specimens[specimen].keys() and self.data_er_specimens[specimen]["er_sample_name"] != "":
+                sample=self.data_er_specimens[specimen]["er_sample_name"]   
+          else:
+              sample=self.Data_hierarchy['sample_of_specimen'][specimen]
+          string = ""
+          for key in self.er_specimens_header:
+            if key=="er_citation_names":
+              string = string + "This study" + "\t"
+            elif key == "er_specimen_name":
+              string = string + specimen + "\t"
+            elif key == "er_sample_name":
+            # take sample name from existing 
+                string = string + sample + "\t"
+            # try to take site and location name from er_sample table 
+            # if not: take it from hierachy dictionary                    
+            elif key in ['er_location_name']:
+                if sample in self.data_er_samples.keys() and key in self.data_er_samples[sample].keys():
+                    string = string + self.data_er_samples[sample][key] + "\t"
+                else:
+                    string = string + self.Data_hierarchy['location_of_specimen'][specimen] + "\t"
+            elif key in ['er_site_name']:
+                if sample in self.data_er_samples.keys() and key in self.data_er_samples[sample].keys():
+                    string = string + self.data_er_samples[sample][key] + "\t"
+                else:
+                    string = string + self.Data_hierarchy['site_of_specimen'][specimen] + "\t"
+
+            elif key in ['specimen_class','specimen_lithology','specimen_type']:
+              sample_key="sample_"+key.split('specimen_')[1]
+              if (sample in self.data_er_samples.keys() and sample_key in self.data_er_samples[sample] and self.data_er_samples[sample][sample_key]!=""):
+                string=string+self.data_er_samples[sample][sample_key]+"\t"
+                continue
+              else:
+                  string=string+"\t"
+              
+              #sample_key="sample_"+key.split('specimen_')[1]
+              #if 'er_site_name' in self.data_er_samples[sample].keys() and self.data_er_samples[sample]['er_site_name']!="":
+              #  site=self.data_er_samples[sample]['er_site_name']
+              #site_key="site_"+key.split('specimen_')[1]                
+              #if (sample in self.data_er_samples.keys() and sample_key in self.data_er_samples[sample] and self.data_er_samples[sample][sample_key]!=""):
+              #  string=string+self.data_er_samples[sample][sample_key]+"\t"
+              #elif (site in self.data_er_sites.keys() and site_key in self.data_er_sites[site] and self.data_er_sites[site][site_key]!=""):
+              #  string=string+self.data_er_samples[sample][sample_key]+"\t"
+                
+            # take information from the existing er_samples table             
+            elif specimen in self.data_er_specimens.keys() and key in self.data_er_specimens[specimen].keys() and self.data_er_specimens[specimen][key]!="":
+                string = string + self.data_er_specimens[specimen][key]+"\t"
+            else:
+              string = string+"\t"
+          er_specimens_file.write(string[:-1]+"\n")
+        er_specimens_file.close()  
+    
+    def do_er_samples(self):
+        """
+        rewrite er_samples.txt file based on info in self.Data_hierarchy, self.data_er_samples, and self.data_er_sites
+        """
+
+        #header
+        #print 'do_er_samples'
+        er_samples_file = open(os.path.join(self.WD, "er_samples.txt"),'w')
+        er_samples_file.write("tab\ter_samples\n")
+        string=""
+        for key in self.er_samples_header:
+          string=string+key+"\t"
+        er_samples_file.write(string[:-1]+"\n")
+
+        samples_list = self.Data_hierarchy['samples'].keys()
+        samples_list = list(set(samples_list).union(self.data_er_samples.keys())) # uses samples from er_samples.txt even if they are not in the magic_measurements file
+        samples_list.sort()
+
+        #print "number of samples", len(samples_list)
+
+        for sample in samples_list:
+          #print sample,
+            if sample in self.data_er_samples.keys() and "er_site_name" in self.data_er_samples[sample].keys() and self.data_er_samples[sample]["er_site_name"] != "":
+                site=self.data_er_samples[sample]["er_site_name"]
+            elif sample in self.Data_hierarchy['site_of_sample'].keys():
+                site=self.Data_hierarchy['site_of_sample'][sample]
+            else:
+                site = "unknown"
+
+            string=""
+            for key in self.er_samples_header:
+
+
+              if key=="er_citation_names":
+                string=string+"This study"+"\t"
+
+              elif key=="er_sample_name":
+                string=string+sample+"\t"
+
+              elif key in ['er_site_name']:
+                  string=string+site+"\t"
+
+              elif key in ['er_location_name']:
+                  if site in self.data_er_sites.keys() and key in self.data_er_sites[site].keys():
+                      string=string+self.data_er_sites[site][key]+"\t"
+                  else:
+                      try:
+                          string=string+self.Data_hierarchy['location_of_sample'][sample]+"\t"
+                      except KeyError:
+                          string = string + "" + "\t"
+
+
+              # if er_samples.txt already has a value in a column, don't try to get it from er_sites.txt
+              elif sample in self.data_er_samples.keys() and key in self.data_er_samples[sample].keys() and self.data_er_samples[sample][key]!="":
+                  string=string+self.data_er_samples[sample][key]+"\t"
+
+              # try to take lat/lon from er_sites table
+              elif (key in ['sample_lon','sample_lat'] and sample in self.data_er_samples.keys()\
+                    and "er_site_name" in self.data_er_samples[sample].keys()\
+                    and self.data_er_samples[sample]['er_site_name'] in self.data_er_sites.keys()\
+                    and "site_"+key.split("_")[1] in self.data_er_sites[self.data_er_samples[sample]['er_site_name']].keys()):
+                string=string+self.data_er_sites[self.data_er_samples[sample]['er_site_name']]["site_"+key.split("_")[1]]+"\t"
+
+              elif key in ['sample_class','sample_lithology','sample_type']:
+                site_key="site_"+key.split('sample_')[1]
+                if (site in self.data_er_sites.keys() and site_key in self.data_er_sites[site] and self.data_er_sites[site][site_key]!=""):
+                      string=string+self.data_er_sites[site][site_key]+"\t"
+                      continue
+                else:
+                      string=string+'\t'                        
+              else:
+                string=string+"\t"
+            er_samples_file.write(string[:-1]+"\n")
+        er_samples_file.close()
+
+    def do_er_sites(self):
+        """
+        rewrite er_sites.txt file based on info in self.Data_hierarchy and self.data_er_sites
+        """
+        #header
+        er_sites_file = open(os.path.join(self.WD, "er_sites.txt"),'w')
+        er_sites_file.write("tab\ter_sites\n")
+        string = ""
+        for key in self.er_sites_header:
+          string = string + key + "\t"
+        er_sites_file.write(string[:-1]+"\n")
+
+        #data
+        sites_list=self.data_er_sites.keys()
+        for site in self.Data_hierarchy['sites'].keys():
+            if site not in sites_list:
+                sites_list.append(site)
+
+        #print "number of sites", len(sites_list)
+        
+        #for sample in self.data_er_samples.keys():
+        #  if "er_site_name" in self.data_er_samples[sample].keys() and self.data_er_samples[sample]["er_site_name"] not in sites_list and self.data_er_samples[sample]["er_site_name"]!="":
+        #    sites_list.append(self.data_er_samples[sample]["er_site_name"])
+        sites_list.sort() 
+        string=""  
+        for site in sites_list:
+          if site ==""  or site==" ":
+              continue
+          string=""    
+          for key in self.er_sites_header:
+            if key=="er_citation_names":
+              string=string+"This study"+"\t"
+            elif key=="er_site_name":
+              string=string+site+"\t"            
+            # take information from the existing er_samples table             
+            elif (site in self.data_er_sites.keys() and key in self.data_er_sites[site].keys() and self.data_er_sites[site][key]!=""):
+                #print "site: {}, key: {}, data {}".format(site, key, self.data_er_sites[site][key])
+                string=string+self.data_er_sites[site][key]+"\t"
+
+            elif key in ['er_location_name']:
+                try:
+                    string=string+self.Data_hierarchy['location_of_site'][site]+"\t"
+                except KeyError:
+                    string = string+"\t"
+                    
+            else:
+              string=string+"\t"
+
+          if site in self.data_er_sites.keys() and 'site_lon' in self.data_er_sites[site].keys() and self.data_er_sites[site]['site_lon']!="":
+              try:
+                    self.site_lons.append(float(self.data_er_sites[site]['site_lon']))
+              except:
+                  pass
+          if site in self.data_er_sites.keys() and 'site_lat' in self.data_er_sites[site].keys() and self.data_er_sites[site]['site_lat']!="":
+              try:
+                    self.site_lats.append(float(self.data_er_sites[site]['site_lat']))
+              except:
+                  pass
+          er_sites_file.write(string[:-1]+"\n")
+        er_sites_file.close()
+    
+    def do_er_locations(self):
+        """
+        rewrite er_locations.txt file based on info in self.Data_hierarchy, self.data_er_locations
+        """
+        #header
+        er_locations_file = open(os.path.join(self.WD, "er_locations.txt"),'w')
+        er_locations_file.write("tab\ter_locations\n")
+        string=""
+        for key in self.er_locations_header:
+          string=string+key+"\t"
+        er_locations_file.write(string[:-1]+"\n")
+
+        #data
+        locations_list=self.data_er_locations.keys()
+        #print self.data_er_locations
+        #print "Number of locations", len(locations_list)
+
+        # these two methods are equally fast:
+        #locations_list = set(locations_list)
+        #locations_list.update(self.Data_hierarchy['locations'].keys())
+        #locations_list = list(locations_list)
+
+        for location in self.Data_hierarchy['locations'].keys():
+            if location not in locations_list:
+                locations_list.append(location)
+                
+        #for site in self.data_er_sites.keys():
+        #  if "er_location_name" in self.data_er_sites[site].keys() and self.data_er_sites[site]["er_location_name"] not in locations_list:
+        #    locations_list.append(self.data_er_sites[site]["er_location_name"])
+        locations_list.sort()        
+        for location in locations_list:
+          string=""
+          for key in self.er_locations_header:
+            if key=="er_citation_names":
+              if location in self.data_er_locations.keys():
+                  value = self.data_er_locations[location][key] or "This study"
+              else:
+                  value = "This study"
+              string=string+ value + "\t"
+            elif key=="er_location_name":
+              string=string+location+"\t"
+            # take information from the existing er_location table             
+            elif (location in self.data_er_locations.keys() and key in self.data_er_locations[location].keys() and self.data_er_locations[location][key]!=""):
+                string=string+self.data_er_locations[location][key]+"\t"
+            elif key in ['location_begin_lon','location_end_lon','location_begin_lat','location_end_lat']:
+                if len(self.site_lons)>0 and key=='location_begin_lon':
+                    value="%f"%min(self.site_lons)
+                elif len(self.site_lons)>0 and key=='location_end_lon':
+                    value="%f"%max(self.site_lons)
+                elif len(self.site_lats)>0 and key=='location_begin_lat':
+                    value="%f"%min(self.site_lats)
+                elif len(self.site_lats)>0 and key=='location_end_lat':
+                    value="%f"%max(self.site_lats)
+                else:
+                    value=""
+                string=string+value+"\t"
+                
+            else:
+              string=string+"\t"
+          er_locations_file.write(string[:-1]+"\n")
+        er_locations_file.close()
+        
+    def do_er_ages(self):
+        """
+        rewrite er_ages.txt file based on info in self.Data_hierarchy, self.data_er_sites, and self.data_er_ages
+        """
+        #header
+        er_ages_file = open(os.path.join(self.WD, "er_ages.txt"),'w')
+        er_ages_file.write("tab\ter_ages\n")
+        string = ""
+        for key in self.er_ages_header:
+          string = string + key + "\t"
+        er_ages_file.write(string[:-1]+"\n")
+
+        #data
+        sites_list=self.data_er_sites.keys()
+        for site in self.Data_hierarchy['sites'].keys():
+            if site not in sites_list:
+                sites_list.append(site)
+        sites_list.sort()
+
+        #print "number of site ages", len(sites_list)
+        for site in sites_list:
+          string=""
+          for key in self.er_ages_header:
+            if key=="er_site_name":
+              string=string+site+"\t"
+
+            elif key=="er_citation_names":
+              if site in self.data_er_ages.keys():
+                  value = self.data_er_ages[site][key] or "This study"
+              else: value = "This study"
+              string=string + value + "\t"
+
+            elif (key in ['er_location_name'] and site in self.data_er_sites.keys() \
+                 and  key in self.data_er_sites[site] and self.data_er_sites[site][key]!=""):
+              string=string+self.data_er_sites[site][key]+"\t"
+
+            # take information from the existing er_samples table             
+            elif (site in self.data_er_ages.keys() and key in self.data_er_ages[site].keys() and self.data_er_ages[site][key]!=""):
+                string = string + self.data_er_ages[site][key] + "\t"
+
+            else:
+              string=string+"\t"
+          er_ages_file.write(string[:-1]+"\n")
+
+        er_ages_file.close()
+
+
+
+
+
+
 class MagIC_model_builder(wx.Frame):
     """"""
  
@@ -51,7 +620,7 @@ class MagIC_model_builder(wx.Frame):
         self.main_frame = self.Parent
         self.panel = wx.ScrolledWindow(self)
         self.panel.SetScrollbars(1, 1, 1, 1)
-        self.er_specimens_header=['er_citation_names','er_specimen_name','er_sample_name','er_site_name','er_location_name','specimen_class','specimen_lithology','specimen_type']
+        self.er_specimens_header = ['er_citation_names','er_specimen_name','er_sample_name','er_site_name','er_location_name','specimen_class','specimen_lithology','specimen_type']
         self.er_samples_header=['er_citation_names','er_sample_name','er_site_name','er_location_name','sample_class','sample_lithology','sample_type','sample_lat','sample_lon']
         self.er_sites_header=['er_citation_names','er_site_name','er_location_name','site_class','site_lithology','site_type','site_definition','site_lon','site_lat']
         self.er_locations_header=['er_citation_names','er_location_name','location_begin_lon','location_end_lon','location_begin_lat','location_end_lat','location_type']
