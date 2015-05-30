@@ -44,3 +44,24 @@ class TestBuilder(unittest.TestCase):
         self.assertEqual(self.data1.Data_hierarchy['location_of_sample']['new_name'], 'locale')   
         output_dict = {'new_key': 'new value', 'sample_bed_dip_direction': '444.5', 'er_citation_names': 'This study', 'sample_lithology': '', 'er_site_name': 'Z35.', 'sample_dip': '-82.0', 'magic_method_codes': 'SO-CMD-NORTH', 'sample_lat': '47.1', 'sample_bed_dip': '55.0', 'er_location_name': 'different location', 'sample_declination_correction': '0.5', 'sample_height': '148.25', 'sample_type': '', 'er_sample_name': 'Z35.5', 'sample_azimuth': '5.5', 'sample_lon': '95.4', 'sample_class': ''}
         self.assertEqual(output_dict, self.data1.data_er_samples['new_name'])   
+
+    def test_update_site(self):
+        print "self.data1.Data_hierarchy['site_of_sample']", self.data1.Data_hierarchy['site_of_sample']
+        print "self.data1.Data_hierarchy['site_of_specimen']", self.data1.Data_hierarchy['site_of_specimen']
+        print "self.data1.Data_hierarchy['locations']", self.data1.Data_hierarchy['locations']
+        print "self.data1.Data_hierarchy['location_of_site']", self.data1.Data_hierarchy['location_of_site']
+        #site = self.data1.Data_hierarchy['sites'].keys()[0]
+        specimen = 'Z35.1a'
+        sample = 'Z35.1'
+        site = 'MGH1'
+        
+        #self.data1.change_site('new_site', site)
+        
+        self.assertIn('new_site', self.data1.Data_hierarchy['sites'].keys())
+        self.assertEqual(self.data1.Data_hierarchy['site_of_sample'][sample], 'new_site')
+        self.assertEqual(self.data1.Data_hierarchy['site_of_specimen'][specimen], 'new_site')
+        self.assertIn('new_site', self.data1.Data_hierarchy['locations']['locale'])
+        self.assertIn('new_site', self.data1.Data_hierarchy['location_of_site'].keys())
+        self.assertEqual('locale', self.data1.Data_hierarchy['location_of_site']['new_site'])
+        
+        

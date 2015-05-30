@@ -261,6 +261,23 @@ class ErMagicBuilder(object):
             self.data_er_samples[new_sample_name] = combined_data_dict
 
 
+    def change_site(self, new_site_name, old_site_name, new_site_data=None):
+        """
+        Data_hierarchy looks like this: {'sample_of_specimen': {}, 'site_of_sample': {}, 'location_of_specimen', 'locations': {}, 'sites': {}, 'site_of_specimen': {}, 'samples': {}, 'location_of_sample': {}, 'location_of_site': {}, 'specimens': {}}
+        """
+        # fix sites
+        # self.Data_hierarchy['sites']
+        self.change_dict_key(self.Data_hierarchy, new_site_name, old_site_name)
+
+
+        # fix site_of_sample
+        # self.Data_hierarchy['site_of_sample']
+
+        # fix site_of_specimen
+
+        # fix locations
+        
+        # fix location_of_site
 
         
     def change_dict_key(self, dictionary, old_key, new_key):
