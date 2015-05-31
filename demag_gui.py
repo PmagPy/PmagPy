@@ -363,7 +363,7 @@ class Zeq_GUI(wx.Frame):
 
         self.box_sizer_fit = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY, "Interpretations" ), wx.VERTICAL )
 
-        self.fit_box = wx.ComboBox(self.panel, -1 ,size=(100*self.GUI_RESOLUTION, 25),choices=list_fits, style=wx.CB_DROPDOWN|wx.TE_PROCESS_ENTER)
+        self.fit_box = wx.ComboBox(self.panel, -1 ,size=(100*self.GUI_RESOLUTION, 25),choices=list_fits, style=wx.TE_PROCESS_ENTER)
         self.Bind(wx.EVT_COMBOBOX, self.on_select_fit,self.fit_box)
         self.Bind(wx.EVT_TEXT_ENTER, self.on_enter_fit_name, self.fit_box)
 
