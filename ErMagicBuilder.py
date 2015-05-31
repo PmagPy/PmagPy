@@ -233,26 +233,28 @@ class ErMagicBuilder(object):
         you also may update a sample's key/value pairs in data_er_samples.
         """
         # fix samples
-        specimens = self.change_dict_key(self.Data_hierarchy['samples'], old_sample_name, new_sample_name)
+        specimens = self.change_dict_key(self.Data_hierarchy['samples'], new_sample_name, old_sample_name)
 
         # fix sample_of_specimen and specimens
         # key/value pairs are specimens and the sample they belong to
         for spec in specimens:
             self.Data_hierarchy['sample_of_specimen'][spec] = new_sample_name
             self.Data_hierarchy['specimens'][spec] = new_sample_name
+            self.data_er_specimens[spec]['er_sample_name'] = new_sample_name
 
         # fix site_of_sample
-        site = self.change_dict_key(self.Data_hierarchy['site_of_sample'], old_sample_name, new_sample_name)
+        site = self.change_dict_key(self.Data_hierarchy['site_of_sample'], new_sample_name, old_sample_name)
         
         # fix sites
         self.Data_hierarchy['sites'][site].remove(old_sample_name)
         self.Data_hierarchy['sites'][site].append(new_sample_name)
 
         # fix location_of_sample
-        location = self.change_dict_key(self.Data_hierarchy['location_of_sample'], old_sample_name, new_sample_name)
+        location = self.change_dict_key(self.Data_hierarchy['location_of_sample'], new_sample_name, old_sample_name)
         
         # fix/add new sample data
-        self.change_dict_key(self.data_er_samples, old_sample_name, new_sample_name)
+        self.change_dict_key(self.data_er_samples, new_sample_name, old_sample_name)
+        self.data_er_samples[new_sample_name]['er_sample_name'] = new_sample_name
         if not new_sample_data: # if no data is provided to update
             return
         else:  # if there is data to update
@@ -266,21 +268,82 @@ class ErMagicBuilder(object):
         Data_hierarchy looks like this: {'sample_of_specimen': {}, 'site_of_sample': {}, 'location_of_specimen', 'locations': {}, 'sites': {}, 'site_of_specimen': {}, 'samples': {}, 'location_of_sample': {}, 'location_of_site': {}, 'specimens': {}}
         """
         # fix sites
-        # self.Data_hierarchy['sites']
-        self.change_dict_key(self.Data_hierarchy, new_site_name, old_site_name)
-
+        samples = self.change_dict_key(self.Data_hierarchy['sites'], new_site_name, old_site_name)
 
         # fix site_of_sample
-        # self.Data_hierarchy['site_of_sample']
+        specimens = []
+        for sample in samples:
+            self.Data_hierarchy['site_of_sample'][sample] = new_site_name
+            self.data_er_samples[sample]['er_site_name'] = new_site_name
+            specimens.extend(self.Data_hierarchy['samples'][sample])
 
         # fix site_of_specimen
+        for spec in specimens:
+            self.Data_hierarchy['site_of_specimen'][spec] = new_site_name
+            self.data_er_specimens[spec]['er_site_name'] = new_site_name
+            
+        # fix location_of_site
+        location = self.change_dict_key(self.Data_hierarchy['location_of_site'], new_site_name, old_site_name)
 
         # fix locations
-        
-        # fix location_of_site
+        self.Data_hierarchy['locations'][location].remove(old_site_name)
+        self.Data_hierarchy['locations'][location].append(new_site_name)
+
+        # fix/add new site data
+        self.change_dict_key(self.data_er_sites, new_site_name, old_site_name)
+        self.data_er_sites[new_site_name]['er_site_name'] = new_site_name
+        if not new_site_data:
+            return
+        else:
+            old_site_data = self.data_er_sites.pop(new_site_name)
+            combined_data_dict = self.combine_dicts(new_site_data, old_site_data)
+            self.data_er_sites[new_site_name] = combined_data_dict
+
+    def change_location(self, new_location_name, old_location_name, new_location_data=None):
+
+        # locations
+        sites = self.change_dict_key(self.Data_hierarchy['locations'], new_location_name, old_location_name)
+
+        # location_of_site
+        samples = []
+        for site in sites:
+            self.Data_hierarchy['location_of_site'][site] = new_location_name
+            self.data_er_sites[site]['er_location_name'] = new_location_name
+            samples.extend(self.Data_hierarchy['sites'][site])
+            
+        # location_of_sample
+        specimens = []
+        for sample in samples:
+            self.Data_hierarchy['location_of_sample'][sample] = new_location_name
+            self.data_er_samples[sample]['er_location_name'] = new_location_name
+            specimens.extend(self.Data_hierarchy['samples'][sample])
+
+        # location_of_specimen
+        for specimen in specimens:
+            self.Data_hierarchy['location_of_specimen'][specimen] = new_location_name
+            self.data_er_specimens[specimen]['er_location_name'] = new_location_name
 
         
-    def change_dict_key(self, dictionary, old_key, new_key):
+        #if not new_site_data:
+        #    return
+        #else:
+        #    old_site_data = self.data_er_sites.pop(new_site_name)
+        #    combined_data_dict = self.combine_dicts(new_site_data, old_site_data)
+        #    self.data_er_sites[new_site_name] = combined_data_dict
+
+        # update dictionary
+        self.change_dict_key(self.data_er_locations, new_location_name, old_location_name)
+        self.data_er_locations[new_location_name]['er_location_name'] = new_location_name
+        if not new_location_data:
+            return
+        else:
+            old_location_data = self.data_er_locations.pop(new_location_name)
+            combined_data = self.combine_dicts(new_location_data, old_location_data)
+            self.data_er_locations[new_location_name] = combined_data
+
+            
+
+    def change_dict_key(self, dictionary, new_key, old_key):
         old_value = dictionary.pop(old_key)
         dictionary[new_key] = old_value
         return old_value
