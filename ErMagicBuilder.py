@@ -56,7 +56,12 @@ class ErMagicBuilder(object):
         self.er_locations_header = []
         self.data_er_ages = {}
         self.er_ages_header = []
+
+        self.site_lons = []     
+        self.site_lats = []
+
         self.read_MagIC_info() # populate data dictionaries, if files are available
+        
         if os.path.isfile(os.path.join(self.WD, 'magic_measurements.txt')):
             self.Data_hierarchy = self.get_data()
         if not self.Data_hierarchy:
@@ -814,17 +819,23 @@ class MagIC_model_builder(wx.Frame):
         self.main_frame = self.Parent
         self.panel = wx.ScrolledWindow(self)
         self.panel.SetScrollbars(1, 1, 1, 1)
-        self.er_specimens_header = ['er_citation_names','er_specimen_name','er_sample_name','er_site_name','er_location_name','specimen_class','specimen_lithology','specimen_type']
-        self.er_samples_header=['er_citation_names','er_sample_name','er_site_name','er_location_name','sample_class','sample_lithology','sample_type','sample_lat','sample_lon']
-        self.er_sites_header=['er_citation_names','er_site_name','er_location_name','site_class','site_lithology','site_type','site_definition','site_lon','site_lat']
-        self.er_locations_header=['er_citation_names','er_location_name','location_begin_lon','location_end_lon','location_begin_lat','location_end_lat','location_type']
-        self.er_ages_header=['er_citation_names','er_site_name','er_location_name','age_description','magic_method_codes','age','age_unit']
+        
+        #self.er_specimens_header = ['er_citation_names','er_specimen_name','er_sample_name','er_site_name','er_location_name','specimen_class','specimen_lithology','specimen_type']
+        #self.er_samples_header=['er_citation_names','er_sample_name','er_site_name','er_location_name','sample_class','sample_lithology','sample_type','sample_lat','sample_lon']
+        #self.er_sites_header=['er_citation_names','er_site_name','er_location_name','site_class','site_lithology','site_type','site_definition','site_lon','site_lat']
+        #self.er_locations_header=['er_citation_names','er_location_name','location_begin_lon','location_end_lon','location_begin_lat','location_end_lat','location_type']
+        #self.er_ages_header=['er_citation_names','er_site_name','er_location_name','age_description','magic_method_codes','age','age_unit']
+        
         os.chdir(WD)
         self.WD = os.getcwd()  
         self.site_lons = []     
-        self.site_lats = []     
-        self.Data_hierarchy = self.get_data()
-        self.read_MagIC_info()
+        self.site_lats = []
+
+        self.data = ErMagicBuilder(self.WD)
+        self.data.init_default_headers()
+        #self.Data_hierarchy = self.get_data()
+        #self.read_MagIC_info()
+
         self.SetTitle("Earth-Ref Magic Builder" )
         self.InitUI()
 
@@ -857,70 +868,106 @@ class MagIC_model_builder(wx.Frame):
                                  'timescale_stage','biostrat_zone','conodont_zone','er_formation_name','er_expedition_name','tiepoint_alternatives',\
                                  'er_member_name']
 
-        if self.data_er_specimens:
-            for key in self.data_er_specimens[self.data_er_specimens.keys()[0]].keys():
-                if key not in self.er_specimens_header:
-                    self.er_specimens_header.append(key)
+        if self.data.data_er_specimens:
+            for key in self.data.data_er_specimens[self.data.data_er_specimens.keys()[0]].keys():
+                if key not in self.data.er_specimens_header:
+                    self.data.er_specimens_header.append(key)
 
-        if self.data_er_samples:
-            for key in self.data_er_samples[self.data_er_samples.keys()[0]].keys():
-                if key not in self.er_samples_header:
-                    self.er_samples_header.append(key)
+        if self.data.data_er_samples:
+            for key in self.data.data_er_samples[self.data.data_er_samples.keys()[0]].keys():
+                if key not in self.data.er_samples_header:
+                    self.data.er_samples_header.append(key)
 
-        if self.data_er_sites:
-            for key in self.data_er_sites[self.data_er_sites.keys()[0]].keys():
-                if key not in self.er_sites_header:
-                    self.er_sites_header.append(key)
+        if self.data.data_er_sites:
+            for key in self.data.data_er_sites[self.data.data_er_sites.keys()[0]].keys():
+                if key not in self.data.er_sites_header:
+                    self.data.er_sites_header.append(key)
 
-        if self.data_er_locations:
-            for key in self.data_er_locations[self.data_er_locations.keys()[0]].keys():
-                if key not in self.er_locations_header:
-                    self.er_locations_header.append(key)
+        if self.data.data_er_locations:
+            for key in self.data.data_er_locations[self.data.data_er_locations.keys()[0]].keys():
+                if key not in self.data.er_locations_header:
+                    self.data.er_locations_header.append(key)
 
-        if self.data_er_ages:
-            for key in self.data_er_ages[self.data_er_ages.keys()[0]].keys():
-                if key not in self.er_ages_header:
-                    self.er_ages_header.append(key)
+        if self.data.data_er_ages:
+            for key in self.data.data_er_ages[self.data.data_er_ages.keys()[0]].keys():
+                if key not in self.data.er_ages_header:
+                    self.data.er_ages_header.append(key)
                   
         pnl1 = self.panel
 
         table_list=["er_specimens","er_samples","er_sites","er_locations","er_ages"]
+        headers_list = [er_specimens_optional_header, er_sites_optional_header, er_samples_optional_header, er_locations_optional_header, er_ages_optional_header]
         #table_list=["er_specimens"]
-
-        for table in table_list:
-          N = table_list.index(table)
-          command = "bSizer%i = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY, '%s' ), wx.VERTICAL )"%(N,table)
-          exec command
-          command="self.%s_info = wx.TextCtrl(self.panel, id=-1, size=(210,250), style=wx.TE_MULTILINE | wx.TE_READONLY | wx.HSCROLL)"%table
-          exec command
-          command = "self.%s_info_options = wx.ListBox(choices=%s_optional_header, id=-1,name='listBox1', parent=self.panel, size=wx.Size(200, 250), style=0)"%(table,table)
-          exec command
-          command="self.%s_info_add =  wx.Button(self.panel, id=-1, label='add')"%table
-          exec command
-          command="self.Bind(wx.EVT_BUTTON, self.on_%s_add_button, self.%s_info_add)"%(table,table)
-          exec command
-          command="self.%s_info_remove =  wx.Button(self.panel, id=-1, label='remove')"%table
-          exec command
-          command="self.Bind(wx.EVT_BUTTON, self.on_%s_remove_button, self.%s_info_remove)"%(table,table)
-          exec command
         
-                
-        #------
-          command="bSizer%i.Add(wx.StaticText(pnl1,label='%s header list:'),wx.ALIGN_TOP)"%(N,table)
-          exec command
-          command="bSizer%i.Add(self.%s_info,wx.ALIGN_TOP)"%(N,table)
-          exec command
-          command="bSizer%i.Add(wx.StaticText(pnl1,label='%s optional:'),wx.ALIGN_TOP)"%(N,table)
-          exec command
-          command="bSizer%i.Add(self.%s_info_options,wx.ALIGN_TOP)"%(N,table)
-          exec command
-          command="bSizer%i.Add(self.%s_info_add,wx.ALIGN_TOP)"%(N,table)
-          exec command
-          command="bSizer%i.Add(self.%s_info_remove,wx.ALIGN_TOP)"%(N,table)
-          exec command
+        box_sizers = []
+        text_controls = []
+        info_options = []
+        add_buttons = []
+        remove_buttons = []
+        
+        for table in table_list:
+            N = table_list.index(table)
+            headers = headers_list[N]
 
-          
-          self.update_text_box(table)
+            box_sizer = wx.StaticBoxSizer( wx.StaticBox(self.panel, wx.ID_ANY, table), wx.VERTICAL)
+            box_sizers.append(box_sizer)
+            #command = "bSizer%i = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY, '%s' ), wx.VERTICAL )"%(N,table)
+            #exec command
+
+            text_control = wx.TextCtrl(self.panel, id=-1, size=(210, 250), style=wx.TE_MULTILINE | wx.TE_READONLY | wx.HSCROLL, name=table)
+            text_controls.append(text_control)
+            #command="self.%s_info = wx.TextCtrl(self.panel, id=-1, size=(210,250), style=wx.TE_MULTILINE | wx.TE_READONLY | wx.HSCROLL)"%table
+            #exec command
+
+            info_option = wx.ListBox(choices=headers, id=-1, name=table, parent=self.panel, size=(200, 250), style=0)
+            info_options.append(info_option)
+            #command = "self.%s_info_options = wx.ListBox(choices=%s_optional_header, id=-1,name='listBox1', parent=self.panel, size=wx.Size(200, 250), style=0)"%(table,table)
+            #exec command
+
+            add_button = wx.Button(self.panel, id=-1, label='add', name=table)
+            add_buttons.append(add_button)
+            #command="self.%s_info_add =  wx.Button(self.panel, id=-1, label='add')"%table
+            #exec command
+
+            self.Bind(wx.EVT_BUTTON, lambda event: self.on_add_button(event, info_option, headers, table))
+            #command="self.Bind(wx.EVT_BUTTON, self.on_%s_add_button, self.%s_info_add)"%(table,table)
+            #exec command
+
+            remove_button = wx.Button(self.panel, id=-1, label='remove', name=table)
+            #command="self.%s_info_remove =  wx.Button(self.panel, id=-1, label='remove')"%table
+            #exec command
+
+            self.Bind(wx.EVT_BUTTON, lambda event: self.on_remove_button(info_option, headers, table))
+            #command="self.Bind(wx.EVT_BUTTON, self.on_%s_remove_button, self.%s_info_remove)"%(table,table)
+            #exec command
+
+
+            #------
+            box_sizer.Add(wx.StaticText(pnl1, label='{} header list:'.format(table)), wx.ALIGN_TOP)
+            #command="bSizer%i.Add(wx.StaticText(pnl1,label='%s header list:'),wx.ALIGN_TOP)"%(N,table)
+            #exec command
+
+            box_sizer.Add(text_control, wx.ALIGN_TOP)
+            #command="bSizer%i.Add(self.%s_info,wx.ALIGN_TOP)"%(N,table)
+            #exec command
+
+            box_sizer.Add(wx.StaticText(pnl1, label='{} optional:'.format(table)))
+            #command="bSizer%i.Add(wx.StaticText(pnl1,label='%s optional:'),wx.ALIGN_TOP)"%(N,table)
+            #exec command
+
+            box_sizer.Add(info_option, wx.ALIGN_TOP)
+            #command="bSizer%i.Add(self.%s_info_options,wx.ALIGN_TOP)"%(N,table)
+            #exec command
+
+            box_sizer.Add(add_button, wx.ALIGN_TOP)
+            #command="bSizer%i.Add(self.%s_info_add,wx.ALIGN_TOP)"%(N,table)
+            #exec command
+
+            box_sizer.Add(remove_button, wx.ALIGN_TOP)
+            #command="bSizer%i.Add(self.%s_info_remove,wx.ALIGN_TOP)"%(N,table)
+            #exec command
+
+            self.update_text_box(table, headers, text_control)
           
         hbox1 = wx.BoxSizer(wx.HORIZONTAL)
         self.okButton = wx.Button(self.panel, wx.ID_OK, "&OK")
@@ -941,15 +988,17 @@ class MagIC_model_builder(wx.Frame):
         
         hbox = wx.BoxSizer(wx.HORIZONTAL)
         hbox.AddSpacer(5)
-        hbox.Add(bSizer0, flag=wx.ALIGN_LEFT)
-        hbox.AddSpacer(5)
-        hbox.Add(bSizer1, flag=wx.ALIGN_LEFT)
-        hbox.AddSpacer(5)
-        hbox.Add(bSizer2, flag=wx.ALIGN_LEFT)
-        hbox.AddSpacer(5)
-        hbox.Add(bSizer3, flag=wx.ALIGN_LEFT)
-        hbox.AddSpacer(5)
-        hbox.Add(bSizer4, flag=wx.ALIGN_LEFT)
+        for sizer in box_sizers:
+            hbox.Add(sizer, flag=wx.ALIGN_LEFT|wx.BOTTOM, border=5)
+        #hbox.Add(bSizer0, flag=wx.ALIGN_LEFT)
+        #hbox.AddSpacer(5)
+        #hbox.Add(bSizer1, flag=wx.ALIGN_LEFT)
+        #hbox.AddSpacer(5)
+        #hbox.Add(bSizer2, flag=wx.ALIGN_LEFT)
+        #hbox.AddSpacer(5)
+        #hbox.Add(bSizer3, flag=wx.ALIGN_LEFT)
+        #hbox.AddSpacer(5)
+        #hbox.Add(bSizer4, flag=wx.ALIGN_LEFT)
         hbox.AddSpacer(5)
 
         text = wx.StaticText(self.panel, label="Step 0:\nChoose the headers for your er_specimens, er_samples, er_sites, er_locations and er_ages text files.\nOnce you have selected all necessary headers, click the OK button to move on to step 1.\nFor more information, click the help button below.")
@@ -966,52 +1015,73 @@ class MagIC_model_builder(wx.Frame):
         self.Centre()
 
 
-    def update_text_box(self,table):
+    def update_text_box(self, table, headers_list, text_control):
         TEXT=""
-        command="keys=self.%s_header"%table
-        exec command
-        for key in keys:
+        #command="keys=self.%s_header"%table
+        #exec command
+        for key in headers_list:
           TEXT=TEXT+key+"\n"
         TEXT=TEXT[:-1]
-        commad="self.%s_info.SetValue('')"%table
-        exec command
-        command="self.%s_info.SetValue(TEXT)"%table
-        exec command
 
+        text_control.SetValue('')
+        #command="self.%s_info.SetValue('')"%table
+        #exec command
+
+        text_control.SetValue(TEXT)
+        #command="self.%s_info.SetValue(TEXT)"%table
+        #exec command
+
+    # unnecessary individual on_add_buttons
+    """
     def on_er_specimens_add_button(self, event):
         selName = str(self.er_specimens_info_options.GetStringSelection())
-        if selName not in self.er_specimens_header:
-          self.er_specimens_header.append(selName)
+        if selName not in self.data.er_specimens_header:
+          self.data.er_specimens_header.append(selName)
         self.update_text_box('er_specimens')
           
     def on_er_samples_add_button(self, event):
         selName = self.er_samples_info_options.GetStringSelection()
-        if selName not in self.er_samples_header:
-          self.er_samples_header.append(selName)
+        if selName not in self.data.er_samples_header:
+          self.data.er_samples_header.append(selName)
         self.update_text_box('er_samples')
         
     def on_er_sites_add_button(self, event):
         selName = self.er_sites_info_options.GetStringSelection()
-        if selName not in self.er_sites_header:
-          self.er_sites_header.append(selName)
+        if selName not in self.data.er_sites_header:
+          self.data.er_sites_header.append(selName)
         self.update_text_box('er_sites')
         
     def on_er_locations_add_button(self, event):
         selName = self.er_locations_info_options.GetStringSelection()
-        if selName not in self.er_locations_header:
-          self.er_locations_header.append(selName)
+        if selName not in self.data.er_locations_header:
+          self.data.er_locations_header.append(selName)
         self.update_text_box('er_locations')
         
     def on_er_ages_add_button(self, event):
         selName = self.er_ages_info_options.GetStringSelection()
-        if selName not in self.er_ages_header:
-          self.er_ages_header.append(selName)
+        if selName not in self.data.er_ages_header:
+          self.data.er_ages_header.append(selName)
         self.update_text_box('er_ages')
+    """
 
+    def on_add_button(self, event, info_options, header, which_table):
+        selName = info_options.GetStringSelection()
+        if selName not in header:
+            self.header.append(selName)
+        self.update_text_box(which_table)
+
+    def on_remove_button(self, event, info_options, header, which_table):
+        selName = str(info_options.GetStringSelection())
+        if selName in header:
+            header.remove(selName)
+        self.update_text_box(which_table)
+
+    # unnecessary individual remove_buttons
+    """
     def on_er_specimens_remove_button(self, event):
         selName = str(self.er_specimens_info_options.GetStringSelection())
-        if selName  in self.er_specimens_header:
-          self.er_specimens_header.remove(selName)
+        if selName  in self.data.er_specimens_header:
+          self.data.er_specimens_header.remove(selName)
         self.update_text_box('er_specimens')
           
     def on_er_samples_remove_button(self, event):
@@ -1037,12 +1107,13 @@ class MagIC_model_builder(wx.Frame):
         if selName  in self.er_ages_header:
           self.er_ages_header.remove(selName)
         self.update_text_box('er_ages')
-
+    """
 
     def on_okButton(self, event):
         os.chdir(self.WD)
         self.update_ErMagic()
-        self.main_frame.init_check_window()
+        print "NORMALLY WE INIT CHECK WINDOW NOW!!!"
+        #self.main_frame.init_check_window()
 
     def update_ErMagic(self, update="all"):
         """check for changes and write (or re-write) er_specimens.txt, er_samples.txt, etc."""
@@ -1058,7 +1129,7 @@ class MagIC_model_builder(wx.Frame):
         #last_time = time.time()
         #print 'about to do er_samples'
         if update=='all' or 'samples' in update:
-            self.do_er_samples()
+            self.data.do_er_samples()
         #print "samples took:", time.time() - last_time
         #last_time = time.time()
         
@@ -1066,7 +1137,7 @@ class MagIC_model_builder(wx.Frame):
         # make er_specimens.txt
         #---------------------------------------------
         if update=='all' or 'specimens' in update:
-            self.do_er_specimens()
+            self.data.do_er_specimens()
         #print "specimens took:", time.time() - last_time
         #last_time = time.time()
 
@@ -1075,7 +1146,7 @@ class MagIC_model_builder(wx.Frame):
         # make er_sites.txt
         #---------------------------------------------
         if update=='all' or 'sites' in update:
-            self.do_er_sites()
+            self.data.do_er_sites()
         #print "sites took:", time.time() - last_time
         #last_time = time.time()
         
@@ -1085,7 +1156,7 @@ class MagIC_model_builder(wx.Frame):
         #---------------------------------------------
 
         if update=='all' or 'locations' in update:
-            self.do_er_locations()
+            self.data.do_er_locations()
         #print "locations took:", time.time() - last_time
         #last_time = time.time()
 
@@ -1094,7 +1165,7 @@ class MagIC_model_builder(wx.Frame):
         # make er_ages.txt
         #---------------------------------------------
         if update=='all' or 'ages' in update:
-            self.do_er_ages()
+            self.data.do_er_ages()
         #print "ages took:", time.time() - last_time
         #last_time = time.time()
 
@@ -1104,7 +1175,7 @@ class MagIC_model_builder(wx.Frame):
 
         #print "in ErMagicBuilder on_okButton udpating magic_measurements.txt"
         if update=='all' or 'measurements' in update:
-            self.do_magic_measurements()
+            self.data.do_magic_measurements()
 
         #print "measurements took:", time.time() - last_time
         #last_time = time.time()
@@ -1134,7 +1205,7 @@ class MagIC_model_builder(wx.Frame):
         html_frame.Center()
         html_frame.Show()
 
-      
+    """
     def read_magic_file(self,path,sort_by_this_name):
         #print "doing ErMagic read_magic_file"
         DATA={}
@@ -1177,11 +1248,12 @@ class MagIC_model_builder(wx.Frame):
                     rec[header]=""
         return recs
 
+
     def read_MagIC_info(self):
-        """
+        "
         Attempt to open er_specimens, er_samples, er_sites, er_locations, and er_ages files in working directory.
         Initialize or update MagIC_model_builder attributes data_er_specimens, data_er_samples, data_er_sites, data_er_locations, and data_er_ages (dictionaries)
-        """
+        "
         #print "read_MagIC_info in ErMagicBuilder.py"
         Data_info={}
         print "-I- read existing MagIC model files"
@@ -1230,13 +1302,13 @@ class MagIC_model_builder(wx.Frame):
 
 
     def get_data(self):
-        """
+        "
         attempt to read measurements file in working directory.
         If suitable file is found, return two dictionaries.
         Data looks like this: {specimen_a: {}, specimen_b: {}}
         Data_hierarchy looks like this: {'sample_of_specimen': {}, 'site_of_sample': {}, 'location_of_specimen', 'locations': {}, 'sites': {}, 'site_of_specimen': {}, 'samples': {}, 'location_of_sample': {}, 'location_of_site': {}, 'specimens': {}}
         If no measurements file is found, return two empty dictionaries. 
-        """
+        "
         #print 'calling get_data()'
         #start_time = time.time()
         Data = {}
@@ -1293,11 +1365,11 @@ class MagIC_model_builder(wx.Frame):
         #print 'get_data took:', time.time() - start_time
         return Data_hierarchy
 
-
+    
     def do_magic_measurements(self):
-        """
+        "
         rewrite magic_measurements.txt file based on info in self.er_specimens, self.er_samples, self.er_sites, and self.er_locations
-        """
+        "
         f_old = open(os.path.join(self.WD, "magic_measurements.txt"),'rU')
         f_new = open(os.path.join(self.WD, "magic_measurements.new.tmp.txt"),'w')
              
@@ -1359,9 +1431,9 @@ class MagIC_model_builder(wx.Frame):
         
     
     def do_er_specimens(self):
-        """
+        "
         rewrite er_specimens.txt file based on info in self.Data_hierarchy, self.data_er_specimens, and self.data_er_samples
-        """
+        "
         # header
         er_specimens_file = open(os.path.join(self.WD, "er_specimens.txt"),'w')
         er_specimens_file.write("tab\ter_specimens\n")
@@ -1427,9 +1499,9 @@ class MagIC_model_builder(wx.Frame):
         er_specimens_file.close()  
     
     def do_er_samples(self):
-        """
+        "
         rewrite er_samples.txt file based on info in self.Data_hierarchy, self.data_er_samples, and self.data_er_sites
-        """
+        "
 
         #header
         #print 'do_er_samples'
@@ -1502,9 +1574,9 @@ class MagIC_model_builder(wx.Frame):
         er_samples_file.close()
 
     def do_er_sites(self):
-        """
+        "
         rewrite er_sites.txt file based on info in self.Data_hierarchy and self.data_er_sites
-        """
+        "
         #header
         er_sites_file = open(os.path.join(self.WD, "er_sites.txt"),'w')
         er_sites_file.write("tab\ter_sites\n")
@@ -1563,9 +1635,9 @@ class MagIC_model_builder(wx.Frame):
         er_sites_file.close()
     
     def do_er_locations(self):
-        """
+        "
         rewrite er_locations.txt file based on info in self.Data_hierarchy, self.data_er_locations
-        """
+        "
         #header
         er_locations_file = open(os.path.join(self.WD, "er_locations.txt"),'w')
         er_locations_file.write("tab\ter_locations\n")
@@ -1625,9 +1697,9 @@ class MagIC_model_builder(wx.Frame):
         er_locations_file.close()
         
     def do_er_ages(self):
-        """
+        "
         rewrite er_ages.txt file based on info in self.Data_hierarchy, self.data_er_sites, and self.data_er_ages
-        """
+        "
         #header
         er_ages_file = open(os.path.join(self.WD, "er_ages.txt"),'w')
         er_ages_file.write("tab\ter_ages\n")
@@ -1669,6 +1741,7 @@ class MagIC_model_builder(wx.Frame):
           er_ages_file.write(string[:-1]+"\n")
 
         er_ages_file.close()
+    """
 
 
             
