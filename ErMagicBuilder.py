@@ -896,18 +896,20 @@ class MagIC_model_builder(wx.Frame):
         pnl1 = self.panel
 
         table_list=["er_specimens","er_samples","er_sites","er_locations","er_ages"]
-        headers_list = [er_specimens_optional_header, er_sites_optional_header, er_samples_optional_header, er_locations_optional_header, er_ages_optional_header]
+        self.optional_headers = {'er_specimens': er_specimens_optional_header, 'er_samples': er_samples_optional_header, 'er_sites': er_sites_optional_header, 'er_locations': er_locations_optional_header, 'er_ages': er_ages_optional_header}
+        self.reqd_headers = {'er_specimens': self.data.er_specimens_header, 'er_samples': self.data.er_samples_header, 'er_sites': self.data.er_sites_header, 'er_locations': self.data.er_locations_header, 'er_ages': self.data.er_ages_header}
         #table_list=["er_specimens"]
         
         box_sizers = []
-        text_controls = []
-        info_options = []
+        self.text_controls = {}
+        self.info_options = {}
         add_buttons = []
         remove_buttons = []
         
         for table in table_list:
             N = table_list.index(table)
-            headers = headers_list[N]
+            optional_headers = self.optional_headers[table]
+            reqd_headers = self.reqd_headers[table]
 
             box_sizer = wx.StaticBoxSizer( wx.StaticBox(self.panel, wx.ID_ANY, table), wx.VERTICAL)
             box_sizers.append(box_sizer)
@@ -915,12 +917,12 @@ class MagIC_model_builder(wx.Frame):
             #exec command
 
             text_control = wx.TextCtrl(self.panel, id=-1, size=(210, 250), style=wx.TE_MULTILINE | wx.TE_READONLY | wx.HSCROLL, name=table)
-            text_controls.append(text_control)
+            self.text_controls[table] = text_control
             #command="self.%s_info = wx.TextCtrl(self.panel, id=-1, size=(210,250), style=wx.TE_MULTILINE | wx.TE_READONLY | wx.HSCROLL)"%table
             #exec command
 
-            info_option = wx.ListBox(choices=headers, id=-1, name=table, parent=self.panel, size=(200, 250), style=0)
-            info_options.append(info_option)
+            info_option = wx.ListBox(choices=optional_headers, id=-1, name=table, parent=self.panel, size=(200, 250), style=0)
+            self.info_options[table] = info_option
             #command = "self.%s_info_options = wx.ListBox(choices=%s_optional_header, id=-1,name='listBox1', parent=self.panel, size=wx.Size(200, 250), style=0)"%(table,table)
             #exec command
 
@@ -929,7 +931,7 @@ class MagIC_model_builder(wx.Frame):
             #command="self.%s_info_add =  wx.Button(self.panel, id=-1, label='add')"%table
             #exec command
 
-            self.Bind(wx.EVT_BUTTON, lambda event: self.on_add_button(event, info_option, headers, table))
+            self.Bind(wx.EVT_BUTTON, self.on_add_button, add_button)
             #command="self.Bind(wx.EVT_BUTTON, self.on_%s_add_button, self.%s_info_add)"%(table,table)
             #exec command
 
@@ -937,10 +939,9 @@ class MagIC_model_builder(wx.Frame):
             #command="self.%s_info_remove =  wx.Button(self.panel, id=-1, label='remove')"%table
             #exec command
 
-            self.Bind(wx.EVT_BUTTON, lambda event: self.on_remove_button(info_option, headers, table))
+            self.Bind(wx.EVT_BUTTON, self.on_remove_button, remove_button)
             #command="self.Bind(wx.EVT_BUTTON, self.on_%s_remove_button, self.%s_info_remove)"%(table,table)
             #exec command
-
 
             #------
             box_sizer.Add(wx.StaticText(pnl1, label='{} header list:'.format(table)), wx.ALIGN_TOP)
@@ -951,7 +952,7 @@ class MagIC_model_builder(wx.Frame):
             #command="bSizer%i.Add(self.%s_info,wx.ALIGN_TOP)"%(N,table)
             #exec command
 
-            box_sizer.Add(wx.StaticText(pnl1, label='{} optional:'.format(table)))
+            box_sizer.Add(wx.StaticText(pnl1, label='{} optional:'.format(table)), flag=wx.ALIGN_TOP|wx.TOP, border=10)
             #command="bSizer%i.Add(wx.StaticText(pnl1,label='%s optional:'),wx.ALIGN_TOP)"%(N,table)
             #exec command
 
@@ -967,7 +968,8 @@ class MagIC_model_builder(wx.Frame):
             #command="bSizer%i.Add(self.%s_info_remove,wx.ALIGN_TOP)"%(N,table)
             #exec command
 
-            self.update_text_box(table, headers, text_control)
+            # need headers 
+            self.update_text_box(table, reqd_headers, text_control)
           
         hbox1 = wx.BoxSizer(wx.HORIZONTAL)
         self.okButton = wx.Button(self.panel, wx.ID_OK, "&OK")
@@ -990,6 +992,7 @@ class MagIC_model_builder(wx.Frame):
         hbox.AddSpacer(5)
         for sizer in box_sizers:
             hbox.Add(sizer, flag=wx.ALIGN_LEFT|wx.BOTTOM, border=5)
+            hbox.AddSpacer(5)
         #hbox.Add(bSizer0, flag=wx.ALIGN_LEFT)
         #hbox.AddSpacer(5)
         #hbox.Add(bSizer1, flag=wx.ALIGN_LEFT)
@@ -1064,17 +1067,28 @@ class MagIC_model_builder(wx.Frame):
         self.update_text_box('er_ages')
     """
 
-    def on_add_button(self, event, info_options, header, which_table):
-        selName = info_options.GetStringSelection()
-        if selName not in header:
-            self.header.append(selName)
-        self.update_text_box(which_table)
+    def on_add_button(self, event):
+        table = event.GetEventObject().Name
+        text_control = self.text_controls[table]
+        info_option = self.info_options[table]
+        header = self.reqd_headers[table]
 
-    def on_remove_button(self, event, info_options, header, which_table):
-        selName = str(info_options.GetStringSelection())
+        selName = info_option.GetStringSelection()
+
+        if selName not in header:
+            header.append(selName)
+        self.update_text_box(table, header, text_control)
+
+    def on_remove_button(self, event):
+        table = event.GetEventObject().Name
+        info_option = self.info_options[table]
+        text_control = self.text_controls[table]
+        header = self.reqd_headers[table]
+
+        selName = str(info_option.GetStringSelection())
         if selName in header:
             header.remove(selName)
-        self.update_text_box(which_table)
+        self.update_text_box(table, header, text_control)
 
     # unnecessary individual remove_buttons
     """
