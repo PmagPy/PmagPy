@@ -227,6 +227,36 @@ class ErMagicBuilder(object):
         return Data_hierarchy
 
 
+    def change_specimen(self, new_specimen_name, old_specimen_name, new_specimen_data=None):
+        """
+        """
+        # fix specimens
+        sample = self.change_dict_key(self.Data_hierarchy['specimens'], new_specimen_name, old_specimen_name)
+
+        # fix sample_of_specimen
+        self.change_dict_key(self.Data_hierarchy['sample_of_specimen'], new_specimen_name, old_specimen_name)
+
+        # fix samples
+        self.Data_hierarchy['samples'][sample].remove(old_specimen_name)
+        self.Data_hierarchy['samples'][sample].append(new_specimen_name)
+
+        # fix site_of_specimen
+        site = self.change_dict_key(self.Data_hierarchy['site_of_specimen'], new_specimen_name, old_specimen_name)
+        
+        # fix location_of_specimen
+        location = self.change_dict_key(self.Data_hierarchy['location_of_specimen'], new_specimen_name, old_specimen_name)
+
+        # fix data_er_specimens
+        self.change_dict_key(self.data_er_specimens, new_specimen_name, old_specimen_name)
+        self.data_er_specimens[new_specimen_name]['er_specimen_name'] = new_specimen_name
+        if not new_specimen_data:
+            return
+        else:
+            old_specimen_data = self.data_er_specimens.pop(new_specimen_name)
+            combined_specimen_data = self.combine_dicts(new_specimen_data, old_specimen_data)
+            self.data_er_specimens[new_specimen_name] = combined_specimen_data
+
+            
     def change_sample(self, new_sample_name, old_sample_name, new_sample_data=None):
         """
         update a sample name everywhere it appears in data_er_samples and Data_hierarchy.
@@ -299,6 +329,28 @@ class ErMagicBuilder(object):
             combined_data_dict = self.combine_dicts(new_site_data, old_site_data)
             self.data_er_sites[new_site_name] = combined_data_dict
 
+        # fix site name in er_ages, if applicable
+        if old_site_name in self.data_er_ages.keys():
+            self.change_age(new_site_name, old_site_name)
+
+
+    def change_age(self, new_name, old_name, new_age_data=None):
+
+        self.change_dict_key(self.data_er_ages, new_name, old_name)
+        self.data_er_ages[new_name]['er_site_name'] = new_name
+
+        if not new_age_data:
+            return
+        else:
+            old_age_data = self.data_er_ages.pop(new_name)
+            combined_age_data = self.combine_dicts(new_age_data, old_age_data)
+            self.data_er_ages[new_name] = combined_age_data
+        
+        
+
+
+        
+            
     def change_location(self, new_location_name, old_location_name, new_location_data=None):
 
         # locations
