@@ -2,6 +2,7 @@ import wx
 import sys
 import drop_down_menus
 import pmag_widgets as pw
+import check_updates
 
 class ErMagicCheck(wx.Frame):
 
@@ -48,15 +49,15 @@ Check that all specimens belong to the correct sample
         for val in ['er_citation_names', 'er_location_name', 'er_site_name', 'er_sample_name', 'er_specimen_name', 'specimen_class', 'specimen_lithology', 'specimen_type']: #
             col_labels.remove(val)
         col_labels = sorted(col_labels)
-        col_labels[:0] = ['specimens', '', 'er_sample_name']
+        col_labels[:0] = ['er_specimen_name', '', 'er_sample_name']
 
-        self.spec_grid = self.make_simple_table(col_labels, self.ErMagic.data_er_specimens, "specimen")
+        self.spec_grid = self.make_simple_table(col_labels, self.ErMagic.data_er_specimens, "er_specimen_name")
 
         self.changes = False
 
         self.Bind(wx.grid.EVT_GRID_EDITOR_CREATED, lambda event: self.on_edit_grid(event, self.spec_grid), self.spec_grid) # if user begins to edit, self.changes will be set to True
+        self.Bind(wx.grid.EVT_GRID_EDITOR_SHOWN, lambda event: self.on_edit_grid(event, self.spec_grid), self.spec_grid) # if user begins to edit, self.changes will be set to True
         self.drop_down_menu = drop_down_menus.Menus("specimen", self, self.spec_grid, samples) # initialize all needed drop-down menus
-
 
         #### Create Buttons ####
         hbox_one = wx.BoxSizer(wx.HORIZONTAL)
@@ -148,15 +149,15 @@ You may use the drop-down menus to add as many values as needed in these columns
         self.locations = sorted(list(set(self.Data_hierarchy['locations'].keys()).union(self.ErMagic.data_er_locations.keys())))
 
         if self.sample_window == 1:
-            self.samp_grid = self.make_simple_table(['samples', '', 'er_site_name'], self.ErMagic.data_er_samples, 'sample')
+            self.samp_grid = self.make_simple_table(['er_sample_name', '', 'er_site_name'], self.ErMagic.data_er_samples, 'er_sample_name')
             
         if self.sample_window > 1:
             col_labels = self.ErMagic.data_er_samples[self.ErMagic.data_er_samples.keys()[0]].keys()
             for val in ['er_citation_names', 'er_location_name', 'er_site_name', 'er_sample_name', 'sample_class', 'sample_lithology', 'sample_type', 'sample_lat', 'sample_lon']:
                 col_labels.remove(val)
             col_labels = sorted(col_labels)
-            col_labels[:0] = ['samples', '', 'er_site_name', 'sample_class', 'sample_lithology', 'sample_type', 'sample_lat', 'sample_lon']
-            self.samp_grid = self.make_simple_table(col_labels, self.ErMagic.data_er_samples, 'sample')
+            col_labels[:0] = ['er_sample_name', '', 'er_site_name', 'sample_class', 'sample_lithology', 'sample_type', 'sample_lat', 'sample_lon']
+            self.samp_grid = self.make_simple_table(col_labels, self.ErMagic.data_er_samples, 'er_sample_name')
 
         self.changes = False
         self.Bind(wx.grid.EVT_GRID_EDITOR_CREATED, lambda event: self.on_edit_grid(event, self.samp_grid), self.samp_grid)
@@ -265,9 +266,9 @@ However, you will be able to edit sample_class, sample_lithology, and sample_typ
         for val in ['er_citation_names', 'er_location_name', 'er_site_name', 'site_class', 'site_lithology', 'site_type', 'site_definition', 'site_lat', 'site_lon']: #
             col_labels.remove(val)
         col_labels = sorted(col_labels)
-        col_labels[:0] = ['sites', '', 'er_location_name', 'site_class', 'site_lithology', 'site_type', 'site_definition', 'site_lon', 'site_lat']
+        col_labels[:0] = ['er_site_name', '', 'er_location_name', 'site_class', 'site_lithology', 'site_type', 'site_definition', 'site_lon', 'site_lat']
 
-        self.site_grid = self.make_simple_table(col_labels, self.ErMagic.data_er_sites, 'site')
+        self.site_grid = self.make_simple_table(col_labels, self.ErMagic.data_er_sites, 'er_sample_name')
 
         self.changes = False
         self.Bind(wx.grid.EVT_GRID_EDITOR_CREATED, lambda event: self.on_edit_grid(event, self.site_grid), self.site_grid)
@@ -379,7 +380,7 @@ Fill in any blank cells using controlled vocabularies.
         except:
             pass
 
-        self.loc_grid = self.make_simple_table(col_labels, self.ErMagic.data_er_locations, "location")
+        self.loc_grid = self.make_simple_table(col_labels, self.ErMagic.data_er_locations, "er_location_name")
 
         self.Bind(wx.grid.EVT_GRID_EDITOR_CREATED, lambda event: self.on_edit_grid(event, self.loc_grid), self.loc_grid)
 
@@ -467,7 +468,7 @@ You may use the drop-down menus to add as many values as needed in these columns
             if k in self.sites:
                 ages_data_dict[k] = v
 
-        self.age_grid = self.make_simple_table(col_labels, ages_data_dict, "age")
+        self.age_grid = self.make_simple_table(col_labels, ages_data_dict, "er_site_name")
         #
         # make it impossible to edit the 1st and 3rd columns
         for row in range(self.age_grid.GetNumberRows()):
@@ -535,12 +536,16 @@ You may use the drop-down menus to add as many values as needed in these columns
         grid.ClearGrid()
         grid.CreateGrid(len(row_labels), len(column_labels))
 
-        self.temp_data[column_labels[0]] = []
+        if grid_name == 'ages':
+            temp_data_key = 'ages'
+        else:
+            temp_data_key = column_labels[0]
+        self.temp_data[temp_data_key] = []
         # set row labels
         for n, row in enumerate(row_labels):
             grid.SetRowLabelValue(n, str(n+1))
             grid.SetCellValue(n, 0, row)
-            self.temp_data[column_labels[0]].append(row)
+            self.temp_data[temp_data_key].append(row)
         # set column labels
         for n, col in enumerate(column_labels):
             grid.SetColLabelValue(n, col)
@@ -572,7 +577,6 @@ You may use the drop-down menus to add as many values as needed in these columns
         """
         Displays a tooltip over any cell in a certain column
         """
-        print "doing onMouseOver"
         x, y = grid.CalcUnscrolledPosition(event.GetX(),event.GetY())
         coords = grid.XYToCell(x, y)
         col = coords[1]
@@ -590,9 +594,16 @@ You may use the drop-down menus to add as many values as needed in these columns
     def on_edit_grid(self, event, grid):
         """sets self.changes to true when user edits the grid.
         provides down and up key functionality for exiting the editor"""
-        self.changes = True
-        editor = event.GetControl()
-        editor.Bind(wx.EVT_KEY_DOWN, lambda event: self.onEditorKey(event, grid))
+        if not self.changes:
+            self.changes = {event.Row}
+        else:
+            self.changes.add(event.Row)
+        #self.changes = True
+        try:
+            editor = event.GetControl()
+            editor.Bind(wx.EVT_KEY_DOWN, lambda event: self.onEditorKey(event, grid))
+        except AttributeError: # if it's a EVT_GRID_EDITOR_SHOWN, it doesn't have the GetControl method
+            pass
 
     def onEditorKey(self, event, grid):
         keycode = event.GetKeyCode()
@@ -653,7 +664,7 @@ You may use the drop-down menus to add as many values as needed in these columns
         pw.AddItem(self, 'Sample', add_sample, self.sites, 'site') # makes window for adding new data
 
         def add_sample_data(sample, site):
-            self.ErMagic.change_sample
+            #self.ErMagic.change_sample
             keys = self.ErMagic.er_samples_header
             self.ErMagic.data_er_samples[sample] = dict(zip(keys, ["" for key in keys]))
             self.ErMagic.data_er_samples[sample]['er_sample_name'] = sample
@@ -743,7 +754,7 @@ You may use the drop-down menus to add as many values as needed in these columns
 
         # unhighlight selected columns, etc.
         if self.drop_down_menu:  
-            self.drop_down_menu.clean_up(grid)
+            self.drop_down_menu.clean_up()
 
         # remove '**' from col names
         self.remove_starred_labels(grid)
@@ -753,8 +764,8 @@ You may use the drop-down menus to add as many values as needed in these columns
         else:
             self.ErMagic.read_MagIC_info()
         grid.SaveEditControlValue() # locks in value in cell currently edited
-        simple_grids = {"location": self.ErMagic.data_er_locations, "age": self.ErMagic.data_er_ages}
-        grid_name = grid.GetName()
+        grids = {"er_specimen_name": self.ErMagic.data_er_specimens, "er_sample_name": self.ErMagic.data_er_samples, "er_site_name": self.ErMagic.data_er_sites, "er_location_name": self.ErMagic.data_er_locations, "ages": self.ErMagic.data_er_ages}
+        grid_name = str(grid.GetName())
 
         # check that all required data is present
         validation_errors = self.validate(grid)
@@ -766,11 +777,9 @@ You may use the drop-down menus to add as many values as needed in these columns
                 return False
 
         if self.changes:
-            #if grid_name in simple_grids:
-            #    self.update_simple_grid_data(grid, simple_grids[grid_name])
-            #else:
-            #    self.update_orient_data(grid)
+            self.update_grid(grid, grids[grid_name])
 
+            # possibly optimize this so that it only updates the required files
             self.ErMagic.update_ErMagic()
             
             self.changes = False # resets
@@ -791,7 +800,7 @@ You may use the drop-down menus to add as many values as needed in these columns
 
         
         if self.drop_down_menu:  # unhighlight selected columns, etc.
-            self.drop_down_menu.clean_up(grid)
+            self.drop_down_menu.clean_up()
             
         # remove '**' from col labels
         starred_cols = self.remove_starred_labels(grid)
@@ -835,355 +844,35 @@ You may use the drop-down menus to add as many values as needed in these columns
 
         
     ### Manage data methods ###
+    def update_grid(self, grid, data):
+        """
+        takes in wxPython grid and ErMagic data object to be updated
+        """
+        data_methods = {'er_specimen_name': self.ErMagic.change_specimen, 'er_sample_name': self.ErMagic.change_sample, 'er_site_name': self.ErMagic.change_site, 'er_location_name': self.ErMagic.change_location, 'ages': self.ErMagic.change_age}
+        
+        grid_name = str(grid.GetName())
 
-    
-    """
-    def update_simple_grid_data(self, grid, data):
-        grid_name = grid.GetName()
         rows = range(grid.GetNumberRows())
         cols = range(grid.GetNumberCols())
-        updated_items = []
-        for row in rows:
-            item = str(grid.GetCellValue(row, 0))
-            updated_items.append(item)
-        if grid_name == "location":
-            self.update_locations(updated_items)
-        for row in rows:
-            item = str(grid.GetCellValue(row, 0))
-            for col in cols[1:]:
-                category = str(grid.GetColLabelValue(col))
-                value = str(grid.GetCellValue(row, col))
-                data[item][category] = value
-        self.temp_data[grid_name] = updated_items
-
-
-    def update_orient_data(self, grid):
-
-        col1_updated, col2_updated, col1_old, col2_old, type1, type2 = self.get_old_and_new_data(grid, 0, 2)
-        if len(set(col1_updated)) != len(col1_updated):
-            print "Duplicate {} detected.  Please ensure that all {} names are unique".format(type1, type1[:-1])
-            return 0
-        if type1 == 'specimens':
-            self.update_specimens(self.spec_grid, col1_updated, col1_old, col2_updated, col2_old, type1, type2)
-        if type1 == 'samples':
-            cols = range(3, grid.GetNumberCols())
-            col_labels = []
-            for col in cols:
-                col_labels.append(grid.GetColLabelValue(col))
-            self.update_samples(grid, col1_updated, col1_old, col2_updated, col2_old, *col_labels)
-        if type1 == 'sites':
-            self.update_sites(grid, col1_updated, col1_old, col2_updated, col2_old)#, *col_labels)
-
-        # updates the holder data so that when we save again, we will only update what is new as of the last save
-        self.temp_data[type1] = col1_updated 
-        self.temp_data[type2] = col2_updated
-
-
-    def update_locations(self, updated_locations):
-        original_locations = self.temp_data['er_location_name']
-        changed = [(original_locations[num], new_loc) for (num, new_loc) in enumerate(updated_locations) if new_loc != original_locations[num]]
-        for change in changed:
-            old_loc, new_loc = change
-            sites = self.Data_hierarchy['locations'].pop(old_loc)
-            self.Data_hierarchy['locations'][new_loc] = sites
-            #
-            data = self.ErMagic.data_er_locations.pop(old_loc)
-            self.ErMagic.data_er_locations[new_loc] = data
-            self.ErMagic.data_er_locations[new_loc]['er_location_name'] = new_loc
-            #
-            for site in sites:
-                self.Data_hierarchy['location_of_site'][site] = new_loc
-                self.ErMagic.data_er_sites[site]['er_location_name'] = new_loc
-                self.ErMagic.data_er_ages[site]['er_location_name'] = new_loc
-                samples = self.Data_hierarchy['sites'][site]
-                for sample in samples:
-                    self.Data_hierarchy['location_of_sample'][sample] = new_loc
-                    self.ErMagic.data_er_samples[sample]['er_location_name'] = new_loc
-                    specimens = self.Data_hierarchy['samples'][sample]
-                    for spec in specimens:
-                        self.Data_hierarchy['location_of_specimen'][spec] = new_loc
-                        self.ErMagic.data_er_specimens[spec]['er_location_name'] = new_loc
-
-    def update_sites(self, grid, col1_updated, col1_old, col2_updated, col2_old):#, *args):
-        changed = [(old_value, col1_updated[num]) for (num, old_value) in enumerate(col1_old) if old_value != col1_updated[num]]
-        # find where changes have occurred
-        for change in changed:
-            old_site, new_site = change
-            samples = self.Data_hierarchy['sites'].pop(old_site)
-            location = self.Data_hierarchy['location_of_site'].pop(old_site)
-            if location == " ": # prevents error
-                location = ""
-            self.Data_hierarchy['sites'][new_site] = samples
-            # fix extra temp_data to have updated site names
-            info = self.extra_site_temp_data.pop(old_site)
-            self.extra_site_temp_data[new_site] = info
-            # do locations
-            ind = self.Data_hierarchy['locations'][location].index(old_site)
-            self.Data_hierarchy['locations'][location][ind] = new_site
-            self.Data_hierarchy['location_of_site'][new_site] = location
-            # adjust for renamed sites
-            for samp in samples:
-                specimens = self.Data_hierarchy['samples'][samp]
-                self.Data_hierarchy['site_of_sample'][samp] = new_site
-                self.ErMagic.data_er_samples[samp]['er_site_name'] = new_site
-                for spec in specimens:
-                    self.Data_hierarchy['site_of_specimen'][spec] = new_site
-                    self.ErMagic.data_er_specimens[spec]['er_site_name'] = new_site
-            data = self.ErMagic.data_er_sites.pop(old_site)
-            self.ErMagic.data_er_sites[new_site] = data
-            self.ErMagic.data_er_sites[new_site]['er_site_name'] = new_site
-
-        # now do the "which site belongs to which location" part
-        for num, value in enumerate(col2_updated):
-            # find where changes have occurred
-            if value != col2_old[num]:
-                #print "CHANGE!", "new", value, "old", col2_old[num]
-                old_loc = col2_old[num]
-                new_loc = col2_updated[num]
-                if old_loc == " ": 
-                    old_loc = ""
-                if new_loc == " ":
-                    new_loc = ""
-                site = col1_updated[num]
-                #
-                self.Data_hierarchy['location_of_site'][site] = new_loc
-                #
-                if old_loc in self.Data_hierarchy['locations']:
-                    self.Data_hierarchy['locations'][old_loc].remove(site)
-                self.Data_hierarchy['locations'][new_loc].append(site)
-                #
-                for samp in self.Data_hierarchy['sites'][site]:
-                    self.Data_hierarchy['location_of_sample'][samp] = new_loc
-                    self.ErMagic.data_er_samples[samp]['er_location_name'] = new_loc
-                    for spec in self.Data_hierarchy['samples'][samp]:
-                        self.Data_hierarchy['location_of_specimen'][spec] = new_loc
-                        self.ErMagic.data_er_specimens[spec]['er_location_name'] = new_loc
-                #
-                self.ErMagic.data_er_sites[site]['er_location_name'] = new_loc
-                #
-
-
-        # check if any locations no longer have any site assigned to them, and destroy them if so.
-        # this means they won't show up in the check locations grid
-        locations = self.ErMagic.data_er_locations.keys()
-        for loc in locations:
-            #print self.Data_hierarchy['sites'][site]
-            if loc in self.Data_hierarchy['locations'].keys():
-                if not self.Data_hierarchy['locations'][loc]:
-                    self.Data_hierarchy['locations'].pop(loc)
-                    self.ErMagic.data_er_locations.pop(loc)
-         
-        # now fill in all the other columns, using extra temp_data to update only
-        # data for cells that have been changed
-        columns = grid.GetNumberCols()
-        col_labels = []
-        for col in range(columns):
-            col_labels.append(grid.GetColLabelValue(col))
-        for num_site, site in enumerate(col1_updated):
-            for num, arg in enumerate(col_labels[3:]):
-                old_value = self.extra_site_temp_data[site][num]
-                num += 3 # ignore first 3 rows
-                value = str(grid.GetCellValue(num_site, num))
-                if old_value == value:
-                    continue
-                self.ErMagic.data_er_sites[site][arg] = value
-                # update data_er_samples where appropriate 
-                # (i.e., change er_sample_type if er_site_type is changed here)
-                samples = self.Data_hierarchy['sites'][site]
-                for sample in samples:
-                    arg = arg.replace('site', 'sample')
-                    self.ErMagic.data_er_samples[sample][arg] = value
-
-    
-    def update_samples(self, grid, col1_updated, col1_old, col2_updated, col2_old, *args):
-        changed = [(old_value, col1_updated[num]) for (num, old_value) in enumerate(col1_old) if old_value != col1_updated[num]]  
-        for change in changed:
-            old_sample, new_sample = change
-            specimens = self.Data_hierarchy['samples'].pop(old_sample)
-            site = self.Data_hierarchy['site_of_sample'].pop(old_sample)
-            location = self.Data_hierarchy['location_of_sample'].pop(old_sample)
-            
-            self.Data_hierarchy['samples'][new_sample] = specimens
-            
-            for spec in specimens:
-                self.Data_hierarchy['sample_of_specimen'][spec] = new_sample
-                self.Data_hierarchy['specimens'][spec] = new_sample
-            #
-            self.Data_hierarchy['site_of_sample'][new_sample] = site
-            #
-            self.Data_hierarchy['location_of_sample'][new_sample] = location
-            #
-            ind = self.Data_hierarchy['sites'][site].index(old_sample)
-            self.Data_hierarchy['sites'][site][ind] = new_sample
-            # updating self.ErMagic.data_er_samples
-            #print "in update_samples, self.ErMagic.data_er_specimens", self.ErMagic.data_er_specimens
-            #print "in update_samples, self.ErMagic.data_er_samples.keys()", self.ErMagic.data_er_samples
-            #print "-"
-            sample_data = self.ErMagic.data_er_samples.pop(old_sample)
-            self.ErMagic.data_er_samples[new_sample] = sample_data
-            self.ErMagic.data_er_samples[new_sample]['er_sample_name'] = new_sample
-            for spec in self.ErMagic.data_er_specimens:
-                if self.ErMagic.data_er_specimens[spec]['er_sample_name'] == old_sample:
-                    self.ErMagic.data_er_specimens[spec]['er_sample_name'] = new_sample
         
-        # now do the site changes
-        for num, value in enumerate(col2_updated):
-            # find where changes have occurred
-            if value != col2_old[num]:
-                #print "CHANGE!", "new", value, "old", col2_old[num]
-                sample = col1_updated[num]
-                specimens = self.Data_hierarchy['samples'][sample]
-                old_site = col2_old[num]
-                new_site = value
-                try:
-                    loc = self.Data_hierarchy['location_of_site'][new_site]
-                except:
-                    loc = self.ErMagic.data_er_sites[new_site]['er_location_name']
-                    self.Data_hierarchy['location_of_site'][new_site] = loc
-                samples = self.Data_hierarchy['sites'][old_site]
-                #
-                self.Data_hierarchy['site_of_sample'][sample] = new_site
-                #
-                self.Data_hierarchy['location_of_sample'][sample] = loc
-                #
-                if new_site not in self.Data_hierarchy['sites'].keys():
-                    self.Data_hierarchy['sites'][new_site] = []
-                self.Data_hierarchy['sites'][new_site].append(sample)
-                try:
-                    self.Data_hierarchy['sites'][old_site].remove(sample)
-                except ValueError: # if sample was not already in old_site, don't worry about it
-                    pass
-                for spec in specimens:
-                    # specimens belonging to a sample which has been reassigned to a different site correspondingly must change site and location
-                    self.Data_hierarchy['site_of_specimen'][spec] = new_site
-                    self.Data_hierarchy['location_of_specimen'][spec] = loc
-                
-                if not sample in self.ErMagic.data_er_samples.keys():
-                    keys = self.ErMagic.er_samples_header
-                    self.ErMagic.data_er_samples[sample] = dict(zip(keys, ["" for key in keys]))
-                    self.ErMagic.data_er_samples[sample]['er_sample_name'] = sample
-                self.ErMagic.data_er_samples[sample]['er_site_name'] = new_site
-                self.ErMagic.data_er_samples[sample]['er_location_name'] = loc
-
-        # check if any sites no longer have any sample assigned to them, and destroy them if so
-        sites = self.ErMagic.data_er_sites.keys()
-        for site in sites:
-            #print self.Data_hierarchy['sites'][site]
-            if site in self.Data_hierarchy['sites'].keys():
-                if not self.Data_hierarchy['sites'][site]:
-                    self.Data_hierarchy['sites'].pop(site)
-                    #self.ErMagic.data_er_sites.pop(site) # DON'T do this.  we want to leave all the original information in data_er_sites
-                    print "site {} is empty".format(site)
-
-        # now fill in all the other columns
-        for num_sample, sample in enumerate(col1_updated):
-            for num, arg in enumerate(args):
-                num += 3
-                value = str(grid.GetCellValue(num_sample, num))
-                self.ErMagic.data_er_samples[sample][arg] = value
-                #print "sample: {}, arg: {}, value {}".format(sample, arg, value)
-                
-      
-
-    def update_specimens(self, grid, col1_updated, col1_old, col2_updated, col2_old, type1, type2):
-        for num, value in enumerate(col2_updated):
-            # find where changes have occurred
-            if value != col2_old[num]:
-                old_samp = col2_old[num]
-                samp = value
-                spec = col1_updated[num]
-                # some of the sample data could exist only in the er_samples.txt file (so in data_er_samples and not Data_hierarchy)
-                # if the user selects a sample that does not exist in Data_hierarchy, we will propagate it in (below)
-                try:
-                    site = self.Data_hierarchy['site_of_sample'][samp] 
-                except KeyError:
-                    site = self.ErMagic.data_er_samples[samp]['er_site_name']
-                    self.Data_hierarchy['site_of_sample'][samp] = site
-                old_site = self.Data_hierarchy['site_of_sample'][old_samp]
-                try:
-                    location = self.Data_hierarchy['location_of_sample'][samp] 
-                except KeyError:
-                    location = ""
-                    self.Data_hierarchy['location_of_sample'][samp] = location
-                self.Data_hierarchy['specimens'][spec] = samp
-                self.Data_hierarchy['sample_of_specimen'][spec] = samp
-                self.Data_hierarchy['site_of_specimen'][spec] = site
-                self.Data_hierarchy['location_of_specimen'][spec] = location
-                #
-                if samp not in self.Data_hierarchy['samples'].keys():
-                    self.Data_hierarchy['samples'][samp] = []
-                self.Data_hierarchy['samples'][samp].append(spec)
-                self.Data_hierarchy['samples'][old_samp].remove(spec)
-
-                #
-                # 
-                # delete any samples which no longer have specimens from Data_hierarchy['sites'] list
-                if old_samp in self.Data_hierarchy['samples'].keys(): # if old_samp is in Data_hierarchy
-                    if not self.Data_hierarchy['samples'][old_samp]: # but it is empty (having no specimens)
-                        print "removing {} from {}".format(old_samp, old_site) 
-                        self.Data_hierarchy['sites'][old_site].remove(old_samp) # get rid of it
-
-                #
-                # do the ErMagic.data_er_samples part
-                self.ErMagic.data_er_specimens[spec]['er_sample_name'] = samp
-                self.ErMagic.data_er_specimens[spec]['er_site_name'] = site
-                self.ErMagic.data_er_specimens[spec]['er_locations_name'] = location
-                
-                    
-        columns = grid.GetNumberCols()
         col_labels = []
-        for col in range(columns):
+        for col in cols:
             col_labels.append(grid.GetColLabelValue(col))
-        for num_specimen, specimen in enumerate(col1_updated):
-            for num, arg in enumerate(col_labels[3:]):
-                old_value = self.extra_specimen_temp_data[specimen][num]
-                num += 3 # ignore first 3 rows
-                value = str(grid.GetCellValue(num_specimen, num))
-                if old_value == value:
-                    continue
-                self.ErMagic.data_er_specimens[specimen][arg] = value
-                
-                # ADD IN THE REST OF IT HERE
-                
+
+        updated_items = []
+        for row in self.changes: # go through changes and update data structures
+            data_dict = {}
+            for num, label in enumerate(col_labels):
+                if label:
+                    data_dict[str(label)] = str(grid.GetCellValue(row, num))
+            new_name = str(grid.GetCellValue(row, 0))
+            old_name = self.temp_data[grid_name][row]
+            data_methods[grid_name](new_name, old_name, data_dict)
+
+        # then write to file
+        self.changes = False
 
 
-        # if (through editing) a sample no longer has any specimens, remove it
-        samples = self.ErMagic.data_er_samples.keys()
-        for sample in samples:
-            if sample in self.Data_hierarchy['samples'].keys():
-                if not self.Data_hierarchy['samples'][sample]:
-                    #print "removing sample: {}", sample
-                    self.Data_hierarchy['samples'].pop(sample)
-                    self.ErMagic.data_er_samples.pop(sample)
-
-        # check if any sites no longer have any sample assigned to them, and destroy them if so
-        sites = self.ErMagic.data_er_sites.keys()
-        if False:
-        #for site in sites:
-            if not self.Data_hierarchy['sites'][site]:
-                self.Data_hierarchy['sites'].pop(site)
-                self.ErMagic.data_er_sites.pop(site)
-
-        #keys = ['sample_of_specimen', 'site_of_sample', 'location_of_specimen', 'locations', 'sites', 'site_of_specimen', 'samples', 'location_of_sample', 'location_of_site', 'specimens']
-
-
-    def get_old_and_new_data(self, grid, col1_num, col2_num):
-        cols = grid.GetNumberCols()
-        rows = grid.GetNumberRows()
-        type1 = grid.GetColLabelValue(col1_num)
-        type2 = grid.GetColLabelValue(col2_num)
-        old_1 = self.temp_data[type1]
-        old_2 = self.temp_data[type2]
-        update_1 = []
-        update_2 = []
-        for r in range(rows):
-            # gets edited values from grid
-            one = grid.GetCellValue(r, 0)
-            update_1.append(str(one))
-            two = grid.GetCellValue(r, 2)
-            update_2.append(str(two))
-        return update_1, update_2, old_1, old_2, type1, type2
-    """
 
     def final_update(self):
         """

@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+# pylint: disable=W0612,C0111,C0301
+
 import wx
 import pandas as pd
 from controlled_vocabularies import vocabularies as vocab
@@ -9,14 +11,16 @@ import controlled_vocabularies as vocabulary
 # this module will provide all the functionality for the drop-down controlled vocabulary menus
 
 
-class Menus():
-
-    def __init__(self, data_type, check, grid, belongs_to):
+class Menus(object):
+    """
+    Drop-down controlled vocabulary menus for wxPython grid
+    """
+    def __init__(self, data_type, ErMagicCheck, grid, belongs_to):
         """
-        take: data_type (string), check (top level class object for ErMagic steps 1-6), grid (grid object), belongs_to (options for data object to belong to, i.e. locations for the site Menus)
+        take: data_type (string), ErMagicCheck (top level class object for ErMagic steps 1-6), grid (grid object), belongs_to (options for data object to belong to, i.e. locations for the site Menus)
         """
         self.data_type = data_type
-        self.check = check # check is top level class object for entire ErMagic steps 1-6
+        self.check = ErMagicCheck # check is top level class object for entire ErMagic steps 1-6
         self.grid = grid
         self.window = grid.Parent # parent window in which grid resides
         self.belongs_to = belongs_to
@@ -53,8 +57,8 @@ class Menus():
 
         #
         cols = self.grid.GetNumberCols()
-        col_labels = map(self.grid.GetColLabelValue, range(cols))
-        
+        col_labels = [self.grid.GetColLabelValue(col) for col in range(cols)]
+
         # check if any additional columns have associated controlled vocabularies
         # if so, get the vocabulary list from the MagIC API
         for col_number, label in enumerate(col_labels):
@@ -85,9 +89,9 @@ class Menus():
 
                     two_tiered = True if isinstance(stripped_list, dict) else False
                     self.choices[col_number] = (stripped_list, two_tiered)
-            
 
-                    
+
+
     def on_label_click(self, event):
         col = event.GetCol()
         color = self.grid.GetCellBackgroundColour(0, col)
@@ -98,15 +102,15 @@ class Menus():
         if col == 2 and self.data_type == 'age':
             return 0
         if (col not in (-1, 0, 1)) or (col == 1 and self.data_type in ['location', 'age']):
-        # if a new column was chosen without de-selecting the previous column, deselect the old selected_col
-            if self.selected_col != None and self.selected_col != col: 
+            # if a new column was chosen without de-selecting the previous column, deselect the old selected_col
+            if self.selected_col != None and self.selected_col != col:
                 col_label_value = self.grid.GetColLabelValue(self.selected_col)
                 self.grid.SetColLabelValue(self.selected_col, col_label_value[:-10])
                 for row in range(self.grid.GetNumberRows()):
                     self.grid.SetCellBackgroundColour(row, self.selected_col, self.col_color)# 'white'
                 self.grid.ForceRefresh()
             # deselect col if user is clicking on it a second time
-            if col == self.selected_col:  
+            if col == self.selected_col:
                 col_label_value = self.grid.GetColLabelValue(col)
                 self.grid.SetColLabelValue(col, col_label_value[:-10])
                 for row in range(self.grid.GetNumberRows()):
@@ -127,17 +131,20 @@ class Menus():
             has_dropdown = True
 
         # if the column has no drop-down list, allow user to edit all cells in the column through text entry
-        if (not has_dropdown and col not in (0, 1)) or (col == 1 and self.data_type in ['age']):  
+        if (not has_dropdown and col not in (0, 1)) or (col == 1 and self.data_type in ['age']):
             if self.selected_col == col:
-                self.check.changes = True
                 default_value = self.grid.GetCellValue(0, col)
                 data = None
                 dialog = wx.TextEntryDialog(None, "Enter value for all cells in the column\nNote: this will overwrite any existing cell values", "Edit All", default_value, style=wx.OK|wx.CANCEL)
                 dialog.Centre()
-                if dialog.ShowModal() == wx.ID_OK: 
-                    data = dialog.GetValue() 
+                if dialog.ShowModal() == wx.ID_OK:
+                    data = dialog.GetValue()
                     for row in range(self.grid.GetNumberRows()):
                         self.grid.SetCellValue(row, col, str(data))
+                        if self.check.changes:
+                            self.check.changes.add(row)
+                        else:
+                            self.check.changes = {row}
                 dialog.Destroy()
                 # then deselect column
                 col_label_value = self.grid.GetColLabelValue(col)
@@ -147,12 +154,11 @@ class Menus():
                 self.grid.ForceRefresh()
                 self.selected_col = None
 
-            
-    def clean_up(self, grid):
+
+    def clean_up(self):#, grid):
         """
         de-select grid cols, refresh grid
         """
-        #print "doing clean_up"
         if self.selected_col:
             col_label_value = self.grid.GetColLabelValue(self.selected_col)
             self.grid.SetColLabelValue(self.selected_col, col_label_value[:-10])
@@ -178,7 +184,7 @@ class Menus():
                 self.grid.SetCellBackgroundColour(row, col, color)# 'white'
             self.grid.ForceRefresh()
             return
-        if event.ShiftDown(): # allow user to highlight multiple cells in a column
+        if event.ShiftDown(): # allow user to highlight multiple consecutive cells in a column
             previous_col = self.grid.GetGridCursorCol()
             previous_row = self.grid.GetGridCursorRow()
             col = event.GetCol()
@@ -195,7 +201,7 @@ class Menus():
                 self.selection.append((r, col))
             self.grid.ForceRefresh()
             return
-            
+
         selection = False
 
         if self.dispersed_selection:
@@ -212,7 +218,7 @@ class Menus():
         except AttributeError:
             row, col = selection[0][0], selection[0][1]
 
-        self.grid.SetGridCursor(row, col) 
+        self.grid.SetGridCursor(row, col)
 
         if col in choices.keys(): # column should have a pop-up menu
             menu = wx.Menu()
@@ -239,7 +245,7 @@ class Menus():
                     menu.AppendMenu(-1, choice[0], submenu)
                 self.window.PopupMenu(menu)
                 menu.Destroy()
-        
+
         if selection:
             # re-whiten the cells that were previously highlighted
             for row, col in selection:
@@ -250,14 +256,18 @@ class Menus():
 
 
     def update_drop_down_menu(self, grid, choices):
-        self.window.Bind(wx.grid.EVT_GRID_CELL_LEFT_CLICK, lambda event: self.on_left_click(event, grid, choices), grid) 
+        self.window.Bind(wx.grid.EVT_GRID_CELL_LEFT_CLICK, lambda event: self.on_left_click(event, grid, choices), grid)
         self.choices = choices
 
-    def on_select_menuitem(self, event, grid, row, col, selection, dispersed=False):
+    def on_select_menuitem(self, event, grid, row, col, selection):
         """
         sets value of selected cell to value selected from menu
         """
-        self.check.changes = True # if user selects a menuitem, that is an edit
+        if self.check.changes:  # if user selects a menuitem, that is an edit
+            self.check.changes.add(row)
+        else:
+            self.check.changes = {row}
+
         item_id =  event.GetId()
         item = event.EventObject.FindItemById(item_id)
         label = item.Label
@@ -272,6 +282,11 @@ class Menus():
         if self.selected_col and self.selected_col == col:
             for row in range(self.grid.GetNumberRows()):
                 grid.SetCellValue(row, col, label)
+                if self.check.changes:
+                    self.check.changes.add(row)
+                else:
+                    self.check.changes = {row}
+
                 #self.selected_col = None
         else:
             grid.SetCellValue(row, col, label)
