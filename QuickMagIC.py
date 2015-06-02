@@ -9,6 +9,7 @@ import sys
 import pmag
 import ipmag
 import pmag_basic_dialogs
+import pmag_er_magic_dialogs
 import pmag_menu
 #import check_updates
 
@@ -324,8 +325,8 @@ class MagMainFrame(wx.Frame):
         import demag_gui
         demag_gui.do_main(self.WD, standalone_app=False, parent=self)
 
-    def on_convert_file(self,event):
-        pmag_dialogs_dia=pmag_basic_dialogs.import_magnetometer_data(self, wx.ID_ANY, '',self.WD)
+    def on_convert_file(self, event):
+        pmag_dialogs_dia = pmag_basic_dialogs.import_magnetometer_data(self, wx.ID_ANY, '',self.WD)
         pmag_dialogs_dia.Show()
         pmag_dialogs_dia.Center()
 
@@ -340,13 +341,12 @@ class MagMainFrame(wx.Frame):
         self.ErMagic.Show()
         self.ErMagic.Center()
 
-        SIZE=wx.DisplaySize()
-        SIZE=(SIZE[0]-0.3*SIZE[0],SIZE[1]-0.3*SIZE[1]) # gets total available screen space - 10%
+        size = wx.DisplaySize()
+        size = (size[0] - 0.3 * size[0], size[1] - 0.3 * size[1]) # gets total available screen space - 10%
         self.ErMagic.Raise()
 
     def init_check_window(self):
-        import pmag_basic_dialogs
-        self.check_dia = pmag_basic_dialogs.check(self, -1, 'Check Data', self.WD, self.ErMagic)# initiates the object that will control steps 1-6 of checking headers, filling in cell values, etc.
+        self.check_dia = pmag_er_magic_dialogs.ErMagicCheck(self, -1, 'Check Data', self.WD, self.ErMagic.data)# initiates the object that will control steps 1-6 of checking headers, filling in cell values, etc.
 
 
     def get_data(self):

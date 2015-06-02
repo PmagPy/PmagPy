@@ -232,6 +232,71 @@ class ErMagicBuilder(object):
         return Data_hierarchy
 
 
+    def update_ErMagic(self, update="all"):
+        """check for changes and write (or re-write) er_specimens.txt, er_samples.txt, etc."""
+        #print 'doing update ErMagic'
+        #import time
+        #wait = wx.BusyInfo("Please wait, working...")
+
+
+        #---------------------------------------------
+        # make er_samples.txt
+        #---------------------------------------------
+
+        #last_time = time.time()
+        #print 'about to do er_samples'
+        if update=='all' or 'samples' in update:
+            self.do_er_samples()
+        #print "samples took:", time.time() - last_time
+        #last_time = time.time()
+        
+        #---------------------------------------------
+        # make er_specimens.txt
+        #---------------------------------------------
+        if update=='all' or 'specimens' in update:
+            self.do_er_specimens()
+        #print "specimens took:", time.time() - last_time
+        #last_time = time.time()
+
+
+        #---------------------------------------------
+        # make er_sites.txt
+        #---------------------------------------------
+        if update=='all' or 'sites' in update:
+            self.do_er_sites()
+        #print "sites took:", time.time() - last_time
+        #last_time = time.time()
+        
+
+        #---------------------------------------------
+        # make er_locations.txt
+        #---------------------------------------------
+
+        if update=='all' or 'locations' in update:
+            self.do_er_locations()
+        #print "locations took:", time.time() - last_time
+        #last_time = time.time()
+
+
+        #---------------------------------------------
+        # make er_ages.txt
+        #---------------------------------------------
+        if update=='all' or 'ages' in update:
+            self.do_er_ages()
+        #print "ages took:", time.time() - last_time
+        #last_time = time.time()
+
+        #-----------------------------------------------------
+        # Fix magic_measurement with samples, sites and locations  
+        #-----------------------------------------------------
+
+        #print "in ErMagicBuilder on_okButton udpating magic_measurements.txt"
+        if update=='all' or 'measurements' in update:
+            self.do_magic_measurements()
+
+
+    
+
     def change_specimen(self, new_specimen_name, old_specimen_name, new_specimen_data=None):
         """
         """
@@ -1126,8 +1191,7 @@ class MagIC_model_builder(wx.Frame):
     def on_okButton(self, event):
         os.chdir(self.WD)
         self.update_ErMagic()
-        print "NORMALLY WE INIT CHECK WINDOW NOW!!!"
-        #self.main_frame.init_check_window()
+        self.main_frame.init_check_window()
 
     def update_ErMagic(self, update="all"):
         """check for changes and write (or re-write) er_specimens.txt, er_samples.txt, etc."""

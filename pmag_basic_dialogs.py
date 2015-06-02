@@ -3128,13 +3128,13 @@ class method_code_dialog(wx.Dialog):
         #self.Close()
 
 
-class check(wx.Frame):
+class ErMagicCheck(wx.Frame):
 
-    def __init__(self, parent, id, title, WD, ErMagic):
+    def __init__(self, parent, id, title, WD, magic_data): # magic_data was ErMagic
         wx.Frame.__init__(self, parent, -1, title)
         self.WD = WD
         self.main_frame = self.Parent
-        self.ErMagic = ErMagic
+        self.ErMagic = magic_data
         self.temp_data = {}
         self.drop_down_menu = None
         self.sample_window = 0 # sample window must be displayed (differently) twice, so it is useful to keep track
