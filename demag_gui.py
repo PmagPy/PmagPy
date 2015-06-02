@@ -1410,13 +1410,9 @@ class Zeq_GUI(wx.Frame):
         self.Add_text()
         self.draw_figure(self.s)
         self.update_selection()
-        if self.current_fit.pars!={}:
-            #tmin= "%.0f"%(float(self.pars['measurement_step_min']))       
-            #tmax= "%.0f"%(float(self.pars['measurement_step_max']))
-            #calculation_type=self.pars['calculation_type']       
-        # calcuate again self.pars and update the figures and the statistics tables.                                
-            #self.pars=self.get_PCA_parameters(self.s,tmin,tmax,coordinate_system,calculation_type)                         
-            self.update_GUI_with_new_interpretation()
+        if self.current_fit:
+            if self.current_fit.get(self.COORDINATE_SYSTEM):
+                self.update_GUI_with_new_interpretation()
               
     #----------------------------------------------------------------------
 
@@ -1609,6 +1605,9 @@ class Zeq_GUI(wx.Frame):
 
 
     def OnClick_listctrl(self,event):
+
+        if not self.current_fit:
+            self.add_fit(1)
 
         for item in range(self.logger.GetItemCount()):
             self.logger.SetItemBackgroundColour(item,"WHITE")
@@ -2523,7 +2522,7 @@ class Zeq_GUI(wx.Frame):
         if self.mean_fit == 'All':
             fits = self.pmag_results_data['specimens'][specimen]
         elif self.mean_fit != 'None' and self.mean_fit != None:
-            fit_index = int(self.mean_fit.split()[-1]) - 1
+            fit_index = map(lambda x: x.name, self.pmag_results_data['specimens'][self.s]).index(self.mean_fit)
             try: fits = [self.pmag_results_data['specimens'][specimen][fit_index]]
             except IndexError: #print('-W- Not all specimens have this fit');
                 fits = []
@@ -4439,14 +4438,12 @@ class Zeq_GUI(wx.Frame):
 
     def get_temp_indecies(self, fit = None, tmin = None, tmax = None):
 
-        if tmin and tmax:
-            tmin_index=self.Data[self.s]['zijdblock_steps'].index(tmin)
-            tmax_index=self.Data[self.s]['zijdblock_steps'].index(tmax)
-        elif fit:
+        if fit and not tmin and not tmax:
             tmin = fit.tmin
             tmax = fit.tmax
-            tmin_index=self.Data[self.s]['zijdblock_steps'].index(fit.tmin)
-            tmax_index=self.Data[self.s]['zijdblock_steps'].index(fit.tmax)
+        if tmin in self.Data[self.s]['zijdblock_steps'] and tmax in self.Data[self.s]['zijdblock_steps']:
+            tmin_index=self.Data[self.s]['zijdblock_steps'].index(tmin)
+            tmax_index=self.Data[self.s]['zijdblock_steps'].index(tmax)
         else:
             tmin_index=self.tmin_box.GetSelection()
             tmax_index=self.tmax_box.GetSelection()
@@ -4507,17 +4504,19 @@ class Zeq_GUI(wx.Frame):
         if not self.s in self.pmag_results_data['specimens']: return
         if self.current_fit in self.pmag_results_data['specimens'][self.s]:
             self.pmag_results_data['specimens'][self.s].remove(self.current_fit)
-            self.update_fit_box(True)
         if self.pmag_results_data['specimens'][self.s]:
             self.pmag_results_data['specimens'][self.s][-1].select()
+        else:
+            self.current_fit = None
         self.close_warning = True
         self.calculate_higher_levels_data()
         self.update_selection()
 
     def remove_replace_fit(self,event):
-        if self.mean_fit_box.GetValue() == "None":
+        fit_val = self.mean_fit_box.GetValue()
+        if fit_val == "None":
             return
-        elif self.mean_fit_box.GetValue() == "All":
+        elif fit_val == "All":
             if all([(not (fit in self.bad_fits)) for fit in self.pmag_results_data['specimens'][self.s]]):
                 for fit in self.pmag_results_data['specimens'][self.s]:
                     self.bad_fits.append(fit)
@@ -4527,7 +4526,7 @@ class Zeq_GUI(wx.Frame):
                     if fit in self.bad_fits:
                         self.bad_fits.remove(fit)
         else:
-            fit_index = int(self.mean_fit_box.GetValue().split()[-1]) - 1
+            fit_index = map(lambda x: x.name, self.pmag_results_data['specimens'][self.s]).index(fit_val)
             bad_fit = self.pmag_results_data['specimens'][self.s][fit_index]
             if bad_fit in self.bad_fits:
                 self.bad_fits.remove(bad_fit)
@@ -4567,14 +4566,21 @@ class Zeq_GUI(wx.Frame):
         #update fit box
         self.fit_box.SetItems(fit_list)
         #update higher level mean fit box
-        all_fits_list = []
-        for specimen in self.pmag_results_data['specimens'].keys():
-            if len(self.pmag_results_data['specimens'][specimen]) > len(all_fits_list):
-                all_fits_list = list(map(lambda x: x.name, self.pmag_results_data['specimens'][specimen]))
-        self.mean_fit_box.SetItems(['None','All'] + all_fits_list)
+        fit_index = None
+        if self.mean_fit != 'None' and self.mean_fit != 'All':
+            for specimen in self.pmag_results_data['specimens'].keys():
+                if self.mean_fit in map(lambda x: x.name, self.pmag_results_data['specimens'][specimen]):
+                    fit_index = map(lambda x: x.name, self.pmag_results_data['specimens'][specimen]).index(self.mean_fit)
+#        all_fits_list = []
+#        for specimen in self.pmag_results_data['specimens'].keys():
+#            if len(self.pmag_results_data['specimens'][specimen]) > len(all_fits_list):
+#                all_fits_list = list(map(lambda x: x.name, self.pmag_results_data['specimens'][specimen]))
+        self.mean_fit_box.SetItems(['None','All'] + fit_list)
         #select defaults
         if new_index == 'None': self.fit_box.SetStringSelection('None')
         else: self.fit_box.SetSelection(new_index)
+        if fit_index: self.mean_fit_box.SetSelection(1+fit_index)
+        else: self.mean_fit_box.SetStringSelection('None')
         if fit_list: self.on_select_fit(-1)
 
         
