@@ -3354,12 +3354,15 @@ def IODP_samples_magic(samp_file, output_samp_file=None, output_dir_path='.', in
         date_key="Sample date logged"
     elif "Date sample logged" in keys:
         date_key="Date sample logged"
+    elif "Timestamp (UTC)" in keys:
+        date_key="Timestamp (UTC)"
     if 'Volume (cc)' in keys:volume_key='Volume (cc)'
     if 'Volume (cm^3)' in keys:volume_key='Volume (cm^3)'
     if not text_key:
         return False, "Could not extract the necessary data from your input file.\nPlease make sure you are providing a correctly formated IODP samples csv file."    
     ErSamples,samples,file_format=[],[],'old'
     for line in file_input[1:]:
+      if line[0]!='0':
         ODPRec,SampRec={},{}
         interval,core="",""
         rec=line.replace('\n','').split(',')
@@ -4386,10 +4389,8 @@ def agm_magic(agm_file, samp_infile=None, outfile='agm_measurements.txt', spec_o
     MeasRecs=[] 
     meth="LP-HYS"
     version_num=pmag.get_version()
-    er_sample_name,er_site_name="",""
+    er_sample_name, er_site_name = "", ""
     Z = 1
-
-    er_site_name=""
     if backfield_curve:
         meth="LP-IRM-DCD"
         outfile = "irm_measurements.txt"
