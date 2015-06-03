@@ -39,9 +39,11 @@
 # definitions
 #--------------------------------------
 
-
-global CURRENT_VRSION
+import os
+global CURRENT_VRSION, PMAGPY_DIRECTORY
 CURRENT_VRSION = "v.0.32"
+path = os.path.abspath(__file__)
+PMAGPY_DIRECTORY = os.path.dirname(path)
 import matplotlib
 #import matplotlib.font_manager as font_manager
 #matplotlib.use('WXAgg')
@@ -3519,6 +3521,9 @@ class Zeq_GUI(wx.Frame):
         
         menu_Help = wx.Menu()
         
+        m_cookbook = menu_Help.Append(-1, "&PmagPy Cookbook", "")
+        self.Bind(wx.EVT_MENU, self.on_menu_cookbook, m_cookbook)
+
         m_docs = menu_Help.Append(-1, "&Usage and Tips", "")
         self.Bind(wx.EVT_MENU, self.on_menu_docs, m_docs)
         
@@ -4431,8 +4436,11 @@ class Zeq_GUI(wx.Frame):
    #     print WD
    
     def on_menu_docs(self,event):
+        webbrowser.open_new(PMAGPY_DIRECTORY + r'/help_files/demag_gui_doc.pdf')
+
+    def on_menu_cookbook(self,event):
         webbrowser.open("http://earthref.org/PmagPy/cookbook/#x1-70002.4", new = 2)
-        
+
     def on_menu_git(self,event):
         webbrowser.open("https://github.com/ltauxe/PmagPy", new = 2)
 
@@ -4450,18 +4458,16 @@ class Zeq_GUI(wx.Frame):
 
         max_index = len(self.Data[self.s]['zijdblock_steps'])-1
 
-        while (self.Data[self.s]['measurement_flag'][tmin_index] == 'b'):
-#            if (self.Data[self.s]['zijdblock_steps'][tmin_index-1] == tmin):
-#                tmin_index -= 1
+        while (self.Data[self.s]['measurement_flag'][tmin_index] == 'b' and \
+               tmin_index+1 < len(self.Data[self.s]['zijdblock_steps'])):
             if (self.Data[self.s]['zijdblock_steps'][tmin_index+1] == tmin):
                 tmin_index += 1
             else:
                 print("No good measurement steps with value - " + tmin)
                 break
 
-        while (self.Data[self.s]['measurement_flag'][tmax_index] == 'b'):
-#            if (self.Data[self.s]['zijdblock_steps'][tmax_index-1] == tmax):
-#                tmax_index -= 1
+        while (self.Data[self.s]['measurement_flag'][tmax_index] == 'b' and \
+               tmax_index+1 < len(self.Data[self.s]['zijdblock_steps'])):
             if (self.Data[self.s]['zijdblock_steps'][tmax_index+1] == tmax):
                 tmax_index += 1
             else:
@@ -4579,7 +4585,7 @@ class Zeq_GUI(wx.Frame):
         #select defaults
         if new_index == 'None': self.fit_box.SetStringSelection('None')
         else: self.fit_box.SetSelection(new_index)
-        if fit_index: self.mean_fit_box.SetSelection(1+fit_index)
+        if fit_index: self.mean_fit_box.SetSelection(fit_index-1)
         else: self.mean_fit_box.SetStringSelection('None')
         if fit_list: self.on_select_fit(-1)
 
