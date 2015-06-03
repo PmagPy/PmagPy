@@ -294,8 +294,35 @@ class ErMagicBuilder(object):
         if update=='all' or 'measurements' in update:
             self.do_magic_measurements()
 
+    def add_specimen(self, new_specimen_name, sample_name, specimen_data={}):
+        if not sample_name in self.data_er_samples.keys():
+            raise Exception("You must provide a sample that already exists.\nIf necessary, add a new sample first, then add this specimen.")
+        print self.Data_hierarchy['specimens']
 
-    
+            
+    def add_sample(self, new_sample_name, site, sample_data={}):
+        #if not site in self.data_er_samples.keys():
+            #raise Exception("You must provide a site that already exists.\nIf necessary, add a new site first, then add this sample.")
+        pass
+
+    def add_site(self, new_site_name, location, site_data={}):
+        pass
+            
+    def add_location(self, new_location_name, loc_data={}):
+        self.Data_hierarchy['locations'][new_location_name] = []
+        default_data = {key: '' for key in self.er_locations_header}
+        combined_loc_data = self.combine_dicts(loc_data, default_data)
+        self.data_er_locations[new_location_name] = combined_loc_data
+
+
+    #def combine_dicts(self, new_dict, old_dict):
+    #    """
+    #    returns a dictionary with all key, value pairs from new_dict.
+    #    also returns key, value pairs from old_dict, if that key does not exist in new_dict.
+    #    if a key is present in both new_dict and old_dict, the new_dict value will take precedence.
+    #    """
+
+            
 
     def change_specimen(self, new_specimen_name, old_specimen_name, new_specimen_data=None):
         """
@@ -325,6 +352,13 @@ class ErMagicBuilder(object):
             old_specimen_data = self.data_er_specimens.pop(new_specimen_name)
             combined_specimen_data = self.combine_dicts(new_specimen_data, old_specimen_data)
             self.data_er_specimens[new_specimen_name] = combined_specimen_data
+            # if specimen now belongs to a different sample
+            if 'er_sample_name' in new_specimen_data.keys():
+                old_sample = sample
+                new_sample = new_specimen_data['er_sample_name']
+                self.Data_hierarchy['samples'][sample].remove(new_specimen_name)
+                self.Data_hierarchy['samples'][new_sample].append(new_specimen_name)
+                self.Data_hierarchy['sample_of_specimen'][new_specimen_name] = new_sample
 
             
     def change_sample(self, new_sample_name, old_sample_name, new_sample_data=None):
@@ -361,12 +395,22 @@ class ErMagicBuilder(object):
             old_sample_data = self.data_er_samples.pop(new_sample_name)
             combined_data_dict = self.combine_dicts(new_sample_data, old_sample_data)
             self.data_er_samples[new_sample_name] = combined_data_dict
+            # if sample now belongs to a different site:
+            if 'er_site_name' in new_sample_data.keys():
+                old_site = site
+                new_site = new_sample_data['er_site_name']
+                self.Data_hierarchy['sites'][old_site].remove(new_sample_name)
+                self.Data_hierarchy['sites'][new_site].append(new_sample_name)
+                self.Data_hierarchy['site_of_sample'][new_sample_name] = new_site
+                for spec in specimens:
+                    self.Data_hierarchy['site_of_specimen'][spec] = new_site
 
 
     def change_site(self, new_site_name, old_site_name, new_site_data=None):
         """
         Data_hierarchy looks like this: {'sample_of_specimen': {}, 'site_of_sample': {}, 'location_of_specimen', 'locations': {}, 'sites': {}, 'site_of_specimen': {}, 'samples': {}, 'location_of_sample': {}, 'location_of_site': {}, 'specimens': {}}
         """
+        print 'doing change_site', new_site_name
         # fix sites
         samples = self.change_dict_key(self.Data_hierarchy['sites'], new_site_name, old_site_name)
 
@@ -398,6 +442,13 @@ class ErMagicBuilder(object):
             old_site_data = self.data_er_sites.pop(new_site_name)
             combined_data_dict = self.combine_dicts(new_site_data, old_site_data)
             self.data_er_sites[new_site_name] = combined_data_dict
+            if 'er_location_name' in new_site_data:
+                old_location = location
+                new_location = new_site_data['er_location_name']
+                self.Data_hierarchy['locations'][old_location].remove(new_site_name)
+                self.Data_hierarchy['locations'][new_location].append(new_site_name)
+                #  THERE IS MORE TO DO HERE!!!
+            
 
         # fix site name in er_ages, if applicable
         if old_site_name in self.data_er_ages.keys():

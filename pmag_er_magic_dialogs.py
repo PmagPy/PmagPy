@@ -104,16 +104,6 @@ Check that all specimens belong to the correct sample
         self.Hide()
         self.Show()
         
-        ## this combination prevents a display error that (without the fix) only resolves on manually resizing the window
-        #print "about to refresh spec_grid"
-        #print self.panel
-        #print self.spec_grid
-        #self.panel.Refresh()
-        #self.spec_grid.ForceRefresh()
-        #self.panel.Refresh()
-        #print "refreshed spec_grid"
-
-
 
     def InitSampCheck(self):
         """make an interactive grid in which users can edit sample names
@@ -268,7 +258,7 @@ However, you will be able to edit sample_class, sample_lithology, and sample_typ
         col_labels = sorted(col_labels)
         col_labels[:0] = ['er_site_name', '', 'er_location_name', 'site_class', 'site_lithology', 'site_type', 'site_definition', 'site_lon', 'site_lat']
 
-        self.site_grid = self.make_simple_table(col_labels, self.ErMagic.data_er_sites, 'er_sample_name')
+        self.site_grid = self.make_simple_table(col_labels, self.ErMagic.data_er_sites, 'er_site_name')
 
         self.changes = False
         self.Bind(wx.grid.EVT_GRID_EDITOR_CREATED, lambda event: self.on_edit_grid(event, self.site_grid), self.site_grid)
@@ -813,15 +803,16 @@ You may use the drop-down menus to add as many values as needed in these columns
         grid.HideCellEditControl() # removes focus from cell that was being edited
         simple_grids = {"location": self.ErMagic.data_er_locations, "age": self.ErMagic.data_er_ages}
         grid_name = grid.GetName()
-        if self.changes:
-            print "there were changes, so we are updating the data"
-            if grid_name in simple_grids:
-                self.update_simple_grid_data(grid, simple_grids[grid_name])
-            else:
-                self.update_orient_data(grid)
 
+        grids = {"er_specimen_name": self.ErMagic.data_er_specimens, "er_sample_name": self.ErMagic.data_er_samples, "er_site_name": self.ErMagic.data_er_sites, "er_location_name": self.ErMagic.data_er_locations, "ages": self.ErMagic.data_er_ages}
+
+        if self.changes:
+            self.update_grid(grid, grids[grid_name])
+
+            # possibly optimize this so that it only updates the required files
             self.ErMagic.update_ErMagic()
-            self.changes = False
+            
+            self.changes = False # resets
 
         for col in starred_cols:
             label = grid.GetColLabelValue(col)
