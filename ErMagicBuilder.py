@@ -306,15 +306,27 @@ class ErMagicBuilder(object):
         self.data_er_specimens[new_specimen_name] = combined_spec_data
 
 
-
-            
-    def add_sample(self, new_sample_name, site, sample_data={}):
-        #if not site in self.data_er_samples.keys():
-            #raise Exception("You must provide a site that already exists.\nIf necessary, add a new site first, then add this sample.")
-        pass
-
-    def add_site(self, new_site_name, location, site_data={}):
-        pass
+    def add_sample(self, new_sample_name, site, new_sample_data={}):
+        if not site in self.data_er_sites.keys():
+            raise Exception("You must provide a site that already exists.\nIf necessary, add a new site first, then add this sample.")
+        self.Data_hierarchy['samples'][new_sample_name] = []
+        self.Data_hierarchy['sites'][site].append(new_sample_name)
+        self.Data_hierarchy['site_of_sample'][new_sample_name] = site
+        default_sample_data = {key: '' for key in self.er_samples_header}
+        combined_sample_data = self.combine_dicts(new_sample_data, default_sample_data)
+        combined_sample_data['er_site_name'] = site
+        self.data_er_samples[new_sample_name] = combined_sample_data
+        
+    def add_site(self, new_site_name, location, new_site_data={}):
+        if not location in self.data_er_locations.keys():
+            raise Exception("You must provide a location that already exists.\nIf necessary, add a new location first, then add this site.") 
+        self.Data_hierarchy['sites'][new_site_name] = []
+        self.Data_hierarchy['locations'][location].append(new_site_name)
+        self.Data_hierarchy['location_of_site'][new_site_name] = location
+        default_site_data = {key: '' for key in self.er_sites_header}
+        combined_site_data = self.combine_dicts(new_site_data, default_site_data)
+        combined_site_data['er_location_name'] = location
+        self.data_er_sites[new_site_name] = combined_site_data
             
     def add_location(self, new_location_name, loc_data={}):
         self.Data_hierarchy['locations'][new_location_name] = []

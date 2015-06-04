@@ -133,7 +133,7 @@ class TestBuilder(unittest.TestCase):
         self.assertEqual(new_site, self.data1.Data_hierarchy['site_of_specimen'][specimen])
         
     def test_add_sample(self):
-        new_sample = 'new sample'
+        new_sample = 'new_sample'
         site = 'Z35.'
         self.data1.add_sample(new_sample, site)
         
@@ -146,7 +146,7 @@ class TestBuilder(unittest.TestCase):
     def test_add_sample_invalid_site(self):
         sample = 'new_sample_name'
         site = 'invalid site name'
-        self.assertRaises(Exception, self.data1.add_site, sample, site, {'new_key': 'new value'})
+        self.assertRaises(Exception, self.data1.add_sample, sample, site, {'new_key': 'new value'})
 
     def test_add_sample_with_data(self):
         sample = 'new sample name'
