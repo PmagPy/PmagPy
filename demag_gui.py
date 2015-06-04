@@ -46,7 +46,7 @@ path = os.path.abspath(__file__)
 PMAGPY_DIRECTORY = os.path.dirname(path)
 import matplotlib
 #import matplotlib.font_manager as font_manager
-#matplotlib.use('WXAgg')
+matplotlib.use('WXAgg')
 
 from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigCanvas 
 from matplotlib.backends.backend_wxagg import NavigationToolbar2WxAgg as NavigationToolbar
@@ -183,7 +183,7 @@ class Zeq_GUI(wx.Frame):
         self.Main_Frame()                   # build the main frame
         self.create_menu()                  # create manu bar
         self.Zij_picker()
-        self.Zij_zoom()
+#        self.Zij_zoom()
         self.arrow_keys()
         self.Bind(wx.EVT_CLOSE, self.on_menu_exit)
         #self.get_previous_interpretation() # get interpretations from pmag_specimens.txt
@@ -237,6 +237,10 @@ class Zeq_GUI(wx.Frame):
         self.canvas1 = FigCanvas(self.panel, -1, self.fig1)
         self.toolbar1 = NavigationToolbar(self.canvas1)
         self.toolbar1.Hide()
+        self.toolbar1.zoom()
+        self.canvas1.Bind(wx.EVT_RIGHT_DOWN,self.pan)
+        self.canvas1.Bind(wx.EVT_RIGHT_UP,self.zoom)
+        self.canvas1.Bind(wx.EVT_LEFT_DCLICK,self.home)
         #self.fig1.text(0.01,0.98,"Zijderveld plot",{'family':'Arial', 'fontsize':10*self.GUI_RESOLUTION, 'style':'normal','va':'center', 'ha':'left' })
         
         self.fig2 = Figure((2.5*self.GUI_RESOLUTION, 2.5*self.GUI_RESOLUTION), dpi=self.dpi)
@@ -526,7 +530,8 @@ class Zeq_GUI(wx.Frame):
         self.box_sizer_high_level_text.Add(self.high_level_text_box, 0, wx.ALIGN_LEFT, 0 )                                                               
         #----------------------------------------------------------------------                     
         # Design the panel
-        #----------------------------------------------------------------------
+
+#----------------------------------------------------------------------
 
         
         vbox1 = wx.BoxSizer(wx.VERTICAL)
@@ -613,6 +618,15 @@ class Zeq_GUI(wx.Frame):
     #----------------------------------------------------------------------
     # zooming into zijderveld
     #----------------------------------------------------------------------
+
+    def pan(self,event):
+        self.toolbar1.pan()
+
+    def zoom(self,event):
+        self.toolbar1.zoom()
+
+    def home(self,event):
+        self.toolbar1.home()
 
     def Zij_zoom(self):
         #cursur_entry_zij=self.canvas1.mpl_connect('axes_enter_event', self.on_enter_zij_fig_new) 
@@ -2521,13 +2535,19 @@ class Zeq_GUI(wx.Frame):
        self.canvas4.draw()
 
     def plot_higher_level_equalarea(self,specimen): #BLARGE
+        fits = []
+        if specimen not in self.pmag_results_data['specimens']:
+            return
         if self.mean_fit == 'All':
             fits = self.pmag_results_data['specimens'][specimen]
         elif self.mean_fit != 'None' and self.mean_fit != None:
-            fit_index = map(lambda x: x.name, self.pmag_results_data['specimens'][self.s]).index(self.mean_fit)
-            try: fits = [self.pmag_results_data['specimens'][specimen][fit_index]]
-            except IndexError: #print('-W- Not all specimens have this fit');
-                fits = []
+            if self.mean_fit not in map(lambda x: x.name, self.pmag_results_data['specimens'][self.s]):
+                self.mean_fit_box.SetStringSelection('None')
+                self.mean_fits = 'None'
+            else:
+                fit_index = map(lambda x: x.name, self.pmag_results_data['specimens'][self.s]).index(self.mean_fit)
+                try: fits = [self.pmag_results_data['specimens'][specimen][fit_index]]
+                except IndexError: pass #print('-W- Not all specimens have this fit');
         else:
             fits = []
         fig = self.high_level_eqarea
@@ -4504,6 +4524,7 @@ class Zeq_GUI(wx.Frame):
         next_fit = str(len(self.pmag_results_data['specimens'][self.s]) + 1)
         self.pmag_results_data['specimens'][self.s].append(Fit('Fit ' + next_fit, int(next_fit)-1, None, None, self.colors[(int(next_fit)-1) % len(self.colors)], self))
 #        print("New Fit for sample: " + str(self.s) + '\n' + reduce(lambda x,y: x+'\n'+y, map(str,self.pmag_results_data['specimens'][self.s]['fits'])))
+        self.toolbar1.zoom()
         self.new_fit()
 
     def delete_fit(self,event):
@@ -4585,8 +4606,7 @@ class Zeq_GUI(wx.Frame):
         #select defaults
         if new_index == 'None': self.fit_box.SetStringSelection('None')
         else: self.fit_box.SetSelection(new_index)
-        if fit_index: self.mean_fit_box.SetSelection(fit_index-1)
-        else: self.mean_fit_box.SetStringSelection('None')
+        if fit_index: self.mean_fit_box.SetSelection(fit_index+2)
         if fit_list: self.on_select_fit(-1)
 
         
