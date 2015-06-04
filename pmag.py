@@ -41,7 +41,11 @@ def get_dictitem(In,k,v,flag):
         return []
 
 def get_dictkey(In,k,dtype): 
-    # returns list of given key from input list of dictionaries
+    """ 
+        returns list of given key (k)  from input list of dictionaries (In) in data type dtype.  uses command:
+        get_dictkey(In,k,dtype).  If dtype =="", data are strings; if "int", data are integers; if "f", data are floats.
+    """
+    
     Out=[]
     for d in In: 
         if dtype=='': Out.append(d[k]) 
