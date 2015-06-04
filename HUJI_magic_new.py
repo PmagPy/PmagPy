@@ -161,8 +161,8 @@ def main(command_line=True, **kwargs):
         magfile = kwargs.get('magfile', '')
         specnum = int(kwargs.get('specnum', 0))
         labfield = int(kwargs.get('labfield', 0)) *1e-3
-        phi = kwargs.get('phi', 0)
-        theta = kwargs.get('theta', 0)
+        phi = int(kwargs.get('phi', 0))
+        theta = int(kwargs.get('theta', 0))
         peakfield = kwargs.get('peakfield', 0)
         if peakfield:
             peakfield = float(peakfield)*1e-3
