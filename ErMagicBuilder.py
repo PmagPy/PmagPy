@@ -297,7 +297,15 @@ class ErMagicBuilder(object):
     def add_specimen(self, new_specimen_name, sample_name, specimen_data={}):
         if not sample_name in self.data_er_samples.keys():
             raise Exception("You must provide a sample that already exists.\nIf necessary, add a new sample first, then add this specimen.")
-        print self.Data_hierarchy['specimens']
+        self.Data_hierarchy['specimens'][new_specimen_name] = sample_name
+        self.Data_hierarchy['samples'][sample_name].append(new_specimen_name)
+        self.Data_hierarchy['sample_of_specimen'][new_specimen_name] = sample_name
+        default_data = {key: '' for key in self.er_specimens_header}
+        combined_spec_data = self.combine_dicts(specimen_data, default_data)
+        combined_spec_data['er_sample_name'] = sample_name
+        self.data_er_specimens[new_specimen_name] = combined_spec_data
+
+
 
             
     def add_sample(self, new_sample_name, site, sample_data={}):
@@ -442,12 +450,18 @@ class ErMagicBuilder(object):
             old_site_data = self.data_er_sites.pop(new_site_name)
             combined_data_dict = self.combine_dicts(new_site_data, old_site_data)
             self.data_er_sites[new_site_name] = combined_data_dict
-            if 'er_location_name' in new_site_data:
+            if 'er_location_name' in new_site_data.keys():
                 old_location = location
                 new_location = new_site_data['er_location_name']
                 self.Data_hierarchy['locations'][old_location].remove(new_site_name)
                 self.Data_hierarchy['locations'][new_location].append(new_site_name)
-                #  THERE IS MORE TO DO HERE!!!
+                self.Data_hierarchy['location_of_site'][new_site_name] = new_location
+                for sample in samples:
+                    self.Data_hierarchy['location_of_sample'][sample] = new_location
+                    self.data_er_samples[sample]['er_location_name'] = new_location
+                for spec in specimens:
+                    self.Data_hierarchy['location_of_specimen'][spec] = new_location
+                    self.data_er_specimens[spec]['er_location_name'] = new_location
             
 
         # fix site name in er_ages, if applicable

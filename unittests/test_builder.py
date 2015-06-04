@@ -74,7 +74,7 @@ class TestBuilder(unittest.TestCase):
         self.assertIn(specimen, self.data1.data_er_specimens.keys())
         self.assertEqual(sample, self.data1.data_er_specimens[specimen]['er_sample_name'])
         self.assertIn(specimen, self.data1.Data_hierarchy['samples'][sample])
-        self.assertEqual(sample, self.data1.Data_hierarchy['sample_of_specimen'])
+        self.assertEqual(sample, self.data1.Data_hierarchy['sample_of_specimen'][specimen])
         
 
     def test_add_specimen_invalid_sample(self):
