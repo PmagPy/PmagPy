@@ -869,7 +869,6 @@ You may use the drop-down menus to add as many values as needed in these columns
         """
         Updates er_*.txt files to delete any specimens, samples, or sites that are no longer included
         """
-
         def remove_extras(long_dict, short_dict):
             """
             remove any key/value pairs from the long_dictionary if that key is not present in the short_dictionary
@@ -881,9 +880,10 @@ You may use the drop-down menus to add as many values as needed in these columns
         remove_extras(self.ErMagic.data_er_specimens, self.Data_hierarchy['specimens'])
         remove_extras(self.ErMagic.data_er_samples, self.Data_hierarchy['samples'])
         remove_extras(self.ErMagic.data_er_sites, self.Data_hierarchy['sites'])
-        #remove_extras(self.ErMagic.data_er_locations, self.Data_hierarchy['locations'])
-        remove_extras(self.Data_hierarchy['locations'], self.ErMagic.data_er_locations)
+        remove_extras(self.ErMagic.data_er_locations, self.Data_hierarchy['locations'])
+        #remove_extras(self.Data_hierarchy['locations'], self.ErMagic.data_er_locations)
         remove_extras(self.ErMagic.data_er_ages, self.Data_hierarchy['sites'])
+
         self.ErMagic.update_ErMagic()
         
 

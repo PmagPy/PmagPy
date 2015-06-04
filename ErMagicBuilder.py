@@ -234,7 +234,6 @@ class ErMagicBuilder(object):
 
     def update_ErMagic(self, update="all"):
         """check for changes and write (or re-write) er_specimens.txt, er_samples.txt, etc."""
-        #print 'doing update ErMagic'
         #import time
         #wait = wx.BusyInfo("Please wait, working...")
 
@@ -244,7 +243,6 @@ class ErMagicBuilder(object):
         #---------------------------------------------
 
         #last_time = time.time()
-        #print 'about to do er_samples'
         if update=='all' or 'samples' in update:
             self.do_er_samples()
         #print "samples took:", time.time() - last_time
@@ -430,7 +428,6 @@ class ErMagicBuilder(object):
         """
         Data_hierarchy looks like this: {'sample_of_specimen': {}, 'site_of_sample': {}, 'location_of_specimen', 'locations': {}, 'sites': {}, 'site_of_specimen': {}, 'samples': {}, 'location_of_sample': {}, 'location_of_site': {}, 'specimens': {}}
         """
-        print 'doing change_site', new_site_name
         # fix sites
         samples = self.change_dict_key(self.Data_hierarchy['sites'], new_site_name, old_site_name)
 
