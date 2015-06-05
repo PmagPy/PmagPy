@@ -4,9 +4,14 @@
 # Author: Ron Shaar
 # Revision notes
 #
-# Rev 1.0 Initial revision August 2012 
+# Rev 2.1 June 4th 2015. 
+# Fix small zero division bug.
 #
 # Rev 2.0 November 2014
+#
+# Rev 1.0 Initial revision August 2012 
+#
+#
 #---------------------------------------------------------------------------
 import matplotlib
 import pylab,scipy,os,time
@@ -498,7 +503,8 @@ class thellier_auto_interpreter():
         m, s = divmod(runtime_sec, 60)
         h, m = divmod(m, 60)
         self.thellier_interpreter_log.write( "-I- runtime hh:mm:ss is " + "%d:%02d:%02d\n" % (h, m, s))
-        self.thellier_interpreter_log.write( "-I- runtime per specimen: %.1f seconds"%(float(runtime_sec)/len(specimens_list)))
+        if len(specimens_list)!=0:
+            self.thellier_interpreter_log.write( "-I- runtime per specimen: %.1f seconds"%(float(runtime_sec)/len(specimens_list)))
         
         self.thellier_interpreter_log.write( "-I- Finished sucsessfuly.\n")
         self.thellier_interpreter_log.write( "-I- DONE\n")
