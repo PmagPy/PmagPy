@@ -241,6 +241,7 @@ class Zeq_GUI(wx.Frame):
         self.canvas1.Bind(wx.EVT_RIGHT_DOWN,self.pan)
         self.canvas1.Bind(wx.EVT_RIGHT_UP,self.zoom)
         self.canvas1.Bind(wx.EVT_LEFT_DCLICK,self.home)
+#        self.canvas1.Bind(wx.EVT_RIGHT_DCLICK,self.pick_bounds)
         #self.fig1.text(0.01,0.98,"Zijderveld plot",{'family':'Arial', 'fontsize':10*self.GUI_RESOLUTION, 'style':'normal','va':'center', 'ha':'left' })
         
         self.fig2 = Figure((2.5*self.GUI_RESOLUTION, 2.5*self.GUI_RESOLUTION), dpi=self.dpi)
@@ -620,13 +621,55 @@ class Zeq_GUI(wx.Frame):
     #----------------------------------------------------------------------
 
     def pan(self,event):
-        self.toolbar1.pan()
+        self.toolbar1.pan('off')
 
     def zoom(self,event):
+        if event.LeftIsDown():
+            return
         self.toolbar1.zoom()
 
     def home(self,event):
-        self.toolbar1.home()
+       
+ self.toolbar1.home()
+
+    def pick_bounds(self,event):
+        pos=event.GetPosition()
+        print("getting nearest step at: " + str(pos))
+        e = 30
+        l = len(self.CART_rot_good[:,0])
+        def distance(p1,p2):
+            return sqrt((p1[0]-p2[0])**2 + (p1[1]-p2[1])**2)
+        points = []
+        for data in [self.zij_xy_points,self.zij_xz_points]:
+            x, y = data.get_data()
+            xy_pixels = self.zijplot.transData.transform(np.vstack([x,y]).T)
+            xpix, ypix = xy_pixels.T
+            width, height = self.canvas1.get_width_height()
+            y_pix = height - ypix
+            points += [(xpix[i],ypix[i]) for i in range(len(xpix))]
+        index = None
+        inv = self.zijplot.transData.inverted()
+        reverse = inv.transform(np.vstack([xpix,ypix]).T)
+        xprime, yprime = reverse.T
+        self.zijplot.plot(xprime,yprime,'k*-',mfc=self.dec_MFC,mec=self.dec_MEC,markersize=self.MS,clip_on=False,picker=True)
+        for point in points:
+#            print(map(int,point))
+            if 0 <= distance(pos,point) <= e:
+                index = points.index(point)%l
+                step = self.Data[self.s]['zijdblock_steps'][index]
+                print(step)
+                break
+        class Dumby_Event:
+            def __init__(self,text):
+                self.text = text
+            def GetText(self):
+                return self.text
+        if index:
+            dumby_event = Dumby_Event(index)
+            self.OnClick_listctrl(dumby_event)
+        self.canvas1.draw()
+        self.zoom(event)
+
 
     def Zij_zoom(self):
         #cursur_entry_zij=self.canvas1.mpl_connect('axes_enter_event', self.on_enter_zij_fig_new) 
@@ -907,8 +950,9 @@ class Zeq_GUI(wx.Frame):
         #self.zijplot.plot(self.CART_rot_clean[:,0],-1 * self.CART_rot_clean[:,2],'b-')   #x-z or N,D
         #self.zijplot.scatter(self.CART_rot[:,0],-1* self.CART_rot[:,1],marker="o",s=20,c='r',clip_on=False,picker=True)
 
-        self.zijplot.plot(self.CART_rot_good[:,0],-1* self.CART_rot_good[:,1],'ro-',mfc=self.dec_MFC,mec=self.dec_MEC,markersize=self.MS,clip_on=False,picker=True)  #x,y or N,E
-        self.zijplot.plot(self.CART_rot_good[:,0],-1 * self.CART_rot_good[:,2],'bs-',mfc=self.inc_MFC,mec=self.inc_MEC,markersize=self.MS,clip_on=False,picker=True)   #x-z or N,D
+        self.zij_xy_points, = self.zijplot.plot(self.CART_rot_good[:,0],-1* self.CART_rot_good[:,1],'ro-',mfc=self.dec_MFC,mec=self.dec_MEC,markersize=self.MS,clip_on=False,picker=True)  #x,y or N,E
+        self.zij_xz_points, = self.zijplot.plot(self.CART_rot_good[:,0],-1 * self.CART_rot_good[:,2],'bs-',mfc=self.inc_MFC,mec=self.inc_MEC,markersize=self.MS,clip_on=False,picker=True) 
+#x-z or N,D
         
         if len(self.CART_rot_bad)>0:
             for i in range(len( self.CART_rot_bad)):
