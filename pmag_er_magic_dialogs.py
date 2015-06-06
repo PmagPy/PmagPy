@@ -887,3 +887,173 @@ You may use the drop-down menus to add as many values as needed in these columns
         self.ErMagic.update_ErMagic()
         
 
+class MagicGrid(wx.grid.Grid):
+
+    def __init__(self, parent, name, row_labels, col_labels, size=0):
+        self.row_labels = row_labels
+        self.col_labels = col_labels
+        if not size:
+            super(MagicGrid, self).__init__(parent, -1, name=name)
+        if size:
+            super(MagicGrid, self).__init__(parent, -1, name=name, size=size)
+        self.InitUI()
+
+    def InitUI(self):
+        num_rows = len(self.row_labels)
+        num_cols = len(self.col_labels)
+        self.ClearGrid()
+        self.CreateGrid(num_rows, num_cols)
+        for n, row in enumerate(self.row_labels):
+            self.SetRowLabelValue(n, str(n+1))
+            self.SetCellValue(n, 0, row)
+            #self.temp_data[temp_data_key].append(row)
+        # set column labels
+        for n, col in enumerate(self.col_labels):
+            self.SetColLabelValue(n, col)
+
+
+    def add_data(self):
+        pass
+            
+    def size_grid(self):
+        self.AutoSizeColumns(True)
+
+        self.AutoSize() # prevents display failure
+
+        for col in range(len(self.col_labels)):
+            # adjust column widths to be a little larger then auto for nicer editing
+            orig_size = self.GetColSize(col)
+            if orig_size > 110:
+                size = orig_size * 1.1
+            else:
+                size = orig_size * 1.6
+            self.SetColSize(col, size)
+
+
+        
+
+    ### Grid methods ###
+    def make_simple_table(self, column_labels, data_dict, grid_name):
+        row_labels = sorted(data_dict.keys())
+        if len(row_labels) in range(1, 4):
+            num_rows = len(row_labels)
+            height = {1: 70, 2: 90, 3: 110, 4: 130}
+            grid = wx.grid.Grid(self.panel, -1, name=grid_name, size=(-1, height[num_rows]))# autosizes width, but enforces fixed pxl height to prevent display problems
+        else:
+            grid = wx.grid.Grid(self.panel, -1, name=grid_name)
+
+        grid.ClearGrid()
+        grid.CreateGrid(len(row_labels), len(column_labels))
+
+        if grid_name == 'ages':
+            temp_data_key = 'ages'
+        else:
+            temp_data_key = column_labels[0]
+        self.temp_data[temp_data_key] = []
+        # set row labels
+        for n, row in enumerate(row_labels):
+            grid.SetRowLabelValue(n, str(n+1))
+            grid.SetCellValue(n, 0, row)
+            self.temp_data[temp_data_key].append(row)
+        # set column labels
+        for n, col in enumerate(column_labels):
+            grid.SetColLabelValue(n, col)
+        # set values in each cell (other than 1st column)
+        for num, row in enumerate(row_labels):
+            for n, col in enumerate(column_labels[1:]):
+                if col in data_dict[row].keys():
+                    value = data_dict[row][col]
+                else:
+                    value = ''
+                if value:
+                    grid.SetCellValue(num, n+1, value)
+        grid.AutoSizeColumns(True)
+
+        grid.AutoSize() # prevents display failure
+
+        for n, col in enumerate(column_labels):
+            # adjust column widths to be a little larger then auto for nicer editing
+            orig_size = grid.GetColSize(n)
+            if orig_size > 110:
+                size = orig_size * 1.1
+            else:
+                size = orig_size * 1.6
+            grid.SetColSize(n, size)
+        return grid
+        
+
+    def onMouseOver(self, event, grid):
+        """
+        Displays a tooltip over any cell in a certain column
+        """
+        x, y = grid.CalcUnscrolledPosition(event.GetX(),event.GetY())
+        coords = grid.XYToCell(x, y)
+        col = coords[1]
+        row = coords[0]
+        
+        # creates tooltip message for cells with long values
+        # note: this works with EPD for windows, and modern wxPython, but not with Canopy Python
+        msg = grid.GetCellValue(row, col)
+        if len(msg) > 15:
+            event.GetEventObject().SetToolTipString(msg)
+        else:
+            event.GetEventObject().SetToolTipString('')
+
+        
+    def on_edit_grid(self, event, grid):
+        """sets self.changes to true when user edits the grid.
+        provides down and up key functionality for exiting the editor"""
+        if not self.changes:
+            self.changes = {event.Row}
+        else:
+            self.changes.add(event.Row)
+        #self.changes = True
+        try:
+            editor = event.GetControl()
+            editor.Bind(wx.EVT_KEY_DOWN, lambda event: self.onEditorKey(event, grid))
+        except AttributeError: # if it's a EVT_GRID_EDITOR_SHOWN, it doesn't have the GetControl method
+            pass
+
+    def onEditorKey(self, event, grid):
+        keycode = event.GetKeyCode()
+        if keycode == wx.WXK_UP:
+            grid.MoveCursorUp(False)
+            grid.MoveCursorDown(False)# have this in because otherwise cursor moves up 2 rows
+        elif keycode == wx.WXK_DOWN:
+            grid.MoveCursorDown(False)
+            grid.MoveCursorUp(False) # have this in because otherwise cursor moves down 2 rows
+        #elif keycode == wx.WXK_LEFT:
+        #    grid.MoveCursorLeft(False)
+        #elif keycode == wx.WXK_RIGHT:
+        #    grid.MoveCursorRight(False)
+        else:
+            pass
+        event.Skip()
+
+
+    def validate(self, grid):
+        validations = ['specimens', 'samples', 'site_class', 'site_lithology', 'site_type', 'site_definition', 'site_lon', 'site_lat', 'sample_class', 'sample_lithology', 'sample_type', 'sample_lat', 'sample_lon', 'location_type', 'age_unit', 'age']#, 'magic_method_codes']
+        cols = range(grid.GetNumberCols())
+        rows = range(grid.GetNumberRows())
+        data_missing = []
+        for col in cols:
+            col_label = str(grid.GetColLabelValue(col))
+            if col_label in validations:
+                for row in rows:
+                    value = grid.GetCellValue(row, col)
+                    if not value:
+                        data_missing.append(col_label)
+                        break
+        return data_missing
+
+
+
+    def remove_starred_labels(self, grid):
+        cols_with_stars = []
+        for col in range(grid.GetNumberCols()):
+            label = grid.GetColLabelValue(col)
+            if '**' in label:
+                grid.SetColLabelValue(col, label.strip('**'))
+                cols_with_stars.append(col)
+        return cols_with_stars
+

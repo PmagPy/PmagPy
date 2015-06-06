@@ -351,34 +351,34 @@ class MagMainFrame(wx.Frame):
 
     def get_data(self):
         
-        Data={}
-        Data_hierarchy={}
-        Data_hierarchy['sites']={}
-        Data_hierarchy['samples']={}
-        Data_hierarchy['specimens']={}
-        Data_hierarchy['sample_of_specimen']={} 
-        Data_hierarchy['site_of_specimen']={}   
-        Data_hierarchy['site_of_sample']={}   
+        Data = {}
+        Data_hierarchy = {}
+        Data_hierarchy['sites'] = {}
+        Data_hierarchy['samples'] = {}
+        Data_hierarchy['specimens'] = {}
+        Data_hierarchy['sample_of_specimen'] = {}
+        Data_hierarchy['site_of_specimen'] = {}
+        Data_hierarchy['site_of_sample'] = {}
         try:
-            meas_data,file_type=pmag.magic_read(os.path.join(self.WD, "magic_measurements.txt"))
+            meas_data, file_type = pmag.magic_read(os.path.join(self.WD, "magic_measurements.txt"))
         except:
             print "-E- ERROR: Cant read magic_measurement.txt file. File is corrupted."
-            return {},{}
-         
-        sids=pmag.get_specs(meas_data) # samples ID's
-      
+            return {}, {}
+
+        sids = pmag.get_specs(meas_data) # samples ID's
+
         for s in sids:
             if s not in Data.keys():
-                Data[s]={}
+                Data[s] = {}
         for rec in meas_data:
-            s=rec["er_specimen_name"]
-            sample=rec["er_sample_name"]
-            site=rec["er_site_name"]
+            s = rec["er_specimen_name"]
+            sample = rec["er_sample_name"]
+            site = rec["er_site_name"]
             if sample not in Data_hierarchy['samples'].keys():
-                Data_hierarchy['samples'][sample]=[]
+                Data_hierarchy['samples'][sample] = []
 
             if site not in Data_hierarchy['sites'].keys():
-                Data_hierarchy['sites'][site]=[]         
+                Data_hierarchy['sites'][site] = []
           
             if s not in Data_hierarchy['samples'][sample]:
                 Data_hierarchy['samples'][sample].append(s)
@@ -387,27 +387,27 @@ class MagMainFrame(wx.Frame):
                 Data_hierarchy['sites'][site].append(sample)
 
             Data_hierarchy['specimens'][s] = sample
-            Data_hierarchy['sample_of_specimen'][s] = sample  
-            Data_hierarchy['site_of_specimen'][s] = site  
+            Data_hierarchy['sample_of_specimen'][s] = sample
+            Data_hierarchy['site_of_specimen'][s] = site
             Data_hierarchy['site_of_sample'][sample] = site
         self.Data = Data
         self.Data_hierarchy = Data_hierarchy
         return(Data, Data_hierarchy)
-                                                                                                                                                                                                                               
-    def on_orientation_button(self,event):
+
+    def on_orientation_button(self, event):
         #dw, dh = wx.DisplaySize()
-        SIZE=wx.DisplaySize()
-        SIZE=(SIZE[0]-0.1*SIZE[0],SIZE[1]-0.1*SIZE[1])
-        Data,Data_hierarchy=self.get_data()
-        frame = pmag_basic_dialogs.OrientFrameGrid(self, -1, 'demag_orient.txt',self.WD,Data_hierarchy,SIZE)        
+        size = wx.DisplaySize()
+        size =(size[0]-0.1 * size[0], size[1]-0.1 * size[1])
+        Data, Data_hierarchy = self.get_data()
+        frame = pmag_basic_dialogs.OrientFrameGrid(self, -1, 'demag_orient.txt', self.WD, Data_hierarchy, size)        
         frame.Show(True)
         frame.Centre()
 
-    def on_unpack(self,event):  
+    def on_unpack(self, event):
 
         dlg = wx.FileDialog(
-            None,message="choose txt file to unpack",
-            defaultDir=self.WD, 
+            None, message = "choose txt file to unpack",
+            defaultDir=self.WD,
             defaultFile="",
             style=wx.OPEN #| wx.CHANGE_DIR
             )        
@@ -431,7 +431,7 @@ class MagMainFrame(wx.Frame):
 
         except Exception as ex:
             text = "Something went wrong.  Make sure you chose a valid file downloaded from the MagIC database and try again."
-        del wait    
+        del wait
         dlg = wx.MessageDialog(self, caption="Saved", message=text, style=wx.OK)
         result = dlg.ShowModal()
         if result == wx.ID_OK:

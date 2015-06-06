@@ -70,7 +70,7 @@ class ErMagicBuilder(object):
 
 
     def __repr__(self):
-        return "{}\nspecimens: {}\nsamples: {}\nsites: {}\nlocations: {}".format(self.WD, self.data_er_specimens.keys(), self.data_er_samples.keys(), self.data_er_sites.keys(), self.data_er_locations.keys())
+        return "working directory: {}\nspecimens: {}\nsamples: {}\nsites: {}\nlocations: {}".format(self.WD, self.data_er_specimens.keys(), self.data_er_samples.keys(), self.data_er_sites.keys(), self.data_er_locations.keys())
 
 
     def init_default_headers(self):
