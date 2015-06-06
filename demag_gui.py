@@ -256,6 +256,8 @@ class Zeq_GUI(wx.Frame):
         self.toolbar2.Hide()
         self.canvas2.Bind(wx.EVT_LEFT_DCLICK,self.on_equalarea_specimen_select)
         self.canvas2.Bind(wx.EVT_MOTION,self.on_change_specimen_mouse_cursor)
+        self.specimen_EA_xdata = []
+        self.specimen_EA_ydata = []
 
         self.fig3 = Figure((2.5*self.GUI_RESOLUTION, 2.5*self.GUI_RESOLUTION), dpi=self.dpi)
         self.canvas3 = FigCanvas(self.panel, -1, self.fig3)
@@ -266,6 +268,8 @@ class Zeq_GUI(wx.Frame):
         self.toolbar4.Hide()
         self.canvas4.Bind(wx.EVT_LEFT_DCLICK,self.on_equalarea_higher_select)
         self.canvas4.Bind(wx.EVT_MOTION,self.on_change_higher_mouse_cursor)
+        self.higher_EA_xdata = []
+        self.higher_EA_ydata = []
 
         # make axes of the figures
         #self.zijplot = self.fig1.add_axes([0.1,0.1,0.8,0.8])
@@ -680,12 +684,36 @@ class Zeq_GUI(wx.Frame):
             self.OnClick_listctrl(dumby_event)
         self.zoom(event)
 
+    def on_change_specimen_mouse_cursor(self,event):
+        """
+        If mouse is over data point making it selectable change the shape of the cursor
+        @param: event -> the wx Mouseevent for that click
+        """
+        if not self.specimen_EA_xdata or not self.specimen_EA_ydata: return
+        pos=event.GetPosition()
+        width, height = self.canvas2.get_width_height()
+        pos[1] = height - pos[1]
+        inv = self.specimen_eqarea_interpretation.transData.inverted()
+        reverse = inv.transform(numpy.vstack([pos[0],pos[1]]).T)
+        xpick_data,ypick_data = map(float,reverse.T)
+        xdata = self.specimen_EA_xdata
+        ydata = self.specimen_EA_ydata
+        e = 5e-2
+
+        self.canvas2.SetCursor(wx.StockCursor(wx.CURSOR_ARROW))
+        for i,(x,y) in enumerate(zip(xdata,ydata)):
+            if 0 < numpy.sqrt((x-xpick_data)**2. + (y-ypick_data)**2.) < e:
+                self.canvas2.SetCursor(wx.StockCursor(wx.CURSOR_HAND))
+                break
+
     def on_equalarea_specimen_select(self,event):
         """
         Get mouse position on double click find the nearest interpertation to the mouse 
         position then select that interpertation
-        @param event -> the wx Mouseevent for that click
+        @param: event -> the wx Mouseevent for that click
+        @alters: current_fit
         """
+        if not self.specimen_EA_xdata or not self.specimen_EA_ydata: return
         pos=event.GetPosition()
         width, height = self.canvas2.get_width_height()
         pos[1] = height - pos[1]
@@ -705,32 +733,12 @@ class Zeq_GUI(wx.Frame):
             self.fit_box.SetSelection(index)
             self.on_select_fit(event)
 
-    def on_change_specimen_mouse_cursor(self,event):
-        """
-        If mouse is over data point making it selectable change the shape of the cursor
-        @param event -> the wx Mouseevent for that click
-        """
-        pos=event.GetPosition()
-        width, height = self.canvas2.get_width_height()
-        pos[1] = height - pos[1]
-        inv = self.specimen_eqarea_interpretation.transData.inverted()
-        reverse = inv.transform(numpy.vstack([pos[0],pos[1]]).T)
-        xpick_data,ypick_data = map(float,reverse.T)
-        xdata = self.specimen_EA_xdata
-        ydata = self.specimen_EA_ydata
-        e = 5e-2
-
-        self.canvas2.SetCursor(wx.StockCursor(wx.CURSOR_ARROW))
-        for i,(x,y) in enumerate(zip(xdata,ydata)):
-            if 0 < numpy.sqrt((x-xpick_data)**2. + (y-ypick_data)**2.) < e:
-                self.canvas2.SetCursor(wx.StockCursor(wx.CURSOR_HAND))
-                break
-
     def on_change_higher_mouse_cursor(self,event):
         """
         If mouse is over data point making it selectable change the shape of the cursor
-        @param event -> the wx Mouseevent for that click
+        @param: event -> the wx Mouseevent for that click
         """
+        if not self.higher_EA_xdata or not self.higher_EA_ydata: return
         pos=event.GetPosition()
         width, height = self.canvas4.get_width_height()
         pos[1] = height - pos[1]
@@ -751,8 +759,10 @@ class Zeq_GUI(wx.Frame):
         """
         Get mouse position on double click find the nearest interpertation to the mouse 
         position then select that interpertation
-        @param event -> the wx Mouseevent for that click
+        @param: event -> the wx Mouseevent for that click
+        @alters: current_fit, s
         """
+        if not self.higher_EA_xdata or not self.higher_EA_ydata: return
         pos=event.GetPosition()
         width, height = self.canvas4.get_width_height()
         pos[1] = height - pos[1]
@@ -3856,6 +3866,9 @@ class Zeq_GUI(wx.Frame):
 #            exit()
 #
     def on_save_Zij_plot(self, event):
+        self.current_fit = None
+        self.draw_interpretation()
+        self.plot_higher_levels_data()
         self.fig1.text(0.9,0.98,'%s'%(self.s),{'family':'Arial', 'fontsize':10, 'style':'normal','va':'center', 'ha':'right' })
         SaveMyPlot(self.fig1,self.s,"Zij",self.WD)
         self.fig1.clear()
@@ -3863,14 +3876,20 @@ class Zeq_GUI(wx.Frame):
         self.update_selection()
 
     def on_save_Eq_plot(self, event):
+        self.current_fit = None
+        self.draw_interpretation()
+        self.plot_higher_levels_data()
         #self.fig2.text(0.9,0.96,'%s'%(self.s),{'family':'Arial', 'fontsize':10, 'style':'normal','va':'center', 'ha':'right' })
         #self.canvas4.print_figure("./tmp.pdf")#, dpi=self.dpi) 
         SaveMyPlot(self.fig2,self.s,"EqArea",self.WD)
-        #self.fig2.clear()
-        #self.draw_figure(self.s)
-        #self.update_selection()
+        self.fig2.clear()
+        self.draw_figure(self.s)
+        self.update_selection()
         
     def on_save_M_t_plot(self, event):
+        self.current_fit = None
+        self.draw_interpretation()
+        self.plot_higher_levels_data()
         self.fig3.text(0.9,0.96,'%s'%(self.s),{'family':'Arial', 'fontsize':10, 'style':'normal','va':'center', 'ha':'right' })
         SaveMyPlot(self.fig3,self.s,"M_M0",self.WD)
         self.fig3.clear()
@@ -3878,14 +3897,20 @@ class Zeq_GUI(wx.Frame):
         self.update_selection()
 
     def on_save_high_level(self, event):
+        self.current_fit = None
+        self.draw_interpretation()
+        self.plot_higher_levels_data()
         SaveMyPlot(self.fig4,str(self.level_names.GetValue()),str(self.level_box.GetValue()), self.WD )
-        #self.fig4.clear()
-        #self.draw_figure(self.s)
-        #self.update_selection()
-        #self.plot_higher_levels_data()
+        self.fig4.clear()
+        self.draw_figure(self.s)
+        self.update_selection()
+        self.plot_higher_levels_data()
 
     def on_save_all_figures(self, event):
-
+        temp_fit = self.current_fit
+        self.current_fit = None
+        self.draw_interpretation()
+        self.plot_higher_levels_data()
         dialog = wx.DirDialog(None, "choose a folder:",defaultPath = self.WD ,style=wx.DD_DEFAULT_STYLE | wx.DD_NEW_DIR_BUTTON | wx.DD_CHANGE_DIR)
         if dialog.ShowModal() == wx.ID_OK:
               dir_path=dialog.GetPath()
@@ -4710,7 +4735,7 @@ class Zeq_GUI(wx.Frame):
 
     def on_select_fit(self,event):
         fit_val = self.fit_box.GetValue()
-        if not self.pmag_results_data['specimens'][self.s]:
+        if not self.pmag_results_data['specimens'][self.s] or fit_val == 'None':
             self.clear_boxes()
             self.current_fit = None
             self.fit_box.SetStringSelection('None')
@@ -4853,6 +4878,15 @@ class SaveMyPlot(wx.Frame):
 class Fit():
 
     def __init__(self, name, num, tmax, tmin, color, GUI):
+        """
+        The Data Structure that represents an interpertation
+        @param: name -> the name of the fit as it will be displayed to the user
+        @param: num -> the number of fits in exsistance upon creation of this fits (depriciated)
+        @param: tmax -> the upper bound of the fit
+        @param: tmin -> the lower bound of the fit
+        @param: color -> the color of the fit when it is graphed
+        @param: GUI -> the Zeq_GUI on which this fit is drawn
+        """
         self.name = name
         self.num = num
         self.tmax = tmax
@@ -4873,6 +4907,10 @@ class Fit():
         self.tiltpars = {}
 
     def select(self):
+        """
+        Makes this fit the selected fit on the GUI that is it's parent
+        (Note: may be moved into GUI soon)
+        """
         self.GUI.current_fit = self
         if self.tmax != None and self.tmin != None:
             self.GUI.update_temp_boxes()
@@ -4882,6 +4920,11 @@ class Fit():
         self.GUI.get_new_PCA_parameters(-1)
 
     def get(self,coordinate_system):
+        """
+        Return the pmagpy paramters dictionary associated with this fit and the given 
+        coordinate system
+        @param: coordinate_system -> the coordinate system who's parameters to return
+        """
         if coordinate_system == 'DA-DIR' or coordinate_system == 'specimen':
             return self.pars
         elif coordinate_system == 'DA-DIR-GEO' or coordinate_system == 'geographic':
@@ -4893,6 +4936,14 @@ class Fit():
 #            print("-E- no such parameters to fetch in fit: " + self.name)
 
     def put(self,coordinate_system,new_pars):
+        """
+        Given a coordinate system and a new parameters dictionary that follows pmagpy 
+        convention given by the pmag.py/domean function it alters this fit's bounds and 
+        parameters such that it matches the new data.
+        @param: coordinate_system -> the coordinate system to alter
+        @param: new_pars -> the new paramters to change your fit to
+        @alters: tmin, tmax, pars, geopars, tiltpars
+        """
         if type(new_pars) != dict or 'measurement_step_min' not in new_pars.keys() or 'measurement_step_max' not in new_pars.keys():
             print("-E- invalid parameters cannot assign to fit - was given:\n"+str(new_pars))
             return {}
@@ -4921,9 +4972,20 @@ class Fit():
             print('-E- no such coordinate system could not assign those parameters to fit')
             
     def has_values(self, name, tmin, tmax):
+        """
+        A basic fit equality checker compares name and bounds of 2 fits
+        @param: name -> name of the other fit
+        @param: tmin -> lower bound of the other fit
+        @param: tmax -> upper bound of the other fit
+        @return: boolean comaparing 2 fits 
+        """
         return str(self.name) == str(name) and str(self.tmin) == str(tmin) and str(self.tmax) == str(tmax)
 
     def __str__(self):
+        """
+        Readable printing method for fit to turn it into a string
+        @return: string representing fit
+        """
         try: return self.name + ", " + str(self.num) + ": \n" + "Tmax = " + self.tmax + ", Tmin = " + self.tmin + "\n" + "Color = " + self.color
         except: return self.name + ", " + str(self.num) + ": \n" + " Color = " + self.color
 
