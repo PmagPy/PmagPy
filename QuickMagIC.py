@@ -100,33 +100,33 @@ class MagMainFrame(wx.Frame):
         bSizer1 = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY, "Import MagIC formatted data to working directory" ), wx.HORIZONTAL )
         
         TEXT="1. convert magnetometer files to MagIC format"
-        self.btn1=buttons.GenButton(self.panel, id=-1, label=TEXT,size=(450, 50),name='step 1')        
+        self.btn1 = buttons.GenButton(self.panel, id=-1, label=TEXT, size=(450, 50), name='step 1')        
         self.btn1.SetBackgroundColour("#FDC68A")
         self.btn1.InitColours()
-        self.Bind(wx.EVT_BUTTON, self.on_convert_file,self.btn1)
-        TEXT="2. (optional) calculate geographic/tilt-corrected directions"
-        self.btn2 =buttons.GenButton(self.panel, id=-1, label=TEXT,size=(450, 50), name='step 2')
+        self.Bind(wx.EVT_BUTTON, self.on_convert_file, self.btn1)
+        text = "2. (optional) calculate geographic/tilt-corrected directions"
+        self.btn2 = buttons.GenButton(self.panel, id=-1, label=text, size=(450, 50), name='step 2')
         self.btn2.SetBackgroundColour("#FDC68A")
         self.btn2.InitColours()
-        self.Bind(wx.EVT_BUTTON, self.on_orientation_button,self.btn2)
-        TEXT="3. fill Earth-Ref data using EarthRef Magic-Builder "
-        self.btn3 =buttons.GenButton(self.panel, id=-1, label=TEXT,size=(450, 50), name='step 3')
+        self.Bind(wx.EVT_BUTTON, self.on_orientation_button, self.btn2)
+        text = "3. fill Earth-Ref data using EarthRef Magic-Builder "
+        self.btn3 = buttons.GenButton(self.panel, id=-1, label=text, size=(450, 50), name='step 3')
         self.btn3.SetBackgroundColour("#FDC68A")
         self.btn3.InitColours()
-        self.Bind(wx.EVT_BUTTON, self.on_er_data,self.btn3)
+        self.Bind(wx.EVT_BUTTON, self.on_er_data, self.btn3)
 
-        TEXT="unpack downloaded txt file "
-        self.btn4 =buttons.GenButton(self.panel, id=-1, label=TEXT,size=(300, 50))
+        text = "unpack downloaded txt file "
+        self.btn4 =buttons.GenButton(self.panel, id=-1, label=text, size=(300, 50))
         self.btn4.SetBackgroundColour("#FDC68A")
         self.btn4.InitColours()
-        self.Bind(wx.EVT_BUTTON, self.on_unpack,self.btn4)
- 
+        self.Bind(wx.EVT_BUTTON, self.on_unpack, self.btn4)
+
         #str = "OR"
         OR = wx.StaticText(self.panel, -1, "or", (20, 120))
         font = wx.Font(18, wx.SWISS, wx.NORMAL, wx.NORMAL)
         OR.SetFont(font)
-            
-                                  
+
+
         #bSizer0.Add(self.panel,self.btn1,wx.ALIGN_TOP)
         bSizer1_1 = wx.BoxSizer(wx.VERTICAL)
         bSizer1_1.AddSpacer(20)
@@ -346,53 +346,53 @@ class MagMainFrame(wx.Frame):
         self.ErMagic.Raise()
 
     def init_check_window(self):
-        self.check_dia = pmag_er_magic_dialogs.ErMagicCheck(self, -1, 'Check Data', self.WD, self.ErMagic.data)# initiates the object that will control steps 1-6 of checking headers, filling in cell values, etc.
+        self.check_dia = pmag_er_magic_dialogs.ErMagicCheck(self, 'Check Data', self.WD, self.ErMagic.data)# initiates the object that will control steps 1-6 of checking headers, filling in cell values, etc.
 
 
     def get_data(self):
         
-      Data={}
-      Data_hierarchy={}
-      Data_hierarchy['sites']={}
-      Data_hierarchy['samples']={}
-      Data_hierarchy['specimens']={}
-      Data_hierarchy['sample_of_specimen']={} 
-      Data_hierarchy['site_of_specimen']={}   
-      Data_hierarchy['site_of_sample']={}   
-      try:
-          meas_data,file_type=pmag.magic_read(os.path.join(self.WD, "magic_measurements.txt"))
-      except:
-          print "-E- ERROR: Cant read magic_measurement.txt file. File is corrupted."
-          return {},{}
+        Data={}
+        Data_hierarchy={}
+        Data_hierarchy['sites']={}
+        Data_hierarchy['samples']={}
+        Data_hierarchy['specimens']={}
+        Data_hierarchy['sample_of_specimen']={} 
+        Data_hierarchy['site_of_specimen']={}   
+        Data_hierarchy['site_of_sample']={}   
+        try:
+            meas_data,file_type=pmag.magic_read(os.path.join(self.WD, "magic_measurements.txt"))
+        except:
+            print "-E- ERROR: Cant read magic_measurement.txt file. File is corrupted."
+            return {},{}
          
-      sids=pmag.get_specs(meas_data) # samples ID's
+        sids=pmag.get_specs(meas_data) # samples ID's
       
-      for s in sids:
-          if s not in Data.keys():
-              Data[s]={}
-      for rec in meas_data:
-          s=rec["er_specimen_name"]
-          sample=rec["er_sample_name"]
-          site=rec["er_site_name"]
-          if sample not in Data_hierarchy['samples'].keys():
-              Data_hierarchy['samples'][sample]=[]
+        for s in sids:
+            if s not in Data.keys():
+                Data[s]={}
+        for rec in meas_data:
+            s=rec["er_specimen_name"]
+            sample=rec["er_sample_name"]
+            site=rec["er_site_name"]
+            if sample not in Data_hierarchy['samples'].keys():
+                Data_hierarchy['samples'][sample]=[]
 
-          if site not in Data_hierarchy['sites'].keys():
-              Data_hierarchy['sites'][site]=[]         
+            if site not in Data_hierarchy['sites'].keys():
+                Data_hierarchy['sites'][site]=[]         
           
-          if s not in Data_hierarchy['samples'][sample]:
-              Data_hierarchy['samples'][sample].append(s)
+            if s not in Data_hierarchy['samples'][sample]:
+                Data_hierarchy['samples'][sample].append(s)
 
-          if sample not in Data_hierarchy['sites'][site]:
-              Data_hierarchy['sites'][site].append(sample)
+            if sample not in Data_hierarchy['sites'][site]:
+                Data_hierarchy['sites'][site].append(sample)
 
-          Data_hierarchy['specimens'][s]=sample
-          Data_hierarchy['sample_of_specimen'][s]=sample  
-          Data_hierarchy['site_of_specimen'][s]=site  
-          Data_hierarchy['site_of_sample'][sample]=site
-      self.Data = Data
-      self.Data_hierarchy = Data_hierarchy
-      return(Data,Data_hierarchy)
+            Data_hierarchy['specimens'][s] = sample
+            Data_hierarchy['sample_of_specimen'][s] = sample  
+            Data_hierarchy['site_of_specimen'][s] = site  
+            Data_hierarchy['site_of_sample'][sample] = site
+        self.Data = Data
+        self.Data_hierarchy = Data_hierarchy
+        return(Data, Data_hierarchy)
                                                                                                                                                                                                                                
     def on_orientation_button(self,event):
         #dw, dh = wx.DisplaySize()

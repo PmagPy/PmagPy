@@ -6,7 +6,7 @@ import check_updates
 
 class ErMagicCheck(wx.Frame):
 
-    def __init__(self, parent, id, title, WD, magic_data): # magic_data was ErMagic
+    def __init__(self, parent, title, WD, magic_data): # magic_data was ErMagic
         wx.Frame.__init__(self, parent, -1, title)
         self.WD = WD
         self.main_frame = self.Parent
@@ -15,12 +15,12 @@ class ErMagicCheck(wx.Frame):
         self.drop_down_menu = None
         self.sample_window = 0 # sample window must be displayed (differently) twice, so it is useful to keep track
         self.InitSpecCheck()
-        
+
 
     def InitSpecCheck(self):
         """make an interactive grid in which users can edit specimen names
         as well as which sample a specimen belongs to"""
-        self.ErMagic.read_MagIC_info() # 
+        self.ErMagic.read_MagIC_info() #
 
         # using ScrolledWindow works on up to date wxPython and is necessary for windows
         # it breaks with Canopy wxPython, so for Mac we just use Panel
@@ -103,13 +103,13 @@ Check that all specimens belong to the correct sample
         self.Show()
         self.Hide()
         self.Show()
-        
+
 
     def InitSampCheck(self):
         """make an interactive grid in which users can edit sample names
         as well as which site a sample belongs to"""
-        
-        self.sample_window += 1 
+
+        self.sample_window += 1
 
         # using ScrolledWindow works on up to date wxPython and is necessary for windows
         # it breaks with Canopy wxPython, so for Mac we just use Panel
@@ -352,8 +352,8 @@ Fill in any blank cells using controlled vocabularies.
         try:
             key1 = self.ErMagic.data_er_locations.keys()[0]
         except IndexError:
-            MSG = "You have no data in er_locations, so we are skipping step 5.\n Note that location names must be entered at the measurements level,so you may need to re-import your data, or you can add a location in step 3"
-            dlg = wx.MessageDialog(None,caption="Message:", message=MSG ,style=wx.OK|wx.ICON_INFORMATION)
+            msg = "You have no data in er_locations, so we are skipping step 5.\n Note that location names must be entered at the measurements level,so you may need to re-import your data, or you can add a location in step 3"
+            dlg = wx.MessageDialog(None, caption="Message:", message=msg, style=wx.OK|wx.ICON_INFORMATION)
             dlg.ShowModal()
             dlg.Destroy()
             self.panel.Destroy()
