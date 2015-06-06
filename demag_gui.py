@@ -252,12 +252,20 @@ class Zeq_GUI(wx.Frame):
         self.specimen_eqarea_interpretation.axes.set_aspect('equal')
         self.specimen_eqarea_interpretation.axis('off')
         self.canvas2 = FigCanvas(self.panel, -1, self.fig2)
+        self.toolbar2 = NavigationToolbar(self.canvas2)
+        self.toolbar2.Hide()
+        self.canvas2.Bind(wx.EVT_LEFT_DCLICK,self.on_equalarea_specimen_select)
+        self.canvas2.Bind(wx.EVT_MOTION,self.on_change_specimen_mouse_cursor)
 
         self.fig3 = Figure((2.5*self.GUI_RESOLUTION, 2.5*self.GUI_RESOLUTION), dpi=self.dpi)
         self.canvas3 = FigCanvas(self.panel, -1, self.fig3)
 
         self.fig4 = Figure((2.5*self.GUI_RESOLUTION, 2.5*self.GUI_RESOLUTION), dpi=self.dpi)
         self.canvas4 = FigCanvas(self.panel, -1, self.fig4)
+        self.toolbar4 = NavigationToolbar(self.canvas4)
+        self.toolbar4.Hide()
+        self.canvas4.Bind(wx.EVT_LEFT_DCLICK,self.on_equalarea_higher_select)
+        self.canvas4.Bind(wx.EVT_MOTION,self.on_change_higher_mouse_cursor)
 
         # make axes of the figures
         #self.zijplot = self.fig1.add_axes([0.1,0.1,0.8,0.8])
@@ -617,7 +625,7 @@ class Zeq_GUI(wx.Frame):
         event.Skip()
 
     #----------------------------------------------------------------------
-    # zooming into zijderveld
+    # Plot Events
     #----------------------------------------------------------------------
 
     def pan(self,event):
@@ -633,24 +641,28 @@ class Zeq_GUI(wx.Frame):
 
     def pick_bounds(self,event):
         pos=event.GetPosition()
-        print("getting nearest step at: " + str(pos))
-        e = 30
+        e = 1e-2
         l = len(self.CART_rot_good[:,0])
         def distance(p1,p2):
             return sqrt((p1[0]-p2[0])**2 + (p1[1]-p2[1])**2)
         points = []
+        inv = self.zijplot.transData.inverted()
+        reverse = inv.transform(numpy.vstack([pos[0],pos[1]]).T)
+        xpick_data,ypick_data = reverse.T
+        pos = (xpick_data,ypick_data)
         for data in [self.zij_xy_points,self.zij_xz_points]:
             x, y = data.get_data()
-            xy_pixels = self.zijplot.transData.transform(np.vstack([x,y]).T)
-            xpix, ypix = xy_pixels.T
-            width, height = self.canvas1.get_width_height()
-            y_pix = height - ypix
-            points += [(xpix[i],ypix[i]) for i in range(len(xpix))]
+#            xy_pixels = self.zijplot.transData.transform(numpy.vstack([x,y]).T)
+#            xpix, ypix = xy_pixels.T
+#            width, height = self.canvas1.get_width_height()
+#            y_pix = height - ypix
+            points += [(x[i],y[i]) for i in range(len(x))]
         index = None
-        inv = self.zijplot.transData.inverted()
-        reverse = inv.transform(np.vstack([xpix,ypix]).T)
-        xprime, yprime = reverse.T
-        self.zijplot.plot(xprime,yprime,'k*-',mfc=self.dec_MFC,mec=self.dec_MEC,markersize=self.MS,clip_on=False,picker=True)
+#        reverse = inv.transform(numpy.vstack([xpix,ypix]).T)
+#        xprime, yprime = reverse.T
+#        self.zijplot.plot(xprime,yprime,'k*-',mfc=self.dec_MFC,mec=self.dec_MEC,markersize=self.MS,clip_on=False,picker=True)
+        print("getting nearest step at: " + str(pos))
+        print(points)
         for point in points:
 #            print(map(int,point))
             if 0 <= distance(pos,point) <= e:
@@ -666,9 +678,106 @@ class Zeq_GUI(wx.Frame):
         if index:
             dumby_event = Dumby_Event(index)
             self.OnClick_listctrl(dumby_event)
-        self.canvas1.draw()
         self.zoom(event)
 
+    def on_equalarea_specimen_select(self,event):
+        """
+        Get mouse position on double click find the nearest interpertation to the mouse 
+        position then select that interpertation
+        @param event -> the wx Mouseevent for that click
+        """
+        pos=event.GetPosition()
+        width, height = self.canvas2.get_width_height()
+        pos[1] = height - pos[1]
+        inv = self.specimen_eqarea_interpretation.transData.inverted()
+        reverse = inv.transform(numpy.vstack([pos[0],pos[1]]).T)
+        xpick_data,ypick_data = map(float,reverse.T)
+        xdata = self.specimen_EA_xdata
+        ydata = self.specimen_EA_ydata
+        e = 5e-2
+
+        index = None
+        for i,(x,y) in enumerate(zip(xdata,ydata)):
+            if 0 < numpy.sqrt((x-xpick_data)**2. + (y-ypick_data)**2.) < e:
+                index = i
+                break
+        if index != None:
+            self.fit_box.SetSelection(index)
+            self.on_select_fit(event)
+
+    def on_change_specimen_mouse_cursor(self,event):
+        """
+        If mouse is over data point making it selectable change the shape of the cursor
+        @param event -> the wx Mouseevent for that click
+        """
+        pos=event.GetPosition()
+        width, height = self.canvas2.get_width_height()
+        pos[1] = height - pos[1]
+        inv = self.specimen_eqarea_interpretation.transData.inverted()
+        reverse = inv.transform(numpy.vstack([pos[0],pos[1]]).T)
+        xpick_data,ypick_data = map(float,reverse.T)
+        xdata = self.specimen_EA_xdata
+        ydata = self.specimen_EA_ydata
+        e = 5e-2
+
+        self.canvas2.SetCursor(wx.StockCursor(wx.CURSOR_ARROW))
+        for i,(x,y) in enumerate(zip(xdata,ydata)):
+            if 0 < numpy.sqrt((x-xpick_data)**2. + (y-ypick_data)**2.) < e:
+                self.canvas2.SetCursor(wx.StockCursor(wx.CURSOR_HAND))
+                break
+
+    def on_change_higher_mouse_cursor(self,event):
+        """
+        If mouse is over data point making it selectable change the shape of the cursor
+        @param event -> the wx Mouseevent for that click
+        """
+        pos=event.GetPosition()
+        width, height = self.canvas4.get_width_height()
+        pos[1] = height - pos[1]
+        inv = self.high_level_eqarea.transData.inverted()
+        reverse = inv.transform(numpy.vstack([pos[0],pos[1]]).T)
+        xpick_data,ypick_data = map(float,reverse.T)
+        xdata = self.higher_EA_xdata
+        ydata = self.higher_EA_ydata
+        e = 5e-2
+
+        self.canvas4.SetCursor(wx.StockCursor(wx.CURSOR_ARROW))
+        for i,(x,y) in enumerate(zip(xdata,ydata)):
+            if 0 < numpy.sqrt((x-xpick_data)**2. + (y-ypick_data)**2.) < e:
+                self.canvas4.SetCursor(wx.StockCursor(wx.CURSOR_HAND))
+                break
+
+    def on_equalarea_higher_select(self,event):
+        """
+        Get mouse position on double click find the nearest interpertation to the mouse 
+        position then select that interpertation
+        @param event -> the wx Mouseevent for that click
+        """
+        pos=event.GetPosition()
+        width, height = self.canvas4.get_width_height()
+        pos[1] = height - pos[1]
+        inv = self.high_level_eqarea.transData.inverted()
+        reverse = inv.transform(numpy.vstack([pos[0],pos[1]]).T)
+        xpick_data,ypick_data = map(float,reverse.T)
+        xdata = self.higher_EA_xdata
+        ydata = self.higher_EA_ydata
+        e = 5e-2
+
+        index = None
+        for i,(x,y) in enumerate(zip(xdata,ydata)):
+            if 0 < numpy.sqrt((x-xpick_data)**2. + (y-ypick_data)**2.) < e:
+                index = i
+                break
+        if index != None:
+            for i,specimen in enumerate(self.specimens):
+                if index < len(self.pmag_results_data['specimens'][specimen]):
+                    self.s = specimen
+                    self.specimens_box.SetSelection(i)
+                    self.onSelect_specimen(event)
+                    break
+                index -= len(self.pmag_results_data['specimens'][specimen])
+            self.fit_box.SetSelection(index)
+            self.on_select_fit(event)
 
     def Zij_zoom(self):
         #cursur_entry_zij=self.canvas1.mpl_connect('axes_enter_event', self.on_enter_zij_fig_new) 
@@ -1981,6 +2090,8 @@ class Zeq_GUI(wx.Frame):
         self.zijplot.collections=[] # delete fit points 
         self.specimen_eqarea_interpretation.clear() #clear equal area
         self.mplot_interpretation.clear() #clear Mplot
+        self.specimen_EA_xdata = [] #clear saved x positions on specimen equal area
+        self.specimen_EA_ydata = [] #clear saved y positions on specimen equal area
 
         #check to see if there's a results log or not
         if not (self.s in self.pmag_results_data['specimens'].keys()):
@@ -2087,14 +2198,16 @@ class Zeq_GUI(wx.Frame):
                 R=array(sqrt(1-z)/sqrt(x**2+y**2))
                 eqarea_x=y*R
                 eqarea_y=x*R
+                self.specimen_EA_xdata.append(eqarea_x)
+                self.specimen_EA_ydata.append(eqarea_y)
 
                 if z>0:
                     FC=fit.color;EC='0.1'
                 else:
                     FC=fit.color;EC='green'
                 self.specimen_eqarea_interpretation.scatter([eqarea_x],[eqarea_y],marker=marker_shape,edgecolor=EC, facecolor=FC,s=30,lw=1,clip_on=False)
-                self.specimen_eqarea_interpretation.set_xlim(-1., 1.)        
-                self.specimen_eqarea_interpretation.set_ylim(-1., 1.)        
+                self.specimen_eqarea_interpretation.set_xlim(-1., 1.)
+                self.specimen_eqarea_interpretation.set_ylim(-1., 1.)
                 self.specimen_eqarea_interpretation.axes.set_aspect('equal')
                 self.specimen_eqarea_interpretation.axis('off')
             
@@ -2549,7 +2662,10 @@ class Zeq_GUI(wx.Frame):
        #print "high_level_type",high_level_type
        #print self.Data_hierarchy[high_level_type]
        elements_list=self.Data_hierarchy[high_level_type][high_level_name][elements_type]
-       
+
+       self.higher_EA_xdata = [] #clear saved x positions on higher equal area
+       self.higher_EA_ydata = [] #clear saved y positions on higher equal area
+
        # plot elements directions
        for element in elements_list:
             if elements_type=='specimens':
@@ -2611,6 +2727,8 @@ class Zeq_GUI(wx.Frame):
                 marker_shape = 'o'
                 if specimen == self.s:
                     marker_shape = 'D'
+                self.higher_EA_xdata.append(XY[0])
+                self.higher_EA_ydata.append(XY[1])
                 fig.scatter([XY[0]],[XY[1]],marker=marker_shape,edgecolor=fit.color, facecolor=FC,s=SIZE,lw=1,clip_on=False)
 
     def plot_eqarea_pars(self,pars,fig):
@@ -3691,8 +3809,11 @@ class Zeq_GUI(wx.Frame):
         #check if interpertations have changed and were not saved
         write_session_to_failsafe = False
         try:
+            number_saved_fits = sum(1 for line in open("demag_gui.redo"))
+            number_current_fits = sum(len(self.pmag_results_data['specimens'][specimen]) for specimen in self.pmag_results_data['specimens'])
+            write_session_to_failsafe = (number_saved_fits != number_current_fits)
             default_redo = open("demag_gui.redo")
-            i,number_saved_fits,specimen = 0,0,None
+            i,specimen = 0,None
             for line in default_redo:
                 if line == None:
                     write_session_to_failsafe = True
@@ -3703,18 +3824,12 @@ class Zeq_GUI(wx.Frame):
                 tmin,tmax = self.parse_bound_data(vals[2],vals[3],specimen)
                 if specimen in self.pmag_results_data['specimens']:
                     fit = self.pmag_results_data['specimens'][specimen][i]
+                if write_session_to_failsafe:
+                    break
                 write_session_to_failsafe = ((specimen not in self.specimens) or \
                                              (tmin != fit.tmin or tmax != fit.tmax) or \
                                              (vals[4] != fit.name))
-                if write_session_to_failsafe:
-                    break
                 i += 1
-                number_saved_fits += 1
-            if not write_session_to_failsafe:
-                number_current_fits = 0
-                for specimen in self.pmag_results_data['specimens']:
-                    number_of_current_fits = len(self.pmag_results_data['specimens'][specimen])
-                write_session_to_failsafe = (number_saved_fits != number_current_fits)
         except IOError: write_session_to_failsafe = True
         except IndexError: write_session_to_failsafe = True
 
@@ -3862,7 +3977,7 @@ class Zeq_GUI(wx.Frame):
             tmin,tmax="",""
 
             calculation_type=line[1]
-            tmin,tmax = self.parse_temp_data(line[2],line[3],specimen)
+            tmin,tmax = self.parse_bound_data(line[2],line[3],specimen)
             if tmin == None or tmax == None:
                 continue
             if tmin not in self.Data[specimen]['zijdblock_steps'] or  tmax not in self.Data[specimen]['zijdblock_steps']:
