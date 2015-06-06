@@ -629,8 +629,7 @@ class Zeq_GUI(wx.Frame):
         self.toolbar1.zoom()
 
     def home(self,event):
-       
- self.toolbar1.home()
+        self.toolbar1.home()
 
     def pick_bounds(self,event):
         pos=event.GetPosition()
@@ -3688,7 +3687,40 @@ class Zeq_GUI(wx.Frame):
     #--------------------------------------------------------------
 
     def on_menu_exit(self, event):
-        
+
+        #check if interpertations have changed and were not saved
+        write_session_to_failsafe = False
+        try:
+            default_redo = open("demag_gui.redo")
+            i,number_saved_fits,specimen = 0,0,None
+            for line in default_redo:
+                if line == None:
+                    write_session_to_failsafe = True
+                vals = line.strip("\n").split("\t")
+                if vals[0] != specimen:
+                    i = 0
+                specimen = vals[0]
+                tmin,tmax = self.parse_bound_data(vals[2],vals[3],specimen)
+                if specimen in self.pmag_results_data['specimens']:
+                    fit = self.pmag_results_data['specimens'][specimen][i]
+                write_session_to_failsafe = ((specimen not in self.specimens) or \
+                                             (tmin != fit.tmin or tmax != fit.tmax) or \
+                                             (vals[4] != fit.name))
+                if write_session_to_failsafe:
+                    break
+                i += 1
+                number_saved_fits += 1
+            if not write_session_to_failsafe:
+                number_current_fits = 0
+                for specimen in self.pmag_results_data['specimens']:
+                    number_of_current_fits = len(self.pmag_results_data['specimens'][specimen])
+                write_session_to_failsafe = (number_saved_fits != number_current_fits)
+        except IOError: write_session_to_failsafe = True
+        except IndexError: write_session_to_failsafe = True
+
+        if write_session_to_failsafe:
+            self.on_menu_save_interpretation(event,"demag_last_session.redo")
+
         if self.close_warning:
             TEXT="Data is not saved to a file yet!\nTo properly save your data:\n1) Analysis --> Save current interpretations to a redo file.\nor\n1) File --> Save MagIC pmag tables.\n\n Press OK to exit without saving."
             
@@ -3830,41 +3862,9 @@ class Zeq_GUI(wx.Frame):
             tmin,tmax="",""
 
             calculation_type=line[1]
-            if self.Data[specimen]['measurement_step_unit']=="C":
-                if float(line[2])==0 or float(line[2])==273:
-                    tmin="0"
-                else:
-                    tmin="%.0fC"%(float(line[2])-273)
-                if float(line[3])==0 or float(line[3])==273:
-                    tmax="0"
-                else:
-                    tmax="%.0fC"%(float(line[3])-273)
-            elif self.Data[specimen]['measurement_step_unit']=="mT":
-                if float(line[2])==0:
-                    tmin="0"
-                else:
-                    tmin="%.1fmT"%(float(line[2])*1000)
-                if float(line[3])==0:
-                    tmax="0"
-                else:
-                    tmax="%.1fmT"%(float(line[3])*1000)
-            else: # combimned experiment T:AF
-                if float(line[2])==0:
-                    tmin="0"
-                elif "%.0fC"%(float(line[2])-273) in self.Data[specimen]['zijdblock_steps']:
-                    tmin="%.0fC"%(float(line[2])-273)
-                elif "%.1fmT"%(float(line[2])*1000) in self.Data[specimen]['zijdblock_steps']:
-                    tmin="%.1fmT"%(float(line[2])*1000)
-                else:
-                    continue
-                if float(line[3])==0:
-                    tmax="0"
-                elif "%.0fC"%(float(line[3])-273) in self.Data[specimen]['zijdblock_steps']:
-                    tmax="%.0fC"%(float(line[3])-273)
-                elif "%.1fmT"%(float(line[3])*1000) in self.Data[specimen]['zijdblock_steps']:
-                    tmax="%.1fmT"%(float(line[3])*1000)
-                else:
-                    continue
+            tmin,tmax = self.parse_temp_data(line[2],line[3],specimen)
+            if tmin == None or tmax == None:
+                continue
             if tmin not in self.Data[specimen]['zijdblock_steps'] or  tmax not in self.Data[specimen]['zijdblock_steps']:
                 print "-E- ERROR in redo file specimen %s. Cant find treatment steps"%specimen      
 
@@ -3912,8 +3912,58 @@ class Zeq_GUI(wx.Frame):
 
     #----------------------------------------------------------------------
 
-    def on_menu_save_interpretation(self,event):
-        fout=open("demag_gui.redo",'w')
+    def parse_bound_data(self,tmin0,tmax0,specimen):
+        """converts Kelvin/Tesla temperature/AF data from the MagIC/Redo format to that 
+           of Celsius/milliTesla which is used by the GUI as it is often more intuitive
+           @param tmin0 -> the input temperature/AF lower bound value to convert
+           @param tmax0 -> the input temperature/AF upper bound value to convert
+           @param specimen -> the specimen these bounds are for
+           @return tmin -> the converted lower bound temperature/AF or None if input 
+                           format was wrong
+           @return tmax -> the converted upper bound temperature/AF or None if the input 
+                           format was wrong
+        """
+        if self.Data[specimen]['measurement_step_unit']=="C":
+            if float(tmin0)==0 or float(tmin0)==273:
+                tmin="0"
+            else:
+                tmin="%.0fC"%(float(tmin0)-273)
+            if float(tmax0)==0 or float(tmax0)==273:
+                tmax="0"
+            else:
+                tmax="%.0fC"%(float(tmax0)-273)
+        elif self.Data[specimen]['measurement_step_unit']=="mT":
+            if float(tmin0)==0:
+                tmin="0"
+            else:
+                tmin="%.1fmT"%(float(tmin0)*1000)
+            if float(tmax0)==0:
+                tmax="0"
+            else:
+                tmax="%.1fmT"%(float(tmax0)*1000)
+        else: # combimned experiment T:AF
+            if float(tmin0)==0:
+                tmin="0"
+            elif "%.0fC"%(float(tmin0)-273) in self.Data[specimen]['zijdblock_steps']:
+                tmin="%.0fC"%(float(tmin0)-273)
+            elif "%.1fmT"%(float(tmin0)*1000) in self.Data[specimen]['zijdblock_steps']:
+                tmin="%.1fmT"%(float(tmin0)*1000)
+            else:
+                tmin=None
+            if float(tmax0)==0:
+                tmax="0"
+            elif "%.0fC"%(float(tmax0)-273) in self.Data[specimen]['zijdblock_steps']:
+                tmax="%.0fC"%(float(tmax0)-273)
+            elif "%.1fmT"%(float(tmax0)*1000) in self.Data[specimen]['zijdblock_steps']:
+                tmax="%.1fmT"%(float(tmax0)*1000)
+            else:
+                tmax=None
+        return tmin,tmax
+
+    #----------------------------------------------------------------------
+
+    def on_menu_save_interpretation(self,event,redo_file_name = "demag_gui.redo"):
+        fout=open(redo_file_name,'w')
         specimens_list=self.pmag_results_data['specimens'].keys()
         specimens_list.sort()
         for specimen in specimens_list:
@@ -3935,7 +3985,7 @@ class Zeq_GUI(wx.Frame):
                     
                 STRING=STRING+tmin+"\t"+tmax+"\t"+fit.name+"\n"
                 fout.write(STRING)
-        TEXT="specimens interpretations are saved in demag_gui.redo"                
+        TEXT="specimens interpretations are saved in " + redo_file_name
         dlg = wx.MessageDialog(self, caption="Saved",message=TEXT,style=wx.OK|wx.CANCEL )
         result = dlg.ShowModal()
         if result == wx.ID_OK:            
@@ -4568,7 +4618,6 @@ class Zeq_GUI(wx.Frame):
         next_fit = str(len(self.pmag_results_data['specimens'][self.s]) + 1)
         self.pmag_results_data['specimens'][self.s].append(Fit('Fit ' + next_fit, int(next_fit)-1, None, None, self.colors[(int(next_fit)-1) % len(self.colors)], self))
 #        print("New Fit for sample: " + str(self.s) + '\n' + reduce(lambda x,y: x+'\n'+y, map(str,self.pmag_results_data['specimens'][self.s]['fits'])))
-        self.toolbar1.zoom()
         self.new_fit()
 
     def delete_fit(self,event):
