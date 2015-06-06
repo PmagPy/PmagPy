@@ -516,50 +516,25 @@ You may use the drop-down menus to add as many values as needed in these columns
     ### Grid methods ###
     def make_simple_table(self, column_labels, data_dict, grid_name):
         row_labels = sorted(data_dict.keys())
-        if len(row_labels) in range(1,4):
+        if len(row_labels) in range(1, 4):
             num_rows = len(row_labels)
             height = {1: 70, 2: 90, 3: 110, 4: 130}
-            grid = wx.grid.Grid(self.panel, -1, name=grid_name, size=(-1, height[num_rows]))# autosizes width, but enforces fixed pxl height to prevent display problems
+            grid = MagicGrid(self.panel, grid_name, row_labels, column_labels, (-1, height[num_rows]))#   wx.grid.Grid(self.panel, -1, name=grid_name, size=(-1, height[num_rows]))# autosizes width, but enforces fixed pxl height to prevent display problems
         else:
-            grid = wx.grid.Grid(self.panel, -1, name=grid_name)
+            grid = MagicGrid(self.panel, grid_name, row_labels, column_labels)##wx.grid.Grid(self.panel, -1, name=grid_name)
 
-        grid.ClearGrid()
-        grid.CreateGrid(len(row_labels), len(column_labels))
+        data = grid.InitUI()
 
         if grid_name == 'ages':
             temp_data_key = 'ages'
         else:
             temp_data_key = column_labels[0]
-        self.temp_data[temp_data_key] = []
-        # set row labels
-        for n, row in enumerate(row_labels):
-            grid.SetRowLabelValue(n, str(n+1))
-            grid.SetCellValue(n, 0, row)
-            self.temp_data[temp_data_key].append(row)
-        # set column labels
-        for n, col in enumerate(column_labels):
-            grid.SetColLabelValue(n, col)
-        # set values in each cell (other than 1st column)
-        for num, row in enumerate(row_labels):
-            for n, col in enumerate(column_labels[1:]):
-                if col in data_dict[row].keys():
-                    value = data_dict[row][col]
-                else:
-                    value = ''
-                if value:
-                    grid.SetCellValue(num, n+1, value)
-        grid.AutoSizeColumns(True)
+        self.temp_data[temp_data_key] = data
 
-        grid.AutoSize() # prevents display failure
-
-        for n, col in enumerate(column_labels):
-            # adjust column widths to be a little larger then auto for nicer editing
-            orig_size = grid.GetColSize(n)
-            if orig_size > 110:
-                size = orig_size * 1.1
-            else:
-                size = orig_size * 1.6
-            grid.SetColSize(n, size)
+        grid.add_data(data_dict)
+                             
+        grid.size_grid()
+                             
         return grid
         
 
@@ -896,9 +871,10 @@ class MagicGrid(wx.grid.Grid):
             super(MagicGrid, self).__init__(parent, -1, name=name)
         if size:
             super(MagicGrid, self).__init__(parent, -1, name=name, size=size)
-        self.InitUI()
+        #self.InitUI()
 
     def InitUI(self):
+        data = []
         num_rows = len(self.row_labels)
         num_cols = len(self.col_labels)
         self.ClearGrid()
@@ -906,14 +882,23 @@ class MagicGrid(wx.grid.Grid):
         for n, row in enumerate(self.row_labels):
             self.SetRowLabelValue(n, str(n+1))
             self.SetCellValue(n, 0, row)
-            #self.temp_data[temp_data_key].append(row)
+            data.append(row)
         # set column labels
         for n, col in enumerate(self.col_labels):
             self.SetColLabelValue(n, col)
+        return data
 
 
-    def add_data(self):
-        pass
+    def add_data(self, data_dict):
+        for num, row in enumerate(self.row_labels):
+            for n, col in enumerate(self.col_labels[1:]):
+                if col in data_dict[row].keys():
+                    value = data_dict[row][col]
+                else:
+                    value = ''
+                if value:
+                    self.SetCellValue(num, n+1, value)
+
             
     def size_grid(self):
         self.AutoSizeColumns(True)
