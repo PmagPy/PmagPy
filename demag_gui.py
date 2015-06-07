@@ -238,9 +238,9 @@ class Zeq_GUI(wx.Frame):
         self.toolbar1 = NavigationToolbar(self.canvas1)
         self.toolbar1.Hide()
         self.toolbar1.zoom()
-        self.canvas1.Bind(wx.EVT_RIGHT_DOWN,self.pan)
-        self.canvas1.Bind(wx.EVT_RIGHT_UP,self.zoom)
-        self.canvas1.Bind(wx.EVT_LEFT_DCLICK,self.home)
+        self.canvas1.Bind(wx.EVT_RIGHT_DOWN,self.pan_zijderveld)
+        self.canvas1.Bind(wx.EVT_RIGHT_UP,self.zoom_zijderveld)
+        self.canvas1.Bind(wx.EVT_LEFT_DCLICK,self.home_zijderveld)
 #        self.canvas1.Bind(wx.EVT_RIGHT_DCLICK,self.pick_bounds)
         #self.fig1.text(0.01,0.98,"Zijderveld plot",{'family':'Arial', 'fontsize':10*self.GUI_RESOLUTION, 'style':'normal','va':'center', 'ha':'left' })
         
@@ -256,6 +256,9 @@ class Zeq_GUI(wx.Frame):
         self.toolbar2.Hide()
         self.canvas2.Bind(wx.EVT_LEFT_DCLICK,self.on_equalarea_specimen_select)
         self.canvas2.Bind(wx.EVT_MOTION,self.on_change_specimen_mouse_cursor)
+        self.canvas2.Bind(wx.EVT_RIGHT_DOWN,self.zoom_specimen_equalarea)
+        self.canvas2.Bind(wx.EVT_RIGHT_UP,self.undo_zoom_specimen_equalarea)
+        self.canvas2.Bind(wx.EVT_RIGHT_DCLICK,self.home_specimen_equalarea)
         self.specimen_EA_xdata = []
         self.specimen_EA_ydata = []
 
@@ -268,6 +271,9 @@ class Zeq_GUI(wx.Frame):
         self.toolbar4.Hide()
         self.canvas4.Bind(wx.EVT_LEFT_DCLICK,self.on_equalarea_higher_select)
         self.canvas4.Bind(wx.EVT_MOTION,self.on_change_higher_mouse_cursor)
+        self.canvas4.Bind(wx.EVT_RIGHT_DOWN,self.zoom_higher_equalarea)
+        self.canvas4.Bind(wx.EVT_RIGHT_UP,self.undo_zoom_higher_equalarea)
+        self.canvas4.Bind(wx.EVT_RIGHT_DCLICK,self.home_higher_equalarea)
         self.higher_EA_xdata = []
         self.higher_EA_ydata = []
 
@@ -632,15 +638,15 @@ class Zeq_GUI(wx.Frame):
     # Plot Events
     #----------------------------------------------------------------------
 
-    def pan(self,event):
+    def pan_zijderveld(self,event):
         self.toolbar1.pan('off')
 
-    def zoom(self,event):
+    def zoom_zijderveld(self,event):
         if event.LeftIsDown():
             return
         self.toolbar1.zoom()
 
-    def home(self,event):
+    def home_zijderveld(self,event):
         self.toolbar1.home()
 
     def pick_bounds(self,event):
@@ -683,6 +689,17 @@ class Zeq_GUI(wx.Frame):
             dumby_event = Dumby_Event(index)
             self.OnClick_listctrl(dumby_event)
         self.zoom(event)
+
+    def undo_zoom_specimen_equalarea(self,event):
+        if event.LeftIsDown():
+            return
+        self.toolbar2.zoom()
+
+    def zoom_specimen_equalarea(self,event):
+        self.toolbar2.zoom()
+
+    def home_specimen_equalarea(self,event):
+        self.toolbar2.home()
 
     def on_change_specimen_mouse_cursor(self,event):
         """
@@ -732,6 +749,17 @@ class Zeq_GUI(wx.Frame):
         if index != None:
             self.fit_box.SetSelection(index)
             self.on_select_fit(event)
+
+    def undo_zoom_higher_equalarea(self,event):
+        if event.LeftIsDown():
+            return
+        self.toolbar2.zoom()
+
+    def zoom_higher_equalarea(self,event):
+        self.toolbar2.zoom()
+
+    def home_higher_equalarea(self,event):
+        self.toolbar2.home()
 
     def on_change_higher_mouse_cursor(self,event):
         """
