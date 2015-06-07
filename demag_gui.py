@@ -59,6 +59,7 @@ except:
 import stat
 import subprocess
 import time
+from datetime import datetime
 import wx
 import wx.grid
 import random
@@ -237,9 +238,10 @@ class Zeq_GUI(wx.Frame):
         self.canvas1 = FigCanvas(self.panel, -1, self.fig1)
         self.toolbar1 = NavigationToolbar(self.canvas1)
         self.toolbar1.Hide()
+        self.zijderveld_setting = "Zoom"
         self.toolbar1.zoom()
-        self.canvas1.Bind(wx.EVT_RIGHT_DOWN,self.pan_zijderveld)
-        self.canvas1.Bind(wx.EVT_RIGHT_UP,self.zoom_zijderveld)
+        self.canvas1.Bind(wx.EVT_RIGHT_DOWN,self.right_click_zijderveld)
+#        self.canvas1.Bind(wx.EVT_RIGHT_UP,self.zoom_zijderveld)
         self.canvas1.Bind(wx.EVT_LEFT_DCLICK,self.home_zijderveld)
 #        self.canvas1.Bind(wx.EVT_RIGHT_DCLICK,self.pick_bounds)
         #self.fig1.text(0.01,0.98,"Zijderveld plot",{'family':'Arial', 'fontsize':10*self.GUI_RESOLUTION, 'style':'normal','va':'center', 'ha':'left' })
@@ -254,10 +256,11 @@ class Zeq_GUI(wx.Frame):
         self.canvas2 = FigCanvas(self.panel, -1, self.fig2)
         self.toolbar2 = NavigationToolbar(self.canvas2)
         self.toolbar2.Hide()
+        self.toolbar2.zoom()
         self.canvas2.Bind(wx.EVT_LEFT_DCLICK,self.on_equalarea_specimen_select)
         self.canvas2.Bind(wx.EVT_MOTION,self.on_change_specimen_mouse_cursor)
-        self.canvas2.Bind(wx.EVT_RIGHT_DOWN,self.zoom_specimen_equalarea)
-        self.canvas2.Bind(wx.EVT_RIGHT_UP,self.undo_zoom_specimen_equalarea)
+#        self.canvas2.Bind(wx.EVT_RIGHT_DOWN,self.zoom_specimen_equalarea)
+#        self.canvas2.Bind(wx.EVT_RIGHT_UP,self.undo_zoom_specimen_equalarea)
         self.canvas2.Bind(wx.EVT_RIGHT_DCLICK,self.home_specimen_equalarea)
         self.specimen_EA_xdata = []
         self.specimen_EA_ydata = []
@@ -269,10 +272,11 @@ class Zeq_GUI(wx.Frame):
         self.canvas4 = FigCanvas(self.panel, -1, self.fig4)
         self.toolbar4 = NavigationToolbar(self.canvas4)
         self.toolbar4.Hide()
+        self.toolbar4.zoom()
         self.canvas4.Bind(wx.EVT_LEFT_DCLICK,self.on_equalarea_higher_select)
         self.canvas4.Bind(wx.EVT_MOTION,self.on_change_higher_mouse_cursor)
-        self.canvas4.Bind(wx.EVT_RIGHT_DOWN,self.zoom_higher_equalarea)
-        self.canvas4.Bind(wx.EVT_RIGHT_UP,self.undo_zoom_higher_equalarea)
+#        self.canvas4.Bind(wx.EVT_RIGHT_DOWN,self.zoom_higher_equalarea)
+#        self.canvas4.Bind(wx.EVT_RIGHT_UP,self.undo_zoom_higher_equalarea)
         self.canvas4.Bind(wx.EVT_RIGHT_DCLICK,self.home_higher_equalarea)
         self.higher_EA_xdata = []
         self.higher_EA_ydata = []
@@ -638,13 +642,15 @@ class Zeq_GUI(wx.Frame):
     # Plot Events
     #----------------------------------------------------------------------
 
-    def pan_zijderveld(self,event):
-        self.toolbar1.pan('off')
-
-    def zoom_zijderveld(self,event):
+    def right_click_zijderveld(self,event):
         if event.LeftIsDown():
             return
-        self.toolbar1.zoom()
+        elif self.zijderveld_setting == "Zoom":
+            self.zijderveld_setting = "Pan"
+            self.toolbar1.pan('off')
+        elif self.zijderveld_setting == "Pan":
+            self.zijderveld_setting = "Zoom"
+            self.toolbar1.zoom()
 
     def home_zijderveld(self,event):
         self.toolbar1.home()
@@ -753,13 +759,13 @@ class Zeq_GUI(wx.Frame):
     def undo_zoom_higher_equalarea(self,event):
         if event.LeftIsDown():
             return
-        self.toolbar2.zoom()
+        self.toolbar4.zoom()
 
     def zoom_higher_equalarea(self,event):
-        self.toolbar2.zoom()
+        self.toolbar4.zoom()
 
     def home_higher_equalarea(self,event):
-        self.toolbar2.home()
+        self.toolbar4.home()
 
     def on_change_higher_mouse_cursor(self,event):
         """
@@ -1242,7 +1248,7 @@ class Zeq_GUI(wx.Frame):
                 x_eq_bad.append(self.zij_norm[i][0])
                 y_eq_bad.append(self.zij_norm[i][1])
                 z_eq_bad.append(abs(self.zij_norm[i][2]))
-        
+
         x_eq_good,y_eq_good,z_eq_good=array(x_eq_good),array(y_eq_good),array(z_eq_good)
         x_eq_bad,y_eq_bad,z_eq_bad=array(x_eq_bad),array(y_eq_bad),array(z_eq_bad) 
         
@@ -4541,12 +4547,29 @@ class Zeq_GUI(wx.Frame):
         #-- default age options
         DefaultAge= ["none"]
         if dia.cb_default_age.GetValue()==True:
+            age_units= dia.default_age_unit.GetValue()
             try:
                 min_age="%f"%float(dia.default_age_min.GetValue()) 
                 max_age="%f"%float(dia.default_age_max.GetValue())
             except:
-                pass
-            age_units= dia.default_age_unit.GetValue()       
+                min_age="0"
+                if age_units=="Ga":
+                    max_age="4.56"
+                elif age_units=="Ma":
+                    max_age="%f"%(4.56*1e3)
+                elif age_units=="Ka":
+                    max_age="%f"%(4.56*1e6)
+                elif age_units=="Years AD (+/-)":
+                    max_age="%f"%((time.time()/3.15569e7)+1970)
+                elif age_units=="Years BP":
+                    max_age="%f"%((time.time()/3.15569e7)+1950)
+                elif age_units=="Years Cal AD (+/-)":
+                    max_age=str(datetime.now())
+                elif age_units=="Years Cal BP":
+                    max_age=((time.time()/3.15569e7)+1950)
+                else:
+                    max_age="4.56"
+                    age_units="Ga"
             run_script_flags.append("-age"); run_script_flags.append(min_age)
             run_script_flags.append(max_age); run_script_flags.append(age_units)
             DefaultAge=[min_age, max_age, age_units]
