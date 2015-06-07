@@ -53,10 +53,6 @@ Check that all specimens belong to the correct sample
 
         self.spec_grid = self.make_simple_table(col_labels, self.ErMagic.data_er_specimens, "er_specimen_name")
 
-        self.changes = False
-
-        self.Bind(wx.grid.EVT_GRID_EDITOR_CREATED, lambda event: self.on_edit_grid(event, self.spec_grid), self.spec_grid) # if user begins to edit, self.changes will be set to True
-        self.Bind(wx.grid.EVT_GRID_EDITOR_SHOWN, lambda event: self.on_edit_grid(event, self.spec_grid), self.spec_grid) # if user begins to edit, self.changes will be set to True
         self.drop_down_menu = drop_down_menus.Menus("specimen", self, self.spec_grid, samples) # initialize all needed drop-down menus
 
         #### Create Buttons ####
@@ -149,8 +145,6 @@ You may use the drop-down menus to add as many values as needed in these columns
             col_labels[:0] = ['er_sample_name', '', 'er_site_name', 'sample_class', 'sample_lithology', 'sample_type', 'sample_lat', 'sample_lon']
             self.samp_grid = self.make_simple_table(col_labels, self.ErMagic.data_er_samples, 'er_sample_name')
 
-        self.changes = False
-        self.Bind(wx.grid.EVT_GRID_EDITOR_CREATED, lambda event: self.on_edit_grid(event, self.samp_grid), self.samp_grid)
         sites = sorted(list(set(sites).union(self.ErMagic.data_er_sites.keys()))) # adds in any additional sets we might have information about (from er_sites.txt file) even if currently that site does not show up in the magic_measurements file
         self.drop_down_menu = drop_down_menus.Menus("sample", self, self.samp_grid, sites) # initialize all needed drop-down menus
 
@@ -260,8 +254,6 @@ However, you will be able to edit sample_class, sample_lithology, and sample_typ
 
         self.site_grid = self.make_simple_table(col_labels, self.ErMagic.data_er_sites, 'er_site_name')
 
-        self.changes = False
-        self.Bind(wx.grid.EVT_GRID_EDITOR_CREATED, lambda event: self.on_edit_grid(event, self.site_grid), self.site_grid)
 
         # populate site_definition as 's' by default if no value is provided (indicates that site is single, not composite)
         rows = self.site_grid.GetNumberRows()
@@ -372,8 +364,6 @@ Fill in any blank cells using controlled vocabularies.
 
         self.loc_grid = self.make_simple_table(col_labels, self.ErMagic.data_er_locations, "er_location_name")
 
-        self.Bind(wx.grid.EVT_GRID_EDITOR_CREATED, lambda event: self.on_edit_grid(event, self.loc_grid), self.loc_grid)
-
         self.drop_down_menu = drop_down_menus.Menus("location", self, self.loc_grid, None) # initialize all needed drop-down menus
 
         ### Create Buttons ###
@@ -465,8 +455,6 @@ You may use the drop-down menus to add as many values as needed in these columns
             for col in (0, 2):
                 self.age_grid.SetReadOnly(row, col, True)
         #
-        #self.Bind(wx.grid.EVT_GRID_EDITOR_SHOWN, self.on_edit_grid, self.age_grid) 
-        self.Bind(wx.grid.EVT_GRID_EDITOR_CREATED, lambda event: self.on_edit_grid(event, self.age_grid), self.age_grid)
         self.drop_down_menu = drop_down_menus.Menus("age", self, self.age_grid, None) # initialize all needed drop-down menus
 
         ### Create Buttons ###
@@ -534,7 +522,8 @@ You may use the drop-down menus to add as many values as needed in these columns
         grid.add_data(data_dict)
                              
         grid.size_grid()
-                             
+
+        grid.do_event_bindings()
         return grid
         
 
@@ -555,37 +544,6 @@ You may use the drop-down menus to add as many values as needed in these columns
         else:
             event.GetEventObject().SetToolTipString('')
 
-        
-    def on_edit_grid(self, event, grid):
-        """sets self.changes to true when user edits the grid.
-        provides down and up key functionality for exiting the editor"""
-        if not self.changes:
-            self.changes = {event.Row}
-        else:
-            self.changes.add(event.Row)
-        #self.changes = True
-        try:
-            editor = event.GetControl()
-            editor.Bind(wx.EVT_KEY_DOWN, lambda event: self.onEditorKey(event, grid))
-        except AttributeError: # if it's a EVT_GRID_EDITOR_SHOWN, it doesn't have the GetControl method
-            pass
-
-    def onEditorKey(self, event, grid):
-        keycode = event.GetKeyCode()
-        if keycode == wx.WXK_UP:
-            grid.MoveCursorUp(False)
-            grid.MoveCursorDown(False)# have this in because otherwise cursor moves up 2 rows
-        elif keycode == wx.WXK_DOWN:
-            grid.MoveCursorDown(False)
-            grid.MoveCursorUp(False) # have this in because otherwise cursor moves down 2 rows
-        #elif keycode == wx.WXK_LEFT:
-        #    grid.MoveCursorLeft(False)
-        #elif keycode == wx.WXK_RIGHT:
-        #    grid.MoveCursorRight(False)
-        else:
-            pass
-        event.Skip()
-
 
     def validate(self, grid):
         validations = ['specimens', 'samples', 'site_class', 'site_lithology', 'site_type', 'site_definition', 'site_lon', 'site_lat', 'sample_class', 'sample_lithology', 'sample_type', 'sample_lat', 'sample_lon', 'location_type', 'age_unit', 'age']#, 'magic_method_codes']
@@ -601,7 +559,6 @@ You may use the drop-down menus to add as many values as needed in these columns
                         data_missing.append(col_label)
                         break
         return data_missing
-
 
 
     def remove_starred_labels(self, grid):
@@ -650,8 +607,7 @@ You may use the drop-down menus to add as many values as needed in these columns
             choices[2] = (samples, False)
             self.drop_down_menu.update_drop_down_menu(self.spec_grid, choices)
 
-
-
+            
     def on_addSiteButton(self, event):
         
         def add_site(site, location):
@@ -713,8 +669,10 @@ You may use the drop-down menus to add as many values as needed in these columns
         html_frame.Show()
 
     def on_continueButton(self, event, grid, next_dia=None):
-        """pulls up next dialog, if there is one.
-        gets any updated information from the current grid and runs ErMagicBuilder"""
+        """
+        pulls up next dialog, if there is one.
+        gets any updated information from the current grid and runs ErMagicBuilder
+        """
         #wait = wx.BusyInfo("Please wait, working...")
 
         # unhighlight selected columns, etc.
@@ -741,14 +699,12 @@ You may use the drop-down menus to add as many values as needed in these columns
             else:
                 return False
 
-        if self.changes:
-            self.update_grid(grid, grids[grid_name])
+        if grid.changes:
+            self.update_grid(grid)#, grids[grid_name])
 
             # possibly optimize this so that it only updates the required files
             self.ErMagic.update_ErMagic()
             
-            self.changes = False # resets
-
         self.panel.Destroy()
         if next_dia:
             wait = wx.BusyInfo("Please wait, working...")
@@ -757,19 +713,19 @@ You may use the drop-down menus to add as many values as needed in these columns
         else:
             self.final_update()
             self.Destroy()
-        
+
 
     def on_saveButton(self, event, grid):
         """saves any editing of the grid but does not continue to the next window"""
         wait = wx.BusyInfo("Please wait, working...")
 
-        
+
         if self.drop_down_menu:  # unhighlight selected columns, etc.
             self.drop_down_menu.clean_up()
-            
+
         # remove '**' from col labels
         starred_cols = self.remove_starred_labels(grid)
-            
+
         if self.ErMagic.data_er_specimens:
             pass
         else:
@@ -779,15 +735,13 @@ You may use the drop-down menus to add as many values as needed in these columns
         simple_grids = {"location": self.ErMagic.data_er_locations, "age": self.ErMagic.data_er_ages}
         grid_name = grid.GetName()
 
-        grids = {"er_specimen_name": self.ErMagic.data_er_specimens, "er_sample_name": self.ErMagic.data_er_samples, "er_site_name": self.ErMagic.data_er_sites, "er_location_name": self.ErMagic.data_er_locations, "ages": self.ErMagic.data_er_ages}
+        #grids = {"er_specimen_name": self.ErMagic.data_er_specimens, "er_sample_name": self.ErMagic.data_er_samples, "er_site_name": self.ErMagic.data_er_sites, "er_location_name": self.ErMagic.data_er_locations, "ages": self.ErMagic.data_er_ages}
 
-        if self.changes:
-            self.update_grid(grid, grids[grid_name])
+        if grid.changes:
+            self.update_grid(grid)#, grids[grid_name])
 
             # possibly optimize this so that it only updates the required files
             self.ErMagic.update_ErMagic()
-            
-            self.changes = False # resets
 
         for col in starred_cols:
             label = grid.GetColLabelValue(col)
@@ -798,7 +752,7 @@ You may use the drop-down menus to add as many values as needed in these columns
     def on_cancelButton(self, event):
         self.Destroy()
 
-    def on_backButton(self, event, previous_dia, current_dia = None):
+    def on_backButton(self, event, previous_dia, current_dia=None):
         wait = wx.BusyInfo("Please wait, working...")
         if current_dia == self.InitLocCheck:
             pass
@@ -810,7 +764,7 @@ You may use the drop-down menus to add as many values as needed in these columns
 
         
     ### Manage data methods ###
-    def update_grid(self, grid, data):
+    def update_grid(self, grid):#, data):
         """
         takes in wxPython grid and ErMagic data object to be updated
         """
@@ -825,8 +779,7 @@ You may use the drop-down menus to add as many values as needed in these columns
         for col in cols:
             col_labels.append(grid.GetColLabelValue(col))
 
-        updated_items = []
-        for row in self.changes: # go through changes and update data structures
+        for row in grid.changes: # go through changes and update data structures
             data_dict = {}
             for num, label in enumerate(col_labels):
                 if label:
@@ -835,8 +788,7 @@ You may use the drop-down menus to add as many values as needed in these columns
             old_name = self.temp_data[grid_name][row]
             data_methods[grid_name](new_name, old_name, data_dict)
 
-        # then write to file
-        self.changes = False
+        grid.changes = False
 
 
 
@@ -863,8 +815,12 @@ You may use the drop-down menus to add as many values as needed in these columns
         
 
 class MagicGrid(wx.grid.Grid):
+    """
+    grid class
+    """
 
     def __init__(self, parent, name, row_labels, col_labels, size=0):
+        self.changes = None
         self.row_labels = row_labels
         self.col_labels = col_labels
         if not size:
@@ -888,7 +844,6 @@ class MagicGrid(wx.grid.Grid):
             self.SetColLabelValue(n, col)
         return data
 
-
     def add_data(self, data_dict):
         for num, row in enumerate(self.row_labels):
             for n, col in enumerate(self.col_labels[1:]):
@@ -899,7 +854,6 @@ class MagicGrid(wx.grid.Grid):
                 if value:
                     self.SetCellValue(num, n+1, value)
 
-            
     def size_grid(self):
         self.AutoSizeColumns(True)
 
@@ -914,63 +868,48 @@ class MagicGrid(wx.grid.Grid):
                 size = orig_size * 1.6
             self.SetColSize(col, size)
 
+    def do_event_bindings(self):
+        self.Bind(wx.grid.EVT_GRID_EDITOR_CREATED, self.on_edit_grid)
+        self.Bind(wx.grid.EVT_GRID_EDITOR_SHOWN, self.on_edit_grid)
+            
+    def on_edit_grid(self, event):
+        """sets self.changes to true when user edits the grid.
+        provides down and up key functionality for exiting the editor"""
+        if not self.changes:
+            self.changes = {event.Row}
+        else:
+            self.changes.add(event.Row)
+        #self.changes = True
+        try:
+            editor = event.GetControl()
+            editor.Bind(wx.EVT_KEY_DOWN, self.onEditorKey)
+        except AttributeError: # if it's a EVT_GRID_EDITOR_SHOWN, it doesn't have the GetControl method
+            pass
+
+    def onEditorKey(self, event):
+        keycode = event.GetKeyCode()
+        if keycode == wx.WXK_UP:
+            self.MoveCursorUp(False)
+            self.MoveCursorDown(False)# have this in because otherwise cursor moves up 2 rows
+        elif keycode == wx.WXK_DOWN:
+            self.MoveCursorDown(False)
+            self.MoveCursorUp(False) # have this in because otherwise cursor moves down 2 rows
+        #elif keycode == wx.WXK_LEFT:
+        #    grid.MoveCursorLeft(False)
+        #elif keycode == wx.WXK_RIGHT:
+        #    grid.MoveCursorRight(False)
+        else:
+            pass
+        event.Skip()
 
         
 
     ### Grid methods ###
-    def make_simple_table(self, column_labels, data_dict, grid_name):
-        row_labels = sorted(data_dict.keys())
-        if len(row_labels) in range(1, 4):
-            num_rows = len(row_labels)
-            height = {1: 70, 2: 90, 3: 110, 4: 130}
-            grid = wx.grid.Grid(self.panel, -1, name=grid_name, size=(-1, height[num_rows]))# autosizes width, but enforces fixed pxl height to prevent display problems
-        else:
-            grid = wx.grid.Grid(self.panel, -1, name=grid_name)
-
-        grid.ClearGrid()
-        grid.CreateGrid(len(row_labels), len(column_labels))
-
-        if grid_name == 'ages':
-            temp_data_key = 'ages'
-        else:
-            temp_data_key = column_labels[0]
-        self.temp_data[temp_data_key] = []
-        # set row labels
-        for n, row in enumerate(row_labels):
-            grid.SetRowLabelValue(n, str(n+1))
-            grid.SetCellValue(n, 0, row)
-            self.temp_data[temp_data_key].append(row)
-        # set column labels
-        for n, col in enumerate(column_labels):
-            grid.SetColLabelValue(n, col)
-        # set values in each cell (other than 1st column)
-        for num, row in enumerate(row_labels):
-            for n, col in enumerate(column_labels[1:]):
-                if col in data_dict[row].keys():
-                    value = data_dict[row][col]
-                else:
-                    value = ''
-                if value:
-                    grid.SetCellValue(num, n+1, value)
-        grid.AutoSizeColumns(True)
-
-        grid.AutoSize() # prevents display failure
-
-        for n, col in enumerate(column_labels):
-            # adjust column widths to be a little larger then auto for nicer editing
-            orig_size = grid.GetColSize(n)
-            if orig_size > 110:
-                size = orig_size * 1.1
-            else:
-                size = orig_size * 1.6
-            grid.SetColSize(n, size)
-        return grid
-        
-
+    """
     def onMouseOver(self, event, grid):
-        """
+      "
         Displays a tooltip over any cell in a certain column
-        """
+
         x, y = grid.CalcUnscrolledPosition(event.GetX(),event.GetY())
         coords = grid.XYToCell(x, y)
         col = coords[1]
@@ -986,8 +925,8 @@ class MagicGrid(wx.grid.Grid):
 
         
     def on_edit_grid(self, event, grid):
-        """sets self.changes to true when user edits the grid.
-        provides down and up key functionality for exiting the editor"""
+        sets self.changes to true when user edits the grid.
+        provides down and up key functionality for exiting the editor
         if not self.changes:
             self.changes = {event.Row}
         else:
@@ -1014,7 +953,7 @@ class MagicGrid(wx.grid.Grid):
         else:
             pass
         event.Skip()
-
+    """
 
     def validate(self, grid):
         validations = ['specimens', 'samples', 'site_class', 'site_lithology', 'site_type', 'site_definition', 'site_lon', 'site_lat', 'sample_class', 'sample_lithology', 'sample_type', 'sample_lat', 'sample_lon', 'location_type', 'age_unit', 'age']#, 'magic_method_codes']

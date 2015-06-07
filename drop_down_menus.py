@@ -37,7 +37,10 @@ class Menus(object):
             self.choices = {2: (belongs_to, False)}
         if self.data_type == 'sample' or self.data_type == 'site':
             self.choices = {2: (belongs_to, False), 3: (vocab['class'], False), 4: (vocab['lithology'], True), 5: (vocab['type'], False)}
-            map(lambda (x, y): self.grid.SetColLabelValue(x, y), [(3, 'site_class**'), (4, 'site_lithology**'), (5, 'site_type**')])
+            if self.data_type == 'sample':
+                map(lambda (x, y): self.grid.SetColLabelValue(x, y), [(3, 'sample_class**'), (4, 'sample_lithology**'), (5, 'sample_type**')])
+            elif self.data_type == 'site':
+                map(lambda (x, y): self.grid.SetColLabelValue(x, y), [(3, 'site_class**'), (4, 'site_lithology**'), (5, 'site_type**')])
             #self.grid.SetColLabelValue(3, 'site_class**')
             #self.grid.
         if self.data_type == 'site':
@@ -141,10 +144,10 @@ class Menus(object):
                     data = dialog.GetValue()
                     for row in range(self.grid.GetNumberRows()):
                         self.grid.SetCellValue(row, col, str(data))
-                        if self.check.changes:
-                            self.check.changes.add(row)
+                        if self.grid.changes:
+                            self.grid.changes.add(row)
                         else:
-                            self.check.changes = {row}
+                            self.grid.changes = {row}
                 dialog.Destroy()
                 # then deselect column
                 col_label_value = self.grid.GetColLabelValue(col)
@@ -263,10 +266,10 @@ class Menus(object):
         """
         sets value of selected cell to value selected from menu
         """
-        if self.check.changes:  # if user selects a menuitem, that is an edit
-            self.check.changes.add(row)
+        if self.grid.changes:  # if user selects a menuitem, that is an edit
+            self.grid.changes.add(row)
         else:
-            self.check.changes = {row}
+            self.grid.changes = {row}
 
         item_id =  event.GetId()
         item = event.EventObject.FindItemById(item_id)
@@ -282,10 +285,10 @@ class Menus(object):
         if self.selected_col and self.selected_col == col:
             for row in range(self.grid.GetNumberRows()):
                 grid.SetCellValue(row, col, label)
-                if self.check.changes:
-                    self.check.changes.add(row)
+                if self.grid.changes:
+                    self.grid.changes.add(row)
                 else:
-                    self.check.changes = {row}
+                    self.grid.changes = {row}
 
                 #self.selected_col = None
         else:
