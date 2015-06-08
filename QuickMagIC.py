@@ -59,7 +59,7 @@ class MagMainFrame(wx.Frame):
 
         #---sizer 0 ----
 
-        bSizer0 = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY, "Choose MagIC project directory" ), wx.HORIZONTAL )
+        bSizer0 = wx.StaticBoxSizer(wx.StaticBox(self.panel, wx.ID_ANY, "Choose MagIC project directory"), wx.HORIZONTAL)
         self.dir_path = wx.TextCtrl(self.panel, id=-1, size=(600,25), style=wx.TE_READONLY)
         self.change_dir_button = buttons.GenButton(self.panel, id=-1, label="change dir",size=(-1, -1))
         self.change_dir_button.SetBackgroundColour("#F8F8FF")

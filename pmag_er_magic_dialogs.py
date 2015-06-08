@@ -1,3 +1,8 @@
+"""
+dialogs for ErMagicBuilder
+"""
+
+
 import wx
 import sys
 import drop_down_menus
@@ -732,8 +737,6 @@ You may use the drop-down menus to add as many values as needed in these columns
             self.ErMagic.read_MagIC_info()
         grid.SaveEditControlValue() # locks in value in cell currently edited
         grid.HideCellEditControl() # removes focus from cell that was being edited
-        simple_grids = {"location": self.ErMagic.data_er_locations, "age": self.ErMagic.data_er_ages}
-        grid_name = grid.GetName()
 
         #grids = {"er_specimen_name": self.ErMagic.data_er_specimens, "er_sample_name": self.ErMagic.data_er_samples, "er_site_name": self.ErMagic.data_er_sites, "er_location_name": self.ErMagic.data_er_locations, "ages": self.ErMagic.data_er_ages}
 
@@ -762,19 +765,19 @@ You may use the drop-down menus to add as many values as needed in these columns
         previous_dia()
         del wait
 
-        
+
     ### Manage data methods ###
     def update_grid(self, grid):#, data):
         """
         takes in wxPython grid and ErMagic data object to be updated
         """
         data_methods = {'er_specimen_name': self.ErMagic.change_specimen, 'er_sample_name': self.ErMagic.change_sample, 'er_site_name': self.ErMagic.change_site, 'er_location_name': self.ErMagic.change_location, 'ages': self.ErMagic.change_age}
-        
+
         grid_name = str(grid.GetName())
 
-        rows = range(grid.GetNumberRows())
+        #rows = range(grid.GetNumberRows())
         cols = range(grid.GetNumberCols())
-        
+
         col_labels = []
         for col in cols:
             col_labels.append(grid.GetColLabelValue(col))
@@ -789,7 +792,6 @@ You may use the drop-down menus to add as many values as needed in these columns
             data_methods[grid_name](new_name, old_name, data_dict)
 
         grid.changes = False
-
 
 
     def final_update(self):
@@ -883,7 +885,8 @@ class MagicGrid(wx.grid.Grid):
         try:
             editor = event.GetControl()
             editor.Bind(wx.EVT_KEY_DOWN, self.onEditorKey)
-        except AttributeError: # if it's a EVT_GRID_EDITOR_SHOWN, it doesn't have the GetControl method
+        except AttributeError:
+            # if it's a EVT_GRID_EDITOR_SHOWN, it doesn't have the GetControl method
             pass
 
     def onEditorKey(self, event):

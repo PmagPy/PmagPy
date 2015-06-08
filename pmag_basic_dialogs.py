@@ -28,9 +28,7 @@ class import_magnetometer_data(wx.Dialog):
         self.panel = wx.Panel(self)
         vbox = wx.BoxSizer(wx.VERTICAL)
 
-        formats = ['generic format', 'SIO format', 'CIT format', '2G-binary format',
-                   'HUJI format', 'LDEO format','IODP SRM (csv) format', 'PMD (ascii) format',
-                   'TDT format', 'JR6 format', 'BGC format']
+        formats=['generic format','SIO format','CIT format','2G-binary format','HUJI format','LDEO format','IODP SRM (csv) format','PMD (ascii) format','TDT format', 'JR6 format']
         sbs = wx.StaticBoxSizer(wx.StaticBox(self.panel, wx.ID_ANY, 'step 1: choose file format'), wx.VERTICAL)
 
         rb0 = wx.RadioButton(self.panel, -1, label=formats[0], name='0', style=wx.RB_GROUP)

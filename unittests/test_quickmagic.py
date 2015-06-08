@@ -33,7 +33,7 @@ class TestMainFrame(unittest.TestCase):
         """
         test for existence of main panel
         """
-        self.assertTrue(self.pnl.IsEnabled)
+        self.assertTrue(self.pnl.IsEnabled())
         self.assertEqual('quickmagic main panel', self.pnl.GetName())
 
     def test_click_button_one(self):
