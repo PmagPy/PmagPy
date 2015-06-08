@@ -572,6 +572,28 @@ class HtmlFrame(wx.Frame):
         htmlwin.LoadPage(page)
         htmlwin.Fit()
 
+class TextDialog(wx.Dialog):
+    """
+    Dialog window that returns a text string provided by user on ok button
+    """
+    def __init__(self, parent, label):
+        super(TextDialog, self).__init__(parent, title='Provide text')
+        self.text_ctrl = labeled_text_field(self, label)
+        bsizer = wx.BoxSizer(wx.VERTICAL)
+
+        btn_ok = wx.Button(self, wx.ID_OK, label="OK")
+        btn_cancel = wx.Button(self, wx.ID_CANCEL, label="Cancel")
+        hbox = wx.BoxSizer(wx.HORIZONTAL)
+        hbox.Add(btn_ok, flag=wx.ALIGN_CENTER|wx.ALL, border=10)
+        hbox.Add(btn_cancel, flag=wx.ALIGN_CENTER|wx.ALL, border=10)
+
+        bsizer.Add(self.text_ctrl, flag=wx.ALIGN_CENTER|wx.ALL, border=10)
+        bsizer.Add(hbox, flag=wx.ALIGN_CENTER)
+
+        self.SetSizer(bsizer)
+        bsizer.Fit(self)
+        self.Centre()
+
 
 class AddItem(wx.Frame):
     """This window allows user to add a new item (sample, site, or location)"""
