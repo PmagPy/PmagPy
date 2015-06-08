@@ -843,7 +843,7 @@ class MagicGrid(wx.grid.Grid):
             data.append(row)
         # set column labels
         for n, col in enumerate(self.col_labels):
-            self.SetColLabelValue(n, col)
+            self.SetColLabelValue(n, str(col))
         return data
 
     def add_data(self, data_dict):
@@ -859,6 +859,7 @@ class MagicGrid(wx.grid.Grid):
     def size_grid(self):
         self.AutoSizeColumns(True)
 
+        ## this doesn't seem to be necessary, actually
         self.AutoSize() # prevents display failure
 
         for col in range(len(self.col_labels)):
@@ -873,7 +874,7 @@ class MagicGrid(wx.grid.Grid):
     def do_event_bindings(self):
         self.Bind(wx.grid.EVT_GRID_EDITOR_CREATED, self.on_edit_grid)
         self.Bind(wx.grid.EVT_GRID_EDITOR_SHOWN, self.on_edit_grid)
-            
+
     def on_edit_grid(self, event):
         """sets self.changes to true when user edits the grid.
         provides down and up key functionality for exiting the editor"""
@@ -905,7 +906,15 @@ class MagicGrid(wx.grid.Grid):
             pass
         event.Skip()
 
-        
+    def add_col(self, label):
+        self.AppendCols(1)
+        last_col = self.GetNumberCols() - 1
+        self.SetColLabelValue(last_col, label)
+
+        # after adding, either:
+        self.size_grid()
+        # or perhaps self.InitUI() and self.size_grid()
+
 
     ### Grid methods ###
     """
