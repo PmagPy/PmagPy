@@ -906,6 +906,12 @@ class MagicGrid(wx.grid.Grid):
             pass
         event.Skip()
 
+
+    def add_row(self, label=''):
+        self.AppendRows(1)
+        last_row = self.GetNumberRows() - 1
+        self.SetCellValue(last_row, 0, label)
+        
     def add_col(self, label):
         self.AppendCols(1)
         last_col = self.GetNumberCols() - 1

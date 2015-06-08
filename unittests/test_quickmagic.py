@@ -155,7 +155,7 @@ class TestMenus(unittest.TestCase):
         menus = self.frame.MenuBar.Menus
         for menu, menu_name in menus:
             self.assertIsInstance(menu, wx.Menu)
-            self.assertTrue(menu.IsEnabled)
+            self.assertTrue(menu.IsEnabled())
             self.assertIn(menu_name, menu_names)
 
     def test_click_any_file(self):

@@ -21,24 +21,38 @@ class TestMagicGrid(unittest.TestCase):
         self.app = wx.PySimpleApp()
         self.frame = wx.Frame(None, wx.ID_ANY, 'Title', size=(600, 600))
         self.frame.pnl = wx.Panel(self.frame, name='a panel')
+        row_labels = ['alpha', 'bravo', 'charlie', 'whiskey', 'x-ray', 'y', 'z']
+        col_labels = ['delta', 'echo', 'foxtrot', 'gamma']
+        self.grid = pmag_er_magic_dialogs.MagicGrid(self.frame.pnl, 'grid', row_labels, col_labels, size=(600, 600))
+        self.grid.InitUI()
+        self.grid.size_grid()
 
     def tearDown(self):
         #self.frame.Destroy() # this does not work and causes strange errors
         self.app.Destroy()
         os.chdir(WD)
 
-    def test_add_col(self):
-        row_labels = ['alpha', 'bravo', 'charlie', 'whiskey', 'x-ray', 'y', 'z']
-        col_labels = ['delta', 'echo', 'foxtrot', 'gamma']
-        grid = pmag_er_magic_dialogs.MagicGrid(self.frame.pnl, 'grid', row_labels, col_labels, size=(600, 600))
-        grid.InitUI()
-        grid.size_grid()
-
+    def test_add_row(self):
         label = 'new_label'
-        grid.add_col(label)
-        cols = grid.GetNumberCols()
+        self.grid.add_row(label)
+        last_row = self.grid.GetNumberRows() - 1
 
-        self.assertEqual(label, str(grid.GetColLabelValue(cols-1)))
+        self.assertEqual(label, str(self.grid.GetCellValue(last_row, 0)))
+
+    def test_add_row_no_label(self):
+        self.grid.add_row()
+        last_row = self.grid.GetNumberRows() - 1
+        self.assertEqual('', self.grid.GetCellValue(last_row, 0))
+
+
+    def test_add_col(self):
+        label = 'new_label'
+        self.grid.add_col(label)
+        cols = self.grid.GetNumberCols()
+
+        self.assertEqual(label, str(self.grid.GetColLabelValue(cols-1)))
+
+
 
 
 class TestMakeMagicMainFrame(unittest.TestCase):
