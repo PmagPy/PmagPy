@@ -16,6 +16,9 @@ WD = os.getcwd()
 project_WD = os.path.join(os.getcwd(), 'unittests', 'examples', 'my_project')
 
 class TestMagicGrid(unittest.TestCase):
+    """
+    testing for MagicGrid class
+    """
 
     def setUp(self):
         self.app = wx.PySimpleApp()
@@ -36,7 +39,6 @@ class TestMagicGrid(unittest.TestCase):
         label = 'new_label'
         self.grid.add_row(label)
         last_row = self.grid.GetNumberRows() - 1
-
         self.assertEqual(label, str(self.grid.GetCellValue(last_row, 0)))
 
     def test_add_row_no_label(self):
@@ -44,15 +46,28 @@ class TestMagicGrid(unittest.TestCase):
         last_row = self.grid.GetNumberRows() - 1
         self.assertEqual('', self.grid.GetCellValue(last_row, 0))
 
+    def test_remove_row(self):
+        num_rows = self.grid.GetNumberRows()
+        last_row_name = self.grid.GetCellValue(num_rows - 1, 0)
+        self.grid.remove_row()
+        self.assertEqual(num_rows - 1, self.grid.GetNumberRows())
+        new_num_rows = self.grid.GetNumberRows()
+        new_last_row_name = self.grid.GetCellValue(new_num_rows - 1, 0)
+        self.assertNotEqual(new_num_rows, num_rows)
+        self.assertNotEqual(new_last_row_name, last_row_name)
+
+    def test_remove_row_charlie(self):
+        old_row_name = self.grid.GetCellValue(2, 0)
+        self.assertEqual('charlie', old_row_name)
+        self.grid.remove_row(2)
+        self.assertEqual('whiskey', self.grid.GetCellValue(2, 0))
+
 
     def test_add_col(self):
         label = 'new_label'
         self.grid.add_col(label)
         cols = self.grid.GetNumberCols()
-
         self.assertEqual(label, str(self.grid.GetColLabelValue(cols-1)))
-
-
 
 
 class TestMakeMagicMainFrame(unittest.TestCase):

@@ -32,16 +32,45 @@ class MainFrame(wx.Frame):
         """
         self.bsizer = wx.BoxSizer(wx.VERTICAL)
         self.ErMagic = ErMagicBuilder.ErMagicBuilder(self.WD)#,self.Data,self.Data_hierarchy)
-        self.grid = pmag_er_magic_dialogs.MagicGrid(self.panel, 'grid_name', ['alpha', 'bravo', 'charlie', 'delta', 'echo'], range(10))#, (300, 300))
+        self.ErMagic.init_default_headers()
+        self.grid = self.make_loc_grid()
+
         self.grid.InitUI()
         add_col_button = wx.Button(self.panel, label="Add additional column")
         self.Bind(wx.EVT_BUTTON, self.on_add_col, add_col_button)
+        add_row_button = wx.Button(self.panel, label="Add additional row")
+        self.Bind(wx.EVT_BUTTON, self.on_add_row, add_row_button)
+        remove_row_button = wx.Button(self.panel, label="Remove last row")
+        self.Bind(wx.EVT_BUTTON, self.on_remove_row, remove_row_button)
+        add_many_rows_button = wx.Button(self.panel, label="Add many rows")
+        rows = 10
+        self.Bind(wx.EVT_BUTTON, lambda event: self.on_add_many_rows(event, rows), add_many_rows_button)
+
+        hbox = wx.BoxSizer(wx.HORIZONTAL)
+        col_btn_vbox = wx.StaticBoxSizer(wx.StaticBox(self.panel, -1), wx.VERTICAL)
+        row_btn_vbox = wx.StaticBoxSizer(wx.StaticBox(self.panel, -1), wx.VERTICAL)
+        col_btn_vbox.Add(add_col_button, flag=wx.ALL, border=10)
+        row_btn_vbox.Add(add_row_button, flag=wx.ALL, border=10)
+        row_btn_vbox.Add(add_many_rows_button, flag=wx.ALL, border=10)
+        row_btn_vbox.Add(remove_row_button, flag=wx.ALL, border=10)
+        hbox.Add(col_btn_vbox)
+        hbox.Add(row_btn_vbox)
 
         self.grid.size_grid()
-        self.bsizer.Add(add_col_button, flag=wx.ALL, border=20)
+        self.bsizer.Add(hbox, flag=wx.ALL, border=20)
         self.bsizer.Add(self.grid, flag=wx.ALL, border=10)
         self.panel.SetSizer(self.bsizer)
         self.bsizer.Fit(self)
+
+
+    def make_loc_grid(self):
+        """
+        return grid for adding locations
+        """
+        col_labels = self.ErMagic.er_locations_header
+        grid = pmag_er_magic_dialogs.MagicGrid(self.panel, 'grid_name', ['1'], col_labels)#, (300, 300))
+        return grid
+
 
     def on_add_col(self, event):
         """
@@ -52,10 +81,24 @@ class MainFrame(wx.Frame):
         if result == wx.ID_OK:
             name = dia.text_ctrl.return_value()
             self.grid.add_col(name)
-        self.Refresh()
-        self.panel.Refresh()
-        self.grid.Refresh()
         self.bsizer.Fit(self)
+
+    def on_add_row(self, event):
+        """
+        method for add row button
+        """
+        self.grid.add_row()
+        self.bsizer.Fit(self)
+
+    def on_add_many_rows(self, event, num_rows):
+        for row in range(num_rows):
+            self.grid.add_row()
+        self.bsizer.Fit(self)
+
+    def on_remove_row(self, event):
+        self.grid.remove_row()
+        self.bsizer.Fit(self)
+
 
 
 
