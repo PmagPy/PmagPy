@@ -151,11 +151,16 @@ class TestMenus(unittest.TestCase):
 
         
     def test_that_all_menus_exist(self):
+        """
+        check that all expected menus were created
+        and that each menu item is enabled
+        """
         menu_names = ['File', 'Import', 'Analysis and Plots']
         menus = self.frame.MenuBar.Menus
         for menu, menu_name in menus:
             self.assertIsInstance(menu, wx.Menu)
-            self.assertTrue(menu.IsEnabled())
+            for item in menu.GetMenuItems():
+                self.assertTrue(item.IsEnabled())
             self.assertIn(menu_name, menu_names)
 
     def test_click_any_file(self):
