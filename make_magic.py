@@ -38,30 +38,67 @@ class MainFrame(wx.Frame):
         self.grid.InitUI()
         add_col_button = wx.Button(self.panel, label="Add additional column")
         self.Bind(wx.EVT_BUTTON, self.on_add_col, add_col_button)
-        add_row_button = wx.Button(self.panel, label="Add additional row")
-        self.Bind(wx.EVT_BUTTON, self.on_add_row, add_row_button)
+        self.remove_cols_button = wx.Button(self.panel, label="Remove columns")
+        self.Bind(wx.EVT_BUTTON, self.on_remove_cols, self.remove_cols_button)
         remove_row_button = wx.Button(self.panel, label="Remove last row")
         self.Bind(wx.EVT_BUTTON, self.on_remove_row, remove_row_button)
-        add_many_rows_button = wx.Button(self.panel, label="Add many rows")
-        rows = 10
-        self.Bind(wx.EVT_BUTTON, lambda event: self.on_add_many_rows(event, rows), add_many_rows_button)
+        many_rows_box = wx.BoxSizer(wx.HORIZONTAL)
+        add_many_rows_button = wx.Button(self.panel, label="Add row(s)")
+        self.rows_spin_ctrl = wx.SpinCtrl(self.panel, value='1', initial=1)
+        many_rows_box.Add(add_many_rows_button, flag=wx.ALIGN_CENTRE)
+        many_rows_box.Add(self.rows_spin_ctrl)
+        self.Bind(wx.EVT_BUTTON, self.on_add_rows, add_many_rows_button)
+
+        self.msg_boxsizer = wx.StaticBoxSizer(wx.StaticBox(self.panel, -1), wx.VERTICAL)
+        self.msg_text = wx.StaticText(self.panel, label='blah blah blah', style=wx.TE_CENTER, name='msg text')
+        self.msg_boxsizer.Add(self.msg_text)
+        self.msg_boxsizer.ShowItems(False)
 
         hbox = wx.BoxSizer(wx.HORIZONTAL)
         col_btn_vbox = wx.StaticBoxSizer(wx.StaticBox(self.panel, -1), wx.VERTICAL)
         row_btn_vbox = wx.StaticBoxSizer(wx.StaticBox(self.panel, -1), wx.VERTICAL)
-        col_btn_vbox.Add(add_col_button, flag=wx.ALL, border=10)
-        row_btn_vbox.Add(add_row_button, flag=wx.ALL, border=10)
-        row_btn_vbox.Add(add_many_rows_button, flag=wx.ALL, border=10)
-        row_btn_vbox.Add(remove_row_button, flag=wx.ALL, border=10)
+        col_btn_vbox.Add(add_col_button, flag=wx.ALL, border=5)
+        col_btn_vbox.Add(self.remove_cols_button, flag=wx.ALL, border=5)
+        row_btn_vbox.Add(many_rows_box, flag=wx.ALL, border=5)
+        row_btn_vbox.Add(remove_row_button, flag=wx.ALL, border=5)
         hbox.Add(col_btn_vbox)
         hbox.Add(row_btn_vbox)
 
         self.grid.size_grid()
         self.bsizer.Add(hbox, flag=wx.ALL, border=20)
+        self.bsizer.Add(self.msg_boxsizer, flag=wx.BOTTOM|wx.ALIGN_CENTRE, border=10)
         self.bsizer.Add(self.grid, flag=wx.ALL, border=10)
         self.panel.SetSizer(self.bsizer)
+
         self.bsizer.Fit(self)
 
+
+        #wind = self.grid.GetGridColLabelWindow()
+        #print "wind", wind
+        #print "dir(wind)", dir(wind)
+        #print "wind.GetChildren()", wind.GetChildren()
+        #print "wind.ContainingSizer", wind.ContainingSizer
+        #print "wind.GetBorder()", wind.GetBorder()
+        #print "wind.GetBestSize()", wind.GetBestSize()
+        #print "wind.GetSize()", wind.GetSize()
+        #print "wind.Position", wind.Position
+
+        #col_sizes = []
+        #for col in range(self.grid.GetNumberCols()):
+        #    size = self.grid.GetColSize(col)
+        #    col_sizes.append(size)
+        #print "self.grid.GetColLabelSize()", self.grid.GetColLabelSize()
+        #print 'col_sizes', col_sizes
+        #print "self.grid.GetColAt(3)", self.grid.GetColAt(3)
+        #print "self.grid.GetColPos(self.grid.GetColAt(3))", self.grid.GetColPos(self.grid.GetColAt(3))
+
+    def remove_col_label(self, event):
+        """
+        check to see if column is required
+        if it is not, delete it from grid
+        """
+        col = event.GetCol()
+        print col
 
     def make_loc_grid(self):
         """
@@ -83,24 +120,33 @@ class MainFrame(wx.Frame):
             self.grid.add_col(name)
         self.bsizer.Fit(self)
 
-    def on_add_row(self, event):
-        """
-        method for add row button
-        """
-        self.grid.add_row()
+    def on_remove_cols(self, event):
+        # first unselect any selected cols/cells
+        self.grid.ClearSelection()
+        # then make some visual change
+        self.msg_text.SetLabel("Click on a column to delete it")
+        self.msg_boxsizer.ShowItems(True)
         self.bsizer.Fit(self)
+        # then make binding so that clicking on a label makes that column disappear
+        self.Bind(wx.grid.EVT_GRID_LABEL_LEFT_CLICK, self.remove_col_label)
+        # make sure reqd cols do not disappear, or at least come with a warning
+        # unbind wx.grid.EVT_GRID_LABEL_LEFT_CLICK
 
-    def on_add_many_rows(self, event, num_rows):
+    def on_add_rows(self, event):
+        """
+        add rows to grid
+        """
+        num_rows = self.rows_spin_ctrl.GetValue()
         for row in range(num_rows):
             self.grid.add_row()
         self.bsizer.Fit(self)
 
     def on_remove_row(self, event):
+        """
+        remove the last row in the grid
+        """
         self.grid.remove_row()
         self.bsizer.Fit(self)
-
-
-
 
 
 
