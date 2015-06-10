@@ -12,6 +12,7 @@ import  wx.html
 import pmag
 import pmag_widgets as pw
 import check_updates
+import validate_upload
 
 #from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigCanvas \
 import os
@@ -72,17 +73,30 @@ class ErMagicBuilder(object):
     def __repr__(self):
         return "working directory: {}\nspecimens: {}\nsamples: {}\nsites: {}\nlocations: {}".format(self.WD, self.data_er_specimens.keys(), self.data_er_samples.keys(), self.data_er_sites.keys(), self.data_er_locations.keys())
 
-
+    def get_headers(self, data_model, data_type):
+        data_dict = data_model[data_type]
+        reqd_headers = [header for header in data_dict.keys() if data_dict[header]['data_status'] == 'Required']
+        optional_headers = [header for header in data_dict.keys() if data_dict[header]['data_status'] != 'Required']
+        return reqd_headers, optional_headers
+        
     def init_default_headers(self):
         """
         initialize default required headers.
         if there were any pre-existing headers, keep them also.
         """
-        self.er_specimens_header = list(set(['er_citation_names','er_specimen_name','er_sample_name','er_site_name','er_location_name','specimen_class','specimen_lithology','specimen_type']).union(self.er_specimens_header))
-        self.er_samples_header = list(set(['er_citation_names','er_sample_name','er_site_name','er_location_name','sample_class','sample_lithology','sample_type','sample_lat','sample_lon']).union(self.er_samples_header))
-        self.er_sites_header = list(set(['er_citation_names','er_site_name','er_location_name','site_class','site_lithology','site_type','site_definition','site_lon','site_lat']).union(self.er_sites_header))
-        self.er_locations_header = list(set(['er_citation_names','er_location_name','location_begin_lon','location_end_lon','location_begin_lat','location_end_lat','location_type']).union(self.er_locations_header))
-        self.er_ages_header = list(set(['er_citation_names','er_site_name','er_location_name','age_description','magic_method_codes','age','age_unit']).union(self.er_ages_header))
+        data_model = validate_upload.get_data_model()
+        # header should contain all required headers, plus any already in the file
+        self.er_specimens_reqd_header, self.er_specimens_optional_header = self.get_headers(data_model, 'er_specimens')
+        self.er_specimens_header = list(set(self.er_specimens_header).union(self.er_specimens_reqd_header))
+        self.er_samples_reqd_header, self.er_specimens_optional_header = self.get_headers(data_model, 'er_samples')
+        self.er_samples_header = list(set(self.er_samples_header).union(self.er_samples_reqd_header))
+        self.er_sites_reqd_header, self.er_sites_optional_header = self.get_headers(data_model, 'er_sites')
+        self.er_sites_header = list(set(self.er_sites_header).union(self.er_sites_reqd_header))
+        self.er_locations_reqd_header, self.er_locations_optional_header = self.get_headers(data_model, 'er_locations')
+        self.er_locations_header = list(set(self.er_locations_header).union(self.er_locations_reqd_header))
+        self.er_ages_reqd_header, self.er_ages_optional_header = self.get_headers(data_model, 'er_ages')
+        self.er_ages_header = list(set(self.er_ages_header).union(self.er_ages_reqd_header))
+        self.er_ages_header.extend(['er_site_name', 'age', 'age_description', 'magic_method_codes', 'age_unit'])
 
 
     def read_MagIC_info(self):

@@ -33,7 +33,7 @@ def get_data_model():
             pmag_dir = check_updates.get_pmag_dir()
             the_file = pmag_dir + "/MagIC-data-model.txt"
             data = open(the_file, 'rU')
-        except:
+        except IOError:
             print "can't access MagIC-data-model at the moment\nif you are working offline, make sure MagIC-data-model.txt is in your PmagPy directory (or download it from https://github.com/ltauxe/PmagPy and put it in your PmagPy directory)\notherwise, check your internet connection"
             return False
 

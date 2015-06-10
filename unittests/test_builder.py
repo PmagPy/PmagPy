@@ -23,6 +23,7 @@ class TestBuilder(unittest.TestCase):
     def setUp(self):
         dir_path = os.path.join(WD, 'Datafiles', 'ErMagicBuilder')
         self.data1 = ErMagicBuilder.ErMagicBuilder(dir_path)
+        self.data2 = ErMagicBuilder.ErMagicBuilder(WD)
 
     def tearDown(self):
         pass
@@ -57,13 +58,10 @@ class TestBuilder(unittest.TestCase):
         sample = 'Z35.6'
         site = 'Z35.'
         location = 'locale'
-        print "self.data1.Data_hierarchy['samples']", self.data1.Data_hierarchy['samples']
         self.data1.change_specimen(specimen, specimen, new_specimen_data={'er_sample_name': 'Z35.5'})
-        print "after: self.data1.Data_hierarchy['samples']", self.data1.Data_hierarchy['samples']
         self.assertIn(specimen, self.data1.Data_hierarchy['samples']['Z35.5'])
         self.assertFalse(self.data1.Data_hierarchy['samples']['Z35.6']) # should be empty, no more specimens
         self.assertEqual('Z35.5', self.data1.Data_hierarchy['sample_of_specimen'][specimen])
-        #print self.data1.Data_hierarchy['sample_of_specimen'][specimen]
 
     def test_add_specimen(self):
         specimen = 'new_specimen_name'
@@ -270,7 +268,6 @@ class TestBuilder(unittest.TestCase):
 
     def test_add_location(self):
         location = 'new_location_name'
-        print self.data1.er_locations_header
         self.data1.add_location(location)
 
         self.assertIn(location, self.data1.Data_hierarchy['locations'].keys())
@@ -311,3 +308,48 @@ class TestBuilder(unittest.TestCase):
         self.assertEqual('4', self.data1.data_er_ages[site]['age'])
         self.assertIn('new_key', self.data1.data_er_ages[site].keys())
         self.assertEqual('new value', self.data1.data_er_ages[site]['new_key'])
+
+
+    def test_init_default_headers(self):
+        headers = [self.data2.er_specimens_header, self.data2.er_samples_header, self.data2.er_sites_header, self.data2.er_locations_header, self.data2.er_ages_header]
+        for header in headers:
+            self.assertFalse(header)
+        self.data2.init_default_headers()
+        headers = [self.data2.er_specimens_header, self.data2.er_samples_header, self.data2.er_sites_header, self.data2.er_locations_header, self.data2.er_ages_header]
+        for header in headers:
+            self.assertTrue(header)
+
+    def test_init_spec_headers(self):
+        self.assertFalse(self.data2.er_specimens_header)
+        self.data2.init_default_headers()
+        reference_headers = ['er_citation_names','er_specimen_name','er_sample_name','er_site_name','er_location_name','specimen_class','specimen_lithology','specimen_type']
+        for ref in reference_headers:
+            self.assertIn(ref, self.data2.er_specimens_header)
+
+    def test_init_samp_headers(self):
+        self.assertFalse(self.data2.er_samples_header)
+        self.data2.init_default_headers()
+        reference_headers = ['er_citation_names','er_sample_name','er_site_name','er_location_name','sample_class','sample_lithology','sample_type','sample_lat','sample_lon']
+        for ref in reference_headers:
+            self.assertIn(ref, self.data2.er_samples_header)
+
+    def test_init_site_headers(self):
+        self.assertFalse(self.data2.er_sites_header)
+        self.data2.init_default_headers()
+        reference_headers = ['er_citation_names','er_site_name','er_location_name','site_class','site_lithology','site_type','site_definition','site_lon','site_lat']
+        for ref in reference_headers:
+            self.assertIn(ref, self.data2.er_sites_header)
+
+    def test_init_loc_headers(self):
+        self.assertFalse(self.data2.er_locations_header)
+        self.data2.init_default_headers()
+        reference_headers = ['er_citation_names','er_location_name','location_begin_lon','location_end_lon','location_begin_lat','location_end_lat','location_type']
+        for ref in reference_headers:
+            self.assertIn(ref, self.data2.er_locations_header)
+
+    def test_init_age_headers(self):
+        self.assertFalse(self.data2.er_ages_header)
+        self.data2.init_default_headers()
+        reference_headers = ['er_citation_names','er_site_name','er_location_name','age_description','magic_method_codes','age','age_unit']
+        for ref in reference_headers:
+            self.assertIn(ref, self.data2.er_ages_header)
