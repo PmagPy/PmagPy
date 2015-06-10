@@ -1,3 +1,0 @@
-tab 	pmag_results
-average_alpha95	average_dec	average_inc	average_k	average_lat	average_lon	average_n	average_n_lines	average_n_planes	average_r	data_type	er_analyst_mail_names	er_citation_names	er_location_names	er_site_names	er_specimen_names	magic_method_codes	magic_software_packages	pmag_criteria_codes	pmag_result_name	pole_comp_name	result_description	tilt_correction	vgp_dm	vgp_dp	vgp_lat	vgp_lon	vgp_n
-48.1	183.8	-54.0	1	47.1000	95.4000	21	21	0	6.8774	i		This study	unknown	Z35	Z35.1a:Z35.2a:Z35.3a:Z35.4a:Z35.5a:Z35.6a:Z35.7a	LP-DIR-T:DE-BFL:DA-DIR-GEO:LP-DC4:DE-FM	pmagpy-3.1.4	ACCEPT	VGP Site: Z35	A	Site VGP, coord system = g component: A	0	55.7	62.8	-77.1	81.2	21

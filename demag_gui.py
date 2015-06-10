@@ -4318,7 +4318,6 @@ class Zeq_GUI(wx.Frame):
     #--------------------------------------------------------------
                
     def on_menu_criteria_file (self, event):
-                   
         """
         read pmag_criteria.txt file
         and open changecriteria dialog
