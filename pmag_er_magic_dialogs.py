@@ -9,7 +9,7 @@ import drop_down_menus
 import pmag_widgets as pw
 import check_updates
 
-class ErMagicCheck(wx.Frame):
+class ErMagicCheckFrame(wx.Frame):
 
     def __init__(self, parent, title, WD, magic_data): # magic_data was ErMagic
         wx.Frame.__init__(self, parent, -1, title)

@@ -4,7 +4,7 @@ import unittest
 #import sys
 import os
 import wx
-import make_magic
+
 import pmag_er_magic_dialogs
 
 #import wx.lib.inspection
@@ -21,7 +21,7 @@ class TestMagicGrid(unittest.TestCase):
     """
 
     def setUp(self):
-        self.app = wx.PySimpleApp()
+        self.app = wx.App()
         self.frame = wx.Frame(None, wx.ID_ANY, 'Title', size=(600, 600))
         self.frame.pnl = wx.Panel(self.frame, name='a panel')
         row_labels = ['alpha', 'bravo', 'charlie', 'whiskey', 'x-ray', 'y', 'z']
@@ -81,31 +81,5 @@ class TestMagicGrid(unittest.TestCase):
         self.assertEqual('gamma', self.grid.GetColLabelValue(2))
         self.assertEqual('gamma', self.grid.col_labels[2])
         self.assertNotIn('foxtrot', self.grid.col_labels)
-
-
-class TestMakeMagicMainFrame(unittest.TestCase):
-
-    def setUp(self):
-        self.app = wx.PySimpleApp()
-        #WD = os.path.join(os.getcwd(), 'unittests', 'examples', 'my_project')
-        self.frame = make_magic.MainFrame(project_WD, "my panel")
-        self.pnl = self.frame.GetChildren()[0]
-
-    def tearDown(self):
-        #self.frame.Destroy() # this does not work and causes strange errors
-        self.app.Destroy()
-        os.chdir(WD)
-
-    def test_main_panel_is_created(self):
-        """
-        test for existence of main panel
-        """
-        self.assertTrue(self.pnl.IsEnabled())
-        self.assertEqual("my panel", str(self.pnl.GetName()))
-
-    def test_grid_is_created(self):
-        """
-        """
-        self.assertTrue(self.frame.grid)
 
 

@@ -335,7 +335,7 @@ class MagMainFrame(wx.Frame):
         self.ErMagic.Raise()
 
     def init_check_window(self):
-        self.check_dia = pmag_er_magic_dialogs.ErMagicCheck(self, 'Check Data', self.WD, self.ErMagic.data)# initiates the object that will control steps 1-6 of checking headers, filling in cell values, etc.
+        self.check_dia = pmag_er_magic_dialogs.ErMagicCheckFrame(self, 'Check Data', self.WD, self.ErMagic.data)# initiates the object that will control steps 1-6 of checking headers, filling in cell values, etc.
 
 
     def get_data(self):
