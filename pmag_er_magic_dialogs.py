@@ -911,22 +911,32 @@ class MagicGrid(wx.grid.Grid):
         self.AppendRows(1)
         last_row = self.GetNumberRows() - 1
         self.SetCellValue(last_row, 0, label)
+        self.row_labels.append(label)
 
     def remove_row(self, row_num=None):
         #DeleteRows(self, pos, numRows, updateLabel
         if not row_num:
             row_num = self.GetNumberRows() - 1
+        label = self.GetCellValue(row_num, 0)
         self.DeleteRows(row_num, 1)
+        self.row_labels.remove(label)
 
         
     def add_col(self, label):
         self.AppendCols(1)
         last_col = self.GetNumberCols() - 1
         self.SetColLabelValue(last_col, label)
+        self.col_labels.append(label)
 
         # after adding, either:
         self.size_grid()
         # or perhaps self.InitUI() and self.size_grid()
+
+    def remove_col(self, col_num):
+        label_value = self.GetColLabelValue(col_num)
+        self.col_labels.remove(label_value)
+        self.DeleteCols(col_num) # ??
+        self.size_grid()
 
 
     ### Grid methods ###

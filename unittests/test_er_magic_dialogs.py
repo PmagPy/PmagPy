@@ -45,6 +45,7 @@ class TestMagicGrid(unittest.TestCase):
         self.grid.add_row()
         last_row = self.grid.GetNumberRows() - 1
         self.assertEqual('', self.grid.GetCellValue(last_row, 0))
+        self.assertEqual('', self.grid.row_labels[-1])
 
     def test_remove_row(self):
         num_rows = self.grid.GetNumberRows()
@@ -55,19 +56,31 @@ class TestMagicGrid(unittest.TestCase):
         new_last_row_name = self.grid.GetCellValue(new_num_rows - 1, 0)
         self.assertNotEqual(new_num_rows, num_rows)
         self.assertNotEqual(new_last_row_name, last_row_name)
+        self.assertEqual('y', self.grid.row_labels[-1])
 
     def test_remove_row_charlie(self):
         old_row_name = self.grid.GetCellValue(2, 0)
         self.assertEqual('charlie', old_row_name)
         self.grid.remove_row(2)
         self.assertEqual('whiskey', self.grid.GetCellValue(2, 0))
-
+        self.assertEqual('whiskey', self.grid.row_labels[2])
 
     def test_add_col(self):
         label = 'new_label'
         self.grid.add_col(label)
         cols = self.grid.GetNumberCols()
         self.assertEqual(label, str(self.grid.GetColLabelValue(cols-1)))
+        self.assertEqual(label, self.grid.col_labels[-1])
+
+    def test_remove_col(self):
+        num_cols = self.grid.GetNumberCols()
+        self.grid.remove_col(2)
+        new_num_cols = self.grid.GetNumberCols()
+        self.assertNotEqual(num_cols, new_num_cols)
+        # remove foxtrot, gamma should be in position 2
+        self.assertEqual('gamma', self.grid.GetColLabelValue(2))
+        self.assertEqual('gamma', self.grid.col_labels[2])
+        self.assertNotIn('foxtrot', self.grid.col_labels)
 
 
 class TestMakeMagicMainFrame(unittest.TestCase):
