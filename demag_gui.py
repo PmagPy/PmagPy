@@ -243,7 +243,6 @@ class Zeq_GUI(wx.Frame):
         self.zijderveld_setting = "Zoom"
         self.toolbar1.zoom()
         self.canvas1.Bind(wx.EVT_RIGHT_DOWN,self.right_click_zijderveld)
-#        self.canvas1.Bind(wx.EVT_RIGHT_UP,self.zoom_zijderveld)
         self.canvas1.Bind(wx.EVT_LEFT_DCLICK,self.home_zijderveld)
 #        self.canvas1.Bind(wx.EVT_RIGHT_DCLICK,self.pick_bounds)
         #self.fig1.text(0.01,0.98,"Zijderveld plot",{'family':'Arial', 'fontsize':10*self.GUI_RESOLUTION, 'style':'normal','va':'center', 'ha':'left' })
@@ -261,8 +260,6 @@ class Zeq_GUI(wx.Frame):
         self.toolbar2.zoom()
         self.canvas2.Bind(wx.EVT_LEFT_DCLICK,self.on_equalarea_specimen_select)
         self.canvas2.Bind(wx.EVT_MOTION,self.on_change_specimen_mouse_cursor)
-#        self.canvas2.Bind(wx.EVT_RIGHT_DOWN,self.zoom_specimen_equalarea)
-#        self.canvas2.Bind(wx.EVT_RIGHT_UP,self.undo_zoom_specimen_equalarea)
         self.canvas2.Bind(wx.EVT_RIGHT_DCLICK,self.home_specimen_equalarea)
         self.specimen_EA_xdata = []
         self.specimen_EA_ydata = []
@@ -277,9 +274,8 @@ class Zeq_GUI(wx.Frame):
         self.toolbar4.zoom()
         self.canvas4.Bind(wx.EVT_LEFT_DCLICK,self.on_equalarea_higher_select)
         self.canvas4.Bind(wx.EVT_MOTION,self.on_change_higher_mouse_cursor)
-#        self.canvas4.Bind(wx.EVT_RIGHT_DOWN,self.zoom_higher_equalarea)
-#        self.canvas4.Bind(wx.EVT_RIGHT_UP,self.undo_zoom_higher_equalarea)
         self.canvas4.Bind(wx.EVT_RIGHT_DCLICK,self.home_higher_equalarea)
+        self.old_pos = None
         self.higher_EA_xdata = []
         self.higher_EA_ydata = []
 
@@ -722,22 +718,6 @@ class Zeq_GUI(wx.Frame):
             self.OnClick_listctrl(dumby_event)
         self.zoom(event)
 
-    def undo_zoom_specimen_equalarea(self,event):
-        """
-        depriciated
-        """
-        if event.LeftIsDown():
-            return
-        self.toolbar2.zoom()
-
-    def zoom_specimen_equalarea(self,event):
-        """
-        sets specimen equal area plot to a zoom backend function
-        @param: event -> the wx.MouseEvent that triggered the call of this function
-        @alters: toolbar2 setting
-        """
-        self.toolbar2.zoom()
-
     def home_specimen_equalarea(self,event):
         """
         returns the equal specimen area plot to it's original position
@@ -795,22 +775,6 @@ class Zeq_GUI(wx.Frame):
             self.fit_box.SetSelection(index)
             self.on_select_fit(event)
 
-    def undo_zoom_higher_equalarea(self,event):
-        """
-        depriciated
-        """
-        if event.LeftIsDown():
-            return
-        self.toolbar4.zoom()
-
-    def zoom_higher_equalarea(self,event):
-        """
-        sets higher equal area plot to a zoom backend function
-        @param: event -> the wx.MouseEvent that triggered the call of this function
-        @alters: toolbar4 setting
-        """
-        self.toolbar4.zoom()
-
     def home_higher_equalarea(self,event):
         """
         returns higher equal area to it's original position
@@ -834,6 +798,22 @@ class Zeq_GUI(wx.Frame):
         xdata = self.higher_EA_xdata
         ydata = self.higher_EA_ydata
         e = 5e-2
+
+#        if event.LeftIsDown() and self.old_pos==None:
+#            self.old_pos = event.GetPosition()
+#            inv = self.high_level_eqarea.transData.inverted()
+#            reverse = inv.transform(numpy.vstack([self.old_pos[0],self.old_pos[1]]).T)
+#            self.old_pos = map(float,reverse.T)
+#        elif not event.LeftIsDown() and self.old_pos!=None:
+#            self.old_pos = None
+#        if self.old_pos!=None:
+#            print("is doing stuff")
+#            print(array(self.old_pos[0],self.old_pos[1]),array(self.old_pos[0],ydata))
+#            self.high_level_eqarea.plot(ndarray(self.old_pos),ndarray(self.old_pos[0],ydata),'k-')
+#            self.high_level_eqarea.plot(ndarray(self.old_pos),ndarray(xdata,self.old_pos[1]),'k-')
+#            self.high_level_eqarea.plot(ndarray(xdata,self.old_pos[1]),ndarray(xdata,ydata),'k-')
+#            self.high_level_eqarea.plot(ndarray(self.old_pos[0],ydata),ndarray(xdata,ydata),'k-')
+#            self.canvas4.draw()
 
         self.canvas4.SetCursor(wx.StockCursor(wx.CURSOR_ARROW))
         for i,(x,y) in enumerate(zip(xdata,ydata)):
