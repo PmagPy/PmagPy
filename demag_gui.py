@@ -62,6 +62,7 @@ import time
 from datetime import datetime
 import wx
 import wx.grid
+import wx.lib.scrolledpanel
 import random
 import numpy
 from pylab import *
@@ -94,17 +95,18 @@ rcParams.update({"svg.fonttype":'none'})
 #--------------------------------------
 
 class Zeq_GUI(wx.Frame):
-    """ The main frame of the application
+    """
+    The main frame of the application
     """
     title = "PmagPy Demag GUI %s (beta)"%CURRENT_VRSION
     
     def __init__(self, WD, parent=None):
         
         TEXT="""
-        NAME
+        NAME:
    	demag_gui.py
     
-        DESCRIPTION
+        DESCRIPTION:
    	GUI for interpreting demagnetization data (AF and/or thermal).
    	For tutorial chcek PmagPy cookbook in http://earthref.org/PmagPy/cookbook/   	    
         """  
@@ -179,8 +181,10 @@ class Zeq_GUI(wx.Frame):
 
         # check if pmag_specimens.txt exist. If yes, import speci
         #self.get_pmag_tables()
-        #self.update_pmag_tables()        
-        self.panel = wx.Panel(self)          # make the Panel
+        #self.update_pmag_tables()
+        w, h = self.GetSize()
+        self.panel = wx.lib.scrolledpanel.ScrolledPanel(self,-1,size=(w,h)) # make the Panel
+        self.panel.SetupScrolling()
         self.Main_Frame()                   # build the main frame
         self.create_menu()                  # create manu bar
         self.Zij_picker()
@@ -193,13 +197,14 @@ class Zeq_GUI(wx.Frame):
 
 
     def Main_Frame(self):
-        """ Build main frame of panel: buttons, etc.
-            choose the first specimen and display data
+        """
+        Build main frame of panel: buttons, etc.
+        choose the first specimen and display data
         """
         #GUI width is 200+100*5+100*5=1202
         #GUI hieght is 640
         
-        dw, dh = wx.DisplaySize() 
+        dw, dh = wx.DisplaySize()
         w, h = self.GetSize()
         #print 'diplay', dw, dh
         #print "gui", w, h
@@ -643,6 +648,11 @@ class Zeq_GUI(wx.Frame):
     #----------------------------------------------------------------------
 
     def right_click_zijderveld(self,event):
+        """
+        toggles between zoom and pan effects for the zijderveld on right click
+        @param: event -> the wx.MouseEvent that triggered the call of this function
+        @alters: zijderveld_setting, toolbar1 setting
+        """
         if event.LeftIsDown():
             return
         elif self.zijderveld_setting == "Zoom":
@@ -653,9 +663,19 @@ class Zeq_GUI(wx.Frame):
             self.toolbar1.zoom()
 
     def home_zijderveld(self,event):
+        """
+        homes zijderveld to original position
+        @param: event -> the wx.MouseEvent that triggered the call of this function
+        @alters: toolbar1 setting
+        """
         self.toolbar1.home()
 
     def pick_bounds(self,event):
+        """
+        attempt at a functionallity to pick bounds by clicking on the zijderveld
+        @param: event -> the wx.MouseEvent that triggered the call of this function
+        @alters: ...
+        """
         pos=event.GetPosition()
         e = 1e-2
         l = len(self.CART_rot_good[:,0])
@@ -697,14 +717,27 @@ class Zeq_GUI(wx.Frame):
         self.zoom(event)
 
     def undo_zoom_specimen_equalarea(self,event):
+        """
+        depriciated
+        """
         if event.LeftIsDown():
             return
         self.toolbar2.zoom()
 
     def zoom_specimen_equalarea(self,event):
+        """
+        sets specimen equal area plot to a zoom backend function
+        @param: event -> the wx.MouseEvent that triggered the call of this function
+        @alters: toolbar2 setting
+        """
         self.toolbar2.zoom()
 
     def home_specimen_equalarea(self,event):
+        """
+        returns the equal specimen area plot to it's original position
+        @param: event -> the wx.MouseEvent that triggered the call of this function
+        @alters: toolbar2 setting
+        """
         self.toolbar2.home()
 
     def on_change_specimen_mouse_cursor(self,event):
@@ -757,14 +790,27 @@ class Zeq_GUI(wx.Frame):
             self.on_select_fit(event)
 
     def undo_zoom_higher_equalarea(self,event):
+        """
+        depriciated
+        """
         if event.LeftIsDown():
             return
         self.toolbar4.zoom()
 
     def zoom_higher_equalarea(self,event):
+        """
+        sets higher equal area plot to a zoom backend function
+        @param: event -> the wx.MouseEvent that triggered the call of this function
+        @alters: toolbar4 setting
+        """
         self.toolbar4.zoom()
 
     def home_higher_equalarea(self,event):
+        """
+        returns higher equal area to it's original position
+        @param: event -> the wx.MouseEvent that triggered the call of this function
+        @alters: toolbar4 setting
+        """
         self.toolbar4.home()
 
     def on_change_higher_mouse_cursor(self,event):
@@ -1629,7 +1675,8 @@ class Zeq_GUI(wx.Frame):
     #----------------------------------------------------------------------
 
     def on_next_button(self,event):
-      """ update figures and text when a next button is selected
+      """
+      update figures and text when a next button is selected
       """
       index=self.specimens.index(self.s)
       try: fit_index = self.pmag_results_data['specimens'][self.s].index(self.current_fit)
@@ -1650,7 +1697,8 @@ class Zeq_GUI(wx.Frame):
     #----------------------------------------------------------------------
 
     def on_prev_button(self,event):
-      """ update figures and text when a next button is selected
+      """ 
+      update figures and text when a next button is selected
       """
       index=self.specimens.index(self.s)
       try: fit_index = self.pmag_results_data['specimens'][self.s].index(self.current_fit)
@@ -1790,7 +1838,8 @@ class Zeq_GUI(wx.Frame):
 
 
     def get_DIR(self, WD=None):
-        """ Choose a working directory dialog
+        """
+        Choose a working directory dialog
         """
         if "-WD" in sys.argv and FIRST_RUN:
             ind=sys.argv.index('-WD')
@@ -2130,6 +2179,10 @@ class Zeq_GUI(wx.Frame):
     #----------------------------------------------------------------------
                        
     def draw_interpretation(self): #BLARGE
+        """
+        draw the specimen interpertations on the zijderveld and the specimen equal area
+        @alters: fit.lines, zijplot, specimen_eqarea_interpretation, mplot_interpretation
+        """
 
         self.zijplot.collections=[] # delete fit points 
         self.specimen_eqarea_interpretation.clear() #clear equal area
@@ -2314,6 +2367,8 @@ class Zeq_GUI(wx.Frame):
     
     def on_menu_autointerpert(self,event):
         """
+        first attempt at an autointerpert functionallity that will find linear segments in the zijderveld to pick out the primary and secondary components.
+        @param: event -> the wx.MenuEvent that triggered this event
         """
 
         for specimen in self.specimens:
@@ -2442,7 +2497,8 @@ class Zeq_GUI(wx.Frame):
     #----------------------------------------------------------------------
            
     def clear_boxes(self):
-        """ Clear all boxes
+        """ 
+        Clear all boxes
         """        
         self.tmin_box.Clear()
         self.tmin_box.SetStringSelection("")
@@ -2551,10 +2607,12 @@ class Zeq_GUI(wx.Frame):
 
 
     def calculate_high_level_mean (self,high_level_type,high_level_name,calculation_type,elements_type):
-        """ high_level_type:'samples','sites','locations','study'
+        """
+        high_level_type:'samples','sites','locations','study'
         calculation_type: 'Bingham','Fisher','Fisher by polarity'
         elements_type (what to average):'specimens','samples','sites' (Ron. ToDo alos VGP and maybe locations?) 
-        figure out what level to average,and what elements to average (specimen, samples, sites, vgp)"""
+        figure out what level to average,and what elements to average (specimen, samples, sites, vgp)
+        """
 
         self.high_level_means[high_level_type][high_level_name]={}
         for dirtype in ["DA-DIR","DA-DIR-GEO","DA-DIR-TILT"]:
@@ -3613,7 +3671,8 @@ class Zeq_GUI(wx.Frame):
     #----------------------------------------------------------------------
         
     def create_menu(self):
-        """ Create menu
+        """
+        Create menu
         """
         self.menubar = wx.MenuBar()
 
@@ -4750,6 +4809,13 @@ class Zeq_GUI(wx.Frame):
         webbrowser.open("https://github.com/ltauxe/PmagPy", new = 2)
 
     def get_temp_indecies(self, fit = None, tmin = None, tmax = None):
+        """
+        Finds the appropriate indecies in self.Data[self.s]['zijdplot_steps'] given a set of upper/lower bounds. This is to resolve duplicate steps using the convention that the first good step of that name is the indicated step by that bound if there are no steps of the names tmin or tmax then it complains and reutrns a tuple (None,None).
+        @param: fit -> the fit who's bounds to find the indecies of if no upper or lower bounds are specified
+        @param: tmin -> the lower bound to find the index of
+        @param: tmax -> the upper bound to find the index of
+        @return: a tuple with the lower bound index then the upper bound index 
+        """
 
         if fit and not tmin and not tmax:
             tmin = fit.tmin
@@ -4785,6 +4851,11 @@ class Zeq_GUI(wx.Frame):
         return (tmin_index,tmax_index)
 
     def on_select_fit(self,event):
+        """
+        Picks out the fit selected in the fit combobox and sets it to the current fit of the GUI then calls the select function of the fit to set the GUI's bounds boxes and alter other such parameters
+        @param: event -> the wx.ComboBoxEvent that triggers this function
+        @alters: current_fit, fit_box selection, tmin_box selection, tmax_box selection
+        """
         fit_val = self.fit_box.GetValue()
         if not self.pmag_results_data['specimens'][self.s] or fit_val == 'None':
             self.clear_boxes()
@@ -4800,10 +4871,20 @@ class Zeq_GUI(wx.Frame):
             self.pmag_results_data['specimens'][self.s][fit_num].select()
 
     def on_enter_fit_name(self,event):
+        """
+        Allows the entering of new fit names in the fit combobox
+        @param: event -> the wx.ComboBoxEvent that triggers this function
+        @alters: current_fit.name
+        """
         self.current_fit.name = self.fit_box.GetValue()
         self.update_fit_box()
 
     def add_fit(self,event):
+        """
+        add a new interpertation to the current specimen
+        @param: event -> the wx.ButtonEvent that triggered this function
+        @alters: pmag_results_data
+        """
         if not (self.s in self.pmag_results_data['specimens'].keys()):
             self.pmag_results_data['specimens'][self.s] = []
         next_fit = str(len(self.pmag_results_data['specimens'][self.s]) + 1)
@@ -4812,6 +4893,10 @@ class Zeq_GUI(wx.Frame):
         self.new_fit()
 
     def delete_fit(self,event):
+        """
+        removes the current interpertation
+        @param: event -> the wx.ButtonEvent that triggered this function
+        """
         if not self.s in self.pmag_results_data['specimens']: return
         if self.current_fit in self.pmag_results_data['specimens'][self.s]:
             self.pmag_results_data['specimens'][self.s].remove(self.current_fit)
@@ -4824,6 +4909,11 @@ class Zeq_GUI(wx.Frame):
         self.update_selection()
 
     def remove_replace_fit(self,event):
+        """
+        Remove or replace interpertations from higher order equal area plot and mean
+        @param: event -> the wx.ButtonEvent that triggered this function
+        @alters: bad_fits, 
+        """
         fit_val = self.mean_fit_box.GetValue()
         if fit_val == "None":
             return
@@ -4848,7 +4938,9 @@ class Zeq_GUI(wx.Frame):
         self.update_selection()
 
     def new_fit(self):
-
+        """
+        finds the bounds of a new fit and calls update_fit_box adding it to the fit comboboxes
+        """
         fit = self.pmag_results_data['specimens'][self.s][-1]
         self.current_fit = fit #update current fit to new fit
 
@@ -4858,6 +4950,10 @@ class Zeq_GUI(wx.Frame):
         self.get_new_PCA_parameters(1)
 
     def update_fit_box(self, new_fit = False):
+        """
+        alters fit_box and mean_fit_box lists to match with changes in specimen or new/removed interpertations
+        @param: new_fit -> boolean representing if there is a new fit
+        """
         self.clear_boxes()
         #get new fit data
 #        if self.fit_box.GetValue() == '': return
