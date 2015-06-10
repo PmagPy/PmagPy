@@ -582,6 +582,7 @@ class TextDialog(wx.Dialog):
         bsizer = wx.BoxSizer(wx.VERTICAL)
 
         btn_ok = wx.Button(self, wx.ID_OK, label="OK")
+        btn_ok.SetDefault()
         btn_cancel = wx.Button(self, wx.ID_CANCEL, label="Cancel")
         hbox = wx.BoxSizer(wx.HORIZONTAL)
         hbox.Add(btn_ok, flag=wx.ALIGN_CENTER|wx.ALL, border=10)
@@ -594,6 +595,36 @@ class TextDialog(wx.Dialog):
         bsizer.Fit(self)
         self.Centre()
 
+class ComboboxDialog(wx.Dialog):
+    """
+    Dialog window that returns a text string provided by selection from combobox
+    """
+    def __init__(self, parent, label, items):
+        super(ComboboxDialog, self).__init__(parent, title='Provide text')
+        #self.text_ctrl = labeled_text_field(self, label)
+        #wx.ComboBox(panel, -1, items[0], choices=items, style=wx.CB_READONLY)
+        #bSizer0b.Add(wx.StaticText(self.parent.panel, label="Will combine into one {} file".format(text)), wx.ALIGN_LEFT)
+        text_box = wx.StaticText(self, label=label)
+        self.combobox = wx.ComboBox(self, wx.ID_ANY, items[0], choices=items, style=wx.CB_READONLY)
+        bsizer = wx.BoxSizer(wx.VERTICAL)
+
+        btn_ok = wx.Button(self, wx.ID_OK, label="OK")
+        btn_ok.SetDefault()
+        btn_cancel = wx.Button(self, wx.ID_CANCEL, label="Cancel")
+        hbox = wx.BoxSizer(wx.HORIZONTAL)
+        hbox.Add(btn_ok, flag=wx.ALIGN_CENTER|wx.ALL, border=10)
+        hbox.Add(btn_cancel, flag=wx.ALIGN_CENTER|wx.ALL, border=10)
+
+        bsizer.Add(text_box)
+        bsizer.Add(self.combobox, flag=wx.ALIGN_CENTER|wx.ALL, border=10)
+        bsizer.Add(hbox, flag=wx.ALIGN_CENTER)
+
+        self.SetSizer(bsizer)
+        bsizer.Fit(self)
+        self.Centre()
+
+        
+        
 
 class AddItem(wx.Frame):
     """This window allows user to add a new item (sample, site, or location)"""

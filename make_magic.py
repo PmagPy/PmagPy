@@ -84,7 +84,7 @@ class MainFrame(wx.Frame):
         if it is not, delete it from grid
         """
         col = event.GetCol()
-        print col
+        self.grid.remove_col(col)
 
     def make_loc_grid(self):
         """
@@ -98,14 +98,22 @@ class MainFrame(wx.Frame):
         """
         Show simple dialog that allows user to add a new column name
         """
-        dia = pw.TextDialog(self, 'column name: ')
+        items = ['a', 'b', 'c', 'd']
+        #dia = pw.TextDialog(self, 'column name: ')
+        dia = pw.ComboboxDialog(self, 'new column name:', items)
         result = dia.ShowModal()
         if result == wx.ID_OK:
-            name = dia.text_ctrl.return_value()
-            self.grid.add_col(name)
+            name = dia.combobox.GetValue()
+            if name:
+                self.grid.add_col(name)
+            else:
+                pw.simple_warning("New column must have a name")
         self.main_sizer.Fit(self)
 
     def on_remove_cols(self, event):
+        """
+        enter 'remove columns' mode
+        """
         # first unselect any selected cols/cells
         self.grid.ClearSelection()
         self.remove_cols_button.SetLabel("end delete column mode")
@@ -144,9 +152,13 @@ class MainFrame(wx.Frame):
         self.main_sizer.Fit(self)
 
     def exit_col_remove_mode(self, event):
+        """
+        go back from 'remove cols' mode to normal
+        """
         # re-enable all buttons
         for btn in [self.add_col_button, self.remove_row_button, self.add_many_rows_button]:
             btn.Enable()
+
         # unbind grid click for deletion
         self.Unbind(wx.grid.EVT_GRID_LABEL_LEFT_CLICK)
         # undo visual cues
@@ -156,7 +168,7 @@ class MainFrame(wx.Frame):
         self.main_sizer.Fit(self)
         # re-bind self.remove_cols_button
         self.Bind(wx.EVT_BUTTON, self.on_remove_cols, self.remove_cols_button)
-
+        self.remove_cols_button.SetLabel("Remove columns")
 
 
 
