@@ -657,10 +657,12 @@ class Zeq_GUI(wx.Frame):
             return
         elif self.zijderveld_setting == "Zoom":
             self.zijderveld_setting = "Pan"
-            self.toolbar1.pan('off')
+            try: self.toolbar1.pan('off')
+            except TypeError: pass
         elif self.zijderveld_setting == "Pan":
             self.zijderveld_setting = "Zoom"
-            self.toolbar1.zoom()
+            try: self.toolbar1.zoom()
+            except TypeError: pass
 
     def home_zijderveld(self,event):
         """
@@ -668,7 +670,8 @@ class Zeq_GUI(wx.Frame):
         @param: event -> the wx.MouseEvent that triggered the call of this function
         @alters: toolbar1 setting
         """
-        self.toolbar1.home()
+        try: self.toolbar1.home()
+        except TypeError: pass
 
     def pick_bounds(self,event):
         """
@@ -1826,6 +1829,8 @@ class Zeq_GUI(wx.Frame):
     # updtaes treatment list
     #--------------------------
     def update_temp_boxes(self):
+        if self.s not in self.Data.keys():
+            self.s = self.Data.keys()[0]
         self.T_list=self.Data[self.s]['zijdblock_steps']
         if self.current_fit:
             self.tmin_box.SetItems(self.T_list)
@@ -1989,17 +1994,17 @@ class Zeq_GUI(wx.Frame):
         if self.Data[self.s]['measurement_flag'][g_index] == 'g':
             self.Data[self.s]['measurement_flag'][g_index] = 'b'
             self.Data[self.s]['zijdblock'][g_index][5] = 'b'
-            if 'zijdblock_geo' in self.Data[self.s]:
+            if 'zijdblock_geo' in self.Data[self.s] and g_index < len(self.Data[self.s]['zijdblock_geo']):
                 self.Data[self.s]['zijdblock_geo'][g_index][5] = 'b'
-            if 'zijdblock_tilt' in self.Data[self.s]:
+            if 'zijdblock_tilt' in self.Data[self.s] and g_index < len(self.Data[self.s]['zijdblock_tilt']):
                 self.Data[self.s]['zijdblock_tilt'][g_index][5] = 'b'
             self.mag_meas_data[meas_index]['measurement_flag'] = 'b'
         else:
             self.Data[self.s]['measurement_flag'][g_index] = 'g'
             self.Data[self.s]['zijdblock'][g_index][5] = 'g'
-            if 'zijdblock_geo' in self.Data[self.s]:
+            if 'zijdblock_geo' in self.Data[self.s] and g_index < len(self.Data[self.s]['zijdblock_geo']):
                 self.Data[self.s]['zijdblock_geo'][g_index][5] = 'g'
-            if 'zijdblock_tilt' in self.Data[self.s]:
+            if 'zijdblock_tilt' in self.Data[self.s] and g_index < len(self.Data[self.s]['zijdblock_tilt']):
                 self.Data[self.s]['zijdblock_tilt'][g_index][5] = 'g'
             self.mag_meas_data[meas_index]['measurement_flag'] = 'g'
 
@@ -2429,9 +2434,10 @@ class Zeq_GUI(wx.Frame):
                     length_xy = sqrt((self.CART_rot[:,0][fit_max] - self.CART_rot[:,0][fit_min])**2 + (self.CART_rot[:,1][fit_max] - self.CART_rot[:,1][fit_min])**2)
                     length_xz = sqrt((self.CART_rot[:,0][fit_max] - self.CART_rot[:,0][fit_min])**2 + (self.CART_rot[:,2][fit_max] - self.CART_rot[:,2][fit_min])**2)
 
-                    if self.Data[self.s]['zijdblock'][fit_max][5] == 'b' or \
-                       self.Data[self.s]['zijdblock_geo'][fit_max][5] == 'b' or \
-                       self.Data[self.s]['zijdblock_tilt'][fit_max][5] == 'b' or \
+#                    if self.Data[self.s]['zijdblock'][fit_max][5] == 'b' or \
+#                       self.Data[self.s]['zijdblock_geo'][fit_max][5] == 'b' or \
+#                       self.Data[self.s]['zijdblock_tilt'][fit_max][5] == 'b' or \
+                    if self.Data[self.s]['measurement_flag'][fit_max] == 'b' or \
                        fit_max - fit_min <= 3 or \
                        length_xy < .2 or length_xz < .2:
                             if fit_max - fit_min > 3: fit_min = fit_max
