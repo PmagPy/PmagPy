@@ -5,7 +5,7 @@
 #============================================================================================
 #
 
-#Demag_GUI Version 0.32 added multiple fits and fisher stats by Kevin Gaastra (05/03/2015)
+#Demag_GUI Version 0.32 added multiple interpertations and new plot functionallity by Kevin Gaastra (05/03/2015)
 
 # Demag_GUI Version 0.31 save MagIC tables option: add dialog box to choose coordinates system for pmag_specimens.txt 04/26/2015
 #
@@ -64,6 +64,7 @@ import wx
 import wx.grid
 import wx.lib.scrolledpanel
 import random
+import re
 import numpy
 from pylab import *
 from scipy.optimize import curve_fit
@@ -167,7 +168,7 @@ class Zeq_GUI(wx.Frame):
         self.Data_samples={}
         self.last_saved_pars={}
         self.specimens=self.Data.keys()         # get list of specimens
-        self.specimens.sort()                   # get list of specimens
+        self.specimens.sort(cmp=specimens_comparator) # get list of specimens
         if len(self.specimens)>0:
             self.s=str(self.specimens[0])
         else:
@@ -370,7 +371,13 @@ class Zeq_GUI(wx.Frame):
         #----------------------------------------------------------------------                     
         # stopped here
         #self.coordinates_box = wx.ComboBox(self.panel, -1, 'specimen', (350*self.GUI_RESOLUTION, 25), wx.DefaultSize,['specimen','geographic','tilt-corrected'], wx.CB_DROPDOWN,name="coordinates")
-        self.coordinates_box = wx.ComboBox(self.panel, -1, choices=['specimen','geographic','tilt-corrected'], value='specimen',style=wx.CB_DROPDOWN,name="coordinates")
+        coordinate_list = ['specimen']
+        for specimen in self.specimens:
+            if 'geographic' not in coordinate_list and self.Data[specimen]['zijdblock_geo']:
+                coordinate_list.append('geographic')
+            if 'tilt_corrected' not in coordinate_list and self.Data[specimen]['zijdblock_tilt']:
+                coordinate_list.append('tilt_corrected')
+        self.coordinates_box = wx.ComboBox(self.panel, -1, choices=coordinate_list, value='specimen',style=wx.CB_DROPDOWN,name="coordinates")
         #self.coordinates_box.SetFont(font2)
         self.Bind(wx.EVT_COMBOBOX, self.onSelect_coordinates,self.coordinates_box)
         #self.box_sizer_select_coordinate.Add(self.coordinates_box, 0, wx.TOP, 0 )        
@@ -1654,8 +1661,10 @@ class Zeq_GUI(wx.Frame):
         new=self.coordinates_box.GetValue()
         if new=='geographic' and len(self.Data[self.s]['zijdblock_geo'])==0:
             self.coordinates_box.SetStringSelection(old)
+            print("-E- ERROR: could not switch to geographic coordinates reverting back to " + old + " coordinates")
         elif new=='tilt-corrected' and len(self.Data[self.s]['zijdblock_tilt'])==0:
             self.coordinates_box.SetStringSelection(old)
+            print("-E- ERROR: could not switch to tilt-corrected coordinates reverting back to " + old + " coordinates")
         else:
             self.COORDINATE_SYSTEM=new
 
@@ -2133,42 +2142,42 @@ class Zeq_GUI(wx.Frame):
             self.tmin_box.SetStringSelection('None')
             self.tmax_box.SetStringSelection('None')
 
-        if 'specimen_dec' in mpars.keys():
+        if mpars and 'specimen_dec' in mpars.keys():
             self.dec_window.SetValue("%.1f"%mpars['specimen_dec'])
             self.dec_window.SetBackgroundColour(wx.WHITE)
         else:
             self.dec_window.SetValue("")
             self.dec_window.SetBackgroundColour(wx.NullColour)
 
-        if 'specimen_inc' in mpars.keys():
+        if mpars and 'specimen_inc' in mpars.keys():
             self.inc_window.SetValue("%.1f"%mpars['specimen_inc'])
             self.inc_window.SetBackgroundColour(wx.WHITE)
         else:
             self.inc_window.SetValue("")
             self.inc_window.SetBackgroundColour(wx.NullColour)
 
-        if 'specimen_n' in mpars.keys():
+        if mpars and 'specimen_n' in mpars.keys():
             self.n_window.SetValue("%i"%mpars['specimen_n'])
             self.n_window.SetBackgroundColour(wx.WHITE)
         else:
             self.n_window.SetValue("")
             self.n_window.SetBackgroundColour(wx.NullColour)
 
-        if 'specimen_mad' in mpars.keys():
+        if mpars and 'specimen_mad' in mpars.keys():
             self.mad_window.SetValue("%.1f"%mpars['specimen_mad'])
             self.mad_window.SetBackgroundColour(wx.WHITE)
         else:
             self.mad_window.SetValue("")
             self.mad_window.SetBackgroundColour(wx.NullColour)
 
-        if 'specimen_dang' in mpars.keys() and float(mpars['specimen_dang'])!=-1:
+        if mpars and 'specimen_dang' in mpars.keys() and float(mpars['specimen_dang'])!=-1:
             self.dang_window.SetValue("%.1f"%mpars['specimen_dang'])
             self.dang_window.SetBackgroundColour(wx.WHITE)
         else:
             self.dang_window.SetValue("")
             self.dang_window.SetBackgroundColour(wx.NullColour)
 
-        if 'specimen_alpha95' in mpars.keys() and float(mpars['specimen_alpha95'])!=-1:
+        if mpars and 'specimen_alpha95' in mpars.keys() and float(mpars['specimen_alpha95'])!=-1:
             self.alpha95_window.SetValue("%.1f"%mpars['specimen_alpha95'])
             self.alpha95_window.SetBackgroundColour(wx.WHITE)
         else:
@@ -2176,7 +2185,7 @@ class Zeq_GUI(wx.Frame):
             self.alpha95_window.SetBackgroundColour(wx.NullColour)
         
         if self.orthogonal_box.GetValue()=="X=best fit line dec":                              
-            if  'specimen_dec' in mpars.keys(): 
+            if mpars and 'specimen_dec' in mpars.keys(): 
                 self.draw_figure(self.s)
   
         self.draw_interpretation()
@@ -3866,7 +3875,7 @@ class Zeq_GUI(wx.Frame):
         self.Data_samples={}
         self.last_saved_pars={}
         self.specimens=self.Data.keys()         # get list of specimens
-        self.specimens.sort()                   # get list of specimens
+        self.specimens.sort(cmp=specimens_comparator) # get list of specimens
         if len(self.specimens)>0:
             self.s=str(self.specimens[0])
         else:
@@ -5145,6 +5154,14 @@ class Fit():
 #--------------------------------------------------------------    
 # Run the GUI
 #--------------------------------------------------------------
+def specimens_comparator(s1,s2):
+    l1 = map(int, re.findall('\d+', s1))
+    l2 = map(int, re.findall('\d+', s2))
+    for i1,i2 in zip(l1,l2):
+        if i1-i2 != 0:
+            return i1-i2
+    return 0
+
 def alignToTop(win):
     dw, dh = wx.DisplaySize() 
     w, h = win.GetSize() 
