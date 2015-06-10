@@ -4,20 +4,18 @@
 # LOG HEADER:
 #============================================================================================
 #
-
 #Demag_GUI Version 0.32 added multiple interpertations and new plot functionallity by Kevin Gaastra (05/03/2015)
-
+#
 # Demag_GUI Version 0.31 save MagIC tables option: add dialog box to choose coordinates system for pmag_specimens.txt 04/26/2015
 #
-
 # Demag_GUI Version 0.30 fix backward compatibility with strange pmag_speciemns.txt 01/29/2015
 #
 # Demag_GUI Version 0.29 fix on_close_event 23/12/2014
-
+#
 # Demag_GUI Version 0.28 fix on_close_event 12/12/2014
-
+#
 # Demag_GUI Version 0.27 some minor bug fix
-
+#
 # Demag_GUI Version 0.26 (version for MagIC workshop) by Ron Shaar 5/8/2014
 #
 # Demag_GUI Version 0.25 (beta) by Ron Shaar
@@ -29,8 +27,6 @@
 # Demag_GUI Version 0.22 (beta) by Ron Shaar
 #
 # Demag_GUI Version 0.21 (beta) by Ron Shaar
-# 
-#
 #
 #============================================================================================
 
@@ -945,17 +941,8 @@ class Zeq_GUI(wx.Frame):
             else:
                 self.zijplot.set_xlim(xmin=self.zij_xlim_initial[0],xmax=self.zij_xlim_initial[1])
                 self.zijplot.set_ylim(ymin=self.zij_ylim_initial[0],ymax=self.zij_ylim_initial[1])
-            
-            self.canvas1.draw()                        
-            #if self.tmp3_x < self.tmp4_x and self.tmp3_y > self.tmp4_y and delta_x >0.05 and delta_y >0.05:
-            #    self.zijplot.set_xlim(xmin=self.tmp3_x,xmax=self.tmp4_x)
-            #    self.zijplot.set_ylim(ymin=self.tmp4_y,ymax=self.tmp3_y)
-            #elif delta_x < 0.05 and delta_y < 0.05:
-            #    return
-            #else:
-            #    self.zijplot.set_xlim(xmin=self.zij_xlim_initial[0],xmax=self.zij_xlim_initial[1])
-            #    self.zijplot.set_ylim(ymin=self.zij_ylim_initial[0],ymax=self.zij_ylim_initial[1])
-            #self.canvas1.draw()
+
+            self.canvas1.draw()
         else:
             return
 
@@ -2458,7 +2445,7 @@ class Zeq_GUI(wx.Frame):
                     new_fit_tmin = self.Data[self.s]['zijdblock_steps'][fit_min]
                     new_fit_tmax = self.Data[self.s]['zijdblock_steps'][fit_max]
                     new_fit_color = self.colors[(int(next_fit)-1) % len(self.colors)]
-                    new_fit = Fit(new_fit_name, new_fit_number, new_fit_tmin, new_fit_tmax, new_fit_color, self)
+                    new_fit = Fit(new_fit_name, new_fit_tmin, new_fit_tmax, new_fit_color, self)
                     self.pmag_results_data['specimens'][self.s].append(new_fit)
                     PCA_type=self.PCA_type_box.GetValue()
                     if PCA_type=="line":calculation_type="DE-BFL"
@@ -4903,7 +4890,7 @@ class Zeq_GUI(wx.Frame):
         if not (self.s in self.pmag_results_data['specimens'].keys()):
             self.pmag_results_data['specimens'][self.s] = []
         next_fit = str(len(self.pmag_results_data['specimens'][self.s]) + 1)
-        self.pmag_results_data['specimens'][self.s].append(Fit('Fit ' + next_fit, int(next_fit)-1, None, None, self.colors[(int(next_fit)-1) % len(self.colors)], self))
+        self.pmag_results_data['specimens'][self.s].append(Fit('Fit ' + next_fit, None, None, self.colors[(int(next_fit)-1) % len(self.colors)], self))
 #        print("New Fit for sample: " + str(self.s) + '\n' + reduce(lambda x,y: x+'\n'+y, map(str,self.pmag_results_data['specimens'][self.s]['fits'])))
         self.new_fit()
 
@@ -5039,18 +5026,16 @@ class SaveMyPlot(wx.Frame):
 
 class Fit():
 
-    def __init__(self, name, num, tmax, tmin, color, GUI):
+    def __init__(self, name, tmax, tmin, color, GUI):
         """
         The Data Structure that represents an interpertation
         @param: name -> the name of the fit as it will be displayed to the user
-        @param: num -> the number of fits in exsistance upon creation of this fits (depriciated)
         @param: tmax -> the upper bound of the fit
         @param: tmin -> the lower bound of the fit
         @param: color -> the color of the fit when it is graphed
         @param: GUI -> the Zeq_GUI on which this fit is drawn
         """
         self.name = name
-        self.num = num
         self.tmax = tmax
         self.tmin = tmin
         self.color = color
@@ -5148,8 +5133,8 @@ class Fit():
         Readable printing method for fit to turn it into a string
         @return: string representing fit
         """
-        try: return self.name + ", " + str(self.num) + ": \n" + "Tmax = " + self.tmax + ", Tmin = " + self.tmin + "\n" + "Color = " + self.color
-        except: return self.name + ", " + str(self.num) + ": \n" + " Color = " + self.color
+        try: return self.name + ": \n" + "Tmax = " + self.tmax + ", Tmin = " + self.tmin + "\n" + "Color = " + self.color
+        except: return self.name + ": \n" + " Color = " + self.color
 
 #--------------------------------------------------------------    
 # Run the GUI
