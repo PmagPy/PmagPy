@@ -66,6 +66,12 @@ class TestMagicGrid(unittest.TestCase):
         self.assertEqual('whiskey', self.grid.row_labels[2])
 
     def test_add_col(self):
+        print '------'
+        print 'doing test_add_col'
+        for col in self.grid.GetNumberCols():
+            print "self.grid.GetColLabelValue(col)", self.grid.GetColLabelValue(col)
+        for row in self.grid.GetNumberRows():
+            print "self.grid.GetCellValue(row, 0)", self.grid.GetCellValue(row, 0)
         label = 'new_label'
         self.grid.add_col(label)
         cols = self.grid.GetNumberCols()
@@ -73,6 +79,12 @@ class TestMagicGrid(unittest.TestCase):
         self.assertEqual(label, self.grid.col_labels[-1])
 
     def test_remove_col(self):
+        print '------'
+        print 'doing test_remove_col'
+        for col in self.grid.GetNumberCols():
+            print "self.grid.GetColLabelValue(col)", self.grid.GetColLabelValue(col)
+        for row in self.grid.GetNumberRows():
+            print "self.grid.GetCellValue(row, 0)", self.grid.GetCellValue(row, 0)
         num_cols = self.grid.GetNumberCols()
         self.grid.remove_col(2)
         new_num_cols = self.grid.GetNumberCols()
