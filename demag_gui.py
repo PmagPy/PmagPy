@@ -901,7 +901,8 @@ class Zeq_GUI(wx.Frame):
                 break
         if index != None:
             disp_fit_name = self.mean_fit_box.GetValue()
-            disp_fit_index = map(lambda x: x.name, self.pmag_results_data['specimens'][self.s]).index(disp_fit_name)
+            if disp_fit_name!="All":
+                disp_fit_index = map(lambda x: x.name, self.pmag_results_data['specimens'][self.s]).index(disp_fit_name)
             for i,specimen in enumerate(self.specimens):
                 if disp_fit_name=="All":
                     l = len(self.pmag_results_data['specimens'][specimen])
@@ -2342,6 +2343,7 @@ class Zeq_GUI(wx.Frame):
                 self.zijplot.set_ylim(ymin=self.zij_ylim_initial[0],ymax=self.zij_ylim_initial[1])
         
             # Equal Area plot
+            self.toolbar2.home()
             if pars['calculation_type']!='DE-BFP':
                 CART=pmag.dir2cart([pars['specimen_dec'],pars['specimen_inc'],1])    
                 x=CART[0]
@@ -2785,6 +2787,7 @@ class Zeq_GUI(wx.Frame):
     def plot_higher_levels_data(self):
        #print " plot_higher_levels_data" 
        
+       self.toolbar4.home()
        high_level=self.level_box.GetValue() 
        self.UPPER_LEVEL_NAME=self.level_names.GetValue() 
        self.UPPER_LEVEL_SHOW=self.show_box.GetValue() 
