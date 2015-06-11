@@ -33,7 +33,12 @@ class MainFrame(wx.Frame):
         self.main_sizer = wx.BoxSizer(wx.VERTICAL)
         self.ErMagic = ErMagicBuilder.ErMagicBuilder(self.WD)#,self.Data,self.Data_hierarchy)
         self.ErMagic.init_default_headers()
-        self.grid = self.make_loc_grid()
+
+        # have this set in a more reasonable way
+        self.grid_type = 'er_specimens'
+        self.grid_headers = {'er_specimens': [self.ErMagic.er_specimens_header, self.ErMagic.er_specimens_reqd_header, self.ErMagic.er_specimens_optional_header], 'er_samples': [self.ErMagic.er_samples_header, self.ErMagic.er_samples_reqd_header, self.ErMagic.er_samples_optional_header]}
+
+        self.grid = self.make_grid()
 
         self.grid.InitUI()
         self.add_col_button = wx.Button(self.panel, label="Add additional column")
@@ -84,21 +89,27 @@ class MainFrame(wx.Frame):
         if it is not, delete it from grid
         """
         col = event.GetCol()
-        self.grid.remove_col(col)
+        label = self.grid.GetColLabelValue(col)
+        if label in self.grid_headers[self.grid_type][1]:
+            pw.simple_warning("That header is required, and cannot be removed")
+            return False
+        else:
+            self.grid.remove_col(col)
 
-    def make_loc_grid(self):
+    def make_grid(self):
         """
-        return grid for adding locations
+        return grid
         """
-        col_labels = self.ErMagic.er_locations_header
-        grid = pmag_er_magic_dialogs.MagicGrid(self.panel, 'grid_name', ['1'], col_labels)#, (300, 300))
+        header = self.grid_headers[self.grid_type][0]
+        #col_labels = self.ErMagic.er_locations_header
+        grid = pmag_er_magic_dialogs.MagicGrid(self.panel, self.grid_type, [''], header)#, (300, 300))
         return grid
 
     def on_add_col(self, event):
         """
         Show simple dialog that allows user to add a new column name
         """
-        items = ['a', 'b', 'c', 'd']
+        items = self.grid_headers[self.grid_type][2]
         #dia = pw.TextDialog(self, 'column name: ')
         dia = pw.ComboboxDialog(self, 'new column name:', items)
         result = dia.ShowModal()

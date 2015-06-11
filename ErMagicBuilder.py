@@ -72,22 +72,32 @@ class ErMagicBuilder(object):
         initialize default required headers.
         if there were any pre-existing headers, keep them also.
         """
+        self.headers = {}
         data_model = validate_upload.get_data_model()
         # header should contain all required headers, plus any already in the file
         self.er_specimens_reqd_header, self.er_specimens_optional_header = self.get_headers(data_model, 'er_specimens')
         self.er_specimens_header = list(set(self.er_specimens_header).union(self.er_specimens_reqd_header))
+        self.put_list_value_first(self.er_specimens_header, 'er_specimen_name')
+
         self.er_samples_reqd_header, self.er_samples_optional_header = self.get_headers(data_model, 'er_samples')
         self.er_samples_header = list(set(self.er_samples_header).union(self.er_samples_reqd_header))
+        self.put_list_value_first(self.er_samples_header, 'er_sample_name')
+        
         self.er_sites_reqd_header, self.er_sites_optional_header = self.get_headers(data_model, 'er_sites')
         self.er_sites_header = list(set(self.er_sites_header).union(self.er_sites_reqd_header))
+        self.put_list_value_first(self.er_sites_header, 'er_site_name')
+        
         self.er_locations_reqd_header, self.er_locations_optional_header = self.get_headers(data_model, 'er_locations')
         self.er_locations_header = list(set(self.er_locations_header).union(self.er_locations_reqd_header))
+        self.put_list_value_first(self.er_locations_header, 'er_location_name')
+        
         self.er_ages_reqd_header, self.er_ages_optional_header = self.get_headers(data_model, 'er_ages')
         self.er_ages_header = list(set(self.er_ages_header).union(self.er_ages_reqd_header))
         age_headers = ['er_site_name', 'age', 'age_description', 'magic_method_codes', 'age_unit']
         for header in age_headers:
             if header not in self.er_ages_header:
                 self.er_ages_header.append(header)
+        self.put_list_value_first(self.er_ages_header, 'er_site_name')
 
 
     def read_MagIC_info(self):
@@ -545,8 +555,8 @@ class ErMagicBuilder(object):
 
     def get_headers(self, data_model, data_type):
         data_dict = data_model[data_type]
-        reqd_headers = [header for header in data_dict.keys() if data_dict[header]['data_status'] == 'Required']
-        optional_headers = [header for header in data_dict.keys() if data_dict[header]['data_status'] != 'Required']
+        reqd_headers = sorted([header for header in data_dict.keys() if data_dict[header]['data_status'] == 'Required'])
+        optional_headers = sorted([header for header in data_dict.keys() if data_dict[header]['data_status'] != 'Required'])
         return reqd_headers, optional_headers
         
     
@@ -571,6 +581,11 @@ class ErMagicBuilder(object):
             except KeyError:
                 combined_data_dict[k] = old_dict[k]
         return combined_data_dict
+
+    def put_list_value_first(self, lst, first_value):
+        lst.remove(first_value)
+        lst[:0] = [first_value]
+
 
 
     ### Re-write magic files methods ###
