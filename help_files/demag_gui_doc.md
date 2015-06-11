@@ -37,6 +37,10 @@ Specimen data for a fit can be seen in the upper center of the GUI in a large bo
 
 You can set acceptance criteria to a pmag_criteria table by using Analysis/"Acceptance Criteria"/"Change Acceptance Criteria". If any measurement steps are bad you can flag them as such by right clicking on the list of measurement steps to the left of the GUI. If you flag a step bad that you would later like to restore you can simply right click on it again and it will be flagged as good again.
 
+###Plot Interface
+
+The 4 plots that take up the majority of the center of the GUI are where you will see your data and interpertations displayed. In addition they have a new and somewhat unintuitive interface which likely needs explination. The zijderveld and the 2 equal area plots are by default set to zoom when you left click and drag your left mouse button you will zoom to the dragged out rectangle (currently equal area plots do not draw this rectangle as you drag your mouse but still zoom). On the zijderveld plot it is possible to switch between zoom and pan functionallity by right clicking, once in pan mode the mouse will turn into a hand allowing you then to click and move around the plot. On both the zijderveld and equal area plots if you wish to return to the origional plot simply click the middle mouse button (in the absence of a middle button pressing both right and left mouse buttons at the same time does the same thing) to return to home position. Lastly when mousing over the equal areas if you end up over the top of a interpertation plotted there you can double click on it to switch the specimen and current interpertation to the clicked interpertation.
+
 ###Saving Specimen Interpretations
 
 Once you have picked out your interpertations you can save the session data in two different ways a .redo file or pmag tables. In addition you may save image files of the plots.

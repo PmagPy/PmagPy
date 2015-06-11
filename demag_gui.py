@@ -243,8 +243,8 @@ class Zeq_GUI(wx.Frame):
         self.zijderveld_setting = "Zoom"
         self.toolbar1.zoom()
         self.canvas1.Bind(wx.EVT_RIGHT_DOWN,self.right_click_zijderveld)
-        self.canvas1.Bind(wx.EVT_LEFT_DCLICK,self.home_zijderveld)
-#        self.canvas1.Bind(wx.EVT_RIGHT_DCLICK,self.pick_bounds)
+        self.canvas1.Bind(wx.EVT_MIDDLE_DOWN,self.home_zijderveld)
+#        self.canvas1.Bind(wx.EVT_LEFT_DCLICK,self.pick_bounds)
         #self.fig1.text(0.01,0.98,"Zijderveld plot",{'family':'Arial', 'fontsize':10*self.GUI_RESOLUTION, 'style':'normal','va':'center', 'ha':'left' })
         
         self.fig2 = Figure((2.5*self.GUI_RESOLUTION, 2.5*self.GUI_RESOLUTION), dpi=self.dpi)
@@ -258,9 +258,11 @@ class Zeq_GUI(wx.Frame):
         self.toolbar2 = NavigationToolbar(self.canvas2)
         self.toolbar2.Hide()
         self.toolbar2.zoom()
+        self.specimen_EA_setting = "Zoom"
         self.canvas2.Bind(wx.EVT_LEFT_DCLICK,self.on_equalarea_specimen_select)
+        self.canvas2.Bind(wx.EVT_RIGHT_DOWN,self.right_click_specimen_equalarea)
         self.canvas2.Bind(wx.EVT_MOTION,self.on_change_specimen_mouse_cursor)
-        self.canvas2.Bind(wx.EVT_RIGHT_DCLICK,self.home_specimen_equalarea)
+        self.canvas2.Bind(wx.EVT_MIDDLE_DOWN,self.home_specimen_equalarea)
         self.specimen_EA_xdata = []
         self.specimen_EA_ydata = []
 
@@ -272,9 +274,11 @@ class Zeq_GUI(wx.Frame):
         self.toolbar4 = NavigationToolbar(self.canvas4)
         self.toolbar4.Hide()
         self.toolbar4.zoom()
+        self.higher_EA_setting = "Zoom"
         self.canvas4.Bind(wx.EVT_LEFT_DCLICK,self.on_equalarea_higher_select)
+        self.canvas4.Bind(wx.EVT_RIGHT_DOWN,self.right_click_higher_equalarea)
         self.canvas4.Bind(wx.EVT_MOTION,self.on_change_higher_mouse_cursor)
-        self.canvas4.Bind(wx.EVT_RIGHT_DCLICK,self.home_higher_equalarea)
+        self.canvas4.Bind(wx.EVT_MIDDLE_DOWN,self.home_higher_equalarea)
         self.old_pos = None
         self.higher_EA_xdata = []
         self.higher_EA_ydata = []
@@ -652,7 +656,7 @@ class Zeq_GUI(wx.Frame):
         @param: event -> the wx.MouseEvent that triggered the call of this function
         @alters: zijderveld_setting, toolbar1 setting
         """
-        if event.LeftIsDown():
+        if event.LeftIsDown() or event.ButtonDClick():
             return
         elif self.zijderveld_setting == "Zoom":
             self.zijderveld_setting = "Pan"
@@ -718,6 +722,23 @@ class Zeq_GUI(wx.Frame):
             self.OnClick_listctrl(dumby_event)
         self.zoom(event)
 
+    def right_click_specimen_equalarea(self,event):
+        """
+        toggles between zoom and pan effects for the specimen equal area on right click
+        @param: event -> the wx.MouseEvent that triggered the call of this function
+        @alters: specimen_EA_setting, toolbar2 setting
+        """
+        if event.LeftIsDown() or event.ButtonDClick():
+            return
+#        elif self.specimen_EA_setting == "Zoom":
+#            self.specimen_EA_setting = "Pan"
+#            try: self.toolbar2.pan('off')
+#            except TypeError: pass
+#        elif self.specimen_EA_setting == "Pan":
+#            self.specimen_EA_setting = "Zoom"
+#            try: self.toolbar2.zoom()
+#            except TypeError: pass
+
     def home_specimen_equalarea(self,event):
         """
         returns the equal specimen area plot to it's original position
@@ -742,7 +763,15 @@ class Zeq_GUI(wx.Frame):
         ydata = self.specimen_EA_ydata
         e = 5e-2
 
-        self.canvas2.SetCursor(wx.StockCursor(wx.CURSOR_ARROW))
+#        if event.LeftIsDown(): # and self.old_pos==None:
+#            self.toolbar2.draw_rubberband(event)
+
+        if self.specimen_EA_setting == "Zoom":
+            self.canvas2.SetCursor(wx.StockCursor(wx.CURSOR_CROSS))
+        elif self.specimen_EA_setting == "Pan":
+            self.canvas2.SetCursor(wx.StockCursor(wx.CURSOR_HAND))
+        else:
+            self.canvas2.SetCursor(wx.StockCursor(wx.CURSOR_ARROW))
         for i,(x,y) in enumerate(zip(xdata,ydata)):
             if 0 < numpy.sqrt((x-xpick_data)**2. + (y-ypick_data)**2.) < e:
                 self.canvas2.SetCursor(wx.StockCursor(wx.CURSOR_HAND))
@@ -775,6 +804,23 @@ class Zeq_GUI(wx.Frame):
             self.fit_box.SetSelection(index)
             self.on_select_fit(event)
 
+    def right_click_higher_equalarea(self,event):
+        """
+        toggles between zoom and pan effects for the higher equal area on right click
+        @param: event -> the wx.MouseEvent that triggered the call of this function
+        @alters: higher_EA_setting, toolbar4 setting
+        """
+        if event.LeftIsDown():
+            return
+#        elif self.higher_EA_setting == "Zoom":
+#            self.higher_EA_setting = "Pan"
+#            try: self.toolbar4.pan('off')
+#            except TypeError: pass
+#        elif self.higher_EA_setting == "Pan":
+#            self.higher_EA_setting = "Zoom"
+#            try: self.toolbar4.zoom()
+#            except TypeError: pass
+
     def home_higher_equalarea(self,event):
         """
         returns higher equal area to it's original position
@@ -788,7 +834,6 @@ class Zeq_GUI(wx.Frame):
         If mouse is over data point making it selectable change the shape of the cursor
         @param: event -> the wx Mouseevent for that click
         """
-        if not self.higher_EA_xdata or not self.higher_EA_ydata: return
         pos=event.GetPosition()
         width, height = self.canvas4.get_width_height()
         pos[1] = height - pos[1]
@@ -799,6 +844,7 @@ class Zeq_GUI(wx.Frame):
         ydata = self.higher_EA_ydata
         e = 5e-2
 
+        #prelimenary rectangle drawing mechanism for the zoom feature (not currently opperational)
 #        if event.LeftIsDown() and self.old_pos==None:
 #            self.old_pos = event.GetPosition()
 #            inv = self.high_level_eqarea.transData.inverted()
@@ -807,6 +853,9 @@ class Zeq_GUI(wx.Frame):
 #        elif not event.LeftIsDown() and self.old_pos!=None:
 #            self.old_pos = None
 #        if self.old_pos!=None:
+#            mat_event = matplotlib.backend_bases.MouseEvent('motion_notify_event',self.canvas4,xpick_data,ypick_data,guiEvent=event)
+#            self.toolbar4.draw_rubberband(mat_event, self.old_pos[0], self.old_pos[1], xpick_data, ypick_data)
+#            self.canvas4.draw()
 #            print("is doing stuff")
 #            print(array(self.old_pos[0],self.old_pos[1]),array(self.old_pos[0],ydata))
 #            self.high_level_eqarea.plot(ndarray(self.old_pos),ndarray(self.old_pos[0],ydata),'k-')
@@ -815,7 +864,13 @@ class Zeq_GUI(wx.Frame):
 #            self.high_level_eqarea.plot(ndarray(self.old_pos[0],ydata),ndarray(xdata,ydata),'k-')
 #            self.canvas4.draw()
 
-        self.canvas4.SetCursor(wx.StockCursor(wx.CURSOR_ARROW))
+        if self.higher_EA_setting == "Zoom":
+            self.canvas4.SetCursor(wx.StockCursor(wx.CURSOR_CROSS))
+        elif self.higher_EA_setting == "Pan":
+            self.canvas4.SetCursor(wx.StockCursor(wx.CURSOR_WATCH))
+        else:
+            self.canvas4.SetCursor(wx.StockCursor(wx.CURSOR_ARROW))
+        if not self.higher_EA_xdata or not self.higher_EA_ydata: return
         for i,(x,y) in enumerate(zip(xdata,ydata)):
             if 0 < numpy.sqrt((x-xpick_data)**2. + (y-ypick_data)**2.) < e:
                 self.canvas4.SetCursor(wx.StockCursor(wx.CURSOR_HAND))
@@ -826,7 +881,7 @@ class Zeq_GUI(wx.Frame):
         Get mouse position on double click find the nearest interpertation to the mouse 
         position then select that interpertation
         @param: event -> the wx Mouseevent for that click
-        @alters: current_fit, s
+        @alters: current_fit, s, mean_fit, fit_box selection, mean_fit_box selection, specimens_box selection, tmin_box selection, tmax_box selection, 
         """
         if not self.higher_EA_xdata or not self.higher_EA_ydata: return
         pos=event.GetPosition()
@@ -845,15 +900,34 @@ class Zeq_GUI(wx.Frame):
                 index = i
                 break
         if index != None:
+            disp_fit_name = self.mean_fit_box.GetValue()
+            disp_fit_index = map(lambda x: x.name, self.pmag_results_data['specimens'][self.s]).index(disp_fit_name)
             for i,specimen in enumerate(self.specimens):
-                if index < len(self.pmag_results_data['specimens'][specimen]):
+                if disp_fit_name=="All":
+                    l = len(self.pmag_results_data['specimens'][specimen])
+                else:
+                    try: 
+                        if self.pmag_results_data['specimens'][specimen][disp_fit_index] in self.bad_fits:
+                            l = 0
+                        else:
+                            l = len([self.pmag_results_data['specimens'][specimen][disp_fit_index]])
+                    except IndexError: l = 0
+                if index < l:
                     self.s = specimen
                     self.specimens_box.SetSelection(i)
                     self.onSelect_specimen(event)
+                    if disp_fit_name == "All":
+                        new_fit_index = index
+                    else:
+                        new_fit_index = disp_fit_index
                     break
-                index -= len(self.pmag_results_data['specimens'][specimen])
-            self.fit_box.SetSelection(index)
+                index -= l
+            self.fit_box.SetSelection(new_fit_index)
             self.on_select_fit(event)
+            if disp_fit_name!="All":
+                self.mean_fit = self.current_fit.name
+                self.mean_fit_box.SetSelection(2+new_fit_index)
+                self.update_selection()
 
     def Zij_zoom(self):
         #cursur_entry_zij=self.canvas1.mpl_connect('axes_enter_event', self.on_enter_zij_fig_new) 
