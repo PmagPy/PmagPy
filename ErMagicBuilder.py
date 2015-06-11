@@ -1,6 +1,6 @@
 #!/usr/bin/env pythonw
 
-# pylint: disable=W0612,C0111
+# pylint: disable=W0612,C0111,C0103
 
 #============================================================================================
 # LOG HEADER:
@@ -16,14 +16,8 @@ import validate_upload
 
 #from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigCanvas \
 import os
-#import sys,pylab,scipy,os
-#import pmag
-#import time
 import wx
-import wx.html
 import wx.grid
-import pmag
-import copy
 
 #from pylab import *
 #from scipy.optimize import curve_fit
@@ -73,12 +67,6 @@ class ErMagicBuilder(object):
     def __repr__(self):
         return "working directory: {}\nspecimens: {}\nsamples: {}\nsites: {}\nlocations: {}".format(self.WD, self.data_er_specimens.keys(), self.data_er_samples.keys(), self.data_er_sites.keys(), self.data_er_locations.keys())
 
-    def get_headers(self, data_model, data_type):
-        data_dict = data_model[data_type]
-        reqd_headers = [header for header in data_dict.keys() if data_dict[header]['data_status'] == 'Required']
-        optional_headers = [header for header in data_dict.keys() if data_dict[header]['data_status'] != 'Required']
-        return reqd_headers, optional_headers
-        
     def init_default_headers(self):
         """
         initialize default required headers.
@@ -88,7 +76,7 @@ class ErMagicBuilder(object):
         # header should contain all required headers, plus any already in the file
         self.er_specimens_reqd_header, self.er_specimens_optional_header = self.get_headers(data_model, 'er_specimens')
         self.er_specimens_header = list(set(self.er_specimens_header).union(self.er_specimens_reqd_header))
-        self.er_samples_reqd_header, self.er_specimens_optional_header = self.get_headers(data_model, 'er_samples')
+        self.er_samples_reqd_header, self.er_samples_optional_header = self.get_headers(data_model, 'er_samples')
         self.er_samples_header = list(set(self.er_samples_header).union(self.er_samples_reqd_header))
         self.er_sites_reqd_header, self.er_sites_optional_header = self.get_headers(data_model, 'er_sites')
         self.er_sites_header = list(set(self.er_sites_header).union(self.er_sites_reqd_header))
@@ -96,7 +84,10 @@ class ErMagicBuilder(object):
         self.er_locations_header = list(set(self.er_locations_header).union(self.er_locations_reqd_header))
         self.er_ages_reqd_header, self.er_ages_optional_header = self.get_headers(data_model, 'er_ages')
         self.er_ages_header = list(set(self.er_ages_header).union(self.er_ages_reqd_header))
-        self.er_ages_header.extend(['er_site_name', 'age', 'age_description', 'magic_method_codes', 'age_unit'])
+        age_headers = ['er_site_name', 'age', 'age_description', 'magic_method_codes', 'age_unit']
+        for header in age_headers:
+            if header not in self.er_ages_header:
+                self.er_ages_header.append(header)
 
 
     def read_MagIC_info(self):
@@ -172,11 +163,11 @@ class ErMagicBuilder(object):
                 else:
                     tmp_data[header[i]]=""
             if sort_by_this_name=="by_line_number":
-              DATA[counter]=tmp_data
-              counter+=1
+                DATA[counter]=tmp_data
+                counter+=1
             else:
-              if tmp_data[sort_by_this_name]!="":  
-                DATA[tmp_data[sort_by_this_name]] = tmp_data
+                if tmp_data[sort_by_this_name] != "":  
+                    DATA[tmp_data[sort_by_this_name]] = tmp_data
         fin.close()
         return DATA, header
 
@@ -306,6 +297,8 @@ class ErMagicBuilder(object):
         if update=='all' or 'measurements' in update:
             self.do_magic_measurements()
 
+    ### Methods for adding/moving/restructuring the data ###
+            
     def add_specimen(self, new_specimen_name, sample_name, specimen_data={}):
         if not sample_name in self.data_er_samples.keys():
             raise Exception("You must provide a sample that already exists.\nIf necessary, add a new sample first, then add this specimen.")
@@ -345,16 +338,6 @@ class ErMagicBuilder(object):
         default_data = {key: '' for key in self.er_locations_header}
         combined_loc_data = self.combine_dicts(loc_data, default_data)
         self.data_er_locations[new_location_name] = combined_loc_data
-
-
-    #def combine_dicts(self, new_dict, old_dict):
-    #    """
-    #    returns a dictionary with all key, value pairs from new_dict.
-    #    also returns key, value pairs from old_dict, if that key does not exist in new_dict.
-    #    if a key is present in both new_dict and old_dict, the new_dict value will take precedence.
-    #    """
-
-            
 
     def change_specimen(self, new_specimen_name, old_specimen_name, new_specimen_data=None):
         """
@@ -497,7 +480,6 @@ class ErMagicBuilder(object):
                 for spec in specimens:
                     self.Data_hierarchy['location_of_specimen'][spec] = new_location
                     self.data_er_specimens[spec]['er_location_name'] = new_location
-            
 
         # fix site name in er_ages, if applicable
         if old_site_name in self.data_er_ages.keys():
@@ -516,13 +498,8 @@ class ErMagicBuilder(object):
             combined_age_data = self.combine_dicts(new_age_data, old_age_data)
             self.data_er_ages[new_name] = combined_age_data
         
-        
-
-
-        
             
     def change_location(self, new_location_name, old_location_name, new_location_data=None):
-
         # locations
         sites = self.change_dict_key(self.Data_hierarchy['locations'], new_location_name, old_location_name)
 
@@ -563,8 +540,16 @@ class ErMagicBuilder(object):
             combined_data = self.combine_dicts(new_location_data, old_location_data)
             self.data_er_locations[new_location_name] = combined_data
 
-            
 
+    ### Helper methods ###
+
+    def get_headers(self, data_model, data_type):
+        data_dict = data_model[data_type]
+        reqd_headers = [header for header in data_dict.keys() if data_dict[header]['data_status'] == 'Required']
+        optional_headers = [header for header in data_dict.keys() if data_dict[header]['data_status'] != 'Required']
+        return reqd_headers, optional_headers
+        
+    
     def change_dict_key(self, dictionary, new_key, old_key):
         old_value = dictionary.pop(old_key)
         dictionary[new_key] = old_value
@@ -588,9 +573,8 @@ class ErMagicBuilder(object):
         return combined_data_dict
 
 
-        
-        
-
+    ### Re-write magic files methods ###
+    
     def do_magic_measurements(self):
         """
         rewrite magic_measurements.txt file based on info in self.er_specimens, self.er_samples, self.er_sites, and self.er_locations
@@ -653,7 +637,6 @@ class ErMagicBuilder(object):
         os.remove(os.path.join(self.WD, "magic_measurements.txt"))
         os.rename(os.path.join(self.WD, "magic_measurements.new.tmp.txt"),os.path.join(self.WD, "magic_measurements.txt"))
 
-        
     def do_er_specimens(self):
         """
         rewrite er_specimens.txt file based on info in self.Data_hierarchy, self.data_er_specimens, and self.data_er_samples
@@ -661,9 +644,9 @@ class ErMagicBuilder(object):
         # header
         er_specimens_file = open(os.path.join(self.WD, "er_specimens.txt"),'w')
         er_specimens_file.write("tab\ter_specimens\n")
-        string=""
+        string = ""
         for key in self.er_specimens_header:
-            string = string+key+"\t"
+            string = string + key + "\t"
         er_specimens_file.write(string[:-1]+"\n")
 
         specimens_list = self.Data_hierarchy['sample_of_specimen'].keys()
@@ -671,55 +654,48 @@ class ErMagicBuilder(object):
         #print "number of specimens", len(specimens_list)
         
         for specimen in specimens_list:
-          if  specimen in self.data_er_specimens.keys() and  "er_sample_name" in self.data_er_specimens[specimen].keys() and self.data_er_specimens[specimen]["er_sample_name"] != "":
-                sample=self.data_er_specimens[specimen]["er_sample_name"]   
-          else:
-              sample=self.Data_hierarchy['sample_of_specimen'][specimen]
-          string = ""
-          for key in self.er_specimens_header:
-            if key=="er_citation_names":
-              string = string + "This study" + "\t"
-            elif key == "er_specimen_name":
-              string = string + specimen + "\t"
-            elif key == "er_sample_name":
-            # take sample name from existing 
-                string = string + sample + "\t"
-            # try to take site and location name from er_sample table 
-            # if not: take it from hierachy dictionary                    
-            elif key in ['er_location_name']:
-                if sample in self.data_er_samples.keys() and key in self.data_er_samples[sample].keys():
-                    string = string + self.data_er_samples[sample][key] + "\t"
-                else:
-                    string = string + self.Data_hierarchy['location_of_specimen'][specimen] + "\t"
-            elif key in ['er_site_name']:
-                if sample in self.data_er_samples.keys() and key in self.data_er_samples[sample].keys():
-                    string = string + self.data_er_samples[sample][key] + "\t"
-                else:
-                    string = string + self.Data_hierarchy['site_of_specimen'][specimen] + "\t"
-
-            elif key in ['specimen_class','specimen_lithology','specimen_type']:
-              sample_key="sample_"+key.split('specimen_')[1]
-              if (sample in self.data_er_samples.keys() and sample_key in self.data_er_samples[sample] and self.data_er_samples[sample][sample_key]!=""):
-                string=string+self.data_er_samples[sample][sample_key]+"\t"
-                continue
-              else:
-                  string=string+"\t"
-              
-              #sample_key="sample_"+key.split('specimen_')[1]
-              #if 'er_site_name' in self.data_er_samples[sample].keys() and self.data_er_samples[sample]['er_site_name']!="":
-              #  site=self.data_er_samples[sample]['er_site_name']
-              #site_key="site_"+key.split('specimen_')[1]                
-              #if (sample in self.data_er_samples.keys() and sample_key in self.data_er_samples[sample] and self.data_er_samples[sample][sample_key]!=""):
-              #  string=string+self.data_er_samples[sample][sample_key]+"\t"
-              #elif (site in self.data_er_sites.keys() and site_key in self.data_er_sites[site] and self.data_er_sites[site][site_key]!=""):
-              #  string=string+self.data_er_samples[sample][sample_key]+"\t"
-                
-            # take information from the existing er_samples table             
-            elif specimen in self.data_er_specimens.keys() and key in self.data_er_specimens[specimen].keys() and self.data_er_specimens[specimen][key]!="":
-                string = string + self.data_er_specimens[specimen][key]+"\t"
+            if specimen in self.data_er_specimens.keys() and  "er_sample_name" in self.data_er_specimens[specimen].keys() and self.data_er_specimens[specimen]["er_sample_name"] != "":
+                sample = self.data_er_specimens[specimen]["er_sample_name"]   
             else:
-              string = string+"\t"
-          er_specimens_file.write(string[:-1]+"\n")
+                sample = self.Data_hierarchy['sample_of_specimen'][specimen]
+            string = ""
+            for key in self.er_specimens_header:
+                if key=="er_citation_names":
+                    string = string + "This study" + "\t"
+                elif key == "er_specimen_name":
+                    string = string + specimen + "\t"
+                elif key == "er_sample_name":
+                # take sample name from existing 
+                    string = string + sample + "\t"
+                # try to take site and location name from er_sample table 
+                # if not: take it from hierachy dictionary                    
+                elif key in ['er_location_name']:
+                    if sample in self.data_er_samples.keys() and key in self.data_er_samples[sample].keys():
+                        string = string + self.data_er_samples[sample][key] + "\t"
+                    else:
+                        string = string + self.Data_hierarchy['location_of_specimen'][specimen] + "\t"
+                elif key in ['er_site_name']:
+                    if sample in self.data_er_samples.keys() and key in self.data_er_samples[sample].keys():
+                        string = string + self.data_er_samples[sample][key] + "\t"
+                    else:
+                        string = string + self.Data_hierarchy['site_of_specimen'][specimen] + "\t"
+
+                elif key in ['specimen_class','specimen_lithology','specimen_type']:
+                    sample_key="sample_"+key.split('specimen_')[1]
+                    if (sample in self.data_er_samples.keys() and sample_key in self.data_er_samples[sample] and self.data_er_samples[sample][sample_key]!=""):
+                        string = string+self.data_er_samples[sample][sample_key]+"\t"
+                        continue
+                    else:
+                        string = string + "\t"
+              
+                # take information from the existing er_samples table
+                
+                elif specimen in self.data_er_specimens.keys() and key in self.data_er_specimens[specimen].keys() and self.data_er_specimens[specimen][key]!="":
+
+                    string = string + self.data_er_specimens[specimen][key] + "\t"
+                else:
+                    string = string+"\t"
+            er_specimens_file.write(string[:-1]+"\n")
         er_specimens_file.close()  
     
     def do_er_samples(self):
@@ -751,7 +727,6 @@ class ErMagicBuilder(object):
 
             string=""
             for key in self.er_samples_header:
-
 
               if key=="er_citation_names":
                 string=string+"This study"+"\t"
@@ -973,12 +948,6 @@ class MagIC_model_builder(wx.Frame):
         self.panel = wx.ScrolledWindow(self)
         self.panel.SetScrollbars(1, 1, 1, 1)
         
-        #self.er_specimens_header = ['er_citation_names','er_specimen_name','er_sample_name','er_site_name','er_location_name','specimen_class','specimen_lithology','specimen_type']
-        #self.er_samples_header=['er_citation_names','er_sample_name','er_site_name','er_location_name','sample_class','sample_lithology','sample_type','sample_lat','sample_lon']
-        #self.er_sites_header=['er_citation_names','er_site_name','er_location_name','site_class','site_lithology','site_type','site_definition','site_lon','site_lat']
-        #self.er_locations_header=['er_citation_names','er_location_name','location_begin_lon','location_end_lon','location_begin_lat','location_end_lat','location_type']
-        #self.er_ages_header=['er_citation_names','er_site_name','er_location_name','age_description','magic_method_codes','age','age_unit']
-        
         os.chdir(WD)
         self.WD = os.getcwd()  
         self.site_lons = []     
@@ -993,65 +962,40 @@ class MagIC_model_builder(wx.Frame):
         self.InitUI()
 
     def InitUI(self):
+        # MAKE THIS PROGRAMMATIC!!!
+        #er_specimens_optional_header = ['er_specimen_alternatives','er_expedition_name','er_formation_name','er_member_name',\
+         #                             'specimen_texture','specimen_alteration','specimen_alteration_type',\
+         #                             'specimen_elevation','specimen_height','specimen_core_depth','specimen_composite_depth','specimen_azimuth','specimen_dip',\
+        #                              'specimen_volume','specimen_weight','specimen_density','specimen_size','specimen_shape','specimen_igsn','specimen_description',\
+        #'magic_method_codes','er_scientist_mail_names']
+        #er_samples_optional_header = ['sample_elevation','er_scientist_mail_names','magic_method_codes','sample_bed_dip','sample_bed_dip_direction','sample_dip',\
+            #'sample_azimuth','sample_declination_correction','sample_orientation_flag','sample_time_zone','sample_date','sample_height',\
+             #                       'sample_location_precision','sample_location_geoid','sample_composite_depth','sample_core_depth','sample_cooling_rate',\
+              #                      'er_sample_alternatives','sample_description','er_member_name','er_expedition_name','er_expedition_name','sample_alteration_type',\
+               #                     'sample_alteration','sample_texture','sample_igsn']
 
-        er_specimens_optional_header = ['er_specimen_alternatives','er_expedition_name','er_formation_name','er_member_name',\
-                                      'specimen_texture','specimen_alteration','specimen_alteration_type',\
-                                      'specimen_elevation','specimen_height','specimen_core_depth','specimen_composite_depth','specimen_azimuth','specimen_dip',\
-                                      'specimen_volume','specimen_weight','specimen_density','specimen_size','specimen_shape','specimen_igsn','specimen_description',\
-                                      'magic_method_codes','er_scientist_mail_names']
-        er_samples_optional_header = ['sample_elevation','er_scientist_mail_names','magic_method_codes','sample_bed_dip','sample_bed_dip_direction','sample_dip',\
-                                    'sample_azimuth','sample_declination_correction','sample_orientation_flag','sample_time_zone','sample_date','sample_height',\
-                                    'sample_location_precision','sample_location_geoid','sample_composite_depth','sample_core_depth','sample_cooling_rate',\
-                                    'er_sample_alternatives','sample_description','er_member_name','er_expedition_name','er_expedition_name','sample_alteration_type',\
-                                    'sample_alteration','sample_texture','sample_igsn']
-
-        er_sites_optional_header = ['site_location_precision','er_scientist_mail_names','magic_method_codes','site_bed_dip','site_bed_dip_direction','site_height',\
-                                  'site_elevation','site_location_geoid','site_composite_depth','site_core_depth','site_cooling_rate','site_description','er_member_name',\
-                                  'er_site_alternatives','er_expedition_name','er_formation_name','site_igsn']
+        #er_sites_optional_header = ['site_location_precision','er_scientist_mail_names','magic_method_codes','site_bed_dip','site_bed_dip_direction','site_height',\
+          #                        'site_elevation','site_location_geoid','site_composite_depth','site_core_depth','site_cooling_rate','site_description','er_member_name',\
+          #                        'er_site_alternatives','er_expedition_name','er_formation_name','site_igsn']
                                 
           
-        er_locations_optional_header=['continent_ocean','location_geoid','location_precision','location_end_elevation','location_begin_elevation','ocean_sea','er_scientist_mail_names',\
-                                      'location_lithology','country','region','village_city','plate_block','terrane','geological_province_section','tectonic_setting',\
-                                      'location_class','location_description','location_url','er_location_alternatives']
+        #er_locations_optional_header=['continent_ocean','location_geoid','location_precision','location_end_elevation','location_begin_elevation','ocean_sea','er_scientist_mail_names',\
+         #                             'location_lithology','country','region','village_city','plate_block','terrane','geological_province_section','tectonic_setting',\
+         #                             'location_class','location_description','location_url','er_location_alternatives']
 
           
-        er_ages_optional_header=['er_timescale_citation_names','age_range_low','age_range_high','age_sigma','age_culture_name','oxygen_stage','astronomical_stage','magnetic_reversal_chron',\
-                                 'er_sample_name','er_specimen_name','er_fossil_name','er_mineral_name','tiepoint_name','tiepoint_height','tiepoint_height_sigma',\
-                                 'tiepoint_elevation','tiepoint_type','timescale_eon','timescale_era','timescale_period','timescale_epoch',\
-                                 'timescale_stage','biostrat_zone','conodont_zone','er_formation_name','er_expedition_name','tiepoint_alternatives',\
-                                 'er_member_name']
+        #er_ages_optional_header=['er_timescale_citation_names','age_range_low','age_range_high','age_sigma','age_culture_name','oxygen_stage','astronomical_stage','magnetic_reversal_chron',\
+        #                         'er_sample_name','er_specimen_name','er_fossil_name','er_mineral_name','tiepoint_name','tiepoint_height','tiepoint_height_sigma',\
+        #                         'tiepoint_elevation','tiepoint_type','timescale_eon','timescale_era','timescale_period','timescale_epoch',\
+        #                         'timescale_stage','biostrat_zone','conodont_zone','er_formation_name','er_expedition_name','tiepoint_alternatives',\
+        #                         'er_member_name']
 
-        if self.data.data_er_specimens:
-            for key in self.data.data_er_specimens[self.data.data_er_specimens.keys()[0]].keys():
-                if key not in self.data.er_specimens_header:
-                    self.data.er_specimens_header.append(key)
-
-        if self.data.data_er_samples:
-            for key in self.data.data_er_samples[self.data.data_er_samples.keys()[0]].keys():
-                if key not in self.data.er_samples_header:
-                    self.data.er_samples_header.append(key)
-
-        if self.data.data_er_sites:
-            for key in self.data.data_er_sites[self.data.data_er_sites.keys()[0]].keys():
-                if key not in self.data.er_sites_header:
-                    self.data.er_sites_header.append(key)
-
-        if self.data.data_er_locations:
-            for key in self.data.data_er_locations[self.data.data_er_locations.keys()[0]].keys():
-                if key not in self.data.er_locations_header:
-                    self.data.er_locations_header.append(key)
-
-        if self.data.data_er_ages:
-            for key in self.data.data_er_ages[self.data.data_er_ages.keys()[0]].keys():
-                if key not in self.data.er_ages_header:
-                    self.data.er_ages_header.append(key)
                   
         pnl1 = self.panel
 
-        table_list=["er_specimens","er_samples","er_sites","er_locations","er_ages"]
-        self.optional_headers = {'er_specimens': er_specimens_optional_header, 'er_samples': er_samples_optional_header, 'er_sites': er_sites_optional_header, 'er_locations': er_locations_optional_header, 'er_ages': er_ages_optional_header}
+        table_list = ["er_specimens", "er_samples", "er_sites", "er_locations", "er_ages"]
+        self.optional_headers = {'er_specimens': self.data.er_specimens_optional_header, 'er_samples': self.data.er_samples_optional_header, 'er_sites': self.data.er_sites_optional_header, 'er_locations': self.data.er_locations_optional_header, 'er_ages': self.data.er_ages_optional_header}
         self.reqd_headers = {'er_specimens': self.data.er_specimens_header, 'er_samples': self.data.er_samples_header, 'er_sites': self.data.er_sites_header, 'er_locations': self.data.er_locations_header, 'er_ages': self.data.er_ages_header}
-        #table_list=["er_specimens"]
         
         box_sizers = []
         self.text_controls = {}
@@ -1066,60 +1010,34 @@ class MagIC_model_builder(wx.Frame):
 
             box_sizer = wx.StaticBoxSizer( wx.StaticBox(self.panel, wx.ID_ANY, table), wx.VERTICAL)
             box_sizers.append(box_sizer)
-            #command = "bSizer%i = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY, '%s' ), wx.VERTICAL )"%(N,table)
-            #exec command
 
             text_control = wx.TextCtrl(self.panel, id=-1, size=(210, 250), style=wx.TE_MULTILINE | wx.TE_READONLY | wx.HSCROLL, name=table)
             self.text_controls[table] = text_control
-            #command="self.%s_info = wx.TextCtrl(self.panel, id=-1, size=(210,250), style=wx.TE_MULTILINE | wx.TE_READONLY | wx.HSCROLL)"%table
-            #exec command
 
             info_option = wx.ListBox(choices=optional_headers, id=-1, name=table, parent=self.panel, size=(200, 250), style=0)
             self.info_options[table] = info_option
-            #command = "self.%s_info_options = wx.ListBox(choices=%s_optional_header, id=-1,name='listBox1', parent=self.panel, size=wx.Size(200, 250), style=0)"%(table,table)
-            #exec command
 
             add_button = wx.Button(self.panel, id=-1, label='add', name=table)
             add_buttons.append(add_button)
-            #command="self.%s_info_add =  wx.Button(self.panel, id=-1, label='add')"%table
-            #exec command
 
             self.Bind(wx.EVT_BUTTON, self.on_add_button, add_button)
-            #command="self.Bind(wx.EVT_BUTTON, self.on_%s_add_button, self.%s_info_add)"%(table,table)
-            #exec command
 
             remove_button = wx.Button(self.panel, id=-1, label='remove', name=table)
-            #command="self.%s_info_remove =  wx.Button(self.panel, id=-1, label='remove')"%table
-            #exec command
 
             self.Bind(wx.EVT_BUTTON, self.on_remove_button, remove_button)
-            #command="self.Bind(wx.EVT_BUTTON, self.on_%s_remove_button, self.%s_info_remove)"%(table,table)
-            #exec command
 
             #------
             box_sizer.Add(wx.StaticText(pnl1, label='{} header list:'.format(table)), wx.ALIGN_TOP)
-            #command="bSizer%i.Add(wx.StaticText(pnl1,label='%s header list:'),wx.ALIGN_TOP)"%(N,table)
-            #exec command
 
             box_sizer.Add(text_control, wx.ALIGN_TOP)
-            #command="bSizer%i.Add(self.%s_info,wx.ALIGN_TOP)"%(N,table)
-            #exec command
 
             box_sizer.Add(wx.StaticText(pnl1, label='{} optional:'.format(table)), flag=wx.ALIGN_TOP|wx.TOP, border=10)
-            #command="bSizer%i.Add(wx.StaticText(pnl1,label='%s optional:'),wx.ALIGN_TOP)"%(N,table)
-            #exec command
 
             box_sizer.Add(info_option, wx.ALIGN_TOP)
-            #command="bSizer%i.Add(self.%s_info_options,wx.ALIGN_TOP)"%(N,table)
-            #exec command
 
             box_sizer.Add(add_button, wx.ALIGN_TOP)
-            #command="bSizer%i.Add(self.%s_info_add,wx.ALIGN_TOP)"%(N,table)
-            #exec command
 
             box_sizer.Add(remove_button, wx.ALIGN_TOP)
-            #command="bSizer%i.Add(self.%s_info_remove,wx.ALIGN_TOP)"%(N,table)
-            #exec command
 
             # need headers 
             self.update_text_box(table, reqd_headers, text_control)
@@ -1146,15 +1064,6 @@ class MagIC_model_builder(wx.Frame):
         for sizer in box_sizers:
             hbox.Add(sizer, flag=wx.ALIGN_LEFT|wx.BOTTOM, border=5)
             hbox.AddSpacer(5)
-        #hbox.Add(bSizer0, flag=wx.ALIGN_LEFT)
-        #hbox.AddSpacer(5)
-        #hbox.Add(bSizer1, flag=wx.ALIGN_LEFT)
-        #hbox.AddSpacer(5)
-        #hbox.Add(bSizer2, flag=wx.ALIGN_LEFT)
-        #hbox.AddSpacer(5)
-        #hbox.Add(bSizer3, flag=wx.ALIGN_LEFT)
-        #hbox.AddSpacer(5)
-        #hbox.Add(bSizer4, flag=wx.ALIGN_LEFT)
         hbox.AddSpacer(5)
 
         text = wx.StaticText(self.panel, label="Step 0:\nChoose the headers for your er_specimens, er_samples, er_sites, er_locations and er_ages text files.\nOnce you have selected all necessary headers, click the OK button to move on to step 1.\nFor more information, click the help button below.")
@@ -1172,53 +1081,16 @@ class MagIC_model_builder(wx.Frame):
 
 
     def update_text_box(self, table, headers_list, text_control):
-        TEXT=""
+        text = ""
         #command="keys=self.%s_header"%table
         #exec command
         for key in headers_list:
-          TEXT=TEXT+key+"\n"
-        TEXT=TEXT[:-1]
-
+          text = text + key + "\n"
+        text = text[:-1]
         text_control.SetValue('')
-        #command="self.%s_info.SetValue('')"%table
-        #exec command
+        text_control.SetValue(text)
 
-        text_control.SetValue(TEXT)
-        #command="self.%s_info.SetValue(TEXT)"%table
-        #exec command
-
-    # unnecessary individual on_add_buttons
-    """
-    def on_er_specimens_add_button(self, event):
-        selName = str(self.er_specimens_info_options.GetStringSelection())
-        if selName not in self.data.er_specimens_header:
-          self.data.er_specimens_header.append(selName)
-        self.update_text_box('er_specimens')
-          
-    def on_er_samples_add_button(self, event):
-        selName = self.er_samples_info_options.GetStringSelection()
-        if selName not in self.data.er_samples_header:
-          self.data.er_samples_header.append(selName)
-        self.update_text_box('er_samples')
-        
-    def on_er_sites_add_button(self, event):
-        selName = self.er_sites_info_options.GetStringSelection()
-        if selName not in self.data.er_sites_header:
-          self.data.er_sites_header.append(selName)
-        self.update_text_box('er_sites')
-        
-    def on_er_locations_add_button(self, event):
-        selName = self.er_locations_info_options.GetStringSelection()
-        if selName not in self.data.er_locations_header:
-          self.data.er_locations_header.append(selName)
-        self.update_text_box('er_locations')
-        
-    def on_er_ages_add_button(self, event):
-        selName = self.er_ages_info_options.GetStringSelection()
-        if selName not in self.data.er_ages_header:
-          self.data.er_ages_header.append(selName)
-        self.update_text_box('er_ages')
-    """
+    ### Button methods ###
 
     def on_add_button(self, event):
         table = event.GetEventObject().Name
@@ -1248,6 +1120,22 @@ class MagIC_model_builder(wx.Frame):
         self.update_ErMagic()
         self.main_frame.init_check_window()
 
+    def on_cancelButton(self,event):
+        self.Destroy()
+
+    def on_helpButton(self, event):
+        #for use on the command line
+        path = check_updates.get_pmag_dir()
+        
+        # for use with pyinstaller:
+        #path = self.Parent.resource_dir
+        
+        html_frame = pw.HtmlFrame(self, page=(os.path.join(path, "help_files", "ErMagicHeadersHelp.html")))
+        html_frame.Center()
+        html_frame.Show()
+
+        
+        
     def update_ErMagic(self, update="all"):
         """check for changes and write (or re-write) er_specimens.txt, er_samples.txt, etc."""
         #print 'doing update ErMagic'
@@ -1323,27 +1211,13 @@ class MagIC_model_builder(wx.Frame):
         #print "done on_ok_Button in ErMagicBuilder"
 
 
-    def on_cancelButton(self,event):
-        self.Destroy()
-
-    def on_helpButton(self, event):
-        #for use on the command line
-        path = check_updates.get_pmag_dir()
-        
-        # for use with pyinstaller:
-        #path = self.Parent.resource_dir
-        
-        html_frame = pw.HtmlFrame(self, page=(os.path.join(path, "help_files", "ErMagicHeadersHelp.html")))
-        html_frame.Center()
-        html_frame.Show()
-
             
 class HtmlWindow(wx.html.HtmlWindow):
     def OnLinkClicked(self, link):
         wx.LaunchDefaultBrowser(link.GetHref())
 
 class MyHtmlPanel(wx.Frame):
-     def __init__(self, parent,HTML):
+    def __init__(self, parent,HTML):
         wx.Frame.__init__(self, parent, wx.ID_ANY, title="Help Window", size=(800,600))
         html = HtmlWindow(self)
         html.LoadPage(HTML)  
