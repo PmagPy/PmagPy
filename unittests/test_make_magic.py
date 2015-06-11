@@ -5,12 +5,12 @@ import make_magic
 
 WD = os.getcwd()
 
-class TestMakeMagicMainFrame(unittest.TestCase):
+class TestMakeMagicGridFrame(unittest.TestCase):
 
     def setUp(self):
         self.app = wx.App()
         #WD = os.path.join(os.getcwd(), 'unittests', 'examples', 'my_project')
-        self.frame = make_magic.MainFrame(WD, "my panel")
+        self.frame = make_magic.GridFrame(WD, "my panel")
         self.pnl = self.frame.GetChildren()[0]
 
     def tearDown(self):

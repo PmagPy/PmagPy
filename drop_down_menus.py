@@ -41,8 +41,6 @@ class Menus(object):
                 map(lambda (x, y): self.grid.SetColLabelValue(x, y), [(3, 'sample_class**'), (4, 'sample_lithology**'), (5, 'sample_type**')])
             elif self.data_type == 'site':
                 map(lambda (x, y): self.grid.SetColLabelValue(x, y), [(3, 'site_class**'), (4, 'site_lithology**'), (5, 'site_type**')])
-            #self.grid.SetColLabelValue(3, 'site_class**')
-            #self.grid.
         if self.data_type == 'site':
             self.choices[6] = (vocab['site_definition'], False)
             self.grid.SetColLabelValue(6, 'site_definition**')
@@ -53,7 +51,7 @@ class Menus(object):
             self.choices = {3: (vocabulary.geochronology_method_codes, False), 5: (vocab['age_unit'], False)}
             map(lambda (x, y): self.grid.SetColLabelValue(x, y), [(3, 'magic_method_codes**'), (5, 'age_unit**')])
         if self.data_type == 'orient':
-            self.choices = {0: (['g', 'b'], False)}
+            self.choices = {1: (['g', 'b'], False)}
         self.window.Bind(wx.grid.EVT_GRID_CELL_LEFT_CLICK, lambda event: self.on_left_click(event, self.grid, self.choices), self.grid) 
         self.window.Bind(wx.grid.EVT_GRID_LABEL_LEFT_CLICK, self.on_label_click, self.grid)
 

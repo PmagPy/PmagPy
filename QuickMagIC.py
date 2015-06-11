@@ -1,4 +1,7 @@
 #!/usr/bin/env pythonw
+
+# pylint: disable=W0612,C0111,C0103,W0201
+
 import wx
 import wx.lib.buttons as buttons
 #import thellier_gui_dialogs
@@ -11,6 +14,7 @@ import ipmag
 import pmag_basic_dialogs
 import pmag_er_magic_dialogs
 import pmag_menu
+import ErMagicBuilder
 #import check_updates
 
 
@@ -38,7 +42,9 @@ class MagMainFrame(wx.Frame):
             self.WD = WD
         self.HtmlIsOpen = False
         self.Bind(wx.EVT_CLOSE, self.on_menu_exit)
-        self.Data, self.Data_hierarchy = {}, {}
+        self.ErMagic_data = ErMagicBuilder.ErMagicBuilder(self.WD)
+        self.ErMagic_data.init_default_headers()
+        #self.Data_hierarchy = {}
 
 
     def InitUI(self):
@@ -231,15 +237,15 @@ class MagMainFrame(wx.Frame):
 
 
     #----------------------------------------------------------------------
-    
+
     #def getFolderBitmap():
     #    img = folder_icon.GetImage().Rescale(50, 50)
     #    return img.ConvertToBitmap()   
-                 
-                  
+
+
     def on_change_dir_button(self, event, show=True):
         currentDirectory = os.getcwd()
-        self.change_dir_dialog = wx.DirDialog(self.panel, "choose directory:",defaultPath = currentDirectory, style=wx.DD_DEFAULT_STYLE | wx.DD_NEW_DIR_BUTTON | wx.DD_CHANGE_DIR)
+        self.change_dir_dialog = wx.DirDialog(self.panel, "choose directory:", defaultPath=currentDirectory, style=wx.DD_DEFAULT_STYLE | wx.DD_NEW_DIR_BUTTON | wx.DD_CHANGE_DIR)
         if show:
             self.on_finish_change_dir(self.change_dir_dialog)
 
@@ -325,70 +331,25 @@ class MagMainFrame(wx.Frame):
             import pmag_widgets as pw
             pw.simple_warning("Your working directory must have a magic_measurements.txt file to run this step.  Make sure you have fully completed step 1 (import magnetometer file), by combining all imported magnetometer files into one magic_measurements file.")
             return False
-        import ErMagicBuilder
-        self.ErMagic = ErMagicBuilder.MagIC_model_builder(self.WD, self)#,self.Data,self.Data_hierarchy)
-        self.ErMagic.Show()
-        self.ErMagic.Center()
+
+        self.ErMagic_frame = ErMagicBuilder.MagIC_model_builder(self.WD, self, self.ErMagic_data)#,self.Data,self.Data_hierarchy)
+        self.ErMagic_frame.Show()
+        self.ErMagic_frame.Center()
 
         size = wx.DisplaySize()
         size = (size[0] - 0.3 * size[0], size[1] - 0.3 * size[1]) # gets total available screen space - 10%
-        self.ErMagic.Raise()
+        self.ErMagic_frame.Raise()
 
     def init_check_window(self):
-        self.check_dia = pmag_er_magic_dialogs.ErMagicCheckFrame(self, 'Check Data', self.WD, self.ErMagic.data)# initiates the object that will control steps 1-6 of checking headers, filling in cell values, etc.
+        self.check_dia = pmag_er_magic_dialogs.ErMagicCheckFrame(self, 'Check Data', self.WD, self.ErMagic_data)# initiates the object that will control steps 1-6 of checking headers, filling in cell values, etc.
 
-
-    def get_data(self):
-        
-        Data = {}
-        Data_hierarchy = {}
-        Data_hierarchy['sites'] = {}
-        Data_hierarchy['samples'] = {}
-        Data_hierarchy['specimens'] = {}
-        Data_hierarchy['sample_of_specimen'] = {}
-        Data_hierarchy['site_of_specimen'] = {}
-        Data_hierarchy['site_of_sample'] = {}
-        try:
-            meas_data, file_type = pmag.magic_read(os.path.join(self.WD, "magic_measurements.txt"))
-        except:
-            print "-E- ERROR: Cant read magic_measurement.txt file. File is corrupted."
-            return {}, {}
-
-        sids = pmag.get_specs(meas_data) # samples ID's
-
-        for s in sids:
-            if s not in Data.keys():
-                Data[s] = {}
-        for rec in meas_data:
-            s = rec["er_specimen_name"]
-            sample = rec["er_sample_name"]
-            site = rec["er_site_name"]
-            if sample not in Data_hierarchy['samples'].keys():
-                Data_hierarchy['samples'][sample] = []
-
-            if site not in Data_hierarchy['sites'].keys():
-                Data_hierarchy['sites'][site] = []
-          
-            if s not in Data_hierarchy['samples'][sample]:
-                Data_hierarchy['samples'][sample].append(s)
-
-            if sample not in Data_hierarchy['sites'][site]:
-                Data_hierarchy['sites'][site].append(sample)
-
-            Data_hierarchy['specimens'][s] = sample
-            Data_hierarchy['sample_of_specimen'][s] = sample
-            Data_hierarchy['site_of_specimen'][s] = site
-            Data_hierarchy['site_of_sample'][sample] = site
-        self.Data = Data
-        self.Data_hierarchy = Data_hierarchy
-        return(Data, Data_hierarchy)
 
     def on_orientation_button(self, event):
         #dw, dh = wx.DisplaySize()
         size = wx.DisplaySize()
         size =(size[0]-0.1 * size[0], size[1]-0.1 * size[1])
-        Data, Data_hierarchy = self.get_data()
-        frame = pmag_basic_dialogs.OrientFrameGrid(self, -1, 'demag_orient.txt', self.WD, Data_hierarchy, size)        
+        #Data_hierarchy = self.get_data()
+        frame = pmag_basic_dialogs.OrientFrameGrid(self, -1, 'demag_orient.txt', self.WD, self.ErMagic_data.Data_hierarchy, size)        
         frame.Show(True)
         frame.Centre()
 

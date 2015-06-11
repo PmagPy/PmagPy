@@ -11,6 +11,7 @@ import sys
 import pmag
 import ipmag
 import pmag_widgets as pw
+import pmag_er_magic_dialogs
 import ErMagicBuilder
 import drop_down_menus
 import check_updates
@@ -2367,7 +2368,7 @@ class something(wx.Frame):
 
 class OrientFrameGrid(wx.Frame):
 
-    def __init__(self,parent,id,title,WD,Data_hierarchy,size):
+    def __init__(self, parent, id, title, WD, Data_hierarchy, size):
         wx.Frame.__init__(self, parent, -1, title, size=size, name='calculate geographic directions')
         
         #--------------------
@@ -2464,8 +2465,8 @@ class OrientFrameGrid(wx.Frame):
         # self.headers is a list of two-item tuples.
         #the first is the proper column name as understood by orientation_magic.py
         # the second is the name for display in the GUI
-        self.headers=[("sample_orientation_flag","sample_orientation_flag"),
-                ("sample_name","sample_name"),
+        self.headers=[("sample_name","sample_name"),
+                ("sample_orientation_flag","sample_orientation_flag"),
                  #"site_name",
                 ("mag_azimuth","mag_azimuth"),
                 ("field_dip","field_dip"),
@@ -2486,12 +2487,12 @@ class OrientFrameGrid(wx.Frame):
         # create the grid
         #--------------------------------
         
-        samples_list=self.orient_data.keys()
+        samples_list = self.orient_data.keys()
         samples_list.sort()
-        self.samples_list = [ sample for sample in samples_list if sample is not "" ] 
-        self.grid = wx.grid.Grid(self.panel, -1)        
-        self.grid.ClearGrid()
-        self.grid.CreateGrid(len(self.samples_list), len(self.headers))
+        self.samples_list = [ sample for sample in samples_list if sample is not "" ]
+        display_headers = [header[1] for header in self.headers]
+        self.grid = pmag_er_magic_dialogs.MagicGrid(self.panel, 'orient grid', self.samples_list, display_headers)
+        self.grid.InitUI()
 
         #--------------------------------
         # color the columns by groups 
@@ -2512,12 +2513,6 @@ class OrientFrameGrid(wx.Frame):
             self.grid.SetCellBackgroundColour(i, 11, "LIGHT MAGENTA")
             self.grid.SetCellBackgroundColour(i, 12, "LIGHT MAGENTA")
         
-        #--------------------------------
-        # fill headers names
-        #--------------------------------
-        
-        for i in range(len(self.headers)):
-            self.grid.SetColLabelValue(i, self.headers[i][1])
 
         #--------------------------------
         # fill data from self.orient_data
@@ -2527,10 +2522,9 @@ class OrientFrameGrid(wx.Frame):
         for sample in self.samples_list:
             for key in self.orient_data[sample].keys():
                 if key in headers:
-                    sample_index=self.samples_list.index(sample)
-                    #i=self.headers.index(key)
-                    i=headers.index(key)
-                    self.grid.SetCellValue(sample_index,i, self.orient_data[sample][key])
+                    sample_index = self.samples_list.index(sample)
+                    i = headers.index(key)
+                    self.grid.SetCellValue(sample_index, i, self.orient_data[sample][key])
                         
         #--------------------------------
 
@@ -2538,17 +2532,18 @@ class OrientFrameGrid(wx.Frame):
         # fill in some default values
         #--------------------------------
         for row in range(self.grid.GetNumberRows()):
-            col = 0
+            col = 1
             if not self.grid.GetCellValue(row, col):
                 self.grid.SetCellValue(row, col, 'g')
 
         #--------------------------------
 
-
+        # temporary trick to get drop-down-menus to work
+        self.grid.changes = {'a'}
+        
         self.grid.AutoSize()
         self.drop_down_menu = drop_down_menus.Menus("orient", self, self.grid, None)
         
-
 
     def update_sheet(self):
         self.grid.Destroy()

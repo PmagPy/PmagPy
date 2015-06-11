@@ -1,6 +1,6 @@
 #!/usr/bin/env pythonw
 
-# pylint: disable=W0612,C0111,C0103
+
 
 #============================================================================================
 # LOG HEADER:
@@ -192,6 +192,7 @@ class ErMagicBuilder(object):
         """
         #print 'calling get_data()'
         #start_time = time.time()
+        
         Data = {}
         Data_hierarchy = {}
         Data_hierarchy['locations'] = {}
@@ -243,7 +244,6 @@ class ErMagicBuilder(object):
             Data_hierarchy['location_of_sample'][sample]=location 
             Data_hierarchy['location_of_site'][site]=location 
 
-        #print 'get_data took:', time.time() - start_time
         return Data_hierarchy
 
 
@@ -953,7 +953,7 @@ class MagIC_model_builder(wx.Frame):
     """"""
  
     #----------------------------------------------------------------------
-    def __init__(self, WD, parent):
+    def __init__(self, WD, parent, ErMagic_data=None):
         SIZE = wx.DisplaySize()
         SIZE = (SIZE[0]-0.05*SIZE[0],SIZE[1]-0.05*SIZE[1])
 
@@ -968,8 +968,12 @@ class MagIC_model_builder(wx.Frame):
         self.site_lons = []     
         self.site_lats = []
 
-        self.data = ErMagicBuilder(self.WD)
-        self.data.init_default_headers()
+        # if ErMagic data object was not passed in, created one based on the working directory
+        if not ErMagic_data:
+            self.data = ErMagicBuilder(self.WD)
+            self.data.init_default_headers()
+        else:
+            self.data = ErMagic_data
         #self.Data_hierarchy = self.get_data()
         #self.read_MagIC_info()
 
@@ -977,35 +981,6 @@ class MagIC_model_builder(wx.Frame):
         self.InitUI()
 
     def InitUI(self):
-        # MAKE THIS PROGRAMMATIC!!!
-        #er_specimens_optional_header = ['er_specimen_alternatives','er_expedition_name','er_formation_name','er_member_name',\
-         #                             'specimen_texture','specimen_alteration','specimen_alteration_type',\
-         #                             'specimen_elevation','specimen_height','specimen_core_depth','specimen_composite_depth','specimen_azimuth','specimen_dip',\
-        #                              'specimen_volume','specimen_weight','specimen_density','specimen_size','specimen_shape','specimen_igsn','specimen_description',\
-        #'magic_method_codes','er_scientist_mail_names']
-        #er_samples_optional_header = ['sample_elevation','er_scientist_mail_names','magic_method_codes','sample_bed_dip','sample_bed_dip_direction','sample_dip',\
-            #'sample_azimuth','sample_declination_correction','sample_orientation_flag','sample_time_zone','sample_date','sample_height',\
-             #                       'sample_location_precision','sample_location_geoid','sample_composite_depth','sample_core_depth','sample_cooling_rate',\
-              #                      'er_sample_alternatives','sample_description','er_member_name','er_expedition_name','er_expedition_name','sample_alteration_type',\
-               #                     'sample_alteration','sample_texture','sample_igsn']
-
-        #er_sites_optional_header = ['site_location_precision','er_scientist_mail_names','magic_method_codes','site_bed_dip','site_bed_dip_direction','site_height',\
-          #                        'site_elevation','site_location_geoid','site_composite_depth','site_core_depth','site_cooling_rate','site_description','er_member_name',\
-          #                        'er_site_alternatives','er_expedition_name','er_formation_name','site_igsn']
-                                
-          
-        #er_locations_optional_header=['continent_ocean','location_geoid','location_precision','location_end_elevation','location_begin_elevation','ocean_sea','er_scientist_mail_names',\
-         #                             'location_lithology','country','region','village_city','plate_block','terrane','geological_province_section','tectonic_setting',\
-         #                             'location_class','location_description','location_url','er_location_alternatives']
-
-          
-        #er_ages_optional_header=['er_timescale_citation_names','age_range_low','age_range_high','age_sigma','age_culture_name','oxygen_stage','astronomical_stage','magnetic_reversal_chron',\
-        #                         'er_sample_name','er_specimen_name','er_fossil_name','er_mineral_name','tiepoint_name','tiepoint_height','tiepoint_height_sigma',\
-        #                         'tiepoint_elevation','tiepoint_type','timescale_eon','timescale_era','timescale_period','timescale_epoch',\
-        #                         'timescale_stage','biostrat_zone','conodont_zone','er_formation_name','er_expedition_name','tiepoint_alternatives',\
-        #                         'er_member_name']
-
-                  
         pnl1 = self.panel
 
         table_list = ["er_specimens", "er_samples", "er_sites", "er_locations", "er_ages"]
@@ -1100,7 +1075,7 @@ class MagIC_model_builder(wx.Frame):
         #command="keys=self.%s_header"%table
         #exec command
         for key in headers_list:
-          text = text + key + "\n"
+            text = text + key + "\n"
         text = text[:-1]
         text_control.SetValue('')
         text_control.SetValue(text)
@@ -1223,8 +1198,6 @@ class MagIC_model_builder(wx.Frame):
         dlg1.Destroy()
         #self.Destroy()
         self.Hide()
-        #print "done on_ok_Button in ErMagicBuilder"
-
 
             
 class HtmlWindow(wx.html.HtmlWindow):

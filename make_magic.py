@@ -6,6 +6,7 @@ doc string
 # pylint: disable=C0103
 
 import wx
+import wx.lib.buttons as buttons
 import sys
 import ErMagicBuilder
 import pmag
@@ -13,7 +14,40 @@ import pmag_er_magic_dialogs
 import pmag_widgets as pw
 
 
+
 class MainFrame(wx.Frame):
+    """
+    make magic
+    """
+
+    def __init__(self, WD=None):
+        wx.GetDisplaySize()
+        wx.Frame.__init__(self, None, wx.ID_ANY, 'Title')
+        self.panel = wx.Panel(self, size=wx.GetDisplaySize())
+        self.WD = WD
+        self.InitUI()
+
+    def InitUI(self):
+        bSizer0 = wx.StaticBoxSizer(wx.StaticBox(self.panel, wx.ID_ANY, "Choose MagIC project directory"), wx.HORIZONTAL)
+        self.dir_path = wx.TextCtrl(self.panel, id=-1, size=(600,25), style=wx.TE_READONLY)
+        self.change_dir_button = buttons.GenButton(self.panel, id=-1, label="change dir",size=(-1, -1))
+        self.change_dir_button.SetBackgroundColour("#F8F8FF")
+        self.change_dir_button.InitColours()
+        self.Bind(wx.EVT_BUTTON, self.on_change_dir_button, self.change_dir_button)
+        bSizer0.Add(self.change_dir_button, wx.ALIGN_LEFT)
+        bSizer0.AddSpacer(40)
+        bSizer0.Add(self.dir_path, wx.ALIGN_CENTER_VERTICAL)
+
+    def on_change_dir_button(self, event):
+        pass
+
+
+    def InitMenubar(self):
+        pass
+
+
+
+class GridFrame(wx.Frame):
     """
     make_magic
     """
