@@ -264,7 +264,7 @@ class convert_generic_files_to_MagIC(wx.Frame):
 
     def on_add_file_button(self,event):
         text = "choose file to convert to MagIC"
-        pw.on_add_file_button(self.bSizer0, self.WD, event, text)
+        pw.on_add_file_button(self.bSizer0, text)
 
 
     def on_okButton(self,event):
@@ -796,7 +796,7 @@ class convert_SIO_files_to_MagIC(wx.Frame):
 
     def on_add_file_button(self,event):
         text = "choose file to convert to MagIC"
-        pw.on_add_file_button(self.bSizer0, self.WD, event, text)
+        pw.on_add_file_button(self.bSizer0, text)
 
     def on_okButton(self, event):
         os.chdir(self.WD)
@@ -960,7 +960,7 @@ class convert_CIT_files_to_MagIC(wx.Frame):
 
     def on_add_file_button(self,event):
         text = "choose file to convert to MagIC"
-        pw.on_add_file_button(self.bSizer0, self.WD, event, text)
+        pw.on_add_file_button(self.bSizer0, text)
 
     def on_okButton(self, event):
         os.chdir(self.WD)
@@ -1147,7 +1147,7 @@ class convert_HUJI_files_to_MagIC(wx.Frame):
 
     def on_add_file_button(self,event):
         text = "choose file to convert to MagIC"
-        pw.on_add_file_button(self.bSizer0, self.WD, event, text)
+        pw.on_add_file_button(self.bSizer0, text)
 
     def on_okButton(self, event):
         """
@@ -1322,7 +1322,7 @@ class convert_2G_binary_files_to_MagIC(wx.Frame):
 
     def on_add_dir_button(self,event):
         text = "choose directory of files to convert to MagIC"
-        pw.on_add_dir_button(self.bSizer0, self.WD, event, text)
+        pw.on_add_dir_button(self.bSizer0, text)
 
     def on_okButton(self, event):
         os.chdir(self.WD)
@@ -1515,7 +1515,7 @@ class convert_LDEO_files_to_MagIC(wx.Frame):
 
     def on_add_file_button(self,event):
         text = "choose file to convert to MagIC"
-        pw.on_add_file_button(self.bSizer0, self.WD, event, text)
+        pw.on_add_file_button(self.bSizer0, text)
 
     def on_okButton(self, event):
         os.chdir(self.WD)
@@ -1681,7 +1681,7 @@ class convert_IODP_files_to_MagIC(wx.Frame):
 
     def on_add_file_button(self,event):
         text = "choose file to convert to MagIC"
-        pw.on_add_file_button(self.bSizer0, self.WD, event, text)
+        pw.on_add_file_button(self.bSizer0, text)
 
     def on_okButton(self, event):
         os.chdir(self.WD)
@@ -1823,7 +1823,7 @@ class convert_PMD_files_to_MagIC(wx.Frame):
 
     def on_add_dir_button(self,event):
         text = "choose directory of files to convert to MagIC"
-        pw.on_add_dir_button(self.bSizer0, self.WD, event, text)
+        pw.on_add_dir_button(self.bSizer0, text)
 
     def on_okButton(self, event):
         os.chdir(self.WD)
@@ -2009,11 +2009,11 @@ class convert_JR6_files_to_MagIC(wx.Frame):
         
     def on_add_file_button(self,event):
         text = "choose file to convert to MagIC"
-        pw.on_add_file_button(self.bSizer0, self.WD, event, text)
+        pw.on_add_file_button(self.bSizer0, text)
 
     def on_add_sampfile_button(self, event):
         text = "choose er_samples type file"
-        pw.on_add_file_button(self.bSizer0c, self.WD, event, text)
+        pw.on_add_file_button(self.bSizer0c, text)
 
     def on_okButton(self, event):
         samp_file = ''
@@ -2211,7 +2211,7 @@ class convert_BGC_files_to_magic(wx.Frame):
 
     def on_add_file_button(self,event):
         text = "choose file to convert to MagIC"
-        pw.on_add_file_button(self.bSizer0, self.WD, event, text)
+        pw.on_add_file_button(self.bSizer0, text)
 
     def on_okButton(self, event):
         os.chdir(self.WD)

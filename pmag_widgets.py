@@ -1,4 +1,8 @@
 #!/usr/bin/env python
+"""
+assorted wxPython custom widgets
+"""
+# pylint: disable=W0612,C0111,C0103,C0301
 
 import os
 import wx
@@ -9,7 +13,7 @@ import wx.html
 
 class choose_file(wx.StaticBoxSizer):
 
-    def __init__(self, parent, orient=wx.VERTICAL, btn_text='add', method=None, remove_button=False):
+    def __init__(self, parent, btn_text='add', method=None, remove_button=False):
         box = wx.StaticBox(parent, wx.ID_ANY, "")
         super(choose_file, self).__init__(box, orient=wx.VERTICAL)
         self.btn_text = btn_text
@@ -43,7 +47,7 @@ class choose_file(wx.StaticBoxSizer):
         return self.file_path.GetValue()
 
 class NotEmptyValidator(wx.PyValidator):
-    def __init__(self): 
+    def __init__(self):
         print "initing validator"
         wx.PyValidator.__init__(self)
 
@@ -52,7 +56,7 @@ class NotEmptyValidator(wx.PyValidator):
         Note that every validator must implement the Clone() method.
         """
         print "doing Clone"
-        return NotEmptyValidator() 
+        return NotEmptyValidator()
 
     def Validate(self, win):
         print "doing Validate"
@@ -60,21 +64,20 @@ class NotEmptyValidator(wx.PyValidator):
         text = textCtrl.GetValue()
         if len(text) == 0:
             print "textCtrl.Name:", textCtrl.Name
-            wx.MessageBox("{} must contain some text!".format(str(textCtrl.Name)), "Error") 
-            textCtrl.SetBackgroundColour("pink") 
-            textCtrl.SetFocus() 
-            textCtrl.Refresh() 
-            print "win", win
-            return False 
+            wx.MessageBox("{} must contain some text!".format(str(textCtrl.Name)), "Error")
+            textCtrl.SetBackgroundColour("pink")
+            textCtrl.SetFocus()
+            textCtrl.Refresh()
+            return False
         else:
-            textCtrl.SetBackgroundColour( 
-                wx.SystemSettings_GetColour(wx.SYS_COLOUR_WINDOW)) 
-            textCtrl.Refresh() 
-            return True 
-            
-    def TransferToWindow(self): 
+            textCtrl.SetBackgroundColour(
+                wx.SystemSettings_GetColour(wx.SYS_COLOUR_WINDOW))
+            textCtrl.Refresh()
+            return True
+
+    def TransferToWindow(self):
         print "doing TransferToWindow"
-        return True 
+        return True
 
     def TransferFromWindow(self):
         print "doing TransferFromWindow"
@@ -82,7 +85,7 @@ class NotEmptyValidator(wx.PyValidator):
 
 
 class choose_dir(wx.StaticBoxSizer):
-    
+
     def __init__(self, parent, btn_text='add', method=None):
         box = wx.StaticBox(parent, wx.ID_ANY, "")
         super(choose_dir, self).__init__(box, orient=wx.VERTICAL)
@@ -125,6 +128,7 @@ class labeled_text_field(wx.StaticBoxSizer):
 
     def return_value(self):
         return self.text_field.GetValue()
+
 
 class labeled_spin_ctrl(wx.StaticBoxSizer):
     def __init__(self, parent, TEXT):
@@ -178,7 +182,7 @@ class specimen_n(wx.StaticBoxSizer):
         return self.spc.GetValue()
 
 
-class select_ncn(wx.StaticBoxSizer):  
+class select_ncn(wx.StaticBoxSizer):
     """provides box sizer with a drop down menu for the standard naming conventions"""
     ncn_keys = ('XXXXY', 'XXXX-YY', 'XXXX.YY', 'XXXX[YYY] where YYY is sample designation, enter number of Y', 'sample name=site name', 'Site names in orient.txt file', '[XXXX]YYY where XXXX is the site name, enter number of X')#, 'this is a synthetic and has no site name']
     def __init__(self, parent, ncn_keys=ncn_keys):
@@ -243,7 +247,7 @@ class select_declination(wx.StaticBoxSizer):
         label1 = wx.StaticText(self.parent, label="Declination:")
         label2 = wx.StaticText(self.parent, label="if necessary")
         self.dec_box = wx.TextCtrl(self.parent, size=(40, 25))
-        declination_keys = ["Use the IGRF DEC value at the lat/long and date supplied","Use this DEC: ","DEC=0, mag_az is already corrected in file","Correct mag_az but not bedding_dip_dir"]
+        declination_keys = ["Use the IGRF DEC value at the lat/long and date supplied", "Use this DEC: ", "DEC=0, mag_az is already corrected in file", "Correct mag_az but not bedding_dip_dir"]
         declination_values = range(1, 4)
         self.dcn = dict(zip(declination_keys, declination_values))
         self.select_dcn = wx.ComboBox(parent, -1, declination_keys[0], size=(405, 25), choices=declination_keys, style=wx.CB_READONLY)
@@ -251,8 +255,6 @@ class select_declination(wx.StaticBoxSizer):
         gridSizer.AddMany([label1, label2, self.select_dcn, self.dec_box])
         self.Add(gridSizer, wx.ALIGN_LEFT)
         self.AddSpacer(10)
-
-
 
     def return_value(self):
         selected_dcn = str(self.select_dcn.GetValue())
@@ -270,10 +272,8 @@ class replicate_measurements(wx.StaticBoxSizer):
         super(replicate_measurements, self).__init__(box, orient=wx.HORIZONTAL)
         text = "replicate measurements:"
         replicate_text = wx.StaticText(parent, label=text, style=wx.TE_CENTER)
-        #self.replicate_rb1 = wx.RadioButton(parent, -1, 'Use all measurements', style=wx.RB_GROUP)
         self.replicate_rb1 = wx.RadioButton(parent, -1, 'Average replicates', style=wx.RB_GROUP)
         self.replicate_rb1.SetValue(True)
-        #self.replicate_rb2 = wx.RadioButton(parent, -1, 'take only last measurement from replicate measurements')
         self.replicate_rb2 = wx.RadioButton(parent, -1, 'Import all replicates')
         self.Add(replicate_text, wx.ALIGN_LEFT)
         self.AddSpacer(8)
@@ -328,7 +328,7 @@ class radio_buttons(wx.StaticBoxSizer):
 
 class large_checkbox_window(wx.StaticBoxSizer):
 
-    def __init__(self, parent, choices, text):
+    def __init__(self, parent, choices):
         box = wx.StaticBox(parent, wx.ID_ANY, "")
         super(large_checkbox_window, self).__init__(box, orient=wx.VERTICAL)
 
@@ -557,7 +557,7 @@ class combine_files(wx.BoxSizer):
                             include_files.append(F)
         for f in include_files:
             self.file_paths.AppendText(f+"\n")
-                            
+
 
 class LinkEnabledHtmlWindow(wx.html.HtmlWindow):
     def OnLinkClicked(self, link):
@@ -601,9 +601,6 @@ class ComboboxDialog(wx.Dialog):
     """
     def __init__(self, parent, label, items):
         super(ComboboxDialog, self).__init__(parent, title='Provide text')
-        #self.text_ctrl = labeled_text_field(self, label)
-        #wx.ComboBox(panel, -1, items[0], choices=items, style=wx.CB_READONLY)
-        #bSizer0b.Add(wx.StaticText(self.parent.panel, label="Will combine into one {} file".format(text)), wx.ALIGN_LEFT)
         text_box = wx.StaticText(self, label=label)
         self.combobox = wx.ComboBox(self, wx.ID_ANY, items[0], choices=items, style=wx.CB_READONLY)
         bsizer = wx.BoxSizer(wx.VERTICAL)
@@ -615,7 +612,7 @@ class ComboboxDialog(wx.Dialog):
         hbox.Add(btn_ok, flag=wx.ALIGN_CENTER|wx.ALL, border=10)
         hbox.Add(btn_cancel, flag=wx.ALIGN_CENTER|wx.ALL, border=10)
 
-        bsizer.Add(text_box)
+        bsizer.Add(text_box, flag=wx.TOP|wx.LEFT, border=10)
         bsizer.Add(self.combobox, flag=wx.ALIGN_CENTER|wx.ALL, border=10)
         bsizer.Add(hbox, flag=wx.ALIGN_CENTER)
 
@@ -623,8 +620,7 @@ class ComboboxDialog(wx.Dialog):
         bsizer.Fit(self)
         self.Centre()
 
-        
-        
+
 
 class AddItem(wx.Frame):
     """This window allows user to add a new item (sample, site, or location)"""
@@ -680,10 +676,10 @@ class AddItem(wx.Frame):
 
 # methods!
 
-def on_add_dir_button(SELF, WD, event, text):
+def on_add_dir_button(SELF, text):
     dlg = wx.DirDialog(
         None, message=text,
-        defaultPath=".",
+        defaultPath=os.getcwd(),
         style=wx.OPEN | wx.DD_DEFAULT_STYLE
     )
     if dlg.ShowModal() == wx.ID_OK:
@@ -693,10 +689,10 @@ def on_add_dir_button(SELF, WD, event, text):
     SELF.parent.Parent.Raise()
 
 
-def on_add_file_button(SELF, WD, event, text):
+def on_add_file_button(SELF, text):
     dlg = wx.FileDialog(
         None, message=text,
-        defaultDir=WD,
+        defaultDir=os.getcwd(),
         defaultFile="",
         style=wx.OPEN | wx.CHANGE_DIR
     )

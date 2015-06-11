@@ -864,15 +864,12 @@ class MagicGrid(wx.grid.Grid):
         self.AutoSize() # prevents display failure
 
         for col in range(len(self.col_labels)):
-            print 'resizing col #:', col,
             # adjust column widths to be a little larger then auto for nicer editing
             orig_size = self.GetColSize(col)
-            print ' from: ', orig_size,
             if orig_size > 110:
                 size = orig_size * 1.1
             else:
                 size = orig_size * 1.6
-            print ' to: ', size
             self.SetColSize(col, size)
 
     def do_event_bindings(self):
@@ -1011,7 +1008,6 @@ class MagicGrid(wx.grid.Grid):
                         data_missing.append(col_label)
                         break
         return data_missing
-
 
 
     def remove_starred_labels(self, grid):
