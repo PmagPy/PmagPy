@@ -68,9 +68,9 @@ class TestMagicGrid(unittest.TestCase):
     def test_add_col(self):
         print '------'
         print 'doing test_add_col'
-        for col in self.grid.GetNumberCols():
+        for col in range(self.grid.GetNumberCols()):
             print "self.grid.GetColLabelValue(col)", self.grid.GetColLabelValue(col)
-        for row in self.grid.GetNumberRows():
+        for row in range(self.grid.GetNumberRows()):
             print "self.grid.GetCellValue(row, 0)", self.grid.GetCellValue(row, 0)
         label = 'new_label'
         self.grid.add_col(label)
@@ -81,9 +81,9 @@ class TestMagicGrid(unittest.TestCase):
     def test_remove_col(self):
         print '------'
         print 'doing test_remove_col'
-        for col in self.grid.GetNumberCols():
+        for col in range(self.grid.GetNumberCols()):
             print "self.grid.GetColLabelValue(col)", self.grid.GetColLabelValue(col)
-        for row in self.grid.GetNumberRows():
+        for row in range(self.grid.GetNumberRows()):
             print "self.grid.GetCellValue(row, 0)", self.grid.GetCellValue(row, 0)
         num_cols = self.grid.GetNumberCols()
         self.grid.remove_col(2)
