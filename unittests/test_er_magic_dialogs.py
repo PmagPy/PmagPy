@@ -85,8 +85,15 @@ class TestMagicGrid(unittest.TestCase):
             print "self.grid.GetColLabelValue(col)", self.grid.GetColLabelValue(col)
         for row in range(self.grid.GetNumberRows()):
             print "self.grid.GetCellValue(row, 0)", self.grid.GetCellValue(row, 0)
+            
         num_cols = self.grid.GetNumberCols()
         self.grid.remove_col(2)
+        print 'and after removing col 2'
+        for col in range(self.grid.GetNumberCols()):
+            print "self.grid.GetColLabelValue(col)", self.grid.GetColLabelValue(col)
+        for row in range(self.grid.GetNumberRows()):
+            print "self.grid.GetCellValue(row, 0)", self.grid.GetCellValue(row, 0)
+        print '-----'
         new_num_cols = self.grid.GetNumberCols()
         self.assertNotEqual(num_cols, new_num_cols)
         # remove foxtrot, gamma should be in position 2
