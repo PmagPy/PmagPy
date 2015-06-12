@@ -1,6 +1,5 @@
 #!/usr/bin/env python
-import pandas as pd
-import string,sys,pmag
+import sys, pmag
 import numpy as np
 import os
 
