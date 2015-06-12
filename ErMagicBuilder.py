@@ -322,10 +322,16 @@ class ErMagicBuilder(object):
 
 
     def add_sample(self, new_sample_name, site, new_sample_data={}):
+        print 'self.data_er_sites.keys() in add_sample', self.data_er_sites.keys()
         if not site in self.data_er_sites.keys():
             raise Exception("You must provide a site that already exists.\nIf necessary, add a new site first, then add this sample.")
         self.Data_hierarchy['samples'][new_sample_name] = []
-        self.Data_hierarchy['sites'][site].append(new_sample_name)
+        try:
+            self.Data_hierarchy['sites'][site].append(new_sample_name)
+        except KeyError:
+            print ' key error !'
+            self.Data_hierarchy['sites'][site] = []
+            self.Data_hierarchy['sites'][site].append(new_sample_name)
         self.Data_hierarchy['site_of_sample'][new_sample_name] = site
         default_sample_data = {key: '' for key in self.er_samples_header}
         combined_sample_data = self.combine_dicts(new_sample_data, default_sample_data)
@@ -342,6 +348,7 @@ class ErMagicBuilder(object):
         combined_site_data = self.combine_dicts(new_site_data, default_site_data)
         combined_site_data['er_location_name'] = location
         self.data_er_sites[new_site_name] = combined_site_data
+        print 'self.data_er_sites.keys() after adding site', self.data_er_sites.keys()
             
     def add_location(self, new_location_name, loc_data={}):
         self.Data_hierarchy['locations'][new_location_name] = []

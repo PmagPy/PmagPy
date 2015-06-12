@@ -1,9 +1,8 @@
 #!/usr/bin/env python
 
-#print "this is the right module"
-
 
 import urllib2
+import os
 import pmag
 import check_updates
 
@@ -31,7 +30,7 @@ def get_data_model():
     except urllib2.URLError:
         try:
             pmag_dir = check_updates.get_pmag_dir()
-            the_file = pmag_dir + "/MagIC-data-model.txt"
+            the_file = os.path.join(pmag_dir, "/MagIC-data-model.txt")
             data = open(the_file, 'rU')
         except IOError:
             print "can't access MagIC-data-model at the moment\nif you are working offline, make sure MagIC-data-model.txt is in your PmagPy directory (or download it from https://github.com/ltauxe/PmagPy and put it in your PmagPy directory)\notherwise, check your internet connection"
