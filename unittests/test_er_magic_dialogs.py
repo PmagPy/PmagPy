@@ -79,6 +79,7 @@ class TestMagicGrid(unittest.TestCase):
         self.assertEqual(label, self.grid.col_labels[-1])
 
     def test_remove_col(self):
+        self.grid.add_col('victor')
         print '------'
         print 'doing test_remove_col (with 1 extra)'
         for col in range(self.grid.GetNumberCols()+1):
@@ -95,6 +96,8 @@ class TestMagicGrid(unittest.TestCase):
         #    print "self.grid.GetCellValue(row, 0)", self.grid.GetCellValue(row, 0)
         print '-----'
         new_num_cols = self.grid.GetNumberCols()
+        #self.frame.Show()
+        #self.app.MainLoop()
         self.assertNotEqual(num_cols, new_num_cols)
         # remove foxtrot, gamma should be in position 2
         self.assertEqual('gamma', self.grid.GetColLabelValue(2))
