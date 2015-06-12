@@ -65,7 +65,7 @@ class ErMagicBuilder(object):
 
 
     def __repr__(self):
-        return "working directory: {}\nspecimens: {}\nsamples: {}\nsites: {}\nlocations: {}".format(self.WD, self.data_er_specimens.keys(), self.data_er_samples.keys(), self.data_er_sites.keys(), self.data_er_locations.keys())
+        return "id: {}\nworking directory: {}\nspecimens: {}\nsamples: {}\nsites: {}\nlocations: {}".format(id(self), self.WD, self.data_er_specimens.keys(), self.data_er_samples.keys(), self.data_er_sites.keys(), self.data_er_locations.keys())
 
     def init_default_headers(self):
         """
@@ -105,7 +105,6 @@ class ErMagicBuilder(object):
         Attempt to open er_specimens, er_samples, er_sites, er_locations, and er_ages files in working directory.
         Initialize or update MagIC_model_builder attributes data_er_specimens, data_er_samples, data_er_sites, data_er_locations, and data_er_ages (dictionaries)
         """
-        #print "read_MagIC_info in ErMagicBuilder.py"
         Data_info={}
         print "-I- read existing MagIC model files"
         #self.data_er_specimens, self.data_er_samples, self.data_er_sites, self.data_er_locations, self.data_er_ages = {},{},{},{},{}
@@ -115,23 +114,34 @@ class ErMagicBuilder(object):
         except IOError:
             #self.GUI_log.write ("-W- Cant find er_specimens.txt in project directory")
             print "-W- Can't find er_specimens.txt in project directory"
+        except KeyError:
+            print '-W- There was a problem reading the er_specimens.txt file.  No specimen data found.'
+
             
         try:
             self.data_er_samples, self.er_samples_header = self.read_magic_file(os.path.join(self.WD, "er_samples.txt"),'er_sample_name')
         except IOError:
             #self.GUI_log.write ("-W- Cant find er_samples.txt in project directory")
             print "-W- Can't find er_samples.txt in project directory"
+        except KeyError:
+            print '-W- There was a problem reading the er_samples.txt file.  No sample data found.'
+
             
         try:
             self.data_er_sites, self.er_sites_header = self.read_magic_file(os.path.join(self.WD, "er_sites.txt"), 'er_site_name')
         except IOError:
             print "-W- Can't find er_sites.txt in project directory"
+        except KeyError:
+            print '-W- There was a problem reading the er_sites.txt file.  No site data found.'
+
         
         try:
             self.data_er_locations, self.er_locations_header = self.read_magic_file(os.path.join(self.WD, "er_locations.txt"),'er_location_name')
         except IOError:
-            #self.GUI_log.write ("-W- Cant find er_sites.txt in project directory")
             print "-W- Can't find er_locations.txt in project directory"
+        except KeyError:
+            print '-W- There was a problem reading the er_locations.txt file.  No location data found.'
+
             
         try:
             #print 'trying to read data_er_ages'
@@ -190,7 +200,6 @@ class ErMagicBuilder(object):
         Data_hierarchy looks like this: {'sample_of_specimen': {}, 'site_of_sample': {}, 'location_of_specimen', 'locations': {}, 'sites': {}, 'site_of_specimen': {}, 'samples': {}, 'location_of_sample': {}, 'location_of_site': {}, 'specimens': {}}
         If no measurements file is found, return two empty dictionaries. 
         """
-        #print 'calling get_data()'
         #start_time = time.time()
         
         Data = {}
@@ -322,14 +331,12 @@ class ErMagicBuilder(object):
 
 
     def add_sample(self, new_sample_name, site, new_sample_data={}):
-        print 'self.data_er_sites.keys() in add_sample', self.data_er_sites.keys()
         if not site in self.data_er_sites.keys():
             raise Exception("You must provide a site that already exists.\nIf necessary, add a new site first, then add this sample.")
         self.Data_hierarchy['samples'][new_sample_name] = []
         try:
             self.Data_hierarchy['sites'][site].append(new_sample_name)
         except KeyError:
-            print ' key error !'
             self.Data_hierarchy['sites'][site] = []
             self.Data_hierarchy['sites'][site].append(new_sample_name)
         self.Data_hierarchy['site_of_sample'][new_sample_name] = site
@@ -981,13 +988,13 @@ class MagIC_model_builder(wx.Frame):
         self.site_lats = []
 
         # if ErMagic data object was not passed in, created one based on the working directory
+
         if not ErMagic_data:
             self.data = ErMagicBuilder(self.WD)
-            self.data.init_default_headers()
         else:
             self.data = ErMagic_data
-        #self.Data_hierarchy = self.get_data()
-        #self.read_MagIC_info()
+        self.data.init_default_headers()
+        self.data.read_MagIC_info()
 
         self.SetTitle("Earth-Ref Magic Builder" )
         self.InitUI()
@@ -1119,8 +1126,9 @@ class MagIC_model_builder(wx.Frame):
 
     def on_okButton(self, event):
         os.chdir(self.WD)
-        self.update_ErMagic()
+        self.data.update_ErMagic()
         self.main_frame.init_check_window()
+        self.Destroy()
 
     def on_cancelButton(self,event):
         self.Destroy()
@@ -1137,79 +1145,6 @@ class MagIC_model_builder(wx.Frame):
         html_frame.Show()
 
         
-        
-    def update_ErMagic(self, update="all"):
-        """check for changes and write (or re-write) er_specimens.txt, er_samples.txt, etc."""
-        #print 'doing update ErMagic'
-        #import time
-        wait = wx.BusyInfo("Please wait, working...")
-
-
-        #---------------------------------------------
-        # make er_samples.txt
-        #---------------------------------------------
-
-        #last_time = time.time()
-        if update=='all' or 'samples' in update:
-            self.data.do_er_samples()
-        #print "samples took:", time.time() - last_time
-        #last_time = time.time()
-        
-        #---------------------------------------------
-        # make er_specimens.txt
-        #---------------------------------------------
-        if update=='all' or 'specimens' in update:
-            self.data.do_er_specimens()
-        #print "specimens took:", time.time() - last_time
-        #last_time = time.time()
-
-
-        #---------------------------------------------
-        # make er_sites.txt
-        #---------------------------------------------
-        if update=='all' or 'sites' in update:
-            self.data.do_er_sites()
-        #print "sites took:", time.time() - last_time
-        #last_time = time.time()
-        
-
-        #---------------------------------------------
-        # make er_locations.txt
-        #---------------------------------------------
-
-        if update=='all' or 'locations' in update:
-            self.data.do_er_locations()
-        #print "locations took:", time.time() - last_time
-        #last_time = time.time()
-
-
-        #---------------------------------------------
-        # make er_ages.txt
-        #---------------------------------------------
-        if update=='all' or 'ages' in update:
-            self.data.do_er_ages()
-        #print "ages took:", time.time() - last_time
-        #last_time = time.time()
-
-        #-----------------------------------------------------
-        # Fix magic_measurement with samples, sites and locations  
-        #-----------------------------------------------------
-
-        #print "in ErMagicBuilder on_okButton udpating magic_measurements.txt"
-        if update=='all' or 'measurements' in update:
-            self.data.do_magic_measurements()
-
-        #print "measurements took:", time.time() - last_time
-        #last_time = time.time()
-
-        
-        del wait
-        dlg1 = wx.MessageDialog(self,caption="Saved", message="MagIC Earth-Ref tables are saved in MagIC Project Directory!" ,style=wx.OK|wx.ICON_INFORMATION)
-        # is this dialog actually useful??
-        dlg1.ShowModal()
-        dlg1.Destroy()
-        #self.Destroy()
-        self.Hide()
 
             
 class HtmlWindow(wx.html.HtmlWindow):

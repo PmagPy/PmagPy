@@ -43,7 +43,7 @@ class MagMainFrame(wx.Frame):
         self.HtmlIsOpen = False
         self.Bind(wx.EVT_CLOSE, self.on_menu_exit)
         self.ErMagic_data = ErMagicBuilder.ErMagicBuilder(self.WD)
-        self.ErMagic_data.init_default_headers()
+        #self.ErMagic_data.init_default_headers()
         #self.Data_hierarchy = {}
 
 

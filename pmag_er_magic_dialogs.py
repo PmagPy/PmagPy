@@ -16,6 +16,7 @@ class ErMagicCheckFrame(wx.Frame):
         self.WD = WD
         self.main_frame = self.Parent
         self.ErMagic_data = magic_data
+
         self.temp_data = {}
         self.drop_down_menu = None
         self.sample_window = 0 # sample window must be displayed (differently) twice, so it is useful to keep track
@@ -25,11 +26,13 @@ class ErMagicCheckFrame(wx.Frame):
     def InitSpecCheck(self):
         """make an interactive grid in which users can edit specimen names
         as well as which sample a specimen belongs to"""
-        self.ErMagic_data.read_MagIC_info() #
 
         # using ScrolledWindow works on up to date wxPython and is necessary for windows
         # it breaks with Canopy wxPython, so for Mac we just use Panel
 
+        # make sure we are up to date
+        self.ErMagic_data.read_MagIC_info()
+        
         if sys.platform in ['win32', 'win64']:
             self.panel = wx.ScrolledWindow(self, style=wx.SIMPLE_BORDER)
         else:
@@ -43,6 +46,7 @@ Check that all specimens belong to the correct sample
 (if sample name is simply wrong, that will be fixed in step 2)"""
         label = wx.StaticText(self.panel, label=text)
         #self.Data_hierarchy = self.ErMagic_data.Data_hierarchy
+
         self.specimens = sorted(self.ErMagic_data.Data_hierarchy['specimens'].keys())
         samples = self.ErMagic_data.Data_hierarchy['samples'].keys()
         # add in any additional samples we might have information about (from er_samples.txt file) even if currently that sample does not show up in the magic_measurements file
@@ -51,9 +55,12 @@ Check that all specimens belong to the correct sample
         # create the grid and also a record of the initial values for specimens/samples as a reference
         # to tell if we've had any changes
 
-        col_labels = self.ErMagic_data.data_er_specimens[self.ErMagic_data.data_er_specimens.keys()[0]].keys()
+        col_labels = self.ErMagic_data.er_specimens_header
         for val in ['er_citation_names', 'er_location_name', 'er_site_name', 'er_sample_name', 'er_specimen_name', 'specimen_class', 'specimen_lithology', 'specimen_type']: #
-            col_labels.remove(val)
+            try:
+                col_labels.remove(val)
+            except ValueError:
+                pass
         col_labels = sorted(col_labels)
         col_labels[:0] = ['er_specimen_name', '', 'er_sample_name']
 
@@ -143,7 +150,7 @@ You may use the drop-down menus to add as many values as needed in these columns
             self.samp_grid = self.make_simple_table(['er_sample_name', '', 'er_site_name'], self.ErMagic_data.data_er_samples, 'er_sample_name')
 
         if self.sample_window > 1:
-            col_labels = self.ErMagic_data.data_er_samples[self.ErMagic_data.data_er_samples.keys()[0]].keys()
+            col_labels = self.ErMagic_data.er_samples_header
             for val in ['er_citation_names', 'er_location_name', 'er_site_name', 'er_sample_name', 'sample_class', 'sample_lithology', 'sample_type', 'sample_lat', 'sample_lon']:
                 col_labels.remove(val)
             col_labels = sorted(col_labels)
@@ -250,9 +257,12 @@ However, you will be able to edit sample_class, sample_lithology, and sample_typ
         #self.Data_hierarchy = self.ErMagic.Data_hierarchy
         self.sites = sorted(self.ErMagic_data.Data_hierarchy['sites'].keys())
 
-        col_labels = self.ErMagic_data.data_er_sites[self.ErMagic_data.data_er_sites.keys()[0]].keys()
+        col_labels = self.ErMagic_data.er_sites_header
         for val in ['er_citation_names', 'er_location_name', 'er_site_name', 'site_class', 'site_lithology', 'site_type', 'site_definition', 'site_lat', 'site_lon']: #
-            col_labels.remove(val)
+            try:
+                col_labels.remove(val)
+            except ValueError:
+                pass
         col_labels = sorted(col_labels)
         col_labels[:0] = ['er_site_name', '', 'er_location_name', 'site_class', 'site_lithology', 'site_type', 'site_definition', 'site_lon', 'site_lat']
 
@@ -355,7 +365,7 @@ Fill in any blank cells using controlled vocabularies.
             self.InitAgeCheck()
             return
 
-        col_labels = sorted(self.ErMagic_data.data_er_locations[key1].keys())
+        col_labels = sorted(self.ErMagic_data.er_locations_header)
         try:
             col_labels.remove('er_location_name')
             col_labels.remove('location_type')
@@ -431,8 +441,9 @@ You may use the drop-down menus to add as many values as needed in these columns
         #self.Data_hierarchy = self.ErMagic.Data_hierarchy
         self.sites = self.ErMagic_data.Data_hierarchy['sites']
         #
-        key1 = self.ErMagic_data.data_er_ages.keys()[0]
-        col_labels = sorted(self.ErMagic_data.data_er_ages[key1].keys())
+        #key1 = self.ErMagic_data.data_er_ages.keys()[0]
+        col_labels = sorted(self.ErMagic_data.er_ages_header)
+        
         try:
             for col_label in ['er_site_name', 'er_location_name', 'er_citation_names', 'magic_method_codes', 'age_description', 'age_unit', 'age']:
                 col_labels.remove(col_label)

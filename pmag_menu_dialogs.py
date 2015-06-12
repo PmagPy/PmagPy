@@ -6,16 +6,17 @@
 
 import wx
 import os
-import pmag
+import shutil
 import subprocess
 import wx.grid
 from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigureCanvas
 from matplotlib import pyplot as plt
+import pmag
 import pmag_widgets as pw
 import thellier_gui_dialogs
 import thellier_gui
 import ipmag
-import shutil
+import ErMagicBuilder
 
 class ImportAzDipFile(wx.Frame):
 
@@ -1943,10 +1944,11 @@ class ClearWD(wx.MessageDialog):
             shutil.rmtree(WD)
             os.mkdir(WD)
             os.chdir(WD)
+            # reset ErMagic data object to be empty:
+            parent.ErMagic_data.__init__(WD)
             print "{} has been emptied".format(WD)
         else:
             print "{} has not been emptied".format(WD)
-
 
             
 
