@@ -24,11 +24,12 @@ INPUT:
     TDT formatted files with suffix .tdt 
         
 OUTPUT:
-    combined measurement file called saved in <PATH> 
+    combined measurement file saved in <PATH> 
     
     
 Log:
     Initial revision 4/24/2014
+    some bug fix 06/12/2015
 """
 
 
@@ -63,10 +64,10 @@ class convert_tdt_files_to_MagIC(wx.Frame):
         TEXT2="1. Put all individual tdt files from the same location in one folder.\n"
         TEXT3="   Each tdt file file should end with '.tdt'\n"
         TEXT4="2. If there are more than one location use multiple folders. One folder for each location.\n"
-        TEXT5="3. The program assumes that the moment units are mA/m amd therefore volume is required.\n\n"
+        TEXT5="3. If the magnetization in in units are mA/m (as in the original TT program) volume is required to convert to moment.\n\n"
         TEXT6="For more information check the help menubar option.\n"
 
-        TEXT7="(for support contact rshaar@ucsd.edu)"
+        TEXT7="(for support contact ron.shaar@mail.huji.ac.il)"
 
         TEXT=TEXT1+TEXT2+TEXT3+TEXT4+TEXT5+TEXT6+TEXT7
         bSizer_info = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY, "" ), wx.HORIZONTAL )
@@ -156,7 +157,7 @@ class convert_tdt_files_to_MagIC(wx.Frame):
         TEXT="\nmoment\nunits:"
         bSizer1c = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY, "" ), wx.VERTICAL )
         bSizer1c.Add(wx.StaticText(pnl,label=TEXT),wx.ALIGN_TOP)
-        self.moment_units_names=['mA/m']
+        self.moment_units_names=['mA/m','emu','Am^2']
         bSizer1c.AddSpacer(5)
         for i in range(self.max_files):
             command="self.moment_units_%i = wx.ComboBox(self.panel, -1, self.moment_units_names[0], size=(80,25), choices=self.moment_units_names, style=wx.CB_DROPDOWN|wx.CB_READONLY)"%i
@@ -581,7 +582,6 @@ class convert_tdt_files_to_MagIC(wx.Frame):
                     continue_reading=True
                     line=fin.readline() # ignore first line
                     for line in fin.readlines():
-
                                             
                         if "END" in line:
                             break
@@ -590,6 +590,9 @@ class convert_tdt_files_to_MagIC(wx.Frame):
                             break
                         
                         this_line=line.strip('\n').split()
+                        
+                        if len(this_line)<5:
+                            continue
 
 
                         #---------------------------------------------------
@@ -653,6 +656,7 @@ class convert_tdt_files_to_MagIC(wx.Frame):
                     Data[specimen][Experiment_Type]['er_location_name']=DIRS_data[dir_name]['er_location_name']
                     Data[specimen][Experiment_Type]['user_name']=DIRS_data[dir_name]['user_name']
                     Data[specimen][Experiment_Type]['sample_volume']=DIRS_data[dir_name]['sample_volume']
+                    Data[specimen][Experiment_Type]['moment_units']=DIRS_data[dir_name]['moment_units']
                     Data[specimen][Experiment_Type]['labfield_DI']=DIRS_data[dir_name]['labfield_DI']
 
 
@@ -740,7 +744,12 @@ class convert_tdt_files_to_MagIC(wx.Frame):
                         MagRec["measurement_number"]="%i"%measurement_running_number
                         MagRec["measurement_dec"]=meas_line['dec']
                         MagRec["measurement_inc"]=meas_line['inc']
-                        MagRec["measurement_magn_moment"]="%5e"%(float(meas_line['moment'])*1e-3*float(Data[specimen][Experiment_Type]['sample_volume'])) # converted to Am^2
+                        if Data[specimen][Experiment_Type]['moment_units']=='mA/m':                            
+                            MagRec["measurement_magn_moment"]="%5e"%(float(meas_line['moment'])*1e-3*float(Data[specimen][Experiment_Type]['sample_volume'])) # converted to Am^2
+                        if Data[specimen][Experiment_Type]['moment_units']=='emu':                            
+                            MagRec["measurement_magn_moment"]="%5e"%(float(meas_line['moment'])*1e-3) # converted to Am^2
+                        if Data[specimen][Experiment_Type]['moment_units']=='Am^2':                            
+                            MagRec["measurement_magn_moment"]="%5e"%(float(meas_line['moment'])) # converted to Am^2
                         MagRec["measurement_temp"]='273.' # room temp in kelvin
 
                         # Date and time 
@@ -886,7 +895,6 @@ class convert_tdt_files_to_MagIC(wx.Frame):
 
                 elif Experiment_Type in ["ATRM 6 positions"]:
                     
-                    print "ATRM"
                     tmp_MagRecs=[]
 
                     header_line=Data[specimen][Experiment_Type]['header_data']
@@ -918,7 +926,7 @@ class convert_tdt_files_to_MagIC(wx.Frame):
                             meas_line['treatment']=meas_line['treatment']+".0"
                         if meas_line['treatment'].split(".")[1]=="":
                             meas_line['treatment']=meas_line['treatment']+"0"
-                            
+                     
                         #------------------
                         # header data
                         #------------------
@@ -951,6 +959,9 @@ class convert_tdt_files_to_MagIC(wx.Frame):
                         MagRec["measurement_temp"]='273.' # room temp in kelvin
 
                         treatments=meas_line['treatment'].split(".")
+                        if len(treatments[1])>1:
+                            treatments[1]=treatments[1][0]
+                        
                         MagRec["treatment_temp"]='%8.3e' % (float(treatments[0])+273.) # temp in kelvin
                         
                         # labfield direction
@@ -960,12 +971,13 @@ class convert_tdt_files_to_MagIC(wx.Frame):
                             MagRec["treatment_dc_field_theta"]='0'
                             MagRec["magic_method_codes"]="LT-T-Z:LP-AN-TRM"
                         else:
+                            
                             MagRec["treatment_dc_field"]='%8.3e'%(labfield)
 
-                            if float(treatments[1])==7: # alteration check as final measurement
-                                    meas_type="LT-PTRM-I:LP-AN-TRM"
+                            if float(treatments[1])==7 or float(treatments[1])==70: # alteration check as final measurement
+                                    MagRec["magic_method_codes"]="LT-PTRM-I:LP-AN-TRM"
                             else:
-                                    meas_type="LT-T-I:LP-AN-TRM"
+                                    MagRec["magic_method_codes"]="LT-T-I:LP-AN-TRM"
 
                             # find the direction of the lab field in two ways:
                             # (1) using the treatment coding (XX.1=+x, XX.2=+y, XX.3=+z, XX.4=-x, XX.5=-y, XX.6=-z)
