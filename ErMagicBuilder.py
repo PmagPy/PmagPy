@@ -150,7 +150,7 @@ class ErMagicBuilder(object):
             #except:
             #    print '-W- There was a problem reading the er_ages.txt file.  No age data found.'
 
-    def read_magic_file(self,path,sort_by_this_name):
+    def read_magic_file(self, path, sort_by_this_name):
         """
         read a magic-formatted tab-delimited file.
         return a dictionary of dictionaries, with this format:
@@ -348,7 +348,6 @@ class ErMagicBuilder(object):
         combined_site_data = self.combine_dicts(new_site_data, default_site_data)
         combined_site_data['er_location_name'] = location
         self.data_er_sites[new_site_name] = combined_site_data
-        print 'self.data_er_sites.keys() after adding site', self.data_er_sites.keys()
             
     def add_location(self, new_location_name, loc_data={}):
         self.Data_hierarchy['locations'][new_location_name] = []
@@ -419,7 +418,11 @@ class ErMagicBuilder(object):
         self.Data_hierarchy['sites'][site].append(new_sample_name)
 
         # fix location_of_sample
-        location = self.change_dict_key(self.Data_hierarchy['location_of_sample'], new_sample_name, old_sample_name)
+        try:
+            location = self.change_dict_key(self.Data_hierarchy['location_of_sample'], new_sample_name, old_sample_name)
+        except KeyError:
+            location = self.Data_hierarchy['location_of_site'][site]
+            self.Data_hierarchy['location_of_sample'][new_sample_name] = location
         
         # fix/add new sample data
         self.change_dict_key(self.data_er_samples, new_sample_name, old_sample_name)
@@ -489,6 +492,8 @@ class ErMagicBuilder(object):
                 old_location = location
                 new_location = new_site_data['er_location_name']
                 self.Data_hierarchy['locations'][old_location].remove(new_site_name)
+                if new_location not in self.Data_hierarchy['locations'].keys():
+                    self.Data_hierarchy['locations'][new_location] = []
                 self.Data_hierarchy['locations'][new_location].append(new_site_name)
                 self.Data_hierarchy['location_of_site'][new_site_name] = new_location
                 for sample in samples:

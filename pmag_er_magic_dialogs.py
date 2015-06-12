@@ -576,33 +576,22 @@ You may use the drop-down menus to add as many values as needed in these columns
 
         #def __init__(self, parent, title, data_items, data_method):
 
-        if not self.ErMagic_data.data_er_samples:
-            self.ErMagic_data.read_MagIC_info()
+        #if not self.ErMagic_data.data_er_samples:
+        #    self.ErMagic_data.read_MagIC_info()
 
         pw.AddItem(self, 'Sample', add_sample, self.sites, 'site') # makes window for adding new data
 
         def add_sample_data(sample, site):
+            # add sample
             self.ErMagic_data.add_sample(sample, site)
-            ignore = """
-            keys = self.ErMagic.er_samples_header
-            self.ErMagic.data_er_samples[sample] = dict(zip(keys, ["" for key in keys]))
-            self.ErMagic.data_er_samples[sample]['er_sample_name'] = sample
-            self.ErMagic.data_er_samples[sample]['er_site_name'] = site
-
-            self.Data_hierarchy['samples'][sample] = []
-            self.Data_hierarchy['site_of_sample'][sample] = site
-            self.Data_hierarchy['location_of_sample'][sample] = ''
-            # if that site didn't already exist in Data_hierarchy:
-            if not site in self.Data_hierarchy['sites'].keys():
-                self.Data_hierarchy['sites'][site] = []
-            self.Data_hierarchy['sites'][site].append(sample)
-        """
             # re-Bind so that the updated samples list shows up on a left click
             samples = sorted(self.ErMagic_data.Data_hierarchy['samples'].keys())
             samples = sorted(list(set(samples).union(self.ErMagic_data.data_er_samples.keys())))
             choices = self.drop_down_menu.choices
             choices[2] = (samples, False)
             self.drop_down_menu.update_drop_down_menu(self.spec_grid, choices)
+            # update ErMagic files
+            self.ErMagic_data.update_ErMagic()
 
             
     def on_addSiteButton(self, event):
@@ -613,21 +602,14 @@ You may use the drop-down menus to add as many values as needed in these columns
         pw.AddItem(self, 'Site', add_site, self.locations, 'location')
 
         def add_site_data(site, location):
+            # add site
             self.ErMagic_data.add_site(site, location)
-            ignore = """
-            keys = self.ErMagic.er_sites_header
-            self.ErMagic.data_er_sites[site] = dict(zip(keys, ["" for key in keys]))
-            self.ErMagic.data_er_sites[site]['er_site_name'] = site
-            self.ErMagic.data_er_sites[site]['er_location_name'] = location
-
-            self.Data_hierarchy['sites'][site] = []
-            self.Data_hierarchy['location_of_site'][site] = location
-            """
-            
             # re-Bind so that the updated sites list shows up on a left click
             sites = sorted(self.ErMagic_data.Data_hierarchy['sites'].keys())
             sites = sorted(list(set(sites).union(self.ErMagic_data.data_er_sites.keys())))
             self.drop_down_menu.update_drop_down_menu(self.samp_grid, {2: (sites, False)})
+            # update ErMagic files
+            self.ErMagic_data.update_ErMagic()
 
 
     def on_addLocButton(self, event):
@@ -643,17 +625,16 @@ You may use the drop-down menus to add as many values as needed in these columns
         pw.AddItem(self, 'Location', add_loc, owner_items=None, belongs_to=None) # makes window for adding new data
 
         def add_loc_data(loc):
-            # this is not dialed in yet
-            keys = self.ErMagic_data.er_locations_header
-            self.ErMagic_data.data_er_locations[loc] = {key: "" for key in keys}
-            self.ErMagic_data.Data_hierarchy['locations'][loc] = []
-
+            # add location
+            self.ErMagic_data.add_location(loc)
             # re-Bind so that the updated locations list shows up on a left click
             locations = sorted(self.ErMagic_data.Data_hierarchy['locations'].keys())
             locations = sorted(list(set(locations).union(self.ErMagic_data.data_er_locations.keys())))
             choices = self.drop_down_menu.choices
             choices[2] = (locations, False)
             self.drop_down_menu.update_drop_down_menu(self.site_grid, choices)
+            # update ErMagic files
+            self.ErMagic_data.update_ErMagic()
 
 
     def on_helpButton(self, event, page=None):
