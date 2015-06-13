@@ -4,7 +4,7 @@
 # LOG HEADER:
 #============================================================================================
 #
-#Demag_GUI Version 0.32 added multiple interpertations and new plot functionallity by Kevin Gaastra (05/03/2015)
+#Demag_GUI Version 0.40 added multiple interpertations and new plot functionallity by Kevin Gaastra (05/03/2015)
 #
 # Demag_GUI Version 0.31 save MagIC tables option: add dialog box to choose coordinates system for pmag_specimens.txt 04/26/2015
 #
@@ -37,7 +37,7 @@
 
 import os
 global CURRENT_VRSION, PMAGPY_DIRECTORY
-CURRENT_VRSION = "v.0.32"
+CURRENT_VRSION = "v.0.40"
 path = os.path.abspath(__file__)
 PMAGPY_DIRECTORY = os.path.dirname(path)
 import matplotlib
@@ -371,8 +371,8 @@ class Zeq_GUI(wx.Frame):
         for specimen in self.specimens:
             if 'geographic' not in coordinate_list and self.Data[specimen]['zijdblock_geo']:
                 coordinate_list.append('geographic')
-            if 'tilt_corrected' not in coordinate_list and self.Data[specimen]['zijdblock_tilt']:
-                coordinate_list.append('tilt_corrected')
+            if 'tilt-corrected' not in coordinate_list and self.Data[specimen]['zijdblock_tilt']:
+                coordinate_list.append('tilt-corrected')
         self.coordinates_box = wx.ComboBox(self.panel, -1, choices=coordinate_list, value='specimen',style=wx.CB_DROPDOWN,name="coordinates")
         #self.coordinates_box.SetFont(font2)
         self.Bind(wx.EVT_COMBOBOX, self.onSelect_coordinates,self.coordinates_box)

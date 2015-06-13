@@ -1,4 +1,8 @@
-#Demag_GUI Usage and Tips (Version 3.2) 
+#Demag_GUI Usage and Tips (Version 4.0) 
+
+##Installing
+
+After downloading the [PmagPy repository](https://github.com/ltauxe/PmagPy) from github, to run this version of demag_gui it is necessary to download a working version of [python](https://www.python.org/downloads/) (preferably python 2.7), the latest version of the visualization library [wxpython](http://www.wxpython.org/download.php) on your archatecture, and the basic scientific libraries part of the [scipy project](http://www.scipy.org/install.html).
 
 ##Launching
 
@@ -11,6 +15,7 @@ python ./demag_gui.py
 If you have QuickMagIC already running you can launch demag_gui by just clicking on the demag_gui button in the main window shown below:
 
 ![](../images/QuickMagicLauncher.png)
+\pagebreak
 
 ##Interpretation of Specimen Data
 
@@ -19,18 +24,18 @@ You can analyze specimen component data by adding fits with the add fit button. 
 ![](../images/FitBox.png)
   
 Once you have selected the desired fit you can edit its bounds using the drop down boxes under the bounds header  
-![](../images/BoundsBox.png)
+![](../images/BoundsBox.png) \pagebreak
   
 Alternativly you can double click the list of measurement steps on the left to pick out the bounds of your interpertation. The included steps in the currently selected interpertation are shown in blue on this list and measurement steps marked bad are shown in yellow. (This method of selecting bounds is recomended for mac users who have in the past experinced problems with the drop down boxes)  
-![](../images/Logger.png)
+![](../images/Logger.png) \pagebreak
   
 You may notice that the fit will be given a generic name such as *Fit 1* you can change the name of the fit from default by typing into the drop down box containing fits then pressing enter. You can anchor your interpertation or preform a plane fit using the drop down box under specimen mean type (default: line).  
 ![](../images/SpecimenMeanType.png)
   
-Coordinate Systems available as well as orrientation of Zijderveld are available on the left.  
+Coordinate Systems available as well as orrientation of Zijderveld are available on the left above the list of steps.  
 ![](../images/ZijData.png)  
 
-Specimen data for a fit can be seen in the upper center of the GUI in a large box labeled specimen mean statistics.  
+The properties of the current interpertation can be seen in the upper center of the GUI in a large box labeled specimen mean statistics.  
 ![](../images/InterpData.png)
   
 ###Flagging Bad Measurment Data
@@ -58,8 +63,11 @@ By going to the menu File/"Save MagIC pmag tables" you can export your interpert
 Select the menu option File/"Save plot"/"Save all plots" to save all plots alternativly you can save any of the plots individually. Some examples can be seen below:
 
  ![Zijderveld with 3 interpertations](../images/Z35_1a_Zij.png)  
+
  ![Equal Area plot of specimen data and interpertations](../images/Z35_1a_EqArea.png)  
+
  ![M/M0](../images/Z35_1a_M_M0.png)  
+
  ![The Higher order mean plot with fisher mean for all specimens in study](../images/Z35_site.png)  \pagebreak
 
 
@@ -76,7 +84,7 @@ The set of drop down boxes to the right of the interpertation data is there to d
 You can then select how to group your data by using the drop down menu under the show header. You can select what kind of mean to take using the first drop down under the mean header. Which interpertations to use for the means can be selected under the second drop down menu. You can then use the remove/replace button to remove or replace the set of points belonging to the current specimen in the higher order mean.  
 ![](../images/HigherOrderMeanOptions.png)
 
-You can view the higher order stats results in the bottom left of the GUI.  
+You can view Fisher/Bingham statistics in the bottom left of the GUI.  
 ![](../images/HigherOrderMeanOutput.png)
 
 
