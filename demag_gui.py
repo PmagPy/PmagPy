@@ -756,12 +756,20 @@ class Zeq_GUI(wx.Frame):
         pos=event.GetPosition()
         width, height = self.canvas2.get_width_height()
         pos[1] = height - pos[1]
-        inv = self.specimen_eqarea_interpretation.transData.inverted()
-        reverse = inv.transform(numpy.vstack([pos[0],pos[1]]).T)
-        xpick_data,ypick_data = map(float,reverse.T)
-        xdata = self.specimen_EA_xdata
-        ydata = self.specimen_EA_ydata
-        e = 5e-2
+#        inv = self.specimen_eqarea_interpretation.transData.inverted()
+#        reverse = inv.transform(numpy.vstack([pos[0],pos[1]]).T)
+#        xpick_data,ypick_data = map(float,reverse.T)
+#        xdata = self.specimen_EA_xdata
+#        ydata = self.specimen_EA_ydata
+#        e = 5e-2
+        xpick_data,ypick_data = pos
+        xdata_org = self.specimen_EA_xdata
+        ydata_org = self.specimen_EA_ydata
+        data_corrected = self.specimen_eqarea_interpretation.transData.transform(numpy.vstack([xdata_org,ydata_org]).T)
+        xdata,ydata = data_corrected.T
+        xdata = map(float,xdata)
+        ydata = map(float,ydata)
+        e = 4e0
 
 #        if event.LeftIsDown(): # and self.old_pos==None:
 #            self.toolbar2.draw_rubberband(event)
@@ -788,12 +796,20 @@ class Zeq_GUI(wx.Frame):
         pos=event.GetPosition()
         width, height = self.canvas2.get_width_height()
         pos[1] = height - pos[1]
-        inv = self.specimen_eqarea_interpretation.transData.inverted()
-        reverse = inv.transform(numpy.vstack([pos[0],pos[1]]).T)
-        xpick_data,ypick_data = map(float,reverse.T)
-        xdata = self.specimen_EA_xdata
-        ydata = self.specimen_EA_ydata
-        e = 5e-2
+#        inv = self.specimen_eqarea_interpretation.transData.inverted()
+#        reverse = inv.transform(numpy.vstack([pos[0],pos[1]]).T)
+#        xpick_data,ypick_data = map(float,reverse.T)
+#        xdata = self.specimen_EA_xdata
+#        ydata = self.specimen_EA_ydata
+#        e = 5e-2
+        xpick_data,ypick_data = pos
+        xdata_org = self.specimen_EA_xdata
+        ydata_org = self.specimen_EA_ydata
+        data_corrected = self.specimen_eqarea_interpretation.transData.transform(numpy.vstack([xdata_org,ydata_org]).T)
+        xdata,ydata = data_corrected.T
+        xdata = map(float,xdata)
+        ydata = map(float,ydata)
+        e = 4e0
 
         index = None
         for i,(x,y) in enumerate(zip(xdata,ydata)):
@@ -837,12 +853,19 @@ class Zeq_GUI(wx.Frame):
         pos=event.GetPosition()
         width, height = self.canvas4.get_width_height()
         pos[1] = height - pos[1]
-        inv = self.high_level_eqarea.transData.inverted()
-        reverse = inv.transform(numpy.vstack([pos[0],pos[1]]).T)
-        xpick_data,ypick_data = map(float,reverse.T)
-        xdata = self.higher_EA_xdata
-        ydata = self.higher_EA_ydata
-        e = 5e-2
+#        inv = self.high_level_eqarea.transData.inverted()
+#        reverse = inv.transform(numpy.vstack([pos[0],pos[1]]).T)
+#        xpick_data,ypick_data = map(float,reverse.T)
+#        xdata = self.higher_EA_xdata
+#        ydata = self.higher_EA_ydata
+        xpick_data,ypick_data = pos
+        xdata_org = self.higher_EA_xdata
+        ydata_org = self.higher_EA_ydata
+        data_corrected = self.high_level_eqarea.transData.transform(numpy.vstack([xdata_org,ydata_org]).T)
+        xdata,ydata = data_corrected.T
+        xdata = map(float,xdata)
+        ydata = map(float,ydata)
+        e = 4e0
 
         #prelimenary rectangle drawing mechanism for the zoom feature (not currently opperational)
 #        if event.LeftIsDown() and self.old_pos==None:
@@ -887,12 +910,17 @@ class Zeq_GUI(wx.Frame):
         pos=event.GetPosition()
         width, height = self.canvas4.get_width_height()
         pos[1] = height - pos[1]
-        inv = self.high_level_eqarea.transData.inverted()
-        reverse = inv.transform(numpy.vstack([pos[0],pos[1]]).T)
-        xpick_data,ypick_data = map(float,reverse.T)
-        xdata = self.higher_EA_xdata
-        ydata = self.higher_EA_ydata
-        e = 5e-2
+#        inv = self.high_level_eqarea.transData.inverted()
+#        reverse = inv.transform(numpy.vstack([pos[0],pos[1]]).T)
+#        xpick_data,ypick_data = map(float,reverse.T)
+        xpick_data,ypick_data = pos
+        xdata_org = self.higher_EA_xdata
+        ydata_org = self.higher_EA_ydata
+        data_corrected = self.high_level_eqarea.transData.transform(numpy.vstack([xdata_org,ydata_org]).T)
+        xdata,ydata = data_corrected.T
+        xdata = map(float,xdata)
+        ydata = map(float,ydata)
+        e = 4e0
 
         index = None
         for i,(x,y) in enumerate(zip(xdata,ydata)):
@@ -3788,8 +3816,6 @@ class Zeq_GUI(wx.Frame):
 
         submenu_criteria = wx.Menu()
 
-        submenu_fit = wx.Menu()
-
         #m_set_criteria_to_default = submenu_criteria.Append(-1, "&Set acceptance criteria to default", "")
         #self.Bind(wx.EVT_MENU, self.on_menu_default_criteria, m_set_criteria_to_default)
 
@@ -3810,7 +3836,7 @@ class Zeq_GUI(wx.Frame):
         m_delete_interpretation = menu_Analysis.Append(-1, "&Clear all current interpretations", "")
         self.Bind(wx.EVT_MENU, self.on_menu_clear_interpretation, m_delete_interpretation)
 
-        #-----------------                            
+        #-----------------
 
         menu_Tools = wx.Menu()
 
