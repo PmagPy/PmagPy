@@ -55,16 +55,15 @@ Check that all specimens belong to the correct sample
         # create the grid and also a record of the initial values for specimens/samples as a reference
         # to tell if we've had any changes
 
-        col_labels = self.ErMagic_data.er_specimens_header
         for val in ['er_citation_names', 'er_location_name', 'er_site_name', 'er_sample_name', 'er_specimen_name', 'specimen_class', 'specimen_lithology', 'specimen_type']: #
             try:
-                col_labels.remove(val)
+                self.ErMagic_data.er_specimens_header.remove(val)
             except ValueError:
                 pass
-        col_labels = sorted(col_labels)
-        col_labels[:0] = ['er_specimen_name', '', 'er_sample_name']
+        self.ErMagic_data.er_specimens_header.sort()
+        self.ErMagic_data.er_specimens_header[:0] = ['er_specimen_name', '', 'er_sample_name']
 
-        self.spec_grid = self.make_simple_table(col_labels, self.ErMagic_data.data_er_specimens, "er_specimen_name")
+        self.spec_grid = self.make_simple_table(self.ErMagic_data.er_specimens_header, self.ErMagic_data.data_er_specimens, "er_specimen_name")
         # initialize all needed drop-down menus
         self.drop_down_menu = drop_down_menus.Menus("specimen", self, self.spec_grid, samples) 
 
@@ -116,7 +115,6 @@ Check that all specimens belong to the correct sample
     def InitSampCheck(self):
         """make an interactive grid in which users can edit sample names
         as well as which site a sample belongs to"""
-
         self.sample_window += 1
 
         # using ScrolledWindow works on up to date wxPython and is necessary for windows
@@ -134,6 +132,7 @@ and that they belong to the correct site
             step_label = wx.StaticText(self.panel, label=text)#, size=(900, 100))
         else:
             self.ErMagic_data.read_MagIC_info() # ensures that changes from step 3 propagate
+
             text = """Step 4:
 Some of the data from the er_sites table has propogated into er_samples.
 Check that this data is correct, and fill in missing cells using controlled vocabularies.
@@ -150,12 +149,14 @@ You may use the drop-down menus to add as many values as needed in these columns
             self.samp_grid = self.make_simple_table(['er_sample_name', '', 'er_site_name'], self.ErMagic_data.data_er_samples, 'er_sample_name')
 
         if self.sample_window > 1:
-            col_labels = self.ErMagic_data.er_samples_header
             for val in ['er_citation_names', 'er_location_name', 'er_site_name', 'er_sample_name', 'sample_class', 'sample_lithology', 'sample_type', 'sample_lat', 'sample_lon']:
-                col_labels.remove(val)
-            col_labels = sorted(col_labels)
-            col_labels[:0] = ['er_sample_name', '', 'er_site_name', 'sample_class', 'sample_lithology', 'sample_type', 'sample_lat', 'sample_lon']
-            self.samp_grid = self.make_simple_table(col_labels, self.ErMagic_data.data_er_samples, 'er_sample_name')
+                try:
+                    self.ErMagic_data.er_samples_header.remove(val)
+                except ValueError:
+                    pass
+            self.ErMagic_data.er_samples_header.sort()
+            self.ErMagic_data.er_samples_header[:0] = ['er_sample_name', '', 'er_site_name', 'sample_class', 'sample_lithology', 'sample_type', 'sample_lat', 'sample_lon']
+            self.samp_grid = self.make_simple_table(self.ErMagic_data.er_samples_header, self.ErMagic_data.data_er_samples, 'er_sample_name')
 
         # add in any additional sets we might have information about (from er_sites.txt file) even if currently that site does not show up in the magic_measurements file
         sites = sorted(list(set(sites).union(self.ErMagic_data.data_er_sites.keys()))) 
@@ -224,7 +225,6 @@ You may use the drop-down menus to add as many values as needed in these columns
         self.Hide()
         self.Show()
 
-
         #self.Fit() # this make it worse!
         #self.Layout() # doesn't fix display resize error
 
@@ -235,7 +235,6 @@ You may use the drop-down menus to add as many values as needed in these columns
     def InitSiteCheck(self):
         """make an interactive grid in which users can edit site names
         as well as which location a site belongs to"""
-
         # using ScrolledWindow works on up to date wxPython and is necessary for windows
         # it breaks with Canopy wxPython, so for Mac we just use Panel
         if sys.platform in ['win32', 'win64']:
@@ -257,16 +256,15 @@ However, you will be able to edit sample_class, sample_lithology, and sample_typ
         #self.Data_hierarchy = self.ErMagic.Data_hierarchy
         self.sites = sorted(self.ErMagic_data.Data_hierarchy['sites'].keys())
 
-        col_labels = self.ErMagic_data.er_sites_header
         for val in ['er_citation_names', 'er_location_name', 'er_site_name', 'site_class', 'site_lithology', 'site_type', 'site_definition', 'site_lat', 'site_lon']: #
             try:
-                col_labels.remove(val)
+                self.ErMagic_data.er_sites_header.remove(val)
             except ValueError:
                 pass
-        col_labels = sorted(col_labels)
-        col_labels[:0] = ['er_site_name', '', 'er_location_name', 'site_class', 'site_lithology', 'site_type', 'site_definition', 'site_lon', 'site_lat']
+        self.ErMagic_data.er_sites_header.sort()
+        self.ErMagic_data.er_sites_header[:0] = ['er_site_name', '', 'er_location_name', 'site_class', 'site_lithology', 'site_type', 'site_definition', 'site_lon', 'site_lat']
 
-        self.site_grid = self.make_simple_table(col_labels, self.ErMagic_data.data_er_sites, 'er_site_name')
+        self.site_grid = self.make_simple_table(self.ErMagic_data.er_sites_header, self.ErMagic_data.data_er_sites, 'er_site_name')
 
         # populate site_definition as 's' by default if no value is provided (indicates that site is single, not composite)
         rows = self.site_grid.GetNumberRows()
@@ -336,7 +334,6 @@ However, you will be able to edit sample_class, sample_lithology, and sample_typ
     def InitLocCheck(self):
         """make an interactive grid in which users can edit specimen names
         as well as which sample a specimen belongs to"""
-
         # using ScrolledWindow works on up to date wxPython and is necessary for windows
         # it breaks with Canopy wxPython, so for Mac we just use Panel
         if sys.platform in ['win32', 'win64']:
@@ -365,15 +362,14 @@ Fill in any blank cells using controlled vocabularies.
             self.InitAgeCheck()
             return
 
-        col_labels = sorted(self.ErMagic_data.er_locations_header)
-        try:
-            col_labels.remove('er_location_name')
-            col_labels.remove('location_type')
-            col_labels[:0] = ['er_location_name', 'location_type']
-        except:
-            pass
+        for val in ['er_location_name', 'location_type']:
+            try:
+                self.ErMagic_data.er_locations_header.remove(val)
+            except ValueError:
+                pass
+        self.ErMagic_data.er_locations_header[:0] = ['er_location_name', 'location_type']
 
-        self.loc_grid = self.make_simple_table(col_labels, self.ErMagic_data.data_er_locations, "er_location_name")
+        self.loc_grid = self.make_simple_table(self.ErMagic_data.er_locations_header, self.ErMagic_data.data_er_locations, "er_location_name")
         # initialize all needed drop-down menus
         self.drop_down_menu = drop_down_menus.Menus("location", self, self.loc_grid, None) 
 
@@ -442,14 +438,14 @@ You may use the drop-down menus to add as many values as needed in these columns
         self.sites = self.ErMagic_data.Data_hierarchy['sites']
         #
         #key1 = self.ErMagic_data.data_er_ages.keys()[0]
-        col_labels = sorted(self.ErMagic_data.er_ages_header)
-        
-        try:
-            for col_label in ['er_site_name', 'er_location_name', 'er_citation_names', 'magic_method_codes', 'age_description', 'age_unit', 'age']:
-                col_labels.remove(col_label)
-            col_labels[:0] = ['er_site_name', 'er_citation_names', 'er_location_name', 'magic_method_codes', 'age_description', 'age_unit', 'age']
-        except:
-            pass
+
+        for col_label in ['er_site_name', 'er_location_name', 'er_citation_names', 'magic_method_codes', 'age_description', 'age_unit', 'age']:
+            try:
+                self.ErMagic_data.er_ages_header.remove(col_label)
+            except ValueError:
+                pass
+
+        self.ErMagic_data.er_ages_header[:0] = ['er_site_name', 'er_citation_names', 'er_location_name', 'magic_method_codes', 'age_description', 'age_unit', 'age']
         # only use sites that are associated with actual samples/specimens
 
         #ages_data_dict = {k: v for k, v in self.ErMagic.data_er_ages.items() if k in self.sites} # fails in Python 2.6
@@ -458,7 +454,7 @@ You may use the drop-down menus to add as many values as needed in these columns
             if k in self.sites:
                 ages_data_dict[k] = v
 
-        self.age_grid = self.make_simple_table(col_labels, ages_data_dict, "er_site_name")
+        self.age_grid = self.make_simple_table(self.ErMagic_data.er_ages_header, ages_data_dict, "er_site_name")
         #
         # make it impossible to edit the 1st and 3rd columns
         for row in range(self.age_grid.GetNumberRows()):
@@ -794,8 +790,8 @@ You may use the drop-down menus to add as many values as needed in these columns
         remove_extras(self.ErMagic_data.data_er_locations, self.ErMagic_data.Data_hierarchy['locations'])
         #remove_extras(self.Data_hierarchy['locations'], self.ErMagic.data_er_locations)
         remove_extras(self.ErMagic_data.data_er_ages, self.ErMagic_data.Data_hierarchy['sites'])
-
         self.ErMagic_data.update_ErMagic()
+
         
 
 class MagicGrid(wx.grid.Grid):
