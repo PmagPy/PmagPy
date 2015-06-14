@@ -126,7 +126,12 @@ class Zeq_GUI(wx.Frame):
             self.get_DIR(WD)        # initialize directory variables
         else:
             self.get_DIR()        # choose directory dialog, then initialize directory variables
-        
+
+        #set icon
+        icon = wx.EmptyIcon()
+        icon.CopyFromBitmap(wx.Bitmap(os.path.join(PMAGPY_DIRECTORY, "images/PmagPy.ico"), wx.BITMAP_TYPE_ANY))
+        self.SetIcon(icon)
+
         # initialize acceptence criteria with NULL values
         self.acceptance_criteria=pmag.initialize_acceptance_criteria()
         try:
@@ -4460,7 +4465,6 @@ class Zeq_GUI(wx.Frame):
         # 3. write a new file pmag_specimens.txt
         # 4. merge pmag_specimens.txt and pmag_specimens.txt.tmp using combine_magic.py 
         # 5. delete pmag_specimens.txt.tmp
-        
         # 6 (optional) extracting new pag_*.txt files (except pmag_specimens.txt) using specimens_results_magic.py
         # 7: if #6: merge pmag_*.txt and pmag_*.txt.tmp using combine_magic.py 
         #    if not #6: save pmag_*.txt.tmp as pmag_*.txt
@@ -5259,8 +5263,8 @@ def do_main(WD=None, standalone_app=True, parent=None):
         app.frame = Zeq_GUI(WD)
         app.frame.Center()
         #alignToTop(app.frame)
-        dw, dh = wx.DisplaySize() 
-        w, h = app.frame.GetSize()
+        #dw, dh = wx.DisplaySize() 
+        #w, h = app.frame.GetSize()
         #print 'display 2', dw, dh
         #print "gui 2", w, h
         app.frame.Show()
