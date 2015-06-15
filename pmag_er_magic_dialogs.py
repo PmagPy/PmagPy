@@ -61,7 +61,7 @@ Check that all specimens belong to the correct sample
             except ValueError:
                 pass
         self.ErMagic_data.er_specimens_header.sort()
-        self.ErMagic_data.er_specimens_header[:0] = ['er_specimen_name', '', 'er_sample_name']
+        self.ErMagic_data.er_specimens_header[:0] = ['er_specimen_name', 'er_sample_name']
 
         self.spec_grid = self.make_simple_table(self.ErMagic_data.er_specimens_header, self.ErMagic_data.data_er_specimens, "er_specimen_name")
         # initialize all needed drop-down menus
@@ -146,7 +146,7 @@ You may use the drop-down menus to add as many values as needed in these columns
         self.locations = sorted(list(set(self.ErMagic_data.Data_hierarchy['locations'].keys()).union(self.ErMagic_data.data_er_locations.keys())))
 
         if self.sample_window == 1:
-            self.samp_grid = self.make_simple_table(['er_sample_name', '', 'er_site_name'], self.ErMagic_data.data_er_samples, 'er_sample_name')
+            self.samp_grid = self.make_simple_table(['er_sample_name', 'er_site_name'], self.ErMagic_data.data_er_samples, 'er_sample_name')
 
         if self.sample_window > 1:
             for val in ['er_citation_names', 'er_location_name', 'er_site_name', 'er_sample_name', 'sample_class', 'sample_lithology', 'sample_type', 'sample_lat', 'sample_lon']:
@@ -155,7 +155,7 @@ You may use the drop-down menus to add as many values as needed in these columns
                 except ValueError:
                     pass
             self.ErMagic_data.er_samples_header.sort()
-            self.ErMagic_data.er_samples_header[:0] = ['er_sample_name', '', 'er_site_name', 'sample_class', 'sample_lithology', 'sample_type', 'sample_lat', 'sample_lon']
+            self.ErMagic_data.er_samples_header[:0] = ['er_sample_name', 'er_site_name', 'er_citation_names', 'sample_class', 'sample_lithology', 'sample_type', 'sample_lat', 'sample_lon', 'er_location_name']
             self.samp_grid = self.make_simple_table(self.ErMagic_data.er_samples_header, self.ErMagic_data.data_er_samples, 'er_sample_name')
 
         # add in any additional sets we might have information about (from er_sites.txt file) even if currently that site does not show up in the magic_measurements file
@@ -262,7 +262,7 @@ However, you will be able to edit sample_class, sample_lithology, and sample_typ
             except ValueError:
                 pass
         self.ErMagic_data.er_sites_header.sort()
-        self.ErMagic_data.er_sites_header[:0] = ['er_site_name', '', 'er_location_name', 'site_class', 'site_lithology', 'site_type', 'site_definition', 'site_lon', 'site_lat']
+        self.ErMagic_data.er_sites_header[:0] = ['er_site_name', 'er_location_name', 'er_citation_names', 'site_class', 'site_lithology', 'site_type', 'site_definition', 'site_lon', 'site_lat']
 
         self.site_grid = self.make_simple_table(self.ErMagic_data.er_sites_header, self.ErMagic_data.data_er_sites, 'er_site_name')
 
@@ -445,7 +445,7 @@ You may use the drop-down menus to add as many values as needed in these columns
             except ValueError:
                 pass
 
-        self.ErMagic_data.er_ages_header[:0] = ['er_site_name', 'er_citation_names', 'er_location_name', 'magic_method_codes', 'age_description', 'age_unit', 'age']
+        self.ErMagic_data.er_ages_header[:0] = ['er_site_name', 'er_location_name', 'er_citation_names', 'magic_method_codes', 'age_description', 'age_unit', 'age']
         # only use sites that are associated with actual samples/specimens
 
         #ages_data_dict = {k: v for k, v in self.ErMagic.data_er_ages.items() if k in self.sites} # fails in Python 2.6
@@ -454,15 +454,15 @@ You may use the drop-down menus to add as many values as needed in these columns
             if k in self.sites:
                 ages_data_dict[k] = v
 
-        self.age_grid = self.make_simple_table(self.ErMagic_data.er_ages_header, ages_data_dict, "er_site_name")
+        self.age_grid = self.make_simple_table(self.ErMagic_data.er_ages_header, ages_data_dict, "ages")
         #
         # make it impossible to edit the 1st and 3rd columns
         for row in range(self.age_grid.GetNumberRows()):
             for col in (0, 2):
                 self.age_grid.SetReadOnly(row, col, True)
-                
+
         # initialize all needed drop-down menus
-        self.drop_down_menu = drop_down_menus.Menus("age", self, self.age_grid, None) 
+        self.drop_down_menu = drop_down_menus.Menus("age", self, self.age_grid, None)
 
         ### Create Buttons ###
         hbox_one = wx.BoxSizer(wx.HORIZONTAL)

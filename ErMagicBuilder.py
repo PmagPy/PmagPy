@@ -56,7 +56,6 @@ class ErMagicBuilder(object):
         self.site_lats = []
 
         self.read_MagIC_info() # populate data dictionaries, if files are available
-        
         if os.path.isfile(os.path.join(self.WD, 'magic_measurements.txt')):
             self.Data_hierarchy = self.get_data()
         if not self.Data_hierarchy:
@@ -180,7 +179,7 @@ class ErMagicBuilder(object):
                     tmp_data[header[i]]=""
             if sort_by_this_name == "by_line_number":
                 DATA[counter] = tmp_data
-                counter+=1
+                counter += 1
             else:
                 if tmp_data[sort_by_this_name] != "":  
                     DATA[tmp_data[sort_by_this_name]] = tmp_data
@@ -507,7 +506,6 @@ class ErMagicBuilder(object):
 
 
     def change_age(self, new_name, old_name, new_age_data=None):
-
         self.change_dict_key(self.data_er_ages, new_name, old_name)
         self.data_er_ages[new_name]['er_site_name'] = new_name
 
@@ -752,7 +750,7 @@ class ErMagicBuilder(object):
             for key in self.er_samples_header:
 
               if key=="er_citation_names":
-                string=string+"This study"+"\t"
+                  string=string+"This study"+"\t"
 
               elif key=="er_sample_name":
                 string=string+sample+"\t"
@@ -1005,6 +1003,7 @@ class MagIC_model_builder(wx.Frame):
 
         table_list = ["er_specimens", "er_samples", "er_sites", "er_locations", "er_ages"]
         self.optional_headers = {'er_specimens': self.data.er_specimens_optional_header, 'er_samples': self.data.er_samples_optional_header, 'er_sites': self.data.er_sites_optional_header, 'er_locations': self.data.er_locations_optional_header, 'er_ages': self.data.er_ages_optional_header}
+
         self.reqd_headers = {'er_specimens': self.data.er_specimens_header, 'er_samples': self.data.er_samples_header, 'er_sites': self.data.er_sites_header, 'er_locations': self.data.er_locations_header, 'er_ages': self.data.er_ages_header}
         
         box_sizers = []
