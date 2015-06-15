@@ -64,6 +64,9 @@ Check that all specimens belong to the correct sample
         self.ErMagic_data.er_specimens_header[:0] = ['er_specimen_name', 'er_sample_name']
 
         self.spec_grid = self.make_simple_table(self.ErMagic_data.er_specimens_header, self.ErMagic_data.data_er_specimens, "er_specimen_name")
+
+        # make sure all removed values stay in er_specimens_header, even though they will not be displayed
+        self.ErMagic_data.er_specimens_header.extend(['er_citation_names', 'er_location_name', 'er_site_name', 'er_sample_name', 'er_specimen_name', 'specimen_class', 'specimen_lithology', 'specimen_type'])
         # initialize all needed drop-down menus
         self.drop_down_menu = drop_down_menus.Menus("specimen", self, self.spec_grid, samples) 
 

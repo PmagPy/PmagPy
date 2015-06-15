@@ -103,6 +103,7 @@ class ErMagicBuilder(object):
         """
         Attempt to open er_specimens, er_samples, er_sites, er_locations, and er_ages files in working directory.
         Initialize or update MagIC_model_builder attributes data_er_specimens, data_er_samples, data_er_sites, data_er_locations, and data_er_ages (dictionaries)
+        Overwrites self.er_*_header, so init_default_headers should generally be run after this function in order for required header values to be included
         """
         Data_info={}
         print "-I- read existing MagIC model files"
@@ -981,6 +982,7 @@ class MagIC_model_builder(wx.Frame):
         else:
             self.data = ErMagic_data
 
+
         # if ErMagic_data Data_hierarchy doesn't have data in in it, read it in from magic_measurements.txt
         empty = True
         for dict_key in self.data.Data_hierarchy.keys():
@@ -990,12 +992,14 @@ class MagIC_model_builder(wx.Frame):
             
         if empty:
             self.data.get_data() # gets data from magic_measurements file
-        self.data.init_default_headers() # makes sure all headers are in place
+
         self.data.read_MagIC_info() # make sure all er_* info is incorporated
+        self.data.init_default_headers() # makes sure all headers are in place
         self.data.update_ErMagic()  # writes data to er_* files
         # repeat this step, in case er_* files were empty before
         self.data.read_MagIC_info() # make sure all er_* info is incorporated
         self.SetTitle("Earth-Ref Magic Builder" )
+        
         self.InitUI()
 
     def InitUI(self):
