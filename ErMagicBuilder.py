@@ -117,7 +117,6 @@ class ErMagicBuilder(object):
         except KeyError:
             print '-W- There was a problem reading the er_specimens.txt file.  No specimen data found.'
 
-            
         try:
             self.data_er_samples, self.er_samples_header = self.read_magic_file(os.path.join(self.WD, "er_samples.txt"),'er_sample_name')
         except IOError:
@@ -126,7 +125,6 @@ class ErMagicBuilder(object):
         except KeyError:
             print '-W- There was a problem reading the er_samples.txt file.  No sample data found.'
 
-            
         try:
             self.data_er_sites, self.er_sites_header = self.read_magic_file(os.path.join(self.WD, "er_sites.txt"), 'er_site_name')
         except IOError:
@@ -134,7 +132,6 @@ class ErMagicBuilder(object):
         except KeyError:
             print '-W- There was a problem reading the er_sites.txt file.  No site data found.'
 
-        
         try:
             self.data_er_locations, self.er_locations_header = self.read_magic_file(os.path.join(self.WD, "er_locations.txt"),'er_location_name')
         except IOError:
@@ -142,7 +139,6 @@ class ErMagicBuilder(object):
         except KeyError:
             print '-W- There was a problem reading the er_locations.txt file.  No location data found.'
 
-            
         try:
             #print 'trying to read data_er_ages'
             self.data_er_ages, self.er_ages_header = self.read_magic_file(os.path.join(self.WD, "er_ages.txt"), "er_site_name")
@@ -166,7 +162,7 @@ class ErMagicBuilder(object):
         return a dictionary of dictionaries, with this format:
         {'Z35.5a': {'specimen_weight': '1.000e-03', 'er_citation_names': 'This study', 'specimen_volume': '', 'er_location_name': '', 'er_site_name': 'Z35.', 'er_sample_name': 'Z35.5', 'specimen_class': '', 'er_specimen_name': 'Z35.5a', 'specimen_lithology': '', 'specimen_type': ''}, ....}
         """
-        DATA={}
+        DATA = {}
         fin = open(path,'rU')
         fin.readline()
         line = fin.readline()
@@ -175,15 +171,15 @@ class ErMagicBuilder(object):
         counter = 0
         for line in fin.readlines():
             #print "line:", line
-            tmp_data={}
-            tmp_line=line.strip('\n').split('\t')
+            tmp_data = {}
+            tmp_line = line.strip('\n').split('\t')
             for i in range(len(header)):
                 if i < len(tmp_line):
-                    tmp_data[header[i]]=tmp_line[i]
+                    tmp_data[header[i]] = tmp_line[i]
                 else:
                     tmp_data[header[i]]=""
-            if sort_by_this_name=="by_line_number":
-                DATA[counter]=tmp_data
+            if sort_by_this_name == "by_line_number":
+                DATA[counter] = tmp_data
                 counter+=1
             else:
                 if tmp_data[sort_by_this_name] != "":  
@@ -198,22 +194,21 @@ class ErMagicBuilder(object):
         If suitable file is found, return two dictionaries.
         Data looks like this: {specimen_a: {}, specimen_b: {}}
         Data_hierarchy looks like this: {'sample_of_specimen': {}, 'site_of_sample': {}, 'location_of_specimen', 'locations': {}, 'sites': {}, 'site_of_specimen': {}, 'samples': {}, 'location_of_sample': {}, 'location_of_site': {}, 'specimens': {}}
-        If no measurements file is found, return two empty dictionaries. 
+        If no measurements file is found, return an empty dictionary. 
         """
         #start_time = time.time()
-        
         Data = {}
-        Data_hierarchy = {}
-        Data_hierarchy['locations'] = {}
-        Data_hierarchy['sites'] = {}
-        Data_hierarchy['samples'] = {}
-        Data_hierarchy['specimens']={}
-        Data_hierarchy['sample_of_specimen']={} 
-        Data_hierarchy['site_of_specimen']={}   
-        Data_hierarchy['site_of_sample']={}   
-        Data_hierarchy['location_of_specimen']={}   
-        Data_hierarchy['location_of_sample']={}   
-        Data_hierarchy['location_of_site']={}   
+        #Data_hierarchy = {}
+        self.Data_hierarchy['locations'] = {}
+        self.Data_hierarchy['sites'] = {}
+        self.Data_hierarchy['samples'] = {}
+        self.Data_hierarchy['specimens'] = {}
+        self.Data_hierarchy['sample_of_specimen'] = {}
+        self.Data_hierarchy['site_of_specimen'] = {}
+        self.Data_hierarchy['site_of_sample'] = {}
+        self.Data_hierarchy['location_of_specimen'] = {}
+        self.Data_hierarchy['location_of_sample'] = {}
+        self.Data_hierarchy['location_of_site'] = {}
         try:
             meas_data, file_type = pmag.magic_read(os.path.join(self.WD, "magic_measurements.txt"))
         except:
@@ -227,33 +222,33 @@ class ErMagicBuilder(object):
             sample = rec["er_sample_name"]
             site = rec["er_site_name"]
             location = rec["er_location_name"]
-            if sample not in Data_hierarchy['samples'].keys():
-                Data_hierarchy['samples'][sample]=[]
+            if sample not in self.Data_hierarchy['samples'].keys():
+                self.Data_hierarchy['samples'][sample] = []
 
-            if site not in Data_hierarchy['sites'].keys():
-                Data_hierarchy['sites'][site]=[]         
+            if site not in self.Data_hierarchy['sites'].keys():
+                self.Data_hierarchy['sites'][site] = []
 
-            if location not in Data_hierarchy['locations'].keys():
-                Data_hierarchy['locations'][location]=[]         
+            if location not in self.Data_hierarchy['locations'].keys():
+                self.Data_hierarchy['locations'][location] = []
 
-            if s not in Data_hierarchy['samples'][sample]:
-                Data_hierarchy['samples'][sample].append(s)
+            if s not in self.Data_hierarchy['samples'][sample]:
+                self.Data_hierarchy['samples'][sample].append(s)
 
-            if sample not in Data_hierarchy['sites'][site]:
-                Data_hierarchy['sites'][site].append(sample)
+            if sample not in self.Data_hierarchy['sites'][site]:
+                self.Data_hierarchy['sites'][site].append(sample)
 
-            if site not in Data_hierarchy['locations'][location]:
-                Data_hierarchy['locations'][location].append(site)
+            if site not in self.Data_hierarchy['locations'][location]:
+                self.Data_hierarchy['locations'][location].append(site)
 
-            Data_hierarchy['specimens'][s]=sample
-            Data_hierarchy['sample_of_specimen'][s]=sample  
-            Data_hierarchy['site_of_specimen'][s]=site  
-            Data_hierarchy['site_of_sample'][sample]=site
-            Data_hierarchy['location_of_specimen'][s]=location 
-            Data_hierarchy['location_of_sample'][sample]=location 
-            Data_hierarchy['location_of_site'][site]=location 
+            self.Data_hierarchy['specimens'][s] = sample
+            self.Data_hierarchy['sample_of_specimen'][s] = sample  
+            self.Data_hierarchy['site_of_specimen'][s] = site  
+            self.Data_hierarchy['site_of_sample'][sample] = site
+            self.Data_hierarchy['location_of_specimen'][s] = location 
+            self.Data_hierarchy['location_of_sample'][sample] = location 
+            self.Data_hierarchy['location_of_site'][site] = location 
 
-        return Data_hierarchy
+        return self.Data_hierarchy
 
 
     def update_ErMagic(self, update="all"):
@@ -261,13 +256,12 @@ class ErMagicBuilder(object):
         #import time
         #wait = wx.BusyInfo("Please wait, working...")
 
-
         #---------------------------------------------
         # make er_samples.txt
         #---------------------------------------------
 
         #last_time = time.time()
-        if update=='all' or 'samples' in update:
+        if update == 'all' or 'samples' in update:
             self.do_er_samples()
         #print "samples took:", time.time() - last_time
         #last_time = time.time()
@@ -275,30 +269,27 @@ class ErMagicBuilder(object):
         #---------------------------------------------
         # make er_specimens.txt
         #---------------------------------------------
-        if update=='all' or 'specimens' in update:
+        if update == 'all' or 'specimens' in update:
             self.do_er_specimens()
         #print "specimens took:", time.time() - last_time
         #last_time = time.time()
 
-
         #---------------------------------------------
         # make er_sites.txt
         #---------------------------------------------
-        if update=='all' or 'sites' in update:
+        if update == 'all' or 'sites' in update:
             self.do_er_sites()
         #print "sites took:", time.time() - last_time
         #last_time = time.time()
         
-
         #---------------------------------------------
         # make er_locations.txt
         #---------------------------------------------
 
-        if update=='all' or 'locations' in update:
+        if update == 'all' or 'locations' in update:
             self.do_er_locations()
         #print "locations took:", time.time() - last_time
         #last_time = time.time()
-
 
         #---------------------------------------------
         # make er_ages.txt
@@ -551,7 +542,6 @@ class ErMagicBuilder(object):
             self.Data_hierarchy['location_of_specimen'][specimen] = new_location_name
             self.data_er_specimens[specimen]['er_location_name'] = new_location_name
 
-        
         #if not new_site_data:
         #    return
         #else:
@@ -604,7 +594,6 @@ class ErMagicBuilder(object):
     def put_list_value_first(self, lst, first_value):
         lst.remove(first_value)
         lst[:0] = [first_value]
-
 
 
     ### Re-write magic files methods ###
@@ -715,7 +704,7 @@ class ErMagicBuilder(object):
                         string = string + self.Data_hierarchy['site_of_specimen'][specimen] + "\t"
 
                 elif key in ['specimen_class','specimen_lithology','specimen_type']:
-                    sample_key="sample_"+key.split('specimen_')[1]
+                    sample_key = "sample_"+key.split('specimen_')[1]
                     if (sample in self.data_er_samples.keys() and sample_key in self.data_er_samples[sample] and self.data_er_samples[sample][sample_key]!=""):
                         string = string+self.data_er_samples[sample][sample_key]+"\t"
                         continue
@@ -993,9 +982,21 @@ class MagIC_model_builder(wx.Frame):
             self.data = ErMagicBuilder(self.WD)
         else:
             self.data = ErMagic_data
-        self.data.init_default_headers()
-        self.data.read_MagIC_info()
 
+        # if ErMagic_data Data_hierarchy doesn't have data in in it, read it in from magic_measurements.txt
+        empty = True
+        for dict_key in self.data.Data_hierarchy.keys():
+            if self.data.Data_hierarchy[dict_key]:
+                empty = False
+                break
+            
+        if empty:
+            self.data.get_data() # gets data from magic_measurements file
+        self.data.init_default_headers() # makes sure all headers are in place
+        self.data.read_MagIC_info() # make sure all er_* info is incorporated
+        self.data.update_ErMagic()  # writes data to er_* files
+        # repeat this step, in case er_* files were empty before
+        self.data.read_MagIC_info() # make sure all er_* info is incorporated
         self.SetTitle("Earth-Ref Magic Builder" )
         self.InitUI()
 
