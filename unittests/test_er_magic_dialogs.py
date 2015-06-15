@@ -88,7 +88,8 @@ class TestMagicGrid(unittest.TestCase):
         #    print "self.grid.GetCellValue(row, 0)", self.grid.GetCellValue(row, 0)
             
         num_cols = self.grid.GetNumberCols()
-        self.grid.remove_col(2)
+        result = self.grid.remove_col(2)
+        print 'result of remove col is:', result
         print 'and after removing col 2 (with 1 extra)'
         for col in range(self.grid.GetNumberCols()+1):
             print "self.grid.GetColLabelValue(col)", self.grid.GetColLabelValue(col)

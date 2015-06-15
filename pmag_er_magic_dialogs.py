@@ -916,8 +916,9 @@ class MagicGrid(wx.grid.Grid):
         print 'label_value', label_value
         print 'col_num', col_num
         self.col_labels.remove(label_value)
-        self.DeleteCols(pos=col_num, updateLabels=True) # ??
+        result = self.DeleteCols(pos=col_num, numCols=1, updateLabels=True) # ??
         self.size_grid()
+        return result
 
 
     ### Grid methods ###
