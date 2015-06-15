@@ -896,7 +896,7 @@ class MagicGrid(wx.grid.Grid):
         if not row_num:
             row_num = self.GetNumberRows() - 1
         label = self.GetCellValue(row_num, 0)
-        self.DeleteRows(row_num, 1)
+        self.DeleteRows(pos=row_num, numRows=1, updateLabels=True)
         self.row_labels.remove(label)
 
         
