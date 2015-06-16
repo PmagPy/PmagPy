@@ -23,7 +23,7 @@ def get_data_model():
     the second level keys are the possible headers for that file type.
     the third level keys are data_type and data_status for that header.
     """
-    print "getting data model, please be patient"
+    print "-I- getting data model, please be patient"
     url = 'http://earthref.org/services/MagIC-data-model.txt'
     try:
         data = urllib2.urlopen(url)

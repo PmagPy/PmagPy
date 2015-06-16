@@ -55,6 +55,8 @@ class ErMagicBuilder(object):
         self.site_lons = []
         self.site_lats = []
 
+        self.data_model = None
+
         self.read_MagIC_info() # populate data dictionaries, if files are available
         if os.path.isfile(os.path.join(self.WD, 'magic_measurements.txt')):
             self.Data_hierarchy = self.get_data()
@@ -72,25 +74,26 @@ class ErMagicBuilder(object):
         if there were any pre-existing headers, keep them also.
         """
         self.headers = {}
-        data_model = validate_upload.get_data_model()
+        if not self.data_model:
+            self.data_model = validate_upload.get_data_model()
         # header should contain all required headers, plus any already in the file
-        self.er_specimens_reqd_header, self.er_specimens_optional_header = self.get_headers(data_model, 'er_specimens')
+        self.er_specimens_reqd_header, self.er_specimens_optional_header = self.get_headers(self.data_model, 'er_specimens')
         self.er_specimens_header = list(set(self.er_specimens_header).union(self.er_specimens_reqd_header))
         self.put_list_value_first(self.er_specimens_header, 'er_specimen_name')
 
-        self.er_samples_reqd_header, self.er_samples_optional_header = self.get_headers(data_model, 'er_samples')
+        self.er_samples_reqd_header, self.er_samples_optional_header = self.get_headers(self.data_model, 'er_samples')
         self.er_samples_header = list(set(self.er_samples_header).union(self.er_samples_reqd_header))
         self.put_list_value_first(self.er_samples_header, 'er_sample_name')
 
-        self.er_sites_reqd_header, self.er_sites_optional_header = self.get_headers(data_model, 'er_sites')
+        self.er_sites_reqd_header, self.er_sites_optional_header = self.get_headers(self.data_model, 'er_sites')
         self.er_sites_header = list(set(self.er_sites_header).union(self.er_sites_reqd_header))
         self.put_list_value_first(self.er_sites_header, 'er_site_name')
 
-        self.er_locations_reqd_header, self.er_locations_optional_header = self.get_headers(data_model, 'er_locations')
+        self.er_locations_reqd_header, self.er_locations_optional_header = self.get_headers(self.data_model, 'er_locations')
         self.er_locations_header = list(set(self.er_locations_header).union(self.er_locations_reqd_header))
         self.put_list_value_first(self.er_locations_header, 'er_location_name')
 
-        self.er_ages_reqd_header, self.er_ages_optional_header = self.get_headers(data_model, 'er_ages')
+        self.er_ages_reqd_header, self.er_ages_optional_header = self.get_headers(self.data_model, 'er_ages')
         self.er_ages_header = list(set(self.er_ages_header).union(self.er_ages_reqd_header))
         age_headers = ['er_site_name', 'age', 'age_description', 'magic_method_codes', 'age_unit']
         for header in age_headers:
