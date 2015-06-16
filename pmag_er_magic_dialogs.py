@@ -598,7 +598,7 @@ You may use the drop-down menus to add as many values as needed in these columns
             samples = sorted(self.ErMagic_data.Data_hierarchy['samples'].keys())
             samples = sorted(list(set(samples).union(self.ErMagic_data.data_er_samples.keys())))
             choices = self.drop_down_menu.choices
-            choices[2] = (samples, False)
+            choices[1] = (samples, False)
             self.drop_down_menu.update_drop_down_menu(self.spec_grid, choices)
             # update ErMagic files
             self.ErMagic_data.update_ErMagic()
@@ -617,7 +617,7 @@ You may use the drop-down menus to add as many values as needed in these columns
             # re-Bind so that the updated sites list shows up on a left click
             sites = sorted(self.ErMagic_data.Data_hierarchy['sites'].keys())
             sites = sorted(list(set(sites).union(self.ErMagic_data.data_er_sites.keys())))
-            self.drop_down_menu.update_drop_down_menu(self.samp_grid, {2: (sites, False)})
+            self.drop_down_menu.update_drop_down_menu(self.samp_grid, {1: (sites, False)})
             # update ErMagic files
             self.ErMagic_data.update_ErMagic()
 
@@ -641,7 +641,7 @@ You may use the drop-down menus to add as many values as needed in these columns
             locations = sorted(self.ErMagic_data.Data_hierarchy['locations'].keys())
             locations = sorted(list(set(locations).union(self.ErMagic_data.data_er_locations.keys())))
             choices = self.drop_down_menu.choices
-            choices[2] = (locations, False)
+            choices[1] = (locations, False)
             self.drop_down_menu.update_drop_down_menu(self.site_grid, choices)
             # update ErMagic files
             self.ErMagic_data.update_ErMagic()
