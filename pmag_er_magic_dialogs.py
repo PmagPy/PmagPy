@@ -1,7 +1,7 @@
 """
 dialogs for ErMagicBuilder
 """
-# pylint: disable=W0612,C0111,C0103,W0201
+# pylint: disable=W0612,C0111,C0103,W0201,C0301
 import wx
 import wx.grid
 import sys
