@@ -129,7 +129,7 @@ class Zeq_GUI(wx.Frame):
 
         #set icon
         icon = wx.EmptyIcon()
-        icon.CopyFromBitmap(wx.Bitmap(os.path.join(PMAGPY_DIRECTORY, "images/PmagPy_small.ico"), wx.BITMAP_TYPE_ANY))
+        icon.CopyFromBitmap(wx.Bitmap(os.path.join(PMAGPY_DIRECTORY, "images/PmagPy_16x16.ico"), wx.BITMAP_TYPE_ANY))
         self.SetIcon(icon)
 
         # initialize acceptence criteria with NULL values

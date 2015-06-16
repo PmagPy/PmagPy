@@ -12,7 +12,7 @@ The Gui may be launched either with the command line by going to the directory c
 python ./demag_gui.py
 ```
 
-If you have QuickMagIC already running you can launch demag_gui by just clicking on the demag_gui button in the main window shown below:
+If you have QuickMagIC already running you can launch demag_gui by just clicking on the demag_gui button in the main window shown below. **Note:** on OSX it is recomended to launch through the QuickMagIC program as on wxpython 2.9 the drop down boxes seem to behave better when launched in this manner:
 
 ![](../images/QuickMagicLauncher.png)
 \pagebreak
