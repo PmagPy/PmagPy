@@ -1072,6 +1072,7 @@ class MagIC_model_builder(wx.Frame):
         hbox1 = wx.BoxSizer(wx.HORIZONTAL)
         self.okButton = wx.Button(self.panel, wx.ID_OK, "&OK")
         self.Bind(wx.EVT_BUTTON, self.on_okButton, self.okButton)
+        self.okButton.SetDefault()
 
         self.cancelButton = wx.Button(self.panel, wx.ID_CANCEL, '&Cancel')
         self.Bind(wx.EVT_BUTTON, self.on_cancelButton, self.cancelButton)

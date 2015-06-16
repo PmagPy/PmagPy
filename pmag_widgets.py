@@ -486,6 +486,7 @@ class btn_panel(wx.BoxSizer):
         super(btn_panel, self).__init__(wx.HORIZONTAL)
         pnl = panel
         SELF.okButton = wx.Button(pnl, wx.ID_OK, "&OK")
+        SELF.okButton.SetDefault()
         SELF.Bind(wx.EVT_BUTTON, SELF.on_okButton, SELF.okButton)
 
         SELF.cancelButton = wx.Button(pnl, wx.ID_CANCEL, '&Cancel')

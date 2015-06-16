@@ -52,7 +52,8 @@ class import_magnetometer_data(wx.Dialog):
         #---------------------
                 
         hboxok = wx.BoxSizer(wx.HORIZONTAL)
-        self.okButton =  wx.Button(self.panel, id=-1, label='Import file')
+        self.okButton = wx.Button(self.panel, id=-1, label='Import file')
+        self.okButton.SetDefault()
         self.Bind(wx.EVT_BUTTON, self.on_okButton, self.okButton)
         self.cancelButton = wx.Button(self.panel, wx.ID_CANCEL, '&Cancel')
         self.Bind(wx.EVT_BUTTON, self.on_cancelButton, self.cancelButton)

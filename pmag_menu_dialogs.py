@@ -176,6 +176,9 @@ class MoveFileIntoWD(wx.Frame):
         os.chdir(self.WD)
         WD = self.WD
         full_infile = self.bSizer0.return_value()
+        if not full_infile:
+            pw.simple_warning('You must provide a file')
+            return False
         infile = os.path.join(WD, os.path.split(full_infile)[1])
         shutil.copyfile(full_infile, os.path.join(WD, infile))
         pw.close_window(self, 'Copy infile to {}'.format(WD), infile)
