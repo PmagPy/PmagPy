@@ -2369,7 +2369,7 @@ class something(wx.Frame):
 
 class OrientFrameGrid(wx.Frame):
 
-    def __init__(self, parent, id, title, WD, Data_hierarchy, size):
+    def __init__(self, parent, id, title, WD, ErMagic, size):
         wx.Frame.__init__(self, parent, -1, title, size=size, name='calculate geographic directions')
         
         #--------------------
@@ -2381,7 +2381,8 @@ class OrientFrameGrid(wx.Frame):
             self.panel = wx.Panel(self, style=wx.SIMPLE_BORDER)
 
         self.WD = WD
-        self.Data_hierarchy = Data_hierarchy
+        #self.Data_hierarchy = Data_hierarchy
+        self.ErMagic_data = ErMagic
         self.grid = None
         
 
@@ -2392,10 +2393,20 @@ class OrientFrameGrid(wx.Frame):
         # and save it to self.orient_data={}
         #--------------------
 
-        self.samples_list = self.Data_hierarchy['samples']         
-        self.orient_data={}
+        empty = True
+        for dict_key in self.ErMagic_data.Data_hierarchy.keys():
+            if self.ErMagic_data.Data_hierarchy[dict_key]:
+                empty = False
+                break
+            
+        if empty:
+            self.ErMagic_data.get_data()
+
+        
+        self.samples_list = self.ErMagic_data.Data_hierarchy['samples']         
+        self.orient_data = {}
         try:
-            self.orient_data=self.read_magic_file(os.path.join(self.WD, "demag_orient.txt"),1,"sample_name")  
+            self.orient_data = self.read_magic_file(os.path.join(self.WD, "demag_orient.txt"), 1, "sample_name")  
         except:
             pass
         for sample in self.samples_list:
@@ -2403,10 +2414,10 @@ class OrientFrameGrid(wx.Frame):
                self.orient_data[sample]={} 
                self.orient_data[sample]["sample_name"]=sample
                
-            if sample in Data_hierarchy['site_of_sample'].keys():
-                self.orient_data[sample]["site_name"]=Data_hierarchy['site_of_sample'][sample]
+            if sample in self.ErMagic_data.Data_hierarchy['site_of_sample'].keys():
+                self.orient_data[sample]["site_name"] = self.ErMagic_data.Data_hierarchy['site_of_sample'][sample]
             else:
-                self.orient_data[sample]["site_name"]=""
+                self.orient_data[sample]["site_name"] = ""
 
         #--------------------
         # create the grid sheet
@@ -2643,13 +2654,13 @@ class OrientFrameGrid(wx.Frame):
         '''
         # first see if demag_orient.txt
         self.on_m_save_file(None)
-        orient_convention_dia=orient_convention(None)
+        orient_convention_dia = orient_convention(None)
         orient_convention_dia.Center()
         #orient_convention_dia.ShowModal()
         if orient_convention_dia.ShowModal() == wx.ID_OK:
-            ocn_flag=orient_convention_dia.ocn_flag
-            dcn_flag=orient_convention_dia.dcn_flag
-            gmt_flags=orient_convention_dia.gmt_flags
+            ocn_flag = orient_convention_dia.ocn_flag
+            dcn_flag = orient_convention_dia.dcn_flag
+            gmt_flags = orient_convention_dia.gmt_flags
             orient_convention_dia.Destroy()
 
 
@@ -2688,7 +2699,7 @@ class OrientFrameGrid(wx.Frame):
         command_args.append(gmt_flags)
         command_args.append(bedding_codes_flags)
         command_args.append(methodcodes_flags) 
-        commandline= " ".join(command_args)
+        commandline = " ".join(command_args)
 
         print "-I- executing command: %s" %commandline
         os.chdir(self.WD)
@@ -2704,9 +2715,9 @@ class OrientFrameGrid(wx.Frame):
             return
 
         # check if orientation_magic.py finished sucsessfuly
-        data_saved=False
+        data_saved = False
         if os.path.isfile(os.path.join(self.WD, "er_samples_orient.txt")):
-            data_saved=True
+            data_saved = True
             #fin=open(self.WD+"/orientation_magic.log",'r')
             #for line in fin.readlines():
             #    if "Data saved in" in line:

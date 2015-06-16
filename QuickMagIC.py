@@ -347,9 +347,9 @@ class MagMainFrame(wx.Frame):
     def on_orientation_button(self, event):
         #dw, dh = wx.DisplaySize()
         size = wx.DisplaySize()
-        size =(size[0]-0.1 * size[0], size[1]-0.1 * size[1])
+        size = (size[0]-0.1 * size[0], size[1]-0.1 * size[1])
         #Data_hierarchy = self.get_data()
-        frame = pmag_basic_dialogs.OrientFrameGrid(self, -1, 'demag_orient.txt', self.WD, self.ErMagic_data.Data_hierarchy, size)        
+        frame = pmag_basic_dialogs.OrientFrameGrid(self, -1, 'demag_orient.txt', self.WD, self.ErMagic_data, size)        
         frame.Show(True)
         frame.Centre()
 
