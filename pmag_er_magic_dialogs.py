@@ -730,7 +730,7 @@ You may use the drop-down menus to add as many values as needed in these columns
 
         for col in starred_cols:
             label = grid.GetColLabelValue(col)
-            grid.SetColLabelValue(col, label+'**')
+            grid.SetColLabelValue(col, label + '**')
         del wait
 
     def on_cancelButton(self, event):

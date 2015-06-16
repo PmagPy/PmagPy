@@ -344,6 +344,8 @@ class ErMagicBuilder(object):
             raise Exception("You must provide a location that already exists.\nIf necessary, add a new location first, then add this site.")
         self.Data_hierarchy['sites'][new_site_name] = []
 
+        if location not in self.Data_hierarchy['locations'].keys():
+            self.Data_hierarchy['locations'][location] = []
         self.Data_hierarchy['locations'][location].append(new_site_name)
         self.Data_hierarchy['location_of_site'][new_site_name] = location
         default_site_data = {key: '' for key in self.er_sites_header}
@@ -393,6 +395,8 @@ class ErMagicBuilder(object):
                 old_sample = sample
                 new_sample = new_specimen_data['er_sample_name']
                 self.Data_hierarchy['samples'][sample].remove(new_specimen_name)
+                if new_sample not in self.Data_hierarchy['samples'].keys():
+                    self.Data_hierarchy['samples'][new_sample] = []
                 self.Data_hierarchy['samples'][new_sample].append(new_specimen_name)
                 self.Data_hierarchy['sample_of_specimen'][new_specimen_name] = new_sample
 
@@ -413,7 +417,10 @@ class ErMagicBuilder(object):
             self.data_er_specimens[spec]['er_sample_name'] = new_sample_name
 
         # fix site_of_sample
-        site = self.change_dict_key(self.Data_hierarchy['site_of_sample'], new_sample_name, old_sample_name)
+        try:
+            site = self.change_dict_key(self.Data_hierarchy['site_of_sample'], new_sample_name, old_sample_name)
+        except KeyError:
+            self.Data_hierarchy['site_of_sample'][new_sample_name] = site
 
         # fix sites
         try: # if a new site has been added, this can fail
