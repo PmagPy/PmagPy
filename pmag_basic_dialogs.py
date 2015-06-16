@@ -29,23 +29,23 @@ class import_magnetometer_data(wx.Dialog):
         self.panel = wx.Panel(self)
         vbox = wx.BoxSizer(wx.VERTICAL)
 
-        formats=['generic format','SIO format','CIT format','2G-binary format','HUJI format','LDEO format','IODP SRM (csv) format','PMD (ascii) format','TDT format', 'JR6 format']
+        formats = ['generic format','SIO format','CIT format','2G-binary format','HUJI format','LDEO format','IODP SRM (csv) format','PMD (ascii) format','TDT format', 'JR6 format']
         sbs = wx.StaticBoxSizer(wx.StaticBox(self.panel, wx.ID_ANY, 'step 1: choose file format'), wx.VERTICAL)
-
-        rb0 = wx.RadioButton(self.panel, -1, label=formats[0], name='0', style=wx.RB_GROUP)
-        sbs.Add(rb0, flag=wx.TOP|wx.BOTTOM, border=5)
-        sbs.Add(wx.StaticLine(self.panel), 0, wx.ALL|wx.EXPAND, 5)
         sbs.AddSpacer(5)
-        self.Bind(wx.EVT_RADIOBUTTON, self.OnRadioButtonSelect, rb0)
+        
+        radio_buttons = []
+        for fmt in formats:
+            radio_button = wx.RadioButton(self.panel, -1, label=fmt, name=fmt)
+            radio_buttons.append(radio_button)
+            sbs.Add(radio_button, flag=wx.BOTTOM, border=5)
+            if len(radio_buttons) == 1:
+                sbs.Add(wx.StaticLine(self.panel), 0, wx.ALL|wx.EXPAND, 5)
 
-        for form in formats[1:]:
-            rb = wx.RadioButton(self.panel, wx.ID_ANY, label=form, name=form)
-            sbs.Add(rb, flag=wx.BOTTOM, border=5)
-            self.Bind(wx.EVT_RADIOBUTTON, self.OnRadioButtonSelect, rb)
+            #sbs.AddSpacer(5)
+            self.Bind(wx.EVT_RADIOBUTTON, self.OnRadioButtonSelect, radio_button)
 
-        rb0.SetValue(True)
-        self.checked_rb = rb0
-
+        radio_buttons[0].SetValue(True)
+        self.checked_rb = radio_buttons[0]
 
         #---------------------
         # OK/Cancel buttons
@@ -90,7 +90,7 @@ class import_magnetometer_data(wx.Dialog):
         os.chdir(self.WD)
         file_type = self.checked_rb.Label.split()[0] # extracts name of the checked radio button
         if file_type == 'generic':
-            dia = convert_generic_files_to_MagIC(self,self.WD)
+            dia = convert_generic_files_to_MagIC(self, self.WD)
         elif file_type == 'SIO':
             dia = convert_SIO_files_to_MagIC(self, self.WD)
         elif file_type == 'CIT':
@@ -120,7 +120,6 @@ class import_magnetometer_data(wx.Dialog):
     def OnRadioButtonSelect(self, event):
         self.checked_rb = event.GetEventObject()
 
-
     def on_nextButton(self,event):
         self.Destroy()
         combine_dia = combine_magic_dialog(self.WD)
@@ -140,9 +139,8 @@ class convert_generic_files_to_MagIC(wx.Frame):
         wx.Frame.__init__(self, parent, wx.ID_ANY, self.title)
         self.panel = wx.ScrolledWindow(self)
         self.panel.SetScrollbars(20, 20, 50, 50)
-        self.max_files=1
-        self.WD=WD
-        self.parent=parent
+        self.WD = WD
+        self.parent = parent
         self.InitUI()
 
     def InitUI(self):
@@ -180,7 +178,6 @@ class convert_generic_files_to_MagIC(wx.Frame):
         self.cooling_rate = wx.TextCtrl(pnl)
         self.bSizer2a.AddMany([wx.StaticText(pnl, label=text), self.cooling_rate])
         
-
         #---sizer 3 ----
         self.bSizer3 = pw.lab_field(pnl)
 
@@ -200,7 +197,6 @@ class convert_generic_files_to_MagIC(wx.Frame):
         self.bSizer4.Add(gridbSizer4,wx.ALIGN_LEFT)
         
         #---sizer 5 ----
-
         self.bSizer5 = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY, "" ), wx.VERTICAL )
         self.site_naming_conventions=['site=sample','no. of initial characters','no. of terminal characters','character delimited']
         self.site_naming_convention_char = wx.TextCtrl(self.panel, id=-1, size=(40,25))
@@ -214,7 +210,6 @@ class convert_generic_files_to_MagIC(wx.Frame):
         self.bSizer5.Add(gridbSizer5,wx.ALIGN_LEFT)
 
         #---sizer 6 ----
-
         TEXT="Location name:"
         self.bSizer6 = pw.labeled_text_field(pnl, TEXT)
 
@@ -222,7 +217,6 @@ class convert_generic_files_to_MagIC(wx.Frame):
         self.bSizer7 = pw.replicate_measurements(pnl)
 
         #---buttons ---
-        
         hboxok = pw.btn_panel(self, pnl)
 
         #------
@@ -273,7 +267,7 @@ class convert_generic_files_to_MagIC(wx.Frame):
         # generic_magic.py -WD WD - f FILE -fsa er_samples.txt -F OUTFILE.magic -exp [Demag/PI/ATRM 6/AARM 6/CR  -samp X Y -site  X Y -loc LOCNAME -dc B PHI THETA [-A] -WD path 
         options = {}
         
-        ErrorMessage=""
+        ErrorMessage = ""
         #-----------
         if not self.bSizer0.file_path.GetValue():
             pw.simple_warning('You must provide a generic format file')
@@ -293,23 +287,23 @@ class convert_generic_files_to_MagIC(wx.Frame):
         #-----------
         #OUTFILE=self.WD+"/"+FILE.split('/')[-1]+".magic"
         #-----------
-        EXP=""
-        exp=str(self.protocol_info.GetValue())
-        if exp=='Demag (AF and/or Thermal)': 
-            EXP='Demag'
-        elif exp=='Paleointensity-IZZI/ZI/ZI': 
-            EXP='PI'
-        elif exp=='ATRM 6 positions': 
-            EXP='ATRM 6'
-        elif exp=='AARM 6 positions': 
+        EXP = ""
+        exp = str(self.protocol_info.GetValue())
+        if exp == 'Demag (AF and/or Thermal)': 
+            EXP = 'Demag'
+        elif exp == 'Paleointensity-IZZI/ZI/ZI': 
+            EXP = 'PI'
+        elif exp == 'ATRM 6 positions': 
+            EXP ='ATRM 6'
+        elif exp == 'AARM 6 positions': 
             EXP = 'AARM 6'
-        elif exp=='cooling rate': 
+        elif exp == 'cooling rate': 
             cooling = self.cooling_rate.GetValue()
             if not cooling:
                 text = "You must provide cooling rate for this experiment type!\nThe format is: xxx, yyy,zzz...\nThis should be cooling rates in [K/minutes], seperated by comma, ordered at the same order as XXX.10,XXX.20 ...XX.70"
                 pw.simple_warning(text)
                 return False
-            EXP='CR {}'.format(cooling)
+            EXP = 'CR {}'.format(cooling)
         if 'CR' in EXP:
             options['experiment'], options['cooling_times_list'] = EXP.split()
         elif 'AARM' in EXP:
@@ -321,40 +315,40 @@ class convert_generic_files_to_MagIC(wx.Frame):
         #-----------
         SAMP="1 0" #default
         
-        samp_naming_convention=str(self.sample_naming_convention.GetValue())
+        samp_naming_convention = str(self.sample_naming_convention.GetValue())
         try:
             samp_naming_convention_char=int(self.sample_naming_convention_char.GetValue())
         except:
-             samp_naming_convention_char="0"
+             samp_naming_convention_char = "0"
                     
-        if samp_naming_convention=='sample=specimen':
-            SAMP="1 0"
-        elif samp_naming_convention=='no. of initial characters':
-            SAMP="0 %i"%int(samp_naming_convention_char)
-        elif samp_naming_convention=='no. of terminal characters':
-            SAMP="1 %s"%samp_naming_convention_char
-        elif samp_naming_convention=='character delimited':
-            SAMP="2 %s"%samp_naming_convention_char
+        if samp_naming_convention == 'sample=specimen':
+            SAMP = "1 0"
+        elif samp_naming_convention == 'no. of initial characters':
+            SAMP = "0 %i" % int(samp_naming_convention_char)
+        elif samp_naming_convention == 'no. of terminal characters':
+            SAMP = "1 %s" % samp_naming_convention_char
+        elif samp_naming_convention == 'character delimited':
+            SAMP = "2 %s" % samp_naming_convention_char
         
         options['sample_nc'] = SAMP.split()
         #-----------
         
-        SITE="1 0" #default
+        SITE = "1 0" #default
         
-        sit_naming_convention=str(self.site_naming_convention.GetValue())
+        site_naming_convention = str(self.site_naming_convention.GetValue())
         try:
-            sit_naming_convention_char=int(self.site_naming_convention_char.GetValue())
+            site_naming_convention_char = int(self.site_naming_convention_char.GetValue())
         except:
-             sit_naming_convention_char="0"
+             site_naming_convention_char = "0"
                     
-        if sit_naming_convention=='sample=specimen':
-            SITE="1 0"
-        elif sit_naming_convention=='no. of initial characters':
-            SITE="0 %i"%int(sit_naming_convention_char)
-        elif sit_naming_convention=='no. of terminal characters':
-            SITE="1 %s"%sit_naming_convention_char
-        elif sit_naming_convention=='character delimited':
-            SITE="2 %s"%sit_naming_convention_char
+        if site_naming_convention == 'sample=specimen':
+            SITE = "1 0"
+        elif site_naming_convention == 'no. of initial characters':
+            SITE = "0 %i" % int(site_naming_convention_char)
+        elif site_naming_convention == 'no. of terminal characters':
+            SITE = "1 %s" % site_naming_convention_char
+        elif site_naming_convention == 'character delimited':
+            SITE = "2 %s" % site_naming_convention_char
 
         options['site_nc'] = SITE.split()
         
@@ -384,9 +378,9 @@ class convert_generic_files_to_MagIC(wx.Frame):
 
         #-----------        
 
-        DONT_AVERAGE=" "
+        DONT_AVERAGE = " "
         if not self.bSizer7.return_value():
-            DONT_AVERAGE="-A"   
+            DONT_AVERAGE = "-A"   
             options['noave'] = 1
         else:
             options['noave'] = 0
@@ -421,34 +415,34 @@ class convert_generic_files_to_MagIC(wx.Frame):
         import generic_magic
         pw.on_helpButton(text=generic_magic.do_help())
 
-    def get_sample_name(self,specimen,sample_naming_convenstion):
-        if sample_naming_convenstion[0]=="sample=specimen":
-            sample=specimen
-        elif sample_naming_convenstion[0]=="no. of terminal characters":
-            n=int(sample_naming_convenstion[1])*-1
-            sample=specimen[:n]
-        elif sample_naming_convenstion[0]=="character delimited":
-            d=sample_naming_convenstion[1]
-            sample_splitted=specimen.split(d)
-            if len(sample_splitted)==1:
-                sample=sample_splitted[0]
+    def get_sample_name(self, specimen, sample_naming_convenstion):
+        if sample_naming_convenstion[0] == "sample=specimen":
+            sample = specimen
+        elif sample_naming_convenstion[0] == "no. of terminal characters":
+            n = int(sample_naming_convenstion[1]) * -1
+            sample = specimen[:n]
+        elif sample_naming_convenstion[0] == "character delimited":
+            d = sample_naming_convenstion[1]
+            sample_splitted = specimen.split(d)
+            if len(sample_splitted) == 1:
+                sample = sample_splitted[0]
             else:
-                sample=d.join(sample_splitted[:-1])
+                sample = d.join(sample_splitted[:-1])
         return sample
                             
-    def get_site_name(self,sample,site_naming_convenstion):
-        if site_naming_convenstion[0]=="site=sample":
-            site=sample
-        elif site_naming_convenstion[0]=="no. of terminal characters":
-            n=int(site_naming_convenstion[1])*-1
-            site=sample[:n]
-        elif site_naming_convenstion[0]=="character delimited":
-            d=site_naming_convenstion[1]
-            site_splitted=sample.split(d)
-            if len(site_splitted)==1:
-                site=site_splitted[0]
+    def get_site_name(self, sample, site_naming_convention):
+        if site_naming_convention[0] == "site=sample":
+            site = sample
+        elif site_naming_convention[0] == "no. of terminal characters":
+            n = int(site_naming_convention[1])*-1
+            site = sample[:n]
+        elif site_naming_convention[0] == "character delimited":
+            d = site_naming_convention[1]
+            site_splitted = sample.split(d)
+            if len(site_splitted) == 1:
+                site = site_splitted[0]
             else:
-                site=d.join(site_splitted[:-1])
+                site = d.join(site_splitted[:-1])
         
         return site
         
@@ -465,7 +459,6 @@ class combine_magic_dialog(wx.Frame):
         wx.Frame.__init__(self, None, wx.ID_ANY, self.title)
         self.panel =  wx.ScrolledWindow(self) #wx.Panel(self)
         self.panel.SetScrollbars(20, 20, 50, 50)
-        self.max_files = 1
         self.WD=WD
         self.InitUI()
 
@@ -586,7 +579,6 @@ class combine_everything_dialog(wx.Frame):
         wx.Frame.__init__(self, None, wx.ID_ANY, self.title)
         self.panel =  wx.ScrolledWindow(self) #wx.Panel(self)
         self.panel.SetScrollbars(20, 20, 50, 50)
-        self.max_files = 1
         self.WD=WD
         self.InitUI()
 
@@ -703,7 +695,6 @@ class convert_SIO_files_to_MagIC(wx.Frame):
         wx.Frame.__init__(self, parent, wx.ID_ANY, self.title)
         self.panel = wx.ScrolledWindow(self)
         self.panel.SetScrollbars(20, 20, 50, 50)
-        self.max_files = 1 # but maybe it could take more??
         self.WD=WD
         self.InitUI()
 
@@ -884,7 +875,6 @@ class convert_CIT_files_to_MagIC(wx.Frame):
     def __init__(self, parent, WD):
         wx.Frame.__init__(self, parent, wx.ID_ANY, self.title)
         self.panel = wx.ScrolledWindow(self)
-        self.max_files = 1 # but maybe it could take more??
         self.WD = WD
         self.InitUI()
 
@@ -2782,33 +2772,33 @@ class OrientFrameGrid(wx.Frame):
             er_sites_data=self.read_magic_file(er_sites_file,1,"er_site_name")
         er_sites_orient_data={}
         if os.path.isfile(os.path.join(self.WD, "er_sites_orient.txt")):             
-            er_sites_orient_file=os.path.join(self.WD, "er_sites_orient.txt")
-            er_sites_orient_data=self.read_magic_file(er_sites_orient_file,1,"er_site_name")
-        new_sites_added=[]
+            er_sites_orient_file = os.path.join(self.WD, "er_sites_orient.txt")
+            er_sites_orient_data = self.read_magic_file(er_sites_orient_file,1,"er_site_name")
+        new_sites_added = []
         for site in er_sites_orient_data.keys():
             if site not in er_sites_data.keys():
                 new_sites_added.append(site)
-                er_sites_data[site]={}
-                er_sites_data[site]['er_site_name']=site
-            for key in ["site_definition","site_lat","site_lon"]:
+                er_sites_data[site] = {}
+                er_sites_data[site]['er_site_name'] = site
+            for key in ["site_definition", "site_lat", "site_lon"]:
                 if key in er_sites_orient_data[site].keys():
-                    er_sites_data[site][key]=er_sites_orient_data[site][key]
-        sites=er_sites_data.keys()
+                    er_sites_data[site][key] = er_sites_orient_data[site][key]
+        sites = er_sites_data.keys()
         sites.sort()
-        er_recs=[]
+        er_recs = []
         for site in sites:
             er_recs.append(er_sites_data[site])
-        er_recs=pmag.merge_recs_headers(er_recs)  
-        pmag.magic_write(os.path.join(self.WD, "er_sites.txt"),er_recs,"er_sites")
+        er_recs = pmag.merge_recs_headers(er_recs)  
+        pmag.magic_write(os.path.join(self.WD, "er_sites.txt"), er_recs, "er_sites")
         
             #pmag.magic_write(os.path.join(self.WD, "er_samples.txt"),er_recs,"er_samples")
 
-        dlg1 = wx.MessageDialog(None,caption="Message:", message="orientation data is saved/appended to er_samples.txt" ,style=wx.OK|wx.ICON_INFORMATION)
+        dlg1 = wx.MessageDialog(None, caption="Message:", message="orientation data is saved/appended to er_samples.txt", style=wx.OK|wx.ICON_INFORMATION)
         dlg1.ShowModal()
         dlg1.Destroy()
 
-        if len(new_samples_added)>0:
-            dlg1 = wx.MessageDialog(None,caption="Warning:", message="The following samples were added to er_samples.txt:\n %s "%(" , ".join(new_samples_added)) ,style=wx.OK|wx.ICON_INFORMATION)
+        if len(new_samples_added) > 0:
+            dlg1 = wx.MessageDialog(None, caption="Warning:", message="The following samples were added to er_samples.txt:\n %s "%(" , ".join(new_samples_added)), style=wx.OK|wx.ICON_INFORMATION)
             dlg1.ShowModal()
             dlg1.Destroy()
 
@@ -2838,7 +2828,6 @@ class orient_convention(wx.Dialog):
         self.SetTitle("set orientation convention")
         
     def InitUI(self):
-
 
         pnl = wx.Panel(self)        
         vbox=wx.BoxSizer(wx.VERTICAL)
@@ -2966,44 +2955,54 @@ class orient_convention(wx.Dialog):
         self.op_rb1.SetValue(True)   
         
     def OnOK(self, e):
-        self.ocn=""
-        if self.oc_rb1.GetValue()==True:self.ocn="1"
-        if self.oc_rb2.GetValue()==True:self.ocn="2"
-        if self.oc_rb3.GetValue()==True:self.ocn="3"
-        if self.oc_rb4.GetValue()==True:self.ocn="4"
-        if self.oc_rb5.GetValue()==True:self.ocn="5"
-        if self.oc_rb6.GetValue()==True:self.ocn="6"
+        self.ocn = ""
+        if self.oc_rb1.GetValue() == True:
+            self.ocn = "1"
+        if self.oc_rb2.GetValue() == True:
+            self.ocn="2"
+        if self.oc_rb3.GetValue() == True:
+            self.ocn="3"
+        if self.oc_rb4.GetValue() == True:
+            self.ocn = "4"
+        if self.oc_rb5.GetValue() == True:
+            self.ocn="5"
+        if self.oc_rb6.GetValue() == True:
+            self.ocn="6"
 
-        self.dcn=""
+        self.dcn = ""
         self.correct_dec = ""
-        if self.dc_rb1.GetValue()==True:self.dcn="1"
-        if self.dc_rb2.GetValue()==True:
+        if self.dc_rb1.GetValue() == True:
+            self.dcn = "1"
+        if self.dc_rb2.GetValue() == True:
             self.dcn="2"
             try:
                 self.correct_dec = float(self.dc_tb2.GetValue())
             except:
-                dlg1 = wx.MessageDialog(None,caption="Error:", message="Add declination" ,style=wx.OK|wx.ICON_INFORMATION)
+                dlg1 = wx.MessageDialog(None, caption="Error:", message="Add declination", style=wx.OK|wx.ICON_INFORMATION)
                 dlg1.ShowModal()
                 dlg1.Destroy()
                 
-        if self.dc_rb3.GetValue()==True:self.dcn="3"
+        if self.dc_rb3.GetValue()==True:
+            self.dcn = "3"
         
-        if self.op_rb1.GetValue()==True:self.op="1"
-        if self.op_rb2.GetValue()==True:self.op="2"
+        if self.op_rb1.GetValue() == True:
+            self.op = "1"
+        if self.op_rb2.GetValue() == True:
+            self.op = "2"
         
-        if self.dc_alt.GetValue()!="":
+        if self.dc_alt.GetValue() != "":
             try:
                 self.gmt = float(self.dc_alt.GetValue())
-                gmt_flags="-gmt " + self.dc_alt.GetValue()
+                gmt_flags = "-gmt " + self.dc_alt.GetValue()
             except:
                 gmt_flags=""
         else:
             self.gmt = ""
-            gmt_flags=""        
+            gmt_flags = ""
         #-------------
-        self.ocn_flag="-ocn "+ self.ocn
-        self.dcn_flag="-dcn "+ self.dcn
-        self.gmt_flags=gmt_flags
+        self.ocn_flag = "-ocn "+ self.ocn
+        self.dcn_flag = "-dcn "+ self.dcn
+        self.gmt_flags = gmt_flags
         self.EndModal(wx.ID_OK)
         #self.Close()
 
@@ -3037,27 +3036,20 @@ class method_code_dialog(wx.Dialog):
         self.cb9 = wx.CheckBox(pnl, -1, 'SO-SM: either magnetic or sun used on all orientations    ')
         self.cb10 = wx.CheckBox(pnl, -1, 'SO-SIGHT: orientation from sighting')
 
-        sbs1.Add(self.cb1);sbs1.AddSpacer(5)
-        sbs1.Add(self.cb2);sbs1.AddSpacer(5)
-        sbs1.Add(self.cb3);sbs1.AddSpacer(5)
-        sbs1.Add(self.cb4);sbs1.AddSpacer(5)
-        sbs1.Add(self.cb5);sbs1.AddSpacer(5)
-        sbs1.Add(self.cb6);sbs1.AddSpacer(5)
-        sbs1.Add(self.cb7);sbs1.AddSpacer(5)
-        sbs1.Add(self.cb8);sbs1.AddSpacer(5)
-        sbs1.Add(self.cb9);sbs1.AddSpacer(5)
-        sbs1.Add(self.cb10);sbs1.AddSpacer(5)
+        for cb in [self.cb1, self.cb2, self.cb3, self.cb4, self.cb5,
+                   self.cb6, self.cb7, self.cb8, self.cb9, self.cb10]:
+            sbs1.Add(cb, flag=wx.BOTTOM, border=5)
 
         #-----------------------
         # Bedding convention
         #-----------------------
         
-        sbs2 = wx.StaticBoxSizer( wx.StaticBox( pnl, wx.ID_ANY, 'bedding convention' ), wx.VERTICAL )
+        sbs2 = wx.StaticBoxSizer(wx.StaticBox(pnl, wx.ID_ANY, 'bedding convention'), wx.VERTICAL)
         self.bed_con1 = wx.CheckBox(pnl, -1, 'Take fisher mean of bedding poles?')
         self.bed_con2 = wx.CheckBox(pnl, -1, "Don't correct bedding dip direction with declination - already correct")
 
-        sbs2.Add(self.bed_con1);sbs1.AddSpacer(5)
-        sbs2.Add(self.bed_con2);sbs1.AddSpacer(5)
+        sbs2.Add(self.bed_con1, flag=wx.BOTTOM, border=5)
+        sbs2.Add(self.bed_con2, flag=wx.BOTTOM, border=5)
 
         #-----------------------
         # OK button
@@ -3088,37 +3080,37 @@ class method_code_dialog(wx.Dialog):
 
     def OnOK(self, e):
         methodcodes=[]
-        if self.cb1.GetValue() ==True:
+        if self.cb1.GetValue() == True:
             methodcodes.append('FS-FD')
-        if self.cb2.GetValue() ==True:
+        if self.cb2.GetValue() == True:
             methodcodes.append('FS-H')
-        if self.cb3.GetValue() ==True:
+        if self.cb3.GetValue() == True:
             methodcodes.append('FS-LOC-GPS')
-        if self.cb4.GetValue() ==True:
+        if self.cb4.GetValue() == True:
             methodcodes.append('FS-LOC-MAP')
-        if self.cb5.GetValue() ==True:
+        if self.cb5.GetValue() == True:
             methodcodes.append('SO-POM')
-        if self.cb6.GetValue() ==True:
+        if self.cb6.GetValue() == True:
             methodcodes.append('SO-ASC')
-        if self.cb7.GetValue() ==True:
+        if self.cb7.GetValue() == True:
             methodcodes.append('SO-MAG')
-        if self.cb8.GetValue() ==True:
+        if self.cb8.GetValue() == True:
             methodcodes.append('SO-SUN')
-        if self.cb9.GetValue() ==True:
+        if self.cb9.GetValue() == True:
             methodcodes.append('SO-SM')
-        if self.cb10.GetValue() ==True:
+        if self.cb10.GetValue() == True:
             methodcodes.append('SO-SIGHT')
 
-        if methodcodes==[]:
+        if methodcodes == []:
             self.methodcodes_flags=""
             self.methodcodes = ""
         else:
-            self.methodcodes_flags="-mcd "+":".join(methodcodes)
+            self.methodcodes_flags = "-mcd " + ":".join(methodcodes)
             self.methodcodes = ":".join(methodcodes)
         
         bedding_codes=[]
         
-        if self.bed_con1.GetValue() ==True:
+        if self.bed_con1.GetValue() == True:
             bedding_codes.append("-a")
             self.average_bedding = True
         else:
@@ -3128,6 +3120,6 @@ class method_code_dialog(wx.Dialog):
             self.bed_correction = False
         else:
             self.bed_correction = True
-        self.bedding_codes_flags=" ".join(bedding_codes)   
+        self.bedding_codes_flags = " ".join(bedding_codes)   
         self.EndModal(wx.ID_OK) 
         #self.Close()
