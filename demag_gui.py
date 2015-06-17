@@ -161,6 +161,7 @@ class Zeq_GUI(wx.Frame):
                 self.high_level_means[high_level]={}
         
         #BLARGE
+        self.edit_interpertations_window_open = False
         self.colors = ['g','y','m','c','k','w'] #for fits
         self.current_fit = None
         self.dirtypes = ['DA-DIR','DA-DIR-GEO','DA-DIR-TILT']
@@ -2283,6 +2284,10 @@ class Zeq_GUI(wx.Frame):
         if not (self.s in self.pmag_results_data['specimens'].keys()):
             self.pmag_results_data['specimens'][self.s] = []
 
+        #if edit_interpertations_window is open update it's logger
+        if self.edit_interpertations_window_open:
+            self.edit_interpertations_window.update_logger()
+
         for fit in self.pmag_results_data['specimens'][self.s]:
 
             pars = fit.get(self.COORDINATE_SYSTEM)
@@ -2831,7 +2836,6 @@ class Zeq_GUI(wx.Frame):
        self.high_level_eqarea.clear()
        what_is_it=self.level_box.GetValue()+": "+self.level_names.GetValue()
        self.high_level_eqarea.text(-1.2,1.15,what_is_it,{'family':'Arial', 'fontsize':10*self.GUI_RESOLUTION, 'style':'normal','va':'center', 'ha':'left' })
-
               
        #self.high_level_eqarea_net = self.fig4.add_subplot(111)        
        #self.high_level_eqarea = self.high_level_eqarea_net.twinx()        
@@ -4137,8 +4141,9 @@ class Zeq_GUI(wx.Frame):
     #--------------------------------------------------------------
 
     def on_menu_edit_interpertations(self,event):
-        fit_frame = EditFitFrame(self)
-        fit_frame.Show()
+        self.edit_interpertations_window = EditFitFrame(self)
+        self.edit_interpertations_window_open = True
+        self.edit_interpertations_window.Show()
 
 
     def on_menu_previous_interpretation(self,event):
@@ -5040,6 +5045,9 @@ class Zeq_GUI(wx.Frame):
                 self.bad_fits.remove(bad_fit)
             else:
                 self.bad_fits.append(bad_fit)
+       #update the edit_interpertations_window to reflect bad interpertations
+        if self.edit_interpertations_window_open:
+            self.edit_interpertations_window.update_logger()
         self.close_warning = True
         self.calculate_higher_levels_data()
         self.update_selection()
@@ -5137,7 +5145,7 @@ class EditFitFrame(wx.Frame):
     def __init__(self,parent):
         """Constructor"""
         self.parent = parent
-        wx.Frame.__init__(self, None, title="Second Frame")
+        wx.Frame.__init__(self, None, title="Interpretation Editor")
         w, h = self.GetSize()
         self.panel = wx.Panel(self,-1,size=(w,h)) # make the Panel
         dw, dh = wx.DisplaySize()
@@ -5150,9 +5158,10 @@ class EditFitFrame(wx.Frame):
     def UI(self):
         #set fonts
         font1 = wx.Font(10, wx.SWISS, wx.NORMAL, wx.NORMAL, False, u'Arial')
+        font2 = wx.Font(13, wx.SWISS, wx.NORMAL, wx.NORMAL, False, u'Arial')
 
         #build logger
-        self.logger = wx.ListCtrl(self.panel, -1, size=(400*self.GUI_RESOLUTION,400*self.GUI_RESOLUTION),style=wx.LC_REPORT)
+        self.logger = wx.ListCtrl(self.panel, -1, size=(425*self.GUI_RESOLUTION,400*self.GUI_RESOLUTION),style=wx.LC_REPORT)
         self.logger.SetFont(font1)
         self.logger.InsertColumn(0, 'specimen',width=55*self.GUI_RESOLUTION)
         self.logger.InsertColumn(1, 'name',width=55*self.GUI_RESOLUTION)
@@ -5165,18 +5174,72 @@ class EditFitFrame(wx.Frame):
         self.logger.InsertColumn(8, 'dang',width=35*self.GUI_RESOLUTION)
         self.logger.InsertColumn(9, 'a95',width=35*self.GUI_RESOLUTION)
         self.update_logger()
-#        self.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.OnClick_listctrl, self.logger)
-#        self.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK,self.OnRightClickListctrl,self.logger)
+        self.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.OnClick_listctrl, self.logger)
+        self.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK,self.OnRightClickListctrl,self.logger)
 
-        vbox1=wx.BoxSizer(wx.VERTICAL)
-        vbox1.Add(self.logger,flag=wx.ALIGN_TOP,border=8)
+        #set fit attributes box
+        self.name_sizer = wx.StaticBoxSizer(wx.StaticBox(self.panel, wx.ID_ANY), wx.VERTICAL)
+        self.bounds_sizer = wx.StaticBoxSizer(wx.StaticBox(self.panel, wx.ID_ANY), wx.VERTICAL)
+        self.buttons_sizer = wx.StaticBoxSizer(wx.StaticBox(self.panel, wx.ID_ANY), wx.VERTICAL)
 
-        self.panel.SetSizer(vbox1)       
+        #bounds select boxes
+        self.tmin_box = wx.ComboBox(self.panel, -1, size=(100*self.GUI_RESOLUTION, 25), choices=self.parent.T_list, style=wx.CB_DROPDOWN)
+#        self.Bind(wx.EVT_COMBOBOX, self.parent.get_new_PCA_parameters, self.tmin_box)
+
+        self.tmax_box = wx.ComboBox(self.panel, -1, size=(100*self.GUI_RESOLUTION, 25), choices=self.parent.T_list, style=wx.CB_DROPDOWN)
+#        self.Bind(wx.EVT_COMBOBOX, self.parent.get_new_PCA_parameters, self.tmax_box)
+
+        self.color_box = wx.ComboBox(self.panel, -1, size=(100*self.GUI_RESOLUTION, 25), choices=['green','yellow','maroon','cyan','black','white'], style=wx.CB_DROPDOWN)
+        self.color_dict = {'green':'g','yellow':'y','maroon':'m','cyan':'c','black':'k','white':'w'}
+
+        self.name_box = wx.TextCtrl(self.panel, -1, size=(100*self.GUI_RESOLUTION, 25), style=wx.HSCROLL)
+
+        self.add_fit_button = wx.Button(self.panel, id=-1, label='add fit',size=(200*self.GUI_RESOLUTION,25))
+        self.add_fit_button.SetFont(font2)
+        self.Bind(wx.EVT_BUTTON, self.parent.add_fit, self.add_fit_button)
+
+        self.delete_fit_button = wx.Button(self.panel, id=-1, label='add fit',size=(200*self.GUI_RESOLUTION,25))
+        self.delete_fit_button.SetFont(font2)
+        self.Bind(wx.EVT_BUTTON, self.parent.delete_fit, self.delete_fit_button)
+
+        self.apply_changes_button = wx.Button(self.panel, id=-1, label='apply changes to highlighted fits',size=(200*self.GUI_RESOLUTION,25))
+        self.apply_changes_button.SetFont(font1)
+        self.Bind(wx.EVT_BUTTON, self.apply_changes, self.apply_changes_button)
+
+        name_window = wx.GridSizer(2, 1, 10*self.GUI_RESOLUTION, 19*self.GUI_RESOLUTION)
+        bounds_window = wx.GridSizer(2, 1, 10*self.GUI_RESOLUTION, 19*self.GUI_RESOLUTION)
+        buttons_window = wx.GridSizer(2, 1, 10*self.GUI_RESOLUTION, 19*self.GUI_RESOLUTION)
+        name_window.AddMany( [(self.name_box, wx.ALIGN_LEFT),
+                                (self.color_box, wx.ALIGN_LEFT)] )
+        bounds_window.AddMany( [(self.tmin_box, wx.ALIGN_LEFT),
+                                (self.tmax_box, wx.ALIGN_LEFT)] )
+        buttons_window.AddMany( [(self.add_fit_button, wx.ALIGN_BOTTOM),
+                                (self.delete_fit_button, wx.ALIGN_BOTTOM),
+                                (self.apply_changes_button, wx.ALIGN_BOTTOM)] )
+        self.name_sizer.Add(name_window, 0, wx.TOP, 5.5)
+        self.bounds_sizer.Add(bounds_window, 0, wx.TOP, 5.5)
+        self.buttons_sizer.Add(buttons_window, 0, wx.TOP, 5.5)
+        
+        #construct panel
+        hbox_input = wx.BoxSizer(wx.HORIZONTAL)
+        hbox_input.Add(self.name_sizer,flag=wx.ALIGN_LEFT,border=8)
+        hbox_input.Add(self.bounds_sizer,flag=wx.ALIGN_LEFT,border=8)
+
+        vbox1 = wx.BoxSizer(wx.VERTICAL)
+        vbox1.Add(hbox_input,flag=wx.ALIGN_TOP,border=8)
+        vbox1.Add(self.buttons_sizer,flag=wx.ALIGN_TOP,border=8)
+
+        hbox1=wx.BoxSizer(wx.HORIZONTAL)
+        hbox1.Add(self.logger,flag=wx.ALIGN_LEFT,border=8)
+        hbox1.Add(vbox1,flag=wx.ALIGN_LEFT,border=8)
+
+        self.panel.SetSizer(hbox1)       
 
     def update_logger(self):
 
         self.fit_list = []
         for specimen in self.parent.specimens:
+            if specimen not in self.parent.pmag_results_data['specimens']: continue
             self.fit_list += [(fit,specimen) for fit in self.parent.pmag_results_data['specimens'][specimen]]
 
         self.logger.DeleteAllItems()
@@ -5207,9 +5270,69 @@ class EditFitFrame(wx.Frame):
             self.logger.SetStringItem(i, 8, dang)
             self.logger.SetStringItem(i, 9, a95)
             self.logger.SetItemBackgroundColour(i,"WHITE")
+            a,b = False,False
             if fit in self.parent.bad_fits:
                 self.logger.SetItemBackgroundColour(i,"YELLOW")
+                b = True
+            if self.parent.current_fit == fit:
+                self.logger.SetItemBackgroundColour(i,"LIGHTBLUE")
+                a = True
+            if a and b:
+                self.logger.SetItemBackgroundColour(i,"LIGHTGREEN")
 
+    def OnClick_listctrl(self, event):
+        i = event.GetIndex()
+        self.parent.s = self.fit_list[i][1]
+        si = self.parent.specimens.index(self.fit_list[i][1])
+        self.parent.specimens_box.SetSelection(si)
+        self.parent.onSelect_specimen(event)
+        fi = 0
+        while (self.parent.s == self.fit_list[i][1]): i,fi = (i-1,fi+1)
+        self.parent.fit_box.SetSelection(fi-1)
+        self.parent.on_select_fit(event)
+        self.update_logger()
+
+    def OnRightClickListctrl(self, event):
+        i = event.GetIndex()
+        fit = self.fit_list[i][0]
+        if fit in self.parent.bad_fits:
+            self.parent.bad_fits.remove(fit)
+        else:
+            self.parent.bad_fits.append(fit)
+        self.parent.calculate_higher_levels_data()
+        self.parent.plot_higher_levels_data()
+        self.update_logger()
+
+    def apply_changes(self, event):
+
+        new_name = self.name_box.GetLineText(0)
+        new_color = self.color_box.GetValue()
+        new_tmin = self.tmin_box.GetValue()
+        new_tmax = self.tmax_box.GetValue()
+
+        next_i = -1
+        while next_i != -1:
+            next_i = self.logger.GetNextSelected(next_i)
+            specimen = self.fit_list[next_i][1]
+            fit = self.fit_list[next_i][0]
+            if new_name:
+                print('new name')
+                fit.name = new_name
+            if new_color:
+                print('new color')
+                fit.color = self.color_dict[new_color]
+            if new_tmin:
+                print('new lower bound')
+                if fit == self.parent.current_fit:
+                    self.parent.tmin_box.SetStringSelection(new_tmin)
+                fit.put(self.parent.get_PCA_parameters(specimen,new_tmin,fit.tmax,self.parent.COORDINATE_SYSTEM,fit.PCA_type))
+            if new_tmax:
+                print('new upper bound')
+                if fit == self.parent.current_fit:
+                    self.parent.tmax_box.SetStringSelection(new_tmax)
+                fit.put(self.parent.get_PCA_parameters(specimen,fit.tmin,new_tmax,self.parent.COORDINATE_SYSTEM,fit.PCA_type))
+        self.update_logger()
+        self.parent.update_selection()
 
 #----------------------------------------------------------------------------------------
 
@@ -5278,13 +5401,14 @@ class Fit():
         parameters such that it matches the new data.
         @param: coordinate_system -> the coordinate system to alter
         @param: new_pars -> the new paramters to change your fit to
-        @alters: tmin, tmax, pars, geopars, tiltpars
+        @alters: tmin, tmax, pars, geopars, tiltpars, PCA_type
         """
-        if type(new_pars) != dict or 'measurement_step_min' not in new_pars.keys() or 'measurement_step_max' not in new_pars.keys():
+        if type(new_pars) != dict or 'measurement_step_min' not in new_pars.keys() or 'measurement_step_max' not in new_pars.keys() or 'calculation_type' not in new_pars.keys():
             print("-E- invalid parameters cannot assign to fit - was given:\n"+str(new_pars))
             return {}
         self.tmin = new_pars['measurement_step_min']
         self.tmax = new_pars['measurement_step_max']
+        self.PCA_type = new_pars['calculation_type']
 
         if self.tmin == 0:
             self.tmin = '0'
