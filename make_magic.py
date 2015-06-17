@@ -8,6 +8,7 @@ doc string
 import wx
 import wx.lib.buttons as buttons
 import sys
+import os
 import ErMagicBuilder
 import pmag
 import pmag_er_magic_dialogs
@@ -24,19 +25,126 @@ class MainFrame(wx.Frame):
         wx.GetDisplaySize()
         wx.Frame.__init__(self, None, wx.ID_ANY, 'Title')
         self.panel = wx.Panel(self, size=wx.GetDisplaySize())
-        self.WD = WD
+        os.chdir(WD)
+        self.WD = os.getcwd()
         self.InitUI()
 
     def InitUI(self):
         bSizer0 = wx.StaticBoxSizer(wx.StaticBox(self.panel, wx.ID_ANY, "Choose MagIC project directory"), wx.HORIZONTAL)
         self.dir_path = wx.TextCtrl(self.panel, id=-1, size=(600,25), style=wx.TE_READONLY)
+        self.dir_path.SetValue(self.WD)
         self.change_dir_button = buttons.GenButton(self.panel, id=-1, label="change dir",size=(-1, -1))
         self.change_dir_button.SetBackgroundColour("#F8F8FF")
         self.change_dir_button.InitColours()
-        self.Bind(wx.EVT_BUTTON, self.on_change_dir_button, self.change_dir_button)
+        #self.Bind(wx.EVT_BUTTON, self.on_change_dir_button, self.change_dir_button)
         bSizer0.Add(self.change_dir_button, wx.ALIGN_LEFT)
         bSizer0.AddSpacer(40)
         bSizer0.Add(self.dir_path, wx.ALIGN_CENTER_VERTICAL)
+
+        #---sizer 1 ----
+        bSizer1 = wx.StaticBoxSizer(wx.StaticBox(self.panel, wx.ID_ANY, "Add information to the data model"), wx.HORIZONTAL)
+
+        text = "Add specimen data"
+        self.btn1 = buttons.GenButton(self.panel, id=-1, label=text, size=(300, 50), name='step 1')
+        self.btn1.SetBackgroundColour("#FDC68A")
+        self.btn1.InitColours()
+        #self.Bind(wx.EVT_BUTTON, self.on_convert_file, self.btn1)
+        text = "Add sample data"
+        self.btn2 = buttons.GenButton(self.panel, id=-1, label=text, size=(300, 50), name='step 2')
+        self.btn2.SetBackgroundColour("#6ECFF6")
+        self.btn2.InitColours()
+        #self.Bind(wx.EVT_BUTTON, self.on_orientation_button, self.btn2)
+        text = "Add site data"
+        self.btn3 = buttons.GenButton(self.panel, id=-1, label=text, size=(300, 50), name='step 3')
+        self.btn3.SetBackgroundColour("#C4DF9B")
+        self.btn3.InitColours()
+        #self.Bind(wx.EVT_BUTTON, self.on_er_data, self.btn3)
+
+        text = "add location data"
+        self.btn4 = buttons.GenButton(self.panel, id=-1, label=text, size=(300, 50))
+        self.btn4.SetBackgroundColour("#FDC68A")
+        self.btn4.InitColours()
+
+
+        text = "add age data"
+        self.btn5 = buttons.GenButton(self.panel, id=-1, label=text, size=(300, 50))
+        self.btn5.SetBackgroundColour("#6ECFF6")
+        self.btn5.InitColours()
+
+
+        #self.Bind(wx.EVT_BUTTON, self.on_unpack, self.btn4)
+
+        #str = "OR"
+        #OR = wx.StaticText(self.panel, -1, "or", (20, 120))
+        #font = wx.Font(18, wx.SWISS, wx.NORMAL, wx.NORMAL)
+        #OR.SetFont(font)
+
+
+        #bSizer0.Add(self.panel,self.btn1,wx.ALIGN_TOP)
+        bsizer1a = wx.BoxSizer(wx.VERTICAL)
+        bsizer1a.AddSpacer(20)
+        bsizer1a.Add(self.btn1, wx.ALIGN_TOP)
+        bsizer1a.AddSpacer(20)
+        bsizer1a.Add(self.btn2, wx.ALIGN_TOP)
+        bsizer1a.AddSpacer(20)
+        bsizer1a.Add(self.btn3, wx.ALIGN_TOP)
+        bsizer1a.AddSpacer(20)
+
+        bSizer1.Add(bsizer1a, wx.ALIGN_CENTER, wx.EXPAND)
+        bSizer1.AddSpacer(20)
+
+        #bSizer1.Add(OR, 0, wx.ALIGN_CENTER, 0)
+        bSizer1.AddSpacer(20)
+        bsizer1b = wx.BoxSizer(wx.VERTICAL)
+        #__init__(self, parent, id, label, pos, size, style, validator, name
+        bsizer1b.Add(self.btn4, flag=wx.ALIGN_CENTER|wx.BOTTOM, border=20)
+        bsizer1b.Add(self.btn5, 0, wx.ALIGN_CENTER, 0)
+        bSizer1.Add(bsizer1b, 0, wx.ALIGN_CENTER, 0)
+        bSizer1.AddSpacer(20)
+
+        #---sizer 2 ----
+
+        bSizer3 = wx.StaticBoxSizer(wx.StaticBox(self.panel, wx.ID_ANY, "Upload to MagIC database"), wx.HORIZONTAL)
+
+        text = "prepare upload txt file"
+        self.btn_upload = buttons.GenButton(self.panel, id=-1, label=text, size=(300, 50))
+        self.btn_upload.SetBackgroundColour("#C4DF9B")
+        self.btn_upload.InitColours()
+
+        bSizer3.AddSpacer(20)
+        bSizer3.Add(self.btn_upload, 0, wx.ALIGN_CENTER, 0)
+        bSizer3.AddSpacer(20)
+        #self.Bind(wx.EVT_BUTTON, self.on_btn_upload, self.btn_upload)
+
+
+
+        #---arange sizers ----
+        
+        hbox = wx.BoxSizer(wx.HORIZONTAL)
+        vbox = wx.BoxSizer(wx.VERTICAL)
+        vbox.AddSpacer(5)
+        #vbox.Add(self.logo,0,wx.ALIGN_CENTER,0)
+        vbox.AddSpacer(5)
+        vbox.Add(bSizer0, 0, wx.ALIGN_CENTER, 0)
+        vbox.AddSpacer(10)
+        #vbox.Add(bSizer0_1, 0, wx.ALIGN_CENTER, 0)
+        #vbox.AddSpacer(10)
+        vbox.Add(bSizer1, 0, wx.ALIGN_CENTER, 0)
+        vbox.AddSpacer(10)
+        vbox.AddSpacer(10)
+        hbox.AddSpacer(10)
+        vbox.Add(bSizer3, 0, wx.ALIGN_CENTER, 0)
+        vbox.AddSpacer(10)
+
+
+        hbox.Add(vbox, 0, wx.ALIGN_CENTER, 0)
+        hbox.AddSpacer(5)
+
+
+
+        self.panel.SetSizer(hbox)
+        hbox.Fit(self)
+
 
     def on_change_dir_button(self, event):
         pass
@@ -52,9 +160,9 @@ class GridFrame(wx.Frame):
     make_magic
     """
 
-    def __init__(self, WD=None, panel_name="panel"):
+    def __init__(self, WD=None, panel_name="grid panel"):
         wx.GetDisplaySize()
-        wx.Frame.__init__(self, None, wx.ID_ANY, 'Title')
+        wx.Frame.__init__(self, None, wx.ID_ANY, '????')
         self.panel = wx.Panel(self, name=panel_name, size=wx.GetDisplaySize())
         self.WD = WD
         self.InitUI()
