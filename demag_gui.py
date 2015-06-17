@@ -2898,9 +2898,12 @@ class Zeq_GUI(wx.Frame):
                 self.mean_fit_box.SetStringSelection('None')
                 self.mean_fits = 'None'
             else:
-                fit_index = map(lambda x: x.name, self.pmag_results_data['specimens'][self.s]).index(self.mean_fit)
-                try: fits = [self.pmag_results_data['specimens'][specimen][fit_index]]
-                except IndexError: pass #print('-W- Not all specimens have this fit');
+                #by name fit grouping
+                fits = [fit for fit in self.pmag_results_data['specimens'][specimen] if fit.name == self.mean_fit]
+                #by index fit grouping
+#                fit_index = map(lambda x: x.name, self.pmag_results_data['specimens'][self.s]).index(self.mean_fit)
+#                try: fits = [self.pmag_results_data['specimens'][specimen][fit_index]]
+#                except IndexError: pass #print('-W- Not all specimens have this fit');
         else:
             fits = []
         fig = self.high_level_eqarea
@@ -3832,12 +3835,14 @@ class Zeq_GUI(wx.Frame):
 
         m_new_sub = menu_Analysis.AppendMenu(-1, "Acceptance criteria", submenu_criteria)
 
+        m_edit_interpertations = menu_Analysis.Append(-1, "&Edit Interpretations", "")
+        self.Bind(wx.EVT_MENU, self.on_menu_edit_interpertations, m_edit_interpertations)
+
         m_previous_interpretation = menu_Analysis.Append(-1, "&Import previous interpretation from a redo file", "")
         self.Bind(wx.EVT_MENU, self.on_menu_previous_interpretation, m_previous_interpretation)
 
         m_save_interpretation = menu_Analysis.Append(-1, "&Save current interpretations to a redo file", "")
         self.Bind(wx.EVT_MENU, self.on_menu_save_interpretation, m_save_interpretation)
-
         m_delete_interpretation = menu_Analysis.Append(-1, "&Clear all current interpretations", "")
         self.Bind(wx.EVT_MENU, self.on_menu_clear_interpretation, m_delete_interpretation)
 
@@ -4130,6 +4135,10 @@ class Zeq_GUI(wx.Frame):
     #--------------------------------------------------------------
     # Analysis menu Bar functions
     #--------------------------------------------------------------
+
+    def on_menu_edit_interpertations(self,event):
+        fit_frame = EditFitFrame(self)
+        fit_frame.Show()
 
 
     def on_menu_previous_interpretation(self,event):
@@ -4888,7 +4897,16 @@ class Zeq_GUI(wx.Frame):
    #     print WD
    
     def on_menu_docs(self,event):
-        webbrowser.open_new(PMAGPY_DIRECTORY + r'/help_files/demag_gui_doc.pdf')
+        """
+        opens in library documentation for the usage of demag gui in a pdf/latex form
+        @param: event -> the wx.MenuEvent that triggered this function
+        """
+        if sys.platform.startswith("darwin"):
+            os.system("open " + os.path.join(PMAGPY_DIRECTORY + '/help_files/demag_gui_doc.pdf'))
+        elif sys.platform.startswith("linux"):
+            os.system("xdg-open " + os.path.join(PMAGPY_DIRECTORY + '/help_files/demag_gui_doc.pdf'))
+        else:
+            os.system("start " + os.path.join(PMAGPY_DIRECTORY + '/help_files/demag_gui_doc.pdf'))
 
     def on_menu_cookbook(self,event):
         webbrowser.open("http://earthref.org/PmagPy/cookbook/#x1-70002.4", new = 2)
@@ -4966,6 +4984,7 @@ class Zeq_GUI(wx.Frame):
         """
         self.current_fit.name = self.fit_box.GetValue()
         self.update_fit_box()
+        self.plot_higher_levels_data()
 
     def add_fit(self,event):
         """
@@ -5041,6 +5060,7 @@ class Zeq_GUI(wx.Frame):
         """
         alters fit_box and mean_fit_box lists to match with changes in specimen or new/removed interpertations
         @param: new_fit -> boolean representing if there is a new fit
+        @alters: fit_box selection, tmin_box selection, tmax_box selection, mean_fit_box selection, current_fit
         """
         self.clear_boxes()
         #get new fit data
@@ -5109,6 +5129,89 @@ class SaveMyPlot(wx.Frame):
 
         canvas_tmp_1 = FigCanvas(self.panel, -1, fig)
         canvas_tmp_1.print_figure(path, dpi=self.dpi)  
+
+#----------------------------------------------------------------------------------------
+
+class EditFitFrame(wx.Frame):
+
+    def __init__(self,parent):
+        """Constructor"""
+        self.parent = parent
+        wx.Frame.__init__(self, None, title="Second Frame")
+        w, h = self.GetSize()
+        self.panel = wx.Panel(self,-1,size=(w,h)) # make the Panel
+        dw, dh = wx.DisplaySize()
+        r1=dw/1210.
+        r2=dw/640.
+        #if  dw>w:
+        self.GUI_RESOLUTION=min(r1,r2,1.3)
+        self.UI()
+
+    def UI(self):
+        #set fonts
+        font1 = wx.Font(10, wx.SWISS, wx.NORMAL, wx.NORMAL, False, u'Arial')
+
+        #build logger
+        self.logger = wx.ListCtrl(self.panel, -1, size=(400*self.GUI_RESOLUTION,400*self.GUI_RESOLUTION),style=wx.LC_REPORT)
+        self.logger.SetFont(font1)
+        self.logger.InsertColumn(0, 'specimen',width=55*self.GUI_RESOLUTION)
+        self.logger.InsertColumn(1, 'name',width=55*self.GUI_RESOLUTION)
+        self.logger.InsertColumn(2, 'tmax',width=55*self.GUI_RESOLUTION)
+        self.logger.InsertColumn(3, 'tmin',width=55*self.GUI_RESOLUTION)        
+        self.logger.InsertColumn(4, 'dec',width=35*self.GUI_RESOLUTION)
+        self.logger.InsertColumn(5, 'inc',width=35*self.GUI_RESOLUTION)
+        self.logger.InsertColumn(6, 'n',width=25*self.GUI_RESOLUTION)
+        self.logger.InsertColumn(7, 'mad',width=35*self.GUI_RESOLUTION)
+        self.logger.InsertColumn(8, 'dang',width=35*self.GUI_RESOLUTION)
+        self.logger.InsertColumn(9, 'a95',width=35*self.GUI_RESOLUTION)
+        self.update_logger()
+#        self.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.OnClick_listctrl, self.logger)
+#        self.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK,self.OnRightClickListctrl,self.logger)
+
+        vbox1=wx.BoxSizer(wx.VERTICAL)
+        vbox1.Add(self.logger,flag=wx.ALIGN_TOP,border=8)
+
+        self.panel.SetSizer(vbox1)       
+
+    def update_logger(self):
+
+        self.fit_list = []
+        for specimen in self.parent.specimens:
+            self.fit_list += [(fit,specimen) for fit in self.parent.pmag_results_data['specimens'][specimen]]
+
+        self.logger.DeleteAllItems()
+        for i,tup in enumerate(self.fit_list):
+            fit = tup[0]
+            pars = fit.get(self.parent.COORDINATE_SYSTEM)
+            tmin,tmax,dec,inc,n,mad,dang,a95 = "","","","","","","",""
+
+            specimen = tup[1]
+            name = fit.name
+            if 'measurement_step_min' in pars.keys(): tmin = str(fit.tmin)
+            if 'measurement_step_max' in pars.keys(): tmax = str(fit.tmax)
+            if 'specimen_dec' in pars.keys(): dec = "%.1f"%pars['specimen_dec']
+            if 'specimen_inc' in pars.keys(): inc = "%.1f"%pars['specimen_inc']
+            if 'specimen_n' in pars.keys(): n = str(pars['specimen_n'])
+            if 'specimen_mad' in pars.keys(): mad = "%.1f"%pars['specimen_mad']
+            if 'specimen_dang' in pars.keys(): dang = "%.1f"%pars['specimen_dang']
+            if 'specimen_alpha95' in pars.keys(): a95 = "%.1f"%pars['specimen_alpha95']
+            
+            self.logger.InsertStringItem(i, str(specimen))
+            self.logger.SetStringItem(i, 1, name)
+            self.logger.SetStringItem(i, 2, tmin)
+            self.logger.SetStringItem(i, 3, tmax)
+            self.logger.SetStringItem(i, 4, dec)
+            self.logger.SetStringItem(i, 5, inc)
+            self.logger.SetStringItem(i, 6, n)
+            self.logger.SetStringItem(i, 7, mad)
+            self.logger.SetStringItem(i, 8, dang)
+            self.logger.SetStringItem(i, 9, a95)
+            self.logger.SetItemBackgroundColour(i,"WHITE")
+            if fit in self.parent.bad_fits:
+                self.logger.SetItemBackgroundColour(i,"YELLOW")
+
+
+#----------------------------------------------------------------------------------------
 
 class Fit():
 
