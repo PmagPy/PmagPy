@@ -31,12 +31,12 @@ class MainFrame(wx.Frame):
 
     def InitUI(self):
         bSizer0 = wx.StaticBoxSizer(wx.StaticBox(self.panel, wx.ID_ANY, "Choose MagIC project directory"), wx.HORIZONTAL)
-        self.dir_path = wx.TextCtrl(self.panel, id=-1, size=(600,25), style=wx.TE_READONLY)
+        self.dir_path = wx.TextCtrl(self.panel, id=-1, size=(600, 25), style=wx.TE_READONLY)
         self.dir_path.SetValue(self.WD)
         self.change_dir_button = buttons.GenButton(self.panel, id=-1, label="change dir",size=(-1, -1))
         self.change_dir_button.SetBackgroundColour("#F8F8FF")
         self.change_dir_button.InitColours()
-        #self.Bind(wx.EVT_BUTTON, self.on_change_dir_button, self.change_dir_button)
+        self.Bind(wx.EVT_BUTTON, self.on_change_dir_button, self.change_dir_button)
         bSizer0.Add(self.change_dir_button, wx.ALIGN_LEFT)
         bSizer0.AddSpacer(40)
         bSizer0.Add(self.dir_path, wx.ALIGN_CENTER_VERTICAL)
@@ -48,12 +48,14 @@ class MainFrame(wx.Frame):
         self.btn1 = buttons.GenButton(self.panel, id=-1, label=text, size=(300, 50), name='step 1')
         self.btn1.SetBackgroundColour("#FDC68A")
         self.btn1.InitColours()
-        #self.Bind(wx.EVT_BUTTON, self.on_convert_file, self.btn1)
+        self.Bind(wx.EVT_BUTTON, self.do_thing, self.btn1)
+        
         text = "Add sample data"
         self.btn2 = buttons.GenButton(self.panel, id=-1, label=text, size=(300, 50), name='step 2')
         self.btn2.SetBackgroundColour("#6ECFF6")
         self.btn2.InitColours()
-        #self.Bind(wx.EVT_BUTTON, self.on_orientation_button, self.btn2)
+        self.Bind(wx.EVT_BUTTON, self.do_thing, self.btn2)
+        
         text = "Add site data"
         self.btn3 = buttons.GenButton(self.panel, id=-1, label=text, size=(300, 50), name='step 3')
         self.btn3.SetBackgroundColour("#C4DF9B")
@@ -136,18 +138,27 @@ class MainFrame(wx.Frame):
         vbox.Add(bSizer3, 0, wx.ALIGN_CENTER, 0)
         vbox.AddSpacer(10)
 
-
         hbox.Add(vbox, 0, wx.ALIGN_CENTER, 0)
         hbox.AddSpacer(5)
-
-
 
         self.panel.SetSizer(hbox)
         hbox.Fit(self)
 
 
+    def do_thing(self, event):
+        print 'DOING THING'
+
     def on_change_dir_button(self, event):
-        pass
+        print 'doing on_change_dir_button'
+        currentDirectory = os.getcwd()
+        change_dir_dialog = wx.DirDialog(self.panel, "choose directory:", defaultPath=currentDirectory, style=wx.DD_DEFAULT_STYLE | wx.DD_NEW_DIR_BUTTON | wx.DD_CHANGE_DIR)
+        result = change_dir_dialog.ShowModal()
+        if result == wx.ID_OK:
+            self.WD = change_dir_dialog.GetPath()
+            self.dir_path.SetValue(self.WD)
+        change_dir_dialog.Destroy()
+
+        #self.on_finish_change_dir(self.change_dir_dialog)
 
 
     def InitMenubar(self):
