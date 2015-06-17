@@ -5,9 +5,11 @@ dialogs for ErMagicBuilder
 import wx
 import wx.grid
 import sys
+import os
 import drop_down_menus
 import pmag_widgets as pw
 import check_updates
+
 
 class ErMagicCheckFrame(wx.Frame):
 
@@ -787,15 +789,25 @@ You may use the drop-down menus to add as many values as needed in these columns
                 if dict_item not in short_dict.keys():
                     long_dict.pop(dict_item)
             return long_dict
+        #print 'at beginning of final_update'
+        #print 'self.ErMagic_data:'
+        #print self.ErMagic_data
+        #print "self.ErMagic_data.Data_hierarchy['sites']", self.ErMagic_data.Data_hierarchy['sites']
+        
         remove_extras(self.ErMagic_data.data_er_specimens, self.ErMagic_data.Data_hierarchy['specimens'])
         remove_extras(self.ErMagic_data.data_er_samples, self.ErMagic_data.Data_hierarchy['samples'])
         remove_extras(self.ErMagic_data.data_er_sites, self.ErMagic_data.Data_hierarchy['sites'])
         remove_extras(self.ErMagic_data.data_er_locations, self.ErMagic_data.Data_hierarchy['locations'])
         #remove_extras(self.Data_hierarchy['locations'], self.ErMagic.data_er_locations)
         remove_extras(self.ErMagic_data.data_er_ages, self.ErMagic_data.Data_hierarchy['sites'])
+        #print 'at end of final_update'
+        #print 'self.ErMagic_data:'
+        #print self.ErMagic_data
+        #print "self.ErMagic_data.Data_hierarchy['sites']", self.ErMagic_data.Data_hierarchy['sites']
+
         self.ErMagic_data.update_ErMagic()
 
-        
+
 
 class MagicGrid(wx.grid.Grid):
     """
@@ -902,7 +914,7 @@ class MagicGrid(wx.grid.Grid):
         self.DeleteRows(pos=row_num, numRows=1, updateLabels=True)
         self.row_labels.remove(label)
 
-        
+
     def add_col(self, label):
         self.AppendCols(1)
         last_col = self.GetNumberCols() - 1
