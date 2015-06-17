@@ -407,7 +407,10 @@ class ErMagicBuilder(object):
         you also may update a sample's key/value pairs in data_er_samples.
         """
         # fix samples
-        specimens = self.change_dict_key(self.Data_hierarchy['samples'], new_sample_name, old_sample_name)
+        try:
+            specimens = self.change_dict_key(self.Data_hierarchy['samples'], new_sample_name, old_sample_name)
+        except KeyError:
+            specimens = []
 
         # fix sample_of_specimen and specimens
         # key/value pairs are specimens and the sample they belong to
@@ -420,6 +423,7 @@ class ErMagicBuilder(object):
         try:
             site = self.change_dict_key(self.Data_hierarchy['site_of_sample'], new_sample_name, old_sample_name)
         except KeyError:
+            site = self.data_er_samples[old_sample_name]['er_site_name']
             self.Data_hierarchy['site_of_sample'][new_sample_name] = site
 
         # fix sites
@@ -427,14 +431,17 @@ class ErMagicBuilder(object):
             self.Data_hierarchy['sites'][site].remove(old_sample_name)
         except ValueError:
             pass
+        except KeyError:
+            self.Data_hierarchy['sites'][site] = []
         self.Data_hierarchy['sites'][site].append(new_sample_name)
 
         # fix location_of_sample
         try:
             location = self.change_dict_key(self.Data_hierarchy['location_of_sample'], new_sample_name, old_sample_name)
         except KeyError:
-            location = self.Data_hierarchy['location_of_site'][site]
-            self.Data_hierarchy['location_of_sample'][new_sample_name] = location
+            #location = self.Data_hierarchy['location_of_site'][site]
+            location = self.data_er_samples[old_sample_name]['er_location_name']
+            self.Data_hierarchy['location_of_sample'][old_sample_name] = location
 
         # fix/add new sample data
         self.change_dict_key(self.data_er_samples, new_sample_name, old_sample_name)
