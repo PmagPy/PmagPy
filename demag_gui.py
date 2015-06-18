@@ -161,7 +161,7 @@ class Zeq_GUI(wx.Frame):
                 self.high_level_means[high_level]={}
         
         #BLARGE
-        self.edit_interpertations_window_open = False
+        self.interpertation_editer_open = False
         self.colors = ['g','y','m','c','k','w'] #for fits
         self.current_fit = None
         self.dirtypes = ['DA-DIR','DA-DIR-GEO','DA-DIR-TILT']
@@ -1922,8 +1922,9 @@ class Zeq_GUI(wx.Frame):
             self.tmax_box.SetItems(self.T_list)
 #            self.tmin_box.SetSelection(-1) #made an edit from SetStringSelection("")
 #            self.tmax_box.SetSelection(-1) #made an edit from SetStringSelection("")
-            self.tmin_box.SetStringSelection(self.current_fit.tmin)
-            self.tmax_box.SetStringSelection(self.current_fit.tmax)
+            if type(self.current_fit.tmin)==str and type(self.current_fit.tmax)==str:
+                self.tmin_box.SetStringSelection(self.current_fit.tmin)
+                self.tmax_box.SetStringSelection(self.current_fit.tmax)
             
 
 
@@ -2284,9 +2285,9 @@ class Zeq_GUI(wx.Frame):
         if not (self.s in self.pmag_results_data['specimens'].keys()):
             self.pmag_results_data['specimens'][self.s] = []
 
-        #if edit_interpertations_window is open update it's logger
-        if self.edit_interpertations_window_open:
-            self.edit_interpertations_window.update_logger()
+        #if interpertation_editer is open update it's logger
+        if self.interpertation_editer_open:
+            self.interpertation_editer.update_logger()
 
         for fit in self.pmag_results_data['specimens'][self.s]:
 
@@ -4141,9 +4142,9 @@ class Zeq_GUI(wx.Frame):
     #--------------------------------------------------------------
 
     def on_menu_edit_interpertations(self,event):
-        self.edit_interpertations_window = EditFitFrame(self)
-        self.edit_interpertations_window_open = True
-        self.edit_interpertations_window.Show()
+        self.interpertation_editer = EditFitFrame(self)
+        self.interpertation_editer_open = True
+        self.interpertation_editer.Show()
 
 
     def on_menu_previous_interpretation(self,event):
@@ -4305,6 +4306,8 @@ class Zeq_GUI(wx.Frame):
         specimens_list.sort()
         for specimen in specimens_list:
             for fit in self.pmag_results_data['specimens'][specimen]:
+                if fit.tmin==None or fit.tmax==None:
+                    continue
                 STRING=specimen+"\t"
                 STRING=STRING+fit.PCA_type+"\t"
                 if "C" in fit.tmin:
@@ -5045,9 +5048,9 @@ class Zeq_GUI(wx.Frame):
                 self.bad_fits.remove(bad_fit)
             else:
                 self.bad_fits.append(bad_fit)
-       #update the edit_interpertations_window to reflect bad interpertations
-        if self.edit_interpertations_window_open:
-            self.edit_interpertations_window.update_logger()
+       #update the interpertation_editer to reflect bad interpertations
+        if self.interpertation_editer_open:
+            self.interpertation_editer.update_logger()
         self.close_warning = True
         self.calculate_higher_levels_data()
         self.update_selection()
@@ -5104,6 +5107,8 @@ class Zeq_GUI(wx.Frame):
         else: self.fit_box.SetSelection(new_index)
         if fit_index: self.mean_fit_box.SetSelection(fit_index+2)
         if fit_list: self.on_select_fit(-1)
+        if self.interpertation_editer_open:
+            self.interpertation_editer.update_logger()
 
         
         
@@ -5329,7 +5334,7 @@ class EditFitFrame(wx.Frame):
         self.parent.update_selection()
 
     def on_close_edit_window(self, event):
-        self.parent.edit_interpertations_window_open = False
+        self.parent.interpertation_editer_open = False
         self.Destroy()
         
 
@@ -5347,8 +5352,14 @@ class Fit():
         @param: GUI -> the Zeq_GUI on which this fit is drawn
         """
         self.name = name
-        self.tmax = tmax
-        self.tmin = tmin
+        if type(tmax) != str:
+            self.tmax = ""
+        else:
+            self.tmax = tmax
+        if type(tmin) != str:
+            self.tmin = ""
+        else:
+            self.tmin = tmin
         self.color = color
         calculation_type = GUI.PCA_type_box.GetValue()
         if calculation_type=="line": PCA_type="DE-BFL"
