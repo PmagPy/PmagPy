@@ -1695,11 +1695,11 @@ class Zeq_GUI(wx.Frame):
           Step=""
           methods=lab_treatment.split('-')
           if "NO" in methods:
-              Step="N "
+              Step="N"
+          elif "AF" in  methods:
+              Step="AF"
           elif "T" in  methods or "LT" in methods:
               Step="T"
-          elif "AF" in  methods:
-              Step="AF"             
           Tr=zijdblock[i][0]
           Dec=zijdblock[i][1]
           Inc=zijdblock[i][2]
@@ -4144,6 +4144,7 @@ class Zeq_GUI(wx.Frame):
     def on_menu_edit_interpertations(self,event):
         self.interpertation_editer = EditFitFrame(self)
         self.interpertation_editer_open = True
+        self.interpertation_editer.center()
         self.interpertation_editer.Show()
 
 
