@@ -4149,7 +4149,7 @@ class Zeq_GUI(wx.Frame):
         if not self.interpertation_editer_open:
             self.interpertation_editer = EditFitFrame(self)
             self.interpertation_editer_open = True
-            self.interpertation_editer.center()
+            self.interpertation_editer.Center()
             self.interpertation_editer.Show(True)
         else:
             self.interpertation_editer.Show(True)
@@ -5168,6 +5168,10 @@ class EditFitFrame(wx.Frame):
         font1 = wx.Font(10, wx.SWISS, wx.NORMAL, wx.NORMAL, False, u'Arial')
         font2 = wx.Font(13, wx.SWISS, wx.NORMAL, wx.NORMAL, False, u'Arial')
 
+        is_mac = False
+        if sys.platform.startswith("darwin"):
+            is_mac = True
+
         #build logger
         self.logger = wx.ListCtrl(self.panel, -1, size=(425*self.GUI_RESOLUTION,400*self.GUI_RESOLUTION),style=wx.LC_REPORT)
         self.logger.SetFont(font1)
@@ -5202,23 +5206,26 @@ class EditFitFrame(wx.Frame):
 
         self.name_box = wx.TextCtrl(self.panel, -1, size=(100*self.GUI_RESOLUTION, 25), style=wx.HSCROLL)
 
-        self.add_fit_button = wx.Button(self.panel, id=-1, label='add fit',size=(225*self.GUI_RESOLUTION,18))
+        h_size_buttons,button_spacing = 25,5.5
+        if is_mac: h_size_buttons,button_spacing = 18,0.
+
+        self.add_fit_button = wx.Button(self.panel, id=-1, label='add fit',size=(225*self.GUI_RESOLUTION,h_size_buttons))
         self.add_fit_button.SetFont(font2)
         self.Bind(wx.EVT_BUTTON, self.parent.add_fit, self.add_fit_button)
 
-        self.delete_fit_button = wx.Button(self.panel, id=-1, label='delete fit',size=(225*self.GUI_RESOLUTION,18))
+        self.delete_fit_button = wx.Button(self.panel, id=-1, label='delete fit',size=(225*self.GUI_RESOLUTION,h_size_buttons))
         self.delete_fit_button.SetFont(font2)
         self.Bind(wx.EVT_BUTTON, self.parent.delete_fit, self.delete_fit_button)
 
-        self.apply_changes_button = wx.Button(self.panel, id=-1, label='apply changes to highlighted fits',size=(225*self.GUI_RESOLUTION,18))
+        self.apply_changes_button = wx.Button(self.panel, id=-1, label='apply changes to highlighted fits',size=(225*self.GUI_RESOLUTION,h_size_buttons))
         self.apply_changes_button.SetFont(font1)
         self.Bind(wx.EVT_BUTTON, self.apply_changes, self.apply_changes_button)
 
         name_window = wx.GridSizer(2, 1, 10*self.GUI_RESOLUTION, 19*self.GUI_RESOLUTION)
         bounds_window = wx.GridSizer(2, 1, 10*self.GUI_RESOLUTION, 19*self.GUI_RESOLUTION)
-        buttons1_window = wx.GridSizer(2, 1, 1*self.GUI_RESOLUTION, 1*self.GUI_RESOLUTION)
-        buttons2_window = wx.GridSizer(2, 1, 1*self.GUI_RESOLUTION, 1*self.GUI_RESOLUTION)
-        buttons3_window = wx.GridSizer(2, 1, 1*self.GUI_RESOLUTION, 1*self.GUI_RESOLUTION)
+        buttons1_window = wx.GridSizer(2, 1, 10*self.GUI_RESOLUTION, 19*self.GUI_RESOLUTION)
+        buttons2_window = wx.GridSizer(2, 1, 10*self.GUI_RESOLUTION, 19*self.GUI_RESOLUTION)
+        buttons3_window = wx.GridSizer(2, 1, 10*self.GUI_RESOLUTION, 19*self.GUI_RESOLUTION)
         name_window.AddMany( [(self.name_box, wx.ALIGN_LEFT),
                                 (self.color_box, wx.ALIGN_LEFT)] )
         bounds_window.AddMany( [(self.tmin_box, wx.ALIGN_LEFT),
@@ -5228,9 +5235,9 @@ class EditFitFrame(wx.Frame):
         buttons3_window.Add(self.apply_changes_button, wx.ALIGN_BOTTOM)
         self.name_sizer.Add(name_window, 0, wx.TOP, 5.5)
         self.bounds_sizer.Add(bounds_window, 0, wx.TOP, 5.5)
-        self.buttons_sizer.Add(buttons1_window, 0, wx.ALL, 0)
-        self.buttons_sizer.Add(buttons2_window, 0, wx.ALL, 0)
-        self.buttons_sizer.Add(buttons3_window, 0, wx.ALL, 0)
+        self.buttons_sizer.Add(buttons1_window, 0, wx.ALL, button_spacing)
+        self.buttons_sizer.Add(buttons2_window, 0, wx.ALL, button_spacing)
+        self.buttons_sizer.Add(buttons3_window, 0, wx.ALL, button_spacing)
         
         #construct panel
         hbox_input = wx.BoxSizer(wx.HORIZONTAL)
