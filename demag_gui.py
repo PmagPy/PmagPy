@@ -3839,9 +3839,6 @@ class Zeq_GUI(wx.Frame):
 
         m_new_sub = menu_Analysis.AppendMenu(-1, "Acceptance criteria", submenu_criteria)
 
-        m_edit_interpertations = menu_Analysis.Append(-1, "&Edit Interpretations", "")
-        self.Bind(wx.EVT_MENU, self.on_menu_edit_interpertations, m_edit_interpertations)
-
         m_previous_interpretation = menu_Analysis.Append(-1, "&Import previous interpretation from a redo file", "")
         self.Bind(wx.EVT_MENU, self.on_menu_previous_interpretation, m_previous_interpretation)
 
@@ -3859,6 +3856,9 @@ class Zeq_GUI(wx.Frame):
 
         m_auto_interpert = menu_Tools.Append(-1, "&Auto Interpert", "")
         self.Bind(wx.EVT_MENU, self.on_menu_autointerpert, m_auto_interpert)
+
+        m_edit_interpertations = menu_Tools.Append(-1, "&Interpretation Editer", "")
+        self.Bind(wx.EVT_MENU, self.on_menu_edit_interpertations, m_edit_interpertations)
 
         #-------------------
         
@@ -5145,14 +5145,10 @@ class EditFitFrame(wx.Frame):
     def __init__(self,parent):
         """Constructor"""
         self.parent = parent
-        wx.Frame.__init__(self, None, title="Interpretation Editor")
-        w, h = self.GetSize()
-        self.panel = wx.Panel(self,-1,size=(w,h)) # make the Panel
-        dw, dh = wx.DisplaySize()
-        r1=dw/1210.
-        r2=dw/640.
-        #if  dw>w:
-        self.GUI_RESOLUTION=min(r1,r2,1.3)
+        self.GUI_RESOLUTION=self.parent.GUI_RESOLUTION
+        wx.Frame.__init__(self, self.parent, title="Interpretation Editor",size=(650*self.GUI_RESOLUTION,400*self.GUI_RESOLUTION))
+        self.Bind(wx.EVT_CLOSE, self.on_close_edit_window)
+        self.panel = wx.Panel(self,-1,size=(650*self.GUI_RESOLUTION,400*self.GUI_RESOLUTION)) # make the Panel
         self.UI()
 
     def UI(self):
@@ -5198,7 +5194,7 @@ class EditFitFrame(wx.Frame):
         self.add_fit_button.SetFont(font2)
         self.Bind(wx.EVT_BUTTON, self.parent.add_fit, self.add_fit_button)
 
-        self.delete_fit_button = wx.Button(self.panel, id=-1, label='add fit',size=(200*self.GUI_RESOLUTION,25))
+        self.delete_fit_button = wx.Button(self.panel, id=-1, label='delete fit',size=(200*self.GUI_RESOLUTION,25))
         self.delete_fit_button.SetFont(font2)
         self.Bind(wx.EVT_BUTTON, self.parent.delete_fit, self.delete_fit_button)
 
@@ -5311,28 +5307,31 @@ class EditFitFrame(wx.Frame):
         new_tmax = self.tmax_box.GetValue()
 
         next_i = -1
-        while next_i != -1:
+        while True:
             next_i = self.logger.GetNextSelected(next_i)
+            if next_i == -1:
+                break
             specimen = self.fit_list[next_i][1]
             fit = self.fit_list[next_i][0]
             if new_name:
-                print('new name')
                 fit.name = new_name
             if new_color:
-                print('new color')
                 fit.color = self.color_dict[new_color]
             if new_tmin:
-                print('new lower bound')
                 if fit == self.parent.current_fit:
                     self.parent.tmin_box.SetStringSelection(new_tmin)
-                fit.put(self.parent.get_PCA_parameters(specimen,new_tmin,fit.tmax,self.parent.COORDINATE_SYSTEM,fit.PCA_type))
+                fit.put(self.parent.COORDINATE_SYSTEM, self.parent.get_PCA_parameters(specimen,new_tmin,fit.tmax,self.parent.COORDINATE_SYSTEM,fit.PCA_type))
             if new_tmax:
-                print('new upper bound')
                 if fit == self.parent.current_fit:
                     self.parent.tmax_box.SetStringSelection(new_tmax)
-                fit.put(self.parent.get_PCA_parameters(specimen,fit.tmin,new_tmax,self.parent.COORDINATE_SYSTEM,fit.PCA_type))
+                fit.put(self.parent.COORDINATE_SYSTEM, self.parent.get_PCA_parameters(specimen,fit.tmin,new_tmax,self.parent.COORDINATE_SYSTEM,fit.PCA_type))
         self.update_logger()
         self.parent.update_selection()
+
+    def on_close_edit_window(self, event):
+        self.parent.edit_interpertations_window_open = False
+        self.Destroy()
+        
 
 #----------------------------------------------------------------------------------------
 
