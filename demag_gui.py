@@ -161,7 +161,7 @@ class Zeq_GUI(wx.Frame):
                 self.high_level_means[high_level]={}
         
         #BLARGE
-        self.interpertation_editer_open = False
+        self.interpertation_editor_open = False
         self.colors = ['g','y','m','c','k','w'] #for fits
         self.current_fit = None
         self.dirtypes = ['DA-DIR','DA-DIR-GEO','DA-DIR-TILT']
@@ -628,8 +628,11 @@ class Zeq_GUI(wx.Frame):
         # get previous interpretations from pmag tables
         self.update_pmag_tables()
         # Draw figures and add  text
-        self.update_selection()
-
+        if self.Data:
+            self.update_selection()
+        else:
+            print("------------------------------------- no magic_measurements.txt found in WD --------------------------------------------")
+            self.Destroy()
 
     #----------------------------------------------------------------------
     # Arrow keys control
@@ -2285,9 +2288,9 @@ class Zeq_GUI(wx.Frame):
         if not (self.s in self.pmag_results_data['specimens'].keys()):
             self.pmag_results_data['specimens'][self.s] = []
 
-        #if interpertation_editer is open update it's logger
-        if self.interpertation_editer_open:
-            self.interpertation_editer.update_logger()
+        #if interpertation_editor is open update it's logger
+        if self.interpertation_editor_open:
+            self.interpertation_editor.update_logger()
 
         for fit in self.pmag_results_data['specimens'][self.s]:
 
@@ -3858,7 +3861,7 @@ class Zeq_GUI(wx.Frame):
         m_auto_interpert = menu_Tools.Append(-1, "&Auto Interpert", "")
         self.Bind(wx.EVT_MENU, self.on_menu_autointerpert, m_auto_interpert)
 
-        m_edit_interpertations = menu_Tools.Append(-1, "&Interpretation Editer", "")
+        m_edit_interpertations = menu_Tools.Append(-1, "&Interpretation editor", "")
         self.Bind(wx.EVT_MENU, self.on_menu_edit_interpertations, m_edit_interpertations)
 
         #-------------------
@@ -4046,13 +4049,13 @@ class Zeq_GUI(wx.Frame):
             dlg1 = wx.MessageDialog(None,caption="Warning:", message=TEXT ,style=wx.OK|wx.CANCEL|wx.ICON_EXCLAMATION)
             if dlg1.ShowModal() == wx.ID_OK:
                 dlg1.Destroy()
-                if self.interpertation_editer_open:
-                    self.interpertation_editer.on_close_edit_window(event)
+                if self.interpertation_editor_open:
+                    self.interpertation_editor.on_close_edit_window(event)
                 self.Destroy()
                 #sys.exit()
         else:
-            if self.interpertation_editer_open:
-                self.interpertation_editer.on_close_edit_window(event)
+            if self.interpertation_editor_open:
+                self.interpertation_editor.on_close_edit_window(event)
             self.Destroy()
             #sys.exit()
         
@@ -4146,13 +4149,18 @@ class Zeq_GUI(wx.Frame):
     #--------------------------------------------------------------
 
     def on_menu_edit_interpertations(self,event):
-        if not self.interpertation_editer_open:
-            self.interpertation_editer = EditFitFrame(self)
-            self.interpertation_editer_open = True
-            self.interpertation_editer.Center()
-            self.interpertation_editer.Show(True)
+        if not self.interpertation_editor_open:
+            self.interpertation_editor = EditFitFrame(self)
+            self.interpertation_editor_open = True
+            self.interpertation_editor.Center()
+            self.interpertation_editor.Show(True)
+            if sys.platform.startswith('darwin'):
+                TEXT="This is a refresher window for mac os to insure that wx opens the new window"
+                dlg = wx.MessageDialog(self, caption="Open",message=TEXT,style=wx.OK | wx.ICON_INFORMATION | wx.STAY_ON_TOP )
+                dlg.ShowModal()
+                dlg.Destroy()
         else:
-            self.interpertation_editer.Show(True)
+            self.interpertation_editor.ToggleWindowStyle(wx.STAY_ON_TOP)
 
     def on_menu_previous_interpretation(self,event):
         
@@ -5055,9 +5063,9 @@ class Zeq_GUI(wx.Frame):
                 self.bad_fits.remove(bad_fit)
             else:
                 self.bad_fits.append(bad_fit)
-       #update the interpertation_editer to reflect bad interpertations
-        if self.interpertation_editer_open:
-            self.interpertation_editer.update_logger()
+       #update the interpertation_editor to reflect bad interpertations
+        if self.interpertation_editor_open:
+            self.interpertation_editor.update_logger()
         self.close_warning = True
         self.calculate_higher_levels_data()
         self.update_selection()
@@ -5114,8 +5122,13 @@ class Zeq_GUI(wx.Frame):
         else: self.fit_box.SetSelection(new_index)
         if fit_index: self.mean_fit_box.SetSelection(fit_index+2)
         if fit_list: self.on_select_fit(-1)
-        if self.interpertation_editer_open:
-            self.interpertation_editer.update_logger()
+        if self.interpertation_editor_open:
+            self.interpertation_editor.update_logger()
+
+
+    def MacReopenApp(self):
+        """Called when the doc icon is clicked"""
+        self.GetTopWindow().Raise()
 
         
         
@@ -5161,9 +5174,9 @@ class EditFitFrame(wx.Frame):
         wx.Frame.__init__(self, self.parent, title="Interpretation Editor",size=(675*self.GUI_RESOLUTION,425*self.GUI_RESOLUTION))
         self.Bind(wx.EVT_CLOSE, self.on_close_edit_window)
         self.panel = wx.Panel(self,-1,size=(700*self.GUI_RESOLUTION,450*self.GUI_RESOLUTION)) # make the Panel
-        self.UI()
+        self.init_UI()
 
-    def UI(self):
+    def init_UI(self):
         #set fonts
         font1 = wx.Font(10, wx.SWISS, wx.NORMAL, wx.NORMAL, False, u'Arial')
         font2 = wx.Font(13, wx.SWISS, wx.NORMAL, wx.NORMAL, False, u'Arial')
@@ -5252,7 +5265,8 @@ class EditFitFrame(wx.Frame):
         hbox1.Add(self.logger,flag=wx.ALIGN_LEFT,border=8)
         hbox1.Add(vbox1,flag=wx.ALIGN_LEFT,border=8)
 
-        self.panel.SetSizer(hbox1)       
+        self.panel.SetSizer(hbox1)
+        hbox1.Fit(self)
 
     def update_logger(self):
 
@@ -5352,7 +5366,7 @@ class EditFitFrame(wx.Frame):
         self.parent.update_selection()
 
     def on_close_edit_window(self, event):
-        self.parent.interpertation_editer_open = False
+        self.parent.interpertation_editor_open = False
         self.Destroy()
         
 
@@ -5475,7 +5489,7 @@ class Fit():
         @return: string representing fit
         """
         try: return self.name + ": \n" + "Tmax = " + self.tmax + ", Tmin = " + self.tmin + "\n" + "Color = " + self.color
-        except: return self.name + ": \n" + " Color = " + self.color
+        except ValueError: return self.name + ": \n" + " Color = " + self.color
 
 #--------------------------------------------------------------    
 # Run the GUI
