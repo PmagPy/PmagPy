@@ -45,34 +45,35 @@ class MainFrame(wx.Frame):
         bSizer1 = wx.StaticBoxSizer(wx.StaticBox(self.panel, wx.ID_ANY, "Add information to the data model"), wx.HORIZONTAL)
 
         text = "Add specimen data"
-        self.btn1 = buttons.GenButton(self.panel, id=-1, label=text, size=(300, 50), name='step 1')
+        self.btn1 = buttons.GenButton(self.panel, id=-1, label=text, size=(300, 50), name='er_specimens')
         self.btn1.SetBackgroundColour("#FDC68A")
         self.btn1.InitColours()
-        self.Bind(wx.EVT_BUTTON, self.do_thing, self.btn1)
-        
+        self.Bind(wx.EVT_BUTTON, self.make_grid, self.btn1)
+
         text = "Add sample data"
-        self.btn2 = buttons.GenButton(self.panel, id=-1, label=text, size=(300, 50), name='step 2')
+        self.btn2 = buttons.GenButton(self.panel, id=-1, label=text, size=(300, 50), name='er_samples')
         self.btn2.SetBackgroundColour("#6ECFF6")
         self.btn2.InitColours()
-        self.Bind(wx.EVT_BUTTON, self.do_thing, self.btn2)
+        self.Bind(wx.EVT_BUTTON, self.make_grid, self.btn2)
         
         text = "Add site data"
-        self.btn3 = buttons.GenButton(self.panel, id=-1, label=text, size=(300, 50), name='step 3')
+        self.btn3 = buttons.GenButton(self.panel, id=-1, label=text, size=(300, 50), name='er_sites')
         self.btn3.SetBackgroundColour("#C4DF9B")
         self.btn3.InitColours()
-        #self.Bind(wx.EVT_BUTTON, self.on_er_data, self.btn3)
+        self.Bind(wx.EVT_BUTTON, self.make_grid, self.btn3)
 
         text = "add location data"
-        self.btn4 = buttons.GenButton(self.panel, id=-1, label=text, size=(300, 50))
+        self.btn4 = buttons.GenButton(self.panel, id=-1, label=text, size=(300, 50), name='er_locations')
         self.btn4.SetBackgroundColour("#FDC68A")
         self.btn4.InitColours()
+        self.Bind(wx.EVT_BUTTON, self.make_grid, self.btn4)
 
 
         text = "add age data"
-        self.btn5 = buttons.GenButton(self.panel, id=-1, label=text, size=(300, 50))
+        self.btn5 = buttons.GenButton(self.panel, id=-1, label=text, size=(300, 50), name='er_ages')
         self.btn5.SetBackgroundColour("#6ECFF6")
         self.btn5.InitColours()
-
+        self.Bind(wx.EVT_BUTTON, self.make_grid, self.btn5)
 
         #self.Bind(wx.EVT_BUTTON, self.on_unpack, self.btn4)
 
@@ -145,11 +146,7 @@ class MainFrame(wx.Frame):
         hbox.Fit(self)
 
 
-    def do_thing(self, event):
-        print 'DOING THING'
-
     def on_change_dir_button(self, event):
-        print 'doing on_change_dir_button'
         currentDirectory = os.getcwd()
         change_dir_dialog = wx.DirDialog(self.panel, "choose directory:", defaultPath=currentDirectory, style=wx.DD_DEFAULT_STYLE | wx.DD_NEW_DIR_BUTTON | wx.DD_CHANGE_DIR)
         result = change_dir_dialog.ShowModal()
@@ -157,6 +154,10 @@ class MainFrame(wx.Frame):
             self.WD = change_dir_dialog.GetPath()
             self.dir_path.SetValue(self.WD)
         change_dir_dialog.Destroy()
+
+    def make_grid(self, event):
+        grid_type = event.GetButtonObj().Name
+        self.grid = GridFrame(self.WD, grid_type)
 
         #self.on_finish_change_dir(self.change_dir_dialog)
 
@@ -175,6 +176,7 @@ class GridFrame(wx.Frame):
         wx.GetDisplaySize()
         wx.Frame.__init__(self, None, wx.ID_ANY, '????')
         self.panel = wx.Panel(self, name=panel_name, size=wx.GetDisplaySize())
+        self.grid_type = panel_name
         self.WD = WD
         self.InitUI()
 
@@ -186,11 +188,12 @@ class GridFrame(wx.Frame):
         self.main_sizer = wx.BoxSizer(wx.VERTICAL)
         self.ErMagic = ErMagicBuilder.ErMagicBuilder(self.WD)#,self.Data,self.Data_hierarchy)
         self.ErMagic.init_default_headers()
+        print 'self.ErMagic', self.ErMagic
 
-        # have this set in a more reasonable way
-        self.grid_type = 'er_specimens'
         self.grid_headers = {'er_specimens': [self.ErMagic.er_specimens_header, self.ErMagic.er_specimens_reqd_header, self.ErMagic.er_specimens_optional_header], 'er_samples': [self.ErMagic.er_samples_header, self.ErMagic.er_samples_reqd_header, self.ErMagic.er_samples_optional_header]}
+        self.grid_data_dict = {'er_specimens': self.ErMagic.data_er_specimens, 'er_samples': self.ErMagic.data_er_samples}
 
+        # need to 
         self.grid = self.make_grid()
 
         self.grid.InitUI()
@@ -222,7 +225,17 @@ class GridFrame(wx.Frame):
         hbox.Add(col_btn_vbox)
         hbox.Add(row_btn_vbox)
 
+        #  NEED TO ADD appropriate number of rows first
+        rows = self.grid_data_dict[self.grid_type].keys()
+        for row in rows:
+            self.grid.add_row(row)
+
+        self.grid.add_data(self.grid_data_dict[self.grid_type])
+
         self.grid.size_grid()
+        # always start with at least one row:
+        if not self.grid.row_labels:
+            self.grid.add_row()
         self.grid_box = wx.StaticBoxSizer(wx.StaticBox(self.panel, -1), wx.VERTICAL)
         self.grid_box.Add(self.grid, flag=wx.ALL, border=5)
 
@@ -235,6 +248,9 @@ class GridFrame(wx.Frame):
         self.panel.SetSizer(self.main_sizer)
 
         self.main_sizer.Fit(self)
+        self.Centre()
+        self.Show()
+        
 
     def remove_col_label(self, event):
         """
@@ -255,7 +271,7 @@ class GridFrame(wx.Frame):
         """
         header = self.grid_headers[self.grid_type][0]
         #col_labels = self.ErMagic.er_locations_header
-        grid = pmag_er_magic_dialogs.MagicGrid(self.panel, self.grid_type, [''], header)#, (300, 300))
+        grid = pmag_er_magic_dialogs.MagicGrid(self.panel, self.grid_type, [], header)#, (300, 300))
         return grid
 
     def on_add_col(self, event):

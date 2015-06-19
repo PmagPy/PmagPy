@@ -841,13 +841,14 @@ class MagicGrid(wx.grid.Grid):
 
     def add_data(self, data_dict):
         for num, row in enumerate(self.row_labels):
-            for n, col in enumerate(self.col_labels[1:]):
-                if col in data_dict[row].keys():
-                    value = data_dict[row][col]
-                else:
-                    value = ''
-                if value:
-                    self.SetCellValue(num, n+1, value)
+            if row:
+                for n, col in enumerate(self.col_labels[1:]):
+                    if col in data_dict[row].keys():
+                        value = data_dict[row][col]
+                    else:
+                        value = ''
+                    if value:
+                        self.SetCellValue(num, n+1, value)
 
     def size_grid(self):
         self.AutoSizeColumns(True)
