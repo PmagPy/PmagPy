@@ -34,6 +34,7 @@ class TestMainFrame(unittest.TestCase):
         test for existence of main panel
         """
         self.assertTrue(self.pnl.IsEnabled())
+        self.assertTrue(self.pnl.IsShown())
         self.assertEqual('quickmagic main panel', self.pnl.GetName())
 
     def test_click_button_one(self):
@@ -232,6 +233,7 @@ class TestMenus(unittest.TestCase):
         if not window:
             return None        
         self.assertTrue(window.IsEnabled())
+        self.assertTrue(window.IsShown())
         return window
 
 
@@ -251,6 +253,7 @@ class TestCoreDepthplot(unittest.TestCase):
 
     def test_core_depthplot_window_initializes(self):
         self.assertTrue(self.core_window.IsEnabled())
+        self.assertTrue(self.core_window.IsShown())
 
     def test_run_core_depthplot_with_no_info(self):
         #print 'self.app', self.app
