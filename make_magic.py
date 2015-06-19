@@ -30,10 +30,17 @@ class MainFrame(wx.Frame):
         self.InitUI()
 
     def InitUI(self):
-        bSizer0 = wx.StaticBoxSizer(wx.StaticBox(self.panel, wx.ID_ANY, "Choose MagIC project directory"), wx.HORIZONTAL)
+        """
+        Make main user interface
+        """
+        bSizer0 = wx.StaticBoxSizer(
+            wx.StaticBox(self.panel, wx.ID_ANY, "Choose MagIC project directory"), wx.HORIZONTAL
+        )
         self.dir_path = wx.TextCtrl(self.panel, id=-1, size=(600, 25), style=wx.TE_READONLY)
         self.dir_path.SetValue(self.WD)
-        self.change_dir_button = buttons.GenButton(self.panel, id=-1, label="change dir", size=(-1, -1), name='change_dir_btn')
+        self.change_dir_button = buttons.GenButton(
+            self.panel, id=-1, label="change dir", size=(-1, -1), name='change_dir_btn'
+        )
         self.change_dir_button.SetBackgroundColour("#F8F8FF")
         self.change_dir_button.InitColours()
         self.Bind(wx.EVT_BUTTON, self.on_change_dir_button, self.change_dir_button)
@@ -45,32 +52,37 @@ class MainFrame(wx.Frame):
         bSizer1 = wx.StaticBoxSizer(wx.StaticBox(self.panel, wx.ID_ANY, "Add information to the data model"), wx.HORIZONTAL)
 
         text = "Add specimen data"
-        self.btn1 = buttons.GenButton(self.panel, id=-1, label=text, size=(300, 50), name='er_specimens_btn')
+        self.btn1 = buttons.GenButton(self.panel, id=-1,
+                                      label=text, size=(300, 50), name='er_specimens_btn')
         self.btn1.SetBackgroundColour("#FDC68A")
         self.btn1.InitColours()
         self.Bind(wx.EVT_BUTTON, self.make_grid, self.btn1)
 
         text = "Add sample data"
-        self.btn2 = buttons.GenButton(self.panel, id=-1, label=text, size=(300, 50), name='er_samples_btn')
+        self.btn2 = buttons.GenButton(self.panel, id=-1, label=text,
+                                      size=(300, 50), name='er_samples_btn')
         self.btn2.SetBackgroundColour("#6ECFF6")
         self.btn2.InitColours()
         self.Bind(wx.EVT_BUTTON, self.make_grid, self.btn2)
-        
+
         text = "Add site data"
-        self.btn3 = buttons.GenButton(self.panel, id=-1, label=text, size=(300, 50), name='er_sites_btn')
+        self.btn3 = buttons.GenButton(self.panel, id=-1, label=text,
+                                      size=(300, 50), name='er_sites_btn')
         self.btn3.SetBackgroundColour("#C4DF9B")
         self.btn3.InitColours()
         self.Bind(wx.EVT_BUTTON, self.make_grid, self.btn3)
 
         text = "add location data"
-        self.btn4 = buttons.GenButton(self.panel, id=-1, label=text, size=(300, 50), name='er_locations_btn')
+        self.btn4 = buttons.GenButton(self.panel, id=-1, label=text,
+                                      size=(300, 50), name='er_locations_btn')
         self.btn4.SetBackgroundColour("#FDC68A")
         self.btn4.InitColours()
         self.Bind(wx.EVT_BUTTON, self.make_grid, self.btn4)
 
 
         text = "add age data"
-        self.btn5 = buttons.GenButton(self.panel, id=-1, label=text, size=(300, 50), name='er_ages_btn')
+        self.btn5 = buttons.GenButton(self.panel, id=-1, label=text,
+                                      size=(300, 50), name='er_ages_btn')
         self.btn5.SetBackgroundColour("#6ECFF6")
         self.btn5.InitColours()
         self.Bind(wx.EVT_BUTTON, self.make_grid, self.btn5)
@@ -81,7 +93,6 @@ class MainFrame(wx.Frame):
         #OR = wx.StaticText(self.panel, -1, "or", (20, 120))
         #font = wx.Font(18, wx.SWISS, wx.NORMAL, wx.NORMAL)
         #OR.SetFont(font)
-
 
         #bSizer0.Add(self.panel,self.btn1,wx.ALIGN_TOP)
         bsizer1a = wx.BoxSizer(wx.VERTICAL)
@@ -110,7 +121,8 @@ class MainFrame(wx.Frame):
         bSizer3 = wx.StaticBoxSizer(wx.StaticBox(self.panel, wx.ID_ANY, "Upload to MagIC database"), wx.HORIZONTAL)
 
         text = "prepare upload txt file"
-        self.btn_upload = buttons.GenButton(self.panel, id=-1, label=text, size=(300, 50), name='upload_btn')
+        self.btn_upload = buttons.GenButton(self.panel, id=-1, label=text,
+                                            size=(300, 50), name='upload_btn')
         self.btn_upload.SetBackgroundColour("#C4DF9B")
         self.btn_upload.InitColours()
 
@@ -120,9 +132,8 @@ class MainFrame(wx.Frame):
         #self.Bind(wx.EVT_BUTTON, self.on_btn_upload, self.btn_upload)
 
 
+        #---arrange sizers ----
 
-        #---arange sizers ----
-        
         hbox = wx.BoxSizer(wx.HORIZONTAL)
         vbox = wx.BoxSizer(wx.VERTICAL)
         vbox.AddSpacer(5)
@@ -147,8 +158,13 @@ class MainFrame(wx.Frame):
 
 
     def on_change_dir_button(self, event):
+        """
+        create change directory frame
+        """
         currentDirectory = os.getcwd()
-        change_dir_dialog = wx.DirDialog(self.panel, "choose directory:", defaultPath=currentDirectory, style=wx.DD_DEFAULT_STYLE | wx.DD_NEW_DIR_BUTTON | wx.DD_CHANGE_DIR)
+        change_dir_dialog = wx.DirDialog(self.panel, "choose directory:",
+                                         defaultPath=currentDirectory,
+                                         style=wx.DD_DEFAULT_STYLE | wx.DD_NEW_DIR_BUTTON | wx.DD_CHANGE_DIR)
         result = change_dir_dialog.ShowModal()
         if result == wx.ID_OK:
             self.WD = change_dir_dialog.GetPath()
@@ -156,6 +172,9 @@ class MainFrame(wx.Frame):
         change_dir_dialog.Destroy()
 
     def make_grid(self, event):
+        """
+        Create a GridFrame for data type of the button that was clicked
+        """
         try:
             grid_type = event.GetButtonObj().Name.strip('_btn')
         except AttributeError:
@@ -166,6 +185,9 @@ class MainFrame(wx.Frame):
 
 
     def InitMenubar(self):
+        """
+        Create menubar
+        """
         pass
 
 
@@ -198,7 +220,7 @@ class GridFrame(wx.Frame):
             'er_sites': [self.ErMagic.er_sites_header, self.ErMagic.er_sites_reqd_header, self.ErMagic.er_sites_optional_header],
             'er_locations': [self.ErMagic.er_locations_header, self.ErMagic.er_locations_reqd_header, self.ErMagic.er_locations_optional_header],
             'er_ages': [self.ErMagic.er_ages_header, self.ErMagic.er_ages_reqd_header, self.ErMagic.er_ages_optional_header]}
-        
+
         self.grid_data_dict = {
             'er_specimens': self.ErMagic.data_er_specimens,
             'er_samples': self.ErMagic.data_er_samples,
@@ -223,7 +245,8 @@ class GridFrame(wx.Frame):
         self.Bind(wx.EVT_BUTTON, self.on_add_rows, self.add_many_rows_button)
 
         self.msg_boxsizer = wx.StaticBoxSizer(wx.StaticBox(self.panel, -1), wx.VERTICAL)
-        self.msg_text = wx.StaticText(self.panel, label='blah blah blah', style=wx.TE_CENTER, name='msg text')
+        self.msg_text = wx.StaticText(self.panel, label='msg text',
+                                      style=wx.TE_CENTER, name='msg text')
         self.msg_boxsizer.Add(self.msg_text)
         self.msg_boxsizer.ShowItems(False)
 
@@ -237,7 +260,7 @@ class GridFrame(wx.Frame):
         hbox.Add(col_btn_vbox)
         hbox.Add(row_btn_vbox)
 
-        #  NEED TO ADD appropriate number of rows first
+        #  Add appropriate number of rows
         rows = self.grid_data_dict[self.grid_type].keys()
         for row in rows:
             self.grid.add_row(row)
@@ -262,7 +285,7 @@ class GridFrame(wx.Frame):
         self.main_sizer.Fit(self)
         self.Centre()
         self.Show()
-        
+
 
     def remove_col_label(self, event):
         """
@@ -282,8 +305,7 @@ class GridFrame(wx.Frame):
         return grid
         """
         header = self.grid_headers[self.grid_type][0]
-        #col_labels = self.ErMagic.er_locations_header
-        grid = pmag_er_magic_dialogs.MagicGrid(self.panel, self.grid_type, [], header)#, (300, 300))
+        grid = pmag_er_magic_dialogs.MagicGrid(self.panel, self.grid_type, [], header)
         return grid
 
     def on_add_col(self, event):
@@ -361,7 +383,6 @@ class GridFrame(wx.Frame):
         # re-bind self.remove_cols_button
         self.Bind(wx.EVT_BUTTON, self.on_remove_cols, self.remove_cols_button)
         self.remove_cols_button.SetLabel("Remove columns")
-
 
 
 if __name__ == "__main__":

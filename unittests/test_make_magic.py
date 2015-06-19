@@ -1,3 +1,7 @@
+"""
+tests for make_magic
+"""
+
 import wx
 import unittest
 import os
@@ -64,7 +68,8 @@ class TestMakeMagicMainFrame(unittest.TestCase):
 
     def does_window_exist(self, parent, btn_name, window_name):
         """
-        produces a click event on the button called btn_name, see if it produces the window called window_name
+        produces a click event on the button called btn_name, 
+        see if it produces the window called window_name
         """
         btn, window = None, None
         children = parent.GetChildren()
@@ -88,7 +93,8 @@ class TestMakeMagicMainFrame(unittest.TestCase):
 
     def does_top_window_exist(self, parent, btn_name, window_name):
         """
-        produces a click event on the button called btn_name, see if it produces the window called window_name
+        produces a click event on the button called btn_name, 
+        see if it produces a top-level window called window_name
         """
         btn = None
         children = parent.GetChildren()
