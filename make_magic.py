@@ -21,10 +21,10 @@ class MainFrame(wx.Frame):
     make magic
     """
 
-    def __init__(self, WD=None):
+    def __init__(self, WD=None, name='Main Frame'):
         wx.GetDisplaySize()
-        wx.Frame.__init__(self, None, wx.ID_ANY, 'Title')
-        self.panel = wx.Panel(self, size=wx.GetDisplaySize())
+        wx.Frame.__init__(self, None, wx.ID_ANY, name=name)
+        self.panel = wx.Panel(self, size=wx.GetDisplaySize(), name='main panel')
         os.chdir(WD)
         self.WD = os.getcwd()
         self.InitUI()
@@ -33,7 +33,7 @@ class MainFrame(wx.Frame):
         bSizer0 = wx.StaticBoxSizer(wx.StaticBox(self.panel, wx.ID_ANY, "Choose MagIC project directory"), wx.HORIZONTAL)
         self.dir_path = wx.TextCtrl(self.panel, id=-1, size=(600, 25), style=wx.TE_READONLY)
         self.dir_path.SetValue(self.WD)
-        self.change_dir_button = buttons.GenButton(self.panel, id=-1, label="change dir",size=(-1, -1))
+        self.change_dir_button = buttons.GenButton(self.panel, id=-1, label="change dir", size=(-1, -1), name='change_dir_btn')
         self.change_dir_button.SetBackgroundColour("#F8F8FF")
         self.change_dir_button.InitColours()
         self.Bind(wx.EVT_BUTTON, self.on_change_dir_button, self.change_dir_button)
@@ -45,32 +45,32 @@ class MainFrame(wx.Frame):
         bSizer1 = wx.StaticBoxSizer(wx.StaticBox(self.panel, wx.ID_ANY, "Add information to the data model"), wx.HORIZONTAL)
 
         text = "Add specimen data"
-        self.btn1 = buttons.GenButton(self.panel, id=-1, label=text, size=(300, 50), name='er_specimens')
+        self.btn1 = buttons.GenButton(self.panel, id=-1, label=text, size=(300, 50), name='er_specimens_btn')
         self.btn1.SetBackgroundColour("#FDC68A")
         self.btn1.InitColours()
         self.Bind(wx.EVT_BUTTON, self.make_grid, self.btn1)
 
         text = "Add sample data"
-        self.btn2 = buttons.GenButton(self.panel, id=-1, label=text, size=(300, 50), name='er_samples')
+        self.btn2 = buttons.GenButton(self.panel, id=-1, label=text, size=(300, 50), name='er_samples_btn')
         self.btn2.SetBackgroundColour("#6ECFF6")
         self.btn2.InitColours()
         self.Bind(wx.EVT_BUTTON, self.make_grid, self.btn2)
         
         text = "Add site data"
-        self.btn3 = buttons.GenButton(self.panel, id=-1, label=text, size=(300, 50), name='er_sites')
+        self.btn3 = buttons.GenButton(self.panel, id=-1, label=text, size=(300, 50), name='er_sites_btn')
         self.btn3.SetBackgroundColour("#C4DF9B")
         self.btn3.InitColours()
         self.Bind(wx.EVT_BUTTON, self.make_grid, self.btn3)
 
         text = "add location data"
-        self.btn4 = buttons.GenButton(self.panel, id=-1, label=text, size=(300, 50), name='er_locations')
+        self.btn4 = buttons.GenButton(self.panel, id=-1, label=text, size=(300, 50), name='er_locations_btn')
         self.btn4.SetBackgroundColour("#FDC68A")
         self.btn4.InitColours()
         self.Bind(wx.EVT_BUTTON, self.make_grid, self.btn4)
 
 
         text = "add age data"
-        self.btn5 = buttons.GenButton(self.panel, id=-1, label=text, size=(300, 50), name='er_ages')
+        self.btn5 = buttons.GenButton(self.panel, id=-1, label=text, size=(300, 50), name='er_ages_btn')
         self.btn5.SetBackgroundColour("#6ECFF6")
         self.btn5.InitColours()
         self.Bind(wx.EVT_BUTTON, self.make_grid, self.btn5)
@@ -110,7 +110,7 @@ class MainFrame(wx.Frame):
         bSizer3 = wx.StaticBoxSizer(wx.StaticBox(self.panel, wx.ID_ANY, "Upload to MagIC database"), wx.HORIZONTAL)
 
         text = "prepare upload txt file"
-        self.btn_upload = buttons.GenButton(self.panel, id=-1, label=text, size=(300, 50))
+        self.btn_upload = buttons.GenButton(self.panel, id=-1, label=text, size=(300, 50), name='upload_btn')
         self.btn_upload.SetBackgroundColour("#C4DF9B")
         self.btn_upload.InitColours()
 
@@ -156,8 +156,11 @@ class MainFrame(wx.Frame):
         change_dir_dialog.Destroy()
 
     def make_grid(self, event):
-        grid_type = event.GetButtonObj().Name
-        self.grid = GridFrame(self.WD, grid_type)
+        try:
+            grid_type = event.GetButtonObj().Name.strip('_btn')
+        except AttributeError:
+            grid_type = self.FindWindowById(event.Id).Name.strip('_btn')
+        self.grid = GridFrame(self.WD, grid_type, grid_type, self.panel)
 
         #self.on_finish_change_dir(self.change_dir_dialog)
 
@@ -172,9 +175,9 @@ class GridFrame(wx.Frame):
     make_magic
     """
 
-    def __init__(self, WD=None, panel_name="grid panel"):
+    def __init__(self, WD=None, frame_name="grid frame", panel_name="grid panel", parent=None):
         wx.GetDisplaySize()
-        wx.Frame.__init__(self, None, wx.ID_ANY, '????')
+        wx.Frame.__init__(self, parent=parent, id=wx.ID_ANY, name=frame_name)
         self.panel = wx.Panel(self, name=panel_name, size=wx.GetDisplaySize())
         self.grid_type = panel_name
         self.WD = WD
@@ -188,12 +191,21 @@ class GridFrame(wx.Frame):
         self.main_sizer = wx.BoxSizer(wx.VERTICAL)
         self.ErMagic = ErMagicBuilder.ErMagicBuilder(self.WD)#,self.Data,self.Data_hierarchy)
         self.ErMagic.init_default_headers()
-        print 'self.ErMagic', self.ErMagic
 
-        self.grid_headers = {'er_specimens': [self.ErMagic.er_specimens_header, self.ErMagic.er_specimens_reqd_header, self.ErMagic.er_specimens_optional_header], 'er_samples': [self.ErMagic.er_samples_header, self.ErMagic.er_samples_reqd_header, self.ErMagic.er_samples_optional_header]}
-        self.grid_data_dict = {'er_specimens': self.ErMagic.data_er_specimens, 'er_samples': self.ErMagic.data_er_samples}
+        self.grid_headers = {
+            'er_specimens': [self.ErMagic.er_specimens_header, self.ErMagic.er_specimens_reqd_header, self.ErMagic.er_specimens_optional_header],
+            'er_samples': [self.ErMagic.er_samples_header, self.ErMagic.er_samples_reqd_header, self.ErMagic.er_samples_optional_header],
+            'er_sites': [self.ErMagic.er_sites_header, self.ErMagic.er_sites_reqd_header, self.ErMagic.er_sites_optional_header],
+            'er_locations': [self.ErMagic.er_locations_header, self.ErMagic.er_locations_reqd_header, self.ErMagic.er_locations_optional_header],
+            'er_ages': [self.ErMagic.er_ages_header, self.ErMagic.er_ages_reqd_header, self.ErMagic.er_ages_optional_header]}
+        
+        self.grid_data_dict = {
+            'er_specimens': self.ErMagic.data_er_specimens,
+            'er_samples': self.ErMagic.data_er_samples,
+            'er_sites': self.ErMagic.data_er_samples,
+            'er_locations': self.ErMagic.data_er_locations,
+            'er_ages': self.ErMagic.data_er_ages}
 
-        # need to 
         self.grid = self.make_grid()
 
         self.grid.InitUI()
