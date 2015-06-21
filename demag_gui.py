@@ -77,7 +77,6 @@ import copy
 from copy import deepcopy
 
 
-
 matplotlib.rc('xtick', labelsize=10) 
 matplotlib.rc('ytick', labelsize=10) 
 matplotlib.rc('axes', labelsize=8) 
@@ -118,6 +117,7 @@ class Zeq_GUI(wx.Frame):
         # wx.Frame.__init__(self, None, wx.ID_ANY, self.title) merge confilct testing
 
         wx.Frame.__init__(self, parent, wx.ID_ANY, self.title, name='demag gui')
+        self.parent = parent
 
         self.redo_specimens={}
         self.currentDirectory = os.getcwd() # get the current working directory
@@ -4155,7 +4155,7 @@ class Zeq_GUI(wx.Frame):
             self.interpertation_editor_open = True
             self.interpertation_editor.Center()
             self.interpertation_editor.Show(True)
-            if sys.platform.startswith('darwin'):
+            if self.parent==None and sys.platform.startswith('darwin'):
                 TEXT="This is a refresher window for mac os to insure that wx opens the new window"
                 dlg = wx.MessageDialog(self, caption="Open",message=TEXT,style=wx.OK | wx.ICON_INFORMATION | wx.STAY_ON_TOP )
                 dlg.ShowModal()
