@@ -4998,7 +4998,7 @@ class Zeq_GUI(wx.Frame):
                 fit_num = -1
             self.pmag_results_data['specimens'][self.s][fit_num].select()
         if self.interpertation_editor_open:
-            self.interpertation_editor.update_logger()
+            self.interpertation_editor.update_editor()
 
     def on_enter_fit_name(self,event):
         """
@@ -5066,7 +5066,7 @@ class Zeq_GUI(wx.Frame):
                 self.bad_fits.append(bad_fit)
        #update the interpertation_editor to reflect bad interpertations
         if self.interpertation_editor_open:
-            self.interpertation_editor.update_logger()
+            self.interpertation_editor.update_editor()
         self.close_warning = True
         self.calculate_higher_levels_data()
         self.update_selection()
@@ -5209,7 +5209,7 @@ class EditFitFrame(wx.Frame):
         self.logger.InsertColumn(7, 'mad',width=35*self.GUI_RESOLUTION)
         self.logger.InsertColumn(8, 'dang',width=35*self.GUI_RESOLUTION)
         self.logger.InsertColumn(9, 'a95',width=35*self.GUI_RESOLUTION)
-        self.update_logger()
+        self.update_editor()
         self.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.OnClick_listctrl, self.logger)
         self.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK,self.OnRightClickListctrl,self.logger)
 
@@ -5278,11 +5278,13 @@ class EditFitFrame(wx.Frame):
         self.buttons_sizer.Add(buttons3_window, 0, wx.TOP, button_spacing)
 
         #duplicate higher levels plot
-#        self.fig = Figure((2.5*self.GUI_RESOLUTION, 2.5*self.GUI_RESOLUTION), dpi=self.parent.dpi)
-#        self.canvas = FigCanvas(self.panel, -1, self.fig)
-#        self.toolbar = NavigationToolbar(self.canvas)
-#        self.toolbar.Hide()
-#        self.toolbar.zoom()
+        self.fig = Figure((2.5*self.GUI_RESOLUTION, 2.5*self.GUI_RESOLUTION), dpi=self.parent.dpi)
+        self.canvas = FigCanvas(self.panel, -1, self.parent.fig4)
+#        thing = self.fig.add_axes(self.parent.high_level_eqarea)
+        self.toolbar = NavigationToolbar(self.canvas)
+        self.toolbar.Hide()
+        self.toolbar.zoom()
+        self.canvas.draw()
         
         #construct panel
         hbox0 = wx.BoxSizer(wx.HORIZONTAL)
@@ -5296,7 +5298,7 @@ class EditFitFrame(wx.Frame):
         vbox1.Add(hbox0,flag=wx.ALIGN_TOP,border=8)
         vbox1.Add(hbox1,flag=wx.ALIGN_TOP,border=8)
         vbox1.Add(self.buttons_sizer,flag=wx.ALIGN_TOP,border=8)
-#        vbox1.Add(self.canvas,flag=wx.ALIGN_BOTTOM,border=8)
+        vbox1.Add(self.canvas,flag=wx.ALIGN_BOTTOM,border=8)
 
         hbox2=wx.BoxSizer(wx.HORIZONTAL)
         hbox2.Add(self.logger,flag=wx.ALIGN_LEFT,border=8)
@@ -5305,7 +5307,7 @@ class EditFitFrame(wx.Frame):
         self.panel.SetSizer(hbox2)
         hbox2.Fit(self)
 
-    def update_logger(self):
+    def update_editor(self):
         """ """
 
         self.fit_list = []
@@ -5352,6 +5354,7 @@ class EditFitFrame(wx.Frame):
                 self.logger.SetItemBackgroundColour(i,"GREEN")
             if self.logger.IsSelected(i):
                 self.logger.Focus(i)
+            self.canvas.draw()
 
     def OnClick_listctrl(self, event):
         """ """
@@ -5384,7 +5387,7 @@ class EditFitFrame(wx.Frame):
             self.parent.bad_fits.append(fit)
         self.parent.calculate_higher_levels_data()
         self.parent.plot_higher_levels_data()
-        self.update_logger()
+        self.update_editor()
         if self.logger.GetItemCount() > i+12:
             i += 12
         else: 
@@ -5428,7 +5431,7 @@ class EditFitFrame(wx.Frame):
         elif self.level_box.GetValue()=='study':
             self.specimens_list=self.parent.Data_hierarchy['study']['this study']['specimens']
 
-        self.update_logger()
+        self.update_editor()
 
     def delete_highlighted_fits(self, event):
         """ """
@@ -5471,7 +5474,7 @@ class EditFitFrame(wx.Frame):
                 if fit == self.parent.current_fit:
                     self.parent.tmax_box.SetStringSelection(new_tmax)
                 fit.put(self.parent.COORDINATE_SYSTEM, self.parent.get_PCA_parameters(specimen,fit.tmin,new_tmax,self.parent.COORDINATE_SYSTEM,fit.PCA_type))
-        self.update_logger()
+        self.update_editor()
         self.parent.update_selection()
 
     def on_close_edit_window(self, event):
