@@ -1208,7 +1208,6 @@ class Zeq_GUI(wx.Frame):
 
 
     def draw_figure(self,s):
-        print("drawing figures")
         self.initialize_CART_rot(s)
         
         #-----------------------------------------------------------
@@ -2279,7 +2278,6 @@ class Zeq_GUI(wx.Frame):
         draw the specimen interpertations on the zijderveld and the specimen equal area
         @alters: fit.lines, zijplot, specimen_eqarea_interpretation, mplot_interpretation
         """
-        print("drawing interp")
         self.zijplot.collections=[] # delete fit points 
         self.specimen_eqarea_interpretation.clear() #clear equal area
         self.mplot_interpretation.clear() #clear Mplot
@@ -2639,13 +2637,13 @@ class Zeq_GUI(wx.Frame):
     #----------------------------------------------------------------------
         
     def onSelect_higher_level(self,event):
-       self.UPPER_LEVEL=self.level_box.GetValue() 
+       self.UPPER_LEVEL=self.level_box.GetValue()
        if self.UPPER_LEVEL=='sample':
            self.show_box.SetItems(['specimens'])
            self.show_box.SetStringSelection('specimens')
            self.level_names.SetItems(self.samples)
            self.level_names.SetStringSelection(self.Data_hierarchy['sample_of_specimen'][self.s])
-           
+
        if self.UPPER_LEVEL=='site':
            self.show_box.SetItems(['specimens','samples'])
            if self.show_box.GetValue() not in ['specimens','samples']:
@@ -2664,8 +2662,7 @@ class Zeq_GUI(wx.Frame):
                self.show_box.SetStringSelection('sites')
            self.level_names.SetItems(['this study'])
            self.level_names.SetStringSelection('this study')
-           
-       #self.calculate_higher_levels_data()
+
        self.plot_higher_levels_data()
        self.update_selection()        
 
@@ -2678,19 +2675,19 @@ class Zeq_GUI(wx.Frame):
            specimen_list=self.Data_hierarchy['samples'][high_level_name]['specimens']
        if self.level_box.GetValue()=='site':
            specimen_list=self.Data_hierarchy['sites'][high_level_name]['specimens']
-       if self.level_box.GetValue()=='location':  
+       if self.level_box.GetValue()=='location':
            specimen_list=self.Data_hierarchy['locations'][high_level_name]['specimens']
        if self.level_box.GetValue()=='study':
            specimen_list=self.Data_hierarchy['study']['this study']['specimens']
-       
+
        if  self.s not in specimen_list:
            specimen_list.sort()
            self.s=str(specimen_list[0])
-           self.specimens_box.SetStringSelection(str(self.s))      
+           self.specimens_box.SetStringSelection(str(self.s))
            self.update_selection()
-           #self.calculate_higher_levels_data()
-           #self.plot_higher_levels_data()
-       self.update_selection() 
+
+       self.update_selection()
+
     #----------------------------------------------------------------------
 
     def onSelect_show_box(self,event):
@@ -2824,7 +2821,6 @@ class Zeq_GUI(wx.Frame):
 
     def plot_higher_levels_data(self):
        #print " plot_higher_levels_data" 
-       print("drawing higher levels data")
        self.toolbar4.home()
        high_level=self.level_box.GetValue() 
        self.UPPER_LEVEL_NAME=self.level_names.GetValue() 
@@ -4204,6 +4200,7 @@ class Zeq_GUI(wx.Frame):
         Read previous interpretation from a redo file
         and update gui with the new interpretation
         """
+        self.on_menu_clear_interpretation(1)
         self.GUI_log.write ("-I- read redo file and processing new bounds")
         fin=open(redo_file,'rU')
         
@@ -5183,10 +5180,13 @@ class EditFitFrame(wx.Frame):
         icon = wx.EmptyIcon()
         icon.CopyFromBitmap(wx.Bitmap(os.path.join(PMAGPY_DIRECTORY, "images/PmagPy.ico"), wx.BITMAP_TYPE_ANY))
         self.SetIcon(icon)
+        self.specimens_list=self.parent.specimens
         #build UI
         self.init_UI()
 
     def init_UI(self):
+        """ """
+
         #set fonts
         font1 = wx.Font(10, wx.SWISS, wx.NORMAL, wx.NORMAL, False, u'Arial')
         font2 = wx.Font(13, wx.SWISS, wx.NORMAL, wx.NORMAL, False, u'Arial')
@@ -5214,19 +5214,28 @@ class EditFitFrame(wx.Frame):
         self.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK,self.OnRightClickListctrl,self.logger)
 
         #set fit attributes box
-        self.name_sizer = wx.StaticBoxSizer(wx.StaticBox(self.panel, wx.ID_ANY), wx.VERTICAL)
-        self.bounds_sizer = wx.StaticBoxSizer(wx.StaticBox(self.panel, wx.ID_ANY), wx.VERTICAL)
+        self.display_sizer = wx.StaticBoxSizer(wx.StaticBox(self.panel, wx.ID_ANY, "Display Settings"), wx.HORIZONTAL)
+        self.name_sizer = wx.StaticBoxSizer(wx.StaticBox(self.panel, wx.ID_ANY, "Name/Color"), wx.VERTICAL)
+        self.bounds_sizer = wx.StaticBoxSizer(wx.StaticBox(self.panel, wx.ID_ANY, "Bounds"), wx.VERTICAL)
         self.buttons_sizer = wx.StaticBoxSizer(wx.StaticBox(self.panel, wx.ID_ANY), wx.VERTICAL)
 
+        #logger display selection box
+        self.level_box = wx.ComboBox(self.panel, -1, size=(100*self.GUI_RESOLUTION, 25), value='site',  choices=['sample','site','location','study'], style=wx.CB_DROPDOWN)
+        self.Bind(wx.EVT_COMBOBOX, self.on_select_higher_level,self.level_box)
+
+        self.level_names = wx.ComboBox(self.panel, -1, size=(100*self.GUI_RESOLUTION, 25), value=self.parent.site, choices=[self.parent.site], style=wx.CB_DROPDOWN)
+        self.Bind(wx.EVT_COMBOBOX, self.on_select_level_name,self.level_names)
+
         #bounds select boxes
-        self.tmin_box = wx.ComboBox(self.panel, -1, size=(100*self.GUI_RESOLUTION, 25), choices=self.parent.T_list, style=wx.CB_DROPDOWN)
+        self.tmin_box = wx.ComboBox(self.panel, -1, size=(100*self.GUI_RESOLUTION, 25), choices=self.parent.T_list, style=wx.CB_DROPDOWN, name="lower bound")
 
-        self.tmax_box = wx.ComboBox(self.panel, -1, size=(100*self.GUI_RESOLUTION, 25), choices=self.parent.T_list, style=wx.CB_DROPDOWN)
+        self.tmax_box = wx.ComboBox(self.panel, -1, size=(100*self.GUI_RESOLUTION, 25), choices=self.parent.T_list, style=wx.CB_DROPDOWN, name="upper bound")
 
-        self.color_box = wx.ComboBox(self.panel, -1, size=(100*self.GUI_RESOLUTION, 25), choices=['green','yellow','maroon','cyan','black','white'], style=wx.CB_DROPDOWN)
+        #color and name box
+        self.color_box = wx.ComboBox(self.panel, -1, size=(100*self.GUI_RESOLUTION, 25), choices=['green','yellow','maroon','cyan','black','white'], style=wx.CB_DROPDOWN, name="color")
         self.color_dict = {'green':'g','yellow':'y','maroon':'m','cyan':'c','black':'k','white':'w'}
 
-        self.name_box = wx.TextCtrl(self.panel, -1, size=(100*self.GUI_RESOLUTION, 25), style=wx.HSCROLL)
+        self.name_box = wx.TextCtrl(self.panel, -1, size=(100*self.GUI_RESOLUTION, 25), style=wx.HSCROLL, name="name")
 
         #more mac stuff
         h_size_buttons,button_spacing = 25,5.5
@@ -5244,11 +5253,15 @@ class EditFitFrame(wx.Frame):
         self.apply_changes_button.SetFont(font1)
         self.Bind(wx.EVT_BUTTON, self.apply_changes, self.apply_changes_button)
 
+        display_window_1 = wx.GridSizer(2, 1, 10*self.GUI_RESOLUTION, 19*self.GUI_RESOLUTION)
+        display_window_2 = wx.GridSizer(2, 1, 10*self.GUI_RESOLUTION, 19*self.GUI_RESOLUTION)
         name_window = wx.GridSizer(2, 1, 10*self.GUI_RESOLUTION, 19*self.GUI_RESOLUTION)
         bounds_window = wx.GridSizer(2, 1, 10*self.GUI_RESOLUTION, 19*self.GUI_RESOLUTION)
         buttons1_window = wx.GridSizer(2, 1, 10*self.GUI_RESOLUTION, 19*self.GUI_RESOLUTION)
         buttons2_window = wx.GridSizer(2, 1, 10*self.GUI_RESOLUTION, 19*self.GUI_RESOLUTION)
         buttons3_window = wx.GridSizer(2, 1, 10*self.GUI_RESOLUTION, 19*self.GUI_RESOLUTION)
+        display_window_1.Add(self.level_box, wx.ALIGN_LEFT)
+        display_window_2.Add(self.level_names, wx.ALIGN_LEFT)
         name_window.AddMany( [(self.name_box, wx.ALIGN_LEFT),
                                 (self.color_box, wx.ALIGN_LEFT)] )
         bounds_window.AddMany( [(self.tmin_box, wx.ALIGN_LEFT),
@@ -5256,32 +5269,47 @@ class EditFitFrame(wx.Frame):
         buttons1_window.Add(self.add_fit_button, wx.ALIGN_BOTTOM)
         buttons2_window.Add(self.delete_fit_button, wx.ALIGN_BOTTOM)
         buttons3_window.Add(self.apply_changes_button, wx.ALIGN_BOTTOM)
+        self.display_sizer.Add(display_window_1, 0, wx.TOP, 8)
+        self.display_sizer.Add(display_window_2, 0, wx.TOP | wx.LEFT, 8)
         self.name_sizer.Add(name_window, 0, wx.TOP, 5.5)
         self.bounds_sizer.Add(bounds_window, 0, wx.TOP, 5.5)
-        self.buttons_sizer.Add(buttons1_window, 0, wx.ALL, button_spacing)
-        self.buttons_sizer.Add(buttons2_window, 0, wx.ALL, button_spacing)
-        self.buttons_sizer.Add(buttons3_window, 0, wx.ALL, button_spacing)
+        self.buttons_sizer.Add(buttons1_window, 0, wx.TOP, button_spacing)
+        self.buttons_sizer.Add(buttons2_window, 0, wx.TOP, button_spacing)
+        self.buttons_sizer.Add(buttons3_window, 0, wx.TOP, button_spacing)
+
+        #duplicate higher levels plot
+#        self.fig = Figure((2.5*self.GUI_RESOLUTION, 2.5*self.GUI_RESOLUTION), dpi=self.parent.dpi)
+#        self.canvas = FigCanvas(self.panel, -1, self.fig)
+#        self.toolbar = NavigationToolbar(self.canvas)
+#        self.toolbar.Hide()
+#        self.toolbar.zoom()
         
         #construct panel
-        hbox_input = wx.BoxSizer(wx.HORIZONTAL)
-        hbox_input.Add(self.name_sizer,flag=wx.ALIGN_LEFT,border=8)
-        hbox_input.Add(self.bounds_sizer,flag=wx.ALIGN_LEFT,border=8)
+        hbox0 = wx.BoxSizer(wx.HORIZONTAL)
+        hbox0.Add(self.display_sizer,flag=wx.ALIGN_TOP,border=8)
+
+        hbox1 = wx.BoxSizer(wx.HORIZONTAL)
+        hbox1.Add(self.name_sizer,flag=wx.ALIGN_TOP,border=8)
+        hbox1.Add(self.bounds_sizer,flag=wx.ALIGN_TOP,border=8)
 
         vbox1 = wx.BoxSizer(wx.VERTICAL)
-        vbox1.Add(hbox_input,flag=wx.ALIGN_TOP,border=8)
+        vbox1.Add(hbox0,flag=wx.ALIGN_TOP,border=8)
+        vbox1.Add(hbox1,flag=wx.ALIGN_TOP,border=8)
         vbox1.Add(self.buttons_sizer,flag=wx.ALIGN_TOP,border=8)
+#        vbox1.Add(self.canvas,flag=wx.ALIGN_BOTTOM,border=8)
 
-        hbox1=wx.BoxSizer(wx.HORIZONTAL)
-        hbox1.Add(self.logger,flag=wx.ALIGN_LEFT,border=8)
-        hbox1.Add(vbox1,flag=wx.ALIGN_LEFT,border=8)
+        hbox2=wx.BoxSizer(wx.HORIZONTAL)
+        hbox2.Add(self.logger,flag=wx.ALIGN_LEFT,border=8)
+        hbox2.Add(vbox1,flag=wx.ALIGN_LEFT,border=8)
 
-        self.panel.SetSizer(hbox1)
-        hbox1.Fit(self)
+        self.panel.SetSizer(hbox2)
+        hbox2.Fit(self)
 
     def update_logger(self):
-        print("updating editor log")
+        """ """
+
         self.fit_list = []
-        for specimen in self.parent.specimens:
+        for specimen in self.specimens_list:
             if specimen not in self.parent.pmag_results_data['specimens']: continue
             self.fit_list += [(fit,specimen) for fit in self.parent.pmag_results_data['specimens'][specimen]]
 
@@ -5326,6 +5354,8 @@ class EditFitFrame(wx.Frame):
                 self.logger.Focus(i)
 
     def OnClick_listctrl(self, event):
+        """ """
+
         i = event.GetIndex()
         if self.parent.current_fit == self.fit_list[i][0]: return
         self.parent.s = self.fit_list[i][1]
@@ -5334,7 +5364,7 @@ class EditFitFrame(wx.Frame):
         self.parent.onSelect_specimen(event)
         i_focus = i
         fi = 0
-        while (self.parent.s == self.fit_list[i][1]): i,fi = (i-1,fi+1)
+        while (self.parent.s == self.fit_list[i][1] and i >= 0): i,fi = (i-1,fi+1)
         self.parent.fit_box.SetSelection(fi-1)
         self.parent.on_select_fit(event)
         if self.logger.GetItemCount() > i_focus+12:
@@ -5344,6 +5374,8 @@ class EditFitFrame(wx.Frame):
         self.logger.Focus(i_focus)
 
     def OnRightClickListctrl(self, event):
+        """ """
+
         i = event.GetIndex()
         fit = self.fit_list[i][0]
         if fit in self.parent.bad_fits:
@@ -5359,7 +5391,48 @@ class EditFitFrame(wx.Frame):
             i = self.logger.GetItemCount()-1
         self.logger.Focus(i)
 
+    def on_select_higher_level(self,event):
+        """ """
+
+        UPPER_LEVEL=self.level_box.GetValue()
+
+        if UPPER_LEVEL=='sample':
+            self.level_names.SetItems(self.parent.samples)
+            self.level_names.SetStringSelection(self.parent.Data_hierarchy['sample_of_specimen'][self.parent.s])
+
+        if UPPER_LEVEL=='site':
+            self.level_names.SetItems(self.parent.sites)
+            self.level_names.SetStringSelection(self.parent.Data_hierarchy['site_of_specimen'][self.parent.s])
+
+        if UPPER_LEVEL=='location':
+            self.level_names.SetItems(self.parent.locations)
+            self.level_names.SetStringSelection(self.parent.Data_hierarchy['location_of_specimen'][self.parent.s])
+
+        if UPPER_LEVEL=='study':
+            self.level_names.SetItems(['this study'])
+            self.level_names.SetStringSelection('this study')
+
+        self.on_select_level_name(event)
+
+    def on_select_level_name(self,event):
+        """ """
+
+        high_level_name=str(self.level_names.GetValue())
+
+        if self.level_box.GetValue()=='sample':
+            self.specimens_list=self.parent.Data_hierarchy['samples'][high_level_name]['specimens']
+        elif self.level_box.GetValue()=='site':
+            self.specimens_list=self.parent.Data_hierarchy['sites'][high_level_name]['specimens']
+        elif self.level_box.GetValue()=='location':
+            self.specimens_list=self.parent.Data_hierarchy['locations'][high_level_name]['specimens']
+        elif self.level_box.GetValue()=='study':
+            self.specimens_list=self.parent.Data_hierarchy['study']['this study']['specimens']
+
+        self.update_logger()
+
     def delete_highlighted_fits(self, event):
+        """ """
+
         next_i = -1
         while True:
             next_i = self.logger.GetNextSelected(next_i)
@@ -5372,6 +5445,7 @@ class EditFitFrame(wx.Frame):
         
 
     def apply_changes(self, event):
+        """ """
 
         new_name = self.name_box.GetLineText(0)
         new_color = self.color_box.GetValue()
@@ -5401,6 +5475,8 @@ class EditFitFrame(wx.Frame):
         self.parent.update_selection()
 
     def on_close_edit_window(self, event):
+        """ """
+
         self.parent.interpertation_editor_open = False
         self.Destroy()
         
