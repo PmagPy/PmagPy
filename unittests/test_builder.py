@@ -197,6 +197,33 @@ class TestBuilder(unittest.TestCase):
             self.assertNotEqual(sample, self.data1.data_er_specimens[spec]['er_sample_name'])
 
 
+    def test_remove_sample_bad_replacement(self):
+        sample = 'Z35.6'
+        self.assertRaises(NameError, self.data1.remove_sample, sample, 'non-existent-sample')
+            
+    def test_remove_sample_with_replacement(self):
+        specimens = ['Z35.6a']
+        sample = 'Z35.6'
+        site = 'Z35.'
+        location = 'locale'
+
+        new_samp = 'Z35.5'
+        
+        self.data1.remove_sample(sample, new_samp)
+    
+        self.assertNotIn(sample, self.data1.Data_hierarchy['samples'].keys())
+        self.assertNotIn(sample, self.data1.data_er_samples.keys())
+        self.assertNotIn(sample, self.data1.Data_hierarchy['site_of_sample'].keys())
+        self.assertNotIn(sample, self.data1.Data_hierarchy['location_of_sample'].keys())
+        self.assertNotIn(sample, self.data1.Data_hierarchy['sites'][site])
+
+        for spec in specimens:
+            self.assertEqual(new_samp, self.data1.Data_hierarchy['sample_of_specimen'][spec])
+            self.assertEqual(new_samp, self.data1.Data_hierarchy['specimens'][spec])
+            self.assertEqual(new_samp, self.data1.data_er_specimens[spec]['er_sample_name'])
+
+            
+
     ### test sites ###
 
 

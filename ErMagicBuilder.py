@@ -594,6 +594,12 @@ class ErMagicBuilder(object):
         self.remove_dict_key_if_present(self.data_er_specimens, spec_name)
 
     def remove_sample(self, samp_name, samp_replacement=''):
+        if samp_replacement:
+            all_samps = set(self.data_er_samples.keys()).union(self.Data_hierarchy['samples'].keys())
+            if samp_replacement not in all_samps:
+                print 'Available samples are: ', ", ".join(all_samps)
+                raise NameError('You must choose a sample for samp_replacement that already exists in the data model')
+
         specimens = self.remove_dict_key_if_present(self.Data_hierarchy['samples'], samp_name)
         for spec in specimens:
             self.Data_hierarchy['sample_of_specimen'][spec] = samp_replacement
@@ -615,8 +621,8 @@ class ErMagicBuilder(object):
         Otherwise, orphan samples will get '' as their site.
         """
         if site_replacement:
-            if site_replacement not in self.data_er_sites.keys() and site_replacement not in self.Data_hierarchy['sites'].keys():
-                all_sites = set(self.data_er_sites.keys()).union(self.Data_hierarchy['sites'].keys())
+            all_sites = set(self.data_er_sites.keys()).union(self.Data_hierarchy['sites'].keys())
+            if site_replacement not in all_sites:
                 print 'Available sites are: ', ", ".join(all_sites)
                 raise NameError('You must choose a site for site_replacement that already exists in the data model')
         try:
@@ -654,8 +660,8 @@ class ErMagicBuilder(object):
 
     def remove_location(self, loc_name, loc_replacement=''):
         if loc_replacement:
-            if loc_replacement not in self.data_er_locations.keys() and loc_replacement not in self.Data_hierarchy['locations'].keys():
-                all_locs = set(self.data_er_locations.keys()).union(self.Data_hierarchy['locations'].keys())
+            all_locs = set(self.data_er_locations.keys()).union(self.Data_hierarchy['locations'].keys())
+            if loc_replacement not in all_locs:
                 print 'Available locations are: ', ", ".join(all_locs)
                 raise NameError('You must choose a location for loc_replacement that already exists in the data model')
 
