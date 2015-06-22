@@ -21,8 +21,10 @@ class ErMagicCheckFrame(wx.Frame):
 
         self.temp_data = {}
         self.drop_down_menu = None
-        self.sample_window = 0 # sample window must be displayed (differently) twice, so it is useful to keep track
+        # sample window must be displayed (differently) twice, so it is useful to keep track
+        self.sample_window = 0 
         self.InitSpecCheck()
+        self.selected_rows = set()
 
 
     def InitSpecCheck(self):
@@ -34,7 +36,7 @@ class ErMagicCheckFrame(wx.Frame):
 
         # make sure we are up to date
         self.ErMagic_data.read_MagIC_info()
-        
+
         if sys.platform in ['win32', 'win64']:
             self.panel = wx.ScrolledWindow(self, style=wx.SIMPLE_BORDER)
         else:
@@ -52,11 +54,13 @@ Check that all specimens belong to the correct sample
         self.specimens = sorted(self.ErMagic_data.Data_hierarchy['specimens'].keys())
         samples = self.ErMagic_data.Data_hierarchy['samples'].keys()
         # add in any additional samples we might have information about (from er_samples.txt file) even if currently that sample does not show up in the magic_measurements file
-        samples = sorted(list(set(samples).union(self.ErMagic_data.data_er_samples.keys()))) 
+        samples = sorted(list(set(samples).union(self.ErMagic_data.data_er_samples.keys())))
 
         # create the grid and also a record of the initial values for specimens/samples as a reference
         # to tell if we've had any changes
-        for val in ['er_citation_names', 'er_location_name', 'er_site_name', 'er_sample_name', 'er_specimen_name', 'specimen_class', 'specimen_lithology', 'specimen_type']: #
+        for val in ['er_citation_names', 'er_location_name', 'er_site_name',
+                    'er_sample_name', 'er_specimen_name', 'specimen_class',
+                    'specimen_lithology', 'specimen_type']: #
             try:
                 self.ErMagic_data.er_specimens_header.remove(val)
             except ValueError:
@@ -64,12 +68,15 @@ Check that all specimens belong to the correct sample
         self.ErMagic_data.er_specimens_header.sort()
         self.ErMagic_data.er_specimens_header[:0] = ['er_specimen_name', 'er_sample_name']
 
-        self.spec_grid = self.make_simple_table(self.ErMagic_data.er_specimens_header, self.ErMagic_data.data_er_specimens, "er_specimen_name")
+        self.spec_grid = self.make_simple_table(self.ErMagic_data.er_specimens_header,
+                                                self.ErMagic_data.data_er_specimens, "er_specimen_name")
 
         # make sure all removed values stay in er_specimens_header, even though they will not be displayed
-        self.ErMagic_data.er_specimens_header.extend(['er_citation_names', 'er_location_name', 'er_site_name', 'specimen_class', 'specimen_lithology', 'specimen_type'])
+        self.ErMagic_data.er_specimens_header.extend(['er_citation_names', 'er_location_name',
+                                                      'er_site_name', 'specimen_class',
+                                                      'specimen_lithology', 'specimen_type'])
         # initialize all needed drop-down menus
-        self.drop_down_menu = drop_down_menus.Menus("specimen", self, self.spec_grid, samples) 
+        self.drop_down_menu = drop_down_menus.Menus("specimen", self, self.spec_grid, samples)
 
         #### Create Buttons ####
         hbox_one = wx.BoxSizer(wx.HORIZONTAL)
@@ -94,6 +101,13 @@ Check that all specimens belong to the correct sample
         hboxok.Add(self.cancelButton, flag=wx.ALIGN_LEFT|wx.RIGHT, border=10)
         hboxok.Add(self.continueButton, flag=wx.ALIGN_LEFT)
 
+        #
+        hboxgrid = wx.BoxSizer(wx.HORIZONTAL)
+        self.deleteRowButton = wx.Button(self.panel, id=-1, label='Delete row(s)', name='delete_row_btn')
+        self.Bind(wx.EVT_BUTTON, lambda event: self.onDeleteRow(event, 'specimen'), self.deleteRowButton)
+        self.deleteRowButton.Disable()
+        hboxgrid.Add(self.deleteRowButton, flag=wx.ALIGN_LEFT)
+
         ### Create Containers ###
         vbox = wx.BoxSizer(wx.VERTICAL)
         vbox.AddSpacer(10)
@@ -101,7 +115,10 @@ Check that all specimens belong to the correct sample
 
         vbox.Add(hbox_one, flag=wx.TOP|wx.LEFT|wx.BOTTOM, border=10)
         vbox.Add(hboxok, flag=wx.BOTTOM|wx.LEFT, border=10)
+        vbox.Add(hboxgrid, flag=wx.BOTTOM|wx.LEFT, border=10)
         vbox.Add(self.spec_grid, flag=wx.ALL, border=10)#|wx.EXPAND, border=30)
+        # self.Bind bind to clicking on row labels
+        self.panel.Bind(wx.grid.EVT_GRID_LABEL_LEFT_CLICK, lambda event: self.onSelectRow(event, self.spec_grid, self.deleteRowButton), self.spec_grid)
         
         hbox_all = wx.BoxSizer(wx.HORIZONTAL)
         hbox_all.AddSpacer(20)
@@ -749,6 +766,35 @@ You may use the drop-down menus to add as many values as needed in these columns
         del wait
 
 
+    def onDeleteRow(self, event, data_type):
+        print 'delete a row!!'
+        print 'or, perhaps just enter row deletion mode'
+        print self.selected_rows
+        # do ErMagic.remove_specimen(spec_name)
+        
+
+    def onSelectRow(self, event, grid, delete_btn):
+        row = event.Row
+        default = (255, 255, 255, 255)
+        highlight = (191, 216, 216, 255)
+        cell_color = grid.GetCellBackgroundColour(row, 0)
+        attr = wx.grid.GridCellAttr()
+        if cell_color == default:
+            attr.SetBackgroundColour(highlight)
+            self.selected_rows.add(row)
+        else:
+            attr.SetBackgroundColour(default)
+            try:
+                self.selected_rows.remove(row)
+            except KeyError:
+                pass
+        if self.selected_rows:
+            delete_btn.Enable()
+        else:
+            delete_btn.Disable()
+        grid.SetRowAttr(row, attr)
+        grid.Refresh()
+        
     ### Manage data methods ###
     def update_grid(self, grid):#, data):
         """
