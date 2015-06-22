@@ -87,6 +87,8 @@ class TestBuilder(unittest.TestCase):
         self.assertNotIn(specimen, self.data1.Data_hierarchy['site_of_specimen'].keys())
         self.assertNotIn(specimen, self.data1.Data_hierarchy['location_of_specimen'].keys())
         self.assertNotIn(specimen, self.data1.Data_hierarchy['samples'][sample])
+
+
         
 
     def test_add_specimen_invalid_sample(self):
@@ -169,8 +171,63 @@ class TestBuilder(unittest.TestCase):
         self.assertEqual('new value', self.data1.data_er_samples[sample]['new_key'])
         for key in self.data1.er_samples_header:
             self.assertIn(key, self.data1.data_er_samples[sample].keys())
-                      
+
+    def test_remove_sample(self):
+        specimens = ['Z35.6a']
+        sample = 'Z35.6'
+        site = 'Z35.'
+        location = 'locale'
+        
+        self.data1.remove_sample(sample)
+    
+        for dic in self.data1.Data_hierarchy.keys():
+            print dic
+            print self.data1.Data_hierarchy[dic]
+            print '--'
+            
+        self.assertNotIn(sample, self.data1.Data_hierarchy['samples'].keys())
+        self.assertNotIn(sample, self.data1.data_er_samples.keys())
+        self.assertNotIn(sample, self.data1.Data_hierarchy['site_of_sample'].keys())
+        self.assertNotIn(sample, self.data1.Data_hierarchy['location_of_sample'].keys())
+        self.assertNotIn(sample, self.data1.Data_hierarchy['sites'][site])
+
+        for spec in specimens:
+            self.assertNotEqual(sample, self.data1.Data_hierarchy['sample_of_specimen'][spec])
+            self.assertNotEqual(sample, self.data1.Data_hierarchy['specimens'][spec])
+            self.assertNotEqual(sample, self.data1.data_er_specimens[spec]['er_sample_name'])
+
+
     ### test sites ###
+
+
+    def test_add_site(self):
+        site = 'new_site_name'
+        location = 'locale'
+        self.data1.add_site(site, location)
+
+        self.assertIn(site, self.data1.Data_hierarchy['sites'].keys())
+        self.assertIn(site, self.data1.Data_hierarchy['locations'][location])
+        self.assertIn(site, self.data1.data_er_sites.keys())
+        self.assertEqual(location, self.data1.data_er_sites[site]['er_location_name'])
+        self.assertEqual(location, self.data1.Data_hierarchy['location_of_site'][site])
+
+    def test_add_site_invalid_location(self):
+        site = 'new_site_name'
+        location = 'invalid location'
+        self.assertRaises(Exception, self.data1.add_site, site, location)
+
+    def test_add_site_with_data(self):
+        site = 'new_site_name'
+        location = 'locale'
+        self.data1.add_site(site, location, {'new_key': 'new value', 'site_type': 'type1'})
+
+        self.assertIn(site, self.data1.data_er_sites.keys())
+        self.assertIn('new_key', self.data1.data_er_sites[site].keys())
+        self.assertEqual('new value', self.data1.data_er_sites[site]['new_key'])
+        self.assertEqual('type1', self.data1.data_er_sites[site]['site_type'])
+        for key in self.data1.er_sites_header:
+            self.assertIn(key, self.data1.data_er_sites[site].keys())
+
 
     def test_update_site(self):
         # set up
@@ -216,34 +273,52 @@ class TestBuilder(unittest.TestCase):
         if 'er_location_name' in self.data1.data_er_specimens[specimen].keys():
             self.assertEqual(new_loc, self.data1.data_er_specimens[specimen]['er_location_name'])
 
-
-    def test_add_site(self):
-        site = 'new_site_name'
+            
+    def test_remove_site(self):
+        specimens = ['Z35.6a']
+        samples = ['Z35.6', 'Z35.2', 'Z35.3', 'Z35.4', 'Z35.5', 'Z35.7']
+        site = 'Z35.'
         location = 'locale'
-        self.data1.add_site(site, location)
+        
+        self.data1.remove_site(site)
+    
+        self.assertNotIn(site, self.data1.Data_hierarchy['sites'].keys())
+        self.assertNotIn(site, self.data1.data_er_sites.keys())
+        self.assertNotIn(site, self.data1.Data_hierarchy['location_of_site'].keys())
+        self.assertNotIn(site, self.data1.Data_hierarchy['locations'][location])
 
-        self.assertIn(site, self.data1.Data_hierarchy['sites'].keys())
-        self.assertIn(site, self.data1.Data_hierarchy['locations'][location])
-        self.assertIn(site, self.data1.data_er_sites.keys())
-        self.assertEqual(location, self.data1.data_er_sites[site]['er_location_name'])
-        self.assertEqual(location, self.data1.Data_hierarchy['location_of_site'][site])
+        for sample in samples:
+            self.assertNotEqual(site, self.data1.Data_hierarchy['site_of_sample'][sample])
+            self.assertNotEqual(site, self.data1.data_er_samples[sample]['er_site_name'])
 
-    def test_add_site_invalid_location(self):
-        site = 'new_site_name'
-        location = 'invalid location'
-        self.assertRaises(Exception, self.data1.add_site, site, location)
+        for spec in specimens:
+            self.assertNotEqual(site, self.data1.Data_hierarchy['site_of_specimen'][spec])
+            self.assertNotEqual(site, self.data1.data_er_specimens[spec]['er_site_name'])
 
-    def test_add_site_with_data(self):
-        site = 'new_site_name'
+            
+    def test_remove_site_with_bad_replacement(self):
+        self.assertRaises(NameError, self.data1.remove_site, 'MGH1', 'non-existent-site')
+
+    def test_remove_site_with_replacement(self):
+        specimens = ['Z35.6a']
+        samples = ['Z35.6', 'Z35.2', 'Z35.3', 'Z35.4', 'Z35.5', 'Z35.7']
+        site = 'Z35.'
         location = 'locale'
-        self.data1.add_site(site, location, {'new_key': 'new value', 'site_type': 'type1'})
+        new_site = 'MGH1'
+        
+        self.data1.remove_site(site, 'MGH1')
+    
+        for sample in samples:
+            # site of sample
+            self.assertEqual(new_site, self.data1.Data_hierarchy['site_of_sample'][sample])
+            self.assertEqual(new_site, self.data1.data_er_samples[sample]['er_site_name'])
+            self.assertIn(sample, self.data1.Data_hierarchy['sites'][new_site])
 
-        self.assertIn(site, self.data1.data_er_sites.keys())
-        self.assertIn('new_key', self.data1.data_er_sites[site].keys())
-        self.assertEqual('new value', self.data1.data_er_sites[site]['new_key'])
-        self.assertEqual('type1', self.data1.data_er_sites[site]['site_type'])
-        for key in self.data1.er_sites_header:
-            self.assertIn(key, self.data1.data_er_sites[site].keys())
+        for spec in specimens:
+            self.assertEqual(new_site, self.data1.Data_hierarchy['site_of_specimen'][spec])
+            self.assertEqual(new_site, self.data1.data_er_specimens[spec]['er_site_name'])
+
+
                             
     ### test locations ###
         
@@ -295,6 +370,14 @@ class TestBuilder(unittest.TestCase):
         
         self.assertIn('new_key', self.data1.data_er_locations[location].keys())
         self.assertEqual('new value', self.data1.data_er_locations[location]['new_key'])
+
+    def test_remove_location(self):
+        for dic in self.data1.Data_hierarchy.keys():
+            print dic
+            print self.data1.Data_hierarchy[dic]
+            print '--'
+        #self.assertTrue(False)
+
 
 
     ### test ages ###

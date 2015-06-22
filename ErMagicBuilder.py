@@ -582,17 +582,78 @@ class ErMagicBuilder(object):
     def remove_specimen(self, spec_name):
         sample = None
         sample = self.remove_dict_key_if_present(self.Data_hierarchy['specimens'], spec_name)
-        
         if not sample:
             sample = self.remove_dict_key_if_present(self.Data_hierarchy['sample_of_specimen'], spec_name)
         else:
             self.remove_dict_key_if_present(self.Data_hierarchy['sample_of_specimen'], spec_name)
-
         if sample:
             self.remove_list_value_if_present(self.Data_hierarchy['samples'][sample], spec_name)
+            
         self.remove_dict_key_if_present(self.Data_hierarchy['site_of_specimen'], spec_name)
         self.remove_dict_key_if_present(self.Data_hierarchy['location_of_specimen'], spec_name)
         self.remove_dict_key_if_present(self.data_er_specimens, spec_name)
+
+    def remove_sample(self, samp_name, samp_replacement=''):
+        specimens = self.remove_dict_key_if_present(self.Data_hierarchy['samples'], samp_name)
+        for spec in specimens:
+            self.Data_hierarchy['sample_of_specimen'][spec] = samp_replacement
+            self.Data_hierarchy['specimens'][spec] = samp_replacement
+            self.data_er_specimens[spec]['er_sample_name'] = samp_replacement
+
+        site = self.remove_dict_key_if_present(self.Data_hierarchy['site_of_sample'], samp_name)
+        if not site:
+            site = self.data_er_samples[samp_name]['er_site_name']
+        if site:
+            self.remove_list_value_if_present(self.Data_hierarchy['sites'][site], samp_name)
+            
+        location = self.remove_dict_key_if_present(self.Data_hierarchy['location_of_sample'], samp_name)
+        
+        self.remove_dict_key_if_present(self.data_er_samples, samp_name)
+
+    def remove_site(self, site_name, site_replacement=''):
+        """
+        Remove a site from the data model.
+        If a replacement site is provided, insert that in as parent to the orphaned samples. 
+        Otherwise, orphan samples will get '' as their site.
+        """
+        print 'site_replacement', site_replacement
+        if site_replacement:
+            if site_replacement not in self.data_er_sites.keys() and site_replacement not in self.Data_hierarchy['sites'].keys():
+                print 'Available sites are: ', ", ".join(self.data_er_sites.keys())
+                print 'Available sites are: ', ", ".join(self.Data_hierarchy['sites'].keys())
+                raise NameError('You must choose a site for site_replacement that already exists in the data model')
+        try:
+            loc_replacement = self.data_er_sites[site_replacement]['er_location_name']
+        except KeyError:
+            try:
+                loc_replacement = self.Data_hierarchy['location_of_site'][site_replacement]
+            except KeyError:
+                loc_replacement = ''
+        
+        location = self.remove_dict_key_if_present(self.Data_hierarchy['location_of_site'], site_name)
+        self.remove_list_value_if_present(self.Data_hierarchy['locations'][location], site_name)
+
+        samples = self.remove_dict_key_if_present(self.Data_hierarchy['sites'], site_name)
+        specimens = []
+        for samp in samples:
+            specs = self.Data_hierarchy['samples'][samp]
+            specimens.extend(specs)
+            self.Data_hierarchy['site_of_sample'][samp] = site_replacement
+            self.data_er_samples[samp]['er_site_name'] = site_replacement
+            self.data_er_samples[samp]['er_location_name'] = loc_replacement
+            
+            if not site_replacement in self.Data_hierarchy['sites'].keys():
+                self.Data_hierarchy['sites'][site_replacement] = []
+            self.Data_hierarchy['sites'][site_replacement].append(samp)
+
+        for spec in specimens:
+            #sample = self.Data_hierarchy['sample_of_specimen'][spec]
+            self.data_er_specimens[spec]['er_site_name'] = site_replacement
+            self.data_er_specimens[spec]['er_location_name'] = loc_replacement
+            self.Data_hierarchy['site_of_specimen'][spec] = site_replacement
+            self.Data_hierarchy['location_of_specimen'][spec] = loc_replacement
+
+        self.remove_dict_key_if_present(self.data_er_sites, site_name)
 
 
     ### Helper methods ###
