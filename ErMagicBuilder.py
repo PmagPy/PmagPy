@@ -605,9 +605,7 @@ class ErMagicBuilder(object):
             site = self.data_er_samples[samp_name]['er_site_name']
         if site:
             self.remove_list_value_if_present(self.Data_hierarchy['sites'][site], samp_name)
-            
         location = self.remove_dict_key_if_present(self.Data_hierarchy['location_of_sample'], samp_name)
-        
         self.remove_dict_key_if_present(self.data_er_samples, samp_name)
 
     def remove_site(self, site_name, site_replacement=''):
@@ -616,11 +614,10 @@ class ErMagicBuilder(object):
         If a replacement site is provided, insert that in as parent to the orphaned samples. 
         Otherwise, orphan samples will get '' as their site.
         """
-        print 'site_replacement', site_replacement
         if site_replacement:
             if site_replacement not in self.data_er_sites.keys() and site_replacement not in self.Data_hierarchy['sites'].keys():
-                print 'Available sites are: ', ", ".join(self.data_er_sites.keys())
-                print 'Available sites are: ', ", ".join(self.Data_hierarchy['sites'].keys())
+                all_sites = set(self.data_er_sites.keys()).union(self.Data_hierarchy['sites'].keys())
+                print 'Available sites are: ', ", ".join(all_sites)
                 raise NameError('You must choose a site for site_replacement that already exists in the data model')
         try:
             loc_replacement = self.data_er_sites[site_replacement]['er_location_name']
@@ -629,7 +626,7 @@ class ErMagicBuilder(object):
                 loc_replacement = self.Data_hierarchy['location_of_site'][site_replacement]
             except KeyError:
                 loc_replacement = ''
-        
+
         location = self.remove_dict_key_if_present(self.Data_hierarchy['location_of_site'], site_name)
         self.remove_list_value_if_present(self.Data_hierarchy['locations'][location], site_name)
 
@@ -654,6 +651,34 @@ class ErMagicBuilder(object):
             self.Data_hierarchy['location_of_specimen'][spec] = loc_replacement
 
         self.remove_dict_key_if_present(self.data_er_sites, site_name)
+
+    def remove_location(self, loc_name, loc_replacement=''):
+        if loc_replacement:
+            if loc_replacement not in self.data_er_locations.keys() and loc_replacement not in self.Data_hierarchy['locations'].keys():
+                all_locs = set(self.data_er_locations.keys()).union(self.Data_hierarchy['locations'].keys())
+                print 'Available locations are: ', ", ".join(all_locs)
+                raise NameError('You must choose a location for loc_replacement that already exists in the data model')
+
+        sites = self.remove_dict_key_if_present(self.Data_hierarchy['locations'], loc_name)
+        samples = []
+        for site in sites:
+            self.Data_hierarchy['location_of_site'][site] = loc_replacement
+            self.data_er_sites[site]['er_location_name'] = loc_replacement
+            samps = self.Data_hierarchy['sites'][site]
+            samples.extend(samps)
+
+        specimens = []
+        for samp in samples:
+            self.Data_hierarchy['location_of_sample'][samp] = loc_replacement
+            self.data_er_samples[samp]['er_location_name'] = loc_replacement
+            specs = self.Data_hierarchy['samples'][samp]
+            specimens.extend(specs)
+
+        for spec in specimens:
+            self.Data_hierarchy['location_of_specimen'][spec] = loc_replacement
+            self.data_er_specimens[spec]['er_location_name'] = loc_replacement
+
+        self.remove_dict_key_if_present(self.data_er_locations, loc_name)
 
 
     ### Helper methods ###

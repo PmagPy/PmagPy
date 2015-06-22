@@ -372,12 +372,47 @@ class TestBuilder(unittest.TestCase):
         self.assertEqual('new value', self.data1.data_er_locations[location]['new_key'])
 
     def test_remove_location(self):
-        for dic in self.data1.Data_hierarchy.keys():
-            print dic
-            print self.data1.Data_hierarchy[dic]
-            print '--'
-        #self.assertTrue(False)
+        specimen = 'Z35.6a'
+        samples = ['Z35.6', 'Z35.2', 'Z35.3', 'Z35.4', 'Z35.5', 'Z35.7']
+        site = 'Z35.'
+        loc = 'locale'
+        self.data1.remove_location(loc)
 
+        self.assertNotIn(loc, self.data1.data_er_locations.keys())
+        self.assertNotIn(loc, self.data1.Data_hierarchy['locations'].keys())
+
+        self.assertEqual('', self.data1.data_er_specimens[specimen]['er_location_name'])
+        self.assertEqual('', self.data1.data_er_samples[samples[0]]['er_location_name'])
+        self.assertEqual('', self.data1.data_er_sites[site]['er_location_name'])
+
+        self.assertEqual('', self.data1.Data_hierarchy['location_of_specimen'][specimen])
+        self.assertEqual('', self.data1.Data_hierarchy['location_of_sample'][samples[0]])
+        self.assertEqual('', self.data1.Data_hierarchy['location_of_site'][site])
+
+
+    def test_remove_location_bad_replacement(self):
+        self.assertRaises(NameError, self.data1.remove_location, 'locale', 'non-existent-location')
+            
+    def test_remove_location_with_replacement(self):
+        specimen = 'Z35.6a'
+        samples = ['Z35.6', 'Z35.2', 'Z35.3', 'Z35.4', 'Z35.5', 'Z35.7']
+        site = 'Z35.'
+        loc = 'locale'
+        new_loc = 'new_location'
+        self.data1.add_location(new_loc)
+        
+        self.data1.remove_location(loc, new_loc)
+
+        self.assertNotIn(loc, self.data1.data_er_locations.keys())
+        self.assertNotIn(loc, self.data1.Data_hierarchy['locations'].keys())
+
+        self.assertEqual(new_loc, self.data1.data_er_specimens[specimen]['er_location_name'])
+        self.assertEqual(new_loc, self.data1.data_er_samples[samples[0]]['er_location_name'])
+        self.assertEqual(new_loc, self.data1.data_er_sites[site]['er_location_name'])
+
+        self.assertEqual(new_loc, self.data1.Data_hierarchy['location_of_specimen'][specimen])
+        self.assertEqual(new_loc, self.data1.Data_hierarchy['location_of_sample'][samples[0]])
+        self.assertEqual(new_loc, self.data1.Data_hierarchy['location_of_site'][site])
 
 
     ### test ages ###
