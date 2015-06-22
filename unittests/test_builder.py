@@ -73,6 +73,20 @@ class TestBuilder(unittest.TestCase):
         self.assertEqual(sample, self.data1.data_er_specimens[specimen]['er_sample_name'])
         self.assertIn(specimen, self.data1.Data_hierarchy['samples'][sample])
         self.assertEqual(sample, self.data1.Data_hierarchy['sample_of_specimen'][specimen])
+
+    def test_remove_specimen(self):
+        specimen = 'Z35.6a'
+        sample = 'Z35.6'
+        site = 'Z35.'
+        location = 'locale'
+        self.data1.remove_specimen(specimen)
+
+        self.assertNotIn(specimen, self.data1.Data_hierarchy['specimens'].keys())
+        self.assertNotIn(specimen, self.data1.data_er_specimens.keys())
+        self.assertNotIn(specimen, self.data1.Data_hierarchy['sample_of_specimen'].keys())
+        self.assertNotIn(specimen, self.data1.Data_hierarchy['site_of_specimen'].keys())
+        self.assertNotIn(specimen, self.data1.Data_hierarchy['location_of_specimen'].keys())
+        self.assertNotIn(specimen, self.data1.Data_hierarchy['samples'][sample])
         
 
     def test_add_specimen_invalid_sample(self):

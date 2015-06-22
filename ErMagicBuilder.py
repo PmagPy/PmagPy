@@ -579,6 +579,21 @@ class ErMagicBuilder(object):
             combined_data = self.combine_dicts(new_location_data, old_location_data)
             self.data_er_locations[new_location_name] = combined_data
 
+    def remove_specimen(self, spec_name):
+        sample = None
+        sample = self.remove_dict_key_if_present(self.Data_hierarchy['specimens'], spec_name)
+        
+        if not sample:
+            sample = self.remove_dict_key_if_present(self.Data_hierarchy['sample_of_specimen'], spec_name)
+        else:
+            self.remove_dict_key_if_present(self.Data_hierarchy['sample_of_specimen'], spec_name)
+
+        if sample:
+            self.remove_list_value_if_present(self.Data_hierarchy['samples'][sample], spec_name)
+        self.remove_dict_key_if_present(self.Data_hierarchy['site_of_specimen'], spec_name)
+        self.remove_dict_key_if_present(self.Data_hierarchy['location_of_specimen'], spec_name)
+        self.remove_dict_key_if_present(self.data_er_specimens, spec_name)
+
 
     ### Helper methods ###
 
@@ -615,6 +630,20 @@ class ErMagicBuilder(object):
         lst.remove(first_value)
         lst[:0] = [first_value]
 
+    def remove_list_value_if_present(self, lst, val):
+        if val in lst:
+            lst.remove(val)
+
+    def remove_dict_key_if_present(self, dic, key):
+        """
+        Remove key: val from dic if key in keys().
+        Return val if present.
+        """
+        if key in dic.keys():
+            val = dic.pop(key)
+            return val
+        else:
+            return False
 
     ### Re-write magic files methods ###
 
