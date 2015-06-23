@@ -919,9 +919,6 @@ class Zeq_GUI(wx.Frame):
         pos=event.GetPosition()
         width, height = self.canvas4.get_width_height()
         pos[1] = height - pos[1]
-#        inv = self.high_level_eqarea.transData.inverted()
-#        reverse = inv.transform(numpy.vstack([pos[0],pos[1]]).T)
-#        xpick_data,ypick_data = map(float,reverse.T)
         xpick_data,ypick_data = pos
         xdata_org = self.higher_EA_xdata
         ydata_org = self.higher_EA_ydata
@@ -941,15 +938,20 @@ class Zeq_GUI(wx.Frame):
             if disp_fit_name!="All":
                 disp_fit_index = map(lambda x: x.name, self.pmag_results_data['specimens'][self.s]).index(disp_fit_name)
             for i,specimen in enumerate(self.specimens):
-                if disp_fit_name=="All":
-                    l = len(self.pmag_results_data['specimens'][specimen])
+                if disp_fit_name=="All" and \
+                   specimen in self.pmag_results_data['specimens']:
+                    l = 0
+                    for fit in self.pmag_results_data['specimens'][specimen]:
+                        if fit not in self.bad_fits:
+                            l += 1
                 else:
-                    try: 
+                    try:
                         if self.pmag_results_data['specimens'][specimen][disp_fit_index] in self.bad_fits:
                             l = 0
                         else:
-                            l = len([self.pmag_results_data['specimens'][specimen][disp_fit_index]])
+                            l = 1
                     except IndexError: l = 0
+                    except KeyError: l = 0
                 if index < l:
                     self.s = specimen
                     self.specimens_box.SetSelection(i)
@@ -2735,7 +2737,7 @@ class Zeq_GUI(wx.Frame):
                             elif "dec" in pars.keys() and "inc" in pars.keys():
                                 dec,inc,direction_type=pars["dec"],pars["inc"],'l'
                             else:
-                                print "-E- ERROR: cant find mean for element %s"%element
+#                                print "-E- ERROR: cant find mean for element %s"%element
                                 continue
                             #add for calculation
                             pars_for_mean.append({'dec':float(dec),'inc':float(inc),'direction_type':direction_type,'element_name':element})
@@ -2747,7 +2749,7 @@ class Zeq_GUI(wx.Frame):
                             if "dec" in pars.keys() and "inc" in pars.keys():
                                 dec,inc,direction_type=pars["dec"],pars["inc"],'l'
                             else:
-                                print "-E- ERROR: cant find mean for element %s"%element
+#                                print "-E- ERROR: cant find mean for element %s"%element
                                 continue 
                     except KeyError:
                         continue
@@ -4574,18 +4576,13 @@ class Zeq_GUI(wx.Frame):
                     PmagSpecRec["magic_experiment_names"]=self.Data[specimen]["magic_experiment_name"]
                     if 'magic_instrument_codes' in self.Data[specimen].keys():
                         PmagSpecRec["magic_instrument_codes"]= self.Data[specimen]['magic_instrument_codes']
-
-                    #-------
-#                    OK=False
-#                    if fit.get(dirtype):
-#                        OK=True
-#                    if not OK:
-#                        continue
-
                     PmagSpecRec['specimen_correction']='u'
                     PmagSpecRec['specimen_direction_type'] = mpars["specimen_direction_type"]
                     PmagSpecRec['specimen_dec'] = "%.1f"%mpars["specimen_dec"]
                     PmagSpecRec['specimen_inc'] = "%.1f"%mpars["specimen_inc"]
+                    PmagSpecRec['specimen_flag'] = "g"
+                    if fit in self.bad_fits:
+                        PmagSpecRec['specimen_flag'] = "b"
             
             for dirtype in CoorTypes:
                 i = 0
@@ -5166,6 +5163,8 @@ class SaveMyPlot(wx.Frame):
 
 class EditFitFrame(wx.Frame):
 
+    #########################Init Funcions#############################
+
     def __init__(self,parent):
         """Constructor"""
         #set parent and resolution
@@ -5209,7 +5208,6 @@ class EditFitFrame(wx.Frame):
         self.logger.InsertColumn(7, 'mad',width=35*self.GUI_RESOLUTION)
         self.logger.InsertColumn(8, 'dang',width=35*self.GUI_RESOLUTION)
         self.logger.InsertColumn(9, 'a95',width=35*self.GUI_RESOLUTION)
-        self.update_editor()
         self.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.OnClick_listctrl, self.logger)
         self.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK,self.OnRightClickListctrl,self.logger)
 
@@ -5278,13 +5276,15 @@ class EditFitFrame(wx.Frame):
         self.buttons_sizer.Add(buttons3_window, 0, wx.TOP, button_spacing)
 
         #duplicate higher levels plot
-        self.fig = Figure((2.5*self.GUI_RESOLUTION, 2.5*self.GUI_RESOLUTION), dpi=self.parent.dpi)
-        self.canvas = FigCanvas(self.panel, -1, self.parent.fig4)
-#        thing = self.fig.add_axes(self.parent.high_level_eqarea)
+        self.fig = copy.copy(self.parent.fig4)
+        self.canvas = FigCanvas(self.panel, -1, self.fig)
         self.toolbar = NavigationToolbar(self.canvas)
         self.toolbar.Hide()
         self.toolbar.zoom()
-        self.canvas.draw()
+        self.higher_EA_setting = "Zoom"
+        self.canvas.Bind(wx.EVT_LEFT_DCLICK,self.parent.on_equalarea_higher_select)
+        self.canvas.Bind(wx.EVT_MOTION,self.on_change_higher_mouse_cursor)
+        self.canvas.Bind(wx.EVT_MIDDLE_DOWN,self.home_higher_equalarea)
         
         #construct panel
         hbox0 = wx.BoxSizer(wx.HORIZONTAL)
@@ -5306,6 +5306,11 @@ class EditFitFrame(wx.Frame):
 
         self.panel.SetSizer(hbox2)
         hbox2.Fit(self)
+
+        self.on_select_higher_level(1)
+        self.update_editor()
+
+    ################################Logger Functions##################################
 
     def update_editor(self):
         """ """
@@ -5354,6 +5359,8 @@ class EditFitFrame(wx.Frame):
                 self.logger.SetItemBackgroundColour(i,"GREEN")
             if self.logger.IsSelected(i):
                 self.logger.Focus(i)
+            #use copy so that the fig doesn't close when the editor closes
+            self.fig = copy.copy(self.parent.fig4)
             self.canvas.draw()
 
     def OnClick_listctrl(self, event):
@@ -5394,6 +5401,8 @@ class EditFitFrame(wx.Frame):
             i = self.logger.GetItemCount()-1
         self.logger.Focus(i)
 
+    ###################################ComboBox Functions################################
+
     def on_select_higher_level(self,event):
         """ """
 
@@ -5432,6 +5441,8 @@ class EditFitFrame(wx.Frame):
             self.specimens_list=self.parent.Data_hierarchy['study']['this study']['specimens']
 
         self.update_editor()
+
+    ###################################Button Functions##################################
 
     def delete_highlighted_fits(self, event):
         """ """
@@ -5476,6 +5487,47 @@ class EditFitFrame(wx.Frame):
                 fit.put(self.parent.COORDINATE_SYSTEM, self.parent.get_PCA_parameters(specimen,fit.tmin,new_tmax,self.parent.COORDINATE_SYSTEM,fit.PCA_type))
         self.update_editor()
         self.parent.update_selection()
+
+    ###################################Canvas Functions##################################
+
+    def home_higher_equalarea(self,event):
+        """
+        returns higher equal area to it's original position
+        @param: event -> the wx.MouseEvent that triggered the call of this function
+        @alters: toolbar setting
+        """
+        self.toolbar.home()
+
+    def on_change_higher_mouse_cursor(self,event):
+        """
+        If mouse is over data point making it selectable change the shape of the cursor
+        @param: event -> the wx Mouseevent for that click
+        """
+        pos=event.GetPosition()
+        width, height = self.canvas.get_width_height()
+        pos[1] = height - pos[1]
+        xpick_data,ypick_data = pos
+        xdata_org = self.parent.higher_EA_xdata
+        ydata_org = self.parent.higher_EA_ydata
+        data_corrected = self.parent.high_level_eqarea.transData.transform(numpy.vstack([xdata_org,ydata_org]).T)
+        xdata,ydata = data_corrected.T
+        xdata = map(float,xdata)
+        ydata = map(float,ydata)
+        e = 4e0
+
+        if self.higher_EA_setting == "Zoom":
+            self.canvas.SetCursor(wx.StockCursor(wx.CURSOR_CROSS))
+        elif self.higher_EA_setting == "Pan":
+            self.canvas.SetCursor(wx.StockCursor(wx.CURSOR_WATCH))
+        else:
+            self.canvas.SetCursor(wx.StockCursor(wx.CURSOR_ARROW))
+        if not self.parent.higher_EA_xdata or not self.parent.higher_EA_ydata: return
+        for i,(x,y) in enumerate(zip(xdata,ydata)):
+            if 0 < numpy.sqrt((x-xpick_data)**2. + (y-ypick_data)**2.) < e:
+                self.canvas.SetCursor(wx.StockCursor(wx.CURSOR_HAND))
+                break
+
+    ###############################Window Functions######################################
 
     def on_close_edit_window(self, event):
         """ """
