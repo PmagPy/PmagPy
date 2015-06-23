@@ -134,6 +134,8 @@ def main(command_line=True, **kwargs):
             volume *= 1e-6
 
     # format variables
+    if not mag_file:
+        return False, 'You must provide a BCG format file'
     mag_file = os.path.join(input_dir_path, mag_file)
     meas_file = os.path.join(output_dir_path, meas_file)
     samp_file = os.path.join(output_dir_path, samp_file)
