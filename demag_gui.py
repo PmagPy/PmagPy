@@ -4160,6 +4160,7 @@ class Zeq_GUI(wx.Frame):
                 dlg.Destroy()
         else:
             self.interpertation_editor.ToggleWindowStyle(wx.STAY_ON_TOP)
+            self.interpertation_editor.ToggleWindowStyle(wx.STAY_ON_TOP)
 
     def on_menu_previous_interpretation(self,event):
         """
@@ -5196,7 +5197,7 @@ class EditFitFrame(wx.Frame):
             is_mac = True
 
         #build logger
-        self.logger = wx.ListCtrl(self.panel, -1, size=(425*self.GUI_RESOLUTION,400*self.GUI_RESOLUTION),style=wx.LC_REPORT)
+        self.logger = wx.ListCtrl(self.panel, -1, size=(425*self.GUI_RESOLUTION,525*self.GUI_RESOLUTION),style=wx.LC_REPORT)
         self.logger.SetFont(font1)
         self.logger.InsertColumn(0, 'specimen',width=55*self.GUI_RESOLUTION)
         self.logger.InsertColumn(1, 'name',width=55*self.GUI_RESOLUTION)
@@ -5264,9 +5265,9 @@ class EditFitFrame(wx.Frame):
                                 (self.color_box, wx.ALIGN_LEFT)] )
         bounds_window.AddMany( [(self.tmin_box, wx.ALIGN_LEFT),
                                 (self.tmax_box, wx.ALIGN_LEFT)] )
-        buttons1_window.Add(self.add_fit_button, wx.ALIGN_BOTTOM)
-        buttons2_window.Add(self.delete_fit_button, wx.ALIGN_BOTTOM)
-        buttons3_window.Add(self.apply_changes_button, wx.ALIGN_BOTTOM)
+        buttons1_window.Add(self.add_fit_button, wx.ALIGN_TOP)
+        buttons2_window.Add(self.delete_fit_button, wx.ALIGN_TOP)
+        buttons3_window.Add(self.apply_changes_button, wx.ALIGN_TOP)
         self.display_sizer.Add(display_window_1, 0, wx.TOP, 8)
         self.display_sizer.Add(display_window_2, 0, wx.TOP | wx.LEFT, 8)
         self.name_sizer.Add(name_window, 0, wx.TOP, 5.5)
