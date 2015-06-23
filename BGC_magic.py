@@ -214,7 +214,7 @@ def main(command_line=True, **kwargs):
 
     for rowNum, row in data.iterrows():
         MagRec = {}
-        MagRec['measurement_description'] = 'Date: ' + row['Date'] + ' Time: ' + row['Time']
+        MagRec['measurement_description'] = 'Date: ' + str(row['Date']) + ' Time: ' + str(row['Time'])
         MagRec["er_citation_names"] = "This study"
         MagRec['er_location_name'] = er_location_name
         MagRec['er_site_name'] = er_site_name
