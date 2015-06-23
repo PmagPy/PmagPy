@@ -1,13 +1,17 @@
 #!/usr/bin/env python
 import pandas as pd
-import string,sys,pmag
+#import string,sys,pmag
+import sys
+import os
 import numpy as np
+import pmag
+
 
 def main(command_line=True, **kwargs):
     """
     NAME
         BGC_magic.py
- 
+
     DESCRIPTION
         converts Berkeley Geochronology Center (BGC) format files to magic_measurements format files
 
@@ -24,45 +28,46 @@ def main(command_line=True, **kwargs):
         -A: don't average replicate measurements
         -mcd [SO-MAG,SO-SUN,SO-SIGHT...] supply how these samples were oriented
         -v NUM : specify the volume in cc of the sample, default 2.5^3cc. Will use vol in data file if volume!=0 in file.
- 
+
     INPUT
         BGC paleomag format file
     """
 # initialize some stuff
-    noave=0
-    volume=0.025**3 #default volume is a 2.5cm cube
-    inst=""
-    samp_con,Z='1',""
-    missing=1
-    demag="N"
-    er_location_name="unknown"
-    er_site_name="unknown"
-    citation='This study'
-    args=sys.argv
-    meth_code="LP-NO"
-    specnum=1
-    version_num=pmag.get_version()
-    Samps=[] # keeps track of sample orientations
+    noave = 0
+    volume = 0.025**3 #default volume is a 2.5cm cube
+    #inst=""
+    #samp_con,Z='1',""
+    #missing=1
+    #demag="N"
+    er_location_name = "unknown"
+    er_site_name = "unknown"
+    #citation='This study'
+    args = sys.argv
+    meth_code = "LP-NO"
+    #specnum=1
+    version_num = pmag.get_version()
+    #Samps=[] # keeps track of sample orientations
 
-    user=""
-    mag_file=""
-    dir_path='.'
-    MagRecs=[]
-    ErSamps=[]
-    SampOuts=[]
+    #user=""
+    mag_file = ""
+    dir_path = '.'
+    MagRecs = []
+    #ErSamps=[]
+    SampOuts = []
 
     samp_file = 'er_samples.txt'
     meas_file = 'magic_measurements.txt'
-    tmp_file= "fixed.jr6"
-    meth_code,JR="",0
+    #tmp_file= "fixed.jr6"
+    #JR=0
+    meth_code = ""
     #
     # get command line arguments
     #
-    
+
     if command_line:
         if '-WD' in sys.argv:
             ind = sys.argv.index('-WD')
-            dir_path=sys.argv[ind+1]
+            dir_path = sys.argv[ind+1]
         if '-ID' in sys.argv:
             ind = sys.argv.index('-ID')
             input_dir_path = sys.argv[ind+1]
@@ -73,7 +78,7 @@ def main(command_line=True, **kwargs):
             print main.__doc__
             return False
         if '-F' in args:
-            ind=args.index("-F")
+            ind = args.index("-F")
             meas_file = args[ind+1]
         if '-Fsa' in args:
             ind = args.index("-Fsa")
@@ -81,33 +86,34 @@ def main(command_line=True, **kwargs):
             #try:
             #    open(samp_file,'rU')
             #    ErSamps,file_type=pmag.magic_read(samp_file)
-            #    print 'sample information will be appended to ', samp_file 
+            #    print 'sample information will be appended to ', samp_file
             #except:
             #    print samp_file,' not found: sample information will be stored in new er_samples.txt file'
             #    samp_file = output_dir_path+'/er_samples.txt'
         if '-f' in args:
             ind = args.index("-f")
-            mag_file= args[ind+1]
-        if "-spc" in args:
-            ind = args.index("-spc")
-            specnum = int(args[ind+1])
-        if "-ncn" in args:
-            ind=args.index("-ncn")
-            samp_con=sys.argv[ind+1]
+            mag_file = args[ind+1]
+        #if "-spc" in args:
+        #    ind = args.index("-spc")
+        #    specnum = int(args[ind+1])
+        #if "-ncn" in args:
+        #    ind=args.index("-ncn")
+        #    samp_con=sys.argv[ind+1]
         if "-loc" in args:
-            ind=args.index("-loc")
-            er_location_name=args[ind+1]
+            ind = args.index("-loc")
+            er_location_name = args[ind+1]
         if "-site" in args:
-            ind=args.index("-site")
-            er_site_name=args[ind+1]
-        if "-A" in args: noave=1
-        if "-mcd" in args: 
-            ind=args.index("-mcd")
-            meth_code=args[ind+1]
-            samp_con='5'
-        if "-v" in args: 
-            ind=args.index("-v")
-            volume=float(args[ind+1])*1e-6 # enter volume in cc, convert to m^3
+            ind = args.index("-site")
+            er_site_name = args[ind+1]
+        if "-A" in args:
+            noave = 1
+        if "-mcd" in args:
+            ind = args.index("-mcd")
+            meth_code = args[ind+1]
+            #samp_con='5'
+        if "-v" in args:
+            ind = args.index("-v")
+            volume = float(args[ind+1]) * 1e-6 # enter volume in cc, convert to m^3
     if not command_line:
         dir_path = kwargs.get('dir_path', '.')
         input_dir_path = kwargs.get('input_dir_path', dir_path)
@@ -115,7 +121,7 @@ def main(command_line=True, **kwargs):
         meas_file = kwargs.get('meas_file', 'magic_measurements.txt')
         mag_file = kwargs.get('mag_file')
         samp_file = kwargs.get('samp_file', 'er_samples.txt')
-        samp_con = kwargs.get('samp_con', '1')
+        #samp_con = kwargs.get('samp_con', '1')
         er_location_name = kwargs.get('er_location_name', '')
         er_site_name = kwargs.get('er_site_name', '')
         noave = kwargs.get('noave', 0) # default (0) means DO average
@@ -128,54 +134,55 @@ def main(command_line=True, **kwargs):
             volume *= 1e-6
 
     # format variables
-    mag_file = input_dir_path+"/" + mag_file
-    meas_file = output_dir_path+"/" + meas_file
-    samp_file = output_dir_path+"/" + samp_file
+    mag_file = os.path.join(input_dir_path, mag_file)
+    meas_file = os.path.join(output_dir_path, meas_file)
+    samp_file = os.path.join(output_dir_path, samp_file)
 
-    ErSampRec={}
+    ErSampRec = {}
 
     # parse data
 
-    # Open up the BGC file and read the header information 
-    pre_data=open(mag_file, 'rU')
-    line=pre_data.readline()
-    line_items=line.split(' ')
+    # Open up the BGC file and read the header information
+    pre_data = open(mag_file, 'rU')
+    line = pre_data.readline()
+    line_items = line.split(' ')
     print "line=", line
     print "line_items=", line_items
-    sample_name=line_items[2]
-    sample_name=sample_name.replace('\n','')
+    sample_name = line_items[2]
+    sample_name = sample_name.replace('\n', '')
     print "sample_name=", sample_name
-    line=pre_data.readline()
-    line=pre_data.readline()
-    line_items=line.split('\t')
+    line = pre_data.readline()
+    line = pre_data.readline()
+    line_items = line.split('\t')
     print "line=", line
     print "line_items=", line_items
-    sample_azimuth=float(line_items[1])
-    sample_dip=90.0-float(line_items[2])
-    sample_bed_dip=line_items[3]
-    sample_bed_azimuth=line_items[4]
-    sample_lon=line_items[5]
-    sample_lat=line_items[6]
-    tmp_volume=line_items[7]
-    print "tmp_volume=",tmp_volume
+    sample_azimuth = float(line_items[1])
+    sample_dip = 90.0 - float(line_items[2])
+    sample_bed_dip = line_items[3]
+    sample_bed_azimuth = line_items[4]
+    sample_lon = line_items[5]
+    sample_lat = line_items[6]
+    tmp_volume = line_items[7]
+    print "tmp_volume=", tmp_volume
     if tmp_volume != 0.0:
-        volume=float(tmp_volume)*1e-6
+        volume = float(tmp_volume) * 1e-6
         print "volume=", volume
     pre_data.close()
 
-    data=pd.read_csv(mag_file, sep='\t', header=3)
-    
+    data = pd.read_csv(mag_file, sep='\t', header=3)
+
     print "\ndata\n", data
 
-    cart=np.array([data['X'],data['Y'],data['Z']]).transpose()
-    dir= pmag.cart2dir(cart).transpose()
-    print "dir=",dir
+    cart = np.array([data['X'], data['Y'], data['Z']]).transpose()
+    direction = pmag.cart2dir(cart).transpose()
+    print "direction=", direction
 
-    data['measurement_dec']=dir[0]
-    data['measurement_inc']=dir[1]
-    data['measurement_magn_moment']=dir[2]*1000*volume # the data are in EMU - this converts to Am^2 
-    data['measurement_magn_volume']=dir[2]*1000 # EMU  - data converted to A/m
-    DGEOs,IGEOs=[],[]
+    data['measurement_dec'] = direction[0]
+    data['measurement_inc'] = direction[1]
+    data['measurement_magn_moment'] = direction[2] * 1000 * volume # the data are in EMU - this converts to Am^2 
+    data['measurement_magn_volume'] = direction[2] * 1000 # EMU  - data converted to A/m
+    
+    #DGEOs, IGEOs = [], []
     #print "len(data)=",len(data)
     #for ind in range(len(data)):
     #    dgeo,igeo=pmag.dogeo(data.ix[ind]['measurement_dec'],data.ix[ind]['measurement_inc'],90-sample_azimuth,sample_dip)
@@ -188,64 +195,64 @@ def main(command_line=True, **kwargs):
     #print "data specimn_dec=",DGEOs
     #print "data specimn_inc=",IGEOs
 
-    # Configure the er_sample table        
+    # Configure the er_sample table
 
-    ErSampRec['er_sample_name']=sample_name
-    ErSampRec['sample_azimuth']=sample_azimuth
-    ErSampRec['sample_dip']=sample_dip
-    ErSampRec['sample_bed_dip_direction']=sample_bed_azimuth
-    ErSampRec['sample_bed_dip']=sample_bed_dip
-    ErSampRec['sample_lat']=sample_lat
-    ErSampRec['sample_lon']=sample_lon
-    ErSampRec['magic_method_codes']=meth_code 
-    ErSampRec['er_location_name']=er_location_name
-    ErSampRec['er_site_name']=er_site_name
-    ErSampRec['er_citation_names']='This study'
+    ErSampRec['er_sample_name'] = sample_name
+    ErSampRec['sample_azimuth'] = sample_azimuth
+    ErSampRec['sample_dip'] = sample_dip
+    ErSampRec['sample_bed_dip_direction'] = sample_bed_azimuth
+    ErSampRec['sample_bed_dip'] = sample_bed_dip
+    ErSampRec['sample_lat'] = sample_lat
+    ErSampRec['sample_lon'] = sample_lon
+    ErSampRec['magic_method_codes'] = meth_code
+    ErSampRec['er_location_name'] = er_location_name
+    ErSampRec['er_site_name'] = er_site_name
+    ErSampRec['er_citation_names'] = 'This study'
     SampOuts.append(ErSampRec.copy())
 
     # Configure the magic_measurements table
 
     for rowNum, row in data.iterrows():
-        MagRec={}
-        MagRec['measurement_description']='Date: '+row['Date'] +' Time: '+row['Time']
-        MagRec["er_citation_names"]="This study"
-        MagRec['er_location_name']=er_location_name
-        MagRec['er_site_name']=er_site_name
-        MagRec['er_sample_name']=sample_name
-        MagRec['magic_software_packages']=version_num
-        MagRec["treatment_temp"]='%8.3e' % (273) # room temp in kelvin
-        MagRec["measurement_temp"]='%8.3e' % (273) # room temp in kelvin
-        MagRec["measurement_flag"]='g'
-        MagRec["measurement_standard"]='u'
-        MagRec["measurement_number"]='1'
-        MagRec["er_specimen_name"]=sample_name
-        MagRec["treatment_ac_field"]='0'
+        MagRec = {}
+        MagRec['measurement_description'] = 'Date: ' + row['Date'] + ' Time: ' + row['Time']
+        MagRec["er_citation_names"] = "This study"
+        MagRec['er_location_name'] = er_location_name
+        MagRec['er_site_name'] = er_site_name
+        MagRec['er_sample_name'] = sample_name
+        MagRec['magic_software_packages'] = version_num
+        MagRec["treatment_temp"] = '%8.3e' % (273) # room temp in kelvin
+        MagRec["measurement_temp"] = '%8.3e' % (273) # room temp in kelvin
+        MagRec["measurement_flag"] = 'g'
+        MagRec["measurement_standard"] = 'u'
+        MagRec["measurement_number"] = '1'
+        MagRec["er_specimen_name"] = sample_name
+        MagRec["treatment_ac_field"] = '0'
         if row['DM Val'] == '0':
-            meas_type="LT-NO"
-        elif int(row['DM Type']) > 0.0 :
-            meas_type="LT-AF-Z"
-            treat=float(row['DM Val'])
-            MagRec["treatment_ac_field"]='%8.3e' %(treat*1e-3) # convert from mT to tesla
+            meas_type = "LT-NO"
+        elif int(row['DM Type']) > 0.0:
+            meas_type = "LT-AF-Z"
+            treat = float(row['DM Val'])
+            MagRec["treatment_ac_field"] = '%8.3e' %(treat*1e-3) # convert from mT to tesla
         elif int(row['DM Type']) == -1:
-            meas_type="LT-T-Z"
-            treat=float(row['DM Val'])
-            MagRec["treatment_temp"]='%8.3e' % (treat+273.) # temp in kelvin
-        else: 
+            meas_type = "LT-T-Z"
+            treat = float(row['DM Val'])
+            MagRec["treatment_temp"] = '%8.3e' % (treat+273.) # temp in kelvin
+        else:
             print "measurement type unknown:", row['DM Type']
             return False, "measurement type unknown"
-        MagRec["measurement_magn_moment"]=str(row['measurement_magn_moment'])
-        MagRec["measurement_magn_volume"]=str(row['measurement_magn_volume'])
-        MagRec["measurement_dec"]=str(row['measurement_dec'])
-        MagRec["measurement_inc"]=str(row['measurement_inc'])
-        MagRec['magic_method_codes']=meas_type
-        MagRec['measurement_csd']='0.0' # added due to magic.write error
-        MagRec['measurement_positions']='1' # added due to magic.write error
+        MagRec["measurement_magn_moment"] = str(row['measurement_magn_moment'])
+        MagRec["measurement_magn_volume"] = str(row['measurement_magn_volume'])
+        MagRec["measurement_dec"] = str(row['measurement_dec'])
+        MagRec["measurement_inc"] = str(row['measurement_inc'])
+        MagRec['magic_method_codes'] = meas_type
+        MagRec['measurement_csd'] = '0.0' # added due to magic.write error
+        MagRec['measurement_positions'] = '1' # added due to magic.write error
         MagRecs.append(MagRec.copy())
-    pmag.magic_write(samp_file,SampOuts,'er_samples')
-    print "sample orientations put in ",samp_file
-    MagOuts=pmag.measurements_methods(MagRecs,noave)
-    pmag.magic_write(meas_file,MagOuts,'magic_measurements')
-    print "results put in ",meas_file
+    pmag.magic_write(samp_file, SampOuts, 'er_samples')
+    print "sample orientations put in ", samp_file
+    MagOuts = pmag.measurements_methods(MagRecs, noave)
+    pmag.magic_write(meas_file, MagOuts, 'magic_measurements')
+    print "results put in ", meas_file
     print "exit!"
     return True, meas_file
 
