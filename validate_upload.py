@@ -3,8 +3,20 @@
 
 import urllib2
 import os
+import httplib
 import pmag
 import check_updates
+
+
+def get_data_offline():
+    try:
+        pmag_dir = check_updates.get_pmag_dir()
+        the_file = os.path.join(pmag_dir, "MagIC-data-model.txt")
+        data = open(the_file, 'rU')
+        return data
+    except IOError:
+        print "can't access MagIC-data-model at the moment\nif you are working offline, make sure MagIC-data-model.txt is in your PmagPy directory (or download it from https://github.com/ltauxe/PmagPy and put it in your PmagPy directory)\notherwise, check your internet connection"
+        return False
 
 
 def get_data_model():
@@ -25,22 +37,25 @@ def get_data_model():
     """
     print "-I- getting data model, please be patient"
     url = 'http://earthref.org/services/MagIC-data-model.txt'
+    offline = False
     try:
         data = urllib2.urlopen(url)
     except urllib2.URLError:
-        try:
-
-            pmag_dir = check_updates.get_pmag_dir()
-            the_file = os.path.join(pmag_dir, "MagIC-data-model.txt")
-            data = open(the_file, 'rU')
-        except IOError:
-            print "can't access MagIC-data-model at the moment\nif you are working offline, make sure MagIC-data-model.txt is in your PmagPy directory (or download it from https://github.com/ltauxe/PmagPy and put it in your PmagPy directory)\notherwise, check your internet connection"
-            return False
-
-    data_model = pmag.magic_read(None, data)
-    ref_dicts = [d for d in data_model[0] if d['column_nmb'] != '>>>>>>>>>>']
-    file_types = [d['field_name'] for d in data_model[0] if d['column_nmb'] == 'tab delimited']
-    file_types.insert(0, data_model[1])
+        print '-W- Unable to fetch data model online\nTrying to use cached data model instead'
+        offline = True
+    except httplib.BadStatusLine:
+        print '-W- Website: {} not responding\nTrying to use cached data model instead'.format(url)
+        offline = True
+    if offline:
+        data = get_data_offline()
+    data_model, file_type = pmag.magic_read(None, data)
+    if file_type in ('bad file', 'empty_file'):
+        print '-W- Unable to read online data model.\nTrying to use cached data model instead'
+        data = get_data_offline()
+        data_model, file_type = pmag.magic_read(None, data)
+    ref_dicts = [d for d in data_model if d['column_nmb'] != '>>>>>>>>>>']
+    file_types = [d['field_name'] for d in data_model if d['column_nmb'] == 'tab delimited']
+    file_types.insert(0, file_type)
     complete_ref = {}
 
     dictionary = {}

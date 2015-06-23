@@ -76,6 +76,10 @@ class ErMagicBuilder(object):
         self.headers = {}
         if not self.data_model:
             self.data_model = validate_upload.get_data_model()
+            if not self.data_model:
+                pw.simple_warning("Can't access MagIC-data-model at the moment.\nIf you are working offline, make sure MagIC-data-model.txt is in your PmagPy directory (or download it from https://github.com/ltauxe/PmagPy and put it in your PmagPy directory).\nOtherwise, check your internet connection")
+                return False
+
         # header should contain all required headers, plus any already in the file
         self.er_specimens_reqd_header, self.er_specimens_optional_header = self.get_headers(self.data_model, 'er_specimens')
         self.er_specimens_header = list(set(self.er_specimens_header).union(self.er_specimens_reqd_header))
@@ -690,7 +694,10 @@ class ErMagicBuilder(object):
     ### Helper methods ###
 
     def get_headers(self, data_model, data_type):
-        data_dict = data_model[data_type]
+        try:
+            data_dict = data_model[data_type]
+        except KeyError:
+            return [], []
         reqd_headers = sorted([header for header in data_dict.keys() if data_dict[header]['data_status'] == 'Required'])
         optional_headers = sorted([header for header in data_dict.keys() if data_dict[header]['data_status'] != 'Required'])
         return reqd_headers, optional_headers
@@ -719,8 +726,9 @@ class ErMagicBuilder(object):
         return combined_data_dict
 
     def put_list_value_first(self, lst, first_value):
-        lst.remove(first_value)
-        lst[:0] = [first_value]
+        if first_value in lst:
+            lst.remove(first_value)
+            lst[:0] = [first_value]
 
     def remove_list_value_if_present(self, lst, val):
         if val in lst:
