@@ -22,9 +22,10 @@ class ErMagicCheckFrame(wx.Frame):
         self.temp_data = {}
         self.drop_down_menu = None
         # sample window must be displayed (differently) twice, so it is useful to keep track
-        self.sample_window = 0 
-        self.InitSpecCheck()
+        self.sample_window = 0
+        self.grid = None
         self.selected_rows = set()
+        self.InitSpecCheck()
 
 
     def InitSpecCheck(self):
@@ -70,6 +71,7 @@ Check that all specimens belong to the correct sample
 
         self.spec_grid = self.make_simple_table(self.ErMagic_data.er_specimens_header,
                                                 self.ErMagic_data.data_er_specimens, "er_specimen_name")
+        self.grid = self.spec_grid
 
         # make sure all removed values stay in er_specimens_header, even though they will not be displayed
         self.ErMagic_data.er_specimens_header.extend(['er_citation_names', 'er_location_name',
@@ -119,7 +121,7 @@ Check that all specimens belong to the correct sample
         vbox.Add(self.spec_grid, flag=wx.ALL, border=10)#|wx.EXPAND, border=30)
         # self.Bind bind to clicking on row labels
         self.panel.Bind(wx.grid.EVT_GRID_LABEL_LEFT_CLICK, lambda event: self.onSelectRow(event, self.spec_grid, self.deleteRowButton), self.spec_grid)
-        
+
         hbox_all = wx.BoxSizer(wx.HORIZONTAL)
         hbox_all.AddSpacer(20)
         hbox_all.AddSpacer(vbox)
@@ -180,6 +182,7 @@ You may use the drop-down menus to add as many values as needed in these columns
             self.ErMagic_data.er_samples_header[:0] = ['er_sample_name', 'er_site_name', 'er_citation_names', 'sample_class', 'sample_lithology', 'sample_type', 'sample_lat', 'sample_lon', 'er_location_name']
             self.samp_grid = self.make_simple_table(self.ErMagic_data.er_samples_header, self.ErMagic_data.data_er_samples, 'er_sample_name')
 
+        self.grid = self.samp_grid
         # add in any additional sets we might have information about (from er_sites.txt file) even if currently that site does not show up in the magic_measurements file
         sites = sorted(list(set(sites).union(self.ErMagic_data.data_er_sites.keys()))) 
         self.drop_down_menu = drop_down_menus.Menus("sample", self, self.samp_grid, sites) # initialize all needed drop-down menus
@@ -287,6 +290,7 @@ However, you will be able to edit sample_class, sample_lithology, and sample_typ
         self.ErMagic_data.er_sites_header[:0] = ['er_site_name', 'er_location_name', 'er_citation_names', 'site_class', 'site_lithology', 'site_type', 'site_definition', 'site_lon', 'site_lat']
 
         self.site_grid = self.make_simple_table(self.ErMagic_data.er_sites_header, self.ErMagic_data.data_er_sites, 'er_site_name')
+        self.grid = self.site_grid
 
         # populate site_definition as 's' by default if no value is provided (indicates that site is single, not composite)
         rows = self.site_grid.GetNumberRows()
@@ -392,6 +396,7 @@ Fill in any blank cells using controlled vocabularies.
         self.ErMagic_data.er_locations_header[:0] = ['er_location_name', 'location_type']
 
         self.loc_grid = self.make_simple_table(self.ErMagic_data.er_locations_header, self.ErMagic_data.data_er_locations, "er_location_name")
+        self.grid = self.loc_grid
         # initialize all needed drop-down menus
         self.drop_down_menu = drop_down_menus.Menus("location", self, self.loc_grid, None) 
 
@@ -477,6 +482,7 @@ You may use the drop-down menus to add as many values as needed in these columns
                 ages_data_dict[k] = v
 
         self.age_grid = self.make_simple_table(self.ErMagic_data.er_ages_header, ages_data_dict, "ages")
+        self.grid = self.age_grid
         #
         # make it impossible to edit the 1st and 3rd columns
         for row in range(self.age_grid.GetNumberRows()):
@@ -767,11 +773,21 @@ You may use the drop-down menus to add as many values as needed in these columns
 
 
     def onDeleteRow(self, event, data_type):
-        print 'delete a row!!'
-        print 'or, perhaps just enter row deletion mode'
-        print self.selected_rows
-        # do ErMagic.remove_specimen(spec_name)
-        
+        """
+        On button click, remove relevant object from both the data model and the grid.
+        """
+        function_mapping = {'specimen': self.ErMagic_data.remove_specimen,
+                            'sample': self.ErMagic_data.remove_sample,
+                            'site': self.ErMagic_data.remove_site,
+                            'location': self.ErMagic_data.remove_location}
+        names = [self.grid.GetCellValue(row, 0) for row in self.selected_rows]
+        for name in names:
+            row = self.grid.row_labels.index(name)
+            function_mapping[data_type](name)
+            self.grid.remove_row(row)
+        self.selected_rows = set()
+        self.grid.Refresh()
+
 
     def onSelectRow(self, event, grid, delete_btn):
         row = event.Row
@@ -812,13 +828,16 @@ You may use the drop-down menus to add as many values as needed in these columns
             col_labels.append(grid.GetColLabelValue(col))
 
         for row in grid.changes: # go through changes and update data structures
-            data_dict = {}
-            for num, label in enumerate(col_labels):
-                if label:
-                    data_dict[str(label)] = str(grid.GetCellValue(row, num))
-            new_name = str(grid.GetCellValue(row, 0))
-            old_name = self.temp_data[grid_name][row]
-            data_methods[grid_name](new_name, old_name, data_dict)
+            if row == -1:
+                continue
+            else:
+                data_dict = {}
+                for num, label in enumerate(col_labels):
+                    if label:
+                        data_dict[str(label)] = str(grid.GetCellValue(row, num))
+                new_name = str(grid.GetCellValue(row, 0))
+                old_name = self.temp_data[grid_name][row]
+                data_methods[grid_name](new_name, old_name, data_dict)
 
         grid.changes = False
 
@@ -955,11 +974,14 @@ class MagicGrid(wx.grid.Grid):
 
     def remove_row(self, row_num=None):
         #DeleteRows(self, pos, numRows, updateLabel
-        if not row_num:
+        if not row_num and row_num != 0:
             row_num = self.GetNumberRows() - 1
         label = self.GetCellValue(row_num, 0)
         self.DeleteRows(pos=row_num, numRows=1, updateLabels=True)
         self.row_labels.remove(label)
+        if not self.changes:
+            self.changes = set()
+        self.changes.add(-1)
 
 
     def add_col(self, label):
