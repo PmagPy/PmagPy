@@ -46,19 +46,14 @@ def main(command_line=True, **kwargs):
     meth_code = "LP-NO"
     #specnum=1
     version_num = pmag.get_version()
-    #Samps=[] # keeps track of sample orientations
 
-    #user=""
     mag_file = ""
     dir_path = '.'
     MagRecs = []
-    #ErSamps=[]
     SampOuts = []
 
     samp_file = 'er_samples.txt'
     meas_file = 'magic_measurements.txt'
-    #tmp_file= "fixed.jr6"
-    #JR=0
     meth_code = ""
     #
     # get command line arguments
@@ -93,12 +88,6 @@ def main(command_line=True, **kwargs):
         if '-f' in args:
             ind = args.index("-f")
             mag_file = args[ind+1]
-        #if "-spc" in args:
-        #    ind = args.index("-spc")
-        #    specnum = int(args[ind+1])
-        #if "-ncn" in args:
-        #    ind=args.index("-ncn")
-        #    samp_con=sys.argv[ind+1]
         if "-loc" in args:
             ind = args.index("-loc")
             er_location_name = args[ind+1]
@@ -121,7 +110,6 @@ def main(command_line=True, **kwargs):
         meas_file = kwargs.get('meas_file', 'magic_measurements.txt')
         mag_file = kwargs.get('mag_file')
         samp_file = kwargs.get('samp_file', 'er_samples.txt')
-        #samp_con = kwargs.get('samp_con', '1')
         er_location_name = kwargs.get('er_location_name', '')
         er_site_name = kwargs.get('er_site_name', '')
         noave = kwargs.get('noave', 0) # default (0) means DO average
@@ -148,16 +136,11 @@ def main(command_line=True, **kwargs):
     pre_data = open(mag_file, 'rU')
     line = pre_data.readline()
     line_items = line.split(' ')
-    print "line=", line
-    print "line_items=", line_items
     sample_name = line_items[2]
     sample_name = sample_name.replace('\n', '')
-    print "sample_name=", sample_name
     line = pre_data.readline()
     line = pre_data.readline()
     line_items = line.split('\t')
-    print "line=", line
-    print "line_items=", line_items
     sample_azimuth = float(line_items[1])
     sample_dip = 90.0 - float(line_items[2])
     sample_bed_dip = line_items[3]
@@ -165,19 +148,16 @@ def main(command_line=True, **kwargs):
     sample_lon = line_items[5]
     sample_lat = line_items[6]
     tmp_volume = line_items[7]
-    print "tmp_volume=", tmp_volume
     if tmp_volume != 0.0:
         volume = float(tmp_volume) * 1e-6
-        print "volume=", volume
     pre_data.close()
 
-    data = pd.read_csv(mag_file, sep='\t', header=3)
+    data = pd.read_csv(mag_file, sep='\t', header=3, index_col=False)
 
-    print "\ndata\n", data
+#    print "\ndata\n", data
 
     cart = np.array([data['X'], data['Y'], data['Z']]).transpose()
     direction = pmag.cart2dir(cart).transpose()
-    print "direction=", direction
 
     data['measurement_dec'] = direction[0]
     data['measurement_inc'] = direction[1]
@@ -240,8 +220,7 @@ def main(command_line=True, **kwargs):
             treat = float(row['DM Val'])
             MagRec["treatment_temp"] = '%8.3e' % (treat+273.) # temp in kelvin
         else:
-            print "measurement type unknown:", row['DM Type']
-            return False, "measurement type unknown"
+            print "measurement type unknown:", row['DM Type'], " in row ", rowNum
         MagRec["measurement_magn_moment"] = str(row['measurement_magn_moment'])
         MagRec["measurement_magn_volume"] = str(row['measurement_magn_volume'])
         MagRec["measurement_dec"] = str(row['measurement_dec'])
