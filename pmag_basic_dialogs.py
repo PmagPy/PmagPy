@@ -2157,7 +2157,7 @@ class convert_BGC_files_to_magic(wx.Frame):
         # locname
         
         #---sizer 2 ----
-        self.bSizer2 = pw.labeled_text_field(pnl, 'Site name:')
+        self.bSizer2 = pw.labeled_text_field(pnl, 'Site name (required):')
         # sitename
 
         #---sizer 3 ----
@@ -2169,7 +2169,7 @@ class convert_BGC_files_to_magic(wx.Frame):
         # average replicates
 
         #---sizer 5 ---
-        self.bSizer5 = pw.labeled_text_field(pnl, 'Specimen volume in cubic centimeters:')
+        self.bSizer5 = pw.labeled_text_field(pnl, 'Provide specimen volume in cubic centimeters\nNote: the volume given in data file will be used unless it equals 0.0 ')
 
         #---sizer 6 ----
 
@@ -2233,6 +2233,9 @@ class convert_BGC_files_to_magic(wx.Frame):
         loc_name = str(self.bSizer1.return_value())
         options['er_location_name'] = str(loc_name)
         site_name = self.bSizer2.return_value()
+        if not site_name:
+            pw.simple_warning('You must provide a site name')
+            return False
         options['er_site_name'] = str(site_name)
 
         meth_code = self.bSizer3.return_value()
