@@ -104,11 +104,10 @@ Check that all specimens belong to the correct sample
         hboxok.Add(self.continueButton, flag=wx.ALIGN_LEFT)
 
         #
-        hboxgrid = wx.BoxSizer(wx.HORIZONTAL)
-        self.deleteRowButton = wx.Button(self.panel, id=-1, label='Delete row(s)', name='delete_row_btn')
-        self.Bind(wx.EVT_BUTTON, lambda event: self.onDeleteRow(event, 'specimen'), self.deleteRowButton)
-        self.deleteRowButton.Disable()
-        hboxgrid.Add(self.deleteRowButton, flag=wx.ALIGN_LEFT)
+        hboxgrid = pw.hbox_grid(self.panel, self.onDeleteRow, 'specimen', self.grid)
+        self.deleteRowButton = hboxgrid.deleteRowButton
+
+        self.panel.Bind(wx.grid.EVT_GRID_LABEL_LEFT_CLICK, self.onLeftClickLabel, self.grid)
 
         ### Create Containers ###
         vbox = wx.BoxSizer(wx.VERTICAL)
@@ -119,8 +118,6 @@ Check that all specimens belong to the correct sample
         vbox.Add(hboxok, flag=wx.BOTTOM|wx.LEFT, border=10)
         vbox.Add(hboxgrid, flag=wx.BOTTOM|wx.LEFT, border=10)
         vbox.Add(self.spec_grid, flag=wx.ALL, border=10)#|wx.EXPAND, border=30)
-        # self.Bind bind to clicking on row labels
-        self.panel.Bind(wx.grid.EVT_GRID_LABEL_LEFT_CLICK, lambda event: self.onSelectRow(event, self.spec_grid, self.deleteRowButton), self.spec_grid)
 
         hbox_all = wx.BoxSizer(wx.HORIZONTAL)
         hbox_all.AddSpacer(20)
@@ -184,7 +181,7 @@ You may use the drop-down menus to add as many values as needed in these columns
 
         self.grid = self.samp_grid
         # add in any additional sets we might have information about (from er_sites.txt file) even if currently that site does not show up in the magic_measurements file
-        sites = sorted(list(set(sites).union(self.ErMagic_data.data_er_sites.keys()))) 
+        sites = sorted(list(set(sites).union(self.ErMagic_data.data_er_sites.keys())))
         self.drop_down_menu = drop_down_menus.Menus("sample", self, self.samp_grid, sites) # initialize all needed drop-down menus
 
         ### Create Buttons ###
@@ -217,7 +214,11 @@ You may use the drop-down menus to add as many values as needed in these columns
         hboxok.Add(self.continueButton, flag=wx.RIGHT, border=10)
         hboxok.Add(self.backButton)
 
+        hboxgrid = pw.hbox_grid(self.panel, self.onDeleteRow, 'sample', self.grid)
+        self.deleteRowButton = hboxgrid.deleteRowButton
 
+        self.Bind(wx.grid.EVT_GRID_LABEL_LEFT_CLICK, self.onLeftClickLabel, self.grid)
+        
         ### Make Containers ###
         vbox = wx.BoxSizer(wx.VERTICAL)
         #vbox.Add(step_label, flag=wx.ALIGN_CENTER|wx.TOP|wx.BOTTOM, border=20)
@@ -225,6 +226,7 @@ You may use the drop-down menus to add as many values as needed in these columns
 
         vbox.Add(hbox_one, flag=wx.BOTTOM|wx.LEFT, border=10)
         vbox.Add(hboxok, flag=wx.BOTTOM|wx.LEFT, border=10)
+        vbox.Add(hboxgrid, flag=wx.BOTTOM|wx.LEFT, border=10)
         vbox.Add(self.samp_grid, flag=wx.ALL, border=10) # using wx.EXPAND or not does not affect re-size problem
 
         hbox_all = wx.BoxSizer(wx.HORIZONTAL)
@@ -302,7 +304,7 @@ However, you will be able to edit sample_class, sample_lithology, and sample_typ
 
         # initialize all needed drop-down menus
         locations = sorted(set(self.ErMagic_data.data_er_locations.keys()))
-        self.drop_down_menu = drop_down_menus.Menus("site", self, self.site_grid, locations) 
+        self.drop_down_menu = drop_down_menus.Menus("site", self, self.site_grid, locations)
 
         ### Create Buttons ###
         hbox_one = wx.BoxSizer(wx.HORIZONTAL)
@@ -331,12 +333,19 @@ However, you will be able to edit sample_class, sample_lithology, and sample_typ
         hboxok.Add(self.continueButton, flag=wx.RIGHT, border=10)
         hboxok.Add(self.backButton)
 
+        #
+        hboxgrid = pw.hbox_grid(self.panel, self.onDeleteRow, 'site', self.grid)
+        self.deleteRowButton = hboxgrid.deleteRowButton
+
+        self.Bind(wx.grid.EVT_GRID_LABEL_LEFT_CLICK, self.onLeftClickLabel, self.grid)
+
 
         ### Make Containers ###
         vbox = wx.BoxSizer(wx.VERTICAL)
         vbox.Add(label, flag=wx.ALIGN_CENTER|wx.BOTTOM|wx.TOP, border=20)
         vbox.Add(hbox_one, flag=wx.BOTTOM|wx.LEFT, border=10)
         vbox.Add(hboxok, flag=wx.BOTTOM|wx.LEFT, border=10)
+        vbox.Add(hboxgrid, flag=wx.BOTTOM|wx.LEFT, border=10)
         vbox.Add(self.site_grid, flag=wx.ALL|wx.EXPAND, border=10) # EXPAND ??
 
         hbox_all = wx.BoxSizer(wx.HORIZONTAL)
@@ -356,7 +365,7 @@ However, you will be able to edit sample_class, sample_lithology, and sample_typ
         self.Hide()
         self.Show()
 
-        
+
     def InitLocCheck(self):
         """make an interactive grid in which users can edit specimen names
         as well as which sample a specimen belongs to"""
@@ -422,11 +431,19 @@ Fill in any blank cells using controlled vocabularies.
         hboxok.Add(self.continueButton, flag=wx.RIGHT, border=10)
         hboxok.Add(self.backButton)
 
+        #
+        hboxgrid = pw.hbox_grid(self.panel, self.onDeleteRow, 'location', self.grid)
+        self.deleteRowButton = hboxgrid.deleteRowButton
+
+        self.Bind(wx.grid.EVT_GRID_LABEL_LEFT_CLICK, self.onLeftClickLabel, self.grid)
+
+
         ### Make Containers ###
         vbox = wx.BoxSizer(wx.VERTICAL)
         vbox.Add(label, flag=wx.ALIGN_CENTER|wx.TOP|wx.BOTTOM, border=20)
         vbox.Add(hbox_one, flag=wx.BOTTOM|wx.ALIGN_LEFT, border=10)
         vbox.Add(hboxok, flag=wx.BOTTOM|wx.ALIGN_LEFT, border=10)
+        vbox.Add(hboxgrid, flag=wx.BOTTOM|wx.ALIGN_LEFT, border=10)
         vbox.Add(self.loc_grid, flag=wx.TOP|wx.BOTTOM, border=10)
 
         hbox_all = wx.BoxSizer(wx.HORIZONTAL)
@@ -560,16 +577,16 @@ You may use the drop-down menus to add as many values as needed in these columns
 
         grid.do_event_bindings()
         return grid
-        
+
     def onMouseOver(self, event, grid):
         """
         Displays a tooltip over any cell in a certain column
         """
-        x, y = grid.CalcUnscrolledPosition(event.GetX(),event.GetY())
+        x, y = grid.CalcUnscrolledPosition(event.GetX(), event.GetY())
         coords = grid.XYToCell(x, y)
         col = coords[1]
         row = coords[0]
-        
+
         # creates tooltip message for cells with long values
         # note: this works with EPD for windows, and modern wxPython, but not with Canopy Python
         msg = grid.GetCellValue(row, col)
@@ -579,7 +596,7 @@ You may use the drop-down menus to add as many values as needed in these columns
             event.GetEventObject().SetToolTipString('')
 
     def validate(self, grid):
-        validations = ['specimens', 'samples', 'site_class', 'site_lithology', 'site_type', 'site_definition', 'site_lon', 'site_lat', 'sample_class', 'sample_lithology', 'sample_type', 'sample_lat', 'sample_lon', 'location_type', 'age_unit', 'age']#, 'magic_method_codes']
+        validations = ['er_specimen_name', 'er_sample_name', 'er_site_name', 'er_location_name', 'site_class', 'site_lithology', 'site_type', 'site_definition', 'site_lon', 'site_lat', 'sample_class', 'sample_lithology', 'sample_type', 'sample_lat', 'sample_lon', 'location_type', 'age_unit', 'age']#, 'magic_method_codes']
         cols = range(grid.GetNumberCols())
         rows = range(grid.GetNumberRows())
         data_missing = []
@@ -628,9 +645,9 @@ You may use the drop-down menus to add as many values as needed in these columns
             # update ErMagic files
             self.ErMagic_data.update_ErMagic()
 
-            
+
     def on_addSiteButton(self, event):
-        
+
         def add_site(site, location):
             add_site_data(site, location)
 
@@ -656,7 +673,7 @@ You may use the drop-down menus to add as many values as needed in these columns
 
         if not self.ErMagic_data.data_er_locations:
             pass
-            
+
         pw.AddItem(self, 'Location', add_loc, owner_items=None, belongs_to=None) # makes window for adding new data
 
         def add_loc_data(loc):
@@ -679,7 +696,7 @@ You may use the drop-down menus to add as many values as needed in these columns
 
         # for use with pyinstaller
         #path = self.main_frame.resource_dir
-        
+
         html_frame = pw.HtmlFrame(self, page=(os.path.join(path, 'help_files', page)))
         html_frame.Show()
 
@@ -691,7 +708,7 @@ You may use the drop-down menus to add as many values as needed in these columns
         #wait = wx.BusyInfo("Please wait, working...")
 
         # unhighlight selected columns, etc.
-        if self.drop_down_menu:  
+        if self.drop_down_menu:
             self.drop_down_menu.clean_up()
 
         # remove '**' from col names
@@ -719,7 +736,7 @@ You may use the drop-down menus to add as many values as needed in these columns
 
             # possibly optimize this so that it only updates the required files
             self.ErMagic_data.update_ErMagic()
-            
+
         self.panel.Destroy()
         if next_dia:
             wait = wx.BusyInfo("Please wait, working...")
@@ -789,7 +806,20 @@ You may use the drop-down menus to add as many values as needed in these columns
         self.grid.Refresh()
 
 
-    def onSelectRow(self, event, grid, delete_btn):
+    def onLeftClickLabel(self, event):
+        print 'doing onLeftClickLabel'
+        if event.Col < 0:
+            print 'row label event'
+            #self.onSelectRow(None)
+        if event.Row < 0:
+            print 'col label event'    
+        
+    def onSelectRow(self, event, delete_btn):
+        print event
+        print event.Col
+        print event.Row
+        print dir(event)
+        grid = self.grid
         row = event.Row
         default = (255, 255, 255, 255)
         highlight = (191, 216, 216, 255)
@@ -810,7 +840,7 @@ You may use the drop-down menus to add as many values as needed in these columns
             delete_btn.Disable()
         grid.SetRowAttr(row, attr)
         grid.Refresh()
-        
+
     ### Manage data methods ###
     def update_grid(self, grid):#, data):
         """
@@ -858,7 +888,7 @@ You may use the drop-down menus to add as many values as needed in these columns
         #print 'self.ErMagic_data:'
         #print self.ErMagic_data
         #print "self.ErMagic_data.Data_hierarchy['sites']", self.ErMagic_data.Data_hierarchy['sites']
-        
+
         remove_extras(self.ErMagic_data.data_er_specimens, self.ErMagic_data.Data_hierarchy['specimens'])
         remove_extras(self.ErMagic_data.data_er_samples, self.ErMagic_data.Data_hierarchy['samples'])
         remove_extras(self.ErMagic_data.data_er_sites, self.ErMagic_data.Data_hierarchy['sites'])
@@ -1052,22 +1082,6 @@ class MagicGrid(wx.grid.Grid):
             pass
         event.Skip()
     """
-
-    def validate(self, grid):
-        validations = ['specimens', 'samples', 'site_class', 'site_lithology', 'site_type', 'site_definition', 'site_lon', 'site_lat', 'sample_class', 'sample_lithology', 'sample_type', 'sample_lat', 'sample_lon', 'location_type', 'age_unit', 'age']#, 'magic_method_codes']
-        cols = range(grid.GetNumberCols())
-        rows = range(grid.GetNumberRows())
-        data_missing = []
-        for col in cols:
-            col_label = str(grid.GetColLabelValue(col))
-            if col_label in validations:
-                for row in rows:
-                    value = grid.GetCellValue(row, col)
-                    if not value:
-                        data_missing.append(col_label)
-                        break
-        return data_missing
-
 
     def remove_starred_labels(self, grid):
         cols_with_stars = []
