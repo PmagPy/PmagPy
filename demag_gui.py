@@ -582,12 +582,12 @@ class Zeq_GUI(wx.Frame):
         self.GUI_SIZE = self.GetSize()
         
         # get previous interpretations from pmag tables
-#        self.update_pmag_tables()
         # Draw figures and add  text
         if self.Data:
-            self.update_selection()
+            self.update_pmag_tables()
+            self.Add_text()
         else:
-            print("------------------------------------- no magic_measurements.txt found in WD --------------------------------------------")
+            print("------------------------------ no magic_measurements.txt found in WD ---------------------------------------")
             self.Destroy()
 
     #----------------------------------------------------------------------
@@ -1166,7 +1166,6 @@ class Zeq_GUI(wx.Frame):
 
 
     def draw_figure(self,s):
-        print("drawing figures")
         self.initialize_CART_rot(s)
         
         #-----------------------------------------------------------
@@ -1635,10 +1634,8 @@ class Zeq_GUI(wx.Frame):
         
     def Add_text(self):
       """
-        Add measurement data lines to the text window.
+      Add measurement data lines to the text window.
       """
-
-      print("udpate gui logger")
 
       if self.COORDINATE_SYSTEM=='geographic':
           zijdblock=self.Data[self.s]['zijdblock_geo']
@@ -1647,6 +1644,8 @@ class Zeq_GUI(wx.Frame):
       else:
           zijdblock=self.Data[self.s]['zijdblock']
 
+      if self.current_fit.tmin and self.current_fit.tmax:
+        tmin_index,tmax_index = self.get_temp_indecies(self.current_fit)
 
       TEXT=""
       self.logger.DeleteAllItems()
@@ -1671,6 +1670,8 @@ class Zeq_GUI(wx.Frame):
           self.logger.SetStringItem(i, 4, "%.1f"%Inc)
           self.logger.SetStringItem(i, 5, "%.2e"%Int)
           self.logger.SetItemBackgroundColour(i,"WHITE")
+          if i >= tmin_index and i <= tmax_index:
+            self.logger.SetItemBackgroundColour(i,"LIGHT BLUE")
           if self.Data[self.s]['measurement_flag'][i]=='b':
             self.logger.SetItemBackgroundColour(i,"YELLOW")
              
@@ -2228,7 +2229,7 @@ class Zeq_GUI(wx.Frame):
         draw the specimen interpertations on the zijderveld and the specimen equal area
         @alters: fit.lines, zijplot, specimen_eqarea_interpretation, mplot_interpretation
         """
-        print("drawing interpertations")
+
         self.zijplot.collections=[] # delete fit points 
         self.specimen_eqarea_interpretation.clear() #clear equal area
         self.mplot_interpretation.clear() #clear Mplot
@@ -2394,7 +2395,7 @@ class Zeq_GUI(wx.Frame):
             if fit == self.current_fit:
                 for item in range(self.logger.GetItemCount()):
                     if item >= tmin_index and item <= tmax_index:
-                        self.logger.SetItemBackgroundColour(item,"LIGHT BLUE") # gray
+                        self.logger.SetItemBackgroundColour(item,"LIGHT BLUE")
                     else:
                         self.logger.SetItemBackgroundColour(item,"WHITE")
                     try:
@@ -2771,26 +2772,17 @@ class Zeq_GUI(wx.Frame):
 
 
     def plot_higher_levels_data(self):
-       print("drawing high level data")
-       #print " plot_higher_levels_data" 
+
        self.toolbar4.home()
 
        high_level=self.level_box.GetValue()
        self.UPPER_LEVEL_NAME=self.level_names.GetValue() 
        self.UPPER_LEVEL_SHOW=self.show_box.GetValue() 
        self.UPPER_LEVEL_MEAN=self.mean_type_box.GetValue()
-       
 
-       #self.fig4.clf()
        self.high_level_eqarea.clear()
        what_is_it=self.level_box.GetValue()+": "+self.level_names.GetValue()
        self.high_level_eqarea.text(-1.2,1.15,what_is_it,{'family':'Arial', 'fontsize':10*self.GUI_RESOLUTION, 'style':'normal','va':'center', 'ha':'left' })
-              
-       #self.high_level_eqarea_net = self.fig4.add_subplot(111)        
-       #self.high_level_eqarea = self.high_level_eqarea_net.twinx()        
-       # draw_net        
-       #self.draw_net(self.high_level_eqarea)
-       #self.canvas4.draw()
 
        if self.COORDINATE_SYSTEM=="geographic": dirtype='DA-DIR-GEO'
        elif self.COORDINATE_SYSTEM=="tilt-corrected": dirtype='DA-DIR-TILT'
@@ -2804,10 +2796,7 @@ class Zeq_GUI(wx.Frame):
        high_level_name=str(self.level_names.GetValue())
        calculation_type=str(self.mean_type_box.GetValue())
        elements_type=str(self.show_box.GetValue())
-       
-       #print high_level_type,high_level_name,elements_type
-       #print "high_level_type",high_level_type
-       #print self.Data_hierarchy[high_level_type]
+
        elements_list=self.Data_hierarchy[high_level_type][high_level_name][elements_type]
 
        self.higher_EA_xdata = [] #clear saved x positions on higher equal area
@@ -2818,8 +2807,6 @@ class Zeq_GUI(wx.Frame):
             if elements_type=='specimens':
                 if element in self.pmag_results_data['specimens'].keys():
                     self.plot_higher_level_equalarea(element)
-#                        mpars=self.pmag_results_data['specimens'][element][dirtype]
-#                        self.plot_eqarea_pars(mpars,self.high_level_eqarea)
 
             else:
                 if element in self.high_level_means[elements_type].keys():
@@ -5234,7 +5221,6 @@ class EditFitFrame(wx.Frame):
         @param: changed_interpertation_parameters -> if the logger should be whipped and completely recalculated from scratch or not (default = True)
         """
 
-        print("update editor")
         if changed_interpertation_parameters:
             self.fit_list = []
             for specimen in self.specimens_list:
