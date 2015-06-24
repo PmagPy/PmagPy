@@ -427,8 +427,11 @@ class ErMagicBuilder(object):
         try:
             site = self.change_dict_key(self.Data_hierarchy['site_of_sample'], new_sample_name, old_sample_name)
         except KeyError:
-            site = self.data_er_samples[old_sample_name]['er_site_name']
-            self.Data_hierarchy['site_of_sample'][new_sample_name] = site
+            try:
+                site = self.data_er_samples[old_sample_name]['er_site_name']
+            except KeyError:
+                site = ''
+        self.Data_hierarchy['site_of_sample'][new_sample_name] = site
 
         # fix sites
         try: # if a new site has been added, this can fail
@@ -436,8 +439,10 @@ class ErMagicBuilder(object):
         except ValueError:
             pass
         except KeyError:
-            self.Data_hierarchy['sites'][site] = []
-        self.Data_hierarchy['sites'][site].append(new_sample_name)
+            if site:
+                self.Data_hierarchy['sites'][site] = []
+        if site:
+            self.Data_hierarchy['sites'][site].append(new_sample_name)
 
         # fix location_of_sample
         try:
@@ -621,7 +626,7 @@ class ErMagicBuilder(object):
     def remove_site(self, site_name, site_replacement=''):
         """
         Remove a site from the data model.
-        If a replacement site is provided, insert that in as parent to the orphaned samples. 
+        If a replacement site is provided, insert that in as parent to the orphaned samples.
         Otherwise, orphan samples will get '' as their site.
         """
         if site_replacement:
@@ -638,20 +643,24 @@ class ErMagicBuilder(object):
                 loc_replacement = ''
 
         location = self.remove_dict_key_if_present(self.Data_hierarchy['location_of_site'], site_name)
-        self.remove_list_value_if_present(self.Data_hierarchy['locations'][location], site_name)
+        print 'location', location
+        print 'site_name', site_name
+        if location:
+            self.remove_list_value_if_present(self.Data_hierarchy['locations'][location], site_name)
 
         samples = self.remove_dict_key_if_present(self.Data_hierarchy['sites'], site_name)
         specimens = []
         for samp in samples:
-            specs = self.Data_hierarchy['samples'][samp]
-            specimens.extend(specs)
-            self.Data_hierarchy['site_of_sample'][samp] = site_replacement
-            self.data_er_samples[samp]['er_site_name'] = site_replacement
-            self.data_er_samples[samp]['er_location_name'] = loc_replacement
-            
-            if not site_replacement in self.Data_hierarchy['sites'].keys():
-                self.Data_hierarchy['sites'][site_replacement] = []
-            self.Data_hierarchy['sites'][site_replacement].append(samp)
+            if samp:
+                specs = self.Data_hierarchy['samples'][samp]
+                specimens.extend(specs)
+                self.Data_hierarchy['site_of_sample'][samp] = site_replacement
+                self.data_er_samples[samp]['er_site_name'] = site_replacement
+                self.data_er_samples[samp]['er_location_name'] = loc_replacement
+
+                if not site_replacement in self.Data_hierarchy['sites'].keys():
+                    self.Data_hierarchy['sites'][site_replacement] = []
+                self.Data_hierarchy['sites'][site_replacement].append(samp)
 
         for spec in specimens:
             #sample = self.Data_hierarchy['sample_of_specimen'][spec]
@@ -743,7 +752,7 @@ class ErMagicBuilder(object):
             val = dic.pop(key)
             return val
         else:
-            return False
+            return ''
 
     ### Re-write magic files methods ###
 
@@ -1121,8 +1130,8 @@ class MagIC_model_builder(wx.Frame):
         self.panel.SetScrollbars(1, 1, 1, 1)
         
         os.chdir(WD)
-        self.WD = os.getcwd()  
-        self.site_lons = []     
+        self.WD = os.getcwd()
+        self.site_lons = []
         self.site_lats = []
 
         # if ErMagic data object was not passed in, created one based on the working directory
@@ -1132,16 +1141,17 @@ class MagIC_model_builder(wx.Frame):
         else:
             self.data = ErMagic_data
 
-
         # if ErMagic_data Data_hierarchy doesn't have data in in it, read it in from magic_measurements.txt
-        empty = True
-        for dict_key in self.data.Data_hierarchy.keys():
-            if self.data.Data_hierarchy[dict_key]:
-                empty = False
-                break
-            
-        if empty:
-            self.data.get_data() # gets data from magic_measurements file
+        #empty = True
+        #for dict_key in self.data.Data_hierarchy.keys():
+        #    if self.data.Data_hierarchy[dict_key]:
+        #        empty = False
+        #        break
+
+        #if empty:
+        #    self.data.get_data() # gets data from magic_measurements file
+        
+        self.data.get_data() # gets data from magic_measurements file
 
         self.data.read_MagIC_info() # make sure all er_* info is incorporated
         self.data.init_default_headers() # makes sure all headers are in place
