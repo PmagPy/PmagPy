@@ -12,10 +12,10 @@ def get_pmag_dir():
     return os.path.dirname(os.path.realpath(__file__))
 
 def get_version():
-   import version
-   global pmagpy_path
-   pmagpy_path = get_pmag_dir()
-   return version.version
+    import version
+    #global pmagpy_path
+    pmagpy_path = get_pmag_dir()
+    return version.version
 
 
 """    
