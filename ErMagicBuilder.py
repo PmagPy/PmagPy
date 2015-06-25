@@ -519,6 +519,8 @@ class ErMagicBuilder(object):
             if 'er_location_name' in new_site_data.keys():
                 old_location = location
                 new_location = new_site_data['er_location_name']
+                #
+                self.data_er_ages[old_site_name]['er_location_name'] = new_location
                 self.Data_hierarchy['locations'][old_location].remove(new_site_name)
                 if new_location not in self.Data_hierarchy['locations'].keys():
                     self.Data_hierarchy['locations'][new_location] = []
@@ -643,8 +645,7 @@ class ErMagicBuilder(object):
                 loc_replacement = ''
 
         location = self.remove_dict_key_if_present(self.Data_hierarchy['location_of_site'], site_name)
-        print 'location', location
-        print 'site_name', site_name
+
         if location:
             self.remove_list_value_if_present(self.Data_hierarchy['locations'][location], site_name)
 
@@ -670,6 +671,8 @@ class ErMagicBuilder(object):
             self.Data_hierarchy['location_of_specimen'][spec] = loc_replacement
 
         self.remove_dict_key_if_present(self.data_er_sites, site_name)
+        # this assumes that ages are done at the site level only:
+        self.remove_dict_key_if_present(self.data_er_ages, site_name)
 
     def remove_location(self, loc_name, loc_replacement=''):
         if loc_replacement:

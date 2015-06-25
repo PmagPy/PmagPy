@@ -89,8 +89,6 @@ class TestBuilder(unittest.TestCase):
         self.assertNotIn(specimen, self.data1.Data_hierarchy['samples'][sample])
 
 
-        
-
     def test_add_specimen_invalid_sample(self):
         specimen = 'new_specimen_name'
         sample = 'invalid sample'
@@ -300,6 +298,19 @@ class TestBuilder(unittest.TestCase):
         if 'er_location_name' in self.data1.data_er_specimens[specimen].keys():
             self.assertEqual(new_loc, self.data1.data_er_specimens[specimen]['er_location_name'])
 
+    def test_update_site_change_location_for_ages(self):
+        # set up
+        specimen = 'Z35.1a'
+        sample = 'Z35.1'
+        site = 'MGH1'
+        self.data1.add_location('new_location')
+        self.data1.change_site(site, site, {'er_location_name': 'new_location'})
+        new_loc = 'new_location'
+        old_loc = 'locale'
+
+        self.assertEqual('new_location', self.data1.data_er_ages[site]['er_location_name'])
+
+        
             
     def test_remove_site(self):
         specimens = ['Z35.6a']
@@ -321,6 +332,16 @@ class TestBuilder(unittest.TestCase):
         for spec in specimens:
             self.assertNotEqual(site, self.data1.Data_hierarchy['site_of_specimen'][spec])
             self.assertNotEqual(site, self.data1.data_er_specimens[spec]['er_site_name'])
+            
+    def test_remove_site_for_age(self):
+        specimens = ['Z35.6a']
+        samples = ['Z35.6', 'Z35.2', 'Z35.3', 'Z35.4', 'Z35.5', 'Z35.7']
+        site = 'Z35.'
+        location = 'locale'
+        
+        self.data1.remove_site(site)
+
+        self.assertNotIn(site, self.data1.data_er_ages.keys())
 
             
     def test_remove_site_with_bad_replacement(self):
