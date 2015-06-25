@@ -106,4 +106,19 @@ class TestMagicGrid(unittest.TestCase):
         self.assertEqual('gamma', self.grid.col_labels[2])
         self.assertNotIn('foxtrot', self.grid.col_labels)
 
+    def test_changes_after_row_delete(self):
+        self.grid.changes = {1, 3, 6}
+        self.grid.remove_row(3)
+        correct_changes = {-1, 1, 5}
+        print self.grid.changes
+        self.assertEqual(correct_changes, self.grid.changes)
+        
+    def test_changes_after_multiple_row_delete(self):
+        self.grid.changes = {1, 2, 3, 6}
+        self.grid.remove_row(2)
+        self.grid.remove_row(3)
+        correct_changes = {-1, 1, 2, 4}
+        print self.grid.changes
+        self.assertEqual(correct_changes, self.grid.changes)
+
 

@@ -1011,17 +1011,35 @@ class MagicGrid(wx.grid.Grid):
         if not self.changes:
             self.changes = set()
         self.changes.add(-1)
+        # fix #s for rows edited:
+        self.update_changes_after_row_delete(row_num)
 
+
+    def update_changes_after_row_delete(self, row_num):
+        """
+        Update self.changes so that row numbers for edited rows are still correct.
+        I.e., if row 4 was edited and then row 2 was deleted, row 4 becomes row 3.
+        This function updates self.changes to reflect that. 
+        """
+        if row_num in self.changes.copy():
+            self.changes.remove(row_num)
+        updated_rows = []
+        for changed_row in self.changes:
+            if changed_row == -1:
+                updated_rows.append(-1)
+            if changed_row > row_num:
+                updated_rows.append(changed_row - 1)
+            if changed_row < row_num:
+                updated_rows.append(changed_row)
+        self.changes = set(updated_rows)
 
     def add_col(self, label):
         self.AppendCols(1)
         last_col = self.GetNumberCols() - 1
         self.SetColLabelValue(last_col, label)
         self.col_labels.append(label)
-
-        # after adding, either:
         self.size_grid()
-        # or perhaps self.InitUI() and self.size_grid()
+
 
     def remove_col(self, col_num):
         label_value = self.GetColLabelValue(col_num)
