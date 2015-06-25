@@ -2582,6 +2582,8 @@ class Zeq_GUI(wx.Frame):
         #get new fit to display
         new_fit = self.mean_fit_box.GetValue()
         self.mean_fit = new_fit
+        if self.interpertation_editor_open:
+            self.interpertation_editor.mean_fit_box.SetStringSelection(new_fit)
         # calculate higher level data
         self.calculate_higher_levels_data()
         self.update_selection()
@@ -2615,6 +2617,9 @@ class Zeq_GUI(wx.Frame):
            self.level_names.SetItems(['this study'])
            self.level_names.SetStringSelection('this study')
 
+       if self.interpertation_editor_open:
+           self.interpertation_editor.level_box.SetStringSelection(self.UPPER_LEVEL)
+
        self.plot_higher_levels_data()
        self.update_selection()        
 
@@ -2637,6 +2642,9 @@ class Zeq_GUI(wx.Frame):
            self.s=str(specimen_list[0])
            self.specimens_box.SetStringSelection(str(self.s))
            self.update_selection()
+
+       if self.interpertation_editor_open:
+           self.interpertation_editor.level_names.SetStringSelection(high_level_name)
 
        self.update_selection()
 
@@ -2767,6 +2775,7 @@ class Zeq_GUI(wx.Frame):
         high_level_name=str(self.level_names.GetValue())
         calculation_type=str(self.mean_type_box.GetValue())
         elements_type=str(self.show_box.GetValue())
+        if self.interpertation_editor_open: self.interpertation_editor.mean_type_box.SetStringSelection(calculation_type)
         self.calculate_high_level_mean(high_level_type,high_level_name,calculation_type,elements_type)
 
 
@@ -4990,21 +4999,21 @@ class Zeq_GUI(wx.Frame):
         self.clear_boxes()
         #get new fit data
 #        if self.fit_box.GetValue() == '': return
-        if self.s in self.pmag_results_data['specimens'].keys(): fit_list=list(map(lambda x: x.name, self.pmag_results_data['specimens'][self.s]))
-        else: fit_list = []
+        if self.s in self.pmag_results_data['specimens'].keys(): self.fit_list=list(map(lambda x: x.name, self.pmag_results_data['specimens'][self.s]))
+        else: self.fit_list = []
         #find new index to set fit_box to
-        if not fit_list: new_index = 'None'
-        elif new_fit: new_index = len(fit_list) - 1
+        if not self.fit_list: new_index = 'None'
+        elif new_fit: new_index = len(self.fit_list) - 1
         else:
-            if self.fit_box.GetValue() in fit_list: 
-                new_index = fit_list.index(self.fit_box.GetValue());
+            if self.fit_box.GetValue() in self.fit_list: 
+                new_index = self.fit_list.index(self.fit_box.GetValue());
             else:
                 new_index = 'None'
         #clear old boxes
         self.fit_box.Clear()
         self.mean_fit_box.Clear()
         #update fit box
-        self.fit_box.SetItems(fit_list)
+        self.fit_box.SetItems(self.fit_list)
         #update higher level mean fit box
         fit_index = None
         if self.mean_fit != 'None' and self.mean_fit != 'All':
@@ -5015,12 +5024,14 @@ class Zeq_GUI(wx.Frame):
 #        for specimen in self.pmag_results_data['specimens'].keys():
 #            if len(self.pmag_results_data['specimens'][specimen]) > len(all_fits_list):
 #                all_fits_list = list(map(lambda x: x.name, self.pmag_results_data['specimens'][specimen]))
-        self.mean_fit_box.SetItems(['None','All'] + fit_list)
+        self.mean_fit_box.SetItems(['None','All'] + self.fit_list)
+        if self.interpertation_editor_open:
+            self.interpertation_editor.mean_fit_box.SetItems(['None','All'] + self.fit_list)
         #select defaults
         if new_index == 'None': self.fit_box.SetStringSelection('None')
         else: self.fit_box.SetSelection(new_index)
         if fit_index: self.mean_fit_box.SetSelection(fit_index+2)
-        if fit_list: self.on_select_fit(-1)
+        if self.fit_list: self.on_select_fit(-1)
 
 
     def MacReopenApp(self):
@@ -5128,6 +5139,13 @@ class EditFitFrame(wx.Frame):
         self.level_names = wx.ComboBox(self.panel, -1, size=(100*self.GUI_RESOLUTION, 25), value=self.parent.site, choices=[self.parent.site], style=wx.CB_DROPDOWN)
         self.Bind(wx.EVT_COMBOBOX, self.on_select_level_name,self.level_names)
 
+        #mean type and plot display boxes
+        self.mean_type_box = wx.ComboBox(self.panel, -1, size=(100*self.GUI_RESOLUTION, 25), value='None', choices=['Fisher','Fisher by polarity','Bingham','None'], style=wx.CB_DROPDOWN,name="high_type")
+        self.Bind(wx.EVT_COMBOBOX, self.on_select_mean_type_box,self.mean_type_box)
+
+        self.mean_fit_box = wx.ComboBox(self.panel, -1, size=(100*self.GUI_RESOLUTION, 25), value='None', choices=(['None','All'] + self.parent.fit_list), style=wx.CB_DROPDOWN,name="high_type")
+        self.Bind(wx.EVT_COMBOBOX, self.on_select_mean_fit_box,self.mean_fit_box)
+
         #bounds select boxes
         self.tmin_box = wx.ComboBox(self.panel, -1, size=(100*self.GUI_RESOLUTION, 25), choices=self.parent.T_list, style=wx.CB_DROPDOWN, name="lower bound")
 
@@ -5162,8 +5180,10 @@ class EditFitFrame(wx.Frame):
         buttons1_window = wx.GridSizer(2, 1, 10*self.GUI_RESOLUTION, 19*self.GUI_RESOLUTION)
         buttons2_window = wx.GridSizer(2, 1, 10*self.GUI_RESOLUTION, 19*self.GUI_RESOLUTION)
         buttons3_window = wx.GridSizer(2, 1, 10*self.GUI_RESOLUTION, 19*self.GUI_RESOLUTION)
-        display_window_1.Add(self.level_box, wx.ALIGN_LEFT)
-        display_window_2.Add(self.level_names, wx.ALIGN_LEFT)
+        display_window_1.AddMany( [(self.level_box, wx.ALIGN_LEFT),
+                                   (self.mean_type_box, wx.ALIGN_LEFT)] )
+        display_window_2.AddMany( [(self.level_names, wx.ALIGN_LEFT),
+                                   (self.mean_fit_box, wx.ALIGN_LEFT)] )
         name_window.AddMany( [(self.name_box, wx.ALIGN_LEFT),
                                 (self.color_box, wx.ALIGN_LEFT)] )
         bounds_window.AddMany( [(self.tmin_box, wx.ALIGN_LEFT),
@@ -5257,6 +5277,8 @@ class EditFitFrame(wx.Frame):
         if 'specimen_dang' in pars.keys(): dang = "%.1f"%pars['specimen_dang']
         if 'specimen_alpha95' in pars.keys(): a95 = "%.1f"%pars['specimen_alpha95']
         
+        if i < self.logger.GetItemCount():
+            self.logger.DeleteItem(i)
         self.logger.InsertStringItem(i, str(specimen))
         self.logger.SetStringItem(i, 1, name)
         self.logger.SetStringItem(i, 2, tmin)
@@ -5284,7 +5306,6 @@ class EditFitFrame(wx.Frame):
         """
         updates the current_fit of the parent Zeq_GUI entry in the case of it's data being changed
         """
-        self.logger.DeleteItem(self.current_fit_index)
         self.update_logger_entry(self.current_fit_index)
 
     def logger_focus(self,i):
@@ -5329,7 +5350,10 @@ class EditFitFrame(wx.Frame):
             self.logger.SetItemBackgroundColour(i,"WHITE")
         else:
             self.parent.bad_fits.append(fit)
-            self.logger.SetItemBackgroundColour(i,"YELLOW")
+            if i == self.current_fit_index:
+                self.logger.SetItemBackgroundColour(i,"GREEN")
+            else:
+                self.logger.SetItemBackgroundColour(i,"YELLOW")
         self.parent.calculate_higher_levels_data()
         self.parent.plot_higher_levels_data()
         if self.logger.GetItemCount() > i+12:
@@ -5364,6 +5388,9 @@ class EditFitFrame(wx.Frame):
             self.level_names.SetItems(['this study'])
             self.level_names.SetStringSelection('this study')
 
+        self.parent.level_box.SetStringSelection(UPPER_LEVEL)
+        self.parent.onSelect_higher_level(event)
+
         self.on_select_level_name(event)
 
     def on_select_level_name(self,event):
@@ -5383,8 +5410,29 @@ class EditFitFrame(wx.Frame):
         elif self.level_box.GetValue()=='study':
             self.specimens_list=self.parent.Data_hierarchy['study']['this study']['specimens']
 
+        self.parent.level_names.SetStringSelection(high_level_name)
+        self.parent.onSelect_level_name(event)
+
         self.specimens_list.sort(cmp=specimens_comparator)
         self.update_editor(True)
+
+    def on_select_mean_type_box(self, event):
+        """
+        set parent Zeq_GUI to reflect change in this box and change the 
+        @param: event -> the wx.ComboBoxEvent that triggered this function
+        """
+        new_mean_type = self.mean_type_box.GetValue()
+        self.parent.mean_type_box.SetStringSelection(new_mean_type)
+        self.parent.onSelect_mean_type_box(event)
+
+    def on_select_mean_fit_box(self, event):
+        """
+        set parent Zeq_GUI to reflect the change in this box then replot the high level means plot
+        @param: event -> the wx.COMBOBOXEVENT that triggered this function
+        """
+        new_mean_fit = self.mean_fit_box.GetValue()
+        self.parent.mean_fit_box.SetStringSelection(new_mean_fit)
+        self.parent.onSelect_mean_fit_box(event)
 
     ###################################Button Functions##################################
 
