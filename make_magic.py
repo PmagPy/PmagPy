@@ -15,7 +15,6 @@ import pmag_er_magic_dialogs
 import pmag_widgets as pw
 
 
-
 class MainFrame(wx.Frame):
     """
     make magic
@@ -24,9 +23,12 @@ class MainFrame(wx.Frame):
     def __init__(self, WD=None, name='Main Frame'):
         wx.GetDisplaySize()
         wx.Frame.__init__(self, None, wx.ID_ANY, name=name)
+
         self.panel = wx.Panel(self, size=wx.GetDisplaySize(), name='main panel')
         os.chdir(WD)
         self.WD = os.getcwd()
+        self.ErMagic = ErMagicBuilder.ErMagicBuilder(self.WD)
+        self.ErMagic.init_default_headers()
         self.InitUI()
 
     def InitUI(self):
@@ -87,14 +89,6 @@ class MainFrame(wx.Frame):
         self.btn5.InitColours()
         self.Bind(wx.EVT_BUTTON, self.make_grid, self.btn5)
 
-        #self.Bind(wx.EVT_BUTTON, self.on_unpack, self.btn4)
-
-        #str = "OR"
-        #OR = wx.StaticText(self.panel, -1, "or", (20, 120))
-        #font = wx.Font(18, wx.SWISS, wx.NORMAL, wx.NORMAL)
-        #OR.SetFont(font)
-
-        #bSizer0.Add(self.panel,self.btn1,wx.ALIGN_TOP)
         bsizer1a = wx.BoxSizer(wx.VERTICAL)
         bsizer1a.AddSpacer(20)
         bsizer1a.Add(self.btn1, wx.ALIGN_TOP)
@@ -179,7 +173,7 @@ class MainFrame(wx.Frame):
             grid_type = event.GetButtonObj().Name.strip('_btn')
         except AttributeError:
             grid_type = self.FindWindowById(event.Id).Name.strip('_btn')
-        self.grid = GridFrame(self.WD, grid_type, grid_type, self.panel)
+        self.grid = GridFrame(self.ErMagic, self.WD, grid_type, grid_type, self.panel)
 
         #self.on_finish_change_dir(self.change_dir_dialog)
 
@@ -197,9 +191,10 @@ class GridFrame(wx.Frame):
     make_magic
     """
 
-    def __init__(self, WD=None, frame_name="grid frame", panel_name="grid panel", parent=None):
+    def __init__(self, ErMagic, WD=None, frame_name="grid frame", panel_name="grid panel", parent=None):
         wx.GetDisplaySize()
         wx.Frame.__init__(self, parent=parent, id=wx.ID_ANY, name=frame_name)
+        self.ErMagic = ErMagic
         self.panel = wx.Panel(self, name=panel_name, size=wx.GetDisplaySize())
         self.grid_type = panel_name
         self.WD = WD
@@ -211,8 +206,8 @@ class GridFrame(wx.Frame):
         initialize window
         """
         self.main_sizer = wx.BoxSizer(wx.VERTICAL)
-        self.ErMagic = ErMagicBuilder.ErMagicBuilder(self.WD)#,self.Data,self.Data_hierarchy)
-        self.ErMagic.init_default_headers()
+        #self.ErMagic = ErMagicBuilder.ErMagicBuilder(self.WD)#,self.Data,self.Data_hierarchy)
+        #self.ErMagic.init_default_headers()
 
         self.grid_headers = {
             'er_specimens': [self.ErMagic.er_specimens_header, self.ErMagic.er_specimens_reqd_header, self.ErMagic.er_specimens_optional_header],
