@@ -527,6 +527,8 @@ You may use the drop-down menus to add as many values as needed in these columns
         previous_dia = self.InitLocCheck
         self.Bind(wx.EVT_BUTTON, lambda event: self.on_backButton(event, previous_dia), self.backButton)
 
+        self.panel.Bind(wx.grid.EVT_GRID_LABEL_LEFT_CLICK, self.onLeftClickLabel, self.grid)
+
         hboxok.Add(self.saveButton, flag=wx.RIGHT, border=10)
         hboxok.Add(self.cancelButton, flag=wx.RIGHT, border=10)
         hboxok.Add(self.continueButton, flag=wx.RIGHT, border=10)
