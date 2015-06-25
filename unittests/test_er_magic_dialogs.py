@@ -66,12 +66,6 @@ class TestMagicGrid(unittest.TestCase):
         self.assertEqual('whiskey', self.grid.row_labels[2])
 
     def test_add_col(self):
-        print '------'
-        print 'doing test_add_col'
-        for col in range(self.grid.GetNumberCols()):
-            print "self.grid.GetColLabelValue(col)", self.grid.GetColLabelValue(col)
-        for row in range(self.grid.GetNumberRows()):
-            print "self.grid.GetCellValue(row, 0)", self.grid.GetCellValue(row, 0)
         label = 'new_label'
         self.grid.add_col(label)
         cols = self.grid.GetNumberCols()
@@ -81,25 +75,9 @@ class TestMagicGrid(unittest.TestCase):
     @unittest.skipIf(sys.platform != 'darwin', 'fails remotely for unknown reason')
     def test_remove_col(self):
         self.grid.add_col('victor')
-        print '------'
-        print 'doing test_remove_col (with 1 extra)'
-        for col in range(self.grid.GetNumberCols()+1):
-            print "self.grid.GetColLabelValue(col)", self.grid.GetColLabelValue(col)
-        #for row in range(self.grid.GetNumberRows()):
-        #    print "self.grid.GetCellValue(row, 0)", self.grid.GetCellValue(row, 0)
-            
         num_cols = self.grid.GetNumberCols()
         result = self.grid.remove_col(2)
-        print 'result of remove col is:', result
-        print 'and after removing col 2 (with 1 extra)'
-        for col in range(self.grid.GetNumberCols()+1):
-            print "self.grid.GetColLabelValue(col)", self.grid.GetColLabelValue(col)
-        #for row in range(self.grid.GetNumberRows()):
-        #    print "self.grid.GetCellValue(row, 0)", self.grid.GetCellValue(row, 0)
-        print '-----'
         new_num_cols = self.grid.GetNumberCols()
-        #self.frame.Show()
-        #self.app.MainLoop()
         self.assertNotEqual(num_cols, new_num_cols)
         # remove foxtrot, gamma should be in position 2
         self.assertEqual('gamma', self.grid.GetColLabelValue(2))
@@ -110,15 +88,13 @@ class TestMagicGrid(unittest.TestCase):
         self.grid.changes = {1, 3, 6}
         self.grid.remove_row(3)
         correct_changes = {-1, 1, 5}
-        print self.grid.changes
         self.assertEqual(correct_changes, self.grid.changes)
-        
+
     def test_changes_after_multiple_row_delete(self):
         self.grid.changes = {1, 2, 3, 6}
         self.grid.remove_row(2)
         self.grid.remove_row(3)
         correct_changes = {-1, 1, 2, 4}
-        print self.grid.changes
         self.assertEqual(correct_changes, self.grid.changes)
 
 
