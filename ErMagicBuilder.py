@@ -1215,9 +1215,9 @@ class MagIC_model_builder(wx.Frame):
 
             box_sizer.Add(remove_button, wx.ALIGN_TOP)
 
-            # need headers 
-            self.update_text_box(table, reqd_headers, text_control)
-          
+            # need headers
+            self.update_text_box(reqd_headers, text_control)
+
         hbox1 = wx.BoxSizer(wx.HORIZONTAL)
         self.okButton = wx.Button(self.panel, wx.ID_OK, "&OK")
         self.Bind(wx.EVT_BUTTON, self.on_okButton, self.okButton)
@@ -1257,7 +1257,7 @@ class MagIC_model_builder(wx.Frame):
         self.Centre()
 
 
-    def update_text_box(self, table, headers_list, text_control):
+    def update_text_box(self, headers_list, text_control):
         text = ""
         #command="keys=self.%s_header"%table
         #exec command
@@ -1279,7 +1279,7 @@ class MagIC_model_builder(wx.Frame):
 
         if selName not in header:
             header.append(selName)
-        self.update_text_box(table, header, text_control)
+        self.update_text_box(header, text_control)
 
     def on_remove_button(self, event):
         table = event.GetEventObject().Name
@@ -1290,7 +1290,7 @@ class MagIC_model_builder(wx.Frame):
         selName = str(info_option.GetStringSelection())
         if selName in header:
             header.remove(selName)
-        self.update_text_box(table, header, text_control)
+        self.update_text_box(header, text_control)
 
     def on_okButton(self, event):
         os.chdir(self.WD)
