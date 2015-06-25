@@ -809,6 +809,11 @@ You may use the drop-down menus to add as many values as needed in these columns
 
 
     def onLeftClickLabel(self, event):
+        """
+        When user clicks on a grid label, determine if it is a row label or a col label.
+        Pass along the event to the appropriate function.
+        (It will either highlight a column for editing all values, or highlight a row for deletion).
+        """
         if event.Col == -1 and event.Row == -1:
             pass
         elif event.Col < 0:
@@ -818,6 +823,9 @@ You may use the drop-down menus to add as many values as needed in these columns
 
 
     def onSelectRow(self, event):
+        """
+        Highlight or unhighlight a row for possible deletion.
+        """
         grid = self.grid
         row = event.Row
         default = (255, 255, 255, 255)
@@ -841,7 +849,7 @@ You may use the drop-down menus to add as many values as needed in these columns
         grid.Refresh()
 
     ### Manage data methods ###
-    def update_grid(self, grid):#, data):
+    def update_grid(self, grid):
         """
         takes in wxPython grid and ErMagic data object to be updated
         """
@@ -849,7 +857,6 @@ You may use the drop-down menus to add as many values as needed in these columns
 
         grid_name = str(grid.GetName())
 
-        #rows = range(grid.GetNumberRows())
         cols = range(grid.GetNumberCols())
 
         col_labels = []
@@ -996,12 +1003,18 @@ class MagicGrid(wx.grid.Grid):
 
 
     def add_row(self, label=''):
+        """
+        Add a row to the grid
+        """
         self.AppendRows(1)
         last_row = self.GetNumberRows() - 1
         self.SetCellValue(last_row, 0, label)
         self.row_labels.append(label)
 
     def remove_row(self, row_num=None):
+        """
+        Remove a row from the grid
+        """
         #DeleteRows(self, pos, numRows, updateLabel
         if not row_num and row_num != 0:
             row_num = self.GetNumberRows() - 1
@@ -1034,6 +1047,10 @@ class MagicGrid(wx.grid.Grid):
         self.changes = set(updated_rows)
 
     def add_col(self, label):
+        """
+        Add a new column to the grid.
+        Resize grid to display the column.
+        """
         self.AppendCols(1)
         last_col = self.GetNumberCols() - 1
         self.SetColLabelValue(last_col, label)
@@ -1042,6 +1059,10 @@ class MagicGrid(wx.grid.Grid):
 
 
     def remove_col(self, col_num):
+        """
+        Remove a column from the grid.
+        Resize grid to display correctly.
+        """
         label_value = self.GetColLabelValue(col_num)
         self.col_labels.remove(label_value)
         result = self.DeleteCols(pos=col_num, numCols=1, updateLabels=True)
