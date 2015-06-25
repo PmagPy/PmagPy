@@ -624,6 +624,7 @@ class ErMagicBuilder(object):
             self.remove_list_value_if_present(self.Data_hierarchy['sites'][site], samp_name)
         location = self.remove_dict_key_if_present(self.Data_hierarchy['location_of_sample'], samp_name)
         self.remove_dict_key_if_present(self.data_er_samples, samp_name)
+        return specimens
 
     def remove_site(self, site_name, site_replacement=''):
         """
@@ -673,6 +674,7 @@ class ErMagicBuilder(object):
         self.remove_dict_key_if_present(self.data_er_sites, site_name)
         # this assumes that ages are done at the site level only:
         self.remove_dict_key_if_present(self.data_er_ages, site_name)
+        return samples
 
     def remove_location(self, loc_name, loc_replacement=''):
         if loc_replacement:
@@ -701,6 +703,7 @@ class ErMagicBuilder(object):
             self.data_er_specimens[spec]['er_location_name'] = loc_replacement
 
         self.remove_dict_key_if_present(self.data_er_locations, loc_name)
+        return sites
 
 
     ### Helper methods ###

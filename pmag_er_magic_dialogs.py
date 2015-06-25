@@ -799,13 +799,26 @@ You may use the drop-down menus to add as many values as needed in these columns
                             'sample': self.ErMagic_data.remove_sample,
                             'site': self.ErMagic_data.remove_site,
                             'location': self.ErMagic_data.remove_location}
+        ancestry = ['specimen', 'sample', 'site', 'location']
+        child_type = ancestry[ancestry.index(data_type) - 1]
         names = [self.grid.GetCellValue(row, 0) for row in self.selected_rows]
+        if data_type == 'site':
+            how_to_fix = 'Make sure to select a new site for each orphaned sample in the next step'
+        else:
+            how_to_fix = 'Go back a step and select a new {} for each orphaned {}'.format(data_type, child_type)
+
+        orphans = []
         for name in names:
             row = self.grid.row_labels.index(name)
-            function_mapping[data_type](name)
+            orphans.extend(function_mapping[data_type](name))
             self.grid.remove_row(row)
+        if orphans:
+            pw.simple_warning('You have deleted:\n\n  {}\n\nthe parent(s) of {}(s):\n\n  {}\n\n{}'.format(', '.join(names), child_type, ', '.join(orphans), how_to_fix))
+
         self.selected_rows = set()
+        
         self.grid.Refresh()
+        
 
 
     def onLeftClickLabel(self, event):
