@@ -52,9 +52,9 @@ class Menus(object):
             map(lambda (x, y): self.grid.SetColLabelValue(x, y), [(3, 'magic_method_codes**'), (5, 'age_unit**')])
         if self.data_type == 'orient':
             self.choices = {1: (['g', 'b'], False)}
-        self.window.Bind(wx.grid.EVT_GRID_CELL_LEFT_CLICK, lambda event: self.on_left_click(event, self.grid, self.choices), self.grid) 
-        self.window.Bind(wx.grid.EVT_GRID_LABEL_LEFT_CLICK, self.on_label_click, self.grid)
-
+        self.window.Bind(wx.grid.EVT_GRID_CELL_LEFT_CLICK, lambda event: self.on_left_click(event, self.grid, self.choices), self.grid)
+        ## now doing the binding below in pmag_er_magic_dialogs:
+        #self.window.Bind(wx.grid.EVT_GRID_LABEL_LEFT_CLICK, self.on_label_click, self.grid)
 
         #
         cols = self.grid.GetNumberCols()
@@ -92,17 +92,12 @@ class Menus(object):
                     self.choices[col_number] = (stripped_list, two_tiered)
 
 
-
     def on_label_click(self, event):
         col = event.GetCol()
         color = self.grid.GetCellBackgroundColour(0, col)
         if color != (191, 216, 216, 255): # light blue
             self.col_color = color
-        if col == -1:
-            return 0
-        if col == 2 and self.data_type == 'age':
-            return 0
-        if (col not in (-1, 0, 1)) or (col == 1 and self.data_type in ['location', 'age']):
+        if col not in (-1, 0):
             # if a new column was chosen without de-selecting the previous column, deselect the old selected_col
             if self.selected_col != None and self.selected_col != col:
                 col_label_value = self.grid.GetColLabelValue(self.selected_col)
@@ -132,7 +127,7 @@ class Menus(object):
             has_dropdown = True
 
         # if the column has no drop-down list, allow user to edit all cells in the column through text entry
-        if (not has_dropdown and col not in (0, 1)) or (col == 1 and self.data_type in ['age']):
+        if not has_dropdown and col != 0:
             if self.selected_col == col:
                 default_value = self.grid.GetCellValue(0, col)
                 data = None
@@ -229,13 +224,13 @@ class Menus(object):
                 if 'CLEAR cell of all values' not in choices:
                     choices.insert(0, 'CLEAR cell of all values')
                 for choice in choices:
-                    if not choice: choice = " " # prevents error if choice is an empty string
+                    if not choice:
+                        choice = " " # prevents error if choice is an empty string
                     menuitem = menu.Append(wx.ID_ANY, str(choice))
                     self.window.Bind(wx.EVT_MENU, lambda event: self.on_select_menuitem(event, grid, row, col, selection), menuitem)
                 self.window.PopupMenu(menu)
                 menu.Destroy()
             else: # menu is two_tiered
-                
                 clear = menu.Append(-1, 'CLEAR cell of all values')
                 self.window.Bind(wx.EVT_MENU, lambda event: self.on_select_menuitem(event, grid, row, col, selection), clear)
                 for choice in sorted(choices.items()):
@@ -269,7 +264,7 @@ class Menus(object):
         else:
             self.grid.changes = {row}
 
-        item_id =  event.GetId()
+        item_id = event.GetId()
         item = event.EventObject.FindItemById(item_id)
         label = item.Label
         cell_value = grid.GetCellValue(row, col)
@@ -291,10 +286,9 @@ class Menus(object):
                 #self.selected_col = None
         else:
             grid.SetCellValue(row, col, label)
-        
+
         if selection:
             for cell in selection:
                 row = cell[0]
                 grid.SetCellValue(row, col, label)
             return
-

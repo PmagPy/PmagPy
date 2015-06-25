@@ -24,6 +24,7 @@ class ErMagicCheckFrame(wx.Frame):
         # sample window must be displayed (differently) twice, so it is useful to keep track
         self.sample_window = 0
         self.grid = None
+        self.deleteRowButton = None
         self.selected_rows = set()
         self.InitSpecCheck()
 
@@ -725,7 +726,7 @@ You may use the drop-down menus to add as many values as needed in these columns
         # check that all required data is present
         validation_errors = self.validate(grid)
         if validation_errors:
-            result = pw.warning_with_override("You are missing required data in these columns: {}\nAre you sure you want to continue without this data?".format(str(validation_errors)))
+            result = pw.warning_with_override("You are missing required data in these columns: {}\nAre you sure you want to continue without this data?".format(', '.join(validation_errors)))
             if result == wx.ID_YES:
                 pass
             else:
@@ -737,6 +738,7 @@ You may use the drop-down menus to add as many values as needed in these columns
             # possibly optimize this so that it only updates the required files
             self.ErMagic_data.update_ErMagic()
 
+        self.deleteRowButton = None
         self.panel.Destroy()
         if next_dia:
             wait = wx.BusyInfo("Please wait, working...")
@@ -807,18 +809,15 @@ You may use the drop-down menus to add as many values as needed in these columns
 
 
     def onLeftClickLabel(self, event):
-        print 'doing onLeftClickLabel'
-        if event.Col < 0:
-            print 'row label event'
-            #self.onSelectRow(None)
-        if event.Row < 0:
-            print 'col label event'    
-        
-    def onSelectRow(self, event, delete_btn):
-        print event
-        print event.Col
-        print event.Row
-        print dir(event)
+        if event.Col == -1 and event.Row == -1:
+            pass
+        elif event.Col < 0:
+            self.onSelectRow(event)
+        elif event.Row < 0:
+            self.drop_down_menu.on_label_click(event)
+
+
+    def onSelectRow(self, event):
         grid = self.grid
         row = event.Row
         default = (255, 255, 255, 255)
@@ -834,10 +833,10 @@ You may use the drop-down menus to add as many values as needed in these columns
                 self.selected_rows.remove(row)
             except KeyError:
                 pass
-        if self.selected_rows:
-            delete_btn.Enable()
+        if self.selected_rows and self.deleteRowButton:
+            self.deleteRowButton.Enable()
         else:
-            delete_btn.Disable()
+            self.deleteRowButton.Disable()
         grid.SetRowAttr(row, attr)
         grid.Refresh()
 
