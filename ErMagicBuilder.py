@@ -52,6 +52,11 @@ class ErMagicBuilder(object):
         self.data_er_ages = {}
         self.er_ages_header = []
 
+        self.pmag_specimens_header = []
+        self.pmag_results_header = []
+        self.pmag_samples_header = []
+        self.pmag_sites_header = []
+
         self.site_lons = []
         self.site_lats = []
 
@@ -81,29 +86,23 @@ class ErMagicBuilder(object):
                 return False
 
         # header should contain all required headers, plus any already in the file
-        self.er_specimens_reqd_header, self.er_specimens_optional_header = self.get_headers(self.data_model, 'er_specimens')
-        self.er_specimens_header = list(set(self.er_specimens_header).union(self.er_specimens_reqd_header))
-        self.put_list_value_first(self.er_specimens_header, 'er_specimen_name')
 
-        self.er_samples_reqd_header, self.er_samples_optional_header = self.get_headers(self.data_model, 'er_samples')
-        self.er_samples_header = list(set(self.er_samples_header).union(self.er_samples_reqd_header))
-        self.put_list_value_first(self.er_samples_header, 'er_sample_name')
+        self.er_specimens_header, self.er_specimens_reqd_header, self.er_specimens_optional_header = self.get_headers('er_specimens', self.er_specimens_header)
 
-        self.er_sites_reqd_header, self.er_sites_optional_header = self.get_headers(self.data_model, 'er_sites')
-        self.er_sites_header = list(set(self.er_sites_header).union(self.er_sites_reqd_header))
-        self.put_list_value_first(self.er_sites_header, 'er_site_name')
-
-        self.er_locations_reqd_header, self.er_locations_optional_header = self.get_headers(self.data_model, 'er_locations')
-        self.er_locations_header = list(set(self.er_locations_header).union(self.er_locations_reqd_header))
-        self.put_list_value_first(self.er_locations_header, 'er_location_name')
-
-        self.er_ages_reqd_header, self.er_ages_optional_header = self.get_headers(self.data_model, 'er_ages')
-        self.er_ages_header = list(set(self.er_ages_header).union(self.er_ages_reqd_header))
+        self.er_samples_header, self.er_samples_reqd_header, self.er_samples_optional_header = self.get_headers('er_samples', self.er_samples_header)
+        self.er_sites_header, self.er_sites_reqd_header, self.er_sites_optional_header = self.get_headers('er_sites', self.er_sites_header)
+        self.er_locations_header, self.er_locations_reqd_header, self.er_locations_optional_header = self.get_headers('er_locations', self.er_locations_header)
+        self.er_ages_header, self.er_ages_reqd_header, self.er_ages_optional_header = self.get_headers('er_ages', self.er_ages_header)
         age_headers = ['er_site_name', 'age', 'age_description', 'magic_method_codes', 'age_unit']
         for header in age_headers:
             if header not in self.er_ages_header:
                 self.er_ages_header.append(header)
         self.put_list_value_first(self.er_ages_header, 'er_site_name')
+
+        self.pmag_results_header, self.pmag_results_reqd_header, self.pmag_results_optional_header = self.get_headers('pmag_results', self.pmag_results_header)
+        self.pmag_specimens_header, self.pmag_specimens_reqd_header, self.pmag_specimens_optional_header = self.get_headers('pmag_specimens', self.pmag_specimens_header)
+        self.pmag_samples_header, self.pmag_samples_reqd_header, self.pmag_samples_optional_header = self.get_headers('pmag_samples', self.pmag_samples_header)
+        self.pmag_sites_header, self.pmag_sites_reqd_header, self.pmag_sites_optional_header = self.get_headers('pmag_sites', self.pmag_sites_header)
 
 
     def read_MagIC_info(self):
@@ -709,14 +708,21 @@ class ErMagicBuilder(object):
 
     ### Helper methods ###
 
-    def get_headers(self, data_model, data_type):
+    def get_reqd_and_optional_headers(self, data_type):
         try:
-            data_dict = data_model[data_type]
+            data_dict = self.data_model[data_type]
         except KeyError:
             return [], []
         reqd_headers = sorted([header for header in data_dict.keys() if data_dict[header]['data_status'] == 'Required'])
         optional_headers = sorted([header for header in data_dict.keys() if data_dict[header]['data_status'] != 'Required'])
         return reqd_headers, optional_headers
+
+    def get_headers(self, data_type, current_header):
+        reqd_header, optional_header = self.get_reqd_and_optional_headers(data_type)
+        # combine already existing header with required header
+        full_header = list(set(current_header).union(reqd_header))
+        self.put_list_value_first(full_header, data_type[:-1] + '_name')
+        return full_header, reqd_header, optional_header
 
 
     def change_dict_key(self, dictionary, new_key, old_key):
