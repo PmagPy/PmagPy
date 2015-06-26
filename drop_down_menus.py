@@ -17,7 +17,8 @@ class Menus(object):
     """
     def __init__(self, data_type, ErMagicCheck, grid, belongs_to):
         """
-        take: data_type (string), ErMagicCheck (top level class object for ErMagic steps 1-6), grid (grid object), belongs_to (options for data object to belong to, i.e. locations for the site Menus)
+        take: data_type (string), ErMagicCheck (top level class object for ErMagic steps 1-6), 
+        grid (grid object), belongs_to (list of options for data object to belong to, i.e. locations for the site Menus)
         """
         self.data_type = data_type
         self.check = ErMagicCheck # check is top level class object for entire ErMagic steps 1-6
@@ -170,7 +171,8 @@ class Menus(object):
         allows user to edit the column, but only from available values
         """
         color = self.grid.GetCellBackgroundColour(event.GetRow(), event.GetCol())
-        if event.CmdDown(): # allow user to cherry-pick cells for editing.  gets selection of meta key for mac, ctrl key for pc
+        # allow user to cherry-pick cells for editing.  gets selection of meta key for mac, ctrl key for pc
+        if event.CmdDown(): 
             row, col = event.GetRow(), event.GetCol()
             if (row, col) not in self.dispersed_selection:
                 self.dispersed_selection.append((row, col))

@@ -12,6 +12,7 @@ import os
 import ErMagicBuilder
 import pmag
 import pmag_er_magic_dialogs
+import drop_down_menus
 import pmag_widgets as pw
 
 
@@ -57,28 +58,28 @@ class MainFrame(wx.Frame):
 
         text = "Add specimen data"
         self.btn1 = buttons.GenButton(self.panel, id=-1,
-                                      label=text, size=(300, 50), name='er_specimens_btn')
+                                      label=text, size=(300, 50), name='specimen_btn')
         self.btn1.SetBackgroundColour("#FDC68A")
         self.btn1.InitColours()
         self.Bind(wx.EVT_BUTTON, self.make_grid_frame, self.btn1)
 
         text = "Add sample data"
         self.btn2 = buttons.GenButton(self.panel, id=-1, label=text,
-                                      size=(300, 50), name='er_samples_btn')
+                                      size=(300, 50), name='sample_btn')
         self.btn2.SetBackgroundColour("#6ECFF6")
         self.btn2.InitColours()
         self.Bind(wx.EVT_BUTTON, self.make_grid_frame, self.btn2)
 
         text = "Add site data"
         self.btn3 = buttons.GenButton(self.panel, id=-1, label=text,
-                                      size=(300, 50), name='er_sites_btn')
+                                      size=(300, 50), name='site_btn')
         self.btn3.SetBackgroundColour("#C4DF9B")
         self.btn3.InitColours()
         self.Bind(wx.EVT_BUTTON, self.make_grid_frame, self.btn3)
 
         text = "add location data"
         self.btn4 = buttons.GenButton(self.panel, id=-1, label=text,
-                                      size=(300, 50), name='er_locations_btn')
+                                      size=(300, 50), name='location_btn')
         self.btn4.SetBackgroundColour("#FDC68A")
         self.btn4.InitColours()
         self.Bind(wx.EVT_BUTTON, self.make_grid_frame, self.btn4)
@@ -86,7 +87,7 @@ class MainFrame(wx.Frame):
 
         text = "add age data"
         self.btn5 = buttons.GenButton(self.panel, id=-1, label=text,
-                                      size=(300, 50), name='er_ages_btn')
+                                      size=(300, 50), name='age_btn')
         self.btn5.SetBackgroundColour("#6ECFF6")
         self.btn5.InitColours()
         self.Bind(wx.EVT_BUTTON, self.make_grid_frame, self.btn5)
@@ -172,9 +173,11 @@ class MainFrame(wx.Frame):
         Create a GridFrame for data type of the button that was clicked
         """
         try:
-            grid_type = event.GetButtonObj().Name.strip('_btn')
+            print 'event.GetButtonObj().Name', event.GetButtonObj().Name
+            grid_type = event.GetButtonObj().Name[:-4] # remove '_btn'
         except AttributeError:
-            grid_type = self.FindWindowById(event.Id).Name.strip('_btn')
+            grid_type = self.FindWindowById(event.Id).Name[:-4] # remove ('_btn')
+        print 'grid_type before initing GridFrame', grid_type
         self.grid = GridFrame(self.ErMagic, self.WD, grid_type, grid_type, self.panel)
 
         #self.on_finish_change_dir(self.change_dir_dialog)
@@ -198,12 +201,22 @@ class GridFrame(wx.Frame):
         wx.GetDisplaySize()
         wx.Frame.__init__(self, parent=parent, id=wx.ID_ANY, name=frame_name)
 
+        self.remove_cols_mode = False
         self.deleteRowButton = None
         self.selected_rows = set()
 
         self.ErMagic = ErMagic
         self.panel = wx.Panel(self, name=panel_name, size=wx.GetDisplaySize())
         self.grid_type = panel_name
+
+        ancestry = [None, 'specimen', 'sample', 'site', 'location', None]
+        if self.grid_type == 'age':
+            self.child_type = 'sample'
+            self.parent_type = 'location'
+        else:
+            self.child_type = ancestry[ancestry.index(self.grid_type) - 1]
+            self.parent_type = ancestry[ancestry.index(self.grid_type) + 1]
+
         self.WD = WD
         self.InitUI()
 
@@ -217,22 +230,29 @@ class GridFrame(wx.Frame):
         #self.ErMagic.init_default_headers()
 
         self.grid_headers = {
-            'er_specimens': [self.ErMagic.er_specimens_header, self.ErMagic.er_specimens_reqd_header, self.ErMagic.er_specimens_optional_header],
-            'er_samples': [self.ErMagic.er_samples_header, self.ErMagic.er_samples_reqd_header, self.ErMagic.er_samples_optional_header],
-            'er_sites': [self.ErMagic.er_sites_header, self.ErMagic.er_sites_reqd_header, self.ErMagic.er_sites_optional_header],
-            'er_locations': [self.ErMagic.er_locations_header, self.ErMagic.er_locations_reqd_header, self.ErMagic.er_locations_optional_header],
-            'er_ages': [self.ErMagic.er_ages_header, self.ErMagic.er_ages_reqd_header, self.ErMagic.er_ages_optional_header]}
+            'specimen': [self.ErMagic.er_specimens_header, self.ErMagic.er_specimens_reqd_header, self.ErMagic.er_specimens_optional_header],
+            'sample': [self.ErMagic.er_samples_header, self.ErMagic.er_samples_reqd_header, self.ErMagic.er_samples_optional_header],
+            'site': [self.ErMagic.er_sites_header, self.ErMagic.er_sites_reqd_header, self.ErMagic.er_sites_optional_header],
+            'location': [self.ErMagic.er_locations_header, self.ErMagic.er_locations_reqd_header, self.ErMagic.er_locations_optional_header],
+            'age': [self.ErMagic.er_ages_header, self.ErMagic.er_ages_reqd_header, self.ErMagic.er_ages_optional_header]}
 
         self.grid_data_dict = {
-            'er_specimens': self.ErMagic.data_er_specimens,
-            'er_samples': self.ErMagic.data_er_samples,
-            'er_sites': self.ErMagic.data_er_samples,
-            'er_locations': self.ErMagic.data_er_locations,
-            'er_ages': self.ErMagic.data_er_ages}
+            'specimen': self.ErMagic.data_er_specimens,
+            'sample': self.ErMagic.data_er_samples,
+            'site': self.ErMagic.data_er_samples,
+            'location': self.ErMagic.data_er_locations,
+            'age': self.ErMagic.data_er_ages}
 
         self.grid = self.make_grid()
 
         self.grid.InitUI()
+
+        if self.parent_type in self.grid_data_dict.keys():
+            belongs_to = sorted(self.grid_data_dict[self.parent_type].keys())
+        else:
+            belongs_to = None
+        self.drop_down_menu = drop_down_menus.Menus(self.grid_type, self, self.grid, belongs_to)
+        
         self.add_col_button = wx.Button(self.panel, label="Add additional column")
         self.Bind(wx.EVT_BUTTON, self.on_add_col, self.add_col_button)
         self.remove_cols_button = wx.Button(self.panel, label="Remove columns")
@@ -313,6 +333,18 @@ class GridFrame(wx.Frame):
         return grid
         """
         header = self.grid_headers[self.grid_type][0]
+        no_parent = False
+        for head in (self.grid_type, self.parent_type):
+            head = 'er_' + str(head) + '_name'
+            try:
+                header.remove(head)
+            except ValueError:
+                no_parent = True
+        if no_parent:
+            header[:0] = ['er_' + self.grid_type + '_name']
+        else:
+            header[:0] = ['er_' + self.grid_type + '_name', 'er_' + self.parent_type + '_name']
+        #string = 'er_' + string + 's'
         grid = pmag_er_magic_dialogs.MagicGrid(self.panel, self.grid_type, [], header)
         return grid
 
@@ -337,6 +369,7 @@ class GridFrame(wx.Frame):
         enter 'remove columns' mode
         """
         # first unselect any selected cols/cells
+        self.remove_cols_mode = True
         self.grid.ClearSelection()
         self.remove_cols_button.SetLabel("end delete column mode")
         # change button to exit the delete columns mode
@@ -353,9 +386,7 @@ class GridFrame(wx.Frame):
         self.grid_box.GetStaticBox().SetWindowStyle(wx.DOUBLE_BORDER)
         self.grid.Refresh()
         self.main_sizer.Fit(self) # might not need this one
-        # then make binding so that clicking on a label makes that column disappear
-        self.Bind(wx.grid.EVT_GRID_LABEL_LEFT_CLICK, self.remove_col_label)
-        # make sure reqd cols do not disappear, or at least come with a warning
+
 
     def on_add_rows(self, event):
         """
@@ -371,7 +402,7 @@ class GridFrame(wx.Frame):
         Remove specified grid row.
         If no row number is given, remove the last row.
         """
-        data_type = self.Name
+        #data_type = self.Name
         if row_num == -1:
             default = (255, 255, 255, 255)
             # unhighlight any selected rows:
@@ -388,13 +419,14 @@ class GridFrame(wx.Frame):
                             'er_samples': self.ErMagic.remove_sample,
                             'er_sites': self.ErMagic.remove_site,
                             'er_locations': self.ErMagic.remove_location}
-        ancestry = ['er_specimens', 'er_samples', 'er_sites', 'er_locations']
-        child_type = ancestry[ancestry.index(data_type) - 1]
+        #ancestry = ['er_specimens', 'er_samples', 'er_sites', 'er_locations']
+        #child_type = ancestry[ancestry.index(self.grid_type) - 1]
+        
         names = [self.grid.GetCellValue(row, 0) for row in self.selected_rows]
         orphans = []
         for name in names:
             row = self.grid.row_labels.index(name)
-            orphans.extend(function_mapping[data_type](name))
+            orphans.extend(function_mapping[self.grid_type](name))
             self.grid.remove_row(row)
         self.selected_rows = set()
 
@@ -407,6 +439,7 @@ class GridFrame(wx.Frame):
         """
         go back from 'remove cols' mode to normal
         """
+        self.remove_cols_mode = False
         # re-enable all buttons
         for btn in [self.add_col_button, self.remove_row_button, self.add_many_rows_button]:
             btn.Enable()
@@ -457,10 +490,14 @@ class GridFrame(wx.Frame):
         """
         if event.Col == -1 and event.Row == -1:
             pass
-        elif event.Col < 0:
-            self.onSelectRow(event)
-        #elif event.Row < 0:
-        #    self.drop_down_menu.on_label_click(event)
+        if event.Row < 0:
+            if self.remove_cols_mode:
+                self.remove_col_label(event)
+            else:
+                self.drop_down_menu.on_label_click(event)
+        else:
+            if event.Col < 0:
+                self.onSelectRow(event)
 
 
 
