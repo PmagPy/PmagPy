@@ -585,7 +585,7 @@ class Zeq_GUI(wx.Frame):
         # Draw figures and add  text
         if self.Data:
             self.update_pmag_tables()
-            self.Add_text()
+            self.update_selection()
         else:
             print("------------------------------ no magic_measurements.txt found in WD ---------------------------------------")
             self.Destroy()
@@ -3543,7 +3543,8 @@ class Zeq_GUI(wx.Frame):
 
             #if interpertation doesn't exsist create it.
             if 'specimen_comp_name' in rec.keys() and rec['specimen_comp_name'] not in map(lambda x: x.name, self.pmag_results_data['specimens'][specimen]):
-                self.add_fit(-1)
+                next_fit = str(len(self.pmag_results_data['specimens'][self.s]) + 1)
+                self.pmag_results_data['specimens'][self.s].append(Fit('Fit ' + next_fit, None, None, self.colors[(int(next_fit)-1) % len(self.colors)], self))
                 fit = self.pmag_results_data['specimens'][specimen][-1]
                 fit.name = rec['specimen_comp_name']
             else:
