@@ -2409,7 +2409,7 @@ class Zeq_GUI(wx.Frame):
                         relability = self.Data[self.s]['measurement_flag'][item]
                     except IndexError:
                         relability = 'b'
-                        print('-E- IndexError in bad data')
+#                        print('-E- IndexError in bad data')
                     if relability=='b':
                         self.logger.SetItemBackgroundColour(item,"YELLOW")
 
@@ -4155,19 +4155,7 @@ class Zeq_GUI(wx.Frame):
                 self.add_fit(1)
                 fit = self.pmag_results_data['specimens'][specimen][-1];
 
-            #works better
             fit.put(self.COORDINATE_SYSTEM,self.get_PCA_parameters(specimen,tmin,tmax,self.COORDINATE_SYSTEM,calculation_type))
-            #-----------
-
-            #looks cooler
-#            fit.put('specimen',self.get_PCA_parameters(specimen,tmin,tmax,'specimen',calculation_type))
-
-#            if len(self.Data[specimen]['zijdblock_geo'])>0: 
-#                fit.put('geographic',self.get_PCA_parameters(specimen,tmin,tmax,'geographic',calculation_type))
-
-#            if len(self.Data[specimen]['zijdblock_tilt'])>0:      
-#                fit.put('tilt-corrected',self.get_PCA_parameters(specimen,tmin,tmax,'tilt-corrected',calculation_type))
-            #------------
 
         fin.close()
         self.s=str(self.specimens_box.GetValue())
@@ -5140,10 +5128,20 @@ class EditFitFrame(wx.Frame):
         self.buttons_sizer = wx.StaticBoxSizer(wx.StaticBox(self.panel, wx.ID_ANY), wx.VERTICAL)
 
         #logger display selection box
-        self.level_box = wx.ComboBox(self.panel, -1, size=(100*self.GUI_RESOLUTION, 25), value='site',  choices=['sample','site','location','study'], style=wx.CB_DROPDOWN)
+        UPPER_LEVEL = self.parent.level_box.GetValue()
+        if UPPER_LEVEL=='sample':
+            name_choices = self.parent.samples
+        if UPPER_LEVEL=='site':
+            name_choices = self.parent.sites
+        if UPPER_LEVEL=='location':
+            name_choices = self.parent.locations
+        if UPPER_LEVEL=='study':
+            name_choices = ['this study']
+
+        self.level_box = wx.ComboBox(self.panel, -1, size=(100*self.GUI_RESOLUTION, 25), value=UPPER_LEVEL,  choices=['sample','site','location','study'], style=wx.CB_DROPDOWN)
         self.Bind(wx.EVT_COMBOBOX, self.on_select_higher_level,self.level_box)
 
-        self.level_names = wx.ComboBox(self.panel, -1, size=(100*self.GUI_RESOLUTION, 25), value=self.parent.site, choices=[self.parent.site], style=wx.CB_DROPDOWN)
+        self.level_names = wx.ComboBox(self.panel, -1, size=(100*self.GUI_RESOLUTION, 25), value=self.parent.level_names.GetValue(), choices=name_choices, style=wx.CB_DROPDOWN)
         self.Bind(wx.EVT_COMBOBOX, self.on_select_level_name,self.level_names)
 
         #mean type and plot display boxes
@@ -5238,7 +5236,7 @@ class EditFitFrame(wx.Frame):
         self.panel.SetSizer(hbox2)
         hbox2.Fit(self)
 
-        self.on_select_higher_level(1)
+        self.on_select_level_name(1)
 
     ################################Logger Functions##################################
 
