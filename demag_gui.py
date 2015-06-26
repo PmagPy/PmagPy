@@ -585,7 +585,10 @@ class Zeq_GUI(wx.Frame):
         # Draw figures and add  text
         if self.Data:
             self.update_pmag_tables()
-            self.Add_text()
+            if not self.current_fit:
+                self.update_selection()
+            else:
+                self.Add_text()
         else:
             print("------------------------------ no magic_measurements.txt found in WD ---------------------------------------")
             self.Destroy()
@@ -1166,6 +1169,7 @@ class Zeq_GUI(wx.Frame):
 
 
     def draw_figure(self,s):
+
         self.initialize_CART_rot(s)
         
         #-----------------------------------------------------------
@@ -1644,7 +1648,8 @@ class Zeq_GUI(wx.Frame):
       else:
           zijdblock=self.Data[self.s]['zijdblock']
 
-      if self.current_fit.tmin and self.current_fit.tmax:
+      tmin_index,tmax_index = -1,-1
+      if self.current_fit and self.current_fit.tmin and self.current_fit.tmax:
         tmin_index,tmax_index = self.get_temp_indecies(self.current_fit)
 
       TEXT=""
@@ -2221,6 +2226,8 @@ class Zeq_GUI(wx.Frame):
                 self.draw_figure(self.s)
   
         self.draw_interpretation()
+        self.calculate_higher_levels_data()
+        self.plot_higher_levels_data()
 
     #----------------------------------------------------------------------
                        
@@ -2621,8 +2628,7 @@ class Zeq_GUI(wx.Frame):
            self.interpertation_editor.level_box.SetStringSelection(self.UPPER_LEVEL)
 
        self.plot_higher_levels_data()
-       self.update_selection()        
-
+       self.update_selection()
     #----------------------------------------------------------------------
         
     def onSelect_level_name(self,event):
@@ -3552,7 +3558,7 @@ class Zeq_GUI(wx.Frame):
 
             #if interpertation doesn't exsist create it.
             if 'specimen_comp_name' in rec.keys() and rec['specimen_comp_name'] not in map(lambda x: x.name, self.pmag_results_data['specimens'][specimen]):
-                self.add_fit(-1)
+                self.add_fit(-1,False)
                 fit = self.pmag_results_data['specimens'][specimen][-1]
                 fit.name = rec['specimen_comp_name']
             else:
@@ -4917,7 +4923,7 @@ class Zeq_GUI(wx.Frame):
         self.update_fit_box()
         self.plot_higher_levels_data()
 
-    def add_fit(self,event):
+    def add_fit(self,event,select_new_fit=True):
         """
         add a new interpertation to the current specimen
         @param: event -> the wx.ButtonEvent that triggered this function
@@ -4928,7 +4934,8 @@ class Zeq_GUI(wx.Frame):
         next_fit = str(len(self.pmag_results_data['specimens'][self.s]) + 1)
         self.pmag_results_data['specimens'][self.s].append(Fit('Fit ' + next_fit, None, None, self.colors[(int(next_fit)-1) % len(self.colors)], self))
 #        print("New Fit for sample: " + str(self.s) + '\n' + reduce(lambda x,y: x+'\n'+y, map(str,self.pmag_results_data['specimens'][self.s]['fits'])))
-        self.new_fit()
+        if select_new_fit:
+            self.new_fit()
 
     def delete_fit(self,event):
         """
@@ -5240,7 +5247,6 @@ class EditFitFrame(wx.Frame):
         updates the logger and plot on the interpertation editor window
         @param: changed_interpertation_parameters -> if the logger should be whipped and completely recalculated from scratch or not (default = True)
         """
-
         if changed_interpertation_parameters:
             self.fit_list = []
             for specimen in self.specimens_list:
