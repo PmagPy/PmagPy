@@ -603,6 +603,7 @@ class ErMagicBuilder(object):
         self.remove_dict_key_if_present(self.Data_hierarchy['site_of_specimen'], spec_name)
         self.remove_dict_key_if_present(self.Data_hierarchy['location_of_specimen'], spec_name)
         self.remove_dict_key_if_present(self.data_er_specimens, spec_name)
+        return []
 
     def remove_sample(self, samp_name, samp_replacement=''):
         if samp_replacement:

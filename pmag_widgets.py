@@ -487,7 +487,7 @@ class hbox_grid(wx.BoxSizer):
         Create horizontal box with grid manipulation buttons and bindings.
         """
         super(hbox_grid, self).__init__(wx.HORIZONTAL)
-        self.deleteRowButton = wx.Button(parent, id=-1, label='Delete row(s)', name='delete_row_btn')
+        self.deleteRowButton = wx.Button(parent, id=-1, label='Delete selected row(s)', name='delete_row_btn')
         parent.Bind(wx.EVT_BUTTON, lambda event: delete_row_method(event, data_type), self.deleteRowButton)
         #parent.Bind(wx.grid.EVT_GRID_LABEL_LEFT_CLICK, lambda event: select_row_method(event, self.deleteRowButton), grid)
         self.deleteRowButton.Disable()

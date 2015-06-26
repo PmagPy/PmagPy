@@ -932,7 +932,7 @@ class MagicGrid(wx.grid.Grid):
 
     def __init__(self, parent, name, row_labels, col_labels, size=0):
         self.changes = None
-        self.row_labels = row_labels
+        self.row_labels = sorted(row_labels)
         self.col_labels = col_labels
         if not size:
             super(MagicGrid, self).__init__(parent, -1, name=name)
@@ -956,7 +956,7 @@ class MagicGrid(wx.grid.Grid):
         return data
 
     def add_data(self, data_dict):
-        for num, row in enumerate(self.row_labels):
+        for num, row in enumerate(sorted(self.row_labels)):
             if row:
                 for n, col in enumerate(self.col_labels[1:]):
                     if col in data_dict[row].keys():

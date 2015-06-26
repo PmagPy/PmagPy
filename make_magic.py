@@ -24,6 +24,8 @@ class MainFrame(wx.Frame):
         wx.GetDisplaySize()
         wx.Frame.__init__(self, None, wx.ID_ANY, name=name)
 
+
+
         self.panel = wx.Panel(self, size=wx.GetDisplaySize(), name='main panel')
         os.chdir(WD)
         self.WD = os.getcwd()
@@ -58,28 +60,28 @@ class MainFrame(wx.Frame):
                                       label=text, size=(300, 50), name='er_specimens_btn')
         self.btn1.SetBackgroundColour("#FDC68A")
         self.btn1.InitColours()
-        self.Bind(wx.EVT_BUTTON, self.make_grid, self.btn1)
+        self.Bind(wx.EVT_BUTTON, self.make_grid_frame, self.btn1)
 
         text = "Add sample data"
         self.btn2 = buttons.GenButton(self.panel, id=-1, label=text,
                                       size=(300, 50), name='er_samples_btn')
         self.btn2.SetBackgroundColour("#6ECFF6")
         self.btn2.InitColours()
-        self.Bind(wx.EVT_BUTTON, self.make_grid, self.btn2)
+        self.Bind(wx.EVT_BUTTON, self.make_grid_frame, self.btn2)
 
         text = "Add site data"
         self.btn3 = buttons.GenButton(self.panel, id=-1, label=text,
                                       size=(300, 50), name='er_sites_btn')
         self.btn3.SetBackgroundColour("#C4DF9B")
         self.btn3.InitColours()
-        self.Bind(wx.EVT_BUTTON, self.make_grid, self.btn3)
+        self.Bind(wx.EVT_BUTTON, self.make_grid_frame, self.btn3)
 
         text = "add location data"
         self.btn4 = buttons.GenButton(self.panel, id=-1, label=text,
                                       size=(300, 50), name='er_locations_btn')
         self.btn4.SetBackgroundColour("#FDC68A")
         self.btn4.InitColours()
-        self.Bind(wx.EVT_BUTTON, self.make_grid, self.btn4)
+        self.Bind(wx.EVT_BUTTON, self.make_grid_frame, self.btn4)
 
 
         text = "add age data"
@@ -87,7 +89,7 @@ class MainFrame(wx.Frame):
                                       size=(300, 50), name='er_ages_btn')
         self.btn5.SetBackgroundColour("#6ECFF6")
         self.btn5.InitColours()
-        self.Bind(wx.EVT_BUTTON, self.make_grid, self.btn5)
+        self.Bind(wx.EVT_BUTTON, self.make_grid_frame, self.btn5)
 
         bsizer1a = wx.BoxSizer(wx.VERTICAL)
         bsizer1a.AddSpacer(20)
@@ -165,7 +167,7 @@ class MainFrame(wx.Frame):
             self.dir_path.SetValue(self.WD)
         change_dir_dialog.Destroy()
 
-    def make_grid(self, event):
+    def make_grid_frame(self, event):
         """
         Create a GridFrame for data type of the button that was clicked
         """
@@ -191,9 +193,14 @@ class GridFrame(wx.Frame):
     make_magic
     """
 
-    def __init__(self, ErMagic, WD=None, frame_name="grid frame", panel_name="grid panel", parent=None):
+    def __init__(self, ErMagic, WD=None, frame_name="grid frame",
+                 panel_name="grid panel", parent=None):
         wx.GetDisplaySize()
         wx.Frame.__init__(self, parent=parent, id=wx.ID_ANY, name=frame_name)
+
+        self.deleteRowButton = None
+        self.selected_rows = set()
+
         self.ErMagic = ErMagic
         self.panel = wx.Panel(self, name=panel_name, size=wx.GetDisplaySize())
         self.grid_type = panel_name
@@ -239,6 +246,9 @@ class GridFrame(wx.Frame):
         many_rows_box.Add(self.rows_spin_ctrl)
         self.Bind(wx.EVT_BUTTON, self.on_add_rows, self.add_many_rows_button)
 
+        hbox_grid = pw.hbox_grid(self.panel, self.on_remove_row, self.panel.Name, self.grid)
+        self.deleteRowButton = hbox_grid.deleteRowButton
+
         self.msg_boxsizer = wx.StaticBoxSizer(wx.StaticBox(self.panel, -1), wx.VERTICAL)
         self.msg_text = wx.StaticText(self.panel, label='msg text',
                                       style=wx.TE_CENTER, name='msg text')
@@ -252,11 +262,14 @@ class GridFrame(wx.Frame):
         col_btn_vbox.Add(self.remove_cols_button, flag=wx.ALL, border=5)
         row_btn_vbox.Add(many_rows_box, flag=wx.ALL, border=5)
         row_btn_vbox.Add(self.remove_row_button, flag=wx.ALL, border=5)
+        row_btn_vbox.Add(hbox_grid)
         hbox.Add(col_btn_vbox)
         hbox.Add(row_btn_vbox)
 
+        self.panel.Bind(wx.grid.EVT_GRID_LABEL_LEFT_CLICK, self.onLeftClickLabel, self.grid)
+
         #  Add appropriate number of rows
-        rows = self.grid_data_dict[self.grid_type].keys()
+        rows = sorted(self.grid_data_dict[self.grid_type].keys())
         for row in rows:
             self.grid.add_row(row)
 
@@ -353,11 +366,41 @@ class GridFrame(wx.Frame):
             self.grid.add_row()
         self.main_sizer.Fit(self)
 
-    def on_remove_row(self, event):
+    def on_remove_row(self, event, row_num=-1):
         """
-        remove the last row in the grid
+        Remove specified grid row.
+        If no row number is given, remove the last row.
         """
-        self.grid.remove_row()
+        data_type = self.Name
+        if row_num == -1:
+            default = (255, 255, 255, 255)
+            # unhighlight any selected rows:
+            for row in self.selected_rows:
+                attr = wx.grid.GridCellAttr()
+                attr.SetBackgroundColour(default)
+                self.grid.SetRowAttr(row, attr)
+            row_num = self.grid.GetNumberRows() - 1
+            self.deleteRowButton.Disable()
+            self.selected_rows = {row_num}
+            
+        #else:
+        function_mapping = {'er_specimens': self.ErMagic.remove_specimen,
+                            'er_samples': self.ErMagic.remove_sample,
+                            'er_sites': self.ErMagic.remove_site,
+                            'er_locations': self.ErMagic.remove_location}
+        ancestry = ['er_specimens', 'er_samples', 'er_sites', 'er_locations']
+        child_type = ancestry[ancestry.index(data_type) - 1]
+        names = [self.grid.GetCellValue(row, 0) for row in self.selected_rows]
+        orphans = []
+        for name in names:
+            row = self.grid.row_labels.index(name)
+            orphans.extend(function_mapping[data_type](name))
+            self.grid.remove_row(row)
+        self.selected_rows = set()
+
+        self.deleteRowButton.Disable()
+        self.grid.Refresh()
+
         self.main_sizer.Fit(self)
 
     def exit_col_remove_mode(self, event):
@@ -378,6 +421,47 @@ class GridFrame(wx.Frame):
         # re-bind self.remove_cols_button
         self.Bind(wx.EVT_BUTTON, self.on_remove_cols, self.remove_cols_button)
         self.remove_cols_button.SetLabel("Remove columns")
+
+
+    def onSelectRow(self, event):
+        """
+        Highlight or unhighlight a row for possible deletion.
+        """
+        grid = self.grid
+        row = event.Row
+        default = (255, 255, 255, 255)
+        highlight = (191, 216, 216, 255)
+        cell_color = grid.GetCellBackgroundColour(row, 0)
+        attr = wx.grid.GridCellAttr()
+        if cell_color == default:
+            attr.SetBackgroundColour(highlight)
+            self.selected_rows.add(row)
+        else:
+            attr.SetBackgroundColour(default)
+            try:
+                self.selected_rows.remove(row)
+            except KeyError:
+                pass
+        if self.selected_rows and self.deleteRowButton:
+            self.deleteRowButton.Enable()
+        else:
+            self.deleteRowButton.Disable()
+        grid.SetRowAttr(row, attr)
+        grid.Refresh()
+
+    def onLeftClickLabel(self, event):
+        """
+        When user clicks on a grid label, determine if it is a row label or a col label.
+        Pass along the event to the appropriate function.
+        (It will either highlight a column for editing all values, or highlight a row for deletion).
+        """
+        if event.Col == -1 and event.Row == -1:
+            pass
+        elif event.Col < 0:
+            self.onSelectRow(event)
+        #elif event.Row < 0:
+        #    self.drop_down_menu.on_label_click(event)
+
 
 
 if __name__ == "__main__":
