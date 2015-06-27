@@ -818,9 +818,13 @@ You may use the drop-down menus to add as many values as needed in these columns
             pw.simple_warning('You have deleted:\n\n  {}\n\nthe parent(s) of {}(s):\n\n  {}\n\n{}'.format(', '.join(names), child_type, ', '.join(orphans), how_to_fix))
 
         self.selected_rows = set()
-        
+
+        # update grid and data model
+        self.update_grid(self.grid)#, grids[grid_name])
+        self.ErMagic_data.update_ErMagic()
+
         self.grid.Refresh()
-        
+
 
 
     def onLeftClickLabel(self, event):
