@@ -1201,7 +1201,7 @@ class Zeq_GUI(wx.Frame):
 
         self.zij_xy_points, = self.zijplot.plot(self.CART_rot_good[:,0], -1*self.CART_rot_good[:,1], 'ro-', mfc=self.dec_MFC, mec=self.dec_MEC, markersize=self.MS, clip_on=False, picker=True) #x,y or N,E
         self.zij_xz_points, = self.zijplot.plot(self.CART_rot_good[:,0], -1*self.CART_rot_good[:,2], 'bs-', mfc=self.inc_MFC, mec=self.inc_MEC, markersize=self.MS, clip_on=False, picker=True) #x-z or N,D
-        
+
         for i in range(len( self.CART_rot_bad)):
             self.zijplot.plot(self.CART_rot_bad[:,0][i],-1* self.CART_rot_bad[:,1][i],'o',mfc='None',mec=self.dec_MEC,markersize=self.MS,clip_on=False,picker=False) #x,y or N,E
             self.zijplot.plot(self.CART_rot_bad[:,0][i],-1 * self.CART_rot_bad[:,2][i],'s',mfc='None',mec=self.inc_MEC,markersize=self.MS,clip_on=False,picker=False) #x-z or N,D
@@ -1214,25 +1214,26 @@ class Zeq_GUI(wx.Frame):
             for i in range(len(self.zijdblock_steps)):
                 if int(self.preferences['show_Zij_treatments_steps']) !=1:
                     if i!=0  and (i+1)%int(self.preferences['show_Zij_treatments_steps'])==0:
-                        self.zijplot.text(self.CART_rot[i][0],-1*self.CART_rot[i][2],"  %s"%(self.zijdblock_steps[i]),fontsize=10*self.GUI_RESOLUTION,color='gray',ha='left',va='center')   #inc
+                        self.zijplot.text(self.CART_rot[i][0], -1*self.CART_rot[i][2], "  %s"%(self.zijdblock_steps[i]), fontsize=10*self.GUI_RESOLUTION, color='gray', ha='left', va='center')   #inc
                 else:
-                  self.zijplot.text(self.CART_rot[i][0],-1*self.CART_rot[i][2],"  %s"%(self.zijdblock_steps[i]),fontsize=10*self.GUI_RESOLUTION,color='gray',ha='left',va='center')   #inc
+                  self.zijplot.text(self.CART_rot[i][0], -1*self.CART_rot[i][2], "  %s"%(self.zijdblock_steps[i]), fontsize=10*self.GUI_RESOLUTION, color='gray', ha='left', va='center')   #inc
 
         #-----
+
         xmin, xmax = self.zijplot.get_xlim()
-        if xmax <0:
+        if xmax < 0:
             xmax=0
-        if xmin>0:
+        if xmin > 0:
             xmin=0
         #else:
         #    xmin=xmin+xmin%0.2
+
         props = dict(color='black', linewidth=1.0, markeredgewidth=0.5)
 
         xlocs=array(list(arange(0.2,xmax,0.2)) + list(arange(-0.2,xmin,-0.2)))
         if len(xlocs)>0:
             xtickline, = self.zijplot.plot(xlocs, [0]*len(xlocs),linestyle='',marker='+', **props)
             xtickline.set_clip_on(False)
-                
 
         axxline, = self.zijplot.plot([xmin, xmax], [0, 0], **props)
         axxline.set_clip_on(False)
@@ -1254,30 +1255,29 @@ class Zeq_GUI(wx.Frame):
         #-----
 
         ymin, ymax = self.zijplot.get_ylim()
-        if ymax <0:
+        if ymax < 0:
             ymax=0
-        if ymin>0:
+        if ymin > 0:
             ymin=0
- 
+
         ylocs=array(list(arange(0.2,ymax,0.2)) + list(arange(-0.2,ymin,-0.2)))
         if len(ylocs)>0:
             ytickline, = self.zijplot.plot([0]*len(ylocs),ylocs, linestyle='',marker='+', **props)
             ytickline.set_clip_on(False)
-       
+
         axyline, = self.zijplot.plot([0, 0],[ymin, ymax], **props)
         axyline.set_clip_on(False)
 
         TEXT1,TEXT2="",""
         if self.COORDINATE_SYSTEM=='specimen':
-                TEXT1,TEXT2=" y","      z"  
-            #self.zijplot.text(0,ymin,' y,z',fontsize=10,verticalalignment='top')
+                TEXT1,TEXT2=" y","      z"
         else:
             if self.ORTHO_PLOT_TYPE=='N-S':
                 TEXT1,TEXT2=" E","     D"
             elif self.ORTHO_PLOT_TYPE=='E-W':
                 TEXT1,TEXT2=" S","     D"
             else:
-                TEXT1,TEXT2=" y","      z"  
+                TEXT1,TEXT2=" y","      z"
         self.zijplot.text(0,ymin,TEXT1,fontsize=10,color='r',verticalalignment='top')
         self.zijplot.text(0,ymin,'    ,',fontsize=10,color='k',verticalalignment='top')
         self.zijplot.text(0,ymin,TEXT2,fontsize=10,color='b',verticalalignment='top')
@@ -1292,29 +1292,28 @@ class Zeq_GUI(wx.Frame):
             STRING=""
             #STRING1="E-W orthogonal plot"
             self.fig1.text(0.01,0.98,"Zijderveld plot:: x = East",{'family':'Arial', 'fontsize':10*self.GUI_RESOLUTION, 'style':'normal','va':'center', 'ha':'left' })
-        
+
         elif self.ORTHO_PLOT_TYPE=='PCA_dec':
             self.fig1.text(0.01,0.98,"Zijderveld plot",{'family':'Arial', 'fontsize':10*self.GUI_RESOLUTION, 'style':'normal','va':'center', 'ha':'left' })
             if 'specimen_dec' in self.current_fit.pars.keys() and type(self.current_fit.pars['specimen_dec'])!=str:
                 STRING="X-axis rotated to best fit line declination (%.0f); "%(self.current_fit.pars['specimen_dec'])
             else:
                 STRING="X-axis rotated to NRM (%.0f); "%(self.zijblock[0][1])
-                
         else:
             self.fig1.text(0.01,0.98,"Zijderveld plot",{'family':'Arial', 'fontsize':10*self.GUI_RESOLUTION, 'style':'normal','va':'center', 'ha':'left' })
             STRING="X-axis rotated to NRM (%.0f); "%(self.zijblock[0][1])
             #STRING1="Zijderveld plot"
-         
-        
+
+
         STRING=STRING+"NRM=%.2e "%(self.zijblock[0][3])+ 'Am^2'        
         self.fig1.text(0.01,0.95,STRING, {'family':'Arial', 'fontsize':8*self.GUI_RESOLUTION, 'style':'normal','va':'center', 'ha':'left' })
-        
+
         xmin, xmax = self.zijplot.get_xlim()
         ymin, ymax = self.zijplot.get_ylim()
-        
+
         self.zij_xlim_initial=(xmin, xmax)
         self.zij_ylim_initial=(ymin, ymax)
-                
+
         self.canvas1.draw()
         #-----------------------------------------------------------
         # specimen equal area
@@ -1323,7 +1322,6 @@ class Zeq_GUI(wx.Frame):
         self.specimen_eqarea.clear()
         self.specimen_eqarea_interpretation.clear()
         self.specimen_eqarea.text(-1.2,1.15,"specimen: %s"%self.s,{'family':'Arial', 'fontsize':10*self.GUI_RESOLUTION, 'style':'normal','va':'center', 'ha':'left' })
-
 
         x_eq=array([row[0] for row in self.zij_norm])
         y_eq=array([row[1] for row in self.zij_norm])
@@ -2336,8 +2334,8 @@ class Zeq_GUI(wx.Frame):
                 fit.lines[0] = self.zijplot.lines[-2]
                 fit.lines[1] = self.zijplot.lines[-1]
 
-                self.zijplot.set_xlim(xmin=self.zij_xlim_initial[0],xmax=self.zij_xlim_initial[1])
-                self.zijplot.set_ylim(ymin=self.zij_ylim_initial[0],ymax=self.zij_ylim_initial[1])
+#                self.zijplot.set_xlim(xmin=self.zij_xlim_initial[0],xmax=self.zij_xlim_initial[1])
+#                self.zijplot.set_ylim(ymin=self.zij_ylim_initial[0],ymax=self.zij_ylim_initial[1])
         
             # Equal Area plot
             self.toolbar2.home()
@@ -2512,6 +2510,7 @@ class Zeq_GUI(wx.Frame):
                     fit_min = fit_max+1
 
         self.s = self.specimens[0]
+        self.specimens_box.SetSelection(0)
 
         if self.pmag_results_data['specimens'][self.s]:
             self.current_fit = self.pmag_results_data['specimens'][self.s][-1]
@@ -5171,7 +5170,7 @@ class EditFitFrame(wx.Frame):
         self.Bind(wx.EVT_BUTTON, self.parent.add_fit, self.add_fit_button)
 
         self.delete_fit_button = wx.Button(self.panel, id=-1, label='delete highlighted fits',size=(225*self.GUI_RESOLUTION,h_size_buttons))
-        self.delete_fit_button.SetFont(font2)
+        self.delete_fit_button.SetFont(font1)
         self.Bind(wx.EVT_BUTTON, self.delete_highlighted_fits, self.delete_fit_button)
 
         self.apply_changes_button = wx.Button(self.panel, id=-1, label='apply changes to highlighted fits',size=(225*self.GUI_RESOLUTION,h_size_buttons))
