@@ -5350,7 +5350,10 @@ class EditFitFrame(wx.Frame):
         fit = self.fit_list[i][0]
         if fit in self.parent.bad_fits:
             self.parent.bad_fits.remove(fit)
-            self.logger.SetItemBackgroundColour(i,"WHITE")
+            if i == self.current_fit_index:
+                self.logger.SetItemBackgroundColour(i,"LIGHT BLUE")
+            else:
+                self.logger.SetItemBackgroundColour(i,"WHITE")
         else:
             self.parent.bad_fits.append(fit)
             if i == self.current_fit_index:
