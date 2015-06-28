@@ -2760,11 +2760,12 @@ class Zeq_GUI(wx.Frame):
         else:
             for mode in ['A','B','All']:
                 print mode
-                for key in mpars[mode].keys():
-                    try:
-                        mpars[mode][key]=float(mpars[mode][key])
-                    except:
-                        pass
+                if mode in mpars.keys():
+                    for key in mpars[mode].keys():
+                        try:
+                            mpars[mode][key]=float(mpars[mode][key])
+                        except KeyError:
+                            pass
         mpars['calculation_type']=calculation_type
 
         return(mpars)
@@ -2850,7 +2851,8 @@ class Zeq_GUI(wx.Frame):
         if self.mean_fit == 'All':
             fits = self.pmag_results_data['specimens'][specimen]
         elif self.mean_fit != 'None' and self.mean_fit != None:
-            if self.mean_fit not in map(lambda x: x.name, self.pmag_results_data['specimens'][self.s]):
+            if self.s not in self.pmag_results_data['specimens'] or \
+self.mean_fit not in map(lambda x: x.name, self.pmag_results_data['specimens'][self.s]):
                 self.mean_fit_box.SetStringSelection('None')
                 self.mean_fits = 'None'
             else:
@@ -5151,13 +5153,13 @@ class EditFitFrame(wx.Frame):
         self.Bind(wx.EVT_COMBOBOX, self.on_select_mean_fit_box,self.mean_fit_box)
 
         #bounds select boxes
-        self.tmin_box = wx.ComboBox(self.panel, -1, size=(100*self.GUI_RESOLUTION, 25), choices=self.parent.T_list, style=wx.CB_DROPDOWN, name="lower bound")
+        self.tmin_box = wx.ComboBox(self.panel, -1, size=(100*self.GUI_RESOLUTION, 25), choices=[''] + self.parent.T_list, style=wx.CB_DROPDOWN, name="lower bound")
 
-        self.tmax_box = wx.ComboBox(self.panel, -1, size=(100*self.GUI_RESOLUTION, 25), choices=self.parent.T_list, style=wx.CB_DROPDOWN, name="upper bound")
+        self.tmax_box = wx.ComboBox(self.panel, -1, size=(100*self.GUI_RESOLUTION, 25), choices=[''] + self.parent.T_list, style=wx.CB_DROPDOWN, name="upper bound")
 
         #color and name box
         self.color_dict = {'green':'g','yellow':'y','maroon':'m','cyan':'c','black':'k','white':'w'}
-        self.color_box = wx.ComboBox(self.panel, -1, size=(100*self.GUI_RESOLUTION, 25), choices=self.color_dict.keys(), style=wx.CB_DROPDOWN, name="color")
+        self.color_box = wx.ComboBox(self.panel, -1, size=(100*self.GUI_RESOLUTION, 25), choices=[''] + self.color_dict.keys(), style=wx.CB_DROPDOWN, name="color")
 
         self.name_box = wx.TextCtrl(self.panel, -1, size=(100*self.GUI_RESOLUTION, 25), style=wx.HSCROLL, name="name")
 
@@ -5456,6 +5458,7 @@ class EditFitFrame(wx.Frame):
             specimen = self.fit_list[next_i][1]
             fit = self.fit_list[next_i][0]
             self.parent.pmag_results_data['specimens'][specimen].remove(fit)
+            self.logger.DeleteItem(next_i)
         self.parent.update_selection()
         
 
