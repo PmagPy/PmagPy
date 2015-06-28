@@ -1,0 +1,4 @@
+tab	er_sites
+er_citation_names	er_site_name	er_location_name	site_class	site_lithology	site_type	site_definition	site_lon	site_lat
+This study	MGH1	locale				s		
+This study	Z35.	locale				s	95.4	47.1

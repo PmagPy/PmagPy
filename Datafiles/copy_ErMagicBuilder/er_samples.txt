@@ -1,0 +1,10 @@
+tab	er_samples
+er_citation_names	er_sample_name	er_site_name	er_location_name	sample_class	sample_lithology	sample_type	sample_lat	sample_lon	sample_bed_dip_direction	sample_azimuth	sample_bed_dip	sample_height	sample_declination_correction	magic_method_codes	sample_dip
+This study	MGH1	MGH1	locale												
+This study	Z35.1	MGH1	locale				47.1	95.4	444.5	23.5	55.0	148.16	0.5	SO-CMD-NORTH	-83.0
+This study	Z35.2	Z35.	locale				47.1	95.4	444.5	79.5	55.0	148.22	0.5	SO-CMD-NORTH	-37.0
+This study	Z35.3	Z35.	locale				47.1	95.4	444.5	41.5	55.0	148.32	0.5	SO-CMD-NORTH	-31.0
+This study	Z35.4	Z35.	locale				47.1	95.4	444.5	56.5	55.0	248.23	0.5	SO-CMD-NORTH	-50.0
+This study	Z35.5	Z35.	locale				47.1	95.4	444.5	5.5	55.0	148.25	0.5	SO-CMD-NORTH	-82.0
+This study	Z35.6	Z35.	locale				47.1	95.4	444.5	2.5	55.0	148.26	0.5	SO-CMD-NORTH	-20.0
+This study	Z35.7	Z35.	locale				47.1	95.4	444.5	14.5	55.0	148.35	0.5	SO-CMD-NORTH	-22.0

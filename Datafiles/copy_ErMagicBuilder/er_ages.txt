@@ -1,0 +1,4 @@
+tab	er_ages
+er_citation_names	er_site_name	er_location_name	age_description	magic_method_codes	age	age_unit
+This study	MGH1	locale		GM-ARAR	3	Ga
+This study	Z35.	locale		GM-ARAR	3	Ma
