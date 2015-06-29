@@ -5,6 +5,7 @@ tests for make_magic
 import wx
 import unittest
 import os
+import ErMagicBuilder
 import make_magic
 
 WD = os.getcwd()
@@ -30,28 +31,28 @@ class TestMakeMagicMainFrame(unittest.TestCase):
         self.assertEqual("main panel", str(self.pnl.GetName()))
 
     def test_specimen_button(self):
-        window = self.does_top_window_exist(self.pnl, 'er_specimens_btn', 'er_specimens')
+        window = self.does_top_window_exist(self.pnl, 'specimen_btn', 'specimen')
         self.assertTrue(window, 'er_specimens grid window was not created')
         self.assertIsInstance(window, make_magic.GridFrame)
         self.assertTrue(window.IsEnabled())
         self.assertTrue(window.IsShown())
 
     def test_sample_button(self):
-        window = self.does_top_window_exist(self.pnl, 'er_samples_btn', 'er_samples')
+        window = self.does_top_window_exist(self.pnl, 'sample_btn', 'sample')
         self.assertTrue(window, 'er_samples grid window was not created')
         self.assertIsInstance(window, make_magic.GridFrame)
         self.assertTrue(window.IsEnabled())
         self.assertTrue(window.IsShown())
 
     def test_site_button(self):
-        window = self.does_top_window_exist(self.pnl, 'er_sites_btn', 'er_sites')
+        window = self.does_top_window_exist(self.pnl, 'site_btn', 'site')
         self.assertTrue(window, 'er_sites grid window was not created')
         self.assertIsInstance(window, make_magic.GridFrame)
         self.assertTrue(window.IsEnabled())
         self.assertTrue(window.IsShown())
 
     def test_location_button(self):
-        window = self.does_top_window_exist(self.pnl, 'er_locations_btn', 'er_locations')
+        window = self.does_top_window_exist(self.pnl, 'location_btn', 'location')
         self.assertTrue(window, 'er_locations grid window was not created')
         self.assertIsInstance(window, make_magic.GridFrame)
         self.assertTrue(window.IsEnabled())
@@ -59,7 +60,7 @@ class TestMakeMagicMainFrame(unittest.TestCase):
 
 
     def test_ages_button(self):
-        window = self.does_top_window_exist(self.pnl, 'er_ages_btn', 'er_ages')
+        window = self.does_top_window_exist(self.pnl, 'age_btn', 'age')
         self.assertTrue(window, 'er_ages grid window was not created')
         self.assertIsInstance(window, make_magic.GridFrame)
         self.assertTrue(window.IsEnabled())
@@ -117,7 +118,10 @@ class TestMakeMagicGridFrame(unittest.TestCase):
 
     def setUp(self):
         self.app = wx.App()
-        self.frame = make_magic.GridFrame(WD, "er_specimens", "er_specimens")
+        #self.grid = GridFrame(self.ErMagic, self.WD, grid_type, grid_type, self.panel)
+        ErMagic = ErMagicBuilder.ErMagicBuilder(WD)
+        ErMagic.init_default_headers()
+        self.frame = make_magic.GridFrame(ErMagic, WD, "specimen", "specimen")
         self.pnl = self.frame.GetChildren()[0]
 
     def tearDown(self):

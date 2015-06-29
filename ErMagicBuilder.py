@@ -372,11 +372,12 @@ class ErMagicBuilder(object):
         old_sample = self.change_dict_key(self.Data_hierarchy['sample_of_specimen'], new_specimen_name, old_specimen_name)
 
         # fix samples
-        if old_specimen_name in self.Data_hierarchy['samples'][sample]:
-            self.Data_hierarchy['samples'][sample].remove(old_specimen_name)
-        else:
-            self.Data_hierarchy['samples'][old_sample].remove(old_specimen_name)
-        self.Data_hierarchy['samples'][sample].append(new_specimen_name)
+        if sample in self.Data_hierarchy['samples']:
+            if old_specimen_name in self.Data_hierarchy['samples'][sample]:
+                self.Data_hierarchy['samples'][sample].remove(old_specimen_name)
+            else:
+                self.Data_hierarchy['samples'][old_sample].remove(old_specimen_name)
+            self.Data_hierarchy['samples'][sample].append(new_specimen_name)
 
         # fix site_of_specimen
         site = self.change_dict_key(self.Data_hierarchy['site_of_specimen'], new_specimen_name, old_specimen_name)
@@ -1130,18 +1131,17 @@ class ErMagicBuilder(object):
 
 class MagIC_model_builder(wx.Frame):
     """"""
- 
     #----------------------------------------------------------------------
     def __init__(self, WD, parent, ErMagic_data=None):
         SIZE = wx.DisplaySize()
-        SIZE = (SIZE[0]-0.05*SIZE[0],SIZE[1]-0.05*SIZE[1])
+        SIZE = (SIZE[0] *.95, SIZE[1] * .95)
 
         wx.Frame.__init__(self, parent, wx.ID_ANY, size=SIZE, name='ErMagicBuilder')
         #self.panel = wx.Panel(self)
         self.main_frame = self.Parent
         self.panel = wx.ScrolledWindow(self)
         self.panel.SetScrollbars(1, 1, 1, 1)
-        
+
         os.chdir(WD)
         self.WD = os.getcwd()
         self.site_lons = []

@@ -177,7 +177,6 @@ class MainFrame(wx.Frame):
             grid_type = event.GetButtonObj().Name[:-4] # remove '_btn'
         except AttributeError:
             grid_type = self.FindWindowById(event.Id).Name[:-4] # remove ('_btn')
-        print 'grid_type before initing GridFrame', grid_type
         self.grid = GridFrame(self.ErMagic, self.WD, grid_type, grid_type, self.panel)
 
         #self.on_finish_change_dir(self.change_dir_dialog)
@@ -214,8 +213,12 @@ class GridFrame(wx.Frame):
             self.child_type = 'sample'
             self.parent_type = 'location'
         else:
-            self.child_type = ancestry[ancestry.index(self.grid_type) - 1]
-            self.parent_type = ancestry[ancestry.index(self.grid_type) + 1]
+            try:
+                self.child_type = ancestry[ancestry.index(self.grid_type) - 1]
+                self.parent_type = ancestry[ancestry.index(self.grid_type) + 1]
+            except ValueError:
+                self.child_type = None
+                self.parent_type = None
 
         self.WD = WD
         self.InitUI()
