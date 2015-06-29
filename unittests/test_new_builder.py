@@ -38,35 +38,38 @@ class TestBuilder(unittest.TestCase):
         specimen2 = builder.Specimen('b', 'specimen', self.data1.data_model)
         specimen3 = builder.Specimen('c', 'specimen', self.data1.data_model)
         lst = [specimen, specimen2]
-        self.assertFalse(self.data1.find_by_name(lst, 'c'))
-        self.assertTrue(self.data1.find_by_name(lst, 'b'))
+        self.assertFalse(self.data1.find_by_name('c', lst))
+        self.assertTrue(self.data1.find_by_name('b', lst))
 
     def test_update_specimen(self):
         specimen_name = 'Z35.6a'
         sample_name = 'Z35.6'
         site_name = 'Z35.'
         location_name = 'locale'
-        print 'self.data1.specimens', self.data1.specimens
-        for spec in self.data1.specimens:
-            print type(spec)
-        specimen = self.data1.find_by_name(self.data1.specimens, specimen_name)
-        self.data1.change_specimen(specimen, 'new_specimen', new_sample=None, new_specimen_data={})
+        self.data1.change_specimen(specimen_name, 'new_specimen', new_sample_name=None, new_specimen_data={})
 
-        # test Data_hierarchy
-        #specimen_object = self.data1.find_by_name('new specimen', self.data1.specimens)
+        specimen = self.data1.find_by_name('new_specimen', self.data1.specimens)
         self.assertTrue(specimen)
         self.assertIn('new_specimen', [spec.name for spec in self.data1.specimens])
         self.assertEqual(sample_name, specimen.sample.name)
         self.assertEqual(site_name, specimen.sample.site.name)
         self.assertEqual(location_name, specimen.sample.site.location.name)
-        #self.assertEqual(sample, self.data1.Data_hierarchy['sample_of_specimen']['new_specimen'])
-        #self.assertIn('new_specimen', self.data1.Data_hierarchy['samples'][sample])
-        #self.assertIn('new_specimen', self.data1.Data_hierarchy['site_of_specimen'].keys())
-        #self.assertEqual(site, self.data1.Data_hierarchy['site_of_specimen']['new_specimen'])
-        #self.assertIn('new_specimen', self.data1.Data_hierarchy['location_of_specimen'].keys())
-        #self.assertEqual(location, self.data1.Data_hierarchy['location_of_specimen']['new_specimen'])
 
-        # test data_er_specimens
-        #self.assertIn('new_specimen', self.data1.data_er_specimens.keys())
-        #self.assertEqual('new_specimen', self.data1.data_er_specimens['new_specimen']['er_specimen_name'])
-
+    def test_update_specimen_change_sample(self):
+        specimen_name = 'Z35.6a'
+        sample_name = 'Z35.6'
+        site_name = 'Z35.'
+        location_name = 'locale'
+        new_sample_name = 'Z35.2'
+        sample = self.data1.find_by_name(new_sample_name, self.data1.samples)
+        self.data1.change_specimen(specimen_name, specimen_name, new_sample_name, new_specimen_data={'er_sample_name': 'Z35.5'})
+        
+        specimen = self.data1.find_by_name(specimen_name, self.data1.specimens)
+        self.assertTrue(specimen)
+        self.assertEqual(specimen.sample.name, new_sample_name)
+        old_sample = self.data1.find_by_name(sample_name, self.data1.samples)
+        new_sample = self.data1.find_by_name(new_sample_name, self.data1.samples)
+        self.assertTrue(old_sample)
+        self.assertNotIn(specimen, old_sample.specimens)
+        self.assertTrue(new_sample)
+        self.assertIn(specimen, new_sample.specimens)

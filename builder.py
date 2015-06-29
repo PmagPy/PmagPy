@@ -22,24 +22,35 @@ class ErMagicBuilder(object):
         self.data_model = validate_upload.get_data_model()
 
 
-    def find_by_name(self, items_list, item_name):
+    def find_by_name(self, item_name, items_list):
         """
         Return item from items_list with name item_name.
         """
-        #print '--'
         names = [item.name for item in items_list]
-        #print 'items list', items_list
-        #print 'items name', names
         if item_name in names:
             ind = names.index(item_name)
-            #print 'ind', ind
-            #print '--'
             return items_list[ind]
-        else:
-            print item_name, 'not in ', names
         return False
 
-    def change_specimen(self, specimen, new_spec_name, new_sample=None, new_specimen_data={}):
+    def change_specimen(self, old_spec_name, new_spec_name, new_sample_name=None, new_specimen_data={}):
+        """
+        Find actual data objects for specimen and sample.
+        Then call specimen class change method. 
+        """
+        specimen = self.find_by_name(old_spec_name, self.specimens)
+        if new_sample_name:
+            new_sample = self.find_by_name(new_sample_name, self.samples)
+        else:
+            new_sample = None
+        specimen.change_specimen(new_spec_name, new_sample, new_specimen_data)
+
+    def change_sample(self, sample, new_name, new_site=None, new_sample_data={}):
+        pass
+
+    def change_site(self, site, new_name, new_location=None, new_site_data={}):
+        pass
+
+    def change_location(self, location, new_name, new_site_data={}):
         pass
         
     #def find_all_children(self, parent_item):
@@ -77,32 +88,32 @@ class ErMagicBuilder(object):
             location_name = rec["er_location_name"]
 
             # add items and parents
-            location = self.find_by_name(self.locations, location_name)
+            location = self.find_by_name(location_name, self.locations)
             if not location:
                 location = Location(location_name, 'location', self.data_model)
                 self.locations.append(location)
-            site = self.find_by_name(self.sites, site_name)
+            site = self.find_by_name(site_name, self.sites)
             if not site:
                 site = Site(site_name, 'site', self.data_model)
                 self.sites.append(site)
                 site.location = location
-            sample = self.find_by_name(self.samples, sample_name)
+            sample = self.find_by_name(sample_name, self.samples)
             if not sample:
                 sample = Sample(sample_name, 'sample', self.data_model)
                 sample.site = site
                 self.samples.append(sample)
-            specimen = self.find_by_name(self.specimens, specimen_name)
+            specimen = self.find_by_name(specimen_name, self.specimens)
             if not specimen:
                 specimen = Specimen(specimen_name, 'specimen', self.data_model)
                 specimen.sample = sample
                 self.specimens.append(specimen)
 
             # add child_items
-            if not self.find_by_name(sample.specimens, specimen_name):
+            if not self.find_by_name(specimen_name, sample.specimens):
                 sample.specimens.append(specimen)
-            if not self.find_by_name(site.samples, sample_name):
+            if not self.find_by_name(sample_name, site.samples):
                 site.samples.append(sample)
-            if not self.find_by_name(location.sites, site_name):
+            if not self.find_by_name(site_name, location.sites):
                 location.sites.append(site)
 
 
@@ -177,7 +188,9 @@ class Specimen(Pmag_object):
     def change_specimen(self, new_name, new_sample=None, data_dict=None):
         self.name = new_name
         if new_sample:
+            self.sample.specimens.remove(self)
             self.sample = new_sample
+            self.sample.specimens.append(self)
         if data_dict:
             self.combine_dicts(data_dict, self.data)
 
@@ -195,7 +208,6 @@ class Sample(Pmag_object):
         self.data = {}
 
     def change_sample(self, new_name, new_site=None, data_dict=None):
-
         # maybe make this a Pmag_object method
         self.name = new_name
         if new_site:
@@ -259,6 +271,3 @@ if __name__ == '__main__':
     for site in builder.sites:
         print site, site.samples
         print '--'
-
-
-
