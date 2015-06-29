@@ -73,3 +73,14 @@ class TestBuilder(unittest.TestCase):
         self.assertNotIn(specimen, old_sample.specimens)
         self.assertTrue(new_sample)
         self.assertIn(specimen, new_sample.specimens)
+
+    def test_delete_specimen(self):
+        specimen_name = 'Z35.6a'
+        sample_name = 'Z35.6'
+        self.data1.delete_specimen(specimen_name)
+
+        specimen = self.data1.find_by_name(specimen_name, self.data1.specimens)
+        sample = self.data1.find_by_name(sample_name, self.data1.samples)
+        self.assertFalse(specimen)
+        self.assertTrue(sample)
+        self.assertNotIn(specimen, sample.specimens)

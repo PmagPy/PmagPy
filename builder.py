@@ -44,6 +44,13 @@ class ErMagicBuilder(object):
             new_sample = None
         specimen.change_specimen(new_spec_name, new_sample, new_specimen_data)
 
+    def delete_specimen(self, spec_name):
+        specimen = self.find_by_name(spec_name, self.specimens)
+        sample = specimen.sample
+        sample.specimens.remove(specimen)
+        self.specimens.remove(specimen)
+        del specimen
+
     def change_sample(self, sample, new_name, new_site=None, new_sample_data={}):
         pass
 
@@ -193,6 +200,10 @@ class Specimen(Pmag_object):
             self.sample.specimens.append(self)
         if data_dict:
             self.combine_dicts(data_dict, self.data)
+
+    def delete_specimen(self):
+        pass
+            
 
 class Sample(Pmag_object):
 
