@@ -84,3 +84,64 @@ class TestBuilder(unittest.TestCase):
         self.assertFalse(specimen)
         self.assertTrue(sample)
         self.assertNotIn(specimen, sample.specimens)
+
+    def test_update_sample(self):
+        specimen_name = 'Z35.6a'
+        sample_name = 'Z35.6'
+        site_name = 'Z35.'
+        location_name = 'locale'
+        self.data1.change_sample(sample_name, 'new_sample', new_site_name=None, new_sample_data={})
+
+        specimen = self.data1.find_by_name(specimen_name, self.data1.specimens)
+        sample = self.data1.find_by_name('new_sample', self.data1.samples)
+        self.assertTrue(sample)
+        self.assertIn(sample, self.data1.samples)
+        self.assertEqual('new_sample', sample.name)
+        self.assertIn(specimen, sample.specimens)
+        self.assertEqual(site_name, sample.site.name)
+        self.assertEqual(location_name, sample.site.location.name)
+        
+    def test_update_sample_change_site(self):
+        specimen_name = 'Z35.6a'
+        sample_name = 'Z35.6'
+        site_name = 'Z35.'
+        location_name = 'locale'
+        new_site_name = 'MGH1'
+        self.data1.change_sample(sample_name, sample_name, new_site_name=new_site_name, new_sample_data={})
+
+        sample = self.data1.find_by_name(sample_name, self.data1.samples)
+        new_site = self.data1.find_by_name(new_site_name, self.data1.sites)
+        old_site = self.data1.find_by_name(site_name, self.data1.sites)
+        self.assertTrue(sample)
+        self.assertTrue(new_site)
+        self.assertTrue(old_site)
+        self.assertEqual(new_site, sample.site)
+        self.assertIn(sample, new_site.samples)
+        self.assertNotIn(sample, old_site.samples)
+
+
+    def test_update_sample_with_invalid_site(self):
+        self.assertTrue(False)
+
+    def test_update_sample_with_data(self):
+        self.assertTrue(False)
+
+    def test_delete_sample(self):
+        specimen_name = 'Z35.6a'
+        sample_name = 'Z35.6'
+        site_name = 'Z35.'
+        self.data1.delete_sample(sample_name)
+
+        specimen = self.data1.find_by_name(specimen_name, self.data1.specimens)
+        sample = self.data1.find_by_name(sample_name, self.data1.samples)
+        site = self.data1.find_by_name(site_name, self.data1.sites)
+        self.assertTrue(specimen)
+        self.assertFalse(sample)
+        self.assertTrue(site)
+        self.assertEqual('', specimen.sample)
+        self.assertNotIn(sample, site.samples)
+        
+        self.assertNotIn(sample, self.data1.samples)
+        self.assertNotIn(sample.name, self.data1.samples)
+
+        

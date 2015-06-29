@@ -51,7 +51,22 @@ class ErMagicBuilder(object):
         self.specimens.remove(specimen)
         del specimen
 
-    def change_sample(self, sample, new_name, new_site=None, new_sample_data={}):
+    def change_sample(self, old_samp_name, new_samp_name, new_site_name=None, new_sample_data={}):
+        sample = self.find_by_name(old_samp_name, self.samples)
+        if new_site_name:
+            old_site = sample.site
+            if old_site:
+                old_site.samples.remove(sample)
+            new_site = self.find_by_name(new_site_name, self.sites)
+            new_site.samples.append(sample)
+        else:
+            new_site = None
+        sample.change_sample(new_samp_name, new_site, new_sample_data)
+        for spec in sample.specimens:
+            spec.sample = ''
+
+
+    def delete_sample(self, sample_name, replacement_samp=None):
         pass
 
     def change_site(self, site, new_name, new_location=None, new_site_data={}):
