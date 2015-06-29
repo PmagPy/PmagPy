@@ -589,6 +589,7 @@ class Zeq_GUI(wx.Frame):
                 self.update_selection()
             else:
                 self.Add_text()
+                self.update_fit_box()
         else:
             print("------------------------------ no magic_measurements.txt found in WD ---------------------------------------")
             self.Destroy()
@@ -896,13 +897,24 @@ class Zeq_GUI(wx.Frame):
             disp_fit_name = self.mean_fit_box.GetValue()
             if disp_fit_name!="All":
                 disp_fit_index = map(lambda x: x.name, self.pmag_results_data['specimens'][self.s]).index(disp_fit_name)
-            for i,specimen in enumerate(self.specimens):
+
+            if self.level_box.GetValue()=='sample': high_level_type='samples'
+            if self.level_box.GetValue()=='site': high_level_type='sites'
+            if self.level_box.GetValue()=='location': high_level_type='locations'
+            if self.level_box.GetValue()=='study': high_level_type='study'
+
+            high_level_name=str(self.level_names.GetValue())
+            calculation_type=str(self.mean_type_box.GetValue())
+            elements_type=str(self.show_box.GetValue())
+
+            for i,specimen in enumerate(elements_list):
                 if disp_fit_name=="All" and \
                    specimen in self.pmag_results_data['specimens']:
                     l = 0
                     for fit in self.pmag_results_data['specimens'][specimen]:
-                        if fit not in self.bad_fits:
-                            l += 1
+                        l += 1
+                        if fit in self.bad_fits:
+                            l -= 1
                 else:
                     try:
                         if self.pmag_results_data['specimens'][specimen][disp_fit_index] in self.bad_fits:
@@ -913,7 +925,7 @@ class Zeq_GUI(wx.Frame):
                     except KeyError: l = 0
                 if index < l:
                     self.s = specimen
-                    self.specimens_box.SetSelection(i)
+                    self.specimens_box.SetStringSelection(specimen)
                     self.onSelect_specimen(event)
                     if disp_fit_name == "All":
                         new_fit_index = index
@@ -2643,7 +2655,7 @@ class Zeq_GUI(wx.Frame):
            specimen_list=self.Data_hierarchy['study']['this study']['specimens']
 
        if  self.s not in specimen_list:
-           specimen_list.sort()
+           specimen_list.sort(cmp=specimens_comparator)
            self.s=str(specimen_list[0])
            self.specimens_box.SetStringSelection(str(self.s))
            self.update_selection()
@@ -2717,7 +2729,7 @@ class Zeq_GUI(wx.Frame):
                     except KeyError:
                         continue
 
-            if len(pars_for_mean)  > 0 and calculation_type !="None":
+            if len(pars_for_mean) > 0 and calculation_type != "None":
                 self.high_level_means[high_level_type][high_level_name][dirtype]=self.calculate_mean(pars_for_mean,calculation_type)
                 
     #----------------------------------------------------------------------
@@ -2803,10 +2815,10 @@ class Zeq_GUI(wx.Frame):
        elif self.COORDINATE_SYSTEM=="tilt-corrected": dirtype='DA-DIR-TILT'
        else: dirtype='DA-DIR'
 
-       if self.level_box.GetValue()=='sample': high_level_type='samples' 
-       if self.level_box.GetValue()=='site': high_level_type='sites' 
-       if self.level_box.GetValue()=='location': high_level_type='locations' 
-       if self.level_box.GetValue()=='study': high_level_type='study' 
+       if self.level_box.GetValue()=='sample': high_level_type='samples'
+       if self.level_box.GetValue()=='site': high_level_type='sites'
+       if self.level_box.GetValue()=='location': high_level_type='locations'
+       if self.level_box.GetValue()=='study': high_level_type='study'
 
        high_level_name=str(self.level_names.GetValue())
        calculation_type=str(self.mean_type_box.GetValue())
@@ -3715,7 +3727,7 @@ self.mean_fit not in map(lambda x: x.name, self.pmag_results_data['specimens'][s
 
         menu_file = wx.Menu()
 
-        m_make_MagIC_results_tables= menu_file.Append(-1, "&Save MagIC pmag tables", "")
+        m_make_MagIC_results_tables= menu_file.Append(-1, "&Save MagIC pmag tables\tCtrl-Shift-S", "")
         self.Bind(wx.EVT_MENU, self.on_menu_make_MagIC_results_tables, m_make_MagIC_results_tables)
 
         submenu_save_plots = wx.Menu()
@@ -3739,7 +3751,7 @@ self.mean_fit not in map(lambda x: x.name, self.pmag_results_data['specimens'][s
 
         
         menu_file.AppendSeparator()
-        m_exit = menu_file.Append(-1, "E&xit\tCtrl-X", "Exit")
+        m_exit = menu_file.Append(-1, "E&xit\tCtrl-Q", "Exit")
         self.Bind(wx.EVT_MENU, self.on_menu_exit, m_exit)
                                                                                                                                                                                                            
         #-------------------------------------------------------------------------------
@@ -3756,10 +3768,10 @@ self.mean_fit not in map(lambda x: x.name, self.pmag_results_data['specimens'][s
 
         m_new_sub = menu_Analysis.AppendMenu(-1, "Acceptance criteria", submenu_criteria)
 
-        m_previous_interpretation = menu_Analysis.Append(-1, "&Import previous interpretation from a redo file", "")
+        m_previous_interpretation = menu_Analysis.Append(-1, "&Import previous interpretation from a redo file\tCtrl-O", "")
         self.Bind(wx.EVT_MENU, self.on_menu_previous_interpretation, m_previous_interpretation)
 
-        m_save_interpretation = menu_Analysis.Append(-1, "&Save current interpretations to a redo file", "")
+        m_save_interpretation = menu_Analysis.Append(-1, "&Save current interpretations to a redo file\tCtrl-S", "")
         self.Bind(wx.EVT_MENU, self.on_menu_save_interpretation, m_save_interpretation)
         m_delete_interpretation = menu_Analysis.Append(-1, "&Clear all current interpretations", "")
         self.Bind(wx.EVT_MENU, self.on_menu_clear_interpretation, m_delete_interpretation)
@@ -3771,10 +3783,10 @@ self.mean_fit not in map(lambda x: x.name, self.pmag_results_data['specimens'][s
         m_bulk_demagnetization = menu_Tools.Append(-1, "&Bulk demagnetization", "")
         self.Bind(wx.EVT_MENU, self.on_menu_bulk_demagnetization, m_bulk_demagnetization)
 
-        m_auto_interpert = menu_Tools.Append(-1, "&Auto Interpert", "")
+        m_auto_interpert = menu_Tools.Append(-1, "&Auto Interpert (alpha version)", "")
         self.Bind(wx.EVT_MENU, self.on_menu_autointerpert, m_auto_interpert)
 
-        m_edit_interpertations = menu_Tools.Append(-1, "&Interpretation editor", "")
+        m_edit_interpertations = menu_Tools.Append(-1, "&Interpretation editor\tCtrl-E", "")
         self.Bind(wx.EVT_MENU, self.on_menu_edit_interpertations, m_edit_interpertations)
 
         #-------------------
@@ -3824,16 +3836,29 @@ self.mean_fit not in map(lambda x: x.name, self.pmag_results_data['specimens'][s
         m_cookbook = menu_Help.Append(-1, "&PmagPy Cookbook", "")
         self.Bind(wx.EVT_MENU, self.on_menu_cookbook, m_cookbook)
 
-        m_docs = menu_Help.Append(-1, "&Usage and Tips", "")
+        m_docs = menu_Help.Append(-1, "&Usage and Tips\tCtrl-H", "")
         self.Bind(wx.EVT_MENU, self.on_menu_docs, m_docs)
-        
+
         m_git = menu_Help.Append(-1, "&Github Page", "")
         self.Bind(wx.EVT_MENU, self.on_menu_git, m_git)
+
+        #-----------------
+        # Edit Menu
+        #-----------------
+
+        menu_edit = wx.Menu()
+
+        m_next = menu_Help.Append(-1, "&Next Specimen\tCtrl-Right", "")
+        self.Bind(wx.EVT_MENU, self.on_next_button, m_next)
+
+        m_previous = menu_Help.Append(-1, "&Previous Specimen\tCtrl-Left", "")
+        self.Bind(wx.EVT_MENU, self.on_prev_button, m_previous)
 
         #-----------------
         
         #self.menubar.Append(menu_preferences, "& Preferences") 
         self.menubar.Append(menu_file, "&File")
+        self.menubar.Append(menu_edit, "&Edit")
         self.menubar.Append(menu_Analysis, "&Analysis")
         self.menubar.Append(menu_Tools, "&Tools")
         self.menubar.Append(menu_Help, "&Help")
@@ -5021,14 +5046,15 @@ self.mean_fit not in map(lambda x: x.name, self.pmag_results_data['specimens'][s
 #            if len(self.pmag_results_data['specimens'][specimen]) > len(all_fits_list):
 #                all_fits_list = list(map(lambda x: x.name, self.pmag_results_data['specimens'][specimen]))
         self.mean_fit_box.SetItems(['None','All'] + self.fit_list)
-        if self.interpertation_editor_open:
-            self.interpertation_editor.mean_fit_box.SetItems(['None','All'] + self.fit_list)
         #select defaults
         if new_index == 'None': self.fit_box.SetStringSelection('None')
         else: self.fit_box.SetSelection(new_index)
         if fit_index: self.mean_fit_box.SetSelection(fit_index+2)
         if self.fit_list: self.on_select_fit(-1)
-
+        if self.interpertation_editor_open:
+            self.interpertation_editor.mean_fit_box.SetItems(['None','All'] + self.fit_list)
+            if fit_index:
+                self.mean_fit_box.SetSelection(fit_index+2)
 
     def MacReopenApp(self):
         """Called when the doc icon is clicked"""
@@ -5089,6 +5115,7 @@ class EditFitFrame(wx.Frame):
         self.SetIcon(icon)
         self.specimens_list=self.parent.specimens
         self.specimens_list.sort(cmp=specimens_comparator)
+        self.current_fit_index = None
         #build UI
         self.init_UI()
 
@@ -5146,10 +5173,10 @@ class EditFitFrame(wx.Frame):
         self.Bind(wx.EVT_COMBOBOX, self.on_select_level_name,self.level_names)
 
         #mean type and plot display boxes
-        self.mean_type_box = wx.ComboBox(self.panel, -1, size=(100*self.GUI_RESOLUTION, 25), value='None', choices=['Fisher','Fisher by polarity','Bingham','None'], style=wx.CB_DROPDOWN,name="high_type")
+        self.mean_type_box = wx.ComboBox(self.panel, -1, size=(100*self.GUI_RESOLUTION, 25), value=self.parent.mean_type_box.GetValue(), choices=['Fisher','Fisher by polarity','Bingham','None'], style=wx.CB_DROPDOWN,name="high_type")
         self.Bind(wx.EVT_COMBOBOX, self.on_select_mean_type_box,self.mean_type_box)
 
-        self.mean_fit_box = wx.ComboBox(self.panel, -1, size=(100*self.GUI_RESOLUTION, 25), value='None', choices=(['None','All'] + self.parent.fit_list), style=wx.CB_DROPDOWN,name="high_type")
+        self.mean_fit_box = wx.ComboBox(self.panel, -1, size=(100*self.GUI_RESOLUTION, 25), value=self.parent.mean_fit, choices=(['None','All'] + self.parent.fit_list), style=wx.CB_DROPDOWN,name="high_type")
         self.Bind(wx.EVT_COMBOBOX, self.on_select_mean_fit_box,self.mean_fit_box)
 
         #bounds select boxes
@@ -5311,7 +5338,8 @@ class EditFitFrame(wx.Frame):
         """
         updates the current_fit of the parent Zeq_GUI entry in the case of it's data being changed
         """
-        self.update_logger_entry(self.current_fit_index)
+        if self.current_fit_index:
+            self.update_logger_entry(self.current_fit_index)
 
     def logger_focus(self,i):
         """
