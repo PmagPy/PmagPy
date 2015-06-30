@@ -161,7 +161,13 @@ class TestSpecimen(unittest.TestCase):
 
 
 class TestSample(unittest.TestCase):
-        
+
+    def setUp(self):
+        dir_path = os.path.join(WD, 'Datafiles', 'copy_ErMagicBuilder')
+        self.data1 = builder.ErMagicBuilder(dir_path)
+        self.data1.get_data()
+
+    @unittest.skip('skipping sample tests')
     def test_update_sample(self):
         specimen_name = 'Z35.6a'
         sample_name = 'Z35.6'
@@ -177,7 +183,8 @@ class TestSample(unittest.TestCase):
         self.assertIn(specimen, sample.specimens)
         self.assertEqual(site_name, sample.site.name)
         self.assertEqual(location_name, sample.site.location.name)
-        
+
+    @unittest.skip('skipping sample tests')
     def test_update_sample_change_site(self):
         specimen_name = 'Z35.6a'
         sample_name = 'Z35.6'
@@ -196,17 +203,21 @@ class TestSample(unittest.TestCase):
         self.assertIn(sample, new_site.samples)
         self.assertNotIn(sample, old_site.samples)
 
-
+    @unittest.skip('skipping sample tests')
     def test_update_sample_with_invalid_site(self):
-        #sample = 'new_sample_name'
-        #site = 'invalid site name'
+        sample_name = 'Z35.6'
+        site_name = 'invalid site name'
         #self.assertRaises(Exception, self.data1.add_sample, sample, site, {'new_key': 'new value'})
-        #self.assertTrue(False)
-        pass
+        self.data1.change_sample(sample_name, sample_name, new_site_name=site_name, new_sample_data={})
+        sample = self.data1.find_by_name(sample_name, self.data1.samples)
+        self.assertTrue(sample)
+        self.assertEqual('', sample.site)
 
+    @unittest.skip('skipping sample tests')
     def test_update_sample_with_data(self):
         self.assertTrue(False)
 
+    @unittest.skip('skipping sample tests')
     def test_delete_sample(self):
         specimen_name = 'Z35.6a'
         sample_name = 'Z35.6'
