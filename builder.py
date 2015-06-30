@@ -68,7 +68,7 @@ class ErMagicBuilder(object):
     def change_sample(self, old_samp_name, new_samp_name, new_site_name=None, new_sample_data={}):
         sample = self.find_by_name(old_samp_name, self.samples)
         if not sample:
-            print '-W- {} is not a currently existing sample'.format(old_samp_name)
+            print '-W- {} is not a currently existing sample, so it cannot be updated'.format(old_samp_name)
             return False
         if new_site_name:
             new_site = self.find_by_name(new_site_name, self.sites)
@@ -102,7 +102,29 @@ class ErMagicBuilder(object):
 
 
     def change_site(self, old_site_name, new_site_name, new_location_name=None, new_site_data={}):
-        pass
+        site = self.find_by_name(old_site_name, self.sites)
+        if not site:
+            print '-W- {} is not a currently existing site, so it cannot be updated.'.format(old_site_name)
+            return False
+        if new_location_name:
+            old_location = self.find_by_name(site.location.name, self.locations)
+            if old_location:
+                old_location.sites.remove(site)
+            new_location = self.find_by_name(new_location_name, self.locations)
+            if new_location:
+                new_location.sites.append(site)                
+            else:
+                print "-W- {} is not a currently existing location.\nLeaving location unchanged as: {} for {}".format(new_site_name, site.location or '*empty*', site)
+
+                
+
+        else:
+            new_location = None
+        site.change_site(new_site_name, new_location, new_site_data)
+
+        for sample in site.samples:
+            sample.site = site
+
 
     def add_site(self, site_name, location_name=None, site_data={}):
         pass
@@ -314,13 +336,11 @@ class Site(Pmag_object):
         self.location = location or ""
 
     def change_site(self, new_name, new_location=None, data_dict=None):
-
-        # maybe make this a Pmag_object method
         self.name = new_name
         if new_location:
             self.location = new_location
         if data_dict:
-            self.combine_dicts(data_dict, self.data)
+            self.data = self.combine_dicts(data_dict, self.data)
 
 
 
@@ -339,7 +359,7 @@ class Location(Pmag_object):
     def change_location(self, new_name, data_dict=None):
         self.name = new_name
         if data_dict:
-            self.combine_dicts(data_dict, self.data)
+            self.data = self.combine_dicts(data_dict, self.data)
 
 
 

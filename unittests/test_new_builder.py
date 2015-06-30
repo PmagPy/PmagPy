@@ -342,8 +342,8 @@ class TestSite(unittest.TestCase):
         self.assertTrue(old_location)
         self.assertTrue(location)
         self.assertEqual(site.location, location)
-        self.assertIn(location.sites, site)
-        self.assertNotIn(old_location.sites, site)
+        self.assertIn(site, location.sites)
+        self.assertNotIn(site, old_location.sites)
         
 
     def test_update_site_with_data(self):
@@ -361,10 +361,10 @@ class TestSite(unittest.TestCase):
         self.assertIn('site_type', site.data.keys())
         self.assertEqual('great', site.data['site_type'])
         self.assertIn('site_elevation', site.data.keys())
-        self.assertEqual(10, site.data['site_type'])
+        self.assertEqual(10, site.data['site_elevation'])
 
         self.data1.change_site('new_site', 'new_site', new_site_data={'site_type': 'great', 'site_elevation': 99})
-        self.assertEqual(99, site.data['site_elevtaion'])
+        self.assertEqual(99, site.data['site_elevation'])
 
         
     def test_update_site_invalid_location(self):
