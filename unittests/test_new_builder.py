@@ -89,7 +89,6 @@ class TestSpecimen(unittest.TestCase):
 
     def test_update_specimen_with_data(self):
         specimen_name = 'Z35.6a'
-
         self.data1.change_specimen(specimen_name, specimen_name, new_specimen_data={'specimen_elevation': 12})
         specimen = self.data1.find_by_name('Z35.6a', self.data1.specimens)
         self.assertTrue(specimen)
@@ -100,10 +99,23 @@ class TestSpecimen(unittest.TestCase):
         self.assertIn('specimen_elevation', specimen.data.keys())
         self.assertEqual(92, specimen.data['specimen_elevation'])
 
+    def test_update_specimen_with_invalid_sample(self):
+        specimen_name = 'Z35.6a'
+        site_name = 'invalid_site'
+        self.data1.change_specimen(specimen_name, specimen_name, site_name) 
+        specimen = self.data1.find_by_name('Z35.6a', self.data1.specimens)
+        sample = self.data1.find_by_name('Z35.6', self.data1.samples)
+        self.assertTrue(specimen)
+        self.assertEqual(sample, specimen.sample)
+
+        specimen.sample = ""
+        self.data1.change_specimen(specimen_name, specimen_name, site_name)
+        self.assertEqual('', specimen.sample)
+
     def test_add_specimen(self):
         spec_name = 'new specimen'
-        self.data1.add_specimen(spec_name)
-        specimen = self.data1.find_by_name(spec_name, self.data1.specimens)
+        specimen = self.data1.add_specimen(spec_name)
+        #specimen = self.data1.find_by_name(spec_name, self.data1.specimens)
         self.assertTrue(specimen)
         self.assertIn(specimen, self.data1.specimens)
         self.assertEqual('', specimen.sample)
@@ -157,7 +169,8 @@ class TestSpecimen(unittest.TestCase):
         sample = self.data1.find_by_name(sample_name, self.data1.samples)
         self.assertFalse(specimen)
         self.assertTrue(sample)
-        self.assertNotIn(specimen, sample.specimens)
+        self.assertNotIn(specimen_name, [spec.name for spec in sample.specimens])
+        self.assertNotIn(specimen_name, [spec.name for spec in self.data1.specimens])
 
 
 class TestSample(unittest.TestCase):
@@ -167,7 +180,6 @@ class TestSample(unittest.TestCase):
         self.data1 = builder.ErMagicBuilder(dir_path)
         self.data1.get_data()
 
-    @unittest.skip('skipping sample tests')
     def test_update_sample(self):
         specimen_name = 'Z35.6a'
         sample_name = 'Z35.6'
@@ -184,13 +196,15 @@ class TestSample(unittest.TestCase):
         self.assertEqual(site_name, sample.site.name)
         self.assertEqual(location_name, sample.site.location.name)
 
-    @unittest.skip('skipping sample tests')
     def test_update_sample_change_site(self):
         specimen_name = 'Z35.6a'
         sample_name = 'Z35.6'
         site_name = 'Z35.'
         location_name = 'locale'
         new_site_name = 'MGH1'
+        
+        sample = self.data1.find_by_name(sample_name, self.data1.samples)
+        
         self.data1.change_sample(sample_name, sample_name, new_site_name=new_site_name, new_sample_data={})
 
         sample = self.data1.find_by_name(sample_name, self.data1.samples)
@@ -203,7 +217,22 @@ class TestSample(unittest.TestCase):
         self.assertIn(sample, new_site.samples)
         self.assertNotIn(sample, old_site.samples)
 
-    @unittest.skip('skipping sample tests')
+
+    def test_update_sample_with_data(self):
+        sample_name = 'Z35.6'
+        sample = self.data1.find_by_name(sample_name, self.data1.samples)
+
+        self.data1.change_sample(sample_name, sample_name, new_sample_data={'sample_type': 'awesome', 'sample_alteration_type': 'awesomer'})
+        sample = self.data1.find_by_name(sample_name, self.data1.samples)
+        self.assertTrue(sample)
+        self.assertIn('sample_alteration_type', sample.data.keys())
+        self.assertEqual('awesomer', sample.data['sample_alteration_type'])
+        self.assertEqual('awesome', sample.data['sample_type'])
+        # change again (should overwrite)
+        self.data1.change_sample(sample_name, sample_name, new_sample_data={'sample_type': 'cool'})
+        self.assertEqual('cool', sample.data['sample_type'])
+
+        
     def test_update_sample_with_invalid_site(self):
         sample_name = 'Z35.6'
         site_name = 'invalid site name'
@@ -211,13 +240,50 @@ class TestSample(unittest.TestCase):
         self.data1.change_sample(sample_name, sample_name, new_site_name=site_name, new_sample_data={})
         sample = self.data1.find_by_name(sample_name, self.data1.samples)
         self.assertTrue(sample)
+        self.assertEqual('Z35.', sample.site.name)
+
+
+    def test_add_sample(self):
+        samp_name = 'new_sample'
+        sample = self.data1.add_sample(samp_name)
+        self.assertTrue(sample)
+        self.assertEqual('', sample.site)
+        self.assertIn(sample, self.data1.samples)
+        self.assertTrue(sample.data)
+        self.assertTrue(sample.pmag_reqd_headers)
+        self.assertTrue(sample.er_reqd_headers)
+
+    def test_add_sample_with_site(self):
+        samp_name = 'new_samp'
+        site_name = 'MGH1'
+        sample = self.data1.add_sample(samp_name, site_name)
+        site = self.data1.find_by_name(site_name, self.data1.sites)
+        self.assertTrue(sample)
+        self.assertTrue(site)
+        self.assertEqual(site, sample.site)
+
+    def test_add_sample_invalid_site(self):
+        samp_name = 'new_samp'
+        site_name = 'invalid_site'
+        sample = self.data1.add_sample(samp_name, site_name)
+        site = self.data1.find_by_name(site_name, self.data1.sites)
+        self.assertTrue(sample)
+        self.assertFalse(site)
         self.assertEqual('', sample.site)
 
-    @unittest.skip('skipping sample tests')
-    def test_update_sample_with_data(self):
-        self.assertTrue(False)
+    def test_add_sample_with_data(self):
+        samp_name = 'new_samp'
+        site_name = 'MGH1'
+        sample = self.data1.add_sample(samp_name, site_name, {'sample_type': 'excellent', 'sample_texture': 'rough'})
+        site = self.data1.find_by_name(site_name, self.data1.sites)
+        self.assertTrue(sample)
+        self.assertTrue(site)
+        self.assertIn('sample_type', sample.data.keys())
+        self.assertEqual('excellent', sample.data['sample_type'])
+        self.assertIn('rough', sample.data['sample_texture'])
+        
 
-    @unittest.skip('skipping sample tests')
+
     def test_delete_sample(self):
         specimen_name = 'Z35.6a'
         sample_name = 'Z35.6'
@@ -231,9 +297,6 @@ class TestSample(unittest.TestCase):
         self.assertFalse(sample)
         self.assertTrue(site)
         self.assertEqual('', specimen.sample)
-        self.assertNotIn(sample, site.samples)
+        self.assertNotIn(sample_name, [samp.name for samp in site.samples])
         
-        self.assertNotIn(sample, self.data1.samples)
-        self.assertNotIn(sample.name, self.data1.samples)
-
-        
+        self.assertNotIn(sample_name, [samp.name for samp in self.data1.samples])

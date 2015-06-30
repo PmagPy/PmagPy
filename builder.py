@@ -38,8 +38,13 @@ class ErMagicBuilder(object):
         Then call specimen class change method. 
         """
         specimen = self.find_by_name(old_spec_name, self.specimens)
+        if not specimen:
+            print '-W- {} is not a currently existing specimen, so cannot be updated'.format(spec_name)
+            return False
         if new_sample_name:
             new_sample = self.find_by_name(new_sample_name, self.samples)
+            if not new_sample:
+                print "-W- {} is not a currently existing sample.\nLeaving sample unchanged as: {} for {}".format(new_sample_name, specimen.sample or '*empty*', specimen)
         else:
             new_sample = None
         specimen.change_specimen(new_spec_name, new_sample, new_specimen_data)
@@ -47,7 +52,8 @@ class ErMagicBuilder(object):
     def delete_specimen(self, spec_name):
         specimen = self.find_by_name(spec_name, self.specimens)
         sample = specimen.sample
-        sample.specimens.remove(specimen)
+        if sample:
+            sample.specimens.remove(specimen)
         self.specimens.remove(specimen)
         del specimen
 
@@ -57,24 +63,43 @@ class ErMagicBuilder(object):
         self.specimens.append(specimen)
         if sample:
             sample.specimens.append(specimen)
+        return specimen
 
     def change_sample(self, old_samp_name, new_samp_name, new_site_name=None, new_sample_data={}):
         sample = self.find_by_name(old_samp_name, self.samples)
+        if not sample:
+            print '-W- {} is not a currently existing sample'.format(old_samp_name)
+            return False
         if new_site_name:
-            old_site = sample.site
-            if old_site:
-                old_site.samples.remove(sample)
             new_site = self.find_by_name(new_site_name, self.sites)
-            new_site.samples.append(sample)
+            if not new_site:
+                print "-W- {} is not a currently existing site.\nLeaving site unchanged as: {} for {}".format(new_site_name, sample.site or '*empty*', sample)
+                new_site = None
         else:
             new_site = None
         sample.change_sample(new_samp_name, new_site, new_sample_data)
         for spec in sample.specimens:
             spec.sample = ''
 
+    def add_sample(self, samp_name, site_name=None, samp_data={}):
+        site = self.find_by_name(site_name, self.sites)
+        sample = Sample(samp_name, site, self.data_model, samp_data)
+        self.samples.append(sample)
+        if site:
+            site.samples.append(sample)
+        return sample
+            
 
     def delete_sample(self, sample_name, replacement_samp=None):
-        pass
+        sample = self.find_by_name(sample_name, self.samples)
+        specimens = sample.specimens
+        site = sample.site
+        if site:
+            site.samples.remove(sample)
+        self.samples.remove(sample)
+        for spec in specimens:
+            spec.sample = ""
+
 
     def change_site(self, site, new_name, new_location=None, new_site_data={}):
         pass
@@ -123,13 +148,11 @@ class ErMagicBuilder(object):
                 self.locations.append(location)
             site = self.find_by_name(site_name, self.sites)
             if not site:
-                site = Site(site_name, self.data_model)
+                site = Site(site_name, location, self.data_model)
                 self.sites.append(site)
-                site.location = location
             sample = self.find_by_name(sample_name, self.samples)
             if not sample:
-                sample = Sample(sample_name, self.data_model)
-                sample.site = site
+                sample = Sample(sample_name, site, self.data_model)
                 self.samples.append(sample)
             specimen = self.find_by_name(specimen_name, self.specimens)
             if not specimen:
@@ -253,21 +276,21 @@ class Sample(Pmag_object):
     Sample level object
     """
 
-    def __init__(self, name, data_model=None):
+    def __init__(self, name, site, data_model=None, site_data={}):
         dtype = 'sample'
-        super(Sample, self).__init__(name, dtype, data_model)
+        super(Sample, self).__init__(name, dtype, data_model, site_data)
         self.specimens = []
-        self.site = ""
-        #self.location = ""
-        self.data = {}
+        self.site = site or ""
 
     def change_sample(self, new_name, new_site=None, data_dict=None):
-        # maybe make this a Pmag_object method
         self.name = new_name
         if new_site:
+            if self.site:
+                self.site.samples.remove(self)
             self.site = new_site
+            self.site.samples.append(self)
         if data_dict:
-            self.combine_dicts(data_dict, self.data)
+            self.data = self.combine_dicts(data_dict, self.data)
 
 
 
@@ -278,12 +301,11 @@ class Site(Pmag_object):
     Site level object
     """
 
-    def __init__(self, name, data_model=None):
+    def __init__(self, name, location, data_model=None):
         dtype = 'site'
         super(Site, self).__init__(name, dtype, data_model)
         self.samples = []
-        self.location = ""
-        self.data = {}
+        self.location = location or ""
 
     def change_site(self, new_name, new_location=None, data_dict=None):
 
