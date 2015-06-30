@@ -25,38 +25,29 @@ class import_magnetometer_data(wx.Dialog):
         self.parent=parent
         
     def InitUI(self):
-
         self.panel = wx.Panel(self)
-        vbox=wx.BoxSizer(wx.VERTICAL)
+        vbox = wx.BoxSizer(wx.VERTICAL)
 
-        formats=['generic format','SIO format','CIT format','2G-binary format','HUJI format','LDEO format','IODP SRM (csv) format','PMD (ascii) format','TDT format', 'JR6 format']
-        sbs = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY, 'step 1: choose file format' ), wx.VERTICAL )
+        formats = ['generic format', 'SIO format', 'CIT format', '2G-binary format',
+                   'HUJI format', 'LDEO format','IODP SRM (csv) format', 'PMD (ascii) format',
+                   'TDT format', 'JR6 format', 'BGC format']
+        sbs = wx.StaticBoxSizer(wx.StaticBox(self.panel, wx.ID_ANY, 'step 1: choose file format'), wx.VERTICAL)
 
-        sbs.AddSpacer(5)
-        self.oc_rb0 = wx.RadioButton(self.panel, -1,label=formats[0],name='0', style=wx.RB_GROUP)
-        sbs.Add(self.oc_rb0)
-        sbs.AddSpacer(5)
+        rb0 = wx.RadioButton(self.panel, -1, label=formats[0], name='0', style=wx.RB_GROUP)
+        sbs.Add(rb0, flag=wx.TOP|wx.BOTTOM, border=5)
         sbs.Add(wx.StaticLine(self.panel), 0, wx.ALL|wx.EXPAND, 5)
         sbs.AddSpacer(5)
-        self.Bind(wx.EVT_RADIOBUTTON, self.OnRadioButtonSelect, self.oc_rb0)
-        
+        self.Bind(wx.EVT_RADIOBUTTON, self.OnRadioButtonSelect, rb0)
 
-        for i in range(1,len(formats)):
-            command="self.oc_rb%i = wx.RadioButton(self.panel, -1, label='%s', name='%i')"%(i,formats[i],i)
-            exec command
-            command="sbs.Add(self.oc_rb%i)"%(i)
-            exec command
-            sbs.AddSpacer(5)
-            #
-            command = "self.Bind(wx.EVT_RADIOBUTTON, self.OnRadioButtonSelect, self.oc_rb%i)" % (i)
-            exec command
-            #
+        for form in formats[1:]:
+            rb = wx.RadioButton(self.panel, wx.ID_ANY, label=form, name=form)
+            sbs.Add(rb, flag=wx.BOTTOM, border=5)
+            self.Bind(wx.EVT_RADIOBUTTON, self.OnRadioButtonSelect, rb)
 
-        self.oc_rb0.SetValue(True)
-        self.checked_rb = self.oc_rb0
+        rb0.SetValue(True)
+        self.checked_rb = rb0
 
 
-        
         #---------------------
         # OK/Cancel buttons
         #---------------------
@@ -114,6 +105,8 @@ class import_magnetometer_data(wx.Dialog):
             dia = convert_IODP_files_to_MagIC(self, self.WD)
         elif file_type == 'PMD':
             dia = convert_PMD_files_to_MagIC(self, self.WD)
+        elif file_type == 'BGC':
+            dia = convert_BGC_files_to_magic(self, self.WD)
         elif file_type == 'TDT':
             import TDT_magic
             TDT_magic.main(False, self.WD)
@@ -158,7 +151,7 @@ class convert_generic_files_to_MagIC(wx.Frame):
 
         #---sizer infor ----
 
-        TEXT="convert generic file to MagIC format"
+        TEXT = "convert generic file to MagIC format"
         bSizer_info = wx.BoxSizer(wx.HORIZONTAL)
         bSizer_info.Add(wx.StaticText(pnl,label=TEXT),wx.ALIGN_LEFT)
             
@@ -2137,6 +2130,147 @@ class convert_JR6_files_to_MagIC(wx.Frame):
             pw.on_helpButton(text=JR6_jr6_magic.do_help())
 
 
+class convert_BGC_files_to_magic(wx.Frame):
+
+    """ """
+    title = "PmagPy BGC file conversion"
+
+    def __init__(self, parent, WD):
+        wx.Frame.__init__(self, parent, wx.ID_ANY, self.title)
+        self.panel = wx.ScrolledWindow(self)
+        self.WD = WD
+        self.InitUI()
+
+    def InitUI(self):
+
+        pnl = self.panel
+
+        text = "convert Berkeley Geochronology Center file to MagIC format"
+        bSizer_info = wx.BoxSizer(wx.HORIZONTAL)
+        bSizer_info.Add(wx.StaticText(pnl, label=text), wx.ALIGN_LEFT)
+
+        #---sizer 0 ----
+        self.bSizer0 = pw.choose_file(pnl, 'add', method = self.on_add_file_button)
+
+        #---sizer 1 ----
+        self.bSizer1 = pw.labeled_text_field(pnl, 'Location name:')
+        # locname
+        
+        #---sizer 2 ----
+        self.bSizer2 = pw.labeled_text_field(pnl, 'Site name (required):')
+        # sitename
+
+        #---sizer 3 ----
+        self.bSizer3 = pw.sampling_particulars(pnl)
+        # meth codes
+
+        #---sizer 4 ----
+        self.bSizer4 = pw.replicate_measurements(pnl)
+        # average replicates
+
+        #---sizer 5 ---
+        self.bSizer5 = pw.labeled_text_field(pnl, 'Provide specimen volume in cubic centimeters\nNote: the volume given in data file will be used unless it equals 0.0 ')
+
+        #---sizer 6 ----
+
+        #---sizer 7 ---
+
+
+        #---buttons ---
+        hboxok = pw.btn_panel(self, pnl)
+
+
+        #------
+        vbox=wx.BoxSizer(wx.VERTICAL)
+
+        vbox.AddSpacer(10)
+        vbox.Add(bSizer_info, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        vbox.Add(self.bSizer0, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        vbox.Add(self.bSizer1, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        vbox.Add(self.bSizer2, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        vbox.Add(self.bSizer3, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        vbox.Add(self.bSizer4, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        vbox.Add(self.bSizer5, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        #vbox.Add(self.bSizer6, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        #vbox.Add(self.bSizer7, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
+        #vbox.AddSpacer(10)
+        #vbox.Add(wx.StaticLine(pnl), 0, wx.ALL|wx.EXPAND, 5)
+        vbox.Add(hboxok, flag=wx.ALIGN_CENTER)        
+        vbox.AddSpacer(20)
+
+        hbox_all= wx.BoxSizer(wx.HORIZONTAL)
+        hbox_all.AddSpacer(20)
+        hbox_all.AddSpacer(vbox)
+        hbox_all.AddSpacer(20)
+        
+        self.panel.SetSizer(hbox_all)
+        self.panel.SetScrollbars(20, 20, 50, 50)
+        hbox_all.Fit(self)
+        self.Centre()
+        self.Show()
+
+
+    def on_add_file_button(self,event):
+        text = "choose file to convert to MagIC"
+        pw.on_add_file_button(self.bSizer0, self.WD, event, text)
+
+    def on_okButton(self, event):
+        os.chdir(self.WD)
+
+        options = {}
+        full_file = self.bSizer0.return_value()
+        if not full_file:
+            pw.simple_warning("You must provide a BGC format file")
+            return False
+
+        ID, infile = os.path.split(full_file)
+        options['dir_path'] = self.WD
+        options['input_dir_path'] = ID
+        options['mag_file'] = infile
+        outfile = infile + ".magic"
+        options['meas_file'] = outfile
+
+        loc_name = str(self.bSizer1.return_value())
+        options['er_location_name'] = str(loc_name)
+        site_name = self.bSizer2.return_value()
+        if not site_name:
+            pw.simple_warning('You must provide a site name')
+            return False
+        options['er_site_name'] = str(site_name)
+
+        meth_code = self.bSizer3.return_value()
+        options['meth_code'] = meth_code
+
+        average = self.bSizer4.return_value()
+        options['noave'] = average
+
+        volume = self.bSizer5.return_value()
+        if volume:
+            try:
+                options['volume'] = float(volume)
+            except ValueError:
+                pw.simple_warning('You must provide a valid numerical value for specimen volume')
+                return False
+
+        for key, value in options.items():
+            print key, value
+
+        import BGC_magic
+        COMMAND = "options = {}\nBGC_magic.main(False, **options)".format(str(options))
+        program_ran, error_message = BGC_magic.main(False, **options)
+
+        if program_ran:
+            pw.close_window(self, COMMAND, outfile)
+        else:
+            pw.simple_warning(error_message)
+
+    def on_cancelButton(self,event):
+        self.Destroy()
+        self.Parent.Raise()
+
+    def on_helpButton(self, event):
+        import BGC_magic
+        pw.on_helpButton(text=BGC_magic.do_help())
 
 # template for an import window
 class something(wx.Frame):
@@ -2154,9 +2288,9 @@ class something(wx.Frame):
 
         pnl = self.panel
 
-        TEXT = "Hello here is a bunch of text"
+        text = "Hello here is a bunch of text"
         bSizer_info = wx.BoxSizer(wx.HORIZONTAL)
-        bSizer_info.Add(wx.StaticText(pnl, label=TEXT), wx.ALIGN_LEFT)
+        bSizer_info.Add(wx.StaticText(pnl, label=text), wx.ALIGN_LEFT)
 
         #---sizer 0 ----
         self.bSizer0 = pw.choose_file(pnl, 'add', method = self.on_add_file_button)

@@ -1,17 +1,18 @@
 #!/usr/bin/env python
 
 import unittest
-import sys
+#import sys
 import os
-import numpy as np
+#import numpy as np
 import pmag
-import ipmag
+#import ipmag
 import sio_magic
 import CIT_magic
 import IODP_srm_magic
 import IODP_dscr_magic
 import IODP_jr6_magic
 import _2G_bin_magic
+import BGC_magic
 WD = os.getcwd()
 
 class TestSIO_magic(unittest.TestCase):
@@ -328,7 +329,7 @@ class Test2G_bin_magic(unittest.TestCase):
     def test_2G_fail_option7(self):
         options = {}
         options['ID'] = os.path.join(WD, 'Datafiles', 'Measurement_Import', '2G_bin_magic', 'mn1')
-        options['mag_file'] =  'mn001-1a.dat'
+        options['mag_file'] = 'mn001-1a.dat'
         options['samp_con'] = '7'
         program_ran, error_message = _2G_bin_magic.main(False, **options)
         self.assertFalse(program_ran)
@@ -337,7 +338,7 @@ class Test2G_bin_magic(unittest.TestCase):
     def test_2G_succeed_option7(self):
         options = {}
         options['ID'] = os.path.join(WD, 'Datafiles', 'Measurement_Import', '2G_bin_magic', 'mn1')
-        options['mag_file'] =  'mn001-1a.dat'
+        options['mag_file'] = 'mn001-1a.dat'
         options['samp_con'] = '7-3'
         program_ran, outfile = _2G_bin_magic.main(False, **options)
         self.assertTrue(program_ran)
@@ -352,7 +353,6 @@ class Test2G_bin_magic(unittest.TestCase):
         self.assertFalse(program_ran)
         self.assertEqual(error_message, "there is no er_samples.txt file in your input directory - you can't use naming convention #6")
 
-
     def test_2G_with_bad_file(self):
         options = {}
         options['ID'] = os.path.join(WD, 'Datafiles', 'Measurement_Import', '2G_bin_magic', 'mn1')
@@ -361,12 +361,10 @@ class Test2G_bin_magic(unittest.TestCase):
         self.assertFalse(program_ran)
         self.assertEqual(error_message, "bad mag file")
 
-        
-        
     def test_2G_with_options(self):
         options = {}
         options['ID'] = os.path.join(WD, 'Datafiles', 'Measurement_Import', '2G_bin_magic', 'mn1')
-        options['mag_file'] =  'mn001-1a.dat'
+        options['mag_file'] = 'mn001-1a.dat'
         options['meas_file'] = 'mn001-1a.magic'
         options['samp_con'] = '4-3'
         options['inst'] = 'instrument'
@@ -379,3 +377,31 @@ class Test2G_bin_magic(unittest.TestCase):
         self.assertTrue(program_ran)
         
         
+class TestBGC_magic(unittest.TestCase):
+
+    def setUp(self):
+        self.input_dir = os.path.join(WD, 'Datafiles', 'Measurement_import', 'BGC_magic')
+        os.chdir(WD)
+
+    def tearDown(self):
+        filelist = ['96MT.05.01.magic', 'BC0-3A.magic', 'magic_measurements.txt', 'er_specimens.txt', 'er_samples.txt', 'er_sites.txt']
+        directory = os.path.join(WD, 'Datafiles', 'Measurement_Import', 'BGC_magic')
+        pmag.remove_files(filelist, directory)
+
+    def test_BGC_with_no_files(self):
+        program_ran, error_message = BGC_magic.main(False)
+        self.assertFalse(program_ran)
+        self.assertEqual(error_message, 'You must provide a BCG format file')
+
+    def test_BGC_success(self):
+        options = {'input_dir_path': self.input_dir, 'mag_file': '96MT.05.01'}
+        program_ran, outfile = BGC_magic.main(False, **options)
+        self.assertTrue(program_ran)
+        self.assertEqual(outfile, os.path.join('.', 'magic_measurements.txt'))
+        
+    def test_BGC_alternate_infile(self):
+        options = {'input_dir_path': self.input_dir, 'mag_file': 'BC0-3A'}
+        program_ran, outfile = BGC_magic.main(False, **options)
+        self.assertTrue(program_ran)
+        self.assertEqual(outfile, os.path.join('.', 'magic_measurements.txt'))
+

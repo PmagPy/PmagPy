@@ -7,6 +7,8 @@ import os
 import scipy
 from scipy import array,sqrt,mean
 
+#pylint: skip-file
+
 #check_updates.main() # check for updates
 
 def get_version():
@@ -8495,10 +8497,17 @@ def add_flag(var, flag):
     """
     if var:
         var = flag + " " + str(var)
+    else:
+        var = ""
     return var
 
     
 def get_named_arg_from_sys(name, default_val=None, reqd=False):
+    """
+    Extract the value after a command-line flag such as '-f' and return it.
+    If the command-line flag is missing, return default_val.
+    If reqd == True and the command-line flag is missing, throw an error.
+    """
     import sys
     if name in sys.argv: # if the command line flag is found in sys.argv
         ind = sys.argv.index(name)
