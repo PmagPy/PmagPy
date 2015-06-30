@@ -51,6 +51,13 @@ class ErMagicBuilder(object):
         self.specimens.remove(specimen)
         del specimen
 
+    def add_specimen(self, spec_name, samp_name=None, spec_data={}):
+        sample = self.find_by_name(samp_name, self.samples)
+        specimen = Specimen(spec_name, sample, self.data_model, spec_data)
+        self.specimens.append(specimen)
+        if sample:
+            sample.specimens.append(specimen)
+
     def change_sample(self, old_samp_name, new_samp_name, new_site_name=None, new_sample_data={}):
         sample = self.find_by_name(old_samp_name, self.samples)
         if new_site_name:
@@ -112,22 +119,21 @@ class ErMagicBuilder(object):
             # add items and parents
             location = self.find_by_name(location_name, self.locations)
             if not location:
-                location = Location(location_name, 'location', self.data_model)
+                location = Location(location_name, self.data_model)
                 self.locations.append(location)
             site = self.find_by_name(site_name, self.sites)
             if not site:
-                site = Site(site_name, 'site', self.data_model)
+                site = Site(site_name, self.data_model)
                 self.sites.append(site)
                 site.location = location
             sample = self.find_by_name(sample_name, self.samples)
             if not sample:
-                sample = Sample(sample_name, 'sample', self.data_model)
+                sample = Sample(sample_name, self.data_model)
                 sample.site = site
                 self.samples.append(sample)
             specimen = self.find_by_name(specimen_name, self.specimens)
             if not specimen:
-                specimen = Specimen(specimen_name, 'specimen', self.data_model)
-                specimen.sample = sample
+                specimen = Specimen(specimen_name, sample, self.data_model)
                 self.specimens.append(specimen)
 
             # add child_items
@@ -144,7 +150,7 @@ class Pmag_object(object):
     Base class for Specimens, Samples, Sites, etc.
     """
 
-    def __init__(self, name, dtype, data_model=None):
+    def __init__(self, name, dtype, data_model=None, data={}):#, headers={}):
         if not data_model:
             self.data_model = validate_upload.get_data_model()
         else:
@@ -156,6 +162,26 @@ class Pmag_object(object):
         pmag_name = 'pmag_' + dtype + 's'
         self.pmag_reqd_headers, self.pmag_optional_headers = self.get_headers(pmag_name)
         self.er_reqd_headers, self.er_optional_headers = self.get_headers(er_name)
+        reqd_data = {key: '' for key in self.er_reqd_headers}
+        if data:
+            self.data = self.combine_dicts(data, reqd_data)
+        else:
+            self.data = reqd_data
+
+        self.remove_headers()
+
+        #if headers:
+        #    self.headers = self.combine_dicts(headers, 
+
+        #
+        
+        #def combine_dicts(self, new_dict, old_dict):
+        #"""
+        #returns a dictionary with all key, value pairs from new_dict.
+        #also returns key, value pairs from old_dict, if that key does not exist in new_dict.
+        #if a key is present in both new_dict and old_dict, the new_dict value will take precedence.
+        #"""
+
 
     def __repr__(self):
         return self.dtype + ": " + self.name
@@ -172,6 +198,11 @@ class Pmag_object(object):
         reqd_headers = sorted([header for header in data_dict.keys() if data_dict[header]['data_status'] == 'Required'])
         optional_headers = sorted([header for header in data_dict.keys() if data_dict[header]['data_status'] != 'Required'])
         return reqd_headers, optional_headers
+
+    def remove_headers(self):
+        for header in ['er_specimen_name', 'er_sample_name', 'er_site_name', 'er_location_name']:
+            if header in self.data.keys():
+                self.data.pop(header)
 
     def combine_dicts(self, new_dict, old_dict):
         """
@@ -199,13 +230,11 @@ class Specimen(Pmag_object):
     """
     Specimen level object
     """
+    def __init__(self, name, sample, data_model=None, data={}):
+        dtype = 'specimen'
+        super(Specimen, self).__init__(name, dtype, data_model, data)
+        self.sample = sample or ""
 
-    def __init__(self, name, dtype, data_model=None):
-        super(Specimen, self).__init__(name, dtype, data_model)
-        self.sample = ""
-        #self.site = ""
-        #self.location = ""
-        self.data = {}
 
     def change_specimen(self, new_name, new_sample=None, data_dict=None):
         self.name = new_name
@@ -214,10 +243,8 @@ class Specimen(Pmag_object):
             self.sample = new_sample
             self.sample.specimens.append(self)
         if data_dict:
-            self.combine_dicts(data_dict, self.data)
+            self.data = self.combine_dicts(data_dict, self.data)
 
-    def delete_specimen(self):
-        pass
             
 
 class Sample(Pmag_object):
@@ -226,7 +253,8 @@ class Sample(Pmag_object):
     Sample level object
     """
 
-    def __init__(self, name, dtype, data_model=None):
+    def __init__(self, name, data_model=None):
+        dtype = 'sample'
         super(Sample, self).__init__(name, dtype, data_model)
         self.specimens = []
         self.site = ""
@@ -250,7 +278,8 @@ class Site(Pmag_object):
     Site level object
     """
 
-    def __init__(self, name, dtype, data_model=None):
+    def __init__(self, name, data_model=None):
+        dtype = 'site'
         super(Site, self).__init__(name, dtype, data_model)
         self.samples = []
         self.location = ""
@@ -273,7 +302,8 @@ class Location(Pmag_object):
     Location level object
     """
 
-    def __init__(self, name, dtype, data_model=None):
+    def __init__(self, name, data_model=None):
+        dtype = 'location'
         super(Location, self).__init__(name, dtype, data_model)
         self.sites = []
         self.data = {}

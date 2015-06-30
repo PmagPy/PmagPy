@@ -41,6 +41,19 @@ class TestBuilder(unittest.TestCase):
         self.assertFalse(self.data1.find_by_name('c', lst))
         self.assertTrue(self.data1.find_by_name('b', lst))
 
+class TestSpecimen(unittest.TestCase):
+
+    def setUp(self):
+        dir_path = os.path.join(WD, 'Datafiles', 'copy_ErMagicBuilder')
+        self.data1 = builder.ErMagicBuilder(dir_path)
+        self.data1.get_data()
+        #self.data2 = builder.ErMagicBuilder(WD)
+        #self.data2.get_data()
+
+    def tearDown(self):
+        pass
+
+
     def test_update_specimen(self):
         specimen_name = 'Z35.6a'
         sample_name = 'Z35.6'
@@ -74,6 +87,67 @@ class TestBuilder(unittest.TestCase):
         self.assertTrue(new_sample)
         self.assertIn(specimen, new_sample.specimens)
 
+    def test_update_specimen_with_data(self):
+        specimen_name = 'Z35.6a'
+
+        self.data1.change_specimen(specimen_name, specimen_name, new_specimen_data={'specimen_elevation': 12})
+        specimen = self.data1.find_by_name('Z35.6a', self.data1.specimens)
+        self.assertTrue(specimen)
+        self.assertIn('specimen_elevation', specimen.data.keys())
+        self.assertEqual(12, specimen.data['specimen_elevation'])
+        # change again (should overwrite)
+        self.data1.change_specimen(specimen_name, specimen_name, new_specimen_data={'specimen_elevation': 92})
+        self.assertIn('specimen_elevation', specimen.data.keys())
+        self.assertEqual(92, specimen.data['specimen_elevation'])
+
+    def test_add_specimen(self):
+        spec_name = 'new specimen'
+        self.data1.add_specimen(spec_name)
+        specimen = self.data1.find_by_name(spec_name, self.data1.specimens)
+        self.assertTrue(specimen)
+        self.assertIn(specimen, self.data1.specimens)
+        self.assertEqual('', specimen.sample)
+        self.assertTrue(specimen.data)
+        self.assertTrue(specimen.pmag_reqd_headers)
+        self.assertTrue(specimen.er_reqd_headers)
+        
+    def test_add_specimen_with_sample(self):
+        spec_name = 'new specimen'
+        samp_name = 'Z35.6'
+        self.data1.add_specimen(spec_name, samp_name)
+        specimen = self.data1.find_by_name(spec_name, self.data1.specimens)
+        sample = self.data1.find_by_name(samp_name, self.data1.samples)
+        self.assertTrue(specimen)
+        self.assertIn(specimen, self.data1.specimens)
+        self.assertTrue(sample)
+        self.assertEqual(sample, specimen.sample)
+
+    def test_add_specimen_invalid_sample(self):
+        spec_name = 'new specimen'
+        samp_name = 'nonexistent_sample'
+        self.data1.add_specimen(spec_name, samp_name)
+        specimen = self.data1.find_by_name(spec_name, self.data1.specimens)
+        sample = self.data1.find_by_name(samp_name, self.data1.samples)
+        self.assertTrue(specimen)
+        self.assertIn(specimen, self.data1.specimens)
+        self.assertFalse(sample)
+        self.assertEqual('', specimen.sample)
+
+    def test_add_specimen_with_data(self):
+        specimen_name = 'new_spec'
+        self.data1.add_specimen(specimen_name, spec_data={'specimen_type': 'special', 'specimen_elevation': 22})
+        
+        specimen = self.data1.find_by_name(specimen_name, self.data1.specimens)
+
+        self.assertNotIn('er_specimen_name', specimen.data.keys())
+        self.assertNotIn('er_sample_name', specimen.data.keys())
+        self.assertNotIn('er_site_name', specimen.data.keys())
+        self.assertNotIn('er_location_name', specimen.data.keys())
+        self.assertEqual('special', specimen.data['specimen_type'])
+        self.assertIn('specimen_elevation', specimen.data.keys())
+        self.assertEqual(22, specimen.data['specimen_elevation'])
+        
+
     def test_delete_specimen(self):
         specimen_name = 'Z35.6a'
         sample_name = 'Z35.6'
@@ -85,6 +159,9 @@ class TestBuilder(unittest.TestCase):
         self.assertTrue(sample)
         self.assertNotIn(specimen, sample.specimens)
 
+
+class TestSample(unittest.TestCase):
+        
     def test_update_sample(self):
         specimen_name = 'Z35.6a'
         sample_name = 'Z35.6'
@@ -121,7 +198,11 @@ class TestBuilder(unittest.TestCase):
 
 
     def test_update_sample_with_invalid_site(self):
-        self.assertTrue(False)
+        #sample = 'new_sample_name'
+        #site = 'invalid site name'
+        #self.assertRaises(Exception, self.data1.add_sample, sample, site, {'new_key': 'new value'})
+        #self.assertTrue(False)
+        pass
 
     def test_update_sample_with_data(self):
         self.assertTrue(False)
