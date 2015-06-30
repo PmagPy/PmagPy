@@ -101,7 +101,13 @@ class ErMagicBuilder(object):
             spec.sample = ""
 
 
-    def change_site(self, site, new_name, new_location=None, new_site_data={}):
+    def change_site(self, old_site_name, new_site_name, new_location_name=None, new_site_data={}):
+        pass
+
+    def add_site(self, site_name, location_name=None, site_data={}):
+        pass
+    
+    def delete_site(self, site_name, replacement_site=None):
         pass
 
     def change_location(self, location, new_name, new_site_data={}):

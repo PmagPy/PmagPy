@@ -242,7 +242,6 @@ class TestSample(unittest.TestCase):
         self.assertTrue(sample)
         self.assertEqual('Z35.', sample.site.name)
 
-
     def test_add_sample(self):
         samp_name = 'new_sample'
         sample = self.data1.add_sample(samp_name)
@@ -283,7 +282,6 @@ class TestSample(unittest.TestCase):
         self.assertIn('rough', sample.data['sample_texture'])
         
 
-
     def test_delete_sample(self):
         specimen_name = 'Z35.6a'
         sample_name = 'Z35.6'
@@ -300,3 +298,123 @@ class TestSample(unittest.TestCase):
         self.assertNotIn(sample_name, [samp.name for samp in site.samples])
         
         self.assertNotIn(sample_name, [samp.name for samp in self.data1.samples])
+
+class TestSite(unittest.TestCase):
+
+    def setUp(self):
+        dir_path = os.path.join(WD, 'Datafiles', 'copy_ErMagicBuilder')
+        self.data1 = builder.ErMagicBuilder(dir_path)
+        self.data1.get_data()
+
+    def test_update_site(self):
+        sample_name = 'Z35.6'
+        site_name = 'Z35.'
+        location_name = 'locale'
+
+        site = self.data1.find_by_name(site_name, self.data1.sites)
+        samples = site.samples
+        self.data1.change_site(site_name, 'new_site', new_location_name=None, new_site_data={})
+        site = self.data1.find_by_name('new_site', self.data1.sites)
+        location = self.data1.find_by_name(location_name, self.data1.locations)
+        self.assertTrue(site)
+        self.assertTrue(location)
+        self.assertEqual(site.location, location)
+        for samp in site.samples:
+            self.assertIn(samp, samples)
+        for samp in samples:
+            self.assertEqual(samp.site, site)
+        # see that old site no longer exists
+        old_site = self.data1.find_by_name(site_name, self.data1.sites)
+        self.assertFalse(old_site)
+
+    def test_update_site_change_location(self):
+        sample_name = 'Z35.6'
+        site_name = 'Z35.'
+        location_name = 'locale'
+        new_location_name = 'Munich'
+        site = self.data1.find_by_name(site_name, self.data1.sites)
+        old_location = self.data1.find_by_name(location_name, self.data1.locations)
+        location = self.data1.find_by_name(new_location_name, self.data1.locations)
+        
+        self.data1.change_site(site_name, 'new_site', new_location_name=new_location_name, new_site_data={})
+        self.assertTrue(site)
+        self.assertTrue(old_location)
+        self.assertTrue(location)
+        self.assertEqual(site.location, location)
+        self.assertIn(location.sites, site)
+        self.assertNotIn(old_location.sites, site)
+        
+
+    def test_update_site_with_data(self):
+        sample_name = 'Z35.6'
+        site_name = 'Z35.'
+        location_name = 'locale'
+        site = self.data1.find_by_name(site_name, self.data1.sites)
+        location = self.data1.find_by_name(location_name, self.data1.locations)
+        self.assertIn('site_type', site.data.keys())
+        self.assertEqual('', site.data['site_type'])
+        self.data1.change_site(site_name, 'new_site', new_site_data={'site_type': 'great', 'site_elevation': 10})
+
+        self.assertTrue(site)
+        self.assertEqual(site.name, 'new_site')
+        self.assertIn('site_type', site.data.keys())
+        self.assertEqual('great', site.data['site_type'])
+        self.assertIn('site_elevation', site.data.keys())
+        self.assertEqual(10, site.data['site_type'])
+
+        self.data1.change_site('new_site', 'new_site', new_site_data={'site_type': 'great', 'site_elevation': 99})
+        self.assertEqual(99, site.data['site_elevtaion'])
+
+        
+    def test_update_site_invalid_location(self):
+        site_name = 'Z35.'
+        location_name = 'locale'
+        site = self.data1.find_by_name(site_name, self.data1.sites)
+        location = self.data1.find_by_name(location_name, self.data1.locations)
+        self.data1.change_site(site_name, 'new_name', new_location_name='invalid_location')
+        self.assertTrue(site)
+        self.assertEqual(site.name, 'new_name')
+        self.assertEqual(site.location, location)
+
+    def test_add_site(self):
+        site_name = 'new_site'
+        site = self.data1.add_site(site_name)
+        self.assertTrue(site)
+        self.assertIn(site, self.data1.sites)
+
+    def test_add_site_with_location(self):
+        location = self.data1.find_by_name('Munich', self.data1.locations)
+        self.assertTrue(location)
+        site_name = 'new_site'
+        site = self.data1.add_site(site_name, location.name)
+        self.assertTrue(site)
+        self.assertIn(site, self.data1.sites)
+        self.assertIn(site, location.sites)
+
+
+    def test_add_site_invalid_location(self):
+        site_name = 'new_site'
+        site = self.data1.add_site(site_name, 'non_existent_location')
+        self.assertTrue(site)
+        self.assertIn(site, self.data1.sites)
+        self.assertEqual('', site.location)
+
+    def test_add_site_with_data(self):
+        site_name = 'new_site'
+        site = self.data1.add_site(site_name, 'Munich', {'site_type': 'great', 'site_elevation': 99})
+        self.assertTrue(site)
+        self.assertIn('site_type', site.data.keys())
+        self.assertEqual('great', site.data['site_type'])
+        self.assertIn('site_elevation', site.data.keys())
+        self.assertEqual(99, site.data['site_elevation'])
+
+
+    def test_delete_site(self):
+        site_name = 'Z35.'
+        location_name = 'locale'
+        site = self.data1.find_by_name(site_name, self.data1.sites)
+        location = self.data1.find_by_name(location_name, self.data1.locations)
+        self.data1.delete_site(site.name)
+        self.assertFalse(site)
+        self.assertNotIn(site_name, [site.name for site in self.data1.sites])
+        self.assertNotIn(site_name, [site.name for site in location.sites])
