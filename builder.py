@@ -126,11 +126,26 @@ class ErMagicBuilder(object):
             sample.site = site
 
 
-    def add_site(self, site_name, location_name=None, site_data={}):
-        pass
+    def add_site(self, site_name, location_name=None, site_data=None):
+        if location_name:
+            location = self.find_by_name(location_name, self.locations)
+        else:
+            location = None
+        new_site = Site(site_name, location, site_data=site_data)
+        self.sites.append(new_site)
+        if location:
+            location.sites.append(new_site)
+        return new_site
+
     
     def delete_site(self, site_name, replacement_site=None):
-        pass
+        site = self.find_by_name(site_name, self.sites)
+        self.sites.remove(site)
+        if site.location:
+            site.location.sites.remove(site)
+        for samp in site.samples:
+            samp.site = ''
+        del site
 
     def change_location(self, location, new_name, new_site_data={}):
         pass
@@ -304,9 +319,9 @@ class Sample(Pmag_object):
     Sample level object
     """
 
-    def __init__(self, name, site, data_model=None, site_data={}):
+    def __init__(self, name, site, data_model=None, sample_data=None):
         dtype = 'sample'
-        super(Sample, self).__init__(name, dtype, data_model, site_data)
+        super(Sample, self).__init__(name, dtype, data_model, sample_data)
         self.specimens = []
         self.site = site or ""
 
@@ -329,9 +344,9 @@ class Site(Pmag_object):
     Site level object
     """
 
-    def __init__(self, name, location, data_model=None):
+    def __init__(self, name, location, data_model=None, site_data=None):
         dtype = 'site'
-        super(Site, self).__init__(name, dtype, data_model)
+        super(Site, self).__init__(name, dtype, data_model, site_data)
         self.samples = []
         self.location = location or ""
 
@@ -372,6 +387,6 @@ if __name__ == '__main__':
     #specimen = Specimen('spec1', 'specimen')
     #for spec in builder.specimens:
         #print str(spec) + ' belongs to ' + str(spec.sample) + ' belongs to ' + str(spec.sample.site) + ' belongs to ' + str(spec.sample.site.location)
-    for site in builder.sites:
-        print site, site.samples
-        print '--'
+    #for site in builder.sites:
+    #    print site, site.samples
+    #    print '--'

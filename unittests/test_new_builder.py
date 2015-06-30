@@ -416,6 +416,7 @@ class TestSite(unittest.TestCase):
         site = self.data1.find_by_name(site_name, self.data1.sites)
         location = self.data1.find_by_name(location_name, self.data1.locations)
         self.data1.delete_site(site.name)
+        site = self.data1.find_by_name(site_name, self.data1.sites)
         self.assertFalse(site)
         self.assertNotIn(site_name, [site.name for site in self.data1.sites])
         self.assertNotIn(site_name, [site.name for site in location.sites])
