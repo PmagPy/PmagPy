@@ -348,13 +348,13 @@ class Zeq_GUI(wx.Frame):
         #  select coordinate box
         #----------------------------------------------------------------------                     
         # stopped here
-        coordinate_list = ['specimen']
+        self.coordinate_list = ['specimen']
         for specimen in self.specimens:
-            if 'geographic' not in coordinate_list and self.Data[specimen]['zijdblock_geo']:
-                coordinate_list.append('geographic')
-            if 'tilt-corrected' not in coordinate_list and self.Data[specimen]['zijdblock_tilt']:
-                coordinate_list.append('tilt-corrected')
-        self.coordinates_box = wx.ComboBox(self.panel, -1, choices=coordinate_list, value='specimen',style=wx.CB_DROPDOWN,name="coordinates")
+            if 'geographic' not in self.coordinate_list and self.Data[specimen]['zijdblock_geo']:
+                self.coordinate_list.append('geographic')
+            if 'tilt-corrected' not in self.coordinate_list and self.Data[specimen]['zijdblock_tilt']:
+                self.coordinate_list.append('tilt-corrected')
+        self.coordinates_box = wx.ComboBox(self.panel, -1, choices=self.coordinate_list, value='specimen',style=wx.CB_DROPDOWN,name="coordinates")
         self.Bind(wx.EVT_COMBOBOX, self.onSelect_coordinates,self.coordinates_box)
         self.orthogonal_box = wx.ComboBox(self.panel, -1, value='X=NRM dec', choices=['X=NRM dec','X=East','X=North','X=best fit line dec'], style=wx.CB_DROPDOWN,name="orthogonal_plot")
         self.Bind(wx.EVT_COMBOBOX, self.onSelect_orthogonal_box,self.orthogonal_box)
@@ -895,8 +895,6 @@ class Zeq_GUI(wx.Frame):
                 break
         if index != None:
             disp_fit_name = self.mean_fit_box.GetValue()
-            if disp_fit_name!="All":
-                disp_fit_index = map(lambda x: x.name, self.pmag_results_data['specimens'][self.s]).index(disp_fit_name)
 
             if self.level_box.GetValue()=='sample': high_level_type='samples'
             if self.level_box.GetValue()=='site': high_level_type='sites'
@@ -906,6 +904,8 @@ class Zeq_GUI(wx.Frame):
             high_level_name=str(self.level_names.GetValue())
             calculation_type=str(self.mean_type_box.GetValue())
             elements_type=str(self.show_box.GetValue())
+
+            elements_list=self.Data_hierarchy[high_level_type][high_level_name][elements_type]
 
             for i,specimen in enumerate(elements_list):
                 if disp_fit_name=="All" and \
@@ -917,12 +917,14 @@ class Zeq_GUI(wx.Frame):
                             l -= 1
                 else:
                     try:
+                        disp_fit_index = map(lambda x: x.name, self.pmag_results_data['specimens'][specimen]).index(disp_fit_name)
                         if self.pmag_results_data['specimens'][specimen][disp_fit_index] in self.bad_fits:
                             l = 0
                         else:
                             l = 1
                     except IndexError: l = 0
                     except KeyError: l = 0
+
                 if index < l:
                     self.s = specimen
                     self.specimens_box.SetStringSelection(specimen)
@@ -932,13 +934,17 @@ class Zeq_GUI(wx.Frame):
                     else:
                         new_fit_index = disp_fit_index
                     break
+
                 index -= l
+
             self.fit_box.SetSelection(new_fit_index)
             self.on_select_fit(event)
             if disp_fit_name!="All":
                 self.mean_fit = self.current_fit.name
                 self.mean_fit_box.SetSelection(2+new_fit_index)
                 self.update_selection()
+            if self.interpertation_editor_open:
+                self.interpertation_editor.update_editor(True)
 
     def Zij_zoom(self):
         #cursur_entry_zij=self.canvas1.mpl_connect('axes_enter_event', self.on_enter_zij_fig_new) 
@@ -1182,6 +1188,7 @@ class Zeq_GUI(wx.Frame):
 
     def draw_figure(self,s):
 
+        print("drawing figure")
         self.initialize_CART_rot(s)
         
         #-----------------------------------------------------------
@@ -1651,6 +1658,8 @@ class Zeq_GUI(wx.Frame):
       Add measurement data lines to the text window.
       """
 
+      print("update measurement logger")
+
       if self.COORDINATE_SYSTEM=='geographic':
           zijdblock=self.Data[self.s]['zijdblock_geo']
       elif self.COORDINATE_SYSTEM=='tilt-corrected':
@@ -1703,7 +1712,7 @@ class Zeq_GUI(wx.Frame):
           try: self.current_fit = self.pmag_results_data['specimens'][self.s][fit_index]
           except IndexError: self.current_fit = None
         else: self.current_fit = None
-        #self.pars=self.Data[self.s]['pars'] 
+        #self.pars=self.Data[self.s]['pars']
         self.update_selection()
 
     #----------------------------------------------------------------------
@@ -2247,6 +2256,8 @@ class Zeq_GUI(wx.Frame):
         @alters: fit.lines, zijplot, specimen_eqarea_interpretation, mplot_interpretation
         """
 
+        print("drawing interp")
+
         self.zijplot.collections=[] # delete fit points 
         self.specimen_eqarea_interpretation.clear() #clear equal area
         self.mplot_interpretation.clear() #clear Mplot
@@ -2637,9 +2648,10 @@ class Zeq_GUI(wx.Frame):
 
        if self.interpertation_editor_open:
            self.interpertation_editor.level_box.SetStringSelection(self.UPPER_LEVEL)
+           self.update_selection()
+       else:
+           self.update_selection()
 
-       self.plot_higher_levels_data()
-       self.update_selection()
     #----------------------------------------------------------------------
         
     def onSelect_level_name(self,event):
@@ -2799,6 +2811,8 @@ class Zeq_GUI(wx.Frame):
 
 
     def plot_higher_levels_data(self):
+
+       print("drawing high level data")
 
        self.toolbar4.home()
 
@@ -3848,11 +3862,30 @@ self.mean_fit not in map(lambda x: x.name, self.pmag_results_data['specimens'][s
 
         menu_edit = wx.Menu()
 
-        m_next = menu_Help.Append(-1, "&Next Specimen\tCtrl-Right", "")
+        m_new = menu_edit.Append(-1, "&New Interpertation\tCtrl-N", "")
+        self.Bind(wx.EVT_MENU, self.add_fit, m_new)
+
+        m_delete = menu_edit.Append(-1, "&Delete Interpertation\tCtrl-D", "")
+        self.Bind(wx.EVT_MENU, self.delete_fit, m_delete)
+
+        m_next = menu_edit.Append(-1, "&Next Specimen\tCtrl-Right", "")
         self.Bind(wx.EVT_MENU, self.on_next_button, m_next)
 
-        m_previous = menu_Help.Append(-1, "&Previous Specimen\tCtrl-Left", "")
+        m_previous = menu_edit.Append(-1, "&Previous Specimen\tCtrl-Left", "")
         self.Bind(wx.EVT_MENU, self.on_prev_button, m_previous)
+
+        menu_coordinates = wx.Menu()
+
+        m_speci = menu_coordinates.Append(-1, "&Specimen Coordinates\tCtrl-P", "")
+        self.Bind(wx.EVT_MENU, self.on_menu_change_speci_coord, m_speci)
+        if "geographic" in self.coordinate_list:
+            m_geo = menu_coordinates.Append(-1, "&Geographic Coordinates\tCtrl-G", "")
+            self.Bind(wx.EVT_MENU, self.on_menu_change_geo_coord, m_geo)
+        if "tilt-corrected" in self.coordinate_list:
+            m_tilt = menu_coordinates.Append(-1, "&Tilt-Corrected Coordinates\tCtrl-T", "")
+            self.Bind(wx.EVT_MENU, self.on_menu_change_tilt_coord, m_tilt)
+
+        m_coords = menu_edit.AppendMenu(-1, "&Coordinate Systems", menu_coordinates)
 
         #-----------------
         
@@ -4082,8 +4115,25 @@ self.mean_fit not in map(lambda x: x.name, self.pmag_results_data['specimens'][s
                               
     def on_menu_change_working_directory(self, event):
         self.reset()
+
+    #--------------------------------------------------------------
+    # Edit menu Bar functions
+    #--------------------------------------------------------------
     
-    
+    def on_menu_change_speci_coord(self, event):
+        if self.COORDINATE_SYSTEM != "specimen":
+            self.coordinates_box.SetStringSelection("specimen")
+            self.onSelect_coordinates(event)
+
+    def on_menu_change_geo_coord(self, event):
+        if self.COORDINATE_SYSTEM != "geographic":
+            self.coordinates_box.SetStringSelection("geographic")
+            self.onSelect_coordinates(event)
+
+    def on_menu_change_tilt_coord(self, event):
+        if self.COORDINATE_SYSTEM != "tilt-corrected":
+            self.coordinates_box.SetStringSelection("tilt-corrected")
+            self.onSelect_coordinates(event)
                             
     #--------------------------------------------------------------
     # Analysis menu Bar functions
@@ -4145,7 +4195,7 @@ self.mean_fit not in map(lambda x: x.name, self.pmag_results_data['specimens'][s
         Read previous interpretation from a redo file
         and update gui with the new interpretation
         """
-        self.on_menu_clear_interpretation(1)
+        self.clear_interpretations()
         self.GUI_log.write ("-I- read redo file and processing new bounds")
         fin=open(redo_file,'rU')
         
@@ -4174,9 +4224,7 @@ self.mean_fit not in map(lambda x: x.name, self.pmag_results_data['specimens'][s
                 else:
                     self.add_fit(1)
                 fit = self.pmag_results_data['specimens'][specimen][fit_index];
-
                 fit.name = line[4]
-                
             else:
                 self.add_fit(1)
                 fit = self.pmag_results_data['specimens'][specimen][-1];
@@ -4926,7 +4974,7 @@ self.mean_fit not in map(lambda x: x.name, self.pmag_results_data['specimens'][s
                 fit_num = -1
             self.pmag_results_data['specimens'][self.s][fit_num].select()
         if self.interpertation_editor_open:
-            self.interpertation_editor.update_editor()
+            self.interpertation_editor.update_current_fit_data()
 
     def on_enter_fit_name(self,event):
         """
@@ -5273,6 +5321,9 @@ class EditFitFrame(wx.Frame):
         updates the logger and plot on the interpertation editor window
         @param: changed_interpertation_parameters -> if the logger should be whipped and completely recalculated from scratch or not (default = True)
         """
+
+        print("update editor: " + str(changed_interpertation_parameters))
+
         if changed_interpertation_parameters:
             self.fit_list = []
             for specimen in self.specimens_list:
@@ -5364,11 +5415,13 @@ class EditFitFrame(wx.Frame):
         si = self.parent.specimens.index(self.fit_list[i][1])
         self.parent.specimens_box.SetSelection(si)
         self.parent.onSelect_specimen(event)
-        i_focus = i
+        self.logger.SetItemBackgroundColour(self.current_fit_index, "WHITE")
+        self.current_fit_index = i
         fi = 0
         while (self.parent.s == self.fit_list[i][1] and i >= 0): i,fi = (i-1,fi+1)
         self.parent.fit_box.SetSelection(fi-1)
         self.parent.on_select_fit(event)
+        
 
     def OnRightClickListctrl(self, event):
         """
