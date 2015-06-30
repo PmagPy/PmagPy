@@ -192,6 +192,7 @@ class TestSample(unittest.TestCase):
         self.assertTrue(sample)
         self.assertIn(sample, self.data1.samples)
         self.assertEqual('new_sample', sample.name)
+        self.assertEqual(specimen.sample, sample)
         self.assertIn(specimen, sample.specimens)
         self.assertEqual(site_name, sample.site.name)
         self.assertEqual(location_name, sample.site.location.name)

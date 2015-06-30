@@ -79,7 +79,7 @@ class ErMagicBuilder(object):
             new_site = None
         sample.change_sample(new_samp_name, new_site, new_sample_data)
         for spec in sample.specimens:
-            spec.sample = ''
+            spec.sample = sample
 
     def add_sample(self, samp_name, site_name=None, samp_data={}):
         site = self.find_by_name(site_name, self.sites)
