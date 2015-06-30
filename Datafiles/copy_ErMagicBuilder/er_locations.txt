@@ -1,3 +1,4 @@
 tab	er_locations
-er_citation_names	er_location_name	location_begin_lon	location_end_lon	location_begin_lat	location_end_lat	location_type
-This study	locale	95.400000	95.400000	47.100000	47.100000	Lake Core
+er_location_name	location_type	er_citation_names	location_end_lat	location_begin_lat	location_end_lon	location_begin_lon
+Munich		This study	47.100000	47.100000	95.400000	95.400000
+locale	Lake Core	This study	47.100000	47.100000	95.400000	95.400000
