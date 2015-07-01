@@ -44,7 +44,7 @@ class ErMagicBuilder(object):
         if new_sample_name:
             new_sample = self.find_by_name(new_sample_name, self.samples)
             if not new_sample:
-                print "-W- {} is not a currently existing sample.\nLeaving sample unchanged as: {} for {}".format(new_sample_name, specimen.sample or '*empty*', specimen)
+                print "-W- {} is not a currently existing sample.\n    Leaving sample unchanged as: {} for {}".format(new_sample_name, specimen.sample or '*empty*', specimen)
         else:
             new_sample = None
         specimen.change_specimen(new_spec_name, new_sample, new_specimen_data)
@@ -73,7 +73,7 @@ class ErMagicBuilder(object):
         if new_site_name:
             new_site = self.find_by_name(new_site_name, self.sites)
             if not new_site:
-                print "-W- {} is not a currently existing site.\nLeaving site unchanged as: {} for {}".format(new_site_name, sample.site or '*empty*', sample)
+                print "-W- {} is not a currently existing site.\n    Leaving site unchanged as: {} for {}".format(new_site_name, sample.site or '*empty*', sample)
                 new_site = None
         else:
             new_site = None
@@ -114,7 +114,7 @@ class ErMagicBuilder(object):
             if new_location:
                 new_location.sites.append(site)                
             else:
-                print "-W- {} is not a currently existing location.\nLeaving location unchanged as: {} for {}".format(new_site_name, site.location or '*empty*', site)
+                print "-W- {} is not a currently existing location.\n    Leaving location unchanged as: {} for {}".format(new_site_name, site.location or '*empty*', site)
 
                 
 
@@ -147,8 +147,28 @@ class ErMagicBuilder(object):
             samp.site = ''
         del site
 
-    def change_location(self, location, new_name, new_site_data={}):
-        pass
+    def change_location(self, old_location_name, new_location_name, new_location_data=None):
+        location = self.find_by_name(old_location_name, self.locations)
+        if not location:
+            print '-W- {} is not a currently existing location, so it cannot be updated.'.format(old_location_name)
+            return False
+        sites = location.sites
+        location.change_location(new_location_name, new_location_data)
+        return location
+
+    def add_location(self, location_name, location_data=None):
+        location = Location(location_name, location_data=location_data)
+        self.locations.append(location)
+        return location
+
+    def delete_location(self, location_name):
+        location = self.find_by_name(location_name, self.locations)
+        sites = location.sites
+        self.locations.remove(location)
+        for site in sites:
+            site.location = ''
+        del location
+    
         
     #def find_all_children(self, parent_item):
     #    """
@@ -365,11 +385,10 @@ class Location(Pmag_object):
     Location level object
     """
 
-    def __init__(self, name, data_model=None):
+    def __init__(self, name, data_model=None, location_data=None):
         dtype = 'location'
-        super(Location, self).__init__(name, dtype, data_model)
+        super(Location, self).__init__(name, dtype, data_model, location_data)
         self.sites = []
-        self.data = {}
 
     def change_location(self, new_name, data_dict=None):
         self.name = new_name
