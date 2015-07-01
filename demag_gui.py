@@ -591,7 +591,7 @@ class Zeq_GUI(wx.Frame):
                 self.Add_text()
                 self.update_fit_box()
         else:
-            print("------------------------------ no magic_measurements.txt found in WD ---------------------------------------")
+            print("------------------------------ no magic_measurements.txt found---------------------------------------")
             self.Destroy()
 
     #----------------------------------------------------------------------
@@ -1186,9 +1186,9 @@ class Zeq_GUI(wx.Frame):
     #----------------------------------------------------------------------
 
 
-    def draw_figure(self,s):
+    def draw_figure(self,s,update_higher_plots=True):
 
-        print("drawing figure")
+        print("drawing figure: " + s)
         self.initialize_CART_rot(s)
         
         #-----------------------------------------------------------
@@ -1556,7 +1556,8 @@ class Zeq_GUI(wx.Frame):
         #-----------------------------------------------------------
         # high level equal area
         #-----------------------------------------------------------
-        self.plot_higher_levels_data()
+        if update_higher_plots:
+            self.plot_higher_levels_data()
         #self.fig4.clf()
         #what_is_it=self.level_box.GetValue()
         #self.fig4.text(0.02,0.96,what_is_it,{'family':'Arial', 'fontsize':10*self.GUI_RESOLUTION, 'style':'normal','va':'center', 'ha':'left' })
@@ -1712,6 +1713,8 @@ class Zeq_GUI(wx.Frame):
           try: self.current_fit = self.pmag_results_data['specimens'][self.s][fit_index]
           except IndexError: self.current_fit = None
         else: self.current_fit = None
+        if self.interpertation_editor_open:
+            self.interpertation_editor.change_selected(True)
         #self.pars=self.Data[self.s]['pars']
         self.update_selection()
 
@@ -1797,7 +1800,10 @@ class Zeq_GUI(wx.Frame):
 
         self.clear_boxes()
 
-        self.draw_figure(self.s)
+        if self.current_fit:
+            self.draw_figure(self.s,False)
+        else:
+            self.draw_figure(self.s,True)
 
         self.update_fit_box()
 
@@ -1822,7 +1828,7 @@ class Zeq_GUI(wx.Frame):
         self.update_temp_boxes()
 
         #--------------------------
-        # update high level boxes and figures (if needed)
+        # update high level boxes
         #--------------------------
 
         higher_level=self.level_box.GetValue()
@@ -1839,25 +1845,23 @@ class Zeq_GUI(wx.Frame):
         #--------------------------
         # check if specimen's interpretation is saved 
         #--------------------------
-        found_interpretation=False
         if self.s in self.pmag_results_data['specimens'].keys():
 
-                  if self.current_fit:
-                      tmin = self.current_fit.tmin
-                      tmax = self.current_fit.tmax
-                      calculation_type=self.current_fit.PCA_type
-                  else:
-                      calculation_type=self.PCA_type_box.GetValue()
-                      PCA_type = "None"
+            if self.current_fit:
+                tmin = self.current_fit.tmin
+                tmax = self.current_fit.tmax
+                calculation_type=self.current_fit.PCA_type
+            else:
+                calculation_type=self.PCA_type_box.GetValue()
+                PCA_type = "None"
 
-                  # update calculation type windows
-                  if calculation_type=="DE-BFL": PCA_type="line"
-                  elif calculation_type=="DE-BFL-A": PCA_type="line-anchored"
-                  elif calculation_type=="DE-BFL-O": PCA_type="line-with-origin"
-                  elif calculation_type=="DE-FM": PCA_type="Fisher"
-                  elif calculation_type=="DE-BFP": PCA_type="plane"
-                  self.PCA_type_box.SetStringSelection(PCA_type)
-                  found_interpretation=True
+            # update calculation type windows
+            if calculation_type=="DE-BFL": PCA_type="line"
+            elif calculation_type=="DE-BFL-A": PCA_type="line-anchored"
+            elif calculation_type=="DE-BFL-O": PCA_type="line-with-origin"
+            elif calculation_type=="DE-FM": PCA_type="Fisher"
+            elif calculation_type=="DE-BFP": PCA_type="plane"
+            self.PCA_type_box.SetStringSelection(PCA_type)
 
 
         # measurements text box
@@ -1882,6 +1886,7 @@ class Zeq_GUI(wx.Frame):
                 mpars=self.high_level_means[high_level_type][high_level_name][dirtype]
                 calculation_type= mpars['calculation_type'] 
                 self.show_higher_levels_pars(mpars)
+
 
     #----------------------------------------------------------------------
     
@@ -2615,11 +2620,11 @@ class Zeq_GUI(wx.Frame):
             self.interpertation_editor.mean_fit_box.SetStringSelection(new_fit)
         # calculate higher level data
         self.calculate_higher_levels_data()
-        self.update_selection()
+        self.plot_higher_levels_data()
         
     #----------------------------------------------------------------------
         
-    def onSelect_higher_level(self,event):
+    def onSelect_higher_level(self,event,called_by_interp_editor=False):
        self.UPPER_LEVEL=self.level_box.GetValue()
        if self.UPPER_LEVEL=='sample':
            self.show_box.SetItems(['specimens'])
@@ -2627,34 +2632,37 @@ class Zeq_GUI(wx.Frame):
            self.level_names.SetItems(self.samples)
            self.level_names.SetStringSelection(self.Data_hierarchy['sample_of_specimen'][self.s])
 
-       if self.UPPER_LEVEL=='site':
+       elif self.UPPER_LEVEL=='site':
            self.show_box.SetItems(['specimens','samples'])
            if self.show_box.GetValue() not in ['specimens','samples']:
                self.show_box.SetStringSelection('samples')
            self.level_names.SetItems(self.sites)
            self.level_names.SetStringSelection(self.Data_hierarchy['site_of_specimen'][self.s])
-       if self.UPPER_LEVEL=='location':
+
+       elif self.UPPER_LEVEL=='location':
            self.show_box.SetItems(['specimens','samples','sites'])#,'sites VGP'])
            if self.show_box.GetValue() not in ['specimens','samples','sites']:#,'sites VGP']:
                self.show_box.SetStringSelection('sites')
            self.level_names.SetItems(self.locations)
            self.level_names.SetStringSelection(self.Data_hierarchy['location_of_specimen'][self.s])
-       if self.UPPER_LEVEL=='study':
+
+       elif self.UPPER_LEVEL=='study':
            self.show_box.SetItems(['specimens','samples','sites'])#,'sites VGP'])
            if self.show_box.GetValue() not in ['specimens','samples','sites']:#,'sites VGP']:
                self.show_box.SetStringSelection('sites')
            self.level_names.SetItems(['this study'])
            self.level_names.SetStringSelection('this study')
 
-       if self.interpertation_editor_open:
-           self.interpertation_editor.level_box.SetStringSelection(self.UPPER_LEVEL)
-           self.update_selection()
-       else:
-           self.update_selection()
+       if not called_by_interp_editor:
+           if self.interpertation_editor_open:
+               self.interpertation_editor.level_box.SetStringSelection(self.UPPER_LEVEL)
+               self.interpertation_editor.on_select_higher_level(event,True)
+           else:
+               self.update_selection()
 
     #----------------------------------------------------------------------
         
-    def onSelect_level_name(self,event):
+    def onSelect_level_name(self,event,called_by_interp_editor=False):
        high_level_name=str(self.level_names.GetValue())
        
        if self.level_box.GetValue()=='sample':
@@ -2670,10 +2678,10 @@ class Zeq_GUI(wx.Frame):
            specimen_list.sort(cmp=specimens_comparator)
            self.s=str(specimen_list[0])
            self.specimens_box.SetStringSelection(str(self.s))
-           self.update_selection()
 
-       if self.interpertation_editor_open:
+       if self.interpertation_editor_open and not called_by_interp_editor:
            self.interpertation_editor.level_names.SetStringSelection(high_level_name)
+           self.interpertation_editor.on_select_level_name(event,True)
 
        self.update_selection()
 
@@ -2859,10 +2867,10 @@ class Zeq_GUI(wx.Frame):
        if calculation_type!="None":
            if high_level_name in self.high_level_means[high_level_type].keys():
                if dirtype in self.high_level_means[high_level_type][high_level_name].keys():
-                   self.plot_eqarea_mean( self.high_level_means[high_level_type][high_level_name][dirtype],self.high_level_eqarea)
+                   self.plot_eqarea_mean(self.high_level_means[high_level_type][high_level_name][dirtype],self.high_level_eqarea)
                         
            
-       self.high_level_eqarea.set_xlim(-1., 1.)                                
+       self.high_level_eqarea.set_xlim(-1., 1.)
        self.high_level_eqarea.set_ylim(-1., 1.)
        self.high_level_eqarea.axes.set_aspect('equal')
        self.high_level_eqarea.axis('off')
@@ -4203,6 +4211,8 @@ self.mean_fit not in map(lambda x: x.name, self.pmag_results_data['specimens'][s
             line=Line.strip('\n').split('\t')
             specimen=line[0]
             self.s = specimen
+            if not (self.s in self.pmag_results_data['specimens'].keys()):
+                self.pmag_results_data['specimens'][self.s] = []
 
             tmin,tmax="",""
 
@@ -4222,12 +4232,14 @@ self.mean_fit not in map(lambda x: x.name, self.pmag_results_data['specimens'][s
                 if any(bool_list):
                     fit_index = bool_list.index(True)
                 else:
-                    self.add_fit(1)
+                    next_fit = str(len(self.pmag_results_data['specimens'][self.s]) + 1)
+                    self.pmag_results_data['specimens'][self.s].append(Fit('Fit ' + next_fit, None, None, self.colors[(int(next_fit)-1) % len(self.colors)], self))
                 fit = self.pmag_results_data['specimens'][specimen][fit_index];
                 fit.name = line[4]
             else:
-                self.add_fit(1)
-                fit = self.pmag_results_data['specimens'][specimen][-1];
+                next_fit = str(len(self.pmag_results_data['specimens'][self.s]) + 1)
+                self.pmag_results_data['specimens'][self.s].append(Fit('Fit ' + next_fit, None, None, self.colors[(int(next_fit)-1) % len(self.colors)], self))
+                fit = self.pmag_results_data['specimens'][specimen][-1]
 
             fit.put(self.COORDINATE_SYSTEM,self.get_PCA_parameters(specimen,tmin,tmax,self.COORDINATE_SYSTEM,calculation_type))
 
@@ -4239,6 +4251,8 @@ self.mean_fit not in map(lambda x: x.name, self.pmag_results_data['specimens'][s
             self.current_fit = self.pmag_results_data['specimens'][self.s][-1]
         self.calculate_higher_levels_data()
         self.update_selection()
+        if self.interpertation_editor_open:
+            self.interpertation_editor.update_editor()
 
 
     #----------------------------------------------------------------------
@@ -4982,6 +4996,8 @@ self.mean_fit not in map(lambda x: x.name, self.pmag_results_data['specimens'][s
         @param: event -> the wx.ComboBoxEvent that triggers this function
         @alters: current_fit.name
         """
+        if self.current_fit == None:
+            self.add_fit(event)
         self.current_fit.name = self.fit_box.GetValue()
         self.update_fit_box()
         self.plot_higher_levels_data()
@@ -5166,6 +5182,8 @@ class EditFitFrame(wx.Frame):
         self.current_fit_index = None
         #build UI
         self.init_UI()
+        #update with stuff
+        self.on_select_level_name(1)
 
     def init_UI(self):
         """
@@ -5312,8 +5330,6 @@ class EditFitFrame(wx.Frame):
         self.panel.SetSizer(hbox2)
         hbox2.Fit(self)
 
-        self.on_select_level_name(1)
-
     ################################Logger Functions##################################
 
     def update_editor(self,changed_interpertation_parameters=True):
@@ -5392,6 +5408,21 @@ class EditFitFrame(wx.Frame):
         if self.current_fit_index:
             self.update_logger_entry(self.current_fit_index)
 
+    def change_selected(self,fit=None,i=0):
+        """
+        updates passed in fit as current fit for the editor (does not affect parent) else sets passed in fit logger index as current, if no parameters are passed in it sets first fit as current.
+        @param: fit -> fit object to highlight as selected
+        @param: i -> index to select
+        """
+        if fit != None:
+            for i, (old_fit,speci) in enumerate(self.fit_list):
+                if old_fit == fit:
+                    break
+        self.logger.SetItemBackgroundColour(self.current_fit_index,"WHITE")
+        self.current_fit_index = i
+        self.update_logger_entry(self.current_fit_index)
+        
+
     def logger_focus(self,i):
         """
         focuses the logger on an index 12 entries below i
@@ -5453,7 +5484,7 @@ class EditFitFrame(wx.Frame):
 
     ###################################ComboBox Functions################################
 
-    def on_select_higher_level(self,event):
+    def on_select_higher_level(self,event,called_by_parent=False):
         """
         alters the possible entries in level_names combobox to give the user selections for which specimen interpertations to display in the logger
         @param: event -> the wx.COMBOBOXEVENT that triggered this function
@@ -5477,12 +5508,13 @@ class EditFitFrame(wx.Frame):
             self.level_names.SetItems(['this study'])
             self.level_names.SetStringSelection('this study')
 
-        self.parent.level_box.SetStringSelection(UPPER_LEVEL)
-        self.parent.onSelect_higher_level(event)
+        if not called_by_parent:
+            self.parent.level_box.SetStringSelection(UPPER_LEVEL)
+            self.parent.onSelect_higher_level(event,True)
 
         self.on_select_level_name(event)
 
-    def on_select_level_name(self,event):
+    def on_select_level_name(self,event,called_by_parent=False):
         """
         change this objects specimens_list to control which specimen interpertatoins are displayed in this objects logger
         @param: event -> the wx.ComboBoxEvent that triggered this function
@@ -5499,11 +5531,12 @@ class EditFitFrame(wx.Frame):
         elif self.level_box.GetValue()=='study':
             self.specimens_list=self.parent.Data_hierarchy['study']['this study']['specimens']
 
-        self.parent.level_names.SetStringSelection(high_level_name)
-        self.parent.onSelect_level_name(event)
+        if not called_by_parent:
+            self.parent.level_names.SetStringSelection(high_level_name)
+            self.parent.onSelect_level_name(event,True)
 
         self.specimens_list.sort(cmp=specimens_comparator)
-        self.update_editor(True)
+        self.update_editor()
 
     def on_select_mean_type_box(self, event):
         """
