@@ -589,7 +589,7 @@ class Zeq_GUI(wx.Frame):
                 self.update_selection()
             else:
                 self.Add_text()
-                self.update_fit_box()
+                self.update_fit_boxs()
         else:
             print("------------------------------ no magic_measurements.txt found---------------------------------------")
             self.Destroy()
@@ -926,9 +926,9 @@ class Zeq_GUI(wx.Frame):
                     except KeyError: l = 0
 
                 if index < l:
-                    self.s = specimen
                     self.specimens_box.SetStringSelection(specimen)
-                    self.onSelect_specimen(event)
+                    self.select_specimen(specimen)
+                    self.draw_figure(specimen, False)
                     if disp_fit_name == "All":
                         new_fit_index = index
                     else:
@@ -936,7 +936,7 @@ class Zeq_GUI(wx.Frame):
                     break
 
                 index -= l
-
+            self.update_fit_box()
             self.fit_box.SetSelection(new_fit_index)
             self.on_select_fit(event)
             if disp_fit_name!="All":
@@ -944,7 +944,7 @@ class Zeq_GUI(wx.Frame):
                 self.mean_fit_box.SetSelection(2+new_fit_index)
                 self.update_selection()
             if self.interpertation_editor_open:
-                self.interpertation_editor.update_editor(True)
+                self.interpertation_editor.change_selected(self.current_fit)
 
     def Zij_zoom(self):
         #cursur_entry_zij=self.canvas1.mpl_connect('axes_enter_event', self.on_enter_zij_fig_new) 
@@ -1703,20 +1703,23 @@ class Zeq_GUI(wx.Frame):
     #----------------------------------------------------------------------
       
     def onSelect_specimen(self, event):
-        """ update figures and text when a new specimen is selected
         """
+        update figures and text when a new specimen is selected
+        """
+        self.select_specimen(str(self.specimens_box.GetValue()))
+        if self.interpertation_editor_open:
+            self.interpertation_editor.change_selected(self.current_fit)
+        self.update_selection()
+
+    def select_specimen(self, specimen):
         try: fit_index = self.pmag_results_data['specimens'][self.s].index(self.current_fit)
         except KeyError: fit_index = None
         except ValueError: fit_index = None
-        self.initialize_CART_rot(str(self.specimens_box.GetValue())) #sets self.s calculates params etc.
+        self.initialize_CART_rot(specimen) #sets self.s to specimen calculates params etc.
         if fit_index != None and self.s in self.pmag_results_data['specimens']:
           try: self.current_fit = self.pmag_results_data['specimens'][self.s][fit_index]
           except IndexError: self.current_fit = None
         else: self.current_fit = None
-        if self.interpertation_editor_open:
-            self.interpertation_editor.change_selected(True)
-        #self.pars=self.Data[self.s]['pars']
-        self.update_selection()
 
     #----------------------------------------------------------------------
 
@@ -1736,6 +1739,8 @@ class Zeq_GUI(wx.Frame):
             for fit in self.pmag_results_data['specimens'][specimen]:
                 fit.put(self.COORDINATE_SYSTEM,self.get_PCA_parameters(specimen,fit.tmin,fit.tmax,self.COORDINATE_SYSTEM,fit.PCA_type))
 
+        if self.interpertation_editor_open:
+            self.interpertation_editor.update_editor(True)
         self.update_selection()
     #----------------------------------------------------------------------
 
@@ -1768,6 +1773,8 @@ class Zeq_GUI(wx.Frame):
         try: self.current_fit = self.pmag_results_data['specimens'][self.s][fit_index]
         except IndexError: self.current_fit = None
       else: self.current_fit = None
+      if self.interpertation_editor_open:
+        self.interpertation_editor.change_selected(self.current_fit)
       self.update_selection()
       
     #----------------------------------------------------------------------
@@ -1788,6 +1795,8 @@ class Zeq_GUI(wx.Frame):
         try: self.current_fit = self.pmag_results_data['specimens'][self.s][fit_index]
         except IndexError: self.current_fit = None
       else: self.current_fit = None
+      if self.interpertation_editor_open:
+        self.interpertation_editor.change_selected(self.current_fit)
       self.update_selection()
 
     #----------------------------------------------------------------------
@@ -1805,7 +1814,7 @@ class Zeq_GUI(wx.Frame):
         else:
             self.draw_figure(self.s,True)
 
-        self.update_fit_box()
+        self.update_fit_boxs()
 
         #--------------------------
         # check if the coordinate system in the window exists (if not change to "specimen" coordinate system)
@@ -1943,10 +1952,10 @@ class Zeq_GUI(wx.Frame):
 
         for item in range(self.logger.GetItemCount()):
             self.logger.SetItemBackgroundColour(item,"WHITE")
-          
+
         index=int(event.GetText())
         tmin_index,tmax_index="",""
-        
+
         if str(self.tmin_box.GetValue())!="":
             tmin_index=self.tmin_box.GetSelection()
         if str(self.tmax_box.GetValue())!="":
@@ -1960,7 +1969,7 @@ class Zeq_GUI(wx.Frame):
                 self.tmax_box.SetSelection(index)
             self.logger.Select(index, on=0)
             self.get_new_PCA_parameters(-1)
-            
+
         elif tmin_index =="" and tmax_index !="":
             if index>tmax_index:
                 self.tmin_box.SetSelection(tmax_index)
@@ -1969,16 +1978,15 @@ class Zeq_GUI(wx.Frame):
                 self.tmin_box.SetSelection(index)
             self.logger.Select(index, on=0)
             self.get_new_PCA_parameters(-1)
-            
+
         else:
-            if int(index) > (self.logger.GetItemCount())/2.:
+            if index > (self.logger.GetItemCount())/2.:
                 self.tmin_box.SetValue("")
-                self.tmax_box.SetSelection(int(index))
+                self.tmax_box.SetSelection(index)
             else:
-                self.tmin_box.SetSelection(int(index))
+                self.tmin_box.SetSelection(index)
                 self.tmax_box.SetValue("")
             return
-          
              
     def OnRightClickListctrl(self,event): #BLARGE FIX
         '''
@@ -4946,6 +4954,9 @@ self.mean_fit not in map(lambda x: x.name, self.pmag_results_data['specimens'][s
             tmax_index=self.tmax_box.GetSelection()
 
         max_index = len(self.Data[specimen]['zijdblock_steps'])-1
+        while (self.Data[specimen]['measurement_flag'][tmin_index] == 'b' and \
+               max_index-1 > 0):
+            max_index -= 1
 
         while (self.Data[specimen]['measurement_flag'][tmin_index] == 'b' and \
                tmin_index+1 < len(self.Data[specimen]['zijdblock_steps'])):
@@ -4975,7 +4986,7 @@ self.mean_fit not in map(lambda x: x.name, self.pmag_results_data['specimens'][s
         @alters: current_fit, fit_box selection, tmin_box selection, tmax_box selection
         """
         fit_val = self.fit_box.GetValue()
-        if not self.pmag_results_data['specimens'][self.s] or fit_val == 'None':
+        if self.s not in self.pmag_results_data['specimens'] or not self.pmag_results_data['specimens'][self.s] or fit_val == 'None':
             self.clear_boxes()
             self.current_fit = None
             self.fit_box.SetStringSelection('None')
@@ -4998,8 +5009,9 @@ self.mean_fit not in map(lambda x: x.name, self.pmag_results_data['specimens'][s
         """
         if self.current_fit == None:
             self.add_fit(event)
+        if self.fit_box.GetValue() in map(lambda x: x.name, self.pmag_results_data['specimens'][self.s]): print('bad name'); return
         self.current_fit.name = self.fit_box.GetValue()
-        self.update_fit_box()
+        self.update_fit_boxs()
         self.plot_higher_levels_data()
 
     def add_fit(self,event):
@@ -5011,6 +5023,7 @@ self.mean_fit not in map(lambda x: x.name, self.pmag_results_data['specimens'][s
         if not (self.s in self.pmag_results_data['specimens'].keys()):
             self.pmag_results_data['specimens'][self.s] = []
         next_fit = str(len(self.pmag_results_data['specimens'][self.s]) + 1)
+        if ('Fit ' + next_fit) in map(lambda x: x.name, self.pmag_results_data['specimens'][self.s]): print('bad name'); return
         self.pmag_results_data['specimens'][self.s].append(Fit('Fit ' + next_fit, None, None, self.colors[(int(next_fit)-1) % len(self.colors)], self))
 #        print("New Fit for sample: " + str(self.s) + '\n' + reduce(lambda x,y: x+'\n'+y, map(str,self.pmag_results_data['specimens'][self.s]['fits'])))
         self.new_fit()
@@ -5070,20 +5083,34 @@ self.mean_fit not in map(lambda x: x.name, self.pmag_results_data['specimens'][s
         fit = self.pmag_results_data['specimens'][self.s][-1]
         self.current_fit = fit #update current fit to new fit
 
-        self.update_fit_box(True)
+        if self.interpertation_editor_open:
+            self.interpertation_editor.update_editor(True)
 
-        # Draw figures and add  text
+        self.update_fit_boxs(True)
+
+        #Draw figures and add  text
         self.get_new_PCA_parameters(1)
 
-    def update_fit_box(self, new_fit = False):
+    def update_fit_boxs(self, new_fit = False):
         """
         alters fit_box and mean_fit_box lists to match with changes in specimen or new/removed interpertations
         @param: new_fit -> boolean representing if there is a new fit
         @alters: fit_box selection, tmin_box selection, tmax_box selection, mean_fit_box selection, current_fit
         """
-        self.clear_boxes()
+        #update the fit box
+        self.update_fit_box(new_fit)
+        #select new fit
+        self.on_select_fit(None)
+        #update the higher level fits box
+        self.update_mean_fit_box()
+
+    def update_fit_box(self, new_fit = False):
+        """
+        alters fit_box lists to match with changes in specimen or new/removed interpertations
+        @param: new_fit -> boolean representing if there is a new fit
+        @alters: fit_box selection and choices, current_fit
+        """
         #get new fit data
-#        if self.fit_box.GetValue() == '': return
         if self.s in self.pmag_results_data['specimens'].keys(): self.fit_list=list(map(lambda x: x.name, self.pmag_results_data['specimens'][self.s]))
         else: self.fit_list = []
         #find new index to set fit_box to
@@ -5094,11 +5121,25 @@ self.mean_fit not in map(lambda x: x.name, self.pmag_results_data['specimens'][s
                 new_index = self.fit_list.index(self.fit_box.GetValue());
             else:
                 new_index = 'None'
-        #clear old boxes
+        #clear old box
         self.fit_box.Clear()
-        self.mean_fit_box.Clear()
         #update fit box
         self.fit_box.SetItems(self.fit_list)
+        fit_index = None
+        #select defaults
+        if new_index == 'None': self.fit_box.SetStringSelection('None')
+        else: self.fit_box.SetSelection(new_index)
+
+    def update_mean_fit_box(self):
+        """
+        alters mean_fit_box list to match with changes in specimen or new/removed interpertations
+        @alters: mean_fit_box selection and choices
+        """
+        #get new fit data
+        if self.s in self.pmag_results_data['specimens'].keys(): self.fit_list=list(map(lambda x: x.name, self.pmag_results_data['specimens'][self.s]))
+        else: self.fit_list = []
+        #clear old box
+        self.mean_fit_box.Clear()
         #update higher level mean fit box
         fit_index = None
         if self.mean_fit != 'None' and self.mean_fit != 'All':
@@ -5111,14 +5152,10 @@ self.mean_fit not in map(lambda x: x.name, self.pmag_results_data['specimens'][s
 #                all_fits_list = list(map(lambda x: x.name, self.pmag_results_data['specimens'][specimen]))
         self.mean_fit_box.SetItems(['None','All'] + self.fit_list)
         #select defaults
-        if new_index == 'None': self.fit_box.SetStringSelection('None')
-        else: self.fit_box.SetSelection(new_index)
         if fit_index: self.mean_fit_box.SetSelection(fit_index+2)
-        if self.fit_list: self.on_select_fit(-1)
         if self.interpertation_editor_open:
             self.interpertation_editor.mean_fit_box.SetItems(['None','All'] + self.fit_list)
-            if fit_index:
-                self.mean_fit_box.SetSelection(fit_index+2)
+            if fit_index: self.mean_fit_box.SetSelection(fit_index+2)
 
     def MacReopenApp(self):
         """Called when the doc icon is clicked"""
@@ -5183,7 +5220,7 @@ class EditFitFrame(wx.Frame):
         #build UI
         self.init_UI()
         #update with stuff
-        self.on_select_level_name(1)
+        self.on_select_level_name(None)
 
     def init_UI(self):
         """
@@ -5408,16 +5445,20 @@ class EditFitFrame(wx.Frame):
         if self.current_fit_index:
             self.update_logger_entry(self.current_fit_index)
 
-    def change_selected(self,fit=None,i=0):
+    def change_selected(self,new_fit):
         """
-        updates passed in fit as current fit for the editor (does not affect parent) else sets passed in fit logger index as current, if no parameters are passed in it sets first fit as current.
-        @param: fit -> fit object to highlight as selected
-        @param: i -> index to select
+        updates passed in fit or index as current fit for the editor (does not affect parent), if no parameters are passed in it sets first fit as current and complains.
+        @param: new_fit -> fit object to highlight as selected
         """
-        if fit != None:
-            for i, (old_fit,speci) in enumerate(self.fit_list):
-                if old_fit == fit:
+        i = 0
+        if isinstance(new_fit, Fit):
+            for i, (fit,speci) in enumerate(self.fit_list):
+                if fit == new_fit:
                     break
+        elif type(new_fit) is int:
+            i = new_fit
+        else:
+            print('can not select fit of type: ' + str(type(new_fit)))
         self.logger.SetItemBackgroundColour(self.current_fit_index,"WHITE")
         self.current_fit_index = i
         self.update_logger_entry(self.current_fit_index)
@@ -5439,19 +5480,18 @@ class EditFitFrame(wx.Frame):
         Edits the logger and the Zeq_GUI parent object to select the fit that was newly selected by a double click 
         @param: event -> wx.ListCtrlEvent that triggered this function
         """
-
         i = event.GetIndex()
         if self.parent.current_fit == self.fit_list[i][0]: return
-        self.parent.s = self.fit_list[i][1]
         si = self.parent.specimens.index(self.fit_list[i][1])
         self.parent.specimens_box.SetSelection(si)
-        self.parent.onSelect_specimen(event)
-        self.logger.SetItemBackgroundColour(self.current_fit_index, "WHITE")
-        self.current_fit_index = i
+        self.parent.select_specimen(self.fit_list[i][1])
+        self.parent.draw_figure(self.fit_list[i][1], False)
+        self.change_selected(i)
         fi = 0
         while (self.parent.s == self.fit_list[i][1] and i >= 0): i,fi = (i-1,fi+1)
+        self.parent.update_fit_box()
         self.parent.fit_box.SetSelection(fi-1)
-        self.parent.on_select_fit(event)
+        self.parent.update_fit_boxs(False)
         
 
     def OnRightClickListctrl(self, event):
@@ -5459,7 +5499,6 @@ class EditFitFrame(wx.Frame):
         Edits the logger and the Zeq_GUI parent object so that the selected interpertation is now marked as bad
         @param: event -> wx.ListCtrlEvent that triggered this function
         """
-
         i = event.GetIndex()
         fit = self.fit_list[i][0]
         if fit in self.parent.bad_fits:
@@ -5489,7 +5528,6 @@ class EditFitFrame(wx.Frame):
         alters the possible entries in level_names combobox to give the user selections for which specimen interpertations to display in the logger
         @param: event -> the wx.COMBOBOXEVENT that triggered this function
         """
-
         UPPER_LEVEL=self.level_box.GetValue()
 
         if UPPER_LEVEL=='sample':
@@ -5519,7 +5557,6 @@ class EditFitFrame(wx.Frame):
         change this objects specimens_list to control which specimen interpertatoins are displayed in this objects logger
         @param: event -> the wx.ComboBoxEvent that triggered this function
         """
-
         high_level_name=str(self.level_names.GetValue())
 
         if self.level_box.GetValue()=='sample':
@@ -5571,9 +5608,13 @@ class EditFitFrame(wx.Frame):
                 break
             specimen = self.fit_list[next_i][1]
             fit = self.fit_list[next_i][0]
+            if fit not in self.parent.pmag_results_data['specimens'][specimen]:
+                print('cannot remove item it is no longer exsist this is a dumb bug contact devs')
+                self.logger.DeleteItem(next_i)
+                return
             self.parent.pmag_results_data['specimens'][specimen].remove(fit)
-            self.logger.DeleteItem(next_i)
         self.parent.update_selection()
+        self.update_editor()
         
 
     def apply_changes(self, event):
@@ -5595,7 +5636,7 @@ class EditFitFrame(wx.Frame):
             specimen = self.fit_list[next_i][1]
             fit = self.fit_list[next_i][0]
             if new_name:
-                fit.name = new_name
+                if new_name not in map(lambda x: x.name, self.parent.pmag_results_data['specimens'][self.parent.s]): fit.name = new_name
             if new_color:
                 fit.color = self.color_dict[new_color]
             if new_tmin:
