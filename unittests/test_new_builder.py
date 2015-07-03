@@ -54,6 +54,7 @@ class TestSpecimen(unittest.TestCase):
         pass
 
 
+
     def test_update_specimen(self):
         specimen_name = 'Z35.6a'
         sample_name = 'Z35.6'
@@ -67,6 +68,13 @@ class TestSpecimen(unittest.TestCase):
         self.assertEqual(sample_name, specimen.sample.name)
         self.assertEqual(site_name, specimen.sample.site.name)
         self.assertEqual(location_name, specimen.sample.site.location.name)
+
+    def test_update_specimen_invalid_name(self):
+        specimen_name = 'Z35.6a_fake'
+        sample_name = 'Z35.6'
+        result = self.data1.change_specimen(specimen_name, 'new_specimen')
+        self.assertFalse(result)
+
 
     def test_update_specimen_change_sample(self):
         specimen_name = 'Z35.6a'
@@ -171,6 +179,20 @@ class TestSpecimen(unittest.TestCase):
         self.assertTrue(sample)
         self.assertNotIn(specimen_name, [spec.name for spec in sample.specimens])
         self.assertNotIn(specimen_name, [spec.name for spec in self.data1.specimens])
+
+    def test_spec_data(self):
+        spec_name = 'Z35.6a'
+        specimen = self.data1.find_by_name(spec_name, self.data1.specimens)
+        self.assertTrue(specimen)
+        self.assertTrue(specimen.data)
+        for key in specimen.data.keys():
+            self.assertEqual('', specimen.data[key])
+        #self.data1.get_spec_data()
+        self.data1.get_magic_info('specimen', 'sample')
+        self.assertEqual('This study', specimen.data['er_citation_names'])
+        self.assertEqual('Archeologic', specimen.data['specimen_class'])
+        self.assertEqual('s', specimen.data['specimen_type'])
+        self.assertEqual('Baked Clay', specimen.data['specimen_lithology'])
 
 
 class TestSample(unittest.TestCase):

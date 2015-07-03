@@ -20,6 +20,8 @@ class ErMagicBuilder(object):
         self.sites = []
         self.locations = []
         self.data_model = validate_upload.get_data_model()
+        self.data_lists = {'specimen': [self.specimens, Specimen], 'sample': [self.samples, Sample],
+                           'site': [self.sites, Site], 'location': [self.locations, Location]}
 
 
     def find_by_name(self, item_name, items_list):
@@ -229,6 +231,76 @@ class ErMagicBuilder(object):
                 site.samples.append(sample)
             if not self.find_by_name(site_name, location.sites):
                 location.sites.append(site)
+
+
+    def get_magic_info(self, child_type, parent_type=None):
+        short_filename = 'er_' + child_type + 's.txt'
+        magic_file = os.path.join(self.WD, short_filename)
+        magic_name = 'er_' + child_type + '_name'
+        if not os.path.isfile(magic_file):
+            print '-W- Could not find {} in your working directory {}'.format(short_filename, self.WD)
+            return False
+        # get the data from the appropriate er_*.txt file
+        data_dict = self.read_magic_file(magic_file, magic_name)[0]
+        child_list, child_constructor = self.data_lists[child_type]
+        if parent_type:
+            parent_list, parent_constructor = self.data_lists[parent_type]
+        else:
+            parent_list = None
+        for child_name in data_dict:
+            # if there is a possible parent, try to find parent object in the data model
+            if parent_type:
+                parent_name = data_dict[child_name]['er_' + parent_type + '_name']
+                parent = self.find_by_name(parent_name, parent_list)
+                parent.remove_headers()
+            # if there should be a parent
+            # (meaning there is a name for it and the child object should have a parent)
+            # but none exists in the data model, go ahead and create that parent object.
+            elif parent_name and parent_type and not parent:
+                parent = parent_constructor(parent_name)
+            # otherwise there is no parent and none can be created, so use an empty string
+            else:
+                parent = ''
+            child = self.find_by_name(child_name, child_list)
+            # if the child object does not exist yet in the data model
+            if not child:
+                child = child_constructor(child_name, parent_name, data=data_dict)
+            # add in the appropriate data dictionary
+            child.data = data_dict[child_name]
+            child.remove_headers()
+            
+
+    def read_magic_file(self, path, sort_by_this_name):
+        """
+        read a magic-formatted tab-delimited file.
+        return a dictionary of dictionaries, with this format:
+        {'Z35.5a': {'specimen_weight': '1.000e-03', 'er_citation_names': 'This study', 'specimen_volume': '', 'er_location_name': '', 'er_site_name': 'Z35.', 'er_sample_name': 'Z35.5', 'specimen_class': '', 'er_specimen_name': 'Z35.5a', 'specimen_lithology': '', 'specimen_type': ''}, ....}
+        """
+        DATA = {}
+        fin = open(path, 'rU')
+        fin.readline()
+        line = fin.readline()
+        header = line.strip('\n').split('\t')
+        #print "path", path#,header
+        counter = 0
+        for line in fin.readlines():
+            #print "line:", line
+            tmp_data = {}
+            tmp_line = line.strip('\n').split('\t')
+            for i in range(len(header)):
+                if i < len(tmp_line):
+                    tmp_data[header[i]] = tmp_line[i]
+                else:
+                    tmp_data[header[i]] = ""
+            if sort_by_this_name == "by_line_number":
+                DATA[counter] = tmp_data
+                counter += 1
+            else:
+                if tmp_data[sort_by_this_name] != "":
+                    DATA[tmp_data[sort_by_this_name]] = tmp_data
+        fin.close()
+        return DATA, header
+
 
 
 class Pmag_object(object):
