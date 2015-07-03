@@ -5133,7 +5133,7 @@ self.mean_fit not in map(lambda x: x.name, self.pmag_results_data['specimens'][s
     def update_mean_fit_box(self):
         """
         alters mean_fit_box list to match with changes in specimen or new/removed interpertations
-        @alters: mean_fit_box selection and choices
+        @alters: mean_fit_box selection and choices, mean_types_box string selection
         """
         #get new fit data
         if self.s in self.pmag_results_data['specimens'].keys(): self.fit_list=list(map(lambda x: x.name, self.pmag_results_data['specimens'][self.s]))
@@ -5153,9 +5153,12 @@ self.mean_fit not in map(lambda x: x.name, self.pmag_results_data['specimens'][s
         self.mean_fit_box.SetItems(['None','All'] + self.fit_list)
         #select defaults
         if fit_index: self.mean_fit_box.SetSelection(fit_index+2)
+        else: self.mean_type_box.SetStringSelection('None')
         if self.interpertation_editor_open:
+            self.interpertation_editor.mean_fit_box.Clear()
             self.interpertation_editor.mean_fit_box.SetItems(['None','All'] + self.fit_list)
-            if fit_index: self.mean_fit_box.SetSelection(fit_index+2)
+            if fit_index: self.interpertation_editor.mean_fit_box.SetSelection(fit_index+2)
+            else: self.interpertation_editor.mean_type_box.SetStringSelection('None')
 
     def MacReopenApp(self):
         """Called when the doc icon is clicked"""
@@ -5636,7 +5639,7 @@ class EditFitFrame(wx.Frame):
             specimen = self.fit_list[next_i][1]
             fit = self.fit_list[next_i][0]
             if new_name:
-                if new_name not in map(lambda x: x.name, self.parent.pmag_results_data['specimens'][self.parent.s]): fit.name = new_name
+                if new_name not in map(lambda x: x.name, self.parent.pmag_results_data['specimens'][specimen]): fit.name = new_name
             if new_color:
                 fit.color = self.color_dict[new_color]
             if new_tmin:
