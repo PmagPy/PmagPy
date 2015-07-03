@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 """
-Not empty
+Module for building or reading in specimen, sample, site, and location data.
 """
 
 import os
@@ -34,24 +34,30 @@ class ErMagicBuilder(object):
             return items_list[ind]
         return False
 
-    def change_specimen(self, old_spec_name, new_spec_name, new_sample_name=None, new_specimen_data={}):
+    def change_specimen(self, old_spec_name, new_spec_name,
+                        new_sample_name=None, new_specimen_data=None):
         """
         Find actual data objects for specimen and sample.
-        Then call specimen class change method. 
+        Then call Specimen class change method to update specimen name and data.
         """
         specimen = self.find_by_name(old_spec_name, self.specimens)
         if not specimen:
-            print '-W- {} is not a currently existing specimen, so cannot be updated'.format(spec_name)
+            print '-W- {} is not a currently existing specimen, so cannot be updated'.format(old_spec_name)
             return False
         if new_sample_name:
             new_sample = self.find_by_name(new_sample_name, self.samples)
             if not new_sample:
-                print "-W- {} is not a currently existing sample.\n    Leaving sample unchanged as: {} for {}".format(new_sample_name, specimen.sample or '*empty*', specimen)
+                print """-W- {} is not a currently existing sample.
+Leaving sample unchanged as: {} for {}""".format(new_sample_name, specimen.sample or '*empty*', specimen)
         else:
             new_sample = None
         specimen.change_specimen(new_spec_name, new_sample, new_specimen_data)
 
     def delete_specimen(self, spec_name):
+        """
+        Remove specimen with name spec_name from self.specimens.
+        If the specimen belonged to a sample, remove it from the sample's specimen list.
+        """
         specimen = self.find_by_name(spec_name, self.specimens)
         sample = specimen.sample
         if sample:
@@ -59,7 +65,11 @@ class ErMagicBuilder(object):
         self.specimens.remove(specimen)
         del specimen
 
-    def add_specimen(self, spec_name, samp_name=None, spec_data={}):
+    def add_specimen(self, spec_name, samp_name=None, spec_data=None):
+        """
+        Create a Specimen object and add it to self.specimens.
+        If a sample name is provided, add the specimen to sample.specimens as well.
+        """
         sample = self.find_by_name(samp_name, self.samples)
         specimen = Specimen(spec_name, sample, self.data_model, spec_data)
         self.specimens.append(specimen)
@@ -67,7 +77,11 @@ class ErMagicBuilder(object):
             sample.specimens.append(specimen)
         return specimen
 
-    def change_sample(self, old_samp_name, new_samp_name, new_site_name=None, new_sample_data={}):
+    def change_sample(self, old_samp_name, new_samp_name, new_site_name=None, new_sample_data=None):
+        """
+        Find actual data objects for sample and site.
+        Then call Sample class change method to update sample name and data..
+        """
         sample = self.find_by_name(old_samp_name, self.samples)
         if not sample:
             print '-W- {} is not a currently existing sample, so it cannot be updated'.format(old_samp_name)
@@ -75,24 +89,31 @@ class ErMagicBuilder(object):
         if new_site_name:
             new_site = self.find_by_name(new_site_name, self.sites)
             if not new_site:
-                print "-W- {} is not a currently existing site.\n    Leaving site unchanged as: {} for {}".format(new_site_name, sample.site or '*empty*', sample)
+                print """-W- {} is not a currently existing site.
+Leaving site unchanged as: {} for {}""".format(new_site_name, sample.site or '*empty*', sample)
                 new_site = None
         else:
             new_site = None
         sample.change_sample(new_samp_name, new_site, new_sample_data)
-        for spec in sample.specimens:
-            spec.sample = sample
 
-    def add_sample(self, samp_name, site_name=None, samp_data={}):
+    def add_sample(self, samp_name, site_name=None, samp_data=None):
+        """
+        Create a Sample object and add it to self.samples.
+        If a site name is provided, add the sample to site.samples as well.
+        """
         site = self.find_by_name(site_name, self.sites)
         sample = Sample(samp_name, site, self.data_model, samp_data)
         self.samples.append(sample)
         if site:
             site.samples.append(sample)
         return sample
-            
 
     def delete_sample(self, sample_name, replacement_samp=None):
+        """
+        Remove sample with name sample_name from self.samples.
+        If the sample belonged to a site, remove it from the site's sample list.
+        If the sample had any specimens, change specimen.sample to "".
+        """
         sample = self.find_by_name(sample_name, self.samples)
         specimens = sample.specimens
         site = sample.site
@@ -102,8 +123,11 @@ class ErMagicBuilder(object):
         for spec in specimens:
             spec.sample = ""
 
-
-    def change_site(self, old_site_name, new_site_name, new_location_name=None, new_site_data={}):
+    def change_site(self, old_site_name, new_site_name, new_location_name=None, new_site_data=None):
+        """
+        Find actual data objects for site and location.
+        Then call the Site class change method to update site name and data.
+        """
         site = self.find_by_name(old_site_name, self.sites)
         if not site:
             print '-W- {} is not a currently existing site, so it cannot be updated.'.format(old_site_name)
@@ -114,21 +138,19 @@ class ErMagicBuilder(object):
                 old_location.sites.remove(site)
             new_location = self.find_by_name(new_location_name, self.locations)
             if new_location:
-                new_location.sites.append(site)                
+                new_location.sites.append(site)
             else:
-                print "-W- {} is not a currently existing location.\n    Leaving location unchanged as: {} for {}".format(new_site_name, site.location or '*empty*', site)
-
-                
-
+                print """-W- {} is not a currently existing location.
+Leaving location unchanged as: {} for {}""".format(new_site_name, site.location or '*empty*', site)
         else:
             new_location = None
         site.change_site(new_site_name, new_location, new_site_data)
 
-        for sample in site.samples:
-            sample.site = site
-
-
     def add_site(self, site_name, location_name=None, site_data=None):
+        """
+        Create a Site object and add it to self.sites.
+        If a location name is provided, add the site to location.sites as well.
+        """
         if location_name:
             location = self.find_by_name(location_name, self.locations)
         else:
@@ -139,8 +161,12 @@ class ErMagicBuilder(object):
             location.sites.append(new_site)
         return new_site
 
-    
     def delete_site(self, site_name, replacement_site=None):
+        """
+        Remove site with name site_name from self.sites.
+        If the site belonged to a location, remove it from the location's site list.
+        If the site had any samples, change sample.site to "".
+        """
         site = self.find_by_name(site_name, self.sites)
         self.sites.remove(site)
         if site.location:
@@ -150,28 +176,38 @@ class ErMagicBuilder(object):
         del site
 
     def change_location(self, old_location_name, new_location_name, new_location_data=None):
+        """
+        Find actual data object for location with old_location_name.
+        Then call Location class change method to update location name and data.
+        """
         location = self.find_by_name(old_location_name, self.locations)
         if not location:
             print '-W- {} is not a currently existing location, so it cannot be updated.'.format(old_location_name)
             return False
-        sites = location.sites
         location.change_location(new_location_name, new_location_data)
         return location
 
     def add_location(self, location_name, location_data=None):
+        """
+        Create a Location object and add it to self.locations.
+        """
         location = Location(location_name, location_data=location_data)
         self.locations.append(location)
         return location
 
     def delete_location(self, location_name):
+        """
+        Remove location with name location_name from self.locations.
+        If the location had any sites, change site.location to "".
+        """
         location = self.find_by_name(location_name, self.locations)
         sites = location.sites
         self.locations.remove(location)
         for site in sites:
             site.location = ''
         del location
-    
-        
+
+
     #def find_all_children(self, parent_item):
     #    """
     #
@@ -268,7 +304,7 @@ class ErMagicBuilder(object):
             # add in the appropriate data dictionary
             child.data = data_dict[child_name]
             child.remove_headers()
-            
+
 
     def read_magic_file(self, path, sort_by_this_name):
         """
@@ -308,7 +344,7 @@ class Pmag_object(object):
     Base class for Specimens, Samples, Sites, etc.
     """
 
-    def __init__(self, name, dtype, data_model=None, data={}):#, headers={}):
+    def __init__(self, name, dtype, data_model=None, data=None):#, headers={}):
         if not data_model:
             self.data_model = validate_upload.get_data_model()
         else:
@@ -327,19 +363,6 @@ class Pmag_object(object):
             self.data = reqd_data
 
         self.remove_headers()
-
-        #if headers:
-        #    self.headers = self.combine_dicts(headers, 
-
-        #
-        
-        #def combine_dicts(self, new_dict, old_dict):
-        #"""
-        #returns a dictionary with all key, value pairs from new_dict.
-        #also returns key, value pairs from old_dict, if that key does not exist in new_dict.
-        #if a key is present in both new_dict and old_dict, the new_dict value will take precedence.
-        #"""
-
 
     def __repr__(self):
         return self.dtype + ": " + self.name
@@ -380,19 +403,15 @@ class Pmag_object(object):
         return combined_data_dict
 
 
-
-
-
 class Specimen(Pmag_object):
 
     """
     Specimen level object
     """
-    def __init__(self, name, sample, data_model=None, data={}):
+    def __init__(self, name, sample, data_model=None, data=None):
         dtype = 'specimen'
         super(Specimen, self).__init__(name, dtype, data_model, data)
         self.sample = sample or ""
-
 
     def change_specimen(self, new_name, new_sample=None, data_dict=None):
         self.name = new_name
@@ -403,7 +422,6 @@ class Specimen(Pmag_object):
         if data_dict:
             self.data = self.combine_dicts(data_dict, self.data)
 
-            
 
 class Sample(Pmag_object):
 
@@ -428,8 +446,6 @@ class Sample(Pmag_object):
             self.data = self.combine_dicts(data_dict, self.data)
 
 
-
-
 class Site(Pmag_object):
 
     """
@@ -448,7 +464,6 @@ class Site(Pmag_object):
             self.location = new_location
         if data_dict:
             self.data = self.combine_dicts(data_dict, self.data)
-
 
 
 class Location(Pmag_object):
@@ -470,11 +485,12 @@ class Location(Pmag_object):
 
 
 
-
 if __name__ == '__main__':
     wd = pmag.get_named_arg_from_sys('-WD', default_val=os.getcwd())
     builder = ErMagicBuilder(wd)
     builder.get_data()
+
+
     #specimen = Specimen('spec1', 'specimen')
     #for spec in builder.specimens:
         #print str(spec) + ' belongs to ' + str(spec.sample) + ' belongs to ' + str(spec.sample.site) + ' belongs to ' + str(spec.sample.site.location)
