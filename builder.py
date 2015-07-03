@@ -282,7 +282,7 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
         if parent_type:
             parent_list, parent_constructor = self.data_lists[parent_type]
         else:
-            parent_list = None
+            parent_list, parent_name = None, None
         for child_name in data_dict:
             # if there is a possible parent, try to find parent object in the data model
             if parent_type:

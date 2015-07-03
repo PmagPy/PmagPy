@@ -322,6 +322,20 @@ class TestSample(unittest.TestCase):
         
         self.assertNotIn(sample_name, [samp.name for samp in self.data1.samples])
 
+    def test_samp_data(self):
+        samp_name = 'Z35.6'
+        sample = self.data1.find_by_name(samp_name, self.data1.samples)
+        self.assertTrue(sample)
+        self.assertTrue(sample.data)
+        for key in sample.data.keys():
+            self.assertEqual('', sample.data[key])
+        self.data1.get_magic_info('sample', 'site')
+        self.assertEqual('This study', sample.data['er_citation_names'])
+        self.assertEqual('Archeologic', sample.data['sample_class'])
+        self.assertEqual('s', sample.data['sample_type'])
+        self.assertEqual('Baked Clay', sample.data['sample_lithology'])
+        
+
 class TestSite(unittest.TestCase):
 
     def setUp(self):
@@ -431,7 +445,6 @@ class TestSite(unittest.TestCase):
         self.assertIn('site_elevation', site.data.keys())
         self.assertEqual(99, site.data['site_elevation'])
 
-
     def test_delete_site(self):
         site_name = 'Z35.'
         location_name = 'locale'
@@ -442,6 +455,19 @@ class TestSite(unittest.TestCase):
         self.assertFalse(site)
         self.assertNotIn(site_name, [site.name for site in self.data1.sites])
         self.assertNotIn(site_name, [site.name for site in location.sites])
+
+    def test_site_data(self):
+        site_name = 'MGH1'
+        site = self.data1.find_by_name(site_name, self.data1.sites)
+        self.assertTrue(site)
+        self.assertTrue(site.data)
+        for key in site.data.keys():
+            self.assertEqual('', site.data[key])
+        self.data1.get_magic_info('site', 'location')
+        self.assertEqual('This study', site.data['er_citation_names'])
+        self.assertEqual('Archeologic', site.data['site_class'])
+        self.assertEqual('Baked Clay', site.data['site_type'])
+        self.assertEqual('Mafic Dike', site.data['site_lithology'])
 
 
 class TestLocation(unittest.TestCase):
@@ -526,3 +552,16 @@ class TestLocation(unittest.TestCase):
         location = self.data1.find_by_name(location_name, self.data1.locations)
         self.assertFalse(location)
         self.assertNotIn(location_name, [loc.name for loc in self.data1.locations])
+
+    def test_location_data(self):
+        location_name = 'locale'
+        location = self.data1.find_by_name(location_name, self.data1.locations)
+        self.assertTrue(location)
+        self.assertTrue(location.data)
+        for key in location.data.keys():
+            self.assertEqual('', location.data[key])
+        self.data1.get_magic_info('location')
+        self.assertEqual('This study', location.data['er_citation_names'])
+        self.assertEqual('Lake Core', location.data['location_type'])
+        self.assertEqual(47.1, float(location.data['location_begin_lat']))
+        self.assertEqual(47.1, float(location.data['location_end_lat']))
