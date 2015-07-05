@@ -4954,7 +4954,7 @@ self.mean_fit not in map(lambda x: x.name, self.pmag_results_data['specimens'][s
             tmax_index=self.tmax_box.GetSelection()
 
         max_index = len(self.Data[specimen]['zijdblock_steps'])-1
-        while (self.Data[specimen]['measurement_flag'][tmin_index] == 'b' and \
+        while (self.Data[specimen]['measurement_flag'][max_index] == 'b' and \
                max_index-1 > 0):
             max_index -= 1
 
@@ -5464,7 +5464,7 @@ class EditFitFrame(wx.Frame):
             print('can not select fit of type: ' + str(type(new_fit)))
         self.logger.SetItemBackgroundColour(self.current_fit_index,"WHITE")
         self.current_fit_index = i
-        self.update_logger_entry(self.current_fit_index)
+        self.logger.SetItemBackgroundColour(self.current_fit_index,"LIGHT BLUE")
         
 
     def logger_focus(self,i):
