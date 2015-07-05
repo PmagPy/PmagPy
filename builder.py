@@ -19,9 +19,11 @@ class ErMagicBuilder(object):
         self.samples = []
         self.sites = []
         self.locations = []
+        #self.ages = []
         self.data_model = validate_upload.get_data_model()
         self.data_lists = {'specimen': [self.specimens, Specimen], 'sample': [self.samples, Sample],
                            'site': [self.sites, Site], 'location': [self.locations, Location]}
+        #'age': [self.ages, None]}
 
 
     def find_by_name(self, item_name, items_list):
@@ -269,7 +271,32 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
                 location.sites.append(site)
 
 
+    def get_age_info(self, sample_or_site='site'):
+        """
+        Read er_ages.txt file.
+        Parse information into dictionaries for each site/sample.
+        Then add it to the site/sample object as site/sample.age_data.
+        """
+        short_filename = 'er_ages.txt'
+        magic_file = os.path.join(self.WD, short_filename)
+        magic_name = 'er_' + sample_or_site + '_name'
+        if not os.path.isfile(magic_file):
+            print '-W- Could not find {} in your working directory {}'.format(short_filename, self.WD)
+            return False
+
+        data_dict = self.read_magic_file(magic_file, magic_name)[0]
+        items_list = self.data_lists[sample_or_site][0]
+        for pmag_name in data_dict.keys():
+            pmag_item = self.find_by_name(pmag_name, items_list)
+            pmag_item.age_data = data_dict[pmag_name]
+
+
     def get_magic_info(self, child_type, parent_type=None):
+        """
+        Read er_*.txt file.
+        Parse information into dictionaries for each item.
+        Then add it to the item object as object.data.
+        """
         short_filename = 'er_' + child_type + 's.txt'
         magic_file = os.path.join(self.WD, short_filename)
         magic_name = 'er_' + child_type + '_name'
@@ -288,7 +315,7 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
             if parent_type:
                 parent_name = data_dict[child_name]['er_' + parent_type + '_name']
                 parent = self.find_by_name(parent_name, parent_list)
-                parent.remove_headers()
+                parent.remove_headers(parent.data)
             # if there should be a parent
             # (meaning there is a name for it and the child object should have a parent)
             # but none exists in the data model, go ahead and create that parent object.
@@ -303,7 +330,7 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
                 child = child_constructor(child_name, parent_name, data=data_dict)
             # add in the appropriate data dictionary
             child.data = data_dict[child_name]
-            child.remove_headers()
+            child.remove_headers(child.data)
 
 
     def read_magic_file(self, path, sort_by_this_name):
@@ -362,7 +389,12 @@ class Pmag_object(object):
         else:
             self.data = reqd_data
 
-        self.remove_headers()
+        if dtype in ('sample', 'site'):
+            self.age_reqd_headers, self.age_optional_headers = self.get_headers('er_ages')
+            self.age_data = {key: '' for key in self.age_reqd_headers}
+            self.remove_headers(self.age_data)
+
+        self.remove_headers(self.data)
 
     def __repr__(self):
         return self.dtype + ": " + self.name
@@ -380,10 +412,10 @@ class Pmag_object(object):
         optional_headers = sorted([header for header in data_dict.keys() if data_dict[header]['data_status'] != 'Required'])
         return reqd_headers, optional_headers
 
-    def remove_headers(self):
+    def remove_headers(self, data_dict):
         for header in ['er_specimen_name', 'er_sample_name', 'er_site_name', 'er_location_name']:
-            if header in self.data.keys():
-                self.data.pop(header)
+            if header in data_dict.keys():
+                data_dict.pop(header)
 
     def combine_dicts(self, new_dict, old_dict):
         """

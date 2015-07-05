@@ -565,3 +565,29 @@ class TestLocation(unittest.TestCase):
         self.assertEqual('Lake Core', location.data['location_type'])
         self.assertEqual(47.1, float(location.data['location_begin_lat']))
         self.assertEqual(47.1, float(location.data['location_end_lat']))
+
+
+class TestAge(unittest.TestCase):
+
+    def setUp(self):
+        dir_path = os.path.join(WD, 'Datafiles', 'copy_ErMagicBuilder')
+        self.data1 = builder.ErMagicBuilder(dir_path)
+        self.data1.get_data()
+
+    def test_initialize_age_data_structures(self):
+        site_name = 'MGH1'
+        site = self.data1.find_by_name(site_name, self.data1.sites)
+        self.assertTrue(site.age_data)
+        self.assertIn('magic_method_codes', site.age_data.keys())
+        self.assertNotIn('conodont_zone', site.age_data.keys())
+        self.assertNotIn('er_location_name', site.age_data.keys())
+
+    def test_get_age_data(self):
+        site_name = 'MGH1'
+        site = self.data1.find_by_name(site_name, self.data1.sites)
+
+        self.data1.get_age_info('site')
+        #self.assertTrue(self.data1.ages)
+        self.assertTrue(site.age_data)
+        self.assertEqual(3, int(site.age_data['age']))
+        self.assertEqual('GM-ARAR', site.age_data['magic_method_codes'])
