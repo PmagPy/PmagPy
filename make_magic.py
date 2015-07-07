@@ -26,8 +26,6 @@ class MainFrame(wx.Frame):
         wx.GetDisplaySize()
         wx.Frame.__init__(self, None, wx.ID_ANY, name=name)
 
-
-
         self.panel = wx.Panel(self, size=wx.GetDisplaySize(), name='main panel')
         os.chdir(WD)
         self.WD = os.getcwd()
@@ -40,8 +38,9 @@ class MainFrame(wx.Frame):
         self.er_magic.get_magic_info('site', 'location')
         self.er_magic.get_magic_info('location')
         self.er_magic.get_age_info('site')
-        # POSSIBLY REMOVE THIS EVENTUALLY:
+        # POSSIBLY RELOCATE THIS EVENTUALLY:
         self.er_magic.init_default_headers()
+        self.er_magic.init_actual_headers()
         #
         self.InitUI()
 
@@ -241,19 +240,6 @@ class GridFrame(wx.Frame):
         """
         self.main_sizer = wx.BoxSizer(wx.VERTICAL)
         #self.er_magic = ErMagicBuilder.ErMagicBuilder(self.WD)#,self.Data,self.Data_hierarchy)
-
-        
-        if self.er_magic.specimens:
-            self.er_magic.er_specimens_header = self.er_magic.specimens[0].data.keys()
-        if self.er_magic.samples:
-            self.er_magic.er_samples_header = self.er_magic.samples[0].data.keys()
-        if self.er_magic.sites:
-            self.er_magic.er_sites_header = self.er_magic.sites[0].data.keys()
-        if self.er_magic.locations:
-            self.er_magic.er_locations_header = self.er_magic.locations[0].data.keys()
-        if self.er_magic.sites:
-            self.er_magic.er_ages_header = self.er_magic.sites[0].age_data.keys()
-        
 
         self.grid_headers = {
             'specimen': [self.er_magic.er_specimens_header, self.er_magic.er_specimens_reqd_header, self.er_magic.er_specimens_optional_header],

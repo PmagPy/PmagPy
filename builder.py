@@ -82,6 +82,28 @@ class ErMagicBuilder(object):
     #    full_header = list(set(current_header).union(reqd_header))
     #    put_list_value_first(reqd_header, data_type[:-1] + '_name')
     #    return reqd_header, optional_header
+    def init_actual_headers(self):
+        if self.specimens:
+            self.er_specimens_header = self.specimens[0].data.keys()
+        else:
+            self.er_specimens_header = self.er_specimens_reqd_header
+            
+        if self.samples:
+            self.er_samples_header = self.samples[0].data.keys()
+        else:
+            self.er_samples_header = self.er_samples_reqd_header
+        if self.sites:
+            self.er_sites_header = self.sites[0].data.keys()
+        else:
+            self.er_sites_header = self.er_sites_reqd_header
+        if self.locations:
+            self.er_locations_header = self.locations[0].data.keys()
+        else:
+            self.er_locations_header = self.er_locations_reqd_header
+        if self.sites:
+            self.er_ages_header = self.sites[0].age_data.keys()
+        else:
+            self.er_ages_header = self.er_ages_reqd_header
 
 
 
