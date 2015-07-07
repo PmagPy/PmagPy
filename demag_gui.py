@@ -1578,14 +1578,15 @@ class Zeq_GUI(wx.Frame):
 
 
     def get_DIR(self, WD=None):
-        """ Choose a working directory dialog
+        """ 
+        Choose a working directory dialog
         """
-        if "-WD" in sys.argv and FIRST_RUN:
+        if not WD and "-WD" in sys.argv and FIRST_RUN:
             ind=sys.argv.index('-WD')
             self.WD=sys.argv[ind+1]            
             #self.WD=os.getcwd()+"/"
  
-        elif not WD:   
+        elif not WD:
             dialog = wx.DirDialog(None, "Choose a directory:",defaultPath = self.currentDirectory ,style=wx.DD_DEFAULT_STYLE | wx.DD_NEW_DIR_BUTTON | wx.DD_CHANGE_DIR)
             ok = dialog.ShowModal()
             if ok == wx.ID_OK:
