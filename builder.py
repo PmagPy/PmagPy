@@ -107,7 +107,7 @@ class ErMagicBuilder(object):
 
 
     def change_specimen(self, old_spec_name, new_spec_name,
-                        new_sample_name=None, new_specimen_data=None):
+                        new_sample_name=None, new_er_data=None, new_pmag_data=None):
         """
         Find actual data objects for specimen and sample.
         Then call Specimen class change method to update specimen name and data.
@@ -123,7 +123,7 @@ class ErMagicBuilder(object):
 Leaving sample unchanged as: {} for {}""".format(new_sample_name, specimen.sample or '*empty*', specimen)
         else:
             new_sample = None
-        specimen.change_specimen(new_spec_name, new_sample, new_specimen_data)
+        specimen.change_specimen(new_spec_name, new_sample, new_er_data, new_pmag_data)
 
     def delete_specimen(self, spec_name):
         """
@@ -523,14 +523,14 @@ class Specimen(Pmag_object):
         super(Specimen, self).__init__(name, dtype, data_model, er_data, pmag_data)
         self.sample = sample or ""
 
-    def change_specimen(self, new_name, new_sample=None, er_data_dict=None):
+    def change_specimen(self, new_name, new_sample=None, er_data=None, pmag_data=None):
         self.name = new_name
         if new_sample:
             self.sample.specimens.remove(self)
             self.sample = new_sample
             self.sample.specimens.append(self)
-        if er_data_dict:
-            self.er_data = self.combine_dicts(er_data_dict, self.er_data)
+        if er_data:
+            self.er_data = self.combine_dicts(er_data, self.er_data)
 
 
 class Sample(Pmag_object):

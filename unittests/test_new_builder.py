@@ -53,13 +53,12 @@ class TestSpecimen(unittest.TestCase):
     def tearDown(self):
         pass
 
-
     def test_update_specimen(self):
         specimen_name = 'Z35.6a'
         sample_name = 'Z35.6'
         site_name = 'Z35.'
         location_name = 'locale'
-        self.data1.change_specimen(specimen_name, 'new_specimen', new_sample_name=None, new_specimen_data=None)
+        self.data1.change_specimen(specimen_name, 'new_specimen', new_sample_name=None, new_er_data=None)
 
         specimen = self.data1.find_by_name('new_specimen', self.data1.specimens)
         self.assertTrue(specimen)
@@ -82,7 +81,7 @@ class TestSpecimen(unittest.TestCase):
         location_name = 'locale'
         new_sample_name = 'Z35.2'
         sample = self.data1.find_by_name(new_sample_name, self.data1.samples)
-        self.data1.change_specimen(specimen_name, specimen_name, new_sample_name, new_specimen_data={'er_sample_name': 'Z35.5'})
+        self.data1.change_specimen(specimen_name, specimen_name, new_sample_name, new_er_data={'er_sample_name': 'Z35.5'})
         
         specimen = self.data1.find_by_name(specimen_name, self.data1.specimens)
         self.assertTrue(specimen)
@@ -94,15 +93,15 @@ class TestSpecimen(unittest.TestCase):
         self.assertTrue(new_sample)
         self.assertIn(specimen, new_sample.specimens)
 
-    def test_update_specimen_with_data(self):
+    def test_update_specimen_with_er_data(self):
         specimen_name = 'Z35.6a'
-        self.data1.change_specimen(specimen_name, specimen_name, new_specimen_data={'specimen_elevation': 12})
+        self.data1.change_specimen(specimen_name, specimen_name, new_er_data={'specimen_elevation': 12})
         specimen = self.data1.find_by_name('Z35.6a', self.data1.specimens)
         self.assertTrue(specimen)
         self.assertIn('specimen_elevation', specimen.er_data.keys())
         self.assertEqual(12, specimen.er_data['specimen_elevation'])
         # change again (should overwrite)
-        self.data1.change_specimen(specimen_name, specimen_name, new_specimen_data={'specimen_elevation': 92})
+        self.data1.change_specimen(specimen_name, specimen_name, new_er_data={'specimen_elevation': 92})
         self.assertIn('specimen_elevation', specimen.er_data.keys())
         self.assertEqual(92, specimen.er_data['specimen_elevation'])
 
