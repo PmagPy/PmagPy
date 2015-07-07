@@ -242,11 +242,16 @@ class GridFrame(wx.Frame):
         #self.er_magic = ErMagicBuilder.ErMagicBuilder(self.WD)#,self.Data,self.Data_hierarchy)
 
         self.grid_headers = {
-            'specimen': [self.er_magic.er_specimens_header, self.er_magic.er_specimens_reqd_header, self.er_magic.er_specimens_optional_header],
-            'sample': [self.er_magic.er_samples_header, self.er_magic.er_samples_reqd_header, self.er_magic.er_samples_optional_header],
-            'site': [self.er_magic.er_sites_header, self.er_magic.er_sites_reqd_header, self.er_magic.er_sites_optional_header],
-            'location': [self.er_magic.er_locations_header, self.er_magic.er_locations_reqd_header, self.er_magic.er_locations_optional_header],
-            'age': [self.er_magic.er_ages_header, self.er_magic.er_ages_reqd_header, self.er_magic.er_ages_optional_header]}
+            'specimen': {'er': [self.er_magic.er_specimens_header, self.er_magic.er_specimens_reqd_header, self.er_magic.er_specimens_optional_header], 'pmag': [self.er_magic.pmag_specimens_header, self.er_magic.pmag_specimens_reqd_header, self.er_magic.pmag_specimens_optional_header]},
+            
+            'sample': {'er': [self.er_magic.er_samples_header, self.er_magic.er_samples_reqd_header, self.er_magic.er_samples_optional_header], 'pmag': [self.er_magic.pmag_samples_header, self.er_magic.pmag_samples_reqd_header, self.er_magic.pmag_samples_optional_header]},
+            
+            'site': {'er': [self.er_magic.er_sites_header, self.er_magic.er_sites_reqd_header, self.er_magic.er_sites_optional_header], 'pmag': [self.er_magic.pmag_sites_header, self.er_magic.pmag_sites_reqd_header, self.er_magic.pmag_sites_optional_header]},
+                     
+            'location': {'er': [self.er_magic.er_locations_header, self.er_magic.er_locations_reqd_header, self.er_magic.er_locations_optional_header], 'pmag': None},
+            
+            'age': {'er': [self.er_magic.er_ages_header, self.er_magic.er_ages_reqd_header, self.er_magic.er_ages_optional_header], 'pmag': None}
+        }
 
         #self.grid_data_dict = {
         #    'specimen': self.er_magic.data_er_specimens,
@@ -309,7 +314,7 @@ class GridFrame(wx.Frame):
 
         # EVERYTHING WORKS UP TO HERE
 
-        data_for_grid = {key.name: key.data for key in rows}
+        data_for_grid = {key.name: key.er_data for key in rows}
         # put into this format:
         # {spec_name: {}, spec2: {}}
         self.grid.add_data(data_for_grid)
@@ -341,7 +346,7 @@ class GridFrame(wx.Frame):
         """
         col = event.GetCol()
         label = self.grid.GetColLabelValue(col)
-        if label in self.grid_headers[self.grid_type][1]:
+        if label in self.grid_headers[self.grid_type]['er'][1]:
             pw.simple_warning("That header is required, and cannot be removed")
             return False
         else:
@@ -351,7 +356,7 @@ class GridFrame(wx.Frame):
         """
         return grid
         """
-        header = self.grid_headers[self.grid_type][0]
+        header = self.grid_headers[self.grid_type]['er'][0]
         no_parent = False
         for head in (self.grid_type, self.parent_type):
             head = 'er_' + str(head) + '_name'
@@ -371,7 +376,7 @@ class GridFrame(wx.Frame):
         """
         Show simple dialog that allows user to add a new column name
         """
-        items = self.grid_headers[self.grid_type][2]
+        items = self.grid_headers[self.grid_type]['er'][2]
         #dia = pw.TextDialog(self, 'column name: ')
         dia = pw.ComboboxDialog(self, 'new column name:', items)
         result = dia.ShowModal()

@@ -84,20 +84,19 @@ class ErMagicBuilder(object):
     #    return reqd_header, optional_header
     def init_actual_headers(self):
         if self.specimens:
-            self.er_specimens_header = self.specimens[0].data.keys()
+            self.er_specimens_header = self.specimens[0].er_data.keys()
         else:
             self.er_specimens_header = self.er_specimens_reqd_header
-            
         if self.samples:
-            self.er_samples_header = self.samples[0].data.keys()
+            self.er_samples_header = self.samples[0].er_data.keys()
         else:
             self.er_samples_header = self.er_samples_reqd_header
         if self.sites:
-            self.er_sites_header = self.sites[0].data.keys()
+            self.er_sites_header = self.sites[0].er_data.keys()
         else:
             self.er_sites_header = self.er_sites_reqd_header
         if self.locations:
-            self.er_locations_header = self.locations[0].data.keys()
+            self.er_locations_header = self.locations[0].er_data.keys()
         else:
             self.er_locations_header = self.er_locations_reqd_header
         if self.sites:
@@ -370,7 +369,7 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
         """
         Read er_*.txt file.
         Parse information into dictionaries for each item.
-        Then add it to the item object as object.data.
+        Then add it to the item object as object.er_data.
         """
         short_filename = 'er_' + child_type + 's.txt'
         magic_file = os.path.join(self.WD, short_filename)
@@ -391,7 +390,7 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
             if parent_type:
                 parent_name = data_dict[child_name]['er_' + parent_type + '_name']
                 parent = self.find_by_name(parent_name, parent_list)
-                parent.remove_headers(parent.data)
+                parent.remove_headers(parent.er_data)
             # if there should be a parent
             # (meaning there is a name for it and the child object should have a parent)
             # but none exists in the data model, go ahead and create that parent object.
@@ -405,8 +404,8 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
             if not child:
                 child = child_constructor(child_name, parent_name, data=data_dict, data_model=self.data_model)
             # add in the appropriate data dictionary
-            child.data = data_dict[child_name]
-            child.remove_headers(child.data)
+            child.er_data = data_dict[child_name]
+            child.remove_headers(child.er_data)
 
 
     def read_magic_file(self, path, sort_by_this_name):
@@ -461,16 +460,16 @@ class Pmag_object(object):
         self.er_reqd_headers, self.er_optional_headers = self.get_headers(er_name)
         reqd_data = {key: '' for key in self.er_reqd_headers}
         if data:
-            self.data = self.combine_dicts(data, reqd_data)
+            self.er_data = self.combine_dicts(data, reqd_data)
         else:
-            self.data = reqd_data
+            self.er_data = reqd_data
 
         if dtype in ('sample', 'site'):
             self.age_reqd_headers, self.age_optional_headers = self.get_headers('er_ages')
             self.age_data = {key: '' for key in self.age_reqd_headers}
             self.remove_headers(self.age_data)
 
-        self.remove_headers(self.data)
+        self.remove_headers(self.er_data)
 
     def __repr__(self):
         return self.dtype + ": " + self.name
@@ -530,7 +529,7 @@ class Specimen(Pmag_object):
             self.sample = new_sample
             self.sample.specimens.append(self)
         if data_dict:
-            self.data = self.combine_dicts(data_dict, self.data)
+            self.er_data = self.combine_dicts(data_dict, self.er_data)
 
 
 class Sample(Pmag_object):
@@ -553,7 +552,7 @@ class Sample(Pmag_object):
             self.site = new_site
             self.site.samples.append(self)
         if data_dict:
-            self.data = self.combine_dicts(data_dict, self.data)
+            self.er_data = self.combine_dicts(data_dict, self.er_data)
 
 
 class Site(Pmag_object):
@@ -573,7 +572,7 @@ class Site(Pmag_object):
         if new_location:
             self.location = new_location
         if data_dict:
-            self.data = self.combine_dicts(data_dict, self.data)
+            self.er_data = self.combine_dicts(data_dict, self.er_data)
 
 
 class Location(Pmag_object):
@@ -590,7 +589,7 @@ class Location(Pmag_object):
     def change_location(self, new_name, data_dict=None):
         self.name = new_name
         if data_dict:
-            self.data = self.combine_dicts(data_dict, self.data)
+            self.er_data = self.combine_dicts(data_dict, self.er_data)
 
 
 

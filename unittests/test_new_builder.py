@@ -100,12 +100,12 @@ class TestSpecimen(unittest.TestCase):
         self.data1.change_specimen(specimen_name, specimen_name, new_specimen_data={'specimen_elevation': 12})
         specimen = self.data1.find_by_name('Z35.6a', self.data1.specimens)
         self.assertTrue(specimen)
-        self.assertIn('specimen_elevation', specimen.data.keys())
-        self.assertEqual(12, specimen.data['specimen_elevation'])
+        self.assertIn('specimen_elevation', specimen.er_data.keys())
+        self.assertEqual(12, specimen.er_data['specimen_elevation'])
         # change again (should overwrite)
         self.data1.change_specimen(specimen_name, specimen_name, new_specimen_data={'specimen_elevation': 92})
-        self.assertIn('specimen_elevation', specimen.data.keys())
-        self.assertEqual(92, specimen.data['specimen_elevation'])
+        self.assertIn('specimen_elevation', specimen.er_data.keys())
+        self.assertEqual(92, specimen.er_data['specimen_elevation'])
 
     def test_update_specimen_with_invalid_sample(self):
         specimen_name = 'Z35.6a'
@@ -127,7 +127,7 @@ class TestSpecimen(unittest.TestCase):
         self.assertTrue(specimen)
         self.assertIn(specimen, self.data1.specimens)
         self.assertEqual('', specimen.sample)
-        self.assertTrue(specimen.data)
+        self.assertTrue(specimen.er_data)
         self.assertTrue(specimen.pmag_reqd_headers)
         self.assertTrue(specimen.er_reqd_headers)
         
@@ -159,13 +159,13 @@ class TestSpecimen(unittest.TestCase):
         
         specimen = self.data1.find_by_name(specimen_name, self.data1.specimens)
 
-        self.assertNotIn('er_specimen_name', specimen.data.keys())
-        self.assertNotIn('er_sample_name', specimen.data.keys())
-        self.assertNotIn('er_site_name', specimen.data.keys())
-        self.assertNotIn('er_location_name', specimen.data.keys())
-        self.assertEqual('special', specimen.data['specimen_type'])
-        self.assertIn('specimen_elevation', specimen.data.keys())
-        self.assertEqual(22, specimen.data['specimen_elevation'])
+        self.assertNotIn('er_specimen_name', specimen.er_data.keys())
+        self.assertNotIn('er_sample_name', specimen.er_data.keys())
+        self.assertNotIn('er_site_name', specimen.er_data.keys())
+        self.assertNotIn('er_location_name', specimen.er_data.keys())
+        self.assertEqual('special', specimen.er_data['specimen_type'])
+        self.assertIn('specimen_elevation', specimen.er_data.keys())
+        self.assertEqual(22, specimen.er_data['specimen_elevation'])
         
 
     def test_delete_specimen(self):
@@ -184,15 +184,15 @@ class TestSpecimen(unittest.TestCase):
         spec_name = 'Z35.6a'
         specimen = self.data1.find_by_name(spec_name, self.data1.specimens)
         self.assertTrue(specimen)
-        self.assertTrue(specimen.data)
-        for key in specimen.data.keys():
-            self.assertEqual('', specimen.data[key])
+        self.assertTrue(specimen.er_data)
+        for key in specimen.er_data.keys():
+            self.assertEqual('', specimen.er_data[key])
         #self.data1.get_spec_data()
         self.data1.get_magic_info('specimen', 'sample')
-        self.assertEqual('This study', specimen.data['er_citation_names'])
-        self.assertEqual('Archeologic', specimen.data['specimen_class'])
-        self.assertEqual('s', specimen.data['specimen_type'])
-        self.assertEqual('Baked Clay', specimen.data['specimen_lithology'])
+        self.assertEqual('This study', specimen.er_data['er_citation_names'])
+        self.assertEqual('Archeologic', specimen.er_data['specimen_class'])
+        self.assertEqual('s', specimen.er_data['specimen_type'])
+        self.assertEqual('Baked Clay', specimen.er_data['specimen_lithology'])
 
 
 class TestSample(unittest.TestCase):
@@ -248,12 +248,12 @@ class TestSample(unittest.TestCase):
         self.data1.change_sample(sample_name, sample_name, new_sample_data={'sample_type': 'awesome', 'sample_alteration_type': 'awesomer'})
         sample = self.data1.find_by_name(sample_name, self.data1.samples)
         self.assertTrue(sample)
-        self.assertIn('sample_alteration_type', sample.data.keys())
-        self.assertEqual('awesomer', sample.data['sample_alteration_type'])
-        self.assertEqual('awesome', sample.data['sample_type'])
+        self.assertIn('sample_alteration_type', sample.er_data.keys())
+        self.assertEqual('awesomer', sample.er_data['sample_alteration_type'])
+        self.assertEqual('awesome', sample.er_data['sample_type'])
         # change again (should overwrite)
         self.data1.change_sample(sample_name, sample_name, new_sample_data={'sample_type': 'cool'})
-        self.assertEqual('cool', sample.data['sample_type'])
+        self.assertEqual('cool', sample.er_data['sample_type'])
 
         
     def test_update_sample_with_invalid_site(self):
@@ -271,7 +271,7 @@ class TestSample(unittest.TestCase):
         self.assertTrue(sample)
         self.assertEqual('', sample.site)
         self.assertIn(sample, self.data1.samples)
-        self.assertTrue(sample.data)
+        self.assertTrue(sample.er_data)
         self.assertTrue(sample.pmag_reqd_headers)
         self.assertTrue(sample.er_reqd_headers)
 
@@ -300,9 +300,9 @@ class TestSample(unittest.TestCase):
         site = self.data1.find_by_name(site_name, self.data1.sites)
         self.assertTrue(sample)
         self.assertTrue(site)
-        self.assertIn('sample_type', sample.data.keys())
-        self.assertEqual('excellent', sample.data['sample_type'])
-        self.assertIn('rough', sample.data['sample_texture'])
+        self.assertIn('sample_type', sample.er_data.keys())
+        self.assertEqual('excellent', sample.er_data['sample_type'])
+        self.assertIn('rough', sample.er_data['sample_texture'])
         
 
     def test_delete_sample(self):
@@ -326,14 +326,14 @@ class TestSample(unittest.TestCase):
         samp_name = 'Z35.6'
         sample = self.data1.find_by_name(samp_name, self.data1.samples)
         self.assertTrue(sample)
-        self.assertTrue(sample.data)
-        for key in sample.data.keys():
-            self.assertEqual('', sample.data[key])
+        self.assertTrue(sample.er_data)
+        for key in sample.er_data.keys():
+            self.assertEqual('', sample.er_data[key])
         self.data1.get_magic_info('sample', 'site')
-        self.assertEqual('This study', sample.data['er_citation_names'])
-        self.assertEqual('Archeologic', sample.data['sample_class'])
-        self.assertEqual('s', sample.data['sample_type'])
-        self.assertEqual('Baked Clay', sample.data['sample_lithology'])
+        self.assertEqual('This study', sample.er_data['er_citation_names'])
+        self.assertEqual('Archeologic', sample.er_data['sample_class'])
+        self.assertEqual('s', sample.er_data['sample_type'])
+        self.assertEqual('Baked Clay', sample.er_data['sample_lithology'])
         
 
 class TestSite(unittest.TestCase):
@@ -388,19 +388,19 @@ class TestSite(unittest.TestCase):
         location_name = 'locale'
         site = self.data1.find_by_name(site_name, self.data1.sites)
         location = self.data1.find_by_name(location_name, self.data1.locations)
-        self.assertIn('site_type', site.data.keys())
-        self.assertEqual('', site.data['site_type'])
+        self.assertIn('site_type', site.er_data.keys())
+        self.assertEqual('', site.er_data['site_type'])
         self.data1.change_site(site_name, 'new_site', new_site_data={'site_type': 'great', 'site_elevation': 10})
 
         self.assertTrue(site)
         self.assertEqual(site.name, 'new_site')
-        self.assertIn('site_type', site.data.keys())
-        self.assertEqual('great', site.data['site_type'])
-        self.assertIn('site_elevation', site.data.keys())
-        self.assertEqual(10, site.data['site_elevation'])
+        self.assertIn('site_type', site.er_data.keys())
+        self.assertEqual('great', site.er_data['site_type'])
+        self.assertIn('site_elevation', site.er_data.keys())
+        self.assertEqual(10, site.er_data['site_elevation'])
 
         self.data1.change_site('new_site', 'new_site', new_site_data={'site_type': 'great', 'site_elevation': 99})
-        self.assertEqual(99, site.data['site_elevation'])
+        self.assertEqual(99, site.er_data['site_elevation'])
 
         
     def test_update_site_invalid_location(self):
@@ -440,10 +440,10 @@ class TestSite(unittest.TestCase):
         site_name = 'new_site'
         site = self.data1.add_site(site_name, 'Munich', {'site_type': 'great', 'site_elevation': 99})
         self.assertTrue(site)
-        self.assertIn('site_type', site.data.keys())
-        self.assertEqual('great', site.data['site_type'])
-        self.assertIn('site_elevation', site.data.keys())
-        self.assertEqual(99, site.data['site_elevation'])
+        self.assertIn('site_type', site.er_data.keys())
+        self.assertEqual('great', site.er_data['site_type'])
+        self.assertIn('site_elevation', site.er_data.keys())
+        self.assertEqual(99, site.er_data['site_elevation'])
 
     def test_delete_site(self):
         site_name = 'Z35.'
@@ -460,14 +460,14 @@ class TestSite(unittest.TestCase):
         site_name = 'MGH1'
         site = self.data1.find_by_name(site_name, self.data1.sites)
         self.assertTrue(site)
-        self.assertTrue(site.data)
-        for key in site.data.keys():
-            self.assertEqual('', site.data[key])
+        self.assertTrue(site.er_data)
+        for key in site.er_data.keys():
+            self.assertEqual('', site.er_data[key])
         self.data1.get_magic_info('site', 'location')
-        self.assertEqual('This study', site.data['er_citation_names'])
-        self.assertEqual('Archeologic', site.data['site_class'])
-        self.assertEqual('Baked Clay', site.data['site_type'])
-        self.assertEqual('Mafic Dike', site.data['site_lithology'])
+        self.assertEqual('This study', site.er_data['er_citation_names'])
+        self.assertEqual('Archeologic', site.er_data['site_class'])
+        self.assertEqual('Baked Clay', site.er_data['site_type'])
+        self.assertEqual('Mafic Dike', site.er_data['site_lithology'])
 
 
 class TestLocation(unittest.TestCase):
@@ -500,34 +500,34 @@ class TestLocation(unittest.TestCase):
     def test_update_location_with_data(self):
         location_name = 'locale'
         location = self.data1.find_by_name(location_name, self.data1.locations)
-        self.assertIn('location_type', location.data.keys())
-        self.assertEqual('', location.data['location_type'])
+        self.assertIn('location_type', location.er_data.keys())
+        self.assertEqual('', location.er_data['location_type'])
         self.data1.change_location(location_name, location_name, new_location_data={'location_type': 'great', 'continent_ocean': 'Indian'})
-        self.assertIn('location_type', location.data.keys())
-        self.assertEqual('great', location.data['location_type'])
-        self.assertIn('continent_ocean', location.data.keys())
-        self.assertEqual('Indian', location.data['continent_ocean'])
+        self.assertIn('location_type', location.er_data.keys())
+        self.assertEqual('great', location.er_data['location_type'])
+        self.assertIn('continent_ocean', location.er_data.keys())
+        self.assertEqual('Indian', location.er_data['continent_ocean'])
 
         self.data1.change_location(location_name, location_name, {'continent_ocean': 'Atlantic'})
-        self.assertEqual('Atlantic', location.data['continent_ocean'])
+        self.assertEqual('Atlantic', location.er_data['continent_ocean'])
 
     def test_update_location_with_data_and_name_change(self):
         location_name = 'locale'
         new_location_name = 'new_locale'
         location = self.data1.find_by_name(location_name, self.data1.locations)
-        self.assertIn('location_type', location.data.keys())
-        self.assertEqual('', location.data['location_type'])
+        self.assertIn('location_type', location.er_data.keys())
+        self.assertEqual('', location.er_data['location_type'])
         self.data1.change_location(location_name, new_location_name, new_location_data={'location_type': 'great', 'continent_ocean': 'Indian'})
 
         self.assertFalse(self.data1.find_by_name(location_name, self.data1.locations))
         location = self.data1.find_by_name(new_location_name, self.data1.locations)
-        self.assertIn('location_type', location.data.keys())
-        self.assertEqual('great', location.data['location_type'])
-        self.assertIn('continent_ocean', location.data.keys())
-        self.assertEqual('Indian', location.data['continent_ocean'])
+        self.assertIn('location_type', location.er_data.keys())
+        self.assertEqual('great', location.er_data['location_type'])
+        self.assertIn('continent_ocean', location.er_data.keys())
+        self.assertEqual('Indian', location.er_data['continent_ocean'])
 
         self.data1.change_location(new_location_name, new_location_name, {'continent_ocean': 'Atlantic'})
-        self.assertEqual('Atlantic', location.data['continent_ocean'])
+        self.assertEqual('Atlantic', location.er_data['continent_ocean'])
 
     def test_add_location(self):
         location_name = 'new_location'
@@ -539,10 +539,10 @@ class TestLocation(unittest.TestCase):
         location_name = 'new_location'
         location = self.data1.add_location(location_name, location_data={'location_type': 'great', 'continent_ocean': 'Indian'})
         self.assertTrue(location)
-        self.assertIn('location_type', location.data.keys())
-        self.assertEqual('great', location.data['location_type'])
-        self.assertIn('continent_ocean', location.data.keys())
-        self.assertEqual('Indian', location.data['continent_ocean'])
+        self.assertIn('location_type', location.er_data.keys())
+        self.assertEqual('great', location.er_data['location_type'])
+        self.assertIn('continent_ocean', location.er_data.keys())
+        self.assertEqual('Indian', location.er_data['continent_ocean'])
 
     def test_delete_location(self):
         location_name = 'Munich'
@@ -557,14 +557,14 @@ class TestLocation(unittest.TestCase):
         location_name = 'locale'
         location = self.data1.find_by_name(location_name, self.data1.locations)
         self.assertTrue(location)
-        self.assertTrue(location.data)
-        for key in location.data.keys():
-            self.assertEqual('', location.data[key])
+        self.assertTrue(location.er_data)
+        for key in location.er_data.keys():
+            self.assertEqual('', location.er_data[key])
         self.data1.get_magic_info('location')
-        self.assertEqual('This study', location.data['er_citation_names'])
-        self.assertEqual('Lake Core', location.data['location_type'])
-        self.assertEqual(47.1, float(location.data['location_begin_lat']))
-        self.assertEqual(47.1, float(location.data['location_end_lat']))
+        self.assertEqual('This study', location.er_data['er_citation_names'])
+        self.assertEqual('Lake Core', location.er_data['location_type'])
+        self.assertEqual(47.1, float(location.er_data['location_begin_lat']))
+        self.assertEqual(47.1, float(location.er_data['location_end_lat']))
 
 
 class TestAge(unittest.TestCase):
