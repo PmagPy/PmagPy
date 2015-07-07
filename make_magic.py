@@ -33,10 +33,10 @@ class MainFrame(wx.Frame):
         self.er_magic = builder.ErMagicBuilder(self.WD)
         # initialize er_magic data object
         self.er_magic.get_data()
-        self.er_magic.get_magic_info('specimen', 'sample')
-        self.er_magic.get_magic_info('sample', 'site')
-        self.er_magic.get_magic_info('site', 'location')
-        self.er_magic.get_magic_info('location')
+        self.er_magic.get_magic_info('specimen', 'er', 'sample')
+        self.er_magic.get_magic_info('sample', 'er', 'site')
+        self.er_magic.get_magic_info('site', 'er', 'location')
+        self.er_magic.get_magic_info('location', 'er')
         self.er_magic.get_age_info('site')
         # POSSIBLY RELOCATE THIS EVENTUALLY:
         self.er_magic.init_default_headers()

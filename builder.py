@@ -137,19 +137,19 @@ Leaving sample unchanged as: {} for {}""".format(new_sample_name, specimen.sampl
         self.specimens.remove(specimen)
         del specimen
 
-    def add_specimen(self, spec_name, samp_name=None, spec_data=None):
+    def add_specimen(self, spec_name, samp_name=None, er_data=None, pmag_data=None):
         """
         Create a Specimen object and add it to self.specimens.
         If a sample name is provided, add the specimen to sample.specimens as well.
         """
         sample = self.find_by_name(samp_name, self.samples)
-        specimen = Specimen(spec_name, sample, self.data_model, spec_data)
+        specimen = Specimen(spec_name, sample, self.data_model, er_data, pmag_data)
         self.specimens.append(specimen)
         if sample:
             sample.specimens.append(specimen)
         return specimen
 
-    def change_sample(self, old_samp_name, new_samp_name, new_site_name=None, new_sample_data=None):
+    def change_sample(self, old_samp_name, new_samp_name, new_site_name=None, new_er_data=None, new_pmag_data=None):
         """
         Find actual data objects for sample and site.
         Then call Sample class change method to update sample name and data..
@@ -166,15 +166,15 @@ Leaving site unchanged as: {} for {}""".format(new_site_name, sample.site or '*e
                 new_site = None
         else:
             new_site = None
-        sample.change_sample(new_samp_name, new_site, new_sample_data)
+        sample.change_sample(new_samp_name, new_site, new_er_data, new_pmag_data)
 
-    def add_sample(self, samp_name, site_name=None, samp_data=None):
+    def add_sample(self, samp_name, site_name=None, er_data=None, pmag_data=None):
         """
         Create a Sample object and add it to self.samples.
         If a site name is provided, add the sample to site.samples as well.
         """
         site = self.find_by_name(site_name, self.sites)
-        sample = Sample(samp_name, site, self.data_model, samp_data)
+        sample = Sample(samp_name, site, self.data_model, er_data, pmag_data)
         self.samples.append(sample)
         if site:
             site.samples.append(sample)
@@ -195,7 +195,7 @@ Leaving site unchanged as: {} for {}""".format(new_site_name, sample.site or '*e
         for spec in specimens:
             spec.sample = ""
 
-    def change_site(self, old_site_name, new_site_name, new_location_name=None, new_site_data=None):
+    def change_site(self, old_site_name, new_site_name, new_location_name=None, new_er_data=None, new_pmag_data=None):
         """
         Find actual data objects for site and location.
         Then call the Site class change method to update site name and data.
@@ -216,9 +216,9 @@ Leaving site unchanged as: {} for {}""".format(new_site_name, sample.site or '*e
 Leaving location unchanged as: {} for {}""".format(new_site_name, site.location or '*empty*', site)
         else:
             new_location = None
-        site.change_site(new_site_name, new_location, new_site_data)
+        site.change_site(new_site_name, new_location, new_er_data, new_pmag_data)
 
-    def add_site(self, site_name, location_name=None, site_data=None):
+    def add_site(self, site_name, location_name=None, er_data=None, pmag_data=None):
         """
         Create a Site object and add it to self.sites.
         If a location name is provided, add the site to location.sites as well.
@@ -227,7 +227,7 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
             location = self.find_by_name(location_name, self.locations)
         else:
             location = None
-        new_site = Site(site_name, location, data=site_data)
+        new_site = Site(site_name, location, self.data_model, er_data, pmag_data)
         self.sites.append(new_site)
         if location:
             location.sites.append(new_site)
@@ -247,7 +247,7 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
             samp.site = ''
         del site
 
-    def change_location(self, old_location_name, new_location_name, new_location_data=None):
+    def change_location(self, old_location_name, new_location_name, new_er_data=None, new_pmag_data=None):
         """
         Find actual data object for location with old_location_name.
         Then call Location class change method to update location name and data.
@@ -256,14 +256,14 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
         if not location:
             print '-W- {} is not a currently existing location, so it cannot be updated.'.format(old_location_name)
             return False
-        location.change_location(new_location_name, new_location_data)
+        location.change_location(new_location_name, new_er_data, new_pmag_data)
         return location
 
-    def add_location(self, location_name, location_data=None):
+    def add_location(self, location_name, er_data=None, pmag_data=None):
         """
         Create a Location object and add it to self.locations.
         """
-        location = Location(location_name, data=location_data)
+        location = Location(location_name, self.data_model, er_data=er_data, pmag_data=pmag_data)
         self.locations.append(location)
         return location
 
@@ -365,13 +365,13 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
             pmag_item.age_data = data_dict[pmag_name]
 
 
-    def get_magic_info(self, child_type, parent_type=None):
+    def get_magic_info(self, child_type, pmag_or_er='er', parent_type=None):
         """
         Read er_*.txt file.
         Parse information into dictionaries for each item.
         Then add it to the item object as object.er_data.
         """
-        short_filename = 'er_' + child_type + 's.txt'
+        short_filename = pmag_or_er + "_" + child_type + 's.txt'
         magic_file = os.path.join(self.WD, short_filename)
         magic_name = 'er_' + child_type + '_name'
         if not os.path.isfile(magic_file):
@@ -406,6 +406,7 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
             # add in the appropriate data dictionary
             child.er_data = data_dict[child_name]
             child.remove_headers(child.er_data)
+
 
 
     def read_magic_file(self, path, sort_by_this_name):
@@ -446,7 +447,7 @@ class Pmag_object(object):
     Base class for Specimens, Samples, Sites, etc.
     """
 
-    def __init__(self, name, dtype, data_model=None, data=None):#, headers={}):
+    def __init__(self, name, dtype, data_model=None, er_data=None, pmag_data=None):#, headers={}):
         if not data_model:
             self.data_model = validate_upload.get_data_model()
         else:
@@ -459,8 +460,8 @@ class Pmag_object(object):
         self.pmag_reqd_headers, self.pmag_optional_headers = self.get_headers(pmag_name)
         self.er_reqd_headers, self.er_optional_headers = self.get_headers(er_name)
         reqd_data = {key: '' for key in self.er_reqd_headers}
-        if data:
-            self.er_data = self.combine_dicts(data, reqd_data)
+        if er_data:
+            self.er_data = self.combine_dicts(er_data, reqd_data)
         else:
             self.er_data = reqd_data
 
@@ -517,19 +518,19 @@ class Specimen(Pmag_object):
     """
     Specimen level object
     """
-    def __init__(self, name, sample, data_model=None, data=None):
+    def __init__(self, name, sample, data_model=None, er_data=None, pmag_data=None):
         dtype = 'specimen'
-        super(Specimen, self).__init__(name, dtype, data_model, data)
+        super(Specimen, self).__init__(name, dtype, data_model, er_data, pmag_data)
         self.sample = sample or ""
 
-    def change_specimen(self, new_name, new_sample=None, data_dict=None):
+    def change_specimen(self, new_name, new_sample=None, er_data_dict=None):
         self.name = new_name
         if new_sample:
             self.sample.specimens.remove(self)
             self.sample = new_sample
             self.sample.specimens.append(self)
-        if data_dict:
-            self.er_data = self.combine_dicts(data_dict, self.er_data)
+        if er_data_dict:
+            self.er_data = self.combine_dicts(er_data_dict, self.er_data)
 
 
 class Sample(Pmag_object):
@@ -538,21 +539,21 @@ class Sample(Pmag_object):
     Sample level object
     """
 
-    def __init__(self, name, site, data_model=None, data=None):
+    def __init__(self, name, site, data_model=None, er_data=None, pmag_data=None):
         dtype = 'sample'
-        super(Sample, self).__init__(name, dtype, data_model, data)
+        super(Sample, self).__init__(name, dtype, data_model, er_data, pmag_data)
         self.specimens = []
         self.site = site or ""
 
-    def change_sample(self, new_name, new_site=None, data_dict=None):
+    def change_sample(self, new_name, new_site=None, er_data=None, pmag_data=None):
         self.name = new_name
         if new_site:
             if self.site:
                 self.site.samples.remove(self)
             self.site = new_site
             self.site.samples.append(self)
-        if data_dict:
-            self.er_data = self.combine_dicts(data_dict, self.er_data)
+        if er_data:
+            self.er_data = self.combine_dicts(er_data, self.er_data)
 
 
 class Site(Pmag_object):
@@ -561,18 +562,18 @@ class Site(Pmag_object):
     Site level object
     """
 
-    def __init__(self, name, location, data_model=None, data=None):
+    def __init__(self, name, location, data_model=None, er_data=None, pmag_data=None):
         dtype = 'site'
-        super(Site, self).__init__(name, dtype, data_model, data)
+        super(Site, self).__init__(name, dtype, data_model, er_data, pmag_data)
         self.samples = []
         self.location = location or ""
 
-    def change_site(self, new_name, new_location=None, data_dict=None):
+    def change_site(self, new_name, new_location=None, new_er_data=None, new_pmag_data=None):
         self.name = new_name
         if new_location:
             self.location = new_location
-        if data_dict:
-            self.er_data = self.combine_dicts(data_dict, self.er_data)
+        if new_er_data:
+            self.er_data = self.combine_dicts(new_er_data, self.er_data)
 
 
 class Location(Pmag_object):
@@ -581,15 +582,15 @@ class Location(Pmag_object):
     Location level object
     """
 
-    def __init__(self, name, data_model=None, data=None):
+    def __init__(self, name, data_model=None, er_data=None, pmag_data=None):
         dtype = 'location'
-        super(Location, self).__init__(name, dtype, data_model, data)
+        super(Location, self).__init__(name, dtype, data_model, er_data, pmag_data)
         self.sites = []
 
-    def change_location(self, new_name, data_dict=None):
+    def change_location(self, new_name, new_er_data=None, new_pmag_data=None):
         self.name = new_name
-        if data_dict:
-            self.er_data = self.combine_dicts(data_dict, self.er_data)
+        if new_er_data:
+            self.er_data = self.combine_dicts(new_er_data, self.er_data)
 
 
 
