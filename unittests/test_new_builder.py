@@ -105,6 +105,16 @@ class TestSpecimen(unittest.TestCase):
         self.assertIn('specimen_elevation', specimen.er_data.keys())
         self.assertEqual(92, specimen.er_data['specimen_elevation'])
 
+        
+    def test_update_specimen_with_pmag_data(self):
+        specimen_name = 'Z35.6a'
+        self.data1.change_specimen(specimen_name, specimen_name, new_pmag_data={'er_fossil_name': 'Mr. Bone'})
+        specimen = self.data1.find_by_name('Z35.6a', self.data1.specimens)
+        self.assertTrue(specimen)
+        self.assertIn('er_fossil_name', specimen.pmag_data.keys())
+        self.assertEqual('Mr. Bone', specimen.pmag_data['er_fossil_name'])
+        
+
     def test_update_specimen_with_invalid_sample(self):
         specimen_name = 'Z35.6a'
         site_name = 'invalid_site'
@@ -164,7 +174,22 @@ class TestSpecimen(unittest.TestCase):
         self.assertEqual('special', specimen.er_data['specimen_type'])
         self.assertIn('specimen_elevation', specimen.er_data.keys())
         self.assertEqual(22, specimen.er_data['specimen_elevation'])
+
+    def test_add_specimen_with_pmag_data(self):
+        specimen_name = 'new_spec'
+        self.data1.add_specimen(specimen_name, pmag_data={'specimen_gamma': 10.5, 'specimen_description': 'cool'})
         
+        specimen = self.data1.find_by_name(specimen_name, self.data1.specimens)
+
+        self.assertNotIn('er_specimen_name', specimen.pmag_data.keys())
+        self.assertNotIn('er_sample_name', specimen.pmag_data.keys())
+        self.assertNotIn('er_site_name', specimen.pmag_data.keys())
+        self.assertNotIn('er_location_name', specimen.pmag_data.keys())
+        self.assertIn('specimen_gamma', specimen.pmag_data.keys())
+        self.assertEqual(10.5, specimen.pmag_data['specimen_gamma'])
+        self.assertIn('specimen_description', specimen.pmag_data.keys())
+        self.assertEqual('cool', specimen.pmag_data['specimen_description'])
+
 
     def test_delete_specimen(self):
         specimen_name = 'Z35.6a'
@@ -178,7 +203,7 @@ class TestSpecimen(unittest.TestCase):
         self.assertNotIn(specimen_name, [spec.name for spec in sample.specimens])
         self.assertNotIn(specimen_name, [spec.name for spec in self.data1.specimens])
 
-    def test_spec_data(self):
+    def test_er_data(self):
         spec_name = 'Z35.6a'
         specimen = self.data1.find_by_name(spec_name, self.data1.specimens)
         self.assertTrue(specimen)
@@ -191,6 +216,20 @@ class TestSpecimen(unittest.TestCase):
         self.assertEqual('Archeologic', specimen.er_data['specimen_class'])
         self.assertEqual('s', specimen.er_data['specimen_type'])
         self.assertEqual('Baked Clay', specimen.er_data['specimen_lithology'])
+
+    def test_pmag_data(self):
+        spec_name = 'Z35.6a'
+        specimen = self.data1.find_by_name(spec_name, self.data1.specimens)
+        self.assertTrue(specimen)
+        self.assertTrue(specimen.pmag_data)
+        for key in specimen.pmag_data.keys():
+            self.assertEqual('', specimen.pmag_data[key])
+        self.assertIn('er_citation_names', specimen.pmag_data.keys())
+        self.assertNotIn('pmag_rotation_codes', specimen.pmag_data.keys())
+        self.data1.get_magic_info('specimen', 'pmag', 'sample')
+        self.assertEqual(828, int(specimen.pmag_data['measurement_step_max']))
+        self.assertEqual('Z35.6a:LP-DIR-T', int(specimen.pmag_data['magic_experiment_names']))
+
 
 
 class TestSample(unittest.TestCase):
