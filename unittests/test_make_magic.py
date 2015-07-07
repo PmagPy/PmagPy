@@ -5,8 +5,9 @@ tests for make_magic
 import wx
 import unittest
 import os
-import ErMagicBuilder
+#import ErMagicBuilder
 import make_magic
+import builder
 
 WD = os.getcwd()
 
@@ -119,7 +120,7 @@ class TestMakeMagicGridFrame(unittest.TestCase):
     def setUp(self):
         self.app = wx.App()
         #self.grid = GridFrame(self.ErMagic, self.WD, grid_type, grid_type, self.panel)
-        ErMagic = ErMagicBuilder.ErMagicBuilder(WD)
+        ErMagic = builder.ErMagicBuilder(WD)
         ErMagic.init_default_headers()
         self.frame = make_magic.GridFrame(ErMagic, WD, "specimen", "specimen")
         self.pnl = self.frame.GetChildren()[0]

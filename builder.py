@@ -7,6 +7,7 @@ Module for building or reading in specimen, sample, site, and location data.
 import os
 import pmag
 import validate_upload
+import pmag_widgets as pw
 
 class ErMagicBuilder(object):
     """
@@ -35,6 +36,54 @@ class ErMagicBuilder(object):
             ind = names.index(item_name)
             return items_list[ind]
         return False
+
+    def init_default_headers(self):
+        """
+        initialize default required headers.
+        if there were any pre-existing headers, keep them also.
+        """
+        self.headers = {}
+        if not self.data_model:
+            self.data_model = validate_upload.get_data_model()
+            if not self.data_model:
+                pw.simple_warning("Can't access MagIC-data-model at the moment.\nIf you are working offline, make sure MagIC-data-model.txt is in your PmagPy directory (or download it from https://github.com/ltauxe/PmagPy and put it in your PmagPy directory).\nOtherwise, check your internet connection")
+                return False
+
+        # header should contain all required headers, plus any already in the file
+
+        self.er_specimens_reqd_header, self.er_specimens_optional_header = self.get_headers('er_specimens')
+        self.er_samples_reqd_header, self.er_samples_optional_header = self.get_headers('er_samples')
+        self.er_sites_reqd_header, self.er_sites_optional_header = self.get_headers('er_sites')
+        self.er_locations_reqd_header, self.er_locations_optional_header = self.get_headers('er_locations')
+        self.er_ages_reqd_header, self.er_ages_optional_header = self.get_headers('er_ages')
+
+        self.pmag_results_reqd_header, self.pmag_results_optional_header = self.get_headers('pmag_results')
+        self.pmag_specimens_reqd_header, self.pmag_specimens_optional_header = self.get_headers('pmag_specimens')
+        self.pmag_samples_reqd_header, self.pmag_samples_optional_header = self.get_headers('pmag_samples')
+        self.pmag_sites_reqd_header, self.pmag_sites_optional_header = self.get_headers('pmag_sites')
+
+        self.er_specimens_header, self.er_samples_header, self.er_sites_header, self.er_locations_header, self.er_ages_header = [], [], [], [], []
+        self.pmag_specimens_header, self.pmag_samples_header, self.pmag_sites_header, self.pmag_results_header = [], [], [], []
+
+
+    def get_headers(self, data_type):
+        try:
+            data_dict = self.data_model[data_type]
+        except KeyError:
+            return [], []
+        reqd_headers = sorted([header for header in data_dict.keys() if data_dict[header]['data_status'] == 'Required'])
+        optional_headers = sorted([header for header in data_dict.keys() if data_dict[header]['data_status'] != 'Required'])
+        return reqd_headers, optional_headers
+
+
+    #def get_headers(self, data_type, current_header):
+    #    reqd_header, optional_header = self.get_reqd_and_optional_headers(data_type)
+    #    # combine already existing header with required header
+    #    full_header = list(set(current_header).union(reqd_header))
+    #    put_list_value_first(reqd_header, data_type[:-1] + '_name')
+    #    return reqd_header, optional_header
+
+
 
     def change_specimen(self, old_spec_name, new_spec_name,
                         new_sample_name=None, new_specimen_data=None):
@@ -157,7 +206,7 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
             location = self.find_by_name(location_name, self.locations)
         else:
             location = None
-        new_site = Site(site_name, location, site_data=site_data)
+        new_site = Site(site_name, location, data=site_data)
         self.sites.append(new_site)
         if location:
             location.sites.append(new_site)
@@ -193,7 +242,7 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
         """
         Create a Location object and add it to self.locations.
         """
-        location = Location(location_name, location_data=location_data)
+        location = Location(location_name, data=location_data)
         self.locations.append(location)
         return location
 
@@ -285,9 +334,13 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
             return False
 
         data_dict = self.read_magic_file(magic_file, magic_name)[0]
-        items_list = self.data_lists[sample_or_site][0]
+        items_list, item_constructor = self.data_lists[sample_or_site]
         for pmag_name in data_dict.keys():
             pmag_item = self.find_by_name(pmag_name, items_list)
+            if not pmag_item:
+                pmag_item = item_constructor(pmag_name, sample_or_site, data_model=self.data_model)
+                items_list.append(pmag_item)
+
             pmag_item.age_data = data_dict[pmag_name]
 
 
@@ -306,6 +359,7 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
         # get the data from the appropriate er_*.txt file
         data_dict = self.read_magic_file(magic_file, magic_name)[0]
         child_list, child_constructor = self.data_lists[child_type]
+
         if parent_type:
             parent_list, parent_constructor = self.data_lists[parent_type]
         else:
@@ -320,14 +374,14 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
             # (meaning there is a name for it and the child object should have a parent)
             # but none exists in the data model, go ahead and create that parent object.
             elif parent_name and parent_type and not parent:
-                parent = parent_constructor(parent_name)
+                parent = parent_constructor(parent_name, data_model=self.data_model)
             # otherwise there is no parent and none can be created, so use an empty string
             else:
                 parent = ''
             child = self.find_by_name(child_name, child_list)
             # if the child object does not exist yet in the data model
             if not child:
-                child = child_constructor(child_name, parent_name, data=data_dict)
+                child = child_constructor(child_name, parent_name, data=data_dict, data_model=self.data_model)
             # add in the appropriate data dictionary
             child.data = data_dict[child_name]
             child.remove_headers(child.data)
@@ -434,6 +488,8 @@ class Pmag_object(object):
                 combined_data_dict[k] = old_dict[k]
         return combined_data_dict
 
+    
+
 
 class Specimen(Pmag_object):
 
@@ -461,9 +517,9 @@ class Sample(Pmag_object):
     Sample level object
     """
 
-    def __init__(self, name, site, data_model=None, sample_data=None):
+    def __init__(self, name, site, data_model=None, data=None):
         dtype = 'sample'
-        super(Sample, self).__init__(name, dtype, data_model, sample_data)
+        super(Sample, self).__init__(name, dtype, data_model, data)
         self.specimens = []
         self.site = site or ""
 
@@ -484,9 +540,9 @@ class Site(Pmag_object):
     Site level object
     """
 
-    def __init__(self, name, location, data_model=None, site_data=None):
+    def __init__(self, name, location, data_model=None, data=None):
         dtype = 'site'
-        super(Site, self).__init__(name, dtype, data_model, site_data)
+        super(Site, self).__init__(name, dtype, data_model, data)
         self.samples = []
         self.location = location or ""
 
@@ -504,9 +560,9 @@ class Location(Pmag_object):
     Location level object
     """
 
-    def __init__(self, name, data_model=None, location_data=None):
+    def __init__(self, name, data_model=None, data=None):
         dtype = 'location'
-        super(Location, self).__init__(name, dtype, data_model, location_data)
+        super(Location, self).__init__(name, dtype, data_model, data)
         self.sites = []
 
     def change_location(self, new_name, data_dict=None):
@@ -529,3 +585,11 @@ if __name__ == '__main__':
     #for site in builder.sites:
     #    print site, site.samples
     #    print '--'
+
+
+# Random helper methods that MIGHT belong in pmag.py
+
+def put_list_value_first(lst, first_value):
+    if first_value in lst:
+        lst.remove(first_value)
+        lst[:0] = [first_value]

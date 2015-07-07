@@ -9,7 +9,8 @@ import wx
 import wx.lib.buttons as buttons
 import sys
 import os
-import ErMagicBuilder
+#import ErMagicBuilder
+import builder
 import pmag
 import pmag_er_magic_dialogs
 import drop_down_menus
@@ -30,8 +31,18 @@ class MainFrame(wx.Frame):
         self.panel = wx.Panel(self, size=wx.GetDisplaySize(), name='main panel')
         os.chdir(WD)
         self.WD = os.getcwd()
-        self.ErMagic = ErMagicBuilder.ErMagicBuilder(self.WD)
-        self.ErMagic.init_default_headers()
+        #self.er_magic = ErMagicBuilder.ErMagicBuilder(self.WD)
+        self.er_magic = builder.ErMagicBuilder(self.WD)
+        # initialize er_magic data object
+        self.er_magic.get_data()
+        self.er_magic.get_magic_info('specimen', 'sample')
+        self.er_magic.get_magic_info('sample', 'site')
+        self.er_magic.get_magic_info('site', 'location')
+        self.er_magic.get_magic_info('location')
+        self.er_magic.get_age_info('site')
+        # POSSIBLY REMOVE THIS EVENTUALLY:
+        self.er_magic.init_default_headers()
+        #
         self.InitUI()
 
     def InitUI(self):
@@ -173,11 +184,10 @@ class MainFrame(wx.Frame):
         Create a GridFrame for data type of the button that was clicked
         """
         try:
-            print 'event.GetButtonObj().Name', event.GetButtonObj().Name
             grid_type = event.GetButtonObj().Name[:-4] # remove '_btn'
         except AttributeError:
             grid_type = self.FindWindowById(event.Id).Name[:-4] # remove ('_btn')
-        self.grid = GridFrame(self.ErMagic, self.WD, grid_type, grid_type, self.panel)
+        self.grid = GridFrame(self.er_magic, self.WD, grid_type, grid_type, self.panel)
 
         #self.on_finish_change_dir(self.change_dir_dialog)
 
@@ -204,7 +214,8 @@ class GridFrame(wx.Frame):
         self.deleteRowButton = None
         self.selected_rows = set()
 
-        self.ErMagic = ErMagic
+        self.er_magic = ErMagic
+
         self.panel = wx.Panel(self, name=panel_name, size=wx.GetDisplaySize())
         self.grid_type = panel_name
 
@@ -229,29 +240,41 @@ class GridFrame(wx.Frame):
         initialize window
         """
         self.main_sizer = wx.BoxSizer(wx.VERTICAL)
-        #self.ErMagic = ErMagicBuilder.ErMagicBuilder(self.WD)#,self.Data,self.Data_hierarchy)
-        #self.ErMagic.init_default_headers()
+        #self.er_magic = ErMagicBuilder.ErMagicBuilder(self.WD)#,self.Data,self.Data_hierarchy)
+
+        
+        if self.er_magic.specimens:
+            self.er_magic.er_specimens_header = self.er_magic.specimens[0].data.keys()
+        if self.er_magic.samples:
+            self.er_magic.er_samples_header = self.er_magic.samples[0].data.keys()
+        if self.er_magic.sites:
+            self.er_magic.er_sites_header = self.er_magic.sites[0].data.keys()
+        if self.er_magic.locations:
+            self.er_magic.er_locations_header = self.er_magic.locations[0].data.keys()
+        if self.er_magic.sites:
+            self.er_magic.er_ages_header = self.er_magic.sites[0].age_data.keys()
+        
 
         self.grid_headers = {
-            'specimen': [self.ErMagic.er_specimens_header, self.ErMagic.er_specimens_reqd_header, self.ErMagic.er_specimens_optional_header],
-            'sample': [self.ErMagic.er_samples_header, self.ErMagic.er_samples_reqd_header, self.ErMagic.er_samples_optional_header],
-            'site': [self.ErMagic.er_sites_header, self.ErMagic.er_sites_reqd_header, self.ErMagic.er_sites_optional_header],
-            'location': [self.ErMagic.er_locations_header, self.ErMagic.er_locations_reqd_header, self.ErMagic.er_locations_optional_header],
-            'age': [self.ErMagic.er_ages_header, self.ErMagic.er_ages_reqd_header, self.ErMagic.er_ages_optional_header]}
+            'specimen': [self.er_magic.er_specimens_header, self.er_magic.er_specimens_reqd_header, self.er_magic.er_specimens_optional_header],
+            'sample': [self.er_magic.er_samples_header, self.er_magic.er_samples_reqd_header, self.er_magic.er_samples_optional_header],
+            'site': [self.er_magic.er_sites_header, self.er_magic.er_sites_reqd_header, self.er_magic.er_sites_optional_header],
+            'location': [self.er_magic.er_locations_header, self.er_magic.er_locations_reqd_header, self.er_magic.er_locations_optional_header],
+            'age': [self.er_magic.er_ages_header, self.er_magic.er_ages_reqd_header, self.er_magic.er_ages_optional_header]}
 
-        self.grid_data_dict = {
-            'specimen': self.ErMagic.data_er_specimens,
-            'sample': self.ErMagic.data_er_samples,
-            'site': self.ErMagic.data_er_samples,
-            'location': self.ErMagic.data_er_locations,
-            'age': self.ErMagic.data_er_ages}
+        #self.grid_data_dict = {
+        #    'specimen': self.er_magic.data_er_specimens,
+        #    'sample': self.er_magic.data_er_samples,
+        #    'site': self.er_magic.data_er_samples,
+        #    'location': self.er_magic.data_er_locations,
+        #    'age': self.er_magic.data_er_ages}
 
         self.grid = self.make_grid()
 
         self.grid.InitUI()
 
-        if self.parent_type in self.grid_data_dict.keys():
-            belongs_to = sorted(self.grid_data_dict[self.parent_type].keys())
+        if self.parent_type:
+            belongs_to = sorted(self.er_magic.data_lists[self.parent_type][0])
         else:
             belongs_to = None
         self.drop_down_menu = drop_down_menus.Menus(self.grid_type, self, self.grid, belongs_to)
@@ -292,11 +315,18 @@ class GridFrame(wx.Frame):
         self.panel.Bind(wx.grid.EVT_GRID_LABEL_LEFT_CLICK, self.onLeftClickLabel, self.grid)
 
         #  Add appropriate number of rows
-        rows = sorted(self.grid_data_dict[self.grid_type].keys())
+        #rows = sorted(self.grid_data_dict[self.grid_type].keys())
+        rows = sorted(self.er_magic.data_lists[self.grid_type][0])
+        #belongs_to = sorted(self.er_magic.data_lists[self.parent_type][0])
         for row in rows:
-            self.grid.add_row(row)
+            self.grid.add_row(row.name)
 
-        self.grid.add_data(self.grid_data_dict[self.grid_type])
+        # EVERYTHING WORKS UP TO HERE
+
+        data_for_grid = {key.name: key.data for key in rows}
+        # put into this format:
+        # {spec_name: {}, spec2: {}}
+        self.grid.add_data(data_for_grid)
 
         self.grid.size_grid()
         # always start with at least one row:
@@ -418,10 +448,10 @@ class GridFrame(wx.Frame):
             self.selected_rows = {row_num}
             
         #else:
-        function_mapping = {'er_specimens': self.ErMagic.remove_specimen,
-                            'er_samples': self.ErMagic.remove_sample,
-                            'er_sites': self.ErMagic.remove_site,
-                            'er_locations': self.ErMagic.remove_location}
+        function_mapping = {'er_specimens': self.er_magic.remove_specimen,
+                            'er_samples': self.er_magic.remove_sample,
+                            'er_sites': self.er_magic.remove_site,
+                            'er_locations': self.er_magic.remove_location}
         #ancestry = ['er_specimens', 'er_samples', 'er_sites', 'er_locations']
         #child_type = ancestry[ancestry.index(self.grid_type) - 1]
         
