@@ -407,6 +407,48 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
             child.er_data = data_dict[child_name]
             child.remove_headers(child.er_data)
 
+    def get_pmag_magic_info(self, child_type, pmag_or_er='pmag', parent_type=None):
+        """
+        Read pmag_*.txt file.
+        Parse information into dictionaries for each item.
+        Then add it to the item object as object.pmag_data.
+        """
+        short_filename = pmag_or_er + "_" + child_type + 's.txt'
+        magic_file = os.path.join(self.WD, short_filename)
+        magic_name = 'er_' + child_type + '_name'
+        if not os.path.isfile(magic_file):
+            print '-W- Could not find {} in your working directory {}'.format(short_filename, self.WD)
+            return False
+        # get the data from the appropriate er_*.txt file
+        data_dict = self.read_magic_file(magic_file, magic_name)[0]
+        child_list, child_constructor = self.data_lists[child_type]
+
+        if parent_type:
+            parent_list, parent_constructor = self.data_lists[parent_type]
+        else:
+            parent_list, parent_name = None, None
+        for child_name in data_dict:
+            # if there is a possible parent, try to find parent object in the data model
+            if parent_type:
+                parent_name = data_dict[child_name]['er_' + parent_type + '_name']
+                parent = self.find_by_name(parent_name, parent_list)
+                parent.remove_headers(parent.pmag_data)
+            # if there should be a parent
+            # (meaning there is a name for it and the child object should have a parent)
+            # but none exists in the data model, go ahead and create that parent object.
+            elif parent_name and parent_type and not parent:
+                parent = parent_constructor(parent_name, data_model=self.data_model)
+            # otherwise there is no parent and none can be created, so use an empty string
+            else:
+                parent = ''
+            child = self.find_by_name(child_name, child_list)
+            # if the child object does not exist yet in the data model
+            if not child:
+                child = child_constructor(child_name, parent_name, data=data_dict, data_model=self.data_model)
+            # add in the appropriate data dictionary
+            child.pmag_data = data_dict[child_name]
+            child.remove_headers(child.pmag_data)
+
 
 
     def read_magic_file(self, path, sort_by_this_name):
@@ -459,11 +501,16 @@ class Pmag_object(object):
         pmag_name = 'pmag_' + dtype + 's'
         self.pmag_reqd_headers, self.pmag_optional_headers = self.get_headers(pmag_name)
         self.er_reqd_headers, self.er_optional_headers = self.get_headers(er_name)
-        reqd_data = {key: '' for key in self.er_reqd_headers}
+        er_reqd_data = {key: '' for key in self.er_reqd_headers}
+        pmag_reqd_data = {key: '' for key in self.pmag_reqd_headers}
         if er_data:
-            self.er_data = self.combine_dicts(er_data, reqd_data)
+            self.er_data = self.combine_dicts(er_data, er_reqd_data)
         else:
-            self.er_data = reqd_data
+            self.er_data = er_reqd_data
+        if pmag_data:
+            self.pmag_data = self.combine_dicts(pmag_data, pmag_reqd_data)
+        else:
+            self.pmag_data = pmag_reqd_data
 
         if dtype in ('sample', 'site'):
             self.age_reqd_headers, self.age_optional_headers = self.get_headers('er_ages')
@@ -471,6 +518,7 @@ class Pmag_object(object):
             self.remove_headers(self.age_data)
 
         self.remove_headers(self.er_data)
+        self.remove_headers(self.pmag_data)
 
     def __repr__(self):
         return self.dtype + ": " + self.name
@@ -531,6 +579,8 @@ class Specimen(Pmag_object):
             self.sample.specimens.append(self)
         if er_data:
             self.er_data = self.combine_dicts(er_data, self.er_data)
+        if pmag_data:
+            self.pmag_data = self.combine_dicts(pmag_data, self.pmag_data)    
 
 
 class Sample(Pmag_object):

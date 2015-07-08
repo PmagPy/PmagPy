@@ -108,11 +108,16 @@ class TestSpecimen(unittest.TestCase):
         
     def test_update_specimen_with_pmag_data(self):
         specimen_name = 'Z35.6a'
-        self.data1.change_specimen(specimen_name, specimen_name, new_pmag_data={'er_fossil_name': 'Mr. Bone'})
         specimen = self.data1.find_by_name('Z35.6a', self.data1.specimens)
+        self.data1.get_pmag_magic_info('specimen', 'pmag', 'sample')
+        self.data1.change_specimen(specimen_name, specimen_name, new_pmag_data={'er_fossil_name': 'Mr. Bone'})
         self.assertTrue(specimen)
+        # make sure new data is added in 
         self.assertIn('er_fossil_name', specimen.pmag_data.keys())
         self.assertEqual('Mr. Bone', specimen.pmag_data['er_fossil_name'])
+        # make sure old data hasn't disappeared
+        self.assertIn('magic_experiment_names', specimen.pmag_data.keys())
+        self.assertEqual('Z35.6a:LP-DIR-T', specimen.pmag_data['magic_experiment_names'])
         
 
     def test_update_specimen_with_invalid_sample(self):
@@ -178,7 +183,6 @@ class TestSpecimen(unittest.TestCase):
     def test_add_specimen_with_pmag_data(self):
         specimen_name = 'new_spec'
         self.data1.add_specimen(specimen_name, pmag_data={'specimen_gamma': 10.5, 'specimen_description': 'cool'})
-        
         specimen = self.data1.find_by_name(specimen_name, self.data1.specimens)
 
         self.assertNotIn('er_specimen_name', specimen.pmag_data.keys())
@@ -226,9 +230,13 @@ class TestSpecimen(unittest.TestCase):
             self.assertEqual('', specimen.pmag_data[key])
         self.assertIn('er_citation_names', specimen.pmag_data.keys())
         self.assertNotIn('pmag_rotation_codes', specimen.pmag_data.keys())
-        self.data1.get_magic_info('specimen', 'pmag', 'sample')
+        
+        self.data1.get_pmag_magic_info('specimen', 'pmag', 'sample')
+        
+        self.assertIn('measurement_step_max', specimen.pmag_data.keys())
         self.assertEqual(828, int(specimen.pmag_data['measurement_step_max']))
-        self.assertEqual('Z35.6a:LP-DIR-T', int(specimen.pmag_data['magic_experiment_names']))
+        self.assertIn('magic_experiment_names', specimen.pmag_data.keys())
+        self.assertEqual('Z35.6a:LP-DIR-T', specimen.pmag_data['magic_experiment_names'])
 
 
 
