@@ -409,7 +409,7 @@ class TestSample(unittest.TestCase):
         samp_name = 'Z35.6'
         sample = self.data1.find_by_name(samp_name, self.data1.samples)
         self.assertTrue(sample)
-        data = sample.pmag_data
+        data = sample.pmag_data.copy()
         self.assertTrue(sample.pmag_data)
         for key in sample.pmag_data.keys():
             self.assertEqual('', sample.pmag_data[key])
@@ -465,7 +465,7 @@ class TestSite(unittest.TestCase):
         self.assertNotIn(site, old_location.sites)
         
 
-    def test_update_site_with_data(self):
+    def test_update_site_with_er_data(self):
         sample_name = 'Z35.6'
         site_name = 'Z35.'
         location_name = 'locale'
@@ -484,6 +484,23 @@ class TestSite(unittest.TestCase):
 
         self.data1.change_site('new_site', 'new_site', new_er_data={'site_type': 'great', 'site_elevation': 99})
         self.assertEqual(99, site.er_data['site_elevation'])
+
+    def test_update_site_with_pmag_data(self):
+        sample_name = 'Z35.6'
+        site_name = 'Z35.'
+        location_name = 'locale'
+        site = self.data1.find_by_name(site_name, self.data1.sites)
+        location = self.data1.find_by_name(location_name, self.data1.locations)
+        self.assertIn('magic_method_codes', site.pmag_data.keys())
+        self.assertFalse(site.pmag_data['magic_method_codes'])
+        self.assertNotIn('site_sigma', site.pmag_data.keys())
+        self.data1.change_site(site_name, 'new_site', new_pmag_data={'site_sigma': 3, 'magic_method_codes': 'code'})
+
+        self.assertIn('site_sigma', site.pmag_data.keys())
+        self.assertEqual(3, site.pmag_data['site_sigma'])
+        self.assertIn('magic_method_codes', site.pmag_data.keys())
+        self.assertEqual('code', site.pmag_data['magic_method_codes'])
+
 
         
     def test_update_site_invalid_location(self):
@@ -519,7 +536,7 @@ class TestSite(unittest.TestCase):
         self.assertIn(site, self.data1.sites)
         self.assertEqual('', site.location)
 
-    def test_add_site_with_data(self):
+    def test_add_site_with_er_data(self):
         site_name = 'new_site'
         site = self.data1.add_site(site_name, 'Munich', {'site_type': 'great', 'site_elevation': 99})
         self.assertTrue(site)
@@ -527,6 +544,16 @@ class TestSite(unittest.TestCase):
         self.assertEqual('great', site.er_data['site_type'])
         self.assertIn('site_elevation', site.er_data.keys())
         self.assertEqual(99, site.er_data['site_elevation'])
+
+    def test_add_site_with_er_data(self):
+        site_name = 'new_site'
+        site = self.data1.add_site(site_name, 'Munich', pmag_data={'site_sigma': 3, 'magic_method_codes': 'code'})
+        self.assertTrue(site)
+        self.assertIn('site_sigma', site.pmag_data.keys())
+        self.assertEqual(3, site.pmag_data['site_sigma'])
+        self.assertIn('magic_method_codes', site.pmag_data.keys())
+        self.assertEqual('code', site.pmag_data['magic_method_codes'])
+
 
     def test_delete_site(self):
         site_name = 'Z35.'
@@ -539,7 +566,7 @@ class TestSite(unittest.TestCase):
         self.assertNotIn(site_name, [site.name for site in self.data1.sites])
         self.assertNotIn(site_name, [site.name for site in location.sites])
 
-    def test_site_data(self):
+    def test_er_data(self):
         site_name = 'MGH1'
         site = self.data1.find_by_name(site_name, self.data1.sites)
         self.assertTrue(site)
@@ -551,6 +578,19 @@ class TestSite(unittest.TestCase):
         self.assertEqual('Archeologic', site.er_data['site_class'])
         self.assertEqual('Baked Clay', site.er_data['site_type'])
         self.assertEqual('Mafic Dike', site.er_data['site_lithology'])
+
+    def test_pmag_data(self):
+        site_name = 'MGH1'
+        site = self.data1.find_by_name(site_name, self.data1.sites)
+        self.assertTrue(site)
+        data = site.pmag_data.copy()
+        self.assertTrue(site.pmag_data)
+        for key in site.pmag_data.keys():
+            self.assertEqual('', site.pmag_data[key])
+        self.data1.get_pmag_magic_info('site', 'pmag', 'location')
+        data2 = site.pmag_data
+        self.assertEqual(data, data2)
+
 
 
 class TestLocation(unittest.TestCase):

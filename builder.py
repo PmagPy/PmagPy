@@ -626,6 +626,8 @@ class Site(Pmag_object):
             self.location = new_location
         if new_er_data:
             self.er_data = self.combine_dicts(new_er_data, self.er_data)
+        if new_pmag_data:
+            self.pmag_data = self.combine_dicts(new_pmag_data, self.pmag_data)    
 
 
 class Location(Pmag_object):
