@@ -300,6 +300,21 @@ class TestSample(unittest.TestCase):
         self.data1.change_sample(sample_name, sample_name, new_er_data={'sample_type': 'cool'})
         self.assertEqual('cool', sample.er_data['sample_type'])
 
+    def test_update_sample_with_pmag_data(self):
+        sample_name = 'Z35.6'
+        sample = self.data1.find_by_name(sample_name, self.data1.samples)
+        self.data1.get_pmag_magic_info('sample', 'pmag', 'site')
+        self.assertIn('magic_instrument_codes', sample.pmag_data.keys())
+        self.assertNotIn('er_mineral_names', sample.pmag_data.keys())
+        self.data1.change_sample(sample_name, sample_name, new_pmag_data={'er_mineral_names': 'awesome', 'magic_instrument_codes': '12345'})
+        sample = self.data1.find_by_name(sample_name, self.data1.samples)
+        self.assertTrue(sample)
+        # make sure new data is added in
+        self.assertIn('er_mineral_names', sample.pmag_data.keys())
+        self.assertEqual('awesome', sample.pmag_data['er_mineral_names'])
+        self.assertIn('magic_instrument_codes', sample.pmag_data.keys())
+        self.assertEqual('12345', sample.pmag_data['magic_instrument_codes'])
+
         
     def test_update_sample_with_invalid_site(self):
         sample_name = 'Z35.6'
@@ -338,7 +353,7 @@ class TestSample(unittest.TestCase):
         self.assertFalse(site)
         self.assertEqual('', sample.site)
 
-    def test_add_sample_with_data(self):
+    def test_add_sample_with_er_data(self):
         samp_name = 'new_samp'
         site_name = 'MGH1'
         sample = self.data1.add_sample(samp_name, site_name, {'sample_type': 'excellent', 'sample_texture': 'rough'})
@@ -348,7 +363,17 @@ class TestSample(unittest.TestCase):
         self.assertIn('sample_type', sample.er_data.keys())
         self.assertEqual('excellent', sample.er_data['sample_type'])
         self.assertIn('rough', sample.er_data['sample_texture'])
-        
+
+    def test_add_sample_with_pmag_data(self):
+        samp_name = 'new_samp'
+        site_name = 'MGH1'
+        sample = self.data1.add_sample(samp_name, site_name, pmag_data={'er_mineral_names': 'awesome', 'magic_instrument_codes': '12345'})
+        self.assertTrue(sample)
+        self.assertIn('er_mineral_names', sample.pmag_data.keys())
+        self.assertEqual('awesome', sample.pmag_data['er_mineral_names'])
+        self.assertIn('magic_instrument_codes', sample.pmag_data.keys())
+        self.assertEqual('12345', sample.pmag_data['magic_instrument_codes'])
+
 
     def test_delete_sample(self):
         specimen_name = 'Z35.6a'
@@ -367,7 +392,7 @@ class TestSample(unittest.TestCase):
         
         self.assertNotIn(sample_name, [samp.name for samp in self.data1.samples])
 
-    def test_samp_data(self):
+    def test_er_data(self):
         samp_name = 'Z35.6'
         sample = self.data1.find_by_name(samp_name, self.data1.samples)
         self.assertTrue(sample)
@@ -379,6 +404,19 @@ class TestSample(unittest.TestCase):
         self.assertEqual('Archeologic', sample.er_data['sample_class'])
         self.assertEqual('s', sample.er_data['sample_type'])
         self.assertEqual('Baked Clay', sample.er_data['sample_lithology'])
+
+    def test_pmag_data(self):
+        samp_name = 'Z35.6'
+        sample = self.data1.find_by_name(samp_name, self.data1.samples)
+        self.assertTrue(sample)
+        data = sample.pmag_data
+        self.assertTrue(sample.pmag_data)
+        for key in sample.pmag_data.keys():
+            self.assertEqual('', sample.pmag_data[key])
+        self.data1.get_pmag_magic_info('sample', 'pmag', 'site')
+        data2 = sample.pmag_data
+        self.assertEqual(data, data2)
+
         
 
 class TestSite(unittest.TestCase):

@@ -604,6 +604,8 @@ class Sample(Pmag_object):
             self.site.samples.append(self)
         if er_data:
             self.er_data = self.combine_dicts(er_data, self.er_data)
+        if pmag_data:
+            self.pmag_data = self.combine_dicts(pmag_data, self.pmag_data)    
 
 
 class Site(Pmag_object):
