@@ -3878,11 +3878,23 @@ self.mean_fit not in map(lambda x: x.name, self.pmag_results_data['specimens'][s
         m_delete = menu_edit.Append(-1, "&Delete Interpertation\tCtrl-D", "")
         self.Bind(wx.EVT_MENU, self.delete_fit, m_delete)
 
-        m_next = menu_edit.Append(-1, "&Next Specimen\tCtrl-Right", "")
-        self.Bind(wx.EVT_MENU, self.on_next_button, m_next)
+        m_next_interp = menu_edit.Append(-1, "&Next Interpertation\tCtrl-Up", "")
+        self.Bind(wx.EVT_MENU, self.on_menu_next_interp, m_next_interp)
 
-        m_previous = menu_edit.Append(-1, "&Previous Specimen\tCtrl-Left", "")
-        self.Bind(wx.EVT_MENU, self.on_prev_button, m_previous)
+        m_previous_interp = menu_edit.Append(-1, "&Previous Interpertation\tCtrl-Down", "")
+        self.Bind(wx.EVT_MENU, self.on_menu_prev_interp, m_previous_interp)
+
+        m_next_specimen = menu_edit.Append(-1, "&Next Specimen\tCtrl-Right", "")
+        self.Bind(wx.EVT_MENU, self.on_next_button, m_next_specimen)
+
+        m_previous_specimen = menu_edit.Append(-1, "&Previous Specimen\tCtrl-Left", "")
+        self.Bind(wx.EVT_MENU, self.on_prev_button, m_previous_specimen)
+
+#        m_next_sample = menu_edit.Append(-1, "&Next Sample\tCtrl-PageUp", "")
+#        self.Bind(wx.EVT_MENU, self.on_menu_next_sample, m_next_sample)
+
+#        m_previous_sample = menu_edit.Append(-1, "&Previous Sample\tCtrl-PageDown", "")
+#        self.Bind(wx.EVT_MENU, self.on_menu_prev_sample, m_previous_sample)
 
         menu_coordinates = wx.Menu()
 
@@ -4144,6 +4156,26 @@ self.mean_fit not in map(lambda x: x.name, self.pmag_results_data['specimens'][s
         if self.COORDINATE_SYSTEM != "tilt-corrected":
             self.coordinates_box.SetStringSelection("tilt-corrected")
             self.onSelect_coordinates(event)
+
+    def on_menu_next_interp(self, event):
+        f_index = self.fit_box.GetSelection()
+        f_index -= 1
+        self.fit_box.SetSelection(f_index)
+        self.on_select_fit(event)
+
+    def on_menu_prev_interp(self, event):
+        f_index = self.fit_box.GetSelection()
+        f_index += 1
+        self.fit_box.SetSelection(f_index)
+        self.on_select_fit(event)
+
+    def on_menu_next_sample(self, event):
+        s_index = self.specimens.index(self.s)
+        print(s_index)
+
+    def on_menu_prev_sample(self, event):
+        s_index = self.specimens.index(self.s)
+        print(s_index)
                             
     #--------------------------------------------------------------
     # Analysis menu Bar functions
