@@ -1190,7 +1190,6 @@ class Zeq_GUI(wx.Frame):
 
     def draw_figure(self,s,update_higher_plots=True):
 
-        print("drawing figure: " + s)
         self.initialize_CART_rot(s)
         
         #-----------------------------------------------------------
@@ -1660,8 +1659,6 @@ class Zeq_GUI(wx.Frame):
       """
       Add measurement data lines to the text window.
       """
-
-      print("update measurement logger")
 
       if self.COORDINATE_SYSTEM=='geographic':
           zijdblock=self.Data[self.s]['zijdblock_geo']
@@ -2164,20 +2161,20 @@ class Zeq_GUI(wx.Frame):
         else:
             block=self.Data[specimen]['zijdblock']
         if  end_pca > beg_pca and   end_pca - beg_pca > 1:
-            print("------------Input Data--------------") #BLARGE
-            print("length of block: " + str(len(block)))
-            print(beg_pca)
-            print("start: " + str(block[beg_pca][0]))
-            print(end_pca)
-            print("end: " + str(block[end_pca][0]))
-            print("length: " + str(len(block[beg_pca:end_pca+1])))
-            print("good steps: " + str(sum(map(lambda x: x[5]=='g', block[beg_pca:end_pca+1]))))
-            print(len(block[beg_pca][5]), len(block[end_pca][5]))
-            print(block[beg_pca][5], block[end_pca][5])
-            print(map(lambda x: [x[0],x[5]],block[beg_pca:end_pca+1]))
+#            print("------------Input Data--------------") #BLARGE
+#            print("length of block: " + str(len(block)))
+#            print(beg_pca)
+#            print("start: " + str(block[beg_pca][0]))
+#            print(end_pca)
+#            print("end: " + str(block[end_pca][0]))
+#            print("length: " + str(len(block[beg_pca:end_pca+1])))
+#            print("good steps: " + str(sum(map(lambda x: x[5]=='g', block[beg_pca:end_pca+1]))))
+#            print(len(block[beg_pca][5]), len(block[end_pca][5]))
+#            print(block[beg_pca][5], block[end_pca][5])
+#            print(map(lambda x: [x[0],x[5]],block[beg_pca:end_pca+1]))
             mpars=pmag.domean(block,beg_pca,end_pca,calculation_type) #preformes regression
-            print("included steps: " + str(mpars['specimen_n']))
-            print(mpars['measurement_step_min'],mpars['measurement_step_max'])
+#            print("included steps: " + str(mpars['specimen_n']))
+#            print(mpars['measurement_step_min'],mpars['measurement_step_max'])
         else:
             mpars={}
         for k in mpars.keys():
@@ -2269,8 +2266,6 @@ class Zeq_GUI(wx.Frame):
         draw the specimen interpertations on the zijderveld and the specimen equal area
         @alters: fit.lines, zijplot, specimen_eqarea_interpretation, mplot_interpretation
         """
-
-        print("drawing interp")
 
         self.zijplot.collections=[] # delete fit points 
         self.specimen_eqarea_interpretation.clear() #clear equal area
@@ -2828,8 +2823,6 @@ class Zeq_GUI(wx.Frame):
 
 
     def plot_higher_levels_data(self):
-
-       print("drawing high level data")
 
        self.toolbar4.home()
 
@@ -4978,9 +4971,6 @@ self.mean_fit not in map(lambda x: x.name, self.pmag_results_data['specimens'][s
         if (tmin_index < 0): tmin_index = 0
         if (tmax_index > max_index): tmax_index = max_index
 
-        print(tmin_index,tmax_index)
-        print(self.Data[specimen]['measurement_flag'][tmin_index],self.Data[specimen]['measurement_flag'][tmax_index])
-
         return (tmin_index,tmax_index)
 
     def on_select_fit(self,event):
@@ -5381,8 +5371,6 @@ class EditFitFrame(wx.Frame):
         updates the logger and plot on the interpertation editor window
         @param: changed_interpertation_parameters -> if the logger should be whipped and completely recalculated from scratch or not (default = True)
         """
-
-        print("update editor: " + str(changed_interpertation_parameters))
 
         if changed_interpertation_parameters:
             self.fit_list = []

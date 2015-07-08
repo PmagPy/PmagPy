@@ -1404,7 +1404,6 @@ def domean(indata,start,end,calculation_type):
     datablock=[]
     start0,end0=start,end
     for ind,rec in enumerate(indata):
-        print("pmag start: " + str(start),"pmag end: " + str(end))
         if len(rec)<6:rec.append('g')
         if rec[5]=='b' and ind==start0: 
             mpars["specimen_direction_type"]="Error"
