@@ -943,6 +943,8 @@ class Zeq_GUI(wx.Frame):
                 self.mean_fit = self.current_fit.name
                 self.mean_fit_box.SetSelection(2+new_fit_index)
                 self.update_selection()
+            else:
+                self.Add_text()
             if self.interpertation_editor_open:
                 self.interpertation_editor.change_selected(self.current_fit)
 
@@ -2058,11 +2060,10 @@ class Zeq_GUI(wx.Frame):
 #        self.update_pmag_tables()
 
         meas_index = 0
-        for specimen in self.specimens:
-            if specimen == self.s:
+        for i,meas_data in enumerate(self.mag_meas_data):
+            if meas_data['er_specimen_name'] == self.s:
+                meas_index = i
                 break
-            else:
-                meas_index += len(self.Data[specimen]['zijdblock'])
         meas_index += g_index
 
         if self.Data[self.s]['measurement_flag'][g_index] == 'g':
@@ -2093,12 +2094,8 @@ class Zeq_GUI(wx.Frame):
                     fit.put('geographic',self.get_PCA_parameters(self.s,fit.tmin,fit.tmax,'geographic',fit.get('geographic')['calculation_type']))
                 if len(self.Data[self.s]['zijdblock_tilt'])>0 and fit.get('tilt_corrected') and 'calculation_type' in fit.get('tilt_corrected'):
                     fit.put('tilt-corrected',self.get_PCA_parameters(self.s,fit.tmin,fit.tmax,'tilt-corrected',fit.get('tilt_corrected')['calculation_type']))
-        self.calculate_higher_levels_data();
-        self.update_selection();
-
-#        for thing in self.mag_meas_data:
-#            if thing['measurement_flag'] == 'b' and thing['er_specimen_name'] == self.s:
-#                print(thing['er_specimen_name'],int(float(thing['treatment_temp']))-273)
+        self.calculate_higher_levels_data()
+        self.update_selection()
         
 
     #----------------------------------------------------------------------
@@ -2167,16 +2164,20 @@ class Zeq_GUI(wx.Frame):
         else:
             block=self.Data[specimen]['zijdblock']
         if  end_pca > beg_pca and   end_pca - beg_pca > 1:
-##            print("------------Input Data--------------") #BLARGE
-##            print("length of block: " + str(len(block)))
-##            print(beg_pca)
-##            print("start: " + str(block[beg_pca][0]))
-##            print(end_pca)
-##            print("end: " + str(block[end_pca][0]))
-##            print("length: " + str(len(block[beg_pca:end_pca+1])))
-##            print("good steps: " + str(sum(map(lambda x: x[5]=='g', block[beg_pca:end_pca+1]))))
+            print("------------Input Data--------------") #BLARGE
+            print("length of block: " + str(len(block)))
+            print(beg_pca)
+            print("start: " + str(block[beg_pca][0]))
+            print(end_pca)
+            print("end: " + str(block[end_pca][0]))
+            print("length: " + str(len(block[beg_pca:end_pca+1])))
+            print("good steps: " + str(sum(map(lambda x: x[5]=='g', block[beg_pca:end_pca+1]))))
+            print(len(block[beg_pca][5]), len(block[end_pca][5]))
+            print(block[beg_pca][5], block[end_pca][5])
+            print(map(lambda x: [x[0],x[5]],block[beg_pca:end_pca+1]))
             mpars=pmag.domean(block,beg_pca,end_pca,calculation_type) #preformes regression
-#            print("included steps: " + str(mpars['specimen_n']))
+            print("included steps: " + str(mpars['specimen_n']))
+            print(mpars['measurement_step_min'],mpars['measurement_step_max'])
         else:
             mpars={}
         for k in mpars.keys():
@@ -4954,7 +4955,7 @@ self.mean_fit not in map(lambda x: x.name, self.pmag_results_data['specimens'][s
             tmax_index=self.tmax_box.GetSelection()
 
         max_index = len(self.Data[specimen]['zijdblock_steps'])-1
-        while (self.Data[specimen]['measurement_flag'][tmin_index] == 'b' and \
+        while (self.Data[specimen]['measurement_flag'][max_index] == 'b' and \
                max_index-1 > 0):
             max_index -= 1
 
@@ -4976,6 +4977,9 @@ self.mean_fit not in map(lambda x: x.name, self.pmag_results_data['specimens'][s
 
         if (tmin_index < 0): tmin_index = 0
         if (tmax_index > max_index): tmax_index = max_index
+
+        print(tmin_index,tmax_index)
+        print(self.Data[specimen]['measurement_flag'][tmin_index],self.Data[specimen]['measurement_flag'][tmax_index])
 
         return (tmin_index,tmax_index)
 
