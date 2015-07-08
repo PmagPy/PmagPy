@@ -5468,7 +5468,7 @@ class EditFitFrame(wx.Frame):
             print('can not select fit of type: ' + str(type(new_fit)))
         self.logger.SetItemBackgroundColour(self.current_fit_index,"WHITE")
         self.current_fit_index = i
-        self.update_logger_entry(self.current_fit_index)
+        self.logger.SetItemBackgroundColour(self.current_fit_index,"LIGHT BLUE")
         
 
     def logger_focus(self,i):
