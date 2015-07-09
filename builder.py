@@ -365,13 +365,13 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
             pmag_item.age_data = data_dict[pmag_name]
 
 
-    def get_magic_info(self, child_type, pmag_or_er='er', parent_type=None):
+    def get_er_magic_info(self, child_type, pmag_or_er='er', parent_type=None):
         """
         Read er_*.txt file.
         Parse information into dictionaries for each item.
         Then add it to the item object as object.er_data.
         """
-        short_filename = pmag_or_er + "_" + child_type + 's.txt'
+        short_filename = "er_" + child_type + 's.txt'
         magic_file = os.path.join(self.WD, short_filename)
         magic_name = 'er_' + child_type + '_name'
         if not os.path.isfile(magic_file):
@@ -407,13 +407,13 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
             child.er_data = data_dict[child_name]
             child.remove_headers(child.er_data)
 
-    def get_pmag_magic_info(self, child_type, pmag_or_er='pmag', parent_type=None):
+    def get_pmag_magic_info(self, child_type, parent_type=None):
         """
         Read pmag_*.txt file.
         Parse information into dictionaries for each item.
         Then add it to the item object as object.pmag_data.
         """
-        short_filename = pmag_or_er + "_" + child_type + 's.txt'
+        short_filename = "pmag_" + child_type + 's.txt'
         magic_file = os.path.join(self.WD, short_filename)
         magic_name = 'er_' + child_type + '_name'
         if not os.path.isfile(magic_file):

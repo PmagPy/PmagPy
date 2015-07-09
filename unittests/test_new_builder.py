@@ -109,7 +109,7 @@ class TestSpecimen(unittest.TestCase):
     def test_update_specimen_with_pmag_data(self):
         specimen_name = 'Z35.6a'
         specimen = self.data1.find_by_name('Z35.6a', self.data1.specimens)
-        self.data1.get_pmag_magic_info('specimen', 'pmag', 'sample')
+        self.data1.get_pmag_magic_info('specimen', 'sample')
         self.data1.change_specimen(specimen_name, specimen_name, new_pmag_data={'er_fossil_name': 'Mr. Bone'})
         self.assertTrue(specimen)
         # make sure new data is added in 
@@ -215,7 +215,7 @@ class TestSpecimen(unittest.TestCase):
         for key in specimen.er_data.keys():
             self.assertEqual('', specimen.er_data[key])
         #self.data1.get_spec_data()
-        self.data1.get_magic_info('specimen', 'er', 'sample')
+        self.data1.get_er_magic_info('specimen', 'er', 'sample')
         self.assertEqual('This study', specimen.er_data['er_citation_names'])
         self.assertEqual('Archeologic', specimen.er_data['specimen_class'])
         self.assertEqual('s', specimen.er_data['specimen_type'])
@@ -231,7 +231,7 @@ class TestSpecimen(unittest.TestCase):
         self.assertIn('er_citation_names', specimen.pmag_data.keys())
         self.assertNotIn('pmag_rotation_codes', specimen.pmag_data.keys())
         
-        self.data1.get_pmag_magic_info('specimen', 'pmag', 'sample')
+        self.data1.get_pmag_magic_info('specimen', 'sample')
         
         self.assertIn('measurement_step_max', specimen.pmag_data.keys())
         self.assertEqual(828, int(specimen.pmag_data['measurement_step_max']))
@@ -303,7 +303,7 @@ class TestSample(unittest.TestCase):
     def test_update_sample_with_pmag_data(self):
         sample_name = 'Z35.6'
         sample = self.data1.find_by_name(sample_name, self.data1.samples)
-        self.data1.get_pmag_magic_info('sample', 'pmag', 'site')
+        self.data1.get_pmag_magic_info('sample', 'site')
         self.assertIn('magic_instrument_codes', sample.pmag_data.keys())
         self.assertNotIn('er_mineral_names', sample.pmag_data.keys())
         self.data1.change_sample(sample_name, sample_name, new_pmag_data={'er_mineral_names': 'awesome', 'magic_instrument_codes': '12345'})
@@ -399,7 +399,7 @@ class TestSample(unittest.TestCase):
         self.assertTrue(sample.er_data)
         for key in sample.er_data.keys():
             self.assertEqual('', sample.er_data[key])
-        self.data1.get_magic_info('sample', 'er', 'site')
+        self.data1.get_er_magic_info('sample', 'er', 'site')
         self.assertEqual('This study', sample.er_data['er_citation_names'])
         self.assertEqual('Archeologic', sample.er_data['sample_class'])
         self.assertEqual('s', sample.er_data['sample_type'])
@@ -413,7 +413,7 @@ class TestSample(unittest.TestCase):
         self.assertTrue(sample.pmag_data)
         for key in sample.pmag_data.keys():
             self.assertEqual('', sample.pmag_data[key])
-        self.data1.get_pmag_magic_info('sample', 'pmag', 'site')
+        self.data1.get_pmag_magic_info('sample', 'site')
         data2 = sample.pmag_data
         self.assertEqual(data, data2)
 
@@ -573,7 +573,7 @@ class TestSite(unittest.TestCase):
         self.assertTrue(site.er_data)
         for key in site.er_data.keys():
             self.assertEqual('', site.er_data[key])
-        self.data1.get_magic_info('site', 'er', 'location')
+        self.data1.get_er_magic_info('site', 'er', 'location')
         self.assertEqual('This study', site.er_data['er_citation_names'])
         self.assertEqual('Archeologic', site.er_data['site_class'])
         self.assertEqual('Baked Clay', site.er_data['site_type'])
@@ -587,10 +587,9 @@ class TestSite(unittest.TestCase):
         self.assertTrue(site.pmag_data)
         for key in site.pmag_data.keys():
             self.assertEqual('', site.pmag_data[key])
-        self.data1.get_pmag_magic_info('site', 'pmag', 'location')
+        self.data1.get_pmag_magic_info('site', 'location')
         data2 = site.pmag_data
         self.assertEqual(data, data2)
-
 
 
 class TestLocation(unittest.TestCase):
@@ -620,7 +619,7 @@ class TestLocation(unittest.TestCase):
         result = self.data1.change_location(location_name, location_name)
         self.assertFalse(result)
 
-    def test_update_location_with_data(self):
+    def test_update_location_with_er_data(self):
         location_name = 'locale'
         location = self.data1.find_by_name(location_name, self.data1.locations)
         self.assertIn('location_type', location.er_data.keys())
@@ -683,7 +682,7 @@ class TestLocation(unittest.TestCase):
         self.assertTrue(location.er_data)
         for key in location.er_data.keys():
             self.assertEqual('', location.er_data[key])
-        self.data1.get_magic_info('location', 'er')
+        self.data1.get_er_magic_info('location', 'er')
         self.assertEqual('This study', location.er_data['er_citation_names'])
         self.assertEqual('Lake Core', location.er_data['location_type'])
         self.assertEqual(47.1, float(location.er_data['location_begin_lat']))
