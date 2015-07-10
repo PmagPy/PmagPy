@@ -373,7 +373,7 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
             pmag_item.age_data = data_dict[pmag_name]
 
 
-    def get_er_magic_info(self, child_type, pmag_or_er='er', parent_type=None):
+    def get_er_magic_info(self, child_type, parent_type=None):
         """
         Read er_*.txt file.
         Parse information into dictionaries for each item.
@@ -497,7 +497,7 @@ class Pmag_object(object):
     Base class for Specimens, Samples, Sites, etc.
     """
 
-    def __init__(self, name, dtype, data_model=None, er_data=None, pmag_data=None):#, headers={}):
+    def __init__(self, name, dtype, data_model=None, er_data=None, pmag_data=None, results_data=None):#, headers={}):
         if not data_model:
             self.data_model = validate_upload.get_data_model()
         else:
@@ -509,8 +509,10 @@ class Pmag_object(object):
         pmag_name = 'pmag_' + dtype + 's'
         self.pmag_reqd_headers, self.pmag_optional_headers = self.get_headers(pmag_name)
         self.er_reqd_headers, self.er_optional_headers = self.get_headers(er_name)
+        self.results_reqd_headers, self.results_optional_headers = self.get_headers('pmag_results')
         er_reqd_data = {key: '' for key in self.er_reqd_headers}
         pmag_reqd_data = {key: '' for key in self.pmag_reqd_headers}
+        results_reqd_data = {key: '' for key in self.results_reqd_headers}
         if er_data:
             self.er_data = self.combine_dicts(er_data, er_reqd_data)
         else:
@@ -519,6 +521,11 @@ class Pmag_object(object):
             self.pmag_data = self.combine_dicts(pmag_data, pmag_reqd_data)
         else:
             self.pmag_data = pmag_reqd_data
+        if results_data:
+            self.results_data = self.combine_dicts(results_data, results_reqd_data)
+        else:
+            self.results_data = None
+                            
 
         if dtype in ('sample', 'site'):
             self.age_reqd_headers, self.age_optional_headers = self.get_headers('er_ages')
