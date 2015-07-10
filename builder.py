@@ -85,16 +85,22 @@ class ErMagicBuilder(object):
     def init_actual_headers(self):
         if self.specimens:
             self.er_specimens_header = self.specimens[0].er_data.keys()
+            self.pmag_specimens_header = self.specimens[0].pmag_data.keys()
         else:
             self.er_specimens_header = self.er_specimens_reqd_header
+            self.pmag_specimens_header = self.pmag_specimens_reqd_header
         if self.samples:
             self.er_samples_header = self.samples[0].er_data.keys()
+            self.pmag_samples_header = self.samples[0].pmag_data.keys()
         else:
             self.er_samples_header = self.er_samples_reqd_header
+            self.pmag_samples_header = self.pmag_samples_reqd_header
         if self.sites:
             self.er_sites_header = self.sites[0].er_data.keys()
+            self.pmag_sites_header = self.sites[0].pmag_data.keys()
         else:
             self.er_sites_header = self.er_sites_reqd_header
+            self.pmag_sites_header = self.pmag_sites_reqd_header
         if self.locations:
             self.er_locations_header = self.locations[0].er_data.keys()
         else:
@@ -103,6 +109,8 @@ class ErMagicBuilder(object):
             self.er_ages_header = self.sites[0].age_data.keys()
         else:
             self.er_ages_header = self.er_ages_reqd_header
+
+        # NEED TO GET RESULTS HEADER here
 
 
 

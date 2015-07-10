@@ -11,7 +11,7 @@ import builder
 
 WD = os.getcwd()
 
-class TestMakeMagicMainFrame(unittest.TestCase):
+class TestMainFrame(unittest.TestCase):
 
     def setUp(self):
         self.app = wx.App()
@@ -30,6 +30,25 @@ class TestMakeMagicMainFrame(unittest.TestCase):
         """
         self.assertTrue(self.pnl.IsEnabled())
         self.assertEqual("main panel", str(self.pnl.GetName()))
+
+    def test_data_object_is_created(self):
+        self.assertTrue(self.frame.er_magic)
+
+        self.assertFalse(self.frame.er_magic.specimens)
+        self.assertFalse(self.frame.er_magic.samples)
+        self.assertFalse(self.frame.er_magic.sites)
+        self.assertFalse(self.frame.er_magic.locations)
+
+        self.assertTrue(self.frame.er_magic.er_specimens_header)
+        self.assertTrue(self.frame.er_magic.er_specimens_reqd_header)
+        self.assertTrue(self.frame.er_magic.pmag_specimens_header)
+        self.assertTrue(self.frame.er_magic.pmag_specimens_reqd_header)
+        
+    def test_pmag_results(self):
+        self.assertTrue(self.frame.er_magic.pmag_results_header)
+        self.assertTrue(self.frame.er_magic.pmag_results_reqd_header)
+
+
 
     def test_specimen_button(self):
         window = self.does_top_window_exist(self.pnl, 'specimen_btn', 'specimen')
@@ -59,7 +78,7 @@ class TestMakeMagicMainFrame(unittest.TestCase):
         self.assertTrue(window.IsEnabled())
         self.assertTrue(window.IsShown())
 
-
+    @unittest.expectedFailure
     def test_ages_button(self):
         window = self.does_top_window_exist(self.pnl, 'age_btn', 'age')
         self.assertTrue(window, 'er_ages grid window was not created')
@@ -112,6 +131,53 @@ class TestMakeMagicMainFrame(unittest.TestCase):
             if wind.GetName() == window_name:
                 return wind
         return None
+
+class TestMainFrameWithData(unittest.TestCase):
+
+    def setUp(self):
+        self.app = wx.App()
+        #WD = os.path.join(os.getcwd(), 'unittests', 'examples', 'my_project')
+        self.frame = make_magic.MainFrame(os.path.join(WD, 'Datafiles', 'copy_ErMagicBuilder'))
+        self.pnl = self.frame.GetChildren()[0]
+
+    def tearDown(self):
+        #self.frame.Destroy() # this does not work and causes strange errors
+        self.app.Destroy()
+        os.chdir(WD)
+
+    def test_main_panel_is_created(self):
+        """
+        test for existence of main panel
+        """
+        self.assertTrue(self.pnl.IsEnabled())
+        self.assertEqual("main panel", str(self.pnl.GetName()))
+
+    def test_data_object_is_created(self):
+        self.assertTrue(self.frame.er_magic)
+        #self.assertTrue
+        #self.assertTrue(self.frame.er_magic.specimens)
+        #specimen = self.frame.er_magic.specimens[0]
+
+        self.assertTrue(self.frame.er_magic.specimens)
+        self.assertTrue(self.frame.er_magic.samples)
+        self.assertTrue(self.frame.er_magic.sites)
+        self.assertTrue(self.frame.er_magic.locations)
+        
+        self.assertTrue(self.frame.er_magic.er_specimens_header)
+        self.assertTrue(self.frame.er_magic.er_specimens_reqd_header)
+        self.assertTrue(self.frame.er_magic.pmag_specimens_header)
+        self.assertTrue(self.frame.er_magic.pmag_specimens_reqd_header)
+        self.assertTrue(self.frame.er_magic.pmag_samples_header)
+        self.assertTrue(self.frame.er_magic.er_samples_header)
+        self.assertTrue(self.frame.er_magic.pmag_sites_header)
+        self.assertTrue(self.frame.er_magic.er_sites_header)
+        #self.assertTrue(self.frame.er_magic.pmag_results_header)
+        #self.assertTrue(self.frame.er_magic.pmag_results_reqd_header)
+
+
+    def test_pmag_results(self):
+        self.assertTrue(self.frame.er_magic.pmag_results_header)
+        self.assertTrue(self.frame.er_magic.pmag_results_reqd_header)
 
 
 

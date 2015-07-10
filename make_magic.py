@@ -27,9 +27,10 @@ class MainFrame(wx.Frame):
         wx.Frame.__init__(self, None, wx.ID_ANY, name=name)
 
         self.panel = wx.Panel(self, size=wx.GetDisplaySize(), name='main panel')
-        os.chdir(WD)
-        self.WD = os.getcwd()
-        #self.er_magic = ErMagicBuilder.ErMagicBuilder(self.WD)
+        #os.chdir(WD)
+        #self.WD = os.getcwd()
+        self.WD = WD or os.getcwd()
+        
         self.er_magic = builder.ErMagicBuilder(self.WD)
         # initialize magic data object
         self.er_magic.get_data()
@@ -169,7 +170,7 @@ class MainFrame(wx.Frame):
         """
         create change directory frame
         """
-        currentDirectory = os.getcwd()
+        currentDirectory = self.WD #os.getcwd()
         change_dir_dialog = wx.DirDialog(self.panel, "choose directory:",
                                          defaultPath=currentDirectory,
                                          style=wx.DD_DEFAULT_STYLE | wx.DD_NEW_DIR_BUTTON | wx.DD_CHANGE_DIR)
