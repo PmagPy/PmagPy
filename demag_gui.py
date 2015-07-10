@@ -5519,6 +5519,7 @@ class EditFitFrame(wx.Frame):
         self.parent.update_fit_box()
         self.parent.fit_box.SetSelection(fi-1)
         self.parent.update_fit_boxs(False)
+        self.Add_text()
         
 
     def OnRightClickListctrl(self, event):
