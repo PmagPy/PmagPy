@@ -24,6 +24,7 @@ class ErMagicBuilder(object):
         self.data_model = validate_upload.get_data_model()
         self.data_lists = {'specimen': [self.specimens, Specimen], 'sample': [self.samples, Sample],
                            'site': [self.sites, Site], 'location': [self.locations, Location]}
+        self.results_level = None
         #'age': [self.ages, None]}
 
 
@@ -398,19 +399,22 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
             if parent_type:
                 parent_name = data_dict[child_name]['er_' + parent_type + '_name']
                 parent = self.find_by_name(parent_name, parent_list)
-                parent.remove_headers(parent.er_data)
+                if parent:
+                    parent.remove_headers(parent.er_data)
             # if there should be a parent
             # (meaning there is a name for it and the child object should have a parent)
             # but none exists in the data model, go ahead and create that parent object.
             elif parent_name and parent_type and not parent:
                 parent = parent_constructor(parent_name, data_model=self.data_model)
+                parent_list.append(parent)
             # otherwise there is no parent and none can be created, so use an empty string
             else:
                 parent = ''
             child = self.find_by_name(child_name, child_list)
             # if the child object does not exist yet in the data model
             if not child:
-                child = child_constructor(child_name, parent_name, data=data_dict, data_model=self.data_model)
+                child = child_constructor(child_name, parent_name, data_model=self.data_model)
+                child_list.append(child)
             # add in the appropriate data dictionary
             child.er_data = data_dict[child_name]
             child.remove_headers(child.er_data)
@@ -440,19 +444,23 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
             if parent_type:
                 parent_name = data_dict[child_name]['er_' + parent_type + '_name']
                 parent = self.find_by_name(parent_name, parent_list)
-                parent.remove_headers(parent.pmag_data)
+                if parent:
+                    parent.remove_headers(parent.pmag_data)
             # if there should be a parent
             # (meaning there is a name for it and the child object should have a parent)
             # but none exists in the data model, go ahead and create that parent object.
             elif parent_name and parent_type and not parent:
                 parent = parent_constructor(parent_name, data_model=self.data_model)
+                parent_list.append(parent)
+                parent.remove_headers()
             # otherwise there is no parent and none can be created, so use an empty string
             else:
                 parent = ''
             child = self.find_by_name(child_name, child_list)
             # if the child object does not exist yet in the data model
             if not child:
-                child = child_constructor(child_name, parent_name, data=data_dict, data_model=self.data_model)
+                child = child_constructor(child_name, parent_name, data_model=self.data_model)
+                child_list.append(child)
             # add in the appropriate data dictionary
             child.pmag_data = data_dict[child_name]
             child.remove_headers(child.pmag_data)
@@ -671,9 +679,10 @@ class Location(Pmag_object):
     Location level object
     """
 
-    def __init__(self, name, data_model=None, er_data=None, pmag_data=None):
+    def __init__(self, name, parent=None, data_model=None, er_data=None, pmag_data=None):
         dtype = 'location'
         super(Location, self).__init__(name, dtype, data_model, er_data, pmag_data)
+        #def __init__(self, name, dtype, data_model=None, er_data=None, pmag_data=None, results_data=None):#, headers={}):
         self.sites = []
 
     def change_location(self, new_name, new_er_data=None, new_pmag_data=None):
