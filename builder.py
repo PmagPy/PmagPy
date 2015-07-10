@@ -458,6 +458,26 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
             child.remove_headers(child.pmag_data)
 
 
+    def get_results_info(self):
+        """
+        Read pmag_results.txt file.
+        Parse information into dictionaries for each item.
+        Then add it to the item object as object.results_data.
+        """
+        short_filename = "pmag_results.txt"
+        magic_file = os.path.join(self.WD, short_filename)
+        if not os.path.isfile(magic_file):
+            print '-W- Could not find {} in your working directory {}'.format(short_filename, self.WD)
+            return False
+        # get the data from the appropriate er_*.txt file
+        data_dict = self.read_magic_file(magic_file, 'by_line_number')[0]
+        for key, data in data_dict.items():
+            print key, data
+
+
+
+        
+
 
     def read_magic_file(self, path, sort_by_this_name):
         """

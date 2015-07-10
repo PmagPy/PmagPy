@@ -35,10 +35,18 @@ class MainFrame(wx.Frame):
         # initialize magic data object
         self.er_magic.get_data()
         self.er_magic.get_er_magic_info('specimen', 'sample')
+        self.er_magic.get_pmag_magic_info('specimen', 'sample')
+        
         self.er_magic.get_er_magic_info('sample', 'site')
+        self.er_magic.get_pmag_magic_info('sample', 'site')
+        
         self.er_magic.get_er_magic_info('site', 'location')
+        self.er_magic.get_pmag_magic_info('site', 'location')
+        
         self.er_magic.get_er_magic_info('location')
         self.er_magic.get_age_info('site')
+
+        self.er_magic.get_results_info()
         
         # POSSIBLY RELOCATE THIS EVENTUALLY:
         self.er_magic.init_default_headers()
