@@ -6,6 +6,7 @@ import os
 import wx
 
 import pmag_er_magic_dialogs
+import magic_grid
 
 #import wx.lib.inspection
 #import numpy as np
@@ -26,7 +27,7 @@ class TestMagicGrid(unittest.TestCase):
         self.frame.pnl = wx.Panel(self.frame, name='a panel')
         row_labels = ['alpha', 'bravo', 'charlie', 'whiskey', 'x-ray', 'y', 'z']
         col_labels = ['delta', 'echo', 'foxtrot', 'gamma']
-        self.grid = pmag_er_magic_dialogs.MagicGrid(self.frame.pnl, 'grid', row_labels, col_labels, size=(600, 600))
+        self.grid = magic_grid.MagicGrid(self.frame.pnl, 'grid', row_labels, col_labels, size=(600, 600))
         self.grid.InitUI()
         self.grid.size_grid()
 

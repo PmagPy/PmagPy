@@ -15,6 +15,7 @@ import pmag
 import pmag_er_magic_dialogs
 import drop_down_menus
 import pmag_widgets as pw
+import magic_grid
 
 
 class MainFrame(wx.Frame):
@@ -379,7 +380,7 @@ class GridFrame(wx.Frame):
         else:
             header[:0] = ['er_' + self.grid_type + '_name', 'er_' + self.parent_type + '_name']
         #string = 'er_' + string + 's'
-        grid = pmag_er_magic_dialogs.MagicGrid(self.panel, self.grid_type, [], header)
+        grid = magic_grid.MagicGrid(self.panel, self.grid_type, [], header)
         return grid
 
     def on_add_col(self, event):
