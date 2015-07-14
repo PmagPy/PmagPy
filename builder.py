@@ -272,7 +272,7 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
         """
         Create a Location object and add it to self.locations.
         """
-        location = Location(location_name, self.data_model, er_data=er_data, pmag_data=pmag_data)
+        location = Location(location_name, data_model=self.data_model, er_data=er_data, pmag_data=pmag_data)
         self.locations.append(location)
         return location
 
@@ -326,7 +326,7 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
             # add items and parents
             location = self.find_by_name(location_name, self.locations)
             if not location:
-                location = Location(location_name, self.data_model)
+                location = Location(location_name, data_model=self.data_model)
                 self.locations.append(location)
             site = self.find_by_name(site_name, self.sites)
             if not site:

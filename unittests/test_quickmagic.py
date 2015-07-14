@@ -43,6 +43,9 @@ class TestMainFrame(unittest.TestCase):
         """
         window = self.does_window_exist('step 1', 'import_magnetometer_data')
         self.assertTrue(window)
+        self.assertTrue(window.IsEnabled())
+        self.assertTrue(window.IsShown())
+
 
     def test_click_button_two(self):
         """
@@ -50,6 +53,8 @@ class TestMainFrame(unittest.TestCase):
         """
         window = self.does_window_exist('step 2', 'calculate geographic directions')
         self.assertTrue(window)
+        self.assertTrue(window.IsEnabled())
+        self.assertTrue(window.IsShown())
 
     def test_click_button_three(self):
         """
@@ -57,6 +62,9 @@ class TestMainFrame(unittest.TestCase):
         """
         window = self.does_window_exist('step 3', 'ErMagicBuilder')
         self.assertTrue(window)
+        self.assertTrue(window.IsEnabled())
+        self.assertTrue(window.IsShown())
+
 
     def test_click_demag_gui(self):
         """
@@ -64,6 +72,9 @@ class TestMainFrame(unittest.TestCase):
         """
         window = self.does_window_exist('demag gui', 'demag gui')
         self.assertTrue(window)
+        self.assertTrue(window.IsEnabled())
+        self.assertTrue(window.IsShown())
+
 
     def test_click_thellier_gui(self):
         """
@@ -72,6 +83,9 @@ class TestMainFrame(unittest.TestCase):
 
         window = self.does_window_exist('thellier gui', 'thellier gui')
         self.assertTrue(window)
+        self.assertTrue(window.IsEnabled())
+        self.assertTrue(window.IsShown())
+
 
     def test_click_download_magic(self):
         pass
@@ -167,38 +181,65 @@ class TestMenus(unittest.TestCase):
     def test_click_any_file(self):
         window = self.does_window_exist('Import', "Import any file into your working directory", 'any file')
         self.assertTrue(window, 'Import any file window was not created')
+        self.assertTrue(window.IsEnabled())
+        self.assertTrue(window.IsShown())
+
 
     def test_click_Azdip_format(self):
         window = self.does_window_exist('Import', 'AzDip format', 'azdip_window', submenu='orientation/location/stratigraphic files')
         self.assertTrue(window, 'Azdip import window was not created')
+        self.assertTrue(window.IsEnabled())
+        self.assertTrue(window.IsShown())
+
 
     def test_click_IODP_sample_format(self):
         window = self.does_window_exist('Import', 'IODP Sample Summary csv file', 'IODP_samples', submenu='orientation/location/stratigraphic files')
         self.assertTrue(window, 'IODP samples import window was not created')
+        self.assertTrue(window.IsEnabled())
+        self.assertTrue(window.IsShown())
+
 
     def test_click_Kly4s_format(self):
         window = self.does_window_exist('Import', 'kly4s format', 'kly4s', 'Anisotropy files')
         self.assertTrue(window, 'Kly4s import window was not created')
+        self.assertTrue(window.IsEnabled())
+        self.assertTrue(window.IsShown())
+
 
     def test_click_SUFAR_asc_format(self):
         window = self.does_window_exist('Import', 'Sufar 4.0 ascii format', 'Sufar', 'Anisotropy files')
         self.assertTrue(window, 'SUFAR 4 ascii window was not created')
+        self.assertTrue(window.IsEnabled())
+        self.assertTrue(window.IsShown())
+
 
     def test_click_agm_file_format(self):
         window = self.does_window_exist('Import', 'Import single agm file', 'agm_file', 'Hysteresis files')
         self.assertTrue(window, 'Import agm file window was not created')
+        self.assertTrue(window.IsEnabled())
+        self.assertTrue(window.IsShown())
+
         
     def test_click_agm_folder_format(self):
         window = self.does_window_exist('Import', 'Import entire directory', 'agm_directory', 'Hysteresis files')
         self.assertTrue(window, 'Import agm folder window was not created')
+        self.assertTrue(window.IsEnabled())
+        self.assertTrue(window.IsShown())
+
         
     def test_click_ani_depthplot(self):
         window = self.does_window_exist('Analysis and Plots', "Anisotropy data vs. depth/height/age", 'aniso_depthplot')
         self.assertTrue(window, 'Aniso_depthplot window was not created')
+        self.assertTrue(window.IsEnabled())
+        self.assertTrue(window.IsShown())
+
             
     def test_click_core_depthplot(self):
         window = self.does_window_exist('Analysis and Plots', "Remanence data vs. depth/height/age", 'core_depthplot')
         self.assertTrue(window, 'Core_depthplot window was not created')
+        self.assertTrue(window.IsEnabled())
+        self.assertTrue(window.IsShown())
+
 
     def does_window_exist(self, menu_name, menuitem_name, window_name, submenu=None):
         item = None

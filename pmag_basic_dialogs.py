@@ -11,10 +11,10 @@ import sys
 import pmag
 import ipmag
 import pmag_widgets as pw
-import pmag_er_magic_dialogs
 import ErMagicBuilder
 import drop_down_menus
 import check_updates
+import magic_grid
 
 
 class import_magnetometer_data(wx.Dialog):
@@ -2493,7 +2493,7 @@ class OrientFrameGrid(wx.Frame):
         samples_list.sort()
         self.samples_list = [ sample for sample in samples_list if sample is not "" ]
         display_headers = [header[1] for header in self.headers]
-        self.grid = pmag_er_magic_dialogs.MagicGrid(self.panel, 'orient grid', self.samples_list, display_headers)
+        self.grid = magic_grid.MagicGrid(self.panel, 'orient grid', self.samples_list, display_headers)
         self.grid.InitUI()
 
         #--------------------------------
