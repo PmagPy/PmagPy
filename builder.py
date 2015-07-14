@@ -153,6 +153,7 @@ Leaving sample unchanged as: {} for {}""".format(new_sample_name, specimen.sampl
         """
         sample = self.find_by_name(samp_name, self.samples)
         specimen = Specimen(spec_name, sample, self.data_model, er_data, pmag_data)
+
         self.specimens.append(specimen)
         if sample:
             sample.specimens.append(specimen)
@@ -404,20 +405,24 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
             # if there should be a parent
             # (meaning there is a name for it and the child object should have a parent)
             # but none exists in the data model, go ahead and create that parent object.
-            elif parent_name and parent_type and not parent:
-                parent = parent_constructor(parent_name, data_model=self.data_model)
+            if parent_name and parent_type and not parent:
+                parent = parent_constructor(parent_name, None, data_model=self.data_model)
                 parent_list.append(parent)
             # otherwise there is no parent and none can be created, so use an empty string
             else:
                 parent = ''
+
             child = self.find_by_name(child_name, child_list)
             # if the child object does not exist yet in the data model
             if not child:
-                child = child_constructor(child_name, parent_name, data_model=self.data_model)
+                child = child_constructor(child_name, parent, data_model=self.data_model)
                 child_list.append(child)
             # add in the appropriate data dictionary
             child.er_data = data_dict[child_name]
             child.remove_headers(child.er_data)
+            #
+            if parent and (child not in parent.children):
+                parent.add_child(child)
 
     def get_pmag_magic_info(self, child_type, parent_type=None):
         """
@@ -450,7 +455,7 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
             # (meaning there is a name for it and the child object should have a parent)
             # but none exists in the data model, go ahead and create that parent object.
             elif parent_name and parent_type and not parent:
-                parent = parent_constructor(parent_name, data_model=self.data_model)
+                parent = parent_constructor(parent_name, None, data_model=self.data_model)
                 parent_list.append(parent)
                 parent.remove_headers()
             # otherwise there is no parent and none can be created, so use an empty string
@@ -464,6 +469,10 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
             # add in the appropriate data dictionary
             child.pmag_data = data_dict[child_name]
             child.remove_headers(child.pmag_data)
+            #
+            if child not in parent.children:
+                parent.add_child(child)
+
 
 
     def get_results_info(self):
@@ -479,8 +488,8 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
             return False
         # get the data from the appropriate er_*.txt file
         data_dict = self.read_magic_file(magic_file, 'by_line_number')[0]
-        for key, data in data_dict.items():
-            print key, data
+        #for key, data in data_dict.items():
+        #    print key, data
 
 
 
@@ -601,7 +610,10 @@ class Pmag_object(object):
                 combined_data_dict[k] = old_dict[k]
         return combined_data_dict
 
-    
+    def add_child(self, child):
+        if 'children' in dir(self):
+            self.children.append(child)
+
 
 
 class Specimen(Pmag_object):
@@ -636,6 +648,7 @@ class Sample(Pmag_object):
         dtype = 'sample'
         super(Sample, self).__init__(name, dtype, data_model, er_data, pmag_data)
         self.specimens = []
+        self.children = self.specimens
         self.site = site or ""
 
     def change_sample(self, new_name, new_site=None, er_data=None, pmag_data=None):
@@ -661,6 +674,7 @@ class Site(Pmag_object):
         dtype = 'site'
         super(Site, self).__init__(name, dtype, data_model, er_data, pmag_data)
         self.samples = []
+        self.children = self.samples
         self.location = location or ""
 
     def change_site(self, new_name, new_location=None, new_er_data=None, new_pmag_data=None):
@@ -684,6 +698,7 @@ class Location(Pmag_object):
         super(Location, self).__init__(name, dtype, data_model, er_data, pmag_data)
         #def __init__(self, name, dtype, data_model=None, er_data=None, pmag_data=None, results_data=None):#, headers={}):
         self.sites = []
+        self.children = self.sites
 
     def change_location(self, new_name, new_er_data=None, new_pmag_data=None):
         self.name = new_name

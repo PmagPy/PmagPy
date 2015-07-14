@@ -205,6 +205,7 @@ class TestMakeMagicGridFrame(unittest.TestCase):
         #self.grid = GridFrame(self.ErMagic, self.WD, grid_type, grid_type, self.panel)
         ErMagic = builder.ErMagicBuilder(WD)
         ErMagic.init_default_headers()
+        ErMagic.init_actual_headers()
         self.frame = make_magic.GridFrame(ErMagic, WD, "specimen", "specimen")
         self.pnl = self.frame.GetChildren()[0]
 

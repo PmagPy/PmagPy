@@ -253,15 +253,25 @@ class GridFrame(wx.Frame):
         #self.er_magic = ErMagicBuilder.ErMagicBuilder(self.WD)#,self.Data,self.Data_hierarchy)
 
         self.grid_headers = {
-            'specimen': {'er': [self.er_magic.er_specimens_header, self.er_magic.er_specimens_reqd_header, self.er_magic.er_specimens_optional_header], 'pmag': [self.er_magic.pmag_specimens_header, self.er_magic.pmag_specimens_reqd_header, self.er_magic.pmag_specimens_optional_header]},
+            'specimen': {
+                'er': [self.er_magic.er_specimens_header, self.er_magic.er_specimens_reqd_header, self.er_magic.er_specimens_optional_header],
+                'pmag': [self.er_magic.pmag_specimens_header, self.er_magic.pmag_specimens_reqd_header, self.er_magic.pmag_specimens_optional_header]},
             
-            'sample': {'er': [self.er_magic.er_samples_header, self.er_magic.er_samples_reqd_header, self.er_magic.er_samples_optional_header], 'pmag': [self.er_magic.pmag_samples_header, self.er_magic.pmag_samples_reqd_header, self.er_magic.pmag_samples_optional_header]},
+            'sample': {
+                'er': [self.er_magic.er_samples_header, self.er_magic.er_samples_reqd_header, self.er_magic.er_samples_optional_header],
+                'pmag': [self.er_magic.pmag_samples_header, self.er_magic.pmag_samples_reqd_header, self.er_magic.pmag_samples_optional_header]},
             
-            'site': {'er': [self.er_magic.er_sites_header, self.er_magic.er_sites_reqd_header, self.er_magic.er_sites_optional_header], 'pmag': [self.er_magic.pmag_sites_header, self.er_magic.pmag_sites_reqd_header, self.er_magic.pmag_sites_optional_header]},
-                     
-            'location': {'er': [self.er_magic.er_locations_header, self.er_magic.er_locations_reqd_header, self.er_magic.er_locations_optional_header], 'pmag': None},
+            'site': {
+                'er': [self.er_magic.er_sites_header, self.er_magic.er_sites_reqd_header, self.er_magic.er_sites_optional_header],
+                'pmag': [self.er_magic.pmag_sites_header, self.er_magic.pmag_sites_reqd_header, self.er_magic.pmag_sites_optional_header]},
+
+            'location': {
+                'er': [self.er_magic.er_locations_header, self.er_magic.er_locations_reqd_header, self.er_magic.er_locations_optional_header],
+                'pmag': [[], [], []]},
             
-            'age': {'er': [self.er_magic.er_ages_header, self.er_magic.er_ages_reqd_header, self.er_magic.er_ages_optional_header], 'pmag': None}
+            'age': {
+                'er': [self.er_magic.er_ages_header, self.er_magic.er_ages_reqd_header, self.er_magic.er_ages_optional_header],
+                'pmag': [[], [], []]}
         }
 
         #self.grid_data_dict = {
@@ -450,10 +460,10 @@ class GridFrame(wx.Frame):
             self.selected_rows = {row_num}
             
         #else:
-        function_mapping = {'er_specimens': self.er_magic.remove_specimen,
-                            'er_samples': self.er_magic.remove_sample,
-                            'er_sites': self.er_magic.remove_site,
-                            'er_locations': self.er_magic.remove_location}
+        function_mapping = {'specimen': self.er_magic.delete_specimen,
+                            'sample': self.er_magic.delete_sample,
+                            'site': self.er_magic.delete_site,
+                            'location': self.er_magic.delete_location}
         #ancestry = ['er_specimens', 'er_samples', 'er_sites', 'er_locations']
         #child_type = ancestry[ancestry.index(self.grid_type) - 1]
         
@@ -461,7 +471,8 @@ class GridFrame(wx.Frame):
         orphans = []
         for name in names:
             row = self.grid.row_labels.index(name)
-            orphans.extend(function_mapping[self.grid_type](name))
+            function_mapping[self.grid_type](name)
+            orphans.extend([name])
             self.grid.remove_row(row)
         self.selected_rows = set()
 
