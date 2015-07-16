@@ -2885,17 +2885,17 @@ class Zeq_GUI(wx.Frame):
         if self.mean_fit == 'All':
             fits = self.pmag_results_data['specimens'][specimen]
         elif self.mean_fit != 'None' and self.mean_fit != None:
-            if self.s not in self.pmag_results_data['specimens'] or \
-self.mean_fit not in map(lambda x: x.name, self.pmag_results_data['specimens'][self.s]):
-                self.mean_fit_box.SetStringSelection('None')
-                self.mean_fits = 'None'
-            else:
-                #by name fit grouping
-                fits = [fit for fit in self.pmag_results_data['specimens'][specimen] if fit.name == self.mean_fit]
-                #by index fit grouping
-#                fit_index = map(lambda x: x.name, self.pmag_results_data['specimens'][self.s]).index(self.mean_fit)
-#                try: fits = [self.pmag_results_data['specimens'][specimen][fit_index]]
-#                except IndexError: pass #print('-W- Not all specimens have this fit');
+#             if self.s not in self.pmag_results_data['specimens'] or \
+# self.mean_fit not in map(lambda x: x.name, self.pmag_results_data['specimens'][self.s]):
+#                 self.mean_fit_box.SetStringSelection('None')
+#                 self.mean_fits = 'None'
+#             else:
+            #by name fit grouping
+            fits = [fit for fit in self.pmag_results_data['specimens'][specimen] if fit.name == self.mean_fit]
+            #by index fit grouping
+            # fit_index = map(lambda x: x.name, self.pmag_results_data['specimens'][self.s]).index(self.mean_fit)
+            # try: fits = [self.pmag_results_data['specimens'][specimen][fit_index]]
+            # except IndexError: pass #print('-W- Not all specimens have this fit');
         else:
             fits = []
         fig = self.high_level_eqarea
@@ -4157,12 +4157,14 @@ self.mean_fit not in map(lambda x: x.name, self.pmag_results_data['specimens'][s
 
     def on_menu_next_interp(self, event):
         f_index = self.fit_box.GetSelection()
+        if f_index <= 0: return
         f_index -= 1
         self.fit_box.SetSelection(f_index)
         self.on_select_fit(event)
 
     def on_menu_prev_interp(self, event):
         f_index = self.fit_box.GetSelection()
+        if f_index >= len(self.pmag_results_data['specimens'][self.s])-1: return
         f_index += 1
         self.fit_box.SetSelection(f_index)
         self.on_select_fit(event)
@@ -5160,29 +5162,27 @@ self.mean_fit not in map(lambda x: x.name, self.pmag_results_data['specimens'][s
         @alters: mean_fit_box selection and choices, mean_types_box string selection
         """
         #get new fit data
-        if self.s in self.pmag_results_data['specimens'].keys(): self.fit_list=list(map(lambda x: x.name, self.pmag_results_data['specimens'][self.s]))
-        else: self.fit_list = []
+        #if self.s in self.pmag_results_data['specimens'].keys(): self.fit_list=list(map(lambda x: x.name, self.pmag_results_data['specimens'][self.s]))
+        #else: self.fit_list = []
         #clear old box
         self.mean_fit_box.Clear()
         #update higher level mean fit box
+        self.all_fits_list = []
         fit_index = None
-        if self.mean_fit != 'None' and self.mean_fit != 'All':
-            for specimen in self.pmag_results_data['specimens'].keys():
-                if self.mean_fit in map(lambda x: x.name, self.pmag_results_data['specimens'][specimen]):
-                    fit_index = map(lambda x: x.name, self.pmag_results_data['specimens'][specimen]).index(self.mean_fit)
-#        all_fits_list = []
-#        for specimen in self.pmag_results_data['specimens'].keys():
-#            if len(self.pmag_results_data['specimens'][specimen]) > len(all_fits_list):
-#                all_fits_list = list(map(lambda x: x.name, self.pmag_results_data['specimens'][specimen]))
-        self.mean_fit_box.SetItems(['None','All'] + self.fit_list)
+        if self.mean_fit in self.all_fits_list: fit_index = self.all_fits_list.index(self.mean_fit)
+        for specimen in self.specimens:
+            if specimen in self.pmag_results_data['specimens']:
+                for name in map(lambda x: x.name, self.pmag_results_data['specimens'][specimen]):
+                    if name not in self.all_fits_list: self.all_fits_list.append(name)
+        self.mean_fit_box.SetItems(['None','All'] + self.all_fits_list)
         #select defaults
         if fit_index: self.mean_fit_box.SetSelection(fit_index+2)
-        else: self.mean_type_box.SetStringSelection('None')
+        if self.mean_fit_box.GetValue() == 'None': self.mean_type_box.SetStringSelection('None')
         if self.interpertation_editor_open:
             self.interpertation_editor.mean_fit_box.Clear()
-            self.interpertation_editor.mean_fit_box.SetItems(['None','All'] + self.fit_list)
+            self.interpertation_editor.mean_fit_box.SetItems(['None','All'] + self.all_fits_list)
             if fit_index: self.interpertation_editor.mean_fit_box.SetSelection(fit_index+2)
-            else: self.interpertation_editor.mean_type_box.SetStringSelection('None')
+            if self.mean_fit_box.GetValue() == 'None': self.interpertation_editor.mean_type_box.SetStringSelection('None')
 
     def MacReopenApp(self):
         """Called when the doc icon is clicked"""
@@ -5484,7 +5484,8 @@ class EditFitFrame(wx.Frame):
             i = new_fit
         else:
             print('can not select fit of type: ' + str(type(new_fit)))
-        self.logger.SetItemBackgroundColour(self.current_fit_index,"WHITE")
+        if self.fit_list[self.current_fit_index][0] in self.parent.bad_fits: self.logger.SetItemBackgroundColour(self.current_fit_index,"YELLOW")
+        else: self.logger.SetItemBackgroundColour(self.current_fit_index,"WHITE")
         self.current_fit_index = i
         self.logger.SetItemBackgroundColour(self.current_fit_index,"LIGHT BLUE")
         
@@ -5517,6 +5518,7 @@ class EditFitFrame(wx.Frame):
         self.parent.update_fit_box()
         self.parent.fit_box.SetSelection(fi-1)
         self.parent.update_fit_boxs(False)
+        self.parent.Add_text()
         
 
     def OnRightClickListctrl(self, event):
@@ -5540,11 +5542,7 @@ class EditFitFrame(wx.Frame):
                 self.logger.SetItemBackgroundColour(i,"YELLOW")
         self.parent.calculate_higher_levels_data()
         self.parent.plot_higher_levels_data()
-        if self.logger.GetItemCount() > i+12:
-            i += 12
-        else: 
-            i = self.logger.GetItemCount()-1
-        self.logger.Focus(i)
+        self.logger_focus(i)
 
     ###################################ComboBox Functions################################
 
