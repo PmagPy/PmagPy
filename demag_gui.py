@@ -485,7 +485,7 @@ class Zeq_GUI(wx.Frame):
             (self.level_names, wx.ALIGN_LEFT)])
         self.box_sizer_high_level.Add( high_level_window, 0, wx.TOP, 5.5 )
 
-#----------------------------------------------------------------------                     
+        #----------------------------------------------------------------------
         # show box
         #----------------------------------------------------------------------                     
 
@@ -502,7 +502,7 @@ class Zeq_GUI(wx.Frame):
                              (self.remove_replace_fit_button, wx.ALIGN_LEFT)])
         self.box_sizer_show.Add(show_window, 0, wx.TOP, 5.5 )
 
-#----------------------------------------------------------------------                     
+        #----------------------------------------------------------------------
         # mean types box
         #----------------------------------------------------------------------                     
 
@@ -527,12 +527,11 @@ class Zeq_GUI(wx.Frame):
         self.box_sizer_high_level_text = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY,""  ), wx.HORIZONTAL )                        
         self.high_level_text_box = wx.TextCtrl(self.panel, id=-1, size=(220*self.GUI_RESOLUTION,210*self.GUI_RESOLUTION), style=wx.TE_MULTILINE | wx.TE_READONLY )
         self.high_level_text_box.SetFont(font1)
-        self.box_sizer_high_level_text.Add(self.high_level_text_box, 0, wx.ALIGN_LEFT, 0 )                                                               
+        self.box_sizer_high_level_text.Add(self.high_level_text_box, 0, wx.ALIGN_LEFT, 0 )
+
         #----------------------------------------------------------------------                     
         # Design the panel
-
-#----------------------------------------------------------------------
-
+        #----------------------------------------------------------------------
         
         vbox1 = wx.BoxSizer(wx.VERTICAL)
         hbox1 = wx.BoxSizer(wx.HORIZONTAL)
@@ -647,6 +646,7 @@ class Zeq_GUI(wx.Frame):
 
     def pick_bounds(self,event):
         """
+        (unsupported)
         attempt at a functionallity to pick bounds by clicking on the zijderveld
         @param: event -> the wx.MouseEvent that triggered the call of this function
         @alters: ...
@@ -1808,13 +1808,6 @@ class Zeq_GUI(wx.Frame):
 
         self.clear_boxes()
 
-        if self.current_fit:
-            self.draw_figure(self.s,False)
-        else:
-            self.draw_figure(self.s,True)
-
-        self.update_fit_boxs()
-
         #--------------------------
         # check if the coordinate system in the window exists (if not change to "specimen" coordinate system)
         #--------------------------
@@ -1871,7 +1864,12 @@ class Zeq_GUI(wx.Frame):
             elif calculation_type=="DE-BFP": PCA_type="plane"
             self.PCA_type_box.SetStringSelection(PCA_type)
 
+        if self.current_fit:
+            self.draw_figure(self.s,False)
+        else:
+            self.draw_figure(self.s,True)
 
+        self.update_fit_boxs()
         # measurements text box
         self.Add_text()
 
@@ -3603,7 +3601,7 @@ self.mean_fit not in map(lambda x: x.name, self.pmag_results_data['specimens'][s
                 fit = None
 
             if 'specimen_flag' in rec and rec['specimen_flag'] == 'b':
-                self.bad_fits.append(fit);
+                self.bad_fits.append(fit)
                 
 
             methods=rec['magic_method_codes'].strip("\n").replace(" ","").split(":")
@@ -3797,17 +3795,17 @@ self.mean_fit not in map(lambda x: x.name, self.pmag_results_data['specimens'][s
 
         m_save_interpretation = menu_Analysis.Append(-1, "&Save current interpretations to a redo file\tCtrl-S", "")
         self.Bind(wx.EVT_MENU, self.on_menu_save_interpretation, m_save_interpretation)
-        m_delete_interpretation = menu_Analysis.Append(-1, "&Clear all current interpretations", "")
+        m_delete_interpretation = menu_Analysis.Append(-1, "&Clear all current interpretations\tCtrl-Shift-D", "")
         self.Bind(wx.EVT_MENU, self.on_menu_clear_interpretation, m_delete_interpretation)
 
         #-----------------
 
         menu_Tools = wx.Menu()
 
-        m_bulk_demagnetization = menu_Tools.Append(-1, "&Bulk demagnetization", "")
+        m_bulk_demagnetization = menu_Tools.Append(-1, "&Bulk demagnetization\tCtrl-B", "")
         self.Bind(wx.EVT_MENU, self.on_menu_bulk_demagnetization, m_bulk_demagnetization)
 
-        m_auto_interpert = menu_Tools.Append(-1, "&Auto Interpert (alpha version)", "")
+        m_auto_interpert = menu_Tools.Append(-1, "&Auto Interpert (alpha version)\tCtrl-A", "")
         self.Bind(wx.EVT_MENU, self.on_menu_autointerpert, m_auto_interpert)
 
         m_edit_interpertations = menu_Tools.Append(-1, "&Interpretation editor\tCtrl-E", "")
@@ -3857,13 +3855,13 @@ self.mean_fit not in map(lambda x: x.name, self.pmag_results_data['specimens'][s
         
         menu_Help = wx.Menu()
         
-        m_cookbook = menu_Help.Append(-1, "&PmagPy Cookbook", "")
+        m_cookbook = menu_Help.Append(-1, "&PmagPy Cookbook\tCtrl-Shift-H", "")
         self.Bind(wx.EVT_MENU, self.on_menu_cookbook, m_cookbook)
 
         m_docs = menu_Help.Append(-1, "&Usage and Tips\tCtrl-H", "")
         self.Bind(wx.EVT_MENU, self.on_menu_docs, m_docs)
 
-        m_git = menu_Help.Append(-1, "&Github Page", "")
+        m_git = menu_Help.Append(-1, "&Github Page\tCtrl-Shift-G", "")
         self.Bind(wx.EVT_MENU, self.on_menu_git, m_git)
 
         #-----------------
@@ -3926,7 +3924,7 @@ self.mean_fit not in map(lambda x: x.name, self.pmag_results_data['specimens'][s
 
     def reset(self):
         '''
-        reset the GUI like restarting it (same as __init__
+        reset the GUI like restarting it (almost same as __init__)
         '''
         #global FIRST_RUN
         FIRST_RUN=False
@@ -4257,7 +4255,7 @@ self.mean_fit not in map(lambda x: x.name, self.pmag_results_data['specimens'][s
             if tmin not in self.Data[specimen]['zijdblock_steps'] or  tmax not in self.Data[specimen]['zijdblock_steps']:
                 print "-E- ERROR in redo file specimen %s. Cant find treatment steps"%specimen      
 
-            if len(line) >= 5:
+            if len(line) >= 6:
                 fit_index = -1
                 if specimen in self.pmag_results_data['specimens']:
                     bool_list = map(lambda x: x.has_values(line[4], tmin, tmax), self.pmag_results_data['specimens'][specimen])
@@ -4270,6 +4268,7 @@ self.mean_fit not in map(lambda x: x.name, self.pmag_results_data['specimens'][s
                     self.pmag_results_data['specimens'][self.s].append(Fit('Fit ' + next_fit, None, None, self.colors[(int(next_fit)-1) % len(self.colors)], self))
                 fit = self.pmag_results_data['specimens'][specimen][fit_index];
                 fit.name = line[4]
+                if line[5] == "b": self.bad_fits.append(fit)
             else:
                 next_fit = str(len(self.pmag_results_data['specimens'][self.s]) + 1)
                 self.pmag_results_data['specimens'][self.s].append(Fit('Fit ' + next_fit, None, None, self.colors[(int(next_fit)-1) % len(self.colors)], self))
@@ -4351,6 +4350,7 @@ self.mean_fit not in map(lambda x: x.name, self.pmag_results_data['specimens'][s
                     continue
                 STRING=specimen+"\t"
                 STRING=STRING+fit.PCA_type+"\t"
+                fit_flag = "g"
                 if "C" in fit.tmin:
                     tmin="%.0f"%(float(fit.tmin.strip("C"))+273.)
                 elif "mT" in fit.tmin:
@@ -4363,8 +4363,10 @@ self.mean_fit not in map(lambda x: x.name, self.pmag_results_data['specimens'][s
                     tmax="%.2e"%(float(fit.tmax.strip("mT"))/1000)
                 else:
                     tmax="0"
+                if fit in self.bad_fits:
+                    fit_flag = "b"
                     
-                STRING=STRING+tmin+"\t"+tmax+"\t"+fit.name+"\n"
+                STRING=STRING+tmin+"\t"+tmax+"\t"+fit.name+"\t"+fit_flag+"\n"
                 fout.write(STRING)
         TEXT="specimens interpretations are saved in " + redo_file_name
         dlg = wx.MessageDialog(self, caption="Saved",message=TEXT,style=wx.OK|wx.CANCEL )
@@ -4373,11 +4375,7 @@ self.mean_fit not in map(lambda x: x.name, self.pmag_results_data['specimens'][s
             dlg.Destroy()
                
      #----------------------------------------------------------------------
-               
-                
-        
-                
-                                
+
     def on_menu_clear_interpretation(self,event):
         self.clear_interpretations()
         self.s=str(self.specimens_box.GetValue())
@@ -5491,13 +5489,13 @@ class EditFitFrame(wx.Frame):
         self.logger.SetItemBackgroundColour(self.current_fit_index,"LIGHT BLUE")
         
 
-    def logger_focus(self,i):
+    def logger_focus(self,i,focus_shift=16):
         """
         focuses the logger on an index 12 entries below i
         @param: i -> index to focus on
         """
-        if self.logger.GetItemCount()-1 > i+12:
-            i += 12
+        if self.logger.GetItemCount()-1 > i+focus_shift:
+            i += focus_shift
         else:
             i = self.logger.GetItemCount()-1
         self.logger.Focus(i)
