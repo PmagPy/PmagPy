@@ -924,6 +924,7 @@ class Zeq_GUI(wx.Frame):
                             l = 1
                     except IndexError: l = 0
                     except KeyError: l = 0
+                    except ValueError: l = 0
 
                 if index < l:
                     self.specimens_box.SetStringSelection(specimen)
@@ -1736,7 +1737,7 @@ class Zeq_GUI(wx.Frame):
 
         for specimen in self.pmag_results_data['specimens'].keys():
             for fit in self.pmag_results_data['specimens'][specimen]:
-                fit.put(self.COORDINATE_SYSTEM,self.get_PCA_parameters(specimen,fit.tmin,fit.tmax,self.COORDINATE_SYSTEM,fit.PCA_type))
+                fit.put(specimen,self.COORDINATE_SYSTEM,self.get_PCA_parameters(specimen,fit.tmin,fit.tmax,self.COORDINATE_SYSTEM,fit.PCA_type))
 
         if self.interpertation_editor_open:
             self.interpertation_editor.update_editor(True)
@@ -2084,11 +2085,11 @@ class Zeq_GUI(wx.Frame):
         if str(self.s) in self.pmag_results_data['specimens']:
             for fit in self.pmag_results_data['specimens'][self.s]:
                 if fit.get('specimen') and 'calculation_type' in fit.get('specimen'):
-                    fit.put('specimen',self.get_PCA_parameters(self.s,fit.tmin,fit.tmax,'specimen',fit.get('specimen')['calculation_type']))
+                    fit.put(self.s,'specimen',self.get_PCA_parameters(self.s,fit.tmin,fit.tmax,'specimen',fit.get('specimen')['calculation_type']))
                 if len(self.Data[self.s]['zijdblock_geo'])>0 and fit.get('geographic') and 'calculation_type' in fit.get('geographic'):
-                    fit.put('geographic',self.get_PCA_parameters(self.s,fit.tmin,fit.tmax,'geographic',fit.get('geographic')['calculation_type']))
+                    fit.put(self.s,'geographic',self.get_PCA_parameters(self.s,fit.tmin,fit.tmax,'geographic',fit.get('geographic')['calculation_type']))
                 if len(self.Data[self.s]['zijdblock_tilt'])>0 and fit.get('tilt_corrected') and 'calculation_type' in fit.get('tilt_corrected'):
-                    fit.put('tilt-corrected',self.get_PCA_parameters(self.s,fit.tmin,fit.tmax,'tilt-corrected',fit.get('tilt_corrected')['calculation_type']))
+                    fit.put(self.s,'tilt-corrected',self.get_PCA_parameters(self.s,fit.tmin,fit.tmax,'tilt-corrected',fit.get('tilt_corrected')['calculation_type']))
         self.calculate_higher_levels_data()
         self.update_selection()
         
@@ -2127,7 +2128,7 @@ class Zeq_GUI(wx.Frame):
         elif PCA_type=="plane":calculation_type="DE-BFP"
         coordinate_system=self.COORDINATE_SYSTEM
         if self.current_fit:
-            self.current_fit.put(coordinate_system,self.get_PCA_parameters(self.s,tmin,tmax,coordinate_system,calculation_type))
+            self.current_fit.put(self.s,coordinate_system,self.get_PCA_parameters(self.s,tmin,tmax,coordinate_system,calculation_type))
         if self.interpertation_editor_open:
             self.interpertation_editor.update_current_fit_data()
         self.update_GUI_with_new_interpretation()
@@ -2536,7 +2537,7 @@ class Zeq_GUI(wx.Frame):
                     elif PCA_type=="plane":calculation_type="DE-BFP"
                     coordinate_system=self.COORDINATE_SYSTEM
                     if new_fit:
-                        new_fit.put(coordinate_system,self.get_PCA_parameters(self.s,new_fit_tmin,new_fit_tmax,coordinate_system,calculation_type))
+                        new_fit.put(self.s,coordinate_system,self.get_PCA_parameters(self.s,new_fit_tmin,new_fit_tmax,coordinate_system,calculation_type))
                     fit_min = fit_max+1
 
         self.s = self.specimens[0]
@@ -2563,11 +2564,11 @@ class Zeq_GUI(wx.Frame):
             tmin=str(self.tmin_box.GetValue())
             tmax=str(self.tmax_box.GetValue())
 
-            self.current_fit.put('specimen',self.get_PCA_parameters(self.s,tmin,tmax,'specimen',calculation_type))
+            self.current_fit.put(self.s,'specimen',self.get_PCA_parameters(self.s,tmin,tmax,'specimen',calculation_type))
             if len(self.Data[self.s]['zijdblock_geo'])>0:      
-                self.current_fit.put('geographic',self.get_PCA_parameters(self.s,tmin,tmax,'geographic',calculation_type))
+                self.current_fit.put(self.s,'geographic',self.get_PCA_parameters(self.s,tmin,tmax,'geographic',calculation_type))
             if len(self.Data[self.s]['zijdblock_tilt'])>0:      
-                self.current_fit.put('tilt-corrected',self.get_PCA_parameters(self.s,tmin,tmax,'tilt-corrected',calculation_type))
+                self.current_fit.put(self.s,'tilt-corrected',self.get_PCA_parameters(self.s,tmin,tmax,'tilt-corrected',calculation_type))
 
         # calculate higher level data
         self.calculate_higher_levels_data()
@@ -3635,13 +3636,13 @@ class Zeq_GUI(wx.Frame):
                     and tmax in self.Data[specimen]['zijdblock_steps']:
 
                         if fit:
-                            fit.put('specimen',self.get_PCA_parameters(specimen,tmin,tmax,'specimen',calculation_type))
+                            fit.put(specimen,'specimen',self.get_PCA_parameters(specimen,tmin,tmax,'specimen',calculation_type))
 
                             if len(self.Data[specimen]['zijdblock_geo'])>0: 
-                                fit.put('geographic',self.get_PCA_parameters(specimen,tmin,tmax,'geographic',calculation_type))
+                                fit.put(specimen,'geographic',self.get_PCA_parameters(specimen,tmin,tmax,'geographic',calculation_type))
 
                             if len(self.Data[specimen]['zijdblock_tilt'])>0:      
-                                fit.put('tilt-corrected',self.get_PCA_parameters(specimen,tmin,tmax,'tilt-corrected',calculation_type))
+                                fit.put(specimen,'tilt-corrected',self.get_PCA_parameters(specimen,tmin,tmax,'tilt-corrected',calculation_type))
 
                     else:
                         self.GUI_log.write ( "-W- WARNING: Cant find specimen and steps of specimen %s tmin=%s, tmax=%s"%(specimen,tmin,tmax))
@@ -3790,7 +3791,7 @@ class Zeq_GUI(wx.Frame):
 
         m_new_sub = menu_Analysis.AppendMenu(-1, "Acceptance criteria", submenu_criteria)
 
-        m_previous_interpretation = menu_Analysis.Append(-1, "&Import previous interpretation from a redo file\tCtrl-O", "")
+        m_previous_interpretation = menu_Analysis.Append(-1, "&Import previous interpretation from a redo file\tCtrl-R", "")
         self.Bind(wx.EVT_MENU, self.on_menu_previous_interpretation, m_previous_interpretation)
 
         m_save_interpretation = menu_Analysis.Append(-1, "&Save current interpretations to a redo file\tCtrl-S", "")
@@ -4230,6 +4231,9 @@ class Zeq_GUI(wx.Frame):
             del(self.pmag_results_data['specimens'][specimen])
             for high_level_type in ['samples','sites','locations','study']:
                 self.high_level_means[high_level_type]={}
+        if self.interpertation_editor_open:
+            self.interpertation_editor.update_editor(True)
+
     #----------------------------------------------------------------------
             
     def read_redo_file(self,redo_file): #BLARGE
@@ -4276,7 +4280,7 @@ class Zeq_GUI(wx.Frame):
                 self.pmag_results_data['specimens'][self.s].append(Fit('Fit ' + next_fit, None, None, self.colors[(int(next_fit)-1) % len(self.colors)], self))
                 fit = self.pmag_results_data['specimens'][specimen][-1]
 
-            fit.put(self.COORDINATE_SYSTEM,self.get_PCA_parameters(specimen,tmin,tmax,self.COORDINATE_SYSTEM,calculation_type))
+            fit.put(self.s,self.COORDINATE_SYSTEM,self.get_PCA_parameters(specimen,tmin,tmax,self.COORDINATE_SYSTEM,calculation_type))
 
         fin.close()
         self.s=str(self.specimens_box.GetValue())
@@ -4350,6 +4354,8 @@ class Zeq_GUI(wx.Frame):
             for fit in self.pmag_results_data['specimens'][specimen]:
                 if fit.tmin==None or fit.tmax==None:
                     continue
+                if type(fit.tmin)!=str or type(fit.tmax)!=str:
+                    print(type(fit.tmin),fit.tmin,type(fit.tmax),fit.tmax)
                 STRING=specimen+"\t"
                 STRING=STRING+fit.PCA_type+"\t"
                 fit_flag = "g"
@@ -5422,7 +5428,13 @@ class EditFitFrame(wx.Frame):
         helper function that given a index in this objects fit_list parameter inserts a entry at that index
         @param: i -> index in fit_list to find the (specimen_name,fit object) tup that determines all the data for this logger entry.
         """
-        tup = self.fit_list[i]
+        if i < len(self.fit_list):
+            tup = self.fit_list[i]
+        elif i < self.logger.GetItemCount():
+            self.logger.DeleteItem(i)
+            return
+        else: return
+        
         fit = tup[0]
         pars = fit.get(self.parent.COORDINATE_SYSTEM)
         tmin,tmax,dec,inc,n,mad,dang,a95 = "","","","","","","",""
@@ -5482,8 +5494,10 @@ class EditFitFrame(wx.Frame):
                     break
         elif type(new_fit) is int:
             i = new_fit
+        elif type(new_fit) is None:
+            pass
         else:
-            print('can not select fit of type: ' + str(type(new_fit)))
+            print('cannot select fit of type: ' + str(type(new_fit)))
         if self.fit_list[self.current_fit_index][0] in self.parent.bad_fits: self.logger.SetItemBackgroundColour(self.current_fit_index,"YELLOW")
         else: self.logger.SetItemBackgroundColour(self.current_fit_index,"WHITE")
         self.current_fit_index = i
@@ -5665,11 +5679,11 @@ class EditFitFrame(wx.Frame):
             if new_tmin:
                 if fit == self.parent.current_fit:
                     self.parent.tmin_box.SetStringSelection(new_tmin)
-                fit.put(self.parent.COORDINATE_SYSTEM, self.parent.get_PCA_parameters(specimen,new_tmin,fit.tmax,self.parent.COORDINATE_SYSTEM,fit.PCA_type))
+                fit.put(specimen,self.parent.COORDINATE_SYSTEM, self.parent.get_PCA_parameters(specimen,new_tmin,fit.tmax,self.parent.COORDINATE_SYSTEM,fit.PCA_type))
             if new_tmax:
                 if fit == self.parent.current_fit:
                     self.parent.tmax_box.SetStringSelection(new_tmax)
-                fit.put(self.parent.COORDINATE_SYSTEM, self.parent.get_PCA_parameters(specimen,fit.tmin,new_tmax,self.parent.COORDINATE_SYSTEM,fit.PCA_type))
+                fit.put(specimen,self.parent.COORDINATE_SYSTEM, self.parent.get_PCA_parameters(specimen,fit.tmin,new_tmax,self.parent.COORDINATE_SYSTEM,fit.PCA_type))
             self.update_logger_entry(next_i)
 
         self.parent.update_selection()
@@ -5791,7 +5805,7 @@ class Fit():
             print("-E- no such parameters to fetch in fit: " + self.name)
             return None
 
-    def put(self,coordinate_system,new_pars):
+    def put(self,specimen,coordinate_system,new_pars):
         """
         Given a coordinate system and a new parameters dictionary that follows pmagpy 
         convention given by the pmag.py/domean function it alters this fit's bounds and 
@@ -5807,13 +5821,15 @@ class Fit():
         self.tmax = new_pars['measurement_step_max']
         self.PCA_type = new_pars['calculation_type']
 
-        steps = self.GUI.Data[self.GUI.s]['zijdblock_steps']
+        steps = self.GUI.Data[specimen]['zijdblock_steps']
         tl = [self.tmin,self.tmax]
         for i,t in enumerate(tl):
             if str(t) in steps: tl[i] = str(t)
             elif "%.1fmT"%t in steps: tl[i] = "%.1fmT"%t
             elif "%.0fC"%t in steps: tl[i] = "%.0fC"%t
-            else: print("-E- Step does not exsist (func: Fit.put)")
+            else: 
+                print("-E- Step " + str(tl[i]) + " does not exsist (func: Fit.put)")
+                tl[i] = str(t)
         self.tmin,self.tmax = tl
 
         if coordinate_system == 'DA-DIR' or coordinate_system == 'specimen':
