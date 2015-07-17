@@ -12,7 +12,6 @@ import os
 #import ErMagicBuilder
 import builder
 import pmag
-import pmag_er_magic_dialogs
 import drop_down_menus
 import pmag_widgets as pw
 import magic_grid
@@ -54,6 +53,7 @@ class MainFrame(wx.Frame):
         self.er_magic.init_actual_headers()
         #
         self.InitUI()
+
 
     def InitUI(self):
         """
@@ -198,7 +198,6 @@ class MainFrame(wx.Frame):
         except AttributeError:
             grid_type = self.FindWindowById(event.Id).Name[:-4] # remove ('_btn')
         self.grid = GridFrame(self.er_magic, self.WD, grid_type, grid_type, self.panel)
-
         #self.on_finish_change_dir(self.change_dir_dialog)
 
 
@@ -338,9 +337,10 @@ class GridFrame(wx.Frame):
         data_for_grid = {key.name: key.er_data for key in rows}
         # put into this format:
         # {spec_name: {}, spec2: {}}
-        self.grid.add_data(data_for_grid)
 
+        self.grid.add_data(data_for_grid)
         self.grid.size_grid()
+
         # always start with at least one row:
         if not self.grid.row_labels:
             self.grid.add_row()
@@ -356,9 +356,28 @@ class GridFrame(wx.Frame):
         self.panel.SetSizer(self.main_sizer)
 
         self.main_sizer.Fit(self)
+        ## this works for the initial sizing
+        num_rows = len(self.grid.row_labels)
+        if num_rows in range(0, 4):
+            height = {0: 70, 1: 70, 2: 90, 3: 110, 4: 130}
+            self.grid.SetSize((-1, height[num_rows]))
+        ## this keeps sizing correct if the user resizes the window manually
+        self.Bind(wx.EVT_SIZE, self.resize_grid)
+
         self.Centre()
         self.Show()
 
+
+    def resize_grid(self, event):
+        event.Skip()
+        num_rows = len(self.grid.row_labels)
+        if num_rows in range(0, 4):
+            height = {0: 70, 1: 70, 2: 90, 3: 110, 4: 130}
+            self.grid.SetSize((-1, height[num_rows]))
+        self.main_sizer.Fit(self)
+        # the last line means you can't resize the window to be bigger
+        #than it naturally sizes to be based on its contents
+        #(since every time a resize event is fired, the .Fit method is also fired)
 
     def remove_col_label(self, event):
         """

@@ -31,6 +31,7 @@ class MagicGrid(wx.grid.Grid):
         for n, col in enumerate(self.col_labels):
             self.SetColLabelValue(n, str(col))
         return data
+    
 
     def add_data(self, data_dict):
         for num, row in enumerate(sorted(self.row_labels)):
@@ -43,11 +44,13 @@ class MagicGrid(wx.grid.Grid):
                     if value:
                         self.SetCellValue(num, n+1, value)
 
-    def size_grid(self):
+
+    def size_grid(self, event=None):
         self.AutoSizeColumns(True)
 
         ## this doesn't seem to be necessary, actually
-        self.AutoSize() # prevents display failure
+        ## actually is bad???
+        #self.AutoSize() # prevents display failure
 
         for col in range(len(self.col_labels)):
             # adjust column widths to be a little larger then auto for nicer editing
@@ -57,6 +60,7 @@ class MagicGrid(wx.grid.Grid):
             else:
                 size = orig_size * 1.6
             self.SetColSize(col, size)
+
 
     def do_event_bindings(self):
         self.Bind(wx.grid.EVT_GRID_EDITOR_CREATED, self.on_edit_grid)
