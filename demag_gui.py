@@ -4289,9 +4289,9 @@ class Zeq_GUI(wx.Frame):
         else:
             self.current_fit = self.pmag_results_data['specimens'][self.s][-1]
         self.calculate_higher_levels_data()
-        self.update_selection()
         if self.interpertation_editor_open:
             self.interpertation_editor.update_editor()
+        self.update_selection()
 
 
     #----------------------------------------------------------------------
@@ -5031,7 +5031,7 @@ class Zeq_GUI(wx.Frame):
                 fit_num = -1
             self.pmag_results_data['specimens'][self.s][fit_num].select()
         if self.interpertation_editor_open:
-            self.interpertation_editor.update_current_fit_data()
+            self.interpertation_editor.change_selected(self.current_fit)
 
     def on_enter_fit_name(self,event):
         """
@@ -5330,9 +5330,9 @@ class EditFitFrame(wx.Frame):
         h_size_buttons,button_spacing = 25,5.5
         if is_mac: h_size_buttons,button_spacing = 18,0.
 
-        self.add_fit_button = wx.Button(self.panel, id=-1, label='add fit',size=(225*self.GUI_RESOLUTION,h_size_buttons))
-        self.add_fit_button.SetFont(font2)
-        self.Bind(wx.EVT_BUTTON, self.parent.add_fit, self.add_fit_button)
+        self.add_fit_button = wx.Button(self.panel, id=-1, label='add fit to highlighted specimens',size=(225*self.GUI_RESOLUTION,h_size_buttons))
+        self.add_fit_button.SetFont(font1)
+        self.Bind(wx.EVT_BUTTON, self.add_highlighted_fits, self.add_fit_button)
 
         self.delete_fit_button = wx.Button(self.panel, id=-1, label='delete highlighted fits',size=(225*self.GUI_RESOLUTION,h_size_buttons))
         self.delete_fit_button.SetFont(font1)
@@ -5487,6 +5487,12 @@ class EditFitFrame(wx.Frame):
         updates passed in fit or index as current fit for the editor (does not affect parent), if no parameters are passed in it sets first fit as current and complains.
         @param: new_fit -> fit object to highlight as selected
         """
+        if self.current_fit_index == None:
+            if not self.parent.current_fit: return
+            for i,(fit,specimen) in enumerate(self.fit_list):
+                if fit == self.parent.current_fit:
+                    self.current_fit_index = i
+                    break
         i = 0
         if isinstance(new_fit, Fit):
             for i, (fit,speci) in enumerate(self.fit_list):
@@ -5494,12 +5500,14 @@ class EditFitFrame(wx.Frame):
                     break
         elif type(new_fit) is int:
             i = new_fit
-        elif type(new_fit) is None:
-            pass
-        else:
+        elif new_fit != None:
             print('cannot select fit of type: ' + str(type(new_fit)))
-        if self.fit_list[self.current_fit_index][0] in self.parent.bad_fits: self.logger.SetItemBackgroundColour(self.current_fit_index,"YELLOW")
-        else: self.logger.SetItemBackgroundColour(self.current_fit_index,"WHITE")
+        if self.current_fit_index != None and \
+        len(self.fit_list) > 0 and \
+        self.fit_list[self.current_fit_index][0] in self.parent.bad_fits:
+            self.logger.SetItemBackgroundColour(self.current_fit_index,"YELLOW")
+        else: 
+            self.logger.SetItemBackgroundColour(self.current_fit_index,"WHITE")
         self.current_fit_index = i
         self.logger.SetItemBackgroundColour(self.current_fit_index,"LIGHT BLUE")
         
@@ -5632,6 +5640,45 @@ class EditFitFrame(wx.Frame):
 
     ###################################Button Functions##################################
 
+    def add_highlighted_fits(self, evnet):
+        """
+        adds a new interpertation to each specimen highlighted in logger if multiple interpertations are highlighted of the same specimen only one new interpertation is added
+        @param: event -> the wx.ButtonEvent that triggered this function
+        """
+
+        specimens_seen = []
+        next_i = -1
+        while True:
+            next_i = self.logger.GetNextSelected(next_i)
+            if next_i == -1:
+                break
+            fit,specimen = self.fit_list[next_i]
+
+            if specimen in specimens_seen: continue
+            else: specimens_seen.append(specimen)
+
+            new_name = self.name_box.GetLineText(0)
+            new_color = self.color_box.GetValue()
+            new_tmin = self.tmin_box.GetValue()
+            new_tmax = self.tmax_box.GetValue()
+
+            if not new_name:
+                next_fit = str(len(self.parent.pmag_results_data['specimens'][specimen]) + 1)
+                while ("Fit " + next_fit) in map(lambda x: x.name, self.parent.pmag_results_data['specimens'][specimen]):
+                    next_fit = str(int(next_fit) + 1)
+                new_name = ("Fit " + next_fit)
+            if not new_color:
+                next_fit = str(len(self.parent.pmag_results_data['specimens'][specimen]) + 1)
+                new_color = self.parent.colors[(int(next_fit)-1) % len(self.parent.colors)]
+            if not new_tmin: new_tmin = None
+            if not new_tmax: new_tmax = None
+
+            if new_name in map(lambda x: x.name, self.parent.pmag_results_data['specimens'][specimen]): print('bad name: ' + new_name); return
+
+            self.parent.pmag_results_data['specimens'][specimen].append(Fit(new_name, new_tmin, new_tmax, new_color, self.parent))
+        self.parent.update_selection()
+        self.update_editor(True)
+
     def delete_highlighted_fits(self, event):
         """
         iterates through all highlighted fits in the logger of this object and removes them from the logger and the Zeq_GUI parent object
@@ -5639,20 +5686,39 @@ class EditFitFrame(wx.Frame):
         """
 
         next_i = -1
+        deleted_items = []
         while True:
             next_i = self.logger.GetNextSelected(next_i)
             if next_i == -1:
                 break
-            specimen = self.fit_list[next_i][1]
-            fit = self.fit_list[next_i][0]
-            if fit not in self.parent.pmag_results_data['specimens'][specimen]:
-                print('cannot remove item it is no longer exsist this is a dumb bug contact devs')
-                self.logger.DeleteItem(next_i)
-                return
-            self.parent.pmag_results_data['specimens'][specimen].remove(fit)
+            deleted_items.append(next_i)
+        deleted_items.sort(cmp=lambda x,y: y - x)
+        for item in deleted_items:
+            self.delete_entry(index=item)
         self.parent.update_selection()
-        self.update_editor()
-        
+
+    def delete_entry(self, fit = None, index = None):
+        """
+        deletes the single item from the logger of this object that corrisponds to either the passed in fit or index. Note this function mutaits the logger of this object if deleting more than one entry be sure to pass items to delete in from highest index to lowest or else odd things can happen.
+        @param: fit -> Fit object to delete from this objects logger
+        @param: index -> integer index of the entry to delete from this objects logger
+        """
+        if type(index) == int and not fit:
+            fit,specimen = self.fit_list[index]
+        if fit and type(index) == int:
+            for i, (f,s) in enumerate(self.fit_list):
+                if fit == f:
+                    index,specimen = i,s
+                    break
+
+        if index == self.current_fit_index: self.current_fit_index = None
+        if fit not in self.parent.pmag_results_data['specimens'][specimen]:
+            print("cannot remove item (entry #: " + str(index) + ") as it doesn't exist, this is a dumb bug contact devs")
+            self.logger.DeleteItem(index)
+            return
+        self.parent.pmag_results_data['specimens'][specimen].remove(fit)
+        del self.fit_list[index]
+        self.logger.DeleteItem(index)
 
     def apply_changes(self, event):
         """
@@ -5817,6 +5883,7 @@ class Fit():
         if type(new_pars) != dict or 'measurement_step_min' not in new_pars.keys() or 'measurement_step_max' not in new_pars.keys() or 'calculation_type' not in new_pars.keys():
             print("-E- invalid parameters cannot assign to fit - was given:\n"+str(new_pars))
             return {}
+
         self.tmin = new_pars['measurement_step_min']
         self.tmax = new_pars['measurement_step_max']
         self.PCA_type = new_pars['calculation_type']
