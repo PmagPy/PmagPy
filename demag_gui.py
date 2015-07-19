@@ -1873,10 +1873,15 @@ class Zeq_GUI(wx.Frame):
         self.update_fit_boxs()
         # measurements text box
         self.Add_text()
+        #update higher level stats
+        self.update_higher_level_stats()
 
-        #--------------------------
-        # check if high level interpretation exists
-        #--------------------------
+    #----------------------------------------------------------------------
+    
+    #--------------------------
+    # check if high level interpretation exists and display it
+    #--------------------------
+    def update_higher_level_stats(self):
         dirtype=str(self.coordinates_box.GetValue())
         if dirtype=='specimen':dirtype='DA-DIR'
         elif dirtype=='geographic':dirtype='DA-DIR-GEO'
@@ -1894,10 +1899,7 @@ class Zeq_GUI(wx.Frame):
                 calculation_type= mpars['calculation_type'] 
                 self.show_higher_levels_pars(mpars)
 
-
-    #----------------------------------------------------------------------
-    
-    #--------------------------                
+    #--------------------------
     # updtaes treatment list
     #--------------------------
     def update_temp_boxes(self):
@@ -2623,6 +2625,7 @@ class Zeq_GUI(wx.Frame):
             self.interpertation_editor.mean_fit_box.SetStringSelection(new_fit)
         # calculate higher level data
         self.calculate_higher_levels_data()
+        self.update_higher_level_stats()
         self.plot_higher_levels_data()
         
     #----------------------------------------------------------------------
@@ -4271,10 +4274,15 @@ class Zeq_GUI(wx.Frame):
                     fit_index = bool_list.index(True)
                 else:
                     next_fit = str(len(self.pmag_results_data['specimens'][self.s]) + 1)
-                    self.pmag_results_data['specimens'][self.s].append(Fit('Fit ' + next_fit, None, None, self.colors[(int(next_fit)-1) % len(self.colors)], self))
+                    try: color = line[5]
+                    except IndexError: color = self.colors[(int(next_fit)-1) % len(self.colors)]
+                    self.pmag_results_data['specimens'][self.s].append(Fit('Fit ' + next_fit, None, None, color, self))
                 fit = self.pmag_results_data['specimens'][specimen][fit_index];
                 fit.name = line[4]
-                if line[5] == "b": self.bad_fits.append(fit)
+                try:
+                    if line[6] == "b":
+                        self.bad_fits.append(fit)
+                except IndexError: pass
             else:
                 next_fit = str(len(self.pmag_results_data['specimens'][self.s]) + 1)
                 self.pmag_results_data['specimens'][self.s].append(Fit('Fit ' + next_fit, None, None, self.colors[(int(next_fit)-1) % len(self.colors)], self))
@@ -4374,7 +4382,7 @@ class Zeq_GUI(wx.Frame):
                 if fit in self.bad_fits:
                     fit_flag = "b"
                     
-                STRING=STRING+tmin+"\t"+tmax+"\t"+fit.name+"\t"+fit_flag+"\n"
+                STRING=STRING+tmin+"\t"+tmax+"\t"+fit.name+"\t"+fit.color+"\t"+fit_flag+"\n"
                 fout.write(STRING)
         TEXT="specimens interpretations are saved in " + redo_file_name
         dlg = wx.MessageDialog(self, caption="Saved",message=TEXT,style=wx.OK|wx.CANCEL )
