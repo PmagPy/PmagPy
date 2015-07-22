@@ -376,8 +376,8 @@ class GridFrame(wx.Frame):
             self.grid.SetSize((-1, height[num_rows]))
         self.main_sizer.Fit(self)
         # the last line means you can't resize the window to be bigger
-        #than it naturally sizes to be based on its contents
-        #(since every time a resize event is fired, the .Fit method is also fired)
+        # than it naturally sizes to be based on its contents
+        # (since every time a resize event is fired, the .Fit method is also fired)
 
     def remove_col_label(self, event):
         """
@@ -386,7 +386,7 @@ class GridFrame(wx.Frame):
         """
         col = event.GetCol()
         label = self.grid.GetColLabelValue(col)
-        if label in self.grid_headers[self.grid_type]['er'][1]:
+        if label in self.grid_headers[self.grid_type]['er'][1] or label in self.grid_headers[self.grid_type]['pmag'][1]:
             pw.simple_warning("That header is required, and cannot be removed")
             return False
         else:
@@ -396,7 +396,10 @@ class GridFrame(wx.Frame):
         """
         return grid
         """
-        header = self.grid_headers[self.grid_type]['er'][0]
+        er_header = self.grid_headers[self.grid_type]['er'][0]
+        pmag_header = self.grid_headers[self.grid_type]['pmag'][0]
+        header = sorted(list(set(er_header).union(pmag_header)))
+                                        
         no_parent = False
         for head in (self.grid_type, self.parent_type):
             head = 'er_' + str(head) + '_name'
@@ -416,7 +419,10 @@ class GridFrame(wx.Frame):
         """
         Show simple dialog that allows user to add a new column name
         """
-        items = self.grid_headers[self.grid_type]['er'][2]
+        er_items = self.grid_headers[self.grid_type]['er'][2]
+        pmag_items = self.grid_headers[self.grid_type]['pmag'][2]
+        items = sorted(set(er_items).union(pmag_items))
+        
         #dia = pw.TextDialog(self, 'column name: ')
         dia = pw.ComboboxDialog(self, 'new column name:', items)
         result = dia.ShowModal()
