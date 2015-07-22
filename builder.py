@@ -140,6 +140,8 @@ Leaving sample unchanged as: {} for {}""".format(new_sample_name, specimen.sampl
         If the specimen belonged to a sample, remove it from the sample's specimen list.
         """
         specimen = self.find_by_name(spec_name, self.specimens)
+        if not specimen:
+            return False
         sample = specimen.sample
         if sample:
             sample.specimens.remove(specimen)
@@ -197,6 +199,8 @@ Leaving site unchanged as: {} for {}""".format(new_site_name, sample.site or '*e
         If the sample had any specimens, change specimen.sample to "".
         """
         sample = self.find_by_name(sample_name, self.samples)
+        if not sample:
+            return False
         specimens = sample.specimens
         site = sample.site
         if site:
@@ -250,6 +254,8 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
         If the site had any samples, change sample.site to "".
         """
         site = self.find_by_name(site_name, self.sites)
+        if not site:
+            return False
         self.sites.remove(site)
         if site.location:
             site.location.sites.remove(site)
@@ -283,6 +289,8 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
         If the location had any sites, change site.location to "".
         """
         location = self.find_by_name(location_name, self.locations)
+        if not location:
+            return False
         sites = location.sites
         self.locations.remove(location)
         for site in sites:
