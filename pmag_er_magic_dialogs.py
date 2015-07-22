@@ -399,12 +399,12 @@ Fill in any blank cells using controlled vocabularies.
             self.InitAgeCheck()
             return
 
-        for val in ['er_location_name', 'location_type']:
+        for val in ['er_location_name', 'er_citation_names', 'location_type']:
             try:
                 self.ErMagic_data.er_locations_header.remove(val)
             except ValueError:
                 pass
-        self.ErMagic_data.er_locations_header[:0] = ['er_location_name', 'location_type']
+        self.ErMagic_data.er_locations_header[:0] = ['er_location_name', 'er_citation_names', 'location_type']
 
         self.loc_grid = self.make_simple_table(self.ErMagic_data.er_locations_header, self.ErMagic_data.data_er_locations, "er_location_name")
         self.grid = self.loc_grid

@@ -280,7 +280,7 @@ class GridFrame(wx.Frame):
         #    'location': self.er_magic.data_er_locations,
         #    'age': self.er_magic.data_er_ages}
 
-        self.grid = self.make_grid()
+        self.grid = self.make_grid(self.parent_type)
 
         self.grid.InitUI()
 
@@ -403,20 +403,27 @@ class GridFrame(wx.Frame):
         er_header = self.grid_headers[self.grid_type]['er'][0]
         pmag_header = self.grid_headers[self.grid_type]['pmag'][0]
         header = sorted(list(set(er_header).union(pmag_header)))
-                                        
-        no_parent = False
-        for head in (self.grid_type, self.parent_type):
-            head = 'er_' + str(head) + '_name'
-            try:
-                header.remove(head)
-            except ValueError:
-                no_parent = True
-        if no_parent:
-            header[:0] = ['er_' + self.grid_type + '_name']
+        thingee = []
+        for head in header[:]:
+            for string in ['citation', 'class', 'lithology', 'type']:
+                if string in head:
+                    header.remove(head)
+                    thingee.append(head)
+
+        if not parent_type:
+            lst = ['er_' + self.grid_type + '_name']
+            lst.extend(thingee)
+            print 'lst', lst
+            header[:0] = lst
         else:
-            header[:0] = ['er_' + self.grid_type + '_name', 'er_' + self.parent_type + '_name']
+            lst = ['er_' + self.grid_type + '_name', 'er_' + self.parent_type + '_name']
+            lst.extend(thingee)
+            print 'lst', lst
+            header[:0] = lst
+
         #string = 'er_' + string + 's'
-        grid = magic_grid.MagicGrid(self.panel, self.grid_type, [], header)
+        grid = magic_grid.MagicGrid(parent=self.panel, name=self.grid_type,
+                                    row_labels=[], col_labels=header)
         return grid
 
     def on_add_col(self, event):
