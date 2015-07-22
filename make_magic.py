@@ -386,13 +386,17 @@ class GridFrame(wx.Frame):
         """
         col = event.GetCol()
         label = self.grid.GetColLabelValue(col)
+        if '**' in label:
+            label = label.strip('**')
         if label in self.grid_headers[self.grid_type]['er'][1] or label in self.grid_headers[self.grid_type]['pmag'][1]:
             pw.simple_warning("That header is required, and cannot be removed")
             return False
         else:
+            print 'That header is not required:', label
+            #print 'self.grid_headers', self.grid_headers[self.grid_type]
             self.grid.remove_col(col)
 
-    def make_grid(self):
+    def make_grid(self, parent_type=None):
         """
         return grid
         """
@@ -449,7 +453,7 @@ class GridFrame(wx.Frame):
         for btn in [self.add_col_button, self.remove_row_button, self.add_many_rows_button]:
             btn.Disable()
         # then make some visual changes
-        self.msg_text.SetLabel("Remove grid columns: click on a column header to delete it.  Required headers for {}s may not be deleted".format(self.grid_type))
+        self.msg_text.SetLabel("Remove grid columns: click on a column header to delete it.  Required headers for {}s may not be deleted.".format(self.grid_type))
         self.msg_boxsizer.Fit(self.msg_boxsizer.GetStaticBox())
         self.main_sizer.Fit(self)
         self.grid.SetWindowStyle(wx.DOUBLE_BORDER)
