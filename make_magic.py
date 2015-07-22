@@ -325,25 +325,9 @@ class GridFrame(wx.Frame):
 
         self.panel.Bind(wx.grid.EVT_GRID_LABEL_LEFT_CLICK, self.onLeftClickLabel, self.grid)
 
-        #  Add appropriate number of rows
-        #rows = sorted(self.grid_data_dict[self.grid_type].keys())
-        rows = sorted(self.er_magic.data_lists[self.grid_type][0])
-        #belongs_to = sorted(self.er_magic.data_lists[self.parent_type][0])
-        for row in rows:
-            self.grid.add_row(row.name)
+        # add actual data!
+        self.add_data_to_grid()
 
-        # EVERYTHING WORKS UP TO HERE
-
-        data_for_grid = {key.name: key.er_data for key in rows}
-        # put into this format:
-        # {spec_name: {}, spec2: {}}
-
-        self.grid.add_data(data_for_grid)
-        self.grid.size_grid()
-
-        # always start with at least one row:
-        if not self.grid.row_labels:
-            self.grid.add_row()
         self.grid_box = wx.StaticBoxSizer(wx.StaticBox(self.panel, -1), wx.VERTICAL)
         self.grid_box.Add(self.grid, flag=wx.ALL, border=5)
 
@@ -421,10 +405,20 @@ class GridFrame(wx.Frame):
             print 'lst', lst
             header[:0] = lst
 
-        #string = 'er_' + string + 's'
         grid = magic_grid.MagicGrid(parent=self.panel, name=self.grid_type,
                                     row_labels=[], col_labels=header)
         return grid
+
+
+    def add_data_to_grid(self):
+        rows = sorted(self.er_magic.data_lists[self.grid_type][0])
+        self.grid.add_items(rows)
+        self.grid.size_grid()
+
+        # always start with at least one row:
+        if not self.grid.row_labels:
+            self.grid.add_row()
+
 
     def on_add_col(self, event):
         """

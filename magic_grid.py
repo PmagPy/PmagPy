@@ -7,7 +7,13 @@ class MagicGrid(wx.grid.Grid):
     grid class
     """
 
-    def __init__(self, parent, name, row_labels, col_labels, size=0):
+    def __init__(self, parent, name, row_labels, col_labels, row_items=None, size=0):
+        # row_items is an optional argument with a Pmag_object descended
+        self.row_items = None
+        self.parent_items = None
+        if row_items:
+            self.row_items = row_items
+            self.parent_items = [item.get_parent() for item in row_items]
         self.changes = None
         self.row_labels = sorted(row_labels)
         self.col_labels = col_labels
@@ -15,6 +21,19 @@ class MagicGrid(wx.grid.Grid):
             super(MagicGrid, self).__init__(parent, -1, name=name)
         if size:
             super(MagicGrid, self).__init__(parent, -1, name=name, size=size)
+
+        ### the next few lines may prove unnecessary
+        ancestry = ['specimen', 'sample', 'site', 'location', None]
+
+        if name == 'age':
+            self.parent_type = 'location'
+        else:
+            try:
+                self.parent_type = ancestry[ancestry.index(name) + 1]
+            except ValueError:
+                self.parent_type = None
+        ###
+        
         #self.InitUI()
 
     def InitUI(self):
@@ -31,9 +50,25 @@ class MagicGrid(wx.grid.Grid):
         for n, col in enumerate(self.col_labels):
             self.SetColLabelValue(n, str(col))
         return data
-    
 
+
+    def add_items(self, items_list):
+        parents_list = [item.get_parent() for item in items_list]
+        self.parent_items = parents_list
+        self.row_items = items_list
+        
+        er_data = {item.name: item.er_data for item in items_list}
+        pmag_data = {item.name: item.pmag_data for item in items_list}
+        
+        for item in items_list:
+            self.add_row(item.name)
+        self.add_data(er_data)
+        self.add_data(pmag_data)
+        
+        
     def add_data(self, data_dict):
+        # requires dict in this this format:
+        # {spec_name: {}, spec2_name: {}}
         for num, row in enumerate(sorted(self.row_labels)):
             if row:
                 for n, col in enumerate(self.col_labels[1:]):
