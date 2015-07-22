@@ -61,6 +61,8 @@ class MagicGrid(wx.grid.Grid):
                 size = orig_size * 1.6
             self.SetColSize(col, size)
 
+        self.ForceRefresh()
+
 
     def do_event_bindings(self):
         self.Bind(wx.grid.EVT_GRID_EDITOR_CREATED, self.on_edit_grid)

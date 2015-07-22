@@ -60,7 +60,7 @@ class MainFrame(wx.Frame):
         Make main user interface
         """
         bSizer0 = wx.StaticBoxSizer(
-            wx.StaticBox(self.panel, wx.ID_ANY, "Choose MagIC project directory"), wx.HORIZONTAL
+            wx.StaticBox(self.panel, wx.ID_ANY, "Choose MagIC project directory", name='bSizer0'), wx.HORIZONTAL
         )
         self.dir_path = wx.TextCtrl(self.panel, id=-1, size=(600, 25), style=wx.TE_READONLY)
         self.dir_path.SetValue(self.WD)
@@ -75,7 +75,7 @@ class MainFrame(wx.Frame):
         bSizer0.Add(self.dir_path, wx.ALIGN_CENTER_VERTICAL)
 
         #---sizer 1 ----
-        bSizer1 = wx.StaticBoxSizer(wx.StaticBox(self.panel, wx.ID_ANY, "Add information to the data model"), wx.HORIZONTAL)
+        bSizer1 = wx.StaticBoxSizer(wx.StaticBox(self.panel, wx.ID_ANY, "Add information to the data model", name='bSizer1'), wx.HORIZONTAL)
 
         text = "Add specimen data"
         self.btn1 = buttons.GenButton(self.panel, id=-1,
@@ -136,7 +136,7 @@ class MainFrame(wx.Frame):
 
         #---sizer 2 ----
 
-        bSizer3 = wx.StaticBoxSizer(wx.StaticBox(self.panel, wx.ID_ANY, "Upload to MagIC database"), wx.HORIZONTAL)
+        bSizer2 = wx.StaticBoxSizer(wx.StaticBox(self.panel, wx.ID_ANY, "Upload to MagIC database", name='bSizer2'), wx.HORIZONTAL)
 
         text = "prepare upload txt file"
         self.btn_upload = buttons.GenButton(self.panel, id=-1, label=text,
@@ -144,9 +144,9 @@ class MainFrame(wx.Frame):
         self.btn_upload.SetBackgroundColour("#C4DF9B")
         self.btn_upload.InitColours()
 
-        bSizer3.AddSpacer(20)
-        bSizer3.Add(self.btn_upload, 0, wx.ALIGN_CENTER, 0)
-        bSizer3.AddSpacer(20)
+        bSizer2.AddSpacer(20)
+        bSizer2.Add(self.btn_upload, 0, wx.ALIGN_CENTER, 0)
+        bSizer2.AddSpacer(20)
         #self.Bind(wx.EVT_BUTTON, self.on_btn_upload, self.btn_upload)
 
 
@@ -165,7 +165,7 @@ class MainFrame(wx.Frame):
         vbox.AddSpacer(10)
         vbox.AddSpacer(10)
         hbox.AddSpacer(10)
-        vbox.Add(bSizer3, 0, wx.ALIGN_CENTER, 0)
+        vbox.Add(bSizer2, 0, wx.ALIGN_CENTER, 0)
         vbox.AddSpacer(10)
 
         hbox.Add(vbox, 0, wx.ALIGN_CENTER, 0)
@@ -290,15 +290,15 @@ class GridFrame(wx.Frame):
             belongs_to = None
         self.drop_down_menu = drop_down_menus.Menus(self.grid_type, self, self.grid, belongs_to)
         
-        self.add_col_button = wx.Button(self.panel, label="Add additional column")
+        self.add_col_button = wx.Button(self.panel, label="Add additional column", name='add_col_btn')
         self.Bind(wx.EVT_BUTTON, self.on_add_col, self.add_col_button)
-        self.remove_cols_button = wx.Button(self.panel, label="Remove columns")
+        self.remove_cols_button = wx.Button(self.panel, label="Remove columns", name='remove_cols_btn')
         self.Bind(wx.EVT_BUTTON, self.on_remove_cols, self.remove_cols_button)
-        self.remove_row_button = wx.Button(self.panel, label="Remove last row")
+        self.remove_row_button = wx.Button(self.panel, label="Remove last row", name='remove_last_row_btn')
         self.Bind(wx.EVT_BUTTON, self.on_remove_row, self.remove_row_button)
         many_rows_box = wx.BoxSizer(wx.HORIZONTAL)
-        self.add_many_rows_button = wx.Button(self.panel, label="Add row(s)")
-        self.rows_spin_ctrl = wx.SpinCtrl(self.panel, value='1', initial=1)
+        self.add_many_rows_button = wx.Button(self.panel, label="Add row(s)", name='add_many_rows_btn')
+        self.rows_spin_ctrl = wx.SpinCtrl(self.panel, value='1', initial=1, name='rows_spin_ctrl')
         many_rows_box.Add(self.add_many_rows_button, flag=wx.ALIGN_CENTRE)
         many_rows_box.Add(self.rows_spin_ctrl)
         self.Bind(wx.EVT_BUTTON, self.on_add_rows, self.add_many_rows_button)
@@ -306,11 +306,11 @@ class GridFrame(wx.Frame):
         hbox_grid = pw.hbox_grid(self.panel, self.on_remove_row, self.panel.Name, self.grid)
         self.deleteRowButton = hbox_grid.deleteRowButton
 
-        self.msg_boxsizer = wx.StaticBoxSizer(wx.StaticBox(self.panel, -1), wx.VERTICAL)
-        self.msg_text = wx.StaticText(self.panel, label='msg text',
+        self.msg_boxsizer = wx.StaticBoxSizer(wx.StaticBox(self.panel, -1, name='msg_boxsizer'), wx.VERTICAL)
+        self.default_msg_text = 'Edit {} here.\nYou can add or remove both rows and columns, however required columns may not be deleted.\nControlled vocabularies are indicated by **, and will have drop-down-menus.\nTo edit all values in a column, click the column header.'.format(self.grid_type + 's')
+        self.msg_text = wx.StaticText(self.panel, label=self.default_msg_text,
                                       style=wx.TE_CENTER, name='msg text')
         self.msg_boxsizer.Add(self.msg_text)
-        self.msg_boxsizer.ShowItems(False)
 
         hbox = wx.BoxSizer(wx.HORIZONTAL)
         col_btn_vbox = wx.StaticBoxSizer(wx.StaticBox(self.panel, -1), wx.VERTICAL)
@@ -449,8 +449,8 @@ class GridFrame(wx.Frame):
         for btn in [self.add_col_button, self.remove_row_button, self.add_many_rows_button]:
             btn.Disable()
         # then make some visual changes
-        self.msg_text.SetLabel("Edit grid columns: click on a column header to delete it")
-        self.msg_boxsizer.ShowItems(True)
+        self.msg_text.SetLabel("Remove grid columns: click on a column header to delete it.  Required headers for {}s may not be deleted".format(self.grid_type))
+        self.msg_boxsizer.Fit(self.msg_boxsizer.GetStaticBox())
         self.main_sizer.Fit(self)
         self.grid.SetWindowStyle(wx.DOUBLE_BORDER)
         self.grid_box.GetStaticBox().SetWindowStyle(wx.DOUBLE_BORDER)
@@ -520,7 +520,8 @@ class GridFrame(wx.Frame):
         # undo visual cues
         self.grid.SetWindowStyle(wx.DEFAULT)
         self.grid_box.GetStaticBox().SetWindowStyle(wx.DEFAULT)
-        self.msg_boxsizer.ShowItems(False)
+        self.msg_text.SetLabel(self.default_msg_text)
+        self.msg_boxsizer.Fit(self.msg_boxsizer.GetStaticBox())
         self.main_sizer.Fit(self)
         # re-bind self.remove_cols_button
         self.Bind(wx.EVT_BUTTON, self.on_remove_cols, self.remove_cols_button)
