@@ -53,6 +53,33 @@ class TestSpecimen(unittest.TestCase):
     def tearDown(self):
         pass
 
+    def test_get_parent(self):
+        spec_name = 'Z35.6a'
+        samp_name = 'Z35.6'
+        specimen = self.data1.find_by_name(spec_name, self.data1.specimens)
+        sample = self.data1.find_by_name(samp_name, self.data1.samples)
+        self.assertEqual(specimen.get_parent(), sample)
+
+    def test_set_parent(self):
+        spec_name = 'Z35.6a'
+        samp_name = 'Z35.6'
+        new_samp_name = 'Z35.2'
+        specimen = self.data1.find_by_name(spec_name, self.data1.specimens)
+        sample = self.data1.find_by_name(samp_name, self.data1.samples)
+        new_sample = self.data1.find_by_name(new_samp_name, self.data1.samples)
+        self.assertEqual(specimen.sample, sample)
+        specimen.set_parent(new_sample)
+        self.assertEqual(specimen.sample, new_sample)
+
+    def test_set_parent_wrong_type(self):
+        spec_name = 'Z35.6a'
+        site_name = 'Z35.'
+        specimen = self.data1.find_by_name(spec_name, self.data1.specimens)
+        site = self.data1.find_by_name(site_name, self.data1.sites)
+        self.assertRaises(Exception, specimen.set_parent, site)
+
+        
+
     def test_update_specimen(self):
         specimen_name = 'Z35.6a'
         sample_name = 'Z35.6'
@@ -247,6 +274,33 @@ class TestSample(unittest.TestCase):
         self.data1 = builder.ErMagicBuilder(dir_path)
         self.data1.get_data()
 
+
+    def test_get_parent(self):
+        samp_name = 'Z35.6'
+        site_name = 'Z35.'
+        sample = self.data1.find_by_name(samp_name, self.data1.samples)
+        site = self.data1.find_by_name(site_name, self.data1.sites)
+        self.assertEqual(sample.get_parent(), site)
+
+    def test_set_parent(self):
+        samp_name = 'Z35.6'
+        site_name = 'Z35.'
+        new_site_name = 'Z35.2'
+        sample = self.data1.find_by_name(samp_name, self.data1.samples)
+        site = self.data1.find_by_name(site_name, self.data1.sites)
+        new_site = self.data1.find_by_name(new_site_name, self.data1.sites)
+        self.assertEqual(sample.site, site)
+        sample.set_parent(new_site)
+        self.assertEqual(sample.site, new_site)
+
+    def test_set_parent_wrong_type(self):
+        spec_name = 'Z35.6a'
+        samp_name = 'Z35.6'
+        sample = self.data1.find_by_name(samp_name, self.data1.samples)
+        specimen = self.data1.find_by_name(spec_name, self.data1.specimens)
+        self.assertRaises(Exception, sample.set_parent, specimen)
+
+
     def test_update_sample(self):
         specimen_name = 'Z35.6a'
         sample_name = 'Z35.6'
@@ -426,6 +480,33 @@ class TestSite(unittest.TestCase):
         self.data1 = builder.ErMagicBuilder(dir_path)
         self.data1.get_data()
 
+
+    def test_get_parent(self):
+        site_name = 'Z35.'
+        loc_name = 'locale'
+        site = self.data1.find_by_name(site_name, self.data1.sites)
+        location = self.data1.find_by_name(loc_name, self.data1.locations)
+        self.assertEqual(site.get_parent(), location)
+
+    def test_set_parent(self):
+        site_name = 'Z35.'
+        loc_name = 'locale'
+        site = self.data1.find_by_name(site_name, self.data1.sites)
+        location = self.data1.find_by_name(loc_name, self.data1.locations)
+        new_location = builder.Location('new_location', None, data_model=self.data1.data_model)
+        self.assertEqual(site.location, location)
+        site.set_parent(new_location)
+        self.assertEqual(site.location, new_location)
+
+
+    def test_set_parent_wrong_type(self):
+        site_name = 'MGH1'
+        samp_name = 'Z35.6'
+        sample = self.data1.find_by_name(samp_name, self.data1.samples)
+        site = self.data1.find_by_name(site_name, self.data1.sites)
+        self.assertRaises(Exception, site.set_parent, sample)
+
+        
     def test_update_site(self):
         sample_name = 'Z35.6'
         site_name = 'Z35.'
@@ -599,6 +680,14 @@ class TestLocation(unittest.TestCase):
         self.data1 = builder.ErMagicBuilder(dir_path)
         self.data1.get_data()
 
+    def test_parent(self):
+        loc_name = 'locale'
+        location = self.data1.find_by_name(loc_name, self.data1.locations)
+        self.assertFalse(location.get_parent())
+        self.assertFalse(location.set_parent())
+
+    
+        
     def test_update_location(self):
         site_name = 'Z35.'
         location_name = 'locale'

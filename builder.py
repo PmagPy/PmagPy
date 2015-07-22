@@ -634,6 +634,19 @@ class Specimen(Pmag_object):
         super(Specimen, self).__init__(name, dtype, data_model, er_data, pmag_data)
         self.sample = sample or ""
 
+    def get_parent(self):
+        return self.sample
+
+    def set_parent(self, new_samp):
+        """
+        Set self.sample as either an empty string, or with a new Sample.
+        """
+        self.sample = new_samp
+        if new_samp:
+            if not isinstance(new_samp, Sample):
+                raise Exception
+        return new_samp
+
     def change_specimen(self, new_name, new_sample=None, er_data=None, pmag_data=None):
         self.name = new_name
         if new_sample:
@@ -659,6 +672,19 @@ class Sample(Pmag_object):
         self.children = self.specimens
         self.site = site or ""
 
+    def get_parent(self):
+        return self.site
+
+    def set_parent(self, new_site):
+        """
+        Set self.site as either an empty string, or with a new Site.
+        """
+        if new_site:
+            if not isinstance(new_site, Site):
+                raise Exception
+        self.site = new_site
+        return new_site
+        
     def change_sample(self, new_name, new_site=None, er_data=None, pmag_data=None):
         self.name = new_name
         if new_site:
@@ -685,6 +711,17 @@ class Site(Pmag_object):
         self.children = self.samples
         self.location = location or ""
 
+    def get_parent(self):
+        return self.location
+
+    def set_parent(self, new_loc):
+        if new_loc:
+            if not isinstance(new_loc, Location):
+                raise Exception
+        self.location = new_loc
+        return new_loc
+
+        
     def change_site(self, new_name, new_location=None, new_er_data=None, new_pmag_data=None):
         self.name = new_name
         if new_location:
@@ -708,6 +745,14 @@ class Location(Pmag_object):
         self.sites = []
         self.children = self.sites
 
+
+    def get_parent(self):
+        return False
+
+    def set_parent(self, parent=None):
+        return False
+
+        
     def change_location(self, new_name, new_er_data=None, new_pmag_data=None):
         self.name = new_name
         if new_er_data:
