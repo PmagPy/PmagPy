@@ -303,8 +303,11 @@ class GridFrame(wx.Frame):
         many_rows_box.Add(self.rows_spin_ctrl)
         self.Bind(wx.EVT_BUTTON, self.on_add_rows, self.add_many_rows_button)
 
-        hbox_grid = pw.hbox_grid(self.panel, self.on_remove_row, self.panel.Name, self.grid)
-        self.deleteRowButton = hbox_grid.deleteRowButton
+        #hbox_grid = pw.hbox_grid(self.panel, self.on_remove_row, self.panel.Name, self.grid)
+        self.deleteRowButton = wx.Button(self.panel, id=-1, label='Delete selected row(s)', name='delete_row_btn')
+        self.Bind(wx.EVT_BUTTON, lambda event: self.on_remove_row(event, False), self.deleteRowButton)
+        self.deleteRowButton.Disable()
+        #self.deleteRowButton = hbox_grid.deleteRowButton
 
         self.msg_boxsizer = wx.StaticBoxSizer(wx.StaticBox(self.panel, -1, name='msg_boxsizer'), wx.VERTICAL)
         self.default_msg_text = 'Edit {} here.\nYou can add or remove both rows and columns, however required columns may not be deleted.\nControlled vocabularies are indicated by **, and will have drop-down-menus.\nTo edit all values in a column, click the column header.'.format(self.grid_type + 's')
@@ -319,7 +322,7 @@ class GridFrame(wx.Frame):
         col_btn_vbox.Add(self.remove_cols_button, flag=wx.ALL, border=5)
         row_btn_vbox.Add(many_rows_box, flag=wx.ALL, border=5)
         row_btn_vbox.Add(self.remove_row_button, flag=wx.ALL, border=5)
-        row_btn_vbox.Add(hbox_grid)
+        row_btn_vbox.Add(self.deleteRowButton, flag=wx.ALL, border=5)
         hbox.Add(col_btn_vbox)
         hbox.Add(row_btn_vbox)
 
