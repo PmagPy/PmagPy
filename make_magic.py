@@ -453,7 +453,10 @@ class GridFrame(wx.Frame):
         if result == wx.ID_OK:
             name = dia.combobox.GetValue()
             if name:
-                self.grid.add_col(name)
+                if name not in self.grid.col_labels:
+                    self.grid.add_col(name)
+                else:
+                    pw.simple_warning('You are already using that column header')
             else:
                 pw.simple_warning("New column must have a name")
         self.main_sizer.Fit(self)
