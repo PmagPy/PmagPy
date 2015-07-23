@@ -23,7 +23,8 @@ class ErMagicBuilder(object):
         #self.ages = []
         self.data_model = validate_upload.get_data_model()
         self.data_lists = {'specimen': [self.specimens, Specimen], 'sample': [self.samples, Sample],
-                           'site': [self.sites, Site], 'location': [self.locations, Location]}
+                           'site': [self.sites, Site], 'location': [self.locations, Location],
+                           'age': [self.sites, Site]}
         self.results_level = None
         #'age': [self.ages, None]}
 

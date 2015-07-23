@@ -361,6 +361,14 @@ class GridFrame(wx.Frame):
         ## this keeps sizing correct if the user resizes the window manually
         self.Bind(wx.EVT_SIZE, self.resize_grid)
 
+        # a few special touches if it is an age grid
+        if self.grid_type == 'age':
+            self.remove_row_button.Disable()
+            self.add_many_rows_button.Disable()
+            self.grid.SetColLabelValue(0, 'er_site_name')
+            # possibly add a way to toggle modes between doing ages by sites and by sample ??
+
+
         self.Centre()
         self.Show()
 
@@ -584,7 +592,7 @@ class GridFrame(wx.Frame):
             else:
                 self.drop_down_menu.on_label_click(event)
         else:
-            if event.Col < 0:
+            if event.Col < 0  and self.grid_type != 'age':
                 self.onSelectRow(event)
 
 

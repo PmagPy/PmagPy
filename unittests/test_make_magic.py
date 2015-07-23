@@ -79,7 +79,6 @@ class TestMainFrame(unittest.TestCase):
         self.assertTrue(window.IsEnabled())
         self.assertTrue(window.IsShown())
 
-    @unittest.expectedFailure
     def test_ages_button(self):
         window = self.does_top_window_exist(self.pnl, 'age_btn', 'age')
         self.assertTrue(window, 'er_ages grid window was not created')
