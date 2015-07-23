@@ -86,6 +86,14 @@ class TestMainFrame(unittest.TestCase):
         self.assertTrue(window.IsEnabled())
         self.assertTrue(window.IsShown())
 
+    @unittest.expectedFailure        
+    def test_results_button(self):
+        window = self.does_top_window_exist(self.pnl, 'result_btn', 'result')
+        self.assertTrue(window, 'er_results grid window was not created')
+        self.assertIsInstance(window, make_magic.GridFrame)
+        self.assertTrue(window.IsEnabled())
+        self.assertTrue(window.IsShown())
+
 
     def does_window_exist(self, parent, btn_name, window_name):
         """
