@@ -2544,7 +2544,7 @@ class OrientFrameGrid(wx.Frame):
         self.grid.changes = {'a'}
         
         self.grid.AutoSize()
-        self.drop_down_menu = drop_down_menus.Menus("orient", self, self.grid, None)
+        self.drop_down_menu = drop_down_menus.Menus("orient", self, self.grid, '')
         
 
     def update_sheet(self):

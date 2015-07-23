@@ -24,7 +24,13 @@ class Menus(object):
         self.check = ErMagicCheck # check is top level class object for entire ErMagic steps 1-6
         self.grid = grid
         self.window = grid.Parent # parent window in which grid resides
-        self.belongs_to = belongs_to
+        self.belongs_to = []
+        # belongs_to can either be a list of strings OR a list of Pmag_objects
+        for item in belongs_to:
+            try:
+                self.belongs_to.append(item.name)
+            except AttributeError:
+                self.belongs_to.append(item)
         #self.headers = headers
         self.selected_col = None
         self.selection = [] # [(row, col), (row, col)], sequentially down a column

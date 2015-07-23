@@ -287,7 +287,7 @@ class GridFrame(wx.Frame):
         if self.parent_type:
             belongs_to = sorted(self.er_magic.data_lists[self.parent_type][0])
         else:
-            belongs_to = None
+            belongs_to = ''
         self.drop_down_menu = drop_down_menus.Menus(self.grid_type, self, self.grid, belongs_to)
         
         self.add_col_button = wx.Button(self.panel, label="Add additional column", name='add_col_btn')
