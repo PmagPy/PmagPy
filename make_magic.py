@@ -397,12 +397,10 @@ class GridFrame(wx.Frame):
         if not parent_type:
             lst = ['er_' + self.grid_type + '_name']
             lst.extend(thingee)
-            print 'lst', lst
             header[:0] = lst
         else:
             lst = ['er_' + self.grid_type + '_name', 'er_' + self.parent_type + '_name']
             lst.extend(thingee)
-            print 'lst', lst
             header[:0] = lst
 
         grid = magic_grid.MagicGrid(parent=self.panel, name=self.grid_type,

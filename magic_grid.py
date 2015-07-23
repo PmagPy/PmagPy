@@ -8,12 +8,12 @@ class MagicGrid(wx.grid.Grid):
     """
 
     def __init__(self, parent, name, row_labels, col_labels, row_items=None, size=0):
-        # row_items is an optional argument with a Pmag_object descended
-        self.row_items = None
-        self.parent_items = None
+        # row_items is an optional list of Pmag_objects
+        self.row_items = []
         if row_items:
             self.row_items = row_items
-            self.parent_items = [item.get_parent() for item in row_items]
+        else:
+            self.row_items = ['' for label in row_labels]
         self.changes = None
         self.row_labels = sorted(row_labels)
         self.col_labels = col_labels
@@ -53,17 +53,13 @@ class MagicGrid(wx.grid.Grid):
 
 
     def add_items(self, items_list):
-        parents_list = [item.get_parent() for item in items_list]
-        self.parent_items = parents_list
-        self.row_items = items_list
-        
         er_data = {item.name: item.er_data for item in items_list}
         pmag_data = {item.name: item.pmag_data for item in items_list}
-        
-        for item in items_list:
-            self.add_row(item.name)
+        for item in items_list[:]:
+            self.add_row(item.name, item)
         self.add_data(er_data)
         self.add_data(pmag_data)
+        self.add_parents()
         
         
     def add_data(self, data_dict):
@@ -79,6 +75,14 @@ class MagicGrid(wx.grid.Grid):
                     if value:
                         self.SetCellValue(num, n+1, value)
 
+    def add_parents(self, col_num=1):
+        if self.parent_type and self.row_items:
+            for num, row in enumerate(sorted(self.row_items)):
+                if row:
+                    parent = row.get_parent()
+                    if parent:
+                        self.SetCellValue(num, col_num, parent.name)
+                
 
     def size_grid(self, event=None):
         self.AutoSizeColumns(True)
@@ -135,7 +139,7 @@ class MagicGrid(wx.grid.Grid):
         event.Skip()
 
 
-    def add_row(self, label=''):
+    def add_row(self, label='', item=''):
         """
         Add a row to the grid
         """
@@ -143,6 +147,7 @@ class MagicGrid(wx.grid.Grid):
         last_row = self.GetNumberRows() - 1
         self.SetCellValue(last_row, 0, label)
         self.row_labels.append(label)
+        self.row_items.append(item)
 
     def remove_row(self, row_num=None):
         """
@@ -154,12 +159,13 @@ class MagicGrid(wx.grid.Grid):
         label = self.GetCellValue(row_num, 0)
         self.DeleteRows(pos=row_num, numRows=1, updateLabels=True)
         self.row_labels.remove(label)
+        self.row_items.pop(row_num)
+        
         if not self.changes:
             self.changes = set()
         self.changes.add(-1)
         # fix #s for rows edited:
         self.update_changes_after_row_delete(row_num)
-
 
     def update_changes_after_row_delete(self, row_num):
         """

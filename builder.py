@@ -389,6 +389,7 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
         Parse information into dictionaries for each item.
         Then add it to the item object as object.er_data.
         """
+        parent = ''
         short_filename = "er_" + child_type + 's.txt'
         magic_file = os.path.join(self.WD, short_filename)
         magic_name = 'er_' + child_type + '_name'
@@ -416,15 +417,15 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
             if parent_name and parent_type and not parent:
                 parent = parent_constructor(parent_name, None, data_model=self.data_model)
                 parent_list.append(parent)
-            # otherwise there is no parent and none can be created, so use an empty string
-            else:
-                parent = ''
+            # otherwise there is no parent and none can be created
 
             child = self.find_by_name(child_name, child_list)
             # if the child object does not exist yet in the data model
             if not child:
                 child = child_constructor(child_name, parent, data_model=self.data_model)
                 child_list.append(child)
+            else:
+                child.set_parent(parent)
             # add in the appropriate data dictionary
             child.er_data = data_dict[child_name]
             child.remove_headers(child.er_data)
