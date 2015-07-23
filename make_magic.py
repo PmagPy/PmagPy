@@ -112,7 +112,16 @@ class MainFrame(wx.Frame):
         self.btn5.SetBackgroundColour("#6ECFF6")
         self.btn5.InitColours()
         self.Bind(wx.EVT_BUTTON, self.make_grid_frame, self.btn5)
+        
+        text = "add results data"
+        self.btn6 = buttons.GenButton(self.panel, id=-1, label=text,
+                                      size=(300, 50), name='result_btn')
+        self.btn6.SetBackgroundColour("#C4DF9B")
+        self.btn6.InitColours()
+        self.Bind(wx.EVT_BUTTON, self.make_grid_frame, self.btn6)
 
+
+        
         bsizer1a = wx.BoxSizer(wx.VERTICAL)
         bsizer1a.AddSpacer(20)
         bsizer1a.Add(self.btn1, wx.ALIGN_TOP)
@@ -130,7 +139,8 @@ class MainFrame(wx.Frame):
         bsizer1b = wx.BoxSizer(wx.VERTICAL)
         #__init__(self, parent, id, label, pos, size, style, validator, name
         bsizer1b.Add(self.btn4, flag=wx.ALIGN_CENTER|wx.BOTTOM, border=20)
-        bsizer1b.Add(self.btn5, 0, wx.ALIGN_CENTER, 0)
+        bsizer1b.Add(self.btn5, 0, flag=wx.ALIGN_CENTER|wx.BOTTOM, border=20)
+        bsizer1b.Add(self.btn6, 0, wx.ALIGN_CENTER, 0)
         bSizer1.Add(bsizer1b, 0, wx.ALIGN_CENTER, 0)
         bSizer1.AddSpacer(20)
 
