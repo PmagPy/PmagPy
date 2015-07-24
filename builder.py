@@ -20,12 +20,13 @@ class ErMagicBuilder(object):
         self.samples = []
         self.sites = []
         self.locations = []
+        self.results = []
         #self.ages = []
         self.data_model = validate_upload.get_data_model()
         self.data_lists = {'specimen': [self.specimens, Specimen], 'sample': [self.samples, Sample],
                            'site': [self.sites, Site], 'location': [self.locations, Location],
                            'age': [self.sites, Site]}
-        self.results_level = None
+        self.results_level = 'site'
         #'age': [self.ages, None]}
 
 
@@ -113,6 +114,7 @@ class ErMagicBuilder(object):
             self.er_ages_header = self.er_ages_reqd_header
 
         # NEED TO GET RESULTS HEADER here
+        self.pmag_results_header = self.pmag_results_reqd_header
 
 
 
@@ -480,7 +482,7 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
             child.pmag_data = data_dict[child_name]
             child.remove_headers(child.pmag_data)
             #
-            if child not in parent.children:
+            if parent and (child not in parent.children):
                 parent.add_child(child)
 
 
@@ -496,15 +498,42 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
         if not os.path.isfile(magic_file):
             print '-W- Could not find {} in your working directory {}'.format(short_filename, self.WD)
             return False
-        # get the data from the appropriate er_*.txt file
+        # get the data from the pmag_results.txt file
         data_dict = self.read_magic_file(magic_file, 'by_line_number')[0]
-        #for key, data in data_dict.items():
-        #    print key, data
 
-
-
+        def make_items_list(string, search_items_list):
+            names = string.split(':')
+            items = []
+            for name in names:
+                name = name.strip(' ')
+                item = self.find_by_name(name, search_items_list)
+                if item:
+                    items.append(item)
+            return items
         
-
+        for num, result in data_dict.items():
+            name, specimens, samples, sites, locations = None, None, None, None, None
+            for key, value in result.items():
+                #print key, ':', value
+                if key == 'er_specimen_names':
+                    specimens = make_items_list(value, self.specimens)
+                if key == 'er_sample_names':
+                    samples = make_items_list(value, self.samples)
+                if key == 'er_site_names':
+                    sites = make_items_list(value, self.sites)
+                if key == 'er_location_names':
+                    locations = make_items_list(value, self.locations)
+                if key == 'pmag_result_name':
+                    name = value
+            for header_name in ['er_specimen_names', 'er_site_names',
+                                'er_sample_names', 'er_location_names']:
+                if header_name in result.keys():
+                    result.pop(header_name)
+            if not name:
+                name = num
+            result_item = Result(name, specimens, samples, sites, locations, result)
+            self.results.append(result_item)
+                    
 
     def read_magic_file(self, path, sort_by_this_name):
         """
@@ -760,7 +789,20 @@ class Location(Pmag_object):
         if new_er_data:
             self.er_data = self.combine_dicts(new_er_data, self.er_data)
 
+class Result(object):
 
+    def __init__(self, name, specimens=None, samples=None,
+                 sites=None, locations=None, pmag_data=None):
+        self.name = name
+        self.specimens = specimens
+        self.samples = samples
+        self.sites = sites
+        self.locations = locations
+        self.data = pmag_data
+
+    def __repr__(self):
+        descr = self.data.get('result_description')
+        return 'Result: {}, {}'.format(self.name, descr)
 
 
 if __name__ == '__main__':

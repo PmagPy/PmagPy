@@ -802,3 +802,54 @@ class TestAge(unittest.TestCase):
         self.assertTrue(site.age_data)
         self.assertEqual(3, int(site.age_data['age']))
         self.assertEqual('GM-ARAR', site.age_data['magic_method_codes'])
+
+
+class TestResult(unittest.TestCase):
+
+    def setUp(self):
+        dir_path = os.path.join(WD, 'Datafiles', 'mk_redo')
+        self.data1 = builder.ErMagicBuilder(dir_path)
+        #self.data1.get_data()
+
+        self.data1.get_er_magic_info('specimen', 'sample')
+        self.data1.get_pmag_magic_info('specimen', 'sample')
+        
+        self.data1.get_er_magic_info('sample', 'site')
+        self.data1.get_pmag_magic_info('sample', 'site')
+        
+        self.data1.get_er_magic_info('site', 'location')
+        self.data1.get_pmag_magic_info('site', 'location')
+        
+        self.data1.get_er_magic_info('location')
+        self.data1.get_age_info('site')
+
+        self.data1.get_results_info()
+
+    def test_results_are_created(self):
+        result = self.data1.find_by_name('sr03', self.data1.results)
+        specimen = self.data1.find_by_name('sr03a1', self.data1.specimens)
+        site = self.data1.find_by_name('sr03', self.data1.sites)
+        location = self.data1.find_by_name('Snake River', self.data1.locations)
+        self.assertTrue(result)
+        self.assertTrue(result.specimens)
+        self.assertIn(specimen, result.specimens)
+        self.assertFalse(result.samples)
+        self.assertTrue(result.sites)
+        self.assertIn(site, result.sites)
+        self.assertTrue(result.locations)
+        self.assertIn(location, result.locations)
+
+    def test_with_change_specimen(self):
+        result = self.data1.find_by_name('sr03', self.data1.results)
+        specimen = self.data1.find_by_name('sr03a1', self.data1.specimens)
+        site = self.data1.find_by_name('sr03', self.data1.sites)
+        location = self.data1.find_by_name('Snake River', self.data1.locations)
+        self.assertTrue(result)
+        self.assertTrue(result.specimens)
+        self.assertIn(specimen, result.specimens)
+        self.data1.change_specimen('sr03a1', 'new_name')
+        self.assertEqual(specimen.name, 'new_name')
+        self.assertIn(specimen, result.specimens)
+        
+        
+        
