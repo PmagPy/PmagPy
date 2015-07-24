@@ -41,13 +41,11 @@ class Menus(object):
     def InitUI(self):
         belongs_to = self.belongs_to
         if self.data_type == 'specimen':
-            self.choices = {1: (belongs_to, False)}
+            self.choices = {1: (belongs_to, False), 3: (vocab['class'], False), 4: (vocab['lithology'], True), 5: (vocab['type'], False)}
         if self.data_type == 'sample' or self.data_type == 'site':
             self.choices = {1: (belongs_to, False), 3: (vocab['class'], False), 4: (vocab['lithology'], True), 5: (vocab['type'], False)}
-            if self.data_type == 'sample':
-                map(lambda (x, y): self.grid.SetColLabelValue(x, y), [(3, 'sample_class**'), (4, 'sample_lithology**'), (5, 'sample_type**')])
-            elif self.data_type == 'site':
-                map(lambda (x, y): self.grid.SetColLabelValue(x, y), [(3, 'site_class**'), (4, 'site_lithology**'), (5, 'site_type**')])
+        if self.data_type in ['specimen', 'sample', 'site']:
+            map(lambda (x, y): self.grid.SetColLabelValue(x, y), [(3, '{}_class**'.format(self.data_type)), (4, '{}_lithology**'.format(self.data_type)), (5, '{}_type**'.format(self.data_type))])
         if self.data_type == 'site':
             self.choices[6] = (vocab['site_definition'], False)
             self.grid.SetColLabelValue(6, 'site_definition**')
@@ -59,7 +57,13 @@ class Menus(object):
             map(lambda (x, y): self.grid.SetColLabelValue(x, y), [(3, 'magic_method_codes**'), (5, 'age_unit**')])
         if self.data_type == 'orient':
             self.choices = {1: (['g', 'b'], False)}
+
+        if self.data_type == 'result':
+            self.choices = {}
+
+
         self.window.Bind(wx.grid.EVT_GRID_CELL_LEFT_CLICK, lambda event: self.on_left_click(event, self.grid, self.choices), self.grid)
+
         ## now doing the binding below in pmag_er_magic_dialogs:
         #self.window.Bind(wx.grid.EVT_GRID_LABEL_LEFT_CLICK, self.on_label_click, self.grid)
 
@@ -97,6 +101,8 @@ class Menus(object):
 
                     two_tiered = True if isinstance(stripped_list, dict) else False
                     self.choices[col_number] = (stripped_list, two_tiered)
+
+
 
 
     def on_label_click(self, event):

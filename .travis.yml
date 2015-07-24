@@ -20,8 +20,8 @@ before_install:
   - sudo apt-get install -y python-scipy python-tk python-matplotlib # python-mpl_basemap doesn't work
   - sudo apt-get install -y python-wxgtk2.8
 
-
-
+  # many failed attempts to get wxpython:
+  
   #- sudo apt-get install python-pip
   #- sudo pip install numpy
   #- sudo pip install pandas
