@@ -133,6 +133,7 @@ def main(command_line=True, **kwargs):
     # parse data
 
     # Open up the BGC file and read the header information
+    print 'mag_file in BGC_magic', mag_file
     pre_data = open(mag_file, 'rU')
     line = pre_data.readline()
     line_items = line.split(' ')
