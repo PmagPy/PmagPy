@@ -387,8 +387,15 @@ class TestBGC_magic(unittest.TestCase):
         filelist = ['96MT.05.01.magic', 'BC0-3A.magic', 'magic_measurements.txt', 'er_specimens.txt', 'er_samples.txt', 'er_sites.txt']
         #directory = os.path.join(WD, 'Datafiles', 'Measurement_Import', 'BGC_magic')
         #print 'directory', directory
-        print 'self.input_dir', self.input_dir
-        print 'os.listdir(self.input_dir)', os.listdir(self.input_dir)
+        print '-'
+        print 'self.input_dir:', self.input_dir
+        print '-'
+        print 'os.path.isdir(self.input_dir):', os.path.isdir(self.input_dir)
+        print '-'
+        print 'os.listdir(self.input_dir):', os.listdir(self.input_dir)
+        print '-'
+        print 'os.listdir(os.path.join(WD, "Datafiles", "Measurement_import")):', os.listdir(os.path.join(WD, "Datafiles", "Measurement_import"))
+        print '-'
         pmag.remove_files(filelist, self.input_dir)
 
     def test_BGC_with_no_files(self):
