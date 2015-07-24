@@ -386,6 +386,7 @@ class TestBGC_magic(unittest.TestCase):
     def tearDown(self):
         filelist = ['96MT.05.01.magic', 'BC0-3A.magic', 'magic_measurements.txt', 'er_specimens.txt', 'er_samples.txt', 'er_sites.txt']
         directory = os.path.join(WD, 'Datafiles', 'Measurement_Import', 'BGC_magic')
+        print 'os.listdir(directory)', os.listdir(directory)
         pmag.remove_files(filelist, directory)
 
     def test_BGC_with_no_files(self):
