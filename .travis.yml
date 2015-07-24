@@ -7,14 +7,14 @@ python:
 addons:
   apt:
     packages:
-    # for wxPython:
-    - python-wxgtk2.8
-    - python-wxtools
-    - wx2.8-doc
-    - wx2.8-examples
-    - wx2.8-headers
-    - wx2.8-i18n
-
+      # for wxPython:
+      - python-wxgtk2.8
+      - python-wxtools
+      - wx2.8-doc
+      - wx2.8-examples
+      - wx2.8-headers
+      - wx2.8-i18n
+      
 before_install:
   - sudo apt-get update -qq  # make sure package indexes are up to date
   - sudo apt-get install -y python-scipy python-tk python-matplotlib # python-mpl_basemap doesn't work
