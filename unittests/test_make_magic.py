@@ -44,12 +44,9 @@ class TestMainFrame(unittest.TestCase):
         self.assertTrue(self.frame.er_magic.pmag_specimens_header)
         self.assertTrue(self.frame.er_magic.pmag_specimens_reqd_header)
 
-    @unittest.expectedFailure
     def test_pmag_results(self):
         self.assertTrue(self.frame.er_magic.pmag_results_header)
         self.assertTrue(self.frame.er_magic.pmag_results_reqd_header)
-
-
 
     def test_specimen_button(self):
         window = self.does_top_window_exist(self.pnl, 'specimen_btn', 'specimen')
@@ -86,7 +83,6 @@ class TestMainFrame(unittest.TestCase):
         self.assertTrue(window.IsEnabled())
         self.assertTrue(window.IsShown())
 
-    @unittest.expectedFailure        
     def test_results_button(self):
         window = self.does_top_window_exist(self.pnl, 'result_btn', 'result')
         self.assertTrue(window, 'er_results grid window was not created')
@@ -197,8 +193,6 @@ class TestMainFrameWithData(unittest.TestCase):
         #self.assertTrue(self.frame.er_magic.pmag_results_header)
         #self.assertTrue(self.frame.er_magic.pmag_results_reqd_header)
 
-
-    @unittest.expectedFailure
     def test_pmag_results(self):
         self.assertTrue(self.frame.er_magic.pmag_results_header)
         self.assertTrue(self.frame.er_magic.pmag_results_reqd_header)

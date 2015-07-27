@@ -27,9 +27,7 @@ class MainFrame(wx.Frame):
         wx.Frame.__init__(self, None, wx.ID_ANY, name=name)
 
         self.panel = wx.Panel(self, size=wx.GetDisplaySize(), name='main panel')
-        #os.chdir(WD)
-        #self.WD = os.getcwd()
-        self.WD = WD or os.getcwd()
+        self.WD = os.path.realpath(WD) or os.getcwd()
         
         self.er_magic = builder.ErMagicBuilder(self.WD)
         # initialize magic data object
@@ -420,7 +418,10 @@ class GridFrame(wx.Frame):
                     header.remove(head)
                     first_headers.append(head)
 
-        if not parent_type:
+        if self.grid_type == 'result':
+            header.remove('pmag_result_name')
+            header[:0] = ['pmag_result_name']
+        elif not parent_type:
             lst = ['er_' + self.grid_type + '_name']
             lst.extend(first_headers)
             header[:0] = lst
