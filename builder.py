@@ -305,9 +305,7 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
             self.results.remove(result)
             del result
             
-
-
-    def change_result(self, old_result_name, new_result_name, new_er_data=None, new_pmag_data=None):
+    def change_result(self, old_result_name, new_result_name, new_er_data=None, new_pmag_data=None, spec_names=None, samp_names=None, site_names=None, loc_names=None):
         """
         Find actual data object for result with old_result_name.
         Then call Result class change method to update result name and data.
@@ -317,7 +315,17 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
             print '-W- {} is not a currently existing result, so it cannot be updated.'.format(old_result_name)
             return False
         else:
-            result.change_result(new_result_name, new_er_data, new_pmag_data)
+            specimens, samples, sites, locations = None, None, None, None
+            if spec_names:
+                specimens = [self.find_by_name(spec, self.specimens) for spec in spec_names]
+            if samp_names:
+                samples = [self.find_by_name(samp, self.samples) for samp in samp_names]
+            if site_names:
+                sites = [self.find_by_name(site, self.sites) for site in site_names]
+            if loc_names:
+                locations = [self.find_by_name(loc, self.locations) for loc in loc_names]
+
+            result.change_result(new_result_name, new_pmag_data, specimens, samples, sites, locations)
     
 
     def get_data(self):
@@ -826,11 +834,14 @@ class Result(object):
         return combined_data_dict
 
     
-    def change_result(self, new_name, new_er_data=None, new_pmag_data=None):
-        print 'changing result'
+    def change_result(self, new_name, new_pmag_data=None, specs=None, samps=None, sites=None, locs=None):
         self.name = new_name
         if new_pmag_data:
             self.pmag_data = self.combine_dicts(new_pmag_data, self.pmag_data)
+        self.specimens = specs
+        self.samples = samps
+        self.sites = sites
+        self.locations = locs
 
 
 

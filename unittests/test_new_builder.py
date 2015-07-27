@@ -855,7 +855,7 @@ class TestResult(unittest.TestCase):
         self.data1.delete_result(result.name)
         self.assertNotIn(result, self.data1.results)
         
-    def test_update_result(self):
+    def test_update_result_name(self):
         result = self.data1.find_by_name('sr03', self.data1.results)
         print result
         print result.pmag_data
@@ -866,3 +866,21 @@ class TestResult(unittest.TestCase):
         new_result = self.data1.find_by_name('new_name', self.data1.results)
         self.assertFalse(old_result)
         self.assertTrue(new_result)
+
+    def test_update_result_items(self):
+        result = self.data1.find_by_name('sr03', self.data1.results)
+        samp_names = 'sr27c', 'sr27a'
+        samples = [self.data1.find_by_name(name, self.data1.samples) for name in samp_names]
+        site_name = 'sr27'
+        site = self.data1.find_by_name(site_name, self.data1.sites)
+        self.assertFalse(result.samples)
+        self.data1.change_result('sr03', 'sr03', None, None, spec_names=None, samp_names=samp_names, site_names=[site_name], loc_names=None)
+        self.assertFalse(result.specimens)
+        self.assertTrue(result.samples)
+        for samp in samples:
+            self.assertIn(samp, result.samples)
+        self.assertTrue(result.sites)
+        self.assertIn(site, result.sites)
+        self.assertFalse(result.locations)
+
+
