@@ -299,18 +299,26 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
         del location
 
 
-    #def find_all_children(self, parent_item):
-    #    """
-    #
-    #    ancestry = ['specimen', 'sample', 'site', 'location']
-    #    child_types = {'sample': self.specimens, 'site': self.samples, 'location': self.sites}
-    #    dtype = parent_item.dtype
-    #    ind = ancestry.index(dtype)
-    #    children = child_types[dtype]
-    #
-    #    if dtype in (1, 2, 3):
-    #        pass
+    def delete_result(self, result_name):
+        result = self.find_by_name(result_name, self.results)
+        if result:
+            self.results.remove(result)
+            del result
+            
 
+
+    def change_result(self, old_result_name, new_result_name, new_er_data=None, new_pmag_data=None):
+        """
+        Find actual data object for result with old_result_name.
+        Then call Result class change method to update result name and data.
+        """
+        result = self.find_by_name(old_result_name, self.results)
+        if not result:
+            print '-W- {} is not a currently existing result, so it cannot be updated.'.format(old_result_name)
+            return False
+        else:
+            result.change_result(new_result_name, new_er_data, new_pmag_data)
+    
 
     def get_data(self):
         """
@@ -795,9 +803,35 @@ class Result(object):
         self.pmag_data = pmag_data
         self.er_data = {}
 
+
     def __repr__(self):
         descr = self.pmag_data.get('result_description')
         return 'Result: {}, {}'.format(self.name, descr)
+
+    def combine_dicts(self, new_dict, old_dict):
+        """
+        returns a dictionary with all key, value pairs from new_dict.
+        also returns key, value pairs from old_dict, if that key does not exist in new_dict.
+        if a key is present in both new_dict and old_dict, the new_dict value will take precedence.
+        """
+        old_data_keys = old_dict.keys()
+        new_data_keys = new_dict.keys()
+        all_keys = set(old_data_keys).union(new_data_keys)
+        combined_data_dict = {}
+        for k in all_keys:
+            try:
+                combined_data_dict[k] = new_dict[k]
+            except KeyError:
+                combined_data_dict[k] = old_dict[k]
+        return combined_data_dict
+
+    
+    def change_result(self, new_name, new_er_data=None, new_pmag_data=None):
+        print 'changing result'
+        self.name = new_name
+        if new_pmag_data:
+            self.pmag_data = self.combine_dicts(new_pmag_data, self.pmag_data)
+
 
 
 if __name__ == '__main__':

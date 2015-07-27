@@ -686,8 +686,6 @@ class TestLocation(unittest.TestCase):
         self.assertFalse(location.get_parent())
         self.assertFalse(location.set_parent())
 
-    
-        
     def test_update_location(self):
         site_name = 'Z35.'
         location_name = 'locale'
@@ -851,5 +849,20 @@ class TestResult(unittest.TestCase):
         self.assertEqual(specimen.name, 'new_name')
         self.assertIn(specimen, result.specimens)
         
+    def test_delete_result(self):
+        result = self.data1.find_by_name('sr03', self.data1.results)
+        self.assertIn(result, self.data1.results)
+        self.data1.delete_result(result.name)
+        self.assertNotIn(result, self.data1.results)
         
-        
+    def test_update_result(self):
+        result = self.data1.find_by_name('sr03', self.data1.results)
+        print result
+        print result.pmag_data
+        self.assertIn(result, self.data1.results)
+        self.data1.change_result(result.name, 'new_name')
+        self.assertEqual(result.name, 'new_name')
+        old_result = self.data1.find_by_name('sr03', self.data1.results)
+        new_result = self.data1.find_by_name('new_name', self.data1.results)
+        self.assertFalse(old_result)
+        self.assertTrue(new_result)

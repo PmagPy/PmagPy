@@ -521,7 +521,8 @@ class GridFrame(wx.Frame):
         function_mapping = {'specimen': self.er_magic.delete_specimen,
                             'sample': self.er_magic.delete_sample,
                             'site': self.er_magic.delete_site,
-                            'location': self.er_magic.delete_location}
+                            'location': self.er_magic.delete_location,
+                            'result': self.er_magic.delete_result}
         #ancestry = ['er_specimens', 'er_samples', 'er_sites', 'er_locations']
         #child_type = ancestry[ancestry.index(self.grid_type) - 1]
         
