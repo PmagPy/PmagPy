@@ -480,18 +480,18 @@ class experiment_type(wx.StaticBoxSizer):
         return experiment_string[:-1]
 
 
-#class hbox_grid(wx.BoxSizer):
-#
-#    def __init__(self, parent, delete_row_method, data_type, grid):
-#        """
-#        Create horizontal box with grid manipulation buttons and bindings.
-#        """
-#        super(hbox_grid, self).__init__(wx.HORIZONTAL)
-#        self.deleteRowButton = wx.Button(parent, id=-1, label='Delete selected row(s)', name='delete_row_btn#')
-#        parent.Bind(wx.EVT_BUTTON, lambda event: delete_row_method(event, data_type), self.deleteRowButton)
-#        #parent.Bind(wx.grid.EVT_GRID_LABEL_LEFT_CLICK, lambda event: select_row_method(event, self.deleteRo#wButton), grid)
-#        self.deleteRowButton.Disable()
-#        self.Add(self.deleteRowButton, flag=wx.ALIGN_LEFT)
+class hbox_grid(wx.BoxSizer):
+
+    def __init__(self, parent, delete_row_method, data_type, grid):
+        """
+        Create horizontal box with grid manipulation buttons and bindings.
+        """
+        super(hbox_grid, self).__init__(wx.HORIZONTAL)
+        self.deleteRowButton = wx.Button(parent, id=-1, label='Delete selected row(s)', name='delete_row_btn#')
+        parent.Bind(wx.EVT_BUTTON, lambda event: delete_row_method(event, data_type), self.deleteRowButton)
+        #parent.Bind(wx.grid.EVT_GRID_LABEL_LEFT_CLICK, lambda event: select_row_method(event, self.deleteRo#wButton), grid)
+        self.deleteRowButton.Disable()
+        self.Add(self.deleteRowButton, flag=wx.ALIGN_LEFT)
 
     
 class btn_panel(wx.BoxSizer):

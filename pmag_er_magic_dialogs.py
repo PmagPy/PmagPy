@@ -614,14 +614,6 @@ You may use the drop-down menus to add as many values as needed in these columns
                         break
         return data_missing
 
-    def remove_starred_labels(self, grid):
-        cols_with_stars = []
-        for col in range(grid.GetNumberCols()):
-            label = grid.GetColLabelValue(col)
-            if '**' in label:
-                grid.SetColLabelValue(col, label.strip('**'))
-                cols_with_stars.append(col)
-        return cols_with_stars
 
     ### Button methods ###
 
@@ -716,7 +708,8 @@ You may use the drop-down menus to add as many values as needed in these columns
             self.drop_down_menu.clean_up()
 
         # remove '**' from col names
-        self.remove_starred_labels(grid)
+        #self.remove_starred_labels(grid)
+        grid.remove_starred_labels()
 
         if self.ErMagic_data.data_er_specimens:
             pass
@@ -760,7 +753,7 @@ You may use the drop-down menus to add as many values as needed in these columns
             self.drop_down_menu.clean_up()
 
         # remove '**' from col labels
-        starred_cols = self.remove_starred_labels(grid)
+        starred_cols = grid.remove_starred_labels()
 
         if self.ErMagic_data.data_er_specimens:
             pass

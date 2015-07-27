@@ -260,12 +260,12 @@ class MagicGrid(wx.grid.Grid):
         event.Skip()
     """
 
-    def remove_starred_labels(self, grid):
+    def remove_starred_labels(self):#, grid):
         cols_with_stars = []
-        for col in range(grid.GetNumberCols()):
-            label = grid.GetColLabelValue(col)
+        for col in range(self.GetNumberCols()):
+            label = self.GetColLabelValue(col)
             if '**' in label:
-                grid.SetColLabelValue(col, label.strip('**'))
+                self.SetColLabelValue(col, label.strip('**'))
                 cols_with_stars.append(col)
         return cols_with_stars
 
