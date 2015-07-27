@@ -284,13 +284,6 @@ class GridFrame(wx.Frame):
                 'pmag': [self.er_magic.pmag_results_header, self.er_magic.pmag_results_reqd_header, self.er_magic.pmag_results_optional_header]}
         }
 
-        #self.grid_data_dict = {
-        #    'specimen': self.er_magic.data_er_specimens,
-        #    'sample': self.er_magic.data_er_samples,
-        #    'site': self.er_magic.data_er_samples,
-        #    'location': self.er_magic.data_er_locations,
-        #    'age': self.er_magic.data_er_ages}
-
         self.grid = self.make_grid(self.parent_type)
 
         self.grid.InitUI()
@@ -369,6 +362,26 @@ class GridFrame(wx.Frame):
             self.grid.SetColLabelValue(0, 'er_site_name')
             # possibly add a way to toggle modes between doing ages by sites and by sample ??
 
+        # a few special touches if it is a result grid
+        if self.grid_type == 'result':
+            # populate specimen_names, sample_names, etc.
+            for row in range(self.grid.GetNumberRows()):
+                result_name = self.grid.GetCellValue(row, 0)
+                result = self.er_magic.find_by_name(result_name, self.er_magic.results)
+                if result:
+                    if result.specimens:
+                        self.grid.SetCellValue(row, 2, ' : '.join([spec.name for spec in result.specimens]))
+                        self.drop_down_menu.choices[2] = [sorted([spec.name for spec in self.er_magic.specs if spec]), False]
+                    if result.samples:
+                        self.grid.SetCellValue(row, 3, ' : '.join([samp.name for samp in result.samples]))
+                        self.drop_down_menu.choices[3] = [sorted([samp.name for samp in self.er_magic.samps if samp]), False]
+                    if result.sites:
+                        self.grid.SetCellValue(row, 4, ' : '.join([site.name for site in result.sites]))
+                        self.drop_down_menu.choices[4] = [sorted([site.name for site in self.er_magic.sites if site]), False]
+                    if result.locations:
+                        self.grid.SetCellValue(row, 5, ' : '.join([loc.name for loc in result.locations]))
+                        self.er_magic.locations.append(False)
+                        self.drop_down_menu.choices[5] = [sorted([loc.name for loc in self.er_magic.locations if loc]), False]
 
         self.Centre()
         self.Show()
@@ -418,13 +431,17 @@ class GridFrame(wx.Frame):
                     header.remove(head)
                     first_headers.append(head)
 
+        # do headers for results type grid
         if self.grid_type == 'result':
             header.remove('pmag_result_name')
-            header[:0] = ['pmag_result_name']
+            header[:0] = ['pmag_result_name', 'er_citation_names', 'er_specimen_names',
+                          'er_sample_names', 'er_site_names', 'er_location_names']
+        # do headers for all other data types without parents
         elif not parent_type:
             lst = ['er_' + self.grid_type + '_name']
             lst.extend(first_headers)
             header[:0] = lst
+        # do headers for all data types with parents
         else:
             lst = ['er_' + self.grid_type + '_name', 'er_' + self.parent_type + '_name']
             lst.extend(first_headers)

@@ -36,6 +36,11 @@ class Menus(object):
         self.selection = [] # [(row, col), (row, col)], sequentially down a column
         self.dispersed_selection = [] # [(row, col), (row, col)], not sequential
         self.col_color = None
+        self.colon_delimited_lst = ['specimen_type', 'specimen_class', 'specimen_lithology',
+                                    'sample_type', 'sample_class', 'sample_lithology',
+                                    'site_type', 'site_class', 'site_lithology',
+                                    'er_specimen_names', 'er_sample_names',
+                                    'er_site_names', 'er_location_names']
         self.InitUI()
 
     def InitUI(self):
@@ -284,11 +289,14 @@ class Menus(object):
         cell_value = grid.GetCellValue(row, col)
         if str(label) == "CLEAR cell of all values":
             label = ""
-        elif (col in range(3, 6) and self.data_type in ['site', 'sample']) or (col == 3 and self.data_type == 'age'):
+
+        col_label = grid.GetColLabelValue(col).strip('**')
+        if col_label in self.colon_delimited_lst and label:
             if not label.lower() in cell_value.lower():
                 label += (":" + cell_value).rstrip(':')
             else:
                 label = cell_value
+
         if self.selected_col and self.selected_col == col:
             for row in range(self.grid.GetNumberRows()):
                 grid.SetCellValue(row, col, label)
