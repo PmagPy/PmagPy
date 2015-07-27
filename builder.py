@@ -25,7 +25,7 @@ class ErMagicBuilder(object):
         self.data_model = validate_upload.get_data_model()
         self.data_lists = {'specimen': [self.specimens, Specimen], 'sample': [self.samples, Sample],
                            'site': [self.sites, Site], 'location': [self.locations, Location],
-                           'age': [self.sites, Site]}
+                           'age': [self.sites, Site], 'result': [self.results, Result]}
         self.results_level = 'site'
         #'age': [self.ages, None]}
 
@@ -86,35 +86,33 @@ class ErMagicBuilder(object):
     #    put_list_value_first(reqd_header, data_type[:-1] + '_name')
     #    return reqd_header, optional_header
     def init_actual_headers(self):
-        if self.specimens:
-            self.er_specimens_header = self.specimens[0].er_data.keys()
-            self.pmag_specimens_header = self.specimens[0].pmag_data.keys()
-        else:
-            self.er_specimens_header = self.er_specimens_reqd_header
-            self.pmag_specimens_header = self.pmag_specimens_reqd_header
-        if self.samples:
-            self.er_samples_header = self.samples[0].er_data.keys()
-            self.pmag_samples_header = self.samples[0].pmag_data.keys()
-        else:
-            self.er_samples_header = self.er_samples_reqd_header
-            self.pmag_samples_header = self.pmag_samples_reqd_header
-        if self.sites:
-            self.er_sites_header = self.sites[0].er_data.keys()
-            self.pmag_sites_header = self.sites[0].pmag_data.keys()
-        else:
-            self.er_sites_header = self.er_sites_reqd_header
-            self.pmag_sites_header = self.pmag_sites_reqd_header
+        def headers(data_list, reqd_er_headers, reqd_pmag_headers):
+            if data_list:
+                er_header = data_list[0].er_data.keys()
+                pmag_header = data_list[0].pmag_data.keys()
+            else:
+                er_header = remove_list_headers(reqd_er_headers)
+                pmag_header = remove_list_headers(reqd_pmag_headers)
+            return er_header, pmag_header
+
+        self.er_specimens_header, self.pmag_specimens_header = headers(self.specimens, self.er_specimens_reqd_header, self.pmag_specimens_reqd_header)
+        self.er_samples_header, self.pmag_samples_header = headers(self.samples, self.er_samples_reqd_header, self.pmag_samples_reqd_header)        
+        self.er_sites_header, self.pmag_sites_header = headers(self.sites, self.er_sites_reqd_header, self.pmag_sites_reqd_header)
+        
         if self.locations:
             self.er_locations_header = self.locations[0].er_data.keys()
         else:
-            self.er_locations_header = self.er_locations_reqd_header
+            self.er_locations_header = remove_list_headers(self.er_locations_reqd_header)
+
         if self.sites:
             self.er_ages_header = self.sites[0].age_data.keys()
         else:
-            self.er_ages_header = self.er_ages_reqd_header
+            self.er_ages_header = remove_list_headers(self.er_ages_reqd_header)
 
-        # NEED TO GET RESULTS HEADER here
-        self.pmag_results_header = self.pmag_results_reqd_header
+        if self.results:
+            self.pmag_results_header = self.results[0].pmag_data.keys()
+        else:
+            self.pmag_results_header = remove_list_headers(self.pmag_results_reqd_header)
 
 
 
@@ -413,7 +411,7 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
                 parent_name = data_dict[child_name]['er_' + parent_type + '_name']
                 parent = self.find_by_name(parent_name, parent_list)
                 if parent:
-                    parent.remove_headers(parent.er_data)
+                    remove_dict_headers(parent.er_data)
             # if there should be a parent
             # (meaning there is a name for it and the child object should have a parent)
             # but none exists in the data model, go ahead and create that parent object.
@@ -431,7 +429,7 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
                 child.set_parent(parent)
             # add in the appropriate data dictionary
             child.er_data = data_dict[child_name]
-            child.remove_headers(child.er_data)
+            remove_dict_headers(child.er_data)
             #
             if parent and (child not in parent.children):
                 parent.add_child(child)
@@ -462,14 +460,14 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
                 parent_name = data_dict[child_name]['er_' + parent_type + '_name']
                 parent = self.find_by_name(parent_name, parent_list)
                 if parent:
-                    parent.remove_headers(parent.pmag_data)
+                    remove_dict_headers(parent.pmag_data)
             # if there should be a parent
             # (meaning there is a name for it and the child object should have a parent)
             # but none exists in the data model, go ahead and create that parent object.
             elif parent_name and parent_type and not parent:
                 parent = parent_constructor(parent_name, None, data_model=self.data_model)
                 parent_list.append(parent)
-                parent.remove_headers()
+                remove_dict_headers(parent.pmag_data)
             # otherwise there is no parent and none can be created, so use an empty string
             else:
                 parent = ''
@@ -480,7 +478,7 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
                 child_list.append(child)
             # add in the appropriate data dictionary
             child.pmag_data = data_dict[child_name]
-            child.remove_headers(child.pmag_data)
+            remove_dict_headers(child.pmag_data)
             #
             if parent and (child not in parent.children):
                 parent.add_child(child)
@@ -606,10 +604,10 @@ class Pmag_object(object):
         if dtype in ('sample', 'site'):
             self.age_reqd_headers, self.age_optional_headers = self.get_headers('er_ages')
             self.age_data = {key: '' for key in self.age_reqd_headers}
-            self.remove_headers(self.age_data)
+            remove_dict_headers(self.age_data)
 
-        self.remove_headers(self.er_data)
-        self.remove_headers(self.pmag_data)
+        remove_dict_headers(self.er_data)
+        remove_dict_headers(self.pmag_data)
 
     def __repr__(self):
         return self.dtype + ": " + self.name
@@ -627,10 +625,6 @@ class Pmag_object(object):
         optional_headers = sorted([header for header in data_dict.keys() if data_dict[header]['data_status'] != 'Required'])
         return reqd_headers, optional_headers
 
-    def remove_headers(self, data_dict):
-        for header in ['er_specimen_name', 'er_sample_name', 'er_site_name', 'er_location_name']:
-            if header in data_dict.keys():
-                data_dict.pop(header)
 
     def combine_dicts(self, new_dict, old_dict):
         """
@@ -798,10 +792,11 @@ class Result(object):
         self.samples = samples
         self.sites = sites
         self.locations = locations
-        self.data = pmag_data
+        self.pmag_data = pmag_data
+        self.er_data = {}
 
     def __repr__(self):
-        descr = self.data.get('result_description')
+        descr = self.pmag_data.get('result_description')
         return 'Result: {}, {}'.format(self.name, descr)
 
 
@@ -825,3 +820,15 @@ def put_list_value_first(lst, first_value):
     if first_value in lst:
         lst.remove(first_value)
         lst[:0] = [first_value]
+
+def remove_dict_headers(data_dict):
+    for header in ['er_specimen_name', 'er_sample_name', 'er_site_name', 'er_location_name']:
+        if header in data_dict.keys():
+            data_dict.pop(header)
+    return data_dict
+
+def remove_list_headers(data_list):
+    for header in ['er_specimen_name', 'er_sample_name', 'er_site_name', 'er_location_name']:
+        if header in data_list:
+            data_list.remove(header)
+    return data_list

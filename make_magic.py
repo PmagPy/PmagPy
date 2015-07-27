@@ -435,11 +435,6 @@ class GridFrame(wx.Frame):
 
 
     def add_data_to_grid(self):
-        if self.grid_type == 'result':
-            self.grid.add_row()
-            self.grid.size_grid()
-            return False
-        
         rows = sorted(self.er_magic.data_lists[self.grid_type][0])
         self.grid.add_items(rows)
         self.grid.size_grid()
