@@ -319,16 +319,25 @@ class GridFrame(wx.Frame):
                                       style=wx.TE_CENTER, name='msg text')
         self.msg_boxsizer.Add(self.msg_text)
 
+        self.exitButton = wx.Button(self.panel, id=-1, label='Save and quit', name='save_and_quit_btn')
+        self.Bind(wx.EVT_BUTTON, self.onSave, self.exitButton)
+        self.cancelButton = wx.Button(self.panel, id=-1, label='Cancel', name='cancel_btn')
+        self.Bind(wx.EVT_BUTTON, self.onCancelButton, self.cancelButton)
+
         hbox = wx.BoxSizer(wx.HORIZONTAL)
-        col_btn_vbox = wx.StaticBoxSizer(wx.StaticBox(self.panel, -1), wx.VERTICAL)
-        row_btn_vbox = wx.StaticBoxSizer(wx.StaticBox(self.panel, -1), wx.VERTICAL)
+        col_btn_vbox = wx.StaticBoxSizer(wx.StaticBox(self.panel, -1, label='Columns'), wx.VERTICAL)
+        row_btn_vbox = wx.StaticBoxSizer(wx.StaticBox(self.panel, -1, label='Rows'), wx.VERTICAL)
+        main_btn_vbox = wx.StaticBoxSizer(wx.StaticBox(self.panel, -1, label='Manage data'), wx.VERTICAL)
         col_btn_vbox.Add(self.add_col_button, flag=wx.ALL, border=5)
         col_btn_vbox.Add(self.remove_cols_button, flag=wx.ALL, border=5)
         row_btn_vbox.Add(many_rows_box, flag=wx.ALL, border=5)
         row_btn_vbox.Add(self.remove_row_button, flag=wx.ALL, border=5)
         row_btn_vbox.Add(self.deleteRowButton, flag=wx.ALL, border=5)
+        main_btn_vbox.Add(self.exitButton, flag=wx.ALL, border=5)
+        main_btn_vbox.Add(self.cancelButton, flag=wx.ALL, border=5)
         hbox.Add(col_btn_vbox)
         hbox.Add(row_btn_vbox)
+        hbox.Add(main_btn_vbox)
 
         self.panel.Bind(wx.grid.EVT_GRID_LABEL_LEFT_CLICK, self.onLeftClickLabel, self.grid)
 
@@ -621,6 +630,23 @@ class GridFrame(wx.Frame):
         else:
             if event.Col < 0  and self.grid_type != 'age':
                 self.onSelectRow(event)
+
+    def onCancelButton(self, event):
+        if self.grid.changes:
+            dlg1 = wx.MessageDialog(self,caption="Message:", message="Are you sure you want to exit this grid?\nYour changes will not be saved.\n ", style=wx.OK|wx.CANCEL)
+            result = dlg1.ShowModal()
+            if result == wx.ID_OK:
+                dlg1.Destroy()    
+                self.Destroy()
+        else:
+            self.Destroy()
+
+    def onSave(self, event):
+        # do actual save method
+        wx.MessageBox('Saved!', 'Info',
+                      style=wx.OK | wx.ICON_INFORMATION)
+        self.Destroy()
+        
 
 
 

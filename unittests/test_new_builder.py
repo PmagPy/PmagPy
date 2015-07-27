@@ -857,8 +857,6 @@ class TestResult(unittest.TestCase):
         
     def test_update_result_name(self):
         result = self.data1.find_by_name('sr03', self.data1.results)
-        print result
-        print result.pmag_data
         self.assertIn(result, self.data1.results)
         self.data1.change_result(result.name, 'new_name')
         self.assertEqual(result.name, 'new_name')
