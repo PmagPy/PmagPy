@@ -435,7 +435,6 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
                 parent = parent_constructor(parent_name, None, data_model=self.data_model)
                 parent_list.append(parent)
             # otherwise there is no parent and none can be created
-
             child = self.find_by_name(child_name, child_list)
             # if the child object does not exist yet in the data model
             if not child:
@@ -480,7 +479,7 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
             # if there should be a parent
             # (meaning there is a name for it and the child object should have a parent)
             # but none exists in the data model, go ahead and create that parent object.
-            elif parent_name and parent_type and not parent:
+            if parent_name and parent_type and not parent:
                 parent = parent_constructor(parent_name, None, data_model=self.data_model)
                 parent_list.append(parent)
                 remove_dict_headers(parent.pmag_data)
@@ -490,7 +489,7 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
             child = self.find_by_name(child_name, child_list)
             # if the child object does not exist yet in the data model
             if not child:
-                child = child_constructor(child_name, parent_name, data_model=self.data_model)
+                child = child_constructor(child_name, parent, data_model=self.data_model)
                 child_list.append(child)
             # add in the appropriate data dictionary
             child.pmag_data = data_dict[child_name]
@@ -849,15 +848,6 @@ if __name__ == '__main__':
     wd = pmag.get_named_arg_from_sys('-WD', default_val=os.getcwd())
     builder = ErMagicBuilder(wd)
     builder.get_data()
-
-
-    #specimen = Specimen('spec1', 'specimen')
-    #for spec in builder.specimens:
-        #print str(spec) + ' belongs to ' + str(spec.sample) + ' belongs to ' + str(spec.sample.site) + ' belongs to ' + str(spec.sample.site.location)
-    #for site in builder.sites:
-    #    print site, site.samples
-    #    print '--'
-
 
 # Random helper methods that MIGHT belong in pmag.py
 
