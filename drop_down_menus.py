@@ -290,7 +290,7 @@ class Menus(object):
         if str(label) == "CLEAR cell of all values":
             label = ""
 
-        col_label = grid.GetColLabelValue(col).strip('**')
+        col_label = grid.GetColLabelValue(col).strip('**').strip('\nEDIT ALL')
         if col_label in self.colon_delimited_lst and label:
             if not label.lower() in cell_value.lower():
                 label += (":" + cell_value).rstrip(':')

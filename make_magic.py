@@ -380,17 +380,16 @@ class GridFrame(wx.Frame):
                 if result:
                     if result.specimens:
                         self.grid.SetCellValue(row, 2, ' : '.join([spec.name for spec in result.specimens]))
-                        self.drop_down_menu.choices[2] = [sorted([spec.name for spec in self.er_magic.specs if spec]), False]
+                    self.drop_down_menu.choices[2] = [sorted([spec.name for spec in self.er_magic.specimens if spec]), False]
                     if result.samples:
                         self.grid.SetCellValue(row, 3, ' : '.join([samp.name for samp in result.samples]))
-                        self.drop_down_menu.choices[3] = [sorted([samp.name for samp in self.er_magic.samps if samp]), False]
+                    self.drop_down_menu.choices[3] = [sorted([samp.name for samp in self.er_magic.samples if samp]), False]
                     if result.sites:
                         self.grid.SetCellValue(row, 4, ' : '.join([site.name for site in result.sites]))
-                        self.drop_down_menu.choices[4] = [sorted([site.name for site in self.er_magic.sites if site]), False]
+                    self.drop_down_menu.choices[4] = [sorted([site.name for site in self.er_magic.sites if site]), False]
                     if result.locations:
                         self.grid.SetCellValue(row, 5, ' : '.join([loc.name for loc in result.locations]))
-                        self.er_magic.locations.append(False)
-                        self.drop_down_menu.choices[5] = [sorted([loc.name for loc in self.er_magic.locations if loc]), False]
+                    self.drop_down_menu.choices[5] = [sorted([loc.name for loc in self.er_magic.locations if loc]), False]
 
         self.Centre()
         self.Show()
