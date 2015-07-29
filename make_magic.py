@@ -205,7 +205,7 @@ class MainFrame(wx.Frame):
             grid_type = event.GetButtonObj().Name[:-4] # remove '_btn'
         except AttributeError:
             grid_type = self.FindWindowById(event.Id).Name[:-4] # remove ('_btn')
-        self.grid = GridFrame(self.er_magic, self.WD, grid_type, grid_type, self.panel)
+        self.grid_frame = GridFrame(self.er_magic, self.WD, grid_type, grid_type, self.panel)
         #self.on_finish_change_dir(self.change_dir_dialog)
 
 
@@ -411,6 +411,10 @@ class GridFrame(wx.Frame):
         check to see if column is required
         if it is not, delete it from grid
         """
+        er_possible_headers = self.grid_headers[self.grid_type]['er'][2]
+        pmag_possible_headers = self.grid_headers[self.grid_type]['pmag'][2]
+        er_actual_headers = self.grid_headers[self.grid_type]['er'][0]
+        pmag_actual_headers = self.grid_headers[self.grid_type]['pmag'][0]
         col = event.GetCol()
         label = self.grid.GetColLabelValue(col)
         if '**' in label:
@@ -422,6 +426,10 @@ class GridFrame(wx.Frame):
             print 'That header is not required:', label
             #print 'self.grid_headers', self.grid_headers[self.grid_type]
             self.grid.remove_col(col)
+            if label in er_possible_headers:
+                er_actual_headers.remove(label)
+            if label in pmag_possible_headers:
+                pmag_actual_headers.remove(label)
 
     def make_grid(self, parent_type=None):
         """
@@ -457,6 +465,7 @@ class GridFrame(wx.Frame):
 
         grid = magic_grid.MagicGrid(parent=self.panel, name=self.grid_type,
                                     row_labels=[], col_labels=header)
+        grid.do_event_bindings()
         return grid
 
 
@@ -474,23 +483,30 @@ class GridFrame(wx.Frame):
         """
         Show simple dialog that allows user to add a new column name
         """
-        er_items = self.grid_headers[self.grid_type]['er'][2]
-        pmag_items = self.grid_headers[self.grid_type]['pmag'][2]
-        items = sorted(set(er_items).union(pmag_items))
+        er_possible_items = self.grid_headers[self.grid_type]['er'][2]
+        pmag_possible_items = self.grid_headers[self.grid_type]['pmag'][2]
+        possible_items = sorted(set(er_possible_items).union(pmag_possible_items))
+        # don't show col headers that are already used in the grid
+        possible_items = [item for item in possible_items if item not in self.grid.col_labels]
         
-        #dia = pw.TextDialog(self, 'column name: ')
-        dia = pw.ComboboxDialog(self, 'new column name:', items)
+        dia = pw.ComboboxDialog(self, 'new column name:', possible_items)
         result = dia.ShowModal()
         if result == wx.ID_OK:
             name = dia.combobox.GetValue()
             if name:
                 if name not in self.grid.col_labels:
                     self.grid.add_col(name)
+                    # add to appropriate headers list
+                    if name in er_possible_items:
+                        self.grid_headers[self.grid_type]['er'][0].append(name)
+                    if name in pmag_possible_items:
+                        self.grid_headers[self.grid_type]['pmag'][0].append(name)
                 else:
                     pw.simple_warning('You are already using that column header')
             else:
                 pw.simple_warning("New column must have a name")
         self.main_sizer.Fit(self)
+        self.grid.changes = set(range(self.grid.GetNumberRows()))
 
     def on_remove_cols(self, event):
         """
@@ -514,6 +530,7 @@ class GridFrame(wx.Frame):
         self.grid_box.GetStaticBox().SetWindowStyle(wx.DOUBLE_BORDER)
         self.grid.Refresh()
         self.main_sizer.Fit(self) # might not need this one
+        self.grid.changes = set(range(self.grid.GetNumberRows()))
 
 
     def on_add_rows(self, event):

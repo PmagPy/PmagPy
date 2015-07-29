@@ -26,6 +26,15 @@ class ErMagicBuilder(object):
         self.data_lists = {'specimen': [self.specimens, Specimen], 'sample': [self.samples, Sample],
                            'site': [self.sites, Site], 'location': [self.locations, Location],
                            'age': [self.sites, Site], 'result': [self.results, Result]}
+        self.add_methods = {'specimen': self.add_specimen, 'sample': self.add_sample,
+                            'site': self.add_site, 'location': self.add_location,
+                            'age': None, 'result': self.add_result}
+        self.update_methods = {'specimen': self.change_specimen, 'sample': self.change_sample,
+                               'site': self.change_site, 'location': self.change_location,
+                               'age': None, 'result': self.change_result}
+        self.delete_methods = {'specimen': self.delete_specimen, 'sample': self.delete_sample,
+                               'site': self.delete_site, 'location': self.delete_location,
+                               'age': None, 'result': self.delete_result}
         self.results_level = 'site'
         #'age': [self.ages, None]}
 
@@ -96,7 +105,9 @@ class ErMagicBuilder(object):
             return er_header, pmag_header
 
         self.er_specimens_header, self.pmag_specimens_header = headers(self.specimens, self.er_specimens_reqd_header, self.pmag_specimens_reqd_header)
-        self.er_samples_header, self.pmag_samples_header = headers(self.samples, self.er_samples_reqd_header, self.pmag_samples_reqd_header)        
+        
+        self.er_samples_header, self.pmag_samples_header = headers(self.samples, self.er_samples_reqd_header, self.pmag_samples_reqd_header)
+        
         self.er_sites_header, self.pmag_sites_header = headers(self.sites, self.er_sites_reqd_header, self.pmag_sites_reqd_header)
         
         if self.locations:
@@ -113,7 +124,6 @@ class ErMagicBuilder(object):
             self.pmag_results_header = self.results[0].pmag_data.keys()
         else:
             self.pmag_results_header = remove_list_headers(self.pmag_results_reqd_header)
-
 
 
     def change_specimen(self, old_spec_name, new_spec_name,
@@ -276,7 +286,7 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
         location.change_location(new_location_name, new_er_data, new_pmag_data)
         return location
 
-    def add_location(self, location_name, er_data=None, pmag_data=None):
+    def add_location(self, location_name, parent_name=None, er_data=None, pmag_data=None):
         """
         Create a Location object and add it to self.locations.
         """
@@ -298,7 +308,10 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
             site.location = ''
         del location
 
-
+    def add_result(self, result_name, specimens=None, samples=None, sites=None, locations=None, pmag_data=None):
+        result = Result(result_name, specimens, samples, sites, locations, pmag_data)
+        self.results.append(result)
+        
     def delete_result(self, result_name):
         result = self.find_by_name(result_name, self.results)
         if result:
