@@ -349,6 +349,8 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
             return result
     
 
+    ## Methods for reading in data
+
     def get_data(self):
         """
         attempt to read measurements file in working directory.
@@ -398,21 +400,20 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
 
 
 
-
-    def get_er_magic_info(self, child_type, parent_type=None):
+    def get_magic_info(self, child_type, parent_type=None, attr='er'):
         """
-        Read er_*.txt file.
+        Read er_*.txt or pmag_*.txt file.
         Parse information into dictionaries for each item.
-        Then add it to the item object as object.er_data.
+        Then add it to the item object as object.er_data or object.pmag_data.
         """
         parent = ''
-        short_filename = "er_" + child_type + 's.txt'
+        short_filename = attr + '_' + child_type + 's.txt'
         magic_file = os.path.join(self.WD, short_filename)
         magic_name = 'er_' + child_type + '_name'
         if not os.path.isfile(magic_file):
             print '-W- Could not find {} in your working directory {}'.format(short_filename, self.WD)
             return False
-        # get the data from the appropriate er_*.txt file
+        # get the data from the appropriate .txt file
         data_dict = self.read_magic_file(magic_file, magic_name)[0]
         child_list, child_constructor = self.data_lists[child_type]
 
@@ -427,53 +428,6 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
                 parent = self.find_by_name(parent_name, parent_list)
                 if parent:
                     remove_dict_headers(parent.er_data)
-            # if there should be a parent
-            # (meaning there is a name for it and the child object should have a parent)
-            # but none exists in the data model, go ahead and create that parent object.
-            if parent_name and parent_type and not parent:
-                parent = parent_constructor(parent_name, None, data_model=self.data_model)
-                parent_list.append(parent)
-            # otherwise there is no parent and none can be created
-            child = self.find_by_name(child_name, child_list)
-            # if the child object does not exist yet in the data model
-            if not child:
-                child = child_constructor(child_name, parent, data_model=self.data_model)
-                child_list.append(child)
-            else:
-                child.set_parent(parent)
-            # add in the appropriate data dictionary
-            child.er_data = data_dict[child_name]
-            remove_dict_headers(child.er_data)
-            #
-            if parent and (child not in parent.children):
-                parent.add_child(child)
-
-    def get_pmag_magic_info(self, child_type, parent_type=None):
-        """
-        Read pmag_*.txt file.
-        Parse information into dictionaries for each item.
-        Then add it to the item object as object.pmag_data.
-        """
-        short_filename = "pmag_" + child_type + 's.txt'
-        magic_file = os.path.join(self.WD, short_filename)
-        magic_name = 'er_' + child_type + '_name'
-        if not os.path.isfile(magic_file):
-            print '-W- Could not find {} in your working directory {}'.format(short_filename, self.WD)
-            return False
-        # get the data from the appropriate er_*.txt file
-        data_dict = self.read_magic_file(magic_file, magic_name)[0]
-        child_list, child_constructor = self.data_lists[child_type]
-
-        if parent_type:
-            parent_list, parent_constructor = self.data_lists[parent_type]
-        else:
-            parent_list, parent_name = None, None
-        for child_name in data_dict:
-            # if there is a possible parent, try to find parent object in the data model
-            if parent_type:
-                parent_name = data_dict[child_name]['er_' + parent_type + '_name']
-                parent = self.find_by_name(parent_name, parent_list)
-                if parent:
                     remove_dict_headers(parent.pmag_data)
             # if there should be a parent
             # (meaning there is a name for it and the child object should have a parent)
@@ -481,7 +435,6 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
             if parent_name and parent_type and not parent:
                 parent = parent_constructor(parent_name, None, data_model=self.data_model)
                 parent_list.append(parent)
-                remove_dict_headers(parent.pmag_data)
             # otherwise there is no parent and none can be created, so use an empty string
             else:
                 parent = ''
@@ -490,13 +443,18 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
             if not child:
                 child = child_constructor(child_name, parent, data_model=self.data_model)
                 child_list.append(child)
+            else:
+                child.set_parent(parent)
             # add in the appropriate data dictionary
-            child.pmag_data = data_dict[child_name]
-            remove_dict_headers(child.pmag_data)
+            child.__setattr__(attr + '_data', data_dict[child_name])
+            #child.er_data = 
+
+            #remove_dict_headers(child.er_data)
             #
             if parent and (child not in parent.children):
                 parent.add_child(child)
 
+    
     def get_age_info(self, sample_or_site='site'):
         """
         Read er_ages.txt file.
@@ -517,7 +475,6 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
             if not pmag_item:
                 pmag_item = item_constructor(pmag_name, sample_or_site, data_model=self.data_model)
                 items_list.append(pmag_item)
-
             pmag_item.age_data = data_dict[pmag_name]
 
 
@@ -599,6 +556,8 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
                     DATA[tmp_data[sort_by_this_name]] = tmp_data
         fin.close()
         return DATA, header
+
+    
 
 
 

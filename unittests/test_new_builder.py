@@ -136,7 +136,7 @@ class TestSpecimen(unittest.TestCase):
     def test_update_specimen_with_pmag_data(self):
         specimen_name = 'Z35.6a'
         specimen = self.data1.find_by_name('Z35.6a', self.data1.specimens)
-        self.data1.get_pmag_magic_info('specimen', 'sample')
+        self.data1.get_magic_info('specimen', 'sample', 'pmag')
         self.data1.change_specimen(specimen_name, specimen_name, new_pmag_data={'er_fossil_name': 'Mr. Bone'})
         self.assertTrue(specimen)
         # make sure new data is added in 
@@ -149,7 +149,7 @@ class TestSpecimen(unittest.TestCase):
     def test_update_specimen_with_pmag_data_overwrite(self):
         specimen_name = 'Z35.6a'
         specimen = self.data1.find_by_name('Z35.6a', self.data1.specimens)
-        self.data1.get_pmag_magic_info('specimen', 'sample')
+        self.data1.get_magic_info('specimen', 'sample', 'pmag')
         self.data1.change_specimen(specimen_name, specimen_name,
                                    new_pmag_data={'er_fossil_name': 'Mr. Bone'}, replace_data=True)
         self.assertTrue(specimen)
@@ -256,7 +256,9 @@ class TestSpecimen(unittest.TestCase):
         for key in specimen.er_data.keys():
             self.assertEqual('', specimen.er_data[key])
         #self.data1.get_spec_data()
-        self.data1.get_er_magic_info('specimen', 'sample')
+        #self.data1.get_magic_info('specimen', 'sample', 'er')
+        self.data1.get_magic_info('specimen', 'sample', 'er')
+        
         self.assertEqual('This study', specimen.er_data['er_citation_names'])
         self.assertEqual('Archeologic', specimen.er_data['specimen_class'])
         self.assertEqual('s', specimen.er_data['specimen_type'])
@@ -272,7 +274,9 @@ class TestSpecimen(unittest.TestCase):
         self.assertIn('er_citation_names', specimen.pmag_data.keys())
         self.assertNotIn('pmag_rotation_codes', specimen.pmag_data.keys())
         
-        self.data1.get_pmag_magic_info('specimen', 'sample')
+        #self.data1.get_magic_info('specimen', 'sample', 'pmag')
+        self.data1.get_magic_info('specimen', 'sample', 'pmag')
+        print 'specimen.pmag_data', specimen.pmag_data
         
         self.assertIn('measurement_step_max', specimen.pmag_data.keys())
         self.assertEqual(828, int(specimen.pmag_data['measurement_step_max']))
@@ -386,7 +390,7 @@ class TestSample(unittest.TestCase):
     def test_update_sample_with_pmag_data(self):
         sample_name = 'Z35.6'
         sample = self.data1.find_by_name(sample_name, self.data1.samples)
-        self.data1.get_pmag_magic_info('sample', 'site')
+        self.data1.get_magic_info('sample', 'site', 'pmag')
         self.assertIn('magic_instrument_codes', sample.pmag_data.keys())
         self.assertNotIn('er_mineral_names', sample.pmag_data.keys())
         self.data1.change_sample(sample_name, sample_name, new_pmag_data={'er_mineral_names': 'awesome', 'magic_instrument_codes': '12345'})
@@ -481,7 +485,7 @@ class TestSample(unittest.TestCase):
         self.assertTrue(sample.er_data)
         for key in sample.er_data.keys():
             self.assertEqual('', sample.er_data[key])
-        self.data1.get_er_magic_info('sample', 'site')
+        self.data1.get_magic_info('sample', 'site', 'er')
         self.assertEqual('This study', sample.er_data['er_citation_names'])
         self.assertEqual('Archeologic', sample.er_data['sample_class'])
         self.assertEqual('s', sample.er_data['sample_type'])
@@ -495,7 +499,7 @@ class TestSample(unittest.TestCase):
         self.assertTrue(sample.pmag_data)
         for key in sample.pmag_data.keys():
             self.assertEqual('', sample.pmag_data[key])
-        self.data1.get_pmag_magic_info('sample', 'site')
+        self.data1.get_magic_info('sample', 'site', 'pmag')
         data2 = sample.pmag_data
         self.assertEqual(data, data2)
 
@@ -698,7 +702,7 @@ class TestSite(unittest.TestCase):
         self.assertTrue(site.er_data)
         for key in site.er_data.keys():
             self.assertEqual('', site.er_data[key])
-        self.data1.get_er_magic_info('site', 'location')
+        self.data1.get_magic_info('site', 'location', 'er')
         self.assertEqual('This study', site.er_data['er_citation_names'])
         self.assertEqual('Archeologic', site.er_data['site_class'])
         self.assertEqual('Baked Clay', site.er_data['site_type'])
@@ -712,7 +716,7 @@ class TestSite(unittest.TestCase):
         self.assertTrue(site.pmag_data)
         for key in site.pmag_data.keys():
             self.assertEqual('', site.pmag_data[key])
-        self.data1.get_pmag_magic_info('site', 'location')
+        self.data1.get_magic_info('site', 'location', 'pmag')
         data2 = site.pmag_data
         self.assertEqual(data, data2)
 
@@ -827,7 +831,7 @@ class TestLocation(unittest.TestCase):
         self.assertTrue(location.er_data)
         for key in location.er_data.keys():
             self.assertEqual('', location.er_data[key])
-        self.data1.get_er_magic_info('location')
+        self.data1.get_magic_info('location', attr='er')
         self.assertEqual('This study', location.er_data['er_citation_names'])
         self.assertEqual('Lake Core', location.er_data['location_type'])
         self.assertEqual(47.1, float(location.er_data['location_begin_lat']))
@@ -867,16 +871,16 @@ class TestResult(unittest.TestCase):
         self.data1 = builder.ErMagicBuilder(dir_path)
         #self.data1.get_data()
 
-        self.data1.get_er_magic_info('specimen', 'sample')
-        self.data1.get_pmag_magic_info('specimen', 'sample')
+        self.data1.get_magic_info('specimen', 'sample', 'er')
+        self.data1.get_magic_info('specimen', 'sample', 'pmag')
         
-        self.data1.get_er_magic_info('sample', 'site')
-        self.data1.get_pmag_magic_info('sample', 'site')
+        self.data1.get_magic_info('sample', 'site', 'er')
+        self.data1.get_magic_info('sample', 'site', 'pmag')
         
-        self.data1.get_er_magic_info('site', 'location')
-        self.data1.get_pmag_magic_info('site', 'location')
+        self.data1.get_magic_info('site', 'location', 'er')
+        self.data1.get_magic_info('site', 'location', 'pmag')
         
-        self.data1.get_er_magic_info('location')
+        self.data1.get_magic_info('location', attr='er')
         self.data1.get_age_info('site')
 
         self.data1.get_results_info()

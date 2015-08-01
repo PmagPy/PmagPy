@@ -32,16 +32,19 @@ class MainFrame(wx.Frame):
         self.er_magic = builder.ErMagicBuilder(self.WD)
         # initialize magic data object
         self.er_magic.get_data()
-        self.er_magic.get_er_magic_info('specimen', 'sample')
-        self.er_magic.get_pmag_magic_info('specimen', 'sample')
+        #self.er_magic.get_er_magic_info('specimen', 'sample')
+        #self.er_magic.get_pmag_magic_info('specimen', 'sample')
+        self.er_magic.get_magic_info('specimen', 'sample', 'er')
+        self.er_magic.get_magic_info('specimen', 'sample', 'pmag')
         
-        self.er_magic.get_er_magic_info('sample', 'site')
-        self.er_magic.get_pmag_magic_info('sample', 'site')
         
-        self.er_magic.get_er_magic_info('site', 'location')
-        self.er_magic.get_pmag_magic_info('site', 'location')
+        self.er_magic.get_magic_info('sample', 'site', 'er')
+        self.er_magic.get_magic_info('sample', 'site', 'pmag')
         
-        self.er_magic.get_er_magic_info('location')
+        self.er_magic.get_magic_info('site', 'location', 'er')
+        self.er_magic.get_magic_info('site', 'location', 'pmag')
+        
+        self.er_magic.get_magic_info('location', attr='er')
         self.er_magic.get_age_info('site')
 
         self.er_magic.get_results_info()
