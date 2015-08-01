@@ -470,7 +470,7 @@ class GridFrame(wx.Frame):
 
 
     def add_data_to_grid(self):
-        rows = sorted(self.er_magic.data_lists[self.grid_type][0])
+        rows = self.er_magic.data_lists[self.grid_type][0]
         self.grid.add_items(rows)
         self.grid.size_grid()
 
@@ -659,10 +659,79 @@ class GridFrame(wx.Frame):
 
     def onSave(self, event):
         # do actual save method
+
+        if self.drop_down_menu:
+            self.drop_down_menu.clean_up()
+
+        starred_cols = self.grid.remove_starred_labels()
+
+        self.grid.SaveEditControlValue() # locks in value in cell currently edited
+        
+        if self.parent_type:
+            parent_search_list = self.er_magic.data_lists[self.parent_type][0]
+        item_search_list = self.er_magic.data_lists[self.grid_type][0]
+        items_list = []
+        if self.grid.changes:
+            num_cols = self.grid.GetNumberCols()
+
+            for change in self.grid.changes:
+                if change == -1:
+                    continue
+                else:
+                    old_item = self.grid.row_items[change]
+                    new_item_name = self.grid.GetCellValue(change, 0)
+                    new_er_data = {}
+                    new_pmag_data = {}
+                    er_header = self.grid_headers[self.grid_type]['er'][0]
+                    pmag_header = self.grid_headers[self.grid_type]['pmag'][0]
+                    start_num = 2 if self.parent_type else 1
+                    for col in range(start_num, num_cols):
+                        col_label = str(self.grid.GetColLabelValue(col))
+                        value = str(self.grid.GetCellValue(change, col))
+                        #new_data[col_label] = value
+                        if er_header and col_label in er_header:
+                            new_er_data[col_label] = value
+
+                        if pmag_header and col_label in pmag_header:
+                            new_pmag_data[col_label] = value
+
+                    # if there is an item
+                    if isinstance(old_item, str):
+                        old_item_name = None
+                    else:
+                        old_item_name = self.grid.row_items[change].name
+
+                    if self.parent_type:
+                        new_parent_name = self.grid.GetCellValue(change, 1)
+                        new_parent = self.er_magic.find_by_name(new_parent_name, parent_search_list)
+                    else:
+                        new_parent_name = ''
+
+                    # create a new item
+                    if new_item_name and not old_item_name:
+                        print 'make new item named', new_item_name
+                        item = self.er_magic.add_methods[self.grid_type](new_item_name, new_parent_name,
+                                                                         new_er_data, new_pmag_data)
+
+                    # update an existing item
+                    elif new_item_name and old_item_name:
+                        print 'update existing item formerly named', old_item_name, ' to ', new_item_name
+                        item = self.er_magic.update_methods[self.grid_type](old_item_name, new_item_name,
+                                                                            new_parent_name, new_er_data,
+                                                                            new_pmag_data)
+
+        # check here for deleted specimens (or whatever)
+        
+
         wx.MessageBox('Saved!', 'Info',
                       style=wx.OK | wx.ICON_INFORMATION)
         self.Destroy()
+
+
+        # for QuickMagIC er_magic_builder, this happens in ErMagicCheckFrame:
         
+        ## check that all required data is present
+        #validation_errors = self.validate(grid)
 
 
 

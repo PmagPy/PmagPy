@@ -144,6 +144,7 @@ Leaving sample unchanged as: {} for {}""".format(new_sample_name, specimen.sampl
         else:
             new_sample = None
         specimen.change_specimen(new_spec_name, new_sample, new_er_data, new_pmag_data)
+        return specimen
 
     def delete_specimen(self, spec_name):
         """
@@ -190,6 +191,7 @@ Leaving site unchanged as: {} for {}""".format(new_site_name, sample.site or '*e
         else:
             new_site = None
         sample.change_sample(new_samp_name, new_site, new_er_data, new_pmag_data)
+        return sample
 
     def add_sample(self, samp_name, site_name=None, er_data=None, pmag_data=None):
         """
@@ -242,6 +244,7 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
         else:
             new_location = None
         site.change_site(new_site_name, new_location, new_er_data, new_pmag_data)
+        return site
 
     def add_site(self, site_name, location_name=None, er_data=None, pmag_data=None):
         """
@@ -339,6 +342,7 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
                 locations = [self.find_by_name(loc, self.locations) for loc in loc_names]
 
             result.change_result(new_result_name, new_pmag_data, specimens, samples, sites, locations)
+            return result
     
 
     def get_data(self):
