@@ -252,6 +252,8 @@ class GridFrame(wx.Frame):
         self.InitUI()
 
 
+    ## Initialization functions
+    
     def InitUI(self):
         """
         initialize window
@@ -259,31 +261,8 @@ class GridFrame(wx.Frame):
         self.main_sizer = wx.BoxSizer(wx.VERTICAL)
         #self.er_magic = ErMagicBuilder.ErMagicBuilder(self.WD)#,self.Data,self.Data_hierarchy)
 
-        self.grid_headers = {
-            'specimen': {
-                'er': [self.er_magic.er_specimens_header, self.er_magic.er_specimens_reqd_header, self.er_magic.er_specimens_optional_header],
-                'pmag': [self.er_magic.pmag_specimens_header, self.er_magic.pmag_specimens_reqd_header, self.er_magic.pmag_specimens_optional_header]},
-            
-            'sample': {
-                'er': [self.er_magic.er_samples_header, self.er_magic.er_samples_reqd_header, self.er_magic.er_samples_optional_header],
-                'pmag': [self.er_magic.pmag_samples_header, self.er_magic.pmag_samples_reqd_header, self.er_magic.pmag_samples_optional_header]},
-            
-            'site': {
-                'er': [self.er_magic.er_sites_header, self.er_magic.er_sites_reqd_header, self.er_magic.er_sites_optional_header],
-                'pmag': [self.er_magic.pmag_sites_header, self.er_magic.pmag_sites_reqd_header, self.er_magic.pmag_sites_optional_header]},
-
-            'location': {
-                'er': [self.er_magic.er_locations_header, self.er_magic.er_locations_reqd_header, self.er_magic.er_locations_optional_header],
-                'pmag': [[], [], []]},
-            
-            'age': {
-                'er': [self.er_magic.er_ages_header, self.er_magic.er_ages_reqd_header, self.er_magic.er_ages_optional_header],
-                'pmag': [[], [], []]},
-            'result': {
-                'er': [[], [], []],
-                'pmag': [self.er_magic.pmag_results_header, self.er_magic.pmag_results_reqd_header, self.er_magic.pmag_results_optional_header]}
-        }
-
+        self.init_grid_headers()
+        
         self.grid = self.make_grid(self.parent_type)
 
         self.grid.InitUI()
@@ -394,42 +373,32 @@ class GridFrame(wx.Frame):
         self.Centre()
         self.Show()
 
+    def init_grid_headers(self):
+        self.grid_headers = {
+            'specimen': {
+                'er': [self.er_magic.er_specimens_header, self.er_magic.er_specimens_reqd_header, self.er_magic.er_specimens_optional_header],
+                'pmag': [self.er_magic.pmag_specimens_header, self.er_magic.pmag_specimens_reqd_header, self.er_magic.pmag_specimens_optional_header]},
+            
+            'sample': {
+                'er': [self.er_magic.er_samples_header, self.er_magic.er_samples_reqd_header, self.er_magic.er_samples_optional_header],
+                'pmag': [self.er_magic.pmag_samples_header, self.er_magic.pmag_samples_reqd_header, self.er_magic.pmag_samples_optional_header]},
+            
+            'site': {
+                'er': [self.er_magic.er_sites_header, self.er_magic.er_sites_reqd_header, self.er_magic.er_sites_optional_header],
+                'pmag': [self.er_magic.pmag_sites_header, self.er_magic.pmag_sites_reqd_header, self.er_magic.pmag_sites_optional_header]},
 
-    def resize_grid(self, event):
-        event.Skip()
-        num_rows = len(self.grid.row_labels)
-        if num_rows in range(0, 4):
-            height = {0: 70, 1: 70, 2: 90, 3: 110, 4: 130}
-            self.grid.SetSize((-1, height[num_rows]))
-        self.main_sizer.Fit(self)
-        # the last line means you can't resize the window to be bigger
-        # than it naturally sizes to be based on its contents
-        # (since every time a resize event is fired, the .Fit method is also fired)
-
-    def remove_col_label(self, event):
-        """
-        check to see if column is required
-        if it is not, delete it from grid
-        """
-        er_possible_headers = self.grid_headers[self.grid_type]['er'][2]
-        pmag_possible_headers = self.grid_headers[self.grid_type]['pmag'][2]
-        er_actual_headers = self.grid_headers[self.grid_type]['er'][0]
-        pmag_actual_headers = self.grid_headers[self.grid_type]['pmag'][0]
-        col = event.GetCol()
-        label = self.grid.GetColLabelValue(col)
-        if '**' in label:
-            label = label.strip('**')
-        if label in self.grid_headers[self.grid_type]['er'][1] or label in self.grid_headers[self.grid_type]['pmag'][1]:
-            pw.simple_warning("That header is required, and cannot be removed")
-            return False
-        else:
-            print 'That header is not required:', label
-            #print 'self.grid_headers', self.grid_headers[self.grid_type]
-            self.grid.remove_col(col)
-            if label in er_possible_headers:
-                er_actual_headers.remove(label)
-            if label in pmag_possible_headers:
-                pmag_actual_headers.remove(label)
+            'location': {
+                'er': [self.er_magic.er_locations_header, self.er_magic.er_locations_reqd_header, self.er_magic.er_locations_optional_header],
+                'pmag': [[], [], []]},
+            
+            'age': {
+                'er': [self.er_magic.er_ages_header, self.er_magic.er_ages_reqd_header, self.er_magic.er_ages_optional_header],
+                'pmag': [[], [], []]},
+            'result': {
+                'er': [[], [], []],
+                'pmag': [self.er_magic.pmag_results_header, self.er_magic.pmag_results_reqd_header, self.er_magic.pmag_results_optional_header]}
+        }
+        
 
     def make_grid(self, parent_type=None):
         """
@@ -478,6 +447,44 @@ class GridFrame(wx.Frame):
         if not self.grid.row_labels:
             self.grid.add_row()
 
+
+    ##  Grid event methods
+    
+    def resize_grid(self, event):
+        event.Skip()
+        num_rows = len(self.grid.row_labels)
+        if num_rows in range(0, 4):
+            height = {0: 70, 1: 70, 2: 90, 3: 110, 4: 130}
+            self.grid.SetSize((-1, height[num_rows]))
+        self.main_sizer.Fit(self)
+        # the last line means you can't resize the window to be bigger
+        # than it naturally sizes to be based on its contents
+        # (since every time a resize event is fired, the .Fit method is also fired)
+
+    def remove_col_label(self, event):
+        """
+        check to see if column is required
+        if it is not, delete it from grid
+        """
+        er_possible_headers = self.grid_headers[self.grid_type]['er'][2]
+        pmag_possible_headers = self.grid_headers[self.grid_type]['pmag'][2]
+        er_actual_headers = self.grid_headers[self.grid_type]['er'][0]
+        pmag_actual_headers = self.grid_headers[self.grid_type]['pmag'][0]
+        col = event.GetCol()
+        label = self.grid.GetColLabelValue(col)
+        if '**' in label:
+            label = label.strip('**')
+        if label in self.grid_headers[self.grid_type]['er'][1] or label in self.grid_headers[self.grid_type]['pmag'][1]:
+            pw.simple_warning("That header is required, and cannot be removed")
+            return False
+        else:
+            print 'That header is not required:', label
+            #print 'self.grid_headers', self.grid_headers[self.grid_type]
+            self.grid.remove_col(col)
+            if label in er_possible_headers:
+                er_actual_headers.remove(label)
+            if label in pmag_possible_headers:
+                pmag_actual_headers.remove(label)
 
     def on_add_col(self, event):
         """
@@ -647,6 +654,9 @@ class GridFrame(wx.Frame):
             if event.Col < 0  and self.grid_type != 'age':
                 self.onSelectRow(event)
 
+
+    ## Meta buttons -- cancel & save functions
+
     def onCancelButton(self, event):
         if self.grid.changes:
             dlg1 = wx.MessageDialog(self,caption="Message:", message="Are you sure you want to exit this grid?\nYour changes will not be saved.\n ", style=wx.OK|wx.CANCEL)
@@ -703,7 +713,7 @@ class GridFrame(wx.Frame):
 
                     if self.parent_type:
                         new_parent_name = self.grid.GetCellValue(change, 1)
-                        new_parent = self.er_magic.find_by_name(new_parent_name, parent_search_list)
+                        #new_parent = self.er_magic.find_by_name(new_parent_name, parent_search_list)
                     else:
                         new_parent_name = ''
 
@@ -718,7 +728,7 @@ class GridFrame(wx.Frame):
                         print 'update existing item formerly named', old_item_name, ' to ', new_item_name
                         item = self.er_magic.update_methods[self.grid_type](old_item_name, new_item_name,
                                                                             new_parent_name, new_er_data,
-                                                                            new_pmag_data)
+                                                                            new_pmag_data, replace_data=True)
 
         # check here for deleted specimens (or whatever)
         
