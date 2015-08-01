@@ -66,11 +66,7 @@ class Menus(object):
         if self.data_type == 'result':
             self.choices = {}
 
-
         self.window.Bind(wx.grid.EVT_GRID_CELL_LEFT_CLICK, lambda event: self.on_left_click(event, self.grid, self.choices), self.grid)
-
-        ## now doing the binding below in pmag_er_magic_dialogs:
-        #self.window.Bind(wx.grid.EVT_GRID_LABEL_LEFT_CLICK, self.on_label_click, self.grid)
 
         #
         cols = self.grid.GetNumberCols()
@@ -108,8 +104,6 @@ class Menus(object):
                     self.choices[col_number] = (stripped_list, two_tiered)
 
 
-
-
     def on_label_click(self, event):
         col = event.GetCol()
         color = self.grid.GetCellBackgroundColour(0, col)
@@ -139,7 +133,6 @@ class Menus(object):
                 for row in range(self.grid.GetNumberRows()):
                     self.grid.SetCellBackgroundColour(row, col, 'light blue')
                 self.grid.ForceRefresh()
-        #has_dropdown = ((col == 2 and self.data_type is 'specimen') or (col in range(2, 6) and self.data_type in ['site', 'sample']) or (col in (3, 5) and self.data_type == 'age') or (col == 6 and self.data_type == 'site') or (col == 1 and self.data_type in ['location']))
         has_dropdown = False
         if col in self.choices.keys():
             has_dropdown = True
@@ -290,7 +283,7 @@ class Menus(object):
         if str(label) == "CLEAR cell of all values":
             label = ""
 
-        col_label = grid.GetColLabelValue(col).strip('**').strip('\nEDIT ALL')
+        col_label = grid.GetColLabelValue(col).strip('\nEDIT ALL').strip('**')
         if col_label in self.colon_delimited_lst and label:
             if not label.lower() in cell_value.lower():
                 label += (":" + cell_value).rstrip(':')
