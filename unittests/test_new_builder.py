@@ -145,6 +145,20 @@ class TestSpecimen(unittest.TestCase):
         # make sure old data hasn't disappeared
         self.assertIn('magic_experiment_names', specimen.pmag_data.keys())
         self.assertEqual('Z35.6a:LP-DIR-T', specimen.pmag_data['magic_experiment_names'])
+
+    def test_update_specimen_with_pmag_data_overwrite(self):
+        specimen_name = 'Z35.6a'
+        specimen = self.data1.find_by_name('Z35.6a', self.data1.specimens)
+        self.data1.get_pmag_magic_info('specimen', 'sample')
+        self.data1.change_specimen(specimen_name, specimen_name,
+                                   new_pmag_data={'er_fossil_name': 'Mr. Bone'}, replace_data=True)
+        self.assertTrue(specimen)
+        # make sure new data is added in 
+        self.assertIn('er_fossil_name', specimen.pmag_data.keys())
+        self.assertEqual('Mr. Bone', specimen.pmag_data['er_fossil_name'])
+        # make sure old data has disappeared
+        self.assertNotIn('magic_experiment_names', specimen.pmag_data.keys())
+
         
 
     def test_update_specimen_with_invalid_sample(self):
@@ -354,6 +368,21 @@ class TestSample(unittest.TestCase):
         self.data1.change_sample(sample_name, sample_name, new_er_data={'sample_type': 'cool'})
         self.assertEqual('cool', sample.er_data['sample_type'])
 
+    def test_update_sample_with_er_data_overwrite(self):
+        sample_name = 'Z35.6'
+        sample = self.data1.find_by_name(sample_name, self.data1.samples)
+
+        self.data1.change_sample(sample_name, sample_name, new_er_data={'sample_type': 'awesome', 'sample_alteration_type': 'awesomer'})
+        sample = self.data1.find_by_name(sample_name, self.data1.samples)
+        self.assertTrue(sample)
+        self.assertIn('sample_alteration_type', sample.er_data.keys())
+        self.assertEqual('awesomer', sample.er_data['sample_alteration_type'])
+        self.assertEqual('awesome', sample.er_data['sample_type'])
+        # make sure data is overwritten
+        self.data1.change_sample(sample_name, sample_name,
+                                 new_er_data={'sample_lithology': 'good'}, replace_data=True)
+        self.assertNotIn('sample_alteration_type', sample.er_data.keys())
+
     def test_update_sample_with_pmag_data(self):
         sample_name = 'Z35.6'
         sample = self.data1.find_by_name(sample_name, self.data1.samples)
@@ -368,7 +397,6 @@ class TestSample(unittest.TestCase):
         self.assertEqual('awesome', sample.pmag_data['er_mineral_names'])
         self.assertIn('magic_instrument_codes', sample.pmag_data.keys())
         self.assertEqual('12345', sample.pmag_data['magic_instrument_codes'])
-
         
     def test_update_sample_with_invalid_site(self):
         sample_name = 'Z35.6'
@@ -582,6 +610,22 @@ class TestSite(unittest.TestCase):
         self.assertIn('magic_method_codes', site.pmag_data.keys())
         self.assertEqual('code', site.pmag_data['magic_method_codes'])
 
+    def test_update_site_with_pmag_data_overwrite(self):
+        sample_name = 'Z35.6'
+        site_name = 'Z35.'
+        location_name = 'locale'
+        site = self.data1.find_by_name(site_name, self.data1.sites)
+        location = self.data1.find_by_name(location_name, self.data1.locations)
+        self.assertIn('magic_method_codes', site.pmag_data.keys())
+        self.assertFalse(site.pmag_data['magic_method_codes'])
+        self.assertNotIn('site_sigma', site.pmag_data.keys())
+        self.data1.change_site(site_name, 'new_site', new_pmag_data={'site_sigma': 3}, replace_data=True)
+
+        self.assertIn('site_sigma', site.pmag_data.keys())
+        self.assertEqual(3, site.pmag_data['site_sigma'])
+        self.assertNotIn('magic_method_codes', site.pmag_data.keys())
+
+
 
         
     def test_update_site_invalid_location(self):
@@ -720,6 +764,20 @@ class TestLocation(unittest.TestCase):
         self.data1.change_location(location_name, location_name, {'continent_ocean': 'Atlantic'})
         self.assertEqual('Atlantic', location.er_data['continent_ocean'])
 
+
+    def test_update_location_with_er_data_overwrite(self):
+        location_name = 'locale'
+        location = self.data1.find_by_name(location_name, self.data1.locations)
+        self.assertIn('location_type', location.er_data.keys())
+        self.assertEqual('', location.er_data['location_type'])
+        self.data1.change_location(location_name, location_name,
+                                   new_er_data={'continent_ocean': 'Indian'},
+                                   replace_data=True)
+        self.assertNotIn('location_type', location.er_data.keys())
+        self.assertIn('continent_ocean', location.er_data.keys())
+        self.assertEqual('Indian', location.er_data['continent_ocean'])
+
+        
     def test_update_location_with_data_and_name_change(self):
         location_name = 'locale'
         new_location_name = 'new_locale'

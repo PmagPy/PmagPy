@@ -127,7 +127,8 @@ class ErMagicBuilder(object):
 
 
     def change_specimen(self, old_spec_name, new_spec_name,
-                        new_sample_name=None, new_er_data=None, new_pmag_data=None):
+                        new_sample_name=None, new_er_data=None, new_pmag_data=None,
+                        replace_data=False):
         """
         Find actual data objects for specimen and sample.
         Then call Specimen class change method to update specimen name and data.
@@ -143,7 +144,7 @@ class ErMagicBuilder(object):
 Leaving sample unchanged as: {} for {}""".format(new_sample_name, specimen.sample or '*empty*', specimen)
         else:
             new_sample = None
-        specimen.change_specimen(new_spec_name, new_sample, new_er_data, new_pmag_data)
+        specimen.change_specimen(new_spec_name, new_sample, new_er_data, new_pmag_data, replace_data)
         return specimen
 
     def delete_specimen(self, spec_name):
@@ -173,7 +174,8 @@ Leaving sample unchanged as: {} for {}""".format(new_sample_name, specimen.sampl
             sample.specimens.append(specimen)
         return specimen
 
-    def change_sample(self, old_samp_name, new_samp_name, new_site_name=None, new_er_data=None, new_pmag_data=None):
+    def change_sample(self, old_samp_name, new_samp_name, new_site_name=None,
+                      new_er_data=None, new_pmag_data=None, replace_data=False):
         """
         Find actual data objects for sample and site.
         Then call Sample class change method to update sample name and data..
@@ -190,7 +192,7 @@ Leaving site unchanged as: {} for {}""".format(new_site_name, sample.site or '*e
                 new_site = None
         else:
             new_site = None
-        sample.change_sample(new_samp_name, new_site, new_er_data, new_pmag_data)
+        sample.change_sample(new_samp_name, new_site, new_er_data, new_pmag_data, replace_data)
         return sample
 
     def add_sample(self, samp_name, site_name=None, er_data=None, pmag_data=None):
@@ -222,7 +224,8 @@ Leaving site unchanged as: {} for {}""".format(new_site_name, sample.site or '*e
         for spec in specimens:
             spec.sample = ""
 
-    def change_site(self, old_site_name, new_site_name, new_location_name=None, new_er_data=None, new_pmag_data=None):
+    def change_site(self, old_site_name, new_site_name, new_location_name=None,
+                    new_er_data=None, new_pmag_data=None, replace_data=False):
         """
         Find actual data objects for site and location.
         Then call the Site class change method to update site name and data.
@@ -243,7 +246,7 @@ Leaving site unchanged as: {} for {}""".format(new_site_name, sample.site or '*e
 Leaving location unchanged as: {} for {}""".format(new_site_name, site.location or '*empty*', site)
         else:
             new_location = None
-        site.change_site(new_site_name, new_location, new_er_data, new_pmag_data)
+        site.change_site(new_site_name, new_location, new_er_data, new_pmag_data, replace_data)
         return site
 
     def add_site(self, site_name, location_name=None, er_data=None, pmag_data=None):
@@ -277,7 +280,8 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
             samp.site = ''
         del site
 
-    def change_location(self, old_location_name, new_location_name, new_er_data=None, new_pmag_data=None):
+    def change_location(self, old_location_name, new_location_name, new_er_data=None,
+                        new_pmag_data=None, replace_data=False):
         """
         Find actual data object for location with old_location_name.
         Then call Location class change method to update location name and data.
@@ -286,7 +290,7 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
         if not location:
             print '-W- {} is not a currently existing location, so it cannot be updated.'.format(old_location_name)
             return False
-        location.change_location(new_location_name, new_er_data, new_pmag_data)
+        location.change_location(new_location_name, new_er_data, new_pmag_data, replace_data)
         return location
 
     def add_location(self, location_name, parent_name=None, er_data=None, pmag_data=None):
@@ -657,6 +661,18 @@ class Pmag_object(object):
         optional_headers = sorted([header for header in data_dict.keys() if data_dict[header]['data_status'] != 'Required'])
         return reqd_headers, optional_headers
 
+    def update_data(self, er_data=None, pmag_data=None, replace_data=False):
+        if er_data:
+            if replace_data:
+                self.er_data = er_data
+            else:
+                self.er_data = self.combine_dicts(er_data, self.er_data)
+        if pmag_data:
+            if replace_data:
+                self.pmag_data = pmag_data
+            else:
+                self.pmag_data = self.combine_dicts(pmag_data, self.pmag_data)
+
 
     def combine_dicts(self, new_dict, old_dict):
         """
@@ -704,16 +720,13 @@ class Specimen(Pmag_object):
                 raise Exception
         return new_samp
 
-    def change_specimen(self, new_name, new_sample=None, er_data=None, pmag_data=None):
+    def change_specimen(self, new_name, new_sample=None, er_data=None, pmag_data=None, replace_data=False):
         self.name = new_name
         if new_sample:
             self.sample.specimens.remove(self)
             self.sample = new_sample
             self.sample.specimens.append(self)
-        if er_data:
-            self.er_data = self.combine_dicts(er_data, self.er_data)
-        if pmag_data:
-            self.pmag_data = self.combine_dicts(pmag_data, self.pmag_data)    
+        self.update_data(er_data, pmag_data, replace_data)
 
 
 class Sample(Pmag_object):
@@ -742,17 +755,17 @@ class Sample(Pmag_object):
         self.site = new_site
         return new_site
         
-    def change_sample(self, new_name, new_site=None, er_data=None, pmag_data=None):
+    def change_sample(self, new_name, new_site=None, er_data=None, pmag_data=None, replace_data=False):
         self.name = new_name
         if new_site:
             if self.site:
                 self.site.samples.remove(self)
             self.site = new_site
             self.site.samples.append(self)
-        if er_data:
-            self.er_data = self.combine_dicts(er_data, self.er_data)
-        if pmag_data:
-            self.pmag_data = self.combine_dicts(pmag_data, self.pmag_data)    
+        self.update_data(er_data, pmag_data, replace_data)
+
+
+                
 
 
 class Site(Pmag_object):
@@ -779,14 +792,17 @@ class Site(Pmag_object):
         return new_loc
 
         
-    def change_site(self, new_name, new_location=None, new_er_data=None, new_pmag_data=None):
+    def change_site(self, new_name, new_location=None, new_er_data=None,
+                    new_pmag_data=None, replace_data=False):
+        """
+        Update a site's name, location, er_data, and pmag_data.
+        By default, new data will be added in to pre-existing data, overwriting existing values.
+        If replace_data is True, the new data dictionary will simply take the place of the existing dict.
+        """
         self.name = new_name
         if new_location:
             self.location = new_location
-        if new_er_data:
-            self.er_data = self.combine_dicts(new_er_data, self.er_data)
-        if new_pmag_data:
-            self.pmag_data = self.combine_dicts(new_pmag_data, self.pmag_data)    
+        self.update_data(new_er_data, new_pmag_data, replace_data)
 
 
 class Location(Pmag_object):
@@ -810,10 +826,11 @@ class Location(Pmag_object):
         return False
 
         
-    def change_location(self, new_name, new_er_data=None, new_pmag_data=None):
+    def change_location(self, new_name, new_er_data=None, new_pmag_data=None, replace_data=False):
         self.name = new_name
-        if new_er_data:
-            self.er_data = self.combine_dicts(new_er_data, self.er_data)
+        #if new_er_data:
+        #    self.er_data = self.combine_dicts(new_er_data, self.er_data)
+        self.update_data(new_er_data, new_pmag_data, replace_data)
 
 class Result(object):
 
