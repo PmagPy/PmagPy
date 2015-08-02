@@ -36,8 +36,20 @@ class ErMagicBuilder(object):
         self.delete_methods = {'specimen': self.delete_specimen, 'sample': self.delete_sample,
                                'site': self.delete_site, 'location': self.delete_location,
                                'age': None, 'result': self.delete_result}
-        self.results_level = 'site'
-        #'age': [self.ages, None]}
+        self.headers = {
+            'specimen': {'er': [[], [], []], 'pmag': [[], [], []]},
+            
+            'sample': {'er': [[], [], []], 'pmag': [[], [], []]},
+            
+            'site': {'er': [[], [], []], 'pmag': [[], [], []]},
+            
+            'location': {'er': [[], [], []], 'pmag': [[], [], []]},
+            
+            'age': {'er': [[], [], []], 'pmag': [[], [], []]},
+
+            'result': {'er': [[], [], []], 'pmag': [[], [], []]}
+        }
+
 
 
     def find_by_name(self, item_name, items_list):
@@ -55,28 +67,23 @@ class ErMagicBuilder(object):
         initialize default required headers.
         if there were any pre-existing headers, keep them also.
         """
-        self.headers = {}
         if not self.data_model:
             self.data_model = validate_upload.get_data_model()
             if not self.data_model:
                 pw.simple_warning("Can't access MagIC-data-model at the moment.\nIf you are working offline, make sure MagIC-data-model.txt is in your PmagPy directory (or download it from https://github.com/ltauxe/PmagPy and put it in your PmagPy directory).\nOtherwise, check your internet connection")
                 return False
 
-        # header should contain all required headers, plus any already in the file
-
-        self.er_specimens_reqd_header, self.er_specimens_optional_header = self.get_headers('er_specimens')
-        self.er_samples_reqd_header, self.er_samples_optional_header = self.get_headers('er_samples')
-        self.er_sites_reqd_header, self.er_sites_optional_header = self.get_headers('er_sites')
-        self.er_locations_reqd_header, self.er_locations_optional_header = self.get_headers('er_locations')
-        self.er_ages_reqd_header, self.er_ages_optional_header = self.get_headers('er_ages')
-
-        self.pmag_results_reqd_header, self.pmag_results_optional_header = self.get_headers('pmag_results')
-        self.pmag_specimens_reqd_header, self.pmag_specimens_optional_header = self.get_headers('pmag_specimens')
-        self.pmag_samples_reqd_header, self.pmag_samples_optional_header = self.get_headers('pmag_samples')
-        self.pmag_sites_reqd_header, self.pmag_sites_optional_header = self.get_headers('pmag_sites')
-
-        self.er_specimens_header, self.er_samples_header, self.er_sites_header, self.er_locations_header, self.er_ages_header = [], [], [], [], []
-        self.pmag_specimens_header, self.pmag_samples_header, self.pmag_sites_header, self.pmag_results_header = [], [], [], []
+        # actual is at position 0, reqd is at position 1, optional at position 2
+        self.headers['specimen']['er'][1], self.headers['specimen']['er'][2] = self.get_headers('er_specimens')
+        self.headers['sample']['er'][1], self.headers['sample']['er'][2] = self.get_headers('er_samples')
+        self.headers['site']['er'][1], self.headers['site']['er'][2] = self.get_headers('er_sites')
+        self.headers['location']['er'][1], self.headers['location']['er'][2] = self.get_headers('er_locations')
+        self.headers['age']['er'][1], self.headers['age']['er'][2] = self.get_headers('er_ages')
+        
+        self.headers['result']['pmag'][1], self.headers['result']['pmag'][2] = self.get_headers('pmag_results')
+        self.headers['specimen']['pmag'][1], self.headers['specimen']['pmag'][2] = self.get_headers('pmag_specimens')
+        self.headers['sample']['pmag'][1], self.headers['sample']['pmag'][2] = self.get_headers('pmag_samples')
+        self.headers['site']['pmag'][1], self.headers['site']['pmag'][2] = self.get_headers('pmag_sites')
 
 
     def get_headers(self, data_type):
@@ -89,12 +96,6 @@ class ErMagicBuilder(object):
         return reqd_headers, optional_headers
 
 
-    #def get_headers(self, data_type, current_header):
-    #    reqd_header, optional_header = self.get_reqd_and_optional_headers(data_type)
-    #    # combine already existing header with required header
-    #    full_header = list(set(current_header).union(reqd_header))
-    #    put_list_value_first(reqd_header, data_type[:-1] + '_name')
-    #    return reqd_header, optional_header
     def init_actual_headers(self):
         def headers(data_list, reqd_er_headers, reqd_pmag_headers):
             if data_list:
@@ -105,26 +106,26 @@ class ErMagicBuilder(object):
                 pmag_header = remove_list_headers(reqd_pmag_headers)
             return er_header, pmag_header
 
-        self.er_specimens_header, self.pmag_specimens_header = headers(self.specimens, self.er_specimens_reqd_header, self.pmag_specimens_reqd_header)
-        
-        self.er_samples_header, self.pmag_samples_header = headers(self.samples, self.er_samples_reqd_header, self.pmag_samples_reqd_header)
-        
-        self.er_sites_header, self.pmag_sites_header = headers(self.sites, self.er_sites_reqd_header, self.pmag_sites_reqd_header)
+        self.headers['specimen']['er'][0], self.headers['specimen']['pmag'][0] = headers(self.specimens, self.headers['specimen']['er'][1], self.headers['specimen']['pmag'][1])
+
+        self.headers['sample']['er'][0], self.headers['sample']['pmag'][0] = headers(self.samples, self.headers['sample']['er'][1], self.headers['sample']['pmag'][1])
+
+        self.headers['site']['er'][0], self.headers['site']['pmag'][0] = headers(self.sites, self.headers['site']['er'][1], self.headers['site']['pmag'][1])
         
         if self.locations:
-            self.er_locations_header = self.locations[0].er_data.keys()
+            self.headers['location']['er'][0] = self.locations[0].er_data.keys()
         else:
-            self.er_locations_header = remove_list_headers(self.er_locations_reqd_header)
+            self.headers['location']['er'][0] = remove_list_headers(self.headers['location']['er'][1])
 
         if self.sites:
-            self.er_ages_header = self.sites[0].age_data.keys()
+            self.headers['age']['er'][0] = self.sites[0].age_data.keys()
         else:
-            self.er_ages_header = remove_list_headers(self.er_ages_reqd_header)
+            self.headers['age']['er'][0] = remove_list_headers(self.headers['location']['er'][1])
 
         if self.results:
-            self.pmag_results_header = self.results[0].pmag_data.keys()
+            self.headers['result']['pmag'][0] = self.results[0].pmag_data.keys()
         else:
-            self.pmag_results_header = remove_list_headers(self.pmag_results_reqd_header)
+            self.headers['result']['pmag'][0] = remove_list_headers(self.headers['result']['pmag'][1])
 
 
     def change_specimen(self, old_spec_name, new_spec_name,
@@ -458,7 +459,8 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
             child.__setattr__(attr + '_data', data_dict[child_name])
             #child.er_data = 
 
-            #remove_dict_headers(child.er_data)
+            remove_dict_headers(child.er_data)
+            remove_dict_headers(child.pmag_data)
             #
             if parent and (child not in parent.children):
                 parent.add_child(child)

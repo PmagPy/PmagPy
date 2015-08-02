@@ -39,14 +39,14 @@ class TestMainFrame(unittest.TestCase):
         self.assertFalse(self.frame.er_magic.sites)
         self.assertFalse(self.frame.er_magic.locations)
 
-        self.assertTrue(self.frame.er_magic.er_specimens_header)
-        self.assertTrue(self.frame.er_magic.er_specimens_reqd_header)
-        self.assertTrue(self.frame.er_magic.pmag_specimens_header)
-        self.assertTrue(self.frame.er_magic.pmag_specimens_reqd_header)
+        self.assertTrue(self.frame.er_magic.headers['specimen']['er'][0])
+        self.assertTrue(self.frame.er_magic.headers['specimen']['er'][1])
+        self.assertTrue(self.frame.er_magic.headers['specimen']['pmag'][0])
+        self.assertTrue(self.frame.er_magic.headers['specimen']['pmag'][1])
 
     def test_pmag_results(self):
-        self.assertTrue(self.frame.er_magic.pmag_results_header)
-        self.assertTrue(self.frame.er_magic.pmag_results_reqd_header)
+        self.assertTrue(self.frame.er_magic.headers['result']['pmag'][0])#pmag_results_header)
+        self.assertTrue(self.frame.er_magic.headers['result']['pmag'][1])#pmag_results_reqd_header)
 
     def test_specimen_button(self):
         window = self.does_top_window_exist(self.pnl, 'specimen_btn', 'specimen')
@@ -167,14 +167,14 @@ class TestMainFrameWithData(unittest.TestCase):
         self.assertTrue(self.frame.er_magic.sites)
         self.assertTrue(self.frame.er_magic.locations)
 
-        self.assertTrue(self.frame.er_magic.er_specimens_header)
-        self.assertTrue(self.frame.er_magic.er_specimens_reqd_header)
-        self.assertTrue(self.frame.er_magic.pmag_specimens_header)
-        self.assertTrue(self.frame.er_magic.pmag_specimens_reqd_header)
-        self.assertTrue(self.frame.er_magic.pmag_samples_header)
-        self.assertTrue(self.frame.er_magic.er_samples_header)
-        self.assertTrue(self.frame.er_magic.pmag_sites_header)
-        self.assertTrue(self.frame.er_magic.er_sites_header)
+        self.assertTrue(self.frame.er_magic.headers['specimen']['er'][0])#er_specimens_header)
+        self.assertTrue(self.frame.er_magic.headers['specimen']['er'][1])#er_specimens_reqd_header)
+        self.assertTrue(self.frame.er_magic.headers['specimen']['pmag'][0])#pmag_specimens_header)
+        self.assertTrue(self.frame.er_magic.headers['specimen']['pmag'][1])#pmag_specimens_reqd_header)
+        self.assertTrue(self.frame.er_magic.headers['sample']['pmag'][0])#pmag_samples_header)
+        self.assertTrue(self.frame.er_magic.headers['sample']['er'][1])#er_samples_header)
+        self.assertTrue(self.frame.er_magic.headers['site']['pmag'][0])#pmag_sites_header)#
+        self.assertTrue(self.frame.er_magic.headers['site']['er'][0])#er_sites_header)
 
         specimen = self.frame.er_magic.specimens[0]
         sample = self.frame.er_magic.samples[0]
@@ -194,8 +194,8 @@ class TestMainFrameWithData(unittest.TestCase):
         #self.assertTrue(self.frame.er_magic.pmag_results_reqd_header)
 
     def test_pmag_results(self):
-        self.assertTrue(self.frame.er_magic.pmag_results_header)
-        self.assertTrue(self.frame.er_magic.pmag_results_reqd_header)
+        self.assertTrue(self.frame.er_magic.headers['result']['pmag'][0])#pmag_results_header)
+        self.assertTrue(self.frame.er_magic.headers['result']['pmag'][1])#pmag_results_reqd_header)
 
 
 

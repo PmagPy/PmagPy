@@ -362,31 +362,9 @@ class GridFrame(wx.Frame):
         self.Centre()
         self.Show()
 
-    def init_grid_headers(self):
-        self.grid_headers = {
-            'specimen': {
-                'er': [self.er_magic.er_specimens_header, self.er_magic.er_specimens_reqd_header, self.er_magic.er_specimens_optional_header],
-                'pmag': [self.er_magic.pmag_specimens_header, self.er_magic.pmag_specimens_reqd_header, self.er_magic.pmag_specimens_optional_header]},
-            
-            'sample': {
-                'er': [self.er_magic.er_samples_header, self.er_magic.er_samples_reqd_header, self.er_magic.er_samples_optional_header],
-                'pmag': [self.er_magic.pmag_samples_header, self.er_magic.pmag_samples_reqd_header, self.er_magic.pmag_samples_optional_header]},
-            
-            'site': {
-                'er': [self.er_magic.er_sites_header, self.er_magic.er_sites_reqd_header, self.er_magic.er_sites_optional_header],
-                'pmag': [self.er_magic.pmag_sites_header, self.er_magic.pmag_sites_reqd_header, self.er_magic.pmag_sites_optional_header]},
 
-            'location': {
-                'er': [self.er_magic.er_locations_header, self.er_magic.er_locations_reqd_header, self.er_magic.er_locations_optional_header],
-                'pmag': [[], [], []]},
-            
-            'age': {
-                'er': [self.er_magic.er_ages_header, self.er_magic.er_ages_reqd_header, self.er_magic.er_ages_optional_header],
-                'pmag': [[], [], []]},
-            'result': {
-                'er': [[], [], []],
-                'pmag': [self.er_magic.pmag_results_header, self.er_magic.pmag_results_reqd_header, self.er_magic.pmag_results_optional_header]}
-        }
+    def init_grid_headers(self):
+        self.grid_headers = self.er_magic.headers
         
 
     def make_grid(self, parent_type=None):
