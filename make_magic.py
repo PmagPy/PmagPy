@@ -30,24 +30,10 @@ class MainFrame(wx.Frame):
         self.WD = os.path.realpath(WD) or os.getcwd()
         
         self.er_magic = builder.ErMagicBuilder(self.WD)
-        # initialize magic data object
-        self.er_magic.get_data()
-        #self.er_magic.get_er_magic_info('specimen', 'sample')
-        #self.er_magic.get_pmag_magic_info('specimen', 'sample')
-        self.er_magic.get_magic_info('specimen', 'sample', 'er')
-        self.er_magic.get_magic_info('specimen', 'sample', 'pmag')
-        
-        
-        self.er_magic.get_magic_info('sample', 'site', 'er')
-        self.er_magic.get_magic_info('sample', 'site', 'pmag')
-        
-        self.er_magic.get_magic_info('site', 'location', 'er')
-        self.er_magic.get_magic_info('site', 'location', 'pmag')
-        
-        self.er_magic.get_magic_info('location', attr='er')
-        self.er_magic.get_age_info('site')
 
-        self.er_magic.get_results_info()
+        # initialize magic data object
+        # attempt to read magic_measurements.txt, and all er_* and pmag_* files
+        self.er_magic.get_all_magic_info()
         
         # POSSIBLY RELOCATE THIS EVENTUALLY:
         self.er_magic.init_default_headers()
@@ -239,14 +225,14 @@ class GridFrame(wx.Frame):
         self.panel = wx.Panel(self, name=panel_name, size=wx.GetDisplaySize())
         self.grid_type = panel_name
 
-        ancestry = [None, 'specimen', 'sample', 'site', 'location', None]
+        #ancestry = [None, 'specimen', 'sample', 'site', 'location', None]
         if self.grid_type == 'age':
             self.child_type = 'sample'
             self.parent_type = 'location'
         else:
             try:
-                self.child_type = ancestry[ancestry.index(self.grid_type) - 1]
-                self.parent_type = ancestry[ancestry.index(self.grid_type) + 1]
+                self.child_type = self.er_magic.ancestry[self.er_magic.ancestry.index(self.grid_type) - 1]
+                self.parent_type = self.er_magic.ancestry[self.er_magic.ancestry.index(self.grid_type) + 1]
             except ValueError:
                 self.child_type = None
                 self.parent_type = None

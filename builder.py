@@ -22,6 +22,7 @@ class ErMagicBuilder(object):
         self.locations = []
         self.results = []
         #self.ages = []
+        self.ancestry = [None, 'specimen', 'sample', 'site', 'location', None]
         self.data_model = validate_upload.get_data_model()
         self.data_lists = {'specimen': [self.specimens, Specimen], 'sample': [self.samples, Sample],
                            'site': [self.sites, Site], 'location': [self.locations, Location],
@@ -399,7 +400,15 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
                 location.sites.append(site)
 
 
-
+    def get_all_magic_info(self):
+        self.get_data()
+        for child, parent in [('specimen', 'sample'), ('sample', 'site'),
+                              ('site', 'location'), ('location', '')]:
+            self.get_magic_info(child, parent, 'er')
+            self.get_magic_info(child, parent, 'pmag')
+        self.get_age_info()
+        self.get_results_info()
+                
     def get_magic_info(self, child_type, parent_type=None, attr='er'):
         """
         Read er_*.txt or pmag_*.txt file.
