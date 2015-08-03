@@ -323,7 +323,9 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
             self.results.remove(result)
             del result
             
-    def change_result(self, old_result_name, new_result_name, new_er_data=None, new_pmag_data=None, spec_names=None, samp_names=None, site_names=None, loc_names=None):
+    def change_result(self, old_result_name, new_result_name, new_er_data=None,
+                      new_pmag_data=None, spec_names=None, samp_names=None,
+                      site_names=None, loc_names=None, replace_data=False):
         """
         Find actual data object for result with old_result_name.
         Then call Result class change method to update result name and data.
@@ -343,10 +345,10 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
             if loc_names:
                 locations = [self.find_by_name(loc, self.locations) for loc in loc_names]
 
-            result.change_result(new_result_name, new_pmag_data, specimens, samples, sites, locations)
+            result.change_result(new_result_name, new_pmag_data, specimens, samples,
+                                 sites, locations, replace_data)
             return result
     
-
     ## Methods for reading in data
 
     def get_data(self):
@@ -560,7 +562,83 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
         fin.close()
         return DATA, header
 
-    
+    def write_magic_file(self, dtype, do_er=True, do_pmag=True):
+        if dtype == 'location':
+            do_pmag = False
+        
+        # make header
+        add_headers = []
+        ind = self.ancestry.index(dtype)
+        for i in range(ind, len(self.ancestry) - 1):
+            add_headers.append('er_' + self.ancestry[i] + "_name")
+        er_actual_headers = self.headers[dtype]['er'][0]
+        pmag_actual_headers = self.headers[dtype]['pmag'][0]
+        er_full_headers = add_headers[:]
+        er_full_headers.extend(er_actual_headers)
+        pmag_full_headers = add_headers[:]
+        pmag_full_headers.extend(pmag_actual_headers)
+        
+        er_header_string = '\t'.join(er_full_headers)
+        pmag_header_string = '\t'.join(pmag_full_headers)
+        er_start = 'er_' + dtype + 's'
+        pmag_start = 'pmag_' + dtype + 's'
+        er_strings = []
+        pmag_strings = []
+        
+        items_list = self.data_lists[dtype][0]
+        for item in items_list[:2]:
+            ancestors = []
+            ancestors = ['' for num in range(len(self.ancestry) - (ind+2))]
+            parent = self.ancestry[ind+1]
+            parent = item.get_parent()
+            grandparent, greatgrandparent = None, None
+            if parent:
+                ancestors[0] = parent.name
+                grandparent = parent.get_parent()
+                if grandparent:
+                    ancestors[1] = grandparent.name
+                    greatgrandparent = grandparent.get_parent()
+                    if greatgrandparent:
+                        ancestors[2] = greatgrandparent.name
+            er_string = ''
+            pmag_string = ''
+
+            if do_er:
+                er_string += item.name + '\t'
+                for ancestor in ancestors:
+                    er_string += ancestor + '\t'
+
+                for key in er_actual_headers:
+                    er_string += item.er_data[key] + '\t'
+                er_strings.append(er_string)
+                
+            if do_pmag:
+                pmag_string += item.name + '\t'
+                for ancestor in ancestors:
+                    pmag_string += ancestor + '\t'
+
+                for key in pmag_actual_headers:
+                    pmag_string += item.pmag_data[key] + '\t'
+                pmag_strings.append(pmag_string)
+
+        if do_pmag:
+            pmag_outfile = open(os.path.join(self.WD, 'new_' + pmag_start + '.txt'), 'w')
+            pmag_outfile.write(pmag_start + '\n')
+            pmag_outfile.write(pmag_header_string + '\n')
+            for string in pmag_strings:
+                pmag_outfile.write(string + '\n')
+            pmag_outfile.close()
+
+        if do_er:
+            er_outfile = open(os.path.join(self.WD, 'new_' + er_start + '.txt'), 'w')
+            er_outfile.write(er_start + '\n')
+            er_outfile.write(er_header_string + '\n')
+            for string in er_strings:
+                er_outfile.write(string + '\n')
+            er_outfile.close()
+
+    def write_result_file(self):
+        pass
 
 
 
@@ -817,9 +895,9 @@ class Result(object):
             except KeyError:
                 combined_data_dict[k] = old_dict[k]
         return combined_data_dict
-
     
-    def change_result(self, new_name, new_pmag_data=None, specs=None, samps=None, sites=None, locs=None):
+    def change_result(self, new_name, new_pmag_data=None, specs=None, samps=None,
+                      sites=None, locs=None, replace_data=False):
         self.name = new_name
         if new_pmag_data:
             self.pmag_data = self.combine_dicts(new_pmag_data, self.pmag_data)

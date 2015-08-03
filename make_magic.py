@@ -291,6 +291,14 @@ class GridFrame(wx.Frame):
         self.Bind(wx.EVT_BUTTON, self.onSave, self.exitButton)
         self.cancelButton = wx.Button(self.panel, id=-1, label='Cancel', name='cancel_btn')
         self.Bind(wx.EVT_BUTTON, self.onCancelButton, self.cancelButton)
+        self.pmag_checkbox = pw.check_box(self.panel,
+                                         "Interpretations at {} level".format(self.grid_type))
+        if self.grid_type in ('location', 'result'):
+            self.pmag_checkbox.cb.SetValue(False)
+            self.pmag_checkbox.cb.Disable()
+        else:
+            self.pmag_checkbox.cb.SetValue(True)
+            self.Bind(wx.EVT_CHECKBOX, self.on_pmag_checkbox, self.pmag_checkbox.cb)
 
         hbox = wx.BoxSizer(wx.HORIZONTAL)
         col_btn_vbox = wx.StaticBoxSizer(wx.StaticBox(self.panel, -1, label='Columns'), wx.VERTICAL)
@@ -303,6 +311,7 @@ class GridFrame(wx.Frame):
         row_btn_vbox.Add(self.deleteRowButton, flag=wx.ALL, border=5)
         main_btn_vbox.Add(self.exitButton, flag=wx.ALL, border=5)
         main_btn_vbox.Add(self.cancelButton, flag=wx.ALL, border=5)
+        main_btn_vbox.Add(self.pmag_checkbox, flag=wx.ALL, border=5)
         hbox.Add(col_btn_vbox)
         hbox.Add(row_btn_vbox)
         hbox.Add(main_btn_vbox)
@@ -428,11 +437,12 @@ class GridFrame(wx.Frame):
         # than it naturally sizes to be based on its contents
         # (since every time a resize event is fired, the .Fit method is also fired)
 
-    def remove_col_label(self, event):
+    def remove_col_label(self, event):#, include_pmag=True):
         """
         check to see if column is required
         if it is not, delete it from grid
         """
+        include_pmag = self.pmag_checkbox.cb.IsChecked()
         er_possible_headers = self.grid_headers[self.grid_type]['er'][2]
         pmag_possible_headers = self.grid_headers[self.grid_type]['pmag'][2]
         er_actual_headers = self.grid_headers[self.grid_type]['er'][0]
@@ -441,7 +451,10 @@ class GridFrame(wx.Frame):
         label = self.grid.GetColLabelValue(col)
         if '**' in label:
             label = label.strip('**')
-        if label in self.grid_headers[self.grid_type]['er'][1] or label in self.grid_headers[self.grid_type]['pmag'][1]:
+        if label in self.grid_headers[self.grid_type]['er'][1]:
+            pw.simple_warning("That header is required, and cannot be removed")
+            return False
+        elif include_pmag and label in self.grid_headers[self.grid_type]['pmag'][1]:
             pw.simple_warning("That header is required, and cannot be removed")
             return False
         else:
@@ -449,9 +462,15 @@ class GridFrame(wx.Frame):
             #print 'self.grid_headers', self.grid_headers[self.grid_type]
             self.grid.remove_col(col)
             if label in er_possible_headers:
-                er_actual_headers.remove(label)
+                try:
+                    er_actual_headers.remove(label)
+                except ValueError:
+                    pass
             if label in pmag_possible_headers:
-                pmag_actual_headers.remove(label)
+                try:
+                    pmag_actual_headers.remove(label)
+                except ValueError:
+                    pass
 
     def on_add_col(self, event):
         """
@@ -624,6 +643,9 @@ class GridFrame(wx.Frame):
 
     ## Meta buttons -- cancel & save functions
 
+    def on_pmag_checkbox(self, event):
+        pass
+    
     def onCancelButton(self, event):
         if self.grid.changes:
             dlg1 = wx.MessageDialog(self,caption="Message:", message="Are you sure you want to exit this grid?\nYour changes will not be saved.\n ", style=wx.OK|wx.CANCEL)
@@ -662,6 +684,7 @@ class GridFrame(wx.Frame):
                     er_header = self.grid_headers[self.grid_type]['er'][0]
                     pmag_header = self.grid_headers[self.grid_type]['pmag'][0]
                     start_num = 2 if self.parent_type else 1
+
                     for col in range(start_num, num_cols):
                         col_label = str(self.grid.GetColLabelValue(col))
                         value = str(self.grid.GetCellValue(change, col))
@@ -696,13 +719,16 @@ class GridFrame(wx.Frame):
                         item = self.er_magic.update_methods[self.grid_type](old_item_name, new_item_name,
                                                                             new_parent_name, new_er_data,
                                                                             new_pmag_data, replace_data=True)
-
-        # check here for deleted specimens (or whatever)
-        
-
         wx.MessageBox('Saved!', 'Info',
                       style=wx.OK | wx.ICON_INFORMATION)
-        self.Destroy()
+        
+        do_pmag = self.pmag_checkbox.cb.IsChecked()
+        if self.grid_type == 'result':
+            self.er_magic.write_result_file()
+            return False
+        self.er_magic.write_magic_file(self.grid_type, do_pmag=do_pmag)
+        return False
+        #self.Destroy()
 
 
         # for QuickMagIC er_magic_builder, this happens in ErMagicCheckFrame:
