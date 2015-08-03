@@ -51,7 +51,6 @@ class ErMagicBuilder(object):
         }
 
 
-
     def find_by_name(self, item_name, items_list):
         """
         Return item from items_list with name item_name.
@@ -85,7 +84,6 @@ class ErMagicBuilder(object):
         self.headers['sample']['pmag'][1], self.headers['sample']['pmag'][2] = self.get_headers('pmag_samples')
         self.headers['site']['pmag'][1], self.headers['site']['pmag'][2] = self.get_headers('pmag_sites')
 
-
     def get_headers(self, data_type):
         try:
             data_dict = self.data_model[data_type]
@@ -94,7 +92,6 @@ class ErMagicBuilder(object):
         reqd_headers = sorted([header for header in data_dict.keys() if data_dict[header]['data_status'] == 'Required'])
         optional_headers = sorted([header for header in data_dict.keys() if data_dict[header]['data_status'] != 'Required'])
         return reqd_headers, optional_headers
-
 
     def init_actual_headers(self):
         def headers(data_list, reqd_er_headers, reqd_pmag_headers):
@@ -126,7 +123,6 @@ class ErMagicBuilder(object):
             self.headers['result']['pmag'][0] = self.results[0].pmag_data.keys()
         else:
             self.headers['result']['pmag'][0] = remove_list_headers(self.headers['result']['pmag'][1])
-
 
     def change_specimen(self, old_spec_name, new_spec_name,
                         new_sample_name=None, new_er_data=None, new_pmag_data=None,
@@ -400,7 +396,6 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
             if not self.find_by_name(site_name, location.sites):
                 location.sites.append(site)
 
-
     def get_all_magic_info(self):
         self.get_data()
         for child, parent in [('specimen', 'sample'), ('sample', 'site'),
@@ -446,7 +441,7 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
                 parent = parent_constructor(parent_name, None, data_model=self.data_model)
                 parent_list.append(parent)
             # otherwise there is no parent and none can be created, so use an empty string
-            else:
+            elif not parent:
                 parent = ''
             child = self.find_by_name(child_name, child_list)
             # if the child object does not exist yet in the data model
@@ -465,7 +460,6 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
             if parent and (child not in parent.children):
                 parent.add_child(child)
 
-    
     def get_age_info(self, sample_or_site='site'):
         """
         Read er_ages.txt file.
@@ -487,7 +481,6 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
                 pmag_item = item_constructor(pmag_name, sample_or_site, data_model=self.data_model)
                 items_list.append(pmag_item)
             pmag_item.age_data = data_dict[pmag_name]
-
 
     def get_results_info(self):
         """
@@ -536,7 +529,6 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
             result_item = Result(name, specimens, samples, sites, locations, result)
             self.results.append(result_item)
                     
-
     def read_magic_file(self, path, sort_by_this_name):
         """
         read a magic-formatted tab-delimited file.
@@ -605,7 +597,6 @@ class Pmag_object(object):
             self.results_data = self.combine_dicts(results_data, results_reqd_data)
         else:
             self.results_data = None
-                            
 
         if dtype in ('sample', 'site'):
             self.age_reqd_headers, self.age_optional_headers = self.get_headers('er_ages')
@@ -643,7 +634,6 @@ class Pmag_object(object):
             else:
                 self.pmag_data = self.combine_dicts(pmag_data, self.pmag_data)
 
-
     def combine_dicts(self, new_dict, old_dict):
         """
         returns a dictionary with all key, value pairs from new_dict.
@@ -664,7 +654,6 @@ class Pmag_object(object):
     def add_child(self, child):
         if 'children' in dir(self):
             self.children.append(child)
-
 
 
 class Specimen(Pmag_object):
@@ -735,9 +724,6 @@ class Sample(Pmag_object):
         self.update_data(er_data, pmag_data, replace_data)
 
 
-                
-
-
 class Site(Pmag_object):
 
     """
@@ -760,7 +746,6 @@ class Site(Pmag_object):
                 raise Exception
         self.location = new_loc
         return new_loc
-
         
     def change_site(self, new_name, new_location=None, new_er_data=None,
                     new_pmag_data=None, replace_data=False):
@@ -788,13 +773,11 @@ class Location(Pmag_object):
         self.sites = []
         self.children = self.sites
 
-
     def get_parent(self):
         return False
 
     def set_parent(self, parent=None):
         return False
-
         
     def change_location(self, new_name, new_er_data=None, new_pmag_data=None, replace_data=False):
         self.name = new_name
@@ -813,7 +796,6 @@ class Result(object):
         self.locations = locations
         self.pmag_data = pmag_data
         self.er_data = {}
-
 
     def __repr__(self):
         descr = self.pmag_data.get('result_description')
@@ -845,7 +827,6 @@ class Result(object):
         self.samples = samps
         self.sites = sites
         self.locations = locs
-
 
 
 if __name__ == '__main__':
