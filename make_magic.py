@@ -257,7 +257,7 @@ class GridFrame(wx.Frame):
         self.grid.InitUI()
 
         if self.parent_type:
-            belongs_to = sorted(self.er_magic.data_lists[self.parent_type][0])
+            belongs_to = sorted(self.er_magic.data_lists[self.parent_type][0], key=lambda item: item.name)
         else:
             belongs_to = ''
         self.drop_down_menu = drop_down_menus.Menus(self.grid_type, self, self.grid, belongs_to)
