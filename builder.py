@@ -571,8 +571,8 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
         ind = self.ancestry.index(dtype)
         for i in range(ind, len(self.ancestry) - 1):
             add_headers.append('er_' + self.ancestry[i] + "_name")
-        er_actual_headers = self.headers[dtype]['er'][0]
-        pmag_actual_headers = self.headers[dtype]['pmag'][0]
+        er_actual_headers = sorted(self.headers[dtype]['er'][0])
+        pmag_actual_headers = sorted(self.headers[dtype]['pmag'][0])
         er_full_headers = add_headers[:]
         er_full_headers.extend(er_actual_headers)
         pmag_full_headers = add_headers[:]
@@ -638,14 +638,14 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
             er_outfile.close()
 
     def write_result_file(self):
-        actual_headers = self.headers['result']['pmag'][0]
-        add_headers = ['er_specimen_names', 'er_sample_names', 'er_site_names', 'er_location_names']
-        full_headers = actual_headers[:]
-        full_headers.extend(add_headers)
+        actual_headers = sorted(self.headers['result']['pmag'][0])
+        add_headers = ['pmag_result_name', 'er_specimen_names', 'er_sample_names',
+                       'er_site_names', 'er_location_names']
+        full_headers = add_headers[:]
+        full_headers.extend(actual_headers)
         header_string = '\t'.join(full_headers)
         results = self.data_lists['result'][0]
         result_strings = []
-
 
         def get_item_string(result_items_list):
             if not result_items_list:
@@ -661,9 +661,7 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
 
         for result in results:
             result_string = ''
-            for key in actual_headers:
-                result_string += result.pmag_data[key] + '\t'
-
+            result_string += result.name + '\t'
             spec_str = get_item_string(result.specimens)
             samp_str = get_item_string(result.samples)
             site_str = get_item_string(result.sites)
@@ -671,6 +669,9 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
             items = [spec_str, samp_str, site_str, loc_str]
             for item in items:
                 result_string += item + '\t'
+            for key in actual_headers:
+                result_string += result.pmag_data[key] + '\t'
+
             result_strings.append(result_string)
 
         outfile = open(os.path.join(self.WD, 'new_pmag_results.txt'), 'w')
@@ -959,7 +960,8 @@ def put_list_value_first(lst, first_value):
         lst[:0] = [first_value]
 
 def remove_dict_headers(data_dict):
-    for header in ['er_specimen_name', 'er_sample_name', 'er_site_name', 'er_location_name']:
+    for header in ['er_specimen_name', 'er_sample_name', 'er_site_name',
+                   'er_location_name', 'pmag_result_name']:
         if header in data_dict.keys():
             data_dict.pop(header)
     return data_dict
