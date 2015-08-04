@@ -684,6 +684,7 @@ class GridFrame(wx.Frame):
                     er_header = self.grid_headers[self.grid_type]['er'][0]
                     pmag_header = self.grid_headers[self.grid_type]['pmag'][0]
                     start_num = 2 if self.parent_type else 1
+                    result_data = {}
 
                     for col in range(start_num, num_cols):
                         col_label = str(self.grid.GetColLabelValue(col))
@@ -694,6 +695,10 @@ class GridFrame(wx.Frame):
 
                         if pmag_header and col_label in pmag_header:
                             new_pmag_data[col_label] = value
+
+                        if col_label in ['er_specimen_names', 'er_sample_names',
+                                         'er_site_names', 'er_location_names']:
+                            result_data[col_label] = value
 
                     # if there is an item
                     if isinstance(old_item, str):
@@ -716,19 +721,35 @@ class GridFrame(wx.Frame):
                     # update an existing item
                     elif new_item_name and old_item_name:
                         print 'update existing item formerly named', old_item_name, ' to ', new_item_name
-                        item = self.er_magic.update_methods[self.grid_type](old_item_name, new_item_name,
-                                                                            new_parent_name, new_er_data,
-                                                                            new_pmag_data, replace_data=True)
+                        if self.grid_type == 'result':
+                            specimens = result_data['er_specimen_names'].split(":")
+                            samples = result_data['er_sample_names'].split(":")
+                            sites = result_data['er_site_names'].split(":")
+                            locations = result_data['er_location_names'].split(":")
+                            item = self.er_magic.update_methods['result'](old_item_name, new_item_name,
+                                                                          new_er_data=None,
+                                                                          new_pmag_data=new_pmag_data,
+                                                                          spec_names=specimens,
+                                                                          samp_names=samples,
+                                                                          site_names=sites,
+                                                                          loc_names=locations,
+                                                                          replace_data=True)
+                        else:
+                            item = self.er_magic.update_methods[self.grid_type](old_item_name, new_item_name,
+                                                                                new_parent_name, new_er_data,
+                                                                                new_pmag_data, replace_data=True)
         wx.MessageBox('Saved!', 'Info',
                       style=wx.OK | wx.ICON_INFORMATION)
-        
-        do_pmag = self.pmag_checkbox.cb.IsChecked()
+
         if self.grid_type == 'result':
             self.er_magic.write_result_file()
             return False
+            self.Destroy()
+        
+        do_pmag = self.pmag_checkbox.cb.IsChecked()
         self.er_magic.write_magic_file(self.grid_type, do_pmag=do_pmag)
         return False
-        #self.Destroy()
+        self.Destroy()
 
 
         # for QuickMagIC er_magic_builder, this happens in ErMagicCheckFrame:

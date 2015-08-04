@@ -638,8 +638,47 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
             er_outfile.close()
 
     def write_result_file(self):
-        pass
+        actual_headers = self.headers['result']['pmag'][0]
+        add_headers = ['er_specimen_names', 'er_sample_names', 'er_site_names', 'er_location_names']
+        full_headers = actual_headers[:]
+        full_headers.extend(add_headers)
+        header_string = '\t'.join(full_headers)
+        results = self.data_lists['result'][0]
+        result_strings = []
 
+
+        def get_item_string(result_items_list):
+            if not result_items_list:
+                return ''
+            string_list = []
+            for item in result_items_list:
+                try:
+                    name = item.name
+                    string_list.append(name)
+                except AttributeError:
+                    pass
+            return ":".join(string_list)
+
+        for result in results:
+            result_string = ''
+            for key in actual_headers:
+                result_string += result.pmag_data[key] + '\t'
+
+            spec_str = get_item_string(result.specimens)
+            samp_str = get_item_string(result.samples)
+            site_str = get_item_string(result.sites)
+            loc_str = get_item_string(result.locations)
+            items = [spec_str, samp_str, site_str, loc_str]
+            for item in items:
+                result_string += item + '\t'
+            result_strings.append(result_string)
+
+        outfile = open(os.path.join(self.WD, 'new_pmag_results.txt'), 'w')
+        outfile.write('pmag_results\n')
+        outfile.write(header_string + '\n')
+        for string in result_strings:
+            outfile.write(string + '\n')
+        outfile.close()
 
 
 class Pmag_object(object):
@@ -865,8 +904,8 @@ class Location(Pmag_object):
 
 class Result(object):
 
-    def __init__(self, name, specimens=None, samples=None,
-                 sites=None, locations=None, pmag_data=None):
+    def __init__(self, name, specimens='', samples='',
+                 sites='', locations='', pmag_data=None):
         self.name = name
         self.specimens = specimens
         self.samples = samples
