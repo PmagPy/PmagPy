@@ -586,7 +586,7 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
         pmag_strings = []
         
         items_list = self.data_lists[dtype][0]
-        for item in items_list[:2]:
+        for item in items_list[:]:
             ancestors = []
             ancestors = ['' for num in range(len(self.ancestry) - (ind+2))]
             parent = self.ancestry[ind+1]
@@ -622,7 +622,7 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
                 pmag_strings.append(pmag_string)
 
         if do_pmag:
-            pmag_outfile = open(os.path.join(self.WD, 'new_' + pmag_start + '.txt'), 'w')
+            pmag_outfile = open(os.path.join(self.WD, pmag_start + '.txt'), 'w')
             pmag_outfile.write(pmag_start + '\n')
             pmag_outfile.write(pmag_header_string + '\n')
             for string in pmag_strings:
@@ -630,7 +630,7 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
             pmag_outfile.close()
 
         if do_er:
-            er_outfile = open(os.path.join(self.WD, 'new_' + er_start + '.txt'), 'w')
+            er_outfile = open(os.path.join(self.WD, er_start + '.txt'), 'w')
             er_outfile.write(er_start + '\n')
             er_outfile.write(er_header_string + '\n')
             for string in er_strings:
@@ -674,7 +674,7 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
 
             result_strings.append(result_string)
 
-        outfile = open(os.path.join(self.WD, 'new_pmag_results.txt'), 'w')
+        outfile = open(os.path.join(self.WD, 'pmag_results.txt'), 'w')
         outfile.write('pmag_results\n')
         outfile.write(header_string + '\n')
         for string in result_strings:
