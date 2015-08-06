@@ -4,7 +4,7 @@ doc string
 """
 
 # pylint: disable=C0103
-
+print '-I- Importing dependencies'
 import wx
 import wx.lib.buttons as buttons
 import sys
@@ -27,18 +27,23 @@ class MainFrame(wx.Frame):
         wx.Frame.__init__(self, None, wx.ID_ANY, name=name)
 
         self.panel = wx.Panel(self, size=wx.GetDisplaySize(), name='main panel')
+        print '-I- Fetching working directory'
         self.WD = os.path.realpath(WD) or os.getcwd()
-        
+
+        print '-I- Initializing magic data object'
         self.er_magic = builder.ErMagicBuilder(self.WD)
 
         # initialize magic data object
         # attempt to read magic_measurements.txt, and all er_* and pmag_* files
+        print '-I- Read in any available dating from working directory'
         self.er_magic.get_all_magic_info()
         
         # POSSIBLY RELOCATE THIS EVENTUALLY:
+        print '-I- Initializing headers'
         self.er_magic.init_default_headers()
         self.er_magic.init_actual_headers()
         #
+        print '-I- Initializing interface'
         self.InitUI()
 
 
@@ -814,6 +819,7 @@ if __name__ == "__main__":
     #app = wx.App(redirect=True, filename="beta_log.log")
     # if redirect is true, wxpython makes its own output window for stdout/stderr
     #app = wx.PySimpleApp(redirect=False)
+    print '-I- Creating application'
     app = wx.App(redirect=False)
     working_dir = pmag.get_named_arg_from_sys('-WD', '.')
     app.frame = MainFrame(working_dir)

@@ -10,13 +10,13 @@ vocab_types = ['lithology', 'class', 'type', 'location_type', 'age_unit', 'site_
 
 try:
     controlled_vocabularies = []
-    
+
+    print '-I- Importing controlled vocabularies from http://earthref.org'
+    url = 'http://api.earthref.org/MAGIC/vocabularies.json'
+    data = pd.io.json.read_json(url)
+    possible_vocabularies = data.columns
+
     for vocab in vocab_types:
-
-        url = 'http://api.earthref.org/MAGIC/vocabularies.json'
-        data = pd.io.json.read_json(url)
-        possible_vocabularies = data.columns
-
         url = 'http://api.earthref.org/MAGIC/vocabularies/{}.json'.format(vocab)
         data = pd.io.json.read_json(url)
         stripped_list = [item['item'] for item in data[vocab][0]]

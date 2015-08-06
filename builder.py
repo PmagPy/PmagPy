@@ -927,7 +927,10 @@ class Result(object):
         self.er_data = {}
 
     def __repr__(self):
-        descr = self.pmag_data.get('result_description')
+        if pmag_data:
+            descr = self.pmag_data.get('result_description')
+        else:
+            descr = ''
         return 'Result: {}, {}'.format(self.name, descr)
 
     def combine_dicts(self, new_dict, old_dict):
