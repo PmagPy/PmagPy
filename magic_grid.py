@@ -72,6 +72,9 @@ class MagicGrid(wx.grid.Grid):
                 for n, col in enumerate(self.col_labels[1:]):
                     if col in data_dict[row].keys():
                         value = data_dict[row][col]
+                        # set defaults
+                        if col == 'er_citation_names' and not value:
+                            value = 'This study'
                     else:
                         value = ''
                     if value:
