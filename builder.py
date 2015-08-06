@@ -611,7 +611,7 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
 
                 for key in er_actual_headers:
                     add_string = item.er_data[key] + '\t'
-                    if key == 'er_citation_names' and not add_string:
+                    if key == 'er_citation_names' and not add_string.strip('\t'):
                         add_string = 'This study'
                     er_string += add_string + '\t'
                 er_strings.append(er_string)
@@ -624,7 +624,7 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
                 for key in pmag_actual_headers:
                     add_string = item.pmag_data[key]
                     # add default values
-                    if key == 'er_citation_names' and not add_string:
+                    if key == 'er_citation_names' and not add_string.strip('\t'):
                         add_string = 'This study'
                     pmag_string += add_string + '\t'
                 pmag_strings.append(pmag_string)
@@ -679,7 +679,7 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
                 result_string += item + '\t'
             for key in actual_headers:
                 add_string = result.pmag_data[key]
-                if key == 'er_citation_names' and not add_string:
+                if key == 'er_citation_names' and not add_string.strip('\t'):
                     add_string = 'This study'
                 result_string += add_string + '\t'
 
