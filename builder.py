@@ -315,7 +315,7 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
         del location
 
     def add_result(self, result_name, specimens=None, samples=None, sites=None, locations=None, pmag_data=None):
-        result = Result(result_name, specimens, samples, sites, locations, pmag_data)
+        result = Result(result_name, specimens, samples, sites, locations, pmag_data, self.data_model)
         self.results.append(result)
         
     def delete_result(self, result_name):
@@ -691,6 +691,7 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
         for string in result_strings:
             outfile.write(string + '\n')
         outfile.close()
+        return True
 
 
 class Pmag_object(object):
@@ -916,23 +917,52 @@ class Location(Pmag_object):
 
 class Result(object):
 
-    def __init__(self, name, specimens='', samples='',
-                 sites='', locations='', pmag_data=None):
+    def __init__(self, name, specimens='', samples='', sites='',
+                 locations='', pmag_data=None, data_model=None):
+        if not data_model:
+            self.data_model = validate_upload.get_data_model()
+        else:
+            self.data_model = data_model
         self.name = name
         self.specimens = specimens
         self.samples = samples
         self.sites = sites
         self.locations = locations
-        self.pmag_data = pmag_data
         self.er_data = {}
 
-    def __repr__(self):
+        pmag_name = 'pmag_results'
+        self.pmag_reqd_headers, self.pmag_optional_headers = self.get_headers(pmag_name)
+        #self.results_reqd_headers, self.results_optional_headers = self.get_headers('pmag_results')
+        
+        pmag_reqd_data = {key: '' for key in self.pmag_reqd_headers}
+        #results_reqd_data = {key: '' for key in self.results_reqd_headers}
+
         if pmag_data:
+            self.pmag_data = self.combine_dicts(pmag_data, pmag_reqd_data)
+        else:
+            self.pmag_data = pmag_reqd_data
+
+    def __repr__(self):
+        if self.pmag_data:
             descr = self.pmag_data.get('result_description')
         else:
             descr = ''
         return 'Result: {}, {}'.format(self.name, descr)
 
+    def get_headers(self, data_type):
+        """
+        If data model not present, get data model from Earthref site or PmagPy directory.
+        Return a list of required headers and optional headers for given data type.
+        """
+        try:
+            data_dict = self.data_model[data_type]
+        except KeyError:
+            return [], []
+        reqd_headers = sorted([header for header in data_dict.keys() if data_dict[header]['data_status'] == 'Required'])
+        optional_headers = sorted([header for header in data_dict.keys() if data_dict[header]['data_status'] != 'Required'])
+        return reqd_headers, optional_headers
+
+    
     def combine_dicts(self, new_dict, old_dict):
         """
         returns a dictionary with all key, value pairs from new_dict.

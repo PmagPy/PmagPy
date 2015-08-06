@@ -709,7 +709,7 @@ class GridFrame(wx.Frame):
 
     def onSave(self, event):
         # do actual save method
-
+        
         if self.drop_down_menu:
             self.drop_down_menu.clean_up()
 
@@ -789,11 +789,11 @@ class GridFrame(wx.Frame):
                             item = self.er_magic.update_methods[self.grid_type](old_item_name, new_item_name,
                                                                                 new_parent_name, new_er_data,
                                                                                 new_pmag_data, replace_data=True)
-        wx.MessageBox('Saved!', 'Info',
-                      style=wx.OK | wx.ICON_INFORMATION)
 
         if self.grid_type == 'result':
             self.er_magic.write_result_file()
+            wx.MessageBox('Saved!', 'Info',
+              style=wx.OK | wx.ICON_INFORMATION)
             self.Destroy()
             return
         
@@ -804,7 +804,8 @@ class GridFrame(wx.Frame):
             if os.path.isfile(pmag_file):
                 os.remove(pmag_file)
                 
-
+        wx.MessageBox('Saved!', 'Info',
+                      style=wx.OK | wx.ICON_INFORMATION)
         self.Destroy()
 
 
