@@ -550,8 +550,13 @@ class GridFrame(wx.Frame):
         add rows to grid
         """
         num_rows = self.rows_spin_ctrl.GetValue()
+        last_row = self.grid.GetNumberRows()
         for row in range(num_rows):
             self.grid.add_row()
+            #if not self.grid.changes:
+            #    self.grid.changes = set([])
+            #self.grid.changes.add(last_row)
+            #last_row += 1
         self.main_sizer.Fit(self)
 
     def on_remove_row(self, event, row_num=-1):

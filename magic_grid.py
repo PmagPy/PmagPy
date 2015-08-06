@@ -178,6 +178,9 @@ class MagicGrid(wx.grid.Grid):
                         self.add_row()
                         num_rows += 1
                     self.SetCellValue(row, col, text_item)
+                    if not self.changes:
+                        self.changes = set()
+                    self.changes.add(row)
                     row += 1
 
             else:
