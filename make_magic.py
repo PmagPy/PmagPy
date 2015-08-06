@@ -282,7 +282,7 @@ class GridFrame(wx.Frame):
         #self.deleteRowButton = hbox_grid.deleteRowButton
 
         self.msg_boxsizer = wx.StaticBoxSizer(wx.StaticBox(self.panel, -1, name='msg_boxsizer'), wx.VERTICAL)
-        self.default_msg_text = 'Edit {} here.\nYou can add or remove both rows and columns, however required columns may not be deleted.\nControlled vocabularies are indicated by **, and will have drop-down-menus.\nTo edit all values in a column, click the column header.'.format(self.grid_type + 's')
+        self.default_msg_text = 'Edit {} here.\nYou can add or remove both rows and columns, however required columns may not be deleted.\nControlled vocabularies are indicated by **, and will have drop-down-menus.\nTo edit all values in a column, click the column header.\nYou can cut and paste a column of values from an Excel-like file.\nJust click the top cell and use command "v".'.format(self.grid_type + 's')
         self.msg_text = wx.StaticText(self.panel, label=self.default_msg_text,
                                       style=wx.TE_CENTER, name='msg text')
         self.msg_boxsizer.Add(self.msg_text)
@@ -317,6 +317,9 @@ class GridFrame(wx.Frame):
         hbox.Add(main_btn_vbox)
 
         self.panel.Bind(wx.grid.EVT_GRID_LABEL_LEFT_CLICK, self.onLeftClickLabel, self.grid)
+
+        self.Bind(wx.EVT_KEY_DOWN, self.on_key_down)
+        self.panel.Bind(wx.EVT_TEXT_PASTE, self.do_fit)
 
         # add actual data!
         self.add_data_to_grid()
@@ -371,7 +374,23 @@ class GridFrame(wx.Frame):
         self.Centre()
         self.Show()
 
+    def on_key_down(self, event):
+        """
+        If user does command v, re-size window in case pasting has changed the content size.
+        """
+        keycode = event.GetKeyCode()
+        meta_down = event.MetaDown()
+        if keycode == 86 and meta_down:
+            # treat it as if it were a wx.EVT_TEXT_SIZE
+            self.do_fit(event)
 
+        
+    def do_fit(self, event):
+        """
+        Re-fit the window to the size of the content.
+        """
+        self.main_sizer.Fit(self)
+        
     def init_grid_headers(self):
         self.grid_headers = self.er_magic.headers
         
@@ -743,12 +762,11 @@ class GridFrame(wx.Frame):
 
         if self.grid_type == 'result':
             self.er_magic.write_result_file()
-            return False
             self.Destroy()
+            return
         
         do_pmag = self.pmag_checkbox.cb.IsChecked()
         self.er_magic.write_magic_file(self.grid_type, do_pmag=do_pmag)
-        return False
         self.Destroy()
 
 

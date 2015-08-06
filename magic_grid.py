@@ -108,6 +108,10 @@ class MagicGrid(wx.grid.Grid):
     def do_event_bindings(self):
         self.Bind(wx.grid.EVT_GRID_EDITOR_CREATED, self.on_edit_grid)
         self.Bind(wx.grid.EVT_GRID_EDITOR_SHOWN, self.on_edit_grid)
+        self.Bind(wx.EVT_KEY_DOWN, self.on_key_down)
+        #self.Bind(wx.EVT_TEXT, self.on_key_down_in_editor)
+        #self.Bind(wx.EVT_CHAR, self.on_key_down)
+        self.Bind(wx.EVT_TEXT_PASTE, self.on_paste_in_editor)
 
     def on_edit_grid(self, event):
         """sets self.changes to true when user edits the grid.
@@ -139,6 +143,47 @@ class MagicGrid(wx.grid.Grid):
         else:
             pass
         event.Skip()
+
+    def on_key_down(self, event):
+        keycode = event.GetKeyCode()
+        meta_down = event.MetaDown()
+        if keycode == 86 and meta_down:
+            # treat it as if it were a wx.EVT_TEXT_SIZE
+            paste_event = wx.CommandEvent(wx.wxEVT_COMMAND_TEXT_PASTE,
+                                          self.GetId())
+            self.GetEventHandler().ProcessEvent(paste_event)
+
+    def on_paste_in_editor(self, event):
+        self.do_paste(event)
+
+    def do_paste(self, event):
+        data_obj = wx.TextDataObject()
+        col = self.GetGridCursorCol()
+        row = self.GetGridCursorRow()
+
+        if wx.TheClipboard.Open():
+            wx.TheClipboard.GetData(data_obj)
+            text = data_obj.GetText().strip('\r')
+            if '\r' in text:
+                # split text into a list
+                text_list = text.split('\r')
+                self.SetCellValue(row, col, text)
+                num_rows = self.GetNumberRows()
+                for text_item in text_list:
+                    # extra rows if needed
+                    if row > num_rows - 1:
+                        self.add_row()
+                        num_rows += 1
+                    self.SetCellValue(row, col, text_item)
+                    row += 1
+
+            else:
+                # simple pasting
+                self.SetCellValue(row, col, text)
+                self.ForceRefresh()
+            self.size_grid()
+            wx.TheClipboard.Close()
+            event.Skip()
 
 
     def add_row(self, label='', item=''):
