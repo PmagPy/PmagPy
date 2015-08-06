@@ -293,9 +293,10 @@ class GridFrame(wx.Frame):
         self.Bind(wx.EVT_BUTTON, self.onCancelButton, self.cancelButton)
         self.pmag_checkbox = pw.check_box(self.panel,
                                          "Interpretations at {} level".format(self.grid_type))
-        if self.grid_type in ('location', 'result'):
+        if self.grid_type in ('location', 'age', 'result'):
             self.pmag_checkbox.cb.SetValue(False)
             self.pmag_checkbox.cb.Disable()
+            self.pmag_checkbox.ShowItems(False)
         else:
             self.pmag_checkbox.cb.SetValue(True)
             self.Bind(wx.EVT_CHECKBOX, self.on_pmag_checkbox, self.pmag_checkbox.cb)
@@ -668,7 +669,28 @@ class GridFrame(wx.Frame):
     ## Meta buttons -- cancel & save functions
 
     def on_pmag_checkbox(self, event):
-        pass
+        """
+        Called when user changes status of pmag_checkbox.
+        Removes pmag-specific columns if box is unchecked.
+        Adds in pmag-specific columns if box is checked.
+        """
+        num_cols = self.grid.GetNumberCols()
+        current_grid_col_labels = [self.grid.GetColLabelValue(num) for num in range(num_cols)]
+        do_pmag = self.pmag_checkbox.cb.IsChecked()
+        # add in pmag-specific headers
+        if do_pmag:
+            for col_label in self.er_magic.headers[self.grid_type]['pmag'][0]:
+                if col_label not in current_grid_col_labels:
+                    self.grid.add_col(col_label)
+        # remove pmag-specific headers
+        if not do_pmag:
+            for col_label in self.er_magic.headers[self.grid_type]['pmag'][0]:
+                if col_label not in self.er_magic.headers[self.grid_type]['er'][0]:
+                    num_cols = self.grid.GetNumberCols()
+                    current_grid_col_labels = [self.grid.GetColLabelValue(num) for num in range(num_cols)]
+                    ind = current_grid_col_labels.index(col_label)
+                    self.grid.remove_col(ind)
+        self.main_sizer.Fit(self)
     
     def onCancelButton(self, event):
         if self.grid.changes:
@@ -772,6 +794,12 @@ class GridFrame(wx.Frame):
         
         do_pmag = self.pmag_checkbox.cb.IsChecked()
         self.er_magic.write_magic_file(self.grid_type, do_pmag=do_pmag)
+        if not do_pmag:
+            pmag_file = os.path.join(self.WD, 'pmag_' + self.grid_type + 's.txt')
+            if os.path.isfile(pmag_file):
+                os.remove(pmag_file)
+                
+
         self.Destroy()
 
 

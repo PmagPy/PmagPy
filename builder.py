@@ -36,6 +36,7 @@ class ErMagicBuilder(object):
         self.delete_methods = {'specimen': self.delete_specimen, 'sample': self.delete_sample,
                                'site': self.delete_site, 'location': self.delete_location,
                                'age': None, 'result': self.delete_result}
+        # actual is at position 0, reqd is at position 1, optional at position 2
         self.headers = {
             'specimen': {'er': [[], [], []], 'pmag': [[], [], []]},
             
