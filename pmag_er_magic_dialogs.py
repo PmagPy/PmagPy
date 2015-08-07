@@ -491,7 +491,7 @@ You may use the drop-down menus to add as many values as needed in these columns
             except ValueError:
                 pass
 
-        self.ErMagic_data.er_ages_header[:0] = ['er_site_name', 'er_location_name', 'er_citation_names', 'magic_method_codes', 'age_description', 'age_unit', 'age']
+        self.ErMagic_data.er_ages_header[:0] = ['er_site_name', 'er_location_name', 'er_citation_names', 'magic_method_codes', 'age_unit', 'age_description', 'age']
         # only use sites that are associated with actual samples/specimens
 
         #ages_data_dict = {k: v for k, v in self.ErMagic.data_er_ages.items() if k in self.sites} # fails in Python 2.6

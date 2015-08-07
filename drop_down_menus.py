@@ -26,11 +26,12 @@ class Menus(object):
         self.window = grid.Parent # parent window in which grid resides
         self.belongs_to = []
         # belongs_to can either be a list of strings OR a list of Pmag_objects
-        for item in belongs_to:
-            try:
-                self.belongs_to.append(item.name)
-            except AttributeError:
-                self.belongs_to.append(item)
+        if belongs_to:
+            for item in belongs_to:
+                try:
+                    self.belongs_to.append(item.name)
+                except AttributeError:
+                    self.belongs_to.append(item)
         #self.headers = headers
         self.selected_col = None
         self.selection = [] # [(row, col), (row, col)], sequentially down a column
@@ -39,8 +40,8 @@ class Menus(object):
         self.colon_delimited_lst = ['specimen_type', 'specimen_class', 'specimen_lithology',
                                     'sample_type', 'sample_class', 'sample_lithology',
                                     'site_type', 'site_class', 'site_lithology',
-                                    'er_specimen_names', 'er_sample_names',
-                                    'er_site_names', 'er_location_names']
+                                    'er_specimen_names', 'er_sample_names', 'er_site_names',
+                                    'er_location_names', 'magic_method_codes']
         self.InitUI()
 
     def InitUI(self):
