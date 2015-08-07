@@ -483,7 +483,7 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
             if not pmag_item:
                 pmag_item = item_constructor(pmag_name, sample_or_site, data_model=self.data_model)
                 items_list.append(pmag_item)
-            pmag_item.age_data = data_dict[pmag_name]
+            pmag_item.age_data = remove_dict_headers(data_dict[pmag_name])
 
     def get_results_info(self):
         """

@@ -35,7 +35,7 @@ class MainFrame(wx.Frame):
 
         # initialize magic data object
         # attempt to read magic_measurements.txt, and all er_* and pmag_* files
-        print '-I- Read in any available dating from working directory'
+        print '-I- Read in any available data from working directory'
         self.er_magic.get_all_magic_info()
         
         # POSSIBLY RELOCATE THIS EVENTUALLY:
@@ -329,6 +329,8 @@ class GridFrame(wx.Frame):
 
         # add actual data!
         self.add_data_to_grid()
+        if self.grid_type == 'age':
+            self.add_age_data_to_grid()
 
         self.grid_box = wx.StaticBoxSizer(wx.StaticBox(self.panel, -1), wx.VERTICAL)
         self.grid_box.Add(self.grid, flag=wx.ALL, border=5)
@@ -422,6 +424,15 @@ class GridFrame(wx.Frame):
             header.remove('pmag_result_name')
             header[:0] = ['pmag_result_name', 'er_citation_names', 'er_specimen_names',
                           'er_sample_names', 'er_site_names', 'er_location_names']
+        elif self.grid_type == 'age':
+            for header_type in ('magic_method_codes', 'er_citation_names', 'age_unit'):
+                if header_type in header:
+                    header.remove(header_type)
+            lst = ['er_' + self.grid_type + '_name', 'er_' + self.parent_type + '_name',
+                   'er_citation_names', 'magic_method_codes', 'age_unit']
+            #lst.extend(first_headers)
+            header[:0] = lst
+
         # do headers for all other data types without parents
         elif not parent_type:
             lst = ['er_' + self.grid_type + '_name']
@@ -439,6 +450,21 @@ class GridFrame(wx.Frame):
         return grid
 
 
+    def add_age_data_to_grid(self, dtype='site'):
+        row_labels = [self.grid.GetCellValue(row, 0) for row in range(self.grid.GetNumberRows())]
+        items_list = self.er_magic.data_lists[dtype][0]
+        items = [self.er_magic.find_by_name(label, items_list) for label in row_labels]
+        #col_labels = [self.grid.GetColLabelValue(col) for col in range(2, self.grid.GetNumberCols())]
+        col_labels = self.grid.col_labels[2:]
+        #print 'col_labels', col_labels
+        for row_num, item in enumerate(items):
+            for col_num, label in enumerate(col_labels):
+                col_num += 2
+                cell_value = item.age_data[label]
+                if cell_value:
+                    self.grid.SetCellValue(row_num, col_num, cell_value)
+
+    
     def add_data_to_grid(self):
         rows = self.er_magic.data_lists[self.grid_type][0]
         self.grid.add_items(rows)
