@@ -529,7 +529,7 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
                     result.pop(header_name)
             if not name:
                 name = num
-            result_item = Result(name, specimens, samples, sites, locations, result)
+            result_item = Result(name, specimens, samples, sites, locations, result, self.data_model)
             self.results.append(result_item)
                     
     def read_magic_file(self, path, sort_by_this_name):
