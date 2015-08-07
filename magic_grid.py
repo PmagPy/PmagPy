@@ -155,6 +155,8 @@ class MagicGrid(wx.grid.Grid):
             paste_event = wx.CommandEvent(wx.wxEVT_COMMAND_TEXT_PASTE,
                                           self.GetId())
             self.GetEventHandler().ProcessEvent(paste_event)
+        else:
+            event.Skip()
 
     def on_paste_in_editor(self, event):
         self.do_paste(event)
