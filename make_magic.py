@@ -453,10 +453,13 @@ class GridFrame(wx.Frame):
     def add_age_data_to_grid(self, dtype='site'):
         row_labels = [self.grid.GetCellValue(row, 0) for row in range(self.grid.GetNumberRows())]
         items_list = self.er_magic.data_lists[dtype][0]
-        items = [self.er_magic.find_by_name(label, items_list) for label in row_labels]
+        items = [self.er_magic.find_by_name(label, items_list) for label in row_labels if label]
+
         #col_labels = [self.grid.GetColLabelValue(col) for col in range(2, self.grid.GetNumberCols())]
         col_labels = self.grid.col_labels[2:]
         #print 'col_labels', col_labels
+        if not items:
+            return
         for row_num, item in enumerate(items):
             for col_num, label in enumerate(col_labels):
                 col_num += 2
@@ -811,6 +814,8 @@ class GridFrame(wx.Frame):
                                                                           site_names=sites,
                                                                           loc_names=locations,
                                                                           replace_data=True)
+                        elif self.grid_type == 'age':
+                            item = self.er_magic.update_methods['age'](old_item_name, new_er_data)
                         else:
                             item = self.er_magic.update_methods[self.grid_type](old_item_name, new_item_name,
                                                                                 new_parent_name, new_er_data,
@@ -822,6 +827,13 @@ class GridFrame(wx.Frame):
               style=wx.OK | wx.ICON_INFORMATION)
             self.Destroy()
             return
+        if self.grid_type == 'age':
+            self.er_magic.write_age_file()
+            wx.MessageBox('Saved!', 'Info',
+              style=wx.OK | wx.ICON_INFORMATION)
+            self.Destroy()
+            return
+
         
         do_pmag = self.pmag_checkbox.cb.IsChecked()
         self.er_magic.write_magic_file(self.grid_type, do_pmag=do_pmag)

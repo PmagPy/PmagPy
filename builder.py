@@ -32,7 +32,7 @@ class ErMagicBuilder(object):
                             'age': None, 'result': self.add_result}
         self.update_methods = {'specimen': self.change_specimen, 'sample': self.change_sample,
                                'site': self.change_site, 'location': self.change_location,
-                               'age': None, 'result': self.change_result}
+                               'age': self.change_age, 'result': self.change_result}
         self.delete_methods = {'specimen': self.delete_specimen, 'sample': self.delete_sample,
                                'site': self.delete_site, 'location': self.delete_location,
                                'age': None, 'result': self.delete_result}
@@ -223,6 +223,16 @@ Leaving site unchanged as: {} for {}""".format(new_site_name, sample.site or '*e
         for spec in specimens:
             spec.sample = ""
 
+    
+    def change_age(self, old_name, new_age_data=None, site_or_sample='site', replace_data=False):
+        item = self.find_by_name(old_name, self.data_lists[site_or_sample][0])
+        if replace_data:
+            default_age_data = self.headers['age']['er'][1]
+            item.age_data = item.combine_dicts(new_age_data, default_age_data)
+        else:
+            item.age_data = item.combine_dicts(new_age_data, item.age_data)
+        return item
+            
     def change_site(self, old_site_name, new_site_name, new_location_name=None,
                     new_er_data=None, new_pmag_data=None, replace_data=False):
         """
@@ -692,6 +702,9 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
             outfile.write(string + '\n')
         outfile.close()
         return True
+
+    def write_age_file(self):
+        print 'write age file'
 
 
 class Pmag_object(object):

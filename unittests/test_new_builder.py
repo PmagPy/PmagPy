@@ -863,6 +863,18 @@ class TestAge(unittest.TestCase):
         self.assertEqual(3, int(site.age_data['age']))
         self.assertEqual('GM-ARAR', site.age_data['magic_method_codes'])
 
+    def test_change_age(self):
+        site_name = 'MGH1'
+        site = self.data1.find_by_name(site_name, self.data1.sites)
+        self.data1.get_age_info('site')
+        self.assertTrue(site.age_data)
+        self.assertEqual(3, int(site.age_data['age']))
+        self.data1.change_age(site_name, {'age': 5, 'er_fossil_name': 'Joe'})
+        self.assertEqual(5, int(site.age_data['age']))
+        self.assertIn('er_fossil_name', site.age_data.keys())
+        self.assertEqual('Joe', site.age_data['er_fossil_name'])
+                              
+
 
 class TestResult(unittest.TestCase):
 
