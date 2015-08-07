@@ -50,6 +50,7 @@ class ErMagicBuilder(object):
 
             'result': {'er': [[], [], []], 'pmag': [[], [], []]}
         }
+        self.first_age_headers = ['er_citation_names', 'magic_method_codes', 'age_unit']
 
 
     def find_by_name(self, item_name, items_list):
@@ -703,8 +704,54 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
         outfile.close()
         return True
 
-    def write_age_file(self):
-        print 'write age file'
+    def write_age_file(self, site_or_sample='site'):
+        """
+        Write er_ages.txt based on updated ErMagicBuilder data object
+        """
+        first_headers = self.first_age_headers
+        actual_headers = sorted(self.headers['age']['er'][0])
+        for header in first_headers:
+            if header in actual_headers:
+                actual_headers.remove(header)
+        if site_or_sample == 'site':
+            add_headers = ['er_'+ site_or_sample + '_name', 'er_location_name']
+        else:
+            add_headers = ['er_'+ site_or_sample + '_name', 'er_site_name', 'er_location_name']
+        actual_headers[:0] = first_headers
+        full_headers = add_headers[:]
+        full_headers.extend(actual_headers)
+        ind = self.ancestry.index(site_or_sample)
+        ancestors = ['' for num in range(len(self.ancestry) - (ind+2))]
+
+        header_string = '\t'.join(full_headers)
+        ages = self.data_lists[site_or_sample][0]
+        age_strings = []
+        for age in ages:
+            string = ''
+            string += age.name + '\t'
+            parent = age.get_parent()
+            grandparent = None
+            if parent:
+                ancestors[0] = parent.name
+                grandparent = parent.get_parent()
+                if grandparent:
+                    ancestors[1] = grandparent.get_parent()
+            for ancestor in ancestors:
+                string += ancestor + '\t'
+            for key in actual_headers:
+                add_string = age.age_data[key]
+                if key == 'er_citation_names' and not add_string.strip('\t'):
+                    add_string = 'This study'
+                string += add_string + '\t'
+            age_strings.append(string)
+        outfile = open(os.path.join(self.WD, 'er_ages.txt'), 'w')
+        outfile.write('er_ages' + '\n')
+        outfile.write(header_string + '\n')
+        for string in age_strings:
+            outfile.write(string + '\n')
+        outfile.close()
+
+
 
 
 class Pmag_object(object):

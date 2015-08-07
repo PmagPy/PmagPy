@@ -425,12 +425,11 @@ class GridFrame(wx.Frame):
             header[:0] = ['pmag_result_name', 'er_citation_names', 'er_specimen_names',
                           'er_sample_names', 'er_site_names', 'er_location_names']
         elif self.grid_type == 'age':
-            for header_type in ('magic_method_codes', 'er_citation_names', 'age_unit'):
+            for header_type in self.er_magic.first_age_headers:
                 if header_type in header:
                     header.remove(header_type)
-            lst = ['er_' + self.grid_type + '_name', 'er_' + self.parent_type + '_name',
-                   'er_citation_names', 'magic_method_codes', 'age_unit']
-            #lst.extend(first_headers)
+            lst = ['er_' + self.grid_type + '_name', 'er_' + self.parent_type + '_name']
+            lst.extend(self.er_magic.first_age_headers)
             header[:0] = lst
 
         # do headers for all other data types without parents
@@ -455,9 +454,7 @@ class GridFrame(wx.Frame):
         items_list = self.er_magic.data_lists[dtype][0]
         items = [self.er_magic.find_by_name(label, items_list) for label in row_labels if label]
 
-        #col_labels = [self.grid.GetColLabelValue(col) for col in range(2, self.grid.GetNumberCols())]
         col_labels = self.grid.col_labels[2:]
-        #print 'col_labels', col_labels
         if not items:
             return
         for row_num, item in enumerate(items):
@@ -800,7 +797,9 @@ class GridFrame(wx.Frame):
 
                     # update an existing item
                     elif new_item_name and old_item_name:
-                        print 'update existing item formerly named', old_item_name, ' to ', new_item_name
+                        print 'update existing {} formerly named {} to {}'.format(self.grid_type,
+                                                                                  old_item_name,
+                                                                                  new_item_name)
                         if self.grid_type == 'result':
                             specimens = result_data['er_specimen_names'].split(":")
                             samples = result_data['er_sample_names'].split(":")
