@@ -327,6 +327,8 @@ class GridFrame(wx.Frame):
         self.Bind(wx.EVT_KEY_DOWN, self.on_key_down)
         self.panel.Bind(wx.EVT_TEXT_PASTE, self.do_fit)
 
+
+        
         # add actual data!
         self.add_data_to_grid()
         if self.grid_type == 'age':
@@ -410,18 +412,22 @@ class GridFrame(wx.Frame):
         label = event.GetEventObject().Label
         if label == 'sample':
             parent_type = 'site'
+            current_type = 'site'
         if label == 'site':
             parent_type = 'location'
+            current_type = 'sample'
+        self.onSave(None, current_type)
         self.grid.Destroy()
 
         self.grid = self.make_grid(parent_type)
         self.grid.InitUI()
         belongs_to = sorted(self.er_magic.data_lists[self.parent_type][0], key=lambda item: item.name)
         self.drop_down_menu = drop_down_menus.Menus(self.grid_type, self, self.grid, belongs_to)
-
+        self.panel.Bind(wx.grid.EVT_GRID_LABEL_LEFT_CLICK, self.onLeftClickLabel, self.grid)
+        
         self.add_data_to_grid(label)
-        #self.add_age_data_to_grid(label)
-
+        self.add_age_data_to_grid(label)
+        
         self.grid.SetColLabelValue(1, 'er_' + parent_type + '_name')
         self.grid.size_grid()
         
@@ -454,7 +460,7 @@ class GridFrame(wx.Frame):
         first_headers = []
         for string in ['citation', '{}_class'.format(self.grid_type),
                        '{}_lithology'.format(self.grid_type), '{}_type'.format(self.grid_type),
-                       'site_definition']:
+                      'site_definition']:
             for head in header[:]:
                 if string in head:
                     header.remove(head)
@@ -501,6 +507,8 @@ class GridFrame(wx.Frame):
         for row_num, item in enumerate(items):
             for col_num, label in enumerate(col_labels):
                 col_num += 2
+                if not label in item.age_data.keys():
+                    item.age_data[label] = ''
                 cell_value = item.age_data[label]
                 if cell_value:
                     self.grid.SetCellValue(row_num, col_num, cell_value)
@@ -777,7 +785,7 @@ class GridFrame(wx.Frame):
         else:
             self.Destroy()
 
-    def onSave(self, event):
+    def onSave(self, event, age_data_type='site'):
         # do actual save method
         
         if self.drop_down_menu:
@@ -858,7 +866,10 @@ class GridFrame(wx.Frame):
                                                                           loc_names=locations,
                                                                           replace_data=True)
                         elif self.grid_type == 'age':
-                            item = self.er_magic.update_methods['age'](old_item_name, new_er_data)
+                            #  need to somehow specify site/sample here.....
+                            site_or_sample = age_data_type
+                            item = self.er_magic.update_methods['age'](old_item_name, new_er_data,
+                                                                       site_or_sample, replace_data=True)
                         else:
                             item = self.er_magic.update_methods[self.grid_type](old_item_name, new_item_name,
                                                                                 new_parent_name, new_er_data,
@@ -874,6 +885,8 @@ class GridFrame(wx.Frame):
             self.er_magic.write_age_file()
             wx.MessageBox('Saved!', 'Info',
               style=wx.OK | wx.ICON_INFORMATION)
+            if not event:
+                return
             self.Destroy()
             return
 

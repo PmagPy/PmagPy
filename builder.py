@@ -228,7 +228,7 @@ Leaving site unchanged as: {} for {}""".format(new_site_name, sample.site or '*e
     def change_age(self, old_name, new_age_data=None, site_or_sample='site', replace_data=False):
         item = self.find_by_name(old_name, self.data_lists[site_or_sample][0])
         if replace_data:
-            default_age_data = self.headers['age']['er'][1]
+            default_age_data = {key: '' for key in self.headers['age']['er'][1]}
             item.age_data = item.combine_dicts(new_age_data, default_age_data)
         else:
             item.age_data = item.combine_dicts(new_age_data, item.age_data)
