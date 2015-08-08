@@ -332,31 +332,22 @@ class GridFrame(wx.Frame):
         if self.grid_type == 'age':
             self.add_age_data_to_grid()
 
+
+        
         self.grid_box = wx.StaticBoxSizer(wx.StaticBox(self.panel, -1), wx.VERTICAL)
         self.grid_box.Add(self.grid, flag=wx.ALL, border=5)
 
-        #grid_box.GetStaticBox().SetBackgroundColour(wx.RED)
-        #self.grid.SetBackgroundColour(wx.RED)
-
-        self.main_sizer.Add(hbox, flag=wx.ALL, border=20)
-        self.main_sizer.Add(self.msg_boxsizer, flag=wx.BOTTOM|wx.ALIGN_CENTRE, border=10)
-        self.main_sizer.Add(self.grid_box, flag=wx.ALL, border=10)
-        self.panel.SetSizer(self.main_sizer)
-
-        self.main_sizer.Fit(self)
-        ## this works for the initial sizing
-        num_rows = len(self.grid.row_labels)
-        if num_rows in range(0, 4):
-            height = {0: 70, 1: 70, 2: 90, 3: 110, 4: 130}
-            self.grid.SetSize((-1, height[num_rows]))
-        ## this keeps sizing correct if the user resizes the window manually
-        self.Bind(wx.EVT_SIZE, self.resize_grid)
 
         # a few special touches if it is an age grid
         if self.grid_type == 'age':
             self.remove_row_button.Disable()
             self.add_many_rows_button.Disable()
             self.grid.SetColLabelValue(0, 'er_site_name')
+            toggle_box = wx.StaticBoxSizer(wx.StaticBox(self.panel, -1, label='Ages level'), wx.VERTICAL)
+            toggle_box.Add(pw.labeled_yes_or_no(self.panel, 'Choose level to assign ages', 'site', 'sample'))
+            self.Bind(wx.EVT_RADIOBUTTON, self.toggle_ages)
+            hbox.Add(toggle_box)
+            
             # possibly add a way to toggle modes between doing ages by sites and by sample ??
 
         # a few special touches if it is a result grid
@@ -379,6 +370,22 @@ class GridFrame(wx.Frame):
                         self.grid.SetCellValue(row, 5, ' : '.join([loc.name for loc in result.locations]))
                     self.drop_down_menu.choices[5] = [sorted([loc.name for loc in self.er_magic.locations if loc]), False]
 
+        # final layout, set size
+        self.main_sizer.Add(hbox, flag=wx.ALL, border=20)
+        self.main_sizer.Add(self.msg_boxsizer, flag=wx.BOTTOM|wx.ALIGN_CENTRE, border=10)
+        self.main_sizer.Add(self.grid_box, flag=wx.ALL, border=10)
+        self.panel.SetSizer(self.main_sizer)
+
+        self.main_sizer.Fit(self)
+        ## this works for the initial sizing
+        num_rows = len(self.grid.row_labels)
+        if num_rows in range(0, 4):
+            height = {0: 70, 1: 70, 2: 90, 3: 110, 4: 130}
+            self.grid.SetSize((-1, height[num_rows]))
+        ## this keeps sizing correct if the user resizes the window manually
+        self.Bind(wx.EVT_SIZE, self.resize_grid)
+
+                    
         self.Centre()
         self.Show()
 
@@ -398,6 +405,40 @@ class GridFrame(wx.Frame):
         Re-fit the window to the size of the content.
         """
         self.main_sizer.Fit(self)
+
+    def toggle_ages(self, event):
+        label = event.GetEventObject().Label
+        if label == 'sample':
+            parent_type = 'site'
+        if label == 'site':
+            parent_type = 'location'
+        self.grid.Destroy()
+
+        self.grid = self.make_grid(parent_type)
+        self.grid.InitUI()
+        belongs_to = sorted(self.er_magic.data_lists[self.parent_type][0], key=lambda item: item.name)
+        self.drop_down_menu = drop_down_menus.Menus(self.grid_type, self, self.grid, belongs_to)
+
+        self.add_data_to_grid(label)
+        #self.add_age_data_to_grid(label)
+
+        self.grid.SetColLabelValue(1, 'er_' + parent_type + '_name')
+        self.grid.size_grid()
+        
+        self.grid_box.Add(self.grid, flag=wx.ALL, border=5)
+
+        belongs_to = sorted(self.er_magic.data_lists[self.parent_type][0], key=lambda item: item.name)
+        self.drop_down_menu = drop_down_menus.Menus(self.grid_type, self, self.grid, belongs_to)
+
+        ## this works for the initial sizing
+        num_rows = len(self.grid.row_labels)
+        if num_rows in range(0, 4):
+            height = {0: 70, 1: 70, 2: 90, 3: 110, 4: 130}
+            self.grid.SetSize((-1, height[num_rows]))
+
+        self.main_sizer.Fit(self)
+
+
         
     def init_grid_headers(self):
         self.grid_headers = self.er_magic.headers
@@ -465,8 +506,10 @@ class GridFrame(wx.Frame):
                     self.grid.SetCellValue(row_num, col_num, cell_value)
 
     
-    def add_data_to_grid(self):
-        rows = self.er_magic.data_lists[self.grid_type][0]
+    def add_data_to_grid(self, grid_type=None):
+        if not grid_type:
+            grid_type = self.grid_type
+        rows = self.er_magic.data_lists[grid_type][0]
         self.grid.add_items(rows)
         self.grid.size_grid()
 
@@ -478,7 +521,8 @@ class GridFrame(wx.Frame):
     ##  Grid event methods
     
     def resize_grid(self, event):
-        event.Skip()
+        if event:
+            event.Skip()
         num_rows = len(self.grid.row_labels)
         if num_rows in range(0, 4):
             height = {0: 70, 1: 70, 2: 90, 3: 110, 4: 130}
