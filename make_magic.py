@@ -12,6 +12,7 @@ import os
 #import ErMagicBuilder
 import builder
 import pmag
+import ipmag
 import drop_down_menus
 import pmag_widgets as pw
 import magic_grid
@@ -114,8 +115,6 @@ class MainFrame(wx.Frame):
         self.btn6.InitColours()
         self.Bind(wx.EVT_BUTTON, self.make_grid_frame, self.btn6)
 
-
-        
         bsizer1a = wx.BoxSizer(wx.VERTICAL)
         bsizer1a.AddSpacer(20)
         bsizer1a.Add(self.btn1, wx.ALIGN_TOP)
@@ -147,6 +146,7 @@ class MainFrame(wx.Frame):
                                             size=(300, 50), name='upload_btn')
         self.btn_upload.SetBackgroundColour("#C4DF9B")
         self.btn_upload.InitColours()
+        self.Bind(wx.EVT_BUTTON, self.on_upload_file, self.btn_upload)
 
         bSizer2.AddSpacer(20)
         bSizer2.Add(self.btn_upload, 0, wx.ALIGN_CENTER, 0)
@@ -203,6 +203,18 @@ class MainFrame(wx.Frame):
             grid_type = self.FindWindowById(event.Id).Name[:-4] # remove ('_btn')
         self.grid_frame = GridFrame(self.er_magic, self.WD, grid_type, grid_type, self.panel)
         #self.on_finish_change_dir(self.change_dir_dialog)
+
+    def on_upload_file(self, event):
+        upfile, error_message = ipmag.upload_magic(dir_path=self.WD)
+        if upfile:
+            text = "You are ready to upload.\nYour file:\n{}\nwas generated in directory: \n{}\nDrag and drop this file in the MagIC database.".format(os.path.split(upfile)[1], self.WD)
+            dlg = wx.MessageDialog(self, caption="Saved", message=text, style=wx.OK)
+        else:
+            text = "There were some problems with the creation of your upload file.\nError message: {}\nSee Terminal/Command Prompt for details".format(error_message)
+            dlg = wx.MessageDialog(self, caption="Error", message=text, style=wx.OK)
+        result = dlg.ShowModal()
+        if result == wx.ID_OK:            
+            dlg.Destroy()
 
 
     def InitMenubar(self):
