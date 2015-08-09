@@ -69,43 +69,45 @@ class MainFrame(wx.Frame):
         #---sizer 1 ----
         bSizer1 = wx.StaticBoxSizer(wx.StaticBox(self.panel, wx.ID_ANY, "Add information to the data model", name='bSizer1'), wx.HORIZONTAL)
 
-        text = "Add specimen data"
-        self.btn1 = buttons.GenButton(self.panel, id=-1,
-                                      label=text, size=(300, 50), name='specimen_btn')
+        text = "1. add location data"
+        self.btn1 = buttons.GenButton(self.panel, id=-1, label=text,
+                                      size=(300, 50), name='location_btn')
         self.btn1.SetBackgroundColour("#FDC68A")
         self.btn1.InitColours()
         self.Bind(wx.EVT_BUTTON, self.make_grid_frame, self.btn1)
 
-        text = "Add sample data"
+        text = "2. add site data"
         self.btn2 = buttons.GenButton(self.panel, id=-1, label=text,
-                                      size=(300, 50), name='sample_btn')
+                                      size=(300, 50), name='site_btn')
         self.btn2.SetBackgroundColour("#6ECFF6")
         self.btn2.InitColours()
         self.Bind(wx.EVT_BUTTON, self.make_grid_frame, self.btn2)
 
-        text = "Add site data"
+
+        text = "3. add sample data"
         self.btn3 = buttons.GenButton(self.panel, id=-1, label=text,
-                                      size=(300, 50), name='site_btn')
+                                      size=(300, 50), name='sample_btn')
         self.btn3.SetBackgroundColour("#C4DF9B")
         self.btn3.InitColours()
         self.Bind(wx.EVT_BUTTON, self.make_grid_frame, self.btn3)
 
-        text = "add location data"
-        self.btn4 = buttons.GenButton(self.panel, id=-1, label=text,
-                                      size=(300, 50), name='location_btn')
+        
+        text = "4. add specimen data"
+        self.btn4 = buttons.GenButton(self.panel, id=-1,
+                                      label=text, size=(300, 50), name='specimen_btn')
         self.btn4.SetBackgroundColour("#FDC68A")
         self.btn4.InitColours()
         self.Bind(wx.EVT_BUTTON, self.make_grid_frame, self.btn4)
 
 
-        text = "add age data"
+        text = "5. add age data"
         self.btn5 = buttons.GenButton(self.panel, id=-1, label=text,
                                       size=(300, 50), name='age_btn')
         self.btn5.SetBackgroundColour("#6ECFF6")
         self.btn5.InitColours()
         self.Bind(wx.EVT_BUTTON, self.make_grid_frame, self.btn5)
         
-        text = "add results data"
+        text = "6. add results data"
         self.btn6 = buttons.GenButton(self.panel, id=-1, label=text,
                                       size=(300, 50), name='result_btn')
         self.btn6.SetBackgroundColour("#C4DF9B")
