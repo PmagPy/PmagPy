@@ -59,11 +59,12 @@ class Menus(object):
             self.choices = {2: (vocab['location_type'], False)}
             self.grid.SetColLabelValue(2, 'location_type**')
         if self.data_type == 'age':
-            self.choices = {3: (vocabulary.geochronology_method_codes, False), 4: (vocab['age_unit'], False)}
+            self.choices = {1: (belongs_to, False), 3: (vocabulary.geochronology_method_codes, False), 4: (vocab['age_unit'], False)}
             map(lambda (x, y): self.grid.SetColLabelValue(x, y), [(3, 'magic_method_codes**'), (4, 'age_unit**')])
+            for row in range(self.grid.GetNumberRows()):
+                self.grid.SetReadOnly(row, 0)
         if self.data_type == 'orient':
             self.choices = {1: (['g', 'b'], False)}
-
         if self.data_type == 'result':
             self.choices = {}
 

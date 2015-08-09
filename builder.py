@@ -735,7 +735,7 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
                 ancestors[0] = parent.name
                 grandparent = parent.get_parent()
                 if grandparent:
-                    ancestors[1] = grandparent.get_parent()
+                    ancestors[1] = grandparent.name
             for ancestor in ancestors:
                 string += ancestor + '\t'
             for key in actual_headers:

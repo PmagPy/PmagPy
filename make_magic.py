@@ -232,6 +232,7 @@ class GridFrame(wx.Frame):
 
         #ancestry = [None, 'specimen', 'sample', 'site', 'location', None]
         if self.grid_type == 'age':
+            self.current_age_type = 'site'
             self.child_type = 'sample'
             self.parent_type = 'location'
         else:
@@ -261,11 +262,6 @@ class GridFrame(wx.Frame):
 
         self.grid.InitUI()
 
-        if self.parent_type:
-            belongs_to = sorted(self.er_magic.data_lists[self.parent_type][0], key=lambda item: item.name)
-        else:
-            belongs_to = ''
-        self.drop_down_menu = drop_down_menus.Menus(self.grid_type, self, self.grid, belongs_to)
         
         self.add_col_button = wx.Button(self.panel, label="Add additional column", name='add_col_btn')
         self.Bind(wx.EVT_BUTTON, self.on_add_col, self.add_col_button)
@@ -334,11 +330,15 @@ class GridFrame(wx.Frame):
         if self.grid_type == 'age':
             self.add_age_data_to_grid()
 
-
+        # add drop_down menus
+        if self.parent_type:
+            belongs_to = sorted(self.er_magic.data_lists[self.parent_type][0], key=lambda item: item.name)
+        else:
+            belongs_to = ''
+        self.drop_down_menu = drop_down_menus.Menus(self.grid_type, self, self.grid, belongs_to)
         
         self.grid_box = wx.StaticBoxSizer(wx.StaticBox(self.panel, -1), wx.VERTICAL)
         self.grid_box.Add(self.grid, flag=wx.ALL, border=5)
-
 
         # a few special touches if it is an age grid
         if self.grid_type == 'age':
@@ -350,7 +350,6 @@ class GridFrame(wx.Frame):
             self.Bind(wx.EVT_RADIOBUTTON, self.toggle_ages)
             hbox.Add(toggle_box)
             
-            # possibly add a way to toggle modes between doing ages by sites and by sample ??
 
         # a few special touches if it is a result grid
         if self.grid_type == 'result':
@@ -411,30 +410,30 @@ class GridFrame(wx.Frame):
     def toggle_ages(self, event):
         label = event.GetEventObject().Label
         if label == 'sample':
-            parent_type = 'site'
-            current_type = 'site'
+            new_parent_type = 'site'
+            self.current_age_type = 'site'
         if label == 'site':
-            parent_type = 'location'
-            current_type = 'sample'
-        self.onSave(None, current_type)
+            new_parent_type = 'location'
+            self.current_age_type = 'sample'
+        self.onSave(None)
         self.grid.Destroy()
 
-        self.grid = self.make_grid(parent_type)
+        self.grid = self.make_grid(new_parent_type)
+
         self.grid.InitUI()
-        belongs_to = sorted(self.er_magic.data_lists[self.parent_type][0], key=lambda item: item.name)
-        self.drop_down_menu = drop_down_menus.Menus(self.grid_type, self, self.grid, belongs_to)
         self.panel.Bind(wx.grid.EVT_GRID_LABEL_LEFT_CLICK, self.onLeftClickLabel, self.grid)
         
         self.add_data_to_grid(label)
         self.add_age_data_to_grid(label)
-        
-        self.grid.SetColLabelValue(1, 'er_' + parent_type + '_name')
+
+        belongs_to = sorted(self.er_magic.data_lists[new_parent_type][0], key=lambda item: item.name)
+        self.drop_down_menu = drop_down_menus.Menus(self.grid_type, self, self.grid, belongs_to)
+
+        self.grid.SetColLabelValue(1, 'er_' + new_parent_type + '_name')
+        self.grid.SetColLabelValue(0, 'er_' + label + '_name')
         self.grid.size_grid()
         
         self.grid_box.Add(self.grid, flag=wx.ALL, border=5)
-
-        belongs_to = sorted(self.er_magic.data_lists[self.parent_type][0], key=lambda item: item.name)
-        self.drop_down_menu = drop_down_menus.Menus(self.grid_type, self, self.grid, belongs_to)
 
         ## this works for the initial sizing
         num_rows = len(self.grid.row_labels)
@@ -785,9 +784,10 @@ class GridFrame(wx.Frame):
         else:
             self.Destroy()
 
-    def onSave(self, event, age_data_type='site'):
+    def onSave(self, event):#, age_data_type='site'):
         # do actual save method
-        
+
+        age_data_type = self.current_age_type
         if self.drop_down_menu:
             self.drop_down_menu.clean_up()
 
@@ -882,7 +882,7 @@ class GridFrame(wx.Frame):
             self.Destroy()
             return
         if self.grid_type == 'age':
-            self.er_magic.write_age_file()
+            self.er_magic.write_age_file(age_data_type)
             wx.MessageBox('Saved!', 'Info',
               style=wx.OK | wx.ICON_INFORMATION)
             if not event:
