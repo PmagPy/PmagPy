@@ -189,6 +189,7 @@ def main():
                 HystRec['hysteresis_ms_moment']=hpars['hysteresis_ms_moment']
                 HystRec['hysteresis_bc']=hpars['hysteresis_bc']
                 HystRec['hysteresis_bcr']=hpars['hysteresis_bcr']
+                HystRec['hysteresis_xhf']=hpars['hysteresis_xhf']
                 HystRec['magic_experiment_names']=e
                 HystRec['magic_software_packages']=version_num
                 if hpars["magic_method_codes"] not in hmeths:hmeths.append(hpars["magic_method_codes"])
