@@ -280,12 +280,15 @@ class MagICMenu(wx.MenuBar):
                 dlg = wx.MessageDialog(self,caption="Message:", message="Are you sure you want to exit the program?\nYou have a grid open with unsaved changes.\n ", style=wx.OK|wx.CANCEL)
                 result = dlg.ShowModal()
                 if result == wx.ID_OK:
-                    dlg.Destroy()    
-                    self.parent.Close()
-                    return
-                else:
-                    return
 
+                    dlg.Destroy()
+                    #self.Destroy()
+                else:
+                    dlg.Destroy()
+                    return
+        #self.parent.Destroy()
+        if self.parent.grid_frame:
+            self.parent.grid_frame.Destroy()
         self.parent.Close()
 
     def on_clear(self, event):
