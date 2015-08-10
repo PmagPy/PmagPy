@@ -13,7 +13,7 @@ import pmag
 import ipmag
 import pmag_basic_dialogs
 import pmag_er_magic_dialogs
-import pmag_menu
+import quickmagic_menu
 import ErMagicBuilder
 #import check_updates
 
@@ -49,7 +49,7 @@ class MagMainFrame(wx.Frame):
 
     def InitUI(self):
 
-        menubar = pmag_menu.MagICMenu(self)
+        menubar = quickmagic_menu.MagICMenu(self)
         self.SetMenuBar(menubar)
 
         #pnl = self.panel

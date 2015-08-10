@@ -24,11 +24,11 @@ class MagICMenu(wx.MenuBar):
         file_menu = wx.Menu()
         file_quit = file_menu.Append(wx.ID_EXIT, 'Quit', 'Quit application')
         file_clear = file_menu.Append(wx.ID_ANY, 'Clear directory', 'Delete all files from working directory')
+
         parent.Bind(wx.EVT_MENU, self.on_quit, file_quit)
         parent.Bind(wx.EVT_MENU, self.on_clear, file_clear)
 
         import_menu = wx.Menu()
-
         orient_submenu = wx.Menu()
         orient2 = orient_submenu.Append(-1, 'AzDip format')
         #orient3 = orient_submenu.Append(-1, "IODP Core Summary csv file")
