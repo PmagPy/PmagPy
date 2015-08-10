@@ -610,6 +610,45 @@ class TextDialog(wx.Dialog):
         bsizer.Fit(self)
         self.Centre()
 
+class HeaderDialog(wx.Dialog):
+    """
+    """
+    def __init__(self, parent, label, items1, items2=None):
+        super(HeaderDialog, self).__init__(parent, title='Choose headers', size=(500, 500))
+        main_sizer = wx.BoxSizer(wx.VERTICAL)
+
+        listbox_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        box1 = wx.StaticBoxSizer(wx.StaticBox(self, wx.ID_ANY, 'Headers', name='box1'), wx.HORIZONTAL)
+        listbox1 = wx.ListBox(self, wx.ID_ANY, choices=items1, style=wx.LB_MULTIPLE, size=(200, 350))
+        box1.Add(listbox1)
+        listbox_sizer.Add(box1, flag=wx.ALL, border=5)
+        if items2:
+            box2 = wx.StaticBoxSizer(wx.StaticBox(self, wx.ID_ANY, 'Headers for interpreatation data', name='box2'),
+                                     wx.HORIZONTAL)
+            listbox2 = wx.ListBox(self, wx.ID_ANY, choices=items2, style=wx.LB_MULTIPLE, size=(200, 350))
+            box2.Add(listbox2)
+            listbox_sizer.Add(box2, flag=wx.ALL, border=5)
+
+        text_sizer = wx.StaticBoxSizer(wx.StaticBox(self, wx.ID_ANY, 'Adding headers:', name='text_box'),
+                                     wx.HORIZONTAL)
+        text_ctrl = wx.TextCtrl(self, id=-1, style=wx.TE_MULTILINE|wx.TE_READONLY, size=(420, 100))
+        text_sizer.Add(text_ctrl)
+            
+        btn_ok = wx.Button(self, wx.ID_OK, label="OK")
+        btn_ok.SetDefault()
+        btn_cancel = wx.Button(self, wx.ID_CANCEL, label="Cancel")
+        hbox = wx.BoxSizer(wx.HORIZONTAL)
+        hbox.Add(btn_ok, flag=wx.ALIGN_CENTER|wx.ALL, border=10)
+        hbox.Add(btn_cancel, flag=wx.ALIGN_CENTER|wx.ALL, border=10)
+
+        main_sizer.Add(listbox_sizer, flag=wx.ALIGN_CENTER)
+        main_sizer.Add(text_sizer, flag=wx.ALIGN_CENTER)
+        main_sizer.Add(hbox, flag=wx.ALIGN_CENTER)
+
+        self.SetSizer(main_sizer)
+        main_sizer.Fit(self)
+
+        
 class ComboboxDialog(wx.Dialog):
     """
     Dialog window that returns a text string provided by selection from combobox
