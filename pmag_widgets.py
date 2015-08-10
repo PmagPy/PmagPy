@@ -622,17 +622,23 @@ class HeaderDialog(wx.Dialog):
         listbox1 = wx.ListBox(self, wx.ID_ANY, choices=items1, style=wx.LB_MULTIPLE, size=(200, 350))
         box1.Add(listbox1)
         listbox_sizer.Add(box1, flag=wx.ALL, border=5)
+        self.Bind(wx.EVT_LISTBOX, self.on_click, listbox1)
+        self.Bind(wx.EVT_LISTBOX_DCLICK, self.on_click, listbox1)
+        
         if items2:
             box2 = wx.StaticBoxSizer(wx.StaticBox(self, wx.ID_ANY, 'Headers for interpreatation data', name='box2'),
                                      wx.HORIZONTAL)
             listbox2 = wx.ListBox(self, wx.ID_ANY, choices=items2, style=wx.LB_MULTIPLE, size=(200, 350))
             box2.Add(listbox2)
             listbox_sizer.Add(box2, flag=wx.ALL, border=5)
+            self.Bind(wx.EVT_LISTBOX, self.on_click, listbox2)
+            self.Bind(wx.EVT_LISTBOX_DCLICK, self.on_click, listbox2)
+
 
         text_sizer = wx.StaticBoxSizer(wx.StaticBox(self, wx.ID_ANY, 'Adding headers:', name='text_box'),
                                      wx.HORIZONTAL)
-        text_ctrl = wx.TextCtrl(self, id=-1, style=wx.TE_MULTILINE|wx.TE_READONLY, size=(420, 100))
-        text_sizer.Add(text_ctrl)
+        self.text_ctrl = wx.TextCtrl(self, id=-1, style=wx.TE_MULTILINE|wx.TE_READONLY, size=(420, 100))
+        text_sizer.Add(self.text_ctrl)
             
         btn_ok = wx.Button(self, wx.ID_OK, label="OK")
         btn_ok.SetDefault()
@@ -647,6 +653,14 @@ class HeaderDialog(wx.Dialog):
 
         self.SetSizer(main_sizer)
         main_sizer.Fit(self)
+
+    def on_click(self, event):
+        string = event.GetString()
+        old_string = self.text_ctrl.GetValue()
+        if old_string:
+            self.text_ctrl.SetValue(old_string + ", " + string)
+        else:
+            self.text_ctrl.SetValue(string)
 
         
 class ComboboxDialog(wx.Dialog):
