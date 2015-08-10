@@ -16,6 +16,8 @@ import ipmag
 import drop_down_menus
 import pmag_widgets as pw
 import magic_grid
+import pmag_menu_dialogs
+import validate_upload
 
 
 class MainFrame(wx.Frame):
@@ -33,7 +35,8 @@ class MainFrame(wx.Frame):
         self.WD = os.path.realpath(WD) or os.getcwd()
 
         print '-I- Initializing magic data object'
-        self.er_magic = builder.ErMagicBuilder(self.WD)
+        self.data_model = validate_upload.get_data_model()
+        self.er_magic = builder.ErMagicBuilder(self.WD, self.data_model)
 
         # initialize magic data object
         # attempt to read magic_measurements.txt, and all er_* and pmag_* files
@@ -198,6 +201,16 @@ class MainFrame(wx.Frame):
             self.WD = change_dir_dialog.GetPath()
             self.dir_path.SetValue(self.WD)
         change_dir_dialog.Destroy()
+        wait = wx.BusyInfo('Initializing data object in new directory, please wait...')
+        print '-I- Initializing magic data object'
+        self.er_magic = builder.ErMagicBuilder(self.WD)
+        print '-I- Read in any available data from working directory'
+        self.er_magic.get_all_magic_info()
+        print '-I- Initializing headers'
+        self.er_magic.init_default_headers()
+        self.er_magic.init_actual_headers()
+        del wait
+
 
     def on_open_grid_frame(self):
         self.Hide()
@@ -279,7 +292,15 @@ class MagICMenu(wx.MenuBar):
         """
         initialize window to allow user to empty the working directory
         """
-        print "don't clear yet"
+        dia = pmag_menu_dialogs.ClearWD(self.parent, self.parent.WD)
+        clear = dia.do_clear()
+        if clear:
+            print '-I- Clear data object'
+            self.parent.er_magic = builder.ErMagicBuilder(self.parent.WD, self.parent.data_model)
+            print '-I- Initializing headers'
+            self.parent.er_magic.init_default_headers()
+            self.parent.er_magic.init_actual_headers()
+
 
     def on_help(self, event):
         """

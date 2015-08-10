@@ -14,7 +14,7 @@ class ErMagicBuilder(object):
     more object oriented builder
     """
 
-    def __init__(self, WD):
+    def __init__(self, WD, data_model=None):
         self.WD = WD
         self.specimens = []
         self.samples = []
@@ -23,7 +23,10 @@ class ErMagicBuilder(object):
         self.results = []
         #self.ages = []
         self.ancestry = [None, 'specimen', 'sample', 'site', 'location', None]
-        self.data_model = validate_upload.get_data_model()
+        if not data_model:
+            self.data_model = validate_upload.get_data_model()
+        else:
+            self.data_model = data_model
         self.data_lists = {'specimen': [self.specimens, Specimen], 'sample': [self.samples, Sample],
                            'site': [self.sites, Site], 'location': [self.locations, Location],
                            'age': [self.sites, Site], 'result': [self.results, Result]}

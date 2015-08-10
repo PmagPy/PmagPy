@@ -1939,20 +1939,21 @@ class ClearWD(wx.MessageDialog):
     def __init__(self, parent, WD):
         msg = "Are you sure you want to delete the contents of:\n{} ?\nThis action cannot be undone".format(WD)
         super(ClearWD, self).__init__(None, caption="Not so fast", message=msg, style=wx.YES_NO|wx.NO_DEFAULT|wx.ICON_EXCLAMATION)
+        self.WD = WD
+
+    def do_clear(self):
         result = self.ShowModal()
         self.Destroy()
         if result == wx.ID_YES:
             os.chdir('..')
             import shutil
-            shutil.rmtree(WD)
-            os.mkdir(WD)
-            os.chdir(WD)
-            # reset ErMagic data object to be empty:
-            parent.ErMagic_data.__init__(WD)
-            print "{} has been emptied".format(WD)
+            shutil.rmtree(self.WD)
+            os.mkdir(self.WD)
+            os.chdir(self.WD)
+            return True
         else:
-            print "{} has not been emptied".format(WD)
-
+            print "{} has not been emptied".format(self.WD)
+            return False
             
 
 #consider using this instead (will preserve permissions of directory, but this may or may not be crucial)

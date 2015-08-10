@@ -120,7 +120,10 @@ class MagICMenu(wx.MenuBar):
         """
         initialize window to allow user to empty the working directory
         """
-        pmag_menu_dialogs.ClearWD(self.parent, self.parent.WD)
+        dia = pmag_menu_dialogs.ClearWD(self.parent, self.parent.WD)
+        clear = dia.do_clear()
+        if clear:
+            self.parent.ErMagic_data.__init__(self.parent.WD)
 
     def on_import1(self, event):
         """
