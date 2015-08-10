@@ -621,7 +621,7 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
                     er_string += ancestor + '\t'
 
                 for key in er_actual_headers:
-                    add_string = item.er_data[key] + '\t'
+                    add_string = item.er_data[key]
                     if key == 'er_citation_names' and not add_string.strip('\t'):
                         add_string = 'This study'
                     er_string += add_string + '\t'
