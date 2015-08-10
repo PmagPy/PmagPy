@@ -178,6 +178,11 @@ class MainFrame(wx.Frame):
         self.panel.SetSizer(hbox)
         hbox.Fit(self)
 
+        # do menu
+        menubar = MagICMenu(self)
+        self.SetMenuBar(menubar)
+
+
 
     def on_change_dir_button(self, event):
         """
@@ -217,14 +222,47 @@ class MainFrame(wx.Frame):
             dlg.Destroy()
 
 
-    def InitMenubar(self):
+class MagICMenu(wx.MenuBar):
+    """
+    initialize menu bar for QuickMagIC GUI
+    """
+    #pylint: disable=R0904
+    #pylint: disable=R0914
+    def __init__(self, parent):
+        self.parent = parent
+        super(MagICMenu, self).__init__()
+
+        file_menu = wx.Menu()
+        file_quit = file_menu.Append(wx.ID_EXIT, 'Quit', 'Quit application')
+        file_clear = file_menu.Append(wx.ID_ANY, 'Clear directory', 'Delete all files from working directory')
+        file_help = file_menu.Append(wx.ID_ANY, 'Help', 'More information about creating a MagIC contribution')
+        parent.Bind(wx.EVT_MENU, self.on_quit, file_quit)
+        parent.Bind(wx.EVT_MENU, self.on_clear, file_clear)
+        parent.Bind(wx.EVT_MENU, self.on_help, file_help)
+
+        self.Append(file_menu, 'File')
+
+    def on_quit(self, event):
         """
-        Create menubar
+        shut down application
         """
-        pass
+        self.parent.Close()
+
+    def on_clear(self, event):
+        """
+        initialize window to allow user to empty the working directory
+        """
+        print "don't clear yet"
+
+    def on_help(self, event):
+        """
+        point user to Cookbook help
+        """
+        print "don't help yet"
 
 
 
+    
 class GridFrame(wx.Frame):
     """
     make_magic
