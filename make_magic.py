@@ -27,6 +27,7 @@ class MainFrame(wx.Frame):
         wx.GetDisplaySize()
         wx.Frame.__init__(self, None, wx.ID_ANY, name=name)
 
+        self.grid_frame = None
         self.panel = wx.Panel(self, size=wx.GetDisplaySize(), name='main panel')
         print '-I- Fetching working directory'
         self.WD = os.path.realpath(WD) or os.getcwd()
@@ -246,6 +247,17 @@ class MagICMenu(wx.MenuBar):
         """
         shut down application
         """
+        if self.parent.grid_frame:
+            if self.parent.grid_frame.grid.changes:
+                dlg = wx.MessageDialog(self,caption="Message:", message="Are you sure you want to exit the program?\nYou have a grid open with unsaved changes.\n ", style=wx.OK|wx.CANCEL)
+                result = dlg.ShowModal()
+                if result == wx.ID_OK:
+                    dlg.Destroy()    
+                    self.parent.Close()
+                    return
+                else:
+                    return
+
         self.parent.Close()
 
     def on_clear(self, event):
@@ -270,6 +282,7 @@ class GridFrame(wx.Frame):
 
     def __init__(self, ErMagic, WD=None, frame_name="grid frame",
                  panel_name="grid panel", parent=None):
+        self.parent = parent
         wx.GetDisplaySize()
         wx.Frame.__init__(self, parent=parent, id=wx.ID_ANY, name=frame_name)
 
@@ -833,13 +846,16 @@ class GridFrame(wx.Frame):
             if result == wx.ID_OK:
                 dlg1.Destroy()    
                 self.Destroy()
+                self.parent.Parent.grid_frame = None
         else:
             self.Destroy()
+            self.parent.Parent.grid_frame = None
 
     def onSave(self, event):#, age_data_type='site'):
         # do actual save method
 
-        age_data_type = self.current_age_type
+        if self.grid_type == 'age':
+            age_data_type = self.current_age_type
         if self.drop_down_menu:
             self.drop_down_menu.clean_up()
 
@@ -932,6 +948,7 @@ class GridFrame(wx.Frame):
             wx.MessageBox('Saved!', 'Info',
               style=wx.OK | wx.ICON_INFORMATION)
             self.Destroy()
+            self.parent.Parent.grid_frame = None
             return
         if self.grid_type == 'age':
             self.er_magic.write_age_file(age_data_type)
@@ -940,6 +957,7 @@ class GridFrame(wx.Frame):
             if not event:
                 return
             self.Destroy()
+            self.parent.Parent.grid_frame = None
             return
 
         
