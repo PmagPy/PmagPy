@@ -290,8 +290,8 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
             samp.site = ''
         del site
 
-    def change_location(self, old_location_name, new_location_name, new_er_data=None,
-                        new_pmag_data=None, replace_data=False):
+    def change_location(self, old_location_name, new_location_name, new_parent_name=None,
+                        new_er_data=None, new_pmag_data=None, replace_data=False):
         """
         Find actual data object for location with old_location_name.
         Then call Location class change method to update location name and data.
