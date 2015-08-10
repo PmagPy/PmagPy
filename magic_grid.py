@@ -169,17 +169,22 @@ class MagicGrid(wx.grid.Grid):
         if wx.TheClipboard.Open():
             wx.TheClipboard.GetData(data_obj)
             text = data_obj.GetText().strip('\r')
-            if '\r' in text:
+            if '\r' in text or '\t' in text:
                 # split text into a list
                 text_list = text.split('\r')
                 self.SetCellValue(row, col, text)
                 num_rows = self.GetNumberRows()
-                for text_item in text_list:
+                for text_row in text_list:
                     # extra rows if needed
                     if row > num_rows - 1:
                         self.add_row()
                         num_rows += 1
-                    self.SetCellValue(row, col, text_item)
+                    # split row data into cols
+                    if '\t' in text_row.strip('\t'):
+                        text_items = text_row.split('\t')
+                        for num, item in enumerate(text_items):
+                            self.SetCellValue(row, col + num, item)
+                    # note changes
                     if not self.changes:
                         self.changes = set()
                     self.changes.add(row)
