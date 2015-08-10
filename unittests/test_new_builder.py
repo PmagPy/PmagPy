@@ -759,13 +759,15 @@ class TestLocation(unittest.TestCase):
         location = self.data1.find_by_name(location_name, self.data1.locations)
         self.assertIn('location_type', location.er_data.keys())
         self.assertEqual('', location.er_data['location_type'])
-        self.data1.change_location(location_name, location_name, new_er_data={'location_type': 'great', 'continent_ocean': 'Indian'})
+        self.data1.change_location(location_name, location_name,
+                                   new_er_data={'location_type': 'great', 'continent_ocean': 'Indian'})
         self.assertIn('location_type', location.er_data.keys())
         self.assertEqual('great', location.er_data['location_type'])
         self.assertIn('continent_ocean', location.er_data.keys())
         self.assertEqual('Indian', location.er_data['continent_ocean'])
 
-        self.data1.change_location(location_name, location_name, {'continent_ocean': 'Atlantic'})
+        self.data1.change_location(location_name, location_name,
+                                   new_er_data={'continent_ocean': 'Atlantic'})
         self.assertEqual('Atlantic', location.er_data['continent_ocean'])
 
 
@@ -788,7 +790,8 @@ class TestLocation(unittest.TestCase):
         location = self.data1.find_by_name(location_name, self.data1.locations)
         self.assertIn('location_type', location.er_data.keys())
         self.assertEqual('', location.er_data['location_type'])
-        self.data1.change_location(location_name, new_location_name, new_er_data={'location_type': 'great', 'continent_ocean': 'Indian'})
+        self.data1.change_location(location_name, new_location_name,
+                                   new_er_data={'location_type': 'great', 'continent_ocean': 'Indian'})
 
         self.assertFalse(self.data1.find_by_name(location_name, self.data1.locations))
         location = self.data1.find_by_name(new_location_name, self.data1.locations)
@@ -797,7 +800,8 @@ class TestLocation(unittest.TestCase):
         self.assertIn('continent_ocean', location.er_data.keys())
         self.assertEqual('Indian', location.er_data['continent_ocean'])
 
-        self.data1.change_location(new_location_name, new_location_name, {'continent_ocean': 'Atlantic'})
+        self.data1.change_location(new_location_name, new_location_name,
+                                   new_er_data={'continent_ocean': 'Atlantic'})
         self.assertEqual('Atlantic', location.er_data['continent_ocean'])
 
     def test_add_location(self):
