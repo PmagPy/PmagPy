@@ -199,14 +199,29 @@ class MainFrame(wx.Frame):
             self.dir_path.SetValue(self.WD)
         change_dir_dialog.Destroy()
 
+    def on_open_grid_frame(self):
+        self.Hide()
+
+    def on_close_grid_frame(self, event=None):
+        self.grid_frame = None
+        self.Show()
+        if event:
+            event.Skip()    
+        
     def make_grid_frame(self, event):
         """
         Create a GridFrame for data type of the button that was clicked
         """
+        if self.grid_frame:
+            print '-I- You already have a grid frame open'
+            pw.simple_warning("You already have a grid open")
+            print self.grid_frame
+            return
         try:
             grid_type = event.GetButtonObj().Name[:-4] # remove '_btn'
         except AttributeError:
             grid_type = self.FindWindowById(event.Id).Name[:-4] # remove ('_btn')
+        self.on_open_grid_frame()
         self.grid_frame = GridFrame(self.er_magic, self.WD, grid_type, grid_type, self.panel)
         #self.on_finish_change_dir(self.change_dir_dialog)
 
@@ -294,6 +309,9 @@ class GridFrame(wx.Frame):
 
         self.panel = wx.Panel(self, name=panel_name, size=wx.GetDisplaySize())
         self.grid_type = panel_name
+
+        if self.parent:
+            self.Bind(wx.EVT_WINDOW_DESTROY, self.parent.Parent.on_close_grid_frame)
 
         #ancestry = [None, 'specimen', 'sample', 'site', 'location', None]
         if self.grid_type == 'age':
@@ -846,10 +864,8 @@ class GridFrame(wx.Frame):
             if result == wx.ID_OK:
                 dlg1.Destroy()    
                 self.Destroy()
-                self.parent.Parent.grid_frame = None
         else:
             self.Destroy()
-            self.parent.Parent.grid_frame = None
 
     def onSave(self, event):#, age_data_type='site'):
         # do actual save method
@@ -948,7 +964,6 @@ class GridFrame(wx.Frame):
             wx.MessageBox('Saved!', 'Info',
               style=wx.OK | wx.ICON_INFORMATION)
             self.Destroy()
-            self.parent.Parent.grid_frame = None
             return
         if self.grid_type == 'age':
             self.er_magic.write_age_file(age_data_type)
@@ -957,7 +972,6 @@ class GridFrame(wx.Frame):
             if not event:
                 return
             self.Destroy()
-            self.parent.Parent.grid_frame = None
             return
 
         
@@ -971,7 +985,6 @@ class GridFrame(wx.Frame):
         wx.MessageBox('Saved!', 'Info',
                       style=wx.OK | wx.ICON_INFORMATION)
         self.Destroy()
-
 
         # for QuickMagIC er_magic_builder, this happens in ErMagicCheckFrame:
         
