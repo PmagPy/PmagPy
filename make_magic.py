@@ -952,9 +952,15 @@ class GridFrame(wx.Frame):
 
                     # create a new item
                     if new_item_name and not old_item_name:
+                        
                         print 'make new item named', new_item_name
-                        item = self.er_magic.add_methods[self.grid_type](new_item_name, new_parent_name,
-                                                                         new_er_data, new_pmag_data)
+                        if self.grid_type == 'result':
+                            specs, samps, sites, locs = self.get_result_children(result_data)
+                            item = self.er_magic.add_result(new_item_name, specs, samps, sites,
+                                                            locs, new_pmag_data)
+                        else:
+                            item = self.er_magic.add_methods[self.grid_type](new_item_name, new_parent_name,
+                                                                             new_er_data, new_pmag_data)
 
                     # update an existing item
                     elif new_item_name and old_item_name:
@@ -962,17 +968,14 @@ class GridFrame(wx.Frame):
                                                                                   old_item_name,
                                                                                   new_item_name)
                         if self.grid_type == 'result':
-                            specimens = result_data['er_specimen_names'].split(":")
-                            samples = result_data['er_sample_names'].split(":")
-                            sites = result_data['er_site_names'].split(":")
-                            locations = result_data['er_location_names'].split(":")
+                            specs, samps, sites, locs = self.get_result_children(result_data)
                             item = self.er_magic.update_methods['result'](old_item_name, new_item_name,
                                                                           new_er_data=None,
                                                                           new_pmag_data=new_pmag_data,
-                                                                          spec_names=specimens,
-                                                                          samp_names=samples,
+                                                                          spec_names=specs,
+                                                                          samp_names=samps,
                                                                           site_names=sites,
-                                                                          loc_names=locations,
+                                                                          loc_names=locs,
                                                                           replace_data=True)
                         elif self.grid_type == 'age':
                             #  need to somehow specify site/sample here.....
@@ -1010,6 +1013,31 @@ class GridFrame(wx.Frame):
         wx.MessageBox('Saved!', 'Info',
                       style=wx.OK | wx.ICON_INFORMATION)
         self.Destroy()
+
+
+    def get_result_children(self, result_data):
+        """
+        takes in dict in form of {'er_specimen_names': 'name1:name2:name3'}
+        and so forth.
+        returns lists of specimens, samples, sites, and locations
+        """
+        if result_data['er_specimen_names']:
+            specimens = result_data['er_specimen_names'].split(":")
+        else:
+            specimens = ''
+        if result_data['er_samples_names']:
+            samples = result_data['er_sample_names'].split(":")
+        else:
+            samples = ''
+        if result_data['er_site_names']:
+            sites = result_data['er_site_names'].split(":")
+        else:
+            sites = ''
+        if result_data['er_location_names']:
+            locations = result_data['er_location_names'].split(":")
+        else:
+            locations = ''
+        return specimens, samples, sites, locations
 
         # for QuickMagIC er_magic_builder, this happens in ErMagicCheckFrame:
         

@@ -2173,7 +2173,7 @@ def upload_magic(concat=0, dir_path='.'):
     # read in the data
         Data,file_type=pmag.magic_read(File)
         if file_type!="bad_file":
-            print "file ",file," successfully read in"
+            print "file", File, " successfully read in"
             if len(RmKeys)>0:
                 for rec in Data:
                     for key in RmKeys:
