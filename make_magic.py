@@ -370,8 +370,8 @@ class GridFrame(wx.Frame):
         self.grid.InitUI()
 
         
-        self.add_col_button = wx.Button(self.panel, label="Add additional column", name='add_col_btn')
-        self.Bind(wx.EVT_BUTTON, self.on_add_col, self.add_col_button)
+        self.add_cols_button = wx.Button(self.panel, label="Add additional columns", name='add_cols_btn')
+        self.Bind(wx.EVT_BUTTON, self.on_add_cols, self.add_cols_button)
         self.remove_cols_button = wx.Button(self.panel, label="Remove columns", name='remove_cols_btn')
         self.Bind(wx.EVT_BUTTON, self.on_remove_cols, self.remove_cols_button)
         self.remove_row_button = wx.Button(self.panel, label="Remove last row", name='remove_last_row_btn')
@@ -413,7 +413,7 @@ class GridFrame(wx.Frame):
         col_btn_vbox = wx.StaticBoxSizer(wx.StaticBox(self.panel, -1, label='Columns'), wx.VERTICAL)
         row_btn_vbox = wx.StaticBoxSizer(wx.StaticBox(self.panel, -1, label='Rows'), wx.VERTICAL)
         main_btn_vbox = wx.StaticBoxSizer(wx.StaticBox(self.panel, -1, label='Manage data'), wx.VERTICAL)
-        col_btn_vbox.Add(self.add_col_button, flag=wx.ALL, border=5)
+        col_btn_vbox.Add(self.add_cols_button, flag=wx.ALL, border=5)
         col_btn_vbox.Add(self.remove_cols_button, flag=wx.ALL, border=5)
         row_btn_vbox.Add(many_rows_box, flag=wx.ALL, border=5)
         row_btn_vbox.Add(self.remove_row_button, flag=wx.ALL, border=5)
@@ -681,34 +681,35 @@ class GridFrame(wx.Frame):
                 except ValueError:
                     pass
 
-    def on_add_col(self, event):
+    def on_add_cols(self, event):
         """
         Show simple dialog that allows user to add a new column name
         """
-        er_possible_items = self.grid_headers[self.grid_type]['er'][2]
-        pmag_possible_items = self.grid_headers[self.grid_type]['pmag'][2]
-        possible_items = sorted(set(er_possible_items).union(pmag_possible_items))
-        # don't show col headers that are already used in the grid
-        possible_items = [item for item in possible_items if item not in self.grid.col_labels]
-        
-        dia = pw.ComboboxDialog(self, 'new column name:', possible_items)
+
+        col_labels = self.grid.col_labels
+        er_items = [head for head in self.grid_headers[self.grid_type]['er'][2] if head not in col_labels]
+        pmag_items = [head for head in self.grid_headers[self.grid_type]['pmag'][2] if head not in er_items and head not in col_labels]
+        dia = pw.HeaderDialog(self, 'columns to add', er_items, pmag_items)
         result = dia.ShowModal()
-        if result == wx.ID_OK:
-            name = dia.combobox.GetValue()
+        new_headers = []
+        if result == 5100:
+            new_headers = dia.text_list
+        if not new_headers:
+            return
+        for name in new_headers:
             if name:
                 if name not in self.grid.col_labels:
                     self.grid.add_col(name)
                     # add to appropriate headers list
-                    if name in er_possible_items:
+                    if name in er_items:
                         self.grid_headers[self.grid_type]['er'][0].append(name)
-                    if name in pmag_possible_items:
+                    if name in pmag_items:
                         self.grid_headers[self.grid_type]['pmag'][0].append(name)
                 else:
-                    pw.simple_warning('You are already using that column header')
-            else:
-                pw.simple_warning("New column must have a name")
+                    pw.simple_warning('You are already using column header: {}'.format(name))
         self.main_sizer.Fit(self)
         self.grid.changes = set(range(self.grid.GetNumberRows()))
+
 
     def on_remove_cols(self, event):
         """
@@ -722,7 +723,7 @@ class GridFrame(wx.Frame):
         self.Unbind(wx.EVT_BUTTON, self.remove_cols_button)
         self.Bind(wx.EVT_BUTTON, self.exit_col_remove_mode, self.remove_cols_button)
         # then disable all other buttons
-        for btn in [self.add_col_button, self.remove_row_button, self.add_many_rows_button]:
+        for btn in [self.add_cols_button, self.remove_row_button, self.add_many_rows_button]:
             btn.Disable()
         # then make some visual changes
         self.msg_text.SetLabel("Remove grid columns: click on a column header to delete it.  Required headers for {}s may not be deleted.".format(self.grid_type))
@@ -795,7 +796,7 @@ class GridFrame(wx.Frame):
         """
         self.remove_cols_mode = False
         # re-enable all buttons
-        for btn in [self.add_col_button, self.remove_row_button, self.add_many_rows_button]:
+        for btn in [self.add_cols_button, self.remove_row_button, self.add_many_rows_button]:
             btn.Enable()
 
         # unbind grid click for deletion

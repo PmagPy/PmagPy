@@ -612,28 +612,30 @@ class TextDialog(wx.Dialog):
 
 class HeaderDialog(wx.Dialog):
     """
+    Dialog window with one or two listboxes with items.
+    As user clicks or double clicks, items are added to or removed from the selection,
+    which is displayed in a text control.  
     """
-    def __init__(self, parent, label, items1, items2=None):
+    def __init__(self, parent, label, items1=None, items2=None):
         super(HeaderDialog, self).__init__(parent, title='Choose headers', size=(500, 500))
         main_sizer = wx.BoxSizer(wx.VERTICAL)
 
         listbox_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        box1 = wx.StaticBoxSizer(wx.StaticBox(self, wx.ID_ANY, 'Headers', name='box1'), wx.HORIZONTAL)
-        listbox1 = wx.ListBox(self, wx.ID_ANY, choices=items1, style=wx.LB_MULTIPLE, size=(200, 350))
-        box1.Add(listbox1)
-        listbox_sizer.Add(box1, flag=wx.ALL, border=5)
-        self.Bind(wx.EVT_LISTBOX, self.on_click, listbox1)
-        self.Bind(wx.EVT_LISTBOX_DCLICK, self.on_click, listbox1)
-        
+        if items1:
+            box1 = wx.StaticBoxSizer(wx.StaticBox(self, wx.ID_ANY, 'Headers', name='box1'), wx.HORIZONTAL)
+            listbox1 = wx.ListBox(self, wx.ID_ANY, choices=items1, style=wx.LB_MULTIPLE, size=(200, 350))
+            box1.Add(listbox1)
+            listbox_sizer.Add(box1, flag=wx.ALL, border=5)
+            self.Bind(wx.EVT_LISTBOX, self.on_click, listbox1)
+            self.Bind(wx.EVT_LISTBOX_DCLICK, self.on_click, listbox1)
         if items2:
-            box2 = wx.StaticBoxSizer(wx.StaticBox(self, wx.ID_ANY, 'Headers for interpreatation data', name='box2'),
+            box2 = wx.StaticBoxSizer(wx.StaticBox(self, wx.ID_ANY, 'Headers for interpretation data', name='box2'),
                                      wx.HORIZONTAL)
             listbox2 = wx.ListBox(self, wx.ID_ANY, choices=items2, style=wx.LB_MULTIPLE, size=(200, 350))
             box2.Add(listbox2)
             listbox_sizer.Add(box2, flag=wx.ALL, border=5)
             self.Bind(wx.EVT_LISTBOX, self.on_click, listbox2)
             self.Bind(wx.EVT_LISTBOX_DCLICK, self.on_click, listbox2)
-
 
         text_sizer = wx.StaticBoxSizer(wx.StaticBox(self, wx.ID_ANY, 'Adding headers:', name='text_box'),
                                      wx.HORIZONTAL)
@@ -654,13 +656,16 @@ class HeaderDialog(wx.Dialog):
         self.SetSizer(main_sizer)
         main_sizer.Fit(self)
 
+        self.text_list = []
+
     def on_click(self, event):
-        string = event.GetString()
-        old_string = self.text_ctrl.GetValue()
-        if old_string:
-            self.text_ctrl.SetValue(old_string + ", " + string)
+        new_string = event.GetString()
+        if new_string in self.text_list:
+            self.text_list.remove(new_string)
         else:
-            self.text_ctrl.SetValue(string)
+            self.text_list.append(new_string)
+        display_string = ', '.join(self.text_list)
+        self.text_ctrl.SetValue(display_string)
 
         
 class ComboboxDialog(wx.Dialog):
