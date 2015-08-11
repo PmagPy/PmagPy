@@ -1025,7 +1025,7 @@ class GridFrame(wx.Frame):
             specimens = result_data['er_specimen_names'].split(":")
         else:
             specimens = ''
-        if result_data['er_samples_names']:
+        if result_data['er_sample_names']:
             samples = result_data['er_sample_names'].split(":")
         else:
             samples = ''
