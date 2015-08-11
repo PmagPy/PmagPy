@@ -897,7 +897,7 @@ def magic_read(infile, data=None):
     else: 
         print 'error reading ', infile
         #sys.exit()
-        return [], 'bad file'
+        return [], 'bad_file'
     if delim=='space':
         file_type=d.split()[1]
     if delim=='tab':

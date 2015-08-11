@@ -645,7 +645,7 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
 
         if do_pmag:
             pmag_outfile = open(os.path.join(self.WD, pmag_start + '.txt'), 'w')
-            pmag_outfile.write(pmag_start + '\n')
+            pmag_outfile.write('tab\t' + pmag_start + '\n')
             pmag_outfile.write(pmag_header_string + '\n')
             for string in pmag_strings:
                 pmag_outfile.write(string + '\n')
@@ -653,7 +653,7 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
 
         if do_er:
             er_outfile = open(os.path.join(self.WD, er_start + '.txt'), 'w')
-            er_outfile.write(er_start + '\n')
+            er_outfile.write('tab\t' + er_start + '\n')
             er_outfile.write(er_header_string + '\n')
             for string in er_strings:
                 er_outfile.write(string + '\n')
@@ -700,7 +700,7 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
             result_strings.append(result_string)
 
         outfile = open(os.path.join(self.WD, 'pmag_results.txt'), 'w')
-        outfile.write('pmag_results\n')
+        outfile.write('tab\tpmag_results\n')
         outfile.write(header_string + '\n')
         for string in result_strings:
             outfile.write(string + '\n')
@@ -748,7 +748,7 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
                 string += add_string + '\t'
             age_strings.append(string)
         outfile = open(os.path.join(self.WD, 'er_ages.txt'), 'w')
-        outfile.write('er_ages' + '\n')
+        outfile.write('tab\ter_ages\n')
         outfile.write(header_string + '\n')
         for string in age_strings:
             outfile.write(string + '\n')
