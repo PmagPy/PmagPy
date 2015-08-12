@@ -218,9 +218,14 @@ class MagicGrid(wx.grid.Grid):
             row_num = self.GetNumberRows() - 1
         label = self.GetCellValue(row_num, 0)
         self.DeleteRows(pos=row_num, numRows=1, updateLabels=True)
-        self.row_labels.remove(label)
+
+        # remove label from row_labels
+        try:
+            self.row_labels.remove(label)
+        except ValueError:
+            # if label name hasn't been saved yet, simply truncate row_labels
+            self.row_labels = self.row_labels[:-1]
         self.row_items.pop(row_num)
-        
         if not self.changes:
             self.changes = set()
         self.changes.add(-1)

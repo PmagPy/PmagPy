@@ -823,21 +823,24 @@ class GridFrame(wx.Frame):
             self.deleteRowButton.Disable()
             self.selected_rows = {row_num}
             
-        #else:
         function_mapping = {'specimen': self.er_magic.delete_specimen,
                             'sample': self.er_magic.delete_sample,
                             'site': self.er_magic.delete_site,
                             'location': self.er_magic.delete_location,
                             'result': self.er_magic.delete_result}
-        #ancestry = ['er_specimens', 'er_samples', 'er_sites', 'er_locations']
-        #child_type = ancestry[ancestry.index(self.grid_type) - 1]
         
         names = [self.grid.GetCellValue(row, 0) for row in self.selected_rows]
         orphans = []
         for name in names:
-            row = self.grid.row_labels.index(name)
-            function_mapping[self.grid_type](name)
-            orphans.extend([name])
+            if name:
+                try:
+                    row = self.grid.row_labels.index(name)
+                    function_mapping[self.grid_type](name)
+                    orphans.extend([name])
+                # if user entered a name, then deletes the row before saving,
+                # there will be a ValueError
+                except ValueError:
+                    pass
             self.grid.remove_row(row)
         self.selected_rows = set()
 
