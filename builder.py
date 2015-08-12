@@ -858,6 +858,7 @@ class Specimen(Pmag_object):
         dtype = 'specimen'
         super(Specimen, self).__init__(name, dtype, data_model, er_data, pmag_data)
         self.sample = sample or ""
+        self.propagate_data()
 
     def get_parent(self):
         return self.sample
@@ -870,6 +871,7 @@ class Specimen(Pmag_object):
         if new_samp:
             if not isinstance(new_samp, Sample):
                 raise Exception
+        self.propagate_data()
         return new_samp
 
     def change_specimen(self, new_name, new_sample=None, er_data=None, pmag_data=None, replace_data=False):
@@ -879,6 +881,16 @@ class Specimen(Pmag_object):
             self.sample = new_sample
             self.sample.specimens.append(self)
         self.update_data(er_data, pmag_data, replace_data)
+        self.propagate_data()
+
+    def propagate_data(self):
+        if not self.sample:
+            return
+        for dtype in ['class', 'lithology', 'type']:
+            if not self.er_data['specimen_' + dtype]:
+                if self.sample.er_data['sample_' + dtype]:
+                    value = self.sample.er_data['sample_' + dtype]
+                    self.er_data['specimen_' + dtype] = value
 
 
 class Sample(Pmag_object):
@@ -893,6 +905,7 @@ class Sample(Pmag_object):
         self.specimens = []
         self.children = self.specimens
         self.site = site or ""
+        self.propagate_data()
 
     def get_parent(self):
         return self.site
@@ -905,6 +918,7 @@ class Sample(Pmag_object):
             if not isinstance(new_site, Site):
                 raise Exception
         self.site = new_site
+        self.propagate_data()
         return new_site
         
     def change_sample(self, new_name, new_site=None, er_data=None, pmag_data=None, replace_data=False):
@@ -915,7 +929,18 @@ class Sample(Pmag_object):
             self.site = new_site
             self.site.samples.append(self)
         self.update_data(er_data, pmag_data, replace_data)
+        self.propagate_data()
+        
+    def propagate_data(self):
+        if not self.site:
+            return
+        for dtype in ['class', 'lithology', 'type']:
+            if not self.er_data['sample_' + dtype]:
+                if self.site.er_data['site_' + dtype]:
+                    value = self.site.er_data['site_' + dtype]
+                    self.er_data['sample_' + dtype] = value
 
+        
 
 class Site(Pmag_object):
 
