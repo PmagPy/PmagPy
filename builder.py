@@ -887,10 +887,11 @@ class Specimen(Pmag_object):
         if not self.sample:
             return
         for dtype in ['class', 'lithology', 'type']:
-            if not self.er_data['specimen_' + dtype]:
-                if self.sample.er_data['sample_' + dtype]:
-                    value = self.sample.er_data['sample_' + dtype]
-                    self.er_data['specimen_' + dtype] = value
+            if 'specimen_' + dtype in self.er_data.keys():
+                if not self.er_data['specimen_' + dtype]:
+                    if self.sample.er_data['sample_' + dtype]:
+                        value = self.sample.er_data['sample_' + dtype]
+                        self.er_data['specimen_' + dtype] = value
 
 
 class Sample(Pmag_object):
@@ -935,10 +936,11 @@ class Sample(Pmag_object):
         if not self.site:
             return
         for dtype in ['class', 'lithology', 'type']:
-            if not self.er_data['sample_' + dtype]:
-                if self.site.er_data['site_' + dtype]:
-                    value = self.site.er_data['site_' + dtype]
-                    self.er_data['sample_' + dtype] = value
+            if 'sample_' + dtype in self.er_data.keys():
+                if not self.er_data['sample_' + dtype]:
+                    if self.site.er_data['site_' + dtype]:
+                        value = self.site.er_data['site_' + dtype]
+                        self.er_data['sample_' + dtype] = value
 
         
 

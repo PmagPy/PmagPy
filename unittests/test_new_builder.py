@@ -34,9 +34,9 @@ class TestBuilder(unittest.TestCase):
         self.assertTrue(self.data1.specimens)
 
     def test_find_by_name(self):
-        specimen = builder.Specimen('a', 'specimen', self.data1.data_model)
-        specimen2 = builder.Specimen('b', 'specimen', self.data1.data_model)
-        specimen3 = builder.Specimen('c', 'specimen', self.data1.data_model)
+        specimen = builder.Specimen('a', '', self.data1.data_model)
+        specimen2 = builder.Specimen('b', '', self.data1.data_model)
+        specimen3 = builder.Specimen('c', '', self.data1.data_model)
         lst = [specimen, specimen2]
         self.assertFalse(self.data1.find_by_name('c', lst))
         self.assertTrue(self.data1.find_by_name('b', lst))
