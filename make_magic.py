@@ -390,7 +390,14 @@ class GridFrame(wx.Frame):
         #self.deleteRowButton = hbox_grid.deleteRowButton
 
         self.msg_boxsizer = wx.StaticBoxSizer(wx.StaticBox(self.panel, -1, name='msg_boxsizer'), wx.VERTICAL)
-        self.default_msg_text = 'Edit {} here.\nYou can add or remove both rows and columns, however required columns may not be deleted.\nControlled vocabularies are indicated by **, and will have drop-down-menus.\nTo edit all values in a column, click the column header.\nYou can cut and paste a column of values from an Excel-like file.\nJust click the top cell and use command "v".'.format(self.grid_type + 's')
+        self.default_msg_text = 'Edit {} here.\nYou can add or remove both rows and columns, however required columns may not be deleted.\nControlled vocabularies are indicated by **, and will have drop-down-menus.\nTo edit all values in a column, click the column header.\nYou can cut and paste a block of cells from an Excel-like file.\nJust click the top left cell and use command "v".'.format(self.grid_type + 's')
+        if self.grid_type == 'sample':
+            txt = "\n\nNote: you can fill in lithology, class, and type for each sample here.\nHowever, if the sample's class, lithology, and type are the same as its parent site, those values will propagate down,\nand will be written to your sample file automatically."
+            self.default_msg_text += txt
+        if self.grid_type == 'specimen':
+            txt = "\n\nNote: you can fill in lithology, class, and type for each specimen here.\nHowever, if the specimen's class, lithology, and type are the same as its parent sample, those values will propagate down,\nand will be written to your specimen file automatically."
+            self.default_msg_text += txt
+
         self.msg_text = wx.StaticText(self.panel, label=self.default_msg_text,
                                       style=wx.TE_CENTER, name='msg text')
         self.msg_boxsizer.Add(self.msg_text)
