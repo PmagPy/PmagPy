@@ -391,6 +391,9 @@ class GridFrame(wx.Frame):
 
         self.msg_boxsizer = wx.StaticBoxSizer(wx.StaticBox(self.panel, -1, name='msg_boxsizer'), wx.VERTICAL)
         self.default_msg_text = 'Edit {} here.\nYou can add or remove both rows and columns, however required columns may not be deleted.\nControlled vocabularies are indicated by **, and will have drop-down-menus.\nTo edit all values in a column, click the column header.\nYou can cut and paste a block of cells from an Excel-like file.\nJust click the top left cell and use command "v".'.format(self.grid_type + 's')
+        if self.grid_type == 'location':
+            txt = '\n\nNote: you can fill in location start/end latitude/longitude here.\nHowever, if you add sites in step 2, the program will calculate those values automatically,\nbased on site latitudes/logitudes.\nAfter adding sites, return to step 1 and re-save.'
+            self.default_msg_text += txt
         if self.grid_type == 'sample':
             txt = "\n\nNote: you can fill in lithology, class, and type for each sample here.\nHowever, if the sample's class, lithology, and type are the same as its parent site, those values will propagate down,\nand will be written to your sample file automatically."
             self.default_msg_text += txt
@@ -454,6 +457,39 @@ class GridFrame(wx.Frame):
         self.grid_box = wx.StaticBoxSizer(wx.StaticBox(self.panel, -1), wx.VERTICAL)
         self.grid_box.Add(self.grid, flag=wx.ALL, border=5)
 
+
+        # a few special touches if it is a location grid
+        if self.grid_type == 'location':
+            for loc in self.er_magic.locations:
+                max_lat, min_lat = '', ''
+                max_lon, min_lon = '', ''
+                lats, lons = [], []
+                if loc.sites:
+                    for site in loc.sites:
+                        if site.er_data['site_lon']:
+                            lons.append(site.er_data['site_lon'])
+                        if site.er_data['site_lat']:
+                            lats.append(site.er_data['site_lat'])
+                if lats:
+                    lats = [float(lat) for lat in lats]
+                    max_lat = max(lats)
+                    min_lat = min(lats)
+                if lons:
+                    lons = [float(lon) for lon in lons]
+                    max_lon = max(lons)
+                    min_lon = min(lons)
+                d = {'location_begin_lat': min_lat, 'location_begin_lon': min_lon,
+                     'location_end_lat': max_lat, 'location_end_lon': max_lon}
+                col_labels = [self.grid.GetColLabelValue(col) for col in range(self.grid.GetNumberCols())]
+                row_labels = [self.grid.GetCellValue(row, 0) for row in range(self.grid.GetNumberRows())]
+                for key, value in d.items():
+                    if value:
+                        loc.er_data[key] = value
+                        col_ind = col_labels.index(key)
+                        row_ind = row_labels.index(loc.name)
+                        self.grid.SetCellValue(row_ind, col_ind, str(value))
+
+        
         # a few special touches if it is an age grid
         if self.grid_type == 'age':
             self.remove_row_button.Disable()
