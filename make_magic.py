@@ -484,10 +484,19 @@ class GridFrame(wx.Frame):
                 row_labels = [self.grid.GetCellValue(row, 0) for row in range(self.grid.GetNumberRows())]
                 for key, value in d.items():
                     if value:
-                        loc.er_data[key] = value
-                        col_ind = col_labels.index(key)
-                        row_ind = row_labels.index(loc.name)
-                        self.grid.SetCellValue(row_ind, col_ind, str(value))
+                        if str(loc.er_data[key]) == str(value):
+                            # no need to update
+                            pass
+                        else:
+                            # update
+                            loc.er_data[key] = value
+                            col_ind = col_labels.index(key)
+                            row_ind = row_labels.index(loc.name)
+                            self.grid.SetCellValue(row_ind, col_ind, str(value))
+                            if not self.grid.changes:
+                                self.grid.changes = set([row_ind])
+                            else:
+                                self.grid.changes.add(row_ind)
 
         
         # a few special touches if it is an age grid
@@ -944,6 +953,7 @@ class GridFrame(wx.Frame):
         Save grid data and write it to file
         """
         if not self.grid.changes:
+            self.Destroy()
             return
 
         if self.grid_type == 'age':
