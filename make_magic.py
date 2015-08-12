@@ -523,7 +523,11 @@ class GridFrame(wx.Frame):
             new_parent_type = 'location'
             self.current_age_type = 'sample'
         self.onSave(None)
+
         self.grid.Destroy()
+        # prevent mainframe from popping up in front of age grid
+        # does create an unfortunate flashing effect, though.  
+        self.parent.Parent.Hide()
 
         self.grid = self.make_grid(new_parent_type)
 
@@ -893,7 +897,11 @@ class GridFrame(wx.Frame):
             self.Destroy()
 
     def onSave(self, event):#, age_data_type='site'):
-        # do actual save method
+        """
+        Save grid data and write it to file
+        """
+        if not self.grid.changes:
+            return
 
         if self.grid_type == 'age':
             age_data_type = self.current_age_type
@@ -994,6 +1002,7 @@ class GridFrame(wx.Frame):
             self.Destroy()
             return
         if self.grid_type == 'age':
+            print 'self.grid.changes', self.grid.changes
             self.er_magic.write_age_file(age_data_type)
             wx.MessageBox('Saved!', 'Info',
               style=wx.OK | wx.ICON_INFORMATION)
