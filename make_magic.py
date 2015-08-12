@@ -461,6 +461,7 @@ class GridFrame(wx.Frame):
         # a few special touches if it is a location grid
         if self.grid_type == 'location':
             for loc in self.er_magic.locations:
+                # try to fill in min/max latitudes/longitudes from sites
                 max_lat, min_lat = '', ''
                 max_lon, min_lon = '', ''
                 lats, lons = [], []
@@ -498,7 +499,6 @@ class GridFrame(wx.Frame):
                             else:
                                 self.grid.changes.add(row_ind)
 
-        
         # a few special touches if it is an age grid
         if self.grid_type == 'age':
             self.remove_row_button.Disable()
@@ -508,7 +508,6 @@ class GridFrame(wx.Frame):
             toggle_box.Add(pw.labeled_yes_or_no(self.panel, 'Choose level to assign ages', 'site', 'sample'))
             self.Bind(wx.EVT_RADIOBUTTON, self.toggle_ages)
             hbox.Add(toggle_box)
-            
 
         # a few special touches if it is a result grid
         if self.grid_type == 'result':
@@ -693,6 +692,7 @@ class GridFrame(wx.Frame):
     def resize_grid(self, event):
         if event:
             event.Skip()
+        #self.main_sizer.Fit(self)
         num_rows = len(self.grid.row_labels)
         if num_rows in range(0, 4):
             height = {0: 70, 1: 70, 2: 90, 3: 110, 4: 130}
