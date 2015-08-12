@@ -760,9 +760,9 @@ class GridFrame(wx.Frame):
                     self.grid.add_col(name)
                     # add to appropriate headers list
                     if name in er_items:
-                        self.grid_headers[self.grid_type]['er'][0].append(name)
+                        self.grid_headers[self.grid_type]['er'][0].append(str(name))
                     if name in pmag_items:
-                        self.grid_headers[self.grid_type]['pmag'][0].append(name)
+                        self.grid_headers[self.grid_type]['pmag'][0].append(str(name))
                 else:
                     pw.simple_warning('You are already using column header: {}'.format(name))
         self.main_sizer.Fit(self)

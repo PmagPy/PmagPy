@@ -101,12 +101,19 @@ class ErMagicBuilder(object):
     def init_actual_headers(self):
         def headers(data_list, reqd_er_headers, reqd_pmag_headers):
             if data_list:
-                er_header = data_list[0].er_data.keys()
-                pmag_header = data_list[0].pmag_data.keys()
+                er_header, pmag_header = set([]), set([])
+                for item in data_list:
+                    for key in item.er_data.keys():
+                        er_header.add(key)
+                    for key in item.pmag_data.keys():
+                        pmag_header.add(key)
+                ## old non-thorough way
+                #er_header = data_list[0].er_data.keys()
+                #pmag_header = data_list[0].pmag_data.keys()
             else:
                 er_header = remove_list_headers(reqd_er_headers)
                 pmag_header = remove_list_headers(reqd_pmag_headers)
-            return er_header, pmag_header
+            return list(er_header), list(pmag_header)
 
         self.headers['specimen']['er'][0], self.headers['specimen']['pmag'][0] = headers(self.specimens, self.headers['specimen']['er'][1], self.headers['specimen']['pmag'][1])
 
@@ -624,7 +631,11 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
                     er_string += ancestor + '\t'
 
                 for key in er_actual_headers:
-                    add_string = item.er_data[key]
+                    try:
+                        add_string = item.er_data[key]
+                    except KeyError:
+                        add_string = ''
+                        item.er_data[key] = ''
                     if key == 'er_citation_names' and not add_string.strip('\t'):
                         add_string = 'This study'
                     er_string += add_string + '\t'
@@ -636,7 +647,11 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
                     pmag_string += ancestor + '\t'
 
                 for key in pmag_actual_headers:
-                    add_string = item.pmag_data[key]
+                    try:
+                        add_string = item.pmag_data[key]
+                    except KeyError:
+                        add_string = ''
+                        item.pmag_data[key] = ''
                     # add default values
                     if key == 'er_citation_names' and not add_string.strip('\t'):
                         add_string = 'This study'
