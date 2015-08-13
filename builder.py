@@ -551,7 +551,8 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
             if not name:
                 name = num
             result_item = Result(name, specimens, samples, sites, locations, result, self.data_model)
-            self.results.append(result_item)
+            if not self.find_by_name(result_item.name, self.results):
+                self.results.append(result_item)
                     
     def read_magic_file(self, path, sort_by_this_name):
         """
