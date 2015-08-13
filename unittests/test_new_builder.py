@@ -283,9 +283,11 @@ class TestSpecimen(unittest.TestCase):
         self.assertIn('magic_experiment_names', specimen.pmag_data.keys())
         self.assertEqual('Z35.6a:LP-DIR-T', specimen.pmag_data['magic_experiment_names'])
 
-    @unittest.skip('skip')
     def test_write_magic_file(self):
         self.data1.get_all_magic_info()
+        self.data1.init_default_headers()
+        self.data1.init_actual_headers()
+
         er_outfile, pmag_outfile = self.data1.write_magic_file('specimen')
         self.assertTrue(er_outfile)
         self.assertTrue(pmag_outfile)
@@ -507,11 +509,13 @@ class TestSample(unittest.TestCase):
             self.assertEqual('', sample.pmag_data[key])
         self.data1.get_magic_info('sample', 'site', 'pmag')
         data2 = sample.pmag_data
-        self.assertEqual(data, data2)
+        self.assertEqual('This study', data2['er_citation_names'])
 
-    @unittest.skip('skip')
     def test_write_magic_file(self):
         self.data1.get_all_magic_info()
+        self.data1.init_default_headers()
+        self.data1.init_actual_headers()
+
         er_outfile, pmag_outfile = self.data1.write_magic_file('sample')
         self.assertTrue(er_outfile)
         self.assertTrue(pmag_outfile)
@@ -728,11 +732,12 @@ class TestSite(unittest.TestCase):
             self.assertEqual('', site.pmag_data[key])
         self.data1.get_magic_info('site', 'location', 'pmag')
         data2 = site.pmag_data
-        self.assertEqual(data, data2)
+        self.assertEqual('This study', data2['er_citation_names'])
 
-    @unittest.skip('skip')
     def test_write_magic_file(self):
         self.data1.get_all_magic_info()
+        self.data1.init_default_headers()
+        self.data1.init_actual_headers()
         er_outfile, pmag_outfile = self.data1.write_magic_file('site')
         self.assertTrue(er_outfile)
         self.assertTrue(pmag_outfile)
@@ -858,9 +863,10 @@ class TestLocation(unittest.TestCase):
         self.assertEqual(47.1, float(location.er_data['location_begin_lat']))
         self.assertEqual(47.1, float(location.er_data['location_end_lat']))
 
-    @unittest.skip('skip')
     def test_write_magic_file(self):
         self.data1.get_all_magic_info()
+        self.data1.init_default_headers()
+        self.data1.init_actual_headers()
         er_outfile, pmag_outfile = self.data1.write_magic_file('location')
         self.assertTrue(er_outfile)
         self.assertFalse(pmag_outfile)
@@ -903,9 +909,10 @@ class TestAge(unittest.TestCase):
         self.assertIn('er_fossil_name', site.age_data.keys())
         self.assertEqual('Joe', site.age_data['er_fossil_name'])
 
-    @unittest.skip('skip')
     def test_write_magic_file(self):
         self.data1.get_all_magic_info()
+        self.data1.init_default_headers()
+        self.data1.init_actual_headers()
         outfile = self.data1.write_age_file()
         self.assertTrue(outfile)
 
@@ -989,8 +996,9 @@ class TestResult(unittest.TestCase):
         self.assertIn(site, result.sites)
         self.assertFalse(result.locations)
 
-    @unittest.skip('skip')
     def test_write_magic_file(self):
         self.data1.get_all_magic_info()
+        self.data1.init_default_headers()
+        self.data1.init_actual_headers()
         outfile = self.data1.write_result_file()
         self.assertTrue(outfile)
