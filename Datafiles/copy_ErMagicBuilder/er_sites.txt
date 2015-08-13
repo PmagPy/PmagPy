@@ -1,4 +1,4 @@
-tab	er_sites							
-er_site_name	er_location_name	er_citation_names	site_class	site_lithology	site_type	site_definition	site_lon	site_lat
-MGH1	Munich	This study	Archeologic	Mafic Dike	Baked Clay	s		
-Z35.	locale	This study				s	95.4	47.1
+tab	er_sites
+er_site_name	er_location_name	er_citation_names	site_class	site_definition	site_lat	site_lithology	site_lon	site_type
+MGH1	Munich	This study	Archeologic	s		Mafic Dike		Baked Clay
+Z35.	locale	This study		s	47.1		95.4	
