@@ -590,18 +590,17 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
         
         # make header
         add_headers = []
-        ind = self.ancestry.index(dtype)
-        for i in range(ind, len(self.ancestry) - 1):
+        self.ancestry_ind = self.ancestry.index(dtype)
+        for i in range(self.ancestry_ind, len(self.ancestry) - 1):
             add_headers.append('er_' + self.ancestry[i] + "_name")
         er_actual_headers = sorted(self.headers[dtype]['er'][0])
         pmag_actual_headers = sorted(self.headers[dtype]['pmag'][0])
+
         er_full_headers = add_headers[:]
         er_full_headers.extend(er_actual_headers)
         pmag_full_headers = add_headers[:]
         pmag_full_headers.extend(pmag_actual_headers)
         
-        er_header_string = '\t'.join(er_full_headers)
-        pmag_header_string = '\t'.join(pmag_full_headers)
         er_start = 'er_' + dtype + 's'
         pmag_start = 'pmag_' + dtype + 's'
         er_strings = []
@@ -609,26 +608,15 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
         
         items_list = self.data_lists[dtype][0]
         for item in items_list[:]:
-            ancestors = []
-            ancestors = ['' for num in range(len(self.ancestry) - (ind+2))]
-            parent = self.ancestry[ind+1]
-            parent = item.get_parent()
-            grandparent, greatgrandparent = None, None
-            if parent:
-                ancestors[0] = parent.name
-                grandparent = parent.get_parent()
-                if grandparent:
-                    ancestors[1] = grandparent.name
-                    greatgrandparent = grandparent.get_parent()
-                    if greatgrandparent:
-                        ancestors[2] = greatgrandparent.name
-            er_string = ''
-            pmag_string = ''
+            # get an item's ancestors
+            ancestors = self.get_ancestors(item)
+            er_string = []
+            pmag_string = []
 
             if do_er:
-                er_string += item.name + '\t'
+                er_string.append(item.name)
                 for ancestor in ancestors:
-                    er_string += ancestor + '\t'
+                    er_string.append(ancestor)
 
                 for key in er_actual_headers:
                     try:
@@ -638,14 +626,36 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
                         item.er_data[key] = ''
                     if key == 'er_citation_names' and not add_string.strip('\t'):
                         add_string = 'This study'
-                    er_string += add_string + '\t'
+                    er_string.append(add_string)
+                er_string = '\t'.join(er_string)
                 er_strings.append(er_string)
                 
             if do_pmag:
-                pmag_string += item.name + '\t'
+                pmag_string.append(item.name)
                 for ancestor in ancestors:
-                    pmag_string += ancestor + '\t'
+                    pmag_string.append(ancestor)
 
+                # get an item's descendents (only req'd for pmag files)
+                descendents = self.get_descendents(item)
+                
+                more_headers = []
+                more_strings = []
+
+                # add in appropriate descendents
+                possible_types = ['specimen', 'sample', 'site']
+                for num, descendent_list in enumerate(descendents):
+                    item_string = get_item_string(descendent_list)
+                    more_strings.append(item_string)
+                    more_headers.append('er_' + possible_types[num] + '_names')
+                    
+                ind = len(pmag_string)
+                pmag_string.extend(more_strings)
+                if more_headers == pmag_full_headers[ind:ind+len(more_strings)]:
+                    pass
+                else:
+                    pmag_full_headers[ind:ind] = more_headers
+
+                # write out all needed values
                 for key in pmag_actual_headers:
                     try:
                         add_string = item.pmag_data[key]
@@ -655,9 +665,12 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
                     # add default values
                     if key == 'er_citation_names' and not add_string.strip('\t'):
                         add_string = 'This study'
-                    pmag_string += add_string + '\t'
+                    pmag_string.append(add_string)
+                pmag_string = '\t'.join(pmag_string)
                 pmag_strings.append(pmag_string)
 
+        pmag_header_string = '\t'.join(pmag_full_headers)
+        pmag_outfile = ''
         if do_pmag:
             pmag_outfile = open(os.path.join(self.WD, pmag_start + '.txt'), 'w')
             pmag_outfile.write('tab\t' + pmag_start + '\n')
@@ -666,6 +679,8 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
                 pmag_outfile.write(string + '\n')
             pmag_outfile.close()
 
+        er_header_string = '\t'.join(er_full_headers)
+        er_outfile = ''
         if do_er:
             er_outfile = open(os.path.join(self.WD, er_start + '.txt'), 'w')
             er_outfile.write('tab\t' + er_start + '\n')
@@ -673,6 +688,7 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
             for string in er_strings:
                 er_outfile.write(string + '\n')
             er_outfile.close()
+        return er_outfile, pmag_outfile
 
     def write_result_file(self):
         actual_headers = sorted(self.headers['result']['pmag'][0])
@@ -683,18 +699,6 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
         header_string = '\t'.join(full_headers)
         results = self.data_lists['result'][0]
         result_strings = []
-
-        def get_item_string(result_items_list):
-            if not result_items_list:
-                return ''
-            string_list = []
-            for item in result_items_list:
-                try:
-                    name = item.name
-                    string_list.append(name)
-                except AttributeError:
-                    pass
-            return ":".join(string_list)
 
         for result in results:
             result_string = ''
@@ -720,7 +724,7 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
         for string in result_strings:
             outfile.write(string + '\n')
         outfile.close()
-        return True
+        return outfile
 
     def write_age_file(self, site_or_sample='site'):
         """
@@ -768,6 +772,44 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
         for string in age_strings:
             outfile.write(string + '\n')
         outfile.close()
+        return outfile
+
+    # helper methods
+    def get_ancestors(self, pmag_object):
+        ancestors = []
+        ancestors = ['' for num in range(len(self.ancestry) - (self.ancestry_ind+2))]
+        parent = self.ancestry[self.ancestry_ind+1]
+        parent = pmag_object.get_parent()
+        grandparent, greatgrandparent = None, None
+        if parent:
+            ancestors[0] = parent.name
+            grandparent = parent.get_parent()
+            if grandparent:
+                ancestors[1] = grandparent.name
+                greatgrandparent = grandparent.get_parent()
+                if greatgrandparent:
+                    ancestors[2] = greatgrandparent.name
+        return ancestors
+
+    def get_descendents(self, pmag_object):
+        descendents = self.ancestry[1:self.ancestry_ind]
+        descendents = ['' for num in range(len(descendents))]
+        children = pmag_object.children
+        if children:
+            descendents[-1] = children
+        grandchildren = []
+        for child in pmag_object.children:
+            if pmag_object.children:
+                grandchildren.extend(child.children)
+        if grandchildren:
+            descendents[-2] = grandchildren
+        greatgrandchildren = []
+        for gchild in grandchildren:
+            if gchild.children:
+                greatgrandchildren.extend(gchild.children)
+        if greatgrandchildren:
+            descendents[-3] = greatgrandchildren
+        return descendents
 
 
 
@@ -873,6 +915,7 @@ class Specimen(Pmag_object):
         dtype = 'specimen'
         super(Specimen, self).__init__(name, dtype, data_model, er_data, pmag_data)
         self.sample = sample or ""
+        self.children = []
         self.propagate_data()
 
     def get_parent(self):
@@ -1103,6 +1146,24 @@ if __name__ == '__main__':
 
 # Random helper methods that MIGHT belong in pmag.py
 
+
+def get_item_string(items_list):
+    """
+    take in a list of pmag_objects
+    return a colon-delimited list of the findable names
+    """
+    if not items_list:
+        return ''
+    string_list = []
+    for item in items_list:
+        try:
+            name = item.name
+            string_list.append(name)
+        except AttributeError:
+            pass
+    return ":".join(string_list)
+
+
 def put_list_value_first(lst, first_value):
     if first_value in lst:
         lst.remove(first_value)
@@ -1110,7 +1171,8 @@ def put_list_value_first(lst, first_value):
 
 def remove_dict_headers(data_dict):
     for header in ['er_specimen_name', 'er_sample_name', 'er_site_name',
-                   'er_location_name', 'pmag_result_name']:
+                   'er_location_name', 'pmag_result_name',
+                   'er_specimen_names', 'er_sample_names', 'er_site_names']:
         if header in data_dict.keys():
             data_dict.pop(header)
     return data_dict
@@ -1120,3 +1182,4 @@ def remove_list_headers(data_list):
         if header in data_list:
             data_list.remove(header)
     return data_list
+

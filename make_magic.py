@@ -629,6 +629,16 @@ class GridFrame(wx.Frame):
                     header.remove(head)
                     first_headers.append(head)
 
+        # the way we work it, each specimen is assigned to a sample
+        # each sample is assigned to a site
+        # specimens can not be added en masse to a site object, for example
+        # this data will be written in
+        for string in ['er_specimen_names', 'er_sample_names', 'er_site_names']:
+            for head in header[:]:
+                if string in head:
+                    header.remove(head)
+            
+
         # do headers for results type grid
         if self.grid_type == 'result':
             header.remove('pmag_result_name')
