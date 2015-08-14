@@ -496,14 +496,18 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
         if not os.path.isfile(magic_file):
             print '-W- Could not find {} in your working directory {}'.format(short_filename, self.WD)
             return False
-
         data_dict = self.read_magic_file(magic_file, magic_name)[0]
         items_list, item_constructor = self.data_lists[sample_or_site]
         for pmag_name in data_dict.keys():
             pmag_item = self.find_by_name(pmag_name, items_list)
             if not pmag_item:
-                pmag_item = item_constructor(pmag_name, sample_or_site, data_model=self.data_model)
-                items_list.append(pmag_item)
+                ## the commented out code would create any site/sample in er_ages that is not in er_sites/er_samples
+                ## however, we probably don't WANT that behavior
+                #parent_type = 'er_location_name' if sample_or_site == 'site' else 'er_site_name'
+                #parent = data_dict.get(parent_type, '')
+                #pmag_item = item_constructor(pmag_name, parent, data_model=self.data_model)
+                #items_list.append(pmag_item)
+                continue
             pmag_item.age_data = remove_dict_headers(data_dict[pmag_name])
 
     def get_results_info(self):
