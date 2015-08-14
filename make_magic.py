@@ -29,6 +29,7 @@ class MainFrame(wx.Frame):
         wx.GetDisplaySize()
         wx.Frame.__init__(self, None, wx.ID_ANY, name=name)
 
+        #
         self.grid_frame = None
         self.panel = wx.Panel(self, size=wx.GetDisplaySize(), name='main panel')
         print '-I- Fetching working directory'
@@ -418,7 +419,8 @@ class GridFrame(wx.Frame):
             self.pmag_checkbox.cb.Disable()
             self.pmag_checkbox.ShowItems(False)
         else:
-            self.pmag_checkbox.cb.SetValue(True)
+            if self.grid_type not in self.er_magic.no_pmag_data:
+                self.pmag_checkbox.cb.SetValue(True)
             self.Bind(wx.EVT_CHECKBOX, self.on_pmag_checkbox, self.pmag_checkbox.cb)
 
         hbox = wx.BoxSizer(wx.HORIZONTAL)
@@ -618,7 +620,10 @@ class GridFrame(wx.Frame):
         return grid
         """
         er_header = self.grid_headers[self.grid_type]['er'][0]
-        pmag_header = self.grid_headers[self.grid_type]['pmag'][0]
+        if self.grid_type not in self.er_magic.no_pmag_data:
+            pmag_header = self.grid_headers[self.grid_type]['pmag'][0]
+        else:
+            pmag_header = []
         header = sorted(list(set(er_header).union(pmag_header)))
         first_headers = []
         for string in ['citation', '{}_class'.format(self.grid_type),
@@ -756,7 +761,11 @@ class GridFrame(wx.Frame):
 
         col_labels = self.grid.col_labels
         er_items = [head for head in self.grid_headers[self.grid_type]['er'][2] if head not in col_labels]
-        pmag_items = [head for head in self.grid_headers[self.grid_type]['pmag'][2] if head not in er_items and head not in col_labels]
+        include_pmag = self.pmag_checkbox.cb.IsChecked()
+        if include_pmag:
+            pmag_items = [head for head in self.grid_headers[self.grid_type]['pmag'][2] if head not in er_items and head not in col_labels]
+        else:
+            pmag_items = []
         dia = pw.HeaderDialog(self, 'columns to add', er_items, pmag_items)
         result = dia.ShowModal()
         new_headers = []
@@ -940,11 +949,14 @@ class GridFrame(wx.Frame):
         do_pmag = self.pmag_checkbox.cb.IsChecked()
         # add in pmag-specific headers
         if do_pmag:
+            if self.grid_type in self.er_magic.no_pmag_data:
+                self.er_magic.no_pmag_data.remove(self.grid_type)
             for col_label in self.er_magic.headers[self.grid_type]['pmag'][0]:
                 if col_label not in current_grid_col_labels:
                     self.grid.add_col(col_label)
         # remove pmag-specific headers
         if not do_pmag:
+            self.er_magic.no_pmag_data.add(self.grid_type)
             for col_label in self.er_magic.headers[self.grid_type]['pmag'][0]:
                 if col_label not in self.er_magic.headers[self.grid_type]['er'][0]:
                     num_cols = self.grid.GetNumberCols()
@@ -1070,7 +1082,6 @@ class GridFrame(wx.Frame):
             self.Destroy()
             return
         if self.grid_type == 'age':
-            print 'self.grid.changes', self.grid.changes
             self.er_magic.write_age_file(age_data_type)
             wx.MessageBox('Saved!', 'Info',
               style=wx.OK | wx.ICON_INFORMATION)

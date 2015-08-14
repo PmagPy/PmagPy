@@ -23,6 +23,7 @@ class ErMagicBuilder(object):
         self.results = []
         #self.ages = []
         self.ancestry = [None, 'specimen', 'sample', 'site', 'location', None]
+        self.no_pmag_data = set()
         if not data_model:
             self.data_model = validate_upload.get_data_model()
         else:
