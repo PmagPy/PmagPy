@@ -385,8 +385,18 @@ class TestBGC_magic(unittest.TestCase):
 
     def tearDown(self):
         filelist = ['96MT.05.01.magic', 'BC0-3A.magic', 'magic_measurements.txt', 'er_specimens.txt', 'er_samples.txt', 'er_sites.txt']
-        directory = os.path.join(WD, 'Datafiles', 'Measurement_Import', 'BGC_magic')
-        pmag.remove_files(filelist, directory)
+        #directory = os.path.join(WD, 'Datafiles', 'Measurement_Import', 'BGC_magic')
+        #print 'directory', directory
+        print '-'
+        print 'self.input_dir:', self.input_dir
+        print '-'
+        print 'os.path.isdir(self.input_dir):', os.path.isdir(self.input_dir)
+        print '-'
+        print 'os.listdir(self.input_dir):', os.listdir(self.input_dir)
+        print '-'
+        print 'os.listdir(os.path.join(WD, "Datafiles", "Measurement_import")):', os.listdir(os.path.join(WD, "Datafiles", "Measurement_import"))
+        print '-'
+        pmag.remove_files(filelist, self.input_dir)
 
     def test_BGC_with_no_files(self):
         program_ran, error_message = BGC_magic.main(False)
@@ -394,6 +404,9 @@ class TestBGC_magic(unittest.TestCase):
         self.assertEqual(error_message, 'You must provide a BCG format file')
 
     def test_BGC_success(self):
+        print 'in test_BGC_success'
+        print 'self.input_dir', self.input_dir
+        print 'os.listdir(self.input_dir)', os.listdir(self.input_dir)
         options = {'input_dir_path': self.input_dir, 'mag_file': '96MT.05.01'}
         program_ran, outfile = BGC_magic.main(False, **options)
         self.assertTrue(program_ran)
