@@ -568,6 +568,7 @@ class GridFrame(wx.Frame):
         Re-fit the window to the size of the content.
         """
         self.main_sizer.Fit(self)
+        self.Centre()
 
     def toggle_ages(self, event):
         label = event.GetEventObject().Label
