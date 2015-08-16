@@ -516,19 +516,20 @@ class GridFrame(wx.Frame):
         # a few special touches if it is a result grid
         if self.grid_type == 'result':
             # populate specimen_names, sample_names, etc.
+            self.drop_down_menu.choices[2] = [sorted([spec.name for spec in self.er_magic.specimens if spec]), False]
+            self.drop_down_menu.choices[3] = [sorted([samp.name for samp in self.er_magic.samples if samp]), False]
+            self.drop_down_menu.choices[4] = [sorted([site.name for site in self.er_magic.sites if site]), False]
+            self.drop_down_menu.choices[5] = [sorted([loc.name for loc in self.er_magic.locations if loc]), False]
             for row in range(self.grid.GetNumberRows()):
                 result_name = self.grid.GetCellValue(row, 0)
                 result = self.er_magic.find_by_name(result_name, self.er_magic.results)
                 if result:
                     if result.specimens:
                         self.grid.SetCellValue(row, 2, ' : '.join([spec.name for spec in result.specimens]))
-                    self.drop_down_menu.choices[2] = [sorted([spec.name for spec in self.er_magic.specimens if spec]), False]
                     if result.samples:
                         self.grid.SetCellValue(row, 3, ' : '.join([samp.name for samp in result.samples]))
-                    self.drop_down_menu.choices[3] = [sorted([samp.name for samp in self.er_magic.samples if samp]), False]
                     if result.sites:
                         self.grid.SetCellValue(row, 4, ' : '.join([site.name for site in result.sites]))
-                    self.drop_down_menu.choices[4] = [sorted([site.name for site in self.er_magic.sites if site]), False]
                     if result.locations:
                         self.grid.SetCellValue(row, 5, ' : '.join([loc.name for loc in result.locations]))
                     self.drop_down_menu.choices[5] = [sorted([loc.name for loc in self.er_magic.locations if loc]), False]
@@ -538,7 +539,6 @@ class GridFrame(wx.Frame):
         self.main_sizer.Add(self.msg_boxsizer, flag=wx.BOTTOM|wx.ALIGN_CENTRE, border=10)
         self.main_sizer.Add(self.grid_box, flag=wx.ALL, border=10)
         self.panel.SetSizer(self.main_sizer)
-
         self.main_sizer.Fit(self)
         ## this works for the initial sizing
         num_rows = len(self.grid.row_labels)
@@ -547,8 +547,6 @@ class GridFrame(wx.Frame):
             self.grid.SetSize((-1, height[num_rows]))
         ## this keeps sizing correct if the user resizes the window manually
         self.Bind(wx.EVT_SIZE, self.resize_grid)
-
-                    
         self.Centre()
         self.Show()
 
