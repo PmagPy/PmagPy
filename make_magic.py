@@ -577,7 +577,8 @@ class GridFrame(wx.Frame):
         if label == 'site':
             new_parent_type = 'location'
             self.current_age_type = 'sample'
-        self.onSave(None)
+        if self.grid.changes:
+            self.onSave(None)
 
         self.grid.Destroy()
         # prevent mainframe from popping up in front of age grid
@@ -608,7 +609,6 @@ class GridFrame(wx.Frame):
             self.grid.SetSize((-1, height[num_rows]))
 
         self.main_sizer.Fit(self)
-
 
         
     def init_grid_headers(self):
