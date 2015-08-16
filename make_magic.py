@@ -573,13 +573,12 @@ class GridFrame(wx.Frame):
         label = event.GetEventObject().Label
         if label == 'sample':
             new_parent_type = 'site'
-            self.current_age_type = 'site'
+            self.current_age_type = 'sample'
         if label == 'site':
             new_parent_type = 'location'
-            self.current_age_type = 'sample'
+            self.current_age_type = 'site'
         if self.grid.changes:
             self.onSave(None)
-
         self.grid.Destroy()
         # prevent mainframe from popping up in front of age grid
         # does create an unfortunate flashing effect, though.  
@@ -1066,7 +1065,6 @@ class GridFrame(wx.Frame):
                                                                           loc_names=locs,
                                                                           replace_data=True)
                         elif self.grid_type == 'age':
-                            #  need to somehow specify site/sample here.....
                             site_or_sample = age_data_type
                             item = self.er_magic.update_methods['age'](old_item_name, new_er_data,
                                                                        site_or_sample, replace_data=True)
