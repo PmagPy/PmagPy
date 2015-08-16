@@ -184,6 +184,9 @@ class MagicGrid(wx.grid.Grid):
                         text_items = text_row.split('\t')
                         for num, item in enumerate(text_items):
                             self.SetCellValue(row, col + num, item)
+                    # unless there is only one column
+                    else:
+                        self.SetCellValue(row, col, text_row)
                     # note changes
                     if not self.changes:
                         self.changes = set()
