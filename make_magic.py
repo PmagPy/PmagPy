@@ -673,7 +673,7 @@ class GridFrame(wx.Frame):
 
         # do headers for results type grid
         if self.grid_type == 'result':
-            header.remove('pmag_result_name')
+            #header.remove('pmag_result_name')
             header[:0] = ['pmag_result_name', 'er_citation_names', 'er_specimen_names',
                           'er_sample_names', 'er_site_names', 'er_location_names']
         elif self.grid_type == 'age':

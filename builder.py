@@ -112,6 +112,8 @@ class ErMagicBuilder(object):
                 ## old non-thorough way
                 #er_header = data_list[0].er_data.keys()
                 #pmag_header = data_list[0].pmag_data.keys()
+                er_header = remove_list_headers(er_header)
+                pmag_header = remove_list_headers(pmag_header)
             else:
                 er_header = remove_list_headers(reqd_er_headers)
                 pmag_header = remove_list_headers(reqd_pmag_headers)
@@ -575,7 +577,6 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
         #print "path", path#,header
         counter = 0
         for line in fin.readlines():
-            #print "line:", line
             tmp_data = {}
             tmp_line = line.strip('\n').split('\t')
             for i in range(len(header)):
@@ -1190,7 +1191,8 @@ def remove_dict_headers(data_dict):
     return data_dict
 
 def remove_list_headers(data_list):
-    for header in ['er_specimen_name', 'er_sample_name', 'er_site_name', 'er_location_name']:
+    for header in ['er_specimen_name', 'er_sample_name', 'er_site_name',
+                   'er_location_name', 'pmag_result_name']:
         if header in data_list:
             data_list.remove(header)
     return data_list
