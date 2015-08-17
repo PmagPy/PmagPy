@@ -725,6 +725,9 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
                     add_string = 'This study'
                 result_string += add_string + '\t'
 
+            # prevent extra '' at the end of result_string
+            if result_string.endswith('\t'):
+                result_string = result_string[:-1]
             result_strings.append(result_string)
 
         outfile = open(os.path.join(self.WD, 'pmag_results.txt'), 'w')
@@ -778,6 +781,10 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
                 if key == 'er_citation_names' and not add_string.strip('\t'):
                     add_string = 'This study'
                 string += add_string + '\t'
+
+            # prevent extra '' at the end of age string
+            if string.endswith('\t'):
+                string = string[:-1]
             age_strings.append(string)
         outfile = open(os.path.join(self.WD, 'er_ages.txt'), 'w')
         outfile.write('tab\ter_ages\n')
