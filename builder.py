@@ -122,21 +122,22 @@ class ErMagicBuilder(object):
         self.headers['sample']['er'][0], self.headers['sample']['pmag'][0] = headers(self.samples, self.headers['sample']['er'][1], self.headers['sample']['pmag'][1])
 
         self.headers['site']['er'][0], self.headers['site']['pmag'][0] = headers(self.sites, self.headers['site']['er'][1], self.headers['site']['pmag'][1])
-        
-        if self.locations:
-            self.headers['location']['er'][0] = self.locations[0].er_data.keys()
-        else:
-            self.headers['location']['er'][0] = remove_list_headers(self.headers['location']['er'][1])
 
-        if self.sites:
-            self.headers['age']['er'][0] = self.sites[0].age_data.keys()
-        else:
-            self.headers['age']['er'][0] = remove_list_headers(self.headers['location']['er'][1])
+        self.headers['location']['er'][0], self.headers['location']['pmag'][0] = headers(self.locations, self.headers['location']['er'][1], self.headers['location']['pmag'][1])
 
-        if self.results:
-            self.headers['result']['pmag'][0] = self.results[0].pmag_data.keys()
+        age_list = self.data_lists[self.age_type][0]
+        if age_list:
+            age_headers = []
+            for item in age_list:
+                for header in item.age_data.keys():
+                    if header not in age_headers:
+                        age_headers.append(header)
+            self.headers['age']['er'][0] = age_headers
         else:
-            self.headers['result']['pmag'][0] = remove_list_headers(self.headers['result']['pmag'][1])
+            self.headers['age']['er'][0] = remove_list_headers(self.headers['age']['er'][1])
+
+        self.headers['result']['er'][0], self.headers['result']['pmag'][0] = headers(self.results, self.headers['result']['er'][1], self.headers['result']['pmag'][1])
+
 
     def change_specimen(self, old_spec_name, new_spec_name,
                         new_sample_name=None, new_er_data=None, new_pmag_data=None,
