@@ -767,7 +767,11 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
             for ancestor in ancestors:
                 string += ancestor + '\t'
             for key in actual_headers:
-                add_string = age.age_data[key]
+                try:
+                    add_string = age.age_data[key]
+                except KeyError:
+                    add_string = ''
+                    age.age_data[key] = ''
                 if key == 'er_citation_names' and not add_string.strip('\t'):
                     add_string = 'This study'
                 string += add_string + '\t'
