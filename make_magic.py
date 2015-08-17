@@ -231,7 +231,6 @@ class MainFrame(wx.Frame):
         if self.grid_frame:
             print '-I- You already have a grid frame open'
             pw.simple_warning("You already have a grid open")
-            print self.grid_frame
             return
         try:
             grid_type = event.GetButtonObj().Name[:-4] # remove '_btn'
@@ -803,12 +802,16 @@ class GridFrame(wx.Frame):
         for name in new_headers:
             if name:
                 if name not in self.grid.col_labels:
-                    self.grid.add_col(name)
+                    col_number = self.grid.add_col(name)
                     # add to appropriate headers list
                     if name in er_items:
                         self.grid_headers[self.grid_type]['er'][0].append(str(name))
                     if name in pmag_items:
                         self.grid_headers[self.grid_type]['pmag'][0].append(str(name))
+                    import controlled_vocabularies as vocabulary
+                    from controlled_vocabularies import vocabularies as vocab
+                    if name in vocabulary.possible_vocabularies:
+                        self.drop_down_menu.add_drop_down(col_number, name)
                 else:
                     pw.simple_warning('You are already using column header: {}'.format(name))
         self.main_sizer.Fit(self)

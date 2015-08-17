@@ -37,8 +37,8 @@ try:
 
     vocabularies = pd.Series(controlled_vocabularies, index=vocab_types)
 
-except:# Exception as ex:
-    #print ex
+except:
+    print "-W- Could not connect to internet -- will not be able to provide all controlled vocabularies"
 
     possible_vocabularies = []
     

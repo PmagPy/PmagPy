@@ -263,6 +263,7 @@ class MagicGrid(wx.grid.Grid):
         self.SetColLabelValue(last_col, label)
         self.col_labels.append(label)
         self.size_grid()
+        return last_col
 
 
     def remove_col(self, col_num):

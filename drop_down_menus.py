@@ -77,33 +77,41 @@ class Menus(object):
         # check if any additional columns have associated controlled vocabularies
         # if so, get the vocabulary list from the MagIC API
         for col_number, label in enumerate(col_labels):
-            if label in vocabulary.possible_vocabularies:
-                if col_number not in self.choices.keys(): # if not already assigned above
-                    self.grid.SetColLabelValue(col_number, label + "**") # mark it as using a controlled vocabulary
-                    url = 'http://api.earthref.org/MAGIC/vocabularies/{}.json'.format(label)
-                    controlled_vocabulary = pd.io.json.read_json(url)
-                    stripped_list = []
-                    for item in controlled_vocabulary[label][0]:
-                        try:
-                            stripped_list.append(str(item['item']))
-                        except UnicodeEncodeError:
-                            # skips items with non ASCII characters
-                            pass
-                    #stripped_list = [item['item'] for item in controlled_vocabulary[label][0]]
-                    
-                    if len(stripped_list) > 100:
-                    # split out the list alphabetically, into a dict of lists {'A': ['alpha', 'artist'], 'B': ['beta', 'beggar']...}
-                        dictionary = {}
-                        for item in stripped_list:
-                            letter = item[0].upper()
-                            if letter not in dictionary.keys():
-                                dictionary[letter] = []
-                            dictionary[letter].append(item)
+            self.add_drop_down(col_number, label)
 
-                        stripped_list = dictionary
+            
+    def add_drop_down(self, col_number, col_label):
+        """
+        Add a correctly formatted drop-down-menu for given col_label, if required.
+        Otherwise do nothing.
+        """
+        if col_label in vocabulary.possible_vocabularies:
+            if col_number not in self.choices.keys(): # if not already assigned above
+                self.grid.SetColLabelValue(col_number, col_label + "**") # mark it as using a controlled vocabulary
+                url = 'http://api.earthref.org/MAGIC/vocabularies/{}.json'.format(col_label)
+                controlled_vocabulary = pd.io.json.read_json(url)
+                stripped_list = []
+                for item in controlled_vocabulary[col_label][0]:
+                    try:
+                        stripped_list.append(str(item['item']))
+                    except UnicodeEncodeError:
+                        # skips items with non ASCII characters
+                        pass
+                #stripped_list = [item['item'] for item in controlled_vocabulary[label][0]]
 
-                    two_tiered = True if isinstance(stripped_list, dict) else False
-                    self.choices[col_number] = (stripped_list, two_tiered)
+                if len(stripped_list) > 100:
+                # split out the list alphabetically, into a dict of lists {'A': ['alpha', 'artist'], 'B': ['beta', 'beggar']...}
+                    dictionary = {}
+                    for item in stripped_list:
+                        letter = item[0].upper()
+                        if letter not in dictionary.keys():
+                            dictionary[letter] = []
+                        dictionary[letter].append(item)
+
+                    stripped_list = dictionary
+
+                two_tiered = True if isinstance(stripped_list, dict) else False
+                self.choices[col_number] = (stripped_list, two_tiered)
 
 
     def on_label_click(self, event):
