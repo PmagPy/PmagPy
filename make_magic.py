@@ -241,7 +241,35 @@ class MainFrame(wx.Frame):
         self.grid_frame = GridFrame(self.er_magic, self.WD, grid_type, grid_type, self.panel)
         #self.on_finish_change_dir(self.change_dir_dialog)
 
+    def write_files(self):
+        """
+        write all data out into er_* and pmag_* files as appropriate
+        """
+        for dtype in ['specimen', 'sample', 'site']:
+            if self.er_magic.data_lists[dtype]:
+                do_pmag = dtype not in self.er_magic.no_pmag_data
+                self.er_magic.write_magic_file(dtype, do_er=True, do_pmag=do_pmag)
+                if not do_pmag:
+                    pmag_file = os.path.join(self.WD, 'pmag_' + dtype + 's.txt')
+                    if os.path.isfile(pmag_file):
+                        os.remove(pmag_file)
+
+        if self.er_magic.locations:
+            self.er_magic.write_magic_file('location', do_er=True, do_pmag=False)
+
+        if self.er_magic.data_lists[self.er_magic.age_type]:
+            self.er_magic.write_age_file(self.er_magic.age_type)
+        
+        if self.er_magic.results:
+            self.er_magic.write_result_file()
+        
     def on_upload_file(self, event):
+        """
+        Write all data to appropriate er_* and pmag_* files.
+        Then use those files to create a MagIC upload format file.
+        Validate the upload file.
+        """
+        self.write_files()
         upfile, error_message = ipmag.upload_magic(dir_path=self.WD)
         if upfile:
             text = "You are ready to upload.\nYour file:\n{}\nwas generated in directory: \n{}\nDrag and drop this file in the MagIC database.".format(os.path.split(upfile)[1], self.WD)
@@ -342,7 +370,7 @@ class GridFrame(wx.Frame):
 
         #ancestry = [None, 'specimen', 'sample', 'site', 'location', None]
         if self.grid_type == 'age':
-            self.current_age_type = 'site'
+            #self.current_age_type = 'site'
             self.child_type = 'sample'
             self.parent_type = 'location'
         else:
@@ -353,6 +381,7 @@ class GridFrame(wx.Frame):
                 self.child_type = None
                 self.parent_type = None
 
+        #self.current_age_type = 'site'
         self.WD = WD
         self.InitUI()
 
@@ -572,10 +601,10 @@ class GridFrame(wx.Frame):
         label = event.GetEventObject().Label
         if label == 'sample':
             new_parent_type = 'site'
-            self.current_age_type = 'sample'
+            self.er_magic.age_type = 'sample'
         if label == 'site':
             new_parent_type = 'location'
-            self.current_age_type = 'site'
+            self.er_magic.age_type = 'site'
         if self.grid.changes:
             self.onSave(None)
         self.grid.Destroy()
@@ -975,14 +1004,14 @@ class GridFrame(wx.Frame):
 
     def onSave(self, event):#, age_data_type='site'):
         """
-        Save grid data and write it to file
+        Save grid data in the data object
         """
         if not self.grid.changes:
             self.Destroy()
             return
 
         if self.grid_type == 'age':
-            age_data_type = self.current_age_type
+            age_data_type = self.er_magic.age_type
         if self.drop_down_menu:
             self.drop_down_menu.clean_up()
 
@@ -1071,30 +1100,6 @@ class GridFrame(wx.Frame):
                             item = self.er_magic.update_methods[self.grid_type](old_item_name, new_item_name,
                                                                                 new_parent_name, new_er_data,
                                                                                 new_pmag_data, replace_data=True)
-
-        if self.grid_type == 'result':
-            self.er_magic.write_result_file()
-            wx.MessageBox('Saved!', 'Info',
-              style=wx.OK | wx.ICON_INFORMATION)
-            self.Destroy()
-            return
-        if self.grid_type == 'age':
-            self.er_magic.write_age_file(age_data_type)
-            wx.MessageBox('Saved!', 'Info',
-              style=wx.OK | wx.ICON_INFORMATION)
-            if not event:
-                return
-            self.Destroy()
-            return
-
-        
-        do_pmag = self.pmag_checkbox.cb.IsChecked()
-        self.er_magic.write_magic_file(self.grid_type, do_pmag=do_pmag)
-        if not do_pmag:
-            pmag_file = os.path.join(self.WD, 'pmag_' + self.grid_type + 's.txt')
-            if os.path.isfile(pmag_file):
-                os.remove(pmag_file)
-                
         wx.MessageBox('Saved!', 'Info',
                       style=wx.OK | wx.ICON_INFORMATION)
         self.Destroy()

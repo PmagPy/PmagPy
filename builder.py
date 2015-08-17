@@ -55,6 +55,7 @@ class ErMagicBuilder(object):
             'result': {'er': [[], [], []], 'pmag': [[], [], []]}
         }
         self.first_age_headers = ['er_citation_names', 'magic_method_codes', 'age_unit']
+        self.age_type = 'site'
 
 
     def find_by_name(self, item_name, items_list):
