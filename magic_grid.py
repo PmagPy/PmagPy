@@ -165,6 +165,7 @@ class MagicGrid(wx.grid.Grid):
         data_obj = wx.TextDataObject()
         col = self.GetGridCursorCol()
         row = self.GetGridCursorRow()
+        num_cols = self.GetNumberCols()
 
         if wx.TheClipboard.Open():
             wx.TheClipboard.GetData(data_obj)
@@ -183,7 +184,8 @@ class MagicGrid(wx.grid.Grid):
                     if '\t' in text_row.strip('\t'):
                         text_items = text_row.split('\t')
                         for num, item in enumerate(text_items):
-                            self.SetCellValue(row, col + num, item)
+                            if (col + num) < num_cols:
+                                self.SetCellValue(row, col + num, item)
                     # unless there is only one column
                     else:
                         self.SetCellValue(row, col, text_row)
@@ -197,9 +199,9 @@ class MagicGrid(wx.grid.Grid):
                 # simple pasting
                 self.SetCellValue(row, col, text)
                 self.ForceRefresh()
-            self.size_grid()
-            wx.TheClipboard.Close()
-            event.Skip()
+        self.size_grid()
+        wx.TheClipboard.Close()
+        event.Skip()
 
 
     def add_row(self, label='', item=''):
