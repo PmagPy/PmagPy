@@ -600,6 +600,10 @@ class GridFrame(wx.Frame):
         self.Centre()
 
     def toggle_ages(self, event):
+        """
+        Switch the type of grid between site/sample
+        (Users may add ages at either age)
+        """
         label = event.GetEventObject().Label
         if label == 'sample':
             new_parent_type = 'site'
@@ -607,21 +611,27 @@ class GridFrame(wx.Frame):
         if label == 'site':
             new_parent_type = 'location'
             self.er_magic.age_type = 'site'
+
         if self.grid.changes:
             self.onSave(None)
+
         self.grid.Destroy()
+
+        # normally grid_frame is reset to None when grid is destroyed
+        # in this case we are simply replacing the grid, so we need to
+        # reset grid_frame
+        self.parent.Parent.grid_frame = self
+
         # prevent mainframe from popping up in front of age grid
         # does create an unfortunate flashing effect, though.  
         self.parent.Parent.Hide()
 
         self.grid = self.make_grid(new_parent_type)
-
         self.grid.InitUI()
         self.panel.Bind(wx.grid.EVT_GRID_LABEL_LEFT_CLICK, self.onLeftClickLabel, self.grid)
         
         self.add_data_to_grid(label)
         self.add_age_data_to_grid(label)
-
         belongs_to = sorted(self.er_magic.data_lists[new_parent_type][0], key=lambda item: item.name)
         self.drop_down_menu = drop_down_menus.Menus(self.grid_type, self, self.grid, belongs_to)
 
@@ -630,19 +640,10 @@ class GridFrame(wx.Frame):
         self.grid.size_grid()
         
         self.grid_box.Add(self.grid, flag=wx.ALL, border=5)
-
-        ## this works for the initial sizing
-        num_rows = len(self.grid.row_labels)
-        if num_rows in range(0, 4):
-            height = {0: 70, 1: 70, 2: 90, 3: 110, 4: 130}
-            self.grid.SetSize((-1, height[num_rows]))
-
         self.main_sizer.Fit(self)
 
-        
     def init_grid_headers(self):
         self.grid_headers = self.er_magic.headers
-        
 
     def make_grid(self, parent_type=None):
         """
