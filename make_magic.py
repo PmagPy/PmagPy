@@ -38,6 +38,7 @@ class MainFrame(wx.Frame):
         print '-I- Initializing magic data object'
         self.data_model = validate_upload.get_data_model()
         self.er_magic = builder.ErMagicBuilder(self.WD, self.data_model)
+        self.edited = False
 
         # initialize magic data object
         # attempt to read magic_measurements.txt, and all er_* and pmag_* files
@@ -219,6 +220,8 @@ class MainFrame(wx.Frame):
         self.Hide()
 
     def on_close_grid_frame(self, event=None):
+        if self.grid_frame.grid.changes:
+            self.edited = True
         self.grid_frame = None
         self.Show()
         if event:
@@ -279,6 +282,7 @@ class MainFrame(wx.Frame):
         result = dlg.ShowModal()
         if result == wx.ID_OK:            
             dlg.Destroy()
+        self.edited = False
 
 
 class MagICMenu(wx.MenuBar):
@@ -310,15 +314,16 @@ class MagICMenu(wx.MenuBar):
                 dlg = wx.MessageDialog(self,caption="Message:", message="Are you sure you want to exit the program?\nYou have a grid open with unsaved changes.\n ", style=wx.OK|wx.CANCEL)
                 result = dlg.ShowModal()
                 if result == wx.ID_OK:
-
                     dlg.Destroy()
-                    #self.Destroy()
                 else:
                     dlg.Destroy()
                     return
-        #self.parent.Destroy()
         if self.parent.grid_frame:
             self.parent.grid_frame.Destroy()
+        # if there have been edits, save all data to files
+        # before quitting
+        if self.parent.edited:
+            self.parent.write_files()
         self.parent.Close()
 
     def on_clear(self, event):
