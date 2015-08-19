@@ -8,17 +8,17 @@ addons:
   apt:
     packages:
       # for wxPython:
-      - python-wxgtk2.8
+      - python-wxgtk2.9
       - python-wxtools
-      - wx2.8-doc
-      - wx2.8-examples
-      - wx2.8-headers
-      - wx2.8-i18n
+      - wx2.9-doc
+      - wx2.9-examples
+      - wx2.9-headers
+      - wx2.9-i18n
       
 before_install:
   - sudo apt-get update -qq  # make sure package indexes are up to date
   - sudo apt-get install -y python-scipy python-tk python-matplotlib # python-mpl_basemap doesn't work
-  - sudo apt-get install -y python-wxgtk2.8
+  - sudo apt-get install -y python-wxgtk2.9
 
   # many failed attempts to get wxpython:
   

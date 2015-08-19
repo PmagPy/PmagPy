@@ -53,6 +53,7 @@ class MagicGrid(wx.grid.Grid):
         # so skip it if it's an older version
         try:
             self.ShowScrollbars(wx.SHOW_SB_NEVER, wx.SHOW_SB_DEFAULT)
+            print 'wx.__version__', wx.__version__
         except AttributeError:
             print 'wx.__version__', wx.__version__
             #pass
