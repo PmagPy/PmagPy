@@ -48,7 +48,14 @@ class MagicGrid(wx.grid.Grid):
         # set column labels
         for n, col in enumerate(self.col_labels):
             self.SetColLabelValue(n, str(col))
-        self.ShowScrollbars(wx.SHOW_SB_NEVER, wx.SHOW_SB_DEFAULT)
+        # prevent horizontal scrollbar from showing up
+        # this doesn't work with all versions of wx
+        # so skip it if it's an older version
+        try:
+            self.ShowScrollbars(wx.SHOW_SB_NEVER, wx.SHOW_SB_DEFAULT)
+        except AttributeError:
+            print 'wx.__version__', wx.__version__
+            #pass
         return data
 
 
