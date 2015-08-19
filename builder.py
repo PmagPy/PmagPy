@@ -353,6 +353,9 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
             item.age_data = item.combine_dicts(age_data, required)
             self.write_ages = True
         
+    def delete_age(self, item_name):
+        pass
+
     def add_result(self, result_name, specimens=None, samples=None, sites=None, locations=None, pmag_data=None):
         result = Result(result_name, specimens, samples, sites, locations, pmag_data, self.data_model)
         self.results.append(result)
