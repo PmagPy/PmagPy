@@ -33,7 +33,6 @@ class MagicGrid(wx.grid.Grid):
             except ValueError:
                 self.parent_type = None
         ###
-        
         #self.InitUI()
 
     def InitUI(self):
@@ -49,6 +48,7 @@ class MagicGrid(wx.grid.Grid):
         # set column labels
         for n, col in enumerate(self.col_labels):
             self.SetColLabelValue(n, str(col))
+        self.ShowScrollbars(wx.SHOW_SB_NEVER, wx.SHOW_SB_DEFAULT)
         return data
 
 

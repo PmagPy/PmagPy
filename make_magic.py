@@ -568,13 +568,8 @@ class GridFrame(wx.Frame):
         self.main_sizer.Add(self.grid_box, flag=wx.ALL, border=10)
         self.panel.SetSizer(self.main_sizer)
         self.main_sizer.Fit(self)
-        ## this works for the initial sizing
-        num_rows = len(self.grid.row_labels)
-        if num_rows in range(0, 4):
-            height = {0: 70, 1: 70, 2: 90, 3: 110, 4: 130}
-            self.grid.SetSize((-1, height[num_rows]))
         ## this keeps sizing correct if the user resizes the window manually
-        self.Bind(wx.EVT_SIZE, self.resize_grid)
+        self.Bind(wx.EVT_SIZE, self.do_fit)
         self.Centre()
         self.Show()
 
@@ -593,6 +588,9 @@ class GridFrame(wx.Frame):
         """
         Re-fit the window to the size of the content.
         """
+        #self.grid.ShowScrollbars(wx.SHOW_SB_NEVER, wx.SHOW_SB_NEVER)
+        if event:
+            event.Skip()
         self.main_sizer.Fit(self)
         self.Centre()
 
@@ -731,19 +729,6 @@ class GridFrame(wx.Frame):
 
 
     ##  Grid event methods
-    
-    def resize_grid(self, event):
-        if event:
-            event.Skip()
-        #self.main_sizer.Fit(self)
-        num_rows = len(self.grid.row_labels)
-        if num_rows in range(0, 4):
-            height = {0: 70, 1: 70, 2: 90, 3: 110, 4: 130}
-            self.grid.SetSize((-1, height[num_rows]))
-        self.main_sizer.Fit(self)
-        # the last line means you can't resize the window to be bigger
-        # than it naturally sizes to be based on its contents
-        # (since every time a resize event is fired, the .Fit method is also fired)
 
     def remove_col_label(self, event):#, include_pmag=True):
         """
