@@ -341,6 +341,18 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
             site.location = ''
         del location
 
+    def add_age(self, item_name, age_data):
+        items_list = self.data_lists[self.age_type][0]
+        item = self.find_by_name(item_name, items_list)
+        if not item:
+            msg = '-W- You have tried to add age data for {}, but there is no {} by that name'.format(item_name, self.age_type)
+            print msg
+            return False
+        else:
+            required = {key: '' for key in self.headers['age']['er'][1]}
+            item.age_data = item.combine_dicts(age_data, required)
+            self.write_ages = True
+        
     def add_result(self, result_name, specimens=None, samples=None, sites=None, locations=None, pmag_data=None):
         result = Result(result_name, specimens, samples, sites, locations, pmag_data, self.data_model)
         self.results.append(result)
@@ -360,7 +372,8 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
         """
         result = self.find_by_name(old_result_name, self.results)
         if not result:
-            print '-W- {} is not a currently existing result, so it cannot be updated.'.format(old_result_name)
+            msg = '-W- {} is not a currently existing result, so it cannot be updated.'.format(old_result_name)
+            print msg
             return False
         else:
             specimens, samples, sites, locations = None, None, None, None

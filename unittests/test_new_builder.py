@@ -916,6 +916,39 @@ class TestAge(unittest.TestCase):
         outfile = self.data1.write_age_file()
         self.assertTrue(outfile)
 
+    def test_add_age(self):
+        self.data1.init_default_headers()
+        site = self.data1.find_by_name('MGH1', self.data1.sites)
+        self.assertEqual('site', self.data1.age_type)
+        self.assertFalse(self.data1.write_ages)
+        self.assertNotIn('age', site.age_data.keys())
+        self.data1.add_age('MGH1', {'age': 10})
+
+        self.assertTrue(self.data1.write_ages)
+        self.assertIn('age', site.age_data.keys())
+        self.assertIn('magic_method_codes', site.age_data.keys())
+        self.assertEqual(10, site.age_data['age'])
+
+    def test_add_age_nonexistent_site(self):
+        self.data1.init_default_headers()
+        result = self.data1.add_age('fake_site', {'age': 10})
+        self.assertFalse(result)
+
+    def test_add_age_type_sample(self):
+        self.data1.init_default_headers()
+        samp_name = 'Z35.6'
+        sample = self.data1.find_by_name(samp_name, self.data1.samples)
+        self.assertNotIn('age', sample.age_data.keys())
+        self.assertFalse(self.data1.write_ages)
+
+        self.data1.age_type = 'sample'
+        self.data1.add_age(samp_name, {'age': 10})
+
+        self.assertIn('age', sample.age_data.keys())
+        self.assertIn('magic_method_codes', sample.age_data.keys())
+        self.assertEqual(10, sample.age_data['age'])
+
+        
 
 class TestResult(unittest.TestCase):
 
