@@ -678,6 +678,7 @@ class GridFrame(wx.Frame):
             #header.remove('pmag_result_name')
             header[:0] = ['pmag_result_name', 'er_citation_names', 'er_specimen_names',
                           'er_sample_names', 'er_site_names', 'er_location_names']
+
         elif self.grid_type == 'age':
             for header_type in self.er_magic.first_age_headers:
                 if header_type in header:
@@ -1005,6 +1006,7 @@ class GridFrame(wx.Frame):
 
         if self.grid_type == 'age':
             age_data_type = self.er_magic.age_type
+            self.er_magic.write_ages = True
         if self.drop_down_menu:
             self.drop_down_menu.clean_up()
 

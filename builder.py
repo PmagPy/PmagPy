@@ -22,6 +22,7 @@ class ErMagicBuilder(object):
         self.locations = []
         self.results = []
         #self.ages = []
+        self.write_ages = False
         self.ancestry = [None, 'specimen', 'sample', 'site', 'location', None]
         self.no_pmag_data = set()
         if not data_model:
@@ -514,6 +515,7 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
                 #items_list.append(pmag_item)
                 continue
             pmag_item.age_data = remove_dict_headers(data_dict[pmag_name])
+        self.write_ages = True
 
     def get_results_info(self):
         """
@@ -742,6 +744,9 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
         """
         Write er_ages.txt based on updated ErMagicBuilder data object
         """
+        if not self.write_ages:
+            print '-I- No age data available to write'
+            return
         first_headers = self.first_age_headers
         actual_headers = sorted(self.headers['age']['er'][0])
         for header in first_headers:
