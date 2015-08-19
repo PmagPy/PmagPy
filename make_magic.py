@@ -247,6 +247,7 @@ class MainFrame(wx.Frame):
         """
         write all data out into er_* and pmag_* files as appropriate
         """
+        print '-I- Writing all saved data to files'
         for dtype in ['specimen', 'sample', 'site']:
             if self.er_magic.data_lists[dtype]:
                 do_pmag = dtype not in self.er_magic.no_pmag_data
@@ -375,8 +376,9 @@ class GridFrame(wx.Frame):
         #ancestry = [None, 'specimen', 'sample', 'site', 'location', None]
         if self.grid_type == 'age':
             #self.current_age_type = 'site'
-            self.child_type = 'sample'
-            self.parent_type = 'location'
+            ancestry_ind = self.er_magic.ancestry.index(self.er_magic.age_type)
+            self.child_type = self.er_magic.ancestry[ancestry_ind-1]#'sample'
+            self.parent_type = self.er_magic.ancestry[ancestry_ind+1]#'location'
         else:
             try:
                 self.child_type = self.er_magic.ancestry[self.er_magic.ancestry.index(self.grid_type) - 1]
@@ -542,7 +544,10 @@ class GridFrame(wx.Frame):
             self.add_many_rows_button.Disable()
             self.grid.SetColLabelValue(0, 'er_site_name')
             toggle_box = wx.StaticBoxSizer(wx.StaticBox(self.panel, -1, label='Ages level'), wx.VERTICAL)
-            toggle_box.Add(pw.labeled_yes_or_no(self.panel, 'Choose level to assign ages', 'site', 'sample'))
+            yes_no = pw.labeled_yes_or_no(self.panel, 'Choose level to assign ages', 'site', 'sample')
+            toggle_box.Add(yes_no)
+            if self.er_magic.age_type == 'sample':
+                yes_no.rb2.SetValue(True)
             self.Bind(wx.EVT_RADIOBUTTON, self.toggle_ages)
             hbox.Add(toggle_box)
 
@@ -631,7 +636,7 @@ class GridFrame(wx.Frame):
         self.panel.Bind(wx.grid.EVT_GRID_LABEL_LEFT_CLICK, self.onLeftClickLabel, self.grid)
         
         self.add_data_to_grid(label)
-        self.add_age_data_to_grid(label)
+        self.add_age_data_to_grid()
         belongs_to = sorted(self.er_magic.data_lists[new_parent_type][0], key=lambda item: item.name)
         self.drop_down_menu = drop_down_menus.Menus(self.grid_type, self, self.grid, belongs_to)
 
@@ -705,7 +710,8 @@ class GridFrame(wx.Frame):
         return grid
 
 
-    def add_age_data_to_grid(self, dtype='site'):
+    def add_age_data_to_grid(self):
+        dtype = self.er_magic.age_type
         row_labels = [self.grid.GetCellValue(row, 0) for row in range(self.grid.GetNumberRows())]
         items_list = self.er_magic.data_lists[dtype][0]
         items = [self.er_magic.find_by_name(label, items_list) for label in row_labels if label]
@@ -726,6 +732,8 @@ class GridFrame(wx.Frame):
     def add_data_to_grid(self, grid_type=None):
         if not grid_type:
             grid_type = self.grid_type
+        if grid_type == 'age':
+            grid_type = self.er_magic.age_type
         rows = self.er_magic.data_lists[grid_type][0]
         self.grid.add_items(rows)
         self.grid.size_grid()

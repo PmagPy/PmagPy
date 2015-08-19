@@ -490,7 +490,7 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
             if parent and (child not in parent.children):
                 parent.add_child(child)
 
-    def get_age_info(self, sample_or_site='site'):
+    def get_age_info(self):#, sample_or_site='site'):
         """
         Read er_ages.txt file.
         Parse information into dictionaries for each site/sample.
@@ -498,12 +498,17 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
         """
         short_filename = 'er_ages.txt'
         magic_file = os.path.join(self.WD, short_filename)
-        magic_name = 'er_' + sample_or_site + '_name'
         if not os.path.isfile(magic_file):
             print '-W- Could not find {} in your working directory {}'.format(short_filename, self.WD)
             return False
-        data_dict = self.read_magic_file(magic_file, magic_name)[0]
-        items_list, item_constructor = self.data_lists[sample_or_site]
+        try:
+            data_dict = self.read_magic_file(magic_file, 'er_sample_name')[0]
+            self.age_type = 'sample'
+        except KeyError:
+            data_dict = self.read_magic_file(magic_file, 'er_site_name')[0]
+            self.age_type = 'site'
+        magic_name = 'er_' + self.age_type + '_name'
+        items_list, item_constructor = self.data_lists[self.age_type]
         for pmag_name in data_dict.keys():
             pmag_item = self.find_by_name(pmag_name, items_list)
             if not pmag_item:
