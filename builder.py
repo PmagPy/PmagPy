@@ -356,7 +356,16 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
     def delete_age(self, item_name):
         pass
 
-    def add_result(self, result_name, specimens=None, samples=None, sites=None, locations=None, pmag_data=None):
+    def add_result(self, result_name, spec_names=None, samp_names=None, site_names=None, loc_names=None, pmag_data=None):
+        specimens, samples, sites, locations = None, None, None, None
+        if spec_names:
+            specimens = [self.find_by_name(name, self.specimens) for name in spec_names]
+        if samp_names:
+            samples = [self.find_by_name(name, self.samples) for name in samp_names]
+        if site_names:
+            sites = [self.find_by_name(name, self.sites) for name in site_names]
+        if loc_names:
+            locations = [self.find_by_name(name, self.locations) for name in loc_names]
         result = Result(result_name, specimens, samples, sites, locations, pmag_data, self.data_model)
         self.results.append(result)
         
@@ -392,7 +401,7 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
             result.change_result(new_result_name, new_pmag_data, specimens, samples,
                                  sites, locations, replace_data)
             return result
-    
+
     ## Methods for reading in data
 
     def get_data(self):
