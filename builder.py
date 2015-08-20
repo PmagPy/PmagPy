@@ -735,24 +735,21 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
         result_strings = []
 
         for result in results:
-            result_string = ''
-            result_string += result.name + '\t'
+            result_string = []
+            result_string.append(result.name)
             spec_str = get_item_string(result.specimens)
             samp_str = get_item_string(result.samples)
             site_str = get_item_string(result.sites)
             loc_str = get_item_string(result.locations)
-            items = [spec_str, samp_str, site_str, loc_str]
-            for item in items:
-                result_string += item + '\t'
+            strings = [spec_str, samp_str, site_str, loc_str]
+            for string in strings:
+                result_string.append(strings)
             for key in actual_headers:
                 add_string = result.pmag_data[key]
                 if key == 'er_citation_names' and not add_string.strip('\t'):
                     add_string = 'This study'
-                result_string += add_string + '\t'
-
-            # prevent extra '' at the end of result_string
-            if result_string.endswith('\t'):
-                result_string = result_string[:-1]
+                result_string.append(add_string)
+            result_string = '\t'.join(result_string)
             result_strings.append(result_string)
 
         outfile = open(os.path.join(self.WD, 'pmag_results.txt'), 'w')

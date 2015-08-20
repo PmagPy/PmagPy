@@ -1053,6 +1053,8 @@ class GridFrame(wx.Frame):
                         col_label = str(self.grid.GetColLabelValue(col))
                         value = str(self.grid.GetCellValue(change, col))
                         #new_data[col_label] = value
+                        if value == '\t':
+                            value = ''
                         if er_header and col_label in er_header:
                             new_er_data[col_label] = value
 
