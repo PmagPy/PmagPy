@@ -794,7 +794,7 @@ class GridFrame(wx.Frame):
         col_labels = self.grid.col_labels
         er_items = [head for head in self.grid_headers[self.grid_type]['er'][2] if head not in col_labels]
         include_pmag = self.pmag_checkbox.cb.IsChecked()
-        if include_pmag:
+        if include_pmag or self.grid_type == 'result':
             pmag_items = [head for head in self.grid_headers[self.grid_type]['pmag'][2] if head not in er_items and head not in col_labels]
         else:
             pmag_items = []

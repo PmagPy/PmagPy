@@ -743,7 +743,7 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
             loc_str = get_item_string(result.locations)
             strings = [spec_str, samp_str, site_str, loc_str]
             for string in strings:
-                result_string.append(strings)
+                result_string.append(string)
             for key in actual_headers:
                 add_string = result.pmag_data[key]
                 if key == 'er_citation_names' and not add_string.strip('\t'):
