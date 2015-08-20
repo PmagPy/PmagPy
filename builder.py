@@ -639,6 +639,8 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
         pmag_strings = []
         
         items_list = self.data_lists[dtype][0]
+        items_list = sorted(self.data_lists[dtype][0], key=lambda item: item.name)
+        
         for item in items_list[:]:
             # get an item's ancestors
             ancestors = self.get_ancestors(item)
@@ -785,6 +787,8 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
 
         header_string = '\t'.join(full_headers)
         ages = self.data_lists[site_or_sample][0]
+        ages = sorted(ages, key=lambda item: item.name)
+
         age_strings = []
         for age in ages:
             string = ''
