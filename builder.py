@@ -791,6 +791,7 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
 
         age_strings = []
         for age in ages:
+            data_found = False
             string = ''
             string += age.name + '\t'
             parent = age.get_parent()
@@ -808,6 +809,8 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
                 except KeyError:
                     add_string = ''
                     age.age_data[key] = ''
+                if add_string and not key == 'er_citation_names':
+                    data_found = True
                 if key == 'er_citation_names' and not add_string.strip('\t'):
                     add_string = 'This study'
                 string += add_string + '\t'
@@ -815,7 +818,9 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
             # prevent extra '' at the end of age string
             if string.endswith('\t'):
                 string = string[:-1]
-            age_strings.append(string)
+            # only write ages to file if there is data provided
+            if data_found:
+                age_strings.append(string)
         outfile = open(os.path.join(self.WD, 'er_ages.txt'), 'w')
         outfile.write('tab\ter_ages\n')
         outfile.write(header_string + '\n')
