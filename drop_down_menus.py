@@ -250,8 +250,7 @@ class Menus(object):
                         choice = " " # prevents error if choice is an empty string
                     menuitem = menu.Append(wx.ID_ANY, str(choice))
                     self.window.Bind(wx.EVT_MENU, lambda event: self.on_select_menuitem(event, grid, row, col, selection), menuitem)
-                self.window.PopupMenu(menu)
-                menu.Destroy()
+                self.show_menu(event, menu)
             else: # menu is two_tiered
                 clear = menu.Append(-1, 'CLEAR cell of all values')
                 self.window.Bind(wx.EVT_MENU, lambda event: self.on_select_menuitem(event, grid, row, col, selection), clear)
@@ -261,8 +260,7 @@ class Menus(object):
                         menuitem = submenu.Append(-1, str(item))
                         self.window.Bind(wx.EVT_MENU, lambda event: self.on_select_menuitem(event, grid, row, col, selection), menuitem)
                     menu.AppendMenu(-1, choice[0], submenu)
-                self.window.PopupMenu(menu)
-                menu.Destroy()
+                self.show_menu(event, menu)
 
         if selection:
             # re-whiten the cells that were previously highlighted
@@ -272,6 +270,17 @@ class Menus(object):
             self.selection = []
             self.grid.ForceRefresh()
 
+
+    def show_menu(self, event, menu):
+        position = event.GetPosition()
+        horizontal, vertical = position
+        grid_horizontal, grid_vertical = self.grid.GetSize()
+        if grid_vertical - vertical < 40:
+            vertical += 10
+            self.window.PopupMenu(menu, (horizontal, vertical))
+        else:
+            self.window.PopupMenu(menu)
+        menu.Destroy()
 
     def update_drop_down_menu(self, grid, choices):
         self.window.Bind(wx.grid.EVT_GRID_CELL_LEFT_CLICK, lambda event: self.on_left_click(event, grid, choices), grid)
