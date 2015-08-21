@@ -2362,7 +2362,7 @@ def plotMAP(fignum,lats,lons,Opts):
     fig=pylab.figure(num=fignum) 
     rgba_land=(255,255,150,255)
     rgba_ocean=(200,250,255,255)
-    ExMer=['sinus','moll']
+    ExMer=['sinus','moll','lcc']
     mlabels=[0,0,0,1]  # draw meridian labels on the bottom [left,right,top,bottom]
     plabels=[1,0,0,0] # draw parallel labels on the left
     if Opts['proj'] in ExMer:mlabels=[0,0,0,0] 
