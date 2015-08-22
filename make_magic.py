@@ -615,6 +615,10 @@ class GridFrame(wx.Frame):
         Switch the type of grid between site/sample
         (Users may add ages at either age)
         """
+
+        if self.grid.changes:
+            self.onSave(None)
+
         label = event.GetEventObject().Label
         if label == 'sample':
             new_parent_type = 'site'
@@ -623,8 +627,6 @@ class GridFrame(wx.Frame):
             new_parent_type = 'location'
             self.er_magic.age_type = 'site'
 
-        if self.grid.changes:
-            self.onSave(None)
 
         self.grid.Destroy()
 
@@ -1025,6 +1027,7 @@ class GridFrame(wx.Frame):
         if self.drop_down_menu:
             self.drop_down_menu.clean_up()
 
+
         starred_cols = self.grid.remove_starred_labels()
 
         self.grid.SaveEditControlValue() # locks in value in cell currently edited
@@ -1112,6 +1115,9 @@ class GridFrame(wx.Frame):
                             item = self.er_magic.update_methods[self.grid_type](old_item_name, new_item_name,
                                                                                 new_parent_name, new_er_data,
                                                                                 new_pmag_data, replace_data=True)
+        if not event:
+            return
+
         wx.MessageBox('Saved!', 'Info',
                       style=wx.OK | wx.ICON_INFORMATION)
         self.Destroy()
