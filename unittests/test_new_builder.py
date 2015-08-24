@@ -45,8 +45,8 @@ class TestBuilder(unittest.TestCase):
 class TestMeasurement(unittest.TestCase):
     
     def setUp(self):
-        dir_path = os.path.join(WD, 'Datafiles', 'copy_ErMagicBuilder')
-        self.data1 = builder.ErMagicBuilder(dir_path)
+        self.dir_path = os.path.join(WD, 'Datafiles', 'copy_ErMagicBuilder')
+        self.data1 = builder.ErMagicBuilder(self.dir_path)
         self.data1.get_data()
 
     def tearDown(self):
@@ -58,11 +58,13 @@ class TestMeasurement(unittest.TestCase):
         self.assertTrue(self.data1.measurements)
         meas = self.data1.find_by_name('Z35.6a:LP-DIR-T_20', self.data1.measurements)
         self.assertTrue(meas)
+        self.assertEqual(meas.experiment_name, 'Z35.6a:LP-DIR-T')
+        self.assertEqual(meas.meas_number, '20')
         for attr in ['specimen', 'er_data']:
             self.assertTrue(meas.__getattribute__(attr))
         for attr in ['er_specimen_name', 'er_sample_name', 'er_site_name', 'er_location_name',
                      'magic_experiment_name', 'measurement_number']:
-            self.assertNotIn(attr, meas.data.keys())
+            self.assertNotIn(attr, meas.er_data.keys())
 
     def test_measurement_headers(self):
         self.data1.init_default_headers()
@@ -70,6 +72,12 @@ class TestMeasurement(unittest.TestCase):
         for lst in self.data1.headers['measurement']['er']:
             self.assertTrue(lst)
 
+    def test_write_measurements_file(self):
+        self.data1.init_default_headers()
+        self.data1.init_actual_headers()
+        result = self.data1.write_measurements_file()
+        self.assertTrue(result)
+        self.assertTrue(os.path.isfile(os.path.join(self.dir_path, 'magic_measurements.txt')))
         
     
 class TestSpecimen(unittest.TestCase):
@@ -307,7 +315,6 @@ class TestSpecimen(unittest.TestCase):
         
         #self.data1.get_magic_info('specimen', 'sample', 'pmag')
         self.data1.get_magic_info('specimen', 'sample', 'pmag')
-        print 'specimen.pmag_data', specimen.pmag_data
         
         self.assertIn('measurement_step_max', specimen.pmag_data.keys())
         self.assertEqual(828, int(specimen.pmag_data['measurement_step_max']))

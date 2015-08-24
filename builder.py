@@ -637,6 +637,44 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
         fin.close()
         return DATA, header
 
+
+    def write_measurements_file(self):
+        filename = os.path.join(self.WD, 'magic_measurements.txt')
+        magic_outfile = open(filename, 'w')
+        measurement_headers = self.headers['measurement']['er'][0]
+        measurement_headers[:0] = ['er_specimen_name', 'er_sample_name', 'er_site_name',
+                                   'er_location_name', 'magic_experiment_name', 'measurement_number']
+        meas_strings = []
+        for meas in self.measurements:
+            meas_string = []
+            for header in measurement_headers:
+                if header == 'er_specimen_name':
+                    val = meas.specimen.name
+                elif header == 'er_sample_name':
+                    val = meas.specimen.sample.name
+                elif header == 'er_site_name':
+                    val = meas.specimen.sample.site.name
+                elif header == 'er_location_name':
+                    val = meas.specimen.sample.site.location.name
+                elif header == 'magic_experiment_name':
+                    val = meas.experiment_name
+                elif header == 'measurement_number':
+                    val = meas.meas_number
+                else:
+                    val = meas.er_data.get(header, '')
+                meas_string.append(val)
+            meas_string = '\t'.join(meas_string)
+            meas_strings.append(meas_string)
+        # do writing
+        magic_outfile.write('tab\t\magic_measurements\n')
+        header_string = '\t'.join(measurement_headers)
+        magic_outfile.write(header_string + '\n')
+        for string in meas_strings:
+            magic_outfile.write(string + '\n')
+        magic_outfile.close()
+        return True
+    
+    
     def write_magic_file(self, dtype, do_er=True, do_pmag=True):
         if dtype == 'location':
             do_pmag = False
@@ -891,6 +929,8 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
 class Measurement(object):
 
     def __init__(self, experiment_name, meas_number, specimen=None, data=None):
+        self.experiment_name = experiment_name
+        self.meas_number = meas_number
         self.name = experiment_name + '_' + str(meas_number)
         self.specimen = specimen
         self.er_data = remove_dict_headers(data)
