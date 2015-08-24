@@ -56,24 +56,21 @@ class TestMeasurement(unittest.TestCase):
         #return
         self.assertIn('measurements', dir(self.data1))
         self.assertTrue(self.data1.measurements)
-        meas = self.data1.find_by_name('arbitrary_measurement_name', self.data1.measurements)
+        meas = self.data1.find_by_name('Z35.6a:LP-DIR-T_20', self.data1.measurements)
         self.assertTrue(meas)
-        for attr in ['specimen', 'data']:
+        for attr in ['specimen', 'er_data']:
             self.assertTrue(meas.__getattribute__(attr))
         for attr in ['er_specimen_name', 'er_sample_name', 'er_site_name', 'er_location_name',
                      'magic_experiment_name', 'measurement_number']:
             self.assertNotIn(attr, meas.data.keys())
 
     def test_measurement_headers(self):
-        #return
         self.data1.init_default_headers()
         self.data1.init_actual_headers()
         for lst in self.data1.headers['measurement']['er']:
             self.assertTrue(lst)
 
         
-
-    
     
 class TestSpecimen(unittest.TestCase):
 

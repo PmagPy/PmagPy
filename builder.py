@@ -125,6 +125,8 @@ class ErMagicBuilder(object):
                 pmag_header = remove_list_headers(reqd_pmag_headers)
             return list(er_header), list(pmag_header)
 
+        self.headers['measurement']['er'][0], self.headers['measurement']['pmag'][0] = headers(self.measurements, self.headers['measurement']['er'][1], self.headers['measurement']['pmag'][1])
+        
         self.headers['specimen']['er'][0], self.headers['specimen']['pmag'][0] = headers(self.specimens, self.headers['specimen']['er'][1], self.headers['specimen']['pmag'][1])
 
         self.headers['sample']['er'][0], self.headers['sample']['pmag'][0] = headers(self.samples, self.headers['sample']['er'][1], self.headers['sample']['pmag'][1])
@@ -447,6 +449,11 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
             if not specimen:
                 specimen = Specimen(specimen_name, sample, self.data_model)
                 self.specimens.append(specimen)
+
+            exp_name = rec['magic_experiment_name']
+            meas_num = rec['measurement_number']
+            measurement = Measurement(exp_name, meas_num, specimen, rec)
+            self.measurements.append(measurement)
 
             # add child_items
             if not self.find_by_name(specimen_name, sample.specimens):
@@ -886,7 +893,12 @@ class Measurement(object):
     def __init__(self, experiment_name, meas_number, specimen=None, data=None):
         self.name = experiment_name + '_' + str(meas_number)
         self.specimen = specimen
-        self.data = remove_dict_headers(data)
+        self.er_data = remove_dict_headers(data)
+        self.pmag_data = {}
+
+    def __repr__(self):
+        return 'Measurement: ' + self.name
+
 
 
     
