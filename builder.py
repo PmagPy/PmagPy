@@ -644,9 +644,15 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
         measurement_headers = self.headers['measurement']['er'][0]
         measurement_headers[:0] = ['er_specimen_name', 'er_sample_name', 'er_site_name',
                                    'er_location_name', 'magic_experiment_name', 'measurement_number']
+        specimen_names = [spec.name for spec in self.specimens]
         meas_strings = []
         for meas in self.measurements:
             meas_string = []
+            # if a specimen has been deleted,
+            # do not record any measurements for that specimen
+            if not meas.specimen.name in specimen_names:
+                continue
+                
             for header in measurement_headers:
                 if header == 'er_specimen_name':
                     val = meas.specimen.name
@@ -665,7 +671,7 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
                 meas_string.append(val)
             meas_string = '\t'.join(meas_string)
             meas_strings.append(meas_string)
-        # do writing
+        # write data to file
         magic_outfile.write('tab\t\magic_measurements\n')
         header_string = '\t'.join(measurement_headers)
         magic_outfile.write(header_string + '\n')
@@ -713,7 +719,7 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
 
                 for key in er_actual_headers:
                     try:
-                        add_string = item.er_data[key]
+                        add_string = str(item.er_data[key])
                     except KeyError:
                         add_string = ''
                         item.er_data[key] = ''
@@ -1063,7 +1069,8 @@ class Specimen(Pmag_object):
     def change_specimen(self, new_name, new_sample=None, er_data=None, pmag_data=None, replace_data=False):
         self.name = new_name
         if new_sample:
-            self.sample.specimens.remove(self)
+            if self.sample:
+                self.sample.specimens.remove(self)
             self.sample = new_sample
             self.sample.specimens.append(self)
         self.update_data(er_data, pmag_data, replace_data)

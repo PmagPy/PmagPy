@@ -248,6 +248,7 @@ class MainFrame(wx.Frame):
         write all data out into er_* and pmag_* files as appropriate
         """
         print '-I- Writing all saved data to files'
+        self.er_magic.write_measurements_file()
         for dtype in ['specimen', 'sample', 'site']:
             if self.er_magic.data_lists[dtype]:
                 do_pmag = dtype not in self.er_magic.no_pmag_data
