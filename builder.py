@@ -16,6 +16,7 @@ class ErMagicBuilder(object):
 
     def __init__(self, WD, data_model=None):
         self.WD = WD
+        self.measurements = []
         self.specimens = []
         self.samples = []
         self.sites = []
@@ -31,7 +32,8 @@ class ErMagicBuilder(object):
             self.data_model = data_model
         self.data_lists = {'specimen': [self.specimens, Specimen], 'sample': [self.samples, Sample],
                            'site': [self.sites, Site], 'location': [self.locations, Location],
-                           'age': [self.sites, Site], 'result': [self.results, Result]}
+                           'age': [self.sites, Site], 'result': [self.results, Result],
+                           'measurement': [self.measurements, Measurement]}
         self.add_methods = {'specimen': self.add_specimen, 'sample': self.add_sample,
                             'site': self.add_site, 'location': self.add_location,
                             'age': None, 'result': self.add_result}
@@ -43,6 +45,8 @@ class ErMagicBuilder(object):
                                'age': None, 'result': self.delete_result}
         # actual is at position 0, reqd is at position 1, optional at position 2
         self.headers = {
+            'measurement': {'er': [[], [], []], 'pmag': [[], [], []]},
+
             'specimen': {'er': [[], [], []], 'pmag': [[], [], []]},
             
             'sample': {'er': [[], [], []], 'pmag': [[], [], []]},
@@ -81,6 +85,7 @@ class ErMagicBuilder(object):
                 return False
 
         # actual is at position 0, reqd is at position 1, optional at position 2
+        self.headers['measurement']['er'][1], self.headers['measurement']['er'][2] = self.get_headers('magic_measurements')
         self.headers['specimen']['er'][1], self.headers['specimen']['er'][2] = self.get_headers('er_specimens')
         self.headers['sample']['er'][1], self.headers['sample']['er'][2] = self.get_headers('er_samples')
         self.headers['site']['er'][1], self.headers['site']['er'][2] = self.get_headers('er_sites')
@@ -873,8 +878,18 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
         return descendents
 
 
+# measurements can be uniquely identified by experiment name + measurement #
+# location, site, sample, and specimen names are ALL required headers for each measurement
+
+class Measurement(object):
+
+    def __init__(self, experiment_name, meas_number, specimen=None, data=None):
+        self.name = experiment_name + '_' + str(meas_number)
+        self.specimen = specimen
+        self.data = remove_dict_headers(data)
 
 
+    
 class Pmag_object(object):
     """
     Base class for Specimens, Samples, Sites, etc.
@@ -1233,14 +1248,17 @@ def put_list_value_first(lst, first_value):
 def remove_dict_headers(data_dict):
     for header in ['er_specimen_name', 'er_sample_name', 'er_site_name',
                    'er_location_name', 'pmag_result_name',
-                   'er_specimen_names', 'er_sample_names', 'er_site_names']:
+                   'er_specimen_names', 'er_sample_names', 'er_site_names',
+                   'magic_experiment_name', 'measurement_number']:
         if header in data_dict.keys():
             data_dict.pop(header)
     return data_dict
 
 def remove_list_headers(data_list):
     for header in ['er_specimen_name', 'er_sample_name', 'er_site_name',
-                   'er_location_name', 'pmag_result_name']:
+                   'er_location_name', 'pmag_result_name',
+                   'er_specimen_names', 'er_sample_names', 'er_site_names',
+                   'magic_experiment_name', 'measurement_number']:
         if header in data_list:
             data_list.remove(header)
     return data_list

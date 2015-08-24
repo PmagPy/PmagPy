@@ -41,6 +41,40 @@ class TestBuilder(unittest.TestCase):
         self.assertFalse(self.data1.find_by_name('c', lst))
         self.assertTrue(self.data1.find_by_name('b', lst))
 
+
+class TestMeasurement(unittest.TestCase):
+    
+    def setUp(self):
+        dir_path = os.path.join(WD, 'Datafiles', 'copy_ErMagicBuilder')
+        self.data1 = builder.ErMagicBuilder(dir_path)
+        self.data1.get_data()
+
+    def tearDown(self):
+        pass
+
+    def test_measurements_created(self):
+        #return
+        self.assertIn('measurements', dir(self.data1))
+        self.assertTrue(self.data1.measurements)
+        meas = self.data1.find_by_name('arbitrary_measurement_name', self.data1.measurements)
+        self.assertTrue(meas)
+        for attr in ['specimen', 'data']:
+            self.assertTrue(meas.__getattribute__(attr))
+        for attr in ['er_specimen_name', 'er_sample_name', 'er_site_name', 'er_location_name',
+                     'magic_experiment_name', 'measurement_number']:
+            self.assertNotIn(attr, meas.data.keys())
+
+    def test_measurement_headers(self):
+        #return
+        self.data1.init_default_headers()
+        self.data1.init_actual_headers()
+        for lst in self.data1.headers['measurement']['er']:
+            self.assertTrue(lst)
+
+        
+
+    
+    
 class TestSpecimen(unittest.TestCase):
 
     def setUp(self):
