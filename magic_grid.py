@@ -201,7 +201,9 @@ class MagicGrid(wx.grid.Grid):
                         self.add_row()
                         num_rows += 1
                     # split row data into cols
-                    if '\t' in text_row.strip('\t'):
+                    if text_row.endswith('\t'):
+                        text_row = text_row[:-1]
+                    if '\t' in text_row:
                         text_items = text_row.split('\t')
                         for num, item in enumerate(text_items):
                             if (col + num) < num_cols:
