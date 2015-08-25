@@ -433,7 +433,7 @@ class GridFrame(wx.Frame):
         txt = ''
         
         if self.grid_type == 'location':
-            txt = '\n\nNote: you can fill in location start/end latitude/longitude here.\nHowever, if you add sites in step 2, the program will calculate those values automatically,\nbased on site latitudes/logitudes.\nAfter adding sites, return to step 1 and re-save.'
+            txt = '\n\nNote: you can fill in location start/end latitude/longitude here.\nHowever, if you add sites in step 2, the program will calculate those values automatically,\nbased on site latitudes/logitudes.\nThese values will be written to your upload file.'
 
         if self.grid_type == 'sample':
             txt = "\n\nNote: you can fill in lithology, class, and type for each sample here.\nHowever, if the sample's class, lithology, and type are the same as its parent site, those values will propagate down,\nand will be written to your sample file automatically."
@@ -503,30 +503,11 @@ class GridFrame(wx.Frame):
         self.grid_box = wx.StaticBoxSizer(wx.StaticBox(self.panel, -1), wx.VERTICAL)
         self.grid_box.Add(self.grid, flag=wx.ALL, border=5)
 
-
         # a few special touches if it is a location grid
         if self.grid_type == 'location':
             for loc in self.er_magic.locations:
                 # try to fill in min/max latitudes/longitudes from sites
-                max_lat, min_lat = '', ''
-                max_lon, min_lon = '', ''
-                lats, lons = [], []
-                if loc.sites:
-                    for site in loc.sites:
-                        if site.er_data['site_lon']:
-                            lons.append(site.er_data['site_lon'])
-                        if site.er_data['site_lat']:
-                            lats.append(site.er_data['site_lat'])
-                if lats:
-                    lats = [float(lat) for lat in lats]
-                    max_lat = max(lats)
-                    min_lat = min(lats)
-                if lons:
-                    lons = [float(lon) for lon in lons]
-                    max_lon = max(lons)
-                    min_lon = min(lons)
-                d = {'location_begin_lat': min_lat, 'location_begin_lon': min_lon,
-                     'location_end_lat': max_lat, 'location_end_lon': max_lon}
+                d = self.er_magic.get_min_max_lat_lon(loc.sites)
                 col_labels = [self.grid.GetColLabelValue(col) for col in range(self.grid.GetNumberCols())]
                 row_labels = [self.grid.GetCellValue(row, 0) for row in range(self.grid.GetNumberRows())]
                 for key, value in d.items():

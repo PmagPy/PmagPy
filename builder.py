@@ -684,6 +684,7 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
     def write_magic_file(self, dtype, do_er=True, do_pmag=True):
         if dtype == 'location':
             do_pmag = False
+
         
         # make header
         add_headers = []
@@ -705,7 +706,17 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
         
         items_list = self.data_lists[dtype][0]
         items_list = sorted(self.data_lists[dtype][0], key=lambda item: item.name)
-        
+
+        # fill in location being/end lat/lon if those values are not present
+        if dtype == 'location':
+            for item in items_list[:]:
+                d = self.get_min_max_lat_lon(item.sites)
+                for header in ['location_begin_lat', 'location_begin_lon', 
+                               'location_end_lat', 'location_end_lon']:
+                    if not item.er_data[header]:
+                        item.er_data[header] = d[header]
+
+        # go through items and collect necessary data
         for item in items_list[:]:
             # get an item's ancestors
             ancestors = self.get_ancestors(item)
@@ -927,6 +938,38 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
         if greatgrandchildren:
             descendents[-3] = greatgrandchildren
         return descendents
+
+    def get_min_max_lat_lon(self, sites):
+        """
+        Take a list of sites and return a dictionary with:
+        'location_begin_lat', 'location_begin_lon', 
+        'location_end_lat', 'location_end_lon'.
+        """
+        max_lat, min_lat = '', ''
+        max_lon, min_lon = '', ''
+        if not sites:
+            d = {'location_begin_lat': min_lat, 'location_begin_lon': min_lon,
+                 'location_end_lat': max_lat, 'location_end_lon': max_lon}
+            return d
+        lats, lons = [], []
+        # try to fill in min/max latitudes/longitudes from sites
+        for site in sites:
+            if site.er_data['site_lon']:
+                lons.append(site.er_data['site_lon'])
+            if site.er_data['site_lat']:
+                lats.append(site.er_data['site_lat'])
+        if lats:
+            lats = [float(lat) for lat in lats]
+            max_lat = max(lats)
+            min_lat = min(lats)
+        if lons:
+            lons = [float(lon) for lon in lons]
+            max_lon = max(lons)
+            min_lon = min(lons)
+        d = {'location_begin_lat': min_lat, 'location_begin_lon': min_lon,
+             'location_end_lat': max_lat, 'location_end_lon': max_lon}
+        return d
+
 
 
 # measurements can be uniquely identified by experiment name + measurement #
