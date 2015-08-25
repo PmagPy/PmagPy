@@ -1,0 +1,23 @@
+
+
+Why:
+
+Make_magic.py is a Python program for putting together a contribution for the MagIC database.  Make_magic.py is specifically designed for making a contribution without measurement data; if you ARE including measurement data, we recommend that you use QuickMagIC instead.  Make_magic allows you to add data at the location, site, sample, and specimen levels.  You can also add results and ages.  Make_magic uses an Excel-like grid interface for entering and editing data.  Useful features include: pop-up menus with controlled vocabularies, multi-cell pasting from external spreadsheets, and built-in validations for MagIC database requirements.
+
+Grid tips:
+
+How copy/paste works
+How drop-down menus work
+How to select an entire column
+Adding/removing headers
+Including/excluding interpretation data
+
+
+Controlled vocabularies:
+
+For more information on controlled vocabularies, see: http://earthref.org/MAGIC/shortlists.htm
+
+
+Data model:
+
+For more information on the data model, see: http://earthref.org/MAGIC/metadata.htm
