@@ -175,14 +175,28 @@ class MagicGrid(wx.grid.Grid):
 
         if wx.TheClipboard.Open():
             wx.TheClipboard.GetData(data_obj)
-            text = data_obj.GetText().strip('\r')
-            if '\r' in text or '\t' in text:
-                # split text into a list
-                text_list = text.split('\r')
-                self.SetCellValue(row, col, text)
+            text = data_obj.GetText()
+            # if text ends with a newline, strip that away
+            if text.endswith('\n'):
+                text = text[:-1]
+            if text.endswith('\r'):
+                text = text[:-1]
+            # find newline character delimiter
+            if '\r\n' in text:
+                newline_char = '\r\n'
+            elif '\r' in text:
+                newline_char = '\r'
+            elif '\n' in text:
+                newline_char = '\n'
+            else:
+                newline_char = '\n'
+            # split text and write it to the appropriate cells
+            if newline_char in text or '\t' in text:
+                # split text into a list of row data
+                text_list = text.split(newline_char)
                 num_rows = self.GetNumberRows()
                 for text_row in text_list:
-                    # extra rows if needed
+                    # add an extra row if needed
                     if row > num_rows - 1:
                         self.add_row()
                         num_rows += 1
