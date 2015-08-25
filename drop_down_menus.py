@@ -275,9 +275,8 @@ class Menus(object):
         position = event.GetPosition()
         horizontal, vertical = position
         grid_horizontal, grid_vertical = self.grid.GetSize()
-        if grid_vertical - vertical < 40:
-            vertical += 10
-            self.window.PopupMenu(menu, (horizontal, vertical))
+        if grid_vertical - vertical < 30 and self.grid.GetNumberRows() > 4:
+            self.grid.PopupMenu(menu, (horizontal+20, 100))
         else:
             self.window.PopupMenu(menu)
         menu.Destroy()
