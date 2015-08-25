@@ -2194,6 +2194,28 @@ def upload_magic(concat=0, dir_path='.'):
             if file_type=='er_locations':
                 for rec in Data:
                     locations.append(rec['er_location_name'])
+                    
+            if file_type in ['pmag_samples', 'pmag_sites', 'pmag_specimens']:
+                # if there is NO pmag data for specimens (samples/sites),
+                # do not try to write it to file
+                # (this causes validation errors, elsewise)
+                ignore = True
+                for rec in Data:
+                    if ignore == False:
+                        break
+                    keys = rec.keys()
+                    exclude_keys = ['er_citation_names', 'er_site_name', 'er_sample_name',
+                                    'er_location_name', 'er_specimen_names', 'er_sample_names']
+                    for key in exclude_keys:
+                        if key in keys:
+                            keys.remove(key)
+                    for key in keys:
+                        if rec[key]:
+                            ignore = False
+                            break
+                if ignore:
+                    continue
+            
             if file_type=='er_samples': # check to only upload top priority orientation record!
                 NewSamps,Done=[],[]
                 for rec in Data:
