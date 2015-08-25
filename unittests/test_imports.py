@@ -380,13 +380,15 @@ class Test2G_bin_magic(unittest.TestCase):
 class TestBGC_magic(unittest.TestCase):
 
     def setUp(self):
-        self.input_dir = os.path.join(WD, 'Datafiles', 'Measurement_import', 'BGC_magic')
+        self.input_dir = os.path.join(WD, 'Datafiles', 'Measurement_Import', 'BGC_magic')
         os.chdir(WD)
 
     def tearDown(self):
         filelist = ['96MT.05.01.magic', 'BC0-3A.magic', 'magic_measurements.txt', 'er_specimens.txt', 'er_samples.txt', 'er_sites.txt']
         #directory = os.path.join(WD, 'Datafiles', 'Measurement_Import', 'BGC_magic')
         #print 'directory', directory
+        print 'parent_dir', os.path.join(WD, 'Datafiles', 'Measurement_Import')
+        print "os.listdir(os.path.join(WD, 'Datafiles', 'Measurement_Import')", os.path.join(WD, 'Datafiles', 'Measurement_Import')
         print '-'
         print 'self.input_dir:', self.input_dir
         print '-'
