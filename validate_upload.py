@@ -11,7 +11,7 @@ import check_updates
 def get_data_offline():
     try:
         pmag_dir = check_updates.get_pmag_dir()
-        the_file = os.path.join(pmag_dir, "MagIC-data-model.txt")
+        the_file = os.path.join(pmag_dir, 'data_model', "MagIC-data-model.txt")
         data = open(the_file, 'rU')
         return data
     except IOError:
