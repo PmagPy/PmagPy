@@ -1141,10 +1141,14 @@ if __name__ == "__main__":
     # if redirect is true, wxpython makes its own output window for stdout/stderr
     #app = wx.App(redirect=False)
     print '-I- Creating application'
+    # this sends stdout to terminal:
     #app = wx.App(redirect=False)
+    # this sends stdout to wxPython:
     app = wx.App(redirect=True)
     working_dir = pmag.get_named_arg_from_sys('-WD', '.')
     app.frame = MainFrame(working_dir)
+    if working_dir == '.':
+        app.frame.on_change_dir_button(None)
     app.frame.Show()
     app.frame.Center()
     if '-i' in sys.argv:
