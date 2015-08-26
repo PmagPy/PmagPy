@@ -18,7 +18,7 @@ core_depthplot_WD = os.path.join(os.getcwd(), 'Datafiles', 'core_depthplot')
 class TestMainFrame(unittest.TestCase):
 
     def setUp(self):
-        self.app = wx.PySimpleApp()
+        self.app = wx.App()
         #WD = os.path.join(os.getcwd(), 'unittests', 'examples', 'my_project')
         self.frame = qm.MagMainFrame(project_WD)
         self.pnl = self.frame.GetChildren()[0]
@@ -152,7 +152,7 @@ class TestMainFrame(unittest.TestCase):
 class TestMenus(unittest.TestCase):
 
     def setUp(self):
-        self.app = wx.PySimpleApp()
+        self.app = wx.App()
         #WD = os.path.join(os.getcwd(), 'unittests', 'examples', 'my_project')
         self.frame = qm.MagMainFrame(project_WD)
         self.pnl = self.frame.GetChildren()[0]
@@ -281,7 +281,7 @@ class TestMenus(unittest.TestCase):
 class TestCoreDepthplot(unittest.TestCase):
 
     def setUp(self):
-        self.app = wx.PySimpleApp()
+        self.app = wx.App()
         self.frame = qm.MagMainFrame(core_depthplot_WD)
         self.pnl = self.frame.GetChildren()[0]
         self.core_window = pmag_menu_dialogs.Core_depthplot(self.frame, self.frame.WD)

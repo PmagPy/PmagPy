@@ -141,7 +141,7 @@ def main():
 
     fig, figname = ipmag.core_depthplot(dir_path, meas_file, spc_file, samp_file, age_file, sum_file, wt_file, depth_scale, dmin, dmax, sym, size, spc_sym, spc_size, method, step, fmt, pltDec, pltInc, pltMag, pltLine, pltSus, logit, pltTime, timescale, amin, amax, norm)
 
-    app = wx.PySimpleApp(redirect=False)
+    app = wx.App(redirect=False)
     if not fig:
         pw.simple_warning('No plot was able to be created with the data you provided.\nMake sure you have given all the required information and try again')
         return False

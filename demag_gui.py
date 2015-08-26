@@ -4153,7 +4153,7 @@ def do_main(WD=None, standalone_app=True, parent=None):
 
     # to run as command_line:
     else:
-        app = wx.PySimpleApp()
+        app = wx.App()
         app.frame = Zeq_GUI(WD)
         app.frame.Center()
         #alignToTop(app.frame)
