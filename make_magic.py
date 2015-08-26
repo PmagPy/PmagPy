@@ -301,9 +301,13 @@ class MagICMenu(wx.MenuBar):
         file_quit = file_menu.Append(wx.ID_EXIT, 'Quit', 'Quit application')
         file_clear = file_menu.Append(wx.ID_ANY, 'Clear directory', 'Delete all files from working directory')
         file_help = file_menu.Append(wx.ID_ANY, 'Help', 'More information about creating a MagIC contribution')
+        file_show = file_menu.Append(wx.ID_ANY, 'Show main window', 'Show main window')
+        file_close_grid = file_menu.Append(wx.ID_ANY, 'Close current grid', 'Close current grid')
         parent.Bind(wx.EVT_MENU, self.on_quit, file_quit)
         parent.Bind(wx.EVT_MENU, self.on_clear, file_clear)
         parent.Bind(wx.EVT_MENU, self.on_help, file_help)
+        parent.Bind(wx.EVT_MENU, self.on_show_mainframe, file_show)
+        parent.Bind(wx.EVT_MENU, self.on_close_grid, file_close_grid)
 
         self.Append(file_menu, 'File')
 
@@ -348,6 +352,19 @@ class MagICMenu(wx.MenuBar):
         """
         print "don't help yet"
 
+    def on_show_mainframe(self, event):
+        """
+        Show main make_magic window
+        """
+        self.parent.Show()
+
+    def on_close_grid(self, event):
+        """
+        If there is an open grid, save its data and close it.
+        """
+        if self.parent.grid_frame:
+            self.parent.grid_frame.onSave(None)
+            self.parent.grid_frame.Destroy()
 
 
     
