@@ -7,7 +7,7 @@ Usage:
 
 from setuptools import setup
 
-APP = ['QuickMagIC.py']
+APP = ['make_magic.py']
 DATA_FILES = [('', ['help_files'])]
 OPTIONS = {'argv_emulation': False}
 

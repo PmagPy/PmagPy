@@ -1141,7 +1141,8 @@ if __name__ == "__main__":
     # if redirect is true, wxpython makes its own output window for stdout/stderr
     #app = wx.PySimpleApp(redirect=False)
     print '-I- Creating application'
-    app = wx.App(redirect=False)
+    #app = wx.App(redirect=False)
+    app = wx.App(redirect=True)
     working_dir = pmag.get_named_arg_from_sys('-WD', '.')
     app.frame = MainFrame(working_dir)
     app.frame.Show()
