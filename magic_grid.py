@@ -295,7 +295,7 @@ class MagicGrid(wx.grid.Grid):
         Remove a column from the grid.
         Resize grid to display correctly.
         """
-        label_value = self.GetColLabelValue(col_num)
+        label_value = self.GetColLabelValue(col_num).strip('**')
         self.col_labels.remove(label_value)
         result = self.DeleteCols(pos=col_num, numCols=1, updateLabels=True)
         self.size_grid()
