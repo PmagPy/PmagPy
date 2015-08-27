@@ -7,10 +7,25 @@ Make_magic.py is a Python program for putting together a contribution for the Ma
 Grid tips:
 
 How copy/paste works
+    Multiple-cell pasting is enabled.  Simply highlight the cells you wish to paste into make_magic, select the top-left cell where the block should begin, and click 'control v'.  
+
 How drop-down menus work
+    Columns that have controlled vocabularies will have a pop-up menu when you click on a cell in that row.  It is possible to enter a value that is NOT on the menu; simply double click the cell in question.  The menus are populated by the data model at earthref.org.  
+
 How to select an entire column
-Adding/removing headers
-Including/excluding interpretation data
+    To edit all the cells in a column, first click on the column header.  If there is no controlled vocabulary list for that column, a text box will pop up, and whatever you enter there will propagate into all of the cells in that column.  If there is a controlled vocabulary available, first click the column header to highlight all cells, then click on any cell and select a value (or values) from the pop-up menu.  
+
+
+How to include/exclude interpretation data:
+    You can provide interpretations at the specimen, sample, or site level.  ......  In the MagIC data model, if you reference a specimen, site, sample, or location you must provide some basic information about it.  
+
+How to add/remove headers:
+    
+
+
+                    
+
+How data structure works (i.e., you only provide sample_name for specimens)
 
 
 Controlled vocabularies:
