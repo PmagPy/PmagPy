@@ -593,7 +593,7 @@ class GridFrame(wx.Frame):
         If user does command v, re-size window in case pasting has changed the content size.
         """
         keycode = event.GetKeyCode()
-        meta_down = event.MetaDown()
+        meta_down = event.MetaDown() or event.GetCmdDown()
         if keycode == 86 and meta_down:
             # treat it as if it were a wx.EVT_TEXT_SIZE
             self.do_fit(event)
