@@ -235,13 +235,16 @@ class MainFrame(wx.Frame):
             print '-I- You already have a grid frame open'
             pw.simple_warning("You already have a grid open")
             return
+
         try:
             grid_type = event.GetButtonObj().Name[:-4] # remove '_btn'
         except AttributeError:
             grid_type = self.FindWindowById(event.Id).Name[:-4] # remove ('_btn')
+        wait = wx.BusyInfo('Making {} grid, please wait...'.format(grid_type))
         self.on_open_grid_frame()
         self.grid_frame = GridFrame(self.er_magic, self.WD, grid_type, grid_type, self.panel)
         #self.on_finish_change_dir(self.change_dir_dialog)
+        del wait
 
     def write_files(self):
         """
@@ -274,8 +277,10 @@ class MainFrame(wx.Frame):
         Then use those files to create a MagIC upload format file.
         Validate the upload file.
         """
+        wait = wx.BusyInfo('Making upload file, please wait...')
         self.write_files()
         upfile, error_message = ipmag.upload_magic(dir_path=self.WD)
+        del wait
         if upfile:
             text = "You are ready to upload.\nYour file:\n{}\nwas generated in directory: \n{}\nDrag and drop this file in the MagIC database.".format(os.path.split(upfile)[1], self.WD)
             dlg = wx.MessageDialog(self, caption="Saved", message=text, style=wx.OK)
@@ -662,6 +667,7 @@ class GridFrame(wx.Frame):
         """
         return grid
         """
+
         er_header = self.grid_headers[self.grid_type]['er'][0]
         if self.grid_type not in self.er_magic.no_pmag_data:
             pmag_header = self.grid_headers[self.grid_type]['pmag'][0]
@@ -715,6 +721,7 @@ class GridFrame(wx.Frame):
         grid = magic_grid.MagicGrid(parent=self.panel, name=self.grid_type,
                                     row_labels=[], col_labels=header)
         grid.do_event_bindings()
+
         return grid
 
 
