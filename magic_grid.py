@@ -155,7 +155,7 @@ class MagicGrid(wx.grid.Grid):
 
     def on_key_down(self, event):
         keycode = event.GetKeyCode()
-        meta_down = event.MetaDown()
+        meta_down = event.MetaDown() or event.CmdDown()
         if keycode == 86 and meta_down:
             # treat it as if it were a wx.EVT_TEXT_SIZE
             paste_event = wx.CommandEvent(wx.wxEVT_COMMAND_TEXT_PASTE,
