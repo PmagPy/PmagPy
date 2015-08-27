@@ -363,6 +363,7 @@ class MagICMenu(wx.MenuBar):
         Show main make_magic window
         """
         self.parent.Show()
+        self.parent.Raise()
 
     def on_close_grid(self, event):
         """
