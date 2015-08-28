@@ -15,6 +15,7 @@ import pmag_basic_dialogs
 import pmag_er_magic_dialogs
 import quickmagic_menu
 import ErMagicBuilder
+import builder
 #import check_updates
 
 
@@ -42,7 +43,9 @@ class MagMainFrame(wx.Frame):
             self.WD = WD
         self.HtmlIsOpen = False
         self.Bind(wx.EVT_CLOSE, self.on_menu_exit)
-        self.ErMagic_data = ErMagicBuilder.ErMagicBuilder(self.WD)
+        #self.ErMagic_data = ErMagicBuilder.ErMagicBuilder(self.WD)
+        self.er_magic = builder.ErMagicBuilder(self.WD)
+        
         #self.ErMagic_data.init_default_headers()
         #self.Data_hierarchy = {}
 
@@ -259,7 +262,8 @@ class MagMainFrame(wx.Frame):
             os.chdir(self.WD)
             self.dir_path.SetValue(self.WD)
             dialog.Destroy()
-            self.ErMagic_data = ErMagicBuilder.ErMagicBuilder(self.WD)
+            #self.ErMagic_data = ErMagicBuilder.ErMagicBuilder(self.WD)
+            self.er_magic = builder.ErMagicBuilder(self.WD)
         else:
             dialog.Destroy()
 
@@ -333,7 +337,8 @@ class MagMainFrame(wx.Frame):
             pw.simple_warning("Your working directory must have a magic_measurements.txt file to run this step.  Make sure you have fully completed step 1 (import magnetometer file), by combining all imported magnetometer files into one magic_measurements file.")
             return False
 
-        self.ErMagic_frame = ErMagicBuilder.MagIC_model_builder(self.WD, self, self.ErMagic_data)#,self.Data,self.Data_hierarchy)
+        #self.ErMagic_frame = ErMagicBuilder.MagIC_model_builder(self.WD, self, self.ErMagic_data)#,self.Data,self.Data_hierarchy)
+        self.ErMagic_frame = ErMagicBuilder.MagIC_model_builder(self.WD, self, self.er_magic)#,self.Data,self.Data_hierarchy)
         self.ErMagic_frame.Show()
         self.ErMagic_frame.Center()
 
@@ -342,7 +347,8 @@ class MagMainFrame(wx.Frame):
         self.ErMagic_frame.Raise()
 
     def init_check_window(self):
-        self.check_dia = pmag_er_magic_dialogs.ErMagicCheckFrame(self, 'Check Data', self.WD, self.ErMagic_data)# initiates the object that will control steps 1-6 of checking headers, filling in cell values, etc.
+        #self.check_dia = pmag_er_magic_dialogs.ErMagicCheckFrame(self, 'Check Data', self.WD, self.ErMagic_data)# initiates the object that will control steps 1-6 of checking headers, filling in cell values, etc.
+        self.check_dia = pmag_er_magic_dialogs.ErMagicCheckFrame(self, 'Check Data', self.WD, self.er_magic)# initiates the object that will control steps 1-6 of checking headers, filling in cell values, etc.
 
 
     def on_orientation_button(self, event):
@@ -350,7 +356,8 @@ class MagMainFrame(wx.Frame):
         size = wx.DisplaySize()
         size = (size[0]-0.1 * size[0], size[1]-0.1 * size[1])
         #Data_hierarchy = self.get_data()
-        frame = pmag_basic_dialogs.OrientFrameGrid(self, -1, 'demag_orient.txt', self.WD, self.ErMagic_data, size)        
+        #frame = pmag_basic_dialogs.OrientFrameGrid(self, -1, 'demag_orient.txt', self.WD, self.ErMagic_data, size)
+        frame = pmag_basic_dialogs.OrientFrameGrid(self, -1, 'demag_orient.txt', self.WD, self.er_magic, size)        
         frame.Show(True)
         frame.Centre()
 

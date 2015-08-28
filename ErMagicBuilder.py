@@ -13,6 +13,7 @@ import pmag
 import pmag_widgets as pw
 import check_updates
 import validate_upload
+import builder
 
 #from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigCanvas \
 import os
@@ -1150,9 +1151,11 @@ class MagIC_model_builder(wx.Frame):
         # if ErMagic data object was not passed in, created one based on the working directory
 
         if not ErMagic_data:
-            self.data = ErMagicBuilder(self.WD)
+            self.er_magic = builder.ErMagicBuilder(self.WD)
         else:
-            self.data = ErMagic_data
+            self.er_magic= ErMagic_data
+
+        # self.er_magic WAS self.data
 
         # if ErMagic_data Data_hierarchy doesn't have data in in it, read it in from magic_measurements.txt
         #empty = True
@@ -1164,13 +1167,21 @@ class MagIC_model_builder(wx.Frame):
         #if empty:
         #    self.data.get_data() # gets data from magic_measurements file
         
-        self.data.get_data() # gets data from magic_measurements file
-
-        self.data.read_MagIC_info() # make sure all er_* info is incorporated
-        self.data.init_default_headers() # makes sure all headers are in place
-        self.data.update_ErMagic()  # writes data to er_* files
+        #self.data.get_data() # gets data from magic_measurements file
+        #self.data.read_MagIC_info() # make sure all er_* info is incorporated
+        #self.data.init_default_headers() # makes sure all headers are in place
+        #self.data.update_ErMagic()  # writes data to er_* files
         # repeat this step, in case er_* files were empty before
-        self.data.read_MagIC_info() # make sure all er_* info is incorporated
+        #self.data.read_MagIC_info() # make sure all er_* info is incorporated
+
+        print '-I- Read in any available data from working directory'
+        self.er_magic.get_all_magic_info()
+
+        
+        print '-I- Initializing headers'
+        self.er_magic.init_default_headers()
+        self.er_magic.init_actual_headers()
+
         self.SetTitle("Earth-Ref Magic Builder" )
         
         self.InitUI()
@@ -1178,10 +1189,14 @@ class MagIC_model_builder(wx.Frame):
     def InitUI(self):
         pnl1 = self.panel
 
-        table_list = ["er_specimens", "er_samples", "er_sites", "er_locations", "er_ages"]
-        self.optional_headers = {'er_specimens': self.data.er_specimens_optional_header, 'er_samples': self.data.er_samples_optional_header, 'er_sites': self.data.er_sites_optional_header, 'er_locations': self.data.er_locations_optional_header, 'er_ages': self.data.er_ages_optional_header}
+        table_list = ["specimen", "sample", "site", "location", "age"]
 
-        self.reqd_headers = {'er_specimens': self.data.er_specimens_header, 'er_samples': self.data.er_samples_header, 'er_sites': self.data.er_sites_header, 'er_locations': self.data.er_locations_header, 'er_ages': self.data.er_ages_header}
+        # in format {'specimen': {'er': [[], [], []], 'pmag': [[], [], []]}, ... }
+        # where 0 is actual, 1 is reqd, and 2 is optional
+        self.er_magic.headers
+        #self.optional_headers = {'er_specimens': self.data.er_specimens_optional_header, 'er_samples': self.data.er_samples_optional_header, 'er_sites': self.data.er_sites_optional_header, 'er_locations': self.data.er_locations_optional_header, 'er_ages': self.data.er_ages_optional_header}
+
+        #self.reqd_headers = {'er_specimens': self.data.er_specimens_header, 'er_samples': self.data.er_samples_header, 'er_sites': self.data.er_sites_header, 'er_locations': self.data.er_locations_header, 'er_ages': self.data.er_ages_header}
         
         box_sizers = []
         self.text_controls = {}
@@ -1191,8 +1206,10 @@ class MagIC_model_builder(wx.Frame):
         
         for table in table_list:
             N = table_list.index(table)
-            optional_headers = self.optional_headers[table]
-            reqd_headers = self.reqd_headers[table]
+            label = table
+
+            optional_headers = self.er_magic.headers[label]['er'][2]
+            reqd_headers = self.er_magic.headers[label]['er'][1]
 
             box_sizer = wx.StaticBoxSizer( wx.StaticBox(self.panel, wx.ID_ANY, table), wx.VERTICAL)
             box_sizers.append(box_sizer)
@@ -1283,7 +1300,7 @@ class MagIC_model_builder(wx.Frame):
         table = event.GetEventObject().Name
         text_control = self.text_controls[table]
         info_option = self.info_options[table]
-        header = self.reqd_headers[table]
+        header = self.er_magic.headers[table]['er'][1]
 
         selName = info_option.GetStringSelection()
 
@@ -1295,7 +1312,7 @@ class MagIC_model_builder(wx.Frame):
         table = event.GetEventObject().Name
         info_option = self.info_options[table]
         text_control = self.text_controls[table]
-        header = self.reqd_headers[table]
+        header = self.er_magic.headers[table]['er'][1]
 
         selName = str(info_option.GetStringSelection())
         if selName in header:
@@ -1304,11 +1321,19 @@ class MagIC_model_builder(wx.Frame):
 
     def on_okButton(self, event):
         os.chdir(self.WD)
-        self.data.update_ErMagic()
+        # update headers properly
+        for table in ['specimen', 'sample', 'site', 'location', 'age']:
+            headers = self.text_controls[table].GetValue().split('\n')
+            for header in headers:
+                if header not in self.er_magic.headers[table]['er'][0]:
+                    self.er_magic.headers[table]['er'][0].append(header)
+
+        
+        #self.data.update_ErMagic()
         self.main_frame.init_check_window()
         self.Destroy()
 
-    def on_cancelButton(self,event):
+    def on_cancelButton(self, event):
         self.Destroy()
 
     def on_helpButton(self, event):
