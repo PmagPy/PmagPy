@@ -491,44 +491,36 @@ class TestBuilder(unittest.TestCase):
 
 
     def test_init_default_headers(self):
-        headers = [self.data2.er_specimens_header, self.data2.er_samples_header, self.data2.er_sites_header, self.data2.er_locations_header, self.data2.er_ages_header]
-        for header in headers:
-            self.assertFalse(header)
         self.data2.init_default_headers()
         headers = [self.data2.er_specimens_header, self.data2.er_samples_header, self.data2.er_sites_header, self.data2.er_locations_header, self.data2.er_ages_header]
         for header in headers:
             self.assertTrue(header)
 
     def test_init_spec_headers(self):
-        self.assertFalse(self.data2.er_specimens_header)
         self.data2.init_default_headers()
         reference_headers = ['er_citation_names','er_specimen_name','er_sample_name','er_site_name','er_location_name','specimen_class','specimen_lithology','specimen_type']
         for ref in reference_headers:
             self.assertIn(ref, self.data2.er_specimens_header)
 
     def test_init_samp_headers(self):
-        self.assertFalse(self.data2.er_samples_header)
         self.data2.init_default_headers()
         reference_headers = ['er_citation_names','er_sample_name','er_site_name','er_location_name','sample_class','sample_lithology','sample_type','sample_lat','sample_lon']
         for ref in reference_headers:
             self.assertIn(ref, self.data2.er_samples_header)
 
     def test_init_site_headers(self):
-        self.assertFalse(self.data2.er_sites_header)
         self.data2.init_default_headers()
         reference_headers = ['er_citation_names','er_site_name','er_location_name','site_class','site_lithology','site_type','site_definition','site_lon','site_lat']
         for ref in reference_headers:
             self.assertIn(ref, self.data2.er_sites_header)
 
     def test_init_loc_headers(self):
-        self.assertFalse(self.data2.er_locations_header)
         self.data2.init_default_headers()
         reference_headers = ['er_citation_names','er_location_name','location_begin_lon','location_end_lon','location_begin_lat','location_end_lat','location_type']
         for ref in reference_headers:
             self.assertIn(ref, self.data2.er_locations_header)
 
     def test_init_age_headers(self):
-        self.assertFalse(self.data2.er_ages_header)
         self.data2.init_default_headers()
         reference_headers = ['er_citation_names','er_site_name','er_location_name','age_description','magic_method_codes','age','age_unit']
         for ref in reference_headers:
