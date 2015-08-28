@@ -1519,12 +1519,12 @@ def aniso_depthplot(ani_file='rmag_anisotropy.txt', meas_file='magic_measurement
         """
 
 
-def core_depthplot(dir_path='.', meas_file='magic_measurements.txt', spc_file='', samp_file='', age_file='', sum_file='', wt_file='', depth_scale='sample_core_depth', dmin=-1, dmax=-1, sym='bo',  size=5, spc_sym='ro', spc_size=5, meth='', step=0, fmt='svg',  pltDec=True, pltInc=True, pltMag=True, pltLine=True, pltSus=True, logit=False, pltTime=False, timescale=None, amin=-1, amax=-1, norm=False):
+def core_depthplot(input_dir_path='.', meas_file='magic_measurements.txt', spc_file='', samp_file='', age_file='', sum_file='', wt_file='', depth_scale='sample_core_depth', dmin=-1, dmax=-1, sym='bo',  size=5, spc_sym='ro', spc_size=5, meth='', step=0, fmt='svg',  pltDec=True, pltInc=True, pltMag=True, pltLine=True, pltSus=True, logit=False, pltTime=False, timescale=None, amin=-1, amax=-1, norm=False):
     """
     depth scale can be 'sample_core_depth' or 'sample_composite_depth'
     if age file is provided, depth_scale will be set to 'age' by default
     """
-    #print 'dir_path', dir_path, 'meas_file', meas_file, 'spc_file', spc_file
+    #print 'input_dir_path', input_dir_path, 'meas_file', meas_file, 'spc_file', spc_file
     #print 'samp_file', samp_file, 'age_file', age_file, 'depth_scale', depth_scale
     #print 'dmin', dmin, 'dmax', dmax, 'sym', sym, 'size', size, 'spc_sym', spc_sym, 'spc_size', spc_size,
     #print 'meth', meth, 'step', step, 'fmt', fmt, 'pltDec', pltDec, 'pltInc', pltInc, 'pltMag', pltMag,
@@ -1619,14 +1619,14 @@ def core_depthplot(dir_path='.', meas_file='magic_measurements.txt', spc_file=''
     #
     # get data read in
 
-    meas_file = os.path.join(dir_path, meas_file)
-    spc_file = os.path.join(dir_path, spc_file)
+    meas_file = os.path.join(input_dir_path, meas_file)
+    spc_file = os.path.join(input_dir_path, spc_file)
     if age_file=="":
-        samp_file = os.path.join(dir_path, samp_file)
-        Samps,file_type=pmag.magic_read(samp_file)
+        samp_file = os.path.join(input_dir_path, samp_file)
+        Samps,file_type=pmag.magic_read(samp_file) 
     else:
         depth_scale='age'
-        age_file = os.path.join(dir_path, age_file)
+        age_file = os.path.join(input_dir_path, age_file)
         Samps,file_type=pmag.magic_read(age_file)
         age_unit=""
     if spc_file:
@@ -1644,7 +1644,7 @@ def core_depthplot(dir_path='.', meas_file='magic_measurements.txt', spc_file=''
     Cores=[]
     core_depth_key="Top depth cored CSF (m)"
     if sum_file:
-        sum_file = os.path.join(dir_path, sum_file)
+        sum_file = os.path.join(input_dir_path, sum_file)
         input=open(sum_file,'rU').readlines()
         if "Core Summary" in input[0]:
             headline=1
@@ -1686,8 +1686,8 @@ def core_depthplot(dir_path='.', meas_file='magic_measurements.txt', spc_file=''
     SSucs=[]
     samples=[]
     methods,steps,m2=[],[],[]
-    if pltSus: # plot the bulk measurement data
-        Meas,file_type=pmag.magic_read(meas_file)
+    if pltSus and os.path.isfile(meas_file): # plot the bulk measurement data
+        Meas,file_type=pmag.magic_read(meas_file) 
         meas_key='measurement_magn_moment'
         print len(Meas), ' measurements read in from ',meas_file
         for m in intlist: # find the intensity key with data
@@ -1835,7 +1835,7 @@ def core_depthplot(dir_path='.', meas_file='magic_measurements.txt', spc_file=''
     plt=1
     #print 'Decs', len(Decs), 'Depths', len(Depths), 'SpecDecs', len(SpecDecs), 'SpecDepths', len(SpecDepths), 'ResDecs', len(ResDecs), 'ResDepths', len(ResDepths), 'SDecs', len(SDecs), 'SDepths', len(SDepths), 'SIincs', len(SIncs), 'Incs', len(Incs)
     if (Decs and Depths) or (SpecDecs and SpecDepths) or (ResDecs and ResDepths) or (SDecs and SDepths) or (SInts and SDepths) or (SIncs and SDepths) or (Incs and Depths):
-        main_plot = plt.figure(1,figsize=(width,8)) # this works
+        main_plot = pyplot.figure(1,figsize=(width,8)) # this works
         #pylab.figure(1,figsize=(width,8))
         version_num=pmag.get_version()
         plt.figtext(.02,.01,version_num)

@@ -1505,16 +1505,34 @@ class Core_depthplot(wx.Frame):
         logit # -log ( plot log scale)
         fmt # -fmt format
         """
+        def check_input_dir_path(input_dir_path, new_dir_path):
+            if input_dir_path and input_dir_path != new_dir_path:
+                pw.simple_warning("Please make sure that all input files come from the same directory")
+                return False
+            if not input_dir_path and new_dir_path:
+                return new_dir_path
+            elif input_dir_path == new_dir_path:
+                return input_dir_path
+
+        
         os.chdir(self.WD)
+        input_dir_path = None
         meas_file = self.bSizer0.return_value()
         if meas_file:
-            meas_file = os.path.split(meas_file)[1]
+            input_dir_path, meas_file = os.path.split(meas_file)
         pmag_spec_file = self.bSizer0a.return_value()
         if pmag_spec_file:
-            pmag_spec_file = os.path.split(pmag_spec_file)[1]
+            new_dir_path, pmag_spec_file = os.path.split(pmag_spec_file)
+            input_dir_path = check_input_dir_path(input_dir_path, new_dir_path)
+            if not input_dir_path:
+                return False
         sum_file = self.bSizer2.return_value()
         if sum_file:
-            sum_File = os.path.split(sum_file)[1]
+            new_dir_path, sum_file = os.path.split(sum_file)
+            input_dir_path = check_input_dir_path(input_dir_path, new_dir_path)
+            if not input_dir_path:
+                return False
+            
         spec_sym, spec_sym_shape, spec_sym_color, spec_sym_size = "", "", "", ""
 
         if pmag_spec_file:
@@ -1526,11 +1544,18 @@ class Core_depthplot(wx.Frame):
     
         use_sampfile = self.bSizer1a.return_value()
         if use_sampfile:
-            samp_file = os.path.split(str(self.bSizer1.return_value()))[1]
+            new_dir_path, samp_file = os.path.split(str(self.bSizer1.return_value()))
             age_file = ''
+            input_dir_path = check_input_dir_path(input_dir_path, new_dir_path)
+            if not input_dir_path:
+                return False
         else:
             samp_file = ''
-            age_file = os.path.split(self.bSizer1.return_value())[1]
+            new_dir_path, age_file = os.path.split(self.bSizer1.return_value())
+            input_dir_path = check_input_dir_path(input_dir_path, new_dir_path)
+            if not input_dir_path:
+                return False
+            
         depth_scale = self.bSizer8.return_value()
         if age_file:
             depth_scale='age'
@@ -1595,7 +1620,7 @@ class Core_depthplot(wx.Frame):
         #print "pltLine:", pltLine
         #print "pltSus:", pltSus
 
-        fig, figname = ipmag.core_depthplot(self.WD, meas_file, pmag_spec_file, samp_file, age_file, sum_file, '', depth_scale, dmin, dmax, sym, size, spec_sym, spec_sym_size, method, step, fmt, pltDec, pltInc, pltMag, pltLine, 1, logit, pltTime, timescale, amin, amax)
+        fig, figname = ipmag.core_depthplot(input_dir_path or self.WD, meas_file, pmag_spec_file, samp_file, age_file, sum_file, '', depth_scale, dmin, dmax, sym, size, spec_sym, spec_sym_size, method, step, fmt, pltDec, pltInc, pltMag, pltLine, 1, logit, pltTime, timescale, amin, amax)
         if fig:
             self.Destroy()
             dpi = fig.get_dpi()

@@ -59,10 +59,21 @@ def main():
         print main.__doc__
         sys.exit()
 
-    dataframe = extractor.command_line_dataframe([ ['f', False, ''], ['fsum', False, ''], ['fwig', False, ''], ['fsa', False, ''], ['fa', False, ''], ['fsp', False, ''], ['fres', False, '' ],  ['fmt', False, 'svg'], ['LP', False,  ''], ['n', False, False], ['d', False, '-1 -1'], ['ts', False, ''],  ['WD', False, '.'], ['L', False, True], ['S', False, True], ['D', False, True], ['I', False, True], ['M', False, True], ['log', False,  0], ['ds', False, 'sample_core_depth'], ['sym', False, 'bo 5']])
+    dataframe = extractor.command_line_dataframe([ ['f', False, ''], ['fsum', False, ''],
+                                                   ['fwig', False, ''], ['fsa', False, ''],
+                                                   ['fa', False, ''], ['fsp', False, ''],
+                                                   ['fres', False, '' ],  ['fmt', False, 'svg'], 
+                                                   ['LP', False,  ''], ['n', False, False], 
+                                                   ['d', False, '-1 -1'], ['ts', False, ''],
+                                                   ['WD', False, '.'], ['L', False, True],
+                                                   ['S', False, True], ['D', False, True],
+                                                   ['I', False, True], ['M', False, True],
+                                                   ['log', False,  0],
+                                                   ['ds', False, 'sample_core_depth'],
+                                                   ['sym', False, 'bo 5'], ['ID', False, '.']])
 
     checked_args = extractor.extract_and_check_args(args, dataframe)
-    meas_file, sum_file, wig_file, samp_file, age_file, spc_file, res_file, fmt, meth, norm, depth, timescale, dir_path, pltLine, pltSus, pltDec, pltInc, pltMag, logit, depth_scale, symbol = extractor.get_vars(['f', 'fsum', 'fwig', 'fsa', 'fa', 'fsp', 'fres', 'fmt',  'LP', 'n', 'd', 'ts', 'WD', 'L', 'S', 'D', 'I', 'M', 'log', 'ds', 'sym' ], checked_args)
+    meas_file, sum_file, wig_file, samp_file, age_file, spc_file, res_file, fmt, meth, norm, depth, timescale, dir_path, pltLine, pltSus, pltDec, pltInc, pltMag, logit, depth_scale, symbol, input_dir = extractor.get_vars(['f', 'fsum', 'fwig', 'fsa', 'fa', 'fsp', 'fres', 'fmt',  'LP', 'n', 'd', 'ts', 'WD', 'L', 'S', 'D', 'I', 'M', 'log', 'ds', 'sym', 'ID'], checked_args)
 
     # format some variables
     # format symbol/size
@@ -73,7 +84,7 @@ def main():
         print 'you should provide -sym in this format: ro 5'
         print 'using defaults instead'
         sym, size = 'ro', 5
-        
+
     # format result file, symbol, size
     if res_file:
         try:
@@ -134,12 +145,13 @@ def main():
         print 'To use the -LP flag you must provide both the protocol and the step in this format:\n-LP [AF,T,ARM,IRM, X] step [in mT,C,mT,mT, mass/vol] to plot'
         print 'Defaulting to using no protocol'
         method, step = 'LT-NO', 0
-    
+
     # list of varnames
     #['f', 'fsum', 'fwig', 'fsa', 'fa', 'fsp', 'fres', 'fmt',  'LP', 'n', 'd', 'ts', 'WD', 'L', 'S', 'D', 'I', 'M', 'log', 'ds', 'sym' ]
     #meas_file, sum_file, wig_file, samp_file, age_file, spc_file, res_file, fmt, meth, norm, depth, timescale, dir_path, pltLine, pltSus, pltDec, pltInc, pltMag, logit, depth_scale, symbol
 
-    fig, figname = ipmag.core_depthplot(dir_path, meas_file, spc_file, samp_file, age_file, sum_file, wt_file, depth_scale, dmin, dmax, sym, size, spc_sym, spc_size, method, step, fmt, pltDec, pltInc, pltMag, pltLine, pltSus, logit, pltTime, timescale, amin, amax, norm)
+    fig, figname = ipmag.core_depthplot(input_dir, meas_file, spc_file, samp_file, age_file, sum_file, wt_file, depth_scale, dmin, dmax, sym, size, spc_sym, spc_size, method, step, fmt, pltDec, pltInc, pltMag, pltLine, pltSus, logit, pltTime, timescale, amin, amax, norm)
+
 
     app = wx.App(redirect=False)
     if not fig:
