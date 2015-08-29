@@ -67,7 +67,12 @@ class GridFrame(wx.Frame):
 
         self.init_grid_headers()
         
-        self.grid = self.make_grid(self.parent_type)
+        #self.grid = self.make_grid(self.parent_type)
+        grid_builder = GridBuilder(self.er_magic, self.grid_type, self.grid_headers,
+                                   self.panel, self.parent_type)
+        self.grid = grid_builder.make_grid()
+
+
 
         self.grid.InitUI()
 
@@ -152,7 +157,8 @@ class GridFrame(wx.Frame):
 
         
         # add actual data!
-        self.add_data_to_grid()
+        grid_builder.add_data_to_grid(self.grid, self.grid_type)
+        
         if self.grid_type == 'age':
             self.add_age_data_to_grid()
 
@@ -284,11 +290,15 @@ class GridFrame(wx.Frame):
         # does create an unfortunate flashing effect, though.  
         self.parent.Parent.Hide()
 
-        self.grid = self.make_grid(new_parent_type)
+        #self.grid = self.make_grid(new_parent_type)
+        grid_builder = GridBuilder(self.er_magic, self.grid_type, self.grid_headers,
+                                   self.panel, new_parent_type)
+        self.grid = grid_builder.make_grid()
+
         self.grid.InitUI()
         self.panel.Bind(wx.grid.EVT_GRID_LABEL_LEFT_CLICK, self.onLeftClickLabel, self.grid)
         
-        self.add_data_to_grid(label)
+        grid_builder.add_data_to_grid(self.grid, label)
         self.add_age_data_to_grid()
         belongs_to = sorted(self.er_magic.data_lists[new_parent_type][0], key=lambda item: item.name)
         self.drop_down_menu = drop_down_menus.Menus(self.grid_type, self, self.grid, belongs_to)
@@ -302,68 +312,6 @@ class GridFrame(wx.Frame):
 
     def init_grid_headers(self):
         self.grid_headers = self.er_magic.headers
-
-    def make_grid(self, parent_type=None):
-        """
-        return grid
-        """
-
-        er_header = self.grid_headers[self.grid_type]['er'][0]
-        if self.grid_type not in self.er_magic.no_pmag_data:
-            pmag_header = self.grid_headers[self.grid_type]['pmag'][0]
-        else:
-            pmag_header = []
-        header = sorted(list(set(er_header).union(pmag_header)))
-        first_headers = []
-        for string in ['citation', '{}_class'.format(self.grid_type),
-                       '{}_lithology'.format(self.grid_type), '{}_type'.format(self.grid_type),
-                      'site_definition']:
-            for head in header[:]:
-                if string in head:
-                    header.remove(head)
-                    first_headers.append(head)
-
-        # the way we work it, each specimen is assigned to a sample
-        # each sample is assigned to a site
-        # specimens can not be added en masse to a site object, for example
-        # this data will be written in
-        for string in ['er_specimen_names', 'er_sample_names', 'er_site_names']:
-            for head in header[:]:
-                if string in head:
-                    header.remove(head)
-            
-
-        # do headers for results type grid
-        if self.grid_type == 'result':
-            #header.remove('pmag_result_name')
-            header[:0] = ['pmag_result_name', 'er_citation_names', 'er_specimen_names',
-                          'er_sample_names', 'er_site_names', 'er_location_names']
-
-        elif self.grid_type == 'age':
-            for header_type in self.er_magic.first_age_headers:
-                if header_type in header:
-                    header.remove(header_type)
-            lst = ['er_' + self.grid_type + '_name', 'er_' + self.parent_type + '_name']
-            lst.extend(self.er_magic.first_age_headers)
-            header[:0] = lst
-
-        # do headers for all other data types without parents
-        elif not parent_type:
-            lst = ['er_' + self.grid_type + '_name']
-            lst.extend(first_headers)
-            header[:0] = lst
-        # do headers for all data types with parents
-        else:
-            lst = ['er_' + self.grid_type + '_name', 'er_' + self.parent_type + '_name']
-            lst.extend(first_headers)
-            header[:0] = lst
-
-        grid = magic_grid.MagicGrid(parent=self.panel, name=self.grid_type,
-                                    row_labels=[], col_labels=header)
-        grid.do_event_bindings()
-
-        return grid
-
 
     def add_age_data_to_grid(self):
         dtype = self.er_magic.age_type
@@ -383,19 +331,6 @@ class GridFrame(wx.Frame):
                 if cell_value:
                     self.grid.SetCellValue(row_num, col_num, cell_value)
 
-    
-    def add_data_to_grid(self, grid_type=None):
-        if not grid_type:
-            grid_type = self.grid_type
-        if grid_type == 'age':
-            grid_type = self.er_magic.age_type
-        rows = self.er_magic.data_lists[grid_type][0]
-        self.grid.add_items(rows)
-        self.grid.size_grid()
-
-        # always start with at least one row:
-        if not self.grid.row_labels:
-            self.grid.add_row()
 
 
     ##  Grid event methods
@@ -800,3 +735,84 @@ class GridFrame(wx.Frame):
         #validation_errors = self.validate(grid)
 
 
+class GridBuilder(object):
+    
+    def __init__(self, er_magic, grid_type, grid_headers, panel, parent_type=None):
+        self.er_magic = er_magic
+        self.grid_type = grid_type
+        self.grid_headers = grid_headers
+        self.panel = panel
+        self.parent_type = parent_type
+    
+    def make_grid(self):
+        """
+        return grid
+        """
+        er_header = self.grid_headers[self.grid_type]['er'][0]
+        if self.grid_type not in self.er_magic.no_pmag_data:
+            pmag_header = self.grid_headers[self.grid_type]['pmag'][0]
+        else:
+            pmag_header = []
+        header = sorted(list(set(er_header).union(pmag_header)))
+        first_headers = []
+        for string in ['citation', '{}_class'.format(self.grid_type),
+                       '{}_lithology'.format(self.grid_type), '{}_type'.format(self.grid_type),
+                      'site_definition']:
+            for head in header[:]:
+                if string in head:
+                    header.remove(head)
+                    first_headers.append(head)
+
+        # the way we work it, each specimen is assigned to a sample
+        # each sample is assigned to a site
+        # specimens can not be added en masse to a site object, for example
+        # this data will be written in
+        for string in ['er_specimen_names', 'er_sample_names', 'er_site_names']:
+            for head in header[:]:
+                if string in head:
+                    header.remove(head)
+            
+
+        # do headers for results type grid
+        if self.grid_type == 'result':
+            #header.remove('pmag_result_name')
+            header[:0] = ['pmag_result_name', 'er_citation_names', 'er_specimen_names',
+                          'er_sample_names', 'er_site_names', 'er_location_names']
+
+        elif self.grid_type == 'age':
+            for header_type in self.er_magic.first_age_headers:
+                if header_type in header:
+                    header.remove(header_type)
+            lst = ['er_' + self.grid_type + '_name', 'er_' + self.parent_type + '_name']
+            lst.extend(self.er_magic.first_age_headers)
+            header[:0] = lst
+
+        # do headers for all other data types without parents
+        elif not self.parent_type:
+            lst = ['er_' + self.grid_type + '_name']
+            lst.extend(first_headers)
+            header[:0] = lst
+        # do headers for all data types with parents
+        else:
+            lst = ['er_' + self.grid_type + '_name', 'er_' + self.parent_type + '_name']
+            lst.extend(first_headers)
+            header[:0] = lst
+
+        grid = magic_grid.MagicGrid(parent=self.panel, name=self.grid_type,
+                                    row_labels=[], col_labels=header)
+        grid.do_event_bindings()
+
+        return grid
+
+    def add_data_to_grid(self, grid, grid_type=None, incl_pmag=True):
+        if not grid_type:
+            grid_type = self.grid_type
+        if grid_type == 'age':
+            grid_type = self.er_magic.age_type
+        rows = self.er_magic.data_lists[grid_type][0]
+        grid.add_items(rows, incl_pmag=incl_pmag)
+        grid.size_grid()
+
+        # always start with at least one row:
+        if not grid.row_labels:
+            grid.add_row()

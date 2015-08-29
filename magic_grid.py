@@ -58,7 +58,7 @@ class MagicGrid(wx.grid.Grid):
         return data
 
 
-    def add_items(self, items_list):
+    def add_items(self, items_list, incl_pmag=True):
         er_data = {item.name: item.er_data for item in items_list}
         pmag_data = {item.name: item.pmag_data for item in items_list}
         items_list = sorted(items_list, key=lambda item: item.name)
@@ -66,7 +66,8 @@ class MagicGrid(wx.grid.Grid):
         for item in items_list[:]:
             self.add_row(item.name, item)
         self.add_data(er_data)
-        self.add_data(pmag_data)
+        if incl_pmag:
+            self.add_data(pmag_data)
         self.add_parents()
         
         
