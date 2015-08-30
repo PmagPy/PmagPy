@@ -362,7 +362,7 @@ class Criteria_Dialog(wx.Dialog):
 
 
         #---------------------------
-        # samlpe/site criteria
+        # sample/site criteria
         #---------------------------
 
         bSizer2 = wx.StaticBoxSizer( wx.StaticBox( pnl1, wx.ID_ANY, "sample/Site acceptance criteria" ), wx.HORIZONTAL )
@@ -538,7 +538,7 @@ class Criteria_Dialog(wx.Dialog):
         #-------------------------------------------        
         # Intialize values: avearge by site or sample
         #-------------------------------------------        
-        
+        if 'average_by_sample_or_site' not in self.acceptance_criteria.keys():self.acceptance_criteria['average_by_sample_or_site']['value']='site' 
         if str(self.acceptance_criteria['average_by_sample_or_site']['value'])=='site':
             self.set_average_by_sample_or_site.SetStringSelection('site')           
         else:

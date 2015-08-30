@@ -210,7 +210,6 @@ class TestIODP_dscr_magic(unittest.TestCase):
         options['input_dir_path'] = dir_path
         options['csv_file'] = 'srmdiscrete-XXX-UTEST-A.csv'
         program_ran, outfile = IODP_dscr_magic.main(False, **options)
-        print 'outfile!', outfile
         self.assertTrue(program_ran)
         self.assertEqual(outfile, os.path.join('.', 'magic_measurements.txt'))
 
@@ -380,22 +379,11 @@ class Test2G_bin_magic(unittest.TestCase):
 class TestBGC_magic(unittest.TestCase):
 
     def setUp(self):
-        self.input_dir = os.path.join(WD, 'Datafiles', 'Measurement_import', 'BGC_magic')
+        self.input_dir = os.path.join(WD, 'Datafiles', 'Measurement_Import', 'BGC_magic')
         os.chdir(WD)
 
     def tearDown(self):
         filelist = ['96MT.05.01.magic', 'BC0-3A.magic', 'magic_measurements.txt', 'er_specimens.txt', 'er_samples.txt', 'er_sites.txt']
-        #directory = os.path.join(WD, 'Datafiles', 'Measurement_Import', 'BGC_magic')
-        #print 'directory', directory
-        print '-'
-        print 'self.input_dir:', self.input_dir
-        print '-'
-        print 'os.path.isdir(self.input_dir):', os.path.isdir(self.input_dir)
-        print '-'
-        print 'os.listdir(self.input_dir):', os.listdir(self.input_dir)
-        print '-'
-        print 'os.listdir(os.path.join(WD, "Datafiles", "Measurement_import")):', os.listdir(os.path.join(WD, "Datafiles", "Measurement_import"))
-        print '-'
         pmag.remove_files(filelist, self.input_dir)
 
     def test_BGC_with_no_files(self):
@@ -404,9 +392,6 @@ class TestBGC_magic(unittest.TestCase):
         self.assertEqual(error_message, 'You must provide a BCG format file')
 
     def test_BGC_success(self):
-        print 'in test_BGC_success'
-        print 'self.input_dir', self.input_dir
-        print 'os.listdir(self.input_dir)', os.listdir(self.input_dir)
         options = {'input_dir_path': self.input_dir, 'mag_file': '96MT.05.01'}
         program_ran, outfile = BGC_magic.main(False, **options)
         self.assertTrue(program_ran)

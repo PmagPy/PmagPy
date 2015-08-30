@@ -2051,7 +2051,7 @@ class Arai_GUI(wx.Frame):
                 return
         
         self.acceptance_criteria=pmag.initialize_acceptance_criteria()
-        self.add_thelier_gui_criteria()
+        self.add_thellier_gui_criteria()
         self.read_criteria_file(criteria_file)     
         # check if some statistics are in the new pmag_criteria_file but not in old. If yes, add to  self.preferences['show_statistics_on_gui']
         crit_list_not_in_pref=[]

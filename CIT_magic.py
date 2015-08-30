@@ -5,7 +5,7 @@ def main(command_line=True, **kwargs):
     """
     NAME
         CIT_magic.py
- 
+
     DESCRIPTION
         converts CIT and .sam  format files to magic_measurements format files
 
@@ -32,7 +32,7 @@ def main(command_line=True, **kwargs):
         -ac B : peak AF field (in mT) for ARM acquisition, default is none
 
     INPUT
-        Best to put separate experiments (all AF, thermal, thellier, trm aquisition, Shaw, etc.) 
+        Best to put separate experiments (all AF, thermal, thellier, trm aquisition, Shaw, etc.)
 
     NOTES:
          Sample naming convention:
@@ -44,12 +44,12 @@ def main(command_line=True, **kwargs):
             [4-Z] XXXXYYY:  YYY is sample designation with Z characters from site XXX
             [5] all others you will have to either customize your
                 self or e-mail ltauxe@ucsd.edu for help.
- 
+
     """
-    #        
+    #
     #initialize variables
     norm='cc'
-    samp_con,Z='3',1        
+    samp_con,Z='3',1
     meas_file='magic_measurements.txt'
     spec_file='er_specimens.txt'
     samp_file='er_samples.txt'
@@ -107,7 +107,7 @@ def main(command_line=True, **kwargs):
                 if "-" not in samp_con:
                     print "option [4] must be in form 4-Z where Z is an integer"
                     return False, "naming convention option [4] must be in form 4-Z where Z is an integer"
-                else: 
+                else:
                     Z=samp_con.split("-")[1]
                     samp_con="4"
         if '-f' in args:
@@ -145,7 +145,7 @@ def main(command_line=True, **kwargs):
         if "-" not in samp_con:
             print "option [4] must be in form 4-Z where Z is an integer"
             return False, "naming convention option [4] must be in form 4-Z where Z is an integer"
-        else: 
+        else:
             Z=samp_con.split("-")[1]
             samp_con="4"
 
@@ -224,7 +224,7 @@ def main(command_line=True, **kwargs):
             ErSpecRec['specimen_weight']=""
             if units=="1" or "":
                 ErSpecRec['specimen_volume']='%10.3e'%(vol*1e-6)
-            else: 
+            else:
                 ErSpecRec['specimen_volume']='%10.3e'%(vol)
         else:
             if norm=='cc':units="1"
@@ -232,7 +232,7 @@ def main(command_line=True, **kwargs):
             ErSpecRec['specimen_volume']=""
             if units=="1" or "":
                 ErSpecRec['specimen_weight']='%10.3e'%(vol*1e-3)
-            else: 
+            else:
                 ErSpecRec['specimen_weight']='%10.3e'%(vol)
         dip=float(info[-2])
         dip_direction=float(info[-3])+Cdec+90.
@@ -306,6 +306,7 @@ def main(command_line=True, **kwargs):
             MeasRec['measurement_csd']='%7.1f'%(eval(line[41:46]))
             MeasRec['magic_instrument_codes']=line[85:]
             MeasRec["measurement_positions"]='1'
+            MeasRec['measurement_standard']='u'
 
             MeasRecs.append(MeasRec)
         ErSpecs.append(ErSpecRec)
