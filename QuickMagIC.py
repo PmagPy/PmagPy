@@ -43,12 +43,10 @@ class MagMainFrame(wx.Frame):
             self.WD = WD
         self.HtmlIsOpen = False
         self.Bind(wx.EVT_CLOSE, self.on_menu_exit)
-        #self.ErMagic_data = ErMagicBuilder.ErMagicBuilder(self.WD)
         self.er_magic = builder.ErMagicBuilder(self.WD)
+        #self.er_magic.init_default_headers()
+        #self.er_magic.init_actual_headers()
         
-        #self.ErMagic_data.init_default_headers()
-        #self.Data_hierarchy = {}
-
 
     def InitUI(self):
 

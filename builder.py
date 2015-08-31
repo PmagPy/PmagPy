@@ -691,7 +691,34 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
             magic_outfile.write(string + '\n')
         magic_outfile.close()
         return True
-    
+
+
+    ### Methods for writing data ###
+    def write_files(self):
+        """
+        write all data out into er_* and pmag_* files as appropriate
+        """
+        print '-I- Writing all saved data to files'
+        if self.measurements:
+            self.write_measurements_file()
+        for dtype in ['specimen', 'sample', 'site']:
+            if self.data_lists[dtype][0]:
+                do_pmag = dtype not in self.no_pmag_data
+                self.write_magic_file(dtype, do_er=True, do_pmag=do_pmag)
+                if not do_pmag:
+                    pmag_file = os.path.join(self.WD, 'pmag_' + dtype + 's.txt')
+                    if os.path.isfile(pmag_file):
+                        os.remove(pmag_file)
+
+        if self.locations:
+            self.write_magic_file('location', do_er=True, do_pmag=False)
+
+        if self.data_lists[self.age_type][0]:
+            self.write_age_file(self.age_type)
+        
+        if self.results:
+            self.write_result_file()
+
     
     def write_magic_file(self, dtype, do_er=True, do_pmag=True):
         if dtype == 'location':

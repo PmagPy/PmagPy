@@ -160,7 +160,7 @@ class GridFrame(wx.Frame):
         self.grid_builder.add_data_to_grid(self.grid, self.grid_type)
         
         if self.grid_type == 'age':
-            self.add_age_data_to_grid()
+            self.grid_builder.add_age_data_to_grid()
 
         # add drop_down menus
         if self.parent_type:
@@ -313,24 +313,6 @@ class GridFrame(wx.Frame):
     def init_grid_headers(self):
         self.grid_headers = self.er_magic.headers
 
-    def add_age_data_to_grid(self):
-        dtype = self.er_magic.age_type
-        row_labels = [self.grid.GetCellValue(row, 0) for row in range(self.grid.GetNumberRows())]
-        items_list = self.er_magic.data_lists[dtype][0]
-        items = [self.er_magic.find_by_name(label, items_list) for label in row_labels if label]
-
-        col_labels = self.grid.col_labels[2:]
-        if not items:
-            return
-        for row_num, item in enumerate(items):
-            for col_num, label in enumerate(col_labels):
-                col_num += 2
-                if not label in item.age_data.keys():
-                    item.age_data[label] = ''
-                cell_value = item.age_data[label]
-                if cell_value:
-                    self.grid.SetCellValue(row_num, col_num, cell_value)
-
 
 
     ##  Grid event methods
@@ -357,7 +339,6 @@ class GridFrame(wx.Frame):
             return False
         else:
             print 'That header is not required:', label
-            #print 'self.grid_headers', self.grid_headers[self.grid_type]
             self.grid.remove_col(col)
             if label in er_possible_headers:
                 try:
@@ -646,7 +627,6 @@ class GridBuilder(object):
                 if string in head:
                     header.remove(head)
             
-
         # do headers for results type grid
         if self.grid_type == 'result':
             #header.remove('pmag_result_name')
@@ -671,7 +651,7 @@ class GridBuilder(object):
             lst = ['er_' + self.grid_type + '_name', 'er_' + self.parent_type + '_name']
             lst.extend(first_headers)
             header[:0] = lst
-
+        
         grid = magic_grid.MagicGrid(parent=self.panel, name=self.grid_type,
                                     row_labels=[], col_labels=header)
         grid.do_event_bindings()
@@ -692,23 +672,39 @@ class GridBuilder(object):
         if not grid.row_labels:
             grid.add_row()
 
+    def add_age_data_to_grid(self):
+        dtype = self.er_magic.age_type
+        row_labels = [self.grid.GetCellValue(row, 0) for row in range(self.grid.GetNumberRows())]
+        items_list = self.er_magic.data_lists[dtype][0]
+        items = [self.er_magic.find_by_name(label, items_list) for label in row_labels if label]
+
+        col_labels = self.grid.col_labels[2:]
+        if not items:
+            return
+        for row_num, item in enumerate(items):
+            for col_num, label in enumerate(col_labels):
+                col_num += 2
+                if not label in item.age_data.keys():
+                    item.age_data[label] = ''
+                cell_value = item.age_data[label]
+                if cell_value:
+                    self.grid.SetCellValue(row_num, col_num, cell_value)
+
+
+
 
     # takes all code from what was onSave
     def save_grid_data(self):#, age_data_type='site'):
         """
         Save grid data in the data object
         """
-
         if not self.grid.changes:
-            return
+            print '-I- No changes to save'
             return
 
         if self.grid_type == 'age':
             age_data_type = self.er_magic.age_type
             self.er_magic.write_ages = True
-        #if self.drop_down_menu:
-        #    self.drop_down_menu.clean_up()
-
 
         starred_cols = self.grid.remove_starred_labels()
 

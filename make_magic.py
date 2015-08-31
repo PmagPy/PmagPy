@@ -247,31 +247,6 @@ class MainFrame(wx.Frame):
         #self.on_finish_change_dir(self.change_dir_dialog)
         del wait
 
-    def write_files(self):
-        """
-        write all data out into er_* and pmag_* files as appropriate
-        """
-        print '-I- Writing all saved data to files'
-        if self.er_magic.measurements:
-            self.er_magic.write_measurements_file()
-        for dtype in ['specimen', 'sample', 'site']:
-            if self.er_magic.data_lists[dtype][0]:
-                do_pmag = dtype not in self.er_magic.no_pmag_data
-                self.er_magic.write_magic_file(dtype, do_er=True, do_pmag=do_pmag)
-                if not do_pmag:
-                    pmag_file = os.path.join(self.WD, 'pmag_' + dtype + 's.txt')
-                    if os.path.isfile(pmag_file):
-                        os.remove(pmag_file)
-
-        if self.er_magic.locations:
-            self.er_magic.write_magic_file('location', do_er=True, do_pmag=False)
-
-        if self.er_magic.data_lists[self.er_magic.age_type]:
-            self.er_magic.write_age_file(self.er_magic.age_type)
-        
-        if self.er_magic.results:
-            self.er_magic.write_result_file()
-        
     def on_upload_file(self, event):
         """
         Write all data to appropriate er_* and pmag_* files.
@@ -279,7 +254,7 @@ class MainFrame(wx.Frame):
         Validate the upload file.
         """
         wait = wx.BusyInfo('Making upload file, please wait...')
-        self.write_files()
+        self.er_magic.write_files()
         upfile, error_message = ipmag.upload_magic(dir_path=self.WD)
         del wait
         if upfile:
@@ -336,7 +311,7 @@ class MagICMenu(wx.MenuBar):
         # if there have been edits, save all data to files
         # before quitting
         if self.parent.edited:
-            self.parent.write_files()
+            self.parent.er_magic.write_files()
         self.parent.Close()
 
     def on_clear(self, event):
