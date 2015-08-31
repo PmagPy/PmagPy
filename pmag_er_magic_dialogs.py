@@ -10,6 +10,7 @@ import drop_down_menus
 import pmag_widgets as pw
 import check_updates
 import magic_grid
+import grid_frame
 
 
 class ErMagicCheckFrame(wx.Frame):
@@ -18,7 +19,8 @@ class ErMagicCheckFrame(wx.Frame):
         wx.Frame.__init__(self, parent, -1, title)
         self.WD = WD
         self.main_frame = self.Parent
-        self.ErMagic_data = magic_data
+        self.er_magic_data = magic_data
+        self.er_magic_data.no_pmag_data = set(['specimen', 'sample', 'site', 'location'])
 
         self.temp_data = {}
         self.drop_down_menu = None
@@ -37,9 +39,6 @@ class ErMagicCheckFrame(wx.Frame):
         # using ScrolledWindow works on up to date wxPython and is necessary for windows
         # it breaks with Canopy wxPython, so for Mac we just use Panel
 
-        # make sure we are up to date
-        self.ErMagic_data.read_MagIC_info()
-
         if sys.platform in ['win32', 'win64']:
             self.panel = wx.ScrolledWindow(self, style=wx.SIMPLE_BORDER)
         else:
@@ -52,40 +51,23 @@ class ErMagicCheckFrame(wx.Frame):
 Check that all specimens belong to the correct sample
 (if sample name is simply wrong, that will be fixed in step 2)"""
         label = wx.StaticText(self.panel, label=text)
-        #self.Data_hierarchy = self.ErMagic_data.Data_hierarchy
+        self.grid_builder = grid_frame.GridBuilder(self.er_magic_data, 'specimen',
+                                                   self.er_magic_data.headers, self.panel,
+                                                   'sample')
+        self.spec_grid = self.grid_builder.make_grid()
 
-        self.specimens = sorted(self.ErMagic_data.Data_hierarchy['specimens'].keys())
-        samples = self.ErMagic_data.Data_hierarchy['samples'].keys()
-        # add in any additional samples we might have information about (from er_samples.txt file) even if currently that sample does not show up in the magic_measurements file
-        samples = sorted(list(set(samples).union(self.ErMagic_data.data_er_samples.keys())))
+        self.spec_grid.InitUI()
 
-        # create the grid and also a record of the initial values for specimens/samples as a reference
-        # to tell if we've had any changes
-        for val in ['er_citation_names', 'er_location_name', 'er_site_name',
-                    'er_sample_name', 'er_specimen_name', 'specimen_class',
-                    'specimen_lithology', 'specimen_type']: #
-            try:
-                self.ErMagic_data.er_specimens_header.remove(val)
-            except ValueError:
-                pass
-        self.ErMagic_data.er_specimens_header.sort()
-        self.ErMagic_data.er_specimens_header[:0] = ['er_specimen_name', 'er_sample_name']
+        self.grid_builder.add_data_to_grid(self.spec_grid, 'specimen', incl_pmag=False)
 
-        self.spec_grid = self.make_simple_table(self.ErMagic_data.er_specimens_header,
-                                                self.ErMagic_data.data_er_specimens, "er_specimen_name")
-        self.grid = self.spec_grid
-
-        # make sure all removed values stay in er_specimens_header, even though they will not be displayed
-        self.ErMagic_data.er_specimens_header.extend(['er_citation_names', 'er_location_name',
-                                                      'er_site_name', 'specimen_class',
-                                                      'specimen_lithology', 'specimen_type'])
-        # initialize all needed drop-down menus
+        samples = self.er_magic_data.make_name_list(self.er_magic_data.samples)
         self.drop_down_menu = drop_down_menus.Menus("specimen", self, self.spec_grid, samples)
+
 
         #### Create Buttons ####
         hbox_one = wx.BoxSizer(wx.HORIZONTAL)
         self.addSampleButton = wx.Button(self.panel, label="Add a new sample")
-        self.sites = list(set(self.ErMagic_data.Data_hierarchy['sites'].keys()).union(self.ErMagic_data.data_er_sites.keys())) # adds in any additional samples we might have information about (from er_sites.txt file) even if currently that sample does not show up in the magic_measurements file
+        self.samples = [name for name in self.er_magic_data.samples]
         self.Bind(wx.EVT_BUTTON, self.on_addSampleButton, self.addSampleButton)
         self.helpButton = wx.Button(self.panel, label="Help")
         self.Bind(wx.EVT_BUTTON, lambda event: self.on_helpButton(event, "ErMagicSpecimenHelp.html"), self.helpButton)
@@ -120,6 +102,7 @@ Check that all specimens belong to the correct sample
         vbox.Add(hboxok, flag=wx.BOTTOM|wx.LEFT, border=10)
         vbox.Add(hboxgrid, flag=wx.BOTTOM|wx.LEFT, border=10)
         vbox.Add(self.spec_grid, flag=wx.ALL, border=10)#|wx.EXPAND, border=30)
+        vbox.AddSpacer(20)
 
         hbox_all = wx.BoxSizer(wx.HORIZONTAL)
         hbox_all.AddSpacer(20)
@@ -154,8 +137,6 @@ and that they belong to the correct site
 (if site name is simply wrong, that will be fixed in step 3)"""
             step_label = wx.StaticText(self.panel, label=text)#, size=(900, 100))
         else:
-            self.ErMagic_data.read_MagIC_info() # ensures that changes from step 3 propagate
-
             text = """Step 4:
 Some of the data from the er_sites table has propogated into er_samples.
 Check that this data is correct, and fill in missing cells using controlled vocabularies.
@@ -163,27 +144,28 @@ The columns for class, lithology, and type can take multiple values in the form 
 You may use the drop-down menus to add as many values as needed in these columns.  
 (see Help button for more details)\n\n** Denotes controlled vocabulary"""
             step_label = wx.StaticText(self.panel, label=text)#, size=(900, 100))
-        #self.Data_hierarchy = self.ErMagic.Data_hierarchy
-        self.samples = sorted(self.ErMagic_data.Data_hierarchy['samples'].keys())
-        sites = sorted(self.ErMagic_data.Data_hierarchy['sites'].keys())
-        self.locations = sorted(list(set(self.ErMagic_data.Data_hierarchy['locations'].keys()).union(self.ErMagic_data.data_er_locations.keys())))
-
+        
         if self.sample_window == 1:
-            self.samp_grid = self.make_simple_table(['er_sample_name', 'er_site_name'], self.ErMagic_data.data_er_samples, 'er_sample_name')
+            # provide no extra headers
+            headers = {'sample': {'er': [[], [], []],
+                                  'pmag': [[], [], []]}}
+            self.grid_builder = grid_frame.GridBuilder(self.er_magic_data, 'sample',
+                                                       headers, self.panel,
+                                                       'site')
 
         if self.sample_window > 1:
-            for val in ['er_citation_names', 'er_location_name', 'er_site_name', 'er_sample_name', 'sample_class', 'sample_lithology', 'sample_type', 'sample_lat', 'sample_lon']:
-                try:
-                    self.ErMagic_data.er_samples_header.remove(val)
-                except ValueError:
-                    pass
-            self.ErMagic_data.er_samples_header.sort()
-            self.ErMagic_data.er_samples_header[:0] = ['er_sample_name', 'er_site_name', 'er_citation_names', 'sample_class', 'sample_lithology', 'sample_type', 'sample_lat', 'sample_lon', 'er_location_name']
-            self.samp_grid = self.make_simple_table(self.ErMagic_data.er_samples_header, self.ErMagic_data.data_er_samples, 'er_sample_name')
+            self.er_magic_data.init_default_headers()
+            self.er_magic_data.init_actual_headers()
+            self.grid_builder = grid_frame.GridBuilder(self.er_magic_data, 'sample',
+                                           self.er_magic_data.headers, self.panel,
+                                           'site')
 
+        self.samp_grid = self.grid_builder.make_grid()
+        self.samp_grid.InitUI()
+        self.grid_builder.add_data_to_grid(self.samp_grid, 'sample', incl_pmag=False)
         self.grid = self.samp_grid
-        # add in any additional sets we might have information about (from er_sites.txt file) even if currently that site does not show up in the magic_measurements file
-        sites = sorted(list(set(sites).union(self.ErMagic_data.data_er_sites.keys())))
+
+        sites = sorted(self.er_magic_data.make_name_list(self.er_magic_data.sites))
         self.drop_down_menu = drop_down_menus.Menus("sample", self, self.samp_grid, sites) # initialize all needed drop-down menus
 
         ### Create Buttons ###
@@ -223,13 +205,13 @@ You may use the drop-down menus to add as many values as needed in these columns
         
         ### Make Containers ###
         vbox = wx.BoxSizer(wx.VERTICAL)
-        #vbox.Add(step_label, flag=wx.ALIGN_CENTER|wx.TOP|wx.BOTTOM, border=20)
         vbox.Add(step_label, flag=wx.ALIGN_LEFT|wx.TOP|wx.BOTTOM, border=20)
 
         vbox.Add(hbox_one, flag=wx.BOTTOM|wx.LEFT, border=10)
         vbox.Add(hboxok, flag=wx.BOTTOM|wx.LEFT, border=10)
         vbox.Add(hboxgrid, flag=wx.BOTTOM|wx.LEFT, border=10)
         vbox.Add(self.samp_grid, flag=wx.ALL, border=10) # using wx.EXPAND or not does not affect re-size problem
+        vbox.AddSpacer(20)
 
         hbox_all = wx.BoxSizer(wx.HORIZONTAL)
         hbox_all.AddSpacer(20)
@@ -283,17 +265,21 @@ However, you will be able to edit sample_class, sample_lithology, and sample_typ
 **Denotes controlled vocabulary"""
         label = wx.StaticText(self.panel, label=text)
         #self.Data_hierarchy = self.ErMagic.Data_hierarchy
-        self.sites = sorted(self.ErMagic_data.Data_hierarchy['sites'].keys())
+        self.sites = sorted(self.er_magic_data.make_name_list(self.er_magic_data.sites))
 
-        for val in ['er_citation_names', 'er_location_name', 'er_site_name', 'site_class', 'site_lithology', 'site_type', 'site_definition', 'site_lat', 'site_lon']: #
-            try:
-                self.ErMagic_data.er_sites_header.remove(val)
-            except ValueError:
-                pass
-        self.ErMagic_data.er_sites_header.sort()
-        self.ErMagic_data.er_sites_header[:0] = ['er_site_name', 'er_location_name', 'er_citation_names', 'site_class', 'site_lithology', 'site_type', 'site_definition', 'site_lon', 'site_lat']
+        #for val in ['er_citation_names', 'er_location_name', 'er_site_name', 'site_class', 'site_lithology', 'site_type', 'site_definition', 'site_lat', 'site_lon']: #
+        #    try:
+        #        self.er_magic_data.headers['site']['er'][0].remove(val)
+        #    except ValueError:
+        #        pass
 
-        self.site_grid = self.make_simple_table(self.ErMagic_data.er_sites_header, self.ErMagic_data.data_er_sites, 'er_site_name')
+        self.grid_builder = grid_frame.GridBuilder(self.er_magic_data, 'site',
+                               self.er_magic_data.headers, self.panel,
+                               'location')
+
+        self.site_grid = self.grid_builder.make_grid()
+        self.site_grid.InitUI()
+        self.grid_builder.add_data_to_grid(self.site_grid, 'site', incl_pmag=False)
         self.grid = self.site_grid
 
         # populate site_definition as 's' by default if no value is provided (indicates that site is single, not composite)
@@ -305,13 +291,13 @@ However, you will be able to edit sample_class, sample_lithology, and sample_typ
                 self.site_grid.SetCellValue(row, col, 's')
 
         # initialize all needed drop-down menus
-        locations = sorted(set(self.ErMagic_data.data_er_locations.keys()))
+        locations = sorted(self.er_magic_data.make_name_list(self.er_magic_data.locations))
         self.drop_down_menu = drop_down_menus.Menus("site", self, self.site_grid, locations)
 
         ### Create Buttons ###
         hbox_one = wx.BoxSizer(wx.HORIZONTAL)
         self.addLocButton = wx.Button(self.panel, label="Add a new location")
-        self.locations = list(set(self.ErMagic_data.Data_hierarchy['sites'].keys()).union(self.ErMagic_data.data_er_locations.keys()))
+
         self.Bind(wx.EVT_BUTTON, self.on_addLocButton, self.addLocButton)
         hbox_one.Add(self.addLocButton, flag=wx.RIGHT, border=10)
 
@@ -349,6 +335,7 @@ However, you will be able to edit sample_class, sample_lithology, and sample_typ
         vbox.Add(hboxok, flag=wx.BOTTOM|wx.LEFT, border=10)
         vbox.Add(hboxgrid, flag=wx.BOTTOM|wx.LEFT, border=10)
         vbox.Add(self.site_grid, flag=wx.ALL|wx.EXPAND, border=10) # EXPAND ??
+        vbox.AddSpacer(20)
 
         hbox_all = wx.BoxSizer(wx.HORIZONTAL)
         hbox_all.AddSpacer(20)
@@ -366,6 +353,7 @@ However, you will be able to edit sample_class, sample_lithology, and sample_typ
         self.panel.Refresh()
         self.Hide()
         self.Show()
+
 
 
     def InitLocCheck(self):
@@ -386,11 +374,9 @@ Fill in any blank cells using controlled vocabularies.
 ** Denotes controlled vocabulary"""
         label = wx.StaticText(self.panel, label=text)
         #self.Data_hierarchy = self.ErMagic.Data_hierarchy
-        self.locations = self.ErMagic_data.Data_hierarchy['locations']
+        self.locations = self.er_magic_data.locations
         #
-        try:
-            key1 = self.ErMagic_data.data_er_locations.keys()[0]
-        except IndexError:
+        if not self.er_magic_data.locations:
             msg = "You have no data in er_locations, so we are skipping step 5.\n Note that location names must be entered at the measurements level,so you may need to re-import your data, or you can add a location in step 3"
             dlg = wx.MessageDialog(None, caption="Message:", message=msg, style=wx.OK|wx.ICON_INFORMATION)
             dlg.ShowModal()
@@ -399,14 +385,11 @@ Fill in any blank cells using controlled vocabularies.
             self.InitAgeCheck()
             return
 
-        for val in ['er_location_name', 'er_citation_names', 'location_type']:
-            try:
-                self.ErMagic_data.er_locations_header.remove(val)
-            except ValueError:
-                pass
-        self.ErMagic_data.er_locations_header[:0] = ['er_location_name', 'er_citation_names', 'location_type']
-
-        self.loc_grid = self.make_simple_table(self.ErMagic_data.er_locations_header, self.ErMagic_data.data_er_locations, "er_location_name")
+        self.grid_builder = grid_frame.GridBuilder(self.er_magic_data, 'location',
+                                                   self.er_magic_data.headers, self.panel)
+        self.loc_grid = self.grid_builder.make_grid()
+        self.loc_grid.InitUI()
+        self.grid_builder.add_data_to_grid(self.loc_grid, 'location', incl_pmag=False)
         self.grid = self.loc_grid
         # initialize all needed drop-down menus
         self.drop_down_menu = drop_down_menus.Menus("location", self, self.loc_grid, None) 
@@ -447,6 +430,7 @@ Fill in any blank cells using controlled vocabularies.
         vbox.Add(hboxok, flag=wx.BOTTOM|wx.ALIGN_LEFT, border=10)
         vbox.Add(hboxgrid, flag=wx.BOTTOM|wx.ALIGN_LEFT, border=10)
         vbox.Add(self.loc_grid, flag=wx.TOP|wx.BOTTOM, border=10)
+        vbox.AddSpacer(20)
 
         hbox_all = wx.BoxSizer(wx.HORIZONTAL)
         hbox_all.AddSpacer(20)
@@ -480,27 +464,16 @@ You may use the drop-down menus to add as many values as needed in these columns
 
 **Denotes controlled vocabulary """
         label = wx.StaticText(self.panel, label=text)
-        #self.Data_hierarchy = self.ErMagic.Data_hierarchy
-        self.sites = self.ErMagic_data.Data_hierarchy['sites']
-        #
-        #key1 = self.ErMagic_data.data_er_ages.keys()[0]
 
-        for col_label in ['er_site_name', 'er_location_name', 'er_citation_names', 'magic_method_codes', 'age_description', 'age_unit', 'age']:
-            try:
-                self.ErMagic_data.er_ages_header.remove(col_label)
-            except ValueError:
-                pass
+        self.items = self.er_magic_data.data_lists[self.er_magic_data.age_type][0]
 
-        self.ErMagic_data.er_ages_header[:0] = ['er_site_name', 'er_location_name', 'er_citation_names', 'magic_method_codes', 'age_unit', 'age_description', 'age']
-        # only use sites that are associated with actual samples/specimens
-
-        #ages_data_dict = {k: v for k, v in self.ErMagic.data_er_ages.items() if k in self.sites} # fails in Python 2.6
-        ages_data_dict = {}
-        for k, v in self.ErMagic_data.data_er_ages.items():
-            if k in self.sites:
-                ages_data_dict[k] = v
-
-        self.age_grid = self.make_simple_table(self.ErMagic_data.er_ages_header, ages_data_dict, "ages")
+        self.grid_builder = grid_frame.GridBuilder(self.er_magic_data, 'age',
+                                                   self.er_magic_data.headers, self.panel, 'location')
+        self.age_grid = self.grid_builder.make_grid()
+        self.age_grid.InitUI()
+        self.grid_builder.add_data_to_grid(self.age_grid, 'age', incl_pmag=False)
+        self.grid_builder.add_age_data_to_grid()
+        
         self.grid = self.age_grid
         #
         # make it impossible to edit the 1st and 3rd columns
@@ -541,6 +514,7 @@ You may use the drop-down menus to add as many values as needed in these columns
         vbox.Add(hbox_one, flag=wx.BOTTOM, border=10)
         vbox.Add(hboxok, flag=wx.BOTTOM, border=10)
         vbox.Add(self.age_grid, flag=wx.TOP|wx.BOTTOM, border=10) # EXPAND ??
+        vbox.AddSpacer(20)
 
         hbox_all = wx.BoxSizer(wx.HORIZONTAL)
         hbox_all.AddSpacer(20)
@@ -622,24 +596,17 @@ You may use the drop-down menus to add as many values as needed in these columns
         def add_sample(sample, site):
             add_sample_data(sample, site)
 
-        #def __init__(self, parent, title, data_items, data_method):
-
-        #if not self.ErMagic_data.data_er_samples:
-        #    self.ErMagic_data.read_MagIC_info()
-
-        pw.AddItem(self, 'Sample', add_sample, self.sites, 'site') # makes window for adding new data
+        sites = self.er_magic_data.make_name_list(self.er_magic_data.sites)
+        pw.AddItem(self, 'Sample', add_sample, owner_items=sites, belongs_to='site') # makes window for adding new data
 
         def add_sample_data(sample, site):
             # add sample
-            self.ErMagic_data.add_sample(sample, site)
+            self.er_magic_data.add_sample(sample, site)
             # re-Bind so that the updated samples list shows up on a left click
-            samples = sorted(self.ErMagic_data.Data_hierarchy['samples'].keys())
-            samples = sorted(list(set(samples).union(self.ErMagic_data.data_er_samples.keys())))
+            samples = sorted(self.er_magic_data.make_name_list(self.er_magic_data.samples))
             choices = self.drop_down_menu.choices
             choices[1] = (samples, False)
             self.drop_down_menu.update_drop_down_menu(self.spec_grid, choices)
-            # update ErMagic files
-            self.ErMagic_data.update_ErMagic()
 
 
     def on_addSiteButton(self, event):
@@ -647,17 +614,15 @@ You may use the drop-down menus to add as many values as needed in these columns
         def add_site(site, location):
             add_site_data(site, location)
 
-        pw.AddItem(self, 'Site', add_site, self.locations, 'location')
+        locations = self.er_magic_data.make_name_list(self.er_magic_data.locations)
+        pw.AddItem(self, 'Site', add_site, locations, 'location')
 
         def add_site_data(site, location):
             # add site
-            self.ErMagic_data.add_site(site, location)
+            self.er_magic_data.add_site(site, location)
             # re-Bind so that the updated sites list shows up on a left click
-            sites = sorted(self.ErMagic_data.Data_hierarchy['sites'].keys())
-            sites = sorted(list(set(sites).union(self.ErMagic_data.data_er_sites.keys())))
+            sites = sorted(self.er_magic_data.make_name_list(self.er_magic_data.sites))
             self.drop_down_menu.update_drop_down_menu(self.samp_grid, {1: (sites, False)})
-            # update ErMagic files
-            self.ErMagic_data.update_ErMagic()
 
 
     def on_addLocButton(self, event):
@@ -667,17 +632,16 @@ You may use the drop-down menus to add as many values as needed in these columns
 
         #def __init__(self, parent, title, data_items, data_method):
 
-        if not self.ErMagic_data.data_er_locations:
+        if not self.er_magic_data.locations:
             pass
 
         pw.AddItem(self, 'Location', add_loc, owner_items=None, belongs_to=None) # makes window for adding new data
 
         def add_loc_data(loc):
             # add location
-            self.ErMagic_data.add_location(loc)
+            self.er_magic_data.add_location(loc)
             # re-Bind so that the updated locations list shows up on a left click
-            locations = sorted(self.ErMagic_data.Data_hierarchy['locations'].keys())
-            locations = sorted(list(set(locations).union(self.ErMagic_data.data_er_locations.keys())))
+            locations = self.er_magic_data.make_name_list(self.er_magic_data.locations)
             choices = self.drop_down_menu.choices
             choices[1] = (locations, False)
             self.drop_down_menu.update_drop_down_menu(self.site_grid, choices)
@@ -711,12 +675,8 @@ You may use the drop-down menus to add as many values as needed in these columns
         #self.remove_starred_labels(grid)
         grid.remove_starred_labels()
 
-        if self.ErMagic_data.data_er_specimens:
-            pass
-        else:
-            self.ErMagic_data.read_MagIC_info()
         grid.SaveEditControlValue() # locks in value in cell currently edited
-        grids = {"er_specimen_name": self.ErMagic_data.data_er_specimens, "er_sample_name": self.ErMagic_data.data_er_samples, "er_site_name": self.ErMagic_data.data_er_sites, "er_location_name": self.ErMagic_data.data_er_locations, "ages": self.ErMagic_data.data_er_ages}
+        #grids = {"er_specimen_name": self.ErMagic_data.data_er_specimens, "er_sample_name": self.ErMagic_data.data_er_samples, "er_site_name": self.ErMagic_data.data_er_sites, "er_location_name": self.ErMagic_data.data_er_locations, "ages": self.ErMagic_data.data_er_ages}
         grid_name = str(grid.GetName())
 
         # check that all required data is present
@@ -729,10 +689,7 @@ You may use the drop-down menus to add as many values as needed in these columns
                 return False
 
         if grid.changes:
-            self.update_grid(grid)#, grids[grid_name])
-
-            # possibly optimize this so that it only updates the required files
-            self.ErMagic_data.update_ErMagic()
+            self.onSave(grid)
 
         self.deleteRowButton = None
         self.panel.Destroy()
@@ -741,8 +698,10 @@ You may use the drop-down menus to add as many values as needed in these columns
             next_dia()
             del wait
         else:
-            self.final_update()
+            wait = wx.BusyInfo("Please wait, writing data to files...")
+            self.er_magic_data.write_files()
             self.Destroy()
+            del wait
 
 
     def on_saveButton(self, event, grid):
@@ -755,18 +714,11 @@ You may use the drop-down menus to add as many values as needed in these columns
         # remove '**' from col labels
         starred_cols = grid.remove_starred_labels()
 
-        if self.ErMagic_data.data_er_specimens:
-            pass
-        else:
-            self.ErMagic_data.read_MagIC_info()
         grid.SaveEditControlValue() # locks in value in cell currently edited
         grid.HideCellEditControl() # removes focus from cell that was being edited
 
         if grid.changes:
-            self.update_grid(grid)#, grids[grid_name])
-
-            # possibly optimize this so that it only updates the required files
-            self.ErMagic_data.update_ErMagic()
+            self.onSave(grid)
 
         for col in starred_cols:
             label = grid.GetColLabelValue(col)
@@ -866,7 +818,11 @@ You may use the drop-down menus to add as many values as needed in these columns
         """
         takes in wxPython grid and ErMagic data object to be updated
         """
-        data_methods = {'er_specimen_name': self.ErMagic_data.change_specimen, 'er_sample_name': self.ErMagic_data.change_sample, 'er_site_name': self.ErMagic_data.change_site, 'er_location_name': self.ErMagic_data.change_location, 'ages': self.ErMagic_data.change_age}
+        data_methods = {'specimen': self.er_magic_data.change_specimen,
+                        'sample': self.er_magic_data.change_sample,
+                        'site': self.er_magic_data.change_site,
+                        'location': self.er_magic_data.change_location,
+                        'age': self.er_magic_data.change_age}
 
         grid_name = str(grid.GetName())
 
@@ -891,35 +847,15 @@ You may use the drop-down menus to add as many values as needed in these columns
         grid.changes = False
 
 
-    def final_update(self):
+    def onSave(self, grid):#, age_data_type='site'):
         """
-        Updates er_*.txt files to delete any specimens, samples, or sites that are no longer included
+        Save grid data in the data object
         """
-        def remove_extras(long_dict, short_dict):
-            """
-            remove any key/value pairs from the long_dictionary if that key is not present in the short_dictionary
-            """
-            for dict_item in long_dict.keys():
-                if dict_item not in short_dict.keys():
-                    long_dict.pop(dict_item)
-            return long_dict
-        #print 'at beginning of final_update'
-        #print 'self.ErMagic_data:'
-        #print self.ErMagic_data
-        #print "self.ErMagic_data.Data_hierarchy['sites']", self.ErMagic_data.Data_hierarchy['sites']
+        if self.drop_down_menu:
+            self.drop_down_menu.clean_up()
 
-        remove_extras(self.ErMagic_data.data_er_specimens, self.ErMagic_data.Data_hierarchy['specimens'])
-        remove_extras(self.ErMagic_data.data_er_samples, self.ErMagic_data.Data_hierarchy['samples'])
-        remove_extras(self.ErMagic_data.data_er_sites, self.ErMagic_data.Data_hierarchy['sites'])
-        remove_extras(self.ErMagic_data.data_er_locations, self.ErMagic_data.Data_hierarchy['locations'])
-        #remove_extras(self.Data_hierarchy['locations'], self.ErMagic.data_er_locations)
-        remove_extras(self.ErMagic_data.data_er_ages, self.ErMagic_data.Data_hierarchy['sites'])
-        #print 'at end of final_update'
-        #print 'self.ErMagic_data:'
-        #print self.ErMagic_data
-        #print "self.ErMagic_data.Data_hierarchy['sites']", self.ErMagic_data.Data_hierarchy['sites']
+        self.grid_builder.save_grid_data()
 
-        self.ErMagic_data.update_ErMagic()
-
-
+        wx.MessageBox('Saved!', 'Info',
+                      style=wx.OK | wx.ICON_INFORMATION)
 
