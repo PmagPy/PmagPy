@@ -62,6 +62,18 @@ class ErMagicBuilder(object):
         self.first_age_headers = ['er_citation_names', 'magic_method_codes', 'age_unit']
         self.age_type = 'site'
 
+    def make_name_list(self, obj_list):
+        name_list = []
+        for obj in obj_list:
+            try:
+                name_list.append(obj.name)
+            except AttributeError:
+                if obj:
+                    name_list.append(obj)
+                else:
+                    name_list.append('')
+        return name_list
+
 
     def find_by_name(self, item_name, items_list):
         """

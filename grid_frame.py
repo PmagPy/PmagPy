@@ -68,9 +68,9 @@ class GridFrame(wx.Frame):
         self.init_grid_headers()
         
         #self.grid = self.make_grid(self.parent_type)
-        grid_builder = GridBuilder(self.er_magic, self.grid_type, self.grid_headers,
-                                   self.panel, self.parent_type)
-        self.grid = grid_builder.make_grid()
+        self.grid_builder = GridBuilder(self.er_magic, self.grid_type, self.grid_headers,
+                                        self.panel, self.parent_type)
+        self.grid = self.grid_builder.make_grid()
 
 
 
@@ -157,7 +157,7 @@ class GridFrame(wx.Frame):
 
         
         # add actual data!
-        grid_builder.add_data_to_grid(self.grid, self.grid_type)
+        self.grid_builder.add_data_to_grid(self.grid, self.grid_type)
         
         if self.grid_type == 'age':
             self.add_age_data_to_grid()
@@ -291,14 +291,14 @@ class GridFrame(wx.Frame):
         self.parent.Parent.Hide()
 
         #self.grid = self.make_grid(new_parent_type)
-        grid_builder = GridBuilder(self.er_magic, self.grid_type, self.grid_headers,
-                                   self.panel, new_parent_type)
-        self.grid = grid_builder.make_grid()
+        #self.grid_builder = GridBuilder(self.er_magic, self.grid_type, self.grid_headers,
+        #                                self.panel, new_parent_type)
+        self.grid = self.grid_builder.make_grid()
 
         self.grid.InitUI()
         self.panel.Bind(wx.grid.EVT_GRID_LABEL_LEFT_CLICK, self.onLeftClickLabel, self.grid)
         
-        grid_builder.add_data_to_grid(self.grid, label)
+        self.grid_builder.add_data_to_grid(self.grid, label)
         self.add_age_data_to_grid()
         belongs_to = sorted(self.er_magic.data_lists[new_parent_type][0], key=lambda item: item.name)
         self.drop_down_menu = drop_down_menus.Menus(self.grid_type, self, self.grid, belongs_to)
@@ -596,143 +596,16 @@ class GridFrame(wx.Frame):
             self.Destroy()
 
     def onSave(self, event):#, age_data_type='site'):
-        """
-        Save grid data in the data object
-        """
-        if not self.grid.changes:
-            self.Destroy()
-            return
-
-        if self.grid_type == 'age':
-            age_data_type = self.er_magic.age_type
-            self.er_magic.write_ages = True
         if self.drop_down_menu:
             self.drop_down_menu.clean_up()
 
-
-        starred_cols = self.grid.remove_starred_labels()
-
-        self.grid.SaveEditControlValue() # locks in value in cell currently edited
-        
-        if self.parent_type:
-            parent_search_list = self.er_magic.data_lists[self.parent_type][0]
-        item_search_list = self.er_magic.data_lists[self.grid_type][0]
-        items_list = []
-        if self.grid.changes:
-            num_cols = self.grid.GetNumberCols()
-
-            for change in self.grid.changes:
-                if change == -1:
-                    continue
-                else:
-                    old_item = self.grid.row_items[change]
-                    new_item_name = self.grid.GetCellValue(change, 0)
-                    new_er_data = {}
-                    new_pmag_data = {}
-                    er_header = self.grid_headers[self.grid_type]['er'][0]
-                    pmag_header = self.grid_headers[self.grid_type]['pmag'][0]
-                    start_num = 2 if self.parent_type else 1
-                    result_data = {}
-
-                    for col in range(start_num, num_cols):
-                        col_label = str(self.grid.GetColLabelValue(col))
-                        value = str(self.grid.GetCellValue(change, col))
-                        #new_data[col_label] = value
-                        if value == '\t':
-                            value = ''
-                        if er_header and col_label in er_header:
-                            new_er_data[col_label] = value
-
-                        if pmag_header and col_label in pmag_header:
-                            new_pmag_data[col_label] = value
-
-                        if col_label in ['er_specimen_names', 'er_sample_names',
-                                         'er_site_names', 'er_location_names']:
-                            result_data[col_label] = value
-
-                    # if there is an item
-                    if isinstance(old_item, str):
-                        old_item_name = None
-                    else:
-                        old_item_name = self.grid.row_items[change].name
-
-                    if self.parent_type:
-                        new_parent_name = self.grid.GetCellValue(change, 1)
-                        #new_parent = self.er_magic.find_by_name(new_parent_name, parent_search_list)
-                    else:
-                        new_parent_name = ''
-
-                    # create a new item
-                    if new_item_name and not old_item_name:
-                        
-                        print 'make new item named', new_item_name
-                        if self.grid_type == 'result':
-                            specs, samps, sites, locs = self.get_result_children(result_data)
-                            item = self.er_magic.add_result(new_item_name, specs, samps, sites,
-                                                            locs, new_pmag_data)
-                        else:
-                            item = self.er_magic.add_methods[self.grid_type](new_item_name, new_parent_name,
-                                                                             new_er_data, new_pmag_data)
-
-                    # update an existing item
-                    elif new_item_name and old_item_name:
-                        print 'update existing {} formerly named {} to {}'.format(self.grid_type,
-                                                                                  old_item_name,
-                                                                                  new_item_name)
-                        if self.grid_type == 'result':
-                            specs, samps, sites, locs = self.get_result_children(result_data)
-                            item = self.er_magic.update_methods['result'](old_item_name, new_item_name,
-                                                                          new_er_data=None,
-                                                                          new_pmag_data=new_pmag_data,
-                                                                          spec_names=specs,
-                                                                          samp_names=samps,
-                                                                          site_names=sites,
-                                                                          loc_names=locs,
-                                                                          replace_data=True)
-                        elif self.grid_type == 'age':
-                            site_or_sample = age_data_type
-                            item = self.er_magic.update_methods['age'](old_item_name, new_er_data,
-                                                                       site_or_sample, replace_data=True)
-                        else:
-                            item = self.er_magic.update_methods[self.grid_type](old_item_name, new_item_name,
-                                                                                new_parent_name, new_er_data,
-                                                                                new_pmag_data, replace_data=True)
+        self.grid_builder.save_grid_data()
         if not event:
             return
 
         wx.MessageBox('Saved!', 'Info',
                       style=wx.OK | wx.ICON_INFORMATION)
         self.Destroy()
-
-
-    def get_result_children(self, result_data):
-        """
-        takes in dict in form of {'er_specimen_names': 'name1:name2:name3'}
-        and so forth.
-        returns lists of specimens, samples, sites, and locations
-        """
-        if result_data['er_specimen_names']:
-            specimens = result_data['er_specimen_names'].split(":")
-        else:
-            specimens = ''
-        if result_data['er_sample_names']:
-            samples = result_data['er_sample_names'].split(":")
-        else:
-            samples = ''
-        if result_data['er_site_names']:
-            sites = result_data['er_site_names'].split(":")
-        else:
-            sites = ''
-        if result_data['er_location_names']:
-            locations = result_data['er_location_names'].split(":")
-        else:
-            locations = ''
-        return specimens, samples, sites, locations
-
-        # for QuickMagIC er_magic_builder, this happens in ErMagicCheckFrame:
-        
-        ## check that all required data is present
-        #validation_errors = self.validate(grid)
 
 
 class GridBuilder(object):
@@ -743,6 +616,7 @@ class GridBuilder(object):
         self.grid_headers = grid_headers
         self.panel = panel
         self.parent_type = parent_type
+        self.grid = None
     
     def make_grid(self):
         """
@@ -802,6 +676,7 @@ class GridBuilder(object):
                                     row_labels=[], col_labels=header)
         grid.do_event_bindings()
 
+        self.grid = grid
         return grid
 
     def add_data_to_grid(self, grid, grid_type=None, incl_pmag=True):
@@ -816,3 +691,128 @@ class GridBuilder(object):
         # always start with at least one row:
         if not grid.row_labels:
             grid.add_row()
+
+
+    # takes all code from what was onSave
+    def save_grid_data(self):#, age_data_type='site'):
+        """
+        Save grid data in the data object
+        """
+
+        if not self.grid.changes:
+            return
+            return
+
+        if self.grid_type == 'age':
+            age_data_type = self.er_magic.age_type
+            self.er_magic.write_ages = True
+        #if self.drop_down_menu:
+        #    self.drop_down_menu.clean_up()
+
+
+        starred_cols = self.grid.remove_starred_labels()
+
+        self.grid.SaveEditControlValue() # locks in value in cell currently edited
+        
+        if self.grid.changes:
+            num_cols = self.grid.GetNumberCols()
+
+            for change in self.grid.changes:
+                if change == -1:
+                    continue
+                else:
+                    old_item = self.grid.row_items[change]
+                    new_item_name = self.grid.GetCellValue(change, 0)
+                    new_er_data = {}
+                    new_pmag_data = {}
+                    er_header = self.grid_headers[self.grid_type]['er'][0]
+                    pmag_header = self.grid_headers[self.grid_type]['pmag'][0]
+                    start_num = 2 if self.parent_type else 1
+                    result_data = {}
+
+                    for col in range(start_num, num_cols):
+                        col_label = str(self.grid.GetColLabelValue(col))
+                        value = str(self.grid.GetCellValue(change, col))
+                        #new_data[col_label] = value
+                        if value == '\t':
+                            value = ''
+                        if er_header and col_label in er_header:
+                            new_er_data[col_label] = value
+
+                        if pmag_header and col_label in pmag_header:
+                            new_pmag_data[col_label] = value
+
+                        if col_label in ['er_specimen_names', 'er_sample_names',
+                                         'er_site_names', 'er_location_names']:
+                            result_data[col_label] = value
+
+                    # if there is an item
+                    if isinstance(old_item, str):
+                        old_item_name = None
+                    else:
+                        old_item_name = self.grid.row_items[change].name
+
+                    if self.parent_type:
+                        new_parent_name = self.grid.GetCellValue(change, 1)
+                    else:
+                        new_parent_name = ''
+
+                    # create a new item
+                    if new_item_name and not old_item_name:
+                        
+                        print 'make new item named', new_item_name
+                        if self.grid_type == 'result':
+                            specs, samps, sites, locs = self.get_result_children(result_data)
+                            item = self.er_magic.add_result(new_item_name, specs, samps, sites,
+                                                            locs, new_pmag_data)
+                        else:
+                            item = self.er_magic.add_methods[self.grid_type](new_item_name, new_parent_name,
+                                                                             new_er_data, new_pmag_data)
+
+                    # update an existing item
+                    elif new_item_name and old_item_name:
+                        print 'update existing {} formerly named {} to {}'.format(self.grid_type,
+                                                                                  old_item_name,
+                                                                                  new_item_name)
+                        if self.grid_type == 'result':
+                            specs, samps, sites, locs = self.get_result_children(result_data)
+                            item = self.er_magic.update_methods['result'](old_item_name, new_item_name,
+                                                                          new_er_data=None,
+                                                                          new_pmag_data=new_pmag_data,
+                                                                          spec_names=specs,
+                                                                          samp_names=samps,
+                                                                          site_names=sites,
+                                                                          loc_names=locs,
+                                                                          replace_data=True)
+                        elif self.grid_type == 'age':
+                            site_or_sample = age_data_type
+                            item = self.er_magic.update_methods['age'](old_item_name, new_er_data,
+                                                                       site_or_sample, replace_data=True)
+                        else:
+                            item = self.er_magic.update_methods[self.grid_type](old_item_name, new_item_name,
+                                                                                new_parent_name, new_er_data,
+                                                                                new_pmag_data, replace_data=True)
+
+    def get_result_children(self, result_data):
+        """
+        takes in dict in form of {'er_specimen_names': 'name1:name2:name3'}
+        and so forth.
+        returns lists of specimens, samples, sites, and locations
+        """
+        if result_data['er_specimen_names']:
+            specimens = result_data['er_specimen_names'].split(":")
+        else:
+            specimens = ''
+        if result_data['er_sample_names']:
+            samples = result_data['er_sample_names'].split(":")
+        else:
+            samples = ''
+        if result_data['er_site_names']:
+            sites = result_data['er_site_names'].split(":")
+        else:
+            sites = ''
+        if result_data['er_location_names']:
+            locations = result_data['er_location_names'].split(":")
+        else:
+            locations = ''
+        return specimens, samples, sites, locations

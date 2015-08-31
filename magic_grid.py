@@ -9,6 +9,7 @@ class MagicGrid(wx.grid.Grid):
 
     def __init__(self, parent, name, row_labels, col_labels, row_items=None, size=0):
         # row_items is an optional list of Pmag_objects
+        self.name = name
         self.row_items = []
         if row_items:
             self.row_items = row_items
