@@ -123,9 +123,9 @@ class MagIC_model_builder(wx.Frame):
         self.helpButton = wx.Button(self.panel, wx.ID_ANY, '&Help')
         self.Bind(wx.EVT_BUTTON, self.on_helpButton, self.helpButton)
 
-        hbox1.Add(self.okButton)
-        hbox1.Add(self.cancelButton )
-        hbox1.Add(self.helpButton)
+        hbox1.Add(self.okButton, flag=wx.ALL, border=5)
+        hbox1.Add(self.cancelButton, flag=wx.ALL, border=5)
+        hbox1.Add(self.helpButton, flag=wx.ALL, border=5)
 
         #------
         vbox=wx.BoxSizer(wx.VERTICAL)

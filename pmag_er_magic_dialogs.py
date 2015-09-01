@@ -55,6 +55,7 @@ Check that all specimens belong to the correct sample
                                                    self.er_magic_data.headers, self.panel,
                                                    'sample')
         self.spec_grid = self.grid_builder.make_grid()
+        self.grid = self.spec_grid
 
         self.spec_grid.InitUI()
 
