@@ -23,7 +23,7 @@ class import_magnetometer_data(wx.Dialog):
         self.WD=WD
         self.InitUI()
         self.SetTitle(title)
-        self.parent=parent
+        self.parent = parent
         
     def InitUI(self):
         self.panel = wx.Panel(self)
@@ -85,24 +85,26 @@ class import_magnetometer_data(wx.Dialog):
 
     def on_cancelButton(self,event):
         self.Destroy()
+        self.Parent.Show()
+        self.Parent.Raise()
 
     def on_okButton(self,event):
         os.chdir(self.WD)
         file_type = self.checked_rb.Label.split()[0] # extracts name of the checked radio button
         if file_type == 'generic':
-            dia = convert_generic_files_to_MagIC(self, self.WD)
+            dia = convert_generic_files_to_MagIC(self, self.WD, "PmagPy generic file conversion")
         elif file_type == 'SIO':
-            dia = convert_SIO_files_to_MagIC(self, self.WD)
+            dia = convert_SIO_files_to_MagIC(self, self.WD, "PmagPy SIO file conversion")
         elif file_type == 'CIT':
-            dia = convert_CIT_files_to_MagIC(self, self.WD)
+            dia = convert_CIT_files_to_MagIC(self, self.WD, "PmagPy CIT file conversion")
         elif file_type == '2G-binary':
-            dia = convert_2G_binary_files_to_MagIC(self, self.WD)
+            dia = convert_2G_binary_files_to_MagIC(self, self.WD, "PmagPy 2G-binary file conversion")
         elif file_type == 'HUJI':
-            dia = convert_HUJI_files_to_MagIC(self, self.WD)
+            dia = convert_HUJI_files_to_MagIC(self, self.WD, "PmagPy HUJI file conversion")
         elif file_type == 'LDEO':
-            dia = convert_LDEO_files_to_MagIC(self, self.WD)
+            dia = convert_LDEO_files_to_MagIC(self, self.WD, "PmagPy LDEO file conversion")
         elif file_type == 'IODP':
-            dia = convert_IODP_files_to_MagIC(self, self.WD)
+            dia = convert_IODP_files_to_MagIC(self, self.WD, "PmagPy IODP csv conversion")
         elif file_type == 'PMD':
             dia = convert_PMD_files_to_MagIC(self, self.WD)
         elif file_type == 'BGC':
@@ -122,26 +124,302 @@ class import_magnetometer_data(wx.Dialog):
 
     def on_nextButton(self,event):
         self.Destroy()
-        combine_dia = combine_magic_dialog(self.WD)
+        combine_dia = combine_magic_dialog(self.WD, self.parent)
         combine_dia.Show()
         combine_dia.Center()
         
+#--------------------------------------------------------------
+# dialog for combine_magic.py 
+#--------------------------------------------------------------
+
+
+class combine_magic_dialog(wx.Frame):
+    """"""
+    title = "Combine magic files"
+
+    def __init__(self, WD, parent):
+        wx.Frame.__init__(self, parent, wx.ID_ANY, self.title)
+        self.panel =  wx.ScrolledWindow(self) #wx.Panel(self)
+        self.panel.SetScrollbars(20, 20, 50, 50)
+        self.WD=WD
+        self.InitUI()
+
+    def InitUI(self):
+        pnl = self.panel
+
+        #---sizer infor ----
+
+        TEXT="Step 2: \nCombine different MagIC formatted files to one file named 'magic_measurements.txt'"
+        bSizer_info = wx.BoxSizer(wx.HORIZONTAL)
+        bSizer_info.Add(wx.StaticText(pnl,label=TEXT),wx.ALIGN_LEFT)
+            
+
+        #---sizer 0 ----
+        self.bSizer0 = pw.combine_files(self, ".magic")
+        #------------------
+                     
+        self.okButton = wx.Button(self.panel, wx.ID_OK, "&OK")
+        self.Bind(wx.EVT_BUTTON, self.on_okButton, self.okButton)
+
+        self.cancelButton = wx.Button(self.panel, wx.ID_CANCEL, '&Cancel')
+        self.Bind(wx.EVT_BUTTON, self.on_cancelButton, self.cancelButton)
+
+        self.nextButton = wx.Button(self.panel, id=-1, label='Skip to last step')
+        self.Bind(wx.EVT_BUTTON, self.on_nextButton, self.nextButton)
+
+        hboxok = wx.BoxSizer(wx.HORIZONTAL)
+        hboxok.Add(self.okButton)
+        hboxok.Add(self.cancelButton, flag=wx.LEFT, border=5)
+        hboxok.Add(self.nextButton, flag=wx.LEFT, border=5)
+
+        #------
+        vbox=wx.BoxSizer(wx.VERTICAL)
+        vbox.AddSpacer(10)
+        vbox.Add(bSizer_info, flag=wx.ALIGN_LEFT)
+        vbox.AddSpacer(10)
+        vbox.Add(self.bSizer0, flag=wx.ALIGN_LEFT)
+        vbox.AddSpacer(10)
+        vbox.AddSpacer(10)
+        vbox.Add(wx.StaticLine(self.panel), 0, wx.ALL|wx.EXPAND, 5)
+        vbox.Add(hboxok, flag=wx.ALIGN_CENTER)        
+        vbox.AddSpacer(5)
+
+        hbox_all= wx.BoxSizer(wx.HORIZONTAL)
+        hbox_all.AddSpacer(20)
+        hbox_all.AddSpacer(vbox)
+        hbox_all.AddSpacer(20)
+        
+        self.panel.SetSizer(hbox_all)
+        hbox_all.Fit(self)
+        self.Centre()
+        self.Show()
+
+    
+    def on_add_file_button(self,event):
+
+        dlg = wx.FileDialog(
+            None,message="choose MagIC formatted measurement file",
+            defaultDir=self.WD,
+            defaultFile="",
+            style=wx.OPEN | wx.CHANGE_DIR 
+            )
+        if dlg.ShowModal() == wx.ID_OK:
+            full_path = dlg.GetPath()
+            infile = os.path.split(full_path)[1]
+            self.file_paths.AppendText(infile + "\n")
+
+    def on_add_all_files_button(self,event):
+        all_files=os.listdir(self.WD)
+        for F in all_files:
+            str(F) # fix strange Python bug (rshaar)
+            F=str(F)
+            if len(F)>6:
+                if F[-6:]==".magic":
+                    self.file_paths.AppendText(F+"\n")
+                     
+        
+    def on_cancelButton(self,event):
+        self.Parent.Show()
+        self.Parent.Raise()
+        self.Destroy()
+
+    def on_nextButton(self, event):
+        combine_dia = combine_everything_dialog(self.WD, self.Parent)
+        combine_dia.Show()
+        combine_dia.Center()
+        self.Destroy()
+
+    def on_okButton(self,event):
+        os.chdir(self.WD) # make sure OS is working in self.WD (Windows issue)
+        files_text=self.bSizer0.file_paths.GetValue()
+        files=files_text.strip('\n').replace(" ","")
+        if files:
+            files = files.split('\n')
+            files = [os.path.join(self.WD, f) for f in files]
+        COMMAND="combine_magic.py -F magic_measurements.txt -f %s"%(" ".join(files) )
+
+        # to run as module:
+        #print "-I- Running equivalent of Python command:\n %s"%COMMAND
+
+        if ipmag.combine_magic(files, 'magic_measurements.txt'):
+            #pw.close_window(self.panel, COMMAND, 'magic_measurements.txt')
+            MSG="%i file are merged to one MagIC format file:\n magic_measurements.txt.\n\n See Termimal (Mac) or command prompt (windows) for errors"%(len(files))
+            dlg1 = wx.MessageDialog(None,caption="Message:", message=MSG ,style=wx.OK|wx.ICON_INFORMATION)
+            dlg1.ShowModal()
+            dlg1.Destroy()
+        else:
+            pw.simple_warning()
+            return
+        
+        self.on_nextButton(event)
+        self.Destroy()
+
+
+class combine_everything_dialog(wx.Frame):
+    """"""
+    title = "Combine MagIC files"
+
+    def __init__(self, WD, parent):
+        wx.Frame.__init__(self, parent, wx.ID_ANY, self.title)
+        self.panel =  wx.ScrolledWindow(self) #wx.Panel(self)
+        self.panel.SetScrollbars(20, 20, 50, 50)
+        self.WD=WD
+        self.InitUI()
+
+    def InitUI(self):
+
+        pnl = self.panel
+
+        #---sizer information ----
+
+        TEXT="Step 3: \nCombine different MagIC formatted files to one file name (if necessary).  All files should be from the working directory."
+        bSizer_info = wx.BoxSizer(wx.HORIZONTAL)
+        bSizer_info.Add(wx.StaticText(pnl,label=TEXT),wx.ALIGN_LEFT)
+
+        possible_file_dias = ['er_specimens.txt', 'er_samples.txt', 'er_sites.txt', 'rmag_anisotropy.txt', 'rmag_results.txt', 'rmag_hysteresis.txt']
+        self.file_dias = []
+        all_files = os.listdir(self.WD)
+        for dia in possible_file_dias:
+            for f in all_files:
+                if dia in f:
+                    bSizer = pw.combine_files(self, dia)
+                    self.file_dias.append(bSizer)
+                    break
+        if not self.file_dias:
+            file_string = ', '.join(possible_file_dias)
+            MSG = "You have no more files that can be combined.\nFile types that can be combined are:\n{}\nNote that your file name must end with the file type, i.e.:\nsomething_something_er_specimens.txt".format(file_string)
+            dlg = wx.MessageDialog(None,caption="Message:", message=MSG ,style=wx.OK|wx.ICON_INFORMATION)
+            dlg.ShowModal()
+            dlg.Destroy()
+            self.Destroy()
+
+
+        #------------------
+                     
+        self.okButton = wx.Button(self.panel, wx.ID_OK, "&OK")
+        self.Bind(wx.EVT_BUTTON, self.on_okButton, self.okButton)
+
+        self.cancelButton = wx.Button(self.panel, wx.ID_CANCEL, '&Cancel')
+        self.Bind(wx.EVT_BUTTON, self.on_cancelButton, self.cancelButton)
+
+        hboxok = wx.BoxSizer(wx.HORIZONTAL)
+        hboxok.Add(self.okButton)
+        hboxok.Add(self.cancelButton, flag=wx.LEFT, border=5 )
+
+        #file_dias = [self.bSizer0, self.bSizer1, self.bSizer2]
+        if len(self.file_dias) == 4:
+            num_cols, num_rows = 2, 2
+        else:
+            num_cols = min(len(self.file_dias), 3)
+            num_rows = 2 if len(self.file_dias) > 3 else 1
+        hboxfiles = wx.GridSizer(num_rows, num_cols, 1, 1)
+        hboxfiles.AddMany(self.file_dias)
+        
+        #hboxfiles = wx.BoxSizer(wx.HORIZONTAL)
+        #hboxfiles.AddMany([self.bSizer0, self.bSizer1, self.bSizer2])
+
+        #------
+        vbox=wx.BoxSizer(wx.VERTICAL)
+        vbox.AddSpacer(10)
+        vbox.Add(bSizer_info, flag=wx.ALIGN_LEFT|wx.BOTTOM, border=5)
+        vbox.AddSpacer(10)
+        vbox.Add(hboxfiles, flag=wx.ALIGN_LEFT)
+        vbox.AddSpacer(10)
+        vbox.AddSpacer(10)
+        vbox.Add(wx.StaticLine(self.panel), 0, wx.ALL|wx.EXPAND, 5)
+        vbox.Add(hboxok, flag=wx.ALIGN_CENTER)        
+        vbox.AddSpacer(5)
+
+        hbox_all= wx.BoxSizer(wx.HORIZONTAL)
+        hbox_all.AddSpacer(20)
+        hbox_all.AddSpacer(vbox)
+        hbox_all.AddSpacer(20)
+        
+        self.panel.SetSizer(hbox_all)
+        hbox_all.Fit(self)
+        self.Centre()
+        self.Show()
+                        
+    def on_cancelButton(self,event):
+        self.Parent.Show()
+        self.Parent.Raise()
+        self.Destroy()
+
+    def on_okButton(self,event):
+        os.chdir(self.WD)
+        success = True
+        new_files = []
+        # go through each pw.combine_files sizer, extract the files, try to combine them into one:
+        for bSizer in self.file_dias:  
+            full_list = bSizer.file_paths.GetValue()
+            file_name = bSizer.text
+            files = full_list.strip('\n').replace(" ", "")
+            if files:
+                files = files.split('\n')
+            if ipmag.combine_magic(files, file_name):
+                new_files.append(file_name)  # add to the list of successfully combined files
+            else:
+                success = False                
+        if success:
+            new = '\n' + '\n'.join(new_files)
+            MSG = "Created new file(s): {} \nSee Termimal (Mac) or command prompt (windows) for details and errors".format(new)
+            dlg1 = wx.MessageDialog(None,caption="Message:", message=MSG ,style=wx.OK|wx.ICON_INFORMATION)
+            dlg1.ShowModal()
+            dlg1.Destroy()
+            self.Parent.Show()
+            self.Parent.Raise()
+            self.Destroy()
+        else:
+            pw.simple_warning()
+
+
 #--------------------------------------------------------------
 # MagIC generic files conversion
 #--------------------------------------------------------------
 
 
-class convert_generic_files_to_MagIC(wx.Frame):
-    """"""
-    title = "PmagPy generic file conversion"
+class convert_files_to_MagIC(wx.Frame):
+    """
+    Base class for file conversion frames
+    """
 
-    def __init__(self,parent,WD):
+    def __init__(self, parent, WD, title):
+        self.parent = parent
+        self.WD = WD
+        self.title = title
         wx.Frame.__init__(self, parent, wx.ID_ANY, self.title)
         self.panel = wx.ScrolledWindow(self)
         self.panel.SetScrollbars(20, 20, 50, 50)
-        self.WD = WD
-        self.parent = parent
         self.InitUI()
+
+    def InitUI(self):
+        pass
+
+    def on_cancelButton(self, event):
+        self.Destroy()
+        self.parent.Show()
+        self.parent.Raise()
+
+    def on_add_file_button(self, event):
+        text = "choose file to convert to MagIC"
+        pw.on_add_file_button(self.bSizer0, text)
+
+    def on_add_dir_button(self, event):
+        text = "choose directory of files to convert to MagIC"
+        pw.on_add_dir_button(self.bSizer0, text)
+
+
+class convert_generic_files_to_MagIC(convert_files_to_MagIC):
+    """"""
+    title = "PmagPy generic file conversion"
+
+    #def __init__(self,parent,WD):
+    #    wx.Frame.__init__(self, parent, wx.ID_ANY, self.title)
+    #    self.panel = wx.ScrolledWindow(self)
+    #    self.panel.SetScrollbars(20, 20, 50, 50)
+    #    self.WD = WD
+    #    self.parent = parent
+    #    self.InitUI()
 
     def InitUI(self):
 
@@ -257,9 +535,9 @@ class convert_generic_files_to_MagIC(wx.Frame):
         self.hbox_all.Fit(self)
 
 
-    def on_add_file_button(self,event):
-        text = "choose file to convert to MagIC"
-        pw.on_add_file_button(self.bSizer0, text)
+    #def on_add_file_button(self,event):
+    #    text = "choose file to convert to MagIC"
+    #    pw.on_add_file_button(self.bSizer0, text)
 
 
     def on_okButton(self,event):
@@ -407,9 +685,9 @@ class convert_generic_files_to_MagIC(wx.Frame):
         self.Destroy()
         self.parent.Raise()
 
-    def on_cancelButton(self,event):
-        self.Destroy()
-        self.parent.Raise()
+    #def on_cancelButton(self,event):
+    #    self.Destroy()
+    #    self.parent.Raise()
         
     def on_helpButton(self, event):
         import generic_magic
@@ -446,258 +724,10 @@ class convert_generic_files_to_MagIC(wx.Frame):
         
         return site
         
-#--------------------------------------------------------------
-# dialog for combine_magic.py 
-#--------------------------------------------------------------
-
-
-class combine_magic_dialog(wx.Frame):
-    """"""
-    title = "Combine magic files"
-
-    def __init__(self,WD):
-        wx.Frame.__init__(self, None, wx.ID_ANY, self.title)
-        self.panel =  wx.ScrolledWindow(self) #wx.Panel(self)
-        self.panel.SetScrollbars(20, 20, 50, 50)
-        self.WD=WD
-        self.InitUI()
-
-    def InitUI(self):
-        pnl = self.panel
-
-        #---sizer infor ----
-
-        TEXT="Step 2: \nCombine different MagIC formatted files to one file named 'magic_measurements.txt'"
-        bSizer_info = wx.BoxSizer(wx.HORIZONTAL)
-        bSizer_info.Add(wx.StaticText(pnl,label=TEXT),wx.ALIGN_LEFT)
-            
-
-        #---sizer 0 ----
-        self.bSizer0 = pw.combine_files(self, ".magic")
-        #------------------
-                     
-        self.okButton = wx.Button(self.panel, wx.ID_OK, "&OK")
-        self.Bind(wx.EVT_BUTTON, self.on_okButton, self.okButton)
-
-        self.cancelButton = wx.Button(self.panel, wx.ID_CANCEL, '&Cancel')
-        self.Bind(wx.EVT_BUTTON, self.on_cancelButton, self.cancelButton)
-
-        self.nextButton = wx.Button(self.panel, id=-1, label='Skip to last step')
-        self.Bind(wx.EVT_BUTTON, self.on_nextButton, self.nextButton)
-
-        hboxok = wx.BoxSizer(wx.HORIZONTAL)
-        hboxok.Add(self.okButton)
-        hboxok.Add(self.cancelButton, flag=wx.LEFT, border=5)
-        hboxok.Add(self.nextButton, flag=wx.LEFT, border=5)
-
-        #------
-        vbox=wx.BoxSizer(wx.VERTICAL)
-        vbox.AddSpacer(10)
-        vbox.Add(bSizer_info, flag=wx.ALIGN_LEFT)
-        vbox.AddSpacer(10)
-        vbox.Add(self.bSizer0, flag=wx.ALIGN_LEFT)
-        vbox.AddSpacer(10)
-        vbox.AddSpacer(10)
-        vbox.Add(wx.StaticLine(self.panel), 0, wx.ALL|wx.EXPAND, 5)
-        vbox.Add(hboxok, flag=wx.ALIGN_CENTER)        
-        vbox.AddSpacer(5)
-
-        hbox_all= wx.BoxSizer(wx.HORIZONTAL)
-        hbox_all.AddSpacer(20)
-        hbox_all.AddSpacer(vbox)
-        hbox_all.AddSpacer(20)
-        
-        self.panel.SetSizer(hbox_all)
-        hbox_all.Fit(self)
-        self.Centre()
-        self.Show()
-
-    
-    def on_add_file_button(self,event):
-
-        dlg = wx.FileDialog(
-            None,message="choose MagIC formatted measurement file",
-            defaultDir=self.WD,
-            defaultFile="",
-            style=wx.OPEN | wx.CHANGE_DIR 
-            )
-        if dlg.ShowModal() == wx.ID_OK:
-            full_path = dlg.GetPath()
-            infile = os.path.split(full_path)[1]
-            self.file_paths.AppendText(infile + "\n")
-
-    def on_add_all_files_button(self,event):
-        all_files=os.listdir(self.WD)
-        for F in all_files:
-            str(F) # fix strange Python bug (rshaar)
-            F=str(F)
-            if len(F)>6:
-                if F[-6:]==".magic":
-                    self.file_paths.AppendText(F+"\n")
-                     
-        
-    def on_cancelButton(self,event):
-        self.Destroy()
-
-    def on_nextButton(self, event):
-        combine_dia = combine_everything_dialog(self.WD)
-        combine_dia.Show()
-        combine_dia.Center()
-        self.Destroy()
-
-    def on_okButton(self,event):
-        os.chdir(self.WD) # make sure OS is working in self.WD (Windows issue)
-        files_text=self.bSizer0.file_paths.GetValue()
-        files=files_text.strip('\n').replace(" ","")
-        if files:
-            files = files.split('\n')
-            files = [os.path.join(self.WD, f) for f in files]
-        COMMAND="combine_magic.py -F magic_measurements.txt -f %s"%(" ".join(files) )
-
-        # to run as module:
-        #print "-I- Running equivalent of Python command:\n %s"%COMMAND
-
-        if ipmag.combine_magic(files, 'magic_measurements.txt'):
-            #pw.close_window(self.panel, COMMAND, 'magic_measurements.txt')
-            MSG="%i file are merged to one MagIC format file:\n magic_measurements.txt.\n\n See Termimal (Mac) or command prompt (windows) for errors"%(len(files))
-            dlg1 = wx.MessageDialog(None,caption="Message:", message=MSG ,style=wx.OK|wx.ICON_INFORMATION)
-            dlg1.ShowModal()
-            dlg1.Destroy()
-        else:
-            pw.simple_warning()
-            return
-        
-        self.on_nextButton(event)
-        self.Destroy()
-
-
-class combine_everything_dialog(wx.Frame):
-    """"""
-    title = "Combine MagIC files"
-
-    def __init__(self,WD):
-        wx.Frame.__init__(self, None, wx.ID_ANY, self.title)
-        self.panel =  wx.ScrolledWindow(self) #wx.Panel(self)
-        self.panel.SetScrollbars(20, 20, 50, 50)
-        self.WD=WD
-        self.InitUI()
-
-    def InitUI(self):
-
-        pnl = self.panel
-
-        #---sizer information ----
-
-        TEXT="Step 3: \nCombine different MagIC formatted files to one file name (if necessary).  All files should be from the working directory."
-        bSizer_info = wx.BoxSizer(wx.HORIZONTAL)
-        bSizer_info.Add(wx.StaticText(pnl,label=TEXT),wx.ALIGN_LEFT)
-
-        possible_file_dias = ['er_specimens.txt', 'er_samples.txt', 'er_sites.txt', 'rmag_anisotropy.txt', 'rmag_results.txt', 'rmag_hysteresis.txt']
-        self.file_dias = []
-        all_files = os.listdir(self.WD)
-        for dia in possible_file_dias:
-            for f in all_files:
-                if dia in f:
-                    bSizer = pw.combine_files(self, dia)
-                    self.file_dias.append(bSizer)
-                    break
-        if not self.file_dias:
-            file_string = ', '.join(possible_file_dias)
-            MSG = "You have no more files that can be combined.\nFile types that can be combined are:\n{}\nNote that your file name must end with the file type, i.e.:\nsomething_something_er_specimens.txt".format(file_string)
-            dlg = wx.MessageDialog(None,caption="Message:", message=MSG ,style=wx.OK|wx.ICON_INFORMATION)
-            dlg.ShowModal()
-            dlg.Destroy()
-            self.Destroy()
-
-
-        #------------------
-                     
-        self.okButton = wx.Button(self.panel, wx.ID_OK, "&OK")
-        self.Bind(wx.EVT_BUTTON, self.on_okButton, self.okButton)
-
-        self.cancelButton = wx.Button(self.panel, wx.ID_CANCEL, '&Cancel')
-        self.Bind(wx.EVT_BUTTON, self.on_cancelButton, self.cancelButton)
-
-        hboxok = wx.BoxSizer(wx.HORIZONTAL)
-        hboxok.Add(self.okButton)
-        hboxok.Add(self.cancelButton, flag=wx.LEFT, border=5 )
-
-        #file_dias = [self.bSizer0, self.bSizer1, self.bSizer2]
-        if len(self.file_dias) == 4:
-            num_cols, num_rows = 2, 2
-        else:
-            num_cols = min(len(self.file_dias), 3)
-            num_rows = 2 if len(self.file_dias) > 3 else 1
-        hboxfiles = wx.GridSizer(num_rows, num_cols, 1, 1)
-        hboxfiles.AddMany(self.file_dias)
-        
-        #hboxfiles = wx.BoxSizer(wx.HORIZONTAL)
-        #hboxfiles.AddMany([self.bSizer0, self.bSizer1, self.bSizer2])
-
-        #------
-        vbox=wx.BoxSizer(wx.VERTICAL)
-        vbox.AddSpacer(10)
-        vbox.Add(bSizer_info, flag=wx.ALIGN_LEFT|wx.BOTTOM, border=5)
-        vbox.AddSpacer(10)
-        vbox.Add(hboxfiles, flag=wx.ALIGN_LEFT)
-        vbox.AddSpacer(10)
-        vbox.AddSpacer(10)
-        vbox.Add(wx.StaticLine(self.panel), 0, wx.ALL|wx.EXPAND, 5)
-        vbox.Add(hboxok, flag=wx.ALIGN_CENTER)        
-        vbox.AddSpacer(5)
-
-        hbox_all= wx.BoxSizer(wx.HORIZONTAL)
-        hbox_all.AddSpacer(20)
-        hbox_all.AddSpacer(vbox)
-        hbox_all.AddSpacer(20)
-        
-        self.panel.SetSizer(hbox_all)
-        hbox_all.Fit(self)
-        self.Centre()
-        self.Show()
-                        
-    def on_cancelButton(self,event):
-        self.Destroy()
-
-    def on_okButton(self,event):
-        os.chdir(self.WD)
-        success = True
-        new_files = []
-        # go through each pw.combine_files sizer, extract the files, try to combine them into one:
-        for bSizer in self.file_dias:  
-            full_list = bSizer.file_paths.GetValue()
-            file_name = bSizer.text
-            files = full_list.strip('\n').replace(" ", "")
-            if files:
-                files = files.split('\n')
-            if ipmag.combine_magic(files, file_name):
-                new_files.append(file_name)  # add to the list of successfully combined files
-            else:
-                success = False                
-        if success:
-            new = '\n' + '\n'.join(new_files)
-            MSG = "Created new file(s): {} \nSee Termimal (Mac) or command prompt (windows) for details and errors".format(new)
-            dlg1 = wx.MessageDialog(None,caption="Message:", message=MSG ,style=wx.OK|wx.ICON_INFORMATION)
-            dlg1.ShowModal()
-            dlg1.Destroy()
-            self.Destroy()
-        else:
-            pw.simple_warning()
-
-
-class convert_SIO_files_to_MagIC(wx.Frame):
+class convert_SIO_files_to_MagIC(convert_files_to_MagIC):
     """
     convert SIO formatted measurement file to MagIC formated files
     """
-    title = "PmagPy SIO file conversion"
-
-    def __init__(self, parent, WD):
-        wx.Frame.__init__(self, parent, wx.ID_ANY, self.title)
-        self.panel = wx.ScrolledWindow(self)
-        self.panel.SetScrollbars(20, 20, 50, 50)
-        self.WD=WD
-        self.InitUI()
-
 
     def InitUI(self):
         pnl = self.panel
@@ -786,10 +816,6 @@ class convert_SIO_files_to_MagIC(wx.Frame):
         self.Show()
         
 
-    def on_add_file_button(self,event):
-        text = "choose file to convert to MagIC"
-        pw.on_add_file_button(self.bSizer0, text)
-
     def on_okButton(self, event):
         os.chdir(self.WD)
         options_dict = {}
@@ -859,25 +885,13 @@ class convert_SIO_files_to_MagIC(wx.Frame):
         else:
             pw.simple_warning()
 
-    def on_cancelButton(self,event):
-        self.Destroy()
-        self.Parent.Raise()
-
     def on_helpButton(self, event):
         import sio_magic
         pw.on_helpButton(text=sio_magic.do_help())
 
 
-class convert_CIT_files_to_MagIC(wx.Frame):
+class convert_CIT_files_to_MagIC(convert_files_to_MagIC):
     """stuff"""
-    title = "PmagPy CIT file conversion"
-
-    def __init__(self, parent, WD):
-        wx.Frame.__init__(self, parent, wx.ID_ANY, self.title)
-        self.panel = wx.ScrolledWindow(self)
-        self.WD = WD
-        self.InitUI()
-
 
     def InitUI(self):
         pnl = self.panel
@@ -949,10 +963,6 @@ class convert_CIT_files_to_MagIC(wx.Frame):
         self.Centre()
         self.Show()
 
-    def on_add_file_button(self,event):
-        text = "choose file to convert to MagIC"
-        pw.on_add_file_button(self.bSizer0, text)
-
     def on_okButton(self, event):
         os.chdir(self.WD)
         options_dict = {}
@@ -1019,27 +1029,13 @@ class convert_CIT_files_to_MagIC(wx.Frame):
         else:
             pw.simple_warning(error_message)
 
-    def on_cancelButton(self,event):
-        self.Destroy()
-        self.Parent.Raise()
-
     def on_helpButton(self, event):
         import CIT_magic
         pw.on_helpButton(text=CIT_magic.do_help())
         
 
-class convert_HUJI_files_to_MagIC(wx.Frame):
-
+class convert_HUJI_files_to_MagIC(convert_files_to_MagIC):
     """ """
-    title = "PmagPy HUJI file conversion"
-
-    def __init__(self, parent, WD):
-        wx.Frame.__init__(self, parent, wx.ID_ANY, self.title)
-        self.panel = wx.ScrolledWindow(self)
-        self.panel.SetScrollbars(20, 20, 50, 50)
-        self.WD = WD
-        self.InitUI()
-
     def InitUI(self):
 
         pnl = self.panel
@@ -1136,9 +1132,6 @@ class convert_HUJI_files_to_MagIC(wx.Frame):
     #         self.bSizer2a.ShowItems(False)
     #     self.hbox_all.Fit(self)
 
-    def on_add_file_button(self,event):
-        text = "choose file to convert to MagIC"
-        pw.on_add_file_button(self.bSizer0, text)
 
     def on_okButton(self, event):
         """
@@ -1217,10 +1210,6 @@ class convert_HUJI_files_to_MagIC(wx.Frame):
             else:
                 pw.simple_warning(error_message)
 
-    def on_cancelButton(self,event):
-        self.Destroy()
-        self.Parent.Raise()
-
     def on_helpButton(self, event):
         old_format= self.bSizer0a.return_value()
         if old_format:
@@ -1230,16 +1219,7 @@ class convert_HUJI_files_to_MagIC(wx.Frame):
         pw.on_helpButton(text=HUJI.do_help())
 
 
-class convert_2G_binary_files_to_MagIC(wx.Frame):
-
-    """PmagPy 2G-binary conversion """
-    title = "PmagPy 2G-binary file conversion"
-
-    def __init__(self, parent, WD):
-        wx.Frame.__init__(self, parent, wx.ID_ANY, self.title)
-        self.panel = wx.ScrolledWindow(self)
-        self.WD = WD
-        self.InitUI()
+class convert_2G_binary_files_to_MagIC(convert_files_to_MagIC):
 
     def InitUI(self):
 
@@ -1310,10 +1290,6 @@ class convert_2G_binary_files_to_MagIC(wx.Frame):
 
 
     #---button methods ---
-
-    def on_add_dir_button(self,event):
-        text = "choose directory of files to convert to MagIC"
-        pw.on_add_dir_button(self.bSizer0, text)
 
     def on_okButton(self, event):
         os.chdir(self.WD)
@@ -1387,10 +1363,6 @@ class convert_2G_binary_files_to_MagIC(wx.Frame):
                 else:
                     pw.simple_warning()
 
-    def on_cancelButton(self,event):
-        self.Destroy()
-        self.Parent.Raise()
-
     def on_helpButton(self, event):
         # to run as module:
         import _2G_bin_magic
@@ -1401,17 +1373,9 @@ class convert_2G_binary_files_to_MagIC(wx.Frame):
 
 
 
-class convert_LDEO_files_to_MagIC(wx.Frame):
+class convert_LDEO_files_to_MagIC(convert_files_to_MagIC):
 
     """ """
-    title = "PmagPy LDEO file conversion"
-
-    def __init__(self, parent, WD):
-        wx.Frame.__init__(self, parent, wx.ID_ANY, self.title)
-        self.panel = wx.ScrolledWindow(self)
-        self.WD = WD
-        self.InitUI()
-
     def InitUI(self):
 
         pnl = self.panel
@@ -1504,10 +1468,6 @@ class convert_LDEO_files_to_MagIC(wx.Frame):
         self.Centre()
         self.Show()
 
-    def on_add_file_button(self,event):
-        text = "choose file to convert to MagIC"
-        pw.on_add_file_button(self.bSizer0, text)
-
     def on_okButton(self, event):
         os.chdir(self.WD)
         options_dict = {}
@@ -1580,34 +1540,15 @@ class convert_LDEO_files_to_MagIC(wx.Frame):
         else:
             pw.simple_warning(error_message)
 
-        # to run as command line:
-        #print COMMAND
-        #pw.run_command_and_close_window(self, COMMAND, outfile)
-
-
-    def on_cancelButton(self,event):
-        self.Destroy()
-        self.Parent.Raise()
 
     def on_helpButton(self, event):
-        # to run as module:
         import LDEO_magic
         pw.on_helpButton(text=LDEO_magic.do_help())
 
-        # to run as command line
-        #pw.on_helpButton("LDEO_magic.py -h")
 
-
-class convert_IODP_files_to_MagIC(wx.Frame):
+class convert_IODP_files_to_MagIC(convert_files_to_MagIC):
 
     """ """
-    title = "PmagPy IODP csv conversion"
-
-    def __init__(self, parent, WD):
-        wx.Frame.__init__(self, parent, wx.ID_ANY, self.title)
-        self.panel = wx.ScrolledWindow(self)
-        self.WD = WD
-        self.InitUI()
 
     def InitUI(self):
 
@@ -1669,11 +1610,6 @@ class convert_IODP_files_to_MagIC(wx.Frame):
         self.Centre()
         self.Show()
 
-
-    def on_add_file_button(self,event):
-        text = "choose file to convert to MagIC"
-        pw.on_add_file_button(self.bSizer0, text)
-
     def on_okButton(self, event):
         os.chdir(self.WD)
         wait = wx.BusyInfo("Please wait, working...")
@@ -1722,10 +1658,6 @@ class convert_IODP_files_to_MagIC(wx.Frame):
 
         del wait
 
-    def on_cancelButton(self,event):
-        self.Destroy()
-        self.Parent.Raise()
-
     def on_helpButton(self, event):
         is_section = self.bSizer0a.return_value()
         if is_section:
@@ -1737,18 +1669,9 @@ class convert_IODP_files_to_MagIC(wx.Frame):
             
 
 
-
-class convert_PMD_files_to_MagIC(wx.Frame):
+class convert_PMD_files_to_MagIC(convert_files_to_MagIC):
 
     """ """
-    title = "PmagPy PMD (ascii) file conversion"
-
-    def __init__(self, parent, WD):
-        wx.Frame.__init__(self, parent, wx.ID_ANY, self.title)
-        self.panel = wx.ScrolledWindow(self)
-        self.WD = WD
-        self.InitUI()
-
     def InitUI(self):
 
         pnl = self.panel
@@ -1811,11 +1734,6 @@ class convert_PMD_files_to_MagIC(wx.Frame):
         self.Show()
 
 
-
-    def on_add_dir_button(self,event):
-        text = "choose directory of files to convert to MagIC"
-        pw.on_add_dir_button(self.bSizer0, text)
-
     def on_okButton(self, event):
         os.chdir(self.WD)
         options = {}
@@ -1876,9 +1794,6 @@ class convert_PMD_files_to_MagIC(wx.Frame):
             else:
                 print "Just ran equivalent of Python command: ", COMMAND
 
-    def on_cancelButton(self,event):
-        self.Destroy()
-        self.Parent.Raise()
 
     def on_helpButton(self, event):
         # to run as module:
@@ -2266,14 +2181,6 @@ class convert_BGC_files_to_magic(wx.Frame):
 class something(wx.Frame):
 
     """ """
-    title = "PmagPy ___ file conversion"
-
-    def __init__(self, parent, WD):
-        wx.Frame.__init__(self, parent, wx.ID_ANY, self.title)
-        self.panel = wx.ScrolledWindow(self)
-        self.WD = WD
-        self.InitUI()
-
     def InitUI(self):
 
         pnl = self.panel
@@ -2333,7 +2240,6 @@ class something(wx.Frame):
         self.Centre()
         self.Show()
 
-
     def on_add_file_button(self,event):
         text = "choose file to convert to MagIC"
         pw.on_add_file_button(self.bSizer0, self.WD, event, text)
@@ -2342,10 +2248,6 @@ class something(wx.Frame):
         os.chdir(self.WD)
         COMMAND = ""
         pw.run_command_and_close_window(self, COMMAND, outfile)
-
-    def on_cancelButton(self,event):
-        self.Destroy()
-        self.Parent.Raise()
 
     def on_helpButton(self, event):
         pw.on_helpButton(text='')

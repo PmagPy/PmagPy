@@ -328,6 +328,7 @@ class MagMainFrame(wx.Frame):
         pmag_dialogs_dia = pmag_basic_dialogs.import_magnetometer_data(self, wx.ID_ANY, '', self.WD)
         pmag_dialogs_dia.Show()
         pmag_dialogs_dia.Center()
+        self.Hide()
 
     def on_er_data(self, event):
         if not os.path.isfile(os.path.join(self.WD, 'magic_measurements.txt')):
