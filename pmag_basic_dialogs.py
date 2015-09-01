@@ -2372,7 +2372,7 @@ class OrientFrameGrid(wx.Frame):
 
         self.WD = WD
         #self.Data_hierarchy = Data_hierarchy
-        self.ErMagic_data = ErMagic
+        self.er_magic_data = ErMagic
         self.grid = None
         
 
@@ -2384,30 +2384,23 @@ class OrientFrameGrid(wx.Frame):
         #--------------------
 
         empty = True
-        for dict_key in self.ErMagic_data.Data_hierarchy.keys():
-            if self.ErMagic_data.Data_hierarchy[dict_key]:
-                empty = False
-                break
-            
-        if empty:
-            self.ErMagic_data.get_data()
+        self.er_magic_data.get_data()
 
-        
-        self.samples_list = self.ErMagic_data.Data_hierarchy['samples']         
+        self.samples_name_list = self.er_magic_data.make_name_list(self.er_magic_data.samples)
         self.orient_data = {}
         try:
-            self.orient_data = self.read_magic_file(os.path.join(self.WD, "demag_orient.txt"), 1, "sample_name")  
-        except:
+            self.orient_data = self.er_magic_data.read_magic_file(os.path.join(self.WD, "demag_orient.txt"), "sample_name")[0]
+        except Exception as ex:
             pass
-        for sample in self.samples_list:
-            if sample not in self.orient_data.keys():
-               self.orient_data[sample]={} 
-               self.orient_data[sample]["sample_name"]=sample
-               
-            if sample in self.ErMagic_data.Data_hierarchy['site_of_sample'].keys():
-                self.orient_data[sample]["site_name"] = self.ErMagic_data.Data_hierarchy['site_of_sample'][sample]
-            else:
-                self.orient_data[sample]["site_name"] = ""
+        for sample_name in self.samples_name_list:
+            if sample_name not in self.orient_data.keys():
+                sample = self.er_magic_data.find_by_name(sample_name, self.er_magic_data.samples)
+                self.orient_data[sample_name]={} 
+                self.orient_data[sample_name]["sample_name"] = sample_name
+                if sample:
+                    self.orient_data[sample_name]["site_name"] = sample.site
+                else:
+                    self.orient_data[sample_name]["site_name"] = ''
 
         #--------------------
         # create the grid sheet
@@ -2521,7 +2514,7 @@ class OrientFrameGrid(wx.Frame):
         #--------------------------------
 
         headers = [header[0] for header in self.headers]
-        for sample in self.samples_list:
+        for sample in self.samples_name_list:
             for key in self.orient_data[sample].keys():
                 if key in headers:
                     sample_index = self.samples_list.index(sample)
@@ -2573,8 +2566,8 @@ class OrientFrameGrid(wx.Frame):
         if dlg.ShowModal() == wx.ID_OK:
             orient_file = dlg.GetPath()
             dlg.Destroy()
-            new_data=self.read_magic_file(orient_file,1,"sample_name") 
-            if len(new_data)>0:
+            new_data = self.er_magic_data.read_magic_file(orient_file, "sample_name")[0]
+            if len(new_data) > 0:
                 self.orient_data={}
                 self.orient_data=new_data
             #self.create_sheet()
@@ -2605,37 +2598,7 @@ class OrientFrameGrid(wx.Frame):
             dlg1 = wx.MessageDialog(None,caption="Message:", message="data saved in file demag_orient.txt" ,style=wx.OK|wx.ICON_INFORMATION)
             dlg1.ShowModal()
             dlg1.Destroy()
-        
-    def read_magic_file(self,path,ignore_lines_n,sort_by_this_name):
-        '''
-        read magic file and store the data in dictionary:
-        Data={}
-        Data[sort_by_this_name]={}
-        '''
 
-        DATA={}
-        fin=open(path,'rU')
-        #ignore first lines
-        for i in range(ignore_lines_n):
-            fin.readline()
-        #header
-        line=fin.readline()
-        header=line.strip('\n').split('\t')
-        #print header
-        for line in fin.readlines():
-            if line[0]=="#":
-                continue
-            tmp_data={}
-            tmp_line=line.strip('\n').split('\t')
-            #print tmp_line
-            for i in range(len(tmp_line)):
-                if i>= len(header):
-                    continue
-                tmp_data[header[i]]=tmp_line[i]
-            DATA[tmp_data[sort_by_this_name]]=tmp_data
-        fin.close()        
-        return(DATA)
-                
 
     def on_m_calc_orient(self,event):    
         '''
@@ -2729,11 +2692,11 @@ class OrientFrameGrid(wx.Frame):
         er_samples_orient_data={}
         if os.path.isfile(os.path.join(self.WD, "er_samples.txt")):
             er_samples_file=os.path.join(self.WD, "er_samples.txt")
-            er_samples_data=self.read_magic_file(er_samples_file,1,"er_sample_name")
+            er_samples_data=self.er_magic_data.read_magic_file(er_samples_file, "er_sample_name")[0]
 
         if os.path.isfile(os.path.join(self.WD, "er_samples_orient.txt")):             
             er_samples_orient_file=os.path.join(self.WD, "er_samples_orient.txt")
-            er_samples_orient_data=self.read_magic_file(er_samples_orient_file,1,"er_sample_name")
+            er_samples_orient_data=self.er_magic_data.read_magic_file(er_samples_orient_file, "er_sample_name")[0]
         new_samples_added=[]
         for sample in er_samples_orient_data.keys():
             if sample not in er_samples_data.keys():
@@ -2769,11 +2732,11 @@ class OrientFrameGrid(wx.Frame):
         er_sites_data={}
         if os.path.isfile(os.path.join(self.WD, "er_sites.txt")):
             er_sites_file = os.path.join(self.WD, "er_sites.txt")
-            er_sites_data=self.read_magic_file(er_sites_file,1,"er_site_name")
+            er_sites_data = self.er_magic_data.read_magic_file(er_sites_file, "er_site_name")[0]
         er_sites_orient_data={}
         if os.path.isfile(os.path.join(self.WD, "er_sites_orient.txt")):             
             er_sites_orient_file = os.path.join(self.WD, "er_sites_orient.txt")
-            er_sites_orient_data = self.read_magic_file(er_sites_orient_file,1,"er_site_name")
+            er_sites_orient_data = self.er_magic_data.read_magic_file(er_sites_orient_file, "er_site_name")[0]
         new_sites_added = []
         for site in er_sites_orient_data.keys():
             if site not in er_sites_data.keys():
