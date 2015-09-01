@@ -743,11 +743,7 @@ You may use the drop-down menus to add as many values as needed in these columns
         """
         On button click, remove relevant object from both the data model and the grid.
         """
-        function_mapping = {'specimen': self.ErMagic_data.remove_specimen,
-                            'sample': self.ErMagic_data.remove_sample,
-                            'site': self.ErMagic_data.remove_site,
-                            'location': self.ErMagic_data.remove_location}
-        ancestry = ['specimen', 'sample', 'site', 'location']
+        ancestry = self.er_magic_data.ancestry
         child_type = ancestry[ancestry.index(data_type) - 1]
         names = [self.grid.GetCellValue(row, 0) for row in self.selected_rows]
         if data_type == 'site':
@@ -758,19 +754,18 @@ You may use the drop-down menus to add as many values as needed in these columns
         orphans = []
         for name in names:
             row = self.grid.row_labels.index(name)
-            orphans.extend(function_mapping[data_type](name))
+            orphans.extend(self.er_magic_data.delete_methods[data_type](name))
             self.grid.remove_row(row)
         if orphans:
-            pw.simple_warning('You have deleted:\n\n  {}\n\nthe parent(s) of {}(s):\n\n  {}\n\n{}'.format(', '.join(names), child_type, ', '.join(orphans), how_to_fix))
+            orphan_names = self.er_magic_data.make_name_list(orphans)
+            pw.simple_warning('You have deleted:\n\n  {}\n\nthe parent(s) of {}(s):\n\n  {}\n\n{}'.format(', '.join(names), child_type, ', '.join(orphan_names), how_to_fix))
 
         self.selected_rows = set()
 
         # update grid and data model
         self.update_grid(self.grid)#, grids[grid_name])
-        self.ErMagic_data.update_ErMagic()
 
         self.grid.Refresh()
-
 
 
     def onLeftClickLabel(self, event):
@@ -858,4 +853,3 @@ You may use the drop-down menus to add as many values as needed in these columns
 
         wx.MessageBox('Saved!', 'Info',
                       style=wx.OK | wx.ICON_INFORMATION)
-

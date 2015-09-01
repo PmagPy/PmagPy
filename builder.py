@@ -258,6 +258,7 @@ Leaving site unchanged as: {} for {}""".format(new_site_name, sample.site or '*e
         self.samples.remove(sample)
         for spec in specimens:
             spec.sample = ""
+        return specimens
 
     
     def change_age(self, old_name, new_age_data=None, site_or_sample='site', replace_data=False):
@@ -321,9 +322,11 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
         self.sites.remove(site)
         if site.location:
             site.location.sites.remove(site)
-        for samp in site.samples:
+        samples = site.samples
+        for samp in samples:
             samp.site = ''
         del site
+        return samples
 
     def change_location(self, old_location_name, new_location_name, new_parent_name=None,
                         new_er_data=None, new_pmag_data=None, replace_data=False):
@@ -359,6 +362,7 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
         for site in sites:
             site.location = ''
         del location
+        return sites
 
     def add_age(self, item_name, age_data):
         items_list = self.data_lists[self.age_type][0]
