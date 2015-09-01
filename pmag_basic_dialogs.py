@@ -2346,8 +2346,6 @@ class OrientFrameGrid(wx.Frame):
         self.Centre()
         self.Show()                
 
-    
-            
     def create_sheet(self):    
         '''
         creat an editable grid showing deamg_orient.txt 
@@ -2675,13 +2673,16 @@ class OrientFrameGrid(wx.Frame):
         result = dlg1.ShowModal()
         if result == wx.ID_OK:
             self.on_m_save_file(None)
-            dlg1.Destroy()    
+            dlg1.Destroy()
+            self.Parent.Show()
+            self.Parent.Raise()
             self.Destroy()
         if result == wx.ID_CANCEL:
-            dlg1.Destroy()    
+            dlg1.Destroy()
+            self.Parent.Show()
+            self.Parent.Raise()
             self.Destroy()
 
-                     
 
 class orient_convention(wx.Dialog):
     
