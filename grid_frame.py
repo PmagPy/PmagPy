@@ -264,9 +264,8 @@ class GridFrame(wx.Frame):
     def toggle_ages(self, event):
         """
         Switch the type of grid between site/sample
-        (Users may add ages at either age)
+        (Users may add ages at either level)
         """
-
         if self.grid.changes:
             self.onSave(None)
 
@@ -277,7 +276,6 @@ class GridFrame(wx.Frame):
         if label == 'site':
             new_parent_type = 'location'
             self.er_magic.age_type = 'site'
-
 
         self.grid.Destroy()
 
@@ -299,7 +297,7 @@ class GridFrame(wx.Frame):
         self.panel.Bind(wx.grid.EVT_GRID_LABEL_LEFT_CLICK, self.onLeftClickLabel, self.grid)
         
         self.grid_builder.add_data_to_grid(self.grid, label)
-        self.add_age_data_to_grid()
+        self.grid_builder.add_age_data_to_grid()
         belongs_to = sorted(self.er_magic.data_lists[new_parent_type][0], key=lambda item: item.name)
         self.drop_down_menu = drop_down_menus.Menus(self.grid_type, self, self.grid, belongs_to)
 
