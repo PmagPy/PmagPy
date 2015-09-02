@@ -6,6 +6,7 @@ Create QuickMagIC menubar
 
 import wx
 import pmag_menu_dialogs
+import builder
 
 
 class MagICMenu(wx.MenuBar):
@@ -123,7 +124,7 @@ class MagICMenu(wx.MenuBar):
         dia = pmag_menu_dialogs.ClearWD(self.parent, self.parent.WD)
         clear = dia.do_clear()
         if clear:
-            self.parent.ErMagic_data.__init__(self.parent.WD)
+            self.parent.er_magic = builder.ErMagicBuilder(self.parent.WD)
 
     def on_import1(self, event):
         """

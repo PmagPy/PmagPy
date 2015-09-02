@@ -434,7 +434,7 @@ class MagMainFrame(wx.Frame):
 if __name__ == "__main__":
     #app = wx.App(redirect=True, filename="beta_log.log")
     # if redirect is true, wxpython makes its own output window for stdout/stderr
-    app = wx.App(redirect=False)
+    app = wx.App(redirect=True)
     app.frame = MagMainFrame()
     working_dir = pmag.get_named_arg_from_sys('-WD', '.')
     if working_dir == '.':
