@@ -281,9 +281,10 @@ Leaving site unchanged as: {} for {}""".format(new_site_name, sample.site or '*e
             print '-W- {} is not a currently existing site, so it cannot be updated.'.format(old_site_name)
             return False
         if new_location_name:
-            old_location = self.find_by_name(site.location.name, self.locations)
-            if old_location:
-                old_location.sites.remove(site)
+            if site.location:
+                old_location = self.find_by_name(site.location.name, self.locations)
+                if old_location:
+                    old_location.sites.remove(site)
             new_location = self.find_by_name(new_location_name, self.locations)
             if new_location:
                 new_location.sites.append(site)
