@@ -2242,23 +2242,23 @@ def upload_magic(concat=0, dir_path='.'):
                     if rec['er_specimen_name'] in SpecDone:
                         NewData.append(rec)
                     else:
-                        print 'no specimen record found for: '
+                        print 'no specimen record found for: ' 
                         print rec
-                Data=NewData
+                Data = NewData
     # write out the data
-            if len(Data)>0:
-                if first_file==1:
-                    keystring=pmag.first_rec(up,Data[0],file_type)
-                    first_file=0
-                else:
-                    keystring=pmag.first_up(up,Data[0],file_type)
+            if len(Data) > 0:
+                if first_file == 1:
+                    keystring = pmag.first_rec(up,Data[0],file_type)
+                    first_file = 0
+                else:  
+                    keystring = pmag.first_up(up,Data[0],file_type)
                 for rec in Data:
     # collect the method codes
                     if "magic_method_codes" in rec.keys():
-                        meths=rec["magic_method_codes"].split(':')
+                        meths = rec["magic_method_codes"].split(':')
                         for meth in meths:
                             if meth.strip() not in methods:
-                                if meth.strip()!="LP-DIR-":
+                                if meth.strip() != "LP-DIR-":
                                     methods.append(meth.strip())
                     pmag.putout(up,keystring,rec)
 

@@ -1,4 +1,4 @@
-tab	\magic_measurements
+tab	magic_measurements
 er_specimen_name	er_sample_name	er_site_name	er_location_name	magic_experiment_name	measurement_number	treatment_ac_field	er_citation_names	measurement_inc	measurement_dec	treatment_dc_field	magic_software_packages	measurement_standard	magic_method_codes	treatment_dc_field_phi	measurement_description	treatment_temp	measurement_temp	measurement_magn_moment	magic_instrument_codes	measurement_sd_z	measurement_sd_y	measurement_sd_x	er_analyst_mail_names	treatment_dc_field_theta	measurement_flag	measurement_positions	measurement_csd
 Z35.1a	Z35.1	MGH1	Munich	Z35.1a:LP-DIR-T	1	0	This study	-53.2	37.2	0	pmagpy-3.2.1		LT-NO:LP-DIR-T			273	273	3.93e-07		2.14e-09	8.63e-09	1.35e-08			g	1	2.3
 Z35.1a	Z35.1	MGH1	Munich	Z35.1a:LP-DIR-T	2	0	This study	-50.9	36.7	0	pmagpy-3.2.1		LT-LT-Z:LP-DIR-T			77	273	4.29e-07		2.78e-09	7.51e-09	1.25e-08			g	1	2.0
