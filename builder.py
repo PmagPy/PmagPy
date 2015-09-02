@@ -74,6 +74,14 @@ class ErMagicBuilder(object):
                     name_list.append('')
         return name_list
 
+    def get_name(self, pmag_object, *args):
+        for arg in args:
+            try:
+                pmag_object = pmag_object.__getattribute__(arg)
+            except AttributeError:
+                return ''
+        return pmag_object
+
 
     def find_by_name(self, item_name, items_list):
         """
@@ -661,24 +669,24 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
         measurement_headers = self.headers['measurement']['er'][0]
         measurement_headers[:0] = ['er_specimen_name', 'er_sample_name', 'er_site_name',
                                    'er_location_name', 'magic_experiment_name', 'measurement_number']
-        specimen_names = [spec.name for spec in self.specimens]
+        specimen_names = self.make_name_list(self.specimens)
         meas_strings = []
         for meas in self.measurements:
             meas_string = []
             # if a specimen has been deleted,
             # do not record any measurements for that specimen
-            if not meas.specimen.name in specimen_names:
+            if not meas.specimen.name in specimen_names or not meas.specimen.name:
                 continue
                 
             for header in measurement_headers:
                 if header == 'er_specimen_name':
-                    val = meas.specimen.name
+                    val = self.get_name(meas, 'specimen', 'name')
                 elif header == 'er_sample_name':
-                    val = meas.specimen.sample.name
+                    val = self.get_name(meas, 'specimen', 'sample', 'name')
                 elif header == 'er_site_name':
-                    val = meas.specimen.sample.site.name
+                    val = self.get_name(meas, 'specimen', 'sample', 'site', 'name')
                 elif header == 'er_location_name':
-                    val = meas.specimen.sample.site.location.name
+                    val = self.get_name(meas, 'specimen', 'sample', 'site', 'location', 'name')
                 elif header == 'magic_experiment_name':
                     val = meas.experiment_name
                 elif header == 'measurement_number':
@@ -689,7 +697,7 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
             meas_string = '\t'.join(meas_string)
             meas_strings.append(meas_string)
         # write data to file
-        magic_outfile.write('tab\t\magic_measurements\n')
+        magic_outfile.write('tab\tmagic_measurements\n')
         header_string = '\t'.join(measurement_headers)
         magic_outfile.write(header_string + '\n')
         for string in meas_strings:

@@ -78,6 +78,23 @@ class TestMeasurement(unittest.TestCase):
         result = self.data1.write_measurements_file()
         self.assertTrue(result)
         self.assertTrue(os.path.isfile(os.path.join(self.dir_path, 'magic_measurements.txt')))
+
+    def test_measurement_is_updated(self):
+        spec_name = 'Z35.1a'
+        specimen = self.data1.find_by_name(spec_name, self.data1.specimens)
+        meas_name = 'Z35.1a:LP-DIR-T_1'
+        measurement = self.data1.find_by_name(meas_name, self.data1.measurements)
+        samp_name = 'Z35.1'
+        sample = self.data1.find_by_name(samp_name, self.data1.samples)
+        self.data1.change_sample(samp_name, samp_name, 'Z35.')
+        self.assertEqual(measurement.specimen.name, spec_name)
+        self.assertEqual(measurement.specimen.sample.name, 'Z35.1')
+        self.assertEqual(measurement.specimen.sample.site.name, 'Z35.')
+        
+        self.data1.change_specimen(spec_name, 'new_name', 'MGH1')
+        self.assertEqual(measurement.specimen.name, 'new_name')
+        self.assertEqual(measurement.specimen.sample.name, 'MGH1')
+        self.assertEqual(measurement.specimen.sample.site.name, 'MGH1')
         
     
 class TestSpecimen(unittest.TestCase):
