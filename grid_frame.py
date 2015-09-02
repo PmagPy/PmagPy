@@ -664,6 +664,14 @@ class GridBuilder(object):
             grid_type = self.grid_type
         if grid_type == 'age':
             grid_type = self.er_magic.age_type
+        # the two loops below may be overly expensive operations
+        # consider doing this another way
+        if grid_type == 'sample':
+            for sample in self.er_magic.samples:
+                sample.propagate_data()
+        if grid_type == 'specimen':
+            for specimen in self.er_magic.specimens:
+                specimen.propagate_data()
         rows = self.er_magic.data_lists[grid_type][0]
         grid.add_items(rows, incl_pmag=incl_pmag)
         grid.size_grid()
