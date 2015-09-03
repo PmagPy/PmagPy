@@ -497,21 +497,44 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
         self.get_age_info()
         self.get_results_info()
                 
-    def get_magic_info(self, child_type, parent_type=None, attr='er'):
+    def get_magic_info(self, child_type, parent_type=None, attr='er',
+                       filename=None, sort_by_file_type=False):
         """
         Read er_*.txt or pmag_*.txt file.
-        Parse information into dictionaries for each item.
-        Then add it to the item object as object.er_data or object.pmag_data.
+        If no filename is provided, use er_* or pmag_* file in WD.
+        If sort_by_file_type, use file header to determine child, parent types,
+        instead of passing those in as arguments.
+        Once file is open, parse information into dictionaries for each item.
+        If the item does not yet exist, add it to the builder data object.
+        Then add info to the item object as object.er_data or object.pmag_data.
         """
+
+        #def read_magic_file(self, path, sort_by_this_name, sort_by_file_type=False):
         parent = ''
-        short_filename = attr + '_' + child_type + 's.txt'
-        magic_file = os.path.join(self.WD, short_filename)
         magic_name = 'er_' + child_type + '_name'
+        expected_item_type = child_type
+        if not filename:
+            short_filename = attr + '_' + child_type + 's.txt'
+            magic_file = os.path.join(self.WD, short_filename)
+        else:
+            magic_file = filename
         if not os.path.isfile(magic_file):
             print '-W- Could not find {} in your working directory {}'.format(short_filename, self.WD)
             return False
         # get the data from the appropriate .txt file
-        data_dict = self.read_magic_file(magic_file, magic_name)[0]
+        
+        data_dict, header, file_type = self.read_magic_file(magic_file, magic_name,
+                                                            sort_by_file_type=sort_by_file_type)
+        item_type = file_type.split('_')[1][:-1]
+        if item_type != expected_item_type:
+            print '-W- Expected data of type: {} but instead got: {}'.format(expected_item_type,
+                                                                             item_type)
+            print '-W- Using type: {}'.format(item_type)
+            child_type = item_type
+            magic_name = 'er_' + child_type + '_name'
+            ind = self.ancestry.index(child_type)
+            parent_type = self.ancestry[ind+1]
+                        
         child_list, child_constructor = self.data_lists[child_type]
 
         if parent_type:
@@ -632,7 +655,7 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
             if not self.find_by_name(result_item.name, self.results):
                 self.results.append(result_item)
                     
-    def read_magic_file(self, path, sort_by_this_name):
+    def read_magic_file(self, path, sort_by_this_name, sort_by_file_type=False):
         """
         read a magic-formatted tab-delimited file.
         return a dictionary of dictionaries, with this format:
@@ -640,7 +663,11 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
         """
         DATA = {}
         fin = open(path, 'rU')
-        fin.readline()
+        first_line = fin.readline()
+        file_type = first_line.strip('\n').split('\t')[1]
+        if sort_by_file_type:
+            item_type = file_type.split('_')[1][:-1]
+            sort_by_this_name = 'er_' + item_type + '_name'
         line = fin.readline()
         header = line.strip('\n').split('\t')
         #print "path", path#,header
@@ -660,7 +687,7 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
                 if tmp_data[sort_by_this_name] != "":
                     DATA[tmp_data[sort_by_this_name]] = tmp_data
         fin.close()
-        return DATA, header
+        return DATA, header, file_type
 
 
     def write_measurements_file(self):

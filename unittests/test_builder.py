@@ -41,6 +41,27 @@ class TestBuilder(unittest.TestCase):
         self.assertFalse(self.data1.find_by_name('c', lst))
         self.assertTrue(self.data1.find_by_name('b', lst))
 
+    def test_get_magic_info_append(self):
+        spec_name = '318-U1361A-001H-2-W-35'
+        self.assertFalse(self.data1.find_by_name(spec_name, self.data1.specimens))
+        file_name = os.path.join(WD, 'Datafiles', 'ani_depthplot', 'er_specimens.txt')
+        self.data1.get_magic_info('specimen', 'sample', filename=file_name)
+        self.assertTrue(self.data1.find_by_name(spec_name, self.data1.specimens))
+
+    def test_get_magic_info_append_wrong_type(self):
+        spec_name = 'sml0109b1'
+        self.assertFalse(self.data1.find_by_name(spec_name, self.data1.specimens))
+        file_name = os.path.join(WD, 'Datafiles', 'misc_files', 'er_specimens.txt')
+        self.data1.get_magic_info('sample', 'site', filename=file_name, sort_by_file_type=True)
+        self.assertTrue(self.data1.find_by_name(spec_name, self.data1.specimens))
+
+    def test_get_magic_info_append_wrong_type_pmag_file(self):
+        spec_name = 'sv07b1'
+        self.assertFalse(self.data1.find_by_name(spec_name, self.data1.specimens))
+        file_name = os.path.join(WD, 'Datafiles', 'misc_files', 'pmag_specimens.txt')
+        self.data1.get_magic_info('sample', 'site', filename=file_name, sort_by_file_type=True)
+        self.assertTrue(self.data1.find_by_name(spec_name, self.data1.specimens))
+
 
 class TestMeasurement(unittest.TestCase):
     
