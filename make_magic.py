@@ -196,7 +196,8 @@ class MainFrame(wx.Frame):
         create change directory frame
         """
         currentDirectory = self.WD #os.getcwd()
-        change_dir_dialog = wx.DirDialog(self.panel, "choose directory:",
+        change_dir_dialog = wx.DirDialog(self.panel,
+                                         "Choose your working directory to create or edit a MagIC contribution:",
                                          defaultPath=currentDirectory,
                                          style=wx.DD_DEFAULT_STYLE | wx.DD_NEW_DIR_BUTTON | wx.DD_CHANGE_DIR)
         result = change_dir_dialog.ShowModal()

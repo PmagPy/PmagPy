@@ -118,7 +118,11 @@ class GridFrame(wx.Frame):
                                       style=wx.TE_CENTER, name='msg text')
         self.msg_boxsizer.Add(self.msg_text)
 
-        self.exitButton = wx.Button(self.panel, id=-1, label='Save and quit', name='save_and_quit_btn')
+        self.toggle_help_btn = wx.Button(self.panel, id=-1, label="Show help", name='toggle_help_btn')
+        self.Bind(wx.EVT_BUTTON, self.toggle_help, self.toggle_help_btn)
+        self.msg_boxsizer.ShowItems(False)
+
+        self.exitButton = wx.Button(self.panel, id=-1, label='Save and close grid', name='save_and_quit_btn')
         self.Bind(wx.EVT_BUTTON, self.onSave, self.exitButton)
         self.cancelButton = wx.Button(self.panel, id=-1, label='Cancel', name='cancel_btn')
         self.Bind(wx.EVT_BUTTON, self.onCancelButton, self.cancelButton)
@@ -231,6 +235,7 @@ class GridFrame(wx.Frame):
 
         # final layout, set size
         self.main_sizer.Add(hbox, flag=wx.ALL, border=20)
+        self.main_sizer.Add(self.toggle_help_btn, flag=wx.BOTTOM|wx.ALIGN_CENTRE, border=5)
         self.main_sizer.Add(self.msg_boxsizer, flag=wx.BOTTOM|wx.ALIGN_CENTRE, border=10)
         self.main_sizer.Add(self.grid_box, flag=wx.ALL, border=10)
         self.panel.SetSizer(self.main_sizer)
@@ -261,6 +266,16 @@ class GridFrame(wx.Frame):
         self.main_sizer.Fit(self)
         self.Centre()
 
+    def toggle_help(self, event):
+        btn = event.GetEventObject()
+        if btn.Label == 'Show help':
+            self.msg_boxsizer.ShowItems(True)
+            btn.SetLabel('Hide help')
+        else:
+            self.msg_boxsizer.ShowItems(False)
+            btn.SetLabel('Show help')
+        self.do_fit(None)
+        
     def toggle_ages(self, event):
         """
         Switch the type of grid between site/sample
