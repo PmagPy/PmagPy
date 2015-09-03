@@ -5054,8 +5054,8 @@ def doigrf(long,lat,alt,date,**kwargs):
         else:
             incr=50
         model=date-date%incr
-        gh=psvcoeffs[psvmodels.index(str(int(model)))]
-        sv=(psvcoeffs[psvmodels.index(str(int(model+incr)))]-gh)/float(incr)
+        gh=psvcoeffs[psvmodels.index(int(model))]
+        sv=(psvcoeffs[psvmodels.index(int(model+incr))]-gh)/float(incr)
         x,y,z,f=magsyn(gh,sv,model,date,itype,alt,colat,long)
     elif date<1900:
         if kwargs['mod']=='cals10k':
