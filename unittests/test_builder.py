@@ -59,8 +59,21 @@ class TestBuilder(unittest.TestCase):
         spec_name = 'sv07b1'
         self.assertFalse(self.data1.find_by_name(spec_name, self.data1.specimens))
         file_name = os.path.join(WD, 'Datafiles', 'misc_files', 'pmag_specimens.txt')
-        self.data1.get_magic_info('sample', 'site', filename=file_name, sort_by_file_type=True)
+        result = self.data1.get_magic_info('sample', 'site', filename=file_name, sort_by_file_type=True)
+        self.assertTrue(result)
         self.assertTrue(self.data1.find_by_name(spec_name, self.data1.specimens))
+
+    def test_get_magic_info_invalid_filename(self):
+        file_name = os.path.join(WD, 'Datafiles', 'misc_files', 'pmag_specimen.txt')
+        result = self.data1.get_magic_info('sample', 'site',
+                                           filename=file_name,
+                                           sort_by_file_type=True)
+        self.assertFalse(result)
+
+    def test_get_magic_info_invalid_file_type(self):
+        file_name = os.path.join(WD, 'Datafiles', 'plot_cdf', 'gaussian.out')
+        res = self.data1.get_magic_info('sample', 'site', filename=file_name, sort_by_file_type=True)
+        self.assertFalse(res)
 
 
 class TestMeasurement(unittest.TestCase):

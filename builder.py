@@ -508,8 +508,6 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
         If the item does not yet exist, add it to the builder data object.
         Then add info to the item object as object.er_data or object.pmag_data.
         """
-
-        #def read_magic_file(self, path, sort_by_this_name, sort_by_file_type=False):
         parent = ''
         magic_name = 'er_' + child_type + '_name'
         expected_item_type = child_type
@@ -519,12 +517,16 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
         else:
             magic_file = filename
         if not os.path.isfile(magic_file):
-            print '-W- Could not find {} in your working directory {}'.format(short_filename, self.WD)
+            print '-W- Could not find {}'.format(magic_file)
             return False
         # get the data from the appropriate .txt file
         
         data_dict, header, file_type = self.read_magic_file(magic_file, magic_name,
                                                             sort_by_file_type=sort_by_file_type)
+        if not data_dict:
+            print '-W- Could not read in file: {}.\n    Make sure it is a MagIC-format file'.format(magic_file)
+            return False
+        
         item_type = file_type.split('_')[1][:-1]
         if item_type != expected_item_type:
             print '-W- Expected data of type: {} but instead got: {}'.format(expected_item_type,
@@ -574,6 +576,7 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
             #
             if parent and (child not in parent.children):
                 parent.add_child(child)
+        return True
 
     def get_age_info(self):#, sample_or_site='site'):
         """
@@ -664,17 +667,26 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
         DATA = {}
         fin = open(path, 'rU')
         first_line = fin.readline()
-        file_type = first_line.strip('\n').split('\t')[1]
+        if not first_line:
+            return False, None, 'empty_file' 
+        if first_line[0] == "s" or first_line[1] == "s":
+            delim = ' '
+        elif first_line[0] == "t" or first_line[1] == "t":
+            delim = '\t'
+        else: 
+            print 'error reading ', path
+            return False, None, 'bad_file'
+
+        file_type = first_line.strip('\n').split(delim)[1]
         if sort_by_file_type:
             item_type = file_type.split('_')[1][:-1]
             sort_by_this_name = 'er_' + item_type + '_name'
         line = fin.readline()
-        header = line.strip('\n').split('\t')
-        #print "path", path#,header
+        header = line.strip('\n').split(delim)
         counter = 0
         for line in fin.readlines():
             tmp_data = {}
-            tmp_line = line.strip('\n').split('\t')
+            tmp_line = line.strip('\n').split(delim)
             for i in range(len(header)):
                 if i < len(tmp_line):
                     tmp_data[header[i]] = tmp_line[i]
