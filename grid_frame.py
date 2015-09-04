@@ -561,14 +561,29 @@ class GridFrame(wx.Frame):
                                        "MagIC file|*.*", wx.FD_OPEN | wx.FD_FILE_MUST_EXIST)
         result = openFileDialog.ShowModal()
 
-        parent_ind = self.er_magic.ancestry.index(self.grid_type)
-        parent_type = self.er_magic.ancestry[parent_ind+1]
         if result == wx.ID_OK:
-            # get filename and file data
-            filename = openFileDialog.GetPath()
-            import_type = self.er_magic.get_magic_info(self.grid_type, parent_type,
-                                                       filename=filename, sort_by_file_type=True)
-            # add any addition headers to the grid
+            if self.grid_type == 'age':
+                pass
+            elif self.grid_type == 'result':
+                import_type = 'result'
+                parent_type = None
+                try:
+                    filename = openFileDialog.GetPath()
+                    self.er_magic.get_results_info(filename)
+                except Exception as ex:
+                    print '-W- ', ex
+                    print '-W- Could not read file:\n{}\nFile may be corrupted, or may not be a results format file.'.format(filename)
+                    pw.simple_warning('Could not read file:\n{}\nFile may be corrupted, or may not be a results format file.'.format(filename)
+                    return
+            else:
+                parent_ind = self.er_magic.ancestry.index(self.grid_type)
+                parent_type = self.er_magic.ancestry[parent_ind+1]
+
+                # get filename and file data
+                filename = openFileDialog.GetPath()
+                import_type = self.er_magic.get_magic_info(self.grid_type, parent_type,
+                                                           filename=filename, sort_by_file_type=True)
+            # add any additional headers to the grid
             self.er_magic.init_actual_headers()
             er_headers = self.er_magic.headers[self.grid_type]['er'][0]            
             include_pmag = self.pmag_checkbox.cb.IsChecked()

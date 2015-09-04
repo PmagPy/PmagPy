@@ -612,14 +612,17 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
             pmag_item.age_data = remove_dict_headers(data_dict[pmag_name])
         self.write_ages = True
 
-    def get_results_info(self):
+    def get_results_info(self, filename=None):
         """
         Read pmag_results.txt file.
         Parse information into dictionaries for each item.
         Then add it to the item object as object.results_data.
         """
-        short_filename = "pmag_results.txt"
-        magic_file = os.path.join(self.WD, short_filename)
+        if not filename:
+            short_filename = "pmag_results.txt"
+            magic_file = os.path.join(self.WD, short_filename)
+        else:
+            magic_file = filename
         if not os.path.isfile(magic_file):
             print '-W- Could not find {} in your working directory {}'.format(short_filename, self.WD)
             return False
@@ -657,9 +660,9 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
             if not name:
                 name = num
             result_item = Result(name, specimens, samples, sites, locations, result, self.data_model)
-            if not self.find_by_name(result_item.name, self.results):
+            if result_item and result_item not in self.results:
                 self.results.append(result_item)
-                    
+
     def read_magic_file(self, path, sort_by_this_name, sort_by_file_type=False):
         """
         read a magic-formatted tab-delimited file.
