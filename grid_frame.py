@@ -122,6 +122,8 @@ class GridFrame(wx.Frame):
         self.Bind(wx.EVT_BUTTON, self.toggle_help, self.toggle_help_btn)
         self.msg_boxsizer.ShowItems(False)
 
+        self.importButton = wx.Button(self.panel, id=-1, label='Import MagIC-format file', name='import_btn')
+        self.Bind(wx.EVT_BUTTON, self.onImport, self.importButton)
         self.exitButton = wx.Button(self.panel, id=-1, label='Save and close grid', name='save_and_quit_btn')
         self.Bind(wx.EVT_BUTTON, self.onSave, self.exitButton)
         self.cancelButton = wx.Button(self.panel, id=-1, label='Cancel', name='cancel_btn')
@@ -146,6 +148,7 @@ class GridFrame(wx.Frame):
         row_btn_vbox.Add(many_rows_box, flag=wx.ALL, border=5)
         row_btn_vbox.Add(self.remove_row_button, flag=wx.ALL, border=5)
         row_btn_vbox.Add(self.deleteRowButton, flag=wx.ALL, border=5)
+        main_btn_vbox.Add(self.importButton, flag=wx.ALL, border=5)
         main_btn_vbox.Add(self.exitButton, flag=wx.ALL, border=5)
         main_btn_vbox.Add(self.cancelButton, flag=wx.ALL, border=5)
         main_btn_vbox.Add(self.pmag_checkbox, flag=wx.ALL, border=5)
@@ -551,6 +554,23 @@ class GridFrame(wx.Frame):
 
 
     ## Meta buttons -- cancel & save functions
+
+    def onImport(self, event):
+        openFileDialog = wx.FileDialog(self, "Open MagIC-format file", self.WD, "",
+                                       "MagIC file|*.*", wx.FD_OPEN | wx.FD_FILE_MUST_EXIST)
+        result = openFileDialog.ShowModal()
+
+        parent_ind = self.er_magic.ancestry.index(self.grid_type)
+        parent_type = self.er_magic.ancestry[parent_ind+1]
+        if result == wx.ID_OK:
+            filename = openFileDialog.GetPath()
+            import_type = self.er_magic.get_magic_info(self.grid_type, parent_type,
+                                                       filename=filename, sort_by_file_type=True)
+            if import_type == self.grid_type:
+                self.grid_builder.add_data_to_grid(self.grid, import_type)
+                self.grid.size_grid()
+            else:
+                pw.simple_warning('You have imported a {} type file.\nYou\'ll need to open up your {} grid to see this data'.format(import_type, import_type))
 
     def on_pmag_checkbox(self, event):
         """

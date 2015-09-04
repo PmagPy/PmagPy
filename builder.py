@@ -578,7 +578,7 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
             #
             if parent and (child not in parent.children):
                 parent.add_child(child)
-        return True
+        return child_type
 
     def get_age_info(self):#, sample_or_site='site'):
         """

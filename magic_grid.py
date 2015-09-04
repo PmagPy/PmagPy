@@ -60,12 +60,19 @@ class MagicGrid(wx.grid.Grid):
 
 
     def add_items(self, items_list, incl_pmag=True):
+        """
+        Add items and/or update existing items in grid
+        """
+        num_rows = self.GetNumberRows()
+        current_grid_rows = [self.GetCellValue(num, 0) for num in range(num_rows)]
         er_data = {item.name: item.er_data for item in items_list}
         pmag_data = {item.name: item.pmag_data for item in items_list}
         items_list = sorted(items_list, key=lambda item: item.name)
-
         for item in items_list[:]:
-            self.add_row(item.name, item)
+            if item.name in current_grid_rows:
+                pass
+            else:
+                self.add_row(item.name, item)
         self.add_data(er_data)
         if incl_pmag:
             self.add_data(pmag_data)

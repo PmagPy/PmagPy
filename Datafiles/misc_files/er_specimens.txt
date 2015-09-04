@@ -1,4 +1,4 @@
-tab	er_specimens
+tab	er_specimens						
 er_specimen_name	er_sample_name	er_site_name	er_location_name	er_citation_names	specimen_class	specimen_lithology	specimen_type
 sml0109b1	sml0109	Feteiras	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow
 sml0109b2	sml0109	Feteiras	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow
@@ -237,3 +237,4 @@ sml3301a	sml3301	Fogo 1	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow
 sml3310a	sml3310	Fogo 1	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow
 sml3311a	sml3311	Fogo 1	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow
 sml3405a	sml3405	Queimado	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow
+sr01a2	sr01a				Igneous	Basaltic Lava	Lava
