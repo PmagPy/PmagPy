@@ -53,7 +53,12 @@ class TestBuilder(unittest.TestCase):
         self.assertFalse(self.data1.find_by_name(spec_name, self.data1.specimens))
         file_name = os.path.join(WD, 'Datafiles', 'misc_files', 'er_specimens.txt')
         self.data1.get_magic_info('sample', 'site', filename=file_name, sort_by_file_type=True)
-        self.assertTrue(self.data1.find_by_name(spec_name, self.data1.specimens))
+        specimen = self.data1.find_by_name(spec_name, self.data1.specimens)
+        self.assertTrue(specimen)
+        self.assertNotIn('specimen_lithology', specimen.pmag_data.keys())
+        self.assertIn('specimen_lithology', specimen.er_data.keys())
+        self.assertEqual(specimen.er_data['specimen_lithology'], 'Basalt')
+
 
     def test_get_magic_info_append_wrong_type_pmag_file(self):
         spec_name = 'sv07b1'
@@ -61,7 +66,11 @@ class TestBuilder(unittest.TestCase):
         file_name = os.path.join(WD, 'Datafiles', 'misc_files', 'pmag_specimens.txt')
         result = self.data1.get_magic_info('sample', 'site', filename=file_name, sort_by_file_type=True)
         self.assertTrue(result)
-        self.assertTrue(self.data1.find_by_name(spec_name, self.data1.specimens))
+        specimen = self.data1.find_by_name(spec_name, self.data1.specimens)
+        self.assertTrue(specimen)
+        self.assertNotIn('measurement_step_max', specimen.er_data.keys())
+        self.assertEqual(specimen.pmag_data['measurement_step_max'], '0.18')
+
 
     def test_get_magic_info_invalid_filename(self):
         file_name = os.path.join(WD, 'Datafiles', 'misc_files', 'pmag_specimen.txt')

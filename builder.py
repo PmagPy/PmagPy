@@ -515,7 +515,9 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
             short_filename = attr + '_' + child_type + 's.txt'
             magic_file = os.path.join(self.WD, short_filename)
         else:
+            short_filename = os.path.split(filename)[1]
             magic_file = filename
+            attr = short_filename.split('_')[0]
         if not os.path.isfile(magic_file):
             print '-W- Could not find {}'.format(magic_file)
             return False
