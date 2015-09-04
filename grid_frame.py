@@ -23,7 +23,8 @@ class GridFrame(wx.Frame):
                  panel_name="grid panel", parent=None):
         self.parent = parent
         wx.GetDisplaySize()
-        wx.Frame.__init__(self, parent=parent, id=wx.ID_ANY, name=frame_name)
+        title = 'Edit {} data'.format(panel_name)
+        wx.Frame.__init__(self, parent=parent, id=wx.ID_ANY, name=frame_name, title=title)
 
         self.remove_cols_mode = False
         self.deleteRowButton = None
