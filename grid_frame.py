@@ -584,6 +584,7 @@ class GridFrame(wx.Frame):
             if import_type == self.grid_type:
                 self.grid_builder.add_data_to_grid(self.grid, import_type)
                 self.grid.size_grid()
+                self.main_sizer.Fit(self)
             else:
                 pw.simple_warning('You have imported a {} type file.\nYou\'ll need to open up your {} grid to see this data'.format(import_type, import_type))
 

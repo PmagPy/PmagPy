@@ -93,7 +93,7 @@ class MagicGrid(wx.grid.Grid):
                     else:
                         value = ''
                     if value:
-                        self.SetCellValue(num, n+1, value)
+                        self.SetCellValue(num, n+1, str(value))
 
     def add_parents(self, col_num=1):
         if self.parent_type and self.row_items:
@@ -106,11 +106,6 @@ class MagicGrid(wx.grid.Grid):
 
     def size_grid(self, event=None):
         self.AutoSizeColumns(True)
-
-        ## this doesn't seem to be necessary, actually
-        ## actually is bad???
-        #self.AutoSize() # prevents display failure
-
         for col in range(len(self.col_labels)):
             # adjust column widths to be a little larger then auto for nicer editing
             orig_size = self.GetColSize(col)
