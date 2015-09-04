@@ -563,9 +563,24 @@ class GridFrame(wx.Frame):
         parent_ind = self.er_magic.ancestry.index(self.grid_type)
         parent_type = self.er_magic.ancestry[parent_ind+1]
         if result == wx.ID_OK:
+            # get filename and file data
             filename = openFileDialog.GetPath()
             import_type = self.er_magic.get_magic_info(self.grid_type, parent_type,
                                                        filename=filename, sort_by_file_type=True)
+            # add any addition headers to the grid
+            self.er_magic.init_actual_headers()
+            er_headers = self.er_magic.headers[self.grid_type]['er'][0]            
+            include_pmag = self.pmag_checkbox.cb.IsChecked()
+            if include_pmag:
+                pmag_headers = self.er_magic.headers[self.grid_type]['pmag'][0]
+                headers = set(er_headers).union(pmag_headers)
+            else:
+                headers = er_headers
+            for head in sorted(list(headers)):
+                if head not in self.grid.col_labels:
+                    self.grid.add_col(head)
+            # if data will not show up in current grid,
+            # warn user
             if import_type == self.grid_type:
                 self.grid_builder.add_data_to_grid(self.grid, import_type)
                 self.grid.size_grid()
