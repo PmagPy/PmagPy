@@ -64,7 +64,7 @@ class MagicGrid(wx.grid.Grid):
         Add items and/or update existing items in grid
         """
         num_rows = self.GetNumberRows()
-        current_grid_rows = [self.GetCellValue(num, 0) for num in range(num_rows)]
+        current_grid_rows = [self.GetCellValue(num, 0) for num in xrange(num_rows)]
         er_data = {item.name: item.er_data for item in items_list}
         pmag_data = {item.name: item.pmag_data for item in items_list}
         items_list = sorted(items_list, key=lambda item: item.name)
@@ -106,7 +106,7 @@ class MagicGrid(wx.grid.Grid):
 
     def size_grid(self, event=None):
         self.AutoSizeColumns(True)
-        for col in range(len(self.col_labels)):
+        for col in xrange(len(self.col_labels)):
             # adjust column widths to be a little larger then auto for nicer editing
             orig_size = self.GetColSize(col)
             if orig_size > 110:
@@ -359,7 +359,7 @@ class MagicGrid(wx.grid.Grid):
 
     def remove_starred_labels(self):#, grid):
         cols_with_stars = []
-        for col in range(self.GetNumberCols()):
+        for col in xrange(self.GetNumberCols()):
             label = self.GetColLabelValue(col)
             if '**' in label:
                 self.SetColLabelValue(col, label.strip('**'))

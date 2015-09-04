@@ -692,7 +692,7 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
         for line in fin.readlines():
             tmp_data = {}
             tmp_line = line.strip('\n').split(delim)
-            for i in range(len(header)):
+            for i in xrange(len(header)):
                 if i < len(tmp_line):
                     tmp_data[header[i]] = tmp_line[i]
                 else:

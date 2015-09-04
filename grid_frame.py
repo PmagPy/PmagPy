@@ -185,8 +185,8 @@ class GridFrame(wx.Frame):
             for loc in self.er_magic.locations:
                 # try to fill in min/max latitudes/longitudes from sites
                 d = self.er_magic.get_min_max_lat_lon(loc.sites)
-                col_labels = [self.grid.GetColLabelValue(col) for col in range(self.grid.GetNumberCols())]
-                row_labels = [self.grid.GetCellValue(row, 0) for row in range(self.grid.GetNumberRows())]
+                col_labels = [self.grid.GetColLabelValue(col) for col in xrange(self.grid.GetNumberCols())]
+                row_labels = [self.grid.GetCellValue(row, 0) for row in xrange(self.grid.GetNumberRows())]
                 for key, value in d.items():
                     if value:
                         if str(loc.er_data[key]) == str(value):
@@ -223,7 +223,7 @@ class GridFrame(wx.Frame):
             self.drop_down_menu.choices[3] = [sorted([samp.name for samp in self.er_magic.samples if samp]), False]
             self.drop_down_menu.choices[4] = [sorted([site.name for site in self.er_magic.sites if site]), False]
             self.drop_down_menu.choices[5] = [sorted([loc.name for loc in self.er_magic.locations if loc]), False]
-            for row in range(self.grid.GetNumberRows()):
+            for row in xrange(self.grid.GetNumberRows()):
                 result_name = self.grid.GetCellValue(row, 0)
                 result = self.er_magic.find_by_name(result_name, self.er_magic.results)
                 if result:
@@ -437,7 +437,7 @@ class GridFrame(wx.Frame):
         """
         num_rows = self.rows_spin_ctrl.GetValue()
         last_row = self.grid.GetNumberRows()
-        for row in range(num_rows):
+        for row in xrange(num_rows):
             self.grid.add_row()
             #if not self.grid.changes:
             #    self.grid.changes = set([])
@@ -573,7 +573,7 @@ class GridFrame(wx.Frame):
                 except Exception as ex:
                     print '-W- ', ex
                     print '-W- Could not read file:\n{}\nFile may be corrupted, or may not be a results format file.'.format(filename)
-                    pw.simple_warning('Could not read file:\n{}\nFile may be corrupted, or may not be a results format file.'.format(filename)
+                    pw.simple_warning('Could not read file:\n{}\nFile may be corrupted, or may not be a results format file.'.format(filename))
                     return
             else:
                 parent_ind = self.er_magic.ancestry.index(self.grid_type)
@@ -611,7 +611,7 @@ class GridFrame(wx.Frame):
         Adds in pmag-specific columns if box is checked.
         """
         num_cols = self.grid.GetNumberCols()
-        current_grid_col_labels = [self.grid.GetColLabelValue(num) for num in range(num_cols)]
+        current_grid_col_labels = [self.grid.GetColLabelValue(num) for num in xrange(num_cols)]
         do_pmag = self.pmag_checkbox.cb.IsChecked()
         # add in pmag-specific headers
         if do_pmag:
@@ -626,7 +626,7 @@ class GridFrame(wx.Frame):
             for col_label in self.er_magic.headers[self.grid_type]['pmag'][0]:
                 if col_label not in self.er_magic.headers[self.grid_type]['er'][0]:
                     num_cols = self.grid.GetNumberCols()
-                    current_grid_col_labels = [self.grid.GetColLabelValue(num) for num in range(num_cols)]
+                    current_grid_col_labels = [self.grid.GetColLabelValue(num) for num in xrange(num_cols)]
                     ind = current_grid_col_labels.index(col_label)
                     self.grid.remove_col(ind)
         self.main_sizer.Fit(self)
@@ -747,7 +747,7 @@ class GridBuilder(object):
 
     def add_age_data_to_grid(self):
         dtype = self.er_magic.age_type
-        row_labels = [self.grid.GetCellValue(row, 0) for row in range(self.grid.GetNumberRows())]
+        row_labels = [self.grid.GetCellValue(row, 0) for row in xrange(self.grid.GetNumberRows())]
         items_list = self.er_magic.data_lists[dtype][0]
         items = [self.er_magic.find_by_name(label, items_list) for label in row_labels if label]
 
@@ -799,7 +799,7 @@ class GridBuilder(object):
                     start_num = 2 if self.parent_type else 1
                     result_data = {}
 
-                    for col in range(start_num, num_cols):
+                    for col in xrange(start_num, num_cols):
                         col_label = str(self.grid.GetColLabelValue(col))
                         value = str(self.grid.GetCellValue(change, col))
                         #new_data[col_label] = value
