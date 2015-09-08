@@ -359,7 +359,7 @@ if __name__ == "__main__":
     # this sends stdout to terminal:
     #app = wx.App(redirect=False)
     # this sends stdout to wxPython:
-    app = wx.App(redirect=True)
+    app = wx.App(redirect=False)
     working_dir = pmag.get_named_arg_from_sys('-WD', '.')
     app.frame = MainFrame(working_dir)
     if working_dir == '.':

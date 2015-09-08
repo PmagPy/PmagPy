@@ -27,7 +27,7 @@ class MagicGrid(wx.grid.Grid):
         ancestry = ['specimen', 'sample', 'site', 'location', None]
 
         if name == 'age':
-            self.parent_type = 'location'
+            self.parent_type = None
         else:
             try:
                 self.parent_type = ancestry[ancestry.index(name) + 1]
@@ -59,7 +59,7 @@ class MagicGrid(wx.grid.Grid):
         return data
 
 
-    def add_items(self, items_list, incl_pmag=True):
+    def add_items(self, items_list, incl_pmag=True, incl_parents=True):
         """
         Add items and/or update existing items in grid
         """
@@ -76,7 +76,8 @@ class MagicGrid(wx.grid.Grid):
         self.add_data(er_data)
         if incl_pmag:
             self.add_data(pmag_data)
-        self.add_parents()
+        if incl_parents:
+            self.add_parents()
         
         
     def add_data(self, data_dict):

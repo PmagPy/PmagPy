@@ -209,10 +209,11 @@ class GridFrame(wx.Frame):
             self.add_many_rows_button.Disable()
             self.grid.SetColLabelValue(0, 'er_site_name')
             toggle_box = wx.StaticBoxSizer(wx.StaticBox(self.panel, -1, label='Ages level'), wx.VERTICAL)
-            yes_no = pw.labeled_yes_or_no(self.panel, 'Choose level to assign ages', 'site', 'sample')
-            toggle_box.Add(yes_no)
-            if self.er_magic.age_type == 'sample':
-                yes_no.rb2.SetValue(True)
+
+            levels = ['specimen', 'sample', 'site', 'location']
+            age_level = pw.radio_buttons(self.panel, levels, 'Choose level to assign ages')
+            toggle_box.Add(age_level)
+
             self.Bind(wx.EVT_RADIOBUTTON, self.toggle_ages)
             hbox.Add(toggle_box)
 
@@ -289,43 +290,26 @@ class GridFrame(wx.Frame):
             self.onSave(None)
 
         label = event.GetEventObject().Label
-        if label == 'sample':
-            new_parent_type = 'site'
-            self.er_magic.age_type = 'sample'
-        if label == 'site':
-            new_parent_type = 'location'
-            self.er_magic.age_type = 'site'
 
+        self.er_magic.age_type = label
         self.grid.Destroy()
 
         # normally grid_frame is reset to None when grid is destroyed
         # in this case we are simply replacing the grid, so we need to
         # reset grid_frame
         self.parent.Parent.grid_frame = self
-
-        # prevent mainframe from popping up in front of age grid
-        # does create an unfortunate flashing effect, though.  
         self.parent.Parent.Hide()
-
-        #self.grid = self.make_grid(new_parent_type)
-        #self.grid_builder = GridBuilder(self.er_magic, self.grid_type, self.grid_headers,
-        #                                self.panel, new_parent_type)
         self.grid = self.grid_builder.make_grid()
-
         self.grid.InitUI()
         self.panel.Bind(wx.grid.EVT_GRID_LABEL_LEFT_CLICK, self.onLeftClickLabel, self.grid)
-        
-        self.grid_builder.add_data_to_grid(self.grid, label)
+        self.grid_builder.add_data_to_grid(self.grid, self.grid_type)
         self.grid_builder.add_age_data_to_grid()
-        belongs_to = sorted(self.er_magic.data_lists[new_parent_type][0], key=lambda item: item.name)
-        self.drop_down_menu = drop_down_menus.Menus(self.grid_type, self, self.grid, belongs_to)
-
-        self.grid.SetColLabelValue(1, 'er_' + new_parent_type + '_name')
+        self.drop_down_menu = drop_down_menus.Menus(self.grid_type, self, self.grid, None)
         self.grid.SetColLabelValue(0, 'er_' + label + '_name')
         self.grid.size_grid()
-        
         self.grid_box.Add(self.grid, flag=wx.ALL, border=5)
         self.main_sizer.Fit(self)
+
 
     def init_grid_headers(self):
         self.grid_headers = self.er_magic.headers
@@ -702,7 +686,7 @@ class GridBuilder(object):
             for header_type in self.er_magic.first_age_headers:
                 if header_type in header:
                     header.remove(header_type)
-            lst = ['er_' + self.grid_type + '_name', 'er_' + self.parent_type + '_name']
+            lst = ['er_' + self.grid_type + '_name']
             lst.extend(self.er_magic.first_age_headers)
             header[:0] = lst
 
@@ -725,10 +709,13 @@ class GridBuilder(object):
         return grid
 
     def add_data_to_grid(self, grid, grid_type=None, incl_pmag=True):
+        incl_parents = True
         if not grid_type:
             grid_type = self.grid_type
         if grid_type == 'age':
             grid_type = self.er_magic.age_type
+            incl_parents = False
+            incl_pmag = False
         # the two loops below may be overly expensive operations
         # consider doing this another way
         if grid_type == 'sample':
@@ -738,7 +725,7 @@ class GridBuilder(object):
             for specimen in self.er_magic.specimens:
                 specimen.propagate_data()
         rows = self.er_magic.data_lists[grid_type][0]
-        grid.add_items(rows, incl_pmag=incl_pmag)
+        grid.add_items(rows, incl_pmag=incl_pmag, incl_parents=incl_parents)
         grid.size_grid()
 
         # always start with at least one row:
@@ -751,12 +738,12 @@ class GridBuilder(object):
         items_list = self.er_magic.data_lists[dtype][0]
         items = [self.er_magic.find_by_name(label, items_list) for label in row_labels if label]
 
-        col_labels = self.grid.col_labels[2:]
+        col_labels = self.grid.col_labels[1:]
         if not items:
             return
         for row_num, item in enumerate(items):
             for col_num, label in enumerate(col_labels):
-                col_num += 2
+                col_num += 1
                 if not label in item.age_data.keys():
                     item.age_data[label] = ''
                 cell_value = item.age_data[label]

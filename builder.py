@@ -1121,7 +1121,7 @@ class Pmag_object(object):
         else:
             self.results_data = None
 
-        if dtype in ('sample', 'site'):
+        if dtype in ('specimen', 'sample', 'site', 'location'):
             self.age_reqd_headers, self.age_optional_headers = self.get_headers('er_ages')
             self.age_data = {key: '' for key in self.age_reqd_headers}
             remove_dict_headers(self.age_data)
