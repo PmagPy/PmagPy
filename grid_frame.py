@@ -38,9 +38,7 @@ class GridFrame(wx.Frame):
         if self.parent:
             self.Bind(wx.EVT_WINDOW_DESTROY, self.parent.Parent.on_close_grid_frame)
 
-        #ancestry = [None, 'specimen', 'sample', 'site', 'location', None]
         if self.grid_type == 'age':
-            #self.current_age_type = 'site'
             ancestry_ind = self.er_magic.ancestry.index(self.er_magic.age_type)
             self.child_type = self.er_magic.ancestry[ancestry_ind-1]#'sample'
             self.parent_type = self.er_magic.ancestry[ancestry_ind+1]#'location'
@@ -64,20 +62,12 @@ class GridFrame(wx.Frame):
         initialize window
         """
         self.main_sizer = wx.BoxSizer(wx.VERTICAL)
-        #self.er_magic = ErMagicBuilder.ErMagicBuilder(self.WD)#,self.Data,self.Data_hierarchy)
-
         self.init_grid_headers()
-        
-        #self.grid = self.make_grid(self.parent_type)
         self.grid_builder = GridBuilder(self.er_magic, self.grid_type, self.grid_headers,
                                         self.panel, self.parent_type)
         self.grid = self.grid_builder.make_grid()
-
-
-
         self.grid.InitUI()
 
-        
         self.add_cols_button = wx.Button(self.panel, label="Add additional columns", name='add_cols_btn')
         self.Bind(wx.EVT_BUTTON, self.on_add_cols, self.add_cols_button)
         self.remove_cols_button = wx.Button(self.panel, label="Remove columns", name='remove_cols_btn')
@@ -162,8 +152,6 @@ class GridFrame(wx.Frame):
         self.Bind(wx.EVT_KEY_DOWN, self.on_key_down)
         self.panel.Bind(wx.EVT_TEXT_PASTE, self.do_fit)
 
-
-        
         # add actual data!
         self.grid_builder.add_data_to_grid(self.grid, self.grid_type)
         
@@ -212,6 +200,9 @@ class GridFrame(wx.Frame):
 
             levels = ['specimen', 'sample', 'site', 'location']
             age_level = pw.radio_buttons(self.panel, levels, 'Choose level to assign ages')
+            level_ind = levels.index(self.er_magic.age_type)
+            age_level.radio_buttons[level_ind].SetValue(True)
+            
             toggle_box.Add(age_level)
 
             self.Bind(wx.EVT_RADIOBUTTON, self.toggle_ages)
