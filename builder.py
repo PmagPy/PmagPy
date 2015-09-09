@@ -659,7 +659,11 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
                     result.pop(header_name)
             if not name:
                 name = num
-            result_item = Result(name, specimens, samples, sites, locations, result, self.data_model)
+            result_item = self.find_by_name(name, self.results)
+            if not result_item:
+                result_item = Result(name, specimens, samples, sites, locations, result, self.data_model)
+            else:
+                print '-W- Two or more results with name: {} found in your result file.\n    Taking only the first.'.format(name)
             if result_item and result_item not in self.results:
                 self.results.append(result_item)
 
