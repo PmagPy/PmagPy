@@ -538,7 +538,10 @@ class GridFrame(wx.Frame):
 
         if result == wx.ID_OK:
             if self.grid_type == 'age':
-                pass
+                import_type = 'age'
+                parent_type = None
+                filename = openFileDialog.GetPath()
+                self.er_magic.get_age_info(filename)
             elif self.grid_type == 'result':
                 import_type = 'result'
                 parent_type = None
@@ -570,9 +573,12 @@ class GridFrame(wx.Frame):
             for head in sorted(list(headers)):
                 if head not in self.grid.col_labels:
                     self.grid.add_col(head)
-            # if data will not show up in current grid,
+            # add age data
+            if import_type == 'age' and self.grid_type == 'age':
+                self.grid_builder.add_age_data_to_grid()
+            # if imported data will not show up in current grid,
             # warn user
-            if import_type == self.grid_type:
+            elif import_type == self.grid_type:
                 self.grid_builder.add_data_to_grid(self.grid, import_type)
                 self.grid.size_grid()
                 self.main_sizer.Fit(self)
@@ -730,22 +736,20 @@ class GridBuilder(object):
         items = [self.er_magic.find_by_name(label, items_list) for label in row_labels if label]
 
         col_labels = self.grid.col_labels[1:]
-        if not items:
+        if not any(items):
             return
         for row_num, item in enumerate(items):
             for col_num, label in enumerate(col_labels):
                 col_num += 1
-                if not label in item.age_data.keys():
-                    item.age_data[label] = ''
-                cell_value = item.age_data[label]
-                if cell_value:
-                    self.grid.SetCellValue(row_num, col_num, cell_value)
+                if item:
+                    if not label in item.age_data.keys():
+                        item.age_data[label] = ''
+                    cell_value = item.age_data[label]
+                    if cell_value:
+                        self.grid.SetCellValue(row_num, col_num, cell_value)
 
 
-
-
-    # takes all code from what was onSave
-    def save_grid_data(self):#, age_data_type='site'):
+    def save_grid_data(self):
         """
         Save grid data in the data object
         """

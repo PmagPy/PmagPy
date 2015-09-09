@@ -580,16 +580,19 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
                 parent.add_child(child)
         return child_type
 
-    def get_age_info(self):#, sample_or_site='site'):
+    def get_age_info(self, filename=None):
         """
         Read er_ages.txt file.
         Parse information into dictionaries for each site/sample.
         Then add it to the site/sample object as site/sample.age_data.
         """
-        short_filename = 'er_ages.txt'
-        magic_file = os.path.join(self.WD, short_filename)
+        if not filename:
+            short_filename = 'er_ages.txt'
+            magic_file = os.path.join(self.WD, short_filename)
+        else:
+            magic_file = filename
         if not os.path.isfile(magic_file):
-            print '-W- Could not find {} in your working directory {}'.format(short_filename, self.WD)
+            print '-W- Could not find {}'.format(magic_file)
             return False
         try:
             data_dict = self.read_magic_file(magic_file, 'er_sample_name')[0]
