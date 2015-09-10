@@ -541,7 +541,8 @@ class GridFrame(wx.Frame):
                 import_type = 'age'
                 parent_type = None
                 filename = openFileDialog.GetPath()
-                self.er_magic.get_age_info(filename)
+                file_type = self.er_magic.get_age_info(filename)
+                import_type = file_type.split('_')[1][:-1]
             elif self.grid_type == 'result':
                 import_type = 'result'
                 parent_type = None

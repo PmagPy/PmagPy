@@ -598,11 +598,16 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
             print '-W- Could not find {}'.format(magic_file)
             return False
 
-        ## we'll need to do it more like this
-        #data_dict = self.read_magic_file(magic_file, 'by_line_number')[0]
-        ##
-        data_dict = self.read_magic_file(magic_file, 'by_line_number')[0]
-        
+        data_dict, header, file_type = self.read_magic_file(magic_file, 'by_line_number')
+        # if provided file is not an age_file,
+        # try to read it in as whatever type of file it actually is
+        if file_type != 'er_ages':
+            item_type = file_type.split('_')[1][:-1]
+            self.get_magic_info(item_type, filename=filename, sort_by_file_type=True)
+            return file_type
+
+        # if it is an age file,
+        #determine level for each age and assign it to the appropriate pmag object
         for item_dict in data_dict.values():
             item_type = None
             for dtype in ['specimen', 'sample', 'site', 'location']:
@@ -615,7 +620,7 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
             if not item_type:
                 print '-W- You must provide a name for your age'
                 print '    This data:\n{}\n    will not be imported'.format(item_dict)
-                return
+                continue
             items_list = self.data_lists[item_type][0]
             item = self.find_by_name(item_name, items_list)
             if not item:
@@ -628,6 +633,7 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
                 continue
             item.age_data = remove_dict_headers(item_dict)
         self.write_ages = True
+        return file_type
 
     def get_results_info(self, filename=None):
         """
