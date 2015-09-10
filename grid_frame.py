@@ -576,6 +576,8 @@ class GridFrame(wx.Frame):
             # add age data
             if import_type == 'age' and self.grid_type == 'age':
                 self.grid_builder.add_age_data_to_grid()
+                self.grid.size_grid()
+                self.main_sizer.Fit(self)
             # if imported data will not show up in current grid,
             # warn user
             elif import_type == self.grid_type:

@@ -534,6 +534,9 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
             print '-W- Expected data of type: {} but instead got: {}'.format(expected_item_type,
                                                                              item_type)
             print '-W- Using type: {}'.format(item_type)
+            if item_type == 'age':
+                self.get_age_info(filename)
+                return 'age'
             child_type = item_type
             magic_name = 'er_' + child_type + '_name'
             ind = self.ancestry.index(child_type)
@@ -594,25 +597,36 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
         if not os.path.isfile(magic_file):
             print '-W- Could not find {}'.format(magic_file)
             return False
-        try:
-            data_dict = self.read_magic_file(magic_file, 'er_sample_name')[0]
-            self.age_type = 'sample'
-        except KeyError:
-            data_dict = self.read_magic_file(magic_file, 'er_site_name')[0]
-            self.age_type = 'site'
-        magic_name = 'er_' + self.age_type + '_name'
-        items_list, item_constructor = self.data_lists[self.age_type]
-        for pmag_name in data_dict.keys():
-            pmag_item = self.find_by_name(pmag_name, items_list)
-            if not pmag_item:
+
+        ## we'll need to do it more like this
+        #data_dict = self.read_magic_file(magic_file, 'by_line_number')[0]
+        ##
+        data_dict = self.read_magic_file(magic_file, 'by_line_number')[0]
+        
+        for item_dict in data_dict.values():
+            item_type = None
+            for dtype in ['specimen', 'sample', 'site', 'location']:
+                header_name = 'er_' + dtype + '_name'
+                if header_name in item_dict.keys():
+                    if item_dict[header_name]:
+                        item_type = dtype
+                        item_name = item_dict[header_name]
+                        break
+            if not item_type:
+                print '-W- You must provide a name for your age'
+                print '    This data:\n{}\n    will not be imported'.format(item_dict)
+                return
+            items_list = self.data_lists[item_type][0]
+            item = self.find_by_name(item_name, items_list)
+            if not item:
                 ## the commented out code would create any site/sample in er_ages that is not in er_sites/er_samples
-                ## however, we probably don't WANT that behavior
+                ## however, we may not WANT that behavior
                 #parent_type = 'er_location_name' if sample_or_site == 'site' else 'er_site_name'
                 #parent = data_dict.get(parent_type, '')
                 #pmag_item = item_constructor(pmag_name, parent, data_model=self.data_model)
                 #items_list.append(pmag_item)
                 continue
-            pmag_item.age_data = remove_dict_headers(data_dict[pmag_name])
+            item.age_data = remove_dict_headers(item_dict)
         self.write_ages = True
 
     def get_results_info(self, filename=None):
@@ -692,7 +706,10 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
         file_type = first_line.strip('\n').split(delim)[1]
         if sort_by_file_type:
             item_type = file_type.split('_')[1][:-1]
-            sort_by_this_name = 'er_' + item_type + '_name'
+            if item_type == 'age':
+                sort_by_this_name = "by_line_number"
+            else:
+                sort_by_this_name = 'er_' + item_type + '_name'
         line = fin.readline()
         header = line.strip('\n').split(delim)
         counter = 0
