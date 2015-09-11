@@ -306,7 +306,6 @@ class GridFrame(wx.Frame):
         self.grid_headers = self.er_magic.headers
 
 
-
     ##  Grid event methods
 
     def remove_col_label(self, event):#, include_pmag=True):
@@ -839,9 +838,10 @@ class GridBuilder(object):
                                                                           loc_names=locs,
                                                                           replace_data=True)
                         elif self.grid_type == 'age':
-                            site_or_sample = age_data_type
+                            item_type = age_data_type
                             item = self.er_magic.update_methods['age'](old_item_name, new_er_data,
-                                                                       site_or_sample, replace_data=True)
+                                                                       item_type, replace_data=True)
+                            
                         else:
                             item = self.er_magic.update_methods[self.grid_type](old_item_name, new_item_name,
                                                                                 new_parent_name, new_er_data,

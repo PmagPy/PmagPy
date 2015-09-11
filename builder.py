@@ -269,8 +269,8 @@ Leaving site unchanged as: {} for {}""".format(new_site_name, sample.site or '*e
         return specimens
 
     
-    def change_age(self, old_name, new_age_data=None, site_or_sample='site', replace_data=False):
-        item = self.find_by_name(old_name, self.data_lists[site_or_sample][0])
+    def change_age(self, old_name, new_age_data=None, item_type='site', replace_data=False):
+        item = self.find_by_name(old_name, self.data_lists[item_type][0])
         if replace_data:
             default_age_data = {key: '' for key in self.headers['age']['er'][1]}
             item.age_data = item.combine_dicts(new_age_data, default_age_data)
@@ -800,8 +800,7 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
         if self.locations:
             self.write_magic_file('location', do_er=True, do_pmag=False)
 
-        if self.data_lists[self.age_type][0]:
-            self.write_age_file(self.age_type)
+        self.write_age_file()
         
         if self.results:
             self.write_result_file()
@@ -962,7 +961,7 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
         outfile.close()
         return outfile
 
-    def write_age_file(self, site_or_sample='site'):
+    def write_age_file(self):
         """
         Write er_ages.txt based on updated ErMagicBuilder data object
         """
@@ -974,25 +973,31 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
         for header in first_headers:
             if header in actual_headers:
                 actual_headers.remove(header)
-        if site_or_sample == 'site':
-            add_headers = ['er_'+ site_or_sample + '_name', 'er_location_name']
-        else:
-            add_headers = ['er_'+ site_or_sample + '_name', 'er_site_name', 'er_location_name']
+        add_headers = ['er_specimen_name', 'er_sample_name', 'er_site_name', 'er_location_name']
         actual_headers[:0] = first_headers
         full_headers = add_headers[:]
         full_headers.extend(actual_headers)
-        ind = self.ancestry.index(site_or_sample)
-        ancestors = ['' for num in range(len(self.ancestry) - (ind+2))]
 
         header_string = '\t'.join(full_headers)
-        ages = self.data_lists[site_or_sample][0]
-        ages = sorted(ages, key=lambda item: item.name)
+        ages = []
+        for dtype in ['specimen', 'sample', 'site', 'location']:
+            ages_list = sorted(self.data_lists[dtype][0], key=lambda item: item.name)
+            ages.extend(ages_list)
 
         age_strings = []
         for age in ages:
+            ind = self.ancestry.index(age.dtype)
+            ancestors = ['' for num in range(len(self.ancestry) - (ind+2))]
             data_found = False
             string = ''
-            string += age.name + '\t'
+            if age.dtype == 'specimen':
+                string += age.name + '\t'
+            elif age.dtype == 'sample':
+                string += '\t' + age.name + '\t'
+            elif age.dtype == 'site':
+                string += '\t\t' + age.name + '\t'
+            elif age.dtype == 'location':
+                string += '\t\t\t' + age.name + '\t'
             parent = age.get_parent()
             grandparent = None
             if parent:
@@ -1000,6 +1005,9 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
                 grandparent = parent.get_parent()
                 if grandparent:
                     ancestors[1] = grandparent.name
+                    greatgrandparent = grandparent.get_parent()
+                    if greatgrandparent:
+                        ancestors[2] = greatgrandparent.name
             for ancestor in ancestors:
                 string += ancestor + '\t'
             for key in actual_headers:
@@ -1013,7 +1021,6 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
                 if key == 'er_citation_names' and not add_string.strip('\t'):
                     add_string = 'This study'
                 string += add_string + '\t'
-
             # prevent extra '' at the end of age string
             if string.endswith('\t'):
                 string = string[:-1]
@@ -1023,6 +1030,10 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
         outfile = open(os.path.join(self.WD, 'er_ages.txt'), 'w')
         outfile.write('tab\ter_ages\n')
         outfile.write(header_string + '\n')
+        if not age_strings:
+            outfile.close()
+            os.remove(os.path.join(self.WD, 'er_ages.txt'))
+            return False
         for string in age_strings:
             outfile.write(string + '\n')
         outfile.close()
@@ -1115,8 +1126,6 @@ class Measurement(object):
         return 'Measurement: ' + self.name
 
 
-
-    
 class Pmag_object(object):
     """
     Base class for Specimens, Samples, Sites, etc.
