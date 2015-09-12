@@ -346,7 +346,6 @@ class GridFrame(wx.Frame):
         """
         Show simple dialog that allows user to add a new column name
         """
-
         col_labels = self.grid.col_labels
         er_items = [head for head in self.grid_headers[self.grid_type]['er'][2] if head not in col_labels]
         include_pmag = self.pmag_checkbox.cb.IsChecked()
@@ -561,9 +560,12 @@ class GridFrame(wx.Frame):
                 filename = openFileDialog.GetPath()
                 import_type = self.er_magic.get_magic_info(self.grid_type, parent_type,
                                                            filename=filename, sort_by_file_type=True)
-            # add any additional headers to the grid
+            # add any additional headers to the grid, while preserving all old headers
+            current_headers = self.grid_headers[self.grid_type]['er'][0]
             self.er_magic.init_actual_headers()
-            er_headers = self.er_magic.headers[self.grid_type]['er'][0]            
+            er_headers = list(set(self.er_magic.headers[self.grid_type]['er'][0]).union(current_headers))
+            self.er_magic.headers[self.grid_type]['er'][0] = er_headers
+
             include_pmag = self.pmag_checkbox.cb.IsChecked()
             if include_pmag:
                 pmag_headers = self.er_magic.headers[self.grid_type]['pmag'][0]
@@ -586,6 +588,7 @@ class GridFrame(wx.Frame):
                 self.main_sizer.Fit(self)
             else:
                 pw.simple_warning('You have imported a {} type file.\nYou\'ll need to open up your {} grid to see this data'.format(import_type, import_type))
+
 
     def on_pmag_checkbox(self, event):
         """
