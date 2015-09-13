@@ -5,7 +5,7 @@ import pylab
 import numpy as np
 import random
 import matplotlib
-import matplotlib.pyplot as pyplot
+import matplotlib.pyplot as plt
 import os
 import sys
 import time
@@ -20,49 +20,55 @@ from matplotlib.figure import Figure
 
 def igrf(input_list):
     """
-    prints out Declination, Inclination, Intensity data from an input list with format: [Date, Altitude, Latitude, Longitude]
+    Prints out Declination, Inclination, Intensity from the IGRF model.
+
+    Arguments
+    ----------
+    input_list : list with format [Date, Altitude, Latitude, Longitude]
     Date must be in format XXXX.XXXX with years and decimals of a year (A.D.)
     """
     x,y,z,f=pmag.doigrf(input_list[3]%360.,input_list[2],input_list[1],input_list[0])
     Dir=pmag.cart2dir((x,y,z))
     return Dir
 
+
 def fishrot(k=20,n=100,Dec=0,Inc=90):
     """
-    Generates Fisher distributed unit vectors from a specified distribution 
-    using the pmag.py fshdev and dodirot functions
-    
-    Arguments
+    Generates Fisher distributed unit vectors from a specified distribution
+    using the pmag.py fshdev and dodirot functions.
+
+    Parameters
     ----------
-    k kappa precision parameter (default is 20) 
-    n number of vectors to determine (default is 100)
-    Dec mean declination of data set (default is 0)
-    Inc mean inclination of data set (default is 90)
+    k : kappa precision parameter (default is 20)
+    n : number of vectors to determine (default is 100)
+    Dec : mean declination of distribution (default is 0)
+    Inc : mean inclination of distribution (default is 90)
     """
     directions=[]
     for data in range(n):
-        dec,inc=pmag.fshdev(k) 
-        drot,irot=pmag.dodirot(dec,inc,Dec,Inc)
+        d,i=pmag.fshdev(k)
+        drot,irot=pmag.dodirot(d,i,Dec,Inc)
         directions.append([drot,irot,1.])
     return directions
 
+
 def tk03(n=100,dec=0,lat=0,rev='no',G2=0,G3=0):
     """
-    generates set of vectors drawn from the TK03.gad model of 
-    secular variation (Tauxe and Kent, 2004) at given latitude and rotated 
-    about a vertical axis by the given declination 
+    Generates vectors drawn from the TK03.gad model of secular
+    variation (Tauxe and Kent, 2004) at given latitude and rotated
+    about a vertical axis by the given declination.
 
-    Arguments
+    Parameters
     ----------
-    n number of vectors to determine (default is 100)
-    dec mean declination of data set (default is 0)
-    lat latitude at which secular variation is simulated (default is 0)
-    rev if reversals are to be included this should be 'yes' (default is 'no')
-    G2 specify average g_2^0 fraction (default is 0)
-    G3 specify average g_3^0 fraction (default is 0)
+    n : number of vectors to determine (default is 100)
+    dec : mean declination of data set (default is 0)
+    lat : latitude at which secular variation is simulated (default is 0)
+    rev : if reversals are to be included this should be 'yes' (default is 'no')
+    G2 : specify average g_2^0 fraction (default is 0)
+    G3 : specify average g_3^0 fraction (default is 0)
     """
     tk_03_output=[]
-    for k in range(n): 
+    for k in range(n):
         gh=pmag.mktk03(8,k,G2,G3) # terms and random seed
         long=random.randint(0,360) # get a random longitude, between 0 and 359
         vec= pmag.getvec(gh,lat,long)  # send field model and lat to getvec
@@ -72,22 +78,35 @@ def tk03(n=100,dec=0,lat=0,rev='no',G2=0,G3=0):
         if k%2==0 and rev=='yes':
            vec[0]+=180.
            vec[1]=-vec[1]
-        tk_03_output.append([vec[0],vec[1],vec[2]])    
+        tk_03_output.append([vec[0],vec[1],vec[2]])
     return tk_03_output
 
 
 def unsquish(f,incs):
     """
-    unsquish(f, incs) applies an unflattening factor, f to the inclination data and returns unsquished values.
+    This function applies an unflattening factor (f) to inclination data
+    (incs) and returns 'unsquished' values.
+
+    Arguments
+    ----------
+    f : unflattening factor
+    incs : inclination values
     """
     incs=incs*np.pi/180. # convert to radians
     tincnew=(1./f)*np.tan(incs)
     incnew=np.arctan(tincnew)*180./np.pi # convert back to degrees
     return incnew
 
+
 def squish(f,incs):
     """
-    squish(f, incs) appliesa flattening factor, f, to the inclination data and returns the 'squished' values.
+    This function applies an flattening factor (f) to inclination data
+    (incs) and returns 'squished' values.
+
+    Arguments
+    ----------
+    f : flattening factor
+    incs : inclination values
     """
     incs=incs*np.pi/180. # convert to radians
     tincnew=f*np.tan(incs)
@@ -97,7 +116,8 @@ def squish(f,incs):
 
 def flip(D): #function simplified from PmagPy pmag.flip function
     """
-    This function returns the antipode (flips) of the unit vectors in D (dec,inc,length).
+    This function returns the antipode (i.e. it flips) of the unit vectors
+    in D (dec,inc,length).
     """
     Dflip=[]
     for rec in D:
@@ -105,51 +125,57 @@ def flip(D): #function simplified from PmagPy pmag.flip function
         Dflip.append([d,i])
     return Dflip
 
+
 def bootstrap_fold_test(Data,num_sims=1000,min_untilt=-10,max_untilt=120,bedding_error=0):
     """
     Conduct a bootstrap fold test (Tauxe and Watson, 1994)
-    
-    Three plots are generated: 1) equal area plot of uncorrected data; 2) tilt-corrected equal area plot; 
-    3) bootstrap results showing the trend of the largest eigenvalues for a selection of the 
-    pseudo-samples (red dashed lines), the cumulative distribution of the eigenvalue maximum (green line)
-    and the confidence bounds that enclose 95% of the pseudo-sample maxima. If the confidence bounds enclose
-    100% unfolding, the data "pass" the fold test.
-    
-    Arguments
+
+    Three plots are generated: 1) equal area plot of uncorrected data;
+    2) tilt-corrected equal area plot; 3) bootstrap results showing the trend
+    of the largest eigenvalues for a selection of the pseudo-samples (red
+    dashed lines), the cumulative distribution of the eigenvalue maximum (green
+    line) and the confidence bounds that enclose 95% of the pseudo-sample
+    maxima. If the confidence bounds enclose 100% unfolding, the data "pass"
+    the fold test.
+
+    Required Arguments
     ----------
     Data : a numpy array of directional data [dec,inc,dip_direction,dip]
+
+    Optional Keywords (defaults are used if not specified)
+    ----------
     NumSims : number of bootstrap samples (default is 1000)
     min_untilt : minimum percent untilting applied to the data (default is -10%)
     max_untilt : maximum percent untilting applied to the data (default is 120%)
     bedding_error : (circular standard deviation) for uncertainty on bedding poles
-    """   
-    
+    """
+
     print 'doing ',num_sims,' iterations...please be patient.....'
 
     if bedding_error!=0:
         kappa=(81./bedding_error)**2
     else:
         kappa=0
-            
-    pyplot.figure(figsize=[5,5])
+
+    plt.figure(figsize=[5,5])
     plot_net(1)
     pmagplotlib.plotDI(1,Data)  # plot directions
-    pyplot.text(-1.1,1.15,'Geographic')
+    plt.text(-1.1,1.15,'Geographic')
 
     D,I=pmag.dotilt_V(Data)
     TCs=np.array([D,I]).transpose()
 
-    pyplot.figure(figsize=[5,5])
+    plt.figure(figsize=[5,5])
     plot_net(2)
     pmagplotlib.plotDI(2,TCs)  # plot directions
-    pyplot.text(-1.1,1.15,'Tilt-corrected')
-    pyplot.show()
-    
+    plt.text(-1.1,1.15,'Tilt-corrected')
+    plt.show()
+
     Percs = range(min_untilt,max_untilt)
     Cdf = []
     Untilt = []
-    pyplot.figure()
-    
+    plt.figure()
+
     for n in range(num_sims): # do bootstrap data sets - plot first 25 as dashed red line
             #if n%50==0:print n
             Taus=[] # set up lists for taus
@@ -158,7 +184,7 @@ def bootstrap_fold_test(Data,num_sims=1000,min_untilt=-10,max_untilt=120,bedding
                 for k in range(len(PDs)):
                     d,i=pmag.fshdev(kappa)
                     dipdir,dip=pmag.dodirot(d,i,PDs[k][2],PDs[k][3])
-                    PDs[k][2]=dipdir            
+                    PDs[k][2]=dipdir
                     PDs[k][3]=dip
             for perc in Percs:
                 tilt=np.array([1.,1.,1.,0.01*perc])
@@ -166,33 +192,34 @@ def bootstrap_fold_test(Data,num_sims=1000,min_untilt=-10,max_untilt=120,bedding
                 TCs=np.array([D,I]).transpose()
                 ppars=pmag.doprinc(TCs) # get principal directions
                 Taus.append(ppars['tau1'])
-            if n<25:pyplot.plot(Percs,Taus,'r--')
+            if n<25:plt.plot(Percs,Taus,'r--')
             Untilt.append(Percs[Taus.index(np.max(Taus))]) # tilt that gives maximum tau
             Cdf.append(float(n)/float(num_sims))
-    pyplot.plot(Percs,Taus,'k')
-    pyplot.xlabel('% Untilting')
-    pyplot.ylabel('tau_1 (red), CDF (green)')
+    plt.plot(Percs,Taus,'k')
+    plt.xlabel('% Untilting')
+    plt.ylabel('tau_1 (red), CDF (green)')
     Untilt.sort() # now for CDF of tilt of maximum tau
-    pyplot.plot(Untilt,Cdf,'g')
-    lower=int(.025*num_sims)     
+    plt.plot(Untilt,Cdf,'g')
+    lower=int(.025*num_sims)
     upper=int(.975*num_sims)
-    pyplot.axvline(x=Untilt[lower],ymin=0,ymax=1,linewidth=1,linestyle='--')
-    pyplot.axvline(x=Untilt[upper],ymin=0,ymax=1,linewidth=1,linestyle='--')
+    plt.axvline(x=Untilt[lower],ymin=0,ymax=1,linewidth=1,linestyle='--')
+    plt.axvline(x=Untilt[upper],ymin=0,ymax=1,linewidth=1,linestyle='--')
     title = '%i - %i %s'%(Untilt[lower],Untilt[upper],'percent unfolding')
     print ""
     print 'tightest grouping of vectors obtained at (95% confidence bounds):'
     print title
     print 'range of all bootstrap samples: '
     print Untilt[0], ' - ', Untilt[-1],'percent unfolding'
-    pyplot.title(title)
-    pyplot.show()
-        
+    plt.title(title)
+    plt.show()
+
+
 def bootstrap_common_mean(Data1,Data2,NumSims=1000):
     """
     Conduct a bootstrap test (Tauxe, 2010) for a common mean on two declination,
     inclination data sets
-    
-    This function modifies code from PmagPy for use calculating and plotting 
+
+    This function modifies code from PmagPy for use calculating and plotting
     bootstrap statistics. Three plots are generated (one for x, one for y and
     one for z). If the 95 percent confidence bounds for each component overlap
     each other, the two directions are not significantly different.
@@ -201,8 +228,11 @@ def bootstrap_common_mean(Data1,Data2,NumSims=1000):
     ----------
     Data1 : a list of directional data [dec,inc]
     Data2 : a list of directional data [dec,inc]
+
+    Optional Keywords (defaults are used if not specified)
+    ----------
     NumSims : number of bootstrap samples (default is 1000)
-    """         
+    """
     counter=0
     BDI1=pmag.di_boot(Data1)
     BDI2=pmag.di_boot(Data2)
@@ -211,16 +241,16 @@ def bootstrap_common_mean(Data1,Data2,NumSims=1000):
     X1,Y1,Z1=cart1[0],cart1[1],cart1[2]
     cart2= pmag.dir2cart(BDI2).transpose()
     X2,Y2,Z2=cart2[0],cart2[1],cart2[2]
-    
+
     print "Here are the results of the bootstrap test for a common mean:"
-    
+
     fignum = 1
-    fig = pyplot.figure(figsize=(9,3))
-    fig = pyplot.subplot(1,3,1)
-    
+    fig = plt.figure(figsize=(9,3))
+    fig = plt.subplot(1,3,1)
+
     minimum = int(0.025*len(X1))
     maximum = int(0.975*len(X1))
-    
+
     X1,y=pmagplotlib.plotCDF(fignum,X1,"X component",'r',"")
     bounds1=[X1[minimum],X1[maximum]]
     pmagplotlib.plotVs(fignum,bounds1,'r','-')
@@ -228,54 +258,55 @@ def bootstrap_common_mean(Data1,Data2,NumSims=1000):
     X2,y=pmagplotlib.plotCDF(fignum,X2,"X component",'b',"")
     bounds2=[X2[minimum],X2[maximum]]
     pmagplotlib.plotVs(fignum,bounds2,'b','--')
-    pyplot.ylim(0,1)
-    
-    pyplot.subplot(1,3,2)
-    
+    plt.ylim(0,1)
+
+    plt.subplot(1,3,2)
+
     Y1,y=pmagplotlib.plotCDF(fignum,Y1,"Y component",'r',"")
     bounds1=[Y1[minimum],Y1[maximum]]
     pmagplotlib.plotVs(fignum,bounds1,'r','-')
-    
+
     Y2,y=pmagplotlib.plotCDF(fignum,Y2,"Y component",'b',"")
     bounds2=[Y2[minimum],Y2[maximum]]
     pmagplotlib.plotVs(fignum,bounds2,'b','--')
-    pyplot.ylim(0,1)
-    
-    pyplot.subplot(1,3,3)
-    
+    plt.ylim(0,1)
+
+    plt.subplot(1,3,3)
+
     Z1,y=pmagplotlib.plotCDF(fignum,Z1,"Z component",'r',"")
     bounds1=[Z1[minimum],Z1[maximum]]
     pmagplotlib.plotVs(fignum,bounds1,'r','-')
-    
+
     Z2,y=pmagplotlib.plotCDF(fignum,Z2,"Z component",'b',"")
     bounds2=[Z2[minimum],Z2[maximum]]
     pmagplotlib.plotVs(fignum,bounds2,'b','--')
-    pyplot.ylim(0,1)
-    
-    pyplot.tight_layout()
-    pyplot.show()
-    
+    plt.ylim(0,1)
+
+    plt.tight_layout()
+    plt.show()
+
+
 def watson_common_mean(Data1,Data2,NumSims=5000,plot='no'):
     """
-    Conduct a Watson V test for a common mean on two declination, inclination data sets
-    
-    This function calculates Watson's V statistic from input files through Monte Carlo
-    simulation in order to test whether two populations of directional data could have
-    been drawn from a common mean. The critical angle between the two sample mean
-    directions and the corresponding McFadden and McElhinny (1990) classification is printed.
+    Conduct a Watson V test for a common mean on two directional data sets.
 
+    This function calculates Watson's V statistic from input files through
+    Monte Carlo simulation in order to test whether two populations of
+    directional data could have been drawn from a common mean. The critical
+    angle between the two sample mean directions and the corresponding
+    McFadden and McElhinny (1990) classification is printed.
 
     Required Arguments
     ----------
     Data1 : a list of directional data [dec,inc]
     Data2 : a list of directional data [dec,inc]
-    
-    Optional Arguments
+
+    Optional Keywords (defaults are used if not specified)
     ----------
     NumSims : number of Monte Carlo simulations (default is 5000)
     plot : the default is no plot ('no'). Putting 'yes' will the plot the CDF from
     the Monte Carlo simulations.
-    """   
+    """
     pars_1=pmag.fisher_mean(Data1)
     pars_2=pmag.fisher_mean(Data2)
 
@@ -287,23 +318,23 @@ def watson_common_mean(Data1,Data2,NumSims=5000,plot='no'):
     xhat_3=pars_1['k']*cart_1[2]+pars_2['k']*cart_2[2] # k1*z1+k2*z2
     Rw=np.sqrt(xhat_1**2+xhat_2**2+xhat_3**2)
     V=2*(Sw-Rw)
-    # keep weighted sum for later when determining the "critical angle" 
+    # keep weighted sum for later when determining the "critical angle"
     # let's save it as Sr (notation of McFadden and McElhinny, 1990)
-    Sr=Sw 
-    
-    # do monte carlo simulation of datasets with same kappas as data, 
+    Sr=Sw
+
+    # do monte carlo simulation of datasets with same kappas as data,
     # but a common mean
     counter=0
     Vp=[] # set of Vs from simulations
-    for k in range(NumSims): 
-       
+    for k in range(NumSims):
+
     # get a set of N1 fisher distributed vectors with k1,
     # calculate fisher stats
         Dirp=[]
         for i in range(pars_1["n"]):
             Dirp.append(pmag.fshdev(pars_1["k"]))
         pars_p1=pmag.fisher_mean(Dirp)
-    # get a set of N2 fisher distributed vectors with k2, 
+    # get a set of N2 fisher distributed vectors with k2,
     # calculate fisher stats
         Dirp=[]
         for i in range(pars_2["n"]):
@@ -326,12 +357,12 @@ def watson_common_mean(Data1,Data2,NumSims=5000,plot='no'):
 
     # following equation 19 of McFadden and McElhinny (1990) the critical
     # angle is calculated. If the observed angle (also calculated below)
-    # between the data set means exceeds the critical angle the hypothesis 
+    # between the data set means exceeds the critical angle the hypothesis
     # of a common mean direction may be rejected at the 95% confidence
-    # level. The critical angle is simply a different way to present 
+    # level. The critical angle is simply a different way to present
     # Watson's V parameter so it makes sense to use the Watson V parameter
     # in comparison with the critical value of V for considering the test
-    # results. What calculating the critical angle allows for is the 
+    # results. What calculating the critical angle allows for is the
     # classification of McFadden and McElhinny (1990) to be made
     # for data sets that are consistent with sharing a common mean.
 
@@ -347,7 +378,7 @@ def watson_common_mean(Data1,Data2,NumSims=5000,plot='no'):
     angle=pmag.angle(D1,D2)
 
     print "Results of Watson V test: "
-    print "" 
+    print ""
     print "Watson's V:           " '%.1f' %(V)
     print "Critical value of V:  " '%.1f' %(Vcrit)
 
@@ -358,12 +389,12 @@ def watson_common_mean(Data1,Data2,NumSims=5000,plot='no'):
     elif V>Vcrit:
         print '"Fail": Since V is greater than Vcrit, the two means can'
         print 'be distinguished at the 95% confidence level.'
-    print ""    
+    print ""
     print "M&M1990 classification:"
-    print "" 
+    print ""
     print "Angle between data set means: " '%.1f'%(angle)
     print "Critical angle for M&M1990:   " '%.1f'%(critical_angle)
-    
+
     if V>Vcrit:
         print ""
     elif V<Vcrit:
@@ -387,7 +418,8 @@ def watson_common_mean(Data1,Data2,NumSims=5000,plot='no'):
         p2 = pmagplotlib.plotVs(CDF['cdf'],[V],'g','-')
         p3 = pmagplotlib.plotVs(CDF['cdf'],[Vp[k]],'b','--')
         pmagplotlib.drawFIGS(CDF)
-            
+
+
 def lat_from_inc(inc):
     """
     Calculate paleolatitude from inclination using the dipole equation
@@ -396,17 +428,19 @@ def lat_from_inc(inc):
     paleo_lat=np.arctan(0.5*np.tan(inc*rad))/rad
     return paleo_lat
 
+
 def inc_from_lat(lat):
     """
-    Calculate inclination predicted from latitude using the dipole equation
+    Calculate inclination predicted from latitude using the dipole equation.
     """
     rad=np.pi/180.
     inc=np.arctan(2*np.tan(lat*rad))/rad
     return inc
 
+
 def plot_net(fignum):
     """
-    draws circle and tick marks for equal area projection
+    Draws circle and tick marks for equal area projection.
     """
 
 # make the perimeter
@@ -457,14 +491,15 @@ def plot_net(fignum):
     pylab.axis("equal")
     pylab.tight_layout()
 
+
 def plot_di(dec,inc,color='k',marker='o',markersize=20,legend='no',label=''):
     """
     Plot declination, inclination data on an equal area plot.
 
-    Before this function is called a plot needs to be initialized with code that looks 
+    Before this function is called a plot needs to be initialized with code that looks
     something like:
     >fignum = 1
-    >pyplot.figure(num=fignum,figsize=(10,10),dpi=160)
+    >plt.figure(num=fignum,figsize=(10,10),dpi=160)
     >ipmag.plot_net(fignum)
 
     Required Arguments
@@ -472,7 +507,7 @@ def plot_di(dec,inc,color='k',marker='o',markersize=20,legend='no',label=''):
     dec : declination being plotted
     inc : inclination being plotted
 
-    Optional Arguments
+    Optional Keywords
     -----------
     color : the default color is black. Other colors can be chosen (e.g. 'r')
     marker : the default marker is a circle ('o')
@@ -486,7 +521,7 @@ def plot_di(dec,inc,color='k',marker='o',markersize=20,legend='no',label=''):
     Y_up = []
     for n in range(0,len(dec)):
         XY=pmag.dimap(dec[n],inc[n])
-        if inc[n] >= 0:         
+        if inc[n] >= 0:
             X_down.append(XY[0])
             Y_down.append(XY[1])
         else:
@@ -494,33 +529,34 @@ def plot_di(dec,inc,color='k',marker='o',markersize=20,legend='no',label=''):
             Y_up.append(XY[1])
 
     if len(X_up)>0:
-        pyplot.scatter(X_up,Y_up,facecolors='none', edgecolors=color, 
+        plt.scatter(X_up,Y_up,facecolors='none', edgecolors=color,
                     s=markersize, marker=marker, label=label)
 
-    if len(X_down)>0: 
-        pyplot.scatter(X_down,Y_down,facecolors=color, edgecolors=color, 
+    if len(X_down)>0:
+        plt.scatter(X_down,Y_down,facecolors=color, edgecolors=color,
                     s=markersize, marker=marker, label=label)
     if legend=='yes':
-        pyplot.legend(loc=2)
-    pyplot.tight_layout()
+        plt.legend(loc=2)
+    plt.tight_layout()
+
 
 def plot_di_mean(Dec,Inc,a95,color='k',marker='o',markersize=20,label='',legend='no'):
     """
     Plot a mean declination, inclination with alpha_95 ellipse on an equal area plot.
 
-    Before this function is called a plot needs to be initialized with code that looks 
+    Before this function is called a plot needs to be initialized with code that looks
     something like:
     >fignum = 1
-    >pyplot.figure(num=fignum,figsize=(10,10),dpi=160)
+    >plt.figure(num=fignum,figsize=(10,10),dpi=160)
     >ipmag.plot_net(fignum)
 
-    Required Parameters
+    Required Arguments
     -----------
     Dec : declination of mean being plotted
     Inc : inclination of mean being plotted
     a95 : a95 confidence ellipse of mean being plotted
 
-    Optional Parameters
+    Optional Keywords
     -----------
     color : the default color is black. Other colors can be chosen (e.g. 'r')
     marker : the default is a circle. Other symbols can be chosen (e.g. 's')
@@ -530,33 +566,34 @@ def plot_di_mean(Dec,Inc,a95,color='k',marker='o',markersize=20,label='',legend=
     """
     DI_dimap=pmag.dimap(Dec,Inc)
     if Inc < 0:
-        pyplot.scatter(DI_dimap[0],DI_dimap[1],edgecolor=color ,facecolor='white', marker=marker,s=markersize,label=label)
+        plt.scatter(DI_dimap[0],DI_dimap[1],edgecolor=color ,facecolor='white', marker=marker,s=markersize,label=label)
     if Inc >= 0:
-        pyplot.scatter(DI_dimap[0],DI_dimap[1],color=color,marker=marker,s=markersize,label=label)
+        plt.scatter(DI_dimap[0],DI_dimap[1],color=color,marker=marker,s=markersize,label=label)
     Xcirc,Ycirc=[],[]
     Da95,Ia95=pmag.circ(Dec,Inc,a95)
     if legend=='yes':
-        pyplot.legend(loc=2)
+        plt.legend(loc=2)
     for k in  range(len(Da95)):
         XY=pmag.dimap(Da95[k],Ia95[k])
         Xcirc.append(XY[0])
         Ycirc.append(XY[1])
-    pyplot.plot(Xcirc,Ycirc,color)
-    pyplot.tight_layout()
+    plt.plot(Xcirc,Ycirc,color)
+    plt.tight_layout()
+
 
 def plot_pole(mapname,plong,plat,A95,label='',color='k',marker='o',markersize=20,legend='no'):
     """
-    This function plots a paleomagnetic pole and A95 error ellipse on whatever 
+    This function plots a paleomagnetic pole and A95 error ellipse on whatever
     current map projection has been set using the basemap plotting library.
 
-    Required Parameters
+    Required Arguments
     -----------
     mapname : the name of the current map that has been developed using basemap
     plong : the longitude of the paleomagnetic pole being plotted (in degrees E)
     plat : the latitude of the paleomagnetic pole being plotted (in degrees)
     A95 : the A_95 confidence ellipse of the paleomagnetic pole (in degrees)
-    
-    Optional Parameters
+
+    Optional Keywords
     -----------
     color : the default color is black. Other colors can be chosen (e.g. 'r')
     marker : the default is a circle. Other symbols can be chosen (e.g. 's')
@@ -571,19 +608,20 @@ def plot_pole(mapname,plong,plat,A95,label='',color='k',marker='o',markersize=20
     if legend=='yes':
         pylab.legend(loc=2)
 
+
 def plot_pole_colorbar(mapname,plong,plat,A95,cmap,vmin,vmax,label='',color='k',marker='o',markersize='20',alpha='1.0',legend='no'):
     """
-    This function plots a paleomagnetic pole and A95 error ellipse on whatever 
+    This function plots a paleomagnetic pole and A95 error ellipse on whatever
     current map projection has been set using the basemap plotting library.
 
-    Required Parameters
+    Required Arguments
     -----------
     mapname : the name of the current map that has been developed using basemap
     plong : the longitude of the paleomagnetic pole being plotted (in degrees E)
     plat : the latitude of the paleomagnetic pole being plotted (in degrees)
     A95 : the A_95 confidence ellipse of the paleomagnetic pole (in degrees)
-    
-    Optional Parameters
+
+    Optional Keywords
     -----------
     label : a string that is the label for the paleomagnetic pole being plotted
     color : the color desired for the symbol and its A95 ellipse (default is 'k' aka black)
@@ -596,6 +634,7 @@ def plot_pole_colorbar(mapname,plong,plat,A95,cmap,vmin,vmax,label='',color='k',
     equi_colormap(mapname, plong, plat, A95_km, color, alpha)
     if legend=='yes':
         pylab.legend(loc=2)
+
 
 def plot_vgp(mapname,plong,plat,label='',color='k',marker='o',legend='no'):
     """
@@ -620,12 +659,13 @@ def plot_vgp(mapname,plong,plat,label='',color='k',marker='o',legend='no'):
     if legend=='yes':
         pylab.legend(loc=2)
 
+
 def vgp_calc(dataframe,tilt_correction='yes'):
     """
     This function calculates paleomagnetic poles using directional data and site location data within a pandas.DataFrame. The function adds the columns 'paleolatitude', 'pole_lat', 'pole_lon', 'pole_lat_rev', and 'pole_lon_rev' to the dataframe. The '_rev' columns allow for subsequent choice as to which polarity will be used for the VGPs.
 
     Parameters
-    ----------- 
+    -----------
     tilt-correction : 'yes' is the default and uses tilt-corrected data (dec_tc, inc_tc), 'no' uses data that is not tilt-corrected and is geographic coordinates
     dataframe : the name of the pandas.DataFrame containing the data
     dataframe['site_lat'] : the latitude of the site
@@ -656,7 +696,7 @@ def vgp_calc(dataframe,tilt_correction='yes'):
         dataframe['vgp_lon']=np.where(mask,(dataframe['site_lon']+dataframe['beta'])%360.,(dataframe['site_lon']+180-dataframe['beta'])%360.)
         #calculate the antipode of the poles
         dataframe['vgp_lat_rev']=-dataframe['vgp_lat']
-        dataframe['vgp_lon_rev']=(dataframe['vgp_lon']-180.)%360. 
+        dataframe['vgp_lon_rev']=(dataframe['vgp_lon']-180.)%360.
         #the 'colatitude' and 'beta' columns were created for the purposes of the pole calculations
         #but aren't of further use and are deleted
         del dataframe['colatitude']
@@ -681,11 +721,12 @@ def vgp_calc(dataframe,tilt_correction='yes'):
         dataframe['vgp_lon']=np.where(mask,(dataframe['site_lon']+dataframe['beta'])%360.,(dataframe['site_lon']+180-dataframe['beta'])%360.)
         #calculate the antipode of the poles
         dataframe['vgp_lat_rev']=-dataframe['vgp_lat']
-        dataframe['vgp_lon_rev']=(dataframe['vgp_lon']-180.)%360. 
+        dataframe['vgp_lon_rev']=(dataframe['vgp_lon']-180.)%360.
         #the 'colatitude' and 'beta' columns were created for the purposes of the pole calculations
         #but aren't of further use and are deleted
         del dataframe['colatitude']
         del dataframe['beta']
+
 
 def sb_vgp_calc(dataframe,site_correction = 'yes'):
     """
@@ -694,9 +735,9 @@ def sb_vgp_calc(dataframe,site_correction = 'yes'):
     a value S_b. The input data needs to be within a pandas Dataframe.
 
     Parameters
-    ----------- 
+    -----------
     dataframe : the name of the pandas.DataFrame containing the data
-    
+
     the data frame needs to contain these columns:
     dataframe['site_lat'] : latitude of the site
     dataframe['site_lon'] : longitude of the site
@@ -711,7 +752,7 @@ def sb_vgp_calc(dataframe,site_correction = 'yes'):
 
     # calculate the mean from the directional data
     dataframe_dirs=[]
-    for n in range(0,len(dataframe)): 
+    for n in range(0,len(dataframe)):
         dataframe_dirs.append([dataframe['dec_tc'][n],
                                dataframe['inc_tc'][n],1.])
     dataframe_dir_mean=pmag.fisher_mean(dataframe_dirs)
@@ -720,11 +761,11 @@ def sb_vgp_calc(dataframe,site_correction = 'yes'):
     dataframe_poles=[]
     dataframe_pole_lats=[]
     dataframe_pole_lons=[]
-    for n in range(0,len(dataframe)): 
+    for n in range(0,len(dataframe)):
         dataframe_poles.append([dataframe['vgp_lon'][n],
                                 dataframe['vgp_lat'][n],1.])
         dataframe_pole_lats.append(dataframe['vgp_lat'][n])
-        dataframe_pole_lons.append(dataframe['vgp_lon'][n])                            
+        dataframe_pole_lons.append(dataframe['vgp_lon'][n])
     dataframe_pole_mean=pmag.fisher_mean(dataframe_poles)
 
     # calculate mean paleolatitude from the directional data
@@ -765,8 +806,9 @@ def sb_vgp_calc(dataframe,site_correction = 'yes'):
             N+=1
 
         Sb=((1.0/(N-1.0))*summation)**0.5
-    
+
     return Sb
+
 
 def make_di_block(dec,inc):
     """
@@ -778,6 +820,7 @@ def make_di_block(dec,inc):
         di_block.append([dec[n],inc[n],1.0])
     return di_block
 
+
 def shoot(lon, lat, azimuth, maxdist=None):
     """
     This function enables A95 error ellipses to be drawn in basemap around paleomagnetic
@@ -788,11 +831,11 @@ def shoot(lon, lat, azimuth, maxdist=None):
     glon1 = lon * np.pi / 180.
     s = maxdist / 1.852
     faz = azimuth * np.pi / 180.
- 
+
     EPS= 0.00000000005
     if ((np.abs(np.cos(glat1))<EPS) and not (np.abs(np.sin(faz))<EPS)):
         alert("Only N-S courses are meaningful, starting at a pole!")
- 
+
     a=6378.13/1.852
     f=1/298.257223563
     r = 1 - f
@@ -803,7 +846,7 @@ def shoot(lon, lat, azimuth, maxdist=None):
         b=0.
     else:
         b=2. * np.arctan2 (tu, cf)
- 
+
     cu = 1. / np.sqrt(1 + tu * tu)
     su = tu * cu
     sa = cu * sf
@@ -817,7 +860,7 @@ def shoot(lon, lat, azimuth, maxdist=None):
     y = tu
     c = y + 1
     while (np.abs (y - c) > EPS):
- 
+
         sy = np.sin(y)
         cy = np.cos(y)
         cz = np.cos(b + y)
@@ -827,7 +870,7 @@ def shoot(lon, lat, azimuth, maxdist=None):
         y = e + e - 1.
         y = (((sy * sy * 4. - 3.) * y * cz * d / 6. + x) *
               d / 4. - cz) * sy * d + tu
- 
+
     b = cu * cy * cf - su * sy
     c = r * np.sqrt(sa * sa + b * b)
     d = su * cy + cu * sy * cf
@@ -836,15 +879,16 @@ def shoot(lon, lat, azimuth, maxdist=None):
     x = np.arctan2(sy * sf, c)
     c = ((-3. * c2a + 4.) * f + 4.) * c2a * f / 16.
     d = ((e * cy * c + cz) * sy * c + y) * sa
-    glon2 = ((glon1 + x - (1. - c) * d * f + np.pi) % (2*np.pi)) - np.pi    
- 
+    glon2 = ((glon1 + x - (1. - c) * d * f + np.pi) % (2*np.pi)) - np.pi
+
     baz = (np.arctan2(sa, b) + np.pi) % (2 * np.pi)
- 
+
     glon2 *= 180./np.pi
     glat2 *= 180./np.pi
     baz *= 180./np.pi
- 
+
     return (glon2, glat2, baz)
+
 
 def equi(m, centerlon, centerlat, radius, color):
     """
@@ -862,9 +906,10 @@ def equi(m, centerlon, centerlat, radius, color):
         Y.append(glat2)
     X.append(X[0])
     Y.append(Y[0])
- 
+
     X,Y = m(X,Y)
-    pyplot.plot(X,Y,color)
+    plt.plot(X,Y,color)
+
 
 def equi_colormap(m, centerlon, centerlat, radius, color, alpha='1.0'):
     """
@@ -882,15 +927,16 @@ def equi_colormap(m, centerlon, centerlat, radius, color, alpha='1.0'):
         Y.append(glat2)
     X.append(X[0])
     Y.append(Y[0])
- 
+
     X,Y = m(X,Y)
-    pyplot.plot(X,Y,color,alpha=alpha)
+    plt.plot(X,Y,color,alpha=alpha)
+
 
 def combine_magic(filenames, outfile):
     """
     Takes a list of magic-formatted files, concatenates them, and creates a single file.
     Returns true if the operation was successful.
-    
+
     """
     datasets = []
     if not filenames:
@@ -910,12 +956,13 @@ def combine_magic(filenames, outfile):
     print "All records stored in ",outfile
     return True
 
+
 def aniso_depthplot(ani_file='rmag_anisotropy.txt', meas_file='magic_measurements.txt', samp_file='er_samples.txt', age_file=None, sum_file=None, fmt='svg', dmin=-1, dmax=-1, depth_scale='sample_composite_depth', dir_path = '.'):
-    
+
     """
     returns matplotlib figure with anisotropy data plotted against depth
     available depth scales: 'sample_composite_depth', 'sample_core_depth', or 'age' (you must provide an age file to use this option)
-    
+
     """
     pcol=4
     tint=9
@@ -926,7 +973,7 @@ def aniso_depthplot(ani_file='rmag_anisotropy.txt', meas_file='magic_measurement
     if not os.path.isfile(ani_file):
         print "Could not find rmag_anisotropy type file: {}.\nPlease provide a valid file path and try again".format(ani_file)
         return False, "Could not find rmag_anisotropy type file: {}.\nPlease provide a valid file path and try again".format(ani_file)
-    
+
     meas_file = os.path.join(dir_path, meas_file)
     #print 'meas_file', meas_file
 
@@ -1035,21 +1082,21 @@ def aniso_depthplot(ani_file='rmag_anisotropy.txt', meas_file='magic_measurement
         #dmax=dmax+.05*dmax
         #dmin=dmin-.05*dmax
 
-        main_plot = pyplot.figure(1,figsize=(10,8)) # make the figure
-        
+        main_plot = plt.figure(1,figsize=(10,8)) # make the figure
+
         version_num=pmag.get_version()
-        pyplot.figtext(.02,.01,version_num) # attach the pmagpy version number
-        ax=pyplot.subplot(1,pcol,1) # make the first column
+        plt.figtext(.02,.01,version_num) # attach the pmagpy version number
+        ax=plt.subplot(1,pcol,1) # make the first column
         Axs.append(ax)
-        ax.plot(Tau1,Depths,'rs') 
-        ax.plot(Tau2,Depths,'b^') 
+        ax.plot(Tau1,Depths,'rs')
+        ax.plot(Tau2,Depths,'b^')
         ax.plot(Tau3,Depths,'ko')
         if sum_file:
             core_depth_key, core_label_key, Cores = read_core_csv_file(sum_file)
             for core in Cores:
                  depth=float(core[core_depth_key])
                  if depth>dmin and depth<dmax:
-                    pyplot.plot([0,90],[depth,depth],'b--')
+                    plt.plot([0,90],[depth,depth],'b--')
         ax.axis([tau_min,tau_max,dmax,dmin])
         ax.set_xlabel('Eigenvalues')
         if depth_scale=='sample_core_depth':
@@ -1058,8 +1105,8 @@ def aniso_depthplot(ani_file='rmag_anisotropy.txt', meas_file='magic_measurement
             ax.set_ylabel('Age ('+age_unit+')')
         else:
             ax.set_ylabel('Depth (mcd)')
-        ax2=pyplot.subplot(1,pcol,2) # make the second column
-        ax2.plot(P,Depths,'rs') 
+        ax2=plt.subplot(1,pcol,2) # make the second column
+        ax2.plot(P,Depths,'rs')
         ax2.axis([P_min,P_max,dmax,dmin])
         ax2.set_xlabel('P')
         ax2.set_title(location)
@@ -1067,33 +1114,33 @@ def aniso_depthplot(ani_file='rmag_anisotropy.txt', meas_file='magic_measurement
             for core in Cores:
                  depth=float(core[core_depth_key])
                  if depth>dmin and depth<dmax:
-                    pyplot.plot([0,90],[depth,depth],'b--')
+                    plt.plot([0,90],[depth,depth],'b--')
         Axs.append(ax2)
-        ax3=pyplot.subplot(1,pcol,3)
+        ax3=plt.subplot(1,pcol,3)
         Axs.append(ax3)
-        ax3.plot(V3Incs,Depths,'ko') 
+        ax3.plot(V3Incs,Depths,'ko')
         ax3.axis([0,90,dmax,dmin])
         ax3.set_xlabel('V3 Inclination')
         if sum_file:
             for core in Cores:
                  depth=float(core[core_depth_key])
                  if depth>dmin and depth<dmax:
-                    pyplot.plot([0,90],[depth,depth],'b--')
-        ax4=pyplot.subplot(1,np.abs(pcol),4)
+                    plt.plot([0,90],[depth,depth],'b--')
+        ax4=plt.subplot(1,np.abs(pcol),4)
         Axs.append(ax4)
-        ax4.plot(V1Decs,Depths,'rs') 
+        ax4.plot(V1Decs,Depths,'rs')
         ax4.axis([0,360,dmax,dmin])
         ax4.set_xlabel('V1 Declination')
         if sum_file:
             for core in Cores:
                  depth=float(core[core_depth_key])
                  if depth>=dmin and depth<=dmax:
-                    pyplot.plot([0,360],[depth,depth],'b--')
-                    if pcol==4 and label==1:pyplot.text(360,depth+tint,core[core_label_key])
-        #ax5=pyplot.subplot(1,np.abs(pcol),5)
+                    plt.plot([0,360],[depth,depth],'b--')
+                    if pcol==4 and label==1:plt.text(360,depth+tint,core[core_label_key])
+        #ax5=plt.subplot(1,np.abs(pcol),5)
         #Axs.append(ax5)
-        #ax5.plot(F23s,Depths,'rs') 
-        #bounds=ax5.axis() 
+        #ax5.plot(F23s,Depths,'rs')
+        #bounds=ax5.axis()
         #ax5.axis([bounds[0],bounds[1],dmax,dmin])
         #ax5.set_xlabel('F_23')
         #ax5.semilogx()
@@ -1101,22 +1148,22 @@ def aniso_depthplot(ani_file='rmag_anisotropy.txt', meas_file='magic_measurement
         #    for core in Cores:
         #         depth=float(core[core_depth_key])
         #         if depth>=dmin and depth<=dmax:
-        #            pyplot.plot([bounds[0],bounds[1]],[depth,depth],'b--')
-        #            if pcol==5 and label==1:pyplot.text(bounds[1],depth+tint,core[core_label_key])
+        #            plt.plot([bounds[0],bounds[1]],[depth,depth],'b--')
+        #            if pcol==5 and label==1:plt.text(bounds[1],depth+tint,core[core_label_key])
         #if pcol==6:
         if pcol==5:
-            #ax6=pyplot.subplot(1,pcol,6)
-            ax6=pyplot.subplot(1,pcol,5)
+            #ax6=plt.subplot(1,pcol,6)
+            ax6=plt.subplot(1,pcol,5)
             Axs.append(ax6)
-            ax6.plot(Bulks,BulkDepths,'bo') 
+            ax6.plot(Bulks,BulkDepths,'bo')
             ax6.axis([bmin-1,1.1*bmax,dmax,dmin])
             ax6.set_xlabel('Bulk Susc. (uSI)')
             if sum_file:
                 for core in Cores:
                      depth=float(core[core_depth_key])
                      if depth>=dmin and depth<=dmax:
-                        pyplot.plot([0,bmax],[depth,depth],'b--')
-                        if label==1:pyplot.text(1.1*bmax,depth+tint,core[core_label_key])
+                        plt.plot([0,bmax],[depth,depth],'b--')
+                        if label==1:plt.text(1.1*bmax,depth+tint,core[core_label_key])
         for x in Axs:
             pmagplotlib.delticks(x) # this makes the x-tick labels more reasonable - they were overcrowded using the defaults
         fig_name = location + '_ani_depthplot.' + fmt
@@ -1124,15 +1171,15 @@ def aniso_depthplot(ani_file='rmag_anisotropy.txt', meas_file='magic_measurement
     else:
         return False, "No data to plot"
 
-        
 
 
 
 
-    
 
 
-    
+
+
+
     """
     dmin, dmax = float(dmin), float(dmax)
     pcol=3
@@ -1243,20 +1290,20 @@ def aniso_depthplot(ani_file='rmag_anisotropy.txt', meas_file='magic_measurement
         #dmax=dmax+.05*dmax
         #dmin=dmin-.05*dmax
 
-        main_plot = pyplot.figure(1,figsize=(10,8)) # make the figure
-        
+        main_plot = plt.figure(1,figsize=(10,8)) # make the figure
+
         version_num=pmag.get_version()
-        pyplot.figtext(.02,.01,version_num) # attach the pmagpy version number
-        ax=pyplot.subplot(1,pcol,1) # make the first column
+        plt.figtext(.02,.01,version_num) # attach the pmagpy version number
+        ax=plt.subplot(1,pcol,1) # make the first column
         Axs.append(ax)
-        ax.plot(Tau1,Depths,'rs') 
-        ax.plot(Tau2,Depths,'b^') 
+        ax.plot(Tau1,Depths,'rs')
+        ax.plot(Tau2,Depths,'b^')
         ax.plot(Tau3,Depths,'ko')
         if sum_file!="":
             for core in Cores:
                  depth=float(core[core_depth_key])
                  if depth>dmin and depth<dmax:
-                    pyplot.plot([0,90],[depth,depth],'b--')
+                    plt.plot([0,90],[depth,depth],'b--')
         ax.axis([tau_min,tau_max,dmax,dmin])
         ax.set_xlabel('Eigenvalues')
         if depth_scale=='sample_core_depth':
@@ -1265,8 +1312,8 @@ def aniso_depthplot(ani_file='rmag_anisotropy.txt', meas_file='magic_measurement
             ax.set_ylabel('Age ('+age_unit+')')
         else:
             ax.set_ylabel('Depth (mcd)')
-        ax2=pyplot.subplot(1,pcol,2) # make the second column
-        ax2.plot(P,Depths,'rs') 
+        ax2=plt.subplot(1,pcol,2) # make the second column
+        ax2.plot(P,Depths,'rs')
         ax2.axis([P_min,P_max,dmax,dmin])
         ax2.set_xlabel('P')
         ax2.set_title(location)
@@ -1274,34 +1321,34 @@ def aniso_depthplot(ani_file='rmag_anisotropy.txt', meas_file='magic_measurement
             for core in Cores:
                  depth=float(core[core_depth_key])
                  if depth>dmin and depth<dmax:
-                    pyplot.plot([0,90],[depth,depth],'b--')
+                    plt.plot([0,90],[depth,depth],'b--')
         Axs.append(ax2)
-        ax3=pyplot.subplot(1,pcol,3)
+        ax3=plt.subplot(1,pcol,3)
         Axs.append(ax3)
-        ax3.plot(V3Incs,Depths,'ko') 
+        ax3.plot(V3Incs,Depths,'ko')
         ax3.axis([0,90,dmax,dmin])
         ax3.set_xlabel('V3 Inclination')
         if sum_file!="":
             for core in Cores:
                  depth=float(core[core_depth_key])
                  if depth>dmin and depth<dmax:
-                    pyplot.plot([0,90],[depth,depth],'b--')
-        ax4=pyplot.subplot(1,np.abs(pcol),4)
+                    plt.plot([0,90],[depth,depth],'b--')
+        ax4=plt.subplot(1,np.abs(pcol),4)
         Axs.append(ax4)
-        ax4.plot(V1Decs,Depths,'rs') 
+        ax4.plot(V1Decs,Depths,'rs')
         ax4.axis([0,360,dmax,dmin])
         ax4.set_xlabel('V1 Declination')
         if sum_file!="":
-            
+
             for core in Cores:
                  depth=float(core[core_depth_key])
                  if depth>=dmin and depth<=dmax:
-                    pyplot.plot([0,360],[depth,depth],'b--')
-                    if pcol==4 and label==1:pyplot.text(360,depth+tint,core[core_label_key])
-        #ax5=pyplot.subplot(1,np.abs(pcol),5)
+                    plt.plot([0,360],[depth,depth],'b--')
+                    if pcol==4 and label==1:plt.text(360,depth+tint,core[core_label_key])
+        #ax5=plt.subplot(1,np.abs(pcol),5)
         #Axs.append(ax5)
-        #ax5.plot(F23s,Depths,'rs') 
-        #bounds=ax5.axis() 
+        #ax5.plot(F23s,Depths,'rs')
+        #bounds=ax5.axis()
         #ax5.axis([bounds[0],bounds[1],dmax,dmin])
         #ax5.set_xlabel('F_23')
         #ax5.semilogx()
@@ -1309,22 +1356,22 @@ def aniso_depthplot(ani_file='rmag_anisotropy.txt', meas_file='magic_measurement
         #    for core in Cores:
         #         depth=float(core[core_depth_key])
         #         if depth>=dmin and depth<=dmax:
-        #            pyplot.plot([bounds[0],bounds[1]],[depth,depth],'b--')
-        #            if pcol==5 and label==1:pyplot.text(bounds[1],depth+tint,core[core_label_key])
+        #            plt.plot([bounds[0],bounds[1]],[depth,depth],'b--')
+        #            if pcol==5 and label==1:plt.text(bounds[1],depth+tint,core[core_label_key])
         #if pcol==6:
         if pcol==5:
-            #ax6=pyplot.subplot(1,pcol,6)
-            ax6=pyplot.subplot(1,pcol,5)
+            #ax6=plt.subplot(1,pcol,6)
+            ax6=plt.subplot(1,pcol,5)
             Axs.append(ax6)
-            ax6.plot(Bulks,BulkDepths,'bo') 
+            ax6.plot(Bulks,BulkDepths,'bo')
             ax6.axis([bmin-1,1.1*bmax,dmax,dmin])
             ax6.set_xlabel('Bulk Susc. (uSI)')
             if sum_file!="":
                 for core in Cores:
                      depth=float(core[core_depth_key])
                      if depth>=dmin and depth<=dmax:
-                        pyplot.plot([0,bmax],[depth,depth],'b--')
-                        if label==1:pyplot.text(1.1*bmax,depth+tint,core[core_label_key])
+                        plt.plot([0,bmax],[depth,depth],'b--')
+                        if label==1:plt.text(1.1*bmax,depth+tint,core[core_label_key])
         for x in Axs:
             pmagplotlib.delticks(x) # this makes the x-tick labels more reasonable - they were overcrowded using the defaults
         fig_name = location + '_ani_depthplot.' + fmt
@@ -1411,7 +1458,7 @@ def core_depthplot(dir_path='.', meas_file='magic_measurements.txt', spc_file=''
     else:
        print 'method: {} not supported'.format(meth)
        return False, 'method: "{}" not supported'.format(meth)
-   
+
     if wt_file:
        norm=True
 
@@ -1419,7 +1466,7 @@ def core_depthplot(dir_path='.', meas_file='magic_measurements.txt', spc_file=''
         dmin, dmax = float(dmin), float(dmax)
     else:
         dmin, dmax = -1, -1
-    
+
     if pltTime:
         amin=float(amin)
         amax=float(amax)
@@ -1436,7 +1483,7 @@ def core_depthplot(dir_path='.', meas_file='magic_measurements.txt', spc_file=''
     spc_file = os.path.join(dir_path, spc_file)
     if age_file=="":
         samp_file = os.path.join(dir_path, samp_file)
-        Samps,file_type=pmag.magic_read(samp_file) 
+        Samps,file_type=pmag.magic_read(samp_file)
     else:
         depth_scale='age'
         age_file = os.path.join(dir_path, age_file)
@@ -1447,14 +1494,14 @@ def core_depthplot(dir_path='.', meas_file='magic_measurements.txt', spc_file=''
     if res_file:
         Results,file_type=pmag.magic_read(res_file)
     if norm:
-        ErSpecs,file_type=pmag.magic_read(wt_file) 
+        ErSpecs,file_type=pmag.magic_read(wt_file)
         print len(ErSpecs), ' specimens read in from ',wt_file
 
     if not os.path.isfile(spc_file):
         if not os.path.isfile(meas_file):
             return False, "You must provide either a magic_measurements file or a pmag_specimens file"
-        
-    Cores=[] 
+
+    Cores=[]
     core_depth_key="Top depth cored CSF (m)"
     if sum_file:
         sum_file = os.path.join(dir_path, sum_file)
@@ -1500,23 +1547,23 @@ def core_depthplot(dir_path='.', meas_file='magic_measurements.txt', spc_file=''
     samples=[]
     methods,steps,m2=[],[],[]
     if pltSus: # plot the bulk measurement data
-        Meas,file_type=pmag.magic_read(meas_file) 
+        Meas,file_type=pmag.magic_read(meas_file)
         meas_key='measurement_magn_moment'
         print len(Meas), ' measurements read in from ',meas_file
         for m in intlist: # find the intensity key with data
             meas_data=pmag.get_dictitem(Meas,m,'','F') # get all non-blank data for this specimen
-            if len(meas_data)>0: 
+            if len(meas_data)>0:
                 meas_key=m
                 break
         m1=pmag.get_dictitem(Meas,'magic_method_codes',method,'has') # fish out the desired method code
-        if method=='LT-T-Z': 
+        if method=='LT-T-Z':
             m2=pmag.get_dictitem(m1,'treatment_temp',str(step),'eval') # fish out the desired step
         elif 'LT-AF' in method:
-            m2=pmag.get_dictitem(m1,'treatment_ac_field',str(step),'eval')    
+            m2=pmag.get_dictitem(m1,'treatment_ac_field',str(step),'eval')
         elif 'LT-IRM' in method:
-            m2=pmag.get_dictitem(m1,'treatment_dc_field',str(step),'eval')    
+            m2=pmag.get_dictitem(m1,'treatment_dc_field',str(step),'eval')
         elif 'LT-X' in method:
-            m2=pmag.get_dictitem(m1,suc_key,'','F')    
+            m2=pmag.get_dictitem(m1,suc_key,'','F')
         if len(m2)>0:
           for rec in m2: # fish out depths and weights
             D=pmag.get_dictitem(Samps,'er_sample_name',rec['er_sample_name'],'T')
@@ -1525,13 +1572,13 @@ def core_depthplot(dir_path='.', meas_file='magic_measurements.txt', spc_file=''
             depth=pmag.get_dictitem(D,depth_scale,'','F')
             if len(depth)>0:
                 if ylab=='Age': ylab=ylab+' ('+depth[0]['age_unit']+')' # get units of ages - assume they are all the same!
-             
+
                 rec['core_depth'] = float(depth[0][depth_scale])
                 rec['magic_method_codes'] = rec['magic_method_codes']+':'+depth[0]['magic_method_codes']
                 if norm:
                     specrecs=pmag.get_dictitem(ErSpecs,'er_specimen_name',rec['er_specimen_name'],'T')
                     specwts=pmag.get_dictitem(specrecs,'specimen_weight',"",'F')
-                    if len(specwts)>0: 
+                    if len(specwts)>0:
                         rec['specimen_weight'] = specwts[0]['specimen_weight']
                         Data.append(rec) # fish out data with core_depth and (if needed) weights
                 else:
@@ -1540,12 +1587,12 @@ def core_depthplot(dir_path='.', meas_file='magic_measurements.txt', spc_file=''
                    pieces=rec['er_sample_name'].split('-')
                    location=rec['er_location_name']
                    title=location
-                   
+
         SData=pmag.sort_diclist(Data,'core_depth')
         for rec in SData: # fish out bulk measurement data from desired depths
             if dmax==-1 or float(rec['core_depth'])<dmax and float(rec['core_depth'])>dmin:
                 Depths.append((rec['core_depth']))
-                if method=="LP-X": 
+                if method=="LP-X":
                     SSucs.append(float(rec[suc_key]))
                 else:
                    if pltDec:
@@ -1556,7 +1603,7 @@ def core_depthplot(dir_path='.', meas_file='magic_measurements.txt', spc_file=''
                        Ints.append(float(rec[meas_key]))
                    if norm and pltMag:
                        Ints.append(float(rec[meas_key])/float(rec['specimen_weight']))
-            if len(SSucs)>0:  
+            if len(SSucs)>0:
                 maxSuc=max(SSucs)
                 minSuc=min(SSucs)
             if len(Ints)>1:
@@ -1648,74 +1695,74 @@ def core_depthplot(dir_path='.', meas_file='magic_measurements.txt', spc_file=''
     plt=1
     #print 'Decs', len(Decs), 'Depths', len(Depths), 'SpecDecs', len(SpecDecs), 'SpecDepths', len(SpecDepths), 'ResDecs', len(ResDecs), 'ResDepths', len(ResDepths), 'SDecs', len(SDecs), 'SDepths', len(SDepths), 'SIincs', len(SIncs), 'Incs', len(Incs)
     if (Decs and Depths) or (SpecDecs and SpecDepths) or (ResDecs and ResDepths) or (SDecs and SDepths) or (SInts and SDepths) or (SIncs and SDepths) or (Incs and Depths):
-        main_plot = pyplot.figure(1,figsize=(width,8)) # this works
+        main_plot = plt.figure(1,figsize=(width,8)) # this works
         #pylab.figure(1,figsize=(width,8))
         version_num=pmag.get_version()
-        pyplot.figtext(.02,.01,version_num)
+        plt.figtext(.02,.01,version_num)
         if pltDec:
-            ax=pyplot.subplot(1,pcol,plt)
+            ax=plt.subplot(1,pcol,plt)
             if pltLine:
-                pyplot.plot(Decs,Depths,'k') 
+                plt.plot(Decs,Depths,'k')
             if len(Decs)>0:
-                pyplot.plot(Decs,Depths,sym,markersize=size) 
+                plt.plot(Decs,Depths,sym,markersize=size)
             if len(Decs)==0 and pltLine and len(SDecs)>0:
-                pyplot.plot(SDecs,SDepths,'k')
+                plt.plot(SDecs,SDepths,'k')
             if len(SDecs)>0:
-                pyplot.plot(SDecs,SDepths,Ssym,markersize=Ssize) 
+                plt.plot(SDecs,SDepths,Ssym,markersize=Ssize)
             if spc_file:
-                pyplot.plot(SpecDecs,SpecDepths,spc_sym,markersize=spc_size) 
+                plt.plot(SpecDecs,SpecDepths,spc_sym,markersize=spc_size)
             if spc_file and len(FDepths)>0:
-                pyplot.scatter(FDecs,FDepths,marker=spc_sym[-1],edgecolor=spc_sym[0],facecolor='white',s=spc_size**2) 
+                plt.scatter(FDecs,FDepths,marker=spc_sym[-1],edgecolor=spc_sym[0],facecolor='white',s=spc_size**2)
             if res_file:
-                pyplot.plot(ResDecs,ResDepths,res_sym,markersize=res_size) 
+                plt.plot(ResDecs,ResDepths,res_sym,markersize=res_size)
             if sum_file:
                 for core in Cores:
-                    depth=float(core[core_depth_key]) 
+                    depth=float(core[core_depth_key])
                     if depth>dmin and depth<dmax:
-                        pyplot.plot([0,360.],[depth,depth],'b--')
+                        plt.plot([0,360.],[depth,depth],'b--')
                         if pel==plt:
-                            pyplot.text(360,depth+tint,core[core_label_key])
+                            plt.text(360,depth+tint,core[core_label_key])
             if pel==plt:
-                pyplot.axis([0,400,dmax,dmin])
+                plt.axis([0,400,dmax,dmin])
             else:
-                pyplot.axis([0,360.,dmax,dmin])
-            pyplot.xlabel('Declination')
-            pyplot.ylabel(ylab)
-            plt+=1 
+                plt.axis([0,360.,dmax,dmin])
+            plt.xlabel('Declination')
+            plt.ylabel(ylab)
+            plt+=1
             pmagplotlib.delticks(ax) # dec xticks are too crowded otherwise
     else:
         return False, 'No data found to plot\nTry again with different parameters'
     if pltInc:
-            pyplot.subplot(1,pcol,plt)
+            plt.subplot(1,pcol,plt)
             if pltLine:
-                pyplot.plot(Incs,Depths,'k') 
+                plt.plot(Incs,Depths,'k')
             if len(Incs)>0:
-                pyplot.plot(Incs,Depths,sym,markersize=size) 
+                plt.plot(Incs,Depths,sym,markersize=size)
             if len(Incs)==0 and pltLine and len(SIncs)>0:
-                pyplot.plot(SIncs,SDepths,'k')
-            if len(SIncs)>0:pyplot.plot(SIncs,SDepths,Ssym,markersize=Ssize) 
+                plt.plot(SIncs,SDepths,'k')
+            if len(SIncs)>0:plt.plot(SIncs,SDepths,Ssym,markersize=Ssize)
             if spc_file and len(SpecDepths)>0:
-                pyplot.plot(SpecIncs,SpecDepths,spc_sym,markersize=spc_size) 
+                plt.plot(SpecIncs,SpecDepths,spc_sym,markersize=spc_size)
             if spc_file and len(FDepths)>0:
-                pyplot.scatter(FIncs,FDepths,marker=spc_sym[-1],edgecolor=spc_sym[0],facecolor='white',s=spc_size**2)
+                plt.scatter(FIncs,FDepths,marker=spc_sym[-1],edgecolor=spc_sym[0],facecolor='white',s=spc_size**2)
             if res_file:
-                pyplot.plot(ResIncs,ResDepths,res_sym,markersize=res_size) 
+                plt.plot(ResIncs,ResDepths,res_sym,markersize=res_size)
             if sum_file:
                 for core in Cores:
-                     depth=float(core[core_depth_key]) 
+                     depth=float(core[core_depth_key])
                      if depth>dmin and depth<dmax:
-                         if pel==plt:pyplot.text(90,depth+tint,core[core_label_key])
-                         pyplot.plot([-90,90],[depth,depth],'b--')
-            pyplot.plot([0,0],[dmax,dmin],'k-') 
+                         if pel==plt:plt.text(90,depth+tint,core[core_label_key])
+                         plt.plot([-90,90],[depth,depth],'b--')
+            plt.plot([0,0],[dmax,dmin],'k-')
             if pel==plt:
-                pyplot.axis([-90,110,dmax,dmin])
+                plt.axis([-90,110,dmax,dmin])
             else:
-                pyplot.axis([-90,90,dmax,dmin])
-            pyplot.xlabel('Inclination')
-            pyplot.ylabel('')
+                plt.axis([-90,90,dmax,dmin])
+            plt.xlabel('Inclination')
+            plt.ylabel('')
             plt+=1
     if pltMag and len(Ints)>0 or len(SInts)>0:
-            pyplot.subplot(1,pcol,plt)
+            plt.subplot(1,pcol,plt)
             for pow in range(-10,10):
                 if maxInt*10**pow>1:break
             if not logit:
@@ -1724,93 +1771,93 @@ def core_depthplot(dir_path='.', meas_file='magic_measurements.txt', spc_file=''
                 for k in range(len(SInts)):
                     SInts[k]=SInts[k]*10**pow
                 if pltLine and len(Ints)>0:
-                    pyplot.plot(Ints,Depths,'k') 
+                    plt.plot(Ints,Depths,'k')
                 if len(Ints)>0:
-                    pyplot.plot(Ints,Depths,sym,markersize=size) 
+                    plt.plot(Ints,Depths,sym,markersize=size)
                 if len(Ints)==0 and pltLine and len(SInts)>0:
-                    pyplot.plot(SInts,SDepths,'k-')
+                    plt.plot(SInts,SDepths,'k-')
                 if len(SInts)>0:
-                    pyplot.plot(SInts,SDepths,Ssym,markersize=Ssize) 
+                    plt.plot(SInts,SDepths,Ssym,markersize=Ssize)
                 if sum_file:
                     for core in Cores:
-                         depth=float(core[core_depth_key]) 
-                         pyplot.plot([0,maxInt*10**pow+.1],[depth,depth],'b--')
+                         depth=float(core[core_depth_key])
+                         plt.plot([0,maxInt*10**pow+.1],[depth,depth],'b--')
                          if depth>dmin and depth<dmax:
-                             pyplot.text(maxInt*10**pow-.2*maxInt*10**pow,depth+tint,core[core_label_key])
-                pyplot.axis([0,maxInt*10**pow+.1,dmax,dmin])
+                             plt.text(maxInt*10**pow-.2*maxInt*10**pow,depth+tint,core[core_label_key])
+                plt.axis([0,maxInt*10**pow+.1,dmax,dmin])
                 if not norm:
-                    pyplot.xlabel('%s %i %s'%('Intensity (10^-',pow,' Am^2)'))
+                    plt.xlabel('%s %i %s'%('Intensity (10^-',pow,' Am^2)'))
                 else:
-                    pyplot.xlabel('%s %i %s'%('Intensity (10^-',pow,' Am^2/kg)'))
+                    plt.xlabel('%s %i %s'%('Intensity (10^-',pow,' Am^2/kg)'))
             else:
                 if pltLine:
-                    pyplot.semilogx(Ints,Depths,'k') 
+                    plt.semilogx(Ints,Depths,'k')
                 if len(Ints)>0:
-                    pyplot.semilogx(Ints,Depths,sym,markersize=size) 
+                    plt.semilogx(Ints,Depths,sym,markersize=size)
                 if len(Ints)==0 and pltLine and len(SInts)>0:
-                    pyplot.semilogx(SInts,SDepths,'k')
+                    plt.semilogx(SInts,SDepths,'k')
                 if len(Ints)==0 and pltLine==1 and len(SInts)>0:
-                    pyplot.semilogx(SInts,SDepths,'k')
+                    plt.semilogx(SInts,SDepths,'k')
                 if len(SInts)>0:
-                    pyplot.semilogx(SInts,SDepths,Ssym,markersize=Ssize) 
+                    plt.semilogx(SInts,SDepths,Ssym,markersize=Ssize)
                 if sum_file:
                     for core in Cores:
-                         depth=float(core[core_depth_key]) 
-                         pyplot.semilogx([minInt,maxInt],[depth,depth],'b--')
-                         if depth>dmin and depth<dmax:pyplot.text(maxInt-.2*maxInt,depth+tint,core[core_label_key])
-                pyplot.axis([0,maxInt,dmax,dmin])
+                         depth=float(core[core_depth_key])
+                         plt.semilogx([minInt,maxInt],[depth,depth],'b--')
+                         if depth>dmin and depth<dmax:plt.text(maxInt-.2*maxInt,depth+tint,core[core_label_key])
+                plt.axis([0,maxInt,dmax,dmin])
                 if not norm:
-                    pyplot.xlabel('Intensity (Am^2)')
+                    plt.xlabel('Intensity (Am^2)')
                 else:
-                    pyplot.xlabel('Intensity (Am^2/kg)')
+                    plt.xlabel('Intensity (Am^2/kg)')
             plt+=1
     if suc_file or len(SSucs)>0:
-            pyplot.subplot(1,pcol,plt)
+            plt.subplot(1,pcol,plt)
             if len(Susc)>0:
                 if pltLine:
-                    pyplot.plot(Susc,Sus_depths,'k') 
+                    plt.plot(Susc,Sus_depths,'k')
                 if not logit:
-                    pyplot.plot(Susc,Sus_depths,sym,markersize=size) 
+                    plt.plot(Susc,Sus_depths,sym,markersize=size)
                 if logit:
-                    pyplot.semilogx(Susc,Sus_depths,sym,markersize=size) 
+                    plt.semilogx(Susc,Sus_depths,sym,markersize=size)
             if len(SSucs)>0:
                 if not logit:
-                    pyplot.plot(SSucs,SDepths,sym,markersize=size) 
+                    plt.plot(SSucs,SDepths,sym,markersize=size)
                 if logit:
-                    pyplot.semilogx(SSucs,SDepths,sym,markersize=size) 
+                    plt.semilogx(SSucs,SDepths,sym,markersize=size)
             if sum_file:
                 for core in Cores:
-                     depth=float(core[core_depth_key]) 
+                     depth=float(core[core_depth_key])
                      if not logit:
-                         pyplot.plot([minSuc,maxSuc],[depth,depth],'b--')
+                         plt.plot([minSuc,maxSuc],[depth,depth],'b--')
                      if logit:
-                         pyplot.semilogx([minSuc,maxSuc],[depth,depth],'b--')
-            pyplot.axis([minSuc,maxSuc,dmax,dmin])
-            pyplot.xlabel('Susceptibility')
+                         plt.semilogx([minSuc,maxSuc],[depth,depth],'b--')
+            plt.axis([minSuc,maxSuc,dmax,dmin])
+            plt.xlabel('Susceptibility')
             plt+=1
     if wig_file:
-            pyplot.subplot(1,pcol,plt)
-            pyplot.plot(WIG,WIG_depths,'k') 
+            plt.subplot(1,pcol,plt)
+            plt.plot(WIG,WIG_depths,'k')
             if sum_file:
                 for core in Cores:
-                     depth=float(core[core_depth_key]) 
-                     pyplot.plot([WIG[0],WIG[-1]],[depth,depth],'b--')
-            pyplot.axis([min(WIG),max(WIG),dmax,dmin])
-            pyplot.xlabel(plt_key)
+                     depth=float(core[core_depth_key])
+                     plt.plot([WIG[0],WIG[-1]],[depth,depth],'b--')
+            plt.axis([min(WIG),max(WIG),dmax,dmin])
+            plt.xlabel(plt_key)
             plt+=1
     if pltTime:
-            ax1=pyplot.subplot(1,pcol,plt)
+            ax1=plt.subplot(1,pcol,plt)
             ax1.axis([-.25,1.5,amax,amin])
             plt+=1
             TS,Chrons=pmag.get_TS(timescale)
             X,Y,Y2=[0,1],[],[]
             cnt=0
-            if amin<TS[1]: # in the Brunhes 
+            if amin<TS[1]: # in the Brunhes
                 Y=[amin,amin] # minimum age
                 Y1=[TS[1],TS[1]] # age of the B/M boundary
-                ax1.fill_between(X,Y,Y1,facecolor='black') # color in Brunhes, black 
+                ax1.fill_between(X,Y,Y1,facecolor='black') # color in Brunhes, black
             for d in TS[1:]:
-                pol=cnt%2 
+                pol=cnt%2
                 cnt+=1
                 if d<=amax and d>=amin:
                    ind=TS.index(d)
@@ -1819,25 +1866,27 @@ def core_depthplot(dir_path='.', meas_file='magic_measurements.txt', spc_file=''
                    if pol: ax1.fill_between(X,Y,Y1,facecolor='black') # fill in every other time
             ax1.plot([0,1,1,0,0],[amin,amin,amax,amax,amin],'k-')
             ax2=ax1.twinx()
-            pyplot.ylabel("Age (Ma): "+timescale) 
+            plt.ylabel("Age (Ma): "+timescale)
             for k in range(len(Chrons)-1):
-                c=Chrons[k]  
+                c=Chrons[k]
                 cnext=Chrons[k+1]
                 d=cnext[1]-(cnext[1]-c[1])/3.
                 if d>=amin and d<amax:
                     ax2.plot([1,1.5],[c[1],c[1]],'k-') # make the Chron boundary tick
-                    ax2.text(1.05,d,c[0]) # 
+                    ax2.text(1.05,d,c[0]) #
             ax2.axis([-.25,1.5,amax,amin])
     figname=location+'_m:_'+method+'_core-depthplot.'+fmt
-    pyplot.title(location)
+    plt.title(location)
     return main_plot, figname
 
 
 def download_magic(infile, dir_path='.', input_dir_path='.', overwrite=False):
     """
-    takes the name of a text file downloaded from the MagIC database and unpacks it into magic-formatted files.
-    by default, download_magic assumes that you are doing everything in your current directory.
-    if not, you may provide optional arguments dir_path (where you want the results to go) and input_dir_path (where the dowloaded file is).
+    takes the name of a text file downloaded from the MagIC database and
+    unpacks it into magic-formatted files. by default, download_magic assumes
+    that you are doing everything in your current directory. if not, you may
+    provide optional arguments dir_path (where you want the results to go) and
+    input_dir_path (where the dowloaded file is).
     """
     f=open(os.path.join(input_dir_path, infile),'rU')
     infile=f.readlines()
@@ -1859,7 +1908,7 @@ def download_magic(infile, dir_path='.', input_dir_path='.', overwrite=False):
         if file_type not in type_list:
             type_list.append(file_type)
         else:
-            filenum+=1 
+            filenum+=1
         LN+=1
         line=File[LN]
         keys=line.replace('\n','').split('\t')
@@ -1874,7 +1923,7 @@ def download_magic(infile, dir_path='.', input_dir_path='.', overwrite=False):
                 if filenum==0:
                     outfile=dir_path+"/"+file_type.strip()+'.txt'
                 else:
-                    outfile=dir_path+"/"+file_type.strip()+'_'+str(filenum)+'.txt' 
+                    outfile=dir_path+"/"+file_type.strip()+'_'+str(filenum)+'.txt'
                 NewRecs=[]
                 for rec in Recs:
                     if 'magic_method_codes' in rec.keys():
@@ -1916,7 +1965,7 @@ def download_magic(infile, dir_path='.', input_dir_path='.', overwrite=False):
         if filenum==0:
             outfile=dir_path+"/"+file_type.strip()+'.txt'
         else:
-            outfile=dir_path+"/"+file_type.strip()+'_'+str(filenum)+'.txt' 
+            outfile=dir_path+"/"+file_type.strip()+'_'+str(filenum)+'.txt'
         NewRecs=[]
         for rec in Recs:
             if 'magic_method_codes' in rec.keys():
@@ -1963,7 +2012,7 @@ def download_magic(infile, dir_path='.', input_dir_path='.', overwrite=False):
 
 def upload_magic(concat=0, dir_path='.'):
     """
-    Finds all magic files in a given directory, and compiles them into an upload.txt file which can be uploaded into the MagIC database.  
+    Finds all magic files in a given directory, and compiles them into an upload.txt file which can be uploaded into the MagIC database.
     returns a tuple of either: (False, error_message) if there was a problem creating/validating the upload file
     or: (filename, '') if the upload was fully successful
     """
@@ -1971,7 +2020,7 @@ def upload_magic(concat=0, dir_path='.'):
     concat = int(concat)
     files_list = ["er_expeditions.txt", "er_locations.txt", "er_samples.txt", "er_specimens.txt", "er_sites.txt", "er_ages.txt", "er_citations.txt", "er_mailinglist.txt", "magic_measurements.txt", "rmag_hysteresis.txt", "rmag_anisotropy.txt", "rmag_remanence.txt", "rmag_results.txt", "pmag_specimens.txt", "pmag_samples.txt", "pmag_sites.txt", "pmag_results.txt", "pmag_criteria.txt", "magic_instruments.txt"]
     file_names = [os.path.join(dir_path, f) for f in files_list]
-    
+
     # begin the upload process
     up = os.path.join(dir_path, "upload.txt")
     RmKeys=['citation_label','compilation','calculation_type','average_n_lines','average_n_planes','specimen_grade','site_vgp_lat','site_vgp_lon','direction_type','specimen_Z','magic_instrument_codes','cooling_rate_corr','cooling_rate_mcd','anisotropy_atrm_alt','anisotropy_apar_perc','anisotropy_F','anisotropy_F_crit','specimen_scat','specimen_gmax','specimen_frac','site_vadm','site_lon','site_vdm','site_lat', 'measurement_chi','specimen_k_prime','external_database_names','external_database_ids']
@@ -1987,18 +2036,18 @@ def upload_magic(concat=0, dir_path='.'):
             print "file ",file," successfully read in"
             if len(RmKeys)>0:
                 for rec in Data:
-                    for key in RmKeys: 
+                    for key in RmKeys:
                         if key=='specimen_Z' and key in rec.keys():
                             rec[key]='specimen_z' # change  # change this to lower case
                         if key in rec.keys():
                             del rec[key] # get rid of unwanted keys
-                    if 'specimen_b_beta' in rec.keys() and rec['specimen_b_beta']!="": # ignore blanks 
+                    if 'specimen_b_beta' in rec.keys() and rec['specimen_b_beta']!="": # ignore blanks
                         if float(rec['specimen_b_beta'])< 0:
                             rec['specimen_b_beta']=str(-float(rec['specimen_b_beta']))  # make sure value is positive
                             print 'adjusted to positive: ','specimen_b_beta',rec['specimen_b_beta']
                     for key in CheckDec: # check all declinations/azimuths/longitudes in range 0=>360.
                         for k in rec.keys():
-                            if key in k and rec[k]!="": # ignore blanks 
+                            if key in k and rec[k]!="": # ignore blanks
                                 rec[k]='%8.2f'%(float(rec[k])%360)  # make sure value is between 0 and 360.
                                 # PUT ME BACK IN
                                 #print 'adjusted to 0=>360.: ',rec[k]
@@ -2012,7 +2061,7 @@ def upload_magic(concat=0, dir_path='.'):
                         orient,az_type=pmag.get_orient(Data,rec['er_sample_name'])
                         NewSamps.append(orient)
                         Done.append(rec['er_sample_name'])
-                Data=NewSamps           
+                Data=NewSamps
                 print 'only highest priority orientation record from er_samples.txt read in '
             if file_type=='er_specimens': #  only specimens that have sample names
                 NewData,SpecDone=[],[]
@@ -2020,26 +2069,26 @@ def upload_magic(concat=0, dir_path='.'):
                     if rec['er_sample_name'] in Done:
                         NewData.append(rec)
                         SpecDone.append(rec['er_specimen_name'])
-                    else: 
-                        print 'no sample record found for: ' 
+                    else:
+                        print 'no sample record found for: '
                         print rec
-                Data=NewData           
+                Data=NewData
                 print 'only measurements that have specimen/sample info'
             if file_type=='magic_measurements': #  only measurements that have specimen names
                 NewData=[]
                 for rec in Data:
                     if rec['er_specimen_name'] in SpecDone:
                         NewData.append(rec)
-                    else: 
-                        print 'no specimen record found for: ' 
+                    else:
+                        print 'no specimen record found for: '
                         print rec
-                Data=NewData           
+                Data=NewData
     # write out the data
             if len(Data)>0:
                 if first_file==1:
                     keystring=pmag.first_rec(up,Data[0],file_type)
                     first_file=0
-                else:  
+                else:
                     keystring=pmag.first_up(up,Data[0],file_type)
                 for rec in Data:
     # collect the method codes
@@ -2095,7 +2144,7 @@ def upload_magic(concat=0, dir_path='.'):
     if os.path.isfile(new_up):
         fname, extension = os.path.splitext(new_up)
         new_up = fname + "_1" + extension
-    
+
     os.rename(up, new_up)
     print "Finished preparing upload file: {} ".format(new_up)
     if not validated:
@@ -2106,7 +2155,7 @@ def upload_magic(concat=0, dir_path='.'):
 
 def specimens_results_magic(infile='pmag_specimens.txt', measfile='magic_measurements.txt', sampfile='er_samples.txt', sitefile='er_sites.txt', agefile='er_ages.txt', specout='er_specimens.txt', sampout='pmag_samples.txt', siteout='pmag_sites.txt', resout='pmag_results.txt', critout='pmag_criteria.txt', instout='magic_instruments.txt', plotsites = False, fmt='svg', dir_path='.', cors=[], priorities=['DA-AC-ARM','DA-AC-TRM'], coord='g', user='', vgps_level='site', do_site_intensity=True, DefaultAge=["none"], avg_directions_by_sample=False, avg_intensities_by_sample=False, avg_all_components=False, avg_by_polarity=False, skip_directions=False, skip_intensities=False, use_sample_latitude=False, use_paleolatitude=False, use_criteria='default'):
     """
-    cors is 'corrections' 
+    cors is 'corrections'
     long docstring goes here
     DefaultAge should be [min, max, units]
     use_criteria may be 'default', 'existing', or 'none'
@@ -2124,7 +2173,7 @@ def specimens_results_magic(infile='pmag_specimens.txt', measfile='magic_measure
     for cor in cors:
         nocorrection.remove('DA-'+cor)
         corrections.append('DA-'+cor)
-            
+
     for p in priorities:
         if not p.startswith('DA-AC-'):
             p='DA-AC-'+p
@@ -2166,15 +2215,15 @@ def specimens_results_magic(infile='pmag_specimens.txt', measfile='magic_measure
                     tmp=line.split()
                     ModelLat["er_site_name"]=tmp[0]
                     ModelLat["site_model_lat"]=tmp[1]
-                    ModelLat["er_sample_name"]=tmp[0] 
+                    ModelLat["er_sample_name"]=tmp[0]
                     ModelLat["sample_lat"]=tmp[1]
                     ModelLats.append(ModelLat)
             except:
                 print "use_paleolatitude option requires a valid paleolatitude file"
         else:
             get_model_lat = 0 # skips VADM calculation entirely
-                
-                
+
+
     if plotsites and not skip_directions: # plot by site - set up plot window
         import pmagplotlib
         EQ={}
@@ -2182,7 +2231,7 @@ def specimens_results_magic(infile='pmag_specimens.txt', measfile='magic_measure
         pmagplotlib.plot_init(EQ['eqarea'],5,5) # define figure 1 as equal area projection
         pmagplotlib.plotNET(EQ['eqarea']) # I don't know why this has to be here, but otherwise the first plot never plots...
         pmagplotlib.drawFIGS(EQ)
-            
+
     infile = os.path.join(dir_path, infile)
     measfile = os.path.join(dir_path, measfile)
     instout = os.path.join(dir_path, instout)
@@ -2211,7 +2260,7 @@ def specimens_results_magic(infile='pmag_specimens.txt', measfile='magic_measure
 # need to migrate specimen_dang to specimen_int_dang for intensity data using old format
             if 'IE-SPEC' in critrec.keys() and 'specimen_dang' in critrec.keys() and 'specimen_int_dang' not in critrec.keys():
                 critrec['specimen_int_dang']=critrec['specimen_dang']
-                del critrec['specimen_dang']   
+                del critrec['specimen_dang']
 # need to get rid of ron shaars sample_int_sigma_uT
             if 'sample_int_sigma_uT' in critrec.keys():
                 critrec['sample_int_sigma']='%10.3e'%(eval(critrec['sample_int_sigma_uT'])*1e-6)
@@ -2227,7 +2276,7 @@ def specimens_results_magic(infile='pmag_specimens.txt', measfile='magic_measure
 #
     SiteNFO,file_type=pmag.magic_read(sitefile) # read in site data - has the lats and lons
     SampNFO,file_type=pmag.magic_read(sampfile) # read in site data - has the lats and lons
-    height_nfo=pmag.get_dictitem(SiteNFO,'site_height','','F') # find all the sites with height info.  
+    height_nfo=pmag.get_dictitem(SiteNFO,'site_height','','F') # find all the sites with height info.
     if agefile:
         AgeNFO,file_type=pmag.magic_read(agefile) # read in the age information
     Data,file_type=pmag.magic_read(infile) # read in specimen interpretations
@@ -2253,10 +2302,10 @@ def specimens_results_magic(infile='pmag_specimens.txt', measfile='magic_measure
 	if "specimen_direction_type" not in rec.keys(): rec["specimen_direction_type"]='l'  # assume direction is line - not plane
 	if "specimen_dec" not in rec.keys(): rec["specimen_direction_type"]=''  # if no declination, set direction type to blank
 	if "specimen_n" not in rec.keys(): rec["specimen_n"]=''  # put in n
-	if "specimen_alpha95" not in rec.keys(): rec["specimen_alpha95"]=''  # put in alpha95 
+	if "specimen_alpha95" not in rec.keys(): rec["specimen_alpha95"]=''  # put in alpha95
 	if "magic_method_codes" not in rec.keys(): rec["magic_method_codes"]=''
      #
-     # start parsing data into SpecDirs, SpecPlanes, SpecInts 
+     # start parsing data into SpecDirs, SpecPlanes, SpecInts
     SpecInts,SpecDirs,SpecPlanes=[],[],[]
     samples.sort() # get sorted list of samples and sites
     sites.sort()
@@ -2288,10 +2337,10 @@ def specimens_results_magic(infile='pmag_specimens.txt', measfile='magic_measure
                     ThisSpecRecs=pmag.get_dictitem(SpecInts,'magic_method_codes',p,'has') # all the records for this specimen
                     if len(ThisSpecRecs)>0:prec.append(ThisSpecRecs[0])
                 PrioritySpecInts.append(prec[0]) # take the best one
-        SpecInts=PrioritySpecInts # this has the first specimen record 
+        SpecInts=PrioritySpecInts # this has the first specimen record
     if not skip_directions: # don't skip directions
 	AllDirs=pmag.get_dictitem(Data,'specimen_direction_type','','F') # retrieve specimens with directed lines and planes
-	Ns=pmag.get_dictitem(AllDirs,'specimen_n','','F')  # get all specimens with specimen_n information 
+	Ns=pmag.get_dictitem(AllDirs,'specimen_n','','F')  # get all specimens with specimen_n information
 	if nocrit!=1: # use selection criteria
 	    for rec in Ns: # look through everything with specimen_n for "good" data
                 kill=pmag.grade(rec,accept,'specimen_dir')
@@ -2417,10 +2466,10 @@ def specimens_results_magic(infile='pmag_specimens.txt', measfile='magic_measure
                       PmagResRec['data_type']='i'
                       PmagResults.append(PmagResRec)
     if len(PmagSamps)>0:
-	TmpSamps,keylist=pmag.fillkeys(PmagSamps) # fill in missing keys from different types of records       
+	TmpSamps,keylist=pmag.fillkeys(PmagSamps) # fill in missing keys from different types of records
 	pmag.magic_write(sampout,TmpSamps,'pmag_samples') # save in sample output file
 	print ' sample averages written to ',sampout
-   
+
 #
 #create site averages from specimens or samples as specified
 #
@@ -2458,11 +2507,11 @@ def specimens_results_magic(infile='pmag_specimens.txt', measfile='magic_measure
                             print PmagSiteRec['er_site_name']
                             pmagplotlib.plotSITE(EQ['eqarea'],PmagSiteRec,siteD,key) # plot and list the data
                             pmagplotlib.drawFIGS(EQ)
-			PmagSites.append(PmagSiteRec) 
+			PmagSites.append(PmagSiteRec)
 	    else: # last component only
 	        siteD=tmp1[:] # get the last orientation system specified
 	        if len(siteD)>0: # there are some
-	            PmagSiteRec=pmag.lnpbykey(siteD,'site',key) # get the average for this site 
+	            PmagSiteRec=pmag.lnpbykey(siteD,'site',key) # get the average for this site
 	            PmagSiteRec["er_location_name"]=siteD[0]['er_location_name'] # decorate the record
     		    PmagSiteRec["er_site_name"]=siteD[0]['er_site_name']
 		    PmagSiteRec['site_comp_name']=comp
@@ -2496,15 +2545,15 @@ def specimens_results_magic(infile='pmag_specimens.txt', measfile='magic_measure
 	    elif int(PmagSiteRec["site_n_lines"])>2:
 		PmagSiteRec["magic_method_codes"]=PmagSiteRec['magic_method_codes']+":DE-FM"
 	    kill=pmag.grade(PmagSiteRec,accept,'site_dir')
-            if len(kill)==0: 
+            if len(kill)==0:
 		PmagResRec={} # set up dictionary for the pmag_results table entry
 		PmagResRec['data_type']='i' # decorate it a bit
 		PmagResRec['magic_software_packages']=version_num
-		PmagSiteRec['site_description']='Site direction included in results table' 
+		PmagSiteRec['site_description']='Site direction included in results table'
 		PmagResRec['pmag_criteria_codes']='ACCEPT'
 		dec=float(PmagSiteRec["site_dec"])
 		inc=float(PmagSiteRec["site_inc"])
-                if 'site_alpha95' in PmagSiteRec.keys() and PmagSiteRec['site_alpha95']!="": 
+                if 'site_alpha95' in PmagSiteRec.keys() and PmagSiteRec['site_alpha95']!="":
 		    a95=float(PmagSiteRec["site_alpha95"])
                 else:a95=180.
 	        sitedat=pmag.get_dictitem(SiteNFO,'er_site_name',PmagSiteRec['er_site_name'],'T')[0] # fish out site information (lat/lon, etc.)
@@ -2532,7 +2581,7 @@ def specimens_results_magic(infile='pmag_specimens.txt', measfile='magic_measure
 		PmagResRec["average_alpha95"]=PmagSiteRec["site_alpha95"]
 		PmagResRec["average_n"]=PmagSiteRec["site_n"]
 		PmagResRec["average_n_lines"]=PmagSiteRec["site_n_lines"]
-		PmagResRec["average_n_planes"]=PmagSiteRec["site_n_planes"]            
+		PmagResRec["average_n_planes"]=PmagSiteRec["site_n_planes"]
 		PmagResRec["vgp_n"]=PmagSiteRec["site_n"]
 		PmagResRec["average_k"]=PmagSiteRec["site_k"]
 		PmagResRec["average_r"]=PmagSiteRec["site_r"]
@@ -2558,8 +2607,8 @@ def specimens_results_magic(infile='pmag_specimens.txt', measfile='magic_measure
     if avg_by_polarity:
         crecs=pmag.get_dictitem(PmagSites,'site_tilt_correction','100','T') # find the tilt corrected data
         if len(crecs)<2:crecs=pmag.get_dictitem(PmagSites,'site_tilt_correction','0','T') # if there aren't any, find the geographic corrected data
-        if len(crecs)>2: # if there are some, 
-            comp=pmag.get_list(crecs,'site_comp_name').split(':')[0] # find the first component 
+        if len(crecs)>2: # if there are some,
+            comp=pmag.get_list(crecs,'site_comp_name').split(':')[0] # find the first component
             crecs=pmag.get_dictitem(crecs,'site_comp_name',comp,'T') # fish out all of the first component
             precs=[]
             for rec in crecs:
@@ -2568,7 +2617,7 @@ def specimens_results_magic(infile='pmag_specimens.txt', measfile='magic_measure
             for mode in polpars.keys(): # hunt through all the modes (normal=A, reverse=B, all=ALL)
                 PolRes={}
                 PolRes['er_citation_names']='This study'
-                PolRes["pmag_result_name"]="Polarity Average: Polarity "+mode # 
+                PolRes["pmag_result_name"]="Polarity Average: Polarity "+mode #
                 PolRes["data_type"]="a"
                 PolRes["average_dec"]='%7.1f'%(polpars[mode]['dec'])
                 PolRes["average_inc"]='%7.1f'%(polpars[mode]['inc'])
@@ -2580,7 +2629,7 @@ def specimens_results_magic(infile='pmag_specimens.txt', measfile='magic_measure
 		PolRes['er_location_names']= polpars[mode]['locs']
 		PolRes['magic_software_packages']=version_num
                 PmagResults.append(PolRes)
-         
+
     if not skip_intensities and nositeints!=1:
       for site in sites: # now do intensities for each site
         if plotsites:print site
@@ -2596,7 +2645,7 @@ def specimens_results_magic(infile='pmag_specimens.txt', measfile='magic_measure
                     print 'Average: ','%7.1f'%(1e6*float(PmagResRec['average_int'])),'N: ',len(Ints)
                     print 'Sigma: ','%7.1f'%(1e6*float(PmagResRec['average_int_sigma'])),'Sigma %: ',PmagResRec['average_int_sigma_perc']
                 raw_input('Press any key to continue\n')
-            er_location_name=Ints[0]["er_location_name"] 
+            er_location_name=Ints[0]["er_location_name"]
             PmagSiteRec["er_location_name"]=er_location_name # decorate the records
             PmagSiteRec["er_citation_names"]="This study"
             PmagResRec["er_location_names"]=er_location_name
@@ -2620,7 +2669,7 @@ def specimens_results_magic(infile='pmag_specimens.txt', measfile='magic_measure
                     sig=float(PmagResRec['average_int_sigma'])
                 sdir=pmag.get_dictitem(PmagResults,'er_site_names',site,'T') # fish out site direction
                 if len(sdir)>0 and  sdir[-1]['average_inc']!="": # get the VDM for this record using last average inclination (hope it is the right one!)
-                        inc=float(sdir[0]['average_inc']) # 
+                        inc=float(sdir[0]['average_inc']) #
                         mlat=pmag.magnetic_lat(inc) # get magnetic latitude using dipole formula
                         PmagResRec["vdm"]='%8.3e '% (pmag.b_vdm(b,mlat)) # get VDM with magnetic latitude
                         PmagResRec["vdm_n"]=PmagResRec['average_int_n']
@@ -2663,12 +2712,12 @@ def specimens_results_magic(infile='pmag_specimens.txt', measfile='magic_measure
                 PmagSites.append(PmagSiteRec)
                 PmagResults.append(PmagResRec)
     if len(PmagSites)>0:
-        Tmp,keylist=pmag.fillkeys(PmagSites)         
+        Tmp,keylist=pmag.fillkeys(PmagSites)
         pmag.magic_write(siteout,Tmp,'pmag_sites')
         print ' sites written to ',siteout
     else: print "No Site level table"
     if len(PmagResults)>0:
-        TmpRes,keylist=pmag.fillkeys(PmagResults)         
+        TmpRes,keylist=pmag.fillkeys(PmagResults)
         pmag.magic_write(resout,TmpRes,'pmag_results')
         print ' results written to ',resout
     else: print "No Results level table"
@@ -2687,20 +2736,20 @@ tab  location_name
         The second line has the names of the columns (tab delimited), e.g.:
 site_name sample_name mag_azimuth field_dip date lat long sample_lithology sample_type sample_class shadow_angle hhmm stratigraphic_height bedding_dip_direction bedding_dip GPS_baseline image_name image_look image_photographer participants method_codes site_description sample_description GPS_Az, sample_igsn, sample_texture, sample_cooling_rate, cooling_rate_corr, cooling_rate_mcd
 
-    
-      Notes: 
-        1) column order doesn't matter but the NAMES do.   
+
+      Notes:
+        1) column order doesn't matter but the NAMES do.
         2) sample_name, sample_lithology, sample_type, sample_class, lat and long are required.  all others are optional.
-        3) If subsequent data are the same (e.g., date, bedding orientation, participants, stratigraphic_height), 
+        3) If subsequent data are the same (e.g., date, bedding orientation, participants, stratigraphic_height),
             you can leave the field blank and the program will fill in the last recorded information. BUT if you really want a blank stratigraphic_height, enter a '-1'.    These will not be inherited and must be specified for each entry: image_name, look, photographer or method_codes
         4) hhmm must be in the format:  hh:mm and the hh must be in 24 hour time.
     date must be mm/dd/yy (years < 50 will be converted to  20yy and >50 will be assumed 19yy)
-        5) image_name, image_look and image_photographer are colon delimited lists of file name (e.g., IMG_001.jpg) image look direction and the name of the photographer respectively.  If all images had same look and photographer, just enter info once.  The images will be assigned to the site for which they were taken - not at the sample level.  
+        5) image_name, image_look and image_photographer are colon delimited lists of file name (e.g., IMG_001.jpg) image look direction and the name of the photographer respectively.  If all images had same look and photographer, just enter info once.  The images will be assigned to the site for which they were taken - not at the sample level.
         6) participants:  Names of who helped take the samples.  These must be a colon delimited list.
         7) method_codes:  Special method codes on a sample level, e.g., SO-GT5 which means the orientation is has an uncertainty of >5 degrees
              for example if it broke off before orienting....
         8) GPS_Az is the place to put directly determined GPS Azimuths, using, e.g., points along the drill direction.
-        9) sample_cooling_rate is the cooling rate in K per Ma 
+        9) sample_cooling_rate is the cooling rate in K per Ma
         10) int_corr_cooling_rate
         11) cooling_rate_mcd:  data adjustment method code for cooling rate correction;  DA-CR-EG is educated guess; DA-CR-PS is percent estimated from pilot samples; DA-CR-TRM is comparison between 2 TRMs acquired with slow and rapid cooling rates.
 is the percent cooling rate factor to apply to specimens from this sample, DA-CR-XX is the method code
@@ -2709,28 +2758,28 @@ is the percent cooling rate factor to apply to specimens from this sample, DA-CR
     defaults:
     orientation_magic(or_con=1, dec_correction_con=1, dec_correction=0, bed_correction=True, samp_con='1', hours_from_gmt=0, method_codes='', average_bedding=False, orient_file='orient.txt', samp_file='er_samples.txt', site_file='er_sites.txt', output_dir_path='.', input_dir_path='.', append=False):
     orientation conventions:
-        [1] Standard Pomeroy convention of azimuth and hade (degrees from vertical down) 
-             of the drill direction (field arrow).  lab arrow azimuth= sample_azimuth = mag_azimuth; 
+        [1] Standard Pomeroy convention of azimuth and hade (degrees from vertical down)
+             of the drill direction (field arrow).  lab arrow azimuth= sample_azimuth = mag_azimuth;
              lab arrow dip = sample_dip =-field_dip. i.e. the lab arrow dip is minus the hade.
         [2] Field arrow is the strike  of the plane orthogonal to the drill direction,
-             Field dip is the hade of the drill direction.  Lab arrow azimuth = mag_azimuth-90 
-             Lab arrow dip = -field_dip 
-        [3] Lab arrow is the same as the drill direction; 
-             hade was measured in the field.  
+             Field dip is the hade of the drill direction.  Lab arrow azimuth = mag_azimuth-90
+             Lab arrow dip = -field_dip
+        [3] Lab arrow is the same as the drill direction;
+             hade was measured in the field.
              Lab arrow azimuth = mag_azimuth; Lab arrow dip = 90-field_dip
         [4] lab azimuth and dip are same as mag_azimuth, field_dip : use this for unoriented samples too
-        [5] Same as AZDIP convention explained below - 
-            azimuth and inclination of the drill direction are mag_azimuth and field_dip; 
-            lab arrow is as in [1] above. 
+        [5] Same as AZDIP convention explained below -
+            azimuth and inclination of the drill direction are mag_azimuth and field_dip;
+            lab arrow is as in [1] above.
             lab azimuth is same as mag_azimuth,lab arrow dip=field_dip-90
         [6] Lab arrow azimuth = mag_azimuth-90; Lab arrow dip = 90-field_dip
-        [7] see http://earthref.org/PmagPy/cookbook/#field_info for more information.  You can customize other format yourself, or email ltauxe@ucsd.edu for help.  
+        [7] see http://earthref.org/PmagPy/cookbook/#field_info for more information.  You can customize other format yourself, or email ltauxe@ucsd.edu for help.
 
 
     Magnetic declination convention:
         [1] Use the IGRF value at the lat/long and date supplied [default]
         [2] Will supply declination correction
-        [3] mag_az is already corrected in file 
+        [3] mag_az is already corrected in file
         [4] Correct mag_az but not bedding_dip_dir
 
     Sample naming convention:
@@ -2741,10 +2790,10 @@ is the percent cooling rate factor to apply to specimens from this sample, DA-CR
         [3] XXXX.YY: YY sample from site XXXX (XXX, YY of arbitary length)
         [4-Z] XXXX[YYY]:  YYY is sample designation with Z characters from site XXX
         [5] site name = sample name
-        [6] site name entered in site_name column in the orient.txt format input file  
+        [6] site name entered in site_name column in the orient.txt format input file
         [7-Z] [XXX]YYY:  XXX is site designation with Z characters from samples  XXXYYY
-        NB: all others you will have to either customize your 
-            self or e-mail ltauxe@ucsd.edu for help.  
+        NB: all others you will have to either customize your
+            self or e-mail ltauxe@ucsd.edu for help.
 
 
     """
@@ -2772,11 +2821,11 @@ is the percent cooling rate factor to apply to specimens from this sample, DA-CR
     BPs=[]# bedding pole declinations, bedding pole inclinations
     #
     #
-    
+
     orient_file,samp_file= os.path.join(input_dir_path,orient_file), os.path.join(output_dir_path,samp_file)
     site_file = os.path.join(output_dir_path, site_file)
     image_file= os.path.join(output_dir_path, "er_images.txt")
-    
+
     # validate input
     if '4' in samp_con[0]:
         pattern = re.compile('[4][-]\d')
@@ -2789,10 +2838,10 @@ is the percent cooling rate factor to apply to specimens from this sample, DA-CR
         result = pattern.match(samp_con)
         if not result:
             raise Exception("If using sample naming convention 7, you must provide the number of characters with which to distinguish sample from site.  [7-Z] [XXX]YYY:  XXX is site designation with Z characters from samples  XXXYYY")
-    
+
     if dec_correction_con == 2 and not dec_correction:
         raise Exception("If using magnetic declination convention 2, you must also provide a declincation correction in degrees")
-    
+
     SampRecs,SiteRecs,ImageRecs=[],[],[]
 
     if append:
@@ -2855,15 +2904,15 @@ is the percent cooling rate factor to apply to specimens from this sample, DA-CR
             cooling_rate_mcd=""
         sample_orientation_flag='g'
         if 'sample_orientation_flag' in OrRec.keys():
-            if OrRec['sample_orientation_flag']=='b' or OrRec["mag_azimuth"]=="": 
+            if OrRec['sample_orientation_flag']=='b' or OrRec["mag_azimuth"]=="":
                 sample_orientation_flag='b'
         methcodes=method_codes  # initialize method codes
         if methcodes:
             if 'method_codes' in OrRec.keys() and OrRec['method_codes'].strip()!="":
-                methcodes=methcodes+":"+OrRec['method_codes'] # add notes 
+                methcodes=methcodes+":"+OrRec['method_codes'] # add notes
         else:
             if 'method_codes' in OrRec.keys() and OrRec['method_codes'].strip()!="":
-                methcodes=OrRec['method_codes'] # add notes 
+                methcodes=OrRec['method_codes'] # add notes
         codes=methcodes.replace(" ","").split(":")
         MagRec={}
         MagRec["er_location_name"]=location_name
@@ -2898,7 +2947,7 @@ is the percent cooling rate factor to apply to specimens from this sample, DA-CR
             newbaseline=OrRec["GPS_baseline"]
         if newbaseline!="":
             baseline=float(newbaseline)
-        if 'participants' in OrRec.keys() and OrRec['participants']!="" and OrRec['participants']!=participantlist: 
+        if 'participants' in OrRec.keys() and OrRec['participants']!="" and OrRec['participants']!=participantlist:
             participantlist=OrRec['participants']
         MagRec['er_scientist_mail_names']=participantlist
         newlat=OrRec["lat"]
@@ -2956,7 +3005,7 @@ is the percent cooling rate factor to apply to specimens from this sample, DA-CR
                 date=newdate
             mmddyy=date.split('/')
             yy=int(mmddyy[2])
-            if yy>50: 
+            if yy>50:
                 yy=1900+yy
             else:
                 yy=2000+yy
@@ -2971,7 +3020,7 @@ is the percent cooling rate factor to apply to specimens from this sample, DA-CR
         else:
             MagRec["sample_azimuth"]=""
         if "stratigraphic_height" in OrRec.keys():
-            if OrRec["stratigraphic_height"]!="": 
+            if OrRec["stratigraphic_height"]!="":
                 MagRec["sample_height"]=OrRec["stratigraphic_height"]
                 stratpos=OrRec["stratigraphic_height"]
             elif OrRec["stratigraphic_height"]=='-1':
@@ -2981,9 +3030,9 @@ is the percent cooling rate factor to apply to specimens from this sample, DA-CR
 #
         if dec_correction_con==1 and MagRec['sample_azimuth']!="": # get magnetic declination (corrected with igrf value)
             x,y,z,f=pmag.doigrf(lon,lat,0,decimal_year)
-            Dir=pmag.cart2dir( (x,y,z)) 
+            Dir=pmag.cart2dir( (x,y,z))
             dec_correction=Dir[0]
-        if "bedding_dip" in OrRec.keys(): 
+        if "bedding_dip" in OrRec.keys():
             if OrRec["bedding_dip"]!="":
                 MagRec["sample_bed_dip"]=OrRec["bedding_dip"]
                 bed_dip=OrRec["bedding_dip"]
@@ -2991,12 +3040,12 @@ is the percent cooling rate factor to apply to specimens from this sample, DA-CR
                 MagRec["sample_bed_dip"]=bed_dip
         else: MagRec["sample_bed_dip"]='0'
         if "bedding_dip_direction" in OrRec.keys():
-            if OrRec["bedding_dip_direction"]!="" and bed_correction==1: 
+            if OrRec["bedding_dip_direction"]!="" and bed_correction==1:
                 dd=float(OrRec["bedding_dip_direction"])+dec_correction
                 if dd>360.:dd=dd-360.
                 MagRec["sample_bed_dip_direction"]='%7.1f'%(dd)
                 dip_dir=MagRec["sample_bed_dip_direction"]
-            else: 
+            else:
                 MagRec["sample_bed_dip_direction"]=OrRec['bedding_dip_direction']
         else:
             MagRec["sample_bed_dip_direction"]='0'
@@ -3055,7 +3104,7 @@ is the percent cooling rate factor to apply to specimens from this sample, DA-CR
         if site not in sitelist:
     	    sitelist.append(site) # collect unique site names
     	    SiteRec={}
-    	    SiteRec["er_site_name"]=site 
+    	    SiteRec["er_site_name"]=site
             SiteRec["site_definition"]="s"
     	    SiteRec["er_location_name"]=location_name
     	    SiteRec["er_citation_names"]="This study"
@@ -3118,13 +3167,13 @@ is the percent cooling rate factor to apply to specimens from this sample, DA-CR
     #                else:
     #                    MagRec["sample_time_zone"]='GMT+'+hours_from_gmt+' hours'
                     sundata["delta_u"]=hours_from_gmt
-                    sundata["lon"]='%7.1f'%(lon)   
-                    sundata["lat"]='%7.1f'%(lat)  
+                    sundata["lon"]='%7.1f'%(lon)
+                    sundata["lat"]='%7.1f'%(lat)
                     sundata["shadow_angle"]=OrRec["shadow_angle"]
                     sundec=pmag.dosundec(sundata)
                     for key in MagRec.keys():
                         SunRec[key]=MagRec[key]  # make a copy of MagRec
-                    SunRec["sample_azimuth"]='%7.1f'%(sundec) 
+                    SunRec["sample_azimuth"]='%7.1f'%(sundec)
                     SunRec["sample_declination_correction"]=''
                     SunRec["magic_method_codes"]=methcodes+':SO-SUN'
                     SunRec["magic_method_codes"]=SunRec['magic_method_codes'].strip(':')
@@ -3133,7 +3182,7 @@ is the percent cooling rate factor to apply to specimens from this sample, DA-CR
     #
     # check for differential GPS data
     #
-            if "prism_angle" in OrRec.keys() and OrRec["prism_angle"]!="":  # there are diff GPS data   
+            if "prism_angle" in OrRec.keys() and OrRec["prism_angle"]!="":  # there are diff GPS data
                 GPSRec={}
                 for key in MagRec.keys():
                     GPSRec[key]=MagRec[key]  # make a copy of MagRec
@@ -3144,18 +3193,18 @@ is the percent cooling rate factor to apply to specimens from this sample, DA-CR
                 while gps_dec>360.:
                     gps_dec=gps_dec-360.
                 while gps_dec<0:
-                    gps_dec=gps_dec+360. 
+                    gps_dec=gps_dec+360.
                 for key in MagRec.keys():
                     GPSRec[key]=MagRec[key]  # make a copy of MagRec
-                GPSRec["sample_azimuth"]='%7.1f'%(gps_dec) 
+                GPSRec["sample_azimuth"]='%7.1f'%(gps_dec)
                 GPSRec["sample_declination_correction"]=''
                 GPSRec["magic_method_codes"]=methcodes+':SO-GPS-DIFF'
                 SampOuts.append(GPSRec)
-            if "GPS_Az" in OrRec.keys() and OrRec["GPS_Az"]!="":  # there are differential GPS Azimuth data   
+            if "GPS_Az" in OrRec.keys() and OrRec["GPS_Az"]!="":  # there are differential GPS Azimuth data
                 GPSRec={}
                 for key in MagRec.keys():
                     GPSRec[key]=MagRec[key]  # make a copy of MagRec
-                GPSRec["sample_azimuth"]='%7.1f'%(float(OrRec["GPS_Az"])) 
+                GPSRec["sample_azimuth"]='%7.1f'%(float(OrRec["GPS_Az"]))
                 GPSRec["sample_declination_correction"]=''
                 GPSRec["magic_method_codes"]=methcodes+':SO-GPS-DIFF'
                 SampOuts.append(GPSRec)
@@ -3171,7 +3220,7 @@ is the percent cooling rate factor to apply to specimens from this sample, DA-CR
         else:
             Samps.append(rec)
     for rec in SampRecs:
-        if rec['er_sample_name'] not in samplelist: # overwrite prior for this sample 
+        if rec['er_sample_name'] not in samplelist: # overwrite prior for this sample
             Samps.append(rec)
     for rec in SiteRecs:
         if rec['er_site_name'] not in sitelist: # overwrite prior for this sample
@@ -3194,12 +3243,12 @@ is the percent cooling rate factor to apply to specimens from this sample, DA-CR
         print "Image info saved in ",image_file
     return True, None
 
-    
+
 def azdip_magic(orient_file='orient.txt', samp_file="er_samples.txt", samp_con="1", Z=1, method_codes='FS-FD', location_name='unknown', append=False, output_dir='.', input_dir='.'):
     """
     azdip_magic(orient_file='orient.txt', samp_file="er_samples.txt", samp_con="1", Z=1, method_codes='FS-FD', location_name='unknown', append=False):
     takes space delimited AzDip file and converts to MagIC formatted tables
- 
+
     specify sampling method codes as a colon delimited string:  [default is: FS-FD]
              FS-FD field sampling done with a drill
              FS-H field sampling done with hand samples
@@ -3211,14 +3260,14 @@ def azdip_magic(orient_file='orient.txt', samp_file="er_samples.txt", samp_con="
 
     INPUT FORMAT
         Input files must be space delimited:
-            Samp  Az Dip Strike Dip 
+            Samp  Az Dip Strike Dip
         Orientation convention:
              Lab arrow azimuth = mag_azimuth; Lab arrow dip = 90-field_dip
                 e.g. field_dip is degrees from horizontal of drill direction
-       
+
          Magnetic declination convention:
-             Az is already corrected in file 
-    
+             Az is already corrected in file
+
        Sample naming convention:
             [1] XXXXY: where XXXX is an arbitrary length site designation and Y
                 is the single character sample designation.  e.g., TG001a is the
@@ -3272,14 +3321,14 @@ def azdip_magic(orient_file='orient.txt', samp_file="er_samples.txt", samp_con="
         return False, 'No data in orientation file, please try again'
     azfile.close()
     SampOut,samplist=[],[]
-    for line in AzDipDat: 
+    for line in AzDipDat:
         orec=line.split()
         if len(orec)>2:
             labaz,labdip=pmag.orient(float(orec[1]),float(orec[2]),or_con)
             bed_dip=float(orec[4])
             if bed_dip!=0:
                 bed_dip_dir=float(orec[3])-90. # assume dip to right of strike
-            else: 
+            else:
                 bed_dip_dir=float(orec[3]) # assume dip to right of strike
             MagRec={}
             MagRec["er_location_name"]=location_name
@@ -3319,7 +3368,7 @@ def azdip_magic(orient_file='orient.txt', samp_file="er_samples.txt", samp_con="
 def IODP_samples_magic(samp_file, output_samp_file=None, output_dir_path='.', input_dir_path='.'):
     """
     IODP_samples_magic(samp_file, output_samp_file=None, output_dir_path='.', input_dir_path='.')
-    Default is to overwrite er_samples.txt in your output working directory.  
+    Default is to overwrite er_samples.txt in your output working directory.
     To specify an er_samples file to append to, use output_samp_file.
     """
     text_key = None
@@ -3334,9 +3383,9 @@ def IODP_samples_magic(samp_file, output_samp_file=None, output_dir_path='.', in
         samp_out = os.path.join(output_dir_path, 'er_samples.txt')
     file_input = open(samp_file,"rU").readlines()
     keys = file_input[0].replace('\n','').split(',')
-    if "CSF-B Top (m)" in keys: 
+    if "CSF-B Top (m)" in keys:
         comp_depth_key="CSF-B Top (m)"
-    elif "Top depth CSF-B (m)" in keys: 
+    elif "Top depth CSF-B (m)" in keys:
         comp_depth_key="Top depth CSF-B (m)"
     if "Top Depth (m)" in keys:  # incorporate changes to LIMS data model, while maintaining backward compatibility
         depth_key="Top Depth (m)"
@@ -3359,7 +3408,7 @@ def IODP_samples_magic(samp_file, output_samp_file=None, output_dir_path='.', in
     if 'Volume (cc)' in keys:volume_key='Volume (cc)'
     if 'Volume (cm^3)' in keys:volume_key='Volume (cm^3)'
     if not text_key:
-        return False, "Could not extract the necessary data from your input file.\nPlease make sure you are providing a correctly formated IODP samples csv file."    
+        return False, "Could not extract the necessary data from your input file.\nPlease make sure you are providing a correctly formated IODP samples csv file."
     ErSamples,samples,file_format=[],[],'old'
     for line in file_input[1:]:
       if line[0]!='0':
@@ -3374,7 +3423,7 @@ def IODP_samples_magic(samp_file, output_samp_file=None, output_dir_path='.', in
         SampRec['er_sample_alternatives']=ODPRec[text_key]
         if "Label Id" in keys: # old format
             label=ODPRec['Label Id'].split()
-            if len(label)>1: 
+            if len(label)>1:
                 interval=label[1].split('/')[0]
                 pieces=label[0].split('-')
                 core=pieces[2]
@@ -3384,7 +3433,7 @@ def IODP_samples_magic(samp_file, output_samp_file=None, output_dir_path='.', in
             pieces=[ODPRec['Exp'],ODPRec['Site']+ODPRec['Hole'],ODPRec['Core']+ODPRec['Type'],ODPRec['Sect'],ODPRec['A/W']]
             interval=ODPRec['Top offset (cm)'].split('.')[0].strip() # only integers allowed!
             core=ODPRec['Core']+ODPRec['Type']
-        if core!="" and interval!="":   
+        if core!="" and interval!="":
             SampRec['magic_method_codes']='FS-C-DRILL-IODP:SP-SS-C:SO-V'
             if file_format=='old':
                 SampRec['er_sample_name']=pieces[0]+'-'+pieces[1]+'-'+core+'-'+pieces[3]+'-'+pieces[4]+'-'+interval
@@ -3407,7 +3456,7 @@ def IODP_samples_magic(samp_file, output_samp_file=None, output_dir_path='.', in
             dates=ODPRec[date_key].split()
             if '/' in dates[0]: # have a date
                 mmddyy=dates[0].split('/')
-                yyyy='20'+mmddyy[2] 
+                yyyy='20'+mmddyy[2]
                 mm=mmddyy[0]
                 if len(mm)==1:mm='0'+mm
                 dd=mmddyy[1]
@@ -3448,12 +3497,12 @@ def kly4s_magic(infile, specnum=0, locname="unknown", inst='SIO-KLY4S', samp_con
         -f FILE: specify .ams input file name
         -fad AZDIP: specify AZDIP file with orientations, will create er_samples.txt file
         -fsa SFILE: specify existing er_samples.txt file with orientation information
-        -fsp SPFILE: specify existing er_specimens.txt file for appending 
+        -fsp SPFILE: specify existing er_specimens.txt file for appending
         -F MFILE: specify magic_measurements output file
         -Fa AFILE: specify rmag_anisotropy output file
         -ocn ORCON:  specify orientation convention: default is #3 below -only with AZDIP file
         -usr USER: specify who made the measurements
-        -loc LOC: specify location name for study 
+        -loc LOC: specify location name for study
         -ins INST: specify instrument used
         -spc SPEC: specify number of characters to specify specimen from sample
         -ncn NCON:  specify naming convention: default is #1 below
@@ -3463,7 +3512,7 @@ def kly4s_magic(infile, specnum=0, locname="unknown", inst='SIO-KLY4S', samp_con
         AFILE: rmag_anisotropy.txt
         SPFILE: create new er_specimens.txt file
         USER: ""
-        LOC: "unknown" 
+        LOC: "unknown"
         INST: "SIO-KLY4S"
         SPEC: 1  specimen name is same as sample (if SPEC is 1, sample is all but last character)
     NOTES:
@@ -3471,11 +3520,11 @@ def kly4s_magic(infile, specnum=0, locname="unknown", inst='SIO-KLY4S', samp_con
             [1] XXXXY: where XXXX is an arbitrary length site designation and Y
                 is the single character sample designation.  e.g., TG001a is the
                 first sample from site TG001.    [default]
-            [2] XXXX-YY: YY sample from site XXXX (XXX, YY of arbitary length) 
+            [2] XXXX-YY: YY sample from site XXXX (XXX, YY of arbitary length)
             [3] XXXX.YY: YY sample from site XXXX (XXX, YY of arbitary length)
             [4-Z] XXXXYYY:  YYY is sample designation with Z characters from site XXX
-            [5] all others you will have to either customize your 
-                self or e-mail ltauxe@ucsd.edu for help.  
+            [5] all others you will have to either customize your
+                self or e-mail ltauxe@ucsd.edu for help.
        Orientation convention:
             [1] Lab arrow azimuth= azimuth; Lab arrow dip=-dip
                 i.e., dip is degrees from vertical down - the hade [default]
@@ -3483,22 +3532,22 @@ def kly4s_magic(infile, specnum=0, locname="unknown", inst='SIO-KLY4S', samp_con
                 i.e., azimuth is strike and dip is hade
             [3] Lab arrow azimuth = azimuth; Lab arrow dip = dip-90
                 e.g. dip is degrees from horizontal of drill direction
-            [4] Lab arrow azimuth = azimuth; Lab arrow dip = dip 
-            [5] Lab arrow azimuth = azimuth; Lab arrow dip = 90-dip 
+            [4] Lab arrow azimuth = azimuth; Lab arrow dip = dip
+            [5] Lab arrow azimuth = azimuth; Lab arrow dip = 90-dip
             [6] all others you will have to either customize your
                 self or e-mail ltauxe@ucsd.edu for help.
 
     """
 
-    
+
     # initialize variables
     #not used: #cont=0
-    
+
     ask=0
     Z=1
     AniRecs,SpecRecs,SampRecs,MeasRecs=[],[],[],[]
     AppSpec=0
-    
+
 
     # format variables
     specnum = int(specnum)
@@ -3528,7 +3577,7 @@ def kly4s_magic(infile, specnum=0, locname="unknown", inst='SIO-KLY4S', samp_con
         else:
             Z=samp_con.split("-")[1]
             samp_con="4"
-            
+
     try:
         file_input=open(amsfile,'rU')
     except:
@@ -3545,7 +3594,7 @@ def kly4s_magic(infile, specnum=0, locname="unknown", inst='SIO-KLY4S', samp_con
                     if spec['er_specimen_name'] not in speclist:
                         speclist.append(spec['er_specimen_name'])
         except IOError:
-            print 'trouble opening ',spec_infile 
+            print 'trouble opening ',spec_infile
     Data=file_input.readlines()
     samps=[]
     if samp_infile:
@@ -3585,20 +3634,20 @@ def kly4s_magic(infile, specnum=0, locname="unknown", inst='SIO-KLY4S', samp_con
             for oline in AzDipDat: # look for exact match first
                 orec=oline.replace('\n','').split()
                 if orec[0].upper() in specname.upper(): # we have a match
-                   labaz,labdip=pmag.orient(float(orec[1]),float(orec[2]),or_con)  
+                   labaz,labdip=pmag.orient(float(orec[1]),float(orec[2]),or_con)
                    bed_dip_direction=float(orec[3])-90. # assume dip to right of strike
                    bed_dip=float(orec[4])
                    break
             if labaz=="":  # found no exact match - now look at sample level
-                for oline in AzDipDat: 
+                for oline in AzDipDat:
                     orec=oline.split()
                     if orec[0].upper() == sampname.upper(): # we have a match
-                       labaz,labdip=pmag.orient(float(orec[1]),float(orec[2]),or_con)  
+                       labaz,labdip=pmag.orient(float(orec[1]),float(orec[2]),or_con)
                        bed_dip_direction=float(orec[3])-90. # assume dip to right of strike
                        bed_dip=float(orec[4])
                        break
             if labaz=="":  # found no exact match - now look at sample level
-                print 'found no orientation data - will use specimen coordinates' 
+                print 'found no orientation data - will use specimen coordinates'
                 #raw_input("<return> to continue")
             else:
                 for key in AniRec.keys():
@@ -3673,12 +3722,12 @@ def kly4s_magic(infile, specnum=0, locname="unknown", inst='SIO-KLY4S', samp_con
         date=rec[14].split('/')
         if int(date[2])>80:
            date[2]='19'+date[2]
-        else: 
+        else:
            date[2]='20'+date[2]
         datetime=date[2]+':'+date[0]+':'+date[1]+":"
         datetime=datetime+rec[15]
         MeasRec['measurement_number']='1'
-        MeasRec['measurement_date']=datetime 
+        MeasRec['measurement_date']=datetime
         MeasRec['measurement_lab_field_ac']='%8.3e'%(4*math.pi*1e-7*float(rec[11])) # convert from A/m to T
         MeasRec['measurement_temp']="300" # assumed room T in kelvin
         MeasRec['measurement_chi_volume']=rec[8]
@@ -3750,15 +3799,15 @@ def k15_magic(k15file, specnum=0, sample_naming_con='1', er_location_name="unkno
     DESCRIPTION
         converts .k15 format data to magic_measurements  format.
         assums Jelinek Kappabridge measurement scheme
-   
-    SYNTAX 
+
+    SYNTAX
         k15_magic.py [-h] [command line options]
-    
+
     OPTIONS
         -h prints help message and quits
         -f KFILE: specify .k15 format input file
         -F MFILE: specify magic_measurements format output file
-        -Fsa SFILE, specify er_samples format file for output 
+        -Fsa SFILE, specify er_samples format file for output
         -Fa AFILE, specify rmag_anisotropy format file for output
         -Fr RFILE, specify rmag_results format file for output
         -loc LOC: specify location name for study
@@ -3783,7 +3832,7 @@ def k15_magic(k15file, specnum=0, sample_naming_con='1', er_location_name="unkno
         RFILE: rmag_results.txt
         LOC: unknown
         INST: unknown
-        
+
     INPUT
       name [az,pl,strike,dip], followed by
       3 rows of 5 measurements for each specimen
@@ -3796,7 +3845,7 @@ def k15_magic(k15file, specnum=0, sample_naming_con='1', er_location_name="unkno
     # removed 'inst' variable because it is never used
     version_num=pmag.get_version()
     syn=0
-    itilt,igeo,linecnt,key=0,0,0,"" 
+    itilt,igeo,linecnt,key=0,0,0,""
     first_save=1
     k15 = []
     citation='This study'
@@ -3896,18 +3945,18 @@ def k15_magic(k15file, specnum=0, sample_naming_con='1', er_location_name="unkno
                 SpecRec["er_location_name"]=MeasRec["er_location_name"]
                 AnisRec["er_location_name"]=MeasRec["er_location_name"]
                 ResRec["er_location_names"]=MeasRec["er_location_name"]
-                if len(rec)>=3: 
+                if len(rec)>=3:
                     SampRec["sample_azimuth"],SampRec["sample_dip"]=rec[1],rec[2]
                     az,pl,igeo=float(rec[1]),float(rec[2]),1
-                if len(rec)==5: 
+                if len(rec)==5:
                     SampRec["sample_bed_dip_direction"],SampRec["sample_bed_dip"]= '%7.1f'%(90.+float(rec[3])),(rec[4])
                     bed_az,bed_dip,itilt,igeo=90.+float(rec[3]),float(rec[4]),1,1
-            else: 
+            else:
                 for i in range(5):
                     k15.append(1e-6*float(rec[i])) # assume measurements in micro SI
                 if linecnt==4:
-                    sbar,sigma,bulk=pmag.dok15_s(k15) 
-                    hpars=pmag.dohext(9,sigma,sbar) 
+                    sbar,sigma,bulk=pmag.dok15_s(k15)
+                    hpars=pmag.dohext(9,sigma,sbar)
                     MeasRec["treatment_temp"]='%8.3e' % (273) # room temp in kelvin
                     MeasRec["measurement_temp"]='%8.3e' % (273) # room temp in kelvin
                     for i in range(15):
@@ -3971,9 +4020,9 @@ def k15_magic(k15file, specnum=0, sample_naming_con='1', er_location_name="unkno
                     ResRec["anisotropy_v3_zeta_semi_angle"]='%7.1f'%(hpars['e23'])
                     ResRec["result_description"]='Critical F: '+hpars["F_crit"]+';Critical F12/F13: '+hpars["F12_crit"]
                     ResRecs.append(ResRec)
-                    if igeo==1: 
-                        sbarg=pmag.dosgeo(sbar,az,pl) 
-                        hparsg=pmag.dohext(9,sigma,sbarg) 
+                    if igeo==1:
+                        sbarg=pmag.dosgeo(sbar,az,pl)
+                        hparsg=pmag.dohext(9,sigma,sbarg)
                         AnisRecG=copy.copy(AnisRec)
                         ResRecG=copy.copy(ResRec)
                         AnisRecG["anisotropy_s1"]='%12.10f'%(sbarg[0])
@@ -4005,8 +4054,8 @@ def k15_magic(k15file, specnum=0, sample_naming_con='1', er_location_name="unkno
                         ResRecG["result_description"]='Critical F: '+hpars["F_crit"]+';Critical F12/F13: '+hpars["F12_crit"]
                         ResRecs.append(ResRecG)
                         AnisRecs.append(AnisRecG)
-                    if itilt==1: 
-                        sbart=pmag.dostilt(sbarg,bed_az,bed_dip) 
+                    if itilt==1:
+                        sbart=pmag.dostilt(sbarg,bed_az,bed_dip)
                         hparst=pmag.dohext(9,sigma,sbart)
                         AnisRecT=copy.copy(AnisRec)
                         ResRecT=copy.copy(ResRec)
@@ -4067,9 +4116,9 @@ def SUFAR4_magic(ascfile, meas_output='magic_measurements.txt', aniso_output='rm
         -F MFILE: specify magic_measurements output file
         -Fa AFILE: specify rmag_anisotropy output file
         -Fr RFILE: specify rmag_results output file
-        -Fsi SFILE: specify er_specimens output file 
+        -Fsi SFILE: specify er_specimens output file
         -usr USER: specify who made the measurements
-        -loc LOC: specify location name for study 
+        -loc LOC: specify location name for study
         -ins INST: specify instrument used
         -spc SPEC: specify number of characters to specify specimen from sample
         -ncn NCON:  specify naming convention: default is #2 below
@@ -4117,7 +4166,7 @@ def SUFAR4_magic(ascfile, meas_output='magic_measurements.txt', aniso_output='rm
     spec_outfile = os.path.join(output_dir_path, spec_outfile)
     samp_outfile = os.path.join(output_dir_path, samp_outfile)
     site_outfile = os.path.join(output_dir_path, site_outfile)
-    
+
     if "4" in sample_naming_con:
         if "-" not in sample_naming_con:
             print "option [4] must be in form 4-Z where Z is an integer"
@@ -4133,19 +4182,19 @@ def SUFAR4_magic(ascfile, meas_output='magic_measurements.txt', aniso_output='rm
             Z=sample_naming_con.split("-")[1]
             sample_naming_con="7"
 
-            
+
     if static_15_position_mode:
         spin=0
 
     if spec_infile:
         if os.path.isfile(os.path.join(input_dir_path, str(spec_infile))):
             isspec='1' # means an er_specimens.txt file has been provided with sample, site, location (etc.) info
-                      
+
     specnum=int(specnum)
 
-    if isspec=="1": 
+    if isspec=="1":
         specs,file_type=pmag.magic_read(spec_infile)
-        
+
     specnames,sampnames,sitenames=[],[],[]
     #if '-new' not in sys.argv: # see if there are already specimen,sample, site files lying around
     #    try:
@@ -4167,7 +4216,7 @@ def SUFAR4_magic(ascfile, meas_output='magic_measurements.txt', aniso_output='rm
     #            if site['er_site_names'] not in sitenames:sitenames.append(site['er_site_name'])
     #    except:
     #        sitenames,SiteRecs=[],[]
-    
+
     try:
         file_input=open(ascfile,'rU')
     except:
@@ -4240,14 +4289,14 @@ def SUFAR4_magic(ascfile, meas_output='magic_measurements.txt', aniso_output='rm
                 AniRec['anisotropy_n']="192"
             else:
                 AniRec['anisotropy_n']="15"
-        if 'Azi' in words and isspec=='0': 
+        if 'Azi' in words and isspec=='0':
             SampRec['sample_azimuth']=words[1]
             labaz=float(words[1])
         if 'Dip' in words:
             SampRec['sample_dip']='%7.1f'%(-float(words[1]))
             SpecRec['specimen_vol']='%8.3e'%(float(words[10])*1e-6) # convert actual volume to m^3 from cm^3
             labdip=float(words[1])
-        if 'T1' in words and 'F1' in words: 
+        if 'T1' in words and 'F1' in words:
             k+=2 # read in fourth line down
             line=Data[k]
             rec=line.split()
@@ -4270,16 +4319,16 @@ def SUFAR4_magic(ascfile, meas_output='magic_measurements.txt', aniso_output='rm
             rec=line.split()
         if "Specimen" in words:  # first part of specimen data
             AniRec['anisotropy_s1']='%7.4f'%(float(words[5])/3.) # eigenvalues sum to unity - not 3
-            AniRec['anisotropy_s2']='%7.4f'%(float(words[6])/3.) 
+            AniRec['anisotropy_s2']='%7.4f'%(float(words[6])/3.)
             AniRec['anisotropy_s3']='%7.4f'%(float(words[7])/3.)
             k+=1
             line=Data[k]
             rec=line.split()
             AniRec['anisotropy_s4']='%7.4f'%(float(rec[5])/3.) # eigenvalues sum to unity - not 3
-            AniRec['anisotropy_s5']='%7.4f'%(float(rec[6])/3.) 
+            AniRec['anisotropy_s5']='%7.4f'%(float(rec[6])/3.)
             AniRec['anisotropy_s6']='%7.4f'%(float(rec[7])/3.)
             AniRec['anisotropy_tilt_correction']='-1'
-            AniRecs.append(AniRec) 
+            AniRecs.append(AniRec)
             AniRecG,AniRecT={},{}
             for key in AniRec.keys():AniRecG[key]=AniRec[key]
             for key in AniRec.keys():AniRecT[key]=AniRec[key]
@@ -4309,7 +4358,7 @@ def SUFAR4_magic(ascfile, meas_output='magic_measurements.txt', aniso_output='rm
                 AniRecT["anisotropy_s6"]='%12.10f'%(sbart[5])
                 AniRecT["anisotropy_tilt_correction"]='100'
                 AniRecs.append(AniRecT)
-            MeasRecs.append(MeasRec) 
+            MeasRecs.append(MeasRec)
             if SpecRec['er_specimen_name'] not in specnames:
                 SpecRecs.append(SpecRec)
                 specnames.append(SpecRec['er_specimen_name'])
@@ -4343,7 +4392,7 @@ def agm_magic(agm_file, samp_infile=None, outfile='agm_measurements.txt', spec_o
     """
     NAME
         agm_magic.py
-    
+
     DESCRIPTION
         converts Micromag agm files to magic format
 
@@ -4362,7 +4411,7 @@ def agm_magic(agm_file, samp_infile=None, outfile='agm_measurements.txt', spec_o
              [default: er_specimens.txt]
         -ncn NCON,: specify naming convention: default is #1 below
         -syn SYN,  synthetic specimen name
-        -loc LOCNAME : specify location/study name, 
+        -loc LOCNAME : specify location/study name,
              should have either LOCNAME or SAMPFILE (unless synthetic)
         -ins INST : specify which instrument was used (e.g, SIO-Maud), default is ""
         -u units:  [cgs,SI], default is cgs
@@ -4379,14 +4428,14 @@ def agm_magic(agm_file, samp_infile=None, outfile='agm_measurements.txt', spec_o
             [8] specimen is a synthetic - it has no sample, site, location information
             NB: all others you will have to customize your self
                  or e-mail ltauxe@ucsd.edu for help.
- 
+
     OUTPUT
         MagIC format files: magic_measurements, er_specimens, er_sample, er_site
     """
 
     #return False, 'fake error message'
     citation='This study'
-    MeasRecs=[] 
+    MeasRecs=[]
     meth="LP-HYS"
     version_num=pmag.get_version()
     er_sample_name, er_site_name = "", ""
@@ -4396,7 +4445,7 @@ def agm_magic(agm_file, samp_infile=None, outfile='agm_measurements.txt', spec_o
         outfile = "irm_measurements.txt"
     output = os.path.join(output_dir_path, outfile)
     specfile = os.path.join(output_dir_path, spec_outfile)
-                            
+
     # if specimen name is not provided, use the name of the file minus the file extension
     if not er_specimen_name:
         er_specimen_name = agm_file.split('.')[0]
@@ -4502,11 +4551,11 @@ def agm_magic(agm_file, samp_infile=None, outfile='agm_measurements.txt', spec_o
             else:
                 field =float(rec[0]) # field in tesla
             if meth=="LP-HYS":
-                MeasRec['measurement_lab_field_dc']='%10.3e'%(field) 
+                MeasRec['measurement_lab_field_dc']='%10.3e'%(field)
                 MeasRec['treatment_dc_field']=''
             else:
                 MeasRec['measurement_lab_field_dc']=''
-                MeasRec['treatment_dc_field']='%10.3e'%(field) 
+                MeasRec['treatment_dc_field']='%10.3e'%(field)
             if units=='cgs':
                 MeasRec['measurement_magn_moment']='%10.3e'%(float(rec[1])*1e-3) # convert from emu to Am^2
             else:
@@ -4518,22 +4567,22 @@ def agm_magic(agm_file, samp_infile=None, outfile='agm_measurements.txt', spec_o
             MeasRec['measurement_number']='%i'%(measnum)
             measnum+=1
             MeasRec['magic_software_packages']=version_num
-            MeasRecs.append(MeasRec) 
+            MeasRecs.append(MeasRec)
 # now we have to relabel LP-HYS method codes.  initial loop is LP-IMT, minor loops are LP-M  - do this in measurements_methods function
-    if meth=='LP-HYS':   
+    if meth=='LP-HYS':
         recnum=0
         while float(MeasRecs[recnum]['measurement_lab_field_dc'])<float(MeasRecs[recnum+1]['measurement_lab_field_dc']) and recnum+1<len(MeasRecs): # this is LP-IMAG
             MeasRecs[recnum]['magic_method_codes']='LP-IMAG'
             MeasRecs[recnum]['magic_experiment_name']=MeasRecs[recnum]['er_specimen_name']+":"+'LP-IMAG'
             recnum+=1
-# 
+#
     pmag.magic_write(output,MeasRecs,'magic_measurements')
     print "results put in ",output
     return True, output
 
 
-def read_core_csv_file(sum_file):    
-    Cores=[] 
+def read_core_csv_file(sum_file):
+    Cores=[]
     core_depth_key="Top depth cored CSF (m)"
     if os.path.isfile(sum_file):
         input=open(sum_file,'rU').readlines()
@@ -4562,4 +4611,3 @@ def read_core_csv_file(sum_file):
             return core_depth_key, core_label_key, Cores
     else:
         return False, False, []
-        

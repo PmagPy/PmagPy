@@ -21,6 +21,7 @@ def main():
         -LT [AF,T,M]: specify lab treatment type, default AF
         -XLP [PI]: exclude specific  lab protocols (for example, method codes like LP-PI)
         -N do not normalize by NRM magnetization
+        -sav save plots silently and quit
     NOTE
         loc: location (study); sit: site; sam: sample; spc: specimen
     """
@@ -32,11 +33,13 @@ def main():
     LT='LT-AF-Z'
     units,dmag_key='T','treatment_ac_field'
     plot_key='er_location_name'
+    plt=0
     if len(sys.argv)>1:
         if '-h' in sys.argv:
             print main.__doc__
             sys.exit()
         if '-N' in sys.argv: norm=0
+        if '-sav' in sys.argv: plt=1
         if '-f' in sys.argv:
             ind=sys.argv.index("-f")
             in_file=sys.argv[ind+1]
@@ -90,7 +93,7 @@ def main():
     data=FixData
     int_key=IntMeths[0] # plot first intensity method found - normalized to initial value anyway - doesn't matter which used
     for plot in plotlist:
-        print plot,'plotting by: ',plot_key
+        if plt==0: print plt,'plotting by: ',plot_key
         PLTblock=pmag.get_dictitem(data,plot_key,plot,'T') # fish out all the data for this type of plot
         PLTblock=pmag.get_dictitem(PLTblock,'magic_method_codes',LT,'has') # fish out all the dmag for this experiment type
         PLTblock=pmag.get_dictitem(PLTblock,int_key,'','F') # get all with this intensity key non-blank
@@ -107,13 +110,19 @@ def main():
                     INTblock.append([float(rec[dmag_key]),0,0,float(rec[int_key]),1,rec['measurement_flag']])
                 if len(INTblock)>2:
                     pmagplotlib.plotMT(FIG['demag'],INTblock,title,0,units,norm)
-            pmagplotlib.drawFIGS(FIG)
-            ans=raw_input(" S[a]ve to save plot, [q]uit,  Return to continue:  ")
-            if ans=='q':sys.exit()
-            if ans=="a": 
+            if plt==1:
                 files={}
                 for key in FIG.keys():
                     files[key]=title+'_'+LT+'.svg' 
                 pmagplotlib.saveP(FIG,files) 
+            else:
+                pmagplotlib.drawFIGS(FIG)
+                ans=raw_input(" S[a]ve to save plot, [q]uit,  Return to continue:  ")
+                if ans=='q':sys.exit()
+                if ans=="a": 
+                    files={}
+                    for key in FIG.keys():
+                        files[key]=title+'_'+LT+'.svg' 
+                    pmagplotlib.saveP(FIG,files) 
             pmagplotlib.clearFIG(FIG['demag'])
 main() 
