@@ -4598,6 +4598,7 @@ class Zeq_GUI(wx.Frame):
         PmagSpecs=[]
         for specimen in specimens_list:
             for dirtype in self.dirtypes:
+                i = 0
                 for fit in self.pmag_results_data['specimens'][specimen]:
 
                     mpars = fit.get(dirtype)
@@ -4624,30 +4625,7 @@ class Zeq_GUI(wx.Frame):
                     PmagSpecRec['specimen_flag'] = "g"
                     if fit in self.bad_fits:
                         PmagSpecRec['specimen_flag'] = "b"
-            
-            for dirtype in CoorTypes:
-                i = 0
-                for fit in self.pmag_results_data['specimens'][specimen]:
 
-                    mpars = fit.get(dirtype)
-                    if not mpars: continue
-                    
-                    PmagSpecRec={}
-                    user="" # Todo
-                    PmagSpecRec["er_analyst_mail_names"]=user
-                    PmagSpecRec["magic_software_packages"]=pmag.get_version()
-                    PmagSpecRec["er_specimen_name"]=specimen
-                    PmagSpecRec["er_sample_name"]=self.Data_hierarchy['sample_of_specimen'][specimen]
-                    PmagSpecRec["er_site_name"]=self.Data_hierarchy['site_of_specimen'][specimen]
-                    PmagSpecRec["er_location_name"]=self.Data_hierarchy['location_of_specimen'][specimen]
-                    if specimen in self.Data_hierarchy['expedition_name_of_specimen'].keys():
-                        PmagSpecRec["er_expedition_name"]=self.Data_hierarchy['expedition_name_of_specimen'][specimen]
-                    #else:
-                    #    PmagSpecRec["er_expedition_name"]=""
-                    PmagSpecRec["er_citation_names"]="This study"
-                    PmagSpecRec["magic_experiment_names"]=self.Data[specimen]["magic_experiment_name"]
-                    if 'magic_instrument_codes' in self.Data[specimen].keys():
-                        PmagSpecRec["magic_instrument_codes"]= self.Data[specimen]['magic_instrument_codes']
                     #magic_ood_codes=[]
                     #all_methods=self.Data[specimen]['magic_method_codes'].strip('\n').replace(" ","").split(":")
                     #for method in all_methods:
@@ -4660,55 +4638,55 @@ class Zeq_GUI(wx.Frame):
                     #else:
                     #     PmagSpecRec['measurement_step_unit']="T"
                         
-                        if  fit.tmin =="0":
-                             PmagSpecRec['measurement_step_min'] ="0"
-                        elif "C" in fit.tmin:
-                            PmagSpecRec['measurement_step_min'] = "%.0f"%(mpars["measurement_step_min"]+273.)
-                        else:
-                            PmagSpecRec['measurement_step_min'] = "%8.3e"%(mpars["measurement_step_min"]*1e-3)
-                        
-                        if  fit.tmax =="0":
-                             PmagSpecRec['measurement_step_max'] ="0"
-                        elif "C" in fit.tmax:
-                            PmagSpecRec['measurement_step_max'] = "%.0f"%(mpars["measurement_step_max"]+273.)
-                        else:
-                            PmagSpecRec['measurement_step_max'] = "%8.3e"%(mpars["measurement_step_max"]*1e-3)
-                        if "C" in   fit.tmin  or "C" in fit.tmax:
-                            PmagSpecRec['measurement_step_unit']="K"
-                        else:
-                            PmagSpecRec['measurement_step_unit']="T"
-                        PmagSpecRec['specimen_n'] = "%.0f"%mpars["specimen_n"]
-                        calculation_type=mpars['calculation_type']
-                        PmagSpecRec["magic_method_codes"]=self.Data[specimen]['magic_method_codes']+":"+calculation_type+":"+dirtype
-                        PmagSpecRec["specimen_comp_n"] = str(len(self.pmag_results_data["specimens"][specimen]))
-                        PmagSpecRec["specimen_comp_name"] = fit.name
-                        if fit in self.bad_fits:
-                            PmagSpecRec["specimen_flag"] = "b"
-                        else:
-                            PmagSpecRec["specimen_flag"] = "g"
-                        if calculation_type in ["DE-BFL","DE-BFL-A","DE-BFL-O"]:
-                            PmagSpecRec['specimen_direction_type']='l'
-                            PmagSpecRec['specimen_mad']="%.1f"%float(mpars["specimen_mad"])
-                            PmagSpecRec['specimen_dang']="%.1f"%float(mpars['specimen_dang'])
-                            PmagSpecRec['specimen_alpha95']=""
-                        elif calculation_type in ["DE-BFP"]:
-                            PmagSpecRec['specimen_direction_type']='p'
-                            PmagSpecRec['specimen_mad']="%.1f"%float(mpars['specimen_mad'])
-                            PmagSpecRec['specimen_dang']=""
-                            PmagSpecRec['specimen_alpha95']=""
-                        elif calculation_type in ["DE-FM"]:
-                            PmagSpecRec['specimen_direction_type']='l'
-                            PmagSpecRec['specimen_mad']=""
-                            PmagSpecRec['specimen_dang']=""
-                            PmagSpecRec['specimen_alpha95']="%.1f"%float(mpars['specimen_alpha95'])
-                        if dirtype=='DA-DIR-TILT':
-                            PmagSpecRec['specimen_tilt_correction']="100"
-                        elif dirtype=='DA-DIR-GEO':
-                            PmagSpecRec['specimen_tilt_correction']="0"
-                        else:
-                            PmagSpecRec['specimen_tilt_correction']="-1"
-                        PmagSpecs.append(PmagSpecRec)
-                        i += 1
+                    if  fit.tmin =="0":
+                         PmagSpecRec['measurement_step_min'] ="0"
+                    elif "C" in fit.tmin:
+                        PmagSpecRec['measurement_step_min'] = "%.0f"%(mpars["measurement_step_min"]+273.)
+                    else:
+                        PmagSpecRec['measurement_step_min'] = "%8.3e"%(mpars["measurement_step_min"]*1e-3)
+                    
+                    if  fit.tmax =="0":
+                         PmagSpecRec['measurement_step_max'] ="0"
+                    elif "C" in fit.tmax:
+                        PmagSpecRec['measurement_step_max'] = "%.0f"%(mpars["measurement_step_max"]+273.)
+                    else:
+                        PmagSpecRec['measurement_step_max'] = "%8.3e"%(mpars["measurement_step_max"]*1e-3)
+                    if "C" in   fit.tmin  or "C" in fit.tmax:
+                        PmagSpecRec['measurement_step_unit']="K"
+                    else:
+                        PmagSpecRec['measurement_step_unit']="T"
+                    PmagSpecRec['specimen_n'] = "%.0f"%mpars["specimen_n"]
+                    calculation_type=mpars['calculation_type']
+                    PmagSpecRec["magic_method_codes"]=self.Data[specimen]['magic_method_codes']+":"+calculation_type+":"+dirtype
+                    PmagSpecRec["specimen_comp_n"] = str(len(self.pmag_results_data["specimens"][specimen]))
+                    PmagSpecRec["specimen_comp_name"] = fit.name
+                    if fit in self.bad_fits:
+                        PmagSpecRec["specimen_flag"] = "b"
+                    else:
+                        PmagSpecRec["specimen_flag"] = "g"
+                    if calculation_type in ["DE-BFL","DE-BFL-A","DE-BFL-O"]:
+                        PmagSpecRec['specimen_direction_type']='l'
+                        PmagSpecRec['specimen_mad']="%.1f"%float(mpars["specimen_mad"])
+                        PmagSpecRec['specimen_dang']="%.1f"%float(mpars['specimen_dang'])
+                        PmagSpecRec['specimen_alpha95']=""
+                    elif calculation_type in ["DE-BFP"]:
+                        PmagSpecRec['specimen_direction_type']='p'
+                        PmagSpecRec['specimen_mad']="%.1f"%float(mpars['specimen_mad'])
+                        PmagSpecRec['specimen_dang']=""
+                        PmagSpecRec['specimen_alpha95']=""
+                    elif calculation_type in ["DE-FM"]:
+                        PmagSpecRec['specimen_direction_type']='l'
+                        PmagSpecRec['specimen_mad']=""
+                        PmagSpecRec['specimen_dang']=""
+                        PmagSpecRec['specimen_alpha95']="%.1f"%float(mpars['specimen_alpha95'])
+                    if dirtype=='DA-DIR-TILT':
+                        PmagSpecRec['specimen_tilt_correction']="100"
+                    elif dirtype=='DA-DIR-GEO':
+                        PmagSpecRec['specimen_tilt_correction']="0"
+                    else:
+                        PmagSpecRec['specimen_tilt_correction']="-1"
+                    PmagSpecs.append(PmagSpecRec)
+                    i += 1
 
         # add the 'old' lines with no "LP-DIR" in
         for rec in self.PmagRecsOld['pmag_specimens.txt']:
