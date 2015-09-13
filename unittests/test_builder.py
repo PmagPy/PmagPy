@@ -255,18 +255,17 @@ class TestSpecimen(unittest.TestCase):
         self.assertNotIn('magic_experiment_names', specimen.pmag_data.keys())
 
         
-    def test_update_specimen_with_invalid_sample(self):
-        specimen_name = 'Z35.6a'
-        sample_name = 'invalid_sample'
-        self.data1.change_specimen(specimen_name, specimen_name, sample_name) 
-        specimen = self.data1.find_by_name('Z35.6a', self.data1.specimens)
-        sample = self.data1.find_by_name('Z35.6', self.data1.samples)
-        self.assertTrue(specimen)
-        self.assertEqual(sample, specimen.sample)
-
-        specimen.sample = ""
-        self.data1.change_specimen(specimen_name, specimen_name, sample_name)
-        self.assertEqual('', specimen.sample)
+    #def test_update_specimen_with_invalid_sample(self):
+    #    specimen_name = 'Z35.6a'
+    #    sample_name = 'invalid_sample'
+    #    self.data1.change_specimen(specimen_name, specimen_name, sample_name) 
+    #    specimen = self.data1.find_by_name('Z35.6a', self.data1.specimens)
+    #    sample = self.data1.find_by_name('Z35.6', self.data1.samples)
+    #    self.assertTrue(specimen)
+    #    self.assertEqual(sample, specimen.sample)
+    #    specimen.sample = ""
+    #    self.data1.change_specimen(specimen_name, specimen_name, sample_name)
+    #    self.assertEqual('', specimen.sample)
 
     def test_update_specimen_without_sample(self):
         specimen_name = 'Z35.6a'
@@ -302,16 +301,16 @@ class TestSpecimen(unittest.TestCase):
         self.assertTrue(sample)
         self.assertEqual(sample, specimen.sample)
 
-    def test_add_specimen_invalid_sample(self):
-        spec_name = 'new specimen'
-        samp_name = 'nonexistent_sample'
-        self.data1.add_specimen(spec_name, samp_name)
-        specimen = self.data1.find_by_name(spec_name, self.data1.specimens)
-        sample = self.data1.find_by_name(samp_name, self.data1.samples)
-        self.assertTrue(specimen)
-        self.assertIn(specimen, self.data1.specimens)
-        self.assertFalse(sample)
-        self.assertEqual('', specimen.sample)
+    #def test_add_specimen_invalid_sample(self):
+    #    spec_name = 'new specimen'
+    #    samp_name = 'nonexistent_sample'
+    #    self.data1.add_specimen(spec_name, samp_name)
+    #    specimen = self.data1.find_by_name(spec_name, self.data1.specimens)
+    #    sample = self.data1.find_by_name(samp_name, self.data1.samples)
+    #    self.assertTrue(specimen)
+    #    self.assertIn(specimen, self.data1.specimens)
+    #    self.assertFalse(sample)
+    #    self.assertEqual('', specimen.sample)
 
     def test_add_specimen_with_er_data(self):
         specimen_name = 'new_spec'
@@ -397,6 +396,27 @@ class TestSpecimen(unittest.TestCase):
         self.assertTrue(er_outfile)
         self.assertTrue(pmag_outfile)
 
+    def test_add_specimen_new_sample(self):
+        spec_name = 'new specimen'
+        specimen = self.data1.add_specimen(spec_name, 'new_samp')
+        sample = self.data1.find_by_name('new_samp', self.data1.samples)
+        self.assertTrue(specimen)
+        self.assertIn(specimen, self.data1.specimens)
+        self.assertTrue(sample)
+        self.assertIn(sample, self.data1.samples)
+        self.assertIn(specimen, sample.specimens)
+
+    def test_update_specimen_new_sample(self):
+        specimen_name = 'Z35.6a'
+        sample_name = 'new_sample'
+        specimen = self.data1.find_by_name(specimen_name, self.data1.specimens)
+        sample = self.data1.find_by_name(sample_name, self.data1.samples)
+        self.assertFalse(sample)
+        self.data1.change_specimen(specimen_name, specimen_name, sample_name)
+        sample = self.data1.find_by_name(sample_name, self.data1.samples)
+        self.assertTrue(sample)
+        self.assertIn(specimen, sample.specimens)
+        
 
 class TestSample(unittest.TestCase):
 
@@ -515,14 +535,14 @@ class TestSample(unittest.TestCase):
         self.assertIn('magic_instrument_codes', sample.pmag_data.keys())
         self.assertEqual('12345', sample.pmag_data['magic_instrument_codes'])
         
-    def test_update_sample_with_invalid_site(self):
-        sample_name = 'Z35.6'
-        site_name = 'invalid site name'
-        #self.assertRaises(Exception, self.data1.add_sample, sample, site, {'new_key': 'new value'})
-        self.data1.change_sample(sample_name, sample_name, new_site_name=site_name, new_er_data=None)
-        sample = self.data1.find_by_name(sample_name, self.data1.samples)
-        self.assertTrue(sample)
-        self.assertEqual('Z35.', sample.site.name)
+    #def test_update_sample_with_invalid_site(self):
+    #    sample_name = 'Z35.6'
+    #    site_name = 'invalid site name'
+    #    #self.assertRaises(Exception, self.data1.add_sample, sample, site, {'new_key': 'new value'})
+    #    self.data1.change_sample(sample_name, sample_name, new_site_name=site_name, new_er_data=None)
+    #    sample = self.data1.find_by_name(sample_name, self.data1.samples)
+    #    self.assertTrue(sample)
+    #    self.assertEqual('Z35.', sample.site.name)
 
     def test_update_sample_without_site(self):
         sample_name = 'Z35.6'
@@ -555,14 +575,14 @@ class TestSample(unittest.TestCase):
         self.assertTrue(site)
         self.assertEqual(site, sample.site)
 
-    def test_add_sample_invalid_site(self):
-        samp_name = 'new_samp'
-        site_name = 'invalid_site'
-        sample = self.data1.add_sample(samp_name, site_name)
-        site = self.data1.find_by_name(site_name, self.data1.sites)
-        self.assertTrue(sample)
-        self.assertFalse(site)
-        self.assertEqual('', sample.site)
+    #def test_add_sample_invalid_site(self):
+    #    samp_name = 'new_samp'
+    #    site_name = 'invalid_site'
+    #    sample = self.data1.add_sample(samp_name, site_name)
+    #    site = self.data1.find_by_name(site_name, self.data1.sites)
+    #    self.assertTrue(sample)
+    #    self.assertFalse(site)
+    #    self.assertEqual('', sample.site)
 
     def test_add_sample_with_er_data(self):
         samp_name = 'new_samp'
@@ -636,7 +656,30 @@ class TestSample(unittest.TestCase):
         er_outfile, pmag_outfile = self.data1.write_magic_file('sample')
         self.assertTrue(er_outfile)
         self.assertTrue(pmag_outfile)
-  
+
+    def test_add_sample_new_site(self):
+        samp_name = 'new_sample'
+        site = self.data1.find_by_name('new_site', self.data1.sites)
+        self.assertFalse(site)
+        sample = self.data1.add_sample(samp_name, 'new_site')
+        site = self.data1.find_by_name('new_site', self.data1.sites)
+        self.assertTrue(sample)
+        self.assertIn(sample, self.data1.samples)
+        self.assertTrue(site)
+        self.assertIn(site, self.data1.sites)
+        self.assertIn(sample, site.samples)
+
+    def test_update_sample_new_site(self):
+        samp_name = 'Z35.6'
+        site_name = 'new_site'
+        sample = self.data1.find_by_name(samp_name, self.data1.samples)
+        site = self.data1.find_by_name(site_name, self.data1.sites)
+        self.assertFalse(site)
+        self.data1.change_sample(samp_name, samp_name, site_name)
+        site = self.data1.find_by_name(site_name, self.data1.sites)
+        self.assertTrue(site)
+        self.assertIn(sample, site.samples)
+        
 
 class TestSite(unittest.TestCase):
 
@@ -763,15 +806,15 @@ class TestSite(unittest.TestCase):
         self.assertNotIn('magic_method_codes', site.pmag_data.keys())
 
 
-    def test_update_site_invalid_location(self):
-        site_name = 'Z35.'
-        location_name = 'locale'
-        site = self.data1.find_by_name(site_name, self.data1.sites)
-        location = self.data1.find_by_name(location_name, self.data1.locations)
-        self.data1.change_site(site_name, 'new_name', new_location_name='invalid_location')
-        self.assertTrue(site)
-        self.assertEqual(site.name, 'new_name')
-        self.assertEqual(site.location, location)
+    #def test_update_site_invalid_location(self):
+    #    site_name = 'Z35.'
+    #    location_name = 'locale'
+    #    site = self.data1.find_by_name(site_name, self.data1.sites)
+    #    location = self.data1.find_by_name(location_name, self.data1.locations)
+    #    self.data1.change_site(site_name, 'new_name', new_location_name='invalid_location')
+    #    self.assertTrue(site)
+    #    self.assertEqual(site.name, 'new_name')
+    #    self.assertEqual(site.location, location)
 
     def test_update_site_without_location(self):
         site_name = 'Z35.'
@@ -790,6 +833,7 @@ class TestSite(unittest.TestCase):
         site = self.data1.add_site(site_name)
         self.assertTrue(site)
         self.assertIn(site, self.data1.sites)
+        self.assertFalse(site.location)
 
     def test_add_site_with_location(self):
         location = self.data1.find_by_name('Munich', self.data1.locations)
@@ -801,12 +845,12 @@ class TestSite(unittest.TestCase):
         self.assertIn(site, location.sites)
 
 
-    def test_add_site_invalid_location(self):
-        site_name = 'new_site'
-        site = self.data1.add_site(site_name, 'non_existent_location')
-        self.assertTrue(site)
-        self.assertIn(site, self.data1.sites)
-        self.assertEqual('', site.location)
+    #def test_add_site_invalid_location(self):
+    #    site_name = 'new_site'
+    #    site = self.data1.add_site(site_name, 'non_existent_location')
+    #    self.assertTrue(site)
+    #    self.assertIn(site, self.data1.sites)
+    #    self.assertEqual('', site.location)
 
     def test_add_site_with_er_data(self):
         site_name = 'new_site'
@@ -870,6 +914,31 @@ class TestSite(unittest.TestCase):
         er_outfile, pmag_outfile = self.data1.write_magic_file('site')
         self.assertTrue(er_outfile)
         self.assertTrue(pmag_outfile)
+
+    def test_add_site_new_location(self):
+        site_name = 'new_site'
+        location = self.data1.find_by_name('new_loc', self.data1.locations)
+        self.assertFalse(location)
+        site = self.data1.add_site(site_name, 'new_loc')
+        loc = self.data1.find_by_name('new_loc', self.data1.locations)
+        self.assertTrue(site)
+        self.assertIn(site, self.data1.sites)
+        print 'self.data1.locations', self.data1.locations
+        self.assertTrue(loc)
+        self.assertIn(loc, self.data1.locations)
+        self.assertIn(site, loc.sites)
+
+    def test_update_site_new_location(self):
+        site_name = 'Z35.'
+        loc_name = 'new_location'
+        site = self.data1.find_by_name(site_name, self.data1.sites)
+        location = self.data1.find_by_name(loc_name, self.data1.locations)
+        self.assertFalse(location)
+        self.data1.change_site(site_name, site_name, loc_name)
+        location = self.data1.find_by_name(loc_name, self.data1.locations)
+        self.assertTrue(location)
+        self.assertIn(site, location.sites)
+
 
         
 class TestLocation(unittest.TestCase):

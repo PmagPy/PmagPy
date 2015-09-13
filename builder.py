@@ -184,7 +184,8 @@ class ErMagicBuilder(object):
             new_sample = self.find_by_name(new_sample_name, self.samples)
             if not new_sample:
                 print """-W- {} is not a currently existing sample.
-Leaving sample unchanged as: {} for {}""".format(new_sample_name, specimen.sample or '*empty*', specimen)
+Creating a new sample named: {} """.format(new_sample_name, new_sample_name)
+                new_sample = self.add_sample(new_sample_name)
         else:
             new_sample = None
         specimen.change_specimen(new_spec_name, new_sample, new_er_data, new_pmag_data, replace_data)
@@ -209,7 +210,15 @@ Leaving sample unchanged as: {} for {}""".format(new_sample_name, specimen.sampl
         Create a Specimen object and add it to self.specimens.
         If a sample name is provided, add the specimen to sample.specimens as well.
         """
-        sample = self.find_by_name(samp_name, self.samples)
+        if samp_name:
+            sample = self.find_by_name(samp_name, self.samples)
+            if not sample:
+                print """-W- {} is not a currently existing sample.
+Creating a new sample named: {} """.format(samp_name, samp_name)
+                sample = self.add_sample(samp_name)
+        else:
+            sample = None
+
         specimen = Specimen(spec_name, sample, self.data_model, er_data, pmag_data)
 
         self.specimens.append(specimen)
@@ -231,8 +240,8 @@ Leaving sample unchanged as: {} for {}""".format(new_sample_name, specimen.sampl
             new_site = self.find_by_name(new_site_name, self.sites)
             if not new_site:
                 print """-W- {} is not a currently existing site.
-Leaving site unchanged as: {} for {}""".format(new_site_name, sample.site or '*empty*', sample)
-                new_site = None
+Adding site named: {}""".format(new_site_name, new_site_name)#sample.site or '*empty*', sample)
+                new_site = self.add_site(new_site_name)
         else:
             new_site = None
         sample.change_sample(new_samp_name, new_site, new_er_data, new_pmag_data, replace_data)
@@ -243,7 +252,14 @@ Leaving site unchanged as: {} for {}""".format(new_site_name, sample.site or '*e
         Create a Sample object and add it to self.samples.
         If a site name is provided, add the sample to site.samples as well.
         """
-        site = self.find_by_name(site_name, self.sites)
+        if site_name:
+            site = self.find_by_name(site_name, self.sites)
+            if not site:
+                print """-W- {} is not a currently existing site.
+Creating a new site named: {} """.format(site_name, site_name)
+                site = self.add_site(site_name)
+        else:
+            site = None    
         sample = Sample(samp_name, site, self.data_model, er_data, pmag_data)
         self.samples.append(sample)
         if site:
@@ -294,11 +310,11 @@ Leaving site unchanged as: {} for {}""".format(new_site_name, sample.site or '*e
                 if old_location:
                     old_location.sites.remove(site)
             new_location = self.find_by_name(new_location_name, self.locations)
-            if new_location:
-                new_location.sites.append(site)
-            else:
+            if not new_location:
                 print """-W- {} is not a currently existing location.
-Leaving location unchanged as: {} for {}""".format(new_site_name, site.location or '*empty*', site)
+Adding location with name: {}""".format(new_location_name, new_location_name)
+                new_location = self.add_location(new_location_name)
+            new_location.sites.append(site)
         else:
             new_location = None
         site.change_site(new_site_name, new_location, new_er_data, new_pmag_data, replace_data)
@@ -311,6 +327,8 @@ Leaving location unchanged as: {} for {}""".format(new_site_name, site.location 
         """
         if location_name:
             location = self.find_by_name(location_name, self.locations)
+            if not location:
+                location = self.add_location(location_name)
         else:
             location = None
         new_site = Site(site_name, location, self.data_model, er_data, pmag_data)
