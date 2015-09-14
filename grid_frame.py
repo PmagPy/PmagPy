@@ -3,7 +3,7 @@ import wx
 #import sys
 #import os
 #import ErMagicBuilder
-#import builder
+import builder
 #import pmag
 #import ipmag
 import drop_down_menus
@@ -348,9 +348,11 @@ class GridFrame(wx.Frame):
         """
         col_labels = self.grid.col_labels
         er_items = [head for head in self.grid_headers[self.grid_type]['er'][2] if head not in col_labels]
+        er_items = builder.remove_list_headers(er_items)
         include_pmag = self.pmag_checkbox.cb.IsChecked()
         if include_pmag or self.grid_type == 'result':
             pmag_items = [head for head in self.grid_headers[self.grid_type]['pmag'][2] if head not in er_items and head not in col_labels]
+            pmag_items = builder.remove_list_headers(pmag_items)
         else:
             pmag_items = []
         dia = pw.HeaderDialog(self, 'columns to add', er_items, pmag_items)
@@ -815,8 +817,7 @@ class GridBuilder(object):
 
                     # create a new item
                     if new_item_name and not old_item_name:
-                        
-                        print 'make new item named', new_item_name
+                        print '-I- make new item named', new_item_name
                         if self.grid_type == 'result':
                             specs, samps, sites, locs = self.get_result_children(result_data)
                             item = self.er_magic.add_result(new_item_name, specs, samps, sites,
