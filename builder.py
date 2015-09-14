@@ -607,6 +607,7 @@ Adding location with name: {}""".format(new_location_name, new_location_name)
         Parse information into dictionaries for each site/sample.
         Then add it to the site/sample object as site/sample.age_data.
         """
+        # use filename if provided, otherwise find er_ages.txt in WD
         if not filename:
             short_filename = 'er_ages.txt'
             magic_file = os.path.join(self.WD, short_filename)
@@ -625,7 +626,7 @@ Adding location with name: {}""".format(new_location_name, new_location_name)
             return file_type
 
         # if it is an age file,
-        #determine level for each age and assign it to the appropriate pmag object
+        # determine level for each age and assign it to the appropriate pmag object
         for item_dict in data_dict.values():
             item_type = None
             for dtype in ['specimen', 'sample', 'site', 'location']:
@@ -642,14 +643,30 @@ Adding location with name: {}""".format(new_location_name, new_location_name)
             items_list = self.data_lists[item_type][0]
             item = self.find_by_name(item_name, items_list)
             if not item:
-                ## the commented out code would create any site/sample in er_ages that is not in er_sites/er_samples
+                ## the following code creates any item in er_ages that does not exist already
                 ## however, we may not WANT that behavior
-                #parent_type = 'er_location_name' if sample_or_site == 'site' else 'er_site_name'
-                #parent = data_dict.get(parent_type, '')
-                #pmag_item = item_constructor(pmag_name, parent, data_model=self.data_model)
-                #items_list.append(pmag_item)
-                continue
+                print """-I- A {} named {} in your age file was not found in the data object: 
+    Now initializing {} {}""".format(item_type, item_name, item_type, item_name)
+                ind = self.ancestry.index(item_type)
+                parent_type = self.ancestry[ind+1]
+                parent_header, parent_constructor = None, None
+                if parent_type:
+                    parent_list, parent_constructor = self.data_lists[parent_type]
+                    parent_header = 'er_' + parent_type + '_name'
+                parent_name = item_dict.get(parent_header, '')
+                parent = self.find_by_name(parent_name, parent_list)
+                # if the parent item doesn't exist, and should, create it
+                if parent_name and not parent:
+                    print """-I- A {} named {} in your age file was not found in the data object: 
+    Now initializing {} {}""".format(parent_type, parent_name, parent_type, parent_name)
+                    parent = parent_constructor(parent_name, None, data_model=self.data_model)
+                    parent_list.append(parent)
+                item_constructor = self.data_lists[item_type][1]
+                item = item_constructor(item_name, parent, data_model=self.data_model)
+                items_list.append(item)
+            # add the age data to the object
             item.age_data = remove_dict_headers(item_dict)
+        # note that data is available to write
         self.write_ages = True
         return file_type
 

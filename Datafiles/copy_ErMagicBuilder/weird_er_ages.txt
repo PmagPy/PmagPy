@@ -1,0 +1,17 @@
+tab	er_ages									
+er_specimen_name	er_sample_name	er_site_name	er_location_name	er_citation_names	magic_method_codes	age_unit	age	age_description	age_sigma	random_col
+		sr01	Snake River	This study	GM-ARAR-IS	Years Cal AD (+/-)	4	more stuff	1	val
+		sr01_plus	Snake River	This study	GM-ARAR	Ma	9	ultra_descriptive	1	val
+	sr01a	sr01_plus	Snake River	This study			3		1	val
+sr01c2	sr01c	sr01_plus					4		1	val
+sr01i1	sr01i	sr01	Snake River		GM-ARAR-IS		11	so_cool	1	val
+				This study	GM-ARAR	Ma	3	great	1	val
+new_specimen							3			
+	new_sample						3			
+		new_site					3			
+			new_location				3			
+specimen1	sr01c						3			
+	sample1	sr01					3			
+		site1	Snake River				3			
+specimen2	sample1						3			
+specimen3	sample2						3			

@@ -923,7 +923,6 @@ class TestSite(unittest.TestCase):
         loc = self.data1.find_by_name('new_loc', self.data1.locations)
         self.assertTrue(site)
         self.assertIn(site, self.data1.sites)
-        print 'self.data1.locations', self.data1.locations
         self.assertTrue(loc)
         self.assertIn(loc, self.data1.locations)
         self.assertIn(site, loc.sites)
@@ -1074,8 +1073,8 @@ class TestLocation(unittest.TestCase):
 class TestAge(unittest.TestCase):
 
     def setUp(self):
-        dir_path = os.path.join(WD, 'Datafiles', 'copy_ErMagicBuilder')
-        self.data1 = builder.ErMagicBuilder(dir_path)
+        self.dir_path = os.path.join(WD, 'Datafiles', 'copy_ErMagicBuilder')
+        self.data1 = builder.ErMagicBuilder(self.dir_path)
         self.data1.get_data()
 
     def test_initialize_age_data_structures(self):
@@ -1146,7 +1145,30 @@ class TestAge(unittest.TestCase):
         self.assertIn('magic_method_codes', sample.age_data.keys())
         self.assertEqual(10, sample.age_data['age'])
 
-        
+
+    def test_import_age_info(self):
+        self.data1.get_age_info(filename=os.path.join(self.dir_path, 'weird_er_ages.txt'))
+        specimen = self.data1.find_by_name('new_specimen', self.data1.specimens)
+        sample = self.data1.find_by_name('new_sample', self.data1.samples)
+        site = self.data1.find_by_name('new_site', self.data1.sites)
+        location = self.data1.find_by_name('new_location', self.data1.locations)
+        for pmag_item in (specimen, sample, site, location):
+            self.assertTrue(pmag_item)
+            self.assertEqual(pmag_item.age_data['age'], '3')
+            self.assertFalse(pmag_item.get_parent())
+        specimen = self.data1.find_by_name('specimen1', self.data1.specimens)
+        sample = self.data1.find_by_name('sample1', self.data1.samples)
+        site = self.data1.find_by_name('site1', self.data1.sites)
+        for pmag_item in (specimen, sample, site):
+            self.assertTrue(pmag_item)
+            self.assertTrue(pmag_item.get_parent(), str(pmag_item) + ' has no parent')
+            self.assertEqual(pmag_item.age_data['age'], '3')
+        specimen2 = self.data1.find_by_name('specimen2', self.data1.specimens)
+        specimen3 = self.data1.find_by_name('specimen3', self.data1.specimens)
+        for pmag_item in (specimen2, specimen3):
+            self.assertTrue(pmag_item)
+            self.assertTrue(pmag_item.get_parent(), str(pmag_item) + ' has no parent')
+
 
     def test_delete_age(self):
         pass
