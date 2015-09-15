@@ -289,9 +289,9 @@ Creating a new site named: {} """.format(site_name, site_name)
         item = self.find_by_name(old_name, self.data_lists[item_type][0])
         if replace_data:
             default_age_data = {key: '' for key in self.headers['age']['er'][1]}
-            item.age_data = item.combine_dicts(new_age_data, default_age_data)
+            item.age_data = combine_dicts(new_age_data, default_age_data)
         else:
-            item.age_data = item.combine_dicts(new_age_data, item.age_data)
+            item.age_data = combine_dicts(new_age_data, item.age_data)
         return item
             
     def change_site(self, old_site_name, new_site_name, new_location_name=None,
@@ -400,7 +400,7 @@ Adding location with name: {}""".format(new_location_name, new_location_name)
             return False
         else:
             required = {key: '' for key in self.headers['age']['er'][1]}
-            item.age_data = item.combine_dicts(age_data, required)
+            item.age_data = combine_dicts(age_data, required)
             self.write_ages = True
         
     def delete_age(self, item_name):
@@ -1183,15 +1183,15 @@ class Pmag_object(object):
         pmag_reqd_data = {key: '' for key in self.pmag_reqd_headers}
         results_reqd_data = {key: '' for key in self.results_reqd_headers}
         if er_data:
-            self.er_data = self.combine_dicts(er_data, er_reqd_data)
+            self.er_data = combine_dicts(er_data, er_reqd_data)
         else:
             self.er_data = er_reqd_data
         if pmag_data:
-            self.pmag_data = self.combine_dicts(pmag_data, pmag_reqd_data)
+            self.pmag_data = combine_dicts(pmag_data, pmag_reqd_data)
         else:
             self.pmag_data = pmag_reqd_data
         if results_data:
-            self.results_data = self.combine_dicts(results_data, results_reqd_data)
+            self.results_data = combine_dicts(results_data, results_reqd_data)
         else:
             self.results_data = None
 
@@ -1224,29 +1224,12 @@ class Pmag_object(object):
             if replace_data:
                 self.er_data = er_data
             else:
-                self.er_data = self.combine_dicts(er_data, self.er_data)
+                self.er_data = combine_dicts(er_data, self.er_data)
         if pmag_data:
             if replace_data:
                 self.pmag_data = pmag_data
             else:
-                self.pmag_data = self.combine_dicts(pmag_data, self.pmag_data)
-
-    def combine_dicts(self, new_dict, old_dict):
-        """
-        returns a dictionary with all key, value pairs from new_dict.
-        also returns key, value pairs from old_dict, if that key does not exist in new_dict.
-        if a key is present in both new_dict and old_dict, the new_dict value will take precedence.
-        """
-        old_data_keys = old_dict.keys()
-        new_data_keys = new_dict.keys()
-        all_keys = set(old_data_keys).union(new_data_keys)
-        combined_data_dict = {}
-        for k in all_keys:
-            try:
-                combined_data_dict[k] = new_dict[k]
-            except KeyError:
-                combined_data_dict[k] = old_dict[k]
-        return combined_data_dict
+                self.pmag_data = combine_dicts(pmag_data, self.pmag_data)
 
     def add_child(self, child):
         if 'children' in dir(self):
@@ -1408,7 +1391,7 @@ class Location(Pmag_object):
     def change_location(self, new_name, new_er_data=None, new_pmag_data=None, replace_data=False):
         self.name = new_name
         #if new_er_data:
-        #    self.er_data = self.combine_dicts(new_er_data, self.er_data)
+        #    self.er_data = combine_dicts(new_er_data, self.er_data)
         self.update_data(new_er_data, new_pmag_data, replace_data)
 
 class Result(object):
@@ -1434,7 +1417,7 @@ class Result(object):
         #results_reqd_data = {key: '' for key in self.results_reqd_headers}
 
         if pmag_data:
-            self.pmag_data = self.combine_dicts(pmag_data, pmag_reqd_data)
+            self.pmag_data = combine_dicts(pmag_data, pmag_reqd_data)
         else:
             self.pmag_data = pmag_reqd_data
 
@@ -1458,29 +1441,11 @@ class Result(object):
         optional_headers = sorted([header for header in data_dict.keys() if data_dict[header]['data_status'] != 'Required'])
         return reqd_headers, optional_headers
 
-    
-    def combine_dicts(self, new_dict, old_dict):
-        """
-        returns a dictionary with all key, value pairs from new_dict.
-        also returns key, value pairs from old_dict, if that key does not exist in new_dict.
-        if a key is present in both new_dict and old_dict, the new_dict value will take precedence.
-        """
-        old_data_keys = old_dict.keys()
-        new_data_keys = new_dict.keys()
-        all_keys = set(old_data_keys).union(new_data_keys)
-        combined_data_dict = {}
-        for k in all_keys:
-            try:
-                combined_data_dict[k] = new_dict[k]
-            except KeyError:
-                combined_data_dict[k] = old_dict[k]
-        return combined_data_dict
-    
     def change_result(self, new_name, new_pmag_data=None, specs=None, samps=None,
                       sites=None, locs=None, replace_data=False):
         self.name = new_name
         if new_pmag_data:
-            self.pmag_data = self.combine_dicts(new_pmag_data, self.pmag_data)
+            self.pmag_data = combine_dicts(new_pmag_data, self.pmag_data)
         self.specimens = specs
         self.samples = samps
         self.sites = sites
@@ -1535,3 +1500,19 @@ def remove_list_headers(data_list):
             data_list.remove(header)
     return data_list
 
+def combine_dicts(new_dict, old_dict):
+    """
+    returns a dictionary with all key, value pairs from new_dict.
+    also returns key, value pairs from old_dict, if that key does not exist in new_dict.
+    if a key is present in both new_dict and old_dict, the new_dict value will take precedence.
+    """
+    old_data_keys = old_dict.keys()
+    new_data_keys = new_dict.keys()
+    all_keys = set(old_data_keys).union(new_data_keys)
+    combined_data_dict = {}
+    for k in all_keys:
+        try:
+            combined_data_dict[k] = new_dict[k]
+        except KeyError:
+            combined_data_dict[k] = old_dict[k]
+    return combined_data_dict

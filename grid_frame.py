@@ -828,7 +828,7 @@ class GridBuilder(object):
 
                     # update an existing item
                     elif new_item_name and old_item_name:
-                        print 'update existing {} formerly named {} to {}'.format(self.grid_type,
+                        print '-I- update existing {} formerly named {} to {}'.format(self.grid_type,
                                                                                   old_item_name,
                                                                                   new_item_name)
                         if self.grid_type == 'result':
