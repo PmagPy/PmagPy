@@ -1259,3 +1259,43 @@ class TestResult(unittest.TestCase):
         self.data1.init_actual_headers()
         outfile = self.data1.write_result_file()
         self.assertTrue(outfile)
+
+
+class TestValidation(unittest.TestCase):
+
+    
+    def setUp(self):
+        dir_path = os.path.join(WD, 'Datafiles', 'copy_ErMagicBuilder')
+        self.data1 = builder.ErMagicBuilder(dir_path)
+        self.data1.get_all_magic_info()
+
+    def test_validation(self):
+        # set up some invalid data
+        specimen = self.data1.find_by_name('Z35.2a', self.data1.specimens)
+        specimen.set_parent('')
+        sample = self.data1.find_by_name('Z35.7', self.data1.samples)
+        sample.set_parent('')
+        sample.children.append('fake_specimen')
+        site = self.data1.find_by_name('MGH1', self.data1.sites)
+        site.set_parent('')
+        site.children.append('fake_sample')
+        location = self.data1.find_by_name('locale', self.data1.locations)
+        location.children.append('fake_site')
+        
+        # then make sure validation function catches the bad data
+        warnings = self.data1.validate_data()
+        problem_items = [key.name for key in warnings.keys()]
+        self.assertEqual(len(problem_items), 4)
+        for item_name in ('Z35.2a', 'Z35.7', 'MGH1', 'locale'):
+            self.assertIn(item_name, problem_items)
+
+        spec_warnings = [warn.split(':')[0] for warn in warnings[specimen]]
+        self.assertIn('missing parent', spec_warnings)
+        samp_warnings = [warn.split(':')[0] for warn in warnings[sample]]
+        self.assertIn('missing parent', samp_warnings)
+        self.assertIn('fake child', samp_warnings)
+        site_warnings = [warn.split(':')[0] for warn in warnings[site]]
+        self.assertIn('missing parent', site_warnings)
+        self.assertIn('fake child', site_warnings)
+        loc_warnings = [warn.split(':')[0] for warn in warnings[location]]
+        self.assertIn('fake child', loc_warnings)

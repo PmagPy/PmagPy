@@ -820,6 +820,8 @@ Adding location with name: {}""".format(new_location_name, new_location_name)
         """
         write all data out into er_* and pmag_* files as appropriate
         """
+        warnings = self.validate_data()
+
         print '-I- Writing all saved data to files'
         if self.measurements:
             self.write_measurements_file()
@@ -839,6 +841,12 @@ Adding location with name: {}""".format(new_location_name, new_location_name)
         
         if self.results:
             self.write_result_file()
+
+        if warnings:
+            print '-W- ' + str(warnings)
+            return False, warnings
+
+        return True, None
 
     
     def write_magic_file(self, dtype, do_er=True, do_pmag=True):
@@ -1074,6 +1082,48 @@ Adding location with name: {}""".format(new_location_name, new_location_name)
         outfile.close()
         return outfile
 
+    def validate_data(self):
+        # make sure that each specimen has a sample, each sample has a site, etc.
+
+        def check_item_for_parent(item, parent_type, warnings):
+            if not isinstance(item.get_parent(), parent_type):
+                if item in warnings.keys():
+                    warnings[item].append('missing parent')
+                else:
+                    warnings[item] = ['missing parent']
+
+        def check_item_for_children(item, child_type, warnings):
+            if item.children:
+                for child in item.children:
+                    if not isinstance(child, child_type):
+                        if item in warnings.keys():
+                            warnings[item].append('fake child:' + str(child))
+                        else:
+                            warnings[item] = ['fake child:' + str(child)]
+
+            
+        def check_items(item_list, parent_type, child_type, warnings=None):
+            if not warnings:
+                warnings = {}
+            if parent_type:
+                for item in item_list:
+                    check_item_for_parent(item, parent_type, warnings)
+            if child_type:
+                for item in item_list:
+                    check_item_for_children(item, child_type, warnings)
+            return warnings
+
+        warnings = {}
+        for item_list, parent_type, child_type in [(self.specimens, Sample, None),
+                                                   (self.samples, Site, Specimen),
+                                                   (self.sites, Location, Sample),
+                                                   (self.locations, None, Site)]:
+            warnings = check_items(item_list, parent_type, child_type, warnings)
+        return warnings
+            
+        
+    
+    
     # helper methods
     def get_ancestors(self, pmag_object):
         ancestors = []
