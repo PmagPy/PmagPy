@@ -1266,8 +1266,10 @@ class TestValidation(unittest.TestCase):
     
     def setUp(self):
         dir_path = os.path.join(WD, 'Datafiles', 'copy_ErMagicBuilder')
+        result_dir_path = os.path.join(WD, 'Datafiles', 'mk_redo')
         self.data1 = builder.ErMagicBuilder(dir_path)
         self.data1.get_all_magic_info()
+        self.data2 = builder.ErMagicBuilder(result_dir_path)
 
     def test_validation(self):
         # set up some invalid data
@@ -1276,6 +1278,9 @@ class TestValidation(unittest.TestCase):
         sample = self.data1.find_by_name('Z35.7', self.data1.samples)
         sample.set_parent('')
         sample.children.append('fake_specimen')
+        sample2 = self.data1.find_by_name('Z35.6', self.data1.samples)
+        extra_site = builder.Site('a_site', None)
+        sample2.set_parent(extra_site)
         site = self.data1.find_by_name('MGH1', self.data1.sites)
         site.set_parent('')
         site.children.append('fake_sample')
@@ -1285,8 +1290,8 @@ class TestValidation(unittest.TestCase):
         # then make sure validation function catches the bad data
         warnings = self.data1.validate_data()
         problem_items = [key.name for key in warnings.keys()]
-        self.assertEqual(len(problem_items), 4)
-        for item_name in ('Z35.2a', 'Z35.7', 'MGH1', 'locale'):
+        self.assertEqual(len(problem_items), 5)
+        for item_name in ('Z35.2a', 'Z35.7', 'Z35.6', 'MGH1', 'locale'):
             self.assertIn(item_name, problem_items)
 
         spec_warnings = [warn.split(':')[0] for warn in warnings[specimen]]
@@ -1299,3 +1304,59 @@ class TestValidation(unittest.TestCase):
         self.assertIn('fake child', site_warnings)
         loc_warnings = [warn.split(':')[0] for warn in warnings[location]]
         self.assertIn('fake child', loc_warnings)
+
+class TestOddImport(unittest.TestCase):
+
+    def setUp(self):
+        result_dir_path = os.path.join(WD, 'Datafiles', 'mk_redo')
+        self.data2 = builder.ErMagicBuilder(result_dir_path)
+        self.data2.get_all_magic_info()
+
+    def test_samp_import(self):
+        sample = self.data2.find_by_name('sr37g', self.data2.samples)
+        
+        samps = ['sr01a', 'sr01a', 'sr01c', 'sr01d', 'sr01e', 'sr01f', 'sr01g', 'sr01i',
+                 'sr03a', 'sr03c', 'sr03e', 'sr03f', 'sr03g', 'sr03h', 'sr03k', 'sr04d',
+                 'sr04e', 'sr04f', 'sr04g', 'sr04h', 'sr09b', 'sr09c', 'sr09e', 'sr09f',
+                 'sr09g', 'sr09i', 'sr11a', 'sr11b', 'sr11c', 'sr11e', 'sr11g', 'sr12a',
+                 'sr12b', 'sr12c', 'sr12e', 'sr12h', 'sr16a', 'sr16b', 'sr16c', 'sr16d',
+                 'sr16e', 'sr16f', 'sr16g', 'sr19b', 'sr19e', 'sr19h', 'sr20c', 'sr20d',
+                 'sr20e', 'sr20f', 'sr20g', 'sr20i', 'sr20i', 'sr20j', 'sr21b', 'sr21d',
+                 'sr21g', 'sr21h', 'sr21j', 'sr22b', 'sr22d', 'sr22e', 'sr22f', 'sr22g',
+                 'sr22i', 'sr23a', 'sr23b', 'sr23d', 'sr23g', 'sr24a', 'sr24b', 'sr24c',
+                 'sr24d', 'sr24i', 'sr25b', 'sr25d', 'sr25e', 'sr25f', 'sr25h', 'sr26a',
+                 'sr26b', 'sr26c', 'sr26e', 'sr26f', 'sr26i', 'sr27c', 'sr27d', 'sr28a',
+                 'sr28b', 'sr28c', 'sr28c', 'sr28e', 'sr28f', 'sr28g', 'sr28h', 'sr29a',
+                 'sr29a', 'sr29b', 'sr29c', 'sr29e', 'sr29g', 'sr29g', 'sr29h', 'sr30a',
+                 'sr30a', 'sr30b', 'sr30c', 'sr30d', 'sr30e', 'sr30i', 'sr31a', 'sr31a',
+                 'sr31b', 'sr31b', 'sr31c', 'sr31d', 'sr31f', 'sr31h', 'sr34a', 'sr34c',
+                 'sr34f', 'sr34i', 'sr34j', 'sr34k', 'sr36a', 'sr36b', 'sr36c', 'sr36d',
+                 'sr36e', 'sr36i', 'sr37a', 'sr37i', 'sr37j', 'sr39a', 'sr39b', 'sr39g',
+                 'sr39h', 'sr39i', 'sr39j', 'sr40a', 'sr40c', 'sr40e', 'sr40f', 'sr40g',
+                 'sr42b', 'sr42c', 'sr42f', 'sr42h', 'sr42j', 'sr09f', 'sr11f', 'sr11i',
+                 'sr19a', 'sr22a', 'sr23f', 'sr26e', 'sr27a', 'sr27c', 'sr27e', 'sr34f',
+                 'sr37j', 'sr01a', 'sr01d', 'sr30a', 'sr34k', 'sr37j']
+        for samp in samps:
+            #print samp
+            sample = self.data2.find_by_name(samp, self.data2.samples)
+            #print sample
+            #print 'sample.site', sample.site
+            self.assertTrue(sample)
+            self.assertTrue(sample.get_parent())
+            self.assertTrue(sample.site)
+
+        sites = ['sr01', 'sr03', 'sr04', 'sr09', 'sr11', 'sr12', 'sr16', 'sr19', 'sr20',
+                 'sr21', 'sr22', 'sr23', 'sr24', 'sr25', 'sr26', 'sr27', 'sr28', 'sr29',
+                 'sr30', 'sr31', 'sr34', 'sr36', 'sr37', 'sr39', 'sr40', 'sr42', 'sr09',
+                 'sr11', 'sr19', 'sr22', 'sr23', 'sr26', 'sr27', 'sr34', 'sr37', 'sr01',
+                 'sr01', 'sr30', 'sr34', 'sr37']
+        for site_name in sites:
+            site = self.data2.find_by_name(site_name, self.data2.sites)
+            self.assertTrue(site)
+            self.assertTrue(site.get_parent())
+            self.assertTrue(site.location)
+
+        warnings = self.data2.validate_data()
+        self.assertFalse(warnings)
+        
+

@@ -527,6 +527,7 @@ Adding location with name: {}""".format(new_location_name, new_location_name)
         Then add info to the item object as object.er_data or object.pmag_data.
         """
         parent = ''
+        grandparent_type = None
         magic_name = 'er_' + child_type + '_name'
         expected_item_type = child_type
         if not filename:
@@ -536,6 +537,7 @@ Adding location with name: {}""".format(new_location_name, new_location_name)
             short_filename = os.path.split(filename)[1]
             magic_file = filename
             attr = short_filename.split('_')[0]
+        print '-I- Attempting to read {}'.format(magic_file)
         if not os.path.isfile(magic_file):
             print '-W- Could not find {}'.format(magic_file)
             return False
@@ -559,6 +561,14 @@ Adding location with name: {}""".format(new_location_name, new_location_name)
             magic_name = 'er_' + child_type + '_name'
             ind = self.ancestry.index(child_type)
             parent_type = self.ancestry[ind+1]
+            grandparent_type = self.ancestry[ind+2]
+
+        if not grandparent_type:
+            ind = self.ancestry.index(child_type)
+            try:
+                grandparent_type = self.ancestry[ind+2]
+            except IndexError:
+                grandparent_type = None
                         
         child_list, child_constructor = self.data_lists[child_type]
 
@@ -578,7 +588,17 @@ Adding location with name: {}""".format(new_location_name, new_location_name)
             # (meaning there is a name for it and the child object should have a parent)
             # but none exists in the data model, go ahead and create that parent object.
             if parent_name and parent_type and not parent:
-                parent = parent_constructor(parent_name, None, data_model=self.data_model)
+                # try to get grandparent
+                grandparent = None
+                if grandparent_type:
+                    grandparent_list, grandparent_constructor = self.data_lists[grandparent_type]
+                    grandparent_name = data_dict[child_name]['er_' + grandparent_type + '_name']
+                    grandparent = self.find_by_name(grandparent_name, grandparent_list)
+                    if not grandparent:
+                        grandparent = grandparent_constructor(grandparent_name, None,
+                                                              data_model=self.data_model)
+                        grandparent_list.append(grandparent)
+                parent = parent_constructor(parent_name, grandparent, data_model=self.data_model)
                 parent_list.append(parent)
             # otherwise there is no parent and none can be created, so use an empty string
             elif not parent:
@@ -590,6 +610,7 @@ Adding location with name: {}""".format(new_location_name, new_location_name)
                 child_list.append(child)
             else:
                 child.set_parent(parent)
+
             # add in the appropriate data dictionary
             child.__setattr__(attr + '_data', data_dict[child_name])
             #child.er_data = 
@@ -741,7 +762,7 @@ Adding location with name: {}""".format(new_location_name, new_location_name)
         elif first_line[0] == "t" or first_line[1] == "t":
             delim = '\t'
         else: 
-            print 'error reading ', path
+            print '-W- error reading ', path
             return False, None, 'bad_file'
 
         file_type = first_line.strip('\n').split(delim)[1]
@@ -1086,16 +1107,26 @@ Adding location with name: {}""".format(new_location_name, new_location_name)
         # make sure that each specimen has a sample, each sample has a site, etc.
 
         def check_item_for_parent(item, parent_type, warnings):
-            if not isinstance(item.get_parent(), parent_type):
+            parent_list, parent_class = self.data_lists[parent_type]
+            if not isinstance(item.get_parent(), parent_class):
+                print 'item', item
+                print 'item.get_parent()', item.get_parent()
+                if item in warnings.keys():
+                    warnings[item].append('invalid parent')
+                else:
+                    warnings[item] = ['invalid parent']
+                
+            if (item.get_parent() not in parent_list):
                 if item in warnings.keys():
                     warnings[item].append('missing parent')
                 else:
                     warnings[item] = ['missing parent']
 
         def check_item_for_children(item, child_type, warnings):
+            child_list, child_class = self.data_lists[child_type]
             if item.children:
                 for child in item.children:
-                    if not isinstance(child, child_type):
+                    if (child not in child_list) or (not isinstance(child, child_class)):
                         if item in warnings.keys():
                             warnings[item].append('fake child:' + str(child))
                         else:
@@ -1114,10 +1145,10 @@ Adding location with name: {}""".format(new_location_name, new_location_name)
             return warnings
 
         warnings = {}
-        for item_list, parent_type, child_type in [(self.specimens, Sample, None),
-                                                   (self.samples, Site, Specimen),
-                                                   (self.sites, Location, Sample),
-                                                   (self.locations, None, Site)]:
+        for item_list, parent_type, child_type in [(self.specimens, 'sample', None),
+                                                   (self.samples, 'site', 'specimen'),
+                                                   (self.sites, 'location', 'sample'),
+                                                   (self.locations, None, 'site')]:
             warnings = check_items(item_list, parent_type, child_type, warnings)
         return warnings
             
