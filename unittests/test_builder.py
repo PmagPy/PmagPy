@@ -1271,10 +1271,54 @@ class TestValidation(unittest.TestCase):
         self.data1.get_all_magic_info()
         self.data2 = builder.ErMagicBuilder(result_dir_path)
 
+    @unittest.skip('ignore')
+    def test_result_validation(self):
+        self.data2.get_all_magic_info()
+        result = self.data2.find_by_name('sr24', self.data2.results)
+        result.specimens.append('string_not_specimen')
+        fake_specimen = builder.Specimen('not_in_er_magic_specimen', None)
+        result.specimens.append(fake_specimen)
+
+        result2 = self.data2.find_by_name('Reverse pole', self.data2.results)
+        site = self.data2.find_by_name('sr21', self.data2.sites)
+        site.set_parent('')
+
+        result3 = self.data2.find_by_name('sr09', self.data2.results)
+        site1 = result3.sites[0]
+        site1.samples.append('fake_sample')
+
+        result_warnings = self.data2.validate_items(self.data1.results)
+        print 'result_warnings', result_warnings
+
+        #print 'result_warnings', result_warnings
+        #for key, value in result_warnings.items():
+        #    print key
+        #    print value
+        #    print '----'
+        #for res in [result, result2, result3]:
+        #    self.assertIn(res, result_warnings.keys())
+        #print 'result', result
+        #print 'result_warnings', result_warnings
+        #print result_warnings[result]
+        #self.assertEqual(result_warnings[result], {})
+        #self.assertEqual(result_warnings[result2], {})
+        #self.assertEqual(result_warnings[result3], {})
+        #print 'warnings', warnings
+        #print 'result_warnings', result_warnings
+
+        #for key, value in result_warnings.items():
+        #    print key
+        #    print value
+        #    print '---'
+        #print self.data2.samples
+        #print [sample.get_parent() for sample in self.data2.samples]
+
     def test_validation(self):
         # set up some invalid data
         specimen = self.data1.find_by_name('Z35.2a', self.data1.specimens)
         specimen.set_parent('')
+        specimen2 = 'I\'m not a real specimen'
+        self.data1.specimens.append(specimen2)
         sample = self.data1.find_by_name('Z35.7', self.data1.samples)
         sample.set_parent('')
         sample.children.append('fake_specimen')
@@ -1288,22 +1332,55 @@ class TestValidation(unittest.TestCase):
         location.children.append('fake_site')
         
         # then make sure validation function catches the bad data
-        warnings = self.data1.validate_data()
-        problem_items = [key.name for key in warnings.keys()]
-        self.assertEqual(len(problem_items), 5)
-        for item_name in ('Z35.2a', 'Z35.7', 'Z35.6', 'MGH1', 'locale'):
-            self.assertIn(item_name, problem_items)
+        spec_warnings, samp_warnings, site_warnings, loc_warnings = self.data1.validate_data()
 
-        spec_warnings = [warn.split(':')[0] for warn in warnings[specimen]]
-        self.assertIn('missing parent', spec_warnings)
-        samp_warnings = [warn.split(':')[0] for warn in warnings[sample]]
-        self.assertIn('missing parent', samp_warnings)
-        self.assertIn('fake child', samp_warnings)
-        site_warnings = [warn.split(':')[0] for warn in warnings[site]]
-        self.assertIn('missing parent', site_warnings)
-        self.assertIn('fake child', site_warnings)
-        loc_warnings = [warn.split(':')[0] for warn in warnings[location]]
-        self.assertIn('fake child', loc_warnings)
+        # structure:
+        # sample_warnings dictionary
+        # {sample1: {'parent': [warning1, warning2, warning3], 'child': [warning1, warning2]},
+        #  sample2: {'child': [warning1], 'type': [warning1, warning2]},
+        #  ...}
+                    
+        self.assertIn(specimen, spec_warnings)
+        self.assertIn(specimen2, spec_warnings)
+        self.assertIn(sample, samp_warnings)
+        self.assertIn(sample2, samp_warnings)
+        self.assertIn(site, site_warnings)
+        self.assertIn(location, loc_warnings)
+
+        self.assertIn('parent', spec_warnings[specimen].keys())
+        ex = spec_warnings[specimen]['parent'][0]
+        self.assertEqual('missing parent', ex.message)
+        self.assertIn('type', spec_warnings["I'm not a real specimen"].keys())
+        ex = spec_warnings["I'm not a real specimen"]['type'][0]
+        self.assertEqual('wrong type', ex.message)
+
+        self.assertIn('parent', samp_warnings[sample].keys())
+        ex = samp_warnings[sample]['parent'][0]
+        self.assertFalse(ex.obj)
+        self.assertEqual('missing parent', ex.message)
+
+        self.assertIn('parent', samp_warnings[sample2].keys())
+        ex = samp_warnings[sample2]['parent'][0]
+        self.assertTrue(ex.obj)
+        self.assertEqual('a_site', ex.obj.name)
+        self.assertEqual('parent not in data object', ex.message)
+
+        self.assertIn('parent', site_warnings[site].keys())
+        ex = site_warnings[site]['parent'][0]
+        self.assertEqual('missing parent', ex.message)
+
+        self.assertIn('children', site_warnings[site].keys())
+        exes = site_warnings[site]['children']
+        self.assertEqual('child has wrong type', exes[0].message)
+        self.assertEqual('child not in data object', exes[1].message)
+        self.assertEqual('fake_sample', exes[0].obj)
+        self.assertEqual('fake_sample', exes[1].obj)
+
+        self.assertIn('children', loc_warnings[location].keys())
+        exes = loc_warnings[location]['children']
+        self.assertEqual('child has wrong type', exes[0].message)
+        self.assertEqual('fake_site', exes[0].obj)
+
 
 class TestOddImport(unittest.TestCase):
 
@@ -1337,10 +1414,7 @@ class TestOddImport(unittest.TestCase):
                  'sr19a', 'sr22a', 'sr23f', 'sr26e', 'sr27a', 'sr27c', 'sr27e', 'sr34f',
                  'sr37j', 'sr01a', 'sr01d', 'sr30a', 'sr34k', 'sr37j']
         for samp in samps:
-            #print samp
             sample = self.data2.find_by_name(samp, self.data2.samples)
-            #print sample
-            #print 'sample.site', sample.site
             self.assertTrue(sample)
             self.assertTrue(sample.get_parent())
             self.assertTrue(sample.site)
@@ -1357,6 +1431,3 @@ class TestOddImport(unittest.TestCase):
             self.assertTrue(site.location)
 
         warnings = self.data2.validate_data()
-        self.assertFalse(warnings)
-        
-

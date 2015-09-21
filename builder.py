@@ -1103,57 +1103,153 @@ Adding location with name: {}""".format(new_location_name, new_location_name)
         outfile.close()
         return outfile
 
+
     def validate_data(self):
-        # make sure that each specimen has a sample, each sample has a site, etc.
-
-        def check_item_for_parent(item, parent_type, warnings):
-            parent_list, parent_class = self.data_lists[parent_type]
-            if not isinstance(item.get_parent(), parent_class):
-                print 'item', item
-                print 'item.get_parent()', item.get_parent()
-                if item in warnings.keys():
-                    warnings[item].append('invalid parent')
-                else:
-                    warnings[item] = ['invalid parent']
-                
-            if (item.get_parent() not in parent_list):
-                if item in warnings.keys():
-                    warnings[item].append('missing parent')
-                else:
-                    warnings[item] = ['missing parent']
-
-        def check_item_for_children(item, child_type, warnings):
-            child_list, child_class = self.data_lists[child_type]
-            if item.children:
-                for child in item.children:
-                    if (child not in child_list) or (not isinstance(child, child_class)):
-                        if item in warnings.keys():
-                            warnings[item].append('fake child:' + str(child))
-                        else:
-                            warnings[item] = ['fake child:' + str(child)]
+        """
+        Validate specimen, sample, site, and location data.
+        """
+        warnings = {}
+        spec_warnings, samp_warnings, site_warnings, loc_warnings = {}, {}, {}, {}
+        if self.specimens:
+            spec_warnings = self.validate_items(self.specimens, 'specimen')
+        if self.samples:
+            samp_warnings = self.validate_items(self.samples, 'sample')
+        if self.sites:
+            site_warnings = self.validate_items(self.sites, 'site')
+        if self.locations:
+            loc_warnings = self.validate_items(self.locations, 'location')
+        return spec_warnings, samp_warnings, site_warnings, loc_warnings
 
             
-        def check_items(item_list, parent_type, child_type, warnings=None):
-            if not warnings:
-                warnings = {}
-            if parent_type:
-                for item in item_list:
-                    check_item_for_parent(item, parent_type, warnings)
-            if child_type:
-                for item in item_list:
-                    check_item_for_children(item, child_type, warnings)
+    def validate_items(self, item_list, item_type):
+        """
+        Go through a list Pmag_objects and check for:
+        parent errors,
+        children errors,
+        type errors.
+        Return a dictionary of exceptions in this format:
+        {sample1: {'parent': [warning1, warning2, warning3], 'child': [warning1, warning2]},
+         sample2: {'child': [warning1], 'type': [warning1, warning2]},
+          ...}
+
+        """
+        def append_or_create_dict_item(warning_type, dictionary, key, value):
+            """
+            Add to dictionary with this format:
+            {key1: {warning_type1: [value1, value2], warning_type2: [value1]},
+            ...}
+            """
+            if not value:
+                return
+            if not key in dictionary:
+                dictionary[key] = {}
+            if not warning_type in dictionary[key]:
+                dictionary[key][warning_type] = []
+            for v in value:
+                dictionary[key][warning_type].append(v)
+            
+        def check_item_type(item, item_type):#, warnings=None):
+            """
+            Make sure that item has appropriate type, and is in the data object.
+            """
+            warnings = []
+            item_list, item_class = self.data_lists[item_type]
+            if not isinstance(item, item_class):
+                warnings.append(PmagException('wrong type'))
+            if item not in item_list:
+                warnings.append(PmagException('not in list'))
             return warnings
 
+        def check_item_for_parent(item, item_type, parent_type):
+            """
+            Make sure that item has a parent of the correct type
+            """
+            if not parent_type:
+                return []
+            if not isinstance(item, Pmag_object):
+                return []
+            warnings = []
+            parent = item.get_parent()
+            parent_list, parent_class = self.data_lists[parent_type]
+            if not parent:
+                warnings.append(PmagException('missing parent'))
+                return warnings
+            if not isinstance(parent, parent_class):
+                warnings.append(PmagException('invalid parent type', parent))
+            if not parent in parent_list:
+                warnings.append(PmagException('parent not in data object', parent))
+            return warnings
+
+        def check_item_for_children(item, child_type):
+            """
+            Make sure that any children are of the correct type,
+            and are in the data object
+            """
+            if not child_type:
+                return []
+            warnings = []
+            children = item.children
+            child_list, child_class = self.data_lists[child_type]
+            for child in children:
+                if not isinstance(child, child_class):
+                    warnings.append(PmagException('child has wrong type', child))
+                if not child in child_list:
+                    warnings.append(PmagException('child not in data object', child))
+            return warnings
+                                
         warnings = {}
-        for item_list, parent_type, child_type in [(self.specimens, 'sample', None),
-                                                   (self.samples, 'site', 'specimen'),
-                                                   (self.sites, 'location', 'sample'),
-                                                   (self.locations, None, 'site')]:
-            warnings = check_items(item_list, parent_type, child_type, warnings)
+        type_ind = self.ancestry.index(item_type)
+        parent_type = self.ancestry[type_ind+1]
+        child_type = self.ancestry[type_ind-1]
+        for item in item_list:
+            #warnings[item] = []
+            type_warnings = check_item_type(item, item_type)
+            append_or_create_dict_item('type', warnings, item, type_warnings)
+            parent_warnings = check_item_for_parent(item, item_type, parent_type)
+            append_or_create_dict_item('parent', warnings, item, parent_warnings)
+            child_warnings = check_item_for_children(item, child_type)
+            append_or_create_dict_item('children', warnings, item, child_warnings)
         return warnings
-            
         
-    
+    """
+        def check_result_items(result_list, warnings=None):
+            print 'CHECKING RESULT ITEMS'
+            if not warnings:
+                warnings = {}
+            for result in result_list:
+                print '*****'
+                print 'result', result
+                spec_warnings, samp_warnings, site_warnings, loc_warnings = None, None, None, None
+                if result.specimens:
+                    spec_warnings = check_items(result.specimens, 'specimen')#, warnings)
+                    #print 'spec_warnings!', spec_warnings
+                if result.samples:
+                    samp_warnings = check_items(result.samples, 'sample')#, warnings)
+                    #print 'samp_warnings', samp_warnings
+                if result.sites:
+                    site_warnings = check_items(result.sites, 'site')#, warnings)
+                    #print 'site_warnings', site_warnings
+                if result.locations:
+                    loc_warnings = check_items(result.locations, 'location')#, warnings)
+                    #print 'loc_warnings', loc_warnings
+                print spec_warnings, samp_warnings, site_warnings, loc_warnings
+                for warning in [spec_warnings, samp_warnings, site_warnings, loc_warnings]:
+                    if warning:
+                        print 'warning', warning
+                        if result not in warnings.keys():
+                            warnings[result] = [warning]
+                        else:
+                            warnings[result].append(warning)
+
+                #print 'result warnings', warnings
+                if not warnings.keys():
+                    print 'no warnings!'
+                elif result in warnings.keys():
+                    for value in warnings[result]:
+                        print value,
+                print '---------'
+            return warnings
+    """
     
     # helper methods
     def get_ancestors(self, pmag_object):
@@ -1225,6 +1321,13 @@ Adding location with name: {}""".format(new_location_name, new_location_name)
 
 
 
+class PmagException(Exception):
+
+    def __init__(self, message, obj=None):
+        super(PmagException, self).__init__(message)
+        self.obj = obj
+        
+    
 # measurements can be uniquely identified by experiment name + measurement #
 # location, site, sample, and specimen names are ALL required headers for each measurement
 
