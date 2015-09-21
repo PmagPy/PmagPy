@@ -1271,13 +1271,14 @@ class TestValidation(unittest.TestCase):
         self.data1.get_all_magic_info()
         self.data2 = builder.ErMagicBuilder(result_dir_path)
 
-    @unittest.skip('ignore')
     def test_result_validation(self):
         self.data2.get_all_magic_info()
         result = self.data2.find_by_name('sr24', self.data2.results)
         result.specimens.append('string_not_specimen')
         fake_specimen = builder.Specimen('not_in_er_magic_specimen', None)
         result.specimens.append(fake_specimen)
+        site0 = self.data2.find_by_name('sr24', self.data2.sites)
+        site0.set_parent('')
 
         result2 = self.data2.find_by_name('Reverse pole', self.data2.results)
         site = self.data2.find_by_name('sr21', self.data2.sites)
@@ -1287,32 +1288,38 @@ class TestValidation(unittest.TestCase):
         site1 = result3.sites[0]
         site1.samples.append('fake_sample')
 
-        result_warnings = self.data2.validate_items(self.data1.results)
-        print 'result_warnings', result_warnings
+        result_warnings = self.data2.validate_results(self.data2.results)
 
-        #print 'result_warnings', result_warnings
-        #for key, value in result_warnings.items():
-        #    print key
-        #    print value
-        #    print '----'
-        #for res in [result, result2, result3]:
-        #    self.assertIn(res, result_warnings.keys())
-        #print 'result', result
-        #print 'result_warnings', result_warnings
-        #print result_warnings[result]
-        #self.assertEqual(result_warnings[result], {})
-        #self.assertEqual(result_warnings[result2], {})
-        #self.assertEqual(result_warnings[result3], {})
-        #print 'warnings', warnings
-        #print 'result_warnings', result_warnings
+        self.assertIn(result, result_warnings.keys())
+        self.assertIn(result2, result_warnings.keys())
+        self.assertIn(result3, result_warnings.keys())
 
-        #for key, value in result_warnings.items():
-        #    print key
-        #    print value
-        #    print '---'
-        #print self.data2.samples
-        #print [sample.get_parent() for sample in self.data2.samples]
+        self.assertIn('specimen', result_warnings[result].keys())
+        self.assertIn('string_not_specimen', result_warnings[result]['specimen'].keys())
+        self.assertIn('type', result_warnings[result]['specimen']['string_not_specimen'].keys())
+        self.assertEqual('wrong type', result_warnings[result]['specimen']['string_not_specimen']['type'][0].message)
+        self.assertEqual('not in data object', result_warnings[result]['specimen']['string_not_specimen']['type'][1].message)
+        
+        self.assertIn('site', result_warnings[result].keys())
+        self.assertIn(site0, result_warnings[result]['site'].keys())
+        self.assertIn('parent', result_warnings[result]['site'][site0].keys())
+        self.assertEqual('missing parent', result_warnings[result]['site'][site0]['parent'][0].message)
 
+        self.assertIn('site', result_warnings[result2].keys())
+        self.assertIn(site, result_warnings[result2]['site'].keys())
+        self.assertIn('parent', result_warnings[result2]['site'][site].keys())
+        self.assertEqual('missing parent', result_warnings[result2]['site'][site]['parent'][0].message)
+
+        print result_warnings[result3]
+        self.assertIn(result3, result_warnings.keys())
+        self.assertIn('site', result_warnings[result3].keys())
+        self.assertIn(site1, result_warnings[result3]['site'].keys())
+        self.assertIn('children', result_warnings[result3]['site'][site1].keys())
+        print result_warnings[result3]['site'][site1]['children'][0]
+        self.assertEqual('child has wrong type', result_warnings[result3]['site'][site1]['children'][0].message)
+        self.assertEqual('child not in data object', result_warnings[result3]['site'][site1]['children'][1].message)
+
+        
     def test_validation(self):
         # set up some invalid data
         specimen = self.data1.find_by_name('Z35.2a', self.data1.specimens)

@@ -1157,7 +1157,7 @@ Adding location with name: {}""".format(new_location_name, new_location_name)
             if not isinstance(item, item_class):
                 warnings.append(PmagException('wrong type'))
             if item not in item_list:
-                warnings.append(PmagException('not in list'))
+                warnings.append(PmagException('not in data object'))
             return warnings
 
         def check_item_for_parent(item, item_type, parent_type):
@@ -1210,46 +1210,34 @@ Adding location with name: {}""".format(new_location_name, new_location_name)
             child_warnings = check_item_for_children(item, child_type)
             append_or_create_dict_item('children', warnings, item, child_warnings)
         return warnings
-        
-    """
-        def check_result_items(result_list, warnings=None):
-            print 'CHECKING RESULT ITEMS'
-            if not warnings:
-                warnings = {}
-            for result in result_list:
-                print '*****'
-                print 'result', result
-                spec_warnings, samp_warnings, site_warnings, loc_warnings = None, None, None, None
-                if result.specimens:
-                    spec_warnings = check_items(result.specimens, 'specimen')#, warnings)
-                    #print 'spec_warnings!', spec_warnings
-                if result.samples:
-                    samp_warnings = check_items(result.samples, 'sample')#, warnings)
-                    #print 'samp_warnings', samp_warnings
-                if result.sites:
-                    site_warnings = check_items(result.sites, 'site')#, warnings)
-                    #print 'site_warnings', site_warnings
-                if result.locations:
-                    loc_warnings = check_items(result.locations, 'location')#, warnings)
-                    #print 'loc_warnings', loc_warnings
-                print spec_warnings, samp_warnings, site_warnings, loc_warnings
-                for warning in [spec_warnings, samp_warnings, site_warnings, loc_warnings]:
-                    if warning:
-                        print 'warning', warning
-                        if result not in warnings.keys():
-                            warnings[result] = [warning]
-                        else:
-                            warnings[result].append(warning)
 
-                #print 'result warnings', warnings
-                if not warnings.keys():
-                    print 'no warnings!'
-                elif result in warnings.keys():
-                    for value in warnings[result]:
-                        print value,
-                print '---------'
-            return warnings
-    """
+
+    def validate_results(self, result_list):
+        def add_result_dict_item(dictionary, key, value):
+            """
+            Add to dictionary with this format:
+            """
+            if not value:
+                return
+            if not key in dictionary:
+                dictionary[key] = []
+            dictionary[key] = value
+
+        warnings = {}
+        for result in result_list:
+            res_warnings = {}
+            if result.specimens:
+                add_result_dict_item(res_warnings, 'specimen', self.validate_items(result.specimens, 'specimen'))
+            if result.samples:
+                add_result_dict_item(res_warnings, 'sample', self.validate_items(result.samples, 'sample'))
+            if result.sites:
+                add_result_dict_item(res_warnings, 'site', self.validate_items(result.sites, 'site'))
+            if result.locations:
+                add_result_dict_item(res_warnings, 'location', self.validate_items(result.locations, 'location'))
+            if res_warnings:
+                warnings[result] = res_warnings
+        return warnings
+            
     
     # helper methods
     def get_ancestors(self, pmag_object):
