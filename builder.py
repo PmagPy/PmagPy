@@ -1237,7 +1237,20 @@ Adding location with name: {}""".format(new_location_name, new_location_name)
             if res_warnings:
                 warnings[result] = res_warnings
         return warnings
-            
+
+    def validate_measurements(self, meas_list):
+        meas_warnings = {}
+        for meas in meas_list:
+            warnings = []
+            if not meas.specimen:
+                warnings.append(PmagException('missing parent'))
+            elif not meas.specimen in self.specimens:
+                warnings.append(PmagException('parent not in data object', meas.specimen))
+            if warnings:
+                meas_warnings[meas] = {}
+                meas_warnings[meas]['parent'] = warnings
+                            
+        return meas_warnings
     
     # helper methods
     def get_ancestors(self, pmag_object):

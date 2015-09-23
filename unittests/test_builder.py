@@ -1388,6 +1388,29 @@ class TestValidation(unittest.TestCase):
         self.assertEqual('child has wrong type', exes[0].message)
         self.assertEqual('fake_site', exes[0].obj)
 
+    def test_measurement_validation(self):
+        # set up some invalidate data
+        meas_name = 'Z35.7a:LP-DIR-T_30'
+        meas = self.data1.find_by_name(meas_name, self.data1.measurements)
+        meas.specimen = ''
+        #
+        meas_name2 = 'Z35.4a:LP-DIR-T_7'
+        meas2 = self.data1.find_by_name(meas_name2, self.data1.measurements)
+        specimen2 = builder.Specimen('fake_specimen', None)
+        meas2.specimen = specimen2
+        # then make sure all invalid things are caught
+        meas_warnings = self.data1.validate_measurements(self.data1.measurements)
+
+        self.assertIn(meas, meas_warnings.keys())
+        self.assertIn('parent', meas_warnings[meas].keys())
+        ex = meas_warnings[meas]['parent'][0]
+        self.assertEqual('missing parent', ex.message)
+
+        self.assertIn(meas2, meas_warnings.keys())
+        self.assertIn('parent', meas_warnings[meas2].keys())
+        ex = meas_warnings[meas2]['parent'][0]
+        self.assertEqual('parent not in data object', ex.message)
+        
 
 class TestOddImport(unittest.TestCase):
 
