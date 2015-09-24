@@ -4597,7 +4597,7 @@ class Zeq_GUI(wx.Frame):
         specimens_list.sort()
         PmagSpecs=[]
         for specimen in specimens_list:
-            for dirtype in self.dirtypes:
+            for dirtype in CoorTypes:
                 i = 0
                 for fit in self.pmag_results_data['specimens'][specimen]:
 
