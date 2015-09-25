@@ -25,7 +25,8 @@ class ErMagicBuilder(object):
         #self.ages = []
         self.write_ages = False
         self.ancestry = [None, 'specimen', 'sample', 'site', 'location', None]
-        self.no_pmag_data = set()
+        #self.no_pmag_data = set()
+        self.incl_pmag_data = set(['result'])
         if not data_model:
             self.data_model = validate_upload.get_data_model()
         else:
@@ -511,7 +512,8 @@ Adding location with name: {}""".format(new_location_name, new_location_name)
         for child, parent in [('specimen', 'sample'), ('sample', 'site'),
                               ('site', 'location'), ('location', '')]:
             self.get_magic_info(child, parent, 'er')
-            self.get_magic_info(child, parent, 'pmag')
+            if self.get_magic_info(child, parent, 'pmag'):
+                self.incl_pmag_data.add(child)
         self.get_age_info()
         self.get_results_info()
                 
@@ -848,7 +850,7 @@ Adding location with name: {}""".format(new_location_name, new_location_name)
             self.write_measurements_file()
         for dtype in ['specimen', 'sample', 'site']:
             if self.data_lists[dtype][0]:
-                do_pmag = dtype not in self.no_pmag_data
+                do_pmag = dtype in self.incl_pmag_data
                 self.write_magic_file(dtype, do_er=True, do_pmag=do_pmag)
                 if not do_pmag:
                     pmag_file = os.path.join(self.WD, 'pmag_' + dtype + 's.txt')

@@ -119,16 +119,16 @@ class GridFrame(wx.Frame):
         self.Bind(wx.EVT_BUTTON, self.onSave, self.exitButton)
         self.cancelButton = wx.Button(self.panel, id=-1, label='Cancel', name='cancel_btn')
         self.Bind(wx.EVT_BUTTON, self.onCancelButton, self.cancelButton)
-        self.pmag_checkbox = pw.check_box(self.panel,
-                                         "Interpretations at {} level".format(self.grid_type))
-        if self.grid_type in ('location', 'age', 'result'):
-            self.pmag_checkbox.cb.SetValue(False)
-            self.pmag_checkbox.cb.Disable()
-            self.pmag_checkbox.ShowItems(False)
-        else:
-            if self.grid_type not in self.er_magic.no_pmag_data:
-                self.pmag_checkbox.cb.SetValue(True)
-            self.Bind(wx.EVT_CHECKBOX, self.on_pmag_checkbox, self.pmag_checkbox.cb)
+        #self.pmag_checkbox = pw.check_box(self.panel,
+        #                                 "Interpretations at {} level".format(self.grid_type))
+        #if self.grid_type in ('location', 'age', 'result'):
+        #    self.pmag_checkbox.cb.SetValue(False)
+        #    self.pmag_checkbox.cb.Disable()
+        #    self.pmag_checkbox.ShowItems(False)
+        #else:
+        #    if self.grid_type not in self.er_magic.no_pmag_data:
+        #        self.pmag_checkbox.cb.SetValue(True)
+        #    self.Bind(wx.EVT_CHECKBOX, self.on_pmag_checkbox, self.pmag_checkbox.cb)
 
         hbox = wx.BoxSizer(wx.HORIZONTAL)
         col_btn_vbox = wx.StaticBoxSizer(wx.StaticBox(self.panel, -1, label='Columns'), wx.VERTICAL)
@@ -142,7 +142,7 @@ class GridFrame(wx.Frame):
         main_btn_vbox.Add(self.importButton, flag=wx.ALL, border=5)
         main_btn_vbox.Add(self.exitButton, flag=wx.ALL, border=5)
         main_btn_vbox.Add(self.cancelButton, flag=wx.ALL, border=5)
-        main_btn_vbox.Add(self.pmag_checkbox, flag=wx.ALL, border=5)
+        #main_btn_vbox.Add(self.pmag_checkbox, flag=wx.ALL, border=5)
         hbox.Add(col_btn_vbox)
         hbox.Add(row_btn_vbox)
         hbox.Add(main_btn_vbox)
@@ -313,7 +313,8 @@ class GridFrame(wx.Frame):
         check to see if column is required
         if it is not, delete it from grid
         """
-        include_pmag = self.pmag_checkbox.cb.IsChecked()
+        #include_pmag = self.pmag_checkbox.cb.IsChecked()
+        #include_pmag = True
         er_possible_headers = self.grid_headers[self.grid_type]['er'][2]
         pmag_possible_headers = self.grid_headers[self.grid_type]['pmag'][2]
         er_actual_headers = self.grid_headers[self.grid_type]['er'][0]
@@ -325,9 +326,9 @@ class GridFrame(wx.Frame):
         if label in self.grid_headers[self.grid_type]['er'][1]:
             pw.simple_warning("That header is required, and cannot be removed")
             return False
-        elif include_pmag and label in self.grid_headers[self.grid_type]['pmag'][1]:
-            pw.simple_warning("That header is required, and cannot be removed")
-            return False
+        #elif include_pmag and label in self.grid_headers[self.grid_type]['pmag'][1]:
+        #    pw.simple_warning("That header is required, and cannot be removed")
+        #    return False
         else:
             print 'That header is not required:', label
             self.grid.remove_col(col)
@@ -349,7 +350,8 @@ class GridFrame(wx.Frame):
         col_labels = self.grid.col_labels
         er_items = [head for head in self.grid_headers[self.grid_type]['er'][2] if head not in col_labels]
         er_items = builder.remove_list_headers(er_items)
-        include_pmag = self.pmag_checkbox.cb.IsChecked()
+        #include_pmag = self.pmag_checkbox.cb.IsChecked()
+        include_pmag = True
         if include_pmag or self.grid_type == 'result':
             pmag_items = [head for head in self.grid_headers[self.grid_type]['pmag'][2] if head not in er_items and head not in col_labels]
             pmag_items = builder.remove_list_headers(pmag_items)
@@ -568,7 +570,8 @@ class GridFrame(wx.Frame):
             er_headers = list(set(self.er_magic.headers[self.grid_type]['er'][0]).union(current_headers))
             self.er_magic.headers[self.grid_type]['er'][0] = er_headers
 
-            include_pmag = self.pmag_checkbox.cb.IsChecked()
+            #include_pmag = self.pmag_checkbox.cb.IsChecked()
+            include_pmag = True
             if include_pmag:
                 pmag_headers = self.er_magic.headers[self.grid_type]['pmag'][0]
                 headers = set(er_headers).union(pmag_headers)
@@ -591,13 +594,13 @@ class GridFrame(wx.Frame):
             else:
                 pw.simple_warning('You have imported a {} type file.\nYou\'ll need to open up your {} grid to see this data'.format(import_type, import_type))
 
-
+    """
     def on_pmag_checkbox(self, event):
-        """
+
         Called when user changes status of pmag_checkbox.
         Removes pmag-specific columns if box is unchecked.
         Adds in pmag-specific columns if box is checked.
-        """
+
         num_cols = self.grid.GetNumberCols()
         current_grid_col_labels = [self.grid.GetColLabelValue(num) for num in xrange(num_cols)]
         do_pmag = self.pmag_checkbox.cb.IsChecked()
@@ -618,6 +621,7 @@ class GridFrame(wx.Frame):
                     ind = current_grid_col_labels.index(col_label)
                     self.grid.remove_col(ind)
         self.main_sizer.Fit(self)
+        """
     
     def onCancelButton(self, event):
         if self.grid.changes:
@@ -630,13 +634,30 @@ class GridFrame(wx.Frame):
             self.Destroy()
 
     def onSave(self, event):#, age_data_type='site'):
+        # first, see if there's any pmag_* data
+        pmag_header_found = False
+        actual_er_headers = self.er_magic.headers[self.grid_type]['er'][0]
+        actual_pmag_headers = self.er_magic.headers[self.grid_type]['pmag'][0]
+        for col in self.grid.col_labels:
+            if col not in actual_er_headers:
+                if col in actual_pmag_headers:
+                    pmag_header_found = True
+                    break
+        if pmag_header_found:
+            self.er_magic.incl_pmag_data.add(self.grid_type)
+        else:
+            try:
+                self.er_magic.incl_pmag_data.remove(self.grid_type)
+            except KeyError:
+                pass
+        # then, tidy up drop_down menu
         if self.drop_down_menu:
             self.drop_down_menu.clean_up()
-
+        # then save actual data
         self.grid_builder.save_grid_data()
         if not event:
             return
-
+        # then alert user
         wx.MessageBox('Saved!', 'Info',
                       style=wx.OK | wx.ICON_INFORMATION)
         self.Destroy()
@@ -657,7 +678,7 @@ class GridBuilder(object):
         return grid
         """
         er_header = self.grid_headers[self.grid_type]['er'][0]
-        if self.grid_type not in self.er_magic.no_pmag_data:
+        if self.grid_type in self.er_magic.incl_pmag_data:
             pmag_header = self.grid_headers[self.grid_type]['pmag'][0]
         else:
             pmag_header = []
