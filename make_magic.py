@@ -254,6 +254,27 @@ class MainFrame(wx.Frame):
         Then use those files to create a MagIC upload format file.
         Validate the upload file.
         """
+        # coherence validations
+        wait = wx.BusyInfo('Validating data, please wait...')
+        spec_warnings, samp_warnings, site_warnings, loc_warnings = self.er_magic.validate_data()
+        result_warnings = self.er_magic.validate_results(self.er_magic.results)
+        from collections import namedtuple
+        warn_tuple = namedtuple('warning_tuple', ['dtype', 'warnings'])
+        warn_lst = [warn_tuple('specimen', spec_warnings), warn_tuple('sample', samp_warnings),
+                    warn_tuple('site', site_warnings), warn_tuple('location', loc_warnings),
+                    warn_tuple('result', result_warnings)]
+        has_problems = []
+        for item in warn_lst:
+            if item.warnings:
+                has_problems.append(item.dtype)
+        # for any dtypes with validation problems,
+        # highlight the button to the corresponding grid
+        for problem in has_problems:
+            wind = self.FindWindowByName(problem + '_btn')
+            wind.Bind(wx.EVT_PAINT, self.highlight_button)
+        self.Refresh()
+        del wait
+        # write upload file, will perform validations also
         wait = wx.BusyInfo('Making upload file, please wait...')
         self.er_magic.write_files()
         upfile, error_message = ipmag.upload_magic(dir_path=self.WD)
@@ -268,6 +289,22 @@ class MainFrame(wx.Frame):
         if result == wx.ID_OK:            
             dlg.Destroy()
         self.edited = False
+
+    def highlight_button(self, event):
+        """
+        Draw a red highlight line around the event object
+        """
+        wind = event.GetEventObject()
+        pos = wind.GetPosition()
+        size = wind.GetSize()
+        try:
+            dc = wx.PaintDC(self)
+        except wx._core.PyAssertionError:
+            # if it's not a native paint event, we can't us wx.PaintDC
+            dc = wx.ClientDC(self)
+        dc.SetPen(wx.Pen('red', 5, wx.SOLID))
+        dc.DrawRectangle(pos[0], pos[1], size[0], size[1])
+        event.Skip()
 
 
 class MagICMenu(wx.MenuBar):
