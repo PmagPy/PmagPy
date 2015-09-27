@@ -71,7 +71,7 @@ try:
 except:
     pass
 
-import pmag,demag_dialogs
+import pmag,demag_dialogs,ipmag
 from matplotlib.backends.backend_wx import NavigationToolbar2Wx
 import copy
 from copy import deepcopy
@@ -4709,72 +4709,72 @@ class Zeq_GUI(wx.Frame):
         dia = demag_dialogs.magic_pmag_tables_dialog(None,self.WD,self.Data,self.Data_info)
         dia.Center()
 
-        if dia.ShowModal() == wx.ID_OK: # Until the user clicks OK, show the message            
+        if dia.ShowModal() == wx.ID_OK: # Until the user clicks OK, show the message
             self.On_close_MagIC_dialog(dia)
                                                       
     def On_close_MagIC_dialog(self,dia):
         
-        run_script_flags=["specimens_results_magic.py","-fsp","pmag_specimens.txt", "-xI",  "-WD", str(self.WD)]
+#        run_script_flags=["specimens_results_magic.py","-fsp","pmag_specimens.txt", "-xI",  "-WD", str(self.WD)]
         if dia.cb_acceptance_criteria.GetValue()==True:
-            run_script_flags.append("-exc")
+#            run_script_flags.append("-exc")
             use_criteria='existing'
         else:
-            run_script_flags.append("-C")
+#            run_script_flags.append("-C")
             use_criteria='none'
 
         #-- coordinate system
         if dia.rb_spec_coor.GetValue()==True:
-            run_script_flags.append("-crd");  run_script_flags.append("s")
+#            run_script_flags.append("-crd");  run_script_flags.append("s")
             coord = "s"
         if dia.rb_geo_coor.GetValue()==True:
-            run_script_flags.append("-crd");  run_script_flags.append("g")
+#            run_script_flags.append("-crd");  run_script_flags.append("g")
             coord = "g"
         if dia.rb_tilt_coor.GetValue()==True:
-            run_script_flags.append("-crd");  run_script_flags.append("t")
+#            run_script_flags.append("-crd");  run_script_flags.append("t")
             coord = "t"
         if dia.rb_geo_tilt_coor.GetValue()==True:
-            run_script_flags.append("-crd");  run_script_flags.append("b")
+#            run_script_flags.append("-crd");  run_script_flags.append("b")
             coord = "b"
         
         #-- default age options
         DefaultAge= ["none"]
-        if dia.cb_default_age.GetValue()==True:
+#        if dia.cb_default_age.GetValue()==True:
+        try:
             age_units= dia.default_age_unit.GetValue()
-            try:
-                min_age="%f"%float(dia.default_age_min.GetValue()) 
-                max_age="%f"%float(dia.default_age_max.GetValue())
-            except:
-                min_age="0"
-                if age_units=="Ga":
-                    max_age="4.56"
-                elif age_units=="Ma":
-                    max_age="%f"%(4.56*1e3)
-                elif age_units=="Ka":
-                    max_age="%f"%(4.56*1e6)
-                elif age_units=="Years AD (+/-)":
-                    max_age="%f"%((time.time()/3.15569e7)+1970)
-                elif age_units=="Years BP":
-                    max_age="%f"%((time.time()/3.15569e7)+1950)
-                elif age_units=="Years Cal AD (+/-)":
-                    max_age=str(datetime.now())
-                elif age_units=="Years Cal BP":
-                    max_age=((time.time()/3.15569e7)+1950)
-                else:
-                    max_age="4.56"
-                    age_units="Ga"
-            run_script_flags.append("-age"); run_script_flags.append(min_age)
-            run_script_flags.append(max_age); run_script_flags.append(age_units)
-            DefaultAge=[min_age, max_age, age_units]
+            min_age="%f"%float(dia.default_age_min.GetValue()) 
+            max_age="%f"%float(dia.default_age_max.GetValue())
+        except:
+            min_age="0"
+            if age_units=="Ga":
+                max_age="4.56"
+            elif age_units=="Ma":
+                max_age="%f"%(4.56*1e3)
+            elif age_units=="Ka":
+                max_age="%f"%(4.56*1e6)
+            elif age_units=="Years AD (+/-)":
+                max_age="%f"%((time.time()/3.15569e7)+1970)
+            elif age_units=="Years BP":
+                max_age="%f"%((time.time()/3.15569e7)+1950)
+            elif age_units=="Years Cal AD (+/-)":
+                max_age=str(datetime.now())
+            elif age_units=="Years Cal BP":
+                max_age=((time.time()/3.15569e7)+1950)
+            else:
+                max_age="4.56"
+                age_units="Ga"
+#        run_script_flags.append("-age"); run_script_flags.append(min_age)
+#        run_script_flags.append(max_age); run_script_flags.append(age_units)
+        DefaultAge=[min_age, max_age, age_units]
 
         #-- sample mean
         avg_directions_by_sample = False
         if dia.cb_sample_mean.GetValue()==True:
-            run_script_flags.append("-aD")
+#            run_script_flags.append("-aD")
             avg_directions_by_sample = True
             
         vgps_level = 'site'
         if dia.cb_sample_mean_VGP.GetValue()==True:
-            run_script_flags.append("-sam")
+#            run_script_flags.append("-sam")
             vgps_level = 'sample'
 
         #-- site mean
@@ -4785,38 +4785,36 @@ class Zeq_GUI(wx.Frame):
         #-- location mean
         avg_by_polarity=False
         if dia.cb_location_mean.GetValue()==True:
-            run_script_flags.append("-pol")
+#            run_script_flags.append("-pol")
             avg_by_polarity=True
 
         for FILE in ['pmag_samples.txt','pmag_sites.txt','pmag_results.txt']:
             self.PmagRecsOld[FILE]=[]
-            try: 
+            try:
                 meas_data,file_type=pmag.magic_read(os.path.join(self.WD, FILE))
                 self.GUI_log.write("-I- Read old magic file  %s\n"%os.path.join(self.WD, FILE))
                 if FILE !='pmag_specimens.txt':
                     os.remove(os.path.join(self.WD, FILE))
                     self.GUI_log.write("-I- Delete old magic file  %s\n"%os.path.join(self.WD,FILE))
-                               
             except:
-                continue                                                                           
+                continue
 
             for rec in meas_data:
                 if "magic_method_codes" in rec.keys():
                     if "LP-DIR" not in rec['magic_method_codes'] and "DE-" not in  rec['magic_method_codes']:
                         self.PmagRecsOld[FILE].append(rec)
 
-                                                
+
         #print  run_script_flags
-        outstring=" ".join(run_script_flags)
-        print "-I- running python script:\n %s"%(outstring)
+#        outstring=" ".join(run_script_flags)
+#        print "-I- running python script:\n %s"%(outstring)
         #os.system(outstring)
 
-        import ipmag
         print 'coord', coord, 'vgps_level', vgps_level, 'DefaultAge', DefaultAge, 'avg_directions_by_sample', avg_directions_by_sample, 'avg_by_polarity', avg_by_polarity, 'use_criteria', use_criteria
         ipmag.specimens_results_magic(coord=coord, vgps_level=vgps_level, DefaultAge=DefaultAge, avg_directions_by_sample=avg_directions_by_sample, avg_by_polarity=avg_by_polarity, use_criteria=use_criteria)
 
         
-        #    subprocess.call(run_script_flags, shell=True)                
+        # subprocess.call(run_script_flags, shell=True)
         # reads new pmag tables, and merge the old lines:
         for FILE in ['pmag_samples.txt','pmag_sites.txt','pmag_results.txt']:
             pmag_data=[]
@@ -4827,6 +4825,8 @@ class Zeq_GUI(wx.Frame):
             if FILE in self.PmagRecsOld.keys():
                 for rec in self.PmagRecsOld[FILE]:
                     pmag_data.append(rec)
+            if FILE == 'pmag_sites.txt':
+                print("Pmag_Data: " + str(pmag_data[0:2]))
             if len(pmag_data) >0:
                 pmag_data_fixed=self.merge_pmag_recs(pmag_data)
                 pmag.magic_write(os.path.join(self.WD, FILE), pmag_data_fixed, FILE.split(".")[0])
