@@ -821,6 +821,18 @@ def make_di_block(dec,inc):
     return di_block
 
 
+def make_diddd_array(dec,inc,dip_direction,dip):
+    """
+    Some pmag.py functions require a numpy array of dec, inc, dip direction, dip [dec,inc,dd,dip] as input. This
+    function makes such a list
+    """
+    diddd_block=[]
+    for n in range(0,len(dec)):
+        diddd_block.append([dec[n],inc[n],dip_direction[n],dip[n]])
+    diddd_array = np.array(diddd_block)
+    return diddd_array
+
+
 def shoot(lon, lat, azimuth, maxdist=None):
     """
     This function enables A95 error ellipses to be drawn in basemap around paleomagnetic
