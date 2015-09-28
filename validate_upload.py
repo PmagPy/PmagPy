@@ -85,7 +85,7 @@ def read_upload(up_file):
     data = split_lines(lines)
     data_dicts = get_dicts(data)
     missing_data = {}
-    number_scramble = {}
+    non_numeric = {}
     invalid_col_names = {}
     missing_file_type = False
     data_model = get_data_model()
@@ -122,14 +122,14 @@ def read_upload(up_file):
             # make a list of data that should be numeric, but isn't
             number_fail = validate_for_numericality(k, v, specific_data_model)
             if number_fail:
-                if file_type not in number_scramble.keys():
-                    number_scramble[file_type] = set()
-                number_scramble[file_type].add(number_fail)
+                if file_type not in non_numeric.keys():
+                    non_numeric[file_type] = set()
+                non_numeric[file_type].add(number_fail)
 
     for file_type, invalid_names in invalid_col_names.items():
         print "-W- In your {} file, you are using the following unrecognized columns: {}".format(file_type, ', '.join(invalid_names))
 
-    for file_type, wrong_cols in number_scramble.items():
+    for file_type, wrong_cols in non_numeric.items():
         print "-W- In your {} file, you must provide only valid numbers, in the following columns: {}".format(file_type, ', '.join(wrong_cols))
 
     for file_type, empty_cols in missing_data.items():
@@ -141,7 +141,7 @@ def read_upload(up_file):
             missing_file_type = True
             
 
-    if invalid_col_names or number_scramble or missing_data or missing_file_type:
+    if invalid_col_names or non_numeric or missing_data or missing_file_type:
         return False
     else:
         print "-I- validation was successful"
