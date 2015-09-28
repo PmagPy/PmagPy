@@ -485,16 +485,16 @@ Adding location with name: {}""".format(new_location_name, new_location_name)
 
             # add items and parents
             location = self.find_by_name(location_name, self.locations)
-            if not location:
+            if location_name and not location:
                 location = self.add_location(location_name)
             site = self.find_by_name(site_name, self.sites)
-            if not site:
+            if site_name and not site:
                 site = self.add_site(site_name, location_name)
             sample = self.find_by_name(sample_name, self.samples)
-            if not sample:
+            if sample_name and not sample:
                 sample = self.add_sample(sample_name, site_name)
             specimen = self.find_by_name(specimen_name, self.specimens)
-            if not specimen:
+            if specimen_name and not specimen:
                 specimen = self.add_specimen(specimen_name, sample_name)
             exp_name = rec['magic_experiment_name']
             meas_num = rec['measurement_number']
@@ -502,11 +502,11 @@ Adding location with name: {}""".format(new_location_name, new_location_name)
             self.measurements.append(measurement)
 
             # add child_items
-            if not self.find_by_name(specimen_name, sample.specimens):
+            if sample and not self.find_by_name(specimen_name, sample.specimens):
                 sample.specimens.append(specimen)
-            if not self.find_by_name(sample_name, site.samples):
+            if site and not self.find_by_name(sample_name, site.samples):
                 site.samples.append(sample)
-            if not self.find_by_name(site_name, location.sites):
+            if location and not self.find_by_name(site_name, location.sites):
                 location.sites.append(site)
 
     def get_all_magic_info(self):
