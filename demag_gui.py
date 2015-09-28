@@ -108,8 +108,8 @@ class Zeq_GUI(wx.Frame):
         """  
         args=sys.argv
         if "-h" in args:
-	   print TEXT
-	   sys.exit()
+            print TEXT
+            sys.exit()
 
         global FIRST_RUN
         FIRST_RUN=True
@@ -138,8 +138,8 @@ class Zeq_GUI(wx.Frame):
             self.acceptance_criteria=pmag.read_criteria_from_file(os.path.join(self.WD, "pmag_criteria.txt"), self.acceptance_criteria)
         except:
             print "-I- Cant find/read file  pmag_criteria.txt"          
-        
-         
+
+
         preferences=self.get_preferences()
         self.dpi = 100
         self.preferences={}
@@ -147,10 +147,11 @@ class Zeq_GUI(wx.Frame):
 
         # inialize selecting criteria
         self.COORDINATE_SYSTEM='specimen'
+        self.UPPER_LEVEL_SHOW='specimens'
         self.Data_info=self.get_data_info() # Read  er_* data
         self.Data,self.Data_hierarchy=self.get_data() # Get data from magic_measurements and rmag_anistropy if exist.
 
-        
+
         self.pmag_results_data={}
         for level in ['specimens','samples','sites','lcoations','study']:
             self.pmag_results_data[level]={}
@@ -159,7 +160,7 @@ class Zeq_GUI(wx.Frame):
         for high_level in ['samples','sites','locations','study']:
             if high_level not in self.high_level_means.keys():
                 self.high_level_means[high_level]={}
-        
+
         #BLARGE
         self.interpertation_editor_open = False
         self.colors = ['g','y','m','c','k','w'] #for fits
@@ -212,9 +213,9 @@ class Zeq_GUI(wx.Frame):
         self.GUI_RESOLUTION=min(r1,r2,1.3)
         #print "gui resolution 2"
         #self.GUI_RESOLUTION=float(self.preferences['gui_resolution'])/100
-        #----------------------------------------------------------------------                     
+ #----------------------------------------------------------------------                     
         # initialize first specimen in list as current specimen
-        #----------------------------------------------------------------------                     
+ #----------------------------------------------------------------------                     
         try:
             self.s=str(self.specimens[0])
         except:
@@ -232,10 +233,10 @@ class Zeq_GUI(wx.Frame):
         #print "first specimen is"
         #print self.s
         #print self.specimens
-        #----------------------------------------------------------------------                     
+ #----------------------------------------------------------------------                     
         # Create Figures and FigCanvas objects. 
-        #----------------------------------------------------------------------                     
-        #
+ #----------------------------------------------------------------------                     
+
         self.fig1 = Figure((5.*self.GUI_RESOLUTION, 5.*self.GUI_RESOLUTION), dpi=self.dpi)
         self.canvas1 = FigCanvas(self.panel, -1, self.fig1)
         self.toolbar1 = NavigationToolbar(self.canvas1)
@@ -246,7 +247,7 @@ class Zeq_GUI(wx.Frame):
         self.canvas1.Bind(wx.EVT_MIDDLE_DOWN,self.home_zijderveld)
 #        self.canvas1.Bind(wx.EVT_LEFT_DCLICK,self.pick_bounds)
         #self.fig1.text(0.01,0.98,"Zijderveld plot",{'family':'Arial', 'fontsize':10*self.GUI_RESOLUTION, 'style':'normal','va':'center', 'ha':'left' })
-        
+
         self.fig2 = Figure((2.5*self.GUI_RESOLUTION, 2.5*self.GUI_RESOLUTION), dpi=self.dpi)
         self.specimen_eqarea_net = self.fig2.add_subplot(111)  
         self.draw_net(self.specimen_eqarea_net)        
@@ -293,9 +294,9 @@ class Zeq_GUI(wx.Frame):
         self.high_level_eqarea_interpretation.axis('off')
 
 
-        #----------------------------------------------------------------------                     
+ #----------------------------------------------------------------------                     
         #  set font size and style
-        #----------------------------------------------------------------------                     
+ #----------------------------------------------------------------------                     
 
         FONT_RATIO=1
         font1 = wx.Font(9+FONT_RATIO, wx.SWISS, wx.NORMAL, wx.NORMAL, False, u'Arial')
@@ -305,9 +306,9 @@ class Zeq_GUI(wx.Frame):
         font = wx.SystemSettings_GetFont(wx.SYS_SYSTEM_FONT)
         font.SetPointSize(10+FONT_RATIO)        
 
-        #----------------------------------------------------------------------                     
+ #----------------------------------------------------------------------                     
         # Create text_box for presenting the measurements
-        #----------------------------------------------------------------------                     
+ #----------------------------------------------------------------------                     
 
         self.logger = wx.ListCtrl(self.panel, -1, size=(200*self.GUI_RESOLUTION,300*self.GUI_RESOLUTION),style=wx.LC_REPORT)
         self.logger.SetFont(font1)
@@ -319,9 +320,9 @@ class Zeq_GUI(wx.Frame):
         self.logger.InsertColumn(5, 'M',width=45*self.GUI_RESOLUTION) 
         self.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.OnClick_listctrl, self.logger) 
         self.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK,self.OnRightClickListctrl,self.logger) 
-        #----------------------------------------------------------------------                     
+ #----------------------------------------------------------------------                     
         #  select specimen box
-        #----------------------------------------------------------------------                     
+ #----------------------------------------------------------------------                     
 
         self.box_sizer_select_specimen = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY), wx.VERTICAL )
 
@@ -344,9 +345,9 @@ class Zeq_GUI(wx.Frame):
 
 
 
-        #----------------------------------------------------------------------                     
+ #----------------------------------------------------------------------                     
         #  select coordinate box
-        #----------------------------------------------------------------------                     
+ #----------------------------------------------------------------------                     
         # stopped here
         self.coordinate_list = ['specimen']
         for specimen in self.specimens:
@@ -369,9 +370,9 @@ class Zeq_GUI(wx.Frame):
         self.box_sizer_select_specimen.Add(wx.StaticText(self.panel,label="Zijderveld plot:",style=wx.TE_CENTER))        
         self.box_sizer_select_specimen.Add(self.orthogonal_box, 0, wx.TOP, 4 )        
 
-        #----------------------------------------------------------------------                     
+ #----------------------------------------------------------------------                     
         #  fit box
-        #----------------------------------------------------------------------                     
+ #----------------------------------------------------------------------                     
 
         list_fits = []
 
@@ -390,9 +391,9 @@ class Zeq_GUI(wx.Frame):
             (self.fit_box, wx.ALIGN_LEFT)])
         self.box_sizer_fit.Add(fit_window, 0, wx.TOP, 5.5 )
 
-        #----------------------------------------------------------------------                     
+ #----------------------------------------------------------------------                     
         #  select bounds box
-        #----------------------------------------------------------------------                     
+ #----------------------------------------------------------------------                     
 
         self.T_list=[]
         
@@ -429,21 +430,21 @@ class Zeq_GUI(wx.Frame):
         self.box_sizer_save.Add(save_delete_window, 0, wx.TOP, 5.5 )
         
 
-        #----------------------------------------------------------------------                     
+ #----------------------------------------------------------------------                     
         # Specimen interpretation window 
-        #----------------------------------------------------------------------                     
+ #----------------------------------------------------------------------                     
         self.box_sizer_specimen = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY,"specimen mean type"  ), wx.HORIZONTAL )
 
         self.PCA_type_box = wx.ComboBox(self.panel, -1, size=(100*self.GUI_RESOLUTION, 25), value='line',choices=['line','line-anchored','line-with-origin','plane','Fisher'], style=wx.CB_DROPDOWN,name="coordinates")
-        self.Bind(wx.EVT_COMBOBOX, self.get_new_PCA_parameters,self.PCA_type_box)
+        self.Bind(wx.EVT_COMBOBOX, self.on_select_specimen_mean_type_box,self.PCA_type_box)
 
         specimen_stat_type_window = wx.GridSizer(2, 1, 0, 19*self.GUI_RESOLUTION)
-        specimen_stat_type_window.AddMany( [(wx.StaticText(self.panel,label="\n ",style=wx.TE_CENTER), wx.ALIGN_LEFT),
+        specimen_stat_type_window.AddMany([(wx.StaticText(self.panel,label="\n ",style=wx.TE_CENTER), wx.ALIGN_LEFT),
             (self.PCA_type_box, wx.ALIGN_LEFT)])
-        self.box_sizer_specimen.Add( specimen_stat_type_window, 0, wx.ALIGN_LEFT, 0 )        
+        self.box_sizer_specimen.Add(specimen_stat_type_window, 0, wx.ALIGN_LEFT, 0 )
  
-        self.box_sizer_specimen_stat = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY,"specimen mean statistics"  ), wx.HORIZONTAL )                        
-               
+        self.box_sizer_specimen_stat = wx.StaticBoxSizer(wx.StaticBox(self.panel, wx.ID_ANY,"specimen mean statistics"), wx.HORIZONTAL )
+
         for parameter in ['dec','inc','n','mad','dang','alpha95']:
             COMMAND="self.%s_window=wx.TextCtrl(self.panel,style=wx.TE_CENTER|wx.TE_READONLY,size=(50*self.GUI_RESOLUTION,25))"%parameter
             exec COMMAND
@@ -469,9 +470,9 @@ class Zeq_GUI(wx.Frame):
             (self.alpha95_window, wx.EXPAND)])
         self.box_sizer_specimen_stat.Add( specimen_stat_window, 0, wx.ALIGN_LEFT, 0)
 
-        #----------------------------------------------------------------------                     
-        # High level mean window 
-        #----------------------------------------------------------------------                     
+#----------------------------------------------------------------------                     
+# High level mean window 
+ #----------------------------------------------------------------------                     
         self.box_sizer_high_level = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY,"higher level mean"  ), wx.HORIZONTAL )
 
         self.level_box = wx.ComboBox(self.panel, -1, size=(100*self.GUI_RESOLUTION, 25),value='site',  choices=['sample','site','location','study'], style=wx.CB_DROPDOWN,name="high_level")
@@ -485,26 +486,9 @@ class Zeq_GUI(wx.Frame):
             (self.level_names, wx.ALIGN_LEFT)])
         self.box_sizer_high_level.Add( high_level_window, 0, wx.TOP, 5.5 )
 
-        #----------------------------------------------------------------------
-        # show box
-        #----------------------------------------------------------------------                     
-
-        self.box_sizer_show = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY, "show" ), wx.VERTICAL )
-
-        self.show_box = wx.ComboBox(self.panel, -1, size=(100*self.GUI_RESOLUTION, 25), value='specimens', choices=['specimens','samples','sites','sites-VGP'], style=wx.CB_DROPDOWN,name="high_elements")
-        self.Bind(wx.EVT_COMBOBOX, self.onSelect_show_box,self.show_box)
-
-        self.remove_replace_fit_button = wx.Button(self.panel, id=-1, label='remove/replace fit',size=(100*self.GUI_RESOLUTION,25))
-        self.Bind(wx.EVT_BUTTON, self.remove_replace_fit, self.remove_replace_fit_button)
-
-        show_window = wx.GridSizer(2, 1, 10*self.GUI_RESOLUTION, 19*self.GUI_RESOLUTION)
-        show_window.AddMany([(self.show_box, wx.ALIGN_LEFT),
-                             (self.remove_replace_fit_button, wx.ALIGN_LEFT)])
-        self.box_sizer_show.Add(show_window, 0, wx.TOP, 5.5 )
-
-        #----------------------------------------------------------------------
-        # mean types box
-        #----------------------------------------------------------------------                     
+#----------------------------------------------------------------------
+# mean types box
+ #----------------------------------------------------------------------                     
 
         self.box_sizer_mean_types = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY, "mean" ), wx.VERTICAL )
 
@@ -520,19 +504,19 @@ class Zeq_GUI(wx.Frame):
             (self.mean_fit_box,wx.ALIGN_LEFT)])
         self.box_sizer_mean_types.Add(mean_types_window, 0, wx.TOP, 5.5 )
                        
-        #----------------------------------------------------------------------                     
-        # High level text box
-        #----------------------------------------------------------------------                     
+ #----------------------------------------------------------------------                     
+# High level text box
+ #----------------------------------------------------------------------                     
 
         self.box_sizer_high_level_text = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY,""  ), wx.HORIZONTAL )                        
         self.high_level_text_box = wx.TextCtrl(self.panel, id=-1, size=(220*self.GUI_RESOLUTION,210*self.GUI_RESOLUTION), style=wx.TE_MULTILINE | wx.TE_READONLY )
         self.high_level_text_box.SetFont(font1)
         self.box_sizer_high_level_text.Add(self.high_level_text_box, 0, wx.ALIGN_LEFT, 0 )
+ #----------------------------------------------------------------------                     
+# Design the panel
 
-        #----------------------------------------------------------------------                     
-        # Design the panel
-        #----------------------------------------------------------------------
-        
+#----------------------------------------------------------------------
+
         vbox1 = wx.BoxSizer(wx.VERTICAL)
         hbox1 = wx.BoxSizer(wx.HORIZONTAL)
         vbox1.AddSpacer(10)
@@ -549,22 +533,21 @@ class Zeq_GUI(wx.Frame):
         hbox1.Add(self.box_sizer_specimen_stat, flag=wx.ALIGN_LEFT|wx.ALIGN_BOTTOM)
         hbox1.AddSpacer(2)
         hbox1.Add(self.box_sizer_high_level, flag=wx.ALIGN_LEFT|wx.ALIGN_BOTTOM)
-        hbox1.Add(self.box_sizer_show, flag=wx.ALIGN_LEFT|wx.ALIGN_BOTTOM)
         hbox1.Add(self.box_sizer_mean_types, flag=wx.ALIGN_LEFT|wx.ALIGN_BOTTOM)
 
         vbox2a=wx.BoxSizer(wx.VERTICAL)
         vbox2a.Add(self.box_sizer_select_specimen,flag=wx.ALIGN_CENTER_HORIZONTAL|wx.EXPAND,border=8)
         vbox2a.Add(self.logger,flag=wx.ALIGN_TOP,border=8)
         hbox2 = wx.BoxSizer(wx.HORIZONTAL)
-        hbox2.AddSpacer(2)      
+        hbox2.AddSpacer(2)
         hbox2.Add(vbox2a,flag=wx.ALIGN_CENTER_HORIZONTAL)
         hbox2.Add(self.canvas1,flag=wx.ALIGN_CENTER_HORIZONTAL,border=8)
 
-        vbox2 = wx.BoxSizer(wx.VERTICAL)        
+        vbox2 = wx.BoxSizer(wx.VERTICAL)
         vbox2.Add(self.canvas2,flag=wx.ALIGN_LEFT,border=8)
         vbox2.Add(self.canvas3,flag=wx.ALIGN_LEFT,border=8)
 
-        vbox3 = wx.BoxSizer(wx.VERTICAL)        
+        vbox3 = wx.BoxSizer(wx.VERTICAL)
         vbox3.Add(self.canvas4,flag=wx.ALIGN_LEFT|wx.ALIGN_TOP,border=8)
         vbox3.Add(self.box_sizer_high_level_text,flag=wx.ALIGN_CENTER_VERTICAL,border=8)
        
@@ -1891,7 +1874,7 @@ class Zeq_GUI(wx.Frame):
         elif str(self.level_box.GetValue())=='location': high_level_type='locations' 
         elif str(self.level_box.GetValue())=='study': high_level_type='study' 
         high_level_name=str(self.level_names.GetValue())
-        elements_type=str(self.show_box.GetValue())
+        elements_type=self.UPPER_LEVEL_SHOW
         self.high_level_text_box.SetValue("")
         if high_level_name in self.high_level_means[high_level_type].keys():
             if dirtype in self.high_level_means[high_level_type][high_level_name].keys():
@@ -2098,8 +2081,12 @@ class Zeq_GUI(wx.Frame):
 
     #----------------------------------------------------------------------
 
+    def on_select_specimen_mean_type_box(self,event):
+        self.get_new_PCA_parameters(event)
+        if self.interpertation_editor_open:
+            self.interpertation_editor.update_logger_entry(self.interpertation_editor.current_fit_index)
+
     def get_new_PCA_parameters(self,event):  #BLARGE
-        
         """
         calcualte statisics when temperatures are selected
         or PCA type is changed
@@ -2633,29 +2620,33 @@ class Zeq_GUI(wx.Frame):
     def onSelect_higher_level(self,event,called_by_interp_editor=False):
        self.UPPER_LEVEL=self.level_box.GetValue()
        if self.UPPER_LEVEL=='sample':
-           self.show_box.SetItems(['specimens'])
-           self.show_box.SetStringSelection('specimens')
+           if self.interpertation_editor_open:
+               self.interpertation_editor.show_box.SetItems(['specimens'])
+               self.interpertation_editor.show_box.SetStringSelection('specimens')
            self.level_names.SetItems(self.samples)
            self.level_names.SetStringSelection(self.Data_hierarchy['sample_of_specimen'][self.s])
 
        elif self.UPPER_LEVEL=='site':
-           self.show_box.SetItems(['specimens','samples'])
-           if self.show_box.GetValue() not in ['specimens','samples']:
-               self.show_box.SetStringSelection('samples')
+           if self.interpertation_editor_open:
+               self.interpertation_editor.show_box.SetItems(['specimens','samples'])
+               if self.interpertation_editor.show_box.GetValue() not in ['specimens','samples']:
+                   self.interpertation_editor.show_box.SetStringSelection('samples')
            self.level_names.SetItems(self.sites)
            self.level_names.SetStringSelection(self.Data_hierarchy['site_of_specimen'][self.s])
 
        elif self.UPPER_LEVEL=='location':
-           self.show_box.SetItems(['specimens','samples','sites'])#,'sites VGP'])
-           if self.show_box.GetValue() not in ['specimens','samples','sites']:#,'sites VGP']:
-               self.show_box.SetStringSelection('sites')
+           if self.interpertation_editor_open:
+               self.interpertation_editor.show_box.SetItems(['specimens','samples','sites'])#,'sites VGP'])
+               if self.interpertation_editor.show_box.GetValue() not in ['specimens','samples','sites']:#,'sites VGP']:
+                   self.interpertation_editor.show_box.SetStringSelection('sites')
            self.level_names.SetItems(self.locations)
            self.level_names.SetStringSelection(self.Data_hierarchy['location_of_specimen'][self.s])
 
        elif self.UPPER_LEVEL=='study':
-           self.show_box.SetItems(['specimens','samples','sites'])#,'sites VGP'])
-           if self.show_box.GetValue() not in ['specimens','samples','sites']:#,'sites VGP']:
-               self.show_box.SetStringSelection('sites')
+           if self.interpertation_editor_open:
+               self.interpertation_editor.show_box.SetItems(['specimens','samples','sites'])#,'sites VGP'])
+               if self.interpertation_editor.show_box.GetValue() not in ['specimens','samples','sites']:#,'sites VGP']:
+                   self.interpertation_editor.show_box.SetStringSelection('sites')
            self.level_names.SetItems(['this study'])
            self.level_names.SetStringSelection('this study')
 
@@ -2690,18 +2681,6 @@ class Zeq_GUI(wx.Frame):
            self.interpertation_editor.on_select_level_name(event,True)
 
        self.update_selection()
-
-    #----------------------------------------------------------------------
-
-    def onSelect_show_box(self,event):
-
-        self.calculate_higher_levels_data()
-        self.update_selection()
-        
-        #self.plot_higher_levels_data()
-        #self.show_higher_levels_pars(mpars)
-           
-    #----------------------------------------------------------------------
 
 
     def calculate_high_level_mean (self,high_level_type,high_level_name,calculation_type,elements_type):
@@ -2818,7 +2797,7 @@ class Zeq_GUI(wx.Frame):
         if high_level_type=='location':high_level_type='locations'
         high_level_name=str(self.level_names.GetValue())
         calculation_type=str(self.mean_type_box.GetValue())
-        elements_type=str(self.show_box.GetValue())
+        elements_type=self.UPPER_LEVEL_SHOW
         if self.interpertation_editor_open: self.interpertation_editor.mean_type_box.SetStringSelection(calculation_type)
         self.calculate_high_level_mean(high_level_type,high_level_name,calculation_type,elements_type)
 
@@ -2829,8 +2808,7 @@ class Zeq_GUI(wx.Frame):
        self.toolbar4.home()
 
        high_level=self.level_box.GetValue()
-       self.UPPER_LEVEL_NAME=self.level_names.GetValue() 
-       self.UPPER_LEVEL_SHOW=self.show_box.GetValue() 
+       self.UPPER_LEVEL_NAME=self.level_names.GetValue()
        self.UPPER_LEVEL_MEAN=self.mean_type_box.GetValue()
 
        self.high_level_eqarea.clear()
@@ -2848,7 +2826,7 @@ class Zeq_GUI(wx.Frame):
 
        high_level_name=str(self.level_names.GetValue())
        calculation_type=str(self.mean_type_box.GetValue())
-       elements_type=str(self.show_box.GetValue())
+       elements_type=self.UPPER_LEVEL_SHOW
 
        elements_list=self.Data_hierarchy[high_level_type][high_level_name][elements_type]
 
@@ -3115,14 +3093,11 @@ class Zeq_GUI(wx.Frame):
             String=String+"Einc"+": "+"%.1f\n"%float(mpars['Einc'])
             String=String+"Eta"+": "+"%.1f\n"%float(mpars['Eta'])
             self.high_level_text_box.AppendText(String)
-                
 
-                
     #def initialize_acceptence_criteria (self):
     #    self.acceptance_criteria={}
     #    self.acceptance_criteria=self.pmag.initialize_acceptence_criteria()
-           
-                             
+
 #============================================
 
     #-------------------------------
@@ -3131,9 +3106,6 @@ class Zeq_GUI(wx.Frame):
     #-------------------------------
 
     def get_data(self):
-      
-
-
 
       #------------------------------------------------
       # Read magic measurement file and sort to blocks
@@ -3742,7 +3714,7 @@ class Zeq_GUI(wx.Frame):
 #==============================================================
 
     #----------------------------------------------------------------------
-        
+
     def create_menu(self):
         """
         Create menu
@@ -3912,7 +3884,7 @@ class Zeq_GUI(wx.Frame):
         m_coords = menu_edit.AppendMenu(-1, "&Coordinate Systems", menu_coordinates)
 
         #-----------------
-        
+
         #self.menubar.Append(menu_preferences, "& Preferences") 
         self.menubar.Append(menu_file, "&File")
         self.menubar.Append(menu_edit, "&Edit")
@@ -3920,8 +3892,8 @@ class Zeq_GUI(wx.Frame):
         self.menubar.Append(menu_Tools, "&Tools")
         self.menubar.Append(menu_Help, "&Help")
         #self.menubar.Append(menu_Plot, "&Plot")
-        #self.menubar.Append(menu_results_table, "&Table")        
-        #self.menubar.Append(menu_MagIC, "&MagIC")        
+        #self.menubar.Append(menu_results_table, "&Table")
+        #self.menubar.Append(menu_MagIC, "&MagIC")
         self.SetMenuBar(self.menubar)
 
     #============================================
@@ -5243,7 +5215,7 @@ class EditFitFrame(wx.Frame):
 
     def init_UI(self):
         """
-        Builds User Interface for the Interpertation Editor window
+        Builds User Interface for the Interpertation Editor
         """
 
         #set fonts
@@ -5256,18 +5228,17 @@ class EditFitFrame(wx.Frame):
             is_mac = True
 
         #build logger
-        self.logger = wx.ListCtrl(self.panel, -1, size=(425*self.GUI_RESOLUTION,525*self.GUI_RESOLUTION),style=wx.LC_REPORT)
+        self.logger = wx.ListCtrl(self.panel, -1, size=(350*self.GUI_RESOLUTION,525*self.GUI_RESOLUTION),style=wx.LC_REPORT)
         self.logger.SetFont(font1)
         self.logger.InsertColumn(0, 'specimen',width=55*self.GUI_RESOLUTION)
-        self.logger.InsertColumn(1, 'name',width=55*self.GUI_RESOLUTION)
-        self.logger.InsertColumn(2, 'tmax',width=55*self.GUI_RESOLUTION)
-        self.logger.InsertColumn(3, 'tmin',width=55*self.GUI_RESOLUTION)        
-        self.logger.InsertColumn(4, 'dec',width=35*self.GUI_RESOLUTION)
-        self.logger.InsertColumn(5, 'inc',width=35*self.GUI_RESOLUTION)
-        self.logger.InsertColumn(6, 'n',width=25*self.GUI_RESOLUTION)
-        self.logger.InsertColumn(7, 'mad',width=35*self.GUI_RESOLUTION)
-        self.logger.InsertColumn(8, 'dang',width=35*self.GUI_RESOLUTION)
-        self.logger.InsertColumn(9, 'a95',width=35*self.GUI_RESOLUTION)
+        self.logger.InsertColumn(1, 'name',width=45*self.GUI_RESOLUTION)
+        self.logger.InsertColumn(2, 'max',width=35*self.GUI_RESOLUTION)
+        self.logger.InsertColumn(3, 'min',width=35*self.GUI_RESOLUTION)        
+        self.logger.InsertColumn(4, 'n',width=25*self.GUI_RESOLUTION)
+        self.logger.InsertColumn(5, 'type',width=60*self.GUI_RESOLUTION)
+        self.logger.InsertColumn(6, 'dec',width=35*self.GUI_RESOLUTION)
+        self.logger.InsertColumn(7, 'inc',width=35*self.GUI_RESOLUTION)
+        self.logger.InsertColumn(8, 'mad',width=35*self.GUI_RESOLUTION)
         self.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.OnClick_listctrl, self.logger)
         self.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK,self.OnRightClickListctrl,self.logger)
 
@@ -5288,7 +5259,7 @@ class EditFitFrame(wx.Frame):
         if UPPER_LEVEL=='study':
             name_choices = ['this study']
 
-        self.level_box = wx.ComboBox(self.panel, -1, size=(100*self.GUI_RESOLUTION, 25), value=UPPER_LEVEL,  choices=['sample','site','location','study'], style=wx.CB_DROPDOWN)
+        self.level_box = wx.ComboBox(self.panel, -1, size=(100*self.GUI_RESOLUTION, 25), value=UPPER_LEVEL, choices=['sample','site','location','study'], style=wx.CB_DROPDOWN)
         self.Bind(wx.EVT_COMBOBOX, self.on_select_higher_level,self.level_box)
 
         self.level_names = wx.ComboBox(self.panel, -1, size=(100*self.GUI_RESOLUTION, 25), value=self.parent.level_names.GetValue(), choices=name_choices, style=wx.CB_DROPDOWN)
@@ -5301,15 +5272,24 @@ class EditFitFrame(wx.Frame):
         self.mean_fit_box = wx.ComboBox(self.panel, -1, size=(100*self.GUI_RESOLUTION, 25), value=self.parent.mean_fit, choices=(['None','All'] + self.parent.fit_list), style=wx.CB_DROPDOWN,name="high_type")
         self.Bind(wx.EVT_COMBOBOX, self.on_select_mean_fit_box,self.mean_fit_box)
 
+        #show box
+        self.show_box = wx.ComboBox(self.panel, -1, size=(100*self.GUI_RESOLUTION, 25), value='specimens', choices=['specimens','samples','sites','sites-VGP'], style=wx.CB_DROPDOWN,name="high_elements")
+        self.Bind(wx.EVT_COMBOBOX, self.on_select_show_box,self.show_box)
+
+        #coordinates box
+        self.coordinates_box = wx.ComboBox(self.panel, -1, size=(100*self.GUI_RESOLUTION, 25), choices=self.parent.coordinate_list, value='specimen', style=wx.CB_DROPDOWN, name="coordinates")
+        self.Bind(wx.EVT_COMBOBOX, self.on_select_coordinates,self.coordinates_box)
+
         #bounds select boxes
         self.tmin_box = wx.ComboBox(self.panel, -1, size=(100*self.GUI_RESOLUTION, 25), choices=[''] + self.parent.T_list, style=wx.CB_DROPDOWN, name="lower bound")
 
         self.tmax_box = wx.ComboBox(self.panel, -1, size=(100*self.GUI_RESOLUTION, 25), choices=[''] + self.parent.T_list, style=wx.CB_DROPDOWN, name="upper bound")
 
-        #color and name box
+        #color box
         self.color_dict = {'green':'g','yellow':'y','maroon':'m','cyan':'c','black':'k','white':'w'}
         self.color_box = wx.ComboBox(self.panel, -1, size=(100*self.GUI_RESOLUTION, 25), choices=[''] + self.color_dict.keys(), style=wx.CB_DROPDOWN, name="color")
 
+        #name box
         self.name_box = wx.TextCtrl(self.panel, -1, size=(100*self.GUI_RESOLUTION, 25), style=wx.HSCROLL, name="name")
 
         #more mac stuff
@@ -5328,6 +5308,7 @@ class EditFitFrame(wx.Frame):
         self.apply_changes_button.SetFont(font1)
         self.Bind(wx.EVT_BUTTON, self.apply_changes, self.apply_changes_button)
 
+        display_window_0 = wx.GridSizer(2, 1, 10*self.GUI_RESOLUTION, 19*self.GUI_RESOLUTION)
         display_window_1 = wx.GridSizer(2, 1, 10*self.GUI_RESOLUTION, 19*self.GUI_RESOLUTION)
         display_window_2 = wx.GridSizer(2, 1, 10*self.GUI_RESOLUTION, 19*self.GUI_RESOLUTION)
         name_window = wx.GridSizer(2, 1, 10*self.GUI_RESOLUTION, 19*self.GUI_RESOLUTION)
@@ -5335,6 +5316,8 @@ class EditFitFrame(wx.Frame):
         buttons1_window = wx.GridSizer(2, 1, 10*self.GUI_RESOLUTION, 19*self.GUI_RESOLUTION)
         buttons2_window = wx.GridSizer(2, 1, 10*self.GUI_RESOLUTION, 19*self.GUI_RESOLUTION)
         buttons3_window = wx.GridSizer(2, 1, 10*self.GUI_RESOLUTION, 19*self.GUI_RESOLUTION)
+        display_window_0.AddMany( [(self.coordinates_box, wx.ALIGN_LEFT),
+                                   (self.show_box, wx.ALIGN_LEFT)] )
         display_window_1.AddMany( [(self.level_box, wx.ALIGN_LEFT),
                                    (self.mean_type_box, wx.ALIGN_LEFT)] )
         display_window_2.AddMany( [(self.level_names, wx.ALIGN_LEFT),
@@ -5346,7 +5329,8 @@ class EditFitFrame(wx.Frame):
         buttons1_window.Add(self.add_fit_button, wx.ALIGN_TOP)
         buttons2_window.Add(self.delete_fit_button, wx.ALIGN_TOP)
         buttons3_window.Add(self.apply_changes_button, wx.ALIGN_TOP)
-        self.display_sizer.Add(display_window_1, 0, wx.TOP, 8)
+        self.display_sizer.Add(display_window_0, 0, wx.TOP, 8)
+        self.display_sizer.Add(display_window_1, 0, wx.TOP | wx.LEFT, 8)
         self.display_sizer.Add(display_window_2, 0, wx.TOP | wx.LEFT, 8)
         self.name_sizer.Add(name_window, 0, wx.TOP, 5.5)
         self.bounds_sizer.Add(bounds_window, 0, wx.TOP, 5.5)
@@ -5427,11 +5411,12 @@ class EditFitFrame(wx.Frame):
 
         specimen = tup[1]
         name = fit.name
-        if 'measurement_step_min' in pars.keys(): tmin = str(fit.tmin)
-        if 'measurement_step_max' in pars.keys(): tmax = str(fit.tmax)
+        if 'measurement_step_min' in pars.keys(): fmin = str(fit.tmin)
+        if 'measurement_step_max' in pars.keys(): fmax = str(fit.tmax)
+        if 'specimen_n' in pars.keys(): n = str(pars['specimen_n'])
+        if 'calculation_type' in pars.keys(): ftype = pars['calculation_type']
         if 'specimen_dec' in pars.keys(): dec = "%.1f"%pars['specimen_dec']
         if 'specimen_inc' in pars.keys(): inc = "%.1f"%pars['specimen_inc']
-        if 'specimen_n' in pars.keys(): n = str(pars['specimen_n'])
         if 'specimen_mad' in pars.keys(): mad = "%.1f"%pars['specimen_mad']
         if 'specimen_dang' in pars.keys(): dang = "%.1f"%pars['specimen_dang']
         if 'specimen_alpha95' in pars.keys(): a95 = "%.1f"%pars['specimen_alpha95']
@@ -5440,14 +5425,13 @@ class EditFitFrame(wx.Frame):
             self.logger.DeleteItem(i)
         self.logger.InsertStringItem(i, str(specimen))
         self.logger.SetStringItem(i, 1, name)
-        self.logger.SetStringItem(i, 2, tmin)
-        self.logger.SetStringItem(i, 3, tmax)
-        self.logger.SetStringItem(i, 4, dec)
-        self.logger.SetStringItem(i, 5, inc)
-        self.logger.SetStringItem(i, 6, n)
-        self.logger.SetStringItem(i, 7, mad)
-        self.logger.SetStringItem(i, 8, dang)
-        self.logger.SetStringItem(i, 9, a95)
+        self.logger.SetStringItem(i, 2, fmin)
+        self.logger.SetStringItem(i, 3, fmax)
+        self.logger.SetStringItem(i, 4, n)
+        self.logger.SetStringItem(i, 5, ftype)
+        self.logger.SetStringItem(i, 6, dec)
+        self.logger.SetStringItem(i, 7, inc)
+        self.logger.SetStringItem(i, 8, mad)
         self.logger.SetItemBackgroundColour(i,"WHITE")
         a,b = False,False
         if fit in self.parent.bad_fits:
@@ -5495,8 +5479,10 @@ class EditFitFrame(wx.Frame):
         else: 
             self.logger.SetItemBackgroundColour(self.current_fit_index,"WHITE")
         self.current_fit_index = i
-        self.logger.SetItemBackgroundColour(self.current_fit_index,"LIGHT BLUE")
-        
+        if self.fit_list[self.current_fit_index][0] in self.parent.bad_fits:
+            self.logger.SetItemBackgroundColour(self.current_fit_index,"GREEN")
+        else:
+            self.logger.SetItemBackgroundColour(self.current_fit_index,"LIGHT BLUE")
 
     def logger_focus(self,i,focus_shift=16):
         """
@@ -5553,6 +5539,19 @@ class EditFitFrame(wx.Frame):
         self.logger_focus(i)
 
     ###################################ComboBox Functions################################
+
+    def on_select_coordinates(self,event):
+        self.parent.coordinates_box.SetStringSelection(self.coordinates_box.GetStringSelection())
+        self.parent.onSelect_coordinates(event)
+
+    def on_select_show_box(self,event):
+        """
+
+        """
+        self.parent.UPPER_LEVEL_SHOW=self.show_box.GetValue()
+        self.parent.calculate_higher_levels_data()
+        self.parent.update_selection()
+
 
     def on_select_higher_level(self,event,called_by_parent=False):
         """
