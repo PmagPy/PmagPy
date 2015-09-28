@@ -31,10 +31,13 @@ class ErMagicBuilder(object):
             self.data_model = validate_upload.get_data_model()
         else:
             self.data_model = data_model
-        self.data_lists = {'specimen': [self.specimens, Specimen], 'sample': [self.samples, Sample],
-                           'site': [self.sites, Site], 'location': [self.locations, Location],
-                           'age': [self.sites, Site], 'result': [self.results, Result],
-                           'measurement': [self.measurements, Measurement]}
+        self.data_lists = {'specimen': [self.specimens, Specimen, self.add_specimen],
+                   'sample': [self.samples, Sample, self.add_sample],
+                   'site': [self.sites, Site, self.add_site],
+                   'location': [self.locations, Location, self.add_location],
+                   'age': [self.sites, Site, self.add_site],
+                   'result': [self.results, Result, self.add_result],
+                   'measurement': [self.measurements, Measurement, self.add_measurement]}
         self.add_methods = {'specimen': self.add_specimen, 'sample': self.add_sample,
                             'site': self.add_site, 'location': self.add_location,
                             'age': None, 'result': self.add_result}
@@ -169,7 +172,9 @@ class ErMagicBuilder(object):
 
         self.headers['result']['er'][0], self.headers['result']['pmag'][0] = headers(self.results, self.headers['result']['er'][1], self.headers['result']['pmag'][1])
 
-
+    def add_measurement(self, meas_name, spec_name=None, er_data=None, pmag_data=None):
+        pass
+        
     def change_specimen(self, old_spec_name, new_spec_name,
                         new_sample_name=None, new_er_data=None, new_pmag_data=None,
                         replace_data=False):
@@ -373,6 +378,8 @@ Adding location with name: {}""".format(new_location_name, new_location_name)
         """
         Create a Location object and add it to self.locations.
         """
+        if not location_name:
+            return False
         location = Location(location_name, data_model=self.data_model, er_data=er_data, pmag_data=pmag_data)
         self.locations.append(location)
         return location
@@ -479,21 +486,16 @@ Adding location with name: {}""".format(new_location_name, new_location_name)
             # add items and parents
             location = self.find_by_name(location_name, self.locations)
             if not location:
-                location = Location(location_name, data_model=self.data_model)
-                self.locations.append(location)
+                location = self.add_location(location_name)
             site = self.find_by_name(site_name, self.sites)
             if not site:
-                site = Site(site_name, location, self.data_model)
-                self.sites.append(site)
+                site = self.add_site(site_name, location_name)
             sample = self.find_by_name(sample_name, self.samples)
             if not sample:
-                sample = Sample(sample_name, site, self.data_model)
-                self.samples.append(sample)
+                sample = self.add_sample(sample_name, site_name)
             specimen = self.find_by_name(specimen_name, self.specimens)
             if not specimen:
-                specimen = Specimen(specimen_name, sample, self.data_model)
-                self.specimens.append(specimen)
-
+                specimen = self.add_specimen(specimen_name, sample_name)
             exp_name = rec['magic_experiment_name']
             meas_num = rec['measurement_number']
             measurement = Measurement(exp_name, meas_num, specimen, rec)
@@ -572,10 +574,10 @@ Adding location with name: {}""".format(new_location_name, new_location_name)
             except IndexError:
                 grandparent_type = None
                         
-        child_list, child_constructor = self.data_lists[child_type]
+        child_list, child_class, child_constructor = self.data_lists[child_type]
 
         if parent_type:
-            parent_list, parent_constructor = self.data_lists[parent_type]
+            parent_list, parent_class, parent_constructor = self.data_lists[parent_type]
         else:
             parent_list, parent_name = None, None
         for child_name in data_dict:
@@ -592,24 +594,23 @@ Adding location with name: {}""".format(new_location_name, new_location_name)
             if parent_name and parent_type and not parent:
                 # try to get grandparent
                 grandparent = None
+                grandparent_name = None
                 if grandparent_type:
-                    grandparent_list, grandparent_constructor = self.data_lists[grandparent_type]
+                    grandparent_list, grandparent_class, grandparent_constructor = self.data_lists[grandparent_type]
                     grandparent_name = data_dict[child_name]['er_' + grandparent_type + '_name']
                     grandparent = self.find_by_name(grandparent_name, grandparent_list)
-                    if not grandparent:
-                        grandparent = grandparent_constructor(grandparent_name, None,
-                                                              data_model=self.data_model)
+                    if grandparent_name and not grandparent:
+                        grandparent = grandparent_constructor(grandparent_name, None)
                         grandparent_list.append(grandparent)
-                parent = parent_constructor(parent_name, grandparent, data_model=self.data_model)
-                parent_list.append(parent)
+                parent = parent_constructor(parent_name, grandparent_name)
             # otherwise there is no parent and none can be created, so use an empty string
             elif not parent:
+                parent_name = None
                 parent = ''
             child = self.find_by_name(child_name, child_list)
             # if the child object does not exist yet in the data model
             if not child:
-                child = child_constructor(child_name, parent, data_model=self.data_model)
-                child_list.append(child)
+                child = child_constructor(child_name, parent_name)
             else:
                 child.set_parent(parent)
 
@@ -674,7 +675,7 @@ Adding location with name: {}""".format(new_location_name, new_location_name)
                 parent_type = self.ancestry[ind+1]
                 parent_header, parent_constructor = None, None
                 if parent_type:
-                    parent_list, parent_constructor = self.data_lists[parent_type]
+                    parent_list, parent_class, parent_constructor = self.data_lists[parent_type]
                     parent_header = 'er_' + parent_type + '_name'
                 parent_name = item_dict.get(parent_header, '')
                 parent = self.find_by_name(parent_name, parent_list)
@@ -682,11 +683,11 @@ Adding location with name: {}""".format(new_location_name, new_location_name)
                 if parent_name and not parent:
                     print """-I- A {} named {} in your age file was not found in the data object: 
     Now initializing {} {}""".format(parent_type, parent_name, parent_type, parent_name)
-                    parent = parent_constructor(parent_name, None, data_model=self.data_model)
-                    parent_list.append(parent)
-                item_constructor = self.data_lists[item_type][1]
-                item = item_constructor(item_name, parent, data_model=self.data_model)
-                items_list.append(item)
+                    parent = parent_constructor(parent_name, None)
+                item_constructor = self.data_lists[item_type][2]
+                if not parent:
+                    parent_name = None
+                item = item_constructor(item_name, parent_name)
             # add the age data to the object
             item.age_data = remove_dict_headers(item_dict)
         # note that data is available to write
@@ -1155,7 +1156,7 @@ Adding location with name: {}""".format(new_location_name, new_location_name)
             Make sure that item has appropriate type, and is in the data object.
             """
             warnings = []
-            item_list, item_class = self.data_lists[item_type]
+            item_list, item_class, item_constructor = self.data_lists[item_type]
             if not isinstance(item, item_class):
                 warnings.append(PmagException('wrong type'))
             if item not in item_list:
@@ -1172,8 +1173,8 @@ Adding location with name: {}""".format(new_location_name, new_location_name)
                 return []
             warnings = []
             parent = item.get_parent()
-            parent_list, parent_class = self.data_lists[parent_type]
-            if not parent:
+            parent_list, parent_class, parent_constructor = self.data_lists[parent_type]
+            if not parent or not parent.name:
                 warnings.append(PmagException('missing parent'))
                 return warnings
             if not isinstance(parent, parent_class):
@@ -1191,7 +1192,7 @@ Adding location with name: {}""".format(new_location_name, new_location_name)
                 return []
             warnings = []
             children = item.children
-            child_list, child_class = self.data_lists[child_type]
+            child_list, child_class, child_constructor = self.data_lists[child_type]
             for child in children:
                 if not isinstance(child, child_class):
                     warnings.append(PmagException('child has wrong type', child))
