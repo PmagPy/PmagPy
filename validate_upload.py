@@ -84,6 +84,7 @@ def read_upload(up_file):
     f.close()
     data = split_lines(lines)
     data_dicts = get_dicts(data)
+    invalid_data = {}
     missing_data = {}
     non_numeric = {}
     invalid_col_names = {}
@@ -92,13 +93,24 @@ def read_upload(up_file):
     reqd_file_types = ['er_locations']
     provided_file_types = set()
     if not data_model:
-        return False
+        return False, None
     for dictionary in data_dicts:
         for k, v in dictionary.items():
             if k == "file_type": # meta data
                 provided_file_types.add(v)
                 continue
             file_type = dictionary['file_type']
+            # need to deal with pmag_criteria type file, too
+            item_type = file_type.split('_')[1][:-1]
+            if item_type == 'criteri':
+                item_name = dictionary.get('criteria_definition')
+            elif item_type == 'result':
+                item_name = dictionary.get('pmag_result_name', None)
+            elif item_type in ('specimen', 'sample', 'site', 'location'):
+                item_name = dictionary.get('er_' + item_type + '_name', None)
+            else:
+                item_name = None
+
             if file_type not in data_model.keys():
                 continue
             specific_data_model = data_model[file_type]
@@ -110,14 +122,37 @@ def read_upload(up_file):
                     invalid_col_names[file_type] = set()
                 invalid_col_names[file_type].add(invalid_col_name)
                 # skip to next item, as additional validations won't work (key is not in the data model)
+
+                ## new style
+                if item_name:
+                    if file_type not in invalid_data:
+                        invalid_data[file_type] = {}
+                    if item_name not in invalid_data[file_type]:
+                        invalid_data[file_type][item_name] = {}
+                    if 'invalid_col' not in invalid_data[file_type][item_name]:
+                        invalid_data[file_type][item_name]['invalid_col'] = []
+                    invalid_data[file_type][item_name]['invalid_col'].append(invalid_col_name)
+                ##
                 continue 
             
             # make a list of missing, required data
-            missing_item = validate_for_presence(k, v, specific_data_model) 
+            missing_item = validate_for_presence(k, v, specific_data_model)
+            #print 'k, v', k, v
             if missing_item:
                 if file_type not in missing_data.keys():
                     missing_data[file_type] = set()
                 missing_data[file_type].add(missing_item)
+
+                ## new style
+                if item_name:
+                    if file_type not in invalid_data.keys():
+                        invalid_data[file_type] = {}
+                    if item_name not in invalid_data[file_type].keys():
+                        invalid_data[file_type][item_name] = {}
+                    if 'missing_data' not in invalid_data[file_type][item_name]:
+                        invalid_data[file_type][item_name]['missing_data'] = []
+                    invalid_data[file_type][item_name]['missing_data'].append(missing_item)
+                ##
 
             # make a list of data that should be numeric, but isn't
             number_fail = validate_for_numericality(k, v, specific_data_model)
@@ -125,6 +160,28 @@ def read_upload(up_file):
                 if file_type not in non_numeric.keys():
                     non_numeric[file_type] = set()
                 non_numeric[file_type].add(number_fail)
+
+                ## new style
+                if item_name:
+                    if file_type not in invalid_data:
+                        invalid_data[file_type] = {}
+                    if item_name not in invalid_data[file_type]:
+                        invalid_data[file_type][item_name] = {}
+                    if 'number_fail' not in invalid_data[file_type][item_name]:
+                        invalid_data[file_type][item_name]['number_fail'] = []
+                    invalid_data[file_type][item_name]['number_fail'].append(number_fail)
+                ##
+
+    #print '---'
+    #for d, problems in invalid_data.items():
+    #    print d
+    #    print '...'
+    #    for item, item_warnings in problems.items():
+    #        print item
+    #        print item_warnings
+    #        print '...'
+    #    print '---'
+    #print '********'
 
     for file_type, invalid_names in invalid_col_names.items():
         print "-W- In your {} file, you are using the following unrecognized columns: {}".format(file_type, ', '.join(invalid_names))
@@ -140,12 +197,11 @@ def read_upload(up_file):
             print "-W- You have not provided a(n) {} type file, which is required data".format(file_type)
             missing_file_type = True
             
-
     if invalid_col_names or non_numeric or missing_data or missing_file_type:
-        return False
+        return False, invalid_data
     else:
         print "-I- validation was successful"
-        return True
+        return True, None
     
 
 def split_lines(lines):

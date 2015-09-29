@@ -2152,9 +2152,9 @@ def download_magic(infile, dir_path='.', input_dir_path='.', overwrite=False):
 
 def upload_magic(concat=0, dir_path='.'):
     """
-    Finds all magic files in a given directory, and compiles them into an upload.txt file which can be uploaded into the MagIC database.
-    returns a tuple of either: (False, error_message) if there was a problem creating/validating the upload file
-    or: (filename, '') if the upload was fully successful
+    Finds all magic files in a given directory, and compiles them into an upload.txt file which can be uploaded into the MagIC database.  
+    returns a tuple of either: (False, error_message, errors) if there was a problem creating/validating the upload file
+    or: (filename, '', None) if the upload was fully successful
     """
     locations = []
     concat = int(concat)
@@ -2287,12 +2287,11 @@ def upload_magic(concat=0, dir_path='.'):
     if os.path.isfile(up):
         import validate_upload
         validated = False
-        if validate_upload.read_upload(up):
-           validated = True
+        validated, errors = validate_upload.read_upload(up)
 
     else:
         print "no data found, upload file not created"
-        return False, "no data found, upload file not created"
+        return False, "no data found, upload file not created", None
 
     #rename upload.txt according to location + timestamp
     format_string = "%d.%b.%Y"
@@ -2311,8 +2310,8 @@ def upload_magic(concat=0, dir_path='.'):
     print "Finished preparing upload file: {} ".format(new_up)
     if not validated:
         print "-W- validation of upload file has failed.\nPlease fix above errors and try again.\nYou may run into problems if you try to upload this file to the MagIC database"
-        return False, "file validation has failed.  You may run into problems if you try to upload this file."
-    return new_up, ''
+        return False, "file validation has failed.  You may run into problems if you try to upload this file.", errors
+    return new_up, '', None
 
 
 def specimens_results_magic(infile='pmag_specimens.txt', measfile='magic_measurements.txt', sampfile='er_samples.txt', sitefile='er_sites.txt', agefile='er_ages.txt', specout='er_specimens.txt', sampout='pmag_samples.txt', siteout='pmag_sites.txt', resout='pmag_results.txt', critout='pmag_criteria.txt', instout='magic_instruments.txt', plotsites = False, fmt='svg', dir_path='.', cors=[], priorities=['DA-AC-ARM','DA-AC-TRM'], coord='g', user='', vgps_level='site', do_site_intensity=True, DefaultAge=["none"], avg_directions_by_sample=False, avg_intensities_by_sample=False, avg_all_components=False, avg_by_polarity=False, skip_directions=False, skip_intensities=False, use_sample_latitude=False, use_paleolatitude=False, use_criteria='default'):
