@@ -259,25 +259,15 @@ class MainFrame(wx.Frame):
         spec_warnings, samp_warnings, site_warnings, loc_warnings = self.er_magic.validate_data()
         result_warnings = self.er_magic.validate_results(self.er_magic.results)
         from collections import namedtuple
-        warn_tuple = namedtuple('warning_tuple', ['dtype', 'warnings'])
-        warn_lst = [warn_tuple('specimen', spec_warnings), warn_tuple('sample', samp_warnings),
-                    warn_tuple('site', site_warnings), warn_tuple('location', loc_warnings),
-                    warn_tuple('result', result_warnings)]
-        has_problems = []
-        for item in warn_lst:
-            if item.warnings:
-                has_problems.append(item.dtype)
-        # for any dtypes with validation problems,
-        # highlight the button to the corresponding grid
-        for problem in has_problems:
-            wind = self.FindWindowByName(problem + '_btn')
-            wind.Bind(wx.EVT_PAINT, self.highlight_button)
-        self.Refresh()
+        self.warn_dict = {'specimen': spec_warnings, 'sample': samp_warnings,
+                          'site': site_warnings, 'location': loc_warnings,
+                          'result': result_warnings, 'age': {}}
+        # done coherence validations
         del wait
-        # write upload file, will perform validations also
+        # write upload file and perform data validations
         wait = wx.BusyInfo('Making upload file, please wait...')
         self.er_magic.write_files()
-        upfile, error_message = ipmag.upload_magic(dir_path=self.WD)
+        upfile, error_message, errors = ipmag.upload_magic(dir_path=self.WD)
         del wait
         if upfile:
             text = "You are ready to upload.\nYour file:\n{}\nwas generated in directory: \n{}\nDrag and drop this file in the MagIC database.".format(os.path.split(upfile)[1], self.WD)
@@ -289,7 +279,50 @@ class MainFrame(wx.Frame):
         if result == wx.ID_OK:            
             dlg.Destroy()
         self.edited = False
+        ## add together data & coherence errors into one dictionary
+        for item_type in errors:
+            print 'item_type', item_type
+            for item_name in errors[item_type]:
+                item = self.er_magic.find_by_name(item_name, self.er_magic.data_lists[item_type][0])
+                if item in self.warn_dict[item_type]:
+                    self.warn_dict[item_type][item].update(errors[item_type][item_name])
+                else:
+                    self.warn_dict[item_type][item] = errors[item_type][item_name]
 
+        has_problems = []
+        for item_type, warnings in self.warn_dict.items():
+            if warnings:
+                has_problems.append(item_type)
+        # for any dtypes with validation problems (data or coherence),
+        # highlight the button to the corresponding grid
+        for dtype in self.warn_dict:
+            wind = self.FindWindowByName(dtype + '_btn')
+            if dtype in has_problems:
+                wind.Bind(wx.EVT_PAINT, self.highlight_button)
+            else:
+                wind.Bind(wx.EVT_PAINT, self.default_button)
+        self.Refresh()
+        if has_problems:
+            self.validation_mode = set(has_problems)
+            self.message.SetLabel('Highlighted grids have incorrect or incomplete data')
+            self.bSizer_msg.ShowItems(True)
+            self.hbox.Fit(self)
+
+        #print '*****'
+        #for k, v in self.warn_dict['specimen'].items():
+        #    print k
+        #    print v
+        #    print '---'
+        #print '*****'
+        #for k, v in self.warn_dict['sample'].items():
+        #    print k
+        #    print v
+        #    print '---'
+        #print self.warn_dict.keys()
+            
+    def default_button(self, event):
+        event.Skip()
+            
     def highlight_button(self, event):
         """
         Draw a red highlight line around the event object
