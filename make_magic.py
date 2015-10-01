@@ -40,6 +40,7 @@ class MainFrame(wx.Frame):
         self.data_model = validate_upload.get_data_model()
         self.er_magic = builder.ErMagicBuilder(self.WD, self.data_model)
         self.edited = False
+        self.validation_mode = False
 
         # initialize magic data object
         # attempt to read magic_measurements.txt, and all er_* and pmag_* files
@@ -74,6 +75,10 @@ class MainFrame(wx.Frame):
         bSizer0.AddSpacer(40)
         bSizer0.Add(self.dir_path, wx.ALIGN_CENTER_VERTICAL)
 
+        self.bSizer_msg = wx.StaticBoxSizer(wx.StaticBox(self.panel, wx.ID_ANY, "Message", name='bsizer_msg'), wx.HORIZONTAL)
+        self.message = wx.StaticText(self.panel, -1, label="Some text will be here", name='messages')
+        self.bSizer_msg.Add(self.message)
+        
         #---sizer 1 ----
         bSizer1 = wx.StaticBoxSizer(wx.StaticBox(self.panel, wx.ID_ANY, "Add information to the data model", name='bSizer1'), wx.HORIZONTAL)
 
@@ -163,7 +168,7 @@ class MainFrame(wx.Frame):
 
         #---arrange sizers ----
 
-        hbox = wx.BoxSizer(wx.HORIZONTAL)
+        self.hbox = wx.BoxSizer(wx.HORIZONTAL)
         vbox = wx.BoxSizer(wx.VERTICAL)
         vbox.AddSpacer(5)
         #vbox.Add(self.logo,0,wx.ALIGN_CENTER,0)
@@ -172,18 +177,20 @@ class MainFrame(wx.Frame):
         vbox.AddSpacer(10)
         #vbox.Add(bSizer0_1, 0, wx.ALIGN_CENTER, 0)
         #vbox.AddSpacer(10)
+        vbox.Add(self.bSizer_msg, 0, wx.ALIGN_CENTER, 0)
+        self.bSizer_msg.ShowItems(False)
         vbox.Add(bSizer1, 0, wx.ALIGN_CENTER, 0)
         vbox.AddSpacer(10)
         vbox.AddSpacer(10)
-        hbox.AddSpacer(10)
+        self.hbox.AddSpacer(10)
         vbox.Add(bSizer2, 0, wx.ALIGN_CENTER, 0)
         vbox.AddSpacer(10)
 
-        hbox.Add(vbox, 0, wx.ALIGN_CENTER, 0)
-        hbox.AddSpacer(5)
+        self.hbox.Add(vbox, 0, wx.ALIGN_CENTER, 0)
+        self.hbox.AddSpacer(5)
 
-        self.panel.SetSizer(hbox)
-        hbox.Fit(self)
+        self.panel.SetSizer(self.hbox)
+        self.hbox.Fit(self)
 
         # do menu
         menubar = MagICMenu(self)
@@ -245,6 +252,9 @@ class MainFrame(wx.Frame):
         wait = wx.BusyInfo('Making {} grid, please wait...'.format(grid_type))
         self.on_open_grid_frame()
         self.grid_frame = grid_frame.GridFrame(self.er_magic, self.WD, grid_type, grid_type, self.panel)
+        if self.validation_mode:
+            if grid_type in self.validation_mode:
+                self.grid_frame.grid.paint_invalid_cells(self.warn_dict[grid_type])
         #self.on_finish_change_dir(self.change_dir_dialog)
         del wait
 
@@ -258,7 +268,6 @@ class MainFrame(wx.Frame):
         wait = wx.BusyInfo('Validating data, please wait...')
         spec_warnings, samp_warnings, site_warnings, loc_warnings = self.er_magic.validate_data()
         result_warnings = self.er_magic.validate_results(self.er_magic.results)
-        from collections import namedtuple
         self.warn_dict = {'specimen': spec_warnings, 'sample': samp_warnings,
                           'site': site_warnings, 'location': loc_warnings,
                           'result': result_warnings, 'age': {}}
@@ -281,13 +290,11 @@ class MainFrame(wx.Frame):
         self.edited = False
         ## add together data & coherence errors into one dictionary
         for item_type in errors:
-            print 'item_type', item_type
             for item_name in errors[item_type]:
-                item = self.er_magic.find_by_name(item_name, self.er_magic.data_lists[item_type][0])
-                if item in self.warn_dict[item_type]:
-                    self.warn_dict[item_type][item].update(errors[item_type][item_name])
+                if item_name in self.warn_dict[item_type]:
+                    self.warn_dict[item_type][item_name].update(errors[item_type][item_name])
                 else:
-                    self.warn_dict[item_type][item] = errors[item_type][item_name]
+                    self.warn_dict[item_type][item_name] = errors[item_type][item_name]
 
         has_problems = []
         for item_type, warnings in self.warn_dict.items():

@@ -1290,36 +1290,35 @@ class TestValidation(unittest.TestCase):
 
         result_warnings = self.data2.validate_results(self.data2.results)
 
-        self.assertIn(result, result_warnings.keys())
-        self.assertIn(result2, result_warnings.keys())
-        self.assertIn(result3, result_warnings.keys())
+        self.assertIn(result.name, result_warnings.keys())
+        self.assertIn(result2.name, result_warnings.keys())
+        self.assertIn(result3.name, result_warnings.keys())
 
-        self.assertIn('specimen', result_warnings[result].keys())
-        self.assertIn('string_not_specimen', result_warnings[result]['specimen'].keys())
-        self.assertIn('type', result_warnings[result]['specimen']['string_not_specimen'].keys())
-        self.assertEqual('wrong type', result_warnings[result]['specimen']['string_not_specimen']['type'][0].message)
-        self.assertEqual('not in data object', result_warnings[result]['specimen']['string_not_specimen']['type'][1].message)
+        self.assertIn('specimen', result_warnings[result.name].keys())
+        self.assertIn('string_not_specimen', result_warnings[result.name]['specimen'].keys())
+        self.assertIn('type', result_warnings[result.name]['specimen']['string_not_specimen'].keys())
+        self.assertEqual('wrong type', result_warnings[result.name]['specimen']['string_not_specimen']['type'][0].message)
+        self.assertEqual('not in data object', result_warnings[result.name]['specimen']['string_not_specimen']['type'][1].message)
         
-        self.assertIn('site', result_warnings[result].keys())
-        self.assertIn(site0, result_warnings[result]['site'].keys())
-        self.assertIn('parent', result_warnings[result]['site'][site0].keys())
-        self.assertEqual('missing parent', result_warnings[result]['site'][site0]['parent'][0].message)
+        self.assertIn('site', result_warnings[result.name].keys())
+        self.assertIn(site0.name, result_warnings[result.name]['site'].keys())
+        self.assertIn('parent', result_warnings[result.name]['site'][site0.name].keys())
+        self.assertEqual('missing parent', result_warnings[result.name]['site'][site0.name]['parent'][0].message)
 
-        self.assertIn('site', result_warnings[result2].keys())
-        self.assertIn(site, result_warnings[result2]['site'].keys())
-        self.assertIn('parent', result_warnings[result2]['site'][site].keys())
-        self.assertEqual('missing parent', result_warnings[result2]['site'][site]['parent'][0].message)
+        self.assertIn('site', result_warnings[result2.name].keys())
+        self.assertIn(site.name, result_warnings[result2.name]['site'].keys())
+        self.assertIn('parent', result_warnings[result2.name]['site'][site.name].keys())
+        self.assertEqual('missing parent', result_warnings[result2.name]['site'][site.name]['parent'][0].message)
 
-        print result_warnings[result3]
-        self.assertIn(result3, result_warnings.keys())
-        self.assertIn('site', result_warnings[result3].keys())
-        self.assertIn(site1, result_warnings[result3]['site'].keys())
-        self.assertIn('children', result_warnings[result3]['site'][site1].keys())
-        print result_warnings[result3]['site'][site1]['children'][0]
-        self.assertEqual('child has wrong type', result_warnings[result3]['site'][site1]['children'][0].message)
-        self.assertEqual('child not in data object', result_warnings[result3]['site'][site1]['children'][1].message)
+        print result_warnings[result3.name]
+        self.assertIn(result3.name, result_warnings.keys())
+        self.assertIn('site', result_warnings[result3.name].keys())
+        self.assertIn(site1.name, result_warnings[result3.name]['site'].keys())
+        self.assertIn('children', result_warnings[result3.name]['site'][site1.name].keys())
+        print result_warnings[result3.name]['site'][site1.name]['children'][0]
+        self.assertEqual('child has wrong type', result_warnings[result3.name]['site'][site1.name]['children'][0].message)
+        self.assertEqual('child not in data object', result_warnings[result3.name]['site'][site1.name]['children'][1].message)
 
-        
     def test_validation(self):
         # set up some invalid data
         specimen = self.data1.find_by_name('Z35.2a', self.data1.specimens)
@@ -1347,44 +1346,44 @@ class TestValidation(unittest.TestCase):
         #  sample2: {'child': [warning1], 'type': [warning1, warning2]},
         #  ...}
                     
-        self.assertIn(specimen, spec_warnings)
+        self.assertIn(specimen.name, spec_warnings)
         self.assertIn(specimen2, spec_warnings)
-        self.assertIn(sample, samp_warnings)
-        self.assertIn(sample2, samp_warnings)
-        self.assertIn(site, site_warnings)
-        self.assertIn(location, loc_warnings)
+        self.assertIn(sample.name, samp_warnings)
+        self.assertIn(sample2.name, samp_warnings)
+        self.assertIn(site.name, site_warnings)
+        self.assertIn(location.name, loc_warnings)
 
-        self.assertIn('parent', spec_warnings[specimen].keys())
-        ex = spec_warnings[specimen]['parent'][0]
+        self.assertIn('parent', spec_warnings[specimen.name].keys())
+        ex = spec_warnings[specimen.name]['parent'][0]
         self.assertEqual('missing parent', ex.message)
         self.assertIn('type', spec_warnings["I'm not a real specimen"].keys())
         ex = spec_warnings["I'm not a real specimen"]['type'][0]
         self.assertEqual('wrong type', ex.message)
 
-        self.assertIn('parent', samp_warnings[sample].keys())
-        ex = samp_warnings[sample]['parent'][0]
+        self.assertIn('parent', samp_warnings[sample.name].keys())
+        ex = samp_warnings[sample.name]['parent'][0]
         self.assertFalse(ex.obj)
         self.assertEqual('missing parent', ex.message)
 
-        self.assertIn('parent', samp_warnings[sample2].keys())
-        ex = samp_warnings[sample2]['parent'][0]
+        self.assertIn('parent', samp_warnings[sample2.name].keys())
+        ex = samp_warnings[sample2.name]['parent'][0]
         self.assertTrue(ex.obj)
         self.assertEqual('a_site', ex.obj.name)
         self.assertEqual('parent not in data object', ex.message)
 
-        self.assertIn('parent', site_warnings[site].keys())
-        ex = site_warnings[site]['parent'][0]
+        self.assertIn('parent', site_warnings[site.name].keys())
+        ex = site_warnings[site.name]['parent'][0]
         self.assertEqual('missing parent', ex.message)
 
-        self.assertIn('children', site_warnings[site].keys())
-        exes = site_warnings[site]['children']
+        self.assertIn('children', site_warnings[site.name].keys())
+        exes = site_warnings[site.name]['children']
         self.assertEqual('child has wrong type', exes[0].message)
         self.assertEqual('child not in data object', exes[1].message)
         self.assertEqual('fake_sample', exes[0].obj)
         self.assertEqual('fake_sample', exes[1].obj)
 
-        self.assertIn('children', loc_warnings[location].keys())
-        exes = loc_warnings[location]['children']
+        self.assertIn('children', loc_warnings[location.name].keys())
+        exes = loc_warnings[location.name]['children']
         self.assertEqual('child has wrong type', exes[0].message)
         self.assertEqual('fake_site', exes[0].obj)
 

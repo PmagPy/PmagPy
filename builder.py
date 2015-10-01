@@ -1106,7 +1106,8 @@ Adding location with name: {}""".format(new_location_name, new_location_name)
         outfile.close()
         return outfile
 
-
+    ## Validations  ##
+    
     def validate_data(self):
         """
         Validate specimen, sample, site, and location data.
@@ -1144,12 +1145,16 @@ Adding location with name: {}""".format(new_location_name, new_location_name)
             """
             if not value:
                 return
-            if not key in dictionary:
-                dictionary[key] = {}
-            if not warning_type in dictionary[key]:
-                dictionary[key][warning_type] = []
+            try:
+                name = key.name
+            except AttributeError:
+                name = key
+            if not name in dictionary:
+                dictionary[name] = {}
+            if not warning_type in dictionary[name]:
+                dictionary[name][warning_type] = []
             for v in value:
-                dictionary[key][warning_type].append(v)
+                dictionary[name][warning_type].append(v)
             
         def check_item_type(item, item_type):#, warnings=None):
             """
@@ -1238,7 +1243,7 @@ Adding location with name: {}""".format(new_location_name, new_location_name)
             if result.locations:
                 add_result_dict_item(res_warnings, 'location', self.validate_items(result.locations, 'location'))
             if res_warnings:
-                warnings[result] = res_warnings
+                warnings[result.name] = res_warnings
         return warnings
 
     def validate_measurements(self, meas_list):

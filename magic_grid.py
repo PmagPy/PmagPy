@@ -1,8 +1,8 @@
 import wx
 import wx.grid
+import wx.lib.mixins.gridlabelrenderer as gridlabelrenderer
 
-
-class MagicGrid(wx.grid.Grid):
+class MagicGrid(wx.grid.Grid, gridlabelrenderer.GridWithLabelRenderersMixin):
     """
     grid class
     """
@@ -22,7 +22,8 @@ class MagicGrid(wx.grid.Grid):
             super(MagicGrid, self).__init__(parent, -1, name=name)
         if size:
             super(MagicGrid, self).__init__(parent, -1, name=name, size=size)
-
+        gridlabelrenderer.GridWithLabelRenderersMixin.__init__(self)
+            
         ### the next few lines may prove unnecessary
         ancestry = ['specimen', 'sample', 'site', 'location', None]
 
@@ -366,4 +367,148 @@ class MagicGrid(wx.grid.Grid):
                 self.SetColLabelValue(col, label.strip('**'))
                 cols_with_stars.append(col)
         return cols_with_stars
+
+    def paint_invalid_cells(self, warn_dict):
+        """
+        """
+        def highlight(problem_type, item, row_ind, cell_color):
+            """
+            """
+            for col_name in warn_dict[item][problem]:
+                if col_name in ('er_location_name', 'er_site_name', 'er_sample_name'):
+                    continue
+                col_ind = self.col_labels.index(col_name)
+                self.SetColLabelRenderer(col_ind, MyColLabelRenderer('#1101e0'))
+                self.SetCellRenderer(row_ind, col_ind, MyCustomRenderer(cell_color))
+                
+        def highlight_parent(item, row_ind, cell_color):
+            parent_type = self.parent_type
+            parent_label = 'er_' + parent_type + '_name'
+            col_ind = self.col_labels.index(parent_label)
+            self.SetColLabelRenderer(col_ind, MyColLabelRenderer('#1101e0'))
+            self.SetCellRenderer(row_ind, col_ind, MyCustomRenderer(cell_color))
+
+        def highlight_child(item, row_ind, cell_color):
+            ancestry = ['specimen', 'sample', 'site', 'location']
+            ind = ancestry.index(self.parent_type)
+            try:
+                child_type = ancestry[ind-2]
+            except ValueError:
+                return
+            child_label = 'er_' + child_type + '_name'
+            col_ind = self.col_labels.index(child_label)
+            self.SetColLabelRenderer(col_ind, MyColLabelRenderer('#1101e0'))
+            self.SetCellRenderer(row_ind, col_ind, MyCustomRenderer(cell_color))
+
+        # begin main function
+        grid_names = self.row_labels
+        col_labels = self.col_labels
+
+        for item in warn_dict:
+            item_name = str(item)
+            row_ind = grid_names.index(item_name)
+            self.SetRowLabelRenderer(row_ind, MyRowLabelRenderer('#1101e0'))
+            for problem in warn_dict[item]:
+                if problem in ('missing_data'):
+                    highlight('missing_data', item, row_ind, 'MEDIUM VIOLET RED')
+                elif problem in ('number_fail'):
+                    highlight('number_fail', item, row_ind, 'blue')
+                elif problem in ('parent'):
+                    highlight_parent(item, row_ind, 'green')
+                elif problem in ('invalid_col'):
+                    highlight('invalid_col', item, row_ind, 'LIGHT GREY')
+                elif problem in ('child'):
+                    # this will never work.....
+                    highlight_child(item, row_ind, 'GOLDENROD')
+                elif problem in ('type'):
+                    pass
+                else:
+                    print 'other problem', problem
+        #  looks like we can do tooltips over cells using techniques in
+        #  simple_examples/highlight_grid and simple_examples/tooltip_grid
+        #  but these only work with brew python (wxPython version)
+        #  don't know when Canopy will become more up to date : (
+
+                        
+
+
+class MyCustomRenderer(wx.grid.PyGridCellRenderer):
+    def __init__(self, color='MEDIUM VIOLET RED'):
+        wx.grid.PyGridCellRenderer.__init__(self)
+        self.color = color
+
+    def Draw(self, grid, attr, dc, rect, row, col, isSelected):
+        #print 'grid', grid
+        #print 'attr', attr
+        #print 'dc', dc
+        #print 'rect', rect
+        #print 'row', row
+        #print 'col', col
+        #print 'isSelected', isSelected
+        #dc.SetPen(wx.TRANSPARENT_PEN)
+        #  do it like this for filling in background:
+        dc.SetBackgroundMode(wx.SOLID)
+        dc.SetBrush(wx.Brush(self.color, wx.BDIAGONAL_HATCH))
+        # or do it like this for highlighting the cell:
+        #dc.SetPen(wx.Pen(self.color, 5, wx.SOLID))
+        dc.DrawRectangleRect(rect)
+        
+        
+        dc.SetBackgroundMode(wx.TRANSPARENT)
+        dc.SetFont(attr.GetFont())
+        
+        text = grid.GetCellValue(row, col)
+        #colors = ["RED", "WHITE", "SKY BLUE"]
+        x = rect.x + 1
+        y = rect.y + 1
+        
+        for ch in text:
+            dc.SetTextForeground("BLACK")
+            dc.DrawText(ch, x, y)
+            w, h = dc.GetTextExtent(ch)
+            x = x + w
+            if x > rect.right - 5:
+                break
+
+    
+    def GetBestSize(self, grid, attr, dc, row, col):
+        text = grid.GetCellValue(row, col)
+        dc.SetFont(attr.GetFont())
+        w, h = dc.GetTextExtent(text)
+        return wx.Size(w, h)
+    
+    
+    def Clone(self):
+        return MyCustomRenderer()
+    
+
+class MyColLabelRenderer(gridlabelrenderer.GridLabelRenderer):
+    def __init__(self, bgcolor):
+        self._bgcolor = bgcolor
+
+    def Draw(self, grid, dc, rect, col):
+        dc.SetBrush(wx.Brush(self._bgcolor))
+        dc.SetBrush(wx.TRANSPARENT_BRUSH)
+        #dc.SetPen(wx.TRANSPARENT_PEN)
+        dc.SetPen(wx.Pen('blue', 5, wx.DOT_DASH))
+        dc.DrawRectangleRect(rect)
+        hAlign, vAlign = grid.GetColLabelAlignment()
+        text = grid.GetColLabelValue(col)
+        self.DrawBorder(grid, dc, rect)
+        self.DrawText(grid, dc, rect, text, hAlign, vAlign)
+
+class MyRowLabelRenderer(gridlabelrenderer.GridLabelRenderer):
+    def __init__(self, bgcolor):
+        self._bgcolor = bgcolor
+
+    def Draw(self, grid, dc, rect, row):
+        #dc.SetBrush(wx.Brush(self._bgcolor))
+        dc.SetBrush(wx.TRANSPARENT_BRUSH)
+        dc.SetPen(wx.Pen('blue', 5, wx.SHORT_DASH))
+        #dc.SetPen(wx.TRANSPARENT_PEN)
+        dc.DrawRectangleRect(rect)
+        hAlign, vAlign = grid.GetRowLabelAlignment()
+        text = grid.GetRowLabelValue(row)
+        self.DrawBorder(grid, dc, rect)
+        self.DrawText(grid, dc, rect, text, hAlign, vAlign)
 

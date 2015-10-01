@@ -241,6 +241,7 @@ class GridFrame(wx.Frame):
         self.Centre()
         self.Show()
 
+
     def on_key_down(self, event):
         """
         If user does command v, re-size window in case pasting has changed the content size.
@@ -302,6 +303,8 @@ class GridFrame(wx.Frame):
         self.main_sizer.Fit(self)
 
 
+
+
     def init_grid_headers(self):
         self.grid_headers = self.er_magic.headers
 
@@ -342,6 +345,9 @@ class GridFrame(wx.Frame):
                     pmag_actual_headers.remove(label)
                 except ValueError:
                     pass
+        # causes resize on each column header delete
+        # can leave this out if we want.....
+        self.main_sizer.Fit(self)    
 
     def on_add_cols(self, event):
         """
@@ -635,6 +641,7 @@ class GridFrame(wx.Frame):
 
     def onSave(self, event):#, age_data_type='site'):
         # first, see if there's any pmag_* data
+        # set er_magic.incl_pmag_data accordingly
         pmag_header_found = False
         actual_er_headers = self.er_magic.headers[self.grid_type]['er'][0]
         actual_pmag_headers = self.er_magic.headers[self.grid_type]['pmag'][0]
