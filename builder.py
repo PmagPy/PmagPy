@@ -1221,27 +1221,36 @@ Adding location with name: {}""".format(new_location_name, new_location_name)
 
 
     def validate_results(self, result_list):
+        """
+        """
+        def in_data_obj(lst, dtype):
+            missing = []
+            for item in lst:
+                if item not in self.data_lists[dtype][0]:
+                    try:
+                        item_name = item.name
+                    except AttributeError:
+                        item_name = str(item)
+                    missing.append(item_name)
+            return missing
+        
         def add_result_dict_item(dictionary, key, value):
-            """
-            Add to dictionary with this format:
-            """
             if not value:
                 return
-            if not key in dictionary:
-                dictionary[key] = []
-            dictionary[key] = value
+            elif key not in dictionary:
+                dictionary[key] = value
 
         warnings = {}
         for result in result_list:
             res_warnings = {}
             if result.specimens:
-                add_result_dict_item(res_warnings, 'specimen', self.validate_items(result.specimens, 'specimen'))
+                add_result_dict_item(res_warnings, 'specimen', in_data_obj(result.specimens, 'specimen'))
             if result.samples:
-                add_result_dict_item(res_warnings, 'sample', self.validate_items(result.samples, 'sample'))
+                add_result_dict_item(res_warnings, 'sample', in_data_obj(result.samples, 'sample'))
             if result.sites:
-                add_result_dict_item(res_warnings, 'site', self.validate_items(result.sites, 'site'))
+                add_result_dict_item(res_warnings, 'site', in_data_obj(result.sites, 'site'))
             if result.locations:
-                add_result_dict_item(res_warnings, 'location', self.validate_items(result.locations, 'location'))
+                add_result_dict_item(res_warnings, 'location', in_data_obj(result.locations, 'location'))
             if res_warnings:
                 warnings[result.name] = res_warnings
         return warnings

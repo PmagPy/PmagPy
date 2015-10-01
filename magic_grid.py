@@ -400,13 +400,21 @@ class MagicGrid(wx.grid.Grid, gridlabelrenderer.GridWithLabelRenderersMixin):
             self.SetColLabelRenderer(col_ind, MyColLabelRenderer('#1101e0'))
             self.SetCellRenderer(row_ind, col_ind, MyCustomRenderer(cell_color))
 
+        def highlight_names(problem, row_ind, cell_color):
+            col_ind = self.col_labels.index('er_' + problem + '_names')
+            self.SetColLabelRenderer(col_ind, MyColLabelRenderer('#1101e0'))
+            self.SetCellRenderer(row_ind, col_ind, MyCustomRenderer(cell_color))
+
         # begin main function
         grid_names = self.row_labels
         col_labels = self.col_labels
 
         for item in warn_dict:
             item_name = str(item)
-            row_ind = grid_names.index(item_name)
+            try:
+                row_ind = grid_names.index(item_name)
+            except ValueError:
+                continue
             self.SetRowLabelRenderer(row_ind, MyRowLabelRenderer('#1101e0'))
             for problem in warn_dict[item]:
                 if problem in ('missing_data'):
@@ -422,6 +430,8 @@ class MagicGrid(wx.grid.Grid, gridlabelrenderer.GridWithLabelRenderersMixin):
                     highlight_child(item, row_ind, 'GOLDENROD')
                 elif problem in ('type'):
                     pass
+                elif problem in ('specimen', 'sample', 'site', 'location'):
+                    highlight_names(problem, row_ind, 'purple')
                 else:
                     print 'other problem', problem
         #  looks like we can do tooltips over cells using techniques in

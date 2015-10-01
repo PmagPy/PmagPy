@@ -4,7 +4,7 @@ import wx
 #import os
 #import ErMagicBuilder
 import builder
-#import pmag
+import pmag
 #import ipmag
 import drop_down_menus
 import pmag_widgets as pw
@@ -220,13 +220,13 @@ class GridFrame(wx.Frame):
                 result = self.er_magic.find_by_name(result_name, self.er_magic.results)
                 if result:
                     if result.specimens:
-                        self.grid.SetCellValue(row, 2, ' : '.join([spec.name for spec in result.specimens]))
+                        self.grid.SetCellValue(row, 2, ' : '.join([pmag.get_attr(spec) for spec in result.specimens]))
                     if result.samples:
-                        self.grid.SetCellValue(row, 3, ' : '.join([samp.name for samp in result.samples]))
+                        self.grid.SetCellValue(row, 3, ' : '.join([pmag.get_attr(samp) for samp in result.samples]))
                     if result.sites:
-                        self.grid.SetCellValue(row, 4, ' : '.join([site.name for site in result.sites]))
+                        self.grid.SetCellValue(row, 4, ' : '.join([pmag.get_attr(site) for site in result.sites]))
                     if result.locations:
-                        self.grid.SetCellValue(row, 5, ' : '.join([loc.name for loc in result.locations]))
+                        self.grid.SetCellValue(row, 5, ' : '.join([pmag.get_attr(loc) for loc in result.locations]))
                     self.drop_down_menu.choices[5] = [sorted([loc.name for loc in self.er_magic.locations if loc]), False]
 
         # final layout, set size

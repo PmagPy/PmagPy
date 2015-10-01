@@ -8559,7 +8559,15 @@ def remove_files(file_list, WD='.'):
         if os.path.isfile(full_file):
             os.remove(full_file)
 
+def get_attr(obj, attr='name'):
+    try:
+        name = obj.__getattribute__(attr)
+    except AttributeError:
+        name = str(obj)
+    return name
+        
 
+            
 class MissingCommandLineArgException(Exception):
 
     def __init__(self, message):

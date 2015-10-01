@@ -1291,33 +1291,13 @@ class TestValidation(unittest.TestCase):
         result_warnings = self.data2.validate_results(self.data2.results)
 
         self.assertIn(result.name, result_warnings.keys())
-        self.assertIn(result2.name, result_warnings.keys())
-        self.assertIn(result3.name, result_warnings.keys())
+        self.assertNotIn(result2.name, result_warnings.keys())
+        self.assertNotIn(result3.name, result_warnings.keys())
 
         self.assertIn('specimen', result_warnings[result.name].keys())
-        self.assertIn('string_not_specimen', result_warnings[result.name]['specimen'].keys())
-        self.assertIn('type', result_warnings[result.name]['specimen']['string_not_specimen'].keys())
-        self.assertEqual('wrong type', result_warnings[result.name]['specimen']['string_not_specimen']['type'][0].message)
-        self.assertEqual('not in data object', result_warnings[result.name]['specimen']['string_not_specimen']['type'][1].message)
+        self.assertIn('string_not_specimen', result_warnings[result.name]['specimen'])
+        self.assertIn(fake_specimen.name, result_warnings[result.name]['specimen'])
         
-        self.assertIn('site', result_warnings[result.name].keys())
-        self.assertIn(site0.name, result_warnings[result.name]['site'].keys())
-        self.assertIn('parent', result_warnings[result.name]['site'][site0.name].keys())
-        self.assertEqual('missing parent', result_warnings[result.name]['site'][site0.name]['parent'][0].message)
-
-        self.assertIn('site', result_warnings[result2.name].keys())
-        self.assertIn(site.name, result_warnings[result2.name]['site'].keys())
-        self.assertIn('parent', result_warnings[result2.name]['site'][site.name].keys())
-        self.assertEqual('missing parent', result_warnings[result2.name]['site'][site.name]['parent'][0].message)
-
-        print result_warnings[result3.name]
-        self.assertIn(result3.name, result_warnings.keys())
-        self.assertIn('site', result_warnings[result3.name].keys())
-        self.assertIn(site1.name, result_warnings[result3.name]['site'].keys())
-        self.assertIn('children', result_warnings[result3.name]['site'][site1.name].keys())
-        print result_warnings[result3.name]['site'][site1.name]['children'][0]
-        self.assertEqual('child has wrong type', result_warnings[result3.name]['site'][site1.name]['children'][0].message)
-        self.assertEqual('child not in data object', result_warnings[result3.name]['site'][site1.name]['children'][1].message)
 
     def test_validation(self):
         # set up some invalid data
