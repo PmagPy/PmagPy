@@ -255,6 +255,17 @@ class MainFrame(wx.Frame):
         if self.validation_mode:
             if grid_type in self.validation_mode:
                 self.grid_frame.grid.paint_invalid_cells(self.warn_dict[grid_type])
+                #self.grid_frame.msg_boxsizer
+                current_label = self.grid_frame.msg_text.GetLabel()
+                add_text = """\n\nColumns and rows with problem data have been highlighted in blue.
+Cells with problem data are highlighted with different colors according to the type of problem.
+Red: missing required data
+Green: missing or invalid parent
+Blue: non-numeric data provided in a numeric field
+Gray: unrecognized column
+Purple: invalid result child
+"""
+                self.grid_frame.msg_text.SetLabel(current_label + add_text)
         #self.on_finish_change_dir(self.change_dir_dialog)
         del wait
 
