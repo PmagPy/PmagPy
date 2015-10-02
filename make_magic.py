@@ -279,9 +279,10 @@ Purple: invalid result child
         wait = wx.BusyInfo('Validating data, please wait...')
         spec_warnings, samp_warnings, site_warnings, loc_warnings = self.er_magic.validate_data()
         result_warnings = self.er_magic.validate_results(self.er_magic.results)
+        meas_warnings = self.er_magic.validate_measurements(self.er_magic.measurements)
         self.warn_dict = {'specimen': spec_warnings, 'sample': samp_warnings,
                           'site': site_warnings, 'location': loc_warnings,
-                          'result': result_warnings, 'age': {}}
+                          'result': result_warnings, 'age': {}, 'measurement': meas_warnings}
         # done coherence validations
         del wait
         # write upload file and perform data validations
@@ -315,10 +316,11 @@ Purple: invalid result child
         # highlight the button to the corresponding grid
         for dtype in self.warn_dict:
             wind = self.FindWindowByName(dtype + '_btn')
-            if dtype in has_problems:
-                wind.Bind(wx.EVT_PAINT, self.highlight_button)
-            else:
-                wind.Bind(wx.EVT_PAINT, self.default_button)
+            if wind:
+                if dtype in has_problems:
+                    wind.Bind(wx.EVT_PAINT, self.highlight_button)
+                else:
+                    wind.Bind(wx.EVT_PAINT, self.default_button)
         self.Refresh()
         if has_problems:
             self.validation_mode = set(has_problems)

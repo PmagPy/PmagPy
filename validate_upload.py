@@ -109,10 +109,15 @@ def read_upload(up_file):
             elif item_type in ('specimen', 'sample', 'site', 'location'):
                 item_name = dictionary.get('er_' + item_type + '_name', None)
             elif item_type == 'age':
+                # get the lowest level er_*_name column that is filled in
                 for dtype in ('specimen', 'sample', 'site', 'location'):
                     item_name = dictionary.get('er_' + dtype + '_name', None)
                     if item_name:
                         break
+            elif item_type == 'measurement':
+                exp_name = dictionary.get('magic_experiment_name')
+                meas_num = dictionary.get('measurement_number')
+                item_name = exp_name + '_' + str(meas_num)
             else:
                 item_name = None
 

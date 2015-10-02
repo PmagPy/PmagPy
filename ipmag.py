@@ -2231,19 +2231,22 @@ def upload_magic(concat=0, dir_path='.'):
                     if rec['er_sample_name'] in Done:
                         NewData.append(rec)
                         SpecDone.append(rec['er_specimen_name'])
-                    else:
-                        print 'no sample record found for: '
+                    else: 
+                        print 'no valid sample record found for: ' 
                         print rec
-                Data=NewData
-                print 'only measurements that have specimen/sample info'
+                Data=NewData           
+                #print 'only measurements that have specimen/sample info'
             if file_type=='magic_measurements': #  only measurements that have specimen names
+                no_specs = []
                 NewData=[]
                 for rec in Data:
                     if rec['er_specimen_name'] in SpecDone:
                         NewData.append(rec)
                     else:
-                        print 'no specimen record found for: ' 
+                        print 'no valid specimen record found for: ' 
                         print rec
+                        no_specs.append(rec)
+                #print set([record['er_specimen_name'] for record in no_specs])
                 Data = NewData
     # write out the data
             if len(Data) > 0:
