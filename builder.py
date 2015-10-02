@@ -97,6 +97,17 @@ class ErMagicBuilder(object):
             return items_list[ind]
         return False
 
+    def find_or_create_by_name(self, item_name, items_list, item_type):
+        """
+        See if item with item_name exists in item_list.
+        If not, create that item.
+        Either way, return an item of type item_type.
+        """
+        item = self.find_by_name(item_name, items_list)
+        if not item:
+            item = self.data_lists[item_type][2](item_name, None)
+        return item
+
     def init_default_headers(self):
         """
         initialize default required headers.
@@ -448,13 +459,13 @@ Adding location with name: {}""".format(new_location_name, new_location_name)
         else:
             specimens, samples, sites, locations = None, None, None, None
             if spec_names:
-                specimens = [self.find_by_name(spec, self.specimens) for spec in spec_names]
+                specimens = [self.find_or_create_by_name(spec, self.specimens, 'specimen') for spec in spec_names]
             if samp_names:
-                samples = [self.find_by_name(samp, self.samples) for samp in samp_names]
+                samples = [self.find_or_create_by_name(samp, self.samples, 'sample') for samp in samp_names]
             if site_names:
-                sites = [self.find_by_name(site, self.sites) for site in site_names]
+                sites = [self.find_or_create_by_name(site, self.sites, 'site') for site in site_names]
             if loc_names:
-                locations = [self.find_by_name(loc, self.locations) for loc in loc_names]
+                locations = [self.find_or_create_by_name(loc, self.locations, 'location') for loc in loc_names]
 
             result.change_result(new_result_name, new_pmag_data, specimens, samples,
                                  sites, locations, replace_data)

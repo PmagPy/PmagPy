@@ -888,20 +888,12 @@ class GridBuilder(object):
         and so forth.
         returns lists of specimens, samples, sites, and locations
         """
-        if result_data['er_specimen_names']:
-            specimens = result_data['er_specimen_names'].split(":")
-        else:
-            specimens = ''
-        if result_data['er_sample_names']:
-            samples = result_data['er_sample_names'].split(":")
-        else:
-            samples = ''
-        if result_data['er_site_names']:
-            sites = result_data['er_site_names'].split(":")
-        else:
-            sites = ''
-        if result_data['er_location_names']:
-            locations = result_data['er_location_names'].split(":")
-        else:
-            locations = ''
-        return specimens, samples, sites, locations
+        specimens, samples, sites, locations = "", "", "", ""
+        children = {'specimen': specimens, 'sample': samples,
+                    'site': sites, 'location': locations}
+        for dtype in children:
+            header_name = 'er_' + dtype + '_names'
+            if result_data[header_name]:
+                children[dtype] = result_data[header_name].split(":")
+
+        return children['specimen'], children['sample'], children['site'], children['location']
