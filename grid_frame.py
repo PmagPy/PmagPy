@@ -301,6 +301,9 @@ class GridFrame(wx.Frame):
         self.grid.size_grid()
         self.grid_box.Add(self.grid, flag=wx.ALL, border=5)
         self.main_sizer.Fit(self)
+        if 'age' in self.parent.Parent.validation_mode:
+            self.grid.paint_invalid_cells(self.parent.Parent.warn_dict['age'])
+            self.grid.ForceRefresh()
 
 
 
