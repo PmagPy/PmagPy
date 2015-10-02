@@ -320,7 +320,7 @@ Purple: invalid result child
                 if dtype in has_problems:
                     wind.Bind(wx.EVT_PAINT, self.highlight_button)
                 else:
-                    wind.Bind(wx.EVT_PAINT, self.default_button)
+                    wind.Unbind(wx.EVT_PAINT, handler=self.highlight_button)# this sucks (makes buttons disappear)
         self.Refresh()
         if has_problems:
             self.validation_mode = set(has_problems)
@@ -328,21 +328,6 @@ Purple: invalid result child
             self.bSizer_msg.ShowItems(True)
             self.hbox.Fit(self)
 
-        #print '*****'
-        #for k, v in self.warn_dict['specimen'].items():
-        #    print k
-        #    print v
-        #    print '---'
-        #print '*****'
-        #for k, v in self.warn_dict['sample'].items():
-        #    print k
-        #    print v
-        #    print '---'
-        #print self.warn_dict.keys()
-            
-    def default_button(self, event):
-        event.Skip()
-            
     def highlight_button(self, event):
         """
         Draw a red highlight line around the event object
