@@ -337,16 +337,17 @@ class GridFrame(wx.Frame):
         else:
             print 'That header is not required:', label
             self.grid.remove_col(col)
-            if label in er_possible_headers:
-                try:
-                    er_actual_headers.remove(label)
-                except ValueError:
-                    pass
-            if label in pmag_possible_headers:
-                try:
-                    pmag_actual_headers.remove(label)
-                except ValueError:
-                    pass
+            #if label in er_possible_headers:
+            try:
+                print 'removing {} from er_actual_headers'.format(label)
+                er_actual_headers.remove(label)
+            except ValueError:
+                pass
+            #if label in pmag_possible_headers:
+            try:
+                pmag_actual_headers.remove(label)
+            except ValueError:
+                pass
         # causes resize on each column header delete
         # can leave this out if we want.....
         self.main_sizer.Fit(self)    
