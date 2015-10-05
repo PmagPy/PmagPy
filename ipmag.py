@@ -2167,10 +2167,19 @@ def upload_magic(concat=0, dir_path='.'):
 
 def specimens_results_magic(infile='pmag_specimens.txt', measfile='magic_measurements.txt', sampfile='er_samples.txt', sitefile='er_sites.txt', agefile='er_ages.txt', specout='er_specimens.txt', sampout='pmag_samples.txt', siteout='pmag_sites.txt', resout='pmag_results.txt', critout='pmag_criteria.txt', instout='magic_instruments.txt', plotsites = False, fmt='svg', dir_path='.', cors=[], priorities=['DA-AC-ARM','DA-AC-TRM'], coord='g', user='', vgps_level='site', do_site_intensity=True, DefaultAge=["none"], avg_directions_by_sample=False, avg_intensities_by_sample=False, avg_all_components=False, avg_by_polarity=False, skip_directions=False, skip_intensities=False, use_sample_latitude=False, use_paleolatitude=False, use_criteria='default'):
     """
-    cors is 'corrections'
-    long docstring goes here
-    DefaultAge should be [min, max, units]
-    use_criteria may be 'default', 'existing', or 'none'
+    Writes magic_intruments, er_specimens, pmag_samples, pmag_sites, pmag_criteria, and pmag_results. The data used to write this is obtained by reading a pmag_speciemns, a magic_measurements, a er_samples, a er_sites, a er_ages. 
+    @param -> infile: path from the WD to the pmag speciemns table
+    @param -> measfile: path from the WD to the magic measurement file
+    @param -> sampfile: path from the WD to the er sample file
+    @param -> sitefile: path from the WD to the er sites data file
+    @param -> agefile: path from the WD to the er ages data file
+    @param -> specout: path from the WD to the place to write the er specimens data file
+    @param -> sampout: path from the WD to the place to write the pmag samples data file
+    @param -> siteout: path from the WD to the place to write the pmag sites data file
+    @param -> resout: path from the WD to the place to write the pmag results data file
+    @param -> critout: path from the WD to the place to write the pmag criteria file
+    @param -> instout: path from th WD to the place to write the magic instruments file
+    @param -> documentation incomplete if you know more about the purpose of the parameters in this function and it's side effects please extend and complete this string
     """
     # initialize some variables
     Comps=[] # list of components
@@ -2278,14 +2287,13 @@ def specimens_results_magic(infile='pmag_specimens.txt', measfile='magic_measure
                 critrec['sample_int_sigma']='%10.3e'%(eval(critrec['sample_int_sigma_uT'])*1e-6)
             if key not in accept.keys() and critrec[key]!='':
                 accept[key]=critrec[key]
-    #
+
     if use_criteria == 'default':
         pmag.magic_write(critout,[accept],'pmag_criteria')
         print "\n Pmag Criteria stored in ",critout,'\n'
 
-        #
 # now we're done slow dancing
-#
+
     SiteNFO,file_type=pmag.magic_read(sitefile) # read in site data - has the lats and lons
     SampNFO,file_type=pmag.magic_read(sampfile) # read in site data - has the lats and lons
     height_nfo=pmag.get_dictitem(SiteNFO,'site_height','','F') # find all the sites with height info.
@@ -2381,6 +2389,9 @@ def specimens_results_magic(infile='pmag_specimens.txt', measfile='magic_measure
                                    PmagSampRec["er_citation_names"]="This study"
                                    PmagSampRec["er_analyst_mail_names"]=user
                                    PmagSampRec['magic_software_packages']=version_num
+                                   if CompDir[0]['specimen_flag']=='g':
+                                        PmagSampRec['sample_flag']='g'
+                                   else: PmagSampRec['sample_flag']='b'
                                    if nocrit!=1:PmagSampRec['pmag_criteria_codes']="ACCEPT"
                                    if agefile != "": PmagSampRec= pmag.get_age(PmagSampRec,"er_site_name","sample_inferred_",AgeNFO,DefaultAge)
                                    site_height=pmag.get_dictitem(height_nfo,'er_site_name',PmagSampRec['er_site_name'],'T')
@@ -2399,6 +2410,7 @@ def specimens_results_magic(infile='pmag_specimens.txt', measfile='magic_measure
                                             PmagResRec=pmag.getsampVGP(PmagSampRec,SiteNFO)
                                             if PmagResRec!="":
                                                 PmagResults.append(PmagResRec)
+#                                   print(PmagSampRec)
                                    PmagSamps.append(PmagSampRec)
                        if avg_all_components: # average all components together  basically same as above
                            PmagSampRec=pmag.lnpbykey(CoordDir,'sample','specimen')
@@ -2408,6 +2420,9 @@ def specimens_results_magic(infile='pmag_specimens.txt', measfile='magic_measure
                            PmagSampRec["er_citation_names"]="This study"
                            PmagSampRec["er_analyst_mail_names"]=user
                            PmagSampRec['magic_software_packages']=version_num
+                           if all(i['specimen_flag']=='g' for i in CoordDir):
+                                PmagSampRec['sample_flag']='g'
+                           else: PmagSampRec['sample_flag']='b'
                            if nocrit!=1:PmagSampRec['pmag_criteria_codes']=""
                            if agefile != "": PmagSampRec= pmag.get_age(PmagSampRec,"er_site_name","sample_inferred_",AgeNFO,DefaultAge)
                            site_height=pmag.get_dictitem(height_nfo,'er_site_name',site,'T')
@@ -2484,29 +2499,55 @@ def specimens_results_magic(infile='pmag_specimens.txt', measfile='magic_measure
 #create site averages from specimens or samples as specified
 #
     for site in sites:
-        if not avg_directions_by_sample: key,dirlist='specimen',SpecDirs # if specimen averages at site level desired
-        if avg_directions_by_sample: key,dirlist='sample',SampDirs # if sample averages at site level desired
-        tmp=pmag.get_dictitem(dirlist,'er_site_name',site,'T') # get all the sites with  directions
-        tmp1=pmag.get_dictitem(tmp,key+'_tilt_correction',coords[-1],'T') # use only the last coordinate if avg_all_components==False
-        sd=pmag.get_dictitem(SiteNFO,'er_site_name',site,'T') # fish out site information (lat/lon, etc.)
-        if len(sd)>0:
-            sitedat=sd[0]
-            if not avg_all_components: # do component wise averaging
-                for comp in Comps:
-                    siteD=pmag.get_dictitem(tmp1,key+'_comp_name',comp,'T') # get all components comp
-                    siteD=filter(lambda x: x['specimen_flag']=='g', siteD)
-                    if len(siteD)>0: # there are some for this site and component name
-                        PmagSiteRec=pmag.lnpbykey(siteD,'site',key) # get an average for this site
-                        PmagSiteRec['site_comp_name']=comp # decorate the site record
-                        PmagSiteRec["er_location_name"]=siteD[0]['er_location_name']
+        for coord in coords:
+            if not avg_directions_by_sample: key,dirlist='specimen',SpecDirs # if specimen averages at site level desired
+            if avg_directions_by_sample: key,dirlist='sample',SampDirs # if sample averages at site level desired
+            tmp=pmag.get_dictitem(dirlist,'er_site_name',site,'T') # get all the sites with  directions
+            tmp1=pmag.get_dictitem(tmp,key+'_tilt_correction',coord,'T') # use only the last coordinate if avg_all_components==False
+            sd=pmag.get_dictitem(SiteNFO,'er_site_name',site,'T') # fish out site information (lat/lon, etc.)
+            if len(sd)>0:
+                sitedat=sd[0]
+                if not avg_all_components: # do component wise averaging
+                    for comp in Comps:
+                        siteD=pmag.get_dictitem(tmp1,key+'_comp_name',comp,'T') # get all components comp
+                        #remove bad data from means
+                        siteD=filter(lambda x: x['specimen_flag']=='g' if 'specimen_flag' in x else True , siteD)
+                        siteD=filter(lambda x: x['sample_flag']=='g' if 'sample_flag' in x else True , siteD)
+                        if len(siteD)>0: # there are some for this site and component name
+                            PmagSiteRec=pmag.lnpbykey(siteD,'site',key) # get an average for this site
+                            PmagSiteRec['site_comp_name']=comp # decorate the site record
+                            PmagSiteRec["er_location_name"]=siteD[0]['er_location_name']
+                            PmagSiteRec["er_site_name"]=siteD[0]['er_site_name']
+                            PmagSiteRec['site_tilt_correction']=coord
+                            PmagSiteRec['site_comp_name']= pmag.get_list(siteD,key+'_comp_name')
+                            if avg_directions_by_sample:
+                                PmagSiteRec['er_sample_names']= pmag.get_list(siteD,'er_sample_name')
+                            else:
+                                PmagSiteRec['er_specimen_names']= pmag.get_list(siteD,'er_specimen_name')
+    # determine the demagnetization code (DC3,4 or 5) for this site
+                            AFnum=len(pmag.get_dictitem(siteD,'magic_method_codes','LP-DIR-AF','has'))
+                            Tnum=len(pmag.get_dictitem(siteD,'magic_method_codes','LP-DIR-T','has'))
+                            DC=3
+                            if AFnum>0:DC+=1
+                            if Tnum>0:DC+=1
+                            PmagSiteRec['magic_method_codes']= pmag.get_list(siteD,'magic_method_codes')+':'+ 'LP-DC'+str(DC)
+                            PmagSiteRec['magic_method_codes'].strip(":")
+                            if plotsites:
+                                print PmagSiteRec['er_site_name']
+                                pmagplotlib.plotSITE(EQ['eqarea'],PmagSiteRec,siteD,key) # plot and list the data
+                                pmagplotlib.drawFIGS(EQ)
+                            PmagSites.append(PmagSiteRec)
+                else: # last component only
+                    siteD=tmp1[:] # get the last orientation system specified
+                    if len(siteD)>0: # there are some
+                        PmagSiteRec=pmag.lnpbykey(siteD,'site',key) # get the average for this site
+                        PmagSiteRec["er_location_name"]=siteD[0]['er_location_name'] # decorate the record
                         PmagSiteRec["er_site_name"]=siteD[0]['er_site_name']
-                        PmagSiteRec['site_tilt_correction']=reduce(lambda x,y: x+":"+y,coords)
+                        PmagSiteRec['site_comp_name']=comp
+                        PmagSiteRec['site_tilt_correction']=coord
                         PmagSiteRec['site_comp_name']= pmag.get_list(siteD,key+'_comp_name')
-                        if avg_directions_by_sample:
-                            PmagSiteRec['er_sample_names']= pmag.get_list(siteD,'er_sample_name')
-                        else:
-                            PmagSiteRec['er_specimen_names']= pmag.get_list(siteD,'er_specimen_name')
-# determine the demagnetization code (DC3,4 or 5) for this site
+                        PmagSiteRec['er_specimen_names']= pmag.get_list(siteD,'er_specimen_name')
+                        PmagSiteRec['er_sample_names']= pmag.get_list(siteD,'er_sample_name')
                         AFnum=len(pmag.get_dictitem(siteD,'magic_method_codes','LP-DIR-AF','has'))
                         Tnum=len(pmag.get_dictitem(siteD,'magic_method_codes','LP-DIR-T','has'))
                         DC=3
@@ -2514,36 +2555,13 @@ def specimens_results_magic(infile='pmag_specimens.txt', measfile='magic_measure
                         if Tnum>0:DC+=1
                         PmagSiteRec['magic_method_codes']= pmag.get_list(siteD,'magic_method_codes')+':'+ 'LP-DC'+str(DC)
                         PmagSiteRec['magic_method_codes'].strip(":")
+                        if not avg_directions_by_sample:PmagSiteRec['site_comp_name']= pmag.get_list(siteD,key+'_comp_name')
                         if plotsites:
-                            print PmagSiteRec['er_site_name']
-                            pmagplotlib.plotSITE(EQ['eqarea'],PmagSiteRec,siteD,key) # plot and list the data
+                            pmagplotlib.plotSITE(EQ['eqarea'],PmagSiteRec,siteD,key)
                             pmagplotlib.drawFIGS(EQ)
                         PmagSites.append(PmagSiteRec)
-            else: # last component only
-                siteD=tmp1[:] # get the last orientation system specified
-                if len(siteD)>0: # there are some
-                    PmagSiteRec=pmag.lnpbykey(siteD,'site',key) # get the average for this site
-                    PmagSiteRec["er_location_name"]=siteD[0]['er_location_name'] # decorate the record
-                    PmagSiteRec["er_site_name"]=siteD[0]['er_site_name']
-                    PmagSiteRec['site_comp_name']=comp
-                    PmagSiteRec['site_tilt_correction']=reduce(lambda x,y: x+":"+y,coords)
-                    PmagSiteRec['site_comp_name']= pmag.get_list(siteD,key+'_comp_name')
-                    PmagSiteRec['er_specimen_names']= pmag.get_list(siteD,'er_specimen_name')
-                    PmagSiteRec['er_sample_names']= pmag.get_list(siteD,'er_sample_name')
-                    AFnum=len(pmag.get_dictitem(siteD,'magic_method_codes','LP-DIR-AF','has'))
-                    Tnum=len(pmag.get_dictitem(siteD,'magic_method_codes','LP-DIR-T','has'))
-                    DC=3
-                    if AFnum>0:DC+=1
-                    if Tnum>0:DC+=1
-                    PmagSiteRec['magic_method_codes']= pmag.get_list(siteD,'magic_method_codes')+':'+ 'LP-DC'+str(DC)
-                    PmagSiteRec['magic_method_codes'].strip(":")
-                    if not avg_directions_by_sample:PmagSiteRec['site_comp_name']= pmag.get_list(siteD,key+'_comp_name')
-                    if plotsites:
-                        pmagplotlib.plotSITE(EQ['eqarea'],PmagSiteRec,siteD,key)
-                        pmagplotlib.drawFIGS(EQ)
-                    PmagSites.append(PmagSiteRec)
-        else:
-            print 'site information not found in er_sites for site, ',site,' site will be skipped'
+            else:
+                print 'site information not found in er_sites for site, ',site,' site will be skipped'
     for PmagSiteRec in PmagSites: # now decorate each dictionary some more, and calculate VGPs etc. for results table
         PmagSiteRec["er_citation_names"]="This study"
         PmagSiteRec["er_analyst_mail_names"]=user
@@ -2606,8 +2624,8 @@ def specimens_results_magic(infile='pmag_specimens.txt', measfile='magic_measure
                 PmagResRec["vgp_dp"]='%7.1f ' % (dp)
                 PmagResRec["vgp_dm"]='%7.1f ' % (dm)
                 PmagResRec["magic_method_codes"]= PmagSiteRec["magic_method_codes"]
-                if '0' in PmagSiteRec['site_tilt_correction'].split(':'):PmagSiteRec['magic_method_codes']=PmagSiteRec['magic_method_codes']+":DA-DIR-GEO"
-                if '100' in PmagSiteRec['site_tilt_correction'].split(':'):PmagSiteRec['magic_method_codes']=PmagSiteRec['magic_method_codes']+":DA-DIR-TILT"
+                if '0' in PmagSiteRec['site_tilt_correction'] and "DA-DIR-GEO" not in PmagSiteRec['magic_method_codes']: PmagSiteRec['magic_method_codes']=PmagSiteRec['magic_method_codes']+":DA-DIR-GEO"
+                if '100' in PmagSiteRec['site_tilt_correction'] and "DA-DIR-TILT" not in PmagSiteRec['magic_method_codes']: PmagSiteRec['magic_method_codes']=PmagSiteRec['magic_method_codes']+":DA-DIR-TILT"
                 PmagSiteRec['site_polarity']=""
                 if avg_by_polarity: # assign polarity based on angle of pole lat to spin axis - may want to re-think this sometime
                       angle=pmag.angle([0,0],[0,(90-plat)])

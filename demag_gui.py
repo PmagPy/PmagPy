@@ -163,7 +163,7 @@ class Zeq_GUI(wx.Frame):
 
         #BLARGE
         self.interpertation_editor_open = False
-        self.colors = ['g','y','m','c','k','w'] #for fits
+        self.colors = ['g','y','m','c','k',(139./255.,69./255.,19./255.),(255./255.,127./255.,0./255.),(255./255.,20./255.,147./255.),(153./255.,50./255.,204./255.),(84./255.,84./255.,84./255.)] #for fits
         self.current_fit = None
         self.dirtypes = ['DA-DIR','DA-DIR-GEO','DA-DIR-TILT']
         self.bad_fits = []
@@ -508,10 +508,10 @@ class Zeq_GUI(wx.Frame):
 # High level text box
  #----------------------------------------------------------------------                     
 
-        self.box_sizer_high_level_text = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY,""  ), wx.HORIZONTAL )                        
-        self.high_level_text_box = wx.TextCtrl(self.panel, id=-1, size=(220*self.GUI_RESOLUTION,210*self.GUI_RESOLUTION), style=wx.TE_MULTILINE | wx.TE_READONLY )
-        self.high_level_text_box.SetFont(font1)
-        self.box_sizer_high_level_text.Add(self.high_level_text_box, 0, wx.ALIGN_LEFT, 0 )
+#        self.box_sizer_high_level_text = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY,""  ), wx.HORIZONTAL )                        
+#        self.high_level_text_box = wx.TextCtrl(self.panel, id=-1, size=(220*self.GUI_RESOLUTION,210*self.GUI_RESOLUTION), style=wx.TE_MULTILINE | wx.TE_READONLY )
+#        self.high_level_text_box.SetFont(font1)
+#        self.box_sizer_high_level_text.Add(self.high_level_text_box, 0, wx.ALIGN_LEFT, 0 )
  #----------------------------------------------------------------------                     
 # Design the panel
 
@@ -549,7 +549,7 @@ class Zeq_GUI(wx.Frame):
 
         vbox3 = wx.BoxSizer(wx.VERTICAL)
         vbox3.Add(self.canvas4,flag=wx.ALIGN_LEFT|wx.ALIGN_TOP,border=8)
-        vbox3.Add(self.box_sizer_high_level_text,flag=wx.ALIGN_CENTER_VERTICAL,border=8)
+#        vbox3.Add(self.box_sizer_high_level_text,flag=wx.ALIGN_CENTER_VERTICAL,border=8)
        
         hbox2.Add(vbox2,flag=wx.ALIGN_CENTER_HORIZONTAL)
         hbox2.Add(vbox3,flag=wx.ALIGN_CENTER_HORIZONTAL)
@@ -886,22 +886,23 @@ class Zeq_GUI(wx.Frame):
 
             high_level_name=str(self.level_names.GetValue())
             calculation_type=str(self.mean_type_box.GetValue())
-            elements_type=str(self.show_box.GetValue())
+            elements_type=self.UPPER_LEVEL_SHOW
 
             elements_list=self.Data_hierarchy[high_level_type][high_level_name][elements_type]
 
+            new_fit_index=0
             for i,specimen in enumerate(elements_list):
                 if disp_fit_name=="All" and \
-                   specimen in self.pmag_results_data['specimens']:
+                   specimen in self.pmag_results_data[elements_type]:
                     l = 0
-                    for fit in self.pmag_results_data['specimens'][specimen]:
+                    for fit in self.pmag_results_data[elements_type][specimen]:
                         l += 1
-                        if fit in self.bad_fits:
-                            l -= 1
+#                        if fit in self.bad_fits:
+#                            l -= 1
                 else:
                     try:
-                        disp_fit_index = map(lambda x: x.name, self.pmag_results_data['specimens'][specimen]).index(disp_fit_name)
-                        if self.pmag_results_data['specimens'][specimen][disp_fit_index] in self.bad_fits:
+                        disp_fit_index = map(lambda x: x.name, self.pmag_results_data[elements_type][specimen]).index(disp_fit_name)
+                        if self.pmag_results_data[elements_type][specimen][disp_fit_index] in self.bad_fits:
                             l = 0
                         else:
                             l = 1
@@ -1875,7 +1876,7 @@ class Zeq_GUI(wx.Frame):
         elif str(self.level_box.GetValue())=='study': high_level_type='study' 
         high_level_name=str(self.level_names.GetValue())
         elements_type=self.UPPER_LEVEL_SHOW
-        self.high_level_text_box.SetValue("")
+#        self.high_level_text_box.SetValue("")
         if high_level_name in self.high_level_means[high_level_type].keys():
             if dirtype in self.high_level_means[high_level_type][high_level_name].keys():
                 mpars=self.high_level_means[high_level_type][high_level_name][dirtype]
@@ -2883,8 +2884,6 @@ class Zeq_GUI(wx.Frame):
         fig = self.high_level_eqarea
         if fits:
             for fit in fits:
-                if fit in self.bad_fits:
-                    continue
                 pars = fit.get(self.COORDINATE_SYSTEM)
                 if "specimen_dec" in pars.keys() and "specimen_inc" in pars.keys():
                     dec=pars["specimen_dec"];inc=pars["specimen_inc"]
@@ -2898,8 +2897,14 @@ class Zeq_GUI(wx.Frame):
                 else:
                     FC='white';SIZE=15*self.GUI_RESOLUTION
                 marker_shape = 'o'
-                if specimen == self.s:
+                if fit in self.bad_fits:
+                    marker_shape = (4,1,0)
+                    SIZE=25*self.GUI_RESOLUTION
+                if fit == self.current_fit:
                     marker_shape = 'D'
+                    if fit in self.bad_fits:
+                        marker_shape = (4,1,45)
+                        SIZE=25*self.GUI_RESOLUTION
                 self.higher_EA_xdata.append(XY[0])
                 self.higher_EA_ydata.append(XY[1])
                 fig.scatter([XY[0]],[XY[1]],marker=marker_shape,edgecolor=fit.color, facecolor=FC,s=SIZE,lw=1,clip_on=False)
@@ -3048,10 +3053,10 @@ class Zeq_GUI(wx.Frame):
         fig.set_ylim(ymin, ymax)    
 
     def show_higher_levels_pars(self,mpars):
-        self.high_level_text_box.SetValue("")
+#        self.high_level_text_box.SetValue("")
         FONT_RATIO=self.GUI_RESOLUTION+(self.GUI_RESOLUTION-1)*5
         font2 = wx.Font(12+min(1,FONT_RATIO), wx.SWISS, wx.NORMAL, wx.NORMAL, False, u'Arial')
-        self.high_level_text_box.SetFont(font2)
+#        self.high_level_text_box.SetFont(font2)
         if mpars["calculation_type"]=='Fisher' and "alpha95" in mpars.keys():
             String="Fisher statistics:\n"
             String=String+"dec"+": "+"%.1f\n"%float(mpars['dec'])
@@ -3061,7 +3066,7 @@ class Zeq_GUI(wx.Frame):
             String=String+"R"+": "+"%.4f\n"%float(mpars['R'])
             String=String+"n_lines"+": "+"%.0f\n"%float(mpars['n_lines'])
             String=String+"n_planes"+": "+"%.0f\n"%float(mpars['n_planes'])
-            self.high_level_text_box.AppendText(String)
+#            self.high_level_text_box.AppendText(String)
 
         if mpars["calculation_type"]=='Fisher by polarity':
             for mode in ['A','B','All']:
@@ -3076,12 +3081,12 @@ class Zeq_GUI(wx.Frame):
                 String=String+"N"+": "+"%.0f\n"%float(mpars[mode]['n'])
                 String=String+"K"+": "+"%.1f\n"%float(mpars[mode]['k'])
                 String=String+"R"+": "+"%.4f\n"%float(mpars[mode]['r'])
-                self.high_level_text_box.AppendText(String)
+#                self.high_level_text_box.AppendText(String)
                 
                                 
         if mpars["calculation_type"]=='Bingham':
             String="Bingham statistics:\n"
-            self.high_level_text_box.AppendText(String)
+#            self.high_level_text_box.AppendText(String)
             String=""
             String=String+"dec"+": "+"%.1f\n"%float(mpars['dec'])
             String=String+"inc"+": "+"%.1f\n"%float(mpars['inc'])
@@ -3092,7 +3097,7 @@ class Zeq_GUI(wx.Frame):
             String=String+"Edec"+": "+"%.0f\n"%float(mpars['Edec'])
             String=String+"Einc"+": "+"%.1f\n"%float(mpars['Einc'])
             String=String+"Eta"+": "+"%.1f\n"%float(mpars['Eta'])
-            self.high_level_text_box.AppendText(String)
+#            self.high_level_text_box.AppendText(String)
 
     #def initialize_acceptence_criteria (self):
     #    self.acceptance_criteria={}
@@ -3747,11 +3752,9 @@ class Zeq_GUI(wx.Frame):
 
         m_new_sub_plots = menu_file.AppendMenu(-1, "&Save plot", submenu_save_plots)
 
-        
         menu_file.AppendSeparator()
         m_exit = menu_file.Append(-1, "E&xit\tCtrl-Q", "Exit")
         self.Bind(wx.EVT_MENU, self.on_menu_exit, m_exit)
-                                                                                                                                                                                                           
         #-------------------------------------------------------------------------------
 
         menu_Analysis = wx.Menu()
@@ -4354,7 +4357,7 @@ class Zeq_GUI(wx.Frame):
                 if fit in self.bad_fits:
                     fit_flag = "b"
                     
-                STRING=STRING+tmin+"\t"+tmax+"\t"+fit.name+"\t"+fit.color+"\t"+fit_flag+"\n"
+                STRING=STRING+tmin+"\t"+tmax+"\t"+fit.name+"\t"+str(fit.color)+"\t"+fit_flag+"\n"
                 fout.write(STRING)
         TEXT="specimens interpretations are saved in " + redo_file_name
         dlg = wx.MessageDialog(self, caption="Saved",message=TEXT,style=wx.OK|wx.CANCEL )
@@ -4502,17 +4505,16 @@ class Zeq_GUI(wx.Frame):
     #--------------------------------------------------------------
     
     def on_menu_make_MagIC_results_tables(self,event): #BLARGE
-
-        #---------------------------------------            
-        # 1. read pmag_specimens.txt, pmag_samples.txt, pmag_sites.txt, and sort out lines with LP-DIR in magic_codes 
-        # 2. saves a clean pmag_*.txt files without LP-DIR stuff as pmag_*.txt.tmp .
-        # 3. write a new file pmag_specimens.txt
-        # 4. merge pmag_specimens.txt and pmag_specimens.txt.tmp using combine_magic.py 
-        # 5. delete pmag_specimens.txt.tmp
-        # 6 (optional) extracting new pag_*.txt files (except pmag_specimens.txt) using specimens_results_magic.py
-        # 7: if #6: merge pmag_*.txt and pmag_*.txt.tmp using combine_magic.py 
-        #    if not #6: save pmag_*.txt.tmp as pmag_*.txt
-        #---------------------------------------
+        """
+         1. read pmag_specimens.txt, pmag_samples.txt, pmag_sites.txt, and sort out lines with LP-DIR in magic_codes 
+         2. saves a clean pmag_*.txt files without LP-DIR stuff as pmag_*.txt.tmp .
+         3. write a new file pmag_specimens.txt
+         4. merge pmag_specimens.txt and pmag_specimens.txt.tmp using combine_magic.py 
+         5. delete pmag_specimens.txt.tmp
+         6 (optional) extracting new pag_*.txt files (except pmag_specimens.txt) using specimens_results_magic.py
+         7: if #6: merge pmag_*.txt and pmag_*.txt.tmp using combine_magic.py 
+            if not #6: save pmag_*.txt.tmp as pmag_*.txt
+        """
 
 
         #---------------------------------------
@@ -4797,8 +4799,6 @@ class Zeq_GUI(wx.Frame):
             if FILE in self.PmagRecsOld.keys():
                 for rec in self.PmagRecsOld[FILE]:
                     pmag_data.append(rec)
-            if FILE == 'pmag_sites.txt':
-                print("Pmag_Data: " + str(pmag_data[0:2]))
             if len(pmag_data) >0:
                 pmag_data_fixed=self.merge_pmag_recs(pmag_data)
                 pmag.magic_write(os.path.join(self.WD, FILE), pmag_data_fixed, FILE.split(".")[0])
@@ -5228,7 +5228,7 @@ class EditFitFrame(wx.Frame):
             is_mac = True
 
         #build logger
-        self.logger = wx.ListCtrl(self.panel, -1, size=(350*self.GUI_RESOLUTION,525*self.GUI_RESOLUTION),style=wx.LC_REPORT)
+        self.logger = wx.ListCtrl(self.panel, -1, size=(350*self.GUI_RESOLUTION,475*self.GUI_RESOLUTION),style=wx.LC_REPORT)
         self.logger.SetFont(font1)
         self.logger.InsertColumn(0, 'specimen',width=55*self.GUI_RESOLUTION)
         self.logger.InsertColumn(1, 'name',width=45*self.GUI_RESOLUTION)
@@ -5244,8 +5244,8 @@ class EditFitFrame(wx.Frame):
 
         #set fit attributes box
         self.display_sizer = wx.StaticBoxSizer(wx.StaticBox(self.panel, wx.ID_ANY, "Display Settings"), wx.HORIZONTAL)
-        self.name_sizer = wx.StaticBoxSizer(wx.StaticBox(self.panel, wx.ID_ANY, "Name/Color"), wx.VERTICAL)
-        self.bounds_sizer = wx.StaticBoxSizer(wx.StaticBox(self.panel, wx.ID_ANY, "Bounds"), wx.VERTICAL)
+        self.name_sizer = wx.StaticBoxSizer(wx.StaticBox(self.panel, wx.ID_ANY, "Fit Name/Color"), wx.VERTICAL)
+        self.bounds_sizer = wx.StaticBoxSizer(wx.StaticBox(self.panel, wx.ID_ANY, "Fit Bounds"), wx.VERTICAL)
         self.buttons_sizer = wx.StaticBoxSizer(wx.StaticBox(self.panel, wx.ID_ANY), wx.VERTICAL)
 
         #logger display selection box
@@ -5281,30 +5281,31 @@ class EditFitFrame(wx.Frame):
         self.Bind(wx.EVT_COMBOBOX, self.on_select_coordinates,self.coordinates_box)
 
         #bounds select boxes
-        self.tmin_box = wx.ComboBox(self.panel, -1, size=(100*self.GUI_RESOLUTION, 25), choices=[''] + self.parent.T_list, style=wx.CB_DROPDOWN, name="lower bound")
+        self.tmin_box = wx.ComboBox(self.panel, -1, size=(80*self.GUI_RESOLUTION, 25), choices=[''] + self.parent.T_list, style=wx.CB_DROPDOWN, name="lower bound")
 
-        self.tmax_box = wx.ComboBox(self.panel, -1, size=(100*self.GUI_RESOLUTION, 25), choices=[''] + self.parent.T_list, style=wx.CB_DROPDOWN, name="upper bound")
+        self.tmax_box = wx.ComboBox(self.panel, -1, size=(80*self.GUI_RESOLUTION, 25), choices=[''] + self.parent.T_list, style=wx.CB_DROPDOWN, name="upper bound")
 
         #color box
-        self.color_dict = {'green':'g','yellow':'y','maroon':'m','cyan':'c','black':'k','white':'w'}
-        self.color_box = wx.ComboBox(self.panel, -1, size=(100*self.GUI_RESOLUTION, 25), choices=[''] + self.color_dict.keys(), style=wx.CB_DROPDOWN, name="color")
+        self.color_dict = {'green':'g','yellow':'y','maroon':'m','cyan':'c','black':'k','brown':(139./255.,69./255.,19./255.),'orange':(255./255.,127./255.,0./255.),'pink':(255./255.,20./255.,147./255.),'violet':(153./255.,50./255.,204./255.),'grey':(84./255.,84./255.,84./255.)}
+        self.color_box = wx.ComboBox(self.panel, -1, size=(80*self.GUI_RESOLUTION, 25), choices=[''] + self.color_dict.keys(), style=wx.TE_PROCESS_ENTER, name="color")
+        self.Bind(wx.EVT_TEXT_ENTER, self.add_new_color, self.color_box)
 
         #name box
-        self.name_box = wx.TextCtrl(self.panel, -1, size=(100*self.GUI_RESOLUTION, 25), style=wx.HSCROLL, name="name")
+        self.name_box = wx.TextCtrl(self.panel, -1, size=(80*self.GUI_RESOLUTION, 25), style=wx.HSCROLL, name="name")
 
         #more mac stuff
         h_size_buttons,button_spacing = 25,5.5
         if is_mac: h_size_buttons,button_spacing = 18,0.
 
-        self.add_fit_button = wx.Button(self.panel, id=-1, label='add fit to highlighted specimens',size=(225*self.GUI_RESOLUTION,h_size_buttons))
+        self.add_fit_button = wx.Button(self.panel, id=-1, label='add to selected',size=(160*self.GUI_RESOLUTION,h_size_buttons))
         self.add_fit_button.SetFont(font1)
         self.Bind(wx.EVT_BUTTON, self.add_highlighted_fits, self.add_fit_button)
 
-        self.delete_fit_button = wx.Button(self.panel, id=-1, label='delete highlighted fits',size=(225*self.GUI_RESOLUTION,h_size_buttons))
+        self.delete_fit_button = wx.Button(self.panel, id=-1, label='delete selected',size=(160*self.GUI_RESOLUTION,h_size_buttons))
         self.delete_fit_button.SetFont(font1)
         self.Bind(wx.EVT_BUTTON, self.delete_highlighted_fits, self.delete_fit_button)
 
-        self.apply_changes_button = wx.Button(self.panel, id=-1, label='apply changes to highlighted fits',size=(225*self.GUI_RESOLUTION,h_size_buttons))
+        self.apply_changes_button = wx.Button(self.panel, id=-1, label='apply changes',size=(160*self.GUI_RESOLUTION,h_size_buttons))
         self.apply_changes_button.SetFont(font1)
         self.Bind(wx.EVT_BUTTON, self.apply_changes, self.apply_changes_button)
 
@@ -5348,24 +5349,47 @@ class EditFitFrame(wx.Frame):
         self.canvas.Bind(wx.EVT_LEFT_DCLICK,self.parent.on_equalarea_higher_select)
         self.canvas.Bind(wx.EVT_MOTION,self.on_change_higher_mouse_cursor)
         self.canvas.Bind(wx.EVT_MIDDLE_DOWN,self.home_higher_equalarea)
-        
+
+        #Higher Level Statistics Box
+        self.stats_sizer = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY,"Mean Statistics"  ), wx.VERTICAL)
+
+        for parameter in ['dec','inc','alpha95','K','R','n_lines','n_planes']:
+            COMMAND="self.%s_window=wx.TextCtrl(self.panel,style=wx.TE_CENTER|wx.TE_READONLY,size=(50*self.GUI_RESOLUTION,25))"%parameter
+            exec COMMAND
+            COMMAND="self.%s_window.SetBackgroundColour(wx.WHITE)"%parameter
+            exec COMMAND
+            COMMAND="self.%s_window.SetFont(font2)"%parameter
+            exec COMMAND
+            COMMAND="self.%s_outer_window = wx.GridSizer(1,2,5*self.GUI_RESOLUTION,15*self.GUI_RESOLUTION)"%parameter
+            exec COMMAND
+            COMMAND="""self.%s_outer_window.AddMany([
+                    (wx.StaticText(self.panel,label='%s',style=wx.TE_CENTER),wx.EXPAND),
+                    (self.%s_window, wx.EXPAND)])"""%(parameter,parameter,parameter)
+            exec COMMAND
+            COMMAND="self.stats_sizer.Add(self.%s_outer_window, 0, wx.ALIGN_LEFT, 0)"%parameter
+            exec COMMAND
+
         #construct panel
         hbox0 = wx.BoxSizer(wx.HORIZONTAL)
-        hbox0.Add(self.display_sizer,flag=wx.ALIGN_TOP,border=8)
+        hbox0.Add(self.name_sizer,flag=wx.ALIGN_TOP,border=8)
+        hbox0.Add(self.bounds_sizer,flag=wx.ALIGN_TOP,border=8)
+
+        vbox0 = wx.BoxSizer(wx.VERTICAL)
+        vbox0.Add(hbox0,flag=wx.ALIGN_TOP,border=8)
+        vbox0.Add(self.buttons_sizer,flag=wx.ALIGN_TOP,border=8)
 
         hbox1 = wx.BoxSizer(wx.HORIZONTAL)
-        hbox1.Add(self.name_sizer,flag=wx.ALIGN_TOP,border=8)
-        hbox1.Add(self.bounds_sizer,flag=wx.ALIGN_TOP,border=8)
+        hbox1.Add(vbox0,flag=wx.ALIGN_TOP,border=8)
+        hbox1.Add(self.stats_sizer,flag=wx.ALIGN_TOP,border=8)
 
         vbox1 = wx.BoxSizer(wx.VERTICAL)
-        vbox1.Add(hbox0,flag=wx.ALIGN_TOP,border=8)
+        vbox1.Add(self.display_sizer,flag=wx.ALIGN_TOP,border=8)
         vbox1.Add(hbox1,flag=wx.ALIGN_TOP,border=8)
-        vbox1.Add(self.buttons_sizer,flag=wx.ALIGN_TOP,border=8)
-        vbox1.Add(self.canvas,flag=wx.ALIGN_BOTTOM,border=8)
+        vbox1.Add(self.canvas,flag=wx.ALIGN_TOP,border=8)
 
-        hbox2=wx.BoxSizer(wx.HORIZONTAL)
+        hbox2 = wx.BoxSizer(wx.HORIZONTAL)
         hbox2.Add(self.logger,flag=wx.ALIGN_LEFT,border=8)
-        hbox2.Add(vbox1,flag=wx.ALIGN_LEFT,border=8)
+        hbox2.Add(vbox1,flag=wx.ALIGN_TOP,border=8)
 
         self.panel.SetSizer(hbox2)
         hbox2.Fit(self)
@@ -5540,6 +5564,21 @@ class EditFitFrame(wx.Frame):
 
     ###################################ComboBox Functions################################
 
+    def add_new_color(self,event):
+        new_color = self.color_box.GetValue()
+        if ':' in new_color:
+            color_list = new_color.split(':')
+            color_name = color_list[0]
+            color_val = map(eval, tuple(color_list[1].strip('( )').split(',')))
+        else:
+            color_val = map(eval, tuple(color_list[1].strip('( )').split(',')))
+            color_name = str(color_val)
+        self.color_dict[color_name] = color_val
+        #clear old box
+        self.color_box.Clear()
+        #update fit box
+        self.color_box.SetItems([''] + self.color_dict.keys())
+
     def on_select_coordinates(self,event):
         self.parent.coordinates_box.SetStringSelection(self.coordinates_box.GetStringSelection())
         self.parent.onSelect_coordinates(event)
@@ -5658,9 +5697,14 @@ class EditFitFrame(wx.Frame):
             if not new_tmin: new_tmin = None
             if not new_tmax: new_tmax = None
 
-            if new_name in map(lambda x: x.name, self.parent.pmag_results_data['specimens'][specimen]): print('bad name: ' + new_name); return
+            if new_name in map(lambda x: x.name, self.parent.pmag_results_data['specimens'][specimen]):
+                print('-E- interpertation called ' + new_name + ' already exsists for specimen ' + specimen)
+                continue
 
-            self.parent.pmag_results_data['specimens'][specimen].append(Fit(new_name, new_tmin, new_tmax, new_color, self.parent))
+            new_fit = Fit(new_name, new_tmin, new_tmax, new_color, self.parent)
+            new_fit.put(specimen,self.parent.COORDINATE_SYSTEM,self.parent.get_PCA_parameters(specimen,new_tmin,new_tmax,self.parent.COORDINATE_SYSTEM,fit.PCA_type))
+
+            self.parent.pmag_results_data['specimens'][specimen].append(new_fit)
         self.parent.update_selection()
         self.update_editor(True)
 
@@ -5908,7 +5952,7 @@ class Fit():
         Readable printing method for fit to turn it into a string
         @return: string representing fit
         """
-        try: return self.name + ": \n" + "Tmax = " + self.tmax + ", Tmin = " + self.tmin + "\n" + "Color = " + self.color
+        try: return self.name + ": \n" + "Tmax = " + self.tmax + ", Tmin = " + self.tmin + "\n" + "Color = " + str(self.color)
         except ValueError: return self.name + ": \n" + " Color = " + self.color
 
 #--------------------------------------------------------------    
