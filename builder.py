@@ -1365,7 +1365,7 @@ class Measurement(object):
     def __init__(self, experiment_name, meas_number, specimen=None, data=None):
         self.experiment_name = experiment_name
         self.meas_number = meas_number
-        self.name = experiment_name + '_' + str(meas_number)
+        self.name = experiment_name.strip() + '_' + str(meas_number)
         self.specimen = specimen
         self.er_data = remove_dict_headers(data)
         self.pmag_data = {}
@@ -1384,7 +1384,7 @@ class Pmag_object(object):
             self.data_model = validate_upload.get_data_model()
         else:
             self.data_model = data_model
-        self.name = name
+        self.name = name.strip() # names shouldn't start or end with a space!
         self.dtype = dtype
 
         er_name = 'er_' + dtype + 's'
@@ -1615,7 +1615,7 @@ class Result(object):
             self.data_model = validate_upload.get_data_model()
         else:
             self.data_model = data_model
-        self.name = name
+        self.name = name.strip() # names shouldn't start or end with a space!
         self.specimens = specimens
         self.samples = samples
         self.sites = sites
