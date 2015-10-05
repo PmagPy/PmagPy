@@ -420,6 +420,134 @@ def watson_common_mean(Data1,Data2,NumSims=5000,plot='no'):
         pmagplotlib.drawFIGS(CDF)
 
 
+def fishqq(longitude, latitude):
+    """
+    Test whether a distribution is Fisherian and make a corresponding Q-Q plot.
+    The Q-Q plot shows the data plotted against the value expected from a
+    Fisher distribution. The first plot is the uniform plot which is the
+    Fisher model distribution in terms of longitude. The second plot is the
+    exponential plot which is the Fisher model distribution in terms of latitude.
+    In addition to the plots, the test statistics Mu (uniform) and Me (exponential)
+    are calculated and compared against the critical test values. If Mu or Me are
+    too large in comparision to the test statistics, the hypothesis that the
+    distribution is Fisherian is rejected (see Fisher et al., 1987).
+
+    Parameters:
+    longitude : longitude or declination of the data
+    latitude : latitude or inclination of the data
+
+    Output:
+    dictionary containing
+    lon : mean longitude (or declination)
+    lat : mean latitude (or inclination)
+    N : number of vectors
+    Mu : Mu test statistic value for the data
+    Mu_critical : critical value for Mu
+    Me : Me test statistic value for the data
+    Me_critical : critical value for Me
+
+    if the data has two modes with N >=10 (N and R)
+    two of these dictionaries will be returned
+
+    """
+    DIs = make_di_block(longitude,latitude)
+    ppars = pmag.doprinc(DIs) # get principal directions
+
+    rDIs = []
+    nDIs = []
+    QQ_dict1 = {}
+    QQ_dict2 = {}
+    
+    for rec in DIs:
+        angle=pmag.angle([rec[0],rec[1]],[ppars['dec'],ppars['inc']])
+        if angle>90.:
+            rDIs.append(rec)
+        else:
+            nDIs.append(rec)
+
+    if len(rDIs) >=10 or len(nDIs) >=10:
+        D1,I1=[],[]
+        QQ={'unf1':1,'exp1':2}
+        if len(nDIs) < 10:
+            ppars=pmag.doprinc(rDIs) # get principal directions
+            Drbar,Irbar=ppars['dec']-180.,-ppars['inc']
+            Nr=len(rDIs)
+            for di in rDIs:
+                d,irot=pmag.dotilt(di[0],di[1],Drbar-180.,90.-Irbar) # rotate to mean
+                drot=d-180.
+                if drot<0:drot=drot+360.
+                D1.append(drot)
+                I1.append(irot)
+                Dtit='Mode 2 Declinations'
+                Itit='Mode 2 Inclinations'
+        else:
+            ppars=pmag.doprinc(nDIs) # get principal directions
+            Dnbar,Inbar=ppars['dec'],ppars['inc']
+            Nn=len(nDIs)
+            for di in nDIs:
+                d,irot=pmag.dotilt(di[0],di[1],Dnbar-180.,90.-Inbar) # rotate to mean
+                drot=d-180.
+                if drot<0:drot=drot+360.
+                D1.append(drot)
+                I1.append(irot)
+                Dtit='Mode 1 Declinations'
+                Itit='Mode 1 Inclinations'
+        Mu_n,Mu_ncr=pmagplotlib.plotQQunf(QQ['unf1'],D1,Dtit) # make plot
+        Me_n,Me_ncr=pmagplotlib.plotQQexp(QQ['exp1'],I1,Itit) # make plot
+        if Mu_n<=Mu_ncr and Me_n<=Me_ncr:
+           F_n = 'consistent with Fisherian model'
+        else:
+           F_n = 'Fisherian model rejected'
+        QQ_dict1['Mode'] = 'Mode 1'
+        QQ_dict1['Dec'] = Dnbar
+        QQ_dict1['Inc'] = Inbar
+        QQ_dict1['N'] = Nn
+        QQ_dict1['Mu'] = Mu_n
+        QQ_dict1['Mu_critical'] = Mu_ncr
+        QQ_dict1['Me'] = Me_n
+        QQ_dict1['Me_critical'] = Me_ncr
+        QQ_dict1['Test_result'] = F_n
+
+    if len(rDIs)>10 and len(nDIs)>10:
+        D2,I2=[],[]
+        QQ['unf2']=3
+        QQ['exp2']=4
+        ppars=pmag.doprinc(rDIs) # get principal directions
+        Drbar,Irbar=ppars['dec']-180.,-ppars['inc']
+        Nr=len(rDIs)
+        for di in rDIs:
+            d,irot=pmag.dotilt(di[0],di[1],Drbar-180.,90.-Irbar) # rotate to mean
+            drot=d-180.
+            if drot<0:drot=drot+360.
+            D2.append(drot)
+            I2.append(irot)
+            Dtit='Mode 2 Declinations'
+            Itit='Mode 2 Inclinations'
+        Mu_r,Mu_rcr=pmagplotlib.plotQQunf(QQ['unf2'],D2,Dtit) # make plot
+        Me_r,Me_rcr=pmagplotlib.plotQQexp(QQ['exp2'],I2,Itit) # make plot
+
+        if Mu_r<=Mu_rcr and Me_r<=Me_rcr:
+           F_r = 'consistent with Fisherian model'
+        else:
+           F_r = 'Fisherian model rejected'
+        QQ_dict2['Mode'] = 'Mode 2'
+        QQ_dict2['Dec'] = Drbar
+        QQ_dict2['Inc'] = Irbar
+        QQ_dict2['N'] = Nr
+        QQ_dict2['Mu'] = Mu_r
+        QQ_dict2['Mu_critical'] = Mu_rcr
+        QQ_dict2['Me'] = Me_r
+        QQ_dict2['Me_critical'] = Me_rcr
+        QQ_dict2['Test_result'] = F_r
+
+    if QQ_dict2:
+        return QQ_dict1, QQ_dict2
+    elif QQ_dict1:
+        return QQ_dict1
+    else:
+        print 'you need N> 10 for at least one mode'
+
+
 def lat_from_inc(inc):
     """
     Calculate paleolatitude from inclination using the dipole equation
