@@ -594,7 +594,7 @@ Adding location with name: {}""".format(new_location_name, new_location_name)
         for child_name in data_dict:
             # if there is a possible parent, try to find parent object in the data model
             if parent_type:
-                parent_name = data_dict[child_name]['er_' + parent_type + '_name']
+                parent_name = data_dict[child_name].get('er_' + parent_type + '_name', '')
                 parent = self.find_by_name(parent_name, parent_list)
                 if parent:
                     remove_dict_headers(parent.er_data)
@@ -626,8 +626,12 @@ Adding location with name: {}""".format(new_location_name, new_location_name)
                 child.set_parent(parent)
 
             # add in the appropriate data dictionary
-            child.__setattr__(attr + '_data', data_dict[child_name])
-            #child.er_data = 
+            if attr == 'er':
+                self.update_methods[child_type](child_name, child_name, new_er_data=data_dict[child_name])
+            else:
+                self.update_methods[child_type](child_name, child_name, new_pmag_data=data_dict[child_name])
+            # old way
+            #child.__setattr__(attr + '_data', data_dict[child_name])
 
             remove_dict_headers(child.er_data)
             remove_dict_headers(child.pmag_data)

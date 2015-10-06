@@ -401,7 +401,7 @@ class MagMainFrame(wx.Frame):
         print "-I- running python script:\n %s"%(outstring)
         wait = wx.BusyInfo("Please wait, working...")
 
-        upfile, error_message = ipmag.upload_magic(dir_path=self.WD)
+        upfile, error_message, errors = ipmag.upload_magic(dir_path=self.WD)
         del wait
         if upfile:
             text = "You are ready to upload.\n Your file: {}  was generated in MagIC Project Directory.\nDrag and drop this file in the MagIC database.".format(os.path.split(upfile)[1])
