@@ -627,9 +627,11 @@ Adding location with name: {}""".format(new_location_name, new_location_name)
 
             # add in the appropriate data dictionary
             if attr == 'er':
-                self.update_methods[child_type](child_name, child_name, new_er_data=data_dict[child_name])
+                self.update_methods[child_type](child_name, child_name, parent_name,
+                                                new_er_data=data_dict[child_name])
             else:
-                self.update_methods[child_type](child_name, child_name, new_pmag_data=data_dict[child_name])
+                self.update_methods[child_type](child_name, child_name, parent_name,
+                                                new_pmag_data=data_dict[child_name])
             # old way
             #child.__setattr__(attr + '_data', data_dict[child_name])
 

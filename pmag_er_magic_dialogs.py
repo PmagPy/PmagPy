@@ -155,8 +155,6 @@ You may use the drop-down menus to add as many values as needed in these columns
                                                        'site')
 
         if self.sample_window > 1:
-            self.er_magic_data.init_default_headers()
-            self.er_magic_data.init_actual_headers()
             self.grid_builder = grid_frame.GridBuilder(self.er_magic_data, 'sample',
                                            self.er_magic_data.headers, self.panel,
                                            'site')

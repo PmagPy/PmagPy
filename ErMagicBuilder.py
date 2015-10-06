@@ -76,7 +76,7 @@ class MagIC_model_builder(wx.Frame):
             label = table
 
             optional_headers = self.er_magic.headers[label]['er'][2]
-            reqd_headers = self.er_magic.headers[label]['er'][1]
+            actual_headers = self.er_magic.headers[label]['er'][0]
 
             box_sizer = wx.StaticBoxSizer( wx.StaticBox(self.panel, wx.ID_ANY, table), wx.VERTICAL)
             box_sizers.append(box_sizer)
@@ -110,7 +110,7 @@ class MagIC_model_builder(wx.Frame):
             box_sizer.Add(remove_button, wx.ALIGN_TOP)
 
             # need headers
-            self.update_text_box(reqd_headers, text_control)
+            self.update_text_box(actual_headers, text_control)
 
         hbox1 = wx.BoxSizer(wx.HORIZONTAL)
         self.okButton = wx.Button(self.panel, wx.ID_OK, "&OK")
@@ -144,6 +144,13 @@ class MagIC_model_builder(wx.Frame):
         vbox.AddSpacer(20)
         vbox.Add(hbox1,flag=wx.ALIGN_CENTER_HORIZONTAL)
         vbox.AddSpacer(20)
+
+        # if they are not already present
+        # add some strongly-recommended categories to age text_box
+        actual_age_headers = self.er_magic.headers['age']['er'][0]
+        actual_age_headers.extend(['age', 'age_unit'])
+        add_age_headers = list(set(actual_age_headers))
+        self.update_text_box(add_age_headers, self.text_controls['age'])
         
         self.panel.SetSizer(vbox)
         vbox.Fit(self)
@@ -155,7 +162,7 @@ class MagIC_model_builder(wx.Frame):
         text = ""
         #command="keys=self.%s_header"%table
         #exec command
-        for key in headers_list:
+        for key in sorted(headers_list):
             text = text + key + "\n"
         text = text[:-1]
         text_control.SetValue('')
@@ -167,7 +174,7 @@ class MagIC_model_builder(wx.Frame):
         table = event.GetEventObject().Name
         text_control = self.text_controls[table]
         info_option = self.info_options[table]
-        header = self.er_magic.headers[table]['er'][1]
+        header = self.er_magic.headers[table]['er'][0]
 
         selName = info_option.GetStringSelection()
 
@@ -179,10 +186,11 @@ class MagIC_model_builder(wx.Frame):
         table = event.GetEventObject().Name
         info_option = self.info_options[table]
         text_control = self.text_controls[table]
-        header = self.er_magic.headers[table]['er'][1]
+        header = self.er_magic.headers[table]['er'][0]
+        reqd_header = self.er_magic.headers[table]['er'][1]
 
         selName = str(info_option.GetStringSelection())
-        if selName in header:
+        if selName in header and selName not in reqd_header:
             header.remove(selName)
         self.update_text_box(header, text_control)
 
