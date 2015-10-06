@@ -2665,6 +2665,8 @@ class OrientFrameGrid(wx.Frame):
             dlg1.ShowModal()
             dlg1.Destroy()
 
+        self.Parent.Show()
+        self.Parent.Raise()
         self.Destroy()
 
         

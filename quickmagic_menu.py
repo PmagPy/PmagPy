@@ -24,9 +24,11 @@ class MagICMenu(wx.MenuBar):
 
         file_menu = wx.Menu()
         file_quit = file_menu.Append(wx.ID_EXIT, 'Quit', 'Quit application')
+        file_show = file_menu.Append(wx.ID_ANY, 'Show main window', 'Show main window')
         file_clear = file_menu.Append(wx.ID_ANY, 'Clear directory', 'Delete all files from working directory')
 
         parent.Bind(wx.EVT_MENU, self.on_quit, file_quit)
+        parent.Bind(wx.EVT_MENU, self.on_show_mainframe, file_show)
         parent.Bind(wx.EVT_MENU, self.on_clear, file_clear)
 
         import_menu = wx.Menu()
@@ -116,6 +118,14 @@ class MagICMenu(wx.MenuBar):
         shut down application
         """
         self.parent.Close()
+
+    def on_show_mainframe(self, event):
+        """
+        Show main make_magic window
+        """
+        self.parent.Show()
+        self.parent.Raise()
+
 
     def on_clear(self, event):
         """
