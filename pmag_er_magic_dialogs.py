@@ -391,7 +391,45 @@ Fill in any blank cells using controlled vocabularies.
         self.grid_builder.add_data_to_grid(self.loc_grid, 'location', incl_pmag=False)
         self.grid = self.loc_grid
         # initialize all needed drop-down menus
-        self.drop_down_menu = drop_down_menus.Menus("location", self, self.loc_grid, None) 
+        self.drop_down_menu = drop_down_menus.Menus("location", self, self.loc_grid, None)
+
+        # need to find max/min lat/lon here IF they were added in the previous grid
+        sites = self.er_magic_data.sites
+        location_lat_lon = self.er_magic_data.get_min_max_lat_lon(self.er_magic_data.sites)
+        'location_begin_lat'
+        'location_end_lat'
+        'location_begin_lon'
+        'location_end_lat'
+        self.grid.col_labels
+        min_lat_ind 
+        max_lat_ind
+        min_lon_ind
+        max_lon_ind 
+        
+        """
+        if sites:
+            lons = []
+            lats = []
+            for site in sites:
+                print site
+                try:
+                    lats.append(float(site.er_data['site_lat']))
+                except ValueError:
+                    pass
+                try:
+                    lons.append(float(site.er_data['site_lon']))
+                except ValueError:
+                    pass
+        print lats
+        print lons
+        max_lat, min_lat, max_lon, min_lon = "", "", "", ""
+        if lats:
+            max_lat, min_lat = max(lats), min(lats)
+        if lons:
+            max_lon, min_lon = max(lons), min(lons)
+        print 'max - min lat', max_lat, min_lat
+        print 'max - min lon', max_lon, min_lon
+        """
 
         ### Create Buttons ###
         hbox_one = wx.BoxSizer(wx.HORIZONTAL)

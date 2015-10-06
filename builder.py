@@ -894,7 +894,6 @@ Adding location with name: {}""".format(new_location_name, new_location_name)
         if dtype == 'location':
             do_pmag = False
 
-        
         # make header
         add_headers = []
         self.ancestry_ind = self.ancestry.index(dtype)
@@ -917,13 +916,16 @@ Adding location with name: {}""".format(new_location_name, new_location_name)
         items_list = sorted(self.data_lists[dtype][0], key=lambda item: item.name)
 
         # fill in location being/end lat/lon if those values are not present
+
+
         if dtype == 'location':
+            d = self.get_min_max_lat_lon(item_list)
             for item in items_list[:]:
-                d = self.get_min_max_lat_lon(item.sites)
+                #d = self.get_min_max_lat_lon(item.sites)
                 for header in ['location_begin_lat', 'location_begin_lon', 
                                'location_end_lat', 'location_end_lon']:
                     if not item.er_data[header]:
-                        item.er_data[header] = d[header]
+                        item.er_data[header] = d[item.name][header]
 
         # go through items and collect necessary data
         for item in items_list[:]:
@@ -1323,35 +1325,41 @@ Adding location with name: {}""".format(new_location_name, new_location_name)
             descendents[-3] = greatgrandchildren
         return descendents
 
-    def get_min_max_lat_lon(self, sites):
+    def get_min_max_lat_lon(self, locations):
         """
-        Take a list of sites and return a dictionary with:
+        Take a list of locations and return a dictionary with:
+        location1:
         'location_begin_lat', 'location_begin_lon', 
         'location_end_lat', 'location_end_lon'.
+        and so on.
         """
-        max_lat, min_lat = '', ''
-        max_lon, min_lon = '', ''
-        if not sites:
-            d = {'location_begin_lat': min_lat, 'location_begin_lon': min_lon,
-                 'location_end_lat': max_lat, 'location_end_lon': max_lon}
-            return d
-        lats, lons = [], []
-        # try to fill in min/max latitudes/longitudes from sites
-        for site in sites:
-            if site.er_data['site_lon']:
-                lons.append(site.er_data['site_lon'])
-            if site.er_data['site_lat']:
-                lats.append(site.er_data['site_lat'])
-        if lats:
-            lats = [float(lat) for lat in lats]
-            max_lat = max(lats)
-            min_lat = min(lats)
-        if lons:
-            lons = [float(lon) for lon in lons]
-            max_lon = max(lons)
-            min_lon = min(lons)
-        d = {'location_begin_lat': min_lat, 'location_begin_lon': min_lon,
-             'location_end_lat': max_lat, 'location_end_lon': max_lon}
+        d = {} 
+        for location in locations:
+            sites = location.sites
+            max_lat, min_lat = '', ''
+            max_lon, min_lon = '', ''
+            if not sites:
+                d[location.name] = {'location_begin_lat': min_lat, 'location_begin_lon': min_lon,
+                                    'location_end_lat': max_lat, 'location_end_lon': max_lon}
+                #return d
+                continue
+            lats, lons = [], []
+            # try to fill in min/max latitudes/longitudes from sites
+            for site in sites:
+                if site.er_data['site_lon']:
+                    lons.append(site.er_data['site_lon'])
+                if site.er_data['site_lat']:
+                    lats.append(site.er_data['site_lat'])
+            if lats:
+                lats = [float(lat) for lat in lats]
+                max_lat = max(lats)
+                min_lat = min(lats)
+            if lons:
+                lons = [float(lon) for lon in lons]
+                max_lon = max(lons)
+                min_lon = min(lons)
+            d[location.name] = {'location_begin_lat': min_lat, 'location_begin_lon': min_lon,
+                                'location_end_lat': max_lat, 'location_end_lon': max_lon}
         return d
 
 

@@ -84,6 +84,39 @@ class TestBuilder(unittest.TestCase):
         res = self.data1.get_magic_info('sample', 'site', filename=file_name, sort_by_file_type=True)
         self.assertFalse(res)
 
+    def test_get_lat_lon(self):
+        data_model = self.data1.data_model
+        loc1 = builder.Location('loc1', data_model)
+        loc2 = builder.Location('loc2', data_model)
+        loc3 = builder.Location('loc3', data_model)
+        site1a = builder.Site('site1a', loc1, data_model)
+        site1b = builder.Site('site1b', loc1, data_model)
+        site2a = builder.Site('site2a', loc2, data_model)
+        site2b = builder.Site('site2b', loc2, data_model)
+        loc1.sites = [site1a, site1b]
+        loc2.sites = [site2a, site2b]
+
+        site1a.er_data['site_lat'], site1a.er_data['site_lon'] = 1, 10
+        site1b.er_data['site_lat'], site1b.er_data['site_lon'] = 2, 20
+        site2a.er_data['site_lat'], site2a.er_data['site_lon'] = 3, 30
+        site2b.er_data['site_lat'], site2b.er_data['site_lon'] = 4, 40
+        locations = [loc1, loc2, loc3]
+        result_dict = self.data1.get_min_max_lat_lon(locations)
+        print 'result_dict', result_dict
+        self.assertIn(loc1.name, result_dict.keys())
+        self.assertIn(loc2.name, result_dict.keys())
+        self.assertIn(loc3.name, result_dict.keys())
+        self.assertEqual(1., result_dict[loc1.name]['location_begin_lat'])
+        self.assertEqual(2., result_dict[loc1.name]['location_end_lat'])
+        self.assertEqual(3., result_dict[loc2.name]['location_begin_lat'])
+        self.assertEqual(4., result_dict[loc2.name]['location_end_lat'])
+        self.assertEqual(10., result_dict[loc1.name]['location_begin_lon'])
+        self.assertEqual(20., result_dict[loc1.name]['location_end_lon'])
+        self.assertEqual(30., result_dict[loc2.name]['location_begin_lon'])
+        self.assertEqual(40., result_dict[loc2.name]['location_end_lon'])
+        self.assertEqual('', result_dict[loc3.name]['location_begin_lat'])
+        
+
 
 class TestMeasurement(unittest.TestCase):
     
