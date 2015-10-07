@@ -395,41 +395,16 @@ Fill in any blank cells using controlled vocabularies.
 
         # need to find max/min lat/lon here IF they were added in the previous grid
         sites = self.er_magic_data.sites
-        location_lat_lon = self.er_magic_data.get_min_max_lat_lon(self.er_magic_data.sites)
-        'location_begin_lat'
-        'location_end_lat'
-        'location_begin_lon'
-        'location_end_lat'
-        self.grid.col_labels
-        min_lat_ind 
-        max_lat_ind
-        min_lon_ind
-        max_lon_ind 
-        
-        """
-        if sites:
-            lons = []
-            lats = []
-            for site in sites:
-                print site
-                try:
-                    lats.append(float(site.er_data['site_lat']))
-                except ValueError:
-                    pass
-                try:
-                    lons.append(float(site.er_data['site_lon']))
-                except ValueError:
-                    pass
-        print lats
-        print lons
-        max_lat, min_lat, max_lon, min_lon = "", "", "", ""
-        if lats:
-            max_lat, min_lat = max(lats), min(lats)
-        if lons:
-            max_lon, min_lon = max(lons), min(lons)
-        print 'max - min lat', max_lat, min_lat
-        print 'max - min lon', max_lon, min_lon
-        """
+        location_lat_lon = self.er_magic_data.get_min_max_lat_lon(self.er_magic_data.locations)
+
+        col_names = ('location_begin_lat', 'location_end_lat', 'location_begin_lon', 'location_end_lon')
+        col_inds = [self.grid.col_labels.index(name) for name in col_names]
+        col_info = zip(col_names, col_inds)
+        for loc in self.er_magic_data.locations:
+            row_ind = self.grid.row_labels.index(loc.name)
+            for col_name, col_ind in col_info:
+                info = location_lat_lon[loc.name][col_name]
+                self.grid.SetCellValue(row_ind, col_ind, str(info))
 
         ### Create Buttons ###
         hbox_one = wx.BoxSizer(wx.HORIZONTAL)
@@ -682,9 +657,6 @@ You may use the drop-down menus to add as many values as needed in these columns
             choices = self.drop_down_menu.choices
             choices[1] = (locations, False)
             self.drop_down_menu.update_drop_down_menu(self.site_grid, choices)
-            # update ErMagic files
-            self.ErMagic_data.update_ErMagic()
-
 
     def on_helpButton(self, event, page=None):
         """shows html help page"""
@@ -713,7 +685,6 @@ You may use the drop-down menus to add as many values as needed in these columns
         grid.remove_starred_labels()
 
         grid.SaveEditControlValue() # locks in value in cell currently edited
-        #grids = {"er_specimen_name": self.ErMagic_data.data_er_specimens, "er_sample_name": self.ErMagic_data.data_er_samples, "er_site_name": self.ErMagic_data.data_er_sites, "er_location_name": self.ErMagic_data.data_er_locations, "ages": self.ErMagic_data.data_er_ages}
         grid_name = str(grid.GetName())
 
         # check that all required data is present
