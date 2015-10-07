@@ -2607,7 +2607,7 @@ class OrientFrameGrid(wx.Frame):
                 #continue
                 #er_samples_data[sample]={}
                 #er_samples_data[sample]["er_sample_name"]=sample
-            for key in ["sample_orientation_flag","sample_azimuth","sample_dip","sample_bed_dip","sample_bed_dip_direction","sample_date","sample_declination_correction"]:
+            for key in ["sample_orientation_flag","sample_azimuth","sample_dip","sample_bed_dip","sample_bed_dip_direction","sample_date","sample_declination_correction", "sample_lat", "sample_lon"]:
                 if key in er_samples_orient_data[sample].keys():
                     er_samples_data[sample][key]=er_samples_orient_data[sample][key]
             if "magic_method_codes" in er_samples_orient_data[sample].keys():
