@@ -623,9 +623,12 @@ Adding location with name: {}""".format(new_location_name, new_location_name)
             if not child:
                 child = child_constructor(child_name, parent_name)
             else:
+                # bind parent to child and child to parent
                 child.set_parent(parent)
+                if parent and (child not in parent.children):
+                    parent.add_child(child)
 
-            # add in the appropriate data dictionary
+            # add in the appropriate data dictionary to the child object
             if attr == 'er':
                 self.update_methods[child_type](child_name, child_name, parent_name,
                                                 new_er_data=data_dict[child_name])
@@ -638,8 +641,6 @@ Adding location with name: {}""".format(new_location_name, new_location_name)
             remove_dict_headers(child.er_data)
             remove_dict_headers(child.pmag_data)
             #
-            if parent and (child not in parent.children):
-                parent.add_child(child)
         return child_type
 
     def get_age_info(self, filename=None):
@@ -917,9 +918,8 @@ Adding location with name: {}""".format(new_location_name, new_location_name)
 
         # fill in location being/end lat/lon if those values are not present
 
-
         if dtype == 'location':
-            d = self.get_min_max_lat_lon(item_list)
+            d = self.get_min_max_lat_lon(items_list)
             for item in items_list[:]:
                 #d = self.get_min_max_lat_lon(item.sites)
                 for header in ['location_begin_lat', 'location_begin_lon', 
