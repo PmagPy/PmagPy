@@ -496,6 +496,9 @@ You may use the drop-down menus to add as many values as needed in these columns
         # initialize all needed drop-down menus
         self.drop_down_menu = drop_down_menus.Menus("age", self, self.age_grid, None)
 
+        # re-set first column name
+        self.age_grid.SetColLabelValue(0, 'er_site_name')
+
         ### Create Buttons ###
         hbox_one = wx.BoxSizer(wx.HORIZONTAL)
         self.helpButton = wx.Button(self.panel, label="Help")
