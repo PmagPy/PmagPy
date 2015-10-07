@@ -624,7 +624,8 @@ Adding location with name: {}""".format(new_location_name, new_location_name)
                 child = child_constructor(child_name, parent_name)
             else:
                 # bind parent to child and child to parent
-                child.set_parent(parent)
+                if parent:
+                    child.set_parent(parent)
                 if parent and (child not in parent.children):
                     parent.add_child(child)
 
