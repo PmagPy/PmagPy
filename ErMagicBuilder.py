@@ -47,11 +47,9 @@ class MagIC_model_builder(wx.Frame):
         else:
             self.er_magic= ErMagic_data
 
-
         print '-I- Read in any available data from working directory'
         self.er_magic.get_all_magic_info()
 
-        
         print '-I- Initializing headers'
         self.er_magic.init_default_headers()
         self.er_magic.init_actual_headers()

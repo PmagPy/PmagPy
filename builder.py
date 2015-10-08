@@ -183,8 +183,15 @@ class ErMagicBuilder(object):
 
         self.headers['result']['er'][0], self.headers['result']['pmag'][0] = headers(self.results, self.headers['result']['er'][1], self.headers['result']['pmag'][1])
 
-    def add_measurement(self, meas_name, spec_name=None, er_data=None, pmag_data=None):
-        pass
+    def add_measurement(self, exp_name, meas_num, spec_name=None, er_data=None, pmag_data=None):
+        """
+        Find actual data object for specimen.
+        Then create a measurement belonging to that specimen and add it to the data object
+        """
+        specimen = self.find_by_name(spec_name, self.specimens)
+        measurement = Measurement(exp_name, meas_num, specimen, er_data)
+        self.measurements.append(measurement)
+        return measurement
         
     def change_specimen(self, old_spec_name, new_spec_name,
                         new_sample_name=None, new_er_data=None, new_pmag_data=None,
@@ -509,8 +516,10 @@ Adding location with name: {}""".format(new_location_name, new_location_name)
                 specimen = self.add_specimen(specimen_name, sample_name)
             exp_name = rec['magic_experiment_name']
             meas_num = rec['measurement_number']
-            measurement = Measurement(exp_name, meas_num, specimen, rec)
-            self.measurements.append(measurement)
+            
+            measurement = self.find_by_name(exp_name + '_' + str(meas_num), self.measurements)
+            if not measurement:
+                self.add_measurement(exp_name, meas_num, specimen.name, rec)
 
             # add child_items
             if sample and not self.find_by_name(specimen_name, sample.specimens):
