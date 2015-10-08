@@ -54,7 +54,7 @@ Check that all specimens belong to the correct sample
         self.grid_builder = grid_frame.GridBuilder(self.er_magic_data, 'specimen',
                                                    self.er_magic_data.headers, self.panel,
                                                    'sample')
-        self.spec_grid = self.grid_builder.make_grid()
+        self.spec_grid = self.grid_builder.make_grid(incl_pmag=False)
         self.grid = self.spec_grid
 
         self.spec_grid.InitUI()
@@ -159,7 +159,7 @@ You may use the drop-down menus to add as many values as needed in these columns
                                            self.er_magic_data.headers, self.panel,
                                            'site')
 
-        self.samp_grid = self.grid_builder.make_grid()
+        self.samp_grid = self.grid_builder.make_grid(incl_pmag=False)
         self.samp_grid.InitUI()
         self.grid_builder.add_data_to_grid(self.samp_grid, 'sample', incl_pmag=False)
         self.grid = self.samp_grid
@@ -276,7 +276,7 @@ However, you will be able to edit sample_class, sample_lithology, and sample_typ
                                self.er_magic_data.headers, self.panel,
                                'location')
 
-        self.site_grid = self.grid_builder.make_grid()
+        self.site_grid = self.grid_builder.make_grid(incl_pmag=False)
         self.site_grid.InitUI()
         self.grid_builder.add_data_to_grid(self.site_grid, 'site', incl_pmag=False)
         self.grid = self.site_grid
@@ -386,7 +386,7 @@ Fill in any blank cells using controlled vocabularies.
 
         self.grid_builder = grid_frame.GridBuilder(self.er_magic_data, 'location',
                                                    self.er_magic_data.headers, self.panel)
-        self.loc_grid = self.grid_builder.make_grid()
+        self.loc_grid = self.grid_builder.make_grid(incl_pmag=False)
         self.loc_grid.InitUI()
         self.grid_builder.add_data_to_grid(self.loc_grid, 'location', incl_pmag=False)
         self.grid = self.loc_grid
@@ -481,7 +481,7 @@ You may use the drop-down menus to add as many values as needed in these columns
 
         self.grid_builder = grid_frame.GridBuilder(self.er_magic_data, 'age',
                                                    self.er_magic_data.headers, self.panel, 'location')
-        self.age_grid = self.grid_builder.make_grid()
+        self.age_grid = self.grid_builder.make_grid(incl_pmag=False)
         self.age_grid.InitUI()
         self.grid_builder.add_data_to_grid(self.age_grid, 'age', incl_pmag=False)
         self.grid_builder.add_age_data_to_grid()

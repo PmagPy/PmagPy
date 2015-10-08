@@ -683,12 +683,16 @@ class GridBuilder(object):
         self.parent_type = parent_type
         self.grid = None
     
-    def make_grid(self):
+    def make_grid(self, incl_pmag=True):
         """
         return grid
         """
+        if incl_pmag and self.grid_type in self.er_magic.incl_pmag_data:
+            incl_pmag = True
+        else:
+            incl_pmag = False
         er_header = self.grid_headers[self.grid_type]['er'][0]
-        if self.grid_type in self.er_magic.incl_pmag_data:
+        if incl_pmag:
             pmag_header = self.grid_headers[self.grid_type]['pmag'][0]
         else:
             pmag_header = []
