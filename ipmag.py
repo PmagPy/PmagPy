@@ -1956,12 +1956,17 @@ def upload_magic(concat=0, dir_path='.'):
 
     # begin the upload process
     up = os.path.join(dir_path, "upload.txt")
-    RmKeys=['citation_label','compilation','calculation_type','average_n_lines','average_n_planes','specimen_grade','site_vgp_lat','site_vgp_lon','direction_type','specimen_Z','magic_instrument_codes','cooling_rate_corr','cooling_rate_mcd','anisotropy_atrm_alt','anisotropy_apar_perc','anisotropy_F','anisotropy_F_crit','specimen_scat','specimen_gmax','specimen_frac','site_vadm','site_lon','site_vdm','site_lat', 'measurement_chi','specimen_k_prime','external_database_names','external_database_ids']
-    print "Removing: ",RmKeys
-    CheckDec=['_dec','_lon','_azimuth','dip_direction']
-    CheckSign=['specimen_b_beta']
-    last=file_names[-1]
-    methods,first_file=[],1
+    RmKeys = ['citation_label', 'compilation', 'calculation_type', 'average_n_lines', 'average_n_planes',
+              'specimen_grade', 'site_vgp_lat', 'site_vgp_lon', 'direction_type', 'specimen_Z',
+              'magic_instrument_codes', 'cooling_rate_corr', 'cooling_rate_mcd', 'anisotropy_atrm_alt',
+              'anisotropy_apar_perc', 'anisotropy_F', 'anisotropy_F_crit', 'specimen_scat', 'specimen_gmax',
+              'specimen_frac', 'site_vadm', 'site_lon', 'site_vdm', 'site_lat', 'measurement_chi',
+              'specimen_k_prime','specimen_k_prime_sse','external_database_names','external_database_ids']
+    print "Removing: ", RmKeys
+    CheckDec = ['_dec', '_lon', '_azimuth', 'dip_direction']
+    CheckSign = ['specimen_b_beta']
+    last = file_names[-1]
+    methods, first_file = [], 1
     for File in file_names:
     # read in the data
         Data,file_type=pmag.magic_read(File)
