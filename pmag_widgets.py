@@ -587,6 +587,42 @@ class HtmlFrame(wx.Frame):
         htmlwin.LoadPage(page)
         htmlwin.Fit()
 
+class YesNoCancelDialog(wx.Dialog):
+    def __init__(self, parent, msg, title):
+        super(YesNoCancelDialog, self).__init__(parent, wx.ID_ANY, title)
+        main_sizer = wx.BoxSizer(wx.VERTICAL)
+
+        text_box = wx.StaticBoxSizer(wx.StaticBox(self, wx.ID_ANY), wx.VERTICAL)
+        text = wx.StaticText(self, label=msg)
+        text_box.Add(text)
+        
+        hbox = wx.BoxSizer(wx.HORIZONTAL)
+        btn_yes = wx.Button(self, wx.ID_ANY, label="Write and exit grid")
+        btn_no = wx.Button(self, wx.ID_ANY, label="Exit grid")
+        self.Bind(wx.EVT_BUTTON, self.on_btn_no, btn_no)
+        self.Bind(wx.EVT_BUTTON, self.on_btn_yes, btn_yes)
+        btn_cancel = wx.Button(self, wx.ID_CANCEL, label="Continue editing")
+        hbox.Add(btn_yes, flag=wx.ALIGN_CENTRE|wx.ALL, border=5)
+        hbox.Add(btn_no, flag=wx.ALIGN_CENTRE|wx.ALL, border=5)
+        hbox.Add(btn_cancel, flag=wx.ALIGN_CENTRE|wx.ALL, border=5)
+        btn_yes.SetDefault()
+
+        main_sizer.Add(text_box, flag=wx.ALIGN_CENTRE|wx.ALL, border=5)
+        main_sizer.Add(hbox, flag=wx.ALIGN_CENTRE|wx.ALL, border=5)
+        self.SetSizer(main_sizer)
+        main_sizer.Fit(self)
+        self.Centre()
+
+    def on_btn_no(self, event):
+        self.Destroy()
+        self.EndModal(wx.ID_NO)
+        #return wx.ID_NO
+
+    def on_btn_yes(self, event):
+        self.Destroy()
+        self.EndModal(wx.ID_YES)
+        
+        
 class TextDialog(wx.Dialog):
     """
     Dialog window that returns a text string provided by user on ok button

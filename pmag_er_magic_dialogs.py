@@ -737,7 +737,17 @@ You may use the drop-down menus to add as many values as needed in these columns
         del wait
 
     def on_cancelButton(self, event):
-        self.Destroy()
+
+        dlg = pw.YesNoCancelDialog(self, "Your changes so far have not been written to file.\nSave changes?", "Not so fast")
+        res = dlg.ShowModal()
+        dlg.Destroy()
+        if res == wx.ID_YES:
+            self.onSave(self.grid)
+            self.Destroy()
+        if res == wx.ID_NO:
+            self.Destroy()
+        if res == wx.ID_CANCEL:
+            pass
 
     def on_backButton(self, event, previous_dia, current_dia=None):
         wait = wx.BusyInfo("Please wait, working...")

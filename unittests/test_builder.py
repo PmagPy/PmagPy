@@ -102,7 +102,6 @@ class TestBuilder(unittest.TestCase):
         site2b.er_data['site_lat'], site2b.er_data['site_lon'] = 4, 40
         locations = [loc1, loc2, loc3]
         result_dict = self.data1.get_min_max_lat_lon(locations)
-        print 'result_dict', result_dict
         self.assertIn(loc1.name, result_dict.keys())
         self.assertIn(loc2.name, result_dict.keys())
         self.assertIn(loc3.name, result_dict.keys())
