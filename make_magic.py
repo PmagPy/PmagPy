@@ -26,10 +26,14 @@ class MainFrame(wx.Frame):
     make magic
     """
 
-    def __init__(self, WD=None, name='Main Frame'):
-        wx.GetDisplaySize()
-        wx.Frame.__init__(self, None, wx.ID_ANY, name=name)
 
+    def __init__(self, WD=None, name='Main Frame'):
+        try:
+            version= pmag.get_version()
+        except:
+            version = ""
+        title = "MakeMagIC   version: %s"%version
+        wx.Frame.__init__(self, None, wx.ID_ANY, title, name=name)
         #
         self.grid_frame = None
         self.panel = wx.Panel(self, size=wx.GetDisplaySize(), name='main panel')
@@ -301,12 +305,13 @@ Purple: invalid result child
             dlg.Destroy()
         self.edited = False
         ## add together data & coherence errors into one dictionary
-        for item_type in errors:
-            for item_name in errors[item_type]:
-                if item_name in self.warn_dict[item_type]:
-                    self.warn_dict[item_type][item_name].update(errors[item_type][item_name])
-                else:
-                    self.warn_dict[item_type][item_name] = errors[item_type][item_name]
+        if errors:
+            for item_type in errors:
+                for item_name in errors[item_type]:
+                    if item_name in self.warn_dict[item_type]:
+                        self.warn_dict[item_type][item_name].update(errors[item_type][item_name])
+                    else:
+                        self.warn_dict[item_type][item_name] = errors[item_type][item_name]
 
         has_problems = []
         for item_type, warnings in self.warn_dict.items():
