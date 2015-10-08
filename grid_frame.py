@@ -170,9 +170,10 @@ class GridFrame(wx.Frame):
 
         # a few special touches if it is a location grid
         if self.grid_type == 'location':
+            lat_lon_dict = self.er_magic.get_min_max_lat_lon(self.er_magic.locations)
             for loc in self.er_magic.locations:
                 # try to fill in min/max latitudes/longitudes from sites
-                d = self.er_magic.get_min_max_lat_lon(loc.sites)
+                d = lat_lon_dict[loc.name]
                 col_labels = [self.grid.GetColLabelValue(col) for col in xrange(self.grid.GetNumberCols())]
                 row_labels = [self.grid.GetCellValue(row, 0) for row in xrange(self.grid.GetNumberRows())]
                 for key, value in d.items():
