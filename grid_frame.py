@@ -131,9 +131,9 @@ class GridFrame(wx.Frame):
         #    self.Bind(wx.EVT_CHECKBOX, self.on_pmag_checkbox, self.pmag_checkbox.cb)
 
         hbox = wx.BoxSizer(wx.HORIZONTAL)
-        col_btn_vbox = wx.StaticBoxSizer(wx.StaticBox(self.panel, -1, label='Columns'), wx.VERTICAL)
-        row_btn_vbox = wx.StaticBoxSizer(wx.StaticBox(self.panel, -1, label='Rows'), wx.VERTICAL)
-        main_btn_vbox = wx.StaticBoxSizer(wx.StaticBox(self.panel, -1, label='Manage data'), wx.VERTICAL)
+        col_btn_vbox = wx.StaticBoxSizer(wx.StaticBox(self.panel, -1, label='Columns', name='manage columns'), wx.VERTICAL)
+        row_btn_vbox = wx.StaticBoxSizer(wx.StaticBox(self.panel, -1, label='Rows', name='manage rows'), wx.VERTICAL)
+        main_btn_vbox = wx.StaticBoxSizer(wx.StaticBox(self.panel, -1, label='Manage data', name='manage data'), wx.VERTICAL)
         col_btn_vbox.Add(self.add_cols_button, flag=wx.ALL, border=5)
         col_btn_vbox.Add(self.remove_cols_button, flag=wx.ALL, border=5)
         row_btn_vbox.Add(many_rows_box, flag=wx.ALL, border=5)
@@ -165,7 +165,7 @@ class GridFrame(wx.Frame):
             belongs_to = ''
         self.drop_down_menu = drop_down_menus.Menus(self.grid_type, self, self.grid, belongs_to)
         
-        self.grid_box = wx.StaticBoxSizer(wx.StaticBox(self.panel, -1), wx.VERTICAL)
+        self.grid_box = wx.StaticBoxSizer(wx.StaticBox(self.panel, -1, name='grid container'), wx.VERTICAL)
         self.grid_box.Add(self.grid, flag=wx.ALL, border=5)
 
         # a few special touches if it is a location grid
@@ -197,7 +197,7 @@ class GridFrame(wx.Frame):
             self.remove_row_button.Disable()
             self.add_many_rows_button.Disable()
             self.grid.SetColLabelValue(0, 'er_site_name')
-            toggle_box = wx.StaticBoxSizer(wx.StaticBox(self.panel, -1, label='Ages level'), wx.VERTICAL)
+            toggle_box = wx.StaticBoxSizer(wx.StaticBox(self.panel, -1, label='Ages level', name='Ages level'), wx.VERTICAL)
 
             levels = ['specimen', 'sample', 'site', 'location']
             age_level = pw.radio_buttons(self.panel, levels, 'Choose level to assign ages')
@@ -389,7 +389,16 @@ class GridFrame(wx.Frame):
                         self.drop_down_menu.add_drop_down(col_number, name)
                 else:
                     pw.simple_warning('You are already using column header: {}'.format(name))
+
+        # problem: if widgets above the grid are too wide,
+        # the grid does not re-size when adding columns
+        # awkward solution (causes flashing):
+        if self.grid.GetWindowStyle() != wx.DOUBLE_BORDER:
+            self.grid.SetWindowStyle(wx.DOUBLE_BORDER)
         self.main_sizer.Fit(self)
+        self.grid.SetWindowStyle(wx.NO_BORDER)
+        self.main_sizer.Fit(self)
+        #
         self.grid.changes = set(range(self.grid.GetNumberRows()))
 
 
