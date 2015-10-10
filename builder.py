@@ -944,6 +944,14 @@ Adding location with name: {}""".format(new_location_name, new_location_name)
             er_string = []
             pmag_string = []
 
+            # if item has no pmag_data at all, do not write it to pmag_file
+            do_this_pmag = True
+            temp_pmag_data = item.pmag_data.values()
+            if 'This study' in temp_pmag_data:
+                temp_pmag_data.remove('This study')
+            if not any(temp_pmag_data):
+                do_this_pmag = False
+
             if do_er:
                 er_string.append(item.name)
                 for ancestor in ancestors:
@@ -961,7 +969,7 @@ Adding location with name: {}""".format(new_location_name, new_location_name)
                 er_string = '\t'.join(er_string)
                 er_strings.append(er_string)
                 
-            if do_pmag:
+            if do_pmag and do_this_pmag:
                 pmag_string.append(item.name)
                 for ancestor in ancestors:
                     pmag_string.append(ancestor)
