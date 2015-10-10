@@ -801,6 +801,10 @@ class GridBuilder(object):
                     cell_value = item.age_data[label]
                     if cell_value:
                         self.grid.SetCellValue(row_num, col_num, cell_value)
+                    # if no age codes are available, make sure magic_method_codes are set to ''
+                    # otherwise non-age magic_method_codes can fill in here
+                    elif label == 'magic_method_codes':
+                        self.grid.SetCellValue(row_num, col_num, '')
 
 
     def save_grid_data(self):
