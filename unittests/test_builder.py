@@ -453,8 +453,8 @@ class TestSpecimen(unittest.TestCase):
 class TestSample(unittest.TestCase):
 
     def setUp(self):
-        dir_path = os.path.join(WD, 'Datafiles', 'copy_ErMagicBuilder')
-        self.data1 = builder.ErMagicBuilder(dir_path)
+        self.dir_path = os.path.join(WD, 'Datafiles', 'copy_ErMagicBuilder')
+        self.data1 = builder.ErMagicBuilder(self.dir_path)
         self.data1.get_data()
 
 
@@ -671,14 +671,29 @@ class TestSample(unittest.TestCase):
     def test_pmag_data(self):
         samp_name = 'Z35.6'
         sample = self.data1.find_by_name(samp_name, self.data1.samples)
+        samp_name2 = 'MGH1'
+        sample2 = self.data1.find_by_name(samp_name2, self.data1.samples)
         self.assertTrue(sample)
-        data = sample.pmag_data.copy()
+        self.assertTrue(sample2)
         self.assertTrue(sample.pmag_data)
+        self.assertTrue(sample2.pmag_data)
         for key in sample.pmag_data.keys():
             self.assertEqual('', sample.pmag_data[key])
+        for key in sample2.pmag_data.keys():
+            self.assertEqual('', sample.pmag_data[key])
         self.data1.get_magic_info('sample', 'site', 'pmag')
-        data2 = sample.pmag_data
-        self.assertEqual('This study', data2['er_citation_names'])
+        self.assertEqual('This study', sample.pmag_data['er_citation_names'])
+        self.assertEqual('fake_instrument_code', sample.pmag_data['magic_instrument_codes'])
+
+        magic_file = os.path.join(self.dir_path, 'pmag_samples.txt')
+        magic_name = 'er_sample_name'
+        data_dict, header, file_type = self.data1.read_magic_file(magic_file, magic_name)
+
+        # sample should have been written to pmag_sites.txt
+        # site2 should NOT (since it had no real pmag data)
+        self.assertIn(sample.name, data_dict)
+        self.assertNotIn(sample2.name, data_dict)
+
 
     def test_write_magic_file(self):
         self.data1.get_all_magic_info()
@@ -716,8 +731,8 @@ class TestSample(unittest.TestCase):
 class TestSite(unittest.TestCase):
 
     def setUp(self):
-        dir_path = os.path.join(WD, 'Datafiles', 'copy_ErMagicBuilder')
-        self.data1 = builder.ErMagicBuilder(dir_path)
+        self.dir_path = os.path.join(WD, 'Datafiles', 'copy_ErMagicBuilder')
+        self.data1 = builder.ErMagicBuilder(self.dir_path)
         self.data1.get_data()
 
 
@@ -930,14 +945,30 @@ class TestSite(unittest.TestCase):
     def test_pmag_data(self):
         site_name = 'MGH1'
         site = self.data1.find_by_name(site_name, self.data1.sites)
+        site_name2 = 'Z35.'
+        site2 = self.data1.find_by_name(site_name2, self.data1.sites)
         self.assertTrue(site)
-        data = site.pmag_data.copy()
+        self.assertTrue(site2)
         self.assertTrue(site.pmag_data)
+        self.assertTrue(site2.pmag_data)
         for key in site.pmag_data.keys():
             self.assertEqual('', site.pmag_data[key])
+        for key in site2.pmag_data.keys():
+            self.assertEqual('', site.pmag_data[key])
         self.data1.get_magic_info('site', 'location', 'pmag')
-        data2 = site.pmag_data
-        self.assertEqual('This study', data2['er_citation_names'])
+        self.assertEqual('This study', site.pmag_data['er_citation_names'])
+
+        magic_file = os.path.join(self.dir_path, 'pmag_sites.txt')
+        magic_name = 'er_site_name'
+        data_dict, header, file_type = self.data1.read_magic_file(magic_file, magic_name)
+
+        # site should have been written to pmag_sites.txt
+        # site2 should NOT (since it had no real pmag data)
+        self.assertIn(site.name, data_dict)
+        self.assertNotIn(site2.name, data_dict)
+
+
+        
 
     def test_write_magic_file(self):
         self.data1.get_all_magic_info()
