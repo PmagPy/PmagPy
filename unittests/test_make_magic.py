@@ -9,6 +9,7 @@ import os
 import make_magic
 import builder
 import grid_frame
+import pmag_widgets
 
 WD = os.getcwd()
 
@@ -221,4 +222,65 @@ class TestMakeMagicGridFrame(unittest.TestCase):
         """
         """
         self.assertTrue(self.frame.grid)
+
+class TestMakeMagicMenu(unittest.TestCase):
+
+    
+    def setUp(self):
+        self.app = wx.App()
+        #self.grid = GridFrame(self.ErMagic, self.WD, grid_type, grid_type, self.panel)
+        ErMagic = builder.ErMagicBuilder(WD)
+        ErMagic.init_default_headers()
+        ErMagic.init_actual_headers()
+        self.frame = make_magic.MainFrame(WD)
+        #self.frame = grid_frame.GridFrame(ErMagic, WD, "specimen", "specimen")
+        #self.pnl = self.frame.GetChildren()[0]
+
+    def tearDown(self):
+        #self.frame.Destroy() # this does not work and causes strange errors
+        self.app.Destroy()
+        os.chdir(WD)
+
+    def test_that_all_menus_exist(self):
+        """
+        check that all expected menus were created
+        and that each menu item is enabled
+        """
+        menu_names = ['File']
+        menus = self.frame.MenuBar.Menus
+        for menu, menu_name in menus:
+            self.assertIsInstance(menu, wx.Menu)
+            for item in menu.GetMenuItems():
+                self.assertTrue(item.IsEnabled())
+            self.assertIn(menu_name, menu_names)
+
+    def test_click_help(self):
+        """
+        Test that help HtmlFrame is created
+        """
+        menus = self.frame.MenuBar.Menus
+        fmenu, fmenu_name = menus[0]
+
+        # once you have the correct menu
+        help_id = fmenu.FindItem('Help')
+        help_item = fmenu.FindItemById(help_id)
+
+        top_windows = wx.GetTopLevelWindows()
+        self.assertEqual(1, len(top_windows))
+        
+        event = wx.CommandEvent(wx.EVT_MENU.evtType[0], help_id)
+        self.frame.GetEventHandler().ProcessEvent(event)
+
+        top_windows = wx.GetTopLevelWindows()
+        self.assertEqual(2, len(top_windows))
+
+        help_window = False
+        for window in top_windows:
+            if window.Label == 'Help Window':
+                help_window = window
+        self.assertTrue(help_window)
+        self.assertTrue(help_window.IsEnabled())
+        self.assertTrue(isinstance(help_window, pmag_widgets.HtmlFrame))
+
+
 
