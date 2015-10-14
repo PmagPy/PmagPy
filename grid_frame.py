@@ -1,16 +1,15 @@
+"""
+GridFrame -- subclass of wx.Frame.  Contains grid and buttons to manipulate it.
+GridBuilder -- data methods for GridFrame (add data to frame, save it, etc.)
+"""
+
 import wx
-#import wx.lib.buttons as buttons
-#import sys
-#import os
-#import ErMagicBuilder
 import builder
 import pmag
-#import ipmag
 import drop_down_menus
 import pmag_widgets as pw
 import magic_grid
-#import pmag_menu_dialogs
-#import validate_upload
+
 
 
 
@@ -56,7 +55,6 @@ class GridFrame(wx.Frame):
 
 
     ## Initialization functions
-    
     def InitUI(self):
         """
         initialize window
@@ -68,24 +66,27 @@ class GridFrame(wx.Frame):
         self.grid = self.grid_builder.make_grid()
         self.grid.InitUI()
 
-        self.add_cols_button = wx.Button(self.panel, label="Add additional columns", name='add_cols_btn')
+        self.add_cols_button = wx.Button(self.panel, label="Add additional columns",
+                                         name='add_cols_btn')
         self.Bind(wx.EVT_BUTTON, self.on_add_cols, self.add_cols_button)
-        self.remove_cols_button = wx.Button(self.panel, label="Remove columns", name='remove_cols_btn')
+        self.remove_cols_button = wx.Button(self.panel, label="Remove columns",
+                                            name='remove_cols_btn')
         self.Bind(wx.EVT_BUTTON, self.on_remove_cols, self.remove_cols_button)
-        self.remove_row_button = wx.Button(self.panel, label="Remove last row", name='remove_last_row_btn')
+        self.remove_row_button = wx.Button(self.panel, label="Remove last row",
+                                           name='remove_last_row_btn')
         self.Bind(wx.EVT_BUTTON, self.on_remove_row, self.remove_row_button)
         many_rows_box = wx.BoxSizer(wx.HORIZONTAL)
-        self.add_many_rows_button = wx.Button(self.panel, label="Add row(s)", name='add_many_rows_btn')
-        self.rows_spin_ctrl = wx.SpinCtrl(self.panel, value='1', initial=1, name='rows_spin_ctrl')
+        self.add_many_rows_button = wx.Button(self.panel, label="Add row(s)",
+                                              name='add_many_rows_btn')
+        self.rows_spin_ctrl = wx.SpinCtrl(self.panel, value='1', initial=1,
+                                          name='rows_spin_ctrl')
         many_rows_box.Add(self.add_many_rows_button, flag=wx.ALIGN_CENTRE)
         many_rows_box.Add(self.rows_spin_ctrl)
         self.Bind(wx.EVT_BUTTON, self.on_add_rows, self.add_many_rows_button)
 
-        #hbox_grid = pw.hbox_grid(self.panel, self.on_remove_row, self.panel.Name, self.grid)
         self.deleteRowButton = wx.Button(self.panel, id=-1, label='Delete selected row(s)', name='delete_row_btn')
         self.Bind(wx.EVT_BUTTON, lambda event: self.on_remove_row(event, False), self.deleteRowButton)
         self.deleteRowButton.Disable()
-        #self.deleteRowButton = hbox_grid.deleteRowButton
 
         self.msg_boxsizer = wx.StaticBoxSizer(wx.StaticBox(self.panel, -1, name='msg_boxsizer'), wx.VERTICAL)
         self.default_msg_text = 'Edit {} here.\nYou can add or remove both rows and columns, however required columns may not be deleted.\nControlled vocabularies are indicated by **, and will have drop-down-menus.\nTo edit all values in a column, click the column header.\nYou can cut and paste a block of cells from an Excel-like file.\nJust click the top left cell and use command "v".'.format(self.grid_type + 's')
@@ -109,31 +110,27 @@ class GridFrame(wx.Frame):
                                       style=wx.TE_CENTER, name='msg text')
         self.msg_boxsizer.Add(self.msg_text)
 
-        self.toggle_help_btn = wx.Button(self.panel, id=-1, label="Show help", name='toggle_help_btn')
+        self.toggle_help_btn = wx.Button(self.panel, id=-1, label="Show help",
+                                         name='toggle_help_btn')
         self.Bind(wx.EVT_BUTTON, self.toggle_help, self.toggle_help_btn)
         self.msg_boxsizer.ShowItems(False)
 
-        self.importButton = wx.Button(self.panel, id=-1, label='Import MagIC-format file', name='import_btn')
+        self.importButton = wx.Button(self.panel, id=-1,
+                                      label='Import MagIC-format file', name='import_btn')
         self.Bind(wx.EVT_BUTTON, self.onImport, self.importButton)
-        self.exitButton = wx.Button(self.panel, id=-1, label='Save and close grid', name='save_and_quit_btn')
+        self.exitButton = wx.Button(self.panel, id=-1,
+                                    label='Save and close grid', name='save_and_quit_btn')
         self.Bind(wx.EVT_BUTTON, self.onSave, self.exitButton)
         self.cancelButton = wx.Button(self.panel, id=-1, label='Cancel', name='cancel_btn')
         self.Bind(wx.EVT_BUTTON, self.onCancelButton, self.cancelButton)
-        #self.pmag_checkbox = pw.check_box(self.panel,
-        #                                 "Interpretations at {} level".format(self.grid_type))
-        #if self.grid_type in ('location', 'age', 'result'):
-        #    self.pmag_checkbox.cb.SetValue(False)
-        #    self.pmag_checkbox.cb.Disable()
-        #    self.pmag_checkbox.ShowItems(False)
-        #else:
-        #    if self.grid_type not in self.er_magic.no_pmag_data:
-        #        self.pmag_checkbox.cb.SetValue(True)
-        #    self.Bind(wx.EVT_CHECKBOX, self.on_pmag_checkbox, self.pmag_checkbox.cb)
 
         hbox = wx.BoxSizer(wx.HORIZONTAL)
-        col_btn_vbox = wx.StaticBoxSizer(wx.StaticBox(self.panel, -1, label='Columns', name='manage columns'), wx.VERTICAL)
-        row_btn_vbox = wx.StaticBoxSizer(wx.StaticBox(self.panel, -1, label='Rows', name='manage rows'), wx.VERTICAL)
-        main_btn_vbox = wx.StaticBoxSizer(wx.StaticBox(self.panel, -1, label='Manage data', name='manage data'), wx.VERTICAL)
+        col_btn_vbox = wx.StaticBoxSizer(wx.StaticBox(self.panel, -1, label='Columns',
+                                                      name='manage columns'), wx.VERTICAL)
+        row_btn_vbox = wx.StaticBoxSizer(wx.StaticBox(self.panel, -1, label='Rows',
+                                                      name='manage rows'), wx.VERTICAL)
+        main_btn_vbox = wx.StaticBoxSizer(wx.StaticBox(self.panel, -1, label='Manage data',
+                                                       name='manage data'), wx.VERTICAL)
         col_btn_vbox.Add(self.add_cols_button, flag=wx.ALL, border=5)
         col_btn_vbox.Add(self.remove_cols_button, flag=wx.ALL, border=5)
         row_btn_vbox.Add(many_rows_box, flag=wx.ALL, border=5)
@@ -148,13 +145,11 @@ class GridFrame(wx.Frame):
         hbox.Add(main_btn_vbox)
 
         self.panel.Bind(wx.grid.EVT_GRID_LABEL_LEFT_CLICK, self.onLeftClickLabel, self.grid)
-
         self.Bind(wx.EVT_KEY_DOWN, self.on_key_down)
         self.panel.Bind(wx.EVT_TEXT_PASTE, self.do_fit)
 
         # add actual data!
         self.grid_builder.add_data_to_grid(self.grid, self.grid_type)
-        
         if self.grid_type == 'age':
             self.grid_builder.add_age_data_to_grid()
 
@@ -253,7 +248,6 @@ class GridFrame(wx.Frame):
             # treat it as if it were a wx.EVT_TEXT_SIZE
             self.do_fit(event)
 
-        
     def do_fit(self, event):
         """
         Re-fit the window to the size of the content.
@@ -273,7 +267,7 @@ class GridFrame(wx.Frame):
             self.msg_boxsizer.ShowItems(False)
             btn.SetLabel('Show help')
         self.do_fit(None)
-        
+
     def toggle_ages(self, event):
         """
         Switch the type of grid between site/sample
@@ -307,10 +301,8 @@ class GridFrame(wx.Frame):
                 self.grid.paint_invalid_cells(self.parent.Parent.warn_dict['age'])
                 self.grid.ForceRefresh()
 
-
     def init_grid_headers(self):
         self.grid_headers = self.er_magic.headers
-
 
     ##  Grid event methods
 
@@ -319,8 +311,6 @@ class GridFrame(wx.Frame):
         check to see if column is required
         if it is not, delete it from grid
         """
-        #include_pmag = self.pmag_checkbox.cb.IsChecked()
-        #include_pmag = True
         er_possible_headers = self.grid_headers[self.grid_type]['er'][2]
         pmag_possible_headers = self.grid_headers[self.grid_type]['pmag'][2]
         er_actual_headers = self.grid_headers[self.grid_type]['er'][0]
@@ -434,7 +424,7 @@ class GridFrame(wx.Frame):
         add rows to grid
         """
         num_rows = self.rows_spin_ctrl.GetValue()
-        last_row = self.grid.GetNumberRows()
+        #last_row = self.grid.GetNumberRows()
         for row in xrange(num_rows):
             self.grid.add_row()
             #if not self.grid.changes:
@@ -448,7 +438,6 @@ class GridFrame(wx.Frame):
         Remove specified grid row.
         If no row number is given, remove the last row.
         """
-        #data_type = self.Name
         if row_num == -1:
             default = (255, 255, 255, 255)
             # unhighlight any selected rows:
@@ -615,35 +604,6 @@ class GridFrame(wx.Frame):
             else:
                 pw.simple_warning('You have imported a {} type file.\nYou\'ll need to open up your {} grid to see this data'.format(import_type, import_type))
 
-    """
-    def on_pmag_checkbox(self, event):
-
-        Called when user changes status of pmag_checkbox.
-        Removes pmag-specific columns if box is unchecked.
-        Adds in pmag-specific columns if box is checked.
-
-        num_cols = self.grid.GetNumberCols()
-        current_grid_col_labels = [self.grid.GetColLabelValue(num) for num in xrange(num_cols)]
-        do_pmag = self.pmag_checkbox.cb.IsChecked()
-        # add in pmag-specific headers
-        if do_pmag:
-            if self.grid_type in self.er_magic.no_pmag_data:
-                self.er_magic.no_pmag_data.remove(self.grid_type)
-            for col_label in self.er_magic.headers[self.grid_type]['pmag'][0]:
-                if col_label not in current_grid_col_labels:
-                    self.grid.add_col(col_label)
-        # remove pmag-specific headers
-        if not do_pmag:
-            self.er_magic.no_pmag_data.add(self.grid_type)
-            for col_label in self.er_magic.headers[self.grid_type]['pmag'][0]:
-                if col_label not in self.er_magic.headers[self.grid_type]['er'][0]:
-                    num_cols = self.grid.GetNumberCols()
-                    current_grid_col_labels = [self.grid.GetColLabelValue(num) for num in xrange(num_cols)]
-                    ind = current_grid_col_labels.index(col_label)
-                    self.grid.remove_col(ind)
-        self.main_sizer.Fit(self)
-        """
-    
     def onCancelButton(self, event):
         if self.grid.changes:
             dlg1 = wx.MessageDialog(self,caption="Message:", message="Are you sure you want to exit this grid?\nYour changes will not be saved.\n ", style=wx.OK|wx.CANCEL)
