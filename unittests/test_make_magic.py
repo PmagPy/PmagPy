@@ -23,6 +23,9 @@ class TestMainFrame(unittest.TestCase):
 
     def tearDown(self):
         #self.frame.Destroy() # this does not work and causes strange errors
+        for wind in wx.GetTopLevelWindows():
+            wind.Destroy()
+            del wind
         self.app.Destroy()
         os.chdir(WD)
 
@@ -236,8 +239,11 @@ class TestMakeMagicMenu(unittest.TestCase):
         #self.frame = grid_frame.GridFrame(ErMagic, WD, "specimen", "specimen")
         #self.pnl = self.frame.GetChildren()[0]
 
+
     def tearDown(self):
         #self.frame.Destroy() # this does not work and causes strange errors
+        for wind in wx.GetTopLevelWindows():
+            res = wind.Destroy()
         self.app.Destroy()
         os.chdir(WD)
 
@@ -266,14 +272,9 @@ class TestMakeMagicMenu(unittest.TestCase):
         help_item = fmenu.FindItemById(help_id)
 
         top_windows = wx.GetTopLevelWindows()
-        self.assertEqual(1, len(top_windows))
-        
         event = wx.CommandEvent(wx.EVT_MENU.evtType[0], help_id)
         self.frame.GetEventHandler().ProcessEvent(event)
-
         top_windows = wx.GetTopLevelWindows()
-        self.assertEqual(2, len(top_windows))
-
         help_window = False
         for window in top_windows:
             if window.Label == 'Help Window':
@@ -297,9 +298,7 @@ class TestMakeMagicMenu(unittest.TestCase):
         
         event = wx.CommandEvent(wx.EVT_MENU.evtType[0], show_id)
         self.frame.GetEventHandler().ProcessEvent(event)
-
         self.assertTrue(self.frame.IsShown())
-
 
     def test_close_grid(self):
         self.frame.grid_frame = grid_frame.GridFrame(self.ErMagic, WD, "specimen", "specimen")
