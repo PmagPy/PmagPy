@@ -76,18 +76,25 @@ class MagicGrid(wx.grid.Grid, gridlabelrenderer.GridWithLabelRenderersMixin):
                 self.add_row(item.name, item)
         self.add_data(er_data)
         if incl_pmag:
-            self.add_data(pmag_data)
+            self.add_data(pmag_data, pmag=True)
         if incl_parents:
             self.add_parents()
         
         
-    def add_data(self, data_dict):
+    def add_data(self, data_dict, pmag=False):
         # requires dict in this this format:
         # {spec_name: {}, spec2_name: {}}
         for num, row in enumerate(self.row_labels):
             if row:
                 for n, col in enumerate(self.col_labels[1:]):
-                    if col in data_dict[row].keys():
+                    ## catch pmag method codes
+                    if col == 'magic_method_codes++' and pmag:
+                        if 'magic_method_codes' in data_dict[row].keys():
+                            value = data_dict[row]['magic_method_codes']
+                    ## skip er method codes, when entering pmag data
+                    elif col == 'magic_method_codes' and pmag:
+                        continue    
+                    elif col in data_dict[row].keys():
                         value = data_dict[row][col]
                         # set defaults
                         if col == 'er_citation_names' and not value:

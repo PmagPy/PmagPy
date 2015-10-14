@@ -11,8 +11,6 @@ import pmag_widgets as pw
 import magic_grid
 
 
-
-
 class GridFrame(wx.Frame):
     """
     make_magic
@@ -139,7 +137,6 @@ class GridFrame(wx.Frame):
         main_btn_vbox.Add(self.importButton, flag=wx.ALL, border=5)
         main_btn_vbox.Add(self.exitButton, flag=wx.ALL, border=5)
         main_btn_vbox.Add(self.cancelButton, flag=wx.ALL, border=5)
-        #main_btn_vbox.Add(self.pmag_checkbox, flag=wx.ALL, border=5)
         hbox.Add(col_btn_vbox)
         hbox.Add(row_btn_vbox)
         hbox.Add(main_btn_vbox)
@@ -669,6 +666,13 @@ class GridBuilder(object):
         else:
             pmag_header = []
         header = sorted(list(set(er_header).union(pmag_header)))
+        if incl_pmag and self.grid_type in ('specimen', 'sample', 'site'):
+            try:
+                ind = header.index('magic_method_codes')
+            except IndexError:
+                ind = len(header) - 1
+            header[ind+1:ind+1] = ['magic_method_codes++']
+        
         first_headers = []
         for string in ['citation', '{}_class'.format(self.grid_type),
                        '{}_lithology'.format(self.grid_type), '{}_type'.format(self.grid_type),

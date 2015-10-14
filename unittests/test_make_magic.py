@@ -311,3 +311,58 @@ class TestMakeMagicMenu(unittest.TestCase):
 
         event = wx.CommandEvent(wx.EVT_MENU.evtType[0], close_id)
         self.frame.GetEventHandler().ProcessEvent(event)
+
+
+
+class TestMethodCodes(unittest.TestCase):
+
+    
+    def setUp(self):
+        self.app = wx.App()
+        #self.grid = GridFrame(self.ErMagic, self.WD, grid_type, grid_type, self.panel)
+        method_WD = os.path.join(os.getcwd(), 'unittests', 'examples', 'methods')
+        self.ErMagic = builder.ErMagicBuilder(method_WD)
+        self.ErMagic.init_default_headers()
+        self.ErMagic.init_actual_headers()
+        self.ErMagic.get_all_magic_info()
+        #self.frame = make_magic.MainFrame(method_WD)
+        self.frame = grid_frame.GridFrame(self.ErMagic, method_WD, "specimen", "specimen")
+        #self.pnl = self.frame.GetChildren()[0]
+
+
+
+
+    def tearDown(self):
+        #self.frame.Destroy() # this does not work and causes strange errors
+        for wind in wx.GetTopLevelWindows():
+            res = wind.Destroy()
+        self.app.Destroy()
+        os.chdir(WD)
+
+    def test_write_codes_to_grid(self):
+        spec = self.ErMagic.specimens[0]
+        self.assertEqual('er_method_codes', spec.er_data['magic_method_codes'])
+        self.assertEqual('pmag_method_codes', spec.pmag_data['magic_method_codes'])
+        self.assertIn('magic_method_codes', self.frame.grid.col_labels)
+        self.assertIn('magic_method_codes++', self.frame.grid.col_labels)
+
+        col_ind = self.frame.grid.col_labels.index('magic_method_codes')
+        cell_value = self.frame.grid.GetCellValue(0, col_ind)
+        self.assertEqual(cell_value, 'er_method_codes')
+
+        col_ind = self.frame.grid.col_labels.index('magic_method_codes++')
+        cell_value = self.frame.grid.GetCellValue(0, col_ind)
+        self.assertEqual(cell_value, 'pmag_method_codes')
+
+    def test_without_codes(self):
+        other_WD = os.path.join(os.getcwd(), 'unittests', 'examples', 'my_project')
+        self.other_er_magic = builder.ErMagicBuilder(other_WD)
+        self.other_er_magic.init_default_headers()
+        self.other_er_magic.init_actual_headers()
+        self.other_er_magic.get_all_magic_info()
+        #self.frame = make_magic.MainFrame(method_WD)
+        self.other_frame = grid_frame.GridFrame(self.other_er_magic, other_WD,
+                                                "specimen", "specimen")
+        spec = self.other_er_magic.specimens[0]
+        self.assertNotIn('magic_method_codes', self.other_frame.grid.col_labels)
+        self.assertNotIn('magic_method_codes++', self.other_frame.grid.col_labels)
