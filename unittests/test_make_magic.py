@@ -229,9 +229,9 @@ class TestMakeMagicMenu(unittest.TestCase):
     def setUp(self):
         self.app = wx.App()
         #self.grid = GridFrame(self.ErMagic, self.WD, grid_type, grid_type, self.panel)
-        ErMagic = builder.ErMagicBuilder(WD)
-        ErMagic.init_default_headers()
-        ErMagic.init_actual_headers()
+        self.ErMagic = builder.ErMagicBuilder(WD)
+        self.ErMagic.init_default_headers()
+        self.ErMagic.init_actual_headers()
         self.frame = make_magic.MainFrame(WD)
         #self.frame = grid_frame.GridFrame(ErMagic, WD, "specimen", "specimen")
         #self.pnl = self.frame.GetChildren()[0]
@@ -280,7 +280,35 @@ class TestMakeMagicMenu(unittest.TestCase):
                 help_window = window
         self.assertTrue(help_window)
         self.assertTrue(help_window.IsEnabled())
+        file_name = os.path.split(help_window.page)[1]
+        self.assertEqual('make_magic.html', file_name)
         self.assertTrue(isinstance(help_window, pmag_widgets.HtmlFrame))
 
+    def test_show_mainframe(self):
+        menus = self.frame.MenuBar.Menus
+        fmenu, fmenu_name = menus[0]
+
+        # once you have the correct menu
+        show_id = fmenu.FindItem('Show main window')
+        show_item = fmenu.FindItemById(show_id)
+
+        self.frame.Hide()
+        self.assertFalse(self.frame.IsShown())
+        
+        event = wx.CommandEvent(wx.EVT_MENU.evtType[0], show_id)
+        self.frame.GetEventHandler().ProcessEvent(event)
+
+        self.assertTrue(self.frame.IsShown())
 
 
+    def test_close_grid(self):
+        self.frame.grid_frame = grid_frame.GridFrame(self.ErMagic, WD, "specimen", "specimen")
+        self.assertTrue(self.frame.grid_frame.IsShown())
+        menus = self.frame.MenuBar.Menus
+        fmenu, fmenu_name = menus[0]
+        # once you have the correct menu
+        close_id = fmenu.FindItem('Close current grid')
+        close_item = fmenu.FindItemById(close_id)
+
+        event = wx.CommandEvent(wx.EVT_MENU.evtType[0], close_id)
+        self.frame.GetEventHandler().ProcessEvent(event)

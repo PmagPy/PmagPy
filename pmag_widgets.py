@@ -582,9 +582,9 @@ class HtmlFrame(wx.Frame):
     """ This window displays a HtmlWindow """
     def __init__(self, *args, **kwargs):
         wx.Frame.__init__(self, None, wx.ID_ANY, title="Help Window", size=(600, 400))
-        page = kwargs.get('page', 'http://earthref.org/MAGIC/shortlists/')
+        self.page = kwargs.get('page', 'http://earthref.org/MAGIC/shortlists/')
         htmlwin = LinkEnabledHtmlWindow(self)
-        htmlwin.LoadPage(page)
+        htmlwin.LoadPage(self.page)
         htmlwin.Fit()
 
 class YesNoCancelDialog(wx.Dialog):
