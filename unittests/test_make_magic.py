@@ -354,6 +354,20 @@ class TestMethodCodes(unittest.TestCase):
         cell_value = self.frame.grid.GetCellValue(0, col_ind)
         self.assertEqual(cell_value, 'pmag_method_codes')
 
+    def test_save_codes(self):
+        spec = self.ErMagic.specimens[0]
+        col_ind = self.frame.grid.col_labels.index('magic_method_codes')
+        self.frame.grid.SetCellValue(0, col_ind, 'new_er_code')
+        col_ind = self.frame.grid.col_labels.index('magic_method_codes++')
+        self.frame.grid.SetCellValue(0, col_ind, 'new_pmag_code')
+        self.assertEqual('er_method_codes', spec.er_data['magic_method_codes'])
+        self.assertEqual('pmag_method_codes', spec.pmag_data['magic_method_codes'])
+        self.frame.grid.changes = set([0])
+        self.frame.onSave(None)
+        self.assertEqual('new_er_code', spec.er_data['magic_method_codes'])
+        self.assertEqual('new_pmag_code', spec.pmag_data['magic_method_codes'])
+
+
     def test_without_codes(self):
         other_WD = os.path.join(os.getcwd(), 'unittests', 'examples', 'my_project')
         self.other_er_magic = builder.ErMagicBuilder(other_WD)

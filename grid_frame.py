@@ -814,6 +814,16 @@ class GridBuilder(object):
                         #new_data[col_label] = value
                         if value == '\t':
                             value = ''
+
+                        if col_label == 'magic_method_codes++':
+                            #value = 'this is a pmag code'
+                            new_pmag_data['magic_method_codes'] = value
+                            continue
+                        elif col_label == 'magic_method_codes':
+                            #value = 'this is an er code'
+                            new_er_data['magic_method_codes'] = value
+                            continue
+                            
                         if er_header and col_label in er_header:
                             new_er_data[col_label] = value
 

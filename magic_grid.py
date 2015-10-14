@@ -74,7 +74,7 @@ class MagicGrid(wx.grid.Grid, gridlabelrenderer.GridWithLabelRenderersMixin):
                 pass
             else:
                 self.add_row(item.name, item)
-        self.add_data(er_data)
+        self.add_data(er_data)#, pmag=False)
         if incl_pmag:
             self.add_data(pmag_data, pmag=True)
         if incl_parents:
