@@ -220,11 +220,22 @@ class TestMakeMagicGridFrame(unittest.TestCase):
         self.app.Destroy()
         os.chdir(WD)
 
-
     def test_grid_is_created(self):
         """
         """
         self.assertTrue(self.frame.grid)
+
+    @unittest.skip('This test calls ShowModal and stops everything')
+    def test_add_cols(self):
+
+        #event = wx.CommandEvent(wx.EVT_MENU.evtType[0], help_id)
+        #self.frame.GetEventHandler().ProcessEvent(event)
+        btn_id = self.frame.add_cols_button.Id
+        
+        event = wx.CommandEvent(wx.EVT_BUTTON.evtType[0], btn_id)
+        self.frame.GetEventHandler().ProcessEvent(event)
+        # oh, this sucks.  showmodal and all that
+
 
 class TestMakeMagicMenu(unittest.TestCase):
 
@@ -320,17 +331,14 @@ class TestMethodCodes(unittest.TestCase):
     def setUp(self):
         self.app = wx.App()
         #self.grid = GridFrame(self.ErMagic, self.WD, grid_type, grid_type, self.panel)
-        method_WD = os.path.join(os.getcwd(), 'unittests', 'examples', 'methods')
-        self.ErMagic = builder.ErMagicBuilder(method_WD)
+        self.method_WD = os.path.join(os.getcwd(), 'unittests', 'examples', 'methods')
+        self.ErMagic = builder.ErMagicBuilder(self.method_WD)
         self.ErMagic.init_default_headers()
         self.ErMagic.init_actual_headers()
         self.ErMagic.get_all_magic_info()
-        #self.frame = make_magic.MainFrame(method_WD)
-        self.frame = grid_frame.GridFrame(self.ErMagic, method_WD, "specimen", "specimen")
+        #self.frame = make_magic.MainFrame(self.method_WD)
+        self.frame = grid_frame.GridFrame(self.ErMagic, self.method_WD, "specimen", "specimen")
         #self.pnl = self.frame.GetChildren()[0]
-
-
-
 
     def tearDown(self):
         #self.frame.Destroy() # this does not work and causes strange errors
@@ -374,9 +382,34 @@ class TestMethodCodes(unittest.TestCase):
         self.other_er_magic.init_default_headers()
         self.other_er_magic.init_actual_headers()
         self.other_er_magic.get_all_magic_info()
-        #self.frame = make_magic.MainFrame(method_WD)
+        #self.frame = make_magic.MainFrame(self.method_WD)
         self.other_frame = grid_frame.GridFrame(self.other_er_magic, other_WD,
                                                 "specimen", "specimen")
         spec = self.other_er_magic.specimens[0]
         self.assertNotIn('magic_method_codes', self.other_frame.grid.col_labels)
         self.assertNotIn('magic_method_codes++', self.other_frame.grid.col_labels)
+
+    def test_codes_with_result_grid(self):
+        # create empty result grid
+        self.frame = grid_frame.GridFrame(self.ErMagic, self.method_WD, "result", "result")
+        self.assertFalse(any(self.ErMagic.results))
+        col_labels = [self.frame.grid.GetColLabelValue(col) for col in range(self.frame.grid.GetNumberCols())]
+        method_col = col_labels.index('magic_method_codes')
+        # fill in name and method codes for one result
+        self.frame.grid.SetCellValue(0, 0, 'result1')
+        self.frame.grid.SetCellValue(0, method_col, 'code1')
+        self.frame.grid.changes = set([0])
+        # save changes
+        self.frame.onSave(None)
+        # there should be a result in the data object, now, with a method code
+        res = self.ErMagic.results[0]
+        self.assertTrue(any(self.ErMagic.results))
+        self.assertEqual('code1', res.pmag_data['magic_method_codes'])
+        # make a result grid with that one result
+        self.new_frame = grid_frame.GridFrame(self.ErMagic, self.method_WD, "result", "result")
+        # test that the result (and method codes) are written to the new grid
+        self.assertEqual('result1', self.new_frame.grid.GetCellValue(0, 0))
+        self.assertEqual('code1', self.new_frame.grid.GetCellValue(0, method_col))
+
+
+

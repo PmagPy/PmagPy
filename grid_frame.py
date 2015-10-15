@@ -816,12 +816,14 @@ class GridBuilder(object):
                             value = ''
 
                         if col_label == 'magic_method_codes++':
-                            #value = 'this is a pmag code'
                             new_pmag_data['magic_method_codes'] = value
                             continue
                         elif col_label == 'magic_method_codes':
-                            #value = 'this is an er code'
-                            new_er_data['magic_method_codes'] = value
+                            if self.grid_type in ('result'):
+                                new_pmag_data['magic_method_codes'] = value
+                                print 'new_pmag_data', new_pmag_data
+                            else:
+                                new_er_data['magic_method_codes'] = value
                             continue
                             
                         if er_header and col_label in er_header:

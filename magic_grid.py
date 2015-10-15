@@ -91,9 +91,11 @@ class MagicGrid(wx.grid.Grid, gridlabelrenderer.GridWithLabelRenderersMixin):
                     if col == 'magic_method_codes++' and pmag:
                         if 'magic_method_codes' in data_dict[row].keys():
                             value = data_dict[row]['magic_method_codes']
+                    elif col == 'magic_method_codes' and pmag and self.name == 'result':
+                        value = data_dict[row]['magic_method_codes']
                     ## skip er method codes, when entering pmag data
                     elif col == 'magic_method_codes' and pmag:
-                        continue    
+                        continue
                     elif col in data_dict[row].keys():
                         value = data_dict[row][col]
                         # set defaults
