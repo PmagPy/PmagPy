@@ -1828,26 +1828,7 @@ class Zeq_GUI(wx.Frame):
             new_string=self.Data_hierarchy['location_of_specimen'][self.s]
         self.level_names.SetValue(new_string)
 
-        #--------------------------
-        # check if specimen's interpretation is saved 
-        #--------------------------
-        if self.s in self.pmag_results_data['specimens'].keys():
-
-            if self.current_fit:
-                tmin = self.current_fit.tmin
-                tmax = self.current_fit.tmax
-                calculation_type=self.current_fit.PCA_type
-            else:
-                calculation_type=self.PCA_type_box.GetValue()
-                PCA_type = "None"
-
-            # update calculation type windows
-            if calculation_type=="DE-BFL": PCA_type="line"
-            elif calculation_type=="DE-BFL-A": PCA_type="line-anchored"
-            elif calculation_type=="DE-BFL-O": PCA_type="line-with-origin"
-            elif calculation_type=="DE-FM": PCA_type="Fisher"
-            elif calculation_type=="DE-BFP": PCA_type="plane"
-            self.PCA_type_box.SetStringSelection(PCA_type)
+        self.update_PCA_box()
 
         if self.current_fit:
             self.draw_figure(self.s,False)
@@ -1898,7 +1879,25 @@ class Zeq_GUI(wx.Frame):
             if type(self.current_fit.tmin)==str and type(self.current_fit.tmax)==str:
                 self.tmin_box.SetStringSelection(self.current_fit.tmin)
                 self.tmax_box.SetStringSelection(self.current_fit.tmax)
-            
+
+    def update_PCA_box(self):
+        if self.s in self.pmag_results_data['specimens'].keys():
+
+            if self.current_fit:
+                tmin = self.current_fit.tmin
+                tmax = self.current_fit.tmax
+                calculation_type=self.current_fit.PCA_type
+            else:
+                calculation_type=self.PCA_type_box.GetValue()
+                PCA_type = "None"
+
+            # update calculation type windows
+            if calculation_type=="DE-BFL": PCA_type="line"
+            elif calculation_type=="DE-BFL-A": PCA_type="line-anchored"
+            elif calculation_type=="DE-BFL-O": PCA_type="line-with-origin"
+            elif calculation_type=="DE-FM": PCA_type="Fisher"
+            elif calculation_type=="DE-BFP": PCA_type="plane"
+            self.PCA_type_box.SetStringSelection(PCA_type)
 
 
     def get_DIR(self, WD=None):
@@ -2279,12 +2278,19 @@ class Zeq_GUI(wx.Frame):
                     self.zijplot.lines.remove(line)
 
             PCA_type=fit.PCA_type
-            
+
             tmin_index,tmax_index = self.get_temp_indecies(fit);
-            
+
             marker_shape = 'o'
+            SIZE = 30
+            if fit in self.bad_fits:
+                marker_shape = (4,1,0)
+                SIZE=25*self.GUI_RESOLUTION
             if fit == self.current_fit:
                 marker_shape = 'D'
+                if fit in self.bad_fits:
+                    marker_shape = (4,1,45)
+                    SIZE=25*self.GUI_RESOLUTION
 
             # Zijderveld plot
                                 
@@ -2375,7 +2381,7 @@ class Zeq_GUI(wx.Frame):
                     FC=fit.color;EC='0.1'
                 else:
                     FC=fit.color;EC='green'
-                self.specimen_eqarea_interpretation.scatter([eqarea_x],[eqarea_y],marker=marker_shape,edgecolor=EC, facecolor=FC,s=30,lw=1,clip_on=False)
+                self.specimen_eqarea_interpretation.scatter([eqarea_x],[eqarea_y],marker=marker_shape,edgecolor=EC, facecolor=FC,s=SIZE,lw=1,clip_on=False)
                 self.specimen_eqarea_interpretation.set_xlim(-1., 1.)
                 self.specimen_eqarea_interpretation.set_ylim(-1., 1.)
                 self.specimen_eqarea_interpretation.axes.set_aspect('equal')
@@ -2859,6 +2865,7 @@ class Zeq_GUI(wx.Frame):
        self.high_level_eqarea.axis('off')
        self.canvas4.draw()
        if self.interpertation_editor_open:
+           self.update_higher_level_stats()
            self.interpertation_editor.update_editor(False)
 
     def plot_higher_level_equalarea(self,specimen): #BLARGE
@@ -3048,7 +3055,7 @@ class Zeq_GUI(wx.Frame):
                 #pylab.draw()
                 #else: 
                 #    return PTS
-                
+
         fig.set_xlim(xmin, xmax)
         fig.set_ylim(ymin, ymax)    
 
@@ -3057,47 +3064,44 @@ class Zeq_GUI(wx.Frame):
         FONT_RATIO=self.GUI_RESOLUTION+(self.GUI_RESOLUTION-1)*5
         font2 = wx.Font(12+min(1,FONT_RATIO), wx.SWISS, wx.NORMAL, wx.NORMAL, False, u'Arial')
 #        self.high_level_text_box.SetFont(font2)
-        if mpars["calculation_type"]=='Fisher' and "alpha95" in mpars.keys():
-            String="Fisher statistics:\n"
-            String=String+"dec"+": "+"%.1f\n"%float(mpars['dec'])
-            String=String+"inc"+": "+"%.1f\n"%float(mpars['inc'])
-            String=String+"alpha95"+": "+"%.1f\n"%float(mpars['alpha95'])
-            String=String+"K"+": "+"%.1f\n"%float(mpars['K'])
-            String=String+"R"+": "+"%.4f\n"%float(mpars['R'])
-            String=String+"n_lines"+": "+"%.0f\n"%float(mpars['n_lines'])
-            String=String+"n_planes"+": "+"%.0f\n"%float(mpars['n_planes'])
-#            self.high_level_text_box.AppendText(String)
+        if self.interpertation_editor_open:
+            ie = self.interpertation_editor
+            if mpars["calculation_type"]=='Fisher' and "alpha95" in mpars.keys():
+#                ie.dec_window.SetStringSelection(str(mpars['dec']))
+                for val in ['dec','inc','alpha95','K','R','n_lines','n_planes']:
+                    COMMAND = """ie.%s_window.SetValue(str(mpars['%s']))"""%(val,val)
+                    exec COMMAND
 
-        if mpars["calculation_type"]=='Fisher by polarity':
-            for mode in ['A','B','All']:
-                if mode not in mpars.keys():
-                    continue
-                if mpars[mode]=={}:
-                    continue
-                String="Fisher statistics [%s]:\n"%mode
-                String=String+"dec"+": "+"%.1f\n"%float(mpars[mode]['dec'])
-                String=String+"inc"+": "+"%.1f\n"%float(mpars[mode]['inc'])
-                String=String+"alpha95"+": "+"%.1f\n"%float(mpars[mode]['alpha95'])
-                String=String+"N"+": "+"%.0f\n"%float(mpars[mode]['n'])
-                String=String+"K"+": "+"%.1f\n"%float(mpars[mode]['k'])
-                String=String+"R"+": "+"%.4f\n"%float(mpars[mode]['r'])
-#                self.high_level_text_box.AppendText(String)
-                
-                                
-        if mpars["calculation_type"]=='Bingham':
-            String="Bingham statistics:\n"
-#            self.high_level_text_box.AppendText(String)
-            String=""
-            String=String+"dec"+": "+"%.1f\n"%float(mpars['dec'])
-            String=String+"inc"+": "+"%.1f\n"%float(mpars['inc'])
-            String=String+"n"+": "+"%.0f\n"%float(mpars['n'])
-            String=String+"Zdec"+": "+"%.0f\n"%float(mpars['Zdec'])
-            String=String+"Zinc"+": "+"%.1f\n"%float(mpars['Zinc'])
-            String=String+"Zeta"+": "+"%.4f\n"%float(mpars['Zeta'])
-            String=String+"Edec"+": "+"%.0f\n"%float(mpars['Edec'])
-            String=String+"Einc"+": "+"%.1f\n"%float(mpars['Einc'])
-            String=String+"Eta"+": "+"%.1f\n"%float(mpars['Eta'])
-#            self.high_level_text_box.AppendText(String)
+            if mpars["calculation_type"]=='Fisher by polarity':
+                for mode in ['A','B','All']:
+                    if mode not in mpars.keys():
+                        continue
+                    if mpars[mode]=={}:
+                        continue
+                    String="Fisher statistics [%s]:\n"%mode
+                    String=String+"dec"+": "+"%.1f\n"%float(mpars[mode]['dec'])
+                    String=String+"inc"+": "+"%.1f\n"%float(mpars[mode]['inc'])
+                    String=String+"alpha95"+": "+"%.1f\n"%float(mpars[mode]['alpha95'])
+                    String=String+"N"+": "+"%.0f\n"%float(mpars[mode]['n'])
+                    String=String+"K"+": "+"%.1f\n"%float(mpars[mode]['k'])
+                    String=String+"R"+": "+"%.4f\n"%float(mpars[mode]['r'])
+    #                self.high_level_text_box.AppendText(String)
+                    
+                                    
+            if mpars["calculation_type"]=='Bingham':
+                String="Bingham statistics:\n"
+    #            self.high_level_text_box.AppendText(String)
+                String=""
+                String=String+"dec"+": "+"%.1f\n"%float(mpars['dec'])
+                String=String+"inc"+": "+"%.1f\n"%float(mpars['inc'])
+                String=String+"n"+": "+"%.0f\n"%float(mpars['n'])
+                String=String+"Zdec"+": "+"%.0f\n"%float(mpars['Zdec'])
+                String=String+"Zinc"+": "+"%.1f\n"%float(mpars['Zinc'])
+                String=String+"Zeta"+": "+"%.4f\n"%float(mpars['Zeta'])
+                String=String+"Edec"+": "+"%.0f\n"%float(mpars['Edec'])
+                String=String+"Einc"+": "+"%.1f\n"%float(mpars['Einc'])
+                String=String+"Eta"+": "+"%.1f\n"%float(mpars['Eta'])
+    #            self.high_level_text_box.AppendText(String)
 
     #def initialize_acceptence_criteria (self):
     #    self.acceptance_criteria={}
@@ -5879,6 +5883,8 @@ class Fit():
         self.GUI.current_fit = self
         if self.tmax != None and self.tmin != None:
             self.GUI.update_temp_boxes()
+        if self.PCA_type != None:
+            self.GUI.update_PCA_box()
         try: self.GUI.zijplot
         except AttributeError: self.GUI.draw_figure(self.GUI.s)
         self.GUI.fit_box.SetStringSelection(self.name)
