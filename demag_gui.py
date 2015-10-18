@@ -163,6 +163,7 @@ class Zeq_GUI(wx.Frame):
 
         #BLARGE
         self.interpertation_editor_open = False
+        self.color_dict = {'green':'g','yellow':'y','maroon':'m','cyan':'c','black':'k','brown':(139./255.,69./255.,19./255.),'orange':(255./255.,127./255.,0./255.),'pink':(255./255.,20./255.,147./255.),'violet':(153./255.,50./255.,204./255.),'grey':(84./255.,84./255.,84./255.)}
         self.colors = ['g','y','m','c','k',(139./255.,69./255.,19./255.),(255./255.,127./255.,0./255.),(255./255.,20./255.,147./255.),(153./255.,50./255.,204./255.),(84./255.,84./255.,84./255.)] #for fits
         self.current_fit = None
         self.dirtypes = ['DA-DIR','DA-DIR-GEO','DA-DIR-TILT']
@@ -1724,6 +1725,7 @@ class Zeq_GUI(wx.Frame):
                 fit.put(specimen,self.COORDINATE_SYSTEM,self.get_PCA_parameters(specimen,fit.tmin,fit.tmax,self.COORDINATE_SYSTEM,fit.PCA_type))
 
         if self.interpertation_editor_open:
+            self.interpertation_editor.coordinates_box.SetStringSelection(new)
             self.interpertation_editor.update_editor(True)
         self.update_selection()
     #----------------------------------------------------------------------
@@ -2892,6 +2894,7 @@ class Zeq_GUI(wx.Frame):
         if fits:
             for fit in fits:
                 pars = fit.get(self.COORDINATE_SYSTEM)
+                if not pars: print('no parameters to plot for: ' + fit.name); return
                 if "specimen_dec" in pars.keys() and "specimen_inc" in pars.keys():
                     dec=pars["specimen_dec"];inc=pars["specimen_inc"]
                 elif "dec" in pars.keys() and "inc" in pars.keys():
@@ -3067,7 +3070,6 @@ class Zeq_GUI(wx.Frame):
         if self.interpertation_editor_open:
             ie = self.interpertation_editor
             if mpars["calculation_type"]=='Fisher' and "alpha95" in mpars.keys():
-#                ie.dec_window.SetStringSelection(str(mpars['dec']))
                 for val in ['dec','inc','alpha95','K','R','n_lines','n_planes']:
                     COMMAND = """ie.%s_window.SetValue(str(mpars['%s']))"""%(val,val)
                     exec COMMAND
@@ -3577,11 +3579,17 @@ class Zeq_GUI(wx.Frame):
             self.s = specimen
 
             #if interpertation doesn't exsist create it.
-            if 'specimen_comp_name' in rec.keys() and rec['specimen_comp_name'] not in map(lambda x: x.name, self.pmag_results_data['specimens'][specimen]):
+            if 'specimen_comp_name' in rec.keys() and rec['specimen_comp_name'].split(':')[0] not in map(lambda x: x.name, self.pmag_results_data['specimens'][specimen]):
                 next_fit = str(len(self.pmag_results_data['specimens'][self.s]) + 1)
-                self.pmag_results_data['specimens'][self.s].append(Fit('Fit ' + next_fit, None, None, self.colors[(int(next_fit)-1) % len(self.colors)], self))
+                if ':' in rec['specimen_comp_name']:
+                    name = rec['specimen_comp_name'].split(':')[0]
+                    color = rec['specimen_comp_name'].split(':')[1]
+                    if ',' in color:
+                        color = map(float,color.strip('( ) [ ]').split(','))
+                else: color = self.colors[(int(next_fit)-1) % len(self.colors)]
+                self.pmag_results_data['specimens'][self.s].append(Fit('Fit ' + next_fit, None, None, color, self))
                 fit = self.pmag_results_data['specimens'][specimen][-1]
-                fit.name = rec['specimen_comp_name']
+                fit.name = name
             else:
                 fit = None
 
@@ -4255,6 +4263,8 @@ class Zeq_GUI(wx.Frame):
                     next_fit = str(len(self.pmag_results_data['specimens'][self.s]) + 1)
                     try: color = line[5]
                     except IndexError: color = self.colors[(int(next_fit)-1) % len(self.colors)]
+                    if ',' in color:
+                        color = map(float,color.strip('( ) [ ]').split(','))
                     self.pmag_results_data['specimens'][self.s].append(Fit('Fit ' + next_fit, None, None, color, self))
                 fit = self.pmag_results_data['specimens'][specimen][fit_index];
                 fit.name = line[4]
@@ -4524,10 +4534,7 @@ class Zeq_GUI(wx.Frame):
         #---------------------------------------
         # save pmag_*.txt.tmp without directional data           
         #---------------------------------------
-        try:
-            self.on_menu_save_interpretation(None)
-        except:
-            pass    
+        self.on_menu_save_interpretation(None)
 
         #---------------------------------------
         # dialog box to choose coordinate systems for pmag_specimens.txt           
@@ -4537,7 +4544,6 @@ class Zeq_GUI(wx.Frame):
 
         CoorTypes=['DA-DIR','DA-DIR-GEO','DA-DIR-TILT']
         if dia.ShowModal() == wx.ID_OK: # Until the user clicks OK, show the message 
-              
             CoorTypes=[]
             if dia.cb_spec_coor.GetValue()==True:
                 CoorTypes.append('DA-DIR')
@@ -4570,7 +4576,7 @@ class Zeq_GUI(wx.Frame):
         #---------------------------------------
         # write a new pmag_specimens.txt       
         #---------------------------------------  
-        
+
         specimens_list=self.pmag_results_data['specimens'].keys()
         specimens_list.sort()
         PmagSpecs=[]
@@ -4580,8 +4586,10 @@ class Zeq_GUI(wx.Frame):
                 for fit in self.pmag_results_data['specimens'][specimen]:
 
                     mpars = fit.get(dirtype)
-                    if not mpars: continue
-                    
+                    if not mpars:
+                        mpars = self.get_PCA_parameters(specimen,fit.tmin,fit.tmax,dirtype,fit.PCA_type)
+                        if not mpars: continue
+
                     PmagSpecRec={}
                     user="" # Todo
                     PmagSpecRec["er_analyst_mail_names"]=user
@@ -4637,7 +4645,7 @@ class Zeq_GUI(wx.Frame):
                     calculation_type=mpars['calculation_type']
                     PmagSpecRec["magic_method_codes"]=self.Data[specimen]['magic_method_codes']+":"+calculation_type+":"+dirtype
                     PmagSpecRec["specimen_comp_n"] = str(len(self.pmag_results_data["specimens"][specimen]))
-                    PmagSpecRec["specimen_comp_name"] = fit.name
+                    PmagSpecRec["specimen_comp_name"] = fit.name + ':' + str(fit.color)
                     if fit in self.bad_fits:
                         PmagSpecRec["specimen_flag"] = "b"
                     else:
@@ -4952,21 +4960,23 @@ class Zeq_GUI(wx.Frame):
                max_index-1 > 0):
             max_index -= 1
 
-        while (self.Data[specimen]['measurement_flag'][tmin_index] == 'b' and \
-               tmin_index+1 < len(self.Data[specimen]['zijdblock_steps'])):
-            if (self.Data[specimen]['zijdblock_steps'][tmin_index+1] == tmin):
-                tmin_index += 1
-            else:
-                print("No good measurement steps with value - " + tmin)
-                break
+        if (tmin_index < 0):
+            while (self.Data[specimen]['measurement_flag'][tmin_index] == 'b' and \
+                   tmin_index+1 < len(self.Data[specimen]['zijdblock_steps'])):
+                if (self.Data[specimen]['zijdblock_steps'][tmin_index+1] == tmin):
+                    tmin_index += 1
+                else:
+                    print("No good measurement steps with value - " + tmin)
+                    break
 
-        while (self.Data[specimen]['measurement_flag'][tmax_index] == 'b' and \
-               tmax_index+1 < len(self.Data[specimen]['zijdblock_steps'])):
-            if (self.Data[specimen]['zijdblock_steps'][tmax_index+1] == tmax):
-                tmax_index += 1
-            else:
-                print("No good measurement steps with value - " + tmax)
-                break
+        if (tmax_index < max_index):
+            while (self.Data[specimen]['measurement_flag'][tmax_index] == 'b' and \
+                   tmax_index+1 < len(self.Data[specimen]['zijdblock_steps'])):
+                if (self.Data[specimen]['zijdblock_steps'][tmax_index+1] == tmax):
+                    tmax_index += 1
+                else:
+                    print("No good measurement steps with value - " + tmax)
+                    break
 
         if (tmin_index < 0): tmin_index = 0
         if (tmax_index > max_index): tmax_index = max_index
@@ -5003,8 +5013,12 @@ class Zeq_GUI(wx.Frame):
         """
         if self.current_fit == None:
             self.add_fit(event)
-        if self.fit_box.GetValue() in map(lambda x: x.name, self.pmag_results_data['specimens'][self.s]): print('bad name'); return
-        self.current_fit.name = self.fit_box.GetValue()
+        value = self.fit_box.GetValue()
+        if ':' in value: name,color = value.split(':')
+        else: name,color = value,None
+        if name in map(lambda x: x.name, self.pmag_results_data['specimens'][self.s]): print('bad name'); return
+        self.current_fit.name = name
+        if color in self.color_dict.keys(): self.current_fit.color = self.color_dict[color]
         self.update_fit_boxs()
         self.plot_higher_levels_data()
 
@@ -5281,7 +5295,7 @@ class EditFitFrame(wx.Frame):
         self.Bind(wx.EVT_COMBOBOX, self.on_select_show_box,self.show_box)
 
         #coordinates box
-        self.coordinates_box = wx.ComboBox(self.panel, -1, size=(100*self.GUI_RESOLUTION, 25), choices=self.parent.coordinate_list, value='specimen', style=wx.CB_DROPDOWN, name="coordinates")
+        self.coordinates_box = wx.ComboBox(self.panel, -1, size=(100*self.GUI_RESOLUTION, 25), choices=self.parent.coordinate_list, value=self.parent.coordinates_box.GetValue(), style=wx.CB_DROPDOWN, name="coordinates")
         self.Bind(wx.EVT_COMBOBOX, self.on_select_coordinates,self.coordinates_box)
 
         #bounds select boxes
@@ -5290,7 +5304,7 @@ class EditFitFrame(wx.Frame):
         self.tmax_box = wx.ComboBox(self.panel, -1, size=(80*self.GUI_RESOLUTION, 25), choices=[''] + self.parent.T_list, style=wx.CB_DROPDOWN, name="upper bound")
 
         #color box
-        self.color_dict = {'green':'g','yellow':'y','maroon':'m','cyan':'c','black':'k','brown':(139./255.,69./255.,19./255.),'orange':(255./255.,127./255.,0./255.),'pink':(255./255.,20./255.,147./255.),'violet':(153./255.,50./255.,204./255.),'grey':(84./255.,84./255.,84./255.)}
+        self.color_dict = self.parent.color_dict
         self.color_box = wx.ComboBox(self.panel, -1, size=(80*self.GUI_RESOLUTION, 25), choices=[''] + self.color_dict.keys(), style=wx.TE_PROCESS_ENTER, name="color")
         self.Bind(wx.EVT_TEXT_ENTER, self.add_new_color, self.color_box)
 
@@ -5435,7 +5449,7 @@ class EditFitFrame(wx.Frame):
         
         fit = tup[0]
         pars = fit.get(self.parent.COORDINATE_SYSTEM)
-        tmin,tmax,dec,inc,n,mad,dang,a95 = "","","","","","","",""
+        fmin,fmax,n,ftype,dec,inc,mad = "","","","","","",""
 
         specimen = tup[1]
         name = fit.name
@@ -5446,8 +5460,6 @@ class EditFitFrame(wx.Frame):
         if 'specimen_dec' in pars.keys(): dec = "%.1f"%pars['specimen_dec']
         if 'specimen_inc' in pars.keys(): inc = "%.1f"%pars['specimen_inc']
         if 'specimen_mad' in pars.keys(): mad = "%.1f"%pars['specimen_mad']
-        if 'specimen_dang' in pars.keys(): dang = "%.1f"%pars['specimen_dang']
-        if 'specimen_alpha95' in pars.keys(): a95 = "%.1f"%pars['specimen_alpha95']
         
         if i < self.logger.GetItemCount():
             self.logger.DeleteItem(i)
@@ -5674,16 +5686,22 @@ class EditFitFrame(wx.Frame):
         @param: event -> the wx.ButtonEvent that triggered this function
         """
 
-        specimens_seen = []
-        next_i = -1
-        while True:
-            next_i = self.logger.GetNextSelected(next_i)
-            if next_i == -1:
-                break
-            fit,specimen = self.fit_list[next_i]
+        specimens = []
+        next_i = self.logger.GetNextSelected(-1)
+        if next_i == -1: specimens = self.parent.specimens
+        else:
+            while next_i != -1:
+                fit,specimen = self.fit_list[next_i]
+                if specimen in specimens:
+                    next_i = self.logger.GetNextSelected(next_i)
+                    continue
+                else: specimens.append(specimen)
+                next_i = self.logger.GetNextSelected(next_i)
 
-            if specimen in specimens_seen: continue
-            else: specimens_seen.append(specimen)
+        for specimen in specimens:
+
+            if specimen not in self.parent.pmag_results_data['specimens']:
+                self.parent.pmag_results_data['specimens'][specimen] = []
 
             new_name = self.name_box.GetLineText(0)
             new_color = self.color_box.GetValue()
@@ -5698,6 +5716,7 @@ class EditFitFrame(wx.Frame):
             if not new_color:
                 next_fit = str(len(self.parent.pmag_results_data['specimens'][specimen]) + 1)
                 new_color = self.parent.colors[(int(next_fit)-1) % len(self.parent.colors)]
+            else: new_color = self.color_dict[new_color]
             if not new_tmin: new_tmin = None
             if not new_tmax: new_tmax = None
 
@@ -5706,11 +5725,11 @@ class EditFitFrame(wx.Frame):
                 continue
 
             new_fit = Fit(new_name, new_tmin, new_tmax, new_color, self.parent)
-            new_fit.put(specimen,self.parent.COORDINATE_SYSTEM,self.parent.get_PCA_parameters(specimen,new_tmin,new_tmax,self.parent.COORDINATE_SYSTEM,fit.PCA_type))
+            new_fit.put(specimen,self.parent.COORDINATE_SYSTEM,self.parent.get_PCA_parameters(specimen,new_tmin,new_tmax,self.parent.COORDINATE_SYSTEM,"DE-BFL"))
 
             self.parent.pmag_results_data['specimens'][specimen].append(new_fit)
-        self.parent.update_selection()
         self.update_editor(True)
+        self.parent.update_selection()
 
     def delete_highlighted_fits(self, event):
         """
