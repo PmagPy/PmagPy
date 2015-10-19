@@ -345,17 +345,17 @@ class GridFrame(wx.Frame):
         Show simple dialog that allows user to add a new column name
         """
         col_labels = self.grid.col_labels
+        # do not list headers that are already column labels in the grid
         er_items = [head for head in self.grid_headers[self.grid_type]['er'][2] if head not in col_labels]
+        # remove unneeded headers
         er_items = builder.remove_list_headers(er_items)
-        #include_pmag = self.pmag_checkbox.cb.IsChecked()
-        include_pmag = True
-        if include_pmag or self.grid_type == 'result':
-            pmag_headers = sorted(list(set(self.grid_headers[self.grid_type]['pmag'][2]).union(self.grid_headers[self.grid_type]['pmag'][1])))
-            pmag_items = [head for head in pmag_headers if head not in er_items and head not in col_labels]
-            #pmag_items = [head for head in self.grid_headers[self.grid_type]['pmag'][2] if head not in er_items and head not in col_labels]
-            pmag_items = builder.remove_list_headers(pmag_items)
-        else:
-            pmag_items = []
+        pmag_headers = sorted(list(set(self.grid_headers[self.grid_type]['pmag'][2]).union(self.grid_headers[self.grid_type]['pmag'][1])))
+        # do not list headers that are already column labels in the grid
+        pmag_items = [head for head in pmag_headers if head not in er_items and head not in col_labels]
+        if pmag_items and 'magic_method_codes++' not in col_labels:
+            pmag_items.append('magic_method_codes++')
+        # remove unneeded headers
+        pmag_items = sorted(builder.remove_list_headers(pmag_items))
         dia = pw.HeaderDialog(self, 'columns to add', er_items, pmag_items)
         result = dia.ShowModal()
         new_headers = []
@@ -389,6 +389,7 @@ class GridFrame(wx.Frame):
         self.main_sizer.Fit(self)
         #
         self.grid.changes = set(range(self.grid.GetNumberRows()))
+        dia.Destroy()
 
 
     def on_remove_cols(self, event):
@@ -667,11 +668,12 @@ class GridBuilder(object):
             pmag_header = []
         header = sorted(list(set(er_header).union(pmag_header)))
         if incl_pmag and self.grid_type in ('specimen', 'sample', 'site'):
-            try:
-                ind = header.index('magic_method_codes')
-            except IndexError:
-                ind = len(header) - 1
-            header[ind+1:ind+1] = ['magic_method_codes++']
+            if 'magic_method_codes++' not in header:
+                try:
+                    ind = header.index('magic_method_codes')
+                except IndexError:
+                    ind = len(header) - 1
+                header[ind+1:ind+1] = ['magic_method_codes++']
         
         first_headers = []
         for string in ['citation', '{}_class'.format(self.grid_type),
