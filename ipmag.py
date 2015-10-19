@@ -457,7 +457,7 @@ def fishqq(longitude, latitude):
     nDIs = []
     QQ_dict1 = {}
     QQ_dict2 = {}
-    
+
     for rec in DIs:
         angle=pmag.angle([rec[0],rec[1]],[ppars['dec'],ppars['inc']])
         if angle>90.:
@@ -786,6 +786,20 @@ def plot_vgp(mapname,plong,plat,label='',color='k',marker='o',legend='no'):
     mapname.scatter(centerlon,centerlat,20,marker=marker,color=color,label=label,zorder=100)
     if legend=='yes':
         pylab.legend(loc=2)
+
+
+def print_direction_mean(mean_dictionary):
+    print 'Dec: ' + str(round(mean_dictionary['dec'],1)) + '  Inc: ' + str(round(mean_dictionary['inc'],1))
+    print 'Number of directions in mean (n): ' + str(mean_dictionary['n'])
+    print 'Angular radius of 95% confidence (a_95): ' + str(round(mean_dictionary['alpha95'],1))
+    print 'Precision parameter (k) estimate: ' + str(round(mean_dictionary['k'],2))
+
+
+def print_pole_mean(mean_dictionary):
+    print 'Plong: ' + str(round(mean_dictionary['dec'],1)) + '  Plat: ' + str(round(mean_dictionary['inc'],1))
+    print 'Number of directions in mean (n): ' + str(mean_dictionary['n'])
+    print 'Angular radius of 95% confidence (A_95): ' + str(round(mean_dictionary['alpha95'],1))
+    print 'Precision parameter (k) estimate: ' + str(round(mean_dictionary['k'],2))
 
 
 def vgp_calc(dataframe,tilt_correction='yes'):
