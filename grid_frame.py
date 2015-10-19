@@ -371,7 +371,9 @@ class GridFrame(wx.Frame):
                     if name in er_items:
                         self.grid_headers[self.grid_type]['er'][0].append(str(name))
                     if name in pmag_items:
-                        self.grid_headers[self.grid_type]['pmag'][0].append(str(name))
+                        name = name.strip('++')
+                        if name not in self.grid_headers[self.grid_type]['pmag'][0]:
+                            self.grid_headers[self.grid_type]['pmag'][0].append(str(name))
                     import controlled_vocabularies as vocabulary
                     from controlled_vocabularies import vocabularies as vocab
                     if name in vocabulary.possible_vocabularies:
@@ -666,15 +668,16 @@ class GridBuilder(object):
             pmag_header = self.grid_headers[self.grid_type]['pmag'][0]
         else:
             pmag_header = []
+        # if we need to use '++' to distinguish pmag magic_method_codes from er
+        special_code = incl_pmag and self.grid_type in ('specimen', 'sample', 'site')
+        if special_code:
+            try:
+                pmag_header.remove('magic_method_codes')
+                pmag_header.append('magic_method_codes++')
+            except ValueError:
+                pass
         header = sorted(list(set(er_header).union(pmag_header)))
-        if incl_pmag and self.grid_type in ('specimen', 'sample', 'site'):
-            if 'magic_method_codes++' not in header:
-                try:
-                    ind = header.index('magic_method_codes')
-                except IndexError:
-                    ind = len(header) - 1
-                header[ind+1:ind+1] = ['magic_method_codes++']
-        
+
         first_headers = []
         for string in ['citation', '{}_class'.format(self.grid_type),
                        '{}_lithology'.format(self.grid_type), '{}_type'.format(self.grid_type),

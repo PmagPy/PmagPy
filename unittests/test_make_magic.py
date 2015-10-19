@@ -333,12 +333,10 @@ class TestMethodCodes(unittest.TestCase):
         #self.grid = GridFrame(self.ErMagic, self.WD, grid_type, grid_type, self.panel)
         self.method_WD = os.path.join(os.getcwd(), 'unittests', 'examples', 'methods')
         self.ErMagic = builder.ErMagicBuilder(self.method_WD)
+        self.ErMagic.get_all_magic_info()
         self.ErMagic.init_default_headers()
         self.ErMagic.init_actual_headers()
-        self.ErMagic.get_all_magic_info()
-        #self.frame = make_magic.MainFrame(self.method_WD)
         self.frame = grid_frame.GridFrame(self.ErMagic, self.method_WD, "specimen", "specimen")
-        #self.pnl = self.frame.GetChildren()[0]
 
     def tearDown(self):
         #self.frame.Destroy() # this does not work and causes strange errors
