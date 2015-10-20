@@ -904,7 +904,6 @@ Adding location with name: {}""".format(new_location_name, new_location_name)
     def write_magic_file(self, dtype, do_er=True, do_pmag=True):
         if dtype == 'location':
             do_pmag = False
-
         # make header
         add_headers = []
         self.ancestry_ind = self.ancestry.index(dtype)
@@ -912,7 +911,10 @@ Adding location with name: {}""".format(new_location_name, new_location_name)
             add_headers.append('er_' + self.ancestry[i] + "_name")
         er_actual_headers = sorted(self.headers[dtype]['er'][0])
         pmag_actual_headers = sorted(self.headers[dtype]['pmag'][0])
-
+        # clean up pmag header: write pmag method code header without '++'
+        if 'magic_method_codes++' in pmag_actual_headers:
+            pmag_actual_headers.remove('magic_method_codes++')
+            pmag_actual_headers.append('magic_method_codes')
         er_full_headers = add_headers[:]
         er_full_headers.extend(er_actual_headers)
         pmag_full_headers = add_headers[:]
@@ -922,28 +924,22 @@ Adding location with name: {}""".format(new_location_name, new_location_name)
         pmag_start = 'pmag_' + dtype + 's'
         er_strings = []
         pmag_strings = []
-        
-        items_list = self.data_lists[dtype][0]
+        # get sorted list of all relevant items
         items_list = sorted(self.data_lists[dtype][0], key=lambda item: item.name)
-
-        # fill in location being/end lat/lon if those values are not present
-
+        # fill in location begin/end lat/lon if those values are not present
         if dtype == 'location':
             d = self.get_min_max_lat_lon(items_list)
             for item in items_list[:]:
-                #d = self.get_min_max_lat_lon(item.sites)
                 for header in ['location_begin_lat', 'location_begin_lon', 
                                'location_end_lat', 'location_end_lon']:
                     if not item.er_data[header]:
                         item.er_data[header] = d[item.name][header]
-
         # go through items and collect necessary data
         for item in items_list[:]:
             # get an item's ancestors
             ancestors = self.get_ancestors(item)
             er_string = []
             pmag_string = []
-
             # if item has no pmag_data at all, do not write it to pmag_file
             do_this_pmag = True
             temp_pmag_data = item.pmag_data.values()
@@ -951,12 +947,11 @@ Adding location with name: {}""".format(new_location_name, new_location_name)
                 temp_pmag_data.remove('This study')
             if not any(temp_pmag_data):
                 do_this_pmag = False
-
+            # compile er data
             if do_er:
                 er_string.append(item.name)
                 for ancestor in ancestors:
                     er_string.append(ancestor)
-
                 for key in er_actual_headers:
                     try:
                         add_string = str(item.er_data[key])
@@ -968,32 +963,28 @@ Adding location with name: {}""".format(new_location_name, new_location_name)
                     er_string.append(add_string)
                 er_string = '\t'.join(er_string)
                 er_strings.append(er_string)
-                
+            # if we are writing a pmag file AND this particular item has pmag data,
+            # compile this item's pmag data
             if do_pmag and do_this_pmag:
                 pmag_string.append(item.name)
                 for ancestor in ancestors:
                     pmag_string.append(ancestor)
-
                 # get an item's descendents (only req'd for pmag files)
                 descendents = self.get_descendents(item)
-                
                 more_headers = []
                 more_strings = []
-
                 # add in appropriate descendents
                 possible_types = ['specimen', 'sample', 'site']
                 for num, descendent_list in enumerate(descendents):
                     item_string = get_item_string(descendent_list)
                     more_strings.append(item_string)
                     more_headers.append('er_' + possible_types[num] + '_names')
-                    
                 ind = len(pmag_string)
                 pmag_string.extend(more_strings)
                 if more_headers == pmag_full_headers[ind:ind+len(more_strings)]:
                     pass
                 else:
                     pmag_full_headers[ind:ind] = more_headers
-
                 # write out all needed values
                 for key in pmag_actual_headers:
                     try:
@@ -1007,7 +998,7 @@ Adding location with name: {}""".format(new_location_name, new_location_name)
                     pmag_string.append(add_string)
                 pmag_string = '\t'.join(pmag_string)
                 pmag_strings.append(pmag_string)
-
+        # write acutal pmag file with all collected data
         pmag_header_string = '\t'.join(pmag_full_headers)
         pmag_outfile = ''
         if do_pmag:
@@ -1017,7 +1008,7 @@ Adding location with name: {}""".format(new_location_name, new_location_name)
             for string in pmag_strings:
                 pmag_outfile.write(string + '\n')
             pmag_outfile.close()
-
+        # write acutal er file with all collected data
         er_header_string = '\t'.join(er_full_headers)
         er_outfile = ''
         if do_er:

@@ -363,6 +363,26 @@ class GridFrame(wx.Frame):
             new_headers = dia.text_list
         if not new_headers:
             return
+        errors = self.add_new_grid_headers(new_headers, er_items, pmag_items)
+        if errors:
+            errors_str = ', '.join(errors)
+            pw.simple_warning('You are already using the following headers: {}\nSo they will not be added'.format(errors_str))
+
+        # problem: if widgets above the grid are too wide,
+        # the grid does not re-size when adding columns
+        # awkward solution (causes flashing):
+        if self.grid.GetWindowStyle() != wx.DOUBLE_BORDER:
+            self.grid.SetWindowStyle(wx.DOUBLE_BORDER)
+        self.main_sizer.Fit(self)
+        self.grid.SetWindowStyle(wx.NO_BORDER)
+        self.main_sizer.Fit(self)
+        #
+        self.grid.changes = set(range(self.grid.GetNumberRows()))
+        dia.Destroy()
+
+    #self.add_new_grid_headers(grid_headers)
+    def add_new_grid_headers(self, new_headers, er_items, pmag_items):
+        already_present = []
         for name in new_headers:
             if name:
                 if name not in self.grid.col_labels:
@@ -379,19 +399,10 @@ class GridFrame(wx.Frame):
                     if name in vocabulary.possible_vocabularies:
                         self.drop_down_menu.add_drop_down(col_number, name)
                 else:
-                    pw.simple_warning('You are already using column header: {}'.format(name))
+                    already_present.append(name)
+                    #pw.simple_warning('You are already using column header: {}'.format(name))
+        return already_present
 
-        # problem: if widgets above the grid are too wide,
-        # the grid does not re-size when adding columns
-        # awkward solution (causes flashing):
-        if self.grid.GetWindowStyle() != wx.DOUBLE_BORDER:
-            self.grid.SetWindowStyle(wx.DOUBLE_BORDER)
-        self.main_sizer.Fit(self)
-        self.grid.SetWindowStyle(wx.NO_BORDER)
-        self.main_sizer.Fit(self)
-        #
-        self.grid.changes = set(range(self.grid.GetNumberRows()))
-        dia.Destroy()
 
 
     def on_remove_cols(self, event):
@@ -622,7 +633,7 @@ class GridFrame(wx.Frame):
         actual_pmag_headers = self.er_magic.headers[self.grid_type]['pmag'][0]
         for col in self.grid.col_labels:
             if col not in actual_er_headers:
-                if col in actual_pmag_headers:
+                if col in actual_pmag_headers or col == 'magic_method_codes++':
                     pmag_header_found = True
                     break
         if pmag_header_found:
