@@ -4574,7 +4574,7 @@ class Zeq_GUI(wx.Frame):
                         self.PmagRecsOld[FILE].append(rec)
 
         #---------------------------------------
-        # write a new pmag_specimens.txt       
+        # write a new pmag_specimens.txt
         #---------------------------------------  
 
         specimens_list=self.pmag_results_data['specimens'].keys()
