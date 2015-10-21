@@ -1,4 +1,8 @@
 #!/usr/bin/env python
+"""
+assorted wxPython custom widgets
+"""
+# pylint: disable=W0612,C0111,C0103,C0301
 
 import os
 import wx
@@ -9,7 +13,7 @@ import wx.html
 
 class choose_file(wx.StaticBoxSizer):
 
-    def __init__(self, parent, orient=wx.VERTICAL, btn_text='add', method=None, remove_button=False):
+    def __init__(self, parent, btn_text='add', method=None, remove_button=False):
         box = wx.StaticBox(parent, wx.ID_ANY, "")
         super(choose_file, self).__init__(box, orient=wx.VERTICAL)
         self.btn_text = btn_text
@@ -43,7 +47,7 @@ class choose_file(wx.StaticBoxSizer):
         return self.file_path.GetValue()
 
 class NotEmptyValidator(wx.PyValidator):
-    def __init__(self): 
+    def __init__(self):
         print "initing validator"
         wx.PyValidator.__init__(self)
 
@@ -52,7 +56,7 @@ class NotEmptyValidator(wx.PyValidator):
         Note that every validator must implement the Clone() method.
         """
         print "doing Clone"
-        return NotEmptyValidator() 
+        return NotEmptyValidator()
 
     def Validate(self, win):
         print "doing Validate"
@@ -60,21 +64,20 @@ class NotEmptyValidator(wx.PyValidator):
         text = textCtrl.GetValue()
         if len(text) == 0:
             print "textCtrl.Name:", textCtrl.Name
-            wx.MessageBox("{} must contain some text!".format(str(textCtrl.Name)), "Error") 
-            textCtrl.SetBackgroundColour("pink") 
-            textCtrl.SetFocus() 
-            textCtrl.Refresh() 
-            print "win", win
-            return False 
+            wx.MessageBox("{} must contain some text!".format(str(textCtrl.Name)), "Error")
+            textCtrl.SetBackgroundColour("pink")
+            textCtrl.SetFocus()
+            textCtrl.Refresh()
+            return False
         else:
-            textCtrl.SetBackgroundColour( 
-                wx.SystemSettings_GetColour(wx.SYS_COLOUR_WINDOW)) 
-            textCtrl.Refresh() 
-            return True 
-            
-    def TransferToWindow(self): 
+            textCtrl.SetBackgroundColour(
+                wx.SystemSettings_GetColour(wx.SYS_COLOUR_WINDOW))
+            textCtrl.Refresh()
+            return True
+
+    def TransferToWindow(self):
         print "doing TransferToWindow"
-        return True 
+        return True
 
     def TransferFromWindow(self):
         print "doing TransferFromWindow"
@@ -82,7 +85,7 @@ class NotEmptyValidator(wx.PyValidator):
 
 
 class choose_dir(wx.StaticBoxSizer):
-    
+
     def __init__(self, parent, btn_text='add', method=None):
         box = wx.StaticBox(parent, wx.ID_ANY, "")
         super(choose_dir, self).__init__(box, orient=wx.VERTICAL)
@@ -125,6 +128,7 @@ class labeled_text_field(wx.StaticBoxSizer):
 
     def return_value(self):
         return self.text_field.GetValue()
+
 
 class labeled_spin_ctrl(wx.StaticBoxSizer):
     def __init__(self, parent, TEXT):
@@ -178,7 +182,7 @@ class specimen_n(wx.StaticBoxSizer):
         return self.spc.GetValue()
 
 
-class select_ncn(wx.StaticBoxSizer):  
+class select_ncn(wx.StaticBoxSizer):
     """provides box sizer with a drop down menu for the standard naming conventions"""
     ncn_keys = ('XXXXY', 'XXXX-YY', 'XXXX.YY', 'XXXX[YYY] where YYY is sample designation, enter number of Y', 'sample name=site name', 'Site names in orient.txt file', '[XXXX]YYY where XXXX is the site name, enter number of X')#, 'this is a synthetic and has no site name']
     def __init__(self, parent, ncn_keys=ncn_keys):
@@ -243,7 +247,7 @@ class select_declination(wx.StaticBoxSizer):
         label1 = wx.StaticText(self.parent, label="Declination:")
         label2 = wx.StaticText(self.parent, label="if necessary")
         self.dec_box = wx.TextCtrl(self.parent, size=(40, 25))
-        declination_keys = ["Use the IGRF DEC value at the lat/long and date supplied","Use this DEC: ","DEC=0, mag_az is already corrected in file","Correct mag_az but not bedding_dip_dir"]
+        declination_keys = ["Use the IGRF DEC value at the lat/long and date supplied", "Use this DEC: ", "DEC=0, mag_az is already corrected in file", "Correct mag_az but not bedding_dip_dir"]
         declination_values = range(1, 4)
         self.dcn = dict(zip(declination_keys, declination_values))
         self.select_dcn = wx.ComboBox(parent, -1, declination_keys[0], size=(405, 25), choices=declination_keys, style=wx.CB_READONLY)
@@ -251,8 +255,6 @@ class select_declination(wx.StaticBoxSizer):
         gridSizer.AddMany([label1, label2, self.select_dcn, self.dec_box])
         self.Add(gridSizer, wx.ALIGN_LEFT)
         self.AddSpacer(10)
-
-
 
     def return_value(self):
         selected_dcn = str(self.select_dcn.GetValue())
@@ -270,10 +272,8 @@ class replicate_measurements(wx.StaticBoxSizer):
         super(replicate_measurements, self).__init__(box, orient=wx.HORIZONTAL)
         text = "replicate measurements:"
         replicate_text = wx.StaticText(parent, label=text, style=wx.TE_CENTER)
-        #self.replicate_rb1 = wx.RadioButton(parent, -1, 'Use all measurements', style=wx.RB_GROUP)
         self.replicate_rb1 = wx.RadioButton(parent, -1, 'Average replicates', style=wx.RB_GROUP)
         self.replicate_rb1.SetValue(True)
-        #self.replicate_rb2 = wx.RadioButton(parent, -1, 'take only last measurement from replicate measurements')
         self.replicate_rb2 = wx.RadioButton(parent, -1, 'Import all replicates')
         self.Add(replicate_text, wx.ALIGN_LEFT)
         self.AddSpacer(8)
@@ -328,7 +328,7 @@ class radio_buttons(wx.StaticBoxSizer):
 
 class large_checkbox_window(wx.StaticBoxSizer):
 
-    def __init__(self, parent, choices, text):
+    def __init__(self, parent, choices):
         box = wx.StaticBox(parent, wx.ID_ANY, "")
         super(large_checkbox_window, self).__init__(box, orient=wx.VERTICAL)
 
@@ -480,12 +480,27 @@ class experiment_type(wx.StaticBoxSizer):
         return experiment_string[:-1]
 
 
+class hbox_grid(wx.BoxSizer):
+
+    def __init__(self, parent, delete_row_method, data_type, grid):
+        """
+        Create horizontal box with grid manipulation buttons and bindings.
+        """
+        super(hbox_grid, self).__init__(wx.HORIZONTAL)
+        self.deleteRowButton = wx.Button(parent, id=-1, label='Delete selected row(s)', name='delete_row_btn#')
+        parent.Bind(wx.EVT_BUTTON, lambda event: delete_row_method(event, data_type), self.deleteRowButton)
+        #parent.Bind(wx.grid.EVT_GRID_LABEL_LEFT_CLICK, lambda event: select_row_method(event, self.deleteRo#wButton), grid)
+        self.deleteRowButton.Disable()
+        self.Add(self.deleteRowButton, flag=wx.ALIGN_LEFT)
+
+    
 class btn_panel(wx.BoxSizer):
 
     def __init__(self, SELF, panel):
         super(btn_panel, self).__init__(wx.HORIZONTAL)
         pnl = panel
         SELF.okButton = wx.Button(pnl, wx.ID_OK, "&OK")
+        SELF.okButton.SetDefault()
         SELF.Bind(wx.EVT_BUTTON, SELF.on_okButton, SELF.okButton)
 
         SELF.cancelButton = wx.Button(pnl, wx.ID_CANCEL, '&Cancel')
@@ -557,7 +572,7 @@ class combine_files(wx.BoxSizer):
                             include_files.append(F)
         for f in include_files:
             self.file_paths.AppendText(f+"\n")
-                            
+
 
 class LinkEnabledHtmlWindow(wx.html.HtmlWindow):
     def OnLinkClicked(self, link):
@@ -567,10 +582,153 @@ class HtmlFrame(wx.Frame):
     """ This window displays a HtmlWindow """
     def __init__(self, *args, **kwargs):
         wx.Frame.__init__(self, None, wx.ID_ANY, title="Help Window", size=(600, 400))
-        page = kwargs.get('page', 'http://earthref.org/MAGIC/shortlists/')
+        self.page = kwargs.get('page', 'http://earthref.org/MAGIC/shortlists/')
         htmlwin = LinkEnabledHtmlWindow(self)
-        htmlwin.LoadPage(page)
+        htmlwin.LoadPage(self.page)
         htmlwin.Fit()
+
+class YesNoCancelDialog(wx.Dialog):
+    def __init__(self, parent, msg, title):
+        super(YesNoCancelDialog, self).__init__(parent, wx.ID_ANY, title)
+        main_sizer = wx.BoxSizer(wx.VERTICAL)
+
+        text_box = wx.StaticBoxSizer(wx.StaticBox(self, wx.ID_ANY), wx.VERTICAL)
+        text = wx.StaticText(self, label=msg)
+        text_box.Add(text)
+        
+        hbox = wx.BoxSizer(wx.HORIZONTAL)
+        btn_yes = wx.Button(self, wx.ID_ANY, label="Write and exit grid")
+        btn_no = wx.Button(self, wx.ID_ANY, label="Exit grid")
+        self.Bind(wx.EVT_BUTTON, self.on_btn_no, btn_no)
+        self.Bind(wx.EVT_BUTTON, self.on_btn_yes, btn_yes)
+        btn_cancel = wx.Button(self, wx.ID_CANCEL, label="Continue editing")
+        hbox.Add(btn_yes, flag=wx.ALIGN_CENTRE|wx.ALL, border=5)
+        hbox.Add(btn_no, flag=wx.ALIGN_CENTRE|wx.ALL, border=5)
+        hbox.Add(btn_cancel, flag=wx.ALIGN_CENTRE|wx.ALL, border=5)
+        btn_yes.SetDefault()
+
+        main_sizer.Add(text_box, flag=wx.ALIGN_CENTRE|wx.ALL, border=5)
+        main_sizer.Add(hbox, flag=wx.ALIGN_CENTRE|wx.ALL, border=5)
+        self.SetSizer(main_sizer)
+        main_sizer.Fit(self)
+        self.Centre()
+
+    def on_btn_no(self, event):
+        self.Destroy()
+        self.EndModal(wx.ID_NO)
+        #return wx.ID_NO
+
+    def on_btn_yes(self, event):
+        self.Destroy()
+        self.EndModal(wx.ID_YES)
+        
+        
+class TextDialog(wx.Dialog):
+    """
+    Dialog window that returns a text string provided by user on ok button
+    """
+    def __init__(self, parent, label):
+        super(TextDialog, self).__init__(parent, title='Provide text')
+        self.text_ctrl = labeled_text_field(self, label)
+        bsizer = wx.BoxSizer(wx.VERTICAL)
+
+        btn_ok = wx.Button(self, wx.ID_OK, label="OK")
+        btn_ok.SetDefault()
+        btn_cancel = wx.Button(self, wx.ID_CANCEL, label="Cancel")
+        hbox = wx.BoxSizer(wx.HORIZONTAL)
+        hbox.Add(btn_ok, flag=wx.ALIGN_CENTER|wx.ALL, border=10)
+        hbox.Add(btn_cancel, flag=wx.ALIGN_CENTER|wx.ALL, border=10)
+
+        bsizer.Add(self.text_ctrl, flag=wx.ALIGN_CENTER|wx.ALL, border=10)
+        bsizer.Add(hbox, flag=wx.ALIGN_CENTER)
+
+        self.SetSizer(bsizer)
+        bsizer.Fit(self)
+        self.Centre()
+
+class HeaderDialog(wx.Dialog):
+    """
+    Dialog window with one or two listboxes with items.
+    As user clicks or double clicks, items are added to or removed from the selection,
+    which is displayed in a text control.  
+    """
+    def __init__(self, parent, label, items1=None, items2=None):
+        super(HeaderDialog, self).__init__(parent, title='Choose headers', size=(500, 500))
+        main_sizer = wx.BoxSizer(wx.VERTICAL)
+
+        listbox_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        if items1:
+            box1 = wx.StaticBoxSizer(wx.StaticBox(self, wx.ID_ANY, 'Headers', name='box1'), wx.HORIZONTAL)
+            listbox1 = wx.ListBox(self, wx.ID_ANY, choices=items1, style=wx.LB_MULTIPLE, size=(200, 350))
+            box1.Add(listbox1)
+            listbox_sizer.Add(box1, flag=wx.ALL, border=5)
+            self.Bind(wx.EVT_LISTBOX, self.on_click, listbox1)
+            self.Bind(wx.EVT_LISTBOX_DCLICK, self.on_click, listbox1)
+        if items2:
+            box2 = wx.StaticBoxSizer(wx.StaticBox(self, wx.ID_ANY, 'Headers for interpretation data', name='box2'),
+                                     wx.HORIZONTAL)
+            listbox2 = wx.ListBox(self, wx.ID_ANY, choices=items2, style=wx.LB_MULTIPLE, size=(200, 350))
+            box2.Add(listbox2)
+            listbox_sizer.Add(box2, flag=wx.ALL, border=5)
+            self.Bind(wx.EVT_LISTBOX, self.on_click, listbox2)
+            self.Bind(wx.EVT_LISTBOX_DCLICK, self.on_click, listbox2)
+
+        text_sizer = wx.StaticBoxSizer(wx.StaticBox(self, wx.ID_ANY, 'Adding headers:', name='text_box'),
+                                     wx.HORIZONTAL)
+        self.text_ctrl = wx.TextCtrl(self, id=-1, style=wx.TE_MULTILINE|wx.TE_READONLY, size=(420, 100))
+        text_sizer.Add(self.text_ctrl)
+            
+        btn_ok = wx.Button(self, wx.ID_OK, label="OK")
+        btn_ok.SetDefault()
+        btn_cancel = wx.Button(self, wx.ID_CANCEL, label="Cancel")
+        hbox = wx.BoxSizer(wx.HORIZONTAL)
+        hbox.Add(btn_ok, flag=wx.ALIGN_CENTER|wx.ALL, border=10)
+        hbox.Add(btn_cancel, flag=wx.ALIGN_CENTER|wx.ALL, border=10)
+
+        main_sizer.Add(listbox_sizer, flag=wx.ALIGN_CENTER)
+        main_sizer.Add(text_sizer, flag=wx.ALIGN_CENTER)
+        main_sizer.Add(hbox, flag=wx.ALIGN_CENTER)
+
+        self.SetSizer(main_sizer)
+        main_sizer.Fit(self)
+
+        self.text_list = []
+
+    def on_click(self, event):
+        new_string = event.GetString()
+        if new_string in self.text_list:
+            self.text_list.remove(new_string)
+        else:
+            self.text_list.append(new_string)
+        display_string = ', '.join(self.text_list)
+        self.text_ctrl.SetValue(display_string)
+
+        
+class ComboboxDialog(wx.Dialog):
+    """
+    Dialog window that returns a text string provided by selection from combobox
+    """
+    def __init__(self, parent, label, items):
+        super(ComboboxDialog, self).__init__(parent, title='Provide text')
+        text_box = wx.StaticText(self, label=label)
+        self.combobox = wx.ComboBox(self, wx.ID_ANY, items[0], choices=items, style=wx.CB_READONLY)
+        bsizer = wx.BoxSizer(wx.VERTICAL)
+
+        btn_ok = wx.Button(self, wx.ID_OK, label="OK")
+        btn_ok.SetDefault()
+        btn_cancel = wx.Button(self, wx.ID_CANCEL, label="Cancel")
+        hbox = wx.BoxSizer(wx.HORIZONTAL)
+        hbox.Add(btn_ok, flag=wx.ALIGN_CENTER|wx.ALL, border=10)
+        hbox.Add(btn_cancel, flag=wx.ALIGN_CENTER|wx.ALL, border=10)
+
+        bsizer.Add(text_box, flag=wx.TOP|wx.LEFT, border=10)
+        bsizer.Add(self.combobox, flag=wx.ALIGN_CENTER|wx.ALL, border=10)
+        bsizer.Add(hbox, flag=wx.ALIGN_CENTER)
+
+        self.SetSizer(bsizer)
+        bsizer.Fit(self)
+        self.Centre()
+
 
 
 class AddItem(wx.Frame):
@@ -627,10 +785,10 @@ class AddItem(wx.Frame):
 
 # methods!
 
-def on_add_dir_button(SELF, WD, event, text):
+def on_add_dir_button(SELF, text):
     dlg = wx.DirDialog(
         None, message=text,
-        defaultPath=".",
+        defaultPath=os.getcwd(),
         style=wx.OPEN | wx.DD_DEFAULT_STYLE
     )
     if dlg.ShowModal() == wx.ID_OK:
@@ -640,10 +798,10 @@ def on_add_dir_button(SELF, WD, event, text):
     SELF.parent.Parent.Raise()
 
 
-def on_add_file_button(SELF, WD, event, text):
+def on_add_file_button(SELF, text):
     dlg = wx.FileDialog(
         None, message=text,
-        defaultDir=WD,
+        defaultDir=os.getcwd(),
         defaultFile="",
         style=wx.OPEN | wx.CHANGE_DIR
     )

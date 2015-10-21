@@ -1,11 +1,22 @@
 #!/usr/bin/env python
 
-#print "this is the right module"
-
 
 import urllib2
+import os
+import httplib
 import pmag
 import check_updates
+
+
+def get_data_offline():
+    try:
+        pmag_dir = check_updates.get_pmag_dir()
+        the_file = os.path.join(pmag_dir, 'data_model', "MagIC-data-model.txt")
+        data = open(the_file, 'rU')
+        return data
+    except IOError:
+        print "can't access MagIC-data-model at the moment\nif you are working offline, make sure MagIC-data-model.txt is in your PmagPy directory (or download it from https://github.com/ltauxe/PmagPy and put it in your PmagPy directory)\notherwise, check your internet connection"
+        return False
 
 
 def get_data_model():
@@ -24,23 +35,27 @@ def get_data_model():
     the second level keys are the possible headers for that file type.
     the third level keys are data_type and data_status for that header.
     """
-    print "getting data model, please be patient"
+    print "-I- getting data model, please be patient"
     url = 'http://earthref.org/services/MagIC-data-model.txt'
+    offline = False
     try:
         data = urllib2.urlopen(url)
     except urllib2.URLError:
-        try:
-            pmag_dir = check_updates.get_pmag_dir()
-            the_file = pmag_dir + "/MagIC-data-model.txt"
-            data = open(the_file, 'rU')
-        except:
-            print "can't access MagIC-data-model at the moment\nif you are working offline, make sure MagIC-data-model.txt is in your PmagPy directory (or download it from https://github.com/ltauxe/PmagPy and put it in your PmagPy directory)\notherwise, check your internet connection"
-            return False
-
-    data_model = pmag.magic_read(None, data)
-    ref_dicts = [d for d in data_model[0] if d['column_nmb'] != '>>>>>>>>>>']
-    file_types = [d['field_name'] for d in data_model[0] if d['column_nmb'] == 'tab delimited']
-    file_types.insert(0, data_model[1])
+        print '-W- Unable to fetch data model online\nTrying to use cached data model instead'
+        offline = True
+    except httplib.BadStatusLine:
+        print '-W- Website: {} not responding\nTrying to use cached data model instead'.format(url)
+        offline = True
+    if offline:
+        data = get_data_offline()
+    data_model, file_type = pmag.magic_read(None, data)
+    if file_type in ('bad file', 'empty_file'):
+        print '-W- Unable to read online data model.\nTrying to use cached data model instead'
+        data = get_data_offline()
+        data_model, file_type = pmag.magic_read(None, data)
+    ref_dicts = [d for d in data_model if d['column_nmb'] != '>>>>>>>>>>']
+    file_types = [d['field_name'] for d in data_model if d['column_nmb'] == 'tab delimited']
+    file_types.insert(0, file_type)
     complete_ref = {}
 
     dictionary = {}
@@ -69,21 +84,43 @@ def read_upload(up_file):
     f.close()
     data = split_lines(lines)
     data_dicts = get_dicts(data)
+    invalid_data = {}
     missing_data = {}
-    number_scramble = {}
+    non_numeric = {}
     invalid_col_names = {}
     missing_file_type = False
     data_model = get_data_model()
     reqd_file_types = ['er_locations']
     provided_file_types = set()
     if not data_model:
-        return False
+        return False, None
     for dictionary in data_dicts:
         for k, v in dictionary.items():
             if k == "file_type": # meta data
                 provided_file_types.add(v)
                 continue
             file_type = dictionary['file_type']
+            # need to deal with pmag_criteria type file, too
+            item_type = file_type.split('_')[1][:-1]
+            if item_type == 'criteri':
+                item_name = dictionary.get('criteria_definition')
+            elif item_type == 'result':
+                item_name = dictionary.get('pmag_result_name', None)
+            elif item_type in ('specimen', 'sample', 'site', 'location'):
+                item_name = dictionary.get('er_' + item_type + '_name', None)
+            elif item_type == 'age':
+                # get the lowest level er_*_name column that is filled in
+                for dtype in ('specimen', 'sample', 'site', 'location'):
+                    item_name = dictionary.get('er_' + dtype + '_name', None)
+                    if item_name:
+                        break
+            elif item_type == 'measurement':
+                exp_name = dictionary.get('magic_experiment_name')
+                meas_num = dictionary.get('measurement_number')
+                item_name = exp_name + '_' + str(meas_num)
+            else:
+                item_name = None
+
             if file_type not in data_model.keys():
                 continue
             specific_data_model = data_model[file_type]
@@ -91,30 +128,75 @@ def read_upload(up_file):
             # check if column header is in the data model
             invalid_col_name = validate_for_recognized_column(k, v, specific_data_model)
             if invalid_col_name:
-                if file_type not in invalid_col_names.keys():
-                    invalid_col_names[file_type] = set()
-                invalid_col_names[file_type].add(invalid_col_name)
+                if item_type not in invalid_col_names.keys():
+                    invalid_col_names[item_type] = set()
+                invalid_col_names[item_type].add(invalid_col_name)
                 # skip to next item, as additional validations won't work (key is not in the data model)
+
+                ## new style
+                if item_name:
+                    if item_type not in invalid_data:
+                        invalid_data[item_type] = {}
+                    if item_name not in invalid_data[item_type]:
+                        invalid_data[item_type][item_name] = {}
+                    if 'invalid_col' not in invalid_data[item_type][item_name]:
+                        invalid_data[item_type][item_name]['invalid_col'] = []
+                    invalid_data[item_type][item_name]['invalid_col'].append(invalid_col_name)
+                ##
                 continue 
             
             # make a list of missing, required data
-            missing_item = validate_for_presence(k, v, specific_data_model) 
+            missing_item = validate_for_presence(k, v, specific_data_model)
+            #print 'k, v', k, v
             if missing_item:
-                if file_type not in missing_data.keys():
-                    missing_data[file_type] = set()
-                missing_data[file_type].add(missing_item)
+                if item_type not in missing_data.keys():
+                    missing_data[item_type] = set()
+                missing_data[item_type].add(missing_item)
+
+                ## new style
+                if item_name:
+                    if item_type not in invalid_data.keys():
+                        invalid_data[item_type] = {}
+                    if item_name not in invalid_data[item_type].keys():
+                        invalid_data[item_type][item_name] = {}
+                    if 'missing_data' not in invalid_data[item_type][item_name]:
+                        invalid_data[item_type][item_name]['missing_data'] = []
+                    invalid_data[item_type][item_name]['missing_data'].append(missing_item)
+                ##
 
             # make a list of data that should be numeric, but isn't
             number_fail = validate_for_numericality(k, v, specific_data_model)
             if number_fail:
-                if file_type not in number_scramble.keys():
-                    number_scramble[file_type] = set()
-                number_scramble[file_type].add(number_fail)
+                if item_type not in non_numeric.keys():
+                    non_numeric[item_type] = set()
+                non_numeric[item_type].add(number_fail)
+
+                ## new style
+                if item_name:
+                    if item_type not in invalid_data:
+                        invalid_data[item_type] = {}
+                    if item_name not in invalid_data[item_type]:
+                        invalid_data[item_type][item_name] = {}
+                    if 'number_fail' not in invalid_data[item_type][item_name]:
+                        invalid_data[item_type][item_name]['number_fail'] = []
+                    invalid_data[item_type][item_name]['number_fail'].append(number_fail)
+                ##
+
+    #print '---'
+    #for d, problems in invalid_data.items():
+    #    print d
+    #    print '...'
+    #    for item, item_warnings in problems.items():
+    #        print item
+    #        print item_warnings
+    #        print '...'
+    #    print '---'
+    #print '********'
 
     for file_type, invalid_names in invalid_col_names.items():
         print "-W- In your {} file, you are using the following unrecognized columns: {}".format(file_type, ', '.join(invalid_names))
 
-    for file_type, wrong_cols in number_scramble.items():
+    for file_type, wrong_cols in non_numeric.items():
         print "-W- In your {} file, you must provide only valid numbers, in the following columns: {}".format(file_type, ', '.join(wrong_cols))
 
     for file_type, empty_cols in missing_data.items():
@@ -125,12 +207,11 @@ def read_upload(up_file):
             print "-W- You have not provided a(n) {} type file, which is required data".format(file_type)
             missing_file_type = True
             
-
-    if invalid_col_names or number_scramble or missing_data or missing_file_type:
-        return False
+    if invalid_col_names or non_numeric or missing_data or missing_file_type:
+        return False, invalid_data
     else:
         print "-I- validation was successful"
-        return True
+        return True, None
     
 
 def split_lines(lines):

@@ -79,7 +79,7 @@ def main():
         print 'Saved file: {} in folder: {}'.format(figname, dir_path)
         return False
     
-    app = wx.PySimpleApp(redirect=False)
+    app = wx.App(redirect=False)
     if not fig:
         pw.simple_warning('No plot was able to be created with the data you provided.\nMake sure you have given all the required information and try again')
         return False

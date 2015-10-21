@@ -1,0 +1,1207 @@
+tab delimited	magic_contributions
+column_nmb	field_name	field_name_oracle	data_type	data_unit	data_status	field_type	field_description	field_examples	field_validation_rule
+1	Citation	er_citation_name	Citation	Citation	Recommended	R	The contribution's citation (referred to as "This Study" in other tables)	EarthRef Reference ID, a DOI, or a citation (Paterson et. al 2013)	
+2	Activate Immediately	activate	String(1)	Flag	Optional	F	Activate this contribution (make public) after upload, in which case a Citation ID is required (x = activate)		
+3	Original Author	contributor_is_author	String(1)	Flag	Optional	F	Contributor is an original author (x = true)		
+4	Group Username	group_userid	String(10)	Text	Optional		Username for sharing a private contribution with a group		
+5	Group Password	group_password	String(10)	Text	Optional		Password for sharing a private contribution with a group		
+6	Extra Data	update_new_data	String(1)	Flag	Optional	F	Extra data were added in this update (x = true)		
+7	Corrections	update_corrections	String(1)	Flag	Optional	F	Data were corrected in this update (x = true)		
+8	Comments	update_comments	String(500)	Text	Recommended		Comments about the update (why it was necessary, what was changed, etc.)		
+>>>>>>>>>>
+tab delimited	er_expeditions
+column_nmb	field_name	field_name_oracle	data_type	data_unit	data_status	field_type	field_description	field_examples	field_validation_rule
+1	Expedition Name	er_expedition_name	String(50)	Text	Required	P	Name for seagoing or land expedition	AVON02MV	unique
+2	Expedition Name Alternatives	er_expedition_alternatives	List(300)	Text	Optional		Colon-delimited list of alternative names and abbreviations		
+3	Expedition Ship	expedition_ship	String(30)	Text	Optional		Expedition research vessel name	R/V Melville	
+4	Expedition Leg	expedition_leg	String(30)	Text	Optional		Leg number of a seagoing expedition	Leg 2	
+5	Expedition NGDC Number	expedition_ngdc_numb	String(30)	Text	Optional		NGDC cruise identifier	ARIA01WT, AVON02MV, AMAT02RR	
+6	Expedition Sponsor	expedition_sponsor	String(20)	Text	Recommended		Name(s) of sponsors	NSF-OCE, NASA	
+7	Expedition Location	expedition_location	List(500)	Text	Recommended		Colon-delimited list of locations		
+8	Expedition Science Themes	expedition_themes	String(300)	Text	Optional		Specific science themes and questions		
+9	Expedition Standard Equipment	expedition_std_equipment	String(300)	Text	Optional		Equipment available on vessel		
+10	Expedition Science Equipment	expedition_sci_equipment	String(300)	Text	Optional		Equipment brought on ship by scientists		
+11	Expedition Start Latitude	expedition_start_lat	Number	Number in Degrees	Recommended		Start location, Latitude	Decimal degrees between -90 and 90	min:-90;max:90
+12	Expedition Start Longitude	expedition_start_lon	Number	Number in Degrees	Recommended		Start location, Longitude	Decimal degrees between 0 and 360	lon:0,360
+13	Expedition Start Date	expedition_start_date	Date	Text	Recommended		Start location, Date	Number in the ''yyyy:mm:dd:hh:mm:ss.ss'' format	
+14	Expedition Start Time Zone	expedition_start_time_zone	String(10)	Text	Recommended		Start location, Time zone	UTC, PDT, GMT	
+15	Expedition Start Location	expedition_start_loc	String(50)	Text	Recommended		Start location, Name	Majuro, Pago Pago, Guam	
+16	Expedition End Latitude	expedition_end_lat	Number	Number in Degrees	Recommended		Ending location, Latitude	Decimal degrees between -90 and 90	min:-90;max:90
+17	Expedition End Longitude	expedition_end_lon	Number	Number in Degrees	Recommended		Ending location, Longitude	Decimal degrees between 0 and 360	lon:0,360
+18	Expedition End Date	expedition_end_date	Date	Text	Recommended		Ending location, Date	Number in the ''yyyy:mm:dd:hh:mm:ss.ss'' format	
+19	Expedition End Time Zone	expedition_end_time_zone	String(10)	Text	Recommended		Ending location, Time zone	UTC, PDT, GMT	
+20	Expedition End Location	expedition_end_loc	String(50)	Text	Recommended		Ending location, Name	Majuro, Pago Pago, Guam	
+21	Expedition Box Latitude	expedition_box_lat_min	Number	Number in Degrees	Optional		Encompassing latitude and longitude box, Latitude minimum	Decimal degrees between -90 and 90	min:-90;max:90
+22	Expedition Box Latitude	expedition_box_lat_max	Number	Number in Degrees	Optional		Encompassing latitude and longitude box, Latitude maximum	Decimal degrees between -90 and 90	min:-90;max:90
+23	Expedition Box Longitude	expedition_box_lon_min	Number	Number in Degrees	Optional		Encompassing latitude and longitude box, Longitude minimum	Decimal degrees between 0 and 360	lon:0,360
+24	Expedition Box Longitude	expedition_box_lon_max	Number	Number in Degrees	Optional		Encompassing latitude and longitude box, Longitude maximum	Decimal degrees between 0 and 360	lon:0,360
+25	Vessel Sonar Type	expedition_mb_sonar	String(30)	Text	Optional		Ship sensors, Sonar		
+26	Vessel NAV Sensor	expedition_nav_sensor	String(30)	Text	Optional		Ship sensors, NAV		
+27	Vessel VRU Sensor	expedition_vru_sensor	String(30)	Text	Optional		Ship sensors, VRU		
+28	Vessel SSV Sensor	expedition_ssv_sensor	String(30)	Text	Optional		Ship sensors, SSV		
+29	Vessel MDG Sensor	expedition_mdg_sensor	String(30)	Text	Optional		Ship sensors, MDG		
+30	Expedition Description	expedition_description	String(1000)	Text	Recommended		Detailed description		type:description
+31	Expedition URL	expedition_url	String(200)	Text	Recommended		Website URL for the expedition	http://earthref.org	type:url
+32	Principal Investigator Names	er_pi_mail_names	List(500)	Text	Recommended	R	Colon-delimited list of names for PI's of expedition	Jean Smith : Conan H. Blacksun	in:er_mailinglist.er_mail_name
+33	Research Scientist Names	er_scientist_mail_names	List(500)	Text	Recommended	R	Colon-delimited list of names for scientists participating in expedition	Jim R.D. Hart : Alexis Heard : Bob McIntire	in:er_mailinglist.er_mail_name
+34	Crew Names	er_crew_mail_names	List(500)	Text	Recommended	R	Colon-delimited list of names for marine technicians and other crew	Josh Coldheart : Jane Goodall	in:er_mailinglist.er_mail_name
+35	Citation Names	er_citation_names	List(500)	Text	Required	R	Colon-delimited list of citations	Smith et al. 2003 : Hart & Heard 1967 : This study	in:er_citations.er_citation_name
+>>>>>>>>>>
+tab delimited	er_locations
+column_nmb	field_name	field_name_oracle	data_type	data_unit	data_status	field_type	field_description	field_examples	field_validation_rule
+1	Location Name	er_location_name	String(50)	Text	Required	P	Name for location, dredge or drill site	San Francisco Volcanic Province, Dredge AMAT02-D12, Site 801	unique
+2	Location Name Alternatives	er_location_alternatives	List(300)	Text	Optional		Colon-delimited list of alternative names and abbreviations		
+3	Location Type	location_type	String(50)	Text	Required	E	Location type	Drill Site, Core, Land Section, Submarine Section, Stratigraphic Section, Archeological Site, Outcrop, Region	cv:location_type
+4	Geographic Begin Latitude	location_begin_lat	Number	Number in Degrees	Required		Beginning of section or core, Outcrop, Latitude	Decimal degrees between -90 and 90	min:-90;max:90
+5	Geographic Begin Longitude	location_begin_lon	Number	Number in Degrees	Required		Beginning of section or core, Outcrop, Longitude	Decimal degrees between 0 and 360	lon:0,360
+6	Geographic Begin Elevation	location_begin_elevation	Number	Number in m	Recommended		Beginning of section or core, Outcrop, Elevation relative to sealevel	Meters above sealevel	
+7	Geographic End Latitude	location_end_lat	Number	Number in Degrees	Required		End of section or core, Latitude	Decimal degrees between -90 and 90	min:-90;max:90
+8	Geographic End Longitude	location_end_lon	Number	Number in Degrees	Required		End of section or core, Longitude	Decimal degrees between 0 and 360	lon:0,360
+9	Geographic End Elevation	location_end_elevation	Number	Number in m	Recommended		End of section or core, Elevation relative to sealevel	Meters above sealevel	
+10	Location Precision	location_precision	Number	Number in Degrees	Recommended		Precision in latitude and longitude	Decimal degrees	min:0;max:360
+11	Location Geoid	location_geoid	String(20)	Text	Recommended	E	Geoid used in determination of latitude and longitude	WGS84, GEOID03, USGG2003, GEOID99, G99SSS , G99BM, DEFLEC99 	cv:geoid
+12	Continent or Ocean Island Region	continent_ocean	String(50)	Text	Recommended	E	Name for continent or ocean island region	North America, Australia, Europe, Asia, Artic Ocean, Indian Ocean	cv:continent_ocean
+13	Ocean or Sea Name	ocean_sea	String(50)	Text	Recommended	E	Name for location in an ocean or sea	Pacific Ocean, North Sea, Gulf of Mexico	cv:ocean_sea
+14	Country Name	country	String(50)	Text	Recommended	E	Country name	Mexico, Costa Rica, the Netherlands	cv:country
+15	Region Name	region	String(50)	Text	Recommended	N	Region name	Baja California, Gulf of Mexico	sv:region
+16	Village or City Name	village_city	String(50)	Text	Recommended	N	Village or city name	San Francisco, Aalsmeer, San Cristobal, Jumilla	sv:village_city
+17	Plate or Block Name	plate_block	String(50)	Text	Recommended	E	Plate or tectonic block name	North American Plate, Xifon Block, Cocos Plate	cv:plate_block
+18	Terrane Name	terrane	String(50)	Text	Recommended	N	Terrane name	Colorado Plateau, Baltica, Grenville Province	sv:terrane
+19	Geological Province or Section Name	geological_province_section	String(50)	Text	Recommended	N	Geological province or section name	Ljusdal Batholith, Storsjon-Edsbyn Sills, West Uusima Complex, Sierra Nevada	sv:geological_province_section
+20	Tectonic Setting	tectonic_setting	String(50)	Text	Recommended	E	Tectonic setting	Intra-Plate Volcanism, Subduction Zone, Mid-Oceanic Ridge	cv:tectonic_setting
+21	Location Class	location_class	String(50)	Text	Recommended	E	Location class	Igneous, Sedimentary, Metamorphic, Archeological, Intrusive, Extrusive, Submarine, Subaerial	cv:class
+22	Location Lithology	location_lithology	String(200)	Text	Recommended	E	Location lithology or archeological classification	Basalt, Granite, Mudstone, Tuff, Granodiorite, Marl	cv:lithology
+23	Location Description	location_description	String(1000)	Text	Optional		Detailed description		type:description
+24	Location URL	location_url	String(200)	Text	Optional		Website URL for the location	http://earthref.org	type:url
+25	Research Scientist Names	er_scientist_mail_names	List(500)	Text	Recommended	R	Colon-delimited list of names for scientists who described location	Jim R.D. Hart : Alexis Heard : Bob McIntire	in:er_mailinglist.er_mail_name
+26	Citation Names	er_citation_names	List(500)	Text	Required	R	Colon-delimited list of citations	Smith et al. 2003 : Hart & Heard 1967 : This study	in:er_citations.er_citation_name
+>>>>>>>>>>
+tab delimited	er_formations
+column_nmb	field_name	field_name_oracle	data_type	data_unit	data_status	field_type	field_description	field_examples	field_validation_rule
+1	Formation Name	er_formation_name	String(50)	Text	Required	P	Name for formation	Bluebird Formation	unique
+2	Formation Name Alternatives	er_formation_alternatives	List(300)	Text	Optional		Colon-delimited list of alternative names and abbreviations		
+3	Formation Class	formation_class	String(50)	Text	Required	E	Formation location class	Igneous, Sedimentary, Metamorphic, Archeological, Intrusive, Extrusive, Submarine, Subaerial	cv:class
+4	Formation Lithology	formation_lithology	String(200)	Text	Recommended	E	Formation lithology or archeological classification	Basalt, Granite, Mudstone, Tuff, Granodiorite, Marl	cv:lithology
+5	Formation Paleo Environment	formation_paleo_environment	String(50)	Text	Recommended	E	Depositional environment	Fluvial, Continental Shelf, Eolian, Fringing Reef	cv:paleo_environment
+6	Formation Thickness	formation_thickness	Number	Number in m	Optional		Formation thickness		
+7	Formation Description	formation_description	String(1000)	Text	Optional		Detailed description		type:description
+8	Research Scientist Names	er_scientist_mail_names	List(500)	Text	Recommended	R	Colon-delimited list of names for scientists who described formation	Jim R.D. Hart : Alexis Heard : Bob McIntire	in:er_mailinglist.er_mail_name
+9	Citation Names	er_citation_names	List(500)	Text	Required	R	Colon-delimited list of citations	Smith et al. 2003 : Hart & Heard 1967 : This study	in:er_citations.er_citation_name
+>>>>>>>>>>
+tab delimited	er_members
+column_nmb	field_name	field_name_oracle	data_type	data_unit	data_status	field_type	field_description	field_examples	field_validation_rule
+1	Member Name	er_member_name	String(50)	Text	Required	P	Name for member	Glasshound Member	unique
+2	Member Name Alternatives	er_member_alternatives	List(300)	Text	Optional		Colon-delimited list of alternative names and abbreviations		
+3	Formation Name	er_formation_name	String(50)	Text	Optional	R	Name for formation	Bluebird Formation	in:er_formations.er_formation_name
+4	Member Class	member_class	String(50)	Text	Required	E	Member location class	Igneous, Sedimentary, Metamorphic, Archeological, Intrusive, Extrusive, Submarine, Subaerial	cv:class
+5	Member Lithology	member_lithology	String(200)	Text	Recommended	E	Member lithology or archeological classification	Basalt, Granite, Mudstone, Tuff, Granodiorite, Marl	cv:lithology
+6	Member Paleo Environment	member_paleo_environment	String(50)	Text	Recommended	E	Depositional environment	Fluvial, Continental Shelf, Eolian, Fringing Reef	cv:paleo_environment
+7	Member Thickness	member_thickness	Number	Number in m	Optional		Member thickness		
+8	Member Description	member_description	String(1000)	Text	Optional		Detailed description		type:description
+9	Research Scientist Names	er_scientist_mail_names	List(500)	Text	Recommended	R	Colon-delimited list of names for scientists who described member	Jim R.D. Hart : Alexis Heard : Bob McIntire	in:er_mailinglist.er_mail_name
+10	Citation Names	er_citation_names	List(500)	Text	Required	R	Colon-delimited list of citations	Smith et al. 2003 : Hart & Heard 1967 : This study	in:er_citations.er_citation_name
+>>>>>>>>>>
+tab delimited	er_sites
+column_nmb	field_name	field_name_oracle	data_type	data_unit	data_status	field_type	field_description	field_examples	field_validation_rule
+1	Site Name	er_site_name	String(50)	Text	Required	P	Name for site	Bas123a	unique
+2	Site Name Alternatives	er_site_alternatives	List(300)	Text	Optional		Colon-delimited list of alternative names and abbreviations		
+3	Expedition Name	er_expedition_name	String(50)	Text	Optional	R	Name for seagoing or land expedition	AVON02MV	in:er_expeditions.er_expedition_name
+4	Location Name	er_location_name	String(50)	Text	Required	R	Name for location, dredge or drill site	San Francisco Volcanic Province, Dredge AMAT02-D12, Site 801	in:er_locations.er_location_name
+5	Formation Name	er_formation_name	String(50)	Text	Optional	R	Name for formation	Bluebird Formation	in:er_formations.er_formation_name
+6	Member Name	er_member_name	String(50)	Text	Optional	R	Name for member	Glasshound Member	in:er_members.er_member_name
+7	Site Definition	site_definition	String(1)	Flag	Required	F	Single (s, the default) site or composite (c) site including various geological units		cv:site_definition
+8	Site Class	site_class	String(50)	Text	Required	E	Site location class	Igneous, Sedimentary, Metamorphic, Archeological, Intrusive, Extrusive, Submarine, Subaerial	cv:class
+9	Site Lithology	site_lithology	String(200)	Text	Required	E	Site lithology or archeological classification	Basalt, Granite, Mudstone, Tuff, Granodiorite, Marl	                     
+10	Site Type	site_type	String(50)	Text	Required	E	Site type	Flow Top, Glassy Margin, Pot Rim, Pillow, Kiln, Sediment Layer	cv:type
+11	Site Latitude	site_lat	Number	Number in Degrees	Required		Site location, Latitude	Decimal degrees between -90 and 90	min:-90;max:90
+12	Site Longitude	site_lon	Number	Number in Degrees	Required		Site location, Longitude	Decimal degrees between 0 and 360	lon:0,360
+13	Site Location Precision	site_location_precision	Number	Number in Degrees	Recommended		Site location, Precision in latitude and longitude	Decimal degrees	min:0;max:360
+14	Site Location Geoid	site_location_geoid	String(20)	Text	Recommended	E	Site location, Geoid used in determination of latitude and longitude	WGS84, GEOID03, USGG2003, GEOID99, G99SSS , G99BM, DEFLEC99 	cv:geoid
+15	Site Elevation	site_elevation	Number	Number in m	Recommended		Site location, Elevation relative to sealevel	Meters above sealevel	
+16	Site Stratigraphic Height	site_height	Number	Number in m	Recommended		Site location, Stratigraphic height	Positive is up in section or core, while negative is down relative to reference height	
+17	Site Core Depth	site_core_depth	Number	Number in m	Optional		Site location, Core depth in MBSF	Meters below seafloor	
+18	Site Composite Depth	site_composite_depth	Number	Number in m	Optional		Site location, Composite depth in MBSF	Meters below seafloor	
+19	Site Bedding Dip Direction	site_bed_dip_direction	Number	Number in Degrees	Recommended		Direction of the dip of a paleo-horizontal plane in the bedding	Decimal degrees between 0 and 360	min:0;max:360
+20	Site Bedding Dip	site_bed_dip	Number	Number in Degrees	Recommended		Dip of the bedding as measured to the right of strike direction	Decimal degrees between 0 and 90	min:0;max:90
+21	Site Cooling Rate Estimate	site_cooling_rate	Number	Number in K/Ma	Optional		Estimated ancient in-situ cooling rate per Ma		
+22	Site IGSN Number	site_igsn	String(9)	Text	Optional		International Geological Sample Number (IGSN)	SIO0A0987, SIO001317	
+23	Site Description	site_description	String(1000)	Text	Optional		Detailed description		type:description
+24	Method Codes	magic_method_codes	List(500)	Text	Recommended	R	Colon-delimited list of method codes	DE-DC0 : FT-F1 : LP-DCDMAG	in:magic_methods.magic_method_code
+25	Research Scientist Names	er_scientist_mail_names	List(500)	Text	Recommended	R	Colon-delimited list of names for scientists who described site	Jim R.D. Hart : Alexis Heard : Bob McIntire	in:er_mailinglist.er_mail_name
+26	Citation Names	er_citation_names	List(500)	Text	Required	R	Colon-delimited list of citations	Smith et al. 2003 : Hart & Heard 1967 : This study	in:er_citations.er_citation_name
+>>>>>>>>>>
+tab delimited	er_samples
+column_nmb	field_name	field_name_oracle	data_type	data_unit	data_status	field_type	field_description	field_examples	field_validation_rule
+1	Sample Name	er_sample_name	String(50)	Text	Required	P	Name for sample	Bas123a-01	 
+2	Sample Name Alternatives	er_sample_alternatives	List(300)	Text	Optional		Colon-delimited list of alternative names and abbreviations		
+3	Expedition Name	er_expedition_name	String(50)	Text	Optional	R	Name for seagoing or land expedition	AVON02MV	in:er_expeditions.er_expedition_name
+4	Location Name	er_location_name	String(50)	Text	Required	R	Name for location, dredge or drill site	San Francisco Volcanic Province, Dredge AMAT02-D12, Site 801	in:er_locations.er_location_name
+5	Formation Name	er_formation_name	String(50)	Text	Optional	R	Name for formation	Bluebird Formation	in:er_formations.er_formation_name
+6	Member Name	er_member_name	String(50)	Text	Optional	R	Name for member	Glasshound Member	in:er_members.er_member_name
+7	Site Name	er_site_name	String(50)	Text	Required	R	Name for site	Bas123a	in:er_sites.er_site_name
+8	Sample Class	sample_class	String(50)	Text	Required	E	Sample location class	Igneous, Sedimentary, Metamorphic, Archeological, Intrusive, Extrusive, Submarine, Subaerial	                               
+9	Sample Lithology	sample_lithology	String(200)	Text	Required	E	Sample lithology or archeological classification	Basalt, Granite, Mudstone, Tuff, Granodiorite, Marl	cv:lithology
+10	Sample Type	sample_type	String(50)	Text	Required	E	Sample type	Flow Top, Glassy Margin, Pot Rim, Pillow, Kiln, Dike	cv:type
+11	Sample Texture	sample_texture	String(50)	Text	Optional	E	Sample texture	Holocrystalline, Hawaiitic, Homogeneous	cv:texture
+12	Sample Alteration	sample_alteration	String(50)	Text	Optional	E	Sample alteration, Grade	Severe, High, Mild, Trace, Unaltered	cv:alteration
+13	Sample Alteration Type	sample_alteration_type	String(50)	Text	Optional	E	Sample alteration, Type	Hydrothermal, Diagenetic, Weathering, Oxidation, Metamorphic	cv:alteration_type
+14	Sample Latitude	sample_lat	Number	Number in Degrees	Required		Sample location, Latitude	Decimal degrees between -90 and 90	min:-90;max:90
+15	Sample Longitude	sample_lon	Number	Number in Degrees	Required		Sample location, Longitude	Decimal degrees between 0 and 360	lon:0,360
+16	Sample Location Precision	sample_location_precision	Number	Number in Degrees	Recommended		Sample location, Precision in latitude and longitude	Decimal degrees	min:0;max:360
+17	Sample Location Geoid	sample_location_geoid	String(20)	Text	Recommended	E	Sample location, Geoid used in determination of latitude and longitude	WGS84, GEOID03, USGG2003, GEOID99, G99SSS , G99BM, DEFLEC99 	cv:geoid
+18	Sample Elevation	sample_elevation	Number	Number in m	Recommended		Sample location, Elevation relative to sealevel	Meters above sealevel	
+19	Sample Stratigraphic Height	sample_height	Number	Number in m	Recommended		Sample location, Stratigraphic height	Positive is up in section or core, while negative is down relative to reference height	
+20	Sample Core Depth	sample_core_depth	Number	Number in m	Optional		Sample location, Core depth in MBSF	Meters below seafloor	
+21	Sample Composite Depth	sample_composite_depth	Number	Number in m	Optional		Sample location, Composite depth in MBSF	Meters below seafloor	
+22	Sample Date	sample_date	Date	Text	Recommended		Sampling date	Number in the ''yyyy:mm:dd:hh:mm:ss.ss'' format	
+23	Sample Time Zone	sample_time_zone	String(10)	Text	Recommended		Sampling time zone	UTC, PDT, GMT	
+24	Sample Orientation Flag	sample_orientation_flag	String(1)	Flag	Recommended	F	Indicating if good (g, the default) or bad (b) orientation data		cv:data_quality
+25	Sample Declination Correction	sample_declination_correction	Number	Number in Degrees	Recommended		Declination correction applied while determining sample azimuth	Decimal degrees	
+26	Sample Azimuth	sample_azimuth	Number	Number in Degrees	Recommended		Sample azimuth as measured clockwise from the north	Decimal degrees between 0 and 360	min:0;max:360
+27	Sample Dip	sample_dip	Number	Number in Degrees	Recommended		Sample dip as measured into the outcrop	Decimal degrees between 0 and 90	min:0;max:90
+28	Sample Bedding Dip Direction	sample_bed_dip_direction	Number	Number in Degrees	Recommended		Direction of the dip of a paleo-horizontal plane in the bedding	Decimal degrees between 0 and 360	min:0;max:360
+29	Sample Bedding Dip	sample_bed_dip	Number	Number in Degrees	Recommended		Dip of the bedding as measured to the right of strike direction	Decimal degrees between 0 and 90	min:0;max:90
+30	Sample Cooling Rate Estimate	sample_cooling_rate	Number	Number in K/Ma	Optional		Estimated ancient in-situ cooling rate per Ma		
+31	Sample IGSN Number	sample_igsn	String(9)	Text	Optional		International Geological Sample Number (IGSN)	SIO0A0987, SIO001317	
+32	Sample Description	sample_description	String(1000)	Text	Optional		Detailed description		type:description
+33	Method Codes	magic_method_codes	List(500)	Text	Recommended	R	Colon-delimited list of method codes	DE-DC0 : FT-F1 : LP-DCDMAG	in:magic_methods.magic_method_code
+34	Research Scientist Names	er_scientist_mail_names	List(500)	Text	Recommended	R	Colon-delimited list of names for scientists who took sample	Jim R.D. Hart : Alexis Heard : Bob McIntire	in:er_mailinglist.er_mail_name
+35	Citation Names	er_citation_names	List(500)	Text	Required	R	Colon-delimited list of citations	Smith et al. 2003 : Hart & Heard 1967 : This study	in:er_citations.er_citation_name
+>>>>>>>>>>
+tab delimited	er_specimens
+column_nmb	field_name	field_name_oracle	data_type	data_unit	data_status	field_type	field_description	field_examples	field_validation_rule
+1	Specimen Name	er_specimen_name	String(50)	Text	Required	P	Name for specimen	Bas123a-01x	unique
+2	Specimen Name Alternatives	er_specimen_alternatives	List(300)	Text	Optional		Colon-delimited list of alternative names and abbreviations		
+3	Expedition Name	er_expedition_name	String(50)	Text	Optional	R	Name for seagoing or land expedition	AVON02MV	in:er_expeditions.er_expedition_name
+4	Location Name	er_location_name	String(50)	Text	Required	R	Name for location, dredge or drill site	San Francisco Volcanic Province, Dredge AMAT02-D12, Site 801	in:er_locations.er_location_name
+5	Formation Name	er_formation_name	String(50)	Text	Optional	R	Name for formation	Bluebird Formation	in:er_formations.er_formation_name
+6	Member Name	er_member_name	String(50)	Text	Optional	R	Name for member	Glasshound Member	in:er_members.er_member_name
+7	Site Name	er_site_name	String(50)	Text	Required	R	Name for site	Bas123a	in:er_sites.er_site_name
+8	Sample Name	er_sample_name	String(50)	Text	Required	R	Name for sample	Bas123a-01	in:er_samples.er_sample_name
+9	Specimen Class	specimen_class	String(50)	Text	Required	E	Specimen location class	Igneous, Sedimentary, Metamorphic, Archeological, Intrusive, Extrusive, Submarine, Subaerial	cv:class
+10	Specimen Lithology	specimen_lithology	String(200)	Text	Required	E	Specimen lithology or archeological classification	Basalt, Granite, Mudstone, Tuff, Granodiorite, Marl	cv:lithology
+11	Specimen Type	specimen_type	String(50)	Text	Required	E	Specimen type	Flow Top, Glassy Margin, Pot Rim, Pillow, Kiln, Dike	cv:type
+12	Specimen Texture	specimen_texture	String(50)	Text	Optional	E	Specimen texture	Holocrystalline, Hawaiitic, Homogeneous	cv:texture
+13	Specimen Alteration	specimen_alteration	String(50)	Text	Optional	E	Specimen alteration, Grade	Severe, High, Mild, Trace, Unaltered	cv:alteration
+14	Specimen Alteration Type	specimen_alteration_type	String(50)	Text	Optional	E	Specimen alteration, Type	Hydrothermal, Diagenetic, Weathering, Oxidation, Metamorphic	cv:alteration_type
+15	Specimen Elevation	specimen_elevation	Number	Number in m	Recommended		Specimen location, Elevation relative to sealevel	Meters above sealevel	
+16	Specimen Stratigraphic Height	specimen_height	Number	Number in m	Recommended		Specimen location, Stratigraphic height	Positive is up in section or core, while negative is down relative to reference height	
+17	Specimen Core Depth	specimen_core_depth	Number	Number in m	Optional		Specimen location, Core depth in MBSF	Meters below seafloor	
+18	Specimen Composite Depth	specimen_composite_depth	Number	Number in m	Optional		Specimen location, Composite depth in MBSF	Meters below seafloor	
+19	Specimen Azimuth	specimen_azimuth	Number	Number in Degrees	Recommended		Specimen azimuth as measured clockwise from the north	Decimal degrees between 0 and 360	min:0;max:360
+20	Specimen Dip	specimen_dip	Number	Number in Degrees	Recommended		Specimen dip as measured into the outcrop	Decimal degrees between 0 and 90	min:0;max:90
+21	Specimen Volume	specimen_volume	Number	Number in m3	Recommended		Specimen volume		
+22	Specimen Weight	specimen_weight	Number	Number in kg	Recommended		Specimen weight		
+23	Specimen Density	specimen_density	Number	Number in kg/m3	Recommended		Specimen density		
+24	Specimen Grain Size	specimen_size	String(50)	Text	Recommended		Specimen grain size fraction	25-125 ¿m, 250-500 ¿m	
+25	Specimen Grain Shape	specimen_shape	String(50)	Text	Recommended		Specimen shape	Cube, Cylinder, Single Crystal, Chip	
+26	Specimen IGSN Number	specimen_igsn	String(9)	Text	Optional		International Geological Sample Number (IGSN)	SIO0A0987, SIO001317	
+27	Specimen Description	specimen_description	String(1000)	Text	Optional		Detailed description		type:description
+28	Method Codes	magic_method_codes	List(500)	Text	Recommended	R	Colon-delimited list of method codes	DE-DC0 : FT-F1 : LP-DCDMAG	in:magic_methods.magic_method_code
+29	Research Scientist Names	er_scientist_mail_names	List(500)	Text	Recommended	R	Colon-delimited list of names for scientists who prepared specimen	Jim R.D. Hart : Alexis Heard : Bob McIntire	in:er_mailinglist.er_mail_name
+30	Citation Names	er_citation_names	List(500)	Text	Required	R	Colon-delimited list of citations	Smith et al. 2003 : Hart & Heard 1967 : This study	in:er_citations.er_citation_name
+>>>>>>>>>>
+tab delimited	er_fossils
+column_nmb	field_name	field_name_oracle	data_type	data_unit	data_status	field_type	field_description	field_examples	field_validation_rule
+1	Fossil Name	er_fossil_name	String(50)	Text	Required	P	Name for fossil	AMM43-03	unique
+2	Fossil Name Alternatives	er_fossil_alternatives	List(300)	Text	Optional		Colon-delimited list of alternative names and abbreviations		
+3	Expedition Name	er_expedition_name	String(50)	Text	Optional	R	Name for seagoing or land expedition	AVON02MV	in:er_expeditions.er_expedition_name
+4	Location Name	er_location_name	String(50)	Text	Required	R	Name for location, dredge or drill site	San Francisco Volcanic Province, Dredge AMAT02-D12, Site 801	in:er_locations.er_location_name
+5	Formation Name	er_formation_name	String(50)	Text	Optional	R	Name for formation	Bluebird Formation	in:er_formations.er_formation_name
+6	Member Name	er_member_name	String(50)	Text	Optional	R	Name for member	Glasshound Member	in:er_members.er_member_name
+7	Site Name	er_site_name	String(50)	Text	Required	R	Name for site	Bas123a	in:er_sites.er_site_name
+8	Sample Name	er_sample_name	String(50)	Text	Required	R	Name for sample	Bas123a-01	in:er_samples.er_sample_name
+9	Specimen Name	er_specimen_name	String(50)	Text	Required	R	Name for specimen	Bas123a-01x	in:er_specimens.er_specimen_name
+10	Fossil Phylum	fossil_phylum	String(50)	Text	Required	N	Fossil classification, Phylum	Chordata, Magnoliophyta, Zygomycota, Firmicutes, Chlorophyta	sv:fossil_phylum
+11	Fossil Class	fossil_class	String(50)	Text	Required	N	Fossil classification, Class	Branchiopoda, Calcarea, Camptostromoidea	sv:fossil_class
+12	Fossil Order	fossil_order	String(50)	Text	Required	N	Fossil classification, Order	Alcyonida, Strophomenida, Thecideida	sv:fossil_order
+13	Fossil Family	fossil_family	String(50)	Text	Required	N	Fossil classification, Family	Aceraceae, Mucoraceae	sv:fossil_family
+14	Fossil Genus	fossil_genus	String(50)	Text	Required	N	Fossil classification, Genus	Acer, Canis, Rhizopus	sv:fossil_genus
+15	Fossil Species	fossil_species	String(50)	Text	Required	N	Fossil classification, Species	A. Saccharum, R. Stolonifer	sv:fossil_species
+16	Fossil Preservation	fossil_preservation	String(50)	Text	Optional	N	Fossil preservation	Pristine, Altered	sv:fossil_preservation
+17	Fossil Texture	fossil_texture	String(50)	Text	Optional	E	Fossil texture	Crystalline, Porous, Homogeneous	cv:texture
+18	Fossil Alteration	fossil_alteration	String(50)	Text	Optional	E	Fossil alteration, Grade	Severe, High, Mild, Trace, Unaltered	cv:alteration
+19	Fossil Alteration Type	fossil_alteration_type	String(50)	Text	Optional	E	Fossil alteration, Type	Hydrothermal, Diagenetic, Weathering, Oxidation, Metamorphic	cv:alteration_type
+20	Fossil Shape	fossil_shape	String(50)	Text	Optional		Fossil shape		
+21	Fossil Volume	fossil_volume	Number	Number in m3	Optional		Fossil volume		
+22	Fossil Weight	fossil_weight	Number	Number in kg	Optional		Fossil weight		
+23	Fossil Density	fossil_density	Number	Number in kg/m3	Optional		Fossil density		
+24	Fossil IGSN Number	fossil_igsn	String(9)	Text	Optional		International Geological Sample Number (IGSN)	SIO0A0987, SIO001317	
+25	Fossil Description	fossil_description	String(1000)	Text	Optional		Detailed description		type:description
+26	Method Codes	magic_method_codes	List(500)	Text	Recommended	R	Colon-delimited list of method codes	DE-DC0 : FT-F1 : LP-DCDMAG	in:magic_methods.magic_method_code
+27	Research Scientist Names	er_scientist_mail_names	List(500)	Text	Recommended	R	Colon-delimited list of names for scientists who prepared fossil sample	Jim R.D. Hart : Alexis Heard : Bob McIntire	in:er_mailinglist.er_mail_name
+28	Citation Names	er_citation_names	List(500)	Text	Required	R	Colon-delimited list of citations	Smith et al. 2003 : Hart & Heard 1967 : This study	in:er_citations.er_citation_name
+>>>>>>>>>>
+tab delimited	er_minerals
+column_nmb	field_name	field_name_oracle	data_type	data_unit	data_status	field_type	field_description	field_examples	field_validation_rule
+1	Mineral Name	er_mineral_name	String(50)	Text	Required	P	Name for natural occurring mineral	San03-001	unique
+2	Mineral Name Alternatives	er_mineral_alternatives	List(300)	Text	Optional		Colon-delimited list of alternative names and abbreviations		
+3	Expedition Name	er_expedition_name	String(50)	Text	Optional	R	Name for seagoing or land expedition	AVON02MV	in:er_expeditions.er_expedition_name
+4	Location Name	er_location_name	String(50)	Text	Required	R	Name for location, dredge or drill site	San Francisco Volcanic Province, Dredge AMAT02-D12, Site 801	in:er_locations.er_location_name
+5	Formation Name	er_formation_name	String(50)	Text	Optional	R	Name for formation	Bluebird Formation	in:er_formations.er_formation_name
+6	Member Name	er_member_name	String(50)	Text	Optional	R	Name for member	Glasshound Member	in:er_members.er_member_name
+7	Site Name	er_site_name	String(50)	Text	Required	R	Name for site	Bas123a	in:er_sites.er_site_name
+8	Sample Name	er_sample_name	String(50)	Text	Required	R	Name for sample	Bas123a-01	in:er_samples.er_sample_name
+9	Specimen Name	er_specimen_name	String(50)	Text	Required	R	Name for specimen	Bas123a-01x	in:er_specimens.er_specimen_name
+10	Fossil Name	er_fossil_name	String(50)	Text	Required	R	Name for fossil	AMM43-03	in:er_fossils.er_fossil_name
+11	Mineral Type	mineral_type	String(50)	Text	Required	E	Mineral type	Phenocryst, Microcryst, Groundmass, Biogenic, Detrital Clasts	cv:mineral_type
+12	Mineral Classification Name	mineral_class_name	String(50)	Text	Required	E	Mineral classification name	Magnetite, Plagioclase	cv:mineral_class_name
+13	Mineral Assemblage	mineral_assemblage	String(50)	Text	Optional	E	Mineral assemblage	Single Crystal, Mineral Separate, Polycrystalline, In Situ	cv:assemblage
+14	Mineral Alteration	mineral_alteration	String(50)	Text	Optional	E	Mineral alteration, Grade	Severe, High, Mild, Trace, Unaltered	cv:alteration
+15	Mineral Alteration Type	mineral_alteration_type	String(50)	Text	Optional	E	Mineral alteration, Type	Hydrothermal, Diagenetic, Weathering, Oxidation, Metamorphic	cv:alteration_type
+16	Mineral Shape	mineral_shape	String(50)	Text	Optional		Mineral shape	Euhedral, Orthorhombic	
+17	Mineral Size	mineral_size	String(30)	Text	Optional		Mineral grain size fraction	250-500 ¿m	
+18	Mineral Volume	mineral_volume	Number	Number in m3	Optional		Mineral volume		
+19	Mineral Weight	mineral_weight	Number	Number in kg	Optional		Mineral weight		
+20	Mineral Density	mineral_density	Number	Number in kg/m3	Optional		Mineral density		
+21	Mineral IGSN Number	mineral_igsn	String(9)	Text	Optional		International Geological Sample Number (IGSN)	SIO0A0987, SIO001317	
+22	Mineral Description	mineral_description	String(1000)	Text	Optional		Detailed description		type:description
+23	Method Codes	magic_method_codes	List(500)	Text	Recommended	R	Colon-delimited list of method codes	DE-DC0 : FT-F1 : LP-DCDMAG	in:magic_methods.magic_method_code
+24	Research Scientist Names	er_scientist_mail_names	List(500)	Text	Recommended	R	Colon-delimited list of names for scientists who prepared mineral sample	Jim R.D. Hart : Alexis Heard : Bob McIntire	in:er_mailinglist.er_mail_name
+25	Citation Names	er_citation_names	List(500)	Text	Required	R	Colon-delimited list of citations	Smith et al. 2003 : Hart & Heard 1967 : This study	in:er_citations.er_citation_name
+>>>>>>>>>>
+tab delimited	er_synthetics
+column_nmb	field_name	field_name_oracle	data_type	data_unit	data_status	field_type	field_description	field_examples	field_validation_rule
+1	Synthetic Material Name	er_synthetic_name	String(50)	Text	Required	P	Name for synthetic material	STD1546-A1	unique
+2	Synthetic Material Name Alternatives	er_synthetic_alternatives	List(300)	Text	Optional		Colon-delimited list of alternative names and abbreviations		
+3	Expedition Name	er_expedition_name	String(50)	Text	Optional	R	Name for seagoing or land expedition	AVON02MV	in:er_expeditions.er_expedition_name
+4	Location Name	er_location_name	String(50)	Text	Optional	R	Name for location, dredge or drill site	San Francisco Volcanic Province, Dredge AMAT02-D12, Site 801	in:er_locations.er_location_name
+5	Formation Name	er_formation_name	String(50)	Text	Optional	R	Name for formation	Bluebird Formation	in:er_formations.er_formation_name
+6	Member Name	er_member_name	String(50)	Text	Optional	R	Name for member	Glasshound Member	in:er_members.er_member_name
+7	Site Name	er_site_name	String(50)	Text	Optional	R	Name for site	Bas123a	in:er_sites.er_site_name
+8	Sample Name	er_sample_name	String(50)	Text	Optional	R	Name for sample	Bas123a-01	in:er_samples.er_sample_name
+9	Specimen Name	er_specimen_name	String(50)	Text	Optional	R	Name for specimen	Bas123a-01x	in:er_specimens.er_specimen_name
+10	Fossil Name	er_fossil_name	String(50)	Text	Optional	R	Name for fossil	AMM43-03	in:er_fossils.er_fossil_name
+11	Mineral Name	er_mineral_name	String(50)	Text	Optional	R	Name for mineral	San03-001	in:er_minerals.er_mineral_name
+12	Synthetic Material Parent Sampling	synthetic_parent_sample	String(50)	Text	Required		Name for parent sample used	STD1546-A1	
+13	Synthetic Material Institution	synthetic_institution	String(50)	Text	Required		Name for institution that created synthetic material	IRM, SIO	
+14	Synthetic Material Type	synthetic_type	String(50)	Text	Required	E	Synthetic material type	Rock, Biogenic, Ceramic	cv:synthetic_type
+15	Synthetic Material Assemblage	synthetic_assemblage	String(50)	Text	Optional	E	Synthetic material assemblage	Single Crystal, Mineral Separate, Polycrystalline	cv:assemblage
+16	Synthetic Material Shape	synthetic_shape	String(50)	Text	Optional		Synthetic material shape	Euhedral, Orthorhombic	
+17	Synthetic Material Size	synthetic_size	String(30)	Text	Optional		Synthetic material grain size fraction	250-500 ¿m	
+18	Synthetic Material Volume	synthetic_volume	Number	Number in m3	Optional		Synthetic material volume		
+19	Synthetic Material Weight	synthetic_weight	Number	Number in kg	Optional		Synthetic material weight		
+20	Synthetic Material Density	synthetic_density	Number	Number in kg/m3	Optional		Synthetic material density		
+21	Synthetic Material Dope	synthetic_dope_material	String(50)	Text	Optional		Synthetic dope material	Ti, Al, Mn, Mg	
+22	Synthetic Material IGSN Number	synthetic_igsn	String(9)	Text	Optional		International Geological Sample Number (IGSN)	SIO0A0987, SIO001317	
+23	Synthetic Material Description	synthetic_description	String(1000)	Text	Optional		Detailed description		type:description
+24	Method Codes	magic_method_codes	List(500)	Text	Recommended	R	Colon-delimited list of method codes	DE-DC0 : FT-F1 : LP-DCDMAG	in:magic_methods.magic_method_code
+25	Research Scientist Names	er_scientist_mail_names	List(500)	Text	Recommended	R	Colon-delimited list of names for scientists who prepared synthetic material	Jim R.D. Hart : Alexis Heard : Bob McIntire	in:er_mailinglist.er_mail_name
+26	Citation Names	er_citation_names	List(500)	Text	Required	R	Colon-delimited list of citations	Smith et al. 2003 : Hart & Heard 1967 : This study	in:er_citations.er_citation_name
+>>>>>>>>>>
+tab delimited	er_ages
+column_nmb	field_name	field_name_oracle	data_type	data_unit	data_status	field_type	field_description	field_examples	field_validation_rule
+1	Expedition Name	er_expedition_name	String(50)	Text	Optional	R	Name for seagoing or land expedition	AVON02MV	in:er_expeditions.er_expedition_name
+2	Location Name	er_location_name	String(50)	Text	Required	R	Name for location, dredge or drill site	San Francisco Volcanic Province, Dredge AMAT02-D12, Site 801	in:er_locations.er_location_name
+3	Formation Name	er_formation_name	String(50)	Text	Optional	R	Name for formation	Bluebird Formation	in:er_formations.er_formation_name
+4	Member Name	er_member_name	String(50)	Text	Optional	R	Name for member	Glasshound Member	in:er_members.er_member_name
+5	Site Name	er_site_name	String(50)	Text	Recommended	R	Name for site	Bas123a	in:er_sites.er_site_name
+6	Sample Name	er_sample_name	String(50)	Text	Recommended	R	Name for sample	Bas123a-01	in:er_samples.er_sample_name
+7	Specimen Name	er_specimen_name	String(50)	Text	Recommended	R	Name for specimen	Bas123a-01x	in:er_specimens.er_specimen_name
+8	Fossil Name	er_fossil_name	String(50)	Text	Recommended	R	Name for fossil	AMM43-03	in:er_fossils.er_fossil_name
+9	Mineral Name	er_mineral_name	String(50)	Text	Recommended	R	Name for mineral	San03-001	in:er_minerals.er_mineral_name
+10	Tiepoint Name	tiepoint_name	String(50)	Text	Recommended		Name for tiepoint horizon	San Cristobal Red bed	
+11	Tiepoint Name Alternatives	tiepoint_alternatives	List(300)	Text	Optional		Colon-delimited list of alternative names and abbreviations		
+12	Tiepoint Stratigraphic Height	tiepoint_height	Number	Number in m	Recommended		Tiepoint stratigraphic height relative to reference tiepoint	Positive is up in section or core, while negative is down relative to reference height	
+13	Tiepoint Stratigraphic Height Sigma	tiepoint_height_sigma	Number	Number in m	Recommended		Tiepoint stratigraphic height uncertainty	Uncertainty = 1xSD	
+14	Tiepoint Elevation	tiepoint_elevation	Number	Number in m	Recommended		Tiepoint elevation relative to sealevel	Meters above sealevel	
+15	Tiepoint Type	tiepoint_type	String(50)	Text	Recommended		Tiepoint type	Fossil Layer, Volcanic Tuff, Basalt Flow, Magnetic Anomaly	
+16	Age	age	Number	Custom	Recommended		Age	Preferred age	
+17	Age Sigma	age_sigma	Number	Custom	Recommended		Age, Uncertainty	Uncertainty = 1xSD	
+18	Age Low	age_range_low	Number	Custom	Optional		Age, Low range		
+19	Age High	age_range_high	Number	Custom	Optional		Age, High range		
+20	Age Unit	age_unit	String(50)	Text	Recommended	E	Age, Unit	Ma, Ka, Ga, Years BP, Years AD (+/-), Years Cal BP, Years Cal AD (+/-)	cv:age_unit
+21	Timescale Eon	timescale_eon	String(50)	Text	Recommended	E	Timescale Eon	Phanerozoic, Proterozoic, Archean	cv:timescale_eon
+22	Timescale Era	timescale_era	String(50)	Text	Recommended	E	Timescale Era	Neoproterozoic, Paleozoic, Mesozoic, Cenozoic	cv:timescale_era
+23	Timescale Period	timescale_period	String(50)	Text	Recommended	E	Timescale Period	Devonian, Permian, Cretaceous, Paleocene	cv:timescale_period
+24	Timescale Epoch	timescale_epoch	String(50)	Text	Recommended	E	Timescale Epoch	Late Triassic, Early Cretaceous, Eocene, Miocene, Pleistocene	cv:timescale_epoch
+25	Timescale Stage	timescale_stage	String(50)	Text	Recommended	E	Timescale Stage	Maastrichtian, Oxfordian, Frasnian	cv:timescale_stage
+26	Biostratigraphic Zone	biostrat_zone	String(50)	Text	Recommended	N	Biostratigraphic zone	NN10, Wasatchian	sv:biostrat_zone
+27	Conodont Zone	conodont_zone	String(50)	Text	Recommended	N	Conodont zone	B. Triangularis	sv:conodont_zone
+28	Magnetic Reversal Chron	magnetic_reversal_chron	String(50)	Text	Recommended	N	Magnetic reversal chron	C5n, C5n.2n	sv:magnetic_reversal_chron
+29	Astronomical Stage Name	astronomical_stage	String(50)	Text	Recommended	N	Astronomical stage name	MIS 19	sv:astronomical_stage
+30	Oxygen Stage Name	oxygen_stage	String(50)	Text	Recommended	N	Oxygen stage name	5e, MIS 19, Younger Dryas	sv:oxygen_stage
+31	Age Culture Name	age_culture_name	String(50)	Text	Recommended	N	Age culture name	Halaf culture	sv:age_culture_name
+32	Age Description	age_description	String(1000)	Text	Recommended		Detailed description		type:description
+33	Method Codes	magic_method_codes	List(500)	Text	Required	R	Colon-delimited list of method codes	DE-DC0 : FT-F1 : LP-DCDMAG	in:magic_methods.magic_method_code
+34	Citation Names Timescale Definition	er_timescale_citation_names	List(500)	Text	Recommended	R	Colon-delimited list of citations	Harland et al. 1993 : Cande & Kent 1992 : This study	in:er_citations.er_citation_name
+35	Citation Names	er_citation_names	List(500)	Text	Required	R	Colon-delimited list of citations	Smith et al. 2003 : Hart & Heard 1967 : This study	in:er_citations.er_citation_name
+>>>>>>>>>>
+tab delimited	er_plots
+column_nmb	field_name	field_name_oracle	data_type	data_unit	data_status	field_type	field_description	field_examples	field_validation_rule
+1	Plot Name	er_plot_name	String(50)	Text	Required	P	Name of plot	AnisoData.jpg	unique
+2	Plot Name Alternatives	er_plot_alternatives	List(300)	Text	Optional		Colon-delimited list of alternative names and abbreviations		
+3	Expedition Name	er_expedition_name	String(50)	Text	Optional	R	Name for seagoing or land expedition	AVON02MV	in:er_expeditions.er_expedition_name
+4	Location Name	er_location_name	String(50)	Text	Required	R	Name for location, dredge or drill site	San Francisco Volcanic Province, Dredge AMAT02-D12, Site 801	in:er_locations.er_location_name
+5	Formation Name	er_formation_name	String(50)	Text	Optional	R	Name for formation	Bluebird Formation	in:er_formations.er_formation_name
+6	Member Name	er_member_name	String(50)	Text	Optional	R	Name for member	Glasshound Member	in:er_members.er_member_name
+7	Site Name	er_site_name	String(50)	Text	Recommended	R	Name for site	Bas123a	in:er_sites.er_site_name
+8	Sample Name	er_sample_name	String(50)	Text	Recommended	R	Name for sample	Bas123a-01	in:er_samples.er_sample_name
+9	Specimen Name	er_specimen_name	String(50)	Text	Recommended	R	Name for specimen	Bas123a-01x	in:er_specimens.er_specimen_name
+10	Fossil Name	er_fossil_name	String(50)	Text	Recommended	R	Name for fossil	AMM43-03	in:er_fossils.er_fossil_name
+11	Mineral Name	er_mineral_name	String(50)	Text	Recommended	R	Name for mineral	San03-001	in:er_minerals.er_mineral_name
+12	Synthetic Material Name	er_synthetic_name	String(50)	Text	Recommended	R	Name for synthetic material	STD1546-A1	in:er_synthetics.er_synthetic_name
+13	Plot Type	plot_type	String(50)	Text	Required	E	Type of plot	Equal Area, Zijderveld, Demagnetization, Anisotropy Data, etc.	cv:plot_type
+14	Plot Title	plot_title	String(100)	Text	Required		Short plot title	Anisotropy Confidence, Demagnetization in Specimen Coordinates, Equal Area in Tilt Corrected Coordinates	
+15	Plot Keywords	plot_keywords	List(500)	Text	Recommended		Colon delimited list of keywords associated with plot	Remanence : Zijderveld : PmagPy : Cryogenic Magnetometer	
+16	Plot Description	plot_description	String(1000)	Text	Recommended		Detailed description		type:description
+17	Plot Date and Time	plot_date	Date	Text	Recommended		Date and time of when the plot was made	Number in the ''yyyy:mm:dd:hh:mm:ss.ss'' format	
+18	Plot Time Zone	plot_time_zone	String(10)	Text	Recommended		Time zone	UTC, PDT, GMT	
+19	Analyst Names	er_analyst_mail_names	List(500)	Text	Recommended	R	Colon-delimited list of names for analysts	Jim R.D. Hart : Alexis Heard : Bob McIntire	in:er_mailinglist.er_mail_name
+20	Citation Names	er_citation_names	List(500)	Text	Required	R	Colon-delimited list of citations	Smith et al. 2003 : Hart & Heard 1967 : This study	in:er_citations.er_citation_name
+>>>>>>>>>>
+tab delimited	er_images
+column_nmb	field_name	field_name_oracle	data_type	data_unit	data_status	field_type	field_description	field_examples	field_validation_rule
+1	Image Name	er_image_name	String(50)	Text	Required	P	Name of image	IMG_1429.jpg	unique
+2	Image Name Alternatives	er_image_alternatives	List(300)	Text	Optional		Colon-delimited list of alternative names and abbreviations		
+3	Expedition Name	er_expedition_name	String(50)	Text	Optional	R	Name for seagoing or land expedition	AVON02MV	in:er_expeditions.er_expedition_name
+4	Location Name	er_location_name	String(50)	Text	Required	R	Name for location, dredge or drill site	San Francisco Volcanic Province, Dredge AMAT02-D12, Site 801	in:er_locations.er_location_name
+5	Formation Name	er_formation_name	String(50)	Text	Optional	R	Name for formation	Bluebird Formation	in:er_formations.er_formation_name
+6	Member Name	er_member_name	String(50)	Text	Optional	R	Name for member	Glasshound Member	in:er_members.er_member_name
+7	Site Name	er_site_name	String(50)	Text	Recommended	R	Name for site	Bas123a	in:er_sites.er_site_name
+8	Sample Name	er_sample_name	String(50)	Text	Recommended	R	Name for sample	Bas123a-01	in:er_samples.er_sample_name
+9	Specimen Name	er_specimen_name	String(50)	Text	Recommended	R	Name for specimen	Bas123a-01x	in:er_specimens.er_specimen_name
+10	Fossil Name	er_fossil_name	String(50)	Text	Recommended	R	Name for fossil	AMM43-03	in:er_fossils.er_fossil_name
+11	Mineral Name	er_mineral_name	String(50)	Text	Recommended	R	Name for mineral	San03-001	in:er_minerals.er_mineral_name
+12	Synthetic Material Name	er_synthetic_name	String(50)	Text	Recommended	R	Name for synthetic material	STD1546-A1	in:er_synthetics.er_synthetic_name
+13	Image Type	image_type	String(50)	Text	Required	E	Type of image	Outcrop, thin section, MFM image, hologram, scanning squid, Bitter, Moke, etc.	cv:image_type
+14	Image Title	image_title	String(100)	Text	Required		Short Image title	High tech solutions for being lonely at sea	
+15	Image Keywords	image_keywords	List(500)	Text	Required		Colon delimited list of keywords associated with image	Simrad Computer : Multibeam : Seamounts	
+16	Image Description	image_description	String(1000)	Text	Recommended		Detailed description		type:description
+17	Image Date and Time	image_date	Date	Text	Recommended		Date and time of when image was taken	Number in the ''yyyy:mm:dd:hh:mm:ss.ss'' format	
+18	Image Time Zone	image_time_zone	String(10)	Text	Recommended		Time zone	UTC, PDT, GMT	
+19	Photographer Names	er_photographer_mail_names	List(500)	Text	Recommended	R	Colon-delimited list of names for photographers	Jim R.D. Hart : Alexis Heard : Bob McIntire	in:er_mailinglist.er_mail_name
+20	Citation Names	er_citation_names	List(500)	Text	Required	R	Colon-delimited list of citations	Smith et al. 2003 : Hart & Heard 1967 : This study	in:er_citations.er_citation_name
+>>>>>>>>>>
+tab delimited	magic_measurements
+column_nmb	field_name	field_name_oracle	data_type	data_unit	data_status	field_type	field_description	field_examples	field_validation_rule
+1	Expedition Name	er_expedition_name	String(50)	Text	Optional	R	Name for seagoing or land expedition	AVON02MV	in:er_expeditions.er_expedition_name
+2	Location Name	er_location_name	String(50)	Text	Required	R	Name for location, dredge or drill site	San Francisco Volcanic Province, Dredge AMAT02-D12, Site 801	in:er_locations.er_location_name
+3	Formation Name	er_formation_name	String(50)	Text	Optional	R	Name for formation	Bluebird Formation	in:er_formations.er_formation_name
+4	Member Name	er_member_name	String(50)	Text	Optional	R	Name for member	Glasshound Member	in:er_members.er_member_name
+5	Site Name	er_site_name	String(50)	Text	Required	R	Name for site	Bas123a	in:er_sites.er_site_name
+6	Sample Name	er_sample_name	String(50)	Text	Required	R	Name for sample	Bas123a-01	in:er_samples.er_sample_name
+7	Specimen Name	er_specimen_name	String(50)	Text	Required	R	Name for specimen	Bas123a-01x	in:er_specimens.er_specimen_name
+8	Fossil Name	er_fossil_name	String(50)	Text	Recommended	R	Name for fossil	AMM43-03	in:er_fossils.er_fossil_name
+9	Mineral Name	er_mineral_name	String(50)	Text	Recommended	R	Name for mineral	San03-001	in:er_minerals.er_mineral_name
+10	Synthetic Material Name	er_synthetic_name	String(50)	Text	Required	R	Name for synthetic material	STD1546-A1	in:er_synthetics.er_synthetic_name
+11	Experiment Name	magic_experiment_name	String(100)	Text	Required	X	Name for experiment	KOPA-299-1 : KOPA-299-2 : KOPA-299-6	type:magic_experiment_name
+12	Measurement Flag	measurement_flag	String(1)	Flag	Required	F	Indicating if good (g, the default) or bad (b) measurement		cv:data_quality
+13	Measurement Standard Flag	measurement_standard	String(1)	Flag	Required	F	Indicating if a standard (s) or an unknown (u, the default) measurement		cv:measurement_type
+14	Measurement Number	measurement_number	String(50)	Text	Required		Measurement identifier or lab number	03C3012	
+15	Measurement Date and Time	measurement_date	Date	Text	Recommended		Date and time of the measurement	Number in the ''yyyy:mm:dd:hh:mm:ss.ss'' format	
+16	Measurement Time Zone	measurement_time_zone	String(10)	Text	Recommended		Time zone	UTC, PDT, GMT	
+17	Measurement Hysteresis Loop Number	measurement_loop_x	Integer	Integer	Recommended		Hysteresis loop, Counter		
+18	Measurement Hysteresis Loop Total	measurement_loop_n	Integer	Integer	Recommended		Hysteresis loop, Total number of loops		min:0
+19	Measurement X Position	measurement_pos_x	Number	Number in m	Optional		Position of the measurement relative to the specimen, X		
+20	Measurement Y Position	measurement_pos_y	Number	Number in m	Optional		Position of the measurement relative to the specimen, Y		
+21	Measurement Z Position	measurement_pos_z	Number	Number in m	Optional		Position of the measurement relative to the specimen, Z		
+22	Measurement Number of Positions	measurement_positions	Integer	Integer	Recommended		Number of different positions in measurement		min:0
+23	Measurement Elevation	measurement_elevation	Number	Number in m	Recommended		Measurement location, Elevation relative to sealevel	Meters above sealevel	
+24	Measurement Stratigraphic Height	measurement_height	Number	Number in m	Recommended		Measurement location, Stratigraphic height	Positive is up in section or core, while negative is down relative to reference height	
+25	Measurement Core Depth	measurement_core_depth	Number	Number in m	Optional		Measurement location, Core depth in MBSF	Meters below seafloor	
+26	Measurement Composite Depth	measurement_composite_depth	Number	Number in m	Optional		Measurement location, Composite depth in MBSF	Meters below seafloor	
+27	Lab Treatment Temperature	treatment_temp	Number	Number in K	Recommended		Demagnetization temperature		min:0
+28	Lab Treatment Temperature Decay Rate	treatment_temp_decay_rate	Number	Number in K/s	Optional		Decay rate of temperature on cooling		
+29	Lab Treatment Temperature DC Field On	treatment_temp_dc_on	Number	Number in K	Optional		Temperature in a pTRM experiment at which DC field is turned on		min:0
+30	Lab Treatment Temperature DC Field Off	treatment_temp_dc_off	Number	Number in K	Optional		Temperature in a pTRM experiment at which DC field is turned off		min:0
+31	Lab Treatment AC Field	treatment_ac_field	Number	Number in T	Recommended		Peak field in AC demagnetization experiment		min:-5;max:5
+32	Lab Treatment AC Field Decay Rate	treatment_ac_field_decay_rate	Number	Number in T/s	Optional		Decay rate of AC field in AC field demagnetization experiment		
+33	Lab Treatment AC Field DC Field On	treatment_ac_field_dc_on	Number	Number in T	Optional		AC field in a pARM experiment at which DC field is turned on		min:-5;max:5
+34	Lab Treatment AC Field DC Field Off	treatment_ac_field_dc_off	Number	Number in T	Optional		AC field in a pARM experiment at which DC field is turned off		min:-5;max:5
+35	Lab Treatment DC Field	treatment_dc_field	Number	Number in T	Recommended		Applied DC field		min:-100;max:100
+36	Lab Treatment DC Field Decay Rate	treatment_dc_field_decay_rate	Number	Number in T/s	Optional		Decay rate of DC field after switching off		
+37	Lab Treatment DC Field AC Field On	treatment_dc_field_ac_on	Number	Number in T	Optional		DC field in DC field experiment at which AC field is turned on		min:-100;max:100
+38	Lab Treatment DC Field AC Field Off	treatment_dc_field_ac_off	Number	Number in T	Optional		DC field in DC field experiment at which AC field is turned off		min:-100;max:100
+39	Lab Treatment Orientation Phi	treatment_dc_field_phi	Number	Number in Degrees	Optional		Orientation of sample in magnetometer		
+40	Lab Treatment Orientation Theta	treatment_dc_field_theta	Number	Number in Degrees	Optional		Orientation of sample in magnetometer		
+41	Lab Treatment MW Power	treatment_mw_power	Number	Number in W	Optional		Microwave power		
+42	Lab Treatment MW Time	treatment_mw_time	Number	Number in s	Optional		Time (in seconds) of microwave power application		
+43	Lab Treatment MW Energy	treatment_mw_energy	Number	Number in J	Optional		Applied microwave power integrated over total application time		
+44	Lab Treatment Power Integral	treatment_mw_integral	Number	Number in J	Optional		Absorbed microwave energy, Applied microwave energy minus reflected microwave energy		
+45	Measurement Demagnetization Code	measurement_demagn_code	String(30)	Text	Optional		Demagnetization code for legacy data		
+46	Measurement Temperature	measurement_temp	Number	Number in K	Recommended		Temperature		min:0
+47	Measurement Temperature Change	measurement_temp_change	Number	Number in K	Recommended		Change in temperature during each measurement step		
+48	Measurement Frequency	measurement_freq	Number	Number in Hz	Recommended		Frequency		
+49	Measurement Orientation Phi	measurement_orient_phi	Number	Number in Degrees	Recommended		Orientation of sample in magnetometer		
+50	Measurement Orientation Theta	measurement_orient_theta	Number	Number in Degrees	Recommended		Orientation of sample in magnetometer		
+51	Measurement Lab Field AC	measurement_lab_field_ac	Number	Number in T	Recommended		Measured AC field in laboratory		min:0;max:1
+52	Measurement Lab Field DC	measurement_lab_field_dc	Number	Number in T	Recommended		Measured DC field in laboratory		min:-30;max:30
+53	Measurement Inclination	measurement_inc	Number	Number in Degrees	Recommended		Directions in sample coordinates, Inclination	Decimal degrees between 0 and 90	min:0;max:90
+54	Measurement Declination	measurement_dec	Number	Number in Degrees	Recommended		Directions in sample coordinates, Declination	Decimal degrees between 0 and 360	min:0;max:360
+55	Measurement Magnitude	measurement_magnitude	Number	Dimensionless	Recommended		Uncalibrated magnitude measurement		
+56	Measurement Magnetization Moment	measurement_magn_moment	Number	Number in Am2	Recommended		Measured magnetic moment		min:-1;max:1
+57	Measurement Magnetization Volume	measurement_magn_volume	Number	Number in A/m	Recommended		Measured intensity of magnetization, Volume normalized		min:-1000000;max:1000000
+58	Measurement Magnetization Mass	measurement_magn_mass	Number	Number in Am2/kg	Recommended		Measured intensity of magnetization, Mass normalized		min:-200;max:200
+59	Measurement Susceptibility X Volume	measurement_chi_volume	Number	Number in SI	Recommended		Magnetic susceptibility, Volume normalized		
+60	Measurement Susceptibility X Mass	measurement_chi_mass	Number	Number in m3/kg	Recommended		Magnetic susceptibility, Mass normalized		
+61	Measurement Susceptibility Xqdr Volume	measurement_chi_qdr_volume	Number	Number in SI	Optional		Quadrature magnetic susceptibility, Volume normalized		
+62	Measurement Susceptibility Xqdr Mass	measurement_chi_qdr_mass	Number	Number in m3/kg	Optional		Quadrature magnetic susceptibility, Mass normalized		
+63	Measurement Hysteresis Sweep Rate	measurement_sweep_rate	Number	Number in T/s	Recommended		Rate of field sweep during a hysteresis loop measurement		
+64	Measurement Hysteresis Charging Mode	measurement_charging_mode	String(30)	Text	Recommended		Measurement hysteresis charging mode	Hysteresis, Steady, No Overshoot	
+65	Measurement Goodness of Fit	measurement_r2	Number	Dimensionless	Recommended		Goodness of fit in regression	Number between 0 and 1	min:0;max:1
+66	Measurement Circular Standard Deviation	measurement_csd	Number	Number in Degrees	Recommended		Circular standard deviation in measurements	Uncertainty = 1xSD	
+67	Measurement Standard Deviation	measurement_sd	Number	Number in Degrees	Recommended		Standard deviation in measurements, Average X, Y and Z directions	Uncertainty = 1xSD	
+68	Measurement Standard Deviation X	measurement_sd_x	Number	Number in Degrees	Recommended		Standard deviation in measurements, X	Uncertainty = 1xSD	
+69	Measurement Standard Deviation Y	measurement_sd_y	Number	Number in Degrees	Recommended		Standard deviation in measurements, Y	Uncertainty = 1xSD	
+70	Measurement Standard Deviation Z	measurement_sd_z	Number	Number in Degrees	Recommended		Standard deviation in measurements, Z	Uncertainty = 1xSD	
+71	Measurement Description	measurement_description	String(1000)	Text	Optional		Detailed description		type:description
+72	MagIC Software Packages	magic_software_packages	List(500)	Text	Recommended		Colon-delimited list of software used for data reduction	PmagPy v1.67b : FORCinel v1.11 	
+73	External Database Names	external_database_names	List	Text	Optional	E	Colon-delimited list of external databases where data are used	GEOMAGIA50 : CALS7K.2 : ARCHEO00	cv:database_name
+74	External Database ID Numbers	external_database_ids	List	Text	Optional		Colon-delimited list of ID numbers linking to external database records	1435 : 23 : 2329	
+75	Method Codes	magic_method_codes	List(500)	Text	Required	R	Colon-delimited list of method codes	DE-DC0 : FT-F1 : LP-DCDMAG	in:magic_methods.magic_method_code
+76	Instrument Code	magic_instrument_codes	List(500)	Text	Required	R	Colon-delimited list of instrument codes	SIO-Bubba : IRM-OldBlue	in:magic_instruments.magic_instrument_code
+77	Analyst Names	er_analyst_mail_names	List(500)	Text	Recommended	R	Colon-delimited list of names for analysts	Jim R.D. Hart : Alexis Heard : Bob McIntire	in:er_mailinglist.er_mail_name
+78	Citation Names	er_citation_names	List(500)	Text	Required	R	Colon-delimited list of citations	Smith et al. 2003 : Hart & Heard 1967 : This study	in:er_citations.er_citation_name
+>>>>>>>>>>
+tab delimited	magic_calibrations
+column_nmb	field_name	field_name_oracle	data_type	data_unit	data_status	field_type	field_description	field_examples	field_validation_rule
+1	Sample Name	er_sample_name	String(50)	Text	Required	R	Name for sample	Bas123a-01	in:er_samples.er_sample_name
+2	Specimen Name	er_specimen_name	String(50)	Text	Required	R	Name for specimen	Bas123a-01x	in:er_specimens.er_specimen_name
+3	Mineral Name	er_mineral_name	String(50)	Text	Required	R	Name for mineral	San03-001	in:er_minerals.er_mineral_name
+4	Synthetic Material Name	er_synthetic_name	String(50)	Text	Required	R	Name for synthetic material	STD1546-A1	in:er_synthetis.er_synthetic_name
+5	Calibration Date	calibration_date	Date	Text	Required		Date of last calibration	Number in the ''yyyy:mm:dd:hh:mm:ss.ss'' format	
+6	Calibration Date Time Zone	calibration_time_zone	String(10)	Text	Required		Time zone	UTC, PDT, GMT	
+7	Calibration Description	calibration_description	String(1000)	Text	Optional		Detailed description		type:description
+8	Method Codes	magic_method_codes	List(500)	Text	Required	R	Colon-delimited list of method codes	DE-DC0 : FT-F1 : LP-DCDMAG	in:magic_methods.magic_method_code
+9	Instrument Codes	magic_instrument_codes	List(500)	Text	Required	R	Colon-delimited list of instrument codes	SIO-Bubba : IRM-OldBlue	in:magic_instruments.magic_instrument_code
+10	Analyst Names	er_analyst_mail_names	List(500)	Text	Recommended	R	Colon-delimited list of names for analysts	Jim R.D. Hart : Alexis Heard : Bob McIntire	in:er_mailinglist.er_mail_name
+11	Citation Names	er_citation_names	List(500)	Text	Required	R	Colon-delimited list of citations	Smith et al. 2003 : Hart & Heard 1967 : This study	in:er_citations.er_citation_name
+>>>>>>>>>>
+tab delimited	pmag_specimens
+column_nmb	field_name	field_name_oracle	data_type	data_unit	data_status	field_type	field_description	field_examples	field_validation_rule
+1	Expedition Name	er_expedition_name	String(50)	Text	Optional	R	Name for seagoing or land expedition	AVON02MV	in:er_expeditions.er_expedition_name
+2	Location Name	er_location_name	String(50)	Text	Required	R	Name for location, dredge or drill site	San Francisco Volcanic Province, Dredge AMAT02-D12, Site 801	in:er_locations.er_location_name
+3	Formation Name	er_formation_name	String(50)	Text	Optional	R	Name for formation	Bluebird Formation	in:er_formations.er_formation_name
+4	Member Name	er_member_name	String(50)	Text	Optional	R	Name for member	Glasshound Member	in:er_members.er_member_name
+5	Site Name	er_site_name	String(50)	Text	Required	R	Name for site	Bas123a	in:er_sites.er_site_name
+6	Sample Name	er_sample_name	String(50)	Text	Required	R	Name for sample	Bas123a-01	in:er_samples.er_sample_name
+7	Specimen Name	er_specimen_name	String(50)	Text	Required	R	Name for specimen	Bas123a-01x	in:er_specimens.er_specimen_name
+8	Fossil Name	er_fossil_name	String(50)	Text	Recommended	R	Name for fossil	AMM43-03	in:er_fossils.er_fossil_name
+9	Mineral Name	er_mineral_name	String(50)	Text	Recommended	R	Name for mineral	San03-001	in:er_minerals.er_mineral_name
+10	Synthetic Material Name	er_synthetic_name	String(50)	Text	Optional	R	Name for synthetic material	STD1546-A1	in:er_synthetis.er_synthetic_name
+11	Experiment Name List	magic_experiment_names	List(2000)	Text	Optional	X	Colon-delimited list of experiments	KOPA-299-1 : KOPA-299-2 : KOPA-299-6	type:magic_experiment_name
+12	Measurement Step Minimum	measurement_step_min	Number	Custom	Optional	M	Step included in calculation, Lower bound		
+13	Measurement Step Maximum	measurement_step_max	Number	Custom	Optional	M	Step included in calculation, Higher bound		
+14	Measurement Step Unit	measurement_step_unit	String(30)	Text	Optional	M	Step included in calculation, Unit		
+15	Specimen Magnetic Polarity	specimen_polarity	String(1)	Flag	Recommended	F	Polarity is normal (n, the default), reversed (r), transitional (t), excursion (e) or intermediate (i)		cv:polarity
+16	Specimen NRM	specimen_nrm	String(1)	Flag	Recommended	F	Origin of the NRM is primary (p, the default) or secondary (s)		cv:nrm
+17	Specimen FRAC	specimen_frac	Number	Dimensionless	Optional		NRM fraction used for the best-fit on an Arai plot determined entirely by vector difference sum calculation		
+18	Specimen Data Corrected	specimen_correction	String(1)	Flag	Required	F	Indicating if an uncorrected (u, the default) or corrected (c) estimate with regard to possible anisotropy and cooling rate corrections		cv:data_correction
+19	Specimen Direction Type	specimen_direction_type	String(1)	Flag	Recommended	F	Direction determined from a line (l, the default) or plane (p)		cv:direction_type
+20	Specimen Flag	specimen_flag	String(1)	Flag	Recommended	F	Indicating if good (g, the default) or bad (b) data		cv:data_quality
+21	Specimen Component Number	specimen_comp_nmb	Integer	Integer	Recommended		Magnetic component number		
+22	Specimen Component N	specimen_comp_n	Integer	Integer	Recommended		Total number of magnetic components in specimen		min:0
+23	Specimen Component Name	specimen_comp_name	String(30)	Text	Recommended		Specimen component name	Characteristic, VRM, Overprint, A, B, C	
+24	Specimen Inferred Age	specimen_inferred_age	Number	Custom	Recommended		Specimen inferred age		
+25	Specimen Inferred Age Sigma	specimen_inferred_age_sigma	Number	Custom	Recommended		Specimen inferred age, Uncertainty	Uncertainty = 1xSD	
+26	Specimen Inferred Age Low	specimen_inferred_age_low	Number	Custom	Recommended		Specimen inferred age, Low range		
+27	Specimen Inferred Age High	specimen_inferred_age_high	Number	Custom	Recommended		Specimen inferred age, High range		
+28	Specimen Inferred Age Unit	specimen_inferred_age_unit	String(30)	Text	Recommended	E	Specimen inferred age, Age unit	Ma, Ka, Ga, Years BP, Years AD (+/-), Years Cal BP, Years Cal AD (+/-)	cv:age_unit
+29	Specimen Inclination	specimen_inc	Number	Number in Degrees	Recommended		Directions in coordinates specified by tilt correction, Inclination	Decimal degrees between 0 and 90	min:0;max:90
+30	Specimen Declination	specimen_dec	Number	Number in Degrees	Recommended		Directions in coordinates specified by tilt correction, Declination	Decimal degrees between 0 and 360	min:0;max:360
+31	Specimen Alpha 95%	specimen_alpha95	Number	Number in Degrees	Recommended		Fisher circle	Confidence Level = 95%	
+32	Number of Measurements	specimen_n	Integer	Integer	Recommended		Number of measurements included in directional calculations		min:0
+33	Specimen N Total	specimen_n_total	Integer	Integer	Recommended		Number of measurements total		min:0
+34	Specimen Tilt Correction	specimen_tilt_correction	Number	Number in %	Recommended		Percentage tilt correction applied to the data	Correction between geographic (0%) and stratigraphic (100%); unoriented (-1%); partially oriented to horizontal only (-2%)	min:-2;max:100
+35	Specimen Paleo Intensity	specimen_int	Number	Number in T	Recommended		Average field strength		min:0;max:0.01
+36	Specimen Paleo Intensity Sigma	specimen_int_sigma	Number	Number in T	Recommended		Average field strength, Uncertainty	Uncertainty = 1xSD	min:0;max:0.01
+37	Specimen Paleo Intensity Sigma %	specimen_int_sigma_perc	Number	Number in %	Recommended		Average field strength, Uncertainty in percent	Uncertainty = 1xSD	
+38	Specimen Paleo Intensity Relative	specimen_int_rel	Number	Dimensionless	Recommended		Relative field strength		
+39	Specimen Paleo Intensity Relative Sigma	specimen_int_rel_sigma	Number	Dimensionless	Recommended		Relative field strength, Uncertainty	Uncertainty = 1xSD	
+40	Specimen Paleo Intensity Relative Sigma %	specimen_int_rel_sigma_perc	Number	Number in %	Recommended		Relative field strength, Uncertainty in percent	Uncertainty = 1xSD	
+41	Number of Independent Estimates	specimen_int_n	Integer	Integer	Recommended		Number of measurements included in field strength calculations		min:0
+42	Specimen Alpha Prime	specimen_alpha_prime	Number	Number in Degrees	Optional		Angular difference between the anchored best-fit direction from the paleointensity experiment and an independent measure of the paleomagnetic direction		min:0
+43	Specimen Alpha	specimen_alpha	Number	Number in Degrees	Optional		Angular difference between the anchored and free-floating best-fit directions on a vector component diagram		min:0
+44	Specimen Paleointensity Alpha	specimen_int_alpha	Number	Number in Degrees	Optional		Angular difference between the anchored and free-floating best-fit directions on a vector component diagram from a paleointensity experiment		min:0
+45	Specimen MAD Free-Floating	specimen_mad	Number	Number in Degrees	Optional		Maximum Angular Deviation (MAD) of the free-floating directional PCA fits to the paleomagnetic vector		min:0
+46	Specimen MAD Anchored	specimen_mad_anc	Number	Number in Degrees	Optional		Maximum Angular Deviation (MAD) of the anchored directional PCA fits to the paleomagnetic vector		min:0
+47	Specimen Paleointensity MAD Free-Floating	specimen_int_mad	Number	Number in Degrees	Optional		Maximum Angular Deviation (MAD) of the free-floating directional PCA fits to the paleomagnetic vector from a paleointensity experiment		min:0
+48	Specimen Paleointensity MAD Anchored	specimen_int_mad_anc	Number	Number in Degrees	Optional		Maximum Angular Deviation (MAD) of the anchored directional PCA fits to the paleomagnetic vector from a paleointensity experiment		min:0
+49	Specimen Weighting Factor	specimen_w	Number	Dimensionless	Optional		Weighting factor		min:0
+50	Specimen Q	specimen_q	Number	Dimensionless	Optional		A measure of the overall quality of the paleointensity estimate and combines the relative scatter of the best-fit line, the NRM fraction and the gap factor		min:0
+51	Specimen f	specimen_f	Number	Dimensionless	Optional		NRM fraction used for the best-fit on an Arai plot 		min:0
+52	Specimen f VDS	specimen_fvds	Number	Dimensionless	Optional		NRM fraction used for the best-fit on an Arai plot calculated as a vector difference sum		min:0
+53	Specimen b	specimen_b	Number	Dimensionless	Optional		The slope of the best-fit line of the selected TRM and NRM points on an Arai plot		min:0
+54	Specimen b Sigma	specimen_b_sigma	Number	Dimensionless	Optional		The standard error on the slope on an Arai plot		min:0
+55	Specimen Sigma over b	specimen_b_beta	Number	Dimensionless	Optional		The ratio of the standard error of the slope to the absolute value of the slope on an Arai plot		min:0
+56	Specimen g	specimen_g	Number	Dimensionless	Optional		The gap reflects the average spacing of the selected Arai plot points along the best-fit line		min:0
+57	Specimen Gap Max	specimen_gmax	Number	Dimensionless	Optional		The maximum gap between two points in Arai plot determined by vector arithmetic		min:0
+58	Specimen Squared Correlation Coefficient	specimen_r_sq	Number	Dimensionless	Optional		The squared correlation coefficient to estimate the strength of the linear relationship between the NRM and TRM over the best-fit Arai plot segment		min:0
+59	Specimen Squared Coefficient of Determination	specimen_coeff_det_sq	Number	Dimensionless	Optional		The squared coefficient of determination to estimate variance accounted for by the linear model fit on an Arai plot		min:0
+60	Specimen DANG	specimen_dang	Number	Number in Degrees	Optional		Deviation angle of direction of component with respect to origin		
+61	Specimen MD VDS	specimen_md	Number	Number in %	Optional		Maximum absolute difference produced by a pTRM tail check, normalized by the vector difference sum of the NRM		min:0
+62	Specimen DRAT Tail Check	specimen_tail_drat	Number	Number in %	Optional		Maximum absolute difference produced by a pTRM tail check, normalized by the length of the best-fit line		
+63	Specimen delta TR	specimen_dtr	Number	Number in %	Optional		Maximum absolute difference produced by a pTRM tail check, normalized by the NRM (obtained from the intersection of the best-fit line and the y-axis on an Arai plot)		
+64	Specimen Maximum pTRM Check	specimen_ptrm	Number	Number in %	Optional		Maximum absolute difference produced by a pTRM check, normalized by the TRM acquired at that heating step		min:0
+65	Specimen delta CK	specimen_dck	Number	Number in %	Optional		Maximum absolute difference produced by a pTRM check, normalized by the total TRM (obtained from the intersection of the best-fit line and the x-axis on an Arai plot)		min:0
+66	Specimen maxDEV	specimen_maxdev	Number	Number in %	Optional		Maximum absolute difference produced by a pTRM check, normalized by the length of the TRM segment of the best-fit line on an Arai plot		min:0
+67	Specimen Difference Ratio pTRM Check	specimen_drat	Number	Number in %	Optional		Maximum absolute difference produced by a pTRM check, normalized by the length of the best-fit line		min:0
+68	Specimen Mean DRAT	specimen_mdrat	Number	Number in %	Optional		The average difference produced by a pTRM check, normalized by the length of the best-fit line		min:0
+69	Specimen Cumulative DRAT	specimen_cdrat	Number	Number in %	Optional		Cumulative difference ratio difference produced by a pTRM check		min:0
+70	Specimen Difference Ratio Sum	specimen_drats	Number	Number in %	Optional		Cumulative pTRM check difference normalized by the pTRM gained at the maximum temperature used for the best-fit on the Arai plot		min:0
+71	Specimen Mean DEV	specimen_mdev	Number	Number in %	Optional		Mean deviation of a pTRM check		min:0
+72	Specimen delta pal	specimen_dpal	Number	Number in %	Optional		A measure of cumulative alteration determined by the difference of the alteration corrected intensity estimate (Valet et al., 1996) and the uncorrected estimate, normalized by the uncorrected estimate (Leonhardt et al., 2004a)		min:0
+73	Specimen delta T	specimen_dt	Number	Dimensionless	Optional		The extent of a pTRM tail after correction for angular dependence		
+74	Specimen delta AC	specimen_dac	Number	Number in %	Optional		The maximum absolute additivity check difference normalized by the total TRM (obtained from the intersection of the best-fit line and the x-axis on an Arai plot		min:0
+75	Specimen Number Additivity Checks	specimen_ac_n	Integer	Integer	Optional		The number of additivity checks used to analyze the best-fit segment on an Arai plot		min:0
+76	Specimen Arai Curvatute	specimen_k	Number	Dimensionless	Optional		The curvature of the Arai plot as determined by the best-fit circle to all of the data 		
+77	Specimen K SSE	specimen_k_sse	Number	Dimensionless	Optional		The quality of the best-fit circle used to determine k		
+78	Specimen Maximum RSC	specimen_rsc	Number	Number in %	Optional		Maximum relative susceptibility change		
+79	Specimen Z	specimen_z	Number	Dimensionless	Optional		Arai plot zigzag parameter calculated using the scatter around the best-fit slope on an Arai plot		
+80	Specimen IZZI MD	specimen_z_md	Number	Dimensionless	Optional		Arai plot zigzag parameter calculated by the area bounded by the curve that the ZI points make and the curve that the IZ points make		
+81	Specimen Scatter	specimen_scat	String(1)	Flag	Optional	F	All pTRM checks, MD checks, IZ ZI data, etc. are in the box (g, the default, = good or b=bad)		cv:data_quality
+82	Specimen Viscosity Index	specimen_viscosity_index	Number	Number in %	Optional		Viscosity index		
+83	Specimen Lab Field DC	specimen_lab_field_dc	Number	Number in T	Optional		Applied DC field in laboratory	0 = no field  and -1 = ambient field	min:-30;max:30
+84	Specimen Lab Field AC	specimen_lab_field_ac	Number	Number in T	Optional		Applied maximum or peak AC field in laboratory	No field equals 0 and ambient field equals -1	min:0;max:1
+85	Specimen Magnetization Moment	specimen_magn_moment	Number	Number in Am2	Optional		Measured magnetic moment		min:-1;max:1
+86	Specimen Magnetization Volume	specimen_magn_volume	Number	Number in A/m	Optional		Measured intensity of magnetization, Volume normalized		min:-1000000;max:1000000
+87	Specimen Magnetization Mass	specimen_magn_mass	Number	Number in Am2/kg	Optional		Measured intensity of magnetization, Mass normalized		min:-200;max:200
+88	Specimen Number pTRM Checks 	specimen_int_ptrm_n	Integer	Integer	Optional		Number of pTRM checks used in paleointensity experiment		min:0
+89	Specimen Correction Cooling Rate	specimen_int_corr_cooling_rate	Number	Dimensionless	Optional		Cooling rate correction factor for intensity		
+90	Specimen Correction Anisotropy	specimen_int_corr_anisotropy	Number	Dimensionless	Optional		Anisotropy correction factor for intensity		
+91	Specimen Correction Non-Linear TRM	specimen_int_corr_nlt	Number	Dimensionless	Optional		Non-linear TRM correction factor for intensity		min:0
+92	Specimen Paleointensity DANG	specimen_int_dang	Number	Number in Degrees	Optional		The angle between the free-floating best-fit direction and the vector connecting the center of mass and the origin of the vector component diagram		min:0
+93	Specimen CRM %	specimen_int_crm	Number	Number in %	Optional		The cumulative deflection between the NRM vectors and the ChRM direction		
+94	Specimen Number pTRM Tail Checks 	specimen_int_ptrm_tail_n	Integer	Integer	Optional		Number of pTRM tail checks used in paleointensity experiment		min:0
+95	Specimen Delta	specimen_delta	Number	Number in Degrees	Recommended		Maximum angle of deviation between assumed NRM and measured NRM in perpendicular paleointensity method		
+96	Specimen Theta	specimen_theta	Number	Number in Degrees	Optional		The angle between the applied field direction and the ChRM direction of the NRM as determined from the free-floating PCA fit to the selected demagnetization steps of the paleointensity experiment		min:0
+97	Specimen Gamma	specimen_gamma	Number	Number in Degrees	Recommended		Maximum angle of deviation between acquired pTRM direction and assumed applied field direction		
+98	Specimen Description	specimen_description	String(1000)	Text	Optional		Detailed description		type:description
+99	MagIC Software Packages	magic_software_packages	List(500)	Text	Recommended		Colon-delimited list of software used for data reduction	PmagPy v1.67b : FORCinel v1.11 	
+100	External Database Names	external_database_names	List(500)	Text	Optional	E	Colon-delimited list of external databases where data are used	GEOMAGIA50 : CALS7K.2 : ARCHEO00	cv:database_name
+101	External Database ID Numbers	external_database_ids	List(500)	Text	Optional		Colon-delimited list of ID numbers linking to external database records	1435 : 23 : 2329	
+102	Criteria Codes	pmag_criteria_codes	List(500)	Text	Recommended	R	Colon-delimited list of criteria codes	MY-MAD : MY-APLHA95	in:pmag_criteria.pmag_criteria_code
+103	Rotation Codes	pmag_rotation_codes	List(500)	Text	Optional	R	Colon-delimited list of rotation codes	MY-TILT1 : MY-TILT2 : MY-TRANS1	in:pmag_rotations.pmag_rotation_code
+104	Method Codes	magic_method_codes	List(500)	Text	Required	R	Colon-delimited list of method codes	DE-DC0 : FT-F1 : LP-DCDMAG	in:magic_methods.magic_method_code
+105	Instrument Codes	magic_instrument_codes	List(500)	Text	Required	R	Colon-delimited list of instrument codes	SIO-Bubba : IRM-OldBlue	in:magic_instruments.magic_instrument_code
+106	Analyst Names	er_analyst_mail_names	List(500)	Text	Recommended	R	Colon-delimited list of names for analysts	Jim R.D. Hart : Alexis Heard : Bob McIntire	in:er_mailinglist.er_mail_name
+107	Citation Names	er_citation_names	List(500)	Text	Required	R	Colon-delimited list of citations	Smith et al. 2003 : Hart & Heard 1967 : This study	in:er_citations.er_citation_name
+>>>>>>>>>>
+tab delimited	pmag_samples
+column_nmb	field_name	field_name_oracle	data_type	data_unit	data_status	field_type	field_description	field_examples	field_validation_rule
+1	Expedition Name	er_expedition_name	String(50)	Text	Optional	R	Name for seagoing or land expedition	AVON02MV	in:er_expeditions.er_expedition_name
+2	Location Name	er_location_name	String(50)	Text	Required	R	Name for location, dredge or drill site	San Francisco Volcanic Province, Dredge AMAT02-D12, Site 801	in:er_locations.er_location_name
+3	Formation Name	er_formation_name	String(50)	Text	Optional	R	Name for formation	Bluebird Formation	in:er_formations.er_formation_name
+4	Member Name	er_member_name	String(50)	Text	Optional	R	Name for member	Glasshound Member	in:er_members.er_member_name
+5	Site Name	er_site_name	String(50)	Text	Required	R	Name for site	Bas123a	in:er_sites.er_site_name
+6	Sample Name	er_sample_name	String(50)	Text	Required	R	Name for sample	Bas123a-01	in:er_samples.er_sample_name
+7	Specimen Name List	er_specimen_names	List(2000)	Text	Recommended	R	Colon-delimited list of specimen names	Bas123a-01x : Bas123a-01y	in:er_specimens.er_specimen_name
+8	Fossil Name List	er_fossil_names	List(2000)	Text	Recommended	R	Colon-delimited list of fossil names	AMM43-03 : AMM43-19	in:er_fossils.er_fossil_name
+9	Mineral Name List	er_mineral_names	List(2000)	Text	Recommended	R	Colon-delimited list of mineral names	PLG33a : MAGN-MJ-034	in:er_minerals.er_mineral_name
+10	Synthetic Material Name List	er_synthetic_names	List(2000)	Text	Optional	R	Colon-delimited list of synthetic material names	STD1546-A1 : STD1546-X23	in:er_synthetis.er_synthetic_name
+11	Experiment Name List	magic_experiment_names	List(2000)	Text	Optional	X	Colon-delimited list of experiments	KOPA-299-1 : KOPA-299-2 : KOPA-299-6	type:magic_experiment_name
+12	Measurement Step Minimum	measurement_step_min	Number	Custom	Optional	M	Step included in calculation, Lower bound		
+13	Measurement Step Maximum	measurement_step_max	Number	Custom	Optional	M	Step included in calculation, Higher bound		
+14	Measurement Step Unit	measurement_step_unit	String(30)	Text	Optional	M	Step included in calculation, Unit		
+15	Sample Magnetic Polarity	sample_polarity	String(1)	Flag	Recommended	F	Polarity is normal (n, the default), reversed (r), transitional (t), excursion (e) or intermediate (i)		cv:polarity
+16	Sample NRM	sample_nrm	String(1)	Flag	Recommended	F	Origin of the NRM is primary (p, the default) or secondary (s)		cv:nrm
+17	Sample Direction Type	sample_direction_type	String(1)	Flag	Recommended	F	Direction determined from a line (l, the default) or plane (p)		cv:direction_type
+18	Sample Flag	sample_flag	String(1)	Flag	Recommended	F	Indicating if good (g, the default) or bad (b) data		cv:data_quality
+19	Sample Component Number	sample_comp_nmb	Integer	Integer	Recommended		Magnetic component number		
+20	Sample Component N	sample_comp_n	Integer	Integer	Recommended		Total number of magnetic components in specimen		min:0
+21	Sample Component Name	sample_comp_name	String(30)	Text	Recommended		Sample component name	Characteristic, VRM, Overprint, A, B, C	
+22	Sample Inferred Age	sample_inferred_age	Number	Custom	Recommended		Sample inferred age		
+23	Sample Inferred Age Sigma	sample_inferred_age_sigma	Number	Custom	Recommended		Sample inferred age, Uncertainty	Uncertainty = 1xSD	
+24	Sample Inferred Age Low	sample_inferred_age_low	Number	Custom	Recommended		Sample inferred age, Low range		
+25	Sample Inferred Age High	sample_inferred_age_high	Number	Custom	Recommended		Sample inferred age, High range		
+26	Sample Inferred Age Unit	sample_inferred_age_unit	String(30)	Text	Recommended	E	Sample inferred age, Age unit	Ma, Ka, Ga, Years BP, Years AD (+/-), Years Cal BP, Years Cal AD (+/-)	cv:age_unit
+27	Sample Inclination	sample_inc	Number	Number in Degrees	Recommended		Directions in coordinates specified by tilt correction, Inclination	Decimal degrees between 0 and 90	min:0;max:90
+28	Sample Declination	sample_dec	Number	Number in Degrees	Recommended		Directions in coordinates specified by tilt correction, Declination	Decimal degrees between 0 and 360	min:0;max:360
+29	Sample Sigma	sample_sigma	Number	Number in Degrees	Recommended		Directions in coordinates specified by tilt correction, Circular standard deviation	Uncertainty = 1xSD	
+30	Sample Alpha 95%	sample_alpha95	Number	Number in Degrees	Recommended		Fisher circle	Confidence Level = 95%	
+31	Number of Samples	sample_n	Integer	Integer	Recommended		Number of specimens included in directional calculations		min:0
+32	Sample N Best-Fit Lines	sample_n_lines	Integer	Integer	Recommended		Number of specimens included based on best-fit lines		min:0
+33	Sample N Best-Fit Planes	sample_n_planes	Integer	Integer	Recommended		Number of specimens included based on best-fit planes		min:0
+34	Sample N Total	sample_n_total	Integer	Integer	Recommended		Number of specimens total		min:0
+35	Sample K	sample_k	Number	Dimensionless	Recommended		Fisher's dispersion parameter Kappa		
+36	Sample R	sample_r	Number	Dimensionless	Recommended		Resultant Fisher vector		
+37	Sample Tilt Correction	sample_tilt_correction	Number	Number in %	Recommended		Percentage tilt correction applied to the data	Correction between geographic (0%) and stratigraphic (100%); unoriented (-1%); partially oriented to horizontal only (-2%)	min:-2;max:100
+38	Sample Paleo Intensity	sample_int	Number	Number in T	Recommended		Average field strength		min:0;max:0.01
+39	Sample Paleo Intensity Sigma	sample_int_sigma	Number	Number in T	Recommended		Average field strength, Uncertainty	Uncertainty = 1xSD	min:0;max:0.01
+40	Sample Paleo Intensity Sigma %	sample_int_sigma_perc	Number	Number in %	Recommended		Average field strength, Uncertainty in percent	Uncertainty = 1xSD	
+41	Sample Paleo Intensity Relative	sample_int_rel	Number	Dimensionless	Recommended		Relative field strength		
+42	Sample Paleo Intensity Relative Sigma	sample_int_rel_sigma	Number	Dimensionless	Recommended		Relative field strength, Uncertainty	Uncertainty = 1xSD	
+43	Sample Paleo Intensity Relative Sigma %	sample_int_rel_sigma_perc	Number	Number in %	Recommended		Relative field strength, Uncertainty in percent	Uncertainty = 1xSD	
+44	Sample Paleo Intensity N	sample_int_n	Integer	Integer	Recommended		Number of specimens included in intensity calculations		min:0
+45	Sample Magnetization Moment	sample_magn_moment	Number	Number in Am2	Optional		Measured magnetic moment		min:-1;max:1
+46	Sample Magnetization Volume	sample_magn_volume	Number	Number in A/m	Optional		Measured intensity of magnetization, Volume normalized		min:-1000000;max:1000000
+47	Sample Magnetization Mass	sample_magn_mass	Number	Number in Am2/kg	Optional		Measured intensity of magnetization, Mass normalized		min:-200;max:200
+48	Sample Description	sample_description	String(1000)	Text	Optional		Detailed description		type:description
+49	MagIC Software Packages	magic_software_packages	List(500)	Text	Recommended		Colon-delimited list of software used for data reduction	PmagPy v1.67b : FORCinel v1.11 	
+50	External Database Names	external_database_names	List(500)	Text	Optional	E	Colon-delimited list of external databases where data are used	GEOMAGIA50 : CALS7K.2 : ARCHEO00	cv:database_name
+51	External Database ID Numbers	external_database_ids	List(500)	Text	Optional		Colon-delimited list of ID numbers linking to external database records	1435 : 23 : 2329	
+52	Criteria Codes	pmag_criteria_codes	List(500)	Text	Recommended	R	Colon-delimited list of criteria codes	MY-MAD : MY-APLHA95	in:pmag_criteria.pmag_criteria_code
+53	Rotation Codes	pmag_rotation_codes	List(500)	Text	Optional	R	Colon-delimited list of rotation codes	MY-TILT1 : MY-TILT2 : MY-TRANS1	in:pmag_rotations.pmag_rotation_code
+54	Method Codes	magic_method_codes	List(500)	Text	Required	R	Colon-delimited list of method codes	DE-DC0 : FT-F1 : LP-DCDMAG	in:magic_methods.magic_method_code
+55	Instrument Codes	magic_instrument_codes	List(500)	Text	Required	R	Colon-delimited list of instrument codes	SIO-Bubba : IRM-OldBlue	in:magic_instruments.magic_instrument_code
+56	Analyst Names	er_analyst_mail_names	List(500)	Text	Recommended	R	Colon-delimited list of names for analysts	Jim R.D. Hart : Alexis Heard : Bob McIntire	in:er_mailinglist.er_mail_name
+57	Citation Names	er_citation_names	List(500)	Text	Required	R	Colon-delimited list of citations	Smith et al. 2003 : Hart & Heard 1967 : This study	in:er_citations.er_citation_name
+>>>>>>>>>>
+tab delimited	pmag_sites
+column_nmb	field_name	field_name_oracle	data_type	data_unit	data_status	field_type	field_description	field_examples	field_validation_rule
+1	Expedition Name	er_expedition_name	String(50)	Text	Optional	R	Name for seagoing or land expedition	AVON02MV	in:er_expeditions.er_expedition_name
+2	Location Name	er_location_name	String(50)	Text	Required	R	Name for location, dredge or drill site	San Francisco Volcanic Province, Dredge AMAT02-D12, Site 801	in:er_locations.er_location_name
+3	Formation Name	er_formation_name	String(50)	Text	Optional	R	Name for formation	Bluebird Formation	in:er_formations.er_formation_name
+4	Member Name	er_member_name	String(50)	Text	Optional	R	Name for member	Glasshound Member	in:er_members.er_member_name
+5	Site Name	er_site_name	String(50)	Text	Required	R	Name for site	Bas123a	in:er_sites.er_site_name
+6	Sample Name List	er_sample_names	List(2000)	Text	Recommended	R	Colon-delimited list of sample names	Bas123a-01 : Bas123a-04 : Bas123a-19	in:er_samples.er_sample_name
+7	Specimen Name List	er_specimen_names	List(2000)	Text	Recommended	R	Colon-delimited list of specimen names	Bas123a-01x : Bas123a-01y	in:er_specimens.er_specimen_name
+8	Fossil Name List	er_fossil_names	List(2000)	Text	Recommended	R	Colon-delimited list of fossil names	AMM43-03 : AMM43-19	in:er_fossils.er_fossil_name
+9	Mineral Name List	er_mineral_names	List(2000)	Text	Recommended	R	Colon-delimited list of mineral names	PLG33a : MAGN-MJ-034	in:er_minerals.er_mineral_name
+10	Synthetic Material Name List	er_synthetic_names	List(2000)	Text	Optional	R	Colon-delimited list of synthetic material names	STD1546-A1 : STD1546-X23	in:er_synthetis.er_synthetic_name
+11	Experiment Name List	magic_experiment_names	List(2000)	Text	Optional	X	Colon-delimited list of experiments	KOPA-299-1 : KOPA-299-2 : KOPA-299-6	type:magic_experiment_name
+12	Measurement Step Minimum	measurement_step_min	Number	Custom	Optional	M	Step included in calculation, Lower bound		
+13	Measurement Step Maximum	measurement_step_max	Number	Custom	Optional	M	Step included in calculation, Higher bound		
+14	Measurement Step Unit	measurement_step_unit	String(30)	Text	Optional	M	Step included in calculation, Unit		
+15	Site Magnetic Polarity	site_polarity	String(1)	Flag	Recommended	F	Polarity is normal (n, the default), reversed (r), transitional (t), excursion (e) or intermediate (i)		cv:polarity
+16	Site NRM	site_nrm	String(1)	Flag	Recommended	F	Origin of the NRM is primary (p, the default) or secondary (s)		cv:nrm
+17	Site Direction Type	site_direction_type	String(1)	Flag	Recommended	F	Direction determined from a line (l, the default) or plane (p)		cv:direction_type
+18	Site Flag	site_flag	String(1)	Flag	Recommended	F	Indicating if good (g, the default) or bad (b) data		cv:data_quality
+19	Site Component Number	site_comp_nmb	Integer	Integer	Recommended		Magnetic component number		
+20	Site Component N	site_comp_n	Integer	Integer	Recommended		Total number of magnetic components in specimen		min:0
+21	Site Component Name	site_comp_name	String(30)	Text	Recommended		Site component name	Characteristic, VRM, Overprint, A, B, C	
+22	Site Inferred Age	site_inferred_age	Number	Custom	Recommended		Site inferred age		
+23	Site Inferred Age Sigma	site_inferred_age_sigma	Number	Custom	Recommended		Site inferred age, Uncertainty	Uncertainty = 1xSD	
+24	Site Inferred Age Low	site_inferred_age_low	Number	Custom	Recommended		Site inferred age, Low range		
+25	Site Inferred Age High	site_inferred_age_high	Number	Custom	Recommended		Site inferred age, High range		
+26	Site Inferred Age Unit	site_inferred_age_unit	String(30)	Text	Recommended	E	Site inferred age, Unit	Ma, Ka, Ga, Years BP, Years AD (+/-), Years Cal BP, Years Cal AD (+/-)	cv:age_unit
+27	Site Inclination	site_inc	Number	Number in Degrees	Recommended		Directions in coordinates specified by tilt correction, Inclination	Decimal degrees between 0 and 90	min:0;max:90
+28	Site Declination	site_dec	Number	Number in Degrees	Recommended		Directions in coordinates specified by tilt correction, Declination	Decimal degrees between 0 and 360	min:0;max:360
+29	Site Sigma	site_sigma	Number	Number in Degrees	Recommended		Directions in coordinates specified by tilt correction, Circular standard deviation	Uncertainty = 1xSD	
+30	Site Alpha 95%	site_alpha95	Number	Number in Degrees	Recommended		Fisher circle	Confidence Level = 95%	
+31	Number of Samples	site_n	Integer	Integer	Recommended		Number of samples included in directional calculations		min:0
+32	Number of Specimens from Best-Fit Lines	site_n_lines	Integer	Integer	Recommended		Number of specimens included based on best-fit lines		min:0
+33	Number of Specimens from Best-Fit Planes	site_n_planes	Integer	Integer	Recommended		Number of specimens included based on best-fit planes		min:0
+34	Number of Specimens	site_n_total	Integer	Integer	Recommended		Number of specimens total		min:0
+35	Site K	site_k	Number	Dimensionless	Recommended		Fisher's dispersion parameter Kappa		
+36	Site R	site_r	Number	Dimensionless	Recommended		Resultant Fisher vector		
+37	Site Tilt Correction	site_tilt_correction	Number	Number in %	Recommended		Percentage tilt correction applied to the data	Correction between geographic (0%) and stratigraphic (100%); unoriented (-1%); partially oriented to horizontal only (-2%)	min:-2;max:100
+38	Site Paleo Intensity	site_int	Number	Number in T	Recommended		Average field strength		min:0;max:0.01
+39	Site Paleo Intensity Sigma	site_int_sigma	Number	Number in T	Recommended		Average field strength, Uncertainty	Uncertainty = 1xSD	min:0;max:0.01
+40	Site Paleo Intensity Sigma %	site_int_sigma_perc	Number	Number in %	Recommended		Average field strength, Uncertainty in percent	Uncertainty = 1xSD	
+41	Site Paleo Intensity Relative	site_int_rel	Number	Dimensionless	Recommended		Relative field strength		
+42	Site Paleo Intensity Relative Sigma	site_int_rel_sigma	Number	Dimensionless	Recommended		Relative field strength, Uncertainty	Uncertainty = 1xSD	
+43	Site Paleo Intensity Relative Sigma %	site_int_rel_sigma_perc	Number	Number in %	Recommended		Relative field strength, Uncertainty in percent	Uncertainty = 1xSD	
+44	Site Paleo Intensity N	site_int_n	Integer	Integer	Recommended		Number of samples included in intensity calculations		min:0
+45	Site Magnetization Moment	site_magn_moment	Number	Number in Am2	Optional		Measured magnetic moment		min:-1;max:1
+46	Site Magnetization Volume	site_magn_volume	Number	Number in A/m	Optional		Measured intensity of magnetization, Volume normalized		min:-1000000;max:1000000
+47	Site Magnetization Mass	site_magn_mass	Number	Number in Am2/kg	Optional		Measured intensity of magnetization, Mass normalized		min:-200;max:200
+48	Site Description	site_description	String(1000)	Text	Optional		Detailed description		type:description
+49	MagIC Software Packages	magic_software_packages	List(500)	Text	Recommended		Colon-delimited list of software used for data reduction	PmagPy v1.67b : FORCinel v1.11 	
+50	External Database Names	external_database_names	List(500)	Text	Optional	E	Colon-delimited list of external databases where data are used	GEOMAGIA50 : CALS7K.2 : ARCHEO00	cv:database_name
+51	External Database ID Numbers	external_database_ids	List(500)	Text	Optional		Colon-delimited list of ID numbers linking to external database records	1435 : 23 : 2329	
+52	Criteria Codes	pmag_criteria_codes	List(500)	Text	Recommended	R	Colon-delimited list of criteria codes	MY-MAD : MY-APLHA95	in:pmag_criteria.pmag_criteria_code
+53	Rotation Codes	pmag_rotation_codes	List(500)	Text	Optional	R	Colon-delimited list of rotation codes	MY-TILT1 : MY-TILT2 : MY-TRANS1	in:pmag_rotations.pmag_rotation_code
+54	Method Codes	magic_method_codes	List(500)	Text	Required	R	Colon-delimited list of method codes	DE-DC0 : FT-F1 : LP-DCDMAG	in:magic_methods.magic_method_code
+55	Instrument Codes	magic_instrument_codes	List(500)	Text	Required	R	Colon-delimited list of instrument codes	SIO-Bubba : IRM-OldBlue	in:magic_instruments.magic_instrument_code
+56	Analyst Names	er_analyst_mail_names	List(500)	Text	Recommended	R	Colon-delimited list of names for analysts	Jim R.D. Hart : Alexis Heard : Bob McIntire	in:er_mailinglist.er_mail_name
+57	Citation Names	er_citation_names	List(500)	Text	Required	R	Colon-delimited list of citations	Smith et al. 2003 : Hart & Heard 1967 : This study	in:er_citations.er_citation_name
+>>>>>>>>>>
+tab delimited	pmag_results
+column_nmb	field_name	field_name_oracle	data_type	data_unit	data_status	field_type	field_description	field_examples	field_validation_rule
+1	Result Name	pmag_result_name	String(50)	Text	Required	P	Name or number to identify results	MY-POLE-XX	unique
+2	Location Name List	er_location_names	List(2000)	Text	Recommended	R	Colon-delimited list of location, dredge or drill site names	Site 801 : Site 1129 : Dredge AMAT02-D15	in:er_locations.er_location_name
+3	Site Name List	er_site_names	List(2000)	Text	Recommended	R	Colon-delimited list of site names	Bas123a : Bas156z : Bas445c	in:er_sites.er_site_name
+4	Sample Name List	er_sample_names	List(2000)	Text	Recommended	R	Colon-delimited list of sample names	Bas123a-01 : Bas123a-04 : Bas123a-19	in:er_samples.er_sample_name
+5	Specimen Name List	er_specimen_names	List(2000)	Text	Recommended	R	Colon-delimited list of specimen names	Bas123a-01x : Bas123a-01y	in:er_specimens.er_specimen_name
+6	Fossil Name List	er_fossil_names	List(2000)	Text	Recommended	R	Colon-delimited list of fossil names	AMM43-03 : AMM43-19	in:er_fossils.er_fossil_name
+7	Mineral Name List	er_mineral_names	List(2000)	Text	Recommended	R	Colon-delimited list of mineral names	PLG33a : MAGN-MJ-034	in:er_minerals.er_mineral_name
+8	Synthetic Material Name List	er_synthetic_names	List(2000)	Text	Optional	R	Colon-delimited list of synthetic material names	STD1546-A1 : STD1546-X23	in:er_synthetis.er_synthetic_name
+9	Experiment Name List	magic_experiment_names	List(2000)	Text	Optional	X	Colon-delimited list of experiments	KOPA-299-1 : KOPA-299-2 : KOPA-299-6	type:magic_experiment_name
+10	Data Type	data_type	String(1)	Flag	Required	F	Individual (i, the default), average (a), model (m) or stacked (s) data		cv:data_type
+11	Fold Test	fold_test	String(3)	Flag	Recommended	E	Classification and result of the folding test	F+, SF+, RF+, + (pos), Fo, SFo, RFo, o (indeterminate), F-, SF-, RF-, - (neg), ND (not done) 	cv:fold_test
+12	Conglomerate Test	conglomerate_test	String(3)	Flag	Recommended	E	Classification and result of the (intra-formational) conglomerate test	G+, IG+, + (pos), Go, IGo, o (indeterminate), G-, IG-, - (neg), ND (not done)	cv:conglomerate_test
+13	Baked Contact Test	contact_test	String(3)	Flag	Recommended	E	Classification and result of the (inverse) contact test	C+, IC+, + (pos), Co, ICo, o (indeterminate), C-, IC-, - (neg), ND (not done)	cv:contact_test
+14	Reversal Test	reversal_test	String(3)	Flag	Recommended	E	Classification and result of the reversal test	Ra, Rb, Rc, + (pos), Ro, o (indeterminate), R-, - (neg), ND (not done)	cv:reversal_test
+15	Rock Magnetic Test	rock_magnetic_test	String(3)	Flag	Recommended	E	Classification and result of the various rock magnetic tests	M (done), ND (not done)	cv:rock_magnetic_test
+16	Pole Component Name	pole_comp_name	String(30)	Text	Recommended		Name of magnetic component for which pole is calculated	Characteristic, VRM, Overprint, A, B, C	
+17	Average Latitude	average_lat	Number	Number in Degrees	Recommended		Average location based on multiple sites, Latitude	Decimal degrees between -90 and 90	min:-90;max:90
+18	Average Latitude Sigma	average_lat_sigma	Number	Number in Degrees	Recommended		Average location based on multiple sites, Latitude uncertainty	Uncertainty = 1xSD	min:0;max:180
+19	Average Longitude	average_lon	Number	Number in Degrees	Recommended		Average location based on multiple sites, Longitude	Decimal degrees between 0 and 360	lon:0,360
+20	Average Longitude Sigma	average_lon_sigma	Number	Number in Degrees	Recommended		Average location based on multiple sites, Longitude uncertainty	Uncertainty = 1xSD	min:0;max:360
+21	Average Height	average_height	Number	Number in m	Recommended		Measurement stratigraphic height relative to reference height	Positive is up in section or core, negative is down	
+22	Average Age	average_age	Number	Custom	Recommended		Average magnetization age based on multiple sites		
+23	Average Age Sigma	average_age_sigma	Number	Custom	Recommended		Average magnetization age based on multiple sites, Uncertainty	Uncertainty = 1xSD	
+24	Average Age Low	average_age_low	Number	Custom	Recommended		Average magnetization age based on multiple sites, Low range		
+25	Average Age High	average_age_high	Number	Custom	Recommended		Average magnetization age based on multiple sites, High range		
+26	Average Age Unit	average_age_unit	String(30)	Text	Recommended	E	Average magnetization age based on multiple sites, Unit	Ma, Ka, Ga, Years BP, Years AD (+/-), Years Cal BP, Years Cal AD (+/-)	cv:age_unit
+27	Average Inclination	average_inc	Number	Number in Degrees	Recommended		Average direction in stratigraphic coordinates, Inclination	Decimal degrees between 0 and 90	min:0;max:90
+28	Average Declination	average_dec	Number	Number in Degrees	Recommended		Average direction in stratigraphic coordinates, Declination	Decimal degrees between 0 and 360	min:0;max:360
+29	Average Sigma	average_sigma	Number	Number in Degrees	Recommended		Average direction in stratigraphic coordinates, Circular standard deviation	Uncertainty = 1xSD	
+30	Average Alpha 95%	average_alpha95	Number	Number in Degrees	Recommended		Average direction Fisher circle	Confidence Level = 95%	
+31	Number of Sites	average_n	Integer	Integer	Recommended		Number of sites included in directional calculations		min:0
+32	Number of Samples	average_nn	Integer	Integer	Recommended		Number of samples included in directional calculations		min:0
+33	Average K	average_k	Number	Dimensionless	Recommended		Average direction Fisher's dispersion parameter Kappa		
+34	Average R	average_r	Number	Dimensionless	Recommended		Average direction resultant Fisher vector		
+35	Average Intensity	average_int	Number	Number in T	Recommended		Average field strength		min:0;max:0.01
+36	Average Intensity Sigma	average_int_sigma	Number	Number in T	Recommended		Average field strength, Uncertainty	Uncertainty = 1xSD	min:0;max:0.01
+37	Average Intensity Sigma %	average_int_sigma_perc	Number	Number in %	Recommended		Average field strength, Uncertainty in percent	Uncertainty = 1xSD	
+38	Average Intensity Relative	average_int_rel	Number	Dimensionless	Recommended		Relative average field strength		
+39	Average Intensity Relative Sigma	average_int_rel_sigma	Number	Dimensionless	Recommended		Relative average field strength, Uncertainty	Uncertainty = 1xSD	
+40	Average Intensity Relative Sigma %	average_int_rel_sigma_perc	Number	Number in %	Recommended		Relative average field strength, Uncertainty in percent	Uncertainty = 1xSD	
+41	Number of Independent Estimates	average_int_n	Integer	Integer	Recommended		Number of independent estimates included in intensity calculations		min:0
+42	Number of Samples	average_int_nn	Integer	Integer	Recommended		Number of samples included in intensity calculations		min:0
+43	Confidence Ellipse	eta_inc	Number	Number in Degrees	Recommended		Definition of confidence ellipse, Inclination	Decimal degrees between 0 and 90	min:0;max:90
+44	Confidence Ellipse	eta_dec	Number	Number in Degrees	Recommended		Definition of confidence ellipse, Declination	Decimal degrees between 0 and 360	min:0;max:360
+45	Confidence Ellipse	eta_semi_angle	Number	Number in Degrees	Recommended		Definition of confidence ellipse, Semi angle	Confidence Level = 95%	
+46	Confidence Ellipse	zeta_inc	Number	Number in Degrees	Recommended		Definition of confidence ellipse, Inclination	Decimal degrees between 0 and 90	min:0;max:90
+47	Confidence Ellipse	zeta_dec	Number	Number in Degrees	Recommended		Definition of confidence ellipse, Declination	Decimal degrees between 0 and 360	min:0;max:360
+48	Confidence Ellipse	zeta_semi_angle	Number	Number in Degrees	Recommended		Definition of confidence ellipse, Semi angle	Confidence Level = 95%	
+49	Model Latitude	model_lat	Number	Number in Degrees	Recommended		Model latitude based on plate reconstruction	Decimal degrees between -90 and 90	min:-90;max:90
+50	Model Latitude Sigma	model_lat_sigma	Number	Number in Degrees	Recommended		Model latitude based on plate reconstruction, Uncertainty	Uncertainty = 1xSD	min:0;max:180
+51	Model Longitude	model_lon	Number	Number in Degrees	Recommended		Model longitude based on plate reconstruction	Decimal degrees between -90 and 90	min:-90;max:90
+52	Model Longitude Sigma	model_lon_sigma	Number	Number in Degrees	Recommended		Model longitude based on plate reconstruction, Uncertainty	Uncertainty = 1xSD	min:0;max:360
+53	VGP Latitude	vgp_lat	Number	Number in Degrees	Recommended		Virtual geomagnetic pole, Latitude	Decimal degrees between -90 and 90	min:-90;max:90
+54	VGP Longitude	vgp_lon	Number	Number in Degrees	Recommended		Virtual geomagnetic pole, Longitude	Decimal degrees between 0 and 360	lon:0,360
+55	VGP DP	vgp_dp	Number	Number in Degrees	Recommended		Virtual geomagnetic pole, Parallel latitude, Uncertainty	Uncertainty = 1xSD	min:0;max:1
+56	VGP DM	vgp_dm	Number	Number in Degrees	Recommended		Virtual geomagnetic pole, Meridian, Uncertainty	Uncertainty = 1xSD	min:0;max:1
+57	VGP Sigma	vgp_sigma	Number	Number in Degrees	Recommended		Virtual geomagnetic pole, Circular standard deviation	Uncertainty = 1xSD	min:0;max:1
+58	VGP Alpha 95%	vgp_alpha95	Number	Number in Degrees	Recommended		Fisher circle	Confidence Level = 95%	
+59	VGP N	vgp_n	Integer	Integer	Recommended		Number of data points included in VGP calculations		min:0
+60	VDM	vdm	Number	Number in Am2	Recommended		Virtual dipole moment		
+61	VDM Sigma	vdm_sigma	Number	Number in Am2	Recommended		Virtual dipole moment, Uncertainty	Uncertainty = 1xSD	
+62	VDM N	vdm_n	Integer	Integer	Recommended		Number of data points included in VDM calculations		min:0
+63	VADM	vadm	Number	Number in Am2	Recommended		Virtual axial dipole moment		
+64	VADM Sigma	vadm_sigma	Number	Number in Am2	Recommended		Virtual axial dipole moment, Uncertainty	Uncertainty = 1xSD	
+65	VADM N	vadm_n	Integer	Integer	Recommended		Number of data points included in VADM calculations		min:0
+66	Tilt Correction	tilt_correction	Number	Number in %	Optional		Tilt correction applied to the data	Correction between geographic (0%) and stratigraphic (100%); unoriented (-1%); partially oriented to horizontal only (-2%)	min:-2;max:100
+67	Tilt K Ratio	tilt_k_ratio	Number	Dimensionless	Optional		Comparison of Fisher dispersion K after and before tilt correction		
+68	Tilt N	tilt_n	Integer	Integer	Optional		Number of data points included in tilt correction		min:0
+69	Tilt Corrected Inclination	tilt_inc_corr	Number	Number in Degrees	Optional		Tilt corrected inclination	Decimal degrees between 0 and 90	min:0;max:90
+70	Tilt Corrected Declination	tilt_dec_corr	Number	Number in Degrees	Optional		Tilt corrected declination	Decimal degrees between 0 and 360	min:0;max:360
+71	Tilt Corrected K	tilt_k_corr	Number	Dimensionless	Optional		Average direction Fisher's dispersion parameter Kappa		
+72	Tilt Corrected Alpha 95%	tilt_alpha95_corr	Number	Number in Degrees	Optional		Fisher circle	Confidence Level = 95%	
+73	Tilt Uncorrected Inclination	tilt_inc_uncorr	Number	Number in Degrees	Optional		Tilt uncorrected inclination	Decimal degrees between 0 and 90	min:0;max:90
+74	Tilt Uncorrected Declination	tilt_dec_uncorr	Number	Number in Degrees	Optional		Tilt uncorrected declination	Decimal degrees between 0 and 360	min:0;max:360
+75	Tilt Uncorrected K	tilt_k_uncorr	Number	Dimensionless	Optional		Average direction Fisher's dispersion parameter Kappa		
+76	Tilt Uncorrected Alpha 95%	tilt_alpha95_uncorr	Number	Number in Degrees	Optional		Fisher circle	Confidence Level = 95%	
+77	Fold Test Significance	fold_test_significance	Number	Number in %	Optional		Significance level achieved in tilt correction calculations		
+78	Percentage Reversed Data	percent_reversed	Number	Number in %	Optional		Percentage of sites and samples that is reversed	200 indicates 'mixed' polarity and negative numbers indicate 'unknown' polarity	
+79	Antipodal Angle	antipodal	Number	Number in Degrees	Optional		Great circle distance between normal and reversed poles	Decimal degrees between 0 and 180	min:0;max:180
+80	Normal Pole Latitude	normal_lat	Number	Number in Degrees	Optional		Normal pole, Latitude	Decimal degrees between -90 and 90	min:-90;max:90
+81	Normal Pole Longitude	normal_lon	Number	Number in Degrees	Optional		Normal pole, Longitude	Decimal degrees between 0 and 360	lon:0,360
+82	Normal Inclination	normal_inc	Number	Number in Degrees	Optional		Normal pole, Inclination	Decimal degrees between 0 and 90	min:0;max:90
+83	Normal Declination	normal_dec	Number	Number in Degrees	Optional		Normal pole, Declination	Decimal degrees between 0 and 360	min:0;max:360
+84	Normal N	normal_n	Integer	Integer	Optional		Number of sites or samples included in normal pole calculation		min:0
+85	Normal K	normal_k	Number	Dimensionless	Optional		Average direction Fisher's dispersion parameter Kappa		
+86	Normal Alpha 95%	normal_alpha95	Number	Number in Degrees	Optional		Average direction Fisher circle	Confidence Level = 95%	
+87	Reversed Pole Latitude	reversed_lat	Number	Number in Degrees	Optional		Reversed pole, Latitude	Decimal degrees between -90 and 90	min:-90;max:90
+88	Reversed Pole Longitude	reversed_lon	Number	Number in Degrees	Optional		Reversed pole, Longitude	Decimal degrees between 0 and 360	lon:0,360
+89	Reversed Inclination	reversed_inc	Number	Number in Degrees	Optional		Reversed pole, Inclination	Decimal degrees between 0 and 90	min:0;max:90
+90	Reversed Declination	reversed_dec	Number	Number in Degrees	Optional		Reversed pole, Declination	Decimal degrees between 0 and 360	min:0;max:360
+91	Reversed N	reversed_n	Integer	Integer	Optional		Number of sites or samples included in reversed pole calculation		min:0
+92	Reversed K	reversed_k	Number	Dimensionless	Optional		Average direction Fisher's dispersion parameter Kappa		
+93	Reversed Alpha 95%	reversed_alpha95	Number	Number in Degrees	Optional		Average direction Fisher circle	Confidence Level = 95%	
+94	Result Description	result_description	String(1000)	Text	Optional		Detailed description of results		type:description
+95	MagIC Software Packages	magic_software_packages	List(500)	Text	Recommended		Colon-delimited list of software used for data reduction	PmagPy v1.67b : FORCinel v1.11 	
+96	External Database Names	external_database_names	List(500)	Text	Optional	E	Colon-delimited list of external databases where data are used	GEOMAGIA50 : CALS7K.2 : ARCHEO00	cv:database_name
+97	External Database ID Numbers	external_database_ids	List(500)	Text	Optional		Colon-delimited list of ID numbers linking to external database records	1435 : 23 : 2329	
+98	Criteria Codes	pmag_criteria_codes	List(500)	Text	Optional	R	Colon-delimited list of criteria codes	MY-MAD : MY-APLHA95	in:pmag_criteria.pmag_criteria_code
+99	Rotation Codes	pmag_rotation_codes	List(500)	Text	Optional	R	Colon-delimited list of rotation codes	MY-TILT1 : MY-TILT2 : MY-TRANS1	in:pmag_rotations.pmag_rotation_code
+100	Method Codes	magic_method_codes	List(500)	Text	Required	R	Colon-delimited list of method codes	DE-DC0 : FT-F1 : LP-DCDMAG	in:magic_methods.magic_method_code
+101	Analyst Names	er_analyst_mail_names	List(500)	Text	Recommended	R	Colon-delimited list of names for analysts	Jim R.D. Hart : Alexis Heard : Bob McIntire	in:er_mailinglist.er_mail_name
+102	Citation Names	er_citation_names	List(500)	Text	Required	R	Colon-delimited list of citations	Smith et al. 2003 : Hart & Heard 1967 : This study	in:er_citations.er_citation_name
+>>>>>>>>>>
+tab delimited	pmag_rotations
+column_nmb	field_name	field_name_oracle	data_type	data_unit	data_status	field_type	field_description	field_examples	field_validation_rule
+1	Rotation Code	pmag_rotation_code	String(50)	Text	Required	P	Rotation name or number	MY-TILT1, MY-TILT2, MY-TRANS1, MY-ROT1, MY-ROT2	unique
+2	Rotation Definition	rotation_definition	String(300)	Text	Required		Definition of the rotation applied		
+3	Rotation Parameter Lambda	rotation_lambda	Number	Number in Degrees	Recommended		Finite rotation pole, Tilt in degrees from horizontal		
+4	Rotation Parameter Phi	rotation_phi	Number	Number in Degrees	Recommended		Finite rotation pole, Axis in degrees from North (strike if lambda is zero)		
+5	Rotation Parameter Omega	rotation_omega	Number	Number in Degrees	Recommended		Finite rotation pole, Degrees of clockwise rotation around axis (negative dip if lambda is zero)		
+6	Rotation Description	rotation_description	String(1000)	Text	Optional		Detailed description		type:description
+7	Citation Names	er_citation_names	List(500)	Text	Required	R	Colon-delimited list of citations	Smith et al. 2003 : Hart & Heard 1967 : This study	in:er_citations.er_citation_name
+>>>>>>>>>>
+tab delimited	pmag_criteria
+column_nmb	field_name	field_name_oracle	data_type	data_unit	data_status	field_type	field_description	field_examples	field_validation_rule
+1	Criteria Code	pmag_criteria_code	String(50)	Text	Required	P	Criteria type name or number	MY-MAD, MY-APLHA95	unique
+2	Criteria Definition	criteria_definition	String(300)	Text	Required		Definition of the criteria		
+3	Experiment Name List	magic_experiment_names	List(2000)	Text	Optional	X	Colon-delimited list of experiments	KOPA-299-1	type:magic_experiment_name
+4	Measurement Step Minimum	measurement_step_min	Number	Custom	Optional	M	Step included in calculation, Lower bound		
+5	Measurement Step Maximum	measurement_step_max	Number	Custom	Optional	M	Step included in calculation, Higher bound		
+6	Measurement Step Unit	measurement_step_unit	String(30)	Text	Optional	M	Step included in calculation, Unit		
+7	Specimen Magnetic Polarity	specimen_polarity	String(1)	Flag	Optional	F	Polarity is normal (n), reversed (r), transitional (t), excursion (e) or intermediate (i)		cv:polarity
+8	Specimen NRM	specimen_nrm	String(1)	Flag	Optional	F	Origin of the NRM is primary (p) or secondary (s)		cv:nrm
+9	Specimen FRAC	specimen_frac	Number	Dimensionless	Optional		NRM fraction used for the best-fit on an Arai plot determined entirely by vector difference sum calculation		
+10	Specimen Direction Type	specimen_direction_type	String(1)	Flag	Optional	F	Direction determined from a line (l) or plane (p)		cv:direction_type
+11	Specimen Component Number	specimen_comp_nmb	Integer	Integer	Optional		Magnetic component number		
+12	Specimen MAD	specimen_mad	Number	Number in Degrees	Optional		Maximum angle of deviation of the best fit direction or plane	Criterion = maximum	
+13	Specimen Alpha 95%	specimen_alpha95	Number	Number in Degrees	Optional		Fisher circle	Criterion = maximum; Confidence Level = 95%	
+14	Number of Measurements	specimen_n	Integer	Integer	Optional		Number of measurements included in directional calculations	Criterion = minimum	min:0
+15	Specimen Paleo Intensity Sigma	specimen_int_sigma	Number	Number in T	Optional		Average field strength, Uncertainty	Criterion = maximum; Uncertainty = 1xSD	min:0;max:0.01
+16	Specimen Paleo Intensity Sigma %	specimen_int_sigma_perc	Number	Number in %	Optional		Average field strength, Uncertainty in percent	Criterion = maximum; Uncertainty = 1xSD	
+17	Specimen Paleo Intensity Relative Sigma	specimen_int_rel_sigma	Number	Dimensionless	Optional		Relative field strength, Uncertainty	Criterion = maximum; Uncertainty = 1xSD	
+18	Specimen Paleo Intensity Relative Sigma %	specimen_int_rel_sigma_perc	Number	Number in %	Optional		Relative field strength, Uncertainty in percent	Criterion = maximum; Uncertainty = 1xSD	
+19	Specimen Paleo Intensity MAD	specimen_int_mad	Number	Number in Degrees	Optional		Maximum angle of deviation of the best fit line	Criterion = maximum	
+20	Specimen Paleo Intensity N	specimen_int_n	Integer	Integer	Optional		Number of measurements included in intensity calculations	Criterion = minimum	min:0
+21	Specimen Alpha Prime	specimen_alpha_prime	Number	Number in Degrees	Optional		Angular difference between the anchored best-fit direction from the paleointensity experiment and an independent measure of the paleomagnetic direction		min:0
+22	Specimen Alpha	specimen_alpha	Number	Number in Degrees	Optional		Angular difference between the anchored and free-floating best-fit directions on a vector component diagram		min:0
+23	Specimen Paleointensity Alpha	specimen_int_alpha	Number	Number in Degrees	Optional		Angular difference between the anchored and free-floating best-fit directions on a vector component diagram from a paleointensity experiment		min:0
+24	Specimen MAD Free-Floating	specimen_mad	Number	Number in Degrees	Optional		Maximum Angular Deviation (MAD) of the free-floating directional PCA fits to the paleomagnetic vector		min:0
+25	Specimen MAD Anchored	specimen_mad_anc	Number	Number in Degrees	Optional		Maximum Angular Deviation (MAD) of the anchored directional PCA fits to the paleomagnetic vector		min:0
+26	Specimen Paleointensity MAD Free-Floating	specimen_int_mad	Number	Number in Degrees	Optional		Maximum Angular Deviation (MAD) of the free-floating directional PCA fits to the paleomagnetic vector from a paleointensity experiment		min:0
+27	Specimen Paleointensity MAD Anchored	specimen_int_mad_anc	Number	Number in Degrees	Optional		Maximum Angular Deviation (MAD) of the anchored directional PCA fits to the paleomagnetic vector from a paleointensity experiment		min:0
+28	Specimen Weighting Factor	specimen_w	Number	Dimensionless	Optional		Weighting factor	Criterion = maximum	
+29	Specimen Q	specimen_q	Number	Dimensionless	Optional		COE's quality factors, Overall quality	Criterion = minimum	
+30	Specimen f	specimen_f	Number	Dimensionless	Optional		COE's quality factors, Amount of NRM in component	Criterion = minimum	
+31	Specimen f VDS	specimen_fvds	Number	Dimensionless	Optional		COE's quality factors, Vector difference sum of NRM components	Criterion = minimum	
+32	Specimen b Sigma	specimen_b_sigma	Number	Dimensionless	Optional		COE's quality factors, Error on slope fit	Criterion = maximum; Uncertainty = 1xSD	
+33	Specimen Sigma over b	specimen_b_beta	Number	Dimensionless	Optional		COE's quality factors, Relative error over slope	Criterion = maximum; Uncertainty = 1xSD	
+34	Specimen g	specimen_g	Number	Dimensionless	Optional		COE's quality factors, The GAP factor	Criterion = minimum	
+35	Specimen Gap Max	specimen_gmax	Number	Dimensionless	Optional		The maximum gap between two points in Arai plot determined by vector arithmetic		min:0
+36	Specimen Squared Correlation Coefficient	specimen_r_sq	Number	Dimensionless	Optional		The squared correlation coefficient to estimate the strength of the linear relationship between the NRM and TRM over the best-fit Arai plot segment		min:0
+37	Specimen Squared Coefficient of Determination	specimen_coeff_det_sq	Number	Dimensionless	Optional		The squared coefficient of determination to estimate variance accounted for by the linear model fit on an Arai plot		min:0
+38	Specimen DANG	specimen_dang	Number	Number in Degrees	Optional		Deviation angle of direction of component with respect to origin	Criterion = maximum	
+39	Specimen Maximum MD	specimen_md	Number	Number in %	Optional		Maximum difference between first and second zero field steps	Criterion = maximum	
+40	Specimen DRAT Tail Check	specimen_tail_drat	Number	Number in %	Optional		Maximum absolute difference produced by a pTRM tail check, normalized by the length of the best-fit line		
+41	Specimen delta TR	specimen_dtr	Number	Number in %	Optional		Maximum absolute difference produced by a pTRM tail check, normalized by the NRM (obtained from the intersection of the best-fit line and the y-axis on an Arai plot)		
+42	Specimen Maximum pTRM	specimen_ptrm	Number	Number in %	Optional		Classical pTRM check	Criterion = maximum	
+43	Specimen delta CK	specimen_dck	Number	Number in %	Optional		Maximum absolute difference produced by a pTRM check, normalized by the total TRM (obtained from the intersection of the best-fit line and the x-axis on an Arai plot)		min:0
+44	Specimen maxDEV	specimen_maxdev	Number	Number in %	Optional		Maximum absolute difference produced by a pTRM check, normalized by the length of the TRM segment of the best-fit line on an Arai plot		min:0
+45	Specimen Difference Ratio pTRM Checks	specimen_drat	Number	Number in %	Optional		Difference in first and second pTRM measurements	Criterion = maximum	
+46	Specimen Mean DRAT	specimen_mdrat	Number	Number in %	Optional		The average difference produced by a pTRM check, normalized by the length of the best-fit line		min:0
+47	Specimen Cumulative DRAT	specimen_cdrat	Number	Number in %	Optional		Cumulative difference ratio difference produced by a pTRM check		min:0
+48	Specimen Difference Ratio Sum	specimen_drats	Number	Number in %	Optional		Sum of difference in first and second pTRM measurements	Criterion = maximum	
+49	Specimen Mean DEV	specimen_mdev	Number	Number in %	Optional		Mean deviation of a pTRM check		min:0
+50	Specimen delta pal	specimen_dpal	Number	Number in %	Optional		A measure of cumulative alteration determined by the difference of the alteration corrected intensity estimate (Valet et al., 1996) and the uncorrected estimate, normalized by the uncorrected estimate (Leonhardt et al., 2004a)		min:0
+51	Specimen delta T	specimen_dt	Number	Dimensionless	Optional		The extent of a pTRM tail after correction for angular dependence		
+52	Specimen delta AC	specimen_dac	Number	Number in %	Optional		The maximum absolute additivity check difference normalized by the total TRM (obtained from the intersection of the best-fit line and the x-axis on an Arai plot		min:0
+53	Specimen Number Additivity Checks	specimen_ac_n	Integer	Integer	Optional		The number of additivity checks used to analyze the best-fit segment on an Arai plot		min:0
+54	Specimen Arai Curvatute	specimen_k	Number	Dimensionless	Optional		The curvature of the Arai plot as determined by the best-fit circle to all of the data 		
+55	Specimen K SSE	specimen_k_sse	Number	Dimensionless	Optional		The quality of the best-fit circle used to determine k		
+56	Specimen Maximum RSC	specimen_rsc	Number	Number in %	Optional		Maximum relative susceptibility change	Criterion = maximum	
+57	Specimen Z	specimen_z	Number	Dimensionless	Optional		Arai plot zigzag parameter calculated using the scatter around the best-fit slope on an Arai plot		
+58	Specimen IZZI MD	specimen_z_md	Number	Dimensionless	Optional		Arai plot zigzag parameter calculated by the area bounded by the curve that the ZI points make and the curve that the IZ points make		
+59	Specimen Scatter	specimen_scat	String(1)	Flag	Optional	F	All pTRM checks, MD checks, IZ ZI data, etc. are in the box (g, the default, = good or b=bad)		cv:data_quality
+60	Specimen Viscosity Index	specimen_viscosity_index	Number	Number in %	Optional		Viscosity index	Criterion = maximum	
+61	Specimen Magnetization Moment	specimen_magn_moment	Number	Number in Am2	Optional		Measured magnetic moment	Criterion = minimum	min:-1;max:1
+62	Specimen Magnetization Volume	specimen_magn_volume	Number	Number in A/m	Optional		Measured intensity of magnetization, Volume normalized	Criterion = minimum	min:-1000000;max:1000000
+63	Specimen Magnetization Mass	specimen_magn_mass	Number	Number in Am2/kg	Optional		Measured intensity of magnetization, Mass normalized	Criterion = minimum	min:-200;max:200
+64	Specimen Number pTRM Checks 	specimen_int_ptrm_n	Integer	Integer	Optional		Number of pTRM checks used in paleointensity experiment		min:0
+65	Specimen Correction Non-Linear TRM	specimen_int_corr_nlt	Number	Dimensionless	Optional		Non-linear TRM correction factor for intensity		min:0
+66	Specimen Paleointensity DANG	specimen_int_dang	Number	Number in Degrees	Optional		The angle between the free-floating best-fit direction and the vector connecting the center of mass and the origin of the vector component diagram		min:0
+67	Specimen CRM %	specimen_int_crm	Number	Number in %	Optional		The cumulative deflection between the NRM vectors and the ChRM direction		
+68	Specimen Number pTRM Tail Checks 	specimen_int_ptrm_tail_n	Integer	Integer	Optional		Number of pTRM tail checks used in paleointensity experiment		min:0
+69	Specimen Delta	specimen_delta	Number	Number in Degrees	Optional		Maximum angle of deviation between assumed NRM and measured NRM in perpendicular paleointensity method	Criterion = maximum	
+70	Specimen Theta	specimen_theta	Number	Number in Degrees	Optional		The angle between the applied field direction and the ChRM direction of the NRM as determined from the free-floating PCA fit to the selected demagnetization steps of the paleointensity experiment		min:0
+71	Specimen Gamma	specimen_gamma	Number	Number in Degrees	Optional		Maximum angle of deviation between acquired pTRM direction and assumed applied field direction	Criterion = maximum	
+72	Speciman Remanence Anistropy F-test	specimen_aniso_ftest_flag	String(1)	Flag	Optional	F	Pass/fail F-test for 95% confidence of remanence anistropy tensor calculation (g, the default, = good or b=bad)		cv:data_quality
+73	Sample Magnetic Polarity	sample_polarity	String(1)	Flag	Optional	F	Polarity is normal (n), reversed (r), transitional (t), excursion (e) or intermediate (i)		cv:polarity
+74	Sample NRM	sample_nrm	String(1)	Flag	Optional	F	Origin of the NRM is primary (p) or secondary (s)		cv:nrm
+75	Sample Direction Type	sample_direction_type	String(1)	Flag	Optional	F	Direction determined from a line (l) or plane (p)		cv:direction_type
+76	Sample Component Number	sample_comp_nmb	Integer	Integer	Optional		Magnetic component number		
+77	Sample Sigma	sample_sigma	Number	Number in Degrees	Optional		Directions in sample coordinates, Circular standard deviation	Criterion = maximum; Uncertainty = 1xSD	
+78	Sample Alpha 95%	sample_alpha95	Number	Number in Degrees	Optional		Fisher circle	Criterion = maximum; Confidence Level = 95%	
+79	Number of Samples	sample_n	Integer	Integer	Optional		Number of specimens included in directional calculations	Criterion = minimum	min:0
+80	Sample N Best-Fit Lines	sample_n_lines	Integer	Integer	Optional		Number of specimens included based on best-fit lines	Criterion = minimum	min:0
+81	Sample N Best-Fit Planes	sample_n_planes	Integer	Integer	Optional		Number of specimens included based on best-fit planes	Criterion = minimum	min:0
+82	Sample K	sample_k	Number	Dimensionless	Optional		Fisher's dispersion parameter Kappa	Criterion = minimum	
+83	Sample R	sample_r	Number	Dimensionless	Optional		Resultant Fisher vector	Criterion = minimum	
+84	Sample Tilt Correction	sample_tilt_correction	Number	Number in %	Optional		Percentage tilt correction applied to the data	Criterion = minimum	
+85	Sample Paleo Intensity Sigma	sample_int_sigma	Number	Number in T	Optional		Average field strength, Uncertainty	Criterion = maximum; Uncertainty = 1xSD	min:0;max:0.01
+86	Sample Paleo Intensity Sigma %	sample_int_sigma_perc	Number	Number in %	Optional		Average field strength, Uncertainty in percent	Criterion = maximum; Uncertainty = 1xSD	
+87	Sample Paleo Intensity Relative Sigma	sample_int_rel_sigma	Number	Dimensionless	Optional		Relative field strength, Uncertainty	Criterion = maximum; Uncertainty = 1xSD	
+88	Sample Paleo Intensity Relative Sigma %	sample_int_rel_sigma_perc	Number	Number in %	Optional		Relative field strength, Uncertainty in percent	Criterion = maximum; Uncertainty = 1xSD	
+89	Sample Paleo Intensity N	sample_int_n	Integer	Integer	Optional		Number of specimens included in intensity calculations	Criterion = minimum	min:0
+90	Sample Magnetization Moment	sample_magn_moment	Number	Number in Am2	Optional		Measured magnetic moment	Criterion = minimum	min:-1;max:1
+91	Sample Magnetization Volume	sample_magn_volume	Number	Number in A/m	Optional		Measured intensity of magnetization, Volume normalized	Criterion = minimum	min:-1000000;max:1000000
+92	Sample Magnetization Mass	sample_magn_mass	Number	Number in Am2/kg	Optional		Measured intensity of magnetization, Mass normalized	Criterion = minimum	min:-200;max:200
+93	Sample Remanence Mean Anisotropy Degree	sample_aniso_mean	Number	Number in %	Optional		The mean remanence anistropy degree (Tau1/Tau3) of a sample in units of precentage (%)		
+94	Site Magnetic Polarity	site_polarity	String(1)	Flag	Optional	F	Polarity is normal (n), reversed (r), transitional (t), excursion (e) or intermediate (i)		cv:polarity
+95	Site NRM	site_nrm	String(1)	Flag	Optional	F	Origin of the NRM is primary (p) or secondary (s)		cv:nrm
+96	Site Direction Type	site_direction_type	String(1)	Flag	Optional	F	Direction determined from a line (l) or plane (p)		cv:direction_type
+97	Site Component Number	site_comp_nmb	Integer	Integer	Optional		Magnetic component number		
+98	Site Sigma	site_sigma	Number	Number in Degrees	Optional		Directions in stratigraphic coordinates, Circular standard deviation	Criterion = maximum; Uncertainty = 1xSD	
+99	Site Alpha 95%	site_alpha95	Number	Number in Degrees	Optional		Fisher circle	Criterion = maximum; Confidence Level = 95%	
+100	Number of Samples	site_n	Integer	Integer	Optional		Number of samples included in directional calculations	Criterion = minimum	min:0
+101	Number of Samples from Best-Fit Lines	site_n_lines	Integer	Integer	Optional		Number of samples included based on best-fit lines	Criterion = minimum	min:0
+102	Number of Samples from Best-Fit Planes	site_n_planes	Integer	Integer	Optional		Number of samples included based on best-fit planes	Criterion = minimum	min:0
+103	Site K	site_k	Number	Dimensionless	Optional		Fisher's dispersion parameter Kappa	Criterion = minimum	min:0
+104	Site R	site_r	Number	Dimensionless	Optional		Resultant Fisher vector	Criterion = minimum	min:0
+105	Site Tilt Correction	site_tilt_correction	Number	Number in %	Optional		Percentage tilt correction applied to the data	Criterion = minimum	
+106	Site Paleo Intensity Sigma	site_int_sigma	Number	Number in T	Optional		Average field strength, Uncertainty	Criterion = maximum; Uncertainty = 1xSD	min:0;max:0.01
+107	Site Paleo Intensity Sigma %	site_int_sigma_perc	Number	Number in %	Optional		Average field strength, Uncertainty in percent	Criterion = maximum; Uncertainty = 1xSD	
+108	Site Paleo Intensity Relative Sigma	site_int_rel_sigma	Number	Dimensionless	Optional		Relative field strength, Uncertainty	Criterion = maximum; Uncertainty = 1xSD	
+109	Site Paleo Intensity Relative Sigma %	site_int_rel_sigma_perc	Number	Number in %	Optional		Relative field strength, Uncertainty in percent	Criterion = maximum; Uncertainty = 1xSD	
+110	Site Paleo Intensity N	site_int_n	Integer	Integer	Optional		Number of samples included in intensity calculations	Criterion = minimum	min:0
+111	Site Magnetization Moment	site_magn_moment	Number	Number in Am2	Optional		Measured magnetic moment	Criterion = minimum	min:-1;max:1
+112	Site Magnetization Volume	site_magn_volume	Number	Number in A/m	Optional		Measured intensity of magnetization, Volume normalized	Criterion = minimum	min:-1000000;max:1000000
+113	Site Magnetization Mass	site_magn_mass	Number	Number in Am2/kg	Optional		Measured intensity of magnetization, Mass normalized	Criterion = minimum	min:-200;max:200
+114	Average Age Minimum	average_age_min	Number	Custom	Optional		Average age based on multiple sites or samples, Minimum	Criterion = minimum	
+115	Average Age Maximum	average_age_max	Number	Custom	Optional		Average age based on multiple sites or samples, Maximum	Criterion = maximum	
+116	Average Age Sigma	average_age_sigma	Number	Custom	Optional		Average age based on multiple sites or samples, Uncertainty	Criterion = maximum; Uncertainty = 1xSD	
+117	Average Age Unit	average_age_unit	String(30)	Text	Optional	E	Average age based on multiple sites or samples, Age unit	Ma, Ka, Ga, Years BP, Years AD (+/-), Years Cal BP, Years Cal AD (+/-)	cv:age_unit
+118	Average Sigma	average_sigma	Number	Number in Degrees	Optional		Directions in stratigraphic coordinates, Standard deviation	Criterion = maximum; Uncertainty = 1xSD	
+119	Average Alpha 95%	average_alpha95	Number	Number in Degrees	Optional		Fisher circle	Criterion = maximum; Confidence Level = 95%	
+120	Average N Sites	average_n	Integer	Integer	Optional		Number of sites included in directional calculations	Criterion = minimum	min:0
+121	Average N Samples	average_nn	Integer	Integer	Optional		Number of samples included in directional calculations	Criterion = minimum	min:0
+122	Average N Specimens	average_nnn	Integer	Integer	Optional		Number of specimens included in directional calculations	Criterion = minimum	min:0
+123	Average K	average_k	Number	Dimensionless	Optional		Fisher's dispersion parameter Kappa	Criterion = minimum	
+124	Average R	average_r	Number	Dimensionless	Optional		Resultant Fisher vector	Criterion = minimum	
+125	Average Intensity Sigma	average_int_sigma	Number	Number in T	Optional		VGP field strength, Uncertainty	Criterion = maximum; Uncertainty = 1xSD	min:0;max:0.01
+126	Average Intensity Relative Sigma	average_int_rel_sigma	Number	Dimensionless	Optional		Relative VGP field strength, Uncertainty	Criterion = maximum; Uncertainty = 1xSD	
+127	Average Intensity Relative Sigma %	average_int_rel_sigma_perc	Number	Number in %	Optional		Relative VGP field strength, Uncertainty in percent	Criterion = maximum; Uncertainty = 1xSD	
+128	Number of Sites	average_int_n	Integer	Integer	Recommended		Number of sites included in intensity calculations		min:0
+129	Number of Samples	average_int_nn	Integer	Integer	Recommended		Number of samples included in intensity calculations		min:0
+130	Number of Specimens	average_int_nnn	Integer	Integer	Recommended		Number of specimens included in intensity calculations		min:0
+131	VGP DP	vgp_dp	Number	Number in Degrees	Optional		Parallel latitude, Uncertainty	Criterion = maximum; Uncertainty = 1xSD	min:0;max:90
+132	VGP DM	vgp_dm	Number	Number in Degrees	Optional		Meridian, Uncertainty	Criterion = maximum; Uncertainty = 1xSD	min:0;max:90
+133	VGP Sigma	vgp_sigma	Number	Number in Degrees	Optional		Virtual geomagnetic pole, Circular standard deviation	Criterion = maximum; Uncertainty = 1xSD	min:0;max:90
+134	VGP Alpha 95%	vgp_alpha95	Number	Number in Degrees	Optional		Fisher circle	Criterion = maximum; Confidence Level = 95%	min:0;max:90
+135	VGP N	vgp_n	Integer	Integer	Optional		Number of data points included in VGP calculations	Criterion = minimum	min:0
+136	VDM Sigma	vdm_sigma	Number	Number in Am2	Optional		Virtual dipole moment, Uncertainty	Criterion = maximum; Uncertainty = 1xSD	
+137	VDM N	vdm_n	Integer	Integer	Optional		Number of data points included in VDM calculations	Criterion = minimum	min:0
+138	VADM Sigma	vadm_sigma	Number	Number in Am2	Optional		Virtual axial dipole moment, Uncertainty	Criterion = maximum; Uncertainty = 1xSD	
+139	VADM N	vadm_n	Integer	Integer	Optional		Number of data points included in VADM calculations	Criterion = minimum	min:0
+140	Remanence Anisotropy Alteration	anisotropy_alt	Number	Number in %	Optional		Comparison of 1st and 2nd TRMs in TRM anisotropy experiment	Criterion = maximum	min:0;max:1
+141	Criteria Description	criteria_description	String(1000)	Text	Optional		Detailed description		type:description
+142	Citation Names	er_citation_names	List(500)	Text	Required	R	Colon-delimited list of citations	Smith et al. 2003 : Hart & Heard 1967 : This study	in:er_citations.er_citation_name
+>>>>>>>>>>
+tab delimited	rmag_susceptibility
+column_nmb	field_name	field_name_oracle	data_type	data_unit	data_status	field_type	field_description	field_examples	field_validation_rule
+1	Expedition Name	er_expedition_name	String(50)	Text	Optional	R	Name for seagoing or land expedition	AVON02MV	in:er_expeditions.er_expedition_name
+2	Location Name	er_location_name	String(50)	Text	Required	R	Name for location, dredge or drill site	San Francisco Volcanic Province, Dredge AMAT02-D12, Site 801	in:er_locations.er_location_name
+3	Formation Name	er_formation_name	String(50)	Text	Optional	R	Name for formation	Bluebird Formation	in:er_formations.er_formation_name
+4	Member Name	er_member_name	String(50)	Text	Optional	R	Name for member	Glasshound Member	in:er_members.er_member_name
+5	Site Name	er_site_name	String(50)	Text	Required	R	Name for site	Bas123a	in:er_sites.er_site_name
+6	Sample Name	er_sample_name	String(50)	Text	Required	R	Name for sample	Bas123a-01	in:er_samples.er_sample_name
+7	Specimen Name	er_specimen_name	String(50)	Text	Required	R	Name for specimen	Bas123a-01x	in:er_specimens.er_specimen_name
+8	Fossil Name	er_fossil_name	String(50)	Text	Recommended	R	Name for fossil	AMM43-03	in:er_fossils.er_fossil_name
+9	Mineral Name	er_mineral_name	String(50)	Text	Recommended	R	Name for mineral	San03-001	in:er_minerals.er_mineral_name
+10	Synthetic Material Name	er_synthetic_name	String(50)	Text	Required	R	Name for synthetic material	STD1546-A1	in:er_synthetis.er_synthetic_name
+11	Experiment Name List	magic_experiment_names	List(2000)	Text	Optional	X	Colon-delimited list of experiments	KOPA-299-1 : KOPA-299-2 : KOPA-299-6	type:magic_experiment_name
+12	Susceptibility Flag	susceptibility_flag	String(1)	Flag	Recommended	F	Indicating if good (g, the default) or bad (b) data		cv:data_quality
+13	Susceptibility Volume	susceptibility_chi_volume	Number	Number in SI	Recommended		Average magnetic susceptibility, Volume normalized		
+14	Susceptibility Mass	susceptibility_chi_mass	Number	Number in m3/kg	Recommended		Average magnetic susceptibility, Mass normalized		
+15	Susceptibility Frequency Dependence	susceptibility_f	Number	Dimensionless	Recommended		Frequency dependence , Xfd calculation		
+16	Susceptibility Frequency Low	susceptibility_f_low	Number	Number in Hz	Recommended		Xfd calculation, Low frequency		
+17	Susceptibility Frequency High	susceptibility_f_high	Number	Number in Hz	Recommended		Xfd calculation, High frequency		
+18	Susceptibility Amplitude Dependence	susceptibility_h	Number	Dimensionless	Recommended		Amplitude dependence, Xhd calculation		
+19	Susceptibility Amplitude Low	susceptibility_h_low	Number	Number in T	Recommended		Xhd calculation, Low amplitude		
+20	Susceptibility Amplitude High	susceptibility_h_high	Number	Number in T	Recommended		Xhd calculation, High amplitude		
+21	Susceptibility Loss Tangent	susceptibility_loss_tangent	Number	Dimensionless	Recommended		Loss tangent or X(quadrature) over X(inphase)		
+22	Susceptibility Description	susceptibility_description	String(1000)	Text	Optional		Detailed description		type:description
+23	MagIC Software Packages	magic_software_packages	List(500)	Text	Recommended		Colon-delimited list of software used for data reduction	PmagPy v1.67b : FORCinel v1.11 	
+24	External Database Names	external_database_names	List(500)	Text	Optional	E	Colon-delimited list of external databases where data are used	GEOMAGIA50 : CALS7K.2 : ARCHEO00	cv:database_name
+25	External Database ID Numbers	external_database_ids	List(500)	Text	Optional		Colon-delimited list of ID numbers linking to external database records	1435 : 23 : 2329	
+26	Criteria Codes	rmag_criteria_codes	List(500)	Text	Recommended	R	Colon-delimited list of criteria codes	MY-MAD : MY-APLHA95	in:rmag_criteria.rmag_criteria_code
+27	Method Codes	magic_method_codes	List(500)	Text	Required	R	Colon-delimited list of method codes	DE-DC0 : FT-F1 : LP-DCDMAG	in:magic_methods.magic_method_code
+28	Instrument Codes	magic_instrument_codes	List(500)	Text	Required	R	Colon-delimited list of instrument codes	SIO-Bubba : IRM-OldBlue	in:magic_instruments.magic_instrument_code
+29	Analyst Names	er_analyst_mail_names	List(500)	Text	Recommended	R	Colon-delimited list of names for analysts	Jim R.D. Hart : Alexis Heard : Bob McIntire	in:er_mailinglist.er_mail_name
+30	Citation Names	er_citation_names	List(500)	Text	Required	R	Colon-delimited list of citations	Smith et al. 2003 : Hart & Heard 1967 : This study	in:er_citations.er_citation_name
+>>>>>>>>>>
+tab delimited	rmag_remanence
+column_nmb	field_name	field_name_oracle	data_type	data_unit	data_status	field_type	field_description	field_examples	field_validation_rule
+1	Expedition Name	er_expedition_name	String(50)	Text	Optional	R	Name for seagoing or land expedition	AVON02MV	in:er_expeditions.er_expedition_name
+2	Location Name	er_location_name	String(50)	Text	Required	R	Name for location, dredge or drill site	San Francisco Volcanic Province, Dredge AMAT02-D12, Site 801	in:er_locations.er_location_name
+3	Formation Name	er_formation_name	String(50)	Text	Optional	R	Name for formation	Bluebird Formation	in:er_formations.er_formation_name
+4	Member Name	er_member_name	String(50)	Text	Optional	R	Name for member	Glasshound Member	in:er_members.er_member_name
+5	Site Name	er_site_name	String(50)	Text	Required	R	Name for site	Bas123a	in:er_sites.er_site_name
+6	Sample Name	er_sample_name	String(50)	Text	Required	R	Name for sample	Bas123a-01	in:er_samples.er_sample_name
+7	Specimen Name	er_specimen_name	String(50)	Text	Required	R	Name for specimen	Bas123a-01x	in:er_specimens.er_specimen_name
+8	Fossil Name	er_fossil_name	String(50)	Text	Recommended	R	Name for fossil	AMM43-03	in:er_fossils.er_fossil_name
+9	Mineral Name	er_mineral_name	String(50)	Text	Recommended	R	Name for mineral	San03-001	in:er_minerals.er_mineral_name
+10	Synthetic Material Name	er_synthetic_name	String(50)	Text	Required	R	Name for synthetic material	STD1546-A1	in:er_synthetis.er_synthetic_name
+11	Experiment Name List	magic_experiment_names	List(2000)	Text	Optional	X	Colon-delimited list of experiments	KOPA-299-1 : KOPA-299-2 : KOPA-299-6	type:magic_experiment_name
+12	Remanence Flag	remanence_flag	String(1)	Flag	Recommended	F	Indicating if good (g, the default) or bad (b) data		cv:data_quality
+13	Measurement Temperature	measurement_temp	Number	Number in K	Recommended		Temperature		min:0
+14	Measurement Orientation Phi	measurement_orient_phi	Number	Number in Degrees	Recommended		Orientation of sample in magnetometer		
+15	Measurement Orientation Theta	measurement_orient_theta	Number	Number in Degrees	Recommended		Orientation of sample in magnetometer		
+16	Remanence Delta Field Cooled Moment	remanence_dfc_moment	Number	Number in Am2	Recommended		Fractional remanence loss at Tv (80K,130K) after field cooling, Moment		
+17	Remanence Delta Field Cooled Volume	remanence_dfc_volume	Number	Number in A/m	Recommended		Fractional remanence loss at Tv (80K,130K) after field cooling, Volume normalized		
+18	Remanence Delta Field Cooled Mass	remanence_dfc_mass	Number	Number in Am2/kg	Recommended		Fractional remanence loss at Tv (80K,130K) after field cooling, Mass normalized		
+19	Remanence Delta Zerofield Cooled Moment	remanence_dzfc_moment	Number	Number in Am2	Recommended		Fractional remanence loss at Tv (80K,130K) after zero-field cooling, Moment		
+20	Remanence Delta Zerofield Cooled Volume	remanence_dzfc_volume	Number	Number in A/m	Recommended		Fractional remanence loss at Tv (80K,130K) after zero-field cooling, Volume normalized		
+21	Remanence Delta Zerofield Cooled Mass	remanence_dzfc_mass	Number	Number in Am2/kg	Recommended		Fractional remanence loss at Tv (80K,130K) after zero-field cooling, Mass normalized		
+22	Remanence Delta FC/ZFC Ratio	remanence_delta_ratio	Number	Dimensionless	Recommended		Ratio (Delta FC/Delta ZFC)		
+23	Remanence Delta Temperature Low	remanence_delta_temp_low	Number	Number in K	Recommended		Low Temperature of delta FC/ZFC calculation		
+24	Remanence Delta Temperature High	remanence_delta_temp_high	Number	Number in K	Recommended		High Temperature of delta FC/ZFC calculation		
+25	Remanence Mr Moment	remanence_mr_moment	Number	Number in Am2	Recommended		Measured intensity of remanent moment, Moment		
+26	Remanence Mr Volume	remanence_mr_volume	Number	Number in A/m	Recommended		Measured intensity of remanent moment, Volume normalized		
+27	Remanence Mr Mass	remanence_mr_mass	Number	Number in Am2/kg	Recommended		Measured intensity of remanent moment, Mass normalized		
+28	Remanence Bcr	remanence_bcr	Number	Number in T	Recommended		Coercivity of remanence		
+29	Remanence S Ratio	remanence_sratio	Number	Dimensionless	Recommended		SIRM ratio S(X)		
+30	Remanence S Ratio Forward Field	remanence_sratio_forward	Number	Number in T	Recommended		SIRM field used to calculate S Ratio		
+31	Remanence S Ratio Back Field	remanence_sratio_back	Number	Number in T	Recommended		Backfield used to calculate S Ratio		
+32	Remanence HIRM Moment	remanence_hirm_moment	Number	Number in Am2	Recommended		Hard IRM factor, HIRM = SIRM - IRM(300 mT), Moment		
+33	Remanence HIRM Volume	remanence_hirm_volume	Number	Number in A/m	Recommended		Hard IRM factor, HIRM = SIRM - IRM(300 mT), Volume normalized		
+34	Remanence HIRM Mass	remanence_hirm_mass	Number	Number in Am2/kg	Recommended		Hard IRM factor, HIRM = SIRM - IRM(300 mT), Mass normalized		
+35	Remanence ARMx	remanence_armx	Number	Dimensionless	Recommended		Anhysteretic susceptibility, Xarm = ARM / Hdc		
+36	Remanence Cross Over Point	remanence_cross_over	Number	Number in T	Recommended		Field at which demagnetization moment equals acquisition moment		
+37	Remanence MDF	remanence_mdf	Number	Number in T	Recommended		Median destructive field		
+38	Remanence MAF	remanence_maf	Number	Number in T	Recommended		Median acquisition field		
+39	Remanence MDT	remanence_mdt	Number	Number in K	Recommended		Median destructive temperature		
+40	Remanence Component Median Field	remanence_cmf	Number	Number in T	Recommended		Median field of remanence component		
+41	Remanence Component Dispersion	remanence_cd	Number	Dimensionless	Recommended		Dispersion (standard deviation) of remanence components		
+42	Remanence Component N	remanence_comp_n	Integer	Integer	Recommended		Number of remanence components used		min:0
+43	Remanence Sa	remanence_sa	Number	Number in Am2/log(s)	Recommended		Viscosity coefficient dM/d(log t) during the acquisition of viscous remanence		
+44	Remanence Sd	remanence_sd	Number	Number in Am2/log(s)	Recommended		Decay in the viscosity coefficient dM/d(log t) during the acquisition of viscous remanence		
+45	Remanence Koenigsberger Ratio	remanence_q	Number	Dimensionless	Recommended		Koenigsberger ratio		
+46	Remanence Description	remanence_description	String(1000)	Text	Optional		Detailed description		type:description
+47	MagIC Software Packages	magic_software_packages	List(500)	Text	Recommended		Colon-delimited list of software used for data reduction	PmagPy v1.67b : FORCinel v1.11 	
+48	External Database Names	external_database_names	List(500)	Text	Optional	E	Colon-delimited list of external databases where data are used	GEOMAGIA50 : CALS7K.2 : ARCHEO00	cv:database_name
+49	External Database ID Numbers	external_database_ids	List(500)	Text	Optional		Colon-delimited list of ID numbers linking to external database records	1435 : 23 : 2329	
+50	Criteria Codes	rmag_criteria_codes	List(500)	Text	Recommended	R	Colon-delimited list of criteria codes	MY-MAD : MY-APLHA95	in:rmag_criteria.rmag_criteria_code
+51	Method Codes	magic_method_codes	List(500)	Text	Required	R	Colon-delimited list of method codes	DE-DC0 : FT-F1 : LP-DCDMAG	in:magic_methods.magic_method_code
+52	Instrument Codes	magic_instrument_codes	List(500)	Text	Required	R	Colon-delimited list of instrument codes	SIO-Bubba : IRM-OldBlue	in:magic_instruments.magic_instrument_code
+53	Analyst Names	er_analyst_mail_names	List(500)	Text	Recommended	R	Colon-delimited list of names for analysts	Jim R.D. Hart : Alexis Heard : Bob McIntire	in:er_mailinglist.er_mail_name
+54	Citation Names	er_citation_names	List(500)	Text	Required	R	Colon-delimited list of citations	Smith et al. 2003 : Hart & Heard 1967 : This study	in:er_citations.er_citation_name
+>>>>>>>>>>
+tab delimited	rmag_hysteresis
+column_nmb	field_name	field_name_oracle	data_type	data_unit	data_status	field_type	field_description	field_examples	field_validation_rule
+1	Expedition Name	er_expedition_name	String(50)	Text	Optional	R	Name for seagoing or land expedition	AVON02MV	in:er_expeditions.er_expedition_name
+2	Location Name	er_location_name	String(50)	Text	Required	R	Name for location, dredge or drill site	San Francisco Volcanic Province, Dredge AMAT02-D12, Site 801	in:er_locations.er_location_name
+3	Formation Name	er_formation_name	String(50)	Text	Optional	R	Name for formation	Bluebird Formation	in:er_formations.er_formation_name
+4	Member Name	er_member_name	String(50)	Text	Optional	R	Name for member	Glasshound Member	in:er_members.er_member_name
+5	Site Name	er_site_name	String(50)	Text	Required	R	Name for site	Bas123a	in:er_sites.er_site_name
+6	Sample Name	er_sample_name	String(50)	Text	Required	R	Name for sample	Bas123a-01	in:er_samples.er_sample_name
+7	Specimen Name	er_specimen_name	String(50)	Text	Required	R	Name for specimen	Bas123a-01x	in:er_specimens.er_specimen_name
+8	Fossil Name	er_fossil_name	String(50)	Text	Recommended	R	Name for fossil	AMM43-03	in:er_fossils.er_fossil_name
+9	Mineral Name	er_mineral_name	String(50)	Text	Recommended	R	Name for mineral	San03-001	in:er_minerals.er_mineral_name
+10	Synthetic Material Name	er_synthetic_name	String(50)	Text	Required	R	Name for synthetic material	STD1546-A1	in:er_synthetis.er_synthetic_name
+11	Experiment Name List	magic_experiment_names	List(2000)	Text	Optional	X	Colon-delimited list of experiments	KOPA-299-1 : KOPA-299-2 : KOPA-299-6	type:magic_experiment_name
+12	Hysteresis Flag	hysteresis_flag	String(1)	Flag	Recommended	F	Indicating if good (g, the default) or bad (b) data		cv:data_quality
+13	Measurement Hysteresis Loop Number	measurement_loop_x	Integer	Integer	Recommended		Hysteresis loop counter		
+14	Measurement Hysteresis Loop Total	measurement_loop_n	Integer	Integer	Recommended		Total number of hysteresis loops in experiment		min:0
+15	Measurement Temperature	measurement_temp	Number	Number in K	Recommended		Temperature		min:0
+16	Measurement Orientation Phi	measurement_orient_phi	Number	Number in Degrees	Recommended		Orientation of sample in magnetometer		
+17	Measurement Orientation Theta	measurement_orient_theta	Number	Number in Degrees	Recommended		Orientation of sample in magnetometer		
+18	Hysteresis S*	hysteresis_ss	Number	Dimensionless	Recommended		Curvature of major loop in upper left quadrant	Number between 0 and 1	min:0;max:1
+19	Hysteresis Squareness	hysteresis_sq	Number	Dimensionless	Recommended		Squareness of major loop	Number between 0 and 1	min:0;max:1
+20	Hysteresis Mr Moment	hysteresis_mr_moment	Number	Number in Am2	Recommended		Measured intensity of remanent magnetization, Moment		
+21	Hysteresis Mr Volume	hysteresis_mr_volume	Number	Number in A/m	Recommended		Measured intensity of remanent magnetization, Volume normalized		
+22	Hysteresis Mr Mass	hysteresis_mr_mass	Number	Number in Am2/kg	Recommended		Measured intensity of remanent magnetization, Mass normalized		
+23	Hysteresis Ms Moment	hysteresis_ms_moment	Number	Number in Am2	Recommended		Measured intensity of saturation magnetization, Moment		
+24	Hysteresis Ms Volume	hysteresis_ms_volume	Number	Number in A/m	Recommended		Measured intensity of saturation magnetization, Volume normalized		
+25	Hysteresis Ms Mass	hysteresis_ms_mass	Number	Number in Am2/kg	Recommended		Measured intensity of saturation magnetization, Mass normalized		
+26	Hysteresis Bcr	hysteresis_bcr	Number	Number in T	Recommended		Coercivity of remanence		
+27	Hysteresis Bc	hysteresis_bc	Number	Number in T	Recommended		Coercivity		
+28	Hysteresis Bc Offset	hysteresis_bc_offset	Number	Number in T	Recommended		Offset between coercivity in positive and negative fields		
+29	Hysteresis Xhf	hysteresis_xhf	Number	Number in m3	Recommended		High field slope		
+30	Hysteresis Transient Magnetization	hysteresis_th	Number	Number in T	Recommended		Transient energy dissipation related to domain state		
+31	Hysteresis Description	hysteresis_description	String(1000)	Text	Optional		Detailed description		type:description
+32	MagIC Software Packages	magic_software_packages	List(500)	Text	Recommended		Colon-delimited list of software used for data reduction	PmagPy v1.67b : FORCinel v1.11 	
+33	External Database Names	external_database_names	List(500)	Text	Optional	E	Colon-delimited list of external databases where data are used	GEOMAGIA50 : CALS7K.2 : ARCHEO00	cv:database_name
+34	External Database ID Numbers	external_database_ids	List(500)	Text	Optional		Colon-delimited list of ID numbers linking to external database records	1435 : 23 : 2329	
+35	Criteria Codes	rmag_criteria_codes	List(500)	Text	Recommended	R	Colon-delimited list of criteria codes	MY-MAD : MY-APLHA95	in:rmag_criteria.rmag_criteria_code
+36	Method Codes	magic_method_codes	List(500)	Text	Required	R	Colon-delimited list of method codes	DE-DC0 : FT-F1 : LP-DCDMAG	in:magic_methods.magic_method_code
+37	Instrument Codes	magic_instrument_codes	List(500)	Text	Required	R	Colon-delimited list of instrument codes	SIO-Bubba : IRM-OldBlue	in:magic_instruments.magic_instrument_code
+38	Analyst Names	er_analyst_mail_names	List(500)	Text	Recommended	R	Colon-delimited list of names for analysts	Jim R.D. Hart : Alexis Heard : Bob McIntire	in:er_mailinglist.er_mail_name
+39	Citation Names	er_citation_names	List(500)	Text	Required	R	Colon-delimited list of citations	Smith et al. 2003 : Hart & Heard 1967 : This study	in:er_citations.er_citation_name
+>>>>>>>>>>
+tab delimited	rmag_anisotropy
+column_nmb	field_name	field_name_oracle	data_type	data_unit	data_status	field_type	field_description	field_examples	field_validation_rule
+1	Expedition Name	er_expedition_name	String(50)	Text	Optional	R	Name for seagoing or land expedition	AVON02MV	in:er_expeditions.er_expedition_name
+2	Location Name	er_location_name	String(50)	Text	Required	R	Name for location, dredge or drill site	San Francisco Volcanic Province, Dredge AMAT02-D12, Site 801	in:er_locations.er_location_name
+3	Formation Name	er_formation_name	String(50)	Text	Optional	R	Name for formation	Bluebird Formation	in:er_formations.er_formation_name
+4	Member Name	er_member_name	String(50)	Text	Optional	R	Name for member	Glasshound Member	in:er_members.er_member_name
+5	Site Name	er_site_name	String(50)	Text	Required	R	Name for site	Bas123a	in:er_sites.er_site_name
+6	Sample Name	er_sample_name	String(50)	Text	Required	R	Name for sample	Bas123a-01	in:er_samples.er_sample_name
+7	Specimen Name	er_specimen_name	String(50)	Text	Required	R	Name for specimen	Bas123a-01x	in:er_specimens.er_specimen_name
+8	Fossil Name	er_fossil_name	String(50)	Text	Recommended	R	Name for fossil	AMM43-03	in:er_fossils.er_fossil_name
+9	Mineral Name	er_mineral_name	String(50)	Text	Recommended	R	Name for mineral	San03-001	in:er_minerals.er_mineral_name
+10	Synthetic Material Name	er_synthetic_name	String(50)	Text	Required	R	Name for synthetic material	STD1546-A1	in:er_synthetis.er_synthetic_name
+11	Experiment Name List	magic_experiment_names	List(2000)	Text	Optional	X	Colon-delimited list of experiments	KOPA-299-1 : KOPA-299-2 : KOPA-299-6	type:magic_experiment_name
+12	Anisotropy Flag	anisotropy_flag	String(1)	Flag	Recommended	F	Indicating if good (g, the default) or bad (b) data		cv:data_quality
+13	Anisotropy Type	anisotropy_type	String(30)	Text	Required		Anisotropy calculation type	AMS, AARM, AIRM, ATRM	
+14	Anisotropy Tensor Element 1	anisotropy_s1	Number	Number	Recommended		Anisotropy tensor element, c11		
+15	Anisotropy Tensor Element 2	anisotropy_s2	Number	Number	Recommended		Anisotropy tensor element, c22		
+16	Anisotropy Tensor Element 3	anisotropy_s3	Number	Number	Recommended		Anisotropy tensor element, c33		
+17	Anisotropy Tensor Element 4	anisotropy_s4	Number	Number	Recommended		Anisotropy tensor element, c12		
+18	Anisotropy Tensor Element 5	anisotropy_s5	Number	Number	Recommended		Anisotropy tensor element, c23		
+19	Anisotropy Tensor Element 6	anisotropy_s6	Number	Number	Recommended		Anisotropy tensor element, c13		
+20	Anisotropy Tensor Mean	anisotropy_mean	Number	Number	Recommended		Anisotropy tensor mean, (c11 + c22 + c33) / 3		
+21	Anisotropy Tensor Sigma	anisotropy_sigma	Number	Number	Recommended		Anisotropy tensor standard deviation	Sigma of Hext (1963)	
+22	Anisotropy Tensor Unit	anisotropy_unit	String(30)	Text	Recommended		Anisotropy tensor unit	Normalized by trace, Am2, m3/kg, SI, deviatoric	
+23	Number of Measurements	anisotropy_n	Integer	Integer	Recommended		Number of measurements included in the calculation		min:0
+24	Anisotropy Tilt Correction	anisotropy_tilt_correction	Number	Number in %	Optional		Percentage tilt correction applied to the data	Correction between geographic (0%) and stratigraphic (100%); unoriented (-1%); partially oriented to horizontal only (-2%)	min:-2;max:100
+25	Remanence Anisotropy Alteration	anisotropy_alt	Number	Number in %	Optional		Comparison of 1st and 2nd TRMs in TRM anisotropy experiment		
+26	Anisotropy Description	anisotropy_description	String(1000)	Text	Optional		Detailed description		type:description
+27	MagIC Software Packages	magic_software_packages	List(500)	Text	Recommended		Colon-delimited list of software used for data reduction	PmagPy v1.67b : FORCinel v1.11 	
+28	External Database Names	external_database_names	List(500)	Text	Optional	E	Colon-delimited list of external databases where data are used	GEOMAGIA50 : CALS7K.2 : ARCHEO00	cv:database_name
+29	External Database ID Numbers	external_database_ids	List(500)	Text	Optional		Colon-delimited list of ID numbers linking to external database records	1435 : 23 : 2329	
+30	Criteria Codes	rmag_criteria_codes	List(500)	Text	Recommended	R	Colon-delimited list of criteria codes	MY-MAD : MY-APLHA95	in:rmag_criteria.rmag_criteria_code
+31	Method Codes	magic_method_codes	List(500)	Text	Required	R	Colon-delimited list of method codes	DE-DC0 : FT-F1 : LP-DCDMAG	in:magic_methods.magic_method_code
+32	Instrument Codes	magic_instrument_codes	List(500)	Text	Required	R	Colon-delimited list of instrument codes	SIO-Bubba : IRM-OldBlue	in:magic_instruments.magic_instrument_code
+33	Analyst Names	er_analyst_mail_names	List(500)	Text	Recommended	R	Colon-delimited list of names for analysts	Jim R.D. Hart : Alexis Heard : Bob McIntire	in:er_mailinglist.er_mail_name
+34	Citation Names	er_citation_names	List(500)	Text	Required	R	Colon-delimited list of citations	Smith et al. 2003 : Hart & Heard 1967 : This study	in:er_citations.er_citation_name
+>>>>>>>>>>
+tab delimited	rmag_results
+column_nmb	field_name	field_name_oracle	data_type	data_unit	data_status	field_type	field_description	field_examples	field_validation_rule
+1	Result Name	rmag_result_name	String(50)	Text	Required	P	Name or number to identify results	MY-POLE-XX	unique
+2	Location Name List	er_location_names	List(2000)	Text	Recommended	R	Colon-delimited list of location, dredge or drill site names	Site 801 : Site 1129 : Dredge AMAT02-D15	in:er_locations.er_location_name
+3	Site Name List	er_site_names	List(2000)	Text	Recommended	R	Colon-delimited list of site names	Bas123a : Bas156z : Bas445c	in:er_sites.er_site_name
+4	Sample Name List	er_sample_names	List(2000)	Text	Recommended	R	Colon-delimited list of sample names	Bas123a-01 : Bas123a-04 : Bas123a-19	in:er_samples.er_sample_name
+5	Specimen Name List	er_specimen_names	List(2000)	Text	Recommended	R	Colon-delimited list of specimen names	Bas123a-01x : Bas123a-01y	in:er_specimens.er_specimen_name
+6	Fossil Name List	er_fossil_names	List(2000)	Text	Recommended	R	Colon-delimited list of fossil names	AMM43-03 : AMM43-19	in:er_fossils.er_fossil_name
+7	Mineral Name List	er_mineral_names	List(2000)	Text	Recommended	R	Colon-delimited list of mineral names	PLG33a : MAGN-MJ-034	in:er_minerals.er_mineral_name
+8	Synthetic Material Name List	er_synthetic_names	List(2000)	Text	Recommended	R	Colon-delimited list of synthetic material names	STD1546-A1 : STD1546-X23	in:er_synthetis.er_synthetic_name
+9	Experiment Name List	magic_experiment_names	List(2000)	Text	Optional	X	Colon-delimited list of experiments	KOPA-299-1 : KOPA-299-2 : KOPA-299-6	type:magic_experiment_name
+10	Critical Temperature Low	critical_temp_low	Number	Number in K	Recommended		Critical, Xfd or Xhd temperature calculation, Low range		min:0
+11	Critical Temperature High	critical_temp_high	Number	Number in K	Recommended		Critical, Xfd or Xhd temperature calculation, High range		min:0
+12	Critical Temperature	critical_temp	Number	Number in K	Recommended		Temperature at which some transition occurs		min:0
+13	Critical Temperature Type	critical_temp_type	String(50)	Text	Recommended	E	Interpreted type of temperature transition	Verway, Morin, pyrrhotite, Neel, spin glass, Curie, Hopkinson, blocking, unblocking	cv:temp_type
+14	Critical Temperature Mineral Type	critical_temp_mineral	List(500)	Text	Recommended	E	Interpreted mineral(s) causing the transition	Magnetite, hematite, maghemite	cv:mineral_type
+15	Hysteresis Mr over Ms	hysteresis_mr_ms	Number	Dimensionless	Recommended		Ratio of saturation remanence to saturation		
+16	Hysteresis Bcr over Bc	hysteresis_bcr_bc	Number	Dimensionless	Recommended		Ratio of coercivity of remanence over coercivity		
+17	Anisotropy Type	anisotropy_type	String(30)	Text	Required		Anisotropy calculation type	AMS, AARM, AIRM, ATRM	
+18	Anisotropy Eigenvalue 1	anisotropy_t1	Number	Number	Recommended		Maximum eigenvalue		
+19	Anisotropy Eigenvalue 2	anisotropy_t2	Number	Number	Recommended		Intermediate eigenvalue		
+20	Anisotropy Eigenvalue 3	anisotropy_t3	Number	Number	Recommended		Minimum eigenvalue		
+21	Anisotropy Eigenvector 1 Declination	anisotropy_v1_dec	Number	Number in Degrees	Recommended		Declination eigenvector associated with maximum eigenvalue		
+22	Anisotropy Eigenvector 2 Declination	anisotropy_v2_dec	Number	Number in Degrees	Recommended		Declination eigenvector associated with intermediate eigenvalue		
+23	Anisotropy Eigenvector 3 Declination	anisotropy_v3_dec	Number	Number in Degrees	Recommended		Declination eigenvector associated with minimum eigenvalue		
+24	Anisotropy Eigenvector 1 Inclination	anisotropy_v1_inc	Number	Number in Degrees	Recommended		Inclination eigenvector associated with maximum eigenvalue		
+25	Anisotropy Eigenvector 2 Inclination	anisotropy_v2_inc	Number	Number in Degrees	Recommended		Inclination eigenvector associated with intermediate eigenvalue		
+26	Anisotropy Eigenvector 3 Inclination	anisotropy_v3_inc	Number	Number in Degrees	Recommended		Inclination eigenvector associated with minimum eigenvalue		
+27	Anisotropy ETA Eigenvector 1 Inclination	anisotropy_v1_eta_inc	Number	Number in Degrees	Recommended		Minor axis eigenvector 1, Inclination		
+28	Anisotropy ETA Eigenvector 2 Inclination	anisotropy_v2_eta_inc	Number	Number in Degrees	Recommended		Minor axis eigenvector 2, Inclination		
+29	Anisotropy ETA Eigenvector 3 Inclination	anisotropy_v3_eta_inc	Number	Number in Degrees	Recommended		Minor axis eigenvector 3, Inclination		
+30	Anisotropy ETA Eigenvector 1 Declination	anisotropy_v1_eta_dec	Number	Number in Degrees	Recommended		Minor axis eigenvector 1, Declination		
+31	Anisotropy ETA Eigenvector 2 Declination	anisotropy_v2_eta_dec	Number	Number in Degrees	Recommended		Minor axis eigenvector 2, Declination		
+32	Anisotropy ETA Eigenvector 3 Declination	anisotropy_v3_eta_dec	Number	Number in Degrees	Recommended		Minor axis eigenvector 3, Declination		
+33	Anisotropy ETA Eigenvector 1 Semi Angle	anisotropy_v1_eta_semi_angle	Number	Number in Degrees	Recommended		Minor axis eigenvector 1, Semi angle	Confidence Level = 95%	
+34	Anisotropy ETA Eigenvector 2 Semi Angle	anisotropy_v2_eta_semi_angle	Number	Number in Degrees	Recommended		Minor axis eigenvector 2, Semi angle	Confidence Level = 95%	
+35	Anisotropy ETA Eigenvector 3 Semi Angle	anisotropy_v3_eta_semi_angle	Number	Number in Degrees	Recommended		Minor axis eigenvector 3, Semi angle	Confidence Level = 95%	
+36	Anisotropy ZETA Eigenvector 1 Inclination	anisotropy_v1_zeta_inc	Number	Number in Degrees	Recommended		Major axis eigenvector 1, Inclination		
+37	Anisotropy ZETA Eigenvector 2 Inclination	anisotropy_v2_zeta_inc	Number	Number in Degrees	Recommended		Major axis eigenvector 2, Inclination		
+38	Anisotropy ZETA Eigenvector 3 Inclination	anisotropy_v3_zeta_inc	Number	Number in Degrees	Recommended		Major axis eigenvector 3, Inclination		
+39	Anisotropy ZETA Eigenvector 1 Declination	anisotropy_v1_zeta_dec	Number	Number in Degrees	Recommended		Major axis eigenvector 1, Declination		
+40	Anisotropy ZETA Eigenvector 2 Declination	anisotropy_v2_zeta_dec	Number	Number in Degrees	Recommended		Major axis eigenvector 2, Declination		
+41	Anisotropy ZETA Eigenvector 3 Declination	anisotropy_v3_zeta_dec	Number	Number in Degrees	Recommended		Major axis eigenvector 3, Declination		
+42	Anisotropy ZETA Eigenvector 1 Semi Angle	anisotropy_v1_zeta_semi_angle	Number	Number in Degrees	Recommended		Major axis eigenvector 1, Semi angle	Confidence Level = 95%	
+43	Anisotropy ZETA Eigenvector 2 Semi Angle	anisotropy_v2_zeta_semi_angle	Number	Number in Degrees	Recommended		Major axis eigenvector 2, Semi angle	Confidence Level = 95%	
+44	Anisotropy ZETA Eigenvector 3 Semi Angle	anisotropy_v3_zeta_semi_angle	Number	Number in Degrees	Recommended		Major axis eigenvector 3, Semi angle	Confidence Level = 95%	
+45	Anisotropy F	anisotropy_f	Number	Dimensionless	Optional		T2/T3		
+46	Anisotropy ln(F)	anisotropy_ff	Number	Dimensionless	Optional		ln(F)		
+47	Anisotropy L	anisotropy_l	Number	Dimensionless	Optional		T1/T2		
+48	Anisotropy ln(L)	anisotropy_ll	Number	Dimensionless	Optional		ln(L)		
+49	Anisotropy P	anisotropy_p	Number	Dimensionless	Optional		T1/T3		
+50	Anisotropy ln(P)	anisotropy_pp	Number	Dimensionless	Optional		Corrected anisotropy of Jelinek (1981)		
+51	Anisotropy T	anisotropy_t	Number	Dimensionless	Optional		Shape factor of Jelinek (1981)		
+52	Anisotropy Vg	anisotropy_vg	Number	Dimensionless	Optional		Graham's V parameter defined by sin(V)=sqrt((K2-K3)/(K1-K3))	Fabric is oblate when V>45 degrees	
+53	Anisotropy FL Ratio	anisotropy_fl	Number	Dimensionless	Optional		F/L		
+54	Anisotropy Total	anisotropy_total	Number	Number in %	Optional		Total anisotropy, 100 * (S1-S3) / Mean	Number between 0 and 300% 	min:0;max:300
+55	Anisotropy Percent	anisotropy_percent	Number	Number in %	Optional		Percent anisotropy, 100 * (S1-S3) / (S1+S2+S3)	Number between 0 and 100% 	min:0;max:100
+56	Anisotropy F Test	anisotropy_ftest	Number	Number in %	Optional		F statistical test for anisotropy		
+57	Anisotropy F Test Prolateness	anisotropy_ftest12	Number	Number in %	Optional		F statistical test for prolateness		
+58	Anisotropy F Test Oblateness	anisotropy_ftest23	Number	Number in %	Optional		F statistical test for oblateness		
+59	Tilt Correction	tilt_correction	Number	Number in %	Optional		Tilt correction applied to the data	Correction between geographic (0%) and stratigraphic (100%); unoriented (-1%); partially oriented to horizontal only (-2%)	min:-2;max:100
+60	Result Description	result_description	String(1000)	Text	Optional		Detailed description of results		type:description
+61	MagIC Software Packages	magic_software_packages	List(500)	Text	Recommended		Colon-delimited list of software used for data reduction	PmagPy v1.67b : FORCinel v1.11 	
+62	External Database Names	external_database_names	List(500)	Text	Optional	E	Colon-delimited list of external databases where data are used	GEOMAGIA50 : CALS7K.2 : ARCHEO00	cv:database_name
+63	External Database ID Numbers	external_database_ids	List(500)	Text	Optional		Colon-delimited list of ID numbers linking to external database records	1435 : 23 : 2329	
+64	Criteria Codes	rmag_criteria_codes	List(500)	Text	Optional	R	Colon-delimited list of criteria codes	MY-MAD : MY-APLHA95	in:rmag_criteria.rmag_criteria_code
+65	Method Codes	magic_method_codes	List(500)	Text	Required	R	Colon-delimited list of method codes	DE-DC0 : FT-F1 : LP-DCDMAG	in:magic_methods.magic_method_code
+66	Instrument Codes	magic_instrument_codes	List(500)	Text	Required	R	Colon-delimited list of instrument codes	SIO-Bubba : IRM-OldBlue	in:magic_instruments.magic_instrument_code
+67	Analyst Names	er_analyst_mail_names	List(500)	Text	Recommended	R	Colon-delimited list of names for analysts	Jim R.D. Hart : Alexis Heard : Bob McIntire	in:er_mailinglist.er_mail_name
+68	Citation Names	er_citation_names	List(500)	Text	Required	R	Colon-delimited list of citations	Smith et al. 2003 : Hart & Heard 1967 : This study	in:er_citations.er_citation_name
+>>>>>>>>>>
+tab delimited	rmag_criteria
+column_nmb	field_name	field_name_oracle	data_type	data_unit	data_status	field_type	field_description	field_examples	field_validation_rule
+1	Criteria Code	rmag_criteria_code	String(50)	Text	Required	P	Criteria type name or number	MY-ANIS567, MY-LOOPS-12	unique
+2	Criteria Definition	criteria_definition	String(300)	Text	Required		Definition of the criteria		
+4	Criteria Description	criteria_description	String(1000)	Text	Optional		Detailed description		type:description
+5	Citation Names	er_citation_names	List(500)	Text	Required	R	Colon-delimited list of citations	Smith et al. 2003 : Hart & Heard 1967 : This study	in:er_citations.er_citation_name
+>>>>>>>>>>

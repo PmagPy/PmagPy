@@ -1,0 +1,4 @@
+tab	er_ages
+er_specimen_name	er_sample_name	er_site_name	er_location_name	er_citation_names	magic_method_codes	age_unit	age	age_description
+		MGH1	Munich	This study	GM-ARAR	Ga	3	
+		Z35.	locale	This study	GM-ARAR	Ma	3	

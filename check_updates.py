@@ -9,13 +9,21 @@ def get_pmag_dir():
     """
     Returns directory in which PmagPy is installed
     """
-    return os.path.dirname(os.path.realpath(__file__))
+    # need to update this so that it works with compiled version
+    # this is correct for use with PmagPy:
+    #return os.path.dirname(os.path.realpath(__file__))
+    # this is correct for use with py2app:
+    try:
+        return os.environ['RESOURCEPATH']
+    except KeyError:
+        return os.path.dirname(os.path.realpath(__file__))
+
 
 def get_version():
-   import version
-   global pmagpy_path
-   pmagpy_path = get_pmag_dir()
-   return version.version
+    import version
+    #global pmagpy_path
+    pmagpy_path = get_pmag_dir()
+    return version.version
 
 
 """    

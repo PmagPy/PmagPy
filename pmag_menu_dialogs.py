@@ -6,16 +6,17 @@
 
 import wx
 import os
-import pmag
+import shutil
 import subprocess
 import wx.grid
 from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigureCanvas
 from matplotlib import pyplot as plt
+import pmag
 import pmag_widgets as pw
 import thellier_gui_dialogs
 import thellier_gui
 import ipmag
-import shutil
+import ErMagicBuilder
 
 class ImportAzDipFile(wx.Frame):
 
@@ -86,7 +87,7 @@ class ImportAzDipFile(wx.Frame):
 
     def on_add_file_button(self,event):
         text = "choose file to convert to MagIC"
-        pw.on_add_file_button(self.bSizer0, self.WD, event, text)
+        pw.on_add_file_button(self.bSizer0, text)
 
     def on_okButton(self, event):
         options = {}
@@ -169,12 +170,15 @@ class MoveFileIntoWD(wx.Frame):
 
     def on_add_file_button(self,event):
         text = "choose file to copy to working directory"
-        pw.on_add_file_button(self.bSizer0, self.WD, event, text)
+        pw.on_add_file_button(self.bSizer0, text)
 
     def on_okButton(self, event):
         os.chdir(self.WD)
         WD = self.WD
         full_infile = self.bSizer0.return_value()
+        if not full_infile:
+            pw.simple_warning('You must provide a file')
+            return False
         infile = os.path.join(WD, os.path.split(full_infile)[1])
         shutil.copyfile(full_infile, os.path.join(WD, infile))
         pw.close_window(self, 'Copy infile to {}'.format(WD), infile)
@@ -230,7 +234,7 @@ class ImportIODPSampleSummary(wx.Frame):
 
     def on_add_file_button(self,event):
         text = "choose file to convert to MagIC"
-        pw.on_add_file_button(self.bSizer0, self.WD, event, text)
+        pw.on_add_file_button(self.bSizer0, text)
 
     def on_okButton(self, event):
         os.chdir(self.WD)
@@ -294,7 +298,7 @@ class ImportModelLatitude(wx.Frame):
 
     def on_add_file_button(self,event):
         text = "choose file to convert to MagIC"
-        pw.on_add_file_button(self.bSizer0, self.WD, event, text)
+        pw.on_add_file_button(self.bSizer0, text)
 
     def on_okButton(self, event):
         os.chdir(self.WD)
@@ -385,11 +389,11 @@ class ImportKly4s(wx.Frame):
 
     def on_add_file_button(self,event):
         text = "choose file to convert to MagIC"
-        pw.on_add_file_button(self.bSizer0, self.WD, event, text)
+        pw.on_add_file_button(self.bSizer0, text)
 
     def on_add_AZDIP_file_button(self,event):
         text = "choose AZDIP file (optional)"
-        pw.on_add_file_button(self.bSizer1, self.WD, event, text)
+        pw.on_add_file_button(self.bSizer1, text)
 
     def on_okButton(self, event):
         os.chdir(self.WD)
@@ -497,7 +501,7 @@ class ImportK15(wx.Frame):
 
     def on_add_file_button(self,event):
         text = "choose file to convert to MagIC"
-        pw.on_add_file_button(self.bSizer0, self.WD, event, text)
+        pw.on_add_file_button(self.bSizer0, text)
 
     def on_okButton(self, event):
         os.chdir(self.WD)
@@ -608,7 +612,7 @@ class ImportSufarAscii(wx.Frame):
 
     def on_add_file_button(self,event):
         text = "choose file to convert to MagIC"
-        pw.on_add_file_button(self.bSizer0, self.WD, event, text)
+        pw.on_add_file_button(self.bSizer0, text)
 
     def on_okButton(self, event):
         os.chdir(self.WD)
@@ -735,7 +739,7 @@ class ImportAgmFile(wx.Frame):
 
     def on_add_file_button(self,event):
         text = "choose file to convert to MagIC"
-        pw.on_add_file_button(self.bSizer0, self.WD, event, text)
+        pw.on_add_file_button(self.bSizer0, text)
 
     def on_okButton(self, event):
         os.chdir(self.WD)
@@ -857,7 +861,7 @@ class ImportAgmFolder(wx.Frame):
 
     def on_add_dir_button(self,event):
         text = "choose directory of files to convert to MagIC"
-        pw.on_add_dir_button(self.bSizer0, self.WD, event, text)
+        pw.on_add_dir_button(self.bSizer0, text)
 
     def on_okButton(self, event):
         os.chdir(self.WD)
@@ -956,7 +960,7 @@ class CustomizeCriteria(wx.Frame):
 
     def on_add_file_button(self,event):
         text = "choose file to convert to MagIC"
-        pw.on_add_file_button(self.bSizer0, self.WD, event, text)
+        pw.on_add_file_button(self.bSizer0, text)
 
     def on_okButton(self, event):
         os.chdir(self.WD)
@@ -998,7 +1002,7 @@ class CustomizeCriteria(wx.Frame):
 
         frame = wx.Frame(self)
         window = wx.ScrolledWindow(frame)
-        self.boxes = pw.large_checkbox_window(window, crit_data, "Update Acceptance Criteria")
+        self.boxes = pw.large_checkbox_window(window, crit_data)
         bSizer = wx.BoxSizer(wx.VERTICAL)
         bSizer.Add(self.boxes)
 
@@ -1176,7 +1180,7 @@ class ZeqMagic(wx.Frame):
 
     def on_add_file_button(self,event):
         text = "choose file to convert to MagIC"
-        pw.on_add_file_button(self.bSizer0, self.WD, event, text)
+        pw.on_add_file_button(self.bSizer0, text)
 
     def on_okButton(self, event):
         os.chdir(self.WD)
@@ -1447,11 +1451,11 @@ class Core_depthplot(wx.Frame):
 
     def on_add_measurements_button(self, event):
         text = "choose file to convert to MagIC"
-        pw.on_add_file_button(self.bSizer0, self.WD, event, text)
+        pw.on_add_file_button(self.bSizer0, text)
 
     def on_add_pmag_specimens_button(self, event):
         text = "choose file to convert to MagIC"
-        pw.on_add_file_button(self.bSizer0a, self.WD, event, text)
+        pw.on_add_file_button(self.bSizer0a, text)
 
     def on_sample_or_age(self, event):
         if event.GetId() == self.bSizer1a.rb1.GetId():
@@ -1467,11 +1471,11 @@ class Core_depthplot(wx.Frame):
 
     def on_add_samples_button(self, event):
         text = "provide er_samples/er_ages file"
-        pw.on_add_file_button(self.bSizer1, self.WD, event, text)
+        pw.on_add_file_button(self.bSizer1, text)
 
     def on_add_csv_button(self, event):
         text = "provide csv file (optional)"
-        pw.on_add_file_button(self.bSizer2, self.WD, event, text)
+        pw.on_add_file_button(self.bSizer2, text)
 
     def on_checkbox(self, event):
         if event.Checked():
@@ -1501,16 +1505,34 @@ class Core_depthplot(wx.Frame):
         logit # -log ( plot log scale)
         fmt # -fmt format
         """
+        def check_input_dir_path(input_dir_path, new_dir_path):
+            if input_dir_path and input_dir_path != new_dir_path:
+                pw.simple_warning("Please make sure that all input files come from the same directory")
+                return False
+            if not input_dir_path and new_dir_path:
+                return new_dir_path
+            elif input_dir_path == new_dir_path:
+                return input_dir_path
+
+        
         os.chdir(self.WD)
+        input_dir_path = None
         meas_file = self.bSizer0.return_value()
         if meas_file:
-            meas_file = os.path.split(meas_file)[1]
+            input_dir_path, meas_file = os.path.split(meas_file)
         pmag_spec_file = self.bSizer0a.return_value()
         if pmag_spec_file:
-            pmag_spec_file = os.path.split(pmag_spec_file)[1]
+            new_dir_path, pmag_spec_file = os.path.split(pmag_spec_file)
+            input_dir_path = check_input_dir_path(input_dir_path, new_dir_path)
+            if not input_dir_path:
+                return False
         sum_file = self.bSizer2.return_value()
         if sum_file:
-            sum_File = os.path.split(sum_file)[1]
+            new_dir_path, sum_file = os.path.split(sum_file)
+            input_dir_path = check_input_dir_path(input_dir_path, new_dir_path)
+            if not input_dir_path:
+                return False
+            
         spec_sym, spec_sym_shape, spec_sym_color, spec_sym_size = "", "", "", ""
 
         if pmag_spec_file:
@@ -1522,11 +1544,18 @@ class Core_depthplot(wx.Frame):
     
         use_sampfile = self.bSizer1a.return_value()
         if use_sampfile:
-            samp_file = os.path.split(str(self.bSizer1.return_value()))[1]
+            new_dir_path, samp_file = os.path.split(str(self.bSizer1.return_value()))
             age_file = ''
+            input_dir_path = check_input_dir_path(input_dir_path, new_dir_path)
+            if not input_dir_path:
+                return False
         else:
             samp_file = ''
-            age_file = os.path.split(self.bSizer1.return_value())[1]
+            new_dir_path, age_file = os.path.split(self.bSizer1.return_value())
+            input_dir_path = check_input_dir_path(input_dir_path, new_dir_path)
+            if not input_dir_path:
+                return False
+            
         depth_scale = self.bSizer8.return_value()
         if age_file:
             depth_scale='age'
@@ -1591,7 +1620,7 @@ class Core_depthplot(wx.Frame):
         #print "pltLine:", pltLine
         #print "pltSus:", pltSus
 
-        fig, figname = ipmag.core_depthplot(self.WD, meas_file, pmag_spec_file, samp_file, age_file, sum_file, '', depth_scale, dmin, dmax, sym, size, spec_sym, spec_sym_size, method, step, fmt, pltDec, pltInc, pltMag, pltLine, 1, logit, pltTime, timescale, amin, amax)
+        fig, figname = ipmag.core_depthplot(input_dir_path or self.WD, meas_file, pmag_spec_file, samp_file, age_file, sum_file, '', depth_scale, dmin, dmax, sym, size, spec_sym, spec_sym_size, method, step, fmt, pltDec, pltInc, pltMag, pltLine, 1, logit, pltTime, timescale, amin, amax)
         if fig:
             self.Destroy()
             dpi = fig.get_dpi()
@@ -1760,15 +1789,15 @@ class Ani_depthplot(wx.Frame):
 
     def on_add_rmag_button(self,event):
         text = "choose rmag_anisotropy file"
-        pw.on_add_file_button(self.bSizer0, self.WD, event, text)
+        pw.on_add_file_button(self.bSizer0, text)
     
     def on_add_measurements_button(self,event):
         text = "choose magic_measurements file"
-        pw.on_add_file_button(self.bSizer1, self.WD, event, text)
+        pw.on_add_file_button(self.bSizer1, text)
 
     def on_add_samples_button(self, event):
         text = "provide er_samples/er_ages file"
-        pw.on_add_file_button(self.bSizer2, self.WD, event, text)
+        pw.on_add_file_button(self.bSizer2, text)
 
     def on_sample_or_age(self, event):
         if event.GetId() == self.bSizer2a.rb1.GetId():
@@ -1779,7 +1808,7 @@ class Ani_depthplot(wx.Frame):
             self.check_and_add_file(os.path.join(self.WD, 'er_ages.txt'), self.bSizer2.file_path)
 
     def on_add_summary_button(self, event):
-        pw.on_add_file_button(self.bSizer2b, self.WD, event, text="provide csv format core summary file")
+        pw.on_add_file_button(self.bSizer2b, text="provide csv format core summary file")
 
 
     def check_and_add_file(self, infile, add_here):
@@ -1908,7 +1937,7 @@ class something(wx.Frame):
 
     def on_add_file_button(self,event):
         text = "choose file to convert to MagIC"
-        pw.on_add_file_button(self.bSizer0, self.WD, event, text)
+        pw.on_add_file_button(self.bSizer0, text)
 
     def on_okButton(self, event):
         os.chdir(self.WD)
@@ -1935,19 +1964,21 @@ class ClearWD(wx.MessageDialog):
     def __init__(self, parent, WD):
         msg = "Are you sure you want to delete the contents of:\n{} ?\nThis action cannot be undone".format(WD)
         super(ClearWD, self).__init__(None, caption="Not so fast", message=msg, style=wx.YES_NO|wx.NO_DEFAULT|wx.ICON_EXCLAMATION)
+        self.WD = WD
+
+    def do_clear(self):
         result = self.ShowModal()
         self.Destroy()
         if result == wx.ID_YES:
             os.chdir('..')
             import shutil
-            shutil.rmtree(WD)
-            os.mkdir(WD)
-            os.chdir(WD)
-            print "{} has been emptied".format(WD)
+            shutil.rmtree(self.WD)
+            os.mkdir(self.WD)
+            os.chdir(self.WD)
+            return True
         else:
-            print "{} has not been emptied".format(WD)
-
-
+            print "{} has not been emptied".format(self.WD)
+            return False
             
 
 #consider using this instead (will preserve permissions of directory, but this may or may not be crucial)

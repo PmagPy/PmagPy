@@ -2049,7 +2049,7 @@ class preferences_stats_dialog(wx.Dialog):
                 #----------------------
 
 #if __name__ == '__main__':
-#    app = wx.PySimpleApp()
+#    app = wx.App()
 #    app.frame = PI_Statistics_Dialog(None, {},title='SPD list')
 #    app.frame.Show()
 #    app.frame.Center()

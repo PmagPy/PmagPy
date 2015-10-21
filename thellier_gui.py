@@ -8977,7 +8977,7 @@ def do_main(WD=None, standalone_app=True, parent=None):
         
     # to run as command line:
     else:
-        app = wx.PySimpleApp(redirect=False)#, #filename='py2app_log.log')
+        app = wx.App(redirect=False)#, #filename='py2app_log.log')
         app.frame = Arai_GUI(WD)
         app.frame.Show()
         app.frame.Center()

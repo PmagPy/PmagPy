@@ -1906,12 +1906,12 @@ class Zeq_GUI(wx.Frame):
         """
         Choose a working directory dialog
         """
-        if "-WD" in sys.argv and FIRST_RUN:
+        if not WD and "-WD" in sys.argv and FIRST_RUN:
             ind=sys.argv.index('-WD')
             self.WD=sys.argv[ind+1]            
             #self.WD=os.getcwd()+"/"
  
-        elif not WD:   
+        elif not WD:
             dialog = wx.DirDialog(None, "Choose a directory:",defaultPath = self.currentDirectory ,style=wx.DD_DEFAULT_STYLE | wx.DD_NEW_DIR_BUTTON | wx.DD_CHANGE_DIR)
             ok = dialog.ShowModal()
             if ok == wx.ID_OK:
@@ -2759,7 +2759,7 @@ class Zeq_GUI(wx.Frame):
         if len(pars_for_mean)==0:
             return({})
         elif len(pars_for_mean)==1:
-            return ({"dec":float(pars_for_mean[0]['dec']),"inc":float(pars_for_mean[0]['inc']),"calculation_type":calculation_type,"n":1})                        
+            return ({"dec":float(pars_for_mean[0]['dec']),"inc":float(pars_for_mean[0]['inc']),"calculation_type":calculation_type,"n":1})
         elif calculation_type =='Bingham':
             data=[]
             for pars in pars_for_mean:
@@ -3579,23 +3579,23 @@ class Zeq_GUI(wx.Frame):
             self.s = specimen
 
             #if interpertation doesn't exsist create it.
-            if 'specimen_comp_name' in rec.keys() and rec['specimen_comp_name'].split(':')[0] not in map(lambda x: x.name, self.pmag_results_data['specimens'][specimen]):
+            if 'specimen_comp_name' in rec.keys():
+                if rec['specimen_comp_name'] not in map(lambda x: x.name, self.pmag_results_data['specimens'][specimen]):
+                    next_fit = str(len(self.pmag_results_data['specimens'][self.s]) + 1)
+                    color = self.colors[(int(next_fit)-1) % len(self.colors)]
+                    self.pmag_results_data['specimens'][self.s].append(Fit(rec['specimen_comp_name'], None, None, color, self))
+                    fit = self.pmag_results_data['specimens'][specimen][-1]
+                else:
+                    fit = None
+            else:
                 next_fit = str(len(self.pmag_results_data['specimens'][self.s]) + 1)
-                if ':' in rec['specimen_comp_name']:
-                    name = rec['specimen_comp_name'].split(':')[0]
-                    color = rec['specimen_comp_name'].split(':')[1]
-                    if ',' in color:
-                        color = map(float,color.strip('( ) [ ]').split(','))
-                else: color = self.colors[(int(next_fit)-1) % len(self.colors)]
+                color = self.colors[(int(next_fit)-1) % len(self.colors)]
                 self.pmag_results_data['specimens'][self.s].append(Fit('Fit ' + next_fit, None, None, color, self))
                 fit = self.pmag_results_data['specimens'][specimen][-1]
-                fit.name = name
-            else:
-                fit = None
+
 
             if 'specimen_flag' in rec and rec['specimen_flag'] == 'b':
                 self.bad_fits.append(fit)
-                
 
             methods=rec['magic_method_codes'].strip("\n").replace(" ","").split(":")
             LPDIR=False;calculation_type=""
@@ -4645,7 +4645,7 @@ class Zeq_GUI(wx.Frame):
                     calculation_type=mpars['calculation_type']
                     PmagSpecRec["magic_method_codes"]=self.Data[specimen]['magic_method_codes']+":"+calculation_type+":"+dirtype
                     PmagSpecRec["specimen_comp_n"] = str(len(self.pmag_results_data["specimens"][specimen]))
-                    PmagSpecRec["specimen_comp_name"] = fit.name + ':' + str(fit.color)
+                    PmagSpecRec["specimen_comp_name"] = fit.name
                     if fit in self.bad_fits:
                         PmagSpecRec["specimen_flag"] = "b"
                     else:
@@ -4684,9 +4684,9 @@ class Zeq_GUI(wx.Frame):
         TEXT="specimens interpretations are saved in pmag_specimens.txt.\nPress OK for pmag_samples/pmag_sites/pmag_results tables."
         dlg = wx.MessageDialog(self, caption="Saved",message=TEXT,style=wx.OK|wx.CANCEL )
         result = dlg.ShowModal()
-        if result == wx.ID_OK:            
+        if result == wx.ID_OK:
             dlg.Destroy()
-        if result == wx.ID_CANCEL:            
+        if result == wx.ID_CANCEL:
             dlg.Destroy()
             return
             
@@ -6010,7 +6010,7 @@ def do_main(WD=None, standalone_app=True, parent=None):
 
     # to run as command_line:
     else:
-        app = wx.PySimpleApp()
+        app = wx.App()
         app.frame = Zeq_GUI(WD)
         app.frame.Center()
         #alignToTop(app.frame)

@@ -1,0 +1,9 @@
+tab 	er_specimens
+er_citation_names	er_location_name	er_sample_name	er_site_name	er_specimen_name	specimen_volume	specimen_weight
+This study		Z35.1	Z35.	Z35.1a		1.000e-03
+This study		Z35.2	Z35.	Z35.2a		1.000e-03
+This study		Z35.3	Z35.	Z35.3a		1.000e-03
+This study		Z35.4	Z35.	Z35.4a		1.000e-03
+This study		Z35.5	Z35.	Z35.5a		1.000e-03
+This study		Z35.6	Z35.	Z35.6a		1.000e-03
+This study		Z35.7	Z35.	Z35.7a		1.000e-03

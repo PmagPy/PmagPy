@@ -1151,7 +1151,7 @@ def main(command_line=True, wd=None):
         else:
             WD = wd
     
-    app = wx.PySimpleApp()
+    app = wx.App()
     app.frame = convert_tdt_files_to_MagIC(WD)
     app.frame.Show()
     app.frame.Center()

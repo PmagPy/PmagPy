@@ -1,0 +1,10 @@
+tab	er_specimens
+er_specimen_name	er_sample_name	er_site_name	er_location_name	er_citation_names	specimen_class	specimen_lithology	specimen_type
+MGH1	MGH1	MGH1	Munich	This study			
+Z35.1a	Z35.1	MGH1	Munich	This study			
+Z35.2a	Z35.2	Z35.	locale	This study			
+Z35.3a	Z35.3	Z35.	locale	This study			
+Z35.4a	Z35.4	Z35.	locale	This study			
+Z35.5a	Z35.5	Z35.	locale	This study			
+Z35.6a	Z35.6	Z35.	locale	This study	Archeologic	Baked Clay	s
+Z35.7a	Z35.7	Z35.	locale	This study			

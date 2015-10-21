@@ -10,6 +10,8 @@ Essentials_Problem_Datafiles
 */*/.#*
 .#*
 *.log
+*.redo
+       
 
 consistency_test/pmag_fixed_criteria.txt
 all_errors_list.txt
@@ -55,9 +57,7 @@ demag_dialog_boxes.py
 thellier_interpreter/*
 thellier_GUI.redo
 
-pmag_criteria.txt
 foldtest_results_new.out
-
 
 images/logo.eps
 

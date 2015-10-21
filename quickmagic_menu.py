@@ -6,6 +6,7 @@ Create QuickMagIC menubar
 
 import wx
 import pmag_menu_dialogs
+import builder
 
 
 class MagICMenu(wx.MenuBar):
@@ -23,12 +24,14 @@ class MagICMenu(wx.MenuBar):
 
         file_menu = wx.Menu()
         file_quit = file_menu.Append(wx.ID_EXIT, 'Quit', 'Quit application')
+        file_show = file_menu.Append(wx.ID_ANY, 'Show main window', 'Show main window')
         file_clear = file_menu.Append(wx.ID_ANY, 'Clear directory', 'Delete all files from working directory')
+
         parent.Bind(wx.EVT_MENU, self.on_quit, file_quit)
+        parent.Bind(wx.EVT_MENU, self.on_show_mainframe, file_show)
         parent.Bind(wx.EVT_MENU, self.on_clear, file_clear)
 
         import_menu = wx.Menu()
-
         orient_submenu = wx.Menu()
         orient2 = orient_submenu.Append(-1, 'AzDip format')
         #orient3 = orient_submenu.Append(-1, "IODP Core Summary csv file")
@@ -116,11 +119,22 @@ class MagICMenu(wx.MenuBar):
         """
         self.parent.Close()
 
+    def on_show_mainframe(self, event):
+        """
+        Show main make_magic window
+        """
+        self.parent.Show()
+        self.parent.Raise()
+
+
     def on_clear(self, event):
         """
         initialize window to allow user to empty the working directory
         """
-        pmag_menu_dialogs.ClearWD(self.parent, self.parent.WD)
+        dia = pmag_menu_dialogs.ClearWD(self.parent, self.parent.WD)
+        clear = dia.do_clear()
+        if clear:
+            self.parent.er_magic = builder.ErMagicBuilder(self.parent.WD)
 
     def on_import1(self, event):
         """

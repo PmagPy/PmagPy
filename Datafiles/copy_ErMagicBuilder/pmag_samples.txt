@@ -1,0 +1,3 @@
+tab	pmag_samples
+er_sample_name	er_site_name	er_location_name	er_specimen_names	er_citation_names	magic_instrument_codes	magic_method_codes
+Z35.6	Z35.	locale	Z35.6a	This study	fake_instrument_code	

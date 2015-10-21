@@ -1,3 +1,7 @@
+#pylint: skip-file
+#pylint: disable-all
+# causes too many errors and crashes
+
 import  numpy,string,sys
 from numpy import random
 import numpy.linalg
@@ -884,6 +888,8 @@ def magic_read(infile, data=None):
             return [],'bad_file'
 
     d = f.readline()[:-1].strip('\n')
+    if not d:
+        return [], 'empty_file' 
     if d[0]=="s" or d[1]=="s":
         delim='space'
     elif d[0]=="t" or d[1]=="t":
@@ -891,14 +897,20 @@ def magic_read(infile, data=None):
     else: 
         print 'error reading ', infile
         #sys.exit()
-        return [], 'bad file'
-    if delim=='space':file_type=d.split()[1]
-    if delim=='tab':file_type=d.split('\t')[1]
+        return [], 'bad_file'
+    if delim=='space':
+        file_type=d.split()[1]
+    if delim=='tab':
+        file_type=d.split('\t')[1]
     if file_type=='delimited':
-        if delim=='space':file_type=d.split()[2]
-        if delim=='tab':file_type=d.split('\t')[2]
-    if delim=='space':line =f.readline()[:-1].split()
-    if delim=='tab':line =f.readline()[:-1].split('\t')
+        if delim=='space':
+            file_type=d.split()[2]
+        if delim=='tab':
+            file_type=d.split('\t')[2]
+    if delim=='space':
+        line =f.readline()[:-1].split()
+    if delim=='tab':
+        line =f.readline()[:-1].split('\t')
     for key in line:
         magic_keys.append(key)
     lines=f.readlines()
@@ -8541,7 +8553,15 @@ def remove_files(file_list, WD='.'):
         if os.path.isfile(full_file):
             os.remove(full_file)
 
+def get_attr(obj, attr='name'):
+    try:
+        name = obj.__getattribute__(attr)
+    except AttributeError:
+        name = str(obj)
+    return name
+        
 
+            
 class MissingCommandLineArgException(Exception):
 
     def __init__(self, message):

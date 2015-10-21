@@ -214,7 +214,6 @@ class TestIODP_dscr_magic(unittest.TestCase):
         self.assertEqual(outfile, os.path.join('.', 'magic_measurements.txt'))
 
 
-
 class TestIODP_jr6_magic(unittest.TestCase):
 
     def setUp(self):

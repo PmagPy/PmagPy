@@ -14,6 +14,7 @@ import pmag_widgets as pw
 import ErMagicBuilder
 import drop_down_menus
 import check_updates
+import magic_grid
 
 
 class import_magnetometer_data(wx.Dialog):
@@ -22,38 +23,37 @@ class import_magnetometer_data(wx.Dialog):
         self.WD=WD
         self.InitUI()
         self.SetTitle(title)
-        self.parent=parent
+        self.parent = parent
         
     def InitUI(self):
         self.panel = wx.Panel(self)
         vbox = wx.BoxSizer(wx.VERTICAL)
 
-        formats = ['generic format', 'SIO format', 'CIT format', '2G-binary format',
-                   'HUJI format', 'LDEO format','IODP SRM (csv) format', 'PMD (ascii) format',
-                   'TDT format', 'JR6 format', 'BGC format']
+        formats = ['generic format','SIO format','CIT format','2G-binary format','HUJI format','LDEO format','IODP SRM (csv) format','PMD (ascii) format','TDT format', 'JR6 format']
         sbs = wx.StaticBoxSizer(wx.StaticBox(self.panel, wx.ID_ANY, 'step 1: choose file format'), wx.VERTICAL)
-
-        rb0 = wx.RadioButton(self.panel, -1, label=formats[0], name='0', style=wx.RB_GROUP)
-        sbs.Add(rb0, flag=wx.TOP|wx.BOTTOM, border=5)
-        sbs.Add(wx.StaticLine(self.panel), 0, wx.ALL|wx.EXPAND, 5)
         sbs.AddSpacer(5)
-        self.Bind(wx.EVT_RADIOBUTTON, self.OnRadioButtonSelect, rb0)
+        
+        radio_buttons = []
+        for fmt in formats:
+            radio_button = wx.RadioButton(self.panel, -1, label=fmt, name=fmt)
+            radio_buttons.append(radio_button)
+            sbs.Add(radio_button, flag=wx.BOTTOM, border=5)
+            if len(radio_buttons) == 1:
+                sbs.Add(wx.StaticLine(self.panel), 0, wx.ALL|wx.EXPAND, 5)
 
-        for form in formats[1:]:
-            rb = wx.RadioButton(self.panel, wx.ID_ANY, label=form, name=form)
-            sbs.Add(rb, flag=wx.BOTTOM, border=5)
-            self.Bind(wx.EVT_RADIOBUTTON, self.OnRadioButtonSelect, rb)
+            #sbs.AddSpacer(5)
+            self.Bind(wx.EVT_RADIOBUTTON, self.OnRadioButtonSelect, radio_button)
 
-        rb0.SetValue(True)
-        self.checked_rb = rb0
-
+        radio_buttons[0].SetValue(True)
+        self.checked_rb = radio_buttons[0]
 
         #---------------------
         # OK/Cancel buttons
         #---------------------
                 
         hboxok = wx.BoxSizer(wx.HORIZONTAL)
-        self.okButton =  wx.Button(self.panel, id=-1, label='Import file')
+        self.okButton = wx.Button(self.panel, id=-1, label='Import file')
+        self.okButton.SetDefault()
         self.Bind(wx.EVT_BUTTON, self.on_okButton, self.okButton)
         self.cancelButton = wx.Button(self.panel, wx.ID_CANCEL, '&Cancel')
         self.Bind(wx.EVT_BUTTON, self.on_cancelButton, self.cancelButton)
@@ -85,24 +85,26 @@ class import_magnetometer_data(wx.Dialog):
 
     def on_cancelButton(self,event):
         self.Destroy()
+        self.Parent.Show()
+        self.Parent.Raise()
 
     def on_okButton(self,event):
         os.chdir(self.WD)
         file_type = self.checked_rb.Label.split()[0] # extracts name of the checked radio button
         if file_type == 'generic':
-            dia = convert_generic_files_to_MagIC(self,self.WD)
+            dia = convert_generic_files_to_MagIC(self, self.WD, "PmagPy generic file conversion")
         elif file_type == 'SIO':
-            dia = convert_SIO_files_to_MagIC(self, self.WD)
+            dia = convert_SIO_files_to_MagIC(self, self.WD, "PmagPy SIO file conversion")
         elif file_type == 'CIT':
-            dia = convert_CIT_files_to_MagIC(self, self.WD)
+            dia = convert_CIT_files_to_MagIC(self, self.WD, "PmagPy CIT file conversion")
         elif file_type == '2G-binary':
-            dia = convert_2G_binary_files_to_MagIC(self, self.WD)
+            dia = convert_2G_binary_files_to_MagIC(self, self.WD, "PmagPy 2G-binary file conversion")
         elif file_type == 'HUJI':
-            dia = convert_HUJI_files_to_MagIC(self, self.WD)
+            dia = convert_HUJI_files_to_MagIC(self, self.WD, "PmagPy HUJI file conversion")
         elif file_type == 'LDEO':
-            dia = convert_LDEO_files_to_MagIC(self, self.WD)
+            dia = convert_LDEO_files_to_MagIC(self, self.WD, "PmagPy LDEO file conversion")
         elif file_type == 'IODP':
-            dia = convert_IODP_files_to_MagIC(self, self.WD)
+            dia = convert_IODP_files_to_MagIC(self, self.WD, "PmagPy IODP csv conversion")
         elif file_type == 'PMD':
             dia = convert_PMD_files_to_MagIC(self, self.WD)
         elif file_type == 'BGC':
@@ -120,337 +122,11 @@ class import_magnetometer_data(wx.Dialog):
     def OnRadioButtonSelect(self, event):
         self.checked_rb = event.GetEventObject()
 
-
     def on_nextButton(self,event):
         self.Destroy()
-        combine_dia = combine_magic_dialog(self.WD)
+        combine_dia = combine_magic_dialog(self.WD, self.parent)
         combine_dia.Show()
         combine_dia.Center()
-        
-#--------------------------------------------------------------
-# MagIC generic files conversion
-#--------------------------------------------------------------
-
-
-class convert_generic_files_to_MagIC(wx.Frame):
-    """"""
-    title = "PmagPy generic file conversion"
-
-    def __init__(self,parent,WD):
-        wx.Frame.__init__(self, parent, wx.ID_ANY, self.title)
-        self.panel = wx.ScrolledWindow(self)
-        self.panel.SetScrollbars(20, 20, 50, 50)
-        self.max_files=1
-        self.WD=WD
-        self.parent=parent
-        self.InitUI()
-
-    def InitUI(self):
-
-        pnl = self.panel
-
-        #---sizer infor ----
-
-        TEXT = "convert generic file to MagIC format"
-        bSizer_info = wx.BoxSizer(wx.HORIZONTAL)
-        bSizer_info.Add(wx.StaticText(pnl,label=TEXT),wx.ALIGN_LEFT)
-            
-
-        #---sizer 0 ----
-        self.bSizer0 = pw.choose_file(pnl, 'add', method = self.on_add_file_button)
-        
-        #---sizer 1 ----
-        self.bSizer1 = pw.labeled_text_field(pnl)
-
-        #---sizer 2 ----
-        # unique because only accepts 1 experiment type
-        TEXT="Experiment:"
-        self.bSizer2 = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY, "" ), wx.HORIZONTAL)
-        self.gridBSizer = wx.GridBagSizer(5, 10)
-        self.label1 = wx.StaticText(pnl, label=TEXT)
-        self.experiments_names=['Demag (AF and/or Thermal)','Paleointensity-IZZI/ZI/ZI','ATRM 6 positions','AARM 6 positions','cooling rate','TRM']
-        self.protocol_info = wx.ComboBox(self.panel, -1, self.experiments_names[0], size=(300,25),choices=self.experiments_names, style=wx.CB_READONLY)
-        self.gridBSizer.Add(self.label1, (0, 0))
-        self.gridBSizer.Add(self.protocol_info, (1, 0))
-        self.bSizer2.Add(self.gridBSizer, wx.ALIGN_LEFT)
-        #
-        self.Bind(wx.EVT_COMBOBOX, self.on_select_protocol, self.protocol_info)
-        self.bSizer2a = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY, "" ), wx.HORIZONTAL )
-        text = 'Cooling Rate, format is xxx,yyy,zzz with no spaces  '
-        self.cooling_rate = wx.TextCtrl(pnl)
-        self.bSizer2a.AddMany([wx.StaticText(pnl, label=text), self.cooling_rate])
-        
-
-        #---sizer 3 ----
-        self.bSizer3 = pw.lab_field(pnl)
-
-        #---sizer 4 ----
-        # unique because only allows 4 choices (most others have ncn choices)
-        self.bSizer4 = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY, "" ), wx.VERTICAL )
-        self.sample_naming_conventions=['sample=specimen','no. of initial characters','no. of terminal characters','character delimited']
-        self.sample_naming_convention = wx.ComboBox(self.panel, -1, self.sample_naming_conventions[0], size=(250,25), choices=self.sample_naming_conventions, style=wx.CB_READONLY)
-        self.sample_naming_convention_char = wx.TextCtrl(self.panel, id=-1, size=(40,25))
-        gridbSizer4 = wx.GridSizer(2, 2, 0, 10)
-        gridbSizer4.AddMany( [(wx.StaticText(self.panel,label="specimen-sample naming convention",style=wx.TE_CENTER),wx.ALIGN_LEFT),
-            (wx.StaticText(self.panel,label="delimiter/number (if necessary)",style=wx.TE_CENTER),wx.ALIGN_LEFT),
-            (self.sample_naming_convention,wx.ALIGN_LEFT),
-            (self.sample_naming_convention_char,wx.ALIGN_LEFT)])
-        #bSizer4.Add(self.sample_specimen_text,wx.ALIGN_LEFT)
-        self.bSizer4.AddSpacer(10)
-        self.bSizer4.Add(gridbSizer4,wx.ALIGN_LEFT)
-        
-        #---sizer 5 ----
-
-        self.bSizer5 = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY, "" ), wx.VERTICAL )
-        self.site_naming_conventions=['site=sample','no. of initial characters','no. of terminal characters','character delimited']
-        self.site_naming_convention_char = wx.TextCtrl(self.panel, id=-1, size=(40,25))
-        self.site_naming_convention = wx.ComboBox(self.panel, -1, self.site_naming_conventions[0], size=(250,25), choices=self.site_naming_conventions, style=wx.CB_READONLY)
-        gridbSizer5 = wx.GridSizer(2, 2, 0, 10)
-        gridbSizer5.AddMany( [(wx.StaticText(self.panel,label="sample-site naming convention",style=wx.TE_CENTER),wx.ALIGN_LEFT),
-            (wx.StaticText(self.panel,label="delimiter/number (if necessary)",style=wx.TE_CENTER),wx.ALIGN_LEFT),
-            (self.site_naming_convention,wx.ALIGN_LEFT),
-            (self.site_naming_convention_char,wx.ALIGN_LEFT)])
-        self.bSizer5.AddSpacer(10)
-        self.bSizer5.Add(gridbSizer5,wx.ALIGN_LEFT)
-
-        #---sizer 6 ----
-
-        TEXT="Location name:"
-        self.bSizer6 = pw.labeled_text_field(pnl, TEXT)
-
-        #---sizer 7 ----
-        self.bSizer7 = pw.replicate_measurements(pnl)
-
-        #---buttons ---
-        
-        hboxok = pw.btn_panel(self, pnl)
-
-        #------
-        vbox=wx.BoxSizer(wx.VERTICAL)
-        vbox.Add(bSizer_info, flag=wx.ALIGN_LEFT|wx.TOP, border=5)
-        vbox.Add(self.bSizer0, flag=wx.ALIGN_LEFT|wx.TOP, border=5)
-        vbox.Add(self.bSizer1, flag=wx.ALIGN_LEFT|wx.TOP, border=5)
-        vbox.Add(self.bSizer2, flag=wx.ALIGN_LEFT|wx.TOP, border=5)
-        vbox.Add(self.bSizer2a, flag=wx.ALIGN_LEFT|wx.TOP, border=5)
-
-        vbox.Add(self.bSizer3, flag=wx.ALIGN_LEFT|wx.TOP, border=5)
-        vbox.Add(self.bSizer4, flag=wx.ALIGN_LEFT|wx.TOP, border=5)
-        vbox.Add(self.bSizer5, flag=wx.ALIGN_LEFT|wx.TOP, border=5)
-        vbox.Add(self.bSizer6, flag=wx.ALIGN_LEFT|wx.TOP, border=5)
-        vbox.Add(self.bSizer7, flag=wx.ALIGN_LEFT|wx.TOP|wx.BOTTOM, border=5)
-        vbox.Add(wx.StaticLine(self.panel), 0, wx.ALL|wx.EXPAND, 5)
-        vbox.Add(hboxok, flag=wx.ALIGN_CENTER)        
-        vbox.AddSpacer(5)
-
-
-        self.hbox_all= wx.BoxSizer(wx.HORIZONTAL)
-        self.hbox_all.AddSpacer(20)
-        self.hbox_all.AddSpacer(vbox)
-        self.hbox_all.AddSpacer(20)
-        
-        self.panel.SetSizer(self.hbox_all)
-        self.bSizer2a.ShowItems(False)
-        self.hbox_all.Fit(self)
-        self.Centre()
-        self.Show()
-
-
-    def on_select_protocol(self, event):
-        if self.protocol_info.GetValue() == "cooling rate":
-            self.bSizer2a.ShowItems(True)
-        else:
-            self.bSizer2a.ShowItems(False)
-        self.hbox_all.Fit(self)
-
-
-    def on_add_file_button(self,event):
-        text = "choose file to convert to MagIC"
-        pw.on_add_file_button(self.bSizer0, self.WD, event, text)
-
-
-    def on_okButton(self,event):
-        os.chdir(self.WD)
-        # generic_magic.py -WD WD - f FILE -fsa er_samples.txt -F OUTFILE.magic -exp [Demag/PI/ATRM 6/AARM 6/CR  -samp X Y -site  X Y -loc LOCNAME -dc B PHI THETA [-A] -WD path 
-        options = {}
-        
-        ErrorMessage=""
-        #-----------
-        if not self.bSizer0.file_path.GetValue():
-            pw.simple_warning('You must provide a generic format file')
-            return False
-        FILE = str(self.bSizer0.file_path.GetValue())
-        options['magfile'] = FILE
-
-        #-----------
-        # WD="/".join(FILE.split("/")[:-1])
-        WD=self.WD
-        options['WD'] = WD
-        input_dir = os.path.split(FILE)[0]
-        magicoutfile=os.path.split(FILE)[1]+".magic"
-        options['meas_file'] = magicoutfile
-        print "magicoutfile", magicoutfile
-        OUTFILE=os.path.join(self.WD,magicoutfile)
-        #-----------
-        #OUTFILE=self.WD+"/"+FILE.split('/')[-1]+".magic"
-        #-----------
-        EXP=""
-        exp=str(self.protocol_info.GetValue())
-        if exp=='Demag (AF and/or Thermal)': 
-            EXP='Demag'
-        elif exp=='Paleointensity-IZZI/ZI/ZI': 
-            EXP='PI'
-        elif exp=='ATRM 6 positions': 
-            EXP='ATRM 6'
-        elif exp=='AARM 6 positions': 
-            EXP = 'AARM 6'
-        elif exp=='cooling rate': 
-            cooling = self.cooling_rate.GetValue()
-            if not cooling:
-                text = "You must provide cooling rate for this experiment type!\nThe format is: xxx, yyy,zzz...\nThis should be cooling rates in [K/minutes], seperated by comma, ordered at the same order as XXX.10,XXX.20 ...XX.70"
-                pw.simple_warning(text)
-                return False
-            EXP='CR {}'.format(cooling)
-        if 'CR' in EXP:
-            options['experiment'], options['cooling_times_list'] = EXP.split()
-        elif 'AARM' in EXP:
-            options['experiment'], options['aarm_n_pos'] = EXP.split()
-        elif 'ATRM' in EXP:
-            options['experiment'], options['atrm_n_pos'] = EXP.split()
-        else:
-            options['experiment'] = EXP
-        #-----------
-        SAMP="1 0" #default
-        
-        samp_naming_convention=str(self.sample_naming_convention.GetValue())
-        try:
-            samp_naming_convention_char=int(self.sample_naming_convention_char.GetValue())
-        except:
-             samp_naming_convention_char="0"
-                    
-        if samp_naming_convention=='sample=specimen':
-            SAMP="1 0"
-        elif samp_naming_convention=='no. of initial characters':
-            SAMP="0 %i"%int(samp_naming_convention_char)
-        elif samp_naming_convention=='no. of terminal characters':
-            SAMP="1 %s"%samp_naming_convention_char
-        elif samp_naming_convention=='character delimited':
-            SAMP="2 %s"%samp_naming_convention_char
-        
-        options['sample_nc'] = SAMP.split()
-        #-----------
-        
-        SITE="1 0" #default
-        
-        sit_naming_convention=str(self.site_naming_convention.GetValue())
-        try:
-            sit_naming_convention_char=int(self.site_naming_convention_char.GetValue())
-        except:
-             sit_naming_convention_char="0"
-                    
-        if sit_naming_convention=='sample=specimen':
-            SITE="1 0"
-        elif sit_naming_convention=='no. of initial characters':
-            SITE="0 %i"%int(sit_naming_convention_char)
-        elif sit_naming_convention=='no. of terminal characters':
-            SITE="1 %s"%sit_naming_convention_char
-        elif sit_naming_convention=='character delimited':
-            SITE="2 %s"%sit_naming_convention_char
-
-        options['site_nc'] = SITE.split()
-        
-        #-----------        
-
-        LOC = str(self.bSizer6.return_value())
-        options['er_location_name'] = LOC
-        
-        if str(self.bSizer6.return_value()) != "":
-            LOC="-loc \"%s\""%LOC
-        else:
-            LOC=""
-
-        #-----------        
-        
-        LABFIELD=" "
-        try:
-            B_uT, DEC, INC = self.bSizer3.return_value().split()
-        except ValueError:
-            B_uT, DEC, INC = '0', '0', '0'
-
-        #print "B_uT, DEC, INC", B_uT, DEC, INC
-        options['labfield'], options['labfield_phi'], options['labfield_theta'] = B_uT, DEC, INC
-
-        if EXP != "Demag":
-            LABFIELD="-dc "  +B_uT+ " " + DEC + " " + INC
-
-        #-----------        
-
-        DONT_AVERAGE=" "
-        if not self.bSizer7.return_value():
-            DONT_AVERAGE="-A"   
-            options['noave'] = 1
-        else:
-            options['noave'] = 0
-
-        #-----------   
-        # some special  
-        
-        SAMP_OUTFILE =  magicoutfile[:magicoutfile.find('.')] + "_er_samples.txt"
-        options['samp_file'] = SAMP_OUTFILE
-
-        COMMAND="generic_magic.py -WD %s -f %s -fsa er_samples.txt -F %s -exp %s  -samp %s -site %s %s %s %s -Fsa %s"\
-        %(WD,FILE,OUTFILE,EXP,SAMP,SITE,LOC,LABFIELD,DONT_AVERAGE, SAMP_OUTFILE)
-
-        print "-I- Running Python command:\n %s"%COMMAND        
-        import generic_magic
-        program_run, error_message = generic_magic.main(False, **options)
-        
-        if program_run:
-            pw.close_window(self, COMMAND, OUTFILE)
-        else:
-            pw.simple_warning(error_message)
-            return False
-
-        self.Destroy()
-        self.parent.Raise()
-
-    def on_cancelButton(self,event):
-        self.Destroy()
-        self.parent.Raise()
-        
-    def on_helpButton(self, event):
-        import generic_magic
-        pw.on_helpButton(text=generic_magic.do_help())
-
-    def get_sample_name(self,specimen,sample_naming_convenstion):
-        if sample_naming_convenstion[0]=="sample=specimen":
-            sample=specimen
-        elif sample_naming_convenstion[0]=="no. of terminal characters":
-            n=int(sample_naming_convenstion[1])*-1
-            sample=specimen[:n]
-        elif sample_naming_convenstion[0]=="character delimited":
-            d=sample_naming_convenstion[1]
-            sample_splitted=specimen.split(d)
-            if len(sample_splitted)==1:
-                sample=sample_splitted[0]
-            else:
-                sample=d.join(sample_splitted[:-1])
-        return sample
-                            
-    def get_site_name(self,sample,site_naming_convenstion):
-        if site_naming_convenstion[0]=="site=sample":
-            site=sample
-        elif site_naming_convenstion[0]=="no. of terminal characters":
-            n=int(site_naming_convenstion[1])*-1
-            site=sample[:n]
-        elif site_naming_convenstion[0]=="character delimited":
-            d=site_naming_convenstion[1]
-            site_splitted=sample.split(d)
-            if len(site_splitted)==1:
-                site=site_splitted[0]
-            else:
-                site=d.join(site_splitted[:-1])
-        
-        return site
         
 #--------------------------------------------------------------
 # dialog for combine_magic.py 
@@ -461,11 +137,10 @@ class combine_magic_dialog(wx.Frame):
     """"""
     title = "Combine magic files"
 
-    def __init__(self,WD):
-        wx.Frame.__init__(self, None, wx.ID_ANY, self.title)
+    def __init__(self, WD, parent):
+        wx.Frame.__init__(self, parent, wx.ID_ANY, self.title)
         self.panel =  wx.ScrolledWindow(self) #wx.Panel(self)
         self.panel.SetScrollbars(20, 20, 50, 50)
-        self.max_files = 1
         self.WD=WD
         self.InitUI()
 
@@ -544,10 +219,12 @@ class combine_magic_dialog(wx.Frame):
                      
         
     def on_cancelButton(self,event):
+        self.Parent.Show()
+        self.Parent.Raise()
         self.Destroy()
 
     def on_nextButton(self, event):
-        combine_dia = combine_everything_dialog(self.WD)
+        combine_dia = combine_everything_dialog(self.WD, self.Parent)
         combine_dia.Show()
         combine_dia.Center()
         self.Destroy()
@@ -582,11 +259,10 @@ class combine_everything_dialog(wx.Frame):
     """"""
     title = "Combine MagIC files"
 
-    def __init__(self,WD):
-        wx.Frame.__init__(self, None, wx.ID_ANY, self.title)
+    def __init__(self, WD, parent):
+        wx.Frame.__init__(self, parent, wx.ID_ANY, self.title)
         self.panel =  wx.ScrolledWindow(self) #wx.Panel(self)
         self.panel.SetScrollbars(20, 20, 50, 50)
-        self.max_files = 1
         self.WD=WD
         self.InitUI()
 
@@ -665,6 +341,8 @@ class combine_everything_dialog(wx.Frame):
         self.Show()
                         
     def on_cancelButton(self,event):
+        self.Parent.Show()
+        self.Parent.Raise()
         self.Destroy()
 
     def on_okButton(self,event):
@@ -688,25 +366,368 @@ class combine_everything_dialog(wx.Frame):
             dlg1 = wx.MessageDialog(None,caption="Message:", message=MSG ,style=wx.OK|wx.ICON_INFORMATION)
             dlg1.ShowModal()
             dlg1.Destroy()
+            self.Parent.Show()
+            self.Parent.Raise()
             self.Destroy()
         else:
             pw.simple_warning()
 
 
-class convert_SIO_files_to_MagIC(wx.Frame):
-    """
-    convert SIO formatted measurement file to MagIC formated files
-    """
-    title = "PmagPy SIO file conversion"
+#--------------------------------------------------------------
+# MagIC generic files conversion
+#--------------------------------------------------------------
 
-    def __init__(self, parent, WD):
+
+class convert_files_to_MagIC(wx.Frame):
+    """
+    Base class for file conversion frames
+    """
+
+    def __init__(self, parent, WD, title):
+        self.parent = parent
+        self.WD = WD
+        self.title = title
         wx.Frame.__init__(self, parent, wx.ID_ANY, self.title)
         self.panel = wx.ScrolledWindow(self)
         self.panel.SetScrollbars(20, 20, 50, 50)
-        self.max_files = 1 # but maybe it could take more??
-        self.WD=WD
         self.InitUI()
 
+    def InitUI(self):
+        pass
+
+    def on_cancelButton(self, event):
+        self.Destroy()
+        self.parent.Show()
+        self.parent.Raise()
+
+    def on_add_file_button(self, event):
+        text = "choose file to convert to MagIC"
+        pw.on_add_file_button(self.bSizer0, text)
+
+    def on_add_dir_button(self, event):
+        text = "choose directory of files to convert to MagIC"
+        pw.on_add_dir_button(self.bSizer0, text)
+
+
+class convert_generic_files_to_MagIC(convert_files_to_MagIC):
+    """"""
+    title = "PmagPy generic file conversion"
+
+    #def __init__(self,parent,WD):
+    #    wx.Frame.__init__(self, parent, wx.ID_ANY, self.title)
+    #    self.panel = wx.ScrolledWindow(self)
+    #    self.panel.SetScrollbars(20, 20, 50, 50)
+    #    self.WD = WD
+    #    self.parent = parent
+    #    self.InitUI()
+
+    def InitUI(self):
+
+        pnl = self.panel
+
+        #---sizer infor ----
+
+        TEXT = "convert generic file to MagIC format"
+        bSizer_info = wx.BoxSizer(wx.HORIZONTAL)
+        bSizer_info.Add(wx.StaticText(pnl,label=TEXT),wx.ALIGN_LEFT)
+            
+
+        #---sizer 0 ----
+        self.bSizer0 = pw.choose_file(pnl, 'add', method = self.on_add_file_button)
+        
+        #---sizer 1 ----
+        self.bSizer1 = pw.labeled_text_field(pnl)
+
+        #---sizer 2 ----
+        # unique because only accepts 1 experiment type
+        TEXT="Experiment:"
+        self.bSizer2 = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY, "" ), wx.HORIZONTAL)
+        self.gridBSizer = wx.GridBagSizer(5, 10)
+        self.label1 = wx.StaticText(pnl, label=TEXT)
+        self.experiments_names=['Demag (AF and/or Thermal)','Paleointensity-IZZI/ZI/ZI','ATRM 6 positions','AARM 6 positions','cooling rate','TRM']
+        self.protocol_info = wx.ComboBox(self.panel, -1, self.experiments_names[0], size=(300,25),choices=self.experiments_names, style=wx.CB_READONLY)
+        self.gridBSizer.Add(self.label1, (0, 0))
+        self.gridBSizer.Add(self.protocol_info, (1, 0))
+        self.bSizer2.Add(self.gridBSizer, wx.ALIGN_LEFT)
+        #
+        self.Bind(wx.EVT_COMBOBOX, self.on_select_protocol, self.protocol_info)
+        self.bSizer2a = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY, "" ), wx.HORIZONTAL )
+        text = 'Cooling Rate, format is xxx,yyy,zzz with no spaces  '
+        self.cooling_rate = wx.TextCtrl(pnl)
+        self.bSizer2a.AddMany([wx.StaticText(pnl, label=text), self.cooling_rate])
+        
+        #---sizer 3 ----
+        self.bSizer3 = pw.lab_field(pnl)
+
+        #---sizer 4 ----
+        # unique because only allows 4 choices (most others have ncn choices)
+        self.bSizer4 = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY, "" ), wx.VERTICAL )
+        self.sample_naming_conventions=['sample=specimen','no. of initial characters','no. of terminal characters','character delimited']
+        self.sample_naming_convention = wx.ComboBox(self.panel, -1, self.sample_naming_conventions[0], size=(250,25), choices=self.sample_naming_conventions, style=wx.CB_READONLY)
+        self.sample_naming_convention_char = wx.TextCtrl(self.panel, id=-1, size=(40,25))
+        gridbSizer4 = wx.GridSizer(2, 2, 0, 10)
+        gridbSizer4.AddMany( [(wx.StaticText(self.panel,label="specimen-sample naming convention",style=wx.TE_CENTER),wx.ALIGN_LEFT),
+            (wx.StaticText(self.panel,label="delimiter/number (if necessary)",style=wx.TE_CENTER),wx.ALIGN_LEFT),
+            (self.sample_naming_convention,wx.ALIGN_LEFT),
+            (self.sample_naming_convention_char,wx.ALIGN_LEFT)])
+        #bSizer4.Add(self.sample_specimen_text,wx.ALIGN_LEFT)
+        self.bSizer4.AddSpacer(10)
+        self.bSizer4.Add(gridbSizer4,wx.ALIGN_LEFT)
+        
+        #---sizer 5 ----
+        self.bSizer5 = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY, "" ), wx.VERTICAL )
+        self.site_naming_conventions=['site=sample','no. of initial characters','no. of terminal characters','character delimited']
+        self.site_naming_convention_char = wx.TextCtrl(self.panel, id=-1, size=(40,25))
+        self.site_naming_convention = wx.ComboBox(self.panel, -1, self.site_naming_conventions[0], size=(250,25), choices=self.site_naming_conventions, style=wx.CB_READONLY)
+        gridbSizer5 = wx.GridSizer(2, 2, 0, 10)
+        gridbSizer5.AddMany( [(wx.StaticText(self.panel,label="sample-site naming convention",style=wx.TE_CENTER),wx.ALIGN_LEFT),
+            (wx.StaticText(self.panel,label="delimiter/number (if necessary)",style=wx.TE_CENTER),wx.ALIGN_LEFT),
+            (self.site_naming_convention,wx.ALIGN_LEFT),
+            (self.site_naming_convention_char,wx.ALIGN_LEFT)])
+        self.bSizer5.AddSpacer(10)
+        self.bSizer5.Add(gridbSizer5,wx.ALIGN_LEFT)
+
+        #---sizer 6 ----
+        TEXT="Location name:"
+        self.bSizer6 = pw.labeled_text_field(pnl, TEXT)
+
+        #---sizer 7 ----
+        self.bSizer7 = pw.replicate_measurements(pnl)
+
+        #---buttons ---
+        hboxok = pw.btn_panel(self, pnl)
+
+        #------
+        vbox=wx.BoxSizer(wx.VERTICAL)
+        vbox.Add(bSizer_info, flag=wx.ALIGN_LEFT|wx.TOP, border=5)
+        vbox.Add(self.bSizer0, flag=wx.ALIGN_LEFT|wx.TOP, border=5)
+        vbox.Add(self.bSizer1, flag=wx.ALIGN_LEFT|wx.TOP, border=5)
+        vbox.Add(self.bSizer2, flag=wx.ALIGN_LEFT|wx.TOP, border=5)
+        vbox.Add(self.bSizer2a, flag=wx.ALIGN_LEFT|wx.TOP, border=5)
+
+        vbox.Add(self.bSizer3, flag=wx.ALIGN_LEFT|wx.TOP, border=5)
+        vbox.Add(self.bSizer4, flag=wx.ALIGN_LEFT|wx.TOP, border=5)
+        vbox.Add(self.bSizer5, flag=wx.ALIGN_LEFT|wx.TOP, border=5)
+        vbox.Add(self.bSizer6, flag=wx.ALIGN_LEFT|wx.TOP, border=5)
+        vbox.Add(self.bSizer7, flag=wx.ALIGN_LEFT|wx.TOP|wx.BOTTOM, border=5)
+        vbox.Add(wx.StaticLine(self.panel), 0, wx.ALL|wx.EXPAND, 5)
+        vbox.Add(hboxok, flag=wx.ALIGN_CENTER)        
+        vbox.AddSpacer(5)
+
+
+        self.hbox_all= wx.BoxSizer(wx.HORIZONTAL)
+        self.hbox_all.AddSpacer(20)
+        self.hbox_all.AddSpacer(vbox)
+        self.hbox_all.AddSpacer(20)
+        
+        self.panel.SetSizer(self.hbox_all)
+        self.bSizer2a.ShowItems(False)
+        self.hbox_all.Fit(self)
+        self.Centre()
+        self.Show()
+
+
+    def on_select_protocol(self, event):
+        if self.protocol_info.GetValue() == "cooling rate":
+            self.bSizer2a.ShowItems(True)
+        else:
+            self.bSizer2a.ShowItems(False)
+        self.hbox_all.Fit(self)
+
+
+    #def on_add_file_button(self,event):
+    #    text = "choose file to convert to MagIC"
+    #    pw.on_add_file_button(self.bSizer0, text)
+
+
+    def on_okButton(self,event):
+        os.chdir(self.WD)
+        # generic_magic.py -WD WD - f FILE -fsa er_samples.txt -F OUTFILE.magic -exp [Demag/PI/ATRM 6/AARM 6/CR  -samp X Y -site  X Y -loc LOCNAME -dc B PHI THETA [-A] -WD path 
+        options = {}
+        
+        ErrorMessage = ""
+        #-----------
+        if not self.bSizer0.file_path.GetValue():
+            pw.simple_warning('You must provide a generic format file')
+            return False
+        FILE = str(self.bSizer0.file_path.GetValue())
+        options['magfile'] = FILE
+
+        #-----------
+        # WD="/".join(FILE.split("/")[:-1])
+        WD=self.WD
+        options['WD'] = WD
+        input_dir = os.path.split(FILE)[0]
+        magicoutfile=os.path.split(FILE)[1]+".magic"
+        options['meas_file'] = magicoutfile
+        print "magicoutfile", magicoutfile
+        OUTFILE=os.path.join(self.WD,magicoutfile)
+        #-----------
+        #OUTFILE=self.WD+"/"+FILE.split('/')[-1]+".magic"
+        #-----------
+        EXP = ""
+        exp = str(self.protocol_info.GetValue())
+        if exp == 'Demag (AF and/or Thermal)': 
+            EXP = 'Demag'
+        elif exp == 'Paleointensity-IZZI/ZI/ZI': 
+            EXP = 'PI'
+        elif exp == 'ATRM 6 positions': 
+            EXP ='ATRM 6'
+        elif exp == 'AARM 6 positions': 
+            EXP = 'AARM 6'
+        elif exp == 'cooling rate': 
+            cooling = self.cooling_rate.GetValue()
+            if not cooling:
+                text = "You must provide cooling rate for this experiment type!\nThe format is: xxx, yyy,zzz...\nThis should be cooling rates in [K/minutes], seperated by comma, ordered at the same order as XXX.10,XXX.20 ...XX.70"
+                pw.simple_warning(text)
+                return False
+            EXP = 'CR {}'.format(cooling)
+        if 'CR' in EXP:
+            options['experiment'], options['cooling_times_list'] = EXP.split()
+        elif 'AARM' in EXP:
+            options['experiment'], options['aarm_n_pos'] = EXP.split()
+        elif 'ATRM' in EXP:
+            options['experiment'], options['atrm_n_pos'] = EXP.split()
+        else:
+            options['experiment'] = EXP
+        #-----------
+        SAMP="1 0" #default
+        
+        samp_naming_convention = str(self.sample_naming_convention.GetValue())
+        try:
+            samp_naming_convention_char=int(self.sample_naming_convention_char.GetValue())
+        except:
+             samp_naming_convention_char = "0"
+                    
+        if samp_naming_convention == 'sample=specimen':
+            SAMP = "1 0"
+        elif samp_naming_convention == 'no. of initial characters':
+            SAMP = "0 %i" % int(samp_naming_convention_char)
+        elif samp_naming_convention == 'no. of terminal characters':
+            SAMP = "1 %s" % samp_naming_convention_char
+        elif samp_naming_convention == 'character delimited':
+            SAMP = "2 %s" % samp_naming_convention_char
+        
+        options['sample_nc'] = SAMP.split()
+        #-----------
+        
+        SITE = "1 0" #default
+        
+        site_naming_convention = str(self.site_naming_convention.GetValue())
+        try:
+            site_naming_convention_char = int(self.site_naming_convention_char.GetValue())
+        except:
+             site_naming_convention_char = "0"
+                    
+        if site_naming_convention == 'sample=specimen':
+            SITE = "1 0"
+        elif site_naming_convention == 'no. of initial characters':
+            SITE = "0 %i" % int(site_naming_convention_char)
+        elif site_naming_convention == 'no. of terminal characters':
+            SITE = "1 %s" % site_naming_convention_char
+        elif site_naming_convention == 'character delimited':
+            SITE = "2 %s" % site_naming_convention_char
+
+        options['site_nc'] = SITE.split()
+        
+        #-----------        
+
+        LOC = str(self.bSizer6.return_value())
+        options['er_location_name'] = LOC
+        
+        if str(self.bSizer6.return_value()) != "":
+            LOC="-loc \"%s\""%LOC
+        else:
+            LOC=""
+
+        #-----------        
+        
+        LABFIELD=" "
+        try:
+            B_uT, DEC, INC = self.bSizer3.return_value().split()
+        except ValueError:
+            B_uT, DEC, INC = '0', '0', '0'
+
+        #print "B_uT, DEC, INC", B_uT, DEC, INC
+        options['labfield'], options['labfield_phi'], options['labfield_theta'] = B_uT, DEC, INC
+
+        if EXP != "Demag":
+            LABFIELD="-dc "  +B_uT+ " " + DEC + " " + INC
+
+        #-----------        
+
+        DONT_AVERAGE = " "
+        if not self.bSizer7.return_value():
+            DONT_AVERAGE = "-A"   
+            options['noave'] = 1
+        else:
+            options['noave'] = 0
+
+        #-----------   
+        # some special  
+        
+        SAMP_OUTFILE =  magicoutfile[:magicoutfile.find('.')] + "_er_samples.txt"
+        options['samp_file'] = SAMP_OUTFILE
+
+        COMMAND="generic_magic.py -WD %s -f %s -fsa er_samples.txt -F %s -exp %s  -samp %s -site %s %s %s %s -Fsa %s"\
+        %(WD,FILE,OUTFILE,EXP,SAMP,SITE,LOC,LABFIELD,DONT_AVERAGE, SAMP_OUTFILE)
+
+        print "-I- Running Python command:\n %s"%COMMAND        
+        import generic_magic
+        program_run, error_message = generic_magic.main(False, **options)
+        
+        if program_run:
+            pw.close_window(self, COMMAND, OUTFILE)
+        else:
+            pw.simple_warning(error_message)
+            return False
+
+        self.Destroy()
+        self.parent.Raise()
+
+    #def on_cancelButton(self,event):
+    #    self.Destroy()
+    #    self.parent.Raise()
+        
+    def on_helpButton(self, event):
+        import generic_magic
+        pw.on_helpButton(text=generic_magic.do_help())
+
+    def get_sample_name(self, specimen, sample_naming_convenstion):
+        if sample_naming_convenstion[0] == "sample=specimen":
+            sample = specimen
+        elif sample_naming_convenstion[0] == "no. of terminal characters":
+            n = int(sample_naming_convenstion[1]) * -1
+            sample = specimen[:n]
+        elif sample_naming_convenstion[0] == "character delimited":
+            d = sample_naming_convenstion[1]
+            sample_splitted = specimen.split(d)
+            if len(sample_splitted) == 1:
+                sample = sample_splitted[0]
+            else:
+                sample = d.join(sample_splitted[:-1])
+        return sample
+                            
+    def get_site_name(self, sample, site_naming_convention):
+        if site_naming_convention[0] == "site=sample":
+            site = sample
+        elif site_naming_convention[0] == "no. of terminal characters":
+            n = int(site_naming_convention[1])*-1
+            site = sample[:n]
+        elif site_naming_convention[0] == "character delimited":
+            d = site_naming_convention[1]
+            site_splitted = sample.split(d)
+            if len(site_splitted) == 1:
+                site = site_splitted[0]
+            else:
+                site = d.join(site_splitted[:-1])
+        
+        return site
+        
+class convert_SIO_files_to_MagIC(convert_files_to_MagIC):
+    """
+    convert SIO formatted measurement file to MagIC formated files
+    """
 
     def InitUI(self):
         pnl = self.panel
@@ -795,10 +816,6 @@ class convert_SIO_files_to_MagIC(wx.Frame):
         self.Show()
         
 
-    def on_add_file_button(self,event):
-        text = "choose file to convert to MagIC"
-        pw.on_add_file_button(self.bSizer0, self.WD, event, text)
-
     def on_okButton(self, event):
         os.chdir(self.WD)
         options_dict = {}
@@ -868,26 +885,13 @@ class convert_SIO_files_to_MagIC(wx.Frame):
         else:
             pw.simple_warning()
 
-    def on_cancelButton(self,event):
-        self.Destroy()
-        self.Parent.Raise()
-
     def on_helpButton(self, event):
         import sio_magic
         pw.on_helpButton(text=sio_magic.do_help())
 
 
-class convert_CIT_files_to_MagIC(wx.Frame):
+class convert_CIT_files_to_MagIC(convert_files_to_MagIC):
     """stuff"""
-    title = "PmagPy CIT file conversion"
-
-    def __init__(self, parent, WD):
-        wx.Frame.__init__(self, parent, wx.ID_ANY, self.title)
-        self.panel = wx.ScrolledWindow(self)
-        self.max_files = 1 # but maybe it could take more??
-        self.WD = WD
-        self.InitUI()
-
 
     def InitUI(self):
         pnl = self.panel
@@ -959,10 +963,6 @@ class convert_CIT_files_to_MagIC(wx.Frame):
         self.Centre()
         self.Show()
 
-    def on_add_file_button(self,event):
-        text = "choose file to convert to MagIC"
-        pw.on_add_file_button(self.bSizer0, self.WD, event, text)
-
     def on_okButton(self, event):
         os.chdir(self.WD)
         options_dict = {}
@@ -1029,27 +1029,13 @@ class convert_CIT_files_to_MagIC(wx.Frame):
         else:
             pw.simple_warning(error_message)
 
-    def on_cancelButton(self,event):
-        self.Destroy()
-        self.Parent.Raise()
-
     def on_helpButton(self, event):
         import CIT_magic
         pw.on_helpButton(text=CIT_magic.do_help())
         
 
-class convert_HUJI_files_to_MagIC(wx.Frame):
-
+class convert_HUJI_files_to_MagIC(convert_files_to_MagIC):
     """ """
-    title = "PmagPy HUJI file conversion"
-
-    def __init__(self, parent, WD):
-        wx.Frame.__init__(self, parent, wx.ID_ANY, self.title)
-        self.panel = wx.ScrolledWindow(self)
-        self.panel.SetScrollbars(20, 20, 50, 50)
-        self.WD = WD
-        self.InitUI()
-
     def InitUI(self):
 
         pnl = self.panel
@@ -1146,9 +1132,6 @@ class convert_HUJI_files_to_MagIC(wx.Frame):
     #         self.bSizer2a.ShowItems(False)
     #     self.hbox_all.Fit(self)
 
-    def on_add_file_button(self,event):
-        text = "choose file to convert to MagIC"
-        pw.on_add_file_button(self.bSizer0, self.WD, event, text)
 
     def on_okButton(self, event):
         """
@@ -1227,10 +1210,6 @@ class convert_HUJI_files_to_MagIC(wx.Frame):
             else:
                 pw.simple_warning(error_message)
 
-    def on_cancelButton(self,event):
-        self.Destroy()
-        self.Parent.Raise()
-
     def on_helpButton(self, event):
         old_format= self.bSizer0a.return_value()
         if old_format:
@@ -1240,16 +1219,7 @@ class convert_HUJI_files_to_MagIC(wx.Frame):
         pw.on_helpButton(text=HUJI.do_help())
 
 
-class convert_2G_binary_files_to_MagIC(wx.Frame):
-
-    """PmagPy 2G-binary conversion """
-    title = "PmagPy 2G-binary file conversion"
-
-    def __init__(self, parent, WD):
-        wx.Frame.__init__(self, parent, wx.ID_ANY, self.title)
-        self.panel = wx.ScrolledWindow(self)
-        self.WD = WD
-        self.InitUI()
+class convert_2G_binary_files_to_MagIC(convert_files_to_MagIC):
 
     def InitUI(self):
 
@@ -1320,10 +1290,6 @@ class convert_2G_binary_files_to_MagIC(wx.Frame):
 
 
     #---button methods ---
-
-    def on_add_dir_button(self,event):
-        text = "choose directory of files to convert to MagIC"
-        pw.on_add_dir_button(self.bSizer0, self.WD, event, text)
 
     def on_okButton(self, event):
         os.chdir(self.WD)
@@ -1397,10 +1363,6 @@ class convert_2G_binary_files_to_MagIC(wx.Frame):
                 else:
                     pw.simple_warning()
 
-    def on_cancelButton(self,event):
-        self.Destroy()
-        self.Parent.Raise()
-
     def on_helpButton(self, event):
         # to run as module:
         import _2G_bin_magic
@@ -1411,17 +1373,9 @@ class convert_2G_binary_files_to_MagIC(wx.Frame):
 
 
 
-class convert_LDEO_files_to_MagIC(wx.Frame):
+class convert_LDEO_files_to_MagIC(convert_files_to_MagIC):
 
     """ """
-    title = "PmagPy LDEO file conversion"
-
-    def __init__(self, parent, WD):
-        wx.Frame.__init__(self, parent, wx.ID_ANY, self.title)
-        self.panel = wx.ScrolledWindow(self)
-        self.WD = WD
-        self.InitUI()
-
     def InitUI(self):
 
         pnl = self.panel
@@ -1514,10 +1468,6 @@ class convert_LDEO_files_to_MagIC(wx.Frame):
         self.Centre()
         self.Show()
 
-    def on_add_file_button(self,event):
-        text = "choose file to convert to MagIC"
-        pw.on_add_file_button(self.bSizer0, self.WD, event, text)
-
     def on_okButton(self, event):
         os.chdir(self.WD)
         options_dict = {}
@@ -1590,34 +1540,15 @@ class convert_LDEO_files_to_MagIC(wx.Frame):
         else:
             pw.simple_warning(error_message)
 
-        # to run as command line:
-        #print COMMAND
-        #pw.run_command_and_close_window(self, COMMAND, outfile)
-
-
-    def on_cancelButton(self,event):
-        self.Destroy()
-        self.Parent.Raise()
 
     def on_helpButton(self, event):
-        # to run as module:
         import LDEO_magic
         pw.on_helpButton(text=LDEO_magic.do_help())
 
-        # to run as command line
-        #pw.on_helpButton("LDEO_magic.py -h")
 
-
-class convert_IODP_files_to_MagIC(wx.Frame):
+class convert_IODP_files_to_MagIC(convert_files_to_MagIC):
 
     """ """
-    title = "PmagPy IODP csv conversion"
-
-    def __init__(self, parent, WD):
-        wx.Frame.__init__(self, parent, wx.ID_ANY, self.title)
-        self.panel = wx.ScrolledWindow(self)
-        self.WD = WD
-        self.InitUI()
 
     def InitUI(self):
 
@@ -1679,11 +1610,6 @@ class convert_IODP_files_to_MagIC(wx.Frame):
         self.Centre()
         self.Show()
 
-
-    def on_add_file_button(self,event):
-        text = "choose file to convert to MagIC"
-        pw.on_add_file_button(self.bSizer0, self.WD, event, text)
-
     def on_okButton(self, event):
         os.chdir(self.WD)
         wait = wx.BusyInfo("Please wait, working...")
@@ -1732,10 +1658,6 @@ class convert_IODP_files_to_MagIC(wx.Frame):
 
         del wait
 
-    def on_cancelButton(self,event):
-        self.Destroy()
-        self.Parent.Raise()
-
     def on_helpButton(self, event):
         is_section = self.bSizer0a.return_value()
         if is_section:
@@ -1747,18 +1669,9 @@ class convert_IODP_files_to_MagIC(wx.Frame):
             
 
 
-
-class convert_PMD_files_to_MagIC(wx.Frame):
+class convert_PMD_files_to_MagIC(convert_files_to_MagIC):
 
     """ """
-    title = "PmagPy PMD (ascii) file conversion"
-
-    def __init__(self, parent, WD):
-        wx.Frame.__init__(self, parent, wx.ID_ANY, self.title)
-        self.panel = wx.ScrolledWindow(self)
-        self.WD = WD
-        self.InitUI()
-
     def InitUI(self):
 
         pnl = self.panel
@@ -1821,11 +1734,6 @@ class convert_PMD_files_to_MagIC(wx.Frame):
         self.Show()
 
 
-
-    def on_add_dir_button(self,event):
-        text = "choose directory of files to convert to MagIC"
-        pw.on_add_dir_button(self.bSizer0, self.WD, event, text)
-
     def on_okButton(self, event):
         os.chdir(self.WD)
         options = {}
@@ -1886,9 +1794,6 @@ class convert_PMD_files_to_MagIC(wx.Frame):
             else:
                 print "Just ran equivalent of Python command: ", COMMAND
 
-    def on_cancelButton(self,event):
-        self.Destroy()
-        self.Parent.Raise()
 
     def on_helpButton(self, event):
         # to run as module:
@@ -2010,11 +1915,11 @@ class convert_JR6_files_to_MagIC(wx.Frame):
         
     def on_add_file_button(self,event):
         text = "choose file to convert to MagIC"
-        pw.on_add_file_button(self.bSizer0, self.WD, event, text)
+        pw.on_add_file_button(self.bSizer0, text)
 
     def on_add_sampfile_button(self, event):
         text = "choose er_samples type file"
-        pw.on_add_file_button(self.bSizer0c, self.WD, event, text)
+        pw.on_add_file_button(self.bSizer0c, text)
 
     def on_okButton(self, event):
         samp_file = ''
@@ -2212,7 +2117,7 @@ class convert_BGC_files_to_magic(wx.Frame):
 
     def on_add_file_button(self,event):
         text = "choose file to convert to MagIC"
-        pw.on_add_file_button(self.bSizer0, self.WD, event, text)
+        pw.on_add_file_button(self.bSizer0, text)
 
     def on_okButton(self, event):
         os.chdir(self.WD)
@@ -2276,14 +2181,6 @@ class convert_BGC_files_to_magic(wx.Frame):
 class something(wx.Frame):
 
     """ """
-    title = "PmagPy ___ file conversion"
-
-    def __init__(self, parent, WD):
-        wx.Frame.__init__(self, parent, wx.ID_ANY, self.title)
-        self.panel = wx.ScrolledWindow(self)
-        self.WD = WD
-        self.InitUI()
-
     def InitUI(self):
 
         pnl = self.panel
@@ -2343,7 +2240,6 @@ class something(wx.Frame):
         self.Centre()
         self.Show()
 
-
     def on_add_file_button(self,event):
         text = "choose file to convert to MagIC"
         pw.on_add_file_button(self.bSizer0, self.WD, event, text)
@@ -2352,10 +2248,6 @@ class something(wx.Frame):
         os.chdir(self.WD)
         COMMAND = ""
         pw.run_command_and_close_window(self, COMMAND, outfile)
-
-    def on_cancelButton(self,event):
-        self.Destroy()
-        self.Parent.Raise()
 
     def on_helpButton(self, event):
         pw.on_helpButton(text='')
@@ -2369,7 +2261,7 @@ class something(wx.Frame):
 
 class OrientFrameGrid(wx.Frame):
 
-    def __init__(self,parent,id,title,WD,Data_hierarchy,size):
+    def __init__(self, parent, id, title, WD, ErMagic, size):
         wx.Frame.__init__(self, parent, -1, title, size=size, name='calculate geographic directions')
         
         #--------------------
@@ -2381,7 +2273,8 @@ class OrientFrameGrid(wx.Frame):
             self.panel = wx.Panel(self, style=wx.SIMPLE_BORDER)
 
         self.WD = WD
-        self.Data_hierarchy = Data_hierarchy
+        #self.Data_hierarchy = Data_hierarchy
+        self.er_magic_data = ErMagic
         self.grid = None
         
 
@@ -2392,21 +2285,24 @@ class OrientFrameGrid(wx.Frame):
         # and save it to self.orient_data={}
         #--------------------
 
-        self.samples_list = self.Data_hierarchy['samples']         
-        self.orient_data={}
+        empty = True
+        self.er_magic_data.get_data()
+
+        self.samples_name_list = self.er_magic_data.make_name_list(self.er_magic_data.samples)
+        self.orient_data = {}
         try:
-            self.orient_data=self.read_magic_file(os.path.join(self.WD, "demag_orient.txt"),1,"sample_name")  
-        except:
+            self.orient_data = self.er_magic_data.read_magic_file(os.path.join(self.WD, "demag_orient.txt"), "sample_name")[0]
+        except Exception as ex:
             pass
-        for sample in self.samples_list:
-            if sample not in self.orient_data.keys():
-               self.orient_data[sample]={} 
-               self.orient_data[sample]["sample_name"]=sample
-               
-            if sample in Data_hierarchy['site_of_sample'].keys():
-                self.orient_data[sample]["site_name"]=Data_hierarchy['site_of_sample'][sample]
-            else:
-                self.orient_data[sample]["site_name"]=""
+        for sample_name in self.samples_name_list:
+            if sample_name not in self.orient_data.keys():
+                sample = self.er_magic_data.find_by_name(sample_name, self.er_magic_data.samples)
+                self.orient_data[sample_name]={} 
+                self.orient_data[sample_name]["sample_name"] = sample_name
+                if sample:
+                    self.orient_data[sample_name]["site_name"] = sample.site
+                else:
+                    self.orient_data[sample_name]["site_name"] = ''
 
         #--------------------
         # create the grid sheet
@@ -2450,8 +2346,6 @@ class OrientFrameGrid(wx.Frame):
         self.Centre()
         self.Show()                
 
-    
-            
     def create_sheet(self):    
         '''
         creat an editable grid showing deamg_orient.txt 
@@ -2466,8 +2360,8 @@ class OrientFrameGrid(wx.Frame):
         # self.headers is a list of two-item tuples.
         #the first is the proper column name as understood by orientation_magic.py
         # the second is the name for display in the GUI
-        self.headers=[("sample_orientation_flag","sample_orientation_flag"),
-                ("sample_name","sample_name"),
+        self.headers=[("sample_name","sample_name"),
+                ("sample_orientation_flag","sample_orientation_flag"),
                  #"site_name",
                 ("mag_azimuth","mag_azimuth"),
                 ("field_dip","field_dip"),
@@ -2488,12 +2382,12 @@ class OrientFrameGrid(wx.Frame):
         # create the grid
         #--------------------------------
         
-        samples_list=self.orient_data.keys()
+        samples_list = self.orient_data.keys()
         samples_list.sort()
-        self.samples_list = [ sample for sample in samples_list if sample is not "" ] 
-        self.grid = wx.grid.Grid(self.panel, -1)        
-        self.grid.ClearGrid()
-        self.grid.CreateGrid(len(self.samples_list), len(self.headers))
+        self.samples_list = [ sample for sample in samples_list if sample is not "" ]
+        display_headers = [header[1] for header in self.headers]
+        self.grid = magic_grid.MagicGrid(self.panel, 'orient grid', self.samples_list, display_headers)
+        self.grid.InitUI()
 
         #--------------------------------
         # color the columns by groups 
@@ -2514,25 +2408,18 @@ class OrientFrameGrid(wx.Frame):
             self.grid.SetCellBackgroundColour(i, 11, "LIGHT MAGENTA")
             self.grid.SetCellBackgroundColour(i, 12, "LIGHT MAGENTA")
         
-        #--------------------------------
-        # fill headers names
-        #--------------------------------
-        
-        for i in range(len(self.headers)):
-            self.grid.SetColLabelValue(i, self.headers[i][1])
 
         #--------------------------------
         # fill data from self.orient_data
         #--------------------------------
 
         headers = [header[0] for header in self.headers]
-        for sample in self.samples_list:
+        for sample in self.samples_name_list:
             for key in self.orient_data[sample].keys():
                 if key in headers:
-                    sample_index=self.samples_list.index(sample)
-                    #i=self.headers.index(key)
-                    i=headers.index(key)
-                    self.grid.SetCellValue(sample_index,i, self.orient_data[sample][key])
+                    sample_index = self.samples_list.index(sample)
+                    i = headers.index(key)
+                    self.grid.SetCellValue(sample_index, i, self.orient_data[sample][key])
                         
         #--------------------------------
 
@@ -2540,17 +2427,18 @@ class OrientFrameGrid(wx.Frame):
         # fill in some default values
         #--------------------------------
         for row in range(self.grid.GetNumberRows()):
-            col = 0
+            col = 1
             if not self.grid.GetCellValue(row, col):
                 self.grid.SetCellValue(row, col, 'g')
 
         #--------------------------------
 
-
-        self.grid.AutoSize()
-        self.drop_down_menu = drop_down_menus.Menus("orient", self, self.grid, None)
+        # temporary trick to get drop-down-menus to work
+        self.grid.changes = {'a'}
         
-
+        self.grid.AutoSize()
+        self.drop_down_menu = drop_down_menus.Menus("orient", self, self.grid, '')
+        
 
     def update_sheet(self):
         self.grid.Destroy()
@@ -2578,8 +2466,8 @@ class OrientFrameGrid(wx.Frame):
         if dlg.ShowModal() == wx.ID_OK:
             orient_file = dlg.GetPath()
             dlg.Destroy()
-            new_data=self.read_magic_file(orient_file,1,"sample_name") 
-            if len(new_data)>0:
+            new_data = self.er_magic_data.read_magic_file(orient_file, "sample_name")[0]
+            if len(new_data) > 0:
                 self.orient_data={}
                 self.orient_data=new_data
             #self.create_sheet()
@@ -2610,37 +2498,7 @@ class OrientFrameGrid(wx.Frame):
             dlg1 = wx.MessageDialog(None,caption="Message:", message="data saved in file demag_orient.txt" ,style=wx.OK|wx.ICON_INFORMATION)
             dlg1.ShowModal()
             dlg1.Destroy()
-        
-    def read_magic_file(self,path,ignore_lines_n,sort_by_this_name):
-        '''
-        read magic file and store the data in dictionary:
-        Data={}
-        Data[sort_by_this_name]={}
-        '''
 
-        DATA={}
-        fin=open(path,'rU')
-        #ignore first lines
-        for i in range(ignore_lines_n):
-            fin.readline()
-        #header
-        line=fin.readline()
-        header=line.strip('\n').split('\t')
-        #print header
-        for line in fin.readlines():
-            if line[0]=="#":
-                continue
-            tmp_data={}
-            tmp_line=line.strip('\n').split('\t')
-            #print tmp_line
-            for i in range(len(tmp_line)):
-                if i>= len(header):
-                    continue
-                tmp_data[header[i]]=tmp_line[i]
-            DATA[tmp_data[sort_by_this_name]]=tmp_data
-        fin.close()        
-        return(DATA)
-                
 
     def on_m_calc_orient(self,event):    
         '''
@@ -2649,13 +2507,13 @@ class OrientFrameGrid(wx.Frame):
         '''
         # first see if demag_orient.txt
         self.on_m_save_file(None)
-        orient_convention_dia=orient_convention(None)
+        orient_convention_dia = orient_convention(None)
         orient_convention_dia.Center()
         #orient_convention_dia.ShowModal()
         if orient_convention_dia.ShowModal() == wx.ID_OK:
-            ocn_flag=orient_convention_dia.ocn_flag
-            dcn_flag=orient_convention_dia.dcn_flag
-            gmt_flags=orient_convention_dia.gmt_flags
+            ocn_flag = orient_convention_dia.ocn_flag
+            dcn_flag = orient_convention_dia.dcn_flag
+            gmt_flags = orient_convention_dia.gmt_flags
             orient_convention_dia.Destroy()
 
 
@@ -2694,7 +2552,7 @@ class OrientFrameGrid(wx.Frame):
         command_args.append(gmt_flags)
         command_args.append(bedding_codes_flags)
         command_args.append(methodcodes_flags) 
-        commandline= " ".join(command_args)
+        commandline = " ".join(command_args)
 
         print "-I- executing command: %s" %commandline
         os.chdir(self.WD)
@@ -2710,9 +2568,9 @@ class OrientFrameGrid(wx.Frame):
             return
 
         # check if orientation_magic.py finished sucsessfuly
-        data_saved=False
+        data_saved = False
         if os.path.isfile(os.path.join(self.WD, "er_samples_orient.txt")):
-            data_saved=True
+            data_saved = True
             #fin=open(self.WD+"/orientation_magic.log",'r')
             #for line in fin.readlines():
             #    if "Data saved in" in line:
@@ -2734,11 +2592,11 @@ class OrientFrameGrid(wx.Frame):
         er_samples_orient_data={}
         if os.path.isfile(os.path.join(self.WD, "er_samples.txt")):
             er_samples_file=os.path.join(self.WD, "er_samples.txt")
-            er_samples_data=self.read_magic_file(er_samples_file,1,"er_sample_name")
+            er_samples_data=self.er_magic_data.read_magic_file(er_samples_file, "er_sample_name")[0]
 
         if os.path.isfile(os.path.join(self.WD, "er_samples_orient.txt")):             
             er_samples_orient_file=os.path.join(self.WD, "er_samples_orient.txt")
-            er_samples_orient_data=self.read_magic_file(er_samples_orient_file,1,"er_sample_name")
+            er_samples_orient_data=self.er_magic_data.read_magic_file(er_samples_orient_file, "er_sample_name")[0]
         new_samples_added=[]
         for sample in er_samples_orient_data.keys():
             if sample not in er_samples_data.keys():
@@ -2749,7 +2607,7 @@ class OrientFrameGrid(wx.Frame):
                 #continue
                 #er_samples_data[sample]={}
                 #er_samples_data[sample]["er_sample_name"]=sample
-            for key in ["sample_orientation_flag","sample_azimuth","sample_dip","sample_bed_dip","sample_bed_dip_direction","sample_date","sample_declination_correction"]:
+            for key in ["sample_orientation_flag","sample_azimuth","sample_dip","sample_bed_dip","sample_bed_dip_direction","sample_date","sample_declination_correction", "sample_lat", "sample_lon"]:
                 if key in er_samples_orient_data[sample].keys():
                     er_samples_data[sample][key]=er_samples_orient_data[sample][key]
             if "magic_method_codes" in er_samples_orient_data[sample].keys():
@@ -2774,39 +2632,41 @@ class OrientFrameGrid(wx.Frame):
         er_sites_data={}
         if os.path.isfile(os.path.join(self.WD, "er_sites.txt")):
             er_sites_file = os.path.join(self.WD, "er_sites.txt")
-            er_sites_data=self.read_magic_file(er_sites_file,1,"er_site_name")
+            er_sites_data = self.er_magic_data.read_magic_file(er_sites_file, "er_site_name")[0]
         er_sites_orient_data={}
         if os.path.isfile(os.path.join(self.WD, "er_sites_orient.txt")):             
-            er_sites_orient_file=os.path.join(self.WD, "er_sites_orient.txt")
-            er_sites_orient_data=self.read_magic_file(er_sites_orient_file,1,"er_site_name")
-        new_sites_added=[]
+            er_sites_orient_file = os.path.join(self.WD, "er_sites_orient.txt")
+            er_sites_orient_data = self.er_magic_data.read_magic_file(er_sites_orient_file, "er_site_name")[0]
+        new_sites_added = []
         for site in er_sites_orient_data.keys():
             if site not in er_sites_data.keys():
                 new_sites_added.append(site)
-                er_sites_data[site]={}
-                er_sites_data[site]['er_site_name']=site
-            for key in ["site_definition","site_lat","site_lon"]:
+                er_sites_data[site] = {}
+                er_sites_data[site]['er_site_name'] = site
+            for key in ["site_definition", "site_lat", "site_lon"]:
                 if key in er_sites_orient_data[site].keys():
-                    er_sites_data[site][key]=er_sites_orient_data[site][key]
-        sites=er_sites_data.keys()
+                    er_sites_data[site][key] = er_sites_orient_data[site][key]
+        sites = er_sites_data.keys()
         sites.sort()
-        er_recs=[]
+        er_recs = []
         for site in sites:
             er_recs.append(er_sites_data[site])
-        er_recs=pmag.merge_recs_headers(er_recs)  
-        pmag.magic_write(os.path.join(self.WD, "er_sites.txt"),er_recs,"er_sites")
+        er_recs = pmag.merge_recs_headers(er_recs)  
+        pmag.magic_write(os.path.join(self.WD, "er_sites.txt"), er_recs, "er_sites")
         
             #pmag.magic_write(os.path.join(self.WD, "er_samples.txt"),er_recs,"er_samples")
 
-        dlg1 = wx.MessageDialog(None,caption="Message:", message="orientation data is saved/appended to er_samples.txt" ,style=wx.OK|wx.ICON_INFORMATION)
+        dlg1 = wx.MessageDialog(None, caption="Message:", message="orientation data is saved/appended to er_samples.txt", style=wx.OK|wx.ICON_INFORMATION)
         dlg1.ShowModal()
         dlg1.Destroy()
 
-        if len(new_samples_added)>0:
-            dlg1 = wx.MessageDialog(None,caption="Warning:", message="The following samples were added to er_samples.txt:\n %s "%(" , ".join(new_samples_added)) ,style=wx.OK|wx.ICON_INFORMATION)
+        if len(new_samples_added) > 0:
+            dlg1 = wx.MessageDialog(None, caption="Warning:", message="The following samples were added to er_samples.txt:\n %s "%(" , ".join(new_samples_added)), style=wx.OK|wx.ICON_INFORMATION)
             dlg1.ShowModal()
             dlg1.Destroy()
 
+        self.Parent.Show()
+        self.Parent.Raise()
         self.Destroy()
 
         
@@ -2815,13 +2675,16 @@ class OrientFrameGrid(wx.Frame):
         result = dlg1.ShowModal()
         if result == wx.ID_OK:
             self.on_m_save_file(None)
-            dlg1.Destroy()    
+            dlg1.Destroy()
+            self.Parent.Show()
+            self.Parent.Raise()
             self.Destroy()
         if result == wx.ID_CANCEL:
-            dlg1.Destroy()    
+            dlg1.Destroy()
+            self.Parent.Show()
+            self.Parent.Raise()
             self.Destroy()
 
-                     
 
 class orient_convention(wx.Dialog):
     
@@ -2833,7 +2696,6 @@ class orient_convention(wx.Dialog):
         self.SetTitle("set orientation convention")
         
     def InitUI(self):
-
 
         pnl = wx.Panel(self)        
         vbox=wx.BoxSizer(wx.VERTICAL)
@@ -2961,44 +2823,54 @@ class orient_convention(wx.Dialog):
         self.op_rb1.SetValue(True)   
         
     def OnOK(self, e):
-        self.ocn=""
-        if self.oc_rb1.GetValue()==True:self.ocn="1"
-        if self.oc_rb2.GetValue()==True:self.ocn="2"
-        if self.oc_rb3.GetValue()==True:self.ocn="3"
-        if self.oc_rb4.GetValue()==True:self.ocn="4"
-        if self.oc_rb5.GetValue()==True:self.ocn="5"
-        if self.oc_rb6.GetValue()==True:self.ocn="6"
+        self.ocn = ""
+        if self.oc_rb1.GetValue() == True:
+            self.ocn = "1"
+        if self.oc_rb2.GetValue() == True:
+            self.ocn="2"
+        if self.oc_rb3.GetValue() == True:
+            self.ocn="3"
+        if self.oc_rb4.GetValue() == True:
+            self.ocn = "4"
+        if self.oc_rb5.GetValue() == True:
+            self.ocn="5"
+        if self.oc_rb6.GetValue() == True:
+            self.ocn="6"
 
-        self.dcn=""
+        self.dcn = ""
         self.correct_dec = ""
-        if self.dc_rb1.GetValue()==True:self.dcn="1"
-        if self.dc_rb2.GetValue()==True:
+        if self.dc_rb1.GetValue() == True:
+            self.dcn = "1"
+        if self.dc_rb2.GetValue() == True:
             self.dcn="2"
             try:
                 self.correct_dec = float(self.dc_tb2.GetValue())
             except:
-                dlg1 = wx.MessageDialog(None,caption="Error:", message="Add declination" ,style=wx.OK|wx.ICON_INFORMATION)
+                dlg1 = wx.MessageDialog(None, caption="Error:", message="Add declination", style=wx.OK|wx.ICON_INFORMATION)
                 dlg1.ShowModal()
                 dlg1.Destroy()
                 
-        if self.dc_rb3.GetValue()==True:self.dcn="3"
+        if self.dc_rb3.GetValue()==True:
+            self.dcn = "3"
         
-        if self.op_rb1.GetValue()==True:self.op="1"
-        if self.op_rb2.GetValue()==True:self.op="2"
+        if self.op_rb1.GetValue() == True:
+            self.op = "1"
+        if self.op_rb2.GetValue() == True:
+            self.op = "2"
         
-        if self.dc_alt.GetValue()!="":
+        if self.dc_alt.GetValue() != "":
             try:
                 self.gmt = float(self.dc_alt.GetValue())
-                gmt_flags="-gmt " + self.dc_alt.GetValue()
+                gmt_flags = "-gmt " + self.dc_alt.GetValue()
             except:
                 gmt_flags=""
         else:
             self.gmt = ""
-            gmt_flags=""        
+            gmt_flags = ""
         #-------------
-        self.ocn_flag="-ocn "+ self.ocn
-        self.dcn_flag="-dcn "+ self.dcn
-        self.gmt_flags=gmt_flags
+        self.ocn_flag = "-ocn "+ self.ocn
+        self.dcn_flag = "-dcn "+ self.dcn
+        self.gmt_flags = gmt_flags
         self.EndModal(wx.ID_OK)
         #self.Close()
 
@@ -3032,27 +2904,20 @@ class method_code_dialog(wx.Dialog):
         self.cb9 = wx.CheckBox(pnl, -1, 'SO-SM: either magnetic or sun used on all orientations    ')
         self.cb10 = wx.CheckBox(pnl, -1, 'SO-SIGHT: orientation from sighting')
 
-        sbs1.Add(self.cb1);sbs1.AddSpacer(5)
-        sbs1.Add(self.cb2);sbs1.AddSpacer(5)
-        sbs1.Add(self.cb3);sbs1.AddSpacer(5)
-        sbs1.Add(self.cb4);sbs1.AddSpacer(5)
-        sbs1.Add(self.cb5);sbs1.AddSpacer(5)
-        sbs1.Add(self.cb6);sbs1.AddSpacer(5)
-        sbs1.Add(self.cb7);sbs1.AddSpacer(5)
-        sbs1.Add(self.cb8);sbs1.AddSpacer(5)
-        sbs1.Add(self.cb9);sbs1.AddSpacer(5)
-        sbs1.Add(self.cb10);sbs1.AddSpacer(5)
+        for cb in [self.cb1, self.cb2, self.cb3, self.cb4, self.cb5,
+                   self.cb6, self.cb7, self.cb8, self.cb9, self.cb10]:
+            sbs1.Add(cb, flag=wx.BOTTOM, border=5)
 
         #-----------------------
         # Bedding convention
         #-----------------------
         
-        sbs2 = wx.StaticBoxSizer( wx.StaticBox( pnl, wx.ID_ANY, 'bedding convention' ), wx.VERTICAL )
+        sbs2 = wx.StaticBoxSizer(wx.StaticBox(pnl, wx.ID_ANY, 'bedding convention'), wx.VERTICAL)
         self.bed_con1 = wx.CheckBox(pnl, -1, 'Take fisher mean of bedding poles?')
         self.bed_con2 = wx.CheckBox(pnl, -1, "Don't correct bedding dip direction with declination - already correct")
 
-        sbs2.Add(self.bed_con1);sbs1.AddSpacer(5)
-        sbs2.Add(self.bed_con2);sbs1.AddSpacer(5)
+        sbs2.Add(self.bed_con1, flag=wx.BOTTOM, border=5)
+        sbs2.Add(self.bed_con2, flag=wx.BOTTOM, border=5)
 
         #-----------------------
         # OK button
@@ -3083,37 +2948,37 @@ class method_code_dialog(wx.Dialog):
 
     def OnOK(self, e):
         methodcodes=[]
-        if self.cb1.GetValue() ==True:
+        if self.cb1.GetValue() == True:
             methodcodes.append('FS-FD')
-        if self.cb2.GetValue() ==True:
+        if self.cb2.GetValue() == True:
             methodcodes.append('FS-H')
-        if self.cb3.GetValue() ==True:
+        if self.cb3.GetValue() == True:
             methodcodes.append('FS-LOC-GPS')
-        if self.cb4.GetValue() ==True:
+        if self.cb4.GetValue() == True:
             methodcodes.append('FS-LOC-MAP')
-        if self.cb5.GetValue() ==True:
+        if self.cb5.GetValue() == True:
             methodcodes.append('SO-POM')
-        if self.cb6.GetValue() ==True:
+        if self.cb6.GetValue() == True:
             methodcodes.append('SO-ASC')
-        if self.cb7.GetValue() ==True:
+        if self.cb7.GetValue() == True:
             methodcodes.append('SO-MAG')
-        if self.cb8.GetValue() ==True:
+        if self.cb8.GetValue() == True:
             methodcodes.append('SO-SUN')
-        if self.cb9.GetValue() ==True:
+        if self.cb9.GetValue() == True:
             methodcodes.append('SO-SM')
-        if self.cb10.GetValue() ==True:
+        if self.cb10.GetValue() == True:
             methodcodes.append('SO-SIGHT')
 
-        if methodcodes==[]:
+        if methodcodes == []:
             self.methodcodes_flags=""
             self.methodcodes = ""
         else:
-            self.methodcodes_flags="-mcd "+":".join(methodcodes)
+            self.methodcodes_flags = "-mcd " + ":".join(methodcodes)
             self.methodcodes = ":".join(methodcodes)
         
         bedding_codes=[]
         
-        if self.bed_con1.GetValue() ==True:
+        if self.bed_con1.GetValue() == True:
             bedding_codes.append("-a")
             self.average_bedding = True
         else:
@@ -3123,1283 +2988,6 @@ class method_code_dialog(wx.Dialog):
             self.bed_correction = False
         else:
             self.bed_correction = True
-        self.bedding_codes_flags=" ".join(bedding_codes)   
+        self.bedding_codes_flags = " ".join(bedding_codes)   
         self.EndModal(wx.ID_OK) 
         #self.Close()
-
-
-class check(wx.Frame):
-
-    def __init__(self, parent, id, title, WD, ErMagic):
-        wx.Frame.__init__(self, parent, -1, title)
-        self.WD = WD
-        self.main_frame = self.Parent
-        self.ErMagic = ErMagic
-        self.temp_data = {}
-        self.drop_down_menu = None
-        self.sample_window = 0 # sample window must be displayed (differently) twice, so it is useful to keep track
-        self.InitSpecCheck()
-        
-
-    def InitSpecCheck(self):
-        """make an interactive grid in which users can edit specimen names
-        as well as which sample a specimen belongs to"""
-        self.ErMagic.read_MagIC_info() # 
-
-        # using ScrolledWindow works on up to date wxPython and is necessary for windows
-        # it breaks with Canopy wxPython, so for Mac we just use Panel
-
-        if sys.platform in ['win32', 'win64']:
-            self.panel = wx.ScrolledWindow(self, style=wx.SIMPLE_BORDER)
-        else:
-            self.panel = wx.Panel(self, style=wx.SIMPLE_BORDER)
-
-        #import wx.lib.scrolledpanel as libpanel # does not work well
-        #self.panel = libpanel.ScrolledPanel(self, style=wx.SIMPLE_BORDER)
-
-        TEXT = """Step 1:
-Check that all specimens belong to the correct sample
-(if sample name is simply wrong, that will be fixed in step 2)"""
-        label = wx.StaticText(self.panel,label=TEXT)
-        self.Data_hierarchy = self.ErMagic.Data_hierarchy
-        self.specimens = sorted(self.Data_hierarchy['specimens'].keys())
-        samples = self.Data_hierarchy['samples'].keys()
-        samples = sorted(list(set(samples).union(self.ErMagic.data_er_samples.keys()))) # adds in any additional samples we might have information about (from er_sites.txt file) even if currently that sample does not show up in the magic_measurements file
-
-        # create the grid and also a record of the initial values for specimens/samples as a reference
-        # to tell if we've had any changes
-
-        col_labels = self.ErMagic.data_er_specimens[self.ErMagic.data_er_specimens.keys()[0]].keys()
-        for val in ['er_citation_names', 'er_location_name', 'er_site_name', 'er_sample_name', 'er_specimen_name', 'specimen_class', 'specimen_lithology', 'specimen_type']: #
-            col_labels.remove(val)
-        col_labels = sorted(col_labels)
-        col_labels[:0] = ['specimens', '', 'samples']
-
-        self.spec_grid, self.temp_data['specimens'], self.temp_data['samples'] = self.make_table(col_labels, self.specimens, self.Data_hierarchy, 'sample_of_specimen')
-
-        self.extra_specimen_temp_data = self.add_extra_grid_data(self.spec_grid, self.specimens, self.ErMagic.data_er_specimens, col_labels)
-        self.changes = False
-
-        self.Bind(wx.grid.EVT_GRID_EDITOR_CREATED, lambda event: self.on_edit_grid(event, self.spec_grid), self.spec_grid) # if user begins to edit, self.changes will be set to True
-        self.drop_down_menu = drop_down_menus.Menus("specimen", self, self.spec_grid, samples) # initialize all needed drop-down menus
-
-
-        #### Create Buttons ####
-        hbox_one = wx.BoxSizer(wx.HORIZONTAL)
-        self.addSampleButton = wx.Button(self.panel, label="Add a new sample")
-        self.sites =list(set(self.Data_hierarchy['sites'].keys()).union(self.ErMagic.data_er_sites.keys())) # adds in any additional samples we might have information about (from er_sites.txt file) even if currently that sample does not show up in the magic_measurements file
-        self.Bind(wx.EVT_BUTTON, self.on_addSampleButton, self.addSampleButton)
-        self.helpButton = wx.Button(self.panel, label="Help")
-        self.Bind(wx.EVT_BUTTON, lambda event: self.on_helpButton(event, "ErMagicSpecimenHelp.html"), self.helpButton)
-        hbox_one.Add(self.addSampleButton, flag=wx.ALIGN_LEFT|wx.RIGHT, border=10)
-        hbox_one.Add(self.helpButton)
-
-        #
-        hboxok = wx.BoxSizer(wx.HORIZONTAL)
-        self.saveButton =  wx.Button(self.panel, id=-1, label='Save')
-        self.Bind(wx.EVT_BUTTON, lambda event: self.on_saveButton(event, self.spec_grid), self.saveButton)
-        self.cancelButton = wx.Button(self.panel, wx.ID_CANCEL, '&Cancel')
-        self.Bind(wx.EVT_BUTTON, self.on_cancelButton, self.cancelButton)
-        self.continueButton = wx.Button(self.panel, id=-1, label='Save and continue')
-        self.Bind(wx.EVT_BUTTON, lambda event: self.on_continueButton(event, self.spec_grid, next_dia=self.InitSampCheck), self.continueButton)
-        hboxok.Add(self.saveButton, flag=wx.ALIGN_LEFT|wx.RIGHT, border=10)
-        hboxok.Add(self.cancelButton, flag=wx.ALIGN_LEFT|wx.RIGHT, border=10) 
-        hboxok.Add(self.continueButton, flag=wx.ALIGN_LEFT )
-
-
-        ### Create Containers ###
-        vbox = wx.BoxSizer(wx.VERTICAL)
-        vbox.AddSpacer(10)
-        vbox.Add(label, flag=wx.ALIGN_CENTER|wx.TOP|wx.BOTTOM, border=10)
-
-        vbox.Add(hbox_one, flag=wx.TOP|wx.LEFT|wx.BOTTOM, border=10)
-        vbox.Add(hboxok, flag=wx.BOTTOM|wx.LEFT, border=10)
-        vbox.Add(self.spec_grid, flag=wx.ALL, border=10)#|wx.EXPAND, border=30)
-        
-        hbox_all= wx.BoxSizer(wx.HORIZONTAL)
-        hbox_all.AddSpacer(20)
-        hbox_all.AddSpacer(vbox)
-        hbox_all.AddSpacer(20)
-
-        self.panel.SetSizer(hbox_all)
-        #self.panel.SetScrollbars(20, 20, 50, 50)
-        hbox_all.Fit(self)  
-        self.Centre()
-        self.Show()
-        self.Hide()
-        self.Show()
-        
-        ## this combination prevents a display error that (without the fix) only resolves on manually resizing the window
-        #print "about to refresh spec_grid"
-        #print self.panel
-        #print self.spec_grid
-        #self.panel.Refresh()
-        #self.spec_grid.ForceRefresh()
-        #self.panel.Refresh()
-        #print "refreshed spec_grid"
-
-
-
-    def InitSampCheck(self):
-        """make an interactive grid in which users can edit sample names
-        as well as which site a sample belongs to"""
-        
-        self.sample_window += 1 
-
-        # using ScrolledWindow works on up to date wxPython and is necessary for windows
-        # it breaks with Canopy wxPython, so for Mac we just use Panel
-        if sys.platform in ['win32', 'win64']:
-            self.panel = wx.ScrolledWindow(self, style=wx.SIMPLE_BORDER)
-        else:
-            self.panel = wx.Panel(self, style=wx.SIMPLE_BORDER)
-
-        if self.sample_window == 1:
-            TEXT = """Step 2:
-Check that all samples are correctly named,
-and that they belong to the correct site
-(if site name is simply wrong, that will be fixed in step 3)"""
-            step_label = wx.StaticText(self.panel,label=TEXT)#, size=(900, 100))
-        else:
-            self.ErMagic.read_MagIC_info() # ensures that changes from step 3 propagate
-            TEXT = """Step 4:
-Some of the data from the er_sites table has propogated into er_samples.
-Check that this data is correct, and fill in missing cells using controlled vocabularies.
-The columns for class, lithology, and type can take multiple values in the form of a colon-delimited list.
-You may use the drop-down menus to add as many values as needed in these columns.  
-(see Help button for more details)\n\n** Denotes controlled vocabulary"""
-            step_label = wx.StaticText(self.panel,label=TEXT)#, size=(900, 100))
-        self.Data_hierarchy = self.ErMagic.Data_hierarchy
-        self.samples = sorted(self.Data_hierarchy['samples'].keys())
-        sites = sorted(self.Data_hierarchy['sites'].keys())
-        self.locations = sorted(list(set(self.Data_hierarchy['locations'].keys()).union(self.ErMagic.data_er_locations.keys())))
-
-        if self.sample_window == 1:
-            self.samp_grid, self.temp_data['samples'], self.temp_data['sites'] = self.make_table(['samples', '', 'sites'], self.samples, self.Data_hierarchy, 'site_of_sample')
-
-        if self.sample_window > 1:
-            col_labels = self.ErMagic.data_er_samples[self.ErMagic.data_er_samples.keys()[0]].keys()
-            for val in ['er_citation_names', 'er_location_name', 'er_site_name', 'er_sample_name', 'sample_class', 'sample_lithology', 'sample_type', 'sample_lat', 'sample_lon']:
-                col_labels.remove(val)
-            col_labels = sorted(col_labels)
-            col_labels[:0] = ['samples', '', 'sites', 'sample_class', 'sample_lithology', 'sample_type', 'sample_lat', 'sample_lon']
-            self.samp_grid, self.temp_data['samples'], self.temp_data['sites'] = self.make_table(col_labels, self.samples, self.Data_hierarchy, 'site_of_sample')
-            self.add_extra_grid_data(self.samp_grid, self.samples,self.ErMagic.data_er_samples, col_labels)
-
-        self.changes = False
-        self.Bind(wx.grid.EVT_GRID_EDITOR_CREATED, lambda event: self.on_edit_grid(event, self.samp_grid), self.samp_grid)
-        sites = sorted(list(set(sites).union(self.ErMagic.data_er_sites.keys()))) # adds in any additional sets we might have information about (from er_sites.txt file) even if currently that site does not show up in the magic_measurements file
-        self.drop_down_menu = drop_down_menus.Menus("sample", self, self.samp_grid, sites) # initialize all needed drop-down menus
-
-
-        ### Create Buttons ###
-        hbox_one = wx.BoxSizer(wx.HORIZONTAL)
-        self.addSiteButton = wx.Button(self.panel, label="Add a new site")
-        self.Bind(wx.EVT_BUTTON, self.on_addSiteButton, self.addSiteButton)
-        hbox_one.Add(self.addSiteButton, flag=wx.RIGHT, border=10)
-        if self.sample_window == 1:
-            html_help = "ErMagicSampleHelp1.html"
-        if self.sample_window > 1:
-            html_help = "ErMagicSampleHelp.html"
-        self.helpButton = wx.Button(self.panel, label="Help")
-        self.Bind(wx.EVT_BUTTON, lambda event: self.on_helpButton(event, html_help), self.helpButton)
-        hbox_one.Add(self.helpButton)
-
-        hboxok = wx.BoxSizer(wx.HORIZONTAL)
-        self.saveButton =  wx.Button(self.panel, id=-1, label='Save')
-        self.Bind(wx.EVT_BUTTON, lambda event: self.on_saveButton(event, self.samp_grid), self.saveButton)
-        self.cancelButton = wx.Button(self.panel, wx.ID_CANCEL, '&Cancel')
-        self.Bind(wx.EVT_BUTTON, self.on_cancelButton, self.cancelButton)
-        self.continueButton = wx.Button(self.panel, id=-1, label='Save and continue')
-        next_dia = self.InitSiteCheck if self.sample_window < 2 else self.InitLocCheck 
-        self.Bind(wx.EVT_BUTTON, lambda event: self.on_continueButton(event, self.samp_grid, next_dia=next_dia), self.continueButton)
-        self.backButton = wx.Button(self.panel, wx.ID_ANY, "&Back")
-        previous_dia = self.InitSpecCheck if self.sample_window < 2 else self.InitSiteCheck
-        self.Bind(wx.EVT_BUTTON, lambda event: self.on_backButton(event, previous_dia=previous_dia), self.backButton)
-
-        hboxok.Add(self.saveButton, flag=wx.RIGHT, border=10)
-        hboxok.Add(self.cancelButton, flag=wx.RIGHT, border=10 )
-        hboxok.Add(self.continueButton, flag=wx.RIGHT, border=10 )
-        hboxok.Add(self.backButton)
-
-
-        ### Make Containers ###
-        vbox = wx.BoxSizer(wx.VERTICAL)
-        #vbox.Add(step_label, flag=wx.ALIGN_CENTER|wx.TOP|wx.BOTTOM, border=20)
-        vbox.Add(step_label, flag=wx.ALIGN_LEFT|wx.TOP|wx.BOTTOM, border=20)
-
-        vbox.Add(hbox_one, flag=wx.BOTTOM|wx.LEFT, border=10)
-        vbox.Add(hboxok, flag=wx.BOTTOM|wx.LEFT, border=10)
-        vbox.Add(self.samp_grid, flag=wx.ALL, border=10) # using wx.EXPAND or not does not affect re-size problem
-
-        hbox_all= wx.BoxSizer(wx.HORIZONTAL)
-        hbox_all.AddSpacer(20)
-        hbox_all.AddSpacer(vbox)
-        hbox_all.AddSpacer(20)
-
-        self.panel.SetSizer(hbox_all)
-        if sys.platform in ['win32', 'win64']:
-            self.panel.SetScrollbars(20, 20, 50, 50)
-        hbox_all.Fit(self)
-
-
-        
-        self.Centre()
-        self.Show()
-
-        ## this combination may prevent a display error that (without the fix) only resolves on manually resizing the window
-        self.panel.Refresh()
-        self.samp_grid.ForceRefresh()
-        self.panel.Refresh()
-        self.Refresh()
-
-        # this prevents display errors
-        self.Hide()
-        self.Show()
-
-
-        #self.Fit() # this make it worse!
-        #self.Layout() # doesn't fix display resize error
-
-        #self.panel.Layout() # doesn't fix display resize error
-        #self.main_frame.Layout()# doesn't fix display resize error
-
-
-    def InitSiteCheck(self):
-        """make an interactive grid in which users can edit site names
-        as well as which location a site belongs to"""
-
-        # using ScrolledWindow works on up to date wxPython and is necessary for windows
-        # it breaks with Canopy wxPython, so for Mac we just use Panel
-        if sys.platform in ['win32', 'win64']:
-            self.panel = wx.ScrolledWindow(self, style=wx.SIMPLE_BORDER)
-        else:
-            self.panel = wx.Panel(self, style=wx.SIMPLE_BORDER)
-
-        TEXT = """Step 3:
-Check that all sites are correctly named, and that they belong to the correct location.
-Fill in the additional columns with controlled vocabularies.
-The columns for class, lithology, and type can take multiple values in the form of a colon-delimited list.
-You may use the drop-down menus to add as many values as needed in these columns.  
-(see the help button for more details)
-note: Changes to site_class, site_lithology, or site_type will overwrite er_samples.txt
-However, you will be able to edit sample_class, sample_lithology, and sample_type in step 4
-
-**Denotes controlled vocabulary"""
-        label = wx.StaticText(self.panel,label=TEXT)
-        self.Data_hierarchy = self.ErMagic.Data_hierarchy
-        self.sites = sorted(self.Data_hierarchy['sites'].keys())
-
-        col_labels = self.ErMagic.data_er_sites[self.ErMagic.data_er_sites.keys()[0]].keys()
-        for val in ['er_citation_names', 'er_location_name', 'er_site_name', 'site_class', 'site_lithology', 'site_type', 'site_definition', 'site_lat', 'site_lon']: #
-            col_labels.remove(val)
-        col_labels = sorted(col_labels)
-        col_labels[:0] = ['sites', '', 'locations', 'site_class', 'site_lithology', 'site_type', 'site_definition', 'site_lon', 'site_lat']
-
-        self.site_grid, self.temp_data['sites'], self.temp_data['locations'] = self.make_table(col_labels, self.sites, self.Data_hierarchy, 'location_of_site')
-        self.extra_site_temp_data = self.add_extra_grid_data(self.site_grid, self.sites, self.ErMagic.data_er_sites, col_labels)
-
-        self.changes = False
-        self.Bind(wx.grid.EVT_GRID_EDITOR_CREATED, lambda event: self.on_edit_grid(event, self.site_grid), self.site_grid)
-
-        # populate site_definition as 's' by default if no value is provided (indicates that site is single, not composite)
-        rows = self.site_grid.GetNumberRows()
-        col = 6
-        for row in range(rows):
-            cell = self.site_grid.GetCellValue(row, col)
-            if not cell:
-                self.site_grid.SetCellValue(row, col, 's')
-
-        locations = sorted(set(self.temp_data['locations']))        
-        self.drop_down_menu = drop_down_menus.Menus("site", self, self.site_grid, locations) # initialize all needed drop-down menus
-
-
-        ### Create Buttons ###
-        hbox_one = wx.BoxSizer(wx.HORIZONTAL)
-        self.addLocButton = wx.Button(self.panel, label="Add a new location")
-        self.locations = list(set(self.Data_hierarchy['sites'].keys()).union(self.ErMagic.data_er_locations.keys()))
-        self.Bind(wx.EVT_BUTTON, self.on_addLocButton, self.addLocButton)
-        hbox_one.Add(self.addLocButton, flag=wx.RIGHT, border=10)
-
-        self.helpButton = wx.Button(self.panel, label="Help")
-        self.Bind(wx.EVT_BUTTON, lambda event: self.on_helpButton(event, "ErMagicSiteHelp.html"), self.helpButton)
-        hbox_one.Add(self.helpButton)
-
-        hboxok = wx.BoxSizer(wx.HORIZONTAL)
-        self.saveButton =  wx.Button(self.panel, id=-1, label='Save')
-        self.Bind(wx.EVT_BUTTON, lambda event: self.on_saveButton(event, self.site_grid), self.saveButton)
-        self.cancelButton = wx.Button(self.panel, wx.ID_CANCEL, '&Cancel')
-        self.Bind(wx.EVT_BUTTON, self.on_cancelButton, self.cancelButton)
-        self.continueButton = wx.Button(self.panel, id=-1, label='Save and continue')
-        self.Bind(wx.EVT_BUTTON, lambda event: self.on_continueButton(event, self.site_grid, next_dia=self.InitSampCheck), self.continueButton)
-        self.backButton = wx.Button(self.panel, wx.ID_ANY, "&Back")
-        previous_dia = self.InitSampCheck
-        self.Bind(wx.EVT_BUTTON, lambda event: self.on_backButton(event, previous_dia=previous_dia), self.backButton)
-
-        hboxok.Add(self.saveButton, flag=wx.RIGHT, border=10)
-        hboxok.Add(self.cancelButton, flag=wx.RIGHT, border=10 )
-        hboxok.Add(self.continueButton, flag=wx.RIGHT, border=10 )
-        hboxok.Add(self.backButton)
-
-
-        ### Make Containers ###
-        vbox = wx.BoxSizer(wx.VERTICAL)
-        vbox.Add(label, flag=wx.ALIGN_CENTER|wx.BOTTOM|wx.TOP, border=20)#, flag=wx.ALIGN_LEFT|wx.BOTTOM, border=20)
-        vbox.Add(hbox_one, flag=wx.BOTTOM|wx.LEFT, border=10)
-        vbox.Add(hboxok, flag=wx.BOTTOM|wx.LEFT, border=10)
-        vbox.Add(self.site_grid, flag=wx.ALL|wx.EXPAND, border=10) # EXPAND ??
-
-        hbox_all= wx.BoxSizer(wx.HORIZONTAL)
-        hbox_all.AddSpacer(20)
-        hbox_all.AddSpacer(vbox)
-        hbox_all.AddSpacer(20)
-
-        self.panel.SetSizer(hbox_all)
-        if sys.platform in ['win32', 'win64']:                
-            self.panel.SetScrollbars(20, 20, 50, 50)
-        hbox_all.Fit(self)
-        self.Centre()
-        self.Show()
-        # this combination prevents a display error that (without the fix) only resolves on manually resizing the window
-        self.site_grid.ForceRefresh()
-        self.panel.Refresh()
-        self.Hide()
-        self.Show()
-
-
-    def InitLocCheck(self):
-        """make an interactive grid in which users can edit specimen names
-        as well as which sample a specimen belongs to"""
-
-        # using ScrolledWindow works on up to date wxPython and is necessary for windows
-        # it breaks with Canopy wxPython, so for Mac we just use Panel
-        if sys.platform in ['win32', 'win64']:
-            self.panel = wx.ScrolledWindow(self, style=wx.SIMPLE_BORDER)
-        else:
-            self.panel = wx.Panel(self, style=wx.SIMPLE_BORDER)
-
-        TEXT = """Step 5:
-Check that locations are correctly named.
-Fill in any blank cells using controlled vocabularies.
-(See Help button for details)
-
-** Denotes controlled vocabulary"""
-        label = wx.StaticText(self.panel,label=TEXT)
-        self.Data_hierarchy = self.ErMagic.Data_hierarchy
-        self.locations = self.Data_hierarchy['locations']
-        #
-        try:
-            key1 = self.ErMagic.data_er_locations.keys()[0]
-        except IndexError:
-            MSG = "You have no data in er_locations, so we are skipping step 5.\n Note that location names must be entered at the measurements level,so you may need to re-import your data, or you can add a location in step 3"
-            dlg = wx.MessageDialog(None,caption="Message:", message=MSG ,style=wx.OK|wx.ICON_INFORMATION)
-            dlg.ShowModal()
-            dlg.Destroy()
-            self.panel.Destroy()
-            self.InitAgeCheck()
-            return
-            
-            #self.ErMagic.data_er_locations = {" ": {"er_citation_names": "This study", "er_location_name": "", "location_begin_lon": "", "location_end_lon": "", "location_begin_lat": "", "location_end_lat": "", "location_type": ""}}
-            #key1 = self.ErMagic.data_er_locations.keys()[0]
-        col_labels = sorted(self.ErMagic.data_er_locations[key1].keys())
-        try:
-            col_labels.remove('er_location_name')
-            col_labels.remove('location_type')
-            col_labels[:0] = ['er_location_name', 'location_type']
-        except:
-            pass
-
-        self.loc_grid = self.make_simple_table(col_labels, self.ErMagic.data_er_locations, "location")
-
-        self.Bind(wx.grid.EVT_GRID_EDITOR_CREATED, lambda event: self.on_edit_grid(event, self.loc_grid), self.loc_grid)
-
-        self.drop_down_menu = drop_down_menus.Menus("location", self, self.loc_grid, None) # initialize all needed drop-down menus
-
-        ### Create Buttons ###
-        hbox_one = wx.BoxSizer(wx.HORIZONTAL)
-        self.helpButton = wx.Button(self.panel, label="Help")
-        self.Bind(wx.EVT_BUTTON, lambda event: self.on_helpButton(event, "ErMagicLocationHelp.html"), self.helpButton)
-        hbox_one.Add(self.helpButton)
-
-        hboxok = wx.BoxSizer(wx.HORIZONTAL)
-        self.saveButton =  wx.Button(self.panel, id=-1, label='Save')
-        self.Bind(wx.EVT_BUTTON, lambda event: self.on_saveButton(event, self.loc_grid), self.saveButton)
-        self.cancelButton = wx.Button(self.panel, wx.ID_CANCEL, '&Cancel')
-        self.Bind(wx.EVT_BUTTON, self.on_cancelButton, self.cancelButton)
-        self.continueButton = wx.Button(self.panel, id=-1, label='Save and continue')
-        self.Bind(wx.EVT_BUTTON, lambda event: self.on_continueButton(event, self.loc_grid, next_dia=self.InitAgeCheck), self.continueButton)
-        self.backButton = wx.Button(self.panel, wx.ID_ANY, "&Back")
-        previous_dia = self.InitSampCheck
-        self.Bind(wx.EVT_BUTTON, lambda event: self.on_backButton(event, previous_dia, current_dia = self.InitLocCheck), self.backButton)
-
-        hboxok.Add(self.saveButton, flag=wx.RIGHT, border=10)
-        hboxok.Add(self.cancelButton, flag=wx.RIGHT, border=10 )
-        hboxok.Add(self.continueButton, flag=wx.RIGHT, border=10 )
-        hboxok.Add(self.backButton)
-
-        ### Make Containers ###
-        vbox = wx.BoxSizer(wx.VERTICAL)
-        vbox.Add(label, flag=wx.ALIGN_CENTER|wx.TOP|wx.BOTTOM, border=20)
-        vbox.Add(hbox_one, flag=wx.BOTTOM|wx.ALIGN_LEFT, border=10)
-        vbox.Add(hboxok, flag=wx.BOTTOM|wx.ALIGN_LEFT, border=10)
-        vbox.Add(self.loc_grid, flag=wx.TOP|wx.BOTTOM, border=10)
-
-        hbox_all= wx.BoxSizer(wx.HORIZONTAL)
-        hbox_all.AddSpacer(20)
-        hbox_all.AddSpacer(vbox)
-        hbox_all.AddSpacer(20)
-
-        self.panel.SetSizer(hbox_all)
-        if sys.platform in ['win32', 'win64']:
-            self.panel.SetScrollbars(20, 20, 50, 50)
-        hbox_all.Fit(self)
-        self.Centre()
-        self.Show()
-        self.Hide()
-        self.Show()
-
-
-    def InitAgeCheck(self):
-        """make an interactive grid in which users can edit ages"""
-
-        # using ScrolledWindow works on up to date wxPython and is necessary for windows
-        # it breaks with Canopy wxPython, so for Mac we just use Panel
-        if sys.platform in ['win32', 'win64']:
-            self.panel = wx.ScrolledWindow(self, style=wx.SIMPLE_BORDER)
-        else:
-            self.panel = wx.Panel(self, style=wx.SIMPLE_BORDER)
-
-        TEXT = """Step 6:
-Fill in or correct any cells with information about ages.
-The column for magic_method_codes can take multiple values in the form of a colon-delimited list.
-You may use the drop-down menus to add as many values as needed in these columns.  
-(See Help button for details)
-
-**Denotes controlled vocabulary """
-        label = wx.StaticText(self.panel,label=TEXT)
-        self.Data_hierarchy = self.ErMagic.Data_hierarchy
-        self.sites = self.Data_hierarchy['sites']
-        #
-        key1 = self.ErMagic.data_er_ages.keys()[0]
-        col_labels = sorted(self.ErMagic.data_er_ages[key1].keys())
-        try:
-            for col_label in ['er_site_name', 'er_location_name', 'er_citation_names', 'magic_method_codes', 'age_description', 'age_unit', 'age']:
-                col_labels.remove(col_label)
-            col_labels[:0] = ['er_site_name', 'er_citation_names', 'er_location_name', 'magic_method_codes', 'age_description', 'age_unit', 'age']
-        except:
-            pass
-        # only use sites that are associated with actual samples/specimens
-        
-
-        #ages_data_dict = {k: v for k, v in self.ErMagic.data_er_ages.items() if k in self.sites} # fails in Python 2.6
-        ages_data_dict = {}
-        for k, v in self.ErMagic.data_er_ages.items():
-            if k in self.sites:
-                ages_data_dict[k] = v
-
-        self.age_grid = self.make_simple_table(col_labels, ages_data_dict, "age")
-        #
-        # make it impossible to edit the 1st and 3rd columns
-        for row in range(self.age_grid.GetNumberRows()):
-            for col in (0, 2):
-                self.age_grid.SetReadOnly(row, col, True)
-        #
-        #self.Bind(wx.grid.EVT_GRID_EDITOR_SHOWN, self.on_edit_grid, self.age_grid) 
-        self.Bind(wx.grid.EVT_GRID_EDITOR_CREATED, lambda event: self.on_edit_grid(event, self.age_grid), self.age_grid)
-        self.drop_down_menu = drop_down_menus.Menus("age", self, self.age_grid, None) # initialize all needed drop-down menus
-
-        ### Create Buttons ###
-        hbox_one = wx.BoxSizer(wx.HORIZONTAL)
-        self.helpButton = wx.Button(self.panel, label="Help")
-        self.Bind(wx.EVT_BUTTON, lambda event: self.on_helpButton(event, "ErMagicAgeHelp.html"), self.helpButton)
-        hbox_one.Add(self.helpButton)
-
-        hboxok = wx.BoxSizer(wx.HORIZONTAL)
-        self.saveButton =  wx.Button(self.panel, id=-1, label='Save')
-        self.Bind(wx.EVT_BUTTON, lambda event: self.on_saveButton(event, self.age_grid), self.saveButton)
-        self.cancelButton = wx.Button(self.panel, wx.ID_CANCEL, '&Cancel')
-        self.Bind(wx.EVT_BUTTON, self.on_cancelButton, self.cancelButton)
-        self.continueButton = wx.Button(self.panel, id=-1, label='Save and continue')
-        self.Bind(wx.EVT_BUTTON, lambda event: self.on_continueButton(event, self.age_grid, next_dia=None), self.continueButton)
-        self.backButton = wx.Button(self.panel, wx.ID_ANY, "&Back")
-        previous_dia = self.InitLocCheck
-        self.Bind(wx.EVT_BUTTON, lambda event: self.on_backButton(event, previous_dia), self.backButton)
-
-        hboxok.Add(self.saveButton, flag=wx.RIGHT, border=10)
-        hboxok.Add(self.cancelButton, flag=wx.RIGHT, border=10 )
-        hboxok.Add(self.continueButton, flag=wx.RIGHT, border=10 )
-        hboxok.Add(self.backButton)
-
-        ### Make Containers ###
-        vbox = wx.BoxSizer(wx.VERTICAL)
-        vbox.Add(label, flag=wx.ALIGN_CENTER|wx.TOP|wx.BOTTOM, border=20)#, flag=wx.ALIGN_LEFT|wx.BOTTOM, border=20)
-        vbox.Add(hbox_one, flag=wx.BOTTOM, border=10)
-        vbox.Add(hboxok, flag=wx.BOTTOM, border=10)
-        vbox.Add(self.age_grid, flag=wx.TOP|wx.BOTTOM, border=10) # EXPAND ??
-
-        hbox_all= wx.BoxSizer(wx.HORIZONTAL)
-        hbox_all.AddSpacer(20)
-        hbox_all.AddSpacer(vbox)
-        hbox_all.AddSpacer(20)
-
-        self.panel.SetSizer(hbox_all)
-        if sys.platform in ['win32', 'win64']:
-            self.panel.SetScrollbars(20, 20, 50, 50)
-        hbox_all.Fit(self)
-        self.Centre()
-        self.Show()
-        self.Hide()
-        self.Show()
-
-
-    ### Grid methods ###
-    def make_simple_table(self, column_labels, data_dict, grid_name):
-        row_labels = sorted(data_dict.keys())
-        if len(row_labels) in range(1,4):
-            num_rows = len(row_labels)
-            height = {1: 70, 2: 90, 3: 110, 4: 130}
-            grid = wx.grid.Grid(self.panel, -1, name=grid_name, size=(-1, height[num_rows]))# autosizes width, but enforces fixed pxl height to prevent display problems
-        else:
-            grid = wx.grid.Grid(self.panel, -1, name=grid_name)
-
-        grid.ClearGrid()
-        grid.CreateGrid(len(row_labels), len(column_labels))
-
-        self.temp_data[column_labels[0]] = []
-        # set row labels
-        for n, row in enumerate(row_labels):
-            grid.SetRowLabelValue(n, str(n+1))
-            grid.SetCellValue(n, 0, row)
-            self.temp_data[column_labels[0]].append(row)
-        # set column labels
-        for n, col in enumerate(column_labels):
-            grid.SetColLabelValue(n, col)
-        # set values in each cell (other than 1st column)
-        for num, row in enumerate(row_labels):
-            for n, col in enumerate(column_labels[1:]):
-                value = data_dict[row][col]
-                if value:
-                    grid.SetCellValue(num, n+1, value)
-        grid.AutoSizeColumns(True)
-
-        grid.AutoSize() # prevents display failure
-
-        for n, col in enumerate(column_labels):
-            # adjust column widths to be a little larger then auto for nicer editing
-            orig_size = grid.GetColSize(n)
-            if orig_size > 110:
-                size = orig_size * 1.1
-            else:
-                size = orig_size * 1.6
-            grid.SetColSize(n, size)
-        return grid
-        
-
-    def make_table(self, column_labels, row_values, column_indexing, ind):
-        """ takes a list of row values (i.e., specimens, samples, locations, etc.) 
-        and a data structure (column_indexing) to index them against.  for example, 
-        to show the sample to specimen relationship, you would have:
-        column_labels: ["specimen", " ", "samples""]
-        row_values: list of specimens
-        column_indexing: Data_hierarchy object containing various data mappings
-        ind: ['sample_of_specimen'], indicating which data mapping to use """
-        if len(row_values) in range(1,4):
-            num_rows = len(row_values)
-            height = {1: 70, 2: 90, 3: 110, 4: 130}
-            grid = wx.grid.Grid(self.panel, -1, name=column_labels[0], size=(-1, height[num_rows]))# autosizes width, but enforces fixed pxl height to prevent display problems
-        else:
-            grid = wx.grid.Grid(self.panel, -1, name=column_labels[0])
-        grid.ClearGrid()
-        grid.CreateGrid(len(row_values), len(column_labels))
-
-        list_values = []
-        original_1 = [] # specs (in first dia)
-        original_2 = [] # samps (in first dia)
-
-        col1_editable = True
-        if column_labels[0] == 'specimens':
-            col1_editable = False
-
-        for n, row in enumerate(row_values):
-            grid.SetRowLabelValue(n, str(n+1)) # row labels will be simply numbers 1 - n
-            original_1.append(row)
-            grid.SetCellValue(n, 0, row) # sets first column values
-            if not col1_editable:
-                grid.SetReadOnly(n, 0, True)
-            grid.SetCellValue(n, 1, "belongs to") # sets second column (placeholder)
-            grid.SetReadOnly(n, 1, True) 
-            #
-            grid.SetReadOnly(n, 2, True) # prevents column 2 from cell editing (but will be able to edit with dropdown menu)
-            col = column_indexing[ind][row] # uses data structure to take get data, e.g.: sample_of_specimen[spec1].  
-            original_2.append(col)
-            grid.SetCellValue(n, 2, col)
-        
-        for n, label in enumerate(column_labels):
-            grid.SetColLabelValue(n, label)
-
-        #grid.AutoSizeColumns(True)
-        grid.AutoSize() # this prevents a re-size error that can occur
-
-        for n, col in enumerate(column_labels):
-            # adjust column widths to be a little larger then auto for nicer editing
-            orig_size = grid.GetColSize(n)
-            if orig_size > 110:
-                size = orig_size * 1.3
-            else:
-                size = orig_size * 1.8
-            grid.SetColSize(n, size)
-
-        # leave out tooltip binding for now, as it seems to be crashing on Windows
-        #grid.GetGridWindow().Bind(wx.EVT_MOTION, lambda event: self.onMouseOver(event, grid))
-        #grid.GetGridWindow().Bind(wx.EVT_ENTER_WINDOW, lambda event: self.onMouseOver(event, grid))
-
-        return grid, original_1, original_2
-
-
-    def onMouseOver(self, event, grid):
-        """
-        Displays a tooltip over any cell in a certain column
-        """
-        print "doing onMouseOver"
-        x, y = grid.CalcUnscrolledPosition(event.GetX(),event.GetY())
-        coords = grid.XYToCell(x, y)
-        col = coords[1]
-        row = coords[0]
-        
-        # creates tooltip message for cells with long values
-        # note: this works with EPD for windows, and modern wxPython, but not with Canopy Python
-        msg = grid.GetCellValue(row, col)
-        if len(msg) > 15:
-            event.GetEventObject().SetToolTipString(msg)
-        else:
-            event.GetEventObject().SetToolTipString('')
-
-    
-    def add_extra_grid_data(self, grid, row_labels, data_dict, col_labels=None):
-        temp_data = {}
-        for num, row in enumerate(row_labels):
-            new_list = []
-            for n, col in enumerate(col_labels[3:]):
-                if row in data_dict.keys(): # accounts for potential difference between er_*.txt and magic_measurements.txt
-                    new_list.append(data_dict[row][col])
-                    if data_dict[row][col]:
-                        grid.SetCellValue(num, n+3, data_dict[row][col])
-            temp_data[row] = new_list
-            # grid.ForceRefresh() # DOESN'T SOLVE failure to resize problem
-        return temp_data
-        
-    def on_edit_grid(self, event, grid):
-        """sets self.changes to true when user edits the grid.
-        provides down and up key functionality for exiting the editor"""
-        self.changes = True
-        editor = event.GetControl()
-        editor.Bind(wx.EVT_KEY_DOWN, lambda event: self.onEditorKey(event, grid))
-
-    def onEditorKey(self, event, grid):
-        keycode = event.GetKeyCode()
-        if keycode == wx.WXK_UP:
-            grid.MoveCursorUp(False)
-            grid.MoveCursorDown(False)# have this in because otherwise cursor moves up 2 rows
-        elif keycode == wx.WXK_DOWN:
-            grid.MoveCursorDown(False)
-            grid.MoveCursorUp(False) # have this in because otherwise cursor moves down 2 rows
-        #elif keycode == wx.WXK_LEFT:
-        #    grid.MoveCursorLeft(False)
-        #elif keycode == wx.WXK_RIGHT:
-        #    grid.MoveCursorRight(False)
-        else:
-            pass
-        event.Skip()
-
-
-    def validate(self, grid):
-        validations = ['specimens', 'samples', 'site_class', 'site_lithology', 'site_type', 'site_definition', 'site_lon', 'site_lat', 'sample_class', 'sample_lithology', 'sample_type', 'sample_lat', 'sample_lon', 'location_type', 'age_unit', 'age']#, 'magic_method_codes']
-        cols = range(grid.GetNumberCols())
-        rows = range(grid.GetNumberRows())
-        data_missing = []
-        for col in cols:
-            col_label = str(grid.GetColLabelValue(col))
-            if col_label in validations:
-                for row in rows:
-                    value = grid.GetCellValue(row, col)
-                    if not value:
-                        data_missing.append(col_label)
-                        break
-        return data_missing
-
-
-
-    def remove_starred_labels(self, grid):
-        cols_with_stars = []
-        for col in range(grid.GetNumberCols()):
-            label = grid.GetColLabelValue(col)
-            if '**' in label:
-                grid.SetColLabelValue(col, label.strip('**'))
-                cols_with_stars.append(col)
-        return cols_with_stars
-
-
-    ### Button methods ###
-
-    def on_addSampleButton(self, event):
-
-        def add_sample(sample, site):
-            add_sample_data(sample, site)
-
-        #def __init__(self, parent, title, data_items, data_method):
-
-        if not self.ErMagic.data_er_samples:
-            self.ErMagic.read_MagIC_info()
-
-        pw.AddItem(self, 'Sample', add_sample, self.sites, 'site') # makes window for adding new data
-
-        def add_sample_data(sample, site):
-            keys = self.ErMagic.er_samples_header
-            self.ErMagic.data_er_samples[sample] = dict(zip(keys, ["" for key in keys]))
-            self.ErMagic.data_er_samples[sample]['er_sample_name'] = sample
-            self.ErMagic.data_er_samples[sample]['er_site_name'] = site
-
-            self.Data_hierarchy['samples'][sample] = []
-            self.Data_hierarchy['site_of_sample'][sample] = site
-            self.Data_hierarchy['location_of_sample'][sample] = ''
-            # if that site didn't already exist in Data_hierarchy:
-            if not site in self.Data_hierarchy['sites'].keys():
-                self.Data_hierarchy['sites'][site] = []
-            self.Data_hierarchy['sites'][site].append(sample)
-
-            # re-Bind so that the updated samples list shows up on a left click
-            samples = sorted(self.Data_hierarchy['samples'].keys())
-            samples = sorted(list(set(samples).union(self.ErMagic.data_er_samples.keys())))
-            choices = self.drop_down_menu.choices
-            choices[2] = (samples, False)
-            self.drop_down_menu.update_drop_down_menu(self.spec_grid, choices)
-
-
-    def on_addSiteButton(self, event):
-        
-        def add_site(site, location):
-            add_site_data(site, location)
-
-        pw.AddItem(self, 'Site', add_site, self.locations, 'location')
-
-        def add_site_data(site, location):
-            keys = self.ErMagic.er_sites_header
-            self.ErMagic.data_er_sites[site] = dict(zip(keys, ["" for key in keys]))
-            self.ErMagic.data_er_sites[site]['er_site_name'] = site
-            self.ErMagic.data_er_sites[site]['er_location_name'] = location
-
-            self.Data_hierarchy['sites'][site] = []
-            self.Data_hierarchy['location_of_site'][site] = location
-            
-            # re-Bind so that the updated sites list shows up on a left click
-            sites = sorted(self.Data_hierarchy['sites'].keys())
-            sites = sorted(list(set(sites).union(self.ErMagic.data_er_sites.keys())))
-            self.drop_down_menu.update_drop_down_menu(self.samp_grid, {2: (sites, False)})
-
-
-    def on_addLocButton(self, event):
-
-        def add_loc(loc):
-            add_loc_data(loc)
-
-        #def __init__(self, parent, title, data_items, data_method):
-
-        if not self.ErMagic.data_er_locations:
-            pass
-            
-
-        pw.AddItem(self, 'Location', add_loc, owner_items=None, belongs_to=None) # makes window for adding new data
-
-        def add_loc_data(loc):
-            # this is not dialed in yet
-            keys = self.ErMagic.er_locations_header
-            self.ErMagic.data_er_locations[loc] = {key: "" for key in keys}
-            self.Data_hierarchy['locations'][loc] = []
-
-            # re-Bind so that the updated locations list shows up on a left click
-            locations = sorted(self.Data_hierarchy['locations'].keys())
-            locations = sorted(list(set(locations).union(self.ErMagic.data_er_locations.keys())))
-            choices = self.drop_down_menu.choices
-            choices[2] = (locations, False)
-            self.drop_down_menu.update_drop_down_menu(self.site_grid, choices)
-
-
-    def on_helpButton(self, event, page=None):
-        """shows html help page"""
-        # for use on the command line:
-        path = check_updates.get_pmag_dir()
-
-        # for use with pyinstaller
-        #path = self.main_frame.resource_dir
-        
-        html_frame = pw.HtmlFrame(self, page=(os.path.join(path, 'help_files', page)))
-        html_frame.Show()
-
-    def on_continueButton(self, event, grid, next_dia=None):
-        """pulls up next dialog, if there is one.
-        gets any updated information from the current grid and runs ErMagicBuilder"""
-        #wait = wx.BusyInfo("Please wait, working...")
-
-        # unhighlight selected columns, etc.
-        if self.drop_down_menu:  
-            self.drop_down_menu.clean_up(grid)
-
-        # remove '**' from col names
-        self.remove_starred_labels(grid)
-
-
-        if self.ErMagic.data_er_specimens:
-            pass
-        else:
-            self.ErMagic.read_MagIC_info()
-        grid.SaveEditControlValue() # locks in value in cell currently edited
-        simple_grids = {"location": self.ErMagic.data_er_locations, "age": self.ErMagic.data_er_ages}
-        grid_name = grid.GetName()
-
-        # check that all required data is present
-        validation_errors = self.validate(grid)
-        if validation_errors:
-            result = pw.warning_with_override("You are missing required data in these columns: {}\nAre you sure you want to continue without this data?".format(str(validation_errors)))
-            if result == wx.ID_YES:
-                pass
-            else:
-                return False
-
-        if self.changes:
-            if grid_name in simple_grids:
-                self.update_simple_grid_data(grid, simple_grids[grid_name])
-            else:
-                self.update_orient_data(grid)
-
-            self.ErMagic.update_ErMagic()
-            
-            self.changes = False # resets
-
-        self.panel.Destroy()
-        if next_dia:
-            wait = wx.BusyInfo("Please wait, working...")
-            next_dia()
-            del wait
-        else:
-            self.final_update()
-            self.Destroy()
-        
-
-    def on_saveButton(self, event, grid):
-        """saves any editing of the grid but does not continue to the next window"""
-        wait = wx.BusyInfo("Please wait, working...")
-
-        
-        if self.drop_down_menu:  # unhighlight selected columns, etc.
-            self.drop_down_menu.clean_up(grid)
-            
-        # remove '**' from col labels
-        starred_cols = self.remove_starred_labels(grid)
-            
-        if self.ErMagic.data_er_specimens:
-            pass
-        else:
-            self.ErMagic.read_MagIC_info()
-        grid.SaveEditControlValue() # locks in value in cell currently edited
-        grid.HideCellEditControl() # removes focus from cell that was being edited
-        simple_grids = {"location": self.ErMagic.data_er_locations, "age": self.ErMagic.data_er_ages}
-        grid_name = grid.GetName()
-        if self.changes:
-            print "there were changes, so we are updating the data"
-            if grid_name in simple_grids:
-                self.update_simple_grid_data(grid, simple_grids[grid_name])
-            else:
-                self.update_orient_data(grid)
-
-            self.ErMagic.update_ErMagic()
-            self.changes = False
-
-        for col in starred_cols:
-            label = grid.GetColLabelValue(col)
-            grid.SetColLabelValue(col, label+'**')
-        del wait
-
-
-    def on_cancelButton(self, event):
-        self.Destroy()
-
-    def on_backButton(self, event, previous_dia, current_dia = None):
-        wait = wx.BusyInfo("Please wait, working...")
-        if current_dia == self.InitLocCheck:
-            pass
-        elif previous_dia == self.InitSpecCheck or previous_dia == self.InitSampCheck:
-            self.sample_window = 0
-        self.panel.Destroy()
-        previous_dia()
-        del wait
-
-        
-    ### Manage data methods ###
-
-    def update_simple_grid_data(self, grid, data):
-        grid_name = grid.GetName()
-        rows = range(grid.GetNumberRows())
-        cols = range(grid.GetNumberCols())
-        updated_items = []
-        for row in rows:
-            item = str(grid.GetCellValue(row, 0))
-            updated_items.append(item)
-        if grid_name == "location":
-            self.update_locations(updated_items)
-        for row in rows:
-            item = str(grid.GetCellValue(row, 0))
-            for col in cols[1:]:
-                category = str(grid.GetColLabelValue(col))
-                value = str(grid.GetCellValue(row, col))
-                data[item][category] = value
-        self.temp_data[grid_name] = updated_items
-
-
-    def update_orient_data(self, grid):
-        """ """
-        col1_updated, col2_updated, col1_old, col2_old, type1, type2 = self.get_old_and_new_data(grid, 0, 2)
-        if len(set(col1_updated)) != len(col1_updated):
-            print "Duplicate {} detected.  Please ensure that all {} names are unique".format(type1, type1[:-1])
-            return 0
-        if type1 == 'specimens':
-            self.update_specimens(self.spec_grid, col1_updated, col1_old, col2_updated, col2_old, type1, type2)
-        if type1 == 'samples':
-            cols = range(3, grid.GetNumberCols())
-            col_labels = []
-            for col in cols:
-                col_labels.append(grid.GetColLabelValue(col))
-            self.update_samples(grid, col1_updated, col1_old, col2_updated, col2_old, *col_labels)
-        if type1 == 'sites':
-            self.update_sites(grid, col1_updated, col1_old, col2_updated, col2_old)#, *col_labels)
-
-        # updates the holder data so that when we save again, we will only update what is new as of the last save
-        self.temp_data[type1] = col1_updated 
-        self.temp_data[type2] = col2_updated
-
-
-    def update_locations(self, updated_locations):
-        original_locations = self.temp_data['er_location_name']
-        changed = [(original_locations[num], new_loc) for (num, new_loc) in enumerate(updated_locations) if new_loc != original_locations[num]]
-        for change in changed:
-            old_loc, new_loc = change
-            sites = self.Data_hierarchy['locations'].pop(old_loc)
-            self.Data_hierarchy['locations'][new_loc] = sites
-            #
-            data = self.ErMagic.data_er_locations.pop(old_loc)
-            self.ErMagic.data_er_locations[new_loc] = data
-            self.ErMagic.data_er_locations[new_loc]['er_location_name'] = new_loc
-            #
-            for site in sites:
-                self.Data_hierarchy['location_of_site'][site] = new_loc
-                self.ErMagic.data_er_sites[site]['er_location_name'] = new_loc
-                self.ErMagic.data_er_ages[site]['er_location_name'] = new_loc
-                samples = self.Data_hierarchy['sites'][site]
-                for sample in samples:
-                    self.Data_hierarchy['location_of_sample'][sample] = new_loc
-                    self.ErMagic.data_er_samples[sample]['er_location_name'] = new_loc
-                    specimens = self.Data_hierarchy['samples'][sample]
-                    for spec in specimens:
-                        self.Data_hierarchy['location_of_specimen'][spec] = new_loc
-                        self.ErMagic.data_er_specimens[spec]['er_location_name'] = new_loc
-
-    def update_sites(self, grid, col1_updated, col1_old, col2_updated, col2_old):#, *args):
-        changed = [(old_value, col1_updated[num]) for (num, old_value) in enumerate(col1_old) if old_value != col1_updated[num]]
-        # find where changes have occurred
-        for change in changed:
-            old_site, new_site = change
-            samples = self.Data_hierarchy['sites'].pop(old_site)
-            location = self.Data_hierarchy['location_of_site'].pop(old_site)
-            if location == " ": # prevents error
-                location = ""
-            self.Data_hierarchy['sites'][new_site] = samples
-            # fix extra temp_data to have updated site names
-            info = self.extra_site_temp_data.pop(old_site)
-            self.extra_site_temp_data[new_site] = info
-            # do locations
-            ind = self.Data_hierarchy['locations'][location].index(old_site)
-            self.Data_hierarchy['locations'][location][ind] = new_site
-            self.Data_hierarchy['location_of_site'][new_site] = location
-            # adjust for renamed sites
-            for samp in samples:
-                specimens = self.Data_hierarchy['samples'][samp]
-                self.Data_hierarchy['site_of_sample'][samp] = new_site
-                self.ErMagic.data_er_samples[samp]['er_site_name'] = new_site
-                for spec in specimens:
-                    self.Data_hierarchy['site_of_specimen'][spec] = new_site
-                    self.ErMagic.data_er_specimens[spec]['er_site_name'] = new_site
-            data = self.ErMagic.data_er_sites.pop(old_site)
-            self.ErMagic.data_er_sites[new_site] = data
-            self.ErMagic.data_er_sites[new_site]['er_site_name'] = new_site
-
-        # now do the "which site belongs to which location" part
-        for num, value in enumerate(col2_updated):
-            # find where changes have occurred
-            if value != col2_old[num]:
-                #print "CHANGE!", "new", value, "old", col2_old[num]
-                old_loc = col2_old[num]
-                new_loc = col2_updated[num]
-                if old_loc == " ": 
-                    old_loc = ""
-                if new_loc == " ":
-                    new_loc = ""
-                site = col1_updated[num]
-                #
-                self.Data_hierarchy['location_of_site'][site] = new_loc
-                #
-                if old_loc in self.Data_hierarchy['locations']:
-                    self.Data_hierarchy['locations'][old_loc].remove(site)
-                self.Data_hierarchy['locations'][new_loc].append(site)
-                #
-                for samp in self.Data_hierarchy['sites'][site]:
-                    self.Data_hierarchy['location_of_sample'][samp] = new_loc
-                    self.ErMagic.data_er_samples[samp]['er_location_name'] = new_loc
-                    for spec in self.Data_hierarchy['samples'][samp]:
-                        self.Data_hierarchy['location_of_specimen'][spec] = new_loc
-                        self.ErMagic.data_er_specimens[spec]['er_location_name'] = new_loc
-                #
-                self.ErMagic.data_er_sites[site]['er_location_name'] = new_loc
-                #
-
-
-        # check if any locations no longer have any site assigned to them, and destroy them if so.
-        # this means they won't show up in the check locations grid
-        locations = self.ErMagic.data_er_locations.keys()
-        for loc in locations:
-            #print self.Data_hierarchy['sites'][site]
-            if loc in self.Data_hierarchy['locations'].keys():
-                if not self.Data_hierarchy['locations'][loc]:
-                    self.Data_hierarchy['locations'].pop(loc)
-                    self.ErMagic.data_er_locations.pop(loc)
-         
-        # now fill in all the other columns, using extra temp_data to update only
-        # data for cells that have been changed
-        columns = grid.GetNumberCols()
-        col_labels = []
-        for col in range(columns):
-            col_labels.append(grid.GetColLabelValue(col))
-        for num_site, site in enumerate(col1_updated):
-            for num, arg in enumerate(col_labels[3:]):
-                old_value = self.extra_site_temp_data[site][num]
-                num += 3 # ignore first 3 rows
-                value = str(grid.GetCellValue(num_site, num))
-                if old_value == value:
-                    continue
-                self.ErMagic.data_er_sites[site][arg] = value
-                # update data_er_samples where appropriate 
-                # (i.e., change er_sample_type if er_site_type is changed here)
-                samples = self.Data_hierarchy['sites'][site]
-                for sample in samples:
-                    arg = arg.replace('site', 'sample')
-                    self.ErMagic.data_er_samples[sample][arg] = value
-
-    
-    def update_samples(self, grid, col1_updated, col1_old, col2_updated, col2_old, *args):
-        changed = [(old_value, col1_updated[num]) for (num, old_value) in enumerate(col1_old) if old_value != col1_updated[num]]  
-        for change in changed:
-            old_sample, new_sample = change
-            specimens = self.Data_hierarchy['samples'].pop(old_sample)
-            site = self.Data_hierarchy['site_of_sample'].pop(old_sample)
-            location = self.Data_hierarchy['location_of_sample'].pop(old_sample)
-            
-            self.Data_hierarchy['samples'][new_sample] = specimens
-            
-            for spec in specimens:
-                self.Data_hierarchy['sample_of_specimen'][spec] = new_sample
-                self.Data_hierarchy['specimens'][spec] = new_sample
-            #
-            self.Data_hierarchy['site_of_sample'][new_sample] = site
-            #
-            self.Data_hierarchy['location_of_sample'][new_sample] = location
-            #
-            ind = self.Data_hierarchy['sites'][site].index(old_sample)
-            self.Data_hierarchy['sites'][site][ind] = new_sample
-            # updating self.ErMagic.data_er_samples
-            #print "in update_samples, self.ErMagic.data_er_specimens", self.ErMagic.data_er_specimens
-            #print "in update_samples, self.ErMagic.data_er_samples.keys()", self.ErMagic.data_er_samples
-            #print "-"
-            sample_data = self.ErMagic.data_er_samples.pop(old_sample)
-            self.ErMagic.data_er_samples[new_sample] = sample_data
-            self.ErMagic.data_er_samples[new_sample]['er_sample_name'] = new_sample
-            for spec in self.ErMagic.data_er_specimens:
-                if self.ErMagic.data_er_specimens[spec]['er_sample_name'] == old_sample:
-                    self.ErMagic.data_er_specimens[spec]['er_sample_name'] = new_sample
-        
-        # now do the site changes
-        for num, value in enumerate(col2_updated):
-            # find where changes have occurred
-            if value != col2_old[num]:
-                #print "CHANGE!", "new", value, "old", col2_old[num]
-                sample = col1_updated[num]
-                specimens = self.Data_hierarchy['samples'][sample]
-                old_site = col2_old[num]
-                new_site = value
-                try:
-                    loc = self.Data_hierarchy['location_of_site'][new_site]
-                except:
-                    loc = self.ErMagic.data_er_sites[new_site]['er_location_name']
-                    self.Data_hierarchy['location_of_site'][new_site] = loc
-                samples = self.Data_hierarchy['sites'][old_site]
-                #
-                self.Data_hierarchy['site_of_sample'][sample] = new_site
-                #
-                self.Data_hierarchy['location_of_sample'][sample] = loc
-                #
-                if new_site not in self.Data_hierarchy['sites'].keys():
-                    self.Data_hierarchy['sites'][new_site] = []
-                self.Data_hierarchy['sites'][new_site].append(sample)
-                try:
-                    self.Data_hierarchy['sites'][old_site].remove(sample)
-                except ValueError: # if sample was not already in old_site, don't worry about it
-                    pass
-                for spec in specimens:
-                    # specimens belonging to a sample which has been reassigned to a different site correspondingly must change site and location
-                    self.Data_hierarchy['site_of_specimen'][spec] = new_site
-                    self.Data_hierarchy['location_of_specimen'][spec] = loc
-                
-                if not sample in self.ErMagic.data_er_samples.keys():
-                    keys = self.ErMagic.er_samples_header
-                    self.ErMagic.data_er_samples[sample] = dict(zip(keys, ["" for key in keys]))
-                    self.ErMagic.data_er_samples[sample]['er_sample_name'] = sample
-                self.ErMagic.data_er_samples[sample]['er_site_name'] = new_site
-                self.ErMagic.data_er_samples[sample]['er_location_name'] = loc
-
-        # check if any sites no longer have any sample assigned to them, and destroy them if so
-        sites = self.ErMagic.data_er_sites.keys()
-        for site in sites:
-            #print self.Data_hierarchy['sites'][site]
-            if site in self.Data_hierarchy['sites'].keys():
-                if not self.Data_hierarchy['sites'][site]:
-                    self.Data_hierarchy['sites'].pop(site)
-                    #self.ErMagic.data_er_sites.pop(site) # DON'T do this.  we want to leave all the original information in data_er_sites
-                    print "site {} is empty".format(site)
-
-        # now fill in all the other columns
-        for num_sample, sample in enumerate(col1_updated):
-            for num, arg in enumerate(args):
-                num += 3
-                value = str(grid.GetCellValue(num_sample, num))
-                self.ErMagic.data_er_samples[sample][arg] = value
-                #print "sample: {}, arg: {}, value {}".format(sample, arg, value)
-                
-      
-
-    def update_specimens(self, grid, col1_updated, col1_old, col2_updated, col2_old, type1, type2):
-        for num, value in enumerate(col2_updated):
-            # find where changes have occurred
-            if value != col2_old[num]:
-                old_samp = col2_old[num]
-                samp = value
-                spec = col1_updated[num]
-                # some of the sample data could exist only in the er_samples.txt file (so in data_er_samples and not Data_hierarchy)
-                # if the user selects a sample that does not exist in Data_hierarchy, we will propagate it in (below)
-                try:
-                    site = self.Data_hierarchy['site_of_sample'][samp] 
-                except KeyError:
-                    site = self.ErMagic.data_er_samples[samp]['er_site_name']
-                    self.Data_hierarchy['site_of_sample'][samp] = site
-                old_site = self.Data_hierarchy['site_of_sample'][old_samp]
-                try:
-                    location = self.Data_hierarchy['location_of_sample'][samp] 
-                except KeyError:
-                    location = ""
-                    self.Data_hierarchy['location_of_sample'][samp] = location
-                self.Data_hierarchy['specimens'][spec] = samp
-                self.Data_hierarchy['sample_of_specimen'][spec] = samp
-                self.Data_hierarchy['site_of_specimen'][spec] = site
-                self.Data_hierarchy['location_of_specimen'][spec] = location
-                #
-                if samp not in self.Data_hierarchy['samples'].keys():
-                    self.Data_hierarchy['samples'][samp] = []
-                self.Data_hierarchy['samples'][samp].append(spec)
-                self.Data_hierarchy['samples'][old_samp].remove(spec)
-
-                #
-                # 
-                # delete any samples which no longer have specimens from Data_hierarchy['sites'] list
-                if old_samp in self.Data_hierarchy['samples'].keys(): # if old_samp is in Data_hierarchy
-                    if not self.Data_hierarchy['samples'][old_samp]: # but it is empty (having no specimens)
-                        print "removing {} from {}".format(old_samp, old_site) 
-                        self.Data_hierarchy['sites'][old_site].remove(old_samp) # get rid of it
-
-                #
-                # do the ErMagic.data_er_samples part
-                self.ErMagic.data_er_specimens[spec]['er_sample_name'] = samp
-                self.ErMagic.data_er_specimens[spec]['er_site_name'] = site
-                self.ErMagic.data_er_specimens[spec]['er_locations_name'] = location
-                
-                    
-        columns = grid.GetNumberCols()
-        col_labels = []
-        for col in range(columns):
-            col_labels.append(grid.GetColLabelValue(col))
-        for num_specimen, specimen in enumerate(col1_updated):
-            for num, arg in enumerate(col_labels[3:]):
-                old_value = self.extra_specimen_temp_data[specimen][num]
-                num += 3 # ignore first 3 rows
-                value = str(grid.GetCellValue(num_specimen, num))
-                if old_value == value:
-                    continue
-                self.ErMagic.data_er_specimens[specimen][arg] = value
-                
-                # ADD IN THE REST OF IT HERE
-                
-
-
-        # if (through editing) a sample no longer has any specimens, remove it
-        samples = self.ErMagic.data_er_samples.keys()
-        for sample in samples:
-            if sample in self.Data_hierarchy['samples'].keys():
-                if not self.Data_hierarchy['samples'][sample]:
-                    #print "removing sample: {}", sample
-                    self.Data_hierarchy['samples'].pop(sample)
-                    self.ErMagic.data_er_samples.pop(sample)
-
-        # check if any sites no longer have any sample assigned to them, and destroy them if so
-        sites = self.ErMagic.data_er_sites.keys()
-        if False:
-        #for site in sites:
-            if not self.Data_hierarchy['sites'][site]:
-                self.Data_hierarchy['sites'].pop(site)
-                self.ErMagic.data_er_sites.pop(site)
-
-        #keys = ['sample_of_specimen', 'site_of_sample', 'location_of_specimen', 'locations', 'sites', 'site_of_specimen', 'samples', 'location_of_sample', 'location_of_site', 'specimens']
-
-
-    def get_old_and_new_data(self, grid, col1_num, col2_num):
-        cols = grid.GetNumberCols()
-        rows = grid.GetNumberRows()
-        type1 = grid.GetColLabelValue(col1_num)
-        type2 = grid.GetColLabelValue(col2_num)
-        old_1 = self.temp_data[type1]
-        old_2 = self.temp_data[type2]
-        update_1 = []
-        update_2 = []
-        for r in range(rows):
-            # gets edited values from grid
-            one = grid.GetCellValue(r, 0)
-            update_1.append(str(one))
-            two = grid.GetCellValue(r, 2)
-            update_2.append(str(two))
-        return update_1, update_2, old_1, old_2, type1, type2
-
-    def final_update(self):
-        """
-        Updates er_*.txt files to delete any specimens, samples, or sites that are no longer included
-        """
-
-        def remove_extras(long_dict, short_dict):
-            """
-            remove any key/value pairs from the long_dictionary if that key is not present in the short_dictionary
-            """
-            for dict_item in long_dict.keys():
-                if dict_item not in short_dict.keys():
-                    long_dict.pop(dict_item)
-            return long_dict
-        remove_extras(self.ErMagic.data_er_specimens, self.Data_hierarchy['specimens'])
-        remove_extras(self.ErMagic.data_er_samples, self.Data_hierarchy['samples'])
-        remove_extras(self.ErMagic.data_er_sites, self.Data_hierarchy['sites'])
-        #remove_extras(self.ErMagic.data_er_locations, self.Data_hierarchy['locations'])
-        remove_extras(self.Data_hierarchy['locations'], self.ErMagic.data_er_locations)
-        remove_extras(self.ErMagic.data_er_ages, self.Data_hierarchy['sites'])
-        self.ErMagic.update_ErMagic()
-        
-

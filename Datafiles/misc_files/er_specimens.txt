@@ -1,0 +1,240 @@
+tab	er_specimens							
+er_specimen_name	er_sample_name	er_site_name	er_location_name	er_citation_names	specimen_class	specimen_lithology	specimen_type	specimen_elevation
+sml0109b1	sml0109	Feteiras	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	10
+sml0109b2	sml0109	Feteiras	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	15
+sml0109b3	sml0109	Feteiras	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml0109b4	sml0109	Feteiras	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml0110a1	sml0110	Feteiras	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml0110a2	sml0110	Feteiras	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml0202a1	sml0202	Feteiras	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml0202a2	sml0202	Feteiras	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml0202a3	sml0202	Feteiras	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml0202a4	sml0202	Feteiras	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml0204b1	sml0204	Feteiras	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml0204b2	sml0204	Feteiras	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml0303c1	sml0303	Feteiras	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml0303c2	sml0303	Feteiras	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml0304a1	sml0304	Feteiras	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml0304a2	sml0304	Feteiras	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml0304a3	sml0304	Feteiras	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml0304a4	sml0304	Feteiras	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	23
+sml0508a1	sml0508	Feteiras	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml0508a2	sml0508	Feteiras	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml0510b1	sml0510	Feteiras	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml0510b2	sml0510	Feteiras	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml0511b1	sml0511	Feteiras	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml0511b2	sml0511	Feteiras	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml0702a1	sml0702	Carvao	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml0702a2	sml0702	Carvao	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml0703b1	sml0703	Carvao	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml0703b2	sml0703	Carvao	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml0703b3	sml0703	Carvao	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml0703b4	sml0703	Carvao	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml0801b1	sml0801	Fogo 1X	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml0801b2	sml0801	Fogo 1X	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml0802a1	sml0802	Fogo 1X	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml0802a2	sml0802	Fogo 1X	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml0805b1	sml0805	Fogo 1X	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml0805b2	sml0805	Fogo 1X	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml0805b3	sml0805	Fogo 1X	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml0805b4	sml0805	Fogo 1X	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml1006b1	sml1006	Fogo 1	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml1006b2	sml1006	Fogo 1	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml1104a1	sml1104	Cruz S	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml1104a2	sml1104	Cruz S	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml1307a1	sml1307	Mos	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml1307a2	sml1307	Mos	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml1307a3	sml1307	Mos	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml1307a4	sml1307	Mos	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml1308b1	sml1308	Mos	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml1308b2	sml1308	Mos	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml1410b1	sml1410	Lagoa	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml1410b2	sml1410	Lagoa	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml1410b3	sml1410	Lagoa	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml1410b4	sml1410	Lagoa	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml1411c1	sml1411	Lagoa	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml1411c2	sml1411	Lagoa	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml1507a1	sml1507	Mos	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml1507a2	sml1507	Mos	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml1507a3	sml1507	Mos	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml1507a4	sml1507	Mos	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml1509b1	sml1509	Mos	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml1509b2	sml1509	Mos	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml1513b1	sml1513	Mos	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml1513b2	sml1513	Mos	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml1608b1	sml1608	Carvao	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml1608b2	sml1608	Carvao	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml1608b3	sml1608	Carvao	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	19
+sml1608b4	sml1608	Carvao	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml1714b1	sml1714	Caldeirao	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml1714b2	sml1714	Caldeirao	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml1714b3	sml1714	Caldeirao	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml1714b4	sml1714	Caldeirao	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml1802b1	sml1802	Cascalho	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml1802b2	sml1802	Cascalho	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml1802b3	sml1802	Cascalho	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml1802b4	sml1802	Cascalho	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml1815b1	sml1815	Cascalho	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml1815b2	sml1815	Cascalho	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml1816a1	sml1816	Cascalho	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml1816a2	sml1816	Cascalho	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml1906b1	sml1906	Queimado	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml1906b2	sml1906	Queimado	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml1913a1	sml1913	Queimado	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml1913a2	sml1913	Queimado	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml1914b1	sml1914	Queimado	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml1914b2	sml1914	Queimado	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml1916a1	sml1916	Queimado	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml1916a2	sml1916	Queimado	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml2101c1	sml2101	Mata das Feiticeiras	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml2101c2	sml2101	Mata das Feiticeiras	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml2101c3	sml2101	Mata das Feiticeiras	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml2101c4	sml2101	Mata das Feiticeiras	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml2102b1	sml2102	Mata das Feiticeiras	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml2102b2	sml2102	Mata das Feiticeiras	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml2103b1	sml2103	Mata das Feiticeiras	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml2103b2	sml2103	Mata das Feiticeiras	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml2114b1	sml2114	Mata das Feiticeiras	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml2114b2	sml2114	Mata das Feiticeiras	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml2204a1	sml2204	Mata das Feiticeiras	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml2204a2	sml2204	Mata das Feiticeiras	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml2211a1	sml2211	Mata das Feiticeiras	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml2211a2	sml2211	Mata das Feiticeiras	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml2215a1	sml2215	Mata das Feiticeiras	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml2215a2	sml2215	Mata das Feiticeiras	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml2304b1	sml2304	Caldeirao E	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml2304b2	sml2304	Caldeirao E	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml2316b1	sml2316	Caldeirao E	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml2316b2	sml2316	Caldeirao E	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml2316b3	sml2316	Caldeirao E	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml2316b4	sml2316	Caldeirao E	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml2405b1	sml2405	Caldeirao W	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml2405b2	sml2405	Caldeirao W	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml2405b3	sml2405	Caldeirao W	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml2405b4	sml2405	Caldeirao W	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml2614a1	sml2614	Furna	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml2614a2	sml2614	Furna	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml2614a3	sml2614	Furna	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml2614a4	sml2614	Furna	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml2614a5	sml2614	Furna	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml2614a6	sml2614	Furna	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml2701b1	sml2701	Furna	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml2701b2	sml2701	Furna	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml2701b3	sml2701	Furna	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml2701b4	sml2701	Furna	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml2707b1	sml2707	Furna	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml2707b2	sml2707	Furna	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml2709b1	sml2709	Furna	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml2709b2	sml2709	Furna	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml2710b1	sml2710	Furna	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml2710b2	sml2710	Furna	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml2710b3	sml2710	Furna	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml2710b4	sml2710	Furna	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml2710b5	sml2710	Furna	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml2710b6	sml2710	Furna	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml2801c1	sml2801	Ponta das Praias	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml2801c2	sml2801	Ponta das Praias	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml2801c3	sml2801	Ponta das Praias	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml2801c4	sml2801	Ponta das Praias	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml2905a1	sml2905	Cruz N	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml2905a2	sml2905	Cruz N	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml2905a3	sml2905	Cruz N	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml2905a4	sml2905	Cruz N	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml2906a1	sml2906	Cruz N	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml2906a2	sml2906	Cruz N	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml2906a3	sml2906	Cruz N	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml2906a4	sml2906	Cruz N	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml2909a1	sml2909	Cruz N	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml2909a2	sml2909	Cruz N	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml2909a3	sml2909	Cruz N	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml2909a4	sml2909	Cruz N	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml3014a1	sml3014	Caloura	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml3014a2	sml3014	Caloura	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml3101b1	sml3101	Queimado	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml3101b2	sml3101	Queimado	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml3113a1	sml3113	Queimado	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml3113a2	sml3113	Queimado	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml3113a3	sml3113	Queimado	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml3113a4	sml3113	Queimado	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml3114b1	sml3114	Queimado	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml3114b2	sml3114	Queimado	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml3205b1	sml3205	Ponta da Ferraria	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml3205b2	sml3205	Ponta da Ferraria	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml3205b3	sml3205	Ponta da Ferraria	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml3205b4	sml3205	Ponta da Ferraria	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml3211a1	sml3211	Ponta da Ferraria	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml3211a2	sml3211	Ponta da Ferraria	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml3211a3	sml3211	Ponta da Ferraria	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml3211a4	sml3211	Ponta da Ferraria	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml3301a3	sml3301	Fogo 1	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml3301a4	sml3301	Fogo 1	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml3301b1	sml3301	Fogo 1	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml3301b2	sml3301	Fogo 1	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml3304b1	sml3304	Fogo 1	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml3304b2	sml3304	Fogo 1	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml3310a1	sml3310	Fogo 1	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml3310a2	sml3310	Fogo 1	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml3311a1	sml3311	Fogo 1	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml3311a2	sml3311	Fogo 1	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml3405a1	sml3405	Queimado	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml3405a2	sml3405	Queimado	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml3405a3	sml3405	Queimado	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml3405a4	sml3405	Queimado	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml0109b	sml0109	Feteiras	Azores	my study	Igneous : Extrusive	Basalt	Lava Flow	
+sml0110a	sml0110	Feteiras	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml0202a	sml0202	Feteiras	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml0204a	sml0204	Feteiras	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml0303c	sml0303	Feteiras	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml0304a	sml0304	Feteiras	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml0508a	sml0508	Feteiras	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml0510b	sml0510	Feteiras	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml0511b	sml0511	Feteiras	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml0702a	sml0702	Carvao	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml0703b	sml0703	Carvao	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml0801b	sml0801	Fogo 1X	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml0802a	sml0802	Fogo 1X	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml0805b	sml0805	Fogo 1X	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml1006b	sml1006	Fogo 1	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml1104b	sml1104	Cruz S	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml1307a	sml1307	Mos	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml1308b	sml1308	Mos	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml1410b	sml1410	Lagoa	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml1411c	sml1411	Lagoa	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml1507a	sml1507	Mos	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml1507b	sml1507	Mos	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml1513b	sml1513	Mos	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml1608b	sml1608	Carvao	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml1714b	sml1714	Caldeirao	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml1802b	sml1802	Cascalho	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml1815b	sml1815	Cascalho	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml1816b	sml1816	Cascalho	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml1906b	sml1906	Queimado	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml1914b	sml1914	Queimado	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml1916a	sml1916	Queimado	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml2101c	sml2101	Mata das Feiticeiras	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml2103b	sml2103	Mata das Feiticeiras	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml2204a	sml2204	Mata das Feiticeiras	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml2211a	sml2211	Mata das Feiticeiras	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml2304b	sml2304	Caldeirao E	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml2316b	sml2316	Caldeirao E	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml2405b	sml2405	Caldeirao W	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml2614a	sml2614	Furna	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml2701b	sml2701	Furna	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml2707b	sml2707	Furna	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml2709b	sml2709	Furna	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml2710b	sml2710	Furna	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml2801c	sml2801	Ponta das Praias	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml2905a	sml2905	Cruz N	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml2906b	sml2906	Cruz N	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml2909a	sml2909	Cruz N	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml3014a	sml3014	Caloura	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml3101b	sml3101	Queimado	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml3113a	sml3113	Queimado	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml3114b	sml3114	Queimado	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml3205b	sml3205	Ponta da Ferraria	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml3211a	sml3211	Ponta da Ferraria	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml3301a	sml3301	Fogo 1	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml3310a	sml3310	Fogo 1	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml3311a	sml3311	Fogo 1	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sml3405a	sml3405	Queimado	Azores	This study	Igneous : Extrusive	Basalt	Lava Flow	
+sr01a2	sr01a				Igneous	Basaltic Lava	Lava	33

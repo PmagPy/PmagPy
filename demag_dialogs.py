@@ -1237,7 +1237,7 @@ class demag_criteria_dialog(wx.Dialog):
 
 
 #if __name__ == '__main__':
-#    app = wx.PySimpleApp()
+#    app = wx.App()
 #    app.frame = demag_criteria_dialog(None, {},title='Set Acceptance Criteria')
 #    app.frame.Show()
 #    app.frame.Center()
@@ -1245,7 +1245,7 @@ class demag_criteria_dialog(wx.Dialog):
 
  
 #if __name__ == '__main__':
-#    app = wx.PySimpleApp()
+#    app = wx.App()
 #    app.frame = magic_pmag_tables_dialog(None,"./",{},{})
 #    app.frame.Center()
 #    #alignToTop(app.frame)

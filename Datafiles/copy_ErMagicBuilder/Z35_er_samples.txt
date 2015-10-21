@@ -1,0 +1,9 @@
+tab 	er_samples
+er_citation_names	er_location_name	er_sample_name	er_site_name	magic_method_codes	sample_azimuth	sample_bed_dip	sample_bed_dip_direction	sample_class	sample_declination_correction	sample_dip	sample_height	sample_lithology	sample_type
+This study		Z35.1	Z35.	SO-CMD-NORTH	23.5	55.0	444.5		0.5	-83.0	148.16		
+This study		Z35.2	Z35.	SO-CMD-NORTH	79.5	55.0	444.5		0.5	-37.0	148.22		
+This study		Z35.3	Z35.	SO-CMD-NORTH	41.5	55.0	444.5		0.5	-31.0	148.32		
+This study		Z35.4	Z35.	SO-CMD-NORTH	56.5	55.0	444.5		0.5	-50.0	248.23		
+This study		Z35.5	Z35.	SO-CMD-NORTH	5.5	55.0	444.5		0.5	-82.0	148.25		
+This study		Z35.6	Z35.	SO-CMD-NORTH	2.5	55.0	444.5		0.5	-20.0	148.26		
+This study		Z35.7	Z35.	SO-CMD-NORTH	14.5	55.0	444.5		0.5	-22.0	148.35		

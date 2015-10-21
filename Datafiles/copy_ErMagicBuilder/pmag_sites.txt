@@ -1,0 +1,3 @@
+tab	pmag_sites
+er_site_name	er_location_name	er_specimen_names	er_sample_names	er_citation_names	magic_instrument_codes	magic_method_codes
+MGH1	Munich	Z35.1a:MGH1	Z35.1:MGH1	This study		fake_method_code

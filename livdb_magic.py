@@ -1189,7 +1189,7 @@ DESCRIPTION
 """
 
 if __name__ == '__main__':
-    app = wx.PySimpleApp()
+    app = wx.App()
     app.frame = convert_livdb_files_to_MagIC("./")
     app.frame.Show()
     app.frame.Center()

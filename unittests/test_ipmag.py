@@ -24,12 +24,14 @@ class TestUploadMagic(unittest.TestCase):
         self.dir_path = os.path.join(os.getcwd(), 'unittests', 'examples')
 
     def test_empty_dir(self):
-        outfile, error_message = ipmag.upload_magic(dir_path=os.path.join(self.dir_path, 'empty_dir'))
+        outfile, error_message, errors = ipmag.upload_magic(dir_path=os.path.join(self.dir_path, 'empty_dir'))
+        self.assertFalse(errors)
         self.assertFalse(outfile)
         self.assertEqual(error_message, "no data found, upload file not created")
 
     def test_with_invalid_files(self):
-        outfile, error_message = ipmag.upload_magic(dir_path=os.path.join(self.dir_path, 'my_project_with_errors'))
+        outfile, error_message, errors = ipmag.upload_magic(dir_path=os.path.join(self.dir_path, 'my_project_with_errors'))
+        self.assertTrue(errors)
         self.assertFalse(outfile)
         self.assertEqual(error_message, "file validation has failed.  You may run into problems if you try to upload this file.")
         directory = os.path.join(self.dir_path, 'my_project_with_errors')
@@ -46,9 +48,10 @@ class TestUploadMagic(unittest.TestCase):
 
     def test_with_valid_files(self):
         #print os.path.join(self.dir_path, 'my_project')
-        outfile, error_message = ipmag.upload_magic(dir_path=os.path.join(self.dir_path, 'my_project'))
+        outfile, error_message, errors = ipmag.upload_magic(dir_path=os.path.join(self.dir_path, 'my_project'))
         self.assertTrue(outfile)
         self.assertEqual(error_message, '')
+        self.assertFalse(errors)
         assert os.path.isfile(outfile)
         directory = os.path.join(self.dir_path, 'my_project_with_errors')
         os.remove(os.path.join(directory, outfile))
@@ -265,27 +268,28 @@ class TestCoreDepthplot(unittest.TestCase):
 
     def test_core_depthplot_bad_params(self):
         path = os.path.join(WD, 'Datafiles', 'core_depthplot')
-        program_ran, error_message = ipmag.core_depthplot(dir_path=path)
+        program_ran, error_message = ipmag.core_depthplot(input_dir_path=path)
         self.assertFalse(program_ran)
         self.assertEqual('No data found to plot\nTry again with different parameters', error_message)
 
     def test_core_depthplot_bad_method(self):
         path = os.path.join(WD, 'Datafiles', 'core_depthplot')
-        program_ran, error_message = ipmag.core_depthplot(dir_path=path, step=5, meth='NA')
+        program_ran, error_message = ipmag.core_depthplot(input_dir_path=path, step=5, meth='NA')
         self.assertFalse(program_ran)
         self.assertEqual(error_message, 'method: "{}" not supported'.format('NA'))
 
 
     def test_core_depthplot_success(self):
         path = os.path.join(WD, 'Datafiles', 'core_depthplot')
-        program_ran, plot_name = ipmag.core_depthplot(dir_path=path, spc_file='pmag_specimens.txt', samp_file='er_samples.txt', meth='AF', step=15)
+        program_ran, plot_name = ipmag.core_depthplot(input_dir_path=path, spc_file='pmag_specimens.txt', samp_file='er_samples.txt', meth='AF', step=15)
+        #program_ran, plot_name = True, 'DSDP Site 522_m:_LT-AF-Z_core-depthplot.svg'
         self.assertTrue(program_ran)
         self.assertEqual(plot_name, 'DSDP Site 522_m:_LT-AF-Z_core-depthplot.svg')
 
     def test_core_depthplot_with_sum_file(self):
         path = os.path.join(WD, 'Datafiles', 'UTESTA', 'UTESTA_MagIC')
         sum_file = 'CoreSummary_XXX_UTESTA.csv'
-        program_ran, plot_name = ipmag.core_depthplot(dir_path=path, spc_file='pmag_specimens.txt', samp_file='er_samples.txt', meth='AF', step=15, sum_file=sum_file)
+        program_ran, plot_name = ipmag.core_depthplot(input_dir_path=path, spc_file='pmag_specimens.txt', samp_file='er_samples.txt', meth='AF', step=15, sum_file=sum_file)
         self.assertTrue(program_ran)
         outfile = 'UTESTA_m:_LT-AF-Z_core-depthplot.svg'
         self.assertEqual(plot_name, outfile)
@@ -293,19 +297,19 @@ class TestCoreDepthplot(unittest.TestCase):
 
     def test_core_depthplot_without_full_time_options(self):
         path = os.path.join(WD, 'Datafiles', 'core_depthplot')
-        program_ran, error_message = ipmag.core_depthplot(dir_path=path, spc_file='pmag_specimens.txt', samp_file='er_samples.txt', meth='AF', step=15, fmt='png', pltInc=False, logit=True, pltTime=True)#, timescale='gts12', amin=0, amax=3) # pltDec = False causes failure with these data
+        program_ran, error_message = ipmag.core_depthplot(input_dir_path=path, spc_file='pmag_specimens.txt', samp_file='er_samples.txt', meth='AF', step=15, fmt='png', pltInc=False, logit=True, pltTime=True)#, timescale='gts12', amin=0, amax=3) # pltDec = False causes failure with these data
         self.assertFalse(program_ran)
         self.assertEqual(error_message, "To plot time, you must provide amin, amax, and timescale")
 
     def test_core_depthplot_success_with_options(self):
         path = os.path.join(WD, 'Datafiles', 'core_depthplot')
-        program_ran, plot_name = ipmag.core_depthplot(dir_path=path, spc_file='pmag_specimens.txt', samp_file='er_samples.txt', meth='AF', step=15, fmt='png', pltInc=False, logit=True, pltTime=True, timescale='gts12', amin=0, amax=3) # pltDec = False causes failure with these data
+        program_ran, plot_name = ipmag.core_depthplot(input_dir_path=path, spc_file='pmag_specimens.txt', samp_file='er_samples.txt', meth='AF', step=15, fmt='png', pltInc=False, logit=True, pltTime=True, timescale='gts12', amin=0, amax=3) # pltDec = False causes failure with these data
         self.assertTrue(program_ran)
         self.assertEqual(plot_name, 'DSDP Site 522_m:_LT-AF-Z_core-depthplot.png')
 
     def test_core_depthplot_success_with_other_options(self):
         path = os.path.join(WD, 'Datafiles', 'core_depthplot')
-        program_ran, plot_name = ipmag.core_depthplot(dir_path=path, spc_file='pmag_specimens.txt', age_file='er_ages.txt', meth='AF', step=15, fmt='png', pltInc=False, logit=True, pltTime=True, timescale='gts12', amin=0, amax=3) # pltDec = False causes failure with these data
+        program_ran, plot_name = ipmag.core_depthplot(input_dir_path=path, spc_file='pmag_specimens.txt', age_file='er_ages.txt', meth='AF', step=15, fmt='png', pltInc=False, logit=True, pltTime=True, timescale='gts12', amin=0, amax=3) # pltDec = False causes failure with these data
         self.assertTrue(program_ran)
         self.assertEqual(plot_name, 'DSDP Site 522_m:_LT-AF-Z_core-depthplot.png')
 

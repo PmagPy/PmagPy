@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 
 import wx
-import unittest
+#import unittest
 
 btn_id = wx.NewId()
 
 
-
+ignore = """
 class MyPanel(wx.Panel):
     def __init__(self, parent):
         wx.Panel.__init__(self, parent, -1)
@@ -15,7 +15,7 @@ class MyPanel(wx.Panel):
         
 class MyDialog(wx.Dialog):
     def __init__(self, parent):
-        wx.Dialog.__init__(self, parent, -1, 'Test')
+        wx.Dialog.__init__(self, parent, -1, 'Dialogo')
         self.btn = wx.Button(self, btn_id, label="OK!!")
         self.btn.Bind(wx.EVT_BUTTON, self.close_dialog)
 
@@ -29,7 +29,7 @@ class TestMyDialog(unittest.TestCase):
     def setUp(self):
         self.app = wx.App()
         self.frame = wx.Frame(None)
-        self.frame.Show()
+        #self.frame.Show()
 
     def tearDown(self):
         self.app.Destroy()
@@ -38,13 +38,14 @@ class TestMyDialog(unittest.TestCase):
         self.assertTrue(True)
 
     def test_dia(self):
-        result = self.ShowDia()
-        self.assertEqual(result, wx.ID_OK)
+        pass
+        #result = self.ShowDia()
+        #self.assertEqual(result, wx.ID_OK)
 
     def ShowDia(self):
-        self.dia = MyDialog(self.frame)
+        #self.dia = MyDialog(self.frame)
         #wx.CallLater(250, self.dia.EndModal, wx.ID_OK) # works!!
-        wx.CallLater(250, self.DoButtonEvt, self.dia.btn) # also works
+        #wx.CallLater(250, self.DoButtonEvt, self.dia.btn) # also works
         result = self.dia.ShowModal()
         return result
         
@@ -77,7 +78,8 @@ class TestMyPanel(unittest.TestCase):
         self.pnl.Destroy()
         return enabled
 
-
+"""
 
 if __name__ == '__main__':
-    unittest.main()
+    pass
+    #unittest.main()
