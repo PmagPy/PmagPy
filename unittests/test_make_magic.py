@@ -283,11 +283,18 @@ class TestMakeMagicMenu(unittest.TestCase):
         help_item = fmenu.FindItemById(help_id)
 
         top_windows = wx.GetTopLevelWindows()
+        print 'before'
+        for window in top_windows:
+            print 'top-level window:', window
+            print 'name:', window.Label
+        print 'after'
         event = wx.CommandEvent(wx.EVT_MENU.evtType[0], help_id)
         self.frame.GetEventHandler().ProcessEvent(event)
         top_windows = wx.GetTopLevelWindows()
         help_window = False
         for window in top_windows:
+            print 'top-level window:', window
+            print 'name:', window.Label
             if window.Label == 'Help Window':
                 help_window = window
         self.assertTrue(help_window)
