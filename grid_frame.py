@@ -297,6 +297,14 @@ class GridFrame(wx.Frame):
             if 'age' in self.parent.Parent.validation_mode:
                 self.grid.paint_invalid_cells(self.parent.Parent.warn_dict['age'])
                 self.grid.ForceRefresh()
+        # the grid show up if it's the same size as the previous grid
+        # awkward solution (causes flashing):
+        if self.grid.Size[0] < 100:
+            if self.grid.GetWindowStyle() != wx.DOUBLE_BORDER:
+                self.grid.SetWindowStyle(wx.DOUBLE_BORDER)
+            self.main_sizer.Fit(self)
+            self.grid.SetWindowStyle(wx.NO_BORDER)
+            self.main_sizer.Fit(self)
 
     def init_grid_headers(self):
         self.grid_headers = self.er_magic.headers
