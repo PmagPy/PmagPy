@@ -11,7 +11,7 @@ Essentials_Problem_Datafiles
 .#*
 *.log
 *.redo
-       
+*.ipynb       
 
 consistency_test/pmag_fixed_criteria.txt
 all_errors_list.txt

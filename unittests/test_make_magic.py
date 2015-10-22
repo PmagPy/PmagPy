@@ -360,6 +360,21 @@ class TestMethodCodes(unittest.TestCase):
         cell_value = self.frame.grid.GetCellValue(0, col_ind)
         self.assertEqual(cell_value, 'pmag_method_codes')
 
+    def test_something(self):
+        other_WD = os.path.join(os.getcwd(), 'unittests', 'examples', 'my_project')
+        self.other_er_magic = builder.ErMagicBuilder(other_WD)
+        self.other_er_magic.init_default_headers()
+        self.other_er_magic.init_actual_headers()
+        self.other_er_magic.get_all_magic_info()
+        #self.frame = make_magic.MainFrame(self.method_WD)
+        self.other_frame = grid_frame.GridFrame(self.other_er_magic, other_WD,
+                                                "specimen", "specimen")
+        spec = self.other_er_magic.specimens[0]
+
+        #self.assertNotIn('magic_method_codes++', self.other_frame.grid.col_labels)
+
+
+
     def test_save_codes(self):
         spec = self.ErMagic.specimens[0]
         col_ind = self.frame.grid.col_labels.index('magic_method_codes')
