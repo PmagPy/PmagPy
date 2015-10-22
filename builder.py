@@ -586,14 +586,12 @@ Adding location with name: {}""".format(new_location_name, new_location_name)
             ind = self.ancestry.index(child_type)
             parent_type = self.ancestry[ind+1]
             grandparent_type = self.ancestry[ind+2]
-
         if not grandparent_type:
             ind = self.ancestry.index(child_type)
             try:
                 grandparent_type = self.ancestry[ind+2]
             except IndexError:
                 grandparent_type = None
-                        
         child_list, child_class, child_constructor = self.data_lists[child_type]
 
         if parent_type:
@@ -621,7 +619,6 @@ Adding location with name: {}""".format(new_location_name, new_location_name)
                     grandparent = self.find_by_name(grandparent_name, grandparent_list)
                     if grandparent_name and not grandparent:
                         grandparent = grandparent_constructor(grandparent_name, None)
-                        grandparent_list.append(grandparent)
                 parent = parent_constructor(parent_name, grandparent_name)
             # otherwise there is no parent and none can be created, so use an empty string
             elif not parent:
@@ -647,7 +644,6 @@ Adding location with name: {}""".format(new_location_name, new_location_name)
                                                 new_pmag_data=data_dict[child_name])
             # old way
             #child.__setattr__(attr + '_data', data_dict[child_name])
-
             remove_dict_headers(child.er_data)
             remove_dict_headers(child.pmag_data)
             #
