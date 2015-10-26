@@ -64,12 +64,15 @@ class GridFrame(wx.Frame):
         self.grid = self.grid_builder.make_grid()
         self.grid.InitUI()
 
+        ## Column management buttons
         self.add_cols_button = wx.Button(self.panel, label="Add additional columns",
                                          name='add_cols_btn')
         self.Bind(wx.EVT_BUTTON, self.on_add_cols, self.add_cols_button)
         self.remove_cols_button = wx.Button(self.panel, label="Remove columns",
                                             name='remove_cols_btn')
         self.Bind(wx.EVT_BUTTON, self.on_remove_cols, self.remove_cols_button)
+
+        ## Row management buttons
         self.remove_row_button = wx.Button(self.panel, label="Remove last row",
                                            name='remove_last_row_btn')
         self.Bind(wx.EVT_BUTTON, self.on_remove_row, self.remove_row_button)
@@ -86,33 +89,7 @@ class GridFrame(wx.Frame):
         self.Bind(wx.EVT_BUTTON, lambda event: self.on_remove_row(event, False), self.deleteRowButton)
         self.deleteRowButton.Disable()
 
-        self.msg_boxsizer = wx.StaticBoxSizer(wx.StaticBox(self.panel, -1, name='msg_boxsizer'), wx.VERTICAL)
-        self.default_msg_text = 'Edit {} here.\nYou can add or remove both rows and columns, however required columns may not be deleted.\nControlled vocabularies are indicated by **, and will have drop-down-menus.\nTo edit all values in a column, click the column header.\nYou can cut and paste a block of cells from an Excel-like file.\nJust click the top left cell and use command "v".'.format(self.grid_type + 's')
-        txt = ''
-        
-        if self.grid_type == 'location':
-            txt = '\n\nNote: you can fill in location start/end latitude/longitude here.\nHowever, if you add sites in step 2, the program will calculate those values automatically,\nbased on site latitudes/logitudes.\nThese values will be written to your upload file.'
-
-        if self.grid_type == 'sample':
-            txt = "\n\nNote: you can fill in lithology, class, and type for each sample here.\nHowever, if the sample's class, lithology, and type are the same as its parent site, those values will propagate down,\nand will be written to your sample file automatically."
-
-        if self.grid_type == 'specimen':
-            txt = "\n\nNote: you can fill in lithology, class, and type for each specimen here.\nHowever, if the specimen's class, lithology, and type are the same as its parent sample, those values will propagate down,\nand will be written to your specimen file automatically."
-
-        if self.grid_type == 'age':
-            txt = "\n\nNote: only ages for which you provide data will be written to your upload file."
-
-        self.default_msg_text += txt
-
-        self.msg_text = wx.StaticText(self.panel, label=self.default_msg_text,
-                                      style=wx.TE_CENTER, name='msg text')
-        self.msg_boxsizer.Add(self.msg_text)
-
-        self.toggle_help_btn = wx.Button(self.panel, id=-1, label="Show help",
-                                         name='toggle_help_btn')
-        self.Bind(wx.EVT_BUTTON, self.toggle_help, self.toggle_help_btn)
-        self.msg_boxsizer.ShowItems(False)
-
+        ## Data management buttons
         self.importButton = wx.Button(self.panel, id=-1,
                                       label='Import MagIC-format file', name='import_btn')
         self.Bind(wx.EVT_BUTTON, self.onImport, self.importButton)
@@ -122,6 +99,43 @@ class GridFrame(wx.Frame):
         self.cancelButton = wx.Button(self.panel, id=-1, label='Cancel', name='cancel_btn')
         self.Bind(wx.EVT_BUTTON, self.onCancelButton, self.cancelButton)
 
+        ## Help message and button
+        # button
+        self.toggle_help_btn = wx.Button(self.panel, id=-1, label="Show help",
+                                         name='toggle_help_btn')
+        self.Bind(wx.EVT_BUTTON, self.toggle_help, self.toggle_help_btn)
+        # message
+        self.help_msg_boxsizer = wx.StaticBoxSizer(wx.StaticBox(self.panel, -1, name='help_msg_boxsizer'), wx.VERTICAL)
+        self.default_msg_text = 'Edit {} here.\nYou can add or remove both rows and columns, however required columns may not be deleted.\nControlled vocabularies are indicated by **, and will have drop-down-menus.\nTo edit all values in a column, click the column header.\nYou can cut and paste a block of cells from an Excel-like file.\nJust click the top left cell and use command "v".'.format(self.grid_type + 's')
+        txt = ''
+        if self.grid_type == 'location':
+            txt = '\n\nNote: you can fill in location start/end latitude/longitude here.\nHowever, if you add sites in step 2, the program will calculate those values automatically,\nbased on site latitudes/logitudes.\nThese values will be written to your upload file.'
+        if self.grid_type == 'sample':
+            txt = "\n\nNote: you can fill in lithology, class, and type for each sample here.\nHowever, if the sample's class, lithology, and type are the same as its parent site, those values will propagate down,\nand will be written to your sample file automatically."
+        if self.grid_type == 'specimen':
+            txt = "\n\nNote: you can fill in lithology, class, and type for each specimen here.\nHowever, if the specimen's class, lithology, and type are the same as its parent sample, those values will propagate down,\nand will be written to your specimen file automatically."
+        if self.grid_type == 'age':
+            txt = "\n\nNote: only ages for which you provide data will be written to your upload file."
+        self.default_msg_text += txt
+        self.msg_text = wx.StaticText(self.panel, label=self.default_msg_text,
+                                      style=wx.TE_CENTER, name='msg text')
+        self.help_msg_boxsizer.Add(self.msg_text)
+        self.help_msg_boxsizer.ShowItems(False)
+
+        ## Code message and button
+        # button
+        self.toggle_codes_btn = wx.Button(self.panel, id=-1, label="Show method codes",
+                                          name='toggle_codes_btn')
+        self.Bind(wx.EVT_BUTTON, self.toggle_codes, self.toggle_codes_btn)
+        # message
+        self.code_msg_boxsizer = wx.StaticBoxSizer(wx.StaticBox(self.panel, -1, name='code_msg_boxsizer'), wx.VERTICAL)
+        #more_msg_text = wx.StaticText(self.panel, label=self.default_msg_text,
+        #                              style=wx.TE_CENTER, name='msg text')
+        #self.code_msg_boxsizer.Add(more_msg_text)
+        self.code_msg_boxsizer = pw.MethodCodeDemystifier(self.panel)
+        self.code_msg_boxsizer.ShowItems(False)
+
+        ## Add content to sizers
         hbox = wx.BoxSizer(wx.HORIZONTAL)
         col_btn_vbox = wx.StaticBoxSizer(wx.StaticBox(self.panel, -1, label='Columns',
                                                       name='manage columns'), wx.VERTICAL)
@@ -225,7 +239,9 @@ class GridFrame(wx.Frame):
         # final layout, set size
         self.main_sizer.Add(hbox, flag=wx.ALL, border=20)
         self.main_sizer.Add(self.toggle_help_btn, flag=wx.BOTTOM|wx.ALIGN_CENTRE, border=5)
-        self.main_sizer.Add(self.msg_boxsizer, flag=wx.BOTTOM|wx.ALIGN_CENTRE, border=10)
+        self.main_sizer.Add(self.help_msg_boxsizer, flag=wx.BOTTOM|wx.ALIGN_CENTRE, border=10)
+        self.main_sizer.Add(self.toggle_codes_btn, flag=wx.BOTTOM|wx.ALIGN_CENTRE, border=5)
+        self.main_sizer.Add(self.code_msg_boxsizer, flag=wx.BOTTOM|wx.ALIGN_CENTRE, border=5)
         self.main_sizer.Add(self.grid_box, flag=wx.ALL, border=10)
         self.panel.SetSizer(self.main_sizer)
         self.main_sizer.Fit(self)
@@ -258,11 +274,21 @@ class GridFrame(wx.Frame):
     def toggle_help(self, event):
         btn = event.GetEventObject()
         if btn.Label == 'Show help':
-            self.msg_boxsizer.ShowItems(True)
+            self.help_msg_boxsizer.ShowItems(True)
             btn.SetLabel('Hide help')
         else:
-            self.msg_boxsizer.ShowItems(False)
+            self.help_msg_boxsizer.ShowItems(False)
             btn.SetLabel('Show help')
+        self.do_fit(None)
+
+    def toggle_codes(self, event):
+        btn = event.GetEventObject()
+        if btn.Label == 'Show method codes':
+            self.code_msg_boxsizer.ShowItems(True)
+            btn.SetLabel('Hide method codes')
+        else:
+            self.code_msg_boxsizer.ShowItems(False)
+            btn.SetLabel('Show method codes')
         self.do_fit(None)
 
     def toggle_ages(self, event):
@@ -429,7 +455,7 @@ class GridFrame(wx.Frame):
             btn.Disable()
         # then make some visual changes
         self.msg_text.SetLabel("Remove grid columns: click on a column header to delete it.  Required headers for {}s may not be deleted.".format(self.grid_type))
-        self.msg_boxsizer.Fit(self.msg_boxsizer.GetStaticBox())
+        self.help_msg_boxsizer.Fit(self.help_msg_boxsizer.GetStaticBox())
         self.main_sizer.Fit(self)
         self.grid.SetWindowStyle(wx.DOUBLE_BORDER)
         self.grid_box.GetStaticBox().SetWindowStyle(wx.DOUBLE_BORDER)
@@ -509,7 +535,7 @@ class GridFrame(wx.Frame):
         self.grid.SetWindowStyle(wx.DEFAULT)
         self.grid_box.GetStaticBox().SetWindowStyle(wx.DEFAULT)
         self.msg_text.SetLabel(self.default_msg_text)
-        self.msg_boxsizer.Fit(self.msg_boxsizer.GetStaticBox())
+        self.help_msg_boxsizer.Fit(self.help_msg_boxsizer.GetStaticBox())
         self.main_sizer.Fit(self)
         # re-bind self.remove_cols_button
         self.Bind(wx.EVT_BUTTON, self.on_remove_cols, self.remove_cols_button)

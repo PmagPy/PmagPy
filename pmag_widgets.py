@@ -7,6 +7,7 @@ assorted wxPython custom widgets
 import os
 import wx
 import wx.html
+import controlled_vocabularies as vocabulary
 
 
 # library for commonly used widgets.
@@ -782,6 +783,46 @@ class AddItem(wx.Frame):
             self.onAdd(item)
         self.Destroy()
 
+
+class MethodCodeDemystifier(wx.StaticBoxSizer):
+
+    def __init__(self, parent):
+        self.box = wx.StaticBox(parent, wx.ID_ANY, "")
+        super(MethodCodeDemystifier, self).__init__(self.box, orient=wx.VERTICAL)
+        grid_sizer = wx.GridSizer(0, 5, 3, 3)
+        types = vocabulary.code_types.index
+        types = vocabulary.code_types['label']
+        type_ind = vocabulary.code_types.index
+
+        for method_type in types:
+            name = str(vocabulary.code_types[vocabulary.code_types.label == method_type].index[0])
+            # make button & add to sizer            
+            btn = wx.Button(parent, label=method_type, name=name)
+            grid_sizer.Add(btn, 0, wx.EXPAND)
+            parent.Bind(wx.EVT_BUTTON, self.on_code_button, btn)
+        
+        self.Add(grid_sizer)
+        width, height = grid_sizer.Size
+        #init_codes = vocabulary.get_one_meth_type('anisotropy_estimation', vocabulary.all_codes)
+        #init_text = '\t'.join(init_codes.index)
+        self.descriptions = wx.TextCtrl(parent, size=(800, 140), style=wx.TE_READONLY|wx.TE_MULTILINE|wx.HSCROLL)#, value=init_text)
+        self.Add(self.descriptions, flag=wx.ALIGN_CENTRE|wx.ALL, border=10)
+        self.on_code_button(None, 'anisotropy_estimation')
+
+    def on_code_button(self, event=None, meth_type=None):
+        if not event and not meth_type:
+            return
+        if not event:
+            code_name = meth_type
+        else:
+            btn = event.EventObject
+            code_name = btn.Name
+        meth_type = vocabulary.get_one_meth_type(code_name, vocabulary.all_codes)['definition']
+        str_meths = [ind + " :  " + (meth_type[ind] or 'No description available') for ind in meth_type.index]
+        res = '\n'.join(str_meths)
+        self.descriptions.SetValue(res)
+
+        
 
 # methods!
 
