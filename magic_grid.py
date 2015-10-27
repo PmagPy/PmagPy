@@ -7,7 +7,7 @@ class MagicGrid(wx.grid.Grid, gridlabelrenderer.GridWithLabelRenderersMixin):
     grid class
     """
 
-    def __init__(self, parent, name, row_labels, col_labels, row_items=None, size=0):
+    def __init__(self, parent, name, row_labels, col_labels, row_items=None, size=0, double=None):
         # row_items is an optional list of Pmag_objects
         self.name = name
         self.row_items = []
@@ -15,6 +15,11 @@ class MagicGrid(wx.grid.Grid, gridlabelrenderer.GridWithLabelRenderersMixin):
             self.row_items = row_items
         else:
             self.row_items = ['' for label in row_labels]
+        # list of headers that are different in the er_XXX table vs. the pmag_XXX table
+        if not double:
+            self.double = []
+        else:
+            self.double = double
         self.changes = None
         self.row_labels = sorted(row_labels)
         self.col_labels = col_labels
@@ -87,14 +92,22 @@ class MagicGrid(wx.grid.Grid, gridlabelrenderer.GridWithLabelRenderersMixin):
         for num, row in enumerate(self.row_labels):
             if row:
                 for n, col in enumerate(self.col_labels[1:]):
-                    ## catch pmag method codes
-                    if col == 'magic_method_codes++' and pmag:
-                        if 'magic_method_codes' in data_dict[row].keys():
-                            value = data_dict[row]['magic_method_codes']
+                    ## catch pmag double codes
+                    # in specimen, sample, and site grids,
+                    # if we have a column name like 'magic_method_codes++'
+                    # we need to strip the '++'
+                    if '++' in col:
+                        if pmag:
+                            col_name = col[:-2]
+                            if col_name in data_dict[row].keys():
+                                value = data_dict[row][col_name]
+                    # in pmag_results, magic_method_codes won't have '++'
+                    # so we have to handle it separately
                     elif col == 'magic_method_codes' and pmag and self.name == 'result':
                         value = data_dict[row]['magic_method_codes']
-                    ## skip er method codes, when entering pmag data
-                    elif col == 'magic_method_codes' and pmag:
+                    # if we're doing pmag data, don't fill in magic_method_codes
+                    # (for pmag we use 'magic_method_codes++' and skip plain magic_method_codes
+                    elif col in self.double and pmag:
                         continue
                     elif col in data_dict[row].keys():
                         value = data_dict[row][col]
@@ -383,9 +396,15 @@ class MagicGrid(wx.grid.Grid, gridlabelrenderer.GridWithLabelRenderersMixin):
         def highlight(problem_type, item, row_ind, cell_color):
             """
             """
-            for col_name in warn_dict[item][problem]:
+            col_ind = None
+            for col_name in warn_dict[item][problem_type]:
                 if col_name in ('er_location_name', 'er_site_name', 'er_sample_name'):
                     continue
+                if col_name in self.double:
+                    if col_name == 'magic_method_codes':
+                        col_name = 'magic_method_codes++'
+                    else:
+                        continue
                 col_ind = self.col_labels.index(col_name)
                 self.SetColLabelRenderer(col_ind, MyColLabelRenderer('#1101e0'))
                 self.SetCellRenderer(row_ind, col_ind, MyCustomRenderer(cell_color))

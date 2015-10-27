@@ -111,9 +111,9 @@ class GridFrame(wx.Frame):
         if self.grid_type == 'location':
             txt = '\n\nNote: you can fill in location start/end latitude/longitude here.\nHowever, if you add sites in step 2, the program will calculate those values automatically,\nbased on site latitudes/logitudes.\nThese values will be written to your upload file.'
         if self.grid_type == 'sample':
-            txt = "\n\nNote: you can fill in lithology, class, and type for each sample here.\nHowever, if the sample's class, lithology, and type are the same as its parent site, those values will propagate down,\nand will be written to your sample file automatically."
+            txt = "\n\nNote: you can fill in lithology, class, and type for each sample here.\nHowever, if the sample's class, lithology, and type are the same as its parent site,\nthose values will propagate down, and will be written to your sample file automatically."
         if self.grid_type == 'specimen':
-            txt = "\n\nNote: you can fill in lithology, class, and type for each specimen here.\nHowever, if the specimen's class, lithology, and type are the same as its parent sample, those values will propagate down,\nand will be written to your specimen file automatically."
+            txt = "\n\nNote: you can fill in lithology, class, and type for each specimen here.\nHowever, if the specimen's class, lithology, and type are the same as its parent sample,\nthose values will propagate down, and will be written to your specimen file automatically."
         if self.grid_type == 'age':
             txt = "\n\nNote: only ages for which you provide data will be written to your upload file."
         self.default_msg_text += txt
@@ -386,8 +386,7 @@ class GridFrame(wx.Frame):
         pmag_headers = sorted(list(set(self.grid_headers[self.grid_type]['pmag'][2]).union(self.grid_headers[self.grid_type]['pmag'][1])))
         # do not list headers that are already column labels in the grid
         pmag_items = [head for head in pmag_headers if head not in er_items and head not in col_labels]
-        if pmag_items and 'magic_method_codes++' not in col_labels:
-            pmag_items.append('magic_method_codes++')
+        
         # remove unneeded headers
         pmag_items = sorted(builder.remove_list_headers(pmag_items))
         dia = pw.HeaderDialog(self, 'columns to add', er_items, pmag_items)
@@ -714,13 +713,13 @@ class GridBuilder(object):
         else:
             pmag_header = []
         # if we need to use '++' to distinguish pmag magic_method_codes from er
-        special_code = incl_pmag and self.grid_type in ('specimen', 'sample', 'site')
-        if special_code:
-            try:
-                pmag_header.remove('magic_method_codes')
-                pmag_header.append('magic_method_codes++')
-            except ValueError:
-                pass
+        if incl_pmag and self.grid_type in ('specimen', 'sample', 'site'):
+            for double_header in self.er_magic.double:
+                try:
+                    pmag_header.remove(double_header)
+                    pmag_header.append(double_header + '++')
+                except ValueError:
+                    pass
         header = sorted(list(set(er_header).union(pmag_header)))
 
         first_headers = []
@@ -767,7 +766,8 @@ class GridBuilder(object):
             header[:0] = lst
         
         grid = magic_grid.MagicGrid(parent=self.panel, name=self.grid_type,
-                                    row_labels=[], col_labels=header)
+                                    row_labels=[], col_labels=header,
+                                    double=self.er_magic.double)
         grid.do_event_bindings()
 
         self.grid = grid
@@ -865,22 +865,20 @@ class GridBuilder(object):
                         if value == '\t':
                             value = ''
 
-                        if col_label == 'magic_method_codes++':
-                            new_pmag_data['magic_method_codes'] = value
-                            continue
-                        elif col_label == 'magic_method_codes':
-                            if self.grid_type in ('result'):
-                                new_pmag_data['magic_method_codes'] = value
-                                print 'new_pmag_data', new_pmag_data
-                            else:
-                                new_er_data['magic_method_codes'] = value
+                        if '++' in col_label:
+                            col_name = col_label[:-2]
+                            new_pmag_data[col_name] = value
                             continue
                             
                         if er_header and col_label in er_header:
                             new_er_data[col_label] = value
 
-                        if pmag_header and col_label in pmag_header:
-                            new_pmag_data[col_label] = value
+                        if self.grid_type in ('specimen', 'sample', 'site'):
+                            if pmag_header and (col_label in pmag_header) and (col_label not in self.er_magic.double):
+                                new_pmag_data[col_label] = value
+                        else:
+                            if pmag_header and col_label in pmag_header:
+                                new_pmag_data[col_label] = value
 
                         if col_label in ['er_specimen_names', 'er_sample_names',
                                          'er_site_names', 'er_location_names']:

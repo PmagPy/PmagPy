@@ -68,8 +68,7 @@ def get_one_meth_category(category, all_codes, code_types):
     This can include multiple method types (i.e., 'anisotropy_estimation', 'sample_prepartion', etc.)
     """
     categories = Series(code_types[code_types[category] == True].index)
-    sort_func = lambda x: x in list(categories)
-    cond = all_codes['dtype'].apply(sort_func)
+    cond = all_codes['dtype'].isin(categories)
     codes = all_codes[cond]
     return codes
 

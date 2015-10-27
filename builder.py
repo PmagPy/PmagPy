@@ -22,10 +22,11 @@ class ErMagicBuilder(object):
         self.sites = []
         self.locations = []
         self.results = []
-        #self.ages = []
         self.write_ages = False
         self.ancestry = [None, 'specimen', 'sample', 'site', 'location', None]
-        #self.no_pmag_data = set()
+        #
+        self.double = ['magic_method_codes', 'specimen_description', 'sample_description', 'site_description']
+        #
         self.incl_pmag_data = set(['result'])
         if not data_model:
             self.data_model = validate_upload.get_data_model()
@@ -908,9 +909,10 @@ Adding location with name: {}""".format(new_location_name, new_location_name)
         er_actual_headers = sorted(self.headers[dtype]['er'][0])
         pmag_actual_headers = sorted(self.headers[dtype]['pmag'][0])
         # clean up pmag header: write pmag method code header without '++'
-        if 'magic_method_codes++' in pmag_actual_headers:
-            pmag_actual_headers.remove('magic_method_codes++')
-            pmag_actual_headers.append('magic_method_codes')
+        for pmag_head in pmag_actual_headers[:]:
+            if '++' in pmag_head:
+                pmag_actual_headers.remove(pmag_head)
+                pmag_actual_headers.append(pmag_head[:-2])
         er_full_headers = add_headers[:]
         er_full_headers.extend(er_actual_headers)
         pmag_full_headers = add_headers[:]

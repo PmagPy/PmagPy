@@ -13,6 +13,7 @@ import pmag_widgets
 
 WD = os.getcwd()
 
+@unittest.skip('seg fault')
 class TestMainFrame(unittest.TestCase):
 
     def setUp(self):
@@ -22,11 +23,25 @@ class TestMainFrame(unittest.TestCase):
         self.pnl = self.frame.GetChildren()[0]
 
     def tearDown(self):
-        #self.frame.Destroy() # this does not work and causes strange errors
-        for wind in wx.GetTopLevelWindows():
-            wind.Destroy()
-            del wind
+        return
+        print 'self.app.IsMainLoopRunning()', self.app.IsMainLoopRunning()
+        print 'wx.GetTopLevelWindows()', wx.GetTopLevelWindows()
+        if not wx.GetTopLevelWindows():
+            return
+        def _cleanup():
+            pass
+            #print 'doing _cleanup'
+            #for tlw in wx.GetTopLevelWindows():
+            #    if tlw:
+            #        tlw.Destroy()
+            #wx.WakeUpIdle()
+            ##self.app.ExitMainLoop()
+        #wx.CallLater(50, _cleanup)
+        print 'about to start MainLoop'
+        #self.app.MainLoop()
+        print 'closed MainLoop, about to del app'
         self.app.Destroy()
+        del self.app
         os.chdir(WD)
 
     def test_main_panel_is_created(self):

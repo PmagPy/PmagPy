@@ -269,6 +269,12 @@ Green: missing or invalid parent
 Blue: non-numeric data provided in a numeric field
 Gray: unrecognized column
 Purple: invalid result child
+
+Note: It is possible to have a row highlighted that has no highlighted column.  
+This means that you are missing information higher up in the data.
+For example: a specimen could be missing a site name.
+However, you need to fix this in the sample grid, not the specimen grid.  
+Once each item in the data has its proper parent, validations will be correct.
 """
                 self.grid_frame.msg_text.SetLabel(current_label + add_text)
         #self.on_finish_change_dir(self.change_dir_dialog)
