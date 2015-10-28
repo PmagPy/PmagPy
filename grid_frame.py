@@ -106,7 +106,7 @@ class GridFrame(wx.Frame):
         self.Bind(wx.EVT_BUTTON, self.toggle_help, self.toggle_help_btn)
         # message
         self.help_msg_boxsizer = wx.StaticBoxSizer(wx.StaticBox(self.panel, -1, name='help_msg_boxsizer'), wx.VERTICAL)
-        self.default_msg_text = 'Edit {} here.\nYou can add or remove both rows and columns, however required columns may not be deleted.\nControlled vocabularies are indicated by **, and will have drop-down-menus.\nTo edit all values in a column, click the column header.\nYou can cut and paste a block of cells from an Excel-like file.\nJust click the top left cell and use command "v".'.format(self.grid_type + 's')
+        self.default_msg_text = 'Edit {} here.\nYou can add or remove both rows and columns, however required columns may not be deleted.\nControlled vocabularies are indicated by **, and will have drop-down-menus.\nTo edit all values in a column, click the column header.\nYou can cut and paste a block of cells from an Excel-like file.\nJust click the top left cell and use command "v".\nColumns that pertain to interpretations will be marked with "++".'.format(self.grid_type + 's')
         txt = ''
         if self.grid_type == 'location':
             txt = '\n\nNote: you can fill in location start/end latitude/longitude here.\nHowever, if you add sites in step 2, the program will calculate those values automatically,\nbased on site latitudes/logitudes.\nThese values will be written to your upload file.'
@@ -385,8 +385,10 @@ class GridFrame(wx.Frame):
         er_items = builder.remove_list_headers(er_items)
         pmag_headers = sorted(list(set(self.grid_headers[self.grid_type]['pmag'][2]).union(self.grid_headers[self.grid_type]['pmag'][1])))
         # do not list headers that are already column labels in the grid
+        # make sure that pmag_specific columns are marked with '++'
+        to_add = [i + '++' for i in self.er_magic.double if i in pmag_headers and i + '++' not in col_labels]
+        pmag_headers.extend(to_add)
         pmag_items = [head for head in pmag_headers if head not in er_items and head not in col_labels]
-        
         # remove unneeded headers
         pmag_items = sorted(builder.remove_list_headers(pmag_items))
         dia = pw.HeaderDialog(self, 'columns to add', er_items, pmag_items)
