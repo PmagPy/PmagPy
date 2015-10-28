@@ -9,6 +9,8 @@ import backup_vocabulary as backup
 # get list of controlled vocabularies form this part of the api:
 #'http://api.earthref.org/MAGIC/vocabularies.json'
 # then, use that list to determine whether or not any given column has a controlled vocabulary list
+import check_updates
+pmag_dir = check_updates.get_pmag_dir()
 
 
 def get_meth_codes():
@@ -137,7 +139,7 @@ all_codes, code_types = get_meth_codes()
 ##def get_tiered_meth_category(mtype, all_codes, code_types):
 
 def get_tiered_meth_category_offline(category):
-    path = os.path.join(os.getcwd(), 'data_model', 'er_methods.txt')
+    path = os.path.join(pmag_dir, 'data_model', 'er_methods.txt')
     dfile = open(path)
     json_data = json.load(dfile)
     dfile.close()
@@ -152,6 +154,16 @@ else:
     er_methods = get_tiered_meth_category_offline('er')
     pmag_methods = get_tiered_meth_category_offline('pmag')
     age_methods = get_tiered_meth_category_offline('age')
+    path = os.path.join(pmag_dir, 'data_model', 'code_types.txt')
+    with open(path, 'r') as type_file:
+        raw_code_types = json.load(type_file)
+    code_types = pd.read_json(raw_code_types)
+    path = os.path.join(pmag_dir, 'data_model', 'all_codes.txt')
+    with open(path, 'r') as code_file:
+        raw_all_codes = json.load(code_file)
+    all_codes = pd.read_json(raw_all_codes)
+
+
 
 vocabularies, possible_vocabularies = get_controlled_vocabularies()
 

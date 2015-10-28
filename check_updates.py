@@ -11,12 +11,12 @@ def get_pmag_dir():
     """
     # need to update this so that it works with compiled version
     # this is correct for use with PmagPy:
-    #return os.path.dirname(os.path.realpath(__file__))
+    return os.path.dirname(os.path.realpath(__file__))
     # this is correct for use with py2app:
-    try:
-        return os.environ['RESOURCEPATH']
-    except KeyError:
-        return os.path.dirname(os.path.realpath(__file__))
+    #try:
+    #    return os.environ['RESOURCEPATH']
+    #except KeyError:
+    #    return os.path.dirname(os.path.realpath(__file__))
 
 
 def get_version():

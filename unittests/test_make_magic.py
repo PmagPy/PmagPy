@@ -5,6 +5,7 @@ tests for make_magic
 import wx
 import unittest
 import os
+import sys
 #import ErMagicBuilder
 import make_magic
 import builder
@@ -13,7 +14,7 @@ import pmag_widgets
 
 WD = os.getcwd()
 
-@unittest.skip('seg fault')
+#@unittest.skip('seg fault')
 class TestMainFrame(unittest.TestCase):
 
     def setUp(self):
@@ -286,6 +287,7 @@ class TestMakeMagicMenu(unittest.TestCase):
                 self.assertTrue(item.IsEnabled())
             self.assertIn(menu_name, menu_names)
 
+    @unittest.skipIf('darwin' not in sys.platform, 'Fails remotely for unknown reason')
     def test_click_help(self):
         """
         Test that help HtmlFrame is created

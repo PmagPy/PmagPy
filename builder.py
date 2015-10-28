@@ -488,7 +488,7 @@ Adding location with name: {}""".format(new_location_name, new_location_name)
         try:
             meas_data, file_type = pmag.magic_read(os.path.join(self.WD, "magic_measurements.txt"))
         except IOError:
-            print "-E- ERROR: Can't find magic_measurements.txt file. Check path."
+            print "-I- No magic_measurements.txt file"
             return {}
         if file_type == 'bad_file':
             print "-E- ERROR: Can't read magic_measurements.txt file. File is corrupted."
