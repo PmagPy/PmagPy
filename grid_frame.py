@@ -12,6 +12,7 @@ import magic_grid
 
 
 class GridFrame(wx.Frame):
+#class GridFrame(wx.ScrolledWindow):
     """
     make_magic
     """
@@ -21,7 +22,9 @@ class GridFrame(wx.Frame):
         self.parent = parent
         wx.GetDisplaySize()
         title = 'Edit {} data'.format(panel_name)
-        wx.Frame.__init__(self, parent=parent, id=wx.ID_ANY, name=frame_name, title=title)
+        #wx.Frame.__init__(self, parent=parent, id=wx.ID_ANY, name=frame_name, title=title)
+        #wx.ScrolledWindow.__init__(self, parent=parent, id=wx.ID_ANY, name=frame_name)#, title=title)
+        super(GridFrame, self).__init__(parent=parent, id=wx.ID_ANY, name=frame_name, title=title)
 
         self.remove_cols_mode = False
         self.deleteRowButton = None
@@ -128,15 +131,11 @@ class GridFrame(wx.Frame):
                                           name='toggle_codes_btn')
         self.Bind(wx.EVT_BUTTON, self.toggle_codes, self.toggle_codes_btn)
         # message
-        self.code_msg_boxsizer = wx.StaticBoxSizer(wx.StaticBox(self.panel, -1, name='code_msg_boxsizer'), wx.VERTICAL)
-        #more_msg_text = wx.StaticText(self.panel, label=self.default_msg_text,
-        #                              style=wx.TE_CENTER, name='msg text')
-        #self.code_msg_boxsizer.Add(more_msg_text)
         self.code_msg_boxsizer = pw.MethodCodeDemystifier(self.panel)
         self.code_msg_boxsizer.ShowItems(False)
 
         ## Add content to sizers
-        hbox = wx.BoxSizer(wx.HORIZONTAL)
+        self.hbox = wx.BoxSizer(wx.HORIZONTAL)
         col_btn_vbox = wx.StaticBoxSizer(wx.StaticBox(self.panel, -1, label='Columns',
                                                       name='manage columns'), wx.VERTICAL)
         row_btn_vbox = wx.StaticBoxSizer(wx.StaticBox(self.panel, -1, label='Rows',
@@ -151,9 +150,9 @@ class GridFrame(wx.Frame):
         main_btn_vbox.Add(self.importButton, flag=wx.ALL, border=5)
         main_btn_vbox.Add(self.exitButton, flag=wx.ALL, border=5)
         main_btn_vbox.Add(self.cancelButton, flag=wx.ALL, border=5)
-        hbox.Add(col_btn_vbox)
-        hbox.Add(row_btn_vbox)
-        hbox.Add(main_btn_vbox)
+        self.hbox.Add(col_btn_vbox)
+        self.hbox.Add(row_btn_vbox)
+        self.hbox.Add(main_btn_vbox)
 
         self.panel.Bind(wx.grid.EVT_GRID_LABEL_LEFT_CLICK, self.onLeftClickLabel, self.grid)
         self.Bind(wx.EVT_KEY_DOWN, self.on_key_down)
@@ -213,7 +212,7 @@ class GridFrame(wx.Frame):
             toggle_box.Add(age_level)
 
             self.Bind(wx.EVT_RADIOBUTTON, self.toggle_ages)
-            hbox.Add(toggle_box)
+            self.hbox.Add(toggle_box)
 
         # a few special touches if it is a result grid
         if self.grid_type == 'result':
@@ -237,7 +236,7 @@ class GridFrame(wx.Frame):
                     self.drop_down_menu.choices[5] = [sorted([loc.name for loc in self.er_magic.locations if loc]), False]
 
         # final layout, set size
-        self.main_sizer.Add(hbox, flag=wx.ALL, border=20)
+        self.main_sizer.Add(self.hbox, flag=wx.ALL, border=20)
         self.main_sizer.Add(self.toggle_help_btn, flag=wx.BOTTOM|wx.ALIGN_CENTRE, border=5)
         self.main_sizer.Add(self.help_msg_boxsizer, flag=wx.BOTTOM|wx.ALIGN_CENTRE, border=10)
         self.main_sizer.Add(self.toggle_codes_btn, flag=wx.BOTTOM|wx.ALIGN_CENTRE, border=5)
@@ -246,10 +245,9 @@ class GridFrame(wx.Frame):
         self.panel.SetSizer(self.main_sizer)
         self.main_sizer.Fit(self)
         ## this keeps sizing correct if the user resizes the window manually
-        self.Bind(wx.EVT_SIZE, self.do_fit)
+        #self.Bind(wx.EVT_SIZE, self.do_fit)
         self.Centre()
         self.Show()
-
 
     def on_key_down(self, event):
         """
@@ -268,7 +266,14 @@ class GridFrame(wx.Frame):
         #self.grid.ShowScrollbars(wx.SHOW_SB_NEVER, wx.SHOW_SB_NEVER)
         if event:
             event.Skip()
-        self.main_sizer.Fit(self)
+        self.main_sizer.Fit(self)        
+        disp_size = wx.GetDisplaySize()
+        actual_size = self.GetSize()
+        rows = self.grid.GetNumberRows()
+        # if there isn't enough room to display new content
+        # resize the frame
+        if disp_size[1] - 75 < actual_size[1]:
+            self.SetSize((actual_size[0], disp_size[1] * .95))
         self.Centre()
 
     def toggle_help(self, event):
