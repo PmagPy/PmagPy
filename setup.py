@@ -8,7 +8,7 @@ Usage:
 from setuptools import setup
 
 APP = ['make_magic.py']
-DATA_FILES = [('', ['help_files', 'data_model'])]
+DATA_FILES = [('', ['help_files', 'data_model', 'documentation'])]
 OPTIONS = {'argv_emulation': False}
 
 setup(
