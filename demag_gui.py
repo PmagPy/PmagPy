@@ -508,6 +508,26 @@ class Zeq_GUI(wx.Frame):
  #----------------------------------------------------------------------                     
 # High level text box
  #----------------------------------------------------------------------                     
+        self.stats_sizer = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY,"Mean Statistics"  ), wx.VERTICAL)
+
+        for parameter in ['mean_type','dec','inc','alpha95','K','R','n_lines','n_planes']:
+            COMMAND="self.%s_window=wx.TextCtrl(self.panel,style=wx.TE_CENTER|wx.TE_READONLY,size=(75*self.GUI_RESOLUTION,35))"%parameter
+            exec COMMAND
+            COMMAND="self.%s_window.SetBackgroundColour(wx.WHITE)"%parameter
+            exec COMMAND
+            COMMAND="self.%s_window.SetFont(font2)"%parameter
+            exec COMMAND
+            COMMAND="self.%s_outer_window = wx.GridSizer(1,2,5*self.GUI_RESOLUTION,15*self.GUI_RESOLUTION)"%parameter
+            exec COMMAND
+            COMMAND="""self.%s_outer_window.AddMany([
+                    (wx.StaticText(self.panel,label='%s',style=wx.TE_CENTER),wx.EXPAND),
+                    (self.%s_window, wx.EXPAND)])"""%(parameter,parameter,parameter)
+            exec COMMAND
+            COMMAND="self.stats_sizer.Add(self.%s_outer_window, 0, wx.ALIGN_LEFT, 0)"%parameter
+            exec COMMAND
+
+        self.switch_stats_button = wx.SpinButton(self.panel, id=wx.ID_ANY, style=wx.SP_HORIZONTAL|wx.SP_ARROW_KEYS|wx.SP_WRAP, name="change stats")
+        self.Bind(wx.EVT_SPIN, self.on_select_stats_button,self.switch_stats_button)
 
 #        self.box_sizer_high_level_text = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY,""  ), wx.HORIZONTAL )                        
 #        self.high_level_text_box = wx.TextCtrl(self.panel, id=-1, size=(220*self.GUI_RESOLUTION,210*self.GUI_RESOLUTION), style=wx.TE_MULTILINE | wx.TE_READONLY )
@@ -550,8 +570,13 @@ class Zeq_GUI(wx.Frame):
 
         vbox3 = wx.BoxSizer(wx.VERTICAL)
         vbox3.Add(self.canvas4,flag=wx.ALIGN_LEFT|wx.ALIGN_TOP,border=8)
-#        vbox3.Add(self.box_sizer_high_level_text,flag=wx.ALIGN_CENTER_VERTICAL,border=8)
-       
+
+        hbox3 = wx.BoxSizer(wx.HORIZONTAL)
+        hbox3.Add(self.stats_sizer,flag=wx.ALIGN_CENTER_VERTICAL,border=8)
+        hbox3.Add(self.switch_stats_button,flag=wx.ALIGN_CENTER_VERTICAL,border=8)
+
+        vbox3.Add(hbox3,flag=wx.ALIGN_CENTER_VERTICAL,border=8)
+
         hbox2.Add(vbox2,flag=wx.ALIGN_CENTER_HORIZONTAL)
         hbox2.Add(vbox3,flag=wx.ALIGN_CENTER_HORIZONTAL)
 
@@ -1311,7 +1336,7 @@ class Zeq_GUI(wx.Frame):
             #STRING1="Zijderveld plot"
 
 
-        STRING=STRING+"NRM=%.2e "%(self.zijblock[0][3])+ 'Am^2'        
+        STRING=STRING+"NRM=%.2e "%(self.zijblock[0][3])+ 'Am^2'
         self.fig1.text(0.01,0.95,STRING, {'family':'Arial', 'fontsize':8*self.GUI_RESOLUTION, 'style':'normal','va':'center', 'ha':'left' })
 
         xmin, xmax = self.zijplot.get_xlim()
@@ -1367,14 +1392,14 @@ class Zeq_GUI(wx.Frame):
         y_eq_dn=array([row[1] for row in self.zij_norm if row[2]>0])
         z_eq_dn=abs(array([row[2] for row in self.zij_norm if row[2]>0]))
 
-        
+
         if len(x_eq_dn)>0:
             R=array(sqrt(1-z_eq_dn)/sqrt(x_eq_dn**2+y_eq_dn**2)) # from Collinson 1983
             eqarea_data_x_dn=y_eq_dn*R
             eqarea_data_y_dn=x_eq_dn*R
             self.specimen_eqarea.scatter([eqarea_data_x_dn],[eqarea_data_y_dn],marker='o',edgecolor='black', facecolor='gray',s=15*self.GUI_RESOLUTION,lw=1,clip_on=False)
-                    
-           
+
+
 
         x_eq_up,y_eq_up,z_eq_up=[],[],[]
         x_eq_up=array([row[0] for row in self.zij_norm if row[2]<=0])
@@ -1384,17 +1409,17 @@ class Zeq_GUI(wx.Frame):
             R=array(sqrt(1-z_eq_up)/sqrt(x_eq_up**2+y_eq_up**2)) # from Collinson 1983
             eqarea_data_x_up=y_eq_up*R
             eqarea_data_y_up=x_eq_up*R
-            self.specimen_eqarea.scatter([eqarea_data_x_up],[eqarea_data_y_up],marker='o',edgecolor='black', facecolor='white',s=15*self.GUI_RESOLUTION,lw=1,clip_on=False)        
-        
+            self.specimen_eqarea.scatter([eqarea_data_x_up],[eqarea_data_y_up],marker='o',edgecolor='black', facecolor='white',s=15*self.GUI_RESOLUTION,lw=1,clip_on=False)
+
         #self.preferences['show_eqarea_treatments']=True
         if self.preferences['show_eqarea_treatments']:
             for i in range(len(self.zijdblock_steps)):
                 self.specimen_eqarea.text(eqarea_data_x[i],eqarea_data_y[i],"%.1f"%float(self.zijdblock_steps[i]),fontsize=8*self.GUI_RESOLUTION,color="0.5")
-        
 
-        
-        # add line to show the direction of the x axis in the Zijderveld plot     
-        
+
+
+        # add line to show the direction of the x axis in the Zijderveld plot
+
         if str(self.orthogonal_box.GetValue()) in ["X=best fit line dec","X=NRM dec"]:
             XY=[]
             if str(self.orthogonal_box.GetValue())=="X=NRM dec":
@@ -1406,16 +1431,16 @@ class Zeq_GUI(wx.Frame):
                     XY=pmag.dimap(dec_zij,0)
             if XY!=[]:
                 self.specimen_eqarea.plot([0,XY[0]],[0,XY[1]],ls='-',c='gray',lw=0.5)#,zorder=0)
-                
-                
-            
-        self.specimen_eqarea.set_xlim(-1., 1.)        
-        self.specimen_eqarea.set_ylim(-1., 1.)        
+
+
+
+        self.specimen_eqarea.set_xlim(-1., 1.)
+        self.specimen_eqarea.set_ylim(-1., 1.)
         self.specimen_eqarea.axes.set_aspect('equal')
         self.specimen_eqarea.axis('off')
         
         self.specimen_eqarea_interpretation.set_xlim(-1., 1.)
-        self.specimen_eqarea_interpretation.set_ylim(-1., 1.)        
+        self.specimen_eqarea_interpretation.set_ylim(-1., 1.)
         self.specimen_eqarea_interpretation.axes.set_aspect('equal')
         self.specimen_eqarea_interpretation.axis('off')
         
@@ -1431,11 +1456,11 @@ class Zeq_GUI(wx.Frame):
 
         self.fig3.clf()
         self.fig3.text(0.02,0.96,'M/M0',{'family':'Arial', 'fontsize':10*self.GUI_RESOLUTION, 'style':'normal','va':'center', 'ha':'left' })
-        self.mplot = self.fig3.add_axes([0.2,0.15,0.7,0.7],frameon=True,axisbg='None')        
+        self.mplot = self.fig3.add_axes([0.2,0.15,0.7,0.7],frameon=True,axisbg='None')
         self.mplot_interpretation = self.fig3.add_axes(self.mplot.get_position(), frameon=False,axisbg='None')
         self.mplot_interpretation.xaxis.set_visible(False)
         self.mplot_interpretation.yaxis.set_visible(False)
-        
+
         #fig, ax1 = plt.subplots()
         #print "measurement_step_unit",self.Data[self.s]['measurement_step_unit'] 
         if self.Data[self.s]['measurement_step_unit'] =="mT:C" or self.Data[self.s]['measurement_step_unit'] =="C:mT":
@@ -1446,7 +1471,7 @@ class Zeq_GUI(wx.Frame):
             for i in range(len(self.Data[self.s]['zijdblock'])):
                 # bad point
                 if self.Data[self.s]['measurement_flag'][i]=='b':
-                    
+
                     if step=="0":
                         thermal_x_bad.append(self.Data[self.s]['zijdblock'][i][0])
                         af_x_bad.append(self.Data[self.s]['zijdblock'][i][0])
@@ -1459,9 +1484,9 @@ class Zeq_GUI(wx.Frame):
                         af_x_bad.append(self.Data[self.s]['zijdblock'][i][0])
                         af_y_bad.append(self.Data[self.s]['zijdblock'][i][3]/self.Data[self.s]['zijdblock'][0][3])
                     else:
-                        continue                            
-                    
-                else:    
+                        continue
+
+                else:
                     step=self.Data[self.s]['zijdblock_steps'][i]
                     if step=="0":
                         thermal_x.append(self.Data[self.s]['zijdblock'][i][0])
@@ -1475,8 +1500,8 @@ class Zeq_GUI(wx.Frame):
                         af_x.append(self.Data[self.s]['zijdblock'][i][0])
                         af_y.append(self.Data[self.s]['zijdblock'][i][3]/self.Data[self.s]['zijdblock'][0][3])
                     else:
-                        continue                            
-            
+                        continue
+
             self.mplot.plot(thermal_x, thermal_y, 'ro-',markersize=5*self.GUI_RESOLUTION,lw=1,clip_on=False)
             for i in range(len(thermal_x_bad)):
                 self.mplot.plot([thermal_x_bad[i]], [thermal_y_bad[i]],'o',mfc='None',mec='k',markersize=self.MS,clip_on=False)
@@ -1484,8 +1509,7 @@ class Zeq_GUI(wx.Frame):
             self.mplot.set_xlabel('Thermal (C)',color='r')
             for tl in self.mplot.get_xticklabels():
                 tl.set_color('r')
-            
-            
+
             ax2 = self.mplot.twiny()
             ax2.plot(af_x, af_y, 'bo-',markersize=5*self.GUI_RESOLUTION,lw=1,clip_on=False)
             for i in range(len(af_x_bad)):
@@ -2600,7 +2624,7 @@ class Zeq_GUI(wx.Frame):
         if self.s in self.pmag_results_data['specimens'] and self.pmag_results_data['specimens'][self.s]:
             self.fit_box.SetItems(list(map(lambda x: x.name, self.pmag_results_data['specimens'][self.s])))
 
-        for parameter in ['dec','inc','n','mad','dang','alpha95']:
+        for parameter in ['mean_type','dec','inc','n','mad','dang','alpha95']:
             COMMAND="self.%s_window.SetValue('')"%parameter
             exec COMMAND
             COMMAND="self.%s_window.SetBackgroundColour(wx.NullColour)"%parameter
@@ -2726,7 +2750,7 @@ class Zeq_GUI(wx.Frame):
                             elif "dec" in pars.keys() and "inc" in pars.keys():
                                 dec,inc,direction_type=pars["dec"],pars["inc"],'l'
                             else:
-#                                print "-E- ERROR: cant find mean for element %s"%element
+                                print "-E- ERROR: cant find mean for element %s"%element
                                 continue
                             #add for calculation
                             pars_for_mean.append({'dec':float(dec),'inc':float(inc),'direction_type':direction_type,'element_name':element})
@@ -2738,7 +2762,7 @@ class Zeq_GUI(wx.Frame):
                             if "dec" in pars.keys() and "inc" in pars.keys():
                                 dec,inc,direction_type=pars["dec"],pars["inc"],'l'
                             else:
-#                                print "-E- ERROR: cant find mean for element %s"%element
+                                print "-E- ERROR: cant find mean for element %s"%element
                                 continue 
                     except KeyError:
                         continue
@@ -2758,8 +2782,10 @@ class Zeq_GUI(wx.Frame):
 
         if len(pars_for_mean)==0:
             return({})
+
         elif len(pars_for_mean)==1:
             return ({"dec":float(pars_for_mean[0]['dec']),"inc":float(pars_for_mean[0]['inc']),"calculation_type":calculation_type,"n":1})
+
         elif calculation_type =='Bingham':
             data=[]
             for pars in pars_for_mean:
@@ -2769,29 +2795,27 @@ class Zeq_GUI(wx.Frame):
                 else:
                     data.append([pars['dec'],pars['inc']])
             mpars=pmag.dobingham(data)
+            self.switch_stats_button.SetRange(0,0)
+
         elif calculation_type=='Fisher':
             mpars=pmag.dolnp(pars_for_mean,'direction_type')
+            self.switch_stats_button.SetRange(0,0)
+
         elif calculation_type=='Fisher by polarity':
             mpars=pmag.fisher_by_pol(pars_for_mean)
-#            print "mpars",mpars
-        
+            self.switch_stats_button.SetRange(0,len(mpars))
+
         # change strigs to floats
-        if  calculation_type!='Fisher by polarity':  
-            for key in mpars.keys():
-                try:
-                    mpars[key]=float( mpars[key] )
-                except:
-                    pass
-                                
-        else:
-            for mode in ['A','B','All']:
-                print mode
-                if mode in mpars.keys():
-                    for key in mpars[mode].keys():
-                        try:
-                            mpars[mode][key]=float(mpars[mode][key])
-                        except KeyError:
-                            pass
+#        if  calculation_type!='Fisher by polarity':
+#            for key in mpars.keys():
+#                mpars[key]=float( mpars[key] )
+
+#        else:
+#            for mode in ['A','B','All']:
+#                print mode
+#                if mode in mpars.keys():
+#                    for key in mpars[mode].keys():
+#                        mpars[mode][key]=float(mpars[mode][key])
         mpars['calculation_type']=calculation_type
 
         return(mpars)
@@ -2963,8 +2987,8 @@ class Zeq_GUI(wx.Frame):
         if meanpars=={}:
             return
         if meanpars['calculation_type']=='Fisher by polarity':
-            for mode in ['A','B','All']:
-                if meanpars[mode]!={}:
+            for mode in meanpars.keys():
+                if type(meanpars[mode])==dict and meanpars[mode]!={}:
                     mpars_to_plot.append(meanpars[mode])
         else:
            mpars_to_plot.append(meanpars)
@@ -3060,36 +3084,66 @@ class Zeq_GUI(wx.Frame):
                 #    return PTS
 
         fig.set_xlim(xmin, xmax)
-        fig.set_ylim(ymin, ymax)    
+        fig.set_ylim(ymin, ymax)
+
+    def on_select_stats_button(self,events):
+        print("switching stuff")
+        print(self.switch_stats_button.GetValue())
+#        while True:
+#            i = input("~/:")
+#            if i == '-1': break
+#            hl = self.high_level_means
+#            for j in i.split():
+#                print(j + ": " + str(hl[j]))
+#                hl = hl[j]
 
     def show_higher_levels_pars(self,mpars):
-#        self.high_level_text_box.SetValue("")
+
         FONT_RATIO=self.GUI_RESOLUTION+(self.GUI_RESOLUTION-1)*5
         font2 = wx.Font(12+min(1,FONT_RATIO), wx.SWISS, wx.NORMAL, wx.NORMAL, False, u'Arial')
-#        self.high_level_text_box.SetFont(font2)
-        if self.interpertation_editor_open:
-            ie = self.interpertation_editor
+
+        if mpars["calculation_type"]=='Fisher':
             if mpars["calculation_type"]=='Fisher' and "alpha95" in mpars.keys():
-                for val in ['dec','inc','alpha95','K','R','n_lines','n_planes']:
-                    COMMAND = """ie.%s_window.SetValue(str(mpars['%s']))"""%(val,val)
+                for val in ['mean_type:calculation_type','dec:dec','inc:inc','alpha95:alpha95','K:K','R:R','n_lines:n_lines','n_planes:n_planes']:
+                    val,ind = val.split(":")
+                    COMMAND = """self.%s_window.SetValue(str(mpars['%s']))"""%(val,ind)
                     exec COMMAND
 
+            if self.interpertation_editor_open:
+                ie = self.interpertation_editor
+                if mpars["calculation_type"]=='Fisher' and "alpha95" in mpars.keys():
+                    for val in ['mean_type:calculation_type','dec:dec','inc:inc','alpha95:alpha95','K:K','R:R','n_lines:n_lines','n_planes:n_planes']:
+                        val,ind = val.split(":")
+                        COMMAND = """ie.%s_window.SetValue(str(mpars['%s']))"""%(val,ind)
+                        exec COMMAND
+
             if mpars["calculation_type"]=='Fisher by polarity':
-                for mode in ['A','B','All']:
-                    if mode not in mpars.keys():
-                        continue
-                    if mpars[mode]=={}:
-                        continue
-                    String="Fisher statistics [%s]:\n"%mode
-                    String=String+"dec"+": "+"%.1f\n"%float(mpars[mode]['dec'])
-                    String=String+"inc"+": "+"%.1f\n"%float(mpars[mode]['inc'])
-                    String=String+"alpha95"+": "+"%.1f\n"%float(mpars[mode]['alpha95'])
-                    String=String+"N"+": "+"%.0f\n"%float(mpars[mode]['n'])
-                    String=String+"K"+": "+"%.1f\n"%float(mpars[mode]['k'])
-                    String=String+"R"+": "+"%.4f\n"%float(mpars[mode]['r'])
-    #                self.high_level_text_box.AppendText(String)
-                    
-                                    
+                i = self.switch_stats_button.GetValue()
+                name = mpars.keys()[i]
+                mpars = mpars[name]
+                if mpars["calculation_type"]=='Fisher' and "alpha95" in mpars.keys():
+                    for val in ['mean_type:calculation_type','dec:dec','inc:inc','alpha95:alpha95','K:K','R:R','n_lines:n_lines','n_planes:n_planes']:
+                        val,ind = val.split(":")
+                        if val == 'mean_type':
+                            COMMAND = """self.%s_window.SetValue(%s)"""%(val,mpars[ind] + ":" + name)
+                        else:
+                            COMMAND = """self.%s_window.SetValue(str(mpars['%s']))"""%(val,ind)
+                        exec COMMAND
+
+                if self.interpertation_editor_open:
+                    ie = self.interpertation_editor
+                    i = self.switch_stats_button.GetValue()
+                    name = mpars.keys()[i]
+                    mpars = mpars[name]
+                    if mpars["calculation_type"]=='Fisher' and "alpha95" in mpars.keys():
+                        for val in ['mean_type:calculation_type','dec:dec','inc:inc','alpha95:alpha95','K:K','R:R','n_lines:n_lines','n_planes:n_planes']:
+                            val,ind = val.split(":")
+                            if val == 'mean_type':
+                                COMMAND = """ie.%s_window.SetValue(%s)"""%(val,mpars[ind] + ":" + name)
+                            else:
+                                COMMAND = """ie.%s_window.SetValue(str(mpars['%s']))"""%(val,ind)
+                                exec COMMAND
+
             if mpars["calculation_type"]=='Bingham':
                 String="Bingham statistics:\n"
     #            self.high_level_text_box.AppendText(String)
@@ -4488,16 +4542,16 @@ class Zeq_GUI(wx.Frame):
             except:
                 dlg1 = wx.MessageDialog(self, caption="Error",message="not a valid pmag_criteria file",style=wx.OK)
                 result = dlg1.ShowModal()
-                if result == wx.ID_OK:            
+                if result == wx.ID_OK:
                     dlg1.Destroy()
                 dlg.Destroy()
                 return
 
-            # initialize criteria              
+            # initialize criteria
             self.acceptance_criteria=pmag.initialize_acceptance_criteria() 
             self.acceptance_criteria=pmag.read_criteria_from_file(criteria_file,self.acceptance_criteria) 
             read_sucsess=True
-        
+
         dlg.Destroy()
         if read_sucsess:
             self.on_menu_change_criteria(None)   
@@ -5230,6 +5284,7 @@ class EditFitFrame(wx.Frame):
         self.init_UI()
         #update with stuff
         self.on_select_level_name(None)
+        self.parent.calculate_higher_levels_data()
 
     def init_UI(self):
         """
@@ -5371,7 +5426,7 @@ class EditFitFrame(wx.Frame):
         #Higher Level Statistics Box
         self.stats_sizer = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY,"Mean Statistics"  ), wx.VERTICAL)
 
-        for parameter in ['dec','inc','alpha95','K','R','n_lines','n_planes']:
+        for parameter in ['mean_type','dec','inc','alpha95','K','R','n_lines','n_planes']:
             COMMAND="self.%s_window=wx.TextCtrl(self.panel,style=wx.TE_CENTER|wx.TE_READONLY,size=(50*self.GUI_RESOLUTION,25))"%parameter
             exec COMMAND
             COMMAND="self.%s_window.SetBackgroundColour(wx.WHITE)"%parameter
@@ -5387,6 +5442,9 @@ class EditFitFrame(wx.Frame):
             COMMAND="self.stats_sizer.Add(self.%s_outer_window, 0, wx.ALIGN_LEFT, 0)"%parameter
             exec COMMAND
 
+        self.switch_stats_button = wx.SpinButton(self.panel, id=wx.ID_ANY, style=wx.SP_HORIZONTAL|wx.SP_ARROW_KEYS|wx.SP_WRAP, name="change stats")
+        self.Bind(wx.EVT_SPIN, self.parent.on_select_stats_button,self.switch_stats_button)
+
         #construct panel
         hbox0 = wx.BoxSizer(wx.HORIZONTAL)
         hbox0.Add(self.name_sizer,flag=wx.ALIGN_TOP,border=8)
@@ -5399,6 +5457,7 @@ class EditFitFrame(wx.Frame):
         hbox1 = wx.BoxSizer(wx.HORIZONTAL)
         hbox1.Add(vbox0,flag=wx.ALIGN_TOP,border=8)
         hbox1.Add(self.stats_sizer,flag=wx.ALIGN_TOP,border=8)
+        hbox1.Add(self.switch_stats_button,flag=wx.ALIGN_TOP,border=8)
 
         vbox1 = wx.BoxSizer(wx.VERTICAL)
         vbox1.Add(self.display_sizer,flag=wx.ALIGN_TOP,border=8)
