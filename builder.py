@@ -485,8 +485,12 @@ Adding location with name: {}""".format(new_location_name, new_location_name)
         """
         attempt to read measurements file in working directory.
         """
+        meas_file = os.path.join(self.WD, 'magic_measurements.txt')
+        if not os.path.isfile(meas_file):
+            print "-I- No magic_measurements.txt file"
+            return {}
         try:
-            meas_data, file_type = pmag.magic_read(os.path.join(self.WD, "magic_measurements.txt"))
+            meas_data, file_type = pmag.magic_read(meas_file)
         except IOError:
             print "-I- No magic_measurements.txt file"
             return {}
