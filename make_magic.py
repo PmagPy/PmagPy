@@ -456,9 +456,14 @@ if __name__ == "__main__":
     # this sends stdout to wxPython:
     app = wx.App(redirect=False)
     working_dir = pmag.get_named_arg_from_sys('-WD', '.')
+    working_dir = os.path.realpath(working_dir)
     app.frame = MainFrame(working_dir)
-    if working_dir == '.':
-        app.frame.on_change_dir_button(None)
+    ## this causes an error with Canopy Python
+    ## (it works with brew Python)
+    ## need to use these lines for frozen binary
+    #if working_dir == '.':
+    #    app.frame.on_change_dir_button(None)
+
     app.frame.Show()
     app.frame.Center()
     if '-i' in sys.argv:
