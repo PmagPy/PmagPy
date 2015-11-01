@@ -439,9 +439,15 @@ class Zeq_GUI(wx.Frame):
         self.PCA_type_box = wx.ComboBox(self.panel, -1, size=(100*self.GUI_RESOLUTION, 25), value='line',choices=['line','line-anchored','line-with-origin','plane','Fisher'], style=wx.CB_DROPDOWN,name="coordinates")
         self.Bind(wx.EVT_COMBOBOX, self.on_select_specimen_mean_type_box,self.PCA_type_box)
 
-        specimen_stat_type_window = wx.GridSizer(2, 1, 0, 19*self.GUI_RESOLUTION)
-        specimen_stat_type_window.AddMany([(wx.StaticText(self.panel,label="\n ",style=wx.TE_CENTER), wx.ALIGN_LEFT),
-            (self.PCA_type_box, wx.ALIGN_LEFT)])
+        #Plane displays box
+#        self.plane_display_sizer = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY,"plane display type"  ), wx.HORIZONTAL )
+
+        self.plane_display_box = wx.ComboBox(self.panel, -1, size=(100*self.GUI_RESOLUTION, 25), value='Poles',choices=['Poles','Upper Hemisphere', 'Lower Hemisphere', 'Whole Plane'], style=wx.CB_DROPDOWN,name="PlaneType")
+        self.Bind(wx.EVT_COMBOBOX, self.on_select_plane_display_box, self.plane_display_box)
+
+        specimen_stat_type_window = wx.GridSizer(2, 1, 10*self.GUI_RESOLUTION, 19*self.GUI_RESOLUTION)
+        specimen_stat_type_window.AddMany([(self.PCA_type_box, wx.ALIGN_LEFT),
+                                           (self.plane_display_box, wx.ALIGN_LEFT)])
         self.box_sizer_specimen.Add(specimen_stat_type_window, 0, wx.ALIGN_LEFT, 0 )
  
         self.box_sizer_specimen_stat = wx.StaticBoxSizer(wx.StaticBox(self.panel, wx.ID_ANY,"specimen mean statistics"), wx.HORIZONTAL )
@@ -2268,13 +2274,13 @@ class Zeq_GUI(wx.Frame):
         if self.orthogonal_box.GetValue()=="X=best fit line dec":
             if mpars and 'specimen_dec' in mpars.keys(): 
                 self.draw_figure(self.s)
-  
+
         self.draw_interpretation()
         self.calculate_higher_levels_data()
         self.plot_higher_levels_data()
 
     #----------------------------------------------------------------------
-                       
+
     def draw_interpretation(self): #BLARGE
         """
         draw the specimen interpertations on the zijderveld and the specimen equal area
@@ -2391,8 +2397,41 @@ class Zeq_GUI(wx.Frame):
         
             # Equal Area plot
             self.toolbar2.home()
-            if pars['calculation_type']!='DE-BFP':
-                CART=pmag.dir2cart([pars['specimen_dec'],pars['specimen_inc'],1])    
+
+            # draw a best-fit plane
+
+            if pars['calculation_type']=='DE-BFP' and \
+               self.plane_display_box.GetValue() != "Poles":
+
+                ymin, ymax = self.specimen_eqarea.get_ylim()
+                xmin, xmax = self.specimen_eqarea.get_xlim()
+
+                D_c,I_c=pmag.circ(pars["specimen_dec"],pars["specimen_inc"],90)
+                X_c_up,Y_c_up=[],[]
+                X_c_d,Y_c_d=[],[]
+                for k in range(len(D_c)):
+                    XY=pmag.dimap(D_c[k],I_c[k])
+                    if I_c[k]<0:
+                        X_c_up.append(XY[0])
+                        Y_c_up.append(XY[1])
+                    if I_c[k]>0:
+                        X_c_d.append(XY[0])
+                        Y_c_d.append(XY[1])
+
+                if self.plane_display_box.GetValue() == "Upper Hemisphere" or \
+                   self.plane_display_box.GetValue() == "Whole Plane":
+                    self.specimen_eqarea_interpretation.plot(X_c_d,Y_c_d,'b')
+                if self.plane_display_box.GetValue() == "Lower Hemisphere" or \
+                   self.plane_display_box.GetValue() == "Whole Plane":
+                    self.specimen_eqarea_interpretation.plot(X_c_up,Y_c_up,'c')
+
+                self.specimen_eqarea_interpretation.set_xlim(-1., 1.)
+                self.specimen_eqarea_interpretation.set_ylim(-1., 1.)
+                self.specimen_eqarea_interpretation.axes.set_aspect('equal')
+                self.specimen_eqarea_interpretation.axis('off')
+
+            else:
+                CART=pmag.dir2cart([pars['specimen_dec'],pars['specimen_inc'],1])
                 x=CART[0]
                 y=CART[1]
                 z=abs(CART[2])
@@ -2411,34 +2450,9 @@ class Zeq_GUI(wx.Frame):
                 self.specimen_eqarea_interpretation.set_ylim(-1., 1.)
                 self.specimen_eqarea_interpretation.axes.set_aspect('equal')
                 self.specimen_eqarea_interpretation.axis('off')
-            
-            # draw a best-fit plane
-            
-            if pars['calculation_type']=='DE-BFP':
-                
-                ymin, ymax = self.specimen_eqarea.get_ylim()
-                xmin, xmax = self.specimen_eqarea.get_xlim()
-                
-                D_c,I_c=pmag.circ(pars["specimen_dec"],pars["specimen_inc"],90)
-                X_c_up,Y_c_up=[],[]
-                X_c_d,Y_c_d=[],[]
-                for k in range(len(D_c)):
-                    XY=pmag.dimap(D_c[k],I_c[k])
-                    if I_c[k]<0:
-                        X_c_up.append(XY[0])
-                        Y_c_up.append(XY[1])
-                    if I_c[k]>0:
-                        X_c_d.append(XY[0])
-                        Y_c_d.append(XY[1])
-                self.specimen_eqarea_interpretation.plot(X_c_d,Y_c_d,'b')
-                self.specimen_eqarea_interpretation.plot(X_c_up,Y_c_up,'c')
-                        
-                self.specimen_eqarea_interpretation.set_xlim(-1., 1.)        
-                self.specimen_eqarea_interpretation.set_ylim(-1., 1.)        
-                self.specimen_eqarea_interpretation.axes.set_aspect('equal')
-                self.specimen_eqarea_interpretation.axis('off')
-                
-                                            
+
+
+
             # M/M0 plot (only if C or mT - not both)
             if self.Data[self.s]['measurement_step_unit'] !="mT:C" and self.Data[self.s]['measurement_step_unit'] !="C:mT":
                 ymin, ymax = self.mplot.get_ylim()
@@ -2798,7 +2812,7 @@ class Zeq_GUI(wx.Frame):
         elif calculation_type=='Fisher':
             mpars=pmag.dolnp(pars_for_mean,'direction_type')
             self.switch_stats_button.SetRange(0,0)
-            if interpertation_editor_open:
+            if self.interpertation_editor_open:
                 self.interpertation_editor.switch_stats_button.SetRange(0,0)
 
         elif calculation_type=='Fisher by polarity':
@@ -2839,7 +2853,9 @@ class Zeq_GUI(wx.Frame):
         if self.interpertation_editor_open: self.interpertation_editor.mean_type_box.SetStringSelection(calculation_type)
         self.calculate_high_level_mean(high_level_type,high_level_name,calculation_type,elements_type)
 
-
+    def on_select_plane_display_box(self,event):
+        self.draw_interpretation()
+        self.plot_higher_levels_data()
 
     def plot_higher_levels_data(self):
 
@@ -2944,6 +2960,37 @@ class Zeq_GUI(wx.Frame):
                 if fit in self.bad_fits:
                     marker_shape = (4,1,0)
                     SIZE=25*self.GUI_RESOLUTION
+
+                # draw a best-fit plane
+                if pars['calculation_type']=='DE-BFP' and \
+                   self.plane_display_box.GetValue() != "Poles":
+                    ymin, ymax = self.specimen_eqarea.get_ylim()
+                    xmin, xmax = self.specimen_eqarea.get_xlim()
+
+                    D_c,I_c=pmag.circ(pars["specimen_dec"],pars["specimen_inc"],90)
+                    X_c_up,Y_c_up=[],[]
+                    X_c_d,Y_c_d=[],[]
+                    for k in range(len(D_c)):
+                        XY=pmag.dimap(D_c[k],I_c[k])
+                        if I_c[k]<0:
+                            X_c_up.append(XY[0])
+                            Y_c_up.append(XY[1])
+                        if I_c[k]>0:
+                            X_c_d.append(XY[0])
+                            Y_c_d.append(XY[1])
+
+                    if self.plane_display_box.GetValue() == "Upper Hemisphere" or \
+                       self.plane_display_box.GetValue() == "Whole Plane":
+                        fig.plot(X_c_d,Y_c_d,'b')
+                    if self.plane_display_box.GetValue() == "Lower Hemisphere" or \
+                       self.plane_display_box.GetValue() == "Whole Plane":
+                        fig.plot(X_c_up,Y_c_up,'c')
+                    fig.set_xlim(-1., 1.)
+                    fig.set_ylim(-1., 1.)
+                    fig.axes.set_aspect('equal')
+                    fig.axis('off')
+                    continue
+
                 self.higher_EA_xdata.append(XY[0])
                 self.higher_EA_ydata.append(XY[1])
                 fig.scatter([XY[0]],[XY[1]],marker=marker_shape,edgecolor=fit.color, facecolor=FC,s=SIZE,lw=1,clip_on=False)
@@ -4114,7 +4161,7 @@ class Zeq_GUI(wx.Frame):
         self.plot_higher_levels_data()
         self.fig1.text(0.9,0.98,'%s'%(self.s),{'family':'Arial', 'fontsize':10, 'style':'normal','va':'center', 'ha':'right' })
         SaveMyPlot(self.fig1,self.s,"Zij",self.WD)
-        self.fig1.clear()
+#        self.fig1.clear()
         self.draw_figure(self.s)
         self.update_selection()
 
@@ -4125,7 +4172,7 @@ class Zeq_GUI(wx.Frame):
         #self.fig2.text(0.9,0.96,'%s'%(self.s),{'family':'Arial', 'fontsize':10, 'style':'normal','va':'center', 'ha':'right' })
         #self.canvas4.print_figure("./tmp.pdf")#, dpi=self.dpi) 
         SaveMyPlot(self.fig2,self.s,"EqArea",self.WD)
-        self.fig2.clear()
+#        self.fig2.clear()
         self.draw_figure(self.s)
         self.update_selection()
         
@@ -4135,7 +4182,7 @@ class Zeq_GUI(wx.Frame):
         self.plot_higher_levels_data()
         self.fig3.text(0.9,0.96,'%s'%(self.s),{'family':'Arial', 'fontsize':10, 'style':'normal','va':'center', 'ha':'right' })
         SaveMyPlot(self.fig3,self.s,"M_M0",self.WD)
-        self.fig3.clear()
+#        self.fig3.clear()
         self.draw_figure(self.s)
         self.update_selection()
 
@@ -4144,7 +4191,7 @@ class Zeq_GUI(wx.Frame):
         self.draw_interpretation()
         self.plot_higher_levels_data()
         SaveMyPlot(self.fig4,str(self.level_names.GetValue()),str(self.level_box.GetValue()), self.WD )
-        self.fig4.clear()
+#        self.fig4.clear()
         self.draw_figure(self.s)
         self.update_selection()
         self.plot_higher_levels_data()

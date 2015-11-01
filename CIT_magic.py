@@ -175,8 +175,6 @@ def main(command_line=True, **kwargs):
     ln+=1
     specimens,samples,sites=[],[],[]
     if format=='CIT':
-        print(File)
-        print(ln)
         line=File[ln].split()
         site_lat=line[0]
         site_lon=line[1]
