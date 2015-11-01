@@ -447,11 +447,11 @@ class Zeq_GUI(wx.Frame):
         self.box_sizer_specimen_stat = wx.StaticBoxSizer(wx.StaticBox(self.panel, wx.ID_ANY,"specimen mean statistics"), wx.HORIZONTAL )
 
         for parameter in ['dec','inc','n','mad','dang','alpha95']:
-            COMMAND="self.%s_window=wx.TextCtrl(self.panel,style=wx.TE_CENTER|wx.TE_READONLY,size=(50*self.GUI_RESOLUTION,25))"%parameter
+            COMMAND="self.s%s_window=wx.TextCtrl(self.panel,style=wx.TE_CENTER|wx.TE_READONLY,size=(50*self.GUI_RESOLUTION,25))"%parameter
             exec COMMAND
-            COMMAND="self.%s_window.SetBackgroundColour(wx.WHITE)"%parameter
+            COMMAND="self.s%s_window.SetBackgroundColour(wx.WHITE)"%parameter
             exec COMMAND
-            COMMAND="self.%s_window.SetFont(font2)"%parameter
+            COMMAND="self.s%s_window.SetFont(font2)"%parameter
             exec COMMAND
 
         specimen_stat_window = wx.GridSizer(2, 6, 0, 15*self.GUI_RESOLUTION)
@@ -462,13 +462,13 @@ class Zeq_GUI(wx.Frame):
             #(wx.StaticText(self.panel,label="\nmad-anc",style=wx.TE_CENTER),wx.EXPAND),
             (wx.StaticText(self.panel,label="\ndang",style=wx.TE_CENTER),wx.TE_CENTER),
             (wx.StaticText(self.panel,label="\na95",style=wx.TE_CENTER),wx.TE_CENTER),
-            (self.dec_window, wx.EXPAND),
-            (self.inc_window, wx.EXPAND) ,
-            (self.n_window, wx.EXPAND) ,
-            (self.mad_window, wx.EXPAND),
+            (self.sdec_window, wx.EXPAND),
+            (self.sinc_window, wx.EXPAND) ,
+            (self.sn_window, wx.EXPAND) ,
+            (self.smad_window, wx.EXPAND),
             #(self.mad_anc_window, wx.EXPAND),
-            (self.dang_window, wx.EXPAND),
-            (self.alpha95_window, wx.EXPAND)])
+            (self.sdang_window, wx.EXPAND),
+            (self.salpha95_window, wx.EXPAND)])
         self.box_sizer_specimen_stat.Add( specimen_stat_window, 0, wx.ALIGN_LEFT, 0)
 
 #----------------------------------------------------------------------                     
@@ -493,7 +493,7 @@ class Zeq_GUI(wx.Frame):
 
         self.box_sizer_mean_types = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY, "mean" ), wx.VERTICAL )
 
-        self.mean_type_box = wx.ComboBox(self.panel, -1, size=(120*self.GUI_RESOLUTION, 25), value='None', choices=['Fisher','Fisher by polarity','Bingham','None'], style=wx.CB_DROPDOWN,name="high_type")
+        self.mean_type_box = wx.ComboBox(self.panel, -1, size=(120*self.GUI_RESOLUTION, 25), value='None', choices=['Fisher','Fisher by polarity','None'], style=wx.CB_DROPDOWN,name="high_type")
         self.Bind(wx.EVT_COMBOBOX, self.onSelect_mean_type_box,self.mean_type_box)
 
         self.mean_fit_box = wx.ComboBox(self.panel, -1, size=(120*self.GUI_RESOLUTION, 25), value='None', choices=['All'] + list_fits, style=wx.CB_DROPDOWN,name="high_type")
@@ -2224,48 +2224,48 @@ class Zeq_GUI(wx.Frame):
             self.tmax_box.SetStringSelection('None')
 
         if mpars and 'specimen_dec' in mpars.keys():
-            self.dec_window.SetValue("%.1f"%mpars['specimen_dec'])
-            self.dec_window.SetBackgroundColour(wx.WHITE)
+            self.sdec_window.SetValue("%.1f"%mpars['specimen_dec'])
+            self.sdec_window.SetBackgroundColour(wx.WHITE)
         else:
-            self.dec_window.SetValue("")
-            self.dec_window.SetBackgroundColour(wx.NullColour)
+            self.sdec_window.SetValue("")
+            self.sdec_window.SetBackgroundColour(wx.NullColour)
 
         if mpars and 'specimen_inc' in mpars.keys():
-            self.inc_window.SetValue("%.1f"%mpars['specimen_inc'])
-            self.inc_window.SetBackgroundColour(wx.WHITE)
+            self.sinc_window.SetValue("%.1f"%mpars['specimen_inc'])
+            self.sinc_window.SetBackgroundColour(wx.WHITE)
         else:
-            self.inc_window.SetValue("")
-            self.inc_window.SetBackgroundColour(wx.NullColour)
+            self.sinc_window.SetValue("")
+            self.sinc_window.SetBackgroundColour(wx.NullColour)
 
         if mpars and 'specimen_n' in mpars.keys():
-            self.n_window.SetValue("%i"%mpars['specimen_n'])
-            self.n_window.SetBackgroundColour(wx.WHITE)
+            self.sn_window.SetValue("%i"%mpars['specimen_n'])
+            self.sn_window.SetBackgroundColour(wx.WHITE)
         else:
-            self.n_window.SetValue("")
-            self.n_window.SetBackgroundColour(wx.NullColour)
+            self.sn_window.SetValue("")
+            self.sn_window.SetBackgroundColour(wx.NullColour)
 
         if mpars and 'specimen_mad' in mpars.keys():
-            self.mad_window.SetValue("%.1f"%mpars['specimen_mad'])
-            self.mad_window.SetBackgroundColour(wx.WHITE)
+            self.smad_window.SetValue("%.1f"%mpars['specimen_mad'])
+            self.smad_window.SetBackgroundColour(wx.WHITE)
         else:
-            self.mad_window.SetValue("")
-            self.mad_window.SetBackgroundColour(wx.NullColour)
+            self.smad_window.SetValue("")
+            self.smad_window.SetBackgroundColour(wx.NullColour)
 
         if mpars and 'specimen_dang' in mpars.keys() and float(mpars['specimen_dang'])!=-1:
-            self.dang_window.SetValue("%.1f"%mpars['specimen_dang'])
-            self.dang_window.SetBackgroundColour(wx.WHITE)
+            self.sdang_window.SetValue("%.1f"%mpars['specimen_dang'])
+            self.sdang_window.SetBackgroundColour(wx.WHITE)
         else:
-            self.dang_window.SetValue("")
-            self.dang_window.SetBackgroundColour(wx.NullColour)
+            self.sdang_window.SetValue("")
+            self.sdang_window.SetBackgroundColour(wx.NullColour)
 
         if mpars and 'specimen_alpha95' in mpars.keys() and float(mpars['specimen_alpha95'])!=-1:
-            self.alpha95_window.SetValue("%.1f"%mpars['specimen_alpha95'])
-            self.alpha95_window.SetBackgroundColour(wx.WHITE)
+            self.salpha95_window.SetValue("%.1f"%mpars['specimen_alpha95'])
+            self.salpha95_window.SetBackgroundColour(wx.WHITE)
         else:
-            self.alpha95_window.SetValue("")
-            self.alpha95_window.SetBackgroundColour(wx.NullColour)
-        
-        if self.orthogonal_box.GetValue()=="X=best fit line dec":                              
+            self.salpha95_window.SetValue("")
+            self.salpha95_window.SetBackgroundColour(wx.NullColour)
+
+        if self.orthogonal_box.GetValue()=="X=best fit line dec":
             if mpars and 'specimen_dec' in mpars.keys(): 
                 self.draw_figure(self.s)
   
@@ -2309,14 +2309,13 @@ class Zeq_GUI(wx.Frame):
 
             marker_shape = 'o'
             SIZE = 30
+            if fit == self.current_fit:
+                marker_shape = 'D'
+            if pars['calculation_type'] == "DE-BFP":
+                marker_shape = 's'
             if fit in self.bad_fits:
                 marker_shape = (4,1,0)
                 SIZE=25*self.GUI_RESOLUTION
-            if fit == self.current_fit:
-                marker_shape = 'D'
-                if fit in self.bad_fits:
-                    marker_shape = (4,1,45)
-                    SIZE=25*self.GUI_RESOLUTION
 
             # Zijderveld plot
                                 
@@ -2602,7 +2601,7 @@ class Zeq_GUI(wx.Frame):
     #----------------------------------------------------------------------  
  
     #----------------------------------------------------------------------
-           
+
     def clear_boxes(self):
         """ 
         Clear all boxes
@@ -2624,10 +2623,10 @@ class Zeq_GUI(wx.Frame):
         if self.s in self.pmag_results_data['specimens'] and self.pmag_results_data['specimens'][self.s]:
             self.fit_box.SetItems(list(map(lambda x: x.name, self.pmag_results_data['specimens'][self.s])))
 
-        for parameter in ['mean_type','dec','inc','n','mad','dang','alpha95']:
-            COMMAND="self.%s_window.SetValue('')"%parameter
+        for parameter in ['dec','inc','n','mad','dang','alpha95']:
+            COMMAND="self.s%s_window.SetValue('')"%parameter
             exec COMMAND
-            COMMAND="self.%s_window.SetBackgroundColour(wx.NullColour)"%parameter
+            COMMAND="self.s%s_window.SetBackgroundColour(wx.NullColour)"%parameter
             exec COMMAND
             
     #----------------------------------------------------------------------
@@ -2769,14 +2768,13 @@ class Zeq_GUI(wx.Frame):
 
             if len(pars_for_mean) > 0 and calculation_type != "None":
                 self.high_level_means[high_level_type][high_level_name][dirtype]=self.calculate_mean(pars_for_mean,calculation_type)
-                
+
     #----------------------------------------------------------------------
 
     def calculate_mean(self,pars_for_mean,calculation_type):
         ''' 
         claculates:
             Fisher mean (lines/planes)
-            or Bingham mean
             or Fisher by polarity
         '''
 
@@ -2786,24 +2784,31 @@ class Zeq_GUI(wx.Frame):
         elif len(pars_for_mean)==1:
             return ({"dec":float(pars_for_mean[0]['dec']),"inc":float(pars_for_mean[0]['inc']),"calculation_type":calculation_type,"n":1})
 
-        elif calculation_type =='Bingham':
-            data=[]
-            for pars in pars_for_mean:
-                # ignore great circle
-                if 'direction_type' in pars.keys() and 'direction_type'=='p':
-                    continue
-                else:
-                    data.append([pars['dec'],pars['inc']])
-            mpars=pmag.dobingham(data)
-            self.switch_stats_button.SetRange(0,0)
+#        elif calculation_type =='Bingham':
+#            data=[]
+#            for pars in pars_for_mean:
+#                # ignore great circle
+#                if 'direction_type' in pars.keys() and 'direction_type'=='p':
+#                    continue
+#                else:
+#                    data.append([pars['dec'],pars['inc']])
+#            mpars=pmag.dobingham(data)
+#            self.switch_stats_button.SetRange(0,0)
 
         elif calculation_type=='Fisher':
             mpars=pmag.dolnp(pars_for_mean,'direction_type')
             self.switch_stats_button.SetRange(0,0)
+            if interpertation_editor_open:
+                self.interpertation_editor.switch_stats_button.SetRange(0,0)
 
         elif calculation_type=='Fisher by polarity':
             mpars=pmag.fisher_by_pol(pars_for_mean)
-            self.switch_stats_button.SetRange(0,len(mpars))
+            self.switch_stats_button.SetRange(0,len(mpars.keys())-1)
+            if self.interpertation_editor_open:
+                self.interpertation_editor.switch_stats_button.SetRange(0,len(mpars.keys())-1)
+            for key in mpars.keys():
+                mpars[key]['n_planes'] = 0
+                mpars[key]['calculation_type'] = 'Fisher'
 
         # change strigs to floats
 #        if  calculation_type!='Fisher by polarity':
@@ -2931,14 +2936,14 @@ class Zeq_GUI(wx.Frame):
                 else:
                     FC='white';SIZE=15*self.GUI_RESOLUTION
                 marker_shape = 'o'
+                SIZE = 30
+                if fit == self.current_fit:
+                    marker_shape = 'D'
+                if pars['calculation_type'] == "DE-BFP":
+                    marker_shape = 's'
                 if fit in self.bad_fits:
                     marker_shape = (4,1,0)
                     SIZE=25*self.GUI_RESOLUTION
-                if fit == self.current_fit:
-                    marker_shape = 'D'
-                    if fit in self.bad_fits:
-                        marker_shape = (4,1,45)
-                        SIZE=25*self.GUI_RESOLUTION
                 self.higher_EA_xdata.append(XY[0])
                 self.higher_EA_ydata.append(XY[1])
                 fig.scatter([XY[0]],[XY[1]],marker=marker_shape,edgecolor=fit.color, facecolor=FC,s=SIZE,lw=1,clip_on=False)
@@ -3015,80 +3020,80 @@ class Zeq_GUI(wx.Frame):
                     Xcirc.append(XY[0])
                     Ycirc.append(XY[1])
                 fig.plot(Xcirc,Ycirc,'g')
-            elif 'calculation_type' in mpars.keys() and mpars['calculation_type']=='Bingham':
-                # copied from plotELL function in pmagplotlib
-                rad=numpy.pi/180.
-                #Pdec,Pinc,beta,Bdec,Binc,gamma,Gdec,Ginc=pars[0],pars[1],pars[2],pars[3],pars[4],pars[5],pars[6],pars[7]
-                Pdec,Pinc,beta,Bdec,Binc,gamma,Gdec,Ginc=\
-                mpars['dec'],mpars['inc'],mpars['Zeta'],mpars['Zdec'],mpars['Zinc'],mpars['Eta'],mpars['Edec'],mpars['Einc']
-                
-                if beta > 90. or gamma>90:
-                    beta=180.-beta
-                    gamma=180.-beta
-                    Pdec=Pdec-180.
-                    Pinc=-Pinc
-                beta,gamma=beta*rad,gamma*rad # convert to radians
-                X_ell,Y_ell,X_up,Y_up,PTS=[],[],[],[],[]
-                nums=201
-                xnum=float(nums-1.)/2.
-            # set up t matrix
-                t=[[0,0,0],[0,0,0],[0,0,0]]
-                X=pmag.dir2cart((Pdec,Pinc,1.0)) # convert to cartesian coordintes
-                if  X[2]<0:
-                    for i in range(3):
-                        X[i]=-X[i]
-            # set up rotation matrix t
-                t[0][2]=X[0]
-                t[1][2]=X[1]
-                t[2][2]=X[2]
-                X=pmag.dir2cart((Bdec,Binc,1.0))
-                if  X[2]<0:
-                    for i in range(3):
-                        X[i]=-X[i]
-                t[0][0]=X[0]
-                t[1][0]=X[1]
-                t[2][0]=X[2]
-                X=pmag.dir2cart((Gdec,Ginc,1.0))
-                if X[2]<0:
-                    for i in range(3):
-                        X[i]=-X[i]
-                t[0][1]=X[0]
-                t[1][1]=X[1]
-                t[2][1]=X[2]
-            # set up v matrix
-                v=[0,0,0]
-                for i in range(nums):  # incremental point along ellipse
-                    psi=float(i)*numpy.pi/xnum
-                    v[0]=numpy.sin(beta)*numpy.cos(psi) 
-                    v[1]=numpy.sin(gamma)*numpy.sin(psi) 
-                    v[2]=numpy.sqrt(1.-v[0]**2 - v[1]**2)
-                    elli=[0,0,0]
-            # calculate points on the ellipse
-                    for j in range(3):
-                        for k in range(3):
-                            elli[j]=elli[j] + t[j][k]*v[k]  # cartesian coordinate j of ellipse
-                    PTS.append(pmag.cart2dir(elli))
-                    R=numpy.sqrt( 1.-abs(elli[2]))/(numpy.sqrt(elli[0]**2+elli[1]**2)) # put on an equal area projection
-                    if elli[2]<0:
-            #            for i in range(3): elli[i]=-elli[i]
-                        X_up.append(elli[1]*R)
-                        Y_up.append(elli[0]*R)
-                    else:
-                        X_ell.append(elli[1]*R)
-                        Y_ell.append(elli[0]*R)
-                #if plot==1:
-                if X_ell!=[]:fig.plot(X_ell,Y_ell,'b')
-                if X_up!=[]:fig.plot(X_up,Y_up,'g-')
-                #pylab.draw()
-                #else: 
-                #    return PTS
+#            elif 'calculation_type' in mpars.keys() and mpars['calculation_type']=='Bingham':
+#                # copied from plotELL function in pmagplotlib
+#                rad=numpy.pi/180.
+#                #Pdec,Pinc,beta,Bdec,Binc,gamma,Gdec,Ginc=pars[0],pars[1],pars[2],pars[3],pars[4],pars[5],pars[6],pars[7]
+#                Pdec,Pinc,beta,Bdec,Binc,gamma,Gdec,Ginc=\
+#                mpars['dec'],mpars['inc'],mpars['Zeta'],mpars['Zdec'],mpars['Zinc'],mpars['Eta'],mpars['Edec'],mpars['Einc']
+
+#                if beta > 90. or gamma>90:
+#                    beta=180.-beta
+#                    gamma=180.-beta
+#                    Pdec=Pdec-180.
+#                    Pinc=-Pinc
+#                beta,gamma=beta*rad,gamma*rad # convert to radians
+#                X_ell,Y_ell,X_up,Y_up,PTS=[],[],[],[],[]
+#                nums=201
+#                xnum=float(nums-1.)/2.
+#            # set up t matrix
+#                t=[[0,0,0],[0,0,0],[0,0,0]]
+#                X=pmag.dir2cart((Pdec,Pinc,1.0)) # convert to cartesian coordintes
+#                if  X[2]<0:
+#                    for i in range(3):
+#                        X[i]=-X[i]
+#            # set up rotation matrix t
+#                t[0][2]=X[0]
+#                t[1][2]=X[1]
+#                t[2][2]=X[2]
+#                X=pmag.dir2cart((Bdec,Binc,1.0))
+#                if  X[2]<0:
+#                    for i in range(3):
+#                        X[i]=-X[i]
+#                t[0][0]=X[0]
+#                t[1][0]=X[1]
+#                t[2][0]=X[2]
+#                X=pmag.dir2cart((Gdec,Ginc,1.0))
+#                if X[2]<0:
+#                    for i in range(3):
+#                        X[i]=-X[i]
+#                t[0][1]=X[0]
+#                t[1][1]=X[1]
+#                t[2][1]=X[2]
+#            # set up v matrix
+#                v=[0,0,0]
+#                for i in range(nums):  # incremental point along ellipse
+#                    psi=float(i)*numpy.pi/xnum
+#                    v[0]=numpy.sin(beta)*numpy.cos(psi) 
+#                    v[1]=numpy.sin(gamma)*numpy.sin(psi) 
+#                    v[2]=numpy.sqrt(1.-v[0]**2 - v[1]**2)
+#                    elli=[0,0,0]
+#            # calculate points on the ellipse
+#                    for j in range(3):
+#                        for k in range(3):
+#                            elli[j]=elli[j] + t[j][k]*v[k]  # cartesian coordinate j of ellipse
+#                    PTS.append(pmag.cart2dir(elli))
+#                    R=numpy.sqrt( 1.-abs(elli[2]))/(numpy.sqrt(elli[0]**2+elli[1]**2)) # put on an equal area projection
+#                    if elli[2]<0:
+#            #            for i in range(3): elli[i]=-elli[i]
+#                        X_up.append(elli[1]*R)
+#                        Y_up.append(elli[0]*R)
+#                    else:
+#                        X_ell.append(elli[1]*R)
+#                        Y_ell.append(elli[0]*R)
+#                #if plot==1:
+#                if X_ell!=[]:fig.plot(X_ell,Y_ell,'b')
+#                if X_up!=[]:fig.plot(X_up,Y_up,'g-')
+#                #pylab.draw()
+#                #else: 
+#                #    return PTS
 
         fig.set_xlim(xmin, xmax)
         fig.set_ylim(ymin, ymax)
 
     def on_select_stats_button(self,events):
-        print("switching stuff")
-        print(self.switch_stats_button.GetValue())
+        i = self.switch_stats_button.GetValue()
+        self.update_higher_level_stats()
 #        while True:
 #            i = input("~/:")
 #            if i == '-1': break
@@ -3117,46 +3122,45 @@ class Zeq_GUI(wx.Frame):
                         COMMAND = """ie.%s_window.SetValue(str(mpars['%s']))"""%(val,ind)
                         exec COMMAND
 
-            if mpars["calculation_type"]=='Fisher by polarity':
-                i = self.switch_stats_button.GetValue()
-                name = mpars.keys()[i]
-                mpars = mpars[name]
+        if mpars["calculation_type"]=='Fisher by polarity':
+            i = self.switch_stats_button.GetValue()
+            keys = mpars.keys()
+            keys.remove('calculation_type')
+            name = keys[i%len(keys)]
+            mpars = mpars[name]
+            if mpars["calculation_type"]=='Fisher' and "alpha95" in mpars.keys():
+                for val in ['mean_type:calculation_type','dec:dec','inc:inc','alpha95:alpha95','K:k','R:r','n_lines:n','n_planes:n_planes']:
+                    val,ind = val.split(":")
+                    if val == 'mean_type':
+                        COMMAND = """self.%s_window.SetValue('%s')"""%(val,mpars[ind] + ":" + name)
+                    else:
+                        COMMAND = """self.%s_window.SetValue(str(mpars['%s']))"""%(val,ind)
+                    exec COMMAND
+
+            if self.interpertation_editor_open:
+                ie = self.interpertation_editor
                 if mpars["calculation_type"]=='Fisher' and "alpha95" in mpars.keys():
-                    for val in ['mean_type:calculation_type','dec:dec','inc:inc','alpha95:alpha95','K:K','R:R','n_lines:n_lines','n_planes:n_planes']:
+                    for val in ['mean_type:calculation_type','dec:dec','inc:inc','alpha95:alpha95','K:k','R:r','n_lines:n','n_planes:n_planes']:
                         val,ind = val.split(":")
                         if val == 'mean_type':
-                            COMMAND = """self.%s_window.SetValue(%s)"""%(val,mpars[ind] + ":" + name)
+                            COMMAND = """ie.%s_window.SetValue('%s')"""%(val,mpars[ind] + ":" + name)
                         else:
-                            COMMAND = """self.%s_window.SetValue(str(mpars['%s']))"""%(val,ind)
+                            COMMAND = """ie.%s_window.SetValue(str(mpars['%s']))"""%(val,ind)
                         exec COMMAND
 
-                if self.interpertation_editor_open:
-                    ie = self.interpertation_editor
-                    i = self.switch_stats_button.GetValue()
-                    name = mpars.keys()[i]
-                    mpars = mpars[name]
-                    if mpars["calculation_type"]=='Fisher' and "alpha95" in mpars.keys():
-                        for val in ['mean_type:calculation_type','dec:dec','inc:inc','alpha95:alpha95','K:K','R:R','n_lines:n_lines','n_planes:n_planes']:
-                            val,ind = val.split(":")
-                            if val == 'mean_type':
-                                COMMAND = """ie.%s_window.SetValue(%s)"""%(val,mpars[ind] + ":" + name)
-                            else:
-                                COMMAND = """ie.%s_window.SetValue(str(mpars['%s']))"""%(val,ind)
-                                exec COMMAND
-
-            if mpars["calculation_type"]=='Bingham':
-                String="Bingham statistics:\n"
-    #            self.high_level_text_box.AppendText(String)
-                String=""
-                String=String+"dec"+": "+"%.1f\n"%float(mpars['dec'])
-                String=String+"inc"+": "+"%.1f\n"%float(mpars['inc'])
-                String=String+"n"+": "+"%.0f\n"%float(mpars['n'])
-                String=String+"Zdec"+": "+"%.0f\n"%float(mpars['Zdec'])
-                String=String+"Zinc"+": "+"%.1f\n"%float(mpars['Zinc'])
-                String=String+"Zeta"+": "+"%.4f\n"%float(mpars['Zeta'])
-                String=String+"Edec"+": "+"%.0f\n"%float(mpars['Edec'])
-                String=String+"Einc"+": "+"%.1f\n"%float(mpars['Einc'])
-                String=String+"Eta"+": "+"%.1f\n"%float(mpars['Eta'])
+#            if mpars["calculation_type"]=='Bingham':
+#                String="Bingham statistics:\n"
+#    #            self.high_level_text_box.AppendText(String)
+#                String=""
+#                String=String+"dec"+": "+"%.1f\n"%float(mpars['dec'])
+#                String=String+"inc"+": "+"%.1f\n"%float(mpars['inc'])
+#                String=String+"n"+": "+"%.0f\n"%float(mpars['n'])
+#                String=String+"Zdec"+": "+"%.0f\n"%float(mpars['Zdec'])
+#                String=String+"Zinc"+": "+"%.1f\n"%float(mpars['Zinc'])
+#                String=String+"Zeta"+": "+"%.4f\n"%float(mpars['Zeta'])
+#                String=String+"Edec"+": "+"%.0f\n"%float(mpars['Edec'])
+#                String=String+"Einc"+": "+"%.1f\n"%float(mpars['Einc'])
+#                String=String+"Eta"+": "+"%.1f\n"%float(mpars['Eta'])
     #            self.high_level_text_box.AppendText(String)
 
     #def initialize_acceptence_criteria (self):
@@ -4202,15 +4206,19 @@ class Zeq_GUI(wx.Frame):
 
     def on_menu_next_interp(self, event):
         f_index = self.fit_box.GetSelection()
-        if f_index <= 0: return
-        f_index -= 1
+        if f_index <= 0:
+            f_index = self.fit_box.GetCount()-1
+        else:
+            f_index -= 1
         self.fit_box.SetSelection(f_index)
         self.on_select_fit(event)
 
     def on_menu_prev_interp(self, event):
         f_index = self.fit_box.GetSelection()
-        if f_index >= len(self.pmag_results_data['specimens'][self.s])-1: return
-        f_index += 1
+        if f_index >= len(self.pmag_results_data['specimens'][self.s])-1:
+             f_index = 0
+        else:
+            f_index += 1
         self.fit_box.SetSelection(f_index)
         self.on_select_fit(event)
 
@@ -4230,6 +4238,7 @@ class Zeq_GUI(wx.Frame):
         if not self.interpertation_editor_open:
             self.interpertation_editor = EditFitFrame(self)
             self.interpertation_editor_open = True
+            self.update_higher_level_stats()
             self.interpertation_editor.Center()
             self.interpertation_editor.Show(True)
             if self.parent==None and sys.platform.startswith('darwin'):
@@ -5284,7 +5293,6 @@ class EditFitFrame(wx.Frame):
         self.init_UI()
         #update with stuff
         self.on_select_level_name(None)
-        self.parent.calculate_higher_levels_data()
 
     def init_UI(self):
         """
@@ -5339,7 +5347,7 @@ class EditFitFrame(wx.Frame):
         self.Bind(wx.EVT_COMBOBOX, self.on_select_level_name,self.level_names)
 
         #mean type and plot display boxes
-        self.mean_type_box = wx.ComboBox(self.panel, -1, size=(100*self.GUI_RESOLUTION, 25), value=self.parent.mean_type_box.GetValue(), choices=['Fisher','Fisher by polarity','Bingham','None'], style=wx.CB_DROPDOWN,name="high_type")
+        self.mean_type_box = wx.ComboBox(self.panel, -1, size=(100*self.GUI_RESOLUTION, 25), value=self.parent.mean_type_box.GetValue(), choices=['Fisher','Fisher by polarity','None'], style=wx.CB_DROPDOWN,name="high_type")
         self.Bind(wx.EVT_COMBOBOX, self.on_select_mean_type_box,self.mean_type_box)
 
         self.mean_fit_box = wx.ComboBox(self.panel, -1, size=(100*self.GUI_RESOLUTION, 25), value=self.parent.mean_fit, choices=(['None','All'] + self.parent.fit_list), style=wx.CB_DROPDOWN,name="high_type")
@@ -5427,7 +5435,7 @@ class EditFitFrame(wx.Frame):
         self.stats_sizer = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY,"Mean Statistics"  ), wx.VERTICAL)
 
         for parameter in ['mean_type','dec','inc','alpha95','K','R','n_lines','n_planes']:
-            COMMAND="self.%s_window=wx.TextCtrl(self.panel,style=wx.TE_CENTER|wx.TE_READONLY,size=(50*self.GUI_RESOLUTION,25))"%parameter
+            COMMAND="self.%s_window=wx.TextCtrl(self.panel,style=wx.TE_CENTER|wx.TE_READONLY,size=(75*self.GUI_RESOLUTION,25))"%parameter
             exec COMMAND
             COMMAND="self.%s_window.SetBackgroundColour(wx.WHITE)"%parameter
             exec COMMAND
@@ -5443,7 +5451,7 @@ class EditFitFrame(wx.Frame):
             exec COMMAND
 
         self.switch_stats_button = wx.SpinButton(self.panel, id=wx.ID_ANY, style=wx.SP_HORIZONTAL|wx.SP_ARROW_KEYS|wx.SP_WRAP, name="change stats")
-        self.Bind(wx.EVT_SPIN, self.parent.on_select_stats_button,self.switch_stats_button)
+        self.Bind(wx.EVT_SPIN, self.on_select_stats_button,self.switch_stats_button)
 
         #construct panel
         hbox0 = wx.BoxSizer(wx.HORIZONTAL)
@@ -5738,6 +5746,14 @@ class EditFitFrame(wx.Frame):
         self.parent.onSelect_mean_fit_box(event)
 
     ###################################Button Functions##################################
+
+    def on_select_stats_button(self,event):
+        """
+        
+        """
+        i = self.switch_stats_button.GetValue()
+        self.parent.switch_stats_button.SetValue(i)
+        self.parent.update_higher_level_stats()
 
     def add_highlighted_fits(self, evnet):
         """
