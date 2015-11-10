@@ -291,7 +291,8 @@ class combine_everything_dialog(wx.Frame):
             dlg = wx.MessageDialog(None,caption="Message:", message=MSG ,style=wx.OK|wx.ICON_INFORMATION)
             dlg.ShowModal()
             dlg.Destroy()
-            self.Destroy()
+            # deleted by rshaar 10.11.2015
+            #self.Destroy()
 
 
         #------------------
@@ -777,6 +778,10 @@ class convert_SIO_files_to_MagIC(convert_files_to_MagIC):
         #---sizer 10 ---
         #self.bSizer10 = pw.synthetic(pnl)
 
+        #---sizer 10 ---
+        TEXT = "cooling rates [K/minutes] (seperated by comma) for cooling rate experiment:"
+        self.bSizer10 = pw.labeled_text_field(pnl, TEXT)
+
         #---buttons ----
         hboxok = pw.btn_panel(self, pnl)
 
@@ -788,6 +793,8 @@ class convert_SIO_files_to_MagIC(convert_files_to_MagIC):
         hbox1 =wx.BoxSizer(wx.HORIZONTAL)
         hbox1.Add(self.bSizer8, flag=wx.ALIGN_LEFT)
         hbox1.Add(self.bSizer9, flag=wx.ALIGN_LEFT|wx.LEFT, border=5)
+        hbox2 =wx.BoxSizer(wx.HORIZONTAL)
+        hbox2.Add(self.bSizer10, flag=wx.ALIGN_LEFT|wx.LEFT, border=5)
 
         vbox.Add(bSizer_info, flag=wx.ALIGN_LEFT|wx.TOP, border=8)
         vbox.Add(self.bSizer0, flag=wx.ALIGN_LEFT|wx.TOP, border=8)
@@ -799,6 +806,8 @@ class convert_SIO_files_to_MagIC(convert_files_to_MagIC):
         vbox.Add(hbox0, flag=wx.ALIGN_LEFT|wx.TOP, border=8)
         vbox.Add(self.bSizer7, flag=wx.ALIGN_LEFT|wx.TOP, border=8)
         vbox.Add(hbox1, flag=wx.ALIGN_LEFT|wx.TOP, border=8)
+        vbox.Add(wx.StaticLine(pnl), 0, wx.ALL|wx.EXPAND, 5)
+        vbox.Add(hbox2, flag=wx.ALIGN_LEFT|wx.TOP, border=8)
         vbox.Add(wx.StaticLine(pnl), 0, wx.ALL|wx.EXPAND, 5)
         vbox.Add(hboxok, flag=wx.ALIGN_CENTER)        
         vbox.Add(wx.StaticLine(pnl), 0, wx.ALL|wx.EXPAND, 5)
@@ -876,8 +885,12 @@ class convert_SIO_files_to_MagIC(convert_files_to_MagIC):
         options_dict['coil'] = coil_number
         if coil_number:
             coil_number = "-V " + coil_number
+        cooling_rates=""
+        cooling_rates = self.bSizer10.return_value()
+        options_dict['cooling_rates'] = cooling_rates
 
-        COMMAND = "sio_magic.py -F {0} -f {1} {2} {3} {4} -spc {5} -ncn {6} {7} {8} {9} {10} {11}".format(outfile, SIO_file, user, experiment_type, loc_name,spc, ncn, lab_field, peak_AF, coil_number, instrument, replicate)
+        COMMAND = "sio_magic.py -F {0} -f {1} {2} {3} {4} {5} -spc {6} -ncn {7} {8} {9} {10} {11} {12}".format(outfile, SIO_file, user, experiment_type, cooling_rates, loc_name,spc, ncn, lab_field, peak_AF, coil_number, instrument, replicate)
+        print "COMMAND", COMMAND
         # to run as module:
         import sio_magic
         if sio_magic.main(command_line=False, **options_dict):

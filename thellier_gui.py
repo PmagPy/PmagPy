@@ -7620,7 +7620,7 @@ class Arai_GUI(wx.Frame):
 
           #---- Zijderveld block
 
-          EX=["LP-AN-ARM","LP-AN-TRM","LP-ARM-AFD","LP-ARM2-AFD","LP-TRM-AFD","LP-TRM","LP-TRM-TD","LP-X"] # list of excluded lab protocols
+          EX=["LP-AN-ARM","LP-AN-TRM","LP-ARM-AFD","LP-ARM2-AFD","LP-TRM-AFD","LP-TRM","LP-TRM-TD","LP-X","LP-CR-TRM"] # list of excluded lab protocols
           #INC=["LT-NO","LT-AF-Z","LT-T-Z", "LT-M-Z", "LP-PI-TRM-IZ", "LP-PI-M-IZ"]
           INC=["LT-NO","LT-T-Z","LT-M-Z","LT-AF-Z"]
           methods=rec["magic_method_codes"].strip('\n').split(":")

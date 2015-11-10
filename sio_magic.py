@@ -184,7 +184,7 @@ def main(command_line=True, **kwargs):
         noave = kwargs.get('noave', 0)
         codelist = kwargs.get('codelist', '')
         coil = kwargs.get('coil', '')
-
+        cooling_rates = kwargs.get('cooling_rates', '')
     if command_line:
         if "-h" in args:
             print main.__doc__
@@ -265,7 +265,7 @@ def main(command_line=True, **kwargs):
         return False, "mag_file field is required option"
     if specnum!=0:
         specnum=-specnum
-    print 'samp_con:', samp_con
+    #print 'samp_con:', samp_con
     if samp_con:
         if "4" == samp_con[0]:
             if "-" not in samp_con:
@@ -317,14 +317,15 @@ def main(command_line=True, **kwargs):
         if "TRM" in codes: 
             demag="T"
             trm=1
-        if "CR" in codes: 
+        if "CR" in     codes: 
             demag="T"
             cooling_rate_experiment=1
-            ind=args.index("CR")
-            coolling_times=args[ind+1]
-            coolling_times_list=coolling_times.split(',')
-
-
+            if command_line:
+                ind=args.index("CR")
+                cooling_rates=args[ind+1]
+                cooling_rates_list=cooling_rates.split(',')
+            else:
+                cooling_rates_list=str(cooling_rates).split(',')
     if demag=="T" and "ANI" in codes:
         methcode="LP-AN-TRM"
     if demag=="T" and "CR" in codes:
@@ -625,9 +626,9 @@ def main(command_line=True, **kwargs):
                         indx=int(treat[1][0])-1
                         # alteration check matjed as 0.7 in the measurement file
                         if indx==6:
-                           cooling_time= coolling_times_list[-1]
+                           cooling_time= cooling_rates_list[-1]
                         else:
-                            cooling_time=coolling_times_list[indx]
+                           cooling_time=cooling_rates_list[indx]
                         MagRec["measurement_description"]="cooling_rate"+":"+cooling_time+":"+"K/min"
 
 
