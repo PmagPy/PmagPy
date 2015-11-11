@@ -47,7 +47,7 @@ matplotlib.use('WXAgg')
 from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigCanvas 
 from matplotlib.backends.backend_wxagg import NavigationToolbar2WxAgg as NavigationToolbar
 
-import sys,scipy,os
+import sys,os
 try:
     import zeq_gui_preferences
 except:
@@ -62,7 +62,7 @@ import wx.lib.scrolledpanel
 import random
 import re
 import numpy
-from pylab import *
+from pylab import rcParams,Figure,arange,pi,cos,sin,array,sqrt,mean
 from scipy.optimize import curve_fit
 import wx.lib.agw.floatspin as FS
 import webbrowser
@@ -1893,7 +1893,7 @@ class Zeq_GUI(wx.Frame):
         if high_level_name in self.high_level_means[high_level_type].keys():
             if dirtype in self.high_level_means[high_level_type][high_level_name].keys():
                 mpars=self.high_level_means[high_level_type][high_level_name][dirtype]
-                calculation_type= mpars['calculation_type'] 
+                calculation_type=mpars['calculation_type']
                 self.show_higher_levels_pars(mpars)
 
     #--------------------------
@@ -2335,9 +2335,9 @@ class Zeq_GUI(wx.Frame):
 
             self.zijplot.scatter([self.CART_rot[:,0][tmin_index],self.CART_rot[:,0][tmax_index]],[-1* self.CART_rot[:,1][tmin_index],-1* self.CART_rot[:,1][tmax_index]],marker=marker_shape,s=40,facecolor=fit.color,edgecolor ='k',zorder=100,clip_on=False)
             self.zijplot.scatter([self.CART_rot[:,0][tmin_index],self.CART_rot[:,0][tmax_index]],[-1* self.CART_rot[:,2][tmin_index],-1* self.CART_rot[:,2][tmax_index]],marker=marker_shape,s=50,facecolor=fit.color,edgecolor ='k',zorder=100,clip_on=False)
-            
+
             if pars['calculation_type'] in ['DE-BFL','DE-BFL-A','DE-BFL-O']:
-                
+
                 #rotated zijderveld
                 if self.COORDINATE_SYSTEM=='geographic':
                     first_data=self.Data[self.s]['zdata_geo'][0]
@@ -2354,25 +2354,25 @@ class Zeq_GUI(wx.Frame):
                     if 'specimen_dec' in pars.keys() and type(pars['specimen_dec'])!=str:
                         rotation_declination=pars['specimen_dec']
                     else:
-                        rotation_declination=pmag.cart2dir(first_data)[0]            
+                        rotation_declination=pmag.cart2dir(first_data)[0]
                 else:#Zijderveld
                     rotation_declination=pmag.cart2dir(first_data)[0]
-                             
+
 #                print(reduce(lambda x,y: x+y,map(lambda x: 'key: ' + str(x[0]) + '\n' + 'data: ' + str(x[1]) + '\n',[[i,self.pars[i]] for i in self.pars])))
-                                        
-                PCA_dir=[pars['specimen_dec'],pars['specimen_inc'],1]         
-                PCA_dir_rotated=[PCA_dir[0]-rotation_declination,PCA_dir[1],1]      
+
+                PCA_dir=[pars['specimen_dec'],pars['specimen_inc'],1]
+                PCA_dir_rotated=[PCA_dir[0]-rotation_declination,PCA_dir[1],1]
                 PCA_CART_rotated=pmag.dir2cart(PCA_dir_rotated)
-                
+
                 slop_xy_PCA=-1*PCA_CART_rotated[1]/PCA_CART_rotated[0]
                 slop_xz_PCA=-1*PCA_CART_rotated[2]/PCA_CART_rotated[0]
-        
+
                 # Center of mass rotated for plotting 
                 # (self.CART_rot_good) ignoring the bad points
                 CM_x=mean(self.CART_rot_good[:,0][tmin_index:tmax_index+1])
                 CM_y=mean(self.CART_rot_good[:,1][tmin_index:tmax_index+1])
                 CM_z=mean(self.CART_rot_good[:,2][tmin_index:tmax_index+1])
-                        
+
                 # intercpet from the center of mass
                 intercept_xy_PCA=-1*CM_y - slop_xy_PCA*CM_x
                 intercept_xz_PCA=-1*CM_z - slop_xz_PCA*CM_x
@@ -2737,19 +2737,26 @@ class Zeq_GUI(wx.Frame):
         figure out what level to average,and what elements to average (specimen, samples, sites, vgp)
         """
 
+        if calculation_type == "None": return
+
         self.high_level_means[high_level_type][high_level_name]={}
         for dirtype in ["DA-DIR","DA-DIR-GEO","DA-DIR-TILT"]:
             if high_level_name not in self.Data_hierarchy[high_level_type].keys():
                 continue
-                
+
             elements_list=self.Data_hierarchy[high_level_type][high_level_name][elements_type]
-            pars_for_mean=[]
+            pars_for_mean={}
+            pars_for_mean["All"] = []
+            colors_for_means={}
 
             for element in elements_list:
                 if elements_type=='specimens' and element in self.pmag_results_data['specimens']:
                     for fit in self.pmag_results_data['specimens'][element]:
                         if fit in self.bad_fits:
                             continue
+                        if fit.name not in pars_for_mean.keys():
+                            pars_for_mean[fit.name] = []
+                            colors_for_means[fit.name] = fit.color
                         try:
                             #is this fit to be included in mean
                             if self.mean_fit == 'All' or self.mean_fit == fit.name:
@@ -2766,22 +2773,36 @@ class Zeq_GUI(wx.Frame):
                                 print "-E- ERROR: cant find mean for element %s"%element
                                 continue
                             #add for calculation
-                            pars_for_mean.append({'dec':float(dec),'inc':float(inc),'direction_type':direction_type,'element_name':element})
+                            pars_for_mean[fit.name].append({'dec':float(dec),'inc':float(inc),'direction_type':direction_type,'element_name':element})
+                            pars_for_mean["All"].append({'dec':float(dec),'inc':float(inc),'direction_type':direction_type,'element_name':element})
                         except KeyError:
+#                            print("KeyError in calculate_high_level_mean for element: " + str(element))
                             continue
                 else:
                     try:
-                            pars=self.high_level_means[elements_type][element][dirtype]
-                            if "dec" in pars.keys() and "inc" in pars.keys():
-                                dec,inc,direction_type=pars["dec"],pars["inc"],'l'
-                            else:
-                                print "-E- ERROR: cant find mean for element %s"%element
-                                continue 
+                        pars=self.high_level_means[elements_type][element][dirtype]
+                        if "dec" in pars.keys() and "inc" in pars.keys():
+                            dec,inc,direction_type=pars["dec"],pars["inc"],'l'
+                        else:
+                            print "-E- ERROR: cant find mean for element %s"%element
+                            continue 
                     except KeyError:
+#                        print("KeyError in calculate_high_level_mean for element: " + str(element) + " please report to a dev")
                         continue
 
-            if len(pars_for_mean) > 0 and calculation_type != "None":
-                self.high_level_means[high_level_type][high_level_name][dirtype]=self.calculate_mean(pars_for_mean,calculation_type)
+            for key in pars_for_mean.keys():
+                if len(pars_for_mean[key]) > 0 and key != "All":
+                    if high_level_name not in self.pmag_results_data[high_level_type].keys():
+                        self.pmag_results_data[high_level_type][high_level_name] = []
+                    self.pmag_results_data[high_level_type][high_level_name].append(Fit(key, None, None, colors_for_means[key], self))
+                    new_pars = self.calculate_mean(pars_for_mean[key],calculation_type)
+                    map_keys = new_pars.keys()
+                    map_keys.remove("calculation_type")
+                    for mkey in map_keys:
+                        new_pars[mkey] = float(new_pars[mkey])
+                    self.pmag_results_data[high_level_type][high_level_name][-1].put(None, dirtype,new_pars)
+                if len(pars_for_mean[key]) > 0 and key == "All":
+                    self.high_level_means[high_level_type][high_level_name][dirtype] = self.calculate_mean(pars_for_mean["All"],calculation_type)
 
     #----------------------------------------------------------------------
 
@@ -2889,23 +2910,30 @@ class Zeq_GUI(wx.Frame):
 
        # plot elements directions
        for element in elements_list:
-            if elements_type=='specimens':
-                if element in self.pmag_results_data['specimens'].keys():
-                    self.plot_higher_level_equalarea(element)
+#            if elements_type=='specimens':
+#            print(element)
+#            print(elements_type)
+            if element not in self.pmag_results_data[elements_type].keys():
+                self.calculate_high_level_mean(elements_type,element,"Fisher","specimens")
+#            print(self.pmag_results_data[elements_type])
+            if element in self.pmag_results_data[elements_type].keys():
+                self.plot_higher_level_equalarea(element)
 
-            else:
-                if element in self.high_level_means[elements_type].keys():
-                    if dirtype in self.high_level_means[elements_type][element].keys():
-                        mpars=self.high_level_means[elements_type][element][dirtype]
-                        self.plot_eqarea_pars(mpars,self.high_level_eqarea)
-                        
+#            else:
+#                if element not in self.high_level_means[elements_type].keys():
+#                    self.calculate_high_level_mean(elements_type,element,calculation_type,elements_type)
+#                if element in self.high_level_means[elements_type].keys():
+#                    if dirtype in self.high_level_means[elements_type][element].keys():
+#                        mpars=self.high_level_means[elements_type][element][dirtype]
+#                        self.plot_eqarea_pars(mpars,self.high_level_eqarea)
+
        # plot elements means
        if calculation_type!="None":
            if high_level_name in self.high_level_means[high_level_type].keys():
                if dirtype in self.high_level_means[high_level_type][high_level_name].keys():
                    self.plot_eqarea_mean(self.high_level_means[high_level_type][high_level_name][dirtype],self.high_level_eqarea)
-                        
-           
+
+
        self.high_level_eqarea.set_xlim(-1., 1.)
        self.high_level_eqarea.set_ylim(-1., 1.)
        self.high_level_eqarea.axes.set_aspect('equal')
@@ -2915,12 +2943,16 @@ class Zeq_GUI(wx.Frame):
            self.update_higher_level_stats()
            self.interpertation_editor.update_editor(False)
 
-    def plot_higher_level_equalarea(self,specimen): #BLARGE
+    def plot_higher_level_equalarea(self,element): #BLARGE
+        print("plotting higher level interpertation")
+        if self.interpertation_editor_open:
+            higher_level = self.interpertation_editor.show_box.GetValue()
+        else: higher_level = "specimens"
         fits = []
-        if specimen not in self.pmag_results_data['specimens']:
-            return
+        if higher_level not in self.pmag_results_data: print("no level: " + str(higher_level)); return
+        if element not in self.pmag_results_data[higher_level]: print("no element: " + str(higher_level)); return
         if self.mean_fit == 'All':
-            fits = self.pmag_results_data['specimens'][specimen]
+            fits = self.pmag_results_data[higher_level][element]
         elif self.mean_fit != 'None' and self.mean_fit != None:
 #             if self.s not in self.pmag_results_data['specimens'] or \
 # self.mean_fit not in map(lambda x: x.name, self.pmag_results_data['specimens'][self.s]):
@@ -2928,7 +2960,7 @@ class Zeq_GUI(wx.Frame):
 #                 self.mean_fits = 'None'
 #             else:
             #by name fit grouping
-            fits = [fit for fit in self.pmag_results_data['specimens'][specimen] if fit.name == self.mean_fit]
+            fits = [fit for fit in self.pmag_results_data[higher_level][element] if fit.name == self.mean_fit]
             #by index fit grouping
             # fit_index = map(lambda x: x.name, self.pmag_results_data['specimens'][self.s]).index(self.mean_fit)
             # try: fits = [self.pmag_results_data['specimens'][specimen][fit_index]]
@@ -2939,6 +2971,7 @@ class Zeq_GUI(wx.Frame):
         if fits:
             for fit in fits:
                 pars = fit.get(self.COORDINATE_SYSTEM)
+                print(element,pars,self.COORDINATE_SYSTEM)
                 if not pars: print('no parameters to plot for: ' + fit.name); return
                 if "specimen_dec" in pars.keys() and "specimen_inc" in pars.keys():
                     dec=pars["specimen_dec"];inc=pars["specimen_inc"]
@@ -3003,7 +3036,7 @@ class Zeq_GUI(wx.Frame):
         elif 'calculation_type' in pars.keys() and pars['calculation_type']=='DE-BFP':
             ymin, ymax = fig.get_ylim()
             xmin, xmax = fig.get_xlim()
-            
+
             D_c,I_c=pmag.circ(pars["specimen_dec"],pars["specimen_inc"],90)
             X_c_up,Y_c_up=[],[]
             X_c_d,Y_c_d=[],[]
@@ -3017,22 +3050,22 @@ class Zeq_GUI(wx.Frame):
                     Y_c_d.append(XY[1])
             fig.plot(X_c_d,Y_c_d,'b',lw=0.5)
             fig.plot(X_c_up,Y_c_up,'c',lw=0.5)
-            
+
             fig.set_xlim(xmin, xmax)
-            fig.set_ylim(ymin, ymax)           
+            fig.set_ylim(ymin, ymax)
         # plot best-fit direction
         else:
             if "specimen_dec" in pars.keys() and "specimen_inc" in pars.keys():
                 dec=pars["specimen_dec"];inc=pars["specimen_inc"]
             elif "dec" in pars.keys() and "inc" in pars.keys():
-                dec=pars["dec"];inc=pars["inc"]                
-            XY=pmag.dimap(dec,inc)                
+                dec=pars["dec"];inc=pars["inc"]
+            XY=pmag.dimap(dec,inc)
             if inc>0:
                 FC='gray';SIZE=15*self.GUI_RESOLUTION
             else:
                 FC='white';SIZE=15*self.GUI_RESOLUTION
             fig.scatter([XY[0]],[XY[1]],marker='o',edgecolor='black', facecolor=FC,s=SIZE,lw=1,clip_on=False)
-                            
+
     def plot_eqarea_mean(self,meanpars,fig):
         #fig.clear()
         mpars_to_plot=[]
@@ -5401,7 +5434,7 @@ class EditFitFrame(wx.Frame):
         self.Bind(wx.EVT_COMBOBOX, self.on_select_mean_fit_box,self.mean_fit_box)
 
         #show box
-        self.show_box = wx.ComboBox(self.panel, -1, size=(100*self.GUI_RESOLUTION, 25), value='specimens', choices=['specimens','samples','sites','sites-VGP'], style=wx.CB_DROPDOWN,name="high_elements")
+        self.show_box = wx.ComboBox(self.panel, -1, size=(100*self.GUI_RESOLUTION, 25), value='specimens', choices=['specimens','samples','sites'], style=wx.CB_DROPDOWN,name="high_elements")
         self.Bind(wx.EVT_COMBOBOX, self.on_select_show_box,self.show_box)
 
         #coordinates box
@@ -6052,28 +6085,30 @@ class Fit():
         Given a coordinate system and a new parameters dictionary that follows pmagpy 
         convention given by the pmag.py/domean function it alters this fit's bounds and 
         parameters such that it matches the new data.
+        @param: specimen -> None if fit is for a site or a sample or a valid specimen from self.GUI
         @param: coordinate_system -> the coordinate system to alter
         @param: new_pars -> the new paramters to change your fit to
         @alters: tmin, tmax, pars, geopars, tiltpars, PCA_type
         """
-        if type(new_pars) != dict or 'measurement_step_min' not in new_pars.keys() or 'measurement_step_max' not in new_pars.keys() or 'calculation_type' not in new_pars.keys():
-            print("-E- invalid parameters cannot assign to fit - was given:\n"+str(new_pars))
-            return {}
+        if specimen != None:
+            if type(new_pars) != dict or 'measurement_step_min' not in new_pars.keys() or 'measurement_step_max' not in new_pars.keys() or 'calculation_type' not in new_pars.keys():
+                print("-E- invalid parameters cannot assign to fit - was given:\n"+str(new_pars))
+                return {}
 
-        self.tmin = new_pars['measurement_step_min']
-        self.tmax = new_pars['measurement_step_max']
-        self.PCA_type = new_pars['calculation_type']
+            self.tmin = new_pars['measurement_step_min']
+            self.tmax = new_pars['measurement_step_max']
+            self.PCA_type = new_pars['calculation_type']
 
-        steps = self.GUI.Data[specimen]['zijdblock_steps']
-        tl = [self.tmin,self.tmax]
-        for i,t in enumerate(tl):
-            if str(t) in steps: tl[i] = str(t)
-            elif "%.1fmT"%t in steps: tl[i] = "%.1fmT"%t
-            elif "%.0fC"%t in steps: tl[i] = "%.0fC"%t
-            else: 
-                print("-E- Step " + str(tl[i]) + " does not exsist (func: Fit.put)")
-                tl[i] = str(t)
-        self.tmin,self.tmax = tl
+            steps = self.GUI.Data[specimen]['zijdblock_steps']
+            tl = [self.tmin,self.tmax]
+            for i,t in enumerate(tl):
+                if str(t) in steps: tl[i] = str(t)
+                elif "%.1fmT"%t in steps: tl[i] = "%.1fmT"%t
+                elif "%.0fC"%t in steps: tl[i] = "%.0fC"%t
+                else: 
+                    print("-E- Step " + str(tl[i]) + " does not exsist (func: Fit.put)")
+                    tl[i] = str(t)
+            self.tmin,self.tmax = tl
 
         if coordinate_system == 'DA-DIR' or coordinate_system == 'specimen':
             self.pars = new_pars
@@ -6083,7 +6118,7 @@ class Fit():
             self.tiltpars = new_pars
         else:
             print('-E- no such coordinate system could not assign those parameters to fit')
-            
+
     def has_values(self, name, tmin, tmax):
         """
         A basic fit equality checker compares name and bounds of 2 fits
