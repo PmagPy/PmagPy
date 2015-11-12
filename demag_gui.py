@@ -4,11 +4,14 @@
 # LOG HEADER:
 #============================================================================================
 #
-#Demag_GUI Version 0.40 added multiple interpertations and new plot functionallity by Kevin Gaastra (05/03/2015)
+# Demag_GUI Version 0.33 add interpretation editor, plane plotting functionality and more
+# propose merging development fork to main PmagPy repository (11/09/2015)
+#
+# Demag_GUI Version 0.32 added multiple interpretations and new plot functionality by Kevin Gaastra (05/03/2015)
 #
 # Demag_GUI Version 0.31 save MagIC tables option: add dialog box to choose coordinates system for pmag_specimens.txt 04/26/2015
 #
-# Demag_GUI Version 0.30 fix backward compatibility with strange pmag_speciemns.txt 01/29/2015
+# Demag_GUI Version 0.30 fix backward compatibility with strange pmag_specimens.txt 01/29/2015
 #
 # Demag_GUI Version 0.29 fix on_close_event 23/12/2014
 #
@@ -36,15 +39,15 @@
 #--------------------------------------
 
 import os
-global CURRENT_VRSION, PMAGPY_DIRECTORY
-CURRENT_VRSION = "v.0.40"
+global CURRENT_VERSION, PMAGPY_DIRECTORY
+CURRENT_VERSION = "v.0.50"
 path = os.path.abspath(__file__)
 PMAGPY_DIRECTORY = os.path.dirname(path)
 import matplotlib
 #import matplotlib.font_manager as font_manager
 matplotlib.use('WXAgg')
 
-from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigCanvas 
+from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigCanvas
 from matplotlib.backends.backend_wxagg import NavigationToolbar2WxAgg as NavigationToolbar
 
 import sys,os
@@ -77,13 +80,13 @@ import copy
 from copy import deepcopy
 
 
-matplotlib.rc('xtick', labelsize=10) 
-matplotlib.rc('ytick', labelsize=10) 
-matplotlib.rc('axes', labelsize=8) 
+matplotlib.rc('xtick', labelsize=10)
+matplotlib.rc('ytick', labelsize=10)
+matplotlib.rc('axes', labelsize=8)
 matplotlib.rcParams['savefig.dpi'] = 300.
 
-rcParams.update({"svg.embed_char_paths":False})
-rcParams.update({"svg.fonttype":'none'})
+#rcParams.update({"svg.embed_char_paths":False})
+rcParams.update({"svg.fonttype":'svgfont'})
 
 
 #--------------------------------------
@@ -94,18 +97,18 @@ class Zeq_GUI(wx.Frame):
     """
     The main frame of the application
     """
-    title = "PmagPy Demag GUI %s (beta)"%CURRENT_VRSION
-    
+    title = "PmagPy Demag GUI %s (beta)"%CURRENT_VERSION
+
     def __init__(self, WD, parent=None):
-        
+
         TEXT="""
         NAME:
    	demag_gui.py
-    
+
         DESCRIPTION:
    	GUI for interpreting demagnetization data (AF and/or thermal).
-   	For tutorial chcek PmagPy cookbook in http://earthref.org/PmagPy/cookbook/   	    
-        """  
+   	For tutorial chcek PmagPy cookbook in http://earthref.org/PmagPy/cookbook/
+        """
         args=sys.argv
         if "-h" in args:
             print TEXT
@@ -137,7 +140,7 @@ class Zeq_GUI(wx.Frame):
         try:
             self.acceptance_criteria=pmag.read_criteria_from_file(os.path.join(self.WD, "pmag_criteria.txt"), self.acceptance_criteria)
         except:
-            print "-I- Cant find/read file  pmag_criteria.txt"          
+            print "-I- Cant find/read file  pmag_criteria.txt"
 
 
         preferences=self.get_preferences()
@@ -162,7 +165,7 @@ class Zeq_GUI(wx.Frame):
                 self.high_level_means[high_level]={}
 
         #BLARGE
-        self.interpertation_editor_open = False
+        self.interpretation_editor_open = False
         self.color_dict = {'green':'g','yellow':'y','maroon':'m','cyan':'c','black':'k','brown':(139./255.,69./255.,19./255.),'orange':(255./255.,127./255.,0./255.),'pink':(255./255.,20./255.,147./255.),'violet':(153./255.,50./255.,204./255.),'grey':(84./255.,84./255.,84./255.)}
         self.colors = ['g','y','m','c','k',(139./255.,69./255.,19./255.),(255./255.,127./255.,0./255.),(255./255.,20./255.,147./255.),(153./255.,50./255.,204./255.),(84./255.,84./255.,84./255.)] #for fits
         self.current_fit = None
@@ -202,21 +205,21 @@ class Zeq_GUI(wx.Frame):
         """
         #GUI width is 200+100*5+100*5=1202
         #GUI hieght is 640
-        
+
         dw, dh = wx.DisplaySize()
         w, h = self.GetSize()
         #print 'diplay', dw, dh
         #print "gui", w, h
         r1=dw/1210.
         r2=dw/640.
-        
+
         #if  dw>w:
         self.GUI_RESOLUTION=min(r1,r2,1.3)
         #print "gui resolution 2"
         #self.GUI_RESOLUTION=float(self.preferences['gui_resolution'])/100
- #----------------------------------------------------------------------                     
+ #----------------------------------------------------------------------
         # initialize first specimen in list as current specimen
- #----------------------------------------------------------------------                     
+ #----------------------------------------------------------------------
         try:
             self.s=str(self.specimens[0])
         except:
@@ -234,9 +237,9 @@ class Zeq_GUI(wx.Frame):
         #print "first specimen is"
         #print self.s
         #print self.specimens
- #----------------------------------------------------------------------                     
-        # Create Figures and FigCanvas objects. 
- #----------------------------------------------------------------------                     
+ #----------------------------------------------------------------------
+        # Create Figures and FigCanvas objects.
+ #----------------------------------------------------------------------
 
         self.fig1 = Figure((5.*self.GUI_RESOLUTION, 5.*self.GUI_RESOLUTION), dpi=self.dpi)
         self.canvas1 = FigCanvas(self.panel, -1, self.fig1)
@@ -250,8 +253,8 @@ class Zeq_GUI(wx.Frame):
         #self.fig1.text(0.01,0.98,"Zijderveld plot",{'family':'Arial', 'fontsize':10*self.GUI_RESOLUTION, 'style':'normal','va':'center', 'ha':'left' })
 
         self.fig2 = Figure((2.5*self.GUI_RESOLUTION, 2.5*self.GUI_RESOLUTION), dpi=self.dpi)
-        self.specimen_eqarea_net = self.fig2.add_subplot(111)  
-        self.draw_net(self.specimen_eqarea_net)        
+        self.specimen_eqarea_net = self.fig2.add_subplot(111)
+        self.draw_net(self.specimen_eqarea_net)
         self.specimen_eqarea = self.fig2.add_axes(self.specimen_eqarea_net.get_position(), frameon=False,axisbg='None')
         self.specimen_eqarea_interpretation = self.fig2.add_axes(self.specimen_eqarea_net.get_position(), frameon=False,axisbg='None')
         self.specimen_eqarea_interpretation.axes.set_aspect('equal')
@@ -286,18 +289,18 @@ class Zeq_GUI(wx.Frame):
         self.higher_EA_ydata = []
 
 
-                    
+
         self.high_level_eqarea_net = self.fig4.add_subplot(111)
-        self.draw_net(self.high_level_eqarea_net)        
+        self.draw_net(self.high_level_eqarea_net)
         self.high_level_eqarea = self.fig4.add_axes(self.high_level_eqarea_net.get_position(), frameon=False,axisbg='None')
         self.high_level_eqarea_interpretation = self.fig4.add_axes(self.high_level_eqarea_net.get_position(), frameon=False,axisbg='None')
         self.high_level_eqarea_interpretation.axis('equal')
         self.high_level_eqarea_interpretation.axis('off')
 
 
- #----------------------------------------------------------------------                     
+ #----------------------------------------------------------------------
         #  set font size and style
- #----------------------------------------------------------------------                     
+ #----------------------------------------------------------------------
 
         FONT_RATIO=1
         font1 = wx.Font(9+FONT_RATIO, wx.SWISS, wx.NORMAL, wx.NORMAL, False, u'Arial')
@@ -305,11 +308,11 @@ class Zeq_GUI(wx.Frame):
         font2 = wx.Font(12+min(1,FONT_RATIO), wx.SWISS, wx.NORMAL, wx.NORMAL, False, u'Arial')
         font3 = wx.Font(11+FONT_RATIO, wx.SWISS, wx.NORMAL, wx.NORMAL, False, u'Arial')
         font = wx.SystemSettings_GetFont(wx.SYS_SYSTEM_FONT)
-        font.SetPointSize(10+FONT_RATIO)        
+        font.SetPointSize(10+FONT_RATIO)
 
- #----------------------------------------------------------------------                     
+ #----------------------------------------------------------------------
         # Create text_box for presenting the measurements
- #----------------------------------------------------------------------                     
+ #----------------------------------------------------------------------
 
         self.logger = wx.ListCtrl(self.panel, -1, size=(200*self.GUI_RESOLUTION,300*self.GUI_RESOLUTION),style=wx.LC_REPORT)
         self.logger.SetFont(font1)
@@ -318,37 +321,37 @@ class Zeq_GUI(wx.Frame):
         self.logger.InsertColumn(2, 'Tr',width=35*self.GUI_RESOLUTION)
         self.logger.InsertColumn(3, 'Dec',width=35*self.GUI_RESOLUTION)
         self.logger.InsertColumn(4, 'Inc',width=35*self.GUI_RESOLUTION)
-        self.logger.InsertColumn(5, 'M',width=45*self.GUI_RESOLUTION) 
-        self.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.OnClick_listctrl, self.logger) 
-        self.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK,self.OnRightClickListctrl,self.logger) 
- #----------------------------------------------------------------------                     
+        self.logger.InsertColumn(5, 'M',width=45*self.GUI_RESOLUTION)
+        self.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.OnClick_listctrl, self.logger)
+        self.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK,self.OnRightClickListctrl,self.logger)
+ #----------------------------------------------------------------------
         #  select specimen box
- #----------------------------------------------------------------------                     
+ #----------------------------------------------------------------------
 
         self.box_sizer_select_specimen = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY), wx.VERTICAL )
 
         # Combo-box with a list of specimen
         self.specimens_box = wx.ComboBox(self.panel, -1, value=self.s,choices=self.specimens, style=wx.CB_DROPDOWN,name="specimen")
         self.Bind(wx.EVT_COMBOBOX, self.onSelect_specimen,self.specimens_box)
-        
-        # buttons to move forward and backwards from specimens        
+
+        # buttons to move forward and backwards from specimens
         self.nextbutton = wx.Button(self.panel, id=-1, label='next',size=(75*self.GUI_RESOLUTION, 25))#,style=wx.BU_EXACTFIT)#, size=(175, 28))
         self.Bind(wx.EVT_BUTTON, self.on_next_button, self.nextbutton)
         self.nextbutton.SetFont(font2)
-        
+
         self.prevbutton = wx.Button(self.panel, id=-1, label='previous',size=(75*self.GUI_RESOLUTION, 25))#,style=wx.BU_EXACTFIT)#, size=(175, 28))
         self.prevbutton.SetFont(font2)
         self.Bind(wx.EVT_BUTTON, self.on_prev_button, self.prevbutton)
-        
+
         select_specimen_window = wx.GridSizer(1, 2, 5, 10)
         select_specimen_window.AddMany( [(self.prevbutton, wx.ALIGN_LEFT),
             (self.nextbutton, wx.ALIGN_LEFT)])
 
 
 
- #----------------------------------------------------------------------                     
+ #----------------------------------------------------------------------
         #  select coordinate box
- #----------------------------------------------------------------------                     
+ #----------------------------------------------------------------------
         # stopped here
         self.coordinate_list = ['specimen']
         for specimen in self.specimens:
@@ -361,23 +364,23 @@ class Zeq_GUI(wx.Frame):
         self.orthogonal_box = wx.ComboBox(self.panel, -1, value='X=NRM dec', choices=['X=NRM dec','X=East','X=North','X=best fit line dec'], style=wx.CB_DROPDOWN,name="orthogonal_plot")
         self.Bind(wx.EVT_COMBOBOX, self.onSelect_orthogonal_box,self.orthogonal_box)
 
-        self.box_sizer_select_specimen.Add(wx.StaticText(self.panel,label="specimen:",style=wx.TE_CENTER))        
-        self.box_sizer_select_specimen.Add(self.specimens_box, 0, wx.TOP, 0 )        
-        self.box_sizer_select_specimen.Add(select_specimen_window, 0, wx.TOP, 4 )        
+        self.box_sizer_select_specimen.Add(wx.StaticText(self.panel,label="specimen:",style=wx.TE_CENTER))
+        self.box_sizer_select_specimen.Add(self.specimens_box, 0, wx.TOP, 0 )
+        self.box_sizer_select_specimen.Add(select_specimen_window, 0, wx.TOP, 4 )
         self.box_sizer_select_specimen.Add(wx.StaticLine(self.panel), 0, wx.ALL|wx.EXPAND, 5)
-        self.box_sizer_select_specimen.Add(wx.StaticText(self.panel,label="coordinate system:",style=wx.TE_CENTER))        
-        self.box_sizer_select_specimen.Add(self.coordinates_box, 0, wx.TOP, 4 )        
+        self.box_sizer_select_specimen.Add(wx.StaticText(self.panel,label="coordinate system:",style=wx.TE_CENTER))
+        self.box_sizer_select_specimen.Add(self.coordinates_box, 0, wx.TOP, 4 )
         self.box_sizer_select_specimen.Add(wx.StaticLine(self.panel), 0, wx.ALL|wx.EXPAND, 5)
-        self.box_sizer_select_specimen.Add(wx.StaticText(self.panel,label="Zijderveld plot:",style=wx.TE_CENTER))        
-        self.box_sizer_select_specimen.Add(self.orthogonal_box, 0, wx.TOP, 4 )        
+        self.box_sizer_select_specimen.Add(wx.StaticText(self.panel,label="Zijderveld plot options:",style=wx.TE_CENTER))
+        self.box_sizer_select_specimen.Add(self.orthogonal_box, 0, wx.TOP, 4 )
 
- #----------------------------------------------------------------------                     
+ #----------------------------------------------------------------------
         #  fit box
- #----------------------------------------------------------------------                     
+ #----------------------------------------------------------------------
 
         list_fits = []
 
-        self.box_sizer_fit = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY, "Interpretations" ), wx.VERTICAL )
+        self.box_sizer_fit = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY, "interpretations" ), wx.VERTICAL )
 
         self.fit_box = wx.ComboBox(self.panel, -1 ,size=(100*self.GUI_RESOLUTION, 25),choices=list_fits, style=wx.TE_PROCESS_ENTER)
         self.Bind(wx.EVT_COMBOBOX, self.on_select_fit,self.fit_box)
@@ -392,12 +395,12 @@ class Zeq_GUI(wx.Frame):
             (self.fit_box, wx.ALIGN_LEFT)])
         self.box_sizer_fit.Add(fit_window, 0, wx.TOP, 5.5 )
 
- #----------------------------------------------------------------------                     
+ #----------------------------------------------------------------------
         #  select bounds box
- #----------------------------------------------------------------------                     
+ #----------------------------------------------------------------------
 
         self.T_list=[]
-        
+
         self.box_sizer_select_bounds = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY,"bounds" ), wx.VERTICAL )
         self.tmin_box = wx.ComboBox(self.panel, -1 ,size=(100*self.GUI_RESOLUTION, 25),choices=self.T_list, style=wx.CB_DROPDOWN)
         self.Bind(wx.EVT_COMBOBOX, self.get_new_PCA_parameters,self.tmin_box)
@@ -408,12 +411,12 @@ class Zeq_GUI(wx.Frame):
         select_temp_window = wx.GridSizer(2, 1, 10*self.GUI_RESOLUTION, 0)
         select_temp_window.AddMany( [(self.tmin_box, wx.ALIGN_LEFT),
             (self.tmax_box, wx.ALIGN_LEFT)])
-        self.box_sizer_select_bounds.Add(select_temp_window, 0, wx.ALIGN_LEFT, 3.5 )        
-        
+        self.box_sizer_select_bounds.Add(select_temp_window, 0, wx.ALIGN_LEFT, 3.5 )
 
-        #----------------------------------------------------------------------                     
+
+        #----------------------------------------------------------------------
         #  save/delete box
-        #----------------------------------------------------------------------                     
+        #----------------------------------------------------------------------
 
         self.box_sizer_save = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY,"" ), wx.HORIZONTAL )
 
@@ -424,16 +427,16 @@ class Zeq_GUI(wx.Frame):
         self.delete_interpretation_button.SetFont(font2)
         self.Bind(wx.EVT_BUTTON, self.on_save_interpretation_button, self.save_interpretation_button)
         self.Bind(wx.EVT_BUTTON, self.delete_fit, self.delete_interpretation_button)
-        
+
         save_delete_window = wx.GridSizer(2, 1, 10*self.GUI_RESOLUTION, 19*self.GUI_RESOLUTION)
         save_delete_window.AddMany( [(self.save_interpretation_button, wx.ALIGN_LEFT),
             (self.delete_interpretation_button, wx.ALIGN_LEFT)])
         self.box_sizer_save.Add(save_delete_window, 0, wx.TOP, 5.5 )
-        
 
- #----------------------------------------------------------------------                     
-        # Specimen interpretation window 
- #----------------------------------------------------------------------                     
+
+ #----------------------------------------------------------------------
+        # Specimen interpretation window
+ #----------------------------------------------------------------------
         self.box_sizer_specimen = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY,"specimen mean type"  ), wx.HORIZONTAL )
 
         self.PCA_type_box = wx.ComboBox(self.panel, -1, size=(100*self.GUI_RESOLUTION, 25), value='line',choices=['line','line-anchored','line-with-origin','plane','Fisher'], style=wx.CB_DROPDOWN,name="coordinates")
@@ -442,15 +445,15 @@ class Zeq_GUI(wx.Frame):
         #Plane displays box
 #        self.plane_display_sizer = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY,"plane display type"  ), wx.HORIZONTAL )
 
-        self.plane_display_box = wx.ComboBox(self.panel, -1, size=(100*self.GUI_RESOLUTION, 25), value='Poles',choices=['Poles','Upper Hemisphere', 'Lower Hemisphere', 'Whole Plane'], style=wx.CB_DROPDOWN,name="PlaneType")
+        self.plane_display_box = wx.ComboBox(self.panel, -1, size=(100*self.GUI_RESOLUTION, 25), value='show poles',choices=['show poles','show u. hemisphere', 'show l. hemisphere', 'show whole plane'], style=wx.CB_DROPDOWN,name="PlaneType")
         self.Bind(wx.EVT_COMBOBOX, self.on_select_plane_display_box, self.plane_display_box)
 
         specimen_stat_type_window = wx.GridSizer(2, 1, 10*self.GUI_RESOLUTION, 19*self.GUI_RESOLUTION)
         specimen_stat_type_window.AddMany([(self.PCA_type_box, wx.ALIGN_LEFT),
                                            (self.plane_display_box, wx.ALIGN_LEFT)])
         self.box_sizer_specimen.Add(specimen_stat_type_window, 0, wx.ALIGN_LEFT, 0 )
- 
-        self.box_sizer_specimen_stat = wx.StaticBoxSizer(wx.StaticBox(self.panel, wx.ID_ANY,"specimen mean statistics"), wx.HORIZONTAL )
+
+        self.box_sizer_specimen_stat = wx.StaticBoxSizer(wx.StaticBox(self.panel, wx.ID_ANY,"specimen fit statistics"), wx.HORIZONTAL )
 
         for parameter in ['dec','inc','n','mad','dang','alpha95']:
             COMMAND="self.s%s_window=wx.TextCtrl(self.panel,style=wx.TE_CENTER|wx.TE_READONLY,size=(50*self.GUI_RESOLUTION,25))"%parameter
@@ -477,9 +480,9 @@ class Zeq_GUI(wx.Frame):
             (self.salpha95_window, wx.EXPAND)])
         self.box_sizer_specimen_stat.Add( specimen_stat_window, 0, wx.ALIGN_LEFT, 0)
 
-#----------------------------------------------------------------------                     
-# High level mean window 
- #----------------------------------------------------------------------                     
+#----------------------------------------------------------------------
+# High level mean window
+ #----------------------------------------------------------------------
         self.box_sizer_high_level = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY,"higher level mean"  ), wx.HORIZONTAL )
 
         self.level_box = wx.ComboBox(self.panel, -1, size=(100*self.GUI_RESOLUTION, 25),value='site',  choices=['sample','site','location','study'], style=wx.CB_DROPDOWN,name="high_level")
@@ -495,9 +498,9 @@ class Zeq_GUI(wx.Frame):
 
 #----------------------------------------------------------------------
 # mean types box
- #----------------------------------------------------------------------                     
+ #----------------------------------------------------------------------
 
-        self.box_sizer_mean_types = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY, "mean" ), wx.VERTICAL )
+        self.box_sizer_mean_types = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY, "mean options" ), wx.VERTICAL )
 
         self.mean_type_box = wx.ComboBox(self.panel, -1, size=(120*self.GUI_RESOLUTION, 25), value='None', choices=['Fisher','Fisher by polarity','None'], style=wx.CB_DROPDOWN,name="high_type")
         self.Bind(wx.EVT_COMBOBOX, self.onSelect_mean_type_box,self.mean_type_box)
@@ -510,10 +513,10 @@ class Zeq_GUI(wx.Frame):
         mean_types_window.AddMany([(self.mean_type_box,wx.ALIGN_LEFT),
             (self.mean_fit_box,wx.ALIGN_LEFT)])
         self.box_sizer_mean_types.Add(mean_types_window, 0, wx.TOP, 5.5 )
-                       
- #----------------------------------------------------------------------                     
+
+ #----------------------------------------------------------------------
 # High level text box
- #----------------------------------------------------------------------                     
+ #----------------------------------------------------------------------
         self.stats_sizer = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY,"Mean Statistics"  ), wx.VERTICAL)
 
         for parameter in ['mean_type','dec','inc','alpha95','K','R','n_lines','n_planes']:
@@ -535,11 +538,11 @@ class Zeq_GUI(wx.Frame):
         self.switch_stats_button = wx.SpinButton(self.panel, id=wx.ID_ANY, style=wx.SP_HORIZONTAL|wx.SP_ARROW_KEYS|wx.SP_WRAP, name="change stats")
         self.Bind(wx.EVT_SPIN, self.on_select_stats_button,self.switch_stats_button)
 
-#        self.box_sizer_high_level_text = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY,""  ), wx.HORIZONTAL )                        
+#        self.box_sizer_high_level_text = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY,""  ), wx.HORIZONTAL )
 #        self.high_level_text_box = wx.TextCtrl(self.panel, id=-1, size=(220*self.GUI_RESOLUTION,210*self.GUI_RESOLUTION), style=wx.TE_MULTILINE | wx.TE_READONLY )
 #        self.high_level_text_box.SetFont(font1)
 #        self.box_sizer_high_level_text.Add(self.high_level_text_box, 0, wx.ALIGN_LEFT, 0 )
- #----------------------------------------------------------------------                     
+ #----------------------------------------------------------------------
 # Design the panel
 
 #----------------------------------------------------------------------
@@ -594,7 +597,7 @@ class Zeq_GUI(wx.Frame):
         vbox1.Fit(self)
 
         self.GUI_SIZE = self.GetSize()
-        
+
         # get previous interpretations from pmag tables
         # Draw figures and add  text
         if self.Data:
@@ -620,7 +623,7 @@ class Zeq_GUI(wx.Frame):
         #controlDown = event.CmdDown()
         #altDown = event.AltDown()
         #shiftDown = event.ShiftDown()
- 
+
         if keycode == wx.WXK_RIGHT or keycode == wx.WXK_NUMPAD_RIGHT or keycode == wx.WXK_WINDOWS_RIGHT:
             #print "you pressed the right!"
             self.on_next_button(None)
@@ -771,8 +774,8 @@ class Zeq_GUI(wx.Frame):
 
     def on_equalarea_specimen_select(self,event):
         """
-        Get mouse position on double click find the nearest interpertation to the mouse 
-        position then select that interpertation
+        Get mouse position on double click find the nearest interpretation to the mouse
+        position then select that interpretation
         @param: event -> the wx Mouseevent for that click
         @alters: current_fit
         """
@@ -885,10 +888,10 @@ class Zeq_GUI(wx.Frame):
 
     def on_equalarea_higher_select(self,event):
         """
-        Get mouse position on double click find the nearest interpertation to the mouse 
-        position then select that interpertation
+        Get mouse position on double click find the nearest interpretation to the mouse
+        position then select that interpretation
         @param: event -> the wx Mouseevent for that click
-        @alters: current_fit, s, mean_fit, fit_box selection, mean_fit_box selection, specimens_box selection, tmin_box selection, tmax_box selection, 
+        @alters: current_fit, s, mean_fit, fit_box selection, mean_fit_box selection, specimens_box selection, tmin_box selection, tmax_box selection,
         """
         if not self.higher_EA_xdata or not self.higher_EA_ydata: return
         pos=event.GetPosition()
@@ -962,16 +965,16 @@ class Zeq_GUI(wx.Frame):
                 self.update_selection()
             else:
                 self.Add_text()
-            if self.interpertation_editor_open:
-                self.interpertation_editor.change_selected(self.current_fit)
+            if self.interpretation_editor_open:
+                self.interpretation_editor.change_selected(self.current_fit)
 
     def Zij_zoom(self):
-        #cursur_entry_zij=self.canvas1.mpl_connect('axes_enter_event', self.on_enter_zij_fig_new) 
-        cursur_entry_zij=self.canvas1.mpl_connect('axes_enter_event', self.on_enter_zij_fig) 
+        #cursur_entry_zij=self.canvas1.mpl_connect('axes_enter_event', self.on_enter_zij_fig_new)
+        cursur_entry_zij=self.canvas1.mpl_connect('axes_enter_event', self.on_enter_zij_fig)
         cursur_leave_zij=self.canvas1.mpl_connect('axes_leave_event', self.on_leave_zij_fig)
 
     def on_enter_zij_fig_new(self,event):
-        #self.toolbar1.zoom()        
+        #self.toolbar1.zoom()
         self.curser_in_zij_figure=True
         self.canvas2.SetCursor(wx.StockCursor(wx.CURSOR_CROSS))
         cid3=self.canvas1.mpl_connect('button_press_event', self.onclick_z_11)
@@ -982,7 +985,7 @@ class Zeq_GUI(wx.Frame):
         #if self.curser_in_zij_figure:
         self.tmp_x_press=event.xdata
         self.tmp_y_press=event.ydata
-        
+
     def onclick_z_22(self,event):
         self.tmp_x_release=event.xdata
         self.tmp_y_release=event.ydata
@@ -998,8 +1001,8 @@ class Zeq_GUI(wx.Frame):
         self.canvas1.mpl_disconnect(self.cid4)
         self.canvas1.SetCursor(wx.StockCursor(wx.CURSOR_ARROW))
         self.curser_in_zij_figure=False
-                
-                                                
+
+
     def on_enter_zij_fig(self,event):
         #AX=gca(label='zig_orig')
         #print AX
@@ -1013,7 +1016,7 @@ class Zeq_GUI(wx.Frame):
         if self.curser_in_zij_figure:
             self.tmp3_x=event.xdata
             self.tmp3_y=event.ydata
-        
+
     def onclick_z_2(self,event):
         self.canvas1.mpl_connect('axes_leave_event', self.on_leave_zij_fig)
         if self.curser_in_zij_figure:
@@ -1043,7 +1046,7 @@ class Zeq_GUI(wx.Frame):
     def Zij_picker(self):
        self.canvas1.mpl_connect('pick_event', self.onpick)
        #self.canvas1.mpl_connect('pick_event', self.onpick())
-        
+
     def onpick(self,event):
         self.second_click=time.time()
         try:
@@ -1067,18 +1070,18 @@ class Zeq_GUI(wx.Frame):
             self.logger.SetItemBackgroundColour(item,"WHITE")
             self.logger.Select(item, on=0)
 
-        # clear equal area plot        
+        # clear equal area plot
         self.specimen_eqarea_interpretation.clear()   # equal area
         self.mplot_interpretation.clear() # M / M0
-                
+
         tmin_index,tmax_index="",""
         if str(self.tmin_box.GetValue())!="":
             tmin_index=self.tmin_box.GetSelection()
         if str(self.tmax_box.GetValue())!="":
             tmax_index=self.tmax_box.GetSelection()
 
-        
-        # set slection in        
+
+        # set slection in
         if tmin_index !="" and tmax_index =="":
             if index<tmin_index:
                 self.tmin_box.SetSelection(index)
@@ -1087,7 +1090,7 @@ class Zeq_GUI(wx.Frame):
                 self.tmax_box.SetSelection(index)
             self.logger.Select(index, on=0)
             self.get_new_PCA_parameters(-1)
-            
+
         elif tmin_index =="" and tmax_index !="":
             if index>tmax_index:
                 self.tmin_box.SetSelection(tmax_index)
@@ -1104,7 +1107,7 @@ class Zeq_GUI(wx.Frame):
                 self.tmin_box.SetSelection(int(index))
                 self.tmax_box.SetValue("")
 
-            self.logger.Select(index, on=1)            
+            self.logger.Select(index, on=1)
             self.zijplot.scatter([self.CART_rot[:,0][index]],[-1* self.CART_rot[:,1][index]],marker='o',s=40,facecolor='g',edgecolor ='k',zorder=100,clip_on=False)
             self.zijplot.scatter([self.CART_rot[:,0][index]],[-1* self.CART_rot[:,2][index]],marker='s',s=50,facecolor='g',edgecolor ='k',zorder=100,clip_on=False)
 
@@ -1128,14 +1131,14 @@ class Zeq_GUI(wx.Frame):
         elif self.orthogonal_box.GetValue()=="X=best fit line dec":
             self.ORTHO_PLOT_TYPE='PCA_dec'
         else:
-            self.ORTHO_PLOT_TYPE='ZIJ'            
+            self.ORTHO_PLOT_TYPE='ZIJ'
         if self.COORDINATE_SYSTEM=='geographic':
             #self.CART_rot=self.Data[self.s]['zij_rotated_geo']
             self.zij=array(self.Data[self.s]['zdata_geo'])
             self.zijblock=self.Data[self.s]['zijdblock_geo']
         elif self.COORDINATE_SYSTEM=='tilt-corrected':
             #self.CART_rot=self.Data[self.s]['zij_rotated_tilt']
-            self.zij=array(self.Data[self.s]['zdata_tilt'])        
+            self.zij=array(self.Data[self.s]['zdata_tilt'])
             self.zijblock=self.Data[self.s]['zijdblock_tilt']
         else:
             #self.CART_rot=self.Data[self.s]['zij_rotated']
@@ -1154,7 +1157,7 @@ class Zeq_GUI(wx.Frame):
                     self.CART_rot=self.Rotate_zijderveld(self.Data[self.s]['zdata_geo'],pmag.cart2dir(self.Data[self.s]['zdata_geo'][0])[0])
             else:
                 self.CART_rot=self.Rotate_zijderveld(self.Data[self.s]['zdata_geo'],pmag.cart2dir(self.Data[self.s]['zdata_geo'][0])[0])
-                 
+
         elif self.COORDINATE_SYSTEM=='tilt-corrected':
             if self.ORTHO_PLOT_TYPE=='N-S':
                 self.CART_rot=self.Rotate_zijderveld(self.Data[self.s]['zdata_tilt'],0.)
@@ -1183,11 +1186,11 @@ class Zeq_GUI(wx.Frame):
 
 
         self.zij_norm=array([row/sqrt(sum(row**2)) for row in self.zij])
-        
-        #-----------------------------------------------------------         
-        # remove bad data from plotting:     
+
         #-----------------------------------------------------------
-        
+        # remove bad data from plotting:
+        #-----------------------------------------------------------
+
         self.CART_rot_good=[]
         self.CART_rot_bad=[]
         for i in range(len(self.CART_rot)):
@@ -1195,11 +1198,11 @@ class Zeq_GUI(wx.Frame):
                 self.CART_rot_good.append(list(self.CART_rot[i]))
             else:
                 self.CART_rot_bad.append(list(self.CART_rot[i]))
-        
+
         self.CART_rot_good=array(self.CART_rot_good)
         self.CART_rot_bad=array(self.CART_rot_bad)
 
-        
+
     #----------------------------------------------------------------------
     # Draw plots
     #----------------------------------------------------------------------
@@ -1208,7 +1211,7 @@ class Zeq_GUI(wx.Frame):
     def draw_figure(self,s,update_higher_plots=True):
 
         self.initialize_CART_rot(s)
-        
+
         #-----------------------------------------------------------
         # Draw Zij plot
         #-----------------------------------------------------------
@@ -1224,7 +1227,7 @@ class Zeq_GUI(wx.Frame):
         #self.zijplot_interpretation.axis('equal')
         #self.zijplot_interpretation.xaxis.set_visible(False)
         #self.zijplot_interpretation.yaxis.set_visible(False)
-        
+
         self.MS=6*self.GUI_RESOLUTION;self.dec_MEC='k';self.dec_MFC='r'; self.inc_MEC='k';self.inc_MFC='b'
         self.zijdblock_steps=self.Data[self.s]['zijdblock_steps']
         self.vds=self.Data[self.s]['vds']
@@ -1242,7 +1245,7 @@ class Zeq_GUI(wx.Frame):
         for i in range(len( self.CART_rot_bad)):
             self.zijplot.plot(self.CART_rot_bad[:,0][i],-1* self.CART_rot_bad[:,1][i],'o',mfc='None',mec=self.dec_MEC,markersize=self.MS,clip_on=False,picker=False) #x,y or N,E
             self.zijplot.plot(self.CART_rot_bad[:,0][i],-1 * self.CART_rot_bad[:,2][i],'s',mfc='None',mec=self.inc_MEC,markersize=self.MS,clip_on=False,picker=False) #x-z or N,D
-        
+
         #self.zijplot.axis('off')
         #last_cart_1=array([self.CART_rot[0][0],self.CART_rot[0][1]])
         #last_cart_2=array([self.CART_rot[0][0],self.CART_rot[0][2]])
@@ -1274,7 +1277,7 @@ class Zeq_GUI(wx.Frame):
 
         axxline, = self.zijplot.plot([xmin, xmax], [0, 0], **props)
         axxline.set_clip_on(False)
-        
+
         TEXT=""
         if self.COORDINATE_SYSTEM=='specimen':
             self.zijplot.text(xmax,0,' x',fontsize=10,verticalalignment='bottom')
@@ -1284,7 +1287,7 @@ class Zeq_GUI(wx.Frame):
             elif self.ORTHO_PLOT_TYPE=='E-W':
                 TEXT=" E"
             else:
-                TEXT=" x"       
+                TEXT=" x"
             self.zijplot.text(xmax,0,TEXT,fontsize=10,verticalalignment='bottom')
 
 
@@ -1363,8 +1366,8 @@ class Zeq_GUI(wx.Frame):
         x_eq=array([row[0] for row in self.zij_norm])
         y_eq=array([row[1] for row in self.zij_norm])
         z_eq=abs(array([row[2] for row in self.zij_norm]))
-        
-        # remove bad data from plotting:     
+
+        # remove bad data from plotting:
         x_eq_good,y_eq_good,z_eq_good=[],[],[]
         x_eq_bad,y_eq_bad,z_eq_bad=[],[],[]
         for i in range(len(list(self.zij_norm))):
@@ -1378,8 +1381,8 @@ class Zeq_GUI(wx.Frame):
                 z_eq_bad.append(abs(self.zij_norm[i][2]))
 
         x_eq_good,y_eq_good,z_eq_good=array(x_eq_good),array(y_eq_good),array(z_eq_good)
-        x_eq_bad,y_eq_bad,z_eq_bad=array(x_eq_bad),array(y_eq_bad),array(z_eq_bad) 
-        
+        x_eq_bad,y_eq_bad,z_eq_bad=array(x_eq_bad),array(y_eq_bad),array(z_eq_bad)
+
         R_good=array(sqrt(1-z_eq_good)/sqrt(x_eq_good**2+y_eq_good**2)) # from Collinson 1983
         R_bad=array(sqrt(1-z_eq_bad)/sqrt(x_eq_bad**2+y_eq_bad**2)) # from Collinson 1983
 
@@ -1388,7 +1391,7 @@ class Zeq_GUI(wx.Frame):
 
         eqarea_data_x_bad=y_eq_bad*R_bad
         eqarea_data_y_bad=x_eq_bad*R_bad
-        
+
         self.specimen_eqarea.plot(eqarea_data_x_good,eqarea_data_y_good,lw=0.5,color='gray')#,zorder=0)
 
         #--------------------
@@ -1444,15 +1447,15 @@ class Zeq_GUI(wx.Frame):
         self.specimen_eqarea.set_ylim(-1., 1.)
         self.specimen_eqarea.axes.set_aspect('equal')
         self.specimen_eqarea.axis('off')
-        
+
         self.specimen_eqarea_interpretation.set_xlim(-1., 1.)
         self.specimen_eqarea_interpretation.set_ylim(-1., 1.)
         self.specimen_eqarea_interpretation.axes.set_aspect('equal')
         self.specimen_eqarea_interpretation.axis('off')
-        
+
         self.canvas2.draw()
 
-        #start_time_2=time.time() 
+        #start_time_2=time.time()
         #runtime_sec2 = start_time_2 - start_time_1
         #print "-I- draw eqarea figures is", runtime_sec2,"seconds"
 
@@ -1468,7 +1471,7 @@ class Zeq_GUI(wx.Frame):
         self.mplot_interpretation.yaxis.set_visible(False)
 
         #fig, ax1 = plt.subplots()
-        #print "measurement_step_unit",self.Data[self.s]['measurement_step_unit'] 
+        #print "measurement_step_unit",self.Data[self.s]['measurement_step_unit']
         if self.Data[self.s]['measurement_step_unit'] =="mT:C" or self.Data[self.s]['measurement_step_unit'] =="C:mT":
             thermal_x,thermal_y=[],[]
             thermal_x_bad,thermal_y_bad=[],[]
@@ -1511,7 +1514,7 @@ class Zeq_GUI(wx.Frame):
             self.mplot.plot(thermal_x, thermal_y, 'ro-',markersize=5*self.GUI_RESOLUTION,lw=1,clip_on=False)
             for i in range(len(thermal_x_bad)):
                 self.mplot.plot([thermal_x_bad[i]], [thermal_y_bad[i]],'o',mfc='None',mec='k',markersize=self.MS,clip_on=False)
-                     
+
             self.mplot.set_xlabel('Thermal (C)',color='r')
             for tl in self.mplot.get_xticklabels():
                 tl.set_color('r')
@@ -1520,7 +1523,7 @@ class Zeq_GUI(wx.Frame):
             ax2.plot(af_x, af_y, 'bo-',markersize=5*self.GUI_RESOLUTION,lw=1,clip_on=False)
             for i in range(len(af_x_bad)):
                 ax2.plot([af_x_bad[i]], [af_y_bad[i]],'o',mfc='None',mec='k',markersize=self.MS,clip_on=False)
-            
+
             ax2.set_xlabel('AF (mT)',color='b')
             for tl in ax2.get_xticklabels():
                 tl.set_color('b')
@@ -1532,7 +1535,7 @@ class Zeq_GUI(wx.Frame):
             self.mplot.get_xaxis().tick_bottom()
             self.mplot.get_yaxis().tick_left()
             self.mplot.set_ylabel("M / NRM0",fontsize=8*self.GUI_RESOLUTION)
-        
+
         else:
             self.mplot.clear()
             x_data,y_data=[],[]
@@ -1541,32 +1544,32 @@ class Zeq_GUI(wx.Frame):
                 # bad point
                 if self.Data[self.s]['measurement_flag'][i]=='b':
                     x_data_bad.append(self.Data[self.s]['zijdblock'][i][0])
-                    y_data_bad.append(self.Data[self.s]['zijdblock'][i][3]/self.Data[self.s]['zijdblock'][0][3])                    
+                    y_data_bad.append(self.Data[self.s]['zijdblock'][i][3]/self.Data[self.s]['zijdblock'][0][3])
                 else:
                     x_data.append(self.Data[self.s]['zijdblock'][i][0])
                     y_data.append(self.Data[self.s]['zijdblock'][i][3]/self.Data[self.s]['zijdblock'][0][3])
-    
-            self.mplot = self.fig3.add_axes([0.2,0.15,0.7,0.7],frameon=True,axisbg='None')        
+
+            self.mplot = self.fig3.add_axes([0.2,0.15,0.7,0.7],frameon=True,axisbg='None')
             self.mplot.clear()
             self.mplot.plot(x_data,y_data,'bo-',mec='0.2',markersize=5*self.GUI_RESOLUTION,lw=1,clip_on=False)
             for i in range(len(x_data_bad)):
                 self.mplot.plot([x_data_bad[i]], [y_data_bad[i]],'o',mfc='None',mec='k',markersize=self.MS,clip_on=False)
-            self.mplot.set_xlabel("Treatment",fontsize=8*self.GUI_RESOLUTION)                  
+            self.mplot.set_xlabel("Treatment",fontsize=8*self.GUI_RESOLUTION)
             self.mplot.set_ylabel("M / NRM_0",fontsize=8*self.GUI_RESOLUTION)
             try:
                 self.mplot.tick_params(axis='both', which='major', labelsize=7)
             except:
                 pass
-            #self.mplot.tick_params(axis='x', which='major', labelsize=8)          
+            #self.mplot.tick_params(axis='x', which='major', labelsize=8)
             self.mplot.spines["right"].set_visible(False)
             self.mplot.spines["top"].set_visible(False)
             self.mplot.get_xaxis().tick_bottom()
             self.mplot.get_yaxis().tick_left()
-        
+
         #xt=xticks()
 
         self.canvas3.draw()
-        #start_time_3=time.time() 
+        #start_time_3=time.time()
         #runtime_sec3 = start_time_3 - start_time_2
         #print "-I- draw M_M0 figures is", runtime_sec3,"seconds"
 
@@ -1578,13 +1581,13 @@ class Zeq_GUI(wx.Frame):
         #self.fig4.clf()
         #what_is_it=self.level_box.GetValue()
         #self.fig4.text(0.02,0.96,what_is_it,{'family':'Arial', 'fontsize':10*self.GUI_RESOLUTION, 'style':'normal','va':'center', 'ha':'left' })
-        #self.high_level_eqarea = self.fig4.add_subplot(111)        
-        ## draw_net        
+        #self.high_level_eqarea = self.fig4.add_subplot(111)
+        ## draw_net
         #self.draw_net(self.high_level_eqarea)
         #self.canvas4.draw()
 
         self.canvas4.draw()
-        #start_time_4=time.time() 
+        #start_time_4=time.time()
         #runtime_sec4 = start_time_4 - start_time_3
         #print "-I- draw high level figures is", runtime_sec4,"seconds"
 
@@ -1669,8 +1672,8 @@ class Zeq_GUI(wx.Frame):
     #----------------------------------------------------------------------
     # add text to text box
     #----------------------------------------------------------------------
-       
-        
+
+
     def Add_text(self):
       """
       Add measurement data lines to the text window.
@@ -1714,16 +1717,16 @@ class Zeq_GUI(wx.Frame):
             self.logger.SetItemBackgroundColour(i,"LIGHT BLUE")
           if self.Data[self.s]['measurement_flag'][i]=='b':
             self.logger.SetItemBackgroundColour(i,"YELLOW")
-             
+
     #----------------------------------------------------------------------
-      
+
     def onSelect_specimen(self, event):
         """
         update figures and text when a new specimen is selected
         """
         self.select_specimen(str(self.specimens_box.GetValue()))
-        if self.interpertation_editor_open:
-            self.interpertation_editor.change_selected(self.current_fit)
+        if self.interpretation_editor_open:
+            self.interpretation_editor.change_selected(self.current_fit)
         self.update_selection()
 
     def select_specimen(self, specimen):
@@ -1754,9 +1757,9 @@ class Zeq_GUI(wx.Frame):
             for fit in self.pmag_results_data['specimens'][specimen]:
                 fit.put(specimen,self.COORDINATE_SYSTEM,self.get_PCA_parameters(specimen,fit.tmin,fit.tmax,self.COORDINATE_SYSTEM,fit.PCA_type))
 
-        if self.interpertation_editor_open:
-            self.interpertation_editor.coordinates_box.SetStringSelection(new)
-            self.interpertation_editor.update_editor(True)
+        if self.interpretation_editor_open:
+            self.interpretation_editor.coordinates_box.SetStringSelection(new)
+            self.interpretation_editor.update_editor(True)
         self.update_selection()
     #----------------------------------------------------------------------
 
@@ -1768,7 +1771,7 @@ class Zeq_GUI(wx.Frame):
         if self.current_fit:
             if self.current_fit.get(self.COORDINATE_SYSTEM):
                 self.update_GUI_with_new_interpretation()
-              
+
     #----------------------------------------------------------------------
 
     def on_next_button(self,event):
@@ -1789,14 +1792,14 @@ class Zeq_GUI(wx.Frame):
         try: self.current_fit = self.pmag_results_data['specimens'][self.s][fit_index]
         except IndexError: self.current_fit = None
       else: self.current_fit = None
-      if self.interpertation_editor_open:
-        self.interpertation_editor.change_selected(self.current_fit)
+      if self.interpretation_editor_open:
+        self.interpretation_editor.change_selected(self.current_fit)
       self.update_selection()
-      
+
     #----------------------------------------------------------------------
 
     def on_prev_button(self,event):
-      """ 
+      """
       update figures and text when a next button is selected
       """
       index=self.specimens.index(self.s)
@@ -1811,15 +1814,15 @@ class Zeq_GUI(wx.Frame):
         try: self.current_fit = self.pmag_results_data['specimens'][self.s][fit_index]
         except IndexError: self.current_fit = None
       else: self.current_fit = None
-      if self.interpertation_editor_open:
-        self.interpertation_editor.change_selected(self.current_fit)
+      if self.interpretation_editor_open:
+        self.interpretation_editor.change_selected(self.current_fit)
       self.update_selection()
 
     #----------------------------------------------------------------------
 
-                
+
     def update_selection(self):
-        """ 
+        """
         update display (figures, text boxes and statistics windows) with a new selection of specimen
         """
 
@@ -1839,8 +1842,8 @@ class Zeq_GUI(wx.Frame):
         coordinate_system=self.coordinates_box.GetValue()
         self.COORDINATE_SYSTEM=coordinate_system
 
-        #--------------------------                
-        # updtaes treatment list
+        #--------------------------
+        # update treatment list
         #--------------------------
 
         self.update_temp_boxes()
@@ -1874,7 +1877,7 @@ class Zeq_GUI(wx.Frame):
         self.update_higher_level_stats()
 
     #----------------------------------------------------------------------
-    
+
     #--------------------------
     # check if high level interpretation exists and display it
     #--------------------------
@@ -1883,21 +1886,20 @@ class Zeq_GUI(wx.Frame):
         if dirtype=='specimen':dirtype='DA-DIR'
         elif dirtype=='geographic':dirtype='DA-DIR-GEO'
         elif dirtype=='tilt-corrected':dirtype='DA-DIR-TILT'
-        if str(self.level_box.GetValue())=='sample': high_level_type='samples' 
-        elif str(self.level_box.GetValue())=='site': high_level_type='sites' 
-        elif str(self.level_box.GetValue())=='location': high_level_type='locations' 
-        elif str(self.level_box.GetValue())=='study': high_level_type='study' 
+        if str(self.level_box.GetValue())=='sample': high_level_type='samples'
+        elif str(self.level_box.GetValue())=='site': high_level_type='sites'
+        elif str(self.level_box.GetValue())=='location': high_level_type='locations'
+        elif str(self.level_box.GetValue())=='study': high_level_type='study'
         high_level_name=str(self.level_names.GetValue())
         elements_type=self.UPPER_LEVEL_SHOW
 #        self.high_level_text_box.SetValue("")
         if high_level_name in self.high_level_means[high_level_type].keys():
             if dirtype in self.high_level_means[high_level_type][high_level_name].keys():
                 mpars=self.high_level_means[high_level_type][high_level_name][dirtype]
-                calculation_type=mpars['calculation_type']
                 self.show_higher_levels_pars(mpars)
 
     #--------------------------
-    # updtaes treatment list
+    # update treatment list
     #--------------------------
     def update_temp_boxes(self):
         if self.s not in self.Data.keys():
@@ -1938,9 +1940,9 @@ class Zeq_GUI(wx.Frame):
         """
         if not WD and "-WD" in sys.argv and FIRST_RUN:
             ind=sys.argv.index('-WD')
-            self.WD=sys.argv[ind+1]            
+            self.WD=sys.argv[ind+1]
             #self.WD=os.getcwd()+"/"
- 
+
         elif not WD:
             dialog = wx.DirDialog(None, "Choose a directory:",defaultPath = self.currentDirectory ,style=wx.DD_DEFAULT_STYLE | wx.DD_NEW_DIR_BUTTON | wx.DD_CHANGE_DIR)
             ok = dialog.ShowModal()
@@ -2002,12 +2004,12 @@ class Zeq_GUI(wx.Frame):
                 self.tmin_box.SetSelection(index)
                 self.tmax_box.SetValue("")
             return
-             
+
     def OnRightClickListctrl(self,event): #BLARGE FIX
         '''
-        right click on the listctrl opens a popup menu for 
+        right click on the listctrl opens a popup menu for
         changing the measurement line from "g" to "b"
-        
+
         If there is  change, the program rewrirte magic_measurements.txt a
         and reads it again.
         '''
@@ -2029,12 +2031,12 @@ class Zeq_GUI(wx.Frame):
     #    print "write_good_bad_magic_measurements"
     #    # read magic_measurements.txt
     #    #meas_data,file_type=pmag.magic_read(self.magic_file)
-    #    
+    #
     #    pmag.magic_write("kaka.txt",self.mag_meas_data,"magic_measurements")
-    #    
+    #
     #    # read again the data from the new file
     #    self.Data,self.Data_hierarchy=self.get_data()
-         
+
         # delete interpretation
 #        TXT="measurement good or bad data is saved in magic_measurements.txt file"
 #        dlg = wx.MessageDialog(self, caption="Saved",message=TXT,style=wx.OK)
@@ -2109,14 +2111,14 @@ class Zeq_GUI(wx.Frame):
                     fit.put(self.s,'tilt-corrected',self.get_PCA_parameters(self.s,fit.tmin,fit.tmax,'tilt-corrected',fit.get('tilt_corrected')['calculation_type']))
         self.calculate_higher_levels_data()
         self.update_selection()
-        
+
 
     #----------------------------------------------------------------------
 
     def on_select_specimen_mean_type_box(self,event):
         self.get_new_PCA_parameters(event)
-        if self.interpertation_editor_open:
-            self.interpertation_editor.update_logger_entry(self.interpertation_editor.current_fit_index)
+        if self.interpretation_editor_open:
+            self.interpretation_editor.update_logger_entry(self.interpretation_editor.current_fit_index)
 
     def get_new_PCA_parameters(self,event):  #BLARGE
         """
@@ -2136,11 +2138,11 @@ class Zeq_GUI(wx.Frame):
         tmax=str(self.tmax_box.GetValue())
         if tmin=="" or tmax=="":
             return
-       
+
         if tmin in self.T_list and tmax in self.T_list and \
            (self.T_list.index(tmax) <= self.T_list.index(tmin)):
-            return 
-               
+            return
+
         PCA_type=self.PCA_type_box.GetValue()
         if PCA_type=="line":calculation_type="DE-BFL"
         elif PCA_type=="line-anchored":calculation_type="DE-BFL-A"
@@ -2150,8 +2152,8 @@ class Zeq_GUI(wx.Frame):
         coordinate_system=self.COORDINATE_SYSTEM
         if self.current_fit:
             self.current_fit.put(self.s,coordinate_system,self.get_PCA_parameters(self.s,tmin,tmax,coordinate_system,calculation_type))
-        if self.interpertation_editor_open:
-            self.interpertation_editor.update_current_fit_data()
+        if self.interpretation_editor_open:
+            self.interpretation_editor.update_current_fit_data()
         self.update_GUI_with_new_interpretation()
 
     #----------------------------------------------------------------------
@@ -2166,11 +2168,11 @@ class Zeq_GUI(wx.Frame):
             if self.Data[self.s]['measurement_flag'][i]=='g':
                blockout.append(blockin[i])
         return(blockout)
-            
+
 
     def get_PCA_parameters(self,specimen,tmin,tmax,coordinate_system,calculation_type):
         """
-        calcualte statisics 
+        calcualte statisics
         """
 
         beg_pca,end_pca = self.get_temp_indecies(None, tmin, tmax, specimen)
@@ -2185,10 +2187,15 @@ class Zeq_GUI(wx.Frame):
 #            print("length of block: " + str(len(block)))
 #            print(beg_pca)
 #            print("start: " + str(block[beg_pca][0]))
+#            print(block[beg_pca][5])
 #            print(end_pca)
 #            print("end: " + str(block[end_pca][0]))
+#            print(block[end_pca][5])
 #            print("length: " + str(len(block[beg_pca:end_pca+1])))
 #            print("good steps: " + str(sum(map(lambda x: x[5]=='g', block[beg_pca:end_pca+1]))))
+#            if block[beg_pca][5]=='b':
+#                import pdb
+#                pdb.set_trace()
 #            print(len(block[beg_pca][5]), len(block[end_pca][5]))
 #            print(block[beg_pca][5], block[end_pca][5])
 #            print(map(lambda x: [x[0],x[5]],block[beg_pca:end_pca+1]))
@@ -2207,7 +2214,7 @@ class Zeq_GUI(wx.Frame):
              mpars['specimen_dang']=0
 
         return(mpars)
- 
+
     #----------------------------------------------------------------------
 
     def update_GUI_with_new_interpretation(self): #BLARGE
@@ -2272,7 +2279,7 @@ class Zeq_GUI(wx.Frame):
             self.salpha95_window.SetBackgroundColour(wx.NullColour)
 
         if self.orthogonal_box.GetValue()=="X=best fit line dec":
-            if mpars and 'specimen_dec' in mpars.keys(): 
+            if mpars and 'specimen_dec' in mpars.keys():
                 self.draw_figure(self.s)
 
         self.draw_interpretation()
@@ -2283,11 +2290,11 @@ class Zeq_GUI(wx.Frame):
 
     def draw_interpretation(self): #BLARGE
         """
-        draw the specimen interpertations on the zijderveld and the specimen equal area
+        draw the specimen interpretations on the zijderveld and the specimen equal area
         @alters: fit.lines, zijplot, specimen_eqarea_interpretation, mplot_interpretation
         """
 
-        self.zijplot.collections=[] # delete fit points 
+        self.zijplot.collections=[] # delete fit points
         self.specimen_eqarea_interpretation.clear() #clear equal area
         self.mplot_interpretation.clear() #clear Mplot
         self.specimen_EA_xdata = [] #clear saved x positions on specimen equal area
@@ -2324,7 +2331,7 @@ class Zeq_GUI(wx.Frame):
                 SIZE=25*self.GUI_RESOLUTION
 
             # Zijderveld plot
-                                
+
             ymin, ymax = self.zijplot.get_ylim()
             xmin, xmax = self.zijplot.get_xlim()
 
@@ -2345,9 +2352,9 @@ class Zeq_GUI(wx.Frame):
                     first_data=self.Data[self.s]['zdata_tilt'][0]
                 else:
                     first_data=self.Data[self.s]['zdata'][0]
-                
+
                 if self.ORTHO_PLOT_TYPE=='N-S':
-                    rotation_declination=0. 
+                    rotation_declination=0.
                 elif self.ORTHO_PLOT_TYPE=='E-W':
                     rotation_declination=90.
                 elif self.ORTHO_PLOT_TYPE=='PCA_dec':
@@ -2367,7 +2374,7 @@ class Zeq_GUI(wx.Frame):
                 slop_xy_PCA=-1*PCA_CART_rotated[1]/PCA_CART_rotated[0]
                 slop_xz_PCA=-1*PCA_CART_rotated[2]/PCA_CART_rotated[0]
 
-                # Center of mass rotated for plotting 
+                # Center of mass rotated for plotting
                 # (self.CART_rot_good) ignoring the bad points
                 CM_x=mean(self.CART_rot_good[:,0][tmin_index:tmax_index+1])
                 CM_y=mean(self.CART_rot_good[:,1][tmin_index:tmax_index+1])
@@ -2380,7 +2387,7 @@ class Zeq_GUI(wx.Frame):
                 xx=array([self.CART_rot[:,0][tmax_index],self.CART_rot[:,0][tmin_index]])
                 yy=slop_xy_PCA*xx+intercept_xy_PCA
                 zz=slop_xz_PCA*xx+intercept_xz_PCA
-                
+
                 if (pars['calculation_type'] in ['DE-BFL-A','DE-BFL-O']): ###CHECK
                     xx[0] = 0.
                     yy[0] = 0.
@@ -2394,14 +2401,14 @@ class Zeq_GUI(wx.Frame):
 
 #                self.zijplot.set_xlim(xmin=self.zij_xlim_initial[0],xmax=self.zij_xlim_initial[1])
 #                self.zijplot.set_ylim(ymin=self.zij_ylim_initial[0],ymax=self.zij_ylim_initial[1])
-        
+
             # Equal Area plot
             self.toolbar2.home()
 
             # draw a best-fit plane
 
             if pars['calculation_type']=='DE-BFP' and \
-               self.plane_display_box.GetValue() != "Poles":
+               self.plane_display_box.GetValue() != "show poles":
 
                 ymin, ymax = self.specimen_eqarea.get_ylim()
                 xmin, xmax = self.specimen_eqarea.get_xlim()
@@ -2418,11 +2425,11 @@ class Zeq_GUI(wx.Frame):
                         X_c_d.append(XY[0])
                         Y_c_d.append(XY[1])
 
-                if self.plane_display_box.GetValue() == "Upper Hemisphere" or \
-                   self.plane_display_box.GetValue() == "Whole Plane":
+                if self.plane_display_box.GetValue() == "show u. hemisphere" or \
+                   self.plane_display_box.GetValue() == "show whole plane":
                     self.specimen_eqarea_interpretation.plot(X_c_d,Y_c_d,'b')
-                if self.plane_display_box.GetValue() == "Lower Hemisphere" or \
-                   self.plane_display_box.GetValue() == "Whole Plane":
+                if self.plane_display_box.GetValue() == "show l. hemisphere" or \
+                   self.plane_display_box.GetValue() == "show whole plane":
                     self.specimen_eqarea_interpretation.plot(X_c_up,Y_c_up,'c')
 
                 self.specimen_eqarea_interpretation.set_xlim(-1., 1.)
@@ -2461,7 +2468,7 @@ class Zeq_GUI(wx.Frame):
                 self.mplot_interpretation.scatter([self.Data[self.s]['zijdblock'][tmax_index][0]],[self.Data[self.s]['zijdblock'][tmax_index][3]/self.Data[self.s]['zijdblock'][0][3]],marker=marker_shape,s=30,facecolor=fit.color,edgecolor ='k',zorder=100,clip_on=False)
                 self.mplot_interpretation.set_xlim(xmin, xmax)
                 self.mplot_interpretation.set_ylim(ymin, ymax)
-            
+
             # logger
             if fit == self.current_fit:
                 for item in range(self.logger.GetItemCount()):
@@ -2480,12 +2487,12 @@ class Zeq_GUI(wx.Frame):
         self.canvas1.draw()
         self.canvas2.draw()
         self.canvas3.draw()
-                
+
     #----------------------------------------------------------------------
-    
-    def on_menu_autointerpert(self,event):
+
+    def on_menu_autointerpret(self,event):
         """
-        first attempt at an autointerpert functionallity that will find linear segments in the zijderveld to pick out the primary and secondary components.
+        first attempt at an autointerpret functionallity that will find linear segments in the zijderveld to pick out the primary and secondary components.
         @param: event -> the wx.MenuEvent that triggered this event
         """
 
@@ -2520,7 +2527,7 @@ class Zeq_GUI(wx.Frame):
                 old_slope_xy = numer/denom
                 numer = self.CART_rot[:,2][fit_max] - self.CART_rot[:,2][fit_min]
                 old_slope_xz = numer/denom
-                
+
 #                print('----------------CALCULATIONS-----------------')
 #                print('fit_max: ' + str(fit_max))
 #                print('slope_xy: ' + str(slope_xy))
@@ -2583,14 +2590,14 @@ class Zeq_GUI(wx.Frame):
 
         self.update_selection()
 
-                                                                                                                                                   
+
     #----------------------------------------------------------------------
-                                                                                                                                       
+
     def on_save_interpretation_button(self,event):
 
         """
         on the save button
-        the interpretation is saved to pmag_results_table data 
+        the interpretation is saved to pmag_results_table data
         in all coordinate systems
         """
 
@@ -2600,9 +2607,9 @@ class Zeq_GUI(wx.Frame):
             tmax=str(self.tmax_box.GetValue())
 
             self.current_fit.put(self.s,'specimen',self.get_PCA_parameters(self.s,tmin,tmax,'specimen',calculation_type))
-            if len(self.Data[self.s]['zijdblock_geo'])>0:      
+            if len(self.Data[self.s]['zijdblock_geo'])>0:
                 self.current_fit.put(self.s,'geographic',self.get_PCA_parameters(self.s,tmin,tmax,'geographic',calculation_type))
-            if len(self.Data[self.s]['zijdblock_tilt'])>0:      
+            if len(self.Data[self.s]['zijdblock_tilt'])>0:
                 self.current_fit.put(self.s,'tilt-corrected',self.get_PCA_parameters(self.s,tmin,tmax,'tilt-corrected',calculation_type))
 
         # calculate higher level data
@@ -2611,15 +2618,15 @@ class Zeq_GUI(wx.Frame):
         self.on_menu_save_interpretation(-1)
         self.update_selection()
         self.close_warning=True
-        
-    #----------------------------------------------------------------------  
- 
+
+    #----------------------------------------------------------------------
+
     #----------------------------------------------------------------------
 
     def clear_boxes(self):
-        """ 
+        """
         Clear all boxes
-        """        
+        """
         self.tmin_box.Clear()
         self.tmin_box.SetStringSelection("")
         if self.current_fit:
@@ -2642,7 +2649,7 @@ class Zeq_GUI(wx.Frame):
             exec COMMAND
             COMMAND="self.s%s_window.SetBackgroundColour(wx.NullColour)"%parameter
             exec COMMAND
-            
+
     #----------------------------------------------------------------------
 
     def onSelect_mean_type_box(self,event):
@@ -2654,60 +2661,60 @@ class Zeq_GUI(wx.Frame):
         #get new fit to display
         new_fit = self.mean_fit_box.GetValue()
         self.mean_fit = new_fit
-        if self.interpertation_editor_open:
-            self.interpertation_editor.mean_fit_box.SetStringSelection(new_fit)
+        if self.interpretation_editor_open:
+            self.interpretation_editor.mean_fit_box.SetStringSelection(new_fit)
         # calculate higher level data
         self.calculate_higher_levels_data()
         self.update_higher_level_stats()
         self.plot_higher_levels_data()
-        
+
     #----------------------------------------------------------------------
-        
+
     def onSelect_higher_level(self,event,called_by_interp_editor=False):
        self.UPPER_LEVEL=self.level_box.GetValue()
        if self.UPPER_LEVEL=='sample':
-           if self.interpertation_editor_open:
-               self.interpertation_editor.show_box.SetItems(['specimens'])
-               self.interpertation_editor.show_box.SetStringSelection('specimens')
+           if self.interpretation_editor_open:
+               self.interpretation_editor.show_box.SetItems(['specimens'])
+               self.interpretation_editor.show_box.SetStringSelection('specimens')
            self.level_names.SetItems(self.samples)
            self.level_names.SetStringSelection(self.Data_hierarchy['sample_of_specimen'][self.s])
 
        elif self.UPPER_LEVEL=='site':
-           if self.interpertation_editor_open:
-               self.interpertation_editor.show_box.SetItems(['specimens','samples'])
-               if self.interpertation_editor.show_box.GetValue() not in ['specimens','samples']:
-                   self.interpertation_editor.show_box.SetStringSelection('samples')
+           if self.interpretation_editor_open:
+               self.interpretation_editor.show_box.SetItems(['specimens','samples'])
+               if self.interpretation_editor.show_box.GetValue() not in ['specimens','samples']:
+                   self.interpretation_editor.show_box.SetStringSelection('samples')
            self.level_names.SetItems(self.sites)
            self.level_names.SetStringSelection(self.Data_hierarchy['site_of_specimen'][self.s])
 
        elif self.UPPER_LEVEL=='location':
-           if self.interpertation_editor_open:
-               self.interpertation_editor.show_box.SetItems(['specimens','samples','sites'])#,'sites VGP'])
-               if self.interpertation_editor.show_box.GetValue() not in ['specimens','samples','sites']:#,'sites VGP']:
-                   self.interpertation_editor.show_box.SetStringSelection('sites')
+           if self.interpretation_editor_open:
+               self.interpretation_editor.show_box.SetItems(['specimens','samples','sites'])#,'sites VGP'])
+               if self.interpretation_editor.show_box.GetValue() not in ['specimens','samples','sites']:#,'sites VGP']:
+                   self.interpretation_editor.show_box.SetStringSelection('sites')
            self.level_names.SetItems(self.locations)
            self.level_names.SetStringSelection(self.Data_hierarchy['location_of_specimen'][self.s])
 
        elif self.UPPER_LEVEL=='study':
-           if self.interpertation_editor_open:
-               self.interpertation_editor.show_box.SetItems(['specimens','samples','sites'])#,'sites VGP'])
-               if self.interpertation_editor.show_box.GetValue() not in ['specimens','samples','sites']:#,'sites VGP']:
-                   self.interpertation_editor.show_box.SetStringSelection('sites')
+           if self.interpretation_editor_open:
+               self.interpretation_editor.show_box.SetItems(['specimens','samples','sites'])#,'sites VGP'])
+               if self.interpretation_editor.show_box.GetValue() not in ['specimens','samples','sites']:#,'sites VGP']:
+                   self.interpretation_editor.show_box.SetStringSelection('sites')
            self.level_names.SetItems(['this study'])
            self.level_names.SetStringSelection('this study')
 
        if not called_by_interp_editor:
-           if self.interpertation_editor_open:
-               self.interpertation_editor.level_box.SetStringSelection(self.UPPER_LEVEL)
-               self.interpertation_editor.on_select_higher_level(event,True)
+           if self.interpretation_editor_open:
+               self.interpretation_editor.level_box.SetStringSelection(self.UPPER_LEVEL)
+               self.interpretation_editor.on_select_higher_level(event,True)
            else:
                self.update_selection()
 
     #----------------------------------------------------------------------
-        
+
     def onSelect_level_name(self,event,called_by_interp_editor=False):
        high_level_name=str(self.level_names.GetValue())
-       
+
        if self.level_box.GetValue()=='sample':
            specimen_list=self.Data_hierarchy['samples'][high_level_name]['specimens']
        if self.level_box.GetValue()=='site':
@@ -2722,9 +2729,9 @@ class Zeq_GUI(wx.Frame):
            self.s=str(specimen_list[0])
            self.specimens_box.SetStringSelection(str(self.s))
 
-       if self.interpertation_editor_open and not called_by_interp_editor:
-           self.interpertation_editor.level_names.SetStringSelection(high_level_name)
-           self.interpertation_editor.on_select_level_name(event,True)
+       if self.interpretation_editor_open and not called_by_interp_editor:
+           self.interpretation_editor.level_names.SetStringSelection(high_level_name)
+           self.interpretation_editor.on_select_level_name(event,True)
 
        self.update_selection()
 
@@ -2733,7 +2740,7 @@ class Zeq_GUI(wx.Frame):
         """
         high_level_type:'samples','sites','locations','study'
         calculation_type: 'Bingham','Fisher','Fisher by polarity'
-        elements_type (what to average):'specimens','samples','sites' (Ron. ToDo alos VGP and maybe locations?) 
+        elements_type (what to average):'specimens','samples','sites' (Ron. ToDo alos VGP and maybe locations?)
         figure out what level to average,and what elements to average (specimen, samples, sites, vgp)
         """
 
@@ -2761,6 +2768,9 @@ class Zeq_GUI(wx.Frame):
                             #is this fit to be included in mean
                             if self.mean_fit == 'All' or self.mean_fit == fit.name:
                                 pars = fit.get(dirtype)
+                                if pars == {}:
+                                    pars = self.get_PCA_parameters(element,fit.tmin,fit.tmax,dirtype,fit.PCA_type)
+                                    fit.put(element,dirtype,pars)
                             else:
                                 continue
                             if "calculation_type" in pars.keys() and pars["calculation_type"] == 'DE-BFP':
@@ -2770,7 +2780,9 @@ class Zeq_GUI(wx.Frame):
                             elif "dec" in pars.keys() and "inc" in pars.keys():
                                 dec,inc,direction_type=pars["dec"],pars["inc"],'l'
                             else:
-                                print "-E- ERROR: cant find mean for element %s"%element
+                                print "-E- ERROR: cant find mean for specimen interpertation: %s , %s"%(element,fit.name)
+                                print(dec,inc,direction_type)
+                                print(pars)
                                 continue
                             #add for calculation
                             pars_for_mean[fit.name].append({'dec':float(dec),'inc':float(inc),'direction_type':direction_type,'element_name':element})
@@ -2807,7 +2819,7 @@ class Zeq_GUI(wx.Frame):
     #----------------------------------------------------------------------
 
     def calculate_mean(self,pars_for_mean,calculation_type):
-        ''' 
+        '''
         claculates:
             Fisher mean (lines/planes)
             or Fisher by polarity
@@ -2833,14 +2845,14 @@ class Zeq_GUI(wx.Frame):
         elif calculation_type=='Fisher':
             mpars=pmag.dolnp(pars_for_mean,'direction_type')
             self.switch_stats_button.SetRange(0,0)
-            if self.interpertation_editor_open:
-                self.interpertation_editor.switch_stats_button.SetRange(0,0)
+            if self.interpretation_editor_open:
+                self.interpretation_editor.switch_stats_button.SetRange(0,0)
 
         elif calculation_type=='Fisher by polarity':
             mpars=pmag.fisher_by_pol(pars_for_mean)
             self.switch_stats_button.SetRange(0,len(mpars.keys())-1)
-            if self.interpertation_editor_open:
-                self.interpertation_editor.switch_stats_button.SetRange(0,len(mpars.keys())-1)
+            if self.interpretation_editor_open:
+                self.interpretation_editor.switch_stats_button.SetRange(0,len(mpars.keys())-1)
             for key in mpars.keys():
                 mpars[key]['n_planes'] = 0
                 mpars[key]['calculation_type'] = 'Fisher'
@@ -2871,7 +2883,7 @@ class Zeq_GUI(wx.Frame):
         high_level_name=str(self.level_names.GetValue())
         calculation_type=str(self.mean_type_box.GetValue())
         elements_type=self.UPPER_LEVEL_SHOW
-        if self.interpertation_editor_open: self.interpertation_editor.mean_type_box.SetStringSelection(calculation_type)
+        if self.interpretation_editor_open: self.interpretation_editor.mean_type_box.SetStringSelection(calculation_type)
         self.calculate_high_level_mean(high_level_type,high_level_name,calculation_type,elements_type)
 
     def on_select_plane_display_box(self,event):
@@ -2927,6 +2939,12 @@ class Zeq_GUI(wx.Frame):
 #                        mpars=self.high_level_means[elements_type][element][dirtype]
 #                        self.plot_eqarea_pars(mpars,self.high_level_eqarea)
 
+            else:
+                if element in self.high_level_means[elements_type].keys():
+                    if dirtype in self.high_level_means[elements_type][element].keys():
+                        mpars=self.high_level_means[elements_type][element][dirtype]
+                        self.plot_eqarea_pars(mpars,self.high_level_eqarea)
+
        # plot elements means
        if calculation_type!="None":
            if high_level_name in self.high_level_means[high_level_type].keys():
@@ -2939,14 +2957,14 @@ class Zeq_GUI(wx.Frame):
        self.high_level_eqarea.axes.set_aspect('equal')
        self.high_level_eqarea.axis('off')
        self.canvas4.draw()
-       if self.interpertation_editor_open:
+       if self.interpretation_editor_open:
            self.update_higher_level_stats()
-           self.interpertation_editor.update_editor(False)
+           self.interpretation_editor.update_editor(False)
 
     def plot_higher_level_equalarea(self,element): #BLARGE
         print("plotting higher level interpertation")
-        if self.interpertation_editor_open:
-            higher_level = self.interpertation_editor.show_box.GetValue()
+        if self.interpretation_editor_open:
+            higher_level = self.interpretation_editor.show_box.GetValue()
         else: higher_level = "specimens"
         fits = []
         if higher_level not in self.pmag_results_data: print("no level: " + str(higher_level)); return
@@ -2996,7 +3014,7 @@ class Zeq_GUI(wx.Frame):
 
                 # draw a best-fit plane
                 if pars['calculation_type']=='DE-BFP' and \
-                   self.plane_display_box.GetValue() != "Poles":
+                   self.plane_display_box.GetValue() != "show poles":
                     ymin, ymax = self.specimen_eqarea.get_ylim()
                     xmin, xmax = self.specimen_eqarea.get_xlim()
 
@@ -3012,11 +3030,11 @@ class Zeq_GUI(wx.Frame):
                             X_c_d.append(XY[0])
                             Y_c_d.append(XY[1])
 
-                    if self.plane_display_box.GetValue() == "Upper Hemisphere" or \
-                       self.plane_display_box.GetValue() == "Whole Plane":
+                    if self.plane_display_box.GetValue() == "show u. hemisphere" or \
+                       self.plane_display_box.GetValue() == "show whole plane":
                         fig.plot(X_c_d,Y_c_d,'b')
-                    if self.plane_display_box.GetValue() == "Lower Hemisphere" or \
-                       self.plane_display_box.GetValue() == "Whole Plane":
+                    if self.plane_display_box.GetValue() == "show l. hemisphere" or \
+                       self.plane_display_box.GetValue() == "show whole plane":
                         fig.plot(X_c_up,Y_c_up,'c')
                     fig.set_xlim(-1., 1.)
                     fig.set_ylim(-1., 1.)
@@ -3087,10 +3105,10 @@ class Zeq_GUI(wx.Frame):
             else:
                 FC='yellow';EC='green'
             fig.scatter([XY[0]],[XY[1]],marker='o',edgecolor=EC, facecolor=FC,s=30,lw=1,clip_on=False)
-            
+
             #if 'calculation_type' not in mpars.keys():
             #    return
-                
+
             if "alpha95" in mpars.keys():
             # get the alpha95
                 Xcirc,Ycirc=[],[]
@@ -3144,8 +3162,8 @@ class Zeq_GUI(wx.Frame):
 #                v=[0,0,0]
 #                for i in range(nums):  # incremental point along ellipse
 #                    psi=float(i)*numpy.pi/xnum
-#                    v[0]=numpy.sin(beta)*numpy.cos(psi) 
-#                    v[1]=numpy.sin(gamma)*numpy.sin(psi) 
+#                    v[0]=numpy.sin(beta)*numpy.cos(psi)
+#                    v[1]=numpy.sin(gamma)*numpy.sin(psi)
 #                    v[2]=numpy.sqrt(1.-v[0]**2 - v[1]**2)
 #                    elli=[0,0,0]
 #            # calculate points on the ellipse
@@ -3165,7 +3183,7 @@ class Zeq_GUI(wx.Frame):
 #                if X_ell!=[]:fig.plot(X_ell,Y_ell,'b')
 #                if X_up!=[]:fig.plot(X_up,Y_up,'g-')
 #                #pylab.draw()
-#                #else: 
+#                #else:
 #                #    return PTS
 
         fig.set_xlim(xmin, xmax)
@@ -3194,8 +3212,8 @@ class Zeq_GUI(wx.Frame):
                     COMMAND = """self.%s_window.SetValue(str(mpars['%s']))"""%(val,ind)
                     exec COMMAND
 
-            if self.interpertation_editor_open:
-                ie = self.interpertation_editor
+            if self.interpretation_editor_open:
+                ie = self.interpretation_editor
                 if mpars["calculation_type"]=='Fisher' and "alpha95" in mpars.keys():
                     for val in ['mean_type:calculation_type','dec:dec','inc:inc','alpha95:alpha95','K:K','R:R','n_lines:n_lines','n_planes:n_planes']:
                         val,ind = val.split(":")
@@ -3206,8 +3224,10 @@ class Zeq_GUI(wx.Frame):
             i = self.switch_stats_button.GetValue()
             keys = mpars.keys()
             keys.remove('calculation_type')
+            keys.sort()
             name = keys[i%len(keys)]
             mpars = mpars[name]
+            if type(mpars) != dict: print("error in showing higher level mean"); return
             if mpars["calculation_type"]=='Fisher' and "alpha95" in mpars.keys():
                 for val in ['mean_type:calculation_type','dec:dec','inc:inc','alpha95:alpha95','K:k','R:r','n_lines:n','n_planes:n_planes']:
                     val,ind = val.split(":")
@@ -3217,8 +3237,8 @@ class Zeq_GUI(wx.Frame):
                         COMMAND = """self.%s_window.SetValue(str(mpars['%s']))"""%(val,ind)
                     exec COMMAND
 
-            if self.interpertation_editor_open:
-                ie = self.interpertation_editor
+            if self.interpretation_editor_open:
+                ie = self.interpretation_editor
                 if mpars["calculation_type"]=='Fisher' and "alpha95" in mpars.keys():
                     for val in ['mean_type:calculation_type','dec:dec','inc:inc','alpha95:alpha95','K:k','R:r','n_lines:n','n_planes:n_planes']:
                         val,ind = val.split(":")
@@ -3268,20 +3288,20 @@ class Zeq_GUI(wx.Frame):
       Data_hierarchy['sites']={}
       Data_hierarchy['samples']={}
       Data_hierarchy['specimens']={}
-      Data_hierarchy['sample_of_specimen']={} 
-      Data_hierarchy['site_of_specimen']={}   
-      Data_hierarchy['site_of_sample']={}   
-      Data_hierarchy['location_of_site']={}   
-      Data_hierarchy['location_of_specimen']={}   
-      Data_hierarchy['study_of_specimen']={}   
+      Data_hierarchy['sample_of_specimen']={}
+      Data_hierarchy['site_of_specimen']={}
+      Data_hierarchy['site_of_sample']={}
+      Data_hierarchy['location_of_site']={}
+      Data_hierarchy['location_of_specimen']={}
+      Data_hierarchy['study_of_specimen']={}
       Data_hierarchy['expedition_name_of_specimen']={}
       mag_meas_data,file_type=pmag.magic_read(self.magic_file) #BLARGE
       self.mag_meas_data=copy.deepcopy(self.merge_pmag_recs(mag_meas_data))
-      
+
       self.GUI_log.write("-I- Read magic file  %s\n"%self.magic_file)
 
       # get list of unique specimen names
-      
+
       CurrRec=[]
       #print "-I- get sids"
 
@@ -3289,7 +3309,7 @@ class Zeq_GUI(wx.Frame):
       #print "-I- done get sids"
 
       #print "initialize blocks"
-      
+
       for s in sids:
 
           if s not in Data.keys():
@@ -3321,9 +3341,9 @@ class Zeq_GUI(wx.Frame):
           # [tr,dec,inc,int,ZI,rec['measurement_flag'],rec['magic_instrument_codes']\
           # (ZI=0)
           #---------------------
-          
-          # list of excluded lab protocols. copied from pmag.find_dmag_rec(s,data)  
-          EX=["LP-AN-ARM","LP-AN-TRM","LP-ARM-AFD","LP-ARM2-AFD","LP-TRM-AFD","LP-TRM","LP-TRM-TD","LP-X"] 
+
+          # list of excluded lab protocols. copied from pmag.find_dmag_rec(s,data)
+          EX=["LP-AN-ARM","LP-AN-TRM","LP-ARM-AFD","LP-ARM2-AFD","LP-TRM-AFD","LP-TRM","LP-TRM-TD","LP-X"]
           INC=["LT-NO","LT-AF-Z","LT-T-Z", "LT-M-Z","LT-LT-Z"]
 
           methods=rec["magic_method_codes"].replace(" ","").strip("\n").split(":")
@@ -3340,7 +3360,7 @@ class Zeq_GUI(wx.Frame):
                    lab_treatment=meth
                    SKIP=False
                if "LP" in meth:
-                   LP_methods.append(meth) 
+                   LP_methods.append(meth)
           for meth in EX:
                if meth in methods:
                    SKIP=True
@@ -3348,7 +3368,7 @@ class Zeq_GUI(wx.Frame):
              tr=""
              if "LT-NO" in methods:
                  tr=0
-                 measurement_step_unit=""   
+                 measurement_step_unit=""
                  LPcode=""
                  for method in methods:
                      if "AF" in method:
@@ -3373,9 +3393,9 @@ class Zeq_GUI(wx.Frame):
              ZI=0
 
              if tr !="":
-                 Data[s]['mag_meas_data_index'].append(cnt) # magic_measurement file intex 
+                 Data[s]['mag_meas_data_index'].append(cnt) # magic_measurement file intex
                  Data[s]['zijdblock_lab_treatments'].append(lab_treatment)
-                 if measurement_step_unit!="": 
+                 if measurement_step_unit!="":
                     if  'measurement_step_unit' in Data[s].keys():
                         if measurement_step_unit not in Data[s]['measurement_step_unit'].split(":"):
                             Data[s]['measurement_step_unit']=Data[s]['measurement_step_unit']+":"+measurement_step_unit
@@ -3400,7 +3420,7 @@ class Zeq_GUI(wx.Frame):
                  if 'magic_experiment_name' in Data[s].keys() and Data[s]['magic_experiment_name']!=rec["magic_experiment_name"]:
                       self.GUI_log.write("-E- ERROR: specimen %s has more than one demagnetization experiment name. You need to merge them to one experiment-name?\n")
                  if float(tr)==0 or float(tr)==273:
-                    Data[s]['zijdblock_steps'].append("0")                     
+                    Data[s]['zijdblock_steps'].append("0")
                  elif measurement_step_unit=="C":
                     Data[s]['zijdblock_steps'].append("%.0f%s"%(tr,measurement_step_unit))
                  else:
@@ -3420,9 +3440,9 @@ class Zeq_GUI(wx.Frame):
                      if str(rec["measurement_flag"])=='b':
                          flag='b'
                  Data[s]['measurement_flag'].append(flag)
-                                  
+
                  # gegraphic coordinates
-    
+
                  try:
                     sample_azimuth=float(self.Data_info["er_samples"][sample]['sample_azimuth'])
                     sample_dip=float(self.Data_info["er_samples"][sample]['sample_dip'])
@@ -3430,7 +3450,7 @@ class Zeq_GUI(wx.Frame):
                     if 'sample_orientation_flag' in  self.Data_info["er_samples"][sample].keys():
                         if str(self.Data_info["er_samples"][sample]['sample_orientation_flag'])=='b':
                             sample_orientation_flag='b'
-                    if sample_orientation_flag!='b':                     
+                    if sample_orientation_flag!='b':
                         d_geo,i_geo=pmag.dogeo(dec,inc,sample_azimuth,sample_dip)
                         Data[s]['zijdblock_geo'].append([tr,d_geo,i_geo,intensity,ZI,rec['measurement_flag'],rec['magic_instrument_codes']])
                  except:
@@ -3456,22 +3476,22 @@ class Zeq_GUI(wx.Frame):
               Data_hierarchy['samples'][sample]['specimens']=[]
 
           if site not in Data_hierarchy['sites'].keys():
-              Data_hierarchy['sites'][site]={}         
-              Data_hierarchy['sites'][site]['samples']=[]         
-              Data_hierarchy['sites'][site]['specimens']=[]      
+              Data_hierarchy['sites'][site]={}
+              Data_hierarchy['sites'][site]['samples']=[]
+              Data_hierarchy['sites'][site]['specimens']=[]
 
           if location not in Data_hierarchy['locations'].keys():
-              Data_hierarchy['locations'][location]={}         
-              Data_hierarchy['locations'][location]['sites']=[]         
-              Data_hierarchy['locations'][location]['samples']=[]         
-              Data_hierarchy['locations'][location]['specimens']=[]      
+              Data_hierarchy['locations'][location]={}
+              Data_hierarchy['locations'][location]['sites']=[]
+              Data_hierarchy['locations'][location]['samples']=[]
+              Data_hierarchy['locations'][location]['specimens']=[]
 
           if 'this study' not in Data_hierarchy['study'].keys():
-            Data_hierarchy['study']['this study']={}  
-            Data_hierarchy['study']['this study']['sites']=[]         
-            Data_hierarchy['study']['this study']['samples']=[]         
-            Data_hierarchy['study']['this study']['specimens']=[]      
-          
+            Data_hierarchy['study']['this study']={}
+            Data_hierarchy['study']['this study']['sites']=[]
+            Data_hierarchy['study']['this study']['samples']=[]
+            Data_hierarchy['study']['this study']['specimens']=[]
+
           if s not in Data_hierarchy['samples'][sample]['specimens']:
               Data_hierarchy['samples'][sample]['specimens'].append(s)
 
@@ -3500,18 +3520,18 @@ class Zeq_GUI(wx.Frame):
               Data_hierarchy['study']['this study']['sites'].append(site)
 
           #Data_hierarchy['specimens'][s]=sample
-          Data_hierarchy['sample_of_specimen'][s]=sample  
-          Data_hierarchy['site_of_specimen'][s]=site  
+          Data_hierarchy['sample_of_specimen'][s]=sample
+          Data_hierarchy['site_of_specimen'][s]=site
           Data_hierarchy['site_of_sample'][sample]=site
           Data_hierarchy['location_of_site'][site]=location
           Data_hierarchy['location_of_specimen'][s]=location
           if expedition_name!="":
             Data_hierarchy['expedition_name_of_specimen'][s]=expedition_name
-                                                   
-                                                                                     
-          
+
+
+
       print "-I- done sorting meas data"
-      
+
       self.specimens=Data.keys()
 #      self.specimens.sort(cmp=specimens_comparator)
 
@@ -3532,7 +3552,7 @@ class Zeq_GUI(wx.Frame):
         zijdblock_geo=Data[s]['zijdblock_geo']
         zijdblock_tilt=Data[s]['zijdblock_tilt']
         if len(zijdblock)<3:
-            del Data[s]           
+            del Data[s]
             continue
 
         #--------------------------------------------------------------
@@ -3562,18 +3582,18 @@ class Zeq_GUI(wx.Frame):
                 vector_diffs.append(sqrt(sum((array(zdata[-2])-array(zdata[-1]))**2)))
 
         vector_diffs.append(sqrt(sum(array(zdata[-1])**2))) # last vector of the vds
-        vds=sum(vector_diffs)  # vds calculation       
+        vds=sum(vector_diffs)  # vds calculation
 
         Data[s]['vector_diffs']=array(vector_diffs)
         Data[s]['vds']=vds
         Data[s]['zdata']=array(zdata)
         Data[s]['zdata_geo']=array(zdata_geo)
         Data[s]['zdata_tilt']=array(zdata_tilt)
-        
-        #--------------------------------------------------------------    
+
+        #--------------------------------------------------------------
         # Rotate zijderveld plot
         #--------------------------------------------------------------
-         
+
       return(Data,Data_hierarchy)
 
     def Rotate_zijderveld(self,Zdata,rot_declination):
@@ -3584,7 +3604,7 @@ class Zeq_GUI(wx.Frame):
             DIR=pmag.cart2dir(Zdata[i])
             DIR[0]=(DIR[0]-rot_declination)%360.
             CART_rot.append(array(pmag.dir2cart(DIR)))
-        CART_rot=array(CART_rot)        
+        CART_rot=array(CART_rot)
         return(CART_rot)
 
     #def Rotate_zijderveld(self,Zdata,declination):
@@ -3593,16 +3613,16 @@ class Zeq_GUI(wx.Frame):
     #    DIR_rot=[]
     #    CART_rot=[]
     #    # rotate to be as NRM
-    #    NRM_dir=pmag.cart2dir(Zdata[0])         
+    #    NRM_dir=pmag.cart2dir(Zdata[0])
     #    NRM_dec=NRM_dir[0]
     #    NRM_dir[0]=0.
     #    CART_rot.append(pmag.dir2cart(NRM_dir))
-    #    
+    #
     #    for i in range(1,len(Zdata)):
     #        DIR=pmag.cart2dir(Zdata[i])
     #        DIR[0]=(DIR[0]-NRM_dec)%360
     #        CART_rot.append(array(pmag.dir2cart(DIR)))
-    #    CART_rot=array(CART_rot)        
+    #    CART_rot=array(CART_rot)
     #    return(CART_rot)
 
     def read_magic_file(self,path,sort_by_this_name): #BLARGE
@@ -3619,7 +3639,7 @@ class Zeq_GUI(wx.Frame):
             if tmp_data[sort_by_this_name] in DATA.keys():
                 self.GUI_log.write("-E- ERROR: magic file %s has more than one line for %s %s\n"%(path,sort_by_this_name,tmp_data[sort_by_this_name]))
             DATA[tmp_data[sort_by_this_name]]=tmp_data
-        fin.close()  
+        fin.close()
         return(DATA)
 
 
@@ -3655,7 +3675,7 @@ class Zeq_GUI(wx.Frame):
         except:
             try:
                 data_er_ages=self.read_magic_file(os.path.join(self.WD, "er_ages.txt"),'er_site_name')
-            except:    
+            except:
                 self.GUI_log.write ("-W- Cant find er_ages in project directory")
 
 
@@ -3664,11 +3684,11 @@ class Zeq_GUI(wx.Frame):
         Data_info["er_sites"]=data_er_sites
         Data_info["er_locations"]=data_er_locations
         Data_info["er_ages"]=data_er_ages
-        
+
         return(Data_info)
 
 #    def get_pmag_table(self,table_name):
-#        ''' 
+#        '''
 #        read existing pmag table from working directory
 #        '''
 #        data_pmag_table={}
@@ -3678,7 +3698,7 @@ class Zeq_GUI(wx.Frame):
 #            self.GUI_log.write ("-W- Cant find %s with old interpretation in project directory"%table_name)
 #
 #        return(data_pmag_table)
-        
+
     def update_pmag_tables(self):
 
         pmag_specimens,pmag_samples,pmag_sites=[],[],[]
@@ -3694,11 +3714,11 @@ class Zeq_GUI(wx.Frame):
             pmag_sites,file_type=pmag.magic_read(os.path.join(self.WD, "pmag_sites.txt"))
         except:
             print "-I- Cant read pmag_sites.txt"
-        self.GUI_log.write ("-I- Reading previous interpretations from pmag* tables\n")        
+        self.GUI_log.write ("-I- Reading previous interpretations from pmag* tables\n")
         #--------------------------
-        # reads pmag_specimens.txt and 
+        # reads pmag_specimens.txt and
         # update pmag_results_data['specimens'][specimen] BLARGE
-        # with the new interpertation
+        # with the new interpretation
         #--------------------------
 
         self.pmag_results_data['specimens'] = {}
@@ -3708,7 +3728,7 @@ class Zeq_GUI(wx.Frame):
             else:
                 continue
 
-            #initialize list of interpertations
+            #initialize list of interpretations
             if specimen in self.pmag_results_data['specimens'].keys():
                 pass
             else:
@@ -3716,7 +3736,7 @@ class Zeq_GUI(wx.Frame):
 
             self.s = specimen
 
-            #if interpertation doesn't exsist create it.
+            #if interpretation doesn't exsist create it.
             if 'specimen_comp_name' in rec.keys():
                 if rec['specimen_comp_name'] not in map(lambda x: x.name, self.pmag_results_data['specimens'][specimen]):
                     next_fit = str(len(self.pmag_results_data['specimens'][self.s]) + 1)
@@ -3758,7 +3778,7 @@ class Zeq_GUI(wx.Frame):
                     tmax="%.0fC"%(float(rec['measurement_step_max'])-273.)
                 else: # AF
                     tmax="%.1fmT"%(float(rec['measurement_step_max'])*1000.)
-                
+
                 if calculation_type !="":
 
                     if specimen in self.Data.keys() and 'zijdblock_steps' in self.Data[specimen]\
@@ -3768,10 +3788,10 @@ class Zeq_GUI(wx.Frame):
                         if fit:
                             fit.put(specimen,'specimen',self.get_PCA_parameters(specimen,tmin,tmax,'specimen',calculation_type))
 
-                            if len(self.Data[specimen]['zijdblock_geo'])>0: 
+                            if len(self.Data[specimen]['zijdblock_geo'])>0:
                                 fit.put(specimen,'geographic',self.get_PCA_parameters(specimen,tmin,tmax,'geographic',calculation_type))
 
-                            if len(self.Data[specimen]['zijdblock_tilt'])>0:      
+                            if len(self.Data[specimen]['zijdblock_tilt'])>0:
                                 fit.put(specimen,'tilt-corrected',self.get_PCA_parameters(specimen,tmin,tmax,'tilt-corrected',calculation_type))
 
                     else:
@@ -3787,7 +3807,7 @@ class Zeq_GUI(wx.Frame):
 
 
         #--------------------------
-        # reads pmag_sample.txt and 
+        # reads pmag_sample.txt and
         # if finds a mean in pmag_samples.txt
         # calculate the mean for self.high_level_means['samples'][samples]
         # If the program finds a codes "DE-FM","DE-FM-LP","DE-FM-UV"in magic_method_codes
@@ -3806,17 +3826,17 @@ class Zeq_GUI(wx.Frame):
             if LPDIR: # this a mean of directions
                 #if  calculation_method in ["DE-FM","DE-FM-LP","DE-FM-UV"]:
                     calculation_type="Fisher"
-                    for dirtype in self.dirtypes: 
+                    for dirtype in self.dirtypes:
                         self.calculate_high_level_mean('samples',sample,calculation_type,'specimens')
 
         #--------------------------
-        # reads pmag_sites.txt and 
+        # reads pmag_sites.txt and
         # if finds a mean in pmag_sites.txt
         # calculate the mean for self.high_level_means['sites'][site]
         # using specimens or samples, depends on the er_specimen_names or er_samples_names
         #  The program repeat the fisher calculation and oevrwrites it
         #--------------------------
-        
+
         for rec in pmag_sites:
             methods=rec['magic_method_codes'].strip("\n").replace(" ","").split(":")
             site=rec['er_site_name'].strip("\n")
@@ -3838,12 +3858,12 @@ class Zeq_GUI(wx.Frame):
                 self.calculate_high_level_mean('sites',site,calculation_type,elements_type)
                 #print "found previose interpretation",site,calculation_type,elements_type
             #print "this is sites"
-            #print self.high_level_means['sites']        
-               
-                    
-                
-                    
-            
+            #print self.high_level_means['sites']
+
+
+
+
+
 
     #-----------------------------------
 
@@ -3924,26 +3944,25 @@ class Zeq_GUI(wx.Frame):
 
         m_save_interpretation = menu_Analysis.Append(-1, "&Save current interpretations to a redo file\tCtrl-S", "")
         self.Bind(wx.EVT_MENU, self.on_menu_save_interpretation, m_save_interpretation)
-        m_delete_interpretation = menu_Analysis.Append(-1, "&Clear all current interpretations\tCtrl-Shift-D", "")
-        self.Bind(wx.EVT_MENU, self.on_menu_clear_interpretation, m_delete_interpretation)
+
+        #m_delete_interpretation = menu_Analysis.Append(-1, "&Clear all current interpretations\tCtrl-Shift-D", "")
+        #self.Bind(wx.EVT_MENU, self.on_menu_clear_interpretation, m_delete_interpretation)
 
         #-----------------
 
         menu_Tools = wx.Menu()
 
-        m_bulk_demagnetization = menu_Tools.Append(-1, "&Bulk demagnetization\tCtrl-B", "")
-        self.Bind(wx.EVT_MENU, self.on_menu_bulk_demagnetization, m_bulk_demagnetization)
+        #m_bulk_demagnetization = menu_Tools.Append(-1, "&Bulk demagnetization\tCtrl-B", "")
+        #self.Bind(wx.EVT_MENU, self.on_menu_bulk_demagnetization, m_bulk_demagnetization)
 
-        m_auto_interpert = menu_Tools.Append(-1, "&Auto Interpert (alpha version)\tCtrl-A", "")
-        self.Bind(wx.EVT_MENU, self.on_menu_autointerpert, m_auto_interpert)
+        #m_auto_interpret = menu_Tools.Append(-1, "&Auto interpret (alpha version)\tCtrl-A", "")
+        #self.Bind(wx.EVT_MENU, self.on_menu_autointerpret, m_auto_interpret)
 
-        m_edit_interpertations = menu_Tools.Append(-1, "&Interpretation editor\tCtrl-E", "")
-        self.Bind(wx.EVT_MENU, self.on_menu_edit_interpertations, m_edit_interpertations)
+        m_edit_interpretations = menu_Tools.Append(-1, "&Interpretation editor\tCtrl-E", "")
+        self.Bind(wx.EVT_MENU, self.on_menu_edit_interpretations, m_edit_interpretations)
 
         #-------------------
-        
-        
-        
+
         #menu_Plot= wx.Menu()
         #m_plot_data = menu_Plot.Append(-1, "&Plot ...", "")
         #self.Bind(wx.EVT_MENU, self.on_menu_plot_data, m_plot_data)
@@ -3953,9 +3972,9 @@ class Zeq_GUI(wx.Frame):
         #menu_results_table= wx.Menu()
         #m_make_results_table = menu_results_table.Append(-1, "&Make results table", "")
         #self.Bind(wx.EVT_MENU, self.on_menu_results_data, m_make_results_table)
-        
+
         #menu_Auto_Interpreter = wx.Menu()
-        
+
         #m_interpreter = menu_Auto_Interpreter.Append(-1, "&Run Thellier auto interpreter", "Run auto interpter")
         #self.Bind(wx.EVT_MENU, self.on_menu_run_interpreter, m_interpreter)
 
@@ -3965,7 +3984,7 @@ class Zeq_GUI(wx.Frame):
         #m_open_interpreter_log = menu_Auto_Interpreter.Append(-1, "&Open auto-interpreter Warnings/Errors", "")
         #self.Bind(wx.EVT_MENU, self.on_menu_open_interpreter_log, m_open_interpreter_log)
 
-        #-----------------                            
+        #-----------------
 
 #        menu_MagIC= wx.Menu()
 #        m_convert_to_magic= menu_MagIC.Append(-1, "&Convert generic files to MagIC format", "")
@@ -3981,9 +4000,9 @@ class Zeq_GUI(wx.Frame):
         #-----------------
         # Help Menu
         #-----------------
-        
+
         menu_Help = wx.Menu()
-        
+
         m_cookbook = menu_Help.Append(-1, "&PmagPy Cookbook\tCtrl-Shift-H", "")
         self.Bind(wx.EVT_MENU, self.on_menu_cookbook, m_cookbook)
 
@@ -3999,16 +4018,16 @@ class Zeq_GUI(wx.Frame):
 
         menu_edit = wx.Menu()
 
-        m_new = menu_edit.Append(-1, "&New Interpertation\tCtrl-N", "")
+        m_new = menu_edit.Append(-1, "&New interpretation\tCtrl-N", "")
         self.Bind(wx.EVT_MENU, self.add_fit, m_new)
 
-        m_delete = menu_edit.Append(-1, "&Delete Interpertation\tCtrl-D", "")
+        m_delete = menu_edit.Append(-1, "&Delete interpretation\tCtrl-D", "")
         self.Bind(wx.EVT_MENU, self.delete_fit, m_delete)
 
-        m_next_interp = menu_edit.Append(-1, "&Next Interpertation\tCtrl-Up", "")
+        m_next_interp = menu_edit.Append(-1, "&Next interpretation\tCtrl-Up", "")
         self.Bind(wx.EVT_MENU, self.on_menu_next_interp, m_next_interp)
 
-        m_previous_interp = menu_edit.Append(-1, "&Previous Interpertation\tCtrl-Down", "")
+        m_previous_interp = menu_edit.Append(-1, "&Previous interpretation\tCtrl-Down", "")
         self.Bind(wx.EVT_MENU, self.on_menu_prev_interp, m_previous_interp)
 
         m_next_specimen = menu_edit.Append(-1, "&Next Specimen\tCtrl-Right", "")
@@ -4038,7 +4057,7 @@ class Zeq_GUI(wx.Frame):
 
         #-----------------
 
-        #self.menubar.Append(menu_preferences, "& Preferences") 
+        #self.menubar.Append(menu_preferences, "& Preferences")
         self.menubar.Append(menu_file, "&File")
         self.menubar.Append(menu_edit, "&Edit")
         self.menubar.Append(menu_Analysis, "&Analysis")
@@ -4059,7 +4078,7 @@ class Zeq_GUI(wx.Frame):
         FIRST_RUN=False
         self.currentDirectory = os.getcwd() # get the current working directory
         self.get_DIR()        # choose directory dialog
-                
+
         #preferences=self.get_preferences()
         #self.dpi = 100
         #self.preferences={}
@@ -4068,18 +4087,18 @@ class Zeq_GUI(wx.Frame):
         self.COORDINATE_SYSTEM='specimen'
         self.Data_info=self.get_data_info() # Read  er_* data
         self.Data,self.Data_hierarchy=self.get_data() # Get data from magic_measurements and rmag_anistropy if exist.
-        
+
         self.pmag_results_data={}
         for level in ['specimens','samples','sites','lcoations','study']:
             self.pmag_results_data[level]={}
         self.high_level_means={}
 
-        high_level_means={}                                            
+        high_level_means={}
         for high_level in ['samples','sites','locations','study']:
             if high_level not in self.high_level_means.keys():
                 self.high_level_means[high_level]={}
-        
-        
+
+
         self.Data_samples={}
         self.last_saved_pars={}
         self.specimens=self.Data.keys()         # get list of specimens
@@ -4089,17 +4108,17 @@ class Zeq_GUI(wx.Frame):
         else:
             self.s=""
         for fit in self.pmag_results_data['specimens'][self.s]:
-            fit.pars={} 
+            fit.pars={}
         self.samples=self.Data_hierarchy['samples'].keys()         # get list of samples
         self.samples.sort()                   # get list of specimens
         self.sites=self.Data_hierarchy['sites'].keys()         # get list of sites
         self.sites.sort()                   # get list of sites
         self.locations=self.Data_hierarchy['locations'].keys()         # get list of sites
         self.locations.sort()                   # get list of sites
-        
-        #----------------------------------------------------------------------                     
+
+        #----------------------------------------------------------------------
         # initialize first specimen in list as current specimen
-        #----------------------------------------------------------------------                     
+        #----------------------------------------------------------------------
         try:
             self.s=str(self.specimens[0])
         except:
@@ -4116,28 +4135,28 @@ class Zeq_GUI(wx.Frame):
         #self.get_previous_interpretation() # get interpretations from pmag_specimens.txt
 
         self.specimens_box.SetItems(self.specimens)
-        self.specimens_box.SetStringSelection(str(self.s))  
+        self.specimens_box.SetStringSelection(str(self.s))
         self.update_pmag_tables()
         # Draw figures and add  text
         try:
             self.update_selection()
         except:
             pass
-        
+
         FIRST_RUN=False
 
     #--------------------------------------------------------------
-    # File menu 
+    # File menu
     #--------------------------------------------------------------
 
     def on_menu_exit(self, event):
 
-        #check if interpertations have changed and were not saved
+        #check if interpretations have changed and were not saved
         write_session_to_failsafe = False
         try:
             number_saved_fits = sum(1 for line in open("demag_gui.redo"))
             number_current_fits = sum(len(self.pmag_results_data['specimens'][specimen]) for specimen in self.pmag_results_data['specimens'].keys())
-            #break if there are no fits there's no need to save an empty file 
+            #break if there are no fits there's no need to save an empty file
             if number_current_fits == 0: raise RuntimeError("get out and don't write")
             write_session_to_failsafe = (number_saved_fits != number_current_fits)
             default_redo = open("demag_gui.redo")
@@ -4167,21 +4186,21 @@ class Zeq_GUI(wx.Frame):
 
         if self.close_warning:
             TEXT="Data is not saved to a file yet!\nTo properly save your data:\n1) Analysis --> Save current interpretations to a redo file.\nor\n1) File --> Save MagIC pmag tables.\n\n Press OK to exit without saving."
-            
+
             #Save all interpretation to a 'redo' file or to MagIC specimens result table\n\nPress OK to exit"
             dlg1 = wx.MessageDialog(None,caption="Warning:", message=TEXT ,style=wx.OK|wx.CANCEL|wx.ICON_EXCLAMATION)
             if dlg1.ShowModal() == wx.ID_OK:
                 dlg1.Destroy()
-                if self.interpertation_editor_open:
-                    self.interpertation_editor.on_close_edit_window(event)
+                if self.interpretation_editor_open:
+                    self.interpretation_editor.on_close_edit_window(event)
                 self.Destroy()
                 #sys.exit()
         else:
-            if self.interpertation_editor_open:
-                self.interpertation_editor.on_close_edit_window(event)
+            if self.interpretation_editor_open:
+                self.interpretation_editor.on_close_edit_window(event)
             self.Destroy()
             #sys.exit()
-        
+
 #        dlg1 = wx.MessageDialog(None,caption="Warning:", message="Exiting program.\nSave all interpretation to a 'redo' file or to MagIC specimens result table\n\nPress OK to exit" ,style=wx.OK|wx.CANCEL|wx.ICON_INFORMATION)
 #        if dlg1.ShowModal() == wx.ID_OK:
 #            dlg1.Destroy()
@@ -4203,12 +4222,12 @@ class Zeq_GUI(wx.Frame):
         self.draw_interpretation()
         self.plot_higher_levels_data()
         #self.fig2.text(0.9,0.96,'%s'%(self.s),{'family':'Arial', 'fontsize':10, 'style':'normal','va':'center', 'ha':'right' })
-        #self.canvas4.print_figure("./tmp.pdf")#, dpi=self.dpi) 
+        #self.canvas4.print_figure("./tmp.pdf")#, dpi=self.dpi)
         SaveMyPlot(self.fig2,self.s,"EqArea",self.WD)
 #        self.fig2.clear()
         self.draw_figure(self.s)
         self.update_selection()
-        
+
     def on_save_M_t_plot(self, event):
         self.current_fit = None
         self.draw_interpretation()
@@ -4238,7 +4257,7 @@ class Zeq_GUI(wx.Frame):
         if dialog.ShowModal() == wx.ID_OK:
               dir_path=dialog.GetPath()
               dialog.Destroy()
-       
+
         #figs=[self.fig1,self.fig2,self.fig3,self.fig4]
         plot_types=["Zij","EqArea","M_M0",str(self.level_box.GetValue())]
         #elements=[self.s,self.s,self.s,str(self.level_names.GetValue())]
@@ -4248,27 +4267,27 @@ class Zeq_GUI(wx.Frame):
                     self.fig1.text(0.9,0.98,'%s'%(self.s),{'family':'Arial', 'fontsize':10, 'style':'normal','va':'center', 'ha':'right' })
                     SaveMyPlot(self.fig1,self.s,"Zij",dir_path)
                 if plot_types[i]=="EqArea":
-                    SaveMyPlot(self.fig2,self.s,"EqArea",dir_path)                
+                    SaveMyPlot(self.fig2,self.s,"EqArea",dir_path)
                 if plot_types[i]=="M_M0":
                     self.fig3.text(0.9,0.96,'%s'%(self.s),{'family':'Arial', 'fontsize':10, 'style':'normal','va':'center', 'ha':'right' })
                     SaveMyPlot(self.fig3,self.s,"M_M0",dir_path)
                 if plot_types[i]==str(self.level_box.GetValue()):
                     SaveMyPlot(self.fig4,str(self.level_names.GetValue()),str(self.level_box.GetValue()),dir_path )
             except:
-                pass    
-                
+                pass
+
         self.fig1.clear()
         self.fig3.clear()
         self.draw_figure(self.s)
         self.update_selection()
-                              
+
     def on_menu_change_working_directory(self, event):
         self.reset()
 
     #--------------------------------------------------------------
     # Edit menu Bar functions
     #--------------------------------------------------------------
-    
+
     def on_menu_change_speci_coord(self, event):
         if self.COORDINATE_SYSTEM != "specimen":
             self.coordinates_box.SetStringSelection("specimen")
@@ -4309,39 +4328,39 @@ class Zeq_GUI(wx.Frame):
     def on_menu_prev_sample(self, event):
         s_index = self.specimens.index(self.s)
         print(s_index)
-                            
+
     #--------------------------------------------------------------
     # Analysis menu Bar functions
     #--------------------------------------------------------------
 
-    def on_menu_edit_interpertations(self,event):
-        if not self.interpertation_editor_open:
-            self.interpertation_editor = EditFitFrame(self)
-            self.interpertation_editor_open = True
+    def on_menu_edit_interpretations(self,event):
+        if not self.interpretation_editor_open:
+            self.interpretation_editor = EditFitFrame(self)
+            self.interpretation_editor_open = True
             self.update_higher_level_stats()
-            self.interpertation_editor.Center()
-            self.interpertation_editor.Show(True)
+            self.interpretation_editor.Center()
+            self.interpretation_editor.Show(True)
             if self.parent==None and sys.platform.startswith('darwin'):
                 TEXT="This is a refresher window for mac os to insure that wx opens the new window"
                 dlg = wx.MessageDialog(self, caption="Open",message=TEXT,style=wx.OK | wx.ICON_INFORMATION | wx.STAY_ON_TOP )
                 dlg.ShowModal()
                 dlg.Destroy()
         else:
-            self.interpertation_editor.ToggleWindowStyle(wx.STAY_ON_TOP)
-            self.interpertation_editor.ToggleWindowStyle(wx.STAY_ON_TOP)
+            self.interpretation_editor.ToggleWindowStyle(wx.STAY_ON_TOP)
+            self.interpretation_editor.ToggleWindowStyle(wx.STAY_ON_TOP)
 
     def on_menu_previous_interpretation(self,event):
         """
         Create and show the Open FileDialog for upload previous interpretation
         input should be a valid "redo file":
         [specimen name] [tmin(kelvin)] [tmax(kelvin)]
-        or 
+        or
         [specimen name] [tmin(Tesla)] [tmax(Tesla)]
         There is a problem with experiment that combines AF and thermal
         """
         dlg = wx.FileDialog(
             self, message="choose a file in a pmagpy redo format",
-            defaultDir=self.WD, 
+            defaultDir=self.WD,
             defaultFile="demag_gui.redo",
             wildcard="*.redo",
             style=wx.OPEN | wx.CHANGE_DIR
@@ -4354,21 +4373,21 @@ class Zeq_GUI(wx.Frame):
 
         if redo_file:
             self.read_redo_file(redo_file)
-    
+
 
     #----------------------------------------------------------------------
 
     def clear_interpretations(self):
-        
+
         for specimen in self.pmag_results_data['specimens'].keys():
             del(self.pmag_results_data['specimens'][specimen])
             for high_level_type in ['samples','sites','locations','study']:
                 self.high_level_means[high_level_type]={}
-        if self.interpertation_editor_open:
-            self.interpertation_editor.update_editor(True)
+        if self.interpretation_editor_open:
+            self.interpretation_editor.update_editor(True)
 
     #----------------------------------------------------------------------
-            
+
     def read_redo_file(self,redo_file): #BLARGE
         """
         Read previous interpretation from a redo file
@@ -4377,7 +4396,7 @@ class Zeq_GUI(wx.Frame):
         self.clear_interpretations()
         self.GUI_log.write ("-I- read redo file and processing new bounds")
         fin=open(redo_file,'rU')
-        
+
         for Line in fin.readlines():
             line=Line.strip('\n').split('\t')
             specimen=line[0]
@@ -4392,7 +4411,7 @@ class Zeq_GUI(wx.Frame):
             if tmin == None or tmax == None:
                 continue
             if tmin not in self.Data[specimen]['zijdblock_steps'] or  tmax not in self.Data[specimen]['zijdblock_steps']:
-                print "-E- ERROR in redo file specimen %s. Cant find treatment steps"%specimen      
+                print "-E- ERROR in redo file specimen %s. Cant find treatment steps"%specimen
 
             if len(line) >= 6:
                 fit_index = -1
@@ -4429,22 +4448,22 @@ class Zeq_GUI(wx.Frame):
         else:
             self.current_fit = self.pmag_results_data['specimens'][self.s][-1]
         self.calculate_higher_levels_data()
-        if self.interpertation_editor_open:
-            self.interpertation_editor.update_editor()
+        if self.interpretation_editor_open:
+            self.interpretation_editor.update_editor()
         self.update_selection()
 
 
     #----------------------------------------------------------------------
 
     def parse_bound_data(self,tmin0,tmax0,specimen):
-        """converts Kelvin/Tesla temperature/AF data from the MagIC/Redo format to that 
+        """converts Kelvin/Tesla temperature/AF data from the MagIC/Redo format to that
            of Celsius/milliTesla which is used by the GUI as it is often more intuitive
            @param tmin0 -> the input temperature/AF lower bound value to convert
            @param tmax0 -> the input temperature/AF upper bound value to convert
            @param specimen -> the specimen these bounds are for
-           @return tmin -> the converted lower bound temperature/AF or None if input 
+           @return tmin -> the converted lower bound temperature/AF or None if input
                            format was wrong
-           @return tmax -> the converted upper bound temperature/AF or None if the input 
+           @return tmax -> the converted upper bound temperature/AF or None if the input
                            format was wrong
         """
         if self.Data[specimen]['measurement_step_unit']=="C":
@@ -4513,15 +4532,15 @@ class Zeq_GUI(wx.Frame):
                     tmax="0"
                 if fit in self.bad_fits:
                     fit_flag = "b"
-                    
+
                 STRING=STRING+tmin+"\t"+tmax+"\t"+fit.name+"\t"+str(fit.color)+"\t"+fit_flag+"\n"
                 fout.write(STRING)
         TEXT="specimens interpretations are saved in " + redo_file_name
         dlg = wx.MessageDialog(self, caption="Saved",message=TEXT,style=wx.OK|wx.CANCEL )
         result = dlg.ShowModal()
-        if result == wx.ID_OK:            
+        if result == wx.ID_OK:
             dlg.Destroy()
-               
+
      #----------------------------------------------------------------------
 
     def on_menu_clear_interpretation(self,event):
@@ -4531,22 +4550,22 @@ class Zeq_GUI(wx.Frame):
 
 
     #----------------------------------------------------------------------
-        
+
     def on_menu_change_criteria(self, event):
         dia=demag_dialogs.demag_criteria_dialog(None,self.acceptance_criteria,title='PmagPy Demag Gui Acceptance Criteria')
         dia.Center()
-        if dia.ShowModal() == wx.ID_OK: # Until the user clicks OK, show the message            
+        if dia.ShowModal() == wx.ID_OK: # Until the user clicks OK, show the message
             self.on_close_criteria_box(dia)
-    
+
     def on_close_criteria_box (self,dia):
-        
+
         window_list_specimens=['specimen_n','specimen_mad','specimen_dang','specimen_alpha95']
         window_list_samples=['sample_n','sample_n_lines','sample_n_planes','sample_k','sample_r','sample_alpha95']
         window_list_sites=['site_n','site_n_lines','site_n_planes','site_k','site_r','site_alpha95']
         demag_gui_supported_criteria= window_list_specimens+ window_list_samples+window_list_sites
-        
+
         for crit in demag_gui_supported_criteria:
-            command="new_value=dia.set_%s.GetValue()"%(crit) 
+            command="new_value=dia.set_%s.GetValue()"%(crit)
             exec command
             # empty box
             if new_value=="":
@@ -4559,26 +4578,26 @@ class Zeq_GUI(wx.Frame):
                 self.show_crit_window_err_messege(crit)
                 continue
             self.acceptance_criteria[crit]['value']=float(new_value)
-            
+
         #  message dialog
         dlg1 = wx.MessageDialog(self,caption="Warning:", message="Canges are saved to pmag_criteria.txt\n " ,style=wx.OK)
         result = dlg1.ShowModal()
         if result == wx.ID_OK:
             self.write_acceptance_criteria_to_file()
-            dlg1.Destroy()    
+            dlg1.Destroy()
             dia.Destroy()
         #self.recaclulate_satistics()
-                
-    # only valid naumber can be entered to boxes        
+
+    # only valid naumber can be entered to boxes
     def show_crit_window_err_messege(self,crit):
         '''
-        error message if a valid naumber is not entered to criteria dialog boxes        
+        error message if a valid naumber is not entered to criteria dialog boxes
         '''
         dlg1 = wx.MessageDialog(self,caption="Error:",message="not a vaild value for statistic %s\n ignoring value"%crit ,style=wx.OK)
         result = dlg1.ShowModal()
         if result == wx.ID_OK:
             dlg1.Destroy()
-            
+
     def write_acceptance_criteria_to_file(self):
         crit_list=self.acceptance_criteria.keys()
         crit_list.sort()
@@ -4587,7 +4606,7 @@ class Zeq_GUI(wx.Frame):
         #rec['criteria_definition']=""
         rec['criteria_definition']="acceptance criteria for study"
         rec['er_citation_names']="This study"
-                
+
         for crit in crit_list:
             if type(self.acceptance_criteria[crit]['value'])==str:
                 if self.acceptance_criteria[crit]['value'] != "-999" and self.acceptance_criteria[crit]['value'] != "":
@@ -4605,10 +4624,10 @@ class Zeq_GUI(wx.Frame):
                 else:
                     rec[crit]="%e"%(self.acceptance_criteria[crit]['value'])
         pmag.magic_write(os.path.join(self.WD, "pmag_criteria.txt"),[rec],"pmag_criteria")
-                
-                
+
+
     #--------------------------------------------------------------
-               
+
     def on_menu_criteria_file (self, event):
         """
         read pmag_criteria.txt file
@@ -4617,14 +4636,14 @@ class Zeq_GUI(wx.Frame):
         read_sucsess=False
         dlg = wx.FileDialog(
             self, message="choose pmag criteria file",
-            defaultDir=self.WD, 
+            defaultDir=self.WD,
             defaultFile="pmag_criteria.txt",
             style=wx.OPEN | wx.CHANGE_DIR
             )
         if dlg.ShowModal() == wx.ID_OK:
             criteria_file = dlg.GetPath()
             self.GUI_log.write ("-I- Read new criteria file: %s\n"%criteria_file)
-            
+
             # check if this is a valid pmag_criteria file
             try:
                 mag_meas_data,file_type=pmag.magic_read(criteria_file)
@@ -4637,56 +4656,56 @@ class Zeq_GUI(wx.Frame):
                 return
 
             # initialize criteria
-            self.acceptance_criteria=pmag.initialize_acceptance_criteria() 
-            self.acceptance_criteria=pmag.read_criteria_from_file(criteria_file,self.acceptance_criteria) 
+            self.acceptance_criteria=pmag.initialize_acceptance_criteria()
+            self.acceptance_criteria=pmag.read_criteria_from_file(criteria_file,self.acceptance_criteria)
             read_sucsess=True
 
         dlg.Destroy()
         if read_sucsess:
-            self.on_menu_change_criteria(None)   
+            self.on_menu_change_criteria(None)
 
     #--------------------------------------------------------------
-    # Tools menu 
+    # Tools menu
     #--------------------------------------------------------------
 
-                                                            
+
     def on_menu_bulk_demagnetization (self,event):
-        
+
         dlg1 = wx.MessageDialog(self, caption="message",message="tool not supported in this beta version",style=wx.OK)
         result = dlg1.ShowModal()
-        if result == wx.ID_OK:            
+        if result == wx.ID_OK:
             dlg1.Destroy()
-                                     
+
     #--------------------------------------------------------------
-    # MagIC menu 
+    # MagIC menu
     #--------------------------------------------------------------
-    
+
     def on_menu_make_MagIC_results_tables(self,event): #BLARGE
         """
-         1. read pmag_specimens.txt, pmag_samples.txt, pmag_sites.txt, and sort out lines with LP-DIR in magic_codes 
+         1. read pmag_specimens.txt, pmag_samples.txt, pmag_sites.txt, and sort out lines with LP-DIR in magic_codes
          2. saves a clean pmag_*.txt files without LP-DIR stuff as pmag_*.txt.tmp .
          3. write a new file pmag_specimens.txt
-         4. merge pmag_specimens.txt and pmag_specimens.txt.tmp using combine_magic.py 
+         4. merge pmag_specimens.txt and pmag_specimens.txt.tmp using combine_magic.py
          5. delete pmag_specimens.txt.tmp
          6 (optional) extracting new pag_*.txt files (except pmag_specimens.txt) using specimens_results_magic.py
-         7: if #6: merge pmag_*.txt and pmag_*.txt.tmp using combine_magic.py 
+         7: if #6: merge pmag_*.txt and pmag_*.txt.tmp using combine_magic.py
             if not #6: save pmag_*.txt.tmp as pmag_*.txt
         """
 
 
         #---------------------------------------
-        # save pmag_*.txt.tmp without directional data           
+        # save pmag_*.txt.tmp without directional data
         #---------------------------------------
         self.on_menu_save_interpretation(None)
 
         #---------------------------------------
-        # dialog box to choose coordinate systems for pmag_specimens.txt           
-        #---------------------------------------  
+        # dialog box to choose coordinate systems for pmag_specimens.txt
+        #---------------------------------------
         dia = demag_dialogs.magic_pmag_specimens_table_dialog(None)
         dia.Center()
 
         CoorTypes=['DA-DIR','DA-DIR-GEO','DA-DIR-TILT']
-        if dia.ShowModal() == wx.ID_OK: # Until the user clicks OK, show the message 
+        if dia.ShowModal() == wx.ID_OK: # Until the user clicks OK, show the message
             CoorTypes=[]
             if dia.cb_spec_coor.GetValue()==True:
                 CoorTypes.append('DA-DIR')
@@ -4694,23 +4713,23 @@ class Zeq_GUI(wx.Frame):
                 CoorTypes.append('DA-DIR-GEO')
             if dia.cb_tilt_coor.GetValue()==True:
                 CoorTypes.append('DA-DIR-TILT')
-        #------------------------------        
-        
-        
+        #------------------------------
+
+
         self.PmagRecsOld={}
         for FILE in ['pmag_specimens.txt']:
             self.PmagRecsOld[FILE]=[]
             meas_data=[]
-            try: 
+            try:
                 meas_data,file_type=pmag.magic_read(os.path.join(self.WD, FILE))
                 self.GUI_log.write("-I- Read old magic file  %s\n"%os.path.join(self.WD, FILE))
                 #if FILE !='pmag_specimens.txt':
                 os.remove(os.path.join(self.WD,FILE))
                 self.GUI_log.write("-I- Delete old magic file  %s\n"%os.path.join(self.WD,FILE))
-                               
+
             except:
                 continue
-                                                                                          
+
             for rec in meas_data:
                 if "magic_method_codes" in rec.keys():
                     if "LP-DIR" not in rec['magic_method_codes'] and "DE-" not in  rec['magic_method_codes']:
@@ -4718,7 +4737,7 @@ class Zeq_GUI(wx.Frame):
 
         #---------------------------------------
         # write a new pmag_specimens.txt
-        #---------------------------------------  
+        #---------------------------------------
 
         specimens_list=self.pmag_results_data['specimens'].keys()
         specimens_list.sort()
@@ -4760,20 +4779,20 @@ class Zeq_GUI(wx.Frame):
                     #for method in all_methods:
                     #    if "LP" in method:
                     #        magic_method_codes.append(method)
-                    #if 
+                    #if
                     #-------
                     #if self.Data[specimen]['measurement_step_unit']=="C":
                     #     PmagSpecRec['measurement_step_unit']="K"
                     #else:
                     #     PmagSpecRec['measurement_step_unit']="T"
-                        
+
                     if  fit.tmin =="0":
                          PmagSpecRec['measurement_step_min'] ="0"
                     elif "C" in fit.tmin:
                         PmagSpecRec['measurement_step_min'] = "%.0f"%(mpars["measurement_step_min"]+273.)
                     else:
                         PmagSpecRec['measurement_step_min'] = "%8.3e"%(mpars["measurement_step_min"]*1e-3)
-                    
+
                     if  fit.tmax =="0":
                          PmagSpecRec['measurement_step_max'] ="0"
                     elif "C" in fit.tmax:
@@ -4823,7 +4842,7 @@ class Zeq_GUI(wx.Frame):
         PmagSpecs_fixed=self.merge_pmag_recs(PmagSpecs)
         pmag.magic_write(os.path.join(self.WD, "pmag_specimens.txt"),PmagSpecs_fixed,'pmag_specimens')
         self.GUI_log.write( "specimen data stored in %s\n"%os.path.join(self.WD, "pmag_specimens.txt"))
-        
+
         TEXT="specimens interpretations are saved in pmag_specimens.txt.\nPress OK for pmag_samples/pmag_sites/pmag_results tables."
         dlg = wx.MessageDialog(self, caption="Saved",message=TEXT,style=wx.OK|wx.CANCEL )
         result = dlg.ShowModal()
@@ -4832,17 +4851,17 @@ class Zeq_GUI(wx.Frame):
         if result == wx.ID_CANCEL:
             dlg.Destroy()
             return
-            
+
         #--------------------------------
-                
+
         dia = demag_dialogs.magic_pmag_tables_dialog(None,self.WD,self.Data,self.Data_info)
         dia.Center()
 
         if dia.ShowModal() == wx.ID_OK: # Until the user clicks OK, show the message
             self.On_close_MagIC_dialog(dia)
-                                                      
+
     def On_close_MagIC_dialog(self,dia):
-        
+
 #        run_script_flags=["specimens_results_magic.py","-fsp","pmag_specimens.txt", "-xI",  "-WD", str(self.WD)]
         if dia.cb_acceptance_criteria.GetValue()==True:
 #            run_script_flags.append("-exc")
@@ -4864,13 +4883,13 @@ class Zeq_GUI(wx.Frame):
         if dia.rb_geo_tilt_coor.GetValue()==True:
 #            run_script_flags.append("-crd");  run_script_flags.append("b")
             coord = "b"
-        
+
         #-- default age options
         DefaultAge= ["none"]
 #        if dia.cb_default_age.GetValue()==True:
         try:
             age_units= dia.default_age_unit.GetValue()
-            min_age="%f"%float(dia.default_age_min.GetValue()) 
+            min_age="%f"%float(dia.default_age_min.GetValue())
             max_age="%f"%float(dia.default_age_max.GetValue())
         except:
             min_age="0"
@@ -4900,17 +4919,17 @@ class Zeq_GUI(wx.Frame):
         if dia.cb_sample_mean.GetValue()==True:
 #            run_script_flags.append("-aD")
             avg_directions_by_sample = True
-            
+
         vgps_level = 'site'
         if dia.cb_sample_mean_VGP.GetValue()==True:
 #            run_script_flags.append("-sam")
             vgps_level = 'sample'
 
         #-- site mean
-         
+
         if dia.cb_site_mean.GetValue()==True:
             pass
-            
+
         #-- location mean
         avg_by_polarity=False
         if dia.cb_location_mean.GetValue()==True:
@@ -4942,7 +4961,7 @@ class Zeq_GUI(wx.Frame):
         print 'coord', coord, 'vgps_level', vgps_level, 'DefaultAge', DefaultAge, 'avg_directions_by_sample', avg_directions_by_sample, 'avg_by_polarity', avg_by_polarity, 'use_criteria', use_criteria
         ipmag.specimens_results_magic(coord=coord, vgps_level=vgps_level, DefaultAge=DefaultAge, avg_directions_by_sample=avg_directions_by_sample, avg_by_polarity=avg_by_polarity, use_criteria=use_criteria)
 
-        
+
         # subprocess.call(run_script_flags, shell=True)
         # reads new pmag tables, and merge the old lines:
         for FILE in ['pmag_samples.txt','pmag_sites.txt','pmag_results.txt']:
@@ -4965,17 +4984,17 @@ class Zeq_GUI(wx.Frame):
             Fout.write("tab\tpmag_criteria\n")
             Fout.write("er_citation_names\tpmag_criteria_code\n")
             Fout.write("This study\tACCEPT\n")
-            
+
 
         self.update_pmag_tables()
         self.update_selection()
         TEXT="interpretations are saved in pmag tables.\n"
         dlg = wx.MessageDialog(self, caption="Saved",message=TEXT,style=wx.OK)
         result = dlg.ShowModal()
-        if result == wx.ID_OK:            
+        if result == wx.ID_OK:
             dlg.Destroy()
-                        
-        self.close_warning=False       
+
+        self.close_warning=False
 
     def merge_pmag_recs(self,old_recs):
         # fix the headers of pmag recs
@@ -4994,11 +5013,11 @@ class Zeq_GUI(wx.Frame):
                     #print "missing: ", header
                     rec[header]=""
         return recs
-            
 
-                        
+
+
     def on_menu_MagIC_model_builder(self,event):
-            
+
         import MagIC_Model_Builder
         foundHTML=False
         try:
@@ -5010,7 +5029,7 @@ class Zeq_GUI(wx.Frame):
         if foundHTML:
             help_window=MagIC_Model_Builder.MyHtmlPanel(None,HTML_PATH)
             help_window.Show()
-            
+
         #dia = MagIC_Model_Builder.MagIC_model_builder(self.WD,self.Data,self.Data_hierarchy)
         dia = MagIC_Model_Builder.MagIC_model_builder(self.WD)#,self.Data,self.Data_hierarchy)
         dia.Show()
@@ -5020,7 +5039,7 @@ class Zeq_GUI(wx.Frame):
         self.Data,self.Data_hierarchy,self.Data_info={},{},{}
         self.Data_info=self.get_data_info() # get all ages, locations etc. (from er_ages, er_sites, er_locations)
         self.Data,self.Data_hierarchy=self.get_data() # Get data from magic_measurements and rmag_anistropy if exist.
-        self.update_selection()                                    
+        self.update_selection()
 
     def on_menu_samples_orientation(self,event):
         TEXT="A template for file demag_orient.txt, which contains samples orientation data was created in MagIC working directory.\n\n"
@@ -5029,18 +5048,18 @@ class Zeq_GUI(wx.Frame):
         TEXT=TEXT+"1) save demag_orient.txt as 'tab delimited'\n"
         TEXT=TEXT+"2) Import demag_orient.txt to the demag-gui frame by choosing from the menu-bar: File -> Open orientation file\n\n"
         TEXT=TEXT+"After filling orientation data choose from the menu-bar: File -> Calculate samples orientations"
-              
+
         SIZE=self.GetSize()
         frame = demag_dialogs.OrientFrameGrid (None, -1, 'demag_orient.txt',self.WD,self.Data_hierarchy,SIZE)
-        
+
         frame.Show(True)
         frame.Centre()
         dlg1 = wx.MessageDialog(self,caption="Message:", message=TEXT ,style=wx.OK)
         result = dlg1.ShowModal()
         if result == wx.ID_OK:
-            dlg1.Destroy()    
+            dlg1.Destroy()
 
-                                                                                                                                                                                                        
+
     def on_menu_generic_to_magic(self,event):
         import demag_dialogs
         f=demag_dialogs.convert_generic_files_to_MagIC(self.WD)
@@ -5050,7 +5069,7 @@ class Zeq_GUI(wx.Frame):
         #    self.on_close_generic_file(self.WD)
         #    evt.Skip()
         #f.Bind(wx.EVT_CLOSE, MyOnClose)
-        #f.MakeModal() 
+        #f.MakeModal()
         #if f.END==True:
         #    self.on_close_generic_file(self.WD)
         #    f.Close()
@@ -5058,7 +5077,7 @@ class Zeq_GUI(wx.Frame):
    # def on_close_generic_file(self,WD):
    #     print "Closed"
    #     print WD
-   
+
     def on_menu_docs(self,event):
         """
         opens in library documentation for the usage of demag gui in a pdf/latex form
@@ -5084,7 +5103,7 @@ class Zeq_GUI(wx.Frame):
         @param: tmin -> the lower bound to find the index of
         @param: tmax -> the upper bound to find the index of
         @param: specimen -> the specimen who's steps to search for indecies (defaults to currently selected specimen)
-        @return: a tuple with the lower bound index then the upper bound index 
+        @return: a tuple with the lower bound index then the upper bound index
         """
         if specimen==None:
             specimen = self.s
@@ -5103,13 +5122,13 @@ class Zeq_GUI(wx.Frame):
                max_index-1 > 0):
             max_index -= 1
 
-        if (tmin_index < 0):
+        if (tmin_index > 0):
             while (self.Data[specimen]['measurement_flag'][tmin_index] == 'b' and \
                    tmin_index+1 < len(self.Data[specimen]['zijdblock_steps'])):
                 if (self.Data[specimen]['zijdblock_steps'][tmin_index+1] == tmin):
                     tmin_index += 1
                 else:
-                    print("No good measurement steps with value - " + tmin)
+                    print("For specimen " + specimen + " there are no good measurement steps with value - " + tmin)
                     break
 
         if (tmax_index < max_index):
@@ -5118,7 +5137,7 @@ class Zeq_GUI(wx.Frame):
                 if (self.Data[specimen]['zijdblock_steps'][tmax_index+1] == tmax):
                     tmax_index += 1
                 else:
-                    print("No good measurement steps with value - " + tmax)
+                    print("For specimen " + specimen + " there are no good measurement steps with value - " + tmax)
                     break
 
         if (tmin_index < 0): tmin_index = 0
@@ -5145,8 +5164,8 @@ class Zeq_GUI(wx.Frame):
             except ValueError:
                 fit_num = -1
             self.pmag_results_data['specimens'][self.s][fit_num].select()
-        if self.interpertation_editor_open:
-            self.interpertation_editor.change_selected(self.current_fit)
+        if self.interpretation_editor_open:
+            self.interpretation_editor.change_selected(self.current_fit)
 
     def on_enter_fit_name(self,event):
         """
@@ -5167,7 +5186,7 @@ class Zeq_GUI(wx.Frame):
 
     def add_fit(self,event):
         """
-        add a new interpertation to the current specimen
+        add a new interpretation to the current specimen
         @param: event -> the wx.ButtonEvent that triggered this function
         @alters: pmag_results_data
         """
@@ -5181,7 +5200,7 @@ class Zeq_GUI(wx.Frame):
 
     def delete_fit(self,event):
         """
-        removes the current interpertation
+        removes the current interpretation
         @param: event -> the wx.ButtonEvent that triggered this function
         """
         if not self.s in self.pmag_results_data['specimens']: return
@@ -5197,9 +5216,9 @@ class Zeq_GUI(wx.Frame):
 
     def remove_replace_fit(self,event):
         """
-        Remove or replace interpertations from higher order equal area plot and mean
+        Remove or replace interpretations from higher order equal area plot and mean
         @param: event -> the wx.ButtonEvent that triggered this function
-        @alters: bad_fits, 
+        @alters: bad_fits,
         """
         fit_val = self.mean_fit_box.GetValue()
         if fit_val == "None":
@@ -5220,9 +5239,9 @@ class Zeq_GUI(wx.Frame):
                 self.bad_fits.remove(bad_fit)
             else:
                 self.bad_fits.append(bad_fit)
-       #update the interpertation_editor to reflect bad interpertations
-        if self.interpertation_editor_open:
-            self.interpertation_editor.update_editor()
+       #update the interpretation_editor to reflect bad interpretations
+        if self.interpretation_editor_open:
+            self.interpretation_editor.update_editor()
         self.close_warning = True
         self.calculate_higher_levels_data()
         self.update_selection()
@@ -5234,8 +5253,8 @@ class Zeq_GUI(wx.Frame):
         fit = self.pmag_results_data['specimens'][self.s][-1]
         self.current_fit = fit #update current fit to new fit
 
-        if self.interpertation_editor_open:
-            self.interpertation_editor.update_editor(True)
+        if self.interpretation_editor_open:
+            self.interpretation_editor.update_editor(True)
 
         self.update_fit_boxs(True)
 
@@ -5244,7 +5263,7 @@ class Zeq_GUI(wx.Frame):
 
     def update_fit_boxs(self, new_fit = False):
         """
-        alters fit_box and mean_fit_box lists to match with changes in specimen or new/removed interpertations
+        alters fit_box and mean_fit_box lists to match with changes in specimen or new/removed interpretations
         @param: new_fit -> boolean representing if there is a new fit
         @alters: fit_box selection, tmin_box selection, tmax_box selection, mean_fit_box selection, current_fit
         """
@@ -5257,7 +5276,7 @@ class Zeq_GUI(wx.Frame):
 
     def update_fit_box(self, new_fit = False):
         """
-        alters fit_box lists to match with changes in specimen or new/removed interpertations
+        alters fit_box lists to match with changes in specimen or new/removed interpretations
         @param: new_fit -> boolean representing if there is a new fit
         @alters: fit_box selection and choices, current_fit
         """
@@ -5268,7 +5287,7 @@ class Zeq_GUI(wx.Frame):
         if not self.fit_list: new_index = 'None'
         elif new_fit: new_index = len(self.fit_list) - 1
         else:
-            if self.fit_box.GetValue() in self.fit_list: 
+            if self.fit_box.GetValue() in self.fit_list:
                 new_index = self.fit_list.index(self.fit_box.GetValue());
             else:
                 new_index = 'None'
@@ -5283,7 +5302,7 @@ class Zeq_GUI(wx.Frame):
 
     def update_mean_fit_box(self):
         """
-        alters mean_fit_box list to match with changes in specimen or new/removed interpertations
+        alters mean_fit_box list to match with changes in specimen or new/removed interpretations
         @alters: mean_fit_box selection and choices, mean_types_box string selection
         """
         #get new fit data
@@ -5303,20 +5322,20 @@ class Zeq_GUI(wx.Frame):
         #select defaults
         if fit_index: self.mean_fit_box.SetSelection(fit_index+2)
         if self.mean_fit_box.GetValue() == 'None': self.mean_type_box.SetStringSelection('None')
-        if self.interpertation_editor_open:
-            self.interpertation_editor.mean_fit_box.Clear()
-            self.interpertation_editor.mean_fit_box.SetItems(['None','All'] + self.all_fits_list)
-            if fit_index: self.interpertation_editor.mean_fit_box.SetSelection(fit_index+2)
-            if self.mean_fit_box.GetValue() == 'None': self.interpertation_editor.mean_type_box.SetStringSelection('None')
+        if self.interpretation_editor_open:
+            self.interpretation_editor.mean_fit_box.Clear()
+            self.interpretation_editor.mean_fit_box.SetItems(['None','All'] + self.all_fits_list)
+            if fit_index: self.interpretation_editor.mean_fit_box.SetSelection(fit_index+2)
+            if self.mean_fit_box.GetValue() == 'None': self.interpretation_editor.mean_type_box.SetStringSelection('None')
 
     def MacReopenApp(self):
         """Called when the doc icon is clicked"""
         self.GetTopWindow().Raise()
 
-        
-        
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                
-#--------------------------------------------------------------    
+
+
+
+#--------------------------------------------------------------
 # Save plots
 #--------------------------------------------------------------
 
@@ -5329,22 +5348,22 @@ class SaveMyPlot(wx.Frame):
         file_choices="(*.pdf)|*.pdf|(*.svg)|*.svg| (*.png)|*.png"
         default_fig_name="%s_%s.pdf"%(name,plot_type)
         dlg = wx.FileDialog(
-            self, 
+            self,
             message="Save plot as...",
             defaultDir=dir_path,
             defaultFile=default_fig_name,
             wildcard=file_choices,
             style=wx.SAVE)
-        
+
         if dlg.ShowModal() == wx.ID_OK:
             path = dlg.GetPath()
-            
+
         title=name
         self.panel = wx.Panel(self)
         self.dpi=300
 
         canvas_tmp_1 = FigCanvas(self.panel, -1, fig)
-        canvas_tmp_1.print_figure(path, dpi=self.dpi)  
+        canvas_tmp_1.print_figure(path, dpi=self.dpi)
 
 #----------------------------------------------------------------------------------------
 
@@ -5376,7 +5395,7 @@ class EditFitFrame(wx.Frame):
 
     def init_UI(self):
         """
-        Builds User Interface for the Interpertation Editor
+        Builds User Interface for the interpretation Editor
         """
 
         #set fonts
@@ -5392,11 +5411,11 @@ class EditFitFrame(wx.Frame):
         self.logger = wx.ListCtrl(self.panel, -1, size=(350*self.GUI_RESOLUTION,475*self.GUI_RESOLUTION),style=wx.LC_REPORT)
         self.logger.SetFont(font1)
         self.logger.InsertColumn(0, 'specimen',width=55*self.GUI_RESOLUTION)
-        self.logger.InsertColumn(1, 'name',width=45*self.GUI_RESOLUTION)
+        self.logger.InsertColumn(1, 'fit name',width=45*self.GUI_RESOLUTION)
         self.logger.InsertColumn(2, 'max',width=35*self.GUI_RESOLUTION)
-        self.logger.InsertColumn(3, 'min',width=35*self.GUI_RESOLUTION)        
+        self.logger.InsertColumn(3, 'min',width=35*self.GUI_RESOLUTION)
         self.logger.InsertColumn(4, 'n',width=25*self.GUI_RESOLUTION)
-        self.logger.InsertColumn(5, 'type',width=60*self.GUI_RESOLUTION)
+        self.logger.InsertColumn(5, 'fit type',width=60*self.GUI_RESOLUTION)
         self.logger.InsertColumn(6, 'dec',width=35*self.GUI_RESOLUTION)
         self.logger.InsertColumn(7, 'inc',width=35*self.GUI_RESOLUTION)
         self.logger.InsertColumn(8, 'mad',width=35*self.GUI_RESOLUTION)
@@ -5404,9 +5423,9 @@ class EditFitFrame(wx.Frame):
         self.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK,self.OnRightClickListctrl,self.logger)
 
         #set fit attributes box
-        self.display_sizer = wx.StaticBoxSizer(wx.StaticBox(self.panel, wx.ID_ANY, "Display Settings"), wx.HORIZONTAL)
-        self.name_sizer = wx.StaticBoxSizer(wx.StaticBox(self.panel, wx.ID_ANY, "Fit Name/Color"), wx.VERTICAL)
-        self.bounds_sizer = wx.StaticBoxSizer(wx.StaticBox(self.panel, wx.ID_ANY, "Fit Bounds"), wx.VERTICAL)
+        self.display_sizer = wx.StaticBoxSizer(wx.StaticBox(self.panel, wx.ID_ANY, "display options"), wx.HORIZONTAL)
+        self.name_sizer = wx.StaticBoxSizer(wx.StaticBox(self.panel, wx.ID_ANY, "fit name/color"), wx.VERTICAL)
+        self.bounds_sizer = wx.StaticBoxSizer(wx.StaticBox(self.panel, wx.ID_ANY, "fit bounds"), wx.VERTICAL)
         self.buttons_sizer = wx.StaticBoxSizer(wx.StaticBox(self.panel, wx.ID_ANY), wx.VERTICAL)
 
         #logger display selection box
@@ -5561,13 +5580,13 @@ class EditFitFrame(wx.Frame):
 
     ################################Logger Functions##################################
 
-    def update_editor(self,changed_interpertation_parameters=True):
+    def update_editor(self,changed_interpretation_parameters=True):
         """
-        updates the logger and plot on the interpertation editor window
-        @param: changed_interpertation_parameters -> if the logger should be whipped and completely recalculated from scratch or not (default = True)
+        updates the logger and plot on the interpretation editor window
+        @param: changed_interpretation_parameters -> if the logger should be whipped and completely recalculated from scratch or not (default = True)
         """
 
-        if changed_interpertation_parameters:
+        if changed_interpretation_parameters:
             self.fit_list = []
             for specimen in self.specimens_list:
                 if specimen not in self.parent.pmag_results_data['specimens']: continue
@@ -5593,7 +5612,7 @@ class EditFitFrame(wx.Frame):
             self.logger.DeleteItem(i)
             return
         else: return
-        
+
         fit = tup[0]
         pars = fit.get(self.parent.COORDINATE_SYSTEM)
         fmin,fmax,n,ftype,dec,inc,mad = "","","","","","",""
@@ -5607,7 +5626,7 @@ class EditFitFrame(wx.Frame):
         if 'specimen_dec' in pars.keys(): dec = "%.1f"%pars['specimen_dec']
         if 'specimen_inc' in pars.keys(): inc = "%.1f"%pars['specimen_inc']
         if 'specimen_mad' in pars.keys(): mad = "%.1f"%pars['specimen_mad']
-        
+
         if i < self.logger.GetItemCount():
             self.logger.DeleteItem(i)
         self.logger.InsertStringItem(i, str(specimen))
@@ -5641,7 +5660,8 @@ class EditFitFrame(wx.Frame):
 
     def change_selected(self,new_fit):
         """
-        updates passed in fit or index as current fit for the editor (does not affect parent), if no parameters are passed in it sets first fit as current and complains.
+        updates passed in fit or index as current fit for the editor (does not affect parent),
+        if no parameters are passed in it sets first fit as current and complains.
         @param: new_fit -> fit object to highlight as selected
         """
         if self.current_fit_index == None:
@@ -5663,7 +5683,7 @@ class EditFitFrame(wx.Frame):
         len(self.fit_list) > 0 and \
         self.fit_list[self.current_fit_index][0] in self.parent.bad_fits:
             self.logger.SetItemBackgroundColour(self.current_fit_index,"YELLOW")
-        else: 
+        else:
             self.logger.SetItemBackgroundColour(self.current_fit_index,"WHITE")
         self.current_fit_index = i
         if self.fit_list[self.current_fit_index][0] in self.parent.bad_fits:
@@ -5684,7 +5704,7 @@ class EditFitFrame(wx.Frame):
 
     def OnClick_listctrl(self, event):
         """
-        Edits the logger and the Zeq_GUI parent object to select the fit that was newly selected by a double click 
+        Edits the logger and the Zeq_GUI parent object to select the fit that was newly selected by a double click
         @param: event -> wx.ListCtrlEvent that triggered this function
         """
         i = event.GetIndex()
@@ -5700,11 +5720,11 @@ class EditFitFrame(wx.Frame):
         self.parent.fit_box.SetSelection(fi-1)
         self.parent.update_fit_boxs(False)
         self.parent.Add_text()
-        
+
 
     def OnRightClickListctrl(self, event):
         """
-        Edits the logger and the Zeq_GUI parent object so that the selected interpertation is now marked as bad
+        Edits the logger and the Zeq_GUI parent object so that the selected interpretation is now marked as bad
         @param: event -> wx.ListCtrlEvent that triggered this function
         """
         i = event.GetIndex()
@@ -5757,7 +5777,7 @@ class EditFitFrame(wx.Frame):
 
     def on_select_higher_level(self,event,called_by_parent=False):
         """
-        alters the possible entries in level_names combobox to give the user selections for which specimen interpertations to display in the logger
+        alters the possible entries in level_names combobox to give the user selections for which specimen interpretations to display in the logger
         @param: event -> the wx.COMBOBOXEVENT that triggered this function
         """
         UPPER_LEVEL=self.level_box.GetValue()
@@ -5786,7 +5806,7 @@ class EditFitFrame(wx.Frame):
 
     def on_select_level_name(self,event,called_by_parent=False):
         """
-        change this objects specimens_list to control which specimen interpertatoins are displayed in this objects logger
+        change this objects specimens_list to control which specimen interpretatoins are displayed in this objects logger
         @param: event -> the wx.ComboBoxEvent that triggered this function
         """
         high_level_name=str(self.level_names.GetValue())
@@ -5809,7 +5829,7 @@ class EditFitFrame(wx.Frame):
 
     def on_select_mean_type_box(self, event):
         """
-        set parent Zeq_GUI to reflect change in this box and change the 
+        set parent Zeq_GUI to reflect change in this box and change the
         @param: event -> the wx.ComboBoxEvent that triggered this function
         """
         new_mean_type = self.mean_type_box.GetValue()
@@ -5829,7 +5849,7 @@ class EditFitFrame(wx.Frame):
 
     def on_select_stats_button(self,event):
         """
-        
+
         """
         i = self.switch_stats_button.GetValue()
         self.parent.switch_stats_button.SetValue(i)
@@ -5837,7 +5857,7 @@ class EditFitFrame(wx.Frame):
 
     def add_highlighted_fits(self, evnet):
         """
-        adds a new interpertation to each specimen highlighted in logger if multiple interpertations are highlighted of the same specimen only one new interpertation is added
+        adds a new interpretation to each specimen highlighted in logger if multiple interpretations are highlighted of the same specimen only one new interpretation is added
         @param: event -> the wx.ButtonEvent that triggered this function
         """
 
@@ -5876,7 +5896,7 @@ class EditFitFrame(wx.Frame):
             if not new_tmax: new_tmax = None
 
             if new_name in map(lambda x: x.name, self.parent.pmag_results_data['specimens'][specimen]):
-                print('-E- interpertation called ' + new_name + ' already exsists for specimen ' + specimen)
+                print('-E- interpretation called ' + new_name + ' already exsists for specimen ' + specimen)
                 continue
 
             new_fit = Fit(new_name, new_tmin, new_tmax, new_color, self.parent)
@@ -6004,13 +6024,13 @@ class EditFitFrame(wx.Frame):
 
     def on_close_edit_window(self, event):
         """
-        the function that is triggered on the close of the interpertation editor window 
+        the function that is triggered on the close of the interpretation editor window
         @param: event -> wx.WindowEvent that triggered this function
         """
 
-        self.parent.interpertation_editor_open = False
+        self.parent.interpretation_editor_open = False
         self.Destroy()
-        
+
 
 #----------------------------------------------------------------------------------------
 
@@ -6018,7 +6038,7 @@ class Fit():
 
     def __init__(self, name, tmax, tmin, color, GUI):
         """
-        The Data Structure that represents an interpertation
+        The Data Structure that represents an interpretation
         @param: name -> the name of the fit as it will be displayed to the user
         @param: tmax -> the upper bound of the fit
         @param: tmin -> the lower bound of the fit
@@ -6066,7 +6086,7 @@ class Fit():
 
     def get(self,coordinate_system):
         """
-        Return the pmagpy paramters dictionary associated with this fit and the given 
+        Return the pmagpy paramters dictionary associated with this fit and the given
         coordinate system
         @param: coordinate_system -> the coordinate system who's parameters to return
         """
@@ -6082,14 +6102,15 @@ class Fit():
 
     def put(self,specimen,coordinate_system,new_pars):
         """
-        Given a coordinate system and a new parameters dictionary that follows pmagpy 
-        convention given by the pmag.py/domean function it alters this fit's bounds and 
+        Given a coordinate system and a new parameters dictionary that follows pmagpy
+        convention given by the pmag.py/domean function it alters this fit's bounds and
         parameters such that it matches the new data.
         @param: specimen -> None if fit is for a site or a sample or a valid specimen from self.GUI
         @param: coordinate_system -> the coordinate system to alter
         @param: new_pars -> the new paramters to change your fit to
         @alters: tmin, tmax, pars, geopars, tiltpars, PCA_type
         """
+
         if specimen != None:
             if type(new_pars) != dict or 'measurement_step_min' not in new_pars.keys() or 'measurement_step_max' not in new_pars.keys() or 'calculation_type' not in new_pars.keys():
                 print("-E- invalid parameters cannot assign to fit - was given:\n"+str(new_pars))
@@ -6125,7 +6146,7 @@ class Fit():
         @param: name -> name of the other fit
         @param: tmin -> lower bound of the other fit
         @param: tmax -> upper bound of the other fit
-        @return: boolean comaparing 2 fits 
+        @return: boolean comaparing 2 fits
         """
         return str(self.name) == str(name) and str(self.tmin) == str(tmin) and str(self.tmax) == str(tmax)
 
@@ -6137,7 +6158,7 @@ class Fit():
         try: return self.name + ": \n" + "Tmax = " + self.tmax + ", Tmin = " + self.tmin + "\n" + "Color = " + str(self.color)
         except ValueError: return self.name + ": \n" + " Color = " + self.color
 
-#--------------------------------------------------------------    
+#--------------------------------------------------------------
 # Run the GUI
 #--------------------------------------------------------------
 def specimens_comparator(s1,s2):
@@ -6149,13 +6170,13 @@ def specimens_comparator(s1,s2):
     return 0
 
 def alignToTop(win):
-    dw, dh = wx.DisplaySize() 
-    w, h = win.GetSize() 
+    dw, dh = wx.DisplaySize()
+    w, h = win.GetSize()
     #x = dw - w
     #y = dh - h
-    
+
     win.SetPosition(((dw-w)/2.,0 ))
-    
+
 
 
 def do_main(WD=None, standalone_app=True, parent=None):
@@ -6171,7 +6192,7 @@ def do_main(WD=None, standalone_app=True, parent=None):
         app.frame = Zeq_GUI(WD)
         app.frame.Center()
         #alignToTop(app.frame)
-        #dw, dh = wx.DisplaySize() 
+        #dw, dh = wx.DisplaySize()
         #w, h = app.frame.GetSize()
         #print 'display 2', dw, dh
         #print "gui 2", w, h
