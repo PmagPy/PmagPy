@@ -160,6 +160,7 @@ def main(command_line=True, **kwargs):
         print "bad sam file name: ", magfile
         return False, "bad sam file name"
     File = file_input.readlines()
+    if len(File) == 1: File = File[0].split('\r'); File = map(lambda x: x+"\r\n", File)
     sids,ln,format=[],0,'CIT'
     formats=['CIT','2G','APP','JRA']
     ErLocRec={}
@@ -186,6 +187,7 @@ def main(command_line=True, **kwargs):
         for k in range(ln+1,len(File)):
             line=File[k]
             rec=line.split()
+            if rec == []: continue
             specimen=rec[0]
             specimens.append(specimen)
     for specimen in specimens:
