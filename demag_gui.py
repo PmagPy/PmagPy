@@ -4,10 +4,10 @@
 # LOG HEADER:
 #============================================================================================
 #
-# Demag_GUI Version 0.50 add interpretation editor, plane plotting functionality and more
+# Demag_GUI Version 0.33 add interpretation editor, plane plotting functionality and more
 # propose merging development fork to main PmagPy repository (11/09/2015)
 #
-# Demag_GUI Version 0.40 added multiple interpretations and new plot functionality by Kevin Gaastra (05/03/2015)
+# Demag_GUI Version 0.32 added multiple interpretations and new plot functionality by Kevin Gaastra (05/03/2015)
 #
 # Demag_GUI Version 0.31 save MagIC tables option: add dialog box to choose coordinates system for pmag_specimens.txt 04/26/2015
 #
@@ -2761,6 +2761,9 @@ class Zeq_GUI(wx.Frame):
                             #is this fit to be included in mean
                             if self.mean_fit == 'All' or self.mean_fit == fit.name:
                                 pars = fit.get(dirtype)
+                                if pars == {}:
+                                    pars = self.get_PCA_parameters(element,fit.tmin,fit.tmax,dirtype,fit.PCA_type)
+                                    fit.put(element,dirtype,pars)
                             else:
                                 continue
                             if "calculation_type" in pars.keys() and pars["calculation_type"] == 'DE-BFP':
@@ -5086,7 +5089,7 @@ class Zeq_GUI(wx.Frame):
                 if (self.Data[specimen]['zijdblock_steps'][tmin_index+1] == tmin):
                     tmin_index += 1
                 else:
-                    print("No good measurement steps with value - " + tmin)
+                    print("For specimen " + specimen + " there are no good measurement steps with value - " + tmin)
                     break
 
         if (tmax_index < max_index):
@@ -5095,7 +5098,7 @@ class Zeq_GUI(wx.Frame):
                 if (self.Data[specimen]['zijdblock_steps'][tmax_index+1] == tmax):
                     tmax_index += 1
                 else:
-                    print("No good measurement steps with value - " + tmax)
+                    print("For specimen " + specimen + " there are no good measurement steps with value - " + tmax)
                     break
 
         if (tmin_index < 0): tmin_index = 0
