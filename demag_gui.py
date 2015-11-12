@@ -1893,7 +1893,6 @@ class Zeq_GUI(wx.Frame):
         if high_level_name in self.high_level_means[high_level_type].keys():
             if dirtype in self.high_level_means[high_level_type][high_level_name].keys():
                 mpars=self.high_level_means[high_level_type][high_level_name][dirtype]
-                calculation_type= mpars['calculation_type'] 
                 self.show_higher_levels_pars(mpars)
 
     #--------------------------
@@ -2185,10 +2184,15 @@ class Zeq_GUI(wx.Frame):
 #            print("length of block: " + str(len(block)))
 #            print(beg_pca)
 #            print("start: " + str(block[beg_pca][0]))
+#            print(block[beg_pca][5])
 #            print(end_pca)
 #            print("end: " + str(block[end_pca][0]))
+#            print(block[end_pca][5])
 #            print("length: " + str(len(block[beg_pca:end_pca+1])))
 #            print("good steps: " + str(sum(map(lambda x: x[5]=='g', block[beg_pca:end_pca+1]))))
+#            if block[beg_pca][5]=='b':
+#                import pdb
+#                pdb.set_trace()
 #            print(len(block[beg_pca][5]), len(block[end_pca][5]))
 #            print(block[beg_pca][5], block[end_pca][5])
 #            print(map(lambda x: [x[0],x[5]],block[beg_pca:end_pca+1]))
@@ -2763,7 +2767,9 @@ class Zeq_GUI(wx.Frame):
                             elif "dec" in pars.keys() and "inc" in pars.keys():
                                 dec,inc,direction_type=pars["dec"],pars["inc"],'l'
                             else:
-                                print "-E- ERROR: cant find mean for element %s"%element
+                                print "-E- ERROR: cant find mean for specimen interpertation: %s , %s"%(element,fit.name)
+                                print(dec,inc,direction_type)
+                                print(pars)
                                 continue
                             #add for calculation
                             pars_for_mean.append({'dec':float(dec),'inc':float(inc),'direction_type':direction_type,'element_name':element})
@@ -3173,8 +3179,10 @@ class Zeq_GUI(wx.Frame):
             i = self.switch_stats_button.GetValue()
             keys = mpars.keys()
             keys.remove('calculation_type')
+            keys.sort()
             name = keys[i%len(keys)]
             mpars = mpars[name]
+            if type(mpars) != dict: print("error in showing higher level mean"); return
             if mpars["calculation_type"]=='Fisher' and "alpha95" in mpars.keys():
                 for val in ['mean_type:calculation_type','dec:dec','inc:inc','alpha95:alpha95','K:k','R:r','n_lines:n','n_planes:n_planes']:
                     val,ind = val.split(":")
@@ -5070,7 +5078,7 @@ class Zeq_GUI(wx.Frame):
                max_index-1 > 0):
             max_index -= 1
 
-        if (tmin_index < 0):
+        if (tmin_index > 0):
             while (self.Data[specimen]['measurement_flag'][tmin_index] == 'b' and \
                    tmin_index+1 < len(self.Data[specimen]['zijdblock_steps'])):
                 if (self.Data[specimen]['zijdblock_steps'][tmin_index+1] == tmin):
