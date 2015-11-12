@@ -5407,6 +5407,11 @@ class EditFitFrame(wx.Frame):
         if sys.platform.startswith("darwin"):
             is_mac = True
 
+        self.search_bar = wx.SearchCtrl(self.panel, size=(350*self.GUI_RESOLUTION,25) ,style=wx.TE_PROCESS_ENTER | wx.TE_PROCESS_TAB | wx.TE_NOHIDESEL)
+#        self.Bind(wx.EVT_TEXT_ENTER, self.on_enter_search_bar,self.search_bar)
+#        self.Bind(wx.EVT_SEARCHCTRL_SEARCH_BTN, self.on_enter_search_bar,self.search_bar)
+#        self.Bind(wx.EVT_CHAR, self.on_char_search_bar,self.search_bar)
+
         #build logger
         self.logger = wx.ListCtrl(self.panel, -1, size=(350*self.GUI_RESOLUTION,475*self.GUI_RESOLUTION),style=wx.LC_REPORT)
         self.logger.SetFont(font1)
@@ -5571,8 +5576,12 @@ class EditFitFrame(wx.Frame):
         vbox1.Add(hbox1,flag=wx.ALIGN_TOP,border=8)
         vbox1.Add(self.canvas,flag=wx.ALIGN_TOP,border=8)
 
+        vbox2 = wx.BoxSizer(wx.VERTICAL)
+        vbox2.Add(self.search_bar,flag=wx.ALIGN_LEFT | wx.ALIGN_BOTTOM,border=8)
+        vbox2.Add(self.logger,flag=wx.ALIGN_LEFT,border=8)
+
         hbox2 = wx.BoxSizer(wx.HORIZONTAL)
-        hbox2.Add(self.logger,flag=wx.ALIGN_LEFT,border=8)
+        hbox2.Add(vbox2,flag=wx.ALIGN_LEFT,border=8)
         hbox2.Add(vbox1,flag=wx.ALIGN_TOP,border=8)
 
         self.panel.SetSizer(hbox2)
