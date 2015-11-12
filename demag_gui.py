@@ -517,7 +517,7 @@ class Zeq_GUI(wx.Frame):
  #----------------------------------------------------------------------
 # High level text box
  #----------------------------------------------------------------------
-        self.stats_sizer = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY,"Mean Statistics"  ), wx.VERTICAL)
+        self.stats_sizer = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY,"mean statistics"  ), wx.VERTICAL)
 
         for parameter in ['mean_type','dec','inc','alpha95','K','R','n_lines','n_planes']:
             COMMAND="self.%s_window=wx.TextCtrl(self.panel,style=wx.TE_CENTER|wx.TE_READONLY,size=(75*self.GUI_RESOLUTION,35))"%parameter
@@ -5492,7 +5492,7 @@ class EditFitFrame(wx.Frame):
         self.canvas.Bind(wx.EVT_MIDDLE_DOWN,self.home_higher_equalarea)
 
         #Higher Level Statistics Box
-        self.stats_sizer = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY,"Mean Statistics"  ), wx.VERTICAL)
+        self.stats_sizer = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY,"mean statistics"  ), wx.VERTICAL)
 
         for parameter in ['mean_type','dec','inc','alpha95','K','R','n_lines','n_planes']:
             COMMAND="self.%s_window=wx.TextCtrl(self.panel,style=wx.TE_CENTER|wx.TE_READONLY,size=(75*self.GUI_RESOLUTION,25))"%parameter
