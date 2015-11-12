@@ -24,7 +24,7 @@ class import_magnetometer_data(wx.Dialog):
         self.InitUI()
         self.SetTitle(title)
         self.parent = parent
-        
+
     def InitUI(self):
         self.panel = wx.Panel(self)
         vbox = wx.BoxSizer(wx.VERTICAL)
@@ -32,7 +32,7 @@ class import_magnetometer_data(wx.Dialog):
         formats = ['generic format','SIO format','CIT format','2G-binary format','HUJI format','LDEO format','IODP SRM (csv) format','PMD (ascii) format','TDT format', 'JR6 format']
         sbs = wx.StaticBoxSizer(wx.StaticBox(self.panel, wx.ID_ANY, 'step 1: choose file format'), wx.VERTICAL)
         sbs.AddSpacer(5)
-        
+
         radio_buttons = []
         for fmt in formats:
             radio_button = wx.RadioButton(self.panel, -1, label=fmt, name=fmt)
@@ -50,7 +50,7 @@ class import_magnetometer_data(wx.Dialog):
         #---------------------
         # OK/Cancel buttons
         #---------------------
-                
+
         hboxok = wx.BoxSizer(wx.HORIZONTAL)
         self.okButton = wx.Button(self.panel, id=-1, label='Import file')
         self.okButton.SetDefault()
@@ -68,7 +68,7 @@ class import_magnetometer_data(wx.Dialog):
         #-----------------------
         # design the frame
         #-----------------------
-        
+
         vbox.AddSpacer(10)
         vbox.Add(sbs)
         vbox.AddSpacer(10)
@@ -127,9 +127,9 @@ class import_magnetometer_data(wx.Dialog):
         combine_dia = combine_magic_dialog(self.WD, self.parent)
         combine_dia.Show()
         combine_dia.Center()
-        
+
 #--------------------------------------------------------------
-# dialog for combine_magic.py 
+# dialog for combine_magic.py
 #--------------------------------------------------------------
 
 
@@ -152,12 +152,12 @@ class combine_magic_dialog(wx.Frame):
         TEXT="Step 2: \nCombine different MagIC formatted files to one file named 'magic_measurements.txt'"
         bSizer_info = wx.BoxSizer(wx.HORIZONTAL)
         bSizer_info.Add(wx.StaticText(pnl,label=TEXT),wx.ALIGN_LEFT)
-            
+
 
         #---sizer 0 ----
         self.bSizer0 = pw.combine_files(self, ".magic")
         #------------------
-                     
+
         self.okButton = wx.Button(self.panel, wx.ID_OK, "&OK")
         self.Bind(wx.EVT_BUTTON, self.on_okButton, self.okButton)
 
@@ -181,27 +181,27 @@ class combine_magic_dialog(wx.Frame):
         vbox.AddSpacer(10)
         vbox.AddSpacer(10)
         vbox.Add(wx.StaticLine(self.panel), 0, wx.ALL|wx.EXPAND, 5)
-        vbox.Add(hboxok, flag=wx.ALIGN_CENTER)        
+        vbox.Add(hboxok, flag=wx.ALIGN_CENTER)
         vbox.AddSpacer(5)
 
         hbox_all= wx.BoxSizer(wx.HORIZONTAL)
         hbox_all.AddSpacer(20)
         hbox_all.AddSpacer(vbox)
         hbox_all.AddSpacer(20)
-        
+
         self.panel.SetSizer(hbox_all)
         hbox_all.Fit(self)
         self.Centre()
         self.Show()
 
-    
+
     def on_add_file_button(self,event):
 
         dlg = wx.FileDialog(
             None,message="choose MagIC formatted measurement file",
             defaultDir=self.WD,
             defaultFile="",
-            style=wx.OPEN | wx.CHANGE_DIR 
+            style=wx.OPEN | wx.CHANGE_DIR
             )
         if dlg.ShowModal() == wx.ID_OK:
             full_path = dlg.GetPath()
@@ -216,8 +216,8 @@ class combine_magic_dialog(wx.Frame):
             if len(F)>6:
                 if F[-6:]==".magic":
                     self.file_paths.AppendText(F+"\n")
-                     
-        
+
+
     def on_cancelButton(self,event):
         self.Parent.Show()
         self.Parent.Raise()
@@ -243,14 +243,14 @@ class combine_magic_dialog(wx.Frame):
 
         if ipmag.combine_magic(files, 'magic_measurements.txt'):
             #pw.close_window(self.panel, COMMAND, 'magic_measurements.txt')
-            MSG="%i file are merged to one MagIC format file:\n magic_measurements.txt.\n\n See Termimal (Mac) or command prompt (windows) for errors"%(len(files))
+            MSG="%i file are merged to one MagIC format file:\n magic_measurements.txt.\n\nSee Terminal (Mac) or command prompt (Windows) for errors"%(len(files))
             dlg1 = wx.MessageDialog(None,caption="Message:", message=MSG ,style=wx.OK|wx.ICON_INFORMATION)
             dlg1.ShowModal()
             dlg1.Destroy()
         else:
             pw.simple_warning()
             return
-        
+
         self.on_nextButton(event)
         self.Destroy()
 
@@ -296,7 +296,7 @@ class combine_everything_dialog(wx.Frame):
 
 
         #------------------
-                     
+
         self.okButton = wx.Button(self.panel, wx.ID_OK, "&OK")
         self.Bind(wx.EVT_BUTTON, self.on_okButton, self.okButton)
 
@@ -315,7 +315,7 @@ class combine_everything_dialog(wx.Frame):
             num_rows = 2 if len(self.file_dias) > 3 else 1
         hboxfiles = wx.GridSizer(num_rows, num_cols, 1, 1)
         hboxfiles.AddMany(self.file_dias)
-        
+
         #hboxfiles = wx.BoxSizer(wx.HORIZONTAL)
         #hboxfiles.AddMany([self.bSizer0, self.bSizer1, self.bSizer2])
 
@@ -328,19 +328,19 @@ class combine_everything_dialog(wx.Frame):
         vbox.AddSpacer(10)
         vbox.AddSpacer(10)
         vbox.Add(wx.StaticLine(self.panel), 0, wx.ALL|wx.EXPAND, 5)
-        vbox.Add(hboxok, flag=wx.ALIGN_CENTER)        
+        vbox.Add(hboxok, flag=wx.ALIGN_CENTER)
         vbox.AddSpacer(5)
 
         hbox_all= wx.BoxSizer(wx.HORIZONTAL)
         hbox_all.AddSpacer(20)
         hbox_all.AddSpacer(vbox)
         hbox_all.AddSpacer(20)
-        
+
         self.panel.SetSizer(hbox_all)
         hbox_all.Fit(self)
         self.Centre()
         self.Show()
-                        
+
     def on_cancelButton(self,event):
         self.Parent.Show()
         self.Parent.Raise()
@@ -351,7 +351,7 @@ class combine_everything_dialog(wx.Frame):
         success = True
         new_files = []
         # go through each pw.combine_files sizer, extract the files, try to combine them into one:
-        for bSizer in self.file_dias:  
+        for bSizer in self.file_dias:
             full_list = bSizer.file_paths.GetValue()
             file_name = bSizer.text
             files = full_list.strip('\n').replace(" ", "")
@@ -360,10 +360,10 @@ class combine_everything_dialog(wx.Frame):
             if ipmag.combine_magic(files, file_name):
                 new_files.append(file_name)  # add to the list of successfully combined files
             else:
-                success = False                
+                success = False
         if success:
             new = '\n' + '\n'.join(new_files)
-            MSG = "Created new file(s): {} \nSee Termimal (Mac) or command prompt (windows) for details and errors".format(new)
+            MSG = "Created new file(s): {} \nSee Terminal (Mac) or command prompt (Windows) for details and errors".format(new)
             dlg1 = wx.MessageDialog(None,caption="Message:", message=MSG ,style=wx.OK|wx.ICON_INFORMATION)
             dlg1.ShowModal()
             dlg1.Destroy()
@@ -431,11 +431,11 @@ class convert_generic_files_to_MagIC(convert_files_to_MagIC):
         TEXT = "convert generic file to MagIC format"
         bSizer_info = wx.BoxSizer(wx.HORIZONTAL)
         bSizer_info.Add(wx.StaticText(pnl,label=TEXT),wx.ALIGN_LEFT)
-            
+
 
         #---sizer 0 ----
         self.bSizer0 = pw.choose_file(pnl, 'add', method = self.on_add_file_button)
-        
+
         #---sizer 1 ----
         self.bSizer1 = pw.labeled_text_field(pnl)
 
@@ -456,7 +456,7 @@ class convert_generic_files_to_MagIC(convert_files_to_MagIC):
         text = 'Cooling Rate, format is xxx,yyy,zzz with no spaces  '
         self.cooling_rate = wx.TextCtrl(pnl)
         self.bSizer2a.AddMany([wx.StaticText(pnl, label=text), self.cooling_rate])
-        
+
         #---sizer 3 ----
         self.bSizer3 = pw.lab_field(pnl)
 
@@ -474,7 +474,7 @@ class convert_generic_files_to_MagIC(convert_files_to_MagIC):
         #bSizer4.Add(self.sample_specimen_text,wx.ALIGN_LEFT)
         self.bSizer4.AddSpacer(10)
         self.bSizer4.Add(gridbSizer4,wx.ALIGN_LEFT)
-        
+
         #---sizer 5 ----
         self.bSizer5 = wx.StaticBoxSizer( wx.StaticBox( self.panel, wx.ID_ANY, "" ), wx.VERTICAL )
         self.site_naming_conventions=['site=sample','no. of initial characters','no. of terminal characters','character delimited']
@@ -512,7 +512,7 @@ class convert_generic_files_to_MagIC(convert_files_to_MagIC):
         vbox.Add(self.bSizer6, flag=wx.ALIGN_LEFT|wx.TOP, border=5)
         vbox.Add(self.bSizer7, flag=wx.ALIGN_LEFT|wx.TOP|wx.BOTTOM, border=5)
         vbox.Add(wx.StaticLine(self.panel), 0, wx.ALL|wx.EXPAND, 5)
-        vbox.Add(hboxok, flag=wx.ALIGN_CENTER)        
+        vbox.Add(hboxok, flag=wx.ALIGN_CENTER)
         vbox.AddSpacer(5)
 
 
@@ -520,7 +520,7 @@ class convert_generic_files_to_MagIC(convert_files_to_MagIC):
         self.hbox_all.AddSpacer(20)
         self.hbox_all.AddSpacer(vbox)
         self.hbox_all.AddSpacer(20)
-        
+
         self.panel.SetSizer(self.hbox_all)
         self.bSizer2a.ShowItems(False)
         self.hbox_all.Fit(self)
@@ -543,9 +543,9 @@ class convert_generic_files_to_MagIC(convert_files_to_MagIC):
 
     def on_okButton(self,event):
         os.chdir(self.WD)
-        # generic_magic.py -WD WD - f FILE -fsa er_samples.txt -F OUTFILE.magic -exp [Demag/PI/ATRM 6/AARM 6/CR  -samp X Y -site  X Y -loc LOCNAME -dc B PHI THETA [-A] -WD path 
+        # generic_magic.py -WD WD - f FILE -fsa er_samples.txt -F OUTFILE.magic -exp [Demag/PI/ATRM 6/AARM 6/CR  -samp X Y -site  X Y -loc LOCNAME -dc B PHI THETA [-A] -WD path
         options = {}
-        
+
         ErrorMessage = ""
         #-----------
         if not self.bSizer0.file_path.GetValue():
@@ -568,15 +568,15 @@ class convert_generic_files_to_MagIC(convert_files_to_MagIC):
         #-----------
         EXP = ""
         exp = str(self.protocol_info.GetValue())
-        if exp == 'Demag (AF and/or Thermal)': 
+        if exp == 'Demag (AF and/or Thermal)':
             EXP = 'Demag'
-        elif exp == 'Paleointensity-IZZI/ZI/ZI': 
+        elif exp == 'Paleointensity-IZZI/ZI/ZI':
             EXP = 'PI'
-        elif exp == 'ATRM 6 positions': 
+        elif exp == 'ATRM 6 positions':
             EXP ='ATRM 6'
-        elif exp == 'AARM 6 positions': 
+        elif exp == 'AARM 6 positions':
             EXP = 'AARM 6'
-        elif exp == 'cooling rate': 
+        elif exp == 'cooling rate':
             cooling = self.cooling_rate.GetValue()
             if not cooling:
                 text = "You must provide cooling rate for this experiment type!\nThe format is: xxx, yyy,zzz...\nThis should be cooling rates in [K/minutes], seperated by comma, ordered at the same order as XXX.10,XXX.20 ...XX.70"
@@ -593,13 +593,13 @@ class convert_generic_files_to_MagIC(convert_files_to_MagIC):
             options['experiment'] = EXP
         #-----------
         SAMP="1 0" #default
-        
+
         samp_naming_convention = str(self.sample_naming_convention.GetValue())
         try:
             samp_naming_convention_char=int(self.sample_naming_convention_char.GetValue())
         except:
              samp_naming_convention_char = "0"
-                    
+
         if samp_naming_convention == 'sample=specimen':
             SAMP = "1 0"
         elif samp_naming_convention == 'no. of initial characters':
@@ -608,18 +608,18 @@ class convert_generic_files_to_MagIC(convert_files_to_MagIC):
             SAMP = "1 %s" % samp_naming_convention_char
         elif samp_naming_convention == 'character delimited':
             SAMP = "2 %s" % samp_naming_convention_char
-        
+
         options['sample_nc'] = SAMP.split()
         #-----------
-        
+
         SITE = "1 0" #default
-        
+
         site_naming_convention = str(self.site_naming_convention.GetValue())
         try:
             site_naming_convention_char = int(self.site_naming_convention_char.GetValue())
         except:
              site_naming_convention_char = "0"
-                    
+
         if site_naming_convention == 'sample=specimen':
             SITE = "1 0"
         elif site_naming_convention == 'no. of initial characters':
@@ -630,19 +630,19 @@ class convert_generic_files_to_MagIC(convert_files_to_MagIC):
             SITE = "2 %s" % site_naming_convention_char
 
         options['site_nc'] = SITE.split()
-        
-        #-----------        
+
+        #-----------
 
         LOC = str(self.bSizer6.return_value())
         options['er_location_name'] = LOC
-        
+
         if str(self.bSizer6.return_value()) != "":
             LOC="-loc \"%s\""%LOC
         else:
             LOC=""
 
-        #-----------        
-        
+        #-----------
+
         LABFIELD=" "
         try:
             B_uT, DEC, INC = self.bSizer3.return_value().split()
@@ -655,28 +655,28 @@ class convert_generic_files_to_MagIC(convert_files_to_MagIC):
         if EXP != "Demag":
             LABFIELD="-dc "  +B_uT+ " " + DEC + " " + INC
 
-        #-----------        
+        #-----------
 
         DONT_AVERAGE = " "
         if not self.bSizer7.return_value():
-            DONT_AVERAGE = "-A"   
+            DONT_AVERAGE = "-A"
             options['noave'] = 1
         else:
             options['noave'] = 0
 
-        #-----------   
-        # some special  
-        
+        #-----------
+        # some special
+
         SAMP_OUTFILE =  magicoutfile[:magicoutfile.find('.')] + "_er_samples.txt"
         options['samp_file'] = SAMP_OUTFILE
 
         COMMAND="generic_magic.py -WD %s -f %s -fsa er_samples.txt -F %s -exp %s  -samp %s -site %s %s %s %s -Fsa %s"\
         %(WD,FILE,OUTFILE,EXP,SAMP,SITE,LOC,LABFIELD,DONT_AVERAGE, SAMP_OUTFILE)
 
-        print "-I- Running Python command:\n %s"%COMMAND        
+        print "-I- Running Python command:\n %s"%COMMAND
         import generic_magic
         program_run, error_message = generic_magic.main(False, **options)
-        
+
         if program_run:
             pw.close_window(self, COMMAND, OUTFILE)
         else:
@@ -689,7 +689,7 @@ class convert_generic_files_to_MagIC(convert_files_to_MagIC):
     #def on_cancelButton(self,event):
     #    self.Destroy()
     #    self.parent.Raise()
-        
+
     def on_helpButton(self, event):
         import generic_magic
         pw.on_helpButton(text=generic_magic.do_help())
@@ -708,7 +708,7 @@ class convert_generic_files_to_MagIC(convert_files_to_MagIC):
             else:
                 sample = d.join(sample_splitted[:-1])
         return sample
-                            
+
     def get_site_name(self, sample, site_naming_convention):
         if site_naming_convention[0] == "site=sample":
             site = sample
@@ -722,9 +722,9 @@ class convert_generic_files_to_MagIC(convert_files_to_MagIC):
                 site = site_splitted[0]
             else:
                 site = d.join(site_splitted[:-1])
-        
+
         return site
-        
+
 class convert_SIO_files_to_MagIC(convert_files_to_MagIC):
     """
     convert SIO formatted measurement file to MagIC formated files
@@ -809,7 +809,7 @@ class convert_SIO_files_to_MagIC(convert_files_to_MagIC):
         vbox.Add(wx.StaticLine(pnl), 0, wx.ALL|wx.EXPAND, 5)
         vbox.Add(hbox2, flag=wx.ALIGN_LEFT|wx.TOP, border=8)
         vbox.Add(wx.StaticLine(pnl), 0, wx.ALL|wx.EXPAND, 5)
-        vbox.Add(hboxok, flag=wx.ALIGN_CENTER)        
+        vbox.Add(hboxok, flag=wx.ALIGN_CENTER)
         vbox.Add(wx.StaticLine(pnl), 0, wx.ALL|wx.EXPAND, 5)
         vbox.AddSpacer(20)
 
@@ -817,13 +817,13 @@ class convert_SIO_files_to_MagIC(convert_files_to_MagIC):
         hbox_all.AddSpacer(20)
         hbox_all.AddSpacer(vbox)
         hbox_all.AddSpacer(20)
-        
+
         self.panel.SetSizer(hbox_all)
         self.panel.SetScrollbars(20, 20, 50, 50)
         hbox_all.Fit(self)
         self.Centre()
         self.Show()
-        
+
 
     def on_okButton(self, event):
         os.chdir(self.WD)
@@ -919,7 +919,7 @@ class convert_CIT_files_to_MagIC(convert_files_to_MagIC):
         #---sizer 1 ----
         TEXT="Measurer (optional):"
         self.bSizer1 = pw.labeled_text_field(pnl, TEXT)
-        
+
         #---sizer 2 ----
         self.bSizer2 = pw.sampling_particulars(pnl)
 
@@ -962,14 +962,14 @@ class convert_CIT_files_to_MagIC(convert_files_to_MagIC):
         vbox.Add(self.bSizer8, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.AddSpacer(10)
         vbox.Add(wx.StaticLine(self.panel), 0, wx.ALL|wx.EXPAND, 5)
-        vbox.Add(hboxok, flag=wx.ALIGN_CENTER)        
+        vbox.Add(hboxok, flag=wx.ALIGN_CENTER)
         vbox.AddSpacer(20)
 
         hbox_all= wx.BoxSizer(wx.HORIZONTAL)
         hbox_all.AddSpacer(20)
         hbox_all.AddSpacer(vbox)
         hbox_all.AddSpacer(20)
-        
+
         self.panel.SetSizer(hbox_all)
         self.panel.SetScrollbars(20, 20, 50, 50)
         hbox_all.Fit(self)
@@ -1045,7 +1045,7 @@ class convert_CIT_files_to_MagIC(convert_files_to_MagIC):
     def on_helpButton(self, event):
         import CIT_magic
         pw.on_helpButton(text=CIT_magic.do_help())
-        
+
 
 class convert_HUJI_files_to_MagIC(convert_files_to_MagIC):
     """ """
@@ -1063,7 +1063,7 @@ class convert_HUJI_files_to_MagIC(convert_files_to_MagIC):
         label1 = "Old"
         label2 = "New"
         self.bSizer0a = pw.labeled_yes_or_no(pnl, TEXT, label1, label2)
-        
+
         #---sizer 0 ----
         self.bSizer0 = pw.choose_file(pnl, 'add', method = self.on_add_file_button)
 
@@ -1102,7 +1102,7 @@ class convert_HUJI_files_to_MagIC(convert_files_to_MagIC):
 
         #---sizer 8 ---
         self.bSizer8 = pw.replicate_measurements(pnl)
-        
+
 
         #---buttons ---
         hboxok = pw.btn_panel(self, pnl)
@@ -1123,14 +1123,14 @@ class convert_HUJI_files_to_MagIC(convert_files_to_MagIC):
         vbox.Add(self.bSizer7, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(self.bSizer8, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(wx.StaticLine(pnl), 0, wx.ALL|wx.EXPAND, 5)
-        vbox.Add(hboxok, flag=wx.ALIGN_CENTER)        
+        vbox.Add(hboxok, flag=wx.ALIGN_CENTER)
         vbox.AddSpacer(20)
 
         self.hbox_all= wx.BoxSizer(wx.HORIZONTAL)
         self.hbox_all.AddSpacer(20)
         self.hbox_all.AddSpacer(vbox)
         self.hbox_all.AddSpacer(20)
-        
+
         self.panel.SetSizer(self.hbox_all)
         self.bSizer2a.ShowItems(True)
         self.hbox_all.Fit(self)
@@ -1202,9 +1202,9 @@ class convert_HUJI_files_to_MagIC(convert_files_to_MagIC):
         else:
             options['noave'] = 1
             replicate = '-A'
-        
+
         old_format= self.bSizer0a.return_value()
-        
+
         if old_format:
             COMMAND = "HUJI_magic.py -f {} -F {} {} -LP {} {} -ncn {} {} {} {} {}".format(HUJI_file, outfile, user, experiment_type, loc_name, ncn, lab_field, spc, peak_AF, replicate)
             import HUJI_magic
@@ -1213,7 +1213,7 @@ class convert_HUJI_files_to_MagIC(convert_files_to_MagIC):
                 pw.close_window(self, COMMAND, outfile)
             else:
                 pw.simple_warning(error_message)
-                
+
         else: # new format
             COMMAND = "HUJI_magic_new.py -f {} -F {} {} -LP {} {} -ncn {} {} {} {}".format(HUJI_file, outfile, user, experiment_type, loc_name, ncn, lab_field, spc, peak_AF)
             import HUJI_magic_new
@@ -1287,14 +1287,14 @@ class convert_2G_binary_files_to_MagIC(convert_files_to_MagIC):
         vbox.Add(self.bSizer6, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(self.bSizer7, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(wx.StaticLine(pnl), 0, wx.ALL|wx.EXPAND, 5)
-        vbox.Add(hboxok, flag=wx.ALIGN_CENTER)        
+        vbox.Add(hboxok, flag=wx.ALIGN_CENTER)
         vbox.AddSpacer(20)
 
         hbox_all= wx.BoxSizer(wx.HORIZONTAL)
         hbox_all.AddSpacer(20)
         hbox_all.AddSpacer(vbox)
         hbox_all.AddSpacer(20)
-        
+
         self.panel.SetSizer(hbox_all)
         self.panel.SetScrollbars(20, 20, 50, 50)
         hbox_all.Fit(self)
@@ -1368,7 +1368,7 @@ class convert_2G_binary_files_to_MagIC(convert_files_to_MagIC):
                     pw.close_window(self, COMMAND, outfile)
                 else:
                     pw.simple_warning()
-                
+
             else:
                 print "Running equivalent of python command: ", COMMAND
                 if _2G_bin_magic.main(False, **options_dict):
@@ -1380,7 +1380,7 @@ class convert_2G_binary_files_to_MagIC(convert_files_to_MagIC):
         # to run as module:
         import _2G_bin_magic
         pw.on_helpButton(text=_2G_bin_magic.do_help())
-        
+
         # to run as command line:
         #pw.on_helpButton("_2G_bin_magic.py -h")
 
@@ -1410,7 +1410,7 @@ class convert_LDEO_files_to_MagIC(convert_files_to_MagIC):
         #---sizer 2a ---
         # add conditional boxsizer for Shaw experiments
         # if arm_labfield and trm_peakT are properly added into LDEO_magic
-        
+
         #---sizer 3 ----
         self.bSizer3 = pw.lab_field(pnl)
 
@@ -1474,7 +1474,7 @@ class convert_LDEO_files_to_MagIC(convert_files_to_MagIC):
         hbox_all.AddSpacer(20)
         hbox_all.AddSpacer(vbox)
         hbox_all.AddSpacer(20)
-        
+
         self.panel.SetSizer(hbox_all)
         self.panel.SetScrollbars(20, 20, 50, 50)
         hbox_all.Fit(self)
@@ -1575,7 +1575,7 @@ class convert_IODP_files_to_MagIC(convert_files_to_MagIC):
         TEXT = "IODP file type"
         label1 = "SRM section"
         label2 = "SRM discrete"
-        
+
         self.bSizer0a = pw.labeled_yes_or_no(pnl, TEXT, label1, label2)
         #self.bSizer0a = pw.radio_buttons(pnl, ['old format', 'srm', 'discrete'], 'IODP file type')
 
@@ -1588,7 +1588,7 @@ class convert_IODP_files_to_MagIC(convert_files_to_MagIC):
 
         #---sizer 1 ----
         self.bSizer1 = pw.replicate_measurements(pnl)
-        
+
         #---buttons ---
         hboxok = pw.btn_panel(self, pnl)
 
@@ -1609,14 +1609,14 @@ class convert_IODP_files_to_MagIC(convert_files_to_MagIC):
         #vbox.Add(self.bSizer7, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         #vbox.AddSpacer(10)
         #vbox.Add(wx.StaticLine(pnl), 0, wx.ALL|wx.EXPAND, 5)
-        vbox.Add(hboxok, flag=wx.ALIGN_CENTER)        
+        vbox.Add(hboxok, flag=wx.ALIGN_CENTER)
         vbox.AddSpacer(20)
 
         hbox_all= wx.BoxSizer(wx.HORIZONTAL)
         hbox_all.AddSpacer(20)
         hbox_all.AddSpacer(vbox)
         hbox_all.AddSpacer(20)
-        
+
         self.panel.SetSizer(hbox_all)
         self.panel.SetScrollbars(20, 20, 50, 50)
         hbox_all.Fit(self)
@@ -1638,9 +1638,9 @@ class convert_IODP_files_to_MagIC(convert_files_to_MagIC):
         options['input_dir_path'] = ID
         outfile = IODP_file + ".magic"
         options['meas_file'] = outfile
-        spec_outfile = IODP_file[:IODP_file.find('.')] + "_er_specimens.txt" 
+        spec_outfile = IODP_file[:IODP_file.find('.')] + "_er_specimens.txt"
         options['spec_file'] = spec_outfile
-        samp_outfile = IODP_file[:IODP_file.find('.')] + "_er_samples.txt" 
+        samp_outfile = IODP_file[:IODP_file.find('.')] + "_er_samples.txt"
         options['samp_file'] = samp_outfile
         site_outfile = IODP_file[:IODP_file.find('.')] + "_er_sites.txt"
         options['site_file'] = site_outfile
@@ -1679,7 +1679,7 @@ class convert_IODP_files_to_MagIC(convert_files_to_MagIC):
         else:
             import IODP_dscr_magic
             pw.on_helpButton(text=IODP_dscr_magic.do_help())
-            
+
 
 
 class convert_PMD_files_to_MagIC(convert_files_to_MagIC):
@@ -1732,14 +1732,14 @@ class convert_PMD_files_to_MagIC(convert_files_to_MagIC):
         vbox.Add(self.bSizer4, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(self.bSizer5, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.Add(self.bSizer6, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
-        vbox.Add(hboxok, flag=wx.ALIGN_CENTER)        
+        vbox.Add(hboxok, flag=wx.ALIGN_CENTER)
         vbox.AddSpacer(20)
 
         hbox_all= wx.BoxSizer(wx.HORIZONTAL)
         hbox_all.AddSpacer(20)
         hbox_all.AddSpacer(vbox)
         hbox_all.AddSpacer(20)
-        
+
         self.panel.SetSizer(hbox_all)
         self.panel.SetScrollbars(20, 20, 50, 50)
         hbox_all.Fit(self)
@@ -1790,7 +1790,7 @@ class convert_PMD_files_to_MagIC(convert_files_to_MagIC):
             samp_outfile = f[:f.find('.')] + "_er_samples.txt"
             options['samp_file'] = samp_outfile
             COMMAND = "PMD_magic.py -WD {} -f {} -F {} -Fsa {} -ncn {} {} -spc {} {} {} {}".format(WD, f, outfile, samp_outfile, ncn, particulars, spc, replicate, ID, loc_name)
-            
+
             # to run as command_line:
             #if files.index(f) == len(files) -1:
             #    pw.run_command_and_close_window(self, COMMAND, outfile)
@@ -1848,9 +1848,9 @@ class convert_JR6_files_to_MagIC(wx.Frame):
         #---sizer 0c ---
         #self.bSizer0c = pw.simple_text(pnl, "You must have an er_samples.txt file in the same directory as your .jr6 file")
         self.bSizer0c = pw.choose_file(pnl, btn_text='add er_samples.txt file', method=self.on_add_sampfile_button)
-        
+
         self.bSizer0c.ShowItems(False)
-        
+
         #---sizer 0 ----
         self.bSizer0 = pw.choose_file(pnl, btn_text='add measurement file', method = self.on_add_file_button)
 
@@ -1859,10 +1859,10 @@ class convert_JR6_files_to_MagIC(wx.Frame):
 
         #---sizer 1a ---
         self.bSizer1a = pw.labeled_text_field(pnl, 'Specimen volume, default is 2.5 cc.\nPlease provide volume in cc.')
-        
+
         #---sizer 2 ---
         self.bSizer2 = pw.specimen_n(pnl)
-        
+
         #---sizer 3 ----
         ncn_keys = ['XXXXY', 'XXXX-YY', 'XXXX.YY', 'XXXX[YYY] where YYY is sample designation, enter number of Y', 'sample name=site name']#, These options are not yet implemented:   'Site names in orient.txt file', '[XXXX]YYY where XXXX is the site name, enter number of X']#, 'this is a synthetic and has no site name']
         self.bSizer3 = pw.select_ncn(pnl, ncn_keys)
@@ -1895,20 +1895,20 @@ class convert_JR6_files_to_MagIC(wx.Frame):
         vbox.Add(self.bSizer5, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         vbox.AddSpacer(10)
         vbox.Add(wx.StaticLine(pnl), 0, wx.ALL|wx.EXPAND, 5)
-        vbox.Add(hboxok, flag=wx.ALIGN_CENTER)        
+        vbox.Add(hboxok, flag=wx.ALIGN_CENTER)
         vbox.AddSpacer(20)
 
         hbox_all= wx.BoxSizer(wx.HORIZONTAL)
         hbox_all.AddSpacer(20)
         hbox_all.AddSpacer(vbox)
         hbox_all.AddSpacer(20)
-        
+
         self.panel.SetSizer(hbox_all)
         self.panel.SetScrollbars(20, 20, 50, 50)
         hbox_all.Fit(self)
         self.Centre()
         self.Show()
-        
+
     def on_check_joides(self, event):
         if self.bSizer0b.cb.IsChecked():
             self.bSizer0c.ShowItems(True)
@@ -1925,7 +1925,7 @@ class convert_JR6_files_to_MagIC(wx.Frame):
             self.bSizer2.ShowItems(True)
             self.bSizer3.ShowItems(True)
         self.panel.Layout()
-        
+
     def on_add_file_button(self,event):
         text = "choose file to convert to MagIC"
         pw.on_add_file_button(self.bSizer0, text)
@@ -2008,7 +2008,7 @@ class convert_JR6_files_to_MagIC(wx.Frame):
                     pw.close_window(self, COMMAND, meas_file)
                 else:
                     pw.simple_warning(error_message)
-            else: 
+            else:
                 import JR6_jr6_magic
                 program_ran, error_message = JR6_jr6_magic.main(False, **options)
                 if program_ran:
@@ -2073,7 +2073,7 @@ class convert_BGC_files_to_magic(wx.Frame):
         #---sizer 1 ----
         self.bSizer1 = pw.labeled_text_field(pnl, 'Location name:')
         # locname
-        
+
         #---sizer 2 ----
         self.bSizer2 = pw.labeled_text_field(pnl, 'Site name (required):')
         # sitename
@@ -2113,14 +2113,14 @@ class convert_BGC_files_to_magic(wx.Frame):
         #vbox.Add(self.bSizer7, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         #vbox.AddSpacer(10)
         #vbox.Add(wx.StaticLine(pnl), 0, wx.ALL|wx.EXPAND, 5)
-        vbox.Add(hboxok, flag=wx.ALIGN_CENTER)        
+        vbox.Add(hboxok, flag=wx.ALIGN_CENTER)
         vbox.AddSpacer(20)
 
         hbox_all= wx.BoxSizer(wx.HORIZONTAL)
         hbox_all.AddSpacer(20)
         hbox_all.AddSpacer(vbox)
         hbox_all.AddSpacer(20)
-        
+
         self.panel.SetSizer(hbox_all)
         self.panel.SetScrollbars(20, 20, 50, 50)
         hbox_all.Fit(self)
@@ -2206,7 +2206,7 @@ class something(wx.Frame):
         self.bSizer0 = pw.choose_file(pnl, 'add', method = self.on_add_file_button)
 
         #---sizer 1 ----
-        
+
         #---sizer 2 ----
 
         #---sizer 3 ----
@@ -2239,14 +2239,14 @@ class something(wx.Frame):
         #vbox.Add(self.bSizer7, flag=wx.ALIGN_LEFT|wx.TOP, border=10)
         #vbox.AddSpacer(10)
         #vbox.Add(wx.StaticLine(pnl), 0, wx.ALL|wx.EXPAND, 5)
-        vbox.Add(hboxok, flag=wx.ALIGN_CENTER)        
+        vbox.Add(hboxok, flag=wx.ALIGN_CENTER)
         vbox.AddSpacer(20)
 
         hbox_all= wx.BoxSizer(wx.HORIZONTAL)
         hbox_all.AddSpacer(20)
         hbox_all.AddSpacer(vbox)
         hbox_all.AddSpacer(20)
-        
+
         self.panel.SetSizer(hbox_all)
         self.panel.SetScrollbars(20, 20, 50, 50)
         hbox_all.Fit(self)
@@ -2276,7 +2276,7 @@ class OrientFrameGrid(wx.Frame):
 
     def __init__(self, parent, id, title, WD, ErMagic, size):
         wx.Frame.__init__(self, parent, -1, title, size=size, name='calculate geographic directions')
-        
+
         #--------------------
         # initialize stuff
         #--------------------
@@ -2289,7 +2289,7 @@ class OrientFrameGrid(wx.Frame):
         #self.Data_hierarchy = Data_hierarchy
         self.er_magic_data = ErMagic
         self.grid = None
-        
+
 
         #--------------------
         # get the orientation data
@@ -2310,7 +2310,7 @@ class OrientFrameGrid(wx.Frame):
         for sample_name in self.samples_name_list:
             if sample_name not in self.orient_data.keys():
                 sample = self.er_magic_data.find_by_name(sample_name, self.er_magic_data.samples)
-                self.orient_data[sample_name]={} 
+                self.orient_data[sample_name]={}
                 self.orient_data[sample_name]["sample_name"] = sample_name
                 if sample:
                     self.orient_data[sample_name]["site_name"] = sample.site
@@ -2320,13 +2320,13 @@ class OrientFrameGrid(wx.Frame):
         #--------------------
         # create the grid sheet
         #--------------------
-                                    
+
         self.create_sheet()
 
         TEXT = """
         A template for a file named 'demag_orient.txt', which contains samples orientation data, was created in MagIC working directory.
-        You can view/modify demag_orient.txt using this Python frame, or you can use Excel/Open Office.  
-        If you use Excel, save the file as 'tab delimited' and then use the 'Import Orientation File' button below to import the data into QuickMagIC.  
+        You can view/modify demag_orient.txt using this Python frame, or you can use Excel/Open Office.
+        If you use Excel, save the file as 'tab delimited' and then use the 'Import Orientation File' button below to import the data into QuickMagIC.
         If you use the Python frame, you can edit all the values in a column by clicking on the column header and then entering your desired value.
         After orientation data is filled in, you can Calculate sample orientations.
 """
@@ -2352,21 +2352,21 @@ class OrientFrameGrid(wx.Frame):
             self.panel.SetScrollbars(20, 20, 50, 50)
         self.panel.SetSizer(self.hbox_all)
         self.hbox_all.Fit(self)
-        
+
         self.Bind(wx.EVT_CLOSE, self.OnCloseWindow)
         # save the template
         self.on_m_save_file(None)
         self.Centre()
-        self.Show()                
+        self.Show()
 
-    def create_sheet(self):    
+    def create_sheet(self):
         '''
-        creat an editable grid showing deamg_orient.txt 
+        creat an editable grid showing deamg_orient.txt
         '''
         #--------------------------------
         # orient.txt support many other headers
-        # but here I put only 
-        # the essential headers for 
+        # but here I put only
+        # the essential headers for
         # sample orientation
         #--------------------------------
 
@@ -2381,10 +2381,10 @@ class OrientFrameGrid(wx.Frame):
                 ("bedding_dip_direction", "bedding_dip_direction"),
                 ("bedding_dip", "bedding_dip"),
                 ("shadow_angle", "shadow_angle"),
-                ("lat", "latitude"), 
-                ("long", "longitude"), 
-                ("date", "mm/dd/yy"), 
-                ("hhmm", "hh:mm"), 
+                ("lat", "latitude"),
+                ("long", "longitude"),
+                ("date", "mm/dd/yy"),
+                ("hhmm", "hh:mm"),
                 ("GPS_baseline","GPS_baseline"),
                 ("GPS_Az", "GPS_Az"),
                  #"participants",
@@ -2394,7 +2394,7 @@ class OrientFrameGrid(wx.Frame):
         #--------------------------------
         # create the grid
         #--------------------------------
-        
+
         samples_list = self.orient_data.keys()
         samples_list.sort()
         self.samples_list = [ sample for sample in samples_list if sample is not "" ]
@@ -2403,9 +2403,9 @@ class OrientFrameGrid(wx.Frame):
         self.grid.InitUI()
 
         #--------------------------------
-        # color the columns by groups 
+        # color the columns by groups
         #--------------------------------
-        
+
         for i in range(len(self.samples_list)):
             self.grid.SetCellBackgroundColour(i, 0, "LIGHT GREY")
             self.grid.SetCellBackgroundColour(i, 1, "LIGHT STEEL BLUE")
@@ -2420,7 +2420,7 @@ class OrientFrameGrid(wx.Frame):
             self.grid.SetCellBackgroundColour(i, 10, "KHAKI")
             self.grid.SetCellBackgroundColour(i, 11, "LIGHT MAGENTA")
             self.grid.SetCellBackgroundColour(i, 12, "LIGHT MAGENTA")
-        
+
 
         #--------------------------------
         # fill data from self.orient_data
@@ -2433,7 +2433,7 @@ class OrientFrameGrid(wx.Frame):
                     sample_index = self.samples_list.index(sample)
                     i = headers.index(key)
                     self.grid.SetCellValue(sample_index, i, self.orient_data[sample][key])
-                        
+
         #--------------------------------
 
         #--------------------------------
@@ -2448,10 +2448,10 @@ class OrientFrameGrid(wx.Frame):
 
         # temporary trick to get drop-down-menus to work
         self.grid.changes = {'a'}
-        
+
         self.grid.AutoSize()
         self.drop_down_menu = drop_down_menus.Menus("orient", self, self.grid, '')
-        
+
 
     def update_sheet(self):
         self.grid.Destroy()
@@ -2463,7 +2463,7 @@ class OrientFrameGrid(wx.Frame):
         #self.panel.Refresh()
         self.Hide()
         self.Show()
-                
+
     def on_m_open_file(self,event):
         '''
         open orient.txt
@@ -2472,7 +2472,7 @@ class OrientFrameGrid(wx.Frame):
         '''
         dlg = wx.FileDialog(
             self, message="choose orient file",
-            defaultDir=self.WD, 
+            defaultDir=self.WD,
             defaultFile="",
             style=wx.OPEN | wx.CHANGE_DIR
             )
@@ -2487,12 +2487,12 @@ class OrientFrameGrid(wx.Frame):
             self.update_sheet()
 
     def on_m_save_file(self,event):
-        
+
         '''
         save demag_orient.txt
         (only the columns that appear on the grid frame)
         '''
-        
+
         fout=open(os.path.join(self.WD, "demag_orient.txt"),'w')
         STR="tab\tdemag_orient\n"
         fout.write(STR)
@@ -2501,22 +2501,22 @@ class OrientFrameGrid(wx.Frame):
         fout.write(STR)
         for sample in self.samples_list:
             STR=""
-            for header in headers:                
+            for header in headers:
                 sample_index=self.samples_list.index(sample)
                 i=headers.index(header)
                 value=self.grid.GetCellValue(sample_index,i)
                 STR=STR+value+"\t"
             fout.write(STR[:-1]+"\n")
-        if event!=None: 
+        if event!=None:
             dlg1 = wx.MessageDialog(None,caption="Message:", message="data saved in file demag_orient.txt" ,style=wx.OK|wx.ICON_INFORMATION)
             dlg1.ShowModal()
             dlg1.Destroy()
 
 
-    def on_m_calc_orient(self,event):    
+    def on_m_calc_orient(self,event):
         '''
-        This fucntion does exactly what the 'import orientation' fuction does in MagIC.py 
-        after some dialog boxes the function calls orientation_magic.py 
+        This fucntion does exactly what the 'import orientation' fuction does in MagIC.py
+        after some dialog boxes the function calls orientation_magic.py
         '''
         # first see if demag_orient.txt
         self.on_m_save_file(None)
@@ -2564,12 +2564,12 @@ class OrientFrameGrid(wx.Frame):
         command_args.append(dcn_flag)
         command_args.append(gmt_flags)
         command_args.append(bedding_codes_flags)
-        command_args.append(methodcodes_flags) 
+        command_args.append(methodcodes_flags)
         commandline = " ".join(command_args)
 
         print "-I- executing command: %s" %commandline
         os.chdir(self.WD)
-        
+
         ran_successfully, error_message = ipmag.orientation_magic(or_con, dec_correction_con, dec_correction, bed_correction, hours_from_gmt=hours_from_gmt, method_codes=method_codes, average_bedding=average_bedding, orient_file='demag_orient.txt', samp_file='er_samples_orient.txt', site_file='er_sites_orient.txt', input_dir_path=self.WD, output_dir_path=self.WD)
 
         if not ran_successfully:
@@ -2588,12 +2588,12 @@ class OrientFrameGrid(wx.Frame):
             #for line in fin.readlines():
             #    if "Data saved in" in line:
             #        data_saved=True
-            #        break 
+            #        break
 
         if not data_saved:
             return
 
-        # check if er_samples.txt exists. 
+        # check if er_samples.txt exists.
         # If yes add/change the following columns:
         # 1) sample_azimuth,sample_dip
         # 2) sample_bed_dip, sample_bed_dip_direction
@@ -2607,7 +2607,7 @@ class OrientFrameGrid(wx.Frame):
             er_samples_file=os.path.join(self.WD, "er_samples.txt")
             er_samples_data=self.er_magic_data.read_magic_file(er_samples_file, "er_sample_name")[0]
 
-        if os.path.isfile(os.path.join(self.WD, "er_samples_orient.txt")):             
+        if os.path.isfile(os.path.join(self.WD, "er_samples_orient.txt")):
             er_samples_orient_file=os.path.join(self.WD, "er_samples_orient.txt")
             er_samples_orient_data=self.er_magic_data.read_magic_file(er_samples_orient_file, "er_sample_name")[0]
         new_samples_added=[]
@@ -2637,7 +2637,7 @@ class OrientFrameGrid(wx.Frame):
         er_recs=[]
         for sample in samples:
             er_recs.append(er_samples_data[sample])
-        er_recs=pmag.merge_recs_headers(er_recs)  
+        er_recs=pmag.merge_recs_headers(er_recs)
         pmag.magic_write(os.path.join(self.WD, "er_samples.txt"),er_recs,"er_samples")
 
         #------------
@@ -2647,7 +2647,7 @@ class OrientFrameGrid(wx.Frame):
             er_sites_file = os.path.join(self.WD, "er_sites.txt")
             er_sites_data = self.er_magic_data.read_magic_file(er_sites_file, "er_site_name")[0]
         er_sites_orient_data={}
-        if os.path.isfile(os.path.join(self.WD, "er_sites_orient.txt")):             
+        if os.path.isfile(os.path.join(self.WD, "er_sites_orient.txt")):
             er_sites_orient_file = os.path.join(self.WD, "er_sites_orient.txt")
             er_sites_orient_data = self.er_magic_data.read_magic_file(er_sites_orient_file, "er_site_name")[0]
         new_sites_added = []
@@ -2664,9 +2664,9 @@ class OrientFrameGrid(wx.Frame):
         er_recs = []
         for site in sites:
             er_recs.append(er_sites_data[site])
-        er_recs = pmag.merge_recs_headers(er_recs)  
+        er_recs = pmag.merge_recs_headers(er_recs)
         pmag.magic_write(os.path.join(self.WD, "er_sites.txt"), er_recs, "er_sites")
-        
+
             #pmag.magic_write(os.path.join(self.WD, "er_samples.txt"),er_recs,"er_samples")
 
         dlg1 = wx.MessageDialog(None, caption="Message:", message="orientation data is saved/appended to er_samples.txt", style=wx.OK|wx.ICON_INFORMATION)
@@ -2682,8 +2682,8 @@ class OrientFrameGrid(wx.Frame):
         self.Parent.Raise()
         self.Destroy()
 
-        
-    def OnCloseWindow(self,event):   
+
+    def OnCloseWindow(self,event):
         dlg1 = wx.MessageDialog(self,caption="Message:", message="Save changes to demag_orient.txt?\n " ,style=wx.OK|wx.CANCEL)
         result = dlg1.ShowModal()
         if result == wx.ID_OK:
@@ -2700,17 +2700,17 @@ class OrientFrameGrid(wx.Frame):
 
 
 class orient_convention(wx.Dialog):
-    
+
     def __init__(self, *args, **kw):
-        super(orient_convention, self).__init__(*args, **kw) 
-            
+        super(orient_convention, self).__init__(*args, **kw)
+
         self.InitUI()
         #self.SetSize((250, 200))
         self.SetTitle("set orientation convention")
-        
+
     def InitUI(self):
 
-        pnl = wx.Panel(self)        
+        pnl = wx.Panel(self)
         vbox=wx.BoxSizer(wx.VERTICAL)
 
         #-----------------------
@@ -2721,91 +2721,91 @@ class orient_convention(wx.Dialog):
 
         sbs.AddSpacer(5)
         self.oc_rb1 = wx.RadioButton(pnl, -1,label='Pomeroy: Lab arrow azimuth = mag_azimuth; Lab arrow dip=-field_dip (field_dip is hade)',name='1', style=wx.RB_GROUP)
-        sbs.Add(self.oc_rb1)             
+        sbs.Add(self.oc_rb1)
         sbs.AddSpacer(5)
         self.oc_rb2 = wx.RadioButton(pnl, -1, label='Lab arrow azimuth = mag_azimuth-90 (mag_azimuth is strike); Lab arrow dip = -field_dip', name='2')
-        sbs.Add(self.oc_rb2)             
+        sbs.Add(self.oc_rb2)
         sbs.AddSpacer(5)
-        self.oc_rb3 = wx.RadioButton(pnl, -1, label='Lab arrow azimuth = mag_azimuth; Lab arrow dip = 90-field_dip (field_dip is inclination of lab arrow)', name='3')        
-        sbs.Add(self.oc_rb3)             
+        self.oc_rb3 = wx.RadioButton(pnl, -1, label='Lab arrow azimuth = mag_azimuth; Lab arrow dip = 90-field_dip (field_dip is inclination of lab arrow)', name='3')
+        sbs.Add(self.oc_rb3)
         sbs.AddSpacer(5)
-        self.oc_rb4 = wx.RadioButton(pnl, -1, label='Lab arrow azimuth and dip are same as mag_azimuth, field_dip',  name='4')        
-        sbs.Add(self.oc_rb4)             
+        self.oc_rb4 = wx.RadioButton(pnl, -1, label='Lab arrow azimuth and dip are same as mag_azimuth, field_dip',  name='4')
+        sbs.Add(self.oc_rb4)
         sbs.AddSpacer(5)
-        self.oc_rb5 = wx.RadioButton(pnl, -1, label='ASC: Lab arrow azimuth and dip are mag_azimuth, field_dip-90 (field arrow is inclination of specimen Z direction)',name='5')        
-        sbs.Add(self.oc_rb5)             
+        self.oc_rb5 = wx.RadioButton(pnl, -1, label='ASC: Lab arrow azimuth and dip are mag_azimuth, field_dip-90 (field arrow is inclination of specimen Z direction)',name='5')
+        sbs.Add(self.oc_rb5)
         sbs.AddSpacer(5)
-        self.oc_rb6 = wx.RadioButton(pnl, -1, label='Lab arrow azimuth = mag_azimuth-90 (mag_azimuth is strike); Lab arrow dip = 90-field_dip', name='6')        
-        sbs.Add(self.oc_rb6)             
-        sbs.AddSpacer(5)        
-        
-         
+        self.oc_rb6 = wx.RadioButton(pnl, -1, label='Lab arrow azimuth = mag_azimuth-90 (mag_azimuth is strike); Lab arrow dip = 90-field_dip', name='6')
+        sbs.Add(self.oc_rb6)
+        sbs.AddSpacer(5)
+
+
         #-----------------------
         # declination correction
-        #-----------------------                
+        #-----------------------
         sbs2 = wx.StaticBoxSizer( wx.StaticBox( pnl, wx.ID_ANY, 'declination correction' ), wx.VERTICAL )
         hbox_dc1 = wx.BoxSizer(wx.HORIZONTAL)
 
         sbs2.AddSpacer(5)
-        self.dc_rb1 = wx.RadioButton(pnl, -1, 'Use the IGRF DEC value at the lat/long and date supplied', (10, 50), style=wx.RB_GROUP)        
-        self.dc_rb2 = wx.RadioButton(pnl, -1, 'Use this DEC:', (10, 50))        
+        self.dc_rb1 = wx.RadioButton(pnl, -1, 'Use the IGRF DEC value at the lat/long and date supplied', (10, 50), style=wx.RB_GROUP)
+        self.dc_rb2 = wx.RadioButton(pnl, -1, 'Use this DEC:', (10, 50))
         self.dc_tb2 = wx.TextCtrl(pnl,style=wx.CENTER)
-        self.dc_rb3 = wx.RadioButton(pnl, -1, 'DEC=0, mag_az is already corrected in file', (10, 50))        
-        
+        self.dc_rb3 = wx.RadioButton(pnl, -1, 'DEC=0, mag_az is already corrected in file', (10, 50))
+
         sbs2.Add(self.dc_rb1)
         sbs2.AddSpacer(5)
         hbox_dc1.Add(self.dc_rb2)
         hbox_dc1.AddSpacer(5)
         hbox_dc1.Add(self.dc_tb2)
         sbs2.Add(hbox_dc1)
-        
+
         sbs2.AddSpacer(5)
         sbs2.Add(self.dc_rb3)
         sbs2.AddSpacer(5)
-        
-        
+
+
         #-----------------------
         # orienation priority
-        #-----------------------                
+        #-----------------------
         sbs3 = wx.StaticBoxSizer( wx.StaticBox( pnl, wx.ID_ANY, 'orientation priority' ), wx.VERTICAL )
 
         sbs3.AddSpacer(5)
         self.op_rb1 = wx.RadioButton(pnl, -1, label='1) differential GPS 2) sun compass 3) magnetic compass',name='1', style=wx.RB_GROUP)
-        sbs3.Add(self.op_rb1)             
+        sbs3.Add(self.op_rb1)
         sbs3.AddSpacer(5)
         self.op_rb2 = wx.RadioButton(pnl, -1, label='1) differential GPS 2) magnetic compass 3) sun compass ', name='2')
-        sbs3.Add(self.op_rb2)             
+        sbs3.Add(self.op_rb2)
         sbs3.AddSpacer(5)
 
 
         #-----------------------
         #  add local time for GMT
-        #-----------------------                
+        #-----------------------
 
         sbs4 = wx.StaticBoxSizer( wx.StaticBox( pnl, wx.ID_ANY, 'add local time' ), wx.HORIZONTAL )
         #hbox_alt = wx.BoxSizer(wx.HORIZONTAL)
-        
+
         sbs4.AddSpacer(5)
         self.dc_alt = wx.TextCtrl(pnl,style=wx.CENTER)
         #alt_txt = wx.StaticText(pnl,label="Hours to ADD local time for GMT, default is 0",style=wx.TE_CENTER)
-        alt_txt = wx.StaticText(pnl,label="Hours to SUBTRACT from local time for GMT, default is 0",style=wx.TE_CENTER)        
+        alt_txt = wx.StaticText(pnl,label="Hours to SUBTRACT from local time for GMT, default is 0",style=wx.TE_CENTER)
         sbs4.Add(alt_txt)
         sbs4.AddSpacer(5)
         sbs4.Add(self.dc_alt)
 
         #-----------------------
         # OK button
-        #-----------------------                
-              
+        #-----------------------
+
         hbox2 = wx.BoxSizer(wx.HORIZONTAL)
         self.okButton = wx.Button(pnl, wx.ID_OK, "&OK")
         self.Bind(wx.EVT_BUTTON, self.OnOK, self.okButton)
         hbox2.Add(self.okButton)
-        
+
         #-----------------------
         # design the frame
-        #-----------------------                
-        
+        #-----------------------
+
         vbox.AddSpacer(10)
         vbox.Add(sbs)
         vbox.AddSpacer(10)
@@ -2818,7 +2818,7 @@ class orient_convention(wx.Dialog):
         vbox.Add(hbox2)
         vbox.AddSpacer(10)
 
-        hbox1=wx.BoxSizer(wx.HORIZONTAL)        
+        hbox1=wx.BoxSizer(wx.HORIZONTAL)
         hbox1.AddSpacer(10)
         hbox1.Add(vbox)
         hbox1.AddSpacer(10)
@@ -2827,14 +2827,14 @@ class orient_convention(wx.Dialog):
         hbox1.Fit(self)
 
 
-        #-----------------------                
+        #-----------------------
         # intialize defalut value
-        #-----------------------                
-        
+        #-----------------------
+
         self.oc_rb4.SetValue(True)
-        self.dc_rb1.SetValue(True)        
-        self.op_rb1.SetValue(True)   
-        
+        self.dc_rb1.SetValue(True)
+        self.op_rb1.SetValue(True)
+
     def OnOK(self, e):
         self.ocn = ""
         if self.oc_rb1.GetValue() == True:
@@ -2862,15 +2862,15 @@ class orient_convention(wx.Dialog):
                 dlg1 = wx.MessageDialog(None, caption="Error:", message="Add declination", style=wx.OK|wx.ICON_INFORMATION)
                 dlg1.ShowModal()
                 dlg1.Destroy()
-                
+
         if self.dc_rb3.GetValue()==True:
             self.dcn = "3"
-        
+
         if self.op_rb1.GetValue() == True:
             self.op = "1"
         if self.op_rb2.GetValue() == True:
             self.op = "2"
-        
+
         if self.dc_alt.GetValue() != "":
             try:
                 self.gmt = float(self.dc_alt.GetValue())
@@ -2889,22 +2889,22 @@ class orient_convention(wx.Dialog):
 
 
 class method_code_dialog(wx.Dialog):
-    
+
     def __init__(self, *args, **kw):
-        super(method_code_dialog, self).__init__(*args, **kw) 
-            
+        super(method_code_dialog, self).__init__(*args, **kw)
+
         self.InitUI()
         self.SetTitle("additional required information")
-        
+
     def InitUI(self):
 
-        pnl = wx.Panel(self)        
+        pnl = wx.Panel(self)
         vbox=wx.BoxSizer(wx.VERTICAL)
 
         #-----------------------
         # MagIC codes
         #-----------------------
-        
+
         sbs1 = wx.StaticBoxSizer( wx.StaticBox( pnl, wx.ID_ANY, 'MagIC codes' ), wx.VERTICAL )
         self.cb1 = wx.CheckBox(pnl, -1, 'FS-FD: field sampling done with a drill')
         self.cb2 = wx.CheckBox(pnl, -1, 'FS-H: field sampling done with hand sample')
@@ -2924,7 +2924,7 @@ class method_code_dialog(wx.Dialog):
         #-----------------------
         # Bedding convention
         #-----------------------
-        
+
         sbs2 = wx.StaticBoxSizer(wx.StaticBox(pnl, wx.ID_ANY, 'bedding convention'), wx.VERTICAL)
         self.bed_con1 = wx.CheckBox(pnl, -1, 'Take fisher mean of bedding poles?')
         self.bed_con2 = wx.CheckBox(pnl, -1, "Don't correct bedding dip direction with declination - already correct")
@@ -2934,8 +2934,8 @@ class method_code_dialog(wx.Dialog):
 
         #-----------------------
         # OK button
-        #-----------------------                
-              
+        #-----------------------
+
         hbox2 = wx.BoxSizer(wx.HORIZONTAL)
         self.okButton = wx.Button(pnl, wx.ID_OK, "&OK")
         self.Bind(wx.EVT_BUTTON, self.OnOK, self.okButton)
@@ -2943,15 +2943,15 @@ class method_code_dialog(wx.Dialog):
 
         #-----------------------
         # design the frame
-        #-----------------------                
+        #-----------------------
         vbox.Add(sbs1)
         vbox.AddSpacer(5)
         vbox.Add(sbs2)
         vbox.AddSpacer(5)
         vbox.Add(hbox2)
         vbox.AddSpacer(10)
-        
-        hbox1=wx.BoxSizer(wx.HORIZONTAL)        
+
+        hbox1=wx.BoxSizer(wx.HORIZONTAL)
         hbox1.AddSpacer(10)
         hbox1.Add(vbox)
         hbox1.AddSpacer(10)
@@ -2988,9 +2988,9 @@ class method_code_dialog(wx.Dialog):
         else:
             self.methodcodes_flags = "-mcd " + ":".join(methodcodes)
             self.methodcodes = ":".join(methodcodes)
-        
+
         bedding_codes=[]
-        
+
         if self.bed_con1.GetValue() == True:
             bedding_codes.append("-a")
             self.average_bedding = True
@@ -3001,6 +3001,6 @@ class method_code_dialog(wx.Dialog):
             self.bed_correction = False
         else:
             self.bed_correction = True
-        self.bedding_codes_flags = " ".join(bedding_codes)   
-        self.EndModal(wx.ID_OK) 
+        self.bedding_codes_flags = " ".join(bedding_codes)
+        self.EndModal(wx.ID_OK)
         #self.Close()

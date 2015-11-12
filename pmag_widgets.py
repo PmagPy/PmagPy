@@ -494,7 +494,7 @@ class hbox_grid(wx.BoxSizer):
         self.deleteRowButton.Disable()
         self.Add(self.deleteRowButton, flag=wx.ALIGN_LEFT)
 
-    
+
 class btn_panel(wx.BoxSizer):
 
     def __init__(self, SELF, panel):
@@ -596,7 +596,7 @@ class YesNoCancelDialog(wx.Dialog):
         text_box = wx.StaticBoxSizer(wx.StaticBox(self, wx.ID_ANY), wx.VERTICAL)
         text = wx.StaticText(self, label=msg)
         text_box.Add(text)
-        
+
         hbox = wx.BoxSizer(wx.HORIZONTAL)
         btn_yes = wx.Button(self, wx.ID_ANY, label="Write and exit grid")
         btn_no = wx.Button(self, wx.ID_ANY, label="Exit grid")
@@ -622,8 +622,8 @@ class YesNoCancelDialog(wx.Dialog):
     def on_btn_yes(self, event):
         self.Destroy()
         self.EndModal(wx.ID_YES)
-        
-        
+
+
 class TextDialog(wx.Dialog):
     """
     Dialog window that returns a text string provided by user on ok button
@@ -651,7 +651,7 @@ class HeaderDialog(wx.Dialog):
     """
     Dialog window with one or two listboxes with items.
     As user clicks or double clicks, items are added to or removed from the selection,
-    which is displayed in a text control.  
+    which is displayed in a text control.
     """
     def __init__(self, parent, label, items1=None, items2=None):
         super(HeaderDialog, self).__init__(parent, title='Choose headers', size=(500, 500))
@@ -678,7 +678,7 @@ class HeaderDialog(wx.Dialog):
                                      wx.HORIZONTAL)
         self.text_ctrl = wx.TextCtrl(self, id=-1, style=wx.TE_MULTILINE|wx.TE_READONLY, size=(420, 100))
         text_sizer.Add(self.text_ctrl)
-            
+
         btn_ok = wx.Button(self, wx.ID_OK, label="OK")
         btn_ok.SetDefault()
         btn_cancel = wx.Button(self, wx.ID_CANCEL, label="Cancel")
@@ -704,7 +704,7 @@ class HeaderDialog(wx.Dialog):
         display_string = ', '.join(self.text_list)
         self.text_ctrl.SetValue(display_string)
 
-        
+
 class ComboboxDialog(wx.Dialog):
     """
     Dialog window that returns a text string provided by selection from combobox
@@ -796,11 +796,11 @@ class MethodCodeDemystifier(wx.StaticBoxSizer):
 
         for method_type in types:
             name = str(vocabulary.code_types[vocabulary.code_types.label == method_type].index[0])
-            # make button & add to sizer            
+            # make button & add to sizer
             btn = wx.Button(parent, label=method_type, name=name)
             grid_sizer.Add(btn, 0, wx.EXPAND)
             parent.Bind(wx.EVT_BUTTON, self.on_code_button, btn)
-        
+
         self.Add(grid_sizer)
         width, height = grid_sizer.Size
         #init_codes = vocabulary.get_one_meth_type('anisotropy_estimation', vocabulary.all_codes)
@@ -822,7 +822,7 @@ class MethodCodeDemystifier(wx.StaticBoxSizer):
         res = '\n'.join(str_meths)
         self.descriptions.SetValue(res)
 
-        
+
 
 # methods!
 
@@ -899,7 +899,7 @@ def run_command_and_close_window(SELF, command, outfile):
     os.system(command)
     if not outfile:
         outfile = ''
-    msg = "file(s) converted to MagIC format file:\n%s.\n\n See Termimal (Mac) or command prompt (windows) for errors"% outfile
+    msg = "file(s) converted to MagIC format file:\n%s.\n\nSee Terminal (Mac) or command prompt (Windows) for errors"% outfile
     dlg = wx.MessageDialog(None, caption="Message:", message=msg, style=wx.OK|wx.ICON_INFORMATION)
     dlg.ShowModal()
     dlg.Destroy()
@@ -910,7 +910,7 @@ def close_window(SELF, command, outfile):
     print "-I- Finished running equivalent to Python command:\n %s"%command
     if not outfile:
         outfile = ''
-    msg = "file(s) converted to MagIC format file:\n%s.\n\n See Termimal (Mac) or command prompt (windows) for errors"% outfile
+    msg = "file(s) converted to MagIC format file:\n%s.\n\nSee Terminal (Mac) or command prompt (Windows) for errors"% outfile
     dlg = wx.MessageDialog(None, caption="Message:", message=msg, style=wx.OK|wx.ICON_INFORMATION)
     dlg.ShowModal()
     dlg.Destroy()
