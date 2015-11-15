@@ -2806,13 +2806,17 @@ class Zeq_GUI(wx.Frame):
                 if len(pars_for_mean[key]) > 0 and key != "All":
                     if high_level_name not in self.pmag_results_data[high_level_type].keys():
                         self.pmag_results_data[high_level_type][high_level_name] = []
-                    self.pmag_results_data[high_level_type][high_level_name].append(Fit(key, None, None, colors_for_means[key], self))
+                    if key not in map(lambda x: x.name, self.pmag_results_data[high_level_type][high_level_name]):
+                        self.pmag_results_data[high_level_type][high_level_name].append(Fit(key, None, None, colors_for_means[key], self))
+                        key_index = -1
+                    else:
+                        key_index = map(lambda x: x.name, self.pmag_results_data[high_level_type][high_level_name]).index(key)
                     new_pars = self.calculate_mean(pars_for_mean[key],calculation_type)
                     map_keys = new_pars.keys()
                     map_keys.remove("calculation_type")
                     for mkey in map_keys:
                         new_pars[mkey] = float(new_pars[mkey])
-                    self.pmag_results_data[high_level_type][high_level_name][-1].put(None, dirtype,new_pars)
+                    self.pmag_results_data[high_level_type][high_level_name][key_index].put(None, dirtype,new_pars)
                 if len(pars_for_mean[key]) > 0 and key == "All":
                     self.high_level_means[high_level_type][high_level_name][dirtype] = self.calculate_mean(pars_for_mean["All"],calculation_type)
 
@@ -2962,7 +2966,6 @@ class Zeq_GUI(wx.Frame):
            self.interpretation_editor.update_editor(False)
 
     def plot_higher_level_equalarea(self,element): #BLARGE
-        print("plotting higher level interpertation")
         if self.interpretation_editor_open:
             higher_level = self.interpretation_editor.show_box.GetValue()
         else: higher_level = "specimens"
@@ -2989,7 +2992,6 @@ class Zeq_GUI(wx.Frame):
         if fits:
             for fit in fits:
                 pars = fit.get(self.COORDINATE_SYSTEM)
-                print(element,pars,self.COORDINATE_SYSTEM)
                 if not pars: print('no parameters to plot for: ' + fit.name); return
                 if "specimen_dec" in pars.keys() and "specimen_inc" in pars.keys():
                     dec=pars["specimen_dec"];inc=pars["specimen_inc"]
@@ -5388,6 +5390,7 @@ class EditFitFrame(wx.Frame):
         self.specimens_list=self.parent.specimens
         self.specimens_list.sort(cmp=specimens_comparator)
         self.current_fit_index = None
+        self.search_query = ""
         #build UI
         self.init_UI()
         #update with stuff
@@ -5408,9 +5411,9 @@ class EditFitFrame(wx.Frame):
             is_mac = True
 
         self.search_bar = wx.SearchCtrl(self.panel, size=(350*self.GUI_RESOLUTION,25) ,style=wx.TE_PROCESS_ENTER | wx.TE_PROCESS_TAB | wx.TE_NOHIDESEL)
-#        self.Bind(wx.EVT_TEXT_ENTER, self.on_enter_search_bar,self.search_bar)
-#        self.Bind(wx.EVT_SEARCHCTRL_SEARCH_BTN, self.on_enter_search_bar,self.search_bar)
-#        self.Bind(wx.EVT_CHAR, self.on_char_search_bar,self.search_bar)
+        self.Bind(wx.EVT_TEXT_ENTER, self.on_enter_search_bar,self.search_bar)
+        self.Bind(wx.EVT_SEARCHCTRL_SEARCH_BTN, self.on_enter_search_bar,self.search_bar)
+#        self.Bind(wx.EVT_TEXT, self.on_complete_search_bar,self.search_bar)
 
         #build logger
         self.logger = wx.ListCtrl(self.panel, -1, size=(350*self.GUI_RESOLUTION,475*self.GUI_RESOLUTION),style=wx.LC_REPORT)
@@ -5458,7 +5461,14 @@ class EditFitFrame(wx.Frame):
         self.Bind(wx.EVT_COMBOBOX, self.on_select_mean_fit_box,self.mean_fit_box)
 
         #show box
-        self.show_box = wx.ComboBox(self.panel, -1, size=(100*self.GUI_RESOLUTION, 25), value='specimens', choices=['specimens','samples','sites'], style=wx.CB_DROPDOWN,name="high_elements")
+        if UPPER_LEVEL == "study" or UPPER_LEVEL == "location":
+            show_box_choices = ['specimens','samples','sites']
+        if UPPER_LEVEL == "site":
+            show_box_choices = ['specimens','samples']
+        if UPPER_LEVEL == "sample":
+            show_box_choices = ['specimens']
+
+        self.show_box = wx.ComboBox(self.panel, -1, size=(100*self.GUI_RESOLUTION, 25), value='specimens', choices=show_box_choices, style=wx.CB_DROPDOWN,name="high_elements")
         self.Bind(wx.EVT_COMBOBOX, self.on_select_show_box,self.show_box)
 
         #coordinates box
@@ -5597,13 +5607,17 @@ class EditFitFrame(wx.Frame):
 
         if changed_interpretation_parameters:
             self.fit_list = []
+            self.search_choices = []
             for specimen in self.specimens_list:
                 if specimen not in self.parent.pmag_results_data['specimens']: continue
                 self.fit_list += [(fit,specimen) for fit in self.parent.pmag_results_data['specimens'][specimen]]
 
             self.logger.DeleteAllItems()
+            offset = 0
             for i in range(len(self.fit_list)):
-                self.update_logger_entry(i)
+                i -= offset
+                v = self.update_logger_entry(i)
+                if v == "s": offset += 1
 
         #use copy so that the fig doesn't close when the editor closes
         self.toolbar.home()
@@ -5635,6 +5649,15 @@ class EditFitFrame(wx.Frame):
         if 'specimen_dec' in pars.keys(): dec = "%.1f"%pars['specimen_dec']
         if 'specimen_inc' in pars.keys(): inc = "%.1f"%pars['specimen_inc']
         if 'specimen_mad' in pars.keys(): mad = "%.1f"%pars['specimen_mad']
+
+        if self.search_query != "":
+            entry = (specimen+name+fmin+fmax+n+ftype+dec+inc+mad).lower()
+            if self.search_query not in entry:
+                self.fit_list.pop(i)
+                return "s"
+        for e in (specimen,name,fmin,fmax,n,ftype,dec,inc,mad):
+            if e not in self.search_choices:
+                self.search_choices.append(e)
 
         if i < self.logger.GetItemCount():
             self.logger.DeleteItem(i)
@@ -5753,6 +5776,15 @@ class EditFitFrame(wx.Frame):
         self.parent.calculate_higher_levels_data()
         self.parent.plot_higher_levels_data()
         self.logger_focus(i)
+
+    ##################################Search Bar Functions###############################
+
+    def on_enter_search_bar(self,event):
+        self.search_query = self.search_bar.GetValue().replace(" ","").lower()
+        self.update_editor(True)
+
+#    def on_complete_search_bar(self,event):
+#        self.search_bar.AutoComplete(self.search_choices)
 
     ###################################ComboBox Functions################################
 
