@@ -269,6 +269,12 @@ Green: missing or invalid parent
 Blue: non-numeric data provided in a numeric field
 Gray: unrecognized column
 Purple: invalid result child
+
+Note: It is possible to have a row highlighted that has no highlighted column.  
+This means that you are missing information higher up in the data.
+For example: a specimen could be missing a site name.
+However, you need to fix this in the sample grid, not the specimen grid.  
+Once each item in the data has its proper parent, validations will be correct.
 """
                 self.grid_frame.msg_text.SetLabel(current_label + add_text)
         #self.on_finish_change_dir(self.change_dir_dialog)
@@ -446,13 +452,18 @@ if __name__ == "__main__":
     #app = wx.App(redirect=False)
     print '-I- Creating application'
     # this sends stdout to terminal:
-    #app = wx.App(redirect=False)
-    # this sends stdout to wxPython:
     app = wx.App(redirect=False)
+    # this sends stdout to wxPython:
+    #app = wx.App(redirect=True)
     working_dir = pmag.get_named_arg_from_sys('-WD', '.')
+    working_dir = os.path.realpath(working_dir)
     app.frame = MainFrame(working_dir)
-    if working_dir == '.':
-        app.frame.on_change_dir_button(None)
+    ## this causes an error with Canopy Python
+    ## (it works with brew Python)
+    ## need to use these lines for Py2app
+    #if working_dir == '.':
+    #    app.frame.on_change_dir_button(None)
+
     app.frame.Show()
     app.frame.Center()
     if '-i' in sys.argv:

@@ -155,13 +155,17 @@ def read_upload(up_file):
 
                 ## new style
                 if item_name:
-                    if item_type not in invalid_data.keys():
-                        invalid_data[item_type] = {}
-                    if item_name not in invalid_data[item_type].keys():
-                        invalid_data[item_type][item_name] = {}
-                    if 'missing_data' not in invalid_data[item_type][item_name]:
-                        invalid_data[item_type][item_name]['missing_data'] = []
-                    invalid_data[item_type][item_name]['missing_data'].append(missing_item)
+                    ## don't double count if a site is missing its parent location
+                    if item_type == 'age' and missing_item == 'er_location_name':
+                        pass
+                    else:
+                        if item_type not in invalid_data.keys():
+                            invalid_data[item_type] = {}
+                        if item_name not in invalid_data[item_type].keys():
+                            invalid_data[item_type][item_name] = {}
+                        if 'missing_data' not in invalid_data[item_type][item_name]:
+                            invalid_data[item_type][item_name]['missing_data'] = []
+                        invalid_data[item_type][item_name]['missing_data'].append(missing_item)
                 ##
 
             # make a list of data that should be numeric, but isn't

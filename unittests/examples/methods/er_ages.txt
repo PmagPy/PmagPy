@@ -1,0 +1,4 @@
+tab	er_ages
+er_specimen_name	er_sample_name	er_site_name	er_location_name	er_citation_names	magic_method_codes	age_unit
+	sampleA	site1	location	This study	GM-ARAR-SC	Years AD (+/-)
+	sampleB	site1	location	This study	GM-ARAR-SC	Years AD (+/-)

@@ -59,8 +59,10 @@ class Menus(object):
             self.choices = {2: (vocab['location_type'], False)}
             self.grid.SetColLabelValue(2, 'location_type**')
         if self.data_type == 'age':
-            self.choices = {2: (vocabulary.geochronology_method_codes, False), 3: (vocab['age_unit'], False)}
-            map(lambda (x, y): self.grid.SetColLabelValue(x, y), [(2, 'magic_method_codes**'), (3, 'age_unit**')])
+            #self.choices = {2: (vocabulary.age_methods, False), 3: (vocab['age_unit'], False)}
+            self.choices = {3: (vocab['age_unit'], False)}
+            #map(lambda (x, y): self.grid.SetColLabelValue(x, y), [(2, 'magic_method_codes**'), (3, 'age_unit**')])
+            map(lambda (x, y): self.grid.SetColLabelValue(x, y), [(3, 'age_unit**')])
             for row in range(self.grid.GetNumberRows()):
                 self.grid.SetReadOnly(row, 0)
         if self.data_type == 'orient':
@@ -85,6 +87,8 @@ class Menus(object):
         Add a correctly formatted drop-down-menu for given col_label, if required.
         Otherwise do nothing.
         """
+        if col_label in ['magic_method_codes', 'magic_method_codes++']:
+            self.add_method_drop_down(col_number, col_label)
         if col_label in vocabulary.possible_vocabularies:
             if col_number not in self.choices.keys(): # if not already assigned above
                 self.grid.SetColLabelValue(col_number, col_label + "**") # mark it as using a controlled vocabulary
@@ -114,6 +118,18 @@ class Menus(object):
                 self.choices[col_number] = (stripped_list, two_tiered)
 
 
+    def add_method_drop_down(self, col_number, col_label):
+        """
+        Add drop-down-menu options for magic_method_codes columns
+        """
+        if self.data_type == 'age':
+            method_list = vocabulary.age_methods
+        elif '++' in col_label:
+            method_list = vocabulary.pmag_methods
+        else:
+            method_list = vocabulary.er_methods
+        self.choices[col_number] = (method_list, True)
+        
     def on_label_click(self, event):
         col = event.GetCol()
         color = self.grid.GetCellBackgroundColour(0, col)

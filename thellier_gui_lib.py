@@ -355,3 +355,13 @@ def get_site_from_hierarchy(sample,Data_hierarchy):
             site=S
             break
     return(site)
+
+def get_location_from_hierarchy(site,Data_hierarchy):
+    location=""
+    locations=Data_hierarchy['locations'].keys()
+    for L in locations:
+        if site in Data_hierarchy['locations'][L]:
+            location=L
+            break
+    return(location)
+

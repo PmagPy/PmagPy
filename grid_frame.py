@@ -11,9 +11,8 @@ import pmag_widgets as pw
 import magic_grid
 
 
-
-
 class GridFrame(wx.Frame):
+#class GridFrame(wx.ScrolledWindow):
     """
     make_magic
     """
@@ -23,7 +22,9 @@ class GridFrame(wx.Frame):
         self.parent = parent
         wx.GetDisplaySize()
         title = 'Edit {} data'.format(panel_name)
-        wx.Frame.__init__(self, parent=parent, id=wx.ID_ANY, name=frame_name, title=title)
+        #wx.Frame.__init__(self, parent=parent, id=wx.ID_ANY, name=frame_name, title=title)
+        #wx.ScrolledWindow.__init__(self, parent=parent, id=wx.ID_ANY, name=frame_name)#, title=title)
+        super(GridFrame, self).__init__(parent=parent, id=wx.ID_ANY, name=frame_name, title=title)
 
         self.remove_cols_mode = False
         self.deleteRowButton = None
@@ -66,12 +67,15 @@ class GridFrame(wx.Frame):
         self.grid = self.grid_builder.make_grid()
         self.grid.InitUI()
 
+        ## Column management buttons
         self.add_cols_button = wx.Button(self.panel, label="Add additional columns",
                                          name='add_cols_btn')
         self.Bind(wx.EVT_BUTTON, self.on_add_cols, self.add_cols_button)
         self.remove_cols_button = wx.Button(self.panel, label="Remove columns",
                                             name='remove_cols_btn')
         self.Bind(wx.EVT_BUTTON, self.on_remove_cols, self.remove_cols_button)
+
+        ## Row management buttons
         self.remove_row_button = wx.Button(self.panel, label="Remove last row",
                                            name='remove_last_row_btn')
         self.Bind(wx.EVT_BUTTON, self.on_remove_row, self.remove_row_button)
@@ -88,33 +92,7 @@ class GridFrame(wx.Frame):
         self.Bind(wx.EVT_BUTTON, lambda event: self.on_remove_row(event, False), self.deleteRowButton)
         self.deleteRowButton.Disable()
 
-        self.msg_boxsizer = wx.StaticBoxSizer(wx.StaticBox(self.panel, -1, name='msg_boxsizer'), wx.VERTICAL)
-        self.default_msg_text = 'Edit {} here.\nYou can add or remove both rows and columns, however required columns may not be deleted.\nControlled vocabularies are indicated by **, and will have drop-down-menus.\nTo edit all values in a column, click the column header.\nYou can cut and paste a block of cells from an Excel-like file.\nJust click the top left cell and use command "v".'.format(self.grid_type + 's')
-        txt = ''
-        
-        if self.grid_type == 'location':
-            txt = '\n\nNote: you can fill in location start/end latitude/longitude here.\nHowever, if you add sites in step 2, the program will calculate those values automatically,\nbased on site latitudes/logitudes.\nThese values will be written to your upload file.'
-
-        if self.grid_type == 'sample':
-            txt = "\n\nNote: you can fill in lithology, class, and type for each sample here.\nHowever, if the sample's class, lithology, and type are the same as its parent site, those values will propagate down,\nand will be written to your sample file automatically."
-
-        if self.grid_type == 'specimen':
-            txt = "\n\nNote: you can fill in lithology, class, and type for each specimen here.\nHowever, if the specimen's class, lithology, and type are the same as its parent sample, those values will propagate down,\nand will be written to your specimen file automatically."
-
-        if self.grid_type == 'age':
-            txt = "\n\nNote: only ages for which you provide data will be written to your upload file."
-
-        self.default_msg_text += txt
-
-        self.msg_text = wx.StaticText(self.panel, label=self.default_msg_text,
-                                      style=wx.TE_CENTER, name='msg text')
-        self.msg_boxsizer.Add(self.msg_text)
-
-        self.toggle_help_btn = wx.Button(self.panel, id=-1, label="Show help",
-                                         name='toggle_help_btn')
-        self.Bind(wx.EVT_BUTTON, self.toggle_help, self.toggle_help_btn)
-        self.msg_boxsizer.ShowItems(False)
-
+        ## Data management buttons
         self.importButton = wx.Button(self.panel, id=-1,
                                       label='Import MagIC-format file', name='import_btn')
         self.Bind(wx.EVT_BUTTON, self.onImport, self.importButton)
@@ -124,7 +102,40 @@ class GridFrame(wx.Frame):
         self.cancelButton = wx.Button(self.panel, id=-1, label='Cancel', name='cancel_btn')
         self.Bind(wx.EVT_BUTTON, self.onCancelButton, self.cancelButton)
 
-        hbox = wx.BoxSizer(wx.HORIZONTAL)
+        ## Help message and button
+        # button
+        self.toggle_help_btn = wx.Button(self.panel, id=-1, label="Show help",
+                                         name='toggle_help_btn')
+        self.Bind(wx.EVT_BUTTON, self.toggle_help, self.toggle_help_btn)
+        # message
+        self.help_msg_boxsizer = wx.StaticBoxSizer(wx.StaticBox(self.panel, -1, name='help_msg_boxsizer'), wx.VERTICAL)
+        self.default_msg_text = 'Edit {} here.\nYou can add or remove both rows and columns, however required columns may not be deleted.\nControlled vocabularies are indicated by **, and will have drop-down-menus.\nTo edit all values in a column, click the column header.\nYou can cut and paste a block of cells from an Excel-like file.\nJust click the top left cell and use command "v".\nColumns that pertain to interpretations will be marked with "++".'.format(self.grid_type + 's')
+        txt = ''
+        if self.grid_type == 'location':
+            txt = '\n\nNote: you can fill in location start/end latitude/longitude here.\nHowever, if you add sites in step 2, the program will calculate those values automatically,\nbased on site latitudes/logitudes.\nThese values will be written to your upload file.'
+        if self.grid_type == 'sample':
+            txt = "\n\nNote: you can fill in lithology, class, and type for each sample here.\nHowever, if the sample's class, lithology, and type are the same as its parent site,\nthose values will propagate down, and will be written to your sample file automatically."
+        if self.grid_type == 'specimen':
+            txt = "\n\nNote: you can fill in lithology, class, and type for each specimen here.\nHowever, if the specimen's class, lithology, and type are the same as its parent sample,\nthose values will propagate down, and will be written to your specimen file automatically."
+        if self.grid_type == 'age':
+            txt = "\n\nNote: only ages for which you provide data will be written to your upload file."
+        self.default_msg_text += txt
+        self.msg_text = wx.StaticText(self.panel, label=self.default_msg_text,
+                                      style=wx.TE_CENTER, name='msg text')
+        self.help_msg_boxsizer.Add(self.msg_text)
+        self.help_msg_boxsizer.ShowItems(False)
+
+        ## Code message and button
+        # button
+        self.toggle_codes_btn = wx.Button(self.panel, id=-1, label="Show method codes",
+                                          name='toggle_codes_btn')
+        self.Bind(wx.EVT_BUTTON, self.toggle_codes, self.toggle_codes_btn)
+        # message
+        self.code_msg_boxsizer = pw.MethodCodeDemystifier(self.panel)
+        self.code_msg_boxsizer.ShowItems(False)
+
+        ## Add content to sizers
+        self.hbox = wx.BoxSizer(wx.HORIZONTAL)
         col_btn_vbox = wx.StaticBoxSizer(wx.StaticBox(self.panel, -1, label='Columns',
                                                       name='manage columns'), wx.VERTICAL)
         row_btn_vbox = wx.StaticBoxSizer(wx.StaticBox(self.panel, -1, label='Rows',
@@ -139,10 +150,9 @@ class GridFrame(wx.Frame):
         main_btn_vbox.Add(self.importButton, flag=wx.ALL, border=5)
         main_btn_vbox.Add(self.exitButton, flag=wx.ALL, border=5)
         main_btn_vbox.Add(self.cancelButton, flag=wx.ALL, border=5)
-        #main_btn_vbox.Add(self.pmag_checkbox, flag=wx.ALL, border=5)
-        hbox.Add(col_btn_vbox)
-        hbox.Add(row_btn_vbox)
-        hbox.Add(main_btn_vbox)
+        self.hbox.Add(col_btn_vbox)
+        self.hbox.Add(row_btn_vbox)
+        self.hbox.Add(main_btn_vbox)
 
         self.panel.Bind(wx.grid.EVT_GRID_LABEL_LEFT_CLICK, self.onLeftClickLabel, self.grid)
         self.Bind(wx.EVT_KEY_DOWN, self.on_key_down)
@@ -202,7 +212,7 @@ class GridFrame(wx.Frame):
             toggle_box.Add(age_level)
 
             self.Bind(wx.EVT_RADIOBUTTON, self.toggle_ages)
-            hbox.Add(toggle_box)
+            self.hbox.Add(toggle_box)
 
         # a few special touches if it is a result grid
         if self.grid_type == 'result':
@@ -226,17 +236,18 @@ class GridFrame(wx.Frame):
                     self.drop_down_menu.choices[5] = [sorted([loc.name for loc in self.er_magic.locations if loc]), False]
 
         # final layout, set size
-        self.main_sizer.Add(hbox, flag=wx.ALL, border=20)
+        self.main_sizer.Add(self.hbox, flag=wx.ALL, border=20)
         self.main_sizer.Add(self.toggle_help_btn, flag=wx.BOTTOM|wx.ALIGN_CENTRE, border=5)
-        self.main_sizer.Add(self.msg_boxsizer, flag=wx.BOTTOM|wx.ALIGN_CENTRE, border=10)
+        self.main_sizer.Add(self.help_msg_boxsizer, flag=wx.BOTTOM|wx.ALIGN_CENTRE, border=10)
+        self.main_sizer.Add(self.toggle_codes_btn, flag=wx.BOTTOM|wx.ALIGN_CENTRE, border=5)
+        self.main_sizer.Add(self.code_msg_boxsizer, flag=wx.BOTTOM|wx.ALIGN_CENTRE, border=5)
         self.main_sizer.Add(self.grid_box, flag=wx.ALL, border=10)
         self.panel.SetSizer(self.main_sizer)
         self.main_sizer.Fit(self)
         ## this keeps sizing correct if the user resizes the window manually
-        self.Bind(wx.EVT_SIZE, self.do_fit)
+        #self.Bind(wx.EVT_SIZE, self.do_fit)
         self.Centre()
         self.Show()
-
 
     def on_key_down(self, event):
         """
@@ -255,17 +266,34 @@ class GridFrame(wx.Frame):
         #self.grid.ShowScrollbars(wx.SHOW_SB_NEVER, wx.SHOW_SB_NEVER)
         if event:
             event.Skip()
-        self.main_sizer.Fit(self)
+        self.main_sizer.Fit(self)        
+        disp_size = wx.GetDisplaySize()
+        actual_size = self.GetSize()
+        rows = self.grid.GetNumberRows()
+        # if there isn't enough room to display new content
+        # resize the frame
+        if disp_size[1] - 75 < actual_size[1]:
+            self.SetSize((actual_size[0], disp_size[1] * .95))
         self.Centre()
 
     def toggle_help(self, event):
         btn = event.GetEventObject()
         if btn.Label == 'Show help':
-            self.msg_boxsizer.ShowItems(True)
+            self.help_msg_boxsizer.ShowItems(True)
             btn.SetLabel('Hide help')
         else:
-            self.msg_boxsizer.ShowItems(False)
+            self.help_msg_boxsizer.ShowItems(False)
             btn.SetLabel('Show help')
+        self.do_fit(None)
+
+    def toggle_codes(self, event):
+        btn = event.GetEventObject()
+        if btn.Label == 'Show method codes':
+            self.code_msg_boxsizer.ShowItems(True)
+            btn.SetLabel('Hide method codes')
+        else:
+            self.code_msg_boxsizer.ShowItems(False)
+            btn.SetLabel('Show method codes')
         self.do_fit(None)
 
     def toggle_ages(self, event):
@@ -300,6 +328,14 @@ class GridFrame(wx.Frame):
             if 'age' in self.parent.Parent.validation_mode:
                 self.grid.paint_invalid_cells(self.parent.Parent.warn_dict['age'])
                 self.grid.ForceRefresh()
+        # the grid show up if it's the same size as the previous grid
+        # awkward solution (causes flashing):
+        if self.grid.Size[0] < 100:
+            if self.grid.GetWindowStyle() != wx.DOUBLE_BORDER:
+                self.grid.SetWindowStyle(wx.DOUBLE_BORDER)
+            self.main_sizer.Fit(self)
+            self.grid.SetWindowStyle(wx.NO_BORDER)
+            self.main_sizer.Fit(self)
 
     def init_grid_headers(self):
         self.grid_headers = self.er_magic.headers
@@ -348,17 +384,18 @@ class GridFrame(wx.Frame):
         Show simple dialog that allows user to add a new column name
         """
         col_labels = self.grid.col_labels
+        # do not list headers that are already column labels in the grid
         er_items = [head for head in self.grid_headers[self.grid_type]['er'][2] if head not in col_labels]
+        # remove unneeded headers
         er_items = builder.remove_list_headers(er_items)
-        #include_pmag = self.pmag_checkbox.cb.IsChecked()
-        include_pmag = True
-        if include_pmag or self.grid_type == 'result':
-            pmag_headers = sorted(list(set(self.grid_headers[self.grid_type]['pmag'][2]).union(self.grid_headers[self.grid_type]['pmag'][1])))
-            pmag_items = [head for head in pmag_headers if head not in er_items and head not in col_labels]
-            #pmag_items = [head for head in self.grid_headers[self.grid_type]['pmag'][2] if head not in er_items and head not in col_labels]
-            pmag_items = builder.remove_list_headers(pmag_items)
-        else:
-            pmag_items = []
+        pmag_headers = sorted(list(set(self.grid_headers[self.grid_type]['pmag'][2]).union(self.grid_headers[self.grid_type]['pmag'][1])))
+        # do not list headers that are already column labels in the grid
+        # make sure that pmag_specific columns are marked with '++'
+        to_add = [i + '++' for i in self.er_magic.double if i in pmag_headers and i + '++' not in col_labels]
+        pmag_headers.extend(to_add)
+        pmag_items = [head for head in pmag_headers if head not in er_items and head not in col_labels]
+        # remove unneeded headers
+        pmag_items = sorted(builder.remove_list_headers(pmag_items))
         dia = pw.HeaderDialog(self, 'columns to add', er_items, pmag_items)
         result = dia.ShowModal()
         new_headers = []
@@ -366,21 +403,10 @@ class GridFrame(wx.Frame):
             new_headers = dia.text_list
         if not new_headers:
             return
-        for name in new_headers:
-            if name:
-                if name not in self.grid.col_labels:
-                    col_number = self.grid.add_col(name)
-                    # add to appropriate headers list
-                    if name in er_items:
-                        self.grid_headers[self.grid_type]['er'][0].append(str(name))
-                    if name in pmag_items:
-                        self.grid_headers[self.grid_type]['pmag'][0].append(str(name))
-                    import controlled_vocabularies as vocabulary
-                    from controlled_vocabularies import vocabularies as vocab
-                    if name in vocabulary.possible_vocabularies:
-                        self.drop_down_menu.add_drop_down(col_number, name)
-                else:
-                    pw.simple_warning('You are already using column header: {}'.format(name))
+        errors = self.add_new_grid_headers(new_headers, er_items, pmag_items)
+        if errors:
+            errors_str = ', '.join(errors)
+            pw.simple_warning('You are already using the following headers: {}\nSo they will not be added'.format(errors_str))
 
         # problem: if widgets above the grid are too wide,
         # the grid does not re-size when adding columns
@@ -392,6 +418,31 @@ class GridFrame(wx.Frame):
         self.main_sizer.Fit(self)
         #
         self.grid.changes = set(range(self.grid.GetNumberRows()))
+        dia.Destroy()
+
+    #self.add_new_grid_headers(grid_headers)
+    def add_new_grid_headers(self, new_headers, er_items, pmag_items):
+        already_present = []
+        for name in new_headers:
+            if name:
+                if name not in self.grid.col_labels:
+                    col_number = self.grid.add_col(name)
+                    # add to appropriate headers list
+                    if name in er_items:
+                        self.grid_headers[self.grid_type]['er'][0].append(str(name))
+                    if name in pmag_items:
+                        name = name.strip('++')
+                        if name not in self.grid_headers[self.grid_type]['pmag'][0]:
+                            self.grid_headers[self.grid_type]['pmag'][0].append(str(name))
+                    import controlled_vocabularies as vocabulary
+                    from controlled_vocabularies import vocabularies as vocab
+                    if name in vocabulary.possible_vocabularies:
+                        self.drop_down_menu.add_drop_down(col_number, name)
+                else:
+                    already_present.append(name)
+                    #pw.simple_warning('You are already using column header: {}'.format(name))
+        return already_present
+
 
 
     def on_remove_cols(self, event):
@@ -410,7 +461,7 @@ class GridFrame(wx.Frame):
             btn.Disable()
         # then make some visual changes
         self.msg_text.SetLabel("Remove grid columns: click on a column header to delete it.  Required headers for {}s may not be deleted.".format(self.grid_type))
-        self.msg_boxsizer.Fit(self.msg_boxsizer.GetStaticBox())
+        self.help_msg_boxsizer.Fit(self.help_msg_boxsizer.GetStaticBox())
         self.main_sizer.Fit(self)
         self.grid.SetWindowStyle(wx.DOUBLE_BORDER)
         self.grid_box.GetStaticBox().SetWindowStyle(wx.DOUBLE_BORDER)
@@ -490,7 +541,7 @@ class GridFrame(wx.Frame):
         self.grid.SetWindowStyle(wx.DEFAULT)
         self.grid_box.GetStaticBox().SetWindowStyle(wx.DEFAULT)
         self.msg_text.SetLabel(self.default_msg_text)
-        self.msg_boxsizer.Fit(self.msg_boxsizer.GetStaticBox())
+        self.help_msg_boxsizer.Fit(self.help_msg_boxsizer.GetStaticBox())
         self.main_sizer.Fit(self)
         # re-bind self.remove_cols_button
         self.Bind(wx.EVT_BUTTON, self.on_remove_cols, self.remove_cols_button)
@@ -622,7 +673,7 @@ class GridFrame(wx.Frame):
         actual_pmag_headers = self.er_magic.headers[self.grid_type]['pmag'][0]
         for col in self.grid.col_labels:
             if col not in actual_er_headers:
-                if col in actual_pmag_headers:
+                if col in actual_pmag_headers or col == 'magic_method_codes++':
                     pmag_header_found = True
                     break
         if pmag_header_found:
@@ -668,7 +719,16 @@ class GridBuilder(object):
             pmag_header = self.grid_headers[self.grid_type]['pmag'][0]
         else:
             pmag_header = []
+        # if we need to use '++' to distinguish pmag magic_method_codes from er
+        if incl_pmag and self.grid_type in ('specimen', 'sample', 'site'):
+            for double_header in self.er_magic.double:
+                try:
+                    pmag_header.remove(double_header)
+                    pmag_header.append(double_header + '++')
+                except ValueError:
+                    pass
         header = sorted(list(set(er_header).union(pmag_header)))
+
         first_headers = []
         for string in ['citation', '{}_class'.format(self.grid_type),
                        '{}_lithology'.format(self.grid_type), '{}_type'.format(self.grid_type),
@@ -713,7 +773,8 @@ class GridBuilder(object):
             header[:0] = lst
         
         grid = magic_grid.MagicGrid(parent=self.panel, name=self.grid_type,
-                                    row_labels=[], col_labels=header)
+                                    row_labels=[], col_labels=header,
+                                    double=self.er_magic.double)
         grid.do_event_bindings()
 
         self.grid = grid
@@ -810,11 +871,21 @@ class GridBuilder(object):
                         #new_data[col_label] = value
                         if value == '\t':
                             value = ''
+
+                        if '++' in col_label:
+                            col_name = col_label[:-2]
+                            new_pmag_data[col_name] = value
+                            continue
+                            
                         if er_header and col_label in er_header:
                             new_er_data[col_label] = value
 
-                        if pmag_header and col_label in pmag_header:
-                            new_pmag_data[col_label] = value
+                        if self.grid_type in ('specimen', 'sample', 'site'):
+                            if pmag_header and (col_label in pmag_header) and (col_label not in self.er_magic.double):
+                                new_pmag_data[col_label] = value
+                        else:
+                            if pmag_header and col_label in pmag_header:
+                                new_pmag_data[col_label] = value
 
                         if col_label in ['er_specimen_names', 'er_sample_names',
                                          'er_site_names', 'er_location_names']:

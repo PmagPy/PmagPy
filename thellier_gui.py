@@ -2286,11 +2286,7 @@ class Arai_GUI(wx.Frame):
     def on_menu_save_interpretation(self, event):
  
         '''
-        save interpretations to a redo file
-        save specimens interpretations to thellier_GUI.specimens.txt
-        save sample interpretations to thellier_GUI.specimens.txt
-        this functio should be removed. and use only the MagIC menu bar....
-        
+        save interpretations to a redo file        
         '''
                
         #thellier_gui_specimen_criteria_list=['specimen_int_n','specimen_int_ptrm_n','specimen_f','specimen_fvds','specimen_frac','specimen_gmax','specimen_b_beta','specimen_scat','specimen_drats','specimen_md','specimen_int_mad','specimen_dang','specimen_q','specimen_g']
@@ -4556,36 +4552,37 @@ class Arai_GUI(wx.Frame):
     def on_menu__prepare_MagIC_results_tables (self, event):
 
         import copy
-        #read MagIC model
-        fail_read_magic_model_files=self.read_magic_model()
-        if len(fail_read_magic_model_files)>0:
-            for F in fail_read_magic_model_files:
-                print "-E- Failed reading MagIC Model file %s"%F
-            return
-        self.on_menu_save_interpretation(None)
+        
+        
+        # write a redo file
         try:
-            self.on_menu_save_interpretation(self, None)
+            self.on_menu_save_interpretation(None)
         except:
             pass
+
         #------------------
-        # read "old" pmag results data and sort out directional data
-        # this data will be marged later with os.
+        # read existing pmag results data and sort out the directional data. 
+        # The directional data will be merged to one combined pmag table. 
+        # this data will be marged later  
+        #-----------------------.
+        
         PmagRecsOld={}
         for FILE in ['pmag_specimens.txt','pmag_samples.txt','pmag_sites.txt','pmag_results.txt']:
             PmagRecsOld[FILE],meas_data=[],[]
             try: 
                 meas_data,file_type=pmag.magic_read(os.path.join(self.WD, FILE))
-                self.GUI_log.write("-I- Read old magic file  %s\n"%(os.path.join(self.WD, FILE)))
+                self.GUI_log.write("-I- Read exiting magic file  %s\n"%(os.path.join(self.WD, FILE)))
                 #if FILE !='pmag_specimens.txt':
                 os.rename(os.path.join(self.WD, FILE), os.path.join(self.WD, FILE+".backup"))
                 self.GUI_log.write("-I- rename old magic file  %s.backup\n"%(os.path.join(self.WD, FILE)))
             except:
+                self.GUI_log.write("-I- Cant read existing magic file  %s\n"%(os.path.join(self.WD, FILE)))                
                 continue                                                                           
             for rec in meas_data:
                 if "magic_method_codes" in rec.keys():
                     if "LP-PI" not in rec['magic_method_codes'] and "IE-" not in rec['magic_method_codes'] :
                         PmagRecsOld[FILE].append(rec)
-            #PmagRecsOld[FILE]=self.converge_pmag_rec_headers(PmagRecsOld[FILE])
+
         pmag_specimens_header_1=["er_location_name","er_site_name","er_sample_name","er_specimen_name"]
         pmag_specimens_header_2=['measurement_step_min','measurement_step_max','specimen_int']        
         pmag_specimens_header_3=["specimen_correction","specimen_int_corr_anisotropy","specimen_int_corr_nlt","specimen_int_corr_cooling_rate"]
@@ -4593,7 +4590,6 @@ class Arai_GUI(wx.Frame):
         for short_stat in self.preferences['show_statistics_on_gui']:
             stat="specimen_"+short_stat
             pmag_specimens_header_4.append(stat)
-            #pmag_specimens_header_4=['specimen_int_n','specimen_int_ptrm_n','specimen_f','specimen_fvds','specimen_frac','specimen_gmax','specimen_b_beta','specimen_scat','specimen_drats','specimen_md','specimen_int_mad','specimen_int_dang','specimen_q','specimen_g']
         pmag_specimens_header_5=["magic_experiment_names","magic_method_codes","measurement_step_unit","specimen_lab_field_dc"]
         pmag_specimens_header_6=["er_citation_names"]
         try:
@@ -4601,27 +4597,30 @@ class Arai_GUI(wx.Frame):
         except:
             version=""
         version=version+": thellier_gui."+CURRENT_VRSION
-        #for k in self.ignore_parameters.keys():
-        #    if k in pmag_specimens_header_4 and self.ignore_parameters[k]==True:
-        #        pmag_specimens_header_4.remove(k)
 
         specimens_list=[]
         for specimen in self.Data.keys():
             if 'pars' in self.Data[specimen].keys():
                 if 'saved' in self.Data[specimen]['pars'].keys() and self.Data[specimen]['pars']['saved']==True:
                     specimens_list.append(specimen)
+        
+        # Empty pmag tables:
         MagIC_results_data={}
         MagIC_results_data['pmag_specimens']={}
-        #if self.average_by_sample_or_site=='sample': 
-        #    MagIC_results_data['pmag_samples']={}
-        #else:
         MagIC_results_data['pmag_samples_or_sites']={}            
         MagIC_results_data['pmag_results']={}
-        
+
+        # write down pmag_specimens.txt        
         specimens_list.sort()
-        #print specimens_list
         for specimen in specimens_list:
+            
+            
             if 'pars' in self.Data[specimen].keys() and 'saved' in self.Data[specimen]['pars'].keys() and self.Data[specimen]['pars']['saved']==True:
+
+                sample_name = self.Data_hierarchy['specimens'][specimen]
+                site_name=thellier_gui_lib.get_site_from_hierarchy(sample_name,self.Data_hierarchy)                
+                location_name=thellier_gui_lib.get_location_from_hierarchy(site_name,self.Data_hierarchy)                
+                
                 MagIC_results_data['pmag_specimens'][specimen]={}
                 if version!="unknown":
                     MagIC_results_data['pmag_specimens'][specimen]['magic_software_packages']=version
@@ -4629,11 +4628,9 @@ class Arai_GUI(wx.Frame):
                 #MagIC_results_data['pmag_specimens'][specimen]['er_analyst_mail_names']="unknown"
                 
                 MagIC_results_data['pmag_specimens'][specimen]['er_specimen_name']=specimen
-                MagIC_results_data['pmag_specimens'][specimen]['er_sample_name']=self.MagIC_model["specimens"][specimen]['er_sample_name']
-                MagIC_results_data['pmag_specimens'][specimen]['er_site_name']=self.MagIC_model["specimens"][specimen]['er_site_name']
-
-                
-                MagIC_results_data['pmag_specimens'][specimen]['er_location_name']=self.MagIC_model["specimens"][specimen]['er_location_name']
+                MagIC_results_data['pmag_specimens'][specimen]['er_sample_name']=sample_name
+                MagIC_results_data['pmag_specimens'][specimen]['er_site_name']=site_name
+                MagIC_results_data['pmag_specimens'][specimen]['er_location_name']=location_name
                 MagIC_results_data['pmag_specimens'][specimen]['magic_method_codes']=self.Data[specimen]['pars']['magic_method_codes']+":IE-TT"
                 tmp=MagIC_results_data['pmag_specimens'][specimen]['magic_method_codes'].split(":")
                 magic_experiment_names=specimen
@@ -4642,12 +4639,10 @@ class Arai_GUI(wx.Frame):
                         magic_experiment_names=magic_experiment_names+" : " + m
                 MagIC_results_data['pmag_specimens'][specimen]['magic_experiment_names']=magic_experiment_names                
                     
-                #MagIC_results_data['pmag_specimens'][specimen]['magic_instrument_codes']=""               
                 MagIC_results_data['pmag_specimens'][specimen]['measurement_step_unit']='K'
                 MagIC_results_data['pmag_specimens'][specimen]['specimen_lab_field_dc']="%.2e"%(self.Data[specimen]['pars']['lab_dc_field'])
                 MagIC_results_data['pmag_specimens'][specimen]['specimen_correction']=self.Data[specimen]['pars']['specimen_correction']
                 for key in pmag_specimens_header_4:
-                    #print key
                     if key in ['specimen_int_ptrm_n','specimen_int_n']:
                         MagIC_results_data['pmag_specimens'][specimen][key]="%i"%(self.Data[specimen]['pars'][key])     
                     elif key in ['specimen_scat'] and self.Data[specimen]['pars'][key]=="Fail":                            
@@ -4682,25 +4677,40 @@ class Arai_GUI(wx.Frame):
             String=String+key+"\t"
         fout.write(String[:-1]+"\n")
         for specimen in specimens_list:
-            #print "specimen",specimen
             String=""
             for key in headers:
                 String=String+MagIC_results_data['pmag_specimens'][specimen][key]+"\t"
-            #print "String",String
             fout.write(String[:-1]+"\n")
         fout.close()    
         
         
         # merge with non-intensity data
+        # read the new pmag_specimens.txt
         meas_data,file_type=pmag.magic_read(os.path.join(self.WD, "pmag_specimens.txt"))
+        # add the old non-PI lines from pmag_specimens.txt
         for rec in PmagRecsOld["pmag_specimens.txt"]:
             meas_data.append(rec)
+        # fix headers, so all headers in all lines
         meas_data=self.converge_pmag_rec_headers(meas_data)
+        # write the combined pmag_specimens.txt
         pmag.magic_write(os.path.join(self.WD, "pmag_specimens.txt"),meas_data,'pmag_specimens')
         try:
             os.remove(os.path.join(self.WD, "pmag_specimens.txt.backup"))
         except:
             pass 
+
+        #-------------
+        # message dialog
+        #-------------
+        TEXT="specimens interpretations are saved in pmag_specimens.txt.\nPress OK for pmag_samples/pmag_sites/pmag_results tables."
+        dlg = wx.MessageDialog(self, caption="Saved",message=TEXT,style=wx.OK|wx.CANCEL )
+        result = dlg.ShowModal()
+        if result == wx.ID_OK:            
+            dlg.Destroy()
+        if result == wx.ID_CANCEL:            
+            dlg.Destroy()
+            return()
+                
         #-------------
         # pmag_samples.txt or pmag_sites.txt
         #-------------
@@ -4778,11 +4788,12 @@ class Arai_GUI(wx.Frame):
                     MagIC_results_data['pmag_samples_or_sites'][sample_or_site][name+'description']="paleointensity mean"
                     for key in pmag_samples_header_1:
                         if BY_SAMPLES:
-                            MagIC_results_data['pmag_samples_or_sites'][sample_or_site][key]=self.MagIC_model["er_samples"][sample_or_site][key]
+                            #MagIC_results_data['pmag_samples_or_sites'][sample_or_site][key]=self.MagIC_model["er_samples"][sample_or_site][key]
+                            MagIC_results_data['pmag_samples_or_sites'][sample_or_site][key]=sample_or_site
                         else:
-                            MagIC_results_data['pmag_samples_or_sites'][sample_or_site][key]=self.MagIC_model["er_sites"][sample_or_site][key]
-                            
-                    
+                            #MagIC_results_data['pmag_samples_or_sites'][sample_or_site][key]=self.MagIC_model["er_sites"][sample_or_site][key]
+                            MagIC_results_data['pmag_samples_or_sites'][sample_or_site][key]=sample_or_site
+                                                
                     MagIC_results_data['pmag_samples_or_sites'][sample_or_site]["pmag_criteria_codes"]=""
                     MagIC_results_data['pmag_samples_or_sites'][sample_or_site]['magic_method_codes']=magic_codes
                     MagIC_results_data['pmag_samples_or_sites'][sample_or_site]["magic_software_packages"]=version
@@ -4902,16 +4913,10 @@ class Arai_GUI(wx.Frame):
 
             site=MagIC_results_data['pmag_results'][sample_or_site]["er_site_names"]
             lat,lon="",""
-            try:
-                lat=self.MagIC_model["er_sites"][site]["site_lat"]
-                MagIC_results_data['pmag_results'][sample_or_site]["average_lat"]=lat
-            except:
-                self.GUI_log.write( "-E- MagIC model error: cant find latitude for site %s, sample/site %s\n"%(site,sample_or_site))
-            try:    
-                lon=self.MagIC_model["er_sites"][site]["site_lon"]
-                MagIC_results_data['pmag_results'][sample_or_site]["average_lon"]=lon
-            except:
-                self.GUI_log.write( "-E- MagIC model error: cant find longitude for site %s, sample/site %s\n"%(site,sample_or_site))
+            if site in self.Data_info["er_sites"].keys() and "site_lat" in self.Data_info["er_sites"].keys():
+                MagIC_results_data['pmag_results'][sample_or_site]["average_lat"]=self.Data_info["er_sites"][site]["site_lat"]
+            if site in self.Data_info["er_sites"].keys() and "site_lon" in self.Data_info["er_sites"].keys():
+                MagIC_results_data['pmag_results'][sample_or_site]["average_lon"]=self.Data_info["er_sites"][site]["site_lon"]
 
             MagIC_results_data['pmag_results'][sample_or_site]["average_lat"]=lat
             MagIC_results_data['pmag_results'][sample_or_site]["average_lon"]=lon
@@ -4969,7 +4974,7 @@ class Arai_GUI(wx.Frame):
                 found_age=True
             if found_age:
                 for header in ["age","age_unit","age_sigma","age_range_low","age_range_high"]:
-                    if header in self.Data_info["er_ages"][sample_or_site_with_age].keys():
+                    if  sample_or_site_with_age in self.Data_info["er_ages"].keys() and  header in self.Data_info["er_ages"][sample_or_site_with_age].keys():
                         if self.Data_info["er_ages"][sample_or_site_with_age][header]!="":
                             value=self.Data_info["er_ages"][sample_or_site_with_age][header]
                             header_result="average_"+header
@@ -5000,17 +5005,22 @@ class Arai_GUI(wx.Frame):
                 found_age=True
             else:
                 continue
-            foundkeys=False                                              
+            if not found_age:
+                continue
+            foundkeys=False       
+            print    "element_with_age",element_with_age                                    
             for key in ['age','age_sigma','age_range_low','age_range_high','age_unit']:
-                if key in  self.Data_info["er_ages"][element_with_age].keys():
-                    if  self.Data_info["er_ages"][element_with_age][key] !="":
-                        MagIC_results_data['pmag_results'][sample_or_site][key]=self.Data_info["er_ages"][element_with_age][key]
-                        foundkeys=True
+                if "er_ages" in self.Data_info.keys() and element_with_age in self.Data_info["er_ages"].keys():
+                    if key in  self.Data_info["er_ages"][element_with_age].keys():
+                        if  self.Data_info["er_ages"][element_with_age][key] !="":
+                            MagIC_results_data['pmag_results'][sample_or_site][key]=self.Data_info["er_ages"][element_with_age][key]
+                            foundkeys=True
             if foundkeys==True:
-                if 'magic_method_codes' in self.Data_info["er_ages"][element_with_age].keys():
-                    methods= self.Data_info["er_ages"][element_with_age]['magic_method_codes'].replace(" ","").strip('\n').split(":")
-                    for meth in methods:
-                        MagIC_results_data['pmag_results'][sample_or_site]["magic_method_codes"]=MagIC_results_data['pmag_results'][sample_or_site]["magic_method_codes"] + ":"+ meth
+                if "er_ages" in self.Data_info.keys() and element_with_age in self.Data_info["er_ages"].keys():
+                    if 'magic_method_codes' in self.Data_info["er_ages"][element_with_age].keys():
+                        methods= self.Data_info["er_ages"][element_with_age]['magic_method_codes'].replace(" ","").strip('\n').split(":")
+                        for meth in methods:
+                            MagIC_results_data['pmag_results'][sample_or_site]["magic_method_codes"]=MagIC_results_data['pmag_results'][sample_or_site]["magic_method_codes"] + ":"+ meth
                              
                            
         # wrire pmag_results.txt
@@ -5094,7 +5104,8 @@ class Arai_GUI(wx.Frame):
         dlg1.ShowModal()
         dlg1.Destroy()
         
-        self.close_warning=False       
+        self.close_warning=False  
+             
     def converge_pmag_rec_headers(self,old_recs):
         # fix the headers of pmag recs
         recs={}
@@ -5109,9 +5120,11 @@ class Arai_GUI(wx.Frame):
                 if header not in rec.keys():
                     rec[header]=""
         return recs
-                
+    
+    '''outdated            
     def read_magic_model (self):
         # Read MagIC Data model:
+        
 
         self.MagIC_model={}
         self.MagIC_model["specimens"]={}
@@ -5152,7 +5165,7 @@ class Arai_GUI(wx.Frame):
             self.GUI_log.write ("-W- Cant find er_ages.txt in project directory")
             pass
 
-        return (fail)
+        return (fail)'''
         
                           
     def read_magic_file(self,path,ignore_lines_n,sort_by_this_name):
@@ -7513,6 +7526,7 @@ class Arai_GUI(wx.Frame):
       # All data information is stored in Data[secimen]={}
       Data={}
       Data_hierarchy={}
+      Data_hierarchy['locations']={}
       Data_hierarchy['sites']={}
       Data_hierarchy['samples']={}
       Data_hierarchy['specimens']={}
@@ -7563,6 +7577,9 @@ class Arai_GUI(wx.Frame):
           Data[s]['T_or_MW']="T"
           sample=rec["er_sample_name"]
           site=rec["er_site_name"]
+          location=""
+          if "er_location_name" in rec.keys():
+            location=rec["er_location_name"]   
 
           if  "LP-PI-M" in rec["magic_method_codes"]:
              Data[s]['T_or_MW']="MW"
@@ -7603,7 +7620,7 @@ class Arai_GUI(wx.Frame):
 
           #---- Zijderveld block
 
-          EX=["LP-AN-ARM","LP-AN-TRM","LP-ARM-AFD","LP-ARM2-AFD","LP-TRM-AFD","LP-TRM","LP-TRM-TD","LP-X"] # list of excluded lab protocols
+          EX=["LP-AN-ARM","LP-AN-TRM","LP-ARM-AFD","LP-ARM2-AFD","LP-TRM-AFD","LP-TRM","LP-TRM-TD","LP-X","LP-CR-TRM"] # list of excluded lab protocols
           #INC=["LT-NO","LT-AF-Z","LT-T-Z", "LT-M-Z", "LP-PI-TRM-IZ", "LP-PI-M-IZ"]
           INC=["LT-NO","LT-T-Z","LT-M-Z","LT-AF-Z"]
           methods=rec["magic_method_codes"].strip('\n').split(":")
@@ -7666,12 +7683,18 @@ class Arai_GUI(wx.Frame):
 
           if site not in Data_hierarchy['sites'].keys():
               Data_hierarchy['sites'][site]=[]         
+
+          if location not in Data_hierarchy['locations'].keys():
+              Data_hierarchy['locations'][location]=[]         
           
           if s not in Data_hierarchy['samples'][sample]:
               Data_hierarchy['samples'][sample].append(s)
 
           if sample not in Data_hierarchy['sites'][site]:
               Data_hierarchy['sites'][site].append(sample)
+
+          if site not in Data_hierarchy['locations'][location]:
+              Data_hierarchy['locations'][location].append(site)
 
           Data_hierarchy['specimens'][s]=sample
           Data_hierarchy['sample_of_specimen'][s]=sample  

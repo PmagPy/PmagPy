@@ -7,6 +7,7 @@ assorted wxPython custom widgets
 import os
 import wx
 import wx.html
+import controlled_vocabularies as vocabulary
 
 
 # library for commonly used widgets.
@@ -446,7 +447,7 @@ class synthetic(wx.StaticBoxSizer):
 
 
 class experiment_type(wx.StaticBoxSizer):
-    exp_names = ('AF Demag', 'Thermal (includes thellier but not trm)', 'Shaw method', 'IRM (acquisition)', '3D IRM experiment', 'NRM only', 'TRM acquisition', 'double AF demag', 'triple AF demag (GRM protocol)', 'Cooling rate experiment')
+    exp_names = ('AF Demag', 'Thermal (includes thellier but not trm)', 'Shaw method', 'IRM (acquisition)', '3D IRM experiment', 'NRM only', 'TRM acquisition', 'double AF demag', 'triple AF demag (GRM protocol)', 'Cooling rate experiment', 'anisotropy experiment')
 
     def __init__(self, parent, experiment_names=exp_names):
         box = wx.StaticBox(parent, wx.ID_ANY, "")
@@ -473,7 +474,7 @@ class experiment_type(wx.StaticBoxSizer):
                 checked.append(str(cb.Label))
         if not checked:
             return ''
-        experiment_key = {'AF Demag': 'AF', 'Thermal (includes thellier but not trm)': 'T', 'Shaw method': 'S', 'IRM (acquisition)': 'I', '3D IRM experiment': 'I3d', 'NRM only': 'N', 'TRM acquisition': 'TRM', 'anisotropy experiment': 'ANI', 'double AF demag': 'D', 'triple AF demag (GRM protocol)': 'G', 'Cooling rate experiment': 'CR', 'Anisotropy experiment': 'ANI'}
+        experiment_key = {'AF Demag': 'AF', 'Thermal (includes thellier but not trm)': 'T', 'Shaw method': 'S', 'IRM (acquisition)': 'I', '3D IRM experiment': 'I3d', 'NRM only': 'N', 'TRM acquisition': 'TRM', 'anisotropy experiment': 'ANI', 'double AF demag': 'D', 'triple AF demag (GRM protocol)': 'G', 'Cooling rate experiment': 'CR'}
         experiment_string = ''
         for ex in checked:
             experiment_string += experiment_key[ex] + ':'
@@ -493,7 +494,7 @@ class hbox_grid(wx.BoxSizer):
         self.deleteRowButton.Disable()
         self.Add(self.deleteRowButton, flag=wx.ALIGN_LEFT)
 
-    
+
 class btn_panel(wx.BoxSizer):
 
     def __init__(self, SELF, panel):
@@ -595,7 +596,7 @@ class YesNoCancelDialog(wx.Dialog):
         text_box = wx.StaticBoxSizer(wx.StaticBox(self, wx.ID_ANY), wx.VERTICAL)
         text = wx.StaticText(self, label=msg)
         text_box.Add(text)
-        
+
         hbox = wx.BoxSizer(wx.HORIZONTAL)
         btn_yes = wx.Button(self, wx.ID_ANY, label="Write and exit grid")
         btn_no = wx.Button(self, wx.ID_ANY, label="Exit grid")
@@ -621,8 +622,8 @@ class YesNoCancelDialog(wx.Dialog):
     def on_btn_yes(self, event):
         self.Destroy()
         self.EndModal(wx.ID_YES)
-        
-        
+
+
 class TextDialog(wx.Dialog):
     """
     Dialog window that returns a text string provided by user on ok button
@@ -650,7 +651,7 @@ class HeaderDialog(wx.Dialog):
     """
     Dialog window with one or two listboxes with items.
     As user clicks or double clicks, items are added to or removed from the selection,
-    which is displayed in a text control.  
+    which is displayed in a text control.
     """
     def __init__(self, parent, label, items1=None, items2=None):
         super(HeaderDialog, self).__init__(parent, title='Choose headers', size=(500, 500))
@@ -677,7 +678,7 @@ class HeaderDialog(wx.Dialog):
                                      wx.HORIZONTAL)
         self.text_ctrl = wx.TextCtrl(self, id=-1, style=wx.TE_MULTILINE|wx.TE_READONLY, size=(420, 100))
         text_sizer.Add(self.text_ctrl)
-            
+
         btn_ok = wx.Button(self, wx.ID_OK, label="OK")
         btn_ok.SetDefault()
         btn_cancel = wx.Button(self, wx.ID_CANCEL, label="Cancel")
@@ -703,7 +704,7 @@ class HeaderDialog(wx.Dialog):
         display_string = ', '.join(self.text_list)
         self.text_ctrl.SetValue(display_string)
 
-        
+
 class ComboboxDialog(wx.Dialog):
     """
     Dialog window that returns a text string provided by selection from combobox
@@ -783,6 +784,46 @@ class AddItem(wx.Frame):
         self.Destroy()
 
 
+class MethodCodeDemystifier(wx.StaticBoxSizer):
+
+    def __init__(self, parent):
+        self.box = wx.StaticBox(parent, wx.ID_ANY, "")
+        super(MethodCodeDemystifier, self).__init__(self.box, orient=wx.VERTICAL)
+        grid_sizer = wx.GridSizer(0, 5, 3, 3)
+        types = vocabulary.code_types.index
+        types = vocabulary.code_types['label']
+        type_ind = vocabulary.code_types.index
+
+        for method_type in types:
+            name = str(vocabulary.code_types[vocabulary.code_types.label == method_type].index[0])
+            # make button & add to sizer
+            btn = wx.Button(parent, label=method_type, name=name)
+            grid_sizer.Add(btn, 0, wx.EXPAND)
+            parent.Bind(wx.EVT_BUTTON, self.on_code_button, btn)
+
+        self.Add(grid_sizer)
+        width, height = grid_sizer.Size
+        #init_codes = vocabulary.get_one_meth_type('anisotropy_estimation', vocabulary.all_codes)
+        #init_text = '\t'.join(init_codes.index)
+        self.descriptions = wx.TextCtrl(parent, size=(800, 140), style=wx.TE_READONLY|wx.TE_MULTILINE|wx.HSCROLL)#, value=init_text)
+        self.Add(self.descriptions, flag=wx.ALIGN_CENTRE|wx.ALL, border=10)
+        self.on_code_button(None, 'anisotropy_estimation')
+
+    def on_code_button(self, event=None, meth_type=None):
+        if not event and not meth_type:
+            return
+        if not event:
+            code_name = meth_type
+        else:
+            btn = event.EventObject
+            code_name = btn.Name
+        meth_type = vocabulary.get_one_meth_type(code_name, vocabulary.all_codes)['definition']
+        str_meths = [ind + " :  " + (meth_type[ind] or 'No description available') for ind in meth_type.index]
+        res = '\n'.join(str_meths)
+        self.descriptions.SetValue(res)
+
+
+
 # methods!
 
 def on_add_dir_button(SELF, text):
@@ -858,7 +899,7 @@ def run_command_and_close_window(SELF, command, outfile):
     os.system(command)
     if not outfile:
         outfile = ''
-    msg = "file(s) converted to MagIC format file:\n%s.\n\n See Termimal (Mac) or command prompt (windows) for errors"% outfile
+    msg = "file(s) converted to MagIC format file:\n%s.\n\nSee Terminal (Mac) or command prompt (Windows) for errors"% outfile
     dlg = wx.MessageDialog(None, caption="Message:", message=msg, style=wx.OK|wx.ICON_INFORMATION)
     dlg.ShowModal()
     dlg.Destroy()
@@ -869,7 +910,7 @@ def close_window(SELF, command, outfile):
     print "-I- Finished running equivalent to Python command:\n %s"%command
     if not outfile:
         outfile = ''
-    msg = "file(s) converted to MagIC format file:\n%s.\n\n See Termimal (Mac) or command prompt (windows) for errors"% outfile
+    msg = "file(s) converted to MagIC format file:\n%s.\n\nSee Terminal (Mac) or command prompt (Windows) for errors"% outfile
     dlg = wx.MessageDialog(None, caption="Message:", message=msg, style=wx.OK|wx.ICON_INFORMATION)
     dlg.ShowModal()
     dlg.Destroy()

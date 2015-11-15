@@ -25,27 +25,27 @@ def main():
         -n NB  number of bootstrap samples [default is 1000]
         -fmt FMT, specify format - default is svg
         -sav  save figures and quit
-    
+
     OUTPUT PLOTS
-        Geographic: is an equal area projection of the input data in 
+        Geographic: is an equal area projection of the input data in
                     original coordinates
-        Stratigraphic: is an equal area projection of the input data in 
+        Stratigraphic: is an equal area projection of the input data in
                     tilt adjusted coordinates
-        % Untilting: The dashed (red) curves are representative plots of 
+        % Untilting: The dashed (red) curves are representative plots of
                     maximum eigenvalue (tau_1) as a function of untilting
                     The solid line is the cumulative distribution of the
-                    % Untilting required to maximize tau for all the 
+                    % Untilting required to maximize tau for all the
                     bootstrapped data sets.  The dashed vertical lines
-                    are 95% confidence bounds on the % untilting that yields 
-                   the most clustered result (maximum tau_1).  
+                    are 95% confidence bounds on the % untilting that yields
+                   the most clustered result (maximum tau_1).
         Command line: prints out the bootstrapped iterations and
                    finally the confidence bounds on optimum untilting.
         If the 95% conf bounds include 0, then a post-tilt magnetization is indicated
         If the 95% conf bounds include 100, then a pre-tilt magnetization is indicated
         If the 95% conf bounds exclude both 0 and 100, syn-tilt magnetization is
                 possible as is vertical axis rotation or other pathologies
-        Geographic: is an equal area projection of the input data in 
-    
+        Geographic: is an equal area projection of the input data in
+
     OPTIONAL OUTPUT FILE:
        The output file has the % untilting within the 95% confidence bounds
 nd the number of bootstrap samples
@@ -64,7 +64,7 @@ nd the number of bootstrap samples
         outfile=""
     if '-f' in sys.argv:
         ind=sys.argv.index('-f')
-        file=sys.argv[ind+1] 
+        file=sys.argv[ind+1]
         DIDDs=numpy.loadtxt(file)
     else:
         print main.__doc__
@@ -75,8 +75,8 @@ nd the number of bootstrap samples
     if '-sav' in sys.argv:plot=1
     if '-b' in sys.argv:
         ind=sys.argv.index('-b')
-        min=float(sys.argv[ind+1])
-        max=float(sys.argv[ind+2])
+        min=int(sys.argv[ind+1])
+        max=int(sys.argv[ind+2])
     if '-n' in sys.argv:
         ind=sys.argv.index('-n')
         nb=int(sys.argv[ind+1])
@@ -108,7 +108,7 @@ nd the number of bootstrap samples
                 for k in range(len(PDs)):
                     d,i=pmag.fshdev(kappa)
                     dipdir,dip=pmag.dodirot(d,i,PDs[k][2],PDs[k][3])
-                    PDs[k][2]=dipdir            
+                    PDs[k][2]=dipdir
                     PDs[k][3]=dip
             for perc in Percs:
                 tilt=numpy.array([1.,1.,1.,0.01*perc])
@@ -124,7 +124,7 @@ nd the number of bootstrap samples
     pylab.ylabel('tau_1 (red), CDF (green)')
     Untilt.sort() # now for CDF of tilt of maximum tau
     pylab.plot(Untilt,Cdf,'g')
-    lower=int(.025*nb)     
+    lower=int(.025*nb)
     upper=int(.975*nb)
     pylab.axvline(x=Untilt[lower],ymin=0,ymax=1,linewidth=1,linestyle='--')
     pylab.axvline(x=Untilt[upper],ymin=0,ymax=1,linewidth=1,linestyle='--')
