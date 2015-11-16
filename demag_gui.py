@@ -837,6 +837,7 @@ class Zeq_GUI(wx.Frame):
         If mouse is over data point making it selectable change the shape of the cursor
         @param: event -> the wx Mouseevent for that click
         """
+        if self.interpretation_editor_open and self.interpretation_editor.show_box.GetValue() != "specimens": return
         pos=event.GetPosition()
         width, height = self.canvas4.get_width_height()
         pos[1] = height - pos[1]
@@ -893,6 +894,7 @@ class Zeq_GUI(wx.Frame):
         @param: event -> the wx Mouseevent for that click
         @alters: current_fit, s, mean_fit, fit_box selection, mean_fit_box selection, specimens_box selection, tmin_box selection, tmax_box selection,
         """
+        if self.interpretation_editor_open and self.interpretation_editor.show_box.GetValue() != "specimens": return
         if not self.higher_EA_xdata or not self.higher_EA_ydata: return
         pos=event.GetPosition()
         width, height = self.canvas4.get_width_height()
@@ -5130,7 +5132,7 @@ class Zeq_GUI(wx.Frame):
                 if (self.Data[specimen]['zijdblock_steps'][tmin_index+1] == tmin):
                     tmin_index += 1
                 else:
-                    print("For specimen " + specimen + " there are no good measurement steps with value - " + tmin)
+                    print("For specimen " + str(specimen) + " there are no good measurement steps with value - " + str(tmin))
                     break
 
         if (tmax_index < max_index):
@@ -5139,7 +5141,7 @@ class Zeq_GUI(wx.Frame):
                 if (self.Data[specimen]['zijdblock_steps'][tmax_index+1] == tmax):
                     tmax_index += 1
                 else:
-                    print("For specimen " + specimen + " there are no good measurement steps with value - " + tmax)
+                    print("For specimen " + str(specimen) + " there are no good measurement steps with value - " + str(tmax))
                     break
 
         if (tmin_index < 0): tmin_index = 0
@@ -5654,6 +5656,8 @@ class EditFitFrame(wx.Frame):
             entry = (specimen+name+fmin+fmax+n+ftype+dec+inc+mad).lower()
             if self.search_query not in entry:
                 self.fit_list.pop(i)
+                if i < self.logger.GetItemCount():
+                    self.logger.DeleteItem(i)
                 return "s"
         for e in (specimen,name,fmin,fmax,n,ftype,dec,inc,mad):
             if e not in self.search_choices:
@@ -5696,6 +5700,7 @@ class EditFitFrame(wx.Frame):
         if no parameters are passed in it sets first fit as current and complains.
         @param: new_fit -> fit object to highlight as selected
         """
+        if self.search_query and self.parent.current_fit not in map(lambda x: x[0], self.fit_list): return
         if self.current_fit_index == None:
             if not self.parent.current_fit: return
             for i,(fit,specimen) in enumerate(self.fit_list):
@@ -6000,6 +6005,7 @@ class EditFitFrame(wx.Frame):
         new_tmax = self.tmax_box.GetValue()
 
         next_i = -1
+        changed_i = []
         while True:
             next_i = self.logger.GetNextSelected(next_i)
             if next_i == -1:
@@ -6018,7 +6024,14 @@ class EditFitFrame(wx.Frame):
                 if fit == self.parent.current_fit:
                     self.parent.tmax_box.SetStringSelection(new_tmax)
                 fit.put(specimen,self.parent.COORDINATE_SYSTEM, self.parent.get_PCA_parameters(specimen,fit.tmin,new_tmax,self.parent.COORDINATE_SYSTEM,fit.PCA_type))
-            self.update_logger_entry(next_i)
+                changed_i.append(next_i)
+
+        offset = 0
+        for i in changed_i:
+            i -= offset
+            v = self.update_logger_entry(i)
+            if v == "s":
+                offset += 1
 
         self.parent.update_selection()
 
@@ -6037,6 +6050,7 @@ class EditFitFrame(wx.Frame):
         If mouse is over data point making it selectable change the shape of the cursor
         @param: event -> the wx Mouseevent for that click
         """
+        if self.show_box.GetValue() != "specimens": return
         pos=event.GetPosition()
         width, height = self.canvas.get_width_height()
         pos[1] = height - pos[1]
