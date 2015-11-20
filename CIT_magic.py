@@ -265,8 +265,6 @@ def main(command_line=True, **kwargs):
 
             treat_type=line[0:3]
             treat=line[3:6]
-            AF_treat = line[2:6]
-            AF_treat_type=line[0:2]
             #print 'treat:', treat
             if treat_type.strip()=='NRM':
                 MeasRec['magic_method_codes']='LT-NO'
@@ -274,7 +272,7 @@ def main(command_line=True, **kwargs):
                 MeasRec['treatment_temp']='273'
                 MeasRec['treatment_dc_field']='0'
                 MeasRec['treatment_ac_field']='0'
-            elif treat_type.strip()=='AFz':
+            elif treat_type.strip()=='AF':
                 MeasRec['magic_method_codes']='LT-AF-Z'
                 MeasRec['measurement_temp']='273'
                 MeasRec['treatment_temp']='273'
@@ -283,15 +281,6 @@ def main(command_line=True, **kwargs):
                     MeasRec['treatment_ac_field']='0'
                 else:
                     MeasRec['treatment_ac_field']='%10.3e'%(float(treat)*1e-3)
-            elif AF_treat_type.strip()=='AF':
-                MeasRec['magic_method_codes']='LT-AF-Z'
-                MeasRec['measurement_temp']='273'
-                MeasRec['treatment_temp']='273'
-                MeasRec['treatment_dc_field']='0'
-                if treat == '   ':
-                    MeasRec['treatment_ac_field']='0'
-                else:
-                    MeasRec['treatment_ac_field']='%10.3e'%(float(AF_treat)*1e-3)
             elif treat_type.strip()=='TT':
                 MeasRec['magic_method_codes']='LT-T-Z'
                 MeasRec['measurement_temp']='273'
