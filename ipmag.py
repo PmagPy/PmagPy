@@ -5,7 +5,7 @@ import pylab
 import numpy as np
 import random
 import matplotlib
-import matplotlib.pyplot as pyplot
+import matplotlib.pyplot as plt
 import os
 import sys
 import time
@@ -157,24 +157,24 @@ def bootstrap_fold_test(Data,num_sims=1000,min_untilt=-10,max_untilt=120,bedding
     else:
         kappa=0
 
-    pyplot.figure(figsize=[5,5])
+    plt.figure(figsize=[5,5])
     plot_net(1)
     pmagplotlib.plotDI(1,Data)  # plot directions
-    pyplot.text(-1.1,1.15,'Geographic')
+    plt.text(-1.1,1.15,'Geographic')
 
     D,I=pmag.dotilt_V(Data)
     TCs=np.array([D,I]).transpose()
 
-    pyplot.figure(figsize=[5,5])
+    plt.figure(figsize=[5,5])
     plot_net(2)
     pmagplotlib.plotDI(2,TCs)  # plot directions
-    pyplot.text(-1.1,1.15,'Tilt-corrected')
-    pyplot.show()
+    plt.text(-1.1,1.15,'Tilt-corrected')
+    plt.show()
 
     Percs = range(min_untilt,max_untilt)
     Cdf = []
     Untilt = []
-    pyplot.figure()
+    plt.figure()
 
     for n in range(num_sims): # do bootstrap data sets - plot first 25 as dashed red line
             #if n%50==0:print n
@@ -192,26 +192,26 @@ def bootstrap_fold_test(Data,num_sims=1000,min_untilt=-10,max_untilt=120,bedding
                 TCs=np.array([D,I]).transpose()
                 ppars=pmag.doprinc(TCs) # get principal directions
                 Taus.append(ppars['tau1'])
-            if n<25:pyplot.plot(Percs,Taus,'r--')
+            if n<25:plt.plot(Percs,Taus,'r--')
             Untilt.append(Percs[Taus.index(np.max(Taus))]) # tilt that gives maximum tau
             Cdf.append(float(n)/float(num_sims))
-    pyplot.plot(Percs,Taus,'k')
-    pyplot.xlabel('% Untilting')
-    pyplot.ylabel('tau_1 (red), CDF (green)')
+    plt.plot(Percs,Taus,'k')
+    plt.xlabel('% Untilting')
+    plt.ylabel('tau_1 (red), CDF (green)')
     Untilt.sort() # now for CDF of tilt of maximum tau
-    pyplot.plot(Untilt,Cdf,'g')
+    plt.plot(Untilt,Cdf,'g')
     lower=int(.025*num_sims)
     upper=int(.975*num_sims)
-    pyplot.axvline(x=Untilt[lower],ymin=0,ymax=1,linewidth=1,linestyle='--')
-    pyplot.axvline(x=Untilt[upper],ymin=0,ymax=1,linewidth=1,linestyle='--')
+    plt.axvline(x=Untilt[lower],ymin=0,ymax=1,linewidth=1,linestyle='--')
+    plt.axvline(x=Untilt[upper],ymin=0,ymax=1,linewidth=1,linestyle='--')
     title = '%i - %i %s'%(Untilt[lower],Untilt[upper],'percent unfolding')
     print ""
     print 'tightest grouping of vectors obtained at (95% confidence bounds):'
     print title
     print 'range of all bootstrap samples: '
     print Untilt[0], ' - ', Untilt[-1],'percent unfolding'
-    pyplot.title(title)
-    pyplot.show()
+    plt.title(title)
+    plt.show()
 
 
 def bootstrap_common_mean(Data1,Data2,NumSims=1000):
@@ -245,8 +245,8 @@ def bootstrap_common_mean(Data1,Data2,NumSims=1000):
     print "Here are the results of the bootstrap test for a common mean:"
 
     fignum = 1
-    fig = pyplot.figure(figsize=(9,3))
-    fig = pyplot.subplot(1,3,1)
+    fig = plt.figure(figsize=(9,3))
+    fig = plt.subplot(1,3,1)
 
     minimum = int(0.025*len(X1))
     maximum = int(0.975*len(X1))
@@ -258,9 +258,9 @@ def bootstrap_common_mean(Data1,Data2,NumSims=1000):
     X2,y=pmagplotlib.plotCDF(fignum,X2,"X component",'b',"")
     bounds2=[X2[minimum],X2[maximum]]
     pmagplotlib.plotVs(fignum,bounds2,'b','--')
-    pyplot.ylim(0,1)
+    plt.ylim(0,1)
 
-    pyplot.subplot(1,3,2)
+    plt.subplot(1,3,2)
 
     Y1,y=pmagplotlib.plotCDF(fignum,Y1,"Y component",'r',"")
     bounds1=[Y1[minimum],Y1[maximum]]
@@ -269,9 +269,9 @@ def bootstrap_common_mean(Data1,Data2,NumSims=1000):
     Y2,y=pmagplotlib.plotCDF(fignum,Y2,"Y component",'b',"")
     bounds2=[Y2[minimum],Y2[maximum]]
     pmagplotlib.plotVs(fignum,bounds2,'b','--')
-    pyplot.ylim(0,1)
+    plt.ylim(0,1)
 
-    pylot.subplot(1,3,3)
+    plt.subplot(1,3,3)
 
     Z1,y=pmagplotlib.plotCDF(fignum,Z1,"Z component",'r',"")
     bounds1=[Z1[minimum],Z1[maximum]]
@@ -280,10 +280,10 @@ def bootstrap_common_mean(Data1,Data2,NumSims=1000):
     Z2,y=pmagplotlib.plotCDF(fignum,Z2,"Z component",'b',"")
     bounds2=[Z2[minimum],Z2[maximum]]
     pmagplotlib.plotVs(fignum,bounds2,'b','--')
-    pyplot.ylim(0,1)
+    plt.ylim(0,1)
 
-    pyplot.tight_layout()
-    pyplot.show()
+    plt.tight_layout()
+    plt.show()
 
 
 def watson_common_mean(Data1,Data2,NumSims=5000,plot='no'):
@@ -627,7 +627,7 @@ def plot_di(dec,inc,color='k',marker='o',markersize=20,legend='no',label=''):
     Before this function is called a plot needs to be initialized with code that looks
     something like:
     >fignum = 1
-    >pyplot.figure(num=fignum,figsize=(10,10),dpi=160)
+    >plt.figure(num=fignum,figsize=(10,10),dpi=160)
     >ipmag.plot_net(fignum)
 
     Required Arguments
@@ -657,15 +657,15 @@ def plot_di(dec,inc,color='k',marker='o',markersize=20,legend='no',label=''):
             Y_up.append(XY[1])
 
     if len(X_up)>0:
-        pyplot.scatter(X_up,Y_up,facecolors='none', edgecolors=color,
+        plt.scatter(X_up,Y_up,facecolors='none', edgecolors=color,
                     s=markersize, marker=marker, label=label)
 
     if len(X_down)>0:
-        pyplot.scatter(X_down,Y_down,facecolors=color, edgecolors=color,
+        plt.scatter(X_down,Y_down,facecolors=color, edgecolors=color,
                     s=markersize, marker=marker, label=label)
     if legend=='yes':
-        pyplot.legend(loc=2)
-    pyplot.tight_layout()
+        plt.legend(loc=2)
+    plt.tight_layout()
 
 
 def plot_di_mean(Dec,Inc,a95,color='k',marker='o',markersize=20,label='',legend='no'):
@@ -675,7 +675,7 @@ def plot_di_mean(Dec,Inc,a95,color='k',marker='o',markersize=20,label='',legend=
     Before this function is called a plot needs to be initialized with code that looks
     something like:
     >fignum = 1
-    >pyplot.figure(num=fignum,figsize=(10,10),dpi=160)
+    >plt.figure(num=fignum,figsize=(10,10),dpi=160)
     >ipmag.plot_net(fignum)
 
     Required Arguments
@@ -694,19 +694,19 @@ def plot_di_mean(Dec,Inc,a95,color='k',marker='o',markersize=20,label='',legend=
     """
     DI_dimap=pmag.dimap(Dec,Inc)
     if Inc < 0:
-        pyplot.scatter(DI_dimap[0],DI_dimap[1],edgecolor=color ,facecolor='white', marker=marker,s=markersize,label=label)
+        plt.scatter(DI_dimap[0],DI_dimap[1],edgecolor=color ,facecolor='white', marker=marker,s=markersize,label=label)
     if Inc >= 0:
-        pyplot.scatter(DI_dimap[0],DI_dimap[1],color=color,marker=marker,s=markersize,label=label)
+        plt.scatter(DI_dimap[0],DI_dimap[1],color=color,marker=marker,s=markersize,label=label)
     Xcirc,Ycirc=[],[]
     Da95,Ia95=pmag.circ(Dec,Inc,a95)
     if legend=='yes':
-        pyplot.legend(loc=2)
+        plt.legend(loc=2)
     for k in  range(len(Da95)):
         XY=pmag.dimap(Da95[k],Ia95[k])
         Xcirc.append(XY[0])
         Ycirc.append(XY[1])
-    pyplot.plot(Xcirc,Ycirc,color)
-    pyplot.tight_layout()
+    plt.plot(Xcirc,Ycirc,color)
+    plt.tight_layout()
 
 
 def plot_pole(mapname,plong,plat,A95,label='',color='k',marker='o',markersize=20,legend='no'):
@@ -1062,7 +1062,7 @@ def equi(m, centerlon, centerlat, radius, color):
     Y.append(Y[0])
 
     X,Y = m(X,Y)
-    pyplot.plot(X,Y,color)
+    plt.plot(X,Y,color)
 
 
 def equi_colormap(m, centerlon, centerlat, radius, color, alpha='1.0'):
@@ -1083,7 +1083,7 @@ def equi_colormap(m, centerlon, centerlat, radius, color, alpha='1.0'):
     Y.append(Y[0])
 
     X,Y = m(X,Y)
-    pyplot.plot(X,Y,color,alpha=alpha)
+    plt.plot(X,Y,color,alpha=alpha)
 
 
 def combine_magic(filenames, outfile):
@@ -1236,11 +1236,11 @@ def aniso_depthplot(ani_file='rmag_anisotropy.txt', meas_file='magic_measurement
         #dmax=dmax+.05*dmax
         #dmin=dmin-.05*dmax
 
-        main_plot = pyplot.figure(1,figsize=(10,8)) # make the figure
+        main_plot = plt.figure(1,figsize=(10,8)) # make the figure
 
         version_num=pmag.get_version()
-        pyplot.figtext(.02,.01,version_num) # attach the pmagpy version number
-        ax=pyplot.subplot(1,pcol,1) # make the first column
+        plt.figtext(.02,.01,version_num) # attach the pmagpy version number
+        ax=plt.subplot(1,pcol,1) # make the first column
         Axs.append(ax)
         ax.plot(Tau1,Depths,'rs')
         ax.plot(Tau2,Depths,'b^')
@@ -1250,7 +1250,7 @@ def aniso_depthplot(ani_file='rmag_anisotropy.txt', meas_file='magic_measurement
             for core in Cores:
                  depth=float(core[core_depth_key])
                  if depth>dmin and depth<dmax:
-                    pyplot.plot([0,90],[depth,depth],'b--')
+                    plt.plot([0,90],[depth,depth],'b--')
         ax.axis([tau_min,tau_max,dmax,dmin])
         ax.set_xlabel('Eigenvalues')
         if depth_scale=='sample_core_depth':
@@ -1259,7 +1259,7 @@ def aniso_depthplot(ani_file='rmag_anisotropy.txt', meas_file='magic_measurement
             ax.set_ylabel('Age ('+age_unit+')')
         else:
             ax.set_ylabel('Depth (mcd)')
-        ax2=pyplot.subplot(1,pcol,2) # make the second column
+        ax2=plt.subplot(1,pcol,2) # make the second column
         ax2.plot(P,Depths,'rs')
         ax2.axis([P_min,P_max,dmax,dmin])
         ax2.set_xlabel('P')
@@ -1268,9 +1268,9 @@ def aniso_depthplot(ani_file='rmag_anisotropy.txt', meas_file='magic_measurement
             for core in Cores:
                  depth=float(core[core_depth_key])
                  if depth>dmin and depth<dmax:
-                    pyplot.plot([0,90],[depth,depth],'b--')
+                    plt.plot([0,90],[depth,depth],'b--')
         Axs.append(ax2)
-        ax3=pyplot.subplot(1,pcol,3)
+        ax3=plt.subplot(1,pcol,3)
         Axs.append(ax3)
         ax3.plot(V3Incs,Depths,'ko')
         ax3.axis([0,90,dmax,dmin])
@@ -1279,8 +1279,8 @@ def aniso_depthplot(ani_file='rmag_anisotropy.txt', meas_file='magic_measurement
             for core in Cores:
                  depth=float(core[core_depth_key])
                  if depth>dmin and depth<dmax:
-                    pyplot.plot([0,90],[depth,depth],'b--')
-        ax4=pyplot.subplot(1,np.abs(pcol),4)
+                    plt.plot([0,90],[depth,depth],'b--')
+        ax4=plt.subplot(1,np.abs(pcol),4)
         Axs.append(ax4)
         ax4.plot(V1Decs,Depths,'rs')
         ax4.axis([0,360,dmax,dmin])
@@ -1289,9 +1289,9 @@ def aniso_depthplot(ani_file='rmag_anisotropy.txt', meas_file='magic_measurement
             for core in Cores:
                  depth=float(core[core_depth_key])
                  if depth>=dmin and depth<=dmax:
-                    pyplot.plot([0,360],[depth,depth],'b--')
-                    if pcol==4 and label==1:pyplot.text(360,depth+tint,core[core_label_key])
-        #ax5=pyplot.subplot(1,np.abs(pcol),5)
+                    plt.plot([0,360],[depth,depth],'b--')
+                    if pcol==4 and label==1:plt.text(360,depth+tint,core[core_label_key])
+        #ax5=plt.subplot(1,np.abs(pcol),5)
         #Axs.append(ax5)
         #ax5.plot(F23s,Depths,'rs')
         #bounds=ax5.axis()
@@ -1302,12 +1302,12 @@ def aniso_depthplot(ani_file='rmag_anisotropy.txt', meas_file='magic_measurement
         #    for core in Cores:
         #         depth=float(core[core_depth_key])
         #         if depth>=dmin and depth<=dmax:
-        #            pyplot.plot([bounds[0],bounds[1]],[depth,depth],'b--')
-        #            if pcol==5 and label==1:pyplot.text(bounds[1],depth+tint,core[core_label_key])
+        #            plt.plot([bounds[0],bounds[1]],[depth,depth],'b--')
+        #            if pcol==5 and label==1:plt.text(bounds[1],depth+tint,core[core_label_key])
         #if pcol==6:
         if pcol==5:
-            #ax6=pyplot.subplot(1,pcol,6)
-            ax6=pyplot.subplot(1,pcol,5)
+            #ax6=plt.subplot(1,pcol,6)
+            ax6=plt.subplot(1,pcol,5)
             Axs.append(ax6)
             ax6.plot(Bulks,BulkDepths,'bo')
             ax6.axis([bmin-1,1.1*bmax,dmax,dmin])
@@ -1316,8 +1316,8 @@ def aniso_depthplot(ani_file='rmag_anisotropy.txt', meas_file='magic_measurement
                 for core in Cores:
                      depth=float(core[core_depth_key])
                      if depth>=dmin and depth<=dmax:
-                        pyplot.plot([0,bmax],[depth,depth],'b--')
-                        if label==1:pyplot.text(1.1*bmax,depth+tint,core[core_label_key])
+                        plt.plot([0,bmax],[depth,depth],'b--')
+                        if label==1:plt.text(1.1*bmax,depth+tint,core[core_label_key])
         for x in Axs:
             pmagplotlib.delticks(x) # this makes the x-tick labels more reasonable - they were overcrowded using the defaults
         fig_name = location + '_ani_depthplot.' + fmt
@@ -1429,7 +1429,7 @@ def core_depthplot(input_dir_path='.', meas_file='magic_measurements.txt', spc_f
     spc_file = os.path.join(input_dir_path, spc_file)
     if age_file=="":
         samp_file = os.path.join(input_dir_path, samp_file)
-        Samps,file_type=pmag.magic_read(samp_file) 
+        Samps,file_type=pmag.magic_read(samp_file)
     else:
         depth_scale='age'
         age_file = os.path.join(input_dir_path, age_file)
@@ -1493,7 +1493,7 @@ def core_depthplot(input_dir_path='.', meas_file='magic_measurements.txt', spc_f
     samples=[]
     methods,steps,m2=[],[],[]
     if pltSus and os.path.isfile(meas_file): # plot the bulk measurement data
-        Meas,file_type=pmag.magic_read(meas_file) 
+        Meas,file_type=pmag.magic_read(meas_file)
         meas_key='measurement_magn_moment'
         print len(Meas), ' measurements read in from ',meas_file
         for m in intlist: # find the intensity key with data
@@ -1641,74 +1641,74 @@ def core_depthplot(input_dir_path='.', meas_file='magic_measurements.txt', spc_f
     plt=1
     #print 'Decs', len(Decs), 'Depths', len(Depths), 'SpecDecs', len(SpecDecs), 'SpecDepths', len(SpecDepths), 'ResDecs', len(ResDecs), 'ResDepths', len(ResDepths), 'SDecs', len(SDecs), 'SDepths', len(SDepths), 'SIincs', len(SIncs), 'Incs', len(Incs)
     if (Decs and Depths) or (SpecDecs and SpecDepths) or (ResDecs and ResDepths) or (SDecs and SDepths) or (SInts and SDepths) or (SIncs and SDepths) or (Incs and Depths):
-        main_plot = pyplot.figure(1,figsize=(width,8)) # this works
+        main_plot = plt.figure(1,figsize=(width,8)) # this works
         #pylab.figure(1,figsize=(width,8))
         version_num=pmag.get_version()
-        pyplot.figtext(.02,.01,version_num)
+        plt.figtext(.02,.01,version_num)
         if pltDec:
-            ax=pyplot.subplot(1,pcol,plt)
+            ax=plt.subplot(1,pcol,plt)
             if pltLine:
-                pyplot.plot(Decs,Depths,'k')
+                plt.plot(Decs,Depths,'k')
             if len(Decs)>0:
-                pyplot.plot(Decs,Depths,sym,markersize=size)
+                plt.plot(Decs,Depths,sym,markersize=size)
             if len(Decs)==0 and pltLine and len(SDecs)>0:
-                pyplot.plot(SDecs,SDepths,'k')
+                plt.plot(SDecs,SDepths,'k')
             if len(SDecs)>0:
-                pyplot.plot(SDecs,SDepths,Ssym,markersize=Ssize)
+                plt.plot(SDecs,SDepths,Ssym,markersize=Ssize)
             if spc_file:
-                pyplot.plot(SpecDecs,SpecDepths,spc_sym,markersize=spc_size)
+                plt.plot(SpecDecs,SpecDepths,spc_sym,markersize=spc_size)
             if spc_file and len(FDepths)>0:
-                pyplot.scatter(FDecs,FDepths,marker=spc_sym[-1],edgecolor=spc_sym[0],facecolor='white',s=spc_size**2)
+                plt.scatter(FDecs,FDepths,marker=spc_sym[-1],edgecolor=spc_sym[0],facecolor='white',s=spc_size**2)
             if res_file:
-                pyplot.plot(ResDecs,ResDepths,res_sym,markersize=res_size)
+                plt.plot(ResDecs,ResDepths,res_sym,markersize=res_size)
             if sum_file:
                 for core in Cores:
                     depth=float(core[core_depth_key])
                     if depth>dmin and depth<dmax:
-                        pyplot.plot([0,360.],[depth,depth],'b--')
+                        plt.plot([0,360.],[depth,depth],'b--')
                         if pel==plt:
-                            pyplot.text(360,depth+tint,core[core_label_key])
+                            plt.text(360,depth+tint,core[core_label_key])
             if pel==plt:
-                pyplot.axis([0,400,dmax,dmin])
+                plt.axis([0,400,dmax,dmin])
             else:
-                pyplot.axis([0,360.,dmax,dmin])
-            pyplot.xlabel('Declination')
-            pyplot.ylabel(ylab)
+                plt.axis([0,360.,dmax,dmin])
+            plt.xlabel('Declination')
+            plt.ylabel(ylab)
             plt+=1
             pmagplotlib.delticks(ax) # dec xticks are too crowded otherwise
     else:
         return False, 'No data found to plot\nTry again with different parameters'
     if pltInc:
-            pyplot.subplot(1,pcol,plt)
+            plt.subplot(1,pcol,plt)
             if pltLine:
-                pyplot.plot(Incs,Depths,'k')
+                plt.plot(Incs,Depths,'k')
             if len(Incs)>0:
-                pyplot.plot(Incs,Depths,sym,markersize=size)
+                plt.plot(Incs,Depths,sym,markersize=size)
             if len(Incs)==0 and pltLine and len(SIncs)>0:
-                pyplot.plot(SIncs,SDepths,'k')
-            if len(SIncs)>0:pyplot.plot(SIncs,SDepths,Ssym,markersize=Ssize)
+                plt.plot(SIncs,SDepths,'k')
+            if len(SIncs)>0:plt.plot(SIncs,SDepths,Ssym,markersize=Ssize)
             if spc_file and len(SpecDepths)>0:
-                pyplot.plot(SpecIncs,SpecDepths,spc_sym,markersize=spc_size)
+                plt.plot(SpecIncs,SpecDepths,spc_sym,markersize=spc_size)
             if spc_file and len(FDepths)>0:
-                pyplot.scatter(FIncs,FDepths,marker=spc_sym[-1],edgecolor=spc_sym[0],facecolor='white',s=spc_size**2)
+                plt.scatter(FIncs,FDepths,marker=spc_sym[-1],edgecolor=spc_sym[0],facecolor='white',s=spc_size**2)
             if res_file:
-                pyplot.plot(ResIncs,ResDepths,res_sym,markersize=res_size)
+                plt.plot(ResIncs,ResDepths,res_sym,markersize=res_size)
             if sum_file:
                 for core in Cores:
                      depth=float(core[core_depth_key])
                      if depth>dmin and depth<dmax:
-                         if pel==plt:pyplot.text(90,depth+tint,core[core_label_key])
-                         pyplot.plot([-90,90],[depth,depth],'b--')
-            pyplot.plot([0,0],[dmax,dmin],'k-')
+                         if pel==plt:plt.text(90,depth+tint,core[core_label_key])
+                         plt.plot([-90,90],[depth,depth],'b--')
+            plt.plot([0,0],[dmax,dmin],'k-')
             if pel==plt:
-                pyplot.axis([-90,110,dmax,dmin])
+                plt.axis([-90,110,dmax,dmin])
             else:
-                pyplot.axis([-90,90,dmax,dmin])
-            pyplot.xlabel('Inclination')
-            pyplot.ylabel('')
+                plt.axis([-90,90,dmax,dmin])
+            plt.xlabel('Inclination')
+            plt.ylabel('')
             plt+=1
     if pltMag and len(Ints)>0 or len(SInts)>0:
-            pyplot.subplot(1,pcol,plt)
+            plt.subplot(1,pcol,plt)
             for pow in range(-10,10):
                 if maxInt*10**pow>1:break
             if not logit:
@@ -1717,82 +1717,82 @@ def core_depthplot(input_dir_path='.', meas_file='magic_measurements.txt', spc_f
                 for k in range(len(SInts)):
                     SInts[k]=SInts[k]*10**pow
                 if pltLine and len(Ints)>0:
-                    pyplot.plot(Ints,Depths,'k')
+                    plt.plot(Ints,Depths,'k')
                 if len(Ints)>0:
-                    pyplot.plot(Ints,Depths,sym,markersize=size)
+                    plt.plot(Ints,Depths,sym,markersize=size)
                 if len(Ints)==0 and pltLine and len(SInts)>0:
-                    pyplot.plot(SInts,SDepths,'k-')
+                    plt.plot(SInts,SDepths,'k-')
                 if len(SInts)>0:
-                    pyplot.plot(SInts,SDepths,Ssym,markersize=Ssize)
+                    plt.plot(SInts,SDepths,Ssym,markersize=Ssize)
                 if sum_file:
                     for core in Cores:
                          depth=float(core[core_depth_key])
-                         pyplot.plot([0,maxInt*10**pow+.1],[depth,depth],'b--')
+                         plt.plot([0,maxInt*10**pow+.1],[depth,depth],'b--')
                          if depth>dmin and depth<dmax:
-                             pyplot.text(maxInt*10**pow-.2*maxInt*10**pow,depth+tint,core[core_label_key])
-                pyplot.axis([0,maxInt*10**pow+.1,dmax,dmin])
+                             plt.text(maxInt*10**pow-.2*maxInt*10**pow,depth+tint,core[core_label_key])
+                plt.axis([0,maxInt*10**pow+.1,dmax,dmin])
                 if not norm:
-                    pyplot.xlabel('%s %i %s'%('Intensity (10^-',pow,' Am^2)'))
+                    plt.xlabel('%s %i %s'%('Intensity (10^-',pow,' Am^2)'))
                 else:
-                    pyplot.xlabel('%s %i %s'%('Intensity (10^-',pow,' Am^2/kg)'))
+                    plt.xlabel('%s %i %s'%('Intensity (10^-',pow,' Am^2/kg)'))
             else:
                 if pltLine:
-                    pyplot.semilogx(Ints,Depths,'k')
+                    plt.semilogx(Ints,Depths,'k')
                 if len(Ints)>0:
-                    pyplot.semilogx(Ints,Depths,sym,markersize=size)
+                    plt.semilogx(Ints,Depths,sym,markersize=size)
                 if len(Ints)==0 and pltLine and len(SInts)>0:
-                    pyplot.semilogx(SInts,SDepths,'k')
+                    plt.semilogx(SInts,SDepths,'k')
                 if len(Ints)==0 and pltLine==1 and len(SInts)>0:
-                    pyplot.semilogx(SInts,SDepths,'k')
+                    plt.semilogx(SInts,SDepths,'k')
                 if len(SInts)>0:
-                    pyplot.semilogx(SInts,SDepths,Ssym,markersize=Ssize)
+                    plt.semilogx(SInts,SDepths,Ssym,markersize=Ssize)
                 if sum_file:
                     for core in Cores:
                          depth=float(core[core_depth_key])
-                         pyplot.semilogx([minInt,maxInt],[depth,depth],'b--')
-                         if depth>dmin and depth<dmax:pyplot.text(maxInt-.2*maxInt,depth+tint,core[core_label_key])
-                pyplot.axis([0,maxInt,dmax,dmin])
+                         plt.semilogx([minInt,maxInt],[depth,depth],'b--')
+                         if depth>dmin and depth<dmax:plt.text(maxInt-.2*maxInt,depth+tint,core[core_label_key])
+                plt.axis([0,maxInt,dmax,dmin])
                 if not norm:
-                    pyplot.xlabel('Intensity (Am^2)')
+                    plt.xlabel('Intensity (Am^2)')
                 else:
-                    pyplot.xlabel('Intensity (Am^2/kg)')
+                    plt.xlabel('Intensity (Am^2/kg)')
             plt+=1
     if suc_file or len(SSucs)>0:
-            pyplot.subplot(1,pcol,plt)
+            plt.subplot(1,pcol,plt)
             if len(Susc)>0:
                 if pltLine:
-                    pyplot.plot(Susc,Sus_depths,'k')
+                    plt.plot(Susc,Sus_depths,'k')
                 if not logit:
-                    pyplot.plot(Susc,Sus_depths,sym,markersize=size)
+                    plt.plot(Susc,Sus_depths,sym,markersize=size)
                 if logit:
-                    pyplot.semilogx(Susc,Sus_depths,sym,markersize=size)
+                    plt.semilogx(Susc,Sus_depths,sym,markersize=size)
             if len(SSucs)>0:
                 if not logit:
-                    pyplot.plot(SSucs,SDepths,sym,markersize=size)
+                    plt.plot(SSucs,SDepths,sym,markersize=size)
                 if logit:
-                    pyplot.semilogx(SSucs,SDepths,sym,markersize=size)
+                    plt.semilogx(SSucs,SDepths,sym,markersize=size)
             if sum_file:
                 for core in Cores:
                      depth=float(core[core_depth_key])
                      if not logit:
-                         pyplot.plot([minSuc,maxSuc],[depth,depth],'b--')
+                         plt.plot([minSuc,maxSuc],[depth,depth],'b--')
                      if logit:
-                         pyplot.semilogx([minSuc,maxSuc],[depth,depth],'b--')
-            pyplot.axis([minSuc,maxSuc,dmax,dmin])
-            pyplot.xlabel('Susceptibility')
+                         plt.semilogx([minSuc,maxSuc],[depth,depth],'b--')
+            plt.axis([minSuc,maxSuc,dmax,dmin])
+            plt.xlabel('Susceptibility')
             plt+=1
     if wig_file:
-            pyplot.subplot(1,pcol,plt)
-            pyplot.plot(WIG,WIG_depths,'k')
+            plt.subplot(1,pcol,plt)
+            plt.plot(WIG,WIG_depths,'k')
             if sum_file:
                 for core in Cores:
                      depth=float(core[core_depth_key])
-                     pyplot.plot([WIG[0],WIG[-1]],[depth,depth],'b--')
-            pyplot.axis([min(WIG),max(WIG),dmax,dmin])
-            pyplot.xlabel(plt_key)
+                     plt.plot([WIG[0],WIG[-1]],[depth,depth],'b--')
+            plt.axis([min(WIG),max(WIG),dmax,dmin])
+            plt.xlabel(plt_key)
             plt+=1
     if pltTime:
-            ax1=pyplot.subplot(1,pcol,plt)
+            ax1=plt.subplot(1,pcol,plt)
             ax1.axis([-.25,1.5,amax,amin])
             plt+=1
             TS,Chrons=pmag.get_TS(timescale)
@@ -1812,7 +1812,7 @@ def core_depthplot(input_dir_path='.', meas_file='magic_measurements.txt', spc_f
                    if pol: ax1.fill_between(X,Y,Y1,facecolor='black') # fill in every other time
             ax1.plot([0,1,1,0,0],[amin,amin,amax,amax,amin],'k-')
             ax2=ax1.twinx()
-            pyplot.ylabel("Age (Ma): "+timescale)
+            plt.ylabel("Age (Ma): "+timescale)
             for k in range(len(Chrons)-1):
                 c=Chrons[k]
                 cnext=Chrons[k+1]
@@ -1822,7 +1822,7 @@ def core_depthplot(input_dir_path='.', meas_file='magic_measurements.txt', spc_f
                     ax2.text(1.05,d,c[0]) #
             ax2.axis([-.25,1.5,amax,amin])
     figname=location+'_m:_'+method+'_core-depthplot.'+fmt
-    pyplot.title(location)
+    plt.title(location)
     return main_plot, figname
 
 
@@ -1958,7 +1958,7 @@ def download_magic(infile, dir_path='.', input_dir_path='.', overwrite=False):
 
 def upload_magic(concat=0, dir_path='.'):
     """
-    Finds all magic files in a given directory, and compiles them into an upload.txt file which can be uploaded into the MagIC database.  
+    Finds all magic files in a given directory, and compiles them into an upload.txt file which can be uploaded into the MagIC database.
     returns a tuple of either: (False, error_message, errors) if there was a problem creating/validating the upload file
     or: (filename, '', None) if the upload was fully successful
     """
@@ -2005,7 +2005,7 @@ def upload_magic(concat=0, dir_path='.'):
             if file_type=='er_locations':
                 for rec in Data:
                     locations.append(rec['er_location_name'])
-                    
+
             if file_type in ['pmag_samples', 'pmag_sites', 'pmag_specimens']:
                 # if there is NO pmag data for specimens (samples/sites),
                 # do not try to write it to file
@@ -2026,7 +2026,7 @@ def upload_magic(concat=0, dir_path='.'):
                             break
                 if ignore:
                     continue
-            
+
             if file_type=='er_samples': # check to only upload top priority orientation record!
                 NewSamps,Done=[],[]
                 for rec in Data:
@@ -2042,10 +2042,10 @@ def upload_magic(concat=0, dir_path='.'):
                     if rec['er_sample_name'] in Done:
                         NewData.append(rec)
                         SpecDone.append(rec['er_specimen_name'])
-                    else: 
-                        print 'no valid sample record found for: ' 
+                    else:
+                        print 'no valid sample record found for: '
                         print rec
-                Data=NewData           
+                Data=NewData
                 #print 'only measurements that have specimen/sample info'
             if file_type=='magic_measurements': #  only measurements that have specimen names
                 no_specs = []
@@ -2054,7 +2054,7 @@ def upload_magic(concat=0, dir_path='.'):
                     if rec['er_specimen_name'] in SpecDone:
                         NewData.append(rec)
                     else:
-                        print 'no valid specimen record found for: ' 
+                        print 'no valid specimen record found for: '
                         print rec
                         no_specs.append(rec)
                 #print set([record['er_specimen_name'] for record in no_specs])
@@ -2064,7 +2064,7 @@ def upload_magic(concat=0, dir_path='.'):
                 if first_file == 1:
                     keystring = pmag.first_rec(up,Data[0],file_type)
                     first_file = 0
-                else:  
+                else:
                     keystring = pmag.first_up(up,Data[0],file_type)
                 for rec in Data:
     # collect the method codes
@@ -2130,7 +2130,7 @@ def upload_magic(concat=0, dir_path='.'):
 
 def specimens_results_magic(infile='pmag_specimens.txt', measfile='magic_measurements.txt', sampfile='er_samples.txt', sitefile='er_sites.txt', agefile='er_ages.txt', specout='er_specimens.txt', sampout='pmag_samples.txt', siteout='pmag_sites.txt', resout='pmag_results.txt', critout='pmag_criteria.txt', instout='magic_instruments.txt', plotsites = False, fmt='svg', dir_path='.', cors=[], priorities=['DA-AC-ARM','DA-AC-TRM'], coord='g', user='', vgps_level='site', do_site_intensity=True, DefaultAge=["none"], avg_directions_by_sample=False, avg_intensities_by_sample=False, avg_all_components=False, avg_by_polarity=False, skip_directions=False, skip_intensities=False, use_sample_latitude=False, use_paleolatitude=False, use_criteria='default'):
     """
-    Writes magic_intruments, er_specimens, pmag_samples, pmag_sites, pmag_criteria, and pmag_results. The data used to write this is obtained by reading a pmag_speciemns, a magic_measurements, a er_samples, a er_sites, a er_ages. 
+    Writes magic_intruments, er_specimens, pmag_samples, pmag_sites, pmag_criteria, and pmag_results. The data used to write this is obtained by reading a pmag_speciemns, a magic_measurements, a er_samples, a er_sites, a er_ages.
     @param -> infile: path from the WD to the pmag speciemns table
     @param -> measfile: path from the WD to the magic measurement file
     @param -> sampfile: path from the WD to the er sample file

@@ -354,14 +354,16 @@ class Zeq_GUI(wx.Frame):
  #----------------------------------------------------------------------
         # stopped here
         self.coordinate_list = ['specimen']
+        intial_coordinate = 'specimen'
         for specimen in self.specimens:
             if 'geographic' not in self.coordinate_list and self.Data[specimen]['zijdblock_geo']:
                 self.coordinate_list.append('geographic')
+                intial_coordinate = 'geographic'
             if 'tilt-corrected' not in self.coordinate_list and self.Data[specimen]['zijdblock_tilt']:
                 self.coordinate_list.append('tilt-corrected')
-        self.coordinates_box = wx.ComboBox(self.panel, -1, choices=self.coordinate_list, value='specimen',style=wx.CB_DROPDOWN,name="coordinates")
+        self.coordinates_box = wx.ComboBox(self.panel, -1, choices=self.coordinate_list, value=intial_coordinate,style=wx.CB_DROPDOWN,name="coordinates")
         self.Bind(wx.EVT_COMBOBOX, self.onSelect_coordinates,self.coordinates_box)
-        self.orthogonal_box = wx.ComboBox(self.panel, -1, value='X=NRM dec', choices=['X=NRM dec','X=East','X=North','X=best fit line dec'], style=wx.CB_DROPDOWN,name="orthogonal_plot")
+        self.orthogonal_box = wx.ComboBox(self.panel, -1, value='X=East', choices=['X=NRM dec','X=East','X=North','X=best fit line dec'], style=wx.CB_DROPDOWN,name="orthogonal_plot")
         self.Bind(wx.EVT_COMBOBOX, self.onSelect_orthogonal_box,self.orthogonal_box)
 
         self.box_sizer_select_specimen.Add(wx.StaticText(self.panel,label="specimen:",style=wx.TE_CENTER))
