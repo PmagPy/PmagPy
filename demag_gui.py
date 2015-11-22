@@ -2763,8 +2763,9 @@ class Zeq_GUI(wx.Frame):
                     new_pars = self.calculate_mean(pars_for_mean[key],calculation_type)
                     map_keys = new_pars.keys()
                     map_keys.remove("calculation_type")
-                    for mkey in map_keys:
-                        new_pars[mkey] = float(new_pars[mkey])
+                    if calculation_type == "Fisher":
+                        for mkey in map_keys:
+                            new_pars[mkey] = float(new_pars[mkey])
                     self.pmag_results_data[high_level_type][high_level_name][key_index].put(None, dirtype,new_pars)
                 if len(pars_for_mean[key]) > 0 and key == "All":
                     self.high_level_means[high_level_type][high_level_name][dirtype] = self.calculate_mean(pars_for_mean["All"],calculation_type)
